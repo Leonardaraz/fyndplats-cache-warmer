@@ -79,8 +79,8 @@ function pickTitle(v: string[], seed: number, salt: number, max = 48): string {
 // Leverans och retur återkommer i BÅDE Pattern 1 och 3. Varje svar finns i 6
 // varianter med olika ordval OCH meningsbyggnad, så att två sidor sällan delar
 // samma 3-gram. Fakta hålls konstant: 3–7 arbetsdagar, spårning via mejl,
-// frakt 19 kr (fri över 499 kr), 30 dagars öppet köp, oanvänd + originalför-
-// packning, info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
+// frakt 19 kr (fri över 499 kr), 30 dagar totalt (14 lagstadgade + öppet köp
+// t.o.m. dag 30), info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
 // oberoende av övriga slots på sidan.
 
 function deliveryAnswer(singular: string, seed: number, salt: number): string {
@@ -97,13 +97,18 @@ function deliveryAnswer(singular: string, seed: number, salt: number): string {
 }
 
 function returnAnswer(seed: number, salt: number): string {
+  // Varianterna villkorade tidigare HELA 30-dagarsperioden med "oanvänd och i
+  // originalförpackning" — alltså även de 14 dagar som är lagstadgad ångerrätt,
+  // där varan tvärtom får undersökas som i en butik. Samma fel som fanns på
+  // /angra-kop och /returer, fast här på 36 publicerade sidor. Villkoret hör
+  // hemma i dag 15–30, som är vårt eget erbjudande. Se lib/retur-policy.ts.
   const v = [
-    `Ja, du har 30 dagars öppet köp hos Fyndplats. Så länge produkten är oanvänd och i originalförpackning är det enkelt — mejla info@fyndplats.com med ditt ordernummer så hjälper vi dig vidare.`,
-    `Absolut. Ångrar du köpet gäller 30 dagars öppet köp. Skicka bara ett mejl till info@fyndplats.com med ordernumret, så löser vi returen. Varan ska vara oanvänd och ligga kvar i originalförpackningen.`,
-    `Självklart. Du kan returnera inom 30 dagar förutsatt att produkten är oanvänd och i sin originalförpackning. Hör av dig till info@fyndplats.com och uppge ditt ordernummer så ordnar vi resten.`,
-    `Det går bra — 30 dagars öppet köp gäller på allt. Mejla info@fyndplats.com med ordernumret och se till att varan är oanvänd och i originalförpackningen, så tar vi hand om returen.`,
-    `Ja. Passar något inte har du 30 dagar på dig att ångra köpet. Kontakta oss på info@fyndplats.com med ordernumret; produkten behöver bara vara oanvänd och kvar i originalförpackningen.`,
-    `Returer är inga problem inom 30 dagar. Skicka ordernumret till info@fyndplats.com så guidar vi dig — kravet är att produkten är oanvänd och i originalförpackning.`,
+    `Ja. Du har totalt 30 dagar på dig: 14 dagars lagstadgad ångerrätt, därefter vårt frivilliga öppna köp till och med dag 30. Mejla info@fyndplats.com med ditt ordernummer så hjälper vi dig vidare.`,
+    `Absolut. Totalt 30 dagar gäller — de första 14 enligt lag, resten som vårt eget öppna köp. Skicka ordernumret till info@fyndplats.com, så löser vi returen.`,
+    `Självklart. Inom de 14 lagstadgade dagarna får du undersöka varan som du hade gjort i en butik. Därefter, till och med dag 30, gäller vårt frivilliga öppna köp för oanvänd och komplett vara. Hör av dig till info@fyndplats.com med ordernumret.`,
+    `Det går bra — 30 dagar på allt. Under de första 14 dagarna gäller ångerrätten enligt lag; dag 15–30 är vårt öppna köp, och då ska varan vara oanvänd och komplett. Mejla info@fyndplats.com med ordernumret.`,
+    `Ja. Passar något inte har du 30 dagar på dig att ångra köpet: lagens 14 dagar plus vårt frivilliga öppna köp fram till dag 30. Kontakta oss på info@fyndplats.com med ordernumret.`,
+    `Returer är inga problem inom 30 dagar. De första 14 dagarna är lagstadgad ångerrätt, dag 15–30 vårt eget öppna köp för oanvänd vara. Skicka ordernumret till info@fyndplats.com så guidar vi dig.`,
   ];
   return pick(v, seed, salt);
 }

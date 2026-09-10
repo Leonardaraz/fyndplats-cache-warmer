@@ -245,7 +245,9 @@ export default function OrderConfirmationEmail({
         </Link>.
       </Text>
       <Text style={{ ...text.muted, marginTop: "4px" }}>
-        Ångrat dig? Du har 14 dagars ångerrätt – ångra enkelt på{" "}
+        Ångrat dig? Du har totalt 30 dagar på dig att ångra eller returnera: 14 dagars
+        lagstadgad ångerrätt, därefter vårt frivilliga öppna köp till och med dag 30.
+        Ångra enkelt på{" "}
         <Link href="https://www.fyndplats.se/angra-kop" style={{ color: BRAND.orange2 }}>
           fyndplats.se/angra-kop
         </Link>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TOTAL_SUMMARY } from "../../lib/retur-policy";
 import { ContentPage } from "../../components/content";
 
 const DESC =
@@ -34,7 +35,8 @@ export default function AnvandarvillkorApp() {
       <p>Normal leveranstid är <strong>3–7 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp tillkommer en fraktavgift som visas i kassan. Vid förseningar över 30 dagar har du rätt att häva köpet och få full återbetalning.</p>
 
       <h2>5. Returer och ångerrätt</h2>
-      <p>Du har <strong>14 dagars lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Utöver detta erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
+      <p>{TOTAL_SUMMARY}</p>
+      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>, och då ska produkten vara oanvänd, komplett och i säljbart skick. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
 
       <h2>6. Användarens skyldigheter</h2>
       <ul>

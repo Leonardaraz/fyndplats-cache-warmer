@@ -41,10 +41,14 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
 
 ## 5. Returer och ångerrätt
 
-- Du har **14 dagars lagstadgad ångerrätt** enligt lagen om distansavtal
-  (2005:59), räknat från den dag du tog emot varan.
-- Utöver detta erbjuder Fyndplats frivilligt **30 dagars öppet köp** på alla
-  produkter.
+- Du har **totalt 30 dagar** på dig att ångra eller returnera ditt köp.
+- **Dag 1–14** omfattas av den **lagstadgade ångerrätten** enligt lagen om
+  distansavtal (2005:59), räknat från den dag du tog emot varan. Under
+  ångerfristen får du undersöka produktens egenskaper och funktion på
+  motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett
+  skäligt värdeminskningsavdrag göras.
+- **Dag 15–30** är Fyndplats **frivilliga öppna köp**. Då ska produkten vara
+  oanvänd, komplett och i säljbart skick.
 - Returfrakten betalas av kunden, utom vid felaktig eller skadad vara.
   Fullständiga villkor finns på <https://www.fyndplats.se/returer>.
 

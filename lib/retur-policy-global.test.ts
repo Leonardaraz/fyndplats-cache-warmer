@@ -1,0 +1,91 @@
+// Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
+//
+// retur-policy.test.ts kontrollerar att den delade textkällan är rätt skriven.
+// Det här testet kontrollerar något annat: att ingen ANNAN fil i repot säger
+// emot den.
+//
+// Varför det behövs: returtexten lagades först på fyra sidor. En genomsökning
+// visade att samma två fel levde kvar på fyra ställen till — orderbekräftelse-
+// mejlet, FAQ-mallen för de 36 programmatiska sidorna, app-villkoren och
+// App Store-villkoren. Ingenting hade fångat det, för inget test tittade
+// utanför de filer som ändrades.
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+const ROOTS = ["app", "lib", "components", "emails", "content", "docs"];
+const EXT = /\.(ts|tsx|md|mdx)$/;
+const SKIP = /node_modules|\.next|\.test\.tsx?$|retur-policy\.ts$/;
+
+function files(dir: string, out: string[] = []): string[] {
+  let entries;
+  try { entries = readdirSync(dir); } catch { return out; }
+  for (const e of entries) {
+    const p = join(dir, e);
+    if (SKIP.test(p)) continue;
+    if (statSync(p).isDirectory()) files(p, out);
+    else if (EXT.test(p)) out.push(p);
+  }
+  return out;
+}
+
+// Kodkommentarer strippas: ord som "oanvänd" förekommer där om oanvända
+// variabler och bilder, vilket inte är kundtext. Identifierare som importeras
+// ur retur-policy.ts räknas som att de säger vad den källan säger.
+const prose = (t: string) =>
+  t.replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1 ")
+    .replace(/\{TOTAL_SUMMARY\}|TOTAL_SUMMARY/g, " totalt 30 dagar dag 15–30 ")
+    .replace(/\{TOTAL_SHORT\}|TOTAL_SHORT/g, " totalt 30 dagar ");
+
+const ALL = ROOTS.flatMap((r) => files(r)).map((p) => ({ p, t: prose(readFileSync(p, "utf8")) }));
+
+test("repot innehåller filer att granska", () => {
+  assert.ok(ALL.length > 50, `hittade bara ${ALL.length} filer — sökvägarna är fel`);
+});
+
+test("ingen text läser som 14 + 30 = 44 dagar", () => {
+  // "Utöver detta har du 30 dagars öppet köp" direkt efter ångerrätten var
+  // precis den läsningen. "Utöver" är däremot i sin ordning när det följs av
+  // "till och med dag 30" eller "räknat från leveransen", som säger totalen.
+  const bad = ALL.filter(({ t }) =>
+    /[Uu]töver (detta|den lagstadgade ångerrätten)[^.]{0,60}30 dagars öppet köp(?![^.]{0,80}(till och med dag 30|räknat från))/.test(t),
+  );
+  assert.deepEqual(bad.map((b) => b.p), []);
+});
+
+test("ingen text villkorar de lagstadgade 14 dagarna med oanvänd vara", () => {
+  // Kunden får undersöka varan som i en butik under ångerfristen. Kravet på
+  // oanvänd vara hör till dag 15–30, vårt eget erbjudande — så varje mening
+  // som kräver "oanvänd" måste också nämna vilken period den talar om.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    const chunks = t.split(/(?<=[.!?])\s+/);
+    chunks.forEach((s, i) => {
+      if (!/oanvänd/i.test(s)) return;
+      const context = [chunks[i - 1] || "", s, chunks[i + 1] || ""].join(" ");
+      if (/dag 15|15–30|15-30|öppna köp|öppet köp/i.test(context)) return;
+      bad.push(`${p}: ${s.trim().replace(/\s+/g, " ").slice(0, 110)}`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("ingen text utlovar bara 14 dagar när butiken ger 30", () => {
+  // Orderbekräftelsemejlet sa "Du har 14 dagars ångerrätt" — sant om lagen,
+  // men det underskattar erbjudandet med mer än hälften för varje kund som
+  // handlar. Nämns 14 dagar ska totalen nämnas i samma mening eller nästa.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    if (/betalningstid|faktura|betala inom/i.test(t) && !/ångerrätt/i.test(t)) continue;
+    const chunks = t.split(/(?<=[.!?])\s+/);
+    chunks.forEach((s, i) => {
+      if (!/14 dagars? (lagstadgad )?ångerrätt/i.test(s)) return;
+      const context = [s, chunks[i + 1] || "", chunks[i + 2] || ""].join(" ");
+      if (/30 dagar|dag 30|dag 15/i.test(context)) return;
+      bad.push(`${p}: ${s.trim().replace(/\s+/g, " ").slice(0, 110)}`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});

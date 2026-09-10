@@ -170,7 +170,10 @@ export default function WithdrawalReceiptEmail({
       </Section>
 
       <Text style={{ ...text.muted, marginTop: "16px" }}>
-        Produkten ska vara oanvänd och i originalförpackning med alla tillbehör. Frågor? Svara
+        Under de första 14 dagarna får du undersöka produkten som du hade gjort i en butik;
+        har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Ångrar du
+        under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
+        komplett och i säljbart skick. Frågor? Svara
         på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
           {BRAND.supportEmail}
