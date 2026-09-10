@@ -459,3 +459,78 @@ def leveransloften(syn, ingar, nyckel=""):
                        f"INGAR{'[' + nyckel + ']' if nyckel else ''} är "
                        f"{list(ingar)} — …{mening.strip()[:120]}…")
     return fel
+
+
+# ── GRANNSTRYKNING: sidans EGEN text är det enda som får granskas ──────────
+#
+# Butikens rekommendationsrad lägger ANDRA produkters namn på sidan. Ett
+# grindat ord i en grannes namn är inte vårt fel, och har fällt korrekta sidor
+# tre gånger nu. Kanalerna har hittats en i taget, och det är själva poängen
+# med att modulen är DELAD: nästa runda ärver alla sex utan att veta om dem.
+#
+#   1-2. `"name":"…"` och `\"name\":\"…\"`      (runda 111, uppgift #398)
+#   3.   `"slug":"…","name":"…"` i flight-payloaden (runda 115)
+#   4.   grannens SLUG — en slug är text        (runda 116, uppgift #431)
+#   5-6. ☠️ DEN RENDERADE DOM:EN. `<div class="pname">` och `alt="…"`, i båda
+#        serialiseringarna. Uppmätt i runda 117: grannen "Träbänk 175 cm i
+#        massiv furu för tre personer" stod på FYRA ställen, och inget av dem
+#        var en `"name"`-nyckel — så materialgrinden fällde en korrekt
+#        köksvagnssida på ordet `massiv`.
+#
+# ☠️ EN FRÅGA ÄR INGEN GRANNE. JSON-LD:s FAQ använder `"name"` för FRÅGAN, så
+#    sidans egna frågor hamnade i grannlistan och ströks ur texten — varefter
+#    grinden rapporterade att frågan SAKNADES (runda 116, uppgift #430).
+_GRANNKANALER = [
+    r'"name"\s*:\s*"([^"]{6,90})"',
+    r'\\"name\\":\\"([^"]{6,90})\\"',
+    r'<div class="pname">([^<]{6,90})</div>',
+    r'\balt="([^"]{6,90})"',
+    r'\\"alt\\":\\"([^"]{6,90})\\"',
+    r'\\"className\\":\\"pname\\",\\"children\\":\\"([^"]{6,90})\\"',
+]
+
+
+def grannar(html, slug, eget_namn=None):
+    """Produktnamn som tillhör ANDRA sidor."""
+    n = set()
+    for m in _GRANNKANALER:
+        n |= set(re.findall(m, html))
+    n |= {namn for s_, namn in
+          re.findall(r'"slug":"([a-z0-9-]+)","name":"([^"]+)"', html) if s_ != slug}
+    return {x for x in n
+            if len(x) > 6 and not x.rstrip().endswith("?") and x != eget_namn}
+
+
+def grannslugs(html, slug):
+    """Slug-strängar som tillhör ANDRA sidor — en slug är också text."""
+    s = set(re.findall(r'"slug"\s*:\s*"([a-z0-9-]{6,})"', html))
+    s |= set(re.findall(r'\\"slug\\":\\"([a-z0-9-]{6,})\\"', html))
+    s |= set(re.findall(r"/produkt/([a-z0-9-]{6,})", html))
+    return {x for x in s if x != slug}
+
+
+def strak_grannar(text, html, slug, eget_namn=None):
+    """Sidans text med grannarnas namn OCH slugs strukna."""
+    for namn in sorted(grannar(html, slug, eget_namn), key=len, reverse=True):
+        text = text.replace(namn, " ")
+    for sl in grannslugs(html, slug):
+        text = text.replace(sl, " ")
+    return text
+
+
+# ☠️ BUTIKENS EGEN EU-LAGER-RIBBON ÄR SANKTIONERAD. CLAUDE.md pekar ut den som
+#    det ENDA stället där leveransursprunget får nämnas. En live-grind som ärver
+#    källtextens `skickas från`-mönster fyrar därför på VARJE korrekt publicerad
+#    sida i katalogen — uppmätt på alla åtta i runda 117. Ett larm som alltid
+#    fyrar lär mottagaren att sluta läsa; det är samma regel som mot ett rött
+#    synk-jobb vid varje svep.
+# ⚠️ TVÅ FÖREKOMSTER, inte en. Ribbonen på produktsidan var den uppenbara;
+#    den andra är SIDFOTENS navigationslänk "EU-lager & tull", som ligger på
+#    varje sida butiken renderar. Att bara stryka ribbonen lämnade alltså
+#    larmet kvar på alla åtta — uppmätt, inte antaget.
+EU_RIBBON = re.compile(
+    r'<a[^>]*href="/eu-lager-garanti"[^>]*>.*?</a>'
+    r'|Skickas från EU-lager[^<]*'
+    r'|\\?"href\\?":\\?"/eu-lager-garanti\\?"[^}]*?\\?"children\\?":\\?"[^"\\\\]*'
+    r'|/eu-lager-garanti'
+    r'|EU-lager \\u0026 tull|EU-lager & tull', re.S)

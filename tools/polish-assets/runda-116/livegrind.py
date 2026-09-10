@@ -63,40 +63,12 @@ SKRIPT = re.compile(r"(?is)<script[^>]*>.*?</script>")
 CYKELFRAGA = re.compile(r"G[åa]r\s+den\s+att\s+koppla\s+efter\s+en\s+cykel\?", re.I)
 
 
-def _grannar(html, slug):
-    """Produktnamn som tillhör ANDRA sidor — rekommendationsraden.
-
-    ☠️ TRE SERIALISERINGAR. Runda 115 mätte upp den tredje och den fällde sex
-       korrekta sidor innan den var känd.
-    """
-    n = set()
-    n |= {m for m in re.findall(r'"name"\s*:\s*"([^"]{6,90})"', html)}
-    n |= {m for m in re.findall(r'\\"name\\":\\"([^"]{6,90})\\"', html)}
-    n |= {namn for s_, namn in
-          re.findall(r'"slug":"([a-z0-9-]+)","name":"([^"]+)"', html)
-          if s_ != slug}
-    # ☠️ EN FRÅGA ÄR INGEN GRANNE. `"name"` används också av JSON-LD:s
-    #    FAQ-poster, så sidans EGNA frågor hamnade i grannlistan och ströks ur
-    #    texten — varefter grinden rapporterade att frågan SAKNADES på sju
-    #    korrekta sidor. Grindens egen strykning såg ut som ett fynd (#384),
-    #    fast värre: den raderade precis det den sedan letade efter.
-    return {x for x in n if len(x) > 6 and not x.rstrip().endswith("?")}
-
-
-def _grannslugs(html, slug):
-    """Slug-strängar som tillhör ANDRA sidor.
-
-    ☠️ EN FJÄRDE KANAL, hittad av det egna självtestet: att stryka grannens
-       NAMN räcker inte, för hennes SLUG står kvar — och en slug är text.
-       `hundvagn-regnskydd-mugghallare` innehåller ordet `regnskydd`, som är
-       ett grindat löfte i den här rundan, så en granne i rekommendationsraden
-       fällde en korrekt sida. Samma familj som #398 och #385: sidans egen text
-       är det enda som får granskas.
-    """
-    s = set(re.findall(r'"slug"\s*:\s*"([a-z0-9-]{6,})"', html))
-    s |= set(re.findall(r'\\"slug\\":\\"([a-z0-9-]{6,})\\"', html))
-    s |= set(re.findall(r'/produkt/([a-z0-9-]{6,})', html))
-    return {x for x in s if x != slug}
+# ☠️ GRANNSTRYKNINGEN FLYTTADE TILL `grindar.py` i runda 117, som hittade två
+#    kanaler till: `<div class="pname">` och `alt="…"`. Den här filens egna
+#    kopior kände fyra av sex och lämnades kvar bara för att ingen granne råkade
+#    bära ett grindat ord. Tvillingar glider isär — modulen är delad nu.
+_grannar = G.grannar
+_grannslugs = G.grannslugs
 
 
 def granska(nyckel, html):

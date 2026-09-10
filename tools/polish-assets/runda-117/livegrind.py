@@ -43,35 +43,32 @@ SVG_GEOMETRI = re.compile(r'\b(?:d|points|viewBox|transform)="[^"]*"'
 BILDADRESS = re.compile(r"https?://static\.wixstatic\.com/\S+|\b\d+w\b")
 
 
-def _grannar(html, slug):
-    n = set()
-    n |= set(re.findall(r'"name"\s*:\s*"([^"]{6,90})"', html))
-    n |= set(re.findall(r'\\"name\\":\\"([^"]{6,90})\\"', html))
-    n |= {namn for s_, namn in
-          re.findall(r'"slug":"([a-z0-9-]+)","name":"([^"]+)"', html) if s_ != slug}
-    # ☠️ En FRÅGA är ingen granne (uppgift #430).
-    return {x for x in n if len(x) > 6 and not x.rstrip().endswith("?")}
-
-
-def _grannslugs(html, slug):
-    s = set(re.findall(r'"slug"\s*:\s*"([a-z0-9-]{6,})"', html))
-    s |= set(re.findall(r'\\"slug\\":\\"([a-z0-9-]{6,})\\"', html))
-    s |= set(re.findall(r'/produkt/([a-z0-9-]{6,})', html))
-    return {x for x in s if x != slug}
+# ☠️ GRANNSTRYKNINGEN BOR I DEN DELADE MODULEN sedan runda 117. Den här filen
+#    bar först egna kopior av `_grannar` och `_grannslugs` — och kopian kände
+#    fyra kanaler av sex. Grannen "Träbänk 175 cm i massiv furu för tre
+#    personer" stod i `<div class="pname">` och i `alt="…"`, aldrig som en
+#    `"name"`-nyckel, och fällde materialgrinden på en korrekt köksvagnssida.
+#    Kanalerna hittas en i taget; en delad modul är det enda som gör att nästa
+#    runda ärver alla sex utan att veta om dem.
 
 
 def granska(nyckel, html):
     f = FACIT[nyckel]
     fel = []
     # ── Sidans EGEN text ─────────────────────────────────────────────────
-    ren = SVG_GEOMETRI.sub(" ", BILDADRESS.sub(" ", html))
-    egen_syn = G.synlig_meningstext(ren)
-    rensad = egen_syn
-    for namn in sorted(_grannar(ren, f["slug"]), key=len, reverse=True):
-        if namn != f["namn"]:
-            rensad = rensad.replace(namn, " ")
-    for sl in _grannslugs(ren, f["slug"]):
-        rensad = rensad.replace(sl, " ")
+    # ☠️ ORDNINGEN ÄR INTE VALFRI. `BILDADRESS` matchar `\S+`, alltså fram till
+    #    första blanksteget — och i flight-payloaden finns inga blanksteg på
+    #    långa sträckor. Kördes den FÖRE grannstrykningen åt den halva grannens
+    #    namn (`…file.webp\",\"alt\":\"Träbänk`) och lämnade `175 cm i massiv
+    #    furu för tre personer` kvar som ett namn ingen replace längre matchar.
+    #    Uppmätt i runda 117: materialgrinden fällde en korrekt sida på ordet
+    #    `massiv` som tillhörde en granne. Stryk grannarna FÖRST, ur rå HTML.
+    utan_grannar = G.strak_grannar(html, html, f["slug"], f["namn"])
+    ren = SVG_GEOMETRI.sub(" ", BILDADRESS.sub(" ", G.EU_RIBBON.sub(" ", utan_grannar)))
+    rensad = G.synlig_meningstext(ren)
+    # Närvarokontrollerna läser sidan FÖRE strykningen (uppgift #430).
+    egen_syn = G.synlig_meningstext(
+        SVG_GEOMETRI.sub(" ", BILDADRESS.sub(" ", G.EU_RIBBON.sub(" ", html))))
 
     # ── NÄRVARO prövas på egen_syn, FÖRE strykningen (uppgift #430) ───────
     if f["namn"] not in egen_syn:
@@ -132,6 +129,12 @@ FALL = [
      lambda h: h.replace("</body>", "<p>Tillverkad av HOMCOM.</p></body>"), 1),
     ("leveranslöfte fälls", "63235957",
      lambda h: h.replace("</body>", "<p>En bestickinsats ingår i lådan.</p></body>"), 1),
+    ("grannens namn i <div class=pname> fäller inte oss", "63235957",
+     lambda h: h + '<div class="pname">Träbänk 175 cm i massiv furu för tre personer</div>', 0),
+    ("grannens namn i alt-attribut fäller inte oss", "63235957",
+     lambda h: h + '<img alt="Träbänk 175 cm i massiv furu för tre personer">', 0),
+    ("butikens EU-ribbon fäller inte oss", "63235957",
+     lambda h: h + '<a href="/eu-lager-garanti">Skickas från EU-lager – ingen importtull.</a>', 0),
     ("saknat tal fälls", "63235957", lambda h: h.replace("106 × 42 × 87 cm", "X"), 1),
     ("saknad flik fälls", "63235957", lambda h: h.replace("Vanliga frågor", "X"), 1),
 ]
