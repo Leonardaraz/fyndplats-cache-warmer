@@ -153,7 +153,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0; prislasta=0
+          utanrader=0; drift=0; prislasta=0; ejskeppbara=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -181,6 +181,8 @@ jobs:
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
+            ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
+            stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okant"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
             granskade=$(( granskade + g )); lager=$(( lager + l ))
@@ -189,6 +191,7 @@ jobs:
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
             prislasta=$(( prislasta + pl ))
+            ejskeppbara=$(( ejskeppbara + ejs ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -199,9 +202,21 @@ jobs:
             # ☠️ Talen ska stå i LOGGEN, inte bara i jobbsummeringen. Summeringen
             # syns bara i webb-UI:t; loggen är det som går att greppa, citera i
             # en rapport och läsa från en telefon.
+            # ☠️ `stoppade på` ÄR DEN VIKTIGA DELEN. Utan den går det inte att se om
+            # varvet tog slut för att BUDGETEN (`limit`) tog slut eller för att TIDEN
+            # gjorde det — och det är exakt den frågan som avgör om taket ska höjas
+            # eller om prisskrivningarna måste batchas. Priscronen stannade på `limit`
+            # fyra nätter i rad och lämnade 2 607 rader ogranskade utan att någon såg det.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
-                 "${pl} prislåsta, ${ul} utan lagerrader, ${dr} lagerdrift, ${mi} misslyckade," \
-                 "${kvar} kvar"
+                 "${pl} prislåsta, ${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
+                 "${mi} misslyckade, stoppade på ${stopp}, ${kvar} kvar"
+
+            # En rad Aosom slutat skicka till Sverige är ett LAGERBESKED, inte ett fel:
+            # saldot nollas, sidan ligger kvar. Men den ska SYNAS — en publicerad sida
+            # vars vara inte går att skicka tar emot order vi inte kan expediera.
+            if [ "${ejs}" -gt 0 ]; then
+              echo "::warning::${ejs} rader kan inte skickas till Sverige (fraktsentinel) — saldot nollat, sidorna ligger kvar. Kontrollera att ingen av dem är publicerad."
+            fi
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true

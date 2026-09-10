@@ -844,3 +844,80 @@ describe("prisLast — låst pris", () => {
     expect(s.prisLasta).toBe(1);
   });
 });
+
+describe("☠️ ej skeppbar rad — fraktsentinelen gatas i SYNKEN, inte bara vid importen", () => {
+  // Bakgrund (2026-09-10): `isShippableToSe` hade fem anropare och synken var
+  // inte en av dem. Massagebänken 503-001V00CW importerades med fraktandel
+  // 0,292 — helt normal frakt — och bar sedan Aosoms "skickas inte hit"-värde
+  // 999,90 €. Synken speglade saldot vidare, och sidan låg publicerad och
+  // köpbar för en vara vi inte kunde expediera. Samma mönster som den döda
+  // AE-listningen: importen gatade, synken gjorde det inte.
+  const SENTINEL = 999.9;
+
+  it("nollar saldot och skriver INGET pris", async () => {
+    const { d, lager, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(1);
+    // Saldot nollas — sidan ligger KVAR (samma SEO-beslut som döda AE-listningar).
+    expect(lager).toContainEqual({ id: "wix-A-1", antal: 0 });
+    // ☠️ Och inget pris. `landedCostEur` adderar sentinelfrakten rakt av, så
+    // regelpriset blir tiotusentals kronor på en vara som kostar 40 €.
+    expect(priser.map((p) => p.id)).not.toContain("wix-A-1");
+  });
+
+  it("☠️ hamnar INTE i `varningar` — det är ett känt tillstånd, inte ett larm", async () => {
+    // Det här är testet som fäller om grinden tas bort: utan den räknas
+    // sentinelfrakten in, hoppet spränger MAX_PRISANDRING_PCT och raden dyker
+    // upp som en varning varje natt. Ett falsklarm som alltid fyrar lär
+    // mottagaren att sluta läsa — samma argument som bakom `regelGäller`.
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.varningar).toHaveLength(0);
+  });
+
+  it("☠️ räknas INTE som slutsåld — 'Aosom har slut' och 'skickas inte hit' är olika besked", async () => {
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(1);
+    expect(s.slutsalda).toBe(0);
+  });
+
+  it("en verkligt slutsåld rad räknas som slutsåld, inte som ej skeppbar", async () => {
+    // Kontrollen åt andra hållet: de två räknarna får inte glida ihop.
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 0 }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.slutsalda).toBe(1);
+    expect(s.ejSkeppbara).toBe(0);
+  });
+
+  it("⚠️ en NORMAL frakt rörs inte av grinden — den får inte vara för bred", async () => {
+    // Utan den här kontrollen kunde grinden vara skriven tvärtom och alla
+    // tester ovan hade ändå gått igenom.
+    const { d, lager, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: 20 }), rad("B-2")),
+      listWixPriser: async () => wixPriser({ "wix-A-1": BASPRIS - 100 }),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(0);
+    expect(lager).toContainEqual({ id: "wix-A-1", antal: 50 - LAGER_BUFFERT });
+    expect(priser.map((p) => p.id)).toContain("wix-A-1");
+  });
+});
