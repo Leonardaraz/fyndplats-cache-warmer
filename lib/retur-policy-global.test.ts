@@ -144,3 +144,21 @@ test("den som talar om reklamation säger också hur länge rätten gäller", ()
   }
   assert.deepEqual(bad, []);
 });
+
+test("ingen text lovar frakten tillbaka utan att säga när", () => {
+  // "Har du betalat frakt återbetalas även standardfrakten" stod villkorslöst i
+  // ångerkvittot medan samma mejls fot sa motsatsen för dag 15–30. Ett löfte om
+  // utgående frakt måste bära sin period, annars är det en utfästelse vi bryter
+  // mot var tredje retur.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    const chunks = t.split(/(?<=[.!?])\s+/);
+    chunks.forEach((s, i) => {
+      if (!/återbetalas (även |också )?(standardfrakten|frakten)|återbetalar (även |också )?frakten/i.test(s)) return;
+      const context = [chunks[i - 1] || "", s, chunks[i + 1] || ""].join(" ");
+      if (/14 dagar|dag 1–14|ångerfrist|dag 15|15–30|lagstadgad/i.test(context)) return;
+      bad.push(`${p}: ${s.trim().replace(/\s+/g, " ").slice(0, 100)}`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});

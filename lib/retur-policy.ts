@@ -100,6 +100,23 @@ export const VOLUNTARY: Period = {
 export const TRIGGER =
   "Det är dagen du anmäler returen till oss som avgör vilken period som gäller, inte dagen paketet är tillbaka hos oss. Anmäler du inom 14 dagar gäller den lagstadgade ångerrätten även om varan skickas tillbaka senare.";
 
+/**
+ * Vad som händer med frakten TILL kunden när köpet ångras.
+ *
+ * Ångerkvittot lovade "Har du betalat frakt återbetalas även standardfrakten" —
+ * utan villkor. Det stämmer bara dag 1–14. Samma mejls fot sa samtidigt att
+ * frakten inte återbetalas dag 15–30, så mejlet motsade sig självt, och det var
+ * löftet kunden hade hållit oss till. Mejlet vet dessutom inte vilken period
+ * som gäller: det har varken leveransdatum eller period bland sina props. Alltså
+ * måste båda fallen stå utskrivna.
+ *
+ * 2 kap. 15 § 1 st 1 distansavtalslagen ger rätten till billigaste
+ * standardleverans dag 1–14; dag 15–30 är vårt eget erbjudande och där får vi
+ * välja, vilket vi gör i linje med Aosoms B2B-villkor.
+ */
+export const SHIPPING_REFUND =
+  "Anmälde du inom den lagstadgade ångerfristen på 14 dagar återbetalas även vad du betalat för vår billigaste standardleverans. Anmälde du under det frivilliga öppna köpet dag 15–30 återbetalas produktens pris, men inte frakten till dig.";
+
 /** Gäller båda perioderna. */
 export const COMMON: string[] = [
   "Returfrakten betalas av dig som kund. Välj valfri leveranstjänst — vi rekommenderar spårbar leverans så du har bevis på avsändning.",

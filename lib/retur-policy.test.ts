@@ -5,7 +5,7 @@
 // smyga tillbaka nästa gång någon skriver om en sida.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT } from "./retur-policy.ts";
+import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT, SHIPPING_REFUND } from "./retur-policy.ts";
 
 const statutoryText = [STATUTORY.lead, ...STATUTORY.points].join(" ").toLowerCase();
 const voluntaryText = [VOLUNTARY.lead, ...VOLUNTARY.points].join(" ").toLowerCase();
@@ -97,4 +97,15 @@ test("tvåmånadersregeln skrivs som lagen skriver den", () => {
 
 test("vi står för returkostnaden vid godkänd reklamation", () => {
   assert.equal(/returkostnaden|returfrakten/.test(complaintText), true);
+});
+
+test("fraktåterbetalningen anges för BÅDA perioderna, aldrig villkorslöst", () => {
+  // Ångerkvittot lovade "Har du betalat frakt återbetalas även standardfrakten"
+  // utan villkor. Sant dag 1–14, falskt dag 15–30 — och mejlet kan inte veta
+  // vilket, för det har varken leveransdatum eller period bland sina props.
+  const t = SHIPPING_REFUND.toLowerCase();
+  assert.equal(t.includes("14"), true, "dag 1–14-fallet saknas");
+  assert.equal(/dag 15–30|15–30/.test(t), true, "dag 15–30-fallet saknas");
+  assert.equal(/billigaste standardleverans/.test(t), true);
+  assert.equal(/inte frakten till dig|inte.{0,20}frakten/.test(t), true);
 });
