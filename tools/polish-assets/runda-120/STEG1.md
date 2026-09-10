@@ -342,3 +342,54 @@ behöver skjutas till sist.
 med ett större tal: SKU-krocken skapas av IMPORTEN, som bygger strängen ur de
 första orden i den tyska titeln. Steg 8 skriver om dem till de polerade
 sluggarna och löser krocken på köpet.
+
+-----
+
+# ☠️ Steg 3, andra varvet — MÅTTRITNINGEN är tredje källan
+
+Alt-texterna krävde att jag läste måttritningarna i full upplösning, och då
+föll två fel ut som ingen textläsning kunde ha sett.
+
+## `3b38e191`: stolen bar BORDETS djup
+
+| | bord | stol |
+|---|---|---|
+| spec-raden | 89 × **45** × 87 | 39 × **45** × 95 |
+| ritningen | 89 × 45 × 87 | 39 × **43** × 95 |
+
+Samma fingeravtryck som `c3bda64a`s vikt: **ett tal kopierat in från
+grannfältet.** Regel 7 — två oberoende TEXTläsningar — kunde inte se det, för
+båda läsningarna kom ur samma rad och bar samma fel. Det som skiljer är att
+ritningen inte är text: den är ortografisk, och runbookens regel 9 är entydig
+för MÅTT — *står etiketten mot ritningen, mät ritningen.*
+
+`RITNING` i `matt.py` bär nu bord- och sitsmåtten som de FAKTISKT står i bild 3
+på alla åtta, och regel 8 fäller varje avvikelse. Fyra muterade fall, noll
+släpptes igenom.
+
+⚠️ **Bara geometri.** En lastsiffra i en ritning är text som råkat ritas och
+vinner ingenting över spec-raden — samma gräns runbooken drar.
+
+## `f4ed1264`: sitsens diameter fanns i tre versioner och noll källor
+
+| läsning | säger |
+|---|---|
+| Steg 1, katalogsvepet | "runda pallar **Ø41** × 60" |
+| Steg 3, spec-blocket | sits 41 × 41 × 60, sitsyta **Ø30 cm** |
+| **ritningen** | 41 × 41 är **benens fotavtryck vid golvet**; sitsen är omärkt |
+
+Ritningen förklarar Steg 1:s fel (ett fotavtryck lästes som en diameter) och
+lämnar Steg 3:s `Ø30` utan belägg. `sitsyta = None`, och texten nämner den
+inte — den säger i stället att 41 × 41 är fotavtrycket, vilket är det ritningen
+faktiskt visar.
+
+## ✅ Textgrinden fångade mitt eget fel i samma andetag
+
+Första omskrivningen av FAQ:n löd *"leverantören anger ingen diameter för
+den"*. Grinden fällde den på `ATTRIBUTION — mot kunden är VI leverantören` —
+exakt det husregelbrott batch 64 mätte upp bland sina nio inline-fel. En
+mening som skrivits rakt in i ett API-anrop hade nått Wix.
+
+**Tre motsägelser i en runda, alla i samma familj:** ett tal som ser rimligt ut
+och kommer från fel fält. Vikten kom från en annan produkt, stolens djup från
+bordet, sitsens diameter från fotavtrycket.

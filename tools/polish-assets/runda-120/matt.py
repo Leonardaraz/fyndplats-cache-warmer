@@ -27,6 +27,27 @@ MED_RYGG = {"3b38e191", "51c43e67"}
 # Set med förvaring inbyggd i bordet.
 MED_FORVARING = {"394de213", "c3bda64a"}
 
+# ☠️ VAD MÅTTRITNINGEN FAKTISKT VISAR — läst ur bild 3 på varje produkt.
+#
+#    Regel 7 nedan ställer två TEXTläsningar mot varandra. Den här är den
+#    tredje källan, och den enda som inte är text: ritningen är ortografisk
+#    och därför pålitlig på GEOMETRI (runbookens regel 9 — "står etiketten
+#    mot ritningen, mät ritningen"). Den fällde `3b38e191`, där spec-raden
+#    bar bordets djup i stolens fält.
+#
+#    ⚠️ BARA GEOMETRI. En LASTSIFFRA i en ritning är text som råkat ritas,
+#    och den vinner ingenting över spec-raden — samma gräns runbooken drar.
+RITNING = {
+    "441d2209": {"bord": "80 × 50 × 87 cm", "sits": "40 × 30 × 57 cm"},
+    "394de213": {"bord": "80 × 50 × 90 cm", "sits": "Ø30 × 60 cm"},
+    "f4ed1264": {"bord": "100 × 40 × 90 cm", "sits": "41 × 41 × 60 cm"},
+    "3b38e191": {"bord": "89 × 45 × 87 cm", "sits": "39 × 43 × 95 cm"},
+    "51c43e67": {"bord": "100 × 40 × 90,5 cm", "sits": "41 × 47 × 92 cm"},
+    "c3bda64a": {"bord": "100 × 60 × 95 cm", "sits": "32 × 32 × 68 cm"},
+    "c88b5bbb": {"bord": "100 × 60 × 88 cm", "sits": "32 × 32 × 57 cm"},
+    "63a37524": {"bord": "100 × 60 × 88 cm", "sits": "32 × 32 × 57 cm"},
+}
+
 M = {
     "441d2209": dict(
         pris=1139, delar=3, sittplatser=2,
@@ -53,7 +74,12 @@ M = {
         pris=1269, delar=3, sittplatser=2,
         bord="100 × 40 × 90 cm", bordb=100, bordd=40, bordh=90,
         sits="41 × 41 × 60 cm", sitthojd=60, sitstyp="pall utan ryggstöd",
-        sitsyta="Ø30 cm",
+        # ☠️ SITSENS DIAMETER ÄR INTE MÄTT. Ritningen märker ut 41 × 41 som
+        #    BENENS fotavtryck vid golvet och lämnar den runda sitsen omärkt;
+        #    Steg 1 läste samma 41 som en diameter, Steg 3 skrev Ø30 utan
+        #    källa. Tre läsningar, tre olika tal, noll belägg — då är None
+        #    det ärliga värdet och texten nämner den inte.
+        sitsyta=None,
         bordlast="60 kg", sitslast="120 kg",
         material="stål, spånskiva och MDF", yta="melaminyta i marmoroptik",
         farg="vit", farg_lang="vit marmoroptik med svart stålram",
@@ -63,7 +89,11 @@ M = {
     "3b38e191": dict(
         pris=1349, delar=3, sittplatser=2,
         bord="89 × 45 × 87 cm", bordb=89, bordd=45, bordh=87,
-        sits="39 × 45 × 95 cm", sitthojd=64, sitstyp="stol med hög rygg",
+        # ☠️ RITNINGEN SÄGER 43, SPEC-RADEN SA 45 — och 45 är BORDETS djup på
+        #    exakt den här produkten. Samma fingeravtryck som c3bda64a:s vikt:
+        #    ett tal som kopierats in från grannfältet. Runbookens regel 9 är
+        #    entydig för MÅTT: ritningen är ortografisk och avgör.
+        sits="39 × 43 × 95 cm", sitthojd=64, sitstyp="stol med hög rygg",
         sitsyta="39 × 38 cm",
         bordlast="60 kg", sitslast="100 kg",
         material="MDF och metall", yta="pulverlackerat metallrör och slät skiva",
@@ -205,6 +235,19 @@ def kontroll():
         if n in sett and SYSKON.get(pid) != sett[n]:
             fel.append(f"{pid} och {sett[n]} delar mått utan att vara syskon")
         sett[n] = pid
+
+    # 8. ☠️ MÅTTRITNINGEN ÄR TREDJE KÄLLAN, och den enda som inte är text.
+    #    Den fällde `3b38e191`: spec-raden gav stolen 45 cm djup, vilket är
+    #    BORDETS djup på samma produkt, medan ritningen visar 43. Regel 7 kunde
+    #    inte se det — båda TEXTläsningarna bar samma fel, för de kom ur samma
+    #    rad. Det som skiljer är att ritningen är ortografisk.
+    for pid, ritn in RITNING.items():
+        if pid not in M:
+            continue
+        for falt, uppmatt in ritn.items():
+            if M[pid][falt] != uppmatt:
+                fel.append(f"{pid}: {falt} {M[pid][falt]!r} (spec) mot "
+                           f"{uppmatt!r} (RITNINGEN) — ritningen avgör måtten")
 
     # 7. ☠️ TVÅ OBEROENDE LÄSNINGAR AV SAMMA LEVERANTÖRSRAD MÅSTE STÄMMA.
     #    `produkter.json` skrevs i Steg 1 ur katalogsvepet; den här filen

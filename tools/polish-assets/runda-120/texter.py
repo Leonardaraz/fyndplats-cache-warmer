@@ -133,7 +133,7 @@ INGRESS = {
         "Marmoroptik gör ett litet bord dyrare i uttrycket än i verkligheten. Skivan är "
         "{yta} och mäter {bordb} × {bordd} cm, alltså smal nog för en köksvägg men "
         "{bordb} cm lång — två personer sitter bredvid varandra i stället för mitt emot. "
-        "Pallarna är runda med {sitsyta} sits."),
+        "Pallarna är runda och mäter {sits}."),
     "3b38e191": (
         "Skillnaden mellan en pall och en stol märks efter tjugo minuter. Det här setet "
         "har två stolar med hög rygg i stället för pallar, {sits} höga, och det gör "
@@ -176,7 +176,7 @@ EGENSKAPER = {
     ],
     "f4ed1264": [
         "Skiva i {yta}, {bordb} × {bordd} cm",
-        "Två runda pallar med {sitsyta} sits, sitthöjd {sitthojd} cm",
+        "Två runda pallar, {sits}, sitthöjd {sitthojd} cm",
         "Svart stålram med korsstag",
         "{fotter} som tar upp ojämnheter i golvet",
         "Väger {vikt} monterat",
@@ -269,7 +269,7 @@ SPEC = {
                  ("Maxlast skiva", "{bordlast}"), ("Maxlast sits", "{sitslast}"),
                  ("Vikt", "{vikt}"), ("Paketmått", "{paket}")],
     "f4ed1264": [("Mått bord", "{bord}"), ("Mått pall", "{sits}"),
-                 ("Sittyta", "{sitsyta}"), ("Sitthöjd", "{sitthojd} cm"),
+                 ("Sitthöjd", "{sitthojd} cm"),
                  ("Antal delar", "{delar}"), ("Material", "{material}"),
                  ("Yta", "{yta}"), ("Färg", "{farg_lang}"),
                  ("Maxlast skiva", "{bordlast}"), ("Maxlast sits", "{sitslast}"),
@@ -367,8 +367,8 @@ FAQ = {
     "f4ed1264": [
         ("Är skivan riktig marmor?", "Nej. Skivan är {yta} — ett tryckt mönster på en "
          "slät yta som är lättare att hålla ren än sten och betydligt lättare att bära."),
-        ("Hur stora är pallarnas sitsar?", "{sitsyta}. Pallen mäter {sits} och sitthöjden "
-         "är {sitthojd} cm."),
+        ("Hur stora är pallarna?", "Pallen mäter {sits} vid golvet — det är benens "
+         "fotavtryck, inte sitsen, som är rund. Sitthöjden är {sitthojd} cm."),
         ("Vad ingår?", "{ingar}."),
         ("Hur mycket tål bordsskivan?", "{bordlast} fördelat över ytan. Varje pall tål {sitslast}."),
     ],
