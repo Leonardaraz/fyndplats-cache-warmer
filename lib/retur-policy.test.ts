@@ -87,7 +87,7 @@ test("reklamationen hålls fristående från 30-dagarsfristen", () => {
 });
 
 test("tvåmånadersregeln skrivs som lagen skriver den", () => {
-  // 5 kap. 4 § konsumentköplagen: ett meddelande inom två månader ska ALLTID
+  // 5 kap. 2 § konsumentköplagen: en reklamation inom två månader ska ALLTID
   // anses ha lämnats i rätt tid. Köpvillkoren § 8 skrev "normalt" — svagare än
   // lagen, till kundens nackdel.
   assert.equal(/två månader/.test(complaintText), true);

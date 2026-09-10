@@ -139,12 +139,16 @@ export const COMMON: string[] = [
  * drar slutsatsen att hen är för sen. Villkoret behövde inte vara felskrivet
  * för att vilseleda — det räckte att det saknades där frågan ställs.
  *
- * KONSUMENTKÖPLAGEN (2022:260):
- *   5 kap. 4 § — meddelande inom skälig tid efter att felet märkts. Ett
- *   meddelande inom TVÅ MÅNADER ska ALLTID anses ha lämnats i rätt tid. Lagen
- *   säger "ska alltid", inte "normalt"; § 8 skrev det svagare än lagen är.
- *   4 kap. 6 § — fel som visar sig inom två år antas ha funnits vid leverans.
- *   Reklamationsfristen är tre år.
+ * KONSUMENTKÖPLAGEN (2022:260) — paragrafnumren stod först fel här och är
+ * kontrollerade mot lagtexten 2026-09-10 (riksdagen.se och lagen.nu):
+ *   4 kap. 14 § — näringsidkaren svarar för fel som fanns vid avlämnandet och
+ *   visar sig inom TRE ÅR från den tidpunkten.
+ *   4 kap. 17 § — ett fel som visar sig inom TVÅ ÅR anses vara ett fel som
+ *   näringsidkaren svarar för, om denne inte visar något annat.
+ *   5 kap. 2 § — meddelande inom skälig tid efter att konsumenten borde ha
+ *   märkt felet. En reklamation inom TVÅ MÅNADER "ska alltid anses ha gjorts i
+ *   rätt tid". Lagen säger "ska alltid", inte "normalt"; § 8 skrev det svagare
+ *   än lagen är.
  *
  * Reklamationsrätten är dessutom oberoende av våra 30 dagar: den gäller vare sig
  * ångerfristen löpt ut eller inte, och den kan vi inte förkorta genom avtal.

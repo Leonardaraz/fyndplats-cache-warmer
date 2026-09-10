@@ -75,3 +75,23 @@ test("varje sida som talar om tvistelösning pekar på ARN", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test("ARN anges med både webbadress och postadress", () => {
+  // 5 § lagen (2015:671) om alternativ tvistlösning i konsumentförhållanden:
+  // informationen ska lämnas på näringsidkarens webbplatser som riktar sig till
+  // konsumenter OCH i skriftliga avtalsvillkor, och den "ska innehålla den
+  // aktuella nämndens webbadress och postadress".
+  //
+  // Att nämna ARN vid namn räcker alltså inte. Köpvillkoren och butikspolicyerna
+  // hade båda uppgifterna; app-villkoren och App Store-villkoren nämnde ARN men
+  // gav varken adress eller webbplats — och app-villkoren ÄR skriftliga
+  // avtalsvillkor, så kravet träffar dem rakt av. Hittat vid audit 2026-09-10.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    if (!/reklamationsnämnd/i.test(t)) continue;
+    const web = /arn\.se/i.test(t);
+    const post = /Box 174|101 ?23 Stockholm/i.test(t);
+    if (!web || !post) bad.push(`${p}: webbadress=${web} postadress=${post}`);
+  }
+  assert.deepEqual(bad, []);
+});

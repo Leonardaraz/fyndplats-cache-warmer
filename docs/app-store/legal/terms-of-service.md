@@ -114,7 +114,9 @@ kontroll).
 ## 10. Tillämplig lag och tvistelösning
 
 Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd;
-vi följer **Allmänna reklamationsnämndens (ARN)** rekommendationer. Kan tvisten
+vi följer **Allmänna reklamationsnämndens (ARN)** rekommendationer. Du kan
+kostnadsfritt vända dig dit för opartisk prövning: <https://www.arn.se>,
+Box 174, 101 23 Stockholm. Kan tvisten
 inte lösas avgörs den av svensk allmän domstol med **Stockholms tingsrätt** som
 första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan
 du vända dig till **Konsument Europa (ECC Sverige)**, som drivs av Konsumentverket:
