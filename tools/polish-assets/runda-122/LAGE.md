@@ -71,6 +71,31 @@ Tre oberoende vägar gav samma svar — `list-categories-for-items`,
 kan vara ett kvitto på att LÄSAREN är fel.** Mät råsvaret innan du drar en
 slutsats om skrivningen.
 
+## ✅ Steg 14: 3 av 3 gröna på FÖRSTA körningen
+
+```
+grindar._sjalvtest(): 36 fall, 0 fel
+OK  6490e360  moppvagn-dubbla-hinkar-press-73-cm
+OK  0cbffcd9  stadvagn-111-cm-press-sopsack-gra
+OK  740fa6d0  stadvagn-111-cm-press-sopsack-svart
+
+3 sidor, 0 fel
+```
+
+☠️ **Det är kvittot på uppgift #452.** Runda 121 behövde TVÅ körningar och
+tolv lagade grindfel för att komma hit — alla tolv i rundans egen kopia av
+tvätten. Runda 122 ärver `grindar.butikstvatt()` i stället för att skriva om
+den, och kommer grön på första försöket. Ingen ny tvätt skrevs, alltså kunde
+ingen av de två felen återuppstå.
+
+Grinden kör dessutom `G._sjalvtest()` och `G.tvillingsvep()` FÖRE sidorna: en
+grind som prövar sig själv först är skillnaden mellan "sidan är trasig" och
+"grinden är trasig".
+
+⚠️ `832f9eec` ingår INTE i körningen — den är slutsåld och ligger som utkast,
+och dess URL svarar 404. En grind som fällde på det hade lärt mottagaren att
+ignorera raden. `PUBLICERADE` i `livegrind.py` håller den utanför med flit.
+
 ## Kvar för Leonard
 
 - ☠️ **`a389ddaa` är en bevisad dubblett av publicerade `5b27721d`** — åtta
