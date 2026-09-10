@@ -1,0 +1,31 @@
+{
+  "6490e360": {
+    "id": "6490e360-09f9-4111-8420-daa99011df4b", "rev": "2", "pris": 1299,
+    "wixVariantId": "1c8a8e10-7430-4915-93f9-6d9404c5ca50",
+    "saldo": 160, "euLager": true, "fraktandel": 0.308, "prisgrind": "OK",
+    "matt": "73 x 45 x 92", "vikt": "9,7", "paket": "75 x 43 x 43",
+    "farg": "bla och rod hink, gratt chassi"
+  },
+  "0cbffcd9": {
+    "id": "0cbffcd9-19df-4aa2-84f5-eb3365027d61", "rev": "3", "pris": 2339,
+    "wixVariantId": "463c69f3-5768-4a85-adfa-354d6e82b898",
+    "saldo": 146, "euLager": true, "fraktandel": 0.276, "prisgrind": "OK",
+    "matt": "111 x 63,3 x 103", "vikt": "22,2", "paket": "93 x 52 x 46",
+    "farg": "gra ram, bla sack, orange och bla hinkar"
+  },
+  "740fa6d0": {
+    "id": "740fa6d0-4e91-4ad0-a9b9-74f8e407122c", "rev": "3", "pris": 2429,
+    "wixVariantId": "a7e7c731-12ea-4ee1-9482-25fe16f56be5",
+    "saldo": 106, "euLager": true, "fraktandel": 0.266, "prisgrind": "OK",
+    "matt": "111 x 63,3 x 103", "vikt": "22,2", "paket": "93 x 52 x 46",
+    "farg": "svart ram, bla sack, orange och bla hinkar"
+  },
+  "832f9eec": {
+    "id": "832f9eec-f597-483f-af85-f83446eabb24", "rev": "3", "pris": 2699,
+    "wixVariantId": "0ce27930-9379-41da-b3df-a4d4465144b8",
+    "saldo": 0, "euLager": true, "fraktandel": 0.272, "prisgrind": "OK",
+    "matt": "93 x 80 x 97", "vikt": "OAVGJORD", "paket": "76,5 x 52,5 x 47,5",
+    "farg": "ljus ram, orange och bla hinkar, bla sack",
+    "anmarkning": "SLUTSALD hos Aosom - publiceras inte i denna runda"
+  }
+}
