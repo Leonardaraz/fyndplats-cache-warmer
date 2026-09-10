@@ -99,14 +99,36 @@ alt-grinden fäller. Ta bort grinden helt → 2 faller. Rätt test för rätt bu
 | `sku.py` | 7 | 7 distinkta, längsta 26 tecken |
 | SKU mot katalogen | 17 grannar | 0 krockar |
 
+## ☠️ `plainDescription` saknas TYST i standardprojektionen
+
+Mätt på samma produkt, fem varianter av samma GET:
+
+| anrop | `plainDescription` | `description` | media |
+|---|--:|--:|--:|
+| (inga `fields`) | 0 | 2 | 0 |
+| `?fields=DESCRIPTION` | 0 | 11 171 | 0 |
+| `?fields=PLAIN_DESCRIPTION` | **3 975** | 2 | 0 |
+| `?fields=MEDIA_ITEMS_INFO` | 0 | 2 | **5** |
+
+PATCH-svaret bär inte fältet alls. En verifiering som läser texten ur
+PATCH-svaret ser alltså TOMT på en produkt som har full text. Tredje fältet i
+samma familj som `MEDIA_ITEMS_INFO` och `DIRECT_CATEGORIES_INFO`.
+
+⚠️ Och Wix NORMALISERAR: `<strong>` → `<span style="font-weight: 700">`,
+`<li>`-innehåll lindas i `<p>`, länkar får `target="_self"`. Jämför ORDEN,
+inte HTML:en — en byte-jämförelse fäller varje korrekt skrivning.
+
+## Stämplingarna är gjorda
+
+Sju `polish-mapping.yml`-körningar, alla `success`: sex med
+`needs_ai_polish: false` + `draft_status: published` + variant-SKU, och
+`cc6b56f9` med `draft_status: rejected` så utkastet inte kommer tillbaka i
+poleringskön.
+
 ## Kvar att göra
 
-1. **Stämpla de sex mappningsraderna** (`needs_ai_polish: false`,
-   `draft_status: published`, variant-SKU) via `polish-mapping.yml`.
-2. **Stämpla `cc6b56f9`** som `rejected` + `needs_ai_polish: false` — utkastet
-   ska inte tillbaka i poleringskön.
-3. **Leonards beslut om ommappningen.** Husregeln säger att en äkta dubblett
+1. **Leonards beslut om ommappningen.** Husregeln säger att en äkta dubblett
    mappas om: sidan vi BEHÅLLER (`8dd0fb8f`, redan live) pekar om till Aosoms
    artikelnummer och den andra pensioneras. Det görs inte här — `aosom-remap.yml`
    läcker artikelnumret i den publika Actions-loggen (uppgift #417).
-4. **Steg 14: live-grinden** på de sex publicerade sidorna.
+2. **Steg 14: live-grinden** på de sex publicerade sidorna (uppgift #424).
