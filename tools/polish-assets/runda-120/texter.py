@@ -156,10 +156,10 @@ INGRESS = {
     "c88b5bbb": (
         "Fyra sittplatser runt {bordb} × {bordd} cm fungerar för att pallarna skjuts in "
         "helt under skivan när de inte används. Setet är {delar} delar: ett bord på "
-        "{bordh} cm höjd och fyra pallar med {sitthojd} cm sitthöjd. Skivan är {yta}."),
+        "{bordh} cm höjd och fyra pallar med {sitthojd} cm sitthöjd. Skivan går i {yta}."),
     "63a37524": (
-        "Samma femdelade set som i ljus ek, men med {yta} — mörkare, med synlig ådring "
-        "och matt yta. Bordet mäter {bord} och de fyra pallarna har {sitthojd} cm "
+        "Samma femdelade set som i ljus ek, men med skiva i {yta} — mörkare, med synlig "
+        "ådring och matt yta. Bordet mäter {bord} och de fyra pallarna har {sitthojd} cm "
         "sitthöjd. Pallarna går in helt under skivan när de inte används."),
 }
 
@@ -208,14 +208,14 @@ EGENSKAPER = {
     ],
     "c88b5bbb": [
         "{delar} delar: ett bord och fyra pallar",
-        "Bord på {bord} med {yta}",
+        "Bord på {bord} med skiva i {yta}",
         "Pallar på {sits}, sitthöjd {sitthojd} cm",
         "{fotter}",
         "Väger {vikt} monterat",
     ],
     "63a37524": [
         "{delar} delar: ett bord och fyra pallar",
-        "Bord på {bord} med {yta}",
+        "Bord på {bord} med skiva i {yta}",
         "Pallar på {sits}, sitthöjd {sitthojd} cm",
         "{fotter}",
         "Väger {vikt} monterat",
@@ -407,7 +407,7 @@ FAQ = {
         ("Hur många sitter runt bordet?", "Fyra. Setet är {delar} delar: ett bord på "
          "{bord} och fyra pallar. Pallarna skjuts in helt under skivan."),
         ("Vad skiljer det från det rustikbruna setet?", "Ytan och materialet i skivan. "
-         "Det här har {yta} i {material}; det andra har en mörkare träoptik. Mått, "
+         "Det här har en skiva i {yta} i {material}; det andra har en mörkare träoptik. Mått, "
          "sitthöjd och maxlast är desamma."),
         ("Vad ingår?", "{ingar}."),
         ("Hur mycket tål bordsskivan?", "{bordlast} fördelat över ytan. Varje pall tål {sitslast}."),
@@ -416,7 +416,7 @@ FAQ = {
         ("Hur många sitter runt bordet?", "Fyra. Setet är {delar} delar: ett bord på "
          "{bord} och fyra pallar med {sitthojd} cm sitthöjd."),
         ("Vad skiljer det från setet i ljus ek?", "Ytan och materialet i skivan. Det här "
-         "har {yta} i {material}; det ljusa har en ekoptik. Mått, sitthöjd och maxlast "
+         "har en skiva i {yta} i {material}; det ljusa har en ekoptik. Mått, sitthöjd och maxlast "
          "är desamma."),
         ("Vad ingår?", "{ingar}."),
         ("Hur mycket tål bordsskivan?", "{bordlast} fördelat över ytan. Varje pall tål {sitslast}."),
@@ -454,20 +454,31 @@ def bygg(pid):
     ut.append("<h2>Så mycket tål bordet</h2>")
     ut.append(f"<p>{_f(LAST[pid], pid)}</p>")
 
-    ut.append("<h2>Tekniska specifikationer</h2><ul>")
-    for etikett, varde in SPEC[pid]:
-        ut.append(f"<li><strong>{etikett}:</strong> {_f(varde, pid)}</li>")
-    ut.append("</ul>")
-
-    ut.append("<h2>Montering och skötsel</h2>")
-    ut.append(f"<p>{_f(SKOTSEL[pid], pid)}</p>")
-
+    # ☠️ KORSLÄNKARNA LIGGER FÖRE FÖRSTA FLIKRUBRIKEN, med flit.
+    #    Butikens `splitFlikar` (butiksrepot, `components/productview.tsx`)
+    #    lägger ALLT före första matchande <h2> i brödtexten och allt
+    #    därefter i flikar. Ett block mellan två flikrubriker hamnar alltså
+    #    INUTI den föregående fliken — här låg "Passar inte det här?" inne i
+    #    spec-tabellen. Uppmätt live 2026-09-10.
     if KORSLANK.get(pid):
         lankar = " ".join(
             f'<a href="https://www.fyndplats.se/produkt/{s}">{t.capitalize()}</a>.'
             for s, t in KORSLANK[pid])
         ut.append("<h2>Passar inte det här?</h2>")
         ut.append(f"<p>{lankar}</p>")
+
+    ut.append("<h2>Tekniska specifikationer</h2><ul>")
+    for etikett, varde in SPEC[pid]:
+        ut.append(f"<li><strong>{etikett}:</strong> {_f(varde, pid)}</li>")
+    ut.append("</ul>")
+
+    # ☠️ RUBRIKEN MÅSTE HETA "Användning och skötsel" — ORDAGRANT.
+    #    `FLIK_TITLE_PATTERNS` känner exakt fyra strängar, och
+    #    "Montering och skötsel" är ingen av dem. Uppmätt live 2026-09-10 på
+    #    rundans egna sidor: flikraden var Tekniska specifikationer · Vanliga
+    #    frågor · Kontakta oss, och skötseltexten låg inne i spec-fliken.
+    ut.append("<h2>Användning och skötsel</h2>")
+    ut.append(f"<p>{_f(SKOTSEL[pid], pid)}</p>")
 
     ut.append("<h2>Vanliga frågor</h2>")
     for fraga, svar in FAQ[pid]:

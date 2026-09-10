@@ -83,3 +83,68 @@ flyttade sig när filen genererades om, men en fälts-diff visar att bara
 394de213:s HTML faktiskt ändrades. Summorna före och efter är alltså inte
 jämförbara — det är funktionen som skiljer, inte texten. Från och med nu är
 `skrivning.py` definitionen.
+
+## Steg 13 — publicerad, och det som publiceringen avslöjade
+
+| | |
+|---|---|
+| 13 publicering | **8 av 8** `visible: true` på BÅDA leden, priset orört |
+| 13 stämpling | **8 av 8** (runs 2416–2423), `needsAiPolish, draftStatus` läst tillbaka |
+| 14 live-grind | **8 av 8 gröna**, 29 självtestfall, 0 fel |
+
+Publiceringen gick som en ren `visible`-PATCH per produkt, och återläsningen i
+svaret visar att produktens `true` speglas NED på varianten precis som `false`
+gjorde i Steg 7: alla åtta har `variants[0].visible: true`, rätt SKU, rätt pris
+och `inStock`.
+
+## ☠️ FLIKRADEN VAR FEL PÅ ALLA ÅTTA — och varje grind var grön
+
+Steg 14 mätte den renderade sidan och fann att flikraden var
+
+    Tekniska specifikationer · Vanliga frågor · Kontakta oss
+
+Den obligatoriska **`Användning och skötsel`** fanns inte. Rundan hade skrivit
+`<h2>Montering och skötsel</h2>`, och butikens `splitFlikar` känner exakt fyra
+strängar — den är ingen av dem.
+
+☠️ **Värre än en saknad flik:** splittern lägger allt efter en matchande rubrik
+i den fliken fram till nästa match. Skötseltexten OCH korslänkarna låg alltså
+**inne i spec-tabellen**.
+
+| | före | efter |
+|---|---|---|
+| `<summary>` | Tekniska specifikationer · Vanliga frågor · Kontakta oss | + **Användning och skötsel** |
+| spec-flikens innehåll | spec + skötsel + korslänkar | bara spec |
+| korslänkarna | inne i spec-fliken | i brödtexten, före första flikrubriken |
+
+Rättat i `texter.py` (rubriken bytt, korslänksblocket flyttat FÖRE första
+flikrubriken), `skrivning.json` omgenererad, och alla åtta `plainDescription`
+omskrivna till Wix. Verifierat på den renderade sidan efteråt.
+
+⚠️ **Blast-radien är MÄTT: rundorna 118, 119 och 120** skriver
+`Montering och skötsel`. 120 är rättad; **18 publicerade sidor i 118 och 119
+bär felet kvar.**
+
+**Regeln: en grind som mäter NÄRVARO svarar inte på en fråga om STRUKTUR.**
+Runda 119:s live-grind kollade `if flik not in egen_syn` — ordet stod på sidan,
+som `<h2>`, och grinden var grön. Runda 120:s läser `<summary>`, och tre
+självtestfall låser den riktningen.
+
+## Två fynd till, båda från live-grindens självtest
+
+1. ☠️ **Sortimentsgrinden kände bara SEX superlativ.** Mutationen
+   *"Det smalaste barbordet i sortimentet"* rapporterades som MISSAD — och det
+   var GRINDEN som föll, inte sidan: uppräkningen hade `störst|minst|enda|
+   bredast|dyrast|billigast` och `smalaste` var inget av dem. Mönstret bär nu
+   svenskans superlativÄNDELSE (`\w+ast[ae]?`) med de oregelbundna som egna
+   alternativ. Båda formerna står kvar som lås. Samma familj som böjningshålet
+   i leveranslöftena — **läs meddelandet, inte bara utfallet.**
+2. ⚠️ **`farg` är ett INTERNT licensfält, inte något sidan påstår.** Live-grinden
+   fällde `c88b5bbb` på `FÄRGEN 'ekfärgad' saknas` — sidan säger konsekvent
+   "ljus ekoptik", och `farg` används bara för att licensiera färgord i
+   textgrinden. Facit går sedan dess mot `farg_lang`, som ÄR spec-tabellens
+   renderade `Färg:`-värde. Strängare kontroll, och den mäter det den påstår.
+
+⚠️ **Facit är byggt ur `skrivning.json`, inte ur katalogen.** Det är alltså
+"det vi skrev"; den RENDERADE SIDAN är den oberoende sidan av jämförelsen.
+Namn, slug och titel är dessutom kvitterade ur PATCH-svaren.

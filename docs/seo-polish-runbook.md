@@ -3441,6 +3441,61 @@ kategori. **Och åt andra hållet:** produktens `visible:false` speglas NED på 
 den avslutande PATCH:en måste bära `visible: true` på både produkt och variant — annars går
 sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktvyn.
 
+### ☠️ FLIKRUBRIKEN ÄR EN ALLOWLIST PÅ FYRA STRÄNGAR — mätt i butikens källkod
+
+Checklistan ovan sa redan att strängen måste stämma ordagrant. Runda 120 skrev
+ändå **`Montering och skötsel`**, och det gick igenom varenda grind: textgrinden
+hittade rubriken, live-grinden hittade ORDET på sidan, och åtta sidor gick live.
+
+Butikens `splitFlikar` (butiksrepot `headless-site`, `components/productview.tsx`)
+känner **exakt fyra** mönster och inget annat:
+
+```js
+const FLIK_TITLE_PATTERNS = [
+  /Tekniska\s+[Ss]pecifikationer/,
+  /Anv[äa]ndning\s+och\s+sk[öo]tsel/,
+  /(Vanliga\s+fr[åa]gor|Ofta\s+st[äa]llda\s+fr[åa]gor)/,
+  /Kontakta\s+oss/,
+]
+```
+
+Uppmätt live 2026-09-10 på `barbord-tva-pallar-80-cm-gra`:
+
+| | |
+|---|---|
+| `<summary>` på sidan | `Tekniska specifikationer` · `Vanliga frågor` · `Kontakta oss` |
+| `<h2>` i brödtexten | … `Montering och skötsel` · `Passar inte det här?` … |
+
+☠️ **Och skadan är större än en saknad flik.** `splitFlikar` lägger allt EFTER
+en matchande rubrik i den fliken, ända fram till nästa match. Skötseltexten OCH
+korslänkarna hamnade alltså **inne i spec-tabellen** — mellan `Tekniska
+specifikationer` och `Vanliga frågor`. Spec-fliken bar tre avsnitt.
+
+⚠️ **Ordningen i HTML:en är därför inte fri.** Allt som ska ligga i brödtexten
+måste stå **före den första flikrubriken**; ett block mellan två flikrubriker
+hamnar i den föregående fliken. Rundans korslänkar (`Passar inte det här?`) är
+flyttade dit.
+
+☠️ **Grinden måste läsa `<summary>`, inte texten.** En kontroll som frågar
+"står ordet på sidan?" svarar GRÖNT på alla åtta — ordet står ju där, som `<h2>`.
+Runda 119:s live-grind gjorde precis det. Kontrollen är sedan runda 120:
+
+```python
+SUMMARY = re.compile(r"<summary[^>]*>\s*(.*?)\s*</summary>", re.S)
+flikar = [m.strip() for m in SUMMARY.findall(html)]
+for flik in ["Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"]:
+    if flik not in flikar: …
+```
+
+Tre självtestfall låser den: bytt skötselrubrik, `Specifikationer` i stället för
+`Tekniska specifikationer`, och en flikrubrik nedgraderad till `<h2>`.
+
+⚠️ **Blast-radien är mätt, inte gissad.** En grep över `tools/polish-assets/`
+ger tre rundor som skrivit `Montering och skötsel`: **118, 119 och 120**. Runda
+120 är rättad; **18 publicerade sidor i runda 118 och 119 bär felet kvar.**
+
+**Regeln: en grind som mäter NÄRVARO svarar inte på en fråga om STRUKTUR.**
+
 ### ☠️ En grind skriven mot PLATSEN där felet hittades täcker inte REGELN
 
 Runbokens sifferstil säger *"skriv **aldrig** en kommalista av tal med enheten sist"*.

@@ -69,7 +69,11 @@ TONGRINDAR = [
     (re.compile(r"\bhärdat?\s+glas\b", re.I), "OGRUNDAD HÄRDNING"),
     # Ärvd från runda 119 Steg 12: ett påstående om VÅRT EGET SORTIMENT blir
     # osant av nästa import, utan att någon rör sidan.
-    (re.compile(r"\b(störst\w*|minst\w*|enda|bredast\w*|dyrast\w*|billigast\w*)\b"
+    # ☠️ ÄNDELSEN, INTE UPPRÄKNINGEN. Första formen listade sex superlativ
+    #    och missade "smalaste … i sortimentet" — live-självtestet i runda 120
+    #    fällde grinden, inte sidan. Svenskans superlativ slutar på -ast(e)
+    #    eller -st(a); de oregelbundna står kvar som egna alternativ.
+    (re.compile(r"\b(\w+ast[ae]?|störst\w*|minst\w*|flest\w*|enda|bäst\w*|sämst\w*)\b"
                 r"[^.!?]{0,40}\b(i\s+)?(sortimentet|katalogen|butiken|hos\s+oss)\b",
                 re.I), "PÅSTÅENDE OM VÅRT EGET SORTIMENT"),
     (re.compile(r"\b(den|det)\s+enda\s+med\b", re.I),
