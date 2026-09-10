@@ -198,9 +198,16 @@ def kropp(k):
             "de inte gör det."))
     elif k in ("39d85f18", "389ac5ac"):
         d.append(H("Tuta och strålkastare"))
+        # ☠️ EN STRÅLKASTARE GER LJUS, INTE LJUD. Den första formuleringen —
+        #    "Ratten har tuta och strålkastare, och de ger ljud när barnet
+        #    trycker" — lade ljudet på BÅDA. Felet nådde live och hittades med
+        #    ögon, inte av grinden: det är varken ett tal, ett märke eller ett
+        #    förbjudet ord, utan ett predikat på fel subjekt.
+        #    Tutan är det underlaget stöder ("Hupe"); strålkastarnas funktion
+        #    står ingenstans, så den påstås inte.
         d.append(P(
-            f"Ratten har {ratten(k)}, och de ger ljud när barnet trycker. "
-            "Sitsen är bred och går att lyfta av."))
+            f"Ratten har {ratten(k)}. Tutan låter när barnet trycker på den, "
+            "och sitsen är bred och går att lyfta av."))
     elif M.BATTERI[k] and "ingår inte" in M.BATTERI[k]:
         d.append(H("Tutan går på batteri"))
         d.append(P(

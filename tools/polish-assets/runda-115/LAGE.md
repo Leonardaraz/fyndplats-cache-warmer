@@ -125,10 +125,60 @@ Sju `polish-mapping.yml`-körningar, alla `success`: sex med
 `cc6b56f9` med `draft_status: rejected` så utkastet inte kommer tillbaka i
 poleringskön.
 
+## ☠️ Steg 14: live-grinden fällde alla sex — och båda fynden var GRINDFEL
+
+Första körningen gav **0 av 6 gröna**. Ingen av träffarna var ett sidfel.
+
+### 1. Rekommendationsraden har en TREDJE serialisering
+
+`MOTORLÖFTE` fyrade på alla sex. Ordet `elektrisk` satt i en GRANNES namn:
+
+```
+"slug":"uppresningsfatolj-gra-frotte-60-grader",
+"name":"Uppresningsfåtölj i grå frotté – elektrisk lyft 60° och åtta massagepunkter"
+```
+
+Strykningen kände två former — `/produkt/<slug>` och `"pname">…<`. Sidan bär en
+tredje i flight-payloaden, med **46 poster**. Uppgift #385 sa "två
+serialiseringar"; det var en UNDERSKATTNING.
+
+**Regeln: stryk grannens namn ur VARJE form sidan bär, inte ur de former som
+råkade vara kända.**
+
+### 2. Jag skrev en TVILLING till leveransgrinden, och den var trasig direkt
+
+`LEVERANSLÖFTE 'batterier'` fyrade fyra gånger per sida, alla på FAQ-rubriken
+`"name":"Ingår batterier?"` i JSON-LD. Frågetecknet finns; min kopia klippte
+FÖRE det (`mening.rstrip().endswith("?")`) medan `grind.py` har den rätta
+regeln (`_slut` + `_nasta_mening`) sedan samma dag.
+
+☠️ **Tvillingen gled isär inom EN session.** Live-grinden importerar nu
+`leveransloften` i stället för att skriva om den — samma hus-regel som
+`SHIP_AXIS_RE` och `EU_TULL_CODES`.
+
+Efter båda lagningarna: **6 av 6 gröna**, 24 självtestfall, noll fel.
+Mutationstest: varje lagning fäller exakt ett självtestfall när den tas bort.
+
+## ☠️ Och ögat hittade ett fel som ingen grind kunde se
+
+Live-sidan sa: *"Ratten har tuta och strålkastare, **och de ger ljud** när
+barnet trycker."* En strålkastare ger LJUS, inte ljud — ett predikat på fel
+subjekt. Det är varken ett tal, ett märke, ett tonfel eller ett förbjudet ord,
+så textgrinden var grön hela vägen.
+
+Rättat på båda traktorsidorna till *"Ratten har tuta och strålkastare. Tutan
+låter när barnet trycker på den…"* — strålkastarnas funktion står ingenstans i
+underlaget och påstås därför inte. Grinden `LJUD FRÅN EN LJUSKÄLLA` täcker
+klassen, med två självtestfall (ljud från strålkastaren fälls, ljud från tutan
+och ljus från strålkastaren släpps).
+
+⚠️ **Det är runbokens egen ordning som fångade det: grind FÖRE skrivningen,
+ögon EFTER.** Grinden ensam hade lämnat påståendet live.
+
 ## Kvar att göra
 
 1. **Leonards beslut om ommappningen.** Husregeln säger att en äkta dubblett
    mappas om: sidan vi BEHÅLLER (`8dd0fb8f`, redan live) pekar om till Aosoms
    artikelnummer och den andra pensioneras. Det görs inte här — `aosom-remap.yml`
    läcker artikelnumret i den publika Actions-loggen (uppgift #417).
-2. **Steg 14: live-grinden** på de sex publicerade sidorna (uppgift #424).
+2. **Inget mer i rundan.** Steg 14 är kört och grönt.

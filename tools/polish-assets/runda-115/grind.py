@@ -47,6 +47,13 @@ TONGRINDAR = (
     #    är entydiga; bara den NAKNA formen är tvetydig och den kräver därför
     #    en siffra efter sig. Samma lärdom som uppgift #398: en grind skriven
     #    mot den PLATS där felet hittades täcker inte REGELN.
+    # ☠️ ETT PREDIKAT PÅ FEL SUBJEKT. "Ratten har tuta och strålkastare, och
+    #    DE ger ljud" lade ljudet på strålkastarna också. En strålkastare ger
+    #    ljus. Felet nådde live och hittades med ögon — grinden vaktade tal,
+    #    märken och ton, inte vad ett ord faktiskt kan göra.
+    ("LJUD FRÅN EN LJUSKÄLLA",
+     re.compile(r"\bstr[åa]lkastar\w*[^.]{0,40}\bljud\b"
+                r"|\bljus\w*[^.]{0,25}\bger\s+ljud\b", re.I)),
     ("INTERN JARGONG", re.compile(r"\brundans?\b|\brunda\s+\d", re.I)),
     # ☠️ OMVÄND ORDFÖLJD SLAPP IGENOM. Regexen fångade "vi har inte fått" men
     #    inte "har vi inte fått", och den formen stod kvar i en text som
@@ -332,6 +339,10 @@ def _sjalvtest():
         # ☠️ V är falsklarmet som mönstret FAKTISKT gav: "runda" som ADJEKTIV.
         ("V adjektivet runda            ", "INTERN JARGONG",
          med("<p>Den runda logotypen i rattnavet.</p>"), False),
+        ("Y ljud från strålkastaren     ", "LJUD FRÅN EN LJUSKÄLLA",
+         med("<p>Strålkastarna ger ljud när barnet trycker.</p>"), True),
+        ("Z ljud från TUTAN, ljus från   ", "LJUD FRÅN EN LJUSKÄLLA",
+         med("<p>Tutan låter och strålkastarna lyser.</p>"), False),
         ("P ren text                   ", "", bas, False),
     ]
     fel = 0
