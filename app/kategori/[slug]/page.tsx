@@ -15,6 +15,7 @@ import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
+import { productCountLabel } from "../../../lib/rating";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
 // bakgrunden var timme, så nya/ändrade produkter i en kategori syns utan en ny
@@ -235,7 +236,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   ? `${list.length} fynd till nedsatt pris just nu.`
                   : active.slug === "populara"
                     ? `${list.length} av våra mest populära fynd just nu.`
-                    : `${list.length} ${list.length === 1 ? "produkt" : "produkter"} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
+                    : `${productCountLabel(list.length)} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
               </p>
             </div>
             {heroImg && (

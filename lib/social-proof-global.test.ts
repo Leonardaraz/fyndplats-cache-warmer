@@ -65,7 +65,19 @@ test("antalet Google-omdömen visas inte någonstans", () => {
   const bad: string[] = [];
   for (const { p, t } of ALL) {
     if (/\bGoogle\b[^.]{0,60}\b\d{1,4}\s*(omdömen|omdöme|recensioner)/i.test(t)) bad.push(`${p}: Google + antal`);
-    if (/(baserat på|Visa alla|Se alla)\s*\d{1,4}\s*(omdömen|recensioner)/i.test(t)) bad.push(`${p}: fast antal i knapp/text`);
+    // Talet behöver inte vara utskrivet. "Visa alla {reviews.length} omdömen"
+    // stod i GoogleReviews.tsx och slank förbi den här kontrollen i sin första
+    // version, som krävde en bokstavlig siffra. Ett interpolerat uttryck är om
+    // något värre: det påstår "alla" om ett tal ingen har tittat på.
+    // ...men bara där texten handlar om Google. Utan den avgränsningen fällde
+    // provet ProductReviews.tsx, vars "Visa alla {count} recensioner" är sann:
+    // det är produktens egna omdömen och komponenten har allihop. Knappen
+    // renderas dessutom bara när count > INITIAL (5), så pluralen stämmer alltid.
+    // Det förbjudna är att påstå "alla" om Googles profil, som vi inte räknar.
+    if (/\bGoogle\b/i.test(t) &&
+        /(baserat på|Visa alla|Se alla)\s*(\d{1,4}|\{[^{}]+\}|\$\{[^{}]+\})\s*(omdömen|recensioner)/i.test(t)) {
+      bad.push(`${p}: antal i knapp/text`);
+    }
   }
   assert.deepEqual(bad, []);
 });
