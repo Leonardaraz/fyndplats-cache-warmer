@@ -51,6 +51,12 @@ ANKARE = re.compile(r'<a href="([^"]*)"[^>]*>(.*?)</a>', re.S)
 FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "gräddvit", "gråbeige", "ljusbrun", "blå", "grön", "grågrön",
            "röd", "gul", "rosa", "silverfärgad", "creme", "turkos", "lila",
+           "orange",
+           # ⚠️ `orange` lades till i runda 124, av EXAKT samma skäl som
+           #    `turkos` en gång: två av rundans elva verktygslådor är
+           #    svart-orange, och utan ordet i listan svarade färggrinden
+           #    grönt på varje sida — den kan bara se ord som står här.
+           #    Tystnaden är felläget, inte ett larm.
            # ⚠️ `turkos` lades till i runda 76, som var först att
            #    använda ordet. Utan det kunde ankartext-grinden inte se
            #    en syskonlänk som ljög om färgen — den letar bara efter
