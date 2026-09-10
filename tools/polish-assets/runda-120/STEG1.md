@@ -98,3 +98,146 @@ Alla tretton är **i lager** och bär fem bilder var.
 och `308 lbs (140 kg)`. Samma klass som uppgift #408, och den syns inte i något
 `grep`: det är pixlar, inte markup. Ritningen är i övrigt språkneutral, så den
 går sannolikt att beskära eller tvätta i stället för att kastas.
+
+-----
+
+# Steg 2 — säkerhetsgrinden
+
+Ingen stoppklass i familjen: inga elektriska delar, ingen barnnorm, inga
+kemikalier. Rundans säkerhetssiffra är i stället **maxlasten på bordsskivan**,
+och den spretar så mycket att den inte kan skrivas som en gemensam mening:
+
+| set | bordslast | sitslast |
+|---|--:|--:|
+| `441d2209` | **20 kg** | 120 kg |
+| `c88b5bbb` / `63a37524` | 25 kg | 100 kg |
+| `51c43e67` | 50 kg | 130 kg |
+| `f4ed1264` | 60 kg | 120 kg |
+| `394de213` | 70 kg | 100 kg |
+| `3b38e191` | 80 kg | 120 kg |
+| `c3bda64a` | **170 kg** | 140 kg |
+
+☠️ **20 kg är två matkassar.** Det är den uppgift kunden märker först av alla
+och det som gör hela batchen till ett Steg 2-ärende: åtta bord som SER likadana
+ut bär mellan 20 och 170 kg. Skrivs som ett **positivt villkor med egen
+rubrik** enligt runbooken, aldrig som ett varningsblock.
+
+**Tre set valdes bort ur batchen just för att de saknar lastuppgift helt**
+(`26d15aa5`, `35e9609f`, `a0c8f793` — och `2b03b3e4`, `bc2157d2`). Ett set utan
+lastsiffra får inte poleras i en runda där lasten är huvudargumentet;
+`matt.kontroll()` regel 1 fäller om ett sådant smyger in.
+
+-----
+
+# Steg 3 — måtten, och den grind som hittade ett kopierat tal
+
+`matt.py` är rundans enda talkälla. Åtta produkter, sju kontrollregler,
+**8 muterade fall och 0 som släpptes igenom.**
+
+## ☠️ EN läsning ser alltid frisk ut — den andra är grinden
+
+`c3bda64a` stod i `matt.py` med **29,4 kg**. Det är EXAKT vikten på
+`bc2157d2` — ett set som inte ens ligger i batchen. `produkter.json`, skrivet
+i Steg 1 ur katalogsvepet, hade läst **20 kg** ur produktens egen rad.
+
+| | Steg 1 (katalogsvepet) | Steg 3 (spec-blocken) | dom |
+|---|---|---|---|
+| sju av åtta rader | vikt + paket | **exakt samma** | ✅ |
+| `c3bda64a` | 20 kg | **29,4 kg** | ☠️ |
+
+Det som gör fyndet farligt är att **ingen av de två läsningarna såg fel ut för
+sig.** 29,4 är ett rimligt tal för ett stort barbord; det finns inget i raden
+som skaver. Felet syns bara när två oberoende läsningar av samma
+leverantörsrad ställs bredvid varandra — och det är precis vad regel 7 nu gör
+automatiskt:
+
+```
+7. TVÅ OBEROENDE LÄSNINGAR AV SAMMA LEVERANTÖRSRAD MÅSTE STÄMMA.
+   Ett fält där de två inte möts är None tills det gått att läsa om —
+   aldrig det tal som råkade skrivas sist.
+```
+
+⚠️ **Skiljedomen gick inte att hämta.** Wix svarar `403` på både
+`products/search` och `GET /products/{id}` i skrivande stund (samma 403 som
+uppgift #342 noterade som borta sedan runda 95). `c3bda64a`s **vikt och
+paketmått är därför `None`** och nämns inte i någon text. Talen fylls i när
+API:t svarar igen — de är trevliga att ha, inte nödvändiga.
+
+☠️ **Regeln, generaliserad: en enda läsning av en leverantörsrad är ett
+antagande.** Samma familj som husets *"ett svar utan fel är inget kvitto"*,
+fast på inläsningssidan i stället för skrivsidan.
+
+-----
+
+# Steg 4 — bilderna
+
+Fyrtio bilder granskade i två pass: en **räknekarta** (alla fem positionerna,
+350 px) och ett **hörnsvep** (övre vänstra 45 × 30 % av varje bild), eftersom
+de två frågorna är olika. Uppgift #401 ordagrant: en bild som granskas med fel
+fråga går fri.
+
+☠️ **Ingen av de fyrtio bär TYSK text.** Familjen är därmed ett undantag från
+Aosom-mönstret på 46 % — men undantaget är MÄTT, inte antaget.
+
+## Tre bilder åtgärdas
+
+| bild | fynd | åtgärd |
+|---|---|---|
+| `441d2209` b4 | **TVÅ bord och TRE pallar** — setet är ett bord och två pallar | **UT ur galleriet** |
+| `c3bda64a` b2 | **`HOMCOM`-logotyp inbränd uppe till vänster** | beskuren |
+| `c3bda64a` b3 | **`374 lbs (170 kg)` / `308 lbs (140 kg)` — engelska** | badgarna övermålade |
+
+### ☠️ `441d2209` b4 säljer ett set vi inte skickar
+
+Bilden är leverantörens marknadsföring av en STÖRRE uppställning: två bord
+ställda i rad och tre pallar. Kunden som köper får **ett** bord och **två**
+pallar. Det är inte en smaksak om texten är korrekt — bilden är det första
+kunden ser, och den lovar 50 % mer möbel än paketet innehåller.
+
+Räknekartan är den enda grind som fångar det: hörnsvepet hade svarat grönt
+(ingen text, ingen logotyp), och en textgrind kan inte se en pall.
+
+### ✅ Logotypen och den engelska texten TVÄTTAS, de kastas inte
+
+Runbooken: *"En engelsk eller tysk infografik kastas inte, den byggs om"* — och
+för `c3bda64a` är båda bilderna för värdefulla att slänga. b2 är familjens enda
+riktiga miljöbild av just det setet; b3 är måttritningen.
+
+- **b2** beskärs till `(150, 150) – (1000, 1000)`, 850 × 850 kvadratiskt.
+  Logotypen ligger inom `x < 150, y < 135`; vänstra pallens ben börjar vid
+  `x = 195`, så **ingenting av varan kapas** — regeln *"kapa aldrig bort delar
+  av produkten"* är mätt, inte hoppats på.
+- **b3**: de två badgarna ligger på PLAN bakgrund, och lådorna är uppmätta till
+  **noll mörka pixlar** — alltså inget produktglas, ingen måttlinje.
+  ☠️ Bakgrunden är en LODRÄT GRADIENT (203,191,175 upptill → 182,169,153
+  nedtill), så en platt rektangel hade lämnat en söm. Varje rad fylls i stället
+  med sin egen bakgrundsfärg hämtad ur en ren kolumn på samma höjd.
+  **Alla tio måttetiketter överlever** — 95, 33,5, 39,5, 29, 60, 100, 32, 32,
+  68 och 14,5 cm.
+
+Trohetsarket (original mot polerad, **samma skala**) lästes före uppladdning,
+enligt runbookens obligatoriska grind.
+
+⚠️ **Talen 170 kg och 140 kg finns kvar** — de flyttas från pixlarna till
+spec-tabellen, där de går att läsa på svenska. Ritningen motsäger alltså inte
+texten; den tiger om lasten.
+
+## Positioner som redan var rena
+
+`441d2209` b3, `51c43e67` b3 och `63a37524` b3 bär lastbadgar med **bara
+siffror** (`20 kg`, `50 kg`, `25 kg`, `120 kg`, `130 kg`, `100 kg`) — språk-
+neutrala och därmed oproblematiska. Det är skillnaden mot `c3bda64a`s `lbs`.
+
+-----
+
+# Steg 5 — leverantörens motsägelser
+
+1. ☠️ **`3b38e191` säljs som `Geeignet für den Außen- oder Innenbereich`** medan
+   materialraden säger **MDF och metall**. MDF sväller av fukt; ett barbord i
+   MDF är en inomhusmöbel. Utomhuspåståendet skrivs INTE vidare.
+2. ☠️ **Färgsyskonen är inte materialsyskon.** `c88b5bbb` anges som
+   **`Spanplatte`** och `63a37524` som **`MDF`**, med i övrigt identiskt
+   chassi, identiska mått, identisk vikt och identiskt paketmått. Frestelsen
+   att kopiera texten mellan dem är precis vad `matt.kontroll()` regel 4
+   omöjliggör: den FÄLLER om de två materialsträngarna blir lika.
+3. ⚠️ **`c3bda64a`s viktuppgift** — se Steg 3. Overifierad, utelämnas.
