@@ -114,8 +114,12 @@ KORT = {
     "3b38e191": ("BARBORD MED RYGGSTÖD", "Två stolar, sitthöjd 64 cm"),
     "51c43e67": ("STOPPADE PALLAR MED RYGG", "Dyna i PU, Ø36 cm"),
     "c3bda64a": ("BARBORD MED TVÅ HYLLPLAN", "Skivan tål 170 kg"),
-    "c88b5bbb": ("FEMDELAT BARSET", "Bord och fyra pallar, ljus ek"),
-    "63a37524": ("FEMDELAT BARSET", "Bord och fyra pallar, rustikbrunt"),
+    # ☠️ FÄRGSYSKONEN FÅR INTE DELA KICKER. Kortet är det enda som skiljer dem
+    #    i en kategorilista, och de har identiska mått, identisk vikt och
+    #    identisk last — bara ytan skiljer. Två kort med samma versalrad hade
+    #    gjort sidorna oskiljbara precis där kunden väljer.
+    "c88b5bbb": ("BARSET I LJUS EKOPTIK", "Bord och fyra pallar"),
+    "63a37524": ("BARSET I RUSTIKBRUN TRÄOPTIK", "Bord och fyra pallar"),
 }
 
 INGRESS = {

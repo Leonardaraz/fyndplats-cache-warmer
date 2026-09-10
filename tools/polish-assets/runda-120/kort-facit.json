@@ -1,0 +1,210 @@
+{
+ "441d2209": {
+  "kicker": "BARBORD MED TVÅ PALLAR",
+  "rubrik": "80 cm brett, sitthöjd 57 cm",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "80 × 50 × 87 cm"
+   },
+   {
+    "etikett": "Pall",
+    "varde": "40 × 30 × 57 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "57 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "20 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "15,5 kg"
+   }
+  ]
+ },
+ "394de213": {
+  "kicker": "BARBORD MED HYLLA",
+  "rubrik": "64 × 34 cm under skivan",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "80 × 50 × 90 cm"
+   },
+   {
+    "etikett": "Hylla",
+    "varde": "64 × 34 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "60 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "70 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "15,5 kg"
+   }
+  ]
+ },
+ "f4ed1264": {
+  "kicker": "BARBORD I MARMOROPTIK",
+  "rubrik": "100 cm brett, två runda pallar",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "100 × 40 × 90 cm"
+   },
+   {
+    "etikett": "Pall",
+    "varde": "41 × 41 × 60 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "60 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "60 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "17,5 kg"
+   }
+  ]
+ },
+ "3b38e191": {
+  "kicker": "BARBORD MED RYGGSTÖD",
+  "rubrik": "Två stolar, sitthöjd 64 cm",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "89 × 45 × 87 cm"
+   },
+   {
+    "etikett": "Stol",
+    "varde": "39 × 43 × 95 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "64 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "60 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "19,5 kg"
+   }
+  ]
+ },
+ "51c43e67": {
+  "kicker": "STOPPADE PALLAR MED RYGG",
+  "rubrik": "Dyna i PU, Ø36 cm",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "100 × 40 × 90,5 cm"
+   },
+   {
+    "etikett": "Sittyta",
+    "varde": "Ø36 cm, 3 cm tjock dyna"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "35,5 × 20 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "50 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "18,8 kg"
+   }
+  ]
+ },
+ "c3bda64a": {
+  "kicker": "BARBORD MED TVÅ HYLLPLAN",
+  "rubrik": "Skivan tål 170 kg",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "100 × 60 × 95 cm"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "94,5 × 29 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "68 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "170 kg"
+   },
+   {
+    "etikett": "Maxlast hyllplan",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "c88b5bbb": {
+  "kicker": "BARSET I LJUS EKOPTIK",
+  "rubrik": "Bord och fyra pallar",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "100 × 60 × 88 cm"
+   },
+   {
+    "etikett": "Yta",
+    "varde": "skiva i ljus ekoptik"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "57 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "26,1 kg"
+   }
+  ]
+ },
+ "63a37524": {
+  "kicker": "BARSET I RUSTIKBRUN TRÄOPTIK",
+  "rubrik": "Bord och fyra pallar",
+  "rader": [
+   {
+    "etikett": "Bord",
+    "varde": "100 × 60 × 88 cm"
+   },
+   {
+    "etikett": "Yta",
+    "varde": "skiva i rustik brun träoptik"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "57 cm"
+   },
+   {
+    "etikett": "Maxlast skiva",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "26,1 kg"
+   }
+  ]
+ }
+}

@@ -161,6 +161,35 @@ def _tillatna_farger(pid):
     return {f for f in G.FARGORD if f in kalla}
 
 
+# ☠️ ETT FÄRGORD I EN ALT-TEXT BESKRIVER OFTA SCENEN, INTE VARAN.
+#    Första utkastet fällde `vit bakgrund` på produktfotot — och en grind som
+#    fyrar på den vanligaste alt-textformuleringen i huset lär mottagaren att
+#    sluta läsa. Grinden tittar därför bara på färg som sitter på en DEL av
+#    möbeln, i båda svenska ordföljderna:
+#        "röd skiva"      → färg före del
+#        "skivan är röd"  → del före färg
+#    En bakgrund, en vägg, ett golv eller en matta är ingen del och kan alltså
+#    inte ge falsklarm. Regeln är ärvd från runda 89–91, som skrev fel färg
+#    tre rundor i rad.
+DELORD = (r"skiv\w*|ram\w*|ben\w*|sits\w*|pall\w*|stol\w*|yta|ytan|stomm\w*|"
+          r"bord\w*|hyll\w*|dyn\w*|ryggstöd\w*|fotstöd\w*|set\w*")
+
+
+def fargfel(txt, tillatna, farg_lang):
+    """Färgord som sitter på en DEL av möbeln utan att vara belagt."""
+    ut = []
+    for rx in (rf"\b([a-zåäö]+)\s+(?:{DELORD})\b",
+               rf"\b(?:{DELORD})\s+(?:är|i)\s+([a-zåäö]+)\b"):
+        for m in re.finditer(rx, txt, re.I):
+            ordet = m.group(1).lower()
+            stam = next((f for f in G.FARGORD
+                         if ordet == f or ordet.startswith(f)), None)
+            if stam and stam not in tillatna:
+                ut.append(f"FÄRGORD {ordet!r} på en del av möbeln — uppmätt är "
+                          f"{farg_lang}")
+    return ut
+
+
 def granska(pid):
     fel = []
     namn, slug, titel, meta, sokord, html = T.bygg(pid)
@@ -265,12 +294,7 @@ def granska(pid):
     #    här gör risken större: `c88b5bbb` är LJUS och `63a37524` MÖRK, med i
     #    övrigt identisk text. Ett färgord som produktens egen data inte belägger
     #    fälls.
-    tillatna_f = _tillatna_farger(pid)
-    for m in re.finditer(r"\b([a-zåäö]+)\b", egna, re.I):
-        ordet = m.group(1).lower()
-        if ordet in G.FARGORD and ordet not in tillatna_f:
-            fel.append(f"FÄRGORD {ordet!r} som produktens data inte belägger — "
-                       f"uppmätt är {d['farg_lang']}")
+    fel += fargfel(egna, _tillatna_farger(pid), d["farg_lang"])
 
     # 9. Leveranslöften
     fel += G.leveransloften(egna, INGAR, pid)
@@ -410,7 +434,10 @@ FALL = [
      lambda h: h + "<p>Bordet står på fyra hjul.</p>", "HJUL"),
     ("höjdjustering", "441d2209",
      lambda h: h + "<p>Pallarna är höj- och sänkbara.</p>", "HÖJDJUSTERING"),
-    ("fel färg", "441d2209", lambda h: h + "<p>Skivan är röd.</p>", "FÄRGORD"),
+    ("fel färg, del efter färg", "441d2209",
+     lambda h: h + "<p>En röd skiva på svart ram.</p>", "FÄRGORD"),
+    ("fel färg, färg efter del", "441d2209",
+     lambda h: h + "<p>Skivan är röd.</p>", "FÄRGORD"),
     ("ospårat tal", "441d2209", lambda h: h + "<p>Den väger 77 kg.</p>", "OSPÅRAT TAL"),
     ("decimalpunkt", "441d2209", lambda h: h + "<p>Skivan är 1.5 cm tjock.</p>",
      "DECIMALPUNKT"),

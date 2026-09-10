@@ -117,6 +117,7 @@ M = {
         bord="100 × 60 × 95 cm", bordb=100, bordd=60, bordh=95,
         sits="32 × 32 × 68 cm", sitthojd=68, sitstyp="pall utan ryggstöd",
         hylla="94,5 × 29 cm, 33,5 och 39,5 cm fri höjd",
+        hylla_kort="94,5 × 29 cm",
         bordlast="170 kg", skivlast="130 kg", hyllast="20 kg", sitslast="140 kg",
         golvyta="1,5 × 1,5 m", fotstod="43 cm och 14,5 cm över golvet",
         material="MDF och stål", yta="melaminyta i ekoptik",

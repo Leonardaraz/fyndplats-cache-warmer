@@ -393,3 +393,64 @@ mening som skrivits rakt in i ett API-anrop hade nått Wix.
 **Tre motsägelser i en runda, alla i samma familj:** ett tal som ser rimligt ut
 och kommer från fel fält. Vikten kom från en annan produkt, stolens djup från
 bordet, sitsens diameter från fotavtrycket.
+
+-----
+
+# Steg 9 + 11 — alt-texterna och korten
+
+| | |
+|---|--:|
+| alt-texter | **47** |
+| fel | **0** |
+| självtestfall | 26 |
+| ordningsfall | 4 |
+| kort | **8**, 0 fel i `kort.kontroll()` |
+
+## Galleriordningen
+
+`1 hjälte · 2 verklighet · 3 EGET KORT · detaljfoton · SIST måttritningen`.
+Leverantörens bild 3 ÄR ritningen och ligger i rå-importen på plats 3 — den
+flyttas alltså sist (uppgift #371: på alla sju runda 104-sidor låg den kvar).
+
+☠️ **`441d2209` har fem bilder, inte sex.** Bild 4 är bortplockad och ett eget
+grindfall vaktar att den inte smyger tillbaka.
+
+## ☠️ Färggrinden fällde `vit bakgrund` — på ett produktfoto
+
+Första utkastet letade färgord VAR SOM HELST i alt-texten och fyrade på
+*"Fristående mot vit bakgrund"* — den vanligaste alt-textformuleringen i hela
+huset. En grind som fyrar på korrekt text lär mottagaren att sluta läsa.
+
+`fargfel()` tittar nu bara på färg som sitter på en DEL av möbeln, i båda
+svenska ordföljderna:
+
+```
+"röd skiva"      → färg före del
+"skivan är röd"  → del före färg
+```
+
+En bakgrund, en vägg, ett golv eller en matta är ingen del och kan inte ge
+falsklarm. **Helaren är DELAD mellan `grind.py` och `alt.py`**, inte kopierad —
+samma skäl som `SHIP_AXIS_RE` och `EU_TULL_CODES`: tvillingar glider isär.
+Båda filerna har självtestfall för båda ordföljderna.
+
+## ☠️ Färgsyskonen fick nästan identiska kort
+
+`c88b5bbb` och `63a37524` har identiska mått, identisk vikt, identisk last och
+identiskt delantal. Första kortutkastet gav dem **samma fem rader OCH samma
+versalrad** — och kortet är det enda som skiljer två sidor i en kategorilista.
+
+`kort.kontroll()` fäller på båda: identiska kort och delad kicker. Lagat med
+en `Yta`-rad, som är det enda som faktiskt skiljer dem, och två egna kickers.
+
+## ☠️ Ett OVERIFIERAT fält får aldrig nå ett kort
+
+`c3bda64a`s vikt är `None` sedan Steg 3. `format()` renderar `None` som
+strängen **"None"**, som på ett kort ser ut som en produktuppgift bland andra.
+Kortet visar maxlasten på hyllplanen i stället, och `kontroll()` fäller om
+`"None"` dyker upp i någon rad.
+
+⚠️ **Korten ligger i `kort/`, inte i `jpg/`.** `tools/polish-assets/.gitignore`
+rad 83 ignorerar `jpg/` (uppgift #393), och Wix hämtar kortet från
+`raw.githubusercontent.com` — en fil som inte ligger i grenen ger en
+uppladdning som rapporteras lyckad och sedan faller.
