@@ -35,6 +35,28 @@ on:
         required: false
         default: false
         type: boolean
+      kuvert:
+        # ☠️ SAMMA KANAL SOM I polish-mapping.yml, OCH AV SAMMA SKAL.
+        #
+        # `visa_pris` ar inget alternativ nar man bara vill VETA vad en vara
+        # kostar oss: den skriver inkopspriset bredvid artikelnumret till en
+        # logg som vem som helst kan lasa utan inloggning. Det ar ordagrant det
+        # par som motiverar att feed-adressen ar hemlig.
+        #
+        # Fram till nu fanns bara tva vagar till feedens pris: den publika
+        # loggen, eller ingen alls. Den har ar den tredje. Anroparen skickar en
+        # ENGANGS PUBLIK nyckel; workflowen krypterar traffarnas prisfalt mot
+        # den och skriver bara chiffret. Att den publika nyckeln syns i loggen
+        # ar hela poangen med asymmetrisk kryptering — bara den privata
+        # nyckeln, som aldrig lamnar anroparens maskin, oppnar kuvertet.
+        #
+        # Fragan som byggde den har (2026-09-10): stammer feedens varupris med
+        # Aosoms B2B-kassa? Det gar inte att svara pa utan att lasa BELOPPET,
+        # och beloppet far inte publiceras.
+        description: "Base64-kodad RSA-publik nyckel (PEM/DER). Priserna krypteras mot den i stallet for att loggas."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   sok:
@@ -47,6 +69,7 @@ jobs:
           Q: ${{ inputs.q }}
           ALLA: ${{ inputs.alla_rader }}
           VISA_PRIS: ${{ inputs.visa_pris }}
+          KUVERT: ${{ inputs.kuvert }}
         run: |
           set -euo pipefail
 
@@ -96,6 +119,65 @@ jobs:
           else
             echo "$svar" | jq -r '.visade[] | "  \(.sku)  saldo \(.saldo)\n    \(.namn)\n    \(.url)\n"'
             echo "(inkopspris utelamnat — loggen ar publik. Kor med visa_pris=true om du behover det.)"
+          fi
+
+          # --- Kuvertet: prisfalten, krypterade i stallet for loggade ---
+          if [ -n "${KUVERT:-}" ]; then
+            echo
+            echo "=== Kuvert (hybrid: AES-256-CBC + RSA-OAEP/SHA-256, base64) ==="
+
+            # ☠️ Klartexten skrivs till en FIL, aldrig till en variabel som
+            # nagot senare kan `echo`:a av misstag.
+            umask 077
+            echo "$svar" | jq -j '{
+              fraga:   .fraga,
+              traffar: .traffar,
+              rader: [.visade[] | {sku, namn, grossistEur, seFraktEur, landatSek, fraktandel, saldo, viktKg, url}]
+            } | tostring' > kuvert.klartext
+
+            if ! echo "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+              echo "::error::kuvert: inputet ar inte giltig base64" >&2
+              exit 1
+            fi
+
+            # ☠️ HYBRID, INTE RAK RSA. En 2048-bitars nyckel rymmer 190 byte med
+            # OAEP/SHA-256. En enda traff med namn och URL ar redan over det, och
+            # femtio traffar ar en storleksordning over. polish-mapping.yml foll
+            # pa exakt det ("data too large for key size") for att testet kordes
+            # mot en kortare nyttolast an verkligheten.
+            #
+            # Losenordet ligger i en FIL, aldrig i argv: kommandoraden ar last av
+            # vem som helst som kan lista processer.
+            openssl rand -base64 32 > kuvert.losen
+
+            # ☠️ OPENSSL:S FEL SYNS. Ett `2>/dev/null` har gor ett misslyckande
+            # orsakslost. Felraderna beskriver nycklar och padding, aldrig
+            # innehallet.
+            if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+                 -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+              echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+              cat kuvert.fel >&2
+              rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
+              exit 1
+            fi
+
+            # ☠️ INGEN FALLBACK TILL KLARTEXT. Gar nagot fel ska jobbet FALLA,
+            # inte skriva ut vardet "sa att det atminstone syns".
+            if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+                 -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+                 -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+              echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+              cat kuvert.fel >&2
+              rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+              exit 1
+            fi
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+            echo "losen: $(base64 -w0 kuvert.losen.enc)"
+            echo "data:  $(base64 -w0 kuvert.data)"
+            rm -f kuvert.losen.enc kuvert.data
+            echo "(dekryptera: RSA-oppna losen med din privata nyckel, sedan"
+            echo " openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen> pa data)"
           fi
 
           if [ "$(echo "$svar" | jq -r '.traffar')" = "0" ]; then
