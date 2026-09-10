@@ -1588,6 +1588,34 @@ Bygg innehållet:
 > Fällan slog till 2026-08-26 på `f0e0ee14` (smal hurts 40 cm): "kullagrade skenor"
 > var borta ur beskrivning, h2 och spec-tabell men stod kvar i meta description.
 
+> ☠️ **SKICKA INTE `visible: false` I STEG 7 — DET SLÅR NER VARIANTEN (2026-09-10).**
+> Att skriva ut `visible: false` i textpatchen ser ut som det försiktiga valet:
+> produkten SKA ju förbli utkast. Det är tvärtom. Produktens `false` speglas ned
+> på varianten, och en variant med `visible: false` betyder att sidan saknar
+> köpbar variant den dag den publiceras.
+>
+> Uppmätt i runda 120, samma åtta produkter, samma runda, samma kropp så när som
+> på det ena fältet:
+>
+> | Steg 7-kroppen | produkter | `variantsInfo.variants[].visible` efteråt |
+> |---|--:|---|
+> | med `"visible": false` | 2 | **`false` på båda** |
+> | utan fältet | 6 | `true` på alla sex |
+>
+> Utelämnat fält rör inte synligheten alls — produkten låg redan på `false` och
+> stannade där. Steg 7 ska alltså skicka `id`, `revision`, `name`, `slug`,
+> `plainDescription` och `seoData` och **inget mer**.
+>
+> ⚠️ Steg 8:s `variantsInfo`-PATCH är undantaget och kräver båda leden
+> (`visible: false` på produkten, `visible: true` på varianten) — där publicerar
+> ett utelämnat produktfält i stället utkastet. Reglerna är alltså MOTSATTA i de
+> två stegen, och det är därför de mäts var för sig.
+>
+> ⚠️ **Vad som gör det farligt är att ingenting klagar.** PATCH-svaret ekar
+> `visible: false` på produkten — precis vad man ville — och variantens rad
+> ligger längre ned i samma svar. Kontrollen som biter är att läsa
+> `variantsInfo.variants[].visible` i kvittot, inte produktens.
+
 > **Viktigt:** en PATCH av `seoData` **ersätter hela objektet** – skicka därför ALLTID med samtliga taggar nedan, inte bara den du ändrar.
 
 ```
