@@ -35,10 +35,6 @@ export default function Returer() {
       <h2>5. Återbetalning</h2>
       <p>Vi återbetalar inom 5–10 bankdagar efter att vi tagit emot och kontrollerat produkten. Pengarna går till ursprungligt betalmedel (kort, Klarna, Swish).</p>
 
-      <h2>{COMPLAINT.label}</h2>
-      <p>{COMPLAINT.lead}</p>
-      <ul>{COMPLAINT.points.map((p) => <li key={p}>{p}</li>)}</ul>
-
       <h2>Returvillkor</h2>
 
       <ul className="retur-tidslinje">
@@ -65,6 +61,10 @@ export default function Returer() {
         {COMMON.map((p) => <li key={p}>{p}</li>)}
         <li>Spårbar leverans rekommenderas — Fyndplats ansvarar inte för förlorade returpaket</li>
       </ul>
+
+      <h2>{COMPLAINT.label}</h2>
+      <p>{COMPLAINT.lead}</p>
+      <ul>{COMPLAINT.points.map((p) => <li key={p}>{p}</li>)}</ul>
 
       <p>Frågor? Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> — vi svarar inom 24 timmar.</p>
     </ContentPage>

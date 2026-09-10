@@ -41,6 +41,16 @@ const prose = (t: string) =>
     // ett kvarlämnat `import { COMPLAINT }` såg ut som att sidan sa något. En
     // oanvänd import är inte kundtext.
     .replace(/^\s*import\s[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, " ")
+    // JSX styckar meningar mitt itu. `Då är det en{" "}<a ...>reklamation</a>`
+    // läses av kunden som en enda mening, men matchade inget mönster här — det
+    // var så ångerformulärets reklamationsnotis slank förbi. Taggar och
+    // {" "}-uttryck tas bort så texten läses som den visas.
+    .replace(/\{"\s*"\}|\{'\s*'\}/g, " ")
+    .replace(/<\/?[A-Za-z][^>]*>/g, "")
+    // ...och sedan blanktecknen. Att bara ta bort taggen räckte inte: kvar låg
+    // radbrytning och indrag, så "Då är det en\n        reklamation" matchade
+    // fortfarande ingenting. Mönstren ska läsa texten som den visas, på en rad.
+    .replace(/\s+/g, " ")
     .replace(/\{TOTAL_SUMMARY\}|TOTAL_SUMMARY/g, " totalt 30 dagar dag 15–30 ")
     .replace(/\{TOTAL_SHORT\}|TOTAL_SHORT/g, " totalt 30 dagar ");
 
@@ -139,7 +149,12 @@ test("den som talar om reklamation säger också hur länge rätten gäller", ()
     // Bara ytor som erbjuder reklamation som väg till kunden. ARN-stycket i
     // tvistelösning nämner "reklamationsnämnden" och är något annat.
     if (!/(är|blir) det (i stället |istället )?en \*?\*?reklamation|gör en reklamation|reklamera /i.test(t)) continue;
-    const term = /tre års? reklamationsrätt|tre år|konsumentköplagen|COMPLAINT/i.test(t);
+    // Ingen "peka vidare"-utväg här. Jag provade en, och mutationstestet visade
+    // varför den inte håller: /returer friades av en /kopvillkor-länk i sin egen
+    // fot, alltså av en länk som inte har med reklamationen att göra. Erbjuder en
+    // yta reklamation som väg ska den säga hur länge rätten gäller. Det är en
+    // mening.
+    const term = /tre års? reklamationsrätt|tre år|konsumentköplagen|COMPLAINT\./i.test(t);
     if (!term) bad.push(p);
   }
   assert.deepEqual(bad, []);
