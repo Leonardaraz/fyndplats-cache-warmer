@@ -345,3 +345,74 @@ läsningen hade legat en revision efter.
 Omskrivningen var villkorad på att SKU:n FORTFARANDE var fel, så ingenting
 skrevs en andra gång. Det är poängen: en retry som skriver oavsett hade
 brunnit en revision på ett problem som inte fanns.
+
+## Steg 9 — bilderna
+
+49 bilder över nio produkter, jämförda **ord för ord mot `media.py`** efter
+skrivningen: **0 avvikelser**. Kortet ligger på plats 3 och måttritningen sist
+på alla nio; alla nio står kvar som `visible: false`.
+
+| pid | bilder efter | bortplockade |
+|---|--:|--:|
+| `14aa1777` | 4 | 2 |
+| `1f14ab66` | 6 | 0 |
+| `c9ab8531` | 6 | 0 |
+| `4ef7c2b4` | 5 | 1 |
+| `ec8ab782` | 6 | 0 |
+| `db933c3c` | 6 | 0 |
+| `a6727ca5` | 5 | 1 |
+| `9938574b` | 5 | 1 |
+| `6747b6c0` | 6 | 0 |
+
+### ☠️ Kortets fil-id BEVISADES med md5 — ett giltigt men fel id är tyst
+
+Ett kort-id som råkar peka på en ANNAN fil ger ingen felkod: bilden laddas,
+sidan ser hel ut, och kunden får fel produktbild. Varje fil hämtades därför
+från `static.wixstatic.com/media/<id>` och md5-jämfördes mot kortet på disk:
+**9 av 9 byte-identiska.** Identitet, inte tilltro.
+
+### ☠️ `bomlåda` nådde Wix på ÅTTA alt-texter — filen sa `blomlåda`
+
+Alt-texterna skrevs först i `media.py`, grindades där, och sedan **skrevs av
+för hand** in i API-anropet. Avskrivningen tappade ett `l` i åtta av 27
+texter. Exakt batch 64:s mätning en gång till: *inline i anropet ger fel,
+fil först ger noll* — men den regeln gäller bara om anropet LÄSER filen.
+Här skrevs filen och ignorerades.
+
+Två saker gjorde det ofarligt:
+
+1. **Rättelsen skrev inte om någon mening.** Den läste den skrivna strängen
+   ur Wix och bytte bara ordet (`split(FEL).join(RÄTT)`), så ingen ny text
+   passerade en tangentbordsrad. 8 rättade, 0 övriga rörda.
+2. **Kvittot är en LOKAL DIFF mot planfilen**, inte en blick på svaret.
+   PATCH-svaret ekar tillbaka exakt det man skrev — det kan aldrig se
+   felstavningen. Det som fångade den var att läsa tillbaka från Wix och
+   jämföra mot `media.py` i Python.
+
+⚠️ **Regeln skärpt: en skrivning är inte klar förrän den DIFFATS mot filen.**
+Att grinda filen räcker inte när handen står mellan filen och API:t.
+
+### ☠️ Återläsningen direkt efter media-PATCH låg en revision efter — på 3 av 5
+
+Batch A rapporterade tre av fem som oförändrade, och listan den visade var
+exakt den gamla importordningen. En fristående omläsning strax efter gav rätt
+ordning på alla fem, med revisionen ett steg högre än den lögnaktiga läsningen
+visade.
+
+Det är uppgift #394 mätt igen, och nu med mekanismen synlig: läsningen
+serverade tillståndet FÖRE skrivningen. **Verifiera i ett SEPARAT anrop, inte
+i samma.** Batch B skrevs därför utan inbyggd kontroll, och kvitterades i en
+egen läsning efteråt.
+
+### ☠️ Alt-texten skrevs efter kontaktarken, inte efter produktnamnet
+
+Varje rad i `media.ALT` beskriver vad som FINNS i bilden — att `db933c3c`:s
+livsstilsbild visar någon som matar en katt, att `6747b6c0`:s sista bild är
+taket snett uppifrån. Det gick bara att skriva genom att titta på bilderna.
+En alt-text härledd ur produktnamnet hade blivit sann om produkten och falsk
+om bilden, vilket är hela poängen med alt-text.
+
+Grinden (`media.py` + rundans `FORBJUDET`/`TYSKA`) kontrollerar dessutom:
+inga tal, inga artikelnummer, inga homoglyfer, inga tyska ord — och en egen
+lista mot **avdiakritiserad svenska** (`matt`, `hojd`, `narbild`), som fällde
+hela första utkastet efter att det skrivits genom en heredoc.
