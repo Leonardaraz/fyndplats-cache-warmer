@@ -1,0 +1,210 @@
+{
+ "709f7aac": {
+  "kicker": "Kubhylla 111 cm på hjul",
+  "rubrik": "Tre fack åt olika håll",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "33,5 × 33,5 × 111 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Fack",
+    "varde": "Tre öppna, 33,5 × 33,5 × 33,5 cm vardera"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "3 kg per fack, 9 kg totalt"
+   },
+   {
+    "etikett": "Hjul",
+    "varde": "Fyra"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "13,5 kg"
+   }
+  ]
+ },
+ "4d5b3bb5": {
+  "kicker": "Hurts 37 cm, tre lådor",
+  "rubrik": "Två grunda och en arkivlåda",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "37 × 43,5 × 60 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre – två grunda och en arkivlåda"
+   },
+   {
+    "etikett": "Pennfack",
+    "varde": "32,3 × 10,7 × 2,2 cm, löstagbart"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg toppskiva, 5 kg per låda, 30 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "19 kg"
+   }
+  ]
+ },
+ "66866eb7": {
+  "kicker": "Hurts 37 cm, två lådor",
+  "rubrik": "Smal och 67,5 cm hög",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "37 × 43,5 × 67,5 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Två"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "30,5 × 40,5 × 24 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg toppskiva, 5 kg per låda, 30 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "521aec3c": {
+  "kicker": "Hurts 67 cm, vit",
+  "rubrik": "Två djupa lådor",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39 × 48 × 67 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Två, lika djupa"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "32 × 44,5 × 24 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "5 kg per låda"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22,3 kg"
+   }
+  ]
+ },
+ "9ba9af92": {
+  "kicker": "Hurts 60 cm, vit",
+  "rubrik": "Tre lådor på fyra länkhjul",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39 × 48 × 60 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre – två grunda och en arkivlåda"
+   },
+   {
+    "etikett": "Hjul",
+    "varde": "Fyra länkhjul, två med broms, plus ett tippskyddshjul"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg per låda, 50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "21 kg"
+   }
+  ]
+ },
+ "3273d2ee": {
+  "kicker": "Hurts 59 cm, greppfri",
+  "rubrik": "Front utan handtag",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39 × 48 × 59 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre – två grunda och en arkivlåda"
+   },
+   {
+    "etikett": "Grepp",
+    "varde": "Greppfri front, du drar under kanten"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg per låda, 50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22 kg"
+   }
+  ]
+ },
+ "9b8c7308": {
+  "kicker": "Hurts 59 cm, vit med svart list",
+  "rubrik": "Infällt handtag i varje front",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39 × 48 × 59 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre – två grunda och en arkivlåda"
+   },
+   {
+    "etikett": "Grepp",
+    "varde": "Avlångt handtag infällt i varje front"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg per låda, 50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22 kg"
+   }
+  ]
+ },
+ "21a12739": {
+  "kicker": "Hurts 59 cm, svart",
+  "rubrik": "Infällt handtag i varje front",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39 × 48 × 59 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre – två grunda och en arkivlåda"
+   },
+   {
+    "etikett": "Grepp",
+    "varde": "Avlångt handtag infällt i varje front"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg per låda, 50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22 kg"
+   }
+  ]
+ }
+}
