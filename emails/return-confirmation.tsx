@@ -56,7 +56,7 @@ export default function ReturnConfirmationEmail({
         vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på
         avsändning. Fyndplats ansvarar inte för förlorade returpaket.
       </Text>
-      <Text style={text.muted}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
+      <Text style={text.body}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
       <Text style={text.body}>
         <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll
         på paketet.
