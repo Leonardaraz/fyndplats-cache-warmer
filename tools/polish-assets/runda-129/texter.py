@@ -30,7 +30,7 @@ NAMN = {
     "1f14ab66": "Solcellslampa 195 cm – lyktstolpe med planteringskruka och två ljuslägen",
     "c9ab8531": "Solcellslampa 182 cm – lyktstolpe med två klotarmaturer och planteringsfot",
     "4ef7c2b4": "Solcellslampa 185 cm – lyktstolpe med tre lyktor och planteringskruka",
-    "ec8ab782": "Solcellslampa 189 cm – lyktstolpe med tre skärmar och tre ljuslägen",
+    "ec8ab782": "Solcellslampa 189 cm – lyktstolpe med tre glaskupor och tre ljuslägen",
     "db933c3c": "Solcellslampa med dimbar LED – tre lyktor på rostfri mast, 182,5 cm",
     "a6727ca5": "Solcellslampa 177 cm – trädgårdslykta med sex lysdioder och jordspett",
     "9938574b": "Solcellslyktor 2-pack – 129 cm med jordspett och kallvitt ljus",
@@ -42,7 +42,7 @@ SLUG = {
     "1f14ab66": "solcellslampa-195-cm-planteringskruka",
     "c9ab8531": "solcellslampa-182-cm-tva-klot",
     "4ef7c2b4": "solcellslampa-185-cm-tre-lyktor",
-    "ec8ab782": "solcellslampa-189-cm-tre-skarmar",
+    "ec8ab782": "solcellslampa-189-cm-tre-glaskupor",
     "db933c3c": "solcellslampa-dimbar-tre-lyktor-rostfri",
     "a6727ca5": "solcellslampa-177-cm-tradgardslykta",
     "9938574b": "solcellslykta-129-cm-2-pack",
@@ -70,7 +70,7 @@ TITEL = {
     "1f14ab66": "Solcellslampa 195 cm med planteringskruka | Fyndplats",
     "c9ab8531": "Solcellslampa 182 cm, två klotarmaturer | Fyndplats",
     "4ef7c2b4": "Solcellslampa 185 cm med tre lyktor | Fyndplats",
-    "ec8ab782": "Solcellslampa 189 cm, tre skärmar | Fyndplats",
+    "ec8ab782": "Solcellslampa 189 cm, tre glaskupor | Fyndplats",
     "db933c3c": "Solcellslampa med dimbar LED, tre lyktor | Fyndplats",
     "a6727ca5": "Solcellslampa 177 cm, trädgårdslykta | Fyndplats",
     "9938574b": "Solcellslyktor 2-pack, 129 cm | Fyndplats",
@@ -86,7 +86,7 @@ META = {
                 "böjda armar och planteringsfot. 60 lumen. Justerbar höjd.",
     "4ef7c2b4": "Solcellsdriven lyktstolpe med tre lyktor och planteringskruka. "
                 "Masten byggs i sektioner till 185 cm. 90 lumen, 6000 K.",
-    "ec8ab782": "Solcellsdriven lyktstolpe 189 cm med tre skärmar, "
+    "ec8ab782": "Solcellsdriven lyktstolpe 189 cm med tre glaskupor, "
                 "planteringsfot och strömbrytare i tre lägen. Batterier ingår.",
     "db933c3c": "Solcellsdriven lyktstolpe 182,5 cm med tre lyktor. "
                 "LED-modulen är avtagbar och dimbar. 120 lumen, 6000 K.",
@@ -145,7 +145,7 @@ INTRO = {
         "lumen totalt, och tänds av en sensor när ljuset utomhus går under "
         "tre lux.",
     "ec8ab782":
-        "Tre skärmar på böjda armar, 189 centimeter upp, med en "
+        "Tre klara glaskupor på böjda armar, 189 centimeter upp, med en "
         "planteringslåda som fot. Utöver automatiken finns en strömbrytare "
         "med tre lägen: högt, lågt och av. De sex laddningsbara batterierna "
         "ingår, och de går att byta den dag de slutar hålla laddningen.",
@@ -178,7 +178,7 @@ RUBRIK = {
     "1f14ab66": "Lyktstolpe och planteringskruka i ett",
     "c9ab8531": "Två klot på böjda armar över en planteringsfot",
     "4ef7c2b4": "Tre lyktor, sektionsbyggd mast och plats för blommor",
-    "ec8ab782": "Tre skärmar och en strömbrytare i tre lägen",
+    "ec8ab782": "Tre glaskupor och en strömbrytare i tre lägen",
     "db933c3c": "Dimbar LED som går att lyfta ur",
     "a6727ca5": "Sexkantig lykta med sparläge",
     "9938574b": "Två lyktor på spett, kallvitt ljus",
@@ -227,7 +227,7 @@ PUNKTER = {
         "Kräver montering",
     ],
     "ec8ab782": [
-        "Tre skärmar på böjda armar",
+        "Tre glaskupor på böjda armar",
         "Strömbrytare i tre lägen: högt, lågt och av",
         "Tänds automatiskt när ljuset utomhus går under tre lux",
         "Sex laddningsbara AA-batterier på 3,2 volt ingår och går att byta",
@@ -323,7 +323,7 @@ SOL = {
         "laddningen till de kvällar du vill ha lampan tänd.",
     "ec8ab782":
         "Lampan lyser i sex timmar på full laddning, och laddningen sker genom "
-        "panelerna i skärmarnas tak. Ställ stolpen fritt, inte under en gren. "
+        "panelerna i kupornas tak. Ställ stolpen fritt, inte under en gren. "
         "Det låga läget drar mindre och räcker längre — det är den knappen som "
         "gör vinterkvällarna användbara. Batterierna är laddningsbara "
         "AA-batterier och går att ta in och ladda inomhus när solen inte gör "
@@ -363,13 +363,13 @@ KORSLANK = {
     "1f14ab66": [("14aa1777", "Samma lyktform utan kruka, två stycken med jordspett, finns på 180 centimeter"),
                  ("4ef7c2b4", "Vill du ha tre lyktor över krukan i stället för en? Se modellen på 185 centimeter")],
     "c9ab8531": [("4ef7c2b4", "Tre lyktor i stället för två klot finns på 185 centimeter"),
-                 ("ec8ab782", "Tre skärmar och strömbrytare i tre lägen finns på 189 centimeter")],
-    "4ef7c2b4": [("ec8ab782", "Tre skärmar i stället för lyktor, med strömbrytare i tre lägen, finns på 189 centimeter"),
+                 ("ec8ab782", "Tre glaskupor och strömbrytare i tre lägen finns på 189 centimeter")],
+    "4ef7c2b4": [("ec8ab782", "Tre glaskupor i stället för lyktor, med strömbrytare i tre lägen, finns på 189 centimeter"),
                  ("db933c3c", "Tre lyktor utan kruka, med dimbar och avtagbar LED, finns på rostfri mast")],
-    "ec8ab782": [("4ef7c2b4", "Tre lyktor i stället för skärmar finns på 185 centimeter"),
+    "ec8ab782": [("4ef7c2b4", "Tre lyktor i stället för glaskupor finns på 185 centimeter"),
                  ("c9ab8531", "Två klotarmaturer och samma planteringsfot finns på 182 centimeter")],
     "db933c3c": [("4ef7c2b4", "Tre lyktor med planteringskruka i foten finns på 185 centimeter"),
-                 ("ec8ab782", "Tre skärmar med strömbrytare i tre lägen finns på 189 centimeter")],
+                 ("ec8ab782", "Tre glaskupor med strömbrytare i tre lägen finns på 189 centimeter")],
     "a6727ca5": [("6747b6c0", "Samma lyktform på rostfri mast, 160 centimeter, finns här"),
                  ("9938574b", "Två lyktor i ett paket, 129 centimeter höga, finns här")],
     "9938574b": [("a6727ca5", "En ensam lykta på 177 centimeter med sparläge finns här"),
@@ -459,7 +459,7 @@ SPEC = {
     ],
     "ec8ab782": [
         ("Mått", "60 × 55 × 189 cm (bredd × djup × höjd)"),
-        ("Lamphuvuden", "Tre skärmar på böjda armar"),
+        ("Lamphuvuden", "Tre klara glaskupor på böjda armar"),
         ("Lägen", "Högt, lågt och av"),
         ("Tändning", "Automatiskt när ljuset utomhus går under 3 lux"),
         ("Lystid", "6 timmar på full laddning"),
@@ -576,7 +576,7 @@ SKOTSEL = {
         "lampan med slang: IP44 betyder skydd mot stänk, inte mot "
         "vattenstrålar. Ta in batteriet inomhus de kallaste vintermånaderna.",
     "ec8ab782":
-        "Torka av panelerna i skärmarnas tak några gånger per säsong. "
+        "Torka av panelerna i kupornas tak några gånger per säsong. "
         "Batterierna är vanliga laddningsbara AA-batterier: går lystiden ned "
         "efter ett par säsonger är det dem du byter, inte lampan. Fyll "
         "planteringslådan med jord så att stolpen står stadigt. Spola inte "
