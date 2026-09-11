@@ -168,3 +168,79 @@ i någon text. Nämns i brödtexten så att det inte blir en överraskning.
 | Sortiment | Sex nästan identiska trelådors-hurtsar live samtidigt (fem nya + publicerade `66c9f2b5`). Kvalificerare finns i namn/slug/titel, men det är ett sortimentsbeslut om de ska vara sex sidor eller färre. |
 | #461 | `9b8c7308` bild 5 bar HOMCOM-logotypen — ett fall till i logotypsvepet. |
 | #478 | `81c123fa` (runda 128) bär *"kostenfrei bis Bordsteinkante"* i leverantörens text. |
+
+## Steg 9, 10 och 12 — kvitton
+
+### Steg 9 — bilderna och alt-texterna
+
+`galleri.py` byggde 35 alt-texter och plockade bort fem bilder. Grinden körde
+**2 självtest + 35 texter, 0 fel** (förbudslistan + tongrindarna ur `grind.py`,
+max 125 tecken, måste namnge produkten, ingen dubblett, homoglyfkoll, och två
+egna grindar: SKRIVARE och LÅDSPÄRR).
+
+| id | bilder före | efter | utan alt | alt stämmer | id stämmer | synlig efter |
+|---|--:|--:|--:|:-:|:-:|:-:|
+| `709f7aac` | 5 | 5 | 0 | ✓ | ✓ | false |
+| `4d5b3bb5` | 5 | **4** | 0 | ✓ | ✓ | false |
+| `66866eb7` | 5 | **4** | 0 | ✓ | ✓ | false |
+| `521aec3c` | 5 | 5 | 0 | ✓ | ✓ | false |
+| `9ba9af92` | 5 | 5 | 0 | ✓ | ✓ | false |
+| `3273d2ee` | 5 | **4** | 0 | ✓ | ✓ | false |
+| `9b8c7308` | 5 | **4** | 0 | ✓ | ✓ | false |
+| `21a12739` | 5 | **4** | 0 | ✓ | ✓ | false |
+
+⚠️ **Skrivaren står i två livsstilsbilder och nämns i ingen alt-text.**
+`521aec3c` pos 2 och `3273d2ee` pos 2 visar båda en skrivare ovanpå skåpet.
+Ingen av de två sidorna anger last för TOPPSKIVAN — bara per låda — så en
+alt-text som skrev ut skrivaren hade gjort ett belastningspåstående sidan inte
+backar upp. Samma avvägning som fällde `709f7aac`:s "Druckerablage" i Steg 5.
+Grinden är `SKRIVARE` i `galleri.py`, inte en vana.
+
+### ☠️ `wix.request` bär kroppen under `body` — `data` slukas TYST
+
+Första skrivförsöket gav **400 `product.revision must not be empty`** på en
+kropp som bevisligen bar `revision: "4"`. Felet var nyckeln: kroppen låg under
+`data`, och den slukas. Wix får då en TOM `product`, och protobuf-validatorn
+rapporterar första saknade obligatoriska fältet — `revision`.
+
+☠️ **Felmeddelandet pekar alltså på fel sak.** Det säger "revision saknas" när
+sanningen är "hela kroppen saknas", och den som tror på det börjar felsöka
+revisionsläsningen — som är korrekt. Mätt båda vägarna på samma produkt i
+samma minut:
+
+| nyckel | utfall |
+|---|---|
+| `data: {product: {…, revision: "4"}, fieldMask}` | **400** `revision must not be empty` |
+| `body: {product: {…, revision: "4"}, fieldMask}` | **200**, revision 4 → 5 |
+
+Samma familj som `media.items` mot `media.itemsInfo.items`: ett fältnamn som
+inte finns läses som TOMT, inte som fel.
+
+### Steg 10 — kategorierna
+
+Butiken har **inget löv för kontorsmöbler**. Facit är därför det publicerade
+färgsyskonet `66c9f2b5` (`hurts-hjul-tre-lasbara-lador`), som ligger i
+`Förvaring & Organisering` + `Hem & Inredning`. Rundans åtta fick exakt samma
+två — `totalSuccesses: 2, totalFailures: 0` på alla åtta.
+
+☠️ **Läst TVÅ gånger** (uppgift #357: en återläsning direkt efter en
+kategoriskrivning kan ljuga NEGATIVT). Båda läsningarna ger samma svar på alla
+åtta: `05e96cd6` (All Products), `1632eeea`, `3ed832b7`.
+
+### Steg 12 — avskriftskvittot
+
+Räknat på det som FAKTISKT ligger i Wix (`?fields=PLAIN_DESCRIPTION`,
+taggstrippat och blanksteksnormaliserat) mot `skrivning.json`:
+
+| id | tecken | teckenkodsumma | ord | namn · slug · titel · meta · SKU | synlig | märke |
+|---|--:|--:|--:|:-:|:-:|:-:|
+| `709f7aac` | 1 927 | 217 364 | 364 | ✓ | false | null |
+| `4d5b3bb5` | 1 911 | 216 471 | 344 | ✓ | false | null |
+| `66866eb7` | 1 738 | 177 394 | 327 | ✓ | false | null |
+| `521aec3c` | 1 628 | 176 704 | 303 | ✓ | false | null |
+| `9ba9af92` | 1 943 | 212 477 | 347 | ✓ | false | null |
+| `3273d2ee` | 2 010 | 232 224 | 363 | ✓ | false | null |
+| `9b8c7308` | 1 928 | 210 361 | 341 | ✓ | false | null |
+| `21a12739` | 1 905 | 200 275 | 340 | ✓ | false | null |
+
+**8 produkter, 0 avvikelser.**
