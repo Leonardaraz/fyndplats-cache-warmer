@@ -206,19 +206,83 @@ def pastar_i_listan(rader, stam):
 
 
 # ------------------------------------------------------------- SKU-regeln ---
-FOGEORD = {"med", "och", "i", "pa", "for", "till", "som", "av", "utan"}
+# ☠️ LISTAN HADE DRIVIT FEM ORD FRÅN `lib/import/sku.ts` (uppgift #484, mätt
+#    i runda 129). Den bar `till`, `som` och `utan` som produktionen INTE
+#    stryker, och saknade `the` och `with` som den stryker. En slug med något
+#    av de fem räknar alltså fram en ANNAN SKU i grinden än i produktionen —
+#    och grinden svarar "unik" på en krock som blir verklig, eller tvärtom.
+#
+#    Listan är oförändrad mot TS-filen nu, och `_kallkodsgrind_sku()` nedan
+#    läser källan och fäller om någon av de två sidorna rör sig. Samma
+#    mekanism som `route.test.ts` som läser cron-raden ur refresh-tokens.yml:
+#    en tvilling som INTE kan glida isär utan att något skriker.
+FOGEORD = {"for", "med", "i", "och", "the", "with", "pa", "av"}
+
+# Märkes-token som `stripBrandPrefix` tar bort FÖRST. En rå tysk slug kan
+# inledas med ett husmärke, och då bygger produktionen SKU:n utan det.
+MARKEN = {
+    "succebuy", "vevor", "homcom", "pawhut", "outsunny", "giantex", "costway",
+    "tobbi", "aosom", "zeny", "happybuy", "goplus", "vivohome", "kkmoon",
+    "yaheetech", "vingli", "skyshalo", "bentism", "walnew", "moukey",
+    "sportnow", "vinsetto", "aiyaplay", "zonekiz", "kleankin",
+}
+
+PRODUKTDEL_MAX = 24
 
 
 def sku_bas(slug):
-    """Speglar lib/import/sku.ts: fogeord bort, bryt på HELT ord vid 24."""
-    delar = [d for d in slug.split("-") if d not in FOGEORD]
+    """Speglar lib/import/sku.ts: märke bort, fogeord bort, HEL ordgräns vid 24."""
+    delar = [d for d in slug.split("-") if d]
+    # stripBrandPrefix: behåll alltid minst ett token.
+    while len(delar) > 1 and delar[0] in MARKEN:
+        delar.pop(0)
+    # dropConnectors: men aldrig ALLT.
+    kvar = [d for d in delar if d not in FOGEORD]
+    delar = kvar or delar
     ut = ""
     for d in delar:
         kand = d if not ut else ut + "-" + d
-        if len(kand) > 24:
+        if len(kand) > PRODUKTDEL_MAX:
+            if not ut:
+                return d[:PRODUKTDEL_MAX]      # ensamt för långt token
             break
         ut = kand
     return ut
+
+
+def _kallkodsgrind_sku(rot=None):
+    """Fäller om `FOGEORD` eller `MARKEN` glidit från lib/import/sku.ts.
+
+    ☠️ GRINDEN LÄSER KÄLLAN, den härleds inte ur minnet. Uppgift #484 satt
+       i sex rundor utan att synas, för en kopierad lista ser korrekt ut i
+       källkoden hur länge som helst — det som avslöjar den är att jämföra.
+    """
+    import os
+    rot = rot or os.path.dirname(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))))
+    fil = os.path.join(rot, "lib", "import", "sku.ts")
+    if not os.path.exists(fil):
+        return ["lib/import/sku.ts hittades inte — grinden kan inte pröva sig"]
+    kod = open(fil, encoding="utf-8").read()
+    fel = []
+    for namn, var, mall in [("CONNECTOR_TOKENS", FOGEORD,
+                             r"CONNECTOR_TOKENS\s*=\s*new Set\(\[(.*?)\]\)"),
+                            ("KNOWN_BRAND_TOKENS", MARKEN,
+                             r"KNOWN_BRAND_TOKENS\s*=\s*new Set\(\[(.*?)\]\)")]:
+        m = re.search(mall, kod, re.S)
+        if not m:
+            fel.append("%s gick inte att läsa ur sku.ts — mönstret har drivit" % namn)
+            continue
+        kalla = set(re.findall(r'"([^"]+)"', m.group(1)))
+        if kalla != var:
+            fel.append("%s: bara i sku.ts %s, bara här %s"
+                       % (namn, sorted(kalla - var), sorted(var - kalla)))
+    # ☠️ Talet 24 är lika mycket en tvilling som listan.
+    m = re.search(r"PRODUCT_PART_MAX\s*=\s*(\d+)", kod)
+    if m and int(m.group(1)) != PRODUKTDEL_MAX:
+        fel.append("PRODUCT_PART_MAX är %s i sku.ts, %d här"
+                   % (m.group(1), PRODUKTDEL_MAX))
+    return fel
 
 
 # ------------------------------------------------------- korshänvisningar ---
@@ -1090,6 +1154,18 @@ def _sjalvtest():
          lambda: _isr_stub(["HIT", "HIT", "HIT"])[1] == 2, True),
         ("isr: evigt STALE ger UPP och lämnar raden synlig för anroparen",
          lambda: _isr_stub(["STALE"] * 9)[0] == "STALE", True),
+        # ☠️ SKU-REGELN ÄR EN TVILLING TILL lib/import/sku.ts — och hade
+        #    drivit fem ord (uppgift #484). Grinden läser KÄLLAN.
+        ("sku: FOGEORD/MARKEN/24 stämmer mot lib/import/sku.ts",
+         lambda: bool(_kallkodsgrind_sku()), False),
+        ("sku: fogeord stryks, bryts på HEL ordgräns vid 24",
+         lambda: sku_bas("solcellslampa-med-kruka-och-spett")
+         == "solcellslampa-kruka", True),
+        ("sku: ledande MÄRKE stryks som i produktionen",
+         lambda: sku_bas("homcom-solcellslampa-160-cm-rostfri")
+         == "solcellslampa-160-cm", True),
+        ("sku: ett ensamt FÖR LÅNGT token hårdkapas i stället för tom del",
+         lambda: len(sku_bas("a" * 40)) == 24, True),
         ("flik: alla tre finns", lambda: bool(flikfel(
             "<summary>Tekniska specifikationer</summary>"
             "<summary>Användning och skötsel</summary>"

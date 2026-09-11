@@ -1,0 +1,255 @@
+# Runda 129 — nio solcellslyktor på mast
+
+## Steg 1 — familjen, och varför den valdes
+
+Katalogsvep 2026-09-11 via `products/search` (57 sidor, `avhuggen: false`,
+**unika == lästa**, alltså inget sidbrytningsfel):
+
+| | |
+|---|--:|
+| Produkter totalt | 5 649 |
+| Publicerade | 2 569 |
+| Utkast | 3 080 |
+
+Familjen valdes på **förhållandet**, inte på antalet. Tyska huvudord med
+flest utkast är `kinder` (77) och `elektro` (62) — båda är prefix över
+vitt skilda produkttyper, inte familjer. Kandidatmätningen, **två**
+sökningar per familj (utkast på tyskt huvudord, publicerade på svenskt ord,
+runbookens regel efter runda 60):
+
+| familj | utkast | publicerade |
+|---|--:|--:|
+| **solcellslampor** | **15** | **0** |
+| sideboard | 15 | 9 |
+| schlafsofa | 13 | 9 |
+| küchenschrank | 13 | 10 |
+| barhocker | 13 | 20 |
+| mülleimer | 16 | 26 |
+| campingzelt | 13 | 28 |
+
+☠️ **Nollan är GRANSKAD, inte antagen.** Sökningen på svenska solord gav sju
+publicerade träffar och **alla sju är falska**: en snögubbe med lykta, en
+animerad halloweenhäxa, två planteringsbord, en planteringsvagn, en
+fågelmatare med kamera (soldriven) och en väderstation med solcell. Ingen av
+dem är en lampa. Familjen har alltså noll sökordskrockar och noll
+måttvillingar mot katalogen — runbookens billigaste runda.
+
+⚠️ **Rundan tar NIO av femton.** De sex rottinglamporna (`65e3c24f`,
+`4e23a904`, `66a26135`, `5ffb91a2`, `ef0c374b`, `a8cf27cd`) är en egen
+konstruktion med egna färgtvillingar och blir runda 130. `137403f6` är en
+bärbar solpanel på 100 W — en laddare, inte belysning, och alltså en annan
+produkttyp. Alla tre grupperna står i `matt.py` så nästa runda slipper mäta
+om familjen.
+
+⚠️ **SKU-krockarna är ÄRVDA, inte skapade här.** Fyra utkast bär redan
+`FP-solar-laterne` och tre bär `FP-solar-stehlampe-rattan` — importen kapar
+produktdelen vid 24 tecken och de tyska sluggarna är identiska ända dit
+(uppgift #272). Steg 8 måste alltså räkna varje SKU inom 24 tecken innan
+sluggen låses, inte efter.
+
+## Steg 2 — laglighets- och påståendegrinden
+
+Familjen säljs på EN sak, och det är precis då den ska prövas (runda 97):
+*den lyser upp trädgården gratis*. Fem fynd.
+
+### 1. ☠️ IP44 är STÄNKSKYDD — "vattentät" får inte skrivas
+
+Leverantören skriver `Wasserdicht` på flera av de nio och anger samtidigt
+IP44. Enligt IEC 60529 betyder den andra fyran **skydd mot vattenstänk från
+alla riktningar** — inte nedsänkning, inte kraftiga strålar. Den första
+fyran är fasta föremål större än 1 mm.
+
+Texten skriver därför **stänkskyddad enligt IP44** och aldrig "vattentät".
+Leverantörens vidare påstående på ett av de parkerade utkasten —
+*"widersteht Regen, Schnee, Frost und Hagel"* — är inget IP44 intygar och
+upprepas inte.
+
+### 2. ☠️ Svensk vinter är en HÅRD GRÄNS som hör hemma på sidan
+
+Varje spec lovar 6–8 timmars lystid på 5–8 timmars laddning. Det
+förutsätter sol. Clas Ohlsons egen guide för solcellsbelysning säger två
+saker som gäller alla nio:
+
+> "Förvara solcellsbatterierna inomhus vintertid så att de inte fryser
+> sönder."
+
+> "En optimalt laddad och bra placerad lampa med väl fungerande batterier
+> kan lysa upp till 5–6 timmar."
+
+Det är samma klass som gasolgrillarnas 50 mbar (runda 44): ett villkor som
+avgör om varan går att använda, och som ska skrivas som ett **positivt
+villkor med egen `<h2>`**, inte som en varningslista.
+
+### 3. ⚠️ Ljusstyrkan är DEKORATIV — och det är kategorins klyscha
+
+| | lumen |
+|---|--:|
+| `14aa1777` | 200 / 100 |
+| `1f14ab66` | 200 / 100 |
+| `db933c3c` | 120 |
+| `4ef7c2b4` | 90 |
+| `c9ab8531` | 60 |
+| `6747b6c0` | 40 |
+| `a6727ca5`, `9938574b`, `ec8ab782` | anges inte |
+
+En vanlig 40 W-glödlampa ger cirka 450 lm. De nio ligger alltså på en
+tiondel till knappt hälften av det. Att skriva *"lyser upp gången"* som en
+förmåga är precis den kategoriklyscha runda 97 mätte upp på
+foderstationerna: den känns som en produktegenskap och är obevisad.
+
+**Beskriv mekaniken** — hur många huvuden, hur många lumen, när den tänds —
+och låt kunden dra slutsatsen. Tre av nio saknar lumenvärde helt och får då
+inget ljusstyrkepåstående alls.
+
+### 4. ⚠️ CE står inte i källan för någon av de nio
+
+Rottinglamporna i runda 130 listar `CE` respektive `CE DOC`; av rundans nio
+gör bara `a6727ca5` det (`CE-LVD, MSDS(Batterie), IP44`). Ingen sida skriver
+ett certifieringspåstående — det är inte ett säljargument som hör hemma i
+brödtext, och ett ogrundat sådant fälldes redan i runda 54.
+
+### 5. **Flameffekten är ett LJUSMÖNSTER, inte en låga**
+
+`a6727ca5` säljs som `Fackelflammen`. Det är sex lysdioder som flimrar.
+Texten säger flameffekt och aldrig något som antyder eld.
+
+## Steg 5 — talen, och de som INTE fick användas
+
+☠️ **Vikten är två tal, och importen skriver det grova under fel etikett.**
+Se uppgift #488. Fyra av nio har både `Nettogewicht` i tyskan och ett
+tyngre tal i spec-tabellen; kvoten är 1,27–1,47, alltså emballage.
+`Vikt` skrivs bara där nettot är känt, annars `Vikt med emballage`.
+
+☠️ **`4ef7c2b4`: ingressens "12 Paneelen" används INTE.** `Technische Daten`
+anger ETT solpanel på 4,5 V / 1,62 W. En ingress kan vara ett syskons
+(runbookens minibackofen-fall) och väger aldrig tyngre än spec-blocket.
+
+☠️ **`a6727ca5`: leverantören kallar 3500 K "Kalt".** 3500 K är
+varmneutralt vitt; kallvitt börjar norr om 5000 K. Talet används,
+etiketten inte. Systerprodukten `9938574b` anger 6000 K och där stämmer
+"kall" — alltså är det en felskrivning på den ena, inte en husstandard.
+
+⚠️ **`1f14ab66` och `14aa1777` motsäger varandra om laddning och lystid**
+(8 h → 6 h mot 6 h → 8 h) trots samma solpanelstorlek (16,5 × 15 cm).
+Varje sida bär sitt eget tal; ingen förening gissas fram.
+
+⚠️ **`db933c3c`: spec-tabellen säger `Material: 21 Edelstahl`.** Tyskan
+säger `201 Edelstahl`. Nollan har fallit bort i importen — 21 finns inte som
+stålsort. Skrivs som rostfritt stål 201.
+
+⚠️ **`ec8ab782` saknar lumen, laddtid och paketmått i källan.** De fälten
+utelämnas i stället för att härledas ur ett syskon.
+
+☠️ **Parkerad defekt att ta i runda 130:** `ef0c374b`:s spec-tabell säger
+`Mått: 45m x 45m x 45m` — METER. Tyskan säger Ø45 × 45H cm för den stora
+lampan och Ø35 × 35H för den lilla. Två fel i en rad: fel enhet, och två
+lampor beskrivna som en.
+
+## Steg 4 — bilderna
+
+Alla nio har fem bilder var. Granskade i kontaktark om tre produkter, ruta
+460 px (☠️ en siffra läses aldrig på ett kontaktark — runbookens regel efter
+runda 104 — men tysk text syns).
+
+| id | bort | vad som stod i pixlarna |
+|---|---|---|
+| `14aa1777` | **4 och 5** | `VERSTELLBARE STAHLHÖHE` · `EINFACHE MONTAGE` + `Schrauben`/`Erdspieße` |
+| `4ef7c2b4` | **4** | `HÖHENVERSTELLBAR …` upptill OCH `4/3/2 Abschnitte` nedtill |
+| `a6727ca5` | **4** | `Perfekt für Ihre Terrasse …` mitt i ett fyrfältskollage |
+| `9938574b` | **4** | `STABIL HALTEN / Befestigen Sie den Sockel mit Erdnägeln` |
+| `1f14ab66`, `c9ab8531`, `ec8ab782`, `db933c3c`, `6747b6c0` | — | **alla fem rena** |
+
+⚠️ **Beskärning prövades och dög inte på någon av de fyra.** Regeln är att en
+utländsk infografik byggs om hellre än kastas, men här går texten inte att
+kapa bort utan att kapa varan: `14aa1777`:s rubrik ligger i SAMMA höjdband som
+den högsta lampans huvud, `4ef7c2b4` bär text både överst och nederst,
+`9938574b`:s text slutar 40 px in i lampfoten, och `a6727ca5`:s banderoll
+ligger mitt i kollaget. En förstoring av `14aa1777-04` och `9938574b-39`
+avgjorde det — inte kontaktarket.
+
+☠️ **`db933c3c` bär TOM alt-text på alla fem bilderna.** Rå-importens tillstånd
+(uppgift #381); de övriga åtta bär leverantörens tyska titel. Poleringen
+skriver om allihop.
+
+✅ **Två mätningar kom UR bilderna, inte ur texten:**
+
+- `6747b6c0` bild 5 visar taket med **fyra solceller**, vilket bekräftar
+  tyskans *"4 Solarpanels"*.
+- `4ef7c2b4` bild 3 ger planteringsfoten som **37 cm bred och 31 cm hög** —
+  ett mått som inte står i `Technische Daten`.
+
+## Steg 3 — mappningsraden, och prisgrinden
+
+Nio `las`-körningar av **Polering — läs och stämpla mappningsraden**, alla
+`success`. ☠️ Det är ett ÄKTA kvitto just här: workflowen gör `exit 1` både på
+`EJ AVGORBAR` och på `stämmer: false` för en Aosom-rad, och den grenen är
+läst. Nio gröna jobb = prisgrinden höll på nio produkter.
+
+Läst ur en av loggarna (`14aa1777`, `PRODUCT_ID` i env-blocket är facit —
+körningsordningen i Actions är den inte):
+
+```
+supplier aosom · needsAiPolish true · draftStatus pending_review
+hasEuWarehouse true · aosomSyncedQty 117
+wixVariantId 627c6f0e-… · sku FP-solar-laterne-2er-set · grossSek 1299
+faktiskt 1299 · stammer true · regel x1.2, avrundning charm99
+aosomFreightShare 0.309
+```
+
+✅ **Wix variant-id ÄR mappningens `wixVariantId` — mätt, inte antaget.**
+`variantsInfo.variants[0].id` för `14aa1777` är byte-identiskt med raden ovan.
+De övriga åtta id:na är därför lästa ur Wix i stället för ur åtta loggar.
+
+## Steg 8 — SKU:erna
+
+☠️ **Fyra av nio delar redan SKU:n `FP-solar-laterne`** (`1f14ab66`,
+`c9ab8531`, `4ef7c2b4`, `ec8ab782`). Importen kapar produktdelen vid 24 tecken
+på hel ordgräns och de tyska sluggarna är identiska ända dit — uppgift #272:s
+mönster, ärvt och inte skapat här.
+
+De nio planerade sluggarna och vad `lib/import/sku.ts` gör av dem:
+
+| slug | SKU |
+|---|---|
+| `solcellslampa-180-cm-2-pack` | `FP-solcellslampa-180-cm-2` |
+| `solcellslampa-195-cm-planteringskruka` | `FP-solcellslampa-195-cm` |
+| `solcellslampa-182-cm-tva-klot` | `FP-solcellslampa-182-cm-tva` |
+| `solcellslampa-185-cm-tre-lyktor` | `FP-solcellslampa-185-cm-tre` |
+| `solcellslampa-189-cm-tre-skarmar` | `FP-solcellslampa-189-cm-tre` |
+| `solcellslampa-dimbar-tre-lyktor-rostfri` | `FP-solcellslampa-dimbar-tre` |
+| `solcellslampa-177-cm-tradgardslykta` | `FP-solcellslampa-177-cm` |
+| `solcellslykta-129-cm-2-pack` | `FP-solcellslykta-129-cm-2` |
+| `solcellslampa-160-cm-rostfri` | `FP-solcellslampa-160-cm` |
+
+☠️ **`db933c3c` fick INTE höjden i sluggen.** 182,5 cm ligger ett komma från
+`c9ab8531`:s 182 cm, och två sidor som skiljs av en decimal skiljs inte alls i
+en kategorilista. Den heter efter det som faktiskt är dess särart: den dimbara,
+avtagbara LED-modulen.
+
+### ☠️ Det första SKU-svepet gav ett FALSKT FRISKINTYG
+
+Svepet över katalogen rapporterade **`distinktaSkuer: 0` på 66 sidor** och
+"noll krockar". Nio SKU:er var bevisade minuten innan, alltså var det
+FÄLTVÄGEN som var fel: listan ligger under `variants`, inte under
+`productVariants`. Ett svep som läser fel fält svarar exakt likadant som en
+ren katalog.
+
+Det som avslöjade det var den **kända nämnaren** — runbookens regel efter
+2026-08-26. Svepet bär sedan dess en **positiv kontroll** i sig självt:
+
+| | |
+|---|--:|
+| sidor | 66 |
+| variantrader | 6 588 |
+| distinkta SKU:er | **5 418** |
+| positiv kontroll `FP-solar-laterne` | **4 träffar** |
+| krockar mot rundans nio | **0** |
+
+De fyra träffarna är exakt de fyra utkast som mättes oberoende mot Wix. Två
+vägar, samma tal.
+
+☠️ **Och grinden som skulle räkna SKU:n var själv drven** — se uppgift #484:
+`grindar.FOGEORD` bar `till`, `som` och `utan` som produktionen inte stryker,
+och saknade `the` och `with` som den stryker, och `sku_bas` saknade
+märkesstrykningen helt. Lagat, och `_kallkodsgrind_sku()` läser nu
+`lib/import/sku.ts` och fäller om någon av sidorna rör sig.
