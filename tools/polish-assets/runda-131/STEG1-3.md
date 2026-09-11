@@ -124,3 +124,56 @@ gömt i spec-tabellen.
 (Trappa, ligger kvar till nästa runda.) Spec-tabellen är feedens KOLUMNER och
 den tyska texten är ett annat fält — de kan säga emot varandra, och gör det här.
 Bilden avgör. Noterat så att nästa runda inte behöver hitta det igen.
+
+-----
+
+## ✅ Båda dubbletterna OMMAPPADE (Leonards direkta order 2026-09-11)
+
+| sida som BEHÅLLS | pekar nu på | dubblett pensionerad |
+|---|---|---|
+| `hundramp-bil-155-cm` (`911818e3`) | Aosom | `11c2b7e8` |
+| `hundtrappa-med-forvaring` (`5b73bead`) | Aosom | `59d83c24` |
+
+Båda kvitterade med `verifierat vid återläsning` — rutten läser tillbaka raden
+efter skrivningen och svarar 500 om den inte bär det nya artikelnumret.
+Planerna gav **noll hinder**: marginalgolvet, skeppbarheten, envariantskravet
+och SKU-spärren passerade allihop. **Kundpriset 919 kr är orört på båda** —
+en ommappning rör aldrig priset.
+
+### ☠️ Ordningen är inte valfri: pensionera dubbletten VIA remapen
+
+Första försöket föll på `hinder: skun_upptagen` — på båda.
+
+Jag hade pensionerat utkasten i förväg med `polish-mapping.yml` (`draftStatus:
+rejected`), och trodde att det räckte. Det gör det inte: **`polish-mapping`
+sätter status men SLÄPPER INTE artikelnumret**, så numret satt kvar på utkastet
+och remapen såg det som upptaget av en annan produkt.
+
+`pensioneraDubblett` i remap-rutten släpper det — i samma skrivning. Och
+spärren har ett uttryckligt undantag för just den rad anroparen pekar ut:
+
+```ts
+const upptagenAv = alla.find(
+  (m) => m.supplierProductId === id
+      && m.wixProductId !== mappning?.wixProductId
+      && m.wixProductId !== input.dubblett,   // ← undantaget
+);
+```
+
+Kommentaren vid raden beskriver exakt det här fallet: *"Aosom-utkastet ÄR
+beviset för att den publicerade AE-sidan säljer samma fysiska vara, och
+utkastet bär artikelnumret. Utan undantaget fäller grinden alltså varje
+ommappning som gjorts på rätt sätt."*
+
+**Regeln: fyll ALLTID i `duplicate_wix_product_id`. Pensionera aldrig i
+förväg — det ser hjälpsamt ut och gör spärren omöjlig att passera.**
+
+### Artikelnumret lästes utan att läcka — och kanalen finns redan
+
+`aosom-remap.yml` kräver numret som indata, och den indatan hamnar i den
+publika Actions-loggen (uppgift #417). Men **läsningen** behövde inte läcka:
+`polish-mapping.yml` har ett `kuvert`-läge som krypterar `supplierProductId`
+och `sourceUrl` hybridvis (AES-256 + RSA-OAEP/SHA-256) mot en engångsnyckel
+anroparen skickar in. Jag genererade nyckelparet lokalt, skickade den publika
+halvan, och dekrypterade svaret här — klartexten passerade aldrig loggen.
+Nyckelparet är raderat efteråt.
