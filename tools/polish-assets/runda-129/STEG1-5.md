@@ -253,3 +253,95 @@ vägar, samma tal.
 och saknade `the` och `with` som den stryker, och `sku_bas` saknade
 märkesstrykningen helt. Lagat, och `_kallkodsgrind_sku()` läser nu
 `lib/import/sku.ts` och fäller om någon av sidorna rör sig.
+
+## Steg 7–8 — utfall och två mätningar
+
+### Steg 7: nio av nio gröna
+
+Varje skrivning hashades före (mot `facit` i `skrivning.json`) och efter
+(mot Wix återläsning med `?fields=PLAIN_DESCRIPTION`). Alla nio stämmer, och
+alla nio står kvar som `visible: false`.
+
+| pid | slug | hash |
+|---|---|--:|
+| `14aa1777` | `solcellslampa-180-cm-2-pack` | 630397412 |
+| `1f14ab66` | `solcellslampa-195-cm-planteringskruka` | 828714149 |
+| `c9ab8531` | `solcellslampa-182-cm-tva-klot` | 526037118 |
+| `4ef7c2b4` | `solcellslampa-185-cm-tre-lyktor` | 318833594 |
+| `ec8ab782` | `solcellslampa-189-cm-tre-glaskupor` | 128461424 |
+| `db933c3c` | `solcellslampa-dimbar-tre-lyktor-rostfri` | 579492951 |
+| `a6727ca5` | `solcellslampa-177-cm-tradgardslykta` | 43295628 |
+| `9938574b` | `solcellslykta-129-cm-2-pack` | 796943089 |
+| `6747b6c0` | `solcellslampa-160-cm-rostfri` | 117528014 |
+
+### ☠️ De fullständiga produkt-id:na fanns inte på disk — och en gissning svarade 404
+
+Rundans filer bar bara de åtta första tecknen. Efter komprimeringen fanns
+ingen källa till resten, och första skrivförsöket gick mot ett påhittat
+id: `404 Entity not found`. Felet var ofarligt just för att Wix inte har
+någon produkt på ett gissat id — men samma gissning mot ett id som RÅKAR
+finnas hade skrivit rundans text på en främmande produkt.
+
+Alla nio är nu upplösta ur katalogen och ligger i `produkt-id.json`.
+**En runda ska bära sina fullständiga id:n på disk, inte i sitt eget minne.**
+
+### ☠️ `products/search` bär INTE `variantsInfo` — och svarade noll utan att fela
+
+Steg 8:s krockkontroll kördes först som ett svep över `products/search`.
+Utfallet: 5 649 lästa produkter, **noll** med variant, **noll** distinkta
+SKU:er, noll krockar. Det ser ut som ett rent besked och är en falsk
+friskförklaring — projektionen bär helt enkelt inte fältet.
+
+Det som fällde den var den positiva kontrollen: `FP-solar-laterne` är känd
+sedan tidigare i katalogen och svepet hittade den **noll** gånger. En
+kontroll med känd nämnare är skillnaden mot att tro på en nolla.
+
+Rätt väg är `POST /stores/v3/products/search-variants` (Read-Only Variants
+V3), som svarar under nyckeln `variants`. Omkört:
+
+| | |
+|---|--:|
+| Varianter lästa | 6 588 |
+| Med SKU | 6 580 |
+| Distinkta SKU:er | **5 418** |
+| Positiv kontroll `FP-solar-laterne` | **4** |
+| Krockar mot rundans nio | **0** |
+
+⚠️ `sku` går INTE att filtrera på. `query-variants` filtrerar bara på
+`productData.productId` och variant-id — svepet är alltså enda vägen.
+
+### ☠️ Fyra av rundans egna nio delade SKU — importen kapade dem lika
+
+De fyra `FP-solar-laterne` i tabellen ovan är `1f14ab66`, `c9ab8531`,
+`4ef7c2b4` och `ec8ab782`. Fyra olika lampor, fyra olika tyska namn, samma
+kapade bas. Det är uppgift #272/#473 mätt en gång till, och poleringen är
+det som löser den: varje sida får sin egen härledda SKU.
+
+Katalogen bär dessutom 6 580 SKU:er på 5 418 distinkta strängar — alltså
+~1 160 delade förekomster till. Den svansen är inte rundans att laga, men
+talet är mätt nu.
+
+### ☠️ En `variantsInfo`-PATCH KRÄVER `price` — och priset får aldrig räknas
+
+Första SKU-skrivningen avvisades: `product.variantsInfo.variants[0].price
+must not be empty`. Fältet är obligatoriskt även när man bara vill röra
+SKU:n.
+
+Priset ekas därför tillbaka ORDAGRANT ur samma läsning som gav revisionen,
+och bara `actualPrice.amount` (plus `compareAtPrice` när den finns) —
+`priceAfterDiscount` är read-only. Skrivningen avbryts för den produkt vars
+pris inte gick att läsa, i stället för att gissa. Efter varje skrivning
+jämförs beloppet mot det inlästa: **nio av nio orörda.**
+
+`visible` ekas på BÅDA nivåerna, och alla nio står kvar som utkast efteråt.
+
+### ☠️ Återläsningen ljög NEGATIVT — för tredje gången (jfr #316, #460)
+
+`a6727ca5` rapporterade `skuStammer: false` direkt efter sin PATCH: den
+gamla tyska SKU:n låg kvar i svaret, trots att revisionen hade ökat. En
+fristående omläsning en stund senare gav den nya SKU:n och revision 4 —
+läsningen hade legat en revision efter.
+
+Omskrivningen var villkorad på att SKU:n FORTFARANDE var fel, så ingenting
+skrevs en andra gång. Det är poängen: en retry som skriver oavsett hade
+brunnit en revision på ett problem som inte fanns.
