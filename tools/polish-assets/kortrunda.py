@@ -48,7 +48,13 @@ def hamta_hjaltar(har, filer, storlek=1600):
        byggdes på en uppförstorad bild — den ser skarp ut i ett kontaktark och
        grötig i full storlek på kundens skärm.
     """
-    mapp = os.path.join(har, "rawbilder")
+    # ☠️ EGEN MAPP, INTE `rawbilder/`. Rundornas `rawbilder/` bär Steg 4:s
+    #    granskningsbilder, och runda 121:s ligger i 760 px. Ett återanvänt
+    #    namn hade antingen byggt kortet på en uppförstorad bild eller skrivit
+    #    över Steg 4:s underlag — och då ljuger bildgranskningens spår.
+    #    `kortbygge` varnar för exakt det: en förbehandlad bild i `rawbilder/`
+    #    gör att mappen ljuger om vad den innehåller.
+    mapp = os.path.join(har, "kortfoto")
     os.makedirs(mapp, exist_ok=True)
     ut = {}
     for pid, fil in filer.items():
@@ -81,8 +87,11 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
             fel.append(f"{pid}: kortet har {len(rader)} rader, ska ha 5")
         if "None" in text:
             fel.append(f"{pid}: kortet bär ett OVERIFIERAT fält — {text}")
-        if not any(e.startswith("Mått") for e in RADER[pid]):
-            fel.append(f"{pid}: kortet saknar måttraden")
+        # ⚠️ Etiketten heter inte "Mått" i alla rundor — runda 121 skriver
+        #    "Yttermått". Kravet är produktens EGET yttermått, och `Paketmått`
+        #    duger uttryckligen inte: det är kartongen, inte varan.
+        if not any(e.endswith("mått") and e != "Paketmått" for e in RADER[pid]):
+            fel.append(f"{pid}: kortet saknar måttraden — har {RADER[pid]}")
         # ☠️ Två IDENTISKA kort hjälper ingen att skilja två sidor åt, och
         #    färgsyskon gör risken konkret: samma mått, vikt och last.
         nyckel = (kicker, rubrik, tuple(rader))
@@ -95,9 +104,14 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
         # Kortets EGEN text går genom samma grindar som brödtexten. Runda 90
         # och 91 skrev fel färg två rundor i rad, båda gångerna i rubriken.
         kortext = f"{kicker} {rubrik}"
+        # ⚠️ Rundorna bär sina grindar i TVÅ former: runda 121 som
+        #    (regex, etikett), andra som naken regex. Att kräva den ena hade
+        #    tvingat varje runda att forma om sin lista — alltså en tvilling
+        #    till listan som redan finns i grind.py.
         for m in forbjudet:
-            if m.search(kortext):
-                fel.append(f"{pid}: kortrubriken fälls av {m.pattern!r}")
+            monster, etikett = m if isinstance(m, tuple) else (m, m.pattern)
+            if monster.search(kortext):
+                fel.append(f"{pid}: kortrubriken fälls av {etikett}")
         if G.ARTNR.search(kortext) or G.ARTNR.search(text):
             fel.append(f"{pid}: ARTIKELNUMMER i kortet")
         for c, n, s in G.homoglyfer(kortext):

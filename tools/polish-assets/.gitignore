@@ -94,3 +94,11 @@ jpg/
 __pycache__/
 */gul/
 runda-120/rawbilder/
+
+# Kortbyggets hjältebilder i kortupplösning (1600 px), hämtade ur Wix av
+# `kortrunda.hamta_hjaltar`. Egen mapp med flit: rundornas `rawbilder/` bär
+# Steg 4:s GRANSKNINGSbilder, och runda 121:s ligger i 760 px — att återanvända
+# namnet hade antingen byggt kortet på en uppförstorad bild eller skrivit över
+# bildgranskningens underlag. Åter-hämtningsbara ur butiken, och kortet självt
+# ligger spårat i `kort/`.
+*/kortfoto/
