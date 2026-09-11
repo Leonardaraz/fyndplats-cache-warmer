@@ -255,6 +255,20 @@ def dela_pa_ankare(html):
                                 html)
     text = _blockdela(markerad)      # ☠️ blockslut = meningsslut, se ovan
     egna, kors = [], []
+    # ☠️ TREDJE FELET, uppmätt i runda 127: ETT FRÅGETECKEN INNE I ANKARTEXTEN
+    #    DELAR ANKARET PÅ TVÅ MENINGAR — och bara den FÖRSTA halvan bär
+    #    öppningsmarkören. Andra halvan saknade `mal` och bokfördes som EGEN.
+    #
+    #    Riktningen är den värsta tänkbara. Husets korslänkar har sedan runda
+    #    115 formen "Behöver du X? Se den Y-modellen": frågan bär inga fakta,
+    #    beskrivningen bär alla. Strykningen behöll alltså den tomma halvan och
+    #    SLÄPPTE IGENOM syskonets egenskaper som om de vore sidans egna. Sex
+    #    rundors grindar har graderat grannens text som vår.
+    #
+    #    Lagningen bär med sig att vi är INNE i ett ankare över meningsgränsen:
+    #    en mening utan öppningsmarkör men med ett oparat `\x00` stänger ett
+    #    ankare som öppnades i en tidigare mening, och hör då till dess mål.
+    oppna_mal = []
     for mening in re.split(r"(?<=[.!?])\s+", text):
         mening = mening.strip()
         if not mening:
@@ -263,10 +277,18 @@ def dela_pa_ankare(html):
         # uttrycket in i NÄSTA markör och ger ", \x00slug2" som "slug".
         mal = re.findall(r"\x00([^\x00\x01]+)\x01", mening)
         ren = re.sub(r"\x00[^\x00\x01]*\x01", "", mening).replace("\x00", "")
-        if mal:
-            kors.append((mal, ren))
+
+        # Öppnade ankare = antal `\x01`; stängda = antal `\x00` som INTE
+        # inleder ett mål. Blir de ojämna fortsätter ankaret in i nästa mening.
+        oppnade = mening.count("\x01")
+        stangda = len(re.findall(r"\x00(?![^\x00\x01]+\x01)", mening))
+        arvda = oppna_mal if (not mal and stangda) else []
+
+        if mal or arvda:
+            kors.append((mal or arvda, ren))
         else:
             egna.append(ren)
+        oppna_mal = mal if oppnade > stangda else []
     return egna, kors
 
 
