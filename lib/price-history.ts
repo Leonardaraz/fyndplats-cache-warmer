@@ -193,3 +193,34 @@ export function tillMinor(kronor: number): number | null {
   if (typeof kronor !== "number" || !Number.isFinite(kronor) || kronor <= 0) return null;
   return Math.round(kronor * 100);
 }
+
+/** En rad på väg in i historiken. */
+export type Rad = { produktId: string; prisMinor: number; valuta: string };
+
+/**
+ * Bygg en flerradig upsert: SQL-text med genererade platshållare, plus värdena
+ * i rätt ordning. Ren funktion, i den här modulen enbart för att den ska gå att
+ * testa — SQL:en körs från lib/price-snapshot.ts, som inte kan laddas i
+ * node-testköraren.
+ *
+ * Numreringen är det som är lätt att få fel: $1 är alltid datumet, och varje
+ * rad lägger till tre parametrar efter det. En förskjutning här skulle skriva
+ * priser på fel produkter.
+ */
+export function byggUpsert(rader: Rad[]): { text: string; varden: unknown[] } | null {
+  if (rader.length === 0) return null;
+  const varden: unknown[] = [null]; // plats 1 reserveras för datumet
+  const platser = rader.map((r, n) => {
+    const b = 1 + n * 3;
+    varden.push(r.produktId, r.prisMinor, r.valuta);
+    return `($${b + 1}, $1::date, $${b + 2}, $${b + 3})`;
+  });
+  return {
+    text:
+      `INSERT INTO price_history (product_id, observed_on, price_minor, currency)\n` +
+      `         VALUES ${platser.join(", ")}\n` +
+      `         ON CONFLICT (product_id, observed_on)\n` +
+      `         DO UPDATE SET price_minor = EXCLUDED.price_minor, recorded_at = NOW()`,
+    varden,
+  };
+}

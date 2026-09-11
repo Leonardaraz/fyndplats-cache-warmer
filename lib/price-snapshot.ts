@@ -29,9 +29,11 @@ import {
   jamforpris,
   idagISO,
   tillMinor,
+  byggUpsert,
   FONSTER_DAGAR,
   type Observation,
   type Jamforpris,
+  type Rad,
 } from "./price-history";
 
 // Återexporterade för de anropare som redan pekar hit; de RÄTTA hemvisterna är
@@ -53,9 +55,25 @@ export type SnapshotResultat = {
   fel?: string;
 };
 
+/** Rader per INSERT. 500 × 4 parametrar = 2 000, väl under Postgres tak på
+ *  65 535, och få nog att felsöka när en sats gör fel. */
+const SATS = 500;
+
 /**
  * Skriv dagens pris för hela katalogen. Idempotent: körs cronet två gånger
  * samma dag skrivs samma rad igen, inte en till.
+ *
+ * SKRIVNINGEN ÄR BATCHAD, och det är inte en optimering utan en rättelse.
+ * Första versionen gjorde en INSERT per produkt. Mätt skarpt mot previewen
+ * 2026-09-11: 2 584 rader på 265 sekunder, mot maxDuration 300. Katalogen växer,
+ * och nästa gång den gör det slår cronet i taket. Ett snapshot som inte hinner
+ * klart blir en lucka i historiken — och en lucka i fönstrets början gör att
+ * ingen rea får visas alls i 30 dagar. Det var alltså en latent produktionsbugg
+ * som bara syntes för att körningen mättes i stället för antogs.
+ *
+ * sql.query i stället för taggen: taggen tar bara primitiver, och en
+ * flerradig INSERT behöver genererade platshållare. Samma väg som
+ * app/api/cron/ae-delivery-poll använder.
  */
 export async function skrivDagensPriser(nu: Date = new Date()): Promise<SnapshotResultat> {
   const datum = idagISO(nu);
@@ -63,21 +81,26 @@ export async function skrivDagensPriser(nu: Date = new Date()): Promise<Snapshot
   let hoppade = 0;
   try {
     const produkter = await getProducts();
+
+    const rader: Rad[] = [];
     for (const p of produkter) {
-      const lagsta = p.priceFromNum ?? p.priceNum;
-      const minor = tillMinor(lagsta);
+      const minor = tillMinor(p.priceFromNum ?? p.priceNum);
       if (!p.id || minor === null) {
         hoppade++;
         continue;
       }
-      await sql/*sql*/`
-        INSERT INTO price_history (product_id, observed_on, price_minor, currency)
-        VALUES (${p.id}, ${datum}::date, ${minor}, ${p.currency || "SEK"})
-        ON CONFLICT (product_id, observed_on)
-        DO UPDATE SET price_minor = EXCLUDED.price_minor, recorded_at = NOW();
-      `;
-      skrivna++;
+      rader.push({ produktId: p.id, prisMinor: minor, valuta: p.currency || "SEK" });
     }
+
+    for (let i = 0; i < rader.length; i += SATS) {
+      const sats = rader.slice(i, i + SATS);
+      const upsert = byggUpsert(sats);
+      if (!upsert) continue;
+      upsert.varden[0] = datum;
+      await sql.query(upsert.text, upsert.varden);
+      skrivna += sats.length;
+    }
+
     const gallring = await sql/*sql*/`
       DELETE FROM price_history
       WHERE observed_on < (${datum}::date - ${SPAR_DAGAR}::int);
