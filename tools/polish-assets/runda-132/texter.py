@@ -550,6 +550,9 @@ FAQ = {
 }
 
 
+BAS = "https://www.fyndplats.se"
+
+
 def _p(t):
     return "<p>" + t + "</p>"
 
@@ -569,8 +572,15 @@ def bygg(pid):
     d.append(_p(BRUK[pid]))
 
     d.append("<h2>" + KORS_INGRESS[pid] + "</h2>")
+    # ☠️ ABSOLUT URL, ALDRIG ROTRELATIV. Uppmätt i runda 132: en href som
+    #    börjar på "/produkt/" skrivs om av Wix till "https:/produkt/..." —
+    #    med ETT snedstreck, alltså en adress vars värdnamn blir "produkt".
+    #    Felet syns inte i PATCH-svaret och kostade exakt +6 tecken per länk.
+    #    Runda 131 använde den absoluta formen och klarade sig; ingen grind
+    #    höll fast vid den, så runda 132 gick rakt i fällan.
     lankar = ", ".join(
-        '<a href="/produkt/{}">{}</a>'.format(s, t) for s, t in KORSLANK[pid]
+        '<a href="{}/produkt/{}">{}</a>'.format(BAS, s, t)
+        for s, t in KORSLANK[pid]
     )
     d.append(_p(KORS_TEXT[pid] + " " + lankar + "."))
 

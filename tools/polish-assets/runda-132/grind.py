@@ -258,6 +258,17 @@ def granska(pid, html=None, live=False):
         if html.index("<h2>%s</h2>" % rubrik) > forsta:
             fel.append("BLOCKET %r ligger EFTER första flikrubriken" % rubrik)
 
+    # ☠️ HREF-FORMEN. Uppmätt i runda 132 mot skarpa Wix: en rotrelativ
+    #    href ("/produkt/x") skrivs om till "https:/produkt/x" — med ETT
+    #    snedstreck, alltså en adress vars VÄRDNAMN blir "produkt". Felet
+    #    syns inte i PATCH-svaret; det syntes bara som +6 tecken per länk
+    #    i återläsningen. Runda 131 råkade använda den absoluta formen och
+    #    klarade sig. Grinden gör det till en regel i stället för tur.
+    for t in re.finditer(r'href="([^"]*)"', html):
+        adr = t.group(1)
+        if not adr.startswith("https://www.fyndplats.se/produkt/"):
+            fel.append("HREF ej absolut butiksadress: %r" % adr)
+
     for t in re.finditer(r"\d+(?:,\d+)?, \d", syn):
         fel.append("KOMMALISTA av tal: %r" % G.mening_kring(syn, t.start())[:70])
 
@@ -393,6 +404,14 @@ def sjalvtest():
              T.SLUG[b] in [s for s, _ in T.KORSLANK[a]])
         prov("%s länkar till %s" % (b, a),
              T.SLUG[a] in [s for s, _ in T.KORSLANK[b]])
+
+    # ☠️ HREF-formen: absolut butiksadress, aldrig rotrelativ.
+    for pid in T.NAMN:
+        for a in re.findall(r'href="([^"]*)"', T.bygg(pid)):
+            prov("absolut href %s" % a[:46],
+                 a.startswith("https://www.fyndplats.se/produkt/"))
+    prov("rotrelativ href fälls",
+         not "/produkt/x".startswith("https://www.fyndplats.se/produkt/"))
 
     # Granntalen går att slå upp för varje korslänk.
     for pid in T.NAMN:
