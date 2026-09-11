@@ -928,6 +928,73 @@ def flikfel(html, kravs=FLIKAR_SOM_KRAVS):
     return fel
 
 
+# ── Fyndplats-kortet ───────────────────────────────────────────────────────
+# ☠️ STEGET GLÖMDES ÅTTA RUNDOR I RAD. Runda 110-120 bär 6-9 spårade kort var;
+#    runda 121-128 bar NOLL, alltså ~62 publicerade sidor utan det enda i
+#    galleriet som är vårt. Leonard hittade det, ingen grind gjorde det —
+#    Klart-kriteriet stod i runbooken men fanns inte i någon kod.
+#    Samma lärdom som `kortbygge` regel 3: ett steg varje runda måste minnas
+#    glöms bort; ett steg i den DELADE modulen kan inte glömmas.
+_THUMB = re.compile(r'aria-label="Visa bild (\d+) av (\d+)"[^>]*>\s*<img alt="([^"]*)"')
+
+
+def kortfel(html):
+    """Fäller en LIVE sida som saknar Fyndplats-kort, eller bär det fel.
+
+    Kriteriet är runbokens: minst ett eget kort i galleriet, aldrig på plats 1,
+    och alt-texten börjar med `Faktakort: ` — inte `Fyndplats-kort: `, som bara
+    lägger vårt varumärke i ett fält som ska beskriva innehåll.
+
+    ☠️ Läser galleriet via thumb-raden, och säger till NÄR DEN INTE KAN LÄSA
+       DEN. En grind som tystnar på ändrad markup är samma tomma läsare som
+       `/api/tracking-events` blev efter migreringen: den ser grön ut för att
+       den inte ser något alls.
+    """
+    fel = []
+    if "Fyndplats-kort:" in html:
+        fel.append("ALT-TEXT: 'Fyndplats-kort:' är fel form — ska vara 'Faktakort: '")
+    thumbs = _THUMB.findall(html)
+    if not thumbs:
+        if "Faktakort" in html:
+            return fel + ["GALLERIET GÅR INTE ATT LÄSA — men 'Faktakort' finns "
+                          "i sidan; grindens thumb-mönster har drivit isär"]
+        return fel + ["GALLERIET GÅR INTE ATT LÄSA och inget 'Faktakort' finns "
+                      "i sidan — grindens thumb-mönster kan ha drivit isär"]
+    kort = [(int(n), alt) for n, _, alt in thumbs if alt.startswith("Faktakort")]
+    if not kort:
+        fel.append("SAKNAR EGET KORT — %d bilder i galleriet, ingen med "
+                   "'Faktakort: '" % len(thumbs))
+    elif any(n == 1 for n, _ in kort):
+        fel.append("KORTET LIGGER PÅ PLATS 1 — hjältebilden ska vara "
+                   "produktens, aldrig vårt kort")
+    return fel
+
+
+def kortfiler(har, produkter, mall="%s_spec.jpg"):
+    """Fäller när ett kort inte är SPÅRAT i grenen — offline, före uppladdning.
+
+    ☠️ `jpg/` är ignorerad och `kort/` är den spårade platsen. Runda 106 laddade
+       upp sex kort från raw.githubusercontent-adresser som svarade 404, och Wix
+       svarade `success: true, PENDING` på varenda en. Att filen FINNS lokalt är
+       alltså inget kvitto — den måste ligga i grenen.
+    """
+    import os
+    import subprocess
+    fel = []
+    mapp = os.path.join(har, "kort")
+    for pid in produkter:
+        vag = os.path.join(mapp, mall % pid)
+        if not os.path.exists(vag):
+            fel.append("%s: %s saknas — byggdes kortet?" % (pid, vag))
+            continue
+        spar = subprocess.run(["git", "ls-files", "--error-unmatch", vag],
+                              capture_output=True, text=True, cwd=har)
+        if spar.returncode != 0:
+            fel.append("%s: kortet finns men är INTE spårat i grenen — "
+                       "en uppladdning härifrån hämtar en 404" % pid)
+    return fel
+
+
 # ── Självtest ──────────────────────────────────────────────────────────────
 # ☠️ `grindar.py` hade inget självtest alls fram till runda 120, trots att den
 #    är den fil ALLA rundor delar. Ett fel här slår mot varje kommande runda
@@ -950,6 +1017,24 @@ def _sjalvtest():
          lambda: bool(ARTNR.search("klädd med EVA-SKUM")), False),
         ("artnr: mått fälls INTE",
          lambda: bool(ARTNR.search("höjden 80-130 cm")), False),
+        # ☠️ Kortgrinden — se kommentaren vid kortfel(). Riktningarna är
+        #    testade åt BÅDA håll: en sida med kort ska vara tyst.
+        ("kort: sida med kort på plats 3 är tyst", lambda: bool(kortfel(
+            'aria-label="Visa bild 1 av 4"><img alt="Svart vagn"'
+            'aria-label="Visa bild 3 av 4"><img alt="Faktakort: 71 x 39 cm"')), False),
+        ("kort: sida UTAN kort fälls", lambda: bool(kortfel(
+            'aria-label="Visa bild 1 av 2"><img alt="Svart vagn"'
+            'aria-label="Visa bild 2 av 2"><img alt="Måttritning"')), True),
+        ("kort: kort på PLATS 1 fälls", lambda: bool(kortfel(
+            'aria-label="Visa bild 1 av 2"><img alt="Faktakort: 71 x 39 cm"')), True),
+        ("kort: fel alt-form fälls", lambda: bool(kortfel(
+            'aria-label="Visa bild 3 av 3"><img alt="Fyndplats-kort: 71 cm"')), True),
+        # ☠️ Oläsbart galleri är ett FEL, inte tystnad — en grind som inte kan
+        #    läsa det den granskar ska säga det, inte se grön ut.
+        ("kort: oläsbart galleri fälls", lambda: bool(kortfel(
+            "<div>ingen thumb-rad alls</div>")), True),
+        ("kort: oläsbart galleri MED kort fälls ändå", lambda: bool(kortfel(
+            '<img alt="Faktakort: 71 x 39 cm">')), True),
         ("flik: alla tre finns", lambda: bool(flikfel(
             "<summary>Tekniska specifikationer</summary>"
             "<summary>Användning och skötsel</summary>"

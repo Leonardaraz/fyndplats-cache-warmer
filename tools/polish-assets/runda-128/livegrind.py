@@ -21,6 +21,12 @@
    rekommendationsraden med grannarnas namn i två serialiseringar plus
    React-payloaden; utan strykningen blir grannens "16 lådor" vårt fel.
    Sex av rundans nio är verktygsvagnar som konkurrerar om samma sökord.
+
+☠️ KORTGRINDEN (`G.kortfel`) KÖRS HÄR, och det är hela poängen med att den
+   finns. Klart-kriteriet "minst ett eget Fyndplats-kort i galleriet" stod i
+   runbooken men i ingen kod, och steget glömdes i ÅTTA rundor i rad — runda
+   121-128, ~62 publicerade sidor. Leonard hittade det, inte en grind.
+   Steg 14 är sista steget före "klar", alltså rätt ställe att fälla på.
 """
 import sys
 
@@ -85,7 +91,10 @@ if __name__ == "__main__":
                   f"{len(html)} tecken, trolig 404 eller cachad gammal sida")
             totalt += 1
             continue
-        fel = granska_live(pid, html)
+        # ☠️ KORTGRINDEN LÄSER RÅ HTML, före `butikstvatt` — tvätten stryker
+        #    bildattributen, och alt-texten ÄR det kortgrinden granskar. Kördes
+        #    den efter tvätten vore den en tom läsare som alltid ser grön ut.
+        fel = G.kortfel(html) + granska_live(pid, html)
         print(("FEL " if fel else "OK  ")
               + f"{pid}  {slug:38} {len(html):7d} tecken  "
               + f"{cache} age={alder}")
