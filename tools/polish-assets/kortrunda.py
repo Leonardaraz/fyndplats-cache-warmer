@@ -96,6 +96,11 @@ def hamta_hjaltar(har, filer, storlek=1600):
     return ut
 
 
+def _matt_ord(etikett):
+    """Etikettens första ord, utan avslutande skiljetecken."""
+    return etikett.split()[0].lower().rstrip(",.:;")
+
+
 def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
     """Fäller FÖRE bygget — ett kort som är fel har redan laddats upp efteråt."""
     fel, sedda, kickers = [], {}, {}
@@ -124,8 +129,14 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
         #    123:s "Totalmått" passerade bara för att deras m ligger inuti ordet
         #    — alltså fungerade grinden av en slump på två rundor och föll på den
         #    tredje, där etiketten heter just "Mått". Jämför gemener.
-        if not any(e.split()[0].lower().endswith("mått")
-                   and e.split()[0].lower() != "paketmått"
+        # ☠️ SKILJETECKNET RÄKNADES SOM EN DEL AV ORDET. Runda 130:s
+        #    tvålyktorsprodukt har etiketterna "Mått, större lyktan" och
+        #    "Mått, mindre lyktan" — `"Mått,".endswith("mått")` är FALSKT, så
+        #    grinden rapporterade "kortet saknar måttraden" om ett kort som
+        #    bär TVÅ måttrader. Samma familj som versalfällan ovan: grinden
+        #    fungerade i nio rundor för att ingen etikett råkade ha komma.
+        if not any(_matt_ord(e).endswith("mått")
+                   and _matt_ord(e) != "paketmått"
                    for e in specetiketter(RADER[pid])):
             fel.append(f"{pid}: kortet saknar måttraden — har {RADER[pid]}")
         # ☠️ Två IDENTISKA kort hjälper ingen att skilja två sidor åt, och

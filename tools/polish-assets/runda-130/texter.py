@@ -304,7 +304,7 @@ VADER = {
         "den här lyktan. Vi skriver därför inget om hur mycket regn den tål. "
         "Ställ den under tak eller ta in den när vädret slår om, så håller "
         "du dig på säkra sidan. Elektroniken är densamma som i vilken "
-        "solcellslampa som helst: det är fukt inifrån som tar den, inte ett "
+        "solcellslampa som helst: det är fukt inifrån som tar den, inte en "
         "regnskur.",
 }
 
@@ -470,7 +470,7 @@ SKOTSEL = {
         "på plant underlag, stativet är smalt och 130 centimeter högt. Ta in "
         "lampan inomhus de kallaste månaderna.",
     "ef0c374b":
-        "Locket ÄR solcellen, så det är där städningen ska ske: torka av det "
+        "Locket är solcellen, så det är där städningen ska ske: torka av det "
         "med en fuktad trasa några gånger per säsong och lägg ingenting "
         "ovanpå. Flätningen borstas torr. Spola aldrig lyktorna med slang. "
         "Lyktorna står fritt och väger tillsammans åtta kilo med emballage, "

@@ -58,7 +58,7 @@ def varde(specrad, etikett):
     return v
 
 
-def kalla(har, kort, mjuka):
+def kalla(har, kort):
     """Hjältebilden, mjukad om kortet annars spränger takgränsen.
 
     ⚠️ Skiljetecknet mellan id och nummer är INTE samma i alla rundor:
@@ -72,6 +72,20 @@ def kalla(har, kort, mjuka):
             break
     else:
         raise SystemExit("saknar foto: %s/rawbilder/%s{-,_}1.jpg" % (har, kort))
+    return foto
+
+
+def mjuka_upp(kort, foto, mjuka):
+    """Lägger oskärpa på fotot — oavsett var fotot kom ifrån.
+
+    ☠️ DEN HÄR LÅG TIDIGARE INNE I `kalla`, OCH VAR DÄRMED DÖD KOD. `bygg`
+       väljer `foton.get(k) or kalla(...)`, och `kortrunda.kor` fyller ALLTID
+       `foton` via `hamta_hjaltar` — alltså nåddes `kalla` aldrig, och
+       `mjuka` gjorde ingenting. Runda 130 mätte det: samma byte på
+       byten vid blur 1,1, 1,8, 2,4 och 3,0. Verktyget skrev ut
+       "MJUKA UPP FOTOT" som åtgärd och struntade sedan i parametern som
+       utför den.
+    """
     if kort not in mjuka:
         return foto
     ut = os.path.abspath("%s-1-mjuk.jpg" % kort)
@@ -100,7 +114,8 @@ def bygg(har, produkter, kortdata, mjuka=None, foton=None):
         k = p["kort"]
         kicker, rubrik, rader = kortdata[k]
         specrader = [(e, varde(p["spec"][i], e)) for e, i in rader]
-        ck.card_spec(k + "_spec", foton.get(k) or kalla(har, k, mjuka),
+        ck.card_spec(k + "_spec",
+                     mjuka_upp(k, foton.get(k) or kalla(har, k), mjuka),
                      kicker, rubrik, specrader, fit=True)
         namn.append(k + "_spec")
         facit[k] = {"kicker": kicker, "rubrik": rubrik,
