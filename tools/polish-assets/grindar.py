@@ -322,7 +322,8 @@ def granska_namn(namn):
     return problem
 
 
-def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
+def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60, stale_forsok=3,
+              _hamtare=None):
     """Hämtar en ISR-sida SÅ ATT SVARET ÄR FÄRSKT — två gånger, med paus.
 
     ☠️ Läs aldrig utfallet av den FÖRSTA hämtningen efter en skrivning. Next.js
@@ -335,8 +336,25 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
        kvitteras: `x-vercel-cache: STALE`, `age: 2531`, och sidan bar de FEM
        gamla bild-id:na. Andra hämtningen gav `HIT`, `age: 19` och kortet.
 
+    ☠️ TVÅ HÄMTNINGAR RÄCKER INTE ALLTID — och det mättes 2026-09-11.
+       Kortsvepet över runda 121–127 gav ETT fel av 53 sidor:
+       `verktygslada-49-cm-fyra-ladar-orange` rapporterades SAKNA sitt
+       faktakort, med `x-vercel-cache: STALE` i samma rad. En omhämtning
+       minuten efter gav `HIT age=179` och noll fel — kortet satt där hela
+       tiden. Andra hämtningen hade helt enkelt landat innan ombyggnaden
+       var klar, och då är svaret fortfarande det GAMLA.
+
+       Funktionen väntar därför ut en STALE-rad (`stale_forsok` extra varv
+       med växande paus) i stället för att rapportera den. Runbookens tre
+       grenar gäller oförändrat: en FÄRSK rad kostar ingen extra väntan, och
+       en äkta 404 kastar direkt i stället för att väntas ut per produkt.
+
     Returnerar (html, headers). Kastar hellre än att returnera en halv sida:
     en tyst kapad hämtning såg i runda 104:s måttsvep ut som "noll träffar".
+
+    `_hamtare` finns för SJÄLVTESTET: väntemekaniken går annars bara att
+    "laga" genom att sova längre, vilket hade gjort en äkta 404 till fem
+    minuters tystnad per produkt. Samma skäl som runda 60:s `vantetest.py`.
     """
     import urllib.request
 
@@ -366,10 +384,20 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
             return (r.read().decode("utf-8", "replace"),
                     {k.lower(): v for k, v in r.headers.items()})
 
+    if _hamtare is not None:
+        _hamta = _hamtare
+
     _hamta()                                   # väckningen — svaret kastas
     import time
     time.sleep(paus)
     html, headers = _hamta()
+    # ☠️ Är raden FORTFARANDE stale pågår ombyggnaden än — svaret är det
+    #    gamla, och att döma på det fäller en korrekt sida.
+    for i in range(stale_forsok):
+        if headers.get("x-vercel-cache", "").upper() != "STALE":
+            break
+        time.sleep(paus * (i + 2))
+        html, headers = _hamta()
     if len(html) < 20000:
         raise SystemExit("ISR-hämtningen gav bara %d tecken för %s — halv sida"
                          % (len(html), url))
@@ -999,6 +1027,20 @@ def kortfiler(har, produkter, mall="%s_spec.jpg"):
 # ☠️ `grindar.py` hade inget självtest alls fram till runda 120, trots att den
 #    är den fil ALLA rundor delar. Ett fel här slår mot varje kommande runda
 #    samtidigt, och de tre nyaste reglerna är alla skrivna EFTER ett falsklarm.
+def _isr_stub(rader):
+    """Kör `hamta_isr` mot en stubbad hämtare och returnerar (sista cache-rad,
+    antal hämtningar). `rader` är cache-svaren i tur och ordning."""
+    n = [0]
+
+    def hamtare(forsok=3):
+        i = min(n[0], len(rader) - 1)
+        n[0] += 1
+        return ("x" * 25000, {"x-vercel-cache": rader[i]})
+
+    _, h = hamta_isr("stub://", paus=0, _hamtare=hamtare)
+    return h["x-vercel-cache"], n[0]
+
+
 def _sjalvtest():
     fall = [
         # ☠️ ARTNR måste se BÅDA formerna av Aosoms artikelnummer. Den
@@ -1035,6 +1077,19 @@ def _sjalvtest():
             "<div>ingen thumb-rad alls</div>")), True),
         ("kort: oläsbart galleri MED kort fälls ändå", lambda: bool(kortfel(
             '<img alt="Faktakort: 71 x 39 cm">')), True),
+        # ☠️ STALE-VÄNTAN — mätt 2026-09-11. Kortsvepet gav ETT fel av 53
+        #    sidor, och felet var cachen: `verktygslada-49-cm-fyra-ladar-orange`
+        #    rapporterades sakna sitt kort med `x-vercel-cache: STALE`, och gav
+        #    `HIT age=179` + noll fel vid omhämtning en minut senare.
+        #    Fallen prövas med en STUBBAD hämtare: väntemekaniken går annars
+        #    bara att "laga" genom att sova längre, och det gör en äkta 404 till
+        #    fem minuters tystnad per produkt. Samma skäl som `vantetest.py`.
+        ("isr: STALE väntas ut tills raden är färsk",
+         lambda: _isr_stub(["STALE", "STALE", "HIT"])[0] == "HIT", True),
+        ("isr: färsk rad kostar INGEN extra hämtning",
+         lambda: _isr_stub(["HIT", "HIT", "HIT"])[1] == 2, True),
+        ("isr: evigt STALE ger UPP och lämnar raden synlig för anroparen",
+         lambda: _isr_stub(["STALE"] * 9)[0] == "STALE", True),
         ("flik: alla tre finns", lambda: bool(flikfel(
             "<summary>Tekniska specifikationer</summary>"
             "<summary>Användning och skötsel</summary>"
@@ -1125,7 +1180,19 @@ def _sjalvtest():
         #    träff, väntade ingen träff". Ett larm som beskriver två identiska
         #    utfall går inte att handla på — samma familj som ett falsklarm
         #    som alltid fyrar.
-        traff, ska_falla = bool(kor()), bool(ska_falla)
+        # ☠️ DET VÄNTADE VÄRDET MÅSTE VARA EN RIKTIG BOOL — mätt 2026-09-11.
+        #    `bool()` ovan är till för att en grind får svara med en Match,
+        #    en lista eller None ("fyrade den?"). Men skriver man ett fall som
+        #    jämför ett VÄRDE — `lambda: h["x-vercel-cache"], "HIT"` — blir
+        #    båda sidor sanna och fallet kan ALDRIG fälla. Tre sådana skrevs
+        #    in här i dag, och mutationstestet (borttagen STALE-väntan) gav
+        #    grönt på alla tre. Jämförelsen hör hemma INNE i lambdan.
+        if not isinstance(ska_falla, bool):
+            fel.append(f"{namn}: väntat värde är {type(ska_falla).__name__}, "
+                       f"inte bool — fallet kan aldrig fälla. Lägg "
+                       f"jämförelsen i lambdan.")
+            continue
+        traff = bool(kor())
         if traff != ska_falla:
             fel.append(f"{namn}: fick {'träff' if traff else 'ingen träff'}, "
                        f"väntade {'träff' if ska_falla else 'ingen träff'}")

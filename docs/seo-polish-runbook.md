@@ -2304,7 +2304,8 @@ BÅDA kandidatbilderna visar en växt på hyllan och laptopen på skivan, så ru
 "Skärmen 12,5 cm högre" pekade på en skärm som inte fanns i bilden. Blev "En hylla över
 skivan". Sidans text stod kvar; det var kortets löfte som inte höll, inte påståendet.
 **Granska alltid de färdiga korten i ett kontaktark innan uppladdningen** — felet syns på
-en sekund där och aldrig i ett API-svar.
+en sekund där och aldrig i ett API-svar. Två av de fyra ändrade alt-texter som var
+felskrivna av leverantören föll ut i samma granskning.
 
 > ☠️ **STEGET GLÖMDES ÅTTA RUNDOR I RAD — och nu finns en grind.** Runda 110–120
 > bär 6–9 spårade kort var; runda 121–128 bar **noll**, alltså ~65 publicerade
@@ -2343,8 +2344,7 @@ en sekund där och aldrig i ett API-svar.
 > Det rundageneriska i bygget bor i `tools/polish-assets/kortrunda.py`; en
 > runda skriver bara `KORT` (kicker + rubrik) och `RADER` (spec-etiketter).
 > `kortkvitto.py` kvitterar uppladdningen FÖRE media-PATCHen, och bevisar
-> kopplingen bild→produkt på md5 i stället för på ordningen i anropet. Två av de fyra ändrade alt-texter som var
-felskrivna av leverantören föll ut i samma granskning.
+> kopplingen bild→produkt på md5 i stället för på ordningen i anropet.
 
 ⚠️ **Alt-texten på kortet börjar med `Faktakort: ` och beskriver FAKTA, inte kortet.**
 `Faktakort: fyra säckar på 27 liter, en per tvättsort. 86 × 38 × 82 cm` — inte
@@ -4354,6 +4354,59 @@ samma cachade svar: Next.js ISR nycklar på RUTTEN, inte på okända parametrar.
 Uppmätt samma dag på fem nypublicerade sidor — `x-vercel-cache: HIT` med
 cache-bust, och 404 i femton minuter tills posten gick ut av sig själv
 (12:19 → 0/5, 12:25 → 3/5, 12:27 → 5/5).
+
+### ☠️ …och TVÅ räcker inte heller — andra hämtningen kan vara STALE (2026-09-11)
+
+Kortsvepet över runda 121–127 (53 publicerade sidor genom `grindar.kortfel`)
+gav **två fel**. Båda var falska, och båda bar samma sak i samma rad:
+
+| sida | svepets dom | cache-rad | omhämtning en minut senare |
+|---|---|---|---|
+| `verktygslada-49-cm-fyra-ladar-orange` | SAKNAR EGET KORT | **`STALE`** | `HIT age=179`, **0 fel** |
+| `verktygsvagn-83-cm-tre-plan-verktygshal` | SAKNAR EGET KORT | **`STALE`** | `HIT age=24`, **0 fel** |
+
+☠️ **Noll av 53 fel var på sidan.** Korten satt där hela tiden; det var
+`hamta_isr` som dömde på ett svar den själv redovisade som inaktuellt.
+Funktionen gjorde två hämtningar med paus emellan — vilket är runda 102:s
+regel, ordagrant — men den **läste aldrig `x-vercel-cache` på den andra**.
+Är ombyggnaden inte klar då är det gamla svaret fortfarande det som kommer.
+
+Runda 60 skrev redan ned väntemekaniken (`0/10/20/30/60/60/120 s`), men den
+bodde i den rundans egen `live.py`. Den delade modulen ärvde bara
+tvåhämtningsregeln. Husets vanligaste bugg, en gång till: **en regel som
+flyttas till en delad modul måste flytta HEL.**
+
+✅ `hamta_isr` väntar sedan dess ut en STALE-rad (`stale_forsok`, växande
+paus) i stället för att rapportera den. De tre grenarna är oförändrade — en
+färsk rad kostar ingen extra hämtning, en äkta 404 kastar direkt.
+
+☠️ **Och självtestet som skulle bevisa det kunde inte fälla.** De tre nya
+fallen skrevs som VÄRDEjämförelser (`lambda: h["x-vercel-cache"], "HIT"`) —
+och `_sjalvtest` `bool()`:ar båda sidor, med flit, så att en grind får svara
+med en Match, en lista eller `None`. `bool("HIT") == bool("STALE")`, alltså
+var alla tre fallen sanna oavsett vad koden gjorde. Mutationstestet
+(borttagen STALE-väntan) gav **grönt på alla tre**.
+
+Två lagningar, och den andra är den som håller framåt:
+
+1. Jämförelsen flyttad IN i lambdan, så `bool()` blir harmlös.
+2. `_sjalvtest` **vägrar ett fall vars väntade värde inte är en riktig bool**
+   och säger varför. Det skiljer "fyrade grinden?" (väntat värde ÄR en bool,
+   svaret får vara vad som helst) från "är värdet X?" (meningslöst under
+   `bool()`). Mätt: 20 befintliga fall svarar med Match/lista/None mot ett
+   bool-väntat värde — de är i sin ordning och berörs inte.
+
+Tre mutationer, tre rätt fällda fall och inget annat:
+
+| mutation | vilket fall som föll |
+|---|---|
+| STALE-väntan borttagen | `STALE väntas ut tills raden är färsk` |
+| väntan utan brytvillkor (sover alltid) | `färsk rad kostar INGEN extra hämtning` |
+| ett fall skrivet som värdejämförelse igen | harnessets egen vägran |
+
+**Regeln: ett självtestfall som jämför ett VÄRDE måste bära jämförelsen själv
+— annars är det en grind som aldrig kan fälla.** Samma familj som
+delsträngsmatchningen som godkändes av ordet den motsades av.
 
 ### ✅ Live-grinden kan kontrollera VARJE MENING ordagrant — och den bet (2026-09-07)
 
