@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TOTAL_SUMMARY } from "../../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { ContentPage } from "../../components/content";
 
 const DESC =
@@ -36,7 +37,7 @@ export default function AnvandarvillkorApp() {
 
       <h2>5. Returer och ångerrätt</h2>
       <p>{TOTAL_SUMMARY}</p>
-      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>. Då ska produkten vara oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30 återbetalas produktens pris men inte vad du betalat för leveransen till dig; det återbetalas bara under den lagstadgade ångerfristen. Vilken period som gäller avgörs av när du anmäler returen, inte av när paketet är tillbaka hos oss. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
+      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>. Då ska produkten vara oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30 återbetalas produktens pris men inte vad du betalat för leveransen till dig; det återbetalas bara under den lagstadgade ångerfristen. Vilken period som gäller avgörs av när du anmäler returen, inte av när paketet är tillbaka hos oss. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Returen ska postas inom 7 dagar från anmälan, och på returer under dag 15–30 tas en bearbetningsavgift på 10 % av vad du betalat för produkten ut; ingen avgift tas ut under den lagstadgade ångerfristen dag 1–14. {SKRYMMANDE_RETURKOSTNAD} Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
       <p>Är varan trasig, felaktig eller inte som utlovat är det i stället en <strong>reklamation</strong>. Den rättigheten är fristående från de 30 dagarna: enligt <strong>konsumentköplagen (2022:260)</strong> har du <strong>tre års reklamationsrätt</strong> på fel som fanns vid leveransen, och fel som visar sig inom de första två åren antas ha funnits redan då. Reklamera inom skälig tid efter att du upptäckt felet — inom två månader räknas alltid som i rätt tid. Vid godkänd reklamation står Fyndplats för returkostnaden.</p>
 
       <h2>6. Användarens skyldigheter</h2>

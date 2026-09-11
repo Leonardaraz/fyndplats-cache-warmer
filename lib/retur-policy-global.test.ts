@@ -71,6 +71,9 @@ const ALL = ROOTS.flatMap((r) => files(r)).map((p) => {
 const utanImport = (raw: string) =>
   raw.replace(/^\s*import[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, " ");
 
+// Ytor som ÄR avtalstext, och därför måste bära villkoren själva.
+const AVTALSTEXT = /^app\/(returer|kopvillkor|anvandarvillkor-app)\/|^docs\/app-store\/legal\//;
+
 const renderar = (e: { raw: string }, ...namn: string[]) => {
   const kropp = utanImport(e.raw);
   return namn.some((n) => new RegExp(`\\b${n}\\b`).test(kropp));
@@ -240,7 +243,14 @@ test("den som tar ut bearbetningsavgiften säger också att den finns", () => {
     // Pekaren står i href="/returer", alltså INNE i en tagg — och prose() river
     // taggar. Frågas prosa-vyn försvinner varje länk, och provet fäller sidor
     // som gör rätt. Pekaren ska därför läsas ur råkällan.
-    const pekar = /\/returer/i.test(e.raw) && !/app\/returer\//.test(p);
+    //
+    // MEN AVTALSTEXTEN FÅR INTE PEKA VIDARE. Köpvillkoren och app-villkoren ÄR
+    // de skriftliga avtalsvillkoren — det är dit en kund eller en myndighet går
+    // först, och ett villkor som bara finns på en annan sida är inte ett
+    // villkor i avtalet. Första versionen av provet lät dem friskrivas av sin
+    // egen /returer-länk; preview-mätningen visade att köpvillkoren då stod helt
+    // utan både avgiften och skrymmandekostnaden.
+    const pekar = /\/returer/i.test(e.raw) && !AVTALSTEXT.test(p);
     if (!AVGIFT.test(t) && !renderar(e, "AVGIFT_SENTENCE") && !pekar) bad.push(p);
   }
   assert.deepEqual(bad, []);
@@ -260,7 +270,7 @@ test("den som säger att kunden betalar returen säger också vad skrymmande kos
     if (!/returfrakten betalas av (dig|kunden)|returfrakten betalas av dig som kund/i.test(t)) continue;
     const bar = (SKRYMMANDE.test(t) && BELOPP.test(t))
       || renderar(e, "SKRYMMANDE_RETURKOSTNAD", "SKRYMMANDE_RETURKOSTNAD_KORT");
-    const pekar = /\/returer/i.test(e.raw) && !/app\/returer\//.test(p);
+    const pekar = /\/returer/i.test(e.raw) && !AVTALSTEXT.test(p);
     if (!bar && !pekar) bad.push(p);
   }
   assert.deepEqual(bad, []);
