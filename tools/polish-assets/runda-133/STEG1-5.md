@@ -160,3 +160,58 @@ Kvar att vakta, och allt är uppfyllt i källan:
    säljargument som stämmer och får skrivas.
 3. **Lösa smådelar.** `d85ade1b`/`ec29ad45` har tre hängande mustips.
    De är leksaker för katt, inte barnleksaker — ingen EN 71-hänvisning.
+
+## Steg 6–7 — texterna skrivna och grindade
+
+Steg 6 är en no-op (Aosom-rader är enkelvariant utan optioner).
+
+**Grinden: 67 egna självtestfall + 56 delade, tio produkter, noll fel.**
+
+Texten skrevs i en FIL och grindades före varje skrivning — CLAUDE.md:s
+mätning är 9 fel inline mot 0 genom fil plus grind. Grinden fällde SEX äkta
+fel i första utkastet, och ögonen ett sjunde:
+
+| fynd | vad det var |
+|---|---|
+| `b6bf627f` bar *"tre hålor"* | syskonets antal i den EGNA zonen — rundans huvudregel, åt fel håll |
+| `e7a9abb7` bar *"de rymligaste i rundan"* | intern jargong i kundtext (uppgift #318) |
+| `d85ade1b`, `ec29ad45` bar *"den högsta i rundan"* | samma, två gånger till |
+| `4,5` stod lösryckt i två texter | kattvikten fanns inte i spec-tabellen → ohärlett tal |
+| `d85ade1b`, `ec29ad45` saknade maxlasten i namnet | 20 kg stod i metan men inte i namnet |
+| ☠️ **"den smalaste öppningen i vårt sortiment"** | **omätt superlativ — hittat med ÖGON, inte av grinden** |
+
+☠️ **Det sjunde är det intressanta: superlativet bytte ADRESS och slapp förbi.**
+Batchsuperlativgrinden fäller *"i rundan"*, *"av de tio"*, *"i uppsättningen"*.
+Formuleringen pekade i stället på BUTIKEN — *"i vårt sortiment"*, *"den
+smalaste öppningen vi har"* — och gick rakt igenom. Det är samma fel med
+värre underlag: rundans tio går att räkna på en minut, de **43 publicerade
+klösträden har ingen mätt**. Mönstret täcker nu `sortiment`, `katalog`,
+`hos oss`, `vi har` och `butik`, och sex nya självtestfall låser båda
+adresserna. Steg 12 är alltså inte en formalitet — den hittade det enda fel
+som ingen kod såg.
+
+### ☠️ Och grinden hade ett FALSKLARM som var farligare än ett missat fel
+
+Syskonfärgsgrinden fällde `bd0d7f9e` och `efa9c03e` för att de skrev ordet
+**ljusgrå** — sin EGEN grundfärg. Grupp C är tre tunnor som alla är ljusgrå
+eller ljusbruna i botten och skiljs åt av KANTFÄRGEN; grinden jämförde
+syskonets FÖRSTA ord och träffade därför den gemensamma grundfärgen.
+
+Två korrekta sidor av tre fälldes. Det är precis det huset skrivit ned som
+det dyraste felet: *ett falsklarm som alltid fyrar är lika illa som ett fel
+ingen ser* — båda slutar med att mottagaren slutar läsa. Grinden jämför nu
+bara de ord som SKILJER syskonens färger åt, och tre självtestfall låser
+det åt båda hållen: den egna grundfärgen släpps, syskonets särskiljande ord
+fälls fortfarande.
+
+### Namn, slug och SKU
+
+Alla tio namn ligger under 80 tecken (50–66). Sluggarna är valda så att det
+som skiljer syskonen åt ryms FÖRE `sku_bas`-kapningen — uppgift #489 gav
+runda 129 fyra sidor som delade SKU. Kontrollerat mot hela katalogen:
+**5 649 produkter, noll slugkrockar**, och noll krockar de tio emellan.
+
+⚠️ **SKU-halvan är INTE bevisad här.** `products/search` returnerar aldrig
+`variantsInfo`, så en katalogsvepning kan inte se andras variant-SKU:er.
+Den kontrollen hör hemma i Steg 8, mot skarpa läsningar — det var så runda
+132 hittade sex live-krockar.
