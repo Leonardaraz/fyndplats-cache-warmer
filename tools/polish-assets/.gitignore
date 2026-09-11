@@ -102,3 +102,18 @@ runda-120/rawbilder/
 # bildgranskningens underlag. Åter-hämtningsbara ur butiken, och kortet självt
 # ligger spårat i `kort/`.
 */kortfoto/
+
+# Runda 133:s bytegrind (uppgift #499). `bytebilder/` är familjens 103 bilder i
+# ORIGINAL — 133 MB, och de hämtas om av `bytegrind.py` på ett kommando. Domen
+# står i STEG1-5.md med md5 och byte-storlek, alltså är bevisen kvar även utan
+# filerna. Samma skäl som `*/rawbilder/` och `*/hjaltar/`.
+*/bytebilder/
+
+# Granskningsarken som ögat behövde en gång: logotypkollen på övre vänstra
+# hörnet, måttritningarna i full upplösning, och räkneuppslagen där öppningarna
+# räknades. Alla tre är härledda ur `bytebilder/` av kod som ligger kvar, och
+# VAD de visade står i STEG1-5.md. Samma skäl som `*/kontroll-*.jpg`.
+*/logokoll.jpg
+*/mattritningar.jpg
+*/rakna-*.jpg
+*/kolla-*.jpg
