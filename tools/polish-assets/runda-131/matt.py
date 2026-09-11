@@ -16,25 +16,27 @@
 
 # id8 -> uppmätt. `last` = kg, None när leverantören inte anger någon.
 RAMPER = {
+    # ☠️ FÄLLD AV DUBBLETTGRINDEN — ÄR publicerade `hundramp-bil-155-cm`
+    #    (911818e3). Sex mått identiska. Ligger kvar som mätning, poleras inte.
     "11c2b7e8": dict(
-        typ="bilramp", farg_de="Schwarz+Grün", material="Kunststoff",
+        typ="bilramp", fälld="dubblett av hundramp-bil-155-cm", farg_de="Schwarz+Grün", material="Kunststoff",
         matt="155L x 38,5B x 15,5H cm", hopfalld="78L x 48,5B x 17,5H cm",
         rampbredd="33 cm", last=90, pris=829,
         leverans=["1 x Hunderampe für Autos", "1 x Bedienungsanleitung"]),
     "2166c50f": dict(
-        typ="bilramp", farg_de="Grau", material="Kunststoff, TPR",
+        typ="biltrappa", farg_de="Grau", material="Kunststoff, TPR",
         matt="154L x 40B x 7,5H cm", hopfalld="79L x 40B x 13H cm",
         halkleist="22,8L x 5B cm", steg="34,5L x 8B cm",
         maxhojd="82H cm", last=25, pris=759,
         leverans=["1 x Hunderampe", "1 x Bedienungsanleitung"]),
     "9a513e9a": dict(
-        typ="bilramp", farg_de="Braun", material="Kunststoff, TPR",
+        typ="biltrappa", farg_de="Braun", material="Kunststoff, TPR",
         matt="154L x 40B x 7,5H cm", hopfalld="79L x 40B x 13H cm",
         halkleist="22,8L x 5B cm", steg="34,5L x 8B cm",
         maxhojd="82H cm", last=25, pris=759,
         leverans=["1 x Hunderampe", "1 x Bedienungsanleitung"]),
     "c2be0f30": dict(
-        typ="bilramp", farg_de="Schwarz", material="Kunststoff, TPR",
+        typ="biltrappa", farg_de="Schwarz", material="Kunststoff, TPR",
         matt="154L x 40B x 7,5H cm", hopfalld="79L x 40B x 13H cm",
         halkleist="22,8L x 5B cm", steg="34,5L x 8B cm",
         maxhojd="82H cm", last=25, pris=839,
@@ -47,12 +49,12 @@ RAMPER = {
         last=15, pris=799,
         leverans=["1 x Haustier-Rampe", "1 x Anleitung"]),
     "15e4c7a7": dict(
-        typ="mobelramp", farg_de="Natur+Grau",
+        typ="mobeltrappa", farg_de="Natur+Grau",
         material="Mehrschichtenplatte, Tannenholz, Polyester",
         matt="90L x 40B x 45H cm", halkavstand="10 cm",
         last=40, pris=979,
         leverans=["1 x Haustier-Rampe", "1 x Handbuch"],
-        anm="TITELN säger Haustiertreppe/Hundetreppe — Lieferumfang säger RAMP"),
+        anm="BILDEN visar SEX STEG. Titeln sa Treppe, Lieferumfang sa Rampe — titeln hade rätt. Produkttypen avgörs av bilden, aldrig av en text."),
     "935cd17b": dict(
         typ="mobelramp", farg_de="Schwarz+Naturholz",
         material="Kiefernholz, Polyester",
