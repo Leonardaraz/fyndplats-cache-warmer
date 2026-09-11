@@ -558,6 +558,23 @@ FAQ = {
     ] + _FAQ_GEMENSAM,
 }
 
+# Meta-nyckelordslistan. `SOKORD` är HUVUDordet (settings.keywords, isMain),
+# listan nedan är meta-taggen. ☠️ Klart-kriteriet kräver att BÅDA skrivs om —
+# importen lämnar leverantörens TYSKA rubrik i settings.keywords, och Steg 7
+# rörde tidigare bara seoData.tags. Runda 132 fick städa det i Steg 13.
+SOKORDSLISTA = {
+    "b6bf627f": "klöstunna, kattunna sisal, klösmöbel sjögräs, katthus tunna, klöspelare katt",
+    "a33447f9": "klöstunna 79 cm, kattunna tre plan, klösmöbel sjögräs, katttorn sisal, klöspelare",
+    "e7a9abb7": "klöstunna mörkgrå, kattunna tre ingångar, klösmöbel sisal, katthus tunna, klöspelare",
+    "f2e06b7a": "klöstunna beige, kattunna två ingångar, klösmöbel sisal, katthus tunna, klöspelare",
+    "bd0d7f9e": "klöstunna grå, kattunna sisal, klösmöbel tre hålor, katthus tunna, klöspelare katt",
+    "d9310184": "klöstunna ljusbrun, kattunna sisal, klösmöbel tre hålor, katthus tunna, klöspelare",
+    "efa9c03e": "klöstunna mörkgrå kant, kattunna sisal, klösmöbel tre hålor, katthus tunna, klöspelare",
+    "e43b623c": "klöstunna 60 cm, låg kattunna, klösmöbel sisal, katthus tunna, klöspelare katt",
+    "d85ade1b": "klöstunna cremevit, kattorn 96 cm, klösmöbel med bädd, katthus tunna, klöspelare",
+    "ec29ad45": "klöstunna grå 96 cm, kattorn sisal, klösmöbel med bädd, katthus tunna, klöspelare",
+}
+
 BAS = "https://www.fyndplats.se"
 
 

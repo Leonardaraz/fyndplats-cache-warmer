@@ -215,3 +215,44 @@ runda 129 fyra sidor som delade SKU. Kontrollerat mot hela katalogen:
 `variantsInfo`, så en katalogsvepning kan inte se andras variant-SKU:er.
 Den kontrollen hör hemma i Steg 8, mot skarpa läsningar — det var så runda
 132 hittade sex live-krockar.
+
+## Steg 7 skrivet — 10 av 10 byte-exakta mot facit
+
+Alla tio bär nu svenskt namn, svensk slug, svensk `seoData` och den polerade
+brödtexten. `visible: false` på alla tio — publiceringen är Steg 13.
+
+| | |
+|---|---:|
+| skrivna produkter | 10 |
+| byte-exakta mot `facit.json` | **10** |
+| avvikelser | **0** |
+| `https:/`-hrefar (rundans 132-fälla) | **0** |
+| sidor med svenskt `settings.keywords` | 10 |
+
+☠️ **Kvittot går mot FACIT, inte mot min egen avskrift** (uppgift #485).
+`facit.json` byggdes ur `texter.py` INNAN något skrevs; nyttolasten
+klistrades in i API-anropet därifrån. Hade jag klistrat fel hade
+jämförelsen fallit — och det är hela poängen med att frysa facit först.
+
+Jämförelsen är en FNV-1a-hash över den normaliserade texten, räknad på
+båda sidor: i Python över `wixnorm.normalisera(bygg(pid))` och i JS inne i
+Wix-sandlådan över det sparade `plainDescription`. Då behöver de 34 000
+tecknen aldrig resa hem för att bevisa sin egen identitet.
+
+⚠️ **Och metoden bevisade sig på mig själv.** Första jämförelsen gav ETT
+fel: `ec29ad45 LÄNGD 4233642417 != facit 3882`. Talet är hashen, inte
+längden — jag hade klistrat fnv-värdet i längdfältet när jag skrev av
+live-avläsningen för hand. Wix-innehållet var korrekt hela tiden (dess FNV
+stämde). Felet satt i AVSKRIFTEN, alltså precis där uppgift #485 säger att
+det sitter. En jämförelse som inte hade räknat längden separat hade aldrig
+sett det — och en som bara läst hashen hade sagt grönt.
+
+☠️ **`seoData.settings.keywords` skrevs i Steg 7, inte i Steg 13.** Importen
+lämnar leverantörens TYSKA rubrik där, och Steg 7 rörde tidigare bara
+`seoData.tags`. Runda 132 fick städa det i Steg 13; här är det gjort direkt,
+och återläsningen visar svenskt huvudord på alla tio.
+
+⚠️ **PATCH-svaret bär inget `plainDescription`** utan `?fields=` — det kom
+tillbaka som `langd: 0` på de två första skrivningarna. Det är uppgift #457
+och #425, inte ett fel. Kvittot togs därför på en EGEN återläsning med
+`?fields=PLAIN_DESCRIPTION`, aldrig på skrivsvaret.
