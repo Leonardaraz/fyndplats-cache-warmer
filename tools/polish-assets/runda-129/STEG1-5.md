@@ -473,3 +473,35 @@ varnar för. Källsidan kontrolleras i stället på `<h2>`-rubrikerna:
 live med en osynlig variant syns men går inte att lägga i varukorgen, och det
 syns inte i produktvyn. SKU och pris lästes tillbaka oförändrade på alla nio,
 och ingen bild saknar alt-text.
+
+## Steg 14 — live-grinden: 9 sidor, 0 fel
+
+Körd mot de publicerade sidorna med cache-bust. Alla nio `HIT`, noll fel,
+och `grindar.kortfel` bekräftar att varje galleri bär rundans eget
+Fyndplats-kort.
+
+| pid | sida |
+|---|---|
+| `14aa1777` | https://www.fyndplats.se/produkt/solcellslampa-180-cm-2-pack |
+| `1f14ab66` | https://www.fyndplats.se/produkt/solcellslampa-195-cm-planteringskruka |
+| `c9ab8531` | https://www.fyndplats.se/produkt/solcellslampa-182-cm-tva-klot |
+| `4ef7c2b4` | https://www.fyndplats.se/produkt/solcellslampa-185-cm-tre-lyktor |
+| `ec8ab782` | https://www.fyndplats.se/produkt/solcellslampa-189-cm-tre-glaskupor |
+| `db933c3c` | https://www.fyndplats.se/produkt/solcellslampa-dimbar-tre-lyktor-rostfri |
+| `a6727ca5` | https://www.fyndplats.se/produkt/solcellslampa-177-cm-tradgardslykta |
+| `9938574b` | https://www.fyndplats.se/produkt/solcellslykta-129-cm-2-pack |
+| `6747b6c0` | https://www.fyndplats.se/produkt/solcellslampa-160-cm-rostfri |
+
+### Mappningen: stämplad och verifierad
+
+Nio `stampla`-körningar av `polish-mapping.yml`, alla gröna. Två rader lästes
+tillbaka med `las` — ett grönt jobb är inget kvitto:
+
+| pid | `needsAiPolish` | `draftStatus` | SKU i mappningen | prisgrinden |
+|---|---|---|---|---|
+| `6747b6c0` | `false` | `published` | `FP-solcellslampa-160-cm` | `stammer: true` |
+| `ec8ab782` | `false` | `published` | `FP-solcellslampa-189-cm-tre` | `stammer: true` |
+
+✅ Mappningens `wixVariantId` är IDENTISK med Wix variant-id på alla nio —
+kontrollerat på `14aa1777` före stämplingen, och de åtta övriga hade fallit
+med **422** om något id varit okänt (rutten avvisar FÖRE skrivningen).
