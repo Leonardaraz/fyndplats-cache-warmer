@@ -1,0 +1,262 @@
+{
+ "6c9d7288": {
+  "kicker": "Verktygsvagn 82 cm, blå",
+  "rubrik": "Tre plan och en låda",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "82 × 35 × 76 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "3 st, 70 × 35 × 6 cm"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "61 × 30 × 6,5 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "30 kg per plan, 60 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "14,5 kg"
+   }
+  ]
+ },
+ "3659a7eb": {
+  "kicker": "Verktygsvagn 102 cm",
+  "rubrik": "Avtagbar överkista",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 28 × 102 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Överkista",
+    "varde": "45 × 24 × 33 cm, avtagbar"
+   },
+   {
+    "etikett": "Rullskåp",
+    "varde": "60 × 28 × 72 cm"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "5"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "21,3 kg"
+   }
+  ]
+ },
+ "bdd01b5f": {
+  "kicker": "Verkstadsvagn 70–130 cm",
+  "rubrik": "Två lådor och undre bricka",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "77,5–130 × 38 × 80 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Arbetsyta utdragen",
+    "varde": "130 cm"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "2"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "80 kg totalt, 10 kg per låda, 20 kg på brickan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "28 kg"
+   }
+  ]
+ },
+ "5745c3cb": {
+  "kicker": "Verktygslådor i tre delar",
+  "rubrik": "Stapelbart set på hjul",
+  "rader": [
+   {
+    "etikett": "Staplat",
+    "varde": "52 × 32 × 72 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Antal delar",
+    "varde": "3 kistor"
+   },
+   {
+    "etikett": "Handtag",
+    "varde": "63,5–100 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "45 kg totalt, 15 kg per kista"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "17,2 kg"
+   }
+  ]
+ },
+ "35b4fba0": {
+  "kicker": "Verktygsvagn 69 cm, fem lådor",
+  "rubrik": "Röd med nyckellås",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "69 × 33 × 75 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Bänkskiva",
+    "varde": "61,6 × 33 cm"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "5"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "15 kg per låda, 150 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "24,9 kg"
+   }
+  ]
+ },
+ "bc698424": {
+  "kicker": "Verktygsvagn 69 cm, sju lådor",
+  "rubrik": "Mattsvart med nyckellås",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "69 × 33 × 75 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Bänkskiva",
+    "varde": "61,6 × 33 cm"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "7"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "15 kg per låda, 150 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "25,7 kg"
+   }
+  ]
+ },
+ "f4fabca6": {
+  "kicker": "Verktygsvagn 69 cm i rött",
+  "rubrik": "Sju lådor och nyckellås",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "69 × 33 × 75 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Bänkskiva",
+    "varde": "61,6 × 33 cm"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "7"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "15 kg per låda, 150 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "25,7 kg"
+   }
+  ]
+ },
+ "1b534b0e": {
+  "kicker": "Verktygsskåp 82,5 cm, blått",
+  "rubrik": "Fem lådor och arbetsyta",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "61,5 × 33 × 82,5 cm utan handtaget (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "68 × 33 cm mätt med handtaget"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "5"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "10 kg per grund låda, 20 kg per djup"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "25,7 kg"
+   }
+  ]
+ },
+ "5447468e": {
+  "kicker": "Verktygsskåp 82,5 cm, svart",
+  "rubrik": "Fem lådor och arbetsyta",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "61,5 × 33 × 82,5 cm utan handtaget (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "68 × 33 cm mätt med handtaget"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "5"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "10 kg per grund låda, 20 kg per djup"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "25,7 kg"
+   }
+  ]
+ },
+ "5910cd6f": {
+  "kicker": "Verktygsskåp 131 cm",
+  "rubrik": "Tre delar och sex lådor",
+  "rader": [
+   {
+    "etikett": "Staplat",
+    "varde": "60,5 × 33,5 × 131 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Överkista",
+    "varde": "51 × 25 × 34,5 cm, avtagbar"
+   },
+   {
+    "etikett": "Rullskåp",
+    "varde": "60,5 × 33 × 76 cm med handtag och hjul, 53 × 33 × 66 cm utan"
+   },
+   {
+    "etikett": "Antal lådor",
+    "varde": "6"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "27 kg"
+   }
+  ]
+ }
+}

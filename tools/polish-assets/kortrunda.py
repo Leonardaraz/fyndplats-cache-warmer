@@ -119,7 +119,13 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
         # ☠️ Prövas på SPEC-etiketten, inte på kortets. Kortets får förkortas
         #    ("Totalmått utfälld" → "Utfälld"), och en grind som läste den hade
         #    fällt ett kort som bär måttraden — falsklarm på korrekt data.
-        if not any(e.split()[0].endswith("mått") and e.split()[0] != "Paketmått"
+        # ☠️ VERSALKÄNSLIGT SKULLE HA VARIT ETT FALSKLARM: "Mått".endswith("mått")
+        #    är FALSKT, eftersom M:et är versalt. Runda 121:s "Yttermått" och
+        #    123:s "Totalmått" passerade bara för att deras m ligger inuti ordet
+        #    — alltså fungerade grinden av en slump på två rundor och föll på den
+        #    tredje, där etiketten heter just "Mått". Jämför gemener.
+        if not any(e.split()[0].lower().endswith("mått")
+                   and e.split()[0].lower() != "paketmått"
                    for e in specetiketter(RADER[pid])):
             fel.append(f"{pid}: kortet saknar måttraden — har {RADER[pid]}")
         # ☠️ Två IDENTISKA kort hjälper ingen att skilja två sidor åt, och
