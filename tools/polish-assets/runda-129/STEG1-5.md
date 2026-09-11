@@ -416,3 +416,60 @@ Grinden (`media.py` + rundans `FORBJUDET`/`TYSKA`) kontrollerar dessutom:
 inga tal, inga artikelnummer, inga homoglyfer, inga tyska ord — och en egen
 lista mot **avdiakritiserad svenska** (`matt`, `hojd`, `narbild`), som fällde
 hela första utkastet efter att det skrivits genom en heredoc.
+
+## Steg 10 — kategorierna
+
+Trädet har 54 kategorier och ett löv som passar exakt:
+**`Trädgård & Utemöbler > Trädgårdsdekor & Belysning`**. Lövet är etablerat, inte
+tomt — det bar 35 artiklar före rundan.
+
+Alla nio låg före skrivningen **bara i `All Products`**. Efter: förälder + löv,
+verifierat i ett SEPARAT anrop (uppgift #357: en läsning i samma anrop som
+kategoriskrivningen kan ljuga negativt). **9 av 9 har båda.**
+
+☠️ **`query-categories` kräver `treeReference`** (`{appNamespace: "@wix/stores"}`)
+i kroppen, och `list-categories-for-items` vill ha fältet **`items`**, inte
+`itemReferences`. Båda svarar 400 med rätt fältnamn i meddelandet — högljutt,
+alltså ofarligt, men värt att skriva ned.
+
+⚠️ **`itemsInfo.count` är 0 på VARENDA kategori i query-svaret.** Det är en
+projektion som inte efterfrågats, inte ett tomt träd — lövet innehöll 35 artiklar
+när det lästes med `list-items`. Läs aldrig antalet ur trädfrågan.
+
+## Steg 12 — källgrinden före publicering
+
+`grind.granska` + flikstruktur + osynliga tecken över alla nio: **0 fel**.
+`grindar._sjalvtest()`: 56 fall, 0 fel.
+
+☠️ **`grindar.flikfel` är en LIVE-grind och får inte köras på källan.** Den letar
+efter `<summary>`-element; källans `plainDescription` bär `<h2>`, och det är
+butikens `splitFlikar` som gör om dem vid rendering. Körd mot källan gav den
+**27 fel på nio korrekta sidor** — ett falsklarm av exakt den sort runbooken
+varnar för. Källsidan kontrolleras i stället på `<h2>`-rubrikerna:
+
+- de tre flikrubrikerna finns ordagrant,
+- inget annat block ligger EFTER den första flikrubriken (allt hamnar annars i
+  fel flik — runda 118–120:s fel),
+- flikordningen är spec → skötsel → FAQ,
+- och inga U+00AD / U+00A0 / U+200B / U+FEFF i namn, titel, meta, slug eller HTML.
+
+## Steg 13 — publicerade
+
+**9 av 9 live**, och varje rad kontrollerad i ett separat anrop efter skrivningen:
+
+| pid | slug | bilder |
+|---|---|--:|
+| `14aa1777` | `solcellslampa-180-cm-2-pack` | 4 |
+| `1f14ab66` | `solcellslampa-195-cm-planteringskruka` | 6 |
+| `c9ab8531` | `solcellslampa-182-cm-tva-klot` | 6 |
+| `4ef7c2b4` | `solcellslampa-185-cm-tre-lyktor` | 5 |
+| `ec8ab782` | `solcellslampa-189-cm-tre-glaskupor` | 6 |
+| `db933c3c` | `solcellslampa-dimbar-tre-lyktor-rostfri` | 6 |
+| `a6727ca5` | `solcellslampa-177-cm-tradgardslykta` | 5 |
+| `9938574b` | `solcellslykta-129-cm-2-pack` | 5 |
+| `6747b6c0` | `solcellslampa-160-cm-rostfri` | 6 |
+
+`visible: true` på **både produkt och variant** på alla nio — en produkt som går
+live med en osynlig variant syns men går inte att lägga i varukorgen, och det
+syns inte i produktvyn. SKU och pris lästes tillbaka oförändrade på alla nio,
+och ingen bild saknar alt-text.
