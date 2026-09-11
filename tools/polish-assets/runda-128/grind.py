@@ -309,6 +309,23 @@ def granska(pid):
             fel.append(f"FÄRGORD {f!r} som varken är egen eller syskonets "
                        f"— …{mening}…")
 
+    # ☠️ SKU:n RÄKNAS ur husregeln, den skrivs inte för hand. Fyra av rundans
+    #    nio stod ett token för korta när de skrevs ur minnet (t.ex.
+    #    "FP-verktygsvagn-96-cm" där regeln ger "FP-verktygsvagn-96-cm-sju").
+    #    Runbooken Steg 8 säger uttryckligen att grinden ska räkna om dem —
+    #    samma fel kostade runda 51 tre SKU:er och runda 53 två.
+    vantad_sku = "FP-" + G.sku_bas(T.SLUG[pid])
+    if T.SKU[pid] != vantad_sku:
+        fel.append(f"SKU {T.SKU[pid]!r} men husregeln ger {vantad_sku!r}")
+    if len(T.SKU[pid]) > 40:
+        fel.append(f"SKU {T.SKU[pid]!r} är {len(T.SKU[pid])} tecken — Wix tak är 40")
+    # ☠️ En SKU-krock är en egenskap hos BATCHEN, inte hos en produkt. Den
+    #    kontrollen låg först i sjalvtest(), vars `alla` bara läses av
+    #    GRANSKNINGSFALL — den fyrade alltså aldrig. Mutationstestet visade det.
+    tvilling = [q for q in T.SKU if q != pid and T.SKU[q] == T.SKU[pid]]
+    if tvilling:
+        fel.append(f"SKU {T.SKU[pid]!r} delas med {', '.join(sorted(tvilling))}")
+
     fel += [f"HOMOGLYF {c} ({n}) — …{s}…" for c, n, s in G.homoglyfer(txt)]
     fel += [f"NAMNGRIND: {p}" for p in G.granska_namn(T.NAMN[pid])]
     fel += [f"LEVERANSLÖFTE: {p}" for p in G.leveransloften(

@@ -51,16 +51,18 @@ SLUG = {
     "81c123fa": "verktygsskap-180-cm-tre-laszoner",
 }
 
+# Räknade UR husregeln (lib/import/sku.ts), inte skrivna för hand — fyra av dem
+# stod ett token för korta när de skrevs ur minnet. Grinden nedan räknar om dem.
 SKU = {
     "bc2e7191": "FP-svetsvagn-71-cm-tre",
-    "beeada22": "FP-platskap-svart-110",
-    "1654dd75": "FP-verktygsvagn-96-cm",
+    "beeada22": "FP-platskap-svart-110-cm",
+    "1654dd75": "FP-verktygsvagn-96-cm-sju",
     "f2495eee": "FP-verktygsvagn-5-lador",
-    "1db06f83": "FP-verktygsskap-hjul-133",
+    "1db06f83": "FP-verktygsskap-hjul-133-cm",
     "b920d526": "FP-verktygsvagn-rod-16",
     "d9965552": "FP-verktygsvagn-bla-16",
     "fc6fdd63": "FP-verktygsvagn-14-lador",
-    "81c123fa": "FP-verktygsskap-180-cm",
+    "81c123fa": "FP-verktygsskap-180-cm-tre",
 }
 
 # Publicerade sidor som rundan korslänkar mot. `_slug` skickar dem oförändrat.
@@ -90,7 +92,7 @@ TITEL = {
 
 META = {
     "bc2e7191": "Svetsvagn 71 × 39 × 70 cm i stål med tre hyllplan, två "
-                "säkerhetskedjor och fyra hjul. Tål 50 kg.",
+                "kedjor för gasflaskan och fyra hjul. Tål 50 kg.",
     "beeada22": "Svart plåtskåp 75 × 33 × 110 cm med ventilerade dörrar, "
                 "magnetlås och två hyllplan i 17 lägen. Tål 50 kg.",
     "1654dd75": "Verktygsvagn 96 × 33,5 × 75 cm med sju låsbara lådor och "
