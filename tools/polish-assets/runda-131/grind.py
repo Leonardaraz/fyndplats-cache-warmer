@@ -60,8 +60,18 @@ TYPORD = {
 NEGERBART = [
     (re.compile(r"\bvattent[äa]t\w*|\bv[äa]derbest[äa]ndig\w*", re.I),
      "VÄDERPÅSTÅENDE — ingen av de sju källorna anger något väderskydd"),
-    (re.compile(r"\bh[öo]jdjusterbar\w*|\bst[äa]llbar\s+h[öo]jd", re.I),
-     "JUSTERBAR HÖJD — gäller inte alla; 15e4c7a7 har fast lutning"),
+]
+
+# ☠️ PRODUKTSPECIFIKA SPÄRRAR. En regel som gäller EN produkt ska gälla DEN,
+#    inte rundan. Live-grinden fällde `935cd17b` på "höjdjusterbar" — ett
+#    sökord som är SANT för den (fyra lägen 26/39/50/61 cm) och falskt bara
+#    för `15e4c7a7`, som har fast lutning. Nyckeln är produktens egen spec:
+#    saknar den höjdlägen får sidan inte påstå att höjden går att ställa.
+PER_PRODUKT = [
+    (re.compile(r"\bh[öo]jdjusterbar\w*|\bst[äa]llbar\s+h[öo]jd"
+                r"|\bjusterbar\s+h[öo]jd", re.I),
+     "JUSTERBAR HÖJD utan höjdlägen i specen",
+     lambda pid: not any(e in ("Höjdlägen", "Lutning") for e, _ in T.SPEC[pid])),
 ]
 
 FORBJUDET = [
@@ -142,6 +152,13 @@ def granska(pid, html=None, live=False):
             fel.append("%s: %r" % (etikett, G.mening_kring(syn, t.start())[:90]))
 
     for m, etikett in NEGERBART:
+        t = G.loftestraff(m, syn)
+        if t:
+            fel.append("%s: %r" % (etikett, G.mening_kring(syn, t.start())[:90]))
+
+    for m, etikett, galler in PER_PRODUKT:
+        if not galler(pid):
+            continue
         t = G.loftestraff(m, syn)
         if t:
             fel.append("%s: %r" % (etikett, G.mening_kring(syn, t.start())[:90]))
@@ -286,6 +303,16 @@ def sjalvtest():
         prov("batchsuperlativ: %s" % s[:28], bool(m.search(s)))
     prov("batchsuperlativ släpper igenom ett vanligt 'högst'",
          not m.search("Trappan når som högst 82 centimeter."))
+
+    # ☠️ PER-PRODUKT-spärren gäller RÄTT produkt och bara den.
+    m, _, galler = PER_PRODUKT[0]
+    prov("justerbar höjd gäller 15e4c7a7 (fast lutning)", galler("15e4c7a7"))
+    prov("justerbar höjd gäller INTE 935cd17b (fyra lägen)",
+         not galler("935cd17b"))
+    prov("justerbar höjd gäller INTE ed1ea8dc (fyra lägen)",
+         not galler("ed1ea8dc"))
+    prov("justerbar höjd gäller biltrappan", galler("2166c50f"))
+    prov("mönstret fäller 'höjdjusterbar'", bool(m.search("Den är höjdjusterbar.")))
 
     # Rasnamnsgrinden.
     m = next(x[0] for x in FORBJUDET if "RASNAMN" in x[1])
