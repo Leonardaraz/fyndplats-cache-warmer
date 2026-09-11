@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE } from "../../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 
 export const metadata: Metadata = {
   title: "Returer & ångerrätt",
@@ -27,7 +28,8 @@ export default function Returer() {
       <p>Använd originalförpackningen när det går — den skyddar varan bäst på vägen tillbaka. Lägg med en lapp med ditt ordernummer och namn så vi kan koppla returen rätt.</p>
 
       <h2>3. Skicka tillbaka paketet</h2>
-      <p>Skicka till returadressen du fick i bekräftelsemejlet. <strong>Returfrakten betalas av kunden</strong> — välj valfri leveranstjänst (PostNord, DHL, Schenker). Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på avsändning.</p>
+      <p>Skicka till returadressen du fick i bekräftelsemejlet. <strong>Returfrakten betalas av kunden</strong> — du bokar själv hos valfri transportör som tar emot varans storlek och vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på avsändning.</p>
+      <p>{SKRYMMANDE_RETURKOSTNAD}</p>
 
       <h2>4. Skicka oss spårningsnumret</h2>
       <p>Svara på bekräftelsemejlet med ditt spårningsnummer så håller vi koll på returen.</p>

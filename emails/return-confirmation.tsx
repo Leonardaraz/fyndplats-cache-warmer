@@ -5,7 +5,8 @@
 import { Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
-import { COMPLAINT_SHORT, REFUND_TIME } from "../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD_KORT } from "../lib/retur-frakt";
+import { COMPLAINT_SHORT, REFUND_TIME, AVGIFT_SENTENCE } from "../lib/retur-policy";
 
 export interface ReturnConfirmationProps {
   firstName: string;
@@ -51,10 +52,11 @@ export default function ReturnConfirmationEmail({
       </Text>
       <Text style={text.body}>
         <strong>2. Skicka till returadressen ovan.</strong> Returfrakten betalas av dig
-        som kund — välj valfri leveranstjänst (PostNord, DHL, Schenker). Vi
-        rekommenderar <strong>spårbar leverans</strong> så du har bevis på avsändning.
-        Fyndplats ansvarar inte för förlorade returpaket.
+        som kund — du bokar själv hos valfri transportör som tar emot varans storlek och
+        vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på
+        avsändning. Fyndplats ansvarar inte för förlorade returpaket.
       </Text>
+      <Text style={text.muted}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
       <Text style={text.body}>
         <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll
         på paketet.
@@ -66,6 +68,7 @@ export default function ReturnConfirmationEmail({
         kontrollerat produkten, till ursprungligt betalmedel (kort, Klarna, Swish). Hur snabbt
         pengarna syns på kontot beror sedan på din bank.
       </Text>
+      <Text style={text.body}>{AVGIFT_SENTENCE}</Text>
 
       <Text style={{ ...text.muted, marginTop: "16px" }}>
         Under de första 14 dagarna får du undersöka produkten som du hade gjort i en butik;

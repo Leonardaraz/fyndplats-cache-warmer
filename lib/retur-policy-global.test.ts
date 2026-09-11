@@ -54,7 +54,27 @@ const prose = (t: string) =>
     .replace(/\{TOTAL_SUMMARY\}|TOTAL_SUMMARY/g, " totalt 30 dagar dag 15–30 ")
     .replace(/\{TOTAL_SHORT\}|TOTAL_SHORT/g, " totalt 30 dagar ");
 
-const ALL = ROOTS.flatMap((r) => files(r)).map((p) => ({ p, t: prose(readFileSync(p, "utf8")) }));
+const ALL = ROOTS.flatMap((r) => files(r)).map((p) => {
+  const raw = readFileSync(p, "utf8");
+  return { p, t: prose(raw), raw };
+});
+
+// En yta kan bära en regel på två sätt: skriva ut den, eller rendera den delade
+// konstanten som bär den. Prosa-vyn ser bara det första — `{AVGIFT_SENTENCE}`
+// är ett uttryck, inte text — så proven nedan frågar källan om referensen.
+//
+// MEN INTE RÅKÄLLAN. Ett mutationstest fällde första versionen: jag rev ut
+// `<p>{SKRYMMANDE_RETURKOSTNAD}</p>` ur /returer och provet förblev grönt,
+// eftersom `import { SKRYMMANDE_RETURKOSTNAD }` stod kvar på rad 4. Exakt samma
+// hål som det kvarlämnade `import { COMPLAINT }` en gång gav. Import-raderna
+// måste bort innan referensen räknas — en import är inte en rendering.
+const utanImport = (raw: string) =>
+  raw.replace(/^\s*import[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, " ");
+
+const renderar = (e: { raw: string }, ...namn: string[]) => {
+  const kropp = utanImport(e.raw);
+  return namn.some((n) => new RegExp(`\\b${n}\\b`).test(kropp));
+};
 
 test("repot innehåller filer att granska", () => {
   assert.ok(ALL.length > 50, `hittade bara ${ALL.length} filer — sökvägarna är fel`);
@@ -195,6 +215,53 @@ test("ingen yta lovar en annan återbetalningstid än den delade", () => {
       if (/lagens|14 § |distansavtalslagen/i.test(s)) return; // lagens yttersta frist
       bad.push(`${p}: ${s.trim().replace(/\s+/g, " ").slice(0, 100)}`);
     });
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("den som tar ut bearbetningsavgiften säger också att den finns", () => {
+  // Avgiften dag 15–30 är giltig (1 kap. 4 §: ingen lagregel att vara sämre än
+  // när erbjudandet är vårt eget) — men bara så länge kunden får veta om den
+  // FÖRE köpet. Ett villkor som är giltigt men outtalat är vilseledande
+  // marknadsföring även när avtalsrätten håller.
+  //
+  // Kravet gäller de ytor som faktiskt skriver ut villkoren för dag 15–30.
+  // Brickor och meta-beskrivningar som bara säger "30 dagars öppet köp" fälls
+  // inte här; de är inte platsen där villkoren står, och terms är ett klick
+  // bort. Var den gränsen ska gå är en fråga för en jurist, inte för mig.
+  const AVGIFT = /bearbetningsavgift|10\s*%\s*av vad du betalat|avgift på 10\s*%/i;
+  const bad: string[] = [];
+  for (const e of ALL) {
+    const { p, t } = e;
+    // Ytan skriver ut villkoren för det frivilliga öppna köpet om den nämner
+    // både perioden och minst ett av dess villkor.
+    if (!/dag 15\s*[–-]\s*30/i.test(t)) continue;
+    if (!/(oanvänd|säljbart skick|spårbart|skriftligt)/i.test(t)) continue;
+    // Pekaren står i href="/returer", alltså INNE i en tagg — och prose() river
+    // taggar. Frågas prosa-vyn försvinner varje länk, och provet fäller sidor
+    // som gör rätt. Pekaren ska därför läsas ur råkällan.
+    const pekar = /\/returer/i.test(e.raw) && !/app\/returer\//.test(p);
+    if (!AVGIFT.test(t) && !renderar(e, "AVGIFT_SENTENCE") && !pekar) bad.push(p);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("den som säger att kunden betalar returen säger också vad skrymmande kostar", () => {
+  // 2 kap. 2 § första stycket 11 kräver BELOPPET före köp för varor som inte
+  // kan återsändas med post. Står bara "returfrakten betalas av kunden" är
+  // upplysningen ofullständig — och då bär vi kostnaden enligt 13 § första
+  // stycket. Ytan får antingen bära beloppet eller peka vidare till /returer,
+  // men /returer kan inte peka på sig själv.
+  const BELOPP = /\d[\d\s]*–[\d\s]*\d\s*kr/;
+  const SKRYMMANDE = /skrymmande|styckegods|120\s*cm/i;
+  const bad: string[] = [];
+  for (const e of ALL) {
+    const { p, t } = e;
+    if (!/returfrakten betalas av (dig|kunden)|returfrakten betalas av dig som kund/i.test(t)) continue;
+    const bar = (SKRYMMANDE.test(t) && BELOPP.test(t))
+      || renderar(e, "SKRYMMANDE_RETURKOSTNAD", "SKRYMMANDE_RETURKOSTNAD_KORT");
+    const pekar = /\/returer/i.test(e.raw) && !/app\/returer\//.test(p);
+    if (!bar && !pekar) bad.push(p);
   }
   assert.deepEqual(bad, []);
 });

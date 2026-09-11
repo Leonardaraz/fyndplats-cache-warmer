@@ -42,6 +42,51 @@
 // är säljbar. Vad som INTE går att spegla: 10 %-avgiften (mot konsument får bara
 // värdeminskning dras), och något av det här får aldrig gälla dag 1–14.
 
+// INGEN IMPORT HÄR, MED FLIT. Den här filen är avsiktligt beroendefri så att
+// node-testköraren kan ladda den (repots mönster: lib/wix-image.test.ts testar
+// den beroendefria lib/wix-media-key.ts, inte lib/wix-image.ts som importerar
+// den). Skrymmandetexten bor därför kvar i lib/retur-frakt.ts och renderas av
+// sidorna jämte COMMON — ett prov i retur-policy-global.test.ts kräver att den
+// ytan som visar COMMON också visar skrymmandeupplysningen.
+
+/**
+ * Bearbetningsavgiften dag 15–30. Leonards beslut 2026-09-11.
+ *
+ * VARFÖR DEN ÄR GILTIG DÄR MEN INTE FÖRE. 1 kap. 4 § distansavtalslagen: ett
+ * avtalsvillkor som "i jämförelse med bestämmelserna i denna lag" är till
+ * nackdel för konsumenten är UTAN VERKAN mot denne. Dag 1–14 finns en
+ * lagstadgad ångerrätt att jämföras med, och en avgift ovanpå den är alltså
+ * ogiltig — vi skulle inte kunna driva in den ens mot en kund som godkänt
+ * villkoret. Dag 15–30 finns ingen lagregel att vara sämre än, eftersom det
+ * öppna köpet är vårt eget erbjudande. Där står villkoret.
+ *
+ * UNDERLAGET ÄR INTE LEVERANTÖRENS. Aosoms B2B-villkor drar 10 % av
+ * Warenwert/Einkaufspreis — vårt inköpspris. Vårt uttag räknas på vad KUNDEN
+ * betalat för produkten, vilket är ett större belopp. Det är ett eget beslut,
+ * inte en spegling, och ska inte beskrivas som en spegling.
+ *
+ * VILLKORET FÖR ATT DEN SKA HÅLLA: avgiften måste framgå före köpet överallt
+ * där vi påstår "30 dagar". Annars är erbjudandet vilseledande enligt
+ * marknadsföringslagen även om avtalsvillkoret i sig är giltigt. Ett prov i
+ * retur-policy-global.test.ts håller ihop de ytor som skriver ut villkoren.
+ */
+export const AVGIFT_PROCENT = 10;
+
+/** Hel mening, för de ytor som inte renderar hela VOLUNTARY-listan. */
+export const AVGIFT_SENTENCE =
+  `Returer under det frivilliga öppna köpet dag 15–30 belastas med en bearbetningsavgift på ${AVGIFT_PROCENT} % av vad du betalat för produkten. Under den lagstadgade ångerfristen dag 1–14 tas ingen avgift ut.`;
+
+/**
+ * Hur snabbt paketet ska postas under det frivilliga öppna köpet.
+ *
+ * Lagen ger 14 dagar från anmälan att skicka tillbaka varan (2 kap. 13 §), och
+ * den fristen är tvingande dag 1–14. Dag 15–30 är vårt erbjudande, och där får
+ * vi korta den. Skälet är inte formalia: leverantörsledet har ett eget
+ * returfönster som börjar gå långt innan kunden anmäler något, och varje dag
+ * paketet ligger stilla äter av det.
+ */
+export const POSTA_INOM_DAGAR = 7;
+
 /** Totalen, formulerad så att den inte kan läsas som 14 + 30 = 44 dagar. */
 export const TOTAL_SUMMARY =
   "Du har totalt 30 dagar på dig att ångra eller returnera ditt köp. De första 14 dagarna omfattas av den lagstadgade ångerrätten. Dag 15–30 erbjuder Fyndplats ett frivilligt öppet köp.";
@@ -83,6 +128,8 @@ export const VOLUNTARY: Period = {
     "Anmäl returen skriftligt med ditt ordernummer innan du skickar tillbaka, via vår ångerfunktion eller på info@fyndplats.com.",
     "Skicka spårbart och meddela oss spårningsnumret — vi behöver det för att kunna behandla återbetalningen.",
     "Under dag 15–30 återbetalas produktens pris. Vad du betalat för frakten till dig återbetalas inte, till skillnad från under den lagstadgade ångerfristen.",
+    "Posta returen inom 7 dagar från din anmälan. Under den lagstadgade ångerfristen har du 14 dagar på dig — den fristen rör vi inte — men det frivilliga öppna köpet förutsätter att varan kommer tillbaka medan den fortfarande är säljbar.",
+    "På returer under dag 15–30 drar vi en bearbetningsavgift på 10 % av vad du betalat för produkten. Avgiften gäller aldrig under den lagstadgade ångerfristen dag 1–14.",
     "Är produkten ofullständig eller inte längre i säljbart skick kan vi behöva göra ett avdrag på återbetalningen.",
   ],
 };
@@ -143,7 +190,7 @@ export const REFUND_SENTENCE =
 
 /** Gäller båda perioderna. */
 export const COMMON: string[] = [
-  "Returfrakten betalas av dig som kund. Välj valfri leveranstjänst — vi rekommenderar spårbar leverans så du har bevis på avsändning.",
+  "Returfrakten betalas av dig som kund. Du bokar själv hos valfri transportör som tar emot varans storlek och vikt — vi rekommenderar spårbar leverans så du har bevis på avsändning.",
   "Är varan trasig eller felaktig är det en reklamation, inte en ångran. Då står Fyndplats för returkostnaden.",
   "Vid fel eller transportskada: mejla oss först med ordernummer och foton, och vänta med att skicka tillbaka tills vi hört av oss. Då slipper du lägga ut för en frakt i onödan, och vi kan ofta lösa det snabbare på annat sätt.",
   "Ta emot paketet även om du redan bestämt dig för att ångra köpet, och anmäl returen till oss. Ett paket som vägras i dörren eller lämnas outhämtat blir dyrare att hantera och tar längre tid innan pengarna är tillbaka hos dig.",

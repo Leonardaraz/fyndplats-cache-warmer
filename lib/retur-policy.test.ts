@@ -5,7 +5,7 @@
 // smyga tillbaka nästa gång någon skriver om en sida.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT, SHIPPING_REFUND, REFUND_TIME, REFUND_SENTENCE } from "./retur-policy.ts";
+import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT, SHIPPING_REFUND, REFUND_TIME, REFUND_SENTENCE, AVGIFT_PROCENT, AVGIFT_SENTENCE, POSTA_INOM_DAGAR } from "./retur-policy.ts";
 
 const statutoryText = [STATUTORY.lead, ...STATUTORY.points].join(" ").toLowerCase();
 const voluntaryText = [VOLUNTARY.lead, ...VOLUNTARY.points].join(" ").toLowerCase();
@@ -119,4 +119,36 @@ test("återbetalningstiden är vår handläggning, inte bankens clearing", () =>
   assert.equal(/bankdagar/.test(REFUND_TIME), false, "vår handläggning mäts i arbetsdagar");
   assert.equal(/beror.{0,20}(på )?din bank/i.test(REFUND_SENTENCE), true, "bankens tid ska nämnas separat");
   assert.equal(REFUND_SENTENCE.includes("2–3 arbetsdagar"), true);
+});
+
+test("det frivilliga öppna köpet bär sin avgift och sin postningsfrist", () => {
+  // De repo-breda proven kan bara se att en yta RENDERAR VOLUNTARY. De kan inte
+  // se vad VOLUNTARY innehåller — ett mutationstest visade det: jag tog bort
+  // avgiftspunkten ur listan och varenda grind förblev grön, eftersom sidorna
+  // fortfarande refererade konstanten. Innehållet måste därför låsas här, i
+  // källan, och inte hos konsumenterna.
+  const punkter = VOLUNTARY.points.join(" ");
+  assert.match(punkter, new RegExp(`${AVGIFT_PROCENT}\\s*%`), "avgiften saknas i VOLUNTARY");
+  assert.match(punkter, /bearbetningsavgift/i);
+  assert.match(punkter, new RegExp(`inom ${POSTA_INOM_DAGAR} dagar`), "postningsfristen saknas");
+  assert.match(AVGIFT_SENTENCE, new RegExp(`${AVGIFT_PROCENT}\\s*%`));
+});
+
+test("avgiften och den korta fristen rör aldrig dag 1–14", () => {
+  // 1 kap. 4 §: dag 1–14 finns en lagregel att vara sämre än, och ett villkor
+  // som är det är utan verkan. Både avgiften och 7-dagarsfristen måste därför
+  // säga ut att de gäller det frivilliga öppna köpet — annars kan de läsas som
+  // att de gäller ångerrätten.
+  const punkter = VOLUNTARY.points.join(" ");
+  const avgift = VOLUNTARY.points.find((p) => /bearbetningsavgift/i.test(p)) ?? "";
+  assert.match(avgift, /dag 1\s*[–-]\s*14/, "avgiftspunkten avgränsar sig inte mot ångerfristen");
+  assert.match(avgift, /aldrig|inte/i);
+  const frist = VOLUNTARY.points.find((p) => new RegExp(`inom ${POSTA_INOM_DAGAR} dagar`).test(p)) ?? "";
+  assert.match(frist, /14 dagar/, "postningsfristen säger inte att lagen ger 14");
+  assert.ok(!/dag 1\s*[–-]\s*14[^.]*(avgift|7 dagar)/i.test(punkter));
+
+  // Och inget av det får ha smugit sig in i den lagstadgade perioden.
+  const lag = [STATUTORY.lead, ...STATUTORY.points].join(" ");
+  assert.ok(!/bearbetningsavgift/i.test(lag), "avgiften står under den lagstadgade ångerrätten");
+  assert.ok(!new RegExp(`inom ${POSTA_INOM_DAGAR} dagar`).test(lag), "kort frist under ångerrätten");
 });

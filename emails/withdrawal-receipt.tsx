@@ -12,7 +12,8 @@
 import { Column, Img, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
-import { SHIPPING_REFUND, REFUND_TIME } from "../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD_KORT } from "../lib/retur-frakt";
+import { SHIPPING_REFUND, REFUND_TIME, AVGIFT_SENTENCE } from "../lib/retur-policy";
 
 export interface WithdrawalReceiptItem {
   name: string;
@@ -142,10 +143,12 @@ export default function WithdrawalReceiptEmail({
         </Text>
       </Section>
       <Text style={text.body}>
-        <strong>Returfrakten betalas av dig som kund.</strong> Välj valfri leveranstjänst
-        (PostNord, DHL, Schenker) — vi rekommenderar <strong>spårbar leverans</strong> så du
-        har bevis på avsändning. Fyndplats ansvarar inte för förlorade returpaket.
+        <strong>Returfrakten betalas av dig som kund.</strong> Du bokar själv hos valfri
+        transportör som tar emot varans storlek och vikt — vi rekommenderar
+        <strong> spårbar leverans</strong> så du har bevis på avsändning. Fyndplats
+        ansvarar inte för förlorade returpaket.
       </Text>
+      <Text style={text.muted}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
       <Text style={text.body}>
         <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll på
         returen.
@@ -158,6 +161,7 @@ export default function WithdrawalReceiptEmail({
         snabbt pengarna syns på kontot beror sedan på din bank.
       </Text>
       <Text style={text.body}>{SHIPPING_REFUND}</Text>
+      <Text style={text.body}>{AVGIFT_SENTENCE}</Text>
 
       {/* Reklamation ≠ ångra: vid fel/trasig vara står Fyndplats för returen. */}
       <Section style={{ ...block.card, background: "#F5FBF7", border: `1px solid #DDEFE4` }}>
