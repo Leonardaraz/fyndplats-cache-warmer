@@ -746,10 +746,23 @@ BILDATTRIBUT = re.compile(r'\s(?:src|srcset)="[^"]*"')
 
 
 def butikstvatt(html):
-    """Stryker butikens chrome, bildadresser och SVG-geometri — ALDRIG href."""
+    """Stryker butikens chrome, SCRIPT, bildadresser och SVG — ALDRIG href.
+
+    ☠️ `<script>` STRYKS HÄR SEDAN RUNDA 128 (uppgift #413). `synlig_meningstext`
+       läser script-innehåll, så Next.js RSC-payload räknades som synlig
+       kundtext: runda 128:s nio live-sidor gav **2 513 fel**, varenda ett ur
+       butikens egen chrome — `★★★★★` i betygsraden och `Visa produkt →` i
+       rekommendationskorten. Inget av dem är vår text.
+
+       `egna_meningar` strök redan scripten internt, så felen syntes bara i de
+       grindar som läser HELA texten (homoglyfer, förbudslistan, tongrindarna)
+       — alltså precis de som körs på `txt` och inte på `egna`. Tvätten är
+       rätt ställe: ingen grind har någonsin behövt läsa ett script.
+    """
     return SVG_GEOMETRI.sub(
         " ", BILDADRESS.sub(
-            " ", BILDATTRIBUT.sub(" ", EU_RIBBON.sub(" ", html))))
+            " ", BILDATTRIBUT.sub(
+                " ", EU_RIBBON.sub(" ", SKRIPT.sub(" ", html)))))
 
 # ── ☠️ INTERN JARGONG: `rundan`, INTE `runda` ──────────────────────────────
 # Husets ord för ett poleringspass har läckt till PUBLICERAD kundtext tre

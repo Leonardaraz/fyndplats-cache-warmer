@@ -163,10 +163,14 @@ def kallkodssvep():
     return fel
 
 
-def _text(pid):
-    """All kundtext: namn, titel, meta, sökord OCH brödtext (uppgift #441)."""
+def _text(pid, html=None):
+    """All kundtext: namn, titel, meta, sökord OCH brödtext (uppgift #441).
+
+    `html` är källans när den utelämnas och butikens levererade när
+    live-grinden skickar in den — samma regler, två indata."""
     return G.synlig_meningstext(
-        T.bygg(pid) + f"<p>{T.NAMN[pid]}</p><p>{T.TITEL[pid]}</p>"
+        (T.bygg(pid) if html is None else html)
+        + f"<p>{T.NAMN[pid]}</p><p>{T.TITEL[pid]}</p>"
         f"<p>{T.META[pid]}</p><p>{' '.join(T.SOKORD[pid])}</p>")
 
 
@@ -180,22 +184,47 @@ def _matt(x):
     return rf"(?<![\d,]){re.escape(x)}(?![\d,])"
 
 
-def granska(pid):
-    html = T.bygg(pid)
-    txt = _text(pid)
+def granska(pid, html=None, live=False):
+    """Rundans domänregler. EN uppsättning, två indata.
+
+    ☠️ Live-grinden får INTE vara en kopia av den här. Husets vanligaste bugg
+       är tvillingar som glider isär (SHIP_AXIS_RE, EU_TULL_CODES,
+       live-grindens TVÄTT i runda 121). Reglerna bor därför här och
+       `livegrind.py` skickar bara in butikens HTML i stället för källans.
+    """
+    if html is None:
+        html = T.bygg(pid)
     fel = []
+
+    egna, _ = G.egna_meningar(html, T.SLUG[pid], T.NAMN[pid])
+
+    # ☠️ HELTEXT-GRINDARNA LÄSER `egna` PÅ LIVE-SIDAN, INTE HELA HTML:EN.
+    #    Källans HTML är i sin helhet VÅR text; butikens är det inte. Otvättat
+    #    gav rundans nio sidor 373 fel efter script-strykningen — allihop ur
+    #    butikens EGET chrome: `★★★★★` i betygsraden, `Visa produkt →` i
+    #    rekommendationskorten och `©2021–2026 Fyndplats · Trygg svensk
+    #    e-handel` i sidfoten. Samma lärdom som uppgift #398: grannens och
+    #    butikens ord är inte vårt fel.
+    if live:
+        txt = G.synlig_meningstext(
+            f"<p>{egna}</p><p>{T.NAMN[pid]}</p><p>{T.TITEL[pid]}</p>"
+            f"<p>{T.META[pid]}</p><p>{' '.join(T.SOKORD[pid])}</p>")
+    else:
+        txt = _text(pid, html)
 
     for monster, etikett in FORBJUDET + TONGRINDAR:
         for m in monster.finditer(txt):
             fel.append(f"{etikett}: …{G.mening_kring(txt, m.start())}…")
 
-    rubriker = re.findall(r"<h2>(.*?)</h2>", html)
-    if "Användning och skötsel" not in rubriker:
-        fel.append("SKÖTSELRUBRIKEN heter inte 'Användning och skötsel'")
-    # ☠️ `G.flikfel` läser <summary> och hör hemma i LIVE-grinden — den
-    #    finns inte i källans HTML och fäller varenda korrekt sida här.
-
-    egna, _ = G.egna_meningar(html, T.SLUG[pid], T.NAMN[pid])
+    if not live:
+        rubriker = re.findall(r"<h2>(.*?)</h2>", html)
+        if "Användning och skötsel" not in rubriker:
+            fel.append("SKÖTSELRUBRIKEN heter inte 'Användning och skötsel'")
+    else:
+        # ☠️ `G.flikfel` läser <summary> och hör hemma HÄR — de elementen
+        #    finns bara på den renderade sidan. Kördes den på källan fällde
+        #    den varenda korrekt sida (runda 128:s första grindkörning).
+        fel += [f"FLIKFEL: {p}" for p in G.flikfel(html)]
 
     # ☠️ LÅDANTALET, positivt på rätt och negativt på alla andra i rundan.
     if pid in LADOR:
@@ -315,6 +344,9 @@ def granska(pid):
     #    Runbooken Steg 8 säger uttryckligen att grinden ska räkna om dem —
     #    samma fel kostade runda 51 tre SKU:er och runda 53 två.
     vantad_sku = "FP-" + G.sku_bas(T.SLUG[pid])
+    if live:
+        vantad_sku = T.SKU[pid]      # SKU:n syns inte på sidan; kontrollerad
+                                     # mot Wix i Steg 8 i stället.
     if T.SKU[pid] != vantad_sku:
         fel.append(f"SKU {T.SKU[pid]!r} men husregeln ger {vantad_sku!r}")
     if len(T.SKU[pid]) > 40:
@@ -326,7 +358,16 @@ def granska(pid):
     if tvilling:
         fel.append(f"SKU {T.SKU[pid]!r} delas med {', '.join(sorted(tvilling))}")
 
-    fel += [f"HOMOGLYF {c} ({n}) — …{s}…" for c, n, s in G.homoglyfer(txt)]
+    # ☠️ HOMOGLYFGRINDEN ÄR KÄLLANS, INTE LIVE-SIDANS. Den letar efter tecken
+    #    som smugit sig in i text VI skrev. Den renderade sidan bär butikens
+    #    EGEN typografi — `★★★★★` i betygsraden, `Visa produkt →` i
+    #    rekommendationskorten, `©2021–2026 Fyndplats · Trygg svensk e-handel`
+    #    i sidfoten — och inget av det är vår text. Körd live gav den 369 fel
+    #    på nio korrekta sidor, allihop butikens. `egna_meningar` räddar inte
+    #    saken: den stryker GRANNARNAS meningar, och sidfoten nämner ingen
+    #    granne. Ett falsklarm som alltid fyrar lär mottagaren att sluta läsa.
+    if not live:
+        fel += [f"HOMOGLYF {c} ({n}) — …{s}…" for c, n, s in G.homoglyfer(txt)]
     fel += [f"NAMNGRIND: {p}" for p in G.granska_namn(T.NAMN[pid])]
     fel += [f"LEVERANSLÖFTE: {p}" for p in G.leveransloften(
         txt, [v for e, v in T.SPEC[pid] if e == "Ingår"], nyckel=pid)]
@@ -335,7 +376,11 @@ def granska(pid):
 
 SJALVTEST = [
     ("husmärke", "Vagnen är en HOMCOM-modell.", True),
-    ("artikelnummer", "Modellen heter 845-030CG.", True),
+    # ☠️ SYNTETISKT NUMMER, inte ett verkligt. Fixturen ärvdes som ett ÄKTA
+    #    Aosom-artikelnummer genom ~15 rundor (uppgift #414: repot är publikt,
+    #    och numret leder till leverantörens sida och till dealproffsens
+    #    JSON-LD). Ett självtest behöver bara ett nummer som matchar mönstret.
+    ("artikelnummer", "Modellen heter 000-000XX.", True),
     ("leveransland", "Skickas från Tyskland inom en vecka.", True),
     ("trottoarkant", "Vi levererar fritt till trottoarkant.", True),
     ("fri leverans", "Fri leverans till din dörr.", True),
