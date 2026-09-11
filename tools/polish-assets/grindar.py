@@ -837,6 +837,46 @@ SVG_GEOMETRI = re.compile(r'\b(?:d|points|viewBox|transform)="[^"]*"'
 BILDATTRIBUT = re.compile(r'\s(?:src|srcset)="[^"]*"')
 
 
+# ── ☠️ BUTIKENS EGNA RADER: fraktlöftet, trygghetsraden och sidfoten ───────
+# Runda 129 mätte upp att live-grinden fällde nio korrekta sidor på butikens
+# EGET chrome: promoraden `🚚 Fri frakt över 499 kr · Betala smidigt med
+# Klarna`, trygghetsraden `Fri frakt över 499 kr 30 dagars öppet köp Trygg
+# betalning med Klarna` och sidfotens `©2021–2026 Fyndplats · Trygg svensk
+# e-handel · …`.
+#
+# ☠️ DET ÄR INTE VÅRT LEVERANSLÖFTE — det är butikens verkliga erbjudande,
+#    skrivet av Leonard i mallen. En grind som läser det som ett fabricerat
+#    löfte (uppgift #423) fyrar på VARJE korrekt sida, och ett larm som alltid
+#    fyrar lär mottagaren att sluta läsa.
+#
+# `egna_meningar` räddar inte saken: den stryker GRANNARNAS meningar, och
+# sidfoten nämner ingen granne. Tvätten är rätt ställe — samma resonemang som
+# när `<script>` flyttades hit i runda 128.
+# ☠️ MÖNSTREN MÅSTE TÅLA TAGGAR MITT I MENINGEN. Promoraden är
+#    `🚚 Fri frakt över <b>499 kr</b> · Betala smidigt med <b>Klarna</b>` —
+#    ett mönster med vanliga blanksteg matchar den inte, och första
+#    lagningen strök åtta av nio förekomster och lämnade just den som syntes.
+#    `_LUCKA` är "blanksteg ELLER en tagg", vilket är vad som faktiskt står
+#    mellan orden i renderad HTML.
+_LUCKA = r"(?:<[^>]*>|\s)+"
+
+
+def _butiksrad(*ord_):
+    return _LUCKA.join(ord_)
+
+
+BUTIKSRADER = re.compile(
+    "|".join([
+        _butiksrad("Fri", "frakt", r"[öo]ver", r"\d+", "kr"),
+        _butiksrad("Betala", "smidigt", "med", "Klarna"),
+        _butiksrad("Trygg", "betalning", "med", "Klarna"),
+        _butiksrad(r"\d+", "dagars", r"[öo]ppet", r"k[öo]p"),
+        _butiksrad("Trygg", "svensk", "e-handel"),
+        r"©\s*\d{4}[–-]\d{4}\s*Fyndplats",
+    ]),
+    re.I | re.S)
+
+
 def butikstvatt(html):
     """Stryker butikens chrome, SCRIPT, bildadresser och SVG — ALDRIG href.
 
@@ -851,10 +891,11 @@ def butikstvatt(html):
        — alltså precis de som körs på `txt` och inte på `egna`. Tvätten är
        rätt ställe: ingen grind har någonsin behövt läsa ett script.
     """
-    return SVG_GEOMETRI.sub(
-        " ", BILDADRESS.sub(
-            " ", BILDATTRIBUT.sub(
-                " ", EU_RIBBON.sub(" ", SKRIPT.sub(" ", html)))))
+    return BUTIKSRADER.sub(
+        " ", SVG_GEOMETRI.sub(
+            " ", BILDADRESS.sub(
+                " ", BILDATTRIBUT.sub(
+                    " ", EU_RIBBON.sub(" ", SKRIPT.sub(" ", html))))))
 
 # ── ☠️ INTERN JARGONG: `rundan`, INTE `runda` ──────────────────────────────
 # Husets ord för ett poleringspass har läckt till PUBLICERAD kundtext tre

@@ -80,10 +80,31 @@ def talen(pid):
     return ut
 
 
-def granska(pid):
-    html = T.bygg(pid)
-    syn = G.synlig_meningstext(html)
+def granska(pid, html=None, live=False):
+    """Rundans domänregler. EN uppsättning, två indata.
+
+    ☠️ LIVE-GRINDEN FÅR INTE VARA EN KOPIA. Husets vanligaste bugg är
+       tvillingar som glider isär; live-grindens egen TVÄTT gav 12 fel på
+       åtta korrekta sidor i runda 121. `livegrind.py` skickar därför bara
+       in butikens HTML i stället för källans, och skillnaden är de fyra
+       `live`-grenarna nedan.
+    """
+    if html is None:
+        html = T.bygg(pid)
     fel = []
+
+    if live:
+        # ☠️ HELTEXT-GRINDARNA LÄSER VÅRA EGNA MENINGAR, inte hela sidan.
+        #    Källans HTML är i sin helhet vår text; butikens är det inte —
+        #    betygsraden, rekommendationskorten och sidfoten är butikens
+        #    (uppgift #398, #385). `egna_meningar` stryker grannarna.
+        egna, _ = G.egna_meningar(html, T.SLUG[pid], T.NAMN[pid])
+        syn = G.synlig_meningstext(
+            "<p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p>"
+            % (egna, T.NAMN[pid], T.TITEL[pid], T.META[pid],
+               " ".join(T.SOKORD[pid])))
+    else:
+        syn = G.synlig_meningstext(html)
 
     for m, etikett in FORBJUDET:
         for t in m.finditer(syn):
@@ -101,8 +122,16 @@ def granska(pid):
 
     if G.JARGONG.search(syn):
         fel.append("JARGONG: intern rundbeteckning i kundtext")
-    for txt, var in [(T.NAMN[pid], "namn"), (T.TITEL[pid], "titel"),
-                     (T.META[pid], "meta"), (syn, "brödtext")]:
+    # ☠️ HOMOGLYFGRINDEN PÅ BRÖDTEXTEN ÄR KÄLLANS. Den renderade sidan bär
+    #    butikens EGEN typografi — ★ i betygsraden, → i rekommendationskorten,
+    #    ⤢ i bildvisaren, − och ✓ i köpknappen. Körd live gav den 21 träffar
+    #    per sida, allihop butikens. Namn, titel och meta är VÅRA fält och
+    #    kontrolleras i båda lägena.
+    _falt = [(T.NAMN[pid], "namn"), (T.TITEL[pid], "titel"),
+             (T.META[pid], "meta")]
+    if not live:
+        _falt.append((syn, "brödtext"))
+    for txt, var in _falt:
         h = G.homoglyfer(txt)
         if h:
             fel.append("HOMOGLYF i %s: %s" % (var, h))
@@ -116,6 +145,15 @@ def granska(pid):
     vantat = "FP-" + G.sku_bas(T.SLUG[pid])
     if T.SKU[pid] != vantat:
         fel.append("SKU: filen säger %r, regeln ger %r" % (T.SKU[pid], vantat))
+
+    # ☠️ HÄRIFRÅN OCH NED LÄSER GRINDEN KÄLLANS STRUKTUR: `<h2>`-rubriker,
+    #    blockordning och varje tal mot spec-tabellen. Inget av det finns på
+    #    den renderade sidan i samma form, och butikens egna tal (pris, betyg,
+    #    fraktrader) är inte våra. Live-läget stannar därför här — efter
+    #    ord-, ton-, homoglyf-, artikelnummer- och namngrindarna — och lägger
+    #    i stället på `G.flikfel`, som läser `<summary>` och BARA finns live.
+    if live:
+        return fel + ["FLIKFEL: %s" % p for p in G.flikfel(html)]
 
     # ☠️ FLIKRADEN LÄSES SOM STRUKTUR, inte som närvaro — och räknas, för en
     #    dubblerad beskrivning ger två <h2> med samma namn.
