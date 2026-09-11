@@ -264,3 +264,52 @@ att den går att RADERA. Skadan är noll: produkten är enkelvariant utan option
 så butiken visar `media.main` (som är intakt och numera svensk), och tre av
 rundans tio saknade variantmedia redan som råimport. Men regeln är ny och ska
 inte glömmas: **skicka inte `media` i en `variantsInfo`-PATCH.**
+
+## Steg 14 — live-grinden: tio sidor, noll fel
+
+```
+grind.sjalvtest():     106 fall, 0 fel
+grindar._sjalvtest():   56 fall, 0 fel
+
+8f6147b5  husdjurstrappa-3-steg-sisal          HIT  0 fel
+4c25eb86  husdjurstrappa-4-steg-sisal          HIT  0 fel
+762cc411  kattrappa-3-steg-boucle              HIT  0 fel
+f384c51d  hundtrappa-ljus-tralook-4-steg       HIT  0 fel
+3ff2bc32  hundtrappa-morkbrun-4-steg           HIT  0 fel
+03715963  hundtrappa-gradvit-forvaring         HIT  0 fel
+c38f929e  hundtrappa-morkbla-forvaring         HIT  0 fel
+96d2803c  husdjurstrappa-gra-2-steg            HIT  0 fel
+11436227  husdjurstrappa-mork-2-steg           HIT  0 fel
+71e8e879  husdjurstrappa-skum-avtagbart-steg   HIT  0 fel
+
+SUMMA: 10 sidor, 0 fel
+```
+
+`livegrind.py` är en **datafil** — tio pid och ett anrop till `liverunda.kor`.
+Uppgift #491 mätte att live-grinden drev isär i fem rundor och att runda 129
+tappade rundans EGET självtest utan att någon såg det; båda självtesterna står
+därför i utskriften ovan, och de kördes för att den delade modulen kör dem, inte
+för att den här rundan mindes att be om det.
+
+Grinden körde `G.kortfel(html)` före rundans egna regler — klart-kriteriet
+"minst ett eget Fyndplats-kort i galleriet" glömdes i åtta rundor i rad när det
+bara stod i runbooken. Tio sidor, tio kort funna.
+
+⚠️ **`HIT` är rätt svar här, inte ett cachefel.** `G.hamta_isr` lägger på `?cb=`
+och hämtar TVÅ gånger; den andra hämtningen av samma cache-bustade adress är per
+definition en träff. Det som hade varit fel är `STALE` — och modulen väntar ut
+just det, eftersom två hämtningar inte alltid räcker (mätt 2026-09-11).
+
+## Runda 132 — klar
+
+| Steg | Kvitto |
+|---|---|
+| 7 | 10/10 byte-exakt mot `facit.json`, diff **+0**, noll `https:/`-hrefar |
+| 8a | tio variant-SKU:er omskrivna, sex live-krockar rensade, 10/10 lyckade |
+| 9 | tio kort md5-attribuerade, galleriet omordnat, 60 alt-texter, **10/10 noll fel** |
+| 10 | tjugo kategoriskrivningar, `totalSuccesses: 2` var, noll fel |
+| 8b | tio `polish-mapping`-stämplingar, alla `success` |
+| 13 | tio egna GET:ar: `visible:true` på produkt OCH variant, rätt SKU, svenska sökord, priset orört |
+| 14 | **10 sidor, 0 fel** — båda självtesterna gröna |
+
+Inga produkter hölls tillbaka på slutsålt lager den här rundan.
