@@ -1,0 +1,435 @@
+{
+ "products": [
+  {
+   "product": {
+    "id": "8f6147b5-7d27-4762-93f8-05c776755df4",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_859e1ec2c93c4fb1979e54607157709f~mv2.jpg",
+        "altText": "Husdjurstrappa i tre steg med ljusgrå plyschklädda steg och sisallindade stolpar, sedd snett framifrån mot vit bakgrund"
+       },
+       {
+        "id": "b379ce_c57d9d7f1d324c8ea33b445d1cdf51f9~mv2.jpg",
+        "altText": "Trappan uppställd intill en ljusgrå soffa, med understa steget fritt ut mot golvet"
+       },
+       {
+        "id": "b379ce_9aef1c82fdb04ea5be6a6abc7c40d8b3~mv2.jpg",
+        "altText": "Faktakort: husdjurstrappa 34 cm i tre steg, 46 × 35,5 cm, med sisalstolpar och 50 kg maxlast"
+       },
+       {
+        "id": "b379ce_36a162de35af4c9083098e2e185c8815~mv2.jpg",
+        "altText": "Trappan placerad mot en möbelkant, med alla tre steg synliga från sidan"
+       },
+       {
+        "id": "b379ce_3b98f97631ce41d6881d1875be5ac81e~mv2.jpg",
+        "altText": "Närbild på de sisallindade stolparna under de plyschklädda stegen"
+       },
+       {
+        "id": "b379ce_0924b2cbf5f84373956e7c15a6c1b2be~mv2.jpg",
+        "altText": "Måttritning för husdjurstrappan: 46 cm lång, 35,5 cm bred och 34 cm hög"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "4c25eb86-8fba-42d5-a22f-0e399ea2e72d",
+    "revision": "5",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_13f334305f824d9cb137c07554b3ea3e~mv2.jpg",
+        "altText": "Husdjurstrappa i fyra steg med mörkgrå plyschsteg på gräddvita sisalstolpar, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_a2e54cdf3a6f472e96a52fa4b472b0bb~mv2.jpg",
+        "altText": "Den fyrstegs trappan uppställd intill en fåtölj, med översta steget i nivå med sitsen"
+       },
+       {
+        "id": "b379ce_a52a8fef67a847ea93c8f079b7337470~mv2.jpg",
+        "altText": "Faktakort: husdjurstrappa 59 cm i fyra steg, stegyta 40,5 × 15 cm, maxlast 50 kg"
+       },
+       {
+        "id": "b379ce_ef96ca6a92b04e51a6c989e506458c6a~mv2.jpg",
+        "altText": "Närbild på ett mörkgrått plyschsteg och dess kant, ovanifrån"
+       },
+       {
+        "id": "b379ce_b53ffc5dd8e24524b79790c873a19241~mv2.jpg",
+        "altText": "Närbild på en sisallindad stolpe med synlig repvirning"
+       },
+       {
+        "id": "b379ce_5b414989e53e49649c34fa25aa76adb7~mv2.jpg",
+        "altText": "Måttritning för husdjurstrappan: steghöjder 15, 29,5, 45 och 59,5 cm på en 60 × 40,5 cm bottenplatta"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "762cc411-d74a-400b-b796-64e442af7f72",
+    "revision": "5",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_3911805c74c9453a9def206eee1c0959~mv2.jpg",
+        "altText": "Kattrappa i tre steg klädd i gräddvit bouclé över både steg och stolpar, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_f370a6773e2a48e7b9069df19d3e2369~mv2.jpg",
+        "altText": "Kattrappan uppställd intill en ljus soffa, med understa steget ut mot rummet"
+       },
+       {
+        "id": "b379ce_e188e8ff17154049b85875d531ed7968~mv2.jpg",
+        "altText": "Faktakort: kattrappa 34 cm i tre steg, 45 × 35 cm, klädd i bouclé med 10 kg maxlast"
+       },
+       {
+        "id": "b379ce_cde6a49156c8458598e21af08b7bcdf3~mv2.jpg",
+        "altText": "Trappan står på en matta intill en soffkant, sedd rakt från sidan"
+       },
+       {
+        "id": "b379ce_548983efa9e54ac6bf5d0c55d7d94319~mv2.jpg",
+        "altText": "Kattrappan sedd snett bakifrån, med bottenplattan och de tre stegens undersidor"
+       },
+       {
+        "id": "b379ce_a3135cb3997849d183d323299e59f667~mv2.jpg",
+        "altText": "Måttritning för kattrappan: 45 cm lång, 35 cm bred och 34 cm hög"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "f384c51d-b404-469b-9b41-a2f48690b619",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_ec5ac223278840eda6abc5e95e014ee7~mv2.jpg",
+        "altText": "Hundtrappa i fyra steg med stomme i ljus trälook och gräddvita stegdynor, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_2d42ea476d994fcf9f9502dcd917918c~mv2.jpg",
+        "altText": "Trappan uppställd mot en sängkant, med de fyra stegen vända ut mot golvet"
+       },
+       {
+        "id": "b379ce_b590cb44e65241f68fcdd06d99702eb2~mv2.jpg",
+        "altText": "Faktakort: hundtrappa 54,2 cm i fyra steg, stegyta 40 × 17 cm, maxlast 30 kg"
+       },
+       {
+        "id": "b379ce_583415a18ba148f48e79fcb4fa29b1e0~mv2.jpg",
+        "altText": "Närbild på kardborrebanden som håller stegdynan på plats mot trästeget"
+       },
+       {
+        "id": "b379ce_1c0193e2d315405f99a332f2eaa3709a~mv2.jpg",
+        "altText": "Närbild på trappans hörn, där den gräddvita dynan möter kanten i ljus trälook"
+       },
+       {
+        "id": "b379ce_a17435e3e2b94bc3b67f6b5144fceca9~mv2.jpg",
+        "altText": "Måttritning för hundtrappan: 40 cm bred, 59 cm djup och 54,2 cm hög, med 17 cm djupa steg"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "3ff2bc32-d666-4de1-8c5a-943f52e2183c",
+    "revision": "5",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_e19fd555038241b9afedc9eb24e33649~mv2.jpg",
+        "altText": "Hundtrappa i fyra steg med mörkbrun stomme och bruna stegdynor, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_9e0e9a9810554ff5aa1db184addc7403~mv2.jpg",
+        "altText": "Den mörkbruna trappan uppställd intill en ljusgrå soffa, sedd från sidan"
+       },
+       {
+        "id": "b379ce_8779abdfe51040f0aa0e54236c787ced~mv2.jpg",
+        "altText": "Faktakort: hundtrappa 54,2 cm i fyra steg, mörkbrun med bruna dynor, maxlast 30 kg"
+       },
+       {
+        "id": "b379ce_02677eb1ff594a0d80d65fd1776be7ae~mv2.jpg",
+        "altText": "De bruna stegdynorna sedda uppifrån, med trappans mörka kanter runt om"
+       },
+       {
+        "id": "b379ce_cf1fa6e4720a4877ace93f23a4852c06~mv2.jpg",
+        "altText": "Närbild på översta steget, där den bruna dynan ligger an mot den mörka stommen"
+       },
+       {
+        "id": "b379ce_6f75c458ede7423aa798a4e1aac86dd5~mv2.jpg",
+        "altText": "Måttritning för hundtrappan: steghöjder 14,3, 27,6, 40,9 och 54,2 cm på ett 40 × 59 cm underrede"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "03715963-a864-4dd0-a120-eda1452bc17d",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_b762e85c37104d90951803327627e841~mv2.jpg",
+        "altText": "Hopfällbar hundtrappa i tre steg med gräddvit tygstomme och vita stegdynor, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_9ba9b34abc0f4079b9f828e5f3c76566~mv2.jpg",
+        "altText": "Trappan uppställd intill en fåtölj, med det översta stegets dyna i nivå med sitsen"
+       },
+       {
+        "id": "b379ce_64168d9b160d4be4a8fb9403c5f8079a~mv2.jpg",
+        "altText": "Faktakort: hopfällbar hundtrappa 48 cm i tre steg, 40 × 54 cm, gräddvit och 4,2 kg"
+       },
+       {
+        "id": "b379ce_6cf6b9cc81ba437da18aae3d35a08fe2~mv2.jpg",
+        "altText": "Närbild på en vit stegdyna och den gräddvita tygkanten under den"
+       },
+       {
+        "id": "b379ce_2bdc0458eb8a401280493a42db188548~mv2.jpg",
+        "altText": "Trappans hörn ovanifrån, med tygsömmen och det ihåliga utrymmet under steget"
+       },
+       {
+        "id": "b379ce_3b90823e1e314b6ab36ac8aacbce2250~mv2.jpg",
+        "altText": "Måttritning för hundtrappan: steghöjder 16, 32 och 48 cm på en 40 × 54 cm stomme"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "c38f929e-2bfa-4354-8de6-5948e022b4e0",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_bb3fd0e78aef4c83997632c77128d796~mv2.jpg",
+        "altText": "Hopfällbar hundtrappa i tre steg med mörk tygstomme och bruna stegdynor, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_7689bba173784c82a9371f8941e3edd9~mv2.jpg",
+        "altText": "Den mörka trappan uppställd intill en fåtölj, med de tre stegen ut mot rummet"
+       },
+       {
+        "id": "b379ce_cf62aa87642344f5b774c0aff81897d4~mv2.jpg",
+        "altText": "Faktakort: hopfällbar hundtrappa 48 cm i tre steg, 40 × 54 cm, mörkblå och 4,2 kg"
+       },
+       {
+        "id": "b379ce_e2d1d5a355ff47ce88d144afb70ec4e2~mv2.jpg",
+        "altText": "Närbild på två tryckknappar i metall som håller ihop tygmodulerna"
+       },
+       {
+        "id": "b379ce_2a36ba9e4bf344969db96e7a8f89a474~mv2.jpg",
+        "altText": "Insidan av en tygmodul, med det ihåliga förvaringsutrymmet under steget"
+       },
+       {
+        "id": "b379ce_6ebf0ee072254ca88ce7aa6c6d468a10~mv2.jpg",
+        "altText": "Måttritning för hundtrappan: 48 cm hög med 18 cm djupa steg på en 54 × 40 cm stomme"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "96d2803c-63aa-444a-a69b-fc4a34c8c5e0",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_bd4d5e0c933c405382bf405d7b24f854~mv2.jpg",
+        "altText": "Husdjurstrappa i två steg av grått konstläder med skumstoppning, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_9765f62414674e58a430607b8a93f78f~mv2.jpg",
+        "altText": "Den grå trappan uppställd på en matta, med båda stegen vända ut mot rummet"
+       },
+       {
+        "id": "b379ce_ca7fe43528924c9da45ea15d352b14d6~mv2.jpg",
+        "altText": "Faktakort: husdjurstrappa i två steg, 45 × 39 × 20 cm och utfälld 67 × 39 × 10 cm, 0,81 kg"
+       },
+       {
+        "id": "b379ce_e067a807c581477e8068d50691f5f11b~mv2.jpg",
+        "altText": "Trappan står mot en sängkant, med understa steget ner mot trägolvet"
+       },
+       {
+        "id": "b379ce_d19b12e294054384ada58f877c5570d5~mv2.jpg",
+        "altText": "Trappan sedd från sidan mot sängen, där översta steget möter madrasskanten"
+       },
+       {
+        "id": "b379ce_8a1b1eb0d4ed4774af107c463382dbff~mv2.jpg",
+        "altText": "Måttritning i två vyer: som trappa 45 × 39 × 20 cm och utfälld till 67 × 39 × 10 cm"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "11436227-fd8c-4e88-ab5d-3aaf2eb9f932",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_f9afe4bf3136461bb4c1681ca9ff7c39~mv2.jpg",
+        "altText": "Husdjurstrappa i två steg av mörkt konstläder med skumstoppning, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_0d59b7fda39143d18c0358d550778d64~mv2.jpg",
+        "altText": "Den mörka trappan uppställd framför en ljus soffa, med båda stegen synliga"
+       },
+       {
+        "id": "b379ce_90f337b53be14fcabb4b10d43cd684da~mv2.jpg",
+        "altText": "Faktakort: husdjurstrappa i två steg, 45 × 39 × 20 cm och utfälld 67 × 39 × 10 cm, 0,81 kg"
+       },
+       {
+        "id": "b379ce_a3cc37c55cec4acfa064a27dc5589b88~mv2.jpg",
+        "altText": "Trappan står mot en sängkant, med det övre steget i nivå med madrassen"
+       },
+       {
+        "id": "b379ce_cb9b464380fc494ea031967a3a54c1b1~mv2.jpg",
+        "altText": "Trappan utfälld till en plan bädd på golvet, 67 cm lång och 10 cm tjock"
+       },
+       {
+        "id": "b379ce_784118b7d67944eb9b769ebb5dc004fc~mv2.jpg",
+        "altText": "Måttritning i två vyer: som trappa 45 × 39 × 20 cm och utfälld till 67 × 39 × 10 cm"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "71e8e879-f162-4d1f-a0b3-5d0e6acedce4",
+    "revision": "4",
+    "visible": false,
+    "media": {
+     "itemsInfo": {
+      "items": [
+       {
+        "id": "b379ce_97bd11e5f9c444dabb7574e83c445cd0~mv2.jpg",
+        "altText": "Husdjurstrappa i skum med tre steg, gräddvita gångytor och bruna sidor, sedd snett framifrån"
+       },
+       {
+        "id": "b379ce_464ca9991e4d448995bcab2084b4d765~mv2.jpg",
+        "altText": "Skumtrappan uppställd mot en soffkant, med de tre stegen ut mot golvet"
+       },
+       {
+        "id": "b379ce_5fa1e716a7b34a8f8599d24b09c60939~mv2.jpg",
+        "altText": "Faktakort: husdjurstrappa i skum, 39 cm i tre steg och 26 cm utan det översta, maxlast 15 kg"
+       },
+       {
+        "id": "b379ce_d0ea6dcfca444ad7b92e9214380aa05f~mv2.jpg",
+        "altText": "Det översta steget lyft från trappan, så att skarven mot de två undre stegen syns"
+       },
+       {
+        "id": "b379ce_ef829ad2c925405cb08d43b3c8526420~mv2.jpg",
+        "altText": "Det avtagna översta steget liggande bredvid den kvarvarande tvåstegstrappan"
+       },
+       {
+        "id": "b379ce_171028d2ce3d4dc8a21bddfe5a9b7135~mv2.jpg",
+        "altText": "Måttritning för skumtrappan: 39 cm hög, 26 cm utan översta steget, 54 × 40 cm i botten"
+       }
+      ]
+     }
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "media",
+     "visible"
+    ]
+   }
+  }
+ ],
+ "returnEntity": false
+}

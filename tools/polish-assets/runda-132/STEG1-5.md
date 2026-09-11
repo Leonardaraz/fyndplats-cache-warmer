@@ -208,3 +208,59 @@ distinkta, ≤ 40 tecken, ASCII. `bulkActionMetadata: 10 lyckade, 0 fel`.
 
 Varje rad bär `visible: false` på produkten OCH `visible: true` på varianten,
 enligt husregeln om att en `variantsInfo`-PATCH annars publicerar utkastet.
+
+## Steg 9 — galleriet: tio egna kort, svenska alt-texter, måttet sist
+
+Ordningen är `[1, 2, KORT, 4, 5, 3]` — måttritningen låg på plats 3 hos ALLA
+tio (samma mönster som runda 104) och ligger nu sist. Kortet på plats 3.
+
+Uppladdningen kvitterades **på innehållet, inte på ordningen**: `UploadImageToWixSite`
+svarar utan filnamn och med `operationStatus: PENDING`, så attributionen vilar
+annars på `imageUrls`-ordningen. `kortkvitto.py` laddade ner varje uppladdad fil
+och jämförde md5 mot den lokala — **10 av 10 READY och attribuerade**.
+
+☠️ **Alt-texterna har en EGEN grind** (`alttexter.granska`), för de finns aldrig
+i `texter.py` och passerar därför ingen av textgrindens vanliga vägar. Den kör
+rundans förbjudna-ord-lista, ARTNR, homoglyfer, tyska ord, en talgrind mot
+spec-tabellen och en djurgrind. Den fällde ett äkta fynd: måttritningens alt på
+`8f6147b5` skrev **"med 15 cm djupa steg"** — talet står i leverantörens ritning
+men INTE i vår spec-tabell (som säger `Steghöjd: 10 cm`). Struket.
+
+Återläsningen gjordes i ett EGET anrop och verifierade allt tre: ordningen, de
+sextio alt-texterna byte för byte och att varje post har kvar sin `image.url`.
+**10 av 10, noll fel.**
+
+## Steg 10 — kategori
+
+Alla tio ligger på **Husdjur** (`a2b4369f`) + **Lek & Tillbehör för husdjur**
+(`ea1313f5`) — samma löv som runda 131:s möbelramper och de publicerade
+grannarna. Tjugo skrivningar, `totalSuccesses: 2` på var och en, noll fel.
+Id:na lästes ur trädet, de skrevs inte ur minnet.
+
+## Steg 8b + 13 — stämplade och LIVE
+
+Tio `polish-mapping`-körningar (läge `stampla`): `needsAiPolish: false`,
+`draftStatus: published`, variant-SKU. Alla tio `conclusion: success`.
+
+Publiceringen bar `visible: true` på BÅDE produkt och variant, och skrev om
+`seoData.settings.keywords` — importens tyska rubrik låg kvar där, eftersom
+Steg 7 bara rör `seoData.tags`.
+
+Återläst en produkt i taget (tio egna GET:ar, inte på PATCH-svaret):
+
+| | |
+|---|---:|
+| `visible: true` på produkten | **10** |
+| `visible: true` på varianten | **10** |
+| SKU stämmer mot den polerade sluggen | **10** |
+| `settings.keywords` svenskt fokusord | **10** |
+| priset orört | **10** |
+
+☠️ **En `variantsInfo`-PATCH som BÄR `media` TAR BORT variantens bild.** Sju av
+tio varianter hade ett `media`-objekt (ärvt från importen, med leverantörens
+tyska alt-text); efter Steg 13 har **ingen** av dem det. Uppgift #352 säger att
+variantens media inte går att SKRIVA via `variantsInfo` — mätningen här visar
+att den går att RADERA. Skadan är noll: produkten är enkelvariant utan optioner,
+så butiken visar `media.main` (som är intakt och numera svensk), och tre av
+rundans tio saknade variantmedia redan som råimport. Men regeln är ny och ska
+inte glömmas: **skicka inte `media` i en `variantsInfo`-PATCH.**

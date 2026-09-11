@@ -1,0 +1,820 @@
+{
+ "products": [
+  {
+   "product": {
+    "id": "8f6147b5-7d27-4762-93f8-05c776755df4",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Husdjurstrappa 3 steg med sisalstolpar – 34 cm | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "Trappa i tre steg, 34 cm hög, med sisallindade stolpar som tål klorna och mjuk plysch på varje steg. Bär upp till 50 kg och står stadigt på egen bottenplatta."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "husdjurstrappa, hundtrappa 3 steg, kattrappa sisal, trappa till soffan, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "husdjurstrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "4e96af41-48e2-4165-a867-277b4a855d64",
+       "visible": true,
+       "sku": "FP-husdjurstrappa-3-steg",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "849"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_859e1ec2c93c4fb1979e54607157709f~mv2.jpg",
+        "altText": "Husdjurstrappa i tre steg med ljusgrå plyschklädda steg och sisallindade stolpar, sedd snett framifrån mot vit bakgrund",
+        "image": {
+         "id": "b379ce_859e1ec2c93c4fb1979e54607157709f~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_859e1ec2c93c4fb1979e54607157709f~mv2.jpg",
+         "height": 2000,
+         "width": 2000,
+         "altText": "Husdjurstrappa i tre steg med ljusgrå plyschklädda steg och sisallindade stolpar, sedd snett framifrån mot vit bakgrund",
+         "filename": "hundetreppe-3-stufen-34-cm-hoch-haustiertreppe-fur-katze-hunde-1.jpg",
+         "sizeInBytes": "971289"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_859e1ec2c93c4fb1979e54607157709f~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "4c25eb86-8fba-42d5-a22f-0e399ea2e72d",
+    "revision": "6",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Husdjurstrappa 4 steg med sisalstolpar – 59 cm | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "En trappa på fyra steg upp till 59 cm, med sisallindade stolpar och mjuk plysch på varje steg. Bär upp till 50 kg och når en säng eller fönsterbräda."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "husdjurstrappa 4 steg, hundtrappa säng, kattrappa sisal, hög djurtrappa, trappa till sängen"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "husdjurstrappa 4 steg",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "11d9ee88-0716-4494-a194-c41a7de04d59",
+       "visible": true,
+       "sku": "FP-husdjurstrappa-4-steg",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "799"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "762cc411-d74a-400b-b796-64e442af7f72",
+    "revision": "6",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Kattrappa 3 steg i gräddvit bouclé – 34 cm | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "Låg trappa i tre steg, 34 cm hög, klädd i gräddvit bouclé på både steg och stolpar. Gjord för katter och riktigt små hundar upp till 10 kg."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "kattrappa, trappa för katt, låg husdjurstrappa, kattrappa soffa, djurtrappa liten"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "kattrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "2d47355f-f67e-4c4d-b45f-c10ba590d899",
+       "visible": true,
+       "sku": "FP-kattrappa-3-steg-boucle",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "849"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "f384c51d-b404-469b-9b41-a2f48690b619",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hundtrappa 4 steg i ljus trälook | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "En trappa på fyra steg upp till 54,2 cm i ljus trälook. Stegdynorna sitter fast med kardborre och går att ta av och tvätta. Bär upp till 30 kg."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hundtrappa, hundtrappa säng, husdjurstrappa trä, hundtrappa 4 steg, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hundtrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "aa8ff2c1-faab-41e6-bdb5-18ef5b0a856b",
+       "visible": true,
+       "sku": "FP-hundtrappa-ljus-tralook",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "819"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_ec5ac223278840eda6abc5e95e014ee7~mv2.jpg",
+        "altText": "Hundtrappa i fyra steg med stomme i ljus trälook och gräddvita stegdynor, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_ec5ac223278840eda6abc5e95e014ee7~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_ec5ac223278840eda6abc5e95e014ee7~mv2.jpg",
+         "height": 2000,
+         "width": 2000,
+         "altText": "Hundtrappa i fyra steg med stomme i ljus trälook och gräddvita stegdynor, sedd snett framifrån",
+         "filename": "haustiertreppe-fur-hunde-katzen-4-stufig-kurzplusch-bis-30-kg-40-1.jpg",
+         "sizeInBytes": "734262"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_ec5ac223278840eda6abc5e95e014ee7~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "3ff2bc32-d666-4de1-8c5a-943f52e2183c",
+    "revision": "6",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hundtrappa 4 steg i mörkbrunt trä | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "En trappa på fyra steg upp till 54,2 cm i mörkbrunt trä. Stegdynorna sitter fast med kardborre och går att ta av och tvätta. Bär upp till 30 kg."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hundtrappa, hundtrappa mörkbrun, husdjurstrappa trä, hundtrappa 4 steg, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hundtrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "c072c0fc-27da-4204-a3f2-6f9767d40e29",
+       "visible": true,
+       "sku": "FP-hundtrappa-morkbrun-4",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "799"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "03715963-a864-4dd0-a120-eda1452bc17d",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hopfällbar hundtrappa med förvaring – gräddvit | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "En trappa på tre steg upp till 48 cm som viks ihop när den inte används. Under stegen finns plats för koppel, leksaker och skålar. Gräddvitt tyg."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hopfällbar hundtrappa, hundtrappa förvaring, husdjurstrappa vikbar, hundtrappa soffa, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hopfällbar hundtrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "84943df2-276e-480c-b28a-7697aa02b473",
+       "visible": true,
+       "sku": "FP-hundtrappa-gradvit",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "759"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_b762e85c37104d90951803327627e841~mv2.jpg",
+        "altText": "Hopfällbar hundtrappa i tre steg med gräddvit tygstomme och vita stegdynor, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_b762e85c37104d90951803327627e841~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_b762e85c37104d90951803327627e841~mv2.jpg",
+         "height": 0,
+         "width": 0,
+         "altText": "Hopfällbar hundtrappa i tre steg med gräddvit tygstomme och vita stegdynor, sedd snett framifrån",
+         "filename": "hundetreppe-3-stufen-48-cm-hoch-haustiertreppe-fur-kleine-und-alte-1.jpg",
+         "sizeInBytes": "1255431"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_b762e85c37104d90951803327627e841~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "c38f929e-2bfa-4354-8de6-5948e022b4e0",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hopfällbar hundtrappa med förvaring – mörkblå | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "En trappa på tre steg upp till 48 cm som viks ihop när den inte används. Under stegen finns plats för koppel, leksaker och skålar. Mörkblått tyg."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hopfällbar hundtrappa, hundtrappa förvaring, husdjurstrappa vikbar, hundtrappa soffa, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hopfällbar hundtrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "bda66e0e-b345-4c0b-8db3-4b9f928de61a",
+       "visible": true,
+       "sku": "FP-hundtrappa-morkbla",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "749"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_bb3fd0e78aef4c83997632c77128d796~mv2.jpg",
+        "altText": "Hopfällbar hundtrappa i tre steg med mörk tygstomme och bruna stegdynor, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_bb3fd0e78aef4c83997632c77128d796~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_bb3fd0e78aef4c83997632c77128d796~mv2.jpg",
+         "height": 2000,
+         "width": 2000,
+         "altText": "Hopfällbar hundtrappa i tre steg med mörk tygstomme och bruna stegdynor, sedd snett framifrån",
+         "filename": "haustiertreppe-katzentreppe-hundetreppe-faltbar-3-stufen-tiertreppe-1.jpg",
+         "sizeInBytes": "797144"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_bb3fd0e78aef4c83997632c77128d796~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "96d2803c-63aa-444a-a69b-fc4a34c8c5e0",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hopfällbar husdjurstrappa 2 steg i grått | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "Två steg upp till 20 cm i avtorkbart grått konstläder. Vecklas ut till en 67 cm lång bädd när trappan inte behövs, och väger under ett kilo."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hopfällbar husdjurstrappa, hundtrappa konstläder, kattrappa 2 steg, hundtrappa säng, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hopfällbar husdjurstrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "fb58eb9d-2718-4c23-944d-2c07d881f0c3",
+       "visible": true,
+       "sku": "FP-husdjurstrappa-gra-2",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "619"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_bd4d5e0c933c405382bf405d7b24f854~mv2.jpg",
+        "altText": "Husdjurstrappa i två steg av grått konstläder med skumstoppning, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_bd4d5e0c933c405382bf405d7b24f854~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_bd4d5e0c933c405382bf405d7b24f854~mv2.jpg",
+         "height": 1500,
+         "width": 1500,
+         "altText": "Husdjurstrappa i två steg av grått konstläder med skumstoppning, sedd snett framifrån",
+         "filename": "haustiertreppe-tierunterlage-2-stufen-klappbar-bis-7-kg-hundetreppe-1.jpg",
+         "sizeInBytes": "90687"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_bd4d5e0c933c405382bf405d7b24f854~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "11436227-fd8c-4e88-ab5d-3aaf2eb9f932",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Hopfällbar husdjurstrappa 2 steg i mörkt | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "Två steg upp till 20 cm i avtorkbart mörkt konstläder. Vecklas ut till en 67 cm lång bädd när trappan inte behövs, och väger under ett kilo."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "hopfällbar husdjurstrappa, hundtrappa konstläder, kattrappa 2 steg, hundtrappa säng, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "hopfällbar husdjurstrappa",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "90ad3064-405e-41a3-b0f3-500f29ba4fed",
+       "visible": true,
+       "sku": "FP-husdjurstrappa-mork-2",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "569"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_f9afe4bf3136461bb4c1681ca9ff7c39~mv2.jpg",
+        "altText": "Husdjurstrappa i två steg av mörkt konstläder med skumstoppning, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_f9afe4bf3136461bb4c1681ca9ff7c39~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_f9afe4bf3136461bb4c1681ca9ff7c39~mv2.jpg",
+         "height": 1500,
+         "width": 1500,
+         "altText": "Husdjurstrappa i två steg av mörkt konstläder med skumstoppning, sedd snett framifrån",
+         "filename": "haustiertreppe-tierunterlage-2-stufen-klappbar-hundetreppe-treppe-1.jpg",
+         "sizeInBytes": "100312"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_f9afe4bf3136461bb4c1681ca9ff7c39~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  },
+  {
+   "product": {
+    "id": "71e8e879-f162-4d1f-a0b3-5d0e6acedce4",
+    "revision": "5",
+    "visible": true,
+    "seoData": {
+     "tags": [
+      {
+       "type": "title",
+       "children": "Husdjurstrappa i skum med avtagbart steg | Fyndplats",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "description",
+        "content": "Lätt trappa i skum med mjukt plyschöverdrag, 39 cm hög och med plats för upp till 15 kg. Lyft av översta steget så blir den en tvåstegstrappa på 26 cm."
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      },
+      {
+       "type": "meta",
+       "props": {
+        "name": "keywords",
+        "content": "husdjurstrappa skum, lätt hundtrappa, kattrappa mjuk, hundtrappa soffa, djurtrappa"
+       },
+       "children": "",
+       "custom": false,
+       "disabled": false
+      }
+     ],
+     "settings": {
+      "keywords": [
+       {
+        "term": "husdjurstrappa skum",
+        "isMain": true
+       }
+      ]
+     }
+    },
+    "variantsInfo": {
+     "variants": [
+      {
+       "id": "cf85d25e-0fc9-4e6a-bd35-cd1d4bb22e92",
+       "visible": true,
+       "sku": "FP-husdjurstrappa-skum",
+       "choices": [],
+       "price": {
+        "actualPrice": {
+         "amount": "749"
+        }
+       },
+       "inventoryStatus": {
+        "inStock": true,
+        "preorderEnabled": false
+       },
+       "media": {
+        "id": "b379ce_97bd11e5f9c444dabb7574e83c445cd0~mv2.jpg",
+        "altText": "Husdjurstrappa i skum med tre steg, gräddvita gångytor och bruna sidor, sedd snett framifrån",
+        "image": {
+         "id": "b379ce_97bd11e5f9c444dabb7574e83c445cd0~mv2.jpg",
+         "url": "https://static.wixstatic.com/media/b379ce_97bd11e5f9c444dabb7574e83c445cd0~mv2.jpg",
+         "height": 2000,
+         "width": 2000,
+         "altText": "Husdjurstrappa i skum med tre steg, gräddvita gångytor och bruna sidor, sedd snett framifrån",
+         "filename": "haustiertreppe-hundetreppe-katzentreppe-3-stufen-fur-katzen-und-hunde-1.jpg",
+         "sizeInBytes": "1000971"
+        },
+        "mediaType": "IMAGE",
+        "uploadId": "b379ce_97bd11e5f9c444dabb7574e83c445cd0~mv2.jpg"
+       }
+      }
+     ]
+    }
+   },
+   "fieldMask": {
+    "paths": [
+     "visible",
+     "variantsInfo",
+     "seoData"
+    ]
+   }
+  }
+ ],
+ "returnEntity": false
+}
