@@ -27,6 +27,22 @@ HJALTE = ("https://static.wixstatic.com/media/%s"
           "/v1/fill/w_1600,h_1600,al_c,q_90/f.jpg")
 
 
+def etiketter(rader):
+    """Kortets EGNA etiketter — en post är antingen `"Etikett"` eller
+    `("spec-etikett", "kort-etikett")`.
+
+    ⚠️ Den korta formen finns för att spec-tabellens etikett ibland är för lång
+       för kortets smala kolumn ("Fritt utrymme mellan planen"). `kortbygge.varde`
+       kräver att kortets FÖRSTA ord finns i spec-radens etikett, så en förkortning
+       kan aldrig peka på fel rad — den kontrollen är kvar.
+    """
+    return [r[1] if isinstance(r, tuple) else r for r in rader]
+
+
+def specetiketter(rader):
+    return [r[0] if isinstance(r, tuple) else r for r in rader]
+
+
 def specrad(SPEC, pid, etikett):
     """Radens värde ORDAGRANT ur spec-tabellen — kortet får ingen andra sanning.
 
@@ -62,8 +78,16 @@ def hamta_hjaltar(har, filer, storlek=1600):
         if not os.path.exists(vag):
             r = urllib.request.Request(HJALTE % fil,
                                        headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(r, timeout=120) as s:
-                open(vag, "wb").write(s.read())
+            try:
+                with urllib.request.urlopen(r, timeout=120) as s:
+                    open(vag, "wb").write(s.read())
+            except Exception as e:                                # noqa: BLE001
+                # ☠️ Ett fel som inte säger VILKEN produkt det gäller tvingar
+                #    fram en manuell jakt. Huset har skrivit ned den lärdomen
+                #    fem gånger: ett misslyckande som ingen kan se är värre än
+                #    ett som skriker.
+                raise SystemExit(f"{pid}: hjältebilden gick inte att hämta "
+                                 f"({e}) — {HJALTE % fil}")
         b = Image.open(vag)
         if min(b.size) < storlek:
             raise SystemExit(f"{pid}: hjältebilden är {b.size}, för liten för "
@@ -77,7 +101,7 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
     fel, sedda, kickers = [], {}, {}
     for pid in produkter:
         try:
-            rader = [specrad(SPEC, pid, e) for e in RADER[pid]]
+            rader = [specrad(SPEC, pid, e) for e in specetiketter(RADER[pid])]
         except KeyError as e:
             fel.append(str(e))
             continue
@@ -87,10 +111,16 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
             fel.append(f"{pid}: kortet har {len(rader)} rader, ska ha 5")
         if "None" in text:
             fel.append(f"{pid}: kortet bär ett OVERIFIERAT fält — {text}")
-        # ⚠️ Etiketten heter inte "Mått" i alla rundor — runda 121 skriver
-        #    "Yttermått". Kravet är produktens EGET yttermått, och `Paketmått`
-        #    duger uttryckligen inte: det är kartongen, inte varan.
-        if not any(e.endswith("mått") and e != "Paketmått" for e in RADER[pid]):
+        # ⚠️ Etiketten heter inte "Mått" i alla rundor: runda 121 skriver
+        #    "Yttermått", runda 123 "Totalmått" och "Totalmått utfälld".
+        #    Kravet prövas på FÖRSTA ordet, annars hade "Hinkarnas mått" och
+        #    "Pressens mått" räknats som produktens eget yttermått. `Paketmått`
+        #    duger uttryckligen inte — det är kartongen, inte varan.
+        # ☠️ Prövas på SPEC-etiketten, inte på kortets. Kortets får förkortas
+        #    ("Totalmått utfälld" → "Utfälld"), och en grind som läste den hade
+        #    fällt ett kort som bär måttraden — falsklarm på korrekt data.
+        if not any(e.split()[0].endswith("mått") and e.split()[0] != "Paketmått"
+                   for e in specetiketter(RADER[pid])):
             fel.append(f"{pid}: kortet saknar måttraden — har {RADER[pid]}")
         # ☠️ Två IDENTISKA kort hjälper ingen att skilja två sidor åt, och
         #    färgsyskon gör risken konkret: samma mått, vikt och last.
@@ -122,10 +152,12 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
 def bygg(har, SPEC, KORT, RADER, produkter, foton, mjuka=None):
     """Bygger, skriver `kort-facit.json` och kopierar till spårade `kort/`."""
     os.chdir(har)
-    prod = [{"kort": p, "spec": [specrad(SPEC, p, e) for e in RADER[p]]}
+    prod = [{"kort": p,
+             "spec": [specrad(SPEC, p, e) for e in specetiketter(RADER[p])]}
             for p in produkter]
     kortdata = {p: (KORT[p][0], KORT[p][1],
-                    [(e, i) for i, e in enumerate(RADER[p])]) for p in produkter}
+                    [(e, i) for i, e in enumerate(etiketter(RADER[p]))])
+                for p in produkter}
     namn, facit = KB.bygg(har, prod, kortdata, mjuka=mjuka, foton=foton)
     json.dump(facit, open(os.path.join(har, "kort-facit.json"), "w"),
               ensure_ascii=False, indent=1)

@@ -1,0 +1,236 @@
+{
+ "887d388d": {
+  "kicker": "Verktygsvagn 83 cm",
+  "rubrik": "Tre plan med verktygshål",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "83 × 43 × 97 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "67,5 × 42,5 cm, tre stycken"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "30 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "91 kg totalt för hela vagnen"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "8 kg"
+   }
+  ]
+ },
+ "7be028f5": {
+  "kicker": "Verktygsvagn 81 cm",
+  "rubrik": "Tre släta plan",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "81 × 43 × 96 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "64,5 × 42 cm, tre stycken"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "35 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "68 kg totalt för hela vagnen"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "8 kg"
+   }
+  ]
+ },
+ "46a5eeda": {
+  "kicker": "Verktygsvagn 56 cm",
+  "rubrik": "Hålskivor och tio krokar",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "56,5 × 47,5 × 89 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "48 × 27 cm, tre stycken"
+   },
+   {
+    "etikett": "Ingår",
+    "varde": "vagn, hålskivor, tio krokar och två mellanväggar"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "91 kg totalt för hela vagnen"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "11 kg"
+   }
+  ]
+ },
+ "c8105590": {
+  "kicker": "Verkstadsvagn 70 cm",
+  "rubrik": "Tre plan i lackad metall",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "70,5 × 35 × 82,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Plan",
+    "varde": "64,5 × 35,5 cm, tre stycken"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "28 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg totalt och 40 kg per plan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "9,8 kg"
+   }
+  ]
+ },
+ "df9475dc": {
+  "kicker": "Verktygsvagn 83 cm i stål",
+  "rubrik": "Tre plan med 7 cm kant",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "83 × 35,3 × 76 cm (L × B × H)"
+   },
+   {
+    "etikett": "Nedersta planet",
+    "varde": "70 × 35 cm, 7 cm höga kanter"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "30 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "150 kg totalt och 50 kg per plan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "10,8 kg"
+   }
+  ]
+ },
+ "4e0a06c0": {
+  "kicker": "Verkstadsvagn 84,5 cm",
+  "rubrik": "Två plan med 9 cm kant",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "84,5 × 38 × 84 cm (L × B × H)"
+   },
+   {
+    "etikett": "Översta planet",
+    "varde": "74,5 × 38,5 cm, 9 cm höga kanter"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "57,3 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "150 kg totalt och 75 kg per plan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "10,8 kg"
+   }
+  ]
+ },
+ "db2f05f9": {
+  "kicker": "Verktygsvagn 102 cm",
+  "rubrik": "Två plan och verktygsplatta",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "102,6 × 43,5 × 84,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Plan",
+    "varde": "76 × 41 cm, två stycken"
+   },
+   {
+    "etikett": "Verktygsplatta",
+    "varde": "42,5 × 21,5 cm"
+   },
+   {
+    "etikett": "Fritt mellan plan",
+    "varde": "57 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "16 kg"
+   }
+  ]
+ },
+ "2bf00891": {
+  "kicker": "Hopfällbar verktygsvagn",
+  "rubrik": "Tre plan som fälls ihop",
+  "rader": [
+   {
+    "etikett": "Utfälld",
+    "varde": "64 × 37 × 84 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "18,5 cm"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "54,5 × 33,5 cm, tre stycken"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "68 kg totalt för hela vagnen"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "8,5 kg"
+   }
+  ]
+ },
+ "12cb8a2c": {
+  "kicker": "Verkstadsvagn 78 cm",
+  "rubrik": "Tre plan och låsbar låda",
+  "rader": [
+   {
+    "etikett": "Totalmått",
+    "varde": "78 × 35 × 73 cm (L × B × H)"
+   },
+   {
+    "etikett": "Plan",
+    "varde": "65,7 × 34 cm, tre stycken med 5 cm höga kanter"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "en, låsbar med nyckel"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "90 kg totalt och 30 kg per plan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "17 kg"
+   }
+  ]
+ }
+}
