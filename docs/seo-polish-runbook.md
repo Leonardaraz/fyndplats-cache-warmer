@@ -2304,7 +2304,46 @@ BÅDA kandidatbilderna visar en växt på hyllan och laptopen på skivan, så ru
 "Skärmen 12,5 cm högre" pekade på en skärm som inte fanns i bilden. Blev "En hylla över
 skivan". Sidans text stod kvar; det var kortets löfte som inte höll, inte påståendet.
 **Granska alltid de färdiga korten i ett kontaktark innan uppladdningen** — felet syns på
-en sekund där och aldrig i ett API-svar. Två av de fyra ändrade alt-texter som var
+en sekund där och aldrig i ett API-svar.
+
+> ☠️ **STEGET GLÖMDES ÅTTA RUNDOR I RAD — och nu finns en grind.** Runda 110–120
+> bär 6–9 spårade kort var; runda 121–128 bar **noll**, alltså ~65 publicerade
+> sidor utan det enda i galleriet som är vårt. Leonard hittade det
+> (*"du har kört flera batcher utan att göra fyndplats kort varför?"*), ingen
+> grind gjorde det: kravet stod i runbooken men i INGEN KOD.
+>
+> `grindar.kortfel(html)` fäller nu en live sida som saknar `Faktakort`, bär
+> kortet på plats 1, eller använder fel alt-form. Den körs i Steg 14, på RÅ
+> html före `butikstvatt` — tvätten stryker bildattributen, och alt-texten ÄR
+> det grinden granskar. `grindar.kortfiler()` fäller dessutom ett kort som inte
+> är SPÅRAT i grenen, vilket är runda 106:s fel (sex kort laddades upp från
+> adresser som svarade 404, och Wix svarade `success: true` på varenda en).
+>
+> Grinden är mutationstestad mot verkligheten: den fäller på runda 121, 123,
+> 125 och 127:s live-sidor och är tyst på runda 128:s.
+>
+> ⚠️ **Och rubrikregeln kostade 7 av 65 kort en omskrivning** — alla samma fel,
+> alla fångade PÅ ARKET och omöjliga att fånga i en textgrind:
+>
+> | kort | stod | varför det föll |
+> |---|---|---|
+> | `2bf00891` | "18,5 cm hopfälld" | vagnen är fotad UTFÄLLD |
+> | `7b544155` | "Fem fack i tre plan" | lådan är fotad STÄNGD |
+> | `bdd01b5f` | "Arbetsytan dras ut" | vagnen är fotad HOPSKJUTEN |
+> | `1b534b0e`, `5447468e` | "Fem lådor med EVA-matta" | mattan ligger i stängda lådor |
+> | `941867cb` | "Hålplank med trettio krokar" | planket är fotat TOMT |
+> | `4d5b3bb5` | "Smal med löstagbart pennfack" | facket är INVÄNDIGT — pennkoppen i bilden är rekvisita |
+>
+> Mönstret är ett och detsamma: **rubriken tog ett tal ur spec-tabellen i
+> stället för ett intryck ur fotot.** Talen är sanna och hör hemma i RADERNA;
+> rubriken ska säga det läsaren ser i samma ögonkast. Ett åttonde kort,
+> `887d388d`, ändrades av motsatt skäl — rubriken var sann men pekade inte på
+> det som skiljer sidan från syskonet en rad ner i kategorilistan.
+>
+> Det rundageneriska i bygget bor i `tools/polish-assets/kortrunda.py`; en
+> runda skriver bara `KORT` (kicker + rubrik) och `RADER` (spec-etiketter).
+> `kortkvitto.py` kvitterar uppladdningen FÖRE media-PATCHen, och bevisar
+> kopplingen bild→produkt på md5 i stället för på ordningen i anropet. Två av de fyra ändrade alt-texter som var
 felskrivna av leverantören föll ut i samma granskning.
 
 ⚠️ **Alt-texten på kortet börjar med `Faktakort: ` och beskriver FAKTA, inte kortet.**
