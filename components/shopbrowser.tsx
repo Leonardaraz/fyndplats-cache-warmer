@@ -15,6 +15,7 @@ import {
   type PriceBounds,
 } from "../lib/price-range";
 import type { ListProduct } from "../lib/products";
+import { productCountLabel } from "../lib/rating";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -317,7 +318,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
         </button>
 
         <div className="shopcount-inline" aria-live="polite">
-          {list.length} {list.length === 1 ? "produkt" : "produkter"}
+          {productCountLabel(list.length)}
           {activeFilters > 0 && <span className="shopcount-of"> av {products.length}</span>}
         </div>
 
@@ -461,7 +462,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
                   onKeyUp={commitColor}
                   onBlur={commitColor}
                   aria-label="Färg"
-                  aria-valuetext={color ? `${colorLabel(color)}, ${colorCounts.get(color) ?? 0} produkter` : "Alla färger"}
+                  aria-valuetext={color ? `${colorLabel(color)}, ${productCountLabel(colorCounts.get(color) ?? 0)}` : "Alla färger"}
                   style={{ ["--cr-thumb" as string]: color ? colorOf(color) || "#ddd" : "#fff" }}
                 />
               </div>

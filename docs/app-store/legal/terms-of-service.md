@@ -41,12 +41,47 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
 
 ## 5. Returer och ångerrätt
 
-- Du har **14 dagars lagstadgad ångerrätt** enligt lagen om distansavtal
-  (2005:59), räknat från den dag du tog emot varan.
-- Utöver detta erbjuder Fyndplats frivilligt **30 dagars öppet köp** på alla
-  produkter.
-- Returfrakten betalas av kunden, utom vid felaktig eller skadad vara.
+- Du har **totalt 30 dagar** på dig att ångra eller returnera ditt köp.
+- **Dag 1–14** omfattas av den **lagstadgade ångerrätten** enligt lagen om
+  distansavtal (2005:59), räknat från den dag du tog emot varan. Under
+  ångerfristen får du undersöka produktens egenskaper och funktion på
+  motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett
+  skäligt värdeminskningsavdrag göras.
+- **Dag 15–30** är Fyndplats **frivilliga öppna köp**. Då ska produkten vara
+  oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med
+  ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30
+  återbetalas produktens pris men inte vad du betalat för leveransen till dig;
+  det återbetalas bara under den lagstadgade ångerfristen. Returen ska postas
+  **inom 7 dagar** från anmälan, och en **bearbetningsavgift på 10 %** av vad du
+  betalat för produkten dras på returer under dag 15–30.
+- **Avgiften och 7-dagarsfristen gäller aldrig dag 1–14.** Under den
+  lagstadgade ångerrätten har du 14 dagar på dig att skicka tillbaka varan, och
+  ingen avgift tas ut.
+- Vilken period som gäller avgörs av **när du anmäler returen**, inte av när
+  paketet är tillbaka hos oss.
+- Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. En vara
+  räknas som skrymmande när den är längre än 120 cm eller väger mer än 20 kg.
+  Då kan den inte skickas som ett vanligt paket, utan måste gå som styckegods.
+  Returen bokar och betalar du själv hos valfri transportör som tar emot varans
+  storlek och vikt — räkna med ungefär 700–2 400 kr inklusive moms beroende på
+  sträcka och storlek.
   Fullständiga villkor finns på <https://www.fyndplats.se/returer>.
+
+### Reklamation vid fel på varan
+
+Är varan trasig, felaktig eller inte som utlovat är det en **reklamation**, inte
+en ångran — en egen rättighet som är fristående från de 30 dagarna och gäller
+långt efter att de löpt ut.
+
+- Enligt **konsumentköplagen (2022:260)** har du **tre års reklamationsrätt** på
+  fel som fanns vid leveransen.
+- Fel som visar sig inom de första två åren antas ha funnits redan vid
+  leveransen, om inte annat kan visas.
+- Reklamera inom skälig tid efter att du upptäckt felet. Ett meddelande inom
+  **två månader** räknas alltid som i rätt tid.
+- Vid godkänd reklamation står **Fyndplats för returkostnaden**.
+- Mejla <info@fyndplats.com> med ordernummer, beskrivning av felet och foton.
+  Skicka inte tillbaka varan innan vi bett dig om det.
 
 ## 6. Användarens skyldigheter
 
@@ -89,10 +124,13 @@ kontroll).
 ## 10. Tillämplig lag och tvistelösning
 
 Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd;
-vi följer **Allmänna reklamationsnämndens (ARN)** rekommendationer. Kan tvisten
+vi följer **Allmänna reklamationsnämndens (ARN)** rekommendationer. Du kan
+kostnadsfritt vända dig dit för opartisk prövning: <https://www.arn.se>,
+Box 174, 101 23 Stockholm. Kan tvisten
 inte lösas avgörs den av svensk allmän domstol med **Stockholms tingsrätt** som
-första instans. Du kan även använda EU:s onlineplattform för tvistelösning:
-<https://ec.europa.eu/consumers/odr>.
+första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan
+du vända dig till **Konsument Europa (ECC Sverige)**, som drivs av Konsumentverket:
+<https://www.konsumenteuropa.se>.
 
 ## 11. Ändring av villkor
 

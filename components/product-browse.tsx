@@ -69,6 +69,7 @@ import Link from "next/link";
 import { tightFillUrl } from "../lib/wix-image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import type { Grannar } from "../lib/product-neighbours";
+import { productCountLabel } from "../lib/rating";
 
 /** Miniatyrens ruta i CSS-pixlar. Bilden hämtas i dubbel storlek för skärpa. */
 const THUMB = 52;
@@ -104,7 +105,7 @@ export function ProductBrowse({
         <Link className="pbrowse-rakn" href={`/kategori/${avsnitt.slug}`} prefetch={false}>
           {raknasMed && position !== null
             ? `${position} av ${antal} i ${avsnitt.namn}`
-            : `${antal} produkter i ${avsnitt.namn}`}
+            : `${productCountLabel(antal)} i ${avsnitt.namn}`}
         </Link>
       )}
 

@@ -1483,6 +1483,18 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .callout{background:var(--warm);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:var(--r-md);padding:18px 20px;margin:22px 0}
 .callout p:last-child{margin:0}
 
+/* Returperioderna visuellt åtskilda. Kunden ska kunna se med ögat att de 30
+   dagarna är EN period i två delar — inte 14 plus 30. Två kort sida vid sida
+   säger det innan någon läst en mening; på telefon staplas de. */
+/* Specificiteten är avsiktlig: ".prose ul" (0,1,1) sätter display:flex och slår
+   en ensam klass, så listan hamnade i en kolumn på desktop. */
+.prose ul.retur-tidslinje{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0;padding:0;list-style:none}
+.prose ul.retur-tidslinje li{display:flex;flex-direction:column;gap:4px;background:var(--warm);border:1px solid var(--line);border-top:3px solid var(--orange);border-radius:var(--r-md);padding:14px 16px;margin:0}
+.prose ul.retur-tidslinje li::before{content:none}
+.prose ul.retur-tidslinje strong{font-size:var(--text-sm);letter-spacing:.04em;text-transform:uppercase;color:var(--orange)}
+.prose ul.retur-tidslinje span{font-weight:600;line-height:1.35}
+@media (max-width:560px){.prose ul.retur-tidslinje{grid-template-columns:1fr}}
+
 /* ── Ångerfunktion (/angra-kop) ─────────────────────────────────────────── */
 .angra-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 24px;margin:8px 0 28px;box-shadow:var(--e2)}
 .angra-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -2205,6 +2217,41 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .prog-td-price{font-weight:700;white-space:nowrap}
 .prog-td-cta{text-align:right}
 .prog-buy{padding:9px 20px;font-size:var(--text-sm);border-radius:var(--r-sm)}
+
+/* Under 600px ryms inte fyra kolumner: container-paddingen tar 52px, så tabellens
+   min-width på 540px spiller över redan vid 592px. Följden var att telefonen
+   visade bild, namn och bricka — och sedan tomt, med pris och Köp-knapp utanför
+   kanten. Sidan lovar i sin egen ingress "en jämförelsetabell med pris", så det
+   är just den kolumnen som inte får falla bort.
+   Raden staplas därför till ett kort: namn överst, bricka och pris på samma rad,
+   knappen i full bredd under. Kolumnrubrikerna döljs — varje kort är
+   självförklarande, och läsordningen i DOM är fortfarande namn → omdöme → pris
+   → köp.
+   Brytpunkten är 760px, inte 600: tabellens verkliga behov styrs av längsta
+   produktnamnet, inte av min-width. Mätt slutade de fyra sidorna scrolla först
+   vid 621, 651, 681 respektive 711px — så en gräns vid 600 hade lämnat kvar
+   sidoscroll i hela bandet däröver. 760 ligger ovanför värsta fallet med marginal
+   och sammanfaller med en brytpunkt som redan finns i filen. */
+@media (max-width:760px){
+  .prog-table{min-width:0}
+  .prog-table thead{display:none}
+  .prog-table tbody tr{
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-areas:"name name" "badge price" "cta cta";
+    align-items:center;
+    gap:12px;
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .prog-table tbody tr:last-child{border-bottom:none}
+  .prog-table tbody th,.prog-table tbody td{padding:0;border-bottom:none}
+  .prog-table tbody .prog-td-name{grid-area:name}
+  .prog-table tbody tr>td:nth-of-type(1){grid-area:badge}
+  .prog-td-price{grid-area:price;text-align:right;font-size:var(--text-lg)}
+  .prog-td-cta{grid-area:cta;text-align:left}
+  .prog-buy{display:block;text-align:center;padding:12px 20px}
+}
 
 /* Badges */
 .prog-badge{display:inline-block;font-size:var(--text-xs);font-weight:700;padding:5px 11px;border-radius:var(--r-pill);white-space:nowrap}

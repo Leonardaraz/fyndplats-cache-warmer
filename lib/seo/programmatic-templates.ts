@@ -79,8 +79,8 @@ function pickTitle(v: string[], seed: number, salt: number, max = 48): string {
 // Leverans och retur återkommer i BÅDE Pattern 1 och 3. Varje svar finns i 6
 // varianter med olika ordval OCH meningsbyggnad, så att två sidor sällan delar
 // samma 3-gram. Fakta hålls konstant: 3–7 arbetsdagar, spårning via mejl,
-// frakt 19 kr (fri över 499 kr), 30 dagars öppet köp, oanvänd + originalför-
-// packning, info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
+// frakt 19 kr (fri över 499 kr), 30 dagar totalt (14 lagstadgade + öppet köp
+// t.o.m. dag 30), info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
 // oberoende av övriga slots på sidan.
 
 function deliveryAnswer(singular: string, seed: number, salt: number): string {
@@ -97,13 +97,18 @@ function deliveryAnswer(singular: string, seed: number, salt: number): string {
 }
 
 function returnAnswer(seed: number, salt: number): string {
+  // Varianterna villkorade tidigare HELA 30-dagarsperioden med "oanvänd och i
+  // originalförpackning" — alltså även de 14 dagar som är lagstadgad ångerrätt,
+  // där varan tvärtom får undersökas som i en butik. Samma fel som fanns på
+  // /angra-kop och /returer, fast här på 36 publicerade sidor. Villkoret hör
+  // hemma i dag 15–30, som är vårt eget erbjudande. Se lib/retur-policy.ts.
   const v = [
-    `Ja, du har 30 dagars öppet köp hos Fyndplats. Så länge produkten är oanvänd och i originalförpackning är det enkelt — mejla info@fyndplats.com med ditt ordernummer så hjälper vi dig vidare.`,
-    `Absolut. Ångrar du köpet gäller 30 dagars öppet köp. Skicka bara ett mejl till info@fyndplats.com med ordernumret, så löser vi returen. Varan ska vara oanvänd och ligga kvar i originalförpackningen.`,
-    `Självklart. Du kan returnera inom 30 dagar förutsatt att produkten är oanvänd och i sin originalförpackning. Hör av dig till info@fyndplats.com och uppge ditt ordernummer så ordnar vi resten.`,
-    `Det går bra — 30 dagars öppet köp gäller på allt. Mejla info@fyndplats.com med ordernumret och se till att varan är oanvänd och i originalförpackningen, så tar vi hand om returen.`,
-    `Ja. Passar något inte har du 30 dagar på dig att ångra köpet. Kontakta oss på info@fyndplats.com med ordernumret; produkten behöver bara vara oanvänd och kvar i originalförpackningen.`,
-    `Returer är inga problem inom 30 dagar. Skicka ordernumret till info@fyndplats.com så guidar vi dig — kravet är att produkten är oanvänd och i originalförpackning.`,
+    `Ja. Du har totalt 30 dagar på dig: 14 dagars lagstadgad ångerrätt, därefter vårt frivilliga öppna köp till och med dag 30. Mejla info@fyndplats.com med ditt ordernummer så hjälper vi dig vidare.`,
+    `Absolut. Totalt 30 dagar gäller — de första 14 enligt lag, resten som vårt eget öppna köp. Skicka ordernumret till info@fyndplats.com, så löser vi returen.`,
+    `Självklart. Inom de 14 lagstadgade dagarna får du undersöka varan som du hade gjort i en butik. Därefter, till och med dag 30, gäller vårt frivilliga öppna köp för oanvänd och komplett vara. Hör av dig till info@fyndplats.com med ordernumret — fullständiga villkor finns på fyndplats.se/returer.`,
+    `Det går bra — 30 dagar på allt. Under de första 14 dagarna gäller ångerrätten enligt lag; dag 15–30 är vårt öppna köp, och då ska varan vara oanvänd och komplett. Mejla info@fyndplats.com med ordernumret; fullständiga villkor finns på fyndplats.se/returer.`,
+    `Ja. Passar något inte har du 30 dagar på dig att ångra köpet: lagens 14 dagar plus vårt frivilliga öppna köp fram till dag 30. Kontakta oss på info@fyndplats.com med ordernumret.`,
+    `Returer är inga problem inom 30 dagar. De första 14 dagarna är lagstadgad ångerrätt, dag 15–30 vårt eget öppna köp för oanvänd vara. Skicka ordernumret till info@fyndplats.com så guidar vi dig — fullständiga villkor står på fyndplats.se/returer.`,
   ];
   return pick(v, seed, salt);
 }
@@ -114,7 +119,7 @@ function returnAnswer(seed: number, salt: number): string {
 
 export function bestInTestH1(label: string, seed: number): string {
   const v = [
-    `Bäst i test: ${label} ${YEAR} — vi har testat och jämfört`,
+    `Bäst i test: ${label} ${YEAR} — utvalda och jämförda`,
     `${cap(label)} ${YEAR}: bäst i test enligt oss`,
     `Bäst i test ${label} ${YEAR} — vår stora jämförelse`,
     `Vi har jämfört ${label} — här är bäst i test ${YEAR}`,
@@ -140,7 +145,7 @@ export function bestInTestMetaDesc(label: string, count: number, priceRange: str
     `Vi har jämfört ${count} ${label} till bra pris. Se vår topplista med betyg, pris (${priceRange}) och köpguide — hitta bäst i test ${YEAR} hos Fyndplats.`,
     `Bäst i test ${label} ${YEAR}: ${count} noga utvalda fynd jämförda sida vid sida. Pris från ${priceRange}, fri frakt över 499 kr. Hitta ditt val hos Fyndplats.`,
     `Letar du efter ${label}? Vår jämförelse av ${count} modeller (${priceRange}) hjälper dig välja rätt. Bäst i test, mest prisvärt och budgetval — allt samlat.`,
-    `${count} ${label} testade och rankade ${YEAR}. Pris ${priceRange}, betyg och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
+    `${count} ${label} utvalda och rankade ${YEAR}. Pris ${priceRange}, omdömen och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
     // Plural ("Vilka X är bäst…") — den gamla naiva singulariseringen
     // (label.replace(/r$/,"")) gav trasig svenska ("massagepistole").
     `Vilka ${label.toLowerCase()} är bäst i test ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
@@ -199,6 +204,32 @@ export function bestInTestIntro(p: {
   ];
 }
 
+// Varför-meningar per roll. Rollerna sätts av assignRoles() efter prisranking,
+// så formuleringarna får bara påstå sådant som prisordningen faktiskt visar.
+const WHY: Record<string, string[]> = {
+  "budget-val": [
+    "Billigast i vårt urval — börja här om du vill komma igång utan att lägga mer än nödvändigt.",
+    "Det här är golvet i prisspannet, och för många är golvet precis vad som behövs.",
+    "Lägsta priset av dem vi valt ut, utan att vi behövde tumma på kraven för att komma med.",
+  ],
+  "bra köp": [
+    "Ligger i mitten av prisspannet: mer än instegsmodellen, utan toppens prislapp.",
+    "Ett mellanläge — du betalar för lite mer utrustning än längst ned i listan.",
+    "Varken billigast eller dyrast här, vilket för de flesta är precis rätt läge.",
+  ],
+  "mest för pengarna": [
+    "Den vi själva hade valt: mest funktion per krona av dem vi jämfört.",
+    "Här tycker vi att kurvan planar ut — mer pengar ger inte särskilt mycket mer produkt.",
+    "Bäst balans mellan pris och innehåll sett över hela urvalet.",
+  ],
+  "premium-val": [
+    "Dyrast i urvalet, och den med mest utrustning av dem vi jämfört.",
+    "Toppen av listan — välj den om du vill ha allt som finns att få här.",
+    "Det här är taket i prisspannet, och den mest utrustade av våra val.",
+  ],
+};
+const WHY_FALLBACK = ["Den kom med i urvalet för att den håller vad beskrivningen lovar."];
+
 // Per-produkt-text 80–100 ord. Vävs av produktens egna blurb + roll + pris.
 export function productParagraph(p: {
   name: string;
@@ -216,19 +247,18 @@ export function productParagraph(p: {
     `${p.name} tar hem rollen som ${role} i vår jämförelse.`,
     `När det gäller ${role} är ${p.name} vår klara rekommendation.`,
   ];
-  const body = p.blurb && p.blurb.length > 20
-    ? p.blurb.replace(/\s+$/, "")
-    : `En genomtänkt favorit som gör jobbet utan krångel`;
-  const why = [
-    `Det vi gillar mest är att den känns genomtänkt rakt igenom och håller vad den lovar i vardagen.`,
-    `Den träffar den där balansen mellan kvalitet och pris som gör att den passar de flesta.`,
-    `Enkel att använda, snygg att ha framme och prisvärd för vad du får — en trygg rekommendation.`,
-    `Idealisk för dig som vill ha något som bara funkar, utan krångel och utan att kosta för mycket.`,
-    `Ett populärt val hos våra kunder, och det är inte svårt att förstå varför — den gör jobbet med råge.`,
-    `Passar perfekt för vardagsbruk: pålitlig, lätt att leva med och prisvärd på riktigt.`,
-  ];
+  // Blurben slutar ofta redan med punkt — att alltid lägga på en till gav
+  // "…40,5 centimeter.." på skarpa sidor.
+  const raw = p.blurb && p.blurb.length > 20 ? p.blurb.trim() : "En genomtänkt favorit som gör jobbet utan krångel";
+  const body = /[.!?…]$/.test(raw) ? raw : `${raw}.`;
+  // Rollen härleds ur prisordningen inom urvalet och är, vid sidan av produktens
+  // egen beskrivning, det enda vi faktiskt vet om den. Meningarna säger därför
+  // bara det: var i spannet den ligger. De gamla ("Passar perfekt för vardags-
+  // bruk: pålitlig, lätt att leva med och prisvärd på riktigt") stod ordagrant
+  // på tre av fem produkter och gick att sätta på vilken vara som helst.
+  const why = WHY[role] || WHY_FALLBACK;
   const priceLine = p.price ? ` Pris: ${p.price}.` : "";
-  return `${pick(lead, p.seed)} ${body}. ${pick(why, p.seed, 4)}${priceLine}`;
+  return `${pick(lead, p.seed)} ${body} ${pick(why, p.seed, 4)}${priceLine}`;
 }
 
 // Roll-badges fördelas efter prisranking inom urvalet.

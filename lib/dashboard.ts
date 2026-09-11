@@ -19,6 +19,7 @@
 
 import { sql } from "./db";
 import { getProducts, type Product } from "./products";
+import { productCountLabel } from "./rating";
 
 const STOCKHOLM_TZ = "Europe/Stockholm";
 const LOW_STOCK_THRESHOLD = 5;
@@ -443,8 +444,8 @@ export async function buildDashboard(now = new Date()): Promise<DashboardData> {
   ]);
 
   const warnings: string[] = [];
-  if (inventory.outOfStock.length > 0) warnings.push(`${inventory.outOfStock.length} produkter slut i lager`);
-  if (inventory.lowStock.length > 0) warnings.push(`${inventory.lowStock.length} produkter med lågt lager (<${LOW_STOCK_THRESHOLD})`);
+  if (inventory.outOfStock.length > 0) warnings.push(`${productCountLabel(inventory.outOfStock.length)} slut i lager`);
+  if (inventory.lowStock.length > 0) warnings.push(`${productCountLabel(inventory.lowStock.length)} med lågt lager (<${LOW_STOCK_THRESHOLD})`);
   if (abandoned.available && abandoned.notRecovered24h > 0)
     warnings.push(`${abandoned.notRecovered24h} ej återhämtade kundvagnar (24h)`);
 

@@ -66,7 +66,7 @@ Två saker gör att cykeln överlever både p-platsen och garaget.
 
 ## Snabbt hem – tack vare EU-lagret
 
-Ska tillbehören med på helgens tur gäller det att de kommer i tid. Allt ovan skickas spårbart från vårt **EU-lager** (inte från Kina), vilket betyder kortare leveranstid och inga tullöverraskningar. Vi har skrivit mer om hur det fungerar i [Nya tullreglerna 2026 och vårt EU-lager](/blogg/nya-tullreglerna-2026-eu-lager).
+Ska tillbehören med på helgens tur gäller det att de kommer i tid. Allt ovan skickas spårbart från **EU-lager** (inte från Kina), vilket betyder kortare leveranstid och inga tullöverraskningar. Vi har skrivit mer om hur det fungerar i [Ny EU-tull 2026 – så slipper du avgiften](/blogg/nya-tullreglerna-2026-eu-lager).
 
 ## Utforska mer hos Fyndplats
 
@@ -88,7 +88,7 @@ Ja. Det viktigaste glasögonen gör är att hålla fartvind, damm och insekter b
 
 ### Hur snabbt får jag hem tillbehören?
 
-Produkterna ovan ligger på vårt EU-lager och skickas spårbart, normalt inom 3–7 arbetsdagar. Det gör att du oftast hinner få hem dem inför helgens eller semesterns cykling.
+Produkterna ovan ligger i lager inom EU och skickas spårbart, normalt inom 3–7 arbetsdagar. Det gör att du oftast hinner få hem dem inför helgens eller semesterns cykling.
 
 ### Passar tillbehören alla cyklar?
 

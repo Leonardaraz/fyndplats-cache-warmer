@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
+import { productCountLabel } from "../lib/rating";
 
 // Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
@@ -91,7 +92,7 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                 {current.name}
               </a>
               <a className="meganav-panel-all" href={`/kategori/${current.slug}`} onClick={close}>
-                Se alla {current.count} produkter <span aria-hidden="true">→</span>
+                Se alla {productCountLabel(current.count)} <span aria-hidden="true">→</span>
               </a>
             </div>
             {current.subs.length > 0 ? (

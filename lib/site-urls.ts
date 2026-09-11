@@ -13,9 +13,10 @@
 //
 // What's OUT (deliberately): /sok (search results — thin/duplicate, noindex),
 // /tack and /sparning (transient/private order pages), /admin/* (proxy-gated).
-import { getProductSitemapEntries, getCollections } from "./products";
+import { getProductSitemapEntries, getCollections, getProducts, forListings } from "./products";
 import { getPosts } from "./blog";
 import { getProgrammaticUrls } from "./seo/programmatic";
+import { categoryInSitemap } from "./category-threshold";
 
 export const SITE = "https://www.fyndplats.se";
 
@@ -100,7 +101,19 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
 
   for (const p of STATIC_INFO_PATHS) urls.push(entry(p, "sida", "monthly", 0.7));
 
-  for (const c of collections) urls.push(entry(`/kategori/${c.slug}`, "kategori", "weekly", 0.7));
+  // Tunna kategorier (1–4 produkter) utelämnas: kategorisidan sätter noindex
+  // på dem, och att samtidigt lista dem här vore att be Google hämta en sida vi
+  // säger åt den att inte indexera. Regeln bor i lib/category-threshold.ts så
+  // sitemap och robots inte kan säga olika saker. Räkningen använder samma
+  // produktmängd som kategorisidan visar.
+  const catCounts = new Map<string, number>();
+  for (const p of forListings(await getProducts())) {
+    for (const cid of p.collectionIds || []) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
+  }
+  for (const c of collections) {
+    if (!categoryInSitemap(catCounts.get(c.id) || 0)) continue;
+    urls.push(entry(`/kategori/${c.slug}`, "kategori", "weekly", 0.7));
+  }
   for (const p of prodEntries) {
     urls.push(
       entry(`/produkt/${p.slug}`, "produkt", "weekly", 0.8, p.updatedAt > 0 ? new Date(p.updatedAt) : undefined),

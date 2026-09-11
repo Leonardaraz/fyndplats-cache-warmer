@@ -7,6 +7,7 @@
 import { cache } from "react";
 import { getProducts, getCollections, forListings } from "./products";
 import type { Product, Collection } from "./products";
+import { categoryInMainNav } from "./category-threshold";
 
 export type MainGroup = {
   main: string;          // Wix-katalogens kategorinamn
@@ -289,8 +290,25 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
     childrenByParent.set(c.parentId, arr);
   }
 
+  // Huvudkategorins antal = distinkta produkter i kategorin ELLER någon
+  // underkategori. Samma räkning som mainCount() i buildGroupCards, och av
+  // samma skäl som re-auditen 2026-05-31 skrev ned där: counts.get(id) är BARA
+  // de som ligger direkt i huvud-kollektionen.
+  //
+  // Jag gick rakt in i den fällan när tröskeln infördes: filtret läste den
+  // direkta siffran medan den visade läser huvud+sub. En huvudkategori med två
+  // produkter direkt och tvåhundra i sina underkategorier hade då försvunnit ur
+  // navigationen.
+  const totalt = (mainId: string): number => {
+    const ids = new Set([mainId, ...(childrenByParent.get(mainId) || []).map((c) => c.id)]);
+    return products.filter((p) => (p.collectionIds || []).some((cid) => ids.has(cid))).length;
+  };
+
   const roots = collections
-    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && (counts.get(c.id) || 0) > 0)
+    // > 0 räckte förr. Punkt 17: en huvudkategori med 1–4 produkter ska inte
+    // stå i navigationen. Underkategorierna filtreras fortsatt bara på > 0; de
+    // är inte huvudkategorier och kravet gäller uttryckligen huvudnavigationen.
+    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && categoryInMainNav(totalt(c.id)))
     .map((mainCol) => {
       const children = childrenByParent.get(mainCol.id) || [];
       const subs = children
@@ -361,6 +379,11 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
     if (!mainCol) continue;
     const inCat = products.filter((p) => p.img && (p.collectionIds || []).includes(mainCol.id));
     if (inCat.length === 0) continue;
+    // Punkt 17 gäller ALL huvudnavigation, inte bara mega-menyn. /butik-rutnätet
+    // och startsidans kategorirad byggs härifrån, och "Mode & Accessoarer" stod
+    // kvar som huvudkort med tre produkter bakom sig tills den här raden kom —
+    // mitt första försök ändrade bara buildCategoryTree, alltså mega-menyn.
+    if (!categoryInMainNav(mainCount(mainCol.id))) continue;
     const slugMap = new Map(inCat.map((p) => [p.slug, p]));
 
     // Hero: curated (oanvänd) → non-denylisted oanvänd → oanvänd → non-denylisted → any

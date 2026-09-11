@@ -342,6 +342,7 @@ export default function AngraForm() {
         <a href="/returer">reklamation</a>, inte en ångran — och då står{" "}
         <strong>Fyndplats för returfrakten</strong>. Mejla{" "}
         <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med foto på felet, så löser vi det.
+        Reklamationsrätten gäller i <strong>tre år</strong> och är fristående från de 30 dagarna.
       </div>
     </div>
   );

@@ -12,6 +12,8 @@
 import { Column, Img, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
+import { SKRYMMANDE_RETURKOSTNAD_KORT } from "../lib/retur-frakt";
+import { SHIPPING_REFUND, REFUND_TIME, AVGIFT_SENTENCE } from "../lib/retur-policy";
 
 export interface WithdrawalReceiptItem {
   name: string;
@@ -141,10 +143,12 @@ export default function WithdrawalReceiptEmail({
         </Text>
       </Section>
       <Text style={text.body}>
-        <strong>Returfrakten betalas av dig som kund.</strong> Välj valfri leveranstjänst
-        (PostNord, DHL, Schenker) — vi rekommenderar <strong>spårbar leverans</strong> så du
-        har bevis på avsändning. Fyndplats ansvarar inte för förlorade returpaket.
+        <strong>Returfrakten betalas av dig som kund.</strong> Du bokar själv hos valfri
+        transportör som tar emot varans storlek och vikt — vi rekommenderar
+        <strong> spårbar leverans</strong> så du har bevis på avsändning. Fyndplats
+        ansvarar inte för förlorade returpaket.
       </Text>
+      <Text style={text.body}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
       <Text style={text.body}>
         <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll på
         returen.
@@ -152,10 +156,12 @@ export default function WithdrawalReceiptEmail({
 
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
-        Vi återbetalar inom <strong>5–10 bankdagar</strong> efter att vi tagit emot och
-        kontrollerat returen, till ditt ursprungliga betalmedel (kort, Klarna, Swish). Har du
-        betalat frakt återbetalas även standardfrakten.
+        Vi betalar tillbaka inom <strong>{REFUND_TIME}</strong> efter att vi tagit emot och
+        kontrollerat returen, till ditt ursprungliga betalmedel (kort, Klarna, Swish). Hur
+        snabbt pengarna syns på kontot beror sedan på din bank.
       </Text>
+      <Text style={text.body}>{SHIPPING_REFUND}</Text>
+      <Text style={text.body}>{AVGIFT_SENTENCE}</Text>
 
       {/* Reklamation ≠ ångra: vid fel/trasig vara står Fyndplats för returen. */}
       <Section style={{ ...block.card, background: "#F5FBF7", border: `1px solid #DDEFE4` }}>
@@ -165,12 +171,20 @@ export default function WithdrawalReceiptEmail({
         <Text style={{ ...text.body, margin: 0 }}>
           Då är det en <strong>reklamation</strong>, inte en ångran — och då står{" "}
           <strong>Fyndplats för returfrakten</strong>. Svara på det här mejlet med en kort
-          beskrivning och <strong>foton</strong> på felet, så löser vi det.
+          beskrivning och <strong>foton</strong> på felet, så löser vi det. Reklamationsrätten
+          är fristående från de 30 dagarna: du har <strong>tre år</strong> på dig enligt
+          konsumentköplagen, och fel som visar sig inom två år antas ha funnits vid
+          leveransen.
         </Text>
       </Section>
 
       <Text style={{ ...text.muted, marginTop: "16px" }}>
-        Produkten ska vara oanvänd och i originalförpackning med alla tillbehör. Frågor? Svara
+        Under de första 14 dagarna får du undersöka produkten som du hade gjort i en butik;
+        har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Ångrar du
+        under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
+        komplett och i säljbart skick — då återbetalas produktens pris men inte frakten till
+        dig. Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
+        paketet är tillbaka hos oss. Frågor? Svara
         på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
           {BRAND.supportEmail}

@@ -89,7 +89,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt får jag mina köksprylar?",
-        a: "Leveranstiden är 3–7 arbetsdagar från vårt EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
       {
         q: "Kan jag returnera en köksmaskin om den inte passar mina behov?",
@@ -155,7 +155,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt levereras husdjursprodukterna?",
-        a: "Leveranstiden är 3–7 arbetsdagar från vårt EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
       },
       {
         q: "Kan jag byta om produkten inte passar mitt djur?",
@@ -554,7 +554,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt får jag maskinen hem?",
-        a: "Leveranstiden är 3–7 arbetsdagar från vårt EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
     ],
   },
@@ -736,7 +736,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur levereras ömtåliga glas?",
-        a: "Glas packas skyddat och skickas spårbart från vårt EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
+        a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
       },
     ],
   },

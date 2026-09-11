@@ -2,6 +2,7 @@ import { cache } from "react";
 import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { formatPrice } from "./price-range";
+import { clipText } from "./clip-text";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -336,8 +337,8 @@ function mapProduct(p: any): Product {
     img: (p.media && p.media.mainMedia && p.media.mainMedia.image && p.media.mainMedia.image.url) || gallery[0] || "",
     gallery: gallery.slice(0, 6),
     imageAlts,
-    blurb: stripHtml(firstP ? firstP[1] : p.description || "").slice(0, 220),
-    specs: stripHtml(specsSection ? specsSection.description : "").slice(0, 400),
+    blurb: clipText(stripHtml(firstP ? firstP[1] : p.description || ""), 220),
+    specs: clipText(stripHtml(specsSection ? specsSection.description : ""), 400),
     seoTitle: curatedSeoTitle,
     seoDescription: curatedSeoDesc,
     inStock: !!(p.stock && p.stock.inStock),

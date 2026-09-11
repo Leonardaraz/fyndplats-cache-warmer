@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/ae-delivery-poll",
       "schedule": "20 */2 * * *"
+    },
+    {
+      "path": "/api/cron/pris-snapshot",
+      "schedule": "30 2 * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_cFHNB471xiC8yH1XTJBNMBRpkZfe\" ] && exit 0 || exit 1"

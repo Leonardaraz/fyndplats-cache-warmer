@@ -4,6 +4,7 @@ import { forListClient } from "../../lib/list-payload";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { attachRatings } from "../../lib/review-aggregates";
 import { nameScore, normalize } from "../../lib/search";
+import { productCountLabel } from "../../lib/rating";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -55,7 +56,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
           <div className="sechead">
             <div className="eyebrow">Sök</div>
             <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
-            <p>{q ? `${results.length} ${results.length === 1 ? "produkt" : "produkter"} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
+            <p>{q ? `${productCountLabel(results.length)} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
           </div>
           {/* forClient, inte results rakt av. Product är strukturellt
               tilldelningsbar till ListProduct, så det HAR kompilerat — men då

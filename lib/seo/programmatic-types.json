@@ -1,5 +1,5 @@
 {
-  "_doc": "Pattern 1 — /basta-i-test/{slug}. Config-styrda 'bäst i test'-sidor. Varje typ matchar produkter via 'keywords' (substring i produktnamnet, gemener) minus 'exclude'. En typ RENDERAS bara om den matchar >= 3 produkter i den LIVE katalogen (quality-guard i lib/seo/programmatic.ts) — annars 404 + utesluts ur sitemap. 'category' är Wix-kategorinamnet (exakt) för brödsmula + intern länk; saknas den i katalogen hoppas länken bara över. Lägg till fler typer fritt — guarden filtrerar bort de som inte håller måttet.",
+  "_doc": "Pattern 1 — /basta-i-test/{slug}. Config-styrda 'bäst i test'-sidor. URVALET ÄR TVÅ GRINDAR: produkten måste ligga i 'category' (Wix-kategorinamnet EXAKT, inkl. underkategorier) OCH matcha ett 'keywords' (substring i produktnamnet, gemener) minus 'exclude'. Kategorin är den auktoritativa avgränsningen — nyckelorden får bara smalna av inom den. Saknas kategorin i katalogen renderas INGEN sida (vi faller aldrig tillbaka på hela katalogen; det gjorde en byrå med laddstation till en laddare). 'productSlugs' är en valfri plocklista som alltid tas med, även utanför kategorin — stödplåster för felkategoriserade produkter, rätta hellre kategorin i Wix. En typ RENDERAS bara om urvalet ger >= 4 produkter och >= 250 ord brödtext, annars 307 till /butik + utesluts ur sitemap. Lägg till fler typer fritt — guarderna filtrerar bort de som inte håller måttet.",
   "types": [
     {
       "slug": "massagepistoler",
@@ -10,8 +10,7 @@
         "massageapparat",
         "shiatsu",
         "nackmassage",
-        "fotmassage",
-        "massage"
+        "fotmassage"
       ],
       "exclude": [
         "massagesten",
@@ -72,15 +71,11 @@
         "snabbladdning",
         "usb-c"
       ],
-      "exclude": [
-        "lasertag",
-        "leksak",
-        "laddstation 4 spelare"
-      ],
+      "exclude": [],
       "category": "Laddare & Kablar",
-      "audience": "dig som är less på att ladda långsamt",
-      "painpoint": "ett urladdat batteri vid fel tillfälle och kablar som slutar funka efter någon månad",
-      "usp": "snabb, pålitlig laddning till alla dina prylar"
+      "audience": "dig som laddar bilen hemma eller på resan",
+      "painpoint": "en kabel som inte når fram och ett batteri som dör på fel ställe",
+      "usp": "laddning som håller i svenskt väder, året om"
     },
     {
       "slug": "mobilhallare",
@@ -110,7 +105,9 @@
         "led-slinga",
         "ljusslinga"
       ],
-      "exclude": [],
+      "exclude": [
+        "projektorduk"
+      ],
       "category": "Belysning",
       "audience": "dig som vill skapa rätt stämning hemma",
       "painpoint": "kalla taklampor som dödar mysfaktorn och mörka hallar att treva sig fram i",
@@ -148,7 +145,11 @@
       "category": "Leksaker & Spel",
       "audience": "dig som vill ge barnet lek som också utvecklar",
       "painpoint": "plastleksaker som tröttnar fort och inte tål att ärvas vidare",
-      "usp": "tidlös lek i naturmaterial som växer med barnet"
+      "usp": "tidlös lek i naturmaterial som växer med barnet",
+      "productSlugs": [
+        "barngarderob-tra-spegel-bokhylla-lador",
+        "kladstallning-barn-tra-spegel-montessori"
+      ]
     },
     {
       "slug": "babytillbehor",
@@ -274,7 +275,13 @@
       "category": "Väskor & Necessärer",
       "audience": "dig som vill ha ordning på prylarna var du än är",
       "painpoint": "en stökig väska där allt försvinner och nödvändiga saker tar slut",
-      "usp": "smart förvaring som håller ordning — hemma och på resan"
+      "usp": "smart förvaring som håller ordning — hemma och på resan",
+      "productSlugs": [
+        "naturehike-rock-2-0-vandringsryggsack",
+        "naturehike-rock-ryggsack-40-5-eller-60-5-liter",
+        "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+        "akbar-barnresvaska-26l-handbagage"
+      ]
     },
     {
       "slug": "traningsutrustning",

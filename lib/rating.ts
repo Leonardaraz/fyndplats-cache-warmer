@@ -34,6 +34,24 @@ export function reviewCountLabel(count: number): string {
 }
 
 /**
+ * "1 produkt", "2 produkter", "0 produkter".
+ *
+ * /butik skrev "1 produkter" på tre ställen i produktion 2026-09-10:
+ * Mobiltillbehör, Pälsvård & Skötsel och Väskor & Necessärer innehåller en
+ * produkt var. Åtta ytor hårdkodade ordet i plural; två — /sok och
+ * /kategori/[slug] — hade räknat rätt hela tiden, var för sig, med samma
+ * villkor skrivet två gånger. Det är regeln som flyttat hit.
+ */
+export function productCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "produkt" : "produkter"}`;
+}
+
+/** "1 kategori", "2 kategorier". Samma sak för kategoriräknarna. */
+export function categoryCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "kategori" : "kategorier"}`;
+}
+
+/**
  * Sammandraget, eller null när det inte finns något att visa.
  *
  * `null` returneras även när snittet saknas trots att antalet är > 0 — hellre

@@ -7,6 +7,7 @@ import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/catego
 import { pageMeta } from "../../lib/seo";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
 import { tightFillUrl } from "../../lib/wix-image";
+import { productCountLabel, categoryCountLabel } from "../../lib/rating";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
@@ -119,11 +120,11 @@ export default async function Butik() {
             <h1 className="butik-hero-title">Hitta dina nästa fynd.</h1>
             <p className="butik-hero-lede">
               Noga utvalda favoriter inom hem, kök, elektronik, hudvård och mer – allt på ett ställe.
-              <span className="butik-hero-meta"> {products.length} produkter · {collections.length} kategorier</span>
+              <span className="butik-hero-meta"> {productCountLabel(products.length)} · {categoryCountLabel(collections.length)}</span>
             </p>
             <div className="butik-hero-ctas">
               <a className="butik-hero-cta-all" href="/alla-produkter">
-                Se alla {products.length} produkter <span aria-hidden="true">→</span>
+                Se alla {productCountLabel(products.length)} <span aria-hidden="true">→</span>
               </a>
               <a className="butik-hero-cta-cats" href="#kategorier">
                 Bläddra kategorier
@@ -173,7 +174,7 @@ export default async function Butik() {
                     <a className="butik-cat-titlelink" href={`/kategori/${g.main.slug}`}>
                       <h3 className="butik-cat-title">{g.main.name}</h3>
                     </a>
-                    <span className="butik-cat-count">{g.count} produkter</span>
+                    <span className="butik-cat-count">{productCountLabel(g.count)}</span>
                   </div>
                   <p className="butik-cat-tag">{g.tag}</p>
                   {g.subs.length > 0 && (
@@ -192,7 +193,7 @@ export default async function Butik() {
                           )}
                           <span className="butik-subchip-text">
                             <span className="butik-subchip-name">{s.name}</span>
-                            <span className="butik-subchip-count">{s.count} produkter</span>
+                            <span className="butik-subchip-count">{productCountLabel(s.count)}</span>
                           </span>
                           <span className="butik-subchip-arr" aria-hidden="true">→</span>
                         </a>
