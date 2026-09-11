@@ -152,3 +152,59 @@ grinden fäller varje "bär upp till N" på dem.
 ☠️ **`71e8e879`:s översta steg är INTE fastsatt.** Källans egen varning säger
 att det måste stödja mot soffan eller sängen. Den står i kundtexten, både i
 "Att tänka på" och i FAQ:n.
+
+## Steg 7 — KVITTERAT, tio av tio byte-exakta (2026-09-11)
+
+Fösta skrivningen bar **rotrelativa** korslänkar (`/produkt/…`). Wix skriver om
+dem till `https:/produkt/…` — ETT snedstreck, alltså en adress vars VÄRDNAMN
+blir `produkt`. PATCH-svaret ekar tillbaka det man skickade, så felet syns inte
+där. Det som fångade det var längden: återläsningen låg **exakt +18 tecken** på
+alla tio sidor (6 per länk × 3).
+
+Alla tio är omskrivna med absolut butiksadress och verifierade mot `facit.json`:
+
+| | |
+|---|---:|
+| lästa tillbaka med `?fields=PLAIN_DESCRIPTION` | 10 |
+| hash + längd stämmer mot facit | **10** |
+| Wix lagrade == källan (efter `wixnorm.normalisera`) | **10** |
+| residual (`diff`) | **+0 på alla tio** |
+| trasiga `https:/`-hrefs kvar | **0** |
+
+⚠️ **Läsningen måste delas upp eller sorteras.** Tio produkter med brödtext är
+~55 000 tecken och kapas vid 50 000. `$in`-listans ORDNING styr ingenting —
+Wix sorterar `createdDate` fallande som default, så den äldsta produkten ligger
+alltid sist och faller utanför kapningen. `"sort": [{"fieldName":"createdDate",
+"order":"ASC"}]` under `search` vänder listan och gör den sista läsbar.
+
+## Steg 8a — Wix variant-SKU omsynkad (2026-09-11)
+
+Sex av tio delade SKU i Wix före rundan — fyra på `FP-haustiertreppe`, två på
+`FP-haustiertreppe-fur-hunde`. Det var alltså en LEVANDE defekt, inte bara en
+tysk sträng.
+
+| pid | före | efter |
+|---|---|---|
+| 8f6147b5 | `FP-hundetreppe-3-stufen-34` | `FP-husdjurstrappa-3-steg` |
+| 4c25eb86 | `FP-katzentreppe-4-stufige` | `FP-husdjurstrappa-4-steg` |
+| 762cc411 | `FP-katzentreppe-3-stufen` | `FP-kattrappa-3-steg-boucle` |
+| f384c51d | `FP-haustiertreppe-fur-hunde` | `FP-hundtrappa-ljus-tralook` |
+| 3ff2bc32 | `FP-haustiertreppe-fur-hunde` | `FP-hundtrappa-morkbrun-4` |
+| 03715963 | `FP-hundetreppe-3-stufen-48` | `FP-hundtrappa-gradvit` |
+| c38f929e | `FP-haustiertreppe` | `FP-hundtrappa-morkbla` |
+| 96d2803c | `FP-haustiertreppe` | `FP-husdjurstrappa-gra-2` |
+| 11436227 | `FP-haustiertreppe` | `FP-husdjurstrappa-mork-2` |
+| 71e8e879 | `FP-haustiertreppe` | `FP-husdjurstrappa-skum` |
+
+Alla tio härledda ur sluggen med `grindar.sku_bas` (aldrig skrivna för hand),
+distinkta, ≤ 40 tecken, ASCII. `bulkActionMetadata: 10 lyckade, 0 fel`.
+
+☠️ **Varianten LÄSTES en och en, den rekonstruerades inte.** Två av tio
+(`3ff2bc32`, `762cc411`, `4c25eb86`) bär INGEN `media` på varianten medan de
+övriga sju gör det — formen varierar alltså inom samma runda, och en
+"self-evident" rekonstruktion hade skrivit ett fält Wix inte hade.
+`products/search` returnerar inte `variantsInfo` ens med
+`fields=VARIANT_OPTION_CHOICE_NAMES`; bara GET gör det.
+
+Varje rad bär `visible: false` på produkten OCH `visible: true` på varianten,
+enligt husregeln om att en `variantsInfo`-PATCH annars publicerar utkastet.
