@@ -229,3 +229,125 @@ Samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`, fast värre: där
 saknas ett fält som inte begärts, här finns fältet men läses med fel form.
 **En läsning som svarar tomt på 5 649 rader är ett påstående, inte ett
 kvitto** — kontrollräkna mot en känd nämnare.
+
+-----
+
+## Steg 7–9 — text, SKU och bilder
+
+Sex texter skrivna i `texter.py` och skrivna till Wix i ETT svep. **6 av 6
+hash-verifierade** mot facit efter skrivningen (tag-strippad, whitespace-
+normaliserad synlig text), alltså inte lästa ur PATCH-svaret — det ekar
+tillbaka ordagrant det man skickade och bekräftar en felstavning som "sparad".
+
+| id8 | slug | SKU | hash |
+|---|---|---|--:|
+| `65e3c24f` | `solcellslampa-144-cm-tre-skarmar-konstrotting` | `FP-solcellslampa-144-cm-tre` | 444928428 |
+| `4e23a904` | `solcellslampa-bage-178-cm-konstrotting` | `FP-solcellslampa-bage-178` | 713661570 |
+| `66a26135` | `solcellslampa-pelare-77-cm-konstrotting` | `FP-solcellslampa-pelare-77` | 227477663 |
+| `5ffb91a2` | `solcellslampa-130-cm-konstrotting` | `FP-solcellslampa-130-cm` | 293564072 |
+| `ef0c374b` | `solcellslyktor-2-pack-45-och-35-cm-konstrotting` | `FP-solcellslyktor-2-pack-45` | 173816665 |
+| `a8cf27cd` | `solcellslykta-61-cm-brun-konstrotting` | `FP-solcellslykta-61-cm-brun` | 481320260 |
+
+☠️ **SKU-krocken fångades när SLUGGEN valdes, inte vid Steg 8.**
+`solcellslampa-rotting-144-cm…` och `solcellslampa-rotting-130-cm` kapar båda
+till `FP-solcellslampa-rotting` — krocken syns inte i sluggen, den uppstår i
+den kapade strängen (uppgift #473). Talet flyttades före materialordet, och
+SKU:n räknades ur `lib/import/sku.ts` regel i samma stund sluggen skrevs.
+
+Bilderna: 32-bildersgallerier skrivna och **verifierade med separat re-GET**
+på alla sex — fyra tyska bilder bort, kortet på plats 3, måttritningen sist.
+
+### ☠️ Två delade moduler var TRASIGA, och båda hade fungerat av en slump
+
+1. **`kortrunda.kontroll` gav falsklarm på korrekt data.** Den rapporterade
+   "kortet saknar måttraden" om ett kort som bär TVÅ måttrader, eftersom
+   `"Mått,".endswith("mått")` är FALSKT — skiljetecknet räknades som en del av
+   ordet. Runda 130:s tvålyktorsprodukt har etiketterna `Mått, större lyktan`
+   och `Mått, mindre lyktan`, och den är den första på nio rundor med ett komma
+   i etiketten. Lagat med `_matt_ord()` + nio testfall.
+
+2. ☠️ **`kortbygge`s `mjuka` var DÖD KOD i nio rundor.** `bygg` väljer
+   `foton.get(k) or kalla(...)`, och `kortrunda.kor` fyller ALLTID `foton` via
+   `hamta_hjaltar` — alltså nåddes `kalla`, den enda användaren av `mjuka`,
+   aldrig. Bevisat på BYTE: identisk filstorlek vid blur 1,1 / 1,8 / 2,4 / 3,0.
+   Verktyget skrev ut `MJUKA UPP FOTOT` som åtgärd och struntade sedan i
+   parametern som utför den. `mjuka_upp()` är utbruten ur `kalla` och gäller
+   nu oavsett var fotot kom ifrån.
+
+**Båda är samma familj som resten av husets dyra buggar: en kontroll som
+fungerade av en slump, och en åtgärd som aldrig kördes.**
+
+## Steg 10 & 13 — kategori, publicering, stämpel
+
+Kategorierna skrevs till föräldern `Trädgård & Utemöbler` och lövet
+`Trädgårdsdekor & Belysning`, två lyckade per produkt. **Verifierade med en
+SENARE läsning** (`?fields=DIRECT_CATEGORIES_INFO`) — skrivningen är eventuellt
+konsistent och en omedelbar återläsning kan ljuga negativt (uppgift #357):
+
+```
+6/6  kategorier: 3 (de två + All Products)   visible: true   saknas: []
+```
+
+Publiceringen satte `visible: true` på BÅDE produkten och varianten — produktens
+`visible:false` speglas nedåt på varianterna, så bara den ena hade lämnat sidan
+oköpbar. Priserna ekades ordagrant ur samma läsning som gav revisionen; **inget
+pris rördes**.
+
+Stämplingen gick genom `polish-mapping.yml` i `stampla`-läge, sex körningar.
+☠️ **Kvittot är `PRODUCT_ID` i loggens env-block, aldrig körningarnas ordning** —
+alla sex lästa en och en:
+
+| `PRODUCT_ID` | variant-SKU i patchen | `ändrat` |
+|---|---|---|
+| `65e3c24f-…` | `FP-solcellslampa-144-cm-tre` | needsAiPolish, draftStatus, variantSkus |
+| `4e23a904-…` | `FP-solcellslampa-bage-178` | ✅ |
+| `66a26135-…` | `FP-solcellslampa-pelare-77` | ✅ |
+| `5ffb91a2-…` | `FP-solcellslampa-130-cm` | ✅ |
+| `ef0c374b-…` | `FP-solcellslyktor-2-pack-45` | ✅ |
+| `a8cf27cd-…` | `FP-solcellslykta-61-cm-brun` | ✅ |
+
+## Steg 14 — live-grinden: 6 av 6 gröna
+
+```
+grind.sjalvtest():     saknas — rundans grind självtestas i mutation.py
+grindar._sjalvtest():  56 fall, 0 fel
+
+65e3c24f  solcellslampa-144-cm-tre-skarmar-konstrotting    HIT    0 fel
+4e23a904  solcellslampa-bage-178-cm-konstrotting           HIT    0 fel
+66a26135  solcellslampa-pelare-77-cm-konstrotting          HIT    0 fel
+5ffb91a2  solcellslampa-130-cm-konstrotting                HIT    0 fel
+ef0c374b  solcellslyktor-2-pack-45-och-35-cm-konstrotting  HIT    0 fel
+a8cf27cd  solcellslykta-61-cm-brun-konstrotting            HIT    0 fel
+
+SUMMA: 6 sidor, 0 fel
+```
+
+### ☠️ Tionde kopian blev en DELAD MODUL — och en kopia hade redan drivit
+
+Live-grinden har burits som en egen fil per runda, och filerna drev isär
+mätbart:
+
+| runda | rader | `GR.sjalvtest()` |
+|---|--:|---|
+| 125 | 187 | — |
+| 126 | 220 | — |
+| 127 | 219 | — |
+| 128 | 106 | **körs** |
+| 129 | 59 | **tappad** |
+
+Runda 128 körde alltså rundans EGEN grindsjälvtest i Steg 14; runda 129 bantade
+filen och tappade anropet, och ingen såg det — ett bortfall av exakt samma slag
+som `kortbygge.mjuka` ovan. Reglerna hade redan flyttat till
+`grind.granska(pid, html, live=True)`; **ordningen att köra dem** bor nu i
+`liverunda.kor`, och `runda-130/livegrind.py` är 25 rader data. Anropet till
+rundans självtest är villkorat på förekomst och skriver ut när det SAKNAS —
+tystnad var det som gjorde bortfallet osynligt.
+
+Samma skäl som `kortrunda.py`, `SHIP_AXIS_RE`, `EU_TULL_CODES` och
+`mapWithConcurrency`: **en regel som varje runda måste minnas glöms bort.**
+
+## Rundan är klar
+
+Sex sidor live, stämplade, kategoriserade och live-grindade. Noll priser rörda,
+noll artikelnummer skrivna, noll byggen utlösta (allt ligger i `docs/` och
+`tools/polish-assets/`).
