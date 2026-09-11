@@ -36,11 +36,26 @@ LAGERFRAS = ["eu-lager", "skickas från", "fraktas från", "lagerland"]
 ATTRIBUTION = ["leverantör", "leverantören", "leverantörens", "tillverkaren",
                "tillverkarens", "grossist"]
 
-# ☠️ Mönstret krävde tidigare tre SIFFROR före bindestrecket och missade därmed
-#    `83F-028V00GY` — numret som står i en produkts EGEN tyska brödtext. Aosoms
-#    nummer börjar med en siffra men får ha bokstäver redan i första ledet.
-#    Kravet på minst en versal håller årtal som "2024-2025" utanför.
-ARTNR = re.compile(r"\b(?=[0-9A-Z-]*[A-Z])[0-9][0-9A-Z]{1,3}-[0-9A-Z]{4,}\b")
+# ☠️ MÖNSTRET HAR VARIT HALVBLINT TVÅ GÅNGER, och andra gången var värre.
+#    Först krävde det tre SIFFROR före bindestrecket och missade `99Q-000Z00ZZ`.
+#    Raden skrevs då om till "börjar med en siffra, får ha bokstäver sedan" —
+#    och den formuleringen är fortfarande fel: Aosoms nummer börjar ibland med
+#    en BOKSTAV. Runda 126 mätte det på en produkts egen tyska `Technische
+#    Daten`, där numret har formen `B71-…`; det gamla mönstret svarade `False`
+#    på exakt den sträng grinden finns för att fånga.
+#
+#    Kravet är därför inte längre "börjar med siffra" utan FORMEN:
+#      • första ledet 2–4 versaler/siffror och måste innehålla minst EN SIFFRA
+#      • andra ledet minst fyra tecken med BÅDE bokstav och siffra
+#    Det håller årtal ("2024-2025", andra ledet saknar bokstav), normnummer
+#    ("EN71-3", för kort) och materialord ("EVA-SKUM", inget tal) utanför.
+#
+#    ⚠️ En elektrisk spec skriven som `12V-500MA` faller på samma form och
+#    fälls i onödan. Det är den billiga riktningen: en falsk träff kostar en
+#    omskrivning, en missad träff publicerar vårt inköpsled.
+ARTNR = re.compile(
+    r"\b(?=[0-9A-Z]*[0-9])[0-9A-Z]{2,4}"
+    r"-(?=[0-9A-Z]*[A-Z])(?=[0-9A-Z]*[0-9])[0-9A-Z]{4,}\b")
 
 ANKARE = re.compile(r'<a href="([^"]*)"[^>]*>(.*?)</a>', re.S)
 
@@ -884,6 +899,22 @@ def flikfel(html, kravs=FLIKAR_SOM_KRAVS):
 #    samtidigt, och de tre nyaste reglerna är alla skrivna EFTER ett falsklarm.
 def _sjalvtest():
     fall = [
+        # ☠️ ARTNR måste se BÅDA formerna av Aosoms artikelnummer. Den
+        #    bokstavsinledda missades i sex rundor (runda 126).
+        ("artnr: sifferinlett fälls",
+         lambda: bool(ARTNR.search("Artikelnummer: 900-000ZZ")), True),
+        ("artnr: BOKSTAVSINLETT fälls",
+         lambda: bool(ARTNR.search("Artikelnummer: X99-000Q00ZZ")), True),
+        ("artnr: blandat led fälls",
+         lambda: bool(ARTNR.search("modell 99Q-000Z00ZZ")), True),
+        ("artnr: årtal fälls INTE",
+         lambda: bool(ARTNR.search("säsongen 2024-2025")), False),
+        ("artnr: normnummer fälls INTE",
+         lambda: bool(ARTNR.search("enligt EN71-3")), False),
+        ("artnr: materialord fälls INTE",
+         lambda: bool(ARTNR.search("klädd med EVA-SKUM")), False),
+        ("artnr: mått fälls INTE",
+         lambda: bool(ARTNR.search("höjden 80-130 cm")), False),
         ("flik: alla tre finns", lambda: bool(flikfel(
             "<summary>Tekniska specifikationer</summary>"
             "<summary>Användning och skötsel</summary>"
