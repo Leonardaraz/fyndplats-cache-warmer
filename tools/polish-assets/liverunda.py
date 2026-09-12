@@ -81,10 +81,67 @@ def sjalvtester(GR):
     return fel
 
 
-def kor(GR, T, pids=None, bas=BAS):
+# ☠️ KONTROLLSIDAN. En publicerad produkt i samma familj som rundan ALDRIG
+#    rört. Allt grinden hittar på den är per definition BUTIKENS text —
+#    header, ribbon, prisblock, rekommendationsrad, bloggänkar, footer — och
+#    får därför inte fällas på våra sidor.
+#
+#    Runbokens regel (Steg 12, fynd 4): runda 90:s första live-svep fällde
+#    7 av 7 korrekta sidor på tre fynd som alla fanns ordagrant på en sida
+#    rundan aldrig rört. Runda 134 mätte samma sak en gång till: butikens
+#    bloggrubrik "Klösträd & kattträd" bär tre t i rad och fälldes av
+#    rundans trekonsonantsgrind — ett ÄKTA stavfel, men i BUTIKSREPOT, inte
+#    i vår text. Grinden hade rätt om ordet och fel om vems det var.
+#
+#    ⚠️ Subtraktionen är på EXAKT STRÄNG, aldrig en heuristik. Butikens
+#       chrome är byte-identisk mellan sidor; det som skiljer är vår text.
+KONTROLL = "klostrad-200-cm-sex-nivaer"
+
+
+def kontrollfynd(GR, T, pid, bas=BAS, slug=KONTROLL):
+    """Grindens träffar på en sida rundan aldrig rört = butikens egna.
+
+    ☠️ TVÅ HÅL SOM BÅDA HADE GJORT SUBTRAKTIONEN FARLIGARE ÄN INGEN ALLS,
+       och båda satt i den första versionen av den här funktionen:
+
+    1. `granska(pid, …, live=True)` provar `egna + NAMN + TITEL + META +
+       SOKORD` — alltså RUNDANS EGNA FÄLT, oavsett vems HTML den fick. Ett
+       stavfel i vår egen titel hade därför fyrat på kontrollsidan också,
+       hamnat i `butikens` och dragits bort från VÅR sida. Grinden hade
+       tvättat bort vårt eget fel och kallat det butikens. Därför körs
+       grinden EN GÅNG TILL på tom HTML: det som fyrar då kommer ur
+       rundans fält och får aldrig ingå i subtraktionen.
+
+    2. `kortfel` hör inte hemma här över huvud taget. Den frågar om VÅR
+       sida bär ett eget Fyndplats-kort, och runda 121-128 publicerade
+       ~62 sidor utan ett — så en kontrollsida ur den perioden hade fällt
+       `SAKNAR EGET KORT`, subtraherat det, och tystat exakt den grind som
+       byggdes för att det steget glömdes åtta rundor i rad. Kortgrinden
+       körs bara på våra sidor, aldrig på kontrollen.
+
+    ⚠️ Subtraktionen är på EXAKT STRÄNG, aldrig en heuristik. Butikens
+       chrome är byte-identisk mellan sidor; det som skiljer är vår text.
+    """
+    try:
+        html, _ = G.hamta_isr(bas + slug)
+    except SystemExit as e:
+        # ☠️ En ohämtad kontrollsida får INTE tyst bli en tom mängd — då
+        #    rapporteras butikens chrome som våra fel igen. Hellre rött.
+        raise SystemExit("kontrollsidan %s gick inte att hämta: %s" % (slug, e))
+    pa_sidan = set(GR.granska(pid, html=G.butikstvatt(html), live=True))
+    ur_egna_falt = set(GR.granska(pid, html="", live=True))
+    return pa_sidan - ur_egna_falt
+
+
+def kor(GR, T, pids=None, bas=BAS, kontroll=KONTROLL):
     """Hämtar varje publicerad sida och grindar den. Returnerar antal fel."""
     total = len(sjalvtester(GR))
     pids = pids or list(T.SLUG)
+    butikens = kontrollfynd(GR, T, pids[0], bas, kontroll) if kontroll else set()
+    print("kontrollsida %-28s %d träffar som är BUTIKENS"
+          % (kontroll or "—", len(butikens)))
+    for f in sorted(butikens):
+        print("     (butikens) %s" % f)
     print()
     for pid in pids:
         slug = T.SLUG[pid]
@@ -97,7 +154,10 @@ def kor(GR, T, pids=None, bas=BAS):
             total += 1
             continue
         cache = huvuden.get("x-vercel-cache", "?")
-        fel = G.kortfel(html) + GR.granska(pid, html=G.butikstvatt(html), live=True)
+        # ☠️ KORTGRINDEN SUBTRAHERAS ALDRIG — se `kontrollfynd`.
+        fel = G.kortfel(html) + [
+            f for f in GR.granska(pid, html=G.butikstvatt(html), live=True)
+            if f not in butikens]
         total += len(fel)
         print("%-9s %-48s %-6s %d fel" % (pid, slug, cache, len(fel)))
         for f in fel:
