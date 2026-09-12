@@ -52,11 +52,37 @@ BESKURNA = {
 }
 
 # Fil-id i Wix Media Manager för de beskurna bilderna, efter uppladdning ur
-# grenen. Fylls när uppladdningen är kvitterad — tom tills dess.
-BESKUREN_FIL = {}
+# grenen.
+# ☠️ ATTRIBUTIONEN ÄR BEVISAD PÅ md5, inte på ordningen i uppladdningssvaret
+#    — svaret bär inget filnamn, och ordningsantagandet är precis det huset
+#    brände sig på i bulk-lagerskrivningen. `kvitto-bilder.py` hämtade ned
+#    varje fil och jämförde med den lokala: 12 av 12, http 200 (alltså READY
+#    och inte FAILED, som `operationStatus: PENDING` ensamt inte kan skilja).
+BESKUREN_FIL = {
+    ("ae1c848f", 3): "b379ce_f0eb28e3a63c40c8951192d7d31da381~mv2.jpg",
+    ("f8528666", 3): "b379ce_1cd0cb06922c48f6843b7b14f204b64e~mv2.jpg",
+    ("63a586da", 3): "b379ce_5724c5acaa5447e09f3f35b786557b3a~mv2.jpg",
+    ("05136778", 4): "b379ce_8454e370e06d4349bb5eed48c2107c88~mv2.jpg",
+}
 
 # Faktakortens fil-id i Wix Media Manager, efter uppladdning ur grenen.
-KORTFIL = {}
+KORTFIL = {
+    "4a5acc7d": "b379ce_4b0a13f2c1244d2ab195fcc7eec0d11d~mv2.jpg",
+    "860b6eb9": "b379ce_0c2838b4a1f446bfa9c515d165dc885a~mv2.jpg",
+    "05136778": "b379ce_f232d417a8234558a52c50bb563556ce~mv2.jpg",
+    "105c685a": "b379ce_3e5aa9f983714e98add7e2b701c059e6~mv2.jpg",
+    "7f8e495b": "b379ce_da754c88a7044d48a248b20742ff7617~mv2.jpg",
+    "ae1c848f": "b379ce_4208871a26674981b3f775c5121e8a9a~mv2.jpg",
+    "f8528666": "b379ce_4c74f7490f0d4c9dbc4527a579c6248c~mv2.jpg",
+    "63a586da": "b379ce_07291836427b4603ad942d0b5b065b67~mv2.jpg",
+}
+
+
+def filid(pid, nyckel):
+    """Fil-id för en plats i ordningen. En BESKUREN bild ersätter originalet."""
+    if nyckel == "kort":
+        return KORTFIL[pid]
+    return BESKUREN_FIL.get((pid, nyckel)) or GALLERI[pid][nyckel - 1]
 
 # ORDNINGEN ÄR RUNBOKENS: 1 hjälte, 2 verklighet, 3 eget kort, sist måttritning.
 # Talen är POSITIONER I `GALLERI`; "kort" är rundans eget Faktakort.
