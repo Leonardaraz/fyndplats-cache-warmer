@@ -205,6 +205,40 @@ def tal(text):
     return {t.replace(".", ",").rstrip(",") for t in re.findall(r"\d+(?:[.,]\d+)?", text)}
 
 
+# ☠️ KÄLLAN SKRIVER IBLAND TALET MED BOKSTÄVER. Uppmätt i runda K14 på
+# 5531de28: tyskan säger "Enthält zwei Zierkissen" och specen ger
+# "Zierkissengröße: 38L x 32B x 15T cm" — antalet finns alltså i källan, men
+# som ORD. Den svenska specraden "Prydnadskuddar: 2 st" fälldes därför som
+# [SIFFRA UTAN KÄLLA] trots att påståendet är ordagrant belagt.
+#
+# Utvidgningen gäller BARA facit-sidan, aldrig textsidan. Räknades ett svenskt
+# "två" i brödtexten som siffran 2 skulle grinden i stället KRÄVA täckning för
+# varje utskrivet räkneord i prosan — alltså bli strängare på fel ställe och
+# fyra på varje "två av sittdynorna". Riktningen spelar roll: här är talet
+# bevisligen leverantörens eget.
+#
+# `ein`/`eine`/`eins` är MED FLIT utelämnade: de är obestämda artiklar och
+# står i nästan varje tysk mening. Att låta dem bidra med "1" hade gjort
+# siffran 1 fri över hela katalogen.
+ORDTAL_DE = {
+    "zwei": "2", "drei": "3", "vier": "4", "fünf": "5", "sechs": "6",
+    "sieben": "7", "acht": "8", "neun": "9", "zehn": "10", "elf": "11",
+    "zwölf": "12",
+}
+
+
+def tal_ur_kalla(text):
+    """Talen i en KÄLLTEXT — siffror plus tyska räkneord skrivna med bokstäver.
+
+    Används bara av `las_facit`. Textsidan använder `tal()` oförändrad.
+    """
+    ut = tal(text)
+    for ord_, siffra in ORDTAL_DE.items():
+        if re.search(r"\b" + ord_ + r"\b", text, re.IGNORECASE):
+            ut.add(siffra)
+    return ut
+
+
 def las_facit(katalog="."):
     """Rundans facit som {kort: [tal]}, oavsett vilket av de två formaten som finns.
 
@@ -222,7 +256,7 @@ def las_facit(katalog="."):
         sokvag = os.path.join(katalog, namn)
         if os.path.exists(sokvag):
             ra = _json.load(open(sokvag, encoding="utf-8"))
-            return {k: (v if isinstance(v, list) else sorted(tal(kropp(v))))
+            return {k: (v if isinstance(v, list) else sorted(tal_ur_kalla(kropp(v))))
                     for k, v in ra.items()}, namn
     return None, None
 

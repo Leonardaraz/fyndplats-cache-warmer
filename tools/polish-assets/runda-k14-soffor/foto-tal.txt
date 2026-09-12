@@ -1,0 +1,5 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoräknad uppgift måste kvitteras här för att slippa igenom.
+166fdb52 2 sittdynor och ryggkuddar räknade på bilder/166fdb52-1.jpg — två av varje, källan anger inget antal

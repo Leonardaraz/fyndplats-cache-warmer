@@ -13,12 +13,13 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
   slugs.txt         "kort slug", en rad per produkt
   <kort>.html       texterna
   rad-tal.txt       VALFRI: råd-tal, ett per rad (se nedan)
+  foto-tal.txt      VALFRI: fotoräknade tal, "<kort> <tal> <skäl>" (se nedan)
 """
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gatelib import las_facit, GRINDAR, FLIKAR, tal, kropp
 
-# ☠️ TVÅ LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — båda smala med flit.
+# ☠️ TRE LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — alla smala med flit.
 #
 # 1. RÅD-TAL. "minst 20 cm fritt bakom ryggstödet" är VÅR placeringsanvisning,
 #    inte leverantörens mått. Ett råd-tal måste stå i rundans `rad-tal.txt` för
@@ -27,6 +28,36 @@ from gatelib import las_facit, GRINDAR, FLIKAR, tal, kropp
 RAD_TAL = set()
 if os.path.exists("rad-tal.txt"):
     RAD_TAL = {r.strip() for r in open("rad-tal.txt", encoding="utf-8") if r.strip()}
+
+# 3. FOTO-TAL. ☠️ Runbookens egen J1-regel säger att BILDEN är facit för
+#    konstruktion — "titta på bilderna FÖRE texten" — men grinden kunde bara
+#    se den tyska texten. Ett tal som bara går att RÄKNA på fotot hade därför
+#    ingen laglig väg igenom, och de två utvägarna var båda fel: skriva om
+#    talet till bokstäver för att gömma det för grinden, eller stryka ett sant
+#    och användbart påstående för att blidka den.
+#
+#    Uppmätt i runda K14 på 166fdb52: texten säger "Sittdynor: 2 st" och
+#    källan nämner aldrig något antal — men produktfotot visar två sittdynor
+#    och två ryggkuddar. Påståendet är sant och osynligt för varje textgrind.
+#
+#    Formen är SMAL med flit, som rad-tal: "<kort> <tal> <vad som räknades>".
+#    Talet gäller bara den produkt raden nämner — ett foto hör till en produkt,
+#    inte till rundan — och skälet är obligatoriskt, så filen blir ett protokoll
+#    över vad någon faktiskt tittat på och inte en generell ventil.
+FOTO_TAL = {}
+if os.path.exists("foto-tal.txt"):
+    for rad in open("foto-tal.txt", encoding="utf-8"):
+        rad = rad.strip()
+        if not rad or rad.startswith("#"):
+            continue
+        delar = rad.split(None, 2)
+        if len(delar) < 3:
+            raise SystemExit(
+                f"  [AVBRYT] foto-tal.txt: raden {rad!r} saknar skäl.\n"
+                "  Formen är '<kort> <tal> <vad som räknades på bilden>'. Ett tal\n"
+                "  utan skäl är en ventil, inte ett protokoll."
+            )
+        FOTO_TAL.setdefault(delar[0], set()).add(delar[1])
 
 # Facit: `kallor-tal.json` (lista med tal per produkt) är formen sedan runda G.
 # Runda A–F1 sparade i stället HELA källtexten i `kallor.json`. Grinden läser
@@ -94,7 +125,7 @@ for f in filer:
     facit = set(kallor.get(kort, []))
     if not facit:
         print(f"  {kort}: [KÄLLA SAKNAS]"); fynd += 1; continue
-    facit |= RAD_TAL | syskontal(txt)
+    facit |= RAD_TAL | syskontal(txt) | FOTO_TAL.get(kort, set())
     for t in sorted(tal(k) - facit, key=lambda x: (len(x), x)):
         print(f"  {kort}: [SIFFRA UTAN KÄLLA] {t!r}"); fynd += 1
 
