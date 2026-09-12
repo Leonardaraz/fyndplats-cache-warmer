@@ -72,6 +72,28 @@ Verifierad åt båda hållen: ett planterat axelfel (`40 cm djup`) fäller och
 namnger nu BREDD/HOJD, en planterad äkta källkonflikt utan Ø ger två träffar,
 och rundans åtta texter går rena.
 
+## Och normaliseraren var en byte fel — i varje runda
+
+`wixnorm.py` modellerade fyra av Wix fem åtgärder vid sparandet. Den femte är
+att filens AVSLUTANDE radbrytning strippas. Regel 1 (`>\n<` → `><`) kräver ett
+`<` efter radbrytningen, så filens sista `\n` — som inte har något efter sig —
+överlevde normaliseringen men inte Wix.
+
+| | förväntat | lagrat i Wix |
+|---|---:|---:|
+| `8802b999` | 3038 | **3037** |
+| `45fd6bc6` | 3124 | **3123** |
+
+Med radbrytningen bortstrippad stämmer båda checksummorna exakt, och så gör
+alla åtta. Varje runda vars fil slutar med radbrytning — alltså alla — har
+därför burit ett kvitto som låg exakt en byte fel.
+
+⚠️ **En byte ser ut som en struntsak och är just därför farlig:** avvikelsen är
+omöjlig att skilja från ett äkta transkriberingsfel på ett tecken, och den som
+sett den tillräckligt många gånger slutar titta efter vilket det var.
+Verifierad åt båda hållen: rundans åtta texter stämmer exakt, och ett planterat
+en-teckensfel (`Ø11,5` → `Ø11,6`) faller fortfarande.
+
 ## Filer
 
 | fil | vad |
