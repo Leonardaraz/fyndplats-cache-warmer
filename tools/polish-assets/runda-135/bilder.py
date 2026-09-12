@@ -146,7 +146,7 @@ ALT = {
  },
  "82efeeaf": {
   1: "Klösträd 86 cm med en rektangulär bädd överst, en rund mellanplatå och "
-     "klösklot i jute staplade på stammen",
+     "fyra klösklot staplade på stammen",
   2: "Klösträdet står på en rund matta vid en byrå, med bädden överst och "
      "sisalklädda stammar ned mot sockeln",
   3: "Måttritning över klösträdet: 56 × 54 × 86 cm, bädd 54 × 36 cm och en "
@@ -155,8 +155,8 @@ ALT = {
      "genom skivan",
   5: "Närbild på bäddens uppvikta kant i ljusbrun plysch, med den mjuka "
      "liggytan innanför",
-  "kort": "Faktakort: klösträd 56 × 54 × 86 cm, bädd 54 × 36 cm och klösklot "
-          "på Ø11 cm i jute",
+  "kort": "Faktakort: klösträd 56 × 54 × 86 cm, bädd 54 × 36 cm och fyra "
+          "klösklot på Ø11 cm",
  },
  "bdc7e768": {
   1: "Klösträd 98 cm format som ett får, med en liggtunnel i gräddvit plysch, "

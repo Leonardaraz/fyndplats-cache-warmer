@@ -23,7 +23,7 @@ NAMN = {
     "0696efce": "Klöspelare 87 cm i sisal – bollbana i sockeln och topplatta i trä",
     "7564dcfb": "Klöspelare 87 cm med bädd på toppen och tjock sisalstam",
     "5d64f423": "Klösträd 61,5 cm i trä och jute – bädd och hoppyta på var sin stolpe",
-    "82efeeaf": "Klösträd 86 cm med klösklot i jute – bädd på toppen och rund platå",
+    "82efeeaf": "Klösträd 86 cm med fyra klösklot – bädd på toppen och rund platå",
     "bdc7e768": "Klösträd 98 cm i fårdesign – liggtunnel, klösstolpar och svansleksak",
     "e2c8b0f3": "Klösträd 98 cm med bladkrona – grön hydda, bädd och jutestammar",
     "cc5da788": "Klösträd 100 cm med flätad kupolhydda – sisalstammar och platå",
@@ -50,7 +50,7 @@ TITEL = {
     "0696efce": "Klöspelare 87 cm med bollbana i sockeln | Fyndplats",
     "7564dcfb": "Klöspelare 87 cm med bädd på toppen | Fyndplats",
     "5d64f423": "Klösträd 61,5 cm i trä och jute | Fyndplats",
-    "82efeeaf": "Klösträd 86 cm med klösklot i jute | Fyndplats",
+    "82efeeaf": "Klösträd 86 cm med fyra klösklot | Fyndplats",
     "bdc7e768": "Klösträd 98 cm i fårdesign med tunnel | Fyndplats",
     "e2c8b0f3": "Klösträd 98 cm med bladkrona | Fyndplats",
     "cc5da788": "Klösträd 100 cm med flätad kupolhydda | Fyndplats",
@@ -65,7 +65,7 @@ META = {
     "5d64f423": ("Lågt klösträd 61,5 cm med en bädd och en hoppyta på var sin "
                  "jutelindad trästolpe. Mjuk plysch och bred sockel."),
     "82efeeaf": ("Klösträd 86 cm med bädd på toppen, rund mellanplatå och "
-                 "klösklot i jute på stammen. Bär 7 kg."),
+                 "fyra klösklot på stammen. Bär 7 kg."),
     "bdc7e768": ("Klösträd 98 cm format som ett får: liggtunnel i plysch, "
                  "jutelindade klösstolpar och en svansleksak som dinglar."),
     "e2c8b0f3": ("Klösträd 98 cm med grön hydda, oval bädd och en krona av "
@@ -109,7 +109,7 @@ INTRO = {
     "82efeeaf": (
         "Ett klösträd där stammen är gjord av klösklot. Tre saker staplade på "
         "varandra: en bädd på 54 × 36 cm överst, en rund platå på 40 × 37 cm "
-        "i mitten och klot i jute på Ø11 cm som katten kan greppa om. "
+        "i mitten och fyra klot på Ø11 cm som katten kan greppa om. "
         "Totalhöjden är 86 cm och sockeln mäter 56 × 54 cm."),
     "bdc7e768": (
         "Ett klösträd format som ett får, och formen är inte bara utseende. "
@@ -165,7 +165,7 @@ PUNKTER = {
     "82efeeaf": [
         "Bädd på 54 × 36 cm överst, 45 × 32 cm invändigt och 6 cm djup",
         "Rund mellanplatå på 40 × 37 cm",
-        "Klösklot i jute på Ø11 cm staplade på stammen",
+        "Fyra klösklot på Ø11 cm staplade på stammen, varannat\n         naturfärgat och varannat gräddvitt",
         "Stam på Ø7 cm och sockel på 56 × 54 cm",
         "Total höjd 86 cm, bär 7 kg",
         "Monteras med bifogad anvisning",
@@ -232,7 +232,7 @@ KATT = {
         "Bädden på 54 × 36 cm är ovanligt rymlig för ett klösträd i den här "
         "höjden, och kanten är uppvikt runt om så att katten kan luta huvudet "
         "mot något. Bärförmågan är 7 kg, alltså räcker den även till en "
-        "storvuxen katt. Klösklotet i jute sitter i den höjd där en katt som "
+        "storvuxen katt. Klösklotet sitter i den höjd där en katt som "
         "reser sig på bakbenen kommer åt det."),
     "bdc7e768": (
         "Tunneln är Ø26 cm i diameter, vilket passar en katt under 5 kg som "
@@ -418,7 +418,7 @@ SKOTSEL = {
         "väl urvriden trasa, klappande och aldrig gnuggande. Trästolparna "
         "torkas av torrt."),
     "82efeeaf": (
-        "Klösklotet i jute blir luddigt med tiden och det är meningen — klipp "
+        "Klösklotet blir luddigt med tiden och det är meningen — klipp "
         "bort de längsta trådarna med en sax. Bädden och platån borstas ur "
         "med en gummiborste. Dra åt muttern under sockeln om klotet börjar "
         "vrida sig runt stammen."),
@@ -486,7 +486,8 @@ FAQ = {
          "Kanten är uppvikt runt om."),
         ("Vad är klösklotet till för?",
          "Det är klösyta i den höjd där katten kommer åt den stående på "
-         "bakbenen. Kloten är Ø11 cm och klädda i jute."),
+         "bakbenen. De fyra kloten är Ø11 cm och lindade i naturfiber, "
+         "varannat naturfärgat och varannat gräddvitt."),
         ("Hur mycket tål den?",
          "7 kg, vilket räcker även till en storvuxen katt."),
     ],
