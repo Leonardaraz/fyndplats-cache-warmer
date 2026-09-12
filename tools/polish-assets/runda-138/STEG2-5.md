@@ -13,18 +13,33 @@ rubrik** — aldrig som varningsblock:
 
 | produkt | takspänne | tippskydd | maxlast | rek. kattvikt |
 |---|---|---|--:|--:|
-| `1366a476` | **nej** — väggrem | `Kippschutz-Set` | **saknas** | **saknas** |
-| `839a2ef5` | ja | ja | 10 kg | 5 kg |
-| `68bc6c0c` | ja | ja | 10 kg | 5 kg |
-| `e5b31270` | ja (`Deckenspanner`) | ja | — | 5 kg |
-| `fecadb3e` | ja (`Spannstange`) | ja | — | 5 kg |
-| `505a0dde` | ja | halkskydd | — | 5 kg |
-| `7bdc47b8` | ja | — | ~10 kg | 5 kg |
+| `1366a476` | **nej** — tippskyddslina | `Kippsicherungsseil` | **20 kg** | **under 6 kg** |
+| `839a2ef5` | ja | ja | 10 kg | upp till 5 kg |
+| `68bc6c0c` | ja | ja | 10 kg | under 5 kg |
+| `e5b31270` | ja (`Deckenspanner`) | ja | — | upp till 5 kg |
+| `fecadb3e` | ja (`Spannstange`) | ja | — | upp till 5 kg |
+| `505a0dde` | ja | halkskydd | — | under 5 kg |
+| `7bdc47b8` | ja | — | ca 10 kg | upp till 5 kg |
 
-☠️ **`1366a476` har VARKEN maxlast ELLER rekommenderad kattvikt** i någon kanal.
-Den är ensam om det bland de sju, och det är precis den lucka en gemensam
-batchtext fyller i av vana. Skriv inget tal som inte står i källan; skriv i
-stället det som FAKTISKT står: `2–3 katter` och `stammar på 7 cm`.
+☠️ **`1366a476` är familjens UNDANTAG åt andra hållet: 20 kg maxlast och
+6 kg kattvikt.** De sex andra ligger på 10 kg och 5 kg. Det är den enda i
+rundan som får beskrivas för en tyngre katt, och det talet ska stå — men bara
+på den.
+
+☠️ **RÄTTAD: den här tabellen sa först `saknas` på båda fälten för
+`1366a476`.** Felet var inte källan utan MIN LÄSNING: den första hämtningen
+kapades vid 1 700 tecken, och `Maximale Belastung` och `Gewicht des Haustiers`
+är de två SISTA raderna i dess `Technische Daten`. Kapningen såg ut som ett
+tomt fält.
+
+⚠️ **Det är en egen fälla, och den är värd namnet.** En avhuggen läsning
+skiljer sig inte från ett saknat värde när man bara har utdraget framför sig —
+och slutsatsen blev dessutom en FIN berättelse ("den enda utan maxlast, alltså
+den lucka en batchtext fyller i av vana"), vilket gör den svårare att
+misstänka. Ett tomt fält får aldrig påstås utan att hela blocket lästs.
+
+`e5b31270`, `fecadb3e` och `505a0dde` saknar däremot maxlast på riktigt —
+kontrollerat på fullständiga blad. Skriv inget tak för dem.
 
 ## Steg 4 — fyra bilder ska bort, och två etiketter ska INTE bort
 
