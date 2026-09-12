@@ -147,6 +147,25 @@ FORBJUDNA_PASTAENDEN = {
 #    819bf51c:s visar en jämn mörkgrå yta utan varv, och Technische Daten är
 #    identisk för båda. Ingen av sidorna påstår därför ett stammaterial —
 #    bara grovleken, som är mätt.
+# ☠️ LEVERANTÖRENS ETIKETTER ÄR INGEN RÄKNING (mätt 2026-09-12, runda 137).
+#    Måttritningen för de takspända sätter "34 cm" på TVÅ plan. Texten skrevs
+#    därför "två runda plan" — och det är fel. Hjältebilden räknad rad för rad
+#    på vit botten ger SEX vågräta element:
+#
+#      y   16– 43   89 px   takplattan (smal, mot taket)
+#      y  362–392  201 px   plan 1
+#      y  634–724  236 px   hängmattan (90 px djup)
+#      y  932–982  207 px   plan 2
+#      y 1224–1255 212 px   plan 3
+#      y 1507–1584 315 px   sockeln
+#
+#    Tre plan, alla lika breda inom perspektivets marginal (201/207/212 px).
+#    Ritningen etiketterar två av dem; den tredje är samma skiva. Samma klass
+#    som uppgift #462 — leverantörens egen text räknade fel på tre av elva.
+#
+#    ⚠️ Det som hittade det var KORTET, inte en grind: kortets rad "Plan 2 st"
+#       lästes bredvid hjältebilden i kontaktarket, och min egen alt-text sa
+#       "tre". Två av mina egna texter sa olika saker om samma möbel.
 OAVGJORT = {
     "1ae60dbc": "stammaterial (jute i bild, ej i spec)",
     "819bf51c": "stammaterial (mörkgrå yta, ej i spec)",

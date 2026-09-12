@@ -99,6 +99,53 @@ def _talgrind(pid, stycke):
     return fel
 
 
+# ☠️ RÄKNEORDSGRINDEN — prosan mot spec-raden (runda 137).
+#
+#    Texten sa "två runda plan", spec-raden "Plan: 3 st", och TALGRINDEN VAR
+#    GRÖN: 2 och 3 ligger båda i `TAL_FRIA`, alltså kan den per konstruktion
+#    aldrig se ett fel ANTAL. En delräkning är precis den sortens fakta ingen
+#    befintlig grind täcker — den är inte ett mått, den är en uppräkning.
+#
+#    Facit är spec-tabellen, som byggs ur tyskans `Technische Daten`. Står
+#    prosan och tabellen emot varandra är EN av dem fel, och det ska fällas
+#    oavsett vilken.
+#
+# ⚠️ TVÅ UNDANTAG, båda mätta på rundans egen text:
+#    1. `<a href`-stycken bär SYSKONENS tal ("klösträd i fem plan 230–260 cm"
+#       är en korslänk till en ANNAN produkt). Samma undantag som `_talgrind`.
+#    2. `ett`/`en` är obestämd artikel i svenskan, inte ett räkneord: "plats
+#       att ligga på ett plan" räknar ingenting. De räknas därför aldrig.
+#    Utan undantagen fyrade grinden fyra gånger på korrekt text.
+RAKNEORD = {"två": 2, "tre": 3, "fyra": 4, "fem": 5, "sex": 6,
+            "sju": 7, "åtta": 8, "nio": 9, "tio": 10}
+
+
+def _antalsgrind(pid, html):
+    """Ett räkneord framför en spec-etikett måste stämma med spec-radens antal."""
+    fel = []
+    antal = {}
+    for etikett, varde in T.SPEC[pid]:
+        m = re.match(r"^(\d+)(?:\s*st\b|,)", varde.strip())
+        if m:
+            antal[etikett.lower()] = int(m.group(1))
+    if not antal:
+        return fel
+    for stycke in re.split(r"(?=<p|<li)", html):
+        if "<a href" in stycke:            # korslänk → grannens tal
+            continue
+        txt = G.strip_taggar(stycke)
+        for etikett, n in antal.items():
+            # Etikettens ord, med valfria beskrivande ord emellan.
+            m = re.compile(r"(?<![0-9A-Za-zÅÄÖåäöÉé])(%s)\s+(?:\w+\s+){0,2}%s(?![0-9A-Za-zÅÄÖåäö])"
+                           % ("|".join(RAKNEORD), re.escape(etikett)), re.I)
+            for t in m.finditer(txt):
+                v = RAKNEORD[t.group(1).lower()]
+                if v != n:
+                    fel.append("FEL ANTAL %r — spec säger %d, texten %d: %r"
+                               % (etikett, n, v, G.mening_kring(txt, t.start())[:90]))
+    return fel
+
+
 def granska(pid, html=None, live=False):
     fel = []
     h = html if html is not None else T.bygg(pid)
@@ -125,6 +172,11 @@ def granska(pid, html=None, live=False):
     for monster, skal in SPECIFIKA.get(pid, []):
         for m in monster.finditer(allt):
             fel.append("%s: %r" % (skal, G.mening_kring(allt, m.start())[:110]))
+
+    if not live:
+        # Körs bara mot KÄLLAN: live-sidan bär grannarnas rader, och en
+        # rekommendationsrad med en annan produkts antal är inte vårt fel.
+        fel.extend(_antalsgrind(pid, h))
 
     for m in G.ARTNR.finditer(allt):
         fel.append("ARTIKELNUMMER %r" % m.group(0))

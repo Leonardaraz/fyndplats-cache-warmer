@@ -28,6 +28,15 @@ FORBJUDNA_FALT = ("visible", "variantsInfo", "price", "priceData",
                   "costAndProfitData", "media", "options")
 
 
+def _hash(t):
+    """Samma formel i Python och i JS-sandboxen — det är hela poängen.
+    `h = (h*31 + charCode) % 1000000007`, inget annat."""
+    h = 0
+    for c in t:
+        h = (h * 31 + ord(c)) % 1000000007
+    return h
+
+
 def payload(pid):
     return {
         "id": M.WIX[pid],
@@ -100,6 +109,24 @@ if __name__ == "__main__":
 
     with open(os.path.join(HAR, "steg7.json"), "w", encoding="utf-8") as f:
         json.dump(ut, f, ensure_ascii=False, indent=1)
+
+    # ☠️ HASHARNA SKRIVS AV SAMMA KÖRNING SOM PAYLOADEN. Först låg de i ett
+    #    eget skript, och när texten rättades i runda 137 uppdaterades bara
+    #    `steg7.json` — klistergrindens facit blev en runda gammalt utan att
+    #    något sa till. Exakt husets vanligaste bugg: två filer som beskriver
+    #    samma sak och bara den ena underhålls (`SHIP_AXIS_RE`, `EU_TULL_CODES`,
+    #    `mapWithConcurrency`). En grind med föråldrat facit är värre än ingen
+    #    grind: den svarar med auktoritet på fel fråga.
+    hashar = {}
+    for pid, p in ut.items():
+        kalla = p["plainDescription"]
+        hashar[pid] = {
+            "skickat": _hash(kalla),
+            "vantat_lagrat": _hash(G.wix_normalisera(kalla)),
+            "len_norm": len(G.wix_normalisera(kalla)),
+        }
+    with open(os.path.join(HAR, "steg7-hashar.json"), "w", encoding="utf-8") as f:
+        json.dump(hashar, f, ensure_ascii=False, indent=1)
     n = sum(len(p["seoData"]["settings"]["keywords"]) for p in ut.values())
     print("steg7.json: %d produkter, %d sökord, %d fel" % (len(ut), n, fel))
     sys.exit(1 if fel else 0)

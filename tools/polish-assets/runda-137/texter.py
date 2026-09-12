@@ -27,8 +27,8 @@ SLUG = dict(_M.SLUG)
 SKU = {pid: "FP-" + _G.sku_bas(slug) for pid, slug in SLUG.items()}
 
 NAMN = {
-    "c7bd00b9": "Takspänt klösträd 230–250 cm i ek och cremevitt – hängmatta och två plan",
-    "a73a1a1c": "Takspänt klösträd 230–250 cm i grått och cremevitt – hängmatta och två plan",
+    "c7bd00b9": "Takspänt klösträd 230–250 cm i ek och cremevitt – hängmatta och tre plan",
+    "a73a1a1c": "Takspänt klösträd 230–250 cm i grått och cremevitt – hängmatta och tre plan",
     "f5f71f5d": "Klösträd 90 cm i cremevitt – koja, hängmatta och bädd med kattöron",
     "dd3b541b": "Klösträd 90 cm i grått – koja, hängmatta och bädd med kattöron",
     "f489937f": "Klöspelare 91 cm i mörkgrått – grov sisalstam och bädd med kant",
@@ -50,9 +50,9 @@ TITEL = {
 
 META = {
     "c7bd00b9": "Takspänt klösträd som ställs mellan golv och tak, 230–250 cm. "
-                "Sisalstam Ø8,5 cm, hängmatta Ø30 cm och två plan på Ø34 cm. Tippskydd ingår.",
+                "Sisalstam Ø8,5 cm, hängmatta Ø30 cm och tre plan på Ø34 cm. Tippskydd ingår.",
     "a73a1a1c": "Takspänt klösträd i grått och cremevitt, 230–250 cm. Sisalstam "
-                "Ø8,5 cm, hängmatta Ø30 cm och två plan på Ø34 cm. Tippskydd ingår.",
+                "Ø8,5 cm, hängmatta Ø30 cm och tre plan på Ø34 cm. Tippskydd ingår.",
     "f5f71f5d": "Klösträd 90 cm med sluten koja 30 × 30 × 28 cm, hängmatta 35 × 35 cm "
                 "och toppbädd med uppvikt kant. Sockel 48 × 48 cm.",
     "dd3b541b": "Klösträd 90 cm i grått med sluten koja 30 × 30 × 28 cm, hängmatta "
@@ -83,14 +83,14 @@ INTRO = {
         "Ett klösträd som spänns fast mellan golv och tak i stället för att stå "
         "på en bred sockel. Stammen är lindad med sisal hela vägen upp och mäter "
         "Ø8,5 cm, sockeln är 40 × 40 cm, och höjden ställs in mellan 230 och "
-        "250 cm efter rummets takhöjd. På stammen sitter två runda plan på "
+        "250 cm efter rummets takhöjd. På stammen sitter tre runda plan på "
         "Ø34 cm och en hängmatta på Ø30 cm som är 12 cm djup. Träpanelerna är "
         "i ekton, klädseln cremevit."),
     "a73a1a1c": (
         "Ett takspänt klösträd med grå plan mot en cremevit stam. "
         "Sisalstammen är Ø8,5 cm och spänns mellan golv och tak, "
         "sockeln mäter 40 × 40 cm och höjden ställs in mellan 230 och 250 cm. "
-        "Två runda plan på Ø34 cm och en hängmatta på Ø30 cm, 12 cm djup, "
+        "Tre runda plan på Ø34 cm och en hängmatta på Ø30 cm, 12 cm djup, "
         "sitter på stammen."),
     "f5f71f5d": (
         "Ett klösträd på 90 cm där de tre nivåerna gör olika saker. Längst ner "
@@ -135,7 +135,7 @@ _TAK_PUNKTER = [
     "Spänns mellan golv och tak — ingen bred sockel tar golvyta",
     "Höjden ställs in mellan 230 och 250 cm efter rummets takhöjd",
     "Sisallindad stam på Ø8,5 cm i full höjd att klösa på",
-    "Två runda plan på Ø34 cm och en hängmatta på Ø30 cm, 12 cm djup",
+    "Tre runda plan på Ø34 cm och en hängmatta på Ø30 cm, 12 cm djup",
     "Kudde på 32,5 × 20 cm till det övre planet",
     "Tippskydd och takspänne ingår",
     "Sockel 40 × 40 cm — tar mindre plats än ett fristående klösträd",
@@ -330,7 +330,7 @@ _TAK_SPEC = [
     ("Mått", "40 × 40 × 230–250 cm (B × D × H)"),
     ("Sockel", "40 × 40 cm"),
     ("Höjdinställning", "230–250 cm, mot taket"),
-    ("Plan", "2 st, Ø34 cm"),
+    ("Plan", "3 st, Ø34 cm"),
     ("Hängmatta", "Ø30 cm, 12 cm djup"),
     ("Kudde", "32,5 × 20 cm"),
     ("Klösstam", "Ø8,5 cm, lindad med sisal"),
