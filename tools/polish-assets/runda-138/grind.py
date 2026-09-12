@@ -238,16 +238,20 @@ def _sokordsgrind(pid, sidtext, termer=None):
 # ☠️ RAMEN ÄR INTE BARA `i serien`. `fecadb3e` skrev "i den här höjdklassen",
 #    som ingen av mönstren ovan ser. Grinden matchar därför varje inramning
 #    som pekar på en jämförelsegrupp vi själva definierar.
+# ☠️ `den enda … i serien` ÄR ETT SUPERLATIV, i en annan grammatisk form —
+#    och den formen bär INGET av orden i listan nedan. Steg 12 hittade två
+#    sådana i rundan (läsningen som kund, inte grinden), varav ett var tomt:
+#    "den enda i den här höjdklassen som bär 20 kg" om produkten som är ensam
+#    i sin höjdklass. En grind som bara letar efter superlativa ADJEKTIV är
+#    blind för hela den konstruktionen.
+SERIEORD = (r"h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|l[äa]ttast|rymligast|"
+            r"smalast|bredast|djupast|gr[öo]vst|l[äa]ngst|tjockast|t[äa]tast|"
+            r"b[äa]st|kortast|st[äa]digast|enda")
 SERIERAM = re.compile(
-    r"\b(?:den|det)\s+\w*(?:h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|"
-    r"l[äa]ttast|rymligast|smalast|bredast|djupast|gr[öo]vst|l[äa]ngst|"
-    r"tjockast|t[äa]tast|b[äa]st|kortast|st[äa]digast)\w*\b[^.]{0,70}?"
+    r"\b(?:den|det)\s+\w*(?:" + SERIEORD + r")\w*\b[^.]{0,70}?"
     r"\bi\s+(?:den\s+h[äa]r\s+)?(?:serien|h[öo]jdklassen|familjen|klassen|gruppen)\b",
     re.I)
-_SUPERLATIVORD = re.compile(
-    r"\b\w*(?:h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|l[äa]ttast|rymligast|"
-    r"smalast|bredast|djupast|gr[öo]vst|l[äa]ngst|tjockast|t[äa]tast|b[äa]st|"
-    r"kortast|st[äa]digast)\w*\b", re.I)
+_SUPERLATIVORD = re.compile(r"\b\w*(?:" + SERIEORD + r")\w*\b", re.I)
 
 
 def _dubbeldefinitioner():
@@ -313,7 +317,12 @@ def _serie_vikt(pid):
     return float(v.split()[0].replace(",", ".")) if v else None
 
 
-_MATT = {"vikt": _serie_vikt}
+def _serie_takspanne(pid):
+    """`"ja"` när leverantören anger ett takspänne, annars `"nej"`."""
+    return "ja" if _specrad(pid, "Takspänne") else "nej"
+
+
+_MATT = {"vikt": _serie_vikt, "takspanne": _serie_takspanne}
 
 
 def _seriegrind(pid, sidtext, matt=None):
@@ -330,7 +339,16 @@ def _seriegrind(pid, sidtext, matt=None):
                        "serien måste stå i matt.SERIEPASTAENDEN med det mått "
                        "den vilar på" % pastaende[:80])
             continue
-        namn, riktning = tabell[nyckel]
+        namn, riktning, fragment = tabell[nyckel]
+        # ☠️ Fragmentet prövas mot HELA MENINGEN. `SERIERAM` matchar bara
+        #    "den enda … i serien"; det som skiljer två påståenden åt
+        #    ("som står fritt" mot "som bär 20 kg") ligger EFTER ramen.
+        mening = G.mening_kring(sidtext, m.start())
+        if fragment.lower() not in mening.lower():
+            fel.append("ODEKLARERAT SERIEPÅSTÅENDE %r — %s är deklarerat för "
+                       "meningar med %r, och den här saknar det"
+                       % (pastaende[:70], pid, fragment))
+            continue
         # ☠️ Ett odefinierat måttnamn ska FÄLLA, inte krascha. Ett stavfel i
         #    SERIEPASTAENDEN gav först KeyError mitt i granskningen — och en
         #    grind som kraschar ser i ett skript ut som en grind som inte kördes.
@@ -344,6 +362,16 @@ def _seriegrind(pid, sidtext, matt=None):
         if saknas:
             fel.append("OMÄTBART SERIEPÅSTÅENDE %r — %s saknas för %s"
                        % (pastaende[:60], namn, ", ".join(sorted(saknas))))
+            continue
+        if riktning == "enda":
+            # ☠️ "den enda som X" är sant bara om INGEN annan delar värdet.
+            #    Ett tomt påstående — en klass med en enda medlem — fångas
+            #    inte här utan av att gruppen ÄR hela rundan: jämförelsen görs
+            #    alltid mot alla sju, aldrig mot en delmängd texten hittar på.
+            andra = [p for p in tal if p != pid and tal[p] == tal[pid]]
+            if andra:
+                fel.append("FALSKT SERIEPÅSTÅENDE %r — %s är %r även hos %s"
+                           % (pastaende[:60], namn, tal[pid], ", ".join(sorted(andra))))
             continue
         vinnare = (min if riktning == "min" else max)(tal, key=tal.get)
         if vinnare != pid or list(tal.values()).count(tal[pid]) > 1:
@@ -537,12 +565,24 @@ def sjalvtest():
     #    någon ändrar en vikt i matt/texter, vilket är precis vad man vill.
     fall += 1
     if _seriegrind("505a0dde", "Det är den lättaste modellen i serien.",
-                   {("505a0dde", "lättaste"): ("vikt", "min")}):
+                   {("505a0dde", "lättaste"): ("vikt", "min", "")}):
         fel.append("SJÄLVTEST: seriegrinden fäller ett SANT seriepåstående")
     fall += 1
     if not _seriegrind("7bdc47b8", "Det är den lättaste modellen i serien.",
-                       {("7bdc47b8", "lättaste"): ("vikt", "min")}):
+                       {("7bdc47b8", "lättaste"): ("vikt", "min", "")}):
         fel.append("SJÄLVTEST: seriegrinden släpper ett FALSKT seriepåstående")
+    # `den enda`-formen — Steg 12 hittade den, inte grinden.
+    fall += 1
+    if _seriegrind("1366a476", "Det här är den enda modellen i serien som står "
+                   "fritt.", {("1366a476", "enda"): ("takspanne", "enda", "står fritt")}):
+        fel.append("SJÄLVTEST: seriegrinden fäller ett SANT `den enda`-påstående")
+    fall += 1
+    if not _seriegrind("839a2ef5", "Det här är den enda modellen i serien som "
+                       "spänns mot taket.",
+                       {("839a2ef5", "enda"): ("takspanne", "enda", "spänns")}):
+        fel.append("SJÄLVTEST: seriegrinden släpper ett FALSKT `den enda` — "
+                   "sex av sju har takspänne")
+    fall += 1
     fall += 1
     if not _seriegrind("505a0dde", "Det är den grövsta stammen i serien.", {}):
         fel.append("SJÄLVTEST: seriegrinden släpper ett ODEKLARERAT påstående")
@@ -554,7 +594,7 @@ def sjalvtest():
         fel.append("SJÄLVTEST: seriegrinden ser inte ramen `i höjdklassen`")
     fall += 1
     if not _seriegrind("505a0dde", "Det är den lättaste modellen i serien.",
-                       {("505a0dde", "lättaste"): ("saknat_matt", "min")}):
+                       {("505a0dde", "lättaste"): ("saknat_matt", "min", "")}):
         fel.append("SJÄLVTEST: seriegrinden kraschar inte kontrollerat på "
                    "ett odefinierat mått")
 

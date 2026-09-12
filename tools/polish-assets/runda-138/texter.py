@@ -201,8 +201,7 @@ KATT_RUBRIK = {
 }
 
 KATT = {
-    "1366a476": "Gjord för katter under 6 kg, och den enda i den här höjdklassen som "
-                "bär 20 kg. Två hålor på var sin höjd gör att två katter kan dra sig "
+    "1366a476": "Gjord för katter under 6 kg, och konstruktionen bär 20 kg. Två hålor på var sin höjd gör att två katter kan dra sig "
                 "undan var för sig, och eftersom trädet står fritt på en bas på "
                 "59 × 59 cm behöver du ingen takhöjd att passa in i. Fäst "
                 "tippskyddslinan i väggen innan katten får klättra.",

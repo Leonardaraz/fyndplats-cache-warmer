@@ -194,7 +194,28 @@ SOKORD_KUNDORD = {
 # `grind._seriegrind` räknar om det ur `texter.SPEC` vid varje körning. Ett
 # odeklarerat seriepåstående fälls; ett deklarerat som inte längre stämmer
 # fälls med talen utskrivna.
+# ☠️ VÄRDET BÄR ETT FRAGMENT, och det är inte kosmetik. Nyckeln var först bara
+#    (produkt, superlativord), och då LICENSIERADE ett deklarerat påstående
+#    varje ANNAT påstående med samma ord på samma produkt. Mutationstestat:
+#    `1366a476`:s sanna "den enda modellen i serien som står fritt" släppte
+#    igenom det falska "den enda i den här höjdklassen som bär 20 kg" — grinden
+#    mätte takspännet och svarade grönt om en mening som handlade om bärförmåga.
+#
+#    Fragmentet måste finnas i MENINGEN. Ett nytt påstående med samma ord
+#    saknar det och fälls som ODEKLARERAT, vilket är rätt svar: det är inte
+#    mätt än.
 SERIEPASTAENDEN = {
-    # (produkt, ordet i texten): (måttets namn, "min" | "max")
-    ("505a0dde", "lättaste"): ("vikt", "min"),
+    # (produkt, ordet): (måttets namn, "min" | "max" | "enda", fragment i meningen)
+    ("505a0dde", "lättaste"): ("vikt", "min", "enkel att flytta"),
+    # ☠️ `den enda … i serien` ÄR OCKSÅ ETT SERIEPÅSTÅENDE, i en annan
+    #    grammatisk form. Rundan hade två, och bara det ena höll:
+    #
+    #      SANT       "den enda modellen i serien som står fritt på sin sockel"
+    #                 — de sex andra bär `Takspänne: Ingår`, den här gör inte det.
+    #      STRUKET    "den enda i den här höjdklassen som bär 20 kg"
+    #                 — `1366a476` är 200 cm och ensam om den höjden, alltså en
+    #                 klass med EN medlem. Påståendet är tomt, och läsaren
+    #                 jämför ändå med de takspända, där tre inte anger någon
+    #                 bärförmåga alls.
+    ("1366a476", "enda"): ("takspanne", "enda", "står fritt"),
 }
