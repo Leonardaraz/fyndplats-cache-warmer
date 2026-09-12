@@ -114,3 +114,24 @@ bilder per produkt, vilket är över gränsen för eget spec-kort.
 Inga andra av rundans 40 bilder bär text. Kontaktarken lästes vid 430 px per
 cell, och affischen var läsbar där — upplösningen räcker för inbränd text,
 som är rubriksatt när den förekommer.
+
+## ⚠️ Datapunkt till #245: fem av åtta utkast bar TYSKA alt-texter
+
+Mätt vid inläsningen, före skrivningen:
+
+| kort | alt-texter före |
+|---|---|
+| `0f36e5a0` | tysk, samma sträng på alla fem bilderna |
+| `cf111505` | tysk, samma sträng på alla fem |
+| `11749e12` | tysk, samma sträng på alla fem |
+| `47f6059d` | tysk, samma sträng på alla fem |
+| `72c55471` | tysk, samma sträng på alla fem |
+| `8802b999` | inga alls (`null`) |
+| `45fd6bc6` | inga alls |
+| `d59d9b40` | inga alls |
+
+Fem av åtta, alltså 25 tyska alt-texter på en enda runda. L1 bar fyra av åtta.
+Mönstret är att en produkt ANTINGEN har samma tyska sträng på varenda bild
+ELLER ingen alt-text alls — aldrig något däremellan. Det gör en
+katalogomfattande mätning billigare än den ser ut: det räcker att titta på
+bild 1 per produkt för att klassificera den.
