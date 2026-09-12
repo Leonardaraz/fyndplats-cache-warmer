@@ -1,0 +1,210 @@
+{
+ "4a5acc7d": {
+  "kicker": "Klöstorn, 100 cm",
+  "rubrik": "Tre slutna rum ovanpå varandra",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "41 × 41 × 100 cm"
+   },
+   {
+    "etikett": "Sockel",
+    "varde": "41 × 41 cm"
+   },
+   {
+    "etikett": "Håla",
+    "varde": "18 × 18 cm, tre stycken"
+   },
+   {
+    "etikett": "Våning invändigt",
+    "varde": "39,5 × 39,5 cm, 29 cm hög"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "39,5 × 39,5 cm, 4 cm hög"
+   }
+  ]
+ },
+ "860b6eb9": {
+  "kicker": "Klöstunna, 101 cm",
+  "rubrik": "Hoppsteg längs sidan upp till bädden",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "50 × 36 × 101 cm"
+   },
+   {
+    "etikett": "Tunna",
+    "varde": "Ø36 cm, 101 cm hög"
+   },
+   {
+    "etikett": "Håla",
+    "varde": "17 × 16 cm, tre stycken"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "Ø35 cm, 6 cm djup"
+   },
+   {
+    "etikett": "Passar katt",
+    "varde": "upp till 6 kg"
+   }
+  ]
+ },
+ "05136778": {
+  "kicker": "Två kojor, 160 cm",
+  "rubrik": "Kojor på var sin höjd",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "48 × 48 × 160 cm"
+   },
+   {
+    "etikett": "Övre koja",
+    "varde": "45 × 30 cm, 29 cm hög"
+   },
+   {
+    "etikett": "Nedre koja",
+    "varde": "30 × 30 cm, 29 cm hög"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "Ø30 cm, 10 cm hög"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "15 kg"
+   }
+  ]
+ },
+ "105c685a": {
+  "kicker": "Bladkrona, 139 cm",
+  "rubrik": "Bladen sitter högst upp",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "48 × 44 × 139 cm"
+   },
+   {
+    "etikett": "Koja",
+    "varde": "Ø30 cm, 27,5 cm hög"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "19 × 22 cm"
+   },
+   {
+    "etikett": "Klösskiva",
+    "varde": "Ø30 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "10 kg"
+   }
+  ]
+ },
+ "7f8e495b": {
+  "kicker": "Flätad vass, 79 cm",
+  "rubrik": "Flätad koja, mjuk bädd ovanför",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 40 × 79 cm"
+   },
+   {
+    "etikett": "Koja",
+    "varde": "Ø40 cm, 30 cm hög"
+   },
+   {
+    "etikett": "Öppning",
+    "varde": "Ø20 cm"
+   },
+   {
+    "etikett": "Övre bädd",
+    "varde": "Ø34 cm, 10 cm hög — Ø33 cm invändigt, 9 cm djup"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "10 kg"
+   }
+  ]
+ },
+ "ae1c848f": {
+  "kicker": "Bred liggyta, 79 cm",
+  "rubrik": "Liggytan hänger ut över kojan",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "70 × 49 × 79 cm"
+   },
+   {
+    "etikett": "Liggyta",
+    "varde": "60 × 40 cm, 9,5 cm hög kant"
+   },
+   {
+    "etikett": "Koja",
+    "varde": "Ø36 cm, 24 cm hög"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "17,5 × 17 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "15 kg"
+   }
+  ]
+ },
+ "f8528666": {
+  "kicker": "Flätad koja, 98 cm",
+  "rubrik": "Ramp upp, flätad bädd överst",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 40 × 98 cm"
+   },
+   {
+    "etikett": "Koja",
+    "varde": "46 × 33,5 cm, 24,5 cm hög"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "34 × 34 cm, 12 cm hög"
+   },
+   {
+    "etikett": "Klösramp",
+    "varde": "30 × 20 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "20 kg totalt, 10 kg per plan"
+   }
+  ]
+ },
+ "63a586da": {
+  "kicker": "Liggtunnel, 104 cm",
+  "rubrik": "Tunneln hänger mellan stammarna",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 40 × 104 cm"
+   },
+   {
+    "etikett": "Liggtunnel",
+    "varde": "Ø32 cm, 40 cm lång — Ø29 cm invändigt"
+   },
+   {
+    "etikett": "Topplatta",
+    "varde": "51 × 33 cm, 7 cm hög kant"
+   },
+   {
+    "etikett": "Sidoplattform",
+    "varde": "31 × 29 cm"
+   },
+   {
+    "etikett": "Bärförmåga",
+    "varde": "5 kg"
+   }
+  ]
+ }
+}

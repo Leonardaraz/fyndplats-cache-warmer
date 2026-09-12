@@ -51,6 +51,9 @@ KAP = [
 # De tre ritningarna kapas NEDTILL, kollaget UPPTILL.
 UPPTILL = {"05136778"}
 
+# Bytestak för en uppladdning till Wix Media, se kommentaren i kapa().
+TAK_BYTE = 230_000
+
 
 def sjok(a, bg, tol=14, golv=3):
     """Innehållssjok rad för rad mot bildens egen bakgrund."""
@@ -102,9 +105,28 @@ def kapa():
         s_sida = int(max(ut.size) * 1.02)
         duk = Image.new("RGB", (s_sida, s_sida), farg)
         duk.paste(ut, ((s_sida - ut.width) // 2, (s_sida - ut.height) // 2))
+        # ☠️ 1600², INTE 2040². `UploadImageToWixSite` svarar `success: true`
+        #    med `operationStatus: "PENDING"` och kan sedan hamna i FAILED — och
+        #    ett fileId i FAILED utelämnas TYST ur media-PATCHen, så galleriet
+        #    går från fem bilder till fyra utan ett enda fel. Husets mätning:
+        #    1600² på ~200 kB går igenom där 2000² på 380 kB föll.
+        # ⚠️ RITNINGEN ÄR FORTFARANDE KVADRATISK. PDP:n centrumbeskär till
+        #    kvadrat och måttetiketterna sitter i kanterna; en NEDSKALNING
+        #    bevarar dem, en beskärning hade tagit dem först.
+        duk = duk.resize((1600, 1600), Image.LANCZOS)
         mal = os.path.join(HAR, "fix", "%s-%d.jpg" % (pid, pos))
         os.makedirs(os.path.dirname(mal), exist_ok=True)
-        duk.save(mal, quality=93)
+        # ⚠️ OCH TAKET ÄR EN BYTESTORLEK, INTE BARA EN UPPLÖSNING. Husets
+        #    mätning gäller "1600² på ~200 kB"; kollaget är fyra foton på en
+        #    flat botten och landade på 316 kB vid q=85, alltså i ett ospröv-
+        #    at mellanläge. Kvaliteten sänks tills filen ryms under taket.
+        for q in (85, 80, 76, 72, 68):
+            duk.save(mal, quality=q, optimize=True)
+            if os.path.getsize(mal) <= TAK_BYTE:
+                break
+        if os.path.getsize(mal) > TAK_BYTE:
+            fel.append("%s-%d: %d byte även vid lägsta kvalitet"
+                       % (pid, pos, os.path.getsize(mal)))
 
         # Kvadratgrinden: PDP:ns centrumbeskärning får inte kapa innehåll.
         b = np.asarray(duk).astype(int)
