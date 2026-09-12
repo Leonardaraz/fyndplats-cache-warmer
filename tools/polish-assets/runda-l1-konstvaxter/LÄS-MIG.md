@@ -115,3 +115,47 @@ Måttritningarna bekräftade dessutom varje mått jag skrivit.
 Tre produkter föll på lagergrinden (`utesluten/LÄS-MIG.md`) — första gången
 grinden biter som ett medvetet URVALSSTEG i stället för som en bieffekt av
 prisgrinden (#173).
+
+## Live-verifierat 8/8 REN
+
+`hamta-live.sh 90` → alla åtta HTTP 200, ~148 kB, `age` ≈ 100 s (alltså den
+rendering den varma träffen utlöste, inte en äldre cachad sida).
+
+```
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+orddiff 0 på alla åtta (425 / 420 / 456 / 398 / 458 / 421 / 417 / 420 ord)
+```
+
+Brödsmulan per sida, mätt i den renderade JSON-LD:n — ingen går
+`Hem / Butik / produkt`:
+
+```
+Hem / Hem & Inredning / …        sju sidor
+Hem / Trädgård & Utemöbler / …   756a7cd2 häckskyddet
+```
+
+### ☠️ Och grinden är verifierad ÅT BÅDA HÅLLEN
+
+Att en grind FINNS säger ingenting om att den kan SE (#175, runda J2). Tre fel
+planterades i en kopia av de hämtade sidorna:
+
+| planterat fel | sida | grinden svarade |
+| :-- | :-- | :-- |
+| `Kunstpflanze mit … und Blättern` i en ALT-text | 3110f93b | 2 fynd (`ALT/TYSKT 'mit'`, `'und'`) |
+| tysk `<title>` mot `seo.tsv` | 63351b54 | 1 fynd, med väntat och faktiskt utskrivet |
+| `Användning och skötsel` bortbytt | 0e520c93 | 5 fynd (4 orddiff + `FLIK SAKNAS`) |
+
+Rätt produkt, rätt fel, **och de fem orörda sidorna gick fortsatt REN**.
+Alt-svepet, SEO-svepet och flik-kontrollen lever alltså på den här rundan —
+de är inte påslagna och blinda.
+
+## Två mätningar värda att bära vidare
+
+1. **Variantens `media` ÖVERLEVER en `variantsInfo`-PATCH** när variantobjektet
+   bärs igenom oförändrat från produktens egen GET — 8 av 8, samma fil-id före
+   och efter. `about-product-media` säger att fältet är read-only och härleds ur
+   `linkedMedia`. Det motsäger inte #151, som gäller BULK-skrivningar; det är en
+   annan väg, och nu mätt på den här.
+2. **`wixnorm.py`:s formel stämde exakt på alla åtta.** `278dd771`: 7 `<li>`
+   ger +49 och 28 blockradbrytningar ger −28 → +21, och Wix lagrade precis
+   2 781 + 21 = 2 802 tecken. Formeln är alltså inte en approximation.
