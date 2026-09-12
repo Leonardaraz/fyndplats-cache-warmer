@@ -124,3 +124,46 @@ skillnad hade varit en liten lögn på en sida vi själva skrivit.
 ☠️ **Ingen lastrad på sex av åtta.** Bara klöspelarna anger `Bärförmåga` i
 källan; de sex andra bär `Rekommenderad kattvikt` eller `Takspänne` på den
 platsen. Kortet får inte fylla en ruta som källan lämnar tom.
+
+## Skrivkvitto — galleri och alt-texter
+
+| pid | revision | ordning | alt-texter | kort plats 3 | ritning sist | produkt | variant |
+|---|--:|---|--:|---|---|---|---|
+| `c7bd00b9` | 6 | **OK** | 6 | ja | ja | false | true |
+| `a73a1a1c` | 5 | **OK** | 6 | ja | ja | false | true |
+| `f5f71f5d` | 4 | **OK** | 6 | ja | ja | false | true |
+| `dd3b541b` | 4 | **OK** | 6 | ja | ja | false | true |
+| `f489937f` | 4 | **OK** | 6 | ja | ja | false | true |
+| `5616c567` | 4 | **OK** | 6 | ja | ja | false | true |
+| `1ae60dbc` | 4 | **OK** | 6 | ja | ja | false | true |
+| `819bf51c` | 4 | **OK*** | 6 | ja | ja | false | true |
+
+Korten kvitterades FÖRE media-PATCHen: 8 av 8 `READY`, och attributionen
+bevisad på **md5** mot den lokala filen, inte på ordningen i
+uppladdningssvaret. Svaret bär inget filnamn, så ordningsantagandet är precis
+det huset brände sig på i bulk-lagerskrivningen.
+
+### ☠️ *Återläsningen LJÖG — negativt — på `819bf51c`
+
+Kvittot i samma anrop som skrivningen rapporterade:
+
+```
+revision 3 · 5 bilder · kortet saknas · originalordningen
+kort_pa_plats_3: false · ritning_sist: false
+```
+
+En separat läsning sekunder senare gav `revision 4`, sex bilder, kortet på
+plats 3 och ritningen sist. **Skrivningen gick igenom hela tiden** — det var
+KVITTOT som var föråldrat, och de sju andra i samma körning hade färska svar.
+
+Det är uppgift #394 mätt åt det här hållet: i runda 110 ljög samma återläsning
+åt BÅDA hållen i samma session. Riktningen spelar roll för vad man gör åt det:
+
+- Ljuger den POSITIVT tror man sig klar och sidan är trasig.
+- Ljuger den NEGATIVT — som här — skriver man om en produkt som redan är rätt,
+  och i värsta fall dubbleras något.
+
+**Regeln: en återläsning direkt efter en media-PATCH är ingen dom.** Säger den
+att skrivningen uteblev, LÄS OM innan du skriver igen. Revisionsnumret är det
+billigaste testet: stannade det kvar är det antingen en utebliven skrivning
+eller ett gammalt svar, och bara en andra läsning skiljer dem åt.

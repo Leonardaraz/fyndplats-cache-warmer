@@ -48,7 +48,16 @@ BESKURNA = {}      # och därmed inget att beskära
 
 # Fil-id i Wix Media Manager för Faktakorten, efter uppladdning ur grenen.
 # ☠️ ATTRIBUTIONEN BEVISAS PÅ md5, inte på ordningen i uppladdningssvaret.
-KORTFIL = {}
+KORTFIL = {
+    "c7bd00b9": "b379ce_d9760a82504248a1b17dd607dc1faee2~mv2.jpg",
+    "a73a1a1c": "b379ce_3011faec44334594a0d8013ed68d9ee0~mv2.jpg",
+    "f5f71f5d": "b379ce_bc7db11524b74a2f8c029926c096051c~mv2.jpg",
+    "dd3b541b": "b379ce_7770f798f76248a386b6f2c0c0151748~mv2.jpg",
+    "f489937f": "b379ce_3f9551362d2044179053fbc412231cdb~mv2.jpg",
+    "5616c567": "b379ce_437d1aa647c945619f9edee541ce2a2e~mv2.jpg",
+    "1ae60dbc": "b379ce_a4c20e499b114a05b66dd4a6dfd02ff3~mv2.jpg",
+    "819bf51c": "b379ce_f14d2271515a4d1d96b2c51846a80edb~mv2.jpg",
+}
 
 
 def filid(pid, nyckel):
