@@ -108,7 +108,12 @@ FACIT = {
         farg="gräddvit",
         montering="krävs",
         kattvikt="upp till 5 kg", maxlast=10, antal_katter="1–2",
-        tal={60, 40, 79, 34, 10, 33, 9, 35, 25, 8, 30, 20, 32, 24, 7},
+        # ☠️ 5 SAKNADES HÄR. `kattvikt` säger 'upp till 5 kg', alltså är
+        #    talet belagt — men `tal` byggdes ur måttraderna och missade
+        #    det. Talgrinden fällde fyra korrekta meningar. Uppgift #505
+        #    en gång till: självtestet bevisar att koden följer facit,
+        #    aldrig att facit är komplett.
+        tal={60, 40, 79, 34, 10, 33, 9, 35, 25, 8, 30, 20, 32, 24, 7, 5},
     ),
     # ⚠️ Källans "Katzenhöhle: 17,5L x 17H" är husets INGÅNG, inte ett andra
     #    utrymme — 17,5 × 17 cm rymmer ingen katt (Steg 2-grinden, fynd 7).
@@ -170,17 +175,48 @@ WIX = {
     "63a586da": "63a586da-7aa8-4208-94aa-6e711dab17d7",
 }
 
-# (rätt produkttyp, den som INTE får förekomma)
+# (rätt produkttyp, de som INTE får förekomma)
+#
+# ☠️ TRE OLIKA TYPORD I SAMMA RUNDA, och leverantörens namn stämmer med
+#    INGET av dem för de två första. `860b6eb9` heter "101 cm Katzenturm"
+#    men källan säger `Katzentonnen-Größe`, `Kratztonne` och
+#    `1 x Katzenfass` — det är en KLÖSTUNNA, och `Gesamtabmessungen` är
+#    sockeln. `4a5acc7d` heter "4-stufiger Katzenturm" och ÄR ett torn: en
+#    sluten fyrkantig stomme på 41 × 41 som står på sig själv, samma form
+#    som publicerade `klostorn-81-cm-fyrkantigt`. Uppgift #462: leverantörens
+#    produktnamn är ingen källa.
 TYP = {
-    "860b6eb9": ("klöstunna", "klösträd"),    # ☠️ tvärtom mot de sju andra
-    "4a5acc7d": ("klösträd", "klöstunna"),
-    "05136778": ("klösträd", "klöstunna"),
-    "105c685a": ("klösträd", "klöstunna"),
-    "7f8e495b": ("klösträd", "klöstunna"),
-    "ae1c848f": ("klösträd", "klöstunna"),
-    "f8528666": ("klösträd", "klöstunna"),
-    "63a586da": ("klösträd", "klöstunna"),
+    "860b6eb9": ("klöstunna", ["klösträd", "klöstorn"]),
+    "4a5acc7d": ("klöstorn", ["klösträd", "klöstunna"]),
+    "05136778": ("klösträd", ["klöstunna", "klöstorn"]),
+    "105c685a": ("klösträd", ["klöstunna", "klöstorn"]),
+    "7f8e495b": ("klösträd", ["klöstunna", "klöstorn"]),
+    "ae1c848f": ("klösträd", ["klöstunna", "klöstorn"]),
+    "f8528666": ("klösträd", ["klöstunna", "klöstorn"]),
+    "63a586da": ("klösträd", ["klöstunna", "klöstorn"]),
 }
 
-# Priset RÖRS ALDRIG — det står här bara som facit för Steg 4:s prisgrind.
-PRIS = {"4a5acc7d": 969, "860b6eb9": 1059, "05136778": 969, "105c685a": 829}
+# Priset RÖRS ALDRIG — det står här bara som facit för prisgrinden, och
+# talen är LÄSTA ur skarpa Wix 2026-09-12, inte avskrivna.
+PRIS = {"4a5acc7d": 969, "860b6eb9": 1059, "05136778": 969, "105c685a": 829,
+        "7f8e495b": 939, "ae1c848f": 969, "f8528666": 1269, "63a586da": 829}
+
+# Variantens id per produkt — läst ur skarpa Wix med
+# `?fields=VARIANT_OPTION_CHOICE_NAMES`. Alla åtta har EXAKT EN variant och
+# noll optioner, alltså är Steg 6 och Steg 11 tomma av mätning och inte av
+# antagande.
+#
+# ☠️ SKU-KROCK I KÄLLTILLSTÅNDET: `f8528666` och `63a586da` bär BÅDA
+#    `FP-kratzbaum-katzenbaum-1`, och `ae1c848f` bär `FP-kratzbaum-katzenbaum`
+#    som är ett prefix av den. Krocken skapas av IMPORTEN, som kapar den tyska
+#    sluggen vid 24 tecken (#272, #473). Steg 8 skriver om alla åtta.
+VARIANT = {
+    "4a5acc7d": "46c118ae-80c0-43dc-91c6-5f0cf403a0fd",
+    "860b6eb9": "3f0f02ba-c360-48e2-a4bc-749fada7065c",
+    "05136778": "e948c1ef-2b16-4df1-b613-745a213a0571",
+    "105c685a": "0f5780a5-152c-4d30-b99c-109367c3b4fb",
+    "7f8e495b": "fd32378a-6de6-4914-bb1e-e01888bfbb6b",
+    "ae1c848f": "fcf8b8ae-539f-4f70-9479-f7e7abe9dd60",
+    "f8528666": "4d0b3d45-4539-4d1b-92ed-16495b506d9b",
+    "63a586da": "d2e5983e-4f5b-4b80-b378-b77c409451cf",
+}
