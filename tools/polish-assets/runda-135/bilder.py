@@ -75,6 +75,23 @@ GALLERI = {
                  "b379ce_0969c250207f48cd9b25e85a1f7c8ca9~mv2.jpg"],
 }
 
+# Faktakortens fil-id i Wix Media Manager, efter uppladdning från grenen.
+# ☠️ ATTRIBUTIONEN ÄR BEVISAD PÅ md5, inte på ordningen i uppladdningsanropet
+#    — svaret bär inget filnamn, och ordningsantagandet är precis det huset
+#    brände sig på i bulk-lagerskrivningen. `kortkvitto.py` laddade ned varje
+#    fil och jämförde med den lokala: 8 av 8, fill=200 (alltså READY, inte
+#    PENDING).
+KORTFIL = {
+    "0696efce": "b379ce_c4eaee185ee54ba791bfa2b9611cd365~mv2.jpg",
+    "7564dcfb": "b379ce_f580fa346de148cebe4a287cecaa74bd~mv2.jpg",
+    "5d64f423": "b379ce_07a3db7721f5466585d2623c24c23035~mv2.jpg",
+    "82efeeaf": "b379ce_96d52a1f548945e69ceaac185e547088~mv2.jpg",
+    "bdc7e768": "b379ce_6c11d5db3166488387329adc8c638813~mv2.jpg",
+    "e2c8b0f3": "b379ce_718f39bc97ee448486b05b50947a481a~mv2.jpg",
+    "cc5da788": "b379ce_dad47645a1a447f8969da846825886d2~mv2.jpg",
+    "741c5723": "b379ce_310c0fb1693a49aa9439c113d79fff65~mv2.jpg",
+}
+
 # ☠️ Bild 2 på `cc5da788` bär en PAPPERSKASSE med läsbar fransk
 #    marknadsföringstext och ett främmande varumärke över en tredjedel av
 #    bilden (Steg 4). Den är rekvisita, alltså bakgrund, och FÅR röras — men

@@ -165,7 +165,8 @@ PUNKTER = {
     "82efeeaf": [
         "Bädd på 54 × 36 cm överst, 45 × 32 cm invändigt och 6 cm djup",
         "Rund mellanplatå på 40 × 37 cm",
-        "Fyra klösklot på Ø11 cm staplade på stammen, varannat\n         naturfärgat och varannat gräddvitt",
+        "Fyra klösklot på Ø11 cm staplade på stammen, varannat "
+         "naturfärgat och varannat gräddvitt",
         "Stam på Ø7 cm och sockel på 56 × 54 cm",
         "Total höjd 86 cm, bär 7 kg",
         "Monteras med bifogad anvisning",
