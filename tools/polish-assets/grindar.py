@@ -387,7 +387,7 @@ def granska_namn(namn):
 
 
 def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60, stale_forsok=3,
-              _hamtare=None):
+              max_age=None, _hamtare=None):
     """Hämtar en ISR-sida SÅ ATT SVARET ÄR FÄRSKT — två gånger, med paus.
 
     ☠️ Läs aldrig utfallet av den FÖRSTA hämtningen efter en skrivning. Next.js
@@ -412,6 +412,38 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60, stale_forsok=3,
        med växande paus) i stället för att rapportera den. Runbookens tre
        grenar gäller oförändrat: en FÄRSK rad kostar ingen extra väntan, och
        en äkta 404 kastar direkt i stället för att väntas ut per produkt.
+
+    ☠️ OCH `HIT` ÄR INGET BEVIS PÅ FÄRSKHET — det var den här funktionens
+       tysta hål, uppmätt 2026-09-12. `HIT` betyder "inom ISR-fönstret", och
+       inom fönstret startas INGEN ombyggnad: sidan serveras precis som den
+       byggdes, upp till en timme gammal. Efter en skrivning är `HIT` alltså
+       det SÄMSTA svaret av de tre — `STALE` hade åtminstone startat en
+       ombyggnad, och `MISS` hade renderat färskt.
+
+       Mätt på `klattervagg-for-katt-med-hangmatta` direkt efter en rättad
+       beskrivning, med en slumpad parameter som aldrig begärts förut:
+
+       | hämtning | x-vercel-cache | age | texten |
+       |---|---|--:|---|
+       | 1 | `HIT` | 289 | GAMLA |
+       | 2 (8 s senare) | `HIT` | 297 | GAMLA |
+
+       `age` räknade vidare över två olika parametrar — samma cachepost,
+       alltså nycklas rutten som raden ovan säger. Funktionen returnerade
+       glatt den gamla sidan som ett kvitto.
+
+    ☠️ Hålet syntes inte på fem rundor för att STEG 14 ALLTID KÖR PÅ NYSS
+       PUBLICERADE SIDOR. En sida som just blivit synlig har ingen cachepost,
+       så första hämtningen blir en MISS och renderar färskt. Det är samma
+       familj som `charm99`-grinden och rundgrinden: en grind som aldrig får
+       ett indata som utlöser felet ser korrekt ut i källkoden hur länge som
+       helst. Först ett svep över REDAN publicerade sidor gav det indatat.
+
+    `max_age` är vakten. Sätt den när du kvitterar en ÄNDRING på en sida som
+    redan låg ute: en rad vars `age` överstiger talet väntas ut som en
+    STALE-rad, och håller den i sig kastar funktionen i stället för att
+    lämna ifrån sig en gammal sida som ser ut som ett kvitto. Lämna den
+    osatt för nypublicerade sidor — där kostar den bara väntan.
 
     Returnerar (html, headers). Kastar hellre än att returnera en halv sida:
     en tyst kapad hämtning såg i runda 104:s måttsvep ut som "noll träffar".
@@ -457,11 +489,30 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60, stale_forsok=3,
     html, headers = _hamta()
     # ☠️ Är raden FORTFARANDE stale pågår ombyggnaden än — svaret är det
     #    gamla, och att döma på det fäller en korrekt sida.
+    def _for_gammal(h):
+        """STALE betyder pågående ombyggnad; för hög `age` betyder gammal HIT."""
+        if h.get("x-vercel-cache", "").upper() == "STALE":
+            return True
+        if max_age is None:
+            return False
+        try:
+            return int(h.get("age", "0")) > max_age
+        except ValueError:
+            # ☠️ Ett oläsbart `age` får inte tolkas som färskt. En tyst tom
+            #    läsare är husets dyraste felklass.
+            return True
+
     for i in range(stale_forsok):
-        if headers.get("x-vercel-cache", "").upper() != "STALE":
+        if not _for_gammal(headers):
             break
         time.sleep(paus * (i + 2))
         html, headers = _hamta()
+    if max_age is not None and _for_gammal(headers):
+        raise SystemExit(
+            "ISR-raden för %s är fortfarande gammal (cache=%s age=%s, tak %s) "
+            "— svaret är den GAMLA sidan och duger inte som kvitto"
+            % (url, headers.get("x-vercel-cache", "?"),
+               headers.get("age", "?"), max_age))
     if len(html) < 20000:
         raise SystemExit("ISR-hämtningen gav bara %d tecken för %s — halv sida"
                          % (len(html), url))
