@@ -141,7 +141,7 @@ PUNKTER = {
     "0696efce": [
         "87 cm hög, med sisal på stammen från sockel till topplatta",
         "Topplatta i trä på 20 × 20 cm med en boll i snöre",
-        "Bollbana i sockeln, 40 × 40 cm nedre och 30 × 30 cm övre",
+        "Bollbana i två plan i sockeln, med en träkula som inte rullar bort",
         "Sockel på 39,5 × 39,5 cm som håller pelaren stadig",
         "Bär 10 kg",
         "Monteras med bifogad anvisning",
@@ -233,8 +233,8 @@ KATT = {
         "Bädden på 54 × 36 cm är ovanligt rymlig för ett klösträd i den här "
         "höjden, och kanten är uppvikt runt om så att katten kan luta huvudet "
         "mot något. Bärförmågan är 7 kg, alltså räcker den även till en "
-        "storvuxen katt. Klösklotet sitter i den höjd där en katt som "
-        "reser sig på bakbenen kommer åt det."),
+        "storvuxen katt. Kloten sitter i den höjd där en katt som "
+        "reser sig på bakbenen kommer åt dem."),
     "bdc7e768": (
         "Tunneln är Ø26 cm i diameter, vilket passar en katt under 5 kg som "
         "gärna ligger inne i något i stället för på det. Kattungar använder "
@@ -284,8 +284,8 @@ BRUK = {
         "plant golv — på en ojämn matta kommer den att vagga när katten "
         "landar på den höga bädden."),
     "82efeeaf": (
-        "Klösklotet sitter trätt på stammen, och det är den delen som får "
-        "mest kraft när katten drar i den. Kontrollera att muttern under "
+        "Kloten är trädda på stammen, och det är de delarna som får "
+        "mest kraft när katten drar i dem. Kontrollera att muttern under "
         "sockeln är åtdragen vid monteringen och känn efter igen efter någon "
         "månad. I kartongen ligger klösträdet och en monteringsanvisning."),
     "bdc7e768": (
@@ -419,9 +419,9 @@ SKOTSEL = {
         "väl urvriden trasa, klappande och aldrig gnuggande. Trästolparna "
         "torkas av torrt."),
     "82efeeaf": (
-        "Klösklotet blir luddigt med tiden och det är meningen — klipp "
+        "Kloten blir luddiga med tiden och det är meningen — klipp "
         "bort de längsta trådarna med en sax. Bädden och platån borstas ur "
-        "med en gummiborste. Dra åt muttern under sockeln om klotet börjar "
+        "med en gummiborste. Dra åt muttern under sockeln om kloten börjar "
         "vrida sig runt stammen."),
     "bdc7e768": (
         "Tunneln går inte att ta av, så borsta ur den med en gummiborste och "
@@ -485,9 +485,9 @@ FAQ = {
         ("Hur stor är bädden?",
          "54 × 36 cm utvändigt med en liggyta på 45 × 32 cm och 6 cm djup. "
          "Kanten är uppvikt runt om."),
-        ("Vad är klösklotet till för?",
-         "Det är klösyta i den höjd där katten kommer åt den stående på "
-         "bakbenen. De fyra kloten är Ø11 cm och lindade i naturfiber, "
+        ("Vad är klöskloten till för?",
+         "De är klösytor i den höjd där katten kommer åt dem när den "
+         "reser sig på bakbenen. De fyra kloten är Ø11 cm och lindade i naturfiber, "
          "varannat naturfärgat och varannat gräddvitt."),
         ("Hur mycket tål den?",
          "7 kg, vilket räcker även till en storvuxen katt."),
