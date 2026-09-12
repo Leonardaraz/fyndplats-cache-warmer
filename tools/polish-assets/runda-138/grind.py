@@ -178,6 +178,45 @@ def _klosytegrind(pid, syn):
     return fel
 
 
+
+# ☠️ SÖKORDEN ÄR OGRINDADE — och de RENDERAS ALDRIG, så inga ögon ser dem.
+#    Uppmätt i runda 138: `klösträd i trähärg` låg i sökordslistan för
+#    `fecadb3e` (rätt ord är `träfärg`). Textgrinden läste sökorden mot
+#    FORBJUDET och ARTNR, men ingenting kontrollerade att orden EXISTERAR.
+#    Steg 12 ("läs sidan som kund") kan inte fånga det heller: sökorden står
+#    i `seoData.settings`, inte på sidan.
+#
+#    Grinden är en FÖREKOMSTKONTROLL, inte en ordlista: varje innehållsord i
+#    ett sökord måste finnas som prefix någonstans i sidans egen text. Ett
+#    påhittat ord finns per definition ingen annanstans, medan ett äkta
+#    sökord beskriver något sidan faktiskt säger.
+SOKORD_FOGEORD = {"i", "med", "och", "för", "på", "till", "utan", "av", "en", "ett"}
+
+
+def _sokordsgrind(pid, sidtext, termer=None):
+    """`termer` görs explicit för SJÄLVTESTETS skull.
+
+    ⚠️ Utan den måste ett testfall innehålla ALLA produktens sökord för att
+       gå igenom, och då mäter fallet fixturens fullständighet i stället för
+       grindens logik. Första utkastet föll på just det — två gröna regler
+       rapporterade fel för att meningen saknade `takspänt` och `katthus`.
+    """
+    fel = []
+    bas = re.sub(r"[^0-9a-zåäöéü]+", " ", sidtext.lower())
+    ord_i_texten = [o for o in bas.split() if o]
+    for term in (T.SOKORDSLISTA[pid] if termer is None else termer):
+        for o in re.split(r"[^0-9a-zåäöéü]+", term.lower()):
+            if not o or o in SOKORD_FOGEORD:
+                continue
+            # Prefixmatchning tillåter böjning: `klösträd` ⊂ `klösträdet`.
+            if o in M.SOKORD_KUNDORD:
+                continue
+            if not any(t.startswith(o[:max(4, len(o) - 2)]) for t in ord_i_texten):
+                fel.append("SÖKORDET %r bär ordet %r som varken finns i sidans "
+                           "text eller är deklarerat i matt.SOKORD_KUNDORD"
+                           % (term, o))
+    return fel
+
 def granska(pid, html=None, live=False):
     fel = []
     h = html if html is not None else T.bygg(pid)
@@ -206,6 +245,7 @@ def granska(pid, html=None, live=False):
     if not live:
         fel.extend(_antalsgrind(pid, h))
         fel.extend(_klosytegrind(pid, allt))
+        fel.extend(_sokordsgrind(pid, allt))
 
     for m in G.ARTNR.finditer(allt):
         fel.append("ARTIKELNUMMER %r" % m.group(0))
@@ -319,6 +359,20 @@ def sjalvtest():
     fall += 1
     if _talgrind("505a0dde", '<p>Se <a href="x">klösträd 140 cm</a>.</p>'):
         fel.append("SJÄLVTEST: talgrinden fäller ett tal i ett LÄNKstycke")
+
+    # Sökordsgrinden, båda hållen — rundans egen lärdom.
+    fall += 1
+    if _sokordsgrind("fecadb3e", "Ett klösträd i träfärg.", ["klösträd i träfärg"]):
+        fel.append("SJÄLVTEST: sökordsgrinden fäller ett sökord vars ord FINNS")
+    fall += 1
+    if not _sokordsgrind("fecadb3e", "Ett klösträd i träfärg.", ["klösträd i trähärg"]):
+        fel.append("SJÄLVTEST: sökordsgrinden släpper det PÅHITTADE ordet")
+    fall += 1
+    if _sokordsgrind("839a2ef5", "Ett klösträd, grönt.", ["kaktusklösträd"]):
+        fel.append("SJÄLVTEST: sökordsgrinden fäller ett DEKLARERAT kundord")
+    fall += 1
+    if not _sokordsgrind("839a2ef5", "Ett klösträd, grönt.", ["klösträd i mahogny"]):
+        fel.append("SJÄLVTEST: sökordsgrinden släpper ett odeklarerat främmande ord")
 
     # Trekonsonantgrinden — den som runda 137 kallade vid FEL NAMN.
     fall += 1

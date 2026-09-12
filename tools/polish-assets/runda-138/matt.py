@@ -157,3 +157,21 @@ OAVGJORT = """
    av tyg på 42 × 18 × 13. Leverantören skriver dem på EN rad, och den raden
    är lätt att läsa som ett enda föremål.
 """
+
+# ☠️ SÖKORD SOM INTE STÅR I SIDANS TEXT — och som därför måste DEKLARERAS.
+#
+# Ett sökord är KUNDENS formulering, inte ett citat ur sidan: den som söker
+# skriver "fristående klösträd" medan sidan säger "står fritt på golvet".
+# Förekomstgrinden i `grind._sokordsgrind` kan alltså inte bara kräva att
+# ordet finns i texten — men den får inte heller släppa allt, för då fångar
+# den inte ett PÅHITTAT ord.
+#
+# Lösningen är att undantaget ska SYNAS. Varje ord här är en medveten
+# bedömning att det är ett äkta svenskt sökord. Runda 138:s eget stavfel
+# `trähärg` hade fått stå här för att slippa igenom — och det hade inte
+# gjort det.
+SOKORD_KUNDORD = {
+    "takfäste",        # den som INTE vill spänna mot taket söker så
+    "fristående",      # sidans ord är "står fritt på golvet"
+    "kaktusklösträd",  # sammansättningen; sidan säger "format som en kaktus"
+}

@@ -609,7 +609,7 @@ SOKORDSLISTA = {
     "e5b31270": ["klösträd rund bas", "takspänt klösträd", "klösträd i sammet",
                  "grått klösträd", "klösträd med katthus"],
     "fecadb3e": ["takspänt klösträd", "klösträd med stege", "klösträd jute",
-                 "klösträd i trähärg", "klösträd med katthus"],
+                 "klösträd i träfärg", "klösträd med katthus"],
     "505a0dde": ["klöspelare till taket", "takspänd klöspelare", "grov klöspelare",
                  "klöspelare med liggyta", "klöspelare sisal"],
     "7bdc47b8": ["takspänt klösträd", "klösträd ljusgrått", "klösträd med stor håla",
