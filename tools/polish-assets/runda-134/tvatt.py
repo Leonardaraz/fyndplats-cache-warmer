@@ -45,6 +45,9 @@ BORT = {
 
 PANEL = ["668e0e0c", "38022bcb"]
 
+# Uppladdningsstorlek — se kommentaren i `tvatta`.
+SIDA = 1600
+
 
 def panelgrans(a, marginal=6):
     """Första raden UNDERIFRÅN som är vit hela vägen ⇒ panelens överkant."""
@@ -71,7 +74,16 @@ def tvatta(pid, nr):
     ren[y:, :, :] = 255                              # vitt, samma som botten
     os.makedirs(UT, exist_ok=True)
     vag = os.path.join(UT, "%s-%d-utan-tysk-panel.jpg" % (pid, nr))
-    Image.fromarray(ren).save(vag, quality=95)
+    # ☠️ 1600², INTE 2000². `UploadImageToWixSite` svarar `success: true` med
+    #    `operationStatus: "PENDING"` och kan sedan hamna i FAILED — och ett
+    #    fileId i FAILED utelämnas TYST ur media-PATCHen, så galleriet går
+    #    från sex bilder till fem utan ett enda fel. Runbokens mätning:
+    #    1600² på ~200 kB går igenom där 2000² på 380 kB föll.
+    # ⚠️ RITNINGEN ÄR FORTFARANDE KVADRATISK. PDP:n centrumbeskär till kvadrat
+    #    och måttetiketterna sitter i kanterna; en nedskalning bevarar dem,
+    #    en beskärning hade tagit dem först.
+    Image.fromarray(ren).resize((SIDA, SIDA), Image.LANCZOS).save(
+        vag, quality=85, optimize=True)
     return vag, y, bild.size
 
 
