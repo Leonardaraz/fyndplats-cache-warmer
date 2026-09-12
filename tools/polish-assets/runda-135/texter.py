@@ -89,9 +89,9 @@ SOKORD = {
 
 INTRO = {
     "0696efce": (
-        "En klöspelare som får katten att sträcka ut sig ordentligt. Stammen "
-        "är 87 cm hög och klädd i sisal hela vägen upp, så den som vill dra "
-        "ut ryggen i full längd får plats. Överst sitter en liten topplatta "
+        "En klöspelare som får katten att sträcka ut sig ordentligt. Den är "
+        "87 cm hög och stammen är klädd i sisal hela vägen upp, så den som "
+        "vill dra ut ryggen i full längd får plats. Överst sitter en topplatta "
         "i trä på 20 × 20 cm och en boll som dinglar i ett snöre. Nere i "
         "sockeln ligger en träkula i en sluten bana — katten kan peta runt "
         "den utan att den rullar bort under soffan."),
@@ -139,7 +139,7 @@ RUBRIK = {p: "Det här får du" for p in NAMN}
 
 PUNKTER = {
     "0696efce": [
-        "87 cm hög stam, klädd i sisal från sockel till topp",
+        "87 cm hög, med sisal på stammen från sockel till topplatta",
         "Topplatta i trä på 20 × 20 cm med en boll i snöre",
         "Bollbana i sockeln, 40 × 40 cm nedre och 30 × 30 cm övre",
         "Sockel på 39,5 × 39,5 cm som håller pelaren stadig",
@@ -315,12 +315,12 @@ KORS_TEXT = {p: "Fler klösmöbler hos oss:" for p in NAMN}
 
 KORSLANK = {
     "0696efce": [("klospelare-87-cm-med-badd", "klöspelare med bädd på toppen"),
-                 ("klostrad-86-cm-klosklot", "klösträd 86 cm med klösklot")],
+                 ("klospelare-81-cm-sisal", "klöspelare 81 cm med lekboll")],
     "7564dcfb": [("klospelare-87-cm-bollbana", "klöspelare med bollbana i sockeln"),
-                 ("klostrad-lagt-tra-och-jute", "lågt klösträd i trä och jute")],
+                 ("klospelare-81-cm-sisal", "klöspelare 81 cm med lekboll")],
     "5d64f423": [("klospelare-87-cm-med-badd", "klöspelare med bädd på toppen"),
                  ("klostrad-53-cm-tradstamsform", "klösträd 53 cm i trädstamsform")],
-    "82efeeaf": [("klospelare-87-cm-bollbana", "klöspelare med bollbana i sockeln"),
+    "82efeeaf": [("klostrad-lagt-tra-och-jute", "lågt klösträd i trä och jute"),
                  ("klostrad-132-cm-borstpelare", "klösträd 132 cm med borstpelare")],
     "bdc7e768": [("klostrad-98-cm-bladkrona", "klösträd 98 cm med bladkrona"),
                  ("klostrad-101-cm-giraff-med-tunnel", "klösträd 101 cm i giraffform")],
