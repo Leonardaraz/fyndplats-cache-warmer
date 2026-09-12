@@ -539,3 +539,78 @@ Efter lagningen: `grind.sjalvtest(): 76 fall, 0 fel`,
 ⚠️ **Kvar till Leonard:** uppgift #503, live-dubbletten `81d059f0` /
 `c5e63205`. Och `c5e63205` saknar dessutom kattlövet, orörd med flit i väntan
 på det beslutet.
+
+---
+
+## ✅ Live-dubbletten avgjord: c5e63205 pensionerad, 81d059f0 behållen (uppgift #503)
+
+Två PUBLICERADE sidor sålde samma klöstunna. Leonards regel från 2026-09-03
+gäller ordagrant här — "samma fysiska vara som både en AE-inköpt sida och en
+feed-importerad" — och mappningsraderna avgjorde vilken som är vilken:
+
+| | `81d059f0` **behålls** | `c5e63205` **pensioneras** |
+|---|---|---|
+| `supplier` | **`aosom`**, 197 i lager | **`null`** → AliExpress |
+| namn | …tre plan och två hålor | …med 3 kojor |
+| bilder | 6 | 5 |
+| brödtext | 4 494 tecken | 2 399 tecken |
+| prisgrind | `stammer: true` | `EJ AVGÖRBAR` (ej Aosom-import) |
+| kattlövet | ja | nej |
+
+☠️ **Ingen ommappning behövdes — och det är inte ett undantag från regeln utan
+regelns bästa utfall.** Regeln säger att sidan vi BEHÅLLER ska peka på Aosoms
+artikelnummer. `81d059f0` gjorde redan det. `aosom-remap.yml` kördes därför
+aldrig, och därmed läckte inget artikelnummer till den publika Actions-loggen
+(uppgift #417). **Läs mappningsraden FÖRE du når efter ommappningsverktyget:**
+är den behållna sidan redan Aosom är verktyget fel verktyg.
+
+### Ordningen var påtvingad, inte vald
+
+`redirect-add.yml` **vägrar skriva medan källan fortfarande är en synlig
+produkt**. Avpubliceringen måste alltså komma först — och det är också rätt
+ordning på husets egna grunder: går bara den ena igenom ligger den svagare
+sidan nere utan redirect (en ärlig 404), vilket är billigare än en redirect
+till en sida som fortfarande konkurrerar med sig själv.
+
+1. Wix: `visible: false` på produkten.
+2. Redirect `kattrad-med-klospelare` → `/produkt/klostunna-70-cm-tre-plan`.
+3. Mappningen: `draftStatus: "rejected"`, `needsAiPolish: false`.
+
+☠️ **PATCH:en fick INTE bära `variantsInfo`.** Att också släcka varianten såg
+ut att kräva en variantskrivning — och en sådan hade publicerat sidan igen
+(mätt 2026-08-28). Runbookens egen mätning (rad 1128–1140) säger att produktens
+`visible: false` **speglas NED på varianten** av sig själv. Återläsningen
+bekräftar det: `0ab263f8` står på `visible: false` utan att ha rörts.
+
+### Kvitton, lästa och inte antagna
+
+```
+Wix         rev 14 → 15   visible true → false   variant 0ab263f8 → false
+redirect #11   {"ok":true,"written":["kattrad-med-klospelare"],"failed":[]}
+stampla #2615  OK: c5e63205 uppdaterad — needsAiPolish, draftStatus
+stampla #2616  OK: 81d059f0 uppdaterad — variantSkus
+```
+
+⚠️ **Ett grönt jobb är inget kvitto i just den här workflowen.** Allt efter
+skrivningen i `polish-mapping.yml` är `|| true` — med flit, sedan rapporteringen
+fällde sexton lyckade stämplingar. Ett grönt jobb bevisar därför inte att
+patchen gick igenom; raden `OK: <id> uppdaterad — <fälten>` gör det.
+
+### Och ett Steg 8-glapp som föll ut på köpet
+
+`81d059f0`:s mappning bar variant-SKU:n `FP-kratztonne-hohe-70-cm` — den TYSKA,
+alltså den importen satte — medan Wix sedan poleringen i runda 25 står på
+`FP-klostunna-70-cm-tre-plan`. Exakt uppgift #388: Steg 8 har två halvor, och
+bara Wix-halvan var gjord.
+
+⚠️ **Ofarligt, men bara av tur.** `updateV3VariantPrices` matchar
+`wixVariantId` FÖRST och faller tillbaka på `sku` (`lib/wix/v3-products.ts:480`).
+Mappningen bar rätt variant-id, så prissynken träffade rätt ändå. Hade raden
+saknat `wixVariantId` — som äldre rader gör, det är just därför fallbacken finns
+— hade `setPrice` kastat vid varje körning. Kontrollerat i koden, inte antaget.
+
+☠️ **Och SKU:n verifierades mot WIX, inte mot mina egna anteckningar.** Samma
+körning hade redan straffat den vanan: produkt-id:t `81d059f0-…` rekonstruerat
+ur minnet gav `404 Entity not found`, och det riktiga (`…-e6de-468f-b03a-…`)
+fick slås upp på sluggen. Uppgift #485 en gång till — **kvittot ska jämföra mot
+facit, aldrig mot det jag tror att jag skrev.**

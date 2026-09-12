@@ -128,3 +128,9 @@ runda-120/rawbilder/
 # rundans filer. Härlett ur `kortfoto/` av MJUKA-talen i rundans `kort.py`,
 # alltså återskapbart på ett kommando. Samma skäl som `*/kortfoto/`.
 */*-1-mjuk.jpg
+
+# Dubblettutredningens nedladdade bilder + kontaktark. Hämtade FRÅN Wix för att
+# md5-jämföras; 7,7 MB som inte bevisar något efter att domen fallit, och
+# återskapbara ur produkternas galleri när som helst. Kontaktarket är dessutom
+# bara en montering av dem. Samma skäl som `*/kortfoto/`.
+*/dubblett/
