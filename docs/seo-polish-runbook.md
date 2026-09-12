@@ -92,6 +92,28 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
+- ☠️ **På POST-svepen ligger `fields` på kroppens TOPPNIVÅ, inte inuti `query`/`search`.**
+  Uppmätt mot skarpa V3 2026-09-12, fyra former, samma 20 produkter:
+
+  | kropp | produkter med `plainDescription` |
+  |---|--:|
+  | `{query: {...}, fields: ["PLAIN_DESCRIPTION"]}` | **20/20** |
+  | `{search: {...}, fields: ["PLAIN_DESCRIPTION"]}` | **20/20** |
+  | `{search: {cursorPaging, fields: [...]}}` | **0/20** |
+  | `{search: {cursorPaging}}` | 0/20 |
+
+  Lagd INUTI ignoreras den tyst — inget fel, bara tom text. Det gjorde en
+  dubblettscreening till en no-op: 5 688 produkter lästes, noll bar beskrivning,
+  och svepet rapporterade "0 dubbletter" utan att ha jämfört någonting. Körd rätt
+  hittade samma svep en publicerad sida som utkastet var en dubblett av.
+
+  ⚠️ **Och markören tål inte `filter`/`sort` på sida 2+** (`INVALID_CURSOR: Sort or
+  filter can not be specified together with cursor`). Toppnivå-`fields` går
+  däremot bra hela vägen. Filtrera alltså på `visible` i koden, inte i frågan.
+
+  ☠️ **Räkna täckningen i svepet.** En koll som bygger på ett fält måste kunna
+  visa att fältet kom med — `medBeskrivning: 5688/5688` är skillnaden mellan
+  "inga dubbletter" och "kunde inte jämföra". Elfte gången samma familj.
 - ☠️ **`DESCRIPTION` och `PLAIN_DESCRIPTION` är två OLIKA fält, och fel val läser tomt.**
   `?fields=DESCRIPTION` returnerar rich content-objektet `description` och lämnar
   `plainDescription` **tom sträng** — inget fel, bara en annan projektion. Klart-kriteriet
