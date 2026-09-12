@@ -61,14 +61,32 @@ FORBJUDET = [
     (re.compile(r"\bskickas\s+fr[åa]n\b|\bfr[åa]n\s+v[åa]rt\s+lager\s+i\b"
                 r"|\bTyskland\b|\bSpanien\b|\bPolen\b|\bKina\b", re.I),
      "AVSÄNDARLAND — bara EU-lager-ribbonen får bära det"),
+    (re.compile(r"\bkattr[äa]d\b", re.I),
+     "FELSTAVNING — `katträd` ska ha tre led: katt+träd = kattträd, "
+     "och husets ord är `klösträd`"),
+]
+
+# ☠️ REGLER SOM BARA FÅR LÄSA KÄLLTEXTEN — uppmätt, inte anat.
+#    Båda två träffar BUTIKENS EGET chrome på varje korrekt publicerad sida,
+#    och ett larm som alltid fyrar lär mottagaren att sluta läsa. Runda 137:s
+#    första live-svep mätte **112 fel på åtta korrekta sidor**; efter att
+#    underlaget lagats stod **102** kvar, allihop ur de här två plus
+#    homoglyfgrinden nedan. Runda 136 hade samma delning och gav **0**.
+#
+#    | regel | vad den träffar på en frisk sida |
+#    |---|---|
+#    | PRIS | prisblocket `879 kr` och sidfotens `… Vanliga frågor 879 kr` |
+#    | LEVERANSLÖFTE | butikens `Beräknad leverans 3–7 arbetsdagar` |
+#
+#    ☠️ DET ÄR BUTIKENS VERKLIGA ERBJUDANDE, skrivet av Leonard i mallen —
+#       inte ett fabricerat löfte (uppgift #423). Samma resonemang som
+#       `BUTIKSRADER` i `grindar.butikstvatt`.
+ENDAST_KALLTEXT = [
     (re.compile(r"\b\d+\s*(?:kr|kronor|SEK)\b|\bpris(?:et|er)?\s+[äa]r\b", re.I),
      "PRIS I BRÖDTEXTEN"),
     (re.compile(r"\b(?:levereras|kommer fram|hos dig|leverans)\s+(?:inom|p[åa])\s+"
                 r"\d+|\b\d+\s*[-–]\s*\d+\s*(?:arbetsdag|vardag|dag)\w*", re.I),
      "LEVERANSLÖFTE — vi lovar ingen leveranstid i produkttexten"),
-    (re.compile(r"\bkattr[äa]d\b", re.I),
-     "FELSTAVNING — `katträd` ska ha tre led: katt+träd = kattträd, "
-     "och husets ord är `klösträd`"),
 ]
 
 # ☠️ Produktspecifika förbud, ur matt.FORBJUDNA_PASTAENDEN. De är BEVISADE
@@ -158,15 +176,35 @@ def granska(pid, html=None, live=False):
         #    källgrenen fäller den 24 gånger på åtta korrekta sidor — en
         #    tvilling till uppgift #452 och #510.
         fel.extend("FLIKSTRUKTUR: %s" % x for x in G.flikfel(h))
-        h = G.butikstvatt(h)
-        h = G.strak_grannar(G.strip_taggar(h), h, T.SLUG[pid], T.NAMN[pid])
-        syn = h
+        # ☠️ LIVE-UNDERLAGET ÄR SIDANS EGNA MENINGAR, aldrig hela sidan.
+        #    Regeln bor i `grindar.livetext` sedan runda 137 — den här
+        #    kompositionen har drivit isär två gånger på fyra rundor (#510:s
+        #    3 942 falska fel, och tio till här).
+        #
+        #    ⚠️ OCH DEN ÄR BARA HALVA LAGNINGEN — mätt, inte gissat. Den
+        #       första diagnosen här sa att underlaget förklarade alla 112
+        #       falska felen. Det gjorde det inte:
+        #
+        #       | underlag | tecken | de 112 |
+        #       |---|--:|--:|
+        #       | `strak_grannar` över hela sidan | 4 552 | — |
+        #       | `livetext` (egna meningar)       | 4 482 | **−10** |
+        #
+        #       Sjuttio tecken skiljer dem: GRANNENS NAMN. Prisblocket,
+        #       sidfotens telefonnummer, `🚚`, `→` och `⤢` står kvar i
+        #       BÅDA — de ligger inte i någon produktlänk, så `dela_pa_ankare`
+        #       kan inte flytta dem. De övriga 102 var regler som inte får
+        #       läsa en live-sida alls; se `ENDAST_KALLTEXT` ovan.
+        #
+        #    ⚠️ TVÄTTEN GÖRS INTE HÄR. `liverunda.kor` skickar redan
+        #       `G.butikstvatt(html)`; ett andra varv är uppgift #452 igen.
+        syn = G.livetext(h, T.SLUG[pid], T.NAMN[pid])
     else:
         syn = G.strip_taggar(h)
 
     allt = syn + " " + " ".join(v for _, v in falt)
 
-    for monster, skal in FORBJUDET:
+    for monster, skal in (FORBJUDET if live else FORBJUDET + ENDAST_KALLTEXT):
         for m in monster.finditer(allt):
             fel.append("%s: %r" % (skal, G.mening_kring(allt, m.start())[:110]))
     for monster, skal in SPECIFIKA.get(pid, []):
@@ -184,8 +222,12 @@ def granska(pid, html=None, live=False):
         fel.append("VERSAL MITT I ORD %r — %r" % (o, s))
     for x in G.trekonsonant(allt) if hasattr(G, "trekonsonant") else []:
         fel.append("TRE LIKA KONSONANTER %r" % (x,))
-    for x in G.homoglyfer(allt):
-        fel.append("OSYNLIGT TECKEN %r" % (x,))
+    if not live:
+        # ☠️ BUTIKENS CHROME ÄR FULLT AV DEM, och inget av det är vår text:
+        #    `🚚` i sidrubriken, `·` i brödsmulan, `⤢` på zoomknappen och
+        #    ett `→` per rekommendationskort. Uppmätt 15 träffar per sida.
+        for x in G.homoglyfer(allt):
+            fel.append("OSYNLIGT TECKEN %r" % (x,))
 
     if not live:
         for st in re.split(r"(?i)</(?:p|li)>", h):
@@ -250,7 +292,12 @@ def sjalvtest():
     fel, fall = [], 0
     for txt, ska, etikett in FALL:
         fall += 1
-        traff = any(m.search(txt) for m, _ in FORBJUDET)
+        # ☠️ BÅDA LISTORNA, av samma skäl som `granska` läser båda i
+        #    källgrenen. Första utkastet läste bara `FORBJUDET`, och i samma
+        #    sekund prisregeln flyttade till `ENDAST_KALLTEXT` släppte två
+        #    självtestfall igenom — ett självtest som inte följer med sin
+        #    egen regel är tvillingen i miniatyr.
+        traff = any(m.search(txt) for m, _ in FORBJUDET + ENDAST_KALLTEXT)
         if traff != ska:
             fel.append("SJÄLVTEST %r: förväntade %s, fick %s"
                        % (etikett, "FÄLL" if ska else "SLÄPP",

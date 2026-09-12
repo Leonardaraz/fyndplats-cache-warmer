@@ -823,6 +823,48 @@ def egna_meningar(html, slug, eget_namn=None, tvatta=None):
     return egna, kors
 
 
+def livetext(html, slug, eget_namn=None):
+    """LIVE-lägets UNDERLAG: sidans EGNA meningar, som meningsdelad text.
+
+    ☠️ KOMPOSITIONEN HAR DRIVIT ISÄR TVÅ GÅNGER på fyra rundor, båda med
+       grön källgrind och ett självtest som sa noll fel. Båda gångerna var de
+       enskilda hjälparna rätt och delade; det som gled var hur de SATTES
+       IHOP — och `tvillingsvep` fäller den som DEFINIERAR om ett namn, inte
+       den som komponerar om två lånade namn. Därför bor den här, och namnet
+       står i `ADE_FUNKTIONER`.
+
+       | runda | vad live-grenen läste           | falska fel |
+       |---|---|--:|
+       | 134 | tvättad men OTOLKAD HTML          | **3 942** (#510) |
+       | 137 | `strak_grannar` över HELA sidan   | **10** av 112 |
+
+    ☠️ LÄS TALET I ANDRA RADEN RÄTT: 10, INTE 112. Runda 137:s första
+       diagnos skrev hela svepet på underlaget. Mätt på en verklig sida:
+
+         `strak_grannar` över hela sidan   4 552 tecken
+         `livetext`                        4 482 tecken   − 70
+
+       Sjuttio tecken skiljer, och de är GRANNENS NAMN. De övriga 102 felen
+       var regler som inte får läsa en live-sida alls. **Den här funktionen
+       är alltså halva lagningen; den andra halvan är rundans egen
+       `ENDAST_KALLTEXT`.** En runda som byter underlag och tror sig klar
+       får fortfarande ett rött svep.
+
+    ⚠️ VAD DEN INTE GÖR — uppmätt på en publicerad sida, så att ingen
+       behöver hoppas på något annat. Kvar i utdatan står butikens prisblock
+       (`879 kr`), sidfotens telefonnummer, `🚚` i sidrubriken, `→` i
+       rekommendationskorten och `⤢` på zoomknappen. Inget av det ligger i
+       en PRODUKTLÄNK, så `dela_pa_ankare` kan inte flytta det till `kors`.
+       Det som försvinner är grannarnas namn, deras sluggar och deras
+       meningar — alltså precis det en syskonsida annars fälls för.
+
+    ⚠️ TVÄTTEN GÖRS INTE HÄR. `liverunda.kor` skickar redan
+       `butikstvatt(html)`; ett andra varv är uppgift #452:s fynd igen.
+    """
+    egna, _ = egna_meningar(html, slug, eget_namn)
+    return synlig_meningstext("<p>%s</p>" % egna)
+
+
 # ☠️ BUTIKENS EGEN EU-LAGER-RIBBON ÄR SANKTIONERAD. CLAUDE.md pekar ut den som
 #    det ENDA stället där leveransursprunget får nämnas. En live-grind som ärver
 #    källtextens `skickas från`-mönster fyrar därför på VARJE korrekt publicerad
@@ -1282,6 +1324,20 @@ def _isr_stub(rader):
     return h["x-vercel-cache"], n[0]
 
 
+# ☠️ EN SYNTETISK LIVE-SIDA I BUTIKENS FORM — underlag för `livetext`-fallen.
+#    Grannraden ligger i en PRODUKTLÄNK och försvinner; prisraden gör det
+#    inte, och ska inte göra det — se den kända gränsen i `livetext`.
+#    ⚠️ LÄNKEN MÅSTE VARA ABSOLUT. `_ANKARE_MARK` kräver
+#       `https://www.fyndplats.se/produkt/…`; en relativ `/produkt/…`
+#       matchar inte, och en fixtur med relativ länk hade gjort testet
+#       grönt av fel skäl. Butiken renderar absoluta länkar — mätt.
+_LIVESIDA = (
+    '<p>Stammen är lindad med sisal hela vägen upp.</p>'
+    '<p><a href="https://www.fyndplats.se/produkt/klostrad-66-cm-ljusgra">'
+    'Kattrappa 66 cm i ljusgrått – fyra steg</a></p>'
+    '<div>879 kr</div>')
+
+
 def _sjalvtest():
     fall = [
         # ☠️ Versal mitt i ett ord — se versalfel(). Runda 135:s alt-text bar
@@ -1479,6 +1535,33 @@ def _sjalvtest():
          "12,4" in butikstvatt('{"d":"M 12,4 L 30,8"}'), False),
         ("tvatt: id=\"…\" är INTE ett SVG-attribut", lambda:
          "abc" not in butikstvatt('<div id="abc">Text</div>'), False),
+        # ☠️ LIVE-UNDERLAGET. Fallen låser BÅDA riktningarna, och den
+        #    andra är den viktiga: `livetext` tar bort GRANNEN, inte chromet.
+        #    Ett test skrivet mot det man hoppades på är ett test som ljuger
+        #    (runda 133) — de här är skrivna efter mätning på en verklig sida.
+        ("livetext: sidans EGEN mening behålls", lambda:
+         "sisal" in livetext(_LIVESIDA, "klostrad-66-cm-beige"), True),
+        ("livetext: GRANNENS namn följer INTE med", lambda:
+         "ljusgrått" in livetext(_LIVESIDA, "klostrad-66-cm-beige"), False),
+        ("livetext: grannens SLUGG följer INTE med", lambda:
+         "klostrad-66-cm-ljusgra" in livetext(_LIVESIDA, "klostrad-66-cm-beige"),
+         False),
+        # ⚠️ KÄND GRÄNS, mätt och medveten: butikens chrome ligger inte i
+        #    en PRODUKTLÄNK, så delningen kan inte flytta det. Därför måste
+        #    prisregeln vara källtext-bara i rundans egen grind — 102 av
+        #    runda 137:s 112 falska fel satt där, inte här.
+        ("livetext: butikens PRISBLOCK står kvar — känd gräns", lambda:
+         "879 kr" in livetext(_LIVESIDA, "klostrad-66-cm-beige"), True),
+        # ☠️ OCH GRINDEN MOT ATT NÄSTA RUNDA KOMPONERAR OM DET SJÄLV.
+        #    En grind vars egen form aldrig prövats är husets återkommande
+        #    fynd — här prövas den åt båda hållen plus det tomma fallet.
+        ("livesvep: egen komposition fälls", lambda: egen_livekomposition(
+            "if live:\n    h = G.strak_grannar(G.strip_taggar(h), h, s, n)") != [],
+         True),
+        ("livesvep: G.livetext fälls INTE", lambda: egen_livekomposition(
+            "if live:\n    syn = G.livetext(h, s, n)") == [], True),
+        ("livesvep: en grind UTAN live-gren fälls INTE", lambda:
+         egen_livekomposition("x = G.strip_taggar(h)") == [], True),
     ]
     fel = []
     for namn, kor, ska_falla in fall:
@@ -1524,7 +1607,7 @@ ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD",
 # `_tvatta` står med under sitt gamla namn: runda 120 och 121 döpte den
 # så, och det är just den funktionen som gled isär.
 ADE_FUNKTIONER = ["homoglyfer", "fargfel", "butikstvatt", "_tvatta",
-                  "wix_normalisera", "versalfel"]
+                  "wix_normalisera", "versalfel", "livetext"]
 FORSTA_GRINDADE_RUNDAN = 120
 
 
@@ -1583,6 +1666,51 @@ def definierar_om(kod):
     return ut
 
 
+FORSTA_LIVETEXT_RUNDAN = 137
+
+
+def egen_livekomposition(kod):
+    """Har koden en live-gren som INTE går via den delade `livetext`?
+
+    ☠️ `tvillingsvep` KUNDE INTE SE RUNDA 137:s FEL, och det är hela skälet
+       till att den här finns. Den fäller den som DEFINIERAR om ett ägt namn.
+       Runda 137 definierade ingenting — den lånade `strak_grannar` och
+       `strip_taggar`, båda delade och båda rätt, och KOMPONERADE dem fel.
+       Två rätt delar kan bli en fel helhet, och då räcker det inte att
+       vakta delarna.
+
+    ⚠️ GÄLLER FRÅN RUNDA 137, inte bakåt. Runda 128–136 skriver samma
+       komposition för hand och är gröna och levererade; att skriva om dem
+       vore chårn utan mätt nytta. Grinden binder därifrån och framåt —
+       samma form som `FORSTA_GRINDADE_RUNDAN`.
+    """
+    if "live=True" not in kod and "live:" not in kod:
+        return []
+    if not re.search(r"\blive\b", kod):
+        return []
+    if re.search(r"G\.livetext\s*\(", kod):
+        return []
+    # Bara den som faktiskt bygger ett live-underlag ur HTML:en är intressant.
+    if re.search(r"G\.(?:egna_meningar|strak_grannar|strip_taggar)\s*\(", kod):
+        return ["bygger sitt EGNA live-underlag — anropa G.livetext()"]
+    return []
+
+
+def livetextsvep(rot=None):
+    """Rundor från FORSTA_LIVETEXT_RUNDAN som bygger live-underlaget själva."""
+    import glob
+    import os
+    rot = rot or os.path.dirname(os.path.abspath(__file__))
+    fel = []
+    for fil in sorted(glob.glob(os.path.join(rot, "runda-*", "grind.py"))):
+        rnr = os.path.basename(os.path.dirname(fil)).replace("runda-", "")
+        if not rnr.isdigit() or int(rnr) < FORSTA_LIVETEXT_RUNDAN:
+            continue
+        for x in egen_livekomposition(open(fil, encoding="utf-8").read()):
+            fel.append("%s: %s" % (os.path.relpath(fil, rot), x))
+    return fel
+
+
 def tvillingsvep(rot=None):
     """Rundor som DEFINIERAR om något `grindar.py` äger."""
     import glob
@@ -1610,4 +1738,9 @@ if __name__ == "__main__":
           f"{FORSTA_GRINDADE_RUNDAN}+")
     for x in tv:
         print("  ☠️", x)
-    sys.exit(1 if (fel or tv) else 0)
+    lt = livetextsvep()
+    print(f"livetextsvep(): {len(lt)} egna live-underlag i runda "
+          f"{FORSTA_LIVETEXT_RUNDAN}+")
+    for x in lt:
+        print("  ☠️", x)
+    sys.exit(1 if (fel or tv or lt) else 0)
