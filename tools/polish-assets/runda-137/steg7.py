@@ -65,7 +65,10 @@ def payload(pid):
 if __name__ == "__main__":
     fel = 0
     ut = {}
-    st = GR.sjalvtest()
+    # ☠️ `sjalvtest()` returnerar (fel, antal) — tupeln krävs av `liverunda.kor`
+    #    och en naken `for x in st` hade itererat över BÅDA och skrivit ut
+    #    antalet som ett fel. Packa upp den.
+    st, _fall = GR.sjalvtest()
     for x in st:
         print("☠️", x); fel += 1
     for pid in T.NAMN:

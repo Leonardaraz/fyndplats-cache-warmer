@@ -236,37 +236,71 @@ FALL = [
 
 
 def sjalvtest():
-    fel = []
+    """Returnerar (fel, antal körda fall).
+
+    ☠️ TUPELN ÄR ETT KRAV, inte en stilfråga. `liverunda.kor` vägrar köra om
+       den får en naken lista: en tom lista kan betyda "noll fel" ELLER
+       "självtestet kördes aldrig", och runda 129 drev isär i fem rundor på
+       exakt den tvetydigheten (uppgift #491). Antalet gör skillnaden mätbar.
+
+    ⚠️ ANTALET RÄKNAS DÄR FALLEN KÖRS, aldrig som en handskriven summa —
+       `__main__` skrev tidigare `len(FALL) + 7`, och den sjuan hade blivit
+       fel i samma sekund ett fall lades till.
+    """
+    fel, fall = [], 0
     for txt, ska, etikett in FALL:
+        fall += 1
         traff = any(m.search(txt) for m, _ in FORBJUDET)
         if traff != ska:
             fel.append("SJÄLVTEST %r: förväntade %s, fick %s"
                        % (etikett, "FÄLL" if ska else "SLÄPP",
                           "FÄLL" if traff else "SLÄPP"))
     # Produktspecifika förbud, båda hållen.
+    fall += 1
     if not any(m.search("Kojan är inte en kattlåda.") for m, _ in SPECIFIKA["dd3b541b"]):
         fel.append("SJÄLVTEST: kattlåda fälls inte på dd3b541b")
+    fall += 1
     if any(m.search("Kojan är sluten och mörk.") for m, _ in SPECIFIKA["dd3b541b"]):
         fel.append("SJÄLVTEST: ren kojtext fälls på dd3b541b")
+    fall += 1
     if not any(m.search("Trappan är höjdjusterbar.") for m, _ in SPECIFIKA["1ae60dbc"]):
         fel.append("SJÄLVTEST: höjdjusterbar fälls inte på 1ae60dbc")
+    fall += 1
     if any(m.search("Trappan kan byggas med tre steg.") for m, _ in SPECIFIKA["1ae60dbc"]):
         fel.append("SJÄLVTEST: korrekt formulering fälls på 1ae60dbc")
     # Talgrinden, båda hållen.
+    fall += 1
     if not _talgrind("f489937f", "<p>Stammen är 22 cm.</p>"):
         fel.append("SJÄLVTEST: talgrinden släpper ett ohärlett tal")
+    fall += 1
     if _talgrind("f489937f", "<p>Stammen är 16,5 cm.</p>"):
         fel.append("SJÄLVTEST: talgrinden fäller ett härlett tal")
+    fall += 1
     if _talgrind("f489937f", '<p>Se <a href="x">klöspelare 87 cm</a>.</p>'):
         fel.append("SJÄLVTEST: talgrinden fäller ett tal i ett LÄNKstycke")
-    return fel
+
+    # Räkneordsgrinden, båda hållen — ny i runda 137.
+    fall += 1
+    if not _antalsgrind("c7bd00b9", "<p>På stammen sitter två runda plan.</p>"):
+        fel.append("SJÄLVTEST: antalsgrinden släpper ett FEL antal")
+    fall += 1
+    if _antalsgrind("c7bd00b9", "<p>På stammen sitter tre runda plan.</p>"):
+        fel.append("SJÄLVTEST: antalsgrinden fäller ett RÄTT antal")
+    fall += 1
+    if _antalsgrind("c7bd00b9", '<p>Se <a href="x">klösträd i fem plan</a>.</p>'):
+        fel.append("SJÄLVTEST: antalsgrinden fäller en KORSLÄNK")
+    fall += 1
+    if _antalsgrind("c7bd00b9", "<p>Plats att ligga på ett plan.</p>"):
+        fel.append("SJÄLVTEST: antalsgrinden fäller obestämd artikel")
+
+    return fel, fall
 
 
 if __name__ == "__main__":
-    st = sjalvtest()
+    st, fall = sjalvtest()
     for x in st:
         print("☠️", x)
-    print("grind.sjalvtest(): %d fall, %d fel" % (len(FALL) + 7, len(st)))
+    print("grind.sjalvtest(): %d fall, %d fel" % (fall, len(st)))
     print()
     tot = 0
     for pid in T.NAMN:
