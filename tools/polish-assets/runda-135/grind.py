@@ -150,6 +150,14 @@ def granska(pid, html=None, live=False):
                            % (namn, skal, G.mening_kring(heltext, m.start())[:110]))
         for h in G.homoglyfer(text):
             fel.append("%s: HOMOGLYF %r" % (namn, h))
+        # ☠️ VERSAL MITT I ETT ORD. Rundans alt-text bar `inneslL` och
+        #    varenda annan grind var grön — se grindar.versalfel(). Körs på
+        #    `text`, alltså inte på LIVE-sidans HTML: butikens egen markup
+        #    och JSON-LD är full av `camelCase`.
+        if not live:
+            for ord_, sammanhang in G.versalfel(text):
+                fel.append("%s: VERSAL MITT I ORD %r — %r"
+                           % (namn, ord_, sammanhang))
         for m in G.ARTNR.finditer(text):
             fel.append("%s: ARTIKELNUMMER %r" % (namn, m.group(0)))
 

@@ -1055,6 +1055,37 @@ def homoglyfer(text):
     return ut
 
 
+
+# ── ☠️ VERSAL MITT I ETT ORD — en stumhet ingen annan grind ser ────────────
+# Runda 135: alt-texten bar `inneslL` där det skulle stå `innesluten`. Ordet
+# är inte förbjudet, inte tyskt, inte tre lika konsonanter och inte ett tal.
+# Varenda grind var grön, och felet var en kundtext med en trasig stavelse i.
+#
+# Svenskan har ingen versal mitt i ett ord (`iPhone` och `McDonald's` är
+# varumärken som inte förekommer i den här katalogens kundtext), så regeln är
+# MEKANISK och kan inte ge falsklarm på korrekt svenska. Den fångar den
+# vanligaste formen av tappat tangentnedslag, och den är gratis.
+#
+# ⚠️ Den ersätter INGEN stavningskontroll. Ett rent gement stavfel
+# (`dögnsvarv`) går fortfarande igenom — det som fångar sådana är att söka
+# ordet i HELA batchen så fort ett hittas, aldrig att laga där det syns.
+_VERSAL_INUTI = re.compile(r"[a-zåäöéü][A-ZÅÄÖÉÜ]")
+
+
+def versalfel(text):
+    """(ordet, sammanhanget) för varje ord med versal mitt i sig."""
+    ut = []
+    for m in _VERSAL_INUTI.finditer(text):
+        i = m.start()
+        start = i
+        while start > 0 and (text[start - 1].isalpha() or text[start - 1] == "-"):
+            start -= 1
+        slut = i + 1
+        while slut < len(text) and (text[slut].isalpha() or text[slut] == "-"):
+            slut += 1
+        ut.append((text[start:slut], text[max(0, i - 25):i + 20]))
+    return ut
+
 # ── ☠️ FÄRG PÅ EN DEL AV VARAN, inte färg var som helst ────────────────────
 # Runda 89–91 skrev fel färg tre rundor i rad, och grinden som byggdes mot det
 # letade färgord VAR SOM HELST i texten. Runda 120 mätte priset: den fällde
@@ -1253,6 +1284,26 @@ def _isr_stub(rader):
 
 def _sjalvtest():
     fall = [
+        # ☠️ Versal mitt i ett ord — se versalfel(). Runda 135:s alt-text bar
+        #    `inneslL` och varenda annan grind var grön.
+        ("versal: inneslL fälls",
+         lambda: len(versalfel("bana, inneslL mellan skivor")) == 1, True),
+        ("versal: namnger ORDET, inte tecknet",
+         lambda: versalfel("bana, inneslL mellan")[0][0] == "inneslL", True),
+        ("versal: ren svenska fälls INTE",
+         lambda: versalfel("Närbild på träkulan i sockelns bana") == [], True),
+        ("versal: MENINGENS första versal fälls INTE",
+         lambda: versalfel("Klösträd 98 cm. Måttritning över basen") == [], True),
+        ("versal: VERSALORD fälls INTE",
+         lambda: versalfel("MÅTT och FÄRG") == [], True),
+        # ⚠️ ÄRLIG GRÄNS, inte en önskan: mönstret kräver en GEMEN omedelbart
+        #    före versalen, så en versal EFTER ett bindestreck går fri. Testet
+        #    låser det utfall funktionen faktiskt har — ett test skrivet mot
+        #    det man hoppades på är ett test som ljuger (runda 133).
+        ("versal: efter bindestreck fångas INTE — känd gräns",
+         lambda: versalfel("en sisal-Klädd stam") == [], True),
+        ("versal: bindestreck INUTI ett fångat ord följer med",
+         lambda: versalfel("en sisalKlädd-stam")[0][0] == "sisalKlädd-stam", True),
         # ☠️ Wix normaliserar `plainDescription` VID LAGRING — se
         #    wix_normalisera(). Utan de här fallen jämför nästa runda rått
         #    igen och får åtta falska avvikelser på åtta korrekta sidor.
@@ -1473,7 +1524,7 @@ ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD",
 # `_tvatta` står med under sitt gamla namn: runda 120 och 121 döpte den
 # så, och det är just den funktionen som gled isär.
 ADE_FUNKTIONER = ["homoglyfer", "fargfel", "butikstvatt", "_tvatta",
-                  "wix_normalisera"]
+                  "wix_normalisera", "versalfel"]
 FORSTA_GRINDADE_RUNDAN = 120
 
 
