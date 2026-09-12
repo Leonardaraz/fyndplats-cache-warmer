@@ -85,8 +85,14 @@ att filens AVSLUTANDE radbrytning strippas. Regel 1 (`>\n<` → `><`) kräver et
 | `45fd6bc6` | 3124 | **3123** |
 
 Med radbrytningen bortstrippad stämmer båda checksummorna exakt, och så gör
-alla åtta. Varje runda vars fil slutar med radbrytning — alltså alla — har
-därför burit ett kvitto som låg exakt en byte fel.
+alla åtta.
+
+⚠️ **Och en första slutsats här var för bred — mätt, och fel.** Raden påstod
+att varje runda vars fil slutar med radbrytning bar ett kvitto som låg en byte
+fel. Det gör de inte: L1:s och L2:s lagrade kvitton är räknade PÅ den
+strippade texten och stämmer exakt. Felet fanns bara i den här rundan, för att
+den var den första som anropade `wixnorm.normalisera` rakt av i stället för att
+kompensera i ett eget skript. Modulen hade hålet; rundorna före hade det inte.
 
 ⚠️ **En byte ser ut som en struntsak och är just därför farlig:** avvikelsen är
 omöjlig att skilja från ett äkta transkriberingsfel på ett tecken, och den som
