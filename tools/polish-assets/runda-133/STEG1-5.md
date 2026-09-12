@@ -256,3 +256,77 @@ och återläsningen visar svenskt huvudord på alla tio.
 tillbaka som `langd: 0` på de två första skrivningarna. Det är uppgift #457
 och #425, inte ett fel. Kvittot togs därför på en EGEN återläsning med
 `?fields=PLAIN_DESCRIPTION`, aldrig på skrivsvaret.
+
+## ☠️ Steg 8a — en SKU-skrivning kan inte vara smal, och det är farligt
+
+Alla tio bär nu sin härledda svenska variant-SKU, skriven mot `wixVariantId`.
+**Sex av tio delade SKU med ett syskon** innan — och krockarna kom från
+IMPORTEN, inte från poleringen (uppgift #272):
+
+| delad SKU | produkter |
+|---|---|
+| `FP-kratztonne-fur-katzen` | `e7a9abb7` + `f2e06b7a` |
+| `FP-kratztonne-mit-3-ebenen` | `bd0d7f9e` + `efa9c03e` |
+| `FP-katzenkratzfass-96-cm-4` | `d85ade1b` + `ec29ad45` |
+
+☠️ **Wix VÄGRAR en variantsInfo-PATCH som bara bär `sku`:**
+
+```
+400 REQUIRED_FIELD
+product.variantsInfo.variants[0].price must not be empty
+```
+
+**Priset måste alltså följa med i varje SKU-skrivning.** Det gör Steg 8 till
+runbokens farligaste steg på en regel som säger *rör aldrig priset*: en enda
+felskriven siffra ändrar vad kunden betalar.
+
+**Motmedlet: eka priset, skriv aldrig av det.** Skrivningen tar
+`gammalVariant.price` rakt ur den GET som ändå görs för revisionen, och
+jämför `pris_fore === pris_efter` per produkt i samma anrop.
+**Tio av tio orörda** — 849, 1529, 1169, 1159, 999, 1029, 1059, 939, 1359, 1459.
+
+### ☠️ Och uppgift #501 var för snäll — den är RÄTTAD här
+
+Runda 132 skrev "skicka inte `media` i en variantsInfo-PATCH". Mätningen här
+säger något värre:
+
+| | före Steg 8a | efter |
+|---|--:|--:|
+| varianter med eget `media` | **9 av 10** | **0 av 10** |
+
+Skrivningen skickade `sku`, `price`, `choices` och `visible` — **uttryckligen
+inget `media`**. Varianterna tappade det ändå. Alltså: **varje**
+variantsInfo-PATCH nollar variantens bild, oavsett om media skickas med eller
+utelämnas. Det finns ingen väg att skriva en variant-SKU utan att förlora den.
+
+Skadan i rundan är noll — alla tio är enkelvariant utan optioner, butiken
+renderar `media.main`, och den är intakt (10/10 huvudbild, 10/10 fem
+galleribilder). **På en flervariantsida med optioner är den inte noll**, och
+det är vad som ska mätas härnäst.
+
+## Steg 9 — tio kort byggda
+
+`kort.py` är en DATAFIL: tio `KORT` (kicker + rubrik) och tio `RADER`.
+Reglerna — värdehärledningen, måttradskravet, dubblettspärren, takgränsen och
+kopian till spårade `kort/` — bor i `kortrunda`/`kortbygge`.
+
+**Grinden 10 av 10 grön**, och den fällde två saker på vägen:
+
+1. ☠️ **Homoglyfgrinden tog mittpunkten `·`** i alla tio kickers. Ett tecken
+   som ser ut som ett skiljetecken men inte står i husets tillåtna uppsättning.
+   Ersatt med komma.
+2. ☠️ **Sex av tio sprängde 215 kB-taket vid q=85** — och det är SISALEN som
+   gör det. En tätt lindad sisalyta är högfrekvent brus, precis det jpeg inte
+   packar. Regeln är att FOTOT mjukas upp, aldrig kortet: kvaliteten får inte
+   under 85. Med `MJUKA` satt efter hur mycket varje kort låg över
+   (+1 480 till +23 050 byte) ligger alla tio nu på 198–215 kB.
+
+⚠️ **Rubriken är vald mot bild 1 med ögon och kontrollerad på kontaktarket.**
+Rundans egen fälla är grupp C: tre tunnor som bara skiljs åt av KANTFÄRGEN, så
+varje rubrik namnger just kanten — *"Tre runda hålor med grå kanter"*,
+*"Gräddvita kanter mot ljusbrun sisal"*, *"Mörkgrå kanter, topp och sockel"*.
+
+**Korten pushas FÖRE uppladdningen.** `kort/` är den spårade platsen, och Wix
+hämtar filerna från `raw.githubusercontent.com` — ligger de inte i grenen
+svarar adressen 404 och Wix kvitterar ändå `success: true, PENDING`
+(runda 106, sex kort).

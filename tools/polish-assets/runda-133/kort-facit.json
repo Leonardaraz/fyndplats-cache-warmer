@@ -1,0 +1,262 @@
+{
+ "b6bf627f": {
+  "kicker": "Sjögräs, 49 cm",
+  "rubrik": "Flätat sjögräs under, sisal över",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "35,5 × 35,5 × 49 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "2"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø14 cm"
+   },
+   {
+    "etikett": "Material",
+    "varde": "spånskiva, plysch, sisal och sjögräs"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "a33447f9": {
+  "kicker": "Sjögräs, 79 cm",
+  "rubrik": "Tre hålor i flätat sjögräs och sisal",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "45 × 45 × 79 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø17 cm"
+   },
+   {
+    "etikett": "Material",
+    "varde": "spånskiva, plysch, sisal och sjögräs"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "e7a9abb7": {
+  "kicker": "Mörkgrå, 74 cm",
+  "rubrik": "Tre ingångar mot ljus sisalpanel",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "40 × 40 × 74 cm"
+   },
+   {
+    "etikett": "Antal ingångar",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø18 cm"
+   },
+   {
+    "etikett": "Material",
+    "varde": "spånskiva, sammetslen polyester och sisal"
+   },
+   {
+    "etikett": "Kattvikt",
+    "varde": "under 4,5 kg"
+   }
+  ]
+ },
+ "f2e06b7a": {
+  "kicker": "Beige, 74 cm",
+  "rubrik": "Två ingångar och öppen liggplats",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "40 × 40 × 74 cm"
+   },
+   {
+    "etikett": "Antal ingångar",
+    "varde": "2"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø18 cm"
+   },
+   {
+    "etikett": "Liggyta överst",
+    "varde": "37 × 37 cm"
+   },
+   {
+    "etikett": "Kattvikt",
+    "varde": "under 4,5 kg"
+   }
+  ]
+ },
+ "bd0d7f9e": {
+  "kicker": "Grå kant, 70 cm",
+  "rubrik": "Tre runda hålor med grå kanter",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø38 × 70 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø17 cm"
+   },
+   {
+    "etikett": "Färg",
+    "varde": "ljusgrå sisal med grå kanter"
+   },
+   {
+    "etikett": "Kattvikt",
+    "varde": "under 5 kg"
+   }
+  ]
+ },
+ "d9310184": {
+  "kicker": "Ljusbrun, 70 cm",
+  "rubrik": "Gräddvita kanter mot ljusbrun sisal",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø38 × 70 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø17 cm"
+   },
+   {
+    "etikett": "Färg",
+    "varde": "ljusbrun sisal med gräddvita kanter"
+   },
+   {
+    "etikett": "Kattvikt",
+    "varde": "under 5 kg"
+   }
+  ]
+ },
+ "efa9c03e": {
+  "kicker": "Mörkgrå kant, 70 cm",
+  "rubrik": "Mörkgrå kanter, topp och sockel",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø38 × 70 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø17 cm"
+   },
+   {
+    "etikett": "Färg",
+    "varde": "ljusgrå sisal med mörkgrå kanter"
+   },
+   {
+    "etikett": "Kattvikt",
+    "varde": "under 5 kg"
+   }
+  ]
+ },
+ "e43b623c": {
+  "kicker": "Ljusgrå, 60 cm",
+  "rubrik": "Låg tunna med två runda hålor",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø35 × 60 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "2"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "Ø17 cm"
+   },
+   {
+    "etikett": "Nedre rummet",
+    "varde": "Ø33 × 27 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10 kg"
+   }
+  ]
+ },
+ "d85ade1b": {
+  "kicker": "Cremevit, 96 cm",
+  "rubrik": "Kattformade hålor och bädd på toppen",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø38 × 96 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "18 × 19 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "Ø38 × 6 cm, avtagbar och maskintvättbar"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "ec29ad45": {
+  "kicker": "Grå, 96 cm",
+  "rubrik": "Grå tunna med bädd på toppen",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø38 × 96 cm"
+   },
+   {
+    "etikett": "Antal hålor",
+    "varde": "3"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "18 × 19 cm"
+   },
+   {
+    "etikett": "Färg",
+    "varde": "grå med grå bädd"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "20 kg"
+   }
+  ]
+ }
+}

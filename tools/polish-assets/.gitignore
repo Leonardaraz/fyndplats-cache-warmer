@@ -117,3 +117,8 @@ runda-120/rawbilder/
 */mattritningar.jpg
 */rakna-*.jpg
 */kolla-*.jpg
+
+# `kortbygge.mjuka_upp`s mellanled: fotot med oskärpa pålagd, skrivet bredvid
+# rundans filer. Härlett ur `kortfoto/` av MJUKA-talen i rundans `kort.py`,
+# alltså återskapbart på ett kommando. Samma skäl som `*/kortfoto/`.
+*/*-1-mjuk.jpg
