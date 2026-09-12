@@ -17,7 +17,8 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
 """
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import las_facit, GRINDAR, FLIKAR, tal, kropp
+from gatelib import (las_facit, GRINDAR, FLIKAR, tal, kropp, ordtal_i_text,
+                     las_kalltext, tal_ur_kalla_brett)
 
 # ☠️ TRE LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — alla smala med flit.
 #
@@ -93,6 +94,13 @@ def syskontal(html):
     return ut
 
 fynd = 0
+VARNINGAR = []
+# Råa källtexter, bara när facit ÄR källtexten. `las_kalltext` svarar None
+# på en runda med härledd sifferlista, och då är varningen överhoppad ändå.
+KALLTEXT = las_kalltext() or {}
+# ⚠️ Ett upprepat påstående är ETT påstående. Utan den här dedupen gav
+# 166fdb52 sju rader om samma två dynor, och sju rader om en sak är brus.
+sedda_ord = {}
 filer = sorted(glob.glob("*.html"))
 for f in filer:
     kort = os.path.basename(f)[:-5]
@@ -129,7 +137,64 @@ for f in filer:
     for t in sorted(tal(k) - facit, key=lambda x: (len(x), x)):
         print(f"  {kort}: [SIFFRA UTAN KÄLLA] {t!r}"); fynd += 1
 
+    # ☠️ VARNINGEN GÄLLER BARA MOT HELA KÄLLTEXTEN. `kallor-tal.json` är en
+    # HÄRLEDD sifferlista, byggd innan tyska räkneord bryggades över — en källa
+    # som säger "sechs Vibrationspunkte" bidrog aldrig med någon 6 dit. Körd mot
+    # det formatet flaggar varningen därför sourcade påståenden som osourcade:
+    # uppmätt 2026-09-12 gav K3, K10–K13 arton varningar om massagepunkter,
+    # lägen och styrkor som med all sannolikhet står i källan med bokstäver.
+    #
+    # Att låta dem stå hade varit att mäta facit-formatet och kalla det ett fynd
+    # — samma familj som "en nolla från en klassificerare mäter klassificeraren",
+    # fast åt andra hållet. Rundan måste ha `kallor.json` för att varningen ska
+    # betyda något.
+    if _facitfil != "kallor.json":
+        ordtal_overhoppat = True
+    else:
+        ordtal_overhoppat = False
+
+    # ⚠️ UTSKRIVNA RÄKNEORD — VARNING, INTE FYND (#241). Siffergrinden ovan ser
+    # bara `\d+`, så "delad i TVÅ dynor" passerar ogrindad. Mätt falsklarm
+    # ~40 % (prosa som "i stället för fyra eller sex", härledningar som "två
+    # hårdheter" = källans 35D och 30D), och en hård grind på det hade lärt
+    # mottagaren att sluta läsa. Den listar därför bara, och tystnar för allt
+    # som kvitterats i foto-tal.txt eller står som siffra i källan.
+    # `kropp()` ersätter varje tagg med ett blanksteg, så ett råklippt utdrag
+    # blir ofta en rad blanksteg och några lösryckta tecken. Utdraget klipps
+    # därför ur en vitrymdsnormaliserad kopia — en varning som inte går att
+    # läsa är en varning ingen agerar på.
+    komprimerad = re.sub(r"\s+", " ", k)
+    # ☠️ VARNINGEN JÄMFÖR MOT EN BREDARE KÄLLBILD ÄN GRINDEN. Källan skriver
+    # talet som förled (`Dreistufiges Dimmen`), och `tal_ur_kalla` matchar bara
+    # fristående ord — med flit, den matar den hårda grinden. Breddningen bor
+    # därför här, där den bara kan tysta en varning.
+    brett = facit | tal_ur_kalla_brett(kropp(KALLTEXT.get(kort, "")))
+    for ordet, siffra, _ in ([] if ordtal_overhoppat else ordtal_i_text(komprimerad)):
+        if siffra in brett:
+            continue
+        m = re.search(r"\b" + ordet + r"\b", komprimerad, re.IGNORECASE)
+        pos = m.start() if m else 0
+        sedda_ord.setdefault(kort, set())
+        if (ordet.lower(), siffra) in sedda_ord[kort]:
+            continue
+        sedda_ord[kort].add((ordet.lower(), siffra))
+        VARNINGAR.append(
+            f"  {kort}: '{ordet.lower()}' ({siffra}) saknar täckning i källan\n"
+            f"      …{komprimerad[max(0, pos - 55):pos + 60].strip()}…")
+
+if _facitfil and _facitfil != "kallor.json":
+    print(f"\n[ORDTAL ÖVERHOPPAT] facit är {_facitfil}, en härledd sifferlista. "
+          "Tyska räkneord\n  skrivna med bokstäver finns inte i den, så varningen "
+          "kunde bara ge falsklarm.")
+
+if VARNINGAR:
+    print("\n⚠️ UTSKRIVNA RÄKNEORD UTAN TÄCKNING (varning — fäller inte):")
+    for r in VARNINGAR:
+        print(r)
+    print("  Kvittera ett äkta fotoräknat tal i foto-tal.txt; prosa lämnas som den är.")
+
 sif = "utan siffergrind" if UTAN_FACIT else f"siffergrind mot {_facitfil}"
-print(f"\nGRIND: {fynd} fynd i {len(filer)} filer ({sif})")
+print(f"\nGRIND: {fynd} fynd i {len(filer)} filer ({sif}), "
+      f"{len(VARNINGAR)} varningar")
 # Saknat facit fäller fortfarande — en runda utan siffergrind är inte klar.
 sys.exit(1 if (fynd or UTAN_FACIT) else 0)

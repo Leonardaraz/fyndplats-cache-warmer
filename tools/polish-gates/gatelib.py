@@ -227,7 +227,47 @@ ORDTAL_DE = {
 }
 
 
+# ☠️ OCH TEXTSIDAN SKRIVER OCKSÅ IBLAND TALET MED BOKSTÄVER (#241).
+# `tal()` matchar `\d+`, så varje påstående skrivet ut i ord passerar
+# siffergrinden utan att jämföras med källan. Uppmätt i runda K14: 166fdb52
+# säger "delad i TVÅ dynor" sju gånger i löptexten och fälldes först när samma
+# uppgift också stod som siffra i spec-tabellen. Hade skribenten utelämnat
+# specraden vore hela påståendet ogrindat. d2f7876e:s "FEM lösa kuddar"
+# kontrollerades aldrig alls.
+#
+# ⚠️ DEN HÄR LISTAN FÅR INTE ANVÄNDAS SOM EN HÅRD GRIND — falsklarmsfrekvensen
+# är mätt. Över K14:s sju produkter ger ett naivt "utskrivet räkneord vars
+# siffra saknas i källan" elva träffar, varav två äkta fotohärledda påståenden,
+# en legitim härledning ("två hårdheter" = källans 35D och 30D), två ren prosa
+# ("åtta ben i stället för FYRA eller SEX") och sex upprepningar. ~40 % falskt
+# på distinkta instanser. Huset har skrivit ned tre gånger att ett falsklarm
+# som alltid fyrar är lika illa som ett fel ingen ser. Den används därför till
+# en VARNING i gate.py, aldrig till ett fynd.
+#
+# `en`/`ett` är uteslutna av samma skäl som tyskans `ein`: de är obestämda
+# artiklar och står i nästan varje mening.
+ORDTAL_SV = {
+    "två": "2", "tre": "3", "fyra": "4", "fem": "5", "sex": "6",
+    "sju": "7", "åtta": "8", "nio": "9", "tio": "10", "elva": "11",
+    "tolv": "12",
+}
+
+
+def ordtal_i_text(text):
+    """[(ord, siffra, position)] för varje utskrivet svenskt räkneord i texten.
+
+    Returnerar ALLA förekomster, inte en mängd — anroparen vill kunna visa var
+    i texten påståendet står.
+    """
+    ut = []
+    for ord_, siffra in ORDTAL_SV.items():
+        for m in re.finditer(r"\b" + ord_ + r"\b", text, re.IGNORECASE):
+            ut.append((m.group(0), siffra, m.start()))
+    return sorted(ut, key=lambda x: x[2])
+
+
 def tal_ur_kalla(text):
+
     """Talen i en KÄLLTEXT — siffror plus tyska räkneord skrivna med bokstäver.
 
     Används bara av `las_facit`. Textsidan använder `tal()` oförändrad.
@@ -238,6 +278,59 @@ def tal_ur_kalla(text):
             ut.add(siffra)
     return ut
 
+
+
+# ☠️ DEN HÄR BREDDNINGEN FÅR ALDRIG MATA SIFFERGRINDEN (#241).
+# `tal_ur_kalla` avgör vad som är ett FYND. Varje tal den lägger till gör den
+# HÅRDA grinden mer tillåtande, alltså är dess konservatism poängen: den
+# matchar bara fristående räkneord (`\bdrei\b`).
+#
+# Men källan skriver också talet som FÖRLED i en sammansättning, och då står
+# uppgiften där utan att bryggan ser den. Uppmätt 2026-09-12 över alla rundors
+# källtexter — de enda två formerna som finns är korrekta:
+#
+#     Dreistufiges Dimmen (10 %, 50 %, 100 %)   → 79411b09 "dimmas i tre steg"
+#     Dreistufige Regale                        → d2dfd1fa "tre hyllplan"
+#     Fünfstöckig                               → (ingen text byggd på den än)
+#
+# Båda påståendena är alltså ORDAGRANNA översättningar av källan, och varningen
+# flaggade dem ändå. Det är precis det falsklarm huset har skrivit ned tre
+# gånger att man inte får ha.
+#
+# ⚠️ SKÄLET TILL ATT DEN LIGGER SEPARAT, och inte som en breddning av
+# `tal_ur_kalla`: tyskan har ord som BÖRJAR på ett räkneord utan att betyda
+# det — `Achtung`, `achten` (8), `Zweig` (2), `Elfenbein` (11), `Viertel` (4),
+# `dreißig` (3 → men betyder 30). Ingen av dem finns i dagens källor, men en
+# korpusmätning mäter dagens korpus. Låg breddningen i `tal_ur_kalla` skulle
+# ett framtida "Achten Sie darauf" lägga en 8 i facit och släppa igenom ett
+# OSOURCAT 8 genom den hårda grinden — tyst. Här kan den bara TYSTA en
+# varning, och en varning för lite är ofarlig.
+def tal_ur_kalla_brett(text):
+    """Tal källan nämner, ÄVEN inne i sammansättningar. BARA för varningen."""
+    ut = tal_ur_kalla(text)
+    for ord_, siffra in ORDTAL_DE.items():
+        if re.search(r"\b" + ord_ + r"\w", text, re.IGNORECASE):
+            ut.add(siffra)
+    return ut
+
+
+def las_kalltext(katalog="."):
+    """Rundans RÅA källtexter {kort: text} — bara när facit är hela källtexten.
+
+    `las_facit` returnerar en sifferlista, och den räcker för siffergrinden.
+    Ordtalsvarningen behöver TEXTEN: den ska kunna fråga om källan nämner talet
+    med bokstäver. Returnerar None när rundan bara har `kallor-tal.json`, som är
+    härledd och därför inte kan svara på den frågan.
+    """
+    import json as _json
+    if os.path.exists(os.path.join(katalog, "kallor-tal.json")):
+        return None
+    sokvag = os.path.join(katalog, "kallor.json")
+    if not os.path.exists(sokvag):
+        return None
+    ra = _json.load(open(sokvag, encoding="utf-8"))
+    return {k: (v if isinstance(v, str) else _json.dumps(v, ensure_ascii=False))
+            for k, v in ra.items()}
 
 def las_facit(katalog="."):
     """Rundans facit som {kort: [tal]}, oavsett vilket av de två formaten som finns.

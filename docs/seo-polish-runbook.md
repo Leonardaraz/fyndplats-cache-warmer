@@ -2351,6 +2351,71 @@ produktens kartong. De sju andra sidorna säger därför bara vad `Lieferumfang`
 plus den svenska anslutningen — inte att deras regulator är 50 mbar, för det är inte
 mätt.
 
+### ☠️ Siffergrinden ser bara `\d+` — ett räkneord skrivet med BOKSTÄVER är ogrindat (2026-09-12)
+
+`gate.py` jämför den svenska textens siffror mot källans. "Delad i **två** dynor"
+är inte en siffra, så påståendet passerar utan att någonsin jämföras. Uppmätt i
+runda K14: `166fdb52` skrev det sju gånger i löptexten och fälldes bara för att
+samma uppgift ÄVEN stod som siffra i spec-tabellen. Hade skribenten utelämnat
+specraden vore hela påståendet ogrindat, och `d2f7876e`:s "fem lösa kuddar"
+kontrollerades aldrig alls.
+
+⚠️ **Men det får inte bli en hård grind, och det är mätt.** Över hela beståndet
+ger ett naivt "utskrivet räkneord vars siffra saknas i källan" mest **prosa**:
+
+| vad varningen faktiskt träffade | exempel |
+| :-- | :-- |
+| Jämförelser | "fem hjul i stället för **fyra**" |
+| Skötselråd | "rensa hjulen **två** gånger om året" |
+| Meningar som räknar upp sig själva | "gulnar av **två** saker: sol och fett" |
+| Korslänksrubriker | "**Två** andra nätstolar hos oss" |
+| Äkta produktpåståenden | "**tre** plattformar på stolpen" |
+
+Den sista raden är den enda som är ett fynd. Huset har skrivit ned tre gånger att
+ett falsklarm som alltid fyrar är lika illa som ett fel ingen ser — den ligger
+därför som en **VARNING** som aldrig fäller jobbet.
+
+**Tre spärrar mot falsklarm, alla mätta:**
+
+1. ☠️ **Varningen hoppas över helt när facit är `kallor-tal.json`.** Det formatet
+   är en HÄRLEDD sifferlista, byggd innan tyska räkneord bryggades över — en källa
+   som säger `sechs Vibrationspunkte` bidrog aldrig med någon 6 dit. Körd mot det
+   formatet flaggade varningen **sourcade** påståenden som osourcade: 160 varningar
+   över 24 rundor, varav 132 var ren mätning av facit-formatet. Med spärren: 28.
+2. ☠️ **Varningen jämför mot en BREDARE källbild än grinden.** Källan skriver talet
+   som förled — `Dreistufiges Dimmen (10 %, 50 %, 100 %)`, `Dreistufige Regale` —
+   och `tal_ur_kalla` matchar bara fristående ord. Breddningen bor i
+   `tal_ur_kalla_brett` och används BARA av varningen.
+
+   ⚠️ **Den får aldrig mata den hårda grinden.** Tyskan har ord som börjar på ett
+   räkneord utan att betyda det: `Achtung`/`achten` (8), `Zweig` (2), `Elfenbein`
+   (11), `Viertel` (4), `dreißig` (3, men betyder 30). Ingen av dem finns i dagens
+   källor — men en korpusmätning mäter dagens korpus. I `tal_ur_kalla` skulle ett
+   framtida *"Achten Sie darauf"* lägga en 8 i facit och släppa igenom ett OSOURCAT
+   8 tyst. Här kan den bara tysta en varning, och en varning för lite är ofarlig.
+3. **Ett upprepat påstående är ETT påstående.** Dedupas per produkt och räkneord.
+
+**Ett äkta fotoräknat tal kvitteras i `foto-tal.txt`** — form `<kort> <tal> <skäl>`,
+och skälet är obligatoriskt (grinden avbryter utan det). Prosa lämnas som den är.
+
+✅ **Utfall: 28 → 20 varningar, noll fynd, och noll defekter på publicerad sida.**
+De fem som såg ut som riktiga påståenden kontrollerades **mot fotot**, inte mot
+resonemang:
+
+| påstående | källan säger | fotot visar | dom |
+| :-- | :-- | :-- | :-- |
+| `6f0b43f0` "tre plattformar på stolpen och en golvplatta" | `4 Plattformen` | tre på stolpen + golvplatta | ✅ kvitterad |
+| `c802ac19` "klöstunna med två grottor" | `doppellagige Katzenhöhle`, `Innengröße pro Stück` | två öppningar med golv emellan | ✅ kvitterad |
+| `f943140c` "fem hjul" | bara `Räder` | femarmad bas, ett hjul per arm | ✅ kvitterad |
+| `79411b09` "dimmas i tre steg" | `Dreistufiges Dimmen` | — | ✅ källad, varningen var falsk |
+| `d2dfd1fa` "tre hyllplan" | `Dreistufige Regale` | — | ✅ källad, varningen var falsk |
+
+☠️ **Klöstunnan är värd att minnas, för den ser ut som J1-fällan och är den inte.**
+`doppellagig` betydde på golvlampan `13a53d52` **ett** lager-i-lager, inte två
+föremål — det var det felet som gav regeln *titta på bilderna före texten*. Här
+betyder samma ord två fack, och det som avgör är `pro Stück` plus fotot. **Samma
+tyska ord, motsatt svar: ordet räcker aldrig som bevis, bilden gör det.**
+
 ### ☠️ "Leverantören anger…" — mot kunden är VI leverantören, och det GÅR att grinda
 
 Runda 53 (matgrupper, 2026-09-04). Varje mekanisk grind var grön på åtta produkter;
