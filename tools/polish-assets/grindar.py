@@ -937,8 +937,40 @@ JARGONG = re.compile(r"\brundan\b|\brunda\s+\d+", re.I)
 #
 # ⚠️ Prövas bara på BOKSTÄVER. Tre lika siffror (`999`) och tre lika
 #    skiljetecken är helt normala.
-TREKONSONANT = re.compile(r"([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])\1\1",
-                          re.I)
+#
+# ☠️ OCH `www` ÄR INGET SVENSKT ORD. Uppmätt på hela den publicerade katalogen
+#    2026-09-12: regeln fällde FJORTON sidor enbart för att brödtexten länkar
+#    till www.fyndplats.se. En förkortning av tre initialer lyder inte under en
+#    regel om SAMMANSÄTTNINGAR, och ett larm som fyrar på varje korrekt sida
+#    lär mottagaren att sluta läsa — samma regel som mot 48-timmarsvarningen på
+#    token-förnyelsen. Undantaget är en VITLISTA på hela ord, inte ett hål i
+#    mönstret: `wwwx` är fortfarande ett fel.
+_TREK = re.compile(r"([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])\1\1", re.I)
+TREKONSONANT_OK = {"www"}
+_TREK_ORD = re.compile(r"[0-9A-Za-zÅÄÖåäöÉéÜü][0-9A-Za-zÅÄÖåäöÉéÜü-]*")
+
+
+class _Trekonsonant:
+    """Samma gränssnitt som ett kompilerat mönster, men hoppar vitlistade ORD."""
+
+    def _ordet(self, text, i):
+        for m in _TREK_ORD.finditer(text, max(0, i - 60), i + 60):
+            if m.start() <= i < m.end():
+                return m.group(0)
+        return ""
+
+    def finditer(self, text):
+        for m in _TREK.finditer(text):
+            if self._ordet(text, m.start()) not in TREKONSONANT_OK:
+                yield m
+
+    def search(self, text):
+        for m in self.finditer(text):
+            return m
+        return None
+
+
+TREKONSONANT = _Trekonsonant()
 
 
 # ── ☠️ HOMOGLYFER: en VITLISTA, aldrig en svartlista ───────────────────────
