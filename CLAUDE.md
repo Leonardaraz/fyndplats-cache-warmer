@@ -952,6 +952,53 @@ bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
 sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
 ggr/dygn) innan slutsatsen dras.
 
+#### ☠️ Och en TREDJE klass: Aosoms EGEN feed bär samma vara två gånger (2026-09-12)
+
+Raden ovan namnger EN blind fläck — de ~586 AE-inköpta Aosom-varorna. Det finns
+två. Aosoms feed har mer än en artikelrad för samma fysiska produkt, och
+dubblettspärren nycklar på `supplierProductId`: två artikelnummer är två nycklar,
+alltså importeras båda. Spärren gör precis vad den ska och ser ändå ingenting.
+
+Uppmätt på hörnsoffan `69c5e15c` (publicerad) mot utkastet `34341c4f`:
+
+| | behålls | dubbletten |
+|---|---:|---:|
+| leverantör | **aosom** | **aosom** |
+| pris | 8 499 kr | 8 769 kr |
+| fraktandel | 0,424 | 0,49 |
+| saldo | 101 | 12 |
+
+Att kostnaderna SKILJER är vad som gör klassen svår: två feedrader med olika
+grossistpris och olika viktbaserad SE-frakt ser i varje kostnadsjämförelse ut som
+två olika varor. Måtten är identiska (242 cm, 198 cm sittbredd, 400 kg), men
+måttjämförelsen är redan uppmätt otillräcklig som ensam grund.
+
+☠️ **Facit är BILDERNA, och de är byte-identiska.** Aosom levererar samma
+fotofiler för samma artikel, så en md5 räcker — ingen bildlikhet, ingen gissning:
+
+```
+huvudbild    385 707 byte   435459f872fa0158   BÅDA
+miljöbild  1 068 103 byte   c527549810410717   BÅDA
+```
+
+Två av två delade positioner identiska på bitnivå. Detaljbilderna skiljer (olika
+positioner hämtades hem), men konstruktionen är densamma på varje foto.
+
+⚠️ **`aosom-remap` KAN INTE laga den här klassen, och det är inte ett fel i den.**
+Hindret `redan_aosom` fäller en rad som redan är Aosom — workflowen finns för
+AE→Aosom. Här finns ingen AE-rad att peka om: ommappningen är en no-op och det
+enda som gäller är pensioneringen (`draftStatus: "rejected"`,
+`needsAiPolish: false`). Husets regel *"äkta dubbletter mappas om till Aosom"*
+antar tyst att sidan vi behåller är en AE-rad. Ibland är den inte det.
+
+⚠️ **Klassens STORLEK är omätt — en rad är inte en mätning.** Den billiga vägen
+är namngiven här så den inte behöver återupptäckas: Wix filbeskrivare bär ett
+`hash`-fält (`lib/wix/media-audit.ts` räknar redan byte-identiska filer med det),
+så en gruppering av Aosom-produkter på huvudbildens hash kräver NOLL
+bildnedladdningar. Rapporten som finns svarar på "vad kostar dubbletterna i
+lagring", inte på "vilka två produkter är samma vara" — det är en ny gruppering
+över samma data, inte ett nytt svep.
+
 ### Äkta dubbletter mappas om till Aosom (Leonards regel 2026-09-03)
 
 Hittas en äkta dubblett under poleringen — samma fysiska vara som både en
