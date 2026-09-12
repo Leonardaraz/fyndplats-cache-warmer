@@ -115,3 +115,31 @@ en-teckensfel (`Ø11,5` → `Ø11,6`) faller fortfarande.
 | `ids.tsv`, `lager.tsv` | urvalets facit och saldo |
 | `axelfacit.json` | genererad server-side ur `plainDescription` |
 | `md5.json` | bildernas checksummor |
+
+## Live-verifieringen: 8/8 REN
+
+Hämtad ISR-medvetet (`hamta-live.sh 90`): alla åtta var färska vid den varma
+träffen, så svepet väntade ut hela 305-sekundersfönstret innan den skarpa
+hämtningen. `age: 100` på alla åtta — alltså renderingen som den varma träffen
+utlöste, inte en äldre cachad sida.
+
+| kontroll | utfall |
+|---|---|
+| orddiff mot källfilen | **0 på alla åtta** |
+| homoglyfer | 0 |
+| sid- och alt-svep | 0 |
+| SEO-svep mot `seo.tsv` | 0 |
+| flikar + kategori | 0 |
+
+☠️ **Och grinden är verifierad att kunna SE**, inte bara att vara påslagen —
+lärdomen från runda J2, där alt-svepet var dokumenterat, räknat som gjort och
+blint för fyrtio tyska alt-texter. Tre planterade fel i `8802b999`:
+
+```
+alt-text   "Kunstpflanze mit Topf …"        -> ALT/TYSKT 'mit'
+<title>    "Buchsbaumkugel Gewicht 2er-Set" -> SEO/TITEL avviker + SEO/title/TYSKT
+brödtext   kyrilliskt а (U+0430) i "hålet"  -> ORDDIFF + HOMOGLYF + SIDA/HOMOGLYF
+```
+
+Åtta träffar, alla på rätt produkt och ingen på de sju andra. Efter
+återställning 0 avvikelser igen.
