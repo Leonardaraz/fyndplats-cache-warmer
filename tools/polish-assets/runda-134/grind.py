@@ -55,8 +55,6 @@ FORBJUDET = [
     (re.compile(r"\bskickas\s+fr[åa]n\b|\bfr[åa]n\s+(?:Tyskland|Kina|Polen)\b"
                 r"|\bTyskland\b|\btyska\b", re.I),
      "AVSÄNDARLAND"),
-    (re.compile(r"\b\d+\s*(?:kr|SEK|:-)\b|\bpris(?:et|er)?\s+[äa]r\b", re.I),
-     "PRIS i kundtext"),
     (re.compile(r"Kratz|Katzen|H[öo]hle\b|Liegefl|Sisalmatte|Wasserhyazinthe"
                 r"|Kiefernholz|Seetang|Spanplatte|Pl[üu]sch\b|Wei[ßs]\b"
                 r"|Dunkelgrau|Hellbraun|Produktinformation|Gewicht|Rasse",
@@ -71,6 +69,19 @@ FORBJUDET = [
     #    Regeln om svenska bor i `grindar`, inte här; raden nedan drar in den
     #    så att den täcker ALLA fält listan körs mot, alt-texten inkluderad.
     (G.TREKONSONANT, "TRE LIKA KONSONANTER — svenskan förenklar till två"),
+]
+
+# ☠️ REGLER SOM BARA GÄLLER VÅR KÄLLTEXT, aldrig en renderad sida.
+#    Butiken skriver SJÄLV ut priset, kundvagnsraden och rekommendations-
+#    radens syskonpriser på VARJE publicerad produktsida. En prisgrind som
+#    körs mot sidan fäller därför sex av sex korrekta sidor — uppmätt, och
+#    exakt det larm-som-alltid-fyrar runbooken varnar för.
+#
+#    Listan körs i offline-läget och mot KORTENS text (`kort.py`), där ett
+#    pris vore vårt eget fel. Live-läget kör den inte.
+ENDAST_KALLTEXT = [
+    (re.compile(r"\b\d+\s*(?:kr|SEK|:-)\b|\bpris(?:et|er)?\s+[äa]r\b", re.I),
+     "PRIS i kundtext"),
 ]
 
 # Talgrinden läser ALLA fält, inte bara brödtexten (uppgift #441).
@@ -102,15 +113,34 @@ def granska(pid, html=None, live=False):
     f = M.FACIT[pid]
     huvudord, forbjudet_ord = M.TYP[pid]
     html = html if html is not None else T.bygg(pid)
-    syn = G.synlig_meningstext(html) if not live else html
-    eget = G.synlig_meningstext(utan_korslankar(html, pid)) if not live else syn
+    if live:
+        # ☠️ LIVE-LÄGET FÅR INTE LÄSA HELA SIDAN. Första versionen satte
+        #    `syn = html` — den tvättade men OTOLKADE HTML:en — och talgrinden
+        #    läste då varenda SVG-bredd, betalmärkets bildmått, telefonnumret
+        #    och bloggänkens årtal som ett ohärlett tal om produkten:
+        #    3 942 "fel" på sex KORREKTA sidor. Runda 128 mätte 2 558 på nio,
+        #    av exakt samma orsak, och runda 90 sju av sju.
+        #
+        #    Rätt underlag är sidans EGNA meningar — `egna_meningar` stryker
+        #    grannarnas namn och korslänkarnas målmeningar — plus rundans
+        #    egna fält. Samma form som runda 132 och 133, och den formen är
+        #    hela skälet till att `liverunda` finns (uppgift #491).
+        egna, _ = G.egna_meningar(html, T.SLUG[pid], T.NAMN[pid])
+        syn = G.synlig_meningstext(
+            "<p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p>"
+            % (egna, T.NAMN[pid], T.TITEL[pid], T.META[pid], T.SOKORD[pid]))
+        eget = syn
+    else:
+        syn = G.synlig_meningstext(html)
+        eget = G.synlig_meningstext(utan_korslankar(html, pid))
     fel = []
 
     for namn, text in falt(pid):
         if live and namn != "brödtext":
             continue
         provtext = eget if namn == "brödtext" else text
-        for monster, skal in FORBJUDET:
+        listor = FORBJUDET if live else FORBJUDET + ENDAST_KALLTEXT
+        for monster, skal in listor:
             for m in monster.finditer(provtext):
                 fel.append("%s: %s — %r" % (namn, skal, G.mening_kring(provtext, m.start())[:110]))
         for h in G.homoglyfer(text):
@@ -129,6 +159,22 @@ def granska(pid, html=None, live=False):
         if forbjudet_ord and forbjudet_ord in text.lower():
             fel.append("%s: FÖRBJUDET TYPORD %r — varan är %s"
                        % (namn, forbjudet_ord, f.get("form", huvudord)))
+
+    # ☠️ LIVE-LÄGET SLUTAR HÄR. Allt nedanför prövar RUNDANS KÄLLTEXT mot
+    #    facit — talgrinden, maxlasten, öppningsantalet — och på en LIVE-sida
+    #    finns butikens egna tal: priset, "Lägg i kundvagn", telefonnumret,
+    #    Google-betyget, bloggänkens årtal och rekommendationsradens
+    #    syskonpriser. Ingen av dem är ett påstående om VARAN.
+    #
+    #    Uppmätt: 25–26 "fel" per sida på sex KORREKTA sidor när grinden kördes
+    #    vidare. Runda 133:s `granska` returnerar på exakt samma ställe och är
+    #    grön på samma butik samma dag — det var den mätningen som avgjorde
+    #    att felet satt i grinden och inte i sidorna.
+    #
+    #    Runbokens regel bakom: ett larm som fyrar på varje korrekt sida är
+    #    lika illa som inget larm alls.
+    if live:
+        return fel + ["FLIKFEL: %s" % p for p in G.flikfel(html)]
 
     # Talgrinden: varje tal i varje fält måste stå i facit.
     for namn, text in falt(pid):

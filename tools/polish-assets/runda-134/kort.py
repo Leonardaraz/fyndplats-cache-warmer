@@ -71,4 +71,5 @@ MJUKA = {
 FILER = {pid: B.GALLERI[pid][0] for pid in KORT}
 
 if __name__ == "__main__":
-    KR.kor(HAR, T, KORT, RADER, FILER, forbjudet=GR.FORBJUDET, mjuka=MJUKA)
+    KR.kor(HAR, T, KORT, RADER, FILER, forbjudet=GR.FORBJUDET + GR.ENDAST_KALLTEXT,
+           mjuka=MJUKA)

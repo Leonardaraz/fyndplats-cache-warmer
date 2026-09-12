@@ -254,3 +254,74 @@ två leverantörsbilderna, ladda upp de två tvättade ritningarna, bygga och
 ladda upp sex Fyndplats-kort), Steg 10 (kategorier), Steg 13 (publicera) och
 Steg 14 (live-grind). Sidorna är osynliga utkast tills dess — ingen kund ser
 något halvfärdigt.
+
+-----
+
+## Steg 7–13 — utfall, och fyra fynd
+
+Sex sidor LIVE 2026-09-12. Ingen hölls tillbaka på slutsålt lager (saldo 7,
+11, 79, 197, 11 och 124 lästes FÖRE publiceringen).
+
+| id | slug | SKU | bilder |
+|---|---|---|--:|
+| `f6857ca0` | `kattbadd-sjogras-43-cm` | `FP-kattbadd-sjogras-43-cm` | 5 |
+| `09336fdf` | `klostunna-50-cm-vattenhyacint` | `FP-klostunna-50-cm` | 6 |
+| `d0b80807` | `klostunna-61-cm-hopplattform` | `FP-klostunna-61-cm` | 5 |
+| `f4e6159e` | `klostrad-90-cm-dubbelhala` | `FP-klostrad-90-cm` | 6 |
+| `668e0e0c` | `klostorn-81-cm-fyrkantigt` | `FP-klostorn-81-cm` | 6 |
+| `38022bcb` | `klostrad-109-cm-tunna-badd` | `FP-klostrad-109-cm-tunna` | 6 |
+
+Alla sex i **Husdjur › Lek & Tillbehör för husdjur**, samma löv som de fyra
+publicerade syskonen. 12 av 12 `ALREADY_EXISTS` på det omvända beviset.
+
+### ☠️ 1. `hoppplattform` — ett stavfel som nio fält bar och ingen grind såg
+
+Trekonsonantsregeln: tre lika konsonanter i rad finns inte i svenska
+(`topprestation`, `tillåta`, `glasskål`). Ordet stod i NAMN, SLUG, TITEL,
+META, brödtext, FAQ, kortrubrik och alt-text — och var grönt genom hela
+Steg 7. **Det som fällde det var ögonen på kortets kontaktark**, alltså av en
+slump: rubriken råkade vara det ord som sattes störst.
+
+Regeln bor nu i `grindar.TREKONSONANT` — en regel om SVENSKA, inte om den här
+batchen — och dras in i rundans `FORBJUDET`, så den täcker varje fält listan
+körs mot, alt-texten inkluderad. Tre självtestfall låser den (brödtext, den
+rättade formen, sluggen).
+
+### ☠️ 2. Alt-texten passerade INGEN grind
+
+`grind.py` läser `html`, `namn`, `titel` och `meta` ur `texter.py`. Alt-texten
+finns inte där och skrivs rakt in i Wix media. `bilder.altfel()` kör därför
+rundans EGNA listor — samma `FORBJUDET`, samma talgrind, samma huvudordskrav —
+över alla 34 alt-texter. Den fällde tre: två saknade huvudordet, och en
+beskrev bild 5 fel (jag hade skrivit "sedd underifrån"; bilden visar toppen
+med dynan borttagen).
+
+### ☠️ 3. Steg 12 fann en hedgning i tre lager — och min FÖRSTA rättelse var värre
+
+`f4e6159e` hedgade Ø14-öppningen tre gånger, en av dem som imperativ
+(*"Läs hålmåttet innan du köper"*). Första omskrivningen bytte hedgningen mot
+*"smalare än på de flesta klösmöbler i den här storleken"* — ett JÄMFÖRANDE
+påstående om marknaden, som ingen har mätt. **Rundans egen sortimentsgrind
+fällde den.** Slutlig text säger talet och följden av det, inget annat.
+
+### ☠️ 4. Live-grinden läste hela sidan — 3 942 "fel" på sex korrekta sidor
+
+Min `granska(..., live=True)` satte `syn = html`, alltså den tvättade men
+OTOLKADE HTML:en. Talgrinden läste då varje SVG-bredd, betalmärkets bildmått,
+telefonnumret och bloggänkens årtal som ett ohärlett tal om produkten.
+
+Runda 128 mätte 2 558 på nio sidor av exakt samma orsak, och runda 90 sju av
+sju. Rätt underlag är `G.egna_meningar` + rundans egna fält — formen runda 132
+och 133 redan bar. **Min live-gren var aldrig anpassad; den ärvde
+offline-grenen.**
+
+### ⚠️ Två mätningar som bekräftade runbokens varningar
+
+1. **Återläsning i SAMMA anrop ljuger.** `f4e6159e`:s textskrivning såg
+   oförändrad ut — oförändrad text OCH oförändrad revision — i verifierings-
+   GET:en direkt efter PATCH:en. Ett eget anrop visade rev 5 och exakt filens
+   fingeravtryck.
+2. **Självtestets kontrakt vaktades ingenstans.** Rundan returnerade ANTALET
+   fel där `liverunda.sjalvtester` läser `(fel, antal)`, och live-grinden dog
+   på `cannot unpack non-iterable int`. Rätt felläge, men inte ett som sa vad
+   som var fel — den delade modulen kontrollerar formen nu.
