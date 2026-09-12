@@ -38,6 +38,8 @@ Läs bokstäverna PER RAD, aldrig listans mönster.
 
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-axel.py
   axelfacit.json  {"<kort>": {"tyska","svenska","bredd","djup","hojd"[,"djupMax"]}}
+                  Ett axelvärde får vara ett tal ELLER en lista med tal, för en
+                  axel som har flera legitima mått (höjd med och utan avtagbar del).
                   GENERERAS SERVER-SIDE ur plainDescription — aldrig skriven av
                   en modell, aldrig avskriven för hand (#225).
   <kort>.html     den svenska texten, om den finns ännu
@@ -68,7 +70,17 @@ def main():
     for kort in produkter:
         v = facit[kort]
         tys = dict((tal, bok) for tal, bok in re.findall(r"(\d+)(?:[-/]\d+)?\s*([BTHL])", v.get("tyska", "")))
+        # ☠️ EN Ø-DIAMETER HAR INGEN AXELBOKSTAV, och det gjorde konfliktkollen
+        # till ett falsklarm på varje rund produkt. Uppmätt i runda L3 på
+        # 8802b999, vars tyska block är "Ø40 x 56H" OCH "Ø40 x 40H": talet 40 är
+        # diameter i den ena läsningen och höjd i den andra, båda sanna. Den
+        # svenska spec-fliken skriver diametern som "40L x 40B", alltså rapporterade
+        # grinden "40 är H i tyskan men L i svenskan" om en text som stämde exakt.
+        # Ett tal som tyskan skriver som Ø är axelfritt och jämförs därför inte.
+        diameter_tal = set(re.findall(r"Ø\s*(\d+)", v.get("tyska", "")))
         for tal, bok in re.findall(r"(\d+)(?:[-/]\d+)?\s*([BTHL])", v.get("svenska", "")):
+            if tal in diameter_tal:
+                continue
             if tal in tys and tys[tal] != bok:
                 kallkonflikt.append(
                     f"  {kort}: {tal} är {tys[tal]} ({AXEL[tys[tal]]}) i tyskan men "
@@ -84,10 +96,21 @@ def main():
         # 87 cm hög (242B x 87/156T x 87H). En uppslagstabell tal -> EN axel
         # skrev över den ena med den andra och fällde en korrekt text. Tredje
         # gången samma familj i den här grinden: den måste kunna säga "båda".
+        # ☠️ OCH EN AXEL KAN HA FLERA LEGITIMA TAL. `djupMax` fanns för soffans
+        # 87/156-djup, men samma sak gäller HÖJDEN så snart en del går att ta
+        # av. Uppmätt i runda L3 på 8802b999: tyskan ger "(Mit Stiel) Ø40 x 56H"
+        # och "(Ohne Stiel) Ø40 x 40H" — klotet är 56 cm med jordspett och 40 cm
+        # utan, båda står ordagrant i källan. Med bara ett skalärt `hojd` fällde
+        # grinden en korrekt spec-rad. Varje axel får därför vara en LISTA;
+        # skalären fungerar oförändrat, och `djupMax` ligger kvar för de facit
+        # som redan använder den.
         egna = {}
         for axel in ("bredd", "djup", "hojd"):
-            if v.get(axel):
-                egna.setdefault(v[axel], set()).add(axel)
+            varde = v.get(axel)
+            if not varde:
+                continue
+            for tal in (varde if isinstance(varde, list) else [varde]):
+                egna.setdefault(tal, set()).add(axel)
         if v.get("djupMax"):
             egna.setdefault(v["djupMax"], set()).add("djup")
 
@@ -109,7 +132,9 @@ def main():
 
         for axel in ("bredd", "djup", "hojd"):
             if v.get(axel) and axel not in sedda:
-                varningar.append(f"  {kort}: texten anger aldrig produktens {axel} ({v[axel]} cm) med ord")
+                varde = v[axel]
+                visat = "/".join(str(t) for t in varde) if isinstance(varde, list) else str(varde)
+                varningar.append(f"  {kort}: texten anger aldrig produktens {axel} ({visat} cm) med ord")
 
     for r in kallkonflikt:
         print(r)
