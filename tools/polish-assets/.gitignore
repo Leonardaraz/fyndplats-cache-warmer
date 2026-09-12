@@ -137,3 +137,17 @@ runda-120/rawbilder/
 runda-135/raw/
 runda-135/ark-*.jpg
 runda-135/zoom-*.jpg
+
+# Runda 136:s bildmellanlägg. `raw/` är galleriet i 900 px (granskningsstorlek)
+# och `orig/` är de otransformerade källorna till de fyra bilder som beskärs —
+# båda hämtas om av `bilder-hamta.py` / `bildfix.py` på ett kommando, och domen
+# står i STEG4.md med mätta sjokgränser. `faith-*.jpg` är samma sak: grinden är
+# för ÖGAT före uppladdning, inte ett bevis i efterhand. Samma skäl som
+# `*/kontroll-*.jpg` och `*/ark-*.jpg`.
+#
+# ☠️ `fix/` ligger MEDVETET KVAR I GRENEN. Wix hämtar bilden från
+#    raw.githubusercontent.com, så en ignorerad `fix/` hade gett en uppladdning
+#    som rapporteras lyckad och faller — exakt uppgift #393.
+*/raw/
+*/orig/
+*/faith-*.jpg
