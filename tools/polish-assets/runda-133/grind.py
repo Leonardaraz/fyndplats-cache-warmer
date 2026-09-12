@@ -170,6 +170,17 @@ def utan_korslankar(html, pid):
     return html[:start] + html[slut:]
 
 
+def utan_fargrad(text, pid):
+    """Texten MINUS rundans egen färg-/storleksrad för `pid`.
+
+    Raden beskriver SYSKONET ("…finns även som 79 cm hög med tre hålor").
+    Den är sann och ska stå kvar på sidan — den får bara inte räknas som
+    ett påstående om DEN HÄR varans antal ingångar.
+    """
+    rad = T.FARGRAD.get(pid)
+    return text.replace(rad, " ") if rad else text
+
+
 def granska(pid, html=None, live=False):
     """Rundans domänregler. EN uppsättning, två indata."""
     if html is None:
@@ -193,7 +204,17 @@ def granska(pid, html=None, live=False):
         if t:
             fel.append("%s: %r" % (etikett, G.mening_kring(syn, t.start())[:90]))
 
+    # ☠️ FÄRGRADEN ÄR ETT PÅSTÅENDE OM SYSKONET, inte om den här varan.
+    #    Offline faller den bort med korslänksblocket; LIVE gör den inte
+    #    det, för `egna_meningar` stryker grannmeningar på SLUG och NAMN
+    #    och "Samma serie finns även som 79 cm hög med tre hålor" bär
+    #    varken. Steg 14 fällde därför b6bf627f och a33447f9 för sin egen
+    #    korrekta syskonrad — uppgift #384 och #437:s klass, tredje
+    #    gången. Strykningen är av en KÄND EGEN sträng, aldrig en
+    #    heuristik, och görs i BÅDA lägena så de inte kan glida isär
+    #    (uppgift #491): offline är den redan borta, alltså en no-op.
     syn_eget = G.synlig_meningstext(utan_korslankar(html, pid)) if not live else syn
+    syn_eget = utan_fargrad(syn_eget, pid)
     for m, etikett, galler in PER_PRODUKT:
         if not galler(pid):
             continue
@@ -409,6 +430,17 @@ def sjalvtest():
     prov("e43b623c har ingen färgrad", "e43b623c" not in T.FARGRAD)
     prov("varje färgsyskon har en färgrad",
          all(p in T.FARGRAD for g in M.FARGSYSKON for p in g))
+    # ☠️ Färgradsstrykningen: den ska ta syskonraden och INGET annat.
+    _fr = T.FARGRAD["b6bf627f"]
+    prov("färgraden stryks", _fr not in utan_fargrad("A " + _fr + " B",
+                                                     "b6bf627f"))
+    prov("resten står kvar",
+         utan_fargrad("A " + _fr + " B", "b6bf627f").startswith("A "))
+    prov("ett ÄKTA felantal överlever strykningen",
+         "tre hålor" in utan_fargrad(
+             "Tunnan har tre hålor. " + _fr, "b6bf627f"))
+    prov("produkt utan färgrad rörs inte",
+         utan_fargrad("oförändrad", "e43b623c") == "oförändrad")
     prov("bd0d7f9e HAR färgrad", "bd0d7f9e" in T.FARGRAD)
 
     # Korslänksstrykningen: grannens ord får inte nå den egna zonen.

@@ -471,3 +471,71 @@ efter en paus.** Produktprojektionen är ett eftersläpande derivat.
 uppgift #503:s live-dubblett — ligger i Husdjur men **saknar lövet**. De tre
 andra publicerade har det. Lämnad orörd med flit: sidan kan komma att
 pensioneras när Leonard avgör #503, och då vore ändringen bortkastad.
+
+## ✅ Runda 133 KLAR — tio klöstunnor LIVE, 10 av 10 gröna
+
+| steg | vad | kvitto |
+|---|---|---|
+| 7 | tio kundtexter | byte-exakta mot `facit.json` |
+| 8a | variant-SKU i Wix | 10/10, pris orört |
+| 8b | mappningsraden | tio `stampla`-körningar, **10 av 10 `success`** |
+| 9 | kort + galleri + 58 alt-texter | 10/10 exakta mot lokalt facit |
+| 10 | Husdjur + Lek & Tillbehör | 3 av 3 kategorier på alla tio |
+| 13 | publicering | produkt OCH variant `visible: true` |
+| 14 | live-grinden | **10 sidor, 0 fel**, alla `HIT` |
+
+Publiceringen kvitterades per produkt: `sku_orort`, `pris_orort`,
+`galleri_orort` och `huvudbild` sanna på alla tio. Galleriet överlevde
+variantsInfo-PATCHen — 6 bilder på åtta av dem, 5 på de två som tappade
+PawHut-reklamen.
+
+### ☠️ Steg 14 fällde två KORREKTA sidor — för deras egen syskonrad
+
+Första live-körningen gav `10 sidor, 2 fel`:
+
+```
+b6bf627f  INGÅNGAR: fel antal (tre) — facit är två:
+          'Samma serie finns även som 79 cm hög med tre hålor'
+a33447f9  INGÅNGAR: fel antal (två) — facit är tre:
+          'Samma serie finns även som 49 cm hög med två hålor'
+```
+
+Båda strängarna är ordagrant produktens EGEN `texter.FARGRAD`-rad, och båda är
+sanna: de beskriver STORLEKSSYSKONET. Sidorna hade rätt; grinden läste ett
+påstående om en annan vara som om det gällde den här.
+
+☠️ **Orsaken är att de två lägena stryker på olika sätt.** Offline faller
+färgraden bort med hela korslänksblocket (`utan_korslankar` skär på
+RUBRIKNIVÅ). Live gör den inte det: `egna_meningar` stryker grannmeningar på
+SLUG och NAMN, och *"Samma serie finns även som 79 cm hög med tre hålor"* bär
+varken — den nämner en storlek, inte ett syskon vid namn. Grinden var alltså
+grön offline och röd live på exakt samma text.
+
+Tredje gången samma klass (uppgift #384, #437): **en grinds egen strykning kan
+se ut som ett fynd på sidan.** `utan_fargrad` stryker nu raden i BÅDA lägena —
+en KÄND EGEN sträng ur `texter.FARGRAD`, aldrig en heuristik, och i båda lägena
+så de inte kan glida isär (uppgift #491). Offline är den redan borta, alltså en
+no-op där.
+
+Fyra självtester låser den, och ett av dem är det som gör strykningen ofarlig:
+*"ett ÄKTA felantal överlever strykningen"* — `"Tunnan har tre hålor."` står
+kvar och fälls fortfarande. En strykning som döljer det den skulle vakta vore
+värre än falsklarmet.
+
+Efter lagningen: `grind.sjalvtest(): 76 fall, 0 fel`,
+`alttexter.sjalvtest(): 12 fall, 0 fel`, och de två sidorna `HIT 0 fel`.
+
+### Rundans fyra fynd som överlever den
+
+1. ☠️ **#504 STRUKEN.** `f2e06b7a` har tre ingångar, inte två — måttritningen
+   visar hela varvet. De ÄR färgsyskon, och #420 står oemotsagd.
+2. ☠️ **Två vinklar bevisar ingenting om det inte är SAMMA två.** Bild 1 och
+   bild 2 visade två öppningar var, men olika två. Räkna per höjdläge.
+3. ☠️ **`\bleksak\w*` var blind för `musleksak`** — hittad av ett
+   mutationstest som INTE föll, inte av en publicerad sida.
+4. ☠️ **En kategoriskrivning verifieras mot kategoritjänsten, inte mot
+   produktprojektionen** — och först efter en paus (uppgift #357).
+
+⚠️ **Kvar till Leonard:** uppgift #503, live-dubbletten `81d059f0` /
+`c5e63205`. Och `c5e63205` saknar dessutom kattlövet, orörd med flit i väntan
+på det beslutet.
