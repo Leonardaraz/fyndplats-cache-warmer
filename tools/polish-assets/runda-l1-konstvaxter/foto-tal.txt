@@ -1,0 +1,3 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna som siffra i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+0dd83b50 3 klot per planta räknade på huvudbilden. Källan ger TRE klotmått (Ø18, Ø20, Ø23) men aldrig antalet, och `2 x Künstliche Pflanze` gäller antalet PLANTOR. Fotot visar två identiska plantor med tre klot var — se FOTOFYND.md
