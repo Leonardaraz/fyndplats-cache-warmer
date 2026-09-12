@@ -29,7 +29,11 @@ KORT = {
     "b6bf627f": ("Sjögräs, 49 cm", "Flätat sjögräs under, sisal över"),
     "a33447f9": ("Sjögräs, 79 cm", "Tre hålor i flätat sjögräs och sisal"),
     "e7a9abb7": ("Mörkgrå, 74 cm", "Tre ingångar mot ljus sisalpanel"),
-    "f2e06b7a": ("Beige, 74 cm", "Två ingångar och öppen liggplats"),
+    # ☠️ RUBRIKEN FÅR INTE SÄGA "tre" HÄR, fast facit är tre: hjälten visar
+    #    bara två av dem (den mittersta ligger på baksidan i just den
+    #    vridningen). Kortet är ett BILDLÖFTE — det som står ska synas i
+    #    samma ögonkast. Talet står i RADEN, som är rätt plats för det.
+    "f2e06b7a": ("Beige, 74 cm", "Gräddvit plyschpanel mot beige sisal"),
     "bd0d7f9e": ("Grå kant, 70 cm", "Tre runda hålor med grå kanter"),
     "d9310184": ("Ljusbrun, 70 cm", "Gräddvita kanter mot ljusbrun sisal"),
     "efa9c03e": ("Mörkgrå kant, 70 cm", "Mörkgrå kanter, topp och sockel"),

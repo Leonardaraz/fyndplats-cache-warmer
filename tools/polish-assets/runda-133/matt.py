@@ -68,27 +68,37 @@ TUNNOR = {
     # ---- Grupp B: öppen topp, samma fotavtryck — men OLIKA antal ingångar ----
     "e7a9abb7": dict(
         matt="40 × 40 × 74 cm", topp=None, form="rund med öppen topp",
-        ingangar=3, oppning="Ø18 cm", inre_hal="Ø18 cm",
+        ingangar=3, oppning="18 × 18 cm", inre_hal="18 × 18 cm",
         last=None, katt="katter under 4,5 kg", montering=True,
         material="spånskiva, sammetslen polyester och sisal",
-        farg="mörkgrå med ljusgrå sisalpanel och vita kanter",
+        farg="mörkgrå med ljusgrå panel och vita kanter",
         farg_de="Grau+Weiß", farg_spec="Grau, Weiß", pris=1169,
         anm=("BILDEN: TRE fyrkantiga ingångar med vit plyschkant, räknade "
-             "på bild 1 och bild 2. Toppen är en öppen liggplats med "
-             "plyschkant. INGEN maxlast angiven."),
+             "på bild 1, bild 2 OCH måttritningen. Toppen är en öppen "
+             "liggplats med plyschkant. INGEN maxlast angiven.\n"
+             "☠️ INGÅNGEN ÄR FYRKANTIG, inte rund: måttritningen sätter "
+             "18 cm på BÅDA ledder. Skriv aldrig Ø här.\n"
+             "⚠️ Färgsträngen säger PANEL, inte SISALPANEL, med flit: "
+             "syskongrinden jämför ORD, och ett delat materialord hade "
+             "fällt f2e06b7a för sitt eget `sisalpanel`."),
     ),
     "f2e06b7a": dict(
         matt="40 × 40 × 74 cm", topp="37 × 37 cm", form="rund med öppen topp",
-        ingangar=2, oppning="Ø18 cm", inre_hal="Ø18 cm",
+        ingangar=3, oppning="18 × 18 cm", inre_hal="18 × 18 cm",
         last=None, katt="katter under 4,5 kg", montering=True,
         material="spånskiva, sammetslen polyester och sisal",
         farg="beige med gräddvit panel och vita kanter",
         farg_de="Beige+Weiß", farg_spec="Beige", pris=1159,
-        anm=("☠️ TVÅ ingångar, inte tre — räknat på bild 1 OCH bild 2. Delar "
-             "mått, vikt, paketmått och ordagrant samma tyska text med "
-             "e7a9abb7, som har TRE. Uppgift #504. De får INTE korslänkas "
-             "som färgvarianter. ⚠️ Spec-raden säger bara 'Beige' och "
-             "tappar vitt som tyskan har."),
+        anm=("☠️ RÄTTAT VID STEG 9: TRE ingångar, inte två. Måttritningen "
+             "(bild 3) visar övre vänster, mitten höger och nedre vänster "
+             "— samma spiral som e7a9abb7. Bild 1 visar övre+nedre, bild 2 "
+             "övre+mitten: TVÅ VAR, men INTE SAMMA TVÅ. Unionen är tre.\n"
+             "☠️ Det välter uppgift #504: de ÄR färgsyskon, och #420 står "
+             "oemotsagd.\n"
+             "☠️ SISALEN ÄR DEN BEIGE, inte den gräddvita — den gräddvita "
+             "panelen är plysch. Uppmätt på pixlarna i bild 1.\n"
+             "⚠️ Spec-raden säger bara 'Beige' och tappar vitt som "
+             "tyskan har."),
     ),
 
     # ---- Grupp C: Ø38 × 70, tre färgställningar av samma konstruktion ----
@@ -168,9 +178,13 @@ TUNNOR = {
     ),
 }
 
-# Färgsyskon som FÅR korslänkas som varianter av samma modell. Grupp B står
-# INTE här, och det är hela poängen med uppgift #504.
+# Färgsyskon som FÅR korslänkas som varianter av samma modell.
+# ☠️ GRUPP B STOD LÄNGE UTANFÖR, på uppgift #504:s premiss att f2e06b7a
+#    hade två ingångar mot e7a9abb7:s tre. Steg 9 mätte om det på
+#    måttritningen: båda har TRE. Premissen var fel, #504 är struken, och
+#    #420 (identiska mått + vikt = färgsyskon) står oemotsagd.
 FARGSYSKON = [
+    ("e7a9abb7", "f2e06b7a"),
     ("bd0d7f9e", "d9310184", "efa9c03e"),
     ("d85ade1b", "ec29ad45"),
 ]

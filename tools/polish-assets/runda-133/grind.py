@@ -372,9 +372,18 @@ def sjalvtest():
 
     # ☠️ INGÅNGSGRINDEN — rundans huvudregel.
     prov("facit: e7a9abb7 har tre", M.TUNNOR["e7a9abb7"]["ingangar"] == 3)
-    prov("facit: f2e06b7a har två", M.TUNNOR["f2e06b7a"]["ingangar"] == 2)
+    # ☠️ STOD "två" HÄR TILL STEG 9, och självtestet LÅSTE FEL FACIT.
+    #    Måttritningen visar tre; bild 1 och bild 2 visar två VAR, men inte
+    #    samma två. Ett självtest kan bara bevisa att koden gör det datan
+    #    säger — aldrig att datan är sann.
+    prov("facit: f2e06b7a har tre", M.TUNNOR["f2e06b7a"]["ingangar"] == 3)
     prov("facit: de två delar mått",
          M.TUNNOR["e7a9abb7"]["matt"] == M.TUNNOR["f2e06b7a"]["matt"])
+    prov("facit: de två är färgsyskon",
+         ("e7a9abb7", "f2e06b7a") in M.FARGSYSKON)
+    prov("ingen av de tio bär Ø på en fyrkantig ingång",
+         all("Ø" not in M.TUNNOR[p]["oppning"]
+             for p in ("e7a9abb7", "f2e06b7a")))
     _m3 = re.compile(r"\b(?:tre|3)\s+(?:h[åa]lor|ing[åa]ngar|[öo]ppningar)", re.I)
     _m2 = re.compile(r"\b(?:två|2)\s+(?:h[åa]lor|ing[åa]ngar|[öo]ppningar)", re.I)
     prov("mönstret fäller 'tre ingångar'", bool(_m3.search("Den har tre ingångar.")))
@@ -390,10 +399,12 @@ def sjalvtest():
         prov("%s bär inte fel antal (%s)" % (_p, _fel_ord),
              not _mm.search(_eg))
 
-    # ☠️ De två som INTE är färgsyskon får ingen färgrad.
-    prov("e7a9abb7 har ingen färgrad", "e7a9abb7" not in T.FARGRAD)
-    prov("f2e06b7a har ingen färgrad", "f2e06b7a" not in T.FARGRAD)
+    # Färgraden följer FARGSYSKON — den som saknar syskon får ingen rad.
+    prov("e7a9abb7 HAR färgrad", "e7a9abb7" in T.FARGRAD)
+    prov("f2e06b7a HAR färgrad", "f2e06b7a" in T.FARGRAD)
     prov("e43b623c har ingen färgrad", "e43b623c" not in T.FARGRAD)
+    prov("varje färgsyskon har en färgrad",
+         all(p in T.FARGRAD for g in M.FARGSYSKON for p in g))
     prov("bd0d7f9e HAR färgrad", "bd0d7f9e" in T.FARGRAD)
 
     # Korslänksstrykningen: grannens ord får inte nå den egna zonen.

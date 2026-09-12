@@ -16,7 +16,7 @@ NAMN = {
     "b6bf627f": "Klöstunna 49 cm i sjögräs och sisal – två hålor, max 20 kg",
     "a33447f9": "Klöstunna 79 cm i sjögräs och sisal – tre hålor, max 20 kg",
     "e7a9abb7": "Klöstunna 74 cm i mörkgrått – tre ingångar och liggplats på toppen",
-    "f2e06b7a": "Klöstunna 74 cm i beige – två ingångar och liggplats på toppen",
+    "f2e06b7a": "Klöstunna 74 cm i beige – tre ingångar och liggplats på toppen",
     "bd0d7f9e": "Klöstunna 70 cm i ljusgrått med grå kanter – tre hålor",
     "d9310184": "Klöstunna 70 cm i ljusbrunt med gräddvita kanter – tre hålor",
     "efa9c03e": "Klöstunna 70 cm i ljusgrått med mörkgrå kanter – tre hålor",
@@ -48,7 +48,7 @@ TITEL = {
     "b6bf627f": "Klöstunna 49 cm i sjögräs och sisal | Fyndplats",
     "a33447f9": "Klöstunna 79 cm i sjögräs och sisal | Fyndplats",
     "e7a9abb7": "Klöstunna 74 cm i mörkgrått – tre ingångar | Fyndplats",
-    "f2e06b7a": "Klöstunna 74 cm i beige – två ingångar | Fyndplats",
+    "f2e06b7a": "Klöstunna 74 cm i beige – tre ingångar | Fyndplats",
     "bd0d7f9e": "Klöstunna 70 cm i ljusgrått med grå kanter | Fyndplats",
     "d9310184": "Klöstunna 70 cm i ljusbrunt med gräddvit kant | Fyndplats",
     "efa9c03e": "Klöstunna 70 cm i ljusgrått med mörkgrå kant | Fyndplats",
@@ -64,8 +64,8 @@ META = {
                  "De två övre planen är förbundna inuti. Bär 20 kg."),
     "e7a9abb7": ("Klöstunna 74 cm i mörkgrått med tre ingångar och en öppen "
                  "liggplats på toppen. Sisalpanel att klösa på. Ingen montering."),
-    "f2e06b7a": ("Klöstunna 74 cm i beige med två ingångar och öppen liggplats "
-                 "på toppen. Sisalpanel att klösa på. Ingen montering."),
+    "f2e06b7a": ("Klöstunna 74 cm i beige med tre ingångar och öppen liggplats "
+                 "på toppen. Beige sisalyta att klösa på. Ingen montering."),
     "bd0d7f9e": ("Klöstunna 70 cm klädd i ljusgrå sisal med grå kanter. Tre "
                  "hålor i spiral och en mjuk liggyta överst."),
     "d9310184": ("Klöstunna 70 cm i ljusbrun sisal med gräddvita kanter. Tre "
@@ -111,10 +111,11 @@ INTRO = {
         "ställen att vara på. Utsidan är mörkgrå med en ljusgrå sisalpanel "
         "att klösa på. Den kommer färdig att ställa ned, ingen montering."),
     "f2e06b7a": (
-        "Två ingångar och en öppen liggplats med plyschkant på toppen. "
-        "Klöstunnan är 74 cm hög, beige med en gräddvit panel, och har en "
-        "sisalyta längs sidan där katten kan klösa i stället för på soffan. "
-        "Den kommer färdig att ställa ned, ingen montering."),
+        "Tre ingångar på tre plan och en öppen liggplats med plyschkant "
+        "överst. Klöstunnan är 74 cm hög och har en bred gräddvit "
+        "plyschpanel mellan de beige sisalytorna, där katten kan klösa i "
+        "stället för på soffan. Den kommer färdig att ställa ned, ingen "
+        "montering."),
     "bd0d7f9e": (
         "Tre runda hålor i spiral runt tunnan, så att katten kan klättra "
         "uppåt inifrån i stället för att hoppa. Den är 70 cm hög, klädd i "
@@ -167,17 +168,17 @@ PUNKTER = {
         "Tål 20 kg",
     ],
     "e7a9abb7": [
-        "Tre ingångar på Ø18 cm, en per plan",
-        "Planen förbundna inuti med Ø18 cm hål",
+        "Tre ingångar på 18 × 18 cm, en per plan",
+        "Planen förbundna inuti med hål på 18 × 18 cm",
         "Öppen liggplats med plyschkant överst",
         "Ljusgrå sisalpanel längs sidan att klösa på",
         "Kommer färdig att ställa ned — ingen montering",
     ],
     "f2e06b7a": [
-        "Två ingångar på Ø18 cm",
-        "Planen förbundna inuti med Ø18 cm hål",
+        "Tre ingångar på 18 × 18 cm, en per plan",
+        "Planen förbundna inuti med hål på 18 × 18 cm",
         "Öppen liggplats med plyschkant överst, 37 × 37 cm",
-        "Gräddvit sisalpanel längs sidan att klösa på",
+        "Beige sisalytor på sidorna att klösa på",
         "Kommer färdig att ställa ned — ingen montering",
     ],
     "bd0d7f9e": [
@@ -238,13 +239,13 @@ KATT = {
         "för två katter än en modell där varje håla är ett slutet rum — de "
         "kan byta plats utan att gå ut och in."),
     "e7a9abb7": (
-        "Ingångarna är Ø18 cm och tunnan är gjord för katter under 4,5 kg. "
-        "Med tre ingångar och en liggplats på toppen "
-        "fungerar den för två katter som gillar att ha var sitt hörn."),
+        "Ingångarna är 18 × 18 cm och tunnan är gjord för katter under "
+        "4,5 kg. Med tre ingångar och en liggplats på toppen fungerar den "
+        "för två katter som gillar att ha var sitt hörn."),
     "f2e06b7a": (
-        "Ingångarna är Ø18 cm och tunnan är gjord för katter under 4,5 kg. "
-        "Den har två ingångar plus liggplatsen på toppen, alltså tre ställen "
-        "att välja mellan."),
+        "Ingångarna är 18 × 18 cm — fyrkantiga, inte runda — och tunnan är "
+        "gjord för katter under 4,5 kg. Tre ingångar plus liggplatsen "
+        "överst ger fyra ställen att välja mellan."),
     "bd0d7f9e": (
         "Öppningarna är Ø17 cm och tunnan är gjord för katter under 5 kg. "
         "Spiralen gör att katten kan ta sig uppåt inifrån, vilket är lättare "
@@ -291,8 +292,10 @@ BRUK = {
         "Sisalpanelen sitter på en sida. Vänd den utåt i rummet, annars "
         "klöser katten på det som är närmast i stället. " + _STAENDE),
     "f2e06b7a": (
-        "Sisalpanelen sitter på en sida. Vänd den utåt i rummet, annars "
-        "klöser katten på det som är närmast i stället. " + _STAENDE),
+        "Sisalytorna är de beige partierna — den breda gräddvita panelen "
+        "är mjuk plysch. Vrid tunnan så att en beige sida vetter mot "
+        "rummet, annars klöser katten på det som är närmast i stället. "
+        + _STAENDE),
     "bd0d7f9e": (
         "Hålorna sitter i spiral, så vrid tunnan tills den nedersta öppningen "
         "vetter mot rummet. " + _STAENDE),
@@ -318,6 +321,10 @@ BRUK = {
 #    räknat på bild 1 och 2 på båda) — uppgift #504. De har därför ingen
 #    färgrad, bara en neutral korslänk.
 FARGRAD = {
+    # ☠️ Grupp B tillkom vid Steg 9, när måttritningen visade att f2e06b7a
+    #    har TRE ingångar och inte två. Se matt.FARGSYSKON.
+    "e7a9abb7": "Samma modell finns även i beige.",
+    "f2e06b7a": "Samma modell finns även i mörkgrått.",
     "b6bf627f": ("Samma serie finns även som 79 cm hög med tre hålor."),
     "a33447f9": ("Samma serie finns även som 49 cm hög med två hålor."),
     "bd0d7f9e": ("Samma modell finns även i ljusbrunt med gräddvita kanter "
@@ -338,9 +345,9 @@ KORSLANK = {
                  ("klostunna-60-cm-ljusgra", "låg modell på 60 cm")],
     "a33447f9": [("klostunna-49-cm-sjogras", "samma serie, 49 cm med två hålor"),
                  ("klostunna-96-cm-cremevit", "96 cm med tvättbar bädd")],
-    "e7a9abb7": [("klostunna-74-cm-beige", "beige modell med två ingångar"),
+    "e7a9abb7": [("klostunna-74-cm-beige", "samma tunna i beige"),
                  ("klostunna-70-cm-gra-kant", "70 cm med tre runda hålor")],
-    "f2e06b7a": [("klostunna-74-cm-morkgra", "mörkgrå modell med tre ingångar"),
+    "f2e06b7a": [("klostunna-74-cm-morkgra", "samma tunna i mörkgrått"),
                  ("klostunna-60-cm-ljusgra", "låg modell på 60 cm")],
     "bd0d7f9e": [("klostunna-70-cm-ljusbrun", "samma modell i ljusbrunt"),
                  ("klostunna-70-cm-morkgra-kant", "samma modell med mörkgrå kanter")],
@@ -372,15 +379,15 @@ SPEC = {
                  ("Maxlast", "20 kg"),
                  ("Rekommenderad kattvikt", "1–2 katter under 5 kg")],
     "e7a9abb7": [("Höjd", "74 cm"), ("Mått", "40 × 40 × 74 cm"),
-                 ("Antal ingångar", "3"), ("Ingång", "Ø18 cm"),
-                 ("Hål mellan planen", "Ø18 cm"),
+                 ("Antal ingångar", "3"), ("Ingång", "18 × 18 cm"),
+                 ("Hål mellan planen", "18 × 18 cm"),
                  ("Material", "spånskiva, sammetslen polyester och sisal"),
-                 ("Färg", "mörkgrå med ljusgrå sisalpanel och vita kanter"),
+                 ("Färg", "mörkgrå med ljusgrå panel och vita kanter"),
                  ("Montering", "ingen"),
                  ("Rekommenderad kattvikt", "under 4,5 kg")],
     "f2e06b7a": [("Höjd", "74 cm"), ("Mått", "40 × 40 × 74 cm"),
-                 ("Antal ingångar", "2"), ("Ingång", "Ø18 cm"),
-                 ("Hål mellan planen", "Ø18 cm"),
+                 ("Antal ingångar", "3"), ("Ingång", "18 × 18 cm"),
+                 ("Hål mellan planen", "18 × 18 cm"),
                  ("Liggyta överst", "37 × 37 cm"),
                  ("Material", "spånskiva, sammetslen polyester och sisal"),
                  ("Färg", "beige med gräddvit panel och vita kanter"),
@@ -497,13 +504,14 @@ FAQ = {
     "e7a9abb7": [
         ("Hur många öppningar har den?",
          "Tre, en per plan, plus den öppna liggplatsen på toppen. Ingångarna "
-         "är Ø18 cm."),
+         "är 18 × 18 cm."),
         ("Behöver den monteras?",
          "Nej. Den kommer hel och ska bara ställas ned."),
     ] + _FAQ_GEMENSAM,
     "f2e06b7a": [
         ("Hur många öppningar har den?",
-         "Två, plus den öppna liggplatsen på toppen. Ingångarna är Ø18 cm."),
+         "Tre ingångar, en per plan, och dessutom den öppna liggplatsen "
+         "överst. Varje ingång är 18 × 18 cm."),
         ("Behöver den monteras?",
          "Nej. Den kommer hel och ska bara ställas ned."),
     ] + _FAQ_GEMENSAM,

@@ -117,6 +117,12 @@ runda-120/rawbilder/
 */mattritningar.jpg
 */rakna-*.jpg
 */kolla-*.jpg
+*/mattritningar-stora.jpg
+# Alt-textunderlaget: hela galleriet per produkt, varje ruta numrerad, så
+# att alt-texten beskriver DEN bild den sitter på. Runda 133 byggde det
+# vid Steg 9 och det fällde tre fel i rundans egen facit — vad det visade
+# står i STEG1-5.md, och arket självt är ett kommando bort.
+*/altark-*.jpg
 
 # `kortbygge.mjuka_upp`s mellanled: fotot med oskärpa pålagd, skrivet bredvid
 # rundans filer. Härlett ur `kortfoto/` av MJUKA-talen i rundans `kort.py`,

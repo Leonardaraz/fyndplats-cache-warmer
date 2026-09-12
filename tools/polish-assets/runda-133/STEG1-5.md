@@ -330,3 +330,78 @@ varje rubrik namnger just kanten — *"Tre runda hålor med grå kanter"*,
 hämtar filerna från `raw.githubusercontent.com` — ligger de inte i grenen
 svarar adressen 404 och Wix kvitterar ändå `success: true, PENDING`
 (runda 106, sex kort).
+
+## ☠️ Steg 9 VÄLTE Steg 5: f2e06b7a har TRE ingångar, inte två
+
+Uppgift #504 påstod att rundan hade mätt ett motexempel till #420 — två
+produkter med identiska mått, identisk vikt, identiskt paketmått och ordagrant
+samma tyska punktlista, men **olika antal ingångar**, alltså inte färgsyskon.
+
+**Premissen var fel.** Bildgranskningen inför Steg 9 läste måttritningen
+(bild 3) i full upplösning, och där ligger `f2e06b7a`:s öppningar i samma
+spiral som syskonets: **övre vänster, mitten höger, nedre vänster.** Tre.
+
+☠️ **Mekanismen är den som Steg 5 uttryckligen trodde sig ha uteslutit.**
+Anteckningen löd: *"Räknat på bild 1 OCH bild 2, alltså från två olika vinklar,
+på båda. Det är inte en skymd öppning — den finns inte."* Så här ser de två
+bilderna faktiskt ut:
+
+| bild | öppningar som SYNS | vilka |
+|---|--:|---|
+| 1 (hjälte) | 2 | översta + nedersta |
+| 2 (miljö) | 2 | översta + **mittersta** |
+| 3 (måttritning) | **3** | alla |
+
+Två i båda — men **inte samma två**. Unionen är tre. Tunnan är rund och
+öppningarna sitter i spiral, så varje vridning döljer exakt en.
+
+**Regeln: två vinklar bevisar ingenting om man inte visar att det är SAMMA
+föremål man räknar i båda.** Räkna per höjdläge, inte per bild. En rund vara
+med spiralställda hål kräver den vy som visar hela varvet — måttritningen —
+eller en explicit union över vinklarna.
+
+### Följderna, alla åtgärdade i samma pass
+
+| vad | före | efter |
+|---|---|---|
+| `matt.TUNNOR["f2e06b7a"]["ingangar"]` | 2 | **3** |
+| `matt.FARGSYSKON` | grupp B utanför | **`("e7a9abb7", "f2e06b7a")`** |
+| Korslänkarna | "beige modell med två ingångar" | "samma tunna i beige" |
+| `texter.FARGRAD` | ingen rad för de två | **rad åt båda håll** |
+| `grind.sjalvtest` | låste `== 2` | låser `== 3` + färgsyskonet |
+| Uppgift #504 | motexempel till #420 | **struken — #420 står** |
+
+☠️ **Självtestet LÅSTE FEL FACIT, och det är den dyraste raden här.** `grind.py`
+bar `prov("facit: f2e06b7a har två", …== 2)` och var grön i hela rundan. Ett
+självtest bevisar att koden gör det datan säger — **aldrig att datan är sann.**
+Det som fällde felet var ögon på en bild, i Steg 9, tre steg efter Steg 5.
+
+### Två fel till på samma produkt, samma granskning
+
+☠️ **Ingången är FYRKANTIG, inte rund.** Måttritningen sätter `18 cm` på BÅDA
+ledder på både `e7a9abb7` och `f2e06b7a`, och fotot visar fyrkanter med rundade
+hörn. Rundans text sa `Ø18 cm` på båda. Åtta av tio tunnor HAR runda hålor, så
+`Ø` var rätt vana och fel på just det par där skillnaden syns. Nu står
+`18 × 18 cm`, och självtestet fäller om `Ø` kommer tillbaka på de två.
+
+☠️ **Sisalen på `f2e06b7a` är den BEIGE, inte den gräddvita.** Texten sa
+*"Gräddvit sisalpanel längs sidan att klösa på"*. Pixlarna säger tvärtom: den
+breda gräddvita banden är slätt plysch, och de smalare beige banden är vävd
+sisal. Det är en funktionell lögn — kunden köper en klösyta och pekas mot den
+yta som INTE går att klösa på. Syskonet `e7a9abb7` hade rätt hela tiden
+(mörkgrå plysch, ljusgrå sisal), vilket är just varför felet var osynligt: den
+ena av två parallella texter stämde.
+
+### Skrivningen
+
+Båda texterna skrevs om och kvitterades byte-exakt mot `facit.json`:
+
+```
+e7a9abb7  rev 4  synlig false  3425 tecken  fnv 313894149  = facit
+f2e06b7a  rev 4  synlig false  3597 tecken  fnv  69437125  = facit
+```
+
+Korten byggdes om. ⚠️ **`f2e06b7a`:s kortrubrik fick INTE bli "Tre ingångar"**,
+fast det nu är facit: hjälten visar bara två av dem. Kortet är ett bildlöfte, så
+rubriken blev `Gräddvit plyschpanel mot beige sisal` — det hjälten faktiskt bär
+— och talet står i RADEN, som är rätt plats för ett tal.
