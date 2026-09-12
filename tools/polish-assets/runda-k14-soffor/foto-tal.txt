@@ -3,3 +3,4 @@
 # Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
 # så en fotoräknad uppgift måste kvitteras här för att slippa igenom.
 166fdb52 2 sittdynor och ryggkuddar räknade på bilder/166fdb52-1.jpg — två av varje, källan anger inget antal
+d2f7876e 5 lösa kuddar räknade på bilder/d2f7876e-1.jpg — tre stora ryggkuddar plus två små prydnadskuddar; källans Lieferumfang listar bara de två små (2 x Kissen), ryggkuddarna ingår i soffan
