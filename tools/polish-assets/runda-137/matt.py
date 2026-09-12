@@ -41,6 +41,31 @@ PRIS = {
     "1ae60dbc": 839,  "819bf51c": 879,
 }
 
+# ☠️ SLUGGEN ÄR VALD SÅ ATT FÄRGEN ÖVERLEVER KAPNINGEN. `grindar.sku_bas`
+#    fogar tokens till HÖGST 24 tecken på hel ordgräns, och i ett färgsyskonpar
+#    är FÄRGEN det enda som skiljer — den står sist och kapas därför först.
+#
+#    Uppmätt på rundans egna kandidater (uppgift #473: krocken syns inte i
+#    sluggen, den uppstår i den kapade strängen):
+#
+#      klostrad-takhogt-230-250-cm-ek     -> FP-klostrad-takhogt-230-250   KAPAD
+#      klostrad-takhogt-230-250-cm-gratt  -> FP-klostrad-takhogt-230-250   KAPAD
+#      husdjurstrappa-66-cm-beige         -> FP-husdjurstrappa-66-cm       KAPAD
+#      husdjurstrappa-66-cm-ljusgra       -> FP-husdjurstrappa-66-cm       KAPAD
+#
+#    Tre av fyra par krockade i första försöket. Sluggarna nedan är korta nog
+#    att bära färgen hela vägen — kontrollerat token för token.
+SLUG = {
+    "c7bd00b9": "klostrad-takspant-ek",
+    "a73a1a1c": "klostrad-takspant-gratt",
+    "f5f71f5d": "klostrad-90-cm-cremevit",
+    "dd3b541b": "klostrad-90-cm-gratt",
+    "f489937f": "klospelare-91-morkgra",
+    "5616c567": "klospelare-91-ljusbrun",
+    "1ae60dbc": "kattrappa-66-cm-beige",
+    "819bf51c": "kattrappa-66-cm-ljusgra",
+}
+
 # (rätt huvudord, [ord som INTE får stå i namn/titel/meta])
 TYP = {
     "c7bd00b9": ("klösträd", ["klöstunna", "klöstorn", "klöspelare", "husdjurstrappa"]),
@@ -49,8 +74,12 @@ TYP = {
     "dd3b541b": ("klösträd", ["klöstunna", "klöstorn", "klöspelare", "husdjurstrappa"]),
     "f489937f": ("klöspelare", ["klöstunna", "klöstorn", "klösträd", "husdjurstrappa"]),
     "5616c567": ("klöspelare", ["klöstunna", "klöstorn", "klösträd", "husdjurstrappa"]),
-    "1ae60dbc": ("husdjurstrappa", ["klöstunna", "klöstorn", "klösträd"]),
-    "819bf51c": ("husdjurstrappa", ["klöstunna", "klöstorn", "klösträd"]),
+    # ☠️ KATTRAPPA, inte husdjurstrappa. Lieferumfang säger `Haustiertreppe`
+    #    men Beschreibung säger `Katzentreppe`, kattvikten är 5 kg och
+    #    husets ingång Ø16 cm — ingen hund ryms. Runda 132:s familj är
+    #    hundtrappor och ska inte blandas ihop med de här.
+    "1ae60dbc": ("kattrappa", ["klöstunna", "klöstorn", "klösträd", "hundtrappa"]),
+    "819bf51c": ("kattrappa", ["klöstunna", "klöstorn", "klösträd", "hundtrappa"]),
 }
 
 # Färgen som kunden FAKTISKT får, avläst ur bild 1 och 2 — inte ur den
@@ -124,9 +153,22 @@ OAVGJORT = {
 }
 
 if __name__ == "__main__":
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
+    import grindar as _G
     fel = []
+    sedda = {}
+    for _pid, _slug in SLUG.items():
+        _sku = "FP-" + _G.sku_bas(_slug)
+        for _t in _slug.split("-"):
+            if _t not in _sku:
+                fel.append("%s: SKU:n tappade token %r — %s" % (_pid, _t, _sku))
+        sedda.setdefault(_sku, []).append(_pid)
+    for _sku, _v in sedda.items():
+        if len(_v) > 1:
+            fel.append("SKU-KROCK %s: %s" % (_sku, ", ".join(_v)))
     for pid in WIX:
-        for d in (VARIANT, PRIS, TYP, FARG, TAL, SYSKON):
+        for d in (VARIANT, PRIS, TYP, FARG, TAL, SYSKON, SLUG):
             if pid not in d:
                 fel.append("%s saknas i en facit-tabell" % pid)
         if SYSKON.get(SYSKON.get(pid)) != pid:
