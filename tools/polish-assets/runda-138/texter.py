@@ -219,8 +219,8 @@ KATT = {
                 "där möbeln står fritt i stället för mot en vägg. Katthuset är runt och "
                 "slutet, och sammeten gör ytorna mjukare än plysch.",
     "fecadb3e": "Gjord för katter upp till 5 kg. Bottenplattan är bara 40 × 40 cm, "
-                "vilket är den minsta golvytan i den här höjdklassen — möbeln kan stå "
-                "i en smal passage eller mellan två möbler. Stegen upp till huset gör "
+                "så möbeln kan stå i en smal passage eller mellan "
+                "två möbler. Stegen upp till huset gör "
                 "att en katt som hoppar kort ändå når hela vägen.",
     "505a0dde": "Gjord för katter under 5 kg. Det här är en pelare, inte ett träd: en "
                 "grov stam med två liggytor och ingenting att gå runt på. Katten som "
@@ -576,16 +576,16 @@ FAQ = {
          "flytta — men också beroende av att spännet mot taket är ordentligt "
          "åtdraget."),
         ("Passar den i mitt rum?",
-         "Den ställs in mellan 220 och 260 cm, det bredaste spannet i serien. Mät "
-         "takhöjden först."),
+         "Den ställs in mellan 220 och 260 cm. Mät takhöjden först — utanför "
+         "spannet går den varken att spänna eller ställa."),
         ("Vad är stammen klädd med?",
-         "Sisal, lindad runt en stam på Ø9,1 cm. Det är den grövsta stammen i "
-         "serien, så katten får fäste med hela tassen i stället för bara klorna."),
+         "Sisal, lindad runt en stam på Ø9,1 cm. Stammen är grov nog att katten "
+         "får fäste med hela tassen i stället för bara klorna."),
     ],
     "7bdc47b8": [
         ("Hur stor är hålan?",
          "45 × 35 cm invändigt och 25 cm hög, med en öppning på 18 × 18 cm. Det "
-         "är den rymligaste hålan i serien och räcker för en storvuxen katt."),
+         "räcker för en storvuxen katt att ligga utsträckt."),
         ("Hur mycket tål den?",
          "Bärförmågan är 10 kg och den rekommenderade kattvikten upp till 5 kg. "
          "Det första talet är vad konstruktionen håller, det andra vilken katt "

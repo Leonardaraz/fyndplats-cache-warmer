@@ -26,6 +26,7 @@
       när namnet är fel är värre än ingen vakt: den ser ut som täckning.
 """
 import os
+import io
 import re
 import sys
 
@@ -217,6 +218,142 @@ def _sokordsgrind(pid, sidtext, termer=None):
                            % (term, o))
     return fel
 
+# ☠️ SERIEGRINDEN — ETT UNDANTAG SOM VILAR PÅ EN MÄTNING MÅSTE UTFÖRA DEN.
+#
+#    `FORBJUDET` ovan tar uttryckligen bort `i serien` ur SORTIMENTSSUPERLATIV,
+#    med kommentaren att en jämförelse inom serien är "en mätbar jämförelse
+#    mellan sju kända tal — inte ett påstående om butiken". Motiveringen håller.
+#    Mätningen gjordes aldrig, och fyra av rundans fem seriepåståenden höll inte:
+#
+#      FALSKT    `505a0dde` "det bredaste spannet i serien"   40 cm mot 839a2ef5:s 45
+#      FALSKT    `7bdc47b8` "den rymligaste hålan i serien"   39 375 cm³ mot 46 400
+#      FALSKT    `fecadb3e` "minsta golvytan i höjdklassen"   1 600 cm² mot 1 598
+#      OMÄTBART  `505a0dde` "den grövsta stammen i serien"    två syskon anger ingen Ø
+#      SANT      `505a0dde` "den lättaste modellen i serien"  6,8 kg mot näst 11,9
+#
+#    Ett hål med en MOTIVERING fäst vid sig är värre än ett hål: det läser som
+#    genomtänkt, så nästa läsare kontrollerar det inte. Samma familj som
+#    uppgift #505 (självtestet låste fel facit) och #491.
+#
+# ☠️ RAMEN ÄR INTE BARA `i serien`. `fecadb3e` skrev "i den här höjdklassen",
+#    som ingen av mönstren ovan ser. Grinden matchar därför varje inramning
+#    som pekar på en jämförelsegrupp vi själva definierar.
+SERIERAM = re.compile(
+    r"\b(?:den|det)\s+\w*(?:h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|"
+    r"l[äa]ttast|rymligast|smalast|bredast|djupast|gr[öo]vst|l[äa]ngst|"
+    r"tjockast|t[äa]tast|b[äa]st|kortast|st[äa]digast)\w*\b[^.]{0,70}?"
+    r"\bi\s+(?:den\s+h[äa]r\s+)?(?:serien|h[öo]jdklassen|familjen|klassen|gruppen)\b",
+    re.I)
+_SUPERLATIVORD = re.compile(
+    r"\b\w*(?:h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|l[äa]ttast|rymligast|"
+    r"smalast|bredast|djupast|gr[öo]vst|l[äa]ngst|tjockast|t[äa]tast|b[äa]st|"
+    r"kortast|st[äa]digast)\w*\b", re.I)
+
+
+def _dubbeldefinitioner():
+    """Fäller om ett namn definieras TVÅ gånger i den här filen.
+
+    ☠️ SKREVS EFTER ATT JAG SJÄLV GJORT FELET. Seriegrindens hjälpfunktion
+       döptes först till `_vikt` — namnet på ordgränshjälparen högst upp, den
+       som `steg7.py` anropar som `GR._vikt(f)`. Python varnar inte: den andra
+       definitionen vinner, tyst.
+
+       Här small det bara för att de två tar olika sorters argument. Hade
+       signaturerna passat ihop vore typordsgrinden avstängd utan ett enda
+       felmeddelande — husets vanligaste bugg (`SHIP_AXIS_RE`, `EU_TULL_CODES`,
+       `mapWithConcurrency`), fast inom EN fil, där ingen letar efter den.
+
+    ⚠️ Läser KÄLLKODEN, inte modulen. En dubbeldefinition syns inte i
+       `dir(modul)` — där finns bara vinnaren.
+    """
+    kalla = io.open(__file__.rstrip("c"), encoding="utf-8").read()
+    namn = re.findall(r"^(?:def|class)\s+(\w+)|^(\w+)\s*=", kalla, re.M)
+    sett, dubbla = set(), []
+    for a, b in namn:
+        n = a or b
+        if n in sett:
+            dubbla.append(n)
+        sett.add(n)
+    return dubbla
+
+
+def _seriematt(namn):
+    """{pid: tal} för HELA rundan, räknat ur `texter.SPEC`.
+
+    ☠️ Returnerar `None` för en produkt vars spec inte bär måttet. Ett saknat
+       tal får ALDRIG tolkas som noll eller hoppas över: då blir "lättast"
+       sant genom att syskonet inte mätts. Grinden fäller på `None`.
+    """
+    ut = {}
+    for pid in T.NAMN:
+        ut[pid] = _MATT[namn](pid)
+    return ut
+
+
+def _specrad(pid, prefix):
+    for e, v in T.SPEC[pid]:
+        if e.startswith(prefix):
+            return v
+    return None
+
+
+# ☠️ HETER `_serie_vikt`, INTE `_vikt`. Första utkastet döpte den till `_vikt`
+#    och SKREV TYST ÖVER ordgränshjälparen på rad 40 — den som `steg7.py`
+#    anropar som `GR._vikt(f)` för att kontrollera att ett sökord inte bär fel
+#    typord. Python varnar inte; den andra definitionen vinner bara.
+#
+#    Här small det direkt, av ren tur: de två tar olika sorters argument, så
+#    `T.SPEC["sisal"]` gav KeyError. Hade signaturerna råkat passa ihop vore
+#    typordsgrinden tyst avstängd — exakt husets vanligaste bugg (`SHIP_AXIS_RE`,
+#    `EU_TULL_CODES`, `mapWithConcurrency`), men inom EN fil.
+#
+#    `_dubbeldefinitioner()` fäller nu på det i stället för nästa runda.
+def _serie_vikt(pid):
+    v = _specrad(pid, "Vikt")
+    return float(v.split()[0].replace(",", ".")) if v else None
+
+
+_MATT = {"vikt": _serie_vikt}
+
+
+def _seriegrind(pid, sidtext, matt=None):
+    """`matt` görs explicit för SJÄLVTESTETS skull — samma skäl som
+    `_sokordsgrind.termer`."""
+    fel = []
+    tabell = M.SERIEPASTAENDEN if matt is None else matt
+    for m in SERIERAM.finditer(sidtext):
+        pastaende = m.group(0)
+        ord_ = _SUPERLATIVORD.search(pastaende).group(0).lower()
+        nyckel = (pid, ord_)
+        if nyckel not in tabell:
+            fel.append("ODEKLARERAT SERIEPÅSTÅENDE %r — varje jämförelse inom "
+                       "serien måste stå i matt.SERIEPASTAENDEN med det mått "
+                       "den vilar på" % pastaende[:80])
+            continue
+        namn, riktning = tabell[nyckel]
+        # ☠️ Ett odefinierat måttnamn ska FÄLLA, inte krascha. Ett stavfel i
+        #    SERIEPASTAENDEN gav först KeyError mitt i granskningen — och en
+        #    grind som kraschar ser i ett skript ut som en grind som inte kördes.
+        #    Självtestets femte fall fångade det.
+        if namn not in _MATT:
+            fel.append("OKÄNT SERIEMÅTT %r för %s — lägg till det i grind._MATT"
+                       % (namn, pid))
+            continue
+        tal = _seriematt(namn)
+        saknas = [p for p, v in tal.items() if v is None]
+        if saknas:
+            fel.append("OMÄTBART SERIEPÅSTÅENDE %r — %s saknas för %s"
+                       % (pastaende[:60], namn, ", ".join(sorted(saknas))))
+            continue
+        vinnare = (min if riktning == "min" else max)(tal, key=tal.get)
+        if vinnare != pid or list(tal.values()).count(tal[pid]) > 1:
+            fel.append("FALSKT SERIEPÅSTÅENDE %r — %s är %s hos %s (%s), "
+                       "inte hos %s (%s)"
+                       % (pastaende[:60], namn, riktning, vinnare,
+                          tal[vinnare], pid, tal[pid]))
+    return fel
+
+
 def granska(pid, html=None, live=False):
     fel = []
     h = html if html is not None else T.bygg(pid)
@@ -246,6 +383,7 @@ def granska(pid, html=None, live=False):
         fel.extend(_antalsgrind(pid, h))
         fel.extend(_klosytegrind(pid, allt))
         fel.extend(_sokordsgrind(pid, allt))
+        fel.extend(_seriegrind(pid, allt))
 
     for m in G.ARTNR.finditer(allt):
         fel.append("ARTIKELNUMMER %r" % m.group(0))
@@ -316,6 +454,26 @@ FALL = [
 def sjalvtest():
     """Returnerar (fel, antal körda fall) — tupeln krävs av `liverunda.kor`."""
     fel, fall = [], 0
+    # ☠️ FÖRST AV ALLA FALL, med flit. Lagd sist i funktionen fällde den inte
+    #    på den VERKLIGA formen av buggen: en andra `_vikt` som returnerar fel
+    #    sorts värde får ett TIDIGARE självtestfall att krascha, och en grind
+    #    som aldrig hinner köra är ingen grind. Mutationstestat båda vägarna.
+    fall += 1
+    dubbla = _dubbeldefinitioner()
+    if dubbla:
+        # ☠️ KASTAR, samlar inte. Att lägga fyndet i `fel` räckte INTE: listan
+        #    returneras först i slutet av funktionen, och den skuggade
+        #    funktionen kraschade ett senare självtestfall på vägen dit
+        #    (`AttributeError: 'NoneType' has no 'finditer'`). Fyndet nådde
+        #    alltså aldrig ut, och det som syntes pekade på fel rad.
+        #    Mutationstestat: utan `raise` rapporterar körningen INGEN grind.
+        #
+        #    Regeln: en grind som konstaterar att MODULEN är trasig får inte
+        #    köa sitt besked bakom tester som just den trasigheten fäller.
+        raise SystemExit("☠️ DUBBELDEFINIERADE NAMN i grind.py: %s — den andra "
+                         "definitionen vinner TYST och stänger av den första"
+                         % ", ".join(sorted(set(dubbla))))
+
     for txt, ska, etikett in FALL:
         fall += 1
         traff = any(m.search(txt) for m, _ in FORBJUDET + ENDAST_KALLTEXT)
@@ -373,6 +531,32 @@ def sjalvtest():
     fall += 1
     if not _sokordsgrind("839a2ef5", "Ett klösträd, grönt.", ["klösträd i mahogny"]):
         fel.append("SJÄLVTEST: sökordsgrinden släpper ett odeklarerat främmande ord")
+
+    # Seriegrinden, alla fyra utfallen — rundans dyraste lärdom.
+    # ☠️ Facit är RUNDANS EGNA TAL, inte ett påhittat: fallen går sönder om
+    #    någon ändrar en vikt i matt/texter, vilket är precis vad man vill.
+    fall += 1
+    if _seriegrind("505a0dde", "Det är den lättaste modellen i serien.",
+                   {("505a0dde", "lättaste"): ("vikt", "min")}):
+        fel.append("SJÄLVTEST: seriegrinden fäller ett SANT seriepåstående")
+    fall += 1
+    if not _seriegrind("7bdc47b8", "Det är den lättaste modellen i serien.",
+                       {("7bdc47b8", "lättaste"): ("vikt", "min")}):
+        fel.append("SJÄLVTEST: seriegrinden släpper ett FALSKT seriepåstående")
+    fall += 1
+    if not _seriegrind("505a0dde", "Det är den grövsta stammen i serien.", {}):
+        fel.append("SJÄLVTEST: seriegrinden släpper ett ODEKLARERAT påstående")
+    fall += 1
+    # ☠️ Ramen `i den här höjdklassen` — den `fecadb3e` använde, och som INGET
+    #    av FORBJUDET:s mönster ser.
+    if not _seriegrind("fecadb3e", "Det är den minsta golvytan i den här "
+                       "höjdklassen.", {}):
+        fel.append("SJÄLVTEST: seriegrinden ser inte ramen `i höjdklassen`")
+    fall += 1
+    if not _seriegrind("505a0dde", "Det är den lättaste modellen i serien.",
+                       {("505a0dde", "lättaste"): ("saknat_matt", "min")}):
+        fel.append("SJÄLVTEST: seriegrinden kraschar inte kontrollerat på "
+                   "ett odefinierat mått")
 
     # Trekonsonantgrinden — den som runda 137 kallade vid FEL NAMN.
     fall += 1

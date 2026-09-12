@@ -175,3 +175,26 @@ SOKORD_KUNDORD = {
     "fristående",      # sidans ord är "står fritt på golvet"
     "kaktusklösträd",  # sammansättningen; sidan säger "format som en kaktus"
 }
+
+
+# ☠️ SERIEPÅSTÅENDEN — UNDANTAGET MÅSTE UTFÖRA SIN EGEN MÄTNING.
+#
+# `grind.FORBJUDET` tar uttryckligen bort `i serien` ur SORTIMENTSSUPERLATIV,
+# med motiveringen att en jämförelse inom serien är "en mätbar jämförelse
+# mellan sju kända tal". Motiveringen var riktig och mätningen gjordes aldrig.
+# Fyra av fem sådana påståenden i rundan höll inte:
+#
+#   FALSKT      `505a0dde` "det bredaste spannet i serien"  40 cm mot 839a2ef5:s 45
+#   FALSKT      `7bdc47b8` "den rymligaste hålan i serien"  39 375 cm³ mot 46 400
+#   FALSKT      `fecadb3e` "den minsta golvytan i höjdklassen" 1 600 cm² mot 1 598
+#   OMÄTBART    `505a0dde` "den grövsta stammen i serien"   två syskon anger ingen Ø
+#   SANT        `505a0dde` "den lättaste modellen i serien" 6,8 kg mot näst 11,9
+#
+# Varje kvarvarande påstående DEKLARERAS här med det mått det vilar på, och
+# `grind._seriegrind` räknar om det ur `texter.SPEC` vid varje körning. Ett
+# odeklarerat seriepåstående fälls; ett deklarerat som inte längre stämmer
+# fälls med talen utskrivna.
+SERIEPASTAENDEN = {
+    # (produkt, ordet i texten): (måttets namn, "min" | "max")
+    ("505a0dde", "lättaste"): ("vikt", "min"),
+}
