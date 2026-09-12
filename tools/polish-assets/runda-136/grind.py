@@ -67,11 +67,31 @@ FORBJUDET = [
      "INTERN JARGONG — ord ur arbetsprocessen"),
     (re.compile(r"\bmarknadens\b|\bbranschens\b|\bstarkast\w*\b", re.I),
      "SUPERLATIV utan mätvärde"),
+    # ☠️ `vi har` SAKNADES I LISTAN, och Steg 12 fick fånga det med ögon:
+    #    "det här den smalaste höga modellen vi har" passerade varenda
+    #    mekanisk grind. Ett superlativ mot hela katalogen är lika ogrundat
+    #    vare sig det står "vi säljer" eller "vi har".
     (re.compile(r"\b(?:h[öo]gst|l[äa]gst|mest|st[öo]rst|minst|tyngst|"
                 r"l[äa]ttast|rymligast|smalast|bredast|djupast)\w*\b"
-                r"[^.]{0,45}\b(?:vi\s+s[äa]ljer|i\s+(?:v[åa]rt\s+)?"
-                r"sortiment\w*|hos\s+oss|i\s+butiken|i\s+familjen)", re.I),
+                r"[^.]{0,45}\b(?:vi\s+(?:s[äa]ljer|har|f[öo]r)|i\s+(?:v[åa]rt\s+)?"
+                r"sortiment\w*|hos\s+oss|i\s+butiken|i\s+familjen"
+                r"|av\s+v[åa]ra)", re.I),
      "SORTIMENTSSUPERLATIV — ogrundad jämförelse mot hela butiken"),
+    # ☠️ GENUSFEL PÅ NEUTRUM. Steg 12 hittade TVÅ i den här rundan — "en smal
+    #    fotavtryck" och "en smal fogmunstycke" — och batchen bar samtidigt
+    #    den rätta formen ("ett smalt fogmunstycke") på en annan produkt.
+    #    Att båda formerna fanns samtidigt är beviset att det är slarv och
+    #    inte stil. Listan är rundans EGNA neutrumord, inte en allmän ordlista.
+    (re.compile(r"\ben\s+(?:\w+[^t\s]\s+)?(?:fotavtryck|munstycke|fogmunstycke"
+                r"|m[öo]belmunstycke|borstmunstycke|utrymme|element|material"
+                r"|naturmaterial|sn[öo]re|h[åa]l|golv|rum|tecken|l[äa]ge"
+                r"|st[äa]lle|m[åa]tt|plan|tak|hus)\b", re.I),
+     "GENUSFEL — ordet är neutrum och tar `ett`, inte `en`"),
+    # ☠️ `Tunnen` är varken bestämd form av `tunna` (tunnan) eller av
+    #    `tunnel` (tunneln). Steg 12 hittade den i en ingress där samma
+    #    produkt skrev `Tunneln` rätt tre gånger längre ned.
+    (re.compile(r"\btunnen\b", re.I),
+     "FELSTAVNING — bestämd form är `tunnan` eller `tunneln`"),
     (re.compile(r"\bleverant[öo]ren\s+(?:anger|uppger|s[äa]ger)", re.I),
      "MOT KUNDEN ÄR VI LEVERANTÖREN"),
     (re.compile(r"PawHut|HOMCOM|Outsunny|Aiyaplay|Aosom|AliExpress", re.I),

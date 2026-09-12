@@ -158,7 +158,7 @@ INTRO = {
         "golvet. Sockeln mäter 60 × 40 cm."),
     "63a586da": (
         "Ett klösträd på 104 cm som är byggt kring en liggtunnel i stället "
-        "för kring en koja. Tunnen är Ø32 cm och 40 cm lång, med Ø29 cm "
+        "för kring en koja. Tunneln är Ø32 cm och 40 cm lång, med Ø29 cm "
         "fritt invändigt och en pompong som hänger i öppningen. Ovanför "
         "ligger en topplatta på 51 × 33 cm med en 7 cm hög kant hela vägen "
         "runt, och bredvid en lägre plattform på 31 × 29 cm. Sockeln är "
@@ -314,7 +314,7 @@ BRUK = {
         "Stommen är sluten på alla fyra sidor, så tornet står stadigt av "
         "egen tyngd och behöver ingen vägg bakom sig. Ställ det ändå med "
         "en sida mot en vägg om katten brukar ta sats: ett torn på "
-        "41 × 41 cm sockel har en smal fotavtryck i förhållande till sina "
+        "41 × 41 cm sockel har ett smalt fotavtryck i förhållande till sina "
         "100 cm. Hålorna ligger på olika sidor, så vänd den sida du vill "
         "att katten ska använda utåt i rummet."),
     "860b6eb9": (
@@ -324,8 +324,8 @@ BRUK = {
         "en matta, så att hela ytan bär. Sisalstammen har 4 mm rep, som "
         "är den grovlek katter får bäst grepp om."),
     "05136778": (
-        "Med 160 cm höjd och 48 × 48 cm sockel är det här den smalaste "
-        "höga modellen vi har, och den vill stå intill en vägg. Ställ den "
+        "Med 160 cm höjd på en sockel av 48 × 48 cm är möbeln hög i "
+        "förhållande till sin fot, och den vill stå intill en vägg. Ställ den "
         "i ett hörn om du kan: två väggar tar upp sidokrafter när katten "
         "landar i den övre kojan. Montera nerifrån och upp och dra åt alla "
         "skruvar helt innan katten släpps på — en ledad hög möbel svajar "
@@ -529,7 +529,7 @@ SKOTSEL = {
         "högst går det snabbast. Är en varvlindning på väg att lossa, tryck "
         "tillbaka den och sätt en droppe trälim under änden innan den "
         "rullar upp sig helt. Bädden på Ø35 cm dammsugs och torkas av med "
-        "fuktig trasa. Inne i tunnan samlas hår längs botten — en smal "
+        "fuktig trasa. Inne i tunnan samlas hår längs botten — ett smalt "
         "fogmunstycke når ned genom den övre öppningen. Kontrollera att "
         "foten sitter fast mot tunnan varje gång du flyttar möbeln."),
     "05136778": (
