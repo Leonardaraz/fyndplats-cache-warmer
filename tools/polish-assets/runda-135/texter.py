@@ -323,7 +323,7 @@ KORSLANK = {
     "82efeeaf": [("klostrad-lagt-tra-och-jute", "lågt klösträd i trä och jute"),
                  ("klostrad-132-cm-borstpelare", "klösträd 132 cm med borstpelare")],
     "bdc7e768": [("klostrad-98-cm-bladkrona", "klösträd 98 cm med bladkrona"),
-                 ("klostrad-101-cm-giraff-med-tunnel", "klösträd 101 cm i giraffform")],
+                 ("klostrad-101-cm-giraff-med-tunnel", "klösträd 101 cm i girafform")],
     "e2c8b0f3": [("klostrad-98-cm-fardesign-tunnel", "klösträd 98 cm i fårdesign"),
                  ("klostrad-100-cm-flatad-kupol", "klösträd 100 cm med kupolhydda")],
     "cc5da788": [("klostrad-98-cm-bladkrona", "klösträd 98 cm med bladkrona"),

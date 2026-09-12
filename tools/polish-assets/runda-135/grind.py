@@ -65,6 +65,22 @@ FORBJUDET = [
                 r"|Birnbaumholz|Gesamtabmessung|Lieferumfang|Belastung",
                 re.I),
      "TYSKT ORD kvar i texten"),
+]
+
+# ☠️ REGLER OM SVENSKAN GÄLLER ÄVEN KORSLÄNKARNAS ANKARTEXT.
+#    `utan_korslankar` skär bort korslänksblocket ur `eget`, och det är RÄTT
+#    för påståenden: grannens mått och material är inte våra utsagor. Men det
+#    är FEL för stavning — ankartexten är en sträng VI skriver, om än om en
+#    annan produkt.
+#
+#    Uppmätt i den här rundan: `giraffform` stod kvar i ankartexten mot
+#    grannen `klostrad-101-cm-giraff-med-tunnel` EFTER att grannens eget namn
+#    rättats till `girafform` samma dag. Rundans grind var grön på alla åtta;
+#    det som fällde ordet var en grep över den SERIALISERADE payloaden.
+#
+#    Listan nedan körs därför mot HELA den synliga texten, korslänkar
+#    inräknade, medan `FORBJUDET` fortsätter köras mot `eget`.
+SVENSKAN = [
     (G.TREKONSONANT, "TRE LIKA KONSONANTER — svenskan förenklar till två"),
 ]
 
@@ -126,6 +142,12 @@ def granska(pid, html=None, live=False):
             for m in monster.finditer(provtext):
                 fel.append("%s: %s — %r"
                            % (namn, skal, G.mening_kring(provtext, m.start())[:110]))
+        # Språkreglerna läser HELA texten, alltså även korslänkarna.
+        heltext = syn if namn == "brödtext" else text
+        for monster, skal in SVENSKAN:
+            for m in monster.finditer(heltext):
+                fel.append("%s: %s — %r"
+                           % (namn, skal, G.mening_kring(heltext, m.start())[:110]))
         for h in G.homoglyfer(text):
             fel.append("%s: HOMOGLYF %r" % (namn, h))
         for m in G.ARTNR.finditer(text):
@@ -203,7 +225,11 @@ def sjalvtest():
     def pa(text, vantat, vad):
         nonlocal fall
         fall += 1
-        traff = any(m.search(text) for m, _ in FORBJUDET)
+        # ☠️ BÅDA listorna. Självtestet läste bara FORBJUDET, så när
+        #    trekonsonantsregeln flyttades till SVENSKAN slutade dess tre
+        #    fall pröva någonting — ett självtest som blir grönt för att
+        #    det slutat mäta. Samma familj som en tom läsare.
+        traff = any(m.search(text) for m, _ in FORBJUDET + SVENSKAN)
         if traff != vantat:
             fel.append("%s: väntat %s, fick %s (%r)" % (vad, vantat, traff, text))
 
