@@ -218,14 +218,18 @@ def _fel_pa(pid, gammalt, nytt):
 
 
 def sjalvtest():
-    fall, fel = 0, 0
+    """Returnerar `(fel, antal)` — KONTRAKTET som `liverunda.sjalvtester`
+    läser. ☠️ Rundan returnerade först bara antalet fel, och live-grinden dog
+    på `cannot unpack non-iterable int`. Det var rätt felläge (högljutt), men
+    kontraktet vaktades ingenstans; `liverunda` kontrollerar det nu.
+    """
+    fall, fel = 0, []
 
     def prov(vad, ok):
-        nonlocal fall, fel
+        nonlocal fall
         fall += 1
         if not ok:
-            fel += 1
-            print("  SJÄLVTEST FALLER: " + vad)
+            fel.append(vad)
 
     # 1. Talgrinden fäller ett ohärlett tal.
     prov("ohärlett tal fälls",
@@ -324,9 +328,12 @@ def sjalvtest():
              for x in granska("d0b80807")))
     T.SLUG["d0b80807"] = _spara_slug
 
-    print("%d fall, %d fel" % (fall, fel))
-    return fel
+    return fel, fall
 
 
 if __name__ == "__main__" and "--sjalvtest" in sys.argv:
-    sys.exit(1 if sjalvtest() else 0)
+    _fel, _fall = sjalvtest()
+    for _f in _fel:
+        print("  SJÄLVTEST FALLER: " + _f)
+    print("%d fall, %d fel" % (_fall, len(_fel)))
+    sys.exit(1 if _fel else 0)

@@ -55,7 +55,20 @@ def sjalvtester(GR):
     fel = []
     egen = getattr(GR, "sjalvtest", None)
     if egen is not None:
-        rfel, rantal = egen()
+        svar = egen()
+        # ☠️ KONTRAKTET ÄR `(fel, antal)`. Runda 134 returnerade bara ANTALET
+        #    fel och live-grinden dog på `cannot unpack non-iterable int` —
+        #    ett högljutt fel, men ett som inte sa vad som var fel. En runda
+        #    som i stället returnerat en tvåtupel av fel TYP hade sluppit
+        #    igenom och rapporterat skräp. Kontrollen bor här, i den delade
+        #    modulen, av samma skäl som reglerna gör det.
+        if (not isinstance(svar, tuple) or len(svar) != 2
+                or not isinstance(svar[0], (list, tuple))
+                or not isinstance(svar[1], int)):
+            raise SystemExit(
+                "grind.sjalvtest() ska returnera (fel-lista, antal fall) — "
+                "fick %r. Rundans självtest kördes ALLTSÅ INTE." % (svar,))
+        rfel, rantal = svar
         print("grind.sjalvtest():     %d fall, %d fel" % (rantal, len(rfel)))
         fel += ["SJÄLVTEST(runda): " + f for f in rfel]
     else:
