@@ -25,14 +25,25 @@ WIX = {
     "7bdc47b8": "7bdc47b8-b33a-40b6-ba1d-e82be7ab6e12",
 }
 
+# ☠️ SLUGGARNA ÄR VALDA MOT DEN KAPADE SKU-BASEN, inte mot sluggen.
+#    Två första förslag krockade, och båda var osynliga i sluggen:
+#
+#      `klostrad-200-cm-tva-hallor-hangmatta` → FP-klostrad-200-cm-tva
+#          krockar med publicerade `klostrad-200-cm-tva-grottor`
+#      `klostrad-takspant-240-260-cm-ljusgra` → FP-klostrad-takspant-240
+#          krockar med publicerade `klostrad-takspant-240-260-cm`
+#          — alltså med sitt EGET färgsyskon
+#
+#    Uppgift #473, ordagrant: krocken syns inte i sluggen, den uppstår i den
+#    KAPADE strängen. Mätt mot alla 5 688 sluggar med husets egen `sku_bas`.
 SLUG = {
-    "1366a476": "klostrad-200-cm-tva-hallor-hangmatta",
+    "1366a476": "klostrad-200-cm-beige-halor",
     "839a2ef5": "klostrad-230-275-cm-gront-katthus",
     "68bc6c0c": "klostrad-225-255-cm-fyra-plan-bomullsrep",
     "e5b31270": "klostrad-225-255-cm-rund-bas-sammet",
     "fecadb3e": "klostrad-240-260-cm-trafarg-katthus",
     "505a0dde": "klospelare-220-260-cm-tva-liggytor",
-    "7bdc47b8": "klostrad-takspant-240-260-cm-ljusgra",
+    "7bdc47b8": "klostrad-ljusgratt-240-260-cm",
 }
 
 # (huvudord, ord som betyder en ANNAN produkttyp och aldrig får stå i namnet)
