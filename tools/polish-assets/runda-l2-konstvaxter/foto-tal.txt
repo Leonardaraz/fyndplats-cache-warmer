@@ -1,0 +1,4 @@
+# Tal som är RÄKNADE PÅ FOTOT, inte hämtade ur källtexten.
+# Formatet är "kort  tal  vad som räknats" och kvitterar siffergrindens varning.
+
+8cccf8e1	3	tre stammar med var sin bladtofs, räknade på huvudbilden (ark-2, nedre raden, bild 1). Källan säger 60 blad och "biegsame Hauptstämme" i plural men aldrig hur många.

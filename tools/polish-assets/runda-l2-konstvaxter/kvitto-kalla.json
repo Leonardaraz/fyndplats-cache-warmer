@@ -1,0 +1,59 @@
+{
+  "0136a1b6": {
+    "filFnv": 791246248,
+    "filTecken": 1399,
+    "ordagrann": true,
+    "wixFnv": 791246248,
+    "wixTecken": 1399
+  },
+  "288fcc4d": {
+    "filFnv": 733398613,
+    "filTecken": 2001,
+    "ordagrann": true,
+    "wixFnv": 733398613,
+    "wixTecken": 2001
+  },
+  "2c76f251": {
+    "filFnv": 696271421,
+    "filTecken": 1702,
+    "ordagrann": true,
+    "wixFnv": 696271421,
+    "wixTecken": 1702
+  },
+  "4bf8e052": {
+    "filFnv": 823980325,
+    "filTecken": 1728,
+    "ordagrann": true,
+    "wixFnv": 823980325,
+    "wixTecken": 1728
+  },
+  "4f2d20a0": {
+    "filFnv": 801675565,
+    "filTecken": 2171,
+    "ordagrann": true,
+    "wixFnv": 801675565,
+    "wixTecken": 2171
+  },
+  "654d3653": {
+    "filFnv": 622854743,
+    "filTecken": 1797,
+    "ordagrann": true,
+    "wixFnv": 622854743,
+    "wixTecken": 1797
+  },
+  "6dee216f": {
+    "filFnv": 266839732,
+    "filTecken": 1976,
+    "ordagrann": false,
+    "redigerad": "Artikelkennzeichnung ersatt med ‹REDIGERAT›. Aosoms artikelnummer får varken nå kundtexten eller committas i ett publikt repo. Bevis: sätts numret tillbaka i minnet ger kopian exakt Wix 1977 tecken / fnv 665261505 — allt annat är alltså orört.",
+    "wixFnv": 665261505,
+    "wixTecken": 1977
+  },
+  "8cccf8e1": {
+    "filFnv": 930347737,
+    "filTecken": 1774,
+    "ordagrann": true,
+    "wixFnv": 930347737,
+    "wixTecken": 1774
+  }
+}
