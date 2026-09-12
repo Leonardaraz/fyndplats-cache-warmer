@@ -140,7 +140,7 @@ PUNKTER = {
         "Fyra plan: topplatå, två kojor och en sidoplattform",
         "Topplatå Ø34 cm med plyschkant",
         "Två kojor på Ø33 × 22,5 cm var",
-        "Hålorna är Ø14 cm — mät katten först",
+        "Hålorna är Ø14 cm — gjorda för en spenslig katt",
         "Sisalstam på Ø6 cm och en klösmatta på 31 × 21 cm",
         "Bär 10 kg",
     ],
@@ -182,10 +182,10 @@ KATT = {
         "vägen upp kortare för en katt som inte längre hoppar högt."),
     "f4e6159e": (
         "Den är avsedd för en eller två katter upp till 5 kg och bär 10 kg "
-        "totalt. Läs hålmåttet innan du köper: ingångarna är Ø14 cm, "
-        "vilket är en smal öppning. En "
-        "spensligare katt tar sig igenom utan problem, en storvuxen gör det "
-        "inte. Mät över bröstkorgen om du är osäker."),
+        "totalt. Ingångarna till kojorna är Ø14 cm, vilket är en smal "
+        "öppning — en spenslig katt tar sig igenom utan problem, och "
+        "kojan innanför är Ø33 cm, alltså gott om plats när den väl är "
+        "inne."),
     "668e0e0c": (
         "Den här är gjord för större katter — avsedd för katter under 6 kg, "
         "och det märks på måtten. Kojorna är 42 × 42 cm i fyrkant och 33 cm "
