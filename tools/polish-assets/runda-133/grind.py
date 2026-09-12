@@ -80,7 +80,11 @@ PER_PRODUKT = [
     (re.compile(r"\bsj[öo]gr[äa]s\w*|\bfl[äa]tad?e?\b|\bkorgbindning\w*", re.I),
      "SJÖGRÄS påstås men produkten är klädd i sisal och plysch",
      lambda pid: "sjögräs" not in M.TUNNOR[pid]["material"]),
-    (re.compile(r"\bleksak\w*|\bmustips\w*|\bh[äa]ngande\b", re.I),
+    # ☠️ BAR `leksak`, INTE `\bleksak`: i "musleksak" är s och l båda
+    #    ordtecken, så `\b` matchar inte — samma mina som `\btr[äa]d`
+    #    och runda 131:s `\bramp`. Hittad av alt-textgrindens
+    #    mutationstest, som INTE föll där det skulle.
+    (re.compile(r"leksak\w*|\bmustips\w*|\bh[äa]ngande\b", re.I),
      "LEKSAK påstås men produkten har inga",
      lambda pid: not M.TUNNOR[pid].get("leksaker")),
     (re.compile(r"\btv[äa]ttbar\w*|\bmaskintv[äa]tt\w*|\bavtagbar\w*\s+b[äa]dd", re.I),

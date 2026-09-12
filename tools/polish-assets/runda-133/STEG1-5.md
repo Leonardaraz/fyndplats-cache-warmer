@@ -405,3 +405,69 @@ Korten byggdes om. ⚠️ **`f2e06b7a`:s kortrubrik fick INTE bli "Tre ingångar
 fast det nu är facit: hjälten visar bara två av dem. Kortet är ett bildlöfte, så
 rubriken blev `Gräddvit plyschpanel mot beige sisal` — det hjälten faktiskt bär
 — och talet står i RADEN, som är rätt plats för ett tal.
+
+## ✅ Steg 9b och Steg 10 — kvitto
+
+**Korten:** tio uppladdade, `10 av 10 READY och attribuerade på innehåll`
+(`kortkvitto.py`, md5 mot den lokala filen — inte mot ordningen i anropet).
+De två ombyggda laddades upp igen efter rättningen och kvitterades på nytt.
+
+**Galleriet och de 58 alt-texterna**, ett PATCH per produkt, alla verifierade
+med en separat `?fields=MEDIA_ITEMS_INFO`-läsning mot lokalt facit:
+
+| | |
+|---|---:|
+| produkter | 10 |
+| bildposter skrivna | **58** |
+| `ordning_ok` | 10 av 10 |
+| `alla_har_alt` | 10 av 10 |
+| `huvudbild` kvar | 10 av 10 |
+| alt-FNV mot facit | **10 av 10 exakta** |
+| fortfarande `visible: false` | 10 av 10 |
+
+Ordningen är runbokens: hjälte, verklighetsbild, eget kort, detaljer,
+måttritning sist. Måttritningen låg på plats 3 i rå-importen på **alla tio** —
+samma mönster som uppgift #371 mätte på runda 104.
+
+☠️ **PawHut-reklamen är BORTA från båda.** `a33447f9` och `e43b623c` bar den på
+bildposition 5: två logotyper, tysk marknadsföringstext och en katt, ingen
+produktbild alls (uppgift #428). De har fem bilder nu, de andra åtta har sex.
+⚠️ Filerna har OLIKA id på de två sidorna fast det är samma bild — uppgift #499
+igen: Wix omimporterar varje bild, så id bevisar ingenting.
+
+### ☠️ Alt-texten var ogrindad — nu finns `alttexter.py`
+
+Runbokens Steg 9 säger det rakt ut: steg-grinden läser `html`, `namn`, `titel`
+och `meta`, och alt-texten finns i ingen av dem. `alttexter.granska` kör därför
+**rundans egna mönster, importerade ur `grind`** — inte omskrivna varianter:
+`FORBJUDET`, `NEGERBART`, `PER_PRODUKT`, typgrinden, ingångsantalet,
+syskonfärgerna, plus husets homoglyf-, jargong- och artikelnummergrindar.
+
+Tolv mutationstester, och **ett av dem föll inte där det skulle**:
+
+☠️ **`\bleksak\w*` är blind för `musleksak`.** I sammansättningen är `s` och
+`l` båda ordtecken, så `\b` matchar aldrig. Exakt samma mina som `\btr[äa]d`
+i den här rundan och `\bramp` i runda 131 och 132 — tredje gången, och den
+enda som hittades av ett test i stället för av en publicerad sida. Mönstret är
+bart nu.
+
+### Steg 10 — samma löv som familjens publicerade syskon
+
+Id:n lästa ur trädet, aldrig ur minnet: **Husdjur**
+(`a2b4369f-…`) + **Lek & Tillbehör för husdjur** (`ea1313f5-…`). Tre av fyra
+publicerade klöstunnor ligger redan i båda.
+
+☠️ **Uppgift #357 bekräftad en gång till: återläsningen ljög NEGATIVT.**
+`bulk/categories/add-item` svarade `totalSuccesses: 2, totalFailures: 0` på
+alla tio, och produktprojektionen svarade i samma andetag `1 kategori`. Hade
+domen fallit där hade rundan skrivit om tio korrekta kategorier. Sekunder
+senare, och läst genom `list-categories-for-items` (kategoritjänsten själv,
+inte produktprojektionen), säger **båda källorna 3 av 3 på alla tio**.
+
+**Regeln: en kategoriskrivning ska verifieras mot kategoritjänsten, och först
+efter en paus.** Produktprojektionen är ett eftersläpande derivat.
+
+⚠️ **Ett fynd utanför rundan, inte åtgärdat:** `c5e63205` — den ena halvan av
+uppgift #503:s live-dubblett — ligger i Husdjur men **saknar lövet**. De tre
+andra publicerade har det. Lämnad orörd med flit: sidan kan komma att
+pensioneras när Leonard avgör #503, och då vore ändringen bortkastad.
