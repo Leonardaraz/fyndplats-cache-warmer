@@ -10,10 +10,10 @@ formel kan stämma medan tecknen är fel.
 | `a73a1a1c` | `klostrad-takspant-gratt` | 2 | **OK** | false | true |
 | `f5f71f5d` | `klostrad-90-cm-cremevit` | 2 | **OK** | false | true |
 | `dd3b541b` | `klostrad-90-cm-gratt` | 2 | **OK** | false | true |
-| `f489937f` | `klospelare-91-morkgra` | — | väntar | — | — |
-| `5616c567` | `klospelare-91-ljusbrun` | — | väntar | — | — |
-| `1ae60dbc` | `kattrappa-66-cm-beige` | — | väntar | — | — |
-| `819bf51c` | `kattrappa-66-cm-ljusgra` | — | väntar | — | — |
+| `f489937f` | `klospelare-91-morkgra` | 2 | **OK** | false | true |
+| `5616c567` | `klospelare-91-ljusbrun` | 2 | **OK** | false | true |
+| `1ae60dbc` | `kattrappa-66-cm-beige` | 2 | **OK** | false | true |
+| `819bf51c` | `kattrappa-66-cm-ljusgra` | 2 | **OK** | false | true |
 
 ## Så vet skrivningen att den skriver rätt sträng
 
