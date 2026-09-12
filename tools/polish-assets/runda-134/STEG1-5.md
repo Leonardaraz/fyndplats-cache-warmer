@@ -193,3 +193,64 @@ oöversatt källtext som importen kopierat rakt av.
 - ⚠️ **`d0b80807`:s tyska intro är en trasig mening i källan:** *"Die
   Katzentonne bietet mit zwei Höhlen."* Den saknar objekt. Ingenting ska
   härledas ur den — de två hålorna står i punktlistan och syns på bilden.
+
+---
+
+## ✅ Steg 7 — sex texter skrivna och verifierade 6 av 6
+
+| id | slug | rev | synliga tecken | fnv1a mot filen |
+|---|---|--:|--:|---|
+| `f6857ca0` | `kattbadd-sjogras-43-cm` | 1→2 | 2 233 | ✅ |
+| `09336fdf` | `klostunna-50-cm-vattenhyacint` | 1→2 | 1 976 | ✅ |
+| `d0b80807` | `klostunna-61-cm-hoppplattform` | 1→2 | 2 063 | ✅ |
+| `f4e6159e` | `klostrad-90-cm-dubbelhala` | 1→2 | 2 114 | ✅ |
+| `668e0e0c` | `klostorn-81-cm-fyrkantigt` | 1→2 | 2 229 | ✅ |
+| `38022bcb` | `klostrad-109-cm-tunna-badd` | 1→2 | 2 151 | ✅ |
+
+Alla sex står kvar på `visible: false`. Steg 7 skickar `id`, `revision`,
+`name`, `slug`, `plainDescription` och `seoData` och **inget mer** — ett
+utelämnat `visible` rör inte synligheten, medan ett medskickat kan publicera
+utkastet i förtid.
+
+### ☠️ Grinden hittade fyra fel i mitt EGET första utkast
+
+Det är hela skälet till att texten skrivs i en fil först (uppmätt 9 fel inline
+mot 0 via fil). Inget av de fyra hade synts i ett API-svar, för svaret ekar
+tillbaka exakt det man skrev.
+
+1. ☠️ **FEM förekomster av "rundan" i KUNDTEXT** — uppgift #318 igen, och
+   orsaken är mekanisk: texterna jämfördes **med varandra** medan de skrevs
+   ("rundans minsta", "den enda i rundan", "rundans högsta"), så
+   arbetsprocessens ord följde med ut till kunden. Rättat per ORD.
+2. ☠️ **Ett SORTIMENTSSUPERLATIV**: *"den smalaste öppningen vi säljer i den
+   här familjen"*. Det evaderar jargonggrinden genom att peka på BUTIKEN i
+   stället för på batchen — och är värre, för de 43 publicerade klösträden har
+   ingen av oss mätt. Ersatt med talet självt (Ø14 cm).
+3. ☠️ **En ☠️-markör läckte in i kundtext.** Fångad av en `grep`, inte av ögon.
+4. En **maxlast** som facit saknade underlag för.
+
+### ☠️ En BYTEJÄMFÖRELSE AV `plainDescription` FALLER ALLTID
+
+Wix normaliserar markupen vid skrivning: varje `<li>text</li>` lagras som
+`<li><p>text</p></li>`. Uppmätt på `f6857ca0`: filen 2 838 tecken, Wix 3 225 —
+**387 tecken som ingen av oss skrev.**
+
+Det gör en naiv verifiering värdelös åt BÅDA håll: den rapporterar fel på en
+korrekt skrivning, och den som sett den falla en gång slutar verifiera. Samma
+familj som ett falsklarm som alltid fyrar.
+
+✅ **Det som går att jämföra är den SYNLIGA texten** — det kunden läser, och
+det enda vi faktiskt påstår något om. Taggarna är Wix sak. `verifiera.py` bär
+facit för alla sex, och samma FNV-1a körs på båda sidor.
+
+⚠️ Och en påminnelse om uppgift #425: PATCH-svaret bär **ingen**
+`plainDescription` alls utan `?fields=PLAIN_DESCRIPTION` — det svarade
+"0 tecken" på en skrivning som gick igenom.
+
+### Kvar i rundan
+
+Steg 8 (SKU till Wix + mappning), Steg 9 (bildordning, alt-texter, ta bort de
+två leverantörsbilderna, ladda upp de två tvättade ritningarna, bygga och
+ladda upp sex Fyndplats-kort), Steg 10 (kategorier), Steg 13 (publicera) och
+Steg 14 (live-grind). Sidorna är osynliga utkast tills dess — ingen kund ser
+något halvfärdigt.
