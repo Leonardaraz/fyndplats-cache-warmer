@@ -18,7 +18,7 @@ import grindar as _G                                             # noqa: E402
 NAMN = {
     "f6857ca0": "Kattbädd i sjögräs 43 cm på furuvagga – klösbar utsida och dyna",
     "09336fdf": "Klöstunna 50 cm i vattenhyacint – två plan, två hålor och dyna",
-    "d0b80807": "Klöstunna 61 cm i sisal – två kojor och hoppplattform",
+    "d0b80807": "Klöstunna 61 cm i sisal – två kojor och hopplattform",
     "f4e6159e": "Klösträd 90 cm i beige – dubbel koja, topplatå och sidoplattform",
     "668e0e0c": "Klöstorn 81 cm i mörkgrått – fyrkantigt, två kojor och sisalpanel",
     "38022bcb": "Klösträd 109 cm med klöstunna i tre plan och bädd på toppen",
@@ -30,7 +30,7 @@ NAMN = {
 SLUG = {
     "f6857ca0": "kattbadd-sjogras-43-cm",
     "09336fdf": "klostunna-50-cm-vattenhyacint",
-    "d0b80807": "klostunna-61-cm-hoppplattform",
+    "d0b80807": "klostunna-61-cm-hopplattform",
     "f4e6159e": "klostrad-90-cm-dubbelhala",
     "668e0e0c": "klostorn-81-cm-fyrkantigt",
     "38022bcb": "klostrad-109-cm-tunna-badd",
@@ -41,7 +41,7 @@ SKU = {pid: "FP-" + _G.sku_bas(slug) for pid, slug in SLUG.items()}
 TITEL = {
     "f6857ca0": "Kattbädd i sjögräs 43 cm på furuvagga | Fyndplats",
     "09336fdf": "Klöstunna 50 cm i vattenhyacint med dyna | Fyndplats",
-    "d0b80807": "Klöstunna 61 cm i sisal med hoppplattform | Fyndplats",
+    "d0b80807": "Klöstunna 61 cm i sisal med hopplattform | Fyndplats",
     "f4e6159e": "Klösträd 90 cm med dubbel koja och topplatå | Fyndplats",
     "668e0e0c": "Klöstorn 81 cm i mörkgrått med sisalpanel | Fyndplats",
     "38022bcb": "Klösträd 109 cm med klöstunna i tre plan | Fyndplats",
@@ -53,7 +53,7 @@ META = {
     "09336fdf": ("Klöstunna 50 cm flätad i vattenhyacint kring en stålstomme. "
                  "Två plan, två hålor och en rund dyna på toppen. Ingen montering."),
     "d0b80807": ("Klöstunna 61 cm klädd i sisal med två plyschklädda kojor och "
-                 "en hoppplattform vid sidan. Bred bas på 59 cm."),
+                 "en hopplattform vid sidan. Bred bas på 59 cm."),
     "f4e6159e": ("Klösträd 90 cm i beige med dubbel koja, topplatå, "
                  "sidoplattform och sisalytor att klösa på. Bär 10 kg."),
     "668e0e0c": ("Fyrkantigt klöstorn 81 cm i mörkgrå plysch med två kojor, "
@@ -85,7 +85,7 @@ INTRO = {
         "håla till vardera, och en rund dyna på toppen. Den kommer hopmonterad."),
     "d0b80807": (
         "Två kojor ovanpå varandra i en tunna klädd i sisal, och en "
-        "hoppplattform vid sidan som gör det lätt att ta sig upp. Insidan "
+        "hopplattform vid sidan som gör det lätt att ta sig upp. Insidan "
         "och kanterna är beige plysch. Basen är 59 cm i diameter — bredare "
         "än tunnan själv, vilket är det som håller den stadig när katten "
         "landar på plattformen."),
@@ -130,7 +130,7 @@ PUNKTER = {
     ],
     "d0b80807": [
         "Två kojor ovanpå varandra, dörrarna mäter 17,5 × 19,5 cm",
-        "Hoppplattform på 30 × 18 cm vid sidan",
+        "Hopplattform på 30 × 18 cm vid sidan",
         "Sisal runt hela tunnan att klösa på",
         "Liggyta Ø35 cm överst",
         "Bas på Ø59 cm — bredare än tunnan",
@@ -178,7 +178,7 @@ KATT = {
     "d0b80807": (
         "Avsedd för katter upp till 5 kg. Dörrarna är 17,5 cm breda och "
         "19,5 cm höga, alltså rejält tilltagna, och kojan är Ø35 cm — en "
-        "vuxen katt kan vända sig runt inne i den. Hoppplattformen gör "
+        "vuxen katt kan vända sig runt inne i den. Hopplattformen gör "
         "vägen upp kortare för en katt som inte längre hoppar högt."),
     "f4e6159e": (
         "Den är avsedd för en eller två katter upp till 5 kg och bär 10 kg "
@@ -382,7 +382,7 @@ FAQ = {
     "d0b80807": [
         ("Varför är basen bredare än tunnan?",
          "För att motverka att möbeln tippar när katten landar på "
-         "hoppplattformen, som sitter ut från mitten. Basen mäter Ø59 cm mot "
+         "hopplattformen, som sitter ut från mitten. Basen mäter Ø59 cm mot "
          "tunnans Ø35 cm."),
         ("Hur stora är dörrarna?",
          "17,5 cm breda och 19,5 cm höga, lika på båda kojorna."),

@@ -64,6 +64,13 @@ FORBJUDET = [
      "TYSKT ORD kvar i texten"),
     (re.compile(r"\btr[äa]d\b", re.I),
      "TRÄD som material — varan är spånskiva, inte trä"),
+    # ☠️ RUNDANS EGET STAVFEL, och det som nästan nådde kund. `hoppplattform`
+    #    stod i NAMN, SLUG, TITEL, META, brödtext, FAQ, kortrubrik och
+    #    alt-text — nio förekomster — och var grönt genom hela Steg 7. Det som
+    #    fällde ordet var ÖGONEN på kortets kontaktark, alltså av en slump.
+    #    Regeln om svenska bor i `grindar`, inte här; raden nedan drar in den
+    #    så att den täcker ALLA fält listan körs mot, alt-texten inkluderad.
+    (G.TREKONSONANT, "TRE LIKA KONSONANTER — svenskan förenklar till två"),
 ]
 
 # Talgrinden läser ALLA fält, inte bara brödtexten (uppgift #441).
@@ -295,6 +302,27 @@ def sjalvtest():
          any("förekommer 2" in x for x in granska(
              "f6857ca0",
              html=T.bygg("f6857ca0") + "<h2>Vanliga frågor</h2>")))
+
+    # 17. ☠️ TREKONSONANTSREGELN — rundans eget stavfel, och det enda fel i
+    #     hela rundan som ingen grind hittade. `hoppplattform` stod i NAMN,
+    #     SLUG, TITEL, META, brödtext, FAQ, kortrubrik och alt-text och var
+    #     grönt genom hela Steg 7; ÖGONEN på kortkontaktarket fällde det.
+    prov("tre lika konsonanter fälls",
+         any("TRE LIKA KONSONANTER" in x
+             for x in _fel_pa("d0b80807", "en hopplattform vid sidan",
+                              "en hoppplattform vid sidan")))
+    # 18. ... och den rättade formen är GRÖN. Utan den här raden hade en grind
+    #     som fäller på ALLT sett lika lyckad ut som en som fäller på rätt sak.
+    prov("den rättade formen släpps igenom",
+         not any("TRE LIKA KONSONANTER" in x for x in granska("d0b80807")))
+    # 19. Grinden når SLUGGEN, inte bara brödtexten. Sluggen är ASCII-vikt och
+    #     bar felet den också — `klostunna-61-cm-hoppplattform`.
+    _spara_slug = T.SLUG["d0b80807"]
+    T.SLUG["d0b80807"] = "klostunna-61-cm-hoppplattform"
+    prov("felstavad slug fälls",
+         any("TRE LIKA KONSONANTER" in x and x.startswith("slug")
+             for x in granska("d0b80807")))
+    T.SLUG["d0b80807"] = _spara_slug
 
     print("%d fall, %d fel" % (fall, fel))
     return fel

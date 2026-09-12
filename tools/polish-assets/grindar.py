@@ -919,6 +919,28 @@ def butikstvatt(html):
 JARGONG = re.compile(r"\brundan\b|\brunda\s+\d+", re.I)
 
 
+# ── ☠️ TREKONSONANTSREGELN: tre lika konsonanter i rad FINNS INTE i svenska ──
+# Bildas en sammansättning där förledets dubbelkonsonant möter efterledets
+# samma konsonant stryks en av dem: `topp`+`prestation` → `topprestation`,
+# `till`+`låta` → `tillåta`, `glass`+`skål` → `glasskål`. Bindestreck är enda
+# alternativet (`hopp-plattform`), aldrig tre tecken.
+#
+# ☠️ HITTAD I RUNDA 134, OCH INTE AV EN GRIND. `hoppplattform` stod i NAMN,
+#    SLUG, TITEL, META, brödtext, FAQ, kortrubrik och alt-text — nio
+#    förekomster — och passerade hela Steg 7 grönt. Det som fällde den var
+#    ÖGONEN på kortkontaktarket, alltså av en slump: rubriken råkade vara
+#    det ord som skrevs störst.
+#
+# Regeln bor här och inte i rundan, av samma skäl som `JARGONG` ovan: det är
+# en regel om SVENSKA, inte om den här batchens produkter. En runda som bär
+# sin egen kopia har redan börjat glida isär.
+#
+# ⚠️ Prövas bara på BOKSTÄVER. Tre lika siffror (`999`) och tre lika
+#    skiljetecken är helt normala.
+TREKONSONANT = re.compile(r"([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])\1\1",
+                          re.I)
+
+
 # ── ☠️ HOMOGLYFER: en VITLISTA, aldrig en svartlista ───────────────────────
 # Ett kyrilliskt `а`, `е`, `о`, `с`, `р` eller ett grekiskt `ο` ser ut som sin
 # latinska tvilling, renderas likadant och passerar varje ordbaserad grind.

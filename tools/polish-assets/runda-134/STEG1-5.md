@@ -38,7 +38,7 @@ ingen sådan påstås — och ingen egen säkerhetsutfästelse hittas på.
 |---|---|---|
 | `f6857ca0` | liggande cylinder i sjögräsrep på vagga av furu, **en** öppning | tunna |
 | `09336fdf` | vattenhyacint, 2 plan, **2** öppningar, dyna på toppen | tunna |
-| `d0b80807` | sisal, 2 plan, **2** öppningar, hoppplattform på stolpe | tunna + pelare |
+| `d0b80807` | sisal, 2 plan, **2** öppningar, hopplattform på stolpe | tunna + pelare |
 | `f4e6159e` | 4 plan: topplatå, dubbelhåla, sidoplattform | tunna + pelare |
 | `668e0e0c` | ☠️ **45 × 45 cm FYRKANT**, 2 plan, sisalpanel på sidan | **låda** |
 | `38022bcb` | sisaltunna 3 plan / 3 öppningar + bädd på stolpe, 109 cm | tunna + pelare |
@@ -202,7 +202,7 @@ oöversatt källtext som importen kopierat rakt av.
 |---|---|--:|--:|---|
 | `f6857ca0` | `kattbadd-sjogras-43-cm` | 1→2 | 2 233 | ✅ |
 | `09336fdf` | `klostunna-50-cm-vattenhyacint` | 1→2 | 1 976 | ✅ |
-| `d0b80807` | `klostunna-61-cm-hoppplattform` | 1→2 | 2 063 | ✅ |
+| `d0b80807` | `klostunna-61-cm-hopplattform` | 1→2 | 2 063 | ✅ |
 | `f4e6159e` | `klostrad-90-cm-dubbelhala` | 1→2 | 2 114 | ✅ |
 | `668e0e0c` | `klostorn-81-cm-fyrkantigt` | 1→2 | 2 229 | ✅ |
 | `38022bcb` | `klostrad-109-cm-tunna-badd` | 1→2 | 2 151 | ✅ |
