@@ -2845,6 +2845,54 @@ hittade två fel i texten och ett i grinden själv.
 **Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
 tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
 
+#### ✅ Kontrollsidan är MEKANIK sedan runda 134 — inte längre en instruktion
+
+Regeln ovan skrevs efter runda 90 och stod i runbooken i fyrtiofyra rundor utan
+att finnas i någon kod. Runda 134 betalade för det: butikens bloggrubrik
+*"Klösträd & kattträd – så väljer du rätt"* bär tre t i rad och fälldes av
+rundans trekonsonantsgrind på två korrekta sidor. Grinden hade rätt om ORDET
+och fel om VEMS det var — och att avgöra det för hand är precis vad en grind
+finns till för att slippa.
+
+`liverunda.kontrollfynd` hämtar numera kontrollsidan själv och drar dess
+träffar från varje sida i rundan. Rundan behöver inte veta om den; den pekar
+bara ut vilken sida som är kontroll (`liverunda.KONTROLL`).
+
+☠️ **Kontrollsidan måste bära SAMMA BLOCK som din.** Första försöket valde en
+klöstunna, fick **noll** träffar och såg ut som en trasig mekanik. Butiken
+renderar blogglänken *"Klösträd & kattträd"* bara på **klösträd**-sidor — en
+kontroll ur fel undergrupp mäter alltså inte det chrome som fäller dig. Välj
+en publicerad sida i samma familj och samma produkttyp.
+
+☠️ **Två hål som båda hade gjort subtraktionen FARLIGARE ÄN INGEN ALLS**, och
+båda satt i den första versionen:
+
+1. **Rundans egna fält följer med in i kontrollen.** `granska(pid, …,
+   live=True)` provar `egna + NAMN + TITEL + META + SOKORD` — alltså rundans
+   egna fält, oavsett vems HTML den får. Ett stavfel i VÅR titel hade därför
+   fyrat på kontrollsidan också, hamnat i `butikens` och dragits bort från vår
+   sida: grinden hade tvättat bort vårt eget fel och kallat det butikens.
+   Grinden körs därför en gång till på TOM HTML, och det som fyrar då ingår
+   aldrig i subtraktionen.
+2. **Kortgrinden hör inte hemma i subtraktionen.** `kortfel` frågar om VÅR sida
+   bär ett eget Fyndplats-kort, och runda 121-128 publicerade ~62 sidor utan
+   ett — en kontrollsida ur den perioden hade fällt `SAKNAR EGET KORT`,
+   subtraherat det, och tystat exakt den grind som byggdes för att steget
+   glömdes åtta rundor i rad. Kortgrinden körs bara på våra sidor.
+
+⚠️ **Subtraktionen är på EXAKT STRÄNG, aldrig en heuristik.** Butikens chrome
+är byte-identisk mellan sidor; det som skiljer är vår text. En "liknar"-regel
+hade svalt våra egna fel.
+
+✅ **Och det som subtraheras SKRIVS UT.** En kontrollsida är en POLERAD sida
+från en tidigare runda, så dess egna defekter dras också bort — utskriften gör
+dem till uppgifter i stället för till tystnad. Den gjorde det direkt:
+`klostrad-200-cm-sex-nivaer` bär `Hoppplattform: 24 × 40 cm` i sin spec-tabell,
+alltså exakt det fel runda 134 fångade med ögon, redan publicerat.
+
+Utfall: runda 134:s sex sidor gick från 2 fel till 0, utan att en enda regel
+mildrades.
+
 ### ☠️ Ett jämförande påstående inom EGEN batch går att grinda mekaniskt — gör det
 
 Runda 42 (trädgårdsbänkar, 2026-09-03). Texten sa *"den lättaste av våra åtta"* om
