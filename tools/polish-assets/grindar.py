@@ -1253,6 +1253,40 @@ def _isr_stub(rader):
 
 def _sjalvtest():
     fall = [
+        # ☠️ Wix normaliserar `plainDescription` VID LAGRING — se
+        #    wix_normalisera(). Utan de här fallen jämför nästa runda rått
+        #    igen och får åtta falska avvikelser på åtta korrekta sidor.
+        # ☠️ JÄMFÖRELSEN LIGGER I LAMBDAN, inte i det väntade värdet —
+        #    harnesset fäller ett strängfacit, för ett sådant fall kan
+        #    aldrig fälla. Den grinden tog just det här misstaget.
+        ("wixnorm: strong blir span",
+         lambda: wix_normalisera("<p><strong>Mått:</strong> 10 cm</p>")
+         == '<p><span style="font-weight: 700">Mått:</span> 10 cm</p>', True),
+        ("wixnorm: li får p",
+         lambda: wix_normalisera("<ul><li>Bär 10 kg</li></ul>")
+         == "<ul><li><p>Bär 10 kg</p></li></ul>", True),
+        ("wixnorm: li som REDAN har p rörs inte",
+         lambda: wix_normalisera("<ul><li><p>Bär 10 kg</p></li></ul>")
+         == "<ul><li><p>Bär 10 kg</p></li></ul>", True),
+        ("wixnorm: a får target",
+         lambda: wix_normalisera('<a href="https://x.se/a">k</a>')
+         == '<a href="https://x.se/a" target="_self">k</a>', True),
+        ("wixnorm: a som redan har target dubbleras inte",
+         lambda: wix_normalisera('<a href="https://x.se/a" target="_self">k</a>')
+         == '<a href="https://x.se/a" target="_self">k</a>', True),
+        ("wixnorm: radbrytning mellan block stryks",
+         lambda: wix_normalisera("<p>a</p>\n  <p>b</p>") == "<p>a</p><p>b</p>",
+         True),
+        # ☠️ IDEMPOTENS. Kvittot kör normaliseraren på KÄLLAN, men en
+        #    slarvig anropare kan köra den på det LAGRADE svaret också.
+        #    Gör den inte samma sak två gånger är den en fälla.
+        ("wixnorm: idempotent",
+         lambda: wix_normalisera(wix_normalisera(
+             "<ul><li><strong>A:</strong> b</li></ul>"))
+         == wix_normalisera("<ul><li><strong>A:</strong> b</li></ul>"), True),
+        ("wixnorm: ren text rörs inte",
+         lambda: wix_normalisera("<p>Katten är 10 kg.</p>")
+         == "<p>Katten är 10 kg.</p>", True),
         # ☠️ ARTNR måste se BÅDA formerna av Aosoms artikelnummer. Den
         #    bokstavsinledda missades i sex rundor (runda 126).
         ("artnr: sifferinlett fälls",
@@ -1438,8 +1472,40 @@ ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD",
            "EU_RIBBON", "BILDADRESS", "SVG_GEOMETRI"]
 # `_tvatta` står med under sitt gamla namn: runda 120 och 121 döpte den
 # så, och det är just den funktionen som gled isär.
-ADE_FUNKTIONER = ["homoglyfer", "fargfel", "butikstvatt", "_tvatta"]
+ADE_FUNKTIONER = ["homoglyfer", "fargfel", "butikstvatt", "_tvatta",
+                  "wix_normalisera"]
 FORSTA_GRINDADE_RUNDAN = 120
+
+
+
+def wix_normalisera(h):
+    """Gör om KÄLLANS HTML till det Wix faktiskt lagrar i `plainDescription`.
+
+    ☠️ EN ÅTERLÄSNING AV `plainDescription` ÄR INTE STRÄNGEN DU SKICKADE.
+       Wix normaliserar tre saker vid lagring, och den som jämför rått får
+       åtta avvikelser på åtta korrekta produkter — alltså ett larm som lär
+       en att sluta läsa. Uppmätt i runda 135 på alla åtta: +415 tecken var,
+       noll textskillnad.
+
+    ☠️ OCH REGELN BODDE BARA I RUNBOOKEN. Varje runda skrev av de fyra
+       raderna på nytt — precis den tvillingform som `SHIP_AXIS_RE` och
+       `EU_TULL_CODES` redan kostat huset två gånger. Den bor här nu.
+
+    | skickat                  | lagrat                                      |
+    |--------------------------|---------------------------------------------|
+    | `<strong>X</strong>`     | `<span style="font-weight: 700">X</span>`   |
+    | `<li>text</li>`          | `<li><p>text</p></li>`                      |
+    | `<a href="…">`           | `<a href="…" target="_self">`               |
+
+    Kvittot är `wix_normalisera(källa) == lagrad` — byte för byte. Ett
+    LÄNGDTAL duger inte: en formel kan stämma medan tecknen är fel.
+    """
+    h = re.sub(r">\s*\n\s*<", "><", h)
+    h = h.replace("<strong>", '<span style="font-weight: 700">')
+    h = h.replace("</strong>", "</span>")
+    h = re.sub(r'(<a href="[^"]+")>', r'\1 target="_self">', h)
+    h = re.sub(r"<li>(?!<p>)(.*?)</li>", r"<li><p>\1</p></li>", h, flags=re.S)
+    return h
 
 
 def definierar_om(kod):
