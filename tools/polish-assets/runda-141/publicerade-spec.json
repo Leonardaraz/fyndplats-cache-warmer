@@ -1,0 +1,129 @@
+{
+ "gymstation-207-cm-vridbara-armar": {
+  "Yttermått": "148 × 108 × 207 centimeter",
+  "Viktblock": "45 kilo, nio skivor à 4,6 kg plus en à 3,6 kg",
+  "Sits": "35 × 32 centimeter",
+  "Ryggstöd": "68 × 27 centimeter",
+  "Rörelserum överkropp": "45 × 60 × 105 centimeter",
+  "Vridvinkel": "0–90 grader",
+  "Undre dragstång": "Ø2,5 × 36 centimeter",
+  "Passar längd": "160–200 centimeter",
+  "Bärförmåga": "120 kilo",
+  "Material": "stål och konstläder",
+  "Vikt": "94,5 kilo",
+  "Paketmått": "192 × 43 × 30 centimeter",
+  "Ingår": "gymstation, tio motvikter och anvisning"
+ },
+ "gymstation-traningsbank-65-kg-viktblock": {
+  "Yttermått": "225 × 175 × 200 centimeter",
+  "Viktblock": "65 kilo",
+  "Latsstång": "108 centimeter bred",
+  "Träningsbänk": "100 × 28 centimeter, justerbar, ingår",
+  "Material": "stålram med klädsel i konstläder",
+  "Färg": "svart och röd"
+ },
+ "hemmagym-benpress-160-cm-45-kg": {
+  "Yttermått": "160 × 108 × 200 centimeter",
+  "Viktblock": "45 kilo, nio skivor à 4,6 kg plus en à 3,6 kg",
+  "Sits": "40 × 30 × 55 centimeter",
+  "Ryggstöd": "63 × 23 centimeter",
+  "Benpresspedal": "30 × 15 centimeter",
+  "Dragstång": "Ø2,5 × 108 centimeter",
+  "Bärförmåga": "120 kilo",
+  "Material": "stål och konstläder",
+  "Vikt": "104 kilo",
+  "Paketmått": "192 × 47 × 29 centimeter",
+  "Ingår": "kraftstation, tio motvikter och anvisning"
+ },
+ "hopfallbar-traningsbank-justerbart-ryggstod-rod": {
+  "Mått med armarna utfällda": "135 × 130 × 107 cm (längd × bredd × höjd)",
+  "Bottenramens bredd": "55 cm",
+  "Sits": "32 × 29 × 42,5 cm",
+  "Dynans tjocklek": "4,5 cm",
+  "Max total belastning": "300 kg",
+  "Max användarvikt": "120 kg",
+  "Ryggstöd": "3 lägen",
+  "Armar": "4 lägen, 3 motståndsnivåer",
+  "Material": "stål, plywood, TPE, skum, PVC-konstläder",
+  "Färg": "röd"
+ },
+ "justerbar-traningsbank": {
+  "Ryggstöd": "justerbart i 6 lägen",
+  "Armbågsstöd": "justerbar höjd 78–82 cm",
+  "Material": "stål, vadderad sits och rygg",
+  "Mått": "53 × 153 × 102 cm (L × B × H)",
+  "Hopfällt": "53 × 42 × 150 cm",
+  "Nettovikt": "12 kg",
+  "Maxlast (användare)": "120 kg",
+  "Viktstöd": "max 25 kg; total kapacitet 300 kg",
+  "Ingår": "1 träningsbar, 1 par träningsgummin, 1 fjäderhandtränare",
+  "Färg": "Svart (svart och röd)"
+ },
+ "justerbar-traningsbank-hopfallbar": {
+  "Mått uppfälld": "160 × 54 × 106 cm (längd × bredd × höjd)",
+  "Mått hopfälld": "54 × 42 × 150 cm",
+  "Ryggstöd": "75 × 30 cm, höjd 36–106 cm",
+  "Sits": "30,5 × 30 cm",
+  "Ryggstödsvinklar": "−10°, 100°, 115°, 125°, 135°, 150°, 165°",
+  "Bicepsstöd": "höjdjusterbart 78–82 cm",
+  "Viktfästen": "för 2,5 cm vikter, max 25 kg",
+  "Max total belastning": "300 kg",
+  "Max användarvikt": "120 kg",
+  "Material": "stål med stoppad klädsel",
+  "Montering": "krävs"
+ },
+ "kompakt-gymstation-162-cm-latsdrag": {
+  "Yttermått": "162 × 162 × 210 centimeter",
+  "Viktblock": "65 kilo",
+  "Motstånd": "upp till 120 kilo",
+  "Bänkdyna": "47 × 25 centimeter",
+  "Stationer": "latsdrag, butterfly, bensits och curlplatta"
+ },
+ "multigym-250-cm-bank-dipstation": {
+  "Yttermått": "250 × 183 × 213 centimeter",
+  "Ingår": "justerbar träningsbänk, dip- och knälyftsstation, latsdrag, butterfly och kabeldrag",
+  "Vikter": "justerbart block",
+  "Övningar": "över tio"
+ },
+ "scottbank-2-i-1-biceps-triceps-25-vinklar": {
+  "Yttermått": "105 × 95 × 80 cm (L × B × H)",
+  "Sitsmått": "30 × 22,1 cm, sitthöjd 41,9–52,1 cm i fem lägen",
+  "Armbågsdyna": "50 × 30 cm, höjd 60–80 cm i sex lägen",
+  "Handtag": "ø 25,4 mm, längd 54,1 cm",
+  "Startvinklar": "25 st",
+  "Viktskivor": "25,4 mm (1 tum), max 60 kg",
+  "Max användarvikt": "120 kg",
+  "Stoppning": "4 cm högdensitetsskum",
+  "Material": "stål, högdensitetsskum och PU",
+  "Färg": "svart med röda detaljer",
+  "Montering": "krävs"
+ },
+ "sissy-squat-bank-3-i-1": {
+  "Typ": "Sissy squat-bänk 3-i-1 (squats, mage, armhävningar)",
+  "Material": "stål och EVA",
+  "Totala mått": "50 × 97 × 44,5–56,5 cm (L×B×H, justerbar höjd)",
+  "Max belastning": "120 kg",
+  "Justering": "höjd och position",
+  "Bas": "4 sugproppar",
+  "Certifiering": "EN 20957",
+  "Färg": "gul/svart eller svart",
+  "Ingår": "1 × sissy squat-bänk, 1 × bruksanvisning",
+  "Montering": "krävs"
+ },
+ "traningsbank-med-benrullar-gummiband": {
+  "Ryggstöd": "74,5 × 31 cm",
+  "Nack- och bicepsdyna": "32,4 × 18,5 cm",
+  "Bredd över fötterna": "62,5 cm",
+  "Höjd": "58 cm respektive 87–89 cm justerbart",
+  "Bakre benets längd": "34 cm",
+  "Dynans tjocklek": "6 cm",
+  "Fotplattor": "10 cm breda",
+  "Rygglägen": "7",
+  "Nackdynans lägen": "3",
+  "Höjdlägen": "2",
+  "Maxbelastning": "350 kg (angiven uppgift)",
+  "Material": "stål, skum, PU-läder",
+  "Färg": "svart med röda detaljer",
+  "Hopfällbar": "ja"
+ }
+}
