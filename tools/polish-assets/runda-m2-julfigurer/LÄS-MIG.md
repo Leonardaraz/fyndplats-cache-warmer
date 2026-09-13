@@ -77,3 +77,37 @@ hunnit bli inaktuell. Läs om innan du kallar en skrivning misslyckad.
 2. En återläsning i samma anrop är inte heller ett kvitto.
 3. Det som räknas är en SEPARAT läsning, en stund senare, mot ett facit
    räknat ur filen.
+
+## Live-verifiering: 8/8 REN
+
+`hamta-live.sh 310` → `livegrind.py`. Alla åtta hämtade med HTTP 200 och
+`age` 309–319 sekunder — alltså den rendering som den varma träffen utlöste,
+inte en äldre cachad sida.
+
+| kort | ord | orddiff mot filen | utfall |
+| :-- | --: | --: | :-- |
+| `321bdedf` | 607 | 0 | REN |
+| `80e1a550` | 539 | 0 | REN |
+| `2f881d00` | 500 | 0 | REN |
+| `032b728d` | 559 | 0 | REN |
+| `46dd0605` | 509 | 0 | REN |
+| `7bc7805a` | 572 | 0 | REN |
+| `d6413671` | 517 | 0 | REN |
+| `32bc0d95` | 533 | 0 | REN |
+
+**TOTALT: 0 avvikelser i den publicerade texten.**
+
+### Och grinden BEVISADES kunna se
+
+En grind som finns säger ingenting om att den kan SE (runda J2). Tre defekter
+planterades i de hämtade sidorna:
+
+| plantat | på | grinden gav |
+| :-- | :-- | --: |
+| tysk alt-text (`Aufblasbares Rentier mit … und …`) | `7bc7805a` | **2 fynd** (ALT/TYSKT) |
+| tysk `<title>` med `Gewicht` | `032b728d` | **5 fynd** (SIDA + SEO-titeldiff + SEO/TYSKT) |
+| `Leverantören anger att …` i brödtexten | `46dd0605` | **9 fynd** (8 orddiff + SIDA/LEVERANTOR) |
+
+16 fynd på exakt de tre produkterna; **de fem orörda sidorna förblev REN**, och
+återställda filer gav 0 igen. Varje svep fyrade: sid-, alt-, SEO- och
+orddiffsvepet, plus husregeln om leverantörsattribution.
