@@ -17,7 +17,7 @@ påstå det sidan redan säger.
 
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-seo.py
 """
-import re, sys, os, unicodedata
+import re, sys, os, io, unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gatelib import MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO, tal, TILLATNA_TECKEN
 
@@ -36,6 +36,37 @@ def kalla(i):
     raise SystemExit(f"  {i}: [KÄLLA SAKNAS] varken {i}.html eller live/{i}.html finns")
 
 
+def kvitterade_tal(kort):
+    """De tal rundan redan kvitterat — SAMMA tre källor som gate.py godtar.
+
+    ☠️ TVÅ GRINDAR SOM ÄR OENSE OM SAMMA TAL TVINGAR FRAM ETT FEL. Uppmätt i
+    runda M1: `2` i titeln "Lysande isbjörnar 2-pack" är kvitterat i
+    `foto-tal.txt` (två björnar räknade i produktbilden, och källans
+    Lieferumfang listar dem som två rader), så gate.py släpper det — men
+    gate-seo.py kände inte till filen och fällde det. Den som möter det har
+    två utvägar och båda är sämre än att laga grinden: skriva om en sann och
+    användbar titel för att blidka en grind, eller sluta läsa grinden.
+
+    Samma tvilling-lärdom som SHIP_AXIS_RE, EU_TULL_CODES och de nitton
+    grindkopiorna: det som ska vara en delad sanning måste ha EN definition.
+    """
+    ut = set()
+    for filnamn, styckvis in (("rad-tal.txt", False), ("foto-tal.txt", True)):
+        if not os.path.exists(filnamn):
+            continue
+        for rad in io.open(filnamn, encoding="utf-8"):
+            delar = rad.split()
+            if not delar:
+                continue
+            if styckvis:
+                # "<kort> <tal> <skäl>" — talet gäller BARA sin egen produkt.
+                if len(delar) >= 2 and delar[0] == kort:
+                    ut.add(delar[1].replace(",", "."))
+            else:
+                ut.add(delar[0].replace(",", "."))
+    return ut
+
+
 def main(fil):
     fynd = 0
     rader = [r for r in open(fil, encoding="utf-8").read().splitlines() if r.strip()]
@@ -46,7 +77,7 @@ def main(fil):
             for hit in re.finditer(m, text):
                 print(f"  {i}: [{namn}] {hit.group(0)!r}"); fynd += 1
         kalltext = re.sub(r"<[^>]+>", " ", open(kalla(i), encoding="utf-8").read())
-        for x in sorted(tal(text) - tal(kalltext)):
+        for x in sorted(tal(text) - tal(kalltext) - kvitterade_tal(i)):
             print(f"  {i}: [SIFFRA UTAN KÄLLA] {x!r}"); fynd += 1
         for ch in sorted(set(text)):
             if ord(ch) > 127 and ch not in TILLATNA_TECKEN:
