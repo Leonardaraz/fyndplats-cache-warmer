@@ -71,6 +71,21 @@ def sjalvtester(GR):
         rfel, rantal = svar
         print("grind.sjalvtest():     %d fall, %d fel" % (rantal, len(rfel)))
         fel += ["SJÄLVTEST(runda): " + f for f in rfel]
+    elif getattr(GR, "_sjalvtest", None) is not None:
+        # ☠️ HAR SJÄLVTEST, MEN UNDER PRIVAT NAMN. `getattr(GR, "sjalvtest")`
+        #    ger None, och `else`-grenen nedan hade skrivit ut att rundan
+        #    självtestas i en `mutation.py` — vilket är FALSKT när testet
+        #    ligger i `grind.py` och bara heter fel. Det är runda 129:s tysta
+        #    bortfall, och det upptäcktes aldrig då; runda 141 återskapade
+        #    det och hittade det bara genom att läsa den här filen.
+        #
+        #    Mätt över alla rundors `grind.py` innan vakten lades till: noll
+        #    bar tillståndet, så den fäller ingen befintlig runda. Den fäller
+        #    den NÄSTA som döper sin självtest fel.
+        raise SystemExit(
+            "grind.py definierar `_sjalvtest` men inte `sjalvtest` — "
+            "live-grinden hade hoppat över rundans EGEN självtest tyst. "
+            "Exponera `def sjalvtest(): return _sjalvtest(), <antal fall>`.")
     else:
         print("grind.sjalvtest():     saknas — rundans grind självtestas i mutation.py")
     gfel, gantal = G._sjalvtest()

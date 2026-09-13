@@ -396,6 +396,18 @@ def _sjalvtest():
     return fel
 
 
+def sjalvtest():
+    """Kontraktet live-grinden kräver: `(fel-lista, antal fall)`.
+
+    ☠️ NAMNET ÄR GRINDEN. `liverunda.sjalvtester` gör
+       `getattr(GR, "sjalvtest", None)`, så en runda vars självtest bara
+       heter `_sjalvtest` får den TYST överhoppad — och utskriften ljuger
+       dessutom ("rundans grind självtestas i mutation.py", en fil som inte
+       finns här). Det är runda 129:s bortfall, och det upptäcktes inte då.
+    """
+    return _sjalvtest(), len(PLANTERADE) + len(TYSTA) + len(T.SLUG)
+
+
 if __name__ == "__main__":
     brister = _sjalvtest()
     for b in brister:
