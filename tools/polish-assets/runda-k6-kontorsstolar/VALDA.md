@@ -32,7 +32,40 @@ paginering gav samma sak.
 ☠️ **Kontrasten är hela lärdomen.** `products/query` med exakt samma misstag
 svarar **400 INVALID_CURSOR: "Sort or filter can not be specified together with
 cursor"**. Samma felaktiga anrop — den ena API:t skriker, den andra ljuger.
-Rätt form är filtret bara på första sidan, sedan markören ensam.
+
+> ☠️ **RÄTTAT 2026-09-13 — diagnosen ovan var FEL, och botemedlet fungerade
+> aldrig.** Raden sa att rätt form är "filtret bara på första sidan, sedan
+> markören ensam". Den formen är också trasig. Den verkliga orsaken är att
+> `cursorPaging` måste ligga **INUTI `search`**, inte på toppnivån:
+>
+> ```
+> fel:   { cursorPaging: { limit: 100, cursor } }              → sida 1 igen
+> rätt:  { search: { cursorPaging: { limit: 100, cursor } } }  → nästa 100
+> ```
+>
+> Uppmätt åt båda hållen 2026-09-13. `limit: 7` inuti `search` ger **7 rader**;
+> samma `limit` på toppnivån ger **100** — alltså defaulten. Toppnivåfältet
+> läses aldrig, och API:t säger ingenting: inget fel, ingen varning, bara
+> första sidan om och om igen.
+>
+> Det är alltså INTE en bugg i Wix. Det är samma familj som `sku` under
+> `physicalProperties` och `fields` i PATCH-kroppen: **en parameter på fel
+> nivå städas bort tyst, och svaret ser felfritt ut.** Skriv aldrig om ett
+> sådant utfall till "API:t ignorerar X" utan att först ha läst schemat —
+> den slutsatsen låste den här raden i fel spår i en vecka.
+>
+> ⚠️ Och talet i tabellen ovan är därmed också misstänkt: "6 000 utkast där
+> sanningen är 3 250" härleddes ur en trasig paginering. Mätt med rätt form
+> 2026-09-13: **5 695 produkter, 3 011 utkast, 2 684 publicerade** över 57
+> sidor.
+>
+> ✅ **Repots egen kod var aldrig drabbad.** Alla sex anropsställen
+> (`media-cleanup`, `media-audit`, `text-repair`, `client`, `auction-seed`,
+> `health-check`) nästlar redan `cursorPaging` inuti `search`. Kontrollerat
+> rad för rad samma dag — det var värt att kontrollera, för
+> `media-cleanup`:s referenslista RADERAR PERMANENT det den tror är
+> föräldralöst, och hade den bara sett de första hundra produkterna vore
+> varenda bild i resten av katalogen föräldralös.
 
 ## Dubblettgrinden på bilder, inte på spec-etiketter (#187)
 
