@@ -313,6 +313,97 @@ P["b6c4c619"] = {
 
 BATCH = list(P.keys())
 
+# =====================================================================
+# STEG 4 — VAD RITNINGARNA TILLFORDE, RATTADE OCH MOTSADE
+# =====================================================================
+# Blocket ligger SEPARAT med flit. Ovanfor star vad leverantorens TEXT
+# sager; harifran star vad BILDEN sager. Blandas de gar det inte langre
+# att se vilken kalla ett tal kom ur — och rundan har tre fall dar de
+# tva kallorna ar oense.
+
+# --- Ritningen GAV mattet som texten saknade -------------------------
+P["7eeb7497"]["sack"] = (30, 95)          # bild 3: 30 cm bred, 95 cm hog
+P["7eeb7497"]["sack_kalla"] = "mattritningen, bild 3 — Technische Daten saknar sackens matt"
+
+P["9119599f"]["kropp"] = (46, 90)         # bild 3: 46 cm bred, 90 cm hog
+P["9119599f"]["kropp_kalla"] = "mattritningen, bild 3"
+
+# ☠️ Loser textens EGEN motsagelse. Ingressen sager fyra hojdlagen,
+# punktlistan fem. ANTALET gar darfor inte att skriva — men ritningen
+# ger SPANNET, och inget motsager det. Publicera spannet, slapp antalet.
+P["c00988e3"]["boll_hojd"] = (167, 187)
+P["c00988e3"]["boll_hojd_kalla"] = "mattritningen, bild 3"
+P["c00988e3"]["bollens_hojdlagen_far_inte_skrivas"] = True
+
+# --- Ritningen var FEL, och ett tredje tal bevisar det ---------------
+# ☠️ d307632a: ritningen sager 175-200, texten 175-220. Krokhojden
+# 165-210 avgor: med 200 skulle kroken sitta tio centimeter ovanfor
+# stativets egen topp. Texten vinner, och bild 3 plockas bort — en
+# defekt mattritning i galleriet ar en motsagelse KUNDEN ser.
+P["d307632a"]["ritning_defekt"] = "bild 3 anger 175-200 cm; krokhojden 165-210 bevisar 175-220"
+
+# ☠️ 438295ae: dess EGEN ritning sager 45 cm dar dess EGEN text sager 50.
+# De tva fargsyskonens ritningar sager 50 och stammer med texten.
+# Boxstangens langd ar darfor inte publicerbar pa just den har raden.
+P["438295ae"]["boxstang_far_inte_skrivas"] = True
+P["438295ae"]["boxstang_motsagelse"] = "ritningen sager 45 cm, texten 50 cm"
+P["438295ae"]["husmarke_pa_varan"] = "SPORTNOW tryckt i gult pa kroppen"
+
+# --- Bilderna lovar nagot leveranslistan inte har --------------------
+# ☠️ Tre av fem bilder visar en boxsack som INTE ingar. Bilderna gar
+# inte att plocka bort — da aterstar tva — sa TEXTEN far bara hela
+# lasten, och den maste sta i ingressen.
+P["f8d974b3"]["bilder_visar_sack_som_inte_ingar"] = [2, 4, 5]
+P["b6c4c619"]["bilder_visar_sack_som_inte_ingar"] = [2, 4, 5]
+
+# ⚠️ Sacken visas fylld i alla fyra bilder men levereras tom.
+P["49d6d56f"]["sack_levereras_ofylld"] = True
+
+# ⚠️ Fastet visas monterat pa slat vagg i bild 2, 4 och 5 — alltsa
+# MOTSATSEN till leverantorens eget krav pa betong, tegel eller
+# massivt tra. Texten maste motsaga bilden, inte bara komplettera den.
+P["b6c4c619"]["bilder_visar_slat_vagg"] = [2, 4, 5]
+
+# --- Titelns kategoriord var falskt ----------------------------------
+# ☠️ Namnet sager Boxpuppe/Boxdummy. Bild 1 och 2 visar en rak
+# cylindrisk sack pa en fot — ingen kropp, inga armar. Jamfor 9119599f,
+# som ar en riktig docka med torsoform och fargmarkerade traffytor.
+P["c5c228ab"]["typ"] = "fristaende_sack"
+P["c5c228ab"]["typ_rattad_av"] = "bild 1 och 2 — titelns 'Boxpuppe/Boxdummy' ar sokordsstoppning"
+
+# --- Bilder som plockas bort -----------------------------------------
+KASTAS = {
+    "d307632a": [3],   # defekt mattritning
+    "1409d762": [5],   # helbilds HOMCOM-logotyp
+    "c00988e3": [4],   # helbilds HOMCOM-logotyp
+    "87ec8a16": [5],   # engelsk, felstavad instruktionstext
+}
+
+# --- Bild som TVATTAS i stallet for att plockas -----------------------
+# ☠️ Logotypen ligger i OVRE HOGRA hornet, dar runbooken sager vanstra.
+TVATTAS = {
+    "f8d974b3": {3: "SPORTNOW by Aosom, ovre HOGER, pa jamn gra bakgrund"},
+}
+
+# --- Husmarke som sitter FYSISKT pa varan: rors aldrig ----------------
+# Leonards regel 2026-08-06. Bilderna star kvar; market stryks ur TEXTEN.
+MARKE_PA_VARAN = {
+    "1409d762": "HOMCOM", "74602345": "HOMCOM", "c00988e3": "HOMCOM",
+    "702c7795": "SPORTNOW", "9119599f": "SPORTNOW", "6f603856": "SPORTNOW",
+    "438295ae": "SPORTNOW",
+}
+
+GRUPPER = {
+    "stall_utan_sack":    ["f8d974b3", "d307632a"],
+    "stall_med_sack":     ["49d6d56f", "6f603856", "c00988e3"],
+    "fristaende_sack":    ["7eeb7497", "1409d762", "0deb6901", "74602345",
+                           "702c7795", "c5c228ab"],
+    "boxdocka":           ["9119599f"],
+    "boxstall_speedball": ["86f2cb63", "57986794", "438295ae", "87ec8a16"],
+    "vaggfaste":          ["b6c4c619"],
+}
+
+
 if __name__ == "__main__":
     print("produkter:", len(P))
     for k, v in P.items():
