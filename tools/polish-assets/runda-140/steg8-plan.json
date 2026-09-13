@@ -1,0 +1,17 @@
+{
+ "_regel": "Revision, wixVariantId och pris MATTA ur Steg 7:s PATCH-svar. Ingenting ur minnet.",
+ "01fcdf1d": {"rev": "2", "vid": "596a2422-9126-4c69-8e70-a4aa2313fa1c", "pris": "1169", "gammal": "FP-hundesofa-fur-gro-e"},
+ "bb3cd4ed": {"rev": "2", "vid": "34fc68a6-fb6f-4486-82bc-ab61b19ed737", "pris": "1139", "gammal": "FP-hundebett-hundesofa"},
+ "881540a6": {"rev": "3", "vid": "d7494594-4e4b-4136-b314-049645017b26", "pris": "1059", "gammal": "FP-hundebett-hundesofa"},
+ "5b8162d1": {"rev": "2", "vid": "98894995-6e7b-48e9-a4db-a93c6c3df585", "pris": "1039", "gammal": "FP-hundesofa-mit-holzbeinen"},
+ "1835c144": {"rev": "4", "vid": "e4bc8a2b-fe86-4442-8e43-d6216c176589", "pris": "1069", "gammal": "FP-hundesofa-hundebett"},
+ "9ee2fa6e": {"rev": "2", "vid": "ecca217e-ef41-4b8b-b10b-b08ab8a3b7d5", "pris": "1519", "gammal": "FP-haustiersofa-fur"},
+ "c11948ac": {"rev": "2", "vid": "c8fb6f00-6313-4992-b8d9-9174ed85c9dd", "pris": "1649", "gammal": "FP-hundesofa-hundecouch"},
+ "c9ccf5a3": {"rev": "2", "vid": "fb895b46-4cc2-412b-a00e-2ac8b461522d", "pris": "1249", "gammal": "FP-hundebett-fur-hunde-bis"},
+ "4c5d4687": {"rev": "3", "vid": "5eef7984-e482-4504-a775-55b0cd1acb06", "pris": "1399", "gammal": "FP-haustiersofa-hundesofa"},
+ "68f8cae9": {"rev": "2", "vid": "f82e98af-161f-42fa-9e3c-a08dd8013146", "pris": "1039", "gammal": "FP-hundesofa-haustiersofa"},
+ "ee19a8c8": {"rev": "2", "vid": "881c760e-fdd9-4cd7-b027-ce7fecef4b1b", "pris": "1259", "gammal": "FP-haustiersofa-hundematte"},
+ "2ba6baf0": {"rev": "2", "vid": "d2e4ed9f-e65f-40c4-aea1-d4fc62c0c8dd", "pris": "1099", "gammal": "FP-hundesofa-aus-samt-mit"},
+ "22c7de56": {"rev": "3", "vid": "88c16a40-55b4-45f9-91b8-c06f1874e8d7", "pris": "1099", "gammal": "FP-hundesofa-hundecouch"},
+ "07ac9918": {"rev": "2", "vid": "b8c0f658-12cb-41b3-9b68-ea041e1fbd71", "pris": "1119", "gammal": "FP-haustiersofa-mit"}
+}

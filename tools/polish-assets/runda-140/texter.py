@@ -812,3 +812,24 @@ def bygg(pid):
         d.append(_p(s))
 
     return "".join(d)
+
+
+SOKORD = {
+    "01fcdf1d": ["hundsoffa stor hund", "hundbädd 98 cm", "upphöjd hundsoffa"],
+    "bb3cd4ed": ["hundsoffa grön", "hundbädd 98 cm", "upphöjd hundsoffa"],
+    "881540a6": ["hundsoffa blå", "hundbädd 98 cm", "upphöjd hundsoffa"],
+    "5b8162d1": ["hundsoffa liten hund", "hundbädd 64 cm", "hundsoffa ljusgrå"],
+    "1835c144": ["hundsoffa liten hund", "hundbädd 64 cm", "hundsoffa petrolblå"],
+    "9ee2fa6e": ["hundsoffa med snäckrygg", "hundbädd med rygg", "hundsoffa grön"],
+    "c11948ac": ["hundsoffa mörkgrå", "hundbädd med rygg", "hundsoffa med snäckrygg"],
+    "c9ccf5a3": ["hundbädd med kantstöd", "hundbädd 90 cm",
+                 "hundbädd avtagbart överdrag"],
+    "4c5d4687": ["hundsoffa i sammet", "hundsoffa med höga ben", "hundbädd 102 cm"],
+    "68f8cae9": ["hundbädd avtagbart överdrag", "hundbädd 96 cm",
+                 "hundbädd petrolblå"],
+    "ee19a8c8": ["kattsoffa", "husdjurssoffa liten", "hundsoffa 70 cm"],
+    "2ba6baf0": ["hundsoffa i sammet 82 cm", "hundsoffa 20 kg", "hundbädd med rygg"],
+    "22c7de56": ["rund kattsoffa", "husdjurssoffa rund", "kattbädd med rygg"],
+    "07ac9918": ["husdjurssoffa med förvaring", "hundsoffa med förvaring",
+                 "kattsoffa med förvaring"],
+}
