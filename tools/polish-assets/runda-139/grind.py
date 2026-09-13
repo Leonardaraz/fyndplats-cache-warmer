@@ -96,22 +96,43 @@ for _p in ("8d074911", "b04b5375"):
          "INFÄSTNINGSVALET måste stå (Steg 2, villkor 3)"))
 
 
-def granska(pid):
+def granska(pid, html=None, live=False):
+    """live=True granskar den RENDERADE sidan i stallet for kalltexten.
+
+    ☠️ Signaturen ar `liverunda.kor`:s kontrakt. Runda 139 skrev forst en
+       `granska(pid)` utan den och live-grinden dog pa
+       `unexpected keyword argument 'html'` — samma drift som modulen
+       varnar for. Reglerna bor HAR, en gang; bara UNDERLAGET skiljer.
+    """
     fel = []
     namn, titel, meta = T.NAMN[pid], T.TITEL[pid], T.META[pid]
-    html = T.bygg(pid)
-    syn = G.strip_taggar(html)
+    html = html if html is not None else T.bygg(pid)
+    if live:
+        # ☠️ Live-underlaget ar sidans egna meningar. Tvatten gors av
+        #    `liverunda.kor` (uppgift #452), inte har.
+        syn = G.livetext(html, T.SLUG[pid], namn)
+    else:
+        syn = G.strip_taggar(html)
     allt = " ".join([namn, titel, meta, syn])
 
     # ── delade grindar ────────────────────────────────────────────────
     if G.ARTNR.search(allt):
         fel.append("ARTIKELNUMMER i kundtext")
-    h = G.homoglyfer(allt)
-    if h:
-        fel.append("HOMOGLYFER: %r" % (h,))
-    t = G.TREKONSONANT.search(allt)
-    if t:
-        fel.append("TREKONSONANT: %r" % (t,))
+    if not live:
+        # Butikens chrome bar 🚚, ·, ⤢ och → — inget av det ar var text.
+        h = G.homoglyfer(allt)
+        if h:
+            fel.append("HOMOGLYFER: %r" % (h,))
+    # ☠️ FYNDSTRANGEN FAR INTE BARA ETT LAGE. Runda 139 skrev forst
+    #    `"TREKONSONANT: %r" % (t,)`, alltsa match-OBJEKTET med sin `span`.
+    #    Positionen skiljer mellan tva sidor, sa `liverunda`s subtraktion —
+    #    som ar pa EXAKT STRANG med flit — kunde aldrig matcha. Butikens
+    #    egen bloggrubrik "Klostrad & kattträd" (uppgift #511) fallde
+    #    darfor SEX korrekta sidor. Strangen ska bara MENINGEN, som ar
+    #    byte-identisk mellan sidor nar den kommer ur butikens chrome.
+    for t in G.TREKONSONANT.finditer(allt):
+        fel.append("TRE LIKA KONSONANTER %r — %r"
+                   % (t.group(0), G.mening_kring(allt, t.start())[:90]))
     if G.JARGONG.search(allt):
         fel.append("JARGONG")
     for n in G.granska_namn(namn):
@@ -119,13 +140,16 @@ def granska(pid):
     # ☠️ `G.flikfel` är en LIVE-grind: den letar efter <summary>, som butiken
     #    skapar först vid rendering. På KÄLLTEXTEN ska rubrikerna i stället
     #    stå som <h2>, exakt en gång var, i allowlistens ordning.
-    for f in G.FLIKAR_SOM_KRAVS:
-        n_ = html.count("<h2>" + f + "</h2>")
-        if n_ != 1:
-            fel.append("FLIK: %r förekommer %d gånger som <h2> (ska vara 1)" % (f, n_))
-    ordning = [html.find("<h2>" + f + "</h2>") for f in G.FLIKAR_SOM_KRAVS]
-    if ordning != sorted(ordning):
-        fel.append("FLIK: rubrikerna står i fel ordning")
+    if live:
+        fel.extend("FLIKSTRUKTUR: %s" % x for x in G.flikfel(html))
+    else:
+        for f in G.FLIKAR_SOM_KRAVS:
+            n_ = html.count("<h2>" + f + "</h2>")
+            if n_ != 1:
+                fel.append("FLIK: %r förekommer %d gånger som <h2> (ska vara 1)" % (f, n_))
+        ordning = [html.find("<h2>" + f + "</h2>") for f in G.FLIKAR_SOM_KRAVS]
+        if ordning != sorted(ordning):
+            fel.append("FLIK: rubrikerna står i fel ordning")
     for o in G.LANDORD:
         if _vikt(o).search(allt):
             fel.append("LANDORD: " + o)
@@ -154,7 +178,9 @@ def granska(pid):
         if not monster.search(allt):
             fel.append("SAKNAS: " + skal)
 
-    # ── strukturen ────────────────────────────────────────────────────
+    # ── strukturen (bara kalltexten: taggarna finns inte pa sidan) ────
+    if live:
+        return fel
     i_flik = html.find("<h2>Tekniska specifikationer</h2>")
     i_kors = html.find(T.KORS_INGRESS[pid])
     if i_kors < 0 or i_flik < 0 or i_kors > i_flik:
