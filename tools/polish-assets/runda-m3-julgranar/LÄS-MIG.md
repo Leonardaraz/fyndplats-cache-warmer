@@ -142,3 +142,52 @@ Lookaheaden släpper nu igenom `cm`/`mm`/`m` direkt efter bokstaven och bara
 dem. Verifierat åt båda hållen: `180Hcm` parsar, `180 Hinweis` och
 `105 x 180 Hoehe` matchar fortfarande inte. M1 och M2 regenererar
 byte-identiskt, alltså rör ändringen ingen tidigare runda.
+
+## Live-verifiering: 8/8 REN, orddiff 0
+
+Hämtad ISR-medvetet (`hamta-live.sh 90`): alla åtta var ännu färska (`age=0`),
+så skriptet väntade ut hela 305-sekundersfönstret, träffade om dem och läste
+först därefter. `age: 100` på alla åtta i den skarpa hämtningen — alltså den
+rendering den varma träffen utlöste, inte en äldre cachad sida.
+
+```
+89d967af  ord=526  diff=0  REN      bdc71526  ord=586  diff=0  REN
+5edc1480  ord=510  diff=0  REN      9f776653  ord=517  diff=0  REN
+efba03f0  ord=475  diff=0  REN      28aa840d  ord=509  diff=0  REN
+d09b1b4c  ord=583  diff=0  REN      e1d9dfe8  ord=634  diff=0  REN
+```
+
+### ☠️ Och ett plant som INTE fällde — för att det landade i JSON-LD
+
+Första försöket att bevisa att grinden lever planterade ett kyrilliskt `т`
+(U+0442) i ordet `lyktan` med `replace(..., 1)`. Resultatet var
+`diff=0 -> REN`, vilket ser ut som en död grind.
+
+Det var det inte. Ordet förekommer **16 gånger** i sidan, och den FÖRSTA
+ligger i FAQ-blockets JSON-LD:
+
+```
+@16900   "acceptedAnswer":{"@type":"Answer","text":"120 cm inklusive lyktan."}
+@41265   <p>Granen mäter 120 cm på höjden inklusive lyktan och 70 cm …
+```
+
+Grinden läser den RENDERADE brödtexten. Ett plant i strukturerad data bevisar
+alltså ingenting — varken att grinden ser eller att den är blind.
+
+Omplanterat på rad 41265 fäller den direkt, på rätt produkt och bara den, med
+tre oberoende träffar:
+
+```
+bdc71526: ord=586 diff=2 -> 4 FEL
+  ! ORDDIFF - lyktan
+  ! ORDDIFF + lykтan
+  ! HOMOGLYF 'т' U+0442: …inklusive lykтan och 70 cm i diameter…
+  ! SIDA/HOMOGLYF 'т': …inklusive lykтan och 70 cm i diameter…
+```
+
+Och alt-svepet verifierades separat med en tysk mening i en alt-text: två fynd
+på rätt produkt, noll på de andra sju. Återställt: **0 avvikelser**.
+
+⚠️ **Regeln för den som kvitterar en grind: plantera där grinden LÄSER.** Ett
+plant som inte fäller är tvetydigt tills man vet var det hamnade — och den
+tveksamheten är precis vad en död grind gömmer sig i.
