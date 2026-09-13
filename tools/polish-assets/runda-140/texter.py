@@ -385,7 +385,7 @@ KORSLANK = {
                  (SLUG["22c7de56"], "en rund modell för djur upp till 4,5 kg")],
     "1835c144": [(SLUG["5b8162d1"], "samma soffa i ljusgrått"),
                  (SLUG["22c7de56"], "en rund modell för djur upp till 4,5 kg")],
-    "9ee2fa6e": [(SLUG["c11948ac"], "samma soffa i mörkgrått"),
+    "9ee2fa6e": [(SLUG["4c5d4687"], "en längre sammetssoffa med höga ben"),
                  (SLUG["01fcdf1d"], "en bredare bädd för hundar upp till 30 kg")],
     "c11948ac": [(SLUG["9ee2fa6e"], "samma soffa i grönt"),
                  (SLUG["01fcdf1d"], "en bredare bädd för hundar upp till 30 kg")],
@@ -643,7 +643,7 @@ _FAQ_B = lambda farg: [
      "Den är " + farg + ". Modellen finns i två färger — se länkarna "
      "högre upp."),
 ]
-_FAQ_C = lambda farg: [
+_FAQ_C = lambda farg, syskonrad: [
     ("Hur stor hund passar soffan?",
      "Den bär upp till 25 kg och är avsedd för hundar med en kroppslängd på "
      "högst 55 cm. Sittytan är 86 × 47 cm."),
@@ -654,10 +654,15 @@ _FAQ_C = lambda farg: [
      "Ja. Den lyfts ur och överdraget tvättas enligt tvättrådet i sömmen."),
     ("Vad är benen gjorda av?",
      "Massiv björk, svartlackerad."),
-    ("Vilken färg är soffan?",
-     "Den är " + farg + ". Modellen finns i två färger — se länkarna "
-     "högre upp."),
+    ("Vilken färg är soffan?", "Den är " + farg + "." + syskonrad),
 ]
+
+# ☠️ c11948ac ar OUT_OF_STOCK och INTE publicerad — dess sida svarar 404.
+#    Den GRONA sidan far darfor varken lank dit eller loftet om en andra
+#    farg: ett lofte om nagot kunden inte kan na ar varre an tystnad.
+#    c11948ac:s egen mening star kvar — den pekar pa den grona sidan, som
+#    ar live. Nar c11948ac publiceras (#543) ska bada delarna tillbaka.
+_SYSKONRAD = " Modellen finns i två färger — se länkarna högre upp."
 
 FAQ = {
     "01fcdf1d": _FAQ_A("ljusgrå"),
@@ -665,8 +670,8 @@ FAQ = {
     "881540a6": _FAQ_A("blå"),
     "5b8162d1": _FAQ_B("ljusgrå"),
     "1835c144": _FAQ_B("petrolblå"),
-    "9ee2fa6e": _FAQ_C("grön"),
-    "c11948ac": _FAQ_C("mörkgrå"),
+    "9ee2fa6e": _FAQ_C("grön", ""),
+    "c11948ac": _FAQ_C("mörkgrå", _SYSKONRAD),
     "c9ccf5a3": [
         ("Hur stor hund passar bädden?",
          "Hundar upp till 25 kg med en kroppslängd på högst 55 cm. Sittytan är "
