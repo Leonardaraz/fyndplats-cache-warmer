@@ -70,3 +70,42 @@ mening över hela nederkanten. **Talet 80 cm lästes ur den först** och står i
 | `kategori.tsv` | kategorikopplingar |
 | `ids.tsv`, `lager.tsv` | urvalets facit och saldo |
 | `axelfacit.json` | genererad server-side ur `plainDescription` |
+
+## ☠️ Ny mätning: LÄSPROJEKTIONEN SLÄPAR ÄVEN FÖR MEDIA
+
+Runbooken vet redan att kategoriläsningen är eventuellt konsistent, och att
+bulk-svarets `itemMetadata` är facit i stället för en återläsning. Samma sak
+gäller **`media.itemsInfo`**, vilket den här rundan mätte upp.
+
+En `GET …?fields=MEDIA_ITEMS_INFO` direkt efter en media-PATCH gav för två av
+sju produkter det GAMLA tillståndet:
+
+| | vad återläsningen sa | vad som faktiskt gällde |
+|---|---|---|
+| `39c90d59` | 0 alt-texter satta | **5 satta** |
+| `5a2bd33d` | 5 bilder, 5 tyska alt | **4 bilder, 4 svenska alt** |
+
+De fem andra rapporterade rätt direkt. En läsning en stund senare visade att
+alla sju var korrekta hela tiden — skrivningarna hade gått igenom.
+
+⚠️ **Riktningen spelar roll: den här släpningen UNDERrapporterar.** Den kan
+få en korrekt skrivning att se misslyckad ut, och därmed utlösa en omskrivning
+som inte behövs — men den kan inte få en misslyckad skrivning att se lyckad ut.
+Det är det ofarliga hållet att fela åt, och tvärtom mot `sku`-förväxlingen.
+
+**Regeln: verifiera media i en EGEN runda efter att alla skrivningar är gjorda,
+inte direkt efter var och en.** Det är så SKU-skrivningen i den här rundan är
+upplagd, och den gav sju av sju rätt på första försöket.
+
+## Skrivningen till Wix — kvitto
+
+| kontroll | utfall |
+|---|---|
+| text mot källfil | **7/7 exakta** |
+| namn, slug, `visible: true` | 7/7 |
+| SEO, två taggar, tyskt nyckelord rensat | 7/7 |
+| alt-texter | **34 satta, 0 tyska** |
+| bilder | 34 (måttritningen borta från `5a2bd33d`) |
+| variant-SKU | **7/7**, alla unika — fyra delade `FP-2er-set-kunstliche` |
+| variantens `visible` och priset | orörda på alla sju |
+| kategorier | **19 av 19**, noll fel |
