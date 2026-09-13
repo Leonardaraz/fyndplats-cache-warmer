@@ -162,6 +162,7 @@ export async function GET(req: NextRequest) {
     ejNiokrona: plan.ejNiokrona,
     oforandrade: plan.oforandrade,
     redanHojdUtanStampel: plan.redanHojdUtanStampel,
+    redanHojdaIder: plan.redanHojdaIder,
     drivande: plan.drivande,
     summa: plan.summa,
     band: band(plan.rader),

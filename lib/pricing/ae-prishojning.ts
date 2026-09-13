@@ -98,6 +98,13 @@ export type HojningPlan = {
    * alltså höjd en gång med stämpeln förlorad. Höjs ALDRIG. Se grinden nedan.
    */
   redanHojdUtanStampel: number;
+  /**
+   * Vilka de är. ☠️ Ett tal utan id är en oro, inte ett beslut — och de här
+   * raderna kan ingen annan mätning hitta i efterhand: de har varken stämpel
+   * eller drift kvar att känna igen dem på. Publikt ofarligt: ett Wix-id och
+   * två priser är redan synliga på produktsidan.
+   */
+  redanHojdaIder: string[];
   rader: HojningRad[];
   /** Kontrollsumma över planen. Se `planSumma`. */
   summa: string;
@@ -185,6 +192,7 @@ export function planeraPrishojning(
     ejNiokrona: 0,
     oforandrade: 0,
     redanHojdUtanStampel: 0,
+    redanHojdaIder: [],
     rader: [],
     summa: "",
     drivande: 0,
@@ -284,6 +292,7 @@ export function planeraPrishojning(
     if (trodde !== null && fran > trodde
         && roundPrice(trodde * (1 + pct / 100), avrundning) === fran) {
       plan.redanHojdUtanStampel++;
+      if (plan.redanHojdaIder.length < 50) plan.redanHojdaIder.push(m.wixProductId);
       continue;
     }
 

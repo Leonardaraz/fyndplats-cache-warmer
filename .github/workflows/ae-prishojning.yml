@@ -131,6 +131,11 @@ jobs:
               + "Höjning \(.band.minstaHojning)–\(.band.storstaHojning) kr, median \(.band.medianHojning). "
               + "Summa \(.band.summaHojning) kr."
               end' || true
+            printf '%s\n' "$kropp" | jq -r '
+              if (.redanHojdaIder // []) | length == 0 then "" else
+              "\n**Redan höjda utan stämpel** (höjs inte igen — kontrollera för hand):\n"
+              + ((.redanHojdaIder | map("- `" + . + "`") | join("\n")))
+              end' || true
             if [ "${MODE}" = "hoj" ]; then
               printf '%s\n' "$kropp" | jq -r '
                 "\n**Skrivet:** \(.hojda) höjda, \(.misslyckade) misslyckade, \(.kvar) kvar, stoppad pa \(.stoppadAv)."
