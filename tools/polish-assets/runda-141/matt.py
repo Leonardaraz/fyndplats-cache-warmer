@@ -68,4 +68,84 @@ M = {
         beinstrecker_obekraftad=True,
         lager="IN_STOCK",
     ),
+    "b4961e6f": dict(
+        namn_de="Hantelbank klappbar Trainingsbank mit Beinstrecker 3-Fach",
+        pris=1479, bilder=None, sku_fore="FP-hantelbank-klappbar",  # ☠️ KROCK med 562e42fc
+        tot=(135, 130, 107), sits=(32, 29, 42.5),
+        ryggpositioner=3, motstandsstufen=3, butterfly_lagen=4,
+        kap_total_kg=300, maxlast_anvandare_kg=120,   # ✅ korrekt markt i tyskan
+        farg_de="Schwarz", farg_spec="Schwarz",
+        material_de="Sperrholz, TPE, Schaumstoff, PVC-Kunstleder, Stahl",
+        material_spec="Metall",            # ☠️ spec TAPPAR plywooden
+        fraktvikt=16.7, paket=(115, 24, 35.5),
+        ingar=["1 x Verstellbare Hantelbank", "2 x Widerstandsband",
+               "1 x Bedienungsanleitung"],
+        lager="IN_STOCK",
+    ),
+    "7b818c3b": dict(
+        namn_de="Hantelbank, 8 Positionen, klappbar, Stahlbasis, gepolstert",
+        pris=1379, bilder=None, sku_fore="FP-hantelbank-8-positionen",
+        tot=(140, 73, "98-122"), hopfalld=(73, 55, 134),
+        rygg=(100, 26, 43), stangdiameter_mm=25,
+        # ⚠️ "8 Positionen" ar HANTELHYLLANS lagen, inte ryggstodets.
+        hantelablage_lagen=8,
+        # ☠️ INGEN max anvandarvikt alls. 150 kg ar BANKEN.
+        kap_bank_kg=150, kap_hantelablage_kg=100, kap_per_viktplats_kg=30,
+        maxlast_anvandare_kg=None,
+        farg_de="Schwarz+Grau", farg_spec="Schwarz, Grau",
+        material_de="Stahl, Kunstleder", material_spec="Kunstleder, Stahl",
+        fraktvikt=21, paket=(113, 36, 12),
+        ingar=["1 x Hantelbank", "1 x Anleitung"],
+        lager="IN_STOCK",
+    ),
+    "8a0e05f4": dict(
+        namn_de="Hantelbank Fitnessbank Schrägbank Multifunktion Bauchtrainer",
+        pris=1429, bilder=None, sku_fore="FP-hantelbank-fitnessbank",
+        tot=(64, 146, "73,5-85"),          # B x T x H i tyskans egen ordning
+        bukdyna=(30, 16, 7.5), ryggdyna=(98, 32, 5),
+        vinklar=[0, -22.5, -45], fotpedal_lagen=4, larkudde_lagen=7,
+        kap_total_kg=300, maxlast_anvandare_kg=120,
+        # ☠️ BEVIS for #488, matt INOM samma produkt: tyskan sager Gewicht
+        #    13,7 kg, spec-blocket sager Vikt 16,7 kg. Skillnaden ar emballaget.
+        varans_vikt=13.7, fraktvikt=16.7,
+        farg_de="Schwarz+Rot", farg_spec="Schwarz, Rot",
+        material_de="Stahl, PVC, EVA",
+        material_spec="Legierter Stahl/Polyvinylchlorid/Ethylenvinylacetat",
+        paket=(111.5, 35.5, 23),
+        ingar=["1 x Hantelbank", "1 x Montageanleitung"],
+        marknadsrad_ovkvalificerad_300=True,
+        lager="IN_STOCK",
+    ),
+    "562e42fc": dict(
+        namn_de="Hantelbank, Klappbar Trainingsbank mit 7-fach verstellbarer",
+        pris=1239, bilder=None, sku_fore="FP-hantelbank-klappbar",  # ☠️ KROCK med b4961e6f
+        tot=(160, 54, 106), hopfalld=(54, 42, 150),
+        sitsdyna=(30.5, 30, 4), ryggdyna=(75, 30, 4),
+        vinklar=[100, 115, 125, 135, 150, 165, -10],
+        armbagsdyna=(29.5, 14, 4), armbagsstod_cm=(78, 82),
+        kap_total_kg=300, maxlast_anvandare_kg=120,   # ✅ korrekt markt overallt
+        farg_de="Schwarz+Blau", farg_spec="Blau",
+        material_de="Stahl, ABS, EVA", material_spec="Stahlrohr, ABS, EVA",
+        fraktvikt=13, paket=(131, 33, 21.5),
+        ingar=["1 x Hantelbank", "1 x Bedienungsanleitung"],
+        tillbehor_de="Seil und Feder",     # rep + fjader
+        lager="IN_STOCK",
+    ),
+    "83b2cf8b": dict(
+        namn_de="Hantelbank ohne Gewichte, verstellbare Fitnessbank für zahlreiche",
+        pris=1959, bilder=None, sku_fore="FP-hantelbank-ohne-gewichte",
+        tot=(175, 139, 127),
+        rygg=(74, 26, 4), sits=(30, 26, 4), armbagsdyna=(49, 27, "74-86"),
+        viktpelare=(25, 2.5), traningspositioner=3, rygg_hal=3,
+        kap_sitsdyna_kg=200, maxlast_anvandare_kg=100,   # LAGST i batchen
+        kap_viktset_kg=100,
+        farg_de="Schwarz+Rot", farg_spec="Schwarz",
+        material_de="Stahl, Kunststoff",
+        material_spec="Kunststoff",        # ☠️ spec TAPPAR STALET helt
+        fraktvikt=26, paket=(105, 42, 24),
+        ingar=["1 x Hantelbank", "1 x Gebrauchsanleitung"],
+        skivor_ingar=False,                # "Gewichte und Langhantel NICHT enthalten"
+        har_squat_rack=True, har_beinstrecker=True, har_butterfly=True,
+        lager="IN_STOCK",
+    ),
 }
