@@ -127,21 +127,34 @@ ALT = {
 
 # Fyndplats egna spec-kort. ☠️ Position 0 är kortets — det ligger på plats 3
 # i galleriet, men har ingen feedposition eftersom det är VÅR bild.
+# ☠️ KORTETS ALT-TEXT MÅSTE BÖRJA MED `Faktakort: `. Det är inte en smaksak:
+#    `grindar.kortfel` letar efter exakt det prefixet i galleriets thumb-rad,
+#    och det är KRITERIET för runbokens "minst ett eget Fyndplats-kort".
+#
+#    Rundan skrev först `Spec-kort från Fyndplats med …`. Sju sidor gick LIVE
+#    med det, och Steg 14 fällde alla sju på `SAKNAR EGET KORT` — grinden hade
+#    rätt. Två fel i ett: kortet blev osynligt för grinden, OCH texten ledde
+#    med vårt VARUMÄRKE i ett fält som ska beskriva innehåll. `kortfel` fäller
+#    uttryckligen `Fyndplats-kort:` av det andra skälet; `Spec-kort från
+#    Fyndplats` är samma överträdelse i en form grinden inte kände igen.
+#
+#    Regeln grindas nu här också (`_kortformkoll`), så rundans EGEN alt-grind
+#    fäller före skrivningen i stället för live-grinden efter.
 KORT_ALT = {
-    "8de3c3ef": "Spec-kort från Fyndplats med måtten för den 115 cm långa "
-                "bänken samlade på ett ställe.",
-    "7b818c3b": "Spec-kort från Fyndplats med bänkens och ställets mått "
-                "samlade på ett ställe.",
-    "8a0e05f4": "Spec-kort från Fyndplats med måtten för den 146 cm långa "
-                "bänken samlade på ett ställe.",
-    "b4961e6f": "Spec-kort från Fyndplats med den hopfällbara bänkens mått "
-                "samlade på ett ställe.",
-    "83b2cf8b": "Spec-kort från Fyndplats med bänkens mått och stationernas "
-                "storlekar samlade.",
-    "a4bbe667": "Spec-kort från Fyndplats med den vita bänkens mått samlade "
-                "på ett ställe.",
-    "18b94738": "Spec-kort från Fyndplats med träbänkens mått samlade på ett "
-                "ställe.",
+    "8de3c3ef": "Faktakort: mått, ryggstödets sju vinklar och maxlast för "
+                "den 115 cm långa bänken.",
+    "7b818c3b": "Faktakort: bänkens och ställningens mått, ställningens åtta "
+                "höjder och maxlast.",
+    "8a0e05f4": "Faktakort: mått, ryggstödets tre lägen och maxlast för den "
+                "146 cm långa bänken.",
+    "b4961e6f": "Faktakort: mått med armarna utfällda, ryggstödets tre lägen "
+                "och maxlast.",
+    "83b2cf8b": "Faktakort: bänkens mått, bicepspulpetens storlek och höjd "
+                "över golvet samt maxlast.",
+    "a4bbe667": "Faktakort: mått, skivstångsställets sex höjder och maxlast "
+                "för den vita bänken.",
+    "18b94738": "Faktakort: mått, ryggstödets sex vinklar och maxlast för "
+                "bänken i trä.",
 }
 for _p, _t in KORT_ALT.items():
     ALT[_p][0] = _t
@@ -191,6 +204,25 @@ def granska(pid):
     return fel
 
 
+def _kortformkoll():
+    """Kortets alt-text: rätt prefix, och inget varumärke i innehållsfältet.
+
+    ☠️ Båda halvorna behövs. Prefixet är vad `grindar.kortfel` MÄTER; förbudet
+       mot `Fyndplats` är VARFÖR prefixet ser ut som det gör. En runda som bara
+       grindat prefixet hade släppt igenom `Faktakort: Fyndplats visar …`.
+    """
+    fel = []
+    for pid, txt in KORT_ALT.items():
+        if not txt.startswith("Faktakort: "):
+            fel.append("%s KORT: alt-texten måste börja med 'Faktakort: ' — "
+                       "det är vad grindar.kortfel letar efter (%r)"
+                       % (pid, txt[:40]))
+        if re.search(r"Fyndplats|Spec-kort", txt, re.I):
+            fel.append("%s KORT: varumärke eller mallord i ett fält som ska "
+                       "beskriva innehåll (%r)" % (pid, txt[:40]))
+    return fel
+
+
 def _mallkoll():
     """Alt-texterna får inte vara samma mall fem gånger (runbokens Steg 9)."""
     fel = []
@@ -207,6 +239,7 @@ if __name__ == "__main__":
         assert pid in ALT, "saknar alt-texter för %s" % pid
         brister += granska(pid)
     brister += _mallkoll()
+    brister += _kortformkoll()
     for b in brister:
         print("☠️ " + b)
     n = sum(len(d) for d in ALT.values())
