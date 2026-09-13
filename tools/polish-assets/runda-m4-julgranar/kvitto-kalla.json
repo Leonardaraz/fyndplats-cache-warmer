@@ -1,0 +1,11 @@
+{
+ "_om": "raaSumma/raaTecken är räknade på den OSANERADE texten INNE i Wix-anropet och bevisar att hämtningen var ordagrann — råtexten lämnade aldrig anropet. saneradSumma/saneradTecken gäller filen i kalla/, där leverantörens artikelnummer ersatts med [ARTNR]. Se LÄS-MIG.md.",
+ "3523deaa": {"raaTecken": 2059, "raaSumma": 585061923, "antalSanerade": 1, "saneradTecken": 2054, "saneradSumma": 730917745},
+ "03658e32": {"raaTecken": 2386, "raaSumma": 147467649, "antalSanerade": 1, "saneradTecken": 2381, "saneradSumma": 284068905},
+ "17392493": {"raaTecken": 2089, "raaSumma": 585193311, "antalSanerade": 0, "saneradTecken": 2089, "saneradSumma": 585193311},
+ "fc68547e": {"raaTecken": 2136, "raaSumma": 923816379, "antalSanerade": 1, "saneradTecken": 2131, "saneradSumma": 209510592},
+ "5f646ce6": {"raaTecken": 2520, "raaSumma": 865419970, "antalSanerade": 0, "saneradTecken": 2520, "saneradSumma": 865419970},
+ "03ca6978": {"raaTecken": 2336, "raaSumma": 306900591, "antalSanerade": 1, "saneradTecken": 2331, "saneradSumma": 10063986},
+ "86fdd9af": {"raaTecken": 1874, "raaSumma": 873969280, "antalSanerade": 0, "saneradTecken": 1874, "saneradSumma": 873969280},
+ "5814c7e1": {"raaTecken": 2530, "raaSumma": 769362226, "antalSanerade": 1, "saneradTecken": 2525, "saneradSumma": 976768952}
+}
