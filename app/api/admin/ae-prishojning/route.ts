@@ -49,14 +49,23 @@ export const maxDuration = 300;
 const SKRIV_PAUS_MS = Number(process.env.AOSOM_WRITE_DELAY_MS ?? 120);
 
 /**
- * Tidsbudget. Rutten har 300 s; vi lämnar marginal så svaret hinner ut.
+ * Tidsbudget, räknad från REQUESTENS början — inte från skrivfasens.
  *
- * ☠️ Utan den kunde en körning dödas mitt i skopan: priserna ÄR skrivna men
- * inget svar kommer tillbaka, och nästa körning vet inte vad som hände. Samma
- * skäl som media-städningen är tidsbudgeterad. Kampanjstämpeln gör visserligen
- * omkörningen ofarlig, men ett svar man kan läsa är ändå billigare.
+ * ☠️ DEN HÄR RADEN VAR FEL, OCH DET KOSTADE EN KÖRNING (2026-09-13). Budgeten
+ * startade efter `listMappings()` + `listV3ProductPrices()`, som ensamma tar
+ * ~55 s (54 sidor priser med pauser och återförsök). 55 + 240 = 295 s plus
+ * serialisering av svaret, mot ruttens tak på 300 — lambdan dödades och
+ * jobbet föll efter 307 s. Priserna VAR skrivna; svaret kom aldrig.
+ *
+ * Det är exakt fällan media-städningen redan dokumenterar: "en stor limit
+ * kunde dra förbi maxDuration och dödas mitt i skopan". Läsfasens kostnad
+ * måste rymmas INUTI budgeten, annars mäter budgeten fel sak.
+ *
+ * Kampanjstämpeln gjorde utfallet ofarligt — nästa körning såg vilka som
+ * redan var höjda — men ett svar man kan läsa är ändå billigare än en
+ * omkörning som gissar.
  */
-const TIDSBUDGET_MS = 240_000;
+const TIDSBUDGET_MS = 210_000;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -87,6 +96,9 @@ function band(rader: readonly HojningRad[]) {
 }
 
 export async function GET(req: NextRequest) {
+  // ☠️ Klockan startar HÄR, före läsfasen. Se TIDSBUDGET_MS.
+  const t0 = Date.now();
+
   if (!auktoriserad(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
@@ -185,7 +197,6 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const start = Date.now();
   let hojda = 0;
   let misslyckade = 0;
   const fel: Array<{ wixProductId: string; skal: string }> = [];
@@ -196,7 +207,7 @@ export async function GET(req: NextRequest) {
       stoppadAv = "limit";
       break;
     }
-    if (Date.now() - start > TIDSBUDGET_MS) {
+    if (Date.now() - t0 > TIDSBUDGET_MS) {
       stoppadAv = "tidsbudget";
       break;
     }
