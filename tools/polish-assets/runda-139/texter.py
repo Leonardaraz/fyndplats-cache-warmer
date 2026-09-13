@@ -465,7 +465,7 @@ SPEC = {
     ],
     "8d074911": [
         ("Antal delar", "4"),
-        ("Klösstolpe", "84 cm, topplan 50 × 40 cm, två plan 30 × 30 cm"),
+        ("Mått, klösstolpen", "84 cm, topplan 50 × 40 cm, två plan 30 × 30 cm"),
         ("Håla", "30 × 30 cm, öppning 16 cm"),
         ("Mjuk stege", "61 × 30 cm"),
         ("Klösbräda", "40 × 30 × 18 cm"),
@@ -498,7 +498,7 @@ SPEC = {
         ("Montering", "ingen montering"),
     ],
     "b04b5375": [
-        ("Huvuddel", "40 × 28 × 73 cm (L × B × H)"),
+        ("Mått, huvuddelen", "40 × 28 × 73 cm (L × B × H)"),
         ("Antal delar", "4"),
         ("Klösstam", "Ø20 × 32 cm"),
         ("Hängmatta", "Ø30 × 5 cm"),
