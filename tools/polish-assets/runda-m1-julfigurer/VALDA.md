@@ -69,6 +69,15 @@ kastade; båda returnerade helt trovärdiga listor.
    Sex av de 61 "juluttkasten" är kaninhus, smådjursstall, katthus och en
    strandkorg byggda av gran. De är inte julprodukter alls.
 
+☠️ **RÄTTELSE 2026-09-13, samma dag: filtret missade dessutom en
+familjemedlem.** `321bdedf` — *"Lebkuchenmann mit Zuckerstange, 2,45 m groß,
+aufblasbar"*, 899 kr — är den FJÄRDE pepparkaksgubben. Namnet börjar på
+`Lebkuchenmann` och innehåller aldrig ordet `Weihnacht`, så urvalsregexen såg
+den aldrig. Rundans text säger "de tre pepparkaksgubbarna"; det var sant om
+urvalet, inte om sortimentet. Ingen skada mot kund — de tre publicerade
+texterna skiljer sig åt på riktiga egenskaper — men nästa julrunda ska ta
+`321bdedf`, och den är störst av de fyra. Se `../matning-jul-dubbletter.md`.
+
 Samma familj som #218 (`Massagesessel` mot `Relaxsessel`): **ett familjefilter
 är ett NAMNfilter, och ett namnfilter mäter stavning, inte betydelse.** Skillnaden
 här är att båda felen var osynliga — en lista på 199 rader ser lika rimlig ut som
