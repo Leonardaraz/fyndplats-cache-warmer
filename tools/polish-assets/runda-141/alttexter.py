@@ -125,6 +125,27 @@ ALT = {
     },
 }
 
+# Fyndplats egna spec-kort. ☠️ Position 0 är kortets — det ligger på plats 3
+# i galleriet, men har ingen feedposition eftersom det är VÅR bild.
+KORT_ALT = {
+    "8de3c3ef": "Spec-kort från Fyndplats med måtten för den 115 cm långa "
+                "bänken samlade på ett ställe.",
+    "7b818c3b": "Spec-kort från Fyndplats med bänkens och ställets mått "
+                "samlade på ett ställe.",
+    "8a0e05f4": "Spec-kort från Fyndplats med måtten för den 146 cm långa "
+                "bänken samlade på ett ställe.",
+    "b4961e6f": "Spec-kort från Fyndplats med den hopfällbara bänkens mått "
+                "samlade på ett ställe.",
+    "83b2cf8b": "Spec-kort från Fyndplats med bänkens mått och stationernas "
+                "storlekar samlade.",
+    "a4bbe667": "Spec-kort från Fyndplats med den vita bänkens mått samlade "
+                "på ett ställe.",
+    "18b94738": "Spec-kort från Fyndplats med träbänkens mått samlade på ett "
+                "ställe.",
+}
+for _p, _t in KORT_ALT.items():
+    ALT[_p][0] = _t
+
 # ☠️ Orden som ALDRIG får stå i en alt-text i den här rundan. Vikterna syns
 #    på bild men ingår inte, och alt-texten har ingen plats för brasklappen.
 # ☠️ Lookaheaden är inte kosmetisk. Första versionen fällde
