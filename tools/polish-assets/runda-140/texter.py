@@ -68,7 +68,7 @@ NAMN = {
     "4c5d4687": "Hundsoffa i sammet 102 cm – 15 cm höga furuben och lös dyna",
     "68f8cae9": "Hundbädd 96 cm i petrolblått – avtagbart överdrag och furuben",
     "ee19a8c8": "Husdjurssoffa 70 cm i krämvitt – plysch och massiv fururam",
-    "2ba6baf0": "Hundsoffa i sammet 82 cm – rygg runt tre sidor och björkben",
+    "2ba6baf0": "Hundsoffa i sammet 82 cm – rygg runt tre sidor och svarta ben",
     "22c7de56": "Rund husdjurssoffa 65 cm i mörkgrönt – rygg hela vägen runt",
     "07ac9918": "Husdjurssoffa 76 cm med förvaring under sitsen – plysch och trä",
 }
@@ -122,7 +122,7 @@ META = {
                 "och avtagbar dyna. Bär upp till 4,5 kg — för de allra minsta "
                 "hundarna och för katt.",
     "2ba6baf0": "Hundsoffa 82 × 54 × 36 cm i ljusgrå sammet med rygg runt tre sidor, "
-                "10 cm höga björkben och tvättbart dynöverdrag. För hundar upp till "
+                "10 cm höga svarta ben och tvättbart dynöverdrag. För hundar upp till "
                 "20 kg och 50 cm kroppslängd.",
     "22c7de56": "Rund husdjurssoffa 65 × 64 × 37 cm i mörkgrönt med rygg hela vägen "
                 "runt och runda björkben. Bär upp till 4,5 kg — för kattens och den "
@@ -159,12 +159,14 @@ INTRO = {
                 "hunden — sittytan är 54 × 40,5 cm.",
     "9ee2fa6e": "Ryggen är formad i mjuka bågar som en snäcka, och det är den som "
                 "ger möbeln sitt uttryck. Den gröna sammetsväven sitter på en stomme "
-                "med ben i massiv björk, och sittytan är 86 × 47 cm — bred nog för "
+                "med svartlackerade ben i massiv björk, och sittytan är 86 × 47 cm — "
+                "bred nog för "
                 "en hund som gärna sträcker ut sig helt. Dynan är 4 cm tjock och "
                 "går att ta av.",
     "c11948ac": "Ryggen är formad i mjuka bågar som en snäcka, och det är den som "
                 "ger möbeln sitt uttryck. Den mörkgrå sammetsväven sitter på en "
-                "stomme med ben i massiv björk, och sittytan är 86 × 47 cm — bred "
+                "stomme med svartlackerade ben i massiv björk, och sittytan är "
+                "86 × 47 cm — bred "
                 "nog för en hund som gärna sträcker ut sig helt. Dynan är 4 cm tjock "
                 "och går att ta av.",
     "c9ccf5a3": "En bred, nästan kvadratisk bädd med stoppat kantstöd runt tre sidor "
@@ -185,8 +187,8 @@ INTRO = {
                 "ram av massiv furu. Rygg och armstöd går hela vägen runt sittytan "
                 "så att det lilla djuret inte rullar ur i sömnen, och de 5 cm höga "
                 "benen håller bädden från golvdraget. Sittytan är 52 × 33 cm.",
-    "2ba6baf0": "En hundsoffa i ljusgrå sammet med rygg runt tre sidor och ben i "
-                "massiv björk. Sittytan är 72 × 50 cm och ryggen går 20 cm över "
+    "2ba6baf0": "En hundsoffa i ljusgrå sammet med rygg runt tre sidor och "
+                "svartlackerade ben i massiv björk. Sittytan är 72 × 50 cm och ryggen går 20 cm över "
                 "den, vilket ger stöd åt en hund som helst ligger hoprullad mot en "
                 "kant. Dynan har ett överdrag med dragkedja som tas av och tvättas.",
     "22c7de56": "En rund soffa där ryggen löper hela vägen runt utom vid ingången, "
@@ -246,14 +248,14 @@ PUNKTER = {
         "Snäckformad rygg, 19,5 cm över sittytan.",
         "Sittyta 86 × 47 cm, 16 cm över golvet.",
         "Dyna 4 cm tjock, avtagbar med tvättbart överdrag.",
-        "Grön sammetsväv på stomme med ben i massiv björk.",
+        "Grön sammetsväv på stomme med svartlackerade ben i massiv björk.",
         "Bär upp till 25 kg.",
     ],
     "c11948ac": [
         "Snäckformad rygg, 19,5 cm över sittytan.",
         "Sittyta 86 × 47 cm, 16 cm över golvet.",
         "Dyna 4 cm tjock, avtagbar med tvättbart överdrag.",
-        "Mörkgrå sammetsväv på stomme med ben i massiv björk.",
+        "Mörkgrå sammetsväv på stomme med svartlackerade ben i massiv björk.",
         "Bär upp till 25 kg.",
     ],
     "c9ccf5a3": [
@@ -288,7 +290,7 @@ PUNKTER = {
         "Rygg runt tre sidor, 20 cm över sittytan, armstöd 4,5 cm breda.",
         "Sittyta 72 × 50 cm, 16 cm över golvet.",
         "Dyna 72 × 47,5 × 4 cm med dragkedja i överdraget.",
-        "Ljusgrå sammet av 100 % polyester, ben i massiv björk 10 cm.",
+        "Ljusgrå sammet av 100 % polyester, svartlackerade ben i björk, 10 cm.",
         "Bär en hund på upp till 20 kg.",
     ],
     "22c7de56": [
@@ -451,8 +453,8 @@ SPEC = {
     "881540a6": _A_SPEC("blå med naturträ"),
     "5b8162d1": _B_SPEC("ljusgrå med naturträ"),
     "1835c144": _B_SPEC("petrolblå med naturträ"),
-    "9ee2fa6e": _C_SPEC("grön"),
-    "c11948ac": _C_SPEC("mörkgrå"),
+    "9ee2fa6e": _C_SPEC("grön med svarta ben"),
+    "c11948ac": _C_SPEC("mörkgrå med svarta ben"),
     "c9ccf5a3": [
         ("Mått", "90 × 78 × 25 cm (L × B × H)"),
         ("Sittyta", "70 × 63 cm, 14 cm över golvet"),
@@ -519,7 +521,7 @@ SPEC = {
         ("Dyna", "72 × 47,5 × 4 cm, överdrag med dragkedja"),
         ("Ryggens höjd över sittytan", "20 cm"),
         ("Armstöd", "4,5 cm breda"),
-        ("Benhöjd", "10 cm, massiv björk"),
+        ("Benhöjd", "10 cm, svartlackerad massiv björk"),
         ("Material", "sammet av 100 % polyester, skumstoppning och björk"),
         ("Färg", "ljusgrå med mörka ben"),
         ("Rekommenderad hund", "upp till 20 kg, kroppslängd högst 50 cm"),

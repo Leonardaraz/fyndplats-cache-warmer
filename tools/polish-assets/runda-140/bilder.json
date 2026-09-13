@@ -1,17 +1,11 @@
 {
- "c9ccf5a3": [
-  "b379ce_4115d69db0af4c6d9ba9d27c6338091c~mv2.jpg",
-  "b379ce_f2106da88f344bd1809532cfe121144a~mv2.jpg",
-  "b379ce_ee38a68d9f214eed9e6a6618b7b1838e~mv2.jpg",
-  "b379ce_fb08ad23d5eb486d809725d4e1b4bbcb~mv2.jpg",
-  "b379ce_50690893f9404a10a579e0a03361b7af~mv2.jpg"
- ],
- "4c5d4687": [
-  "b379ce_64975fe81b8f4e3e921ff0b658a5b26e~mv2.jpg",
-  "b379ce_fabc38ec903d46fbb18de8e036bb8118~mv2.jpg",
-  "b379ce_60ed5fe306d1487e92f58636e203217d~mv2.jpg",
-  "b379ce_c1bc419b050745eebf9ec5423be5c736~mv2.jpg",
-  "b379ce_02e33241abdc4cfeb427de7da6dfacd0~mv2.jpg"
+ "_regel": "Bildernas Wix-fil-id i NUVARANDE ordning, matta ur products/search med fields=MEDIA_ITEMS_INFO 2026-09-13. Listans plats N motsvarar feedens position [1,2,3,8,9][N-1]: 1 hjalte, 2 livsstil, 3 mattritning, 4-5 detaljfoton.",
+ "01fcdf1d": [
+  "b379ce_4923b0ea29844b27a16d788b00b267ee~mv2.jpg",
+  "b379ce_7786d4ef8a3f4df380c680b1eb7ed0f4~mv2.jpg",
+  "b379ce_57cca3177f0f4df5aede09c74454fafe~mv2.jpg",
+  "b379ce_723c7b97ce0d4bdbab0b6182dd6d43bc~mv2.jpg",
+  "b379ce_3488ac0a288b421da50abaed54e28bf1~mv2.jpg"
  ],
  "bb3cd4ed": [
   "b379ce_af84dc28084640d7aebcb2dca26e1eca~mv2.jpg",
@@ -26,20 +20,6 @@
   "b379ce_30eae485911d4ab784279904cb021b2f~mv2.jpg",
   "b379ce_e0ba2137648946c3849612143e4d6bbe~mv2.jpg",
   "b379ce_a3b55aebf62a414aab915cd04a7cd319~mv2.jpg"
- ],
- "68f8cae9": [
-  "b379ce_6df97415408546aca5c414568766d081~mv2.jpg",
-  "b379ce_7e1bce8f599f479ca47ccc019acaff35~mv2.jpg",
-  "b379ce_8f1c62a211804851833e806dc9a8aa05~mv2.jpg",
-  "b379ce_78f26344515443b9940f0865ae312601~mv2.jpg",
-  "b379ce_8429c34429174c82b3fa6273ed105239~mv2.jpg"
- ],
- "ee19a8c8": [
-  "b379ce_dbd6d662be5041daa5acd8a7fea4ba93~mv2.jpg",
-  "b379ce_c22dae52521045cca3609bbb195797a6~mv2.jpg",
-  "b379ce_fb0b4f9ee4e54a9582a1c0da8186839d~mv2.jpg",
-  "b379ce_1831ddde14fe41e7ad156486f0669db4~mv2.jpg",
-  "b379ce_80ab68da32af4d0bab70f11fdda22eef~mv2.jpg"
  ],
  "5b8162d1": [
   "b379ce_102c5ef7c8a64103a89389af26e128d9~mv2.jpg",
@@ -69,6 +49,34 @@
   "b379ce_0480e8aaabbd4eed928ebeb2eee03e1b~mv2.jpg",
   "b379ce_8a544ec89a3540d1a534bf03705079dc~mv2.jpg"
  ],
+ "c9ccf5a3": [
+  "b379ce_4115d69db0af4c6d9ba9d27c6338091c~mv2.jpg",
+  "b379ce_f2106da88f344bd1809532cfe121144a~mv2.jpg",
+  "b379ce_ee38a68d9f214eed9e6a6618b7b1838e~mv2.jpg",
+  "b379ce_fb08ad23d5eb486d809725d4e1b4bbcb~mv2.jpg",
+  "b379ce_50690893f9404a10a579e0a03361b7af~mv2.jpg"
+ ],
+ "4c5d4687": [
+  "b379ce_64975fe81b8f4e3e921ff0b658a5b26e~mv2.jpg",
+  "b379ce_fabc38ec903d46fbb18de8e036bb8118~mv2.jpg",
+  "b379ce_60ed5fe306d1487e92f58636e203217d~mv2.jpg",
+  "b379ce_c1bc419b050745eebf9ec5423be5c736~mv2.jpg",
+  "b379ce_02e33241abdc4cfeb427de7da6dfacd0~mv2.jpg"
+ ],
+ "68f8cae9": [
+  "b379ce_6df97415408546aca5c414568766d081~mv2.jpg",
+  "b379ce_7e1bce8f599f479ca47ccc019acaff35~mv2.jpg",
+  "b379ce_8f1c62a211804851833e806dc9a8aa05~mv2.jpg",
+  "b379ce_78f26344515443b9940f0865ae312601~mv2.jpg",
+  "b379ce_8429c34429174c82b3fa6273ed105239~mv2.jpg"
+ ],
+ "ee19a8c8": [
+  "b379ce_dbd6d662be5041daa5acd8a7fea4ba93~mv2.jpg",
+  "b379ce_c22dae52521045cca3609bbb195797a6~mv2.jpg",
+  "b379ce_fb0b4f9ee4e54a9582a1c0da8186839d~mv2.jpg",
+  "b379ce_1831ddde14fe41e7ad156486f0669db4~mv2.jpg",
+  "b379ce_80ab68da32af4d0bab70f11fdda22eef~mv2.jpg"
+ ],
  "2ba6baf0": [
   "b379ce_f7bb50c2628a493c82f483b7d021f1d7~mv2.jpg",
   "b379ce_7e20fe1480a94805af73de8eeae31660~mv2.jpg",
@@ -89,12 +97,5 @@
   "b379ce_6d8a03d1dd2b4548bf089222bd5566f9~mv2.jpg",
   "b379ce_b926f55c80d44470a3d355bb5db822a3~mv2.jpg",
   "b379ce_11ed2dca7e9442d99b2d9d4031fd3c51~mv2.jpg"
- ],
- "01fcdf1d": [
-  "b379ce_4923b0ea29844b27a16d788b00b267ee~mv2.jpg",
-  "b379ce_7786d4ef8a3f4df380c680b1eb7ed0f4~mv2.jpg",
-  "b379ce_57cca3177f0f4df5aede09c74454fafe~mv2.jpg",
-  "b379ce_723c7b97ce0d4bdbab0b6182dd6d43bc~mv2.jpg",
-  "b379ce_3488ac0a288b421da50abaed54e28bf1~mv2.jpg"
  ]
 }
