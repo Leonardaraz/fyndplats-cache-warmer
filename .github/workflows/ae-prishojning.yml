@@ -121,6 +121,7 @@ jobs:
               "| redan höjda | \(.redanHojda) |",
               "| ej niokrona (grind) | \(.ejNiokrona) |",
               "| oförändrade | \(.oforandrade) |",
+              "| **redan höjd, stämpel tappad** | **\(.redanHojdUtanStampel)** |",
               "| mappning ≠ butik | \(.drivande) |",
               "| **kontrollsumma** | `\(.summa)` |"
             ' || true

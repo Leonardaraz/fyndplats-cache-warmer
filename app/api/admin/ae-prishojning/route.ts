@@ -161,6 +161,7 @@ export async function GET(req: NextRequest) {
     redanHojda: plan.redanHojda,
     ejNiokrona: plan.ejNiokrona,
     oforandrade: plan.oforandrade,
+    redanHojdUtanStampel: plan.redanHojdUtanStampel,
     drivande: plan.drivande,
     summa: plan.summa,
     band: band(plan.rader),
@@ -172,7 +173,8 @@ export async function GET(req: NextRequest) {
       + `${plan.rader.length} att höja, ${plan.ejAliExpress} ej-AE, ${plan.prisLasta} prislåsta, `
       + `${plan.utanWixPris} utan butikspris, ${plan.variantavvikelse} variantavvikelse, `
       + `${plan.redanHojda} redan höjda, ${plan.ejNiokrona} ej niokrona, `
-      + `${plan.oforandrade} oförändrade, summa=${plan.summa}`,
+      + `${plan.oforandrade} oförändrade, ${plan.redanHojdUtanStampel} redan-höjd-utan-stämpel, `
+      + `${plan.drivande} drivande, summa=${plan.summa}`,
     );
     return NextResponse.json({
       ...sammanfattning,

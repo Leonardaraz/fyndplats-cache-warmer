@@ -93,6 +93,11 @@ export type HojningPlan = {
   ejNiokrona: number;
   /** Avrundningen gav samma tal — ingen skrivning behövs. */
   oforandrade: number;
+  /**
+   * Butikens pris ÄR redan exakt den här kampanjens höjning av mappningens —
+   * alltså höjd en gång med stämpeln förlorad. Höjs ALDRIG. Se grinden nedan.
+   */
+  redanHojdUtanStampel: number;
   rader: HojningRad[];
   /** Kontrollsumma över planen. Se `planSumma`. */
   summa: string;
@@ -179,6 +184,7 @@ export function planeraPrishojning(
     redanHojda: 0,
     ejNiokrona: 0,
     oforandrade: 0,
+    redanHojdUtanStampel: 0,
     rader: [],
     summa: "",
     drivande: 0,
@@ -245,6 +251,42 @@ export function planeraPrishojning(
       continue;
     }
 
+    const trodde = mappningensPris(m);
+
+    // ☠️ EN HÖJNING SOM REDAN SKETT MEN TAPPAT SIN STÄMPEL HÖJS ALDRIG IGEN.
+    //
+    // Uppmätt 2026-09-13, och det var aritmetiken som avslöjade det: 478 redan
+    // höjda + 201 skrivna skulle ge 679, men nästa plan sa 678 — och en rad
+    // mer att höja. Exakt en produkt hade fått sitt PRIS skrivet utan att få
+    // sin STÄMPEL. Skrivfönstret (17:58–18:02) låg rakt över AE-synkens
+    // `0 */2 * * *`, och synken gör läs-ändra-skriv på samma mappningsrad.
+    //
+    // Stämpeln är hela idempotensen, och en stämpel som kan gå förlorad är en
+    // idempotens som kan gå förlorad. Nästa körning hade räknat på det NYA
+    // butikspriset och tagit raden 499 → 549 → 609: exakt 599 → 659 → 725,
+    // felet stämpeln byggdes mot, genom en annan dörr.
+    //
+    // ☠️ GRINDEN ÄR ARITMETISK, INTE EN RIKTNING — och det första utkastet var
+    // fel på just den punkten. Det gatade på "butiken högre än mappningen",
+    // vilket fällde `räknar på BUTIKEN`-testet och hade rätt i det: butiken
+    // HÖGRE är också signaturen för husets DOKUMENTERADE drift, där
+    // bäddsoffan bar `grossSek: 3529` mot 4 539 kr i Wix. En sådan rad har
+    // aldrig höjts och SKA höjas.
+    //
+    // Det som skiljer är att en tappad stämpel lämnar butikspriset på EXAKT
+    // det tal den här kampanjen skulle ha skrivit. Grinden räknar därför om
+    // höjningen ur mappningens tal och kräver exakt träff, ur samma
+    // `roundPrice` som planen själv använder — så den kan inte drifta från
+    // regeln. En lagg-rad landar i praktiken aldrig på den siffran.
+    //
+    // Raden räknas, den hoppas inte tyst över: ett tal som växer är ett besked
+    // om att stämplar tappas, inte brus.
+    if (trodde !== null && fran > trodde
+        && roundPrice(trodde * (1 + pct / 100), avrundning) === fran) {
+      plan.redanHojdUtanStampel++;
+      continue;
+    }
+
     const till = roundPrice(fran * (1 + pct / 100), avrundning);
 
     // Avrundningen kan landa på samma tal som redan står där — en höjning på
@@ -276,7 +318,6 @@ export function planeraPrishojning(
       continue;
     }
 
-    const trodde = mappningensPris(m);
     const drift = trodde !== null && trodde !== fran;
     if (drift) plan.drivande++;
 

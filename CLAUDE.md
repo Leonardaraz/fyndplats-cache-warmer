@@ -914,13 +914,33 @@ AE-halvan har färg- och storleksvarianter; Aosom-halvan har det aldrig. Innan
 en befintlig funktion släpps på AE-rader: fråga vad den gör med fler än en
 variant, och mät det.
 
-☠️ **Options ligger i KROPPEN men inte i FÄLTMASKEN.** Masken betyder "skriv
-det här fältet"; Wix behöver options för att VALIDERA varianterna, inte för att
-ändra dem. I masken hade vi skrivit tillbaka hela strukturen — färgval,
-kopplade bilder och alt-texter — med vad projektionen råkade ge, och tyst
-tappat allt den utelämnat. Det är fällan med handbyggda variantobjekt, en nivå
-upp. Mätt först: options ligger i SAMMA GET som prisskrivningen redan gör, med
-`choices`, `linkedMedia` och `altText` ifyllda.
+☠️ **OCH OPTIONS MÅSTE STÅ I FÄLTMASKEN — min första fix var en no-op.** Den
+lade dem i KROPPEN men utelämnade dem ur masken, med motiveringen att Wix
+behöver options för att VALIDERA varianterna och att en skrivning kunde tappa
+det projektionen råkat utelämna. Mätningen var entydig: exakt samma produkter
+föll på exakt samma 428. **En fältmask-PATCH läser bara det som står i masken**
+— allt annat i kroppen ignoreras, så Wix såg dem aldrig. Resonemanget var
+rimligt och fel, och det som avgjorde var att felen var IDENTISKA, inte färre.
+
+✅ **Och farhågan är mätt bort, inte bortresonerad (2026-09-13).** Round-trippen
+prövades på en 75-variantsprodukt genom att skriva tillbaka EXAKT samma priser —
+samma medicin som `wix-inventory-probe`: en skrivning vars enda ändring är
+ingen ändring.
+
+| | före | efter |
+|---|---:|---:|
+| revision | 24 | **25** (skrivningen tog) |
+| optioner | 2 (Färg, Storlek) | 2 (Färg, Storlek) |
+| val med `linkedMedia` | 15 | **15** |
+| val med `altText` | 15 | **15** |
+| varianter / med SKU / synliga | 75 / 75 / 75 | **75 / 75 / 75** |
+
+Noll avvikelser. Samma produkt mättes en gång till efter en SKARP höjning
+(499 → 549): fortfarande noll avvikelser mot samma facit. Strukturen tas
+oförändrad ur produktens EGEN GET, som redan går med
+`?fields=VARIANT_OPTION_CHOICE_NAMES` — projektionen vars hela syfte är att
+bära valens namn. Det är samma round-trip-princip som `visible`, inte ett
+handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
 
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 

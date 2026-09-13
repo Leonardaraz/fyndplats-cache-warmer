@@ -169,6 +169,61 @@ describe("planeraPrishojning", () => {
     expect(plan.rader[0].till % 10).toBe(9);
   });
 
+  it("☠️ ett pris som ÄR kampanjens höjning av mappningens höjs ALDRIG igen", () => {
+    // Signaturen för en höjning som skett men vars stämpel skrivits över av en
+    // samtidig läs-ändra-skriv. 499 × 1,10 → charm99 = 549, och butiken står
+    // redan på 549. Höjs den igen blir det 609 — exakt 599 → 659 → 725.
+    const m = [
+      mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 499 }] as never }),
+    ];
+    const w = new Map([["p1", pris(549)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(0);
+    expect(plan.redanHojdUtanStampel).toBe(1);
+  });
+
+  it("☠️ vanlig drift höjs ÄNDÅ — grinden är aritmetisk, inte en riktning", () => {
+    // Husets dokumenterade drift: bäddsoffan bar grossSek 3529 mot 4 539 kr i
+    // Wix. Butiken är HÖGRE, men 3529 × 1,10 → charm99 blir inte 4539, så
+    // raden har aldrig höjts och ska höjas. En riktningsgrind hade hoppat
+    // över den — och över varje annan rad som bara laggar.
+    const m = [
+      mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 3529 }] as never }),
+    ];
+    const w = new Map([["p1", pris(4539)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(1);
+    expect(plan.redanHojdUtanStampel).toBe(0);
+    expect(plan.drivande).toBe(1);
+  });
+
+  it("butiken LÄGRE än mappningen höjs — grinden kräver att butiken ligger över", () => {
+    const m = [
+      mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 899 }] as never }),
+    ];
+    const w = new Map([["p1", pris(599)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(1);
+    expect(plan.redanHojdUtanStampel).toBe(0);
+  });
+
+  it("mappning UTAN pris höjs — frånvaro är ingen bevisning om att butiken höjts", () => {
+    // Samma hållning som `unknown` i hyllstatusen och `aosomSyncedQty`: ett
+    // saknat fält är inget belägg, och en grind som fäller på det hade
+    // stoppat varje rad som saknar grossSek.
+    const m = [
+      mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1" }] as never }),
+    ];
+    const w = new Map([["p1", pris(599)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(1);
+    expect(plan.redanHojdUtanStampel).toBe(0);
+  });
+
   it("en höjning som avrundas bort blir ingen skrivning", () => {
     const m = [mappning({ wixProductId: "p1" })];
     const w = new Map([["p1", pris(599)]]);
