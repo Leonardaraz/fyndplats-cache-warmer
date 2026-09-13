@@ -1605,6 +1605,72 @@ Läsprojektionen släpar alltså efter skrivningen. **Facit är bulk-svarets
 `tolkaBulkUtfall` redan bygger på. En snabb återläsning kan UNDERrapportera,
 och en omkörning på den signalen är ofarlig men vilseledande.
 
+##### ☠️ Och PRODUKTläsningen släpar likadant — fast åt det DYRA hållet (2026-09-13)
+
+Raden ovan gäller kategorier, där en efterläsning som underrapporterar bara
+leder till en ofarlig omkörning. Samma sak mätt på PRODUKTEN i runda M2, och
+där kostar felriktningen mer.
+
+Åtta produkter skrevs i en loop som gjorde PATCH och sedan en `GET` i samma
+anrop. Två av dem — `321bdedf` och `80e1a550` — läste tillbaka som om
+INGENTING hade skrivits:
+
+```
+efter PATCH, samma anrop   plainDescription 2 530 tecken, summa 834388551
+                           (= exakt KÄLLANS kontrollsumma, alltså tyskan)
+                           slug: lebkuchenmann-…   visible: false   5 seo-taggar
+en stund senare            revision 2 → 4
+                           plainDescription 3 962 tecken, summa 881571526
+                           slug: uppblasbar-pepparkaksgubbe-…   visible: true
+```
+
+Skrivningen hade tagit hela tiden. Det var LÄSNINGEN som ljög, och den ljög
+trovärdigt: kontrollsumman stämde exakt mot källan, alltså såg svaret ut som
+ett välgrundat "din text kom aldrig fram".
+
+☠️ **Det farliga är vad man lockas göra.** Ett falskt *"ingenting skrevs"*
+inbjuder till en omskrivning av något som redan stämmer — med en revision som
+hunnit bli inaktuell, eller ovanpå en skrivning man inte visste fanns. Till
+skillnad från kategorifallet finns här inget bulk-svar att falla tillbaka på.
+
+**Regeln blir tre led, och det sista är det som gäller:**
+
+1. PATCH-svaret är ingen återläsning — dess projektion utelämnar
+   `plainDescription` och `media.itemsInfo`, så en helt lyckad skrivning
+   rapporterar `0 tecken, 0 bilder`.
+2. En återläsning i SAMMA anrop är inte heller ett kvitto.
+3. Det som räknas är en **separat läsning en stund senare**, mot ett facit
+   räknat ur filen.
+
+⚠️ Och innan du kallar en skrivning misslyckad: läs om. Fem av åtta produkter
+i samma loop läste tillbaka korrekt direkt — släpet är inte deterministiskt,
+så ett enstaka rött utfall är en anledning att titta igen, inte att skriva om.
+
+##### ☠️ Variant-SKU:n tappas TYST i en kombinerad PATCH — skriv den SIST och ENSAM
+
+Uppmätt i runda M2 på fyra produkter. En PATCH med `name` + `slug` +
+`plainDescription` + `seoData` + `visible` + `variantsInfo`, följd av en
+media-PATCH med `fieldMask: ["media"]`, skrev allt UTOM variantens `sku` — på
+**tre av fyra**.
+
+```
+skickat   variantsInfo.variants[0].sku = "FP-tomte-240-klappsack"
+lagrat    variantsInfo.variants[0].sku = "FP-weihnachtsmann-2-40-m"
+svar      200, inget fel, inget bulkActionMetadata att läsa
+```
+
+Den fjärde fick sin SKU bara för att den råkade skrivas i ett eget, senare
+anrop under felsökningen. Skriven ensam EFTER mediaskrivningen tog den på 8/8.
+
+**Ordningen är alltså inte valfri:** text och identitet först, media sedan,
+`variantsInfo` i ett EGET sista anrop — och verifierad i en separat läsning
+enligt regeln ovan.
+
+Besläktad med `variantsInfo.variants[].media`, som inte går att sätta efter
+skapandet och strippas tyst av bulk-skrivningar. Mönstret är detsamma:
+**`variantsInfo` tål inte att samåka med andra fält**, och den tiger när den
+inte tas emot.
+
 #### ☠️ Filgrinden täcker bara halva vägen — grinda den PUBLICERADE texten
 
 Raden ovan sa "ögon efter". Ögon räcker inte: batch 65:s två fel stod kvar i
