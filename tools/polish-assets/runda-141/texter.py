@@ -327,7 +327,7 @@ KORS_TEXT = {
     "8de3c3ef": "Behöver du mer utrymme eller ett ställ för skivstång, se",
     "7b818c3b": "Vill du ha stället inbyggt eller en mindre bänk, se",
     "8a0e05f4": "Ska bänken ta mindre plats eller ha svängbara armar, se",
-    "b4961e6f": "Bänken finns också i rött, och en närliggande modell är",
+    "b4961e6f": "Färgsyskonet och en besläktad modell:",
     "83b2cf8b": "Jämför gärna med",
     "a4bbe667": "Jämför gärna med",
     "18b94738": "Vill du ha en bänk i stål i stället, se",
@@ -641,4 +641,10 @@ SKU = {p: "FP-" + _G.sku_bas(s) for p, s in SLUG.items()}
 # saker, och den forvaxlingen skrev till ingenting i en manad.
 WIX_VARIANT = {
     "8de3c3ef": "f73e3b04-cb5e-498c-a946-11d43e7cbac7",
+    "7b818c3b": "224591d6-baf5-418a-b26a-9dc45bbecda4",
+    "8a0e05f4": "7484332f-c35c-4d6a-a3e9-db4b0f4729ee",
+    "b4961e6f": "87a08006-6b5b-4a87-98eb-12446b1d5a9e",
+    "83b2cf8b": "d13aa3c9-ba02-4c5f-a49a-9897e85604b4",
+    "a4bbe667": "127faf4b-bf5d-45c3-b8a2-04b4be24741f",
+    "18b94738": "3629b4ab-ab28-47b2-9d81-c820ad6a3e0c",
 }
