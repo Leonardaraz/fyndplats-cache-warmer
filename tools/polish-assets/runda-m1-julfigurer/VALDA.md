@@ -73,3 +73,84 @@ Samma familj som #218 (`Massagesessel` mot `Relaxsessel`): **ett familjefilter
 är ett NAMNfilter, och ett namnfilter mäter stavning, inte betydelse.** Skillnaden
 här är att båda felen var osynliga — en lista på 199 rader ser lika rimlig ut som
 en på 47, tills man läser namnen.
+
+## Skrivningen till Wix — kvitto
+
+| kontroll | utfall |
+|---|---|
+| text mot källfil (kontrollsumma) | **8/8 LIKA** |
+| namn, slug, `visible: true` | 8/8 |
+| SEO: två taggar, tyskt nyckelord rensat | 8/8 |
+| alt-texter | **34 satta, 0 tyska** |
+| bilder | 34 (fem borttagna, se `bilder-bort.tsv`) |
+| variant-SKU | **8/8**, alla unika — tre delade `FP-aufblasbare` |
+| variantens `visible` och priset | orörda på alla åtta |
+| kategorier | **23 av 23**, noll fel |
+
+### ☠️ Grinden låg INNE i skrivanropet, inte bredvid
+
+Regeln säger *skriv i en fil först*, och den räcker inte: filen skickas inte,
+den TRANSKRIBERAS in i API-anropets kropp, och det är i den kopieringen
+`fontagen-weight` uppstod. Den här rundan flyttade därför grinden in i
+anropet. Varje produkt bar sin förväntade längd och kontrollsumma, räknad
+lokalt ur filen genom `wixnorm`, och koden **vägrar PATCHa** om texten inte
+stämmer:
+
+```js
+if (j.text.length !== j.forvantat.tecken || summa(j.text) !== j.forvantat.summa) {
+  return { AVBRUTET: "transkriberingen avviker — INGET skrevs", … };
+}
+```
+
+Åtta av åtta passerade, och återläsningen bekräftade samma summa i Wix.
+
+### ☠️ PATCH-SVARET ÄR INGEN ÅTERLÄSNING — och det såg ut som ett misslyckande
+
+Första skrivningen (`d0aeb070`) rapporterade i PATCH-svaret:
+
+```
+textLika: false   lagradTecken: 0   bilder: 0   altSatta: 0
+```
+
+Ingenting var fel. Svarets projektion utelämnar `plainDescription` och
+`media.itemsInfo` om man inte begär dem — och en PATCH tar ingen
+`fields`-parameter i kroppen. En separat `GET …?fields=PLAIN_DESCRIPTION`
+gav `3417 tecken, summa 481527550, LIKA` och fyra satta alt-texter.
+
+⚠️ **Riktningen är farligare än media-släpningen i L4.** Där UNDERrapporterade
+läsningen ett lyckat utfall. Här ser en fullt genomförd skrivning ut som en
+som skrev noll tecken och tappade alla bilder — och den naturliga reaktionen
+är att skriva om, eller att börja felsöka något som inte är trasigt.
+
+**Regeln: verifiera aldrig mot PATCH-svaret. Läs tillbaka med rätt
+projektion, i en egen runda efter att alla skrivningar är gjorda.**
+
+## Mappningsraden — las + stampla
+
+Sexton körningar, alla med explicit `ref` mot grenen (aldrig `main`, #181).
+
+| läge | körningar | utfall |
+|---|---|---|
+| `las` | 2839–2846 | **8/8 gröna** |
+| `stampla` | 2847–2854 | **8/8 gröna** |
+
+En grön `las` ÄR prisgrindens kvitto — workflowen avslutar med `exit 1` på
+både `stammer: false` och `EJ AVGORBAR`.
+
+## Live-verifieringen — 8/8 REN
+
+Hämtat ISR-medvetet: varm träff, 305 s väntan, sedan skarp hämtning. Alla
+åtta svarade HTTP 200.
+
+```
+d0aeb070  ord=498  diff=0  -> REN     7278ea50  ord=428  diff=0  -> REN
+be4a760b  ord=481  diff=0  -> REN     5a14cc4d  ord=497  diff=0  -> REN
+ef75aa9a  ord=401  diff=0  -> REN     4fc04535  ord=481  diff=0  -> REN
+69331178  ord=429  diff=0  -> REN     3225c539  ord=436  diff=0  -> REN
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+⚠️ `d0aeb070` kom tillbaka med `age: 482` mot de andras 101 — alltså en äldre
+rendering. Den låg ändå efter skrivningen (som gjordes ~20 minuter tidigare)
+och gav orddiff 0, så den behövde inte hämtas om. Läs `age` innan du kallar
+en sida trasig, och läs om de som faller.
