@@ -62,12 +62,26 @@ const HOPPA_OVER = /\/live\/|\.(jpe?g|png|gif|webp|ico|pdf|zip)$/i;
 // tomt underlag ser för en grind ut precis som ett rent. `-z` ger råa
 // NUL-separerade sökvägar och citerar aldrig.
 function sparadeFiler(): string[] {
-  const ut = execFileSync("git", ["ls-files", "-z", OMFANG], {
-    cwd: ROT,
-    encoding: "utf-8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  const filer = ut.split("\0").filter((f) => f && !HOPPA_OVER.test(f));
+  const gitFiler = (args: string[]) =>
+    execFileSync("git", args, { cwd: ROT, encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 })
+      .split("\0")
+      .filter(Boolean);
+  // ☠️ OSPÅRADE FILER RÄKNAS OCKSÅ. `git ls-files` utan flaggor ser bara det
+  // som redan är i indexet — alltså INTE rundans nyskrivna körlogg, som är
+  // just den fil där jag skriver PROSA om produkterna. Uppmätt 2026-09-13 på
+  // runda M4: grinden gick grön på en `LÄS-MIG.md` den aldrig hade läst.
+  //
+  // Att den ändå täcker allt vid commit (då är filerna staged) är inget
+  // försvar: en grind som är blind när man kör den för hand är blind precis
+  // när man använder den. Samma klass som `-z`-buggen nedan och som SKU-kollen
+  // — ett tomt underlag ser för en grind ut precis som ett rent.
+  //
+  // `--exclude-standard` gör att .gitignore fortfarande gäller, så hämtade
+  // live-sidor och byggrester räknas inte.
+  const filer = [
+    ...gitFiler(["ls-files", "-z", OMFANG]),
+    ...gitFiler(["ls-files", "-z", "--others", "--exclude-standard", OMFANG]),
+  ].filter((f) => !HOPPA_OVER.test(f));
   // En citerad sökväg har tagit sig igenom om någon tar bort -z igen.
   expect(filer.filter((f) => f.startsWith('"'))).toEqual([]);
   return filer;
