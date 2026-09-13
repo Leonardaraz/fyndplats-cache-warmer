@@ -74,6 +74,15 @@ def axelpar(rad):
     return ut
 
 
+def _talen(rad):
+    """Talen i en måttrad, normaliserade — för att jämföra tysk mot svensk.
+
+    Bara siffrorna jämförs: bokstaven är ju precis det som skiljer raderna åt,
+    och `,`/`.` som decimaltecken är notation och inte ett annat mått.
+    """
+    return [x.replace(",", ".") for x in re.findall(r"\d+(?:[.,]\d+)?", rad)]
+
+
 def tal(s):
     """'170' -> 170, '87/156' -> [87, 156], '53,5' -> 53.5 (jämförs inte)."""
     delar = re.split(r"[/-]", s)
@@ -107,6 +116,39 @@ def main():
                 break
         d = {"tyska": tysk, "svenska": svensk}
         par = axelpar(tysk)
+        # ☠️ DEN TYSKA TOTALRADEN BÄR INTE ALLTID EN AXELBOKSTAV. Uppmätt i
+        # runda M4 på 86fdd9af: `Gesamtabmessung: Ø70 x 210 cm` — ingen `H`
+        # alls, alltså noll par och en generator som avbryter. Men den SVENSKA
+        # spec-raden på samma produkt säger `Ø70 x 210H cm` och bär bokstaven.
+        #
+        # Båda raderna är källans egna och båda är kundsynliga, så det är
+        # ingen gissning att läsa den andra när den första tiger. Ordningen är
+        # däremot inte godtycklig: den tyska går FÖRST, eftersom det är den
+        # gate-axel jämför bokstäverna mot när de två är oense (#226).
+        # Fallbacken noteras i `axelkalla` så att en läsare ser vilken rad
+        # facit faktiskt kommer ur.
+        #
+        # ☠️ OCH DEN FÅR BARA FYRA NÄR DET FINNS EN TYSK TOTALRAD ATT RÄDDA.
+        # Första utkastet villkorade bara på `svensk`, och regressionen fann
+        # direkt vad det kostar: isbjörnsparet 5a14cc4d i M1 har INGEN tysk
+        # totalrad (bara `Große`/`Kleine Bärenabmessungen`, två figurer utan
+        # gemensamt mått) — men en svensk `Mått:`-rad med den STORA björnens
+        # tal. Fallbacken gjorde då om ett korrekt `axellös` till ett facit
+        # som påstår att setet är 80 x 30 x 60. Ett facit som ljuger är värre
+        # än inget facit: grinden fäller då på korrekt text.
+        #
+        # `tysk` är villkoret, inte `delmatt`: skillnaden mellan de två fallen
+        # är precis om källan PÅSTÅR ett totalmått överhuvudtaget.
+        #
+        # ☠️ OCH TALEN MÅSTE VARA SAMMA TAL. Den svenska raden är en
+        # översättning av den tyska, inte en andra mätning — skiljer de sig åt
+        # är det inte en saknad bokstav utan två olika mått, och då vet vi inte
+        # vilket som gäller. Generatorn avbryter hellre än väljer.
+        if not par and tysk and svensk:
+            kandidat = axelpar(svensk)
+            if kandidat and _talen(svensk) == _talen(tysk):
+                par = kandidat
+                d["axelkalla"] = "svenska spec-raden (tyska raden saknar axelbokstav)"
         if not par:
             # ☠️ EN PRODUKT KAN SAKNA TOTALMÅTT PÅ RIKTIGT. Uppmätt i M1 på
             # isbjörnsparet 5a14cc4d: källan har "Große Bärenabmessungen" och
