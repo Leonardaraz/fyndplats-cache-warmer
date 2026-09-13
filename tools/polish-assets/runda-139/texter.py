@@ -230,7 +230,7 @@ PUNKTER = {
     "b04b5375": [
         "Tvåvåningsdel 40 × 28 × 73 cm med sisallindad stam",
         "Hängmatta på Ø30 cm och 5 cm djup",
-        "Tre fristående klivsteg, var och ett Ø20 × 32 cm",
+        "Tre fristående klivsteg, var och ett Ø20 × 32 cm och sisallindat",
         "Hyllplanen har rundade kanter",
         "Alla fyra delarna monteras var för sig, där du vill ha dem",
         "Tar ingen golvyta alls",
@@ -346,15 +346,15 @@ BRUK = {
                 "med mer än sin egen vikt, så sätt dem i regel eller betong, inte "
                 "enbart i gipsskiva. Börja med den lägsta delen och arbeta uppåt, "
                 "så ser du att stegen mellan delarna blir lagom.",
-    "90573e36": "Mät takhöjden först: stolpen räcker från 220 till 240 cm. Ställ "
-                "fotplattan på plant golv, dra ut stolpen till taket och spänn. "
+    "90573e36": "Ställ fotplattan på plant golv där du vill ha trädet, dra ut "
+                "stolpen till taket och spänn. "
                 "Tippskyddsremmen fästs sedan i väggen. Kontrollera spänningen "
                 "efter någon vecka — golv och tak rör sig, och en stolpe som "
                 "glappat blir ostadig.",
     "a4d8feca": "Ingen montering behövs — den ställs bara ner. Det gör den lätt att "
                 "flytta mellan rum, vilket är praktiskt om du inte vet var katten "
-                "vill ha den. Den väger under sju kilo, så det går att bära den med "
-                "en hand.",
+                "vill ha den. Den tar Ø35 cm av golvet, alltså mindre än en "
+                "köksstol, och kan stå i ett hörn eller intill en soffa.",
     "b04b5375": "Huvuddelen bär hängmattan och tål mest, så börja med den och sätt "
                 "den på den höjd du vill att katten ska landa. Klivstegen sätts "
                 "sedan i en stigande linje fram till den. Välj skruv och plugg efter "
@@ -500,9 +500,8 @@ SPEC = {
     "b04b5375": [
         ("Mått, huvuddelen", "40 × 28 × 73 cm (L × B × H)"),
         ("Antal delar", "4"),
-        ("Klösstam", "Ø20 × 32 cm"),
         ("Hängmatta", "Ø30 × 5 cm"),
-        ("Klivsteg", "3 stycken"),
+        ("Klivsteg", "3 stycken, Ø20 × 32 cm vardera, sisallindade"),
         ("Material", "spånskiva, plysch och sisal"),
         ("Färg", "beige och krämvitt"),
         ("Rekommenderad kattvikt", "upp till 5 kg"),
@@ -570,8 +569,8 @@ FAQ = {
         ("Hur stor katt passar den?", "Den är gjord för katter upp till 5 kg."),
     ],
     "3a96740e": [
-        ("Hur många liggplatser finns det?", "Fem: hålan, den runda korgen, "
-         "hängbädden och två plana ytor."),
+        ("Hur många liggplatser finns det?", "Fem, i tre olika utföranden: "
+         "hålan, den runda korgen, hängbädden och två plana ytor."),
         ("Hur stor är hålan?", "30 × 25 cm."),
         ("Hur mycket väger trädet?", "14 kg. Det gör det stadigt, men också "
          "otympligt att flytta ensam."),
