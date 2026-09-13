@@ -67,9 +67,25 @@ FORBJUDET = [
      "HUSMÄRKE i texten — bilden får bära det, texten aldrig"),
     (re.compile(r"sand(?:en)?\s+(?:ing[åa]r|f[öo]ljer\s+med|medf[öo]ljer)"
                 r"(?!\s+inte)", re.I),
-     "LOVAR FYLLNING — sanden ingår inte (förbud 3)"),
-    (re.compile(r"(?:de\s+flesta|m[åa]nga\s+andra|vanliga)\s+"
-                r"(?:fristående\s+)?(?:boxningss[äa]ck|punchingboll)", re.I),
+     "LOVAR FYLLNING — sanden ingår inte (förbud 3)", True),
+    # ☠️ Monstret krävde ordet `boxningssäck` eller `punchingboll` rakt
+    #    efter jamforelsen. 95f6280b skrev "de flesta fristående SÄCKAR"
+    #    och gick igenom en gron grind — ett ord ifran att fallas.
+    #    Jamforelseorden star nu for sig och produktordet ar en bred
+    #    lista med upp till tva ord emellan.
+    #    ⚠️ `steg` ar MEDVETET UTE ("skruvas ihop i de flesta steg" ar
+    #    monteringen, inte marknaden), och `Vanliga frågor` ar en
+    #    OBLIGATORISK flikrubrik — den far aldrig kunna fallas.
+    (re.compile(r"(?:till\s+skillnad\s+fr[åa]n|j[äa]mf[öo]rt\s+med"
+                r"|b[äa]ttre\s+[äa]n|de\s+flesta|m[åa]nga\s+andra"
+                r"|andra\s+(?:m[äa]rken|tillverkare))"
+                r"(?:\s+\w+){0,2}\s+"
+                # ☠️ `\w*` FORE ordet: svenskan bygger sammansattningar,
+                #    och `boxningssäckar` borjar inte pa `säck`. Utan
+                #    prefixet foll rundans EGEN planterade mutation.
+                r"(?:\w*s[äa]ck\w*|\w*boll\w*|\w*st[äa]ll\w*|\w*pelar\w*"
+                r"|\w*modell\w*|\w*m[äa]rke\w*|\w*tillverkar\w*"
+                r"|\w*produkt\w*)", re.I),
      "MARKNADSPÅSTÅENDE om andra tillverkares produkter — inte mätt"),
     # ☠️ Monstret var for SMALT i forsta utkastet: det tog `familjens`
     #    och `seriens` men slappte `i familjen` och `de andra i
@@ -95,8 +111,7 @@ FORBJUDET = [
                 r"\s+inte|vi\s+har\s+(?:inga|ingen)\s+uppgift"
                 r"|(?:uppgift|uppgifter)\s+saknas|okla[rt]\b"
                 r"|g[åa]r\s+inte\s+att\s+(?:f[åa]\s+fram|ta\s+reda)", re.I),
-     "VI VET INTE — mot kunden är VI leverantören; utelämna i stället",
-     True),
+     "VI VET INTE — mot kunden är VI leverantören; utelämna i stället"),
 ]
 
 # Farg som SPECEN pastar men bilden motsager (forbud 4).
@@ -209,21 +224,28 @@ def granska(pid, html=None, live=False):
         syn = G.strip_taggar(txt) if namn in ("html", "live") else txt
         for rad in FORBJUDET:
             monster, beskrivning = rad[0], rad[1]
-            # ☠️ Ett monster som SJALVT bar en negation kan aldrig fyra
-            #    genom en negationsursakt. `VI VET INTE` matchar "anges
-            #    inte" — ursakten ser ordet `inte`, doper hela traffen
-            #    till ett korrekt nekande och slapper den. Bada
-            #    planterade mutationerna gick igenom, och den akta
-            #    meningen i 4fe5959f med dem. Sadana rader markeras
-            #    `alltid=True` och gar forbi ursakten.
-            alltid = len(rad) > 2 and rad[2]
+            # ☠️ NEGATIONSURSAKTEN GALLER EXAKT ETT FORBUD — det den
+            #    skrevs for. `loftestraff` slapper varje traff i en
+            #    mening som bar en negation, och det ar RATT for
+            #    `LOVAR FYLLNING`: "sanden ingar INTE" ar precis vad
+            #    vi vill att texten sager.
+            #
+            #    Pa alla andra forbud ar den en tyst blindhet, for
+            #    negationen ar OBEROENDE av defekten. Runda 142 matte
+            #    upp tva fall i rad:
+            #      · "Vikten anges INTE"        → VI VET INTE slapptes
+            #      · "behover VARKEN vatten
+            #         ELLER sand"               → MARKNADSPASTAENDE slapptes
+            #    I bada fallen ar meningen fortfarande fel; negationen
+            #    hor till en annan del av den. Ursakten ar darfor
+            #    OPT-IN (`rad[2]`), inte standard.
+            ursakta = len(rad) > 2 and rad[2]
             for m in monster.finditer(syn):
-                # ☠️ loftestraff ger forsta ICKE-negerade traffen. Ar
-                #    den None ar varje traff i meningen negerad, och
-                #    DA ska den ursaktas. Villkoret var inverterat i
-                #    forsta utkastet: grinden slappte varje akta fynd
-                #    och fallde bara korrekta nekanden.
-                if not alltid and not G.loftestraff(
+                # loftestraff ger forsta ICKE-negerade traffen. Ar den
+                # None ar varje traff i meningen negerad. Villkoret var
+                # dessutom INVERTERAT i forsta utkastet: grinden slappte
+                # varje akta fynd och fallde bara korrekta nekanden.
+                if ursakta and not G.loftestraff(
                         monster, G.mening_kring(syn, m.start())):
                     continue
                 fel.append("%s: %s — %r" % (namn, beskrivning,
@@ -272,6 +294,11 @@ PLANTERADE = [
      "INTERN INRAMNING"),
     ("ce8813ce", "html", "<p>Nästa steg upp i familjen.</p>",
      "INTERN INRAMNING"),
+    # ☠️ Formen som gick igenom: `säckar`, inte `boxningssäck`.
+    ("95f6280b", "html", "<p>Till skillnad från de flesta fristående "
+     "säckar behöver den ingenting.</p>", "MARKNADSPÅSTÅENDE"),
+    ("2a13cbbe", "html", "<p>Bättre än andra modeller på marknaden.</p>",
+     "MARKNADSPÅSTÅENDE"),
 ]
 
 

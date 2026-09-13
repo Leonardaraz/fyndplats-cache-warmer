@@ -29,8 +29,10 @@ REVISION = {
     # ce8813ce och 93073695 star pa 2: de skrevs med den text
     # inramningsgrinden sedan fallde, och skrivs om har.
     "56cca82a": "2", "ce8813ce": "2", "93073695": "2", "4fe5959f": "2",
-    "136a4671": "1", "2730de6f": "2", "2a13cbbe": "1", "95f6280b": "1",
-    "c8f6b93f": "1", "a8daef42": "1", "f0430bc5": "1",
+    "136a4671": "1", "2730de6f": "2", "2a13cbbe": "2", "95f6280b": "2",
+    # 95f6280b star pa 2: skrevs med det marknadspastaende grinden
+    # sedan fallde, och skrivs om har.
+    "c8f6b93f": "2", "a8daef42": "1", "f0430bc5": "1",
 }
 
 

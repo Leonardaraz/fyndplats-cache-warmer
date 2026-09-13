@@ -585,8 +585,8 @@ HTML["95f6280b"] = bygg(
     "eller vägg. Säcken är 135 centimeter hög och tar 38 centimeter i golvyta.",
     [
         ("Ingen fyllning, ingen borrning",
-         ["Till skillnad från de flesta fristående säckar behöver den här "
-          "varken vatten eller sand. Kärnan är förfylld med EPE-skum och "
+         ["Den här säcken behöver varken vatten eller sand i foten. "
+          "Kärnan är förfylld med EPE-skum och "
           "polyuretanfiber från fabrik, och foten greppar golvet med tio "
           "sugproppar. Det som ligger i kartongen är det som ska stå på golvet "
           "en kvart senare."]),
