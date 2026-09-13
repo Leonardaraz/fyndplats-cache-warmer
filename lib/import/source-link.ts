@@ -9,16 +9,49 @@ import type { MappingSupplier } from "../store";
 import { mappingSupplier } from "../store/supplier";
 import { AOSOM_ID_PREFIX } from "../aosom/to-product";
 
-/** Vad inmatningen pekar på: ett Wix-produkt-id eller en slug. */
-export type LookupTarget = { kind: "id"; id: string } | { kind: "slug"; slug: string };
+/**
+ * Vad inmatningen pekar på.
+ *
+ * ☠️ `order` OCH `sku` FINNS FÖR ATT UPPSLAGET ANNARS BÖRJAR PÅ FEL STÄLLE.
+ * Uppslaget byggdes för ett Wix-produkt-id — men det är inte vad den som ska
+ * BESTÄLLA har framför sig. Leonard 2026-09-13, med Wix ordersida uppe:
+ *
+ *   "vrf är det så komplicerad när jag kmr in i en beställning … det borde va
+ *    lätt för mig att kunna hitta vart den är länkad mot. jag kan inte ens se
+ *    det där artikelnumret du skicka till mig där. så jag måste fråga dig"
+ *
+ * Han har rätt, och det är mätbart: Wix ordersida visar ordernummer, produktnamn,
+ * variant-SKU och färg — och INGET av dem gick att klistra in här. Produkt-id:t
+ * och slugen finns inte på den sidan alls, så vägen till artikelnumret gick via
+ * en chatt. Ett verktyg som kräver ett id operatören inte kan se är inget verktyg.
+ *
+ * De två nya formerna är precis de som STÅR på ordersidan.
+ */
+export type LookupTarget =
+  | { kind: "id"; id: string }
+  | { kind: "slug"; slug: string }
+  | { kind: "order"; number: string }
+  | { kind: "sku"; sku: string };
 
 // Wix-produkt-id är ett GUID (8-4-4-4-12 hex). Slugs innehåller aldrig denna form.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Butikens ordernummer är rena siffror (10024, 10036 …). En slug kan aldrig vara
+// det: `to-product.ts` bygger alltid slugs av ord.
+const ORDERNUMMER_RE = /^#?\d{3,10}$/;
+
+// ⚠️ VÅRA variant-SKU:er, inte leverantörens. Prefixet `FP-` sätts av importen
+// och av poleringen, och det är den strängen som står i Wix orderrad. Ett
+// AOSOM-artikelnummer ska INTE tolkas här: det är hemligt och hör hemma i
+// SVARET, aldrig i en inmatning någon klistrar vidare.
+const SKU_RE = /^FP-[a-z0-9-]+$/i;
 
 /**
  * Tolkar en fri inmatning till ett uppslags-mål.
  * - "…/produkt/<slug>" (valfri domän, query/hash ignoreras) → slug
  * - rent GUID → id
+ * - rena siffror (ev. med `#`) → ordernummer
+ * - `FP-…` → variant-SKU
  * - allt annat → behandlas som slug (trimmad på kringliggande snedstreck)
  * Tom/whitespace → null.
  */
@@ -33,6 +66,10 @@ export function parseLookupInput(raw: string): LookupTarget | null {
   }
   // Rent GUID = Wix-produkt-id.
   if (UUID_RE.test(s)) return { kind: "id", id: s.toLowerCase() };
+  // Ordernummer — det operatören faktiskt har när en vara ska beställas.
+  if (ORDERNUMMER_RE.test(s)) return { kind: "order", number: s.replace(/^#/, "") };
+  // Variant-SKU som den står på Wix orderrad.
+  if (SKU_RE.test(s)) return { kind: "sku", sku: s };
   // Annars: slug. Ta bort ev. kringliggande snedstreck (t.ex. "/min-slug/").
   const slug = s.replace(/^\/+|\/+$/g, "");
   return slug ? { kind: "slug", slug } : null;

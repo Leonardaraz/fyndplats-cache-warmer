@@ -19,10 +19,16 @@ export default function SourceLookupPage() {
       </p>
       <h1>Hitta leverantörskällan</h1>
       <p style={{ fontSize: 14, color: "#444" }}>
-        Klistra in en produkts <b>Wix-produkt-id</b>, dess <b>slug</b> eller en hel{" "}
-        <b>produkt-URL</b> (t.ex. <code>https://www.fyndplats.se/produkt/…</code>) så visas{" "}
-        <b>leverantören</b>, <b>artikelnumret</b> och länken till produktsidan. Fungerar för både
-        AliExpress och Aosom, och för alla produkter som importerats via verktyget.
+        Klistra in ett <b>ordernummer</b> (t.ex. <code>10036</code>), en{" "}
+        <b>variant-SKU</b> (<code>FP-…</code>), ett <b>Wix-produkt-id</b>, en <b>slug</b> eller en
+        hel <b>produkt-URL</b> så visas <b>leverantören</b>, <b>artikelnumret</b> och länken till
+        produktsidan. Fungerar för både AliExpress och Aosom, och för alla produkter som
+        importerats via verktyget.
+      </p>
+      <p style={{ fontSize: 13, color: "#666" }}>
+        Ordernumret och SKU:n är de två som står på Wix ordersida — börja där när en vara ska
+        beställas in. Har ordern flera rader listas de i stället för att gissas; slå då upp en i
+        taget på dess SKU.
       </p>
 
       <LookupClient />

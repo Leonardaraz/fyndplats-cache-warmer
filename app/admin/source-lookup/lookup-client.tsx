@@ -3,6 +3,14 @@
 import { useState, useTransition } from "react";
 import { lookupSourceAction, type LookupResult } from "./actions";
 
+/** Hur uppslaget hittade produkten — skrivet för en människa. */
+const MATCHNINGSNAMN: Record<string, string> = {
+  id: "produkt-id",
+  slug: "slug",
+  order: "ordernummer",
+  sku: "variant-SKU",
+};
+
 export function LookupClient() {
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
@@ -58,8 +66,32 @@ export function LookupClient() {
           <div style={{ fontWeight: 600, fontSize: 15 }}>{result.title ?? "(namnlös produkt)"}</div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
             {result.variantCount} varianter · Wix: <code>{result.wixProductId}</code> · matchad via{" "}
-            {result.matchedBy === "id" ? "produkt-id" : "slug"}
+            {MATCHNINGSNAMN[result.matchedBy]}
           </div>
+
+          {/* ⚠️ VILKEN VARIANT KUNDEN KÖPTE, inte bara vilken produkt. En sida
+              med flera färger har en SKU per variant, och det är den raden som
+              ska beställas — inte "produkten". */}
+          {result.orderrad ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                background: "#f1f5ff",
+                borderRadius: 6,
+                fontSize: 13,
+              }}
+            >
+              Order <b>{result.orderrad.number}</b> · {result.orderrad.quantity} st ·{" "}
+              {result.orderrad.sku ? (
+                <>
+                  variant <code>{result.orderrad.sku}</code>
+                </>
+              ) : (
+                "variant saknas på orderraden"
+              )}
+            </div>
+          ) : null}
 
           <div style={{ marginTop: 10, fontSize: 14 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

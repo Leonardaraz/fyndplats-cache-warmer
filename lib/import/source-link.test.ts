@@ -53,6 +53,39 @@ describe("parseLookupInput", () => {
     expect(parseLookupInput("   ")).toBeNull();
     expect(parseLookupInput("/")).toBeNull();
   });
+
+  // ☠️ DE HÄR TVÅ FORMERNA ÄR DE ENDA SOM STÅR PÅ WIX ORDERSIDA. Uppslaget
+  // byggdes för ett Wix-produkt-id, och det syns inte där — så vägen från
+  // "jag har en beställning" till "var köper jag in den" gick via en chatt.
+  // Se kommentaren vid LookupTarget.
+  it("rena siffror är ett ORDERNUMMER, inte en slug", () => {
+    expect(parseLookupInput("10036")).toEqual({ kind: "order", number: "10036" });
+    expect(parseLookupInput("  #10036 ")).toEqual({ kind: "order", number: "10036" });
+  });
+
+  it("FP-prefixet är en variant-SKU", () => {
+    expect(parseLookupInput("FP-rollator-med-sits-bla")).toEqual({
+      kind: "sku",
+      sku: "FP-rollator-med-sits-bla",
+    });
+  });
+
+  // ⚠️ Åt ANDRA hållet: de nya mönstren får inte äta slugs. En slug som börjar
+  // med siffror eller innehåller "fp" ska fortsatt bli en slug — annars slutar
+  // det gamla uppslaget fungera för att det nya lades till.
+  it("tar inte över slugs som bara liknar de nya formerna", () => {
+    expect(parseLookupInput("180-cm-julgran")).toEqual({ kind: "slug", slug: "180-cm-julgran" });
+    expect(parseLookupInput("fp-bord")).toEqual({ kind: "sku", sku: "fp-bord" });
+    expect(parseLookupInput("fpbord-ek")).toEqual({ kind: "slug", slug: "fpbord-ek" });
+    expect(parseLookupInput("10")).toEqual({ kind: "slug", slug: "10" });
+  });
+
+  it("ett Wix-produkt-id är fortfarande ett id", () => {
+    expect(parseLookupInput("08f67f7e-9902-48db-9665-07983c149b8d")).toEqual({
+      kind: "id",
+      id: "08f67f7e-9902-48db-9665-07983c149b8d",
+    });
+  });
 });
 
 describe("aliexpressUrlFor", () => {

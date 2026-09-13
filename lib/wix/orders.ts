@@ -75,6 +75,71 @@ interface WixOrderLineItem {
   price?: { amount?: string };
 }
 
+export interface OrderRadForUppslag {
+  lineItemId?: string;
+  productId?: string;
+  sku?: string;
+  productName?: string;
+  quantity: number;
+}
+
+export interface OrderForUppslag {
+  orderId: string;
+  number: string;
+  status?: string;
+  paymentStatus?: string;
+  createdAt?: string;
+  rader: OrderRadForUppslag[];
+}
+
+/**
+ * Hämtar EN order på dess butiksordernummer (10036, inte order-GUID:et).
+ *
+ * ☠️ FINNS FÖR ATT ORDERNUMRET ÄR DET OPERATÖREN HAR. Vägen till "var köper
+ * jag in den här?" gick tidigare via ett Wix-produkt-id som inte syns någonstans
+ * på Wix ordersida — se kommentaren vid `LookupTarget` i source-link.ts. Raden
+ * bär `catalogReference.catalogItemId`, alltså produkt-id:t, så ett ordernummer
+ * räcker hela vägen till mappningen.
+ *
+ * ⚠️ Filtrerar INTE på status. En avbruten eller obetald order ska kunna slås
+ * upp också — den som frågar vill veta vad raden pekar på, inte om den är
+ * betald, och ett tomt svar på en order som finns är det förvirrande utfallet.
+ */
+export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppslag | null> {
+  const body = {
+    search: {
+      filter: { number: String(nummer) },
+      cursorPaging: { limit: 5 },
+    },
+  };
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/search`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/search misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { orders?: WixOrder[] };
+  const order = (data.orders ?? [])[0];
+  if (!order) return null;
+  return {
+    orderId: order.id,
+    number: order.number ?? String(nummer),
+    status: order.status,
+    paymentStatus: order.paymentStatus,
+    createdAt: order._createdDate ?? order.createdDate,
+    rader: (order.lineItems ?? []).map((r) => ({
+      lineItemId: r.id,
+      productId: r.catalogReference?.catalogItemId,
+      sku: r.physicalProperties?.sku,
+      productName: r.productName?.original ?? r.productName?.translated,
+      quantity: r.quantity ?? 1,
+    })),
+  };
+}
+
 /**
  * Hämtar alla orders skapade efter `sinceIso` (paginerat). Default-statusfiltret
  * släpper igenom alla utom INITIATED/CANCELED — vi vill bara räkna riktiga
