@@ -156,10 +156,10 @@ HTML["ce8813ce"] = bygg(
           "reaktionsträning snarare än kraftträning."]),
     ],
     ("Behöver du ett högre läge?",
-     "Nästa steg upp i familjen är " +
+     "Se " +
      lank("punchingboll-136-154-cm-fyra-lagen",
           "punchingbollen med fyra fasta lägen mellan 136 och 154 centimeter") +
-     ", som har en bredare fot på 48 centimeter."),
+     ", som står på en bredare fot: 48 centimeter i diameter."),
     [
         R("Höjd", "133–151 cm"),
         R("Fot", "Ø43 × 13,5 cm"),
@@ -213,10 +213,9 @@ HTML["ce8813ce"] = bygg(
 
 
 HTML["93073695"] = bygg(
-    "Den här punchingbollen har något de andra i familjen saknar: en viktsäck "
-    "på 15 kilo som spänns runt foten utöver fyllningen. Det är den enskilt "
-    "billigaste vägen till ett ställ som inte rör sig, och säcken går att "
-    "lyfta av och använda för sig.",
+    "Den här punchingbollen har en viktsäck på 15 kilo som spänns runt foten "
+    "utöver fyllningen. Det är den enskilt billigaste vägen till ett ställ som "
+    "inte rör sig, och säcken går att lyfta av och använda för sig.",
     [
         ("Viktsäcken är 15 kilo ovanpå fyllningen",
          ["Runt foten sitter en röd säck med bärhandtag som rymmer 15 kilo. "
@@ -336,9 +335,10 @@ HTML["4fe5959f"] = bygg(
     [
         ("Vilka höjder går den att ställas i?",
          "Fyra fasta lägen: 136, 142, 148 och 154 centimeter."),
-        ("Hur mycket rymmer foten?",
-         "Vikten anges inte för den här modellen — foten är 48 × 23 centimeter "
-         "och fylls med vatten eller sand tills den står stadigt."),
+        ("Vad fyller jag foten med?",
+         "Vatten eller sand. Foten är 48 centimeter i diameter och 23 "
+         "centimeter hög, och sand ger mer tyngd än vatten på samma volym. "
+         + FYLLNING_INGAR_EJ),
         ("Ingår en luftpump?",
          "Nej. Den här modellen levereras med punchingbollen och ett par "
          "boxhandskar."),

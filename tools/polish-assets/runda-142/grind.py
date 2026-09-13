@@ -71,11 +71,32 @@ FORBJUDET = [
     (re.compile(r"(?:de\s+flesta|m[åa]nga\s+andra|vanliga)\s+"
                 r"(?:fristående\s+)?(?:boxningss[äa]ck|punchingboll)", re.I),
      "MARKNADSPÅSTÅENDE om andra tillverkares produkter — inte mätt"),
-    (re.compile(r"\bfamiljens\b|\bseriens\b|\bi\s+den\s+h[äa]r\s+"
-                r"(?:serien|familjen|gruppen|omg[åa]ngen)\b", re.I),
+    # ☠️ Monstret var for SMALT i forsta utkastet: det tog `familjens`
+    #    och `seriens` men slappte `i familjen` och `de andra i
+    #    familjen` — samma defekt, annan bojning. Tva meningar gick
+    #    igenom en gron grind. `omg[åa]ng` ar MEDVETET UTE: "en lang
+    #    omgang" ar ett traningsord i den har familjen, inte en
+    #    inramning, och ett falsklarm per sida lar lasaren att sluta
+    #    lasa grinden.
+    (re.compile(r"\bfamilj\w*|\bserien\b|\bseriens\b|\bsortiment\w*"
+                r"|\bi\s+den\s+h[äa]r\s+(?:gruppen|omg[åa]ngen)\b", re.I),
      "INTERN INRAMNING — kunden landar på EN sida och ser ingen familj"),
     (re.compile(r"storleksklass", re.I),
      "ODEFINIERAD JÄMFÖRELSEMÄNGD — 'storleksklass' är inte mätt"),
+    # ☠️ VI VET INTE-FORMELN. Runbookens Steg 7: "Att skriva att vi inte
+    #    vet ... Mot kunden är VI leverantören. Vet vi inte — utelämna,
+    #    eller ta reda på det." Grinden saknades i runda 142:s forsta
+    #    utkast, och `4fe5959f` skrev "Vikten anges inte for den har
+    #    modellen" rakt in i en FAQ. Den PASSIVA formen ar den farliga:
+    #    "anges inte", "uppges inte" later som en uppgift om varan i
+    #    stallet for ett erkannande att vi inte kollat.
+    (re.compile(r"(?:anges|uppges|specificeras|redovisas|framg[åa]r)"
+                r"\s+inte|leverant[öo]ren\s+(?:uppger|anger|specificerar)"
+                r"\s+inte|vi\s+har\s+(?:inga|ingen)\s+uppgift"
+                r"|(?:uppgift|uppgifter)\s+saknas|okla[rt]\b"
+                r"|g[åa]r\s+inte\s+att\s+(?:f[åa]\s+fram|ta\s+reda)", re.I),
+     "VI VET INTE — mot kunden är VI leverantören; utelämna i stället",
+     True),
 ]
 
 # Farg som SPECEN pastar men bilden motsager (forbud 4).
@@ -186,14 +207,24 @@ def granska(pid, html=None, live=False):
         falt = {"live": html} if live else dict(falt, html=html)
     for namn, txt in falt.items():
         syn = G.strip_taggar(txt) if namn in ("html", "live") else txt
-        for monster, beskrivning in FORBJUDET:
+        for rad in FORBJUDET:
+            monster, beskrivning = rad[0], rad[1]
+            # ☠️ Ett monster som SJALVT bar en negation kan aldrig fyra
+            #    genom en negationsursakt. `VI VET INTE` matchar "anges
+            #    inte" — ursakten ser ordet `inte`, doper hela traffen
+            #    till ett korrekt nekande och slapper den. Bada
+            #    planterade mutationerna gick igenom, och den akta
+            #    meningen i 4fe5959f med dem. Sadana rader markeras
+            #    `alltid=True` och gar forbi ursakten.
+            alltid = len(rad) > 2 and rad[2]
             for m in monster.finditer(syn):
                 # ☠️ loftestraff ger forsta ICKE-negerade traffen. Ar
                 #    den None ar varje traff i meningen negerad, och
                 #    DA ska den ursaktas. Villkoret var inverterat i
                 #    forsta utkastet: grinden slappte varje akta fynd
                 #    och fallde bara korrekta nekanden.
-                if not G.loftestraff(monster, G.mening_kring(syn, m.start())):
+                if not alltid and not G.loftestraff(
+                        monster, G.mening_kring(syn, m.start())):
                     continue
                 fel.append("%s: %s — %r" % (namn, beskrivning,
                                             G.mening_kring(syn, m.start())[:90]))
@@ -231,6 +262,16 @@ PLANTERADE = [
     # Bevisar att versalkansligheten inte avvapnade grinden.
     ("f0430bc5", "html", "<p>Stationen är provad mot EN 957.</p>",
      "OGRUNDAD CERTIFIERING"),
+    # ☠️ Den PASSIVA formen — den som faktiskt stod i 4fe5959f.
+    ("4fe5959f", "html", "<p>Vikten anges inte för den här modellen.</p>",
+     "VI VET INTE"),
+    ("c8f6b93f", "html", "<p>Leverantören uppger inte maxlasten.</p>",
+     "VI VET INTE"),
+    # ☠️ Bojningarna grinden SLAPPTE igenom i forsta utkastet.
+    ("93073695", "html", "<p>Något de andra i familjen saknar.</p>",
+     "INTERN INRAMNING"),
+    ("ce8813ce", "html", "<p>Nästa steg upp i familjen.</p>",
+     "INTERN INRAMNING"),
 ]
 
 
