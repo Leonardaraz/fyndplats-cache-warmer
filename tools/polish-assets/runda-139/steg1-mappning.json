@@ -1,0 +1,19 @@
+{
+  "matt": "2026-09-13, polish-mapping.yml mode=las, korning 2789 + 2791-2800, ett jobblogg last per produkt",
+  "regel_prisgrind": "stammer:false -> jobbet stannar. Ror inte priset.",
+  "regel_lager": "saldo 0 = SLUTSALD hos Aosom (ny grind sedan runda 138). Sidan saljer ingenting. Polera sist.",
+  "regel_frakt": "aosomFreightShare over 0,5 = frakten kostar mer an varan -> polera sist.",
+  "produkter": [
+    {"p8":"05c91630","stammer":true,"saldo":0,    "frakt":0.487,"wixVariantId":"40139245-019f-40a3-8238-aa12bcc9bd15","grossSek":899, "tidigare_sku":"FP-katzenbaum",             "beslut":"SKJUTS UPP — slutsald hos Aosom"},
+    {"p8":"1467588a","stammer":true,"saldo":50,   "frakt":0.466,"wixVariantId":"1a4b9543-1030-4ec8-89f4-e1f9f6a05777","grossSek":859, "tidigare_sku":"FP-kratzbaum-eine-plattform","beslut":"kandidat"},
+    {"p8":"27b607dc","stammer":true,"saldo":64,   "frakt":0.464,"wixVariantId":"1f5966d9-c1e4-4174-a64a-be84bfa72817","grossSek":869, "tidigare_sku":"FP-kratzbaum-inkl-spielzeug","beslut":"kandidat"},
+    {"p8":"3a96740e","stammer":true,"saldo":58,   "frakt":0.458,"wixVariantId":"67b82ca4-5701-4288-ab03-5b6244da5627","grossSek":1019,"tidigare_sku":"FP-kratzbaum-mit",           "beslut":"kandidat"},
+    {"p8":"3addfbf8","stammer":true,"saldo":197,  "frakt":0.388,"wixVariantId":"3b0132bd-21b1-4b16-86c3-25007a8b0455","grossSek":899, "tidigare_sku":"FP-kratzbaum-katzenbaum",   "beslut":"kandidat"},
+    {"p8":"4faf9f4c","stammer":true,"saldo":45,   "frakt":0.482,"wixVariantId":"c223a162-ce27-4621-9eed-e770f82c3a1c","grossSek":849, "tidigare_sku":"FP-kratzbaum-inkl",         "beslut":"kandidat"},
+    {"p8":"8d074911","stammer":true,"saldo":86,   "frakt":0.392,"wixVariantId":"04ddcd2a-7726-4c36-a13d-e3f91e161d97","grossSek":1129,"tidigare_sku":"FP-wandmontiertes-kratzbaum","beslut":"kandidat"},
+    {"p8":"90573e36","stammer":true,"saldo":197,  "frakt":0.411,"wixVariantId":"34f61c13-7b0a-4cc9-bce1-6565f4563ef9","grossSek":979, "tidigare_sku":"FP-katzenbaum-hohle",       "beslut":"kandidat"},
+    {"p8":"a4d8feca","stammer":true,"saldo":74,   "frakt":0.45, "wixVariantId":"c637f159-493b-4c76-8063-9b2ddc90f51b","grossSek":899, "tidigare_sku":"FP-katzenbaum-mit-viel",    "beslut":"kandidat — fargsyskon till klostunna-60-cm-ljusgra (#530)"},
+    {"p8":"b04b5375","stammer":true,"saldo":88,   "frakt":0.494,"wixVariantId":"c940fc1b-7012-4764-9470-930cab63c4bc","grossSek":799, "tidigare_sku":"FP-kletterstufen",          "beslut":"kandidat"},
+    {"p8":"b813d037","stammer":true,"saldo":39,   "frakt":0.499,"wixVariantId":"e21f5018-7e61-46b2-8f5e-8233fcd4b4c1","grossSek":799, "tidigare_sku":"FP-katzenbaum-4-stock",     "beslut":"kandidat"}
+  ]
+}
