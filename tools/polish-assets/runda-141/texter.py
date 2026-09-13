@@ -55,9 +55,14 @@ SLUG = {
     "8de3c3ef": "traningsbank-115-cm-benstrackare",
     "7b818c3b": "traningsbank-med-stallning-98-122-cm",
     "8a0e05f4": "traningsbank-146-cm-tre-lutningar",
-    "b4961e6f": "hopfallbar-traningsbank-justerbart-ryggstod-svart",
-    "83b2cf8b": "traningsbank-skivstangsstall-benstrackare",
-    "a4bbe667": "traningsbank-skivstangsstall-brostpress-vit",
+    # ☠️ INTE `hopfallbar-traningsbank-…`: de forsta 24 tecknen blir
+    #    `hopfallbar-traningsbank`, exakt samma SKU som den PUBLICERADE
+    #    roda systern. Krocken uppstar i den KAPADE strangen (#473).
+    "b4961e6f": "traningsbank-butterfly-svart-hopfallbar",
+    # ☠️ `traningsbank-skivstangsstall-…` kapas till bara `traningsbank`
+    #    for BADA skivstangsbankarna. Matten far komma fore.
+    "83b2cf8b": "traningsbank-175-cm-med-skivstangsstall",
+    "a4bbe667": "traningsbank-180-cm-vit-med-skivstangsstall",
     "18b94738": "traningsbank-i-tra-med-hantelfack",
 }
 
@@ -622,3 +627,18 @@ def bygg(pid):
         d.append(_p(s))
 
     return "".join(d)
+
+
+# ☠️ SKU:n HARLEDS ur sluggen, aldrig handskriven (#483: fyra av nio var
+#    skrivna for hand och stod ett token for korta). `grindar.sku_bas`
+#    speglar `lib/import/sku.ts` — marke bort, fogeord bort, hel ordgrans
+#    vid 24 tecken.
+SKU = {p: "FP-" + _G.sku_bas(s) for p, s in SLUG.items()}
+
+# Wix-variantens id per produkt, last ur mappningsraden via
+# `polish-mapping.yml`-lage `las`. ☠️ SKU:n matchas pa wixVariantId och
+# ALDRIG pa position — de tva falten som bada heter `sku` betyder olika
+# saker, och den forvaxlingen skrev till ingenting i en manad.
+WIX_VARIANT = {
+    "8de3c3ef": "f73e3b04-cb5e-498c-a946-11d43e7cbac7",
+}
