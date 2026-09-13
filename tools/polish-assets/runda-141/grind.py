@@ -346,6 +346,11 @@ PLANTERADE = [
                    "Svart med blå detaljer. Skickas från Tyskland.")],
      "LANDORD", False),
     ("18b94738", [("bara en enda siffra", "en siffra")], "ODELAD MAXLAST", False),
+    # ☠️ Den ÖVERBEVISADE siffran får inte komma tillbaka. Ritningen säger
+    #    74 × 25 cm; leverantörens spec sa 26,4, och den ligger nu bara
+    #    under en `_transkriberad`-nyckel som `_egna_tal` hoppar över.
+    #    Planteringen låser att omvägen tillbaka är stängd.
+    ("83b2cf8b", [("74 × 25 cm", "74 × 26,4 cm")], "OHÄRLETT TAL '26,4'", False),
 ]
 
 # Fall som INTE får fälla — regeln ska vara SNÄV, inte bara högljudd.
@@ -355,8 +360,8 @@ TYSTA = [
     # 22,5 lagras som -22.5 i `vinklar`. Absolutbeloppet ska vara tillåtet.
     ("8a0e05f4", [("22,5 grader ned och 45 grader ned",
                    "45 grader ned och 22,5 grader ned")]),
-    # 26,4 är ett DECIMALTAL, inte två tal.
-    ("83b2cf8b", [("74 × 26,4 cm", "26,4 × 74 cm")]),
+    # 42,5 är ett DECIMALTAL, inte två tal.
+    ("b4961e6f", [("32 × 29 × 42,5 cm", "42,5 × 29 × 32 cm")]),
 ]
 
 

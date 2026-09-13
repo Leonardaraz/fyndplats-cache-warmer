@@ -277,8 +277,9 @@ ANVAND = {
         "att magövningarna går att genomföra utan hjälp.",
     "b4961e6f":
         "Bänken fälls ihop mellan passen och ställs undan mot en vägg. "
-        "Armarna svänger ut åt sidorna när de används, så håll fri yta runt "
-        "bänken under passet. Golvet bör vara plant — de halkfria fötterna "
+        "Basen mäter 135 × 55 cm, men armarna svänger ut till 130 cm i "
+        "bredd när de används — räkna med fri yta åt båda sidorna. "
+        "Golvet bör vara plant — de halkfria fötterna "
         "håller bänken på plats, men bara på ett jämnt underlag.",
     "83b2cf8b":
         "Bänken levereras utan vikter och utan skivstång. Stället tar en "
@@ -336,7 +337,7 @@ KORS_TEXT = {
 
 SPEC = {
     "8de3c3ef": [
-        ("Mått", "115 × 32,5 × 43 cm (L × B × H)"),
+        ("Mått", "115 × 32,5 × 41,5–105,5 cm (L × B × H)"),
         ("Hopfälld", "32,5 × 22 × 75 cm"),
         ("Sittdyna", "36 × 27 cm"),
         ("Ryggdyna", "67 × 27 cm"),
@@ -385,7 +386,8 @@ SPEC = {
         ("Montering", "krävs"),
     ],
     "b4961e6f": [
-        ("Mått med armarna utfällda", "135 × 130 × 107 cm"),
+        ("Mått", "135 × 55 × 107 cm (L × B × H)"),
+        ("Bredd med armarna utfällda", "130 cm"),
         ("Sits", "32 × 29 × 42,5 cm"),
         ("Ryggstöd", "3 lägen"),
         ("Armar", "4 lägen, 3 motståndsnivåer"),
@@ -401,8 +403,8 @@ SPEC = {
     ],
     "83b2cf8b": [
         ("Mått", "175 × 139 × 127 cm (L × B × H)"),
-        ("Ryggdyna", "74 × 26,4 cm"),
-        ("Sits", "30 × 26,4 cm"),
+        ("Ryggdyna", "74 × 25 cm"),
+        ("Sitsens bredd", "30 cm"),
         ("Bicepspulpet", "49 × 27 cm, 74–86 cm över golvet"),
         ("Ryggstöd", "3 lägen"),
         ("Viktpelare", "25 cm lång, 2,5 cm i diameter, tar 100 kg"),
@@ -532,8 +534,9 @@ FAQ = {
          "Tre: plant, lutande och nedåtlutat. Vinkeln avgör vilken del av "
          "bröstet övningen träffar."),
         ("Hur stor är den hopfälld?",
-         "Hopfällda mått anges inte. Utfälld med armarna ute mäter bänken "
-         "135 × 130 × 107 cm."),
+         "Hopfällda mått anges inte. Uppfälld står bänken på 135 × 55 cm "
+         "och är 107 cm hög; med armarna utsvängda behöver den 130 cm i "
+         "bredd."),
         ("Ingår hantlar eller skivstång?",
          "Nej. Två motståndsband ingår, men vikterna på produktbilderna köps "
          "separat."),

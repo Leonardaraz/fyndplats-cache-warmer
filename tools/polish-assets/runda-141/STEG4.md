@@ -166,3 +166,59 @@ går inte att missa när man gör det.
 PULL`** är gjutet i plasten. Det är en prägling på varan, inte en pålagd text,
 och faller därför under samma regel som husmärket. Noteras för att nästa
 granskare inte ska leta efter den en gång till.
+
+---
+
+## ☠️ 7. TVÅ produkter hade aldrig fått ett kontaktark — och båda bar ett måttfel
+
+Tillagt i Steg 9, och det är hela poängen: `8de3c3ef` och `b4961e6f` kom in i
+rundan via **dubblettgrinden**, inte via familjesvepet. `bilder.json` hade
+därför bara fem produkter, och `steg4.py` läser `bilder.json` — så de två
+granskades aldrig med ark, och hörnsvepet såg 25 av 35 hörn.
+
+Med alla sju i filen och arken byggda föll **två mått** direkt:
+
+| pid | texten sa | ritningen säger |
+|---|---|---|
+| `8de3c3ef` höjd | **43 cm** (en enda siffra) | **41,5–105,5 cm** — ett intervall |
+| `b4961e6f` bredd | **130 cm**, etiketterad som totalmått | basen är **55 cm**; 130 är armarnas svep |
+
+Det första är rakt fel: bänkens ryggstöd har sju vinklar, så den HAR ingen
+fast höjd. Det andra är inte fel men ofullständigt, och saknar just det tal en
+kund behöver för att veta om bänken får plats — båda står i texten nu, var för
+sig etiketterade (runbokens *"tal som mäter olika saker ser ut som en
+motsägelse"*).
+
+**Regeln: en produkt som kommit in i rundan på en annan väg än familjesvepet
+har inte gått igenom stegen bara för att rundan har.** Kontrollera listan mot
+`texter.SLUG`, inte mot minnet.
+
+## ☠️ 8. Min egen rättelse i punkt 5 var FEL — `26,4` står inte på ritningen
+
+Punkt 5 ovan skriver att `rygg=(74, 26, 4)` var en parse-bugg och att
+ritningen säger `74 × 26,4`. Zoomad läsning av samma ritning
+(`steg4/zoom-83b2cf8b-sits.jpg`) säger något annat:
+
+```
+27 cm  bicepspulpetens djup      49 cm  bicepspulpetens bredd
+74 cm  ryggdynans LÄNGD          25 cm  ryggdynans BREDD
+30 cm  sitsens BREDD             (sitsens djup är inte utsatt)
+```
+
+**`26,4` finns inte på ritningen alls.** Det är leverantörens spec-tal, och
+det stod i texten på TVÅ rader — ryggdynan och sitsen — som om båda dynorna
+vore 26,4 cm breda.
+
+☠️ **Och mätningen fanns redan.** `matt.py` bar `rygg_bredd_ritning=25` sedan
+Steg 4. Talet lästes av ritningen, skrevs in i posten — och texten skrev
+26,4 ändå. Grinden kunde inte se det: `26,4` låg i `rygg=(74, 26.4)` och var
+därför ett härlett, tillåtet tal.
+
+**Regeln: ett tal som ritningen överbevisat får inte ligga kvar som ett
+vanligt fält i `matt.py`.** Det flyttas till en `_transkriberad`-nyckel, som
+`_egna_tal` hoppar över — då blir återfallet ett grindfel i stället för en
+tyst möjlighet. En plantering i självtestet låser vägen tillbaka.
+
+⚠️ Sitsens DJUP är inte utsatt på ritningen och står därför inte i texten.
+Etiketten är `Sitsens bredd`, inte `Sits`, så raden inte läses som ett
+fullständigt mått.

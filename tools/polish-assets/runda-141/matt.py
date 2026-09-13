@@ -59,7 +59,7 @@ M = {
     "8de3c3ef": dict(
         namn_de="Hantelbank verstellbar Trainingsbank mit Beinstrecker 7-Fach",
         pris=999, bilder=5, sku_fore="FP-hantelbank-verstellbar",
-        tot=(115, 32.5, 43), hopfalld=(32.5, 22, 75),
+        tot=(115, 32.5, 41.5), hojd_max=105.5, tot_hojd_transkriberad=43, hopfalld=(32.5, 22, 75),
         sits=(36, 27), rygg=(67, 27), lagen=7,
         # ☠️ SAMMA fälla som a4bbe667: 300 kg ar TOTALEN, 120 kg ar anvandaren.
         kap_total_kg=300, maxlast_anvandare_kg=120,
@@ -88,7 +88,7 @@ M = {
     "b4961e6f": dict(
         namn_de="Hantelbank klappbar Trainingsbank mit Beinstrecker 3-Fach",
         pris=1479, bilder=None, sku_fore="FP-hantelbank-klappbar",  # ☠️ KROCK med 562e42fc
-        tot=(135, 130, 107), sits=(32, 29, 42.5),
+        tot=(135, 55, 107), bredd_armar_utfallda=130, sits=(32, 29, 42.5),
         ryggpositioner=3, motstandsstufen=3, butterfly_lagen=4,
         kap_total_kg=300, maxlast_anvandare_kg=120,   # ✅ korrekt markt i tyskan
         farg_de="Schwarz", farg_spec="Schwarz",
@@ -160,8 +160,10 @@ M = {
         # ☠️ Steg 4: `(74, 26, 4)` var "74 x 26,4 cm" last som TRE tal —
         #    kommat blev en tupelavskiljare. Ritningen sager dessutom 25 cm
         #    pa ryggdynans bredd dar tyskan sager 26,4. Bada bevaras.
-        rygg=(74, 26.4), rygg_bredd_ritning=25,
-        sits=(30, 26.4), armbagsdyna=(49, 27, "74-86"),
+        rygg=(74, 25), sits_bredd_ritning=30,
+        rygg_bredd_spec_transkriberad=26.4,
+        sits_bredd_spec_transkriberad=26.4,
+        sits=(30,), armbagsdyna=(49, 27, "74-86"),
         viktpelare=(25, 2.5), traningspositioner=3, rygg_hal=3,
         kap_sitsdyna_kg=200, maxlast_anvandare_kg=100,   # LAGST i batchen
         kap_viktset_kg=100,
