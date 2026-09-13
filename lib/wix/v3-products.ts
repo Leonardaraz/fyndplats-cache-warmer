@@ -525,12 +525,21 @@ export async function updateV3VariantPrices(
   // fungerat i månader utan att någonsin ha prövats på det fall där den inte
   // gör det.
   //
-  // ☠️ OPTIONS LIGGER I KROPPEN MEN INTE I FÄLTMASKEN. Masken betyder "skriv
-  // det här fältet"; Wix behöver options för att VALIDERA varianterna, inte
-  // för att ändra dem. I masken hade vi skrivit tillbaka hela strukturen —
-  // färgval, kopplade bilder och alt-texter — med vad projektionen råkade ge,
-  // och tyst tappat allt den utelämnat. Det är exakt fällan med handbyggda
-  // variantobjekt, en nivå upp.
+  // ☠️ OPTIONS MÅSTE LIGGA I FÄLTMASKEN — uppmätt, inte resonerat.
+  //
+  // Första försöket lade dem i KROPPEN men utelämnade dem ur masken, med
+  // motiveringen att Wix behöver dem för att VALIDERA varianterna och att en
+  // skrivning kunde tappa det projektionen utelämnat. Det var fel, och
+  // mätningen är entydig: med options i kroppen men inte i masken föll exakt
+  // samma 63 produkter på exakt samma 428. En fältmask-PATCH läser bara det
+  // som står i masken — allt annat i kroppen ignoreras, så Wix såg dem aldrig.
+  //
+  // ⚠️ Risken jag var rädd för finns kvar men är hanterad: strukturen tas
+  // OFÖRÄNDRAD ur produktens EGEN GET, som går med
+  // `?fields=VARIANT_OPTION_CHOICE_NAMES` — projektionen vars hela syfte är
+  // att bära valens namn. Uppmätt på en 29-färgsprodukt: choices, linkedMedia
+  // och altText ligger alla i svaret. Det är samma round-trip-princip som
+  // `visible` och som varianterna själva, inte ett handbyggt objekt.
   const harOptions = Array.isArray(product.options) && product.options.length > 0;
   const patch = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
@@ -542,7 +551,13 @@ export async function updateV3VariantPrices(
         ...(bevaraSynlighet ? { visible: product.visible } : {}),
         ...(harOptions ? { options: product.options } : {}),
       },
-      fieldMask: { paths: bevaraSynlighet ? ["variantsInfo", "visible"] : ["variantsInfo"] },
+      fieldMask: {
+        paths: [
+          "variantsInfo",
+          ...(bevaraSynlighet ? ["visible"] : []),
+          ...(harOptions ? ["options"] : []),
+        ],
+      },
     }),
   });
   if (!patch.ok) {

@@ -99,22 +99,26 @@ describe("updateV3VariantPrices — options på flervariantsprodukter", () => {
     expect(body.product.options).toEqual(OPTIONS);
   });
 
-  it("☠️ men options ligger INTE i fältmasken — de ska valideras, inte skrivas", async () => {
-    // Masken betyder "skriv det här fältet". Med options i masken hade vi
-    // skrivit tillbaka hela strukturen — färgval, kopplade bilder, alt-texter —
-    // med vad projektionen råkade ge, och tyst tappat allt den utelämnat.
+  it("☠️ och options MÅSTE stå i fältmasken — annars ignorerar Wix dem", async () => {
+    // Uppmätt: med options i kroppen men inte i masken föll exakt samma 63
+    // produkter på exakt samma 428. En fältmask-PATCH läser bara det som står
+    // i masken; resten av kroppen ignoreras.
     const patchar = stubba({ ...produkt(true), options: OPTIONS });
     await updateV3VariantPrices("p1", [{ sku: "SKU-1", actualPrice: 149 }]);
 
     const body = patchar[0].body as { fieldMask: { paths: string[] } };
-    expect(body.fieldMask.paths).not.toContain("options");
+    expect(body.fieldMask.paths).toContain("options");
   });
 
   it("en produkt UTAN options får inget options-fält alls", async () => {
     const patchar = stubba(produkt(true));
     await updateV3VariantPrices("p1", [{ sku: "SKU-1", actualPrice: 149 }]);
 
-    const body = patchar[0].body as { product: Record<string, unknown> };
+    const body = patchar[0].body as {
+      product: Record<string, unknown>;
+      fieldMask: { paths: string[] };
+    };
     expect("options" in body.product).toBe(false);
+    expect(body.fieldMask.paths).not.toContain("options");
   });
 });
