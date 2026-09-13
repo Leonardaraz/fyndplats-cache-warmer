@@ -121,6 +121,37 @@ describe("queryInventoryItemsByProductIds", () => {
     expect(andra.query.cursorPaging.cursor).toBe("MARKÖR");
   });
 
+  it("☠️ sida två skickar INTE filtret igen — Wix avvisar filter + markör", async () => {
+    // Uppmätt mot skarpa Wix 2026-09-13: samma markör gav
+    // `400 INVALID_CURSOR: "Sort or filter can not be specified together with
+    // cursor"` med filter, och 200 utan — och sida två fortsatte på RÄTT
+    // produkt, alltså bär markören frågan själv.
+    //
+    // Testet ovan såg inte det här: det kollar att markören FLYTTAS, inte att
+    // kroppen går att skicka. Därför kunde synken logga samma 400 varannan
+    // timme i drift med grön testsvit.
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(svar(200, {
+        inventoryItems: [post("i1", "p1")],
+        pagingMetadata: { cursors: { next: "MARKÖR" }, hasNext: true },
+      }))
+      .mockResolvedValueOnce(svar(200, {
+        inventoryItems: [post("i2", "p1")],
+        pagingMetadata: { hasNext: false },
+      }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await medTimers(klient.queryInventoryItemsByProductIds(["p1"]));
+
+    const forsta = JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body);
+    const andra = JSON.parse((fetchMock.mock.calls[1][1] as { body: string }).body);
+
+    // Sida ETT måste fortfarande bära filtret — utan det läses hela katalogen.
+    expect(forsta.query.filter).toEqual({ productId: "p1" });
+    expect(andra.query.filter).toBeUndefined();
+    expect(andra.query.cursorPaging.cursor).toBe("MARKÖR");
+  });
+
   it("☠️ KASTAR vid sidtaket i stället för att returnera en halv lista", async () => {
     // Wix svarar i all evighet att det finns mer. En halv lista som ser
     // komplett ut hade fått synken att skriva mappningen för produkter vars

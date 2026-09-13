@@ -470,6 +470,45 @@ gav fem poster mot ett för ett enskilt), läsningens sida är **100**, och
 `bulk/inventory-items/update` svarar `200` med ett individuellt utfall per rad
 på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 100`.
 
+#### ☠️ Och sida TVÅ av samma läsning gick aldrig att hämta (2026-09-13)
+
+Raden ovan mäter sidans STORLEK. Ingen mätte vad som händer när den inte
+räcker. `queryInventoryItemsByProductIds` skickade `filter` igen tillsammans
+med markören, och `inventory-items/query` avvisar det:
+
+```
+400 INVALID_CURSOR: "Sort or filter can not be specified together with cursor"
+```
+
+Uppmätt i båda riktningarna på skarpa Wix, SAMMA markör:
+
+| sida två skickad med | svar |
+|---|---|
+| `filter` + markör | **400 INVALID_CURSOR** |
+| bara markören | **200**, och fortsatte på RÄTT produkt |
+
+Att sida två fortsatte på rätt produkt är beviset att **markören bär frågan
+själv** — filtret ligger inuti den (base64:en innehåller ordagrant
+`productId` och id:t). Att skicka det igen är alltså inte bara onödigt, det
+är det som fäller anropet.
+
+⚠️ **Felet var i drift, inte teoretiskt.** Halterneck-linnet `7fce5f84` har
+29 färger × storlekar, alltså fler än 100 lagerrader. Synken loggade samma
+400 på VARJE körning varannan timme — den produktens lager gick aldrig att
+läsa, medan rutten svarade 200 och körningen såg frisk ut. Nionde gången
+samma familj.
+
+☠️ **Och testsviten var grön hela tiden.** Pagineringstestet kollar att
+markören FLYTTAS, inte att kroppen går att skicka — en grind som mäter fel
+sak. Det nya testet fäller när buggen återinförs, och bara det.
+
+☠️ **Formen är INTE gemensam för Wix — städa inte "samma fel" överallt.**
+`ecom/v1/orders/search` tar emot `filter` + `sort` + markör utan att klaga
+(uppmätt samma dag: sida två gav 200 och rätt nästa order). `fetchOrders`
+står därför orörd med flit. Två API-familjer, samma kroppsform, olika svar —
+precis som `getProductMedia` MÅSTE begära `MEDIA_ITEMS_INFO` medan
+produktpriset kommer med oombedt. **Mät per endpoint.**
+
 **Sex egenskaper som inte ska tas bort:**
 
 1. ☠️ **En mappning skrivs bara för rader Wix uttryckligen bekräftat.**

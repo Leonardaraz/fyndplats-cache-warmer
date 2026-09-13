@@ -302,15 +302,30 @@ export async function queryInventoryItemsByProductIds(
   for (let sida = 0; sida < LAGER_MAX_SIDOR; sida++) {
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
-    const body = JSON.stringify({
-      query: {
-        // Ett enda id skickas som skalär, inte som `$in` med ett element:
-        // formen är den beprövade och den nya vägen ska inte ändra beteendet
-        // för de tre anropare som läser en produkt i taget.
-        filter: { productId: unika.length === 1 ? unika[0] : { $in: unika } },
-        cursorPaging,
-      },
-    });
+
+    // ☠️ FILTRET FÅR INTE FÖLJA MED MARKÖREN. `inventory-items/query` svarar
+    // `400 INVALID_CURSOR: "Sort or filter can not be specified together with
+    // cursor"` på sida två om `filter` skickas igen — markören bär redan
+    // frågan (uppmätt 2026-09-13: samma markör gav 400 med filter och 200
+    // utan, och sida två fortsatte på RÄTT produkt, alltså är filtret kvar
+    // inuti markören).
+    //
+    // Felet var inte teoretiskt: produkten med 29 färger × storlekar har fler
+    // än 100 lagerrader, och synken loggade samma 400 vid VARJE körning
+    // varannan timme — lagret för den produkten gick aldrig att läsa.
+    //
+    // ⚠️ Formen är INTE gemensam för Wix. `ecom/v1/orders/search` tar emot
+    // filter + sort + markör utan att klaga (uppmätt samma dag, sida två gav
+    // 200 och rätt nästa order). Därför står `fetchOrders` orörd — en
+    // "samma-fel-överallt"-städning hade ändrat en väg som fungerar.
+    const query: Record<string, unknown> = { cursorPaging };
+    if (!cursor) {
+      // Ett enda id skickas som skalär, inte som `$in` med ett element:
+      // formen är den beprövade och den nya vägen ska inte ändra beteendet
+      // för de tre anropare som läser en produkt i taget.
+      query.filter = { productId: unika.length === 1 ? unika[0] : { $in: unika } };
+    }
+    const body = JSON.stringify({ query });
 
     let svar: Response | null = null;
     let sistaFel = "";
