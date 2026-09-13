@@ -1527,6 +1527,29 @@ Uppmätt i runda M3: åtta texter, åtta träffar, noll avbrott — och
 fortfarande (den är det som fångar Wix EGNA omskrivningar); den här spärren
 tar bort den andra halvan, den som är mitt eget fel.
 
+☠️ **Och i runda M4 FÄLLDE den — på facit, inte på texten (2026-09-13).**
+Första skrivningen av `3523deaa` avbröts på **ett tecken av 3 515**:
+
+```
+{"AVBRUTET":"transkriberingsfel — ingenting skrivet",
+ "fick":833814621,"vantat":848253086,"tecken":3514}
+```
+
+Orsaken är filens **avslutande radbrytning**. Facit räknades på filen, men
+det som skickas är filen UTAN den: en template-literal som slutar med `</p>`
+bär ingen sista `\n`.
+
+⚠️ Det är SAMMA byte som `wixnorm.py` punkt 5 redan dokumenterar — men på
+LÄSNINGENS sida (Wix strippar den vid sparandet). Den gällde alltså åt båda
+hållen hela tiden, och bara den ena halvan var nedskriven. **Räkna facit på
+strängen SOM DEN SKICKAS** (`rstrip("\n")`), inte på filen.
+
+☠️ Och avvikelsen är just därför den farligaste sorten: en byte ser ut som en
+struntsak, är omöjlig att skilja från ett äkta transkriberingsfel på ett
+tecken, och den som sett den tillräckligt många gånger slutar titta efter
+vilket det var. Spärren gjorde rätt som fällde — det som saknades var ett
+facit som mätte samma sträng.
+
 ##### ☠️ Och `seoData` glömdes bort av regeln — fem av åtta drev isär (2026-09-07)
 
 Regeln ovan säger *skriv i en fil först*, och runda H3 följde den för

@@ -32,6 +32,18 @@ påståendet dit en människa ser det. Ett superlativ som sträcker sig utanför
 rundan (hela katalogen) går inte att kontrollera från filerna — skriv om det
 till rundans omfång, eller mät det.
 
+☠️ DEN SER INTE SUPERLATIV OM MARKNADEN, och det är med flit men värt att
+veta om. Grinden kräver ett OMFÅNG som syftar på vår katalog. Runda M4 skrev
+*"Det är den lättaste sortens gran i den här höjden"* — ett påstående om vad
+som finns att köpa överhuvudtaget, alltså bredare och MINDRE verifierbart än
+en rankning av vårt eget sortiment, och osynligt för varje mönster här.
+
+Att vidga OMFANG till "i den här höjden", "på marknaden" och liknande hade
+varit fel svar: uttrycken förekommer i legitim prosa, och ett falsklarm som
+alltid fyrar lär mottagaren att sluta läsa. Det som fångar klassen är ögon på
+filen — vilket är exakt varför husregeln säger att texten ska skrivas i en
+fil och LÄSAS, inte bara grindas.
+
 ANVÄNDNING (från rundans katalog):
   python3 ../../polish-gates/gate-superlativ.py
 """
