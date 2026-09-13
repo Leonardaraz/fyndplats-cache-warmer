@@ -112,6 +112,53 @@ FORBJUDET = [
                 r"|(?:uppgift|uppgifter)\s+saknas|okla[rt]\b"
                 r"|g[åa]r\s+inte\s+att\s+(?:f[åa]\s+fram|ta\s+reda)", re.I),
      "VI VET INTE — mot kunden är VI leverantören; utelämna i stället"),
+
+    # ☠️ FEM FORBUD SOM STEG 12 HITTADE PA EN GRON GRIND (2026-09-13).
+    #    Alla sex fel lasningen fangade passerade listan ovan. De star har
+    #    for att nasta runda ska falla pa dem i STALLET for att las-fangas.
+
+    # ☠️ Sidan far ALDRIG jamfora priser — Leonards staende regel. Och ett
+    #    "billigaste vagen" ar dessutom en MATNING som aldrig gjorts.
+    #    Uppmatt: 93073695 skrev "den enskilt billigaste vagen till ett
+    #    stall som inte ror sig" och grinden sa ingenting.
+    (re.compile(r"billig\w*|prisv[äa]rd\w*|kostar\s+(?:mindre|mer)"
+                r"|l[öo]nar\s+sig|\bfynd(?:pris|k[öo]p)\w*"
+                r"|(?<![0-9])\d{2,5}\s*(?:kr|kronor)\b", re.I),
+     "PRISPÅSTÅENDE — sidan jämför aldrig priser, och priset står i Wix"),
+
+    # ☠️ En monterings- eller brukstid som ingen kalla anger. Samma form som
+    #    batch 64:s "Leverantoren anger 25-35 minuter". Uppmatt: 95f6280b
+    #    skrev "ska sta pa golvet en kvart senare".
+    (re.compile(r"\ben\s+kvart\b|\bhalvtimme\b"
+                r"|(?<![0-9,.])\d{1,3}\s*minuter?\b"
+                r"|p[åa]\s+(?:en|n[åa]gra)\s+(?:minuter|timm\w+)"
+                r"|n[åa]gra\s+minuter", re.I),
+     "OMÄTT TID — monteringstiden står inte i någon källa"),
+
+    # ☠️ Ett leveranslotteri ar ett PASTAENDE om vad kunden far hem.
+    #    Uppmatt: 56cca82a pastod tre mojliga farger dar bade hjaltebilden
+    #    och leverantorens eget produktnamn sager rod och svart, och
+    #    pastaendet fanns bara i en kodkommentar.
+    (re.compile(r"g[åa]r\s+inte\s+att\s+(?:v[äa]lja|styra)"
+                r"|vilken\s+(?:av\s+dem|som)\s+(?:som\s+)?(?:kommer|skickas)"
+                r"|slumpm[äa]ssig\w*", re.I),
+     "LEVERANSLOTTERI — vi säger vad kunden får, eller ingenting alls"),
+
+    # ☠️ En allman fysikalisk uppgift som inte ar matt. Uppmatt: ce8813ce
+    #    skrev "Sand vager dubbelt sa mycket som vatten pa samma volym" —
+    #    tvaan kom ur EN fots tva tal, och riktig sand ligger pa ~1,5-1,6x.
+    (re.compile(r"(?:dubbelt|tre\s+g[åa]nger|fyra\s+g[åa]nger|h[äa]lften)"
+                r"\s+s[åa]\s+(?:mycket|tungt|tung|stor|stort)"
+                r"|v[äa]ger\s+dubbelt", re.I),
+     "OMÄTT TALJÄMFÖRELSE — en kvot är en mätning, inte en beskrivning"),
+
+    # ☠️ Monteringens INNEHALL ar inte kant. Vilka steg som gar for hand,
+    #    hur manga skruvar, vilka verktyg — inget av det star i underlaget.
+    #    Uppmatt: ce8813ce skrev "skruvas ihop for hand i de flesta steg".
+    (re.compile(r"i\s+de\s+flesta\s+steg|f[öo]r\s+hand\s+i\s+de"
+                r"|\bskruvas\s+ihop\s+f[öo]r\s+hand"
+                r"|beh[öo]ver\s+(?:bara|endast)\s+\w+\s+verktyg", re.I),
+     "OMÄTT MONTERINGSDETALJ — underlaget säger bara att montering krävs"),
 ]
 
 # Farg som SPECEN pastar men bilden motsager (forbud 4).
@@ -299,6 +346,19 @@ PLANTERADE = [
      "säckar behöver den ingenting.</p>", "MARKNADSPÅSTÅENDE"),
     ("2a13cbbe", "html", "<p>Bättre än andra modeller på marknaden.</p>",
      "MARKNADSPÅSTÅENDE"),
+    # ☠️ De fem som Steg 12 hittade — ordagrant som de STOD i texten, inte
+    #    en omskriven variant. En mutation som inte ar den verkliga strangen
+    #    bevisar bara att regexen kompilerar.
+    ("93073695", "html", "<p>Det är den enskilt billigaste vägen till ett "
+     "ställ som inte rör sig.</p>", "PRISPÅSTÅENDE"),
+    ("95f6280b", "html", "<p>Det som ligger i kartongen ska stå på golvet "
+     "en kvart senare.</p>", "OMÄTT TID"),
+    ("56cca82a", "html", "<p>Vilken av dem som kommer går inte att styra "
+     "vid beställning.</p>", "LEVERANSLOTTERI"),
+    ("ce8813ce", "html", "<p>Sand väger dubbelt så mycket som vatten på "
+     "samma volym.</p>", "OMÄTT TALJÄMFÖRELSE"),
+    ("ce8813ce", "html", "<p>Stället skruvas ihop för hand i de flesta "
+     "steg.</p>", "OMÄTT MONTERINGSDETALJ"),
 ]
 
 

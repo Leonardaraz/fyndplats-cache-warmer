@@ -1,46 +1,46 @@
 {
  "136a4671": {
-  "fnv": "268ec320",
-  "len": 2876
+  "sum": "268ec320",
+  "tecken": 2876
  },
  "2730de6f": {
-  "fnv": "809bf52c",
-  "len": 2888
+  "sum": "809bf52c",
+  "tecken": 2888
  },
  "2a13cbbe": {
-  "fnv": "c9bf1937",
-  "len": 3546
+  "sum": "c9bf1937",
+  "tecken": 3546
  },
  "4fe5959f": {
-  "fnv": "d7c86817",
-  "len": 2973
+  "sum": "d7c86817",
+  "tecken": 2973
  },
  "56cca82a": {
-  "fnv": "3366fdf3",
-  "len": 3274
+  "sum": "1b8ec621",
+  "tecken": 3152
  },
  "93073695": {
-  "fnv": "861d4844",
-  "len": 2956
+  "sum": "50f98aaa",
+  "tecken": 2944
  },
  "95f6280b": {
-  "fnv": "7866f7a3",
-  "len": 3099
+  "sum": "fcc72c92",
+  "tecken": 3134
  },
  "a8daef42": {
-  "fnv": "cb7e2bb9",
-  "len": 3060
+  "sum": "0402ceca",
+  "tecken": 3015
  },
  "c8f6b93f": {
-  "fnv": "9a2635ca",
-  "len": 3072
+  "sum": "e2c3bab9",
+  "tecken": 3027
  },
  "ce8813ce": {
-  "fnv": "1822f2d4",
-  "len": 3188
+  "sum": "3e9efa33",
+  "tecken": 3135
  },
  "f0430bc5": {
-  "fnv": "c11d4606",
-  "len": 3393
+  "sum": "c11d4606",
+  "tecken": 3393
  }
 }

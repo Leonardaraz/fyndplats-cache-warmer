@@ -47,7 +47,16 @@ P = {
         vikt="3", fraktvikt="3,5", paket="43 × 13 × 50 cm",
         ingar=["punchingbollen med ställ", "ett par boxhandskar",
                "en luftpump", "monteringsanvisning"],
-        farg=None,  # ☠️ leverantoren skickar rod/svart/rod+svart SLUMPMASSIGT
+        # ☠️ Stod som farg=None med kommentaren "leverantoren skickar
+        #    rod/svart/rod+svart SLUMPMASSIGT" — ett pastaende som inte
+        #    finns i Steg 1, Steg 4 eller nagon annan av rundans kallor.
+        #    Samma kommaseparerade fargkolumn last som PRODUKTENS farger
+        #    pa 4fe5959f ("Schwarz, Rot") och 136a4671 ("Rot, Schwarz").
+        #    Tva kallor sager rott och svart: hjaltebilden (rod-svart boll,
+        #    svart fot, roda handskar) och leverantorens eget produktnamn,
+        #    som slutar "… Anfanger Rot". Regel 16: bilden vinner over
+        #    texten om en SYNLIG egenskap.
+        farg="röd och svart",
         sugproppar=None, fjader=True, reflexstang=None, speedball=None),
     "ce8813ce": dict(
         typ="boll", hojder=None, hojd="133-151",

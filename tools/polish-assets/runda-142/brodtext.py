@@ -77,10 +77,9 @@ HTML["56cca82a"] = bygg(
         ("Handskar och pump ligger i kartongen",
          ["Ett par boxhandskar och en luftpump följer med, så bollen går att "
           "blåsa upp och använda samma kväll. Bollen mäter 24 × 30 centimeter."]),
-        ("Färgen går inte att välja",
-         ["Den här modellen skickas i rött, svart eller rött och svart, och "
-          "vilken av dem som kommer går inte att styra vid beställning. Mått, "
-          "funktion och innehåll är desamma i alla tre."]),
+        ("Röd boll, svart fot",
+         ["Bollen är röd och svart, stället och foten svarta, och "
+          "boxhandskarna röda."]),
     ],
     ("Vill du ha mer tyngd i foten?",
      "Samma höjdspann, 125 till 145 centimeter, finns som " +
@@ -92,6 +91,7 @@ HTML["56cca82a"] = bygg(
         R("Fot", "Ø43 × 12 cm"),
         R("Boll", "Ø24 × 30 cm"),
         R("Fotens fyllning", "15 kg vatten eller 20 kg sand"),
+        R("Färg", "röd och svart"),
         R("Material", "konstläder, stål och plast"),
         R("Vikt", "3 kg"),
         R("Fraktvikt", "3,5 kg"),
@@ -118,9 +118,9 @@ HTML["56cca82a"] = bygg(
         ("Behöver jag borra i väggen?",
          "Nej. Bollen står fritt på golvet och hela stabiliteten kommer från "
          "den fyllda foten."),
-        ("Vilken färg får jag?",
-         "Rött, svart eller rött och svart — vilken som skickas går inte att "
-         "välja. Mått och innehåll är desamma."),
+        ("Vilken färg har den?",
+         "Bollen är röd och svart, stället och foten svarta och handskarna "
+         "röda."),
         ("Vad ingår?",
          "Punchingbollen med ställ, ett par boxhandskar, en luftpump och "
          "monteringsanvisning."),
@@ -143,8 +143,8 @@ HTML["ce8813ce"] = bygg(
         ("33 kilo sand i foten",
          ["Foten mäter 43 centimeter i diameter och 13,5 centimeter på höjden "
           "och rymmer 16,5 kilo vatten, 33 kilo sand eller 25 kilo av båda "
-          "blandat. Sand väger dubbelt så mycket som vatten på samma volym, "
-          "och det är den skillnaden som märks vid tunga kombinationer. "
+          "blandat. Sand ger mer tyngd än vatten i samma fot, och det är den "
+          "skillnaden som märks vid tunga kombinationer. "
           + FYLLNING_INGAR_EJ]),
         ("Sugproppen tar sidorörelsen",
          ["Under foten sitter en sugpropp som greppar mot släta golv. Den "
@@ -200,8 +200,7 @@ HTML["ce8813ce"] = bygg(
          "Punchingbollen med ställ, ett par boxhandskar, en luftpump och "
          "monteringsanvisning."),
         ("Behöver jag verktyg?",
-         "Montering krävs och anvisningen följer med. Stället skruvas ihop för "
-         "hand i de flesta steg."),
+         "Montering krävs, och anvisningen ligger i kartongen."),
         ("Fungerar den på heltäckningsmatta?",
          "Bollen står, men sugproppen får inget fäste. Fyll foten med sand i "
          "stället för vatten för att kompensera."),
@@ -214,8 +213,8 @@ HTML["ce8813ce"] = bygg(
 
 HTML["93073695"] = bygg(
     "Den här punchingbollen har en viktsäck på 15 kilo som spänns runt foten "
-    "utöver fyllningen. Det är den enskilt billigaste vägen till ett ställ som "
-    "inte rör sig, och säcken går att lyfta av och använda för sig.",
+    "utöver fyllningen. Det är 15 kilo som ligger utanpå det foten redan "
+    "rymmer, och säcken går att lyfta av och använda för sig.",
     [
         ("Viktsäcken är 15 kilo ovanpå fyllningen",
          ["Runt foten sitter en röd säck med bärhandtag som rymmer 15 kilo. "
@@ -588,8 +587,8 @@ HTML["95f6280b"] = bygg(
          ["Den här säcken behöver varken vatten eller sand i foten. "
           "Kärnan är förfylld med EPE-skum och "
           "polyuretanfiber från fabrik, och foten greppar golvet med tio "
-          "sugproppar. Det som ligger i kartongen är det som ska stå på golvet "
-          "en kvart senare."]),
+          "sugproppar. Det som ligger i kartongen är det som ska stå på golvet — "
+          "ingenting ska hämtas, blandas eller fyllas först."]),
         ("Tio sugproppar och gummidämpning",
          ["Foten är 38 centimeter bred och bara 3 centimeter hög, så säcken tar "
           "minimalt med golvyta. Inbyggd gummidämpning mellan säck och fot "
@@ -674,8 +673,7 @@ def _sack_med_arm(farg, syskon_slug, syskon_text):
             ("35 kilo sand i foten",
              ["Foten är 48 centimeter i diameter och 31 centimeter hög och "
               "rymmer 30 kilo vatten, 35 kilo sand eller 40 kilo av båda "
-              "blandat. Blandningen är tyngst: sanden packar sig i botten och "
-              "vattnet fyller mellanrummen. " + FYLLNING_INGAR_EJ]),
+              "blandat. Blandningen är det tyngsta av de tre. " + FYLLNING_INGAR_EJ]),
             ("155 till 205 centimeter",
              ["Pelaren ger 50 centimeters spann, och utfällt tar stället 88 "
               "centimeter i djupled — armens svängrum, och det mått du mäter "
