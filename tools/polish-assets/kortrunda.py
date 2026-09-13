@@ -135,7 +135,20 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
         #    grinden rapporterade "kortet saknar måttraden" om ett kort som
         #    bär TVÅ måttrader. Samma familj som versalfällan ovan: grinden
         #    fungerade i nio rundor för att ingen etikett råkade ha komma.
-        if not any(_matt_ord(e).endswith("mått")
+        # ☠️ ORDTESTET ÄR EN PROXY FÖR REGELN, och regeln är "kortet ska
+        #    bära VARANS EGET mått, inte kartongens". Runda 142 är familjen
+        #    där proxyn går sönder: en punchingboll har inget B × D × H —
+        #    dess definierande mått är HÖJDSPANNET, och spec-etiketten heter
+        #    därför `Höjd`. Sju av elva kort hade fällts för att de bär exakt
+        #    det mått de ska bära.
+        #
+        #    `höjd` är därför lika giltig som `*mått`. `paketmått` är kvar
+        #    som uttryckligt undantag — det är kartongen.
+        #
+        #    ⚠️ Att VIDGA ett acceptanstest kan bara flytta rött till grönt,
+        #    aldrig tvärtom, så ingen tidigare runda kan börja falla på det
+        #    här. Kontrollmätt mot runda 140 och 141: oförändrat gröna.
+        if not any((_matt_ord(e).endswith("mått") or _matt_ord(e) == "höjd")
                    and _matt_ord(e) != "paketmått"
                    for e in specetiketter(RADER[pid])):
             fel.append(f"{pid}: kortet saknar måttraden — har {RADER[pid]}")
@@ -151,12 +164,22 @@ def kontroll(SPEC, KORT, RADER, produkter, forbjudet=()):
         # Kortets EGEN text går genom samma grindar som brödtexten. Runda 90
         # och 91 skrev fel färg två rundor i rad, båda gångerna i rubriken.
         kortext = f"{kicker} {rubrik}"
-        # ⚠️ Rundorna bär sina grindar i TVÅ former: runda 121 som
-        #    (regex, etikett), andra som naken regex. Att kräva den ena hade
-        #    tvingat varje runda att forma om sin lista — alltså en tvilling
-        #    till listan som redan finns i grind.py.
+        # ⚠️ Rundorna bär sina grindar i FLERA former: naken regex,
+        #    (regex, etikett), och sedan runda 142 (regex, etikett, flagga)
+        #    — den tredje posten är negationsursäkten, som bara angår
+        #    rundans egen granska(). Att kräva EN form hade tvingat varje
+        #    runda att forma om sin lista, alltså en tvilling till den som
+        #    redan finns i grind.py.
+        #
+        #    ☠️ `monster, etikett = m` sprack på tre element med
+        #    `ValueError: too many values to unpack` — ett hårt fel, inte en
+        #    tyst feltolkning, vilket är det enda skälet det upptäcktes. Läs
+        #    de två första posterna och strunta i resten.
         for m in forbjudet:
-            monster, etikett = m if isinstance(m, tuple) else (m, m.pattern)
+            if isinstance(m, tuple):
+                monster, etikett = m[0], m[1]
+            else:
+                monster, etikett = m, m.pattern
             if monster.search(kortext):
                 fel.append(f"{pid}: kortrubriken fälls av {etikett}")
         if G.ARTNR.search(kortext) or G.ARTNR.search(text):
