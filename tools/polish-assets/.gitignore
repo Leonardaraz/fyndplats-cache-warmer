@@ -151,3 +151,12 @@ runda-135/zoom-*.jpg
 */raw/
 */orig/
 */faith-*.jpg
+
+# Runda 140: `detalj/` är de enskilda bildernas Steg 4-granskning (position 3
+# och 4 var för sig, en per produkt) och `pos3/` är samma sak för
+# galleriplatsen kortet tar. 3 MB mellanled för ögat — det som BEVISAS av dem
+# står i STEG4.md, och bilderna själva är återskapbara ur `rawbilder/`.
+# ⚠️ `fix/` ligger MEDVETET kvar spårad: den bär den KAPADE filen som faktiskt
+#    laddades upp till Wix, alltså ett original och inte ett mellanled.
+*/detalj/
+*/pos3/

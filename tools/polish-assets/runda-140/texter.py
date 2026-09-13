@@ -69,7 +69,7 @@ NAMN = {
     "68f8cae9": "Hundbädd 96 cm i petrolblått – avtagbart överdrag och furuben",
     "ee19a8c8": "Husdjurssoffa 70 cm i krämvitt – plysch och massiv fururam",
     "2ba6baf0": "Hundsoffa i sammet 82 cm – rygg runt tre sidor och svarta ben",
-    "22c7de56": "Rund husdjurssoffa 65 cm i mörkgrönt – rygg hela vägen runt",
+    "22c7de56": "Rund husdjurssoffa 65 cm i mörkgrönt – rygg runt utom ingången",
     "07ac9918": "Husdjurssoffa 76 cm med förvaring under sitsen – plysch och trä",
 }
 
@@ -124,8 +124,8 @@ META = {
     "2ba6baf0": "Hundsoffa 82 × 54 × 36 cm i ljusgrå sammet med rygg runt tre sidor, "
                 "10 cm höga svarta ben och tvättbart dynöverdrag. För hundar upp till "
                 "20 kg och 50 cm kroppslängd.",
-    "22c7de56": "Rund husdjurssoffa 65 × 64 × 37 cm i mörkgrönt med rygg hela vägen "
-                "runt och runda björkben. Bär upp till 4,5 kg — för kattens och den "
+    "22c7de56": "Rund husdjurssoffa 65 × 64 × 37 cm i mörkgrönt med rygg runt "
+                "utom ingången och runda björkben. Bär upp till 4,5 kg — för kattens och den "
                 "lilla hundens plats.",
     "07ac9918": "Husdjurssoffa 76 × 45 × 43 cm i ljusgrå plysch med ett 64 × 37,5 cm "
                 "förvaringsfack under sitsen. Bär upp till 15 kg.",
