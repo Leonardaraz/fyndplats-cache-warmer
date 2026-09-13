@@ -1,0 +1,3 @@
+# <kort> <tal> <vad som räknades på bilden>
+89d967af 4 antal ben på metallstativet, räknade på bild 1 och 3
+efba03f0 4 antal ben på metallkrysset, räknade på bild 1 och 3

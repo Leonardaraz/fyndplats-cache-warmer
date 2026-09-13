@@ -51,10 +51,22 @@ def axelpar(rad):
         Maße:              L100 x B55 x H120     <- BOKSTAV först
     Ett mönster som bara kan det ena gav tom facit på det andra, alltså en
     grind som inte kunde fälla. Båda former läses här, i radens ordning.
+
+    ☠️ OCH ENHETEN KAN SITTA IHOP MED BOKSTAVEN. Uppmätt i runda M3 på
+    d09b1b4c: `Gesamtabmessung: Ø105 x 180Hcm` — utan blanksteg före `cm`.
+    Ett `\b` efter axelbokstaven kräver ett icke-ordtecken, och `Hcm` har
+    inget, så raden gav NOLL par. Generatorn avbröt (som den ska sedan #225),
+    men hade `axellos` funnits på raden hade den i stället tigit.
+
+    Lookaheaden släpper därför igenom `cm`/`mm`/`m` direkt efter bokstaven —
+    och BARA dem. `180 Hinweis` matchar fortfarande inte, vilket är hela
+    skälet till att `\b` satt där från början.
     """
     TAL = r"\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)?"
+    ENHET = r"(?:(?=[cm]?m\b)|\b)"
     ut = []
-    for m in re.finditer(r"(?:(%s)\s*([BLTH])\b|\b([BLTH])\s*(%s))" % (TAL, TAL), rad):
+    for m in re.finditer(
+            r"(?:(%s)\s*([BLTH])%s|\b([BLTH])\s*(%s))" % (TAL, ENHET, TAL), rad):
         if m.group(1) is not None:
             ut.append((m.group(1), m.group(2)))
         else:
