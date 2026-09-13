@@ -888,6 +888,40 @@ Lagningen är att skriva tillbaka `visible: true` på varianten med produktens
 `visible` medskickad explicit. Verifierat per rad: 0 → 1 synlig variant,
 produktens synlighet oförändrad, **pris och SKU orörda på alla 31**.
 
+#### ☠️ Och en FLERVARIANTSPRODUKT kräver att `options` följer med (2026-09-13)
+
+`updateV3VariantPrices` har fungerat i månader och föll ändå på 56 av 382
+produkter första gången den mötte AE-halvan:
+
+```
+428 MISSING_OPTIONS_ON_UPDATE_VARIANTS
+"Missing product options. Options must be provided for variants"
+```
+
+Alla 56 var flervariantsprodukter — bland dem halterneck-linnet med 29 färger.
+De enkelvarianta gick igenom.
+
+☠️ **Skälet att felet aldrig setts är husets genomgående asymmetri, och den
+gäller mer kod än den här funktionen.** `updateV3VariantPrices` hade bara två
+anropare, Aosom-synken och prisreparationen, och **en Aosom-rad ÄR en artikel
+med EN variant**. Funktionen var alltså aldrig prövad på det fall där den inte
+fungerar. Samma dag föll `jamforelsePris` på exakt samma sak åt andra hållet:
+den avvisar varje produkt med `variantCount > 1`, ett gratis bälte-och-hängslen
+för Aosom och fel för AE.
+
+**Regeln: kod som bara mötts av Aosom-halvan bär antaganden ingen sett.**
+AE-halvan har färg- och storleksvarianter; Aosom-halvan har det aldrig. Innan
+en befintlig funktion släpps på AE-rader: fråga vad den gör med fler än en
+variant, och mät det.
+
+☠️ **Options ligger i KROPPEN men inte i FÄLTMASKEN.** Masken betyder "skriv
+det här fältet"; Wix behöver options för att VALIDERA varianterna, inte för att
+ändra dem. I masken hade vi skrivit tillbaka hela strukturen — färgval,
+kopplade bilder och alt-texter — med vad projektionen råkade ge, och tyst
+tappat allt den utelämnat. Det är fällan med handbyggda variantobjekt, en nivå
+upp. Mätt först: options ligger i SAMMA GET som prisskrivningen redan gör, med
+`choices`, `linkedMedia` och `altText` ifyllda.
+
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
