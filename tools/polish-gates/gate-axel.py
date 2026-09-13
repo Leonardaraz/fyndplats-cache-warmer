@@ -65,6 +65,40 @@ def main():
         )
     facit = json.load(io.open("axelfacit.json", encoding="utf-8"))
     produkter = [k for k in facit if not k.startswith("_")]
+
+    # ☠️ EN STRÄNG I FACIT GJORDE HELA GRINDEN TYST. Uppmätt i runda M2:
+    # generatorn skrev {"bredd": "170"} i stället för {"bredd": 170}. Jämförelsen
+    # nedan slår upp egna.get(int(...)) mot en dict med STRÄNGNYCKLAR, alltså
+    # alltid None, alltså `continue` — grinden gick igenom varenda text, skrev ut
+    # "0 axelfel" och KUNDE INTE FÄLLA. Runda M1 publicerades på det kvittot.
+    #
+    # Samma familj som #143: en kontroll som inte KAN fälla är värre än ingen,
+    # för den räknas som gjord. Facit normaliseras därför här, och ett värde som
+    # inte går att tolka som ett heltal AVBRYTER i stället för att tigga vidare —
+    # skillnaden mellan "inga axelfel" och "kunde inte jämföra" är hela grinden.
+    for kort in produkter:
+        v = facit[kort]
+        if not isinstance(v, dict):
+            raise SystemExit(f"  [AVBRYT] axelfacit.json: {kort} är inte ett objekt.")
+        for axel in ("bredd", "djup", "hojd", "djupMax"):
+            if axel not in v or v[axel] is None:
+                continue
+            # ⚠️ Ett DECIMALTAL är ett legitimt mått (53,5 cm) och kan aldrig
+            # matcha mönstrens heltal — det behålls som det är i stället för att
+            # avbryta. Att fälla på ett giltigt mått hade varit samma falsklarm
+            # som #250 tog bort. Bara ett värde som inte är ett TAL alls avbryter.
+            ratt = []
+            for tal in (v[axel] if isinstance(v[axel], list) else [v[axel]]):
+                try:
+                    f = float(str(tal).strip().replace(",", "."))
+                except (TypeError, ValueError):
+                    raise SystemExit(
+                        f"  [AVBRYT] axelfacit.json: {kort}.{axel} = {tal!r} är inget tal.\n"
+                        f"  Grinden jämför tal; ett otolkbart värde hade tystat den i\n"
+                        f"  stället för att fälla. Bygg om facit med bygg-axelfacit.py."
+                    )
+                ratt.append(int(f) if f == int(f) else f)
+            v[axel] = ratt if isinstance(v[axel], list) else ratt[0]
     fynd, varningar, kallkonflikt = [], [], []
 
     for kort in produkter:
