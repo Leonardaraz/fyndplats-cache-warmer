@@ -150,7 +150,7 @@ DELAR = {
                  "klösstolpe": "84 cm hög med topplan 50 × 40 cm och två plan 30 × 30 cm",
                  "håla": "30 × 30 cm med 16 cm öppning", "mjuk brygga": "61 × 30 cm"},
     "90573e36": {"håla": "Ø33 × 31 cm med 20 × 22 cm öppning",
-                 "hoppplan": "Ø30 cm", "stolpe": "Ø7 cm", "ramp": "39 × 15 cm"},
+                 "hoppyta": "Ø30 cm", "stolpe": "Ø7 cm", "ramp": "39 × 15 cm"},
     "a4d8feca": {"nedre rum": "Ø33 × 27 cm", "övre rum": "Ø33 × 24 cm",
                  "öppning": "Ø17 cm"},
     "b04b5375": {"klösstam": "Ø20 × 32 cm", "hängmatta": "Ø30 × 5 cm"},
