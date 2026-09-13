@@ -48,10 +48,10 @@ describe("planeraPrishojning", () => {
     // utgå från 599, annars cementeras driften.
     const m = [mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 400 }] as never })];
     const w = new Map([["p1", pris(599)]]);
-    const plan = planeraPrishojning(m, w, 10, "none", KAMPANJ);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader[0].fran).toBe(599);
-    expect(plan.rader[0].till).toBeCloseTo(658.9, 5);
+    expect(plan.rader[0].till).toBeGreaterThan(599);
     // Driften MÄTS, den rättas inte tyst här.
     expect(plan.rader[0].mappningensPris).toBe(400);
     expect(plan.rader[0].drift).toBe(true);
@@ -149,6 +149,24 @@ describe("planeraPrishojning", () => {
 
     expect(plan.rader).toHaveLength(1);
     expect(plan.redanHojda).toBe(0);
+  });
+
+  it("☠️ ett pris som inte slutar på 9 skrivs ALDRIG — grind, inte förhoppning", () => {
+    // `none` härmar ett trasigt configvärde: roundPrice returnerar priset
+    // oavrundat, alltså 658,90 kr. Utan grinden hade det nått kund.
+    const { m, w } = enkelKatalog();
+    const plan = planeraPrishojning(m, w, 10, "none", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(0);
+    expect(plan.ejNiokrona).toBe(1);
+  });
+
+  it("charm99 ger 9 på slutet — och grinden släpper igenom", () => {
+    const { m, w } = enkelKatalog();
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.ejNiokrona).toBe(0);
+    expect(plan.rader[0].till % 10).toBe(9);
   });
 
   it("en höjning som avrundas bort blir ingen skrivning", () => {

@@ -89,6 +89,8 @@ export type HojningPlan = {
   variantavvikelse: number;
   /** Redan höjd i DENNA kampanj. Det som gör omkörning ofarlig. */
   redanHojda: number;
+  /** Det avrundade priset slutade inte på 9 — skrivs ALDRIG. Se grinden nedan. */
+  ejNiokrona: number;
   /** Avrundningen gav samma tal — ingen skrivning behövs. */
   oforandrade: number;
   rader: HojningRad[];
@@ -175,6 +177,7 @@ export function planeraPrishojning(
     utanWixPris: 0,
     variantavvikelse: 0,
     redanHojda: 0,
+    ejNiokrona: 0,
     oforandrade: 0,
     rader: [],
     summa: "",
@@ -250,6 +253,26 @@ export function planeraPrishojning(
     // verkan; de räknas i stället.
     if (till <= fran) {
       plan.oforandrade++;
+      continue;
+    }
+
+    // ☠️ PRISET MÅSTE SLUTA PÅ 9 — Leonards krav 2026-09-13, och en GRIND, inte
+    // en förhoppning.
+    //
+    // Husets `charm9`/`charm99` ger redan det, så i normal drift fäller den
+    // aldrig. Men avrundningsstrategin bor i `FyndplatsPricingConfig`, alltså
+    // UTANFÖR den här koden: ett efterföljande blanksteg i configraden har
+    // redan en gång tyst stängt av charm-prissättningen för hela katalogen och
+    // börjat skriva örespriser (uppmätt: `roundPrice(541.85, "charm99 ")` =
+    // `541.85`). Med bara `roundPrice` att luta sig mot hade höjningen tyst
+    // skrivit 658,90 kr till kund.
+    //
+    // En regel utan grind glider — samma lärdom som `SHIP_AXIS_RE` och
+    // `EU_TULL_CODES`. Raden hoppas över och RÄKNAS, så ett trasigt
+    // configvärde syns som ett stort `ejNiokrona` i stället för som ett
+    // sortiment med örespriser.
+    if (!Number.isInteger(till) || till % 10 !== 9) {
+      plan.ejNiokrona++;
       continue;
     }
 

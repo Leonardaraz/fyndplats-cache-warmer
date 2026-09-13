@@ -119,6 +119,7 @@ jobs:
               "| utan butikspris | \(.utanWixPris) |",
               "| variantavvikelse | \(.variantavvikelse) |",
               "| redan höjda | \(.redanHojda) |",
+              "| ej niokrona (grind) | \(.ejNiokrona) |",
               "| oförändrade | \(.oforandrade) |",
               "| mappning ≠ butik | \(.drivande) |",
               "| **kontrollsumma** | `\(.summa)` |"
