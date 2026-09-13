@@ -109,3 +109,52 @@ upplagd, och den gav sju av sju rätt på första försöket.
 | variant-SKU | **7/7**, alla unika — fyra delade `FP-2er-set-kunstliche` |
 | variantens `visible` och priset | orörda på alla sju |
 | kategorier | **19 av 19**, noll fel |
+
+## Mappningsraden — las + stampla
+
+Fjorton körningar av `polish-mapping.yml`, alla med **explicit
+`ref: claude/seo-polering-runbook-review-uq6fwl`** (aldrig `main` — #181).
+
+| läge | körningar | utfall |
+|---|---|---|
+| `las` | 2802–2808 | **7/7 gröna** |
+| `stampla` | 2809–2815 | **7/7 gröna** |
+
+En grön `las` ÄR prisgrindens kvitto: workflowen avslutar med `exit 1` på både
+`stammer: false` och `EJ AVGORBAR`, så ett grönt jobb betyder att mappningens
+kostnad, husets regelpris och Wix faktiska pris är överens på raden.
+
+## Live-verifieringen — 7/7 REN
+
+Hämtat ISR-medvetet (`hamta-live.sh 90`): varm träff, 305 s väntan tills sidorna
+hunnit bli inaktuella, sedan skarp hämtning. Alla sju svarade **HTTP 200** med
+`age` 62–71 s — alltså den rendering den varma träffen utlöste, inte en äldre
+cachad sida.
+
+```
+39c90d59  ord=491  diff=0  -> REN        74330920  ord=508  diff=0  -> REN
+5a2bd33d  ord=492  diff=0  -> REN        007e8c7b  ord=475  diff=0  -> REN
+7e66b14b  ord=468  diff=0  -> REN        85619689  ord=489  diff=0  -> REN
+                                         e8c4c9d7  ord=473  diff=0  -> REN
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+### ☠️ Och grinden är verifierad att den KAN SE
+
+En grind som är påslagen säger ingenting om att den kan fälla (#171, runda J2:
+alt-svepet var på, dokumenterat och blint i en hel runda). Tre fel planterades
+därför i en kopia av de hämtade sidorna, ett per svep:
+
+| planterat | i | vad grinden sa |
+|---|---|---|
+| `Gewicht` i `<title>` | `39c90d59` | **3 fel** — sidsvep, exakt SEO-diff mot `seo.tsv`, tyskt ord i titeln |
+| tysk alt-text | `5a2bd33d` | **2 fel** — `Kunststoff` och `mit` |
+| *"Leverantören anger…"* i brödtexten | `7e66b14b` | **13 fel** — orddiff 12 + husregelbrottet |
+
+De fyra orörda sidorna förblev REN. Rätt produkt, rätt svep, inga falsklarm.
+
+⚠️ **Och asymmetrin syns i talen: orddiffen var 0 på både titel- och
+alt-planteringen.** Orddiffen läser BRÖDTEXT. En tysk titel och en tysk
+alt-text passerar den helt — de fångas bara av SEO- respektive alt-svepet.
+Det är exakt varför de tre svepen finns var för sig, och varför en runda som
+bara mäter orddiffen kan rapportera 0 avvikelser med tyska i sökresultatet.
