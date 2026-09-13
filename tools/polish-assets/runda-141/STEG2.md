@@ -34,7 +34,7 @@ Viktstöd: max 25 kg; total kapacitet 300 kg
 samma konstruktion), men dyrare: där var motsägelsen mellan två källor, här
 är det två OLIKA STORHETER som ser ut som samma sak.
 
-## ☠️ 2. Materialpåståendet på `8de3c3ef` är motsagt av leverantören själv
+## ☠️ 2. Materialpåståendet på `8de3c3ef` — ⚠️ KULLKASTAT I STEG 4
 
 | källa | säger |
 |---|---|
@@ -51,6 +51,30 @@ materialet oskrivet. Samma familj som #259 (MDF är inte massivt trä) och
 #472 (spec och tyska ljuger åt olika håll) — men här är det marknadsraden
 som är den ensamma avvikaren, vilket gör den lätt att falla för.
 
+### ✅ Rättelse — bilden sa att båda källorna hade rätt
+
+Steg 4 tittade på bilden, och stycket ovan är fel i sin premiss. Stommen
+**är** av lackade stålrör; det syns direkt. `Technische Daten` ljuger inte —
+den beskriver **dynan**: plywoodskiva, EPE-skum, PVC-klädsel. Det är en
+fullständig och korrekt materiallista för den delen, och en ofullständig
+för produkten.
+
+☠️ **Felet jag gjorde var att räkna KÄLLOR i stället för att läsa vad de
+handlar om.** "Två tekniska källor mot en marknadsrad" lät som ett avgjort
+mål; i själva verket svarade de på olika frågor. Fraktvikten drog åt samma
+håll och stärkte fel slutsats — 10 kg är lite för en stålbänk, men bänken
+är också liten (115 × 32,5 cm) och rören är tunna.
+
+**Regeln:** en materiallista utan angiven DEL är inte ett påstående om hela
+varan. Innan två källor ställs mot varandra måste de handla om samma sak —
+annars är motsägelsen inbillad, och den slutsats som dras ur den blir fel
+åt det håll som råkar ha flest rader. Samma klass som #488 (`Vikt` i
+spec-blocket är fraktvikten, inte varans) — fältet stämmer, etiketten
+saknas.
+
+**Vad som får skrivas:** stålstomme, ja. Men dynan ska beskrivas som dyna,
+och inte som "varan är av trä".
+
 ⚠️ `18b94738` påstår `Massivholz` i punktlistan och `Buche` i tekniska data.
 Bok ÄR ett massivträslag, så de motsäger inte varandra — men "massivt" är
 ändå ett påstående om konstruktionen, inte om träslaget, och ska bekräftas
@@ -66,6 +90,10 @@ skivorna följer med får en tom order. Lieferumfang är kontraktet (#468):
 `8de3c3ef` heter *"mit Beinstrecker"* men varken Lieferumfang eller
 Technische Daten nämner en bensträckare. **Namnet är inte en källa** (#462)
 — bilden får avgöra, annars stryks ordet.
+
+✅ **Bilden avgjorde: bensträckaren finns.** Rullparet sitter monterat på
+bänkens främre ände. Ordet får stå — men det är bilden som är källan, inte
+namnet, och det är skillnaden mellan den här raden och #462.
 
 ## Vad grinden INTE fäller
 

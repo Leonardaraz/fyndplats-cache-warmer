@@ -160,3 +160,11 @@ runda-135/zoom-*.jpg
 #    laddades upp till Wix, alltså ett original och inte ett mellanled.
 */detalj/
 */pos3/
+
+# Runda 141:s Steg 4-ark. `steg4/` är 25 nedladdade bilder plus de kontakt-
+# och hörnark som byggs av dem — 5,5 MB härlett ur `bilder.json` av
+# `steg4.py`, som ÄR spårad. DOMEN står i STEG4.md; arken är mellanled för
+# ögat. Samma skäl som `*/rawbilder/` och `*/zoom-*.jpg`, och samma villkor:
+# mätningen får aldrig vara det som ignoreras, bara dess bild.
+*/steg4/
+*/steg4-*.jpg

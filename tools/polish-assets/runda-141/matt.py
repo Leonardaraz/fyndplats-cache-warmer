@@ -20,7 +20,13 @@ M = {
         maxlast_kg=120,                   # star TVA ganger i tyskan, konsekvent
         farg_de="Natur", farg_spec="Naturholz",
         material_de="Buche, Kunstleder",
-        pastar_massivholz=True,           # ⚠️ Steg 5: Buche ar tratyp, inte bevis
+        # ☠️ Steg 4 FALLDE bada trapastaendena. Zoomen pa gavelns rundade
+        #    horn och pa skivkanten under dynan visar STAPLADE FANERSKIKT —
+        #    plywood, inte massivt tra. Ytan ar dessutom blek och rakfibrig
+        #    (bjorkfaner), inte bok. #259 en gang till: en tratyp i
+        #    Technische Daten sager ingenting om KONSTRUKTIONEN.
+        pastar_massivholz=True,           # ⚠️ far INTE skrivas till kund
+        skivmaterial_matt="skiktlimmad traskiva (plywood)",
         fraktvikt=24, paket=(115, 43, 39),
         ingar=["1 x Kurzhantelbank", "2 x Widerstandsband", "1 x Handbuch"],
         lager="IN_STOCK",
@@ -53,19 +59,26 @@ M = {
         sits=(36, 27), rygg=(67, 27), lagen=7,
         # ☠️ SAMMA fälla som a4bbe667: 300 kg ar TOTALEN, 120 kg ar anvandaren.
         kap_total_kg=300, maxlast_anvandare_kg=120,
-        farg_de="Grün",                   # ⚠️ Steg 4: matas i ZOOM, inte pa kontaktark
-        # ☠️ MATERIALLOGN: brodtexten OCH punktlistan sager "Stahlrahmen …
-        #    belastbar bis 300 kg". Leverantorens EGNA Technische Daten sager
-        #    Sperrholz/EPE/PVC, och spec-blocket sager Holz/PVC. TVA tekniska
-        #    kallor mot EN marknadsrad — och 10 kg fraktvikt talar for tra.
+        # ☠️ Steg 4 KULLKASTADE fargen. Leverantoren sager Grün; av bildens
+        #    1 432 mattade pixlar ar NOLL grona — 91 % bla, 9 % turkos — och
+        #    varan i ovrigt ar 95,9 % svart/gra. `Farbe: Grün` ar alltsa fel,
+        #    inte tolkningsbar. Skriv den MATTA fargen.
+        farg_de="Grün", farg_matt="svart med bla detaljer",
+        # ☠️ MATERIALET var ingen logn — det var tva olika DELAR. Brodtexten
+        #    och punktlistan sager "Stahlrahmen"; Technische Daten sager
+        #    Sperrholz/EPE/PVC och spec-blocket Holz/PVC. Steg 4 loste det:
+        #    listan beskriver DYNAN (plywoodskiva + EPE-skum + PVC-kladsel),
+        #    bilden visar en stomme av lackade STALROR. Bada ar sanna om var
+        #    sin del — ingen far skrivas som "varans material" utan sin del.
         material_de="Sperrholz, EPE-Schaumstoff, PVC",
         material_spec="Holz/Polyvinylchlorid",
-        pastar_stalram=True,              # ⚠️ far INTE skrivas till kund
+        stalram_bekraftad=True,           # ✅ Steg 4: stalrorsstomme pa bilden
         fraktvikt=10, paket=(80, 37, 29),
         ingar=["1 x Verstellbare Hantelbank", "1 x Bedienungsanleitung"],
-        # ⚠️ "Beinstrecker" star i NAMNET men i varken Lieferumfang eller
-        #    Technische Daten. #468: Lieferumfang ar kontraktet — bilden avgor.
-        beinstrecker_obekraftad=True,
+        # ✅ "Beinstrecker" stod bara i NAMNET (#462: namnet ar ingen kalla),
+        #    varken Lieferumfang eller Technische Daten namnde den. Steg 4
+        #    bekraftade den: bilden visar rullparet pa benstrackaren.
+        beinstrecker_bekraftad=True,
         lager="IN_STOCK",
     ),
     "b4961e6f": dict(
@@ -86,7 +99,12 @@ M = {
         namn_de="Hantelbank, 8 Positionen, klappbar, Stahlbasis, gepolstert",
         pris=1379, bilder=None, sku_fore="FP-hantelbank-8-positionen",
         tot=(140, 73, "98-122"), hopfalld=(73, 55, 134),
-        rygg=(100, 26, 43), stangdiameter_mm=25,
+        # ☠️ Steg 4: MATRITNINGEN sager 110 x 26 cm, inte 100. Vilken av
+        #    kallorna som bar 100 gar inte att avgora i efterhand — tyskan
+        #    eller min transkribering. Ritningen ar facit; 100 bevaras som
+        #    det talet som INTE ska skrivas.
+        rygg=(110, 26, 43), rygg_langd_transkriberad=100,
+        stangdiameter_mm=25,
         # ⚠️ "8 Positionen" ar HANTELHYLLANS lagen, inte ryggstodets.
         hantelablage_lagen=8,
         # ☠️ INGEN max anvandarvikt alls. 150 kg ar BANKEN.
@@ -135,7 +153,11 @@ M = {
         namn_de="Hantelbank ohne Gewichte, verstellbare Fitnessbank für zahlreiche",
         pris=1959, bilder=None, sku_fore="FP-hantelbank-ohne-gewichte",
         tot=(175, 139, 127),
-        rygg=(74, 26, 4), sits=(30, 26, 4), armbagsdyna=(49, 27, "74-86"),
+        # ☠️ Steg 4: `(74, 26, 4)` var "74 x 26,4 cm" last som TRE tal —
+        #    kommat blev en tupelavskiljare. Ritningen sager dessutom 25 cm
+        #    pa ryggdynans bredd dar tyskan sager 26,4. Bada bevaras.
+        rygg=(74, 26.4), rygg_bredd_ritning=25,
+        sits=(30, 26.4), armbagsdyna=(49, 27, "74-86"),
         viktpelare=(25, 2.5), traningspositioner=3, rygg_hal=3,
         kap_sitsdyna_kg=200, maxlast_anvandare_kg=100,   # LAGST i batchen
         kap_viktset_kg=100,
@@ -146,6 +168,11 @@ M = {
         ingar=["1 x Hantelbank", "1 x Gebrauchsanleitung"],
         skivor_ingar=False,                # "Gewichte und Langhantel NICHT enthalten"
         har_squat_rack=True, har_beinstrecker=True, har_butterfly=True,
+        # ☠️ Steg 4: BILD 3 (matritningen) bar leverantorens logotyp
+        #    INBRAND i ovre vanstra hornet — en pastamplad vattenstampel,
+        #    inte ett marke pa varan. Samma klass som runda 64. Bilden
+        #    plockas bort; matten flyttas till spec-tabellen i stallet.
+        bild3_bar_logotyp=True,
         lager="IN_STOCK",
     ),
 }
