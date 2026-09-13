@@ -113,10 +113,10 @@ INTRO = {
                 "med sisal nedtill. Golvytan är 65 × 50 cm, och trädet väger 14 kg. "
                 "För katter upp till 4,5 kg.",
     "3addfbf8": "Ett lågt klösträd på 76 cm för katten som hellre ligger nära golvet. "
-                "Bädden är rund på Ø34 cm och vilar i ett U-format ställ, andra "
-                "planet har ett hål på Ø15,5 cm att kika genom, och klösbrädan på "
-                "43 × 30 cm lutar mot sidan. Basen mäter 60 × 30 cm. För katter upp "
-                "till 5 kg.",
+                "Överst ligger en U-formad bädd på 45 × 25 × 12,5 cm, mellanplanet "
+                "har ett hål på Ø15,5 cm att kika genom, och nere på bottenplattan "
+                "står en rund bädd på Ø34 cm. Klösbrädan på 43 × 30 cm lutar mot "
+                "sidan. Basen mäter 60 × 30 cm. För katter upp till 5 kg.",
     "4faf9f4c": "Ett klösträd på 113 cm med tre liggplatser på olika höjd: en sluten "
                 "håla på 40 × 30 × 27 cm med en öppning på 19 × 19 cm, en hängmatta "
                 "på Ø30 cm och en toppbädd på Ø31,5 cm med kattöron. En ramp på "
@@ -130,8 +130,8 @@ INTRO = {
     "90573e36": "Ett klösträd som inte står på golvet utan spänns mellan golv och "
                 "tak, ställbart mellan 220 och 240 cm. En sluten håla på Ø33 × 31 cm "
                 "sitter nedtill med en öppning på 20 × 22 cm, och ovanför den en "
-                "ramp, en hängmatta och en rund hoppyta på Ø30 cm. Fotplattan tar "
-                "bara 30 × 25 cm av golvet.",
+                "ramp, två blomformade plan på 30 cm och en hängmatta. Fotplattan "
+                "tar bara 30 × 25 cm av golvet.",
     "a4d8feca": "En klöstunna på Ø35 × 60 cm klädd i sisal utanpå och plysch inuti. "
                 "Två rum ligger ovanpå varandra — det nedre Ø33 × 27 cm, det övre "
                 "Ø33 × 24 cm — och katten går in genom en öppning på Ø17 cm. "
@@ -179,8 +179,9 @@ PUNKTER = {
     ],
     "3addfbf8": [
         "Höjd 76 cm på en bas som mäter 60 × 30 cm",
-        "Rund bädd på Ø34 cm i ett U-format ställ",
-        "Andra planet 45 × 30 cm med ett hål på Ø15,5 cm",
+        "U-formad bädd överst, 45 × 25 × 12,5 cm",
+        "Mellanplan 45 × 30 cm med ett hål på Ø15,5 cm",
+        "Rund bädd på Ø34 cm med 7 cm kant, nere på bottenplattan",
         "Klösbräda på 43 × 30 cm som lutar mot sidan",
         "Stolpar på Ø5,5 cm, sisallindade",
         "Jutekudde och två hängande bollar",
@@ -211,7 +212,7 @@ PUNKTER = {
         "Tippskyddsrem följer med",
         "Fotplattan tar 30 × 25 cm av golvet",
         "Sluten håla Ø33 × 31 cm med öppning 20 × 22 cm",
-        "Ramp på 39 × 15 cm och rund hoppyta på Ø30 cm",
+        "Ramp på 39 × 15 cm och två blomformade plan, 30 cm breda",
         "Hängmatta och hängande boll",
         "Stolpe på Ø7 cm, lindad med sisalrep",
         "Klädd i teddyfleece",
@@ -438,8 +439,9 @@ SPEC = {
     ],
     "3addfbf8": [
         ("Mått", "60 × 30 × 76 cm (L × B × H)"),
-        ("Bädd", "Ø34 cm"),
-        ("Andra planet", "45 × 30 cm med Ø15,5 cm hål"),
+        ("Toppbädd", "45 × 25 × 12,5 cm, U-formad"),
+        ("Mellanplan", "45 × 30 cm med Ø15,5 cm hål"),
+        ("Rund bädd", "Ø34 cm, 7 cm hög kant"),
         ("Klösbräda", "43 × 30 cm"),
         ("Stolpe", "Ø5,5 cm"),
         ("Material", "spånskiva, plysch och sisal"),
@@ -477,7 +479,7 @@ SPEC = {
         ("Mått", "30 × 25 × 220–240 cm (L × B × H)"),
         ("Takhöjd", "220–240 cm"),
         ("Håla", "Ø33 × 31 cm, öppning 20 × 22 cm"),
-        ("Hoppyta", "Ø30 cm"),
+        ("Blomformade plan", "30 cm breda, två stycken"),
         ("Ramp", "39 × 15 cm"),
         ("Stolpe", "Ø7 cm"),
         ("Material", "spånskiva, teddyfleece och sisal"),
@@ -581,7 +583,8 @@ FAQ = {
          "den utan att hoppa. Det passar en äldre katt eller en som är ovan."),
         ("Vad är hålet i mellanplanet till?", "Det är Ø15,5 cm och går att titta "
          "ner genom. Det är för litet att falla igenom."),
-        ("Hur stor är bädden?", "Ø34 cm, och den vilar i ett U-format ställ."),
+        ("Hur många bäddar finns det?", "Två: en U-formad överst på "
+         "45 × 25 × 12,5 cm och en rund på Ø34 cm nere på bottenplattan."),
         ("Hur stor katt passar den?", "Den är gjord för katter upp till 5 kg."),
     ],
     "4faf9f4c": [
