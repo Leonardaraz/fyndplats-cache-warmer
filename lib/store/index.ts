@@ -205,6 +205,26 @@ export interface ProductMappingRecord {
    */
   prisLast?: boolean;
   /**
+   * Senaste genomförda prishöjningen på raden (lib/pricing/ae-prishojning.ts).
+   *
+   * ☠️ FÄLTET ÄR IDEMPOTENSEN, INTE EN LOGGRAD. Höjningen rör ~1 000 produkter
+   * och rutten har 300 sekunder, så den MÅSTE kunna köras om. Utan en stämpel
+   * kan planen inte skilja "ännu inte höjd" från "redan höjd": en omkörning
+   * efter ett avbrott hade tagit 599 → 659 → 725, och ingenting i svaret hade
+   * sett fel ut. Planen hoppar därför över varje rad som redan bär samma
+   * `kampanj`.
+   *
+   * Kampanjnamnet är anroparens, inte ett datum: två höjningar samma dag ska
+   * gå att skilja åt, och en avbruten körning ska gå att återuppta med exakt
+   * samma namn.
+   */
+  prishojning?: {
+    kampanj: string;
+    fran: number;
+    till: number;
+    nar: string;
+  };
+  /**
    * Satt när variantpriserna inte gick att bekräfta vid import: alla varianter
    * delade inköpspris utan per-SKU-täckning (lib/import/price-trust.ts).
    * Produkten hålls som utkast och /admin/queue visar motiveringen, som är

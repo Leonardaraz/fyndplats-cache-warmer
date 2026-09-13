@@ -87,6 +87,8 @@ export type HojningPlan = {
   utanWixPris: number;
   /** Mappningens variant-id:n täcker inte produktens varianter — hoppas över. */
   variantavvikelse: number;
+  /** Redan höjd i DENNA kampanj. Det som gör omkörning ofarlig. */
+  redanHojda: number;
   /** Avrundningen gav samma tal — ingen skrivning behövs. */
   oforandrade: number;
   rader: HojningRad[];
@@ -164,6 +166,7 @@ export function planeraPrishojning(
   wixPriser: ReadonlyMap<string, WixProduktPris>,
   pct: number,
   avrundning: PricingConfig["rounding"],
+  kampanj: string,
 ): HojningPlan {
   const plan: HojningPlan = {
     granskade: 0,
@@ -171,6 +174,7 @@ export function planeraPrishojning(
     prisLasta: 0,
     utanWixPris: 0,
     variantavvikelse: 0,
+    redanHojda: 0,
     oforandrade: 0,
     rader: [],
     summa: "",
@@ -187,6 +191,21 @@ export function planeraPrishojning(
     // vilket är rätt för hela den katalog som fanns före 2026-08-27.
     if (!isAliExpressMapping(m)) {
       plan.ejAliExpress++;
+      continue;
+    }
+
+    // ☠️ REDAN HÖJD I DENNA KAMPANJ → rör den inte.
+    //
+    // Det här är det som gör en omkörning ofarlig, och utan den är hela
+    // rutten en fälla: 1 000 produkter ryms inte i 300 sekunder, så den
+    // KOMMER att köras om. En plan som inte kan skilja "ännu inte höjd" från
+    // "redan höjd" tar 599 → 659 → 725 vid andra försöket, och svaret ser
+    // likadant ut båda gångerna.
+    //
+    // Stämpeln nycklas på kampanjnamnet, inte på ett datum: en ny höjning
+    // senare ska kunna röra samma rad igen.
+    if (m.prishojning?.kampanj === kampanj) {
+      plan.redanHojda++;
       continue;
     }
 

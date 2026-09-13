@@ -10,6 +10,8 @@ import {
   validateraPct,
 } from "./ae-prishojning";
 
+const KAMPANJ = "hostpris-10";
+
 function mappning(over: Partial<ProductMappingRecord> & { wixProductId: string }): ProductMappingRecord {
   return {
     supplierProductId: "1005001234567",
@@ -32,7 +34,7 @@ function enkelKatalog() {
 describe("planeraPrishojning", () => {
   it("höjer från BUTIKENS pris och avrundar med husets strategi", () => {
     const { m, w } = enkelKatalog();
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
     // 599 × 1,10 = 658,90 → charm99
     expect(plan.rader).toHaveLength(1);
     expect(plan.rader[0].fran).toBe(599);
@@ -46,7 +48,7 @@ describe("planeraPrishojning", () => {
     // utgå från 599, annars cementeras driften.
     const m = [mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 400 }] as never })];
     const w = new Map([["p1", pris(599)]]);
-    const plan = planeraPrishojning(m, w, 10, "none");
+    const plan = planeraPrishojning(m, w, 10, "none", KAMPANJ);
 
     expect(plan.rader[0].fran).toBe(599);
     expect(plan.rader[0].till).toBeCloseTo(658.9, 5);
@@ -61,7 +63,7 @@ describe("planeraPrishojning", () => {
       mappning({ wixProductId: "p1", supplier: "aosom", supplierProductId: "aosom:845-030CG" } as never),
     ];
     const w = new Map([["p1", pris(599)]]);
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(0);
     expect(plan.ejAliExpress).toBe(1);
@@ -71,13 +73,13 @@ describe("planeraPrishojning", () => {
     // Hela katalogen före 2026-08-27 saknar fältet. Klassades de som "okänt"
     // hade höjningen missat merparten av det den gäller.
     const { m, w } = enkelKatalog();
-    expect(planeraPrishojning(m, w, 10, "charm99").rader).toHaveLength(1);
+    expect(planeraPrishojning(m, w, 10, "charm99", KAMPANJ).rader).toHaveLength(1);
   });
 
   it("☠️ ett PRISLÅST pris rörs inte, och räknas", () => {
     const m = [mappning({ wixProductId: "p1", prisLast: true })];
     const w = new Map([["p1", pris(599)]]);
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(0);
     expect(plan.prisLasta).toBe(1);
@@ -86,7 +88,7 @@ describe("planeraPrishojning", () => {
   it("☠️ okänt butikspris GISSAS aldrig ur mappningen", () => {
     const m = [mappning({ wixProductId: "saknas" }), mappning({ wixProductId: "flera" })];
     const w = new Map([["flera", pris(null, 3)]]); // min ≠ max → inget entydigt pris
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(0);
     expect(plan.utanWixPris).toBe(2);
@@ -104,7 +106,7 @@ describe("planeraPrishojning", () => {
       }),
     ];
     const w = new Map([["p1", pris(599, 2)]]);
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(1);
     expect(plan.rader[0].variantIds).toEqual(["v1", "v2"]);
@@ -115,17 +117,45 @@ describe("planeraPrishojning", () => {
       mappning({ wixProductId: "p1", variants: [{ wixVariantId: "v1", grossSek: 599 }] as never }),
     ];
     const w = new Map([["p1", pris(599, 3)]]); // Wix har tre, mappningen en
-    const plan = planeraPrishojning(m, w, 10, "charm99");
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(0);
     expect(plan.variantavvikelse).toBe(1);
+  });
+
+  it("☠️ redan höjd i SAMMA kampanj rörs inte — annars blir omkörningen 599 → 659 → 725", () => {
+    const m = [
+      mappning({
+        wixProductId: "p1",
+        prishojning: { kampanj: KAMPANJ, fran: 599, till: 659, nar: "2026-09-13T17:00:00Z" },
+      } as never),
+    ];
+    const w = new Map([["p1", pris(659)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(0);
+    expect(plan.redanHojda).toBe(1);
+  });
+
+  it("höjd i en ANNAN kampanj höjs igen — stämpeln är ingen permanent spärr", () => {
+    const m = [
+      mappning({
+        wixProductId: "p1",
+        prishojning: { kampanj: "varpris-5", fran: 570, till: 599, nar: "2026-05-01T00:00:00Z" },
+      } as never),
+    ];
+    const w = new Map([["p1", pris(599)]]);
+    const plan = planeraPrishojning(m, w, 10, "charm99", KAMPANJ);
+
+    expect(plan.rader).toHaveLength(1);
+    expect(plan.redanHojda).toBe(0);
   });
 
   it("en höjning som avrundas bort blir ingen skrivning", () => {
     const m = [mappning({ wixProductId: "p1" })];
     const w = new Map([["p1", pris(599)]]);
     // 599 × 1,0001 = 599,06 → charm99 rundar tillbaka till 599
-    const plan = planeraPrishojning(m, w, 0.01, "charm99");
+    const plan = planeraPrishojning(m, w, 0.01, "charm99", KAMPANJ);
 
     expect(plan.rader).toHaveLength(0);
     expect(plan.oforandrade).toBe(1);
