@@ -28,7 +28,7 @@ samma stol som den redan publicerade `baddfatolj-190-cm` (`667ca8f9`,
   `rgb(51,105,101)`, `rgb(27,73,71)`, `rgb(44,88,86)` — identiska till
   siffran på alla tre. Samma foto.
 
-Två Aosom-artikelnummer (`839-875V00DG` mot `839-875V03DG`), skilda saldon
+Två Aosom-artikelnummer som skiljer sig på EN position, skilda saldon
 (22 mot 86) och skilda kostnader — men en produkt för kunden. Den ligger
 kvar som **osynligt utkast** och Leonard avgör om den ska pensioneras.
 

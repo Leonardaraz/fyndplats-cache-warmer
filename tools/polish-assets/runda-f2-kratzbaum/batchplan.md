@@ -69,7 +69,7 @@ klösträd ligger redan publicerade i samma kategori.
 
 ☠️ Två saker som ALDRIG får nå texten, båda syns i råmaterialet:
 husmärket **PawHut** (står i leverantörens URL) och artikelnumret
-(`D30-907V00LG` på 68f7d530). Numret hör hemma på `supplierProductId` och
+(artikelnumret stod i klartext på 68f7d530). Numret hör hemma på `supplierProductId` och
 ingen annanstans.
 
 ## Läget: texterna skrivna och grindade, två av åtta i Wix

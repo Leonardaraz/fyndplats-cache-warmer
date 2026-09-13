@@ -77,6 +77,13 @@ describe("gatelib fäller det den ska", () => {
     // med gungstolarnas ordlista, precis som H1 grindades med F2:s.
     ["TYSK REST", "fordonsord ur feeden", "Rutschauto mit Schiebestange und Hupe."],
     ["TYSK REST", "tyska specetiketter för fordon", "Belastbarkeit 25 kg, Stauraum unter dem Sitz."],
+    // ☠️ 2026-09-13: artikelnumret har TRE former, och den gamla raden såg
+    // bara två. Formen med inledande BOKSTAV (#230:s D51-…) matchade varken
+    // alternativ — och två sådana låg redan committade i publika repot,
+    // osynliga för varje grind.
+    ["ARTIKELNUMMER", "artikelnummer med inledande bokstav", "Modellreferens: D51-530V00BK i specen."],
+    ["ARTIKELNUMMER", "artikelnummer utan svans", "Artikelnr 84B-956 står i tabellen."],
+    ["ARTIKELNUMMER", "helt numeriskt artikelnummer", "Referens 921-672V00BG i raden."],
   ];
 
   it.each(FALLER)("[%s] %s", (grind, _vad, text) => {
@@ -100,6 +107,15 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["svenska pedaler, inte tyska Pedale", "Pedaler och skyddsbåge lossas var för sig."],
     ["ord som stavas lika på båda språken", "Material: plast och metall. Musik och ljus i ratten."],
     ["svensk ålders- och batteriangivelse", "Rekommenderad ålder 18–36 månader, 2 AA-batterier."],
+    // ☠️ SPÄNNINGEN ÄR INTE ETT ARTIKELNUMMER. Uppmätt över julgransfamiljens
+    // 25 utkast: formen DDD-DDDL förekom sex gånger och var varje gång
+    // `220-240V`. Den gamla raden fällde alla sex. Att det inte bitit ännu
+    // berodde bara på att rundorna råkat skriva TANKSTRECK — första texten
+    // med vanligt bindestreck hade gett ett falsklarm som ser ut som en
+    // läcka av leverantörens artikelnummer, alltså den dyraste sorten.
+    ["spänningsintervall med bindestreck", "Ingående spänning 220-240 V och 50-60 Hz."],
+    ["höjdintervall med bindestreck", "Höjden justeras mellan 228-260 cm."],
+    ["måttintervall i specraden", "Sitthöjd 113-132 cm och bredd 202-242 cm."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {

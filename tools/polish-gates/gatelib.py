@@ -23,7 +23,32 @@ HÄR, en gång, och rundorna anropar dem — precis som livegrind.py redan gör.
 import os, re
 
 MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zonekiz|Durhand"
-ARTNR = r"\b\d{3}-\d{3}[A-Z0-9]*\b|\b\d{2}[A-Z]-\d{3}"
+# ☠️ ARTIKELNUMRETS FORM ÄR MÄTT, INTE GISSAD (2026-09-13). Ett svep över
+# julgransfamiljens 25 utkast räknade FORMEN på varje bindestreckad kod —
+# tecken för tecken mappade till D/L, så inget värde passerade chatten:
+#
+#     DDL-DDDLDDLL   7 st   artikelnummer
+#     DDD-DDDLDDLL   1 st   artikelnummer
+#     DDD-DDDL       6 st   ☠️ `220-240V` — SPÄNNINGSINTERVALL, inte artikelnummer
+#
+# Den gamla raden `\b\d{3}-\d{3}[A-Z0-9]*\b` fällde alla sex spänningarna.
+# Det hade inte bitit ännu, och bara av ren typografisk tur: rundorna råkar
+# skriva "220–240 V" med TANKSTRECK. Första texten med vanligt bindestreck
+# hade gett ett falsklarm som ser ut som en läcka av leverantörens
+# artikelnummer — den dyraste sortens falsklarm, för den lär mottagaren att
+# ignorera just den grinden. Samma argument som #250.
+#
+# Skillnaden är mätbar och entydig: ett äkta artikelnummer bär MINST TVÅ
+# alfanumeriska tecken efter den andra siffergruppen (`V00BG`, `CG`, `LG`),
+# spänningen bär exakt ETT (`V`). Kravet gäller BARA den helt numeriska
+# formen — `84B-956` och `83F-023` är äkta artikelnummer utan svans, och
+# formen DDL-DDD har ingen legitim annan betydelse.
+#
+# ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `D51-530V00BK` (#230) börjar
+# med en BOKSTAV och matchade varken alternativ. Den har ett eget uttryck nu.
+ARTNR = (r"\b\d{2}[A-Z]-\d{3}[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
+         r"|\b[A-Z]\d{2}-\d{3}[A-Z0-9]*\b"     # D51-530V00BK
+         r"|\b\d{3}-\d{3}[A-Z0-9]{2,}\b")      # 921-672V00BG, men INTE 220-240V
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"

@@ -201,7 +201,7 @@ räknas inte. Se #147.
 ## ☠️ `0908bbf0` publicerades INTE — intern dubblett
 
 Tre delade måtttripplar mot den redan publicerade `klostrad-morkgra-173-cm`.
-Båda sidorna är **Aosom** (`aosom:D30-050V00CG`), så det här är inte ett
+Båda sidorna är **Aosom** (samma `supplierProductId`), så det här är inte ett
 ommappningsfall utan ett pensioneringsfall: den behållna sidan pekar redan
 rätt, och dubbletten ska få `draftStatus: "rejected"`.
 

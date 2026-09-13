@@ -12,7 +12,7 @@ många publicerade sidor som saknar den, och varifrån de kommer.
 ## Varifrån de kommer
 
 Ingen av dem hör till de namngivna rundorna (`runda-a` … `runda-j2`,
-`barstol-83a-358`). De rundorna är genomgångna och gröna sedan 2026-09-06
+`barstol-industristil-899`). De rundorna är genomgångna och gröna sedan 2026-09-06
 (57 av 57) respektive 2026-09-07 (30 av 30).
 
 | ursprung | antal |

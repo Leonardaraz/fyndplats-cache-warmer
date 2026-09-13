@@ -6,7 +6,7 @@ Leonard länkade en konkurrentsida och frågade om vi har varan.
 | | |
 |---|---|
 | Wix-produkt | `557491d0-be20-4792-92f4-579570adb4ab` |
-| Aosom-artikel | `83A-358V00DR` |
+| Aosom-artikel | *(på mappningsraden, se `polish-mapping.yml` läge `las`)* |
 | Landat inkl. moms | 747,71 kr (44,5 % frakt) |
 | Pris | 899 kr — prisgrinden `stammer: true` |
 | Saldo hos Aosom | 130 |
