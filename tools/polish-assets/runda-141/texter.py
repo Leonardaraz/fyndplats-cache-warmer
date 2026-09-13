@@ -153,7 +153,7 @@ INTRO = {
         "175 × 139 cm och totalhöjden är 127 cm. Vikter och "
         "skivstång ingår inte — bilderna visar hur bänken används.",
     "a4bbe667":
-        "Bänken står i en vit stålram med skivstångsställ i sex höjder mellan "
+        "Bänken har en vit stålram med skivstångsställ i sex höjder mellan "
         "107,5 och 130 cm. Ryggstödet lutar i tre lägen, armstödet för "
         "bicepscurl ställs i fyra höjder och framtill sitter en bensträckare. "
         "Max användarvikt är 150 kg och skivstångsstället tar 150 kg. "
@@ -449,7 +449,7 @@ SPEC = {
         ("Färg", "naturträ med svarta dynor"),
         ("Paketmått", "115 × 43 × 39 cm"),
         ("Fraktvikt", "24 kg"),
-        ("Ingår", "bänk, två motståndsband och handbok"),
+        ("Ingår", "bänk, två motståndsband och bruksanvisning"),
         ("Montering", "krävs"),
     ],
 }
@@ -576,9 +576,9 @@ FAQ = {
     ],
     "18b94738": [
         ("Hur mycket tål bänken?",
-         "Maxlast är 120 kg. Till skillnad från bänkarna med två angivna "
-         "gränser finns här bara en enda siffra, så räkna din egen vikt plus "
-         "hantlarna du håller inom de 120 kilona."),
+         "Maxlast är 120 kg. Här finns bara en enda siffra, inte en "
+         "separat gräns för användarens vikt — räkna alltså din egen vikt "
+         "plus hantlarna du håller inom de 120 kilona."),
         ("Vad är stommen gjord av?",
          "Skiktlimmad träskiva — flera tunna träskikt limmade i kors. Kanten "
          "syns på närbilderna. Dynorna är klädda i svart konstläder."),
