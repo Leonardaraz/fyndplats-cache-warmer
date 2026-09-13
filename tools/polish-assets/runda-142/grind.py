@@ -121,9 +121,15 @@ FORBJUDET = [
     #    "billigaste vagen" ar dessutom en MATNING som aldrig gjorts.
     #    Uppmatt: 93073695 skrev "den enskilt billigaste vagen till ett
     #    stall som inte ror sig" och grinden sa ingenting.
+    # ☠️ INGEN `\d+ kr`-gren. Den fanns i forsta versionen och gjorde regeln
+    #    OANVANDBAR i live-grinden: butiken visar sidans EGET pris, och
+    #    rekommendationsraden visar fem till. Regeln fyrade darfor pa varenda
+    #    korrekt sida — och eftersom fyndstrangen bar sidans egen prissiffra
+    #    kunde kontrollsidan aldrig subtrahera bort den (#538). Ett larm som
+    #    fyrar pa varje korrekt sida ar lika illa som inget larm alls.
+    #    Ordgrenarna ar dessutom de som faktiskt fangade rundans verkliga fel.
     (re.compile(r"billig\w*|prisv[äa]rd\w*|kostar\s+(?:mindre|mer)"
-                r"|l[öo]nar\s+sig|\bfynd(?:pris|k[öo]p)\w*"
-                r"|(?<![0-9])\d{2,5}\s*(?:kr|kronor)\b", re.I),
+                r"|l[öo]nar\s+sig|\bfynd(?:pris|k[öo]p)\w*", re.I),
      "PRISPÅSTÅENDE — sidan jämför aldrig priser, och priset står i Wix"),
 
     # ☠️ En monterings- eller brukstid som ingen kalla anger. Samma form som
