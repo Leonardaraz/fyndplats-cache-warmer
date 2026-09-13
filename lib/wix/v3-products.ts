@@ -511,6 +511,27 @@ export async function updateV3VariantPrices(
   // utelämnas det hellre än att gissas — en gissning här publicerar eller döljer
   // en produkt fel väg.
   const bevaraSynlighet = typeof product.visible === "boolean";
+
+  // ☠️ EN FLERVARIANTSPRODUKT KRÄVER ATT `options` FÖLJER MED — annars 428.
+  //
+  // Uppmätt i drift 2026-09-13: prishöjningen föll på 56 av 382 produkter med
+  // `428 MISSING_OPTIONS_ON_UPDATE_VARIANTS: "Missing product options. Options
+  // must be provided for variants"`. Alla 56 var flervariantsprodukter (bl.a.
+  // halterneck-linnet med 29 färger); de enkla gick igenom.
+  //
+  // Att felet aldrig setts förut är samma asymmetri som gäller överallt i
+  // huset: Aosom-synken och prisreparationen är de enda tidigare anroparna,
+  // och en Aosom-rad ÄR en artikel med EN variant. Funktionen har alltså
+  // fungerat i månader utan att någonsin ha prövats på det fall där den inte
+  // gör det.
+  //
+  // ☠️ OPTIONS LIGGER I KROPPEN MEN INTE I FÄLTMASKEN. Masken betyder "skriv
+  // det här fältet"; Wix behöver options för att VALIDERA varianterna, inte
+  // för att ändra dem. I masken hade vi skrivit tillbaka hela strukturen —
+  // färgval, kopplade bilder och alt-texter — med vad projektionen råkade ge,
+  // och tyst tappat allt den utelämnat. Det är exakt fällan med handbyggda
+  // variantobjekt, en nivå upp.
+  const harOptions = Array.isArray(product.options) && product.options.length > 0;
   const patch = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
     headers: headers(),
@@ -519,6 +540,7 @@ export async function updateV3VariantPrices(
         revision: product.revision,
         variantsInfo: { variants },
         ...(bevaraSynlighet ? { visible: product.visible } : {}),
+        ...(harOptions ? { options: product.options } : {}),
       },
       fieldMask: { paths: bevaraSynlighet ? ["variantsInfo", "visible"] : ["variantsInfo"] },
     }),

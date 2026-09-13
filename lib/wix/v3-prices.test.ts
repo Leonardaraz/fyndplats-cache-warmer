@@ -81,3 +81,40 @@ describe("updateV3VariantPrices — synligheten", () => {
     expect(res.missing).toEqual(["FINNS-INTE"]);
   });
 });
+
+describe("updateV3VariantPrices — options på flervariantsprodukter", () => {
+  const OPTIONS = [
+    { id: "o1", name: "Färg", choicesSettings: { choices: [{ choiceId: "c1", name: "Blå" }] } },
+  ];
+
+  it("☠️ skickar med produktens options — annars 428 MISSING_OPTIONS_ON_UPDATE_VARIANTS", async () => {
+    // Uppmätt i drift 2026-09-13: 56 av 382 prishöjningar föll på just det
+    // felet, alla på flervariantsprodukter. De tidigare anroparna (Aosom-synken,
+    // prisreparationen) rör bara enkelvariantsrader, så funktionen hade aldrig
+    // prövats på fallet där den inte fungerar.
+    const patchar = stubba({ ...produkt(true), options: OPTIONS });
+    await updateV3VariantPrices("p1", [{ sku: "SKU-1", actualPrice: 149 }]);
+
+    const body = patchar[0].body as { product: Record<string, unknown> };
+    expect(body.product.options).toEqual(OPTIONS);
+  });
+
+  it("☠️ men options ligger INTE i fältmasken — de ska valideras, inte skrivas", async () => {
+    // Masken betyder "skriv det här fältet". Med options i masken hade vi
+    // skrivit tillbaka hela strukturen — färgval, kopplade bilder, alt-texter —
+    // med vad projektionen råkade ge, och tyst tappat allt den utelämnat.
+    const patchar = stubba({ ...produkt(true), options: OPTIONS });
+    await updateV3VariantPrices("p1", [{ sku: "SKU-1", actualPrice: 149 }]);
+
+    const body = patchar[0].body as { fieldMask: { paths: string[] } };
+    expect(body.fieldMask.paths).not.toContain("options");
+  });
+
+  it("en produkt UTAN options får inget options-fält alls", async () => {
+    const patchar = stubba(produkt(true));
+    await updateV3VariantPrices("p1", [{ sku: "SKU-1", actualPrice: 149 }]);
+
+    const body = patchar[0].body as { product: Record<string, unknown> };
+    expect("options" in body.product).toBe(false);
+  });
+});
