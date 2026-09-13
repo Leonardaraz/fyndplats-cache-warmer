@@ -58,6 +58,28 @@ lika illa som inget larm alls.** Grenen är borttagen. Ordgrenarna (`billig*`,
 faktiskt fångade rundans verkliga fel, `"den enskilt billigaste vägen"`.
 Självtestet är fortfarande grönt, mutationen fångas fortfarande.
 
+## Omkörningen: 409 → 353, och kontrollsidan ger 92
+
+Efter att kronbeloppsgrenen togs bort kördes Steg 14 om. Talen är mätta:
+
+| | före | efter |
+|---|--:|--:|
+| Fel totalt | 409 | **353** |
+| `PRISPÅSTÅENDE` | 56 | **0** |
+| `HOMOGLYF` · `ÅLDER` · `INTERN INRAMNING` | resten | resten |
+
+☠️ **Kontrollsidan gav `92 träffar som är BUTIKENS`.** Subtraktionen KÖRDE
+alltså, och tog bort nittiotvå strängar — och 353 blev ändå kvar. Det är
+beviset för att mekaniken inte är trasig utan STRUKTURELLT otillräcklig: den
+subtraherar det som råkar vara ordagrant lika och missar allt som bär ett
+sidspecifikt tal.
+
+⚠️ **Jämför med runda 141: kontrollsidan gav `2 träffar`.** Fyrtiosex gånger
+färre, på samma mekanik och samma butik. Skillnaden är inte vår text utan vad
+rekommendationsraden råkar rendera — boxningssidornas grannar HAR omdömen
+(`★★★★★ 5,0 ( 4 )`), hantelbänkarnas hade inte det. En grind vars utfall
+svänger med grannarnas recensioner mäter inte sidan.
+
 ## Vad som INTE är gjort
 
 ⚠️ **Chrome-subtraktionen är inte lagad.** Rätt fix är att stryka
