@@ -138,8 +138,41 @@ while read -r pid slug; do
   [ "$size" -gt 1000 ] || brist=1
 done < slugs.txt
 
+# ☠️ RE-STAT: FILEN PA DISK, INTE STORLEKEN LOOPEN RAPPORTERADE.
+#
+# Uppmatt i runda M4 2026-09-13: loggen skrev `138094B` for en fil som lag pa
+# **32768 byte** (exakt 32 KiB) nar grinden skulle lasa den. De ovriga sju
+# stamde exakt mot sina loggrader. Mekanismen ar OFORKLARAD — samma arliga
+# svar som bildreparationens "524 lagade, 214 saknade anda bilder" — men
+# utfallet ar matt, och det racker for en sparr.
+#
+# ⚠️ OCH GOLVET OVAN KAN INTE SE DET: 32768 ar storre an 1000, sa `brist`
+# stod kvar pa noll och skriptet sa KLART. En sida som avhuggits mitt i ar
+# alltsa exakt det utfall bade HTTP-koden och storleksgolvet slapper igenom.
+#
+# ⚠️ Grinden ar dock INTE blind for det, och det ar matt i stallet for antaget:
+# samma fil avhuggen till 32768 ger 16 fynd i livegrind, darav ett uttryckligt
+# "HITTAR INTE TEXTEN PA SIDAN". Sparren har sparar alltsa en bortkastad
+# grindcykel — den ar inte det enda som star mellan en trasig hamtning och ett
+# falskt kvitto.
+#
+# Golvet ar RELATIVT batchens egen median: produktsidor i en runda ar ungefar
+# lika stora, och ett absolut tal hade fatt gissas om butiken byter mall.
+storlekar=$(for f in live/*.html; do wc -c < "$f"; done | sort -n)
+antal=$(printf '%s\n' "$storlekar" | grep -c .)
+median=$(printf '%s\n' "$storlekar" | sed -n "$(( (antal + 1) / 2 ))p")
+golv=$(( median / 2 ))
+while read -r pid slug; do
+  [ -z "${pid:-}" ] && continue
+  nu=$(wc -c < "live/$pid.html" 2>/dev/null || echo 0)
+  if [ "$nu" -lt "$golv" ]; then
+    echo "  $pid $slug  ${nu}B — under halva batchens median (${median}B): AVHUGGEN" >&2
+    brist=1
+  fi
+done < slugs.txt
+
 if [ "$brist" != "0" ]; then
-  echo "AVBRYT: minst en sida gav inte 200 eller ar tom — grinda inte pa det har" >&2
+  echo "AVBRYT: minst en sida gav inte 200, ar tom eller avhuggen — grinda inte pa det har" >&2
   echo "  403 = Vercels edge-strypning, inte ett trasigt slug. Hamta DEN sidan" >&2
   echo "  ensam om en stund; en sida i taget ar facit, ett svep ar ett stickprov." >&2
   exit 1

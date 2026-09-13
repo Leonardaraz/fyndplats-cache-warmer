@@ -22,6 +22,7 @@
 | Kategorier | **16/16 kopplade**, noll fel, noll odetaljerade |
 | Wix-återläsning mot facit | **80 kontroller, 0 fel** |
 | Mappningsraderna stämplade | 8/8, alla tre fälten, rutten läste tillbaka |
+| **Live-grind på publicerad sida** | **8/8 REN, orddiff 0** |
 
 Alla workflow-körningar kördes med `ref` satt till den här grenen, aldrig mot
 `main` (#181).
@@ -123,3 +124,43 @@ samma motiv. Kandidat för bildreparation.
 åttonde. Var och en har nu ett eget svenskt SKU som säger vad som skiljer
 granen från syskonen, skrivet på BÅDA sidorna (Wix-variantens `sku` och
 mappningsradens).
+
+## Live-verifieringen: 8/8 REN
+
+Orddiff 0 på alla åtta, och `REN` täcker varje svep i grinden — sid- och
+alt-svep, SEO mot `seo.tsv`, homoglyfer, brödsmulan, skötselfliken,
+köpbarheten och korslänken.
+
+Verifierad åt båda hållen med tre planterade fel i tre olika klasser:
+
+| planterat | var | grinden svarade |
+| :-- | :-- | :-- |
+| `golv` → `parkett` i brödtexten | 3523deaa | `ORDDIFF - golv` / `+ parkett` |
+| tysk alt-text | 86fdd9af | `ALT/TYSKT 'mit'` + `'und'` |
+| SEO-titel 961 → 962 spetsar | fc68547e | `SEO/TITEL avviker fran seo.tsv` |
+
+Fem fynd på rätt tre sidor, och noll på de fem andra. Återställd: 0 igen.
+
+## ☠️ En hämtad sida var AVHUGGEN — och loggen sa något annat
+
+`hamta-live.sh` rapporterade `138094B` för `5814c7e1`, och filen på disk var
+**32 768 byte** (exakt 32 KiB). De övriga sju stämde exakt mot sina loggrader.
+En omhämtning gav 146 880 byte.
+
+**Mekanismen är oförklarad.** Skriptet läser storleken med `wc -c` från just
+den filen, så talet var sant när det lästes. Vad som krympte filen därefter
+vet jag inte, och det skrivs inte ned som om jag visste.
+
+⚠️ **Det gamla golvet kunde inte se det:** `size -gt 1000` släpper igenom
+32 768, så `brist` stod kvar på noll och skriptet sa KLART.
+
+✅ **Men grinden är INTE blind för det, och det är mätt i stället för antaget.**
+Samma fil avhuggen till 32 768 ger **16 fynd** i `livegrind.py`, med ett
+uttryckligt `HITTAR INTE TEXTEN PA SIDAN` och tre saknade flikar. En avhuggen
+sida är alltså inte samma sak som en tom — den skriker.
+
+Spärren är ändå värd sin rad: den sparar en bortkastad grindcykel och en
+omhämtning. Golvet är **relativt batchens egen median** (halva), för
+produktsidor i en runda är ungefär lika stora och ett absolut tal hade fått
+gissas om butiken byter mall. Verifierad åt båda hållen: avhuggen fil fäller
+mot median 142 208 B, hel fil går igenom.
