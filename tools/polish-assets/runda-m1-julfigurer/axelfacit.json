@@ -1,0 +1,64 @@
+{
+ "_": "Genererad mekaniskt ur kallor.json och <kort>.html 2026-09-13. tyska = ordagrann mattrad ur kallan, svenska = ordagrann Matt-rad ur den svenska filen, axlarna parsade ur den tyska raden.",
+ "3225c539": {
+  "tyska": "Ø30 x 51H cm",
+  "svenska": "Ø30 × 51 cm högt",
+  "hojd": "51"
+ },
+ "4fc04535": {
+  "tyska": "Ø35 x 150H cm. - Kabellänge: 1,5 m",
+  "svenska": "Ø35 × 150 cm högt",
+  "hojd": "150"
+ },
+ "5a14cc4d": {
+  "tyska": "80L x 30B x 60H cm | 53,5L x 20B x 40H cm",
+  "svenska": "80 × 30 × 60 cm | 53,5 × 20 × 40 cm",
+  "bredd": [
+   "53,5",
+   "80"
+  ],
+  "djup": [
+   "20",
+   "30"
+  ],
+  "hojd": [
+   "40",
+   "60"
+  ]
+ },
+ "69331178": {
+  "tyska": "162L x 100B x 250H cm",
+  "svenska": "162 × 100 × 250 cm",
+  "bredd": "162",
+  "djup": "100",
+  "hojd": "250"
+ },
+ "7278ea50": {
+  "tyska": "L100 x B55 x H120 cm",
+  "svenska": "100 × 55 × 120 cm",
+  "bredd": "100",
+  "djup": "55",
+  "hojd": "120"
+ },
+ "be4a760b": {
+  "tyska": "175L x 82B x 238H cm",
+  "svenska": "175 × 82 × 238 cm",
+  "bredd": "175",
+  "djup": "82",
+  "hojd": "238"
+ },
+ "d0aeb070": {
+  "tyska": "135L x 60B x 250H cm",
+  "svenska": "135 × 60 × 250 cm",
+  "bredd": "135",
+  "djup": "60",
+  "hojd": "250"
+ },
+ "ef75aa9a": {
+  "tyska": "110L x 70B x 183H cm",
+  "svenska": "110 × 70 × 183 cm",
+  "bredd": "110",
+  "djup": "70",
+  "hojd": "183"
+ }
+}
