@@ -1,0 +1,5 @@
+# Tal som INTE står i produktens egen källtext.
+# Form: <kort> <tal> <vad som lästes eller räknades på bilden>
+# Berättelsen bakom varje rad står i FOTOFYND.md.
+
+5a2bd33d 80 höjd utan jordspett, läst ur produktens egen måttritning (bild 3)
