@@ -37,6 +37,10 @@ M = {
         tot=(180, 134, "113-136"),        # tyskan; spec-blocket tappade undre hojden
         tot_spec=(180, 134, 136),
         sits=(32, 30), rygg=(76, 25),
+        # Last ur matritningen i Steg 4; tyskan namner dem inte. Talgrinden
+        # fallde dem som oharledda — ratt reaktion, och ratt atgard ar att
+        # SPARA matningen, inte att stryka talet ur texten.
+        armbagsdyna=(24, 40),
         lutningslagen=3, hantelablage_lagen=6, armauflage_lagen=4,
         hyllhojd=(107.5, 130), hyllbredd=60,
         armstod=(45, 30, "46-61"),
