@@ -1505,6 +1505,28 @@ genom chatten en gång till.
 **Regeln: filen är källan, men bara en diff mot den lagrade texten bevisar att
 källan kom fram.** Tionde gången samma familj.
 
+✅ **Och sedan 2026-09-13 fångas felet FÖRE skrivningen i stället för efter.**
+Regeln ovan upptäcker transkriberingsfelet i återläsningen — alltså efter att
+texten redan ligger hos kunden. Det går att stoppa tidigare, och det kostar en
+rad: räkna kontrollsumman på den sträng som ligger i API-anropet, **i anropet
+självt**, mot filens, och avbryt HELA skrivningen vid avvikelse.
+
+```js
+const avvik = plan.filter(p => SUMMA(p.html) !== p.raa);
+if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik };
+```
+
+☠️ **Spärren måste ligga i SAMMA anrop som skrivningen.** En kontroll i ett
+eget, tidigare anrop bevisar bara att just DEN kopieringen var rätt — nästa
+anrop transkriberar om texten, och det är där felet uppstår. Den ska heller
+inte bara varna: `fontagen-weight` visar att en delvis skriven batch är det
+dyra utfallet, för Wix strök spannet tyst och rapporterade framgång.
+
+Uppmätt i runda M3: åtta texter, åtta träffar, noll avbrott — och
+återläsningen mot facit gav LIKA på alla åtta. Återläsningen behövs
+fortfarande (den är det som fångar Wix EGNA omskrivningar); den här spärren
+tar bort den andra halvan, den som är mitt eget fel.
+
 ##### ☠️ Och `seoData` glömdes bort av regeln — fem av åtta drev isär (2026-09-07)
 
 Regeln ovan säger *skriv i en fil först*, och runda H3 följde den för
@@ -1592,6 +1614,44 @@ quantity, trackQuantity, availabilityStatus, preorderInfo, product` — inget
 `sku`. Det finns alltså INGEN bulkväg till variant-SKU:erna, och en
 katalogomfattande dubblettrevision är 5 527 GET-anrop. Det är samma slutsats
 som redan står som en öppen punkt; nu är den mätt i stället för antagen.
+
+##### ☠️ Och `plainDescription` saknas i PRODUKTENS standardprojektion (2026-09-13)
+
+Raden ovan gäller sökningen. Samma fälla på en enskild `GET`, och den här
+gången på det fält hela poleringen handlar om. Uppmätt på en nyss skriven
+produkt, samma id i båda anropen:
+
+```
+GET /stores/v3/products/{id}                           nycklar: 29, plainDescription SAKNAS
+                                                       (typeof undefined — inte tom sträng)
+GET /stores/v3/products/{id}?fields=PLAIN_DESCRIPTION   3 434 tecken, rätt svensk text
+```
+
+☠️ **Och den vanliga defensiva raden gör det värre.** `p.plainDescription || ""`
+förvandlar ett SAKNAT fält till noll tecken — alltså ett svar som i loggen ser
+ut som ett bevis på att skrivningen föll. Åtta produkter rapporterades som
+oskrivna av en återläsning som aldrig hade bett om fältet.
+
+Det är EN NIVÅ VÄRRE än släpet i avsnittet ovan: släpet är icke-deterministiskt
+och går över, det här utfallet är stabilt och reproducerbart, så en omskrivning
+på den signalen hade gjorts med full övertygelse — och skrivit över en text som
+redan stämde.
+
+**Regeln: en återläsning som rapporterar NOLL måste först bevisa att fältet
+fanns i projektionen.** Tre fält krävs på den här rutten och inget är med som
+standard:
+
+```
+?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO
+```
+
+⚠️ Och `directCategoriesInfo` bär bara `id` i den projektionen, inte `name`. En
+kontroll som läser `c.name` får `null` på varenda rad och kan alltså aldrig
+fälla — samma klass som SKU-kollen som itererade en tom lista.
+
+⚠️ **Kategoriräkningen är dessutom alltid +1.** Wix lägger själv till
+`All Products` (`05e96cd6…`) och använder den som `mainCategoryId`. Ett facit
+som räknar bara de kopplade kategorierna blir rött vid varje körning.
 
 ##### ⚠️ Kategoriläsningen är eventuellt konsistent — bulk-svaret är kvittot
 
