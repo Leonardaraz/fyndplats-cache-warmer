@@ -1,4 +1,4 @@
-# Runda M1 — uppblåsbara julfigurer och lyktor, 559–1 249 kr
+# Runda M1 — julfigurer och lyktor, 559–1 249 kr
 
 Åtta utkast ur julfamiljen. Säsongen är skälet till prioriteringen: sidorna
 behöver ligga ute i god tid före december, och familjen har legat orörd sedan
