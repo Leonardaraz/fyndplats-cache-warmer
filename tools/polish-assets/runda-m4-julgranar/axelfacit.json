@@ -1,0 +1,52 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03658e32": {
+  "tyska": "Ø105 x 180H cm",
+  "svenska": "105 x 105 x 180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "03ca6978": {
+  "tyska": "Ø120 x 180H cm",
+  "svenska": "120 x 120 x 180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "17392493": {
+  "tyska": "Ø122 x 183H cm",
+  "svenska": "Ø122 x 183H cm",
+  "bokstaver": "H",
+  "hojd": 183
+ },
+ "3523deaa": {
+  "tyska": "Ø122 x 180H cm",
+  "svenska": "122 x 122 x 180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "5814c7e1": {
+  "tyska": "Ø102 x 180H cm",
+  "svenska": "102 x 102 x 180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "5f646ce6": {
+  "tyska": "Ø115 x 180H cm",
+  "svenska": "115 x 115 x 180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "86fdd9af": {
+  "tyska": "Ø70 x 210 cm",
+  "svenska": "Ø70 x 210H cm",
+  "axelkalla": "svenska spec-raden (tyska raden saknar axelbokstav)",
+  "bokstaver": "H",
+  "hojd": 210
+ },
+ "fc68547e": {
+  "tyska": "Ø115 x 180H cm",
+  "svenska": "180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ }
+}
