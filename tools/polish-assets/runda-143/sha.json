@@ -1,26 +1,138 @@
 {
+ "0deb6901": {
+  "meta": "Fristående boxningssäck 175 cm med slagdyna som flyttas mellan 65 och 175 cm. Foten tar 50 kg sand och vatten. Handlindor ingår.",
+  "namn": "Boxningssäck 175 cm med höj- och sänkbar slagdyna",
+  "rev_fore": "3",
+  "sha": "724cf28ccf97bba45839181d22a85db2f46708089879d73fdada0e9834c6e0b4",
+  "slug": "boxningssack-175-cm-slagdyna",
+  "titel": "Boxningssäck 175 cm med slagdyna 65–175 cm | Fyndplats"
+ },
+ "1409d762": {
+  "meta": "Fristående boxningssäck 170 cm med 12 sugproppar och fjäder i foten. Säcken är Ø28 × 110 cm. Fyllningen ingår inte.",
+  "namn": "Boxningssäck 170 cm fristående med 12 sugproppar och fjäderfot",
+  "rev_fore": "3",
+  "sha": "44d6f7447a77c8266f0cde29cee477bc8ffc8f203761babbe769b82bc7dd7043",
+  "slug": "boxningssack-170-cm-sugproppar",
+  "titel": "Boxningssäck 170 cm fristående, 12 sugproppar | Fyndplats"
+ },
  "438295ae": {
   "meta": "Svart boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
   "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, svart",
-  "rev_fore": "2",
+  "rev_fore": "3",
   "sha": "fa8fe274cf842009b3068d5b533a2a04a3eef90f167a2b3e0ee218505b8921a0",
   "slug": "boxstall-svart-140-205-cm",
   "titel": "Boxställ 140–205 cm, två speedballs, svart | Fyndplats"
  },
+ "49d6d56f": {
+  "meta": "Boxsäcksställ 175 × 91 cm, 185–231 cm högt i 17 lägen. Säck i segelduk Ø29 × 97 cm ingår ofylld. Tre viktstänger.",
+  "namn": "Boxsäcksställ 185–231 cm med säck i segelduk och viktstänger",
+  "rev_fore": "3",
+  "sha": "03c206e809c20279a2cc283c3d2821bc55e94557dd88f94acf5ba0c9943e9080",
+  "slug": "boxsacksstall-185-231-cm-med-sack",
+  "titel": "Boxsäcksställ 185–231 cm med boxsäck i segelduk | Fyndplats"
+ },
  "57986794": {
   "meta": "Blått boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
   "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, blått",
-  "rev_fore": "2",
+  "rev_fore": "3",
   "sha": "90abc22e28245277985f230efb7757700912e6a2e561b4f925405bdb439a0220",
   "slug": "boxstall-blatt-140-205-cm",
   "titel": "Boxställ 140–205 cm, två speedballs, blått | Fyndplats"
  },
+ "6f603856": {
+  "meta": "Boxsäcksställ 123 × 141 × 220 cm i Q195-stål. 20 kg boxsäck, gummirep och 360°-kedja ingår. Bär säck upp till 120 kg.",
+  "namn": "Boxsäcksställ 220 cm med 20 kg säck, gummirep och 360° kedja",
+  "rev_fore": "5",
+  "sha": "7aac24ecfb591f8ef2fc53cdf03322775e9f1e39f90ad0990e5baec22986af38",
+  "slug": "boxsacksstall-220-cm-20-kg-sack",
+  "titel": "Boxsäcksställ 220 cm med 20 kg boxsäck – bär 120 kg | Fyndplats"
+ },
+ "702c7795": {
+  "meta": "Fristående boxningssäck 180 cm med 20 sugproppar och en fot som tar 120 kg sand. Säcken är Ø32 × 115 cm i Q195-stål.",
+  "namn": "Boxningssäck 180 cm med 20 sugproppar och fot för 120 kg sand",
+  "rev_fore": "3",
+  "sha": "d3e29adc092326e4cff538d094702d5de7cb4d057eca9e773affb3f419b1ce3f",
+  "slug": "boxningssack-180-cm-20-sugproppar",
+  "titel": "Boxningssäck 180 cm, 20 sugproppar och 120 kg sand | Fyndplats"
+ },
+ "74602345": {
+  "meta": "Fristående boxningssäck 180 cm med tre stötdämpande fjädrar och tio sugproppar. Foten tar 60 kg sand. Fyllningen ingår inte.",
+  "namn": "Boxningssäck 180 cm med tre stötdämpande fjädrar",
+  "rev_fore": "5",
+  "sha": "256d88c62ccb473127382f219b4e7d65e328ea461a846e973e66f28d8788ed6e",
+  "slug": "boxningssack-180-cm-tre-fjadrar",
+  "titel": "Boxningssäck 180 cm med tre fjädrar i foten | Fyndplats"
+ },
+ "7eeb7497": {
+  "meta": "Fristående boxningssäck 165 cm med numrerade träffytor. Säcken är Ø30 × 95 cm och foten fylls med sand eller vatten.",
+  "namn": "Boxningssäck 165 cm fristående med numrerade träffytor",
+  "rev_fore": "4",
+  "sha": "1f6b3a4069943e5232578f88fd156666e1e70c1ae5816f414605e9d26144ff9b",
+  "slug": "boxningssack-165-cm-traffytor",
+  "titel": "Boxningssäck 165 cm fristående med träffytor | Fyndplats"
+ },
  "86f2cb63": {
   "meta": "Rött boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
   "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, rött",
-  "rev_fore": "3",
+  "rev_fore": "4",
   "sha": "835b89ec8a7c3a63255005c2561f31891056760bd14d8a1085102f9b5ffa1cd2",
   "slug": "boxstall-rott-140-205-cm",
   "titel": "Boxställ 140–205 cm, två speedballs, rött | Fyndplats"
+ },
+ "87ec8a16": {
+  "meta": "Boxställ 163–205 cm med reflexstång, slagdyna Ø18 cm och speedball. Foten tar 40 kg sand och vatten. Handlindor ingår.",
+  "namn": "Boxställ 163–205 cm med reflexstång, slagdyna och speedball",
+  "rev_fore": "3",
+  "sha": "bebba7f955941ccfa91cdac64be86b22b04c6a785b175ba2b703cfba1f19e6fc",
+  "slug": "boxstall-163-205-cm-reflexstang",
+  "titel": "Boxställ 163–205 cm med reflexstång och slagdyna | Fyndplats"
+ },
+ "9119599f": {
+  "meta": "Boxdocka 178–207 cm med färgmarkerade träffytor. Kroppen är 46 × 90 cm och foten tar 55 kg sand och vatten.",
+  "namn": "Boxdocka 178–207 cm med färgmarkerade träffytor",
+  "rev_fore": "3",
+  "sha": "2899aec30245ef39756fde736d3280fa86c1378f726c87f07d75ad9a1a909323",
+  "slug": "boxdocka-178-207-cm-traffytor",
+  "titel": "Boxdocka 178–207 cm med färgmarkerade träffytor | Fyndplats"
+ },
+ "b6c4c619": {
+  "meta": "Väggfäste för boxsäck, 80 cm ut från väggen, nio vinklar och 100 kg bärighet. Kräver betong, tegel eller massivt trä.",
+  "namn": "Väggfäste för boxsäck 80 cm med nio vinklar",
+  "rev_fore": "3",
+  "sha": "c39ccd6b52e4cad29f642ec682cef08cb6d71d772db9fb9776a866b16711730c",
+  "slug": "vaggfaste-boxsack-nio-vinklar",
+  "titel": "Väggfäste boxsäck 80 cm, nio vinklar, 100 kg | Fyndplats"
+ },
+ "c00988e3": {
+  "meta": "Boxsäcksställ 115 × 157 × 221 cm med 20 kg boxsäck och punchingboll i samma ram. Pump ingår. Bär säck på upp till 100 kg.",
+  "namn": "Boxsäcksställ 221 cm med 20 kg säck och punchingboll i samma ram",
+  "rev_fore": "4",
+  "sha": "4e8d59081928e8714ed8c2728ecc286c133ce48ea1dd56c01da015d683e84064",
+  "slug": "boxsacksstall-221-cm-sack-och-boll",
+  "titel": "Boxsäcksställ 221 cm med boxsäck och punchingboll | Fyndplats"
+ },
+ "c5c228ab": {
+  "meta": "Fristående boxningssäck 158–186 cm i konstläder, brun och svart. Slagytan är Ø36 × 80 cm och foten Ø55 × 60 cm.",
+  "namn": "Boxningssäck 158–186 cm i konstläder, brun och svart",
+  "rev_fore": "5",
+  "sha": "f7951e4af007fbbd813ab920cdf7573edbf6811a1a019331ea04d922adacc29b",
+  "slug": "boxningssack-158-186-cm-konstlader",
+  "titel": "Boxningssäck 158–186 cm i konstläder, brun | Fyndplats"
+ },
+ "d307632a": {
+  "meta": "Boxsäcksställ 160 × 145 cm, 175–220 cm högt, med speedball 25 × 25 cm och sex strävor. Bär en säck på 60 kg. Säck ingår inte.",
+  "namn": "Boxsäcksställ 175–220 cm med speedball och sex strävor",
+  "rev_fore": "4",
+  "sha": "3e169774a0369e77e2978931992a4fdac2c09a7ee4809acf8af7d50adff12855",
+  "slug": "boxsacksstall-175-220-cm-speedball",
+  "titel": "Boxsäcksställ 175–220 cm med speedball – bär 60 kg | Fyndplats"
+ },
+ "f8d974b3": {
+  "meta": "Hopfällbart boxsäcksställ, 170 × 90 cm och 182–225 cm högt i tio lägen. Bär en säck på 60 kg. Boxsäcken ingår inte.",
+  "namn": "Boxsäcksställ hopfällbart 182–225 cm med tio höjdlägen",
+  "rev_fore": "3",
+  "sha": "3bdecc7529892ae481bbcc9659898f5a181ae000f73d14aaa6b316a9f69b51db",
+  "slug": "boxsacksstall-182-225-cm-hopfallbart",
+  "titel": "Boxsäcksställ hopfällbart 182–225 cm – bär 60 kg | Fyndplats"
  }
 }

@@ -124,3 +124,26 @@ produkter till som jag inte sett. `grindar._sjalvtest()` står nu på **90 fall*
 ⚠️ **`74602345` hann skrivas med felet och skrevs om.** Utkast, alltså ingen
 kund — men det är kvittot på att grinden ska vara komplett INNAN skrivningen
 börjar, inte växa medan den pågår.
+
+## Efterspel: tre sidor bar kvar den gamla lydelsen (2026-09-14)
+
+Rättelsen `"Överst sitter dessutom en boxstång"` → `"Högre upp sitter en
+boxstång"` gjordes lokalt på de tre boxställen, nyttolasterna byggdes om och
+`sha-wix.json` uppdaterades — men PATCH:en till Wix blev aldrig av. Felet
+upptäcktes inte av en känsla utan av en MÄTNING: en återläsning av alla
+sjutton med `?fields=PLAIN_DESCRIPTION` och sha256 på det lagrade värdet.
+
+| pid | Wix hade | facit | rev |
+|---|---|---|---|
+| `86f2cb63` | `2b97a4e1…` | `407538b6…` | 4 → 5 |
+| `57986794` | `b0ae8dec…` | `bfe951c9…` | 3 → 4 |
+| `438295ae` | `349aa391…` | `80efb3f9…` | 3 → 4 |
+
+De övriga fjorton stämde exakt. Efter omskrivningen och en SEPARAT återläsning
+är alla tre gröna, och alla sjutton bär `visible: false`.
+
+☠️ **Lärdomen är att facit måste läsas ur WIX, inte ur den lokala filen.** Både
+`patch/<pid>.json` och `sha-wix.json` var rätta hela tiden; det var bara
+skrivningen som saknades, och ingenting lokalt kunde se det. En runda som
+rättar en text efter Steg 7 måste läsa tillbaka innan den går vidare — annars
+är kvittot ett kvitto på den egna avsikten.
