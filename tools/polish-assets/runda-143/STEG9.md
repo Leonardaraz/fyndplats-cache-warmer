@@ -92,3 +92,47 @@ Grindat på skrivningens svar, inte på en GET direkt efteråt —
 publicerade boxningsprodukter ligger utanför kategoriträdet. Det är ett eget
 fynd, samma familj som de sju träningsbänkarna, och det finns ingen
 grannprecedens att kopiera. Trädet fick avgöra.
+
+## ☠️ RÄTTELSE (samma dag): runda 142:s elva HAR kategori — jag frågade fel
+
+Stycket ovan påstår att runda 142:s publicerade boxningsprodukter ligger
+utanför kategoriträdet. **Det är fel.** Mätt om mot skarpa V3, med rätt
+endpoint:
+
+```
+POST /stores/v3/products/query
+  fields: ["DIRECT_CATEGORIES_INFO", "ALL_CATEGORIES_INFO"]
+  query.filter.id.$in: [runda 142:s elva riktiga id ur ids.json]
+```
+
+| | direkta kategorier |
+|---|--:|
+| Runda 142:s elva | **3 av 3, alla elva** |
+| Runda 143:s sjutton | **3 av 3, alla sjutton** |
+
+Kategorierna är identiska på alla 28: `All Products`, `Sport & Fritid`,
+`Träning & Gym`. Det finns ingen lucka, och ingenting skrevs.
+
+☠️ **Felet var att `list-categories-for-items` anropades på en URL som inte
+finns — och svaret var inte tomt, det var 404.** Den första gissningen i
+Steg 10 (`/categories/v1/bulk/categories/list-categories-for-items`) matchar
+ingen rutt; de riktiga rutterna heter `…/bulk/categories/{categoryId}/add-items`
+och `…/bulk/categories/add-item`. Att en läsning "gav tomt" var alltså en
+TOLKNING av ett anrop som aldrig nådde fram.
+
+Två saker gick rätt och en gick fel, och det är värt att skilja dem åt:
+
+- ✅ Att läsa om med RIKTIGA id ur `runda-142/ids.json` var rätt — påhittade
+  id hade gett ett tomt svar av en tredje orsak.
+- ✅ Att skriva ned "tomt svar" som ett FYND i stället för som en slutsats var
+  rätt — det gick att motbevisa.
+- ☠️ Att kalla det "ligger utanför kategoriträdet" var fel. **Ett tomt svar
+  från ett anrop man inte verifierat är ingen mätning.** Det är #392 och #313
+  en tredje gång: på det här API:t betyder tomt nästan alltid fel fråga.
+
+⚠️ **Följdfråga för någon annan:** #555 ("sju publicerade träningsbänkar ligger
+utanför kategoriträdet") är samma klass av påstående och bör mätas om med
+`products/query` + `DIRECT_CATEGORIES_INFO` innan någon skriver något.
+
+⚠️ `All Products` är Wix egen automatiska kategori och går inte att skriva
+till (#291) — den ska inte räknas som ett kategorival.
