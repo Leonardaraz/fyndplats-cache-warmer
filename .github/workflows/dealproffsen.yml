@@ -33,6 +33,14 @@ on:
         required: false
         default: "12"
         type: string
+      visa_rader:
+        description: "ja = skriv ut exempelrader per prisband (PUBLICERADE bara)"
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
 
 jobs:
   jamfor:
@@ -44,6 +52,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MODE: ${{ inputs.mode }}
           VARV: ${{ inputs.varv }}
+          VISA_RADER: ${{ inputs.visa_rader }}
         run: |
           set -euo pipefail
 
@@ -223,6 +232,36 @@ jobs:
               "",
               "**Om alla lades pa 2 % under deras pris: ca \($lost) kr mer i marginal totalt.**"
           ' rader.ndjson | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+          # ⚠️ EXEMPELRADERNA LIGGER BAKOM EN FLAGGA, default AV.
+          #
+          # Raderna bar wix-id + vart pris + deras pris. Varje enskilt tal ar
+          # publikt — bada priserna star pa respektive sajt, och wix-id:t i var
+          # egen JSON-LD. Men TILLSAMMANS pekar de ut vilken av deras produkter
+          # som ar var, och deras produktsida publicerar Aosoms artikelnummer
+          # som sku/mpn. Paret ar alltsa artikelnumret ett klick bort.
+          #
+          # Det ar inte samma sak som att lacka numret rakt ut, och kopplingen
+          # gar redan att gora med en omvand bildsokning eftersom fotona ar
+          # Aosoms egna. Men husets regel ar att numret hor hemma pa
+          # supplierProductId och ingen annanstans, och jag har brutit mot den
+          # en gang idag redan. Darfor: av som default, pa nar nagon medvetet
+          # ber om det.
+          if [ "${VISA_RADER:-nej}" = "ja" ]; then
+            echo ""
+            echo "EXEMPEL PER PRISBAND (publicerade bara):"
+            for band in "2:5" "5:10" "10:20" "20:999"; do
+              lo="${band%%:*}"; hi="${band##*:}"
+              echo "  --- ${lo}-${hi} % ---"
+              jq -s -r --argjson lo "$lo" --argjson hi "$hi" '
+                unique_by(.wixProductId)
+                | map(select(.underMedPct >= $lo and .underMedPct < $hi
+                             and .publicerad == true and .behoverPolering == false))
+                | sort_by(-.underMedKr) | .[:5][]
+                | "    \(.wixProductId)  vart \(.vartPris)  deras \(.derasPris)  \(.underMedPct) %"
+              ' rader.ndjson || true
+            done
+          fi
 
           echo ""
           echo "TOPP 20 dar gapet ar storst:"
