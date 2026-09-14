@@ -69,10 +69,37 @@ export interface WixV3Variant {
  * Wix `visible` är sanningen. Den här listningen är avsiktligt mager — inga
  * tunga fält, bara id + visible — så den kostar ett par anrop per körning.
  */
+/**
+ * Tak på antal sidor. Höjs det, höj det med marginal — katalogen växer.
+ *
+ * ☠️ TAKET FÄLLER, DET KAPAR INTE. Uppmätt 2026-09-14: taket låg på 50 sidor
+ * (5 000 produkter) medan katalogen är ~5 500. Funktionen hade alltså redan
+ * passerat sitt tak och returnerade en TYST avkortad lista — utan fel, utan
+ * räknare, utan någonting som skiljer "slut på produkter" från "slut på
+ * sidor". Samma klass som `Promise.allSettled` i `media.ts`, som
+ * `queryAll`:s eget tak, och som den obegränsade fan-outen: en konstant som
+ * var rätt när den sattes och blev fel när volymen växte under den. Det finns
+ * ingen commit att skylla på.
+ *
+ * Konsekvensen är riktningsberoende och därför lätt att missa. Varje produkt
+ * bortom taket saknas i mängden och behandlas alltså som OSYNLIG — en
+ * publicerad produkt ser ut som ett utkast. Recensionssvepet hoppar då över
+ * den, och prisjämförelsen mot dealproffsen lägger den i listan "polera dessa
+ * först". Båda felen är tysta och båda pekar åt fel håll.
+ */
+const MAX_SYNLIGA_SIDOR = 300;
+
 export async function listVisibleV3ProductIds(): Promise<Set<string>> {
   const ut = new Set<string>();
   let cursor: string | undefined;
-  for (let page = 0; page < 50; page++) {
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      throw new Error(
+        `listVisibleV3ProductIds passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista är värre än ett fel: den gör publicerade produkter osynliga.",
+      );
+    }
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {

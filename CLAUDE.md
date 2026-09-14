@@ -2589,6 +2589,30 @@ dyra hållet.
 `MASSFEL_ANDEL`/`MASSFEL_GOLV`. Att INGET prefix gick att hämta är däremot inte
 en miss: då vet körningen ingenting alls, och det får inte se ut som ett svar.
 
+### ☠️ Och den hittade ett tyst tak som redan var passerat (2026-09-14)
+
+`listVisibleV3ProductIds` har ett sidtak. Det låg på **50 sidor = 5 000
+produkter** mot en katalog på **~5 500**, alltså redan passerat — och
+funktionen svarade med en TYST avkortad mängd. Inget fel, ingen räknare,
+ingenting som skiljer "slut på produkter" från "slut på sidor".
+
+☠️ **Riktningen är det som gör felet dyrt.** En produkt som saknas i mängden
+behandlas som OSYNLIG, alltså ser en publicerad produkt ut som ett utkast.
+Recensionssvepet hoppar då över den, och prisjämförelsen ovan hade lagt den i
+listan *"polera dessa först"* — alltså precis fel lista.
+
+Samma klass som `Promise.allSettled` i `media.ts`, som `queryAll`:s eget tak
+och som den obegränsade fan-outen: **en konstant som var rätt när den sattes
+och blev fel när volymen växte under den.** Det finns ingen commit att skylla
+på, och en `git bisect` hade inte hittat något.
+
+Taket är nu 300 sidor och det **FÄLLER i stället för att kapa**, ordagrant som
+`queryAll`: *"en avkortad lista är värre än ett fel."* Tre tester, verifierade
+genom att återinföra kapningen — två faller, och bara de två.
+
+⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
+hade inget larm att ge.
+
 ### `feed-info`: vad finns EGENTLIGEN i Aosoms feed
 
 Huset har i månader sagt att "feedens EAN-kolumn är tom i 100 % av raderna", på
