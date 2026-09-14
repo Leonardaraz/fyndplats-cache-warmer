@@ -59,8 +59,19 @@ const TIDSBUDGET_MS = 210_000;
 /** Tak per prefix. 439 var det största uppmätta; 20 sidor är gott om marginal. */
 const MAX_SIDOR_PER_PREFIX = 20;
 
-/** Rader per packad loggrad. Håller antalet rader läsbart i stället för tusental. */
-const RADER_PER_LOGGRAD = 100;
+/**
+ * Rader per packad loggrad.
+ *
+ * ☠️ TALET ÄR UPPMÄTT, INTE VALT. Första versionen packade hundra produkter
+ * per rad, och då kom 1 304 av ~4 200 fram: varje loggrad kapas vid EXAKT
+ * 2 000 tecken på vägen ut, och 31–32 produkter är vad som ryms. Kapningen är
+ * tyst — raden ser komplett ut, den bara slutar, och en fil byggd på den hade
+ * saknat två tredjedelar av katalogen utan att något sagt ifrån.
+ *
+ * En produktrad är ~55 tecken, så trettio ger ~1 650 och håller sig innanför
+ * med marginal. Höjs fälten per rad måste talet räknas om.
+ */
+const RADER_PER_LOGGRAD = 30;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
