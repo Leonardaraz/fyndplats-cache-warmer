@@ -1,10 +1,26 @@
 {
- "b6c4c619": {
-  "meta": "Väggfäste för boxsäck, 80 cm ut från väggen, nio vinklar och 100 kg bärighet. Kräver betong, tegel eller massivt trä.",
-  "namn": "Väggfäste för boxsäck 80 cm med nio vinklar",
-  "rev_fore": "1",
-  "sha": "c39ccd6b52e4cad29f642ec682cef08cb6d71d772db9fb9776a866b16711730c",
-  "slug": "vaggfaste-boxsack-nio-vinklar",
-  "titel": "Väggfäste boxsäck 80 cm, nio vinklar, 100 kg | Fyndplats"
+ "438295ae": {
+  "meta": "Svart boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
+  "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, svart",
+  "rev_fore": "2",
+  "sha": "fa8fe274cf842009b3068d5b533a2a04a3eef90f167a2b3e0ee218505b8921a0",
+  "slug": "boxstall-svart-140-205-cm",
+  "titel": "Boxställ 140–205 cm, två speedballs, svart | Fyndplats"
+ },
+ "57986794": {
+  "meta": "Blått boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
+  "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, blått",
+  "rev_fore": "2",
+  "sha": "90abc22e28245277985f230efb7757700912e6a2e561b4f925405bdb439a0220",
+  "slug": "boxstall-blatt-140-205-cm",
+  "titel": "Boxställ 140–205 cm, två speedballs, blått | Fyndplats"
+ },
+ "86f2cb63": {
+  "meta": "Rött boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm och boxstång. Luftpump ingår.",
+  "namn": "Boxställ 140–205 cm med två speedballs och kickdyna, rött",
+  "rev_fore": "3",
+  "sha": "835b89ec8a7c3a63255005c2561f31891056760bd14d8a1085102f9b5ffa1cd2",
+  "slug": "boxstall-rott-140-205-cm",
+  "titel": "Boxställ 140–205 cm, två speedballs, rött | Fyndplats"
  }
 }

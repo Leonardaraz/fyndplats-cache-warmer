@@ -772,8 +772,8 @@ def _speedballstall(farg, farg_i_text, syskon):
                 "sitter i midjehöjd för korta krokar. Kickdynan på Ø15 × 53 cm är den "
                 "du sparkar mot. Alla tre sitter på samma stång, och du växlar mellan "
                 "dem utan att flytta något.",
-                "Kickdynan sitter mellan 53 och 115 cm över golvet. Överst "
-                "sitter dessutom en boxstång att slå raka slag mot.",
+                "Kickdynan sitter mellan 53 och 115 cm över golvet. "
+                "Högre upp sitter en boxstång att slå raka slag mot.",
             ]),
             ("Fjäderfot som går tillbaka", [
                 "Foten är 34 × 34 cm och står på fjädrar. Stället viker undan vid en "
