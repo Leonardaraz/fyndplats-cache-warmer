@@ -33,6 +33,7 @@ import brodtext as B                                             # noqa: E402
 FORBJUDET = [
     # ☠️ Ärvd ur den delade modulen, inte kopierad hit. Se grindar.py.
     ("SORTIMENTSSUPERLATIV", G.SORTIMENTSSUPERLATIV.pattern),
+    ("MARKNADSPÅSTÅENDE", G.MARKNADSPASTAENDE.pattern),
     ("CE-PÅSTÅENDE",
      r"\bCE-?m[äa]rk\w*|\bCE\b(?!\s*[0-9])"),
     ("ÅLDERSPÅSTÅENDE",

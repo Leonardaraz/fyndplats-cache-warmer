@@ -78,3 +78,49 @@ runda-143/texter.py:  GRIND GRÖN (17 namn, slug, SKU, titel, meta, sökord)
 
 **Regeln, en gång till: en grind som fäller allt är inte en sträng grind — den
 är en trasig grind, och den döljer exakt de fel den finns för att hitta.**
+
+---
+
+## Skrivningen: 17 av 17, byte för byte
+
+```
+STEG 7-KVITTO: 17 produkter, 0 fel
+```
+
+Kvittot är `sha256(wix_normalisera(källan)) == sha256(Wix plainDescription)` per
+produkt, inte ett längdtal — och det är den jämförelsen som avslöjade att
+Wix **normaliserar vid lagring** (`<strong>` → `<span style="font-weight: 700">`,
+`<li>text</li>` → `<li><p>text</p></li>`, `<a href>` får `target="_self"`).
+Rå jämförelse hade gett 17 falska avvikelser på 17 korrekta sidor.
+
+Mätt samtidigt på alla sjutton: `visible: false` på produkten, `visible: true`
+på varianten. Steg 7-regeln från runda 120 håller — fältet utelämnas, och då
+rörs synligheten inte alls.
+
+## Sju fynd som grinden inte kunde se förrän texten stod i Wix-form
+
+Textgrinden var grön när skrivningen började. Sju fel återstod ändå, och de
+hittades genom att LÄSA varje payload innan den skickades:
+
+| # | produkt | fynd |
+|---|---|---|
+| 1 | åtta sidor | den delade fyllningsmeningen sa **"när stället står på plats"** om sex fristående SÄCKAR och en boxDOCKA |
+| 2 | `1409d762` | FAQ-svaret började med **"Nej."** efter att frågan gjorts öppen — svaret på en fråga som inte längre stod där |
+| 3 | `c5c228ab` | **"den lättaste att flytta av de fristående säckarna här"** — inramat superlativ, femton publicerade syskon aldrig vägda |
+| 4 | `c5c228ab` ×2, `74602345` | **"de flesta fristående säckar"** — marknadspåstående ingen mätt |
+| 5 | tre boxställ | metan sålde en **"roterande boxstång"**; facit har stången, inte rotationen — och brödtexten nämnde den inte alls |
+| 6 | `c5c228ab` | samma jämförelsemening två gånger i rad efter rättelsen |
+| 7 | `b6c4c619` | sökordet **"takfäste boxsäck"** på ett VÄGGfäste |
+
+☠️ **Fynd 1 är det som skalar värst.** En DELAD sträng ärver sitt subjekt till
+alla som använder den, och den som skrev den hade ett av tre fall i huvudet.
+Åtta produkter, en mening, ett fel.
+
+☠️ **Fynd 3 och 4 fick två nya regler i den DELADE modulen**, inte i rundan:
+`SORTIMENTSSUPERLATIV` (jämförelse mot VÅR katalog) och `MARKNADSPASTAENDE`
+(jämförelse mot MARKNADEN). Nio självtestfall, och de fällde omedelbart två
+produkter till som jag inte sett. `grindar._sjalvtest()` står nu på **90 fall**.
+
+⚠️ **`74602345` hann skrivas med felet och skrevs om.** Utkast, alltså ingen
+kund — men det är kvittot på att grinden ska vara komplett INNAN skrivningen
+börjar, inte växa medan den pågår.

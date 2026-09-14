@@ -56,8 +56,13 @@ def lank(slug, text):
 
 # ── delade formuleringar ────────────────────────────────────────────────────
 # ☠️ EN sträng per regel. Två kopior av samma mening glider isär (#547).
+# ⚠️ SUBJEKTET MÅSTE VARA NEUTRALT. Meningen delas av tre olika former:
+#    sex fristående SÄCKAR, en boxDOCKA och ETT ställ. "när stället står på
+#    plats" är riktigt bara på den sista — på de sju andra kallar den varan
+#    för något den inte är. En delad sträng ärver sitt subjekt till alla som
+#    använder den, och den som skrev den hade bara ett av tre fall i huvudet.
 FYLLNING_INGAR_EJ = ("Sanden eller vattnet köper du själv — foten levereras "
-                     "tom, och den fylls först när stället står på plats.")
+                     "tom, och den fylls först när den står på sin plats.")
 
 SUGPROPP_GOLV = ("Sugpropparna biter mot ett slätt, rent och tätt golv: "
                  "klinker, lackad parkett eller plastmatta. På heltäckningsmatta, "
@@ -465,7 +470,7 @@ HTML["1409d762"] = bygg(
     ],
     faq=[
         ("Vilka golv fungerar sugpropparna på?",
-         "Nej. De biter mot slätt, rent och tätt golv som klinker, lackad parkett "
+         "De biter mot slätt, rent och tätt golv som klinker, lackad parkett "
          "eller plastmatta. På matta eller obehandlat trä är det fyllningen i foten "
          "som håller säcken stilla."),
         ("Ingår sanden?",
@@ -541,7 +546,7 @@ HTML["74602345"] = bygg(
     ),
     avsnitt=[
         ("Tre fjädrar i stället för en", [
-            "Där de flesta fristående säckar har en fjäder har den här tre. Det gör "
+            "Säcken på 170 cm intill har en fjäder i botten. Den här har tre. Det gör "
             "återgången jämnare och dämpar den vibration som annars går upp genom "
             "säcken efter en hård träff.",
             "Säcken bär ett kinesiskt skrifttecken för kampsport, tryckt på framsidan.",
@@ -644,11 +649,11 @@ HTML["c5c228ab"] = bygg(
     intro=(
         "En fristående boxningssäck klädd i <strong>konstläder</strong>, brun upptill "
         "och svart nedtill. Höjden ställs mellan 158 och 186 cm, och slagytan är "
-        "Ø36 × 80 cm — bredare än på de flesta fristående säckar."
+        "Ø36 × 80 cm — en bred slagyta för en fristående säck."
     ),
     avsnitt=[
         ("Bred slagyta i konstläder", [
-            "Ytan är Ø36 cm, alltså märkbart bredare än de Ø25–32 cm som är vanligt. "
+            "Ytan är Ø36 cm, alltså bredare än de Ø25–32 cm som säckarna intill mäter. "
             "Det ger mer marginal på en träff som inte sitter mitt i, och konstlädret "
             "känns torrare mot handsken än en PU-yta.",
             "Kopplingsstången mellan säck och fot är 26 cm och det är den som ger "
@@ -656,8 +661,8 @@ HTML["c5c228ab"] = bygg(
         ]),
         ("Låg tyngdpunkt", [
             "Foten är Ø55 × 60 cm — hög och smal snarare än bred och platt. Hela "
-            "säcken väger 15,6 kg tom, vilket gör den till den lättaste att flytta "
-            "av de fristående säckarna här.",
+            "säcken väger 15,6 kg tom, alltså lätt nog att bära undan mellan "
+            "passen innan foten fylls.",
             FYLLNING_INGAR_EJ,
         ]),
     ],
@@ -683,7 +688,7 @@ HTML["c5c228ab"] = bygg(
     ],
     faq=[
         ("Hur bred är slagytan?",
-         "Ø36 cm och 80 cm hög, vilket är bredare än på de flesta fristående säckar."),
+         "Ø36 cm och 80 cm hög. Säckarna intill mäter Ø25–32 cm."),
         ("Går höjden att ställa?",
          "Ja, mellan 158 och 186 cm."),
         ("Vad väger den?",
@@ -767,7 +772,8 @@ def _speedballstall(farg, farg_i_text, syskon):
                 "sitter i midjehöjd för korta krokar. Kickdynan på Ø15 × 53 cm är den "
                 "du sparkar mot. Alla tre sitter på samma stång, och du växlar mellan "
                 "dem utan att flytta något.",
-                "Kickdynan sitter mellan 53 och 115 cm över golvet.",
+                "Kickdynan sitter mellan 53 och 115 cm över golvet. Överst "
+                "sitter dessutom en boxstång att slå raka slag mot.",
             ]),
             ("Fjäderfot som går tillbaka", [
                 "Foten är 34 × 34 cm och står på fjädrar. Stället viker undan vid en "
@@ -785,6 +791,7 @@ def _speedballstall(farg, farg_i_text, syskon):
             R("Fot", "34 × 34 cm"),
             R("Kickdyna", "Ø15 × 53 cm, 53–115 cm över golvet"),
             R("Speedballs", "två, Ø15 × 17 cm"),
+            R("Boxstång", "ingår"),
             R("Material", "stål och konstläder"),
             R("Färg", farg),
             R("Vikt", "13,5 kg"),

@@ -1036,7 +1036,32 @@ SORTIMENTSSUPERLATIV = re.compile(
     r"|\ben\s+av\s+v[åa]ra\b"
     r"|\bv[åa]r\s+(?:st[öo]rsta|minsta|tyngsta|l[äa]ttaste|billigaste|dyraste"
     r"|enda|bredaste|h[öo]gsta|stabilaste|kraftigaste|popul[äa]raste)\b"
-    r"|\bden\s+enda\s+(?:\w+\s+){0,3}?vi\s+(?:har|s[äa]ljer|f[öo]r)\b",
+    r"|\bden\s+enda\s+(?:\w+\s+){0,3}?vi\s+(?:har|s[äa]ljer|f[öo]r)\b"
+    # ☠️ Runda 143 skrev inramningen som "den lättaste att flytta AV DE
+    #    fristående säckarna HÄR". Ingen av formerna ovan fyrade — och
+    #    påståendet är exakt lika omätbart: "här" är hela katalogen för
+    #    den som läser, och femton publicerade syskon är aldrig vägda.
+    r"|\bden\s+(?:\w+aste|st[öo]rsta|minsta|tyngsta|b[äa]sta)\b[^.!?]{0,60}?"
+    r"\bav\s+(?:de|v[åa]ra|alla)\b"
+    r"|\b(?:av|bland)\s+(?:de|alla)\s+[^.!?]{0,40}?\b(?:h[äa]r|i\s+butiken)\b",
+    re.I)
+
+
+# ── ☠️ MARKNADSPÅSTÅENDE: "de flesta X" är en mätning ingen har gjort ──────
+# Syskonet till SORTIMENTSSUPERLATIV, men riktat utåt: i stället för att
+# jämföra mot VÅR katalog jämför den mot MARKNADEN. Runda 143 skrev "bredare
+# än på de flesta fristående säckar" om en Ø36-yta — sant om rundans sex egna
+# säckar, men meningen påstår något om alla säckar som säljs, och den siffran
+# finns ingenstans.
+#
+# Jämförelsen som HÅLLER är mot tal vi själva mätt ("bredare än de Ø25–32 cm
+# som säckarna intill mäter"). Regeln fäller alltså kvantifieraren, inte
+# jämförelsen: skriv ut vad du jämför MOT.
+MARKNADSPASTAENDE = re.compile(
+    r"\bde\s+flesta\b"
+    r"|\b(?:de|dom)\s+(?:allra\s+)?m[åa]nga\b"
+    r"|\bbranschstandard\b"
+    r"|\bmarknadens\s+(?:\w+aste|b[äa]sta|st[öo]rsta)\b",
     re.I)
 
 
@@ -1368,7 +1393,26 @@ _LIVESIDA = (
 
 def _sjalvtest():
     fall = [
+        # ── MARKNADSPÅSTÅENDE ──
+        ("marknad: 'de flesta' fälls — runda 143",
+         lambda: bool(MARKNADSPASTAENDE.search(
+             "bredare än på de flesta fristående säckar")), True),
+        ("marknad: 'marknadens bästa' fälls",
+         lambda: bool(MARKNADSPASTAENDE.search("marknadens bästa boxsäck")), True),
+        ("marknad: mätt jämförelse går fritt",
+         lambda: MARKNADSPASTAENDE.search(
+             "bredare än de Ø25-32 cm som säckarna intill mäter") is None, True),
         # ── SORTIMENTSSUPERLATIV ──
+        ("superlativ: 'av de … här' fälls — runda 143",
+         lambda: bool(SORTIMENTSSUPERLATIV.search(
+             "15,6 kg, vilket gör den till den lättaste att flytta av de "
+             "fristående säckarna här")), True),
+        ("superlativ: 'av våra' i superlativform fälls",
+         lambda: bool(SORTIMENTSSUPERLATIV.search("den tyngsta av våra modeller")), True),
+        # ⚠️ ÄRLIG GRÄNS: ett superlativ UTAN inramning går fri. Regeln fäller
+        #    jämförelsen mot vår katalog, inte ordet i sig.
+        ("superlativ: oinramat superlativ går fritt",
+         lambda: SORTIMENTSSUPERLATIV.search("Den lättaste delen är foten.") is None, True),
         ("superlativ: rundans egen defekt fälls",
          lambda: bool(SORTIMENTSSUPERLATIV.search(
              "bär en säck på upp till 120 kg — den tyngsta bärigheten i sortimentet")), True),

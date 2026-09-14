@@ -156,11 +156,11 @@ META = {
     "9119599f": "Boxdocka 178–207 cm med färgmarkerade träffytor. Kroppen är "
                 "46 × 90 cm och foten tar 55 kg sand och vatten.",
     "86f2cb63": "Rött boxställ 140–205 cm med två speedballs, kickdyna Ø15 × 53 cm "
-                "och roterande boxstång. Luftpump ingår.",
+                "och boxstång. Luftpump ingår.",
     "57986794": "Blått boxställ 140–205 cm med två speedballs, kickdyna "
-                "Ø15 × 53 cm och roterande boxstång. Luftpump ingår.",
+                "Ø15 × 53 cm och boxstång. Luftpump ingår.",
     "438295ae": "Svart boxställ 140–205 cm med två speedballs, kickdyna "
-                "Ø15 × 53 cm och roterande boxstång. Luftpump ingår.",
+                "Ø15 × 53 cm och boxstång. Luftpump ingår.",
     "87ec8a16": "Boxställ 163–205 cm med reflexstång, slagdyna Ø18 cm och "
                 "speedball. Foten tar 40 kg sand och vatten. Handlindor ingår.",
     "b6c4c619": "Väggfäste för boxsäck, 80 cm ut från väggen, nio vinklar och "
@@ -202,7 +202,7 @@ SOKORD = {
     "87ec8a16": ["boxställ", "reflexstång", "boxställ med reflexstång",
                  "speedball", "reflexträning boxning"],
     "b6c4c619": ["väggfäste boxsäck", "boxsäckshållare vägg", "väggmontering boxsäck",
-                 "boxsäcksfäste", "takfäste boxsäck"],
+                 "boxsäcksfäste", "vikbart boxsäcksfäste"],
 }
 
 BATCH = list(SLUG.keys())
