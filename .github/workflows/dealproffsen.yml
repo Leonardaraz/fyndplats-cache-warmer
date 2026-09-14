@@ -191,6 +191,47 @@ jobs:
             ' rader.ndjson || true
           } >> "$GITHUB_STEP_SUMMARY"
 
+          # Fordelningen ar det som styr beslutet: "vi ar billigare pa 2 500"
+          # sager ingenting om HUR MYCKET som ligger pa bordet. Bandet 0-2 %
+          # ar redan dar strategin vill hamna; allt over 10 % ar pengar vi
+          # lamnar utan att vinna nagot pa det.
+          #
+          # ☠️ Till STDOUT, inte bara till summeringen. Bada ar lika publika —
+          # priserna star redan pa bada sajterna — men en summering gar inte
+          # att lasa tillbaka programmatiskt, och en matning ingen kan lasa ar
+          # ingen matning.
+          {
+            echo ""
+            echo "#### Hur mycket billigare ar vi?"
+            echo ""
+            echo "| vi ligger under med | produkter | varav opolerade |"
+            echo "|---|---:|---:|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -s -r '
+            unique_by(.wixProductId) | map(select(.underMedKr > 0))
+            | (map(select(.underMedPct <   2)) | [length, (map(select(.behoverPolering)) | length)]) as $a
+            | (map(select(.underMedPct >=  2 and .underMedPct < 5))  | [length, (map(select(.behoverPolering)) | length)]) as $b
+            | (map(select(.underMedPct >=  5 and .underMedPct < 10)) | [length, (map(select(.behoverPolering)) | length)]) as $c
+            | (map(select(.underMedPct >= 10 and .underMedPct < 20)) | [length, (map(select(.behoverPolering)) | length)]) as $d
+            | (map(select(.underMedPct >= 20)) | [length, (map(select(.behoverPolering)) | length)]) as $e
+            | (map(select(.underMedPct >= 2)) | map(.underMedKr - (.derasPris * 0.02)) | add | floor) as $lost
+            | "| under 2 % (redan ratt lage) | \($a[0]) | \($a[1]) |",
+              "| 2-5 % | \($b[0]) | \($b[1]) |",
+              "| 5-10 % | \($c[0]) | \($c[1]) |",
+              "| 10-20 % | \($d[0]) | \($d[1]) |",
+              "| **over 20 %** | **\($e[0])** | \($e[1]) |",
+              "",
+              "**Om alla lades pa 2 % under deras pris: ca \($lost) kr mer i marginal totalt.**"
+          ' rader.ndjson | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+          echo ""
+          echo "TOPP 20 dar gapet ar storst:"
+          jq -s -r '
+            unique_by(.wixProductId) | map(select(.underMedKr > 0))
+            | sort_by(-.underMedKr) | .[:20][]
+            | "  \(.wixProductId)  vart \(.vartPris)  deras \(.derasPris)  under \(.underMedKr) kr (\(.underMedPct) %)  \(if .behoverPolering then "OPOLERAD" else "publicerad" end)"
+          ' rader.ndjson || true
+
           echo "KLART: ${tot_b} produkter dar vi ar billigare, ${tot_ean} EAN insamlade"
 
           # ⚠️ MASSFEL FALLER, EN ENSTAKA MISS VARNAR — samma form som
