@@ -14,6 +14,7 @@
 // What's OUT (deliberately): /sok (search results — thin/duplicate, noindex),
 // /tack and /sparning (transient/private order pages), /admin/* (proxy-gated).
 import { getProductSitemapEntries, getCollections, getProducts, forListings } from "./products";
+import { saleProducts } from "./rea";
 import { getPosts } from "./blog";
 import { getProgrammaticUrls } from "./seo/programmatic";
 import { categoryInSitemap } from "./category-threshold";
@@ -98,6 +99,13 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
 
   // /blogg index only once there's at least one post (else it's noindex).
   if (posts.length > 0) urls.push(entry("/blogg", "sida", "weekly", 0.7));
+
+  // /rea på samma villkor: sidan sätter noindex när inget är nedsatt, och en
+  // sitemap som ber Google hämta en noindex-sida är en motsägelse. daily —
+  // innehållet roterar med prissättningen, men URL:en är permanent.
+  if (saleProducts(forListings(await getProducts())).length > 0) {
+    urls.push(entry("/rea", "sida", "daily", 0.8));
+  }
 
   for (const p of STATIC_INFO_PATHS) urls.push(entry(p, "sida", "monthly", 0.7));
 

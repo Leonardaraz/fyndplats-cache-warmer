@@ -194,6 +194,24 @@ const nextConfig: NextConfig = {
       // är därför likgiltig här — men de hör ihop och står bredvid varandra.
       { source: "/basta-i-test/:type", destination: "/kopguider/:type", permanent: true },
 
+      // PUNKT 16: rean har fått en egen permanent adress, /rea.
+      //
+      // /kategori/rea har ALDRIG funnits som kategori — navigationen pekade dit
+      // en gång och fick 307 till /butik. Raden nedan finns ändå: adressen kan
+      // ligga kvar i någons bokmärke eller i en extern länk, och /rea är
+      // numera ett svar i stället för en omväg. Kostar en rad, gissar ingenting.
+      { source: "/kategori/rea", destination: "/rea", permanent: true },
+
+      // /alla-produkter?rea=1 lämnas MED FLIT orörd.
+      //
+      // Frestelsen är att skicka den vidare till /rea, men frågesträngen sätts
+      // av rea-kryssrutan i shopbrowser via router.replace() — en riktig
+      // navigering. En redirect där hade ryckt undan sidan under en kund som
+      // bara bockade i ett filter. Och den behövs inte: /alla-produkter
+      // self-canonicalar utan frågesträng, så ?rea=1 konkurrerar aldrig med
+      // /rea i indexet. Samma familj som den oändliga ?kategori=-loopen som en
+      // gång bevisades på preview — se noten i app/alla-produkter/page.tsx.
+
       // /kopguider och /for-dig-som har bara dynamiska barn ([type] resp.
       // [interest]) och saknar indexsida → roten 404:ar. Exakt source träffar bara
       // roten, så /kopguider/<type> och /for-dig-som/<interest> är orörda.
