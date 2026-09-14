@@ -27,14 +27,14 @@ function validateSchemas(ss, pattern) {
   const il = byType.ItemList;
   if (!il || !Array.isArray(il.itemListElement) || il.itemListElement.length < 3) errs.push("ItemList saknas/<3");
   else { const f = il.itemListElement[0]; if (!f.position || !f.item || f.item["@type"] !== "Product" || !f.item.offers) errs.push("ItemList-element saknar position/Product/offers"); }
-  if (pattern !== "under-kr") { const fq = byType.FAQPage; if ((pattern === "basta-i-test") && (!fq || !Array.isArray(fq.mainEntity) || fq.mainEntity.length < 4 || !fq.mainEntity[0].acceptedAnswer)) errs.push("FAQPage saknas/ogiltig"); }
+  if (pattern !== "under-kr") { const fq = byType.FAQPage; if ((pattern === "kopguider") && (!fq || !Array.isArray(fq.mainEntity) || fq.mainEntity.length < 4 || !fq.mainEntity[0].acceptedAnswer)) errs.push("FAQPage saknas/ogiltig"); }
   // #239 bytte AboutPage → CollectionPage (sidan ÄR en produktlista). Kontrollen
   // hängde inte med och har rödflaggat varje intressesida sedan dess.
   if (pattern === "for-dig-som" && !byType.CollectionPage) errs.push("CollectionPage saknas");
   if (byType.INVALID) errs.push("Ogiltig JSON-LD");
   return errs;
 }
-const patternOf = (u) => u.includes("/basta-i-test/") ? "basta-i-test" : /\/under-\d+-kr\//.test(u) ? "under-kr" : "for-dig-som";
+const patternOf = (u) => u.includes("/kopguider/") ? "kopguider" : /\/under-\d+-kr\//.test(u) ? "under-kr" : "for-dig-som";
 
 // ── RELEVANSKONTROLL ────────────────────────────────────────────────────────
 // De fyra kontrollerna ovan är tekniska: status, ordantal, unikhet, schema. En
@@ -44,7 +44,7 @@ const patternOf = (u) => u.includes("/basta-i-test/") ? "basta-i-test" : /\/unde
 // av sidans konfigurerade kategorier, eller stå i dess productSlugs-plocklista.
 
 const CONFIG = new Map();
-for (const t of typesJson.types) CONFIG.set(`/basta-i-test/${t.slug}`, { names: [t.category], allow: t.productSlugs || [] });
+for (const t of typesJson.types) CONFIG.set(`/kopguider/${t.slug}`, { names: [t.category], allow: t.productSlugs || [] });
 for (const i of interestsJson.interests) CONFIG.set(`/for-dig-som/${i.slug}`, { names: i.categories, allow: i.productSlugs || [] });
 
 const productSlugs = (html) => [...new Set([...mainHtml(html).matchAll(/href="\/produkt\/([a-z0-9-]+)"/g)].map((m) => m[1]))];
@@ -82,7 +82,7 @@ async function checkRelevance(u, html) {
 }
 
 const sm = await (await fetch(`${BASE}/sitemap.xml`)).text();
-const all = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/^https?:\/\/[^/]+/, BASE)).filter((u) => /\/basta-i-test\/|\/under-\d+-kr\/|\/for-dig-som\//.test(u));
+const all = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/^https?:\/\/[^/]+/, BASE)).filter((u) => /\/kopguider\/|\/under-\d+-kr\/|\/for-dig-som\//.test(u));
 console.log(`Hämtar ${all.length} programmatiska sidor...`);
 
 const h1s = new Map(), titles = new Map(), descs = new Map();

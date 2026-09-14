@@ -46,18 +46,18 @@ async function main() {
   const locs = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   // Sitemap-loc är absoluta prod-URL:er; mappa om till den server vi testar.
   const toLocal = (u) => u.replace(/^https?:\/\/[^/]+/, BASE);
-  const prog = locs.filter((u) => /\/basta-i-test\/|\/under-\d+-kr\/|\/for-dig-som\//.test(u)).map(toLocal);
+  const prog = locs.filter((u) => /\/kopguider\/|\/under-\d+-kr\/|\/for-dig-som\//.test(u)).map(toLocal);
   console.log(`Sitemap: ${locs.length} URL totalt, varav ${prog.length} programmatiska`);
   if (prog.length < 50) throw new Error(`FAIL: < 50 programmatiska URL i sitemap (${prog.length})`);
 
   // 2. Urval: 2 per mönster + några fler = stickprov
   const byPattern = {
-    "basta-i-test": prog.filter((u) => u.includes("/basta-i-test/")),
+    "kopguider": prog.filter((u) => u.includes("/kopguider/")),
     "under-kr": prog.filter((u) => /\/under-\d+-kr\//.test(u)),
     "for-dig-som": prog.filter((u) => u.includes("/for-dig-som/")),
   };
   const sample = [
-    ...byPattern["basta-i-test"].slice(0, 3),
+    ...byPattern["kopguider"].slice(0, 3),
     ...byPattern["under-kr"].slice(0, 3),
     ...byPattern["for-dig-som"].slice(0, 3),
   ];

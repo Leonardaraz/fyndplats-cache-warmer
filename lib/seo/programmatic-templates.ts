@@ -14,7 +14,7 @@
 // ren kopia av en annan.
 //
 // VARFÖR SÅ MÅNGA VARIANTER PER SLOT? En tidigare audit mätte 3-gram-överlapp
-// INOM varje mönster: 32 % för /for-dig-som, 20–26 % för /basta-i-test, 18–24 %
+// INOM varje mönster: 32 % för /for-dig-som, 20–26 % för /kopguider, 18–24 %
 // för /under-kr. Roten var att FAQ-SVAREN var EN enda fast sträng (bara FRÅGE-
 // urvalet varierade) och att intro-slottarna bara hade 3–4 varianter. Med 5–8
 // varianter per slot OCH seedade FAQ-svar (frakt/retur/leverans/pris) faller
@@ -114,47 +114,57 @@ function returnAnswer(seed: number, salt: number): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Pattern 1 — /basta-i-test/{type}
+// Pattern 1 — /kopguider/{type}
+//
+// ORDET "TEST" FÅR INTE TILLBAKA HIT. Sidorna bygger på ett urval ur vårt
+// eget sortiment — vi har inte utfört något jämförande test, och får därför
+// inte kalla dem "bäst i test", "testvinnare" eller "vann vårt test".
+// Åtgärdslistans punkt 2 säger det rakt ut, och lib/kopguide.test.ts fäller
+// bygget om formuleringarna smyger tillbaka.
+//
+// Det VI gör — jämför, väljer ut, rangordnar, rekommenderar — får beskrivas
+// precis som förut. Skillnaden ligger i påståendet om ett test, inte i
+// ambitionen.
 // ─────────────────────────────────────────────────────────────────────────
 
-export function bestInTestH1(label: string, seed: number): string {
+export function kopguideH1(label: string, seed: number): string {
   const v = [
-    `Bäst i test: ${label} ${YEAR} — utvalda och jämförda`,
-    `${cap(label)} ${YEAR}: bäst i test enligt oss`,
-    `Bäst i test ${label} ${YEAR} — vår stora jämförelse`,
-    `Vi har jämfört ${label} — här är bäst i test ${YEAR}`,
-    `${cap(label)}: bäst i test och mest prisvärt ${YEAR}`,
-    `Bäst i test ${label} ${YEAR} — våra favoriter rankade`,
-    `${cap(label)} i test ${YEAR}: så valde vi vinnarna`,
+    `Rekommenderade ${label} ${YEAR} — utvalda och jämförda`,
+    `${cap(label)} ${YEAR}: våra val`,
+    `${cap(label)} ${YEAR} — vår stora jämförelse`,
+    `Vi har jämfört ${label} — här är våra val ${YEAR}`,
+    `${cap(label)}: våra val och mest prisvärt ${YEAR}`,
+    `Rekommenderade ${label} ${YEAR} — våra favoriter rankade`,
+    `${cap(label)} ${YEAR}: så valde vi ut favoriterna`,
   ];
   return pick(v, seed);
 }
 
-export function bestInTestMetaTitle(label: string, seed: number): string {
+export function kopguideMetaTitle(label: string, seed: number): string {
   const v = [
-    `Bäst i test: ${label} ${YEAR}`,
-    `${cap(label)} – bäst i test ${YEAR}`,
-    `Bäst i test ${label} ${YEAR} – jämförelse`,
-    `${cap(label)} ${YEAR}: vår topplista`,
+    `Rekommenderade ${label} ${YEAR}`,
+    `${cap(label)} – vår köpguide ${YEAR}`,
+    `${cap(label)} ${YEAR} – jämförelse`,
+    `${cap(label)} ${YEAR}: våra val`,
   ];
   return pickTitle(v, seed, 7);
 }
 
-export function bestInTestMetaDesc(label: string, count: number, priceRange: string, seed: number): string {
+export function kopguideMetaDesc(label: string, count: number, priceRange: string, seed: number): string {
   const v = [
-    `Vi har jämfört ${count} ${label} till bra pris. Se vår topplista med betyg, pris (${priceRange}) och köpguide — hitta bäst i test ${YEAR} hos Fyndplats.`,
-    `Bäst i test ${label} ${YEAR}: ${count} noga utvalda fynd jämförda sida vid sida. Pris från ${priceRange}, fri frakt över 499 kr. Hitta ditt val hos Fyndplats.`,
-    `Letar du efter ${label}? Vår jämförelse av ${count} modeller (${priceRange}) hjälper dig välja rätt. Bäst i test, mest prisvärt och budgetval — allt samlat.`,
-    `${count} ${label} utvalda och rankade ${YEAR}. Pris ${priceRange}, omdömen och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
-    // Plural ("Vilka X är bäst…") — den gamla naiva singulariseringen
+    `Vi har jämfört ${count} ${label} till bra pris. Se våra val med betyg, pris (${priceRange}) och köpguide — hitta rätt ${YEAR} hos Fyndplats.`,
+    `${cap(label)} ${YEAR}: ${count} noga utvalda fynd jämförda sida vid sida. Pris från ${priceRange}, fri frakt över 499 kr. Hitta ditt val hos Fyndplats.`,
+    `Letar du efter ${label}? Vår jämförelse av ${count} modeller (${priceRange}) hjälper dig välja rätt. Vårt val, mest prisvärt och budgetval — allt samlat.`,
+    `${count} ${label} utvalda och rankade ${YEAR}. Pris ${priceRange}, omdömen och köpguide i ett — plus fri frakt över 499 kr. Se urvalet hos Fyndplats.`,
+    // Plural ("Vilka X ska du välja…") — den gamla naiva singulariseringen
     // (label.replace(/r$/,"")) gav trasig svenska ("massagepistole").
-    `Vilka ${label.toLowerCase()} är bäst i test ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
+    `Vilka ${label.toLowerCase()} ska du välja ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
   ];
   return pick(v, seed, 11);
 }
 
 // Intro 200–300 ord (tre stycken, slot-fyllda + riktig data).
-export function bestInTestIntro(p: {
+export function kopguideIntro(p: {
   label: string;
   audience: string;
   painpoint: string;
@@ -271,7 +281,7 @@ export function assignRoles(count: number): string[] {
   return roles;
 }
 
-export function bestInTestFaq(p: {
+export function kopguideFaq(p: {
   label: string;
   singular: string;
   count: number;
@@ -284,7 +294,7 @@ export function bestInTestFaq(p: {
   const topVariants = [
     `Vårt toppval just nu är ${topName} — den träffar bäst på kombinationen kvalitet, funktion och pris. Men i jämförelsen ovan hittar du även ett budgetval och ett premiumval beroende på vad du prioriterar.`,
     `Just nu lyfter vi fram ${topName} som vår etta; den känns mest komplett av allt vi jämfört. Vill du spendera mindre eller mer finns både budget- och premiumalternativ i tabellen ovan.`,
-    `${topName} står högst på vår lista — bästa balansen mellan pris och prestanda i hela testet. Tittar du i jämförelsen ser du dessutom vårt billigaste val och vårt premiumtips.`,
+    `${topName} står högst på vår lista — bästa balansen mellan pris och prestanda i hela urvalet. Tittar du i jämförelsen ser du dessutom vårt billigaste val och vårt premiumtips.`,
     `Vi sätter ${topName} överst eftersom helheten av kvalitet, funktion och pris är svårslagen. Ovan kompletterar vi med ett budget- och ett premiumförslag om din plånbok säger annat.`,
     `Om vi måste välja en blir det ${topName} — den gör mest rätt för pengarna. Föredrar du billigast möjligt eller det allra bästa hittar du de valen i jämförelsetabellen.`,
   ];
@@ -310,7 +320,7 @@ export function bestInTestFaq(p: {
     `Mer än gärna. Utöver favoriterna ovan rymmer ${category} betydligt fler produkter — länkarna på sidan tar dig dit.`,
   ];
   const faqs = [
-    { q: `Vilken är bäst i test bland ${label}?`, a: pick(topVariants, seed, 21) },
+    { q: `Vilken av dessa ${label} rekommenderar ni?`, a: pick(topVariants, seed, 21) },
     { q: `Vad kostar en bra ${singular}?`, a: pick(priceVariants, seed, 27) },
     { q: `Hur har ni valt ut produkterna?`, a: pick(selectionVariants, seed, 33) },
     { q: `Hur snabbt får jag hem min ${singular}?`, a: deliveryAnswer(singular, seed, 39) },
