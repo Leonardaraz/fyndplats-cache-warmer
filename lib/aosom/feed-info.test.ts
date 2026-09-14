@@ -30,6 +30,33 @@ describe("feedKolumner", () => {
     expect(JSON.stringify(i)).not.toContain("84.02");
   });
 
+  it("☠️ ARTIKELNUMRET visas aldrig heller — inte via namnet, inte via formen", () => {
+    // Min egen miss 2026-09-14: första versionen redigerade bara PRISkolumner,
+    // så tabellen skrev feedens första artikelnummer till en publik
+    // Actions-summering. Numret är exakt den sträng dealproffsen publicerar
+    // som sku/mpn. Samma klass som den omergade allowlisten som läckte
+    // inköpspris till samma sorts logg.
+    const i = feedKolumner(CSV);
+    expect(i.kolumner.find((k) => k.namn === "SKU")?.exempel).toBeNull();
+    expect(JSON.stringify(i)).not.toContain("845-030CG");
+    expect(JSON.stringify(i)).not.toContain("921-471LG");
+  });
+
+  it("☠️ formen fäller även när kolumnen heter något annat", () => {
+    // Ryggtäckningen. Döper Aosom om kolumnen imorgon glider namnlistan — och
+    // en spärr man måste komma ihåg glöms bort. Formen kan inte glida.
+    const i = feedKolumner("Produktkod,Namn\n845-030CG,Redskapsbod");
+    expect(i.kolumner[0].exempel).toBeNull();
+    expect(JSON.stringify(i)).not.toContain("845-030CG");
+  });
+
+  it("☠️ EAN-kolumnen RÄKNAS men dess värde visas inte", () => {
+    const i = feedKolumner(CSV);
+    expect(i.eanIfyllda).toBe(1);
+    expect(i.kolumner.find((k) => k.namn === "EAN")?.exempel).toBeNull();
+    expect(JSON.stringify(i)).not.toContain("4251774948586");
+  });
+
   it("ofarliga kolumner får ett exempelvärde — det är det som gör svaret läsbart", () => {
     const i = feedKolumner(CSV);
     expect(i.kolumner.find((k) => k.namn === "Color")?.exempel).toBe("Kolgrå");

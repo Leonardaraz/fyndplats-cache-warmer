@@ -19,11 +19,39 @@ export const PRISKOLUMNER = [
   "shipping cost germany",
 ];
 
+/**
+ * Kolumner som bär en IDENTIFIERARE, inte en beskrivning.
+ *
+ * ☠️ ARTIKELNUMRET ÄR LIKA HEMLIGT SOM PRISET, och det var jag som missade det
+ * (2026-09-14). Första versionen redigerade bara priskolumner, så tabellen
+ * skrev feedens FÖRSTA artikelnummer till en publik Actions-summering. Numret
+ * är exakt den sträng dealproffsen publicerar som sku/mpn — det hör hemma på
+ * `supplierProductId` och ingen annanstans. Samma klass som den omergade
+ * allowlisten som läckte inköpspris till samma sorts logg.
+ */
+const IDKOLUMNER = [
+  "sku", "artikelnummer", "article", "item no", "item number",
+  "reference", "referens", "model", "modell", "mpn", "psin",
+  "ean", "gtin", "barcode", "upc", "url", "link", "länk",
+];
+
+/**
+ * Ser värdet ut som ett Aosom-artikelnummer? (`845-030CG`, `83A-526V00RB`)
+ *
+ * ☠️ EN RYGGTÄCKNING PÅ FORMEN, inte bara på namnet. Döper Aosom om kolumnen
+ * imorgon glider namnlistan — och en spärr man måste komma ihåg glöms bort,
+ * vilket är precis vad `AliExpressProductId`-typen byggdes för att visa. Den
+ * här kostar en regexp och kan inte glida.
+ */
+function serUtSomArtikelnummer(v: string): boolean {
+  return /^[0-9A-Z]{3}-[0-9A-Z]{3,}/i.test(v.trim());
+}
+
 export interface FeedKolumn {
   namn: string;
   /** Hur många rader som har ett icke-tomt värde. */
   ifyllda: number;
-  /** Ett exempelvärde — null för priskolumner, som aldrig visas. */
+  /** Ett exempelvärde — null för pris- och identifierarkolumner, som aldrig visas. */
   exempel: string | null;
 }
 
@@ -39,6 +67,12 @@ export interface FeedInfo {
 function arPriskolumn(namn: string): boolean {
   const n = namn.trim().toLowerCase();
   return PRISKOLUMNER.some((p) => n.includes(p)) || n.includes("price") || n.includes("cost");
+}
+
+/** Kolumner vars exempelvärde aldrig visas — pris ELLER identifierare. */
+function arHemligKolumn(namn: string): boolean {
+  const n = namn.trim().toLowerCase();
+  return arPriskolumn(namn) || IDKOLUMNER.some((k) => n === k || n.includes(k));
 }
 
 function arEankolumn(namn: string): boolean {
@@ -91,7 +125,7 @@ export function feedKolumner(csv: string): FeedInfo {
       const v = (celler[k] ?? "").trim();
       if (!v) continue;
       ifyllda[k]++;
-      if (exempel[k] === null && !arPriskolumn(rubriker[k])) {
+      if (exempel[k] === null && !arHemligKolumn(rubriker[k]) && !serUtSomArtikelnummer(v)) {
         exempel[k] = v.slice(0, 40);
       }
     }
@@ -100,7 +134,7 @@ export function feedKolumner(csv: string): FeedInfo {
   const kolumner: FeedKolumn[] = rubriker.map((namn, k) => ({
     namn,
     ifyllda: ifyllda[k],
-    exempel: arPriskolumn(namn) ? null : exempel[k],
+    exempel: arHemligKolumn(namn) ? null : exempel[k],
   }));
 
   const eanIdx = rubriker.findIndex(arEankolumn);

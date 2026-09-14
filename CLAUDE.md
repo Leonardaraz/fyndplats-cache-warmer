@@ -2629,6 +2629,25 @@ inköpspris på 6 057 artiklar och svaret går till en publik logg. Kolumnen
 RÄKNAS — vi vill veta att den finns och är ifylld — men aldrig vad som står i
 den. Ett test låser det.
 
+☠️ **Och det gällde inte bara priset — jag missade artikelnumret (2026-09-14).**
+Första versionen redigerade bara PRIS-kolumner. SKU-kolumnens exempelvärde är
+ett Aosom-artikelnummer, och det skrevs därför till en PUBLIK
+Actions-summering i den allra första körningen. Numret är exakt den sträng
+dealproffsen publicerar som `sku`/`mpn`. Loggarna för den körningen är
+raderade, och redigeringen täcker nu identifierarkolumner också.
+
+⚠️ **Ryggtäckningen är på FORMEN, inte bara på namnet.** Döper Aosom om
+kolumnen imorgon glider namnlistan, och **en spärr man måste komma ihåg glöms
+bort** — samma argument som gjorde `AliExpressProductId` till en typ.
+`serUtSomArtikelnummer` fäller på mönstret `845-030CG` oavsett vad kolumnen
+heter. Två tester, ett för namnet och ett för formen.
+
+**Utfallet av första körningen:** feeden har **6 085 rader**, EAN-kolumnen
+FINNS — och är **ifylld på 0 av dem**. Den gamla anteckningens "tom i 100 %"
+stämde alltså, men var fram till nu ett antagande om en kolumn vår parser
+aldrig läst. Nu är det mätt, och skillnaden spelar roll: en kolumn som finns
+men är tom är ett mejl till Aosom, en kolumn som saknas är en annan källa.
+
 ⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
 upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
 möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
