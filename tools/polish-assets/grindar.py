@@ -1012,6 +1012,34 @@ def butikstvatt(html):
 JARGONG = re.compile(r"\brundan\b|\brunda\s+\d+", re.I)
 
 
+# ── ☠️ SORTIMENTSSUPERLATIV: ett påstående om VÅR katalog, inte om varan ──
+# Runda 138 skrev fem inramade seriesuperlativ, fyra av dem falska (#533), och
+# runda 143 skrev ett till: "den tyngsta bärigheten i sortimentet" om ett ställ
+# vars femton publicerade syskon aldrig mätts. Felet är inte att talet är fel —
+# 120 kg är rätt — utan att jämförelsen sträcker sig till produkter rundan inte
+# har läst. En sådan mening kan bara skrivas efter en mätning av HELA familjen,
+# och den mätningen åldras dessutom varje gång katalogen växer.
+#
+# Regeln fäller INRAMNINGEN, inte superlativet: "det kraftigaste stålet" om
+# varans egna delar är ett påstående om varan och går fritt. Det som fälls är
+# frasen som gör vår katalog till jämförelseobjekt.
+#
+# ☠️ Runda 141 bar `\bi\s+sortimentet\b` i sin EGNA FORBJUDET-lista, runda 142
+#    en egen `_superlativ()` som mätte mot familjens facit — och runda 143 bar
+#    ingendera. Regeln glider isär exakt som `SHIP_AXIS_RE` och `EU_TULL_CODES`,
+#    och bor därför här. En runda som glömmer att importera den syns i
+#    `tvillingsvep`; en runda som kopierar in sin egen glider isär igen.
+SORTIMENTSSUPERLATIV = re.compile(
+    r"\bi\s+(?:hela\s+)?sortimentet\b"
+    r"|\bi\s+v[åa]rt\s+(?:egna\s+)?sortiment\b"
+    r"|\bhos\s+oss\s+[äa]r\b"
+    r"|\ben\s+av\s+v[åa]ra\b"
+    r"|\bv[åa]r\s+(?:st[öo]rsta|minsta|tyngsta|l[äa]ttaste|billigaste|dyraste"
+    r"|enda|bredaste|h[öo]gsta|stabilaste|kraftigaste|popul[äa]raste)\b"
+    r"|\bden\s+enda\s+(?:\w+\s+){0,3}?vi\s+(?:har|s[äa]ljer|f[öo]r)\b",
+    re.I)
+
+
 # ── ☠️ TREKONSONANTSREGELN: tre lika konsonanter i rad FINNS INTE i svenska ──
 # Bildas en sammansättning där förledets dubbelkonsonant möter efterledets
 # samma konsonant stryks en av dem: `topp`+`prestation` → `topprestation`,
@@ -1340,6 +1368,22 @@ _LIVESIDA = (
 
 def _sjalvtest():
     fall = [
+        # ── SORTIMENTSSUPERLATIV ──
+        ("superlativ: rundans egen defekt fälls",
+         lambda: bool(SORTIMENTSSUPERLATIV.search(
+             "bär en säck på upp till 120 kg — den tyngsta bärigheten i sortimentet")), True),
+        ("superlativ: 'i vårt sortiment' fälls",
+         lambda: bool(SORTIMENTSSUPERLATIV.search("det bredaste fästet i vårt sortiment")), True),
+        ("superlativ: 'en av våra' fälls",
+         lambda: bool(SORTIMENTSSUPERLATIV.search("En av våra mest sålda modeller.")), True),
+        ("superlativ: 'vår största' fälls",
+         lambda: bool(SORTIMENTSSUPERLATIV.search("Vår största boxsäck.")), True),
+        # ☠️ Superlativ om VARANS EGNA delar är inget sortimentspåstående.
+        ("superlativ: om varans egna delar går fritt",
+         lambda: SORTIMENTSSUPERLATIV.search(
+             "Det kraftigaste stålet sitter i foten, det tunnaste i stolpen.") is None, True),
+        ("superlativ: rent mått går fritt",
+         lambda: SORTIMENTSSUPERLATIV.search("Stället bär en säck på upp till 120 kg.") is None, True),
         # ☠️ Versal mitt i ett ord — se versalfel(). Runda 135:s alt-text bar
         #    `inneslL` och varenda annan grind var grön.
         ("versal: inneslL fälls",
