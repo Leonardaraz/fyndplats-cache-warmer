@@ -2613,6 +2613,44 @@ genom att återinföra kapningen — två faller, och bara de två.
 ⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
 hade inget larm att ge.
 
+### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
+
+Leonards fråga: *"tror du inte dealproffset har hittat på en egen ean då?"*
+Rätt fråga att ställa — en falsk GTIN i Google Merchant Center kopplar vår
+produkt till fel vara eller får den avvisad, vilket är sämre än ingen GTIN alls.
+
+Mätt på 187 av deras produkter med läsbar kod, fyra oberoende tester:
+
+| test | utfall | varför det avgör något |
+|---|---|---|
+| Kontrollsiffra | **187 av 187 giltiga** | Slumpade nummer klarar den i ~1 av 10 |
+| GS1-landsprefix | **186 av 187 tyska** (425…) | De är ett SVENSKT bolag; svenska koder är 730–739, och ett tyskt prefix går inte att få som svenskt företag |
+| Antal företagsprefix | **fyra** (4250871, 4251774, 4255633, 4255826) | Den som hittar på köper ETT prefix; fyra tyska block är vad en tillverkare samlar på sig över år |
+| Interna koder (20–29) | **noll** | Det spannet finns just för egna butikskoder — de använder det inte |
+
+☠️ **Det femte testet är det som faktiskt utesluter påhitt.** Genererar man
+koder allteftersom man lägger in produkter följer koden ens EGEN
+produktnumrering nästan perfekt. Uppmätt rangkorrelation mot deras interna
+produkt-id på de tre största blocken: **−0,51 · +0,36 · +0,07** — alltså brus.
+De har inte numrerat själva.
+
+⚠️ **Men att koden är ÄKTA är inte samma sak som att den är rätt kopplad, och
+inte samma sak som att den är vår att använda.** Verifieringen mot GS1:s egen
+databas kom inte i mål: både Google och GEPIR kräver JavaScript, och att rendera
+dem hade krävt att proxyns TLS-kontroll stängdes av. Det gjordes INTE.
+
+**Slutsatsen som gäller:** antingen fick de filen av Aosom eller skannade de
+kartongen — båda är tillverkarens kod, och det enda felläget som skadar oss
+(påhitt) är mätt osannolikt. **Använd dem ändå inte i Merchant Center.** Vi kan
+inte stämma av dem mot Aosom, `identifier_exists: no` fungerar, och en GTIN
+hämtad från en konkurrents sajt är fel källa för ett fält som ska vara sant.
+Frågan till Aosom står kvar som rätt väg — EAN-kolumnen finns i feeden, den är
+bara tom.
+
+⚠️ Koden plockas ur deras produktlänk och räknas i `medEan`, men den **används
+inte till någonting** — matchningen går på artikelnumret. Den är ett gratis
+sidoresultat, inte ett beroende.
+
 ### `feed-info`: vad finns EGENTLIGEN i Aosoms feed
 
 Huset har i månader sagt att "feedens EAN-kolumn är tom i 100 % av raderna", på
