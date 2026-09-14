@@ -2498,6 +2498,119 @@ tre sidor genom butiken (549, 1 749 och 4 899 kr), inte bara i API-svaret.
 `HIT`, `age: 20` och det nya. Ett API-svar är inget kvitto, och en enstaka
 sidhämtning är det inte heller.
 
+## Prisjämförelse mot dealproffsen (`lib/pricing/dealproffsen.ts`)
+
+Leonards strategi 2026-09-14: *"vi ska jämföra alla våra priser mot
+dealproffsen.se … Alla produkter som vi är billigast på ska vi först ändra
+priset så vi ligger endast 1-2 procent under dom och inte flera 100kr som vi
+gör nu på vissa produkter och sen ska vi göra reklam på just dessa produkter i
+google shopping."* Och: *"Vi skiter i aliexpress produkterna helt."*
+
+Jämförelsen gör två jobb i samma körning. Det andra är inte en bieffekt utan
+ett uttryckligt krav — *"vi måste jämföra alla våra produkter sen även de som
+inte är polerade … dom som inte är polerade proioriterar vi next"*:
+
+1. **Var är vi billigare**, och med hur mycket — underlaget för både
+   prisjusteringen och annonsurvalet.
+2. **Vilka OPOLERADE utkast vi vore billigast på** — poleringskön sorterad
+   efter var pengarna ligger i stället för efter vad som råkar ligga överst.
+
+☠️ **RUTTEN SKRIVER INGENTING, och kan inte.** Den mäter. Samma hållning som
+prisreparationens "det finns ingen kör-allt-flagga": ett pris som når kund ska
+ha passerat ögon.
+
+### Matchningen är mekanisk, inte en gissning
+
+De publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. Vårt
+`supplierProductId` mot deras `reference` matchar exakt eller inte alls.
+
+☠️ **Därför finns ingen namn- eller måttmatchning, med flit.** Huset har redan
+mätt att måttjämförelse är otillräcklig som ensam grund (hörnsoffan `69c5e15c`),
+och en felmatchning här sätter fel pris på fel vara.
+
+### Vägen in mättes fram — fyra alternativ föll
+
+| väg | varför den inte duger |
+|---|---|
+| `sitemap.xml` | finns inte |
+| `/api/products` | `401` |
+| Google-feed-modulens sökvägar | `404` |
+| Kategorisidornas HTML | **4 av 48 kort** bär artikelnumret |
+
+Det som fungerar är deras egen, odokumenterade sök-JSON:
+`?controller=search&ajax=1&resultsPerPage=100&s=<prefix>&page=<n>`. Uppmätt:
+**200 av 200 rader bar `reference`**, pagineringen överlappar inte, och
+prefixen härleds ur VÅR katalog — alltså ~120 anrop i stället för 4 754.
+
+☠️ **PRISET ÄR `price_amount`, ALDRIG `regular_price_amount`.** Det andra är
+det överstrukna. Uppmätt på redskapsboden: **4 289 mot 6 049**. Alla deras
+rader ligger på "Kampanj", så fel fält hade gjort HELA katalogen 41 % dyrare än
+den är — och vi hade höjt våra priser på ett underlag som lutar åt exakt det
+dyra hållet.
+
+### Sju egenskaper som inte ska tas bort
+
+1. ☠️ **Svaret bär ALDRIG artikelnumret.** Rapporten hamnar i en PUBLIK
+   Actions-logg, och artikelnumret är exakt den sträng dealproffsen publicerar
+   — läcker vi den joinar vem som helst vår sida mot deras och därmed mot vårt
+   inköpsled. Raderna nycklas på `wixProductId`, som redan står i produktsidans
+   JSON-LD. Ett test fäller om ett artikelnummer kryper in i rapporten.
+2. ☠️ **Ett uteblivet fynd är ingen jämförelse.** En vara de inte säljer hamnar
+   i `utanTraff`, aldrig i `viBilligare`. Skillnaden är hela skillnaden mellan
+   "vi vet att vi är billigast" och "vi vet ingenting" — och det andra hade
+   blivit en prishöjning på lösan sand. Samma hållning som `utanWixPris` och
+   som `unknown` i hyllstatusen.
+3. ☠️ **"De säljer den inte" och "vi kunde inte fråga" är skilda tal.** En rad
+   utan artikelnummer räknas i `utanArtikelnummer`. Slås de ihop ser en trasig
+   mappningsrad ut som ett mätvärde om deras sortiment.
+4. ☠️ **Facit är BUTIKEN.** Priset läses ur `listV3ProductPrices`, aldrig ur
+   mappningens `grossSek` — samma förväxling som kostade prissynken en månad.
+   Har produkten flera varianter med olika pris finns inget entydigt pris, och
+   raden räknas i `utanVartPris` i stället för att gissas.
+5. ☠️ **Samma artikelnummer två gånger → LÄGSTA priset vinner.** Ett svep
+   hämtar hundra rader i taget och samma vara kan ligga i mer än en träfflista;
+   låter man den SISTA vinna beror utfallet på sidordningen. Det lägsta priset
+   gör oss mindre billiga i rapporten, aldrig mer — fel åt det hållet kostar en
+   utebliven annons, fel åt det andra en prishöjning på ett pris kunden aldrig
+   behövde betala.
+6. ☠️ **En delkörning jämför bara de prefix den FAKTISKT hämtade.** Utan den
+   filtreringen hade varje produkt vars prefix ligger senare i markören räknats
+   som "de säljer den inte" när sanningen är "vi har inte frågat än" — punkt 2
+   fast på körningsnivå. `fullstandig: false` diskvalificerar dessutom
+   rapporten som beslutsunderlag, samma roll som i mediainventeringen.
+7. ☠️ **En markör som inte rör sig är inget framsteg.** Faller varje prefix i
+   ett varv står markören kvar, och utan spärren kör loopen om exakt samma
+   anrop tills `varv` tar slut, bokför samma rader en gång till och ser i
+   summeringen ut som ett svep som gjorde något. Uppmätt mot en stubbe innan
+   rutten nådde produktionen — tillsammans med massfel-grinden och den
+   framåtgående markören, alla tre.
+
+⚠️ **Massfel fäller, en enstaka miss varnar** — samma form som
+`MASSFEL_ANDEL`/`MASSFEL_GOLV`. Att INGET prefix gick att hämta är däremot inte
+en miss: då vet körningen ingenting alls, och det får inte se ut som ett svar.
+
+### `feed-info`: vad finns EGENTLIGEN i Aosoms feed
+
+Huset har i månader sagt att "feedens EAN-kolumn är tom i 100 % av raderna", på
+en mätning från 27 augusti. ☠️ **Men `AosomRow` har inget EAN-fält alls** —
+`parseAosomFeed` plockar bara kolumner den känner till vid namn, så även om
+Aosom fyllt i kolumnen igår hade vi inte sett det. Vi har aldrig tittat.
+
+`?lage=feed-info` läser rubrikraden och räknar hur full varje kolumn är.
+Skillnaden mellan "kolumnen finns men är tom" och "kolumnen finns inte" avgör
+vad vi gör härnäst, så de hålls isär.
+
+☠️ **Priskolumnernas VÄRDEN lämnar aldrig servern.** `Wholesale Price` är vårt
+inköpspris på 6 057 artiklar och svaret går till en publik logg. Kolumnen
+RÄKNAS — vi vill veta att den finns och är ifylld — men aldrig vad som står i
+den. Ett test låser det.
+
+⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
+upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
+möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
+`feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
+var den ligger.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
