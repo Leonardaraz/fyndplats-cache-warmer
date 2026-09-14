@@ -59,6 +59,9 @@ const TIDSBUDGET_MS = 210_000;
 /** Tak per prefix. 439 var det största uppmätta; 20 sidor är gott om marginal. */
 const MAX_SIDOR_PER_PREFIX = 20;
 
+/** Rader per packad loggrad. Håller antalet rader läsbart i stället för tusental. */
+const RADER_PER_LOGGRAD = 100;
+
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
   const secret = process.env.CRON_SECRET;
@@ -159,6 +162,38 @@ export async function GET(req: NextRequest) {
 
   const j = jamforPriser(iOmgangen, vartPris, deras, publicerade);
   const kvar = kvarstaende.length - hamtade.length - fel.length;
+
+  // ☠️ DETALJRADERNA GÅR TILL VERCEL-LOGGEN, ALDRIG TILL SVARET.
+  //
+  // Skälet är vem som kan läsa vad. Svaret hamnar i en GitHub Actions-logg, och
+  // den är PUBLIK på ett publikt repo; Vercels runtime-logg är privat för
+  // kontoägaren. Raden bär artikelnumret, och kopplingen "vår produktsida =
+  // Aosom-artikel X" över hela katalogen ÄR vårt inköpsled — den hör inte
+  // hemma på en publik plats, inte ens utspridd över tusen rader.
+  //
+  // Formen är packad med flit: en loggrad per hundra produkter i stället för
+  // en rad per produkt. Huset har redan mätt att loggvolym är en LÄSBARHETS-
+  // fråga innan den är en kostnadsfråga (`bulk-import-worker`, 2026-09-04),
+  // och tjugosex rader går att läsa. Flaggan är av som default.
+  if (sp.get("detalj") === "1") {
+    const nrPerProdukt = new Map(
+      iOmgangen.map((m) => [m.wixProductId, artikelnummerAv(m) ?? ""]),
+    );
+    const rader = j.rader.map(
+      (r) =>
+        `${r.wixProductId}|${nrPerProdukt.get(r.wixProductId) ?? ""}`
+        + `|${r.vartPris}|${r.derasPris}|${r.publicerad ? 1 : 0}`
+        + `|${r.behoverPolering ? 1 : 0}`,
+    );
+    const delar = Math.ceil(rader.length / RADER_PER_LOGGRAD) || 1;
+    for (let i = 0; i < rader.length; i += RADER_PER_LOGGRAD) {
+      const n = i / RADER_PER_LOGGRAD + 1;
+      console.log(
+        `[dealproffsen] DETALJ ${n}/${delar} `
+        + rader.slice(i, i + RADER_PER_LOGGRAD).join(" "),
+      );
+    }
+  }
 
   console.log(
     `[dealproffsen] JAMFOR ${hamtade.length} prefix, ${deras.size} av deras produkter, `

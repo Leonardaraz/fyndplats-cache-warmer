@@ -41,6 +41,14 @@ on:
         options:
           - "nej"
           - "ja"
+      detaljlogg:
+        description: "ja = logga alla rader till VERCELS privata logg (ej hit)"
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
 
 jobs:
   jamfor:
@@ -53,6 +61,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           VARV: ${{ inputs.varv }}
           VISA_RADER: ${{ inputs.visa_rader }}
+          DETALJLOGG: ${{ inputs.detaljlogg }}
         run: |
           set -euo pipefail
 
@@ -113,6 +122,9 @@ jobs:
           while [ "$varv" -lt "${VARV}" ]; do
             varv=$((varv + 1))
             q="lage=jamfor"
+            # Detaljraderna skrivs av RUTTEN till Vercels privata logg — de
+            # passerar aldrig den har publika loggen. Flaggan sager bara till.
+            [ "${DETALJLOGG:-nej}" = "ja" ] && q="${q}&detalj=1"
             [ -n "$after" ] && q="${q}&after=${after}"
             kropp="$(anropa "${url}?${q}")"
 
