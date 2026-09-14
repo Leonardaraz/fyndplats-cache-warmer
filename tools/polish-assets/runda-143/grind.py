@@ -151,12 +151,14 @@ def granska(pid, html=None, live=False):
     return fel
 
 
-def _sjalvtest():
-    """☠️ En grind som inte provats åt BÅDA håll är ett antagande.
-
-    Varje rad: (namn, muterad text, ska_falla).
-    """
-    fall = [
+# ☠️ Fallen ligger på MODULNIVÅ för att antalet ska kunna HÄRLEDAS.
+#    `sjalvtest()` måste enligt `liverunda.sjalvtester` svara
+#    `(fel-lista, antal fall)`, och ett avskrivet antal är en tvilling som
+#    glider isär så fort någon lägger till ett fall. Runda 143 skrev först
+#    "GRÖNT (12 fall)" som en konstant — den siffran hade stått kvar oförändrad
+#    hur många fall som än lades till.
+# Varje rad: (namn, muterad text, ska_falla).
+SJALVTESTFALL = [
         ("maxlast utan säck faller",
          "Stället bär upp till 60 kg.", True),
         ("maxlast MED säck går fritt",
@@ -181,9 +183,13 @@ def _sjalvtest():
          B.SUGPROPP_GOLV, False),
         ("den riktiga underlagsmeningen går fritt",
          "Fästet är byggt för betong, tegel eller massivt trä.", False),
-    ]
+]
+
+
+def _sjalvtest():
+    """☠️ En grind som inte provats åt BÅDA håll är ett antagande."""
     fel = []
-    for namn, text, ska in fall:
+    for namn, text, ska in SJALVTESTFALL:
         traff = []
         for etikett, monster in FORBJUDET:
             for m in re.finditer(monster, text, re.I):
@@ -196,12 +202,21 @@ def _sjalvtest():
 
 
 def sjalvtest():
-    return _sjalvtest()
+    """Kontraktet live-grinden kräver: `(fel-lista, antal fall)`.
+
+    ☠️ NAMNET ÄR GRINDEN. `liverunda.sjalvtester` gör
+       `getattr(GR, "sjalvtest", None)` — en runda som bara har `_sjalvtest`
+       får den TYST överhoppad (#556). Och formen är grinden näst efter
+       namnet: en naken lista passerar `getattr` men fälls av kontrollen i
+       `liverunda`, som kräver tvåtupeln.
+    """
+    return _sjalvtest(), len(SJALVTESTFALL)
 
 
 if __name__ == "__main__":
-    st = sjalvtest()
-    print("SJÄLVTEST:", "GRÖNT (%d fall)" % 12 if not st else "%d FEL" % len(st))
+    st, antal = sjalvtest()
+    print("SJÄLVTEST:", "GRÖNT (%d fall)" % antal if not st
+          else "%d FEL av %d fall" % (len(st), antal))
     for f in st:
         print("  ✗", f)
 
