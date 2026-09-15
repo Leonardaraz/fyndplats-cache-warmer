@@ -80,8 +80,15 @@ function arEankolumn(namn: string): boolean {
   return n === "ean" || n.includes("ean13") || n.includes("gtin") || n.includes("barcode");
 }
 
-/** Delar en CSV-rad på komma, med hänsyn till citattecken. */
-function delaRad(rad: string): string[] {
+/**
+ * Delar en CSV-rad på komma, med hänsyn till citattecken.
+ *
+ * ☠️ EXPORTERAD, inte kopierad. `ean-jakt.ts` behöver samma tolkning för att
+ * hitta `pdf`-kolumnen, och en andra CSV-tolk vid sidan av den här hade varit
+ * en tvilling — husets vanligaste bugg (`SHIP_AXIS_RE`, `EU_TULL_CODES`,
+ * `mapWithConcurrency`).
+ */
+export function delaRad(rad: string): string[] {
   const ut: string[] = [];
   let cell = "";
   let iCitat = false;

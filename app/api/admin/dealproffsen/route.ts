@@ -1,6 +1,7 @@
 // GET /api/admin/dealproffsen — prisjämförelse mot dealproffsen.se.
 //
 //   ?lage=feed-info            vilka kolumner Aosoms feed FAKTISKT har
+//   ?lage=ean-jakt             finns EAN-koden i Aosoms produktmanualer?
 //   ?lage=jamfor               jämför vår katalog mot deras priser
 //   ?lage=jamfor&after=921-    fortsätt från ett prefix (markör)
 //
@@ -24,6 +25,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { resolveAosomFeedUrl } from "@/lib/aosom/feed";
 import { PRISKOLUMNER, feedKolumner } from "@/lib/aosom/feed-info";
+import { pdfLankar, pdfTexter, sokEan } from "@/lib/aosom/ean-jakt";
 import { listV3ProductPrices, listVisibleV3ProductIds } from "@/lib/wix/v3-products";
 import {
   artikelnummerAv,
@@ -116,6 +118,93 @@ export async function GET(req: NextRequest) {
         + `ean-kolumn=${info.harEanKolumn} ifyllda=${info.eanIfyllda}`,
       );
       return NextResponse.json({ ok: true, lage, ...info, dolda: PRISKOLUMNER });
+    } catch (e) {
+      return NextResponse.json(
+        { ok: false, error: e instanceof Error ? e.message : String(e) },
+        { status: 500 },
+      );
+    }
+  }
+
+  // ── Läge 1b: finns EAN-koden i produktMANUALEN? ───────────────────────────
+  //
+  // Feedens EAN-kolumn är mätt tom — 0 av 6 095, och den ligger som kolumn TVÅ
+  // så den går inte att missa. Samma mätning visade en kolumn ingen läst:
+  // `pdf`, ifylld på 5 917 rader. Det är produktmanualen, och en manual trycker
+  // nästan alltid streckkoden. Det är den enda vägen till EAN som finns kvar
+  // utan att fråga Aosom, och den har aldrig prövats.
+  //
+  // ☠️ SVARET PARAR ALDRIG IHOP EN KOD MED EN PRODUKT, och bär aldrig
+  // pdf-adressen — den innehåller artikelnumret. Koden ensam är ofarlig (den
+  // ska publiceras i Merchant Center om den finns); PARET kod↔artikel är vårt
+  // inköpsled, precis som par↔wixProductId är det i jämförelseläget nedan.
+  if (lage === "ean-jakt") {
+    const antal = Math.min(Math.max(Number(sp.get("antal") ?? 5), 1), 25);
+    try {
+      const res = await fetch(await resolveAosomFeedUrl());
+      if (!res.ok) throw new Error(`feed HTTP ${res.status}`);
+      const lankar = pdfLankar(await res.text(), antal);
+
+      let hamtade = 0;
+      let olasliga = 0;
+      let medGiltig = 0;
+      let medTysk = 0;
+      let kandidaterTotalt = 0;
+      let giltigaTotalt = 0;
+      const exempel = new Set<string>();
+      const fel: string[] = [];
+
+      for (const lank of lankar) {
+        if (Date.now() - t0 > TIDSBUDGET_MS) break;
+        try {
+          const r = await fetch(lank);
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const buf = Buffer.from(await r.arrayBuffer());
+          hamtade++;
+          const { texter, strommar, upppackade } = pdfTexter(buf);
+          // ☠️ EN OLÄSLIG MANUAL RAPPORTERAS SOM OLÄSLIG, inte som "inga fynd".
+          // Skillnaden mellan "hittade ingen kod" och "kunde inte titta" är hela
+          // skillnaden mellan en grind och en vana — samma lärdom som SKU-kollen
+          // som itererade en tom lista och svarade "inga krockar".
+          if (strommar > 0 && upppackade === 0) olasliga++;
+          const fynd = sokEan(texter);
+          kandidaterTotalt += fynd.kandidater;
+          giltigaTotalt += fynd.giltiga.length;
+          if (fynd.giltiga.length > 0) medGiltig++;
+          if (fynd.tyska.length > 0) {
+            medTysk++;
+            for (const k of fynd.tyska) if (exempel.size < 5) exempel.add(k);
+          }
+        } catch (e) {
+          // ⚠️ Adressen aldrig med i felet — den bär artikelnumret.
+          fel.push(e instanceof Error ? e.message : String(e));
+        }
+        await sov(PAUS_MS);
+      }
+
+      console.log(
+        `[dealproffsen] EAN-JAKT ${hamtade} manualer, ${olasliga} olasliga, `
+        + `${medGiltig} med giltig GTIN-13, ${medTysk} med tyskt prefix, `
+        + `${kandidaterTotalt} kandidater / ${giltigaTotalt} giltiga, ${fel.length} fel`,
+      );
+
+      return NextResponse.json({
+        ok: true,
+        lage,
+        pdfLankarIFeeden: lankar.length,
+        hamtade,
+        olasliga,
+        medGiltigGtin: medGiltig,
+        medTysktPrefix: medTysk,
+        // ⚠️ RÅTALET STÅR BREDVID MED FLIT. En slumpmässig trettonsiffring
+        // klarar kontrollsiffran i ETT fall av tio, så `giltiga` ensamt säger
+        // ingenting. Ligger kvoten kring 10 % är det brus; ligger den högt, och
+        // koderna dessutom bär tyskt GS1-prefix, är det något annat.
+        kandidater: kandidaterTotalt,
+        giltiga: giltigaTotalt,
+        exempelkoder: [...exempel],
+        fel: fel.slice(0, 5),
+      });
     } catch (e) {
       return NextResponse.json(
         { ok: false, error: e instanceof Error ? e.message : String(e) },

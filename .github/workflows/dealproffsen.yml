@@ -21,13 +21,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "feed-info = vad finns i Aosoms feed · jamfor = prisjamforelsen"
+        description: "jamfor = prisjamforelsen · feed-info = feedens kolumner · ean-jakt = finns EAN i manualerna"
         required: true
         default: "jamfor"
         type: choice
         options:
           - jamfor
           - feed-info
+          - ean-jakt
       varv:
         description: "Max antal varv for jamfor (markoren loopas). Default 12."
         required: false
@@ -127,6 +128,41 @@ jobs:
             echo "KOLUMNER (antal ifyllda rader, kolumnnamn):"
             printf '%s\n' "$kropp" | jq -r '
               .kolumner[] | "  \(.ifyllda)\t\(.namn)"' || true
+            exit 0
+          fi
+
+          # ── ean-jakt: star koden i produktmanualen? ─────────────────────────
+          #
+          # ☠️ SVARET PARAR ALDRIG IHOP EN KOD MED EN PRODUKT, och bar aldrig
+          # pdf-adressen — den innehaller artikelnumret. En EAN ensam ar inte
+          # hemlig (den ska publiceras i Merchant Center om den finns); det ar
+          # PARET kod↔artikel som ar vart inkopsled.
+          if [ "${MODE}" = "ean-jakt" ]; then
+            kropp="$(anropa "${url}?lage=ean-jakt&antal=10")"
+            {
+              echo "### Star EAN-koden i Aosoms produktmanualer?"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| manualer hamtade | \(.hamtade) |",
+                "| olasliga (packade med annat an Flate) | \(.olasliga) |",
+                "| **med giltig GTIN-13** | **\(.medGiltigGtin)** |",
+                "| **med tyskt GS1-prefix (400-440)** | **\(.medTysktPrefix)** |",
+                "| trettonsiffringar totalt | \(.kandidater) |",
+                "| varav giltig kontrollsiffra | \(.giltiga) |",
+                "| fel | \(.fel | length) |"
+              ' || true
+              echo ""
+              echo "> ⚠️ **Rataler star bredvid med flit.** En slumpmassig"
+              echo "> trettonsiffring klarar kontrollsiffran i ETT fall av tio,"
+              echo "> sa \`giltiga\` ensamt sager ingenting. Ligger kvoten kring"
+              echo "> 10 % ar det brus."
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "hamtade \(.hamtade), olasliga \(.olasliga), medGiltig \(.medGiltigGtin), "
+              + "medTysk \(.medTysktPrefix), kandidater \(.kandidater), giltiga \(.giltiga)",
+              "exempelkoder: \(.exempelkoder | join(" "))",
+              (.fel[]? | "  FEL: \(.)")' || true
             exit 0
           fi
 
