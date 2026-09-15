@@ -173,8 +173,15 @@ export function pdfLankar(csv: string, antal: number): string[] {
   const idx = rubriker.indexOf("pdf");
   if (idx < 0) return [];
 
+  // ☠️ SPRIDS OVER HELA FEEDEN, inte de forsta N raderna.
+  //
+  // Feeden ar sorterad, sa de forsta raderna ar en produktfamilj — och husets
+  // egen bildmatning (2026-08-27) visade just att man maste ta "tio ur vardera
+  // tredjedel" for att veta nagot om sortimentet. Ett stickprov fran toppen
+  // mater den familjen, inte Aosom.
   const ut: string[] = [];
-  for (let i = 1; i < rader.length && ut.length < antal; i++) {
+  const steg = Math.max(1, Math.floor((rader.length - 1) / antal));
+  for (let i = 1; i < rader.length && ut.length < antal; i += steg) {
     const v = (delaRad(rader[i])[idx] ?? "").trim();
     if (v.startsWith("http")) ut.push(v);
   }

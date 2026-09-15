@@ -138,7 +138,7 @@ jobs:
           # hemlig (den ska publiceras i Merchant Center om den finns); det ar
           # PARET kod↔artikel som ar vart inkopsled.
           if [ "${MODE}" = "ean-jakt" ]; then
-            kropp="$(anropa "${url}?lage=ean-jakt&antal=10")"
+            kropp="$(anropa "${url}?lage=ean-jakt&antal=25")"
             {
               echo "### Star EAN-koden i Aosoms produktmanualer?"
               echo ""

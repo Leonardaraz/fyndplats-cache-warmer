@@ -113,6 +113,21 @@ describe("pdfLankar", () => {
     expect(pdfLankar(csv, 1)).toEqual(["https://example.test/a.pdf"]);
   });
 
+  it("☠️ SPRIDER stickprovet over feeden — inte de forsta N raderna", () => {
+    // Feeden ar sorterad, sa de forsta raderna ar EN produktfamilj. Ett
+    // stickprov fran toppen mater den familjen, inte sortimentet — samma
+    // lardom som husets bildmatning, som tog tio ur vardera tredjedel.
+    const stor = ["SKU,pdf"];
+    for (let i = 0; i < 100; i++) stor.push(`s${i},https://example.test/${i}.pdf`);
+    const ut = pdfLankar(stor.join("\n"), 4);
+    expect(ut).toEqual([
+      "https://example.test/0.pdf",
+      "https://example.test/25.pdf",
+      "https://example.test/50.pdf",
+      "https://example.test/75.pdf",
+    ]);
+  });
+
   it("saknas kolumnen svarar den tomt i stallet for att gissa", () => {
     expect(pdfLankar("SKU,Name\n845-030CG,Bod", 10)).toEqual([]);
   });
