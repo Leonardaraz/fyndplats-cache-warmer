@@ -289,16 +289,33 @@ export async function GET(req: NextRequest) {
       rader.push(`${m.wixProductId}|${i.slug}|${i.visible ? 1 : 0}|${namn}`);
     }
 
-    const delar = Math.ceil(rader.length / RADER_PER_SIDLOGGRAD) || 1;
-    for (let i = 0; i < rader.length; i += RADER_PER_SIDLOGGRAD) {
+    // ☠️ SKIVNINGEN ÄR INTE BEKVÄMLIGHET — DEN ÄR EN UPPMÄTT GRÄNS.
+    //
+    // Loggläsaren kapar ett svar som blir för stort, och den kapar TYST: en
+    // första körning skrev 398 loggrader och 248 av dem gick att läsa
+    // tillbaka. Uppslaget täckte då 62 % av rapporten, och ett uppslag som
+    // saknar var tredje rad är samma klass som den avkortade produktlistan i
+    // `listVisibleV3ProductIds` — en halv mätning som ser hel ut.
+    //
+    // `av` delar arbetet i lika stora skivor och `del` väljer en. Ett svep är
+    // alltså `del=1..av`, och svaret bär BÅDA talen så en delkörning aldrig
+    // kan förväxlas med en hel.
+    const av = Math.min(Math.max(Number(sp.get("av") ?? 1), 1), 20);
+    const del = Math.min(Math.max(Number(sp.get("del") ?? 1), 1), av);
+    const perDel = Math.ceil(rader.length / av);
+    const skiva = rader.slice((del - 1) * perDel, del * perDel);
+
+    const delar = Math.ceil(skiva.length / RADER_PER_SIDLOGGRAD) || 1;
+    for (let i = 0; i < skiva.length; i += RADER_PER_SIDLOGGRAD) {
       const n = i / RADER_PER_SIDLOGGRAD + 1;
       console.log(
-        `[dealproffsen] SIDOR ${n}/${delar} `
-        + rader.slice(i, i + RADER_PER_SIDLOGGRAD).join(" "),
+        `[dealproffsen] SIDOR ${del}:${n}/${delar} `
+        + skiva.slice(i, i + RADER_PER_SIDLOGGRAD).join(" "),
       );
     }
     console.log(
-      `[dealproffsen] VARA-SIDOR ${rader.length} rader, ${utanInfo} utan produkt, `
+      `[dealproffsen] VARA-SIDOR del ${del}/${av}: ${skiva.length} av `
+      + `${rader.length} rader, ${utanInfo} utan produkt, `
       + `${info.size} produkter i katalogen`,
     );
 
@@ -307,8 +324,14 @@ export async function GET(req: NextRequest) {
       lage,
       katalogen: info.size,
       rader: rader.length,
+      del,
+      av,
+      iDennaDel: skiva.length,
       utanProdukt: utanInfo,
       loggrader: delar,
+      // ⚠️ Samma roll som `fullstandig` i jämförelsen: en delkörning får inte
+      // se ut som en hel, för det är på den man annars bygger rapporten.
+      fullstandig: av === 1,
     });
   }
 

@@ -157,13 +157,15 @@ describe("listV3ProductInfo", () => {
   it("☠️ FRÅGAR UTAN SYNLIGHETSVILLKOR — utkasten är merparten av katalogen", async () => {
     // En fråga som tyst filtrerat bort utkast hade gett ett uppslag som saknar
     // just de rader rapporten mest handlar om (2 560 av 4 078).
-    const anrop = vi.fn(async () => svar([{ id: "u", slug: "s", name: "n", visible: false }]));
+    const anrop = vi.fn(
+      async (_url: string, init?: RequestInit) =>
+        svar([{ id: "u", slug: "s", name: "n", visible: false }]),
+    );
     vi.stubGlobal("fetch", anrop);
     const { listV3ProductInfo } = await import("./v3-products");
     const ut = await listV3ProductInfo();
     expect(ut.size).toBe(1);
-    const kropp = JSON.parse(anrop.mock.calls[0][1].body as string);
-    expect(JSON.stringify(kropp)).not.toMatch(/visible/);
+    expect(String(anrop.mock.calls[0]?.[1]?.body)).not.toMatch(/visible/);
   });
 
   it("☠️ KASTAR vid sidtaket — en avkortad lista gör produkter länklösa", async () => {

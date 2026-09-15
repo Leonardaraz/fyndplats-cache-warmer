@@ -43,6 +43,16 @@ on:
         options:
           - "nej"
           - "ja"
+      del:
+        description: "vara-sidor: vilken skiva (1..av). Default 1."
+        required: false
+        default: "1"
+        type: string
+      av:
+        description: "vara-sidor: hur manga skivor. 1 = hela pa en gang."
+        required: false
+        default: "1"
+        type: string
       detaljlogg:
         description: "ja = logga alla rader till VERCELS privata logg (ej hit)"
         required: false
@@ -64,6 +74,12 @@ jobs:
           VARV: ${{ inputs.varv }}
           VISA_RADER: ${{ inputs.visa_rader }}
           DETALJLOGG: ${{ inputs.detaljlogg }}
+          # ⚠️ EGNA INPUTS, inte aterbrukade. Tva flaggor med tva
+          # betydelser ar samma falla som den tomma workflow-inputen som
+          # publicerade utkast i tolv timmar: den som kor fel lage far ett
+          # tal som ser giltigt ut och betyder nagot annat.
+          DEL: ${{ inputs.del }}
+          AV: ${{ inputs.av }}
         run: |
           set -euo pipefail
 
@@ -138,20 +154,22 @@ jobs:
           # hemliga — var slug star i sitemapen — men de ar ~4 000, och en
           # publik logg som till nio tiondelar ar brus ar en logg ingen laser.
           if [ "${MODE}" = "vara-sidor" ]; then
-            kropp="$(anropa "${url}?lage=vara-sidor")"
+            kropp="$(anropa "${url}?lage=vara-sidor&del=${DEL}&av=${AV}")"
             {
               echo "### Vara produktsidor (wix-id → slug)"
               echo ""
               printf '%s\n' "$kropp" | jq -r '
                 "| | |\n|---|---:|",
                 "| produkter i katalogen | \(.katalogen) |",
-                "| **rader skrivna till Vercels logg** | **\(.rader)** |",
+                "| **skiva** | **\(.del) av \(.av)** |",
+                "| rader i denna skiva | \(.iDennaDel) |",
+                "| rader totalt | \(.rader) |",
                 "| mappningar utan produkt (foraldralosa) | \(.utanProdukt) |",
                 "| loggrader att lasa | \(.loggrader) |"
               ' || true
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
-              "katalogen \(.katalogen), rader \(.rader), utanProdukt \(.utanProdukt), loggrader \(.loggrader)"' || true
+              "katalogen \(.katalogen), del \(.del)/\(.av), iDennaDel \(.iDennaDel), rader \(.rader), utanProdukt \(.utanProdukt), loggrader \(.loggrader)"' || true
             exit 0
           fi
 
