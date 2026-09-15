@@ -400,6 +400,33 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > Anvand `cardkit.fit_pane(src, dst, "photo"|"spec"|"grid2x2"|…)` som beskar kallan till ratt proportion innan den matas in — den skalar aldrig upp och lagger aldrig till vit yta. Racker inte kallan till (ett smalt staende motiv i en liggande panel) ar `fit=True` ratt val i stallet: den letterboxar men zoomar aldrig. *(Leonards rapport 2026-08-26: "bilderna ska inte vara for inzoomade".)*
 >
+> 📐 **Ett STÅENDE motiv i en liggande panel: bygg panelen av TVÅ stående rutor.**
+> Raden ovan ger `fit=True` som utväg — den letterboxar och zoomar aldrig, men den
+> löser bara halva problemet: varan blir liten och panelen mest vit. Uppmätt
+> 2026-09-09 på två massagestolar med bbox 1178 × 1975 (0,60:1) och 1776 × 1969
+> (0,90:1) mot `card_spec`-panelens 1,83:1 — varan fyllde 94 % av HÖJDEN men bara
+> **31 %** respektive **46 %** av bredden.
+>
+> Bygg i stället panelbilden själv, som två stående rutor med en vit ränna emellan:
+> vit studiobild till vänster, verklighetsbild till höger. Varje halva blir då
+> ~0,90:1, alltså nära produktens egen proportion, och varan behöver aldrig beskäras.
+>
+> ```python
+> BREDD, HOJD = 1416 * 2, 776 * 2        # panelens proportion, 2x for skarpa
+> RANNA = 52
+> HALVA = (BREDD - RANNA) // 2           # 1390 x 1552  ->  0,90:1
+> ```
+>
+> Två spärrar gör det bevisbart i stället för trevligt att titta på:
+> `assert ny_bredd <= HALVA` (varan får aldrig skalas bredare än sin ruta) och
+> `assert bh <= h` på scenfönstret (utsnittet måste rymmas i källan). Faller den
+> första är motivet för brett för metoden och `fit=True` är kvar som utväg.
+>
+> ☠️ **Och mät panelen med en sondrendering, ta den inte ur tabellen.** Radantalet
+> styr höjden: `card_spec` med 8 rader är 1416 × 776, med 4 rader blir panelen
+> märkbart högre. Rendera kortet med en enfärgad platshållare och läs av färgens
+> bbox — det är två sekunder och det är skillnaden mellan ett mått och ett minne.
+>
 > 📐 **`card_spec`-fotot: samma sak, aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
 
 > 📐 **Andra orsaken till samma symtom: KÄLLBILDENS egna vita marginaler.** Proportionsregeln ovan räcker inte. `contain` respekterar allt som ligger i filen — även tom vit yta runt varan — så marginalerna adderas i stället för att beskäras bort. Naturehikes vandringsstavar och dunsovsäck (2026-08-26) hade variantkort där produkten upptog **31–38 %** av kortets bredd och dessutom satt ur centrum (stavarna x 888–1466 i en 2000 px-ruta). Leverantörsfotot var korrekt placerat i panelen; fotot hade bara en tom halva.
@@ -413,6 +440,31 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 > ```
 >
 > **Mät `tackning` (andelen ejvita pixlar), inte bbox.** Bbox:en på de här korten spände 88 % av bredden och såg därför frisk ut — men det var etikettremsans text som spände, inte varan. Täckningen var **2 %** för stavarna och 5–7 % för sovsäcken. Bbox ljuger så fort kortet har en textremsa.
+
+> 🏭 **Blockerar tillverkaren botar — leta hos en STOR återförsäljare i stället.**
+> Regeln "leta hos tillverkaren" tar slut när tillverkaren svarar 403. Aosom gör det
+> på varenda domän (aosom.com, .de, .co.uk, .eu — även deras Shopify-JSON), och
+> Amazon svarar 503. Men samma tillverkares studiofoton ligger hos de återförsäljare
+> som säljer artikeln: **Walmart fungerade** (`i5.walmartimages.com`, och `?odnHeight=2000&odnWidth=2000`
+> ger full upplösning), liksom mindre Shopify-butiker — vilkas hela galleri dessutom
+> går att läsa som JSON på `<produkt-URL>.json`, utan att skrapa HTML.
+>
+> Elgokarterna (2026-08-30): leverantörsfeeden gav LAGERFOTON — grönt betonggolv,
+> tagna ovanifrån, gul dekal på den vita och personalens fötter i bild på den rosa.
+> Den röda var dessutom **beskuren i överkant**, så den bröt mot hjälteregeln "visa
+> HELA varan" oavsett vad man gjorde åt bakgrunden. Tillverkarens riktiga
+> studiofotografering fanns hela tiden — bara inte hos tillverkaren.
+>
+> ⚠️ **Verifiera att det är SAMMA vara innan du byter, på mått OCH detaljer.**
+> Sökresultaten kryllade av andra tillverkares drift-kartar med nästan samma text
+> (Ridington, Hyper, Garvee, Audi Sport) och en av träffarna var till och med samma
+> märke men **en annan modell** (5-punktssele, 6–12 år, 56 cm hög i stället för 54).
+> Här stämde 115 × 77 × 54 cm, 8–12 år, 6–13 km/h och 70 kg — och den avgörande
+> kontrollen var en DETALJ: vår egen sidobild visade vit ram med gröna dekaler och
+> "1" på nosen, exakt som kandidaten. Måtten ensamma hade inte räckt.
+>
+> Kolla också C2PA/AI-markörer i filens första 64 kB innan den går upp; flera av
+> livsstilsbilderna i samma galleri var uppenbart AI-genererade, studiobilderna inte.
 
 > 🔧 **Behöver bara fotorutan lagas: rör inte resten av kortet.** Ett färdigt kort går att laga i efterhand utan att sättas om — vitmåla fotorutan (för korten ovan `y 0–1613`, linjalen börjar på 1614), klistra tillbaka varan förstorad och centrerad, och låt etikettremsa och sidfot stå kvar **pixelidentiska**. Spärren är ett rent likhetstest: `assert np.array_equal(b[1614:], fore)`. Att sätta om texterna vore att riskera en felskriven siffra för ingenting.
 >
