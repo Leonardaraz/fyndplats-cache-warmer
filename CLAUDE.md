@@ -2285,9 +2285,34 @@ paket och viktstyrt, vilket blir en platt tull på 240–290 kr per vara i spann
 | 25–40 % | 1,28 | 1,92 |
 | över 40 % | **1,13** | **2,07** |
 
-Deras kostnad rör sig inte alls med vår frakt: de har **lager i Sverige**
-("Dealproffsen AB är ett svenskt företag med lager i Sverige", varje vara
-"Lagervara", 1–2 dagars leverans) och tar hem på pall.
+☠️ **"1–2 dagars leverans" VAR FEL, och raden stod kvar i tre veckor
+(rättat 2026-09-15).** Leonards invändning: *"dom dropshippar också … Alla dom
+som har 3-5 dagar dropshippar dom precis som vi."* Mätt på 42 av deras
+produktsidor, tio ur vardera gapgrupp: **39 av 39 läsbara säger "Leverera inom
+3–5 arbetsdagar". Noll säger 1–2.** Talet var avläst ur deras
+marknadsföringstext ("Snabb Leverans"), inte ur en produktsida — ett påstående
+om oss själva togs för en mätning.
+
+⚠️ **Och leveranstiden SKILJER INTE mellan grupperna** — 3–5 dagar där vi är
+mycket billigare, där vi är lite billigare OCH där vi är dyrare. Den förklarar
+alltså ingenting om gapet, åt något håll. Det var den hypotesen mätningen
+byggdes för att pröva.
+
+De listar dessutom **minst 4 078 Aosom-artikelnummer** (bara överlappet med vår
+katalog; deras verkliga tal är högre). Ingen svensk handlare lagerhåller fyra
+tusen skrymmande möbelartiklar — så "lager i Sverige" är med all sannolikhet
+en marknadsföringsrad ovanpå samma dropship-upplägg som vårt, inte en
+kostnadspost som förklarar deras pris.
+
+☠️ **Följden för prisresonemanget nedan är stor.** Om deras kostnad ≈ vår
+kostnad är skillnaden i pris **ren marginal**, inte täckning för lager,
+returer och bundet kapital. Då finns det mer utrymme att höja än raden nedan
+antyder — och de kan samtidigt matcha oss när de vill.
+
+⚠️ **Vad som INTE är mätt:** var paketen faktiskt skickas ifrån. 3–5
+arbetsdagar är förenligt både med dropship från Aosom DE och med svenskt
+lager plus långsam möbelfrakt. Deras sidor säger "Lagervara" på 35 av 42.
+Det som avgör är fraktvillkoren, och dem ser vi inte.
 
 Gränsen går vid ungefär **900 kr i inköp**: under den är vi billigast i 29–50 %
 av fallen, över den i 92–100 %.
