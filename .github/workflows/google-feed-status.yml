@@ -1,14 +1,11 @@
-name: Google Shopping — feedstatus
+name: Google Shopping — tillaggsfeedens status
 
-# Hur ser Merchant Center-feeden ut just nu? Hur manga rader, och varfor foll
-# resten (ej publicerad, utan pris, utan bild, artikelnummer i texten)?
+# Hur ser TILLAGGSFEEDEN till Merchant Center ut just nu? Hur manga rader bar
+# en prisgrupp (A/B), hur manga ligger under respektive over dealproffsen?
+# Huvudfeeden ar butiksrepots /feed/google.xml; den har lagger etiketterna.
 #
 # ☠️ LASER BARA RAKNARNA. Sjalva feeden kraver GOOGLE_FEED_SECRET, som aldrig
 # lamnar Vercel — statusen nas med CRON_SECRET och bar inga produktdata.
-#
-# ☠️ `artikelnummerIText` SKA VARA NOLL. Ar den inte det finns publicerade
-# produkter vars text bar Aosoms artikelnummer; de ar UTELAMNADE ur feeden
-# (inte lackta), men de ska poleras.
 
 on:
   workflow_dispatch:
@@ -27,7 +24,7 @@ jobs:
             echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
             exit 1
           fi
-          url="${BASE%/api/cron/poll-tracking}/api/feed/google-shopping?lage=status"
+          url="${BASE%/api/cron/poll-tracking}/api/feed/google-shopping-tillagg?lage=status"
           svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
           kod="$(printf '%s' "$svar" | tail -n1)"
           kropp="$(printf '%s' "$svar" | sed '$d')"
@@ -37,27 +34,18 @@ jobs:
             exit 1
           fi
           {
-            echo "### Google Shopping-feeden"
+            echo "### Google Shopping — tillaggsfeeden"
             echo ""
             printf '%s\n' "$kropp" | jq -r '
               "| | |\n|---|---:|",
-              "| **rader i feeden** | **\(.rader)** |",
+              "| **rader** | **\(.rader)** |",
               "| grupp A / B / ingen | \(.perGrupp.A) / \(.perGrupp.B) / \(.perGrupp.ingen) |",
               "| under dealproffsen | \(.perKonkurrenslage.under_dealproffsen // 0) |",
               "| over dealproffsen | \(.perKonkurrenslage.over_dealproffsen // 0) |",
               "| utan jamforelse | \(.perKonkurrenslage.ingen_jamforelse // 0) |",
-              "| ej publicerade (utkast) | \(.ejPublicerad) |",
-              "| utan pris | \(.utanPris) |",
-              "| utan bild | \(.utanBild) |",
-              "| utan slug | \(.utanSlug) |",
-              "| mappning utan produkt | \(.utanProdukt) |",
-              "| **ARTIKELNUMMER I TEXT (utelamnade)** | **\(.artikelnummerIText)** |",
-              "| husmarke rensat | \(.varumarkeRensat) |"
+              "| utan variant-id (utelamnade) | \(.utanVariantId) |",
+              "| utan entydigt pris (utelamnade) | \(.utanPris) |"
             ' || true
           } >> "$GITHUB_STEP_SUMMARY"
           printf '%s\n' "$kropp" | jq -r '
-            "rader \(.rader), A \(.perGrupp.A) / B \(.perGrupp.B) / ingen \(.perGrupp.ingen), ejPublicerade \(.ejPublicerad), utanPris \(.utanPris), utanBild \(.utanBild), artikelnummerIText \(.artikelnummerIText), husmarkeRensat \(.varumarkeRensat)"' || true
-          n=$(printf '%s' "$kropp" | jq -r '.artikelnummerIText // 0')
-          if [ "$n" != "0" ]; then
-            echo "::warning::${n} publicerade produkter bar ett artikelnummer i texten och ar utelamnade ur feeden — polera dem" >&2
-          fi
+            "rader \(.rader), A \(.perGrupp.A) / B \(.perGrupp.B) / ingen \(.perGrupp.ingen), under \(.perKonkurrenslage.under_dealproffsen // 0), over \(.perKonkurrenslage.over_dealproffsen // 0), utanVariantId \(.utanVariantId), utanPris \(.utanPris)"' || true
