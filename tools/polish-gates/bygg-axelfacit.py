@@ -59,6 +59,23 @@ ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtgröße|Gesamtgrösse|Ges
 #      skrivs in i `axelkalla`, så en läsare ser vilken rad facit kom
 #      ur i stället för att behöva gissa.
 KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
+
+# ☠️ EN PRODUKT KAN HA EN TOTALHÖJD OCH INGET TOTALMÅTT. Uppmätt i runda N2 på
+# konstväxten 67ba375c, vars enda måttrader är
+#
+#     Gesamthöhe: 110 cm
+#     Topfgröße:  Ø17 x 14,5H cm
+#
+# Det finns inget L x B x H att hitta, för bladverket har ingen kant — och
+# generatorn avbröt därför på en källa som faktiskt är entydig om det som
+# räknas. Etiketten SÄGER totalhöjd, så `{hojd: 110}` är avläst, inte gissat.
+#
+# Den svenska spec-raden duger INTE här, och det är hela skälet till en egen
+# gren: importen skriver `Ø17 x 110H cm`, alltså KRUKANS diameter bredvid
+# VÄXTENS höjd. Ett facit byggt på den hade påstått att plantan är 17 cm bred
+# när bladverket mäter långt mer, och gate-axel hade fällt varje korrekt
+# meningen om bredden. Grenen ger därför höjden ensam och ingen bredd alls.
+HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s*cm"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -178,7 +195,41 @@ def main():
             if kandidat and _talen(svensk) == _talen(tysk):
                 par = kandidat
                 d["axelkalla"] = "svenska spec-raden (tyska raden saknar axelbokstav)"
+        # ☠️ TVÅ TAL UTAN H ELLER T GÅR INTE ATT LÄGGA UT POSITIONELLT.
+        # Uppmätt i runda N2 på häckrullen c8376256: `Gesamtmaße: L300 x B100 cm`.
+        # Den positionella regeln gav {bredd: 300, djup: 100} — men produkten är
+        # en platt rulle som hängs på ett staket, och Aosoms EGEN måttritning
+        # sätter 100 som HÖJD. Facit hade alltså fällt varje korrekt mening om
+        # höjden, och släppt igenom "100 cm djup" på något som är två centimeter
+        # tjockt.
+        #
+        # Positionsregeln vilar på att H och T är utlästa ur bokstaven och bara
+        # de två horisontalerna skiljs åt av ordningen. Saknas BÅDA de
+        # bokstäverna finns ingen tredje axel att räkna bakåt från, och B mot L
+        # säger ingenting om vilken av de två återstående axlarna talet är.
+        # Då är enda ärliga facit inget facit: raden märks axellös och
+        # gate-axel uttalar sig inte om produktens tal.
+        if par and len(par) == 2 and not any(b in ("H", "T") for _, b in par):
+            d["axellos"] = ("totalraden har tva tal utan H eller T (%s) — vilken axel "
+                            "det andra talet ar gar inte att avgora ur raden" % tysk)
+            par = []
+
         if not par:
+            # ☠️ EN TOTALHÖJD ÄR ETT ENTYDIGT MÅTT ÄVEN NÄR TOTALMÅTTET SAKNAS.
+            # Se HOJDETIKETT ovan: `Gesamthöhe: 110 cm` på en krukväxt. Grenen
+            # ligger EFTER de vanliga passen, så allt som byggts hittills
+            # regenererar oförändrat — den fyrar bara där de tiger.
+            for rad in rader:
+                m = re.search(HOJDETIKETT, rad)
+                if m:
+                    d["tyska"] = rad.strip()
+                    d["bokstaver"] = "H"
+                    d["hojd"] = tal(m.group(1))
+                    d["axelkalla"] = "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+                    d.pop("axellos", None)
+                    break
+
+        if not par and "hojd" not in d:
             # ☠️ EN PRODUKT KAN SAKNA TOTALMÅTT PÅ RIKTIGT. Uppmätt i M1 på
             # isbjörnsparet 5a14cc4d: källan har "Große Bärenabmessungen" och
             # "Kleine Bärenabmessungen" men inget mått för setet, för det finns
@@ -189,9 +240,13 @@ def main():
             delmatt = [r for r in rader if re.search(r"abmessungen\s*:", r, re.I)]
             if delmatt:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
-            else:
+            elif "axellos" not in d:
+                # En rad som redan är märkt axellös av tvåtals-spärren ovan är
+                # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den
+                # hade betytt att en källa som säger sanningen om sig själv
+                # stoppar hela rundan.
                 tomma.append(kort)
-        else:
+        if par:
             d["bokstaver"] = "".join(b for _, b in par)
             # ☠️ REN POSITION RÄCKER INTE HELLER. Uppmätt i M1 på 3225c539:
             # "Ø30 x 51H" — diametern bär ingen bokstav, så 51H hamnade på

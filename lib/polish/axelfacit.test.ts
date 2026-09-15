@@ -182,3 +182,65 @@ describe("KVALIFICERAD ETIKETT — bara när den nakna tiger", () => {
     expect(ut.aaa.axelkalla).toBeUndefined();
   });
 });
+
+describe("GESAMTHÖHE — en totalhöjd utan totalmått", () => {
+  it("läser höjden ur den tyska raden, inte ur den svenska spec-raden", () => {
+    // Runda N2, konstväxten 67ba375c. Källan har `Gesamthöhe: 110 cm` och
+    // `Topfgröße: Ø17 x 14,5H cm` — inget L x B x H finns, för bladverket har
+    // ingen kant. Generatorn avbröt på en källa som är entydig om höjden.
+    const ut = bygg({
+      aaa: kalla(["Gesamthöhe: 110 cm", "Topfgröße: Ø17 x 14,5H cm"], "Ø17 x 110H cm"),
+    });
+    expect(ut.aaa).toMatchObject({ hojd: 110, bokstaver: "H" });
+    expect(String(ut.aaa.axelkalla)).toContain("Gesamthöhe");
+  });
+
+  it("☠️ ger INGEN bredd — den svenska raden bär KRUKANS diameter", () => {
+    // Hela skälet till en egen gren i stället för den svenska fallbacken:
+    // importen skriver `Ø17 x 110H cm`, alltså krukans mått bredvid växtens
+    // höjd. Ett facit med bredd 17 hade fällt varje korrekt mening om
+    // bladverket, som mäter långt mer än krukan.
+    const ut = bygg({
+      aaa: kalla(["Gesamthöhe: 110 cm", "Topfgröße: Ø17 x 14,5H cm"], "Ø17 x 110H cm"),
+    });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+  });
+
+  it("☠️ vinner ALDRIG över en riktig totalrad", () => {
+    // Grenen ligger efter de vanliga passen med flit. En produkt som har BÅDA
+    // ska läsas ur totalraden — annars hade en höjdrad tyst skrivit över tre
+    // korrekta axlar med en.
+    const ut = bygg({
+      aaa: kalla(["Gesamthöhe: 240 cm", "Gesamtabmessungen: 160L x 90B x 240H cm"]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 160, djup: 90, hojd: 240 });
+    expect(ut.aaa.axelkalla).toBeUndefined();
+  });
+});
+
+describe("TVÅ TAL UTAN H ELLER T — positionen räcker inte", () => {
+  it("☠️ ger inget facit alls i stället för ett som gissar djupet", () => {
+    // Runda N2, häckrullen c8376256: `Gesamtmaße: L300 x B100 cm`. Den
+    // positionella regeln gav {bredd: 300, djup: 100}, men produkten är en
+    // platt rulle som hängs på ett staket och Aosoms EGEN måttritning sätter
+    // 100 som HÖJD. Ett facit som säger djup hade fällt varje korrekt mening
+    // om höjden.
+    const ut = bygg({ aaa: kalla(["Gesamtmaße: L300 x B100 cm"]) });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+    expect(String(ut.aaa.axellos)).toMatch(/utan H eller T/);
+  });
+
+  it("AVBRYTER inte — en förklarad axellös rad är ett utfall, inte ett tomt facit", () => {
+    expect(() => bygg({ aaa: kalla(["Gesamtmaße: L300 x B100 cm"]) })).not.toThrow();
+  });
+
+  it("två tal MED H läggs ut som vanligt", () => {
+    // Spärren får bara gälla när båda bokstäverna saknas. `Ø40 x 56H` och
+    // liknande rader ska fortsätta ge sin höjd.
+    const ut = bygg({ aaa: kalla(["Gesamtmaße: 40B x 56H cm"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 40, hojd: 56 });
+  });
+});
