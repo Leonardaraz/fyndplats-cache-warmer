@@ -3006,6 +3006,47 @@ fällt 34 rader utan taket. Fyrtioen tester: arton på regeln, tretton på
 planerna, tio i synken — bland dem kontrollerna åt andra hållet (samma fixtur
 utan grupp skriver inget; samma rad med färskt pris skrivs).
 
+## Google Shopping-feeden (`lib/feed/google-shopping.ts`, `/api/feed/google-shopping`, 2026-09-15)
+
+Merchant Center hämtar en TSV från `/api/feed/google-shopping?nyckel=<GOOGLE_FEED_SECRET>`
+en gång om dagen. Nyckeln ligger bara på Vercel och matas in i Merchant Center
+för hand; fel nyckel ger 404, inte 401. `?lage=status` (räknarna, inga
+produktdata) nås även med CRON_SECRET — workflow **"Google Shopping — feedstatus"**.
+
+Fältvalen följer briefens beslut: `brand` = Fyndplats, `identifier_exists` = no,
+ingen `mpn`, länk på slugen, bara Aosom, bara publicerade. Frakten står i feeden
+(`SE:::0.00 SEK:0:1:3:6` = fri frakt, 3–7 arbetsdagar) för rader över 499 kr;
+under det lämnas fältet till kontots inställning. `custom_label_0` = prisgrupp
+(A/B — tom = inte med i testet, och det är så kampanjen väljer produkter),
+`custom_label_1` = prisband, `custom_label_2` = konkurrensläge
+(under/över dealproffsen, ingen jämförelse). `product_type` bara från en kategori
+som faktiskt är tilldelad i Wix (`categorySuggestion.status = "auto"`);
+`google_product_category` lämnas till Googles klassificerare tills diagnostiken
+säger annat.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **Feeden bär aldrig Aosoms artikelnummer.** En rad vars titel eller text
+   matchar formen (`ARTIKELNUMMER_FORM`, medvetet snäv så "100-150cm" inte
+   fälls) eller radens eget nummer UTELÄMNAS och räknas i `artikelnummerIText`.
+   Hellre en produkt färre än ett läckt nummer. Testet låser det.
+2. ☠️ **Aldrig husmärkena** i titel/text — rensas, räknas i `varumarkeRensat`.
+   Listan speglar `KNOWN_BRAND_TOKENS` i `lib/import/sku.ts`.
+3. ☠️ **Priset är butikens** (`actualPriceRange` via `tolkaProduktPris`, en
+   definition), aldrig mappningens `grossSek`. Merchant Center avvisar rader
+   vars pris skiljer sig från landningssidan.
+4. ☠️ **Det som saknas utelämnas och räknas per orsak** — ej publicerad, utan
+   slug, utan pris, utan bild, mappning utan produkt. Ingenting gissas ihop.
+5. ☠️ **Under 200 rader svarar rutten 503**, så Google behåller förra feeden.
+   Ett svar med en handfull rader hade annars ersatt hela sortimentet hos
+   Google och pausat varje annons — samma klass som `MIN_FEED_RADER` i synken.
+
+Storleken är en gräns: Vercel kapar svar över ~4,5 MB, därför beskrivning max
+1 500 tecken och högst fem extrabilder. `listV3FeedProducts` i
+`lib/wix/v3-products.ts` begär `MEDIA_ITEMS_INFO` + `PLAIN_DESCRIPTION` (utan
+det första är galleriet tomt, uppmätt 2026-08-27) och kastar vid sidtaket.
+Femton tester på raderna, bland dem läckagespärren och måttangivelserna.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
