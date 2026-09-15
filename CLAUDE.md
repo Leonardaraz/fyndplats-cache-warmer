@@ -2676,6 +2676,61 @@ bara tom.
 inte till någonting** — matchningen går på artikelnumret. Den är ett gratis
 sidoresultat, inte ett beroende.
 
+### ☠️ Google Shopping: `brand` och `mpn` krockar med två husregler (2026-09-15)
+
+Hämtat ur Googles egen spec samma dag, inte ur minnet. Tre rader avgör:
+
+| attribut | Googles ord |
+|---|---|
+| `brand` | **Required** "for all new products, except movies, books, and musical recordings" |
+| `brand` | *"Only provide a brand if you're sure it's correct. When in doubt don't provide a brand (for example, don't guess or make up a value)."* |
+| `brand` | *"Use your store name … if you manufacture the product or if your product is a private-label product."* |
+| `mpn` | **"Required for all products without a manufacturer-assigned GTIN"** |
+| `mpn` | *"Use the MPN assigned by the manufacturer. Unless you're the manufacturer, don't use a value that you've created."* |
+| `identifier_exists` | `no` bara när man är *"certain that your product doesn't have any assigned unique product identifiers"* — annars *"will receive a warning"* |
+
+**Vad vi har, mätt:**
+
+- ☠️ **`brand` finns inte ens som fält i Wix V3 hos oss.** 0 av 100 i sökningen,
+  och den fulla GET:en — som mycket riktigt bär `plainDescription` och
+  `variantsInfo` — saknar det också. Det är alltså inte en projektionsfälla.
+- **GTIN: ingen.** Aosoms kolumn är tom på 6 095 rader, manualerna bar noll.
+- **MPN: vi HAR den.** Det är Aosoms artikelnummer på `supplierProductId` —
+  exakt den sträng husregeln säger aldrig får nå kund.
+
+☠️ **DÄRFÖR FINNS INGET ALTERNATIV SOM ÄR BÅDE SPEC-ENLIGT OCH HEMLIGT.**
+Googles krav på `mpn` när GTIN saknas är precis det fält vi skyddar. Att
+utelämna det ger en varning; att fylla i det publicerar numret. Det är ett
+affärsbeslut, inte ett tekniskt, och det hör till Leonard.
+
+⚠️ **Och "Fyndplats" som `brand` är INTE utvägen.** Googles formulering
+tillåter butiksnamnet bara för egen tillverkning eller eget private label.
+Våra varor är HOMCOM/Outsunny/PawHut. Att skriva vårt namn vore att gissa
+fram ett värde, vilket samma stycke uttryckligen förbjuder.
+
+#### Vad konkurrenten faktiskt gör — mätt, inte antaget
+
+| | dealproffsen |
+|---|---|
+| husmärke på produktsidan | **noll träffar** på alla tio märken |
+| `manufacturer_name` i deras sök-API | **tomt på 200 av 200** |
+| JSON-LD `brand` | **`"Dealproffsen.se"`** — deras eget butiksnamn |
+| JSON-LD `mpn` / `sku` | **Aosoms artikelnummer** |
+| JSON-LD `gtin13` | **ifylld** |
+
+De gör alltså tre saker: stryker husmärket (som vi), sätter sitt EGET namn
+som `brand` (vilket Googles ord inte tillåter för en återförsäljare), och
+publicerar artikelnumret och EAN (vilket vi inte gör).
+
+⚠️ **Mätningen gäller deras SAJT, inte deras Merchant Center-feed.** Vi kan
+inte se deras feed. Att de gör det i JSON-LD är ett starkt indicium om vad de
+skickar till Google, inte ett bevis.
+
+☠️ **Följden för sekretessen:** för varje produkt dealproffsen också säljer är
+artikelnumret **redan publikt hos dem**. Vår tystnad skyddar därför inte
+numret i sig — den skyddar kopplingen från VÅR sida till numret. Det är en
+mindre sak än husregeln antar, och det är värt att veta innan beslutet tas.
+
 ### `feed-info`: vad finns EGENTLIGEN i Aosoms feed
 
 Huset har i månader sagt att "feedens EAN-kolumn är tom i 100 % av raderna", på
