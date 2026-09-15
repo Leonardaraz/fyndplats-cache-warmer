@@ -2080,6 +2080,36 @@ Fyra egenskaper som inte ska tas bort:
 **Regeln, en gång till och nu om grindarna själva: en tvilling glider isär, och
 den som glider tystast är den som ser ut att fungera.**
 
+##### ☠️ Och FACIT för återläsningen var en tredje tvilling (2026-09-15)
+
+Runda N2:s återläsning rapporterade `SKILJER` på **alla åtta** produkterna.
+Skrivningarna var byte-exakta. Det var facit som var fel, och avvikelsen var
+exakt **7 tecken per `<li>`** — 63 till 105 tecken, alla åt samma håll.
+
+`hasha.py`, som bygger varje rundas `vantat-hash.tsv`, hämtade sin
+normalisering ur `gatelib`. Tre kopior fanns samtidigt, med tre olika svar på
+samma fråga:
+
+```
+gatelib.normalisera   2 regler   vitrymd + target="_self"
+kvitto.py             4 regler   saknade den avslutande radbrytningen
+wixnorm.normalisera   5 regler   uppmätt mot skarpa V3
+```
+
+Mot `wixnorm` stämmer den lagrade texten på 8 av 8. De två andra är borta —
+`gatelib.normalisera` hade EN användare och togs bort i stället för att lämnas
+kvar som en tredje sanning någon kan råka läsa.
+
+⚠️ **Riktningen är det som gör felet dyrt.** En KORREKT skrivning rapporteras
+som misslyckad. En återläsning som lyser rött varje gång lär mottagaren att
+sluta läsa — samma argument som mot att varna vid 48 h på token-förnyelsen —
+och då är även det äkta larmet borta. En spec-flik är alltid en `<ul>`, så
+felet gällde varje runda.
+
+`lib/polish/wixnorm-tvilling.test.ts` fäller på tre olika sätt: källkodsgrinden
+på att en andra `def normalisera` finns, längdtestet på att `<li>` inte räknas,
+hashtestet på att svaret skiljer sig från wixnorm.
+
 #### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
 
 Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —
