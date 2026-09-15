@@ -2686,6 +2686,95 @@ stämde alltså, men var fram till nu ett antagande om en kolumn vår parser
 aldrig läst. Nu är det mätt, och skillnaden spelar roll: en kolumn som finns
 men är tom är ett mejl till Aosom, en kolumn som saknas är en annan källa.
 
+#### ☠️ EAN finns INTE i feeden, och inte i manualerna heller (2026-09-15)
+
+Leonards fråga: *"är du säker på att ean koden är tom i filen vi får och vi inte
+får den på något sätt?"* Rätt fråga — svaret vilade på EN loggrad
+(`EAN-kolumn: true, ifylld pa 0 av 6095 rader`), och den raden bygger på
+`harEanKolumn`, som bara letar efter de namn någon redan tänkt på
+(`ean`/`ean13`/`gtin`/`barcode`) och dessutom tar den FÖRSTA träffen
+(`findIndex`). Heter kolumnen något annat ser den ingenting.
+
+Hela kolumnlistan fanns i svaret men skrevs bara till `GITHUB_STEP_SUMMARY`,
+som inte går att läsa tillbaka programmatiskt. Den går till stdout nu — **namn
+och ifyllnadsgrad, aldrig exempelvärdet**, eftersom redigeringen bygger på en
+namnlista plus en formkoll och en kolumn som heter något oförutsett (`Net`,
+`B2B`) annars hade visat sitt värde.
+
+**Feeden har 71 kolumner och 6 095 rader.** `EAN` ligger som **kolumn TVÅ**,
+heter exakt det, och är ifylld på **0**. Det finns ingen `GTIN`, ingen
+`Barcode`, ingen `UPC`, ingen `MPN` — koden kan alltså inte gömma sig under ett
+annat namn. `Sin` (6 095) och `Psin` (4 521) är Aosoms egna interna nycklar,
+inte streckkoder; `Psin` grupperar dessutom *relaterade* varor, se ovan.
+
+⚠️ **Två andra kolumner ingen läst, och de är inte samma sak.**
+`Specification` och `Package list` är ifyllda på **18 rader** vardera — det
+bekräftar den gamla anteckningens "tomt i 5 550 av 5 566". Men `pdf` är ifylld
+på **5 917 (97 %)**, och den är produktmanualen.
+
+##### Manualerna prövades — och bar ingen kod
+
+En manual trycker nästan alltid streckkoden, så det var den enda vägen kvar
+utan att fråga Aosom. `?lage=ean-jakt` (`lib/aosom/ean-jakt.ts`,
+workflow-läget `ean-jakt`) öppnar manualerna och söker GTIN-13 i texten.
+Uppmätt 2026-09-15 på **22 manualer spridda över hela feeden**:
+
+| | |
+|---|---:|
+| manualer hämtade | 22 |
+| för stora för att läsa (>20 MB) | 3 |
+| oläsliga | 0 |
+| trettonsiffringar hittade | 19 |
+| **varav giltig GTIN-13** | **0** |
+| **varav tyskt GS1-prefix** | **0** |
+
+☠️ **BRUSSPÄRREN ÄR DET SOM GÖR SVARET LÄSBART.** En slumpmässig
+trettonsiffring klarar GS1:s kontrollsiffra i **ett fall av tio**, och en PDF
+är full av tal — mått, artikelnummer, datum, koordinater. Det FÖRSTA
+stickprovet (9 manualer) gav "2 giltiga", och utan spärren hade den raden
+rapporterats som två funna EAN. Den var brus: 2 av 39 är **5 %**, alltså under
+slumpen, och noll hade tyskt prefix trots att Aosom är en tysk leverantör vars
+koder mätbart ligger på 425x. Tre spärrar krävs och alla tre behövs: talet får
+inte sitta i en längre siffersekvens, råtalet rapporteras bredvid så kvoten
+avslöjar brus, och prefixet skiljer signal från tillfällighet.
+
+⚠️ **Det som INTE är uteslutet:** en streckkod tryckt som BILD. Svepet läser
+text. En EAN-13 ritas normalt med siffrorna under strecken, men i en manual
+ligger de ofta i samma bild. Slutsatsen som gäller är alltså *"koden finns inte
+som text i manualen"*, inte *"det finns ingen streckkod i manualen"*.
+
+☠️ **Och stickprovet SPRIDS över feeden, inte de första N raderna.** Feeden är
+sorterad på artikelnummer, så de första raderna är EN produktfamilj — samma
+lärdom som bildmätningen 2026-08-27, som tog "tio ur vardera tredjedel" just
+för att kunna säga något om sortimentet. Ett test låser ordningen.
+
+☠️ **Rutten dog först på MINNET, och den döden gick inte via try/catch.**
+Första versionen packade upp VARJE ström i PDF:en — inklusive bilderna, som
+expanderar tiotals gånger — och samlade alla texter i en array innan den sökte.
+Vercel svarade `instance was killed because it ran out of available memory`,
+rutten gav 500 utan ett ord om varför, och mitt `catch` såg ingenting. Exakt
+samma familj som den obegränsade fan-outen i `runDailySync`. Tre tak:
+`MAX_STROM_BYTE` (2 MB komprimerat — det är det som skiljer TEXT från BILD),
+`maxOutputLength` (8 MB uppackat, kastar i stället för att svälla) och
+`MAX_PDF_BYTE` (20 MB på nedladdningen). Sökningen är dessutom löpande, ingen
+text ligger kvar. Hoppade strömmar RÄKNAS (`forStora`) — de tigs inte ihjäl.
+
+**Vägarna till EAN, uttömmande och mätta:**
+
+| väg | utfall |
+|---|---|
+| Feedens `EAN`-kolumn | **tom**, 0 av 6 095 |
+| Någon annan feedkolumn | finns inte — 71 kolumner genomgångna |
+| Produktmanualerna (`pdf`) | **0 av 22** bär en kod som text |
+| aosom.de konsumentsajt | **403** på allt, även startsidan (Akamai) |
+| dealproffsen.se | har koder, mätt äkta — men se avsnittet ovan |
+| B2B-portalen inloggad | **oprövad** — bara Leonard kommer in |
+| Fråga Aosom | den rena vägen, och nu den enda kvar |
+
+⚠️ Tills dess: **`identifier_exists: no` i Merchant Center.** Det fungerar för
+varor utan tillverkarkod, och en GTIN hämtad från en konkurrents sajt är fel
+källa för ett fält som ska vara sant.
+
 ⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
 upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
 möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
