@@ -2676,6 +2676,73 @@ bara tom.
 inte till någonting** — matchningen går på artikelnumret. Den är ett gratis
 sidoresultat, inte ett beroende.
 
+### ✅ Aosom svarade: leveransen är WHITE LABEL — vi är varumärkesägaren (2026-09-15)
+
+Henrik Leseberg, ordagrant ur svaret:
+
+> *"As our products are supplied on a white-label basis, we do not provide or
+> transfer our own EAN/GTIN codes to customers. Therefore, the EAN column in
+> the product feed cannot be populated … The codes printed on some cartons are
+> batch-specific logistics barcodes. They may vary between different batches of
+> the same SKU and should not be used as product EANs … Most of our white-label
+> customers adapt the product descriptions to their own listings and assign
+> their own EAN codes. This is also the intended arrangement on our side."*
+
+**Tre saker är därmed avgjorda och behöver inte utredas igen:**
+
+1. ☠️ **EAN-kolumnen kommer ALDRIG att fyllas.** Frågan är ställd och besvarad.
+   Sluta mäta feeden efter EAN.
+2. ☠️ **Kartongernas streckkoder är LOGISTIKKODER, inte produkt-EAN.** De
+   varierar mellan batcher av samma artikel. Att skanna en kartong och lägga
+   koden i Merchant Center hade gett en kod som pekar på fel sak — och den
+   idén stod som ett öppet uppslag i avsnittet ovan. Den är nu stängd.
+3. ✅ **Vi är varumärkesägaren.** Det är precis undantaget i Googles egen text:
+   *"Use your store name … if you manufacture the product or if your product is
+   a private-label product."*
+
+⚠️ **RÄTTELSE:** en timme före det här svaret stod rådet *"Aldrig
+`brand: Fyndplats`"* i den här filen. Det var rätt slutsats av det som då var
+mätt — att varorna är HOMCOM/Outsunny — och fel så fort leverantören säger
+white label. Rådet gäller inte längre.
+
+**GS1:s regel, hämtad samma dag:** *"The Brand Owner, the organisation that
+owns the specifications of the trade item regardless of where and by whom it is
+manufactured, is normally responsible for the allocation of the GTIN"*, och för
+Own Brand Label: *"Products with an agreement between the Original Manufacturer
+and the party identified on the label as the Brand Owner … have the Brand Owner
+taking responsibility for GTIN assignment."*
+
+☠️ **AVTALET ÄR DET SOM BÄR, inte vår egen tolkning.** Samma GS1-sida säger
+också: *"downstream parties, such as distributors, wholesalers, importers and
+merchants, should not assign a different GTIN to a trade item that already has
+a GTIN, provided that the trade item is not changed."* Vi går alltså in genom
+Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
+Henriks mejl är nära men inte uttryckligt — **be om raden.**
+
+⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
+publicerar `gtin13: 4255826873673` för artikel `83B-129V00GY`, och koderna är
+mätt äkta (187/187 giltig kontrollsiffra, 186/187 TYSKT GS1-prefix 425x — en
+svensk återförsäljare kan inte få ett sådant). Någon tysk part har alltså
+registrerat koder för de här artiklarna. Henriks *"we do not provide or
+transfer **our own** EAN/GTIN codes"* läser rimligast som "vi har dem men delar
+dem inte" — inte som "de finns inte".
+
+☠️ **DÄRFÖR ÄR DEN HÄR FRÅGAN INTE TEKNISK UTAN AVTALSMÄSSIG.** Håller
+white-label-upplägget är egna GTIN rätt väg; håller det inte är det en
+ommärkning av någon annans vara. Skriftligt besked från Aosom är skillnaden.
+
+⚠️ **Och white label är inte sant om varan bär märket.** Två gamingstolar har
+VINSETTO tryckt på själva produkten (se punkt #195). En vara med leverantörens
+märke instansat är inte vår att märka om, vad avtalet än säger. Det måste
+frågas innan vi bekräftar.
+
+✅ **Om det håller löser det HELA sekretessproblemet:** egen GTIN + `brand:
+Fyndplats` gör att `mpn` inte längre krävs, och då behöver Aosoms artikelnummer
+aldrig lämna `supplierProductId`. Kollisionen i avsnittet nedan upphör.
+
+⚠️ **Kostnaden för GS1-medlemskap är INTE mätt** — deras sida blockerade
+hämtningen. Den siffran måste hämtas innan beslutet tas.
+
 ### ☠️ Google Shopping: `brand` och `mpn` krockar med två husregler (2026-09-15)
 
 Hämtat ur Googles egen spec samma dag, inte ur minnet. Tre rader avgör:
