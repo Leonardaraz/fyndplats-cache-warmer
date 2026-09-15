@@ -2939,6 +2939,73 @@ möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
 `feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
 var den ligger.
 
+## Konkurrentregeln: pris mot dealproffsen i synken (`lib/pricing/konkurrentregel.ts`, 2026-09-15)
+
+Marknadsplan v3 (Cowork-sessionen 2026-09-15) gjorde Leonards strategi till
+en regel som synken tillämpar var sjätte timme, i stället för 900 handsatta
+priser som synken hade skrivit över till kvällen:
+
+```
+golv = husets regelpris (1,20 × landad, charmavrundat)   — aldrig under
+mål  = (1 − d) × dealproffsens pris                      — d = 2 % (grupp A) / 5 % (grupp B)
+tak  = 1,50 × landad kostnad inkl. moms                  — aldrig över
+pris = min(max(mål, golv), tak), avrundat NEDÅT till charmpris
+```
+
+Grupp A mot B är ett test — "räcker 2 % under för en okänd butik?" — och
+efter fyra veckor blir vinnaren regel för hela sortimentet.
+
+Tre delar, två grindar:
+
+| del | var | skriver |
+|---|---|---|
+| dealproffsens pris per rad (`konkurrent: { pris, hamtad }`) | `/api/admin/konkurrentpris?lage=spara`, workflow **"Pris — konkurrentregeln"** | mappningen, torrt som default |
+| A/B-grupp per rad (`prisgrupp`) | samma rutt, `lage=lotta`, kräver `bekrafta` = torrkörningens antal | mappningen, torrt som default |
+| kundpriset | Aosom-synken, `planeraProdukt` | Wix, synkens egen torrkörning |
+
+### Sex egenskaper som inte ska tas bort
+
+1. ☠️ **Ingen grupp, ingen regel.** En rad utan `prisgrupp` följer husets regel
+   exakt som förut. Att deploya koden ändrade inte ett enda pris — utrullningen
+   är per rad, via lottningen, och lottningen tar `bara=<wix-id,…>` så
+   annonsurvalet styr vilka som går in först.
+2. ☠️ **Ett gammalt konkurrentpris FRYSER raden, det prissätter den inte.**
+   Äldre än `KONKURRENT_MAX_ALDER_DAGAR` (7) → inget pris skrivs, och raden
+   räknas i `konkurrentFrysta` som står i loggraden, audit-raden och
+   workflow-summeringen. Att falla tillbaka på golvet hade sänkt priset 200 kr
+   på tusen varor för att jämförelsen stod still. **Går `frysta` upp har
+   `spara` slutat köras** — kör den.
+3. ☠️ **Deras pris under vårt golv → vi står kvar på golvet.** Vi jagar inte
+   nedåt. Utfallet är eget (`konkurrentGolv`) så annonsurvalet kan lyfta ut
+   raden i stället för att betala klick vi förlorar.
+4. ☠️ **Taket finns för att vi inte vet var Amazon ligger.** Gapet mot
+   dealproffsen är över 30 % på 136 av de 972 publicerade där vi är billigare,
+   och 2 % under dem hade lyft oss över vad marknaden tål. 1,50 × landad är
+   +25 % mot regelpriset, vilket dessutom håller varje ändring under
+   `MAX_PRISANDRING_PCT = 40` — spärren rördes inte, och de 34 rader som annars
+   fastnat i den gör det inte.
+5. ☠️ **Avrundningen går NEDÅT.** charm9/charm99 rundar upp, och 2 % under
+   2 495 hade blivit 2 499 — över konkurrenten, på en regel vars enda poäng är
+   att ligga under. `rundaNedat` kliver ner i rutnätet tills priset ligger på
+   eller under målet; charm99:s 89 → 99-snäpp gör att det ibland är två steg.
+6. ☠️ **`spara` raderar aldrig.** En vara de inte säljer i dag behåller sitt
+   gamla pris på raden och får åldras in i frysningen (punkt 2). Ett
+   oförändrat pris skrivs om först när stämpeln är äldre än
+   `UPPFRISKNING_DAGAR` (2), så en full körning inte äter tidsbudgeten med
+   4 000 identiska skrivningar.
+
+Lottningen är deterministisk (FNV-1a på wix-id): en omkörning ger samma grupp,
+och under `LOTTNING_FRAN_SEK` (2 000 kr) blir alla A, för där finns bara ~6 %
+att ta och 5 % under är samma sak som ingen höjning.
+
+Verifierat mot koden samma dag, inte mot briefen: momsbasen är rätt
+(`landadKostnadSek` bruttar upp nettot, multiplikatorn ger slutpriset — netto
+mot netto blir 16,7 %), frakten ingår redan i landad kostnad och skalar med
+vikten (briefens "240–290 kr platt" var fel), och `MAX_PRISANDRING_PCT` hade
+fällt 34 rader utan taket. Fyrtioen tester: arton på regeln, tretton på
+planerna, tio i synken — bland dem kontrollerna åt andra hållet (samma fixtur
+utan grupp skriver inget; samma rad med färskt pris skrivs).
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

@@ -205,6 +205,30 @@ export interface ProductMappingRecord {
    */
   prisLast?: boolean;
   /**
+   * Dealproffsens pris för samma Aosom-artikel, sparat av
+   * `/api/admin/konkurrentpris` läge `spara` (lib/pricing/konkurrentregel.ts).
+   *
+   * ☠️ BÄR ALDRIG ARTIKELNUMRET — raden är redan nycklad på det. Priset är
+   * `price_amount` (vad kunden betalar), aldrig det överstrukna.
+   *
+   * ⚠️ `hamtad` ÄR REGELNS SÄKRING. Synken prissätter bara mot ett pris yngre
+   * än KONKURRENT_MAX_ALDER_DAGAR; ett äldre fryser raden i stället för att
+   * sänka den till golvet. Slutar jämförelsen köras syns det i `konkurrentFrysta`.
+   */
+  konkurrent?: {
+    pris: number;
+    hamtad: string;
+  };
+  /**
+   * Prisläge mot dealproffsen: "A" = 2 % under, "B" = 5 % under
+   * (marknadsplan v3, testet som avgör regeln). Lottas deterministiskt ur
+   * wix-id:t av `/api/admin/konkurrentpris` läge `lotta`.
+   *
+   * ☠️ SAKNAS FÄLTET GÄLLER HUSETS REGEL, exakt som förut. Konkurrentregeln är
+   * opt-in per rad; att deploya den ändrar inte ett enda pris.
+   */
+  prisgrupp?: "A" | "B";
+  /**
    * Senaste genomförda prishöjningen på raden (lib/pricing/ae-prishojning.ts).
    *
    * ☠️ FÄLTET ÄR IDEMPOTENSEN, INTE EN LOGGRAD. Höjningen rör ~1 000 produkter

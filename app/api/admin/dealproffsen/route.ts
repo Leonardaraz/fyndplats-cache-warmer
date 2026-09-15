@@ -42,29 +42,13 @@ import {
   type DerasRad,
 } from "@/lib/pricing/dealproffsen";
 import { isAliExpressMapping } from "@/lib/store/supplier";
+import { PAUS_MS, hamtaPrefix, sov } from "@/lib/pricing/dealproffsen-hamta";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const DP_BAS = "https://www.dealproffsen.se/sok?controller=search&ajax=1&resultsPerPage=100";
-/** Deras sida svarar inte på en naken klient. */
-const UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
-
-/**
- * Paus mellan anrop mot deras sajt.
- *
- * Samma medicin som `AOSOM_WRITE_DELAY_MS` och `MEDIA_UPLOAD_DELAY_MS`: den
- * billigaste kuren mot en strypning som utlöses av tempo är att inte springa.
- * Det här är dessutom någon annans server — vi har ingen rätt att belasta den.
- */
-const PAUS_MS = Number(process.env.DEALPROFFSEN_DELAY_MS ?? 400);
-
 /** Tidsbudget räknad från REQUESTENS början, inte från svepets. */
 const TIDSBUDGET_MS = 210_000;
-
-/** Tak per prefix. 439 var det största uppmätta; 20 sidor är gott om marginal. */
-const MAX_SIDOR_PER_PREFIX = 20;
 
 /**
  * Rader per packad loggrad.
@@ -105,23 +89,6 @@ function auktoriserad(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
   return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
-}
-
-const sov = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** Hämtar alla sidor för ett prefix. Kastar vid HTTP-fel — se anroparen. */
-async function hamtaPrefix(prefix: string): Promise<DerasRad[]> {
-  const ut: DerasRad[] = [];
-  for (let sida = 1; sida <= MAX_SIDOR_PER_PREFIX; sida++) {
-    const url = `${DP_BAS}&s=${encodeURIComponent(prefix)}&page=${sida}`;
-    const res = await fetch(url, { headers: { "User-Agent": UA } });
-    if (!res.ok) throw new Error(`HTTP ${res.status} på ${prefix} sida ${sida}`);
-    const rader = tolkaDerasSvar(await res.json());
-    ut.push(...rader);
-    if (rader.length < 100) break;
-    await sov(PAUS_MS);
-  }
-  return ut;
 }
 
 export async function GET(req: NextRequest) {
