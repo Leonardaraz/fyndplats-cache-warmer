@@ -14,6 +14,7 @@
 import type { LiveAuctionView } from "../lib/auction-view";
 import { isActivelyDropping, phaseOf } from "../lib/auction-day";
 import { useClientNow } from "./use-client-now";
+import { productCountLabel } from "../lib/rating";
 
 type Row = Pick<
   LiveAuctionView,
@@ -45,7 +46,7 @@ export function AuctionBannerText({ rows }: { rows: Row[] }) {
       <>
         <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
         <span className="auction-banner-text">
-          {count} produkter vars pris sjunker just nu
+          {productCountLabel(count)} vars pris sjunker just nu
           {maxDiscount > 0 && <> – största rabatt <b>−{maxDiscount}%</b></>}
         </span>
       </>

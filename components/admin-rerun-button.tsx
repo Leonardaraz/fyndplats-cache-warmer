@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { productCountLabel } from "../lib/rating";
 
 type Result = { ok: boolean; scored?: number; costUsd?: number; stoppedByBudget?: boolean; distribution?: { high: number; mid: number; low: number }; error?: string };
 
@@ -37,7 +38,7 @@ export function RerunButton() {
       {busy && <p style={{ color: "#666", fontSize: 14 }}>Poängsätter bilder med Claude — detta kan ta upp till ett par minuter…</p>}
       {result && result.ok && (
         <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", fontSize: 14 }}>
-          ✓ Klart: {result.scored} produkter poängsatta · topp {result.distribution?.high} / ok {result.distribution?.mid} / problem {result.distribution?.low} ·
+          ✓ Klart: {productCountLabel(result.scored ?? 0)} poängsatta · topp {result.distribution?.high} / ok {result.distribution?.mid} / problem {result.distribution?.low} ·
           kostnad ${result.costUsd?.toFixed(4)}{result.stoppedByBudget ? " · ⚠ stoppad av budget-cap" : ""}
         </div>
       )}

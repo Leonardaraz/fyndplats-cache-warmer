@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { TOTAL_SUMMARY } from "../../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { ContentPage } from "../../components/content";
 
 const DESC =
@@ -34,7 +36,9 @@ export default function AnvandarvillkorApp() {
       <p>Normal leveranstid är <strong>3–7 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp tillkommer en fraktavgift som visas i kassan. Vid förseningar över 30 dagar har du rätt att häva köpet och få full återbetalning.</p>
 
       <h2>5. Returer och ångerrätt</h2>
-      <p>Du har <strong>14 dagars lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Utöver detta erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
+      <p>{TOTAL_SUMMARY}</p>
+      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>. Då ska produkten vara oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30 återbetalas produktens pris men inte vad du betalat för leveransen till dig; det återbetalas bara under den lagstadgade ångerfristen. Vilken period som gäller avgörs av när du anmäler returen, inte av när paketet är tillbaka hos oss. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Returen ska postas inom 7 dagar från anmälan, och på returer under dag 15–30 dras en bearbetningsavgift på 10 % av vad du betalat för produkten; ingen avgift tas ut under den lagstadgade ångerfristen dag 1–14. {SKRYMMANDE_RETURKOSTNAD} Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
+      <p>Är varan trasig, felaktig eller inte som utlovat är det i stället en <strong>reklamation</strong>. Den rättigheten är fristående från de 30 dagarna: enligt <strong>konsumentköplagen (2022:260)</strong> har du <strong>tre års reklamationsrätt</strong> på fel som fanns vid leveransen, och fel som visar sig inom de första två åren antas ha funnits redan då. Reklamera inom skälig tid efter att du upptäckt felet — inom två månader räknas alltid som i rätt tid. Vid godkänd reklamation står Fyndplats för returkostnaden.</p>
 
       <h2>6. Användarens skyldigheter</h2>
       <ul>
@@ -55,7 +59,7 @@ export default function AnvandarvillkorApp() {
       <p>Appen tillhandahålls "i befintligt skick". Fyndplats ansvarar inte för indirekta skador, utebliven vinst eller förluster till följd av avbrott, fel eller otillgänglighet i appen, i den utsträckning lagen tillåter. Inget i dessa villkor inskränker dina tvingande rättigheter som konsument enligt svensk lag. Fyndplats är befriat från ansvar vid force majeure (omständigheter utanför vår rimliga kontroll).</p>
 
       <h2>10. Tillämplig lag och tvistelösning</h2>
-      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Kan tvisten inte lösas avgörs den av svensk allmän domstol med <strong>Stockholms tingsrätt</strong> som första instans. Du kan även använda EU:s onlineplattform för tvistelösning: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
+      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig dit för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>, Box 174, 101 23 Stockholm. Kan tvisten inte lösas avgörs den av svensk allmän domstol med <strong>Stockholms tingsrätt</strong> som första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan du vända dig till <strong>Konsument Europa (ECC Sverige)</strong>: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
 
       <h2>11. Ändring av villkor</h2>
       <p>Fyndplats förbehåller sig rätten att uppdatera dessa villkor. Den senaste versionen finns alltid publicerad på denna sida. Vid väsentliga ändringar informerar vi i appen.</p>

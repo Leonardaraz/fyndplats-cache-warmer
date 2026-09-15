@@ -15,6 +15,8 @@ import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
+import { productCountLabel } from "../../../lib/rating";
+import { categoryIndexable } from "../../../lib/category-threshold";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
 // bakgrunden var timme, så nya/ändrade produkter i en kategori syns utan en ny
@@ -45,12 +47,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       `Köp ${c.name} online hos Fyndplats – prisvärda, noga utvalda fynd till smarta priser. Fri frakt över 499 kr & 30 dagars öppet köp.`,
     `/kategori/${c.slug}`
   );
+  // Punkt 17: en kategori med 1–4 produkter är för tunn för att stå på egna ben
+  // i index — den konkurrerar med produktsidan den nästan är. follow: true, så
+  // länkkraften rinner vidare till produkterna. Regeln bor i
+  // lib/category-threshold.ts, samma källa som sitemapen läser, och räknar på
+  // forListings — alltså exakt de produkter sidan visar.
+  const antal = forListings(products).filter((p) => (p.collectionIds || []).includes(c.id)).length;
+  const robots = categoryIndexable(antal) ? undefined : { index: false, follow: true };
+
   // Per-kategori Open Graph-bild: första produktens bild i kategorin
   const firstImg = products.find((p) => (p.collectionIds || []).includes(c.id))?.img;
   if (firstImg) {
-    return { ...base, openGraph: { ...(base.openGraph as object), images: [firstImg] } };
+    return { ...base, ...(robots ? { robots } : {}), openGraph: { ...(base.openGraph as object), images: [firstImg] } };
   }
-  return base;
+  return { ...base, ...(robots ? { robots } : {}) };
 }
 
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
@@ -235,7 +245,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   ? `${list.length} fynd till nedsatt pris just nu.`
                   : active.slug === "populara"
                     ? `${list.length} av våra mest populära fynd just nu.`
-                    : `${list.length} ${list.length === 1 ? "produkt" : "produkter"} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
+                    : `${productCountLabel(list.length)} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
               </p>
             </div>
             {heroImg && (

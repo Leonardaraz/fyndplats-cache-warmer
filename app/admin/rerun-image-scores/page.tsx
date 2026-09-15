@@ -1,5 +1,6 @@
 import { RerunButton } from "../../../components/admin-rerun-button";
 import { scoresMeta } from "../../../lib/image-scores";
+import { productCountLabel } from "../../../lib/rating";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default function RerunPage() {
       <h1 style={{ fontSize: 28, marginBottom: 4 }}>Kör om bildpoängsättning</h1>
       <p style={{ color: "#666", marginTop: 0 }}>
         Poängsätter produkternas huvudbilder med Claude Haiku-vision och skriver till
-        Wix Data (FyndplatsImageScores). Senaste snapshot: {meta.count} produkter,
+        Wix Data (FyndplatsImageScores). Senaste snapshot: {productCountLabel(meta.count)},
         {" "}{new Date(meta.generatedAt).toLocaleString("sv-SE")}.
       </p>
       <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", margin: "16px 0", fontSize: 14, color: "#92400e" }}>

@@ -8,7 +8,7 @@
 // (--experimental-strip-types behövs för att importera mall-modulen, som är .ts.)
 //
 // Bakgrund: en tidigare audit mätte 3-gram-överlapp INOM varje mönster och fann
-// 32 % (/for-dig-som), 20–26 % (/basta-i-test) och 18–24 % (/under-kr). Roten var
+// 32 % (/for-dig-som), 20–26 % (/kopguider) och 18–24 % (/under-kr). Roten var
 // att FAQ-svaren var EN fast sträng och att intro-slottarna bara hade 3–4
 // varianter. Det här scriptet renderar mall-prosa för RIKTIGA slugs (ur configs)
 // med realistiskt seed-varierad data och beräknar två mått per mönster:
@@ -67,8 +67,8 @@ const word = (arr, seed, salt) => arr[(seed + salt * 2654435761) % arr.length];
 
 // ── Prosa-byggare: återskapar den mall-styrda brödtexten varje sida renderar ──
 
-function bestInTestProse(cfg) {
-  const path = `/basta-i-test/${cfg.slug}`;
+function kopguideProse(cfg) {
+  const path = `/kopguider/${cfg.slug}`;
   const seed = T.hashSeed(path);
   const count = 3 + (seed % 3); // 3–5 produkter
   const lo = 149 + (seed % 6) * 50;
@@ -86,11 +86,11 @@ function bestInTestProse(cfg) {
       seed: T.hashSeed(name + ":" + cfg.slug),
     });
   });
-  const intro = T.bestInTestIntro({
+  const intro = T.kopguideIntro({
     label: cfg.label, audience: cfg.audience, painpoint: cfg.painpoint, usp: cfg.usp,
     count, priceRange, topName, seed,
   });
-  const faqs = T.bestInTestFaq({
+  const faqs = T.kopguideFaq({
     label: cfg.label, singular: cfg.singular, count, priceRange, topName, category: cfg.category, seed,
   });
   return [...intro, ...paragraphs, ...faqs.flatMap((f) => [f.q, f.a])].join(" ");
@@ -202,7 +202,7 @@ const tierPages = [];
 for (const price of PRICE_TIERS) for (const cat of CATEGORIES) tierPages.push(priceTierProse(cat, price));
 
 const results = [
-  analyse("/basta-i-test", TYPES.map(bestInTestProse)),
+  analyse("/kopguider", TYPES.map(kopguideProse)),
   analyse("/under-kr", tierPages),
   analyse("/for-dig-som", INTERESTS.map(interestProse)),
 ];
@@ -229,4 +229,4 @@ if (failed) {
   process.exit(1);
 }
 console.log("\nALLT GRÖNT: <20% 3-gram-överlapp inom alla mönster; tema-koherensen bevarad ✅");
-console.log("(Prosa-tunga /basta-i-test & /for-dig-som ligger dessutom > 70 % absolut parvis inom-cosine; se stickproven ovan.)");
+console.log("(Prosa-tunga /kopguider & /for-dig-som ligger dessutom > 70 % absolut parvis inom-cosine; se stickproven ovan.)");

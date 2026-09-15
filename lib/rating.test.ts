@@ -4,6 +4,8 @@ import {
   formatAverage,
   ratingSummary,
   reviewCountLabel,
+  productCountLabel,
+  categoryCountLabel,
   mapAggregateRows,
   applyRatings,
   ownReviewsHidden,
@@ -119,5 +121,26 @@ describe("exakt snitt för delvis fyllda stjärnor", () => {
     const m = mapAggregateRows([{ productId: "a", antal: 5, snitt: 4.6 }]);
     assert.equal(m.a.exact, 4.6);
     assert.equal(m.a.value, "4,6");
+  });
+});
+
+describe("productCountLabel", () => {
+  it("singular vid exakt en — buggen som stod i produktion", () => {
+    // Mobiltillbehör, Pälsvård & Skötsel och Väskor & Necessärer hade en
+    // produkt var, och /butik skrev "1 produkter" om alla tre.
+    assert.equal(productCountLabel(1), "1 produkt");
+  });
+  it("plural i övrigt, även vid noll", () => {
+    assert.equal(productCountLabel(0), "0 produkter");
+    assert.equal(productCountLabel(2), "2 produkter");
+    assert.equal(productCountLabel(2326), "2326 produkter");
+  });
+});
+
+describe("categoryCountLabel", () => {
+  it("böjs likadant", () => {
+    assert.equal(categoryCountLabel(1), "1 kategori");
+    assert.equal(categoryCountLabel(0), "0 kategorier");
+    assert.equal(categoryCountLabel(46), "46 kategorier");
   });
 });

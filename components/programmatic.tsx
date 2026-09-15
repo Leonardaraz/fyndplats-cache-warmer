@@ -4,6 +4,10 @@
 // dessa komponenter renderar bara. Återanvänder globala klasser (.container,
 // .sec, .eyebrow, .crumbs, .faq, .prodgrid) + .prog-*-klasser i globals.css.
 import Image from "next/image";
+// Priset skrivs från talet, inte Wix färdiga sträng: "1 319 kr" i stället för
+// "1 319,00kr". Samma formatPrice() som produktkort och PDP använder — de
+// programmatiska sidorna var sista ytan kvar med det gamla formatet.
+import { formatPrice } from "../lib/price-range";
 import { jsonLdString } from "../lib/seo";
 import type { ResolvedProduct, CrossLink } from "../lib/seo/programmatic";
 import { SHIMMER_BLUR } from "../lib/lqip";
@@ -88,7 +92,7 @@ export function ComparisonTable({ products, label }: { products: ResolvedProduct
               <td>
                 <span className={`prog-badge ${ROLE_CLASS[p.role] || "prog-badge-good"}`}>{p.role}</span>
               </td>
-              <td className="prog-td-price">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</td>
+              <td className="prog-td-price">{p.hasRange ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}` : p.priceNum ? formatPrice(p.priceNum) : p.price}</td>
               <td className="prog-td-cta">
                 <a className="btn btn-primary prog-buy" href={`/produkt/${p.slug}`}>Köp</a>
               </td>
@@ -115,7 +119,7 @@ export function ProductSection({ p }: { p: ResolvedProduct }) {
         </h3>
         <p>{p.paragraph}</p>
         <div className="prog-prodsec-foot">
-          <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
+          <span className="pprice-now">{p.hasRange ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}` : p.priceNum ? formatPrice(p.priceNum) : p.price}</span>
           <a className="btn btn-primary prog-buy" href={`/produkt/${p.slug}`}>Köp nu</a>
         </div>
       </div>

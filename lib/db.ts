@@ -186,5 +186,30 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS trustpilot_invites_sent_idx ON trustpilot_invites(sent_at DESC);`;
 
+  // Prishistorik (punkt 14). 7 a § prisinformationslagen kräver att ett
+  // överstruket pris är det LÄGSTA vi tillämpat de senaste 30 dagarna — en
+  // uppgift som inte finns i Wix och som bara kan byggas genom att mätas.
+  //
+  // En rad per produkt och dag. price_minor är det FAKTISKT TILLÄMPADE priset,
+  // dvs det lägsta kunden kunde betala den dagen (rabatterat pris, och lägsta
+  // varianten när produkten har flera) — lagen säger "tillämpat", inte
+  // "listat". Öre som heltal: prisjämförelser i flyttal ger 1498,9999 och ett
+  // överstruket pris som är en krona fel.
+  //
+  // Volym: ~2 600 produkter × 30 dagar ≈ 78 000 rader rullande. Städningen
+  // ligger i lib/price-snapshot.ts och sparar en marginal utöver fönstret så
+  // att en sen körning inte river underlaget den skulle ha läst.
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS price_history (
+      product_id  TEXT NOT NULL,
+      observed_on DATE NOT NULL,
+      price_minor INTEGER NOT NULL,
+      currency    TEXT NOT NULL DEFAULT 'SEK',
+      recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (product_id, observed_on)
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS price_history_dag_idx ON price_history(observed_on DESC);`;
+
   return { ok: true };
 }

@@ -147,7 +147,6 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           firstName: "Leonard",
           orderNumber: ORDER_NO,
           productName: "12-pack Hjärteballonger",
-          expectedRefundDays: 10,
         }),
       ),
   },

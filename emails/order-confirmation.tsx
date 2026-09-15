@@ -11,6 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
+import { COMPLAINT_SHORT } from "../lib/retur-policy";
 import { delsummaInklMoms, momsetikett } from "../lib/vat";
 
 export interface OrderLineItem {
@@ -245,11 +246,19 @@ export default function OrderConfirmationEmail({
         </Link>.
       </Text>
       <Text style={{ ...text.muted, marginTop: "4px" }}>
-        Ångrat dig? Du har 14 dagars ångerrätt – ångra enkelt på{" "}
+        Ångrat dig? Du har totalt 30 dagar på dig att ångra eller returnera: 14 dagars
+        lagstadgad ångerrätt, därefter vårt frivilliga öppna köp till och med dag 30.
+        Ångra enkelt på{" "}
         <Link href="https://www.fyndplats.se/angra-kop" style={{ color: BRAND.orange2 }}>
           fyndplats.se/angra-kop
         </Link>
         .
+      </Text>
+      {/* Reklamationsrätten hör hemma just här. Det här är mejlet kunden gräver
+          fram när något går sönder långt efter att de 30 dagarna löpt ut. Utan
+          den här raden säger vårt enda kvarvarande spår av köpet "30 dagar". */}
+      <Text style={{ ...text.muted, marginTop: "4px" }}>
+        {COMPLAINT_SHORT}
       </Text>
     </EmailShell>
   );

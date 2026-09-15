@@ -4,7 +4,7 @@ import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest,
 import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
-import { applyRatings, reviewCountLabel } from "../lib/rating";
+import { applyRatings, reviewCountLabel, productCountLabel } from "../lib/rating";
 import { pickHero, ensureRated } from "../lib/hero-picks";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
@@ -375,7 +375,7 @@ export default async function Home() {
             </div>
             <div className="homecat-grid">
               {homeCats.map((c) => (
-                <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${c.count} produkter`}>
+                <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${productCountLabel(c.count)}`}>
                   {/* 2×2-mosaik av 4 riktiga produktbilder ur kategorin. Under-fold →
                       ingen priority, lazy default; sized thumbs håller LCP på hjälten. */}
                   <div className="homecat-mosaic">

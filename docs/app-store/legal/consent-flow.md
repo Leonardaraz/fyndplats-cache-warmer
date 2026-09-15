@@ -54,12 +54,21 @@ som förklarar varför.
 **ATT-systemprompt – `NSUserTrackingUsageDescription` (Info.plist):**
 
 > "Fyndplats använder detta för att mäta annonseffekt och visa dig mer relevanta
-> erbjudanden. Vi delar aldrig dina uppgifter för att identifiera dig personligen."
+> erbjudanden. E-post och telefonnummer krypteras (hashas) innan de skickas till
+> Meta."
 
 Engelsk variant (för icke-svenska enheter):
 
 > "Fyndplats uses this to measure ad performance and show you more relevant
-> offers. We never share your data to identify you personally."
+> offers. Email and phone number are hashed before they are sent to Meta."
+
+> **Varför strängen inte utlovar att ingenting identifierande delas** — vilket
+> den gjorde fram till 2026-09-10: Conversions API skickar SHA-256-hashad e-post
+> och telefon plus IP och user-agent, och hashningens hela syfte är att Meta ska
+> kunna matcha besökaren mot ett Facebook-konto (se CLAUDE.md). Uppgifterna är
+> alltså pseudonymiserade, inte anonyma, och deras ändamål ÄR identifiering. En
+> ATT-sträng som lovar motsatsen är både osann mot kunden och en risk i
+> App Store-granskningen. Säg vad som faktiskt sker: att de hashas.
 
 **Logik:**
 - Anropas via `ATTrackingManager.requestTrackingAuthorization`.

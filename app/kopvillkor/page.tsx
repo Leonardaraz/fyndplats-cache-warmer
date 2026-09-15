@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { TOTAL_SUMMARY } from "../../lib/retur-policy";
+import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { ContentPage } from "../../components/content";
 
 export const metadata: Metadata = {
@@ -59,17 +61,20 @@ export default function Kopvillkor() {
       <p>Du ansvarar för att hämta ut ditt paket inom angiven tid (normalt 7–14 dagar hos ombud). Om paketet inte hämtas ut och returneras till oss förbehåller vi oss rätten att ta ut en administrativ avgift på upp till <strong>160 kr</strong> för att täcka leverantörens kostnader för hantering och returfrakt. Avgiften gäller dock <strong>inte</strong> om du har meddelat att du ångrar köpet (se punkt 7) – då hanteras paketet som en retur enligt din ångerrätt.</p>
 
       <h2>7. Ångerrätt och öppet köp</h2>
+      <p>{TOTAL_SUMMARY}</p>
       <p>Du har <strong>14 dagars ångerrätt</strong> enligt lag om distansavtal (2005:59), räknat från den dag du tog emot produkten. Vill du ångra ditt köp meddelar du oss inom 14 dagar och returnerar varan inom ytterligare 14 dagar. Ångerrätten gäller <strong>även innan varan hunnit levereras</strong> – du kan ångra dig så snart beställningen lagts.</p>
+      <p>Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som du skulle kunna göra i en fysisk butik. Har produkten hanterats i större omfattning än vad som varit nödvändigt för att fastställa dess egenskaper och funktion kan ett skäligt <strong>värdeminskningsavdrag</strong> göras på återbetalningen. Vi rekommenderar att originalförpackningen sparas och används vid retur när det är möjligt.</p>
       <p>Du utövar enklast din ångerrätt via vår <strong>ångerfunktion</strong> på sidan <a href="/angra-kop">Ångra köp</a> – fyll i din order, välj vilka artiklar du vill ångra och skicka. Du får då direkt ett <strong>automatiskt mottagningskvitto</strong> med ärendenummer och returadress. Du kan även meddela oss via e-post till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller använda den standardångerblankett som Konsumentverket tillhandahåller.</p>
-      <p>Utöver den lagstadgade ångerrätten erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter, räknat från den dag du tog emot leveransen. Det innebär att du har 30 dagar på dig att meddela oss att du vill returnera varan – samma villkor och undantag som för ångerrätten gäller (se sidan Returer).</p>
-      <p><strong>Returfrakten betalas av kunden.</strong> Du anmäler returen via vår <a href="/angra-kop">ångerfunktion</a> eller via mejl till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> och får då returadressen samt instruktioner i bekräftelsemejlet. Du väljer själv leveranstjänst (vi rekommenderar spårbar leverans). Fyndplats ansvarar inte för returpaket som försvinner i transporten. Vid <strong>felaktig eller skadad produkt vid leverans</strong> står Fyndplats för returkostnaden – kontakta oss inom 14 dagar så löser vi det.</p>
-      <p>Återbetalning sker till ursprungligt betalmedel inom 5–10 bankdagar efter att vi tagit emot och kontrollerat returen.</p>
+      <p>Utöver den lagstadgade ångerrätten erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter, räknat från den dag du tog emot leveransen. Det innebär att du har 30 dagar på dig att meddela oss att du vill returnera varan. För öppet köp under <strong>dag 15–30</strong> ska produkten vara oanvänd, komplett och i säljbart skick, och originalförpackningen ska finnas kvar när den utgör en del av produkten eller behövs för säker retur. Returen ska anmälas skriftligt med ordernummer innan varan skickas tillbaka, och skickas spårbart med spårningsnummer meddelat till oss. Under dag 15–30 återbetalas produktens pris; vad kunden betalat för leveransen till sig återbetalas inte. Returen ska postas inom <strong>7 dagar</strong> från anmälan; den lagstadgade fristen på 14 dagar under ångerrätten påverkas inte. På returer under dag 15–30 dras en <strong>bearbetningsavgift på 10 %</strong> av vad kunden betalat för produkten — avgiften gäller aldrig under den lagstadgade ångerfristen dag 1–14. Är produkten ofullständig eller inte längre i säljbart skick kan avdrag göras på återbetalningen. Lagens undantag – till exempel förseglade hygienartiklar och specialtillverkade produkter – gäller även här (se sidan <a href="/returer">Returer</a>).</p>
+      <p><strong>Returfrakten betalas av kunden.</strong> Du anmäler returen via vår <a href="/angra-kop">ångerfunktion</a> eller via mejl till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> och får då returadressen samt instruktioner i bekräftelsemejlet. Du bokar själv hos valfri transportör som tar emot varans storlek och vikt (vi rekommenderar spårbar leverans). {SKRYMMANDE_RETURKOSTNAD} Fyndplats ansvarar inte för returpaket som försvinner i transporten. Vid <strong>felaktig eller skadad produkt vid leverans</strong> står Fyndplats för returkostnaden – kontakta oss inom 14 dagar så löser vi det.</p>
+      <p>Återbetalning sker till ursprungligt betalmedel inom <strong>2–3 arbetsdagar</strong> efter att vi tagit emot och kontrollerat returen. Hur snabbt beloppet syns på kontot beror därefter på kundens bank. Lagens yttersta frist enligt 2 kap. 14 § distansavtalslagen gäller oavsett.</p>
+      <p>Vid användning av den lagstadgade ångerrätten sker återbetalningen utan onödigt dröjsmål och senast inom den tid som följer av lag. För varor får Fyndplats hålla inne återbetalningen tills vi har fått tillbaka varan eller kunden har visat att varan har skickats tillbaka, beroende på vilket som inträffar först. Ångrar du hela köpet återbetalas även vad du betalat för vår billigaste standardleverans; har du valt ett dyrare leveranssätt återbetalas inte merkostnaden jämfört med standardleveransen.</p>
       <p>Fullständig information om hur du genomför en retur, vilka villkor som gäller och eventuella undantag (till exempel hygienprodukter) hittar du på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
 
       <h2>8. Reklamation och garanti</h2>
       <p>Enligt <strong>konsumentköplagen (2022:260)</strong> har du tre (3) års reklamationsrätt på fel som fanns vid leverans. Fel som visar sig inom de första två åren antas ha funnits vid leverans, om inte annat kan bevisas.</p>
-      <p>Reklamationen ska göras inom <strong>skälig tid</strong> efter att felet upptäckts – normalt anses två månader vara skälig tid. Vid godkänd reklamation åtgärdar vi felet i första hand genom reparation eller utbyte. Är det inte möjligt erbjuder vi prisavdrag eller hävning av köpet.</p>
-      <p>Reklamera genom att skicka ett e-postmeddelande till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ordernummer, beskrivning av felet samt foton.</p>
+      <p>Reklamationen ska göras inom <strong>skälig tid</strong> efter att felet upptäckts – ett meddelande inom <strong>två månader</strong> räknas alltid som i rätt tid. Reklamationsrätten är fristående från ångerrätten och det öppna köpet, och gäller långt efter att de 30 dagarna löpt ut. Vid godkänd reklamation åtgärdar vi felet i första hand genom reparation eller utbyte. Är det inte möjligt erbjuder vi prisavdrag eller hävning av köpet.</p>
+      <p>Reklamera genom att skicka ett e-postmeddelande till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ordernummer, beskrivning av felet samt foton. <strong>Skicka inte tillbaka en felaktig eller skadad vara innan vi bett dig om det</strong> — vi återkommer med hur returen ska gå till, och du slipper lägga ut för en frakt i onödan. Vid godkänd reklamation står Fyndplats för returkostnaden.</p>
 
       <h2>9. Force majeure</h2>
       <p>Fyndplats är befriat från ansvar vid omständigheter utanför vår kontroll som vi inte rimligen kunnat förutse, däribland krig, naturkatastrof, arbetskonflikt, myndighetsbeslut, störningar i kommunikation eller transport, samt liknande omständigheter som väsentligt försvårar fullgörandet av avtalet.</p>
@@ -86,8 +91,16 @@ export default function Kopvillkor() {
           Webbplats: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>
         </p>
       </div>
-      <p>Du kan också använda EU-kommissionens onlineplattform för tvistelösning (ODR-plattformen) för köp gjorda online:</p>
-      <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr</a></p>
+      {/* EU:s ODR-plattform låg här till 2026-09-10. Den stängde 20 juli 2025
+          (förordning (EU) 2024/3228 upphävde 524/2013), och ec.europa.eu/consumers/odr
+          omdirigerar numera till kommissionens egen nedläggningsnotis — vi skickade
+          alltså en kund med en tvist till en sida som säger att vägen inte finns.
+          Skyldigheten att länka dit föll med samma förordning. ARN ligger kvar; den
+          följer av 5 § lagen (2015:671) om alternativ tvistlösning i konsument-
+          förhållanden och är oförändrad. För gränsöverskridande köp pekar vi nu på
+          ECC-nätverkets svenska kontor i stället. */}
+      <p>Har du handlat från ett annat EU-land, Norge eller Island kan du få kostnadsfri rådgivning och hjälp med medling av <strong>Konsument Europa (ECC Sverige)</strong>, som drivs av Konsumentverket:</p>
+      <p><a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a></p>
       <p>Vid eventuell domstolsprövning tillämpas svensk lag och tvisten avgörs av svensk allmän domstol.</p>
 
       <h2>12. Ändring av villkor</h2>

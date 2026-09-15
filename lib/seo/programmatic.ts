@@ -22,12 +22,14 @@
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
 import { getProducts, getCollections, dedupeProducts, type Product, type Collection } from "../products";
+import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
 import { getLocalPosts } from "../local-blog";
 import { buildBlogLinkIndex, type LinkingPost } from "./blog-link-index";
 import typesJson from "./programmatic-types.json";
 import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
+import * as S from "./programmatic-select";
 
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
@@ -36,7 +38,7 @@ export const PRICE_TIERS = [200, 500, 1000] as const;
 // bypass i tierCore och stramar floor mot thin content. Blast radius mot live
 // Wix-katalog (scripts/blast-radius.mjs): 15.0% av sidor faller ur (3/20),
 // vilket precis möter 15%-budgeten. Lägre tröskel (T=3) hade ingen blast radius
-// men lät tunnare basta-i-test-sidor leva vidare; högre (T=5) hade tagit 40%.
+// men lät tunnare köpguide-sidor leva vidare; högre (T=5) hade tagit 40%.
 const MIN_PRODUCTS = 4; // Pattern 1 & 2
 const MIN_INTEREST = 4; // Pattern 3
 const MIN_BODY_WORDS = 250; // <main>-brödtext; gemensam tröskel för ALLA mönster (ingen bypass)
@@ -52,6 +54,11 @@ type TypeConfig = {
   keywords: string[];
   exclude: string[];
   category: string;
+  /** Handplockade slugs som alltid tas med, även om de ligger utanför `category`.
+   *  Stödplåster för produkter som är felkategoriserade i Wix (t.ex. vandrings-
+   *  ryggsäckar under Friluftsliv i stället för Väskor & Necessärer). Rätta
+   *  kategorin i källan när det går — då kan listan tömmas. */
+  productSlugs?: string[];
   audience: string;
   painpoint: string;
   usp: string;
@@ -74,24 +81,24 @@ const INTERESTS: InterestConfig[] = (interestsJson as { interests: InterestConfi
 
 // ── Små hjälpare ─────────────────────────────────────────────────────────────
 const lc = (s: string) => (s || "").toLowerCase();
-const fmtKr = (n: number) => `${Math.round(n)} kr`;
+// Samma kronformat som produktkort, PDP och prisreglaget: "1 849 kr".
+const fmtKr = (n: number) => formatPrice(n);
 
-function matchByName(products: Product[], keywords: string[], exclude: string[]): Product[] {
-  const kw = keywords.map(lc);
-  const ex = exclude.map(lc);
-  return products.filter((p) => {
-    const n = lc(p.name);
-    if (ex.some((e) => e && n.includes(e))) return false;
-    return kw.some((k) => k && n.includes(k));
-  });
-}
+// Urvalet ligger i programmatic-select.ts — dependency-fri och därmed testbar.
+// Här binder vi bara ihop den med katalogens dedupe.
+const selectFor = (
+  products: Product[],
+  collections: Collection[],
+  cfg: { categories: string[]; keywords: string[]; exclude: string[]; productSlugs?: string[] },
+  limit: number,
+): Product[] | null => S.selectProducts(products, collections, cfg, limit, dedupeProducts);
 
 function priceRangeStr(list: Product[]): string {
   const nums = list.map((p) => p.priceNum).filter((n) => n > 0);
   if (nums.length === 0) return "";
   const min = Math.min(...nums);
   const max = Math.max(...nums);
-  return min === max ? fmtKr(min) : `${Math.round(min)}–${Math.round(max)} kr`;
+  return min === max ? fmtKr(min) : `${fmtKr(min).replace(/\s*kr$/, "")}–${fmtKr(max)}`;
 }
 
 function collByName(collections: Collection[], name: string): Collection | undefined {
@@ -195,7 +202,7 @@ const listWords = (list: Product[]): number => T.countWords(list.map((p) => `${p
 export type CrossLink = { href: string; label: string };
 export type ResolvedProduct = Product & { role: string; paragraph: string };
 
-export type BestInTestView = {
+export type KopguideView = {
   path: string;
   label: string;
   category: string;
@@ -308,7 +315,7 @@ function breadcrumbSchema(crumbs: { name: string; path: string }[]): object {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PATTERN 1 — /basta-i-test/{type}
+// PATTERN 1 — /kopguider/{type}
 // ─────────────────────────────────────────────────────────────────────────────
 type TypeCore = {
   cfg: TypeConfig;
@@ -323,12 +330,14 @@ type TypeCore = {
 };
 
 // Ren core: urval + texter + ALLA guards. Inga cross-länkar (→ ingen rekursion).
-function typeCore(products: Product[], cfg: TypeConfig): TypeCore | null {
-  const matched = matchByName(products, cfg.keywords, cfg.exclude).filter((p) => p.inStock);
-  const selected = dedupeProducts([...matched].sort((a, b) => b.imageScore - a.imageScore)).slice(0, MAX_TYPE_LIST);
-  if (selected.length < MIN_PRODUCTS) return null;
+function typeCore(products: Product[], collections: Collection[], cfg: TypeConfig): TypeCore | null {
+  // Kategorin först, nyckelorden sedan — INOM den. Saknas kategorin som collec-
+  // tion finns inget vi kan avgränsa mot, och sidan får inte existera: att falla
+  // tillbaka på hela katalogen är exakt det som gjorde en byrå till en laddare.
+  const selected = selectFor(products, collections, { ...cfg, categories: [cfg.category] }, MAX_TYPE_LIST);
+  if (!selected || selected.length < MIN_PRODUCTS) return null;
 
-  const path = `/basta-i-test/${cfg.slug}`;
+  const path = `/kopguider/${cfg.slug}`;
   const seed = T.hashSeed(path);
   const ordered = [...selected].sort((a, b) => a.priceNum - b.priceNum); // budget → premium
   const roles = T.assignRoles(ordered.length);
@@ -339,14 +348,14 @@ function typeCore(products: Product[], cfg: TypeConfig): TypeCore | null {
       name: p.name,
       blurb: p.blurb,
       role: roles[i],
-      price: p.price,
+      price: p.priceNum ? formatPrice(p.priceNum) : p.price,
       label: cfg.label,
       seed: T.hashSeed(p.slug + ":" + cfg.slug),
     }),
   }));
   const priceRange = priceRangeStr(ordered) || "olika prisklasser";
   const topName = (resolved.find((p) => p.role === "Mest för pengarna") || resolved[0]).name;
-  const intro = T.bestInTestIntro({
+  const intro = T.kopguideIntro({
     label: cfg.label,
     audience: cfg.audience,
     painpoint: cfg.painpoint,
@@ -356,7 +365,7 @@ function typeCore(products: Product[], cfg: TypeConfig): TypeCore | null {
     topName,
     seed,
   });
-  const faqs = T.bestInTestFaq({
+  const faqs = T.kopguideFaq({
     label: cfg.label,
     singular: cfg.singular,
     count: resolved.length,
@@ -371,11 +380,11 @@ function typeCore(products: Product[], cfg: TypeConfig): TypeCore | null {
 }
 
 export const getValidTypeSlugs = cache(async (): Promise<string[]> => {
-  const products = await getProducts();
-  return TYPES.filter((cfg) => typeCore(products, cfg)).map((c) => c.slug);
+  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  return TYPES.filter((cfg) => typeCore(products, collections, cfg)).map((c) => c.slug);
 });
 
-export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestView | null> => {
+export const resolveKopguide = cache(async (slug: string): Promise<KopguideView | null> => {
   const cfg = TYPES.find((c) => c.slug === slug);
   if (!cfg) return null;
   const [products, collections, posts, validSlugs, tierParams] = await Promise.all([
@@ -385,7 +394,7 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
     getValidTypeSlugs(),
     getValidPriceTierParams(),
   ]);
-  const core = typeCore(products, cfg);
+  const core = typeCore(products, collections, cfg);
   if (!core) return null;
   const cat = collByName(collections, cfg.category);
 
@@ -394,7 +403,7 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
   const others = TYPES.filter((c) => c.slug !== slug && validSlugs.includes(c.slug));
   const sameCat = others.filter((c) => c.category === cfg.category);
   for (const c of [...sameCat, ...others.filter((c) => !sameCat.includes(c))].slice(0, 3)) {
-    related.push({ href: `/basta-i-test/${c.slug}`, label: `Bäst i test: ${c.label}` });
+    related.push({ href: `/kopguider/${c.slug}`, label: `Köpguide: ${c.label}` });
   }
   if (cat) {
     const tier = tierParams.find((t) => t.categorySlug === cat.slug);
@@ -406,7 +415,7 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
   }));
 
   // Mellansmulan MÅSTE matcha den synliga brödsmulan (Hem → Butik → sida) och
-  // får inte peka på /basta-i-test — den hub-routen finns inte (404), vilket
+  // får inte peka på /kopguider — den hub-routen finns inte (404), vilket
   // både bryter Googles breadcrumb-krav och matar crawlern en död URL.
   const crumbs = [
     { name: "Hem", path: "/" },
@@ -415,7 +424,7 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
   ];
   const schemas = [
     breadcrumbSchema(crumbs),
-    itemListSchema(`Bäst i test: ${cfg.label}`, `${SITE}${core.path}`, core.products),
+    itemListSchema(`Köpguide: ${cfg.label}`, `${SITE}${core.path}`, core.products),
     faqSchema(core.faqs),
   ];
 
@@ -424,9 +433,9 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
     label: cfg.label,
     category: cfg.category,
     categorySlug: cat?.slug ?? null,
-    h1: T.bestInTestH1(cfg.label, core.seed),
-    metaTitle: T.bestInTestMetaTitle(cfg.label, core.seed),
-    metaDescription: T.bestInTestMetaDesc(cfg.label, core.products.length, core.priceRange, core.seed),
+    h1: T.kopguideH1(cfg.label, core.seed),
+    metaTitle: T.kopguideMetaTitle(cfg.label, core.seed),
+    metaDescription: T.kopguideMetaDesc(cfg.label, core.products.length, core.priceRange, core.seed),
     intro: core.intro,
     priceRange: core.priceRange,
     products: core.products,
@@ -504,7 +513,7 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
     }
   }
   for (const cfg of TYPES.filter((c) => c.category === cat.name && validTypes.includes(c.slug)).slice(0, 2)) {
-    related.push({ href: `/basta-i-test/${cfg.slug}`, label: `Bäst i test: ${cfg.label}` });
+    related.push({ href: `/kopguider/${cfg.slug}`, label: `Köpguide: ${cfg.label}` });
   }
 
   const crumbs = [
@@ -545,30 +554,9 @@ type InterestCore = {
 };
 
 function interestProducts(products: Product[], collections: Collection[], cfg: InterestConfig): Product[] {
-  const bySlug = new Map(products.map((p) => [p.slug, p]));
-  const curated = cfg.productSlugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p && p.inStock);
-
-  let pool = products;
-  if (cfg.categories.length) {
-    const catIds = new Set<string>();
-    for (const name of cfg.categories) {
-      const c = collByName(collections, name);
-      if (!c) continue;
-      catIds.add(c.id);
-      for (const ch of collections.filter((x) => x.parentId === c.id)) catIds.add(ch.id);
-    }
-    pool = products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
-  }
-  const kwMatches = matchByName(pool, cfg.keywords, cfg.exclude).filter((p) => p.inStock);
-
-  const seen = new Set<string>();
-  const union: Product[] = [];
-  for (const p of [...curated, ...kwMatches.sort((a, b) => b.imageScore - a.imageScore)]) {
-    if (seen.has(p.id)) continue;
-    seen.add(p.id);
-    union.push(p);
-  }
-  return dedupeProducts(union).slice(0, MAX_INTEREST_LIST);
+  // Tom `categories` = hela katalogen. Tillåtet, men det är den lösa varianten —
+  // det var tomma listor som lät fem projektordukar hamna under "mysig belysning".
+  return selectFor(products, collections, cfg, MAX_INTEREST_LIST) || [];
 }
 
 function interestCore(products: Product[], collections: Collection[], cfg: InterestConfig): InterestCore | null {
@@ -724,7 +712,7 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
     }
   }
   for (const cfg of TYPES.filter((c) => c.category === cat.name && typeSlugs.includes(c.slug)).slice(0, 3)) {
-    links.push({ href: `/basta-i-test/${cfg.slug}`, label: `Bäst i test: ${cfg.label}` });
+    links.push({ href: `/kopguider/${cfg.slug}`, label: `Köpguide: ${cfg.label}` });
   }
   for (const cfg of (interestsByTop.get(cat.parentId ?? cat.id) || []).slice(0, 2)) {
     links.push({ href: `/for-dig-som/${cfg.slug}`, label: `För dig som ${cfg.verb}` });
@@ -740,7 +728,7 @@ export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> =>
     getValidInterestSlugs(),
   ]);
   const urls: ProgrammaticUrl[] = [];
-  for (const s of typeSlugs) urls.push({ path: `/basta-i-test/${s}`, changeFrequency: "weekly", priority: 0.6 });
+  for (const s of typeSlugs) urls.push({ path: `/kopguider/${s}`, changeFrequency: "weekly", priority: 0.6 });
   // Bara HÖGSTA giltiga pristrappan per kategori i sitemapen: /under-500 är en
   // strikt delmängd av /under-1000 (samma sortering) → nästlade dubbletter som
   // kannibaliserar. Lägre trappor renderar fortfarande men kanonaliserar till

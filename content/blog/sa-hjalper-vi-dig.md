@@ -45,7 +45,7 @@ Du kan också följa ditt paket själv på [Spåra paket](/sparning).
 
 ## Ångrat dig? Det ska vara enkelt
 
-Du har 14 dagars ångerrätt, och vi gör inget krångel av det.
+Du har 30 dagars öppet köp på allt vi säljer — dubbelt så länge som lagens 14 dagars ångerrätt — och vi gör inget krångel av det.
 
 Anmäl returen på [Ångra köp](/angra-kop), så återkommer vi med instruktioner. Är något skadat vid leverans — mejla oss med ordernummer och en bild, så löser vi det med en ny produkt eller återbetalning.
 

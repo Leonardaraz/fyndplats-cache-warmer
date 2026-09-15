@@ -323,8 +323,13 @@ export function GoogleReviews({
 
       {reviews.length > INITIAL && !showAll ? (
         <div className="greviews-actions">
+          {/* "Visa alla N omdömen" stod här. Två fel i fem ord: N är antalet vi
+              HÄMTAT, inte antalet på Googles profil, så "alla" var ett påstående
+              om Google som vi inte kan belägga — och vid exakt ett hämtat omdöme
+              stod det "1 omdömen". Knappen säger nu bara vad den gör; hela
+              profilen nås via länken i disclaimern nedanför. */}
           <button type="button" className="greviews-more" onClick={() => setShowAll(true)}>
-            Visa alla {reviews.length} omdömen
+            Visa fler omdömen
           </button>
         </div>
       ) : null}

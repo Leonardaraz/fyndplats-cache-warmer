@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { pageMeta } from "../../../lib/seo";
-import { getValidTypeSlugs, resolveBestInTest } from "../../../lib/seo/programmatic";
+import { getValidTypeSlugs, resolveKopguide } from "../../../lib/seo/programmatic";
 import { ProgSchemas, ProgHero, ComparisonTable, ProductSection, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
 
 export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori)
@@ -19,15 +19,15 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
   const { type } = await params;
-  const view = await resolveBestInTest(type);
-  if (!view) return { title: "Bäst i test" };
+  const view = await resolveKopguide(type);
+  if (!view) return { title: "Köpguide" };
   return pageMeta(view.metaTitle, view.metaDescription, view.path, `bit-${type}`);
 }
 
-export default async function BastITestPage({ params }: { params: Promise<{ type: string }> }) {
+export default async function KopguidePage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = await params;
-  const view = await resolveBestInTest(type);
-  // Tunn/tom "bäst i test" (t.ex. efter Kina-utfasningen) → /butik i stället för
+  const view = await resolveKopguide(type);
+  // Tunn/tom köpguide (t.ex. efter Kina-utfasningen) → /butik i stället för
   // 404. Self-correcting vid nästa ISR-regenerering om typen blir giltig igen —
   // därför 307 (redirect), inte 308: tillståndet är uttryckligen temporärt.
   if (!view) redirect("/butik");
@@ -37,7 +37,7 @@ export default async function BastITestPage({ params }: { params: Promise<{ type
       <ProgSchemas schemas={view.schemas} />
 
       <ProgHero
-        eyebrow="Bäst i test"
+        eyebrow="Köpguide"
         crumbs={[
           { href: "/", label: "Hem" },
           { href: "/butik", label: "Butik" },

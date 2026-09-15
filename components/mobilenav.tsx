@@ -57,7 +57,7 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
             <a className="mm-auktion" href="/fyndauktion" onClick={closeMenu}>Fyndauktionen<AuctionDot /></a>
             {/* Se kommentaren i meganav.tsx: /kategori/rea finns inte, och
                 knappen göms när inget är nedsatt. */}
-            {hasSale && <a className="mm-rea" href="/alla-produkter?rea=1" onClick={closeMenu}>REA</a>}
+            {hasSale && <a className="mm-rea" href="/rea" onClick={closeMenu}>REA</a>}
           </nav>
           {tree.length > 0 && (
             <div className="mm-cats">

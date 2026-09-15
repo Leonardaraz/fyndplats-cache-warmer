@@ -10,6 +10,7 @@ import {
   type ImageScoreRecord,
 } from "../../../lib/image-scores";
 import { AdminHideToggle } from "../../../components/admin-hide-toggle";
+import { productCountLabel } from "../../../lib/rating";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function ImageIssues() {
       <h1 style={{ fontSize: 28, marginBottom: 4 }}>Bildproblem</h1>
       <p style={{ color: "#666", marginTop: 0 }}>
         Produkter med bildkvalitets-poäng under {PROBLEM_MAX_SCORE}. Poäng från Claude Haiku-vision
-        ({meta.model}), {meta.count} produkter analyserade {new Date(meta.generatedAt).toLocaleString("sv-SE")}.
+        ({meta.model}), {productCountLabel(meta.count)} analyserade {new Date(meta.generatedAt).toLocaleString("sv-SE")}.
       </p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "16px 0 28px" }}>

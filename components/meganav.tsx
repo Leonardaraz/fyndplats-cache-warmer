@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
+import { productCountLabel } from "../lib/rating";
 
 // Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
@@ -68,14 +69,17 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
         Fyndauktionen<AuctionDot />
       </a>
 
-      {/* REA pekade på /kategori/rea — en kategori som ALDRIG funnits. Länken
-          307:ade vidare till /butik, så kunden som klickade REA fick hela
-          sortimentet i stället för nedsatta varor. Rätt mål är rea-filtret på
-          /alla-produkter, som redan finns (shopbrowser läser ?rea=1) och fylls
-          automatiskt av `onSale` — ingen manuell taggning behövs.
+      {/* REA pekade först på /kategori/rea — en kategori som ALDRIG funnits;
+          länken 307:ade till /butik, så den som klickade REA fick hela
+          sortimentet. Nästa steg blev /alla-produkter?rea=1, som visade rätt
+          varor men bara som ett filter i en frågesträng — alltså ingenting
+          Google indexerar. Målet är nu /rea (punkt 16): en permanent adress
+          med egen titel, egen brödtext och plats i sitemapen.
           Grindad på hasSale av samma skäl som Blogg-länken: är inget nedsatt
-          leder knappen till en tom lista, vilket är sämre än ingen knapp. */}
-      {hasSale && <a className="meganav-rea" href="/alla-produkter?rea=1" onClick={close}>REA</a>}
+          leder knappen till en tom lista, vilket är sämre än ingen knapp.
+          Grinden MÅSTE vara samma regel som saleProducts() i lib/rea.ts —
+          lib/rea.test.ts håller ihop dem. */}
+      {hasSale && <a className="meganav-rea" href="/rea" onClick={close}>REA</a>}
 
       {current && (
         <div
@@ -91,7 +95,7 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                 {current.name}
               </a>
               <a className="meganav-panel-all" href={`/kategori/${current.slug}`} onClick={close}>
-                Se alla {current.count} produkter <span aria-hidden="true">→</span>
+                Se alla {productCountLabel(current.count)} <span aria-hidden="true">→</span>
               </a>
             </div>
             {current.subs.length > 0 ? (

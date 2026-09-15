@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { productCountLabel } from "../../../lib/rating";
 
 type TabStatus = {
   beskrivning: boolean;
@@ -134,7 +135,7 @@ export function EnrichProductsClient({ rows: initialRows }: { rows: Row[] }) {
         till automatiskt av sajten. Sorterat med flest saknade flikar först.
       </p>
       <p style={{ color: "#6b7280" }}>
-        {incomplete.length} av {rows.length} produkter saknar flikar. Uppskattad kostnad att köra
+        {incomplete.length} av {productCountLabel(rows.length)} saknar flikar. Uppskattad kostnad att köra
         alla: ~{estCost} USD (Claude Haiku).
         {spent != null && <> Spenderat idag: <strong>{spent.toFixed(3)} USD</strong>.</>}{" "}
         Daglig budget ~2 USD – massjobbet stoppar automatiskt vid taket.
