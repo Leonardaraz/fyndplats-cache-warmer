@@ -89,6 +89,76 @@ export interface WixV3Variant {
  */
 const MAX_SYNLIGA_SIDOR = 300;
 
+export interface V3ProduktInfo {
+  /** Butikens URL är `/produkt/<slug>` — Wix-id:t ger 404. Uppmätt 2026-09-15. */
+  slug: string;
+  /** VÅRT namn på varan, inte leverantörens. */
+  namn: string;
+  visible: boolean;
+}
+
+/**
+ * Hela katalogen som `id → { slug, namn, visible }`.
+ *
+ * Leonard 2026-09-15: *"jag vet inte hur jag ska hitta våra produkter just nu.
+ * namnet som står är deras, länken som står är deras och vi har inget mot oss."*
+ * En rapport som bara bär leverantörens namn och leverantörens länk går inte
+ * att handla på — därför finns den här.
+ *
+ * ⚠️ `slug` OCH `name` LIGGER I STANDARDPROJEKTIONEN, uppmätt mot skarpa V3
+ * samma dag (28 nycklar, `slug` som sträng, utan att efterfrågas). Begär alltså
+ * inte `fields` — men lita inte heller på det för NÄSTA fält: huset har redan
+ * betalat för att `getProductMedia` MÅSTE begära `MEDIA_ITEMS_INFO` medan
+ * priset kommer oombett, och för att `variantsInfo` aldrig kommer alls.
+ * **Mät per endpoint.**
+ *
+ * ☠️ FRÅGAN STÄLLS UTAN SYNLIGHETSVILLKOR, av samma skäl som `jamforelsePris`:
+ * utkasten är merparten av katalogen, och en fråga som tyst filtrerat bort dem
+ * hade gett ett uppslag som saknar just de rader rapporten mest handlar om.
+ */
+export async function listV3ProductInfo(): Promise<Map<string, V3ProduktInfo>> {
+  const ut = new Map<string, V3ProduktInfo>();
+  let cursor: string | undefined;
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      // Samma regel som nedan och som `queryAll`: en avkortad lista är värre
+      // än ett fel. Här hade den tyst gjort produkter länklösa.
+      throw new Error(
+        `listV3ProductInfo passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista är värre än ett fel.",
+      );
+    }
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ query: { cursorPaging } }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`V3 info-query failed (${res.status}): ${text.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      products?: Array<{ id?: string; slug?: string; name?: string; visible?: boolean }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      ut.set(p.id, {
+        slug: p.slug ?? "",
+        namn: p.name ?? "",
+        // Samma riktning som nedan: saknat fält räknas som synligt.
+        visible: p.visible !== false,
+      });
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!cursor || !data.pagingMetadata?.hasNext) break;
+  }
+  return ut;
+}
+
 export async function listVisibleV3ProductIds(): Promise<Set<string>> {
   const ut = new Set<string>();
   let cursor: string | undefined;

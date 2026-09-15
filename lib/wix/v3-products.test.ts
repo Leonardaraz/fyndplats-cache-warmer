@@ -102,3 +102,83 @@ describe("listVisibleV3ProductIds", () => {
     expect(ut.has("dold")).toBe(false);
   });
 });
+
+// ☠️ VARFÖR DE HÄR TESTERNA FINNS (2026-09-15).
+//
+// Leonard: *"namnet som står är deras, länken som står är deras och vi har
+// inget mot oss."* Prisjämförelsen mot dealproffsen kunde bara peka på
+// konkurrentens sida. `listV3ProductInfo` är uppslaget som ger vår egen.
+//
+// Uppmätt samma dag mot skarpa V3: butikens URL är `/produkt/<slug>` och
+// Wix-id:t svarar **404** — utan slugen finns ingen länk att bygga.
+
+describe("listV3ProductInfo", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+    process.env.WIX_SITE_ID = "s";
+    vi.resetModules();
+  });
+  afterEach(() => {
+    if (origToken === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = origToken;
+    if (origSite === undefined) delete process.env.WIX_SITE_ID;
+    else process.env.WIX_SITE_ID = origSite;
+    vi.restoreAllMocks();
+  });
+
+  // ⚠️ MARKÖREN MÅSTE MED när hasNext är sann. Loopen bryter på `!cursor`,
+  // så en stubbe utan markör bryter direkt och taket kan aldrig nås — testet
+  // hade då gått grönt utan att pröva något. Det fällde på just det.
+  function svar(produkter: unknown[], hasNext = false) {
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        products: produkter,
+        pagingMetadata: hasNext ? { cursors: { next: "c" }, hasNext: true } : { hasNext: false },
+      }),
+      text: async () => "",
+    } as unknown as Response;
+  }
+
+  it("bär slug, namn och synlighet — alla tre behövs i rapporten", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => svar([
+      { id: "a", slug: "baddsoffa-2-sits-gra", name: "Bäddsoffa 2-sits Grå", visible: true },
+      { id: "b", slug: "tyskt-utkast", name: "Schlafsofa", visible: false },
+    ])));
+    const { listV3ProductInfo } = await import("./v3-products");
+    const ut = await listV3ProductInfo();
+    expect(ut.get("a")).toEqual({
+      slug: "baddsoffa-2-sits-gra", namn: "Bäddsoffa 2-sits Grå", visible: true,
+    });
+    expect(ut.get("b")?.visible).toBe(false);
+  });
+
+  it("☠️ FRÅGAR UTAN SYNLIGHETSVILLKOR — utkasten är merparten av katalogen", async () => {
+    // En fråga som tyst filtrerat bort utkast hade gett ett uppslag som saknar
+    // just de rader rapporten mest handlar om (2 560 av 4 078).
+    const anrop = vi.fn(async () => svar([{ id: "u", slug: "s", name: "n", visible: false }]));
+    vi.stubGlobal("fetch", anrop);
+    const { listV3ProductInfo } = await import("./v3-products");
+    const ut = await listV3ProductInfo();
+    expect(ut.size).toBe(1);
+    const kropp = JSON.parse(anrop.mock.calls[0][1].body as string);
+    expect(JSON.stringify(kropp)).not.toMatch(/visible/);
+  });
+
+  it("☠️ KASTAR vid sidtaket — en avkortad lista gör produkter länklösa", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => svar(
+      [{ id: "x", slug: "s", name: "n", visible: true }], true,
+    )));
+    const { listV3ProductInfo } = await import("./v3-products");
+    await expect(listV3ProductInfo()).rejects.toThrow(/passerade .* sidor/);
+  });
+
+  it("saknat slug/namn blir tom sträng, inte undefined som kryper ut i en URL", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => svar([{ id: "a" }])));
+    const { listV3ProductInfo } = await import("./v3-products");
+    expect(await listV3ProductInfo().then((m) => m.get("a"))).toEqual({
+      slug: "", namn: "", visible: true,
+    });
+  });
+});

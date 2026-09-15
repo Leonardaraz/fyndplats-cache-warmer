@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "jamfor = prisjamforelsen · feed-info = feedens kolumner · ean-jakt = finns EAN i manualerna"
+        description: "jamfor · feed-info · ean-jakt · vara-sidor (wix-id → var slug, till Vercels logg)"
         required: true
         default: "jamfor"
         type: choice
@@ -29,6 +29,7 @@ on:
           - jamfor
           - feed-info
           - ean-jakt
+          - vara-sidor
       varv:
         description: "Max antal varv for jamfor (markoren loopas). Default 12."
         required: false
@@ -128,6 +129,29 @@ jobs:
             echo "KOLUMNER (antal ifyllda rader, kolumnnamn):"
             printf '%s\n' "$kropp" | jq -r '
               .kolumner[] | "  \(.ifyllda)\t\(.namn)"' || true
+            exit 0
+          fi
+
+          # ── vara-sidor: wix-id → VAR slug och VART namn ─────────────────────
+          #
+          # Raderna skrivs av RUTTEN till Vercels privata logg. De ar inte
+          # hemliga — var slug star i sitemapen — men de ar ~4 000, och en
+          # publik logg som till nio tiondelar ar brus ar en logg ingen laser.
+          if [ "${MODE}" = "vara-sidor" ]; then
+            kropp="$(anropa "${url}?lage=vara-sidor")"
+            {
+              echo "### Vara produktsidor (wix-id → slug)"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| produkter i katalogen | \(.katalogen) |",
+                "| **rader skrivna till Vercels logg** | **\(.rader)** |",
+                "| mappningar utan produkt (foraldralosa) | \(.utanProdukt) |",
+                "| loggrader att lasa | \(.loggrader) |"
+              ' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "katalogen \(.katalogen), rader \(.rader), utanProdukt \(.utanProdukt), loggrader \(.loggrader)"' || true
             exit 0
           fi
 

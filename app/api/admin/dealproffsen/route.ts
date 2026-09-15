@@ -2,6 +2,7 @@
 //
 //   ?lage=feed-info            vilka kolumner Aosoms feed FAKTISKT har
 //   ?lage=ean-jakt             finns EAN-koden i Aosoms produktmanualer?
+//   ?lage=vara-sidor           wix-id → vår slug + vårt namn (för rapporten)
 //   ?lage=jamfor               jämför vår katalog mot deras priser
 //   ?lage=jamfor&after=921-    fortsätt från ett prefix (markör)
 //
@@ -26,7 +27,11 @@ import { getStore } from "@/lib/store/factory";
 import { resolveAosomFeedUrl } from "@/lib/aosom/feed";
 import { PRISKOLUMNER, feedKolumner } from "@/lib/aosom/feed-info";
 import { pdfLankar, sokEanIPdf } from "@/lib/aosom/ean-jakt";
-import { listV3ProductPrices, listVisibleV3ProductIds } from "@/lib/wix/v3-products";
+import {
+  listV3ProductInfo,
+  listV3ProductPrices,
+  listVisibleV3ProductIds,
+} from "@/lib/wix/v3-products";
 import {
   artikelnummerAv,
   jamforPriser,
@@ -74,6 +79,17 @@ const MAX_SIDOR_PER_PREFIX = 20;
  * med marginal. Höjs fälten per rad måste talet räknas om.
  */
 const RADER_PER_LOGGRAD = 30;
+
+/**
+ * Rader per packad loggrad i `vara-sidor`.
+ *
+ * ☠️ EGET TAL, inte samma som ovan, och det är HELA poängen med att
+ * kommentaren vid `RADER_PER_LOGGRAD` säger att talet måste räknas om när
+ * fälten ändras. En sidrad är ~150 tecken (uuid + slug + namn) mot
+ * detaljradens ~55, så trettio hade kapats vid 2 000-teckenstaket och
+ * tappat två tredjedelar — exakt buggen från 2026-09-14. Tolv ger ~1 800.
+ */
+const RADER_PER_SIDLOGGRAD = 12;
 
 /**
  * Tak på en manual vi ens laddar ner.
@@ -235,6 +251,65 @@ export async function GET(req: NextRequest) {
         { status: 500 },
       );
     }
+  }
+
+  // ── Läge 1c: wix-id → VÅR slug och VÅRT namn ──────────────────────────────
+  //
+  // Leonard 2026-09-15: *"namnet som står är deras, länken som står är deras
+  // och vi har inget mot oss."* Prisjämförelsen kunde bara peka på
+  // konkurrentens sida — vår egen gick inte att hitta.
+  //
+  // ⚠️ RADERNA GÅR TILL VERCELS PRIVATA LOGG, inte hit. Inte för att de är
+  // hemliga — vår slug står i sitemapen och vårt wix-id i produktsidans
+  // JSON-LD, båda publika — utan för att de är ~4 000 och en publik
+  // Actions-logg som till nio tiondelar är brus är en logg ingen läser.
+  // Samma skäl som `bulk-import-worker` tystades av.
+  if (lage === "vara-sidor") {
+    const [mappningar, info] = await Promise.all([
+      getStore().listMappings(),
+      listV3ProductInfo(),
+    ]);
+
+    const rader: string[] = [];
+    let utanInfo = 0;
+    for (const m of mappningar) {
+      if (isAliExpressMapping(m)) continue;
+      if (!artikelnummerAv(m)) continue;
+      const i = info.get(m.wixProductId);
+      if (!i) {
+        // ☠️ EN MAPPNING UTAN PRODUKT RÄKNAS, den tigs inte ihjäl. Det är
+        // signaturen för en föräldralös rad — samma klass som `utanLagerrader`
+        // i lagersynken, där en tyst nolla bokförde produkten som synkad.
+        utanInfo++;
+        continue;
+      }
+      // ☠️ NAMNET KAPAS men kapas MÄRKBART. Ett tyst avkortat namn ser ut som
+      // vårt riktiga namn; med ett ellipstecken syns det att det är kapat.
+      const namn = i.namn.length > 70 ? i.namn.slice(0, 69) + "…" : i.namn;
+      rader.push(`${m.wixProductId}|${i.slug}|${i.visible ? 1 : 0}|${namn}`);
+    }
+
+    const delar = Math.ceil(rader.length / RADER_PER_SIDLOGGRAD) || 1;
+    for (let i = 0; i < rader.length; i += RADER_PER_SIDLOGGRAD) {
+      const n = i / RADER_PER_SIDLOGGRAD + 1;
+      console.log(
+        `[dealproffsen] SIDOR ${n}/${delar} `
+        + rader.slice(i, i + RADER_PER_SIDLOGGRAD).join(" "),
+      );
+    }
+    console.log(
+      `[dealproffsen] VARA-SIDOR ${rader.length} rader, ${utanInfo} utan produkt, `
+      + `${info.size} produkter i katalogen`,
+    );
+
+    return NextResponse.json({
+      ok: true,
+      lage,
+      katalogen: info.size,
+      rader: rader.length,
+      utanProdukt: utanInfo,
+      loggrader: delar,
+    });
   }
 
   // ── Läge 2: jämför priserna ───────────────────────────────────────────────
