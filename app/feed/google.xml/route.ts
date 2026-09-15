@@ -232,7 +232,11 @@ function feedItem(
     .map((a) => `\n      <g:${a}>${xmlEscape(attrs[a])}</g:${a}>`)
     .join("");
 
-  const sku: string = v?.sku || "";
+  // ☠️ INGEN g:mpn (2026-09-15, GOOGLE-SHOPPING-BRIEF §5 beslut 3). Feeden
+  // skickade Wix-variantens SKU ("FP-…") som mpn. Det är vårt eget nummer och
+  // läcker inget, men Google förväntar sig INGEN mpn på en rad som säger
+  // identifier_exists=no — de två motsäger varandra, och ett påhittat mpn är
+  // exakt vad Googles spec förbjuder ("tillverkarens tilldelade MPN").
   const inStock = v?.inventoryStatus?.inStock !== false;
 
   return `    <item>
@@ -246,7 +250,7 @@ function feedItem(
       <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
       <g:brand>${BRAND}</g:brand>
       <g:condition>new</g:condition>
-      <g:identifier_exists>no</g:identifier_exists>${sku ? `\n      <g:mpn>${xmlEscape(sku)}</g:mpn>` : ""}${attrLines}${taxonomy.productType ? `\n      <g:product_type>${xmlEscape(taxonomy.productType)}</g:product_type>` : ""}${taxonomy.googleCategory ? `\n      <g:google_product_category>${taxonomy.googleCategory}</g:google_product_category>` : ""}
+      <g:identifier_exists>no</g:identifier_exists>${attrLines}${taxonomy.productType ? `\n      <g:product_type>${xmlEscape(taxonomy.productType)}</g:product_type>` : ""}${taxonomy.googleCategory ? `\n      <g:google_product_category>${taxonomy.googleCategory}</g:google_product_category>` : ""}
     </item>`;
 }
 
