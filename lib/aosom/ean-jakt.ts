@@ -20,6 +20,8 @@
 //      for samma artiklar ligger pa 425x (mätt 2026-09-14, 186 av 187). Ett
 //      tal som bade klarar kontrollsiffran OCH borjar pa 400-440 ar inte brus.
 
+import zlib from "node:zlib";
+
 import { delaRad } from "./feed-info";
 
 /** GS1:s kontrollsiffra, vaxlande vikt 1/3 fran hoger. */
@@ -49,37 +51,120 @@ export function trettonsiffringar(text: string): string[] {
 }
 
 export interface EanFynd {
-  /** Hur manga frilaggande trettonsiffringar texten innehall. */
+  /** Hur många frilaggande trettonsiffringar texten innehöll. */
   kandidater: number;
-  /** Hur manga av dem som klarar GS1:s kontrollsiffra. */
+  /** Hur många av dem som klarar GS1:s kontrollsiffra. */
   giltiga: string[];
-  /** Av de giltiga: de med tyskt GS1-prefix. Det ar de som betyder nagot. */
+  /** Av de giltiga: de med tyskt GS1-prefix. Det är de som betyder något. */
   tyska: string[];
 }
 
-export function sokEan(texter: readonly string[]): EanFynd {
-  const alla = new Set<string>();
-  let kandidater = 0;
-  for (const t of texter) {
-    for (const k of trettonsiffringar(t)) {
-      kandidater++;
-      alla.add(k);
-    }
+/**
+ * Löpande räkning, så en stor text aldrig behöver ligga kvar i minnet.
+ *
+ * ☠️ FORMEN ÄR VALD AV EN KRASCH (2026-09-15). Första versionen samlade ALLA
+ * texter ur en PDF i en array och sökte i dem efteråt. Lambdan dog:
+ * `instance was killed because it ran out of available memory`, och det gick
+ * INTE via mitt try/catch — ett try/catch skyddar mot fel som kastas, inte mot
+ * en process som tar slut. Exakt samma familj som den obegränsade fan-outen i
+ * `runDailySync`, som låg nere i 57 timmar.
+ */
+export interface EanRakning {
+  kandidater: number;
+  koder: Set<string>;
+}
+
+export function nyRakning(): EanRakning {
+  return { kandidater: 0, koder: new Set() };
+}
+
+export function raknaText(text: string, ut: EanRakning): void {
+  for (const k of trettonsiffringar(text)) {
+    ut.kandidater++;
+    if (arGiltigGtin13(k)) ut.koder.add(k);
   }
-  const giltiga = [...alla].filter(arGiltigGtin13);
-  return { kandidater, giltiga, tyska: giltiga.filter(harTysktPrefix) };
+}
+
+export function summera(r: EanRakning): EanFynd {
+  const giltiga = [...r.koder];
+  return { kandidater: r.kandidater, giltiga, tyska: giltiga.filter(harTysktPrefix) };
+}
+
+export function sokEan(texter: readonly string[]): EanFynd {
+  const r = nyRakning();
+  for (const t of texter) raknaText(t, r);
+  return summera(r);
 }
 
 /**
- * Plockar ut pdf-lankarna ur feedens rader.
+ * Komprimerad ström vi ens försöker packa upp.
  *
- * ⚠️ GAR INTE VIA `parseAosomFeed`. Den plockar bara kolumner den kanner vid
- * namn, och `AosomRow` har inget pdf-falt — precis samma blinda flack som
- * gjorde att ingen nagonsin sett EAN-kolumnen. Den har funktionen laser
- * rubrikraden och letar upp kolumnen dar, sa den kan inte missa av samma skal.
+ * ☠️ TAKET ÄR DET SOM SKILJER TEXT FRÅN BILD. En manual är mest foton, och en
+ * Flate-packad bild expanderar tiotals gånger — det var de strömmarna som tog
+ * minnet. En textström i en PDF är några kilobyte; två megabyte är gott om
+ * marginal och utesluter varje bild värd namnet.
+ */
+const MAX_STROM_BYTE = 2_000_000;
+
+/** Tak på det UPPACKADE — `inflateSync` kastar i stället för att svälla. */
+const MAX_UPPACKAT_BYTE = 8_000_000;
+
+export interface PdfResultat extends EanFynd {
+  strommar: number;
+  upppackade: number;
+  /** Strömmar vi medvetet hoppade över — nästan alltid bilder. */
+  forStora: number;
+}
+
+/**
+ * Söker EAN i en PDF utan att hålla dess text i minnet.
+ *
+ * ⚠️ RÅTEXTEN LÄSES OCKSÅ. Många PDF:er bär okomprimerad metadata och XMP, och
+ * en streckkod står ofta i filens egen produktinformation.
+ */
+export function sokEanIPdf(buf: Buffer): PdfResultat {
+  const rå = buf.toString("latin1");
+  const r = nyRakning();
+  raknaText(rå, r);
+
+  let strommar = 0;
+  let upppackade = 0;
+  let forStora = 0;
+
+  const re = /stream\r?\n/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(rå)) !== null) {
+    const start = m.index + m[0].length;
+    const slut = rå.indexOf("endstream", start);
+    if (slut < 0) continue;
+    strommar++;
+    if (slut - start > MAX_STROM_BYTE) {
+      forStora++;
+      continue;
+    }
+    try {
+      const ut = zlib.inflateSync(Buffer.from(rå.slice(start, slut), "latin1"), {
+        maxOutputLength: MAX_UPPACKAT_BYTE,
+      });
+      raknaText(ut.toString("latin1"), r);
+      upppackade++;
+    } catch {
+      // Inte Flate, trasig, eller större än taket. Råtexten täcker den ändå.
+    }
+  }
+  return { ...summera(r), strommar, upppackade, forStora };
+}
+
+/**
+ * Plockar ut pdf-länkarna ur feedens rader.
+ *
+ * ⚠️ GÅR INTE VIA `parseAosomFeed`. Den plockar bara kolumner den känner vid
+ * namn, och `AosomRow` har inget pdf-fält — precis samma blinda fläck som
+ * gjorde att ingen någonsin sett EAN-kolumnen. Den här funktionen läser
+ * rubrikraden och letar upp kolumnen där, så den kan inte missa av samma skäl.
  *
  * ☠️ DELAR `delaRad` MED feed-info. En egen CSV-tolk hade varit en tvilling,
- * och en tvilling glider isar — husets vanligaste bugg.
+ * och en tvilling glider isär — husets vanligaste bugg.
  */
 export function pdfLankar(csv: string, antal: number): string[] {
   const rader = csv.split(/\r?\n/).filter((r) => r.trim().length > 0);
@@ -94,43 +179,4 @@ export function pdfLankar(csv: string, antal: number): string[] {
     if (v.startsWith("http")) ut.push(v);
   }
   return ut;
-}
-
-/**
- * Plockar ut läsbar text ur en PDF.
- *
- * En PDF lagrar sin text i `stream`-block som oftast är FlateDecode-packade.
- * Vi packar upp det som går och lämnar resten — en manual som inte går att
- * läsa ska rapporteras som OLÄSLIG, inte som "inga fynd". Skillnaden mellan
- * "hittade ingen kod" och "kunde inte titta" är hela skillnaden mellan en
- * grind och en vana, och huset har redan betalat för att lära sig det
- * (SKU-kollen som itererade en tom lista).
- *
- * ⚠️ RÅTEXTEN LÄSES OCKSÅ. Många PDF:er bär okomprimerad metadata och XMP,
- * och en streckkod står ofta i filens egen produktinformation.
- */
-export function pdfTexter(buf: Buffer): { texter: string[]; strommar: number; upppackade: number } {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const zlib = require("node:zlib") as typeof import("node:zlib");
-  const rå = buf.toString("latin1");
-  const texter: string[] = [rå];
-  let strommar = 0;
-  let upppackade = 0;
-
-  const re = /stream\r?\n/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(rå)) !== null) {
-    const start = m.index + m[0].length;
-    const slut = rå.indexOf("endstream", start);
-    if (slut < 0) continue;
-    strommar++;
-    try {
-      const ut = zlib.inflateSync(Buffer.from(rå.slice(start, slut), "latin1"));
-      texter.push(ut.toString("latin1"));
-      upppackade++;
-    } catch {
-      // Inte packad med Flate, eller trasig. Råtexten täcker den ändå.
-    }
-  }
-  return { texter, strommar, upppackade };
 }

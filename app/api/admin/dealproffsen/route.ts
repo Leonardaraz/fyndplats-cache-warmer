@@ -25,7 +25,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { resolveAosomFeedUrl } from "@/lib/aosom/feed";
 import { PRISKOLUMNER, feedKolumner } from "@/lib/aosom/feed-info";
-import { pdfLankar, pdfTexter, sokEan } from "@/lib/aosom/ean-jakt";
+import { pdfLankar, sokEanIPdf } from "@/lib/aosom/ean-jakt";
 import { listV3ProductPrices, listVisibleV3ProductIds } from "@/lib/wix/v3-products";
 import {
   artikelnummerAv,
@@ -74,6 +74,15 @@ const MAX_SIDOR_PER_PREFIX = 20;
  * med marginal. Höjs fälten per rad måste talet räknas om.
  */
 const RADER_PER_LOGGRAD = 30;
+
+/**
+ * Tak på en manual vi ens laddar ner.
+ *
+ * ☠️ UPPMÄTT AV EN KRASCH, inte valt. Utan tak dog lambdan på
+ * `instance was killed because it ran out of available memory` — en död som
+ * inte går via try/catch, för processen tar slut i stället för att kasta.
+ */
+const MAX_PDF_BYTE = 20_000_000;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -149,6 +158,7 @@ export async function GET(req: NextRequest) {
       let olasliga = 0;
       let medGiltig = 0;
       let medTysk = 0;
+      let forStoraPdf = 0;
       let kandidaterTotalt = 0;
       let giltigaTotalt = 0;
       const exempel = new Set<string>();
@@ -159,15 +169,27 @@ export async function GET(req: NextRequest) {
         try {
           const r = await fetch(lank);
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          // ☠️ TAK PÅ NEDLADDNINGEN. En Aosom-manual är mest foton och kan vara
+          // tiotals megabyte; utan taket dog lambdan på minnet (2026-09-15) —
+          // och den döden går INTE via try/catch, för processen tar slut i
+          // stället för att kasta. Samma familj som den obegränsade fan-outen.
+          const langd = Number(r.headers.get("content-length") ?? 0);
+          if (langd > MAX_PDF_BYTE) {
+            forStoraPdf++;
+            continue;
+          }
           const buf = Buffer.from(await r.arrayBuffer());
+          if (buf.byteLength > MAX_PDF_BYTE) {
+            forStoraPdf++;
+            continue;
+          }
           hamtade++;
-          const { texter, strommar, upppackade } = pdfTexter(buf);
+          const fynd = sokEanIPdf(buf);
           // ☠️ EN OLÄSLIG MANUAL RAPPORTERAS SOM OLÄSLIG, inte som "inga fynd".
           // Skillnaden mellan "hittade ingen kod" och "kunde inte titta" är hela
           // skillnaden mellan en grind och en vana — samma lärdom som SKU-kollen
           // som itererade en tom lista och svarade "inga krockar".
-          if (strommar > 0 && upppackade === 0) olasliga++;
-          const fynd = sokEan(texter);
+          if (fynd.strommar > 0 && fynd.upppackade === 0) olasliga++;
           kandidaterTotalt += fynd.kandidater;
           giltigaTotalt += fynd.giltiga.length;
           if (fynd.giltiga.length > 0) medGiltig++;
@@ -183,7 +205,8 @@ export async function GET(req: NextRequest) {
       }
 
       console.log(
-        `[dealproffsen] EAN-JAKT ${hamtade} manualer, ${olasliga} olasliga, `
+        `[dealproffsen] EAN-JAKT ${hamtade} manualer, ${forStoraPdf} for stora, `
+        + `${olasliga} olasliga, `
         + `${medGiltig} med giltig GTIN-13, ${medTysk} med tyskt prefix, `
         + `${kandidaterTotalt} kandidater / ${giltigaTotalt} giltiga, ${fel.length} fel`,
       );
@@ -193,6 +216,7 @@ export async function GET(req: NextRequest) {
         lage,
         pdfLankarIFeeden: lankar.length,
         hamtade,
+        forStoraPdf,
         olasliga,
         medGiltigGtin: medGiltig,
         medTysktPrefix: medTysk,

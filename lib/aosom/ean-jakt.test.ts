@@ -4,6 +4,7 @@ import {
   harTysktPrefix,
   pdfLankar,
   sokEan,
+  sokEanIPdf,
   trettonsiffringar,
 } from "./ean-jakt";
 
@@ -114,5 +115,48 @@ describe("pdfLankar", () => {
 
   it("saknas kolumnen svarar den tomt i stallet for att gissa", () => {
     expect(pdfLankar("SKU,Name\n845-030CG,Bod", 10)).toEqual([]);
+  });
+});
+
+describe("sokEanIPdf", () => {
+  const zlib = require("node:zlib") as typeof import("node:zlib");
+
+  function pdf(strommar: readonly Buffer[], rått = ""): Buffer {
+    const delar: Buffer[] = [Buffer.from(`%PDF-1.4\n${rått}\n`, "latin1")];
+    for (const s of strommar) {
+      delar.push(Buffer.from("stream\n", "latin1"), s, Buffer.from("\nendstream\n", "latin1"));
+    }
+    return Buffer.concat(delar);
+  }
+
+  it("packar upp en Flate-strom och hittar koden i den", () => {
+    const ut = sokEanIPdf(pdf([zlib.deflateSync(Buffer.from("(EAN 4250871216963) Tj"))]));
+    expect(ut.upppackade).toBe(1);
+    expect(ut.tyska).toEqual(["4250871216963"]);
+  });
+
+  it("laser aven RATEXTEN — metadata ar ofta opackad", () => {
+    expect(sokEanIPdf(pdf([], "/GTIN (4250871216963)")).tyska).toEqual(["4250871216963"]);
+  });
+
+  it("☠️ HOPPAR OVER EN FOR STOR STROM i stallet for att packa upp den", () => {
+    // Varfor det har testet finns: forsta versionen packade upp VARJE strom,
+    // inklusive bilderna. En Flate-packad bild expanderar tiotals ganger, och
+    // lambdan dog med `instance was killed because it ran out of available
+    // memory` — en dod som INTE gar via try/catch, for processen tar slut i
+    // stallet for att kasta. Samma familj som den obegransade fan-outen i
+    // runDailySync, som lag nere i 57 timmar.
+    const stor = zlib.deflateSync(Buffer.alloc(3_000_000, 0x41));
+    const fyllnad = Buffer.alloc(2_100_000, 0x42);      // over MAX_STROM_BYTE
+    const ut = sokEanIPdf(pdf([Buffer.concat([stor, fyllnad])]));
+    expect(ut.forStora).toBe(1);
+    expect(ut.upppackade).toBe(0);
+  });
+
+  it("⚠️ en trasig strom ar inte ett fel — ratexten tacker den anda", () => {
+    const ut = sokEanIPdf(pdf([Buffer.from("inte packad alls", "latin1")]));
+    expect(ut.strommar).toBe(1);
+    expect(ut.upppackade).toBe(0);
+    expect(ut.forStora).toBe(0);
   });
 });

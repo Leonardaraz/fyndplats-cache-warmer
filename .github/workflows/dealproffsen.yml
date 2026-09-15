@@ -145,6 +145,7 @@ jobs:
               printf '%s\n' "$kropp" | jq -r '
                 "| | |\n|---|---:|",
                 "| manualer hamtade | \(.hamtade) |",
+                "| for stora for att lasa (>20 MB) | \(.forStoraPdf) |",
                 "| olasliga (packade med annat an Flate) | \(.olasliga) |",
                 "| **med giltig GTIN-13** | **\(.medGiltigGtin)** |",
                 "| **med tyskt GS1-prefix (400-440)** | **\(.medTysktPrefix)** |",
@@ -159,7 +160,7 @@ jobs:
               echo "> 10 % ar det brus."
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
-              "hamtade \(.hamtade), olasliga \(.olasliga), medGiltig \(.medGiltigGtin), "
+              "hamtade \(.hamtade), forStora \(.forStoraPdf), olasliga \(.olasliga), medGiltig \(.medGiltigGtin), "
               + "medTysk \(.medTysktPrefix), kandidater \(.kandidater), giltiga \(.giltiga)",
               "exempelkoder: \(.exempelkoder | join(" "))",
               (.fel[]? | "  FEL: \(.)")' || true
