@@ -15,6 +15,10 @@
 // varken repot, Actions-loggen eller chatten. Fel nyckel svarar 404, inte 401:
 // rutten ska inte ens erkänna att den finns.
 //
+// GOOGLE_FEED_SECRET lades in på Vercel (Production) 2026-09-16; den här raden
+// finns för att bygget skulle ta med variabeln — vercel.json ignorerar
+// commits som bara rör .md, och en omdeploy av samma commit avbryts.
+//
 // ☠️ RUTTEN LÄSER. Den skriver ingenting — inte i Wix, inte i mappningen.
 
 import { type NextRequest, NextResponse } from "next/server";
