@@ -3,12 +3,10 @@ import sys, os, re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from texter import P
 
-def normalisera(h):
-    h = re.sub(r">\s*\n\s*<", "><", h)
-    h = h.replace("<strong>", '<span style="font-weight: 700">').replace("</strong>", "</span>")
-    h = re.sub(r'(<a href="[^"]+")>', r'\1 target="_self">', h)
-    h = re.sub(r"<li>(?!<p>)(.*?)</li>", r"<li><p>\1</p></li>", h, flags=re.S)
-    return h
+# ☠️ Hade en EGEN kopia av normaliseringen med fyra av fem regler. Den saknade
+# den avslutande radbrytningen och låg alltså en byte fel i varje runda vars
+# fil slutar med radbrytning — alltså alla. En enda definition, i wixnorm.
+from wixnorm import normalisera
 
 def fnv(s):
     # h*31 halls under 2^53 — samma exakta aritmetik i JS och Python.

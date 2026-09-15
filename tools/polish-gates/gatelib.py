@@ -387,12 +387,10 @@ def kropp(html):
     return re.sub(r"<[^>]+>", " ", html)
 
 
-def normalisera(s):
-    """Wix normaliserar två saker: blanksteg mellan blockelement strippas och
-    target="_self" läggs till på varje <a href>. En rå strängjämförelse ger
-    därför "alla skiljer" på en felfri skrivning."""
-    s = s.replace(' target="_self"', "")
-    return re.sub(r">\s+<", "><", s).strip()
+# ☠️ `normalisera` BODDE HÄR och kände bara två av Wix fem åtgärder. Den hade
+# en enda användare — `hasha.py` — och gjorde varje rundas `vantat-hash.tsv`
+# 7 tecken för kort per `<li>`. Den enda sanningen om Wix normalisering bor i
+# `wixnorm.py`, som är uppmätt mot skarpa V3. Lägg inte tillbaka en kopia här.
 
 
 def fnv(s):
