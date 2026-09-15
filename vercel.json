@@ -2,32 +2,16 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/api/cron/aliexpress-sync",
-      "schedule": "0 */2 * * *"
-    },
-    {
-      "path": "/api/cron/bulk-import-worker",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/watchlist",
-      "schedule": "0 6 * * *"
-    },
-    {
       "path": "/api/cron/supplier-watch",
       "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/health-check",
-      "schedule": "*/5 * * * *"
+      "schedule": "25 * * * *"
     },
     {
       "path": "/api/cron/auction-tick",
       "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/poll-tracking",
-      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/cron/order-guard",
@@ -36,10 +20,6 @@
     {
       "path": "/api/cron/order-backfill",
       "schedule": "25 * * * *"
-    },
-    {
-      "path": "/api/cron/review-queue",
-      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/aosom-sync?dryRun=false&skipPrices=1",
