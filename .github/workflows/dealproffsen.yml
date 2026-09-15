@@ -109,6 +109,24 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
               "EAN-kolumn: \(.harEanKolumn), ifylld pa \(.eanIfyllda) av \(.rader) rader"' || true
+
+            # ⚠️ KOLUMNLISTAN OCKSA TILL STDOUT, inte bara till summeringen.
+            #
+            # Samma skal som fordelningstabellen nedan: en summering gar inte
+            # att lasa tillbaka programmatiskt, och en matning ingen kan lasa
+            # ar ingen matning. Fragan "finns EAN nagon annanstans i feeden,
+            # under ett annat namn?" gar inte att besvara utan hela listan —
+            # `harEanKolumn` tittar bara efter de namn vi redan tankt pa.
+            #
+            # ☠️ NAMN OCH IFYLLNADSGRAD, ALDRIG EXEMPELVARDET. Redigeringen i
+            # feed-info bygger pa en NAMNLISTA plus en formkoll, och en kolumn
+            # som heter nagot vi inte forutsett ("Net", "B2B") skulle visa
+            # sitt varde. Strukturen ar redan publik — kolumnnamnen star i
+            # husets egen CLAUDE.md — men vardena ar det inte.
+            echo ""
+            echo "KOLUMNER (antal ifyllda rader, kolumnnamn):"
+            printf '%s\n' "$kropp" | jq -r '
+              .kolumner[] | "  \(.ifyllda)\t\(.namn)"' || true
             exit 0
           fi
 
