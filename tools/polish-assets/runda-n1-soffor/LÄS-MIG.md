@@ -141,12 +141,45 @@ unika redan före bytet. De bytte ändå, för de var tyska:
 `FP-2-sitzer-schlafsofa-aus`, `FP-218-cm-3-sitzer-sofa`,
 `FP-3-sitzer-sofa-mit`, `FP-3-sitzer-ecksofa`.
 
+## ✅ De fyra måttkorten är byggda och sitter på sidorna
+
+De fyra som förlorade sin måttritning har fått ett eget svenskt kort sist i
+galleriet — samma plats ritningen hade. Byggda med `scripts/cardkit.py`,
+raderna hämtade ur produktens EGEN spec-flik.
+
+| kort | bilder före | efter |
+| :-- | --: | --: |
+| `b99570fd` | 3 | **4** |
+| `617ce9ff` | 4 | **5** |
+| `45e68631` | 4 | **5** |
+| `59aeb88a` | 4 | **5** |
+
+☠️ **Fotnoten citerar inte källan.** `KORTLACKAN.md`: nio publicerade kort
+bär Aosoms artikelnummer i pixlarna, för att den som byggde dem angav sin
+källa — gott hantverk överallt utom här, eftersom ingen textgrind kan läsa
+en sträng som ligger i en JPEG. Fotnoten säger bara `måtten i klartext ·
+<färg och material>`.
+
+☠️ **OCH KORTENS TEXT PASSERAR INGEN AV RUNDANS GRINDAR.** Första utkastet
+till `617ce9ff` hade rubriken *"Smalast i sortimentet, med vingrygg"* — ett
+superlativ om VÅR EGEN katalog, och omätt. `gate-superlativ.py` läser
+`<kort>.html`, inte `bygg-kort.py`, så den kunde inte se det. Samma familj
+som KORTLACKAN, en nivå tidigare: grinden finns, men kortet ligger utanför
+det den läser. Rubriken är nu ett faktum (`Bara 117 cm bred`), och
+kortrubrikerna grindades för hand mot samma frågeställning.
+
+⚠️ Uppladdningen svarade `PENDING`, inte `READY`. Skrivningen kontrollerar
+därför filstatus FÖRST och avbryter på allt som inte är `READY` — en fil som
+inte hunnit bli klar var exakt mekanismen bakom *"524 lagade, 214 saknade
+ändå bilder"*, och kortet hade blivit en tom ruta.
+
+Verifierat i en separat läsning: 4 av 4 har kortet SIST, med rätt alt-text,
+och brödtext, SKU, variantens synlighet och produktens synlighet orörda.
+
 ## Kvar efter rundan
 
-- **Fyra sidor utan måttritning** (`b99570fd`, `617ce9ff`, `45e68631`,
-  `59aeb88a`) — kandidater för ett eget svenskt måttkort, samma behov som
-  `#216`, `#223` och `#242`.
-- **`b99570fd` har bara tre bilder**, `d372e8e9` likaså.
+- **`d372e8e9` har bara tre bilder.** Den behöll sin måttritning (bild 3 var
+  ren), så den behöver inget kort — men galleriet är tunt.
 
 ## Live-verifieringen: 8/8 REN
 
