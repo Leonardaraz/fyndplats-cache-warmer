@@ -132,3 +132,53 @@ describe("en rad utan måttrad AVBRYTER hellre än tiger", () => {
     expect(() => bygg({ aaa: kalla(["Farbe: Grün", "Material: PE, PVC"]) })).toThrow();
   });
 });
+
+describe("KVALIFICERAD ETIKETT — bara när den nakna tiger", () => {
+  it("läser Gesamtgröße, som inte stod i etikettlistan", () => {
+    // Runda N1, hörnsoffan fe56b0e6. Ordet fanns inte i ETIKETT alls, så
+    // generatorn avbröt — rätt beteende, men den kunde bättre.
+    const ut = bygg({ aaa: kalla(["Gesamtgröße: 193B x 136T x 85H cm"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 193, djup: 136, hojd: 85 });
+    expect(ut.aaa.axelkalla).toBeUndefined();
+  });
+
+  it("läser etiketten med bestämningsord och skriver ut vilket", () => {
+    // Runda N1, bäddsoffan d372e8e9: `Gesamtabmessungen Sofa:`.
+    const ut = bygg({
+      aaa: kalla([
+        "Gesamtabmessungen Sofa: 203B x 95T x 75H cm",
+        "Gesamtabmessungen Bett: 203B x 121T x 38H cm",
+      ]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 203, djup: 95, hojd: 75 });
+    expect(String(ut.aaa.axelkalla)).toContain("Sofa");
+  });
+
+  it("☠️ SOFFANS mått, inte BÄDDENS — höjden skiljer 37 cm", () => {
+    // Hela skälet till att bestämningsordet inte fick tillåtas rakt av: en
+    // bäddsoffa har TVÅ totalrader, och tar man fel är facit 38 cm högt i
+    // stället för 75. Grinden hade då fällt varje korrekt höjdangivelse.
+    const ut = bygg({
+      aaa: kalla([
+        "Gesamtabmessungen Sofa: 203B x 95T x 75H cm",
+        "Gesamtabmessungen Bett: 203B x 121T x 38H cm",
+      ]),
+    });
+    expect(ut.aaa.hojd).toBe(75);
+    expect(ut.aaa.hojd).not.toBe(38);
+  });
+
+  it("☠️ den NAKNA etiketten vinner alltid över en kvalificerad", () => {
+    // Ordningen är spärren: pass 1 är oförändrat beteende, så allt som
+    // byggts hittills regenererar byte-identiskt. Här står den kvalificerade
+    // raden FÖRST i källan och ska ändå förlora.
+    const ut = bygg({
+      aaa: kalla([
+        "Gesamtabmessungen Bett: 203B x 121T x 38H cm",
+        "Gesamtabmessungen: 203B x 95T x 75H cm",
+      ]),
+    });
+    expect(ut.aaa.hojd).toBe(75);
+    expect(ut.aaa.axelkalla).toBeUndefined();
+  });
+});

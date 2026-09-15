@@ -39,7 +39,26 @@ ANVÄNDNING (från rundans katalog):
 import io, json, re, sys
 
 # Aosom använder alla fyra omväxlande — M1 föll på att bara känna igen två.
-ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtmaße|Gesamtmasse|Maße|Masse)"
+ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtgröße|Gesamtgrösse|Gesamtgroesse|Gesamtmaße|Gesamtmasse|Maße|Masse)"
+
+# ☠️ ETIKETTEN KAN BÄRA ETT BESTÄMNINGSORD, OCH DÅ FINNS DET FLER ÄN EN.
+# Uppmätt i runda N1 på bäddsoffan d372e8e9, som har BÅDA:
+#
+#     Gesamtabmessungen Sofa: 203B x 95T x 75H cm
+#     Gesamtabmessungen Bett: 203B x 121T x 38H cm
+#
+# Ett naket `ETIKETT\s*:` hittar ingen av dem och generatorn avbryter —
+# rätt beteende, men den kan bättre. Att bara tillåta bestämningsordet
+# vore däremot att öppna för att fälla in BÄDDENS mått som produktens,
+# och en bäddsoffa är 75 cm hög som soffa och 38 cm som bädd.
+#
+# Därför två pass, och ordningen är hela spärren:
+#   1. etiketten DIREKT följd av kolon — oförändrat beteende för allt
+#      som byggts hittills, så M1–M4 regenererar byte-identiskt.
+#   2. bara om pass 1 tiger: etiketten + ETT bestämningsord. Ordet
+#      skrivs in i `axelkalla`, så en läsare ser vilken rad facit kom
+#      ur i stället för att behöva gissa.
+KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -104,17 +123,27 @@ def main():
         ren = re.sub(r"<[^>]+>", "\n", kallor[kort])
         rader = [x.strip() for x in ren.split("\n") if x.strip()]
         tysk = ""
+        kvalificerare = ""
         for rad in rader:
             m = re.search(ETIKETT + r"\s*:\s*(.+)$", rad)
             if m:
                 tysk = m.group(1).strip()
                 break
+        if not tysk:
+            for rad in rader:
+                m = re.search(KVALIFICERAD, rad)
+                if m:
+                    kvalificerare = m.group(1)
+                    tysk = m.group(2).strip()
+                    break
         svensk = ""
         for i, rad in enumerate(rader):
             if rad == "Mått:" and i + 1 < len(rader):
                 svensk = rader[i + 1].strip()
                 break
         d = {"tyska": tysk, "svenska": svensk}
+        if kvalificerare:
+            d["axelkalla"] = f"tyska raden '{kvalificerare}' (etiketten bar ett bestämningsord)"
         par = axelpar(tysk)
         # ☠️ DEN TYSKA TOTALRADEN BÄR INTE ALLTID EN AXELBOKSTAV. Uppmätt i
         # runda M4 på 86fdd9af: `Gesamtabmessung: Ø70 x 210 cm` — ingen `H`

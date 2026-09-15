@@ -72,3 +72,12 @@ får inte nå kund — samma skäl som husmärkena stryks ur texten.
 
 33 av 40 bilder. Tre produkter behåller alla fem (`1fd11824`, `8aad177d`,
 `fe56b0e6`), tre får fyra, två får tre.
+
+## Kategori: `Hem & Inredning` utan löv
+
+Trädet har inget möbel- eller sittmöbelblad — kontrollerat mot alla 54
+kategorier. `Hem & Inredning` har sju barn (Badrum & Hemtextil, Belysning,
+Dekoration & Prydnad, Förvaring & Organisering, Hushållsapparater, Kalas &
+Fest, Verktyg & Hemmafix) och ingen av dem rymmer en soffa. Runbooken säger
+att toppkategorin räcker då, och det är vad som kopplas — precis som för
+sittmöblerna i #149.
