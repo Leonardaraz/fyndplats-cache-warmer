@@ -1,0 +1,238 @@
+name: Pris — konkurrentregeln (dealproffsen)
+
+# Konkurrentregelns bokforing, korbar fran en telefon. Tre lagen:
+#
+#   status   Hur manga rader bar ett dealproffsen-pris, hur farska ar de, hur
+#            manga ar lottade i grupp A (2 % under) och B (5 % under)?
+#   spara    Hamta dealproffsens priser (samma vag som jamforelsen) och bokfor
+#            dem pa mappningsraderna. TORRT som default.
+#   lotta    Lotta A/B-grupp pa publicerade Aosom-rader med konkurrentpris.
+#            TORRT som default; skarp korning kraver torrkorningens antal i
+#            `bekrafta`.
+#
+# ☠️ INGET KUNDPRIS SKRIVS HAR. Synken (aosom-sync) raknar fram kundpriset ur
+# konkurrentpriset och gruppen, med golv och tak och sin egen torrkorning.
+# Tva grindar, inte en.
+#
+# ☠️ LOGGEN AR PUBLIK. Svaret bar aldrig Aosoms artikelnummer — raderna
+# nycklas pa wixProductId. Samma regel som i dealproffsen.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "status · spara · lotta"
+        required: true
+        default: "status"
+        type: choice
+        options:
+          - status
+          - spara
+          - lotta
+      skarp:
+        description: "ja = skriv (spara/lotta). nej = torrkorning."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      varv:
+        description: "spara: max antal varv (markoren loopas). Default 12."
+        required: false
+        default: "12"
+        type: string
+      bekrafta:
+        description: "lotta skarp: torrkorningens antal (attLotta). Tomt = vagras."
+        required: false
+        default: ""
+        type: string
+      bara:
+        description: "lotta: kommaseparerade wix-id att begransa till. Tomt = alla."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  konkurrentpris:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          SKARP: ${{ inputs.skarp }}
+          VARV: ${{ inputs.varv }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          BARA: ${{ inputs.bara }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/konkurrentpris"
+
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod}" >&2
+              printf '%s\n' "$kropp" >&2
+              return 1
+            fi
+            printf '%s' "$kropp"
+          }
+
+          dry="true"
+          [ "${SKARP:-nej}" = "ja" ] && dry="false"
+
+          # ── status ──────────────────────────────────────────────────────────
+          if [ "${MODE}" = "status" ]; then
+            kropp="$(anropa "${url}?lage=status")"
+            {
+              echo "### Konkurrentregeln — status"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| Aosom-rader | \(.aosomRader) |",
+                "| **med dealproffsen-pris** | **\(.medKonkurrentpris)** |",
+                "| varav farska (prissatter) | \(.farska) |",
+                "| **varav GAMLA (fryser i synken)** | **\(.gamla)** |",
+                "| aldsta pris, dagar | \(.aldstaDagar // "-") |",
+                "| grupp A (2 % under) | \(.medGrupp.A) |",
+                "| grupp B (5 % under) | \(.medGrupp.B) |",
+                "| grupp utan pris (regeln kan inte verka) | \(.gruppUtanPris) |"
+              ' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "aosom \(.aosomRader), medPris \(.medKonkurrentpris) (farska \(.farska), GAMLA \(.gamla)), A \(.medGrupp.A) / B \(.medGrupp.B), gruppUtanPris \(.gruppUtanPris), aldsta \(.aldstaDagar // "-") d"' || true
+            exit 0
+          fi
+
+          # ── lotta ───────────────────────────────────────────────────────────
+          if [ "${MODE}" = "lotta" ]; then
+            q="lage=lotta&dryRun=${dry}"
+            [ -n "${BARA:-}" ] && q="${q}&bara=$(printf '%s' "$BARA" | tr -d ' ')"
+            if [ "$dry" = "false" ]; then
+              if [ -z "${BEKRAFTA:-}" ]; then
+                echo "::error::skarp lottning kraver bekrafta = torrkorningens antal" >&2
+                exit 1
+              fi
+              q="${q}&bekrafta=${BEKRAFTA}"
+            fi
+            kropp="$(anropa "${url}?${q}")"
+            {
+              echo "### Lottning A/B — $([ "$dry" = "true" ] && echo TORRKORNING || echo SKARP)"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| **att lotta** | **\(.attLotta)** |",
+                "| grupp A / B | \(.perGrupp.A) / \(.perGrupp.B) |",
+                "| lottade (skrivna) | \(.lottade) |",
+                "| redan lottade | \(.redanLottade) |",
+                "| utan konkurrentpris | \(.utanKonkurrent) |",
+                "| ej publicerade | \(.ejPublicerade) |",
+                "| utan entydigt butikspris | \(.utanVartPris) |",
+                "| skrivfel | \(.skrivfel) |",
+                "| urval | \(.urval // "alla") |"
+              ' || true
+              if [ "$dry" = "true" ]; then
+                echo ""
+                echo "> Skarp korning: kor igen med skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.attLotta')."
+              fi
+              echo ""
+              echo "| wix-id | grupp | vart pris |"
+              echo "|---|:--:|---:|"
+              printf '%s\n' "$kropp" | jq -r '.rader[]? | "| `\(.wixProductId)` | \(.grupp) | \(.vartPris) |"' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "attLotta \(.attLotta) (A \(.perGrupp.A) / B \(.perGrupp.B)), lottade \(.lottade), redan \(.redanLottade), utanKonkurrent \(.utanKonkurrent), ejPublicerade \(.ejPublicerade), utanVartPris \(.utanVartPris), skrivfel \(.skrivfel)"' || true
+            exit 0
+          fi
+
+          # ── spara: loopa markoren ───────────────────────────────────────────
+          after=""
+          varv=0
+          tot_att=0; tot_nya=0; tot_sp=0; tot_of=0; tot_ut=0; tot_fel=0; tot_prefix=0; tot_skrivfel=0
+          sista_kvar=0; ofullstandig=0
+          : > exempel.ndjson
+
+          while [ "$varv" -lt "${VARV}" ]; do
+            varv=$((varv + 1))
+            q="lage=spara&dryRun=${dry}"
+            [ -n "$after" ] && q="${q}&after=${after}"
+            kropp="$(anropa "${url}?${q}")"
+
+            att=$(printf '%s' "$kropp" | jq -r '.attSpara')
+            nya=$(printf '%s' "$kropp" | jq -r '.nyaPriser')
+            sp=$(printf '%s' "$kropp" | jq -r '.sparade')
+            of=$(printf '%s' "$kropp" | jq -r '.oforandrade')
+            ut=$(printf '%s' "$kropp" | jq -r '.utanTraff')
+            nfel=$(printf '%s' "$kropp" | jq -r '.fel | length')
+            sfel=$(printf '%s' "$kropp" | jq -r '.skrivfel')
+            npre=$(printf '%s' "$kropp" | jq -r '.prefixHamtade')
+            kvar=$(printf '%s' "$kropp" | jq -r '.kvar')
+            full=$(printf '%s' "$kropp" | jq -r '.fullstandig')
+            cur=$(printf '%s' "$kropp" | jq -r '.cursor // ""')
+
+            tot_att=$((tot_att + att)); tot_nya=$((tot_nya + nya)); tot_sp=$((tot_sp + sp))
+            tot_of=$((tot_of + of)); tot_ut=$((tot_ut + ut)); tot_fel=$((tot_fel + nfel))
+            tot_prefix=$((tot_prefix + npre)); tot_skrivfel=$((tot_skrivfel + sfel)); sista_kvar="$kvar"
+            [ "$full" = "false" ] && [ "$kvar" = "0" ] && ofullstandig=1
+
+            printf '%s' "$kropp" | jq -c '.exempel[]?' >> exempel.ndjson || true
+            echo "varv ${varv}: ${npre} prefix, ${att} att spara (${nya} nya priser), ${sp} sparade, ${of} oforandrade, ${ut} utan traff, ${sfel} skrivfel, ${kvar} prefix kvar"
+            printf '%s' "$kropp" | jq -r '.fel[]? | "  FEL \(.prefix): \(.skal)"' >&2 || true
+
+            [ "$kvar" = "0" ] && break
+            [ -z "$cur" ] && break
+            if [ "$cur" = "$after" ]; then
+              echo "::warning::markoren stod stilla pa ${cur} — avbryter" >&2
+              break
+            fi
+            after="$cur"
+          done
+
+          {
+            echo "### Konkurrentpriser — $([ "$dry" = "true" ] && echo TORRKORNING || echo SKARP)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| prefix hamtade | ${tot_prefix} |"
+            echo "| **att spara** | **${tot_att}** |"
+            echo "| varav nya/andrade priser | ${tot_nya} |"
+            echo "| sparade (skrivna) | ${tot_sp} |"
+            echo "| oforandrade (farska, samma pris) | ${tot_of} |"
+            echo "| de saljer den inte | ${tot_ut} |"
+            echo "| prefix som INTE gick att hamta | ${tot_fel} |"
+            echo "| skrivfel | ${tot_skrivfel} |"
+            echo "| prefix kvar | ${sista_kvar} |"
+            if [ "${tot_fel}" -gt 0 ] || [ "${sista_kvar}" != "0" ] || [ "${ofullstandig}" = "1" ]; then
+              echo ""
+              echo "> ⚠️ **Ofullstandig korning.** Rader som inte fick sitt pris uppfriskat"
+              echo "> fryser i synken efter sju dagar. Kor igen."
+            fi
+            echo ""
+            echo "#### Priser som andrats hos dem (topp 20 per varv)"
+            echo ""
+            echo "| wix-id | fran | till |"
+            echo "|---|---:|---:|"
+            jq -s -r '.[] | "| `\(.wixProductId)` | \(.fran) | \(.till) |"' exempel.ndjson || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "KLART: ${tot_sp} sparade av ${tot_att} planerade, ${tot_nya} nya priser, ${tot_ut} utan traff"
+
+          if [ "${tot_prefix}" -eq 0 ]; then
+            echo "::error::Noll prefix gick att hamta — korningen vet ingenting" >&2
+            exit 1
+          fi
+          if [ "${tot_fel}" -ge 10 ] && [ $((tot_fel * 100)) -ge $(((tot_fel + tot_prefix) * 10)) ]; then
+            echo "::error::${tot_fel} av $((tot_fel + tot_prefix)) prefix foll — massfel" >&2
+            exit 1
+          fi
