@@ -2712,12 +2712,28 @@ Own Brand Label: *"Products with an agreement between the Original Manufacturer
 and the party identified on the label as the Brand Owner … have the Brand Owner
 taking responsibility for GTIN assignment."*
 
+✅ **LEONARD AVGJORDE BÅDA FRÅGORNA 2026-09-15, och de ska inte ställas igen:**
+
+1. **Skriftligt medgivande behövs inte — det står redan i Henriks mejl.** Han
+   skriver *"Most of our white-label customers … assign their own EAN codes.
+   This is also the intended arrangement on our side"* och ber oss uttryckligen
+   bekräfta *"that you will … use your own EAN codes"*. Att fråga om lov en
+   gång till hade visat att vi inte läst svaret.
+2. **Varorna skickas i ORIGINALFÖRPACKNING, och vårt märke trycks aldrig på
+   produkten.** Leonard: *"vårt märke har aldrig varit tryckt på någon
+   produkt"*. White label betyder här att vi äger listningen och texten — inte
+   att kartongen är omärkt.
+
+⚠️ Punkt #195 (två gamingstolar med VINSETTO tryckt på produkten) står kvar som
+en egen observation om de två artiklarna. Den gäller LEVERANTÖRENS märke, inte
+vårt, och den ändrar inte upplägget ovan.
+
 ☠️ **AVTALET ÄR DET SOM BÄR, inte vår egen tolkning.** Samma GS1-sida säger
 också: *"downstream parties, such as distributors, wholesalers, importers and
 merchants, should not assign a different GTIN to a trade item that already has
 a GTIN, provided that the trade item is not changed."* Vi går alltså in genom
 Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
-Henriks mejl är nära men inte uttryckligt — **be om raden.**
+**Henriks mejl ÄR den skriften** — spara det.
 
 ⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
 publicerar `gtin13: 4255826873673` för artikel `83B-129V00GY`, och koderna är
@@ -2730,11 +2746,6 @@ dem inte" — inte som "de finns inte".
 ☠️ **DÄRFÖR ÄR DEN HÄR FRÅGAN INTE TEKNISK UTAN AVTALSMÄSSIG.** Håller
 white-label-upplägget är egna GTIN rätt väg; håller det inte är det en
 ommärkning av någon annans vara. Skriftligt besked från Aosom är skillnaden.
-
-⚠️ **Och white label är inte sant om varan bär märket.** Två gamingstolar har
-VINSETTO tryckt på själva produkten (se punkt #195). En vara med leverantörens
-märke instansat är inte vår att märka om, vad avtalet än säger. Det måste
-frågas innan vi bekräftar.
 
 ✅ **Om det håller löser det HELA sekretessproblemet:** egen GTIN + `brand:
 Fyndplats` gör att `mpn` inte längre krävs, och då behöver Aosoms artikelnummer
