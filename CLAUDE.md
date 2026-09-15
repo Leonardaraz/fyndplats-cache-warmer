@@ -2638,6 +2638,66 @@ genom att återinföra kapningen — två faller, och bara de två.
 ⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
 hade inget larm att ge.
 
+### ☠️ Gap-listan rankar PENGAR, inte vad som är värt att polera (2026-09-15)
+
+Rapporten svarar på "var är vi billigare". Läst som en poleringskö svarar den
+på fel fråga, och första gången den användes så pekade den rakt fel.
+
+**1 577 opolerade utkast där vi är billigare, 532 235 kr i samlat gap.**
+Rankat på kronor ligger fåtöljer och trädgårdsmöbler i topp. Båda är fel
+svar, och skälen är olika:
+
+☠️ **Fåtöljfamiljen är MÄTTAD.** Femton kandidater ur listans topp ställdes
+mot de 247 publicerade sittmöblerna på måtttrippeln:
+
+| | |
+|---|---:|
+| kandidater med minst en krock | **14 av 15** |
+| krockar totalt | **63** |
+| kandidater med EXAKT samma mått som en publicerad sida | 4 |
+
+En av dem (`1bf87dc9`, 79 × 64 × 52) matchar **fyra** publicerade färgsidor
+av samma stol. Pengarna ligger alltså i den familj katalogen redan täcker —
+och en nionde sida för samma fåtölj är just den dubblett Google straffar.
+
+⚠️ **Trädgård är fel SÄSONG.** 285 kandidater och 137 770 kr, i mitten av
+september. En utegrupp som poleras nu får sin första besökare om sju
+månader.
+
+**Urvalsregeln är därför gap PER PUBLICERAD SIDA i samma kategori**, med
+säsongen som filter ovanpå. Samma data, annan sortering:
+
+| kategori | kandidater | gap kr | publicerade | gap/sida |
+|---|---:|---:|---:|---:|
+| trädgård/ute | 256 | 127 330 | 132 | 965 |
+| **soffa/bäddsoffa** | **79** | **50 430** | **48** | **1 051** |
+| matbord/matgrupp | 45 | 27 290 | 36 | 758 |
+| säng/madrass | 63 | 20 010 | 28 | 715 |
+| fåtölj/recliner | 114 | 75 530 | 225 | **336** |
+
+Fåtöljer är näst störst i kronor och NÄST SIST per sida. Det är hela
+skillnaden mellan de två läsningarna.
+
+☠️ **Och måttskärmen har en blind fläck som nästan kostade rundan.** Den
+tyska källan skriver totalmåttet med axelbokstaven inne i talet:
+
+```
+Gesamtabmessungen: 218B x 79T x 91H cm     <- produktens mått
+Paketmått: 92 × 43 × 70 cm                 <- kartongen
+```
+
+Ett mönster som kräver `\d+ x \d+ x \d+ cm` hittar bara den ANDRA raden.
+Första soffsvepet gav därför "noll krockar" på ett facit som mätte kartongen.
+Med produktens mått avlästa för hand föll `c6c880c3` direkt: 213 × 82 × 90 cm
+chenille, 360 kg, identiska tal mot publicerade `f7e2b537`.
+
+**Läs produktens mått ur källan, och låt mönstret ta axelbokstaven.**
+
+☠️ **`products/search` avvisar filter + markör ihop** — `400 SE-1141`, samma
+form som `inventory-items/query` (2026-09-13). Sida två skickas med BARA
+markören. Tredje endpointen i familjen; `orders/search` tar fortfarande emot
+båda, så formen är inte gemensam. Mät per endpoint.
+
 ### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
 
 Leonards fråga: *"tror du inte dealproffset har hittat på en egen ean då?"*
