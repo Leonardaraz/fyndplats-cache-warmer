@@ -70,8 +70,28 @@ export interface RedirectConflict {
  * sätt när produkten återkom.
  *
  * Lärdomen: HTTP-status är ett för svagt bevis för att en produkt är död.
- * Katalogen är facit. listAllV3Products() returnerar bara synliga produkter
- * (query:t sätter inte returnNonVisibleProducts), så en träff = levande sida.
+ * Katalogen är facit.
+ *
+ * ☠️ MEN EN TRÄFF ÄR INTE EN LEVANDE SIDA — och den här kommentaren påstod i
+ * månader att den var det. Den skrev att `listAllV3Products()` "returnerar
+ * bara synliga produkter (query:t sätter inte returnNonVisibleProducts)".
+ * Det är fel: `products/query` lägger INTE på något implicit `visible:true`,
+ * vilket huset redan mätt upp och skrivit ned (CLAUDE.md, 2026-09-02 — ett
+ * utkast returneras med `visible:false` av en fråga som inte nämner
+ * synlighet alls). Listan bar dessutom inget `visible`-fält, så påståendet
+ * gick inte att motbevisa genom att läsa koden intill.
+ *
+ * Felet gick åt BÅDA håll, och det andra är det dyra:
+ *   1. En 301 FRÅN ett pensionerat utkast vägrades som "en säljande sida".
+ *      Falsklarm — irriterande, men ofarligt.
+ *   2. En 301 TILL ett utkast SLÄPPTES IGENOM. Målkontrollen finns just för
+ *      att stoppa en redirect som leder till en 404, och den kunde aldrig
+ *      fälla en: ett osynligt utkast låg i `liveSlugs` som vilken sida som
+ *      helst. En kontroll som inte KAN fälla räknas ändå som gjord.
+ *
+ * Mätt 2026-09-16 på trappkärran `59c3b5d6`: avpublicerad (revision 10,
+ * `visible:false` i både GET och search), och rutten vägrade ändå med
+ * "är fortfarande en synlig produkt".
  *
  * Två kontroller:
  *   1. fromSlug får inte vara en levande produkt (annars kapar vi en säljande sida).
@@ -89,7 +109,15 @@ export async function findRedirectConflicts(rows: RedirectRow[]): Promise<Redire
   let liveSlugs: Set<string>;
   try {
     const products = await listAllV3Products();
-    liveSlugs = new Set(products.map((p) => (p.slug || "").trim().toLowerCase()).filter(Boolean));
+    liveSlugs = new Set(
+      products
+        // Samma riktning som resten av huset: saknat `visible` räknas som
+        // synligt. Att tyst klassa en produkt som död för att ett fält inte
+        // kom med vore fel åt det håll som kapar en säljande sida.
+        .filter((p) => p.visible !== false)
+        .map((p) => (p.slug || "").trim().toLowerCase())
+        .filter(Boolean),
+    );
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 200) : String(err);
     return rows.map((r) => ({
@@ -99,6 +127,9 @@ export async function findRedirectConflicts(rows: RedirectRow[]): Promise<Redire
   }
   // Tom katalog = misslyckat uppslag som såg ut att lyckas. Vore den sann
   // skulle varenda rad godkännas, vilket är exakt fel utfall.
+  // Tom lista av SYNLIGA produkter är samma sak som ett misslyckat uppslag:
+  // vore den sann skulle varje rad godkännas, och målkontrollen skulle vägra
+  // varenda redirect. Fail-closed, oförändrat.
   if (liveSlugs.size === 0) {
     return rows.map((r) => ({
       fromSlug: r.fromSlug,
