@@ -126,3 +126,55 @@ mätning rankar fåtölj/kontorsstol SIST på gap per publicerad sida (336 kr mo
 soffans 1 051). Måttskärmen är ändå ren mot alla 2 835 publicerade sidor, och
 gapet är bandets största med god marginal — men familjen är värd att hålla
 ögonen på i kommande rundor.
+
+---
+
+## KVITTOKEDJAN — rundan är stängd 2026-09-16
+
+| steg | utfall |
+|---|---|
+| Filgrindar (nio st) | **0 fynd** i samtliga |
+| Skrivning 1 — text, namn, slug, seoData, visible | **9/9**, revision 1–4 → 2–5 |
+| Skrivning 2 — media ENSAM (`fieldMask: media`) | **9/9**, 51 poster, kortet sist |
+| Skrivning 3 — kategorier | **17/17 per rad**, 0 fel |
+| Skrivning 4 — `variantsInfo` SIST och ENSAM | **9/9**, variantens `visible` bevarad |
+| Stämpling (`polish-mapping.yml`, ref = arbetsgrenen) | **9/9 gröna**, körning 3133–3141 |
+| Separat återläsning en stund senare | **9 av 9 LIKA** |
+| Live-grind på publicerade sidor, age 102–108 s | **9/9 REN, orddiff 0** |
+| Korten, md5 hemhämtad mot lokal | **9/9 byte-identiska** |
+| Korten på mottagarsidan, två oberoende handtag | **9/9**, kortet sist, huvudbilden ett foto |
+| `kort-n8-tmp` raderad | bekräftat genom att LÄSA fjärren: 0 kvar |
+
+Återläsningen kollade också varje sidokrav: alla nio `visible: true`, alla med
+**två** SEO-taggar (inte fem), noll bilder utan alt-text, alla varianter
+synliga och alla nio med sin svenska SKU.
+
+## ☠️ TVÅ SKRIVNINGAR SOM SKREV NOLL — och båda var MIN kuvertform
+
+Bägge stoppades av ett **400**, inte av tystnad. Det är den billiga
+riktningen att fela åt, och skillnaden mot `fontagen-weight`, som Wix strök
+tyst och rapporterade som framgång.
+
+1. **Kroppen låg under `data`, inte `body`.** Hjälparen kastar bort `data`
+   utan att säga något, så Wix fick en tom produkt och svarade *"revision must
+   not be empty"* — trots att revisionen lästes korrekt i samma anrop.
+   `bygg-skrivning.py` genererade `body`; jag skrev om det till `data` när jag
+   anpassade anropet. **Generatorn hade rätt, avskriften fel** — samma
+   asymmetri som H3 mätte upp på SEO-fälten.
+
+   Uppmätt med husets egen medicin, en skrivning vars enda ändring är ingen
+   ändring: `body` → revision 1 → 2 med namnet oförändrat, `data` → samma 400.
+
+2. **Media-itemet har `id` och `altText` på TOPPNIVÅN, inte inuti `image`.**
+   Läsningen viker ut ett `image`-objekt bredvid dem, och jag tog svarets form
+   för skrivningens. Itemets nycklar är
+   `["id","altText","image","mediaType","uploadId"]`.
+
+✅ **Kontrollsumman gjorde exakt sitt jobb tre gånger.** Den passerade i alla
+tre anropen, alltså var transkriberingen byte-exakt varje gång. Felen låg i
+kuvertet, aldrig i texten — och spärren skilde de två åt utan att jag behövde
+gissa.
+
+**Regeln som följer: läs svarets form som ett SVAR, inte som en mall.** En
+läsning viker ut bekvämlighetsfält (`image`, `uploadId`) som skrivningen inte
+tar emot. Mät skrivformen mot dokumentationen eller mot en no-op-skrivning.
