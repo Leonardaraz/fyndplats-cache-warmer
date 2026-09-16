@@ -7,10 +7,6 @@
       "tecken": 1878,
       "summa": 440504
     },
-    "c7c74ab2": {
-      "tecken": 2255,
-      "summa": 387369675
-    },
     "e2932b74": {
       "tecken": 2118,
       "summa": 272446709
@@ -38,6 +34,11 @@
     "cb57e1dc": {
       "tecken": 1618,
       "summa": 107723835
+    },
+    "d0f68e25": {
+      "tecken": 1820,
+      "summa": 655654065
     }
-  }
+  },
+  "byte": "c7c74ab2 (koksset) byttes mot d0f68e25 (koksvagn) efter kontaktarket: bild 4 och 5 var tyska funktionsgrafiker och bild 3 bar tysk text mitt i produktbilden. Ingen beskarning nar dem — samma slutsats som marknadskollaget df3a97c6-4 i runda N4."
 }
