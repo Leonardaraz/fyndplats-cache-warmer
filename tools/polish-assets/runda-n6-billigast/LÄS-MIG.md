@@ -109,3 +109,88 @@ POST /stores/v3/products/search  fields:["PLAIN_DESCRIPTION"] -> 3 544 tecken
 `fields` ligger på KROPPENS toppnivå, inte inuti `search`. Det gör den
 katalogomfattande måttskärmen till ~28 anrop i stället för ett GET per
 produkt — alltså körbar i en session i stället för att behöva delas upp.
+
+## Rundan stängd — kvittokedjan hela vägen
+
+| steg | facit | utfall |
+|---|---|---|
+| källorna ordagranna | kontrollsumma räknad server-side | **9/9** |
+| artikelnummer i källfilerna (#257) | grep på `NNN-NNNXX` | **0** |
+| lagersaldo | Wix inventory | 9/9 köpbara (4–129) |
+| bildhash mot publicerade | md5 på huvudbilden | 0 träffar (äkta negativt) |
+| måttskärm | den vida trippeln, 2 817 sidor | 7 krockar bortvalda |
+| åtta filgrindar + kortgrinden | `tools/polish-gates/` | REN |
+| kortens parning vid uppladdning | md5 hemhämtat mot lokal kopia | **10/10** |
+| textskrivning | kontrollsumma i SAMMA anrop | 9/9, **ett avbrott** (se nedan) |
+| media | `fieldMask: ["media"]`, ensam | **54 poster, 0 utan alt** |
+| kategori | bulk-svarets `itemMetadata` per rad | **17/17** |
+| variantsInfo | sist och ensam | 9/9, variantens `visible` kvar |
+| stämpling | rutten läser tillbaka, 500 om värdet inte sitter | **9/9 gröna** |
+| återläsning | SEPARAT anrop, `aterlas.js` | **9/9 LIKA**, alla synliga |
+| kortens parning i BUTIKEN | Wix-mediaid **och** filnamn, samma post | **9/9**, kortet sist |
+| **live-grind** | publicerad sida mot källfil | **9/9 REN, orddiff 0** |
+
+Live-hämtningen gav `age` 102 s mot en paus på 90 — alltså den rendering den
+varma träffen utlöste, inte en äldre cachad sida.
+
+## ☠️ Transkriberingsspärren FÄLLDE, och gjorde rätt
+
+Fjärde textanropet avbröts på **ett tecken av 2 704** i fotpallens brödtext:
+
+```
+{"AVBRUTET":"transkriberingsfel — ingenting skrivet",
+ "avvik":[{"kort":"8f1b8163","fick":350727435,"vantat":246246014,"tecken":2703}]}
+```
+
+Ingenting skrevs — varken fotpallen eller skrivarstället, som låg i samma
+anrop. Det är med flit: en delvis skriven batch är det dyra utfallet, för Wix
+stryker ogiltig markup TYST och rapporterar framgång.
+
+Filen på disk räknade 2 704 tecken och stämde mot facit, alltså satt felet i
+kopieringen in i anropet — precis där spärren finns för att leta. Efter
+rättelsen gick samma två produkter igenom utan avbrott.
+
+⚠️ **Och det NÄSTA försöket föll på något annat:** `revision must not be empty`.
+En fältmask-PATCH mot V3 kräver revisionen i kroppen. Båda produkterna fick
+400 och ingenting skrevs — felet kostade ett anrop, inte en halvskriven sida.
+Revisionen läses nu per produkt i samma anrop som skrivningen.
+
+## ☠️ Spärren utvidgad till ALT-TEXTERNA
+
+Regeln säger *skriv i en fil först*, och den gäller varje fält som når kunden —
+inte bara brödtexten. 54 mediaposter är lika mycket en avskrift som en
+brödtext är, och alt-texterna är precis där tyska rester överlevt en felfri
+textpolering förr.
+
+Mediaskrivningen bär därför samma spärr: kontrollsumman räknas per produkt på
+`id + "|" + altText` sammanfogat, i SAMMA anrop som skrivningen, med facit ur
+`media-hash.tsv`. Nio av nio stämde på första försöket.
+
+## ⚠️ En kvarleva ur N5 stängd på köpet
+
+N5 dömde `5ae05b43` som samma fällbara skrivbord som `3b868848` (4 av 4
+delade måtttripplar) och sade *pensionera*. Det blev aldrig gjort: `las`-körningen
+skickades med det KORTA id:t i stället för hela UUID:t, rutten svarade
+*"varken mappning eller produkt finns"* och jobbet blev rött utan att någon
+följde upp.
+
+Hela id:t är `5ae05b43-6052-4d93-893e-720b53ed0ef5` — hittat genom att sikta
+sökningen på id-prefixet, inte genom att gissa namnet. Raden bär nu
+`draftStatus: "rejected"` och `needsAiPolish: false`. Utkastet raderas inte;
+det kostar ingenting medan det ligger, och en radering går inte att ångra.
+
+☠️ **Ett rött jobb som ingen läser är samma sak som inget jobb.** Det enda som
+hittade den här var att en granskning av körlistan frågade vad den enda röda
+raden var.
+
+## ☠️ Grenraderingen var GRÖN och hade inte raderat något
+
+`branch-cleanup.yml` har `mode` med default `scan`. Utelämnad input → torrkörning,
+som skriver *"Finns kvar och kan raderas: 1"* och avslutar med 0. Jobbet blir
+alltså grönt av att INTE ha gjort något.
+
+Husets regel bar hela lasten: raderingen verifieras genom att LÄSA FJÄRREN, inte
+genom workflowens exit-kod. `git ls-remote origin 'refs/heads/kort-*'` svarade
+fortfarande med grenen. Med `mode: apply` svarar den tomt.
+
+Samma familj som resten: **ett svar utan fel är inget kvitto.**
