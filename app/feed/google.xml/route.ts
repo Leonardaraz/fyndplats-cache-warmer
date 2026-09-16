@@ -28,6 +28,8 @@ import {
 export const runtime = "nodejs";
 export const revalidate = 3600;
 
+import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
+
 const SITE = "https://www.fyndplats.se";
 // Hårdkodat med flit, inte av lättja: 452 av 454 produkter har INGET varumärke
 // satt i Wix (räknat 2026-07-31). Det är omärkta dropship-varor, och för dem är
@@ -139,6 +141,20 @@ function googleAttr(optionName: string): "color" | "size" | "material" | "patter
   return null;
 }
 
+/**
+ * Prisband för Shopping-kampanjens budgivning (custom_label_0). Räknas på det
+ * pris kunden betalar, så bandet följer med när priset ändras — därför ligger
+ * det i feeden och inte i en uppladdad fil.
+ */
+function prisband(pris: number): string {
+  if (pris < 500) return "under_500";
+  if (pris < 1000) return "500_1000";
+  if (pris < 2000) return "1000_2000";
+  if (pris < 4000) return "2000_4000";
+  if (pris < 8000) return "4000_8000";
+  return "8000_plus";
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function feedItem(
   v: any,
@@ -176,6 +192,16 @@ function feedItem(
   const cmp = Number(v?.price?.compareAtPrice?.amount);
   const onSale = Number.isFinite(cmp) && cmp > amount;
   const regular = onSale ? cmp : amount;
+
+  // Anpassade etiketter för Shopping-kampanjen (2026-09-16): prisband ur det
+  // pris kunden betalar, kampanjflagga och A/B-grupp ur lib/kampanj-2026-09.
+  // Bara etiketter Google Ads styr bud på — inga leverantörsuppgifter.
+  const kampanj = KAMPANJ_2026_09[pd.productId || ""];
+  const labelLines =
+    `\n      <g:custom_label_0>${prisband(amount)}</g:custom_label_0>` +
+    (kampanj
+      ? `\n      <g:custom_label_1>kampanj-2026-09</g:custom_label_1>\n      <g:custom_label_2>grupp-${kampanj}</g:custom_label_2>`
+      : "");
 
   const mainImg: string = product?.img || gallery[0] || "";
   const image: string = v?.media?.image?.url || mainImg;
@@ -249,7 +275,7 @@ function feedItem(
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
       <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
       <g:brand>${BRAND}</g:brand>
-      <g:condition>new</g:condition>
+      <g:condition>new</g:condition>${labelLines}
       <g:identifier_exists>no</g:identifier_exists>${attrLines}${taxonomy.productType ? `\n      <g:product_type>${xmlEscape(taxonomy.productType)}</g:product_type>` : ""}${taxonomy.googleCategory ? `\n      <g:google_product_category>${taxonomy.googleCategory}</g:google_product_category>` : ""}
     </item>`;
 }
