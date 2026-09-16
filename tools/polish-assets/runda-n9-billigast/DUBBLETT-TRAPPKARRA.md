@@ -41,7 +41,42 @@ kundpåverkande åtgärd — och 500 kr skiljer på samma vara. Samma klass som
 `#167` (två publicerade Mercedes G350-gåbilar, 1 129 mot 1 259 kr), som står
 som Leonards beslut.
 
-**Väntar på Leonards beslut. Ingen av sidorna är rörd.**
+## ✅ Leonards beslut 2026-09-16: behåll den billiga, pensionera 1 539
+
+Utfört i den ordning som gör varje steg verifierbart:
+
+| steg | utfall |
+|---|---|
+| Avpublicerad `59c3b5d6` | revision **9 → 10**, `visible:false`. Namn och slug orörda |
+| Verifierad i SEPARAT läsning | GET **och** search säger `visible:false`, revision 10 |
+| Mappningsraden stämplad | `needsAiPolish:false`, `draftStatus:"rejected"` — rutten läser tillbaka, alltså ett kvitto |
+| 301 skriven | `trappkarra-6-hjul-hopfallbar` → `/produkt/sackkarra-trappklattrande-120-kg` |
+
+Sidan **raderas inte**. Ett osynligt utkast kostar ingenting medan det ligger,
+och en radering går inte att ångra om matchningen visar sig vara fel.
+
+⚠️ **Säljbart djup sjunker på den här varan.** Den sida vi behåller har saldo
+**28**, den pensionerade hade **98** — två artikelrader i samma feed, alltså
+två lager vi inte kan slå ihop. Tar 28 slut ligger 98 kvar hos Aosom under ett
+artikelnummer ingen av våra sidor längre pekar på.
+
+### ☠️ Och redirect-grinden vägrade — på en bugg, inte på verkligheten
+
+Två körningar avvisades med *"är fortfarande en synlig produkt"* medan BÅDA
+Wix-läsningarna sa `visible:false`. Det var inte projektionssläpet.
+`listAllV3Products()` frågar `products/query` UTAN synlighetsvillkor, och V3
+lägger inte på något implicit `visible:true` — men listan bar inget
+`visible`-fält alls, så varje UTKAST räknades som en levande sida.
+
+Felet gick åt båda håll, och det andra är det dyra: **målkontrollen, som finns
+för att stoppa en 301 in i en 404, kunde aldrig fälla en.** Lagat på grenen med
+tre tester (verifierade genom att återinföra buggen — två faller, och bara de
+två). Samma funktion bar dessutom ett tyst tak på 50 sidor = 5 000 produkter mot
+en katalog på 5 748; det kastar nu i stället för att kapa.
+
+Redirecten skrevs därför med `force=1`. Det är inte en genväg förbi grinden:
+förutsättningen grinden skyddar — en SÄLJANDE sida — är mätt frånvarande i två
+oberoende läsningar. Rutten i produktion kör från `main` och har inte fixen än.
 
 ## Kvitto på att skadan är begränsad
 
