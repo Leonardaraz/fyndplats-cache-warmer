@@ -132,3 +132,103 @@ Nio av nio köpbara, en lagerrad var, kvantitetsspårning på:
 | 8df525e3 | 118 |
 
 ⚠️ Barnquaden har bara åtta kvar.
+
+---
+
+# Kvitto: rundan är klar
+
+Nio produkter publicerade 2026-09-16. Varje steg har ett tal, och talet kommer
+ur en mätning och inte ur ett API-svar som svarade 200.
+
+| steg | utfall |
+|---|---|
+| Text + namn + slug + SEO + visible | **9 av 9**, transkriberingsspärren passerade på första försöket |
+| Media ensam (`fieldMask: media`) | **9 av 9**, alt-textspärren passerade |
+| Kategorier | **18 av 18** kopplingar, per rad ur bulk-svarets `itemMetadata` |
+| `variantsInfo` sist och ensam | **9 av 9**, variant + produkt `visible: true` på alla |
+| Stämpling av mappningsraden | **9 av 9** gröna (körning 3123–3131) |
+| Separat återläsning, en stund senare | **9 av 9 LIKA** mot facit ur källfilerna |
+| Live-grind, `age` 104–144 s mot 90 s paus | **9 av 9 REN**, orddiff **0** på alla nio |
+
+## Korten är bevisade i BÅDA ändarna
+
+☠️ `UploadImageToWixSite` svarar med en lista id **utan att säga vilket id som
+kom från vilken adress** — samma attribution-på-ordning som huset redan vägrat
+lita på i lagersynken. Därför två oberoende bevis:
+
+- **Vid uppladdningen.** Varje fil hemhämtad från wixstatic och md5-jämförd mot
+  sin lokala kopia: **9 av 9 byte-identiska**, och `kort-filer.tsv` byggdes ur
+  md5-matchningen med ett skript, aldrig ur svarets ordning.
+- **På mottagarsidan.** Både Wix-mediaid:t och den lokala uppladdningsfilens
+  namn (`image.filename = kort-<kort>.png`) pekar på **SAMMA** mediapost,
+  9 av 9. Kortet ligger **sist** och huvudbilden är ett **foto** på alla nio.
+  52 mediaposter, **noll utan alt-text**.
+
+## ☠️ Tre grindar som varje runda byggt om för hand bor nu i polish-gates
+
+De var inte kod förrän nu. De fanns som resonemang i varje rundas anrop — och
+det är exakt formen ett husfel tar innan någon upptäcker det (`SHIP_AXIS_RE`,
+`EU_TULL_CODES`, `hasha.py` i N2, de nitton grindkopiorna, `wixnorm` i N2).
+
+| fil | vad den äger |
+|---|---|
+| `raahash.py` | rå kontrollsumma → `raa-hash.tsv`, SKRIVNINGENS facit |
+| `bygg-skrivning.py` | emitterar steg 1:s anrop ur filerna |
+| `bygg-medieskrivning.py` | lägger kortet sist + räknar alt-textfacit |
+
+⚠️ **Ingen av dem är antagen.** `raahash.py` reproducerar N6:s handbyggda
+`raa-hash.tsv` EXAKT på 9 av 9 rader, och alt-textfaciten reproducerar N6:s
+`media-hash.tsv` på 9 av 9. Det är skillnaden mellan en fjärde tvilling och en
+enda definition — och det är ett test som inte hade gått att göra i efterhand
+om rundorna städats bort.
+
+☠️ Och `raahash.py` bär **M4:s lärdom i koden i stället för i minnet**: facit
+räknas på strängen SOM DEN SKICKAS (`rstrip("\n")`), inte på filen. M4 avbröts
+på ETT tecken av 3 515 för att en template-literal som slutar med `</p>` inte
+bär filens avslutande radbrytning — samma byte som `wixnorm.py` punkt 5 redan
+dokumenterade på LÄSNINGENS sida. Regeln gällde åt båda hållen hela tiden, och
+bara den ena halvan var nedskriven.
+
+⚠️ **Tre av nio kontrollsummor ändrades** när de räknades om ur de NUVARANDE
+filerna — `7f1a45a6`, `b45d2544` och `62d2a0a9`, de tre som redigerades efter
+siffergrinden. De sex andra stämde exakt mot de gamla talen. Det är
+korskontrollen som gör omräkningen trovärdig i stället för bara nödvändig: om
+ALLA nio hade ändrats vore facit misstänkt, inte filerna.
+
+## ☠️ Live-grinden är verifierad ÅT BÅDA HÅLLEN på just den här rundan
+
+Att en grind FINNS säger ingenting om att den kan SE — runda J2 publicerade
+fyrtio tyska alt-texter med en påslagen, dokumenterad och räknad alt-grind.
+Därför planterade fel i två av de nio hämtade sidorna, ett per svep:
+
+| planterat | vilket svep som fällde |
+|---|---|
+| `mit Gewicht` i `<title>` | SIDA/TYSKT ×2 + SEO/TITEL + SEO/BESKRIVNING |
+| `Kunststoff Hocker mit Stauraum` i en `alt` | ALT/TYSKT ×3 |
+| kyrilliskt `а` (U+0430) i brödtexten | ORDDIFF ×2 + HOMOGLYF + SIDA/HOMOGLYF |
+
+**10 fynd på 85c4c097, 4 på 77d3bfc2, noll på de sju andra** — och 0 av 0 efter
+att filerna återställts. Grinden fäller alltså på rätt produkt, på rätt svep,
+och går ren när den ska.
+
+## Kategorierna
+
+| kort | kategori |
+|---|---|
+| 358f4559 | Barn & Familj + Leksaker & Spel |
+| bd24e5f9 · b45d2544 · 85c4c097 | Hem & Inredning + Förvaring & Organisering |
+| 7f1a45a6 | Trädgård & Utemöbler + Utelek & Spel |
+| 62d2a0a9 | Hem & Inredning + Dekoration & Prydnad |
+| 77d3bfc2 · 9ab9eda7 | Sport & Fritid + Träning & Gym |
+| 8df525e3 | Husdjur + Lek & Tillbehör för husdjur |
+
+⚠️ Returnätet hamnade under **Utelek & Spel** och inte under Sport & Fritid:
+trädet har inget bollsportlöv, och en returnätsram är utelek i den här butiken.
+Toppkategorin ensam hade varit det andra alternativet.
+
+## Städat efter sig
+
+`kort-n7-tmp` är raderad, och **verifierad genom att läsa remoten** — inte
+genom att jobbet gick grönt. `branch-cleanup.yml` defaultar till `scan`, så ett
+grönt jobb kan mycket väl ha raderat ingenting (#277). Noll `kort-n*-tmp`-grenar
+kvar på origin.
