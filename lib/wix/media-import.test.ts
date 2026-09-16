@@ -12,6 +12,8 @@ describe("isExternalSupplierImage", () => {
   it("känner igen leverantörens värdar", () => {
     expect(isExternalSupplierImage(LEVERANTOR)).toBe(true);
     expect(isExternalSupplierImage("https://img.alicdn.com/x.jpg")).toBe(true);
+    // Aosoms kundfoton (2026-09-16) — hade annars legat kvar hos leverantören.
+    expect(isExternalSupplierImage("https://img.aosomcdn.com/680/210_comment/2026/08/12/a.jpeg")).toBe(true);
   });
 
   it("släpper igenom våra egna och tomma", () => {

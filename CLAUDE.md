@@ -3112,6 +3112,17 @@ recensionerna en timme (`revalidate: 3600`, tagg `reviews`) — omedelbar
 uppdatering kräver headless-sitens `/api/admin/revalidate?tag=reviews` med
 `ADMIN_SECRET`, som Claude inte läser.
 
+**Kundfotona flyttas hem.** Publicerade recensionsbilder får aldrig peka på
+leverantörens CDN (adressen syns vid högerklick). `withOwnImage` i
+`lib/store/reviews.ts` gör flytten vid publicering, men listan över
+leverantörsvärdar i `lib/wix/media-import.ts` kände bara AliExpress —
+`img.aosomcdn.com` lades till 2026-09-16 efter att 709 synliga Aosom-rader
+(1 130 foton) publicerats med Aosom-adresser. Redan publicerade rader lagas
+med workflowen `review-image-repair.yml` (loopar `repairImages` i
+`/api/cron/review-translate`, 40 rader per anrop, stannar när inget minskar).
+Pending-rader behåller källadressen med flit — flytten sker när raden blir
+synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

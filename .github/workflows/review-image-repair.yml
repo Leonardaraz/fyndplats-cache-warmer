@@ -1,0 +1,88 @@
+name: Recensioner — flytta hem kundfoton från leverantörens CDN
+
+# Kör `repairImages` i /api/cron/review-translate i varv tills inga synliga
+# recensioner längre pekar på en leverantörsvärd (aliexpress-media.com,
+# alicdn.com, img.aosomcdn.com). Varje varv skriver om högst `omgang` rader;
+# upsert kör withOwnImage och importerar bilderna till Wix Media.
+#
+# Varför en loop här och inte i rutten: en Wix-import tar en till två sekunder
+# per bild och rutten har 300 s. Femtio rader (~70 bilder) per anrop är
+# marginal nog; tusen bilder blir tjugo anrop. Loopen stannar när `kvar` är 0
+# eller när ett varv inte minskade `kvar` (källbilder som är borta hos
+# leverantören går inte att flytta och skulle annars köras om i evighet).
+#
+# Loggen bär bara räknare.
+#
+# Återanvänder repository secrets: POLL_TRACKING_URL (bas-URL) och CRON_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      omgang:
+        description: "Rader per anrop (rutten hinner ~50 på sina 300 s — 40 ger marginal)"
+        required: false
+        default: "40"
+        type: string
+      max_varv:
+        description: "Högsta antal anrop innan loopen ger upp"
+        required: false
+        default: "40"
+        type: string
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Flytta hem
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          OMGANG: ${{ inputs.omgang }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/cron/review-translate"
+          omgang="${OMGANG:-40}"
+          max="${MAX_VARV:-40}"
+
+          varv=0; tot_skrivna=0; tot_fel=0; forra_kvar=-1; kvar=-1; hittade=-1
+          while [ "$varv" -lt "$max" ]; do
+            varv=$((varv + 1))
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 320 \
+              -H "Authorization: Bearer ${CRON_SECRET}" -H "Content-Type: application/json" \
+              --data-binary "{\"repairImages\":true,\"limit\":${omgang}}" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} i varv ${varv}" >&2
+              exit 1
+            fi
+            hittade="$(printf '%s' "$json" | jq -r '.hittade')"
+            skrivna="$(printf '%s' "$json" | jq -r '.skrivna')"
+            fel="$(printf '%s' "$json" | jq -r '.fel')"
+            kvar="$(printf '%s' "$json" | jq -r '.["kvarMedLeverantörsbild"]')"
+            tot_skrivna=$((tot_skrivna + skrivna)); tot_fel=$((tot_fel + fel))
+            echo "varv ${varv}: ${hittade} med leverantörsbild, ${skrivna} omskrivna, ${fel} fel, ${kvar} kvar"
+            if [ "$kvar" = "0" ]; then break; fi
+            if [ "$forra_kvar" != "-1" ] && [ "$kvar" -ge "$forra_kvar" ]; then
+              echo "::warning::Varvet minskade inte antalet kvar (${forra_kvar} → ${kvar}) — källbilder som inte går att hämta. Stannar."
+              break
+            fi
+            forra_kvar="$kvar"
+          done
+
+          {
+            echo "### Kundfoton — hemflytt"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| varv | ${varv} |"
+            echo "| rader omskrivna | ${tot_skrivna} |"
+            echo "| fel | ${tot_fel} |"
+            echo "| **kvar med leverantörsbild** | **${kvar}** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${tot_skrivna} omskrivna i ${varv} varv, ${kvar} kvar"
