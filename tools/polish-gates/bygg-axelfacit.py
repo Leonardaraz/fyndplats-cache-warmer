@@ -237,8 +237,40 @@ def main():
             # SYNAS: raden märks axellös så att gate-axel kan säga "jämförde
             # inte" i stället för att tiga. En tom rad utan förklaring är en
             # grind som inte kan fälla.
-            delmatt = [r for r in rader if re.search(r"abmessungen\s*:", r, re.I)]
-            if delmatt:
+            #
+            # ☠️ OCH DETEKTORN VAR LEXIKAL, ALLTSÅ FÖR SMAL. Den kände igen ETT
+            # tyskt ord. Runda N4 gav två källor som säger exakt samma sak med
+            # andra ord och därför avbröt hela generatorn:
+            #
+            #   b7b5b37e  `Großer Tisch Größe: 50L x 50B x 52Hcm`  (två bord)
+            #   6b8cd35b  `Einzelnes Paneel: 61L x 91B cm`         (en hage)
+            #
+            # Båda är samma klass som isbjörnsparet: källan mäter DELARNA för
+            # att produkten inte HAR ett totalmått. Villkoret är därför
+            # STRUKTURELLT i stället för lexikalt — en rad som bär ett
+            # axelmärkt tal är en måttrad, vad den än heter. En ordlista
+            # glider; formen gör det inte.
+            #
+            # ⚠️ OCH ETIKETTEN FÅR INTE VIDGAS I STÄLLET. Att lägga `Größe` i
+            # ETIKETT var första utkastet, och mätningen slog ihjäl det: över
+            # husets alla källor finns sex `<ord> Größe:` och FYRA av dem är en
+            # DEL (`Armlehnen`, `Rückenlehne`, `Ottomane`). Generatorn hade då
+            # bokfört ett armstöd som produktens totalmått. Ett facit som
+            # ljuger är värre än inget facit — den här grenen gör ett avbrott
+            # till ett FÖRKLARAT utfall, aldrig till ett felaktigt facit.
+            #
+            # ☠️ OCH DEN FÅR INTE SKRIVA ÖVER ETT REDAN SATT `axellos`.
+            # Regressionen mot alla tidigare rundor fällde direkt: häckrullen
+            # c8376256 (N2) är märkt av tvåtals-spärren ovan med det PRECISA
+            # skälet "totalraden har tva tal utan H eller T (L300 x B100 cm)".
+            # Den strukturella detektorn ser samma rad som ett delmått och
+            # ersatte skälet med "inget totalmått i källan" — vilket är fel:
+            # totalraden FINNS, den går bara inte att lägga ut positionellt.
+            # Ett mindre sant skäl är en tystare sorts fel än ett avbrott.
+            delmatt = [r for r in rader
+                       if re.search(r"abmessungen\s*:", r, re.I)
+                       or (":" in r and axelpar(r.split(":", 1)[1]))]
+            if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
             elif "axellos" not in d:
                 # En rad som redan är märkt axellös av tvåtals-spärren ovan är
