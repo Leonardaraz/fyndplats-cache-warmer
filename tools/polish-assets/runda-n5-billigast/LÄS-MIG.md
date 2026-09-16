@@ -88,3 +88,57 @@ som rena — samma skillnad som mellan `utanTraff` och `viBilligare` i
 prisjämförelsen, och samma klass som SKU-kollen som itererade en tom lista.
 
 `40690da1` hade annars legat i den här rundan på priset (959 kr). Den väntar.
+
+## Rundan stängd — kvittokedjan hela vägen
+
+| steg | facit | utfall |
+|---|---|---|
+| källorna ordagranna | kontrollsumma räknad server-side | **9/9** |
+| artikelnummer i källfilerna (#257) | grep på `NNN-NNNXX` | **0** |
+| lagersaldo | Wix inventory | 9/9 köpbara (68–197) |
+| bildhash mot publicerade | md5 på huvudbilden | 0 träffar (äkta negativt) |
+| måttskärm | den vida trippeln | 11 kandidater bortvalda |
+| åtta filgrindar + kortgrinden | `tools/polish-gates/` | REN |
+| kortens parning vid uppladdning | md5 hemhämtat mot lokal kopia | **9/9** |
+| textskrivning | kontrollsumma i SAMMA anrop | 9/9, noll avbrott |
+| media | `fieldMask: ["media"]`, ensam | **54 poster, 0 utan alt** |
+| kategori | bulk-svarets `itemMetadata` per rad | **15/15** |
+| variantsInfo | sist och ensam | 9/9, variantens `visible` kvar |
+| stämpling | rutten läser tillbaka, 500 om värdet inte sitter | **9/9 gröna** |
+| återläsning | SEPARAT anrop, `aterlas.js` | **9/9 LIKA**, alla synliga |
+| kortens parning i BUTIKEN | Wix-mediaid **och** filnamn, samma post | **9/9**, kortet sist |
+| **live-grind** | publicerad sida mot källfil | **9/9 REN, orddiff 0** |
+
+Live-hämtningen gav `age` 101–102 s mot en paus på 90 — alltså den rendering
+den varma träffen utlöste, inte en äldre cachad sida.
+
+⚠️ **Återläsningen kom ur `aterlas.js`, inte ur minnet.** Det är hela skälet
+filen finns: i N4 skrev jag om både `gatelib.fnv` och `wixnorm.normalisera`
+för hand i anropet, och nio KORREKTA skrivningar rapporterades som SKILJER.
+Den här gången gick den rakt igenom på första försöket.
+
+## ☠️ Och kortkontrollen byggde ändå en ny tvilling — 0 av 9 på FACIT
+
+Verifieringen av att korten sitter på rätt produkt svarade först **0 av 9**.
+Inget av korten saknades: jag jämförde `kort-filer.tsv` mot fel fält.
+
+```
+kort-filer.tsv bär   b379ce_503fcc…~mv2.png   ← Wix MEDIAID
+image.filename bär   kort-3b868848.png        ← LOKALA uppladdningsfilen
+id / image.id / uploadId bär mediaid:t
+```
+
+Regeln `aterlas.js` bär sedan N4 höll, och den höll i ett helt nytt hörn:
+**alla rader skiljer → misstänk FACIT; några rader skiljer → misstänk
+skrivningen.** Nio av nio är för systematiskt för nio oberoende fel.
+
+Det som avgjorde var att dumpa EN enda mediapost och läsa vad fälten faktiskt
+heter — inte att resonera om vilket fält som borde vara rätt. Kontrollen
+kräver numera att BÅDA handtagen pekar på samma post, så en träff inte kan
+vara en tillfällighet.
+
+☠️ **Och grenen kan sessionen inte radera själv** (403 på ref-borttagning).
+`branch-cleanup.yml` äger rätten och läser sitt facit ur den UTCHECKADE
+grenen, så facit pushas FÖRE körningen och `ref` sätts till arbetsgrenen.
+Raderingen är verifierad genom att läsa fjärren, inte genom workflowens
+exit-kod: `git ls-remote origin 'refs/heads/kort-*'` svarar tomt.
