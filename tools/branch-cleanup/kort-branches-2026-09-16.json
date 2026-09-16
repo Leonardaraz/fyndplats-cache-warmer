@@ -1,0 +1,31 @@
+{
+  "beskrivning": "Kortuppladdningsgrenar (kort-n*-tmp) som raderades 2026-09-16. Samma roll som claude/img-* : de fanns bara för att ge Wix Media en publik raw.githubusercontent-URL att hämta kortbilden från. När Wix kopierat bytesen är grenen förbrukad — och kopian är md5-bevisad per fil, inte antagen ur svarets ordning.",
+  "aterstallning": "git push origin <sha>:refs/heads/<gren> — GitHub behåller onåbara objekt en tid, så listan är meningsfull bara de närmaste veckorna.",
+  "kontrollerat": [
+    "Ingen av grenarna är head eller bas för en öppen pull request.",
+    "Ingen delar historik med main (merge-base tom) — de är fristående ögonblicksbilder.",
+    "kort-n2-tmp bär ENDAST rundans tolv kortbilder utöver arbetsgrenen; resten av trädet finns redan i claude/seo-polering-runbook-review-uq6fwl. Mätt med comm mot grenens filträd, inte antaget.",
+    "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera."
+  ],
+  "sparade": [],
+  "raderade": [
+    {
+      "gren": "kort-n2-tmp",
+      "sha": "b84a757697a5dc918c83edf92d491a5a03b83112",
+      "sistaCommit": "2026-09-16T04:29:45+00:00",
+      "commits": 3,
+      "filer": 3266,
+      "kort": 12,
+      "runda": "N2"
+    },
+    {
+      "gren": "kort-n3-tmp",
+      "sha": "e18d5aaeaead61726c081c8440f1f6d460e7a795",
+      "sistaCommit": "2026-09-16T06:26:45+00:00",
+      "commits": 1,
+      "filer": 12,
+      "kort": 9,
+      "runda": "N3"
+    }
+  ]
+}
