@@ -2181,6 +2181,93 @@ farligare än ingen, för den känns som ett skydd.
 ⚠️ Och den gamla lärdomen gäller igen: **Actions-loggar på ett publikt repo går
 att läsa utan inloggning.** Det finns ingen "intern" logg här.
 
+#### ☠️ Korten GRINDAS sedan 2026-09-16 — och de byggs ur en fil
+
+`KORTLACKAN.md` mätte nio publicerade sidor där leverantörens artikelnummer
+eller husmärket ligger **inbränt i en bild vi själva tillverkat**, och bad
+uttryckligen om en grind. Den finns nu: `tools/polish-gates/gate-kort.py`
+läser rundans `kort.tsv`, och `bygg-kort.py` renderar ur SAMMA fil efter att
+ha kört grinden. Ett kort som renderats innan det grindats är ett kort någon
+kan hinna ladda upp.
+
+Utan OCR går den renderade PNG:en inte att läsa mekaniskt. Det som går är att
+grinda INDATAN — samma regel som redan gäller brödtexten, `seo.tsv` och
+`namn.tsv`: **bygg nyttolasten ur filen med ett skript, skriv den aldrig av.**
+
+Åtta kopior försvann på köpet: tre `gate-kort.py` (F2, G1, G2) som
+kontrollerade olika saker och fem `bygg-kort.py`. Varje kopia `exec`:ade
+byggarens KÄLLKOD med strängdelning, så definitionen gick bara att grinda
+genom att köra byggaren. `gate-kopior.test.ts` hade dessutom `gate-kort.py`
+som "rundespecifik" — ett felaktigt undantag, och exakt så en tvilling uppstår.
+
+**Grinden fäller på:** allt `gatelib.GRINDAR` fäller · ett tal utan täckning i
+källan · ett tal kortet har men sidans spec-rad inte · två kort med identisk
+text · en produkt i `slugs.txt` utan kortrad · en alt-text i `kortalt.tsv`
+med samma fel · fel enhetsmarkup · en enhet som inte följer på ett tal.
+
+☠️ **EN GRIND PÅ FILEN ÄR INGEN GRIND PÅ PIXLARNA.** Första omgången N2-kort
+gick ut med SVARTA UNDERSTRUKNA enheter i stället för husets orange: ett
+konverteringsskript hade bytt `<span class=u>` mot `<u>`, filen såg rimlig ut
+och grinden var ren. `cardkit` stylar `.u` och ingenting annat, så varje annan
+tagg blir webbläsarens default. Det som fångade det var ögon på ett beskuret
+PUBLICERAT kort. Korten är utbytta på plats och grinden kräver numera husets
+markup.
+
+⚠️ **Två regler prövades och en förkastades av MÄTNINGEN.** En koll på att
+enhetsspannets INNEHÅLL är en känd enhet fällde fyra KORREKTA publicerade
+G1-kort (`15 cm tjock` är en medveten formulering) och missade defekten den
+byggdes för — `m` ÄR ju en giltig enhet. Regeln som gäller är mätt: över sex
+rundors kortfiler finns **342 enhetsspann, och 341 föregås av en SIFFRA**.
+Den enda avvikelsen var defekten (`…sku` + `m`, ordet *skum* delat av en
+avdelare med `(cm|kg|m)$`). En enhet hör till ett tal.
+
+☠️ **UPPLADDNINGENS SVAR EKAR INGEN KÄLL-URL.** `UploadImageToWixSite` ger en
+lista med id i samma ordning som `imageUrls`, men utan att säga vilket id som
+kom från vilken adress — alltså samma attribution-på-ordning som huset redan
+vägrat lita på i lagersynken. Varje uppladdad fil hämtas därför hem igen och
+md5-jämförs mot sin lokala kopia. Uppmätt: 8 + 8 + 4 av 12 filer
+byte-identiska, alltså är parningen BEVISAD och inte antagen.
+
+⚠️ **Korten är 1600 × 1600**, inte `render`:s råa 3200. Talet är läst ur en
+redan publicerad kortfil, inte valt.
+
+#### ☠️ Tre publicerade/utkastade sidor var EN kattlåda (2026-09-16)
+
+Dubblettskärmen i runda N2 pekade ut åtta kandidater. Bildhashen (#243) gav
+**noll** träffar på alla åtta — och det är ett ÄKTA negativt, inte en trasig
+metod. Kontrollen som visar det: elva produkter, däribland tre par med
+IDENTISKT tyskt namn och nästan samma pris, har alla olika hash OCH olika
+filstorlek. Det är genuint olika foton. Bildgrinden ser bara den
+byte-identiska klassen, precis som huset redan skrivit ned.
+
+Det som avgjorde var måtten — den VIDA trippelkollen, inte `Mått:`-raden:
+
+| | måtttripplar |
+|---|---|
+| `adb8c31b` **publicerad**, 729 kr | 39,8×41,3×52,4 · 21×44×54 · 14×40×52 · 3,5×10,5×25,5 · 1,5×8×8 |
+| `dd8902e8` utkast, 769 kr | **samma fem** |
+| `d499532f` utkast, 799 kr | **samma fem** |
+
+Fem av fem identiska, inklusive skopan på 3,5 × 10,5 × 25,5 cm. Tre sidor,
+en produkt. Samma sak för hundbäddarna `65d3d373` (719 kr) och `2ed2f82b`
+(759 kr): båda tripplarna identiska, samma tyska namn.
+
+☠️ **Och ommappningen var en no-op, precis som `34341c4f`.** Mappningsraden
+för den publicerade sidan säger `supplier: "aosom"` — alltså finns ingen
+AE-rad att peka om, och hindret `redan_aosom` hade fällt en körning.
+Husregeln *"äkta dubbletter mappas om till Aosom"* antar tyst att sidan vi
+behåller är en AE-rad. Andra gången den antagandet inte håller.
+
+Åtgärden är därför pensionering: `dd8902e8`, `d499532f` och `2ed2f82b` bär
+`draftStatus: "rejected"`, `needsAiPolish: false`. Ingen raderas — ett
+osynligt utkast kostar ingenting, och en radering går inte att ångra.
+
+⚠️ **De fyra andra kandidaterna är FRIKÄNDA, inte obehandlade.** `e397f6b3`
+är en annan kattlåda (29,7 × 40,2 × 60,2), `9a66c056` krockar med ingen
+publicerad soptunna, `b50a2c94` har ingen publicerad motsvarighet alls (de
+fyra "publicerade skärmtaken" i första svepet var hundvagnar med *Vordach* i
+namnet), och `70c17966` saknar huvudbild helt — vilket är ett eget fynd.
+
 #### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
 
 Importen härleder variant-SKU:n ur den tyska titelns första ord, så produkter
