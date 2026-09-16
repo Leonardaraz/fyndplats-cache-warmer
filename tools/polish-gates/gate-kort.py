@@ -180,6 +180,12 @@ for radnr, rad in enumerate(open("kort.tsv", encoding="utf-8"), 1):
     rentext = " ".join(re.sub(r"<[^>]*>", " ", t) for _, t in delar)
     rentext = rentext.replace(" ", " ")
 
+    # ☠️ ENHETEN MÅSTE BÄRA `<span class=u>` — se docstringen.
+    for x in re.finditer(r"<(?!span class=u>)(?!/span>)([^>]+)>", spec):
+        print(f"  {kort}: [FEL ENHETSMARKUP] <{x.group(1)}> — cardkit stylar "
+              f"bara .u, så allt annat renderas med webbläsarens default")
+        fynd += 1
+
     for namn, m in GRINDAR:
         for x in re.finditer(m, rentext):
             print(f"  {kort}: [{namn}] {x.group(0)!r} "
