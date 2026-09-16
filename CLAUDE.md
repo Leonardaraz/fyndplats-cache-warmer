@@ -2847,6 +2847,35 @@ fälla räknas ändå som gjord.** Ett filter som tyst ignoreras är samma klass
 SKU-kollen som itererade en tom lista — skillnaden är att det här svarar 200
 med hundra rader i stället för noll, vilket är svårare att misstänka.
 
+##### ☠️ Och `fields` är TVÄRTOM: den MÅSTE skickas om med markören (2026-09-16)
+
+Samma endpoint, samma kroppsform, motsatt regel — och båda felen är tysta åt
+var sitt håll. `filter` avvisas med `400 SE-1141` om det skickas om; `fields`
+svarar 200 och lämnar fältet FRÅNVARANDE om det INTE skickas om.
+
+Uppmätt på `products/search`, samma markör:
+
+| sida två skickad med | `plainDescription` |
+|---|---:|
+| bara markören | **0 av 100** |
+| markören + `fields` på toppnivån | **100 av 100** |
+
+⚠️ **Följden var ett svep som undermätte med två tiopotenser.** Dubblettskärmen
+i runda N9 skickade `fields` bara på första sidan och rapporterade **6 av 2 844
+publicerade sidor med måtttrippel**. Med `fields` på varje sida blev talet
+**2 221 av 2 844**, 4 135 unika tripplar. Sidräkningen, radantalet och
+fördelningen publicerade/utkast var IDENTISKA i båda körningarna — det enda som
+skilde var innehållet i ett fält som ingen räknare tittade på.
+
+☠️ **Och det är den farliga formen av tomhet: en dubblettskärm som bara har
+sex rader att jämföra hittar noll krockar och ser ut att ha gjort sitt jobb.**
+Samma klass som SKU-kollen som itererade en tom lista, men svårare att
+misstänka, för svepet levererar rätt antal PRODUKTER — bara inte deras text.
+
+**Regeln: ett svep som bygger ett facit ur ett fält måste räkna hur många rader
+som FAKTISKT bar fältet.** `publUtanText` står i svaret sedan dess. Ett nollat
+fält är inte samma sak som ett tomt facit, och bara räknaren skiljer dem åt.
+
 ### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
 
 Leonards fråga: *"tror du inte dealproffset har hittat på en egen ean då?"*
