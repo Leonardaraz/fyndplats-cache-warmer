@@ -5,7 +5,8 @@
     "Ingen av grenarna är head eller bas för en öppen pull request.",
     "Ingen delar historik med main (merge-base tom) — de är fristående ögonblicksbilder.",
     "kort-n2-tmp bär ENDAST rundans tolv kortbilder utöver arbetsgrenen; resten av trädet finns redan i claude/seo-polering-runbook-review-uq6fwl. Mätt med comm mot grenens filträd, inte antaget.",
-    "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera."
+    "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera.",
+    "kort-n4-tmp bär ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren). Kopian är verifierad på MOTTAGARSIDAN och inte bara vid uppladdningen: alla tio filerna är hittade i produkternas media.itemsInfo via sitt Wix-filnamn, aldrig via ordningen — samma skäl som lagersynkens tolkaBulkUtfall inte litar på ORDNINGEN. 53 mediaposter över nio produkter, noll utan alt-text."
   ],
   "sparade": [],
   "raderade": [
@@ -26,6 +27,15 @@
       "filer": 12,
       "kort": 9,
       "runda": "N3"
+    },
+    {
+      "gren": "kort-n4-tmp",
+      "sha": "1dd1d9d1d5de74ecbc9f0d2d64bb98cdcf61dfc4",
+      "sistaCommit": "2026-09-16T07:32:42+00:00",
+      "commits": 1,
+      "filer": 10,
+      "kort": 9,
+      "runda": "N4"
     }
   ]
 }
