@@ -1,0 +1,12 @@
+# Tal som är AVLÄSTA UR BILDEN, inte ur källtexten.
+#
+# ☠️ Regeln är att varje tal i brödtexten ska ha täckning i källan. Det här är
+# undantaget som kvitteras i stället för att döljas: måttritningen (position 3)
+# bär mått som den tyska brödtexten inte upprepar. Talen är alltså PRODUKTENS,
+# bara inte skrivna två gånger av leverantören.
+#
+# Varje rad: kort  tal  var det lästes
+
+b45d2544  41    öppna mittfackets bredd, måttritningen pos 3
+b45d2544  27    öppna mittfackets djup, måttritningen pos 3
+b45d2544  19,5  öppna mittfackets höjd, måttritningen pos 3
