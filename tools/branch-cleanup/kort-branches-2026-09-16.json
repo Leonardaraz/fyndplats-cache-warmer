@@ -8,7 +8,8 @@
     "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera.",
     "kort-n4-tmp bär ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren). Kopian är verifierad på MOTTAGARSIDAN och inte bara vid uppladdningen: alla tio filerna är hittade i produkternas media.itemsInfo via sitt Wix-filnamn, aldrig via ordningen — samma skäl som lagersynkens tolkaBulkUtfall inte litar på ORDNINGEN. 53 mediaposter över nio produkter, noll utan alt-text.",
     "kort-n5-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag: Wix-mediaid:t OCH den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
-    "☠️ Och forsta forsoket att verifiera N5 gav 0 av 9 — pa FACIT, inte pa skrivningen. kort-filer.tsv bar Wix-MEDIAID medan jag jamforde mot image.filename, som ar den LOKALA uppladdningsfilen. Nio av nio ar facitfelets signatur (samma regel som aterlas.js bar efter N4): alla rader skiljer -> misstank facit, nagra rader skiljer -> misstank skrivningen. Matt i stallet for gissat: en dump av en enda mediapost visade att id, image.id och uploadId bar mediaid:t medan image.filename bar kort-3b868848.png."
+    "☠️ Och forsta forsoket att verifiera N5 gav 0 av 9 — pa FACIT, inte pa skrivningen. kort-filer.tsv bar Wix-MEDIAID medan jag jamforde mot image.filename, som ar den LOKALA uppladdningsfilen. Nio av nio ar facitfelets signatur (samma regel som aterlas.js bar efter N4): alla rader skiljer -> misstank facit, nagra rader skiljer -> misstank skrivningen. Matt i stallet for gissat: en dump av en enda mediapost visade att id, image.id och uploadId bar mediaid:t medan image.filename bar kort-3b868848.png.",
+    "kort-n6-tmp bar ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag, samma kontroll som N5 efter facitfelet: Wix-mediaid:t OCH image.filename (kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text."
   ],
   "sparade": [],
   "raderade": [
@@ -47,6 +48,15 @@
       "filer": 9,
       "kort": 9,
       "runda": "N5"
+    },
+    {
+      "gren": "kort-n6-tmp",
+      "sha": "abb837774e7fdcb48665fc0c56c6de40c66c7aab",
+      "sistaCommit": "2026-09-16T10:30:27+00:00",
+      "commits": 1,
+      "filer": 10,
+      "kort": 9,
+      "runda": "N6"
     }
   ]
 }
