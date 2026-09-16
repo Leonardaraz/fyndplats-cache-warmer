@@ -104,3 +104,29 @@ Urvalet vilar därför på filen från 2026-09-15. Fyra av de nio har ett gap p�
 10–30 kr, alltså tunt nog att ha rört sig sedan dess: `5ef660d3` (10 kr),
 `bbf1bb80` (20), `f4136218` (20), `a1d3d26c` (30). Våra EGNA priser är
 däremot färskt lästa ur butiken.
+
+## ☠️ Och återläsningen byggde en FJÄRDE kopia av normaliseringen
+
+Återläsningen rapporterade **SKILJER på alla nio** — och teckenantalet stämde
+exakt på alla nio. Det är signaturen för ett facitfel, inte för en misslyckad
+skrivning, och det räddade rundan från en omskrivning av nio korrekta texter.
+
+Felet var min egen: jag skrev om `wixnorm.normalisera` och `gatelib.fnv` för
+hand i JavaScript inne i återläsningsanropet. Kopian saknade `(?!<p>)`-skyddet
+som Python-versionen har på `</li>`.
+
+⚠️ **Och den första felsökningen pekade också fel.** En probe med mönstret
+`<li>[^<]{0,12}` visade `<li>` utan `<p>` och såg ut att bevisa att Wix INTE
+gjort sin omskrivning. Mönstret matchade bara det första `<li>` eftersom nästa
+tecken är `<`. Mätt ordentligt: `liMedP == liTotalt` på alla nio — Wix hade
+gjort omskrivningen hela tiden.
+
+**Rätt jämförelse, gjord i stället:** hämta den lagrade textens längd och en
+kontrollsumma vars aritmetik går att reproducera EXAKT i båda språken
+(`h = h*31 + ord(c) & 0xFFFF`), och gör normaliseringen bara i Python med den
+riktiga `wixnorm`. Utfall: **9 av 9 LIKA**.
+
+☠️ Regeln, fjärde gången i samma familj (`SHIP_AXIS_RE`, `EU_TULL_CODES`,
+`hasha.py` i N2): **den som skriver om en normalisering för hand bygger en
+tvilling, och tvillingen glider.** Riktningen är det som gör den dyr — en
+korrekt skrivning rapporterad som misslyckad lär mottagaren att sluta läsa.
