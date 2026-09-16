@@ -116,6 +116,15 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["spänningsintervall med bindestreck", "Ingående spänning 220-240 V och 50-60 Hz."],
     ["höjdintervall med bindestreck", "Höjden justeras mellan 228-260 cm."],
     ["måttintervall i specraden", "Sitthöjd 113-132 cm och bredd 202-242 cm."],
+    // ☠️ EFFEKTANGIVELSEN ÄR HELLER INTE ETT ARTIKELNUMMER, och kravet på två
+    // alfanumeriska tecken räddade inte där. Uppmätt 2026-09-16 på runda N6:s
+    // köksset: `850-1000W`. Den andra siffergruppen är FYRA siffror, så
+    // `\d{3}-\d{3}` matchar mitt inne i talet (`850-100`) och svansen blir
+    // `0W` — alltså två tecken, alltså träff. Spärren är `(?!\d)`: ett äkta
+    // artikelnummer har exakt tre siffror i andra gruppen.
+    ["effektintervall med fyrsiffrigt slut", "Effekt 850-1000W för brödrosten."],
+    ["effektintervall i samma rad som ett annat", "Effekt 1850-2200W och 850-1000W."],
+    ["strömstyrka med bindestreck", "Laddaren ger 100-2400mA beroende på läge."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {

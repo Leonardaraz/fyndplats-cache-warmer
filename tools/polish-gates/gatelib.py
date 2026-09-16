@@ -46,9 +46,21 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 #
 # ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `D51-530V00BK` (#230) börjar
 # med en BOKSTAV och matchade varken alternativ. Den har ett eget uttryck nu.
-ARTNR = (r"\b\d{2}[A-Z]-\d{3}[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
-         r"|\b[A-Z]\d{2}-\d{3}[A-Z0-9]*\b"     # D51-530V00BK
-         r"|\b\d{3}-\d{3}[A-Z0-9]{2,}\b")      # 921-672V00BG, men INTE 220-240V
+#
+# ☠️ OCH ETT FALSKLARM TILL, uppmätt 2026-09-16 på runda N6:s köksset: en
+# EFFEKTANGIVELSE med fyrsiffrigt slut, `850-1000W`. Kravet på två
+# alfanumeriska tecken efter andra gruppen räddar inte där — `\d{3}-\d{3}`
+# matchar mitt inne i det fyrsiffriga talet (`850-100`) och svansen blir
+# `0W`. Spärren är `(?!\d)`: ett äkta artikelnummer har EXAKT tre siffror i
+# andra gruppen, en effekt- eller spänningsangivelse kan ha fler.
+#
+# Det är samma klass som spänningsfallet ovan och lika dyr: ett falsklarm som
+# ser ut som en läcka av leverantörens artikelnummer lär mottagaren att sluta
+# läsa just den grinden. Mätt åt båda hållen — sex kända artikelnummer fångas
+# fortfarande, sju icke-nummer avvisas.
+ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
+         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # D51-530V00BK
+         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # 921-672V00BG, INTE 220-240V eller 850-1000W
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"
