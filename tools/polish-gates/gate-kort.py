@@ -86,6 +86,7 @@ from gatelib import GRINDAR, las_facit, tal
 
 KOLUMNER = 6
 
+
 if not os.path.exists("kort.tsv"):
     print("[AVBRYT] kort.tsv saknas — korten går inte att grinda.\n"
           "  Bygg korten ur en fil; en kortdefinition i ett skript är ogrindad.")
@@ -179,6 +180,15 @@ for radnr, rad in enumerate(open("kort.tsv", encoding="utf-8"), 1):
     delar += [("spec", p.replace("=", ": ")) for p in par]
     rentext = " ".join(re.sub(r"<[^>]*>", " ", t) for _, t in delar)
     rentext = rentext.replace(" ", " ")
+
+    # ☠️ EN ENHET FÖLJER PÅ ETT TAL — se docstringen (341 av 342 uppmätta).
+    for x in re.finditer(r"(.{0,14})(?:&nbsp;|\s)<span class=u>(.*?)</span>", spec):
+        fore = x.group(1).rstrip()
+        if not fore or not fore[-1].isdigit():
+            print(f"  {kort}: [ENHET UTAN TAL] ...{fore!r} + {x.group(2)!r} — "
+                  f"en enhet följer på ett tal; här står en bokstav, alltså "
+                  f"har ett ord delats av enhetsavdelaren")
+            fynd += 1
 
     # ☠️ ENHETEN MÅSTE BÄRA `<span class=u>` — se docstringen.
     for x in re.finditer(r"<(?!span class=u>)(?!/span>)([^>]+)>", spec):
