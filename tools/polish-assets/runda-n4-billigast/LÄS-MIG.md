@@ -130,3 +130,36 @@ riktiga `wixnorm`. Utfall: **9 av 9 LIKA**.
 `hasha.py` i N2): **den som skriver om en normalisering för hand bygger en
 tvilling, och tvillingen glider.** Riktningen är det som gör den dyr — en
 korrekt skrivning rapporterad som misslyckad lär mottagaren att sluta läsa.
+
+## Rundan stängd — kvittokedjan hela vägen
+
+| steg | facit | utfall |
+|---|---|---|
+| källorna ordagranna | kontrollsumma räknad server-side | **9/9** |
+| lagersaldo | Wix inventory | 9/9 köpbara |
+| bildhash mot 2 799 publicerade | md5 på huvudbilden | 0 träffar (äkta negativt) |
+| måttskärm | vida trippeln | 6 kandidater bortvalda |
+| åtta filgrindar + kortgrinden | `tools/polish-gates/` | REN |
+| kortens parning | md5 hemhämtat mot lokal kopia | **10/10** |
+| textskrivning | kontrollsumma i SAMMA anrop | 9/9, noll avbrott |
+| media | `fieldMask: ["media"]`, ensam | 53 poster, **0 utan alt** |
+| kategori | bulk-svarets `itemMetadata` per rad | **16/16** |
+| variantsInfo | sist och ensam | 9/9 |
+| återläsning | separat anrop, `wixnorm.normalisera` | **9/9 LIKA** |
+| **live-grind** | publicerad sida mot källfil | **9/9 REN, orddiff 0** |
+
+Live-hämtningen gav `age` 101–102 s mot en paus på 90 — alltså den rendering
+den varma träffen utlöste, inte en äldre cachad sida. Det är skillnaden
+mellan ett kvitto och en tillfällighet.
+
+⚠️ **Korten är verifierade på MOTTAGARSIDAN, inte bara vid uppladdningen.**
+Alla tio filerna är hittade i produkternas `media.itemsInfo` via sitt
+Wix-filnamn, aldrig via ordningen. `UploadImageToWixSite` ekar ingen
+käll-URL, så en parning på ordning vore samma antagande som lagersynkens
+`tolkaBulkUtfall` uttryckligen vägrar göra.
+
+☠️ **Och sessionen kan inte radera en gren själv** (403 på ref-borttagning —
+uppmätt igen här, fyra försök med backoff gav `Everything up-to-date`).
+`branch-cleanup.yml` äger rätten, och den läser sitt facit ur den
+UTCHECKADE grenen: facit måste alltså pushas FÖRE körningen, och `ref` sättas
+till arbetsgrenen. Samma lärdom som #181, i ett nytt hörn.
