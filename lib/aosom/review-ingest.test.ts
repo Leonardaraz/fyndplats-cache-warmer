@@ -61,7 +61,31 @@ describe("tolkaInlasning", () => {
       ],
     });
     expect(t.fel).toEqual([]);
-    expect(t.rader).toEqual([{ wixProductId: "wix-1", rating: 4.6, reviewCount: 14, reviews: [{ rating: 5, text: "hej", sv: undefined }] }]);
+    expect(t.rader).toEqual([
+      { wixProductId: "wix-1", rating: 4.6, reviewCount: 14, reviews: [{ rating: 5, text: "hej", sv: undefined, date: undefined, imageUrls: undefined }] },
+    ]);
+  });
+
+  it("tar med datum och foton — men bara foton på deras bild-CDN", () => {
+    const t = tolkaInlasning({
+      rader: [
+        {
+          wixProductId: "wix-1",
+          reviews: [
+            {
+              rating: 5,
+              text: "hej",
+              date: "2026-07-11",
+              imageUrls: ["https://img.aosomcdn.com/680/210_comment/2026/08/12/a.jpeg", "https://evil.example/x.jpg", 7],
+            },
+            { rating: 4, text: "hopp", date: "11 juli" },
+          ],
+        },
+      ],
+    });
+    expect(t.rader[0].reviews[0]).toMatchObject({ date: "2026-07-11", imageUrls: ["https://img.aosomcdn.com/680/210_comment/2026/08/12/a.jpeg"] });
+    expect(t.rader[0].reviews[1].date).toBeUndefined();
+    expect(t.rader[0].reviews[1].imageUrls).toBeUndefined();
   });
 
   it("vägrar fel form: saknad lista, saknat wix-id, för många rader", () => {
@@ -73,14 +97,22 @@ describe("tolkaInlasning", () => {
 });
 
 describe("lasInRecensioner", () => {
-  it("importerar texterna med tyska som källspråk och stämplar mappningen med Aosoms aggregat", async () => {
-    const { deps, sparade } = fakeDeps();
+  it("importerar texterna med tyska som källspråk, datum och foton, och stämplar mappningen med Aosoms aggregat", async () => {
+    let skickade: unknown = null;
+    const { deps, sparade } = fakeDeps({
+      importReviews: async (_p, reviews) => {
+        skickade = reviews;
+        return { imported: reviews.length, skippedExisting: 0, reviews: [], bildmissar: 0 };
+      },
+    });
+    const foto = "https://img.aosomcdn.com/680/210_comment/2026/08/12/a.jpeg";
     const s = await lasInRecensioner(
-      [{ wixProductId: WIX, rating: 4.6, reviewCount: 14, reviews: [{ rating: 5, text: TEXT_DE }] }],
+      [{ wixProductId: WIX, rating: 4.6, reviewCount: 14, reviews: [{ rating: 5, text: TEXT_DE, date: "2026-07-11", imageUrls: [foto] }] }],
       deps,
     );
     expect(s.importerade).toBe(1);
     expect(s.stamplade).toBe(1);
+    expect(skickade).toEqual([{ rating: 5, text: TEXT_DE, language: "de", hasImage: true, imageUrl: foto, imageUrls: [foto], date: "2026-07-11" }]);
     expect(sparade[0]).toMatchObject({ aosomRating: 4.6, aosomReviewCount: 14, reviewsCheckedAt: new Date(1_000).toISOString() });
   });
 

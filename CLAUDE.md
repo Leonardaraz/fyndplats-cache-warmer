@@ -3055,16 +3055,22 @@ att hämta och översätta recensionerna, så vägen blev:
 
 1. **Hämtning i Leonards Chrome** (Claude in Chrome, en egen flik på aosom.de).
    Deras sök-API `/rest/v1/searchApi/product?keyword=<artikelnummer>` ger
-   `sin` (produktkoden i URL:en), `urlkey`, `score`, `commentCount` och
-   `stockQty`; produktsidan `/item/<urlkey>~<sin>.html` bär JSON-LD med
-   `aggregateRating` och upp till fem `review` (tyska, utan datum).
-   ~2,8 s per produkt med 0,9 s paus — 972 produkter tar ~45 min.
+   `sin`, `skuid`, `urlkey`, `score`, `commentCount` och `stockQty`. Deras
+   recensions-API `/block/template/detailComment?pageNum&pageSize=50&sin&skuid&_lang=de&_siteId=210&_version=test3&sort=default`
+   — samma anrop som deras produktsida gör — ger ALLA recensioner
+   (`list[]`: `qualityScore`, `title`, `content`, `ct` = datum, `imgurls` =
+   semikolonseparerade foton på img.aosomcdn.com, `sourceName`) och
+   `globalRateCount`/`globalReviewCount`. Produktsidans JSON-LD (högst fem
+   texter, utan datum och foton) var första vägen och är passerad: gymstationen
+   hade tolv recensioner i API:t, fyra i JSON-LD. ~2,4 s per produkt.
+   Aosom sa ja till texter OCH foton (2026-09-16).
 2. **Inläsning** via `POST /api/admin/aosom-reviews-ingest`
    (`lib/aosom/review-ingest.ts`, tio tester), workflow
    `aosom-reviews-ingest.yml` med `payload_file` i grenen — samma mönster som
    review-translate. Nyttolasten är nycklad på **wixProductId**, bär tyska
-   texter, valfria svenska översättningar (`sv`), Aosoms betyg och antal —
-   aldrig artikelnummer (workflowen vägrar filer som matchar
+   texter, valfria svenska översättningar (`sv`), datum, kundfoton (bara
+   img.aosomcdn.com släpps igenom, hemflytt sker i importen), Aosoms betyg och
+   antal — aldrig artikelnummer (workflowen vägrar filer som matchar
    artikelnummermönstret) och aldrig recensentens namn.
 
 Fyra egenskaper som inte ska tas bort:

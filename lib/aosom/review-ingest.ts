@@ -3,18 +3,22 @@
 // VARFÖR DEN FINNS (2026-09-16). Svepet i review-run.ts kan inte hämta något:
 // Aosom ligger bakom Akamai och avvisar allt som inte är en riktig webbläsare
 // (403 även för curl med webbläsarrubriker, uppmätt 2026-09-16). Aosom har
-// gett oss tillstånd att hämta och översätta recensionerna (Leonards mejl
-// 2026-09-16), så vägen blev: hämta i Leonards Chrome (deras sök-API ger
-// produktkoden per artikelnummer, produktsidans JSON-LD ger betyg, antal och
-// upp till fem texter), och läs in resultatet här — nycklat på wixProductId.
+// gett oss tillstånd att hämta och översätta recensionerna, foton inräknade
+// (Leonards mejl 2026-09-16), så vägen blev: hämta i Leonards Chrome och läs
+// in resultatet här — nycklat på wixProductId. Deras sök-API
+// (`/rest/v1/searchApi/product?keyword=<artikelnummer>`) ger `sin` och
+// `skuid`; deras recensions-API (`/block/template/detailComment?sin&skuid`,
+// samma anrop som deras produktsida gör) ger ALLA recensioner med rubrik,
+// datum, betyg, kundfoton och `globalRateCount`. Produktsidans JSON-LD bar
+// högst fem texter utan datum och foton — den vägen är passerad.
 //
 // Samma lagring som svepet skulle ha gjort:
 //   · texterna  → FyndplatsImportedReviews via importReviewsForProduct med
 //                 `source: "aosom"` — husets filter (betyg ≥ 3, längd, spam,
 //                 utlandsleverans, dubbletter) gäller oförändrat.
 //   · aggregatet → mappningen (`aosomRating`, `aosomReviewCount`). ☠️ Aldrig
-//                 uträknat ur texterna: JSON-LD bär högst fem av ibland
-//                 åttiotalet och Aosoms urval lutar högt.
+//                 uträknat ur texterna: husets filter behåller bara betyg ≥ 3
+//                 och högst femton, så det synliga snittet lutar uppåt.
 //
 // ☠️ ÖVERSÄTTNINGEN FÅR FÖLJA MED, MEN GRANSKAS. En rad kan bära `sv`; den
 // skrivs bara om raden ligger som `pending` (aldrig över något en människa
@@ -40,7 +44,19 @@ export interface InlasRecension {
   text: string;
   /** Svensk översättning, valfri. Skrivs bara via granskningen. */
   sv?: string;
+  /** Recensionsdatum (YYYY-MM-DD) ur Aosoms API — styr sorteringen på sidan. */
+  date?: string;
+  /**
+   * Kundens foton, fulla adresser på Aosoms bild-CDN. Importen flyttar hem dem
+   * till vår mediahantering (importReviewsForProduct → ownImageUrlForReview);
+   * ingen adress lämnas kvar mot deras server.
+   */
+  imageUrls?: string[];
 }
+
+/** Bara deras bild-CDN släpps igenom — allt annat i `imageUrls` är skräp eller fel. */
+const BILDVARD = /^https:\/\/img\.aosomcdn\.com\//;
+const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface InlasRad {
   wixProductId: string;
@@ -92,7 +108,15 @@ export function tolkaInlasning(body: unknown): Tolkning {
       if (!text) continue;
       const rating = Math.max(1, Math.min(5, Math.round(tal(xo.rating) ?? 0)));
       const sv = typeof xo.sv === "string" && xo.sv.trim() ? xo.sv.trim().slice(0, MAX_TEXT) : undefined;
-      reviews.push({ rating, text, sv });
+      const date = typeof xo.date === "string" && DATUM.test(xo.date.trim()) ? xo.date.trim() : undefined;
+      const imageUrls = Array.isArray(xo.imageUrls)
+        ? xo.imageUrls
+            .filter((u): u is string => typeof u === "string")
+            .map((u) => u.trim())
+            .filter((u) => BILDVARD.test(u))
+            .slice(0, 6)
+        : [];
+      reviews.push({ rating, text, sv, date, imageUrls: imageUrls.length ? imageUrls : undefined });
     }
     const rating = tal(o.rating);
     const reviewCount = tal(o.reviewCount);
@@ -199,7 +223,10 @@ export async function lasInRecensioner(rader: InlasRad[], deps: InlasDeps): Prom
           rating: r.rating,
           text: r.text,
           language: "de",
-          hasImage: false,
+          hasImage: Boolean(r.imageUrls?.length),
+          imageUrl: r.imageUrls?.[0],
+          imageUrls: r.imageUrls,
+          date: r.date,
         }));
         const res = await deps.importReviews(rad.wixProductId, in_);
         s.importerade += res.imported;
