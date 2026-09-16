@@ -2815,6 +2815,38 @@ form som `inventory-items/query` (2026-09-13). Sida två skickas med BARA
 markören. Tredje endpointen i familjen; `orders/search` tar fortfarande emot
 båda, så formen är inte gemensam. Mät per endpoint.
 
+#### ☠️ Och `filter` PÅ TOPPNIVÅN ÄR EN NO-OP — svaret är 200 och ofiltrerat (2026-09-16)
+
+Raden ovan gäller när filtret ligger rätt. Ligger det fel finns inget fel att
+läsa. `filter` hör **inuti `search`**, exakt som `cursorPaging` (#191); på
+kroppens toppnivå kastas det bort tyst.
+
+Uppmätt mot skarpa V3, åt båda hållen — det är det enda som skiljer en levande
+grind från en död:
+
+| filtrets plats | synliga | osynliga |
+|---|---:|---:|
+| kroppens **toppnivå**, `visible: true` | 6 | **94** |
+| inuti `search`, `visible: true` | **100** | 0 |
+| inuti `search`, `visible: false` | 0 | **100** |
+| inuti `search` + markör | **400 SE-1141** | — |
+
+☠️ **Följden är att ett FLERSIDIGT filtrerat svep inte går att göra.** Rätt
+plats ger 400 på markören; fel plats ger en markör som fungerar och ett filter
+som inte finns. Enda korrekta vägen är att **svepa OFILTRERAT och filtrera i
+koden** — samma hållning som husets egen regel om att hämta en avgränsad mängd
+och filtrera i kod när ett filter inte stöds.
+
+⚠️ **Och felet är osynligt utom i ETT tal.** Dubblettskärmen i runda N7 läste
+**5 748** rader och kallade dem publicerade; katalogen har ~2 800 publicerade
+sidor. Ingenting annat i svaret skilde sig från en korrekt filtrerad körning.
+Hade katalogen råkat vara dubbelt så stor hade talet sett rimligt ut.
+
+**Regeln, och den är husets vanligaste i ny form: en kontroll som inte KAN
+fälla räknas ändå som gjord.** Ett filter som tyst ignoreras är samma klass som
+SKU-kollen som itererade en tom lista — skillnaden är att det här svarar 200
+med hundra rader i stället för noll, vilket är svårare att misstänka.
+
 ### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
 
 Leonards fråga: *"tror du inte dealproffset har hittat på en egen ean då?"*
