@@ -1,62 +1,72 @@
 {
-  "beskrivning": "Kortuppladdningsgrenar (kort-n*-tmp) som raderades 2026-09-16. Samma roll som claude/img-* : de fanns bara för att ge Wix Media en publik raw.githubusercontent-URL att hämta kortbilden från. När Wix kopierat bytesen är grenen förbrukad — och kopian är md5-bevisad per fil, inte antagen ur svarets ordning.",
-  "aterstallning": "git push origin <sha>:refs/heads/<gren> — GitHub behåller onåbara objekt en tid, så listan är meningsfull bara de närmaste veckorna.",
-  "kontrollerat": [
-    "Ingen av grenarna är head eller bas för en öppen pull request.",
-    "Ingen delar historik med main (merge-base tom) — de är fristående ögonblicksbilder.",
-    "kort-n2-tmp bär ENDAST rundans tolv kortbilder utöver arbetsgrenen; resten av trädet finns redan i claude/seo-polering-runbook-review-uq6fwl. Mätt med comm mot grenens filträd, inte antaget.",
-    "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera.",
-    "kort-n4-tmp bär ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren). Kopian är verifierad på MOTTAGARSIDAN och inte bara vid uppladdningen: alla tio filerna är hittade i produkternas media.itemsInfo via sitt Wix-filnamn, aldrig via ordningen — samma skäl som lagersynkens tolkaBulkUtfall inte litar på ORDNINGEN. 53 mediaposter över nio produkter, noll utan alt-text.",
-    "kort-n5-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag: Wix-mediaid:t OCH den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
-    "☠️ Och forsta forsoket att verifiera N5 gav 0 av 9 — pa FACIT, inte pa skrivningen. kort-filer.tsv bar Wix-MEDIAID medan jag jamforde mot image.filename, som ar den LOKALA uppladdningsfilen. Nio av nio ar facitfelets signatur (samma regel som aterlas.js bar efter N4): alla rader skiljer -> misstank facit, nagra rader skiljer -> misstank skrivningen. Matt i stallet for gissat: en dump av en enda mediapost visade att id, image.id och uploadId bar mediaid:t medan image.filename bar kort-3b868848.png.",
-    "kort-n6-tmp bar ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag, samma kontroll som N5 efter facitfelet: Wix-mediaid:t OCH image.filename (kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text."
-  ],
-  "sparade": [],
-  "raderade": [
-    {
-      "gren": "kort-n2-tmp",
-      "sha": "b84a757697a5dc918c83edf92d491a5a03b83112",
-      "sistaCommit": "2026-09-16T04:29:45+00:00",
-      "commits": 3,
-      "filer": 3266,
-      "kort": 12,
-      "runda": "N2"
-    },
-    {
-      "gren": "kort-n3-tmp",
-      "sha": "e18d5aaeaead61726c081c8440f1f6d460e7a795",
-      "sistaCommit": "2026-09-16T06:26:45+00:00",
-      "commits": 1,
-      "filer": 12,
-      "kort": 9,
-      "runda": "N3"
-    },
-    {
-      "gren": "kort-n4-tmp",
-      "sha": "1dd1d9d1d5de74ecbc9f0d2d64bb98cdcf61dfc4",
-      "sistaCommit": "2026-09-16T07:32:42+00:00",
-      "commits": 1,
-      "filer": 10,
-      "kort": 9,
-      "runda": "N4"
-    },
-    {
-      "gren": "kort-n5-tmp",
-      "sha": "c3bdec021b84f2e8ef9c951c01a79238693e5542",
-      "sistaCommit": "2026-09-16T09:16:00+00:00",
-      "commits": 1,
-      "filer": 9,
-      "kort": 9,
-      "runda": "N5"
-    },
-    {
-      "gren": "kort-n6-tmp",
-      "sha": "abb837774e7fdcb48665fc0c56c6de40c66c7aab",
-      "sistaCommit": "2026-09-16T10:30:27+00:00",
-      "commits": 1,
-      "filer": 10,
-      "kort": 9,
-      "runda": "N6"
-    }
-  ]
+ "beskrivning": "Kortuppladdningsgrenar (kort-n*-tmp) som raderades 2026-09-16. Samma roll som claude/img-* : de fanns bara för att ge Wix Media en publik raw.githubusercontent-URL att hämta kortbilden från. När Wix kopierat bytesen är grenen förbrukad — och kopian är md5-bevisad per fil, inte antagen ur svarets ordning.",
+ "aterstallning": "git push origin <sha>:refs/heads/<gren> — GitHub behåller onåbara objekt en tid, så listan är meningsfull bara de närmaste veckorna.",
+ "kontrollerat": [
+  "Ingen av grenarna är head eller bas för en öppen pull request.",
+  "Ingen delar historik med main (merge-base tom) — de är fristående ögonblicksbilder.",
+  "kort-n2-tmp bär ENDAST rundans tolv kortbilder utöver arbetsgrenen; resten av trädet finns redan i claude/seo-polering-runbook-review-uq6fwl. Mätt med comm mot grenens filträd, inte antaget.",
+  "Varje uppladdad fil är hemhämtad från Wix och md5-jämförd mot sin lokala kopia — 12 av 12 i båda rundorna. Bytesen ligger alltså hos Wix och grenen behövs inte för att sidan ska rendera.",
+  "kort-n4-tmp bär ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren). Kopian är verifierad på MOTTAGARSIDAN och inte bara vid uppladdningen: alla tio filerna är hittade i produkternas media.itemsInfo via sitt Wix-filnamn, aldrig via ordningen — samma skäl som lagersynkens tolkaBulkUtfall inte litar på ORDNINGEN. 53 mediaposter över nio produkter, noll utan alt-text.",
+  "kort-n5-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag: Wix-mediaid:t OCH den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
+  "☠️ Och forsta forsoket att verifiera N5 gav 0 av 9 — pa FACIT, inte pa skrivningen. kort-filer.tsv bar Wix-MEDIAID medan jag jamforde mot image.filename, som ar den LOKALA uppladdningsfilen. Nio av nio ar facitfelets signatur (samma regel som aterlas.js bar efter N4): alla rader skiljer -> misstank facit, nagra rader skiljer -> misstank skrivningen. Matt i stallet for gissat: en dump av en enda mediapost visade att id, image.id och uploadId bar mediaid:t medan image.filename bar kort-3b868848.png.",
+  "kort-n6-tmp bar ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag, samma kontroll som N5 efter facitfelet: Wix-mediaid:t OCH image.filename (kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
+  "kort-n7-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 52 mediaposter over nio produkter, noll utan alt-text."
+ ],
+ "sparade": [],
+ "raderade": [
+  {
+   "gren": "kort-n2-tmp",
+   "sha": "b84a757697a5dc918c83edf92d491a5a03b83112",
+   "sistaCommit": "2026-09-16T04:29:45+00:00",
+   "commits": 3,
+   "filer": 3266,
+   "kort": 12,
+   "runda": "N2"
+  },
+  {
+   "gren": "kort-n3-tmp",
+   "sha": "e18d5aaeaead61726c081c8440f1f6d460e7a795",
+   "sistaCommit": "2026-09-16T06:26:45+00:00",
+   "commits": 1,
+   "filer": 12,
+   "kort": 9,
+   "runda": "N3"
+  },
+  {
+   "gren": "kort-n4-tmp",
+   "sha": "1dd1d9d1d5de74ecbc9f0d2d64bb98cdcf61dfc4",
+   "sistaCommit": "2026-09-16T07:32:42+00:00",
+   "commits": 1,
+   "filer": 10,
+   "kort": 9,
+   "runda": "N4"
+  },
+  {
+   "gren": "kort-n5-tmp",
+   "sha": "c3bdec021b84f2e8ef9c951c01a79238693e5542",
+   "sistaCommit": "2026-09-16T09:16:00+00:00",
+   "commits": 1,
+   "filer": 9,
+   "kort": 9,
+   "runda": "N5"
+  },
+  {
+   "gren": "kort-n6-tmp",
+   "sha": "abb837774e7fdcb48665fc0c56c6de40c66c7aab",
+   "sistaCommit": "2026-09-16T10:30:27+00:00",
+   "commits": 1,
+   "filer": 10,
+   "kort": 9,
+   "runda": "N6"
+  },
+  {
+   "gren": "kort-n7-tmp",
+   "sha": "210c4cc6455aba57d41b57101c40766d726e46b0",
+   "sistaCommit": "2026-09-16T13:55:46+00:00",
+   "commits": 1,
+   "filer": 9,
+   "kort": 9,
+   "runda": "N7"
+  }
+ ]
 }
