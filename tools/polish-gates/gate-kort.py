@@ -82,7 +82,7 @@ ANVÄNDNING (från rundans katalog):
 import os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import GRINDAR, las_facit, tal
+from gatelib import GRINDAR, las_facit, tal, las_kvittenser
 
 KOLUMNER = 6
 
@@ -92,23 +92,13 @@ if not os.path.exists("kort.tsv"):
           "  Bygg korten ur en fil; en kortdefinition i ett skript är ogrindad.")
     sys.exit(1)
 
-# Samma tre ventiler som gate.py, och av exakt samma skäl. De läses här i
-# stället för att importeras för att gate.py bygger dem på modulnivå.
-RAD_TAL = set()
-if os.path.exists("rad-tal.txt"):
-    RAD_TAL = {r.strip() for r in open("rad-tal.txt", encoding="utf-8") if r.strip()}
-
-FOTO_TAL = {}
-if os.path.exists("foto-tal.txt"):
-    for rad in open("foto-tal.txt", encoding="utf-8"):
-        rad = rad.strip()
-        if not rad or rad.startswith("#"):
-            continue
-        d = rad.split()
-        if len(d) < 3:
-            print(f"  [AVBRYT] foto-tal.txt: raden {rad!r} saknar skäl.")
-            sys.exit(1)
-        FOTO_TAL.setdefault(d[0], set()).add(d[1])
+# ☠️ EN TREDJE KOPIA, BORTTAGEN. Kommentaren här motiverade kopian med att
+# gate.py byggde ventilerna på modulnivå och inte gick att importera från.
+# Definitionen bor sedan N8 i gatelib, alltså föll skälet — och kopian hade
+# redan glidit: den här läste `rad.split()` där gate.py läste
+# `rad.split(None, 2)`, och den avbröt med ett kortare meddelande. Tre
+# ordlistor i tre versioner är precis vad #154 städade bort en gång.
+RAD_TAL, FOTO_TAL = las_kvittenser()
 
 # ☠️ EN KOMPRIMERING ÄR INTE EN MOTSÄGELSE — MEN DEN SKA KVITTERAS.
 # Runda F2:s kort skriver `3 × 40 × 30 cm` där sidan räknar upp `40 × 30,

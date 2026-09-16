@@ -413,3 +413,42 @@ def fnv(s):
         h ^= c
         h = (h * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF
     return f"{h:016x}"
+
+
+def las_kvittenser(katalog="."):
+    """Rundans kvitterade tal: `rad-tal.txt` (råd-tal) och `foto-tal.txt` (fotoräknade).
+
+    ☠️ LÅG SOM EN TVILLING I gate.py. Logiken bodde bara där, alltså grindade
+    `gate-alt.py` samma rundas tal HÅRDARE än brödtextgrinden gjorde: ett tal
+    som var kvitterat i `foto-tal.txt` passerade i `<p>` men fälldes i `alt=""`.
+    Uppmätt i runda N8 på a389ddaa — måttritningen trycker `31 cm` mellan
+    hyllplanen, brödtexten fick säga det och alt-texten inte.
+
+    Riktningen är det som gör det dyrt: en grind som lyser rött på en KORREKT
+    rad lär mottagaren att sluta läsa, och då är även det äkta larmet borta.
+    Samma argument som mot att varna vid 48 h på token-förnyelsen.
+
+    Formerna är oförändrade och fortsatt smala med flit:
+      rad-tal.txt   ett tal per rad — VÅRA placeringsanvisningar, inte mått
+      foto-tal.txt  "<kort> <tal> <vad som räknades>" — skälet är obligatoriskt,
+                    så filen blir ett protokoll och inte en generell ventil
+    """
+    rad_tal, foto_tal = set(), {}
+    sokvag = os.path.join(katalog, "rad-tal.txt")
+    if os.path.exists(sokvag):
+        rad_tal = {r.strip() for r in open(sokvag, encoding="utf-8") if r.strip()}
+    sokvag = os.path.join(katalog, "foto-tal.txt")
+    if os.path.exists(sokvag):
+        for rad in open(sokvag, encoding="utf-8"):
+            rad = rad.strip()
+            if not rad or rad.startswith("#"):
+                continue
+            delar = rad.split(None, 2)
+            if len(delar) < 3:
+                raise SystemExit(
+                    f"  [AVBRYT] foto-tal.txt: raden {rad!r} saknar skäl.\n"
+                    "  Formen är '<kort> <tal> <vad som räknades på bilden>'. Ett tal\n"
+                    "  utan skäl är en ventil, inte ett protokoll."
+                )
+            foto_tal.setdefault(delar[0], set()).add(delar[1])
+    return rad_tal, foto_tal
