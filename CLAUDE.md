@@ -3046,6 +3046,46 @@ och kampanjen väljer produkter på `custom_label_0` (A/B — tom = inte med).
 Nyckeln ligger bara på Vercel och matas in i Merchant Center för hand; fel
 nyckel ger 404, inte 401. Nio tester.
 
+## Aosom-recensioner: hämtas i webbläsaren, läses in via rutt (2026-09-16)
+
+Svepet `/api/cron/aosom-reviews` (2026-08-29) fick 403 på varje sida — Akamai
+släpper bara igenom riktiga webbläsare, och 2026-09-16 mättes samma 403 för
+`curl` med fulla webbläsarrubriker. Samma dag gav Aosom skriftligt tillstånd
+att hämta och översätta recensionerna, så vägen blev:
+
+1. **Hämtning i Leonards Chrome** (Claude in Chrome, en egen flik på aosom.de).
+   Deras sök-API `/rest/v1/searchApi/product?keyword=<artikelnummer>` ger
+   `sin` (produktkoden i URL:en), `urlkey`, `score`, `commentCount` och
+   `stockQty`; produktsidan `/item/<urlkey>~<sin>.html` bär JSON-LD med
+   `aggregateRating` och upp till fem `review` (tyska, utan datum).
+   ~2,8 s per produkt med 0,9 s paus — 972 produkter tar ~45 min.
+2. **Inläsning** via `POST /api/admin/aosom-reviews-ingest`
+   (`lib/aosom/review-ingest.ts`, tio tester), workflow
+   `aosom-reviews-ingest.yml` med `payload_file` i grenen — samma mönster som
+   review-translate. Nyttolasten är nycklad på **wixProductId**, bär tyska
+   texter, valfria svenska översättningar (`sv`), Aosoms betyg och antal —
+   aldrig artikelnummer (workflowen vägrar filer som matchar
+   artikelnummermönstret) och aldrig recensentens namn.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. Samma lagring som svepet: `importReviewsForProduct(..., { source: "aosom" })`
+   med husets filter oförändrat (betyg ≥ 3, längd, spam, utlandsleverans,
+   dubbletter), och aggregatet på mappningen (`aosomRating`,
+   `aosomReviewCount`) — ☠️ aldrig uträknat ur texterna.
+2. ☠️ En översättning skrivs bara på en rad som ligger som `pending` och bara
+   om `validateTranslation` godkänner den — samma grind som /admin/reviews.
+   Underkända räknas per skäl (`underkandaSkal`) och ligger kvar i kön.
+3. Högst 60 rader per anrop och tidsbudget 240 s; svaret bär `kvarFran` så
+   workflowen fortsätter från rätt rad. Torrt som default (`dryRun: false`
+   krävs för att skriva).
+4. Loggen bär bara räknare — rutten anropas från en publik Actions-logg.
+
+Butikssidan räknar i dag snitt och antal ur de SYNLIGA raderna
+(headless-site `lib/reviews.ts`), inte ur `aosomRating`/`aosomReviewCount`.
+Med filtret betyg ≥ 3 lutar det synliga snittet uppåt mot Aosoms — att visa
+Aosoms eget aggregat är nästa steg, inte gjort.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

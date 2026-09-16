@@ -1,0 +1,131 @@
+name: Recensioner — läs in Aosom-recensioner (hämtade i webbläsare)
+
+# Läser en JSON-fil ur grenen och skickar den i omgångar till
+# /api/admin/aosom-reviews-ingest. Filen är nycklad på wixProductId och bär
+# tyska texter, valfria svenska översättningar, Aosoms betyg och antal —
+# ALDRIG artikelnummer och ALDRIG recensentens namn (grenen är publik).
+#
+# Varför en fil i grenen och inte ett input: nyttolasten är hundratals
+# kilobyte, och workflow_dispatch tar högst ~64 kB. Samma mönster som
+# review-translate.yml (payload_file).
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE. Inga texter skrivs ut.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload_file:
+        description: "Sökväg i grenen till JSON-filen ({\"rader\": [...]}) — kör workflowen på den gren filen ligger i"
+        required: true
+        type: string
+      skarp:
+        description: "ja = skriv. nej = torrkörning (räknar bara)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      omgang:
+        description: "Rader per anrop (rutten tar högst 60)"
+        required: false
+        default: "40"
+        type: string
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Läs in
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FIL: ${{ inputs.payload_file }}
+          SKARP: ${{ inputs.skarp }}
+          OMGANG: ${{ inputs.omgang }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if [ ! -f "$FIL" ]; then
+            echo "::error::Filen finns inte i grenen: $FIL" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-reviews-ingest"
+          dry="true"
+          [ "${SKARP:-nej}" = "ja" ] && dry="false"
+          n="$(jq -r '.rader | length' "$FIL")"
+          steg="${OMGANG:-40}"
+          [ "$steg" -gt 60 ] && steg=60
+          echo "$n rader i filen, $steg per anrop, skarp=${SKARP:-nej}"
+
+          # ☠️ Filen får inte bära artikelnummer. Stoppa hellre än att skicka.
+          if jq -r '.. | strings' "$FIL" | grep -Eq '\b[0-9A-Z]{3}-[0-9]{3}(V[0-9]{2})?[A-Z]{2}\b'; then
+            echo "::error::Filen ser ut att innehålla artikelnummer — vägrar" >&2
+            exit 1
+          fi
+
+          tot_beh=0; tot_ok=0; tot_imp=0; tot_fanns=0; tot_filt=0; tot_ov=0; tot_und=0; tot_utan=0; tot_st=0; tot_fel=0
+          i=0
+          while [ "$i" -lt "$n" ]; do
+            kropp="$(jq -c --argjson i "$i" --argjson s "$steg" --argjson dry "$dry" \
+              '{dryRun: $dry, rader: .rader[$i:($i+$s)]}' "$FIL")"
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" -H "Content-Type: application/json" \
+              --data-binary "$kropp" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} vid rad ${i}" >&2
+              printf '%s\n' "$json" | jq -c '{ok, error}' >&2 || true
+              exit 1
+            fi
+            # Fortsätt från den rad rutten inte hann med, annars nästa omgång.
+            kvar="$(printf '%s' "$json" | jq -r '.kvarFran // empty')"
+            beh="$(printf '%s' "$json" | jq -r '.behandlade')"
+            tot_beh=$((tot_beh + beh))
+            tot_ok=$((tot_ok + $(printf '%s' "$json" | jq -r '.okandProdukt')))
+            tot_imp=$((tot_imp + $(printf '%s' "$json" | jq -r '.importerade')))
+            tot_fanns=$((tot_fanns + $(printf '%s' "$json" | jq -r '.redanFanns')))
+            tot_filt=$((tot_filt + $(printf '%s' "$json" | jq -r '.bortfiltrerade')))
+            tot_ov=$((tot_ov + $(printf '%s' "$json" | jq -r '.oversatta')))
+            tot_und=$((tot_und + $(printf '%s' "$json" | jq -r '.underkanda')))
+            tot_utan=$((tot_utan + $(printf '%s' "$json" | jq -r '.oversattningUtanRad')))
+            tot_st=$((tot_st + $(printf '%s' "$json" | jq -r '.stamplade')))
+            tot_fel=$((tot_fel + $(printf '%s' "$json" | jq -r '.skrivfel')))
+            printf '%s' "$json" | jq -r '"rad \($i): \(.behandlade) behandlade, \(.importerade) importerade, \(.oversatta) översatta, \(.underkanda) underkända \(.underkandaSkal), \(.skrivfel) skrivfel, \(.stoppadAv)"' --argjson i "$i" || true
+            if [ -n "$kvar" ]; then
+              i=$((i + kvar))
+            else
+              i=$((i + steg))
+            fi
+          done
+
+          {
+            echo "### Aosom-recensioner — $([ "$dry" = "true" ] && echo TORRKÖRNING || echo SKARP)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| rader i filen | ${n} |"
+            echo "| behandlade produkter | ${tot_beh} |"
+            echo "| okända produkter (ingen Aosom-mappning) | ${tot_ok} |"
+            echo "| **texter importerade** | **${tot_imp}** |"
+            echo "| fanns redan | ${tot_fanns} |"
+            echo "| bortfiltrerade (husets filter) | ${tot_filt} |"
+            echo "| **översatta (synliga)** | **${tot_ov}** |"
+            echo "| underkända översättningar (kvar i kön) | ${tot_und} |"
+            echo "| översättning utan pending-rad | ${tot_utan} |"
+            echo "| stämplade med betyg/antal | ${tot_st} |"
+            echo "| skrivfel | ${tot_fel} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${tot_imp} importerade, ${tot_ov} översatta, ${tot_und} underkända, ${tot_fel} skrivfel"
