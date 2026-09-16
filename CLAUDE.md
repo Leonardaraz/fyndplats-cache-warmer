@@ -3090,7 +3090,27 @@ Fyra egenskaper som inte ska tas bort:
 Butikssidan räknar i dag snitt och antal ur de SYNLIGA raderna
 (headless-site `lib/reviews.ts`), inte ur `aosomRating`/`aosomReviewCount`.
 Med filtret betyg ≥ 3 lutar det synliga snittet uppåt mot Aosoms — att visa
-Aosoms eget aggregat är nästa steg, inte gjort.
+Aosoms eget aggregat är nästa steg, inte gjort. Observera att Aosoms API bara
+lämnar ut 4- och 5-stjärniga recensioner (8 329 hämtade, ingen under 4), så
+snittet är högt oavsett vad vi räknar på.
+
+**Första inläsningen gjordes 2026-09-16** (skarpt, 0 skrivfel): 972 produkter
+(alla Aosom-produkter i annonsurvalet), 8 329 texter hämtade, 4 383 kvar efter
+husets filter (863 med kundfoton), 2 510 översatta till svenska och synliga —
+upp till fem per kampanjprodukt, tre per övrig. Resterande 1 873 ligger som
+`pending` (osynliga) och tas i en andra omgång via `review-translate.yml`, som
+redan tar en `payload_file` med översättningar. Nyttolasten låg på den
+tillfälliga grenen `claude/aosom-recensioner-2026-09-16` (raderad efter
+inläsningen — repon är publik). Rådata, filtrerad mängd och alla
+översättningar finns lokalt hos Leonard i `_claude_tmp/recensioner/`
+(git-exkluderat, bär artikelnummer). Översättningsreglerna som gällde:
+leverantörsnamn, budfirmor, recensentens namn, rabatter, sajt/säljare och
+utlovade leveranstider bort; kritik kvar; recensioner som bara handlar om
+leverans/retur/kundtjänst hoppas över; längd 0,45–2,2 × källan; ordet "fast"
+undviks (engelsk-markör i `validateTranslation`). Butikssidorna cachar
+recensionerna en timme (`revalidate: 3600`, tagg `reviews`) — omedelbar
+uppdatering kräver headless-sitens `/api/admin/revalidate?tag=reviews` med
+`ADMIN_SECRET`, som Claude inte läser.
 
 ## Dubblett-spärr vid import
 
