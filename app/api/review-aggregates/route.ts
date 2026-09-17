@@ -32,12 +32,30 @@
 
 import { NextResponse } from "next/server";
 import { getReviewStore } from "@/lib/store/reviews";
+import { hamtaSnapshot } from "@/lib/reviews/snapshot";
+import { snittBetyg } from "@/lib/reviews/public-view";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const rader = await getReviewStore().aggregateByProduct();
+    // ☠️ BILDEN FÖRST, LAGRET SOM RESERV — och det är en KOSTNADSREGEL, inte
+    // en hastighetsoptimering. Räknade vi aggregatet direkt ur Postgres skulle
+    // butikens timvisa hämtning väcka Neon-computen på en egen, slumpmässig
+    // minut varje timme. Då hade vi bytt bort recensionsläsningens 197 frågor
+    // i timmen men betalat ett andra väckningsfönster i stället. Bilden ger
+    // båda vägarna samma uppvaknande, på minut :25. Se lib/reviews/snapshot.ts.
+    //
+    // Summan blir densamma: bilden innehåller exakt de statusar
+    // `aggregateByProduct` räknar (VISIBLE_STATUSES), och snittet avrundas med
+    // samma `snittBetyg` som produktsidan använder — ett kort får aldrig visa
+    // ett betyg produktsidan inte kan belägga.
+    const bild = await hamtaSnapshot();
+    const rader = bild
+      ? Object.entries(bild.perProdukt)
+          .map(([productId, r]) => ({ productId, antal: r.length, snitt: snittBetyg(r) ?? 0 }))
+          .filter((r) => r.antal > 0)
+      : await getReviewStore().aggregateByProduct();
 
     // Karta i stället för lista: butiken slår upp per produkt-id, och en karta
     // gör det till en uppslagning i stället för en genomsökning per kort.

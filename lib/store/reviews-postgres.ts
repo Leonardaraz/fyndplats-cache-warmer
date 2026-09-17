@@ -25,6 +25,7 @@
 import { sql } from "../db/client";
 import {
   MAX_LIST_ALL,
+  MAX_SNAPSHOT_ROWS,
   VISIBLE_STATUSES,
   normaliseraFörSkrivning,
   reviewDocId,
@@ -121,6 +122,25 @@ export class PostgresReviewStore implements ReviewStoreLike {
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
     const q = sql();
     const rows = await q`select data from reviews order by date desc nulls last limit ${limit}`;
+    return rows.map((r) => rensa((r as { data: unknown }).data));
+  }
+
+  /**
+   * Ögonblicksbildens läsning: alla synliga rader, ETT anrop, ETT uppvaknande.
+   *
+   * ☠️ Samma `VISIBLE_STATUSES` som `aggregateByProduct`, och sorteringen är
+   * samma `date desc nulls last` som `listByProduct` — bilden och fallbacken
+   * måste ge recensionerna i samma ordning, annars hoppar de omkring på sidan
+   * beroende på vilken väg svaret tog.
+   */
+  async listVisibleAll(limit = MAX_SNAPSHOT_ROWS): Promise<StoredReview[]> {
+    const q = sql();
+    const rows = await q`
+      select data from reviews
+       where status = any(${VISIBLE_STATUSES as unknown as string[]})
+       order by date desc nulls last
+       limit ${limit}
+    `;
     return rows.map((r) => rensa((r as { data: unknown }).data));
   }
 

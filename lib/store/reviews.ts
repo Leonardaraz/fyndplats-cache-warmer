@@ -58,6 +58,18 @@ const QUERY_PAGE_SIZE = 500;
  */
 export const MAX_LIST_ALL = 5000;
 
+/**
+ * Tak för `listVisibleAll` — ögonblicksbildens läsning.
+ *
+ * ☠️ EGET TAK, INTE `MAX_LIST_ALL`. Det taket är 5 000 och skyddar en
+ * ADMIN-SIDA från att rendera obegränsat. Ögonblicksbilden har motsatt krav:
+ * den måste få med VARENDA synlig rad, för det den missar försvinner från
+ * produktsidan. Uppmätt 2026-09-17 fanns 4 932 synliga recensioner — 68 rader
+ * under det gamla taket. Hade bilden ärvt 5 000 hade den tystnat kring
+ * månadsskiftet, och felet sett ut som "vissa produkter tappade sina omdömen".
+ */
+export const MAX_SNAPSHOT_ROWS = 100_000;
+
 /** Status som visas publikt på produktsidan. */
 export const VISIBLE_STATUSES: ReviewStatus[] = ["approved", "edited"];
 export function isVisibleStatus(s: ReviewStatus | undefined): boolean {
@@ -225,6 +237,15 @@ export interface ReviewStoreLike {
   upsert(review: StoredReview): Promise<void>;
   listByProduct(productId: string, limit?: number): Promise<StoredReview[]>;
   listAll(limit?: number): Promise<StoredReview[]>;
+  /**
+   * Alla PUBLIKT SYNLIGA rader, hela katalogen, i ETT anrop.
+   *
+   * Underlaget till lib/reviews/snapshot.ts. Skiljer sig från `listAll` på två
+   * punkter som båda spelar roll: statusfiltret körs i lagret (inte hos oss),
+   * och taket är `MAX_SNAPSHOT_ROWS` — en rad som faller bort här försvinner
+   * från en produktsida.
+   */
+  listVisibleAll(limit?: number): Promise<StoredReview[]>;
   listByStatus(status: ReviewStatus, limit?: number): Promise<StoredReview[]>;
   setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void>;
   editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void>;
@@ -312,6 +333,11 @@ export class ReviewStore implements ReviewStoreLike {
 
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
     return this.query({}, limit);
+  }
+
+  /** Filtret körs hos Wix, samma `VISIBLE_STATUSES` som aggregeringen. */
+  async listVisibleAll(limit = MAX_SNAPSHOT_ROWS): Promise<StoredReview[]> {
+    return this.query({ status: { $in: VISIBLE_STATUSES } }, limit);
   }
 
   /**

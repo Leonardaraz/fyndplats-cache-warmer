@@ -10,6 +10,10 @@
       "schedule": "25 * * * *"
     },
     {
+      "path": "/api/cron/reviews-snapshot",
+      "schedule": "25 * * * *"
+    },
+    {
       "path": "/api/cron/auction-tick",
       "schedule": "0 * * * *"
     },
