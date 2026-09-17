@@ -53,7 +53,14 @@ export async function GET() {
     const bild = await hamtaSnapshot();
     const rader = bild
       ? Object.entries(bild.perProdukt)
-          .map(([productId, r]) => ({ productId, antal: r.length, snitt: snittBetyg(r) ?? 0 }))
+          .map(([productId, r]) => ({
+            productId,
+            // ☠️ Det SANNA antalet, inte längden på den kapade listan — se
+            // `antalPerProdukt` i lib/reviews/snapshot.ts. Annars hade ett kort
+            // stannat på 100 medan produktsidan visade fler.
+            antal: bild.antalPerProdukt?.[productId] ?? r.length,
+            snitt: snittBetyg(r) ?? 0,
+          }))
           .filter((r) => r.antal > 0)
       : await getReviewStore().aggregateByProduct();
 

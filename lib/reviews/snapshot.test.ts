@@ -113,7 +113,7 @@ describe("byggSnapshot", () => {
 
 describe("urSnapshot", () => {
   it("ger tom lista för en produkt som saknas", () => {
-    const bild = { genereradAt: "", antal: 0, produkter: 0, perProdukt: {} };
+    const bild = { genereradAt: "", antal: 0, produkter: 0, perProdukt: {}, antalPerProdukt: {} };
     expect(urSnapshot(bild, "finns-inte")).toEqual([]);
   });
 });
@@ -157,6 +157,20 @@ describe("bilden och lagret ger IDENTISKA svar", () => {
     expect(JSON.stringify(urSnapshot(bild, "a"))).toBe(JSON.stringify(gammal));
   });
 
+  it("antalPerProdukt bär det SANNA antalet, även när listan kapas", async () => {
+    // ☠️ Aggregatet (kortens stjärnor) räknade före bytet ALLA synliga rader.
+    // Läste det längden på den kapade listan hade ett kort stannat på 100
+    // medan produktsidan visade fler — tyst, och bara för de produkter som har
+    // mest att visa.
+    const manga = Array.from({ length: 150 }, (_, i) =>
+      rad({ productId: "a", reviewIdAE: `r${i}`, date: new Date(2026, 0, 1 + i).toISOString() }),
+    );
+    listVisibleAll.mockResolvedValue(manga);
+    const bild = await byggSnapshot();
+    expect(urSnapshot(bild, "a")).toHaveLength(MAX_PER_PRODUKT);
+    expect(bild.antalPerProdukt.a, "aggregatet skulle tappa 50 omdömen").toBe(150);
+  });
+
   it("en produkt utan omdömen ger tom lista på båda vägarna", async () => {
     listVisibleAll.mockResolvedValue([rad({ productId: "a" })]);
     const bild = await byggSnapshot();
@@ -172,11 +186,11 @@ describe("en tom bild är ett fel, inte ett svar", () => {
     // så läsrutterna hoppade över sin fallback och svarade count: 0 för
     // VARENDA produkt. Inget fel i loggen. Tredje gången samma fälla i det här
     // repot — spårningssidan 2026-09-01, aggregatet 2026-09-02.
-    expect(arTrovardig({ genereradAt: "x", antal: 0, produkter: 0, perProdukt: {} })).toBe(false);
+    expect(arTrovardig({ genereradAt: "x", antal: 0, produkter: 0, perProdukt: {}, antalPerProdukt: {} })).toBe(false);
   });
 
   it("en bild med rader duger", () => {
-    expect(arTrovardig({ genereradAt: "x", antal: 1, produkter: 1, perProdukt: { a: [] } })).toBe(true);
+    expect(arTrovardig({ genereradAt: "x", antal: 1, produkter: 1, perProdukt: { a: [] }, antalPerProdukt: { a: 1 } })).toBe(true);
   });
 
   it("rutten vägrar servera den, och låter den aldrig cachas", () => {

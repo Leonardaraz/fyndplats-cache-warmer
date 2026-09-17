@@ -91,9 +91,21 @@ export interface ReviewsSnapshot {
   produkter: number;
   /**
    * Produkt-id → recensioner, i samma ordning som `listByProduct` ger dem
-   * (datum fallande, saknat datum sist).
+   * (datum fallande, saknat datum sist), kapat vid `MAX_PER_PRODUKT`.
    */
   perProdukt: Record<string, PublicReview[]>;
+  /**
+   * Produkt-id → SANT antal synliga omdömen, okapat.
+   *
+   * ☠️ EGET FÄLT, OCH SKÄLET ÄR EN 0,1-SKILLNAD SOM INGEN HADE SETT.
+   * `/api/review-aggregates` matade förut `aggregateByProduct()`, som räknar
+   * ALLA synliga rader i databasen. Läser aggregatet i stället längden på den
+   * KAPADE listan skulle en produkt med fler än hundra omdömen visa "100" på
+   * kortet men ha fler på sidan — en tyst avvikelse som bara drabbar de
+   * produkter som har mest att visa. Störst idag är 42, så den hade inte
+   * märkts på månader.
+   */
+  antalPerProdukt: Record<string, number>;
 }
 
 /**
@@ -136,11 +148,14 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
   }
 
   const perProdukt: Record<string, PublicReview[]> = {};
+  const antalPerProdukt: Record<string, number> = {};
   let antal = 0;
   for (const [productId, lista] of grupper) {
     lista.sort(nyastForst);
     const visade = lista.slice(0, MAX_PER_PRODUKT);
     perProdukt[productId] = visade.map(toPublicReview);
+    // Okapat — se fältets kommentar. Aggregatet räknade så här före bytet.
+    antalPerProdukt[productId] = lista.length;
     antal += visade.length;
   }
 
@@ -149,6 +164,7 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
     antal,
     produkter: Object.keys(perProdukt).length,
     perProdukt,
+    antalPerProdukt,
   };
 
   // ☠️ Varningen hör hemma HÄR, inte i rutten: rutten serverar numera den
