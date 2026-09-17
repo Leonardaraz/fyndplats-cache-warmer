@@ -32,7 +32,9 @@
 // poängen — jämför spårningssidan 2026-09-01, där en läsare blev TOM utan att
 // något kastade.
 
+import { unstable_cache } from "next/cache";
 import { toPublicReview, type PublicReview } from "./public-view";
+import { reviewDisplayMode } from "../import/review-display";
 import { getReviewStore, isVisibleStatus, type StoredReview } from "../store/reviews";
 
 /**
@@ -65,17 +67,20 @@ export const SNAPSHOT_TTL_SEKUNDER = 3600;
 export const SNAPSHOT_VARNING_BYTES = 3_500_000;
 
 /**
- * Nexts egen utökning av `fetch`.
+ * Högst så här många recensioner per produkt i bilden.
  *
- * ☠️ VARFÖR TYPEN STÅR HÄR OCH INTE KOMMER FRÅN NEXT. Deklarationen bor i
- * `next-env.d.ts`, som GENERERAS av `next build` och är gitignorerad. I ett
- * rent checkout finns den alltså inte, och `pnpm typecheck` hade fällt på en
- * helt korrekt rad — ett fel som bara syns för den som klonat om, vilket är
- * precis den sorten som får någon att "fixa" rätt kod.
+ * ☠️ SAMMA TAK SOM `listByProduct(productId, limit = 100)` — med flit, och det
+ * är inte en detalj. Fallbacken läser den funktionen, så ett annat tak här
+ * hade betytt att en produkt med fler än hundra omdömen visar OLIKA MÅNGA
+ * beroende på om svaret kom ur bilden eller ur lagret. Löftet den här
+ * konstruktionen bygger på är att butiken inte ska kunna märka vilken väg
+ * svaret tog; två olika tak hade brutit det för precis de produkter som har
+ * mest att visa.
+ *
+ * Störst idag är 42 (uppmätt 2026-09-17), så taket biter inte — men det
+ * bevakas av prov, inte av tur.
  */
-type NextFetchInit = RequestInit & {
-  next?: { revalidate?: number; tags?: string[] };
-};
+export const MAX_PER_PRODUKT = 100;
 
 export interface ReviewsSnapshot {
   /** När bilden byggdes. Enda sättet att se att cronen faktiskt går. */
@@ -134,16 +139,29 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
   let antal = 0;
   for (const [productId, lista] of grupper) {
     lista.sort(nyastForst);
-    perProdukt[productId] = lista.map(toPublicReview);
-    antal += lista.length;
+    const visade = lista.slice(0, MAX_PER_PRODUKT);
+    perProdukt[productId] = visade.map(toPublicReview);
+    antal += visade.length;
   }
 
-  return {
+  const bild: ReviewsSnapshot = {
     genereradAt: new Date().toISOString(),
     antal,
     produkter: Object.keys(perProdukt).length,
     perProdukt,
   };
+
+  // ☠️ Varningen hör hemma HÄR, inte i rutten: rutten serverar numera den
+  // cachade bilden och bygger den sällan. Mäts den på fel ställe hade den
+  // tystnat precis när den behövdes.
+  const bytes = JSON.stringify(bild).length;
+  if (bytes >= SNAPSHOT_VARNING_BYTES) {
+    console.warn(
+      `[reviews/snapshot] bilden är ${(bytes / 1e6).toFixed(2)} MB `
+        + `(${bild.antal} recensioner, ${bild.produkter} produkter) — närmar sig Vercels 4,5 MB-tak`,
+    );
+  }
+  return bild;
 }
 
 /**
@@ -168,59 +186,62 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
  * omdömen är det exakt rätt beteende ändå — då är läsningen billig, och
  * kostnadsproblemet den här filen finns för existerar inte.
  */
-function arTrovardig(bild: ReviewsSnapshot): boolean {
+export function arTrovardig(bild: ReviewsSnapshot): boolean {
   return typeof bild.antal === "number" && bild.antal > 0;
 }
 
 /**
- * Adressen bilden serveras på. Egen miljövariabel först så en preview kan peka
- * på sin egen bild; annars deployens egen värd; annars produktionen.
+ * Bilden, cachad i Next Data Cache.
  *
- * ☠️ ALDRIG en relativ adress. En route handler som `fetch`:ar "/api/..." har
- * ingen bas att lösa den mot och kastar — och felet hade fångats av
- * fallbacken, så vi hade tyst fortsatt fråga Postgres varje gång utan att
- * någon märkte att fixen inte gjorde något.
+ * ☠️ INGEN SJÄLV-HÄMTNING ÖVER HTTP. Första versionen lät läsrutterna `fetch`:a
+ * `/api/reviews-snapshot` på den egna deployen. Det fungerade i produktion och
+ * gick sönder överallt annars: preview-deployer ligger bakom Vercels
+ * inloggningsskydd, så anropet fick SSO-sidans HTML tillbaka. Uppmätt
+ * 2026-09-17 i preview-loggen:
+ *
+ *   [reviews/snapshot] kunde inte hämtas: Unexpected token '<', "<!DOCTYPE "…
+ *
+ * Fallbacken räddade svaret, så ingenting SÅG trasigt ut — men varenda
+ * förfrågan läste lagret, precis som före hela den här konstruktionen. Den
+ * sortens fel går inte att skilja från att allt fungerar, och det gick heller
+ * inte att bevisa att produktion INTE gjorde samma sak.
+ *
+ * `unstable_cache` löser det i grunden: samma Data Cache, samma tagg, samma
+ * TTL — men i processen. Ingen adress, inget inloggningsskydd, identiskt
+ * beteende i preview och produktion.
+ *
+ * ☠️ VISNINGSLÄGET INGÅR I NYCKELN. `toPublicReview` läser
+ * `REVIEW_DISPLAY_MODE` — killswitchen som tömmer initialerna. Cachen
+ * överlever enligt Next egna dokumentation ÄVEN EN DEPLOY, så utan läget i
+ * nyckeln hade en påslagen killswitch kunnat serveras bort ur en gammal bild
+ * i upp till en timme efter att den slagits på. En killswitch som biter "snart"
+ * är ingen killswitch.
  */
-export function snapshotUrl(): string {
-  const egen = process.env.REVIEWS_SNAPSHOT_URL?.trim();
-  if (egen) return egen;
-  const vercel = process.env.VERCEL_URL?.trim();
-  if (vercel) return `https://${vercel}/api/reviews-snapshot`;
-  return "https://fyndplats-cache-warmer.vercel.app/api/reviews-snapshot";
+function cachadSnapshot() {
+  return unstable_cache(byggSnapshot, ["reviews-snapshot", "v1", reviewDisplayMode()], {
+    revalidate: SNAPSHOT_TTL_SEKUNDER,
+    tags: [SNAPSHOT_TAG],
+  });
 }
 
 /**
- * Hämtar bilden. `null` = den fanns inte att få, och anroparen ska då läsa
+ * Bilden att läsa ur. `null` = den gick inte att få, och anroparen ska då läsa
  * lagret direkt.
  *
  * ☠️ KASTAR ALDRIG. Bilden är en optimering, inte en sanning. Varje väg
- * härifrån som inte ger en giltig bild måste sluta i att anroparen faller
- * tillbaka på Postgres — annars har vi bytt en dyr sajt mot en trasig.
+ * härifrån som inte ger en trovärdig bild måste sluta i att anroparen faller
+ * tillbaka på lagret — annars har vi bytt en dyr sajt mot en trasig.
  */
 export async function hamtaSnapshot(): Promise<ReviewsSnapshot | null> {
   try {
-    const init: NextFetchInit = {
-      next: { revalidate: SNAPSHOT_TTL_SEKUNDER, tags: [SNAPSHOT_TAG] },
-    };
-    const res = await fetch(snapshotUrl(), init);
-    if (!res.ok) {
-      console.warn(`[reviews/snapshot] ${res.status} från ${snapshotUrl()}`);
-      return null;
-    }
-    const body = (await res.json()) as Partial<ReviewsSnapshot>;
-    // Formkontroll, inte typtro: ett 200 med fel form är exakt det tysta felet
-    // /api/reviews/aggregates gav 2026-09-02.
-    if (!body || typeof body !== "object" || !body.perProdukt || typeof body.perProdukt !== "object") {
-      console.warn("[reviews/snapshot] svaret saknade perProdukt — faller tillbaka på lagret");
-      return null;
-    }
-    if (!arTrovardig(body as ReviewsSnapshot)) {
+    const bild = await cachadSnapshot()();
+    if (!arTrovardig(bild)) {
       console.warn("[reviews/snapshot] bilden var tom — faller tillbaka på lagret");
       return null;
     }
-    return body as ReviewsSnapshot;
+    return bild;
   } catch (err) {
-    console.warn("[reviews/snapshot] kunde inte hämtas:", err instanceof Error ? err.message : err);
+    console.warn("[reviews/snapshot] kunde inte byggas:", err instanceof Error ? err.message : err);
     return null;
   }
 }

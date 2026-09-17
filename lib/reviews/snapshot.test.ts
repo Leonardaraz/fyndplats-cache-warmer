@@ -34,14 +34,29 @@ function rad(over: Partial<StoredReview> = {}): StoredReview {
 }
 
 const listVisibleAll = vi.fn<() => Promise<StoredReview[]>>();
+/** Speglar Postgres `order by date desc nulls last limit 100` i listByProduct. */
+const listByProduct = vi.fn(async (productId: string) =>
+  (await listVisibleAll())
+    .filter((r) => r.productId === productId)
+    .sort((a, b) => {
+      const ta = a.date ? Date.parse(a.date) : NaN;
+      const tb = b.date ? Date.parse(b.date) : NaN;
+      if (Number.isNaN(ta) && Number.isNaN(tb)) return 0;
+      if (Number.isNaN(ta)) return 1;
+      if (Number.isNaN(tb)) return -1;
+      return tb - ta;
+    })
+    .slice(0, 100),
+);
 vi.mock("../store/reviews", async (original) => {
   const faktisk = await original<typeof import("../store/reviews")>();
-  return { ...faktisk, getReviewStore: () => ({ listVisibleAll }) };
+  return { ...faktisk, getReviewStore: () => ({ listVisibleAll, listByProduct }) };
 });
 
-const { byggSnapshot, urSnapshot, hamtaSnapshot, SNAPSHOT_TAG, SNAPSHOT_VARNING_BYTES, snapshotUrl } =
+const { byggSnapshot, urSnapshot, arTrovardig, SNAPSHOT_TAG, SNAPSHOT_VARNING_BYTES, MAX_PER_PRODUKT } =
   await import("./snapshot");
-const { snittBetyg } = await import("./public-view");
+const { snittBetyg, toPublicReview } = await import("./public-view");
+const { isVisibleStatus } = await import("../store/reviews");
 
 describe("byggSnapshot", () => {
   beforeEach(() => listVisibleAll.mockReset());
@@ -103,74 +118,70 @@ describe("urSnapshot", () => {
   });
 });
 
-describe("hamtaSnapshot faller alltid tillbaka, aldrig sönder", () => {
-  const riktig = globalThis.fetch;
-  afterEach(() => {
-    globalThis.fetch = riktig;
-    vi.restoreAllMocks();
+describe("bilden och lagret ger IDENTISKA svar", () => {
+  beforeEach(() => listVisibleAll.mockReset());
+
+  it("samma rader, samma ordning, samma fält — för varje produkt", async () => {
+    // ☠️ DET HÄR ÄR HELA LÖFTET. Butiken ska inte kunna märka att svaret bytte
+    // väg. Provet kör BÅDA vägarna mot samma data och jämför JSON rakt av:
+    //   gammal väg: listByProduct → filtrera synliga → toPublicReview
+    //   ny väg:     byggSnapshot → perProdukt[id]
+    const rader = [
+      rad({ productId: "a", reviewIdAE: "1", date: "2026-03-01T00:00:00.000Z" }),
+      rad({ productId: "a", reviewIdAE: "2", date: "2026-09-01T00:00:00.000Z", rating: 3, hasImage: true, imageUrl: "https://static.wixstatic.com/media/b379ce_x~mv2.jpg" }),
+      rad({ productId: "a", reviewIdAE: "3" }),
+      rad({ productId: "b", reviewIdAE: "4", source: "customer", initials: "L.A." }),
+      rad({ productId: "b", reviewIdAE: "5", source: "aosom", date: "2026-01-05T00:00:00.000Z" }),
+      rad({ productId: "c", reviewIdAE: "6", date: "2026-07-07T00:00:00.000Z" }),
+    ];
+    listVisibleAll.mockResolvedValue(rader);
+    const bild = await byggSnapshot();
+
+    for (const id of ["a", "b", "c"]) {
+      const gammal = (await listByProduct(id)).filter((r) => isVisibleStatus(r.status)).map(toPublicReview);
+      expect(JSON.stringify(urSnapshot(bild, id)), `produkt ${id} skiljer sig`).toBe(JSON.stringify(gammal));
+    }
   });
 
-  it("null när svaret inte är ok", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 }) as never;
-    expect(await hamtaSnapshot()).toBeNull();
+  it("taket per produkt är detsamma som lagrets — även vid 150 omdömen", async () => {
+    // Utan samma tak hade en produkt med fler än hundra omdömen visat olika
+    // många beroende på vilken väg svaret tog. Ingen produkt är där idag
+    // (störst är 42), så provet är det enda som håller reglerna ihop.
+    const manga = Array.from({ length: 150 }, (_, i) =>
+      rad({ productId: "a", reviewIdAE: `r${i}`, date: new Date(2026, 0, 1 + i).toISOString() }),
+    );
+    listVisibleAll.mockResolvedValue(manga);
+    const bild = await byggSnapshot();
+    expect(urSnapshot(bild, "a")).toHaveLength(MAX_PER_PRODUKT);
+    const gammal = (await listByProduct("a")).filter((r) => isVisibleStatus(r.status)).map(toPublicReview);
+    expect(JSON.stringify(urSnapshot(bild, "a"))).toBe(JSON.stringify(gammal));
   });
 
-  it("null när svaret är 200 men saknar perProdukt", async () => {
-    // ☠️ Exakt felet /api/reviews/aggregates gav 2026-09-02: 200 med fel form,
-    // `res.ok` passerade, och stjärnorna försvann tyst.
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) }) as never;
-    expect(await hamtaSnapshot()).toBeNull();
-  });
-
-  it("null när hämtningen kastar", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error("nät nere")) as never;
-    expect(await hamtaSnapshot()).toBeNull();
-  });
-
-  it("hämtar aldrig en relativ adress", () => {
-    // En route handler har ingen bas att lösa "/api/..." mot. Hade den kastat
-    // fångats felet av fallbacken, och vi hade tyst fortsatt fråga Postgres
-    // varje gång utan att märka att fixen inte gjorde något.
-    expect(snapshotUrl()).toMatch(/^https:\/\//);
+  it("en produkt utan omdömen ger tom lista på båda vägarna", async () => {
+    listVisibleAll.mockResolvedValue([rad({ productId: "a" })]);
+    const bild = await byggSnapshot();
+    expect(urSnapshot(bild, "finns-inte")).toEqual([]);
+    expect(await listByProduct("finns-inte")).toEqual([]);
   });
 });
 
 describe("en tom bild är ett fel, inte ett svar", () => {
-  const riktig = globalThis.fetch;
-  afterEach(() => {
-    globalThis.fetch = riktig;
-    vi.restoreAllMocks();
-  });
-
-  it("noll recensioner i hela katalogen räknas som INGEN bild", async () => {
+  it("noll recensioner i hela katalogen räknas som INGEN bild", () => {
     // ☠️ Hittat på preview 2026-09-17: miljön saknade REVIEWS_BACKEND, läste
     // ett annat lager, och bilden byggdes utan att kasta. Formen var giltig,
     // så läsrutterna hoppade över sin fallback och svarade count: 0 för
     // VARENDA produkt. Inget fel i loggen. Tredje gången samma fälla i det här
     // repot — spårningssidan 2026-09-01, aggregatet 2026-09-02.
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ genereradAt: "x", antal: 0, produkter: 0, perProdukt: {} }),
-    }) as never;
-    expect(await hamtaSnapshot()).toBeNull();
+    expect(arTrovardig({ genereradAt: "x", antal: 0, produkter: 0, perProdukt: {} })).toBe(false);
   });
 
-  it("en bild med rader tas emot som vanligt", async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ genereradAt: "x", antal: 1, produkter: 1, perProdukt: { a: [{ rating: 5 }] } }),
-    }) as never;
-    const bild = await hamtaSnapshot();
-    expect(bild?.antal).toBe(1);
+  it("en bild med rader duger", () => {
+    expect(arTrovardig({ genereradAt: "x", antal: 1, produkter: 1, perProdukt: { a: [] } })).toBe(true);
   });
 
-  it("rutten vägrar servera en tom bild, och låter den aldrig cachas", () => {
+  it("rutten vägrar servera den, och låter den aldrig cachas", () => {
     const rutt = las("app/api/reviews-snapshot/route.ts");
-    expect(rutt).toMatch(/bild\.antal === 0/);
+    expect(rutt).toMatch(/if \(!bild\)/);
     expect(rutt).toMatch(/status: 503/);
     expect(rutt, "en tom bild får ALDRIG ligga kvar i CDN:en").toMatch(/"Cache-Control": "no-store"/);
   });
@@ -229,6 +240,43 @@ describe("kostnadsregeln i källkoden", () => {
     // Minst 20 % kvar att agera på när varningen kommer. Uppmätt 2026-09-17
     // låg bilden på 2,06 MB och katalogen växte snabbt.
     expect(VERCEL_TAK - SNAPSHOT_VARNING_BYTES).toBeGreaterThan(VERCEL_TAK * 0.2);
+  });
+
+  it("cronen kräver CRON_SECRET, precis som syskonen", () => {
+    // ☠️ Rutten släpper cachen, och nästa läsare bygger om bilden ur Postgres.
+    // Öppen är den en knapp som väcker databasen på begäran, hur ofta som
+    // helst — exakt den kostnad hela konstruktionen finns för att ta bort.
+    //
+    // Provet greppar efter SJÄLVA GRINDEN, inte efter orden. Första versionen
+    // letade bara "CRON_SECRET" och "401" — och överlevde en mutation som
+    // gjorde grinden oåtkomlig, eftersom båda strängarna stod kvar i
+    // kommentaren och i den döda returen.
+    const cron = las("app/api/cron/reviews-snapshot/route.ts");
+    expect(cron, "hemligheten läses inte ur miljön").toMatch(
+      /const secret = process\.env\.CRON_SECRET;/,
+    );
+    expect(cron, "grinden anropas inte i GET").toMatch(/if \(!isCronAuthorized\(req\)\) \{/);
+    // ☠️ FAIL CLOSED. Motorns egen regel (lib/cron-auth.test.ts): ingen rutt
+    // får svara `if (!secret) return true`. Jag skrev först precis det, kopierat
+    // från butikens svagare konvention — auditen fällde det.
+    expect(cron, "failar inte stängt utan hemlighet").toMatch(/if \(!secret\) return false;/);
+    expect(cron).toMatch(/status: 401/);
+  });
+
+  it("läsvägen går ALDRIG över HTTP till den egna deployen", () => {
+    // ☠️ Första versionen lät läsrutterna fetch:a /api/reviews-snapshot. Det
+    // fungerade i produktion och gick sönder på varje preview (Vercels
+    // inloggningsskydd svarade med HTML), utan att någonting SÅG trasigt ut —
+    // fallbacken räddade svaret medan varenda förfrågan läste databasen.
+    const modul = las("lib/reviews/snapshot.ts");
+    expect(modul).toMatch(/unstable_cache/);
+    expect(modul, "själv-hämtning över HTTP är tillbaka").not.toMatch(/fetch\(/);
+    expect(modul, "VERCEL_URL hör inte hemma i läsvägen").not.toMatch(/VERCEL_URL/);
+  });
+
+  it("visningsläget ingår i cachenyckeln — killswitchen måste bita direkt", () => {
+    const modul = las("lib/reviews/snapshot.ts");
+    expect(modul).toMatch(/\["reviews-snapshot", "v1", reviewDisplayMode\(\)\]/);
   });
 
   it("taggen är en enda sträng, delad av alla", () => {
