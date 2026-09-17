@@ -22,7 +22,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidateTag } from "next/cache";
 import { isAuthorized } from "@/lib/auth";
-import { SNAPSHOT_TAG } from "@/lib/reviews/snapshot";
+import { arTrovardig, byggSnapshot, SNAPSHOT_TAG } from "@/lib/reviews/snapshot";
+import { blobKonfigurerad, skrivSnapshotTillBlob } from "@/lib/reviews/snapshot-blob";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,11 +58,45 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
+  // ☠️ CRONEN ÄR DEN ENDA SOM LÄSER POSTGRES — när en Blob-store är kopplad.
+  // Läsarna tar filen. Därför byggs bilden HÄR, i det väckningsfönster vi valt,
+  // i stället för av första läsaren efter :25.
+  let bild = null;
+  if (blobKonfigurerad()) {
+    try {
+      bild = await byggSnapshot();
+    } catch (err) {
+      console.error("[cron/reviews-snapshot] bygget föll:", err instanceof Error ? err.message : err);
+    }
+
+    // ☠️ EN OTROVÄRDIG BILD SKRIVS ALDRIG ÖVER EN BRA. Är databasen avstängd
+    // eller läser vi fel lager blir bygget tomt — och då är den GAMLA filen det
+    // bästa vi har. Att skriva tomheten över den vore att kasta bort exakt det
+    // vi byggde varaktigheten för. Vi rör då varken filen eller cachen.
+    if (!bild || !arTrovardig(bild)) {
+      console.error(
+        "[cron/reviews-snapshot] ingen trovärdig bild att skriva — behåller den förra. "
+          + "Kolla REVIEWS_BACKEND, DATABASE_URL och om Neon är avstängd.",
+      );
+      return NextResponse.json(
+        { ok: false, error: "ingen trovärdig bild", behöllFörra: true },
+        { status: 503 },
+      );
+    }
+    await skrivSnapshotTillBlob(bild);
+  }
+
   // ☠️ TVÅ ARGUMENT. Enargsformen `revalidateTag(tag)` är DEPRECATED i den här
   // Next-versionen (16.2) — den kompilerar bara om typfelen tystas, och kan
   // försvinna helt. `"max"` ger stale-while-revalidate: bilden markeras
-  // inaktuell, nästa läsare får den gamla direkt och en färsk byggs i
+  // inaktuell, nästa läsare får den gamla direkt och en färsk hämtas i
   // bakgrunden. Ingen kund väntar på en databasläsning.
   revalidateTag(SNAPSHOT_TAG, "max");
-  return NextResponse.json({ ok: true, slappt: SNAPSHOT_TAG, at: new Date().toISOString() });
+  return NextResponse.json({
+    ok: true,
+    slappt: SNAPSHOT_TAG,
+    skrevFil: blobKonfigurerad(),
+    antal: bild?.antal ?? null,
+    at: new Date().toISOString(),
+  });
 }

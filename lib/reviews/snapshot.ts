@@ -35,6 +35,7 @@
 import { unstable_cache } from "next/cache";
 import { toPublicReview, type PublicReview } from "./public-view";
 import { reviewDisplayMode } from "../import/review-display";
+import { blobKonfigurerad, lasSnapshotFranBlob } from "./snapshot-blob";
 import { getReviewStore, isVisibleStatus, type StoredReview } from "../store/reviews";
 
 /**
@@ -233,8 +234,27 @@ export function arTrovardig(bild: ReviewsSnapshot): boolean {
  * i upp till en timme efter att den slagits på. En killswitch som biter "snart"
  * är ingen killswitch.
  */
+/**
+ * Varifrån bilden kommer, i ordning.
+ *
+ * ☠️ FILEN FÖRST, DATABASEN SEDAN — och ordningen ÄR varaktigheten.
+ * Är en Blob-store kopplad läser ingen läsare Postgres överhuvudtaget; cronen
+ * är den enda som gör det, en gång i timmen. Slutar databasen svara ligger den
+ * senast skrivna filen kvar och serveras vidare, hur länge som helst. Det är
+ * skillnaden mot en ren cache, som måste byggas om av något.
+ *
+ * Utan store hoppas hela steget över och allt fungerar precis som förut.
+ */
+async function kallaSnapshot(): Promise<ReviewsSnapshot> {
+  if (blobKonfigurerad()) {
+    const franFil = await lasSnapshotFranBlob();
+    if (franFil && arTrovardig(franFil)) return franFil;
+  }
+  return byggSnapshot();
+}
+
 function cachadSnapshot() {
-  return unstable_cache(byggSnapshot, ["reviews-snapshot", "v1", reviewDisplayMode()], {
+  return unstable_cache(kallaSnapshot, ["reviews-snapshot", "v1", reviewDisplayMode()], {
     revalidate: SNAPSHOT_TTL_SEKUNDER,
     tags: [SNAPSHOT_TAG],
   });
