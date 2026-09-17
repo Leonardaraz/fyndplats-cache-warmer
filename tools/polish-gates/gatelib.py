@@ -65,7 +65,35 @@ LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kine
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
-NORM = r"\bEN\s?\d{3,5}\b"
+
+# ☠️ EN-NORMEN LIGGER INTE I `GRINDAR`, och det är hela poängen med namnet.
+# Mönstret fångar varje `EN 1270`, `EN 71` och `EN 12520` i texten — men om
+# det är ett FEL avgörs av något mönstret inte kan se: står normen i
+# produktens egen källtext?
+#
+# Fram till 2026-09-17 satt den i `GRINDAR` och fyrade alltså på VARJE
+# normangivelse, även en som källan certifierar ordagrant. Uppmätt på runda
+# N9:s basketställ, vars källa säger `Zertifizierung: EN 1270`: fyra fynd på
+# en korrekt, sourcad uppgift.
+#
+# Det är samma falsklarmsklass som `gate-axel.py` hade (#250) och som husets
+# regel namnger två gånger: ett falsklarm som alltid fyrar lär mottagaren att
+# sluta läsa, och då är även det äkta larmet borta. Kontrollen bor därför i
+# `gate.py`, där produktens källtext finns.
+#
+# ⚠️ Och den är FAIL-CLOSED: saknas källtexten (rundan har bara den härledda
+# `kallor-tal.json`) fyrar den som förr. Att tiga när man inte kan veta vore
+# att göra grinden till en vana.
+#
+# ☠️ SIFFERSPANNET BÖRJAR PÅ TVÅ, och det var en blind fläck. `\d{3,5}` kan
+# inte se **EN 71** — leksakssäkerhetsstandarden, alltså exakt den norm som
+# ligger närmast till hands att hitta på i en runda med barnprodukter. Fyra av
+# runda N9:s nio är leksaker.
+#
+# Breddningen är mätt gratis: över 413 publicerade rundtexter ger `\d{2,5}`
+# NOLL nya träffar. Den kostar alltså inget falsklarm och stänger ett hål som
+# annars bara hade märkts den dag någon skrev "EN 71" utan täckning.
+NORM = r"\bEN\s?\d{2,5}\b"
 
 # UNIONEN av alla rundors tyska ord, plus de som källtexterna faktiskt bär.
 # ⚠️ Ord som ÄR svenska med versal i meningsstart är medvetet uteslutna:
@@ -193,7 +221,7 @@ def meningar(text):
 
 GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
-           ("HOMOGLYF", HOMO), ("EN-NORM UTAN KÄLLA", NORM)]
+           ("HOMOGLYF", HOMO)]
 
 FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor")
 
@@ -436,7 +464,14 @@ def las_kvittenser(katalog="."):
     rad_tal, foto_tal = set(), {}
     sokvag = os.path.join(katalog, "rad-tal.txt")
     if os.path.exists(sokvag):
-        rad_tal = {r.strip() for r in open(sokvag, encoding="utf-8") if r.strip()}
+        # ⚠️ KOMMENTARER STRIPPAS, precis som i foto-tal.txt nedan. Fram till
+        # 2026-09-17 gjorde de inte det HÄR, och asymmetrin var tyst åt fel
+        # håll: en `#`-rad blev ett "kvitterat tal" i mängden i stället för
+        # att avvisas. Ofarligt i sig, men det gjorde filen odokumenterbar —
+        # och ett råd-tal utan nedskrivet skäl är precis det som listan finns
+        # för att göra granskningsbart.
+        rad_tal = {r.strip() for r in open(sokvag, encoding="utf-8")
+                   if r.strip() and not r.lstrip().startswith("#")}
     sokvag = os.path.join(katalog, "foto-tal.txt")
     if os.path.exists(sokvag):
         for rad in open(sokvag, encoding="utf-8"):

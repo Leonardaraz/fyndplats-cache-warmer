@@ -17,7 +17,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
 """
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import (las_facit, GRINDAR, FLIKAR, tal, kropp, ordtal_i_text,
+from gatelib import (las_facit, GRINDAR, FLIKAR, NORM, tal, kropp, ordtal_i_text,
                      las_kalltext, tal_ur_kalla_brett, las_kvittenser)
 
 # ☠️ TRE LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — alla smala med flit.
@@ -78,6 +78,25 @@ for f in filer:
         for x in re.finditer(m, k):
             print(f"  {kort}: [{namn}] {x.group(0)!r} …{k[max(0, x.start()-45):x.end()+45].strip()}…")
             fynd += 1
+    # ☠️ EN-NORMEN GRINDAS MOT PRODUKTENS EGEN KÄLLA, inte som ett blint
+    # mönster. Se gatelib.NORM för varför den flyttades hit: i GRINDAR fyrade
+    # den på varje normangivelse, även en källan certifierar ordagrant, och ett
+    # falsklarm som alltid fyrar är lika illa som ett fel ingen ser.
+    #
+    # ⚠️ FAIL-CLOSED: utan källtext (rundan har bara den härledda
+    # `kallor-tal.json`) fälls varje norm som förr. Att tiga när grinden inte
+    # KAN veta vore att göra den till en vana.
+    kalltext = KALLTEXT.get(kort)
+    for x in re.finditer(NORM, k):
+        normen = re.sub(r"\s+", "", x.group(0))
+        if kalltext is not None and normen in re.sub(r"\s+", "", kalltext):
+            continue
+        skal = ("källan nämner den inte" if kalltext is not None
+                else "rundan har ingen källtext att grinda mot")
+        print(f"  {kort}: [EN-NORM UTAN KÄLLA] {x.group(0)!r} ({skal}) "
+              f"…{k[max(0, x.start()-45):x.end()+45].strip()}…")
+        fynd += 1
+
     op = collections.Counter(re.findall(r"<(\w+)[^>]*>", txt))
     cl = collections.Counter(re.findall(r"</(\w+)>", txt))
     for t in set(op) | set(cl):

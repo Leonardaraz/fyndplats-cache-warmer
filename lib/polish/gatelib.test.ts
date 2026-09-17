@@ -68,7 +68,17 @@ describe("gatelib fäller det den ska", () => {
     ["STAVNING", "svenskt ord utan diakriter", "En fatolj med justerbar hojd."],
     ["STAVNING", "dansk falsk vän", "Ställ den på et plant gulv."],
     ["HOMOGLYF", "kyrilliskt t i granträ", "Stommen är i massivt granтrä."],
-    ["EN-NORM UTAN KÄLLA", "utskriven EN-norm", "Tyget är testat enligt EN 1021."],
+    // ☠️ EN-NORMEN LIGGER INTE LÄNGRE HÄR, och det är med flit. Den satt i
+    // GRINDAR och fyrade alltså på VARJE normangivelse — även en som källan
+    // certifierar ordagrant (uppmätt 2026-09-17 på runda N9:s basketställ:
+    // fyra fynd på en korrekt uppgift). Om en norm är ett fel avgörs av något
+    // ett blint mönster inte kan se: står den i produktens källtext?
+    //
+    // ⚠️ TÄCKNINGEN ÄR FLYTTAD, INTE BORTTAGEN — `en-norm-grind.test.ts` kör
+    // gate.py skarpt och låser fyra riktningar: sourcad norm är REN, påhittad
+    // FÄLLER, tvåsiffrig EN 71 syns numera, och utan källtext är den
+    // fail-closed. Att bara stryka raden här hade sett likadant ut i en diff
+    // och lämnat normen ogrindad.
     // Runda H3: tyskans "kippen" läckte in i en rubrik ("Kippskydd") på en
     // sida som var på väg att publiceras. Ordet såg svenskt ut och passerade
     // varje grind — syskonprodukten i samma batch stavade det rätt.
