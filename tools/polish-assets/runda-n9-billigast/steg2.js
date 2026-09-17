@@ -1,0 +1,178 @@
+async function () {
+  // Genererad av tools/polish-gates/bygg-medieskrivning.py — skriv den aldrig för hand.
+  const SUMMA = function (s) {
+    let h = 0;
+    for (const c of s) h = (h * 31 + (c.codePointAt(0) & 0xFFFF)) % 1000000007;
+    return h;
+  };
+
+  const PLAN = [
+    {
+      kort: "26642cff",
+      pid: "26642cff-677b-46bc-a3ae-b345edbc1b8a",
+      poster: [
+        { id: "b379ce_a770b385edc842de996be3597e35c4a6~mv2.jpg", altText: "Gunghäst i vit plysch med rosa man och svans, vadderat rosa ryggstöd och medar i ljust trä" },
+        { id: "b379ce_709bd5d0ccdd4e6485c8ae296ad87b24~mv2.jpg", altText: "Gunghästen på en grå rund matta i ett rosa barnrum med tygtoppar och en kaninfigur bredvid" },
+        { id: "b379ce_c13d8be8632645549e523ea6038432e6~mv2.jpg", altText: "Närbild på det vadderade rosa ryggstödet med pälskant och lodräta sömmar" },
+        { id: "b379ce_5bb9c3c3a4fd4831ab457600cfee2b2b~mv2.jpg", altText: "Undersidan av gunghästen med böjda trämedar och tvärslåar över en randig matta" },
+        { id: "b379ce_fb716df24bd247a48328cc3fab55c761~mv2.jpg", altText: "Måttskiss på gunghästen med 70 cm längd, 28 cm bredd, 57 cm höjd och 36 cm sitthöjd" },
+        { id: "b379ce_20635702b5534f358b7c65c17091faae~mv2.png", altText: "Faktakort: mått 70 × 28 × 57 cm, sitthöjd 36 cm, maxbelastning 40 kg, ålder 18–36 månader, vikt 4,5 kg" },
+      ],
+      raa: 72464150,
+      tecken: 808
+    },
+    {
+      kort: "2a4b9c68",
+      pid: "2a4b9c68-b7ad-492f-8907-25d9e5cd53b6",
+      poster: [
+        { id: "b379ce_9bcc166ff7e9450c862659c12790e49b~mv2.jpg", altText: "Pollarlampa i mörkgrå aluminium med nedåtriktad ljusöppning högst upp på stolpen" },
+        { id: "b379ce_83d128329b93406aa17040e66038f24e~mv2.jpg", altText: "Två pollarlampor som lyser upp grusgången vid en röd träbänk i mörkret" },
+        { id: "b379ce_0b7bfe79c0b74c208c2784740ce9ed93~mv2.jpg", altText: "Pollarlampan snett framifrån mot vit botten, med den plana bottenplattan synlig" },
+        { id: "b379ce_f45c6ddc7d9e46e1b6af7203d4494291~mv2.jpg", altText: "Närbild in i lamphuvudet där raden av lysdioder sitter bakom den vita skivan" },
+        { id: "b379ce_650b0868e1224213aed55e55b3bac42b~mv2.jpg", altText: "Måttskiss på pollarlampan med 90 cm höjd, 16 cm bredd och 5 cm djup" },
+        { id: "b379ce_14da0f43534d4a5d8a43a5c6cbd54b81~mv2.png", altText: "Faktakort: mått 16 × 5 × 90 cm, kabellängd 27 cm, 28 lysdioder, 460 lumen, IP65, vikt 3,9 kg" },
+      ],
+      raa: 300403265,
+      tecken: 757
+    },
+    {
+      kort: "49463fd8",
+      pid: "49463fd8-76ca-4094-b9ec-ce26c4997761",
+      poster: [
+        { id: "b379ce_d4da4d690cb9442a8a488802f54c0e39~mv2.jpg", altText: "Nätställ med gula stolpar och turkos nätkant, uppställt på den blå väskan som bas" },
+        { id: "b379ce_44f4949e9c9a40598e01b289da04545d~mv2.jpg", altText: "Familj som spelar badminton på en gräsmatta med nätstället uppställt mellan sig" },
+        { id: "b379ce_d1e199658ed142fb9065464a08d8c0c4~mv2.jpg", altText: "Närbild på nätets hörnband och den gula stolpen mot en grön häck" },
+        { id: "b379ce_330e45ce55b742c7a7d27f5e1ee6fd45~mv2.jpg", altText: "Väskans insida i blå plast med mugghållare, fack och kanalen där stolpen fästs" },
+        { id: "b379ce_55814b89cdf04229b4619bbfda35e3a1~mv2.jpg", altText: "Måttskiss med 400 cm nätbredd, 220 cm volleybollhöjd, 160 cm badmintonhöjd och väskan 75 × 33 × 14 cm" },
+        { id: "b379ce_71b8ebc96e3b42d98c63eef925e5b569~mv2.png", altText: "Faktakort: nätbredd 400 cm, volleyboll 220 cm, badminton 160 cm, hopfällt 75 × 33 × 14 cm, vikt 3,9 kg" },
+      ],
+      raa: 781316905,
+      tecken: 798
+    },
+    {
+      kort: "67d8d559",
+      pid: "67d8d559-7d53-4df0-870b-847d53804fc5",
+      poster: [
+        { id: "b379ce_a3690bdf0f234cfca1963c5971051f0f~mv2.jpg", altText: "Gungdjur format som grön dinosaurie i plysch, med öppen sits och trästång framtill" },
+        { id: "b379ce_34a3321b3b854585a4f2ab52f84f5796~mv2.jpg", altText: "Barn som sitter på gungdjuret i ett rum med bokhylla och krukväxt i bakgrunden" },
+        { id: "b379ce_e929cd4fdecb4eff904872b67e9ba674~mv2.jpg", altText: "Närbild på dinosauriens mage med ljudknappen och den orange vingen vid sidan" },
+        { id: "b379ce_b9fd18715f12412791f909274dfc1a71~mv2.jpg", altText: "Gungdjuret sett snett bakifrån på ett golv framför en vit förvaringsmöbel" },
+        { id: "b379ce_d72f4334f1354bb187186f090902a080~mv2.jpg", altText: "Måttskiss på gungdjuret med 73 cm längd, 39 cm bredd, 66 cm höjd och 27 cm sitthöjd" },
+        { id: "b379ce_011b11b677a940b59942c84a215e9e0f~mv2.png", altText: "Faktakort: mått 73 × 39 × 66 cm, sitsyta 20 × 20 cm, sitthöjd 27 cm, bas 65 × 33 cm, maxbelastning 25 kg" },
+      ],
+      raa: 675649997,
+      tecken: 789
+    },
+    {
+      kort: "9e1942fc",
+      pid: "9e1942fc-a29c-428c-a33d-640f32688151",
+      poster: [
+        { id: "b379ce_1fdec69ad3ad4b34b81c33a684a30eb8~mv2.jpg", altText: "Slangvagn i grå plast med slangen upprullad på trumman, dragbygel och två hjul" },
+        { id: "b379ce_b27df7a35d11495399638775a9a6e6ed~mv2.jpg", altText: "Kvinna som vattnar en rabatt med slangvagnen stående på en stenlagd uteplats" },
+        { id: "b379ce_93bc868d543a438a8d0d180edff5f339~mv2.jpg", altText: "Kvinna som spolar av en hund vid husväggen med slangvagnen bredvid" },
+        { id: "b379ce_ac5efa44f6a84f698c0d5874d818a6c3~mv2.jpg", altText: "Måttskiss på slangvagnen med 78 cm höjd, 45 cm längd och 44 cm bredd" },
+        { id: "b379ce_41a3297c41ab4760aa4244adbffa9aac~mv2.png", altText: "Faktakort: mått 45 × 44 × 78 cm, slanglängd 45 m, arbetstryck 8 bar, sprängtryck 24 bar, vikt 9,5 kg" },
+      ],
+      raa: 1200407,
+      tecken: 632
+    },
+    {
+      kort: "3cadee08",
+      pid: "3cadee08-b8c1-444e-b028-a6af76d22ac4",
+      poster: [
+        { id: "b379ce_cfb340f1920a45c4af28d70e7eb7d49a~mv2.jpg", altText: "Rumsavdelare i svart stål med sex odlingslådor i furu, förskjutna på tre paneler" },
+        { id: "b379ce_838b88d4eec6433f93dd319a676a619b~mv2.jpg", altText: "Rumsavdelaren med blommor i lådorna, uppställd på gräs framför ett vitt staket" },
+        { id: "b379ce_b889c804e0b2486b9509881f036c22fb~mv2.jpg", altText: "Rumsavdelaren med planterade lådor mot en vit husvägg intill en zinkhink" },
+        { id: "b379ce_7fea135ebc9d4c1d8181aed80033632b~mv2.jpg", altText: "Person med grön vattenkanna vid rumsavdelaren, med måtten 116 cm bredd och 112 cm höjd utsatta" },
+        { id: "b379ce_917dd1b7dd244ff7b3db78260eda3bf8~mv2.png", altText: "Faktakort: mått 116 × 20 × 112 cm, sex odlingslådor om 31,5 × 17,2 × 10 cm, 5 kg per låda, vikt 11 kg" },
+      ],
+      raa: 173791549,
+      tecken: 669
+    },
+    {
+      kort: "57c7e4f4",
+      pid: "57c7e4f4-dc32-40a0-99f3-97dff78c5e39",
+      poster: [
+        { id: "b379ce_a22267b80be74f6b96fdc0945f0c3efd~mv2.jpg", altText: "Flyttbart basketställ i svart med genomskinlig platta, nät och hjulförsedd fot" },
+        { id: "b379ce_5bfd582819b5469380d633bc47ebe3b7~mv2.jpg", altText: "Person som hoppar upp mot korgen på en utomhusplan med basketstället framför" },
+        { id: "b379ce_22e094fe2d94420f895210b0e5673ed0~mv2.jpg", altText: "Närbild på den genomskinliga plattans kant med stängslet synligt bakom" },
+        { id: "b379ce_48257d2419d54930be549eaf2975b914~mv2.jpg", altText: "Närbild på stångens gula markering, låsvredet och bulten i skarven" },
+        { id: "b379ce_9598d4da7106401789614da2956d9a0f~mv2.jpg", altText: "Måttskiss på basketstället med platta 83 × 55 cm, korghöjd 156–210 cm och ring 38 cm" },
+        { id: "b379ce_6e78adac8c2f4182a9ebee2718a2cbe2~mv2.png", altText: "Faktakort: mått 83 × 75 × 260 cm, korghöjd 156–210 cm, platta 83 × 55 cm, fot 75 × 45 × 13 cm, vikt 10 kg" },
+      ],
+      raa: 710316121,
+      tecken: 772
+    },
+    {
+      kort: "8cd456f9",
+      pid: "8cd456f9-64d1-4763-be03-84272aa86cb3",
+      poster: [
+        { id: "b379ce_964bd4df4fc946b291d4a1b281b08a3b~mv2.jpg", altText: "Klätterbåge i ljust trä med pinnar på ena sidan och slät bågform på den andra" },
+        { id: "b379ce_d9db9c9c4a524c428cc07f860c1031ff~mv2.jpg", altText: "Pojke som klättrar uppför klätterbågens pinnsida på en matta i ett barnrum" },
+        { id: "b379ce_967a6ec9a21741f18c5bc72db64c6b68~mv2.jpg", altText: "Flicka som sitter och vippar på klätterbågens släta sida i ett ljust barnrum" },
+        { id: "b379ce_499d69acc42b499fadfe81659217f7ce~mv2.jpg", altText: "Klätterbågen uppställd på ett fiskbensparkettgolv i ett gult och blått barnrum" },
+        { id: "b379ce_09251c63ed87446d85aa4d1254af9b44~mv2.png", altText: "Faktakort: mått 110 × 52 × 45 cm, maxbelastning 50 kg, ålder 2–4 år, monteringstid cirka 30 minuter, vikt 8,4 kg" },
+      ],
+      raa: 379871043,
+      tecken: 661
+    },
+    {
+      kort: "a1d3b9bc",
+      pid: "a1d3b9bc-7df2-4e56-adf5-a565a91cfaa8",
+      poster: [
+        { id: "b379ce_09657c499af740bfbeaecbbfdb30e508~mv2.jpg", altText: "Bokhylla med fem öppna plan i brun träimitation och svart metallstomme" },
+        { id: "b379ce_2acb217b8aa745899c07cdb3ca675bce~mv2.jpg", altText: "Bokhyllan fylld med böcker och pärmar bredvid ett skrivbord och en stor krukväxt" },
+        { id: "b379ce_f98de5020bf347a7868d5ce8c5685575~mv2.jpg", altText: "Bokhyllan i ett vardagsrum med böcker, skivor och en högtalare på planen" },
+        { id: "b379ce_bff45aa85130406688478b758c4bd097~mv2.jpg", altText: "Bokhyllan i ett kök med mikrovågsugn, burkar och koppar på de öppna planen" },
+        { id: "b379ce_5ac194f7285d41179df29153e04eccad~mv2.jpg", altText: "Måttskiss på bokhyllan med 161 cm höjd, 79 cm bredd, 35 cm djup och 36,5 cm mellan planen" },
+        { id: "b379ce_9aa8b87025f040678645b5c680be9142~mv2.png", altText: "Faktakort: mått 79 × 35 × 161 cm, fem hyllplan med 36,5 cm fri höjd, 50 kg totalt och 10 kg per plan, vikt 17,6 kg" },
+      ],
+      raa: 710209915,
+      tecken: 792
+    },
+  ];
+
+  // ☠️ SPÄRREN LIGGER HÄR, I SAMMA ANROP SOM SKRIVNINGEN, och den avbryter
+  // HELA batchen. Facit räknas på `id + "|" + altText` per rad, sammanfogat
+  // med radbrytning — alltså BÅDE bildernas ordning och alt-texternas ord.
+  const NYCKEL = function (poster) {
+    return poster.map(function (p) { return p.id + "|" + p.altText; }).join("\n");
+  };
+  const avvik = PLAN
+    .filter(function (p) { const s = NYCKEL(p.poster); return SUMMA(s) !== p.raa || s.length !== p.tecken; })
+    .map(function (p) { const s = NYCKEL(p.poster); return { kort: p.kort, fick: SUMMA(s), vantat: p.raa, tecken: s.length, vantatTecken: p.tecken }; });
+  if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik: avvik };
+
+  const utfall = [];
+  for (const p of PLAN) {
+    // ⚠️ Revisionen läses i SAMMA anrop — en äldre är inaktuell.
+    const f = await wix.request({ method: "GET", url: "/stores/v3/products/" + p.pid });
+    // ☠️ Svarets form läses tolerant (#280) — ett svar är ett SVAR, inte en
+    // skrivmall. Kroppen som SKICKAS heter alltid `body`.
+    const rev = (f.data || f).product.revision;
+
+    // ⚠️ MEDIA SKRIVS ENSAM. `media.main` skickas INTE — den är read-only i
+    // V3 och gav en extra omimport av huvudbilden. Hela `itemsInfo.items`
+    // ersätts, så listan ÄR produktens bilder efteråt.
+    const kropp = {
+      product: {
+        revision: rev,
+        media: { itemsInfo: { items: p.poster } }
+      },
+      fieldMask: { paths: ["media"] }
+    };
+
+    try {
+      const r = await wix.request({ method: "PATCH", url: "/stores/v3/products/" + p.pid, body: kropp });
+      const prod = (r.data || r).product;
+      utfall.push({ kort: p.kort, ok: true, skickade: p.poster.length, revisionEfter: prod.revision });
+    } catch (e) {
+      utfall.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });
+    }
+  }
+
+  // ⚠️ PATCH-svaret bär INTE media.itemsInfo i sin projektion — en lyckad
+  // skrivning rapporterar 0 bilder (#253). Kvittot är aterlas.js senare.
+  const ok = utfall.filter(function (r) { return r.ok; }).length;
+  return { rader: utfall, SAMMANFATTNING: ok + " av " + utfall.length + " skrivna" };
+}
