@@ -147,6 +147,32 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
 }
 
 /**
+ * Är bilden värd att lita på?
+ *
+ * ☠️ EN TOM BILD ÄR INTE ETT SVAR, DET ÄR ETT FEL SOM SER UT SOM ETT SVAR.
+ *
+ * Hittat på preview 2026-09-17, av just den här konstruktionen: miljön saknade
+ * `REVIEWS_BACKEND=postgres`, läste därför ett annat (tomt) lager, och bilden
+ * byggdes utan att kasta. Resultatet blev `{antal: 0, perProdukt: {}}` — en
+ * fullt giltig form. Läsrutterna tog den för sanning, hoppade över sin
+ * fallback, och svarade `count: 0` för VARENDA produkt. Inget fel i någon
+ * logg, ingen röd status. Stjärnorna hade bara försvunnit från 1 251
+ * produktsidor.
+ *
+ * Det är tredje gången samma fälla: spårningssidan blev tom 2026-09-01,
+ * aggregatet svarade 200 med fel form 2026-09-02. Bägge gångerna var lärdomen
+ * densamma — ett tomt svar och ett trasigt svar måste gå att skilja åt.
+ *
+ * Därför: noll synliga omdömen i HELA katalogen räknas som "ingen bild", och
+ * anroparen läser lagret i stället. Skulle butiken en dag faktiskt sakna
+ * omdömen är det exakt rätt beteende ändå — då är läsningen billig, och
+ * kostnadsproblemet den här filen finns för existerar inte.
+ */
+function arTrovardig(bild: ReviewsSnapshot): boolean {
+  return typeof bild.antal === "number" && bild.antal > 0;
+}
+
+/**
  * Adressen bilden serveras på. Egen miljövariabel först så en preview kan peka
  * på sin egen bild; annars deployens egen värd; annars produktionen.
  *
@@ -186,6 +212,10 @@ export async function hamtaSnapshot(): Promise<ReviewsSnapshot | null> {
     // /api/reviews/aggregates gav 2026-09-02.
     if (!body || typeof body !== "object" || !body.perProdukt || typeof body.perProdukt !== "object") {
       console.warn("[reviews/snapshot] svaret saknade perProdukt — faller tillbaka på lagret");
+      return null;
+    }
+    if (!arTrovardig(body as ReviewsSnapshot)) {
+      console.warn("[reviews/snapshot] bilden var tom — faller tillbaka på lagret");
       return null;
     }
     return body as ReviewsSnapshot;

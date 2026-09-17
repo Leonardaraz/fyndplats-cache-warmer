@@ -33,7 +33,7 @@ function rad(over: Partial<StoredReview> = {}): StoredReview {
   } as StoredReview;
 }
 
-const listVisibleAll = vi.fn<[], Promise<StoredReview[]>>();
+const listVisibleAll = vi.fn<() => Promise<StoredReview[]>>();
 vi.mock("../store/reviews", async (original) => {
   const faktisk = await original<typeof import("../store/reviews")>();
   return { ...faktisk, getReviewStore: () => ({ listVisibleAll }) };
@@ -135,6 +135,44 @@ describe("hamtaSnapshot faller alltid tillbaka, aldrig sönder", () => {
     // fångats felet av fallbacken, och vi hade tyst fortsatt fråga Postgres
     // varje gång utan att märka att fixen inte gjorde något.
     expect(snapshotUrl()).toMatch(/^https:\/\//);
+  });
+});
+
+describe("en tom bild är ett fel, inte ett svar", () => {
+  const riktig = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = riktig;
+    vi.restoreAllMocks();
+  });
+
+  it("noll recensioner i hela katalogen räknas som INGEN bild", async () => {
+    // ☠️ Hittat på preview 2026-09-17: miljön saknade REVIEWS_BACKEND, läste
+    // ett annat lager, och bilden byggdes utan att kasta. Formen var giltig,
+    // så läsrutterna hoppade över sin fallback och svarade count: 0 för
+    // VARENDA produkt. Inget fel i loggen. Tredje gången samma fälla i det här
+    // repot — spårningssidan 2026-09-01, aggregatet 2026-09-02.
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ genereradAt: "x", antal: 0, produkter: 0, perProdukt: {} }),
+    }) as never;
+    expect(await hamtaSnapshot()).toBeNull();
+  });
+
+  it("en bild med rader tas emot som vanligt", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ genereradAt: "x", antal: 1, produkter: 1, perProdukt: { a: [{ rating: 5 }] } }),
+    }) as never;
+    const bild = await hamtaSnapshot();
+    expect(bild?.antal).toBe(1);
+  });
+
+  it("rutten vägrar servera en tom bild, och låter den aldrig cachas", () => {
+    const rutt = las("app/api/reviews-snapshot/route.ts");
+    expect(rutt).toMatch(/bild\.antal === 0/);
+    expect(rutt).toMatch(/status: 503/);
+    expect(rutt, "en tom bild får ALDRIG ligga kvar i CDN:en").toMatch(/"Cache-Control": "no-store"/);
   });
 });
 

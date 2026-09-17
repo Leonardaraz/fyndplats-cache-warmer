@@ -27,6 +27,28 @@ export const maxDuration = 60;
 export async function GET() {
   try {
     const bild = await byggSnapshot();
+
+    // ☠️ EN TOM BILD SERVERAS ALDRIG, OCH CACHAS FRAMFÖR ALLT ALDRIG.
+    //
+    // Uppmätt på preview 2026-09-17: miljön saknade `REVIEWS_BACKEND=postgres`,
+    // läste ett annat lager och byggde en giltig bild med noll rader. Hade den
+    // fått ligga i CDN:en en timme hade varje produktsida svarat `count: 0`
+    // utan ett enda fel någonstans.
+    //
+    // 503 och `no-store`: läsarna faller tillbaka på lagret (dyrt men rätt),
+    // och nästa anrop försöker igen i stället för att få tomheten serverad ur
+    // cachen. Se `arTrovardig` i lib/reviews/snapshot.ts för hela resonemanget.
+    if (bild.antal === 0) {
+      console.error(
+        "[reviews-snapshot] bygget gav NOLL synliga recensioner — vägrar servera. "
+          + "Kolla REVIEWS_BACKEND och DATABASE_URL i den här miljön.",
+      );
+      return NextResponse.json(
+        { ok: false, error: "tom ögonblicksbild" },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     const kropp = JSON.stringify(bild);
 
     // ☠️ Vercels svarsgräns är 4,5 MB. Varningen kommer i god tid före den, för
