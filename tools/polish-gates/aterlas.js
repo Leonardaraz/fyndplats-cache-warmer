@@ -69,7 +69,8 @@ async function () {
     // en aterlasning som aldrig bett om faltet.
     const url = "/stores/v3/products/" + pid + "?fields=PLAIN_DESCRIPTION";
     const r = await wix.request({ method: "GET", url: url });
-    const p = r.data.product;
+    // ☠️ Tolerant svarsform, se bygg-skrivning.py (#280).
+    const p = (r.data || r).product;
 
     if (typeof p.plainDescription !== "string") {
       // AVBRYT hellre an rapportera noll. En kontroll som inte KAN falla ar

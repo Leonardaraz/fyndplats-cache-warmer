@@ -114,7 +114,13 @@ print("""
     // ⚠️ Revisionen läses i SAMMA anrop — en äldre är inaktuell, och en
     // fältmask-PATCH utan den avvisas med 400.
     const f = await wix.request({ method: "GET", url: "/stores/v3/products/" + p.pid });
-    const rev = f.data.product.revision;
+    // ☠️ SVARETS FORM LÄSES TOLERANT (#280). Beroende på hur `wix.request`
+    // körs ligger produkten antingen direkt i svaret eller under `.data`.
+    // Att välja EN av dem är att göra ett antagande om körmiljön, och den
+    // som gissar fel får `Cannot read properties of undefined` mitt i en
+    // batch — efter att några produkter redan skrivits. Ett svar är ett
+    // SVAR, inte en skrivmall: kroppen som SKICKAS heter alltid `body`.
+    const rev = (f.data || f).product.revision;
 
     const kropp = {
       product: {
@@ -136,7 +142,7 @@ print("""
 
     try {
       const r = await wix.request({ method: "PATCH", url: "/stores/v3/products/" + p.pid, body: kropp });
-      ut.push({ kort: p.kort, ok: true, revisionFore: rev, revisionEfter: r.data.product.revision });
+      ut.push({ kort: p.kort, ok: true, revisionFore: rev, revisionEfter: (r.data || r).product.revision });
     } catch (e) {
       ut.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });
     }
