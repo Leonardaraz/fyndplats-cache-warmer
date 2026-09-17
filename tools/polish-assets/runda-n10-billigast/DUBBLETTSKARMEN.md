@@ -90,3 +90,15 @@ med TVÅ publicerade väggvärmare: `8475ed8f` och `589690ac`. Publiceras inte.
 
 ⚠️ **Men familjen blir fem sidor** med den här rundans två knästolar. Samma
 mönster som huset redan flaggat för massagestolar och kontorsstolar.
+
+---
+
+## Källorna är hämtade och BEVISADE
+
+Alla sju är byte-exakta: kontrollsumman räknades på SERVERN i samma anrop som
+hämtningen och jämfördes mot samma aritmetik på den nedskrivna filen. En källa
+som förvanskas på vägen in i repot går alltså inte att missa.
+
+**Noll artikelnummer** i alla sju — mönstret `NNN-NNNXX` gav inga träffar,
+så konventionen att lagra källan ordagrant läcker ingenting den här gången
+(#257).

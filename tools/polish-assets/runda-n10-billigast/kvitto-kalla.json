@@ -1,0 +1,57 @@
+{
+ "kalla": "GET /stores/v3/products/{id}?fields=PLAIN_DESCRIPTION, 2026-09-17",
+ "metod": "kontrollsumman räknad på SERVERN i samma anrop som hämtningen, och jämförd mot samma aritmetik på den nedskrivna filen — så en källa som förvanskas på vägen in i repot går inte att missa",
+ "alla": true,
+ "rader": {
+  "05e65736": {
+   "summa": 26633283,
+   "vantatSumma": 26633283,
+   "tecken": 2053,
+   "vantatTecken": 2053,
+   "LIKA": true
+  },
+  "34f22c58": {
+   "summa": 56401258,
+   "vantatSumma": 56401258,
+   "tecken": 1789,
+   "vantatTecken": 1789,
+   "LIKA": true
+  },
+  "61008b48": {
+   "summa": 712927557,
+   "vantatSumma": 712927557,
+   "tecken": 2130,
+   "vantatTecken": 2130,
+   "LIKA": true
+  },
+  "6b8aa5a3": {
+   "summa": 130805304,
+   "vantatSumma": 130805304,
+   "tecken": 1965,
+   "vantatTecken": 1965,
+   "LIKA": true
+  },
+  "72491f25": {
+   "summa": 26591662,
+   "vantatSumma": 26591662,
+   "tecken": 1821,
+   "vantatTecken": 1821,
+   "LIKA": true
+  },
+  "231202df": {
+   "summa": 628791507,
+   "vantatSumma": 628791507,
+   "tecken": 2051,
+   "vantatTecken": 2051,
+   "LIKA": true
+  },
+  "3ee7a87a": {
+   "summa": 697463818,
+   "vantatSumma": 697463818,
+   "tecken": 2003,
+   "vantatTecken": 2003,
+   "LIKA": true
+  }
+ },
+ "artikelnummer": "noll träffar på mönstret NNN-NNNXX i alla sju källor (#257)"
+}
