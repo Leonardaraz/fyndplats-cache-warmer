@@ -11,7 +11,8 @@
   "☠️ Och forsta forsoket att verifiera N5 gav 0 av 9 — pa FACIT, inte pa skrivningen. kort-filer.tsv bar Wix-MEDIAID medan jag jamforde mot image.filename, som ar den LOKALA uppladdningsfilen. Nio av nio ar facitfelets signatur (samma regel som aterlas.js bar efter N4): alla rader skiljer -> misstank facit, nagra rader skiljer -> misstank skrivningen. Matt i stallet for gissat: en dump av en enda mediapost visade att id, image.id och uploadId bar mediaid:t medan image.filename bar kort-3b868848.png.",
   "kort-n6-tmp bar ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag, samma kontroll som N5 efter facitfelet: Wix-mediaid:t OCH image.filename (kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
   "kort-n7-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 52 mediaposter over nio produkter, noll utan alt-text.",
-  "kort-n8-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = <kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 51 mediaposter over nio produkter, noll utan alt-text."
+  "kort-n8-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = <kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 51 mediaposter over nio produkter, noll utan alt-text.",
+  "kort-n9-tmp bär ENDAST rundans nio kort (nio filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 9 av 9 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): kortet ligger SIST i media.itemsInfo på 9 av 9 och huvudbilden är ett foto på 9 av 9. 51 mediaposter över nio produkter, noll utan alt-text. Varje kortfil är dessutom git-identisk med sin kopia i arbetsgrenens tools/polish-assets/runda-n9-billigast/kort/ — grenen bär ingenting som inte redan finns kvar."
  ],
  "sparade": [],
  "raderade": [
@@ -77,6 +78,15 @@
    "filer": 9,
    "kort": 9,
    "runda": "N8"
+  },
+  {
+   "gren": "kort-n9-tmp",
+   "sha": "02b66405a771169c655eaf40f4345c299845f62f",
+   "sistaCommit": "2026-09-17T08:53:00+00:00",
+   "commits": 1,
+   "filer": 9,
+   "kort": 9,
+   "runda": "N9"
   }
  ]
 }
