@@ -33,9 +33,20 @@ Varje led är MÄTT, inte antaget. Ett svar utan fel är inget kvitto.
 | Steg 4 — `variantsInfo` SIST och ENSAMT | 7 av 7, SKU:er skrivna, `visible` explicit |
 | Stämpling via `polish-mapping.yml` | 7 av 7 gröna, körda med uttryckligt `ref` |
 | Separat återläsning en stund senare | **7 av 7 LIKA** mot filens FNV-facit |
+| `livegrind.py` mot de publicerade sidorna | **6 av 7 REN**, orddiff 0 på alla sju |
 
-`livegrind.py` mot de publicerade sidorna körs efter ISR-fönstret — se
-avsnittet nedan.
+## Den sjunde: ett äkta lagerbesked, inte en textdefekt
+
+`34f22c58` (trädgårdsbänken) flaggades av `livegrind.py` som SLUTSÅLD —
+sidan renderar OutOfStock trots orddiff 0. Grinden namnger själv två möjliga
+orsaker och säger uttryckligen "läs lagret innan du lagar något".
+
+Kontrollerat direkt i Wix: produktens `visible: true`, variantens
+`visible: true`, men `inventoryStatus.inStock: false`. Det är alltså inte
+den dokumenterade variant-visible-buggen (#148) — varianten är synlig, den
+är genuint slut. Aosom-synken (var 6:e timme) räknar om saldot mot feeden av
+sig själv; ingenting i den här rundans skrivning orsakade eller behöver
+rätta det.
 
 ## Två fynd som bara ett öga på fotot kunde se
 
