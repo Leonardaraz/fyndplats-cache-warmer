@@ -47,6 +47,19 @@ import { getReviewStore, isVisibleStatus, type StoredReview } from "../store/rev
  */
 export const SNAPSHOT_TAG = "reviews-snapshot";
 
+/**
+ * Version i cachenyckeln. Höj den för att göra ALLA befintliga poster
+ * föräldralösa i samma sekund en deploy går ut.
+ *
+ * ☠️ VARFÖR DET BEHÖVS. Data Cache:n överlever deployer. Har något fel cachats
+ * — en tom bild, en bild med fel visningsläge — går den inte att deploya bort,
+ * bara vänta ut. Uppmätt 2026-09-18: en tom bild från en felkonfigurerad
+ * preview låg kvar en timme efter att miljön rättats.
+ *
+ * v2: efter att tomma bilder slutade cachas alls (se `kallaSnapshot`).
+ */
+const NYCKELVERSION = "v2";
+
 /** Hur länge en bild får serveras innan den hämtas om. Samma som cronens takt. */
 export const SNAPSHOT_TTL_SEKUNDER = 3600;
 
@@ -138,6 +151,12 @@ function nyastForst(a: StoredReview, b: StoredReview): number {
  * en avvisad recension dyker upp på en produktsida.
  */
 export async function byggSnapshot(): Promise<ReviewsSnapshot> {
+  // ☠️ DEN HÄR RADEN ÄR MÄTNINGEN. Allt vilar på att lagret läses ungefär en
+  // gång i timmen i stället för ~197. Utan en logg går det inte att skilja
+  // "fungerar" från "cachen tar inte emot och vi bygger om varje gång" — och
+  // den skillnaden är hela besparingen. Räkna raderna i loggen: fler än ett par
+  // i timmen betyder att något inte cachas.
+  const start = Date.now();
   const rader = (await getReviewStore().listVisibleAll()).filter((r) => isVisibleStatus(r.status));
 
   const grupper = new Map<string, StoredReview[]>();
@@ -172,6 +191,10 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
   // cachade bilden och bygger den sällan. Mäts den på fel ställe hade den
   // tystnat precis när den behövdes.
   const bytes = JSON.stringify(bild).length;
+  console.log(
+    `[reviews/snapshot] BYGGD ur lagret: ${bild.antal} recensioner, `
+      + `${bild.produkter} produkter, ${(bytes / 1e6).toFixed(2)} MB, ${Date.now() - start} ms`,
+  );
   if (bytes >= SNAPSHOT_VARNING_BYTES) {
     console.warn(
       `[reviews/snapshot] bilden är ${(bytes / 1e6).toFixed(2)} MB `
@@ -250,11 +273,29 @@ async function kallaSnapshot(): Promise<ReviewsSnapshot> {
     const franFil = await lasSnapshotFranBlob();
     if (franFil && arTrovardig(franFil)) return franFil;
   }
-  return byggSnapshot();
+  const byggd = await byggSnapshot();
+
+  // ☠️ EN OTROVÄRDIG BILD FÅR ALDRIG HAMNA I CACHEN — VI KASTAR I STÄLLET.
+  //
+  // Uppmätt 2026-09-18: preview byggde en tom bild medan REVIEWS_BACKEND
+  // saknades. Den tomma bilden CACHADES, och eftersom Data Cache:n överlever
+  // deployer låg den kvar en timme efter att miljön rättats. Resultatet: rutten
+  // fortsatte svara 503 långt efter att felet var borta, och varje förfrågan
+  // föll tillbaka på lagret — alltså exakt den dyra läsningen hela
+  // konstruktionen finns för att ta bort, i sextio minuter, tyst.
+  //
+  // `unstable_cache` cachar inte ett kast. Att kasta här betyder alltså: ingen
+  // dålig bild fastnar, nästa förfrågan försöker igen, och den sekund miljön
+  // är rätt är läget rätt. Anroparen (`hamtaSnapshot`) fångar och faller
+  // tillbaka på lagret precis som förut — utfallet för kunden är oförändrat.
+  if (!arTrovardig(byggd)) {
+    throw new Error("tom ögonblicksbild — cachas inte");
+  }
+  return byggd;
 }
 
 function cachadSnapshot() {
-  return unstable_cache(kallaSnapshot, ["reviews-snapshot", "v1", reviewDisplayMode()], {
+  return unstable_cache(kallaSnapshot, ["reviews-snapshot", NYCKELVERSION, reviewDisplayMode()], {
     revalidate: SNAPSHOT_TTL_SEKUNDER,
     tags: [SNAPSHOT_TAG],
   });

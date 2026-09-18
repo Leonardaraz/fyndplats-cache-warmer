@@ -290,7 +290,27 @@ describe("kostnadsregeln i källkoden", () => {
 
   it("visningsläget ingår i cachenyckeln — killswitchen måste bita direkt", () => {
     const modul = las("lib/reviews/snapshot.ts");
-    expect(modul).toMatch(/\["reviews-snapshot", "v1", reviewDisplayMode\(\)\]/);
+    expect(modul).toMatch(/\["reviews-snapshot", NYCKELVERSION, reviewDisplayMode\(\)\]/);
+    expect(modul, "nyckelversionen måste finnas — den är enda vägen att deploya bort en dålig post").toMatch(
+      /const NYCKELVERSION = "v\d+";/,
+    );
+  });
+
+  it("en otrovärdig bild KASTAR, så den aldrig hamnar i cachen", () => {
+    // ☠️ Uppmätt 2026-09-18: en tom bild cachades medan REVIEWS_BACKEND
+    // saknades, och eftersom Data Cache:n överlever deployer låg den kvar en
+    // timme EFTER att miljön rättats. Varje förfrågan föll då tillbaka på
+    // lagret — den dyra läsningen, i sextio minuter, tyst.
+    // unstable_cache cachar inte ett kast.
+    const modul = las("lib/reviews/snapshot.ts");
+    expect(modul).toMatch(/if \(!arTrovardig\(byggd\)\) \{\s*\n\s*throw new Error/);
+  });
+
+  it("varje databasläsning loggas — annars går besparingen inte att mäta", () => {
+    // Utan raden går "fungerar" inte att skilja från "cachen tar inte emot och
+    // vi bygger om varje gång", och den skillnaden ÄR hela besparingen.
+    const modul = las("lib/reviews/snapshot.ts");
+    expect(modul).toMatch(/BYGGD ur lagret/);
   });
 
   it("taggen är en enda sträng, delad av alla", () => {
