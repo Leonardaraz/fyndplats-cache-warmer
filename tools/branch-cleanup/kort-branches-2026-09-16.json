@@ -19,9 +19,21 @@
   "kort-n13-tmp bär ENDAST rundans tio kort (tio filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 10 av 10 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): media-ordningen (kortet SIST) stämmer 10 av 10 mot filnamnsfacit, plainDescription-hashen stämmer 10 av 10 mot filens normaliserade facit, variant-SKU:n är svensk på alla tio, produkten och varianten är synliga på alla tio, och kategorierna är kopplade på alla tio. Ett fynd under samma verifiering (kortets alt-text bar ett tysk-svenskt hybridord, 'kippskydd', på a492b6f8) rättades i en separat, efterföljande PATCH mot Wix SJÄLVA MEDIAPOSTEN — grenens redan uppladdade filbytes rördes aldrig, bara den lagrade alt-texten. Grenens arbete lever kvar i tools/polish-assets/runda-n13-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar.",
   "☠️ kort-n14-tmp har en ovanlig historia och står här med flit, inte utelämnad. En felaktig git checkout --orphan/rm/clean-sekvens (körd innan denna runda kom till skrivfasen) råkade skapa och pusha en FÖRSTA version av grenen med tio helt orelaterade PNG-filer — kvarblivna arbetsfiler från redan avslutade och redan committade rundor (K14, N4, N5), inga hemligheter, inga artikelnummer eller inköpspriser. Den versionen togs aldrig i bruk: en säker git worktree byggdes om från grunden på samma grennamn och FORCE-pushades över den felaktiga historien innan någon UploadImageToWixSite-anrop gjordes. Den slutgiltiga grenen bär ENDAST rundans tio kort (tio filer, en commit, föräldralös gren). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 10 av 10 byte-identiska direkt efter uppladdningen. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen: plainDescription-hashen stämmer 10 av 10 (efter att wixnorm.py fick sin sjätte normaliseringsregel, se nedan), media-ordningen (kortet SIST) stämmer 10 av 10, variant-SKU:n är svensk på alla tio, produkten och varianten är synliga på alla tio, och kategorierna är kopplade på alla tio. Grenens arbete lever kvar i tools/polish-assets/runda-n14-billigast/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar.",
   "☠️ Samma runda hittade en sjätte Wix-normaliseringsregel: <span class=u>TEXT</span> (en markering som bara hör hemma i kort.tsv:s kortrendering) strippas tyst till bara TEXT vid sparandet, −21 tecken per span. Nio av tio N14-produkter hade fått markeringen kopierad in i plainDescription av misstag; kundens sida var aldrig fel (klassen fanns aldrig i butikens stylesheet), men läsfacit i wixnorm.py kände bara till fem av Wix sex åtgärder och rapporterade nio korrekta skrivningar som SKILJER. Lagat i wixnorm.py (punkt 6) och i gate.py (ny [KORT-MARKUP I KROPPEN]-kontroll som fäller om mönstret återkommer).",
-  "kort-n15-tmp bär ENDAST rundans sex kort (sex filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 6 av 6 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): plainDescription-hashen stämmer 6 av 6 mot filens normaliserade facit (hasha.py/aterlas.js), bildantalet stämmer 6 av 6 mot förväntat (fem produkter à 6 poster, en à 4 efter bildaudit), variant-SKU:n är svensk på alla sex, produkten och varianten är synliga på alla sex, och kategorierna är kopplade på alla sex (BulkAddItemToCategories, 6 av 6 lyckade). Grenens arbete lever kvar i tools/polish-assets/runda-n15-billigast/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar."
+  "kort-n15-tmp bär ENDAST rundans sex kort (sex filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 6 av 6 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): plainDescription-hashen stämmer 6 av 6 mot filens normaliserade facit (hasha.py/aterlas.js), bildantalet stämmer 6 av 6 mot förväntat (fem produkter à 6 poster, en à 4 efter bildaudit), variant-SKU:n är svensk på alla sex, produkten och varianten är synliga på alla sex, och kategorierna är kopplade på alla sex (BulkAddItemToCategories, 6 av 6 lyckade). Grenens arbete lever kvar i tools/polish-assets/runda-n15-billigast/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar.",
+  "☠️ kort-n15-tmp gick INTE att radera den här gången — `git push origin --delete kort-n15-tmp` svarade `HTTP 403` medan samma anrops push till arbetsgrenen precis innan gick igenom med samma autentisering. Skillnaden pekar på en avsiktlig sessionsspärr (samma regel som 'skriv aldrig till en annan gren utan uttryckligt lov'), inte ett nätverksfel — så ingen omförsöks-backoff gjordes, och ingen alternativ raderingsväg söktes. Ofarligt att lämna: grenen bär bara sex kortbilder, ingen hemlighet, inget artikelnummer, inget delat med main. Listad i `sparade` i stället för `raderade` tills en session med raderingsbehörighet för andra grenar kan städa den."
  ],
- "sparade": [],
+ "sparade": [
+  {
+   "gren": "kort-n15-tmp",
+   "sha": "724af6ae0b0ee82ec62d9e387aad498c4843d403",
+   "sistaCommit": "2026-09-18T22:02:57+00:00",
+   "commits": 1,
+   "filer": 6,
+   "kort": 6,
+   "runda": "N15",
+   "skal": "raderingsförsök gav HTTP 403 (sessionens push-behörighet verkar vara begränsad till arbetsgrenen) — inte en avsiktlig bevarande, bara en misslyckad radering. Ofarlig att lämna: se kontrollerat-listan."
+  }
+ ],
  "raderade": [
   {
    "gren": "kort-n2-tmp",
@@ -140,15 +152,6 @@
    "kort": 10,
    "runda": "N14",
    "anmarkning": "grennamnet force-pushades över en felaktig första version (se kontrollerat-listan) — shan ovan är den slutgiltiga, korrekta versionen"
-  },
-  {
-   "gren": "kort-n15-tmp",
-   "sha": "724af6ae0b0ee82ec62d9e387aad498c4843d403",
-   "sistaCommit": "2026-09-18T22:02:57+00:00",
-   "commits": 1,
-   "filer": 6,
-   "kort": 6,
-   "runda": "N15"
   }
  ]
 }
