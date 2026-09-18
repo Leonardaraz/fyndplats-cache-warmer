@@ -105,6 +105,15 @@ for f in filer:
     for r in FLIKAR:
         if f"<h2>{r}</h2>" not in txt:
             print(f"  {kort}: [FLIK] saknar <h2>{r}</h2>"); fynd += 1
+    # ☠️ <span class=...> HÖR HEMMA I kort.tsv:S SPEC-VÄRDEN, ALDRIG I
+    # plainDescription. Wix stryper spannet tyst vid sparandet (samma klass
+    # som `fontagen-weight`) — kundens sida blir aldrig fel, men N14 mätte
+    # nio av tio produkter med markeringen läckt in i kroppstexten av
+    # misstag, och wixnorm.py:s facit missade det tills det lagades. Se
+    # wixnorm.py punkt 6.
+    if re.search(r'<span class=', txt):
+        print(f"  {kort}: [KORT-MARKUP I KROPPEN] <span class=…> hör hemma i kort.tsv, inte i plainDescription")
+        fynd += 1
     # ☠️ EN RELATIV KORSLÄNK BLIR EN DÖD LÄNK. Uppmätt 2026-09-07 på runda K1:
     # `href="/produkt/x"` lagras av Wix som `href="https:/produkt/x"` — ett
     # snedstreck, alltså en adress som inte går någonstans. Skrivningen svarar

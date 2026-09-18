@@ -1,0 +1,6 @@
+40304dee 5 källans 3 lägen bakåt + 2 lägen framåt = fem ryggvinklar
+a1294bc8 2 källans "Doppelshots" = två koppar på en gång
+ed69489c 2 källans Spiegelmaße rechts + Spiegelmaße links = två spegeldörrar, bekräftat på bild
+bee36f80 125 vevens räckvidd, avläst i måttritningen (position 3), står inte i källtexten
+2177e112 4 källans "vier Personen" (skrivet med bokstäver)
+d9658fc2 3 källans "dreiteiligen" (skrivet som förled)
