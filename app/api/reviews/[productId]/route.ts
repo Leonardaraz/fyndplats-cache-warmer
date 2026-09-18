@@ -27,7 +27,7 @@
 // ett fel — den ser ut som en produkt utan omdömen, och hade stått så i veckor
 // utan att någon reagerat. Dyrare är bättre än tyst fel.
 import { NextResponse } from "next/server";
-import { hamtaSnapshot, urSnapshot } from "@/lib/reviews/snapshot";
+import { hamtaSnapshot, nyastForst, urSnapshot } from "@/lib/reviews/snapshot";
 import { snittBetyg, toPublicReview, type PublicReview } from "@/lib/reviews/public-view";
 import { getReviewStore, isVisibleStatus } from "@/lib/store/reviews";
 
@@ -37,7 +37,15 @@ export const dynamic = "force-dynamic";
 async function franLagret(productId: string): Promise<PublicReview[] | null> {
   try {
     const rader = await getReviewStore().listByProduct(productId);
-    return rader.filter((r) => isVisibleStatus(r.status)).map(toPublicReview);
+    // ☠️ SAMMA SORTERING SOM BILDEN, inte lagrets. `order by date desc` i SQL
+    // säger ingenting om ordningen mellan LIKA datum, så utan den här raden ger
+    // fallbacken en annan ordning än bilden för varje produkt som har två
+    // omdömen från samma dag — och kunden ser recensionerna hoppa om beroende
+    // på vilken väg svaret tog. Uppmätt på skarp data 2026-09-18.
+    return rader
+      .filter((r) => isVisibleStatus(r.status))
+      .sort(nyastForst)
+      .map(toPublicReview);
   } catch (err) {
     console.warn("[api/reviews] kunde inte läsa recensioner:", err instanceof Error ? err.message : err);
     return null;

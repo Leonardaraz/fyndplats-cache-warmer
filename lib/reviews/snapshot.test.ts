@@ -89,6 +89,29 @@ describe("byggSnapshot", () => {
     expect(bild.perProdukt.p1.map((r) => r.reviewIdAE)).toEqual(["1", "4"]);
   });
 
+  it("oavgjorda datum avgörs av id:t, aldrig av slumpen", async () => {
+    // ☠️ Uppmätt 2026-09-18 mot skarp data: två produkter gav samma omdömen,
+    // samma antal och samma snitt — men i olika ordning på de två vägarna.
+    // Oavgjorda datum sorteras godtyckligt av både SQL och JS, så ordningen
+    // kunde ändras mellan två bygg av SAMMA kod. Kunden hade sett
+    // recensionerna hoppa omkring utan att något ändrats.
+    const samma = "2026-05-05T00:00:00.000Z";
+    const framlanges = [
+      rad({ reviewIdAE: "c", date: samma }),
+      rad({ reviewIdAE: "a", date: samma }),
+      rad({ reviewIdAE: "b", date: samma }),
+    ];
+    listVisibleAll.mockResolvedValue(framlanges);
+    const ett = await byggSnapshot();
+
+    // Samma rader i omvänd inmatningsordning måste ge SAMMA utordning.
+    listVisibleAll.mockResolvedValue([...framlanges].reverse());
+    const tva = await byggSnapshot();
+
+    expect(urSnapshot(ett, "p1").map((r) => r.reviewIdAE)).toEqual(["a", "b", "c"]);
+    expect(urSnapshot(tva, "p1").map((r) => r.reviewIdAE)).toEqual(["a", "b", "c"]);
+  });
+
   it("sorterar nyast först och lägger rader utan datum sist", async () => {
     // Måste matcha `order by date desc nulls last` i båda lagren — annars
     // hoppar recensionerna omkring beroende på om svaret kom ur bilden eller
@@ -101,7 +124,8 @@ describe("byggSnapshot", () => {
     ]);
     const bild = await byggSnapshot();
     expect(bild.perProdukt.p1.map((r) => r.reviewIdAE).slice(0, 2)).toEqual(["ny", "gammal"]);
-    expect(bild.perProdukt.p1.slice(2).map((r) => r.reviewIdAE).sort()).toEqual(["skräp", "utan"]);
+    // Datumlösa sist, och sinsemellan i id-ordning — inte i inmatningsordning.
+    expect(bild.perProdukt.p1.slice(2).map((r) => r.reviewIdAE)).toEqual(["skräp", "utan"]);
   });
 
   it("hoppar över rader utan productId i stället för att skapa en tom nyckel", async () => {
@@ -275,6 +299,13 @@ describe("kostnadsregeln i källkoden", () => {
     // från butikens svagare konvention — auditen fällde det.
     expect(cron, "failar inte stängt utan hemlighet").toMatch(/if \(!secret\) return false;/);
     expect(cron).toMatch(/status: 401/);
+  });
+
+  it("fallbacken sorterar med samma jämförare som bilden", () => {
+    // Utan detta ger de två vägarna olika ordning för varje produkt med två
+    // omdömen från samma dag.
+    const rutt = las("app/api/reviews/[productId]/route.ts");
+    expect(rutt).toMatch(/\.sort\(nyastForst\)/);
   });
 
   it("läsvägen går ALDRIG över HTTP till den egna deployen", () => {

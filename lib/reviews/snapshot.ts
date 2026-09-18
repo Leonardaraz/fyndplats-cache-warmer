@@ -130,15 +130,30 @@ export interface ReviewsSnapshot {
  * som laddar om sidan ska inte se recensionerna byta plats för att svaret kom
  * en annan väg.
  */
-function nyastForst(a: StoredReview, b: StoredReview): number {
+export function nyastForst(a: StoredReview, b: StoredReview): number {
   const ta = a.date ? Date.parse(a.date) : NaN;
   const tb = b.date ? Date.parse(b.date) : NaN;
   const ga = Number.isNaN(ta);
   const gb = Number.isNaN(tb);
-  if (ga && gb) return 0;
-  if (ga) return 1;
-  if (gb) return -1;
-  return tb - ta;
+  if (!ga || !gb) {
+    if (ga) return 1;
+    if (gb) return -1;
+    if (tb !== ta) return tb - ta;
+  }
+  // ☠️ OAVGJORT AVGÖRS AV ID:T, ALDRIG AV SLUMPEN.
+  //
+  // Uppmätt 2026-09-18 genom att jämföra bilden mot lagret på skarp data: två
+  // produkter gav SAMMA omdömen, samma antal och samma snitt — men i olika
+  // ordning. Orsaken var oavgjorda datum. Postgres `order by date desc` säger
+  // ingenting om inbördes ordning mellan lika datum, och JS `sort` bevarar den
+  // ordning raderna råkade komma i. Båda var alltså godtyckliga, och de råkade
+  // bli olika.
+  //
+  // Det värsta är inte att vägarna skilde sig. Det är att ordningen kunde
+  // ändras mellan två bygg av SAMMA kod — kunden hade sett recensionerna hoppa
+  // omkring utan att något ändrats. Med id:t som andra nyckel är ordningen
+  // densamma för alltid, oavsett väg.
+  return a.reviewIdAE < b.reviewIdAE ? -1 : a.reviewIdAE > b.reviewIdAE ? 1 : 0;
 }
 
 /**
