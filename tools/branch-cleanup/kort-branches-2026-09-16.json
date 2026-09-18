@@ -14,7 +14,8 @@
   "kort-n8-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = <kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 51 mediaposter over nio produkter, noll utan alt-text.",
   "kort-n9-tmp bär ENDAST rundans nio kort (nio filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 9 av 9 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): kortet ligger SIST i media.itemsInfo på 9 av 9 och huvudbilden är ett foto på 9 av 9. 51 mediaposter över nio produkter, noll utan alt-text. Varje kortfil är dessutom git-identisk med sin kopia i arbetsgrenens tools/polish-assets/runda-n9-billigast/kort/ — grenen bär ingenting som inte redan finns kvar.",
   "kort-n10-tmp bär ENDAST rundans sju kort plus en beskuren mätbild (åtta filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 8 av 8 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): den normaliserade plainDescription stämmer 7 av 7 mot filens facit, kortet ligger SIST i media.itemsInfo på alla sju produkter, och hundgrindens tyska måttbild är ersatt av den beskurna svenska på samma position (inte bara tillagd sist). Kategorier och variant-SKU skrivna och lästillbaka-bekräftade separat. Grenens arbete lever kvar i tools/polish-assets/runda-n10-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar.",
-  "kort-n11-tmp bär ENDAST rundans sju kort (sju filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 7 av 7 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): plainDescription stämmer 7 av 7 mot filens normaliserade facit, media-ordningen (kortet SIST) stämmer 7 av 7 mot facit, variant-SKU:n är svensk på alla sju och kategorin kopplad på alla sju. Grenens arbete lever kvar i tools/polish-assets/runda-n11-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar."
+  "kort-n11-tmp bär ENDAST rundans sju kort (sju filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 7 av 7 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): plainDescription stämmer 7 av 7 mot filens normaliserade facit, media-ordningen (kortet SIST) stämmer 7 av 7 mot facit, variant-SKU:n är svensk på alla sju och kategorin kopplad på alla sju. Grenens arbete lever kvar i tools/polish-assets/runda-n11-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar.",
+  "kort-n12-tmp bär ENDAST rundans sju kort (sju filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 7 av 7 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): plainDescription stämmer 7 av 7 mot filens normaliserade facit (hasha.py/aterlas.js), media-ordningen (kortet SIST) stämmer 7 av 7 mot facit, variant-SKU:n är svensk på alla sju, produkten och varianten är synliga på alla sju, och kategorierna är kopplade på alla sju (BulkAddItemToCategories, 12 av 12 lyckade). Grenens arbete lever kvar i tools/polish-assets/runda-n12-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar."
  ],
  "sparade": [],
  "raderade": [
@@ -107,6 +108,15 @@
    "filer": 7,
    "kort": 7,
    "runda": "N11"
+  },
+  {
+   "gren": "kort-n12-tmp",
+   "sha": "6adc6a376fe82557458a9fd363c8e66e30234def",
+   "sistaCommit": "2026-09-18T17:43:12+00:00",
+   "commits": 1,
+   "filer": 7,
+   "kort": 7,
+   "runda": "N12"
   }
  ]
 }
