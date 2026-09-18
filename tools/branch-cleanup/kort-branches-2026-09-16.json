@@ -12,7 +12,8 @@
   "kort-n6-tmp bar ENDAST rundans nio kort plus en beskuren bild (tio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad pa MOTTAGARSIDAN och pa TVA oberoende handtag, samma kontroll som N5 efter facitfelet: Wix-mediaid:t OCH image.filename (kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, och kortet ligger sist. 54 mediaposter over nio produkter, noll utan alt-text.",
   "kort-n7-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = kort-<kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 52 mediaposter over nio produkter, noll utan alt-text.",
   "kort-n8-tmp bar ENDAST rundans nio kort (nio filer, en commit, foraldralos gren — merge-base mot main tom). Kopian ar verifierad i BADA andarna: md5 pa den HEMHAMTADE filen mot den lokala, 9 av 9 byte-identiska — alltsa ar parningen uppladdad-fil → mediaid BEVISAD och inte last ur svarets ordning, som inte ekar nagon kall-URL. Och pa MOTTAGARSIDAN: bade Wix-mediaid:t och den lokala uppladdningsfilens namn (image.filename = <kort>.png) pekar pa SAMMA mediapost, 9 av 9, kortet ligger SIST och huvudbilden ar ett foto. 51 mediaposter over nio produkter, noll utan alt-text.",
-  "kort-n9-tmp bär ENDAST rundans nio kort (nio filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 9 av 9 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): kortet ligger SIST i media.itemsInfo på 9 av 9 och huvudbilden är ett foto på 9 av 9. 51 mediaposter över nio produkter, noll utan alt-text. Varje kortfil är dessutom git-identisk med sin kopia i arbetsgrenens tools/polish-assets/runda-n9-billigast/kort/ — grenen bär ingenting som inte redan finns kvar."
+  "kort-n9-tmp bär ENDAST rundans nio kort (nio filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 9 av 9 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): kortet ligger SIST i media.itemsInfo på 9 av 9 och huvudbilden är ett foto på 9 av 9. 51 mediaposter över nio produkter, noll utan alt-text. Varje kortfil är dessutom git-identisk med sin kopia i arbetsgrenens tools/polish-assets/runda-n9-billigast/kort/ — grenen bär ingenting som inte redan finns kvar.",
+  "kort-n10-tmp bär ENDAST rundans sju kort plus en beskuren mätbild (åtta filer, en commit, föräldralös gren — merge-base mot main TOM). Kopian är verifierad i BÅDA ändarna: md5 på den HEMHÄMTADE filen mot den lokala, 8 av 8 byte-identiska — alltså är parningen uppladdad-fil → mediaid BEVISAD och inte läst ur svarets ordning, som inte ekar någon käll-URL. Och på MOTTAGARSIDAN, i en SEPARAT läsning en stund efter skrivningen (#255): den normaliserade plainDescription stämmer 7 av 7 mot filens facit, kortet ligger SIST i media.itemsInfo på alla sju produkter, och hundgrindens tyska måttbild är ersatt av den beskurna svenska på samma position (inte bara tillagd sist). Kategorier och variant-SKU skrivna och lästillbaka-bekräftade separat. Grenens arbete lever kvar i tools/polish-assets/runda-n10-billigast/kort/ på arbetsgrenen — grenen bär ingenting som inte redan finns kvar."
  ],
  "sparade": [],
  "raderade": [
@@ -87,6 +88,15 @@
    "filer": 9,
    "kort": 9,
    "runda": "N9"
+  },
+  {
+   "gren": "kort-n10-tmp",
+   "sha": "726ac8423cfaf76170bf52b616d80ac7ecea87cc",
+   "sistaCommit": "2026-09-18T12:56:46+00:00",
+   "commits": 1,
+   "filer": 8,
+   "kort": 7,
+   "runda": "N10"
   }
  ]
 }
