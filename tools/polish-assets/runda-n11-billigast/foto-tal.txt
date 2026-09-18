@@ -1,0 +1,2 @@
+0136e7d9 2 kontaktarket position 1 visar tydligt tva torn sida vid sida
+0136e7d9 3 kontaktarket position 1 visar tre nyanser av bla per torn, ljus overst till morkt nederst
