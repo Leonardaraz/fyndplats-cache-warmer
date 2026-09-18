@@ -16,7 +16,7 @@
 import { reviewImages } from "./images";
 import { isCustomerReview } from "./queue";
 import { reviewDisplayMode, reviewDisplayName } from "../import/review-display";
-import type { StoredReview } from "../store/reviews";
+import type { PublikKallrad, StoredReview } from "../store/reviews";
 
 export interface PublicReview {
   reviewIdAE: string;
@@ -64,12 +64,18 @@ export interface PublicReview {
  * ☠️ Läser `reviewDisplayMode()` vid varje anrop, inte vid modulladdning.
  * Killswitchen ska bita på nästa svar, inte på nästa deploy.
  */
-export function toPublicReview(r: StoredReview): PublicReview {
+export function toPublicReview(
+  // ☠️ DEN STYMPADE RADEN RÄCKER, och typen säger det. `listVisibleAll` hämtar
+  // inte längre originaltexten ur databasen — SQL:en lägger den i
+  // `textSwedish` när den svenska saknas, så fallbacken nedan är kvar för
+  // lagret som ger hela raden (Wix, och `listByProduct`).
+  r: PublikKallrad & Partial<Pick<StoredReview, "textOriginal">>,
+): PublicReview {
   return {
     reviewIdAE: r.reviewIdAE,
     firstParty: isCustomerReview(r),
     rating: r.rating,
-    text: r.textSwedish || r.textOriginal,
+    text: r.textSwedish || r.textOriginal || "",
     displayName: reviewDisplayName(r.initials),
     initials: reviewDisplayMode() === "verified_buyer" ? "" : r.initials,
     ...(r.source ? { source: r.source } : {}),

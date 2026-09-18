@@ -53,7 +53,7 @@ vi.mock("../store/reviews", async (original) => {
   return { ...faktisk, getReviewStore: () => ({ listVisibleAll, listByProduct }) };
 });
 
-const { byggSnapshot, urSnapshot, arTrovardig, SNAPSHOT_TAG, SNAPSHOT_VARNING_BYTES, MAX_PER_PRODUKT } =
+const { byggSnapshot, urSnapshot, arTrovardig, SNAPSHOT_TAG, SNAPSHOT_VARNING_BYTES, MAX_PER_PRODUKT, SNAPSHOT_TTL_SEKUNDER } =
   await import("./snapshot");
 const { snittBetyg, toPublicReview } = await import("./public-view");
 const { isVisibleStatus } = await import("../store/reviews");
@@ -246,11 +246,17 @@ describe("kostnadsregeln i källkoden", () => {
     const crons = JSON.parse(las("vercel.json")).crons as { path: string; schedule: string }[];
     const bild = crons.find((c) => c.path.includes("reviews-snapshot"));
     expect(bild, "cronjobbet för recensionsbilden saknas i vercel.json").toBeTruthy();
-    expect(bild!.schedule).toBe("25 * * * *");
 
+    // MINUTEN är det som avgör väckningsfönstret, och den måste vara samma.
     const minut = (p: string) => crons.find((c) => c.path.includes(p))?.schedule.split(" ")[0];
     expect(minut("reviews-snapshot")).toBe(minut("order-backfill"));
     expect(minut("reviews-snapshot")).toBe(minut("health-check"));
+
+    // TIMSTEGET är nätverksbesparingen: var tredje timme, inte varje. Se
+    // SNAPSHOT_TTL_SEKUNDER — Neon debiterar trafik också, och den gränsen var
+    // passerad när det här skrevs.
+    expect(bild!.schedule).toBe("25 */3 * * *");
+    expect(SNAPSHOT_TTL_SEKUNDER, "TTL:n måste följa cronens takt").toBe(3 * 3600);
   });
 
   it("läsrutterna går via bilden och har kvar sin fallback", () => {
@@ -342,6 +348,29 @@ describe("kostnadsregeln i källkoden", () => {
     // vi bygger om varje gång", och den skillnaden ÄR hela besparingen.
     const modul = las("lib/reviews/snapshot.ts");
     expect(modul).toMatch(/BYGGD ur lagret/);
+  });
+
+  it("health-check kollar databasen, inte bara Wix", () => {
+    // ☠️ Fram till 2026-09-18 pingade rutten BARA Wix Stores-API:t, och dess
+    // egna Postgres-skrivningar var best-effort och sväljda. En död databas
+    // hade alltså inte gett ett enda larm — medan order-backfill föll med 500
+    // varje timme och ordrar slutade säkerhetskopieras.
+    const hc = las("app/api/cron/health-check/route.ts");
+    expect(hc, "ingen databasping").toMatch(/async function pingDatabas\(/);
+    expect(hc, "pingen körs inte i GET").toMatch(/const db = await pingDatabas\(\);/);
+    expect(hc, "inget mejl när databasen är nere").toMatch(/if \(!db\.ok\)[\s\S]{0,800}sendEmail/);
+  });
+
+  it("databaslarmet strypas INTE av en räknare som bor i databasen", () => {
+    // Wix-larmet räknar fel i följd och kräver två i rad — men den räknaren
+    // ligger i llm_kv, alltså i databasen. Är databasen nere börjar varje
+    // körning om från noll och tröskeln nås aldrig. Larmet som finns till för
+    // databasen hade tystnat av precis det den skulle larma om.
+    const hc = las("app/api/cron/health-check/route.ts");
+    expect(hc, "strypningen måste ligga i en modulvariabel, inte i state").toMatch(
+      /let dbLarmatAt = 0;/,
+    );
+    expect(hc).not.toMatch(/db.*FAILS_BEFORE_ALERT/);
   });
 
   it("taggen är en enda sträng, delad av alla", () => {

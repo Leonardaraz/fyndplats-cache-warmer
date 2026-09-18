@@ -26,6 +26,7 @@ import { sql } from "../db/client";
 import {
   MAX_LIST_ALL,
   MAX_SNAPSHOT_ROWS,
+  type PublikKallrad,
   VISIBLE_STATUSES,
   normaliseraFörSkrivning,
   reviewDocId,
@@ -133,15 +134,42 @@ export class PostgresReviewStore implements ReviewStoreLike {
    * måste ge recensionerna i samma ordning, annars hoppar de omkring på sidan
    * beroende på vilken väg svaret tog.
    */
-  async listVisibleAll(limit = MAX_SNAPSHOT_ROWS): Promise<StoredReview[]> {
+  async listVisibleAll(limit = MAX_SNAPSHOT_ROWS): Promise<PublikKallrad[]> {
     const q = sql();
+    // ☠️ INTE `select data`. Blobben bär originaltext, rånamn, land och
+    // ursprungsspråk — allt sådant `toPublicReview` kastar bort i samma
+    // andetag. Neon debiterar nätverkstrafik, och gratispottens 5 GB var redan
+    // passerad 2026-09-18; att skicka en dubblerad recensionstext över
+    // uppkopplingen en gång i timmen, för att omedelbart slänga den, är den
+    // sortens kostnad som inte syns förrän potten tar slut.
+    //
+    // Originaltexten faller inte bort, den FÄLLS IHOP: `textSwedish` får den
+    // svenska när den finns, annars originalet — exakt vad `r.textSwedish ||
+    // r.textOriginal` gjorde hos oss, men avgjort i databasen så bara ett av
+    // fälten går över tråden.
+    //
+    // Returtypen är smalnad med flit. En framtida anropare som vill ha
+    // rånamnet ska mötas av ett typfel, inte av `undefined` vid körning.
     const rows = await q`
-      select data from reviews
+      select jsonb_build_object(
+               'productId',   product_id,
+               'reviewIdAE',  review_id_ae,
+               'status',      status,
+               'rating',      rating,
+               'date',        data->>'date',
+               'textSwedish', coalesce(nullif(data->>'textSwedish', ''), data->>'textOriginal'),
+               'initials',    data->>'initials',
+               'source',      data->>'source',
+               'hasImage',    coalesce((data->>'hasImage')::boolean, false),
+               'imageUrl',    data->>'imageUrl',
+               'imageUrls',   data->'imageUrls'
+             ) as data
+        from reviews
        where status = any(${VISIBLE_STATUSES as unknown as string[]})
-       order by date desc nulls last
+       order by date desc nulls last, review_id_ae asc
        limit ${limit}
     `;
-    return rows.map((r) => rensa((r as { data: unknown }).data));
+    return rows.map((r) => rensa((r as { data: unknown }).data) as unknown as PublikKallrad);
   }
 
   /**

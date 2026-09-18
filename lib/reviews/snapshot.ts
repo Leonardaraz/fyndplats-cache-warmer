@@ -23,8 +23,8 @@
 // databasen sömnig ibland. Den här filen gör den sömnig ALLTID.
 //
 // Skillnaden är att åtkomsten blir SCHEMALAGD i stället för slumpmässig: en
-// fråga i timmen, på minut :25, i samma väckningsfönster som `order-backfill`
-// och `health-check` redan använder. Noll extra väckningar.
+// fråga var tredje timme, på minut :25, i samma väckningsfönster som
+// `order-backfill` och `health-check` redan använder. Noll extra väckningar.
 //
 // ⚠️ ADRESSEN OCH SVARSFORMEN ÄR OFÖRÄNDRADE. Butiken (headless-site,
 // lib/reviews.ts) läser `/api/reviews/<produkt>` precis som förut och vet
@@ -36,7 +36,7 @@ import { unstable_cache } from "next/cache";
 import { toPublicReview, type PublicReview } from "./public-view";
 import { reviewDisplayMode } from "../import/review-display";
 import { blobKonfigurerad, lasSnapshotFranBlob } from "./snapshot-blob";
-import { getReviewStore, isVisibleStatus, type StoredReview } from "../store/reviews";
+import { getReviewStore, isVisibleStatus, type PublikKallrad } from "../store/reviews";
 
 /**
  * Taggen som binder ihop ögonblicksbilden med sina läsare.
@@ -60,8 +60,26 @@ export const SNAPSHOT_TAG = "reviews-snapshot";
  */
 const NYCKELVERSION = "v2";
 
-/** Hur länge en bild får serveras innan den hämtas om. Samma som cronens takt. */
-export const SNAPSHOT_TTL_SEKUNDER = 3600;
+/**
+ * Hur länge en bild får serveras innan den byggs om. Samma som cronens takt.
+ *
+ * ☠️ TRE TIMMAR, INTE EN — OCH DET ÄR NÄTVERKET SOM BESTÄMMER.
+ * Neon debiterar både compute-timmar OCH nätverkstrafik, och båda
+ * gratisgränserna var passerade 2026-09-18 (101,75 av 100 CU-timmar, 5,03 av
+ * 5 GB). Ögonblicksbilden löser den första med råge men KOSTAR på den andra:
+ * varje bygge drar hela recensionslagret över uppkopplingen.
+ *
+ * Att bygga var tredje timme i stället för varje kostar ingenting i
+ * compute-timmar — `order-backfill` och `health-check` väcker ändå databasen
+ * :25 varje timme, så bilden rider bara med på var tredje väckning — men det
+ * tredjedelar nätverket.
+ *
+ * Och färskheten tappas inte: moderering i /admin/reviews släpper taggen
+ * direkt (se `SNAPSHOT_TAG`), så ett godkänt omdöme syns på minuten. Det enda
+ * som blir upp till tre timmar gammalt är nattens importer — och ingen väntar
+ * på dem.
+ */
+export const SNAPSHOT_TTL_SEKUNDER = 3 * 3600;
 
 /**
  * Larmtröskel för bildens storlek.
@@ -130,7 +148,10 @@ export interface ReviewsSnapshot {
  * som laddar om sidan ska inte se recensionerna byta plats för att svaret kom
  * en annan väg.
  */
-export function nyastForst(a: StoredReview, b: StoredReview): number {
+export function nyastForst(
+  a: Pick<PublikKallrad, "date" | "reviewIdAE">,
+  b: Pick<PublikKallrad, "date" | "reviewIdAE">,
+): number {
   const ta = a.date ? Date.parse(a.date) : NaN;
   const tb = b.date ? Date.parse(b.date) : NaN;
   const ga = Number.isNaN(ta);
@@ -174,7 +195,7 @@ export async function byggSnapshot(): Promise<ReviewsSnapshot> {
   const start = Date.now();
   const rader = (await getReviewStore().listVisibleAll()).filter((r) => isVisibleStatus(r.status));
 
-  const grupper = new Map<string, StoredReview[]>();
+  const grupper = new Map<string, PublikKallrad[]>();
   for (const r of rader) {
     if (!r.productId) continue;
     const lista = grupper.get(r.productId);

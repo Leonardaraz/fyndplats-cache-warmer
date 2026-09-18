@@ -1,14 +1,18 @@
 // GET /api/cron/reviews-snapshot
-// Vercel Cron: "25 * * * *" (se vercel.json)
+// Vercel Cron: "25 */3 * * *" (se vercel.json)
 //
 // Släpper cachen på recensionsbilden så att nästa läsare bygger en färsk.
 //
-// ☠️ VARFÖR MINUT :25, OCH VARFÖR DET ÄR HELA POÄNGEN.
+// ☠️ VARFÖR MINUT :25 — OCH VAR TREDJE TIMME.
 // Neon debiterar den tid databasen är vaken och somnar efter fem minuters
 // tystnad. `order-backfill` och `health-check` väcker den redan :25 varje
 // timme. Lägger vi recensionsläsningen i SAMMA fönster kostar den noll extra
 // väckningar; lägger vi den på en egen minut betalar vi för ett andra fönster
 // i timmen, varje timme, för all framtid.
+//
+// Var TREDJE timme, inte varje, för att Neon debiterar nätverkstrafik också
+// och den gränsen var passerad 2026-09-18. Var tredje väckning kostar lika
+// lite i compute (fönstret finns ändå) men en tredjedel så mycket trafik.
 //
 // Det är också därför rutten finns i stället för att låta cachen gå ut av sig
 // själv: en TTL löper ut när den råkar löpa ut, och trafiken avgör minuten.
