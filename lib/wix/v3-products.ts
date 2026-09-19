@@ -44,6 +44,15 @@ export interface WixV3ProductSummary {
   inStock?: boolean;
   handle?: string;
   existingTags?: Array<Record<string, unknown>>;
+  /**
+   * ☠️ SYNLIGHETEN MÅSTE BÄRAS, INTE ANTAS. `products/query` lägger INTE på
+   * något implicit `visible:true` — det är uppmätt mot skarpa V3 och står i
+   * CLAUDE.md. Fältet saknades här, så `findRedirectConflicts` kallade varje
+   * UTKAST "en levande produkt": en 301 från ett pensionerat utkast vägrades,
+   * och en 301 TILL ett utkast släpptes igenom rakt in i en 404. Samma
+   * riktning som systerfunktionen: saknat fält räknas som synligt.
+   */
+  visible?: boolean;
   /** HTML-brödtext (PLAIN_DESCRIPTION-fältet) — tomt = saknar beskrivning. */
   plainDescription?: string;
 }
@@ -203,7 +212,21 @@ export async function listVisibleV3ProductIds(): Promise<Set<string>> {
 export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
   const all: WixV3ProductSummary[] = [];
   let cursor: string | undefined;
-  for (let page = 0; page < 50; page++) {
+  // ☠️ TAKET LÅG PÅ 50 SIDOR = 5 000 PRODUKTER, mot en katalog på 5 748 —
+  // alltså redan passerat, och funktionen svarade med en TYST avkortad lista.
+  // Exakt samma bugg som `listVisibleV3ProductIds` hade (CLAUDE.md,
+  // 2026-09-14): en konstant som var rätt när den sattes och blev fel när
+  // volymen växte under den. Riktningen är dyr här också — sitemapen och
+  // redirect-grinden läser den här listan, så en produkt bortom sidan 50 ser
+  // död ut. Samma tak och samma kastning som systerfunktionerna.
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      throw new Error(
+        `listAllV3Products passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista är värre än ett fel: den gör publicerade produkter osynliga.",
+      );
+    }
     // V3 använder cursorPaging (inte paging). Cursor måste ligga INUTI
     // cursorPaging-objektet, annars ignoreras den och samma första 100
     // produkter returneras om och om igen (vilket buggade hela /admin/seo).
@@ -239,6 +262,7 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         actualPriceRange?: { minValue?: { amount?: string } };
         inventory?: { availabilityStatus?: string };
         handle?: string;
+        visible?: boolean;
       }>;
       pagingMetadata?: { count?: number; cursors?: { next?: string }; hasNext?: boolean };
     };
@@ -272,6 +296,7 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         inStock: p.inventory?.availabilityStatus === "IN_STOCK",
         handle: p.handle,
         existingTags: tags as Array<Record<string, unknown>>,
+        visible: p.visible !== false,
       });
     }
 

@@ -2334,6 +2334,36 @@ Fyra egenskaper som inte ska tas bort:
 **Regeln, en gång till och nu om grindarna själva: en tvilling glider isär, och
 den som glider tystast är den som ser ut att fungera.**
 
+##### ☠️ Och FACIT för återläsningen var en tredje tvilling (2026-09-15)
+
+Runda N2:s återläsning rapporterade `SKILJER` på **alla åtta** produkterna.
+Skrivningarna var byte-exakta. Det var facit som var fel, och avvikelsen var
+exakt **7 tecken per `<li>`** — 63 till 105 tecken, alla åt samma håll.
+
+`hasha.py`, som bygger varje rundas `vantat-hash.tsv`, hämtade sin
+normalisering ur `gatelib`. Tre kopior fanns samtidigt, med tre olika svar på
+samma fråga:
+
+```
+gatelib.normalisera   2 regler   vitrymd + target="_self"
+kvitto.py             4 regler   saknade den avslutande radbrytningen
+wixnorm.normalisera   5 regler   uppmätt mot skarpa V3
+```
+
+Mot `wixnorm` stämmer den lagrade texten på 8 av 8. De två andra är borta —
+`gatelib.normalisera` hade EN användare och togs bort i stället för att lämnas
+kvar som en tredje sanning någon kan råka läsa.
+
+⚠️ **Riktningen är det som gör felet dyrt.** En KORREKT skrivning rapporteras
+som misslyckad. En återläsning som lyser rött varje gång lär mottagaren att
+sluta läsa — samma argument som mot att varna vid 48 h på token-förnyelsen —
+och då är även det äkta larmet borta. En spec-flik är alltid en `<ul>`, så
+felet gällde varje runda.
+
+`lib/polish/wixnorm-tvilling.test.ts` fäller på tre olika sätt: källkodsgrinden
+på att en andra `def normalisera` finns, längdtestet på att `<li>` inte räknas,
+hashtestet på att svaret skiljer sig från wixnorm.
+
 #### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
 
 Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —
@@ -2404,6 +2434,93 @@ farligare än ingen, för den känns som ett skydd.
 
 ⚠️ Och den gamla lärdomen gäller igen: **Actions-loggar på ett publikt repo går
 att läsa utan inloggning.** Det finns ingen "intern" logg här.
+
+#### ☠️ Korten GRINDAS sedan 2026-09-16 — och de byggs ur en fil
+
+`KORTLACKAN.md` mätte nio publicerade sidor där leverantörens artikelnummer
+eller husmärket ligger **inbränt i en bild vi själva tillverkat**, och bad
+uttryckligen om en grind. Den finns nu: `tools/polish-gates/gate-kort.py`
+läser rundans `kort.tsv`, och `bygg-kort.py` renderar ur SAMMA fil efter att
+ha kört grinden. Ett kort som renderats innan det grindats är ett kort någon
+kan hinna ladda upp.
+
+Utan OCR går den renderade PNG:en inte att läsa mekaniskt. Det som går är att
+grinda INDATAN — samma regel som redan gäller brödtexten, `seo.tsv` och
+`namn.tsv`: **bygg nyttolasten ur filen med ett skript, skriv den aldrig av.**
+
+Åtta kopior försvann på köpet: tre `gate-kort.py` (F2, G1, G2) som
+kontrollerade olika saker och fem `bygg-kort.py`. Varje kopia `exec`:ade
+byggarens KÄLLKOD med strängdelning, så definitionen gick bara att grinda
+genom att köra byggaren. `gate-kopior.test.ts` hade dessutom `gate-kort.py`
+som "rundespecifik" — ett felaktigt undantag, och exakt så en tvilling uppstår.
+
+**Grinden fäller på:** allt `gatelib.GRINDAR` fäller · ett tal utan täckning i
+källan · ett tal kortet har men sidans spec-rad inte · två kort med identisk
+text · en produkt i `slugs.txt` utan kortrad · en alt-text i `kortalt.tsv`
+med samma fel · fel enhetsmarkup · en enhet som inte följer på ett tal.
+
+☠️ **EN GRIND PÅ FILEN ÄR INGEN GRIND PÅ PIXLARNA.** Första omgången N2-kort
+gick ut med SVARTA UNDERSTRUKNA enheter i stället för husets orange: ett
+konverteringsskript hade bytt `<span class=u>` mot `<u>`, filen såg rimlig ut
+och grinden var ren. `cardkit` stylar `.u` och ingenting annat, så varje annan
+tagg blir webbläsarens default. Det som fångade det var ögon på ett beskuret
+PUBLICERAT kort. Korten är utbytta på plats och grinden kräver numera husets
+markup.
+
+⚠️ **Två regler prövades och en förkastades av MÄTNINGEN.** En koll på att
+enhetsspannets INNEHÅLL är en känd enhet fällde fyra KORREKTA publicerade
+G1-kort (`15 cm tjock` är en medveten formulering) och missade defekten den
+byggdes för — `m` ÄR ju en giltig enhet. Regeln som gäller är mätt: över sex
+rundors kortfiler finns **342 enhetsspann, och 341 föregås av en SIFFRA**.
+Den enda avvikelsen var defekten (`…sku` + `m`, ordet *skum* delat av en
+avdelare med `(cm|kg|m)$`). En enhet hör till ett tal.
+
+☠️ **UPPLADDNINGENS SVAR EKAR INGEN KÄLL-URL.** `UploadImageToWixSite` ger en
+lista med id i samma ordning som `imageUrls`, men utan att säga vilket id som
+kom från vilken adress — alltså samma attribution-på-ordning som huset redan
+vägrat lita på i lagersynken. Varje uppladdad fil hämtas därför hem igen och
+md5-jämförs mot sin lokala kopia. Uppmätt: 8 + 8 + 4 av 12 filer
+byte-identiska, alltså är parningen BEVISAD och inte antagen.
+
+⚠️ **Korten är 1600 × 1600**, inte `render`:s råa 3200. Talet är läst ur en
+redan publicerad kortfil, inte valt.
+
+#### ☠️ Tre publicerade/utkastade sidor var EN kattlåda (2026-09-16)
+
+Dubblettskärmen i runda N2 pekade ut åtta kandidater. Bildhashen (#243) gav
+**noll** träffar på alla åtta — och det är ett ÄKTA negativt, inte en trasig
+metod. Kontrollen som visar det: elva produkter, däribland tre par med
+IDENTISKT tyskt namn och nästan samma pris, har alla olika hash OCH olika
+filstorlek. Det är genuint olika foton. Bildgrinden ser bara den
+byte-identiska klassen, precis som huset redan skrivit ned.
+
+Det som avgjorde var måtten — den VIDA trippelkollen, inte `Mått:`-raden:
+
+| | måtttripplar |
+|---|---|
+| `adb8c31b` **publicerad**, 729 kr | 39,8×41,3×52,4 · 21×44×54 · 14×40×52 · 3,5×10,5×25,5 · 1,5×8×8 |
+| `dd8902e8` utkast, 769 kr | **samma fem** |
+| `d499532f` utkast, 799 kr | **samma fem** |
+
+Fem av fem identiska, inklusive skopan på 3,5 × 10,5 × 25,5 cm. Tre sidor,
+en produkt. Samma sak för hundbäddarna `65d3d373` (719 kr) och `2ed2f82b`
+(759 kr): båda tripplarna identiska, samma tyska namn.
+
+☠️ **Och ommappningen var en no-op, precis som `34341c4f`.** Mappningsraden
+för den publicerade sidan säger `supplier: "aosom"` — alltså finns ingen
+AE-rad att peka om, och hindret `redan_aosom` hade fällt en körning.
+Husregeln *"äkta dubbletter mappas om till Aosom"* antar tyst att sidan vi
+behåller är en AE-rad. Andra gången den antagandet inte håller.
+
+Åtgärden är därför pensionering: `dd8902e8`, `d499532f` och `2ed2f82b` bär
+`draftStatus: "rejected"`, `needsAiPolish: false`. Ingen raderas — ett
+osynligt utkast kostar ingenting, och en radering går inte att ångra.
+
+⚠️ **De fyra andra kandidaterna är FRIKÄNDA, inte obehandlade.** `e397f6b3`
+är en annan kattlåda (29,7 × 40,2 × 60,2), `9a66c056` krockar med ingen
+publicerad soptunna, `b50a2c94` har ingen publicerad motsvarighet alls (de
+fyra "publicerade skärmtaken" i första svepet var hundvagnar med *Vordach* i
+namnet), och `70c17966` saknar huvudbild helt — vilket är ett eget fynd.
 
 #### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
 
@@ -2891,6 +3008,127 @@ genom att återinföra kapningen — två faller, och bara de två.
 
 ⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
 hade inget larm att ge.
+
+### ☠️ Gap-listan rankar PENGAR, inte vad som är värt att polera (2026-09-15)
+
+Rapporten svarar på "var är vi billigare". Läst som en poleringskö svarar den
+på fel fråga, och första gången den användes så pekade den rakt fel.
+
+**1 577 opolerade utkast där vi är billigare, 532 235 kr i samlat gap.**
+Rankat på kronor ligger fåtöljer och trädgårdsmöbler i topp. Båda är fel
+svar, och skälen är olika:
+
+☠️ **Fåtöljfamiljen är MÄTTAD.** Femton kandidater ur listans topp ställdes
+mot de 247 publicerade sittmöblerna på måtttrippeln:
+
+| | |
+|---|---:|
+| kandidater med minst en krock | **14 av 15** |
+| krockar totalt | **63** |
+| kandidater med EXAKT samma mått som en publicerad sida | 4 |
+
+En av dem (`1bf87dc9`, 79 × 64 × 52) matchar **fyra** publicerade färgsidor
+av samma stol. Pengarna ligger alltså i den familj katalogen redan täcker —
+och en nionde sida för samma fåtölj är just den dubblett Google straffar.
+
+⚠️ **Trädgård är fel SÄSONG.** 285 kandidater och 137 770 kr, i mitten av
+september. En utegrupp som poleras nu får sin första besökare om sju
+månader.
+
+**Urvalsregeln är därför gap PER PUBLICERAD SIDA i samma kategori**, med
+säsongen som filter ovanpå. Samma data, annan sortering:
+
+| kategori | kandidater | gap kr | publicerade | gap/sida |
+|---|---:|---:|---:|---:|
+| trädgård/ute | 256 | 127 330 | 132 | 965 |
+| **soffa/bäddsoffa** | **79** | **50 430** | **48** | **1 051** |
+| matbord/matgrupp | 45 | 27 290 | 36 | 758 |
+| säng/madrass | 63 | 20 010 | 28 | 715 |
+| fåtölj/recliner | 114 | 75 530 | 225 | **336** |
+
+Fåtöljer är näst störst i kronor och NÄST SIST per sida. Det är hela
+skillnaden mellan de två läsningarna.
+
+☠️ **Och måttskärmen har en blind fläck som nästan kostade rundan.** Den
+tyska källan skriver totalmåttet med axelbokstaven inne i talet:
+
+```
+Gesamtabmessungen: 218B x 79T x 91H cm     <- produktens mått
+Paketmått: 92 × 43 × 70 cm                 <- kartongen
+```
+
+Ett mönster som kräver `\d+ x \d+ x \d+ cm` hittar bara den ANDRA raden.
+Första soffsvepet gav därför "noll krockar" på ett facit som mätte kartongen.
+Med produktens mått avlästa för hand föll `c6c880c3` direkt: 213 × 82 × 90 cm
+chenille, 360 kg, identiska tal mot publicerade `f7e2b537`.
+
+**Läs produktens mått ur källan, och låt mönstret ta axelbokstaven.**
+
+☠️ **`products/search` avvisar filter + markör ihop** — `400 SE-1141`, samma
+form som `inventory-items/query` (2026-09-13). Sida två skickas med BARA
+markören. Tredje endpointen i familjen; `orders/search` tar fortfarande emot
+båda, så formen är inte gemensam. Mät per endpoint.
+
+#### ☠️ Och `filter` PÅ TOPPNIVÅN ÄR EN NO-OP — svaret är 200 och ofiltrerat (2026-09-16)
+
+Raden ovan gäller när filtret ligger rätt. Ligger det fel finns inget fel att
+läsa. `filter` hör **inuti `search`**, exakt som `cursorPaging` (#191); på
+kroppens toppnivå kastas det bort tyst.
+
+Uppmätt mot skarpa V3, åt båda hållen — det är det enda som skiljer en levande
+grind från en död:
+
+| filtrets plats | synliga | osynliga |
+|---|---:|---:|
+| kroppens **toppnivå**, `visible: true` | 6 | **94** |
+| inuti `search`, `visible: true` | **100** | 0 |
+| inuti `search`, `visible: false` | 0 | **100** |
+| inuti `search` + markör | **400 SE-1141** | — |
+
+☠️ **Följden är att ett FLERSIDIGT filtrerat svep inte går att göra.** Rätt
+plats ger 400 på markören; fel plats ger en markör som fungerar och ett filter
+som inte finns. Enda korrekta vägen är att **svepa OFILTRERAT och filtrera i
+koden** — samma hållning som husets egen regel om att hämta en avgränsad mängd
+och filtrera i kod när ett filter inte stöds.
+
+⚠️ **Och felet är osynligt utom i ETT tal.** Dubblettskärmen i runda N7 läste
+**5 748** rader och kallade dem publicerade; katalogen har ~2 800 publicerade
+sidor. Ingenting annat i svaret skilde sig från en korrekt filtrerad körning.
+Hade katalogen råkat vara dubbelt så stor hade talet sett rimligt ut.
+
+**Regeln, och den är husets vanligaste i ny form: en kontroll som inte KAN
+fälla räknas ändå som gjord.** Ett filter som tyst ignoreras är samma klass som
+SKU-kollen som itererade en tom lista — skillnaden är att det här svarar 200
+med hundra rader i stället för noll, vilket är svårare att misstänka.
+
+##### ☠️ Och `fields` är TVÄRTOM: den MÅSTE skickas om med markören (2026-09-16)
+
+Samma endpoint, samma kroppsform, motsatt regel — och båda felen är tysta åt
+var sitt håll. `filter` avvisas med `400 SE-1141` om det skickas om; `fields`
+svarar 200 och lämnar fältet FRÅNVARANDE om det INTE skickas om.
+
+Uppmätt på `products/search`, samma markör:
+
+| sida två skickad med | `plainDescription` |
+|---|---:|
+| bara markören | **0 av 100** |
+| markören + `fields` på toppnivån | **100 av 100** |
+
+⚠️ **Följden var ett svep som undermätte med två tiopotenser.** Dubblettskärmen
+i runda N9 skickade `fields` bara på första sidan och rapporterade **6 av 2 844
+publicerade sidor med måtttrippel**. Med `fields` på varje sida blev talet
+**2 221 av 2 844**, 4 135 unika tripplar. Sidräkningen, radantalet och
+fördelningen publicerade/utkast var IDENTISKA i båda körningarna — det enda som
+skilde var innehållet i ett fält som ingen räknare tittade på.
+
+☠️ **Och det är den farliga formen av tomhet: en dubblettskärm som bara har
+sex rader att jämföra hittar noll krockar och ser ut att ha gjort sitt jobb.**
+Samma klass som SKU-kollen som itererade en tom lista, men svårare att
+misstänka, för svepet levererar rätt antal PRODUKTER — bara inte deras text.
+
+**Regeln: ett svep som bygger ett facit ur ett fält måste räkna hur många rader
+som FAKTISKT bar fältet.** `publUtanText` står i svaret sedan dess. Ett nollat
+fält är inte samma sak som ett tomt facit, och bara räknaren skiljer dem åt.
 
 ### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
 

@@ -167,6 +167,60 @@ describe("findRedirectConflicts", () => {
     expect(out).toEqual([]);
   });
 
+  // ☠️ SYNLIGHETEN BARS INTE — och felet gick at bada hall.
+  // `listAllV3Products` fragar `products/query` UTAN synlighetsvillkor, och V3
+  // lagger inte pa nagot implicit `visible:true` (uppmatt, CLAUDE.md). Listan
+  // bar inget `visible`-falt alls, sa varje UTKAST rakandes som en levande
+  // sida. Uppmatt skarpt 2026-09-16 pa trappkarran `59c3b5d6`.
+  function katalogMedSynlighet(...rader: Array<[string, boolean]>) {
+    return vi
+      .spyOn(v3, "listAllV3Products")
+      .mockResolvedValue(rader.map(([slug, visible], i) => ({
+        id: `id-${i}`,
+        name: slug,
+        slug,
+        visible,
+        variantCount: 1,
+        hasSeoTitle: true,
+        hasSeoDescription: true,
+        hasJsonLd: true,
+        hasOgTags: true,
+        hasImage: true,
+        hasDescription: true,
+      })) as Awaited<ReturnType<typeof v3.listAllV3Products>>);
+  }
+
+  it("släpper igenom en redirect FRÅN ett avpublicerat utkast", async () => {
+    katalogMedSynlighet(["pensionerad-dubblett", false], ["sidan-vi-behaller", true]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "pensionerad-dubblett", toPath: "/produkt/sidan-vi-behaller" },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  // Den dyra halvan: malkontrollen finns for att stoppa en 301 som leder till
+  // en 404, och den kunde ALDRIG falla — ett osynligt utkast lag i liveSlugs
+  // som vilken sida som helst. En kontroll som inte KAN falla raknas anda som
+  // gjord.
+  it("stoppar redirect TILL ett utkast — målet är en 404 för kunden", async () => {
+    katalogMedSynlighet(["nagot-levande", true], ["opolerat-utkast", false]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/produkt/opolerat-utkast" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/ingen synlig produkt/);
+  });
+
+  // Riktningen ar vald: ett saknat falt far aldrig tyst doda en sida.
+  it("saknat visible-fält räknas som SYNLIGT, aldrig som dött", async () => {
+    catalog("utan-visible-falt");
+    const out = await findRedirectConflicts([
+      { fromSlug: "utan-visible-falt", toPath: "/butik" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/fortfarande en synlig produkt/);
+  });
+
   it("fail-closed när katalogen inte går att läsa", async () => {
     vi.spyOn(v3, "listAllV3Products").mockRejectedValue(new Error("Wix nere"));
     const out = await findRedirectConflicts([{ fromSlug: "raderad", toPath: "/butik" }]);

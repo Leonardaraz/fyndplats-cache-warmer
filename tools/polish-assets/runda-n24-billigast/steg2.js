@@ -1,0 +1,155 @@
+async function () {
+  // Genererad av tools/polish-gates/bygg-medieskrivning.py — skriv den aldrig för hand.
+  const SUMMA = function (s) {
+    let h = 0;
+    for (const c of s) h = (h * 31 + (c.codePointAt(0) & 0xFFFF)) % 1000000007;
+    return h;
+  };
+
+  const PLAN = [
+    {
+      kort: "32211896",
+      pid: "32211896-bdf1-492b-9fbf-e485e3a8e2bd",
+      poster: [
+        { id: "b379ce_1e7bf98f22844bdc908014d9559a294c~mv2.jpg", altText: "Vit byrå med fyra lådor och grifflös design, sedd snett framifrån" },
+        { id: "b379ce_1c527538f93e4ae7b55b57ad8fc02a3a~mv2.jpg", altText: "Byrån i ett vardagsrum med en växt och en trappa synlig i bakgrunden" },
+        { id: "b379ce_d9c5b95f935a4ebca8c41b9393e4fd22~mv2.jpg", altText: "Närbild på byråns hörn och det grifflösa greppet på en låda" },
+        { id: "b379ce_e9e42575abbc4b1fbbfd81b40c475852~mv2.jpg", altText: "Närbild på byråns lådfront och den matta ytans struktur" },
+        { id: "b379ce_c5c7bb6d25964495b5982cb847331fe1~mv2.jpg", altText: "Måttbild som visar byråns mått 55 x 33 x 80 cm samt lådans innermått" },
+      ],
+      raa: 162835177,
+      tecken: 559
+    },
+    {
+      kort: "859644b3",
+      pid: "859644b3-0bb2-45c2-994f-4d9a9d8b17ae",
+      poster: [
+        { id: "b379ce_df4bcd9929594bda92cbd14a2c8ec9b1~mv2.jpg", altText: "Cremevit byrå med nio lådor i sherpatyg och guldfärgade handtag" },
+        { id: "b379ce_afd2f73b758442ca93d6b5058f43e88a~mv2.jpg", altText: "Byrån placerad i ett sovrum bredvid en säng" },
+        { id: "b379ce_8b14508f5efd477e97a4e8fbab4cece5~mv2.jpg", altText: "Närbild på byråns hörn och en av de guldfärgade handtagen" },
+        { id: "b379ce_93948b3cf1894c1989d822678735d9fa~mv2.jpg", altText: "Öppen låda med kamera, schackspel och andra föremål som visar förvaringsutrymmet" },
+        { id: "b379ce_07ae4b31731f49f19d421f1001bc449d~mv2.jpg", altText: "Måttbild som visar byråns mått 100 x 30 x 99 cm samt lådornas innermått" },
+      ],
+      raa: 462910345,
+      tecken: 558
+    },
+    {
+      kort: "7ca4d50b",
+      pid: "7ca4d50b-9498-4895-a7c7-c7e099d05292",
+      poster: [
+        { id: "b379ce_0d71343fe8d64c7780f44b97eef090d6~mv2.jpg", altText: "Vit marsvinsbur i två våningar med utbyggbar lekgård" },
+        { id: "b379ce_48352abd360543dfbc2e36ded7c7c598~mv2.jpg", altText: "En kvinna sitter i soffan intill buren, uppställd med lekgård i ett vardagsrum" },
+        { id: "b379ce_7182984902474cfbbc238e3b72997111~mv2.jpg", altText: "Måttbild som visar burens mått 173 x 88 x 63 cm samt lekgårdens och delarnas mått" },
+      ],
+      raa: 368912637,
+      tecken: 357
+    },
+    {
+      kort: "67be1d62",
+      pid: "67be1d62-62d3-493c-aa08-25a201cd7560",
+      poster: [
+        { id: "b379ce_37227df7ceef4b1ca09c82cada3ce278~mv2.jpg", altText: "Vitt sminkbord med spegel, hyllor och en låda, sett snett framifrån" },
+        { id: "b379ce_75fbc6759444468b80ec52a75984df66~mv2.jpg", altText: "Sminkbordet i ett sovrum med tavlor och en grön växt bredvid" },
+        { id: "b379ce_0d185293411c4f9f9b9edc5c4017476c~mv2.jpg", altText: "Sminkbordet i ett sovrum med en pall framför och en golvlampa bredvid" },
+        { id: "b379ce_d644ceeac3804691823e93b2c4772607~mv2.jpg", altText: "Närbild uppifrån på bordsskivan och den öppna lådan med sminkprodukter" },
+        { id: "b379ce_317c47a296c84037a3bcac2b1b5d06ec~mv2.jpg", altText: "Måttbild som visar sminkbordets mått 70 x 40 x 137 cm samt hyllornas mått" },
+      ],
+      raa: 601452011,
+      tecken: 583
+    },
+    {
+      kort: "4e380507",
+      pid: "4e380507-ac65-4a05-9465-73bbdfde6546",
+      poster: [
+        { id: "b379ce_f2592527c89e4543bed069d366182109~mv2.jpg", altText: "Vitt skåp med öppna hyllor för montering ovanför en tvättmaskin" },
+        { id: "b379ce_8d739e5151e241d4ad63c62f4d7afea7~mv2.jpg", altText: "Skåpet monterat ovanför en tvättmaskin med handdukar och tvättmedel synligt" },
+        { id: "b379ce_5a3f4512f0af4ec9b40dbcaac40fc96a~mv2.jpg", altText: "Jämförelsebild som visar en rörig tvättmaskin utan skåp mot en organiserad med skåp" },
+        { id: "b379ce_813028831d8c40cf98c82b4603f3113c~mv2.jpg", altText: "Skåpet monterat ovanför en tvättmaskin med korgar, handdukar och en tvättkorg bredvid" },
+        { id: "b379ce_677d2840bee04f338c9b449f74c525fc~mv2.jpg", altText: "Måttbild som visar skåpets mått 96 x 60 x 90,5 cm samt utrymmet för tvättmaskinen" },
+      ],
+      raa: 30837486,
+      tecken: 631
+    },
+    {
+      kort: "477de9da",
+      pid: "477de9da-108e-47d2-b5f4-d11d00eb8f32",
+      poster: [
+        { id: "b379ce_5a054cd37c614e0ba30d060f4754e086~mv2.jpg", altText: "Svart parkbänk i stål med gallerryggstöd, sedd snett framifrån" },
+        { id: "b379ce_1262439d6c8648748e97a4795d5de7a4~mv2.jpg", altText: "Bänken uppställd på en trädäcksuteplats med träd i bakgrunden" },
+        { id: "b379ce_49beec2d6bf6439db9b760ecc4d7e3c4~mv2.jpg", altText: "Närbild på bänkens gallerryggstöd" },
+        { id: "b379ce_9b4eb0836c654f21978d958a12d2c914~mv2.jpg", altText: "Närbild på ryggstödets och armstödets infästning" },
+        { id: "b379ce_b92e5ee6ea7247f68e55c4dc115a26e1~mv2.jpg", altText: "Måttbild som visar bänkens mått 127 x 60 x 87 cm samt sitshöjden" },
+      ],
+      raa: 397083308,
+      tecken: 512
+    },
+    {
+      kort: "2cd39c3c",
+      pid: "2cd39c3c-fd07-4730-b97f-c36432bff8ad",
+      poster: [
+        { id: "b379ce_aeb1a902cede4ac8ae8e907ec062eb92~mv2.jpg", altText: "Svart vattenkokare, brödrost och äggkokare uppställda tillsammans" },
+        { id: "b379ce_6f6f69c82f3f4fed912de418ec66e1ec~mv2.jpg", altText: "Frukostsetet uppställt på ett dukat frukostbord med bröd och frukt" },
+        { id: "b379ce_4bd64a572b954fee8ecfbd987f1c2296~mv2.jpg", altText: "Måttbild som visar vattenkokarens, brödrostens och äggkokarens mått var för sig" },
+      ],
+      raa: 989535332,
+      tecken: 356
+    },
+    {
+      kort: "0c27c71d",
+      pid: "0c27c71d-08d0-49b7-a31b-7a0216aae21e",
+      poster: [
+        { id: "b379ce_6189bf08e60441ada809f6105e4c7893~mv2.jpg", altText: "Svart väggmonterat fällbart skrivbord, uppfällt med hyllor synliga" },
+        { id: "b379ce_b754edc2291943e88b08f6a738f18050~mv2.jpg", altText: "Skrivbordet monterat på en vägg med böcker och en skrivtavla med handskriven text" },
+        { id: "b379ce_b541a88d9ff643d98598446cde88d528~mv2.jpg", altText: "Närbild på skrivbordsskivans hörn och stödbeslaget som håller upp den" },
+        { id: "b379ce_aa8ea879cec44a06ae418012853dba1a~mv2.jpg", altText: "Närbild på skrivbordsskivans hörn sett från andra vinkeln med stödbeslaget synligt" },
+        { id: "b379ce_219ad64137f6406cbbc4f8982e421c55~mv2.jpg", altText: "Måttbild som visar skrivbordets mått i uppfällt och hopfällt läge" },
+      ],
+      raa: 796573718,
+      tecken: 607
+    },
+  ];
+
+  // ☠️ SPÄRREN LIGGER HÄR, I SAMMA ANROP SOM SKRIVNINGEN, och den avbryter
+  // HELA batchen. Facit räknas på `id + "|" + altText` per rad, sammanfogat
+  // med radbrytning — alltså BÅDE bildernas ordning och alt-texternas ord.
+  const NYCKEL = function (poster) {
+    return poster.map(function (p) { return p.id + "|" + p.altText; }).join("\n");
+  };
+  const avvik = PLAN
+    .filter(function (p) { const s = NYCKEL(p.poster); return SUMMA(s) !== p.raa || s.length !== p.tecken; })
+    .map(function (p) { const s = NYCKEL(p.poster); return { kort: p.kort, fick: SUMMA(s), vantat: p.raa, tecken: s.length, vantatTecken: p.tecken }; });
+  if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik: avvik };
+
+  const utfall = [];
+  for (const p of PLAN) {
+    // ⚠️ Revisionen läses i SAMMA anrop — en äldre är inaktuell.
+    const f = await wix.request({ method: "GET", url: "/stores/v3/products/" + p.pid });
+    // ☠️ Svarets form läses tolerant (#280) — ett svar är ett SVAR, inte en
+    // skrivmall. Kroppen som SKICKAS heter alltid `body`.
+    const rev = (f.data || f).product.revision;
+
+    // ⚠️ MEDIA SKRIVS ENSAM. `media.main` skickas INTE — den är read-only i
+    // V3 och gav en extra omimport av huvudbilden. Hela `itemsInfo.items`
+    // ersätts, så listan ÄR produktens bilder efteråt.
+    const kropp = {
+      product: {
+        revision: rev,
+        media: { itemsInfo: { items: p.poster } }
+      },
+      fieldMask: { paths: ["media"] }
+    };
+
+    try {
+      const r = await wix.request({ method: "PATCH", url: "/stores/v3/products/" + p.pid, body: kropp });
+      const prod = (r.data || r).product;
+      utfall.push({ kort: p.kort, ok: true, skickade: p.poster.length, revisionEfter: prod.revision });
+    } catch (e) {
+      utfall.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });
+    }
+  }
+
+  // ⚠️ PATCH-svaret bär INTE media.itemsInfo i sin projektion — en lyckad
+  // skrivning rapporterar 0 bilder (#253). Kvittot är aterlas.js senare.
+  const ok = utfall.filter(function (r) { return r.ok; }).length;
+  return { rader: utfall, SAMMANFATTNING: ok + " av " + utfall.length + " skrivna" };
+}

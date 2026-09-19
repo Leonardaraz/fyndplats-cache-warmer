@@ -1,0 +1,7 @@
+# Arbetsfiler, inte kvitton. Bilderna bor hos Wix (md5-bevisat vid uppladdning)
+# och kortens INDATA ligger i kort.tsv — den ar kallan, PNG:en ar en rendering.
+orig/
+out/
+cards/
+kort/
+hemhamtat/

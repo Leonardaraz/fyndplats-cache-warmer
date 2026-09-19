@@ -1,0 +1,51 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0136e7d9": {
+  "tyska": "75L x 37B x 56,5H cm",
+  "svenska": "75L x 37B x 56,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 56.5,
+  "bredd": 75,
+  "djup": 37
+ },
+ "17c747cb": {
+  "tyska": "Ø40 x 45H cm",
+  "svenska": "40L x 40B x 45H cm",
+  "bokstaver": "H",
+  "hojd": 45
+ },
+ "227fae7d": {
+  "tyska": "",
+  "svenska": "Ø18 x 180H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Topf Größe: Ø18 x 14H cm | ✔ Pro Bambus Größe: Ø2,5 x 180H cm | ✔ Box Dimension: 195L x 21,5B x 21,5H cm"
+ },
+ "2bc98714": {
+  "tyska": "102B x 33T x 45H cm",
+  "svenska": "102L x 33B x 45H cm",
+  "bokstaver": "BTH",
+  "djup": 33,
+  "hojd": 45,
+  "bredd": 102
+ },
+ "56b32f2f": {
+  "tyska": "41,8L x 36,7B x 58H cm",
+  "svenska": "2 x 20 L",
+  "bokstaver": "LBH",
+  "hojd": 58,
+  "bredd": 41.8,
+  "djup": 36.7
+ },
+ "5f66bf37": {
+  "tyska": "48L x 32B x 12,5H cm",
+  "svenska": "48L x 32B x 12,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 12.5,
+  "bredd": 48,
+  "djup": 32
+ },
+ "ffaa3fad": {
+  "tyska": "",
+  "svenska": "60L x 60B x 53H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 60L x 60B x 53H cm"
+ }
+}

@@ -1,0 +1,3 @@
+163ce1e2 15 hyllans maxbelastning ovanpå skåpet, avläst i måttritningen (position 3), står inte i källtextens Technische Daten (bara 5 kg per lucka anges där)
+163ce1e2 57 luckans invändiga bredd, avläst i måttritningen (position 3), står inte i källtexten
+671465dc 85 träningsbandens längd, avläst i måttritningen (position 2), står inte i källtextens Technische Daten

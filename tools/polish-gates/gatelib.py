@@ -46,14 +46,54 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 #
 # ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `D51-530V00BK` (#230) börjar
 # med en BOKSTAV och matchade varken alternativ. Den har ett eget uttryck nu.
-ARTNR = (r"\b\d{2}[A-Z]-\d{3}[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
-         r"|\b[A-Z]\d{2}-\d{3}[A-Z0-9]*\b"     # D51-530V00BK
-         r"|\b\d{3}-\d{3}[A-Z0-9]{2,}\b")      # 921-672V00BG, men INTE 220-240V
+#
+# ☠️ OCH ETT FALSKLARM TILL, uppmätt 2026-09-16 på runda N6:s köksset: en
+# EFFEKTANGIVELSE med fyrsiffrigt slut, `850-1000W`. Kravet på två
+# alfanumeriska tecken efter andra gruppen räddar inte där — `\d{3}-\d{3}`
+# matchar mitt inne i det fyrsiffriga talet (`850-100`) och svansen blir
+# `0W`. Spärren är `(?!\d)`: ett äkta artikelnummer har EXAKT tre siffror i
+# andra gruppen, en effekt- eller spänningsangivelse kan ha fler.
+#
+# Det är samma klass som spänningsfallet ovan och lika dyr: ett falsklarm som
+# ser ut som en läcka av leverantörens artikelnummer lär mottagaren att sluta
+# läsa just den grinden. Mätt åt båda hållen — sex kända artikelnummer fångas
+# fortfarande, sju icke-nummer avvisas.
+ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
+         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # D51-530V00BK
+         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # 921-672V00BG, INTE 220-240V eller 850-1000W
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
-NORM = r"\bEN\s?\d{3,5}\b"
+
+# ☠️ EN-NORMEN LIGGER INTE I `GRINDAR`, och det är hela poängen med namnet.
+# Mönstret fångar varje `EN 1270`, `EN 71` och `EN 12520` i texten — men om
+# det är ett FEL avgörs av något mönstret inte kan se: står normen i
+# produktens egen källtext?
+#
+# Fram till 2026-09-17 satt den i `GRINDAR` och fyrade alltså på VARJE
+# normangivelse, även en som källan certifierar ordagrant. Uppmätt på runda
+# N9:s basketställ, vars källa säger `Zertifizierung: EN 1270`: fyra fynd på
+# en korrekt, sourcad uppgift.
+#
+# Det är samma falsklarmsklass som `gate-axel.py` hade (#250) och som husets
+# regel namnger två gånger: ett falsklarm som alltid fyrar lär mottagaren att
+# sluta läsa, och då är även det äkta larmet borta. Kontrollen bor därför i
+# `gate.py`, där produktens källtext finns.
+#
+# ⚠️ Och den är FAIL-CLOSED: saknas källtexten (rundan har bara den härledda
+# `kallor-tal.json`) fyrar den som förr. Att tiga när man inte kan veta vore
+# att göra grinden till en vana.
+#
+# ☠️ SIFFERSPANNET BÖRJAR PÅ TVÅ, och det var en blind fläck. `\d{3,5}` kan
+# inte se **EN 71** — leksakssäkerhetsstandarden, alltså exakt den norm som
+# ligger närmast till hands att hitta på i en runda med barnprodukter. Fyra av
+# runda N9:s nio är leksaker.
+#
+# Breddningen är mätt gratis: över 413 publicerade rundtexter ger `\d{2,5}`
+# NOLL nya träffar. Den kostar alltså inget falsklarm och stänger ett hål som
+# annars bara hade märkts den dag någon skrev "EN 71" utan täckning.
+NORM = r"\bEN\s?\d{2,5}\b"
 
 # UNIONEN av alla rundors tyska ord, plus de som källtexterna faktiskt bär.
 # ⚠️ Ord som ÄR svenska med versal i meningsstart är medvetet uteslutna:
@@ -181,7 +221,7 @@ def meningar(text):
 
 GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
-           ("HOMOGLYF", HOMO), ("EN-NORM UTAN KÄLLA", NORM)]
+           ("HOMOGLYF", HOMO)]
 
 FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor")
 
@@ -387,12 +427,10 @@ def kropp(html):
     return re.sub(r"<[^>]+>", " ", html)
 
 
-def normalisera(s):
-    """Wix normaliserar två saker: blanksteg mellan blockelement strippas och
-    target="_self" läggs till på varje <a href>. En rå strängjämförelse ger
-    därför "alla skiljer" på en felfri skrivning."""
-    s = s.replace(' target="_self"', "")
-    return re.sub(r">\s+<", "><", s).strip()
+# ☠️ `normalisera` BODDE HÄR och kände bara två av Wix fem åtgärder. Den hade
+# en enda användare — `hasha.py` — och gjorde varje rundas `vantat-hash.tsv`
+# 7 tecken för kort per `<li>`. Den enda sanningen om Wix normalisering bor i
+# `wixnorm.py`, som är uppmätt mot skarpa V3. Lägg inte tillbaka en kopia här.
 
 
 def fnv(s):
@@ -403,3 +441,49 @@ def fnv(s):
         h ^= c
         h = (h * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF
     return f"{h:016x}"
+
+
+def las_kvittenser(katalog="."):
+    """Rundans kvitterade tal: `rad-tal.txt` (råd-tal) och `foto-tal.txt` (fotoräknade).
+
+    ☠️ LÅG SOM EN TVILLING I gate.py. Logiken bodde bara där, alltså grindade
+    `gate-alt.py` samma rundas tal HÅRDARE än brödtextgrinden gjorde: ett tal
+    som var kvitterat i `foto-tal.txt` passerade i `<p>` men fälldes i `alt=""`.
+    Uppmätt i runda N8 på a389ddaa — måttritningen trycker `31 cm` mellan
+    hyllplanen, brödtexten fick säga det och alt-texten inte.
+
+    Riktningen är det som gör det dyrt: en grind som lyser rött på en KORREKT
+    rad lär mottagaren att sluta läsa, och då är även det äkta larmet borta.
+    Samma argument som mot att varna vid 48 h på token-förnyelsen.
+
+    Formerna är oförändrade och fortsatt smala med flit:
+      rad-tal.txt   ett tal per rad — VÅRA placeringsanvisningar, inte mått
+      foto-tal.txt  "<kort> <tal> <vad som räknades>" — skälet är obligatoriskt,
+                    så filen blir ett protokoll och inte en generell ventil
+    """
+    rad_tal, foto_tal = set(), {}
+    sokvag = os.path.join(katalog, "rad-tal.txt")
+    if os.path.exists(sokvag):
+        # ⚠️ KOMMENTARER STRIPPAS, precis som i foto-tal.txt nedan. Fram till
+        # 2026-09-17 gjorde de inte det HÄR, och asymmetrin var tyst åt fel
+        # håll: en `#`-rad blev ett "kvitterat tal" i mängden i stället för
+        # att avvisas. Ofarligt i sig, men det gjorde filen odokumenterbar —
+        # och ett råd-tal utan nedskrivet skäl är precis det som listan finns
+        # för att göra granskningsbart.
+        rad_tal = {r.strip() for r in open(sokvag, encoding="utf-8")
+                   if r.strip() and not r.lstrip().startswith("#")}
+    sokvag = os.path.join(katalog, "foto-tal.txt")
+    if os.path.exists(sokvag):
+        for rad in open(sokvag, encoding="utf-8"):
+            rad = rad.strip()
+            if not rad or rad.startswith("#"):
+                continue
+            delar = rad.split(None, 2)
+            if len(delar) < 3:
+                raise SystemExit(
+                    f"  [AVBRYT] foto-tal.txt: raden {rad!r} saknar skäl.\n"
+                    "  Formen är '<kort> <tal> <vad som räknades på bilden>'. Ett tal\n"
+                    "  utan skäl är en ventil, inte ett protokoll."
+                )
+            foto_tal.setdefault(delar[0], set()).add(delar[1])
+    return rad_tal, foto_tal

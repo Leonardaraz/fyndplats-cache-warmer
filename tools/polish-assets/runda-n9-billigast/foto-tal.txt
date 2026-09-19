@@ -1,0 +1,6 @@
+# Tal som står i FOTOT men inte i källtexten. Kvitterade genom att jag läst
+# dem ur kontaktarket. Format: <kort> <tal> <var det står>
+57c7e4f4 38 måttritningen, position 3 — ringens diameter
+a1d3b9bc 5,5 måttritningen, position 3 — nedersta hyllplanets frihöjd
+3cadee08 3 kontaktarket position 1 — tre paneler syns i den fria vyn
+49463fd8 2 kontaktarket position 3 — måttritningen visar båda näten var för sig

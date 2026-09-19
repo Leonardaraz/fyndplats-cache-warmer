@@ -39,7 +39,43 @@ ANVÄNDNING (från rundans katalog):
 import io, json, re, sys
 
 # Aosom använder alla fyra omväxlande — M1 föll på att bara känna igen två.
-ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtmaße|Gesamtmasse|Maße|Masse)"
+ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtgröße|Gesamtgrösse|Gesamtgroesse|Gesamtmaße|Gesamtmasse|Maße|Masse)"
+
+# ☠️ ETIKETTEN KAN BÄRA ETT BESTÄMNINGSORD, OCH DÅ FINNS DET FLER ÄN EN.
+# Uppmätt i runda N1 på bäddsoffan d372e8e9, som har BÅDA:
+#
+#     Gesamtabmessungen Sofa: 203B x 95T x 75H cm
+#     Gesamtabmessungen Bett: 203B x 121T x 38H cm
+#
+# Ett naket `ETIKETT\s*:` hittar ingen av dem och generatorn avbryter —
+# rätt beteende, men den kan bättre. Att bara tillåta bestämningsordet
+# vore däremot att öppna för att fälla in BÄDDENS mått som produktens,
+# och en bäddsoffa är 75 cm hög som soffa och 38 cm som bädd.
+#
+# Därför två pass, och ordningen är hela spärren:
+#   1. etiketten DIREKT följd av kolon — oförändrat beteende för allt
+#      som byggts hittills, så M1–M4 regenererar byte-identiskt.
+#   2. bara om pass 1 tiger: etiketten + ETT bestämningsord. Ordet
+#      skrivs in i `axelkalla`, så en läsare ser vilken rad facit kom
+#      ur i stället för att behöva gissa.
+KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
+
+# ☠️ EN PRODUKT KAN HA EN TOTALHÖJD OCH INGET TOTALMÅTT. Uppmätt i runda N2 på
+# konstväxten 67ba375c, vars enda måttrader är
+#
+#     Gesamthöhe: 110 cm
+#     Topfgröße:  Ø17 x 14,5H cm
+#
+# Det finns inget L x B x H att hitta, för bladverket har ingen kant — och
+# generatorn avbröt därför på en källa som faktiskt är entydig om det som
+# räknas. Etiketten SÄGER totalhöjd, så `{hojd: 110}` är avläst, inte gissat.
+#
+# Den svenska spec-raden duger INTE här, och det är hela skälet till en egen
+# gren: importen skriver `Ø17 x 110H cm`, alltså KRUKANS diameter bredvid
+# VÄXTENS höjd. Ett facit byggt på den hade påstått att plantan är 17 cm bred
+# när bladverket mäter långt mer, och gate-axel hade fällt varje korrekt
+# meningen om bredden. Grenen ger därför höjden ensam och ingen bredd alls.
+HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s*cm"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -61,8 +97,20 @@ def axelpar(rad):
     Lookaheaden släpper därför igenom `cm`/`mm`/`m` direkt efter bokstaven —
     och BARA dem. `180 Hinweis` matchar fortfarande inte, vilket är hela
     skälet till att `\b` satt där från början.
+
+    ☠️ OCH EN TREVÄGSKEDJA TAPPADE SIN FÖRSTA SIFFRA. Uppmätt i runda N19 på
+    campingbordet ecb304cd: `Gesamtabmessungen: 240L x 60B x 54/62/70H cm`.
+    Den gamla TAL-gruppen tillät bara EN `/`-förlängning, alltså matchade den
+    "54/62" — men då stod "/70H" kvar och bokstaven satt inte omedelbart efter,
+    så hela försöket vid position "54" föll. Regexet hittade i stället en
+    matchning längre fram, "62/70H", och facit blev `{"hojd": [62, 70]}` —
+    tyst utan 54. `tal()` splittar redan på VARJE `/`/`-` och hade hanterat tre
+    tal korrekt; det var bara TAL-mönstret som stannade vid en förlängning.
+    Gruppen upprepas nu (`*` i stället för `?`), vilket inte ändrar något för
+    den vanliga tvåvärdeskedjan (`73-110H`) — den matchar fortfarande exakt en
+    gång.
     """
-    TAL = r"\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)?"
+    TAL = r"\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)*"
     ENHET = r"(?:(?=[cm]?m\b)|\b)"
     ut = []
     for m in re.finditer(
@@ -104,17 +152,27 @@ def main():
         ren = re.sub(r"<[^>]+>", "\n", kallor[kort])
         rader = [x.strip() for x in ren.split("\n") if x.strip()]
         tysk = ""
+        kvalificerare = ""
         for rad in rader:
             m = re.search(ETIKETT + r"\s*:\s*(.+)$", rad)
             if m:
                 tysk = m.group(1).strip()
                 break
+        if not tysk:
+            for rad in rader:
+                m = re.search(KVALIFICERAD, rad)
+                if m:
+                    kvalificerare = m.group(1)
+                    tysk = m.group(2).strip()
+                    break
         svensk = ""
         for i, rad in enumerate(rader):
             if rad == "Mått:" and i + 1 < len(rader):
                 svensk = rader[i + 1].strip()
                 break
         d = {"tyska": tysk, "svenska": svensk}
+        if kvalificerare:
+            d["axelkalla"] = f"tyska raden '{kvalificerare}' (etiketten bar ett bestämningsord)"
         par = axelpar(tysk)
         # ☠️ DEN TYSKA TOTALRADEN BÄR INTE ALLTID EN AXELBOKSTAV. Uppmätt i
         # runda M4 på 86fdd9af: `Gesamtabmessung: Ø70 x 210 cm` — ingen `H`
@@ -149,7 +207,41 @@ def main():
             if kandidat and _talen(svensk) == _talen(tysk):
                 par = kandidat
                 d["axelkalla"] = "svenska spec-raden (tyska raden saknar axelbokstav)"
+        # ☠️ TVÅ TAL UTAN H ELLER T GÅR INTE ATT LÄGGA UT POSITIONELLT.
+        # Uppmätt i runda N2 på häckrullen c8376256: `Gesamtmaße: L300 x B100 cm`.
+        # Den positionella regeln gav {bredd: 300, djup: 100} — men produkten är
+        # en platt rulle som hängs på ett staket, och Aosoms EGEN måttritning
+        # sätter 100 som HÖJD. Facit hade alltså fällt varje korrekt mening om
+        # höjden, och släppt igenom "100 cm djup" på något som är två centimeter
+        # tjockt.
+        #
+        # Positionsregeln vilar på att H och T är utlästa ur bokstaven och bara
+        # de två horisontalerna skiljs åt av ordningen. Saknas BÅDA de
+        # bokstäverna finns ingen tredje axel att räkna bakåt från, och B mot L
+        # säger ingenting om vilken av de två återstående axlarna talet är.
+        # Då är enda ärliga facit inget facit: raden märks axellös och
+        # gate-axel uttalar sig inte om produktens tal.
+        if par and len(par) == 2 and not any(b in ("H", "T") for _, b in par):
+            d["axellos"] = ("totalraden har tva tal utan H eller T (%s) — vilken axel "
+                            "det andra talet ar gar inte att avgora ur raden" % tysk)
+            par = []
+
         if not par:
+            # ☠️ EN TOTALHÖJD ÄR ETT ENTYDIGT MÅTT ÄVEN NÄR TOTALMÅTTET SAKNAS.
+            # Se HOJDETIKETT ovan: `Gesamthöhe: 110 cm` på en krukväxt. Grenen
+            # ligger EFTER de vanliga passen, så allt som byggts hittills
+            # regenererar oförändrat — den fyrar bara där de tiger.
+            for rad in rader:
+                m = re.search(HOJDETIKETT, rad)
+                if m:
+                    d["tyska"] = rad.strip()
+                    d["bokstaver"] = "H"
+                    d["hojd"] = tal(m.group(1))
+                    d["axelkalla"] = "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+                    d.pop("axellos", None)
+                    break
+
+        if not par and "hojd" not in d:
             # ☠️ EN PRODUKT KAN SAKNA TOTALMÅTT PÅ RIKTIGT. Uppmätt i M1 på
             # isbjörnsparet 5a14cc4d: källan har "Große Bärenabmessungen" och
             # "Kleine Bärenabmessungen" men inget mått för setet, för det finns
@@ -157,12 +249,48 @@ def main():
             # SYNAS: raden märks axellös så att gate-axel kan säga "jämförde
             # inte" i stället för att tiga. En tom rad utan förklaring är en
             # grind som inte kan fälla.
-            delmatt = [r for r in rader if re.search(r"abmessungen\s*:", r, re.I)]
-            if delmatt:
+            #
+            # ☠️ OCH DETEKTORN VAR LEXIKAL, ALLTSÅ FÖR SMAL. Den kände igen ETT
+            # tyskt ord. Runda N4 gav två källor som säger exakt samma sak med
+            # andra ord och därför avbröt hela generatorn:
+            #
+            #   b7b5b37e  `Großer Tisch Größe: 50L x 50B x 52Hcm`  (två bord)
+            #   6b8cd35b  `Einzelnes Paneel: 61L x 91B cm`         (en hage)
+            #
+            # Båda är samma klass som isbjörnsparet: källan mäter DELARNA för
+            # att produkten inte HAR ett totalmått. Villkoret är därför
+            # STRUKTURELLT i stället för lexikalt — en rad som bär ett
+            # axelmärkt tal är en måttrad, vad den än heter. En ordlista
+            # glider; formen gör det inte.
+            #
+            # ⚠️ OCH ETIKETTEN FÅR INTE VIDGAS I STÄLLET. Att lägga `Größe` i
+            # ETIKETT var första utkastet, och mätningen slog ihjäl det: över
+            # husets alla källor finns sex `<ord> Größe:` och FYRA av dem är en
+            # DEL (`Armlehnen`, `Rückenlehne`, `Ottomane`). Generatorn hade då
+            # bokfört ett armstöd som produktens totalmått. Ett facit som
+            # ljuger är värre än inget facit — den här grenen gör ett avbrott
+            # till ett FÖRKLARAT utfall, aldrig till ett felaktigt facit.
+            #
+            # ☠️ OCH DEN FÅR INTE SKRIVA ÖVER ETT REDAN SATT `axellos`.
+            # Regressionen mot alla tidigare rundor fällde direkt: häckrullen
+            # c8376256 (N2) är märkt av tvåtals-spärren ovan med det PRECISA
+            # skälet "totalraden har tva tal utan H eller T (L300 x B100 cm)".
+            # Den strukturella detektorn ser samma rad som ett delmått och
+            # ersatte skälet med "inget totalmått i källan" — vilket är fel:
+            # totalraden FINNS, den går bara inte att lägga ut positionellt.
+            # Ett mindre sant skäl är en tystare sorts fel än ett avbrott.
+            delmatt = [r for r in rader
+                       if re.search(r"abmessungen\s*:", r, re.I)
+                       or (":" in r and axelpar(r.split(":", 1)[1]))]
+            if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
-            else:
+            elif "axellos" not in d:
+                # En rad som redan är märkt axellös av tvåtals-spärren ovan är
+                # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den
+                # hade betytt att en källa som säger sanningen om sig själv
+                # stoppar hela rundan.
                 tomma.append(kort)
-        else:
+        if par:
             d["bokstaver"] = "".join(b for _, b in par)
             # ☠️ REN POSITION RÄCKER INTE HELLER. Uppmätt i M1 på 3225c539:
             # "Ø30 x 51H" — diametern bär ingen bokstav, så 51H hamnade på

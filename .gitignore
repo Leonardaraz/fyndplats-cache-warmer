@@ -60,3 +60,11 @@ tools/polish-assets/*/live/
 tools/kategorifix/*/live/
 tools/polish-assets/*/img/
 tools/polish-assets/*/pub/
+
+# Genererade skrivanrop (bygg-skrivning.py, steg2-plan.txt). De ar en ANDRA
+# kopia av brodtexten och alt-texterna — samma innehall som <kort>.html och
+# alt.tsv, bara omgjutet till JS. En kopia i repot ar en tvilling som kan
+# glida, och den som senare grep:ar efter en formulering far tva traffar med
+# olika alder. Kallan ar filerna; anropet byggs om nar det behovs.
+tools/polish-assets/*/steg1.js
+tools/polish-assets/*/steg2-plan.txt

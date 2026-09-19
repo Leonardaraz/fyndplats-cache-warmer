@@ -1,0 +1,11 @@
+{
+ "_om": "Separat Wix-aterlasning 2026-09-15, efter skrivningen. Facit ar wixnorm-normaliserad hash ur kallfilerna (vantat-hash.tsv). 8 av 8 BYTE-EXAKTA.",
+ "31d6d517": {"tecken": 3119, "summa": "978903a9613da7a1", "utfall": "LIKA"},
+ "4533ca25": {"tecken": 3637, "summa": "a2c8893322372819", "utfall": "LIKA"},
+ "5240178f": {"tecken": 3186, "summa": "adcbb36922009534", "utfall": "LIKA"},
+ "67ba375c": {"tecken": 3124, "summa": "decef99a858205c9", "utfall": "LIKA"},
+ "6e73f024": {"tecken": 3047, "summa": "a1b3621224cfe853", "utfall": "LIKA"},
+ "c8376256": {"tecken": 3135, "summa": "ea8a91e7b3400fe9", "utfall": "LIKA"},
+ "d5919be6": {"tecken": 3107, "summa": "71544073f65fa616", "utfall": "LIKA"},
+ "d5d1ff3c": {"tecken": 3253, "summa": "26cab5d0c2b6e60c", "utfall": "LIKA"}
+}

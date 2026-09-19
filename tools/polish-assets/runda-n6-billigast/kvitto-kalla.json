@@ -1,0 +1,44 @@
+{
+  "beskrivning": "Kallorna ar BEVISADE ordagranna: kontrollsumman raknades SERVER-SIDE ur Wix plainDescription och jamfordes mot samma aritmetik pa den lokala filen. Ett API-svar som ekar tillbaka det man skrev ar inget kvitto — det ar kontrollsumman som ar det.",
+  "aritmetik": "h = (h*31 + (ord(c) & 0xFFFF)) % 1000000007",
+  "artikelnummer": "Noll i alla nio, matt med det SKARPTA monstret (gatelib.ARTNR efter 2026-09-16). Det gamla monstret rapporterade 1 i c7c74ab2 — ett FALSKLARM pa effektangivelsen 920-1080W.",
+  "kallor": {
+    "03207c35": {
+      "tecken": 1878,
+      "summa": 440504
+    },
+    "e2932b74": {
+      "tecken": 2118,
+      "summa": 272446709
+    },
+    "0783b515": {
+      "tecken": 2339,
+      "summa": 512780459
+    },
+    "1c883b87": {
+      "tecken": 1576,
+      "summa": 403840096
+    },
+    "2d308bc1": {
+      "tecken": 1554,
+      "summa": 600011211
+    },
+    "8f1b8163": {
+      "tecken": 1775,
+      "summa": 979441711
+    },
+    "949ffbb1": {
+      "tecken": 1760,
+      "summa": 641382291
+    },
+    "cb57e1dc": {
+      "tecken": 1618,
+      "summa": 107723835
+    },
+    "d0f68e25": {
+      "tecken": 1820,
+      "summa": 655654065
+    }
+  },
+  "byte": "c7c74ab2 (koksset) byttes mot d0f68e25 (koksvagn) efter kontaktarket: bild 4 och 5 var tyska funktionsgrafiker och bild 3 bar tysk text mitt i produktbilden. Ingen beskarning nar dem — samma slutsats som marknadskollaget df3a97c6-4 i runda N4."
+}

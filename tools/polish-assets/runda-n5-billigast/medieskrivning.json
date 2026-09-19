@@ -1,0 +1,8 @@
+{
+  "beskrivning": "Mediaskrivningen i runda N5. Sex poster per produkt: fem produktbilder plus Fyndplats-kortet sist. Bara `media` i fältmasken, bara `id` i varje post — aldrig `url`, och `media.main` skickas inte alls.",
+  "produkter": 9,
+  "posterPerProdukt": 6,
+  "poster": 54,
+  "utanAltText": 0,
+  "kortensParning": "md5-bevisad 9 av 9: varje uppladdad fil hemhämtad från Wix och jämförd mot sin lokala kopia. UploadImageToWixSite ekar ingen käll-URL, så en parning på ORDNING vore samma antagande som lagersynkens tolkaBulkUtfall vägrar göra."
+}

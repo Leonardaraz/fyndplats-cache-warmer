@@ -17,8 +17,8 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
 """
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import (las_facit, GRINDAR, FLIKAR, tal, kropp, ordtal_i_text,
-                     las_kalltext, tal_ur_kalla_brett)
+from gatelib import (las_facit, GRINDAR, FLIKAR, NORM, tal, kropp, ordtal_i_text,
+                     las_kalltext, tal_ur_kalla_brett, las_kvittenser)
 
 # ☠️ TRE LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — alla smala med flit.
 #
@@ -26,39 +26,7 @@ from gatelib import (las_facit, GRINDAR, FLIKAR, tal, kropp, ordtal_i_text,
 #    inte leverantörens mått. Ett råd-tal måste stå i rundans `rad-tal.txt` för
 #    att slippa igenom — det går inte att smyga in ett påhittat produktmått
 #    som "råd". Filen är VALFRI: en runda utan råd-tal skriver ingen.
-RAD_TAL = set()
-if os.path.exists("rad-tal.txt"):
-    RAD_TAL = {r.strip() for r in open("rad-tal.txt", encoding="utf-8") if r.strip()}
-
-# 3. FOTO-TAL. ☠️ Runbookens egen J1-regel säger att BILDEN är facit för
-#    konstruktion — "titta på bilderna FÖRE texten" — men grinden kunde bara
-#    se den tyska texten. Ett tal som bara går att RÄKNA på fotot hade därför
-#    ingen laglig väg igenom, och de två utvägarna var båda fel: skriva om
-#    talet till bokstäver för att gömma det för grinden, eller stryka ett sant
-#    och användbart påstående för att blidka den.
-#
-#    Uppmätt i runda K14 på 166fdb52: texten säger "Sittdynor: 2 st" och
-#    källan nämner aldrig något antal — men produktfotot visar två sittdynor
-#    och två ryggkuddar. Påståendet är sant och osynligt för varje textgrind.
-#
-#    Formen är SMAL med flit, som rad-tal: "<kort> <tal> <vad som räknades>".
-#    Talet gäller bara den produkt raden nämner — ett foto hör till en produkt,
-#    inte till rundan — och skälet är obligatoriskt, så filen blir ett protokoll
-#    över vad någon faktiskt tittat på och inte en generell ventil.
-FOTO_TAL = {}
-if os.path.exists("foto-tal.txt"):
-    for rad in open("foto-tal.txt", encoding="utf-8"):
-        rad = rad.strip()
-        if not rad or rad.startswith("#"):
-            continue
-        delar = rad.split(None, 2)
-        if len(delar) < 3:
-            raise SystemExit(
-                f"  [AVBRYT] foto-tal.txt: raden {rad!r} saknar skäl.\n"
-                "  Formen är '<kort> <tal> <vad som räknades på bilden>'. Ett tal\n"
-                "  utan skäl är en ventil, inte ett protokoll."
-            )
-        FOTO_TAL.setdefault(delar[0], set()).add(delar[1])
+RAD_TAL, FOTO_TAL = las_kvittenser()
 
 # Facit: `kallor-tal.json` (lista med tal per produkt) är formen sedan runda G.
 # Runda A–F1 sparade i stället HELA källtexten i `kallor.json`. Grinden läser
@@ -110,6 +78,25 @@ for f in filer:
         for x in re.finditer(m, k):
             print(f"  {kort}: [{namn}] {x.group(0)!r} …{k[max(0, x.start()-45):x.end()+45].strip()}…")
             fynd += 1
+    # ☠️ EN-NORMEN GRINDAS MOT PRODUKTENS EGEN KÄLLA, inte som ett blint
+    # mönster. Se gatelib.NORM för varför den flyttades hit: i GRINDAR fyrade
+    # den på varje normangivelse, även en källan certifierar ordagrant, och ett
+    # falsklarm som alltid fyrar är lika illa som ett fel ingen ser.
+    #
+    # ⚠️ FAIL-CLOSED: utan källtext (rundan har bara den härledda
+    # `kallor-tal.json`) fälls varje norm som förr. Att tiga när grinden inte
+    # KAN veta vore att göra den till en vana.
+    kalltext = KALLTEXT.get(kort)
+    for x in re.finditer(NORM, k):
+        normen = re.sub(r"\s+", "", x.group(0))
+        if kalltext is not None and normen in re.sub(r"\s+", "", kalltext):
+            continue
+        skal = ("källan nämner den inte" if kalltext is not None
+                else "rundan har ingen källtext att grinda mot")
+        print(f"  {kort}: [EN-NORM UTAN KÄLLA] {x.group(0)!r} ({skal}) "
+              f"…{k[max(0, x.start()-45):x.end()+45].strip()}…")
+        fynd += 1
+
     op = collections.Counter(re.findall(r"<(\w+)[^>]*>", txt))
     cl = collections.Counter(re.findall(r"</(\w+)>", txt))
     for t in set(op) | set(cl):
@@ -118,6 +105,15 @@ for f in filer:
     for r in FLIKAR:
         if f"<h2>{r}</h2>" not in txt:
             print(f"  {kort}: [FLIK] saknar <h2>{r}</h2>"); fynd += 1
+    # ☠️ <span class=...> HÖR HEMMA I kort.tsv:S SPEC-VÄRDEN, ALDRIG I
+    # plainDescription. Wix stryper spannet tyst vid sparandet (samma klass
+    # som `fontagen-weight`) — kundens sida blir aldrig fel, men N14 mätte
+    # nio av tio produkter med markeringen läckt in i kroppstexten av
+    # misstag, och wixnorm.py:s facit missade det tills det lagades. Se
+    # wixnorm.py punkt 6.
+    if re.search(r'<span class=', txt):
+        print(f"  {kort}: [KORT-MARKUP I KROPPEN] <span class=…> hör hemma i kort.tsv, inte i plainDescription")
+        fynd += 1
     # ☠️ EN RELATIV KORSLÄNK BLIR EN DÖD LÄNK. Uppmätt 2026-09-07 på runda K1:
     # `href="/produkt/x"` lagras av Wix som `href="https:/produkt/x"` — ett
     # snedstreck, alltså en adress som inte går någonstans. Skrivningen svarar
