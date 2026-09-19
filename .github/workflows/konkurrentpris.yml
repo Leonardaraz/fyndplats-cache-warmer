@@ -9,6 +9,13 @@ name: Pris — konkurrentregeln (dealproffsen)
 #   lotta    Lotta A/B-grupp pa publicerade Aosom-rader med konkurrentpris.
 #            TORRT som default; skarp korning kraver torrkorningens antal i
 #            `bekrafta`.
+#   rensa    Vagen tillbaka: ta bort prisgruppen sa raden foljer husets regel
+#            (1,20 x landad kostnad) igen. TORRT som default; skarp korning
+#            kraver torrkorningens antal i `bekrafta`.
+#
+# ☠️ ATT SLUTA KORA `spara` REVERTERAR INGENTING. Ett konkurrentpris aldre an
+# sju dagar FRYSER raden i synken — priset star kvar dar det star. Vill man
+# tillbaka till husets regel ar `rensa` enda vagen.
 #
 # ☠️ INGET KUNDPRIS SKRIVS HAR. Synken (aosom-sync) raknar fram kundpriset ur
 # konkurrentpriset och gruppen, med golv och tak och sin egen torrkorning.
@@ -21,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "status · spara · lotta"
+        description: "status · spara · lotta · rensa"
         required: true
         default: "status"
         type: choice
@@ -29,8 +36,9 @@ on:
           - status
           - spara
           - lotta
+          - rensa
       skarp:
-        description: "ja = skriv (spara/lotta). nej = torrkorning."
+        description: "ja = skriv (spara/lotta/rensa). nej = torrkorning."
         required: false
         default: "nej"
         type: choice
@@ -43,12 +51,12 @@ on:
         default: "12"
         type: string
       bekrafta:
-        description: "lotta skarp: torrkorningens antal (attLotta). Tomt = vagras."
+        description: "lotta/rensa skarp: torrkorningens antal (attLotta resp attRensa). Tomt = vagras."
         required: false
         default: ""
         type: string
       bara:
-        description: "lotta: kommaseparerade wix-id att begransa till. Tomt = alla."
+        description: "lotta/rensa: kommaseparerade wix-id att begransa till. Tomt = alla."
         required: false
         default: ""
         type: string
@@ -153,6 +161,49 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
               "attLotta \(.attLotta) (A \(.perGrupp.A) / B \(.perGrupp.B)), lottade \(.lottade), redan \(.redanLottade), utanKonkurrent \(.utanKonkurrent), ejPublicerade \(.ejPublicerade), utanVartPris \(.utanVartPris), skrivfel \(.skrivfel)"' || true
+            exit 0
+          fi
+
+          # ── rensa ───────────────────────────────────────────────────────────
+          if [ "${MODE}" = "rensa" ]; then
+            q="lage=rensa&dryRun=${dry}"
+            [ -n "${BARA:-}" ] && q="${q}&bara=$(printf '%s' "$BARA" | tr -d ' ')"
+            if [ "$dry" = "false" ]; then
+              if [ -z "${BEKRAFTA:-}" ]; then
+                echo "::error::skarp rensning kraver bekrafta = torrkorningens antal" >&2
+                exit 1
+              fi
+              q="${q}&bekrafta=${BEKRAFTA}"
+            fi
+            kropp="$(anropa "${url}?${q}")"
+            {
+              echo "### Rensa A/B — tillbaka till husets regel — $([ "$dry" = "true" ] && echo TORRKORNING || echo SKARP)"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| **att rensa** | **\(.attRensa)** |",
+                "| varav grupp A / B | \(.perGrupp.A) / \(.perGrupp.B) |",
+                "| rensade (skrivna) | \(.rensade) |",
+                "| kvar (tidsbudget tog slut) | \(.kvar) |",
+                "| redan utan grupp | \(.utanGrupp) |",
+                "| skrivfel | \(.skrivfel) |",
+                "| urval | \(.urval // "alla") |"
+              ' || true
+              if [ "$dry" = "true" ]; then
+                echo ""
+                echo "> Skarp korning: kor igen med skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.attRensa')."
+              else
+                echo ""
+                echo "> Synken skriver husets regelpris (1,20 x landad kostnad) inom sex timmar."
+                echo "> Ar \`kvar\` inte noll: kor om, raderna ar oberoende."
+              fi
+              echo ""
+              echo "| wix-id | grupp |"
+              echo "|---|:--:|"
+              printf '%s\n' "$kropp" | jq -r '.rader[]? | "| `\(.wixProductId)` | \(.grupp) |"' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "attRensa \(.attRensa) (A \(.perGrupp.A) / B \(.perGrupp.B)), rensade \(.rensade), kvar \(.kvar), utanGrupp \(.utanGrupp), skrivfel \(.skrivfel)"' || true
             exit 0
           fi
 

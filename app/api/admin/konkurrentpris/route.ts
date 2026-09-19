@@ -8,6 +8,10 @@
 //   ?lage=lotta                          TORRKÖRNING: vilka rader skulle lottas A/B
 //   ?lage=lotta&dryRun=false&bekrafta=N  lottar — N är torrkörningens antal
 //   ?lage=lotta&bara=<wix-id,wix-id,…>   begränsa lottningen till ett urval
+//   ?lage=rensa                          TORRKÖRNING: vilka rader skulle tappa
+//                                        sin grupp och gå till husets regel
+//   ?lage=rensa&dryRun=false&bekrafta=N  rensar — N är torrkörningens antal
+//   ?lage=rensa&bara=<wix-id,wix-id,…>   begränsa rensningen till ett urval
 //
 // VARFÖR RUTTEN FINNS. Prisjämförelsen (/api/admin/dealproffsen) mäter och
 // kan inte skriva, med flit. Men konkurrentregeln i synken
@@ -26,6 +30,13 @@
 // ☠️ LOTTNINGEN KRÄVER `bekrafta`. Gruppen avgör vilket pris tusen kunder ser,
 // och en lottning går inte att göra ogjord utan att förstöra testet. Samma
 // mönster som prishöjningen: kör torrt, läs planen, skicka DESS antal.
+//
+// ☠️ RENSNINGEN ÄR VÄGEN TILLBAKA, OCH DEN SKRIVER INGET KUNDPRIS HELLER.
+// Regeln är opt-in per rad: utan `prisgrupp` räknar synken husets regelpris
+// (1,20 × landad kostnad, charmavrundat). `rensa` tar därför bort gruppen och
+// lämnar prissättningen till synken, som skriver om priset inom sex timmar med
+// sin egen torrkörning. Samma bekrafta-spärr som lottningen — en rensning av
+// nio hundra rader ska inte kunna råka hända.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -37,7 +48,9 @@ import { PAUS_MS, hamtaPrefix, sov } from "@/lib/pricing/dealproffsen-hamta";
 import {
   konkurrentStatus,
   planeraLotta,
+  planeraRensa,
   planeraSpara,
+  utanPrisgrupp,
 } from "@/lib/pricing/konkurrentpris-plan";
 import { KONKURRENT_MAX_ALDER_DAGAR } from "@/lib/pricing/konkurrentregel";
 
@@ -251,6 +264,80 @@ export async function GET(req: NextRequest) {
       utanVartPris: plan.utanVartPris,
       urval: bara ? bara.size : null,
       rader: plan.attLotta.map((r) => ({ wixProductId: r.m.wixProductId, grupp: r.grupp, vartPris: r.vartPris })),
+    });
+  }
+
+  // ── rensa: ta bort gruppen och lämna raden till husets regel ──────────────
+  if (lage === "rensa") {
+    const baraParam = (sp.get("bara") ?? "").trim();
+    const bara = baraParam
+      ? new Set(baraParam.split(",").map((s) => s.trim()).filter(Boolean))
+      : null;
+
+    const plan = planeraRensa(await store.listMappings(), bara);
+
+    let rensade = 0;
+    let skrivfel = 0;
+    let kvar = 0;
+    if (!dryRun) {
+      const bekrafta = (sp.get("bekrafta") ?? "").trim();
+      if (bekrafta !== String(plan.attRensa.length)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            lage,
+            error: `bekrafta måste vara torrkörningens antal (${plan.attRensa.length}), fick "${bekrafta}"`,
+            rad: "Kör torrläget igen, läs planen, och skicka DESS antal.",
+          },
+          { status: 400 },
+        );
+      }
+      for (const [i, m] of plan.attRensa.entries()) {
+        // ☠️ EN AVBRUTEN RENSNING ÄR OFARLIG, EN TYST AVKORTAD ÄR DET INTE.
+        // Raderna är oberoende och nästa körning tar resten — men antalet som
+        // återstår ska SYNAS, annars ser en halv körning ut som en hel.
+        if (Date.now() - t0 > TIDSBUDGET_MS) {
+          kvar = plan.attRensa.length - i;
+          break;
+        }
+        try {
+          await store.saveMapping(utanPrisgrupp(m));
+          rensade++;
+        } catch {
+          skrivfel++;
+        }
+      }
+      await audit(
+        "konkurrentpris",
+        "rensa",
+        `${rensade} rader tillbaka på husets regel (A ${plan.perGrupp.A} / B ${plan.perGrupp.B}), `
+          + `${skrivfel} skrivfel, ${kvar} kvar`
+          + (bara ? `, urval på ${bara.size} wix-id` : ""),
+      );
+    }
+
+    console.log(
+      `[konkurrentpris] RENSA ${dryRun ? "TORR" : "SKARP"} ${plan.attRensa.length} att rensa `
+        + `(A ${plan.perGrupp.A} / B ${plan.perGrupp.B}), ${rensade} rensade, `
+        + `${plan.utanGrupp} redan utan grupp, ${skrivfel} skrivfel, ${kvar} kvar`,
+    );
+
+    return NextResponse.json({
+      ok: true,
+      lage,
+      dryRun,
+      attRensa: plan.attRensa.length,
+      perGrupp: plan.perGrupp,
+      rensade,
+      skrivfel,
+      kvar,
+      utanGrupp: plan.utanGrupp,
+      urval: bara ? bara.size : null,
+      // Taket finns för att svaret hamnar i en PUBLIK Actions-logg och en full
+      // körning är ~900 rader. Antalet står i `attRensa`; listan är stickprov.
+      rader: plan.attRensa
+        .slice(0, 100)
+        .map((m) => ({ wixProductId: m.wixProductId, grupp: m.prisgrupp })),
     });
   }
 

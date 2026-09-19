@@ -4,6 +4,7 @@
 //
 //   planeraSpara   vilka rader ska få dealproffsens pris sparat (`konkurrent`)
 //   planeraLotta   vilka rader ska lottas in i A/B-testet (`prisgrupp`)
+//   planeraRensa   vilka rader ska UT ur testet och till husets regel
 //   konkurrentStatus  hur ser lagret av konkurrentpriser ut just nu
 //
 // ☠️ INGEN PLAN BÄR ARTIKELNUMRET. Svaren hamnar i en PUBLIK Actions-logg och
@@ -163,6 +164,72 @@ export function planeraLotta(
     plan.perGrupp[grupp]++;
   }
   return plan;
+}
+
+export interface RensaPlan {
+  /** Rader som ska tappa sin prisgrupp och därmed återgå till husets regel. */
+  attRensa: ProductMappingRecord[];
+  /** Vilka grupper de låg i — så en avbruten körning går att läsa av. */
+  perGrupp: Record<Prisgrupp, number>;
+  /** Rader utan grupp. De följer redan husets regel och rörs inte. */
+  utanGrupp: number;
+  ejAosom: number;
+}
+
+/**
+ * Vilka rader ska lämna A/B-testet och gå tillbaka till husets regel?
+ *
+ * Vägen tillbaka ur utrullningen. Regeln är opt-in per rad (`prisgrupp`), och
+ * utan grupp räknar synken husets regelpris — 1,20 × landad kostnad — precis
+ * som före den 16 september.
+ *
+ * ☠️ BARA `prisgrupp` TAS BORT. `konkurrent` lämnas kvar med flit: mätningen
+ * mot dealproffsen kostar timmars hämtning att göra om, och ett konkurrentpris
+ * utan grupp prissätter ingenting (konkurrentregel.ts: ingen grupp, ingen
+ * regel). Att radera båda hade slängt data utan att ändra ett enda pris.
+ *
+ * ☠️ ATT LÅTA PRISET ÅLDRAS ÄR INTE SAMMA SAK. Ett konkurrentpris äldre än
+ * KONKURRENT_MAX_ALDER_DAGAR FRYSER raden — synken skriver inget pris alls och
+ * räknar den i `konkurrentFrysta`. Ett höjt pris försvinner alltså inte av sig
+ * självt när jämförelsen slutar köras; någon måste ta bort gruppen.
+ */
+export function planeraRensa(
+  mappningar: readonly ProductMappingRecord[],
+  bara: ReadonlySet<string> | null = null,
+): RensaPlan {
+  const plan: RensaPlan = {
+    attRensa: [],
+    perGrupp: { A: 0, B: 0 },
+    utanGrupp: 0,
+    ejAosom: 0,
+  };
+  for (const m of mappningar) {
+    if (bara && !bara.has(m.wixProductId)) continue;
+    if (isAliExpressMapping(m)) {
+      plan.ejAosom++;
+      continue;
+    }
+    if (!m.prisgrupp) {
+      plan.utanGrupp++;
+      continue;
+    }
+    plan.perGrupp[m.prisgrupp]++;
+    plan.attRensa.push(m);
+  }
+  return plan;
+}
+
+/**
+ * Raden som synken ska prissätta med husets regel igen.
+ *
+ * ☠️ NYCKELN TAS BORT, den sätts inte till undefined. Postgres sparar raden som
+ * `JSON.stringify(record)` och Wix Data sparar hela objektet — en kvarlämnad
+ * nyckel är skillnaden mellan en rensning som tar och en som ser ut att ta.
+ */
+export function utanPrisgrupp(m: ProductMappingRecord): ProductMappingRecord {
+  const resten = { ...m };
+  delete resten.prisgrupp;
+  return resten;
 }
 
 export interface KonkurrentStatus {
