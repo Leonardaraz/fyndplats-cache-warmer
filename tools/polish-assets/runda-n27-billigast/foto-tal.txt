@@ -1,0 +1,11 @@
+# Tal som är AVLÄSTA PÅ PRODUKTENS EGEN MÅTTBILD, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes>
+a93e2e5a 2,5 gallerets maskavstånd, utsatt i förstoringen på måttbilden (källan skriver bara "ideale Größe")
+4b48e10f 120 handtagets vinkelläge i måttbilden (grader), saknas i Technische Daten
+4b48e10f 74 höjd i cykelvagnsläge enligt måttbilden, saknas i Technische Daten
+590b1f2d 87,5 klätterställningens bredd i måttbilden; källan anger bara klätterbågens och rampens mått
+590b1f2d 80 klätterställningens djup i måttbilden, samt uppställningens djup
+590b1f2d 247 hela uppställningens längd i måttbilden, saknas i Technische Daten
+e903f29c 4 antal hjul, räknade på bild 1 och 5 (källan anger inget antal)
+e5049d65 5 antal ventilationsgaller per gavel, räknade på bild 4 (källan anger bara 10 totalt)
+590b1f2d 4 antal delar, räknade ur Lieferumfang och på bild 1 (ställning, klätterbåge, ramp, tavla)
