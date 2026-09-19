@@ -1,0 +1,210 @@
+{
+ "0696efce": {
+  "kicker": "Sisal, 87 cm",
+  "rubrik": "Sisal hela vägen upp till topplattan",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39,5 × 39,5 × 87 cm"
+   },
+   {
+    "etikett": "Sockel",
+    "varde": "39,5 × 39,5 cm"
+   },
+   {
+    "etikett": "Topplatta",
+    "varde": "20 × 20 cm, 1,5 cm tjock"
+   },
+   {
+    "etikett": "Bollbana",
+    "varde": "40 × 40 cm nedre, 30 × 30 cm övre"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10 kg"
+   }
+  ]
+ },
+ "7564dcfb": {
+  "kicker": "Bädd på toppen, 87 cm",
+  "rubrik": "Rund bädd överst på en tjock stam",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "45 × 45 × 87 cm"
+   },
+   {
+    "etikett": "Sockel",
+    "varde": "45 × 45 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "Ø41 cm, 12 cm hög"
+   },
+   {
+    "etikett": "Stam",
+    "varde": "Ø14 cm"
+   },
+   {
+    "etikett": "Kattens vikt",
+    "varde": "upp till 6 kg"
+   }
+  ]
+ },
+ "5d64f423": {
+  "kicker": "Trä och jute, 61,5 cm",
+  "rubrik": "Två mjuka ytor på var sin stolpe",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "50 × 47 × 61,5 cm"
+   },
+   {
+    "etikett": "Sockel",
+    "varde": "50 × 47 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "Ø40 cm, 8 cm hög"
+   },
+   {
+    "etikett": "Hoppyta",
+    "varde": "Ø30 cm, 7 cm hög"
+   },
+   {
+    "etikett": "Kattens vikt",
+    "varde": "upp till 5 kg"
+   }
+  ]
+ },
+ "82efeeaf": {
+  "kicker": "Klösklot, 86 cm",
+  "rubrik": "Fyra klot staplade under bädden",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "56 × 54 × 86 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "54 × 36 cm, 8 cm hög"
+   },
+   {
+    "etikett": "Mellanplatå",
+    "varde": "40 × 37 cm"
+   },
+   {
+    "etikett": "Klösklot",
+    "varde": "Ø11 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "7 kg"
+   }
+  ]
+ },
+ "bdc7e768": {
+  "kicker": "Fårdesign, 98 cm",
+  "rubrik": "Kroppen är en liggtunnel",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "48 × 34 × 98 cm"
+   },
+   {
+    "etikett": "Liggtunnel",
+    "varde": "Ø26 cm, 40 cm lång"
+   },
+   {
+    "etikett": "Öppning",
+    "varde": "17 × 15 cm"
+   },
+   {
+    "etikett": "Klösstolpar",
+    "varde": "Ø6,6 cm"
+   },
+   {
+    "etikett": "Kattens vikt",
+    "varde": "under 5 kg"
+   }
+  ]
+ },
+ "e2c8b0f3": {
+  "kicker": "Bladkrona, 98 cm",
+  "rubrik": "Hydda nederst och bädd ovanför",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "44 × 30 × 98 cm"
+   },
+   {
+    "etikett": "Hydda",
+    "varde": "30 × 30 cm, 28,5 cm hög"
+   },
+   {
+    "etikett": "Ingång",
+    "varde": "19 × 21 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "40 × 30 cm, 7 cm hög"
+   },
+   {
+    "etikett": "Kattens vikt",
+    "varde": "upp till 5 kg"
+   }
+  ]
+ },
+ "cc5da788": {
+  "kicker": "Flätad kupol, 100 cm",
+  "rubrik": "Kupolhyddan sitter högst upp",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "48 × 40 × 100 cm"
+   },
+   {
+    "etikett": "Kupolhydda",
+    "varde": "Ø40 cm, 38 cm hög"
+   },
+   {
+    "etikett": "Öppning",
+    "varde": "32 × 32 cm"
+   },
+   {
+    "etikett": "Mellanplatå",
+    "varde": "40 × 24 cm"
+   },
+   {
+    "etikett": "Kattens vikt",
+    "varde": "under 5 kg"
+   }
+  ]
+ },
+ "741c5723": {
+  "kicker": "Borstpelare, 132 cm",
+  "rubrik": "Fyra plan med huset i mitten",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "55 × 44 × 132 cm"
+   },
+   {
+    "etikett": "Bädd",
+    "varde": "50 × 32 cm, 7 cm hög"
+   },
+   {
+    "etikett": "Hus",
+    "varde": "33,5 × 30 cm, 30 cm högt"
+   },
+   {
+    "etikett": "Klösmatta",
+    "varde": "16 × 43 cm"
+   },
+   {
+    "etikett": "Borstpelare",
+    "varde": "Ø10 cm, 25 cm hög"
+   }
+  ]
+ }
+}

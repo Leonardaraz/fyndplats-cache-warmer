@@ -1,0 +1,15 @@
+{
+ "441d2209": {"id":"441d2209-3747-44ed-9239-d1dca31f2d5f","pris":1139,"delar":3,"bord":"80 × 50 × 87","sits":"fyrkantiga pallar 30 × 40 × 57","yta":"grå stenlook","last":"20 kg bord / 120 kg","paket":"93,5 × 58 × 13,5","vikt":"15,5"},
+ "26d15aa5": {"id":"26d15aa5-eab8-4bed-99f7-09bf174dbfa6","pris":1219,"delar":3,"bord":"105 × 40 × 90","sits":"runda pallar Ø30 × 60","yta":"rustikbrun","last":"—","paket":"120 × 50 × 15","vikt":"16,8"},
+ "394de213": {"id":"394de213-a69b-416d-a9c1-d04351d8118b","pris":1259,"delar":3,"bord":"80 × 50 × 90","sits":"runda pallar Ø30 × 60","yta":"vit ram, träskiva, hylla 64 × 34","last":"—","paket":"101 × 58 × 17","vikt":"15,5"},
+ "f4ed1264": {"id":"f4ed1264-f317-4f86-901a-d1cddf79f2e5","pris":1269,"delar":3,"bord":"100 × 40 × 90","sits":"runda pallar Ø41 × 60","yta":"vit marmorlook","last":"—","paket":"110 × 48 × 13","vikt":"17,5"},
+ "3b38e191": {"id":"3b38e191-88f4-44b1-8ba8-2fc72ee86b20","pris":1349,"delar":3,"bord":"89 × 45 × 87","sits":"stolar MED ryggstöd 39 × 43 × 95, sitthöjd 64","yta":"ljus träskiva","last":"—","paket":"111 × 53 × 21","vikt":"19,5"},
+ "51c43e67": {"id":"51c43e67-d4dd-4ea5-8d0c-02397ee6ebd0","pris":1369,"delar":3,"bord":"100 × 40 × 90,5","sits":"stoppade pallar MED ryggstöd, 36 × 60, rygg till 92","yta":"grå stenlook","last":"50 kg bord / 130 kg","paket":"110 × 52 × 19","vikt":"18,8"},
+ "bc2157d2": {"id":"bc2157d2-6dc1-467e-b38b-2a9e73e96feb","pris":1439,"delar":6,"bord":"TVÅ bord, 80 och 100 × 40 × 90","sits":"fyra runda pallar Ø29,5 × 60","yta":"grå stenlook","last":"—","paket":"109,5 × 50,5 × 23","vikt":"29,4"},
+ "c88b5bbb": {"id":"c88b5bbb-9df8-4e64-b331-f77f09007a29","pris":1559,"delar":5,"bord":"100 × 60 × 88","sits":"fyra fyrkantiga pallar 32 × 32 × 57","yta":"LJUS EK","last":"—","paket":"113 × 69 × 17,5","vikt":"26,1","syskon":"63a37524"},
+ "63a37524": {"id":"63a37524-0664-4832-9979-e877b79fa280","pris":1599,"delar":5,"bord":"100 × 60 × 88","sits":"fyra fyrkantiga pallar 32 × 32 × 57","yta":"RUSTIKBRUN","last":"25 kg pall / 100 kg bord","paket":"113 × 69 × 17,5","vikt":"26,1","syskon":"c88b5bbb"},
+ "35e9609f": {"id":"35e9609f-d2bc-4a88-aae2-de7034c2ddb4","pris":1659,"delar":5,"bord":"110 × 50 × 89,5","sits":"fyra runda pallar Ø30 × 60,5","yta":"rustikbrun","last":"—","paket":"126 × 62","vikt":"23,1"},
+ "c3bda64a": {"id":"c3bda64a-2fc1-42e1-bf5f-0cbd43813322","pris":1779,"delar":3,"bord":"100 × 60 × 95 MED två hyllplan 94,5 × 29 × 33,5","sits":"fyrkantiga pallar 32 × 32 × 68","yta":"svart stomme, ljus skiva","last":"170 kg / 140 kg","paket":"—","vikt":"20"},
+ "a0c8f793": {"id":"a0c8f793-de06-4a5c-8acf-7b689a839496","pris":2829,"delar":3,"bord":"116 × 70 × 89,5 KLAFFSKIVA, skåp och hyllor","sits":"runda pallar Ø35 × 61","yta":"ljust trä och svart","last":"—","paket":"131,5 × 42,5 × 16,5","vikt":"44,3"},
+ "2b03b3e4": {"id":"2b03b3e4-a0d9-46e9-bd4f-10c44408cc49","pris":3769,"delar":5,"bord":"120 × 60 × 91, A-formade ben","sits":"fyra STOPPADE STOLAR 43 × 49 × 91, sitthöjd 62","yta":"träskiva, grått tyg","last":"—","paket":"130 × 67,5 × 45","vikt":"44"}
+}

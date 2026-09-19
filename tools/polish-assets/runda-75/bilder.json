@@ -1,0 +1,100 @@
+{
+ "75f6c433": {
+  "id": "75f6c433-8ec2-44cc-b98d-ffbf8f3670ac",
+  "variantId": "d133872f-f4a2-405e-90a9-16f865206fe5",
+  "pris": 2379,
+  "kalla": "Hellgrau",
+  "grupp": "A",
+  "bilder": [
+   "b379ce_00f5beec2f67498586de3af489833fa3~mv2.jpg",
+   "b379ce_93c3a2fa869b48acb2451f1ead4cddb5~mv2.jpg",
+   "b379ce_4d519dddde354735a85c77c1dbbe5d88~mv2.jpg",
+   "b379ce_6b5395451ba847ca8357b06a883866db~mv2.jpg",
+   "b379ce_109f968ee13f469ab46ba7422dabc1c4~mv2.jpg"
+  ]
+ },
+ "7ab2f8aa": {
+  "id": "7ab2f8aa-d858-40b8-92f1-12fa0f8b90ea",
+  "variantId": "491cf3df-0318-4100-a547-05c22812e2fb",
+  "pris": 2029,
+  "kalla": "Dunkelgrau",
+  "grupp": "A",
+  "bilder": [
+   "b379ce_082c3779af0948c1820887beacfcd44a~mv2.jpg",
+   "b379ce_36acdacaa7ce496a9f9c15f47e221541~mv2.jpg",
+   "b379ce_47f37b5d06ae4a12a2ee89bd51ac66fc~mv2.jpg",
+   "b379ce_e4d7354243764b519771855e0b8853ac~mv2.jpg",
+   "b379ce_03d4206ce40246a59680200443258bc1~mv2.jpg"
+  ]
+ },
+ "60c803f0": {
+  "id": "60c803f0-14a0-408f-a454-76f48a075742",
+  "variantId": "83863ddb-3f86-4ccf-8718-d7205218f77b",
+  "pris": 1999,
+  "kalla": "Braun",
+  "grupp": "A",
+  "bilder": [
+   "b379ce_6e5bbd3447b948e98293ddf829d64f7f~mv2.jpg",
+   "b379ce_09580f12c2a0444091b6ce02752d1460~mv2.jpg",
+   "b379ce_8f96dbc2db26421695c89658542a93d8~mv2.jpg",
+   "b379ce_77516f52c9bc4a328661f46bffa20dde~mv2.jpg",
+   "b379ce_3abf3286c8e140d2a33e212130c4f479~mv2.jpg"
+  ]
+ },
+ "cc81673d": {
+  "id": "cc81673d-de53-42fa-a8d1-6390b7fd847b",
+  "variantId": "2e11b5b8-da1e-4b96-a143-a7ce14588077",
+  "pris": 2239,
+  "kalla": "Cremeweiss",
+  "grupp": "B",
+  "bilder": [
+   "b379ce_0ed1ddd76eb24709a7fbe35b68a17a07~mv2.jpg",
+   "b379ce_880d5e082d604c3cbe15dff08ae28e3b~mv2.jpg",
+   "b379ce_04c97b9ab0454b15bb60dae2a2087702~mv2.jpg",
+   "b379ce_5c6e8f3be6e04d5eb3a4d9b7aac286a3~mv2.jpg",
+   "b379ce_f9a8c4dee6a24dbba07dd7fa4a2fe711~mv2.jpg"
+  ]
+ },
+ "0945e4dd": {
+  "id": "0945e4dd-5c4c-478c-86fc-822b3732a598",
+  "variantId": "2b40afb4-664f-45d4-ac0e-b81d67329d55",
+  "pris": 2449,
+  "kalla": "Braun",
+  "grupp": "B",
+  "bilder": [
+   "b379ce_c026030e34eb468195ca0e11cd5e63cd~mv2.jpg",
+   "b379ce_edd13b82d8244b4493a49fc0be4e1244~mv2.jpg",
+   "b379ce_b94f510ed77144d187141fc8ff673d43~mv2.jpg",
+   "b379ce_41c0d60b3d414660b8fb201e40ae8c8c~mv2.jpg",
+   "b379ce_6c9ea8b57dde4a5b9dfd0df015c0e92a~mv2.jpg"
+  ]
+ },
+ "348ee535": {
+  "id": "348ee535-e1c7-4677-a6f1-335e0500b1ad",
+  "variantId": "b8461fc6-cda0-4a48-8548-349aa3dc1f02",
+  "pris": 2099,
+  "kalla": "Grau",
+  "grupp": "C",
+  "bilder": [
+   "b379ce_e63b283416a0429e88c7743f092abeb8~mv2.jpg",
+   "b379ce_f457341c83474d8691d02ced819d2626~mv2.jpg",
+   "b379ce_a5ed437d75a8420f995baa265a1fd9fb~mv2.jpg",
+   "b379ce_d43b612200c347f09420bc7e0510befe~mv2.jpg",
+   "b379ce_d207d28167a34033b64fb9c8980afc80~mv2.jpg"
+  ]
+ },
+ "4d83eca6": {
+  "id": "4d83eca6-2877-4fc9-9698-424241ac7e9d",
+  "variantId": "7dd640af-9c08-456c-a30b-dfc523f597c5",
+  "pris": 2099,
+  "kalla": "Cremeweiss",
+  "grupp": "C",
+  "bilder": [
+   "b379ce_1dac029ae1b445cf9ed24ac1df334358~mv2.jpg",
+   "b379ce_6b6e42ca4c2e4495b42b49a608b0a38b~mv2.jpg",
+   "b379ce_db9c030d377542dfaa9ac58eaf0af08e~mv2.jpg",
+   "b379ce_ad2c0efc3c3c4c579183ea16eaa5d9d7~mv2.jpg",
+   "b379ce_e7efd5aca6914d299b1ddc00736b4f4d~mv2.jpg"
+  ]
+ }
+}

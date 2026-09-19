@@ -1,0 +1,242 @@
+{
+ "db645ff8": {
+  "kicker": "Golvfåtölj i blått",
+  "rubrik": "Sitter direkt på golvet",
+  "rader": [
+   {
+    "etikett": "Mått uppställd",
+    "varde": "55 × 71 × 53,5 cm"
+   },
+   {
+    "etikett": "Helt utfälld",
+    "varde": "55 × 108 × 14 cm"
+   },
+   {
+    "etikett": "Stoppning",
+    "varde": "12 cm högdensitetsskum"
+   },
+   {
+    "etikett": "Ryggens lägen",
+    "varde": "13 fasta steg"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "7 kg"
+   }
+  ]
+ },
+ "88425b27": {
+  "kicker": "Böjd träfanér",
+  "rubrik": "Fåtölj och fotpall i samma ram",
+  "rader": [
+   {
+    "etikett": "Fåtölj",
+    "varde": "66,5 × 80 × 99 cm"
+   },
+   {
+    "etikett": "Fotpall",
+    "varde": "51 × 45 × 40 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "39 cm"
+   },
+   {
+    "etikett": "Nackkudde",
+    "varde": "55 × 24 cm"
+   },
+   {
+    "etikett": "Maxlast stol",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Maxlast fotpall",
+    "varde": "30 kg"
+   }
+  ]
+ },
+ "03c9d570": {
+  "kicker": "Liten fåtölj, 60 cm",
+  "rubrik": "Fyra smala metallben",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 57 × 83 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "48 × 46 × 50 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "54 × 35 cm"
+   },
+   {
+    "etikett": "Armstöd",
+    "varde": "30 × 4 cm, 65 cm över golv"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "11 kg"
+   }
+  ]
+ },
+ "bb7b7bd4": {
+  "kicker": "Loungefåtölj i björkfanér",
+  "rubrik": "Böjd ram utan bakben",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "67 × 83 × 105 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "55 × 45 × 45 cm, 12 cm tjock"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "74 × 55 cm, 12 cm tjockt"
+   },
+   {
+    "etikett": "Armstödshöjd",
+    "varde": "51 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "10 kg"
+   }
+  ]
+ },
+ "89c89322": {
+  "kicker": "Armlös snurrfåtölj",
+  "rubrik": "Hela bredden är sittyta",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "70 × 90 × 70 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "70 × 59 × 41 cm"
+   },
+   {
+    "etikett": "Sittdyna",
+    "varde": "35 cm tjock"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "70 × 38 cm, 30 cm tjockt"
+   },
+   {
+    "etikett": "Sockel",
+    "varde": "61 × 61 × 5,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "3dab61f0": {
+  "kicker": "Reclinerfåtölj i konstläder",
+  "rubrik": "Fotpallen står på egen fot",
+  "rader": [
+   {
+    "etikett": "Fåtölj",
+    "varde": "78 × 67 × 98 cm"
+   },
+   {
+    "etikett": "Fotpall",
+    "varde": "43 × 38 × 41,5 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "52 × 52 cm"
+   },
+   {
+    "etikett": "Fotplattan",
+    "varde": "60 cm"
+   },
+   {
+    "etikett": "Maxlast stol",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Maxlast fotpall",
+    "varde": "100 kg"
+   }
+  ]
+ },
+ "eb400961": {
+  "kicker": "Fåtölj i konstläder",
+  "rubrik": "Medar i stället för bakben",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "80 × 79 × 84 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "64 × 53 × 47 cm"
+   },
+   {
+    "etikett": "Sittdyna",
+    "varde": "22 cm tjock"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "64 × 47 cm, ryggdyna 20 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "19,5 kg"
+   }
+  ]
+ },
+ "2823c605": {
+  "kicker": "Reclinerfåtölj med snurrfot",
+  "rubrik": "Bas i böjt trä",
+  "rader": [
+   {
+    "etikett": "Mått upprätt",
+    "varde": "76 × 85 × 104 cm"
+   },
+   {
+    "etikett": "Fullt fälld",
+    "varde": "76 × 117 × 89 cm"
+   },
+   {
+    "etikett": "Fotpall",
+    "varde": "48 × 43 × 38 cm"
+   },
+   {
+    "etikett": "Fritt bakom",
+    "varde": "80 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "150 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "26 kg"
+   }
+  ]
+ }
+}

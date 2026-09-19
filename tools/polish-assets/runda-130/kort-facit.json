@@ -1,0 +1,158 @@
+{
+ "65e3c24f": {
+  "kicker": "Tre skärmar – 144 cm",
+  "rubrik": "Tre skärmar och en rund hylla",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø37 × 144 cm (bredd × höjd)"
+   },
+   {
+    "etikett": "Skärmar",
+    "varde": "Tre, i konstrotting"
+   },
+   {
+    "etikett": "Hylla",
+    "varde": "Rund, fastsatt mellan skärmarna"
+   },
+   {
+    "etikett": "Ljusstyrka",
+    "varde": "15 lm"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   }
+  ]
+ },
+ "4e23a904": {
+  "kicker": "Bågform – 178 cm",
+  "rubrik": "En skärm hängande i en båge",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "44 × 32 × 178 cm (djup × bredd × höjd)"
+   },
+   {
+    "etikett": "Fot",
+    "varde": "28 × 28 cm, kvadratisk stålplatta"
+   },
+   {
+    "etikett": "Ljusstyrka",
+    "varde": "15 lm"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   },
+   {
+    "etikett": "Kapslingsklass",
+    "varde": "IP44 – stänkskyddad"
+   }
+  ]
+ },
+ "66a26135": {
+  "kicker": "Pelare – 77 cm",
+  "rubrik": "Vriden flätning kring vit skärm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "22 × 22 × 77 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lysdioder",
+    "varde": "25 stycken"
+   },
+   {
+    "etikett": "Ljusstyrka",
+    "varde": "15 lm"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   },
+   {
+    "etikett": "Montering",
+    "varde": "Behövs inte"
+   }
+  ]
+ },
+ "5ffb91a2": {
+  "kicker": "Skuggmönster – 130 cm",
+  "rubrik": "Skärm av stående spjälor",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø34 × 130 cm (bredd × höjd)"
+   },
+   {
+    "etikett": "Ljusstyrka",
+    "varde": "15 lm"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   },
+   {
+    "etikett": "Livslängd",
+    "varde": "20 000 timmar för lysdioden"
+   },
+   {
+    "etikett": "Kapslingsklass",
+    "varde": "IP44 – stänkskyddad"
+   }
+  ]
+ },
+ "ef0c374b": {
+  "kicker": "2-pack – 45 och 35 cm",
+  "rubrik": "Två lyktor i olika storlek",
+  "rader": [
+   {
+    "etikett": "Större lyktan",
+    "varde": "Ø45 × 45 cm"
+   },
+   {
+    "etikett": "Mindre lyktan",
+    "varde": "Ø35 × 35 cm"
+   },
+   {
+    "etikett": "Lysdioder",
+    "varde": "25 stycken, riktade nedåt"
+   },
+   {
+    "etikett": "Färgtemperatur",
+    "varde": "3500 K"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   }
+  ]
+ },
+ "a8cf27cd": {
+  "kicker": "Brun lykta – 61 cm",
+  "rubrik": "Avsmalnande, lindad lina",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø21,5 × 61 cm (bredd × höjd)"
+   },
+   {
+    "etikett": "Effekt",
+    "varde": "0,8 W"
+   },
+   {
+    "etikett": "Laddtid",
+    "varde": "6 timmar i sol"
+   },
+   {
+    "etikett": "Lystid",
+    "varde": "8 timmar på full laddning"
+   },
+   {
+    "etikett": "Ljusfärg",
+    "varde": "Varmt, gulaktigt"
+   }
+  ]
+ }
+}

@@ -1,0 +1,17 @@
+{
+  "matt": "2026-09-13, products/search filter visible:false, 5 sidor / 500 rader, 11 av 11 funna, saknade: []",
+  "regel": "Fullstandiga id far ALDRIG skrivas av ur minnet (oppen anmarkning #536). De har ar matta, inte kom-ihagda.",
+  "produkter": [
+    {"p8": "05c91630", "id": "05c91630-4b34-441d-b540-66338d44e495", "slug": "katzenbaum-katzenkratzbaum-katzenspielturm-katzen-kletterbaum"},
+    {"p8": "1467588a", "id": "1467588a-3a19-40fa-bea7-5b7c57265d47", "slug": "kratzbaum-eine-plattform-hangender-spielball-sisal"},
+    {"p8": "27b607dc", "id": "27b607dc-0d9d-4f7f-9a89-701a88f6038f", "slug": "kratzbaum-inkl-spielzeug-38-cm-x-38-cm-x-80-cm-beige-natur"},
+    {"p8": "3a96740e", "id": "3a96740e-4eb0-405c-8019-c9588a072e0f", "slug": "kratzbaum-mit-katzenhohle-hangematte-xxl-katzenbaum-kletterbaum"},
+    {"p8": "3addfbf8", "id": "3addfbf8-c473-4655-a9c4-9ab9b0be7b59", "slug": "kratzbaum-katzenbaum-inkl-spielzeug-und-katzenbett-60-cm-x-30-cm-x"},
+    {"p8": "4faf9f4c", "id": "4faf9f4c-36df-49eb-950b-5c18c3a37f8d", "slug": "kratzbaum-inkl-katzenhohle-katzenbett-katzenhangematte-und"},
+    {"p8": "8d074911", "id": "8d074911-217e-473f-885e-3aefde26a1dd", "slug": "wandmontiertes-kratzbaum-set-sisalkratzflachen-4-teile-fur-1-3"},
+    {"p8": "90573e36", "id": "90573e36-520b-46a5-87de-3f8e805a7ae8", "slug": "katzenbaum-hohle-hangematte-verstellbare-hohe-kratzbaum-mit"},
+    {"p8": "a4d8feca", "id": "a4d8feca-2bd2-4414-89a1-d2cad766cac5", "slug": "katzenbaum-mit-viel-platz-pluschbezug-sisal-oberflache-35-x-60h"},
+    {"p8": "b04b5375", "id": "b04b5375-8262-4c9e-9137-551e9dff58b7", "slug": "kletterstufen-kletterwand-katzentreppe-4-tlg-set-mit-kratzbaum"},
+    {"p8": "b813d037", "id": "b813d037-82d9-4f5e-b24f-ae7bd8d57a1f", "slug": "katzenbaum-4-stock-katzenhohle-katzenhaus-mit-spielballen-sitzstange"}
+  ]
+}

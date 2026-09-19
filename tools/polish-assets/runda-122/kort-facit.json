@@ -1,0 +1,106 @@
+{
+ "6490e360": {
+  "kicker": "Moppvagn 73 cm",
+  "rubrik": "Två hinkar och press",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "73 × 45 × 92 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkarnas mått",
+    "varde": "37,5 × 35 × 31,5 cm styck, två stycken"
+   },
+   {
+    "etikett": "Pressens mått",
+    "varde": "26,5 × 20,5 × 56,5 cm"
+   },
+   {
+    "etikett": "Hjul",
+    "varde": "fyra stycken"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "9,7 kg"
+   }
+  ]
+ },
+ "0cbffcd9": {
+  "kicker": "Städvagn 111 cm, grå ram",
+  "rubrik": "Två hinkar, press och säck",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "111 × 63,3 × 103 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkarnas volym",
+    "varde": "18 liter styck, två stycken"
+   },
+   {
+    "etikett": "Backens mått",
+    "varde": "49,6 × 32,4 × 12 cm"
+   },
+   {
+    "etikett": "Sopsäckens mått",
+    "varde": "69 × 37 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22,2 kg"
+   }
+  ]
+ },
+ "740fa6d0": {
+  "kicker": "Städvagn 111 cm, svart ram",
+  "rubrik": "Två hinkar, press och säck",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "111 × 63,3 × 103 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkarnas volym",
+    "varde": "18 liter styck, två stycken"
+   },
+   {
+    "etikett": "Backens mått",
+    "varde": "49,6 × 32,4 × 12 cm"
+   },
+   {
+    "etikett": "Sopsäckens mått",
+    "varde": "69 × 37 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22,2 kg"
+   }
+  ]
+ },
+ "832f9eec": {
+  "kicker": "Städvagn 93 cm",
+  "rubrik": "Fyra hinkar och sopsäck",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "93 × 80 × 97 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Stora hinkar",
+    "varde": "18 liter styck, två stycken"
+   },
+   {
+    "etikett": "Små hinkar",
+    "varde": "6 liter styck, två stycken"
+   },
+   {
+    "etikett": "Sopsäckens mått",
+    "varde": "81 × 44 cm"
+   },
+   {
+    "etikett": "Säckens öppning",
+    "varde": "43 × 28 cm"
+   }
+  ]
+ }
+}

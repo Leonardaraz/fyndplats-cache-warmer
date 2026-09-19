@@ -1,0 +1,254 @@
+[
+ [
+  "72051417_spec",
+  "a165b178_spec",
+  "5f6592ad_spec",
+  "20c0942e_spec",
+  "8bdba748_spec",
+  "0f5e3fea_spec",
+  "6a419d8b_spec",
+  "95a9d7cc_spec"
+ ],
+ {
+  "72051417": {
+   "kicker": "Garagetält, 120 × 179 cm",
+   "rubrik": "Ljusgrå duk på galvaniserad stomme",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "120 × 179 × 165 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "2,1 m²"
+    },
+    {
+     "etikett": "Takfotshöjd",
+     "varde": "134 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "106 × 126 cm"
+    },
+    {
+     "etikett": "Färg",
+     "varde": "ljusgrå"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "14 kg"
+    }
+   ]
+  },
+  "a165b178": {
+   "kicker": "Garagetält, 120 × 179 cm",
+   "rubrik": "Mörkgrå duk och sadeltak",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "120 × 179 × 165 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "2,1 m²"
+    },
+    {
+     "etikett": "Takfotshöjd",
+     "varde": "134 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "106 × 126 cm"
+    },
+    {
+     "etikett": "Färg",
+     "varde": "mörkgrå"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "14 kg"
+    }
+   ]
+  },
+  "5f6592ad": {
+   "kicker": "Garagetält, 162 × 221,5 cm",
+   "rubrik": "Dörren rullas upp i toppen",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "162 × 221,5 × 163 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "3,6 m²"
+    },
+    {
+     "etikett": "Invändigt",
+     "varde": "152 × 212 × 160 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "130 × 126 cm, upprullbar"
+    },
+    {
+     "etikett": "Snölast",
+     "varde": "10 kg/m²"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "17 kg"
+    }
+   ]
+  },
+  "20c0942e": {
+   "kicker": "Garagetält, 162 × 221,5 cm",
+   "rubrik": "Ljus duk, mörka innerväggar",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "162 × 221,5 × 163 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "3,6 m²"
+    },
+    {
+     "etikett": "Invändigt",
+     "varde": "152 × 212 × 160 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "130 × 126 cm, upprullbar"
+    },
+    {
+     "etikett": "Snölast",
+     "varde": "10 kg/m²"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "17 kg"
+    }
+   ]
+  },
+  "8bdba748": {
+   "kicker": "Cykelgarage, 245 cm brett",
+   "rubrik": "Bågformat tak, 120 cm djupt",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "245 × 120 × 200 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "2,9 m²"
+    },
+    {
+     "etikett": "Invändigt",
+     "varde": "240 × 115 × 198 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "157 × 160 cm, upprullbar"
+    },
+    {
+     "etikett": "Tak",
+     "varde": "bågformat"
+    },
+    {
+     "etikett": "Ingår",
+     "varde": "tält och monteringsanvisning"
+    }
+   ]
+  },
+  "0f5e3fea": {
+   "kicker": "Garagetält, 190 × 230 cm",
+   "rubrik": "Dörr 147 × 185 cm — gå in stående",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "190 × 230 × 220 cm"
+    },
+    {
+     "etikett": "Grundyta",
+     "varde": "4,4 m²"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "147 × 185 cm, upprullbar"
+    },
+    {
+     "etikett": "Bakre ventil",
+     "varde": "33 × 36 cm"
+    },
+    {
+     "etikett": "Snölast",
+     "varde": "5 kg/m²"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "18,5 kg"
+    }
+   ]
+  },
+  "6a419d8b": {
+   "kicker": "Garagetält, 300 × 300 cm",
+   "rubrik": "Extra stag i stommen",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "300 × 300 × 210 cm"
+    },
+    {
+     "etikett": "Golvyta",
+     "varde": "9 m²"
+    },
+    {
+     "etikett": "Invändigt",
+     "varde": "290 × 290 × 197 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "166 × 172 cm, upprullbar"
+    },
+    {
+     "etikett": "Stomme",
+     "varde": "galvaniserat stål med extra stag"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "23 kg"
+    }
+   ]
+  },
+  "95a9d7cc": {
+   "kicker": "Förrådstält, 300 × 447 cm",
+   "rubrik": "Nätfönster på sidan",
+   "rader": [
+    {
+     "etikett": "Yttermått",
+     "varde": "300 × 447 × 255 cm"
+    },
+    {
+     "etikett": "Golvyta",
+     "varde": "13,4 m²"
+    },
+    {
+     "etikett": "Takfotshöjd",
+     "varde": "200 cm"
+    },
+    {
+     "etikett": "Dörr",
+     "varde": "237 × 190 cm, upprullbar"
+    },
+    {
+     "etikett": "Fönster",
+     "varde": "47 × 56 cm, nät"
+    },
+    {
+     "etikett": "Vikt med emballage",
+     "varde": "54,5 kg"
+    }
+   ]
+  }
+ }
+]

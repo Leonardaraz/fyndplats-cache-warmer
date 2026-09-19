@@ -1,0 +1,32 @@
+{
+ "ea013fde": {
+  "kicker": "Sparkcykel barn, 135 cm",
+  "rubrik": "Svart ram, 16 tum fram och 12 tum bak",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "135 × 58 × 92–100 cm (L × B × styrhöjd)"
+   },
+   {
+    "etikett": "Hjul",
+    "varde": "16 tum fram och 12 tum bak, luftdäck på ekerfälg i silver"
+   },
+   {
+    "etikett": "Bromsar",
+    "varde": "V-broms fram och bak, manövrerade från styret"
+   },
+   {
+    "etikett": "Fotplatta",
+    "varde": "36 × 12 cm, 11 cm över marken"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "100 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "9,8 kg"
+   }
+  ]
+ }
+}

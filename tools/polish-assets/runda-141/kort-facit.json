@@ -1,0 +1,184 @@
+{
+ "8de3c3ef": {
+  "kicker": "Träningsbänk 115 cm, svart och blå",
+  "rubrik": "Vadderat rullpar längst fram",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "115 × 32,5 × 41,5–105,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "32,5 × 22 × 75 cm"
+   },
+   {
+    "etikett": "Sittdyna",
+    "varde": "36 × 27 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "7 vinklar"
+   },
+   {
+    "etikett": "Maxlast användare",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "7b818c3b": {
+  "kicker": "Träningsbänk med ställning",
+  "rubrik": "Bänk och ställ står fritt från varandra",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "140 × 73 cm, ställets höjd 98–122 cm"
+   },
+   {
+    "etikett": "Hopfällt",
+    "varde": "73 × 55 × 134 cm"
+   },
+   {
+    "etikett": "Bänkdyna",
+    "varde": "110 × 26 cm, 43 cm över golvet"
+   },
+   {
+    "etikett": "Ställets höjd",
+    "varde": "8 lägen mellan 98 och 122 cm"
+   },
+   {
+    "etikett": "Bänkens kapacitet",
+    "varde": "150 kg"
+   }
+  ]
+ },
+ "8a0e05f4": {
+  "kicker": "Träningsbänk 146 cm, tre lutningar",
+  "rubrik": "Lårkuddar upptill och rullpar nedtill",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "146 × 64 × 73,5–85 cm (L × B × H)"
+   },
+   {
+    "etikett": "Ryggdyna",
+    "varde": "98 × 32 cm, 5 cm tjock"
+   },
+   {
+    "etikett": "Bukdyna",
+    "varde": "30 × 16 cm, 7,5 cm tjock"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "3 lägen: plant, 22,5 grader ned och 45 grader ned"
+   },
+   {
+    "etikett": "Maxlast användare",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "b4961e6f": {
+  "kicker": "Hopfällbar träningsbänk, svart",
+  "rubrik": "Armarna svänger ut åt sidorna",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "135 × 55 × 107 cm (L × B × H)"
+   },
+   {
+    "etikett": "Bredd utfälld",
+    "varde": "130 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "32 × 29 × 42,5 cm"
+   },
+   {
+    "etikett": "Armar",
+    "varde": "4 lägen, 3 motståndsnivåer"
+   },
+   {
+    "etikett": "Maxlast användare",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "83b2cf8b": {
+  "kicker": "Träningsbänk 175 cm med ställ",
+  "rubrik": "Pulpet framtill, ställ bakom, rullar vid foten",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "175 × 139 × 127 cm (L × B × H)"
+   },
+   {
+    "etikett": "Ryggdyna",
+    "varde": "74 × 25 cm"
+   },
+   {
+    "etikett": "Bicepspulpet",
+    "varde": "49 × 27 cm, 74–86 cm över golvet"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "3 lägen"
+   },
+   {
+    "etikett": "Maxlast användare",
+    "varde": "100 kg"
+   }
+  ]
+ },
+ "a4bbe667": {
+  "kicker": "Träningsbänk 180 cm, vit ram",
+  "rubrik": "Vit stålram med svarta dynor",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "180 × 134 × 113–136 cm (L × B × H)"
+   },
+   {
+    "etikett": "Ryggdyna",
+    "varde": "76 × 25 cm"
+   },
+   {
+    "etikett": "Armstödsdyna",
+    "varde": "24 × 40 cm"
+   },
+   {
+    "etikett": "Skivstångsställ",
+    "varde": "6 höjder mellan 107,5 och 130 cm, 60 cm brett"
+   },
+   {
+    "etikett": "Maxlast användare",
+    "varde": "150 kg"
+   }
+  ]
+ },
+ "18b94738": {
+  "kicker": "Träningsbänk i trä",
+  "rubrik": "Öppet fack i trästommen",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "110 × 35 × 43–107 cm (L × B × H)"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "33 × 33 cm"
+   },
+   {
+    "etikett": "Ryggdyna",
+    "varde": "67 × 33 cm"
+   },
+   {
+    "etikett": "Fack",
+    "varde": "27 × 27 cm, fri höjd 25 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ }
+}

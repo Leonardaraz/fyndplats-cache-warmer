@@ -1,0 +1,170 @@
+# Hämtade LIVE-sidor från Steg 14. Re-fetchbara, ~1,2 MB per runda, och de
+# bevisar ingenting i efterhand — grinden skriver ut sitt utfall.
+#
+# ☠️ Regeln ligger HÄR och inte i rotens .gitignore med flit. Rotfiler är
+# UTANFÖR byggfiltrets undantag (`':!docs' ':!tools' ':!*.md'`), så en rad i
+# rotens .gitignore hade kostat ett Vercel-bygge — uppmätt 2026-09-05:
+# dpl_55GKnt9rztTGCywNaXUgVcR79GS4, READY på 41 sekunder, för en push som i
+# övrigt bara rörde docs/ och tools/. Den här filen ligger under tools/ och
+# kostar noll.
+*/live/
+
+# Kontaktark och nedladdade leverantörsbilder (Steg 4/9). Rotens .gitignore
+# täcker `kontaktark-*.jpg` men INTE `kontaktark.jpg` utan suffix — och en rad i
+# roten kostar ett bygge, så mönstret kompletteras här i stället.
+*/kontaktark.jpg
+*/rawbilder/
+
+# Kortbyggets mellanlägg (runda 73). `cards/` är cardkits PNG-renderingar —
+# 34 MB på en runda — och `jpg/` är JPEG:erna innan de kopieras till den
+# SPÅRADE `kort/`. Båda går att återskapa med `python3 kort.py`.
+*/cards/
+*/jpg/
+
+# Uppmjukade hjältebilder som kortbygget skapar när ett kort spränger 215 kB.
+# Härledda ur `rawbilder/`, som redan är ignorerad.
+*-mjuk.jpg
+
+# Per-produkt-remsor byggda för att skriva alt-texter. Steg 4:s bevis är
+# `kontaktark.jpg` — de här är bara ett sätt att titta på samma bilder.
+*/ark-*.jpg
+
+# Färgmätningens beskurna rutor — mellanled, talet bor i farg.json
+*/beskuret/
+
+# Runda 79:s jämförelseark — mellanled, domen står i STEG1.md
+*/ark-dubblett.jpg
+
+# Kortbyggets valda hjältebilder (runda 88). Kopior ur `rawbilder/`, som
+# redan är ignorerad — `kortbygge.kalla()` letar efter `<id>-1.jpg`, så en
+# runda som väljer en annan bild lägger sin kopia här.
+*/kortkalla/
+
+# Steg 4:s förstoringar och jämförelseark (runda 89). Härledda ur
+# `rawbilder/`, som redan är ignorerad, och DOMEN står i STEG2-5.md — bilden
+# bevisar ingenting i efterhand som texten inte redan säger. Samma skäl som
+# `*/ark-*.jpg` ovan.
+*/zoom-*.jpg
+*/jamfor-*.jpg
+*/kort-hjaltar.jpg
+*/kort-prov.jpg
+
+# Runda 90:s referensbilder från PUBLICERADE sidor. Hämtade ur wixstatic
+# för dubblettgrinden och åter-hämtningsbara; domen står i STEG1.md.
+*/publbilder/
+*/dubblettpar.jpg
+*/modell-*.jpg
+*/hornsvep.jpg
+
+# Runda 104:s förbehandlade panelfoton. Härledda ur `rawbilder/` av
+# `bygg-panelfoton.py`, som hämtar hjältebilden ur butiken på media-id — alltså
+# återskapbara med ett kommando, och 3,7 MB som inte bevisar något i efterhand.
+# Det FÄRDIGA kortet ligger spårat i `kort/`, som förr.
+*/panelfoton/
+
+# Runda 105:s jämförelse av modell C:s två hjältebilder — mellanled för att
+# avgöra om kortets rubrik "med lamphållare" bärs av FOTOT. Domen står i
+# LAGE.md; bilden är åter-hämtningsbar ur `rawbilder/`.
+*/C-lampa.jpg
+*/rawbilder/
+*/kontaktark-kort.jpg
+*/kontroll-kort.jpg
+
+# Runda 107:s granskningsark — mellanled för att välja kortrubriker och avgöra
+# om leverantörens måttritning stämmer. Domen står i LAGE.md, och bilderna är
+# återskapbara ur `rawbilder/`. Samma skäl som `*/zoom-*.jpg`.
+*/granska-*.jpg
+*/hjaltar.jpg
+
+# Samma mellanlägg som `*/cards/` och `*/jpg/`, men i MODULENS egen katalog:
+# `kortbygge.bygg` skriver relativt cwd, och en runda som kör `python3 kort.py`
+# från `tools/polish-assets/` lägger dem här i stället för i rundans mapp.
+cards/
+jpg/
+
+# Runda 116:s bildcache. `hjaltar/` är hela familjens 253 bilder i 320 px (8 MB)
+# och `stora/` är samma bilder i granskningsstorlek — båda hämtas om av
+# `familj.py` på ett kommando, och DOMEN står i STEG1.md med avstånd och
+# positioner. Jämförelsearken (`kontroll-*.jpg`) är samma sak: mellanled för
+# ögat, inte bevis i efterhand. Samma skäl som `*/zoom-*.jpg` och `*/publbilder/`.
+*/hjaltar/
+*/stora/
+*/kontroll-*.jpg
+*/kluster.jpg
+__pycache__/
+*/gul/
+runda-120/rawbilder/
+
+# Kortbyggets hjältebilder i kortupplösning (1600 px), hämtade ur Wix av
+# `kortrunda.hamta_hjaltar`. Egen mapp med flit: rundornas `rawbilder/` bär
+# Steg 4:s GRANSKNINGSbilder, och runda 121:s ligger i 760 px — att återanvända
+# namnet hade antingen byggt kortet på en uppförstorad bild eller skrivit över
+# bildgranskningens underlag. Åter-hämtningsbara ur butiken, och kortet självt
+# ligger spårat i `kort/`.
+*/kortfoto/
+
+# Runda 133:s bytegrind (uppgift #499). `bytebilder/` är familjens 103 bilder i
+# ORIGINAL — 133 MB, och de hämtas om av `bytegrind.py` på ett kommando. Domen
+# står i STEG1-5.md med md5 och byte-storlek, alltså är bevisen kvar även utan
+# filerna. Samma skäl som `*/rawbilder/` och `*/hjaltar/`.
+*/bytebilder/
+
+# Granskningsarken som ögat behövde en gång: logotypkollen på övre vänstra
+# hörnet, måttritningarna i full upplösning, och räkneuppslagen där öppningarna
+# räknades. Alla tre är härledda ur `bytebilder/` av kod som ligger kvar, och
+# VAD de visade står i STEG1-5.md. Samma skäl som `*/kontroll-*.jpg`.
+*/logokoll.jpg
+*/mattritningar.jpg
+*/rakna-*.jpg
+*/kolla-*.jpg
+*/mattritningar-stora.jpg
+# Alt-textunderlaget: hela galleriet per produkt, varje ruta numrerad, så
+# att alt-texten beskriver DEN bild den sitter på. Runda 133 byggde det
+# vid Steg 9 och det fällde tre fel i rundans egen facit — vad det visade
+# står i STEG1-5.md, och arket självt är ett kommando bort.
+*/altark-*.jpg
+
+# `kortbygge.mjuka_upp`s mellanled: fotot med oskärpa pålagd, skrivet bredvid
+# rundans filer. Härlett ur `kortfoto/` av MJUKA-talen i rundans `kort.py`,
+# alltså återskapbart på ett kommando. Samma skäl som `*/kortfoto/`.
+*/*-1-mjuk.jpg
+
+# Dubblettutredningens nedladdade bilder + kontaktark. Hämtade FRÅN Wix för att
+# md5-jämföras; 7,7 MB som inte bevisar något efter att domen fallit, och
+# återskapbara ur produkternas galleri när som helst. Kontaktarket är dessutom
+# bara en montering av dem. Samma skäl som `*/kortfoto/`.
+*/dubblett/
+runda-135/raw/
+runda-135/ark-*.jpg
+runda-135/zoom-*.jpg
+
+# Runda 136:s bildmellanlägg. `raw/` är galleriet i 900 px (granskningsstorlek)
+# och `orig/` är de otransformerade källorna till de fyra bilder som beskärs —
+# båda hämtas om av `bilder-hamta.py` / `bildfix.py` på ett kommando, och domen
+# står i STEG4.md med mätta sjokgränser. `faith-*.jpg` är samma sak: grinden är
+# för ÖGAT före uppladdning, inte ett bevis i efterhand. Samma skäl som
+# `*/kontroll-*.jpg` och `*/ark-*.jpg`.
+#
+# ☠️ `fix/` ligger MEDVETET KVAR I GRENEN. Wix hämtar bilden från
+#    raw.githubusercontent.com, så en ignorerad `fix/` hade gett en uppladdning
+#    som rapporteras lyckad och faller — exakt uppgift #393.
+*/raw/
+*/orig/
+*/faith-*.jpg
+
+# Runda 140: `detalj/` är de enskilda bildernas Steg 4-granskning (position 3
+# och 4 var för sig, en per produkt) och `pos3/` är samma sak för
+# galleriplatsen kortet tar. 3 MB mellanled för ögat — det som BEVISAS av dem
+# står i STEG4.md, och bilderna själva är återskapbara ur `rawbilder/`.
+# ⚠️ `fix/` ligger MEDVETET kvar spårad: den bär den KAPADE filen som faktiskt
+#    laddades upp till Wix, alltså ett original och inte ett mellanled.
+*/detalj/
+*/pos3/
+
+# Runda 141:s Steg 4-ark. `steg4/` är 25 nedladdade bilder plus de kontakt-
+# och hörnark som byggs av dem — 5,5 MB härlett ur `bilder.json` av
+# `steg4.py`, som ÄR spårad. DOMEN står i STEG4.md; arken är mellanled för
+# ögat. Samma skäl som `*/rawbilder/` och `*/zoom-*.jpg`, och samma villkor:
+# mätningen får aldrig vara det som ignoreras, bara dess bild.
+*/steg4/
+*/steg4-*.jpg

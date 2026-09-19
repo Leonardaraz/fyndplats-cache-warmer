@@ -1,0 +1,184 @@
+{
+ "2166c50f": {
+  "kicker": "Tio steg, grå – 154 cm",
+  "rubrik": "Fyra gula halklister på tio steg",
+  "rader": [
+   {
+    "etikett": "Utfälld",
+    "varde": "154 × 40 × 7,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "79 × 40 × 13 cm (L × B × H)"
+   },
+   {
+    "etikett": "Steg",
+    "varde": "10"
+   },
+   {
+    "etikett": "Lasthöjd",
+    "varde": "82 cm"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "25 kg"
+   }
+  ]
+ },
+ "9a513e9a": {
+  "kicker": "Tio steg, brun – 154 cm",
+  "rubrik": "Samma trappa i brunt",
+  "rader": [
+   {
+    "etikett": "Utfälld",
+    "varde": "154 × 40 × 7,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "79 × 40 × 13 cm (L × B × H)"
+   },
+   {
+    "etikett": "Steg",
+    "varde": "10"
+   },
+   {
+    "etikett": "Lasthöjd",
+    "varde": "82 cm"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "25 kg"
+   }
+  ]
+ },
+ "c2be0f30": {
+  "kicker": "Tio steg, svart – 154 cm",
+  "rubrik": "Samma trappa i svart",
+  "rader": [
+   {
+    "etikett": "Utfälld",
+    "varde": "154 × 40 × 7,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "79 × 40 × 13 cm (L × B × H)"
+   },
+   {
+    "etikett": "Steg",
+    "varde": "10"
+   },
+   {
+    "etikett": "Halklister",
+    "varde": "4 st, 22,8 × 5 cm"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "25 kg"
+   }
+  ]
+ },
+ "ed1ea8dc": {
+  "kicker": "Fyra höjder – upp till 47,5 cm",
+  "rubrik": "Fururam med matta över hela ytan",
+  "rader": [
+   {
+    "etikett": "Utfälld",
+    "varde": "83,5 × 35 × 47,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "80 × 35 × 5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Höjdlägen",
+    "varde": "24/32,5/40/47,5 cm"
+   },
+   {
+    "etikett": "Lutning",
+    "varde": "15/22/28/35°"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "15 kg"
+   }
+  ]
+ },
+ "15e4c7a7": {
+  "kicker": "Fast lutning – 45 cm",
+  "rubrik": "Halklister var tionde centimeter",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "90 × 40 × 45 cm (L × B × H)"
+   },
+   {
+    "etikett": "Material",
+    "varde": "Lamellträ, gran, polyester"
+   },
+   {
+    "etikett": "Färg",
+    "varde": "Natur och grå"
+   },
+   {
+    "etikett": "Avstånd lister",
+    "varde": "10 cm"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "40 kg"
+   }
+  ]
+ },
+ "935cd17b": {
+  "kicker": "Fyra lägen – upp till 61 cm",
+  "rubrik": "Furusidor och mörk gångyta",
+  "rader": [
+   {
+    "etikett": "Uppställd",
+    "varde": "90 × 40 × 61 cm (L × B × H)"
+   },
+   {
+    "etikett": "Hopfälld",
+    "varde": "100 × 40 × 7 cm (L × B × H)"
+   },
+   {
+    "etikett": "Höjdlägen",
+    "varde": "26/39/50/61 cm"
+   },
+   {
+    "etikett": "Material",
+    "varde": "Furu, polyester"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "40 kg"
+   }
+  ]
+ },
+ "1b64abde": {
+  "kicker": "Plattform högst upp – 35,5 cm",
+  "rubrik": "Vit ram med plan yta att stanna på",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "125 × 40 × 35,5 cm (L × B × H)"
+   },
+   {
+    "etikett": "Ramplutning",
+    "varde": "89 × 40 cm (L × B)"
+   },
+   {
+    "etikett": "Plattform",
+    "varde": "29,5 × 30 cm (L × B)"
+   },
+   {
+    "etikett": "Material",
+    "varde": "Furu, polyester"
+   },
+   {
+    "etikett": "Max last",
+    "varde": "50 kg"
+   }
+  ]
+ }
+}

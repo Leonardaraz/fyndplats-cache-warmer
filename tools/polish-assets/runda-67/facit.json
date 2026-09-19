@@ -1,0 +1,74 @@
+{
+ "04feb176": {
+  "slug": "reclinerfatolj-svart-med-fotpall",
+  "sku": "FP-reclinerfatolj-svart",
+  "name": "Reclinerfåtölj med fotpall i konstläder, 130° och 360° – svart",
+  "title": "Reclinerfåtölj med fotpall, svart | Fyndplats",
+  "meta": "Reclinerfåtölj i svart konstläder med lös fotpall, fjäderkärna i sitsen och 360° snurrfot. Ryggen fälls steglöst till 130°. Bär 150 kg.",
+  "synligLangd": 3205,
+  "synligHash": 260856058
+ },
+ "6a4e92c4": {
+  "slug": "reclinerfatolj-graddvit-med-fotpall",
+  "sku": "FP-reclinerfatolj-graddvit",
+  "name": "Reclinerfåtölj med fotpall i konstläder, 130° och 360° – gräddvit",
+  "title": "Reclinerfåtölj med fotpall, gräddvit | Fyndplats",
+  "meta": "Reclinerfåtölj i gräddvit konstläder med lös fotpall, fjäderkärna i sitsen och 360° snurrfot. Ryggen fälls steglöst till 130°. Bär 150 kg.",
+  "synligLangd": 3213,
+  "synligHash": 940220236
+ },
+ "ceae31c1": {
+  "slug": "tv-fatolj-gra-med-inbyggt-fotstod",
+  "sku": "FP-tv-fatolj-gra-inbyggt",
+  "name": "Tv-fåtölj i chenille med inbyggt fotstöd och gungning – grå",
+  "title": "Tv-fåtölj i chenille med fotstöd, grå | Fyndplats",
+  "meta": "Tv-fåtölj i grå chenille som gungar och snurrar. Spaken på sidan fäller ryggen till 145° och kör ut fotstödet. Två sidofickor, 360° snurr. Bär 150 kg.",
+  "synligLangd": 3265,
+  "synligHash": 14059188
+ },
+ "1b39b14e": {
+  "slug": "tv-fatolj-beige-med-inbyggt-fotstod",
+  "sku": "FP-tv-fatolj-beige-inbyggt",
+  "name": "Tv-fåtölj i chenille med inbyggt fotstöd och gungning – beige",
+  "title": "Tv-fåtölj i chenille med fotstöd, beige | Fyndplats",
+  "meta": "Tv-fåtölj i beige chenille som gungar och snurrar. Spaken på sidan fäller ryggen till 145° och kör ut fotstödet. Två sidofickor, 360° snurr. Bär 150 kg.",
+  "synligLangd": 3270,
+  "synligHash": 111171528
+ },
+ "7f437bac": {
+  "slug": "vilfatolj-morkgra-med-fotpall",
+  "sku": "FP-vilfatolj-morkgra",
+  "name": "Vilfåtölj med fotpall och dolt förvaringsfack, 145° – mörkgrå",
+  "title": "Vilfåtölj med fotpall och förvaring, mörkgrå | Fyndplats",
+  "meta": "Vilfåtölj i mörkgrå konstläder med ryggen fällbar till 145° och 360° snurrfot. Fotpallen har ett dolt fack på 40 × 34 cm under sitsen. Bär 120 kg.",
+  "synligLangd": 2707,
+  "synligHash": 332136628
+ },
+ "87262869": {
+  "slug": "vilfatolj-graddvit-med-fotpall",
+  "sku": "FP-vilfatolj-graddvit",
+  "name": "Vilfåtölj med fotpall och dolt förvaringsfack, 145° – gräddvit",
+  "title": "Vilfåtölj med fotpall och förvaring, gräddvit | Fyndplats",
+  "meta": "Vilfåtölj i gräddvit konstläder med ryggen fällbar till 145° och 360° snurrfot. Fotpallen har ett dolt fack på 40 × 34 cm under sitsen. Bär 120 kg.",
+  "synligLangd": 2711,
+  "synligHash": 191585271
+ },
+ "9794b6df": {
+  "slug": "relaxfatolj-svart-med-fotpall",
+  "sku": "FP-relaxfatolj-svart",
+  "name": "Relaxfåtölj med fotpall i konstläder, bär 160 kg – svart",
+  "title": "Relaxfåtölj med fotpall, 160 kg, svart | Fyndplats",
+  "meta": "Relaxfåtölj i svart konstläder med stålram och fot i böjträ. Ryggen fälls manuellt till 145° och fåtöljen bär 160 kg. Fotpallen är gjord för 20 kg.",
+  "synligLangd": 2693,
+  "synligHash": 261597245
+ },
+ "9946e1eb": {
+  "slug": "relaxfatolj-graddvit-med-fotpall",
+  "sku": "FP-relaxfatolj-graddvit",
+  "name": "Relaxfåtölj med fotpall i konstläder, bär 160 kg – gräddvit",
+  "title": "Relaxfåtölj med fotpall, 160 kg, gräddvit | Fyndplats",
+  "meta": "Relaxfåtölj i gräddvit konstläder med stålram och fot i böjträ. Ryggen fälls manuellt till 145° och fåtöljen bär 160 kg. Fotpallen är gjord för 20 kg.",
+  "synligLangd": 2697,
+  "synligHash": 643716124
+ }
+}

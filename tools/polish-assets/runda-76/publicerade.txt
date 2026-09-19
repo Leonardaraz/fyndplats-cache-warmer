@@ -1,0 +1,53 @@
+# Runda 76, Steg 1 — de 49 PUBLICERADE kontorsstolarna, produktmått (b × d × h cm).
+# Svepet: 5 502 produkter, 2 032 publicerade, avhuggen: false (markören tog slut).
+# 47 av 49 har läsbart mått; två salongs-/arbetsstolar saknar trippel i texten.
+e1a46c56  65 x 67 x 111-119        kontorsstol-utdragbart-fotstod-140-grader
+6d3ae867  67 x 71 x 114-133        kontorsstol-nat-fotstod-135-grader
+494da920  65 x 67 x 111-119        kontorsstol-med-fotstod
+0787ecd5  80 x 67 x 122-130        kontorsstol-konstlader-fotstod-135-grader
+0555469b  70 x 82 x 114-122        kontorsstol-uppblasbart-svankstod-180-kg
+ea56e470  66 x 60 x 113-121        kontorsstol-60-cm-djup-konstlader
+9cf9a28d  75 x 77 x 110-118        kontorsstol-framfallbar-rygg-under-bordet
+19f3239f  80 x 77 x 108-116        kontorsstol-80-cm-bred-stoppade-armstod
+f112ba86  64 x 65 x 118-128        gamingstol-hog-sitthojd
+ca09bab9  69 x 72 x 118-126        kontorsstol-160-kg-pu-lader
+f5379093  63 x 63 x 115,5-123      gamingstol-rosa-lutning-150
+434c8f4c  68,5 x 79 x 117-125      kontorsstol-ljusgra-200-kg
+184290da  68,5 x 79 x 117-125      kontorsstol-gra-200-kg
+ca3bf74e  68,5 x 79 x 117-125      kontorsstol-svart-200-kg
+47bd2db6  63 x 71 x 123-129        kontorsstol-160-graders-rygglage-18-cm
+663b288a  50 x 56 x 80-90          skrivbordsstol-teddyfleece-bjornoron
+18f0433f  66 x 74 x 114-121,5      kontorsstol-brun-mikrofiber-155-grader
+4439afff  65 x 63 x 136-142        gamingstol-med-kaninoron
+c3e0af3f  51 x 69 x 58             knastol-bjork-bla
+052c2a1f  69 x 73 x 112-118        gamingstol-inbyggda-hogtalare-piedestal
+67b14fd7  72,5 x 80 x 110-118      kontorsstol-220-kg-bred-sits
+a1245a61  64 x 67 x 119-127        gamingstol-racing-rosa
+72d1d195  65 x 70 x 111-119        kontorsstol-massage-landvarme-sex-punkter
+734d8f4e  62 x 52 x 122-128        gamingstol-52-cm-djup
+26efb35a  67,5 x 74 x 126-136      gamingstol-med-bred-sits
+437a50ee  65 x 70 x 118,5-128,5    gamingstol-170-grader
+286e5a2e  53 x 43 x 85-93          armlos-skrivbordsstol-ljusbla
+18afa056  52 x 54 x 74-84          snurrstol-bojtra-svart-pu
+163bd142  67 x 74 x 107-115        kontorsstol-teddytyg-fallbar-135
+1476d1ea  50 x 50 x 83-98          arbetsstol-hjul-51-67-cm-avtagbar-rygg
+3f518008  58 x 63 x 105-126        ritstol-fotring-natrygg-55-76-cm
+cc4b4b0d  51 x 65,5 x 82-92        snurrbar-skrivbordsstol
+40988803  80 x 80 x 106-114        kontorsstol-fotstod-sammet
+442b7e5c  65 x 65 x 121-129        gamingstol-med-fotpall
+1d020ddd  54 x 62 x 104-114        kontorsstol-vit-konstlader
+a60466e7  65 x 62 x 116-124        gamingstol-med-fotstod-kattoron
+f13cd415  58 x 61 x 102-119        kontorsstol-mesh
+412de57e  69 x 65 x 107-115        kontorsstol-med-massage-fotstod-ergonomisk
+f5e77397  62 x 67 x 83-93          kontorsstol-bred-sits
+8b9882f8  62 x 64 x 112-120        ergonomisk-kontorsstol-nackstod
+7e730857  (ingen trippel i texten)  arbetsstol-med-hjul-och-rygg
+4fd5d013  (ingen trippel i texten)  arbetsstol-salong-hoj-och-sankbar
+# Runda 75:s egna sju, publicerade i dag:
+75f6c433  65 x 75 x 115-123        kontorsstol-benvit-boucle
+7ab2f8aa  65 x 75 x 115-123        kontorsstol-ljusgra-boucle
+60c803f0  65 x 75 x 115-123        kontorsstol-ljusbrun-boucle
+cc81673d  80 x 80 x 106-114        kontorsstol-graddvit-fotstod
+0945e4dd  80 x 80 x 106-114        kontorsstol-brun-fotstod
+348ee535  67 x 68 x 103-113        snurrstol-gra-fast-fot
+4d83eca6  67 x 68 x 103-113        snurrstol-benvit-fast-fot

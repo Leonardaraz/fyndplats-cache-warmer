@@ -1,0 +1,50 @@
+{
+ "c7bd00b9": {
+  "wix": "c7bd00b9-22b6-4973-b5cb-a85fc19200a0",
+  "variant": "9a405133-a6d3-4d70-8c80-08556af4c2b1",
+  "slug": "klostrad-takspant-ek",
+  "sku": "FP-klostrad-takspant-ek"
+ },
+ "a73a1a1c": {
+  "wix": "a73a1a1c-fe9d-4080-bc29-45a97d000ebd",
+  "variant": "b89497aa-395e-44f2-95e6-dc748181f8b2",
+  "slug": "klostrad-takspant-gratt",
+  "sku": "FP-klostrad-takspant-gratt"
+ },
+ "f5f71f5d": {
+  "wix": "f5f71f5d-9db1-4361-8c2e-8c7fa6c41128",
+  "variant": "0bd3af3a-36b8-470f-886b-74097f7636f9",
+  "slug": "klostrad-90-cm-cremevit",
+  "sku": "FP-klostrad-90-cm-cremevit"
+ },
+ "dd3b541b": {
+  "wix": "dd3b541b-339c-4c12-90f9-0bd2fdaee06b",
+  "variant": "4b8a1ce1-6fd0-4815-8b46-8ffafd7ea553",
+  "slug": "klostrad-90-cm-gratt",
+  "sku": "FP-klostrad-90-cm-gratt"
+ },
+ "f489937f": {
+  "wix": "f489937f-8076-4423-8aec-ea8fa9b6d68c",
+  "variant": "63567503-9299-4ee1-8781-d68d00f5ca51",
+  "slug": "klospelare-91-morkgra",
+  "sku": "FP-klospelare-91-morkgra"
+ },
+ "5616c567": {
+  "wix": "5616c567-5370-410c-b29d-177d1823c29a",
+  "variant": "3edb7d4f-ba1d-4dce-8564-765fbfc13fa9",
+  "slug": "klospelare-91-ljusbrun",
+  "sku": "FP-klospelare-91-ljusbrun"
+ },
+ "1ae60dbc": {
+  "wix": "1ae60dbc-2a66-4211-9bd7-be8323576d26",
+  "variant": "8319fb50-7103-428f-bad4-5324fabd157e",
+  "slug": "kattrappa-66-cm-beige",
+  "sku": "FP-kattrappa-66-cm-beige"
+ },
+ "819bf51c": {
+  "wix": "819bf51c-59b0-454d-b30b-de530a004e85",
+  "variant": "b74f5dee-4fe8-4a8c-8a4e-30c9e04406b1",
+  "slug": "kattrappa-66-cm-ljusgra",
+  "sku": "FP-kattrappa-66-cm-ljusgra"
+ }
+}

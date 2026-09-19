@@ -1,0 +1,415 @@
+# -*- coding: utf-8 -*-
+"""Runda 142 — textgrinden, med självtest åt BÅDA hållen (#505).
+
+☠️ RUNDANS EGNA FÖRBUD, utöver den delade modulen:
+
+  1. **Ingen ÅLDER.** `56cca82a` säger `Geeignet für Jugendliche` medan dess
+     livsstilsbild visar ett barn i sjuårsåldern (STEG4.md). `f0430bc5` säger
+     `Kinder und Jugendliche` där dess egen färgtvilling säger
+     `Jugendlichen und Erwachsenern` — samma vara, två olika målgrupper i
+     leverantörens underlag. Rundan påstår ingen ålder alls: höjden är det
+     som avgör, och den står i spec-tabellen.
+
+  2. **Ingen CERTIFIERING.** Ingenting i underlaget namnger en standard.
+     Ordet "certifierad" utan norm är exakt den ogrundade certifiering som
+     fälldes i runda 54 (#252).
+
+  3. **Fyllningen INGÅR INTE.** Nio av elva har en fot som ska fyllas, och
+     `93073695`:s viktsäck likaså. Att sälja "fylls med 45 kg sand" utan att
+     säga att sanden inte följer med är ett löfte vi inte håller.
+
+  4. **`röd och svart` om `136a4671`:s boll.** Båda specfälten säger det.
+     Zoomen säger vit, röd OCH blå (STEG4.md). Bilden vinner om en SYNLIG
+     egenskap — regel 16.
+
+  5. **Husmärket i TEXTEN.** `HOMCOM` står tryckt på två av säckarna och det
+     rör vi inte i bilden (Leonards regel). Ordet får däremot aldrig nå
+     namn, titel, meta, slug, sökord, SKU eller alt-text.
+
+☠️ SUPERLATIVGRINDEN ÄR MEKANISK, inte en läsning. Ett jämförande påstående
+   inom egen batch går att grinda på tre kodrader (runda 42), och den här
+   rundan har tio tal att jämföra: höjdspann och fotens sandkapacitet.
+"""
+import os
+import re
+import sys
+
+HAR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HAR, ".."))
+sys.path.insert(0, HAR)
+import grindar as G                                              # noqa: E402
+import matt as M                                                 # noqa: E402
+import texter as T                                               # noqa: E402
+import brodtext as B                                             # noqa: E402
+
+
+def _ordvikt(o):
+    """Ordgräns som fungerar på svenska — `\\b` är ASCII-bunden (#324)."""
+    return re.compile(r"(?<![0-9A-Za-zÅÄÖåäöÉéÜü])(?:" + o
+                      + r")(?![0-9A-Za-zÅÄÖåäöÉéÜü])", re.I)
+
+
+FORBJUDET = [
+    (_ordvikt(r"barn|barnet|barnen|ungdom\w*|tonår\w*|\d+\s*års?\s*ålder"),
+     "ÅLDER — rundan påstår ingen ålder, höjden avgör (förbud 1)"),
+    (re.compile(r"fr[åa]n\s+\d+\s*[åa]r|\d+\s*[åa]r\s+och\s+upp[åa]t", re.I),
+     "ÅLDERSGRÄNS — samma skäl (förbud 1)"),
+    (_ordvikt(r"certifierad|certifiering|CE-m[äa]rkt"),
+     "OGRUNDAD CERTIFIERING — inget i underlaget namnger en standard"),
+    # ☠️ VERSALKANSLIG med flit. `EN 957` ar en standard; `En 205
+    #    centimeter hog pelare` ar svenskans obestamda artikel. Under
+    #    re.I ar de samma strang, och grinden fallde en korrekt
+    #    mening. Samma familj som `Gelb` inne i `regelbundet`.
+    (re.compile(r"(?<![0-9A-Za-zÅÄÖåäö])EN[\s-]?\d{3,5}"
+                r"(?![0-9A-Za-zÅÄÖåäö])"),
+     "OGRUNDAD CERTIFIERING — en namngiven standard utan belägg"),
+    (_ordvikt(r"homcom|outsunny|pawhut|aiyaplay|vinsetto|aosom"),
+     "HUSMÄRKE i texten — bilden får bära det, texten aldrig"),
+    (re.compile(r"sand(?:en)?\s+(?:ing[åa]r|f[öo]ljer\s+med|medf[öo]ljer)"
+                r"(?!\s+inte)", re.I),
+     "LOVAR FYLLNING — sanden ingår inte (förbud 3)", True),
+    # ☠️ Monstret krävde ordet `boxningssäck` eller `punchingboll` rakt
+    #    efter jamforelsen. 95f6280b skrev "de flesta fristående SÄCKAR"
+    #    och gick igenom en gron grind — ett ord ifran att fallas.
+    #    Jamforelseorden star nu for sig och produktordet ar en bred
+    #    lista med upp till tva ord emellan.
+    #    ⚠️ `steg` ar MEDVETET UTE ("skruvas ihop i de flesta steg" ar
+    #    monteringen, inte marknaden), och `Vanliga frågor` ar en
+    #    OBLIGATORISK flikrubrik — den far aldrig kunna fallas.
+    (re.compile(r"(?:till\s+skillnad\s+fr[åa]n|j[äa]mf[öo]rt\s+med"
+                r"|b[äa]ttre\s+[äa]n|de\s+flesta|m[åa]nga\s+andra"
+                r"|andra\s+(?:m[äa]rken|tillverkare))"
+                r"(?:\s+\w+){0,2}\s+"
+                # ☠️ `\w*` FORE ordet: svenskan bygger sammansattningar,
+                #    och `boxningssäckar` borjar inte pa `säck`. Utan
+                #    prefixet foll rundans EGEN planterade mutation.
+                r"(?:\w*s[äa]ck\w*|\w*boll\w*|\w*st[äa]ll\w*|\w*pelar\w*"
+                r"|\w*modell\w*|\w*m[äa]rke\w*|\w*tillverkar\w*"
+                r"|\w*produkt\w*)", re.I),
+     "MARKNADSPÅSTÅENDE om andra tillverkares produkter — inte mätt"),
+    # ☠️ Monstret var for SMALT i forsta utkastet: det tog `familjens`
+    #    och `seriens` men slappte `i familjen` och `de andra i
+    #    familjen` — samma defekt, annan bojning. Tva meningar gick
+    #    igenom en gron grind. `omg[åa]ng` ar MEDVETET UTE: "en lang
+    #    omgang" ar ett traningsord i den har familjen, inte en
+    #    inramning, och ett falsklarm per sida lar lasaren att sluta
+    #    lasa grinden.
+    (re.compile(r"\bfamilj\w*|\bserien\b|\bseriens\b|\bsortiment\w*"
+                r"|\bi\s+den\s+h[äa]r\s+(?:gruppen|omg[åa]ngen)\b", re.I),
+     "INTERN INRAMNING — kunden landar på EN sida och ser ingen familj"),
+    (re.compile(r"storleksklass", re.I),
+     "ODEFINIERAD JÄMFÖRELSEMÄNGD — 'storleksklass' är inte mätt"),
+    # ☠️ VI VET INTE-FORMELN. Runbookens Steg 7: "Att skriva att vi inte
+    #    vet ... Mot kunden är VI leverantören. Vet vi inte — utelämna,
+    #    eller ta reda på det." Grinden saknades i runda 142:s forsta
+    #    utkast, och `4fe5959f` skrev "Vikten anges inte for den har
+    #    modellen" rakt in i en FAQ. Den PASSIVA formen ar den farliga:
+    #    "anges inte", "uppges inte" later som en uppgift om varan i
+    #    stallet for ett erkannande att vi inte kollat.
+    (re.compile(r"(?:anges|uppges|specificeras|redovisas|framg[åa]r)"
+                r"\s+inte|leverant[öo]ren\s+(?:uppger|anger|specificerar)"
+                r"\s+inte|vi\s+har\s+(?:inga|ingen)\s+uppgift"
+                r"|(?:uppgift|uppgifter)\s+saknas|okla[rt]\b"
+                r"|g[åa]r\s+inte\s+att\s+(?:f[åa]\s+fram|ta\s+reda)", re.I),
+     "VI VET INTE — mot kunden är VI leverantören; utelämna i stället"),
+
+    # ☠️ FEM FORBUD SOM STEG 12 HITTADE PA EN GRON GRIND (2026-09-13).
+    #    Alla sex fel lasningen fangade passerade listan ovan. De star har
+    #    for att nasta runda ska falla pa dem i STALLET for att las-fangas.
+
+    # ☠️ Sidan far ALDRIG jamfora priser — Leonards staende regel. Och ett
+    #    "billigaste vagen" ar dessutom en MATNING som aldrig gjorts.
+    #    Uppmatt: 93073695 skrev "den enskilt billigaste vagen till ett
+    #    stall som inte ror sig" och grinden sa ingenting.
+    # ☠️ INGEN `\d+ kr`-gren. Den fanns i forsta versionen och gjorde regeln
+    #    OANVANDBAR i live-grinden: butiken visar sidans EGET pris, och
+    #    rekommendationsraden visar fem till. Regeln fyrade darfor pa varenda
+    #    korrekt sida — och eftersom fyndstrangen bar sidans egen prissiffra
+    #    kunde kontrollsidan aldrig subtrahera bort den (#538). Ett larm som
+    #    fyrar pa varje korrekt sida ar lika illa som inget larm alls.
+    #    Ordgrenarna ar dessutom de som faktiskt fangade rundans verkliga fel.
+    (re.compile(r"billig\w*|prisv[äa]rd\w*|kostar\s+(?:mindre|mer)"
+                r"|l[öo]nar\s+sig|\bfynd(?:pris|k[öo]p)\w*", re.I),
+     "PRISPÅSTÅENDE — sidan jämför aldrig priser, och priset står i Wix"),
+
+    # ☠️ En monterings- eller brukstid som ingen kalla anger. Samma form som
+    #    batch 64:s "Leverantoren anger 25-35 minuter". Uppmatt: 95f6280b
+    #    skrev "ska sta pa golvet en kvart senare".
+    (re.compile(r"\ben\s+kvart\b|\bhalvtimme\b"
+                r"|(?<![0-9,.])\d{1,3}\s*minuter?\b"
+                r"|p[åa]\s+(?:en|n[åa]gra)\s+(?:minuter|timm\w+)"
+                r"|n[åa]gra\s+minuter", re.I),
+     "OMÄTT TID — monteringstiden står inte i någon källa"),
+
+    # ☠️ Ett leveranslotteri ar ett PASTAENDE om vad kunden far hem.
+    #    Uppmatt: 56cca82a pastod tre mojliga farger dar bade hjaltebilden
+    #    och leverantorens eget produktnamn sager rod och svart, och
+    #    pastaendet fanns bara i en kodkommentar.
+    (re.compile(r"g[åa]r\s+inte\s+att\s+(?:v[äa]lja|styra)"
+                r"|vilken\s+(?:av\s+dem|som)\s+(?:som\s+)?(?:kommer|skickas)"
+                r"|slumpm[äa]ssig\w*", re.I),
+     "LEVERANSLOTTERI — vi säger vad kunden får, eller ingenting alls"),
+
+    # ☠️ En allman fysikalisk uppgift som inte ar matt. Uppmatt: ce8813ce
+    #    skrev "Sand vager dubbelt sa mycket som vatten pa samma volym" —
+    #    tvaan kom ur EN fots tva tal, och riktig sand ligger pa ~1,5-1,6x.
+    (re.compile(r"(?:dubbelt|tre\s+g[åa]nger|fyra\s+g[åa]nger|h[äa]lften)"
+                r"\s+s[åa]\s+(?:mycket|tungt|tung|stor|stort)"
+                r"|v[äa]ger\s+dubbelt", re.I),
+     "OMÄTT TALJÄMFÖRELSE — en kvot är en mätning, inte en beskrivning"),
+
+    # ☠️ Monteringens INNEHALL ar inte kant. Vilka steg som gar for hand,
+    #    hur manga skruvar, vilka verktyg — inget av det star i underlaget.
+    #    Uppmatt: ce8813ce skrev "skruvas ihop for hand i de flesta steg".
+    (re.compile(r"i\s+de\s+flesta\s+steg|f[öo]r\s+hand\s+i\s+de"
+                r"|\bskruvas\s+ihop\s+f[öo]r\s+hand"
+                r"|beh[öo]ver\s+(?:bara|endast)\s+\w+\s+verktyg", re.I),
+     "OMÄTT MONTERINGSDETALJ — underlaget säger bara att montering krävs"),
+]
+
+# Farg som SPECEN pastar men bilden motsager (forbud 4).
+FARG_FEL = {"136a4671": re.compile(r"bollen\s+[äa]r\s+r[öo]d\s+och\s+svart"
+                                   r"|r[öo]d\s+och\s+svart\s+boll", re.I)}
+
+
+def _falt(pid):
+    """Alla fält en grind ska läsa. Regeln säger 'aldrig' — då är ytan ALL
+    kundtext, inte bara brödtexten (#441)."""
+    return {
+        "namn": T.NAMN[pid],
+        "titel": T.TITEL[pid],
+        "meta": T.META[pid],
+        "slug": T.SLUG[pid],
+        # ☠️ Fogas med RADBRYTNING, inte med en middot. Separatorn ar
+        #    grindens egen och far aldrig bli ett fynd (runda 107).
+        "sokord": "\n".join(T.SOKORD[pid]),
+        "html": B.HTML[pid],
+    }
+
+
+def _superlativ():
+    """Ett jämförande påstående inom EGEN batch går att grinda mekaniskt.
+
+    Rundan har två mätbara axlar: höjdspannets storlek och fotens
+    sandkapacitet. Ett 'störst', 'tyngst' eller 'mest' på fel sida är
+    välformulerat, har ett sant tal i sig, och är ändå falskt.
+    """
+    fel = []
+    spann, sand = {}, {}
+    for pid, d in M.P.items():
+        h = d["hojd"]
+        if "-" in h:
+            lo, hi = (float(x.replace(",", ".")) for x in h.split("-"))
+            spann[pid] = hi - lo
+        if d.get("sand"):
+            sand[pid] = float(str(d["sand"]).replace(",", "."))
+    storst_spann = max(spann, key=spann.get)
+    tyngst_fot = max(sand, key=sand.get)
+    SUP = re.compile(r"st[öo]rst\w*|tyngst\w*|mest\b|h[öo]gst\w*|"
+                     r"bredast\w*|l[äa]ngst\w*|djupast\w*", re.I)
+    for pid in T.SLUG:
+        for namn, txt in _falt(pid).items():
+            syn = G.strip_taggar(txt) if namn == "html" else txt
+            for m in SUP.finditer(syn):
+                mening = G.mening_kring(syn, m.start())
+                # En jamforelse INOM produkten ar legitim: vatten,
+                # sand och blandning ar tre fyllningar av samma fot.
+                if re.search(r"(blandningen|sanden|vattnet)\s+"
+                             r"(?:\w+\s+){0,2}(?:är|ar|blir)\s*$",
+                             syn[max(0, m.start() - 40):m.start()], re.I):
+                    continue
+                # ☠️ `längst ner` är en PLATS, inte en jämförelse.
+                #    Grinden fällde "tyngden längst ner" som ett
+                #    batch-superlativ om foten.
+                if re.match(r"l[äa]ngst\s+(ner|ned|upp|bak|fram|ut|in|"
+                            r"bort|till\s+h[öo]ger|till\s+v[äa]nster)",
+                            syn[m.start():m.start() + 24], re.I):
+                    continue
+                # ☠️ Ett superlativ om produktens EGNA lägen jämför inte
+                #    mot något annat. "Kör den högsta inställningen" är
+                #    en instruktion, inte ett påstående om sortimentet.
+                if re.match(r"\w+\s+(inst[äa]llning\w*|l[äa]g\w*|"
+                            r"h[öo]jd\w*|position\w*|steg\w*)",
+                            syn[m.start():m.start() + 34], re.I):
+                    continue
+                if re.search(r"h[öo]jdspann|spann", mening, re.I):
+                    if pid != storst_spann:
+                        fel.append("%s %s: superlativ om HÖJDSPANN — %s har "
+                                   "%.0f cm, den här %.0f"
+                                   % (pid, namn, storst_spann,
+                                      spann[storst_spann], spann.get(pid, 0)))
+                elif re.search(r"fot\w*|sand", mening, re.I):
+                    if pid != tyngst_fot:
+                        fel.append("%s %s: superlativ om FOTEN — %s tar %.0f "
+                                   "kg sand, den här %.0f"
+                                   % (pid, namn, tyngst_fot, sand[tyngst_fot],
+                                      sand.get(pid, 0)))
+    return fel
+
+
+def _superlativprov():
+    """☠️ Bevisar att `_superlativ` FALLER på ett äkta korsproduktspåstående
+    — och att den är TYST på den orörda texten. En grind som aldrig fällt är
+    obevisad, och den här har fyra undantag som var och ett kan avväpna den.
+    """
+    fel = []
+    if _superlativ():
+        fel.append("superlativgrinden faller pa OROD text")
+    orig = B.HTML["ce8813ce"]
+    B.HTML["ce8813ce"] = orig + ("<p>Det ar den storsta foten av alla, och den "
+                                 "tar mest sand.</p>")
+    try:
+        if not _superlativ():
+            fel.append("MUTATION SLAPP IGENOM: 'storsta foten ... mest sand' "
+                       "pa ce8813ce (som tar 33 kg mot f0430bc5:s 45)")
+    finally:
+        B.HTML["ce8813ce"] = orig
+    return fel
+
+
+def granska(pid, html=None, live=False):
+    """Grindar EN produkt. `html` låter live-grinden skicka in sidan."""
+    fel = []
+    falt = _falt(pid)
+    if html is not None:
+        falt = {"live": html} if live else dict(falt, html=html)
+    for namn, txt in falt.items():
+        syn = G.strip_taggar(txt) if namn in ("html", "live") else txt
+        for rad in FORBJUDET:
+            monster, beskrivning = rad[0], rad[1]
+            # ☠️ NEGATIONSURSAKTEN GALLER EXAKT ETT FORBUD — det den
+            #    skrevs for. `loftestraff` slapper varje traff i en
+            #    mening som bar en negation, och det ar RATT for
+            #    `LOVAR FYLLNING`: "sanden ingar INTE" ar precis vad
+            #    vi vill att texten sager.
+            #
+            #    Pa alla andra forbud ar den en tyst blindhet, for
+            #    negationen ar OBEROENDE av defekten. Runda 142 matte
+            #    upp tva fall i rad:
+            #      · "Vikten anges INTE"        → VI VET INTE slapptes
+            #      · "behover VARKEN vatten
+            #         ELLER sand"               → MARKNADSPASTAENDE slapptes
+            #    I bada fallen ar meningen fortfarande fel; negationen
+            #    hor till en annan del av den. Ursakten ar darfor
+            #    OPT-IN (`rad[2]`), inte standard.
+            ursakta = len(rad) > 2 and rad[2]
+            for m in monster.finditer(syn):
+                # loftestraff ger forsta ICKE-negerade traffen. Ar den
+                # None ar varje traff i meningen negerad. Villkoret var
+                # dessutom INVERTERAT i forsta utkastet: grinden slappte
+                # varje akta fynd och fallde bara korrekta nekanden.
+                if ursakta and not G.loftestraff(
+                        monster, G.mening_kring(syn, m.start())):
+                    continue
+                fel.append("%s: %s — %r" % (namn, beskrivning,
+                                            G.mening_kring(syn, m.start())[:90]))
+        if pid in FARG_FEL and FARG_FEL[pid].search(syn):
+            fel.append("%s: FEL FÄRG om bollen — zoomen säger vit, röd och blå"
+                       % namn)
+        for ch, unamn, sammanhang in G.homoglyfer(syn):
+            fel.append("%s: HOMOGLYF %r (%s) i %r"
+                       % (namn, ch, unamn, sammanhang))
+        for m in G.TREKONSONANT.finditer(syn):
+            fel.append("%s: TRE KONSONANTER i rad — %r"
+                       % (namn, G.mening_kring(syn, m.start())[:70]))
+        if G.JARGONG.search(syn):
+            fel.append("%s: INTERN JARGONG" % namn)
+    if not live:
+        fel += G.granska_namn(T.NAMN[pid])
+        if T.TITEL[pid] == T.NAMN[pid]:
+            fel.append("titel identisk med namn — butiken renderar mallen")
+        if len(T.META[pid]) > 155:
+            fel.append("meta %d tecken, taket är 155" % len(T.META[pid]))
+    return fel
+
+
+PLANTERADE = [
+    ("56cca82a", "namn", "Punchingboll för barn 125–145 cm", "ÅLDER"),
+    ("ce8813ce", "html", "<p>Bollen är CE-märkt och provad.</p>",
+     "OGRUNDAD CERTIFIERING"),
+    ("93073695", "html", "<p>Sanden ingår i leveransen.</p>", "LOVAR FYLLNING"),
+    ("136a4671", "html", "<p>Bollen är röd och svart.</p>", "FEL FÄRG"),
+    ("2730de6f", "meta", "En HOMCOM-punchingboll i svart.", "HUSMÄRKE"),
+    ("95f6280b", "html", "<p>Till skillnad från de flesta boxningssäckar.</p>",
+     "MARKNADSPÅSTÅENDE"),
+    ("2a13cbbe", "html", "<p>Djupare än familjens mindre modeller.</p>",
+     "INTERN INRAMNING"),
+    # Bevisar att versalkansligheten inte avvapnade grinden.
+    ("f0430bc5", "html", "<p>Stationen är provad mot EN 957.</p>",
+     "OGRUNDAD CERTIFIERING"),
+    # ☠️ Den PASSIVA formen — den som faktiskt stod i 4fe5959f.
+    ("4fe5959f", "html", "<p>Vikten anges inte för den här modellen.</p>",
+     "VI VET INTE"),
+    ("c8f6b93f", "html", "<p>Leverantören uppger inte maxlasten.</p>",
+     "VI VET INTE"),
+    # ☠️ Bojningarna grinden SLAPPTE igenom i forsta utkastet.
+    ("93073695", "html", "<p>Något de andra i familjen saknar.</p>",
+     "INTERN INRAMNING"),
+    ("ce8813ce", "html", "<p>Nästa steg upp i familjen.</p>",
+     "INTERN INRAMNING"),
+    # ☠️ Formen som gick igenom: `säckar`, inte `boxningssäck`.
+    ("95f6280b", "html", "<p>Till skillnad från de flesta fristående "
+     "säckar behöver den ingenting.</p>", "MARKNADSPÅSTÅENDE"),
+    ("2a13cbbe", "html", "<p>Bättre än andra modeller på marknaden.</p>",
+     "MARKNADSPÅSTÅENDE"),
+    # ☠️ De fem som Steg 12 hittade — ordagrant som de STOD i texten, inte
+    #    en omskriven variant. En mutation som inte ar den verkliga strangen
+    #    bevisar bara att regexen kompilerar.
+    ("93073695", "html", "<p>Det är den enskilt billigaste vägen till ett "
+     "ställ som inte rör sig.</p>", "PRISPÅSTÅENDE"),
+    ("95f6280b", "html", "<p>Det som ligger i kartongen ska stå på golvet "
+     "en kvart senare.</p>", "OMÄTT TID"),
+    ("56cca82a", "html", "<p>Vilken av dem som kommer går inte att styra "
+     "vid beställning.</p>", "LEVERANSLOTTERI"),
+    ("ce8813ce", "html", "<p>Sand väger dubbelt så mycket som vatten på "
+     "samma volym.</p>", "OMÄTT TALJÄMFÖRELSE"),
+    ("ce8813ce", "html", "<p>Stället skruvas ihop för hand i de flesta "
+     "steg.</p>", "OMÄTT MONTERINGSDETALJ"),
+]
+
+
+def _sjalvtest():
+    """Varje förbud provas åt BÅDA hållen: det planterade felet ska fällas
+    av RÄTT grind, och den orörda texten ska släppas igenom."""
+    fel = []
+    for pid in T.SLUG:
+        if granska(pid):
+            continue  # rapporteras av huvudkörningen
+    for pid, falt, mut, vantad in PLANTERADE:
+        if falt == "html":
+            traffar = granska(pid, html=B.HTML[pid] + mut)
+        else:
+            orig = getattr(T, falt.upper())[pid]
+            getattr(T, falt.upper())[pid] = mut
+            try:
+                traffar = granska(pid)
+            finally:
+                getattr(T, falt.upper())[pid] = orig
+        egna = [t for t in traffar if vantad in t]
+        if not egna:
+            fel.append("MUTATION SLAPP IGENOM: %s %s %r — väntade %s (fick %s)"
+                       % (pid, falt, mut[:40], vantad, traffar[:1] or "inget"))
+    return fel
+
+
+def sjalvtest():
+    """Kontraktet live-grinden kräver: `(fel-lista, antal fall)`.
+
+    ☠️ NAMNET ÄR GRINDEN. `liverunda.sjalvtester` gör
+       `getattr(GR, "sjalvtest", None)` — en runda som bara har `_sjalvtest`
+       får den TYST överhoppad (#556)."""
+    return _sjalvtest(), len(PLANTERADE) + len(T.SLUG)
+
+
+if __name__ == "__main__":
+    alla = []
+    for pid in T.SLUG:
+        for f in granska(pid):
+            alla.append("%s  %s" % (pid, f))
+    sup = _superlativ() + _superlativprov()
+    st = _sjalvtest()
+    print("grind: %d produkter, %d textfel, %d superlativfel, %d självtestfel"
+          % (len(T.SLUG), len(alla), len(sup), len(st)))
+    for r in alla + sup + st:
+        print("  ☠️", r)
+    raise SystemExit(1 if (alla or sup or st) else 0)

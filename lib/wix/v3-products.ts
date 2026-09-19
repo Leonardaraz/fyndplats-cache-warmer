@@ -927,3 +927,143 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
       + `arbeta vidare på en halv lista.`,
   );
 }
+
+// ---------------------------------------------------------------------------
+// Katalogen som utgående produktflöde — facit för /api/feed/shopit.
+// ---------------------------------------------------------------------------
+
+export interface WixV3FeedProduct {
+  id: string;
+  name: string;
+  slug: string;
+  plainDescription?: string;
+  imageUrl?: string;
+  brandName?: string;
+  /** SEK, null när varianterna har olika pris (inget entydigt produktpris). */
+  priceSek: number | null;
+  inStock: boolean;
+}
+
+/**
+ * Katalogen i ETT svep, formad för ett utgående produktflöde (Shopit m.fl.).
+ *
+ * Samma försvar som `listV3ProductPrices`, av samma skäl: backoff/pacing på
+ * `PRIS_PAUS_MS`/`PRIS_SIDPAUS_MS`, sidtak, och kastar hellre än returnerar
+ * en halv katalog. Begär `PLAIN_DESCRIPTION` — tungt fält, men `listAllV3Products`
+ * gör redan exakt detta över hela katalogen utan problem.
+ *
+ * Bara `visible: true`-produkter tas med. Ett flöde till en extern
+ * prisjämförelsesajt ska aldrig lista opolerade tyska utkast — samma
+ * "Wix `visible` är sanningen"-regel som `listVisibleV3ProductIds`. Frånvaro
+ * av fältet räknas som synlig.
+ *
+ * Pris blir `null` när varianterna har olika belopp — samma regel som
+ * `listV3ProductPrices`: ett spann är inget "produktens pris", och att gissa
+ * på minsta beloppet hade sålt fel pris till en jämförelsesajts besökare.
+ * Anroparen utesluter sådana rader ur flödet i stället för att gissa.
+ *
+ * ☠️ Golvet (`MIN_WIX_PRODUKTER`) mäts mot ALLA lästa produkter, inte mot de
+ * synliga. Synliga är i praktiken en bråkdel av katalogen (opolerade Aosom-
+ * utkast är merparten), så ett golv på den delmängden hade antingen fällt en
+ * frisk körning eller inte fällt någonting alls. Vad golvet ska fånga är ett
+ * transportfel — en halvläst katalog som ser komplett ut.
+ */
+export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
+  const out: WixV3FeedProduct[] = [];
+  let totalRead = 0;
+  let cursor: string | undefined;
+
+  for (let sida = 0; sida < MAX_PRIS_SIDOR; sida++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+
+    if (sida > 0) await sov(PRIS_SIDPAUS_MS);
+
+    let svar: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } }),
+        });
+      } catch (err) {
+        sistaFel = err instanceof Error ? err.message : String(err);
+        if (forsok === PRIS_PAUS_MS.length) break;
+        await sov(PRIS_PAUS_MS[forsok]);
+        continue;
+      }
+      if (res.ok) {
+        svar = res;
+        break;
+      }
+      const text = await res.text();
+      sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+      if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
+      const retryAfter = Number(res.headers.get("retry-after"));
+      await sov(
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 15_000)
+          : PRIS_PAUS_MS[forsok],
+      );
+    }
+    if (!svar) {
+      throw new Error(`V3 feed-sweep föll på sida ${sida} — ${sistaFel}`);
+    }
+
+    const data = (await svar.json()) as {
+      products?: Array<{
+        id?: string;
+        name?: string;
+        slug?: string;
+        visible?: boolean;
+        plainDescription?: string;
+        media?: { main?: { image?: { url?: string } } };
+        brand?: { name?: string };
+        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+        inventory?: { availabilityStatus?: string };
+      }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+
+    const products = data.products ?? [];
+    totalRead += products.length;
+
+    for (const p of products) {
+      if (!p.id || !p.name || !p.slug) continue;
+      if (p.visible === false) continue;
+      const min = Number(p.actualPriceRange?.minValue?.amount);
+      const max = Number(p.actualPriceRange?.maxValue?.amount);
+      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+      out.push({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        plainDescription: p.plainDescription,
+        imageUrl: p.media?.main?.image?.url,
+        brandName: p.brand?.name,
+        priceSek: entydigt ? min : null,
+        inStock: p.inventory?.availabilityStatus === "IN_STOCK",
+      });
+    }
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (products.length === 0 || !cursor || data.pagingMetadata?.hasNext === false) {
+      if (totalRead < MIN_WIX_PRODUKTER) {
+        throw new Error(
+          `V3 feed-sweep läste bara ${totalRead} produkter totalt — under `
+            + `${MIN_WIX_PRODUKTER}-golvet. Sannolikt ett läsfel, inte en tom katalog.`,
+        );
+      }
+      return out;
+    }
+  }
+
+  throw new Error(
+    `V3 feed-sweep nådde sidtaket (${MAX_PRIS_SIDOR} sidor, ${totalRead} lästa produkter) `
+      + `med markören kvar. Katalogen är större än väntat — höj taket hellre än att `
+      + `arbeta vidare på en halv lista.`,
+  );
+}

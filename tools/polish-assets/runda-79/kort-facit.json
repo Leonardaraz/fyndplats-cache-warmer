@@ -1,0 +1,242 @@
+{
+ "983fe163": {
+  "kicker": "Rullpall med oval rygg, vit",
+  "rubrik": "Sitthöjd 48–64 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "32 × 40 × 70–86 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "Ø 32,5 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "48–64 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "33 × 23 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "ja, runt pelaren"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "98c1b3cb": {
+  "kicker": "Rullpall med oval rygg, svart",
+  "rubrik": "Sitthöjd 48–64 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "32 × 40 × 70–86 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "Ø 32,5 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "48–64 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "33 × 23 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "ja, runt pelaren"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "711f7859": {
+  "kicker": "Salongspall med kupad rygg",
+  "rubrik": "Sitthöjd 53–73 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "50 × 63–83 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "Ø 35 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "53–73 cm"
+   },
+   {
+    "etikett": "Skummets tjocklek",
+    "varde": "8 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "35 × 4 × 11,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "93b7d87b": {
+  "kicker": "Salongspall med hög rygg",
+  "rubrik": "Ryggstöd 38 × 28 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "45 × 54 × 73–88 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "Ø 36 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "51–66 cm"
+   },
+   {
+    "etikett": "Sittdynans tjocklek",
+    "varde": "7 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "38 × 28 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "c328a7c0": {
+  "kicker": "Rullpallar 2-pack med låg rygg",
+  "rubrik": "Sitthöjd 47–62 cm",
+  "rader": [
+   {
+    "etikett": "Antal",
+    "varde": "2 pallar"
+   },
+   {
+    "etikett": "Mått per pall",
+    "varde": "38 × 38 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "37 × 33 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "47–62 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "34 × 4,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg per pall"
+   }
+  ]
+ },
+ "12ce97db": {
+  "kicker": "Sadelpall med svart fot",
+  "rubrik": "Sitthöjd 45–59 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "48 × 47 × 45–59 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "35 × 36 cm, sadelformad"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "45–59 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "nej"
+   },
+   {
+    "etikett": "Fot",
+    "varde": "femarmad nylon, fem dubbelhjul"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "20782c24": {
+  "kicker": "Sadelpall på hjul, rosa",
+  "rubrik": "Sitthöjd 49–61 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "52 × 53 × 49–61 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "35 × 36 cm, sadelformad"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "49–61 cm"
+   },
+   {
+    "etikett": "Stoppningens tjocklek",
+    "varde": "3–5 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "nej"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "1d0ba82d": {
+  "kicker": "Salongspall med fotring, vit",
+  "rubrik": "Bär 110 kg",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "42 × 50–64 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "Ø 32 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "50–64 cm"
+   },
+   {
+    "etikett": "Stoppningens tjocklek",
+    "varde": "8 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "ja, runt pelaren"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "110 kg"
+   }
+  ]
+ }
+}

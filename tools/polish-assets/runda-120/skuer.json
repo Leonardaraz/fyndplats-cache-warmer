@@ -1,0 +1,42 @@
+{
+ "441d2209": {
+  "wixVariantId": "9cc3f6d8-ebad-4914-ad07-a04e24736ae0",
+  "fran": "FP-bartisch-set-bartisch",
+  "till": "FP-barbord-tva-pallar-80-cm"
+ },
+ "394de213": {
+  "wixVariantId": "4a993aa1-f862-4323-a2dc-9321cc181b22",
+  "fran": "FP-bartisch-set-bartisch",
+  "till": "FP-barbord-hylla-tva-pallar"
+ },
+ "f4ed1264": {
+  "wixVariantId": "2729234a-c2fc-4853-b3af-e91ffb34267a",
+  "fran": "FP-bar-set-fur-2-personen-1",
+  "till": "FP-barbord-marmoroptik-100"
+ },
+ "3b38e191": {
+  "wixVariantId": "14463b0d-8573-430b-a8d0-3cf182c7bbc6",
+  "fran": "FP-bartisch-set-bartisch",
+  "till": "FP-barbord-89-cm-tva-stolar"
+ },
+ "51c43e67": {
+  "wixVariantId": "7cae64c1-ef88-4e3b-88e4-60c858a601a2",
+  "fran": "FP-bartisch-mit-barhocker",
+  "till": "FP-barbord-100-cm-stoppade"
+ },
+ "c3bda64a": {
+  "wixVariantId": "90572cd1-5263-464a-9d21-e9f3c7679a2c",
+  "fran": "FP-bar-set-2-barstuhle-1",
+  "till": "FP-barbord-100-hyllplan"
+ },
+ "c88b5bbb": {
+  "wixVariantId": "b0bdfdeb-9691-4991-92bd-5dfe85ce973c",
+  "fran": "FP-bartisch-set-stehtisch",
+  "till": "FP-barbord-fyra-pallar-ek"
+ },
+ "63a37524": {
+  "wixVariantId": "7aaa6b56-b24d-4256-8f30-8406f784d8d3",
+  "fran": "FP-5-teiliges-bartisch-set",
+  "till": "FP-barbord-fyra-pallar-brun"
+ }
+}

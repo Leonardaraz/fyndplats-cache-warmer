@@ -1,0 +1,114 @@
+{
+ "10235819": {
+  "rgb": [
+   161,
+   168,
+   172
+  ],
+  "H": 203,
+  "L": 65,
+  "S": 6,
+  "grupp": "D",
+  "kalla": "Hellgrau",
+  "neutral": true,
+  "familj": "blå"
+ },
+ "4fa0ae0a": {
+  "rgb": [
+   109,
+   116,
+   119
+  ],
+  "H": 202,
+  "L": 45,
+  "S": 5,
+  "grupp": "D",
+  "kalla": "Dunkelgrau",
+  "neutral": true,
+  "familj": "blå"
+ },
+ "143f9b2d": {
+  "rgb": [
+   167,
+   193,
+   195
+  ],
+  "H": 184,
+  "L": 71,
+  "S": 19,
+  "grupp": "E",
+  "kalla": "Grün",
+  "neutral": false,
+  "familj": "turkos"
+ },
+ "6e05f8b7": {
+  "rgb": [
+   216,
+   173,
+   170
+  ],
+  "H": 4,
+  "L": 76,
+  "S": 37,
+  "grupp": "E",
+  "kalla": "Rosa",
+  "neutral": false,
+  "familj": "röd"
+ },
+ "4293c5ce": {
+  "rgb": [
+   177,
+   177,
+   176
+  ],
+  "H": 60,
+  "L": 69,
+  "S": 1,
+  "grupp": "E",
+  "kalla": "Grau",
+  "neutral": true,
+  "familj": "gul"
+ },
+ "a5454821": {
+  "rgb": [
+   220,
+   163,
+   161
+  ],
+  "H": 2,
+  "L": 75,
+  "S": 46,
+  "grupp": "F",
+  "kalla": "Rosa",
+  "neutral": false,
+  "familj": "röd"
+ },
+ "0f7021fb": {
+  "rgb": [
+   149,
+   154,
+   152
+  ],
+  "H": 147,
+  "L": 60,
+  "S": 2,
+  "grupp": "F",
+  "kalla": "Grau",
+  "neutral": true,
+  "familj": "grön"
+ },
+ "ce10bfe8": {
+  "rgb": [
+   234,
+   233,
+   216
+  ],
+  "H": 57,
+  "L": 88,
+  "S": 29,
+  "grupp": "F",
+  "kalla": "Cremeweiß",
+  "neutral": false,
+  "familj": "gul"
+ }
+}
