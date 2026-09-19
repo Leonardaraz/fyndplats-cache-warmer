@@ -3,7 +3,9 @@ import {
   UPPFRISKNING_DAGAR,
   konkurrentStatus,
   planeraLotta,
+  planeraRensa,
   planeraSpara,
+  utanPrisgrupp,
 } from "./konkurrentpris-plan";
 import { KONKURRENT_MAX_ALDER_DAGAR } from "./konkurrentregel";
 import type { DerasRad } from "./dealproffsen";
@@ -171,5 +173,66 @@ describe("konkurrentStatus", () => {
     expect(s.medGrupp).toEqual({ A: 2, B: 1 });
     expect(s.gruppUtanPris).toBe(1);
     expect(s.aldstaDagar).toBe(KONKURRENT_MAX_ALDER_DAGAR + 2);
+  });
+});
+
+
+describe("planeraRensa", () => {
+  it("tar bara rader med prisgrupp och räknar resten", () => {
+    const p = planeraRensa([
+      mappning("845-1", { prisgrupp: "A" }),
+      mappning("845-2", { prisgrupp: "B", konkurrent: { pris: 2495, hamtad: dagarSedan(1) } }),
+      mappning("845-3"),
+      mappning("x", { supplier: "aliexpress", supplierProductId: "123", prisgrupp: "A" }),
+    ]);
+    expect(p.attRensa.map((m) => m.wixProductId)).toEqual(["wix-845-1", "wix-845-2"]);
+    expect(p.perGrupp).toEqual({ A: 1, B: 1 });
+    expect(p.utanGrupp).toBe(1);
+    expect(p.ejAosom).toBe(1);
+  });
+
+  it("respekterar ett urval", () => {
+    const p = planeraRensa(
+      [mappning("845-1", { prisgrupp: "A" }), mappning("845-2", { prisgrupp: "B" })],
+      new Set(["wix-845-2"]),
+    );
+    expect(p.attRensa).toHaveLength(1);
+    expect(p.attRensa[0].wixProductId).toBe("wix-845-2");
+  });
+
+  it("en katalog utan grupper ger ingenting att göra", () => {
+    const p = planeraRensa([mappning("845-1"), mappning("845-2")]);
+    expect(p.attRensa).toHaveLength(0);
+    expect(p.utanGrupp).toBe(2);
+  });
+});
+
+describe("utanPrisgrupp", () => {
+  it("☠️ tar bort nyckeln helt — sätter den inte till undefined", () => {
+    const ren = utanPrisgrupp(mappning("845-1", { prisgrupp: "A" }));
+    expect("prisgrupp" in ren).toBe(false);
+    // Båda lagren skriver hela raden (JSON.stringify respektive full save), så
+    // en kvarlämnad nyckel är skillnaden mellan en rensning som tar och en
+    // som bara ser ut att ta.
+    expect(JSON.parse(JSON.stringify(ren))).not.toHaveProperty("prisgrupp");
+  });
+
+  it("☠️ rör inte konkurrentpriset eller leverantörssidan", () => {
+    const m = mappning("845-1", {
+      prisgrupp: "B",
+      konkurrent: { pris: 2495, hamtad: dagarSedan(1) },
+    });
+    const ren = utanPrisgrupp(m);
+    expect(ren.konkurrent).toEqual(m.konkurrent);
+    expect(ren.supplierProductId).toBe(m.supplierProductId);
+    expect(ren.supplier).toBe(m.supplier);
+  });
+
+  it("en rensad rad räknas inte längre som grupperad i statusen", () => {
+    const fore = konkurrentStatus([mappning("845-1", { prisgrupp: "A" })], NU);
+    expect(fore.medGrupp).toEqual({ A: 1, B: 0 });
+    const efter = konkurrentStatus([utanPrisgrupp(mappning("845-1", { prisgrupp: "A" }))], NU);
+    expect(efter.medGrupp).toEqual({ A: 0, B: 0 });
+    expect(efter.gruppUtanPris).toBe(0);
   });
 });
