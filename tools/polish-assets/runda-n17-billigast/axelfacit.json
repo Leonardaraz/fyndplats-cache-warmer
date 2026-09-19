@@ -1,0 +1,48 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0caa8b84": {
+  "tyska": "36L x 33B x 140H cm",
+  "svenska": "36L x 33B x 140H cm",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 36,
+  "djup": 33
+ },
+ "1327c4c6": {
+  "tyska": "",
+  "svenska": "41cm x 26cm x 32cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 41L x 26B x 32H cm | ✔ Volumen der Rührschüssel: 5,5 L"
+ },
+ "3a305d61": {
+  "tyska": "114L x 41B x 52H cm",
+  "svenska": "L114 x B41 x H52cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 114,
+  "djup": 41
+ },
+ "3e8edc1c": {
+  "tyska": "74B x 85T x 78H cm",
+  "svenska": "85L x 74B x 78H cm",
+  "bokstaver": "BTH",
+  "djup": 85,
+  "hojd": 78,
+  "bredd": 74
+ },
+ "4164ae56": {
+  "tyska": "120L x 60B x 76,5H cm",
+  "svenska": "120L x 60B x 76,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 76.5,
+  "bredd": 120,
+  "djup": 60
+ },
+ "58ccd9bc": {
+  "tyska": "426L x 206B x 154H cm",
+  "svenska": "426L x 206B x 154H cm",
+  "bokstaver": "LBH",
+  "hojd": 154,
+  "bredd": 426,
+  "djup": 206
+ }
+}
