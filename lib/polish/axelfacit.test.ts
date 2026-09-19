@@ -219,6 +219,28 @@ describe("GESAMTHÖHE — en totalhöjd utan totalmått", () => {
   });
 });
 
+describe("TREVÄGSKEDJA — en tredje siffra får inte tystas bort", () => {
+  it("☠️ 54/62/70H behåller ALLA tre talen, inte bara de sista två", () => {
+    // Runda N19, campingbordet ecb304cd: `Gesamtabmessungen: 240L x 60B x
+    // 54/62/70H cm`. Den gamla TAL-gruppen tillät bara EN `/`-förlängning,
+    // så den matchade "54/62" utan bokstav direkt efter (nästa tecken var
+    // "/70H") och gav därför inget par vid "54". Regexet hittade i stället
+    // en träff längre fram, "62/70H", och facit blev tyst {hojd: [62, 70]}
+    // — 54 försvann utan ett ord.
+    const ut = bygg({
+      aaa: kalla(["Gesamtabmessungen: 240L x 60B x 54/62/70H cm"]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 240, djup: 60, hojd: [54, 62, 70] });
+  });
+
+  it("en vanlig tvåvägskedja (73-110H) är oförändrad", () => {
+    // Regressionsskydd åt andra hållet: den absoluta merparten av husets
+    // höjdintervall är tvåvärdiga, och fixet får inte ändra deras utfall.
+    const ut = bygg({ aaa: kalla(["Gesamtmaße: 65L x 48B x 73-110H cm"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 65, djup: 48, hojd: [73, 110] });
+  });
+});
+
 describe("TVÅ TAL UTAN H ELLER T — positionen räcker inte", () => {
   it("☠️ ger inget facit alls i stället för ett som gissar djupet", () => {
     // Runda N2, häckrullen c8376256: `Gesamtmaße: L300 x B100 cm`. Den

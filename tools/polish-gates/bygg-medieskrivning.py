@@ -29,11 +29,22 @@ fyrtio tyska alt-texter och varje API-svar sa framgång. Samma aritmetik som
 finns inte kvar på produkten — därav att antalet mäts ur `bilder.tsv` i
 `bygg-media.py` och aldrig antas till fem.
 
+☠️ KORT ÄR VALFRITT PÅ FILNIVÅ, INTE PER PRODUKT. Saknas `kort-filer.tsv`
+HELT (filen finns inte, till skillnad från en tom fil) antas HELA rundan
+medvetet ha skjutit upp korten — samma kostnadsavvägning som N15–N19
+(en base64-relä av sju bilder genom modellens kontext kostar
+uppskattningsvis 1,4–1,6 miljoner token). Rundans bildlista skrivs då exakt
+som `bygg-media.py` lämnade den, utan tillägg. Finns filen gäller den gamla,
+strikta kontrollen oförändrat: varje produkt i `nyttolast-media.json` MÅSTE
+ha ett bevisat kort-fil-id och en alt-text, annars faller bygget. En runda
+delar alltså inte kort- och kortlösa produkter — det är samma val
+`bygg-media.py`:s tsv-filer redan gör för hela rundan.
+
 ANVÄNDNING (från rundans katalog):
   python3 ../../polish-gates/bygg-media.py
   python3 ../../polish-gates/bygg-medieskrivning.py
 """
-import collections, io, json, sys
+import collections, io, json, os, sys
 
 def summa(s):
     # h*31 haller sig under 2^53 — samma exakta aritmetik i JS och Python.
@@ -45,42 +56,51 @@ def summa(s):
 media = json.load(io.open("nyttolast-media.json", encoding="utf-8"),
                   object_pairs_hook=collections.OrderedDict)
 
-kortfil, kortalt, fel = {}, {}, []
-for r in io.open("kort-filer.tsv", encoding="utf-8"):
-    if r.strip():
-        kort, sort, f = r.rstrip("\n").split("\t")
-        if sort == "kort":
-            kortfil[kort] = f
-for r in io.open("kortalt.tsv", encoding="utf-8"):
-    if r.strip():
-        kort, alt = r.rstrip("\n").split("\t", 1)
-        kortalt[kort] = alt
-
-for kort in media:
-    if kort not in kortfil:
-        fel.append(f"{kort}: saknar rad i kort-filer.tsv (obevisat fil-id?)")
-    if not kortalt.get(kort, "").strip():
-        fel.append(f"{kort}: saknar alt-text i kortalt.tsv")
-    if kort in kortfil and not kortfil[kort].startswith("b379ce_"):
-        fel.append(f"{kort}: misstänkt kort-fil-id {kortfil[kort]!r}")
-    if kort in kortfil and kortfil[kort] in {p["id"] for p in media[kort]}:
-        fel.append(f"{kort}: kortet ligger redan i bildlistan")
-
-if fel:
-    print("BYGGET FALLER:\n" + "\n".join("  " + f for f in fel))
-    sys.exit(1)
-
+har_kort = os.path.exists("kort-filer.tsv")
 ut, rader = collections.OrderedDict(), []
-for kort, poster in media.items():
-    ut[kort] = list(poster) + [{"id": kortfil[kort], "altText": kortalt[kort]}]
-    s = "\n".join(p["id"] + "|" + p["altText"] for p in ut[kort])
-    rader.append(f"{kort}\t{summa(s)}\t{len(s)}")
+
+if not har_kort:
+    for kort, poster in media.items():
+        ut[kort] = list(poster)
+        s = "\n".join(p["id"] + "|" + p["altText"] for p in ut[kort])
+        rader.append(f"{kort}\t{summa(s)}\t{len(s)}")
+else:
+    kortfil, kortalt, fel = {}, {}, []
+    for r in io.open("kort-filer.tsv", encoding="utf-8"):
+        if r.strip():
+            kort, sort, f = r.rstrip("\n").split("\t")
+            if sort == "kort":
+                kortfil[kort] = f
+    for r in io.open("kortalt.tsv", encoding="utf-8"):
+        if r.strip():
+            kort, alt = r.rstrip("\n").split("\t", 1)
+            kortalt[kort] = alt
+
+    for kort in media:
+        if kort not in kortfil:
+            fel.append(f"{kort}: saknar rad i kort-filer.tsv (obevisat fil-id?)")
+        if not kortalt.get(kort, "").strip():
+            fel.append(f"{kort}: saknar alt-text i kortalt.tsv")
+        if kort in kortfil and not kortfil[kort].startswith("b379ce_"):
+            fel.append(f"{kort}: misstänkt kort-fil-id {kortfil[kort]!r}")
+        if kort in kortfil and kortfil[kort] in {p["id"] for p in media[kort]}:
+            fel.append(f"{kort}: kortet ligger redan i bildlistan")
+
+    if fel:
+        print("BYGGET FALLER:\n" + "\n".join("  " + f for f in fel))
+        sys.exit(1)
+
+    for kort, poster in media.items():
+        ut[kort] = list(poster) + [{"id": kortfil[kort], "altText": kortalt[kort]}]
+        s = "\n".join(p["id"] + "|" + p["altText"] for p in ut[kort])
+        rader.append(f"{kort}\t{summa(s)}\t{len(s)}")
 
 json.dump(ut, io.open("medieskrivning.json", "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 io.open("media-hash.tsv", "w", encoding="utf-8").write("\n".join(rader) + "\n")
 for kort, poster in ut.items():
-    print(f"{kort}  {len(poster)} poster (kortet sist: {poster[-1]['id'][:20]}…)")
+    slutrad = f"kortet sist: {poster[-1]['id'][:20]}…" if har_kort else "inget kort denna runda"
+    print(f"{kort}  {len(poster)} poster ({slutrad})")
 print("\n" + "\n".join(rader))
 
 # ── STEG 2:s skrivanrop ────────────────────────────────────────────────────

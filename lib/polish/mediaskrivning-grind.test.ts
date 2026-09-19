@@ -26,7 +26,7 @@
 // runda. Det här testet planterar därför sex fel av olika form och kräver att
 // var och en fäller på RÄTT produkt, samt att en orörd plan släpps igenom.
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -164,5 +164,45 @@ describe("mediaskrivningens transkriberingsspärr", () => {
       expect(p.poster[0].id).toMatch(/\.jpg$/);
       expect(p.poster.every((x) => x.altText.trim().length > 0)).toBe(true);
     }
+  });
+});
+
+// ☠️ KORT ÄR VALFRITT PÅ FILNIVÅ (runda N19, #284 utökad). Saknas
+// `kort-filer.tsv` HELT ska hela rundan skrivas utan kort — inte falla på
+// "saknar rad i kort-filer.tsv" för varenda produkt. Det är en runda som
+// medvetet skjutit upp korten (N15–N19), inte en trasig indata.
+describe("mediaskrivning UTAN kort (kort-filer.tsv saknas helt)", () => {
+  it("skriver bildlistan orörd, utan att kräva kort-filer.tsv eller kortalt.tsv", () => {
+    katalog = mkdtempSync(join(tmpdir(), "mediagrind-utan-kort-"));
+    writeFileSync(
+      join(katalog, "bilder.tsv"),
+      ["p1\t1\tb379ce_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa~mv2.jpg", "p1\t2\tb379ce_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb~mv2.jpg"].join(
+        "\n",
+      ) + "\n",
+    );
+    writeFileSync(
+      join(katalog, "alt.tsv"),
+      ["p1\t1\tEn produkt mot vit bakgrund", "p1\t2\tProdukten i användning"].join("\n") + "\n",
+    );
+    writeFileSync(join(katalog, "ids.tsv"), "p1\tabc-123\tEn testprodukt\n");
+
+    execFileSync("python3", [join(GATES, "bygg-media.py")], { cwd: katalog });
+    // ☠️ Inga kort-filer.tsv/kortalt.tsv skrivna — det är hela poängen.
+    execFileSync("python3", [join(GATES, "bygg-medieskrivning.py")], { cwd: katalog });
+
+    const src = readFileSync(join(katalog, "steg2.js"), "utf-8");
+    const block = src.match(/const PLAN = (\[[\s\S]*?\n {2}\]);/);
+    if (!block) throw new Error("hittade ingen PLAN i steg2.js");
+    // eslint-disable-next-line no-eval
+    const plan = eval(block[1]) as Rad[];
+
+    expect(plan).toHaveLength(1);
+    expect(plan[0].pid).toBe("abc-123");
+    // Exakt två poster, ingen tredje (kort) tillagd.
+    expect(plan[0].poster).toEqual([
+      { id: "b379ce_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa~mv2.jpg", altText: "En produkt mot vit bakgrund" },
+      { id: "b379ce_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb~mv2.jpg", altText: "Produkten i användning" },
+    ]);
+    expect(fallda(plan)).toEqual([]);
   });
 });

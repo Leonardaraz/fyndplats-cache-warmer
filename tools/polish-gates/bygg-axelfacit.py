@@ -97,8 +97,20 @@ def axelpar(rad):
     Lookaheaden släpper därför igenom `cm`/`mm`/`m` direkt efter bokstaven —
     och BARA dem. `180 Hinweis` matchar fortfarande inte, vilket är hela
     skälet till att `\b` satt där från början.
+
+    ☠️ OCH EN TREVÄGSKEDJA TAPPADE SIN FÖRSTA SIFFRA. Uppmätt i runda N19 på
+    campingbordet ecb304cd: `Gesamtabmessungen: 240L x 60B x 54/62/70H cm`.
+    Den gamla TAL-gruppen tillät bara EN `/`-förlängning, alltså matchade den
+    "54/62" — men då stod "/70H" kvar och bokstaven satt inte omedelbart efter,
+    så hela försöket vid position "54" föll. Regexet hittade i stället en
+    matchning längre fram, "62/70H", och facit blev `{"hojd": [62, 70]}` —
+    tyst utan 54. `tal()` splittar redan på VARJE `/`/`-` och hade hanterat tre
+    tal korrekt; det var bara TAL-mönstret som stannade vid en förlängning.
+    Gruppen upprepas nu (`*` i stället för `?`), vilket inte ändrar något för
+    den vanliga tvåvärdeskedjan (`73-110H`) — den matchar fortfarande exakt en
+    gång.
     """
-    TAL = r"\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)?"
+    TAL = r"\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)*"
     ENHET = r"(?:(?=[cm]?m\b)|\b)"
     ut = []
     for m in re.finditer(
