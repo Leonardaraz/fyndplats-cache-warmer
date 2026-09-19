@@ -64,7 +64,7 @@ källtexten. Mätt i bildens pixlar spänner 195-pilen 520 px, alltså 2,67 px/c
 365-pilen spänner 710 px — **266 cm** på ritningens egen skala. Det är
 spec-radens 265, inte 365.
 
-Det är alltså tillverkningens eget siffefel, samma klass som N30:s
+Det är alltså tillverkningens eget sifferfel, samma klass som N30:s
 `82d04879`, vars måttbild märkte en 200 cm hög rastgård med **"2 cm"**. Texten
 använder 265 cm genomgående.
 
@@ -277,7 +277,7 @@ Husregeln från runda J1 (*"titta på bilderna FÖRE texten"*) betalade sig igen
 - ☠️ **`180f81c1`: stativet ingår inte, och källan säger det en gång.** Se
   avsnittet ovan.
 
-- ☠️ **`86c60239`: måttbildens 365 cm är ett siffefel för 265.** Se avsnittet
+- ☠️ **`86c60239`: måttbildens 365 cm är ett sifferfel för 265.** Se avsnittet
   ovan, med mätningen mot ritningens egen skala.
 
 - ☠️ **`fda8a9de`: namnet läser som en sladdklippare, varan är en
