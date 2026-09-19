@@ -1,0 +1,6 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+93b9d4da	3	antal moduler raknade pa bild 1 och 5, och antal blanyanser pa samma bilder
+5d2a44cf	6	antal olika former raknade pa mattbilden, bild 3
+c9c98333	80	liggplatsens bredd i golvplanen, bild 3
+5d2a44cf	2	antal likadana halvrunda mattor raknade pa bild 2 och 4
