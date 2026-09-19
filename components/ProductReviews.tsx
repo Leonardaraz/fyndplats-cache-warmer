@@ -83,16 +83,16 @@ export function ProductReviews({
                 <div className="rev-item-head">
                   <Stars rating={r.rating} />
                   <span className="rev-author">{r.displayName}</span>
-                  {/* Bara egna kunders omdömen märks. Märkningen av de importerade
-                      togs bort 2026-09-03 på butiksägarens begäran.
-                      ☠️ "✓ Verifierat köp" får ALDRIG sättas på en importerad rad
-                      — etiketten betyder ett köp i VÅR butik, verifierat med
-                      token per order. Se lib/review-source.ts. */}
-                  {r.firstParty ? (
-                    <span className="rev-verified" title="Skrivet av en kund som handlat hos Fyndplats">
-                      {r.ursprungEtikett}
-                    </span>
-                  ) : null}
+                  {/* ☠️ INGEN RAD MÄRKS. Raderna såg olika ut: egna kunders bar
+                      "✓ Verifierat köp", övriga ingenting — så det enda omdöme
+                      butiken själv fått stack ut ur en lista på tjugo.
+                      Butiksägarens beslut 2026-09-19: alla omdömen gäller ett
+                      genomfört köp, och listan ska se likadan ut hela vägen ned.
+                      Upplysningen bärs av fotnoten under listan.
+                      ☠️ Kommer märkningen tillbaka får den ALDRIG sättas på en
+                      importerad rad — "✓ Verifierat köp" betyder ett köp i VÅR
+                      butik, verifierat med token per order. Se
+                      lib/review-source.ts, som fortfarande håller den regeln. */}
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
                 <p className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{r.text}</p>

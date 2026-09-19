@@ -30,19 +30,15 @@ const API_BAS =
 
 export interface ProductReview {
   reviewIdAE: string;
-  /** True när omdömet är skrivet av en kund hos oss, inte importerat. */
-  firstParty: boolean;
   /**
-   * Etiketten vid namnet — "✓ Verifierat köp" för egna kunder, TOM STRÄNG för
-   * övriga.
+   * True när omdömet är skrivet av en kund hos oss, inte importerat.
    *
-   * ☠️ Importetiketten fylls inte i, och `source` skickas inte alls. Båda låg
-   * förut i RSC-nyttolasten: osynliga på sidan men läsbara i källkoden, där
-   * "Importerat omdöme" och "source":"aliexpress" stod kvar rad för rad. Att
-   * ta bort dem ur renderingen räckte alltså inte — de skulle bara ha flyttat
-   * sig från sidan till dess källa.
+   * ☠️ SERVERSIDAN, INTE SIDAN. Fältet finns kvar för att produktsidans
+   * JSON-LD bara får räkna förstahandsomdömen (app/produkt/[slug]/page.tsx).
+   * Ingen KUNDVÄND yta får skilja raderna åt — se kommentaren vid listan i
+   * components/ProductReviews.tsx.
    */
-  ursprungEtikett: string;
+  firstParty: boolean;
   rating: number;
   text: string;
   /** Visningsnamn enligt REVIEW_DISPLAY_MODE — "M.K." eller "Verifierad köpare". */
@@ -113,14 +109,13 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
       .filter((r) => r && String(r.text || "").trim().length > 0)
       .map((r) => {
         const source = normaliseraSource(r.source);
-        const { etikett, förstahand } = härkomst(source);
+        const { förstahand } = härkomst(source);
         return {
           reviewIdAE: String(r.reviewIdAE || ""),
           // ☠️ Härledd ur source, inte ur API:ts firstParty-flagga. EN
-          // definition av "vår kund", annars kan etiketten och flaggan säga
-          // olika saker om samma rad.
+          // definition av "vår kund" i huset, annars kan två ytor säga olika
+          // saker om samma rad.
           firstParty: förstahand,
-          ursprungEtikett: förstahand ? etikett : "",
           rating: Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5))),
           text: String(r.text || ""),
           // Initialerna är tomma när API:ts egen killswitch är på — då faller
