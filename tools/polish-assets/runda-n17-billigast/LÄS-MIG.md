@@ -67,7 +67,7 @@ Varje led är MÄTT, inte antaget. Ett svar utan fel är inget kvitto.
 | Steg 3 — kategorier | 6 av 6 kopplingar (`BulkAddItemToCategories`, `totalFailures: 0` på alla sex) |
 | Steg 4 — `variantsInfo` SIST och ENSAMT | 6 av 6, svensk SKU skriven, variantobjektet round-trippat oförändrat utom `sku` |
 | Separat läsning en stund efter skrivningen | 6 av 6: namn/slug/synlighet/SEO(2 taggar)/bildantal/kort-sist/kategori/SKU alla korrekta; `plainDescription` byte-identisk mot källan efter normalisering av Wix egen mellanslags-strippning mellan taggar (samma kända beteende som `wixnorm.py` redan dokumenterar) |
-| `hamta-live.sh` + `livegrind.py` mot de publicerade sidorna | PÅGÅR — sidorna var helt nya slugs (age=0 vid varm träff), väntar ut ISR-fönstret innan den skarpa hämtningen; resultatet fylls i här när svepet är klart |
+| `hamta-live.sh` + `livegrind.py` mot de publicerade sidorna | **6 av 6 REN, 0 avvikelser** (ord=268–340 per sida, samtliga HTTP 200, 150–156 kB, age 67–245 s efter ISR-fönstret) |
 
 ## ☠️ Två produkter — en trampdriven hjullastare och ett tält — bryter bygg-axelfacit.py:s positionsregel (task #303)
 
