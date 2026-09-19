@@ -130,11 +130,14 @@ export function mediaNyckel(url: string): string {
  * @param filer     Alla filer i Media Manager.
  * @param ianvandning Alla media-URL:er som sitter på en produkt just nu.
  * @param antalProdukter Antal produkter listningen såg — bara för spärren.
+ * @param recensionsbilder Alla media-URL:er som sitter på en RECENSION. Lika
+ *        mycket i bruk som produktbilderna, men osynliga i produktlistningen.
  */
 export function planeraStadning(
   filer: ReadonlyArray<MediaFil>,
   ianvandning: ReadonlyArray<string>,
   antalProdukter: number,
+  recensionsbilder: ReadonlyArray<string> = [],
 ): StadningsPlan {
   // ☠️ MASSFEL-SPÄRREN. En halvläst produktlistning gör varje fil föräldralös.
   // Butikens produkter har mätbart flera bilder styck, så en referenslista som
@@ -146,7 +149,10 @@ export function planeraStadning(
     );
   }
 
-  const anvandaNycklar = new Set(ianvandning.map(mediaNyckel));
+  // ☠️ RECENSIONSBILDERNA HÖR TILL REFERENSLISTAN. De sitter inte på någon
+  // produkt — de sitter på en recensionsrad — men de är lika mycket i bruk.
+  // Se `listaRecensionsbilder` i deps för vad det kostade att glömma dem.
+  const anvandaNycklar = new Set([...ianvandning, ...recensionsbilder].map(mediaNyckel));
 
   // Första passet: filer som kommer direkt från en leverantörs CDN. Andra passet
   // känner igen Wix kopior på att de pekar tillbaka på dem.
@@ -208,6 +214,23 @@ export interface MediaCleanupDeps {
     => Promise<{ filer: MediaFil[]; cursor: string | null; komplett: boolean }>;
   /** Alla media-URL:er som sitter på en produkt, plus antalet produkter. */
   listaAnvanda: () => Promise<{ urls: string[]; antalProdukter: number }>;
+  /**
+   * Alla media-URL:er som sitter på en RECENSION.
+   *
+   * ☠️ UTAN DEN HÄR RADERAR STÄDNINGEN KUNDERNAS RECENSIONSBILDER. Det gjorde
+   * den: uppmätt 2026-09-04 var 68 av 68 recensionsbilder över fyra produkter
+   * döda (403). Mekanismen är att `listaAnvanda` bara går igenom
+   * `stores/v3/products/search`, medan en recensionsbild refereras av en
+   * RECENSIONSRAD — och eftersom vår kod importerade den från
+   * aliexpress-media.com bär den en `sourceUrl` och passerar därmed
+   * "vår kod skapade den"-filtret. Föräldralös enligt planen, permanent
+   * raderad, varje natt.
+   *
+   * Samma klass som bloggomslagen samma dag, och samma lärdom som migreringen:
+   * en referenslista är klar först när ALLA läsare finns med i den. En läsare
+   * som bor i en annan tabell — eller ett annat repo — syns inte i koden här.
+   */
+  listaRecensionsbilder: () => Promise<string[]>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
@@ -292,12 +315,34 @@ export async function runMediaCleanup(
   // körningar — hade betytt att en produkt som fått nya bilder sedan förra
   // varvet såg ut att sakna dem. Fel åt det hållet raderar bilder som används.
   const { urls, antalProdukter } = await deps.listaAnvanda();
+
+  // ☠️ ETT LÄSFEL HÄR MÅSTE FÄLLA KÖRNINGEN, ALDRIG FORTSÄTTA.
+  //
+  // Fortsätter vi med en tom recensionslista ser varenda recensionsbild
+  // föräldralös ut och raderas PERMANENT — exakt den skada fixen finns för att
+  // stoppa. Samma form som MIN_FEED_RADER i Aosom-synken: när ett läsfel och
+  // ett tomt svar ser likadana ut, och det ena utfallet är oåterkalleligt, är
+  // avbrott enda säkra svaret.
+  //
+  // Att en katalog HAR noll recensionsbilder är däremot legitimt, så tomt
+  // svar utan fel går igenom. Det är felet vi vägrar tolka, inte tomheten.
+  let recensionsbilder: string[];
+  try {
+    recensionsbilder = await deps.listaRecensionsbilder();
+  } catch (err) {
+    throw new Error(
+      `Recensionsbilderna gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan den listan hade varje recensionsbild sett föräldralös ut "
+        + "och raderats permanent.",
+    );
+  }
+
   const { filer, cursor, komplett } = await deps.listaFiler({
     efter: opts.after,
     stoppaVid: start + Math.round(budget * 0.7),
   });
 
-  const plan = planeraStadning(filer, urls, antalProdukter);
+  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
 
   const summary: MediaCleanupSummary = {
@@ -502,6 +547,22 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
         await paus(250);
       }
       return { filer: ut, cursor, komplett };
+    },
+
+    // ☠️ Recensionsbilderna sitter inte på en produkt utan på en recensionsrad,
+    // och var därför osynliga för planen. `listAll` tar hela lagret; en
+    // recension bär både `imageUrl` (den första) och `imageUrls` (alla), och
+    // BÅDA måste med — den första är också med i listan, men en rad som bara
+    // har `imageUrl` har ingen `imageUrls`.
+    listaRecensionsbilder: async () => {
+      const { getReviewStore } = await import("../store/reviews");
+      const alla = await getReviewStore().listAll();
+      const urls: string[] = [];
+      for (const r of alla) {
+        if (r.imageUrl) urls.push(r.imageUrl);
+        for (const u of r.imageUrls ?? []) urls.push(u);
+      }
+      return urls;
     },
 
     listaAnvanda: async () => {

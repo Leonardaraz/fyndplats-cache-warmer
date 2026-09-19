@@ -1,0 +1,256 @@
+# LIVE-GRIND — grindar den PUBLICERADE texten, inte bara kallfilen.
+#
+# ☠️ FILGRINDEN TACKER BARA HALVA VAGEN. Batch 65 (2026-09-04) matte upp det:
+# filgrinden var ren, och tva fel uppstod anda NAR texten skrevs in i
+# API-anropet — ett kyrilliskt "t" (U+0442) i "granträ" och tre forekomster av
+# "träådrad" som blev "tråådrad". PATCH-svaret ekade bada tillbaka som korrekta,
+# for det ar ju precis det man skickade. De nadde live.
+#
+# Det som fangar dem ar en MEKANISK jamforelse mot det som faktiskt ligger ute.
+# Nionde gangen samma husregel: ett svar utan fel ar inget kvitto.
+#
+# ANVANDNING (kor fran batch-katalogen):
+#   slugs.txt:  "p1 min-produkt-slug"  en rad per produkt
+#   p1.html ... kallfilerna som skickades till Wix
+#   live/      hamtade sidor:  curl -o live/p1.html https://www.fyndplats.se/produkt/<slug>
+#   python3 livegrind.py        -> exit 1 vid avvikelse
+#
+# TRE KONTROLLER:
+#   1. ORDDIFF mot kallfilen   -> fangar VARJE transkriberingsfel
+#   2. HOMOGLYFER i live-texten -> kyrilliskt/grekiskt som slunkit in
+#   3. SIDSVEP + ALT-SVEP       -> husmarke, artikelnummer, fraktland, tyska
+#   4. SEO-SVEP                 -> <title> och meta description
+#   5. FLIKAR + KATEGORI        -> Klart-kriteriets tva renderade krav
+#
+# ☠️ SEO-FALTEN AR EN EGEN BLIND FLACK, och den var oupptackt till 2026-09-06.
+# Poleringen ror `name` och beskrivningen men ALDRIG `seoData` — importen
+# skriver tysk titel och tysk metabeskrivning, och ingenting skrev over dem. Alla
+# atta sidor i runda F1 lag ute med `<title>Kratzbaum Deckenhoch...</title>`
+# medan brodtexten var invandningsfri svenska. Det ar det Google VISAR.
+#
+# Tva skal till att svepen ovan inte racker:
+#   * meta description ligger i ett ATTRIBUT. `brodtext` strippar taggar, sa
+#     attributinnehall ar osynligt for sidsvepet — exakt samma blinda flack som
+#     alt-texterna hade.
+#   * <title> syns visserligen i sidsvepet, men bara for att den GERMANSKA
+#     titeln rakade innehalla `228-260` och traffa artikelnummer-monstret.
+#     "Schlafsessel, Gastebett..." (runda D1) hade gatt rakt igenom.
+#
+# Finns `seo.tsv` i rundans katalog jamfors live-faltet EXAKT mot den — mekaniskt,
+# alltsa oberoende av vilka tyska ord nagon rakat tanka pa. Saknas filen faller
+# svepet tillbaka pa monstren, som ar battre an ingenting men inte ett kvitto.
+#
+# ⚠️ Butiken delar upp beskrivningen i flikar (pdp-flikar/details/summary), sa
+# HTML:en ar med flit INTE identisk med kallfilen. Jamfor BRODTEXT, inte markup.
+#
+# ⚠️ ALT-TEXTER MASTE SVEPAS SEPARAT. Sidsvepet strippar taggar, sa alt="" ar
+# osynligt for det — och det ar just dar de tyska resterna sitter kvar efter en
+# polering som bara rort beskrivningen.
+#
+# ⚠️ VANTA UT BUTIKENS ISR-CACHE. Sidorna ar prerenderade
+# (x-nextjs-stale-time: 300). En hamtning direkt efter skrivningen serverar den
+# GAMLA sidan, och den ser ut precis som en fungerande ny. Forsta traffen efter
+# fonstret triggar en bakgrundsrendering; NASTA hamtning far den farska sidan.
+
+import os, re, sys, unicodedata, html, difflib
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gatelib import TILLATNA_TECKEN, MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO
+
+# ☠️ ORDLISTORNA KOMMER FRAN gatelib — den har filen bar inga egna.
+#
+# Fram till 2026-09-07 gjorde den det, och det var husets vanligaste bugg en
+# gang till: en TREDJE ordlista, vid sidan av gatelib och de rundekopior som
+# stadades bort 2026-09-06. Den bar SEXTON tyska ord mot gatelibs dryga
+# hundra, och de sexton var ett avtryck av EN runda — `hundehutte`,
+# `kaninchenstall`, `hasenstall`, `fressnapfen`. Pa en lamprunda kontrollerade
+# live-grinden alltsa ingenting alls, och den ar den SISTA spärren: efter den
+# ligger sidan ute.
+#
+# Uppmatt pa J1:s atta redan verifierade sidor gav gatelibs monster mot HELA
+# den renderade sidan exakt EN traff: `EU-lager`. Den ar butikens egen ribbon
+# och det ENDA stalle dar leveranslandet far sta — darav undantaget nedan, och
+# det galler bara sidsvepet. I produktens egen text, i alt-texter och i
+# SEO-falten ar samma trafft fortfarande ett fel.
+RIBBON_UNDANTAG = {"EU-lager"}
+
+LIVE_GRINDAR = [("HUSMARKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("LAND", LAND),
+                ("LEVERANTOR", LEV), ("TYSKT", TYSKA), ("HOMOGLYF", HOMO)]
+
+
+def svep(prefix, text, klipp=90, undantag=frozenset()):
+    """Kor gatelibs monster over en text och returnerar problemrader."""
+    ut = []
+    for namn, m in LIVE_GRINDAR:
+        for hit in sorted({x.group(0) for x in re.finditer(m, text)}):
+            if hit in undantag:
+                continue
+            ut.append(f"{prefix}/{namn} {hit!r}: {text[:klipp]}")
+    return ut
+
+def brodtext(s):
+    s = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", s)
+    s = re.sub(r"<[^>]+>", " ", s)
+    return " ".join(html.unescape(s).split())
+
+# seo.tsv ar VALFRI: aldre rundor har ingen. Finns den blir SEO-svepet en exakt
+# jamforelse i stallet for en monstergissning.
+VANTAT_SEO = {}
+try:
+    for _r in open("seo.tsv", encoding="utf-8"):
+        if _r.strip():
+            _i, _t, _d = _r.rstrip("\n").split("\t")
+            VANTAT_SEO[_i] = (_t, _d)
+except FileNotFoundError:
+    pass
+
+fel = 0
+for rad in open("slugs.txt", encoding="utf-8"):
+    if not rad.strip(): continue
+    p, slug = rad.split()
+    live = open(f"live/{p}.html", encoding="utf-8").read()
+    problem = []
+
+    # ☠️ EN BACKFILL-RUNDA HAR INGEN KALLFIL. Da ar brodtexten inte skriven i
+    # den har rundan — bara SEO-faltet ar det — och orddiffen har ingenting att
+    # jamfora mot. Den hoppas over, men TYST far den inte goras: raden skriver
+    # ut "utan kallfil" sa ingen tror att den starkaste kontrollen kordes.
+    har_kalla = os.path.exists(f"{p}.html")
+    fil = open(f"{p}.html", encoding="utf-8").read() if har_kalla else ""
+
+    # --- 1. ORDDIFF mot kallfilen ---
+    a, start = [], -1
+    if har_kalla:
+        a = brodtext(fil).split()
+        start = live.find(fil[:60])
+        if start < 0:
+            problem.append("HITTAR INTE TEXTEN PA SIDAN")
+            b = []
+        else:
+            b = brodtext(live[start:start+len(fil)+6000]).split()[:len(a)]
+        for d in [x for x in difflib.ndiff(a, b) if x[0] in "+-"][:12]:
+            problem.append(f"ORDDIFF {d}")
+
+    # --- 2. HOMOGLYFER i live-texten ---
+    txt = brodtext(live[start:start+len(fil)+200]) if start >= 0 else ""
+    for i, ch in enumerate(txt):
+        if ord(ch) > 127 and ch not in TILLATNA_TECKEN:
+            n = unicodedata.name(ch, "?")
+            if "CYRILLIC" in n or "GREEK" in n:
+                problem.append(f"HOMOGLYF {ch!r} U+{ord(ch):04X}: ...{txt[max(0,i-30):i+30]}...")
+
+    # --- 3. SIDSVEP: hela den publicerade sidan, inte bara beskrivningen ---
+    hel = brodtext(live)
+    for namn, m in LIVE_GRINDAR:
+        for hit in sorted({x.group(0) for x in re.finditer(m, hel)}):
+            if hit in RIBBON_UNDANTAG:
+                continue
+            j = hel.find(hit)
+            problem.append(f"SIDA/{namn} {hit!r}: ...{hel[max(0,j-60):j+60]}...")
+
+    # --- 3b. ALT-TEXTER. Sidsvepet ovan strippar taggar, sa alt="" ar osynligt
+    #     for det. Efter batch 66 ar det just dar de tyska resterna satt kvar.
+    for alt in set(html.unescape(x) for x in re.findall(r'alt="([^"]{4,})"', live)):
+        problem += svep("ALT", alt)
+
+    # --- 3c. SEO-SVEP: <title> och meta description ---
+    def _meta(namn, attr="name"):
+        m = re.search(rf'<meta {attr}="{namn}" content="(.*?)"', live, re.S)
+        return html.unescape(m.group(1)) if m else None
+
+    _t = re.search(r"<title>(.*?)</title>", live, re.S)
+    seo = {"title": html.unescape(_t.group(1)) if _t else None,
+           "description": _meta("description"),
+           "og:title": _meta("og:title", "property"),
+           "og:description": _meta("og:description", "property")}
+
+    if VANTAT_SEO.get(p):
+        # Exakt jamforelse mot seo.tsv. Den ar det enda riktiga kvittot:
+        # den bryr sig inte om vilket sprak felet rakar vara pa.
+        vt, vd = VANTAT_SEO[p]
+        if seo["title"] != vt:
+            problem.append(f"SEO/TITEL avviker fran seo.tsv\n        vantat: {vt}\n        live:   {seo['title']}")
+        if seo["description"] != vd:
+            problem.append(f"SEO/BESKRIVNING avviker fran seo.tsv\n        vantat: {vd}\n        live:   {seo['description']}")
+    for falt, varde in seo.items():
+        if not varde:
+            problem.append(f"SEO/{falt.upper()} SAKNAS PA SIDAN")
+            continue
+        problem += svep(f"SEO/{falt}", varde)
+
+    # --- 3d. FLIKRADEN och KATEGORIN (Klart-kriteriet, runbookens checklista) ---
+    #
+    # ☠️ BADA MATS I DEN RENDERADE SIDAN, for det ar dar de gar sonder. Runbooken
+    # sager det uttryckligen om flikarna: strangen maste stamma ORDAGRANT, annars
+    # matchar splittern inte och spec-tabellen renderas inline mitt i brodtexten —
+    # "det ser inte trasigt ut, bara som en rubrik till, och darfor upptacks det
+    # inte". Fyra produkter gick live sa 2026-08-26/27.
+    #
+    # `Anvandning och skotsel` ar OBLIGATORISK sedan Leonards instruktion
+    # 2026-08-30. Uppmatt 2026-09-06 over 57 av mina egna publicerade sidor:
+    # 41 saknade den, och 41 saknade kategori. Bada stod i Klart-kriteriet hela
+    # tiden; ingen grind tittade efter dem, sa de foll tyst runda efter runda.
+    for flik in ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"):
+        if f"<summary>{flik}</summary>" not in live:
+            problem.append(f"FLIK SAKNAS: <summary>{flik}</summary>")
+
+    # Kategorin syns som andra ledet i brodsmulan. "Butik" ar butikens rot, alltsa
+    # ingen kategori alls — en okategoriserad produkt natt bara via sok och sitemap.
+    _b = re.search(r'"@type":"BreadcrumbList".*?\]', live, re.S)
+    _led = re.findall(r'"name":"([^"]+)"', _b.group(0)) if _b else []
+    if len(_led) < 2:
+        problem.append("KATEGORI: ingen brödsmula på sidan")
+    elif _led[1] == "Butik":
+        problem.append("KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt")
+
+    # --- 3e. KOPBARHETEN (#148) ---
+    #
+    # ☠️ EN PUBLICERAD SIDA SOM INTE GAR ATT KOPA. Produkten kan vara
+    # `visible: true` medan dess enda VARIANT bar `visible: false` — da renderar
+    # butiken "Slutsald" och JSON-LD `OutOfStock` fast Wix-lagret ar fullt.
+    # Uppmatt 2026-09-06 over hela den publicerade katalogen: 31 sidor, alla
+    # ur poleringsrundor, alla med saldo i Wix. Produktnivans
+    # `inventory.availabilityStatus` sa `IN_STOCK` hela tiden, sa varken ett
+    # API-svar eller en katalogskanning avslojade det.
+    #
+    # Defekten uppstar i poleringens SKU-steg, som PATCHar `variantsInfo` med
+    # ett handbyggt variantobjekt och da tappar `visible`. Regeln fanns nedskriven
+    # samma dag; det som saknades var en matning. Den ligger har for att sidan ar
+    # enda stallet dar bade produktens och variantens synlighet syns samtidigt.
+    #
+    # ⚠️ SYMTOMET HAR TVA ORSAKER, och meddelandet maste namna bada. Fram till
+    # 2026-09-07 pekade det bara pa den dolda varianten — och nasta gang det
+    # smallde var orsaken den ANDRA: 29b8fb0c hade variant `visible: true` och
+    # `quantity: 0`, alltsa en HELT KORREKT slutsald sida. Ett meddelande som
+    # namner en orsak till ett symtom med tva skickar felsokningen at fel hall,
+    # precis som prisgrindens "kostnaden har andrats" gjorde innan `slutsald`
+    # byggdes. Grinden ser bara den renderade sidan och kan inte skilja fallen
+    # at; da ska den saga det i stallet for att gissa.
+    if re.search(r'"availability"\s*:\s*"(?:https?://schema\.org/)?OutOfStock"', live):
+        problem.append("SLUTSALD: sidan ar publicerad men renderar OutOfStock. "
+                       "Tva mojliga orsaker — (a) saldot ar 0, och da ar sidan "
+                       "korrekt; (b) variantens `visible` ar false trots saldo, "
+                       "och da ar den okopbar. Las lagret innan du lagar nagot.")
+
+    # --- 4. Korslanken ska ha overlevt ---
+    #
+    # ☠️ INGEN KRASCH NAR KALLAN SAKNAR LANK. Forr gjorde raden .group(1) rakt
+    # pa ett sokresultat som kan vara None: en batch utan korslankar fallde
+    # grinden med AttributeError i stallet for att rapportera. En grind som
+    # kraschar ar en grind man slutar kora — och da ar aven de tre ovanstaende
+    # kontrollerna borta. Saknad lank i KALLAN ar inget fel; en lank som INTE
+    # overlevt till live ar det.
+    _m = re.search(r'href="(https://www\.fyndplats\.se/produkt/[^"]+)"', fil)
+    if _m and _m.group(1).split("/produkt/")[1] not in live:
+        problem.append(f"KORSLANK SAKNAS: {_m.group(1)}")
+
+    diffrad = (f"ord={len(a)} diff={len([x for x in problem if x.startswith('ORDDIFF')])}"
+               if har_kalla else "utan kallfil (ingen orddiff)")
+    print(f"{p} {slug}: {diffrad} "
+          f"-> {'REN' if not problem else str(len(problem)) + ' FEL'}")
+    for x in problem:
+        print(f"    ! {x}")
+        fel += 1
+
+print()
+print("TOTALT:", fel, "avvikelser i den PUBLICERADE texten")
+sys.exit(1 if fel else 0)

@@ -186,6 +186,68 @@ export interface ProductMappingRecord {
    * normalt AI-berikad import (back-compat med äldre rader).
    */
   needsAiPolish?: boolean;
+
+  /**
+   * Lås priset: Aosom-synken räknar om och skriver ALDRIG priset på den här
+   * raden. Lagret synkas som vanligt.
+   *
+   * ☠️ ETT LÅS ÄR INTE ETT PRIS. Husets regel är `1,20 × landedCostSek`, och
+   * synken tillämpar den på varje Aosom-rad var sjätte timme. Vill man hålla
+   * ett pris ÖVER regeln — t.ex. en vara som redan säljer bra dyrare — finns
+   * ingen annan väg än att säga åt synken att låta bli. Utan låset skriver
+   * nästa körning tillbaka regelpriset, och det ser ut som om ändringen "inte
+   * tog".
+   *
+   * ⚠️ PRISET SLUTAR DÅ OCKSÅ FÖLJA KOSTNADEN. Stiger Aosoms frakt äts
+   * marginalen tyst. Därför räknas låsta rader i synkens summering
+   * (`prisLasta`) i stället för att bara hoppas över — ett lås som ingen ser
+   * är ett lås som glöms bort.
+   */
+  prisLast?: boolean;
+  /**
+   * Dealproffsens pris för samma Aosom-artikel, sparat av
+   * `/api/admin/konkurrentpris` läge `spara` (lib/pricing/konkurrentregel.ts).
+   *
+   * ☠️ BÄR ALDRIG ARTIKELNUMRET — raden är redan nycklad på det. Priset är
+   * `price_amount` (vad kunden betalar), aldrig det överstrukna.
+   *
+   * ⚠️ `hamtad` ÄR REGELNS SÄKRING. Synken prissätter bara mot ett pris yngre
+   * än KONKURRENT_MAX_ALDER_DAGAR; ett äldre fryser raden i stället för att
+   * sänka den till golvet. Slutar jämförelsen köras syns det i `konkurrentFrysta`.
+   */
+  konkurrent?: {
+    pris: number;
+    hamtad: string;
+  };
+  /**
+   * Prisläge mot dealproffsen: "A" = 2 % under, "B" = 5 % under
+   * (marknadsplan v3, testet som avgör regeln). Lottas deterministiskt ur
+   * wix-id:t av `/api/admin/konkurrentpris` läge `lotta`.
+   *
+   * ☠️ SAKNAS FÄLTET GÄLLER HUSETS REGEL, exakt som förut. Konkurrentregeln är
+   * opt-in per rad; att deploya den ändrar inte ett enda pris.
+   */
+  prisgrupp?: "A" | "B";
+  /**
+   * Senaste genomförda prishöjningen på raden (lib/pricing/ae-prishojning.ts).
+   *
+   * ☠️ FÄLTET ÄR IDEMPOTENSEN, INTE EN LOGGRAD. Höjningen rör ~1 000 produkter
+   * och rutten har 300 sekunder, så den MÅSTE kunna köras om. Utan en stämpel
+   * kan planen inte skilja "ännu inte höjd" från "redan höjd": en omkörning
+   * efter ett avbrott hade tagit 599 → 659 → 725, och ingenting i svaret hade
+   * sett fel ut. Planen hoppar därför över varje rad som redan bär samma
+   * `kampanj`.
+   *
+   * Kampanjnamnet är anroparens, inte ett datum: två höjningar samma dag ska
+   * gå att skilja åt, och en avbruten körning ska gå att återuppta med exakt
+   * samma namn.
+   */
+  prishojning?: {
+    kampanj: string;
+    fran: number;
+    till: number;
+    nar: string;
+  };
   /**
    * Satt när variantpriserna inte gick att bekräfta vid import: alla varianter
    * delade inköpspris utan per-SKU-täckning (lib/import/price-trust.ts).

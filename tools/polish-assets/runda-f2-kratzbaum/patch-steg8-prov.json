@@ -1,0 +1,41 @@
+{
+  "products": [
+    {
+      "product": {
+        "id": "ab6c0b93-f19e-46be-bbd3-ef930f145b92",
+        "revision": "6",
+        "visible": true,
+        "variantsInfo": {
+          "variants": [
+            {
+              "id": "f0b665a1-9b7b-48ab-8d1b-afc65a6cd446",
+              "visible": true,
+              "sku": "FP-klostrad-202-242-gron",
+              "choices": [],
+              "price": {
+                "actualPrice": {
+                  "amount": "879"
+                }
+              },
+              "media": {
+                "id": "b379ce_457a34dc2e8a4c99a6876ffbee27c985~mv2.jpg",
+                "altText": "Grönt klösträd som spänns mellan golv och tak, 202–242 cm, mot vit bakgrund",
+                "image": {
+                  "id": "b379ce_457a34dc2e8a4c99a6876ffbee27c985~mv2.jpg",
+                  "url": "https://static.wixstatic.com/media/b379ce_457a34dc2e8a4c99a6876ffbee27c985~mv2.jpg",
+                  "height": 2000,
+                  "width": 2000,
+                  "altText": "Grönt klösträd som spänns mellan golv och tak, 202–242 cm, mot vit bakgrund",
+                  "filename": "kratzbaum-hohenverstellbar-202-242-cm-rutschfest-juteseil-pfosten-1.jpg",
+                  "sizeInBytes": "234032"
+                },
+                "mediaType": "IMAGE",
+                "uploadId": "b379ce_457a34dc2e8a4c99a6876ffbee27c985~mv2.jpg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

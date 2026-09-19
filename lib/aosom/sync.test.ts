@@ -742,3 +742,320 @@ describe("runAosomSync — tuggor", () => {
     expect(sparade[0].aosomSyncedQty).toBe(synligtSaldo(rad("A-1").qty));
   });
 });
+
+describe("prisLast — låst pris", () => {
+  // ☠️ VARFÖR LÅSET FINNS. Synken tillämpar husets regel (1,20 × landedCostSek)
+  // på varje Aosom-rad var sjätte timme. Det är rätt för sortimentet i stort,
+  // men en rad kan ha ett pris som satts av något annat än kostnaden — t.ex.
+  // kontorsstolen f13cd415 (2026-09-05), som stod på 1 299 kr som
+  // AliExpress-vara och efter ommappningen till Aosom hade fått 1 099 kr av
+  // regeln. Sänkningen kom av att vi bytte LEVERANTÖR, inte av att marknaden
+  // rört sig, och kunderna betalar redan 1 299.
+  //
+  // Utan låset finns ingen väg dit: nästa körning skriver tillbaka regelpriset
+  // och det ser ut som om ändringen "inte tog".
+
+  /** Butikens pris ligger 200 kr under regelns — utan lås SKA synken skriva. */
+  const LÅGT = BASPRIS - 200;
+
+  it("skriver INTE priset på en låst rad", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisLast: true }), mappning("B-2")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅGT, "wix-B-2": LÅGT }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    // Bara den olåsta raden fick sitt pris skrivet.
+    expect(priser.map((p) => p.id)).toEqual(["wix-B-2"]);
+    expect(s.prisUppdaterade).toBe(1);
+  });
+
+  it("KONTROLL: samma fixtur utan lås skriver båda priserna", async () => {
+    // Utan den här raden bevisar testet ovan ingenting — en tom prislista ser
+    // likadan ut vare sig grinden fungerar eller fixturen är fel byggd.
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1"), mappning("B-2")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅGT, "wix-B-2": LÅGT }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser.map((p) => p.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+    expect(s.prisUppdaterade).toBe(2);
+  });
+
+  it("☠️ lagret synkas ÄNDÅ — låset rör bara priset", async () => {
+    // Att sluta spegla saldot hade betytt att vi säljer något vi inte har, och
+    // det är ett kundfel medan ett oförändrat pris inte är det.
+    const { d, lager } = deps({
+      listAosom: async () => [mappning("A-1", { prisLast: true })],
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅGT }),
+    });
+    await runAosomSync(d, { dryRun: false });
+
+    expect(lager).toEqual([{ id: "wix-A-1", antal: 50 - LAGER_BUFFERT }]);
+  });
+
+  it("⚠️ låsta rader RÄKNAS, de hoppas inte tyst över", async () => {
+    // Ett låst pris slutar följa kostnaden — stiger Aosoms frakt äts marginalen
+    // tyst. Talet i summeringen är det som gör låset synligt igen.
+    const { d } = deps({
+      listAosom: async () => [mappning("A-1", { prisLast: true }), mappning("B-2")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅGT, "wix-B-2": LÅGT }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.prisLasta).toBe(1);
+    expect(s.granskade).toBe(2);
+  });
+
+  it("☠️ en låst rad hamnar ALDRIG i varningar", async () => {
+    // Grinden ligger FÖRE uträkningen med flit. Ett pris vi ändå inte tänker
+    // skriva ska inte kunna larma för ett hopp som aldrig skulle blivit av —
+    // ett falsklarm som alltid fyrar lär mottagaren att sluta läsa, och då är
+    // även det äkta larmet borta.
+    const LÅNGT_BORT = BASPRIS * 3; // > MAX_PRISANDRING_PCT åt endera hållet
+    const låst = deps({
+      listAosom: async () => [mappning("A-1", { prisLast: true })],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
+    });
+    const s = await runAosomSync(låst.d, { dryRun: false });
+    expect(s.varningar).toEqual([]);
+    expect(s.prisLasta).toBe(1);
+
+    // KONTROLL: utan låset ÄR det en varning — annars mäter testet ingenting.
+    const olåst = deps({
+      listAosom: async () => [mappning("A-1")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
+    });
+    const s2 = await runAosomSync(olåst.d, { dryRun: false });
+    expect(s2.varningar).toHaveLength(1);
+    expect(Math.abs(s2.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
+  });
+
+  it("låset gäller BARA sin egen rad", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisLast: true }), mappning("B-2", { prisLast: false })],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅGT, "wix-B-2": LÅGT }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(priser).toHaveLength(1);
+    expect(priser[0].id).toBe("wix-B-2");
+    expect(s.prisLasta).toBe(1);
+  });
+});
+
+describe("☠️ ej skeppbar rad — fraktsentinelen gatas i SYNKEN, inte bara vid importen", () => {
+  // Bakgrund (2026-09-10): `isShippableToSe` hade fem anropare och synken var
+  // inte en av dem. Massagebänken 503-001V00CW importerades med fraktandel
+  // 0,292 — helt normal frakt — och bar sedan Aosoms "skickas inte hit"-värde
+  // 999,90 €. Synken speglade saldot vidare, och sidan låg publicerad och
+  // köpbar för en vara vi inte kunde expediera. Samma mönster som den döda
+  // AE-listningen: importen gatade, synken gjorde det inte.
+  const SENTINEL = 999.9;
+
+  it("nollar saldot och skriver INGET pris", async () => {
+    const { d, lager, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(1);
+    // Saldot nollas — sidan ligger KVAR (samma SEO-beslut som döda AE-listningar).
+    expect(lager).toContainEqual({ id: "wix-A-1", antal: 0 });
+    // ☠️ Och inget pris. `landedCostEur` adderar sentinelfrakten rakt av, så
+    // regelpriset blir tiotusentals kronor på en vara som kostar 40 €.
+    expect(priser.map((p) => p.id)).not.toContain("wix-A-1");
+  });
+
+  it("☠️ hamnar INTE i `varningar` — det är ett känt tillstånd, inte ett larm", async () => {
+    // Det här är testet som fäller om grinden tas bort: utan den räknas
+    // sentinelfrakten in, hoppet spränger MAX_PRISANDRING_PCT och raden dyker
+    // upp som en varning varje natt. Ett falsklarm som alltid fyrar lär
+    // mottagaren att sluta läsa — samma argument som bakom `regelGäller`.
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.varningar).toHaveLength(0);
+  });
+
+  it("☠️ räknas INTE som slutsåld — 'Aosom har slut' och 'skickas inte hit' är olika besked", async () => {
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(1);
+    expect(s.slutsalda).toBe(0);
+  });
+
+  it("en verkligt slutsåld rad räknas som slutsåld, inte som ej skeppbar", async () => {
+    // Kontrollen åt andra hållet: de två räknarna får inte glida ihop.
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 0 }), rad("B-2")),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.slutsalda).toBe(1);
+    expect(s.ejSkeppbara).toBe(0);
+  });
+
+  it("⚠️ en NORMAL frakt rörs inte av grinden — den får inte vara för bred", async () => {
+    // Utan den här kontrollen kunde grinden vara skriven tvärtom och alla
+    // tester ovan hade ändå gått igenom.
+    const { d, lager, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: 20 }), rad("B-2")),
+      listWixPriser: async () => wixPriser({ "wix-A-1": BASPRIS - 100 }),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.ejSkeppbara).toBe(0);
+    expect(lager).toContainEqual({ id: "wix-A-1", antal: 50 - LAGER_BUFFERT });
+    expect(priser.map((p) => p.id)).toContain("wix-A-1");
+  });
+});
+
+describe("konkurrentregeln — pris mot dealproffsen (2026-09-15)", () => {
+  // ☠️ VARFÖR REGELN LEVER HÄR. Synken räknar om varje Aosom-pris var sjätte
+  // timme, så ett handsatt pris är borta till kvällen och 900 lås hade slutat
+  // följa kostnaden. Regeln ger raden ett MÅL i stället: strax under
+  // dealproffsen, aldrig under husets regelpris, aldrig över 1,50 × landad.
+  // Se lib/pricing/konkurrentregel.ts.
+
+  const farskt = (pris: number) => ({ pris, hamtad: new Date().toISOString() });
+  const gammalt = (pris: number) => ({
+    pris,
+    hamtad: new Date(Date.now() - 10 * 86_400_000).toISOString(),
+  });
+
+  it("lyfter priset mot strax under dealproffsen på en rad med grupp", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [
+        mappning("A-1", { prisgrupp: "A", konkurrent: farskt(1200) }),
+        mappning("B-2"),
+      ],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    // BASPRIS är 999; 2 % under 1 200 är 1 176 → charm9 nedåt → 1 169.
+    expect(priser).toEqual([
+      expect.objectContaining({ id: "wix-A-1", pris: 1169 }),
+    ]);
+    expect(s.prisUppdaterade).toBe(1);
+    expect(s.konkurrentMal).toBe(1);
+    expect(s.varningar).toEqual([]);
+  });
+
+  it("☠️ KONTROLL: samma konkurrentpris UTAN grupp ändrar ingenting", async () => {
+    // Opt-in per rad: att deploya regeln får inte röra ett enda pris.
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { konkurrent: farskt(1200) }), mappning("B-2")],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toHaveLength(0);
+    expect(s.konkurrentMal + s.konkurrentTak + s.konkurrentGolv + s.konkurrentFrysta).toBe(0);
+  });
+
+  it("☠️ ett gammalt konkurrentpris FRYSER raden — inget skrivs, ingen varning, och det räknas", async () => {
+    // Butiken står på ett lyft pris från förra veckan. Hade regeln fallit
+    // tillbaka på golvet hade synken sänkt priset 170 kr för att jämförelsen
+    // stod still.
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: gammalt(1200) })],
+      listWixPriser: async () => wixPriser({ "wix-A-1": 1169 }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toHaveLength(0);
+    expect(s.konkurrentFrysta).toBe(1);
+    expect(s.varningar).toEqual([]);
+  });
+
+  it("☠️ KONTROLL: samma rad med FÄRSKT pris skrivs — frysningen är åldern, inte fixturen", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: farskt(1300) })],
+      listWixPriser: async () => wixPriser({ "wix-A-1": 1169 }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser.map((p) => p.id)).toEqual(["wix-A-1"]);
+    expect(s.konkurrentFrysta).toBe(0);
+    expect(s.konkurrentMal + s.konkurrentTak).toBe(1);
+  });
+
+  it("deras pris under vårt golv → vi står kvar på regelpriset, och raden räknas som golv", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: farskt(900) })],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    // Butiken står redan på BASPRIS = regelpriset → inget att skriva.
+    expect(priser).toHaveLength(0);
+    expect(s.konkurrentGolv).toBe(1);
+  });
+
+  it("målet över taket → taket gäller, och hoppet håller sig under MAX_PRISANDRING_PCT", async () => {
+    // Landad 832,50 → tak 1 248,75 → charm9 nedåt 1 239. Deras 2 000 hade gett 1 960.
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: farskt(2000) })],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: 1239 })]);
+    expect(s.konkurrentTak).toBe(1);
+    expect(s.varningar).toEqual([]);
+    expect((1239 - BASPRIS) / BASPRIS * 100).toBeLessThan(MAX_PRISANDRING_PCT);
+  });
+
+  it("grupp B ligger längre under än grupp A", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "B", konkurrent: farskt(1200) })],
+    });
+    await runAosomSync(d, { dryRun: false });
+
+    // 5 % under 1 200 är 1 140 → charm9 nedåt → 1 139.
+    expect(priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: 1139 })]);
+  });
+
+  it("☠️ prisLast vinner över regeln — ett lås är ett lås", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [
+        mappning("A-1", { prisLast: true, prisgrupp: "A", konkurrent: farskt(1200) }),
+      ],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toHaveLength(0);
+    expect(s.prisLasta).toBe(1);
+    expect(s.konkurrentMal).toBe(0);
+  });
+
+  it("lagret synkas ändå på en fryst rad — frysningen rör bara priset", async () => {
+    const { d, lager } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: gammalt(1200) })],
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+    });
+    await runAosomSync(d, { dryRun: false });
+
+    expect(lager).toEqual([{ id: "wix-A-1", antal: 50 - LAGER_BUFFERT }]);
+  });
+
+  it("torrkörningen räknar samma utfall utan att skriva", async () => {
+    const { d, priser } = deps({
+      listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: farskt(1200) })],
+    });
+    const s = await runAosomSync(d);
+
+    expect(s.dryRun).toBe(true);
+    expect(priser).toHaveLength(0);
+    expect(s.konkurrentMal).toBe(1);
+  });
+});

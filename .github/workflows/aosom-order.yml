@@ -20,6 +20,13 @@ name: Aosom — bygg bulkorder-filen
 # vilka ordrar som inte gick att få med och varför. `csv` laddar ner en batch
 # som en artifact du kan hämta från telefonen.
 #
+# ☠️ ARTIFACTEN INNEHALLER KUNDUPPGIFTER, OCH REPOT AR PUBLIKT.
+# Filen bar namn, gatuadress, postnummer, ort och telefon per order, plus
+# Aosoms artikelnummer. En artifact pa ett publikt repo gar att ladda ner utan
+# inloggning. Loggen skriver darfor aldrig ut innehallet (bara formen), men
+# SJALVA ARTIFACTEN ar fortfarande oppen -- radera korningen nar filen ar
+# uppladdad hos Aosom, och lat den inte ligga kvar i 90 dagar.
+#
 # ⚠️ ADRESSKOLUMNERNAS RUBRIKER ÄR INTE VERIFIERADE mot Aosoms egen mall
 # (`CSV_KOLUMNER` i lib/aosom/bulk-order.ts). Guiden anger bara att kolumn A är
 # artikelnumren och kolumn B antalen. Datan i raderna är rätt oavsett — det är
@@ -52,6 +59,12 @@ jobs:
   bulkorder:
     runs-on: ubuntu-latest
     steps:
+      # ☠️ BEHOVS FOR SAMMANFATTNINGSSKRIPTET. Jobbet hade ingen checkout alls
+      # forut — det anropade bara en rutt. Utan den finns
+      # tools/aosom/csv-sammanfattning.py inte pa runnern, och csv-laget dor
+      # pa "No such file or directory" i stallet for att sammanfatta filen.
+      - uses: actions/checkout@v4
+
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
@@ -81,20 +94,40 @@ jobs:
             if [ "$kod" != "200" ]; then
               echo "::error::HTTP ${kod} fran aosom-order" >&2
               # Kroppen är JSON vid fel — visa den, men fäll inte på jq.
-              jq -r '.error // .message // "okant fel"' aosom-bulkorder.csv >&2 || cat aosom-bulkorder.csv >&2
+              # Fallbacken kapas: gar jq bet vet vi inte VAD kroppen ar, och
+              # stderr gar till samma publika logg som stdout.
+              jq -r '.error // .message // "okant fel"' aosom-bulkorder.csv >&2 \
+                || head -c 200 aosom-bulkorder.csv >&2
               exit 1
             fi
 
             rader=$(wc -l < aosom-bulkorder.csv)
             if [ "$rader" -lt 2 ]; then
               echo "::error::CSV:n har bara ${rader} rad(er) — ingen order kom med" >&2
-              cat aosom-bulkorder.csv >&2
+              # ☠️ Inte `cat`. `wc -l` raknar radbrytningar, sa EN kundrad utan
+              # avslutande radbrytning ger ocksa "1" — och da hade den raden
+              # med namn, adress och telefon skrivits till den publika loggen
+              # av just den gren som finns for att rapportera att filen ar TOM.
+              head -1 aosom-bulkorder.csv >&2
               exit 1
             fi
 
             echo "Batch ${BATCH}: $((rader - 1)) order(rar), ${rader} rader inkl. rubrik."
             echo
-            cat aosom-bulkorder.csv
+
+            # ☠️ INNEHALLET SKRIVS ALDRIG UT. Filen bar kundens namn,
+            # gatuadress, postnummer, ort och telefon OCH Aosoms
+            # artikelnummer, och det har repot ar PUBLIKT.
+            #
+            # Sammanfattningen ligger i ett EGET SKRIPT, inte pa en rad har.
+            # En rad i en workflow gar inte att testa, och det var
+            # oprovbarheten som lat tva forsok i rad ga igenom: forst ett
+            # `cat`, sedan en awk med `-F'\",\"'` som antog att varje falt ar
+            # citerat. Det ar det inte, sa awk hittade ingen avgransare och
+            # skrev ut hela raden. Skriptet ar last av ett test mot riktig
+            # byggCsv-utdata.
+            python3 tools/aosom/csv-sammanfattning.py aosom-bulkorder.csv
+
             echo
             echo "Ladda ner artifacten 'aosom-bulkorder' och ladda upp den pa"
             echo "https://www.aosom.de/bulkordering"

@@ -97,8 +97,12 @@ async function handle(req: NextRequest) {
         "batch",
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
+          + `${summary.ejSkeppbara} EJ SKEPPBARA, `
           + `${summary.varningar.length} blockerade prishopp, `
-          + `${summary.utanWixPris} utan butikspris, ${summary.utanLagerrader} utan lagerrader, `
+          + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
+          + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
+          + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
+          + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
           + `${summary.kvar} kvar`
           + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
@@ -113,9 +117,23 @@ async function handle(req: NextRequest) {
     console.log(
       `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
         + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
+        + `${summary.prisLasta} prislåsta, `
+        // Konkurrentregeln (2026-09-15): FRYSTA är larmet — går det upp har
+        // dealproffsen-jämförelsen slutat köras och testraderna står still.
+        + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
+        + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} frysta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
+        + `${summary.ejSkeppbara} ej skeppbara, `
         + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `
         + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `
+        // ☠️ `stoppedBy` SKA STÅ I LOGGEN (2026-09-10). Fältet har funnits i
+        // summaryn sedan loopen byggdes om, men skrevs varken här eller i
+        // workflowen — så en körning som slog i `limit` och en som blev klar
+        // såg likadana ut. Det gick alltså inte att svara på den enda fråga
+        // som avgör om taket ska höjas: tog budgeten slut, eller tiden?
+        // Uppmätt samma dag: priscronen stannade på `limit` fyra nätter i rad
+        // och lämnade 2 607 rader ogranskade, utan att någon kunde se det.
+        + `stoppade på ${summary.stoppedBy}, `
         + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
         + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
     );

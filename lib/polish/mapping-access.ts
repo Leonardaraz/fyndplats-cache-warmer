@@ -157,6 +157,52 @@ export type Prisgrind = {
    * för hand, men ett fall bevisar ingen drift.
    */
   regelGäller: boolean;
+  /**
+   * ☠️ Raden har LÅST PRIS (`prisLast`) och är därför medvetet frikopplad från
+   * regeln — se CLAUDE.md, "`prisLast`: en rad där synken räknar om men INTE
+   * skriver".
+   *
+   * Utan det här fältet fäller grinden varje låst rad som "kostnaden har
+   * ändrats och priset i Wix är gammalt". Det är fel SKÄL: priset är inte
+   * gammalt, det är valt. Rådet är detsamma ("rör inte priset"), men ett rött
+   * jobb på ett medvetet beslut är ett falsklarm — och ett falsklarm som alltid
+   * fyrar lär mottagaren att sluta läsa, precis som "EJ AVGÖRBAR" på varje
+   * AE-rad hade gjort innan `regelGäller` fanns.
+   */
+  prisLast: boolean;
+  /**
+   * ☠️ Saldot är NOLL — varan går inte att köpa, och prisfallet har sannolikt
+   * ett annat skäl än drift.
+   *
+   * `lib/aosom/sync.ts` (`planeraProdukt`) hoppar över hela prisdelen när
+   * artikeln saknas i feeden:
+   *
+   *     // Bara när raden finns: utan rad finns inget nytt pris att räkna på,
+   *     // och ett gammalt pris på en slutsåld vara skadar ingen.
+   *     if (!row || opts.skipPrices || !variant) return plan;
+   *
+   * Och `nyttSaldo` blir `null` när saldot redan är noll, så ingen skrivning
+   * sker och `aosomSyncedAt` fryser. En rad som fallit ur feeden får alltså
+   * ALDRIG sitt pris omräknat — prisgrinden kan inte bli grön där, hur länge
+   * man än väntar.
+   *
+   * Uppmätt 2026-09-06 på cordfåtöljen `1877cf83`: landedCostSek 2404,4 ger
+   * 2889 med charm9 och 2899 med charm99, alltså SAMMA kostnad och bara den
+   * avrundningsstrategi som byttes 2026-09-03. Grinden fällde den ändå med
+   * "kostnaden har ändrats sedan importen" — rätt RÅD (polera inte), fel SKÄL.
+   * Wix bekräftade saldo 0 och `revision: 1`.
+   *
+   * ☠️ BARA ETT UTTRYCKLIGT `0` RÄKNAS. Fältet är optional och saknas på en
+   * rad som aldrig synkats; `undefined` är ingen bevisning om saldot, precis
+   * som en saknad hyllstatus blir `unknown` och aldrig `offline`.
+   *
+   * ⚠️ Fältet skiljer INTE "borta ur feeden" från "finns i feeden, men
+   * slutsåld" — båda ger saldo 0 och båda fryser stämpeln. Det är med flit:
+   * mappningsraden bär inte belägg för vilket det är, och en grind som
+   * påstår mer än den vet är precis felet den här ersätter. Rådet är
+   * detsamma i båda fallen: polera inte en vara ingen kan köpa.
+   */
+  slutsald: boolean;
 };
 
 /**
@@ -190,5 +236,10 @@ export function prisgrind(
     landedCostSek: v.landedCostSek,
     stämmer: förväntatSek === v.grossSek,
     regelGäller: rad.supplier === "aosom",
+    prisLast: rad.prisLast === true,
+    // ☠️ `=== 0`, inte `!`: fältet är optional, och en rad som aldrig synkats
+    // har `undefined`. Att läsa avsaknad som "slutsåld" hade fällt varje
+    // nyimporterad produkt.
+    slutsald: rad.aosomSyncedQty === 0,
   };
 }

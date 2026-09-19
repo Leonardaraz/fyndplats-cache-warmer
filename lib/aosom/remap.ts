@@ -45,6 +45,9 @@ import { aosomSupplierProductId, type AosomFx } from "./to-product";
  */
 export const MIN_REMAP_MARGIN_PCT = 5;
 
+/** Varifran priset i planen hamtades. */
+export type RemapPrisKalla = "butik" | "mappning";
+
 export type RemapHinder =
   | "ingen_mappning"
   | "saknas_i_feeden"
@@ -69,6 +72,8 @@ export interface RemapPlan {
   fraktandel: number;
   /** Kundens pris, oförändrat — ommappningen rör aldrig priset. */
   prisSek: number | null;
+  /** Varifran `prisSek` kom. Butiken ar facit; mappningen ar en gissning. */
+  prisKalla: RemapPrisKalla;
   /** Marginal netto mot netto EFTER bytet. */
   nyMarginalPct: number | null;
   /** Marginalen raden hade före bytet, när den gick att räkna ut. */
@@ -90,6 +95,22 @@ export interface RemapInput {
   /** Wix-produkten som ska pensioneras som dubblett (valfritt). */
   dubblett?: string;
   minMarginPct?: number;
+
+  /**
+   * Vad butiken FAKTISKT tar for produkten, last ur Wix.
+   *
+   * ☠️ BUTIKEN AR FACIT, INTE MAPPNINGEN. Mappningens `grossSek` ar vad vi TROR
+   * att kunden ser; glider de isar rakhar grinden pa fel underlag. Uppmatt
+   * 2026-09-05 pa kontorsstolen f13cd415: mappningen sa 879 kr, kunden hade
+   * precis betalat 1 299. Marginalen efter byte blev darfor -2,41 % i planen
+   * nar den i verkligheten var +30,7 %, och golvet falde en ommappning som var
+   * lonsam. Exakt samma forvaxling som `jamforelsePris` byggdes for i synken
+   * 2026-09-02 — samma bugg, andra stallet.
+   *
+   * null/utelamnat = ingen lasning gjord, da faller vi tillbaka pa mappningen
+   * (och `prisKalla` sager vilket som anvandes).
+   */
+  butikensPrisSek?: number | null;
 }
 
 function round2(n: number): number {
@@ -157,7 +178,12 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   const varianter = mappning?.variants ?? [];
   if (varianter.length > 1) hinder.push("flera_varianter");
 
-  const prisSek = varianter[0]?.grossSek ?? null;
+  const mappningensPris = varianter[0]?.grossSek ?? null;
+  const butikensPris = input.butikensPrisSek ?? null;
+  // Butiken vinner nar den lasts. Se kommentaren pa RemapInput.butikensPrisSek.
+  const anvandButiken = butikensPris != null && butikensPris > 0;
+  const prisSek = anvandButiken ? butikensPris : mappningensPris;
+  const prisKalla: RemapPrisKalla = anvandButiken ? "butik" : "mappning";
   const gammalLandadSek = varianter[0]?.landedCostSek ?? null;
   if (!(prisSek && prisSek > 0)) hinder.push("pris_okant");
 
@@ -176,6 +202,7 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
     nyCostUsd,
     fraktandel: rad ? round3(freightShare(rad)) : 0,
     prisSek,
+    prisKalla,
     nyMarginalPct: nyMarginalPct == null ? null : round2(nyMarginalPct),
     gammalMarginalPct: gammalMarginalPct == null ? null : round2(gammalMarginalPct),
     ...(input.dubblett ? { dubblett: input.dubblett } : {}),

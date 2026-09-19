@@ -14,8 +14,16 @@
 
 const WIX_BASE = "https://www.wixapis.com";
 
-/** Värdar vi aldrig vill länka till från en kundvänlig sida. */
-const EXTERNA_VARDAR = ["aliexpress-media.com", "alicdn.com"];
+/**
+ * Värdar vi aldrig vill länka till från en kundvänlig sida.
+ *
+ * `img.aosomcdn.com` tillkom 2026-09-16: första Aosom-inläsningen publicerade
+ * 709 recensioner med 1 130 kundfoton som pekade rakt på Aosoms CDN, eftersom
+ * listan bara kände AliExpress. Samma läcka som 2026-08-17, samma bot —
+ * repairImages i /api/cron/review-translate skriver om synliga rader, och
+ * workflowen review-image-repair.yml kör den i varv tills inget är kvar.
+ */
+const EXTERNA_VARDAR = ["aliexpress-media.com", "alicdn.com", "img.aosomcdn.com"];
 
 export function isExternalSupplierImage(url: string | undefined): boolean {
   if (!url) return false;

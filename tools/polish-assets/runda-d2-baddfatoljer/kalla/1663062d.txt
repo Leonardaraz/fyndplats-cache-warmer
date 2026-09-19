@@ -1,0 +1,32 @@
+# KALLA 1663062d — 2829 kr — farg: Blau — tyg: Leinenimitat
+Masse als Sofa: 75L x 70B x 75H cm
+Masse als Bett: 180L x 75B x 25H cm
+Kissen: 55B x 20T cm
+Max. Belastbarkeit: 150 kg
+Material: Stahl, Leinenimitat (100% Polyester), Schaumstoff
+2-in-1-Funktion: Relaxsessel und Gaestebett in einem
+Dicke, weiche Polsterung fuer Sitz- und Schlafkomfort
+Gestell aus stabilem Stahl, leicht ausziehbar
+Fuenffach verstellbare Rueckenlehne
+Kissenbezug abnehmbar und waschbar
+Zusammenklappbar und platzsparend zu verstauen
+Lieferumfang: 1 x Sofa, 1 x Kissen, 1 x Anleitung
+Vikt: 22,9 kg  Paketmatt: 123 x 76 x 26 cm
+
+# KORSREFERENS — den PUBLICERADE systerprodukten
+# baddfatolj-gastsang-180-cm (f94a964c, mellangra). Samma mobel: 22,9 kg,
+# paket 123 x 76 x 26, badd 180 x 75 x 25, stol 75 x 70 x 75, kudde 55 x 20.
+# Sitthojd 38 cm star pa den publicerades mattritning.
+Publicerad systerprodukt i mellangratt: samma mobel, sitthojd 38 cm
+
+# ☠️ STEG 2-FYND: MAXLASTEN SKILJER MELLAN RITNINGARNA — 150 mot 120 kg.
+# Det har underlaget OCH utkastets mattritning sager 150 kg. Den publicerade
+# systerns underlag och ritning sager 120 kg. Mobeln ar identisk i varje
+# annat tal, sa ett av talen ar fel.
+# I runda D1 avgjordes samma sorts konflikt med "varje sida bar sitt eget
+# tal". Det galler INTE har, och skillnaden ar vad felet kostar:
+#   badd-LANGD  fel at nagot hall -> kunden blir forvanad
+#   MAXLAST for hogt -> nagon sitter pa en mobel som inte bar dem
+# Asymmetrin avgor. 120 kg skrivs — det lagre av tva leverantorsuppgifter
+# om samma mobel, alltsa det enda vi kan sta for.
+Vald maxlast: 120 kg (konservativ, samma som publicerade systern)

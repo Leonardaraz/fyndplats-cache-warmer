@@ -1,0 +1,160 @@
+name: Pris — höj AliExpress-halvan med X %
+
+# Ingenting annat i repot kan höja ett AE-pris: price-repair rättar bara
+# varianter som delar inköpspris, och Aosom-synken rör bara Aosom-rader.
+#
+# Höjningen är dessutom meningsfull BARA på AE-halvan. Aosom-raderna räknas om
+# ur kostnaden var sjätte timme, så en höjning där hade skrivits tillbaka innan
+# dagen var slut. AE-raderna räknas aldrig om — en höjning står kvar tills
+# någon rör den igen.
+#
+# ☠️ TVA STEG, ALLTID. Torrläget ger en plan med en KONTROLLSUMMA; skarpläget
+# kräver den summan. Prisreparationens regel är att det inte finns nagon
+# kör-allt-flagga — ett pris som nar kund ska ha passerat ögon. Pa tusen rader
+# vore en id-uppräkning teater, sa kontrollsumman gör samma jobb mekaniskt: du
+# kan bara godkänna den plan du faktiskt fick se.
+#
+# ☠️ KAMPANJNAMNET AR IDEMPOTENSEN. Rutten har 300 sekunder och katalogen har
+# ~1 000 AE-rader, sa körningen KOMMER att behöva köras om. Stämpeln pa
+# mappningsraden är det enda som skiljer "ännu inte höjd" fran "redan höjd" —
+# utan den hade en omkörning tagit 599 → 659 → 725, och svaret sett likadant ut
+# bada gangerna. Anvand SAMMA namn när du aterupptar.
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har Wix-nycklarna, Actions
+# har CRON_SECRET. Ingen hemlighet passerar chatten — jobbet gar att starta fran
+# en telefon.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        # `choice` med required:true kan inte bli tomt, sa GitHubs
+        # default-substitution (som publicerade utkast i tolv timmar via
+        # polish-mapping.yml) har inget att fylla i här.
+        description: "plan = torrkörning, skriver ingenting · hoj = skriver priserna"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - hoj
+      pct:
+        description: "Höjning i procent, t.ex. 10. Taket är 25."
+        required: true
+        type: string
+      kampanj:
+        description: "Namn pa höjningen, t.ex. hostpris-10. SAMMA namn vid omkörning."
+        required: true
+        type: string
+      bekrafta:
+        description: "Planens kontrollsumma (fran plan-läget). Kravs bara for hoj."
+        required: false
+        default: ""
+        type: string
+      limit:
+        description: "Max antal produkter att skriva i denna körning."
+        required: false
+        default: "400"
+        type: string
+
+jobs:
+  prishojning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          PCT: ${{ inputs.pct }}
+          KAMPANJ: ${{ inputs.kampanj }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-lardomen 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/ae-prishojning"
+          q="pct=${PCT}&kampanj=${KAMPANJ}"
+
+          if [ "${MODE}" = "hoj" ]; then
+            if [ -z "${BEKRAFTA:-}" ]; then
+              echo "::error::bekrafta saknas. Kör plan-läget först och skicka DESS summa." >&2
+              exit 1
+            fi
+            q="${q}&dryRun=false&bekrafta=${BEKRAFTA}&limit=${LIMIT}"
+          fi
+
+          svar="$(curl -sS -w '\n%{http_code}' -H "Authorization: Bearer ${CRON_SECRET}" "${url}?${q}")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          kropp="$(printf '%s' "$svar" | sed '$d')"
+
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$kropp" >&2
+            exit 1
+          fi
+
+          # Rapporteringen far ALDRIG fälla jobbet efter en skrivning — `jq` som
+          # dör pa ett fältnamn rapporterade sexton lyckade körningar som
+          # misslyckade (2026-09-02). Darfor `|| true` pa allt som bara läser.
+          {
+            echo "### Prishöjning ${MODE}"
+            echo ""
+            printf '%s\n' "$kropp" | jq -r '
+              "| | |\n|---|---:|",
+              "| pct | \(.pct) % |",
+              "| kampanj | \(.kampanj) |",
+              "| avrundning | \(.avrundning) |",
+              "| granskade | \(.granskade) |",
+              "| **att höja** | **\(.attHoja)** |",
+              "| ej AliExpress | \(.ejAliExpress) |",
+              "| prislåsta | \(.prisLasta) |",
+              "| utan butikspris | \(.utanWixPris) |",
+              "| variantavvikelse | \(.variantavvikelse) |",
+              "| redan höjda | \(.redanHojda) |",
+              "| ej niokrona (grind) | \(.ejNiokrona) |",
+              "| oförändrade | \(.oforandrade) |",
+              "| **redan höjd, stämpel tappad** | **\(.redanHojdUtanStampel)** |",
+              "| mappning ≠ butik | \(.drivande) |",
+              "| **kontrollsumma** | `\(.summa)` |"
+            ' || true
+            printf '%s\n' "$kropp" | jq -r '
+              if .band == null then "" else
+              "\n**Prisband:** \(.band.lagstaPris)–\(.band.hogstaPris) kr, median \(.band.medianPris). "
+              + "Höjning \(.band.minstaHojning)–\(.band.storstaHojning) kr, median \(.band.medianHojning). "
+              + "Summa \(.band.summaHojning) kr."
+              end' || true
+            printf '%s\n' "$kropp" | jq -r '
+              if (.redanHojdaIder // []) | length == 0 then "" else
+              "\n**Redan höjda utan stämpel** (höjs inte igen — kontrollera för hand):\n"
+              + ((.redanHojdaIder | map("- `" + . + "`") | join("\n")))
+              end' || true
+            if [ "${MODE}" = "hoj" ]; then
+              printf '%s\n' "$kropp" | jq -r '
+                "\n**Skrivet:** \(.hojda) höjda, \(.misslyckade) misslyckade, \(.kvar) kvar, stoppad pa \(.stoppadAv)."
+              ' || true
+            else
+              echo ""
+              echo "Kör om med mode=hoj och bekrafta = kontrollsumman ovan."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          printf '%s\n' "$kropp" | jq -r '.summa' || true
+
+          # ☠️ Misslyckade skrivningar FALLER jobbet. Ett svar utan fel är inget
+          # kvitto — och en halvt genomförd prishöjning ska inte se grön ut.
+          if [ "${MODE}" = "hoj" ]; then
+            fails="$(printf '%s\n' "$kropp" | jq -r '.misslyckade // 0')"
+            if [ "${fails}" != "0" ]; then
+              echo "::error::${fails} produkter kunde inte höjas" >&2
+              printf '%s\n' "$kropp" | jq -r '.fel[]? | "  \(.wixProductId): \(.skal)"' >&2 || true
+              exit 1
+            fi
+          fi

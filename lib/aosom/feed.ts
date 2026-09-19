@@ -152,10 +152,35 @@ export function parseAosomFeed(input: string): AosomRow[] {
 }
 
 /**
+ * Bär raden ett VERKLIGT fraktpris till Sverige, eller Aosoms "går inte att
+ * skicka hit"-sentinel? Se NO_SHIP_SENTINEL_EUR.
+ *
+ * ☠️ EGEN FUNKTION, INTE EN RAD INUTI isShippableToSe (2026-09-10). Synken
+ * behöver exakt det här villkoret men INTE de två andra: `qty > 0` betyder
+ * "slutsåld", vilket synken redan hanterar och som är ett helt annat besked än
+ * "kan inte skickas". Hade synken anropat isShippableToSe rakt av vore de två
+ * hopblandade; hade den skrivit om villkoret vore det en tvilling, och husets
+ * dyraste bugg är att tvillingar glider isär (SHIP_AXIS_RE, EU_TULL_CODES,
+ * mapWithConcurrency). En definition, två anropare.
+ *
+ * Uppmätt 2026-09-10: massagebänken 503-001V00CW importerades med fraktandel
+ * 0,292 — en helt normal frakt — och bär idag 999,90 €. Frakten blev alltså
+ * sentinel EFTER importen, och eftersom bara importen gatade fortsatte synken
+ * spegla saldot till en publicerad sida i månader.
+ */
+export function harVerkligSeFrakt(row: AosomRow): boolean {
+  return (
+    row.seFreightEur !== null
+    && row.seFreightEur > 0
+    && row.seFreightEur < NO_SHIP_SENTINEL_EUR
+  );
+}
+
+/**
  * Går raden att importera? Tre villkor, alla nödvändiga:
  *   - saldo > 0 (Aosom plockar bort lågt saldo själva, men inte allt)
  *   - ett inköpspris finns
- *   - ett VERKLIGT fraktpris till Sverige finns (se NO_SHIP_SENTINEL_EUR)
+ *   - ett VERKLIGT fraktpris till Sverige finns (se harVerkligSeFrakt)
  *
  * Notera att lönsamhet INTE ingår. Det är ett separat beslut — se
  * freightShare() — och att blanda ihop dem här skulle göra filtret omöjligt att
@@ -166,9 +191,7 @@ export function isShippableToSe(row: AosomRow): boolean {
     row.qty > 0
     && row.wholesaleEur !== null
     && row.wholesaleEur > 0
-    && row.seFreightEur !== null
-    && row.seFreightEur > 0
-    && row.seFreightEur < NO_SHIP_SENTINEL_EUR
+    && harVerkligSeFrakt(row)
   );
 }
 

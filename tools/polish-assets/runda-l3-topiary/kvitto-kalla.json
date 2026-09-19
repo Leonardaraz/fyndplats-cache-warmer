@@ -1,0 +1,62 @@
+{
+ "metod": "fnv31 mod 1e9+7 över plainDescription",
+ "alla": true,
+ "produkter": {
+  "8802b999": {
+   "tecken": 1799,
+   "fnv": 816332689,
+   "wixTecken": 1799,
+   "wixFnv": 816332689,
+   "lika": true
+  },
+  "45fd6bc6": {
+   "tecken": 1743,
+   "fnv": 103488753,
+   "wixTecken": 1743,
+   "wixFnv": 103488753,
+   "lika": true
+  },
+  "0f36e5a0": {
+   "tecken": 1840,
+   "fnv": 946532183,
+   "wixTecken": 1840,
+   "wixFnv": 946532183,
+   "lika": true
+  },
+  "cf111505": {
+   "tecken": 1755,
+   "fnv": 286682383,
+   "wixTecken": 1755,
+   "wixFnv": 286682383,
+   "lika": true
+  },
+  "11749e12": {
+   "tecken": 1769,
+   "fnv": 139843760,
+   "wixTecken": 1769,
+   "wixFnv": 139843760,
+   "lika": true
+  },
+  "72c55471": {
+   "tecken": 1812,
+   "fnv": 147192544,
+   "wixTecken": 1812,
+   "wixFnv": 147192544,
+   "lika": true
+  },
+  "d59d9b40": {
+   "tecken": 1867,
+   "fnv": 659979925,
+   "wixTecken": 1867,
+   "wixFnv": 659979925,
+   "lika": true
+  },
+  "47f6059d": {
+   "tecken": 1753,
+   "fnv": 202326960,
+   "wixTecken": 1753,
+   "wixFnv": 202326960,
+   "lika": true
+  }
+ }
+}

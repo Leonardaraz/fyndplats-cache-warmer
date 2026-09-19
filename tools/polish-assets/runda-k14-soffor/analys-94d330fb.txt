@@ -1,0 +1,18 @@
+PRODUKT: 94d330fb-717c-4b07-9758-61d2201109ed
+NAMN (källa, tyskt): Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa
+SLUG: ecksofa-in-l-form-beidseitig-anbringbare-chaiselongue-polstersofa
+VISIBLE: false
+PRIS: 5799 kr
+RIBBON: EU-lager
+VARIANT-SKU (Wix): FP-ecksofa-in-l-form
+ANTAL BILDER: 5
+
+=== plainDescription ORDAGRANT ===
+<p>Dieses L-förmige Sofa ist die ideale Ergänzung für jedes Wohnzimmer und bietet viel Platz für Sie und Ihre Gäste zum Entspannen. Es passt ideal in Ecken und nutzt den Raum optimal. Der Bezug der Eckcouch aus leinenartigem Stoff ist robust und weich. Mit seinem modernen, schlanken Design verleiht das Sofa Ihrem Wohnbereich eine stilvolle Note.</p><h3>Beschreibung:</h3><ul><li><p>✔ Platzsparendes, L-förmiges Design passt in jede Ecke</p></li><li><p>✔ Atmungsaktiver, leinenartiger Stoff der L Couch, der Falten und Verformungen widersteht</p></li><li><p>✔ Sitzkissen mit Federkern und hochdichtem Schaumstoff im Inneren für bequemes Einsinken</p></li><li><p>✔ Getuftetes Muster des Ecksofas verleiht dem Sofa modernen Charme</p></li><li><p>✔ Die Chaiselongue kann je nach Raumaufteilung entweder rechts oder links platziert werden</p></li><li><p>✔ Stahlrahmen und Kunststoffbeine gewährleisten zuverlässige Stärke</p></li><li><p>✔ Montage erforderlich</p></li></ul><h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Dunkelgrau</p></li><li><p>✔ Material: Stoff in Leinenoptik (100 % Polyester), Schaumstoff, Stahl, Kunststoff</p></li><li><p>✔ Gesamtabmessungen: 186B x 130T x 84H cm</p></li><li><p>✔ Chaiselongue-Größe: 58B x 110T cm</p></li><li><p>✔ Sofa-Sitzgröße: 160B x 50T x 43H cm</p></li><li><p>✔ Sitzdicke: 15 cm</p></li><li><p>✔ Rückenkissengröße: 54B x 15T x 43H cm</p></li><li><p>✔ Armlehnen-Größe: (Höhe bis Sitz) 65L x 12B x 16H cm</p></li><li><p>✔ Beinhöhe: 16 cm</p></li><li><p>✔ Belastbarkeit: 180 kg</p></li></ul><h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Ecksofa</p></li><li><p>✔ 3 x Rückenkissen</p></li><li><p>✔ 3 x Sitzkissen</p></li><li><p>✔ 1 x Handbuch</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">Mått:</span> 186L x 130B x 84H cm</p></li><li><p><span style="font-weight: 700">Färg:</span> Dunkelgrau</p></li><li><p><span style="font-weight: 700">Material:</span> Stoff in Leinenoptik</p></li><li><p><span style="font-weight: 700">Vikt:</span> 43 kg</p></li><li><p><span style="font-weight: 700">Paketmått:</span> 165 × 58 × 22 cm</p></li></ul>
+
+=== ALT-TEXTER (alla fem bilder, ORDAGRANT — samtliga TYSKA) ===
+Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa, Dunkelgrau
+Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa, Dunkelgrau
+Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa, Dunkelgrau
+Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa, Dunkelgrau
+Ecksofa in L-Form, beidseitig anbringbare Chaiselongue, Polstersofa, Dunkelgrau

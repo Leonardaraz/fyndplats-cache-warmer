@@ -1,0 +1,6 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+#
+# Efterkvitterad 2026-09-12 (#241): sidan var redan publicerad när
+# ordtalsvarningen byggdes. Påståendet kontrollerades mot fotot, inte antaget.
+f943140c 5 hjul räknade på huvudbilden — femarmad bas med ett hjul per arm. Källan säger bara "Räder", aldrig antalet

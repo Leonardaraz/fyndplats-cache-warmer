@@ -1,0 +1,35 @@
+{
+ "_om": "Kontrollsumma på texten SOM DEN SKICKAS — filens avslutande radbrytning är INTE med. Den är filsystemets konvention, inte en del av beskrivningen, och en facit räknad med den gör varje skrivning till ett falskt transkriberingsfel (uppmätt på 3523deaa i M4: 3 515 mot 3 514 tecken, allt annat identiskt).",
+ "03658e32": {
+  "summa": 180306675,
+  "tecken": 3631
+ },
+ "03ca6978": {
+  "summa": 90393807,
+  "tecken": 3229
+ },
+ "17392493": {
+  "summa": 478820225,
+  "tecken": 3096
+ },
+ "3523deaa": {
+  "summa": 833814621,
+  "tecken": 3514
+ },
+ "5814c7e1": {
+  "summa": 15220082,
+  "tecken": 3387
+ },
+ "5f646ce6": {
+  "summa": 932230301,
+  "tecken": 3268
+ },
+ "86fdd9af": {
+  "summa": 837734968,
+  "tecken": 3601
+ },
+ "fc68547e": {
+  "summa": 3820401,
+  "tecken": 3450
+ }
+}

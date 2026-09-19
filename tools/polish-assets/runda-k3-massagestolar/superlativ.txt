@@ -1,0 +1,4 @@
+# Kvitterade sortimentsrankningar, mätta 2026-09-08 mot alla publicerade rundor.
+# ⚠️ Ett superlativ förfaller — mät om vid varje ny runda i samma familj.
+73adb23e  41 cm lägsta sitthöjd bland massagestolar (näst lägst 44, b78d4cc6)
+f81daa29  68 cm högsta sitthöjd bland massagestolar (näst högst 64)

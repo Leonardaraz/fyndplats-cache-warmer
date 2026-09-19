@@ -1,0 +1,165 @@
+# Runda M1 — julfigurer och lyktor, 559–1 249 kr
+
+Åtta utkast ur julfamiljen. Säsongen är skälet till prioriteringen: sidorna
+behöver ligga ute i god tid före december, och familjen har legat orörd sedan
+rundorna 21–22.
+
+| kort | vad | höjd | pris | saldo |
+| :-- | :-- | --: | --: | --: |
+| `5a14cc4d` | isbjörnar 2-delat, 140 vita LED, vattentät | — | 1 249 | 82 |
+| `4fc04535` | julykta med bär, kottar och rosett, LED | — | 829 | 135 |
+| `d0aeb070` | uppblåsbar pepparkaksgubbe med presentask | 250 | 799 | 197 |
+| `be4a760b` | uppblåsbar pepparkaksgubbe | 200 | 739 | 131 |
+| `69331178` | uppblåsbar pingvin | 250 | 679 | 178 |
+| `ef75aa9a` | uppblåsbar pepparkaksgubbe med rosett, 3 LED | 183 | 639 | 178 |
+| `7278ea50` | snögubbe med LED | 180 | 629 | 181 |
+| `3225c539` | snögubbe utomhus | — | 559 | 87 |
+
+## Varför just de åtta — dubblettrisken styrde urvalet
+
+Julfamiljen har **61 tyska utkast**, men den är inte ett fritt urval: rundorna
+21 och 22 publicerade redan trettiotre granar, och en dubblettskärm mot dem är
+obligatorisk. Kartläggningen 2026-09-13 gav:
+
+| | |
+|---|---:|
+| Tyska juluttkast | **61** |
+| Publicerade julsidor | **47** |
+| — därav konstgjorda granar | 33 |
+| — därav uppblåsbara tomtar | 8 |
+
+☠️ **Trettioen av de 61 utkasten är granar.** De publicerade granarna täcker
+redan 120, 150, 180, 183 och 210 cm i en mängd utföranden (snöad, smal,
+pelarform, talljulgran, med LED, med pynt). Att skriva åtta till ovanpå det är
+den interna dubbletten huset straffas för, inte en ny runda — de kräver en egen
+bildbaserad skärm mot de trettiotre, och den är ett eget jobb.
+
+De åtta valda är i stället **figurer och lyktor utan publicerad motpart**.
+De publicerade uppblåsbara är alla TOMTAR; noll pepparkaksgubbar, noll
+pingviner, noll snögubbar, noll isbjörnar finns ute. De sex tyska tomtarna är
+därför medvetet UTELÄMNADE ur rundan av samma skäl som granarna.
+
+⚠️ **De tre pepparkaksgubbarna (250 / 200 / 183 cm) kan vara samma figur i tre
+storlekar.** Det avgörs i dubblettskärmen på bilderna, inte av namnen — och
+oavsett utfall måste texterna göra storleksskillnaden till det första som
+skiljer sidorna åt, som cypressparet i L4.
+
+## Lagergrinden i urvalet (#173)
+
+Alla åtta har saldo **82–197** och `trackQuantity: true`. Kollen ligger i
+urvalet med flit: L3 och L4 uteslöt `a1aed632` två gånger, och andra gången
+hade saldot hunnit gå från 1 till 0. Hade den kollen legat sist hade en hel
+text skrivits för en vara ingen kan köpa.
+
+☠️ Saldot är läst ur `inventory-items/query`, aldrig ur `availabilityStatus` —
+den säger `IN_STOCK` även för EN kvarvarande enhet.
+
+## ☠️ Två namnfilter som gav fel svar, båda tysta
+
+Urvalet krävde två regexar, och båda var fel första gången. Ingen av dem
+kastade; båda returnerade helt trovärdiga listor.
+
+1. **`jul\b` på svenska träffar varje HJUL.** Den skulle hitta publicerade
+   julsidor och gav 199 träffar — **156 av dem var `hjul`- eller
+   `skjul`-produkter** (kylvagn på hjul, plastskjul, sparkcykel). Svenskan
+   sätter `jul` i SLUTET av ordet. Rätt ankare är ordets BÖRJAN: `\bjul`
+   träffar julgran, jultomte, juldekoration men aldrig hjul. Med det:
+   **47 publicerade julsidor**.
+2. **`Tannen` på tyska träffar `Tannenholz` — alltså granVIRKE, inte julgran.**
+   Sex av de 61 "juluttkasten" är kaninhus, smådjursstall, katthus och en
+   strandkorg byggda av gran. De är inte julprodukter alls.
+
+☠️ **RÄTTELSE 2026-09-13, samma dag: filtret missade dessutom en
+familjemedlem.** `321bdedf` — *"Lebkuchenmann mit Zuckerstange, 2,45 m groß,
+aufblasbar"*, 899 kr — är den FJÄRDE pepparkaksgubben. Namnet börjar på
+`Lebkuchenmann` och innehåller aldrig ordet `Weihnacht`, så urvalsregexen såg
+den aldrig. Rundans text säger "de tre pepparkaksgubbarna"; det var sant om
+urvalet, inte om sortimentet. Ingen skada mot kund — de tre publicerade
+texterna skiljer sig åt på riktiga egenskaper — men nästa julrunda ska ta
+`321bdedf`, och den är störst av de fyra. Se `../matning-jul-dubbletter.md`.
+
+Samma familj som #218 (`Massagesessel` mot `Relaxsessel`): **ett familjefilter
+är ett NAMNfilter, och ett namnfilter mäter stavning, inte betydelse.** Skillnaden
+här är att båda felen var osynliga — en lista på 199 rader ser lika rimlig ut som
+en på 47, tills man läser namnen.
+
+## Skrivningen till Wix — kvitto
+
+| kontroll | utfall |
+|---|---|
+| text mot källfil (kontrollsumma) | **8/8 LIKA** |
+| namn, slug, `visible: true` | 8/8 |
+| SEO: två taggar, tyskt nyckelord rensat | 8/8 |
+| alt-texter | **34 satta, 0 tyska** |
+| bilder | 34 (fem borttagna, se `bilder-bort.tsv`) |
+| variant-SKU | **8/8**, alla unika — tre delade `FP-aufblasbare` |
+| variantens `visible` och priset | orörda på alla åtta |
+| kategorier | **23 av 23**, noll fel |
+
+### ☠️ Grinden låg INNE i skrivanropet, inte bredvid
+
+Regeln säger *skriv i en fil först*, och den räcker inte: filen skickas inte,
+den TRANSKRIBERAS in i API-anropets kropp, och det är i den kopieringen
+`fontagen-weight` uppstod. Den här rundan flyttade därför grinden in i
+anropet. Varje produkt bar sin förväntade längd och kontrollsumma, räknad
+lokalt ur filen genom `wixnorm`, och koden **vägrar PATCHa** om texten inte
+stämmer:
+
+```js
+if (j.text.length !== j.forvantat.tecken || summa(j.text) !== j.forvantat.summa) {
+  return { AVBRUTET: "transkriberingen avviker — INGET skrevs", … };
+}
+```
+
+Åtta av åtta passerade, och återläsningen bekräftade samma summa i Wix.
+
+### ☠️ PATCH-SVARET ÄR INGEN ÅTERLÄSNING — och det såg ut som ett misslyckande
+
+Första skrivningen (`d0aeb070`) rapporterade i PATCH-svaret:
+
+```
+textLika: false   lagradTecken: 0   bilder: 0   altSatta: 0
+```
+
+Ingenting var fel. Svarets projektion utelämnar `plainDescription` och
+`media.itemsInfo` om man inte begär dem — och en PATCH tar ingen
+`fields`-parameter i kroppen. En separat `GET …?fields=PLAIN_DESCRIPTION`
+gav `3417 tecken, summa 481527550, LIKA` och fyra satta alt-texter.
+
+⚠️ **Riktningen är farligare än media-släpningen i L4.** Där UNDERrapporterade
+läsningen ett lyckat utfall. Här ser en fullt genomförd skrivning ut som en
+som skrev noll tecken och tappade alla bilder — och den naturliga reaktionen
+är att skriva om, eller att börja felsöka något som inte är trasigt.
+
+**Regeln: verifiera aldrig mot PATCH-svaret. Läs tillbaka med rätt
+projektion, i en egen runda efter att alla skrivningar är gjorda.**
+
+## Mappningsraden — las + stampla
+
+Sexton körningar, alla med explicit `ref` mot grenen (aldrig `main`, #181).
+
+| läge | körningar | utfall |
+|---|---|---|
+| `las` | 2839–2846 | **8/8 gröna** |
+| `stampla` | 2847–2854 | **8/8 gröna** |
+
+En grön `las` ÄR prisgrindens kvitto — workflowen avslutar med `exit 1` på
+både `stammer: false` och `EJ AVGORBAR`.
+
+## Live-verifieringen — 8/8 REN
+
+Hämtat ISR-medvetet: varm träff, 305 s väntan, sedan skarp hämtning. Alla
+åtta svarade HTTP 200.
+
+```
+d0aeb070  ord=498  diff=0  -> REN     7278ea50  ord=428  diff=0  -> REN
+be4a760b  ord=481  diff=0  -> REN     5a14cc4d  ord=497  diff=0  -> REN
+ef75aa9a  ord=401  diff=0  -> REN     4fc04535  ord=481  diff=0  -> REN
+69331178  ord=429  diff=0  -> REN     3225c539  ord=436  diff=0  -> REN
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+⚠️ `d0aeb070` kom tillbaka med `age: 482` mot de andras 101 — alltså en äldre
+rendering. Den låg ändå efter skrivningen (som gjordes ~20 minuter tidigare)
+och gav orddiff 0, så den behövde inte hämtas om. Läs `age` innan du kallar
+en sida trasig, och läs om de som faller.

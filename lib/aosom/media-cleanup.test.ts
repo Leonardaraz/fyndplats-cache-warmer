@@ -208,6 +208,7 @@ function deps(over: Partial<MediaCleanupDeps> = {}) {
       cursor: null, komplett: true,
     }),
     listaAnvanda: async () => ({ urls: [url("a1")], antalProdukter: 1 }),
+    listaRecensionsbilder: async () => [],
     raderaPermanent: async (ids) => { raderade.push(ids); },
     ...over,
   };
@@ -378,5 +379,73 @@ describe("runMediaCleanup", () => {
     });
     await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/läsfel/);
     expect(raderade).toHaveLength(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ☠️ RECENSIONSBILDERNA (2026-09-04)
+//
+// Städningen raderade dem, permanent, varje natt. Referenslistan gick bara
+// igenom `stores/v3/products/search`, medan en recensionsbild refereras av en
+// RECENSIONSRAD — och eftersom vår kod importerade den från
+// aliexpress-media.com bär den en sourceUrl och passerade "vår kod skapade
+// den"-filtret. Uppmätt i drift: 68 av 68 bilder över fyra produkter döda.
+//
+// Samma lärdom som migreringen skrev ned två gånger: en referenslista är klar
+// först när ALLA läsare finns med i den. En läsare som bor i en annan tabell
+// syns inte i koden här.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("☠️ recensionsbilder är i bruk, inte föräldralösa", () => {
+  it("en fil som sitter på en RECENSION raderas inte", () => {
+    const plan = planeraStadning(
+      [fil("aosom-A-1.jpg", "a1"), fil("rec-foto.jpg", "r1")],
+      [url("a1")],          // produktbilder
+      1,
+      [url("r1")],          // recensionsbilder
+    );
+    expect(plan.attRadera.map((f) => f.id)).toEqual([]);
+    expect(plan.anvanda).toBe(2);
+  });
+
+  it("utan recensionslistan hade samma fil raderats — det var buggen", () => {
+    const plan = planeraStadning(
+      [fil("aosom-A-1.jpg", "a1"), fil("rec-foto.jpg", "r1")],
+      [url("a1")],
+      1,
+      [],                   // tom lista = det gamla beteendet
+    );
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["r1"]);
+  });
+
+  it("både imageUrl och imageUrls skonas", () => {
+    // En rad kan bära bara `imageUrl`; en annan bär flera i `imageUrls`.
+    const plan = planeraStadning(
+      [fil("r1.jpg", "r1"), fil("r2.jpg", "r2"), fil("r3.jpg", "r3")],
+      [],
+      0,
+      [url("r1"), url("r2"), url("r3")],
+    );
+    expect(plan.attRadera).toEqual([]);
+  });
+});
+
+describe("☠️ ett läsfel mot recensionslagret FÄLLER körningen", () => {
+  it("kastar i stället för att radera med tom lista", async () => {
+    // Fortsätter körningen med tom lista ser varje recensionsbild
+    // föräldralös ut och raderas PERMANENT. Samma form som MIN_FEED_RADER:
+    // när ett läsfel och ett tomt svar ser likadana ut, och det ena utfallet
+    // är oåterkalleligt, är avbrott enda säkra svaret.
+    const { d, raderade } = deps({
+      listaRecensionsbilder: async () => { throw new Error("Postgres nere"); },
+    });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Recensionsbilderna gick inte att läsa/);
+    expect(raderade).toEqual([]);
+  });
+
+  it("en TOM lista utan fel går igenom — tomhet är legitim, fel är det inte", async () => {
+    const { d } = deps({ listaRecensionsbilder: async () => [] });
+    const s = await runMediaCleanup(d, { dryRun: true });
+    expect(s.foraldralosa).toBeGreaterThan(0);
   });
 });

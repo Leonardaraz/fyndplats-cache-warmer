@@ -1,0 +1,51 @@
+PRODUKT: 5531de28-5156-4197-9ed5-23bcae318e96
+NAMN (källa): 3-Sitzer-Sofa mit Zierkissen, Cordsofa für Wohnzimmer, Schlafzimmer
+SLUG: 3-sitzer-sofa-mit-zierkissen-cordsofa-fur-wohnzimmer-schlafzimmer
+VISIBLE: false
+PRIS: 5339
+
+--- plainDescription (ordagrant, taggar strippade) ---
+
+Dieses 3-Sitzer-Sofa von ist mit einem Kissen mit Federkern und hochdichtem Schaumstoff ausgestattet, das für unübertroffene Unterstützung sorgt. Umhüllt von einem hautfreundlichen Cordbezug, der sowohl atmungsaktiv als auch stilvoll ist, ist diese Couch, komplett mit zwei gemütlichen Zierkissen, eine großartige Ergänzung für jedes Wohnzimmer und verbindet Komfort mit einem Hauch von Eleganz.
+
+Beschreibung:
+✔ Federpaket und hochdichter Schaumstoff bieten optimalen Komfort
+✔ Der Cord-Stoff des 3 Sitzer Sofas ist hautfreundlich, verschleißfest und atmungsaktiv
+✔ Einzigartige Textur und parallele Rillen erhöhen die schlichte Eleganz
+✔ Enthält zwei Zierkissen für zusätzlichen Komfort und Unterstützung
+✔ 16 cm dicke Sitzfläche und Rückenlehne des Sofas sorgen für einen weichen Sitz
+✔ Robuster Stahlrahmen trägt bis zu 450 kg
+✔ Einfache Montage erforderlich
+
+Technische Daten:
+✔ Farbe: Dunkelgrau
+✔ Materialien: Cordstoff (100% Polyester), Stahl, Kunststoff
+✔ Gesamtabmessungen: 212B x 80T x 88H cm
+✔ Sitzgröße: 176B x 56T x 45H cm
+✔ Sitzdicke: 16 cm
+✔ Rückenkissengröße: 88B x 40H cm
+✔ Rückendicke: 16 cm
+✔ Armlehnengröße: 74L x 17B cm
+✔ Armlehnenhöhe zum Sitz: 14 cm
+✔ Zierkissengröße: 38L x 32B x 15T cm
+✔ Beinhöhe: 5 cm
+✔ Belastbarkeit: 450 kg
+
+Lieferumfang:
+✔ 1 x 3-Sitzer Sofa
+✔ 1 x Gebrauchsanleitung
+
+Tekniska specifikationer
+Mått: 212L x 80B x 88H cm
+Färg: Dunkelgrau
+Material: Polyester, Stahl
+Vikt: 53,4 kg
+Paketmått: 92 × 48,5 × 71 cm
+
+--- slut på källtext ---
+
+ANMÄRKNING: intromeningen lyder "Dieses 3-Sitzer-Sofa von ist mit einem Kissen..." —
+husmärket är redan struket vid importen och lämnade ett hängande "von". Ingen
+husmärkesrest, inget artikelnummer, ingen leveransklausul och inget fraktland
+förekommer i källan. Färgvärdet "Dunkelgrau" i den svenska spec-fliken är
+oöversatt tyska.

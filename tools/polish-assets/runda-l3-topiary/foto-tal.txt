@@ -1,0 +1,6 @@
+# Tal som INTE står i produktens egen källtext.
+# Form: <kort> <tal> <vad som räknades eller lästes på bilden>
+# Berättelsen bakom varje rad står i FOTOFYND.md.
+
+47f6059d 25 nedre klotets diameter, ur produktens egen måttritning (bild 3)
+0f36e5a0 2 antal sammanflätade stammar, räknat på produktbild 1

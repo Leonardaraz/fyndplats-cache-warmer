@@ -1,0 +1,55 @@
+{
+ "metod": "fnv31 mod 1e9+7 över plainDescription",
+ "alla": true,
+ "produkter": {
+  "39c90d59": {
+   "tecken": 1549,
+   "fnv": 732255268,
+   "wixTecken": 1549,
+   "wixFnv": 732255268,
+   "lika": true
+  },
+  "5a2bd33d": {
+   "tecken": 1639,
+   "fnv": 365960225,
+   "wixTecken": 1639,
+   "wixFnv": 365960225,
+   "lika": true
+  },
+  "7e66b14b": {
+   "tecken": 1486,
+   "fnv": 598488821,
+   "wixTecken": 1486,
+   "wixFnv": 598488821,
+   "lika": true
+  },
+  "74330920": {
+   "tecken": 1851,
+   "fnv": 509874645,
+   "wixTecken": 1851,
+   "wixFnv": 509874645,
+   "lika": true
+  },
+  "007e8c7b": {
+   "tecken": 1651,
+   "fnv": 696183012,
+   "wixTecken": 1651,
+   "wixFnv": 696183012,
+   "lika": true
+  },
+  "85619689": {
+   "tecken": 1604,
+   "fnv": 400249653,
+   "wixTecken": 1604,
+   "wixFnv": 400249653,
+   "lika": true
+  },
+  "e8c4c9d7": {
+   "tecken": 1444,
+   "fnv": 305775125,
+   "wixTecken": 1444,
+   "wixFnv": 305775125,
+   "lika": true
+  }
+ }
+}

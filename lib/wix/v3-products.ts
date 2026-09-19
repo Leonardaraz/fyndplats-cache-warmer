@@ -69,10 +69,107 @@ export interface WixV3Variant {
  * Wix `visible` är sanningen. Den här listningen är avsiktligt mager — inga
  * tunga fält, bara id + visible — så den kostar ett par anrop per körning.
  */
+/**
+ * Tak på antal sidor. Höjs det, höj det med marginal — katalogen växer.
+ *
+ * ☠️ TAKET FÄLLER, DET KAPAR INTE. Uppmätt 2026-09-14: taket låg på 50 sidor
+ * (5 000 produkter) medan katalogen är ~5 500. Funktionen hade alltså redan
+ * passerat sitt tak och returnerade en TYST avkortad lista — utan fel, utan
+ * räknare, utan någonting som skiljer "slut på produkter" från "slut på
+ * sidor". Samma klass som `Promise.allSettled` i `media.ts`, som
+ * `queryAll`:s eget tak, och som den obegränsade fan-outen: en konstant som
+ * var rätt när den sattes och blev fel när volymen växte under den. Det finns
+ * ingen commit att skylla på.
+ *
+ * Konsekvensen är riktningsberoende och därför lätt att missa. Varje produkt
+ * bortom taket saknas i mängden och behandlas alltså som OSYNLIG — en
+ * publicerad produkt ser ut som ett utkast. Recensionssvepet hoppar då över
+ * den, och prisjämförelsen mot dealproffsen lägger den i listan "polera dessa
+ * först". Båda felen är tysta och båda pekar åt fel håll.
+ */
+const MAX_SYNLIGA_SIDOR = 300;
+
+export interface V3ProduktInfo {
+  /** Butikens URL är `/produkt/<slug>` — Wix-id:t ger 404. Uppmätt 2026-09-15. */
+  slug: string;
+  /** VÅRT namn på varan, inte leverantörens. */
+  namn: string;
+  visible: boolean;
+}
+
+/**
+ * Hela katalogen som `id → { slug, namn, visible }`.
+ *
+ * Leonard 2026-09-15: *"jag vet inte hur jag ska hitta våra produkter just nu.
+ * namnet som står är deras, länken som står är deras och vi har inget mot oss."*
+ * En rapport som bara bär leverantörens namn och leverantörens länk går inte
+ * att handla på — därför finns den här.
+ *
+ * ⚠️ `slug` OCH `name` LIGGER I STANDARDPROJEKTIONEN, uppmätt mot skarpa V3
+ * samma dag (28 nycklar, `slug` som sträng, utan att efterfrågas). Begär alltså
+ * inte `fields` — men lita inte heller på det för NÄSTA fält: huset har redan
+ * betalat för att `getProductMedia` MÅSTE begära `MEDIA_ITEMS_INFO` medan
+ * priset kommer oombett, och för att `variantsInfo` aldrig kommer alls.
+ * **Mät per endpoint.**
+ *
+ * ☠️ FRÅGAN STÄLLS UTAN SYNLIGHETSVILLKOR, av samma skäl som `jamforelsePris`:
+ * utkasten är merparten av katalogen, och en fråga som tyst filtrerat bort dem
+ * hade gett ett uppslag som saknar just de rader rapporten mest handlar om.
+ */
+export async function listV3ProductInfo(): Promise<Map<string, V3ProduktInfo>> {
+  const ut = new Map<string, V3ProduktInfo>();
+  let cursor: string | undefined;
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      // Samma regel som nedan och som `queryAll`: en avkortad lista är värre
+      // än ett fel. Här hade den tyst gjort produkter länklösa.
+      throw new Error(
+        `listV3ProductInfo passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista är värre än ett fel.",
+      );
+    }
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ query: { cursorPaging } }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`V3 info-query failed (${res.status}): ${text.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      products?: Array<{ id?: string; slug?: string; name?: string; visible?: boolean }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      ut.set(p.id, {
+        slug: p.slug ?? "",
+        namn: p.name ?? "",
+        // Samma riktning som nedan: saknat fält räknas som synligt.
+        visible: p.visible !== false,
+      });
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!cursor || !data.pagingMetadata?.hasNext) break;
+  }
+  return ut;
+}
+
 export async function listVisibleV3ProductIds(): Promise<Set<string>> {
   const ut = new Set<string>();
   let cursor: string | undefined;
-  for (let page = 0; page < 50; page++) {
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      throw new Error(
+        `listVisibleV3ProductIds passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista är värre än ett fel: den gör publicerade produkter osynliga.",
+      );
+    }
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
@@ -511,6 +608,36 @@ export async function updateV3VariantPrices(
   // utelämnas det hellre än att gissas — en gissning här publicerar eller döljer
   // en produkt fel väg.
   const bevaraSynlighet = typeof product.visible === "boolean";
+
+  // ☠️ EN FLERVARIANTSPRODUKT KRÄVER ATT `options` FÖLJER MED — annars 428.
+  //
+  // Uppmätt i drift 2026-09-13: prishöjningen föll på 56 av 382 produkter med
+  // `428 MISSING_OPTIONS_ON_UPDATE_VARIANTS: "Missing product options. Options
+  // must be provided for variants"`. Alla 56 var flervariantsprodukter (bl.a.
+  // halterneck-linnet med 29 färger); de enkla gick igenom.
+  //
+  // Att felet aldrig setts förut är samma asymmetri som gäller överallt i
+  // huset: Aosom-synken och prisreparationen är de enda tidigare anroparna,
+  // och en Aosom-rad ÄR en artikel med EN variant. Funktionen har alltså
+  // fungerat i månader utan att någonsin ha prövats på det fall där den inte
+  // gör det.
+  //
+  // ☠️ OPTIONS MÅSTE LIGGA I FÄLTMASKEN — uppmätt, inte resonerat.
+  //
+  // Första försöket lade dem i KROPPEN men utelämnade dem ur masken, med
+  // motiveringen att Wix behöver dem för att VALIDERA varianterna och att en
+  // skrivning kunde tappa det projektionen utelämnat. Det var fel, och
+  // mätningen är entydig: med options i kroppen men inte i masken föll exakt
+  // samma 63 produkter på exakt samma 428. En fältmask-PATCH läser bara det
+  // som står i masken — allt annat i kroppen ignoreras, så Wix såg dem aldrig.
+  //
+  // ⚠️ Risken jag var rädd för finns kvar men är hanterad: strukturen tas
+  // OFÖRÄNDRAD ur produktens EGEN GET, som går med
+  // `?fields=VARIANT_OPTION_CHOICE_NAMES` — projektionen vars hela syfte är
+  // att bära valens namn. Uppmätt på en 29-färgsprodukt: choices, linkedMedia
+  // och altText ligger alla i svaret. Det är samma round-trip-princip som
+  // `visible` och som varianterna själva, inte ett handbyggt objekt.
+  const harOptions = Array.isArray(product.options) && product.options.length > 0;
   const patch = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
     headers: headers(),
@@ -519,8 +646,15 @@ export async function updateV3VariantPrices(
         revision: product.revision,
         variantsInfo: { variants },
         ...(bevaraSynlighet ? { visible: product.visible } : {}),
+        ...(harOptions ? { options: product.options } : {}),
       },
-      fieldMask: { paths: bevaraSynlighet ? ["variantsInfo", "visible"] : ["variantsInfo"] },
+      fieldMask: {
+        paths: [
+          "variantsInfo",
+          ...(bevaraSynlighet ? ["visible"] : []),
+          ...(harOptions ? ["options"] : []),
+        ],
+      },
     }),
   });
   if (!patch.ok) {
@@ -677,6 +811,52 @@ function arOvergaende(status: number): boolean {
  * som ser komplett ut hade fått synken att tro att de saknade produkterna inte
  * finns i butiken — och de raderna hade då aldrig prisjämförts.
  */
+/**
+ * Tolkar V3:s prisspann till ETT pris, eller null.
+ *
+ * ☠️ EN ENDA DEFINITION. `listV3ProductPrices` (hela katalogen) och
+ * `getV3ProductPris` (en produkt) svarar pa samma fraga och maste svara
+ * likadant. Huset har betalat for tvillingar som gled isar tre ganger —
+ * SHIP_AXIS_RE, EU_TULL_CODES och mapWithConcurrency. Inte en fjarde.
+ */
+export function tolkaProduktPris(p: {
+  actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+  variantSummary?: { variantCount?: number };
+}): WixProduktPris {
+  const min = Number(p.actualPriceRange?.minValue?.amount);
+  const max = Number(p.actualPriceRange?.maxValue?.amount);
+  const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+  return {
+    priceSek: entydigt ? min : null,
+    variantCount: p.variantSummary?.variantCount ?? 0,
+  };
+}
+
+/**
+ * Vad butiken tar for EN produkt just nu.
+ *
+ * ☠️ BUTIKEN AR FACIT, INTE MAPPNINGEN. Samma regel som `jamforelsePris` i
+ * Aosom-synken (2026-09-02): mappningens `grossSek` ar vad vi TROR att kunden
+ * ser, Wix ar vad kunden faktiskt ser, och de glider isar sa fort en skrivning
+ * faller. Den forvaxlingen kostade en manad och tjugo rader pa prissidan.
+ *
+ * Enskild lasning i stallet for `listV3ProductPrices` for att den senare gar
+ * igenom 54 sidor — for en rutt som ror EN produkt ar det fel storleksordning.
+ */
+export async function getV3ProductPris(productId: string): Promise<WixProduktPris> {
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`,
+    { method: "GET", headers: headers() },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3ProductPris(${productId}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { product?: Parameters<typeof tolkaProduktPris>[0] };
+  if (!data.product) throw new Error(`getV3ProductPris(${productId}): tom payload`);
+  return tolkaProduktPris(data.product);
+}
+
 export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
   const priser = new Map<string, WixProduktPris>();
   let cursor: string | undefined;
@@ -732,13 +912,7 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
 
     for (const p of data.products ?? []) {
       if (!p.id) continue;
-      const min = Number(p.actualPriceRange?.minValue?.amount);
-      const max = Number(p.actualPriceRange?.maxValue?.amount);
-      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
-      priser.set(p.id, {
-        priceSek: entydigt ? min : null,
-        variantCount: p.variantSummary?.variantCount ?? 0,
-      });
+      priser.set(p.id, tolkaProduktPris(p));
     }
 
     cursor = data.pagingMetadata?.cursors?.next;

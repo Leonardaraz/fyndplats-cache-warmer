@@ -33,6 +33,48 @@ on:
         description: "Wix-produktens id"
         required: true
         type: string
+      visa_kostnad:
+        # ☠️ Repot ar PUBLIKT och Actions-loggar gar att lasa utan inloggning.
+        # Ett paslaget flagga skriver alltsa vart inkopspris dar vem som helst
+        # kan lasa det — samma uppgift som feed-adressen ar hemlig for att
+        # skydda. Default av; sla pa medvetet och bara nar det behovs.
+        description: "Skriv INKOPSPRIS till loggen. ⚠️ Loggen ar PUBLIK — bara vid felsokning."
+        required: false
+        default: false
+        type: boolean
+      kuvert:
+        # ☠️ VARFÖR DET HÄR FINNS, OCH VARFÖR DET INTE ÄR EN BAKDÖRR.
+        #
+        # `supplierProductId` (Aosoms artikelnummer) och `sourceUrl` är de enda
+        # fälten på raden som varken får skrivas till en publik logg ELLER går
+        # att härleda ur något publikt. Artikelnumret är den sträng
+        # dealproffsen.se publicerar som sku/mpn — den joinar vår produktsida
+        # mot deras och därmed mot vårt inköpsled.
+        #
+        # ☠️ KOSTNADEN GÅR OCKSÅ HÄR (2026-09-10). `visa_kostnad` skriver
+        # inköpspriset till den PUBLIKA loggen och är alltså inget alternativ
+        # när man bara vill VETA vad en vara kostar oss. Kuvertet bär därför
+        # `costUsd`, `landedCostSek` och fraktandelen — samma fält, privat
+        # kanal. Använd `visa_kostnad` bara när loggen måste kunna läsas av
+        # någon annan, och vet då att den kan läsas av vem som helst.
+        #
+        # Ägaren behöver ändå kunna läsa sitt eget artikelnummer, t.ex. för att
+        # lägga en Aosom-order för hand. Fram till nu fanns bara två vägar:
+        # skriva det till den publika loggen (det som gick fel i #181), eller
+        # logga in i /admin. Den här är den tredje.
+        #
+        # Anroparen skickar en ENGÅNGS PUBLIK nyckel. Workflowen krypterar
+        # fälten mot den och skriver bara chiffret. Att den publika nyckeln
+        # syns i loggen är hela poängen med asymmetrisk kryptering — bara den
+        # som har den PRIVATA nyckeln, som aldrig lämnar anroparens maskin,
+        # kan läsa värdet. Klartexten passerar aldrig loggen.
+        #
+        # ⚠️ Den flyttar alltså inte hemligheten någon annanstans än till den
+        # som redan äger den. Lämna tomt när du inte behöver den.
+        description: "Läs artikelnummer OCH INKÖPSPRIS privat: base64 av en RSA-publik nyckel (PEM). TOMT = hoppa över."
+        required: false
+        default: ""
+        type: string
       needs_ai_polish:
         # ☠️ DEFAULTEN MÅSTE VARA TOM. GitHub ersätter ett tomt värde med
         # `default`, så "tomt = rör inte" var omöjligt att uppnå: en körning
@@ -65,6 +107,8 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MODE: ${{ inputs.mode }}
           PRODUCT_ID: ${{ inputs.wix_product_id }}
+          VISA_KOSTNAD: ${{ inputs.visa_kostnad }}
+          KUVERT: ${{ inputs.kuvert }}
           NEEDS_POLISH: ${{ inputs.needs_ai_polish }}
           DRAFT_STATUS: ${{ inputs.draft_status }}
           VARIANT_SKUS: ${{ inputs.variant_skus }}
@@ -89,8 +133,21 @@ jobs:
               exit 1
             fi
 
-            echo "=== Mappningsraden ==="
-            echo "$svar" | jq '.mappning'
+            # ☠️ ALLOWLIST, INTE HELA RADEN. Fram till 2026-09-07 stod har
+            # `jq '.mappning'`, som skriver ut HELA mappningsraden — och den bar
+            # `supplierProductId` (Aosoms artikelnummer), `costUsd`,
+            # `landedCostSek`, `aosomFreightShare` och `sourceUrl`.
+            #
+            # Repot ar PUBLIKT, och Actions-loggar pa ett publikt repo gar att
+            # lasa utan inloggning. Raden publicerade darmed exakt det par som
+            # feed-adressen ar hemlig for att skydda: artikelnumret bredvid vad
+            # vi betalar. Uppmatt: 1 689 korningar av den har workflowen.
+            #
+            # ⚠️ ALLOWLIST och inte denylist, av samma skal som skrivningens
+            # allowlist i /api/admin/mapping: ett NYTT kostnadsfalt ska inte
+            # laka for att ingen kom ihag att lagga till det i en forbudslista.
+            echo "=== Mappningsraden (kostnads- och leverantorsfalt utelamnade) ==="
+            echo "$svar" | jq '.mappning | {wixProductId, supplier, needsAiPolish, draftStatus, hasEuWarehouse, aosomSyncedQty, aosomSyncedAt, listingStatus, variants: [(.variants // [])[] | {wixVariantId, sku, grossSek}]}'
             echo
             echo "=== Steg 4: prisgrinden ==="
             if [ "$(echo "$svar" | jq -r '.prisgrind')" = "null" ]; then
@@ -98,14 +155,63 @@ jobs:
               echo "Polera INTE priset. Flagga raden till Leonard."
               exit 1
             fi
-            echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])\n  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
+            # ☠️ `landedCostSek` ar INKOPSPRISET och skrivs inte till loggen.
+            # `forvantatSek` ar 1,20 x samma tal, alltsa lika avslojande — bada
+            # ligger bakom `visa_kostnad`, som namnger foljden i sin beskrivning.
+            # `faktisktSek` ar butikens pris och redan publikt pa var egen sajt.
+            if [ "${VISA_KOSTNAD}" = "true" ]; then
+              echo "  ⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_kostnad=true)"
+              echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])"'
+            fi
+            echo "$svar" | jq -r '.prisgrind | "  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
             echo "$svar" | jq -r '.prisregel | "  regel: x\(.multiplikator), avrundning \(.rounding)"'
 
             galler=$(echo "$svar" | jq -r '.prisgrind.["regelGäller"]')
             stammer=$(echo "$svar" | jq -r '.prisgrind.["stämmer"]')
+            last=$(echo "$svar" | jq -r '.prisgrind.prisLast')
+            slut=$(echo "$svar" | jq -r '.prisgrind.slutsald')
+
+            if [ "$slut" = "true" ]; then
+              echo "  saldo: 0 — SLUTSALD hos Aosom"
+            fi
 
             if [ "$stammer" = "true" ]; then
               echo "OK: priset stammer mot regeln."
+              if [ "$slut" = "true" ]; then
+                # Priset ar ratt, men varan gar inte att kopa. Det ar ingen
+                # anledning att FALLA jobbet: en rad som forsvunnit ur feeden
+                # ar enligt Aosoms egen guide ett lagerbesked, inte en
+                # utgangen artikel, och sidan ska ligga kvar tills den kommer
+                # tillbaka (CLAUDE.md). Men det ar slosad polering just nu.
+                echo "::warning::SLUTSALD: saldo 0 hos Aosom. Priset stammer, sa det ar inget fel — men sidan saljer ingenting forran varan ar tillbaka. Polera den sist." >&2
+              fi
+            elif [ "$last" = "true" ]; then
+              # ☠️ LAST PRIS AR ETT BESLUT, INTE DRIFT. Raden bar prisLast, alltsa
+              # har nagon medvetet frikopplat den fran regeln och Aosom-synken
+              # skriver aldrig priset har. Att da fella jobbet med "kostnaden har
+              # andrats" ar ratt RAD men fel SKAL — och ett rott jobb pa varje
+              # last rad ar samma falsklarm som "EJ AVGORBAR" hade varit pa varje
+              # AE-rad. Radet ar identiskt: ror inte priset.
+              echo "LAST PRIS: raden bar prisLast, alltsa ar priset medvetet frikopplat fran regeln."
+              echo "Skillnaden mot regeln nedan ar VALD, inte drift. ROR INTE PRISET — men det ar"
+              echo "inget fel, och resten av poleringen (text, bilder, SKU) gar att gora som vanligt."
+              echo "Ska raden folja regeln igen: workflowen \"Pris — las eller las upp ett pris\", lage las-upp."
+            elif [ "$slut" = "true" ]; then
+              # ☠️ SLUTSALD FORE "KOSTNADEN HAR ANDRATS". Grenen ligger har med
+              # flit: en rad med saldo 0 far aldrig sitt pris omraknat av
+              # synken om artikeln fallit ur feeden —
+              #   lib/aosom/sync.ts: if (!row || opts.skipPrices || !variant) return plan;
+              # — och `nyttSaldo` blir null nar saldot redan ar noll, sa inte
+              # heller `aosomSyncedAt` stamplas. Prisgrinden kan darfor ALDRIG
+              # bli gron pa en sadan rad.
+              #
+              # Uppmatt 2026-09-06 pa cordfatoljen 1877cf83: 2404,4 x 1,20 ger
+              # 2889 med charm9 och 2899 med charm99 — samma kostnad, bara den
+              # avrundning som byttes 2026-09-03. Grinden sa anda "kostnaden
+              # har andrats sedan importen". Ratt RAD, fel SKAL, och skalet
+              # skickade felsokningen at fel hall.
+              echo "::error::SLUTSALD — saldo 0 hos Aosom. Polera INTE: ingen kan kopa varan. Prisavvikelsen nedan behover INTE betyda att kostnaden andrats — en artikel som fallit ur feeden far aldrig sitt pris omraknat, sa grinden kan inte bli gron har. ROR INTE PRISET. Valj en annan produkt." >&2
+              exit 1
             elif [ "$galler" = "true" ]; then
               # Aosom-rad: sortimentet importerades 2026-08-27, samma dag regeln
               # sattes, sa den galler. Ett fall ar da verklig drift.
@@ -130,6 +236,77 @@ jobs:
             fi
             fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
             echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"
+
+            # --- Kuvertet: de tva falt som varken far loggas eller gar att harleda ---
+            if [ -n "${KUVERT:-}" ]; then
+              echo
+              echo "=== Kuvert (RSA-OAEP/SHA-256, base64) ==="
+
+              # ☠️ Klartexten skrivs till en FIL, aldrig till en variabel som
+              # nagot senare kan `echo`:a av misstag, och filen ligger bara i
+              # runnerns eget flyktiga filsystem. `set -euo pipefail` galler,
+              # sa varje led nedan fars falla hogt.
+              umask 077
+              echo "$svar" | jq -j '{
+                artikelnummer:  .mappning.supplierProductId,
+                sourceUrl:      .mappning.sourceUrl,
+                costUsd:        [(.mappning.variants // [])[] | {sku, costUsd, landedCostSek, grossSek}],
+                fraktandel:     .aosomFreightShare,
+                landedCostSek:  .prisgrind.landedCostSek,
+                forvantatSek:   .prisgrind["förväntatSek"]
+              } | tostring' > kuvert.klartext
+
+              if ! echo "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+                echo "::error::kuvert: inputet ar inte giltig base64" >&2
+                exit 1
+              fi
+
+              # ☠️ HYBRID, INTE RAK RSA. En 2048-bitars nyckel rymmer 190 byte
+              # med OAEP/SHA-256, och nyttolasten ar storre an sa: en
+              # aosom.de-URL med tysk slug ar ensam over 150 tecken. Forsta
+              # versionen krypterade rakt mot RSA och foll pa "data too large
+              # for key size" — pa en kort test-URL gick den igenom, pa en
+              # riktig gjorde den det inte. Langden far inte avgora om
+              # kuvertet fungerar.
+              #
+              # Losenordet ligger i en FIL och aldrig i argv eller en variabel:
+              # kommandoraden ar last av vem som helst som kan lista processer.
+              openssl rand -base64 32 > kuvert.losen
+
+              # ☠️ OCH OPENSSL:S FEL SYNS. Forsta versionen hade `2>/dev/null`
+              # pa krypteringen, sa nar den foll stod det bara "krypteringen
+              # misslyckades" — orsaken var borta. Huset har en regel mot exakt
+              # det: ett misslyckande som ingen kan se ar varre an ett som
+              # skriker. openssl:s felrader beskriver nycklar och padding, aldrig
+              # innehallet, sa de ar ofarliga att visa.
+              if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+                   -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+                echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+                cat kuvert.fel >&2
+                rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
+                exit 1
+              fi
+
+              # ☠️ INGEN FALLBACK TILL KLARTEXT. Gar nagot fel ska jobbet FALLA,
+              # inte skriva ut vardet "sa att det atminstone syns". Ett
+              # misslyckande som raddar sig sjalv genom att gora exakt det man
+              # ville undvika ar samre an inget alls.
+              if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+                   -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+                   -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+                echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+                cat kuvert.fel >&2
+                rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+                exit 1
+              fi
+              rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+              echo "losen: $(base64 -w0 kuvert.losen.enc)"
+              echo "data:  $(base64 -w0 kuvert.data)"
+              rm -f kuvert.losen.enc kuvert.data
+              echo "(dekryptera: RSA-oppna losen med din privata nyckel, sedan"
+              echo " openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen> pa data)"
+            fi
             exit 0
           fi
 

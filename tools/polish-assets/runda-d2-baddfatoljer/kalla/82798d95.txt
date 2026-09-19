@@ -1,0 +1,25 @@
+# KALLA 82798d95 — 3149 kr — farg: Dunkelgrau — tyg: Cordoptik
+Sesselmasse: 90B x 75T x 84H cm
+Bettmasse: 90B x 190T x 26H cm
+Sitzgroesse: 90B x 60T x 39H cm
+Rueckenlehnenmasse: 90B x 49H cm
+Dicke: 24 cm (Sitz), 11,5 cm (Rueckenlehne)
+Kissenmasse: 73B x 27H x 12T cm
+Beinhoehe: 15 cm
+Belastbarkeit: 120 kg
+3-in-1: vom Schlafsessel in eine Liege oder ein 90 x 190 cm grosses Ruhebett
+Klick-Klack-Mechanismus fuer schnellen Wechsel zwischen den Modi
+Rueckenlehne in sechs Positionen von 100 bis 180 Grad
+Weicher Cordstoff
+Schaumstofffuellung und abnehmbares, waschbares Lendenkissen
+Metallrahmen, konische Metallfuesse in Holzoptik, verdeckte Klappbeine
+Die 15 cm Bodenfreiheit erleichtert die Reinigung mit Saugrobotern
+Material: Stoff mit Cordoptik (100% Polyester), Polyester, Metall, Schaumstoff
+Einfache Montage erforderlich
+Lieferumfang: 1 x Sesselbett, 1 x Kissen, 1 x Bedienungsanleitung
+Vikt: 24 kg  Paketmatt: 91 x 71 x 39 cm
+
+# KORSREFERENS — verifierad ur den PUBLICERADE baddfatolj-190-cm (667ca8f9),
+# inte ur det har underlaget. Dess badd mater 72 x 190 x 25 cm, alltsa
+# 72 cm bredd mot den har produktens 90.
+Publicerad baddfatolj: 190 cm badd, 72 cm bred

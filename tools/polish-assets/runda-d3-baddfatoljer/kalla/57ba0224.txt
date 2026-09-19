@@ -1,0 +1,32 @@
+# KALLA 57ba0224 — 3199 kr — farg: Hellgrau — tyg: Leinenimitat
+Sofa Abmessung: 72L x 78B x 79H cm
+Bett Abmessung: 72B x 190T x 25H cm
+Sitzgroesse: 72B x 62T cm
+Dicke der Sitzflaeche: 11 cm
+Rueckenlehne Groesse: 72B x 41H cm
+Kissen Groesse: 60L x 34B cm
+6-stufig verstellbare Rueckenlehne: 100, 115, 125, 140, 160, 180 Grad
+Material: Leinenimitat (100% Polyester), Schaumstoff, Stahl, Kautschukbaumholz
+Atmungsaktiver Bezug in Leinenoptik, knitterfrei und verschleissfest
+Zusaetzliches Kissen und gepolsterter Sitz
+Knopfheftung und verzierte Seitenraender
+Einfache Montage erforderlich
+Lieferumfang: 1 x Schlafsofa, 1 x Kopfkissen, 1 x Anleitung
+Vikt: 20,5 kg  Paketmatt: 128 x 75 x 24 cm
+
+# KORSREFERENS — samma stol som publicerade baddfatolj-190-cm (667ca8f9,
+# morkgron) och baddfatolj-190-cm-beige (0559bbb2). Mattritningen ar
+# identisk i varje tal. Sitthojd 38 cm star pa deras ritning.
+Publicerade fargsyskon: morkgront och beige, sitthojd 38 cm
+
+# ☠️ STEG 2-FYND: MAXLASTEN. Det har underlaget sager 150 kg och anger
+# Stahlrahmen. De TRE andra medlemmarna i samma familj (667ca8f9,
+# 0559bbb2, 583577bc) sager 120 kg och Metallrahmen. Mattritningen ar
+# identisk pa alla fyra — det ar samma stol.
+# En stalram som bar mer AR en sammanhangande forklaring, men den vilar
+# pa ett enda ordval i en tysk spec, och maxlast ar ett sakerhetstal:
+#   for lagt  -> vi tappar en forsaljning
+#   for hogt  -> nagon satter sig pa en mobel som inte bar dem
+# Samma avvagning som i runda D2. 120 kg skrivs — det talet tre av fyra
+# familjemedlemmar anger, och det enda vi kan sta for.
+Vald maxlast: 120 kg (konservativ, tre av fyra i familjen)

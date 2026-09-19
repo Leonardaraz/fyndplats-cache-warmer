@@ -1,0 +1,51 @@
+name: Google Shopping — tillaggsfeedens status
+
+# Hur ser TILLAGGSFEEDEN till Merchant Center ut just nu? Hur manga rader bar
+# en prisgrupp (A/B), hur manga ligger under respektive over dealproffsen?
+# Huvudfeeden ar butiksrepots /feed/google.xml; den har lagger etiketterna.
+#
+# ☠️ LASER BARA RAKNARNA. Sjalva feeden kraver GOOGLE_FEED_SECRET, som aldrig
+# lamnar Vercel — statusen nas med CRON_SECRET och bar inga produktdata.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/feed/google-shopping-tillagg?lage=status"
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          kropp="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$kropp" >&2
+            exit 1
+          fi
+          {
+            echo "### Google Shopping — tillaggsfeeden"
+            echo ""
+            printf '%s\n' "$kropp" | jq -r '
+              "| | |\n|---|---:|",
+              "| **rader** | **\(.rader)** |",
+              "| grupp A / B / ingen | \(.perGrupp.A) / \(.perGrupp.B) / \(.perGrupp.ingen) |",
+              "| under dealproffsen | \(.perKonkurrenslage.under_dealproffsen // 0) |",
+              "| over dealproffsen | \(.perKonkurrenslage.over_dealproffsen // 0) |",
+              "| utan jamforelse | \(.perKonkurrenslage.ingen_jamforelse // 0) |",
+              "| utan variant-id (utelamnade) | \(.utanVariantId) |",
+              "| utan entydigt pris (utelamnade) | \(.utanPris) |"
+            ' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$kropp" | jq -r '
+            "rader \(.rader), A \(.perGrupp.A) / B \(.perGrupp.B) / ingen \(.perGrupp.ingen), under \(.perKonkurrenslage.under_dealproffsen // 0), over \(.perKonkurrenslage.over_dealproffsen // 0), utanVariantId \(.utanVariantId), utanPris \(.utanPris)"' || true

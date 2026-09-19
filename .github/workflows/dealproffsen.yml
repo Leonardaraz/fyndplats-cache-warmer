@@ -1,0 +1,398 @@
+name: Pris — jamfor mot dealproffsen
+
+# Svarar pa tva fragor, utan att nagon hemlighet lamnar servern:
+#
+#   feed-info  Vilka kolumner har Aosoms feed EGENTLIGEN? Finns EAN, och hur
+#              full ar den? Priskolumnernas VARDEN redigeras bort ur svaret.
+#   jamfor     Var ar vi billigare an dealproffsen, och med hur mycket?
+#
+# ☠️ INGENTING SKRIVS. Rutten mater. Ett pris som nar kund ska ha passerat
+# ogon — samma hallning som prisreparationens "det finns ingen kor-allt-flagga".
+#
+# ☠️ LOGGEN AR PUBLIK. Darfor bar svaret aldrig Aosoms artikelnummer och aldrig
+# vart inkopspris. Raderna nycklas pa wixProductId, som redan star i
+# produktsidans JSON-LD. Ett test i lib/pricing/dealproffsen.test.ts faller om
+# artikelnumret kryper in i rapporten.
+#
+# Samma nyckel-losa upplagg som resten: produktionen har Wix-nycklarna och
+# feed-adressen, Actions har CRON_SECRET, de mots i workflowen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "jamfor · feed-info · ean-jakt · vara-sidor (wix-id → var slug, till Vercels logg)"
+        required: true
+        default: "jamfor"
+        type: choice
+        options:
+          - jamfor
+          - feed-info
+          - ean-jakt
+          - vara-sidor
+      varv:
+        description: "Max antal varv for jamfor (markoren loopas). Default 12."
+        required: false
+        default: "12"
+        type: string
+      visa_rader:
+        description: "ja = skriv ut exempelrader per prisband (PUBLICERADE bara)"
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      del:
+        description: "vara-sidor: vilken skiva (1..av). Default 1."
+        required: false
+        default: "1"
+        type: string
+      av:
+        description: "vara-sidor: hur manga skivor. 1 = hela pa en gang."
+        required: false
+        default: "1"
+        type: string
+      detaljlogg:
+        description: "ja = logga alla rader till VERCELS privata logg (ej hit)"
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  jamfor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          VARV: ${{ inputs.varv }}
+          VISA_RADER: ${{ inputs.visa_rader }}
+          DETALJLOGG: ${{ inputs.detaljlogg }}
+          # ⚠️ EGNA INPUTS, inte aterbrukade. Tva flaggor med tva
+          # betydelser ar samma falla som den tomma workflow-inputen som
+          # publicerade utkast i tolv timmar: den som kor fel lage far ett
+          # tal som ser giltigt ut och betyder nagot annat.
+          DEL: ${{ inputs.del }}
+          AV: ${{ inputs.av }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-lardomen 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/dealproffsen"
+
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod}" >&2
+              printf '%s\n' "$kropp" >&2
+              return 1
+            fi
+            printf '%s' "$kropp"
+          }
+
+          # ── feed-info ───────────────────────────────────────────────────────
+          if [ "${MODE}" = "feed-info" ]; then
+            kropp="$(anropa "${url}?lage=feed-info")"
+            {
+              echo "### Aosoms feed — vad finns i den?"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| rader | \(.rader) |",
+                "| kolumner | \(.kolumner | length) |",
+                "| **EAN-kolumn finns** | **\(.harEanKolumn)** |",
+                "| **EAN ifylld pa** | **\(.eanIfyllda) rader** |"
+              ' || true
+              echo ""
+              echo "| kolumn | ifyllda | exempel |"
+              echo "|---|---:|---|"
+              printf '%s\n' "$kropp" | jq -r '
+                .kolumner[] | "| \(.namn) | \(.ifyllda) | \(.exempel // "_dold_") |"
+              ' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "EAN-kolumn: \(.harEanKolumn), ifylld pa \(.eanIfyllda) av \(.rader) rader"' || true
+
+            # ⚠️ KOLUMNLISTAN OCKSA TILL STDOUT, inte bara till summeringen.
+            #
+            # Samma skal som fordelningstabellen nedan: en summering gar inte
+            # att lasa tillbaka programmatiskt, och en matning ingen kan lasa
+            # ar ingen matning. Fragan "finns EAN nagon annanstans i feeden,
+            # under ett annat namn?" gar inte att besvara utan hela listan —
+            # `harEanKolumn` tittar bara efter de namn vi redan tankt pa.
+            #
+            # ☠️ NAMN OCH IFYLLNADSGRAD, ALDRIG EXEMPELVARDET. Redigeringen i
+            # feed-info bygger pa en NAMNLISTA plus en formkoll, och en kolumn
+            # som heter nagot vi inte forutsett ("Net", "B2B") skulle visa
+            # sitt varde. Strukturen ar redan publik — kolumnnamnen star i
+            # husets egen CLAUDE.md — men vardena ar det inte.
+            echo ""
+            echo "KOLUMNER (antal ifyllda rader, kolumnnamn):"
+            printf '%s\n' "$kropp" | jq -r '
+              .kolumner[] | "  \(.ifyllda)\t\(.namn)"' || true
+            exit 0
+          fi
+
+          # ── vara-sidor: wix-id → VAR slug och VART namn ─────────────────────
+          #
+          # Raderna skrivs av RUTTEN till Vercels privata logg. De ar inte
+          # hemliga — var slug star i sitemapen — men de ar ~4 000, och en
+          # publik logg som till nio tiondelar ar brus ar en logg ingen laser.
+          if [ "${MODE}" = "vara-sidor" ]; then
+            kropp="$(anropa "${url}?lage=vara-sidor&del=${DEL}&av=${AV}")"
+            {
+              echo "### Vara produktsidor (wix-id → slug)"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| produkter i katalogen | \(.katalogen) |",
+                "| **skiva** | **\(.del) av \(.av)** |",
+                "| rader i denna skiva | \(.iDennaDel) |",
+                "| rader totalt | \(.rader) |",
+                "| mappningar utan produkt (foraldralosa) | \(.utanProdukt) |",
+                "| loggrader att lasa | \(.loggrader) |"
+              ' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "katalogen \(.katalogen), del \(.del)/\(.av), iDennaDel \(.iDennaDel), rader \(.rader), utanProdukt \(.utanProdukt), loggrader \(.loggrader)"' || true
+            exit 0
+          fi
+
+          # ── ean-jakt: star koden i produktmanualen? ─────────────────────────
+          #
+          # ☠️ SVARET PARAR ALDRIG IHOP EN KOD MED EN PRODUKT, och bar aldrig
+          # pdf-adressen — den innehaller artikelnumret. En EAN ensam ar inte
+          # hemlig (den ska publiceras i Merchant Center om den finns); det ar
+          # PARET kod↔artikel som ar vart inkopsled.
+          if [ "${MODE}" = "ean-jakt" ]; then
+            kropp="$(anropa "${url}?lage=ean-jakt&antal=25")"
+            {
+              echo "### Star EAN-koden i Aosoms produktmanualer?"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| manualer hamtade | \(.hamtade) |",
+                "| for stora for att lasa (>20 MB) | \(.forStoraPdf) |",
+                "| olasliga (packade med annat an Flate) | \(.olasliga) |",
+                "| **med giltig GTIN-13** | **\(.medGiltigGtin)** |",
+                "| **med tyskt GS1-prefix (400-440)** | **\(.medTysktPrefix)** |",
+                "| trettonsiffringar totalt | \(.kandidater) |",
+                "| varav giltig kontrollsiffra | \(.giltiga) |",
+                "| fel | \(.fel | length) |"
+              ' || true
+              echo ""
+              echo "> ⚠️ **Rataler star bredvid med flit.** En slumpmassig"
+              echo "> trettonsiffring klarar kontrollsiffran i ETT fall av tio,"
+              echo "> sa \`giltiga\` ensamt sager ingenting. Ligger kvoten kring"
+              echo "> 10 % ar det brus."
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "hamtade \(.hamtade), forStora \(.forStoraPdf), olasliga \(.olasliga), medGiltig \(.medGiltigGtin), "
+              + "medTysk \(.medTysktPrefix), kandidater \(.kandidater), giltiga \(.giltiga)",
+              "exempelkoder: \(.exempelkoder | join(" "))",
+              (.fel[]? | "  FEL: \(.)")' || true
+            exit 0
+          fi
+
+          # ── jamfor: loopa markoren ──────────────────────────────────────────
+          after=""
+          varv=0
+          tot_b=0; tot_d=0; tot_l=0; tot_ut=0; tot_uvp=0; tot_ean=0; tot_g=0
+          tot_uan=0; tot_fel=0; tot_prefix=0; sista_kvar=0
+          : > rader.ndjson
+
+          while [ "$varv" -lt "${VARV}" ]; do
+            varv=$((varv + 1))
+            q="lage=jamfor"
+            # Detaljraderna skrivs av RUTTEN till Vercels privata logg — de
+            # passerar aldrig den har publika loggen. Flaggan sager bara till.
+            [ "${DETALJLOGG:-nej}" = "ja" ] && q="${q}&detalj=1"
+            [ -n "$after" ] && q="${q}&after=${after}"
+            kropp="$(anropa "${url}?${q}")"
+
+            b=$(printf '%s' "$kropp" | jq -r '.viBilligare')
+            d=$(printf '%s' "$kropp" | jq -r '.viDyrare')
+            l=$(printf '%s' "$kropp" | jq -r '.likaPris')
+            ut=$(printf '%s' "$kropp" | jq -r '.utanTraff')
+            uvp=$(printf '%s' "$kropp" | jq -r '.utanVartPris')
+            ean=$(printf '%s' "$kropp" | jq -r '.medEan')
+            uan=$(printf '%s' "$kropp" | jq -r '.utanArtikelnummer')
+            nfel=$(printf '%s' "$kropp" | jq -r '.fel | length')
+            npre=$(printf '%s' "$kropp" | jq -r '.prefixHamtade')
+            g=$(printf '%s' "$kropp" | jq -r '.granskade')
+            kvar=$(printf '%s' "$kropp" | jq -r '.kvar')
+            cur=$(printf '%s' "$kropp" | jq -r '.cursor // ""')
+
+            tot_b=$((tot_b + b)); tot_d=$((tot_d + d)); tot_l=$((tot_l + l))
+            tot_ut=$((tot_ut + ut)); tot_uvp=$((tot_uvp + uvp))
+            tot_ean=$((tot_ean + ean)); tot_g=$((tot_g + g))
+            tot_uan=$((tot_uan + uan)); tot_fel=$((tot_fel + nfel))
+            tot_prefix=$((tot_prefix + npre)); sista_kvar="$kvar"
+
+            printf '%s' "$kropp" | jq -c '.rader[]?' >> rader.ndjson || true
+            echo "varv ${varv}: ${g} granskade, ${b} vi billigare, ${d} vi dyrare, ${kvar} prefix kvar"
+
+            printf '%s' "$kropp" | jq -r '.fel[]? | "  FEL \(.prefix): \(.skal)"' >&2 || true
+
+            [ "$kvar" = "0" ] && break
+            [ -z "$cur" ] && break
+            # ☠️ EN MARKOR SOM INTE ROR SIG AR INGET FRAMSTEG. Faller varje
+            # prefix i ett varv star markoren kvar pa forra varvets sista — och
+            # utan den har raden kor loopen om exakt samma anrop tills `varv`
+            # tar slut, bokfor samma rader en gang till, och ser i summeringen
+            # ut som ett svep som gjorde nagot. Uppmatt mot en stubbe innan
+            # rutten nadde produktionen.
+            if [ "$cur" = "$after" ]; then
+              echo "::warning::markoren stod stilla pa ${cur} — avbryter" >&2
+              break
+            fi
+            after="$cur"
+          done
+
+          {
+            echo "### Prisjamforelse mot dealproffsen"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| granskade | ${tot_g} |"
+            echo "| **vi billigare** | **${tot_b}** |"
+            echo "| vi dyrare | ${tot_d} |"
+            echo "| samma pris | ${tot_l} |"
+            echo "| de saljer den inte | ${tot_ut} |"
+            echo "| utan vart pris (flera varianter) | ${tot_uvp} |"
+            echo "| utan artikelnummer hos oss | ${tot_uan} |"
+            echo "| prefix hamtade | ${tot_prefix} |"
+            echo "| prefix som INTE gick att hamta | ${tot_fel} |"
+            echo "| prefix kvar | ${sista_kvar} |"
+            echo "| **EAN vi fick gratis** | **${tot_ean}** |"
+            if [ "${tot_fel}" -gt 0 ] || [ "${sista_kvar}" != "0" ]; then
+              echo ""
+              echo "> ⚠️ **Ofullstandig matning.** Nagra prefix saknas, sa"
+              echo "> \`de saljer den inte\` ar ett GOLV — inte ett besked."
+              echo "> Kor igen innan nagot pris andras pa det har underlaget."
+            fi
+            echo ""
+            echo "#### Storst gap dar vi ar billigare (topp 30)"
+            echo ""
+            echo "| wix-id | vart | deras | under med | publicerad | polerad |"
+            echo "|---|---:|---:|---:|:--:|:--:|"
+            jq -s -r '
+              unique_by(.wixProductId)
+              | map(select(.underMedKr > 0)) | sort_by(-.underMedKr) | .[:30][]
+              | "| `\(.wixProductId)` | \(.vartPris) | \(.derasPris) | **\(.underMedKr) kr** (\(.underMedPct) %) | \(if .publicerad then "ja" else "nej" end) | \(if .behoverPolering then "nej" else "ja" end) |"
+            ' rader.ndjson || true
+            echo ""
+            echo "#### Opolerade utkast dar vi vore billigast — polera dessa forst (topp 30)"
+            echo ""
+            echo "| wix-id | vart | deras | under med |"
+            echo "|---|---:|---:|---:|"
+            jq -s -r '
+              unique_by(.wixProductId)
+              | map(select(.underMedKr > 0 and .behoverPolering == true))
+              | sort_by(-.underMedKr) | .[:30][]
+              | "| `\(.wixProductId)` | \(.vartPris) | \(.derasPris) | **\(.underMedKr) kr** (\(.underMedPct) %) |"
+            ' rader.ndjson || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Fordelningen ar det som styr beslutet: "vi ar billigare pa 2 500"
+          # sager ingenting om HUR MYCKET som ligger pa bordet. Bandet 0-2 %
+          # ar redan dar strategin vill hamna; allt over 10 % ar pengar vi
+          # lamnar utan att vinna nagot pa det.
+          #
+          # ☠️ Till STDOUT, inte bara till summeringen. Bada ar lika publika —
+          # priserna star redan pa bada sajterna — men en summering gar inte
+          # att lasa tillbaka programmatiskt, och en matning ingen kan lasa ar
+          # ingen matning.
+          {
+            echo ""
+            echo "#### Hur mycket billigare ar vi?"
+            echo ""
+            echo "| vi ligger under med | produkter | varav opolerade |"
+            echo "|---|---:|---:|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -s -r '
+            unique_by(.wixProductId) | map(select(.underMedKr > 0))
+            | (map(select(.underMedPct <   2)) | [length, (map(select(.behoverPolering)) | length)]) as $a
+            | (map(select(.underMedPct >=  2 and .underMedPct < 5))  | [length, (map(select(.behoverPolering)) | length)]) as $b
+            | (map(select(.underMedPct >=  5 and .underMedPct < 10)) | [length, (map(select(.behoverPolering)) | length)]) as $c
+            | (map(select(.underMedPct >= 10 and .underMedPct < 20)) | [length, (map(select(.behoverPolering)) | length)]) as $d
+            | (map(select(.underMedPct >= 20)) | [length, (map(select(.behoverPolering)) | length)]) as $e
+            | (map(select(.underMedPct >= 2)) | map(.underMedKr - (.derasPris * 0.02)) | add | floor) as $lost
+            | "| under 2 % (redan ratt lage) | \($a[0]) | \($a[1]) |",
+              "| 2-5 % | \($b[0]) | \($b[1]) |",
+              "| 5-10 % | \($c[0]) | \($c[1]) |",
+              "| 10-20 % | \($d[0]) | \($d[1]) |",
+              "| **over 20 %** | **\($e[0])** | \($e[1]) |",
+              "",
+              "**Om alla lades pa 2 % under deras pris: ca \($lost) kr mer i marginal totalt.**"
+          ' rader.ndjson | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+          # ⚠️ EXEMPELRADERNA LIGGER BAKOM EN FLAGGA, default AV.
+          #
+          # Raderna bar wix-id + vart pris + deras pris. Varje enskilt tal ar
+          # publikt — bada priserna star pa respektive sajt, och wix-id:t i var
+          # egen JSON-LD. Men TILLSAMMANS pekar de ut vilken av deras produkter
+          # som ar var, och deras produktsida publicerar Aosoms artikelnummer
+          # som sku/mpn. Paret ar alltsa artikelnumret ett klick bort.
+          #
+          # Det ar inte samma sak som att lacka numret rakt ut, och kopplingen
+          # gar redan att gora med en omvand bildsokning eftersom fotona ar
+          # Aosoms egna. Men husets regel ar att numret hor hemma pa
+          # supplierProductId och ingen annanstans, och jag har brutit mot den
+          # en gang idag redan. Darfor: av som default, pa nar nagon medvetet
+          # ber om det.
+          if [ "${VISA_RADER:-nej}" = "ja" ]; then
+            echo ""
+            echo "EXEMPEL PER PRISBAND (publicerade bara):"
+            for band in "2:5" "5:10" "10:20" "20:999"; do
+              lo="${band%%:*}"; hi="${band##*:}"
+              echo "  --- ${lo}-${hi} % ---"
+              jq -s -r --argjson lo "$lo" --argjson hi "$hi" '
+                unique_by(.wixProductId)
+                | map(select(.underMedPct >= $lo and .underMedPct < $hi
+                             and .publicerad == true and .behoverPolering == false))
+                | sort_by(-.underMedKr) | .[:5][]
+                | "    \(.wixProductId)  vart \(.vartPris)  deras \(.derasPris)  \(.underMedPct) %"
+              ' rader.ndjson || true
+            done
+          fi
+
+          echo ""
+          echo "TOPP 20 dar gapet ar storst:"
+          jq -s -r '
+            unique_by(.wixProductId) | map(select(.underMedKr > 0))
+            | sort_by(-.underMedKr) | .[:20][]
+            | "  \(.wixProductId)  vart \(.vartPris)  deras \(.derasPris)  under \(.underMedKr) kr (\(.underMedPct) %)  \(if .behoverPolering then "OPOLERAD" else "publicerad" end)"
+          ' rader.ndjson || true
+
+          echo "KLART: ${tot_b} produkter dar vi ar billigare, ${tot_ean} EAN insamlade"
+
+          # ⚠️ MASSFEL FALLER, EN ENSTAKA MISS VARNAR — samma form som
+          # MASSFEL_ANDEL/MASSFEL_GOLV i migreringens verdikt och som
+          # Aosom-synkens sparr. Ett rott jobb vid varje svep lar mottagaren
+          # att sluta lasa, och da ar aven det akta larmet borta. Att INGET
+          # prefix gick att hamta ar daremot inte en miss — da vet korningen
+          # ingenting alls, och det far inte se ut som ett svar.
+          if [ "${tot_prefix}" -eq 0 ]; then
+            echo "::error::Noll prefix gick att hamta — korningen vet ingenting" >&2
+            exit 1
+          fi
+          if [ "${tot_fel}" -ge 10 ] && [ $((tot_fel * 100)) -ge $(((tot_fel + tot_prefix) * 10)) ]; then
+            echo "::error::${tot_fel} av $((tot_fel + tot_prefix)) prefix foll — massfel" >&2
+            exit 1
+          fi

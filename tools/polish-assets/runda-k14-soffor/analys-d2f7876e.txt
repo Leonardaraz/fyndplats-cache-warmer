@@ -1,0 +1,67 @@
+PRODUKT: d2f7876e-8a1e-42c6-bb53-803d3f13ce1e
+NAMN (källa): 3-Sitzer-Sofa, Cloud-Sofa aus Chenille mit dicker
+SLUG: 3-sitzer-sofa-cloud-sofa-aus-chenille-mit-dicker
+VISIBLE: false
+PRIS: 5119
+
+--- plainDescription (ordagrant, taggar strippade) ---
+
+Harte Polster und enge Sitzflächen machen Familien-Filmabende schnell unbequem. Dieses 3-Sitzer-Sofa bringt mit einer dicken, formstabilen Sitzfläche mit Taschenfederkern Komfort ins Wohnzimmer – auch für drei Personen. Chenille-Stoff, breite Armlehnen und das rahmenlose Cloud-Design der Couch schaffen einen gemütlichen, wolkenweichen Rückzugsort. Genießen Sie warmes, elegantes Wohngefühl mit mühelosem Stil und täglichem Komfort.
+
+Beschreibung:
+✔ Die 42 cm dicke Sitzfläche mit hochdichtem Schaumstoff und Taschenfedern bietet wolkenähnlichen Komfort ohne Durchhängen
+✔ Der weiche Chenillebezug fühlt sich hautfreundlich und gemütlich an und eignet sich ideal zum täglichen Entspannen
+✔ Die großzügige, 194 cm breite und 58 cm tiefe Sitzfläche des Sofas bietet bequem Platz für drei Personen
+✔ Die breiten Armlehnen der Couch bieten eine praktische und griffbereite Ablagefläche für Bücher, Fernbedienungen oder Tablets
+✔ Die mitgelieferten Kissen bieten flexible Unterstützung für Rücken und Lendenbereich
+✔ Das Design komplett aus Schaumstoff ohne harten Rahmen und scharfe Ecken schafft einen sichereren Bereich für Familien
+✔ Die rutschfeste Unterseite hilft, das Sofa sicher an Ort und Stelle zu halten, und ist bis zu 360 kg belastbar
+✔ Keine Montage erforderlich
+lassen Sie den Schaumstoff 72 Stunden lang vollständig ausdehnen und glätten Sie Falten vorsichtig mit Dampf oder einem Bügeleisen
+
+ Technische Daten:
+✔ Farbe: Grau
+✔ Material: Chenille (100 % Polyester), Original-Schaumstoff
+✔ Gesamtabmessungen: 248B x 104T x 87H cm
+✔ Sitzgröße: 194B x 58T x 42H cm
+✔ Rückengröße: 194B x 45L cm
+✔ Dicke: 42 cm (Sitz), 47 cm (Rückenlehne)
+✔ Armlehnengröße: 80L x 27B cm
+✔ Armlehnenhöhe von der Sitzfläche: 22 cm
+✔ Zierkissengröße: 40L x 40B x 15T cm
+✔ Belastbarkeit: 360 kg
+
+Lieferumfang:
+✔ 1 x 3-Sitzer-Sofa
+✔ 2 x Kissen
+✔ 1 x Bedienungsanleitung
+
+Tekniska specifikationer
+Mått: 248 x 104 x 87 cm
+Färg: Grau
+Material: Polyester
+Vikt: 53 kg
+Paketmått: 32 × 32 × 114 cm
+
+--- slut på källtext ---
+
+ALT-TEXTER (alla fem bilder bär SAMMA tyska sträng):
+3-Sitzer-Sofa, Cloud-Sofa aus Chenille mit dicker Federkernpolsterung, breiter und tiefer Sitzfläche, breiten Armlehnen, Kissen, grau
+
+ANMÄRKNINGAR:
+- Inga FAROR i källan: inget Aosom-artikelnummer, ingen tysk leveransklausul,
+  inget husmärke (HOMCOM/Outsunny/PawHut/Aiyaplay/Aosom/SportNow/Vinsetto/
+  Kleankin/Zonekiz/Durhand), inget fraktland/lagerland, ingen [BRAND NAME]-rest,
+  ingen EN-standard.
+- Sista punkten i "Beschreibung" saknar ✔ och börjar med gemen bokstav
+  ("lassen Sie den Schaumstoff …") — den hänger ihop med punkten ovanför
+  ("Keine Montage erforderlich") i källan.
+- Rubriken lyder " Technische Daten:" med ett inledande blanksteg i källan.
+- Färgvärdet "Grau" i den svenska spec-fliken är oöversatt tyska.
+- Vikten (53 kg) och paketmåtten finns ENDAST i den svenska spec-fliken —
+  den tyska brödtexten anger varken vikt eller paketmått.
+- Namnet är avhugget i källan ("… aus Chenille mit dicker") — adjektivet saknar
+  sitt huvudord. Alt-texten visar att det gällde "dicker Federkernpolsterung".
+- Två motstridiga tjocklekstal för sitsen står i källan: brödtexten och
+  "Sitzgröße" säger 42 cm, medan "Dicke" säger "42 cm (Sitz), 47 cm
+  (Rückenlehne)" — 47 cm gäller alltså ryggen, inte sitsen.

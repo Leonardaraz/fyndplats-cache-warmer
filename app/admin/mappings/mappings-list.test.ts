@@ -35,22 +35,35 @@ describe("deeplänkarna per produkt", () => {
     expect(KÄLLA.match(/wixEditUrl=\{wixUrlFor\(p\.id\)\}/g) ?? []).toHaveLength(2);
   });
 
-  // Alla tre på SAMMA rad (Leonard 2026-08-21). AliExpress-länken låg tidigare
+  // Alla tre på SAMMA rad (Leonard 2026-08-21). Leverantörslänken låg tidigare
   // på en egen rad under — de letas efter tillsammans.
   it("kortet renderar alla tre länkarna i samma rad", () => {
     const rad = KORT.slice(
-      KORT.indexOf("{(storeUrl || wixEditUrl || aeUrl)"),
+      KORT.indexOf("{(storeUrl || wixEditUrl || kalla)"),
       KORT.indexOf("{alreadyMapped && !justMapped"),
     );
     expect(rad).toMatch(/Se på Fyndplats/);
     expect(rad).toMatch(/Redigera i Wix/);
-    expect(rad).toMatch(/AliExpress \{mapping!\.supplierProductId\}/);
+    // Etiketten kommer från raden, inte från en hårdkodad sträng: kortet skrev
+    // tidigare "AliExpress" över varenda produkt, alltså även över Aosoms
+    // 5 566 — och byggde en död aliexpress.com-länk av deras artikelnummer.
+    expect(rad).toMatch(/\{kalla\.namn\} \{kalla\.artikelnummer\}/);
+    expect(rad).not.toMatch(/🔗 AliExpress \{/);
   });
 
-  // Två länkar till samma listning i samma kort är brus — AE-länken ska ha
-  // FLYTTAT, inte dubblerats.
-  it("AliExpress-länken finns bara på ett ställe i kortet", () => {
-    expect(KORT.match(/href=\{aeUrl\}/g) ?? []).toHaveLength(1);
+  // Två länkar till samma listning i samma kort är brus — leverantörslänken ska
+  // ha FLYTTAT, inte dubblerats.
+  it("leverantörslänken finns bara på ett ställe i kortet", () => {
+    expect(KORT.match(/href=\{kalla\.url\}/g) ?? []).toHaveLength(1);
+  });
+
+  // ☠️ Utan leverantör och sourceUrl kan kortet inte veta vart länken går, och
+  // faller tillbaka på att bygga en AE-URL av id:t. Fälten MÅSTE följa med
+  // hela vägen från sidan.
+  it("sidan skickar med leverantör och sourceUrl till kortet", () => {
+    const SIDA = readFileSync(join(process.cwd(), "app/admin/mappings/page.tsx"), "utf8");
+    expect(SIDA).toMatch(/supplier: m\.supplier/);
+    expect(SIDA).toMatch(/sourceUrl: m\.sourceUrl/);
   });
 
   // Hellre ingen länk än en som går till /produkt/undefined.

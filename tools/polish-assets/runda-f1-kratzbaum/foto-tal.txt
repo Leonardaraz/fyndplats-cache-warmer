@@ -1,0 +1,13 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoräknad uppgift måste kvitteras här för att slippa igenom.
+#
+# Efterkvitterad 2026-09-12 (#241): sidorna var redan publicerade när
+# ordtalsvarningen byggdes. Alla tre påståendena kontrollerades mot fotot innan
+# raden skrevs — inget av dem ändrades.
+6f0b43f0 3 plattformar PÅ STOLPEN räknade på huvudbilden; källans "4 Plattformen" räknar golvplattan som den fjärde, och uppdelningen 3+1 står inte i texten
+75391d11 3 samma klösträd som 6f0b43f0 i beige — samma räkning, samma bild
+8db487c1 3 samma klösträd som 6f0b43f0 i grå — samma räkning, samma bild
+c802ac19 2 grottor räknade på huvudbilden: tunnan har två öppningar med ett golv emellan. Källan säger "doppellagige Katzenhöhle" och "Innengröße pro Stück" (per styck), men aldrig antalet
+cc31a73b 2 samma klöstunna som c802ac19 i grå — samma räkning, samma bild

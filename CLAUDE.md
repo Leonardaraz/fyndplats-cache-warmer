@@ -376,8 +376,8 @@ tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
 `bulk-import-worker` går **varje minut, dygnet runt** — 1 440 körningar per
 dygn, och nästan alla har ingenting att göra. Varje sådan skrev ändå en
-routing-rad i Vercel-loggen, och tillsammans med `health-check` (var femte
-minut) stod de två för **~91 % av all loggvolym**.
+`[bulk-import] trigger=cron path=…`-rad, och tillsammans med `health-check`
+(var femte minut) stod de två för **~91 % av all loggvolym**.
 
 Det är inte en kostnadsfråga utan en **läsbarhetsfråga**, och huset har redan
 skrivit ned regeln två gånger: en logg som till nio tiondelar är brus är en
@@ -392,8 +392,27 @@ svep.
    tom lista. Tystnad i bara den ena hade varit en tvilling som glider isär.
 2. **Cadensen är oförändrad.** Att glesa ut cronen hade varit den uppenbara
    fixen och den fel: varje tick processar tio köposter, så fem minuter mellan
-   ticksen gör ett hundraposters jobb fem gånger långsammare. Bruset satt i
-   loggningen, inte i frekvensen.
+   ticksen gör ett hundraposters jobb fem gånger långsammare.
+
+⚠️ **HALVERAT, INTE BORTA — och den första versionen av det här avsnittet
+påstod fel.** Den skrev att fixen tar bort "en routing-rad i Vercel-loggen".
+Det gör den inte: routing-raden är VERCELS egen, en per anrop, och den går
+inte att tysta från applikationskod. Uppmätt i drift 2026-09-04, samma cron
+före och efter deployen:
+
+```
+före  (dpl_8FCXMC…, 11:16–11:18)   GET /api/cron/bulk-import-worker 200
+                                   [bulk-import] trigger=cron path=batch …
+efter (dpl_3jhXDR…, 11:35–11:40)   GET /api/cron/bulk-import-worker 200
+```
+
+En tom tugga kostar alltså **en loggrad i stället för två**. Vår rad är borta;
+Vercels står kvar och är 1 440 per dygn oavsett vad koden gör.
+
+Vill man åt den återstående raden finns bara två spakar, och ingen av dem är
+kod i det här repot: **glesa ut cronen** (avvisat ovan — det gör bulk-importer
+flera gånger långsammare) eller **filtrera i Vercels observability/log drain**,
+vilket är en inställning i dashboarden. Samma sak gäller `health-check`.
 
 ## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
 
@@ -691,6 +710,45 @@ gav fem poster mot ett för ett enskilt), läsningens sida är **100**, och
 `bulk/inventory-items/update` svarar `200` med ett individuellt utfall per rad
 på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 100`.
 
+#### ☠️ Och sida TVÅ av samma läsning gick aldrig att hämta (2026-09-13)
+
+Raden ovan mäter sidans STORLEK. Ingen mätte vad som händer när den inte
+räcker. `queryInventoryItemsByProductIds` skickade `filter` igen tillsammans
+med markören, och `inventory-items/query` avvisar det:
+
+```
+400 INVALID_CURSOR: "Sort or filter can not be specified together with cursor"
+```
+
+Uppmätt i båda riktningarna på skarpa Wix, SAMMA markör:
+
+| sida två skickad med | svar |
+|---|---|
+| `filter` + markör | **400 INVALID_CURSOR** |
+| bara markören | **200**, och fortsatte på RÄTT produkt |
+
+Att sida två fortsatte på rätt produkt är beviset att **markören bär frågan
+själv** — filtret ligger inuti den (base64:en innehåller ordagrant
+`productId` och id:t). Att skicka det igen är alltså inte bara onödigt, det
+är det som fäller anropet.
+
+⚠️ **Felet var i drift, inte teoretiskt.** Halterneck-linnet `7fce5f84` har
+29 färger × storlekar, alltså fler än 100 lagerrader. Synken loggade samma
+400 på VARJE körning varannan timme — den produktens lager gick aldrig att
+läsa, medan rutten svarade 200 och körningen såg frisk ut. Nionde gången
+samma familj.
+
+☠️ **Och testsviten var grön hela tiden.** Pagineringstestet kollar att
+markören FLYTTAS, inte att kroppen går att skicka — en grind som mäter fel
+sak. Det nya testet fäller när buggen återinförs, och bara det.
+
+☠️ **Formen är INTE gemensam för Wix — städa inte "samma fel" överallt.**
+`ecom/v1/orders/search` tar emot `filter` + `sort` + markör utan att klaga
+(uppmätt samma dag: sida två gav 200 och rätt nästa order). `fetchOrders`
+står därför orörd med flit. Två API-familjer, samma kroppsform, olika svar —
+precis som `getProductMedia` MÅSTE begära `MEDIA_ITEMS_INFO` medan
+produktpriset kommer med oombedt. **Mät per endpoint.**
+
 **Sex egenskaper som inte ska tas bort:**
 
 1. ☠️ **En mappning skrivs bara för rader Wix uttryckligen bekräftat.**
@@ -717,6 +775,26 @@ på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 10
    kostar fem sekunder på ett helt svep, och den är billigare än att mäta upp
    var den nya gränsen går.
 
+**Verifierat i drift 2026-09-04**, i den ordning som gör talen meningsfulla:
+
+| körning | granskade | lager | priser | fel | varv | tid |
+|---|---:|---:|---:|---:|---:|---:|
+| torrkörning FÖRE | 4 542 | 676 (skulle) | 0 | 0 | 2 | 2:52 |
+| skarpt lagersvep | 4 542 | **677** | — | **0** | 2 | 1:41 |
+| torrkörning EFTER | 4 542 | **0** | **0** | **0** | **1** | 1:34 |
+
+Sista raden är kvittot: efter ETT skarpt svep vill ingenting skrivas om. Jämför
+med samma katalog 2026-09-02, före batchningen:
+
+| | lager skrivna | fel |
+|---|---:|---:|
+| skarpt svep FÖRE pacing | 905 | **1 190** |
+| skarpt svep EFTER pacing | 1 110 | 1 |
+| **skarpt svep, batchat** | **677** | **0** |
+
+`utanLagerrader` är **0** — varenda mappning har lagerrader i Wix, alltså finns
+ingen föräldralös katalogdel som tyst bokfördes som synkad av den gamla vägen.
+
 ⚠️ **En ny mätning, ingen åtgärd: `lagerDrift`.** Läsningen ser numera butikens
 FAKTISKA saldo, och räknar hur många produkter där det skiljer sig från det
 mappningen tror att den skrev. Det är exakt samma frågeställning som
@@ -724,7 +802,14 @@ mappningen tror att den skrev. Det är exakt samma frågeställning som
 och tjugo rader. Lagret triggas fortfarande på mappningens tal, alltså har det
 samma teoretiska hål. Talet är medvetet bara **mätt**: att byta facit vore en
 beteendeändring med hela katalogen som blast-radie, samma dag som loopen byggs
-om. Mät först, som huset gjorde med priserna. Läs det i workflow-summeringen.
+om. Mät först, som huset gjorde med priserna.
+
+☠️ **Och mätningen är gjord: `lagerDrift` är 1 av 4 542** (2026-09-04, samma
+tal i tre körningar i rad). Lagret har alltså INTE det hål priserna hade — där
+var svaret tjugo rader. Att göra butiken till facit även för lagret är därmed
+inte akut, och den enda drivande raden rättas av nästa körning som rör den.
+Talet står i loggraden och i workflow-summeringen; går det upp är det ett
+besked, inte brus.
 
 ### Så körs den för hand
 
@@ -740,6 +825,91 @@ summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
 
 Svepet loopar markören som importen gör, men sparar den INTE i grenen: synken
 konvergerar utan sparad markör (punkt 4 ovan). `misslyckade > 0` fäller jobbet.
+
+### `prisLast`: en rad där synken räknar om men INTE skriver (2026-09-05)
+
+Synken tillämpar husets regel (`1,20 × landedCostSek`, charm99) på varje
+Aosom-rad var sjätte timme. Det är rätt för sortimentet i stort — men en rad kan
+ha ett pris som satts av något annat än kostnaden.
+
+Fallet som byggde låset: kontorsstolen `f13cd415` såldes som AliExpress-vara på
+**1 299 kr**. Leonards regel 2026-09-05 (*"alla ska peka om mot Aosom DE oavsett
+om de är billigare eller inte"*) mappade om den till `921-672V00BG`, och därmed
+gäller Aosom-regeln på raden: nästa synk hade skrivit **1 099 kr**. Sänkningen
+kom av att vi bytte LEVERANTÖR, inte av att marknaden rört sig — och kunderna
+betalar redan 1 299.
+
+Utan låset finns ingen väg dit. Skriver man priset för hand räknar nästa körning
+fram regelpriset igen, ser en skillnad mot butiken och skriver tillbaka. Det ser
+ut som om ändringen "inte tog".
+
+`prisLast: true` på mappningsraden. Sätts via `/api/admin/prislas` och
+workflowen **"Pris — lås eller lås upp ett pris"** (lägen `las` · `las-upp`) —
+samma nyckel-lösa upplägg som resten, alltså körbar från en telefon.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Låset rör BARA priset.** Lagret synkas som vanligt. Att sluta spegla
+   saldot hade betytt att vi säljer något vi inte har, och det är ett kundfel
+   medan ett oförändrat pris inte är det.
+2. ☠️ **Grinden ligger FÖRE uträkningen.** En rad vi ändå inte tänker skriva ska
+   inte kunna hamna i `varningar` för ett hopp som aldrig skulle blivit av. Ett
+   falsklarm som alltid fyrar lär mottagaren att sluta läsa — samma argument som
+   mot att varna vid 48 h på token-förnyelsen.
+3. ⚠️ **Låsta rader RÄKNAS, de hoppas inte tyst över.** `prisLasta` står i
+   loggraden, audit-raden, svaret och workflow-summeringen. Ett låst pris slutar
+   följa kostnaden: stiger Aosoms frakt äts marginalen tyst, så ett lås som
+   ingen ser är ett lås som glöms bort. Lås upp när skälet är borta.
+4. ☠️ **Rutten skapar ALDRIG en rad** (404 på saknad mappning) och **läser
+   tillbaka efter skrivningen** (500 om värdet inte sitter). Nionde gången samma
+   lärdom: ett svar utan fel är inget kvitto.
+5. ☠️ **`last` har ingen default** — ett utelämnat fält avvisas med 400. Samma
+   fälla som GitHubs tomma workflow-input, som publicerade utkast i tolv timmar;
+   låset finns just för att någon medvetet sagt att priset ska stå still, och
+   att tyst tolka tystnad som "lås upp" är fel riktning att fela åt.
+
+☠️ **Vid låsning stäms böckerna av mot butiken.** Mappningens `grossSek` är vad
+vi TROR att kunden ser; Wix är vad kunden faktiskt ser. Synken håller normalt de
+två i fas — och i exakt den sekund låset sätts slutar den göra det, så en
+skillnad som finns då blir PERMANENT. Samma förväxling som `jamforelsePris`
+byggdes för, i ett nytt hörn.
+
+Konkret på kontorsstolen: ommappningen till Aosom rör aldrig priset (Leonards
+beslut), så mappningen bar kvar AliExpress-tidens **879 kr** medan butiken tog
+**1 299**. Med ett lås ovanpå det hade lönsamhetsöversikten
+(`lib/analytics/profit.ts`) och marginalbanden för alltid räknat 879 mot en
+landad kostnad på 900,21 — alltså rapporterat en vara som säljs **med förlust**
+när den ger 30 % marginal. Det är en BOKFÖRINGSRÄTTELSE: kundens pris rörs inte,
+och `landedCostSek`/`costUsd` rörs inte heller.
+
+Fyra egenskaper i avstämningen:
+
+- **Bara vid LÅSNING.** Vid upplåsning tar synken över och rättar raden själv.
+- ☠️ **Tvetydigt butikspris skriver ingenting.** `tolkaProduktPris` svarar `null`
+  när varianterna har olika pris; att då falla tillbaka på mappningen hade varit
+  exakt buggen `utanWixPris` finns för att undvika.
+- ☠️ **En fallen Wix-läsning stoppar inte låset — men syns.** Låset är den
+  brådskande halvan; skälet går ut i svaret, audit-raden och workflow-loggen, så
+  en utebliven avstämning aldrig kan se ut som en gjord.
+- **Alla varianter rättas.** Priset är entydigt i butiken, alltså gäller det var
+  och en.
+
+⚠️ **Poleringens prisgrind känner till låset.** Utan det hade den fällt varje
+låst Aosom-rad med *"PRISGRINDEN FALLER — kostnaden har ändrats och priset i Wix
+är gammalt"*. Rätt RÅD (rör inte priset), fel SKÄL: priset är inte gammalt, det
+är valt — och ett rött jobb på ett medvetet beslut är samma falsklarm som
+`regelGäller` byggdes för att ta bort. `prisgrind` bär därför `prisLast`, och
+workflowen svarar `LÅST PRIS` och går grön. Resten av poleringen (text, bilder,
+SKU) är opåverkad.
+
+Verifierat i drift 2026-09-05, samma dag: torrkörning över hela katalogen gav
+`4 548 granskade, 1 prislåsta`, och kontorsstolen finns varken bland de
+planerade prisskrivningarna eller bland varningarna.
+
+Tjugotre tester, verifierade genom att återinföra buggarna en i taget: synk-
+grinden borta fäller fyra, defaulten tillbaka fäller två, 404-grinden borta
+fäller ett, återläsningen borta ett, en gissande avstämning ett, en tyst fallen
+Wix-läsning ett och en avstämning vid upplåsning ett — rätt test för rätt bugg.
 
 ### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
 
@@ -906,6 +1076,112 @@ sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
 fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
 låser det.
 
+#### ☠️ VARIANTEN HAR ETT EGET `visible` — och 31 sidor gick inte att köpa (2026-09-06)
+
+Regeln ovan gäller PRODUKTEN. Varje variant i `variantsInfo.variants[]` bär ett
+eget `visible`, och en variantsInfo-PATCH som inte bär det nollställer det. Samma
+fälla, en nivå ner — och den här riktningen är dyrare, för den syns inte i något
+utkast: produkten ligger kvar publicerad.
+
+Uppmätt på hela den publicerade katalogen (2 032 produkter, fyra slices, 100 %
+täckning): **31 sidor var publicerade men oköpbara.** Noll delvis dolda.
+
+```
+produkt   visible: true            → sidan ligger ute, i sitemapen, indexerad
+variant   visible: false           → butiken visar "Slutsåld"
+Wix-lager quantity: 197, IN_STOCK  → varan finns
+```
+
+Butiken behandlar en produkt utan en enda synlig variant som slutsåld: sidan
+renderade *"Varan är tillfälligt slut hos oss"* och JSON-LD `OutOfStock` medan
+lagret var fullt. Alla 31 var fåtöljer och madrasser ur poleringsrundor.
+
+⚠️ **Och det är INTE repots kod som tappar fältet — båda skrivarna är
+kontrollerade och gör rätt.** `createProduct` sätter `visible: v.visible ?? true`,
+och `updateV3VariantPrices` muterar varianterna från sin EGEN GET, så fältet
+följer med. Defekten sitter i poleringens SKU-steg, som skrivs **för hand från
+chatten**: mappningsradens SKU går via `/api/admin/mapping`, men Wix-variantens
+SKU har ingen egen rutt, så den PATCHas med ett handbyggt variantobjekt. Utelämnar
+man `visible` där defaultar Wix det till `false`.
+
+☠️ **Regeln för den som skriver `variantsInfo` för hand: bygg aldrig
+variantobjektet från grunden.** Läs produkten, ta variantobjektet som det står
+och ändra bara fältet du menar — precis som `updateV3VariantPrices` gör. Ett
+handbyggt objekt tappar tyst varje fält du inte råkade tänka på, och `visible`
+är det dyraste av dem.
+
+☠️ **Och produktens `inventory.availabilityStatus` sa `IN_STOCK` hela tiden.**
+Wix egen produktnivå vet ingenting om det här; frågar man den ser katalogen
+frisk ut. Det enda som avslöjar det är `variantsInfo.variants[].visible` —
+och det fältet finns **inte i sökprojektionen**, så en katalogskanning kräver
+en GET per produkt. 2 032 GETs ryms inte i ExecuteWixAPI:s 60 sekunder; kör i
+slices om ~500.
+
+⚠️ **Två mätfällor på vägen dit, båda värda att komma ihåg.** Butikens ISR gör
+att en enstaka hämtning kan servera en gammal rendering — måttet blev
+trovärdigt först när `age` var 11 sekunder och sidan FORTFARANDE sa
+`OutOfStock`. Och `brodtext`-svepet strippar taggar, så texten "Slutsåld" syns
+även när den ligger i dold markup; det som faktiskt skiljer är JSON-LD:ns
+`availability`.
+
+Lagningen är att skriva tillbaka `visible: true` på varianten med produktens
+`visible` medskickad explicit. Verifierat per rad: 0 → 1 synlig variant,
+produktens synlighet oförändrad, **pris och SKU orörda på alla 31**.
+
+#### ☠️ Och en FLERVARIANTSPRODUKT kräver att `options` följer med (2026-09-13)
+
+`updateV3VariantPrices` har fungerat i månader och föll ändå på 56 av 382
+produkter första gången den mötte AE-halvan:
+
+```
+428 MISSING_OPTIONS_ON_UPDATE_VARIANTS
+"Missing product options. Options must be provided for variants"
+```
+
+Alla 56 var flervariantsprodukter — bland dem halterneck-linnet med 29 färger.
+De enkelvarianta gick igenom.
+
+☠️ **Skälet att felet aldrig setts är husets genomgående asymmetri, och den
+gäller mer kod än den här funktionen.** `updateV3VariantPrices` hade bara två
+anropare, Aosom-synken och prisreparationen, och **en Aosom-rad ÄR en artikel
+med EN variant**. Funktionen var alltså aldrig prövad på det fall där den inte
+fungerar. Samma dag föll `jamforelsePris` på exakt samma sak åt andra hållet:
+den avvisar varje produkt med `variantCount > 1`, ett gratis bälte-och-hängslen
+för Aosom och fel för AE.
+
+**Regeln: kod som bara mötts av Aosom-halvan bär antaganden ingen sett.**
+AE-halvan har färg- och storleksvarianter; Aosom-halvan har det aldrig. Innan
+en befintlig funktion släpps på AE-rader: fråga vad den gör med fler än en
+variant, och mät det.
+
+☠️ **OCH OPTIONS MÅSTE STÅ I FÄLTMASKEN — min första fix var en no-op.** Den
+lade dem i KROPPEN men utelämnade dem ur masken, med motiveringen att Wix
+behöver options för att VALIDERA varianterna och att en skrivning kunde tappa
+det projektionen råkat utelämna. Mätningen var entydig: exakt samma produkter
+föll på exakt samma 428. **En fältmask-PATCH läser bara det som står i masken**
+— allt annat i kroppen ignoreras, så Wix såg dem aldrig. Resonemanget var
+rimligt och fel, och det som avgjorde var att felen var IDENTISKA, inte färre.
+
+✅ **Och farhågan är mätt bort, inte bortresonerad (2026-09-13).** Round-trippen
+prövades på en 75-variantsprodukt genom att skriva tillbaka EXAKT samma priser —
+samma medicin som `wix-inventory-probe`: en skrivning vars enda ändring är
+ingen ändring.
+
+| | före | efter |
+|---|---:|---:|
+| revision | 24 | **25** (skrivningen tog) |
+| optioner | 2 (Färg, Storlek) | 2 (Färg, Storlek) |
+| val med `linkedMedia` | 15 | **15** |
+| val med `altText` | 15 | **15** |
+| varianter / med SKU / synliga | 75 / 75 / 75 | **75 / 75 / 75** |
+
+Noll avvikelser. Samma produkt mättes en gång till efter en SKARP höjning
+(499 → 549): fortfarande noll avvikelser mot samma facit. Strukturen tas
+oförändrad ur produktens EGEN GET, som redan går med
+`?fields=VARIANT_OPTION_CHOICE_NAMES` — projektionen vars hela syfte är att
+bära valens namn. Det är samma round-trip-princip som `visible`, inte ett
+handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
+
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
@@ -969,6 +1245,92 @@ annat. Att para ihop dem kräver mått, produkttyp och bildjämförelse (så gjo
 de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle slå
 ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
 människa ändå läser varje produkt.
+
+#### ☠️ Men AE-listningen bär Aosoms artikelnummer i klartext (2026-09-06)
+
+Raden ovan säger att hopparningen kräver mått, produkttyp och bildjämförelse.
+Det stämmer för BILDEN och måtten — men det finns en exakt nyckel som ingen
+letat efter, och den ligger i AliExpress egen produktbeskrivning:
+
+```
+● material: pu (60% polyurethane, 40% base fabric), foam, mdf, metal
+● total measurements: 41x47x92 cm (wxdxh)
+● maximum load: 130 kg
+● reference: 83a-526v00rb          ← Aosoms artikelnummer
+```
+
+Uppmätt på `1005012777765014` (`ae_item_base_info_dto.detail`, via
+`debugRawProductGet`). Aosom skriver alltså sitt eget artikelnummer i den text
+de laddar upp till AliExpress. Går fältet att läsa på fler rader blir
+ommappningen ett EXAKT uppslag mot feeden i stället för en bildjämförelse —
+och `/api/admin/aosom-remap` tar redan emot paret (wix-id, artikelnummer).
+
+⚠️ **Det är EN mätning, inte en regel än.** Nästa steg är billigt och namnges
+här så det inte behöver återupptäckas: `freight-check`-workflowen med
+`raw=true` tar ett AE-produkt-id och dumpar hela `ds.product.get`; sök
+`reference:` i svaret. Håller mönstret över ett tiotal Aosom-ES-listningar är
+det värt en grep-baserad extraktion. Håller det inte, är fältet en
+bekvämlighet och inte en nyckel — och en ommappning som gissar är precis vad
+`MIN_REMAP_MARGIN_PCT` och de sex hindren finns för att stoppa.
+
+☠️ **Numret får ALDRIG följa med in i produkttexten.** Det är samma sträng
+dealproffsen.se publicerar som `sku`/`mpn` — se poleringsavsnittet. Det hör
+hemma på `supplierProductId` och ingen annanstans.
+
+⚠️ **Och en träff i beskrivningen är inte en träff i feeden.** Barstolen
+`83A-526V00RB` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
+har **noll träffar i B2B-feedens 6 067 rader** — varken den färgen eller någon
+annan `83A-526`. Aosoms egen guide säger att artiklar med lågt saldo plockas
+bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
+sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
+ggr/dygn) innan slutsatsen dras.
+
+#### ☠️ Och en TREDJE klass: Aosoms EGEN feed bär samma vara två gånger (2026-09-12)
+
+Raden ovan namnger EN blind fläck — de ~586 AE-inköpta Aosom-varorna. Det finns
+två. Aosoms feed har mer än en artikelrad för samma fysiska produkt, och
+dubblettspärren nycklar på `supplierProductId`: två artikelnummer är två nycklar,
+alltså importeras båda. Spärren gör precis vad den ska och ser ändå ingenting.
+
+Uppmätt på hörnsoffan `69c5e15c` (publicerad) mot utkastet `34341c4f`:
+
+| | behålls | dubbletten |
+|---|---:|---:|
+| leverantör | **aosom** | **aosom** |
+| pris | 8 499 kr | 8 769 kr |
+| fraktandel | 0,424 | 0,49 |
+| saldo | 101 | 12 |
+
+Att kostnaderna SKILJER är vad som gör klassen svår: två feedrader med olika
+grossistpris och olika viktbaserad SE-frakt ser i varje kostnadsjämförelse ut som
+två olika varor. Måtten är identiska (242 cm, 198 cm sittbredd, 400 kg), men
+måttjämförelsen är redan uppmätt otillräcklig som ensam grund.
+
+☠️ **Facit är BILDERNA, och de är byte-identiska.** Aosom levererar samma
+fotofiler för samma artikel, så en md5 räcker — ingen bildlikhet, ingen gissning:
+
+```
+huvudbild    385 707 byte   435459f872fa0158   BÅDA
+miljöbild  1 068 103 byte   c527549810410717   BÅDA
+```
+
+Två av två delade positioner identiska på bitnivå. Detaljbilderna skiljer (olika
+positioner hämtades hem), men konstruktionen är densamma på varje foto.
+
+⚠️ **`aosom-remap` KAN INTE laga den här klassen, och det är inte ett fel i den.**
+Hindret `redan_aosom` fäller en rad som redan är Aosom — workflowen finns för
+AE→Aosom. Här finns ingen AE-rad att peka om: ommappningen är en no-op och det
+enda som gäller är pensioneringen (`draftStatus: "rejected"`,
+`needsAiPolish: false`). Husets regel *"äkta dubbletter mappas om till Aosom"*
+antar tyst att sidan vi behåller är en AE-rad. Ibland är den inte det.
+
+⚠️ **Klassens STORLEK är omätt — en rad är inte en mätning.** Den billiga vägen
+är namngiven här så den inte behöver återupptäckas: Wix filbeskrivare bär ett
+`hash`-fält (`lib/wix/media-audit.ts` räknar redan byte-identiska filer med det),
+så en gruppering av Aosom-produkter på huvudbildens hash kräver NOLL
+bildnedladdningar. Rapporten som finns svarar på "vad kostar dubbletterna i
+lagring", inte på "vilka två produkter är samma vara" — det är en ny gruppering
+över samma data, inte ett nytt svep.
 
 ### Äkta dubbletter mappas om till Aosom (Leonards regel 2026-09-03)
 
@@ -1259,6 +1621,51 @@ flit: vet vi inte vad produkten har kan en påfyllning ge samma bild två gånge
 på en kundsida, och en dubblett är värre än en extra uppladdning. `fullOmladdning`
 i svaret räknar dem, och talet ska sjunka mot noll.
 
+#### ☠️ Städningen raderade kundernas recensionsbilder (2026-09-04)
+
+Leonards rapport: *"mina produkt recensioner hade bilder förut men inte längre"*.
+Uppmätt direkt: **68 av 68 recensionsbilder över fyra produkter svarar 403** —
+alla raderade. Datan är intakt, adresserna står kvar i recensionsraderna; det är
+filerna som är borta.
+
+Mekanismen är städningens egen referenslista. `listaAnvanda` går igenom
+`stores/v3/products/search` och samlar **bara produktmedia** — men en
+recensionsbild sitter inte på en produkt, den sitter på en RECENSIONSRAD. Och
+eftersom vår kod importerade den från `aliexpress-media.com` bär den en
+`sourceUrl` och passerar därmed "vår kod skapade den"-filtret. Föräldralös
+enligt planen, `permanent: true`, varje natt sedan cronen schemalades.
+
+Samma dygn, samma orsak, annan skada: fyra **bloggomslag** dog likadant. De
+plockas ur produktbilder (`blog-image-picker.mjs`) och bor i markdown i
+butiksrepot — ännu mer osynliga för listan. De är självhostade i `/public` nu.
+
+**Fixen är att referenslistan bär recensionsbilderna** (`listaRecensionsbilder`
+i deps, både `imageUrl` och `imageUrls`). Två saker att inte röra:
+
+1. ☠️ **Depen är OBLIGATORISK, inte valfri.** En valfri dep kan glömmas av
+   nästa anropare, och då börjar raderingen om. Testhjälparen fick följa med
+   i stället för att typen mjukades upp.
+2. ☠️ **Ett LÄSFEL mot recensionslagret FÄLLER körningen.** Fortsätter den med
+   tom lista ser varenda recensionsbild föräldralös ut och raderas permanent —
+   exakt skadan fixen finns för. Samma form som `MIN_FEED_RADER`: när ett
+   läsfel och ett tomt svar ser likadana ut, och det ena utfallet är
+   oåterkalleligt, är avbrott enda säkra svaret. En katalog som HAR noll
+   recensionsbilder går däremot igenom — det är felet vi vägrar tolka, inte
+   tomheten.
+
+**Regeln, tredje gången huset skriver ned den:** en referenslista är klar först
+när ALLA läsare finns med i den. Migreringen lärde sig det om läsare som blev
+TOMMA (`/api/tracking-events`) och om en SKRIVARE i ett annat repo
+(`/api/omdome`). Det här är samma sak en tredje gång, och den dyraste: en
+läsare som bor i en annan tabell syns inte i koden intill, och priset var
+kundernas egna foton.
+
+⚠️ **Bilderna är inte återställda av fixen.** Den stoppar blödningen. Källan
+finns hos AliExpress — recensionerna går att hämta om (`fetchAeReviews`, $0) —
+men `repairImages` letar bara efter rader som FORTFARANDE bär en
+leverantörs-URL, och de här bär en död wixstatic-adress. Återställning är ett
+eget jobb.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
@@ -1357,6 +1764,37 @@ importen; den är ett mekaniskt fel med ett mekaniskt svar och får inte lämnas
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
 kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
 
+#### ☠️ TITTA PÅ BILDERNA FÖRE TEXTEN, inte efter (2026-09-07)
+
+Arbetsgången har varit: läs den tyska källtexten, skriv den svenska, och ta
+sedan fram kontaktarket för att skriva alt-texter. Det är fel ordning, och
+runda J1 visade varför.
+
+Källan för golvlampan `13a53d52` säger *"Doppellagiger Lampenschirm"* och
+listar **två skärmmått** — `Lampenschirmgröße: Ø24 x 13H cm` och
+`Papierseil-Lampenschirm: Ø33 x 16H cm`. Det läses rimligen som två skärmar,
+och texten beskrev följaktligen "en liten läsarm på Ø24 cm" och "en stor
+skärm på Ø33 cm".
+
+Produktbilden visar **en enda skärm**: en dubbellagrad drumskärm i pappersrep
+som hänger från en böjd stång. Det finns ingen arm och ingen andra skärm.
+Ø24-måttet är det INRE lagret, osynligt utifrån.
+
+⚠️ **Ingen grind kunde ha fångat det.** Båda talen står i källan, så
+siffergrinden var ren. Svenskan var korrekt, så mönstergrindarna var rena.
+Felet var en riktig utsaga om en produkt som inte finns — den sortens fel som
+bara ett öga på fotot ser.
+
+**Regeln: kontaktarket byggs FÖRE brödtexten.** Det kostar ingenting extra —
+bilderna ska ändå hämtas för alt-texterna — och det flyttar granskningen till
+innan felet är skrivet i stället för efter att det står i Wix. Titta särskilt
+på det källan beskriver med ord i stället för mått: konstruktion, antal delar,
+hur något sitter fast.
+
+Samma runda gav ett andra, mildare exempel: `d2dfd1fa` beskrevs som "tre
+hyllplan runt stången" när lampan i själva verket är en öppen fyrkantsstomme
+utan stång. Även det syns direkt i bilden och i ingen siffra.
+
 #### ☠️ Skriv texten i en FIL först — mätt 9 fel mot 0 (2026-09-04)
 
 Batch 64 skrev åtta produkttexter på två sätt, och skillnaden är inte en
@@ -1387,6 +1825,594 @@ stavfel: sök det i ALLA batchens texter innan du skriver något.
 ekas tillbaka ordagrant, så en felstavning bekräftas som "sparad". Det som
 faktiskt fångar den är en grind före skrivningen — eller ögon efter, på en
 återläsning. Nionde gången samma familj: **ett svar utan fel är inget kvitto.**
+
+#### ☠️ Och filen är inte det som skickas — `fontagen-weight` (2026-09-06)
+
+Regeln ovan säger *skriv i en fil först*. Den räcker inte, för filen skickas
+inte: den TRANSKRIBERAS in i API-anropets kropp, och det är i den kopieringen
+felet uppstår. Uppmätt samma dag, på en rättelse av tre klösträd där källfilen
+var invändningsfri:
+
+```
+i filen:   <span style="font-weight: 700">Finns det något att klösa på?</span>
+i anropet: <span style="fontagen-weight: 700">Finns det något att klösa på?</span>
+```
+
+☠️ **Wix STRÖP spannet tyst i stället för att avvisa det.** Ett okänt
+CSS-egenskapsnamn ger inget fel — `bulkActionMetadata` svarade
+`3 totalSuccesses, 0 totalFailures`, och den lagrade texten blev
+`<p>Finns det något att klösa på? Ja, …</p>` med fetstilen borta. Ett ogiltigt
+attribut är alltså inte ett fel utan en tomt bortstädad tagg.
+
+Det som fångade det var **återläsningen diffad mot filen** — inte skrivsvaret,
+inte ögonen. Och det gäller starkare sedan kodvägen föll: med `ExecuteWixAPI`
+kunde texten läsas ur en fil server-side, med `CallWixSiteAPI` går varje byte
+genom chatten en gång till.
+
+**Regeln: filen är källan, men bara en diff mot den lagrade texten bevisar att
+källan kom fram.** Tionde gången samma familj.
+
+✅ **Och sedan 2026-09-13 fångas felet FÖRE skrivningen i stället för efter.**
+Regeln ovan upptäcker transkriberingsfelet i återläsningen — alltså efter att
+texten redan ligger hos kunden. Det går att stoppa tidigare, och det kostar en
+rad: räkna kontrollsumman på den sträng som ligger i API-anropet, **i anropet
+självt**, mot filens, och avbryt HELA skrivningen vid avvikelse.
+
+```js
+const avvik = plan.filter(p => SUMMA(p.html) !== p.raa);
+if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik };
+```
+
+☠️ **Spärren måste ligga i SAMMA anrop som skrivningen.** En kontroll i ett
+eget, tidigare anrop bevisar bara att just DEN kopieringen var rätt — nästa
+anrop transkriberar om texten, och det är där felet uppstår. Den ska heller
+inte bara varna: `fontagen-weight` visar att en delvis skriven batch är det
+dyra utfallet, för Wix strök spannet tyst och rapporterade framgång.
+
+Uppmätt i runda M3: åtta texter, åtta träffar, noll avbrott — och
+återläsningen mot facit gav LIKA på alla åtta. Återläsningen behövs
+fortfarande (den är det som fångar Wix EGNA omskrivningar); den här spärren
+tar bort den andra halvan, den som är mitt eget fel.
+
+☠️ **Och i runda M4 FÄLLDE den — på facit, inte på texten (2026-09-13).**
+Första skrivningen av `3523deaa` avbröts på **ett tecken av 3 515**:
+
+```
+{"AVBRUTET":"transkriberingsfel — ingenting skrivet",
+ "fick":833814621,"vantat":848253086,"tecken":3514}
+```
+
+Orsaken är filens **avslutande radbrytning**. Facit räknades på filen, men
+det som skickas är filen UTAN den: en template-literal som slutar med `</p>`
+bär ingen sista `\n`.
+
+⚠️ Det är SAMMA byte som `wixnorm.py` punkt 5 redan dokumenterar — men på
+LÄSNINGENS sida (Wix strippar den vid sparandet). Den gällde alltså åt båda
+hållen hela tiden, och bara den ena halvan var nedskriven. **Räkna facit på
+strängen SOM DEN SKICKAS** (`rstrip("\n")`), inte på filen.
+
+☠️ Och avvikelsen är just därför den farligaste sorten: en byte ser ut som en
+struntsak, är omöjlig att skilja från ett äkta transkriberingsfel på ett
+tecken, och den som sett den tillräckligt många gånger slutar titta efter
+vilket det var. Spärren gjorde rätt som fällde — det som saknades var ett
+facit som mätte samma sträng.
+
+##### ☠️ Och `seoData` glömdes bort av regeln — fem av åtta drev isär (2026-09-07)
+
+Regeln ovan säger *skriv i en fil först*, och runda H3 följde den för
+BRÖDTEXTEN. SEO-taggarna skrevs i stället av för hand in i API-anropet, från
+minnet av `seo.tsv` i stället för ur filen. Utfallet:
+
+| hur SEO-värdena kom in i anropet | produkter | drev isär |
+|---|---:|---:|
+| Lästa ur `seo.tsv` med ett skript | 3 | **0** |
+| Avskrivna för hand i anropet | 5 | **5** |
+
+Fem av fem. Det är inte slarv i enstaka fall — en avskrift ÄR mekanismen.
+Ingen av de fem hade heller passerat `gate-seo.py`, som grindar FILEN: en
+titel som aldrig stod i filen kan inte grindas av den. De var som tur var
+korrekta när de mättes i efterhand, men det var tur och inte en spärr.
+
+`livegrind.py`:s SEO-svep fångade alla tio avvikelserna. **Orddiffen på
+brödtexten var 0 på alla åtta** — alltså exakt den asymmetri regeln förutsäger:
+det som gick via fil kom fram, det som skrevs av gjorde det inte.
+
+**Regeln gäller varje fält som når kunden, inte bara brödtexten.** `seo.tsv`
+och `namn.tsv` är källor på samma sätt som `<kort>.html` — bygg nyttolasten ur
+dem med ett skript.
+
+##### ☠️ `variantsInfo.variants[].sku` ligger på TOPPNIVÅN — en skrivning under `physicalProperties` slukas tyst
+
+Uppmätt 2026-09-07 på alla åtta produkterna i runda H3. Variantobjektet har
+BÅDE `sku` och `physicalProperties`, och SKU:n bor i det första:
+
+```
+variantNycklar: ["id","visible","sku","choices","price","physicalProperties","inventoryStatus"]
+variant:        {"id":"47c9772b…","visible":true,"sku":"FP-laufrad-rutscher",
+                 "physicalProperties":{}}
+```
+
+En PATCH som lägger `sku` under `physicalProperties` svarar **200 utan fel** och
+ändrar ingenting: fältet försvinner, och `physicalProperties` står kvar som
+`{}`. Åtta produkter publicerades med sin gamla tyska SKU kvar, och svaret såg
+identiskt ut mot en lyckad skrivning.
+
+Tionde gången samma familj — och det som fångade det var återläsningen som
+jämför mot det FÖRVÄNTADE värdet. En återläsning som bara kollar att fältet
+finns hade sett den gamla SKU:n och sagt ja.
+
+##### ☠️ `variantsInfo` finns ALDRIG i sökprojektionen — SKU-kollen kan passera tomt
+
+Uppmätt 2026-09-07, `stores/v3/products/search` utan `fields`, på fyra
+sidstorlekar och två olika filter:
+
+| sidstorlek | träffar | med `variantsInfo` | med `actualPriceRange` |
+|---|--:|--:|--:|
+| 5 | 5 | **0** | 5 |
+| 20 | 20 | **0** | 20 |
+| 50 | 20 | **0** | 20 |
+| 100 | 20 | **0** | 20 |
+
+Noll av tjugo, vid varje sidstorlek, och samma sak för ett annat filter.
+`variantsInfo` saknas HELT ur svaret — inte tomt, utan frånvarande (`nycklar:
+28`, `harVariantsInfo: false`). En `GET /stores/v3/products/{id}` bär det.
+
+☠️ **Och det gjorde SKU-kollisionskollen till en no-op.** Mönstret
+
+```js
+for (const p of sokträffar) for (const v of p.variantsInfo?.variants || []) …
+```
+
+itererar alltid en TOM lista, så `upptagna` blir `{}`, `krock` blir `[]` och
+kollen svarar "inga krockar" utan att ha jämfört någonting. Den kördes tre
+gånger på en dag och kunde inte falla en enda gång. Elfte gången samma familj:
+**ett svar utan fel är inget kvitto** — och en kontroll som inte KAN fälla är
+värre än ingen, för den räknas som gjord.
+
+Två regler följer:
+
+1. **Läs priset ur `actualPriceRange.minValue`**, aldrig ur
+   `variantsInfo.variants[].price`, när källan är en sökning. Det första
+   fältet finns i 100 % av svaren, det andra i 0 %.
+2. ☠️ **En koll som bygger på ett fält måste AVBRYTA när fältet saknas**, inte
+   rapportera noll fynd. Skillnaden mellan "inga krockar" och "kunde inte
+   jämföra" är hela skillnaden mellan en grind och en vana.
+
+⚠️ **Lagerposten bär inte heller SKU.** `inventory-items/query` returnerar
+`id, revision, createdDate, updatedDate, variantId, locationId, productId,
+quantity, trackQuantity, availabilityStatus, preorderInfo, product` — inget
+`sku`. Det finns alltså INGEN bulkväg till variant-SKU:erna, och en
+katalogomfattande dubblettrevision är 5 527 GET-anrop. Det är samma slutsats
+som redan står som en öppen punkt; nu är den mätt i stället för antagen.
+
+##### ☠️ Och `plainDescription` saknas i PRODUKTENS standardprojektion (2026-09-13)
+
+Raden ovan gäller sökningen. Samma fälla på en enskild `GET`, och den här
+gången på det fält hela poleringen handlar om. Uppmätt på en nyss skriven
+produkt, samma id i båda anropen:
+
+```
+GET /stores/v3/products/{id}                           nycklar: 29, plainDescription SAKNAS
+                                                       (typeof undefined — inte tom sträng)
+GET /stores/v3/products/{id}?fields=PLAIN_DESCRIPTION   3 434 tecken, rätt svensk text
+```
+
+☠️ **Och den vanliga defensiva raden gör det värre.** `p.plainDescription || ""`
+förvandlar ett SAKNAT fält till noll tecken — alltså ett svar som i loggen ser
+ut som ett bevis på att skrivningen föll. Åtta produkter rapporterades som
+oskrivna av en återläsning som aldrig hade bett om fältet.
+
+Det är EN NIVÅ VÄRRE än släpet i avsnittet ovan: släpet är icke-deterministiskt
+och går över, det här utfallet är stabilt och reproducerbart, så en omskrivning
+på den signalen hade gjorts med full övertygelse — och skrivit över en text som
+redan stämde.
+
+**Regeln: en återläsning som rapporterar NOLL måste först bevisa att fältet
+fanns i projektionen.** Tre fält krävs på den här rutten och inget är med som
+standard:
+
+```
+?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO
+```
+
+⚠️ Och `directCategoriesInfo` bär bara `id` i den projektionen, inte `name`. En
+kontroll som läser `c.name` får `null` på varenda rad och kan alltså aldrig
+fälla — samma klass som SKU-kollen som itererade en tom lista.
+
+⚠️ **Kategoriräkningen är dessutom alltid +1.** Wix lägger själv till
+`All Products` (`05e96cd6…`) och använder den som `mainCategoryId`. Ett facit
+som räknar bara de kopplade kategorierna blir rött vid varje körning.
+
+##### ⚠️ Kategoriläsningen är eventuellt konsistent — bulk-svaret är kvittot
+
+`bulk/categories/{id}/add-items` följt av en omedelbar
+`GET …?fields=DIRECT_CATEGORIES_INFO` rapporterade 7 av 8 kopplade. Den
+åttonde var redan kopplad: nästa anrop svarade `ALREADY_EXISTS` på båda
+kategorierna, och en läsning en stund senare visade alla tre.
+
+Läsprojektionen släpar alltså efter skrivningen. **Facit är bulk-svarets
+`itemMetadata`/`bulkActionMetadata` per rad** — samma form som lagersynkens
+`tolkaBulkUtfall` redan bygger på. En snabb återläsning kan UNDERrapportera,
+och en omkörning på den signalen är ofarlig men vilseledande.
+
+##### ☠️ Och PRODUKTläsningen släpar likadant — fast åt det DYRA hållet (2026-09-13)
+
+Raden ovan gäller kategorier, där en efterläsning som underrapporterar bara
+leder till en ofarlig omkörning. Samma sak mätt på PRODUKTEN i runda M2, och
+där kostar felriktningen mer.
+
+Åtta produkter skrevs i en loop som gjorde PATCH och sedan en `GET` i samma
+anrop. Två av dem — `321bdedf` och `80e1a550` — läste tillbaka som om
+INGENTING hade skrivits:
+
+```
+efter PATCH, samma anrop   plainDescription 2 530 tecken, summa 834388551
+                           (= exakt KÄLLANS kontrollsumma, alltså tyskan)
+                           slug: lebkuchenmann-…   visible: false   5 seo-taggar
+en stund senare            revision 2 → 4
+                           plainDescription 3 962 tecken, summa 881571526
+                           slug: uppblasbar-pepparkaksgubbe-…   visible: true
+```
+
+Skrivningen hade tagit hela tiden. Det var LÄSNINGEN som ljög, och den ljög
+trovärdigt: kontrollsumman stämde exakt mot källan, alltså såg svaret ut som
+ett välgrundat "din text kom aldrig fram".
+
+☠️ **Det farliga är vad man lockas göra.** Ett falskt *"ingenting skrevs"*
+inbjuder till en omskrivning av något som redan stämmer — med en revision som
+hunnit bli inaktuell, eller ovanpå en skrivning man inte visste fanns. Till
+skillnad från kategorifallet finns här inget bulk-svar att falla tillbaka på.
+
+**Regeln blir tre led, och det sista är det som gäller:**
+
+1. PATCH-svaret är ingen återläsning — dess projektion utelämnar
+   `plainDescription` och `media.itemsInfo`, så en helt lyckad skrivning
+   rapporterar `0 tecken, 0 bilder`.
+2. En återläsning i SAMMA anrop är inte heller ett kvitto.
+3. Det som räknas är en **separat läsning en stund senare**, mot ett facit
+   räknat ur filen.
+
+⚠️ Och innan du kallar en skrivning misslyckad: läs om. Fem av åtta produkter
+i samma loop läste tillbaka korrekt direkt — släpet är inte deterministiskt,
+så ett enstaka rött utfall är en anledning att titta igen, inte att skriva om.
+
+##### ☠️ Variant-SKU:n tappas TYST i en kombinerad PATCH — skriv den SIST och ENSAM
+
+Uppmätt i runda M2 på fyra produkter. En PATCH med `name` + `slug` +
+`plainDescription` + `seoData` + `visible` + `variantsInfo`, följd av en
+media-PATCH med `fieldMask: ["media"]`, skrev allt UTOM variantens `sku` — på
+**tre av fyra**.
+
+```
+skickat   variantsInfo.variants[0].sku = "FP-tomte-240-klappsack"
+lagrat    variantsInfo.variants[0].sku = "FP-weihnachtsmann-2-40-m"
+svar      200, inget fel, inget bulkActionMetadata att läsa
+```
+
+Den fjärde fick sin SKU bara för att den råkade skrivas i ett eget, senare
+anrop under felsökningen. Skriven ensam EFTER mediaskrivningen tog den på 8/8.
+
+**Ordningen är alltså inte valfri:** text och identitet först, media sedan,
+`variantsInfo` i ett EGET sista anrop — och verifierad i en separat läsning
+enligt regeln ovan.
+
+Besläktad med `variantsInfo.variants[].media`, som inte går att sätta efter
+skapandet och strippas tyst av bulk-skrivningar. Mönstret är detsamma:
+**`variantsInfo` tål inte att samåka med andra fält**, och den tiger när den
+inte tas emot.
+
+#### ☠️ Filgrinden täcker bara halva vägen — grinda den PUBLICERADE texten
+
+Raden ovan sa "ögon efter". Ögon räcker inte: batch 65:s två fel stod kvar i
+tre rundor, och det ena återinförde jag identiskt i mitt eget rättningsförsök.
+Grinden är byggd sedan 2026-09-04 och heter **`tools/polish-gates/livegrind.py`**.
+
+Den hämtar de publicerade sidorna och gör tre saker:
+
+1. **Orddiff mot källfilen.** Det är den som biter. Vilket transkriberingsfel
+   som helst blir en rad — inte bara de mönster någon råkat tänka på.
+2. **Homoglyfsvep** på live-texten (kyrilliskt/grekiskt).
+3. **Sid- och alt-svep**: husmärke, artikelnummer, fraktland, tyska rester.
+
+☠️ **ALT-TEXTERNA MÅSTE SVEPAS SEPARAT.** Ett sidsvep som strippar taggar ser
+inte in i `alt=""` — och det är precis där de tyska resterna sitter kvar efter
+en polering som bara rört beskrivningen. Batch 66 lämnade åtta produkter med
+`alt="Kaninchenstall aus Holz Hasenstall mit Rädern Klappdach…"` efter en
+felfri textpolering. Beskrivningen var ren; bilderna skrek tyska.
+
+⚠️ **Butiken skriver om markupen med flit** — beskrivningen delas i flikar
+(`pdp-flikar` / `details` / `summary`) vid `<h2>Tekniska specifikationer</h2>`.
+En exakt sträng­jämförelse mot källfilen faller därför alltid. Jämför BRÖDTEXT.
+
+⚠️ **Vänta ut butikens ISR-cache.** Sidorna är prerenderade
+(`x-nextjs-stale-time: 300`). En hämtning direkt efter skrivningen serverar den
+GAMLA sidan, och den ser ut precis som en fungerande ny — samma fälla som
+recensionsverifieringen gick i. Första träffen efter fönstret triggar en
+bakgrundsrendering; NÄSTA hämtning får den färska sidan. `?cb=` hjälper inte.
+
+Verifierad genom att återinföra batch 65:s exakta fel — ett kyrilliskt `т`
+(U+0442) i "granträ" — i en av åtta hämtade sidor: grinden fäller på rätt
+produkt, och bara den, med både orddiffen och homoglyfsvepet.
+
+**Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
+
+#### ☠️ Katalogsvepet: fem fel, och fyra av dem var osynliga (2026-09-07)
+
+Slutkontrollen av flikreparationen ställde ALLA runbook-krav mot hela den
+publicerade katalogen i stället för mot de trettio sidor den gällde. Den
+hittade fem fel, och bara ett av dem hade någon märkt av sig självt.
+
+| fel | omfattning | hur det syntes |
+| :-- | --: | :-- |
+| Spec-tabellen under fel rubrik → renderas INLINE | **128 sidor** | inte alls |
+| `Frågor och svar` i stället för `Vanliga frågor` | **56 sidor** | inte alls |
+| Leverantörens artikelnummer i kundtexten | 2 sidor | inte alls |
+| Tyskt `klappbar` där svenskan är `fällbar` | 4 sidor | inte alls |
+| Tyska SEO-titlar | 5 sidor | inte alls |
+
+☠️ **De 128 är den dyraste, och runbooken förutsade den exakt:** "det ser inte
+trasigt ut, bara som en rubrik till". Sidorna är välskrivna svenska sidor ur
+rundorna 19–33 — felet var behållaren, inte texten. Rubrikerna de använde:
+`Måtten` (59), `Mått och material` (54), `Mått och vad som ingår`,
+`Mått och utrustning`, `Mått och funktioner`.
+
+⚠️ **`klappbar` är tyska**, och det tog sig ända in i två PRODUKTNAMN. Svenskan
+är `fällbar`. Samma familj som `Kippskydd` och den danska `et plant gulv`: ett
+ord som ser svenskt ut och därför passerar varje grind som letar efter tyska
+meningar. Slugen lämnades orörd — en ändrad slug bryter varje befintlig länk.
+
+⚠️ **Och en femtaggars-SEO gömde det sista.** Två av sidorna bar importens FEM
+seoData-taggar, inte husets två, och `klappbar` levde kvar i `og:title` sedan
+titeln rättats. Regeln "TVÅ taggar, inte fem" är alltså inte kosmetik: en tredje
+tagg är ett gömställe. 598 publicerade produkter bär fortfarande fler än två —
+inga med tyska (mätt över alla fem taggtyperna), men formen är avvikande.
+
+**Regeln: en riktad kontroll hittar det den letar efter. Kör den breda ändå.**
+De fyra osynliga felen hade ingen anledning att dyka upp i någon av de
+mätningar de faktiskt hörde hemma i.
+
+#### ☠️ En backfill som rapporterar NOLL kan ha mätt fel sak (2026-09-07)
+
+SEO-backfillen 2026-09-06 tog 49 tyska titlar till 0 över hela katalogen.
+Talet stämde — och fem tyska titlar levde ändå kvar, publicerade, i en månad.
+
+Klassificeraren krävde ett tyskt **funktionsord** (`und`, `mit`, `für`, `der`,
+`die`, `das`). De fem har inget:
+
+```
+Schlafsessel Relaxsessel Gästebett. abnehmbarer Bezug
+Polstersessel, Schaumstoff-Füllung, Kautschukholz
+Polstersessel im Skandi-Design, Samtoptik, Massivholz
+```
+
+Rent tyska titlar, byggda enbart av substantiv och sammansättningar. Anteckningen
+sa själv att talet var ett **GOLV** — och just därför var "0" inte samma sak som
+"inga". Ett golv som når noll är fortfarande ett golv.
+
+☠️ **Regeln: en nolla från en klassificerare mäter klassificeraren, inte
+verkligheten.** Ett svar utan fynd är inget kvitto, tolfte gången — och den här
+gången var det inte ens ett fel i koden, bara ett underlag som var smalare än
+frågan. Samma familj som livegrinds sextonordslista (avsnittet ovan): grinden
+var påslagen, dokumenterad, och kunde inte se.
+
+Bredare klassificerare (tyska substantiv och sammansättningar, inte bara
+funktionsord) över hela den publicerade katalogen 2026-09-07: **2 244 produkter,
+0 utan SEO-titel, 5 tyska — samma fem.** Efter lagningen 0.
+
+⚠️ Och de fem hittades inte av en SEO-mätning. De föll ut ur en helt annan
+kontroll: slutverifieringen av flikreparationen ställde ALLA runbook-kraven mot
+de trettio sidorna, inte bara det den var ute efter. En bred slutkontroll hittar
+det en riktad aldrig letar efter.
+
+#### ☠️ Och en fjärde: checklistan som ingen mätte (2026-09-06)
+
+Runbookens Klart-kriterium har punkterna. Det som saknades var en KONTROLL av
+att de gjorts. Uppmätt över 57 publicerade sidor ur rundorna A–F1, noll
+hämtningsfel:
+
+| krav som stod i Klart-kriteriet | föll på |
+|---|--:|
+| Kategori kopplad (brödsmulan ≠ *Hem / Butik / produkt*) | **41 av 57** |
+| Fliken `Användning och skötsel` (obligatorisk sedan 2026-08-30) | **41 av 57** |
+
+Båda syns i den RENDERADE sidan, och båda är nu maskinellt grindade i
+`livegrind.py`. Verifierad åt båda hållen: den fäller på alla åtta F1-sidor och
+går REN på referenssidor ur andra rundor, som klarar kraven.
+
+✅ **Alla 41 lagade samma dag: 57 av 57 klarar nu båda kraven.** Kategorin är
+`Husdjur` + löv för klösträden och `Hem & Inredning` utan löv för sittmöblerna —
+trädet har inget sittmöbel-löv, och runbooken säger att toppkategorin räcker då.
+Skötseltexten är skriven per materialgrupp och grindad före varje skrivning
+(`gate-skotsel.py`): manchester borstas i luggens riktning, teddyfleece dammsugs
+med lågt sug, gummiträ torkas torrt, snurrfoten rensas från hår, och golvsoffan
+har inga skruvar att efterdra. En mall hade varit snabbare och sagt fel om åtta
+av produkterna.
+
+⚠️ **Och ISR-fällan slog till en gång till, i mätningen av lagningen.** Ett svep
+med tre pass — varm träff, 310 s, varm träff, 90 s, mät — rapporterade två sidor
+som fortfarande trasiga. Wix hade dem rätt, och en omhämtning gav rätt svar
+direkt. Svepet läser 57 sidor sekventiellt, så de som lästes tidigt hann inte få
+sin omrendering klar. **En sida i taget är facit; ett svep är ett stickprov med
+tidsberoende.** Läs age, och läs om de som faller innan du kallar dem trasiga.
+
+☠️ **Lärdomen är inte "läs checklistan noggrannare".** Den lästes — punkterna
+citerades till och med i rundornas README-filer. En checklista som bara hjälper
+den som redan kommer ihåg punkten är ingen spärr, det är en påminnelse. Samma
+klass som `SHIP_AXIS_RE` och `EU_TULL_CODES`: **en regel utan grind glider.**
+
+⚠️ Och en regel till som gäller den som skriver flikarna: strängen måste stämma
+ORDAGRANT (`Tekniska specifikationer` · `Användning och skötsel` ·
+`Vanliga frågor`). Skriver du `Specifikationer` matchar splittern inte och
+spec-tabellen renderas inline mitt i brödtexten — det ser inte trasigt ut, bara
+som en rubrik till.
+
+#### ☠️ En grind kan vara PÅSLAGEN och ändå blind — alt-svepet var det (2026-09-07)
+
+Runda J2 publicerade åtta lampor med invändningsfri svensk brödtext
+(orddiff **0 på alla åtta**) och **fyrtio tyska alt-texter**. Alt-filen fanns,
+`gate-alt.py` gick ren på den — men ingenting skrev den till Wix. Steget
+saknades i rundan, och inget svar från något API sa emot: produkten sparades,
+bilderna satt kvar, allt rapporterade framgång.
+
+Det som fångade det var live-grindens alt-svep. Det svepet fanns sedan
+2026-09-06 — men bar då `livegrind.py`:s EGNA sextonordslista, ett avtryck av
+hundkojerundan. Inget av de fyrtio felen stod i den:
+
+```
+i alt-texten:  "Deckenlampe mit Acryllampenschirm, Metall, Halogen- und LED-kompatibel"
+gamla listan:  hundehütte · kaninchenstall · hasenstall · fressnäpfen · dachterrasse …
+gatelibs:      mit · und · für · Weiß · Braun · Stahl · Schwarz …
+```
+
+Grinden var alltså **påslagen, dokumenterad och räknad som gjord** — och kunde
+inte fälla någonting på en lamprunda. Den hittade felet först samma dag som
+ordlistan lades om till gatelibs (se avsnittet ovan), på den allra första
+rundan efter ändringen.
+
+☠️ **Regeln: att en grind FINNS säger ingenting om att den kan SE.** Samma
+klass som runda G:s döda `(?!)`-mönster, men värre — där var uttrycket trasigt,
+här var grinden felfri och underlaget för smalt. En grind vars ordlista är ett
+avtryck av en enskild runda mäter bara den rundan.
+
+⚠️ Och lagningen är verifierad åt båda hållen, för det är det enda som skiljer
+en levande grind från en död: 24 redan verifierade sidor ger fortsatt 0 fynd
+(enda undantaget är butikens egen `EU-lager`-ribbon), och tre planterade fel —
+`Gewicht` i `<title>`, `Kunststoff Rückenlehne` i en alt-text och
+"Leverantören anger" i brödtexten — ger sex träffar över sid-, alt- och
+SEO-svepet.
+
+#### ☠️ Och GRINDARNA själva drev isär — 19 kopior i tre versioner (2026-09-06)
+
+Varje runda kopierade in `gate.py`, `gate-alt.py`, `gate-seo.py` och `hasha.py`
+i sin egen katalog. Vad som skilde var inte strukturen utan ORDLISTAN över
+tyska rester:
+
+```
+runda A/F1   …|Kinder|Sofa|Jahre|Maße|robust|niedlich|gemütlich|…
+runda F2     …|Kratzbaum|Katzen|Plüsch|…
+runda G1/G2  …|Stuhl|Bezug|Kufen|Polsterung|Schaukel|kuschelig|flauschig|…
+```
+
+Varje runda **ersatte** föregående rundas ord med sina egna, så unionen har
+aldrig körts. Runda H1 (kattlådor) gatades med gungstolarnas vokabulär —
+`Katzen`, `Deckel`, `Schaufel` och `Edelstahl` kontrollerades aldrig.
+
+☠️ **Och runda G:s stavningslista bar ett DÖTT mönster.**
+`gungstol(?=en\b)(?!)` — `(?!)` misslyckas alltid, så uttrycket kan aldrig
+träffa något. Det hade ersatt runda A:s fungerande `storlek(?!en|ar)`-koll. En
+grind som ser komplett ut och inte kontrollerar något är värre än ingen alls,
+för den räknas som gjord.
+
+✅ **Skadan är noll, och det är mätt.** Alla fyra tidigare rundor kördes om mot
+unionens ordlista: F1, G1, G2 och barstolen ger **0 fynd**. Hålet var latent,
+inte utfallet. Det som däremot är utfallet är att **runda F2 saknade
+textgrinden helt** — katalogen har varken `gate.py` eller facit-fil för den
+rundan, så dess åtta sidor har aldrig siffergrindats.
+
+Grindarna bor sedan dess i `tools/polish-gates/` med ordlistan i `gatelib.py`,
+och rundorna anropar dem därifrån — precis som `livegrind.py` redan gjorde:
+
+```
+python3 ../../polish-gates/gate.py
+```
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Orden får bara LÄGGAS TILL, aldrig bytas ut.** Att stryka ett ord för
+   att "det gäller inte den här rundan" är exakt hur listorna drev isär.
+2. ☠️ **`lib/polish/gate-kopior.test.ts` fäller om en kopia dyker upp** i en
+   rundas katalog, och namnger filen. Verifierad genom att återinföra buggen.
+   Rundespecifika grindar (`gate-skotsel.py`, `gate-kort.py`) är undantagna —
+   de kodar en enskild rundas materialgrupper och har ingen delad sanning att
+   glida ifrån.
+3. **Råd-tal ligger i rundans `rad-tal.txt`, inte i koden.** G1 hade `{"20"}`
+   hårdkodat i sin kopia; nästa runda ärvde talet utan att veta varför.
+4. **Grinden läser BÅDA facit-formaten** (`kallor-tal.json` med tal-listor,
+   `kallor.json` med hela källtexten). Annars går en äldre runda inte att
+   grinda om — och det är just omgrindningen som avslöjar att listan glidit.
+
+**Regeln, en gång till och nu om grindarna själva: en tvilling glider isär, och
+den som glider tystast är den som ser ut att fungera.**
+
+#### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
+
+Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —
+och det är `seoData` som blir sidans `<title>` och `<meta name="description">`,
+alltså precis det Google VISAR i sökresultatet. Aosom-importen sätter dem från
+den tyska feeden, och ingenting har någonsin skrivit över dem.
+
+Uppmätt på runda F1:s åtta klösträd, samtliga med **orddiff 0** mot källfilen:
+
+```
+<title>Kratzbaum Deckenhoch, 228-260 cm Höhenverstellbarer Katzenbaum</title>
+<meta name="description" content="Verwandeln Sie Ihr Zuhause in ein Paradies…">
+```
+
+Brödtexten var alltså invändningsfri svenska medan sökresultatet var tyskt.
+Över hela katalogen: **49 av 2 032 publicerade sidor** bär tysk SEO-titel
+(1 443 har svensk titel med `| Fyndplats`, 540 en autohärledd utan suffix).
+Talet är ett GOLV — klassificeraren kräver ett tyskt funktionsord.
+
+☠️ **Båda de gamla svepen missade det, av olika skäl.** Metabeskrivningen ligger
+i ett ATTRIBUT, och sidsvepet strippar taggar — samma blinda fläck som
+alt-texterna hade. `<title>` syns visserligen i sidsvepet, men det som fällde
+var artikelnummer-mönstret som råkade träffa `228-260`; runda D1:s
+*"Schlafsessel, Gästebett, verstellbare Rückenlehne"* hade gått rakt igenom.
+**Grinden fångade rätt fel av fel skäl, och bara på tre av åtta sidor.**
+
+Grindarna är därför två nu, och den andra är den som biter:
+
+- `gate-seo.py` i rundans katalog — filgrind på `seo.tsv` med siffergrind mot
+  produktens egen källtext, längdtak (60/160) och krav på `| Fyndplats`.
+- `livegrind.py` har ett **SEO-svep** som läser `<title>`, `description`,
+  `og:title` och `og:description` ur den publicerade sidan och jämför dem
+  EXAKT mot `seo.tsv` när filen finns. En mekanisk jämförelse behöver inte veta
+  vilket språk felet är på — mönstergrindar gör det.
+
+☠️ **Formen är TVÅ taggar, inte fem.** Uppmätt på runda A och C2: med bara
+`title` + `meta description` i `seoData.tags` härleder butiken `og:title`,
+`og:description` OCH `twitter:title` ur dem. Importens fem taggar bär tyska
+og-värden som ska BORT, inte skrivas om. Rensa även
+`seoData.settings.keywords` — importen lägger ett tyskt huvudnyckelord där med
+`origin: "USER"`.
+
+#### ☠️ En OMERGAD gren skyddar ingenting — workflowen körs från `main` (2026-09-07)
+
+Allowlisten i `polish-mapping.yml` (som utelämnar `costUsd`, `landedCostSek`,
+`supplierProductId`, `sourceUrl` och `aosomFreightShare` ur den PUBLIKA
+Actions-loggen) skrevs samma dag och låg på en gren. Åtta `las`-körningar i
+runda K1 startades med `ref: main` — alltså mot den GAMLA versionen av
+workflowen, som skriver ut hela mappningsraden.
+
+Följden var exakt det par som feed-adressen är hemlig för att skydda:
+
+```
+"costUsd": 132.33,  "landedCostSek": 1389.47,
+"supplierProductId": "aosom:921-815V00CW",
+"sourceUrl": "https://www.aosom.de/item/…"
+```
+
+Loggarna för de åtta körningarna är raderade (`delete_workflow_run_logs`), och
+resten av rundan kördes mot grenen i stället. Skadan är därmed begränsad till
+det fönster de låg uppe — men den var **helt onödig**.
+
+☠️ **Regeln: en fix som inte är mergad finns inte för den som kör workflowen.**
+`workflow_dispatch` tar en `ref`, och default är `main`. Skriver du en spärr i
+en workflow måste du antingen merga den innan du kör, eller uttryckligen ange
+din gren som `ref` — varje gång, i varje körning. En halvvägs utrullad spärr är
+farligare än ingen, för den känns som ett skydd.
+
+⚠️ Och den gamla lärdomen gäller igen: **Actions-loggar på ett publikt repo går
+att läsa utan inloggning.** Det finns ingen "intern" logg här.
+
+#### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
+
+Importen härleder variant-SKU:n ur den tyska titelns första ord, så produkter
+vars titlar börjar likadant får samma sträng. Batch 66 hittade sex produkter på
+två SKU:er: fyra kaninhus på `FP-kaninchenstall-aus-holz` och två hundkojor på
+`FP-hundehutte-aus`. Det är inte unikt för den batchen — läs `las`-svaren mot
+varandra innan du stämplar, och ge varje produkt en egen svensk SKU på BÅDA
+sidorna (Wix-variantens `sku` och mappningsradens).
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
@@ -1513,9 +2539,34 @@ paket och viktstyrt, vilket blir en platt tull på 240–290 kr per vara i spann
 | 25–40 % | 1,28 | 1,92 |
 | över 40 % | **1,13** | **2,07** |
 
-Deras kostnad rör sig inte alls med vår frakt: de har **lager i Sverige**
-("Dealproffsen AB är ett svenskt företag med lager i Sverige", varje vara
-"Lagervara", 1–2 dagars leverans) och tar hem på pall.
+☠️ **"1–2 dagars leverans" VAR FEL, och raden stod kvar i tre veckor
+(rättat 2026-09-15).** Leonards invändning: *"dom dropshippar också … Alla dom
+som har 3-5 dagar dropshippar dom precis som vi."* Mätt på 42 av deras
+produktsidor, tio ur vardera gapgrupp: **39 av 39 läsbara säger "Leverera inom
+3–5 arbetsdagar". Noll säger 1–2.** Talet var avläst ur deras
+marknadsföringstext ("Snabb Leverans"), inte ur en produktsida — ett påstående
+om oss själva togs för en mätning.
+
+⚠️ **Och leveranstiden SKILJER INTE mellan grupperna** — 3–5 dagar där vi är
+mycket billigare, där vi är lite billigare OCH där vi är dyrare. Den förklarar
+alltså ingenting om gapet, åt något håll. Det var den hypotesen mätningen
+byggdes för att pröva.
+
+De listar dessutom **minst 4 078 Aosom-artikelnummer** (bara överlappet med vår
+katalog; deras verkliga tal är högre). Ingen svensk handlare lagerhåller fyra
+tusen skrymmande möbelartiklar — så "lager i Sverige" är med all sannolikhet
+en marknadsföringsrad ovanpå samma dropship-upplägg som vårt, inte en
+kostnadspost som förklarar deras pris.
+
+☠️ **Följden för prisresonemanget nedan är stor.** Om deras kostnad ≈ vår
+kostnad är skillnaden i pris **ren marginal**, inte täckning för lager,
+returer och bundet kapital. Då finns det mer utrymme att höja än raden nedan
+antyder — och de kan samtidigt matcha oss när de vill.
+
+⚠️ **Vad som INTE är mätt:** var paketen faktiskt skickas ifrån. 3–5
+arbetsdagar är förenligt både med dropship från Aosom DE och med svenskt
+lager plus långsam möbelfrakt. Deras sidor säger "Lagervara" på 35 av 42.
+Det som avgör är fraktvillkoren, och dem ser vi inte.
 
 Gränsen går vid ungefär **900 kr i inköp**: under den är vi billigast i 29–50 %
 av fallen, över den i 92–100 %.
@@ -1603,6 +2654,728 @@ delar med 1,25 blir felet synligt åt andra hållet — vinsten ser för hög ut
 Aosom-raderna bruttas upp korrekt vid import (`1287a0a`); AE-raderna gör det
 inte, och det går inte att laga i kod utan att veta vilka köp som gjordes på
 Business Purpose.
+
+### ☠️ Och AE-radernas kostnad FRYSER vid importen (2026-09-06)
+
+Aosom-halvan räknas om var sjätte timme. AE-halvan räknas aldrig om: synken
+LARMAR på en prishöjning (`price_increase` i `decideSyncOutcome`, med
+`recommendedPriceSek`) men skriver aldrig tillbaka `costUsd` eller
+`landedCostSek` på mappningen. Det nya talet bor i synkens eget tillstånd
+(`currentCostUsd`), som varken lönsamhetsöversikten, auktionens golvbud eller
+poleringens prisgrind läser.
+
+Uppmätt på barstolarna `a260b888` (order 10030), samma fält som pipelinen
+själv läser (`offer_sale_price`):
+
+| | |
+|---|---:|
+| Mappningens `costUsd` (importtillfället) | 48,98 USD |
+| AliExpress `offer_sale_price` idag | **80,07 USD** |
+| Skillnad | **+63 %** |
+
+Sidan står på 679 kr. Med `USD_TO_SEK` 10,5 är landat pris 840,74 kr, alltså
+**−129 kr netto per såld enhet**; med marknadskursen kunden ser (~750 kr på
+AE-sidan) −59 kr. Regelpriset på dagens kostnad hade varit 899–999 kr.
+
+Tre saker att inte missförstå:
+
+1. ⚠️ **Larmet är designen, inte skrivningen.** Att synken låter kundpriset
+   stå är rätt — ett automatiskt omprissatt sortiment är en beteendeändring
+   med hela katalogen som blast-radie. Felet är att det LAGRADE talet blir
+   osant under tiden, och att tre läsare tror på det.
+2. ☠️ **Ett svar utan fel är inget kvitto, tionde gången.** Prisgrinden i
+   `/api/admin/mapping` svarar `EJ AVGÖRBAR` på AE-rader (`regelGäller` är
+   bara sann för `supplier === "aosom"`), så en polering av en AE-produkt vars
+   inköp sprungit iväg passerar utan invändning.
+3. **Kollen är billig.** `freight-check`-workflowen med `raw=true` ger
+   `offer_sale_price` per SKU för en produkt. En katalogomfattande jämförelse
+   mot mappningens `costUsd` är däremot ett AE-anrop per produkt och lever
+   under `maxApiCalls` — den hör hemma i synken, inte i chatten.
+
+## Prishöjning på AE-halvan (`lib/pricing/ae-prishojning.ts`)
+
+Leonards beslut 2026-09-13: **alla AliExpress-produkter +10 %, och en nia på
+slutet.** Genomförd samma dag — **732 produkter höjda, noll misslyckade.**
+
+Höjningen är meningsfull BARA på AE-halvan, och det är inte en smaksak:
+Aosom-raderna räknas om ur kostnaden var sjätte timme, så en höjning där hade
+skrivits tillbaka inom ett dygn. AE-raderna räknas aldrig om (se `#159`), så
+en höjning står kvar tills någon rör den igen.
+
+☠️ **Facit är BUTIKEN, inte mappningen.** Höjningen räknas på `listV3ProductPrices`,
+aldrig på `grossSek` — samma förväxling som kostade prissynken en månad.
+
+### Sex grindar som inte ska tas bort
+
+1. ☠️ **Kontrollsumman räknas om i SAMMA anrop som skriver.** Den ersätter
+   prisreparationens "det finns ingen kör-allt-flagga": på tusen rader vore en
+   id-uppräkning teater, så summan gör samma jobb mekaniskt. En kontroll i ett
+   eget, tidigare anrop bevisar bara att just DEN planen såg rätt ut — samma
+   skäl som transkriberingsspärren i poleringen.
+2. ☠️ **Kampanjnamnet ÄR idempotensen.** Rutten har 300 sekunder och katalogen
+   ~1 000 AE-rader, så körningen KOMMER att köras om. Utan stämpeln tar en
+   omkörning 599 → 659 → 725, och svaret ser likadant ut båda gångerna.
+3. ☠️ **Priset måste sluta på 9 — en grind, inte en förhoppning.**
+   Avrundningsstrategin bor i `FyndplatsPricingConfig`, alltså utanför koden,
+   och ett efterföljande blanksteg där har redan en gång tyst stängt av
+   charm-prissättningen. `ejNiokrona` räknar i stället för att örespriser når kund.
+4. ☠️ **Alla varianter eller ingen** (`variantavvikelse`). Ett halvt höjt pris
+   är svårare att upptäcka än ett orört.
+5. ☠️ **Okänt butikspris gissas aldrig** (`utanWixPris`), och **ett låst pris
+   rörs aldrig** (`prisLasta`).
+6. ☠️ **En höjning som skett men tappat sin stämpel höjs ALDRIG igen** — se nedan.
+
+### ☠️ En tappad stämpel gör omkörningen till 499 → 549 → 609
+
+Hittad av ARITMETIKEN, inte av ett fel. 478 redan höjda + 201 skrivna med noll
+misslyckade skulle ge 679; nästa plan sa **678** och en rad mer att höja. Exakt
+en produkt hade fått sitt PRIS skrivet utan att få sin STÄMPEL.
+
+Skrivfönstret 17:58–18:02 låg rakt över AE-synkens `0 */2 * * *`, och synken gör
+läs-ändra-skriv på samma mappningsrad på fyra ställen. En lost update skriver
+över stämpeln utan att något kastar — rutten svarar 200, workflowen går grön.
+
+Stämpeln är hela idempotensen, så en stämpel som kan gå förlorad är en
+idempotens som kan gå förlorad.
+
+☠️ **Grinden är ARITMETISK, inte en riktning — och första utkastet var fel på
+just den punkten.** Det gatade på "butiken högre än mappningen" och fällde
+`räknar på BUTIKEN`-testet, som hade rätt: butiken högre är också signaturen för
+husets DOKUMENTERADE drift, där bäddsoffan `efaa0c7b` bar `grossSek: 3529` mot
+4 539 kr i Wix. En sådan rad har aldrig höjts och SKA höjas.
+
+Det som skiljer är att en tappad stämpel lämnar butikspriset på EXAKT det tal
+kampanjen skulle ha skrivit. Grinden räknar därför om höjningen ur mappningens
+tal och kräver exakt träff, ur samma `roundPrice` som planen själv använder.
+
+⚠️ **Grinden hittade TVÅ, inte den ena aritmetiken pekade ut** — och de låg
+inom de tolv drivande raderna, så det är ingen slump. De höjs inte, de RÄKNAS,
+och sedan 2026-09-13 står deras wix-id i svaret och workflow-summeringen:
+ett tal utan id är en oro, ett tal med id är ett beslut. Raderna kan ingen
+annan mätning hitta i efterhand — de har varken stämpel eller drift kvar att
+känna igen dem på.
+
+### Kvittot
+
+| | |
+|---|---:|
+| granskade mappningar | 5 745 |
+| höjda | **732** |
+| misslyckade | **0** |
+| ej AliExpress (Aosom) | 4 754 |
+| utan entydigt butikspris | 191 |
+| variantavvikelse | 66 |
+| redan höjd, stämpel tappad | 2 |
+| **drivande efter körningen** | **0** |
+
+Sista raden är kvittot: mappningen och butiken är i fas över hela AE-halvan —
+samma sak som `jamforelsePris` byggdes för på Aosom-sidan. Live-verifierat på
+tre sidor genom butiken (549, 1 749 och 4 899 kr), inte bara i API-svaret.
+
+⚠️ **Vänta ut ISR:en vid den verifieringen.** Första hämtningen gav
+`x-vercel-cache: STALE`, `age: 42 781` och det GAMLA priset; nästa hämtning gav
+`HIT`, `age: 20` och det nya. Ett API-svar är inget kvitto, och en enstaka
+sidhämtning är det inte heller.
+
+## Prisjämförelse mot dealproffsen (`lib/pricing/dealproffsen.ts`)
+
+Leonards strategi 2026-09-14: *"vi ska jämföra alla våra priser mot
+dealproffsen.se … Alla produkter som vi är billigast på ska vi först ändra
+priset så vi ligger endast 1-2 procent under dom och inte flera 100kr som vi
+gör nu på vissa produkter och sen ska vi göra reklam på just dessa produkter i
+google shopping."* Och: *"Vi skiter i aliexpress produkterna helt."*
+
+Jämförelsen gör två jobb i samma körning. Det andra är inte en bieffekt utan
+ett uttryckligt krav — *"vi måste jämföra alla våra produkter sen även de som
+inte är polerade … dom som inte är polerade proioriterar vi next"*:
+
+1. **Var är vi billigare**, och med hur mycket — underlaget för både
+   prisjusteringen och annonsurvalet.
+2. **Vilka OPOLERADE utkast vi vore billigast på** — poleringskön sorterad
+   efter var pengarna ligger i stället för efter vad som råkar ligga överst.
+
+☠️ **RUTTEN SKRIVER INGENTING, och kan inte.** Den mäter. Samma hållning som
+prisreparationens "det finns ingen kör-allt-flagga": ett pris som når kund ska
+ha passerat ögon.
+
+### Matchningen är mekanisk, inte en gissning
+
+De publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. Vårt
+`supplierProductId` mot deras `reference` matchar exakt eller inte alls.
+
+☠️ **Därför finns ingen namn- eller måttmatchning, med flit.** Huset har redan
+mätt att måttjämförelse är otillräcklig som ensam grund (hörnsoffan `69c5e15c`),
+och en felmatchning här sätter fel pris på fel vara.
+
+### Vägen in mättes fram — fyra alternativ föll
+
+| väg | varför den inte duger |
+|---|---|
+| `sitemap.xml` | finns inte |
+| `/api/products` | `401` |
+| Google-feed-modulens sökvägar | `404` |
+| Kategorisidornas HTML | **4 av 48 kort** bär artikelnumret |
+
+Det som fungerar är deras egen, odokumenterade sök-JSON:
+`?controller=search&ajax=1&resultsPerPage=100&s=<prefix>&page=<n>`. Uppmätt:
+**200 av 200 rader bar `reference`**, pagineringen överlappar inte, och
+prefixen härleds ur VÅR katalog — alltså ~120 anrop i stället för 4 754.
+
+☠️ **PRISET ÄR `price_amount`, ALDRIG `regular_price_amount`.** Det andra är
+det överstrukna. Uppmätt på redskapsboden: **4 289 mot 6 049**. Alla deras
+rader ligger på "Kampanj", så fel fält hade gjort HELA katalogen 41 % dyrare än
+den är — och vi hade höjt våra priser på ett underlag som lutar åt exakt det
+dyra hållet.
+
+### Sju egenskaper som inte ska tas bort
+
+1. ☠️ **Svaret bär ALDRIG artikelnumret.** Rapporten hamnar i en PUBLIK
+   Actions-logg, och artikelnumret är exakt den sträng dealproffsen publicerar
+   — läcker vi den joinar vem som helst vår sida mot deras och därmed mot vårt
+   inköpsled. Raderna nycklas på `wixProductId`, som redan står i produktsidans
+   JSON-LD. Ett test fäller om ett artikelnummer kryper in i rapporten.
+2. ☠️ **Ett uteblivet fynd är ingen jämförelse.** En vara de inte säljer hamnar
+   i `utanTraff`, aldrig i `viBilligare`. Skillnaden är hela skillnaden mellan
+   "vi vet att vi är billigast" och "vi vet ingenting" — och det andra hade
+   blivit en prishöjning på lösan sand. Samma hållning som `utanWixPris` och
+   som `unknown` i hyllstatusen.
+3. ☠️ **"De säljer den inte" och "vi kunde inte fråga" är skilda tal.** En rad
+   utan artikelnummer räknas i `utanArtikelnummer`. Slås de ihop ser en trasig
+   mappningsrad ut som ett mätvärde om deras sortiment.
+4. ☠️ **Facit är BUTIKEN.** Priset läses ur `listV3ProductPrices`, aldrig ur
+   mappningens `grossSek` — samma förväxling som kostade prissynken en månad.
+   Har produkten flera varianter med olika pris finns inget entydigt pris, och
+   raden räknas i `utanVartPris` i stället för att gissas.
+5. ☠️ **Samma artikelnummer två gånger → LÄGSTA priset vinner.** Ett svep
+   hämtar hundra rader i taget och samma vara kan ligga i mer än en träfflista;
+   låter man den SISTA vinna beror utfallet på sidordningen. Det lägsta priset
+   gör oss mindre billiga i rapporten, aldrig mer — fel åt det hållet kostar en
+   utebliven annons, fel åt det andra en prishöjning på ett pris kunden aldrig
+   behövde betala.
+6. ☠️ **En delkörning jämför bara de prefix den FAKTISKT hämtade.** Utan den
+   filtreringen hade varje produkt vars prefix ligger senare i markören räknats
+   som "de säljer den inte" när sanningen är "vi har inte frågat än" — punkt 2
+   fast på körningsnivå. `fullstandig: false` diskvalificerar dessutom
+   rapporten som beslutsunderlag, samma roll som i mediainventeringen.
+7. ☠️ **En markör som inte rör sig är inget framsteg.** Faller varje prefix i
+   ett varv står markören kvar, och utan spärren kör loopen om exakt samma
+   anrop tills `varv` tar slut, bokför samma rader en gång till och ser i
+   summeringen ut som ett svep som gjorde något. Uppmätt mot en stubbe innan
+   rutten nådde produktionen — tillsammans med massfel-grinden och den
+   framåtgående markören, alla tre.
+
+⚠️ **Massfel fäller, en enstaka miss varnar** — samma form som
+`MASSFEL_ANDEL`/`MASSFEL_GOLV`. Att INGET prefix gick att hämta är däremot inte
+en miss: då vet körningen ingenting alls, och det får inte se ut som ett svar.
+
+### ☠️ Och den hittade ett tyst tak som redan var passerat (2026-09-14)
+
+`listVisibleV3ProductIds` har ett sidtak. Det låg på **50 sidor = 5 000
+produkter** mot en katalog på **~5 500**, alltså redan passerat — och
+funktionen svarade med en TYST avkortad mängd. Inget fel, ingen räknare,
+ingenting som skiljer "slut på produkter" från "slut på sidor".
+
+☠️ **Riktningen är det som gör felet dyrt.** En produkt som saknas i mängden
+behandlas som OSYNLIG, alltså ser en publicerad produkt ut som ett utkast.
+Recensionssvepet hoppar då över den, och prisjämförelsen ovan hade lagt den i
+listan *"polera dessa först"* — alltså precis fel lista.
+
+Samma klass som `Promise.allSettled` i `media.ts`, som `queryAll`:s eget tak
+och som den obegränsade fan-outen: **en konstant som var rätt när den sattes
+och blev fel när volymen växte under den.** Det finns ingen commit att skylla
+på, och en `git bisect` hade inte hittat något.
+
+Taket är nu 300 sidor och det **FÄLLER i stället för att kapa**, ordagrant som
+`queryAll`: *"en avkortad lista är värre än ett fel."* Tre tester, verifierade
+genom att återinföra kapningen — två faller, och bara de två.
+
+⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
+hade inget larm att ge.
+
+### ⚠️ Deras EAN är äkta — men den är INTE vår att publicera (2026-09-14)
+
+Leonards fråga: *"tror du inte dealproffset har hittat på en egen ean då?"*
+Rätt fråga att ställa — en falsk GTIN i Google Merchant Center kopplar vår
+produkt till fel vara eller får den avvisad, vilket är sämre än ingen GTIN alls.
+
+Mätt på 187 av deras produkter med läsbar kod, fyra oberoende tester:
+
+| test | utfall | varför det avgör något |
+|---|---|---|
+| Kontrollsiffra | **187 av 187 giltiga** | Slumpade nummer klarar den i ~1 av 10 |
+| GS1-landsprefix | **186 av 187 tyska** (425…) | De är ett SVENSKT bolag; svenska koder är 730–739, och ett tyskt prefix går inte att få som svenskt företag |
+| Antal företagsprefix | **fyra** (4250871, 4251774, 4255633, 4255826) | Den som hittar på köper ETT prefix; fyra tyska block är vad en tillverkare samlar på sig över år |
+| Interna koder (20–29) | **noll** | Det spannet finns just för egna butikskoder — de använder det inte |
+
+☠️ **Det femte testet är det som faktiskt utesluter påhitt.** Genererar man
+koder allteftersom man lägger in produkter följer koden ens EGEN
+produktnumrering nästan perfekt. Uppmätt rangkorrelation mot deras interna
+produkt-id på de tre största blocken: **−0,51 · +0,36 · +0,07** — alltså brus.
+De har inte numrerat själva.
+
+⚠️ **Men att koden är ÄKTA är inte samma sak som att den är rätt kopplad, och
+inte samma sak som att den är vår att använda.** Verifieringen mot GS1:s egen
+databas kom inte i mål: både Google och GEPIR kräver JavaScript, och att rendera
+dem hade krävt att proxyns TLS-kontroll stängdes av. Det gjordes INTE.
+
+**Slutsatsen som gäller:** antingen fick de filen av Aosom eller skannade de
+kartongen — båda är tillverkarens kod, och det enda felläget som skadar oss
+(påhitt) är mätt osannolikt. **Använd dem ändå inte i Merchant Center.** Vi kan
+inte stämma av dem mot Aosom, `identifier_exists: no` fungerar, och en GTIN
+hämtad från en konkurrents sajt är fel källa för ett fält som ska vara sant.
+Frågan till Aosom står kvar som rätt väg — EAN-kolumnen finns i feeden, den är
+bara tom.
+
+⚠️ Koden plockas ur deras produktlänk och räknas i `medEan`, men den **används
+inte till någonting** — matchningen går på artikelnumret. Den är ett gratis
+sidoresultat, inte ett beroende.
+
+### ✅ Aosom svarade: leveransen är WHITE LABEL — vi är varumärkesägaren (2026-09-15)
+
+Henrik Leseberg, ordagrant ur svaret:
+
+> *"As our products are supplied on a white-label basis, we do not provide or
+> transfer our own EAN/GTIN codes to customers. Therefore, the EAN column in
+> the product feed cannot be populated … The codes printed on some cartons are
+> batch-specific logistics barcodes. They may vary between different batches of
+> the same SKU and should not be used as product EANs … Most of our white-label
+> customers adapt the product descriptions to their own listings and assign
+> their own EAN codes. This is also the intended arrangement on our side."*
+
+**Tre saker är därmed avgjorda och behöver inte utredas igen:**
+
+1. ☠️ **EAN-kolumnen kommer ALDRIG att fyllas.** Frågan är ställd och besvarad.
+   Sluta mäta feeden efter EAN.
+2. ☠️ **Kartongernas streckkoder är LOGISTIKKODER, inte produkt-EAN.** De
+   varierar mellan batcher av samma artikel. Att skanna en kartong och lägga
+   koden i Merchant Center hade gett en kod som pekar på fel sak — och den
+   idén stod som ett öppet uppslag i avsnittet ovan. Den är nu stängd.
+3. ✅ **Vi är varumärkesägaren.** Det är precis undantaget i Googles egen text:
+   *"Use your store name … if you manufacture the product or if your product is
+   a private-label product."*
+
+⚠️ **RÄTTELSE:** en timme före det här svaret stod rådet *"Aldrig
+`brand: Fyndplats`"* i den här filen. Det var rätt slutsats av det som då var
+mätt — att varorna är HOMCOM/Outsunny — och fel så fort leverantören säger
+white label. Rådet gäller inte längre.
+
+**GS1:s regel, hämtad samma dag:** *"The Brand Owner, the organisation that
+owns the specifications of the trade item regardless of where and by whom it is
+manufactured, is normally responsible for the allocation of the GTIN"*, och för
+Own Brand Label: *"Products with an agreement between the Original Manufacturer
+and the party identified on the label as the Brand Owner … have the Brand Owner
+taking responsibility for GTIN assignment."*
+
+✅ **LEONARD AVGJORDE BÅDA FRÅGORNA 2026-09-15, och de ska inte ställas igen:**
+
+1. **Skriftligt medgivande behövs inte — det står redan i Henriks mejl.** Han
+   skriver *"Most of our white-label customers … assign their own EAN codes.
+   This is also the intended arrangement on our side"* och ber oss uttryckligen
+   bekräfta *"that you will … use your own EAN codes"*. Att fråga om lov en
+   gång till hade visat att vi inte läst svaret.
+2. **Varorna skickas i ORIGINALFÖRPACKNING, och vårt märke trycks aldrig på
+   produkten.** Leonard: *"vårt märke har aldrig varit tryckt på någon
+   produkt"*. White label betyder här att vi äger listningen och texten — inte
+   att kartongen är omärkt.
+
+⚠️ Punkt #195 (två gamingstolar med VINSETTO tryckt på produkten) står kvar som
+en egen observation om de två artiklarna. Den gäller LEVERANTÖRENS märke, inte
+vårt, och den ändrar inte upplägget ovan.
+
+☠️ **AVTALET ÄR DET SOM BÄR, inte vår egen tolkning.** Samma GS1-sida säger
+också: *"downstream parties, such as distributors, wholesalers, importers and
+merchants, should not assign a different GTIN to a trade item that already has
+a GTIN, provided that the trade item is not changed."* Vi går alltså in genom
+Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
+**Henriks mejl ÄR den skriften** — spara det.
+
+⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
+publicerar `gtin13: 4255826873673` för artikel `83B-129V00GY`, och koderna är
+mätt äkta (187/187 giltig kontrollsiffra, 186/187 TYSKT GS1-prefix 425x — en
+svensk återförsäljare kan inte få ett sådant). Någon tysk part har alltså
+registrerat koder för de här artiklarna. Henriks *"we do not provide or
+transfer **our own** EAN/GTIN codes"* läser rimligast som "vi har dem men delar
+dem inte" — inte som "de finns inte".
+
+☠️ **DÄRFÖR ÄR DEN HÄR FRÅGAN INTE TEKNISK UTAN AVTALSMÄSSIG.** Håller
+white-label-upplägget är egna GTIN rätt väg; håller det inte är det en
+ommärkning av någon annans vara. Skriftligt besked från Aosom är skillnaden.
+
+✅ **Om det håller löser det HELA sekretessproblemet:** egen GTIN + `brand:
+Fyndplats` gör att `mpn` inte längre krävs, och då behöver Aosoms artikelnummer
+aldrig lämna `supplierProductId`. Kollisionen i avsnittet nedan upphör.
+
+⚠️ **Kostnaden för GS1-medlemskap är INTE mätt** — deras sida blockerade
+hämtningen. Den siffran måste hämtas innan beslutet tas.
+
+### ☠️ Google Shopping: `brand` och `mpn` krockar med två husregler (2026-09-15)
+
+Hämtat ur Googles egen spec samma dag, inte ur minnet. Tre rader avgör:
+
+| attribut | Googles ord |
+|---|---|
+| `brand` | **Required** "for all new products, except movies, books, and musical recordings" |
+| `brand` | *"Only provide a brand if you're sure it's correct. When in doubt don't provide a brand (for example, don't guess or make up a value)."* |
+| `brand` | *"Use your store name … if you manufacture the product or if your product is a private-label product."* |
+| `mpn` | **"Required for all products without a manufacturer-assigned GTIN"** |
+| `mpn` | *"Use the MPN assigned by the manufacturer. Unless you're the manufacturer, don't use a value that you've created."* |
+| `identifier_exists` | `no` bara när man är *"certain that your product doesn't have any assigned unique product identifiers"* — annars *"will receive a warning"* |
+
+**Vad vi har, mätt:**
+
+- ☠️ **`brand` finns inte ens som fält i Wix V3 hos oss.** 0 av 100 i sökningen,
+  och den fulla GET:en — som mycket riktigt bär `plainDescription` och
+  `variantsInfo` — saknar det också. Det är alltså inte en projektionsfälla.
+- **GTIN: ingen.** Aosoms kolumn är tom på 6 095 rader, manualerna bar noll.
+- **MPN: vi HAR den.** Det är Aosoms artikelnummer på `supplierProductId` —
+  exakt den sträng husregeln säger aldrig får nå kund.
+
+☠️ **DÄRFÖR FINNS INGET ALTERNATIV SOM ÄR BÅDE SPEC-ENLIGT OCH HEMLIGT.**
+Googles krav på `mpn` när GTIN saknas är precis det fält vi skyddar. Att
+utelämna det ger en varning; att fylla i det publicerar numret. Det är ett
+affärsbeslut, inte ett tekniskt, och det hör till Leonard.
+
+⚠️ **Och "Fyndplats" som `brand` är INTE utvägen.** Googles formulering
+tillåter butiksnamnet bara för egen tillverkning eller eget private label.
+Våra varor är HOMCOM/Outsunny/PawHut. Att skriva vårt namn vore att gissa
+fram ett värde, vilket samma stycke uttryckligen förbjuder.
+
+#### Vad konkurrenten faktiskt gör — mätt, inte antaget
+
+| | dealproffsen |
+|---|---|
+| husmärke på produktsidan | **noll träffar** på alla tio märken |
+| `manufacturer_name` i deras sök-API | **tomt på 200 av 200** |
+| JSON-LD `brand` | **`"Dealproffsen.se"`** — deras eget butiksnamn |
+| JSON-LD `mpn` / `sku` | **Aosoms artikelnummer** |
+| JSON-LD `gtin13` | **ifylld** |
+
+De gör alltså tre saker: stryker husmärket (som vi), sätter sitt EGET namn
+som `brand` (vilket Googles ord inte tillåter för en återförsäljare), och
+publicerar artikelnumret och EAN (vilket vi inte gör).
+
+⚠️ **Mätningen gäller deras SAJT, inte deras Merchant Center-feed.** Vi kan
+inte se deras feed. Att de gör det i JSON-LD är ett starkt indicium om vad de
+skickar till Google, inte ett bevis.
+
+☠️ **Följden för sekretessen:** för varje produkt dealproffsen också säljer är
+artikelnumret **redan publikt hos dem**. Vår tystnad skyddar därför inte
+numret i sig — den skyddar kopplingen från VÅR sida till numret. Det är en
+mindre sak än husregeln antar, och det är värt att veta innan beslutet tas.
+
+### `feed-info`: vad finns EGENTLIGEN i Aosoms feed
+
+Huset har i månader sagt att "feedens EAN-kolumn är tom i 100 % av raderna", på
+en mätning från 27 augusti. ☠️ **Men `AosomRow` har inget EAN-fält alls** —
+`parseAosomFeed` plockar bara kolumner den känner till vid namn, så även om
+Aosom fyllt i kolumnen igår hade vi inte sett det. Vi har aldrig tittat.
+
+`?lage=feed-info` läser rubrikraden och räknar hur full varje kolumn är.
+Skillnaden mellan "kolumnen finns men är tom" och "kolumnen finns inte" avgör
+vad vi gör härnäst, så de hålls isär.
+
+☠️ **Priskolumnernas VÄRDEN lämnar aldrig servern.** `Wholesale Price` är vårt
+inköpspris på 6 057 artiklar och svaret går till en publik logg. Kolumnen
+RÄKNAS — vi vill veta att den finns och är ifylld — men aldrig vad som står i
+den. Ett test låser det.
+
+☠️ **Och det gällde inte bara priset — jag missade artikelnumret (2026-09-14).**
+Första versionen redigerade bara PRIS-kolumner. SKU-kolumnens exempelvärde är
+ett Aosom-artikelnummer, och det skrevs därför till en PUBLIK
+Actions-summering i den allra första körningen. Numret är exakt den sträng
+dealproffsen publicerar som `sku`/`mpn`. Loggarna för den körningen är
+raderade, och redigeringen täcker nu identifierarkolumner också.
+
+⚠️ **Ryggtäckningen är på FORMEN, inte bara på namnet.** Döper Aosom om
+kolumnen imorgon glider namnlistan, och **en spärr man måste komma ihåg glöms
+bort** — samma argument som gjorde `AliExpressProductId` till en typ.
+`serUtSomArtikelnummer` fäller på mönstret `845-030CG` oavsett vad kolumnen
+heter. Två tester, ett för namnet och ett för formen.
+
+**Utfallet av första körningen:** feeden har **6 085 rader**, EAN-kolumnen
+FINNS — och är **ifylld på 0 av dem**. Den gamla anteckningens "tom i 100 %"
+stämde alltså, men var fram till nu ett antagande om en kolumn vår parser
+aldrig läst. Nu är det mätt, och skillnaden spelar roll: en kolumn som finns
+men är tom är ett mejl till Aosom, en kolumn som saknas är en annan källa.
+
+#### ☠️ EAN finns INTE i feeden, och inte i manualerna heller (2026-09-15)
+
+Leonards fråga: *"är du säker på att ean koden är tom i filen vi får och vi inte
+får den på något sätt?"* Rätt fråga — svaret vilade på EN loggrad
+(`EAN-kolumn: true, ifylld pa 0 av 6095 rader`), och den raden bygger på
+`harEanKolumn`, som bara letar efter de namn någon redan tänkt på
+(`ean`/`ean13`/`gtin`/`barcode`) och dessutom tar den FÖRSTA träffen
+(`findIndex`). Heter kolumnen något annat ser den ingenting.
+
+Hela kolumnlistan fanns i svaret men skrevs bara till `GITHUB_STEP_SUMMARY`,
+som inte går att läsa tillbaka programmatiskt. Den går till stdout nu — **namn
+och ifyllnadsgrad, aldrig exempelvärdet**, eftersom redigeringen bygger på en
+namnlista plus en formkoll och en kolumn som heter något oförutsett (`Net`,
+`B2B`) annars hade visat sitt värde.
+
+**Feeden har 71 kolumner och 6 095 rader.** `EAN` ligger som **kolumn TVÅ**,
+heter exakt det, och är ifylld på **0**. Det finns ingen `GTIN`, ingen
+`Barcode`, ingen `UPC`, ingen `MPN` — koden kan alltså inte gömma sig under ett
+annat namn. `Sin` (6 095) och `Psin` (4 521) är Aosoms egna interna nycklar,
+inte streckkoder; `Psin` grupperar dessutom *relaterade* varor, se ovan.
+
+⚠️ **Två andra kolumner ingen läst, och de är inte samma sak.**
+`Specification` och `Package list` är ifyllda på **18 rader** vardera — det
+bekräftar den gamla anteckningens "tomt i 5 550 av 5 566". Men `pdf` är ifylld
+på **5 917 (97 %)**, och den är produktmanualen.
+
+##### Manualerna prövades — och bar ingen kod
+
+En manual trycker nästan alltid streckkoden, så det var den enda vägen kvar
+utan att fråga Aosom. `?lage=ean-jakt` (`lib/aosom/ean-jakt.ts`,
+workflow-läget `ean-jakt`) öppnar manualerna och söker GTIN-13 i texten.
+Uppmätt 2026-09-15 på **22 manualer spridda över hela feeden**:
+
+| | |
+|---|---:|
+| manualer hämtade | 22 |
+| för stora för att läsa (>20 MB) | 3 |
+| oläsliga | 0 |
+| trettonsiffringar hittade | 19 |
+| **varav giltig GTIN-13** | **0** |
+| **varav tyskt GS1-prefix** | **0** |
+
+☠️ **BRUSSPÄRREN ÄR DET SOM GÖR SVARET LÄSBART.** En slumpmässig
+trettonsiffring klarar GS1:s kontrollsiffra i **ett fall av tio**, och en PDF
+är full av tal — mått, artikelnummer, datum, koordinater. Det FÖRSTA
+stickprovet (9 manualer) gav "2 giltiga", och utan spärren hade den raden
+rapporterats som två funna EAN. Den var brus: 2 av 39 är **5 %**, alltså under
+slumpen, och noll hade tyskt prefix trots att Aosom är en tysk leverantör vars
+koder mätbart ligger på 425x. Tre spärrar krävs och alla tre behövs: talet får
+inte sitta i en längre siffersekvens, råtalet rapporteras bredvid så kvoten
+avslöjar brus, och prefixet skiljer signal från tillfällighet.
+
+⚠️ **Det som INTE är uteslutet:** en streckkod tryckt som BILD. Svepet läser
+text. En EAN-13 ritas normalt med siffrorna under strecken, men i en manual
+ligger de ofta i samma bild. Slutsatsen som gäller är alltså *"koden finns inte
+som text i manualen"*, inte *"det finns ingen streckkod i manualen"*.
+
+☠️ **Och stickprovet SPRIDS över feeden, inte de första N raderna.** Feeden är
+sorterad på artikelnummer, så de första raderna är EN produktfamilj — samma
+lärdom som bildmätningen 2026-08-27, som tog "tio ur vardera tredjedel" just
+för att kunna säga något om sortimentet. Ett test låser ordningen.
+
+☠️ **Rutten dog först på MINNET, och den döden gick inte via try/catch.**
+Första versionen packade upp VARJE ström i PDF:en — inklusive bilderna, som
+expanderar tiotals gånger — och samlade alla texter i en array innan den sökte.
+Vercel svarade `instance was killed because it ran out of available memory`,
+rutten gav 500 utan ett ord om varför, och mitt `catch` såg ingenting. Exakt
+samma familj som den obegränsade fan-outen i `runDailySync`. Tre tak:
+`MAX_STROM_BYTE` (2 MB komprimerat — det är det som skiljer TEXT från BILD),
+`maxOutputLength` (8 MB uppackat, kastar i stället för att svälla) och
+`MAX_PDF_BYTE` (20 MB på nedladdningen). Sökningen är dessutom löpande, ingen
+text ligger kvar. Hoppade strömmar RÄKNAS (`forStora`) — de tigs inte ihjäl.
+
+**Vägarna till EAN, uttömmande och mätta:**
+
+| väg | utfall |
+|---|---|
+| Feedens `EAN`-kolumn | **tom**, 0 av 6 095 |
+| Någon annan feedkolumn | finns inte — 71 kolumner genomgångna |
+| Produktmanualerna (`pdf`) | **0 av 22** bär en kod som text |
+| aosom.de konsumentsajt | **403** på allt, även startsidan (Akamai) |
+| dealproffsen.se | har koder, mätt äkta — men se avsnittet ovan |
+| B2B-portalen inloggad | **oprövad** — bara Leonard kommer in |
+| Fråga Aosom | den rena vägen, och nu den enda kvar |
+
+⚠️ Tills dess: **`identifier_exists: no` i Merchant Center.** Det fungerar för
+varor utan tillverkarkod, och en GTIN hämtad från en konkurrents sajt är fel
+källa för ett fält som ska vara sant.
+
+⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
+upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
+möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
+`feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
+var den ligger.
+
+## Konkurrentregeln: pris mot dealproffsen i synken (`lib/pricing/konkurrentregel.ts`, 2026-09-15)
+
+Marknadsplan v3 (Cowork-sessionen 2026-09-15) gjorde Leonards strategi till
+en regel som synken tillämpar var sjätte timme, i stället för 900 handsatta
+priser som synken hade skrivit över till kvällen:
+
+```
+golv = husets regelpris (1,20 × landad, charmavrundat)   — aldrig under
+mål  = (1 − d) × dealproffsens pris                      — d = 2 % (grupp A) / 5 % (grupp B)
+tak  = 1,50 × landad kostnad inkl. moms                  — aldrig över
+pris = min(max(mål, golv), tak), avrundat NEDÅT till charmpris
+```
+
+Grupp A mot B är ett test — "räcker 2 % under för en okänd butik?" — och
+efter fyra veckor blir vinnaren regel för hela sortimentet.
+
+Tre delar, två grindar:
+
+| del | var | skriver |
+|---|---|---|
+| dealproffsens pris per rad (`konkurrent: { pris, hamtad }`) | `/api/admin/konkurrentpris?lage=spara`, workflow **"Pris — konkurrentregeln"** | mappningen, torrt som default |
+| A/B-grupp per rad (`prisgrupp`) | samma rutt, `lage=lotta`, kräver `bekrafta` = torrkörningens antal | mappningen, torrt som default |
+| kundpriset | Aosom-synken, `planeraProdukt` | Wix, synkens egen torrkörning |
+
+### Sex egenskaper som inte ska tas bort
+
+1. ☠️ **Ingen grupp, ingen regel.** En rad utan `prisgrupp` följer husets regel
+   exakt som förut. Att deploya koden ändrade inte ett enda pris — utrullningen
+   är per rad, via lottningen, och lottningen tar `bara=<wix-id,…>` så
+   annonsurvalet styr vilka som går in först.
+2. ☠️ **Ett gammalt konkurrentpris FRYSER raden, det prissätter den inte.**
+   Äldre än `KONKURRENT_MAX_ALDER_DAGAR` (7) → inget pris skrivs, och raden
+   räknas i `konkurrentFrysta` som står i loggraden, audit-raden och
+   workflow-summeringen. Att falla tillbaka på golvet hade sänkt priset 200 kr
+   på tusen varor för att jämförelsen stod still. **Går `frysta` upp har
+   `spara` slutat köras** — kör den.
+3. ☠️ **Deras pris under vårt golv → vi står kvar på golvet.** Vi jagar inte
+   nedåt. Utfallet är eget (`konkurrentGolv`) så annonsurvalet kan lyfta ut
+   raden i stället för att betala klick vi förlorar.
+4. ☠️ **Taket finns för att vi inte vet var Amazon ligger.** Gapet mot
+   dealproffsen är över 30 % på 136 av de 972 publicerade där vi är billigare,
+   och 2 % under dem hade lyft oss över vad marknaden tål. 1,50 × landad är
+   +25 % mot regelpriset, vilket dessutom håller varje ändring under
+   `MAX_PRISANDRING_PCT = 40` — spärren rördes inte, och de 34 rader som annars
+   fastnat i den gör det inte.
+5. ☠️ **Avrundningen går NEDÅT.** charm9/charm99 rundar upp, och 2 % under
+   2 495 hade blivit 2 499 — över konkurrenten, på en regel vars enda poäng är
+   att ligga under. `rundaNedat` kliver ner i rutnätet tills priset ligger på
+   eller under målet; charm99:s 89 → 99-snäpp gör att det ibland är två steg.
+6. ☠️ **`spara` raderar aldrig.** En vara de inte säljer i dag behåller sitt
+   gamla pris på raden och får åldras in i frysningen (punkt 2). Ett
+   oförändrat pris skrivs om först när stämpeln är äldre än
+   `UPPFRISKNING_DAGAR` (2), så en full körning inte äter tidsbudgeten med
+   4 000 identiska skrivningar.
+
+Lottningen är deterministisk (FNV-1a på wix-id): en omkörning ger samma grupp,
+och under `LOTTNING_FRAN_SEK` (2 000 kr) blir alla A, för där finns bara ~6 %
+att ta och 5 % under är samma sak som ingen höjning.
+
+Verifierat mot koden samma dag, inte mot briefen: momsbasen är rätt
+(`landadKostnadSek` bruttar upp nettot, multiplikatorn ger slutpriset — netto
+mot netto blir 16,7 %), frakten ingår redan i landad kostnad och skalar med
+vikten (briefens "240–290 kr platt" var fel), och `MAX_PRISANDRING_PCT` hade
+fällt 34 rader utan taket. Fyrtioen tester: arton på regeln, tretton på
+planerna, tio i synken — bland dem kontrollerna åt andra hållet (samma fixtur
+utan grupp skriver inget; samma rad med färskt pris skrivs).
+
+## Google Shopping: huvudfeed i butiksrepot, TILLÄGGSFEED här (2026-09-15)
+
+Butiksrepot (`fyndplats-headless`, gren `headless-site`) har sedan 2026-07 en
+huvudfeed till Merchant Center: `/feed/google.xml`, RSS på variantnivå med
+`g:id` = Wix-variantens id, `g:item_group_id` = produktens, brand Fyndplats,
+`identifier_exists` no, kategori via kollektionens slug, upp till tio bilder,
+ISR en gång i timmen. **Den behöver ingen tvilling.** Briefens "ingen feed
+finns" gällde det här repot.
+
+⚠️ **Huvudfeeden skickar `g:mpn` = Wix-variantens SKU ("FP-…").** Det är vårt
+eget, inte Aosoms nummer, så det läcker inget — men briefens beslut #3 är
+"ingen mpn", och Google förväntar sig ingen mpn på en rad med
+`identifier_exists: no`. Tas bort i butiksrepot (marknadsplan v3, vecka 1).
+
+Det huvudfeeden inte kan bära är det som bara finns i mappningarna här:
+prisgruppen (A/B), prisbandet och konkurrensläget mot dealproffsen. Därför
+en **tilläggsfeed** (`lib/feed/google-shopping.ts`,
+`/api/feed/google-shopping-tillagg?nyckel=<GOOGLE_FEED_SECRET>`): bara `id`
++ `custom_label_0/1/2`. Merchant Center slår ihop den med huvudfeeden på `id`,
+och kampanjen väljer produkter på `custom_label_0` (A/B — tom = inte med).
+`?lage=status` (räknarna) nås även med CRON_SECRET — workflow
+**"Google Shopping — tillaggsfeedens status"**.
+
+### Fyra egenskaper som inte ska tas bort
+
+1. ☠️ **Id:t är VARIANTENS** (`variants[0].wixVariantId`), inte produktens.
+   En rad på produkt-id matchar ingenting i huvudfeeden och etiketten sätts
+   tyst aldrig. Utan variant-id utelämnas raden och räknas.
+2. ☠️ **Inget artikelnummer, inget inköpspris, inget belopp** — etiketterna
+   är ord. Dealproffsens pris i kronor står inte i feeden, bara om vi ligger
+   under eller över. Testet låser det.
+3. ☠️ **Band och läge räknas på BUTIKENS pris** (`listV3ProductPrices`),
+   aldrig på mappningens `grossSek`. Tvetydigt pris → ingen etikett.
+4. ☠️ **Under 200 rader svarar rutten 503**, så Google behåller förra
+   tilläggsfeeden. Ett tomt svar hade strukit varje etikett — och därmed
+   varje produkt ur kampanjen — tills nästa hämtning.
+
+Nyckeln ligger bara på Vercel och matas in i Merchant Center för hand; fel
+nyckel ger 404, inte 401. Nio tester.
+
+## Aosom-recensioner: hämtas i webbläsaren, läses in via rutt (2026-09-16)
+
+Svepet `/api/cron/aosom-reviews` (2026-08-29) fick 403 på varje sida — Akamai
+släpper bara igenom riktiga webbläsare, och 2026-09-16 mättes samma 403 för
+`curl` med fulla webbläsarrubriker. Samma dag gav Aosom skriftligt tillstånd
+att hämta och översätta recensionerna, så vägen blev:
+
+1. **Hämtning i Leonards Chrome** (Claude in Chrome, en egen flik på aosom.de).
+   Deras sök-API `/rest/v1/searchApi/product?keyword=<artikelnummer>` ger
+   `sin`, `skuid`, `urlkey`, `score`, `commentCount` och `stockQty`. Deras
+   recensions-API `/block/template/detailComment?pageNum&pageSize=50&sin&skuid&_lang=de&_siteId=210&_version=test3&sort=default`
+   — samma anrop som deras produktsida gör — ger ALLA recensioner
+   (`list[]`: `qualityScore`, `title`, `content`, `ct` = datum, `imgurls` =
+   semikolonseparerade foton på img.aosomcdn.com, `sourceName`) och
+   `globalRateCount`/`globalReviewCount`. Produktsidans JSON-LD (högst fem
+   texter, utan datum och foton) var första vägen och är passerad: gymstationen
+   hade tolv recensioner i API:t, fyra i JSON-LD. ~2,4 s per produkt.
+   Aosom sa ja till texter OCH foton (2026-09-16).
+2. **Inläsning** via `POST /api/admin/aosom-reviews-ingest`
+   (`lib/aosom/review-ingest.ts`, tio tester), workflow
+   `aosom-reviews-ingest.yml` med `payload_file` i grenen — samma mönster som
+   review-translate. Nyttolasten är nycklad på **wixProductId**, bär tyska
+   texter, valfria svenska översättningar (`sv`), datum, kundfoton (bara
+   img.aosomcdn.com släpps igenom, hemflytt sker i importen), Aosoms betyg och
+   antal — aldrig artikelnummer (workflowen vägrar filer som matchar
+   artikelnummermönstret) och aldrig recensentens namn.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. Samma lagring som svepet: `importReviewsForProduct(..., { source: "aosom" })`
+   med husets filter oförändrat (betyg ≥ 3, längd, spam, utlandsleverans,
+   dubbletter), och aggregatet på mappningen (`aosomRating`,
+   `aosomReviewCount`) — ☠️ aldrig uträknat ur texterna.
+2. ☠️ En översättning skrivs bara på en rad som ligger som `pending` och bara
+   om `validateTranslation` godkänner den — samma grind som /admin/reviews.
+   Underkända räknas per skäl (`underkandaSkal`) och ligger kvar i kön.
+3. Högst 60 rader per anrop och tidsbudget 240 s; svaret bär `kvarFran` så
+   workflowen fortsätter från rätt rad. Torrt som default (`dryRun: false`
+   krävs för att skriva).
+4. Loggen bär bara räknare — rutten anropas från en publik Actions-logg.
+
+Butikssidan räknar i dag snitt och antal ur de SYNLIGA raderna
+(headless-site `lib/reviews.ts`), inte ur `aosomRating`/`aosomReviewCount`.
+Med filtret betyg ≥ 3 lutar det synliga snittet uppåt mot Aosoms — att visa
+Aosoms eget aggregat är nästa steg, inte gjort. Observera att Aosoms API bara
+lämnar ut 4- och 5-stjärniga recensioner (8 329 hämtade, ingen under 4), så
+snittet är högt oavsett vad vi räknar på.
+
+**Första inläsningen gjordes 2026-09-16** (skarpt, 0 skrivfel): 972 produkter
+(alla Aosom-produkter i annonsurvalet), 8 329 texter hämtade, 4 383 kvar efter
+husets filter (863 med kundfoton), 2 510 översatta till svenska och synliga —
+upp till fem per kampanjprodukt, tre per övrig. Resterande 1 873 ligger som
+`pending` (osynliga) och tas i en andra omgång via `review-translate.yml`, som
+redan tar en `payload_file` med översättningar. Nyttolasten låg på den
+tillfälliga grenen `claude/aosom-recensioner-2026-09-16` (raderad efter
+inläsningen — repon är publik). Rådata, filtrerad mängd och alla
+översättningar finns lokalt hos Leonard i `_claude_tmp/recensioner/`
+(git-exkluderat, bär artikelnummer). Översättningsreglerna som gällde:
+leverantörsnamn, budfirmor, recensentens namn, rabatter, sajt/säljare och
+utlovade leveranstider bort; kritik kvar; recensioner som bara handlar om
+leverans/retur/kundtjänst hoppas över; längd 0,45–2,2 × källan; ordet "fast"
+undviks (engelsk-markör i `validateTranslation`). Butikssidorna cachar
+recensionerna en timme (`revalidate: 3600`, tagg `reviews`) — omedelbar
+uppdatering kräver headless-sitens `/api/admin/revalidate?tag=reviews` med
+`ADMIN_SECRET`, som Claude inte läser.
+
+**Kundfotona flyttas hem.** Publicerade recensionsbilder får aldrig peka på
+leverantörens CDN (adressen syns vid högerklick). `withOwnImage` i
+`lib/store/reviews.ts` gör flytten vid publicering, men listan över
+leverantörsvärdar i `lib/wix/media-import.ts` kände bara AliExpress —
+`img.aosomcdn.com` lades till 2026-09-16 efter att 709 synliga Aosom-rader
+(1 130 foton) publicerats med Aosom-adresser. Redan publicerade rader lagas
+med workflowen `review-image-repair.yml` (loopar `repairImages` i
+`/api/cron/review-translate`, 40 rader per anrop, stannar när inget minskar).
+Pending-rader behåller källadressen med flit — flytten sker när raden blir
+synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
 
 ## Dubblett-spärr vid import
 
@@ -2362,6 +4135,58 @@ inte ska tas bort:
    prissättningen använder — så grinden kan inte drifta från regeln. Saknas
    underlaget svarar den `null` i stället för att gissa, och workflowen
    avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
+
+#### ☠️ Grinden säger numera VARFÖR den faller — `slutsald` (2026-09-06)
+
+Cordfåtöljen `1877cf83` fälldes med *"kostnaden har ändrats sedan importen och
+priset i Wix är gammalt"*. Talen sa något annat:
+
+```
+landedCostSek 2404,4
+forvantat     2899      ← 1,20 × 2404,4 = 2885,28 → charm99
+faktiskt      2889      ← samma tal      → charm9
+```
+
+Båda härleds ur SAMMA kostnad. Kostnaden hade inte rört sig — det var
+avrundningsstrategin som byttes 2026-09-03. Raden hade **saldo 0** och hade
+fallit ur feeden, och då räknas priset aldrig om:
+
+```ts
+// lib/aosom/sync.ts, planeraProdukt
+if (!row || opts.skipPrices || !variant) return plan;
+```
+
+`nyttSaldo` blir dessutom `null` när saldot redan är noll, så ingen skrivning
+sker och `aosomSyncedAt` fryser (här: åtta dygn). **Prisgrinden kunde alltså
+aldrig bli grön på den raden, hur länge man än väntade** — och felmeddelandet
+skickade felsökningen åt fel håll.
+
+`Prisgrind.slutsald` är tredje fältet i samma familj som `regelGäller` och
+`prisLast`: grinden faller, men skälet är ett annat och ska sägas rakt ut.
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Grenen ligger FÖRE `regelGäller`.** Annars vinner "kostnaden har
+   ändrats" över det sanna skälet, vilket är hela buggen.
+2. ☠️ **Bara ett uttryckligt `0` räknas.** `aosomSyncedQty` är optional och
+   saknas på en rad som aldrig synkats; `undefined` är ingen bevisning om
+   saldot, precis som en saknad hyllstatus blir `unknown` och aldrig
+   `offline`. Ett `!qty` hade fällt varje nyimporterad produkt.
+3. ⚠️ **Ett korrekt pris på en slutsåld rad fäller INTE jobbet** — bara en
+   varning. En rad som försvinner ur feeden är enligt Aosoms egen guide ett
+   lagerbesked, inte en utgången artikel, och sidan ska ligga kvar. Ett rött
+   jobb på det hade varit samma falsklarm som `regelGäller` byggdes för.
+4. ⚠️ **Fältet skiljer inte "borta ur feeden" från "finns kvar men slutsåld".**
+   Båda ger saldo 0 och båda fryser stämpeln, och mappningsraden bär inget
+   belägg för vilket det är. Meddelandet påstår därför bara det som går att
+   veta. En grind som påstår mer än den vet är precis felet den ersätter.
+
+⚠️ **Och saldot borde kollas FÖRE poleringen, inte fångas av en bieffekt.**
+Prisgrinden hittade `1877cf83` av en slump — ingenting i arbetsgången frågar
+"går varan att köpa?" innan en text skrivs. En sida för en vara ingen kan köpa
+är slöseri i båda ändar, och kollen kostar ett Wix-anrop för en hel runda.
+
+Fyra tester, verifierade genom att återinföra buggarna: `!qty` i stället för
+`=== 0` fäller ett, en hårdkodad `false` fäller tre.
 
 ### ☠️ Och två fällor till i samma block (2026-09-02)
 

@@ -51,3 +51,12 @@ tools/polish-assets/runda-107/rawbilder/
 tools/polish-assets/runda-107/kontaktark.jpg
 tools/polish-assets/runda-107/jamfor-modell-S.jpg
 tools/polish-assets/runda-107/granska-bild4.jpg
+
+# Live-hamtade produktsidor (tools/polish-gates/hamta-live.sh). Ett svep ar
+# ~850 kB HTML fran butiken, alltsa hamtad data och inget kallmaterial — och
+# fram till 2026-09-06 holls de utanfor commiten bara av att den som korde
+# `git add` kom ihag det. En sparr man maste komma ihag gloms bort.
+tools/polish-assets/*/live/
+tools/kategorifix/*/live/
+tools/polish-assets/*/img/
+tools/polish-assets/*/pub/

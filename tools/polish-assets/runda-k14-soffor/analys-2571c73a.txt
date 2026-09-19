@@ -1,0 +1,18 @@
+PRODUKT: 2571c73a-37e7-44bf-b23c-f42dec6fee55
+NAMN (källa, tyskt): Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges
+SLUG: ecksofa-3-sitzer-sofa-mit-fu-hocker-stoffbezug-l-formiges
+VISIBLE: false
+PRIS: 6199 kr
+RIBBON: EU-lager
+VARIANT-SKU (Wix): FP-ecksofa-3-sitzer-sofa
+ANTAL BILDER: 5
+
+=== plainDescription ORDAGRANT ===
+<p>Verwandeln Sie Ihr Wohnzimmer in eine Wohlfühloase mit dem Ecksofa mit Hocker. Es passt perfekt in kleine Ecken und bietet Platz für drei Personen. Der flexible Hocker der Couchgarnitur lässt sich zudem individuell aufstellen und kann als zusätzliche Sitzgelegenheit verwendet werden. Genießen Sie den hohen Komfort der dichten Schaumstoffpolsterung, umhüllt von weichem Cord. Ideal für stilvolle Wohnbereiche oder Büros.</p><h3>Beschreibung:</h3><ul><li><p>✔ Der frei bewegliche Hocker kann als zusätzliche Sitzgelegenheit verwendet werden</p></li><li><p>✔ Die kompakte Größe der Eckcouch bietet bequem Platz für drei Personen</p></li><li><p>✔ Füllung aus hochdichtem Schaumstoff bietet gemütlichen Komfort</p></li><li><p>✔ Weicher Cordbezug der Couch sorgt für ein weiches Sitzgefühl</p></li><li><p>✔ Verstellbare Fußpolster an den Kautschukholzbeinen gewährleisten Stabilität</p></li><li><p>✔ Moderner Stil mit gepolsterter Armlehne wertet die Einrichtung auf</p></li><li><p>✔ Abnehmbarer Kissenbezug ermöglicht eine einfache Reinigung</p></li></ul><h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Anthrazitgrau</p></li><li><p>✔ Materialien: Cordstoff (100% Polyester), Schaumstoff, Mehrschichtplatte, Kautschukholz</p></li><li><p>✔ Gesamtabmessungen: 196B x 140T x 88H cm</p></li><li><p>✔ Hocker-Größe: 63B x 63T x 46H cm</p></li><li><p>✔ Sitzgröße: 166B x 50T x 46H cm</p></li><li><p>✔ Sitzdicke: 12 cm</p></li><li><p>✔ Rückengröße: 166B x 32H cm</p></li><li><p>✔ Rückenkissengröße: 61L x 53B cm</p></li><li><p>✔ Rückenkissendicke: 20 cm</p></li><li><p>✔ Armlehnenhöhe zum Sitz: 17 cm</p></li><li><p>✔ Beinhöhe: 19,7 cm</p></li><li><p>✔ Gesamtbelastbarkeit: 360 kg</p></li></ul><h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Ecksofa</p></li><li><p>✔ 1 x Gebrauchsanleitung</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">Mått:</span> 196L x 140B x 88H cm</p></li><li><p><span style="font-weight: 700">Färg:</span> Dunkelgrau</p></li><li><p><span style="font-weight: 700">Material:</span> Polyester</p></li><li><p><span style="font-weight: 700">Vikt:</span> 47,7 kg</p></li><li><p><span style="font-weight: 700">Paketmått:</span> 170 × 61 × 50 cm</p></li></ul>
+
+=== ALT-TEXTER (alla fem bilder, ORDAGRANT — samtliga TYSKA) ===
+Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges Couch-Set, Dunkelgrau
+Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges Couch-Set, Dunkelgrau
+Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges Couch-Set, Dunkelgrau
+Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges Couch-Set, Dunkelgrau
+Ecksofa, 3-Sitzer-Sofa mit Fußhocker, Stoffbezug, L-förmiges Couch-Set, Dunkelgrau
