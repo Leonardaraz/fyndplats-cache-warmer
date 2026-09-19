@@ -1,0 +1,5 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+81bff775	4	antal fotplattor med falsthal raknade pa bild 1
+86c60239	285	markytans matt avlast pa mattbilden, bild 3
+180f81c1	4	antal upphangningskedjor raknade pa bild 1 och 3

@@ -246,7 +246,21 @@ FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga fråg
 # och grekiskt), medan gate-seo.py fällde exakt samma sträng i seo.tsv. Ett
 # tecken vi redan publicerar på flera sidor ska stå i listan — inte strykas ur
 # texten för att en av två grindar inte kände igen det.
-TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²Ø"
+# ☠️ ³ SAKNADES FAST HUSET REDAN PUBLICERAT DET (runda N31, 2026-09-19).
+# Samma hål som ² hade: listan fick ² när någon skrev om en YTA, och ingen
+# tänkte på VOLYMER. Uppmätt över alla rundors källfiler när N31 skulle skriva
+# "densitet 24 kg/m³": tecknet ligger ute på minst två publicerade sidor sedan
+# tidigare — K13:s a3a8d261 ("25 kg/m³") och N26:s a23ea344 ("15,2 m³ per
+# minut"), båda bekräftade i rundornas live/-hämtningar.
+#
+# Det är alltså exakt fallet raden om Ø beskriver: ett tecken vi redan
+# publicerar ska stå i listan, inte strykas ur texten för att en grind inte
+# känner igen det. Skillnaden mot Ø är att ³ aldrig FÄLLDE något — gate-seo
+# läser bara seo.tsv, och densiteten står i brödtexten. Hålet var därför tyst,
+# och syntes först när N31 svepte hela rundans kundvända filer mot listan i
+# stället för bara SEO-raden. Svep brett; en grind som bara läser en fil mäter
+# bara den filen.
+TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²³Ø"
 
 
 # ☠️ TUSENTALSAVSKILJAREN ÄR EN FORMATERING, INTE ETT NYTT TAL. Källan skriver
