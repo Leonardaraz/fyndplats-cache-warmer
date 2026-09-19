@@ -10,6 +10,7 @@ function item(overrides: Partial<ShopitFeedItem> = {}): ShopitFeedItem {
     descriptionHtml: "<p>Ett <strong>bra</strong> växthus.</p>",
     link: "https://fyndplats.se/produkt/vaxthus-med-takfonster",
     imageUrl: "https://static.wixstatic.com/media/foo.jpg",
+    categoryPath: "Hem & Inredning > Trädgård & Odling",
     priceSek: 959,
     inStock: true,
     ...overrides,
@@ -44,6 +45,17 @@ describe("buildShopitFeedXml", () => {
   it("hoppar över g:image_link när bild saknas, i stället för att skriva en tom tagg", () => {
     const xml = buildShopitFeedXml([item({ imageUrl: undefined })], META);
     expect(xml).not.toContain("g:image_link");
+  });
+
+  it("skriver g:product_type som Shopits Product Category (2026-09-19)", () => {
+    const xml = buildShopitFeedXml([item()], META);
+    expect(xml).toContain("<![CDATA[Hem & Inredning > Trädgård & Odling]]>");
+    expect(xml).toContain("<g:product_type>");
+  });
+
+  it("hoppar över g:product_type när kategorisökväg saknas, i stället för att gissa en", () => {
+    const xml = buildShopitFeedXml([item({ categoryPath: undefined })], META);
+    expect(xml).not.toContain("g:product_type");
   });
 
   it("XML-escapar & i länk och id", () => {

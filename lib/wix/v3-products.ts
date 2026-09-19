@@ -939,9 +939,99 @@ export interface WixV3FeedProduct {
   plainDescription?: string;
   imageUrl?: string;
   brandName?: string;
+  /** "Hem & Inredning > Badrum & Hemtextil" — undefined om produkten bara sitter i "All Products". */
+  categoryPath?: string;
   /** SEK, null när varianterna har olika pris (inget entydigt produktpris). */
   priceSek: number | null;
   inStock: boolean;
+}
+
+interface WixHeadlessCategory {
+  id: string;
+  name: string;
+  parentId?: string;
+}
+
+/**
+ * Kategoriträdet för Shopit-flödets `g:product_type` — EGEN hämtning, inte
+ * `getCollections()` i lib/wix/client.ts. Den funktionen läser `WIX_SITE_ID`
+ * ("gamla Fyndplats", se dess egen kommentar), medan den här filens produkter
+ * (och deras `directCategoriesInfo`-id:n) lever på den HEADLESS-sajten
+ * (`HEADLESS_WIX_SITE_ID`). Två olika Wix-siter, två olika id-rymder — att
+ * återanvända client.ts-versionen hade slagit upp id:n mot fel träd och tyst
+ * gett en tom eller felaktig kategorisökväg.
+ *
+ * Samma endpoint och kroppsform som client.ts (verifierad tidigare mot samma
+ * headless-sajt), men med den här filens egna `headers()`.
+ */
+async function fetchHeadlessCategories(): Promise<WixHeadlessCategory[]> {
+  const out: WixHeadlessCategory[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/categories/v1/categories/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        treeReference: { appNamespace: "@wix/stores" },
+        query: { cursorPaging },
+      }),
+    });
+    if (!res.ok) {
+      // Ett kategorifel ska inte stoppa hela flödet — produkter utan
+      // upplösbar kategoripath hoppas bara över (se buildCategoryPath).
+      if (res.status === 404 || res.status === 403) return out;
+      const text = await res.text();
+      throw new Error(`V3 feed-sweep: kategoriläsning misslyckades (${res.status}): ${text.slice(0, 400)}`);
+    }
+    const data = (await res.json()) as {
+      categories?: Array<{ id: string; name?: string; parentCategory?: { id?: string } }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const c of data.categories ?? []) {
+      if (!c.name) continue;
+      out.push({ id: c.id, name: c.name, ...(c.parentCategory?.id ? { parentId: c.parentCategory.id } : {}) });
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!data.pagingMetadata?.hasNext || !cursor) break;
+  }
+  return out;
+}
+
+/**
+ * Väljer den mest specifika kategorin bland produktens egna (den med flest
+ * föräldrar) och bygger sökvägen från roten till den — "Hem & Inredning >
+ * Badrum & Hemtextil". "All Products" är alltid med på varje produkt och är
+ * ingen riktig kategori; den utesluts, precis som poleringens egna kategori-
+ * grindar redan gör. Ingen upplösbar kategori → undefined, gissas inte fram.
+ */
+function buildCategoryPath(
+  categoryIds: readonly string[],
+  byId: ReadonlyMap<string, WixHeadlessCategory>,
+  allProductsId: string | undefined,
+): string | undefined {
+  const kandidater = categoryIds.filter((id) => id !== allProductsId && byId.has(id));
+  if (kandidater.length === 0) return undefined;
+
+  const djup = (id: string): number => {
+    let d = 0;
+    let cur = byId.get(id);
+    while (cur?.parentId) {
+      d++;
+      cur = byId.get(cur.parentId);
+    }
+    return d;
+  };
+  const leaf = kandidater.reduce((best, id) => (djup(id) > djup(best) ? id : best));
+
+  const path: string[] = [];
+  let cur: WixHeadlessCategory | undefined = byId.get(leaf);
+  while (cur) {
+    path.unshift(cur.name);
+    cur = cur.parentId ? byId.get(cur.parentId) : undefined;
+  }
+  return path.length > 0 ? path.join(" > ") : undefined;
 }
 
 /**
@@ -973,6 +1063,10 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
   let totalRead = 0;
   let cursor: string | undefined;
 
+  const categories = await fetchHeadlessCategories();
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  const allProductsId = categories.find((c) => c.name === "All Products")?.id;
+
   for (let sida = 0; sida < MAX_PRIS_SIDOR; sida++) {
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
@@ -987,7 +1081,7 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
         res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
           method: "POST",
           headers: headers(),
-          body: JSON.stringify({ fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } }),
+          body: JSON.stringify({ fields: ["PLAIN_DESCRIPTION", "DIRECT_CATEGORIES_INFO"], query: { cursorPaging } }),
         });
       } catch (err) {
         sistaFel = err instanceof Error ? err.message : String(err);
@@ -1022,6 +1116,7 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
         plainDescription?: string;
         media?: { main?: { image?: { url?: string } } };
         brand?: { name?: string };
+        directCategoriesInfo?: { categories?: Array<{ id?: string }> };
         actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
         inventory?: { availabilityStatus?: string };
       }>;
@@ -1037,6 +1132,9 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
       const min = Number(p.actualPriceRange?.minValue?.amount);
       const max = Number(p.actualPriceRange?.maxValue?.amount);
       const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+      const categoryIds = (p.directCategoriesInfo?.categories ?? [])
+        .map((c) => c.id)
+        .filter((id): id is string => !!id);
       out.push({
         id: p.id,
         name: p.name,
@@ -1044,6 +1142,7 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
         plainDescription: p.plainDescription,
         imageUrl: p.media?.main?.image?.url,
         brandName: p.brand?.name,
+        categoryPath: buildCategoryPath(categoryIds, byId, allProductsId),
         priceSek: entydigt ? min : null,
         inStock: p.inventory?.availabilityStatus === "IN_STOCK",
       });

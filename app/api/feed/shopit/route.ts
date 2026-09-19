@@ -12,9 +12,9 @@
 // gäller inte här, hela poängen är att en extern part ska läsa allt.
 //
 // Bara `visible: true`-produkter (se listV3ProductsForFeed i
-// lib/wix/v3-products.ts) och bara produkter med ETT entydigt pris och en
-// bild tas med — rader som saknar det som Google/Shopit kräver hoppas över,
-// gissas inte fram.
+// lib/wix/v3-products.ts) och bara produkter med ETT entydigt pris, en bild
+// och en upplösbar kategorisökväg tas med — rader som saknar det som
+// Google/Shopit kräver hoppas över, gissas inte fram.
 //
 // 502, inte en tom 200, om sveparen kastar — annars ser "läsningen föll" ut
 // exakt som "katalogen är tom" för Shopits poller.
@@ -38,6 +38,9 @@ export async function GET() {
       // Inget entydigt pris (variantspann) → hoppas över, gissas inte fram.
       if (p.priceSek === null) continue;
       if (!p.imageUrl) continue;
+      // Shopit kräver en kategorisökväg. Bara "All Products" duger inte —
+      // hoppas över i stället för att gissas fram, se listV3ProductsForFeed.
+      if (!p.categoryPath) continue;
       const link = storeProductUrl(p.slug);
       if (!link) continue;
       items.push({
@@ -46,6 +49,7 @@ export async function GET() {
         descriptionHtml: p.plainDescription,
         link,
         imageUrl: p.imageUrl,
+        categoryPath: p.categoryPath,
         priceSek: p.priceSek,
         inStock: p.inStock,
       });
