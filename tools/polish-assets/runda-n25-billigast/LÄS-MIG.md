@@ -85,7 +85,7 @@ rättningarna och gav 0 fynd innan Steg 1 skrevs.
 | Steg 3 (kategori, `BulkAddItemsToCategory`) | 8/8 produkter bär rätt kategori + Wix egna "All Products", verifierat mot `directCategoriesInfo` i en separat läsning |
 | Steg 4 (variant-SKU, round-trip från FULL GET, sist och ensam) | 8 av 8 skrivna och verifierade i en separat läsning; `visible` oförändrat på produkt OCH variant på alla åtta |
 | Mappningsstämpling + oberoende `las`-verifiering | 8 av 8, båda leden bevisade — varje `las`-körning läste tillbaka rätt SKU, `needsAiPolish:false`, `draftStatus:published` och prisgrindens `stämmer:true` ordagrant |
-| `hamta-live.sh` + `livegrind.py` (ISR-medveten live-verifiering) | PÅGÅR — sidorna är helt nya (age=0 vid varm träff), väntar ut det första ISR-fönstret innan skarpt svep; resultatet läggs till i en uppföljande commit |
+| `hamta-live.sh` + `livegrind.py` (ISR-medveten live-verifiering) | 8/8 HTTP 200, age 70–71 s vid det skarpa svepet (bekräftar den egna omrenderingen, inte en gammal cache); 8/8 REN, 0 avvikelser i den PUBLICERADE texten |
 
 ## Kategorier
 
@@ -120,11 +120,10 @@ DURHAND-fynden i tidigare rundor.
 
 ## Sammanfattning
 
-Alla åtta produkter är publicerade, stämplade och verifierade i tre
+Alla åtta produkter är publicerade, stämplade och verifierade i fyra
 separata led: textinnehåll (återläsning mot fil-hash, 8/8 LIKA),
 bild/kategori/SKU (separata `MEDIA_ITEMS_INFO`/`directCategoriesInfo`/
-`variantsInfo`-läsningar) och mappningsstämpel (oberoende `las`-körning).
-Det fjärde ledet — `livegrind.py` mot den PUBLICERADE, ISR-färska sidan —
-pågår och läggs till i en uppföljande commit när butikens
-bakgrundsrendering hunnit klart. Rundan räknas i övrigt som klar, utom
-faktakorten, som är en medveten uppskjutning av samma skäl som N15–N24.
+`variantsInfo`-läsningar), mappningsstämpel (oberoende `las`-körning) och
+den PUBLICERADE, ISR-färska sidan (`livegrind.py`, 8/8 REN, 0 avvikelser).
+Rundan räknas som klar utom faktakorten, som är en medveten uppskjutning
+av samma skäl som N15–N24.
