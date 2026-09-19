@@ -156,7 +156,7 @@ fem. `gate-alt.py` och `bygg-media.py` räknar antalet ur `bilder.tsv` minus
 | Steg 4 (variant-SKU, round-trip från FÄRSK GET, sist och ensam) | 8 av 8 skrivna; `visible` medskickat oförändrat, priset orört |
 | Samlad separat slutläsning av alla fyra stegen | **8 av 8 helt verifierade** — text-hash, bildantal, produktens OCH variantens `visible: true`, rätt SKU, pris 1629, rätt kategori + Wix egna "All Products" |
 | Mappningsstämpling + oberoende `las`-verifiering | 8 av 8 — varje `las`-logg läste tillbaka rätt SKU, `needsAiPolish: false`, `draftStatus: published` och `stämmer: true` |
-| `hamta-live.sh` + `livegrind.py` (ISR-medveten live-verifiering) | se "Live-verifiering" nedan |
+| `hamta-live.sh` + `livegrind.py` (ISR-medveten live-verifiering) | 8/8 HTTP 200, **8/8 REN, 0 avvikelser** i den publicerade texten (orddiff 0 på alla åtta) |
 
 ☠️ **Steg 4 följer husets EGEN skrivare, inte en handbyggd kropp.**
 `updateV3VariantPrices` skickar `options` bara när produkten HAR options
@@ -256,18 +256,38 @@ bild 1 och 3. Källan skriver `Knöchelpolstern` i plural men anger aldrig
 antalet, och utan kvittensen hade ordtalsvarningen flaggat ett påstående som
 faktiskt är avläst ur fotot.
 
-## Live-verifiering
+## Live-verifiering: 8/8 REN, 0 avvikelser
 
-`hamta-live.sh` + `livegrind.py` kördes mot de publicerade sidorna. Sidorna
-är HELT nya — de svarade 404 som utkast — så den första hämtningen är också
-den första renderingen, och skriptet måste vänta ut hela
-femminutersfönstret innan den skarpa hämtningen kan läsa något annat än sin
-egen färska rendering.
+`hamta-live.sh` + `livegrind.py` mot de publicerade, ISR-färska sidorna:
+**8/8 HTTP 200, 8/8 REN, 0 avvikelser i den PUBLICERADE texten.** Orddiffen
+mot källfilen är 0 på alla åtta (366–410 ord per sida), och sid-, alt- och
+SEO-svepen är rena — alltså renderas `<title>` och metabeskrivningen exakt
+som `seo.tsv`, de tre flikrubrikerna matchar splittern ordagrant,
+brödsmulan bär en riktig kategori på alla åtta, och ingen sida renderar
+`OutOfStock`.
 
-⚠️ Att köra grinden före det fönstret hade gett ett svar som ser ut precis
-som ett fungerande — samma fälla som recensionsverifieringen gick i. Rundans
-fyra Wix-skrivsteg är redan oberoende verifierade var för sig (tabellen
-ovan), så live-grinden är det FEMTE ledet, inte det enda.
+Sidorna var HELT nya — de svarade 404 som utkast — så den första hämtningen
+är också den första renderingen. Skriptet väntade därför ut hela
+femminutersfönstret innan den skarpa hämtningen. ⚠️ Att köra grinden före
+det hade gett ett svar som ser ut precis som ett fungerande, samma fälla som
+recensionsverifieringen gick i.
+
+Två observationer ur hämtningen, båda ofarliga men värda att skriva ned:
+
+- ⚠️ **`1f3077a4` svarade 500 med `age: 28571` på den varma träffen.**
+  Slugen är ny, så edgen bar en gammal cachad post för en adress som inte
+  fanns när den cachades. Den skarpa hämtningen gav `200` med `age: 0`,
+  alltså en helt färsk rendering — och orddiffen på den är 0.
+- ⚠️ **`66d781f8` serverades med `age: 431`,** alltså den rendering den
+  VARMA träffen själv utlöste, inte den som omträffen skulle ha startat.
+  Ofarligt här eftersom den varma träffen låg efter samtliga fyra
+  skrivsteg, och grinden är ren — men det är precis den sortens tal man
+  ska läsa innan man litar på ett svep. `hamta-live.sh`:s egen kommentar
+  säger det rakt ut: en sida i taget är facit, ett svep är ett stickprov
+  med tidsberoende.
+
+Rundans fyra Wix-skrivsteg är dessutom redan oberoende verifierade var för
+sig (tabellen ovan), så live-grinden är det FEMTE ledet, inte det enda.
 
 ## Sammanfattning
 
