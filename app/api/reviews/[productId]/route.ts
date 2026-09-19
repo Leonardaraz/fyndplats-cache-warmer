@@ -1,75 +1,55 @@
+// GET /api/reviews/<produkt-id>
+//
+// Publik läs-endpoint: GODKÄNDA recensioner för en produkt. Butiken
+// (headless-site, lib/reviews.ts) renderar produktsidans recensionssektion ur
+// det här svaret. Ingen auth — recensionerna är publik social proof.
+// Returnerar BARA publika fält (se lib/reviews/public-view.ts).
+//
+// ☠️ SVARET LÄSES NUMERA UR ÖGONBLICKSBILDEN, INTE UR POSTGRES.
+//
+// Adressen och svarsformen är oförändrade — butiken vet ingenting om bytet,
+// och ska inte behöva veta det. Det som ändrades är varifrån raderna kommer:
+// lib/reviews/snapshot.ts, en bild av hela lagret som hämtas en gång i timmen.
+//
+// Skälet, uppmätt 2026-09-17: den här rutten frågade Postgres en gång per
+// renderad produktsida. 591 frågor på tre timmar, 554 olika produkter, största
+// lucka 2 min 57 s — dygnet runt. Neon somnar efter fem minuters tystnad och
+// debiterar tiden den är vaken, så databasen kostade dygnet-runt-pris: ~180
+// CU-timmar i månaden mot en pott på 100, slut den 17:e.
+//
+// Cache-headern nedan fanns redan HELA TIDEN och räddade ingenting: med 1 251
+// produkter hinner varje produkts cache gå ut innan någon frågar om samma
+// produkt igen. Nästan varje anrop loggades `cache=MISS`. Det är därför lösningen
+// är en delad bild och inte en längre TTL.
+//
+// ⚠️ FALLBACKEN ÄR INTE VALFRI. Saknas bilden, eller kommer den i fel form,
+// läser vi lagret precis som förut. En produktsida utan omdömen ser inte ut som
+// ett fel — den ser ut som en produkt utan omdömen, och hade stått så i veckor
+// utan att någon reagerat. Dyrare är bättre än tyst fel.
 import { NextResponse } from "next/server";
-import { reviewImages } from "@/lib/reviews/images";
-import { getReviewStore, isVisibleStatus, type StoredReview } from "@/lib/store/reviews";
-import { reviewDisplayMode, reviewDisplayName } from "@/lib/import/review-display";
-import { isCustomerReview } from "@/lib/reviews/queue";
-
-// Publik läs-endpoint: visar GODKÄNDA recensioner för en produkt. Headless-PDP:n
-// läser normalt Wix Data direkt, men denna endpoint finns för felsökning/återbruk.
-// Ingen auth — recensionerna är publik social proof. Returnerar BARA publika fält
-// (visningsnamn enligt REVIEW_DISPLAY_MODE; original/land/rånamn utelämnas).
+import { hamtaSnapshot, nyastForst, urSnapshot } from "@/lib/reviews/snapshot";
+import { snittBetyg, toPublicReview, type PublicReview } from "@/lib/reviews/public-view";
+import { getReviewStore, isVisibleStatus } from "@/lib/store/reviews";
 
 export const dynamic = "force-dynamic";
 
-interface PublicReview {
-  reviewIdAE: string;
-  /**
-   * True när raden är skriven av en av butikens EGNA kunder efter ett verifierat
-   * köp, inte importerad från leverantören. Samma namn som headless-site:
-   * lib/reviews.ts:101 använder, så de två vyerna av samma data stämmer överens.
-   *
-   * Fältet saknades här fram till 2026-08-22 — en konsument av den här rutten
-   * kunde alltså inte skilja ett förstahandsomdöme från en AliExpress-import,
-   * trots att bara det förra får räknas in i aggregateRating mot Google.
-   */
-  firstParty: boolean;
-  rating: number;
-  text: string;
-  displayName: string;
-  /**
-   * Initialerna som de lagrats ("M.K.").
-   *
-   * ☠️ TOMSTRÄNG NÄR PANIKLÄGET ÄR PÅ. Butiken tillämpar sin EGEN
-   * `REVIEW_DISPLAY_MODE` på det den får — men de två projekten har varsin
-   * miljö, och en switch som bara är satt här hade annars kunnat kringgås av
-   * att butiken läser `initials` i stället för `displayName`. Att redigera
-   * bort dem HÄR gör att killswitchen biter oavsett vilket projekt den sitter
-   * i. Rånamnet (`customerNameRaw`) lämnar aldrig lagret alls.
-   */
-  initials: string;
-  /**
-   * Radens ursprung: "customer" (vår egen kund), "aosom", eller utelämnat för
-   * en AliExpress-import.
-   *
-   * ☠️ BUTIKEN MÅSTE KUNNA RENDERA HÄRKOMSTEN. Artikel 7.6 UCPD kräver
-   * upplysning om huruvida recensionerna kommer från konsumenter som faktiskt
-   * använt produkten, och bilaga I §23b förbjuder att presentera andras
-   * omdömen som egna kunders. Utan fältet kan sidan inte följa reglerna —
-   * `firstParty` räcker inte, för det säger bara "inte vår kund", inte vems.
-   */
-  source?: string;
-  date?: string;
-  hasImage: boolean;
-  imageUrl?: string;
-}
-
-function toPublic(r: StoredReview): PublicReview {
-  return {
-    reviewIdAE: r.reviewIdAE,
-    firstParty: isCustomerReview(r),
-    rating: r.rating,
-    text: r.textSwedish || r.textOriginal,
-    displayName: reviewDisplayName(r.initials),
-    // Redigeras bort när paniklaget är på — se fältets kommentar.
-    initials: reviewDisplayMode() === "verified_buyer" ? "" : r.initials,
-    ...(r.source ? { source: r.source } : {}),
-    date: r.date,
-    hasImage: Boolean(r.hasImage),
-    ...(r.hasImage && r.imageUrl ? { imageUrl: r.imageUrl } : {}),
-    // Hela listan också, annars ser den publika rutten bara en bild per
-    // recension medan produktsidan visar alla (granskning 2026-08-19).
-    ...(r.hasImage ? { imageUrls: reviewImages(r) } : {}),
-  };
+/** Lagret direkt — vägen vi tar när bilden inte gick att få. */
+async function franLagret(productId: string): Promise<PublicReview[] | null> {
+  try {
+    const rader = await getReviewStore().listByProduct(productId);
+    // ☠️ SAMMA SORTERING SOM BILDEN, inte lagrets. `order by date desc` i SQL
+    // säger ingenting om ordningen mellan LIKA datum, så utan den här raden ger
+    // fallbacken en annan ordning än bilden för varje produkt som har två
+    // omdömen från samma dag — och kunden ser recensionerna hoppa om beroende
+    // på vilken väg svaret tog. Uppmätt på skarp data 2026-09-18.
+    return rader
+      .filter((r) => isVisibleStatus(r.status))
+      .sort(nyastForst)
+      .map(toPublicReview);
+  } catch (err) {
+    console.warn("[api/reviews] kunde inte läsa recensioner:", err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 export async function GET(
@@ -81,26 +61,24 @@ export async function GET(
     return NextResponse.json({ error: "Saknar productId" }, { status: 400 });
   }
 
-  let reviews: StoredReview[] = [];
-  try {
-    reviews = await getReviewStore().listByProduct(productId);
-  } catch (err) {
-    console.warn("[api/reviews] kunde inte läsa recensioner:", err instanceof Error ? err.message : err);
+  const bild = await hamtaSnapshot();
+  // `?? []` bara när bilden FANNS: en produkt som saknas i en giltig bild har
+  // inga synliga omdömen, och det är ett riktigt svar. Saknas bilden helt är
+  // det något annat, och då går vi till lagret.
+  const reviews = bild ? urSnapshot(bild, productId) : await franLagret(productId);
+
+  if (reviews === null) {
+    // Båda vägarna föll. Samma svar som förut: 200 med tom lista, så
+    // produktsidan renderar utan sektionen i stället för att gå sönder.
     return NextResponse.json({ productId, count: 0, average: null, reviews: [] }, { status: 200 });
   }
-
-  const visible = reviews.filter((r) => isVisibleStatus(r.status));
-  const average =
-    visible.length > 0
-      ? Math.round((visible.reduce((s, r) => s + r.rating, 0) / visible.length) * 10) / 10
-      : null;
 
   return NextResponse.json(
     {
       productId,
-      count: visible.length,
-      average,
-      reviews: visible.map(toPublic),
+      count: reviews.length,
+      average: snittBetyg(reviews),
+      reviews,
     },
     {
       status: 200,
