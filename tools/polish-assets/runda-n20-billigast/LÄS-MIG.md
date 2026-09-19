@@ -76,8 +76,9 @@ redan rätt utan att dra ifrån något.
 - **`e78ebbb6` (spegel)**: samma artefakt, "Ganzkörperspiegel **von** ." —
   samma lagning.
 - **Artikelnummer strukna, aldrig transkriberade**: källan för `5a004e82`
-  bär `84J-092V00MX` och för `4c6ffd03` `830-877V01GN`. Ingetdera förekommer
-  någonstans i den skrivna texten, SEO-fälten eller alt-texterna.
+  och `4c6ffd03` bar vardera ett Aosom-artikelnummer (utelämnat här — repot
+  är publikt och numret hör bara hemma på `supplierProductId`). Ingetdera
+  förekommer någonstans i den skrivna texten, SEO-fälten eller alt-texterna.
 
 ## Gate-genomgång
 
