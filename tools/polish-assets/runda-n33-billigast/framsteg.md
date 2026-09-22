@@ -8,14 +8,14 @@ vad som är gjort.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 82000c6b | ✓ skriven | – | – | – | – | – | – |
-| 2f251ce3 | ✓ skriven | – | – | – | – | – | – |
-| 5c566983 | ✓ skriven | – | – | – | – | – | – |
-| 07565140 | ✓ skriven | – | – | – | – | – | – |
-| 30f2151f | ✓ skriven | – | – | – | – | – | – |
-| dbedaf4c | ✓ skriven | – | – | – | – | – | – |
-| b2b731c7 | ✓ skriven | – | – | – | – | – | – |
-| b3efdd39 | ✓ skriven | – | – | – | – | – | – |
+| 82000c6b | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| 2f251ce3 | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| 5c566983 | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| 07565140 | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| 30f2151f | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| dbedaf4c | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| b2b731c7 | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| b3efdd39 | ✓ skriven | ✓ skriven | – | – | – | – | – |
 
 ## Läge
 
@@ -34,6 +34,8 @@ vad som är gjort.
   per produkt + namn/slug/SEO över hela batchen) 0 avvikelser, revision +1 på
   alla. Ej återläst ännu. Nuläget lästes först: revisioner, pris och SKU
   oförändrade sedan förberedelsen.
+- Steg 2 skrivet: 8 av 8 (37 bilder med alt-text, fil-id + alt-summan i samma
+  anrop 0 avvikelser), revision +1 på alla. Ej återläst ännu.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
