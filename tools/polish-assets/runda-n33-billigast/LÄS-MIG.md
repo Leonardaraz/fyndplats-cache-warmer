@@ -45,8 +45,8 @@ kontrollerat i varje logg):
 
 Steg 4 läste ändå variant-id och revision ur en FÄRSK `GET` i samma anrop
 som skrivningen, och alla åtta variant-id stämde med tabellen. `variant.tsv`
-är utläst ur tabellen av ett skript (`bygg-steg.py` jämför mängderna), och
-slutläsningen kontrollerar variant-id mot den. Revisionerna vid förberedelsens
+är utläst ur tabellen av ett skript som kontrollerade att mängden id är
+exakt `ids.tsv`:s, och slutläsningen kontrollerar variant-id mot den. Revisionerna vid förberedelsens
 slutläsning (`82000c6b` 2, `2f251ce3` 4, `5c566983` 2, `07565140` 4,
 `30f2151f` 2, `dbedaf4c` 2, `b2b731c7` 5, `b3efdd39` 1) var oförändrade när
 skrivningen började — ingen annan hade rört produkterna.
@@ -226,6 +226,64 @@ batteri-LED mot USB) och `13a52237` (runt matbord Ø110 cm, 1 939 kr, saldo
 13 — ett annat bord än `6246ff12`: höjd 78 mot 75, fot Ø64,5 mot Ø61). Båda
 står under *Bortvalda* i `FLAGGADE.md`.
 
+## ☠️ Granskningen före skrivningen — fem ändringar, och en rättelse som själv föll på en grind
+
+En oberoende granskning läste utkasten med fyra linser. Tre granskare per fynd
+försökte motbevisa det, och ett fynd stod bara med minst två av tre röster.
+Till skrivpasset överlämnades **åtta bekräftade fynd, alla med 3 av 3
+röster**. Tre av dem förekom två gånger — en gång med filnamnet och en gång
+med hela sökvägen — så de åtta är **fem unika ändringar**, alla införda i
+filerna före första skrivningen (`bfe4437`):
+
+| lins | id | fält | stod | nu |
+|---|---|---|---|---|
+| bildfakta | `30f2151f` | brödtext, första stycket | …och timern upp till 60 minuter, med vred **på ovansidan**. | …med vred **ovanför luckan**. |
+| bildfakta | `30f2151f` | brödtext, *Vred, timer och tillbehör* | Apparaten styrs med vred **på ovansidan**. | …med vred **ovanför luckan**. |
+| bildfakta | `30f2151f` | alt-text, bild 1 | …miniugn med vred **på ovansidan och glaslucka** | …miniugn med vred **ovanför glasluckan** |
+| syftning | `b2b731c7` | skötselfliken | Somna inte med **den** igång | Somna inte med **apparaten** igång |
+| övrigt | `07565140` | produktnamnet | …– vit med **träskiva**, låda och kryddhylla i dörren | …– vit, **skiva i träton**, låda och kryddhylla i dörren |
+
+Per lins: bildfakta 3 (var och en två gånger i överlämningen), syftning 1,
+övrigt 1. Antalet råfynd per lins och de fynd granskarna avfärdade följde inte
+med överlämningen och redovisas därför inte här — den här filen påstår bara
+det som faktiskt passerat skrivpasset.
+
+☠️ **Vreden: fel i tre fält, och bara ett öga på fotot kunde se det.** Bild 1
+lästes om i full upplösning (2 000 × 2 000 px) innan ändringen fördes in:
+temperaturvredet, två funktionsvred, timervredet och strömlampan sitter i ett
+band på FRAMSIDAN, direkt ovanför luckans handtag, och ovansidan är slät.
+Ingen grind kunde fälla det — *ovansidan* är korrekt svenska och inget tal var
+fel. Och källan anger ingen placering alls, så felet var rundans eget: en
+beskrivning av fotot som inte stämde med fotot, skriven trots att kontaktarket
+byggdes före texten. Arket visar produkten i 600 px; vredbandet är tydligt
+först i full upplösning.
+
+☠️ **Namnet: granskarnas förstahandsrättelse föll på `gate-seo.py`.**
+*"Sideboard 100 cm i lantstil – vit med skiva i träton, låda och kryddhylla i
+dörren"* är **82 tecken**, och grinden fällde direkt:
+
+```
+07565140: [NAMN FÖR LÅNGT] 82 tecken > 80 — Wix avvisar hela skrivningen
+```
+
+Hade den gått vidare hade steg 1 fått ett avvisat anrop för den produkten —
+namn, slug, brödtext, SEO och synlighet på en gång, eftersom de skrivs i samma
+PATCH. Granskarnas eget andra alternativ, *"…– vit, skiva i träton, låda och
+kryddhylla i dörren"*, är 79 tecken och säger samma sak, och det är det som
+står i butiken. **Lärdomen: en rättelse är en ny text och grindas som en.**
+Granskarna läste ord och inte tecken, och det var rätt av dem — att räkna
+tecken är grindens jobb.
+
+Rättat per ORD, inte per förekomst: *ovansida* står kvar på ett enda ställe i
+rundan, `b2b731c7`:s *"en pall … med stoppad ovansida"* — där är ordet rätt.
+*träskiva* fanns bara i `namn.tsv` och i tabellen överst i den här filen, *med
+den igång* bara en gång.
+
+Efter ändringarna omgenererades `raa-hash.tsv`, `vantat-hash.tsv`,
+`nyttolast-media.json`, `medieskrivning.json`, `media-hash.tsv` och
+`steg2.js`, och ALLA grindar kördes om — grindtabellen längre ned är
+omkörningens.
+
 ## Facit bevisat mot skarpa Wix — 8 av 8 på första körningen
 
 `kallor.json` och `bilder.tsv` skrevs av från Wix-svaret och kontrollerades
@@ -357,6 +415,10 @@ två rader till — se avsnittet efter live-verifieringen.
 
 ## Gate-genomgång
 
+Varje filgrind nedan kördes om efter granskningens ändringar, och en gång till
+efter den andra korrekturläsningens två (se längre ned). Utfallet var detsamma
+alla gånger utom den rad som anges.
+
 | Gate | Resultat |
 |---|---|
 | `kallor.json` + `bilder.tsv` mot skarpa V3 (h·31, server-side, artikelnummer redigerat på båda sidor) | **8 av 8 text LIKA, 8 av 8 bildlista LIKA** |
@@ -364,7 +426,7 @@ två rader till — se avsnittet efter live-verifieringen.
 | `gate.py` | **0 fynd i 8 filer, 0 varningar** (tre räkneord kvitterade i `foto-tal.txt`, två råd-tal i `rad-tal.txt`) |
 | `bygg-axelfacit.py` + `gate-axel.py` | **0 axelfel** i 8 texter (4 axelkonflikter i källan, upplysning; `82000c6b` saknar totalmått i tyskan och är axellös) |
 | `gate-alt.py` | **REN**, 8 produkter, 37 alt-texter |
-| `gate-seo.py` | **0 fynd** i 8 rader (titlar 43–58 tecken, beskrivningar 144–160) |
+| `gate-seo.py` | **0 fynd** i 8 rader (titlar 43–58 tecken, beskrivningar 144–160) — men **1 fynd** på granskningens förstahandsnamn för `07565140` (82 > 80 tecken); alternativet, 79 tecken, gav 0 |
 | `gate-lager.py` | **0 fynd**, lägsta saldo 27 |
 | `gate-sku.py` | **0 fynd** (längsta 33 av 40 tecken) |
 | SKU-krock mot ALLA tidigare rundors `sku.tsv` (55 filer, 431 SKU:er) | **8 av 8 unika, noll krockar, noll prefixöverlapp** |
@@ -374,6 +436,18 @@ två rader till — se avsnittet efter live-verifieringen.
 | Läcksvep över rundans 13 KUNDVÄNDA filer (alla `gatelib.GRINDAR` + 59 extra tyska ord ur rundans källor) | **0 fynd** |
 | Teckensvep mot `TILLATNA_TECKEN` | **0 oväntade tecken** |
 | `npx vitest run lib/polish` | **99 av 99 gröna** (8 filer, bland dem `artikelnummer-lackage`, `gate-kopior`, `wixnorm-tvilling`) |
+| Steg 1 (namn/slug/brödtext/visible/SEO) — TVÅ spärrar i samma anrop | 0 avvikelser, **8 av 8 skrivna** |
+| Steg 2 (media, fil-id + alt) — spärr i samma anrop | 0 avvikelser, **8 av 8 skrivna** |
+| Steg 3 (kategori, bulk add-items, id uppslagna på namn i samma anrop) | 8 anrop, `totalFailures: 0`, `undetailedFailures: 0`, per-rad `success: true` på **13 av 13** |
+| Steg 4 (variant-SKU, round-trip ur FÄRSK GET, sist och ensam) | spärren `926991554 / 611` räknad av `bygg-steg.py`, **8 av 8 skrivna** |
+| Samlad SEPARAT slutläsning (`steg5.js`) | **8 av 8 helt verifierade** |
+| Färsk `las` före stämplingen | **8 av 8** oförändrade, `stämmer: true` |
+| Mappningsstämpling + oberoende `las`-verifiering | **8 av 8** |
+| `livegrind.py`, första cykeln | **8/8 REN, orddiff 0**, `age` 140–141 s |
+| Andra korrekturläsningen (295 utplockade satser) | **2 fynd**, rättade i filen och skrivna |
+| Rättelsens skrivning (`--rattelse`, bara `plainDescription`) | 0 avvikelser, **2 av 2 skrivna** |
+| Separat läsning efter rättelsen | **8 av 8 helt verifierade** |
+| `livegrind.py`, andra cykeln (efter rättelsen) | **8/8 REN, orddiff 0**, `age` 133–140 s |
 
 ⚠️ Läcksvepets första körning gav ett fynd: det extra ordet *Ring* träffade
 rubriken *"Ring som fjädrar vid en dunk"*. *Ring* är samma ord på svenska —
@@ -390,8 +464,9 @@ som tripplar och binder aldrig ett av produktens egna mått till fel axel.
 
 Valda efter vad publicerade sidor av samma varutyp bär (mätt på deras
 `directCategoriesInfo` ur ett FÄRSKT `categories/v1/categories/query`, 54
-kategorier). Namnen står i `kategori.tsv`; id:na ska slås upp på NAMN i samma
-anrop som skrivningen, som i N32.
+kategorier). Namnen står i `kategori.tsv`, och id:na slogs upp på NAMN i en
+färsk `categories/query` i samma anrop som skrivningen (54 kategorier, alla
+åtta namnen träffade) — aldrig ur minnet eller en tidigare rundas anteckning.
 
 | id | kategori | förebild |
 |---|---|---|
@@ -403,6 +478,19 @@ anrop som skrivningen, som i N32.
 | dbedaf4c (sideboard) | Hem & Inredning + Förvaring & Organisering | `19f566d8` |
 | b2b731c7 (massage) | Skönhet & Hälsa + Massage & Återhämtning | `18386a6c` |
 | b3efdd39 (matbord) | Hem & Inredning | `90a96877`, `6246ff12`, `4164ae56` |
+
+**13 av 13 kopplingar `success: true`**, åtta bulk-anrop (ett per kategori),
+`totalFailures: 0` och `undetailedFailures: 0` i alla. Slutläsningen visar
+`antalKat` 3 på de fem med två kategorier och 2 på de tre med bara
+`Hem & Inredning` — de kopplade plus Wix egna `All Products`. Trädet har inget
+möbellöv, så matstolarna, bänken och matbordet får toppkategorin, samma
+bedömning som N23–N32.
+
+⚠️ **Per-rad-utfallet attribueras på radens eget `catalogItemId`, inte på
+ordningen.** Svaret bär `itemMetadata.item.catalogItemId`; `originalIndex` är
+bara reserv, eftersom ett protobuf-heltal som är 0 kan utelämnas ur JSON:en.
+Hade skriptet letat på `originalIndex === 0` hade den första produkten i
+varje anrop kunnat rapporteras som omatchad — åt det ofarliga hållet, men fel.
 
 ## Kvitterade tal
 
@@ -423,14 +511,141 @@ Samma kostnadsavvägning som N15–N32: inget `kort-filer.tsv` finns i rundans
 katalog, och `bygg-medieskrivning.py` rapporterar "inget kort denna runda" per
 produkt — ett uttalat val, inte en tyst utelämning.
 
+## Skrivstegen
+
+Allt skrevs i N31:s fyra steg, ett anrop per steg för alla åtta, varje
+nyttolast GENERERAD ur rundans filer och varje facit räknat av ett skript —
+inget skrivet för hand. Nuläget lästes först (revisioner, pris, SKU, synlighet
+oförändrade sedan förberedelsen).
+
+1. **Namn, slug, brödtext, `visible` och SEO** (`bygg-skrivning.py`). Två
+   spärrar i samma anrop: h·31 per brödtext mot `raa-hash.tsv`, och — nytt i
+   den här rundan — en spärr över `kort|pid|namn|slug|SEO-titel|SEO-beskrivning`
+   för hela batchen, insatt av `bygg-steg.py`. `bygg-skrivning.py` summerar
+   bara brödtexten, och H3 mätte upp att det är de AVSKRIVNA fälten som driver
+   isär (5 av 5); tidigare rundor fångade dem först i återläsningen. Två
+   SEO-taggar, `keywords` tomt. 8 av 8 skrivna, revision +1 på alla.
+2. **Media med alt** (`steg2.js` ur `bygg-medieskrivning.py`), spärren över
+   `id|altText` i samma anrop, `media.main` inte skickad. 37 bilder, 8 av 8.
+3. **Kategorier** (`steg3.js`), se avsnittet ovan. 13 av 13.
+4. **Variant-SKU sist och ensam** (`steg4.js`): FÄRSK `GET` med
+   `?fields=VARIANT_OPTION_CHOICE_NAMES` i samma anrop, varianten kopierad ur
+   svaret med bara `sku` ändrad, `options` i kropp och fältmask, `visible`
+   medskickad, `revision` ur samma läsning. Spärren över `kort|pid|sku`
+   (`926991554 / 611`) räknad av skript. Alla åtta hade en variant, variantens
+   och produktens `visible` var `true` före, och `prisFore` var urvalets pris.
+
+Steg 5 — den **separata** läsningen en stund senare (`steg5.js`, med
+`?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO&fields=VARIANT_OPTION_CHOICE_NAMES`)
+— bevisar att de fyra fälten FANNS i projektionen innan den tolkar dem, och
+jämför text (fnv + längd mot `vantat-hash.tsv`), namn, slug, `visible`, SEO
+(exakt två taggar, tomma `keywords`), media (`id|altText` mot
+`media-hash.tsv`), kategorier (id uppslagna på namn), SKU, variant-id (mot
+`variant.tsv`) och variantens `visible`. **8 av 8 helt verifierade.**
+Revisionerna var exakt steg 4:s `revisionEfter` — inget annat jobb hade skrivit
+emellan.
+
+Steg 6 — stämplingen — tog sina `variant_skus` ur `bygg-steg.py --stampla`
+(`sku.tsv` + `variant.tsv`), och varje stämpel lästes tillbaka i en egen
+`las`-körning (run 3689–3696): `needsAiPolish: false`, `published`, SKU enligt
+`sku.tsv`, prisgrinden `stämmer: true`.
+
+⚠️ **`bygg-steg.py` är rundans eget skript**, i rundans katalog. Det bygger
+spärrtillägget i steg 1, `steg3.js`, `steg4.js`, `steg5.js`, stämplingens
+indata och rättelsens skrivning (`--rattelse`). N32 genererade `steg4.js` och
+`steg5.js` med ett skript som aldrig checkades in; det här ligger bredvid det
+det byggt, så nästa runda kan köra det i stället för att skriva ett nytt.
+
+## Live-verifiering
+
+`hamta-live.sh 130` + `livegrind.py`, två cykler.
+
+**Första cykeln (efter steg 1–6).** Alla åtta slugs är nya adresser, så den
+varma träffen gav `age=0` på alla åtta — en förstagångsrendering. Skriptet
+väntade ut stale-fönstret (305 s), träffade om och pausade 130 s. Skarp
+hämtning **8/8 HTTP 200 (145 775–155 327 B), `age` 140–141 s på alla åtta** —
+alltså precis pausen, ingen sida ur en äldre rendering. `livegrind.py`:
+**8/8 REN, orddiff 0** (361–477 ord per sida), `exit 0`. REN omfattar
+homoglyf-, sid-, alt- och SEO-svepen, de tre flikrubrikerna som `<summary>`,
+brödsmulans kategori och `OutOfStock`-kollen.
+
+**Andra cykeln (efter korrekturrättelsen nedan).** Startad direkt efter
+rättelsens skrivning. Den varma träffen gav `age` 245–246 s på sju sidor
+(första cykelns omrendering) och `age=0` på `30f2151f`, som någon annan hade
+hunnit träffa; skriptet väntade ut fönstret räknat från den yngsta, träffade om
+och pausade. Skarp hämtning **8/8 HTTP 200, `age` 133–140 s** — alltså
+renderingar gjorda EFTER rättelsens skrivning, inte första cykelns.
+`livegrind.py`: **8/8 REN, orddiff 0**, `exit 0`. De två rättade sidorna har
+två respektive fyra ord färre än i första cykeln (409 → 407 och 389 → 385),
+exakt rättelsernas ordantal.
+
+Stickprov i den serverade HTML:en utöver grinden: granskningens ändringar står
+där (*vred ovanför luckan*, alt-texten *…med vred ovanför glasluckan*, det nya
+namnet på `07565140`, *Somna inte med apparaten igång*), och *ovansidan*,
+*träskiva*, *som är slät, tålig* och *rengör den.* förekommer noll gånger på
+sina sidor. JSON-LD säger `InStock` och urvalets pris på alla åtta.
+
+## Andra korrekturläsningen — på den PUBLICERADE texten, två fynd
+
+Efter första live-cykeln var orddiffen 0, alltså ÄR live-texten filens text.
+Varje sats som bär en artikel, ett pronomen, ett predikat eller ett particip
+plockades ut mekaniskt ur de åtta texterna, `namn.tsv`, `seo.tsv` och
+`alt.tsv` — **295 satser** — och lästes en och en med genus, kongruens och
+syftning som enda fråga. Två fynd, ingen av dem fälld av någon grind:
+
+| id | stod | nu | varför |
+|---|---|---|---|
+| `b3efdd39` | Ytan är av melamin, **som är slät, tålig** mot repor och lätt att torka av. | **Melaminytan är slät, tålig** mot repor och lätt att torka av. | Relativsatsen hänger på *melamin*, ett t-ord (husets egen text skriver *melaminet*), men adjektiven är böjda mot *ytan*. Omskriven så att subjektet är det som är slätt. |
+| `b2b731c7` | Dra ur kontakten efter användning och innan du **rengör den**. | Dra ur kontakten efter användning och **före rengöring**. | *den* parar med *kontakten* i samma sats — samma klass som granskningens fynd 1 i meningen före. Utan pronomen finns inget att para, och *apparaten* hade blivit femte gången i samma stycke. |
+
+Rättelsen gick samma väg som rundans skrivningar: filen först → alla grindar
+(0 fynd) och `npx vitest run lib/polish` (99/99) → `raa-hash.tsv`,
+`vantat-hash.tsv` och `steg5.js` omgenererade → `bygg-steg.py --rattelse
+b3efdd39,b2b731c7`, en fältmask-PATCH med BARA `plainDescription`, med
+spärrarna över id och brödtext i samma anrop (0 avvikelser, 2 av 2 skrivna,
+revision 4 → 5 och 8 → 9) → en SEPARAT läsning av alla åtta med den
+omgenererade `steg5.js`: **8 av 8 helt verifierade**, de sex orörda på samma
+revision, och SKU, variantens `visible` och priset oförändrade även på de två
+rättade → ny live-cykel.
+
+⚠️ **Två satser lästes och godkändes med flit.** `30f2151f`:s *"Dra ur
+kontakten och låt apparaten svalna helt innan du rengör den"* — där står
+*apparaten* närmast, och *den* syftar rätt. `dbedaf4c`:s *"Den har tippskydd"*
+efter en mening som slutar på *en slät vit yta* — ingen läsning där ytan har
+tippskydd är möjlig, och meningens subjekt före är *Sideboarden*. Utplockaren
+är trubbig med flit: den ska lämna fler satser till ögat, inte färre.
+
+⚠️ **Rättelserna är rundans egna och har inte passerat den oberoende
+granskningen** — den läste utkasten före skrivningen. De är två omskrivna
+meningar utan tal, grindade som allt annat, men en läsare som vill pröva dem
+har dem samlade här.
+
 ## Filer i katalogen
 
 Genererade av `polish-gates` ur rundans filer, inte skrivna för hand:
 `axelfacit.json` (`bygg-axelfacit.py`), `raa-hash.tsv` (`raahash.py`),
 `vantat-hash.tsv` (`hasha.py`), `nyttolast-media.json` (`bygg-media.py`),
 `medieskrivning.json`, `media-hash.tsv` och `steg2.js`
-(`bygg-medieskrivning.py`). `steg1.js` byggs med
-`python3 ../../polish-gates/bygg-skrivning.py > steg1.js` och är inte
-incheckad. `steg4.js` och `steg5.js` finns inte ännu — i N32 genererades de
-av ett skript ur `sku.tsv`, `ids.tsv`, `namn.tsv`, `seo.tsv`, `slugs.txt`,
-`vantat-hash.tsv` och `media-hash.tsv`, och det är samma krav här.
+(`bygg-medieskrivning.py`).
+
+Genererade av rundans `bygg-steg.py`: `steg3.js`, `steg4.js` och `steg5.js`
+(ur `ids.tsv`, `namn.tsv`, `seo.tsv`, `slugs.txt`, `sku.tsv`, `variant.tsv`,
+`kategori.tsv`, `vantat-hash.tsv` och `media-hash.tsv`). `variant.tsv` är
+utläst ur `las`-tabellen överst av ett skript. `steg1.js` byggs med
+`python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js` följt av
+`python3 bygg-steg.py steg1-bas.js > steg1.js`, och rättelsens skrivning med
+`python3 bygg-steg.py --rattelse <kort,kort>`; ingen av dem är incheckad —
+de bär samma text som `<kort>.html`.
+
+## Sammanfattning
+
+Alla åtta produkter är publicerade, stämplade och verifierade i separata led:
+facit mot skarpa Wix före grindarna (8/8 LIKA), granskningens åtta bekräftade
+fynd (fem unika ändringar) införda i filerna FÖRE första skrivningen — ett av
+dem med granskarnas andra formulering, eftersom den första föll på Wix
+namngräns — de fyra skrivstegen med spärrar i samma anrop, en separat
+slutläsning (8/8), mappningsstämpeln via åtta oberoende `las`-körningar, den
+publicerade sidan via `livegrind.py` (8/8 REN, orddiff 0) och den publicerade
+svenskan via en andra korrekturläsning som hittade två fel till, rättade och
+omverifierade ända ut till sidan. Inget pris rördes, och inget pris ändrades
+under rundan. Faktakorten är medvetet uppskjutna, som N15–N32.

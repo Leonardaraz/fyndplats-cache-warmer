@@ -3,8 +3,8 @@
 Uppdateras efter varje skrivsteg. Om rundan avbryts: läs den här filen först.
 
 Granskningens åtta fynd (fem unika ändringar) är införda i filerna före
-skrivningen, commit `bfe4437`. Skrivningen pågår — tabellen nedan är facit för
-vad som är gjort.
+skrivningen, commit `bfe4437`. Alla sju stegen är gjorda och verifierade —
+tabellen nedan är facit.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
@@ -71,7 +71,12 @@ vad som är gjort.
 - Separat läsning efter rättelsen (`steg5.js` omgenererad): **8 av 8 helt
   verifierade**; de sex orörda står kvar på samma revision, och SKU, variantens
   `visible` och priset är oförändrade även på de två rättade.
-- Steg 7, andra cykeln: `hamta-live.sh 130` startad ~21:28 UTC.
+- Steg 7, andra cykeln (efter rättelsen): `hamta-live.sh 130`, skarp hämtning
+  21:33:48–57 UTC, 8/8 HTTP 200, `age` 133–140 s (renderade efter rättelsens
+  skrivning). `livegrind.py`: **8/8 REN, orddiff 0**, `exit 0`; ordantalen på
+  de två rättade sidorna sjönk med exakt rättelsernas antal ord.
+
+**RUNDAN ÄR KLAR** utom faktakorten, som är medvetet uppskjutna (N15–N32).
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
