@@ -8,14 +8,14 @@ vad som är gjort.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
-| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | – | – | – |
+| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
 
 ## Läge
 
@@ -43,6 +43,12 @@ vad som är gjort.
   kort|pid|sku räknad av `bygg-steg.py`). Variant-id stämmer med `las`-tabellen
   i LÄS-MIG på alla åtta; variantens och produktens `visible` var `true` före;
   priserna oförändrade (1 649, 1 719, 1 869, 1 869, 1 899 × 4).
+- Steg 5 (separat läsning ~21:17, `steg5.js`, alla fyra fält bevisat närvarande
+  i projektionen): **8 av 8 helt verifierade** — text (fnv + längd), namn, slug,
+  visible, SEO (två taggar, keywords tomt), media (id + alt), kategorier
+  (`antalKat` 2–3 inkl. All Products), SKU, variant-id, variantens `visible`.
+  Revisionerna = steg 4:s `revisionEfter`, alltså har inget annat jobb skrivit
+  emellan. Priserna oförändrade, alla `IN_STOCK`.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
