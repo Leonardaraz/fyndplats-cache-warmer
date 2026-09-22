@@ -140,15 +140,36 @@ färsk GET). 8 av 8 skrivna. `variantVisibleFore`/`produktVisibleFore` var
 `true` på alla åtta både före och (implicit, medskickat oförändrat) efter —
 priserna stämde exakt mot urvalstabellen (1619/1619/1669/1679/1699×4).
 
-Nästa steg: steg 5 (separat återläsning, ett tag senare — inte i samma anrop).
+**Steg 5 klart** (separat återläsning, eget anrop efter commit+push).
+**8 av 8 helt verifierade** — text (fnv-hash + teckenlängd), namn, slug,
+visible, SEO (exakt 2 taggar, inga keywords), media (id+alt-ordning),
+kategorier (mot färskt uppslag, `antalKat` = valda + 1 för Wix egen
+"All Products"), variant-SKU, variant-visible och variant-id stämde på
+samtliga åtta. Priser bekräftade oförändrade (1619/1619/1669/1679/1699×4),
+alla `lager: IN_STOCK`.
+
+**`las`-omkontroll klar** (workflow, alla åtta separat, run 35793985058–
+35793999812 + 35793995633). Alla åtta: `stammer: true`, priser oförändrade
+(1619/1619/1669/1679/1699×4), `aosomSyncedQty` > 0 på alla (43/84/185/33/40/
+83/83/40), `needsAiPolish: true`, `draftStatus: pending_review` — inget har
+drivit sedan urvalet. Klart att stämpla.
+
+**Stämplat 2026-09-22** (run 35794106760–35794131422, en körning per produkt).
+Alla åtta svarade `OK: <id> uppdaterad — needsAiPolish, draftStatus,
+variantSkus`. **Oberoende `las`-verifiering körd per produkt** (run
+35794194920–35794211405 + 35794204585, en körning var): alla åtta visar
+`needsAiPolish: false`, `draftStatus: "published"`, rätt nya SKU och
+`prisgrind stämmer: true` — inget drev under stämplingsfönstret.
+
+Nästa steg: live-verifiering (`hamta-live.sh 130` → `livegrind.py`).
 
 | kort | steg 1 | steg 2 | steg 3 | steg 4 | steg 5 | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 5022e9e5 | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 32140f01 | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 4f9ef409 | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 8085d0b6 | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| bd2c7da3 | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 6b91821a | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 3739257b | ✅ | ✅ | ✅ | ✅ | – | – | – |
-| 3bf5bd08 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 5022e9e5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 32140f01 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 4f9ef409 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 8085d0b6 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| bd2c7da3 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 6b91821a | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 3739257b | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 3bf5bd08 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
