@@ -3,7 +3,11 @@
 
 Samma krav som N32 skrev ned: inget tal och ingen sträng i skrivanropen får
 skrivas av för hand. Allt här läses ur ids.tsv, namn.tsv, seo.tsv, slugs.txt,
-sku.tsv, kategori.tsv, vantat-hash.tsv och media-hash.tsv.
+sku.tsv, variant.tsv, kategori.tsv, vantat-hash.tsv och media-hash.tsv.
+
+variant.tsv är utläst ur LÄS-MIG:s las-tabell av ett skript (run 3663–3670)
+och kontrolleras mot steg 4:s färska GET i steg 5; stämplingens
+variant_skus byggs ur samma fil (`python3 bygg-steg.py --stampla`).
 
   steg 1  bygg-skrivning.py summerar bara brödtexten. Det här skriptet lägger
           till en andra spärr i SAMMA anrop, över kort|pid|namn|slug|SEO-titel|
@@ -44,6 +48,7 @@ ids = tsv("ids.tsv", 3)
 namn = tsv("namn.tsv", 2)
 seo = tsv("seo.tsv", 3)
 sku = tsv("sku.tsv", 2)
+var = tsv("variant.tsv", 2)
 kat = tsv("kategori.tsv", 2)
 vh = tsv("vantat-hash.tsv", 3)
 mh = tsv("media-hash.tsv", 3)
@@ -53,7 +58,8 @@ fel = []
 kort_lista = list(ids)
 for k in kort_lista:
     for kalla, nm in ((namn, "namn.tsv"), (seo, "seo.tsv"), (sku, "sku.tsv"), (kat, "kategori.tsv"),
-                      (vh, "vantat-hash.tsv"), (mh, "media-hash.tsv"), (slug, "slugs.txt")):
+                      (vh, "vantat-hash.tsv"), (mh, "media-hash.tsv"), (slug, "slugs.txt"),
+                      (var, "variant.tsv")):
         if k not in kalla:
             fel.append(f"{k}: saknar rad i {nm}")
 if fel:
@@ -64,7 +70,7 @@ rader = []
 for k in kort_lista:
     rader.append({
         "kort": k, "pid": ids[k][0], "namn": namn[k][0], "slug": slug[k],
-        "seoTitel": seo[k][0], "seoBesk": seo[k][1], "sku": sku[k][0],
+        "seoTitel": seo[k][0], "seoBesk": seo[k][1], "sku": sku[k][0], "variantId": var[k][0],
         "textHash": vh[k][0], "textTecken": int(vh[k][1]),
         "mediaSumma": int(mh[k][0]), "mediaTecken": int(mh[k][1]),
         "kat": [x.strip() for x in kat[k][0].split(" + ")],
@@ -75,6 +81,12 @@ SUMMA_JS = """  const SUMMA = function (s) {
     for (const c of s) h = (h * 31 + (c.codePointAt(0) & 0xFFFF)) % 1000000007;
     return h;
   };"""
+
+# ── stämpling: en rad per produkt med workflow-inputs, ur sku.tsv + variant.tsv ──
+if len(sys.argv) > 1 and sys.argv[1] == "--stampla":
+    for r in rader:
+        print(r["kort"] + "\t" + r["pid"] + "\t" + json.dumps({r["variantId"]: r["sku"]}, ensure_ascii=False))
+    sys.exit(0)
 
 # ── steg 1: spärr över metadatafälten, insatt i bygg-skrivning.py:s utdata ──
 if len(sys.argv) > 1:
@@ -304,11 +316,11 @@ steg5 += ["  ];",
           "      antalKat: katIds.length,",
           "      sku: vs.length === 1 && vs[0].sku === f.sku,",
           "      variantVisible: vs.length === 1 && vs[0].visible === true,",
-          "      variantId: vs.length === 1 ? vs[0].id : null,",
+          "      variantIdStammer: vs.length === 1 && vs[0].id === f.variantId,",
           "      pris: vs.length === 1 ? ((vs[0].price || {}).actualPrice || {}).amount : null,",
           "      lager: (p.inventory || {}).availabilityStatus",
           "    };",
-          "    rad.ALLT = rad.text && rad.namn && rad.slug && rad.visible && rad.seo && rad.media && rad.kat && rad.sku && rad.variantVisible;",
+          "    rad.ALLT = rad.text && rad.namn && rad.slug && rad.visible && rad.seo && rad.media && rad.kat && rad.sku && rad.variantVisible && rad.variantIdStammer;",
           "    ut.push(rad);",
           "  }",
           "  const ok = ut.filter(function (x) { return x.ALLT; }).length;",
