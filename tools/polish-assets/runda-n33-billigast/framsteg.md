@@ -8,14 +8,14 @@ vad som är gjort.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
-| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
+| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | ✓ REN |
 
 ## Läge
 
@@ -58,6 +58,12 @@ vad som är gjort.
   (run 3689–3696): alla `needsAiPolish: false`, `published`, SKU = `sku.tsv`,
   prisgrinden `stämmer: true`. Stämplingens `variant_skus` byggdes av
   `bygg-steg.py --stampla`.
+- Steg 7, första cykeln: `hamta-live.sh 130` startad 21:17 UTC — varm träff
+  `age=0` på alla åtta (nya slugs, förstagångsrendering), väntan 305 s, omträff,
+  paus 130 s. Skarp hämtning 8/8 HTTP 200 (145 775–155 327 B), `age` 140–141 s.
+  `livegrind.py`: **8/8 REN, orddiff 0** (361–477 ord per sida), `exit 0`.
+- Andra korrekturläsningen (på den publicerade texten, 295 utplockade satser):
+  två fynd, rättas via `bygg-steg.py --rattelse` — se LÄS-MIG.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).

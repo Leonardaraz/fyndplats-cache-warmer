@@ -24,6 +24,8 @@ variant_skus byggs ur samma fil (`python3 bygg-steg.py --stampla`).
 ANVÄNDNING (från rundans katalog):
   python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js
   python3 bygg-steg.py steg1-bas.js > steg1.js   (skriver även steg3/4/5.js)
+  python3 bygg-steg.py --stampla                  (variant_skus per produkt)
+  python3 bygg-steg.py --rattelse k1,k2 > r.js    (bara plainDescription)
 """
 import io, json, sys
 
@@ -86,6 +88,75 @@ SUMMA_JS = """  const SUMMA = function (s) {
 if len(sys.argv) > 1 and sys.argv[1] == "--stampla":
     for r in rader:
         print(r["kort"] + "\t" + r["pid"] + "\t" + json.dumps({r["variantId"]: r["sku"]}, ensure_ascii=False))
+    sys.exit(0)
+
+# ── rättelse efter publicering: BARA plainDescription, bara för namngivna kort ──
+# Samma regler som steg 1: nyttolasten byggs ur <kort>.html, facit är
+# raa-hash.tsv (strängen SOM DEN SKICKAS, rstrip("\n")), och spärren ligger i
+# SAMMA anrop som skrivningen och avbryter hela batchen. Fältmasken bär bara
+# plainDescription — namn, slug, SEO, media, kategorier och varianten rörs inte.
+if len(sys.argv) > 2 and sys.argv[1] == "--rattelse":
+    raa = tsv("raa-hash.tsv", 3)
+    valda = [k for k in sys.argv[2].split(",") if k]
+    plan, fel = [], []
+    for k in valda:
+        if k not in ids:
+            fel.append(f"{k}: finns inte i ids.tsv")
+            continue
+        html = io.open(f"{k}.html", encoding="utf-8").read().rstrip("\n")
+        if int(raa[k][1]) != len(html) or int(raa[k][0]) != summa(html):
+            fel.append(f"{k}: raa-hash.tsv är inaktuell — kör raahash.py")
+        plan.append({"kort": k, "pid": ids[k][0], "html": html, "raa": summa(html), "tecken": len(html)})
+    if fel or not plan:
+        sys.stderr.write("BYGGET FALLER:\n" + "\n".join("  " + f for f in (fel or ["inga kort valda"])) + "\n")
+        sys.exit(1)
+    nyckel = "\n".join(p["kort"] + "|" + p["pid"] for p in plan)
+    ut = ["async function () {",
+          "  // Genererad av runda N33:s bygg-steg.py --rattelse ur <kort>.html + raa-hash.tsv — skriv den aldrig för hand.",
+          SUMMA_JS,
+          "  const PLAN = ["]
+    for p in plan:
+        ut.append("    {")
+        for n in ("kort", "pid", "html"):
+            ut.append(f"      {n}: {json.dumps(p[n], ensure_ascii=False)},")
+        ut.append(f"      raa: {p['raa']},")
+        ut.append(f"      tecken: {p['tecken']}")
+        ut.append("    },")
+    ut += ["  ];",
+           "  // ☠️ SPÄRRARNA LIGGER I SAMMA ANROP SOM SKRIVNINGEN och avbryter HELA batchen.",
+           "  const ID = PLAN.map(function (p) { return p.kort + \"|\" + p.pid; }).join(\"\\n\");",
+           f"  if (SUMMA(ID) !== {summa(nyckel)} || ID.length !== {len(nyckel)}) {{",
+           "    return { AVBRUTET: \"transkriberingsfel i id — ingenting skrivet\", fick: SUMMA(ID), tecken: ID.length };",
+           "  }",
+           "  const avvik = PLAN",
+           "    .filter(function (p) { return SUMMA(p.html) !== p.raa || p.html.length !== p.tecken; })",
+           "    .map(function (p) { return { kort: p.kort, fick: SUMMA(p.html), vantat: p.raa, tecken: p.html.length, vantatTecken: p.tecken }; });",
+           "  if (avvik.length) return { AVBRUTET: \"transkriberingsfel — ingenting skrivet\", avvik: avvik };",
+           "",
+           "  const ut = [];",
+           "  for (const p of PLAN) {",
+           "    const f = await wix.request({ method: \"GET\", url: \"/stores/v3/products/\" + p.pid });",
+           "    const rev = (f.data || f).product.revision;",
+           "    const kropp = {",
+           "      product: {",
+           "        revision: rev,",
+           "        plainDescription: p.html",
+           "      },",
+           "      fieldMask: {",
+           "        paths: [\"plainDescription\"]",
+           "      }",
+           "    };",
+           "    try {",
+           "      const r = await wix.request({ method: \"PATCH\", url: \"/stores/v3/products/\" + p.pid, body: kropp });",
+           "      ut.push({ kort: p.kort, ok: true, revisionFore: rev, revisionEfter: (r.data || r).product.revision });",
+           "    } catch (e) {",
+           "      ut.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });",
+           "    }",
+           "  }",
+           "  const ok = ut.filter(function (r) { return r.ok; }).length;",
+           "  return { rader: ut, SAMMANFATTNING: ok + \" av \" + ut.length + \" skrivna\" };",
+           "}"]
+    print("\n".join(ut))
     sys.exit(0)
 
 # ── steg 1: spärr över metadatafälten, insatt i bygg-skrivning.py:s utdata ──
