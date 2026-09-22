@@ -412,7 +412,7 @@ fältmask-PATCH med bara `seoData` (revision 4 → 5) → en SEPARAT
 (1 849 kr) orörda → ny live-hämtning och `livegrind.py`, vars SEO-svep
 jämför `<meta name="description">` EXAKT mot `seo.tsv`.
 
-⏳ **Live-omhämtningen efter rättelsen pågår** (butikens ISR-fönster måste gå ut först); utfallet skrivs in här när `livegrind.py` har körts.
+**Live efter rättelsen:** ny omhämtning efter ISR-fönstret, 8/8 HTTP 200 med `age` 139–147 s (`2808fff3` gav `HTTP 000` en gång och gick igenom på skriptets eget omförsök). Sidan serverar den rättade texten i både `<meta name="description">` och `og:description` — butiken härleder den senare ur de två taggarna, precis som husets tvåtaggsregel säger. `livegrind.py`, vars SEO-svep jämför EXAKT mot den rättade `seo.tsv`: **8/8 REN, orddiff 0**, `exit 0`.
 
 ⚠️ **Varför en adversariell granskning och inte bara en till genomläsning:**
 N29–N31 hittade två till fem böjningsfel per runda som ingen grind såg, och
