@@ -1,9 +1,5 @@
 # Runda N32 — åtta produkter, 1 799–1 859 kr
 
-⚠️ **UTKAST — skrivet FÖRE första Wix-skrivningen.** Avsnitten om skrivning,
-slutläsning, stämpling och live-verifiering fylls i när stegen är gjorda; se
-`framsteg.md` för läget per produkt.
-
 Åtta Aosom-utkast: en elkamin för vägg, en renfamilj med LED, en madrass
 140 × 200, två matstolar, en motionscykel, ett vridbart skrivbord, en tv-bänk
 och en basketkorg för vägg.
@@ -33,6 +29,49 @@ Körda med `ref: main`, alltså mot den mergade workflowen med allowlisten.
 ⚠️ **Ingen av de åtta bär `prisgrupp`** i den del av raden `las` visar, och
 prisgrinden räknade husets regel och fick `stämmer: true` på alla. Priset rörs
 inte oavsett.
+
+Alla åtta är nu `needsAiPolish: false`, `draftStatus: "published"` —
+stämplade via `/api/admin/mapping` (läge `stampla`, run 3647–3654) och varje
+stämpel verifierad i en helt SEPARAT `las`-körning (run 3655–3662, åtta loggar
+lästa).
+
+## ☠️ Tre priser ändrades MEDAN rundan pågick — inte av rundan
+
+Priserna i tabellen ovan är de som gällde vid `las` 19:21. Under rundan körde
+någon annan två jobb från `main`: **"Aosom — synka lager och priser"** (run 30
+19:19–19:29, grön, och run 31 19:32–19:52, som slutade `failure` — inte
+undersökt här, det är inte rundans jobb) och **"Pris — konkurrentregeln"**
+(två körningar 19:18).
+Tre av rundans åtta fick nytt pris under tiden:
+
+| id | vid urvalet | efter | när |
+|---|---:|---:|---|
+| `41b2bc81` matstolar | 1 839 kr | **1 469 kr** | mellan 19:22 och steg 1 (revision 1 → 2 utan att rundan skrivit) |
+| `2808fff3` tv-bänk | 1 859 kr | **1 499 kr** | samma fönster |
+| `c6f8a0f1` renar | 1 819 kr | **1 669 kr** | 19:52:59 (`aosomSyncedAt`), efter rundans slutläsning |
+
+☠️ **Rundan rörde inget pris.** Steg 1–3 hade inte `variantsInfo` i fältmasken,
+och steg 4 skrev tillbaka varianten exakt som en FÄRSK `GET` i samma anrop
+lämnade den — med `revision` ur samma läsning, så en samtidig synkskrivning
+hade gett `409` i stället för en tyst överskrivning. Steg 4:s egen rapport
+visar att den skrev tillbaka de NYA priserna (`prisFore: 1469` och `1499`).
+
+⚠️ **Och prisgrinden säger `stämmer: true` på alla tre efteråt**, med
+`grossSek` 1 469, 1 499 och 1 669 i mappningen. Det betyder att
+`landedCostSek` sjönk i samma skrivning — kostnaden rörde sig, och priset
+följde regeln. Det är ingen drift. Men det betyder också att rundans
+prisintervall i rubriken är urvalets, inte dagens.
+
+⚠️ **Vilket jobb som skrev är INTE fastställt.** Renarnas `aosomSyncedAt`
+flyttades till 19:52:59, alltså synken. Men matstolarnas och tv-bänkens
+`aosomSyncedAt` står kvar på 2026-09-18 respektive 2026-09-22 06:20 — deras
+pris och kostnad ändrades alltså utan att synkstämpeln rördes. Det är värt en
+egen titt för den som äger prisjobben; rundan har inte gjort den.
+
+⚠️ **Varför det spelar roll för nästa runda:** en `las` är ett ögonblick. Under
+en pågående synk kan två läsningar samma kvart ge olika pris, och en runda som
+bara jämför mot det FÖRSTA hade kallat det andra drift. Läs `aosomSyncedAt` och
+Actions-listan innan en prisavvikelse tolkas.
 
 ## Urvalet: 5 984 rader svepta, 107 utkast i spannet, 10 till `las`
 
@@ -255,7 +294,7 @@ byte-identisk `axelfacit.json` och samma slutkod; den enda som skiljde var
 N32** (1 → 0). Resultatet för kaminen är `{bredd: 89,2, djup: 13,5, hojd: 48}`
 — exakt måttbildens.
 
-## Gate-genomgång (före skrivningen)
+## Gate-genomgång
 
 | Gate | Resultat |
 |---|---|
@@ -273,6 +312,25 @@ N32** (1 → 0). Resultatet för kaminen är `{bredd: 89,2, djup: 13,5, hojd: 48
 | Läcksvep över rundans 13 KUNDVÄNDA filer (alla `gatelib.GRINDAR` + extra tyska ord) | **0 fynd** |
 | Teckensvep mot `TILLATNA_TECKEN` | **0 oväntade tecken** |
 | `artikelnummer-lackage` + `gate-kopior` + `wixnorm-tvilling` (vitest) | **9 av 9 gröna** |
+| Steg 1 (text/namn/slug/visible/SEO) transkriberingsspärr | 0 avvikelser, **8 av 8 skrivna** |
+| Steg 2 (media, fil-id + alt) transkriberingsspärr | 0 avvikelser, **8 av 8 skrivna** |
+| Steg 3 (kategori, bulk add-items) | 11 anrop, `totalFailures: 0`, per-rad `success: true` på alla **17** |
+| Steg 4 (variant-SKU, round-trip från FÄRSK GET, sist och ensam) | spärren `202425706 / 274` räknad ur `sku.tsv` av skript, **8 av 8 skrivna** |
+| Samlad SEPARAT slutläsning av alla fyra stegen (`steg5.js`) | **8 av 8 helt verifierade** |
+| Mappningsstämpling + oberoende `las`-verifiering | **8 av 8** |
+
+⚠️ **Steg 4:s facit har en generator den här gången.** N31 föll på ett påhittat
+SKU-facit — det enda facit som inte hade ett skript bakom sig. `steg4.js` och
+`steg5.js` i den här katalogen är byggda av ett skript ur `sku.tsv`, `ids.tsv`,
+`namn.tsv`, `seo.tsv`, `slugs.txt`, `vantat-hash.tsv` och `media-hash.tsv`;
+inget tal i dem är skrivet för hand. Steg 3:s kategori-id slogs dessutom upp
+på NAMN ur en färsk `categories/query` i samma anrop som skrivningen, i stället
+för att klistras in.
+
+⚠️ **`steg5.js` bevisar att fälten fanns innan den tolkar dem.** Saknas
+`plainDescription`, `media.itemsInfo`, `directCategoriesInfo` eller
+`variantsInfo` i projektionen avbryter den för produkten i stället för att
+rapportera noll — samma regel som `aterlas.js`.
 
 ### Axelkonflikten i källan
 
@@ -280,11 +338,12 @@ N32** (1 → 0). Resultatet för kaminen är `{bredd: 89,2, djup: 13,5, hojd: 48
 spec-fliken. En upplysning om KÄLLAN; texten skriver måtten som tripplar och
 binder aldrig 150 eller 40 till fel axel.
 
-## Kategorier (planerade)
+## Kategorier
 
 Lästa ur ett FÄRSKT `categories/v1/categories/query` (54 kategorier), och
 valda efter vad tidigare rundor gjort med samma varutyp (mätt på de
-publicerade sidornas `directCategoriesInfo`):
+publicerade sidornas `directCategoriesInfo`). Slutläsningen visar `antalKat`
+2–5, alltså de kopplade plus Wix egna `All Products`:
 
 | id | kategori | förebild |
 |---|---|---|
