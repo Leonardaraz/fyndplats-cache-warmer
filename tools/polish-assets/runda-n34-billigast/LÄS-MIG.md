@@ -170,7 +170,7 @@ Inga husmärken hittade på någon produkt i någon bild.
 `kallor.json` verifierades server-side (h·31, samma anrop som ingen
 skrivning) mot skarpa V3:s `plainDescription` på alla åtta: **8 av 8 LIKA**.
 `6b91821a`s källa bär leverantörens artikelnummer i klartext
-(`Artikelnummer: 831-809V90WT`); det är ersatt med `‹REDIGERAT›` i
+(`Artikelnummer: ‹REDIGERAT›`); det är ersatt med `‹REDIGERAT›` i
 `bygg-kallor.py`/`kallor.json`, kontrollerat med exakt EN redigerad träff på
 den produkten och noll på de andra sju.
 
