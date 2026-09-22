@@ -73,6 +73,20 @@ fönstret. 156 utkast återstår där.
 
 Inga husmärken hittade på någon produkt i någon bild.
 
+## Oberoende granskning (efter första pushen)
+
+Läste om alla åtta som en skeptisk utomstående, letade efter sakfel mot
+bilderna, motsägande tal och kvarvarande tyska/engelska. Ett fynd:
+
+- `6b91821a`: intron sa "Spegeln ÄR en dörr" men H2-stycket sa "Spegeln
+  SITTER PÅ en dörr" — två olika mekanismer för samma spegel inom samma
+  text. Rättat till "Spegeln går att fälla upp som en dörr" i båda styckena.
+
+Inga ytterligare sakfel, inga motsägande tal, inga tyska/engelska kvar
+(egen läcksvep + engelsksvep, 0 träffar), ingen SEO över gränserna.
+Hashar, axelfacit och steg1–5 omgenererade efter rättelsen; alla grindar
+och `npx vitest run lib/polish` (99/99) omkörda och gröna.
+
 ## Läge
 
 - `kallor.json`: 8/8 LIKA mot skarpa V3 (h·31, server-side, artikelnummer
