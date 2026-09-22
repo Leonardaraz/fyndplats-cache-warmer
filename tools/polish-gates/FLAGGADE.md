@@ -37,6 +37,13 @@ varför något inte längre står här.
 - **`a1e0b128`** (Kinder-Elektroauto Audi RS e-tron GT, 1 839 kr) — märket i
   namnet OCH trippelträff 103 × 58 × 41 mot den publicerade `4d989256`
   *Elbil för barn – Audi RS e-tron GT* (2 639 kr). (N32)
+- **`03c25ad3`** (Elektro-Kindermotorrad "Honda", 1 919 kr), **`b8e23817`**
+  (Kinder-Elektroauto "Audi", 1 919 kr) och **`ca96df76`** (Elektro-Kinderauto
+  "12V Audi Q8", 1 929 kr) — märket i namnet, samma fråga som `c37e0018`.
+  `03c25ad3` är dessutom ett namnkluster med två BILLIGARE utkast (`6c3634e8`
+  1 759 kr, `819c8151` 1 699 kr) och `ca96df76` med `e25e86d6`/`474efb0a`
+  (1 679/1 739 kr) och `cf18cd15`. Källtexterna lästes inte i N33; raderna är
+  orörda. (N33)
 
 ## Djurboenden — SJVFS-minimimått oavgörbart eller underskridet
 
@@ -62,6 +69,12 @@ varför något inte längre står här.
   **`2b70bbef`** (Welpenlaufstall 12- resp. 16-delar, 1 899 kr) — djurboenden i
   N32:s prisspann. SJVFS-frågan är INTE prövad: källtexterna lästes inte, och
   rundan fylldes med annat. Orörda: inget `las`, ingen skrivning. (N32)
+- **`6c5b322f`** (Wurfkiste für Welpen, 1 929 kr — samma varutyp som N30:s
+  `cef5747d`), **`0b927ed9`** (Schildkrötenhaus 2 Ebenen, 1 949 kr) och
+  **`a40a86bb`** (Hamsterkäfig 4 Ebenen, 1 999 kr) — djurboenden i N33:s
+  prisspann. SJVFS-frågan är INTE prövad: källtexterna lästes inte. Orörda.
+  **`eb8bdf09`** (Hühnerauslauf 300 × 170 × 190, 1 999 kr) är dessutom en
+  trippelträff mot den publicerade `9158341c` *Hönsgård med tak 300 cm*. (N33)
 
 ## Interna dubblettkluster — dyrare tvilling vs billigare opublicerat utkast
 
@@ -102,6 +115,29 @@ beslut — se den samlade frågan om detta.
 - `e1f80a21` Gymnastik-Turnreck, 1 829 kr — BILLIGAST i sitt kluster (`1ea30bf4`
   1 959 kr, `79919ced` 1 939 kr, `8f3b0877` slutsåld), alltså samma läge som
   `b6e44df4`: lämnad orörd av samma skäl (N32)
+- `77f94d6c` / `4f21c7c1` / `d0191013` Sofa Retrodesign 2-Sitzer, 1 879–1 979 kr —
+  samma namn och trippel 117 × 56,5 × 77 som de BILLIGARE utkasten `c97a132d`
+  och `ff3b6e47` (båda 1 779 kr); `13d9a960` (1 899 kr) är slutsåld (N33)
+- `6a65351e` 2-teiliges Sessel-Set, 1 879 kr — trippel 76 × 81 × 101 identisk
+  med det billigare utkastet `27380bf4` (1 749 kr); fåtöljfamiljen dessutom (N33)
+- `22cfc372` 2-in-1 Bodensessel, 1 869 kr — trippel 102 × 73 × 60 som
+  `33cde470` (1 699 kr) och `662a3683`; nämnd i N31:s LÄS-MIG men saknades här (N33)
+- `30439125` Elektrisches Aufsitzauto, 1 879 kr / `211ffd83` 2 079 kr — samma
+  namn och trippel 108 × 65,5 × 47; `30439125` är billigast, alltså samma läge
+  som `b6e44df4` (N33)
+- `8e98930c` / `2190df84` 2-Sitzer-Sofa Metall- und Holzrahmen, 1 939 / 1 969 kr
+  — samma namn och trippel 127 × 63 × 84,5; trippeln träffar dessutom den
+  publicerade `42afe013` *Trädgårdsbänk med blommönster 127 cm* och tre
+  trädgårdsbänksutkast, vilket inte är utrett (N33)
+- `52d5749b` / `18a62ff0` Zweisitzer-Sofa mit Cord-Bezug, 1 999 / 2 039 kr — samma
+  namn och trippel 110 × 62 × 85; `52d5749b` billigast (N33)
+- `2c72e2b0` / `71b7268f` / `8b3c8409` Elektroauto für Kinder 12V, 1 999 / 2 099 /
+  2 099 kr — samma namn och trippel 105 × 68 × 50 (N33)
+- `066a7f98` / `3bc2f3f7` Hundebuggy faltbar, 1 779 / 2 359 kr (den dyrare
+  slutsåld) — samma namn och trippel 111 × 70 × 97,5; två sidor för en vara (N33)
+- `542963a7` 4er-Set Esszimmerstühle Massivholz, 1 999 kr — samma stol (41 ×
+  46,5 × 85,5, permutationsträff) som 2-packet `6a5c33ce` (1 239 kr); om samma
+  stol ska säljas i två förpackningsstorlekar är en presentationsfråga (N33)
 
 ## Bortvalda av andra skäl (inte flaggade, bara sparade för senare)
 
@@ -116,3 +152,23 @@ beslut — se den samlade frågan om detta.
 - `82000c6b` (väggbasketkorg, 1 869 kr) — en ANDRA väggkorg med 110 cm bred
   skiva samma runda som `db1d494f`; och `5c566983` (matsalsbänk 120 cm,
   1 869 kr). Inte prövade vidare, rundan var full. (N32)
+- `82000c6b` och `2f251ce3` — lämnade ovan av N32 på 1 869 respektive 1 899 kr —
+  togs in i N33 på nya priser (1 649 och 1 719 kr, sänkta av andra jobb före
+  rundan); `30f2151f` och `5c566983` likaså. Raderna ovan är historik. (N33)
+- `cd8d8524` (4-in-1 Partyspieltisch, 1 899 kr, ren i dubblettskärmen) —
+  bortvald med flit: källan lovar fyra spel och bild 1 och 4 visar bordshockey
+  med klubbor och puck, men `Lieferumfang` räknar upp tillbehör för fotboll,
+  pingis och biljard och INGA för hockeyn. Vad kunden får till det fjärde
+  spelet går inte att säga härifrån. (N33)
+- `e74feea1` (smyckesskåp med spegel, 1 929 kr, saldo 116) och `13a52237` (runt
+  matbord Ø110 cm, 1 939 kr, saldo 13) — `las` ren (`stämmer: true`), rena
+  bilder, inga dubbletter. Reserver till N33, inte med för att rundan var full.
+  `e74feea1` är ett ANNAT smyckesskåp än den publicerade `ca26c603` (37 × 120
+  × 10 mot 37 × 10,5 × 108, batteri-LED mot USB); `13a52237` ett annat bord än
+  `6246ff12` (höjd 78 mot 75, fot Ø64,5 mot Ø61). (N33)
+- Färgsyskon till PUBLICERADE sidor, inte prövade vidare: `e9ecc251`
+  (skrivbordsstativ, svart — samma specifikation som publicerade `7ab49b8a` i
+  vitt) och `a7e5b918` (leksakshylla 140 cm i vitt — samma mått och boxar som
+  publicerade `8832b73a`). Se `FARGSYSKONEN.md`. (N33)
+- `12ed7827` och `0e5f0951` (Gartenbox/Kissenbox) — fel säsong i slutet av
+  september, rundan fylldes med annat. (N33)

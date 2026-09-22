@@ -1,0 +1,5 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+07565140	3	antal dorrar (en med ribbor till vanster, tva kryssdorrar till hoger), raknade pa bild 1 och 5
+07565140	2	antal skap: kallan anger innermatt for Links och Rechts
+5c566983	4	antal metallben, raknade pa bild 1 och 3
