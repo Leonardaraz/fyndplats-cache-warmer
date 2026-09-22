@@ -119,6 +119,26 @@ def axelpar(rad):
             ut.append((m.group(1), m.group(2)))
         else:
             ut.append((m.group(4), m.group(3)))
+    if ut:
+        return ut
+    # ☠️ OCH BOKSTÄVERNA KAN STÅ SOM EN FÖRKLARING EFTER TALEN. Uppmätt i runda
+    # N32 på elkaminen 40fb1b24: `Maße: 89,2 x 13,5 x 48 cm (L x B X H)` — tre
+    # nakna tal och bokstäverna i en parentes efteråt, med ett VERSALT X som
+    # skiljetecken. Varken tal-först eller bokstav-först matchar, alltså NOLL par
+    # och en generator som avbröt på en källa som faktiskt är entydig.
+    #
+    # Grenen fyrar BARA när de två vanliga formerna tiger (ingen rad som byggts
+    # hittills kan därför ändras), och BARA när antalet tal före parentesen är
+    # exakt lika med antalet bokstäver i den. Skiljer de sig åt vet vi inte vilket
+    # tal som hör till vilken axel, och då är inget facit ärligare än ett gissat.
+    # Den svenska spec-raden på samma produkt bar dessutom en ANNAN modells mått
+    # (`Modell7/88,5 x 13,5 x 56cm`), så fallbacken till den gick inte heller.
+    m = re.search(r"\(\s*([BLTH])((?:\s*[x×X]\s*[BLTH])+)\s*\)", rad)
+    if m:
+        bokstaver = [m.group(1)] + re.findall(r"[BLTH]", m.group(2))
+        talen = re.findall(TAL, rad[:m.start()])
+        if len(talen) == len(bokstaver):
+            return list(zip(talen, bokstaver))
     return ut
 
 
