@@ -1,16 +1,15 @@
-# Runda N33 — åtta produkter, 1 649–1 899 kr — UTKAST (före skrivningen)
+# Runda N33 — åtta produkter, 1 649–1 899 kr
 
-> ☠️ **UTKAST. INGENTING ÄR SKRIVET TILL WIX.** Rundans filer är skrivna,
-> grindade, committade och pushade. Varje Wix-anrop i den här rundan har varit
-> en LÄSNING (`hasMutations: false`), och de enda körningarna av
-> "Polering — läs och stämpla mappningsraden" var läget `las`. Ingen
-> stämpling, ingen skrivning, ingen publicering. En separat granskning läser
-> filerna innan något skrivs. Avsnitten om steg 1–7 saknas med flit.
+Åtta Aosom-utkast polerade och publicerade: en basketkorg för vägg med
+genomskinlig skiva, ett 2-pack matstolar i sammetslook, en matsalsbänk, två
+sideboards, en varmluftsfritös med miniugn, en massageapparat för fötter och
+vader och ett matbord med dolda fack.
 
-Åtta Aosom-utkast: en basketkorg för vägg med genomskinlig skiva, ett 2-pack
-matstolar i sammetslook, en matsalsbänk, två sideboards, en varmluftsfritös
-med miniugn, en massageapparat för fötter och vader och ett matbord med dolda
-fack.
+Rundan gjordes i två pass. Förberedelsen (urval, källor, bilder, texter och
+grindar) pushades i `cbc6cf5` utan en enda Wix-skrivning. En oberoende
+granskning läste sedan utkasten, och dess åtta bekräftade fynd fördes in i
+filerna (`bfe4437`) INNAN något skrevs. Därefter skrevs rundan i N31:s fyra
+steg, lästes tillbaka separat, stämplades och verifierades live.
 
 | id | produkt | SKU | pris | saldo |
 |---|---|---|---:|---:|
@@ -23,7 +22,7 @@ fack.
 | b2b731c7 | Fot- och vadmassage med luftkompression och värme – fälls ihop till pall | FP-massage-fotter-vader-luft | 1 899 kr | 94 |
 | b3efdd39 | Matbord 120 × 60 cm med två dolda fack under skivan – vitt, för fyra | FP-matbord-120x60-dolda-fack | 1 899 kr | 197 |
 
-Alla tio `las`-körningar (de åtta plus två reserver) svarade `supplier:
+Vid urvalet svarade alla tio `las`-körningar (de åtta plus två reserver) `supplier:
 "aosom"`, `needsAiPolish: true`, `draftStatus: "pending_review"` och
 prisgrinden `stämmer: true` (`1,20 × landedCostSek`, charm99). Ingen slutsåld,
 ingen låst, ingen visade `prisgrupp`. `aosomFreightShare` 0,195–0,436 — ingen
@@ -44,11 +43,20 @@ kontrollerat i varje logg):
 | 3671 | e74feea1 (reserv) | — | — | 0,268 |
 | 3672 | 13a52237 (reserv) | — | — | 0,325 |
 
-⚠️ Steg 4 ska ändå läsa variant-id och revision ur en FÄRSK `GET` i samma
-anrop som skrivningen, som i N32. Tabellen är en daterad anteckning, inget
-facit. Revisionerna vid rundans slutläsning: `82000c6b` 2, `2f251ce3` 4,
-`5c566983` 2, `07565140` 4, `30f2151f` 2, `dbedaf4c` 2, `b2b731c7` 5,
-`b3efdd39` 1 — alla `visible: false`, alla `IN_STOCK`.
+Steg 4 läste ändå variant-id och revision ur en FÄRSK `GET` i samma anrop
+som skrivningen, och alla åtta variant-id stämde med tabellen. `variant.tsv`
+är utläst ur tabellen av ett skript (`bygg-steg.py` jämför mängderna), och
+slutläsningen kontrollerar variant-id mot den. Revisionerna vid förberedelsens
+slutläsning (`82000c6b` 2, `2f251ce3` 4, `5c566983` 2, `07565140` 4,
+`30f2151f` 2, `dbedaf4c` 2, `b2b731c7` 5, `b3efdd39` 1) var oförändrade när
+skrivningen började — ingen annan hade rört produkterna.
+
+Alla åtta är nu `needsAiPolish: false`, `draftStatus: "published"` —
+stämplade via `/api/admin/mapping` (läge `stampla`, run 3681–3688) och varje
+stämpel verifierad i en helt SEPARAT `las`-körning (run 3689–3696, åtta
+loggar lästa): rätt SKU per `wixVariantId`, prisgrinden `stämmer: true`.
+En färsk `las` före stämplingen (run 3673–3680, 21:14 UTC) gav samma saldon
+och priser som förberedelsen.
 
 ## ☠️ Priserna flyttade sig INNAN rundan — och golvet med dem
 
@@ -73,6 +81,12 @@ följde priset kostnaden.
 ⚠️ **`2f251ce3` är samma mönster som N32 såg på `41b2bc81` och `2808fff3`:**
 pris och kostnad har ändrats utan att `aosomSyncedAt` flyttats. Vilket jobb som
 skrev är inte fastställt. Det är värt en egen titt för den som äger prisjobben.
+
+**Under skrivningen rörde sig inget pris.** Inga "Aosom — synka lager och
+priser"-körningar startades efter 20:35 (Actions-listan lästes före
+stämplingen), steg 4 rapporterade `prisFore` 1 649, 1 719, 1 869, 1 869 och
+1 899 × 4 — samma som urvalet — och slutläsningen och båda `las`-omgångarna
+visade samma tal. Rundan rörde inget pris.
 
 ☠️ **Följden för urvalet:** de fyra som N32 namngav togs med även om två nu
 ligger under 1 859 kr — de var rundans uttryckliga överlämning. Men samma
@@ -338,9 +352,8 @@ gråtoner"* (tre led efter *både*), `5c566983` *"ett tätt vävt tyg"* (står i
 källan), `dbedaf4c` *"en sockel med ett urtag i framkanten"* (syns inte säkert)
 och `82000c6b` *"i garaget"* (se sakfelen ovan).
 
-⚠️ **Andra korrekturläsningen (på den PUBLICERADE texten) är inte gjord** —
-den hör till steg 7, efter skrivningen. N32 hittade ett sakfel i en
-metabeskrivning i just det ledet.
+Den andra korrekturläsningen, på den PUBLICERADE texten, är gjord och hittade
+två rader till — se avsnittet efter live-verifieringen.
 
 ## Gate-genomgång
 

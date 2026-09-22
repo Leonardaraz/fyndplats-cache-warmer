@@ -63,7 +63,15 @@ vad som är gjort.
   paus 130 s. Skarp hämtning 8/8 HTTP 200 (145 775–155 327 B), `age` 140–141 s.
   `livegrind.py`: **8/8 REN, orddiff 0** (361–477 ord per sida), `exit 0`.
 - Andra korrekturläsningen (på den publicerade texten, 295 utplockade satser):
-  två fynd, rättas via `bygg-steg.py --rattelse` — se LÄS-MIG.
+  två fynd — `b3efdd39` (melamin/slät, kongruens) och `b2b731c7` (*rengör den*,
+  syftning). Rättade i filerna (`7cc7675`), grindar rena, vitest 99/99.
+- Rättelsen skriven ~21:27 med `bygg-steg.py --rattelse b3efdd39,b2b731c7`:
+  bara `plainDescription` i fältmasken, spärrarna (id + brödtext) i samma
+  anrop 0 avvikelser, 2 av 2 skrivna (revision 4 → 5 och 8 → 9).
+- Separat läsning efter rättelsen (`steg5.js` omgenererad): **8 av 8 helt
+  verifierade**; de sex orörda står kvar på samma revision, och SKU, variantens
+  `visible` och priset är oförändrade även på de två rättade.
+- Steg 7, andra cykeln: `hamta-live.sh 130` startad ~21:28 UTC.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
