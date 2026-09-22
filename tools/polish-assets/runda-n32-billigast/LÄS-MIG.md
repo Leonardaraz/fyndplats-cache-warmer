@@ -361,3 +361,73 @@ publicerade sidornas `directCategoriesInfo`). Slutläsningen visar `antalKat`
 Samma kostnadsavvägning som N15–N31: inget `kort-filer.tsv` finns i rundans
 katalog, och `bygg-medieskrivning.py` rapporterar "inget kort denna runda" per
 produkt — ett uttalat val, inte en tyst utelämning.
+
+## Live-verifiering
+
+`hamta-live.sh 130` + `livegrind.py` mot de publicerade sidorna. Alla åtta
+slugs är nya adresser, så den varma träffen gav `age=0` på alla åtta — en
+förstagångsrendering. Skriptet väntade ut stale-fönstret (305 s) och pausen
+innan den skarpa hämtningen.
+
+**8/8 HTTP 200 (135 028–147 773 B), `age` 140–141 s på alla åtta** — ingen
+sida serverades ur en äldre rendering. `livegrind.py`: **8/8 REN, orddiff 0**
+(425–570 ord per sida), `exit 0`. REN omfattar homoglyf-, sid-, alt- och
+SEO-svepen, de tre flikrubrikerna som `<summary>`, brödsmulans kategori och
+`OutOfStock`-kollen.
+
+## ☠️ Andra korrekturläsningen gjordes ADVERSARIELLT — och hittade ett fel i SEO:n
+
+Rundans agent stannade före det här steget (den hann skriva, stämpla och
+verifiera, men inte läsa den publicerade texten en andra gång). Steget togs
+därför över och gjordes som en flerperspektivsgranskning i stället för en
+ensam genomläsning: tre oberoende läsare med var sin lins (genomläsning för
+grammatik, mekanisk utplockning av varje sats med en/ett, adjektiv eller
+particip, och innehåll/läckor/siffror), och varje fynd prövat av tre
+oberoende granskare som uttryckligen försökte MOTBEVISA det — ett fynd står
+bara om minst två av tre bekräftar det och citatet finns ordagrant i filen.
+
+**Tre råfynd, ett bekräftat (3 av 3), två avfärdade (0 av 3).**
+
+| id | fält | stod | nu | röster |
+|---|---|---|---|--:|
+| `b42b4802` | metabeskrivning | *hörnbord 105 × 85 cm, rakt 150 cm eller 100 × 40 cm* | *…rakt 150 cm eller **ihopvridet** 100 × 40 cm* | 3/3 |
+
+Uppräkningen namngav två av skrivbordets tre lägen men inte det tredje, så
+100 × 40 cm lästes som ett andra mått för det RAKA läget. Källan
+(`100B x 40T x 75H cm (gefaltet)`), brödtexten, Egenskaper, FAQ och
+produktnamnet säger alla att det är det ihopvridna läget. Ett sakfel i den
+text Google visar i sökresultatet — och ingen grind kunde se det, för varje
+tal i meningen står i källan och varje ord är korrekt svenska.
+
+De två avfärdade var korrekt svenska: *"om det får ligga kvar"* (syftar på
+*svett*, ett t-ord) och en alt-text vars bisats syftar rätt.
+
+Rättelsen gick samma väg som rundans skrivningar: `seo.tsv` först →
+`gate-seo.py` (0 fynd, 153 av 160 tecken) → nyttolasten GENERERAD ur filen,
+med kontrollsumman omräknad i samma anrop som skrivningen (både titel och
+beskrivning, eftersom rundans byggare bara summerar brödtexten) →
+fältmask-PATCH med bara `seoData` (revision 4 → 5) → en SEPARAT
+återläsning: titel- och beskrivningssumman lika med filens, två taggar,
+`keywords: []`, och namn, brödtext, SKU, variantens `visible` och priset
+(1 849 kr) orörda → ny live-hämtning och `livegrind.py`, vars SEO-svep
+jämför `<meta name="description">` EXAKT mot `seo.tsv`.
+
+⏳ **Live-omhämtningen efter rättelsen pågår** (butikens ISR-fönster måste gå ut först); utfallet skrivs in här när `livegrind.py` har körts.
+
+⚠️ **Varför en adversariell granskning och inte bara en till genomläsning:**
+N29–N31 hittade två till fem böjningsfel per runda som ingen grind såg, och
+alltid i den egna svenskan. Här fanns inget böjningsfel kvar efter
+korrekturpasset före skrivningen (fem rättade där) — men läsaren med
+innehållslinsen hittade ett SAKFEL i ett fält som ingen av rundans tidigare
+kontroller läste med den frågan. Samma lärdom som katalogsvepet 2026-09-07:
+en riktad kontroll hittar det den letar efter.
+
+## Sammanfattning
+
+Alla åtta produkter är publicerade, stämplade och verifierade i separata led:
+facit mot skarpa Wix före grindarna (8/8 LIKA), de fyra skrivstegen var för
+sig i en senare separat läsning (8/8), mappningsstämpeln via åtta oberoende
+`las`-körningar, den publicerade sidan via `livegrind.py` (8/8 REN) och den
+publicerade svenskan via en adversariell granskning (ett sakfel i en
+metabeskrivning, rättat och omverifierat). Priset rördes inte; tre priser
+ändrades under rundan av andra jobb (se avsnittet ovan).
