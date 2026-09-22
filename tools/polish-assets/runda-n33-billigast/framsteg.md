@@ -8,14 +8,14 @@ vad som är gjort.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 82000c6b | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| 2f251ce3 | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| 5c566983 | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| 07565140 | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| 30f2151f | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| dbedaf4c | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| b2b731c7 | ✓ skriven | ✓ skriven | – | – | – | – | – |
-| b3efdd39 | ✓ skriven | ✓ skriven | – | – | – | – | – |
+| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| 07565140 | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
+| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | – | – | – | – |
 
 ## Läge
 
@@ -36,6 +36,9 @@ vad som är gjort.
   oförändrade sedan förberedelsen.
 - Steg 2 skrivet: 8 av 8 (37 bilder med alt-text, fil-id + alt-summan i samma
   anrop 0 avvikelser), revision +1 på alla. Ej återläst ännu.
+- Steg 3: 8 anrop (en per kategori, id uppslagna på namn i en färsk fråga med
+  54 kategorier), 13 av 13 rader `success: true` attribuerade på radens eget
+  `catalogItemId`, `totalFailures: 0` och `undetailedFailures: 0` i alla åtta.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
