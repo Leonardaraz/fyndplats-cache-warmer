@@ -161,15 +161,68 @@ variantSkus`. **Oberoende `las`-verifiering körd per produkt** (run
 `needsAiPolish: false`, `draftStatus: "published"`, rätt nya SKU och
 `prisgrind stämmer: true` — inget drev under stämplingsfönstret.
 
-Nästa steg: live-verifiering (`hamta-live.sh 130` → `livegrind.py`).
+**Live-verifiering klar** (`hamta-live.sh 130` → `livegrind.py`, `age` 140–488 —
+alla inom rimlig tid, se anmärkning nedan). Första svepet: 8 av 8 REN, 0
+avvikelser i den publicerade texten.
+
+## Andra oberoende granskningen (N33:s andra nya steg — på den PUBLICERADE texten)
+
+Läste igenom alla åtta live-sidornas brödtext en gång till, som en ny
+skeptisk läsare, med fokus på genus/adjektiv/particip-kongruens och
+konstruktionslogik (samma typ av fel som `13a53d52`-golvlampan i
+CLAUDE.md). Ett verkligt fynd:
+
+- **`5022e9e5`**: introt och H2-stycket beskrev tvättkorgens mekanik som att
+  en **spjälsdörr** fälls fram och en **stillastående korg** sitter bakom den
+  — men källans egna ord ("nach vorne klappbare Wäschekörbe", "Zwei vordere
+  Kippbehälter") säger att det är **korgen själv** som är tippbar, och det är
+  också vad produktnamnet och sluggen redan sa (`tva-tippbara-korgar`). En
+  intern motsägelse mellan namn/slug och brödtext, samma familj som N33:s
+  spegel/dörr-fynd. Rättat i introt, H2-rubriken, H2-stycket, en
+  Egenskaper-bullet, skötselraden och en FAQ-fråga+svar — korgen är nu
+  konsekvent det som har spjälfronten och fälls fram, ingen separat "dörr"
+  någonstans i texten (verifierat med `grep -i dörr`, 0 träffar).
+
+  ☠️ **Följdfelet ingen bad om att leta efter:** `seo.tsv`:s metabeskrivning
+  för samma produkt ekade den GAMLA "spjälsdörrar...bakom varje"-formuleringen
+  — exakt den blinda fläck CLAUDE.md redan dokumenterat ("och `seoData`
+  glömdes bort av regeln"). Rättad till samma korg-framing, 132 tecken.
+
+Rättelserna skrevs till Wix i två EGNA, ENSAMMA anrop (aldrig ihop med andra
+fält): `plainDescription` via `bygg-steg.py --rattelse 5022e9e5` (maskinellt
+genererad nyttolast ur filen, ingen handskriven text — samma spärr-i-samma-
+anrop-mönster som steg 1), sedan `seoData` via ett litet motsvarande skript
+byggt ur `seo.tsv`. Båda verifierade med en SEPARAT återläsning direkt efteråt
+(revision 4→5→6, `plainDescription`-hash och `seoData`-taggarna matchade
+facit exakt). `raa-hash.tsv`, `vantat-hash.tsv`, `steg1-bas.js`, `steg1.js`,
+`steg3.js`, `steg4.js`, `steg5.js` omgenererade. Alla filgrindar
+(`gate.py`, `gate-seo.py`, `gate-alt.py`) och `npx vitest run lib/polish`
+(99/99) omkörda gröna.
+
+**Live-sidan hämtades om två gånger till** (en efter varje rättelse, samma
+ISR-medvetna varm-träff-och-vänta-procedur) och `livegrind.py` kördes om
+till slutresultat: **8 av 8 REN, 0 avvikelser**, inklusive SEO-svepet mot det
+uppdaterade `seo.tsv`.
+
+Inga ytterligare sakfel eller kongruensfel hittades på de andra sju
+produkterna vid den här genomläsningen.
+
+⚠️ **Anmärkning om `age`:** `6b91821a` visade `age: 488` i det FÖRSTA svepet
+— högre än den nominella väntetiden, men förklarat av att hela
+skrivfönstret (steg 1–4 + stämpling) låg gott och väl mer än 488 sekunder
+före hamta-live-körningen; `livegrind` bekräftade ändå `diff=0` på den
+sidan, så innehållet var korrekt trots den höga åldern. Samma lärdom som
+CLAUDE.md redan skrivit ned: läs om vid tvekan, döm inte på ett enda `age`.
 
 | kort | steg 1 | steg 2 | steg 3 | steg 4 | steg 5 | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 5022e9e5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 32140f01 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 4f9ef409 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 8085d0b6 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| bd2c7da3 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 6b91821a | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 3739257b | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
-| 3bf5bd08 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | – |
+| 5022e9e5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 32140f01 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 4f9ef409 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 8085d0b6 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bd2c7da3 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 6b91821a | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 3739257b | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 3bf5bd08 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**RUNDAN ÄR KLAR.** Nästa steg: skriv `LÄS-MIG.md`, committa, pusha.
