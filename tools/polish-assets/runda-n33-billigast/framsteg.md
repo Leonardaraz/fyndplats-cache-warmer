@@ -8,14 +8,14 @@ vad som är gjort.
 
 | kort | steg 1 text/SEO | steg 2 media | steg 3 kategori | steg 4 SKU | steg 5 slutläsning | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
-| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | – | – |
+| 82000c6b | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| 2f251ce3 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| 5c566983 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| 07565140 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| 30f2151f | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| dbedaf4c | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| b2b731c7 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
+| b3efdd39 | ✓ skriven | ✓ skriven | ✓ success | ✓ skriven | ✓ LIKA | ✓ las | – |
 
 ## Läge
 
@@ -49,6 +49,15 @@ vad som är gjort.
   (`antalKat` 2–3 inkl. All Products), SKU, variant-id, variantens `visible`.
   Revisionerna = steg 4:s `revisionEfter`, alltså har inget annat jobb skrivit
   emellan. Priserna oförändrade, alla `IN_STOCK`.
+- Färsk `las` före stämplingen (run 3673–3680, 21:14 UTC, `ref: main`): alla åtta
+  `aosom`, `pending_review`, prisgrinden `stämmer: true`, saldon och priser
+  oförändrade mot förberedelsen. Inga "Aosom — synka lager och priser"-körningar
+  efter 20:35 i Actions-listan.
+- Steg 6: 8 stämplingar (run 3681–3688, alla `success`, rutten svarade `OK …
+  uppdaterad — needsAiPolish, draftStatus, variantSkus`) + 8 SEPARATA `las`
+  (run 3689–3696): alla `needsAiPolish: false`, `published`, SKU = `sku.tsv`,
+  prisgrinden `stämmer: true`. Stämplingens `variant_skus` byggdes av
+  `bygg-steg.py --stampla`.
 - `steg1.js` byggs om med `python3 ../../polish-gates/bygg-skrivning.py > steg1-bas.js`
   och `python3 bygg-steg.py steg1-bas.js > steg1.js` (inte incheckad — den bär
   samma text som `<kort>.html`).
