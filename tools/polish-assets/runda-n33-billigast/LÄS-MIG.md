@@ -17,7 +17,7 @@ fack.
 | 82000c6b | Basketkorg för vägg 110 × 70 cm – genomskinlig skiva och fjädrande ring Ø45 cm | FP-basketkorg-genomskinlig-110x70 | 1 649 kr | 69 |
 | 2f251ce3 | Matstolar 2-pack i grå sammetslook – skalformad rygg och ben i gummiträ | FP-matstolar-sammet-gra-2-pack | 1 719 kr | 149 |
 | 5c566983 | Matsalsbänk 120 cm med ryggstöd – gräddvit linnelook, bär 240 kg | FP-matsalsbank-120-ryggstod | 1 869 kr | 182 |
-| 07565140 | Sideboard 100 cm i lantstil – vit med träskiva, låda och kryddhylla i dörren | FP-sideboard-lantstil-100-cm | 1 869 kr | 86 |
+| 07565140 | Sideboard 100 cm i lantstil – vit, skiva i träton, låda och kryddhylla i dörren | FP-sideboard-lantstil-100-cm | 1 869 kr | 86 |
 | 30f2151f | Varmluftsfritös och miniugn 36 liter – grillspett, 1800 W och 230 °C | FP-varmluftsfritos-miniugn-36-l | 1 899 kr | 101 |
 | dbedaf4c | Sideboard 105 cm med fyra lådor och skåp – vit med svarta handtag | FP-sideboard-vit-105-fyra-lador | 1 899 kr | 27 |
 | b2b731c7 | Fot- och vadmassage med luftkompression och värme – fälls ihop till pall | FP-massage-fotter-vader-luft | 1 899 kr | 94 |

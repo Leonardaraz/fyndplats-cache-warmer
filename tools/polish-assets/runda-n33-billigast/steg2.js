@@ -60,14 +60,14 @@ async function () {
       kort: "30f2151f",
       pid: "30f2151f-8142-441b-97db-71236fce027b",
       poster: [
-        { id: "b379ce_4832de3e0c454934b23d90f150ed634d~mv2.jpg", altText: "Svart varmluftsfritös och miniugn med vred på ovansidan och glaslucka" },
+        { id: "b379ce_4832de3e0c454934b23d90f150ed634d~mv2.jpg", altText: "Svart varmluftsfritös och miniugn med vred ovanför glasluckan" },
         { id: "b379ce_3be2dba07f8b46f4a6de64aea1a91cb6~mv2.jpg", altText: "Ugnen på en köksbänk med en pizza bakom glasluckan" },
         { id: "b379ce_1adca3bdc5d84208b15fe85bf423040b~mv2.jpg", altText: "En kyckling på grillspettet i den tända ugnen" },
         { id: "b379ce_3c31f105bd1741e59caccce4f54ebb4c~mv2.jpg", altText: "Ugnen med öppen lucka när en plåt med grönsaker tas ut" },
         { id: "b379ce_dd2ae800c662449f8a534a5d42c45847~mv2.jpg", altText: "Måttbild som visar ugnen 54 × 48 × 48,2 cm med plåt, korg, galler och grillspett" },
       ],
-      raa: 624174074,
-      tecken: 542
+      raa: 429690438,
+      tecken: 534
     },
     {
       kort: "dbedaf4c",
