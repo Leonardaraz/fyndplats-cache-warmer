@@ -98,16 +98,57 @@ och `npx vitest run lib/polish` (99/99) omkörda och gröna.
   (skrev av det riktiga numret i förklaringstexten i stället för "…") —
   hittad av testet, rättad.
 - steg1.js/steg3.js/steg4.js/steg5.js byggda av `bygg-steg.py`.
-- **Ännu INTE skrivet till Wix.** Nästa steg: push av filerna ogrindade-till-
-  Wix, sedan den oberoende granskningen (N33:s steg), sedan skrivning.
+**Steg 1 skrivet 2026-09-22** (namn/slug/plainDescription/visible/seoData).
+Ett transkriberingsfel hittades och rättades INNAN skrivningen lyckades: en
+isolerad kontrollsummeverifiering (ingen skrivning) på `6b91821a` avslöjade
+att jag av misstag skrivit "starka rengöringsmedel" i stället för källfilens
+"starka lösningsmedel" i skötselstycket — en omedveten återanvändning av den
+vanligare frasen. Diffad fram med `difflib.SequenceMatcher` mot filen på disk,
+rättad, skrivningen kördes om och lyckades 8/8.
+
+| kort | revision före | revision efter |
+|---|---:|---:|
+| 5022e9e5 | 1 | 2 |
+| 32140f01 | 2 | 3 |
+| 4f9ef409 | 3 | 4 |
+| 8085d0b6 | 3 | 4 |
+| bd2c7da3 | 2 | 3 |
+| 6b91821a | 2 | 3 |
+| 3739257b | 2 | 3 |
+| 3bf5bd08 | 2 | 3 |
+
+**Steg 2 skrivet 2026-09-22** (media + alt-texter). Checksumman höll direkt,
+inget transkriberingsfel denna gång.
+
+| kort | bilder skickade | revision efter |
+|---|---:|---:|
+| 5022e9e5 | 5 | 3 |
+| 32140f01 | 5 | 4 |
+| 4f9ef409 | 4 | 5 |
+| 8085d0b6 | 4 (position 4 struken, tysk text) | 5 |
+| bd2c7da3 | 5 | 4 |
+| 6b91821a | 5 | 4 |
+| 3739257b | 5 | 4 |
+| 3bf5bd08 | 5 | 4 |
+
+**Steg 3 skrivet 2026-09-22** (kategorier). 13 av 13 rader success, 0 fel,
+`undetailedFailures: 0` i alla fyra bulk-svaren. Kategori-id slogs upp färskt
+(54 kategorier lästa).
+
+**Steg 4 skrivet 2026-09-22** (variant-SKU, sist och ensam, round-trip från
+färsk GET). 8 av 8 skrivna. `variantVisibleFore`/`produktVisibleFore` var
+`true` på alla åtta både före och (implicit, medskickat oförändrat) efter —
+priserna stämde exakt mot urvalstabellen (1619/1619/1669/1679/1699×4).
+
+Nästa steg: steg 5 (separat återläsning, ett tag senare — inte i samma anrop).
 
 | kort | steg 1 | steg 2 | steg 3 | steg 4 | steg 5 | steg 6 stämpel | steg 7 live |
 |---|---|---|---|---|---|---|---|
-| 5022e9e5 | – | – | – | – | – | – | – |
-| 32140f01 | – | – | – | – | – | – | – |
-| 4f9ef409 | – | – | – | – | – | – | – |
-| 8085d0b6 | – | – | – | – | – | – | – |
-| bd2c7da3 | – | – | – | – | – | – | – |
-| 6b91821a | – | – | – | – | – | – | – |
-| 3739257b | – | – | – | – | – | – | – |
-| 3bf5bd08 | – | – | – | – | – | – | – |
+| 5022e9e5 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 32140f01 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 4f9ef409 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 8085d0b6 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| bd2c7da3 | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 6b91821a | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 3739257b | ✅ | ✅ | ✅ | ✅ | – | – | – |
+| 3bf5bd08 | ✅ | ✅ | ✅ | ✅ | – | – | – |

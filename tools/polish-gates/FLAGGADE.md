@@ -138,6 +138,15 @@ beslut — se den samlade frågan om detta.
 - `542963a7` 4er-Set Esszimmerstühle Massivholz, 1 999 kr — samma stol (41 ×
   46,5 × 85,5, permutationsträff) som 2-packet `6a5c33ce` (1 239 kr); om samma
   stol ska säljas i två förpackningsstorlekar är en presentationsfråga (N33)
+- `aa8ce611` Klappbarer Esstisch, 1 699 kr — FYRVÄGS internt dubblettkluster:
+  samma bord ligger som utkast på 1 359, 1 399, 1 449 OCH 1 699 kr under fyra
+  olika id. `aa8ce611` var den DYRASTE i klustret, alltså fel led att polera —
+  huset polerar den billigaste. De tre billigare id:na är inte antecknade här;
+  hitta dem via samma trippel om klustret tas upp igen. (N34)
+- `b3a83f02` Modernes Sideboard, 1 649 kr — exakt trippel 100 × 40 × 80 mot
+  TVÅ publicerade produkter, varav den ena är N33:s egen `07565140`. För hög
+  dubblettrisk för att polera utan att först reda ut vilken av de tre som ska
+  finnas kvar. (N34)
 
 ## Bortvalda av andra skäl (inte flaggade, bara sparade för senare)
 
