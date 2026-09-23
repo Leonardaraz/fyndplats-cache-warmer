@@ -658,3 +658,47 @@ beslut — se den samlade frågan om detta.
   gåvagnen `26ec5761` är brus), `4c8d9de4` (smal konstgjord julgran, 659 kr,
   saldo 90), `875ca38b` (vinhylla för åtta flaskor, 659 kr, saldo 182) och
   `f0817bea` (julby, 659 kr, saldo 197). (N48)
+- Husmärke på varan eller dess väska, alltså hoppade enligt regeln från N36:
+  `480eefad` (agilityset för hund med ring, hinder och slalom, PawHut på
+  väskan), `647fdeb9` (plyobox för hoppträning, SPORTNOW) och reserven
+  `ee50f5bf` (agilityset för hund med fyra bågar, PawHut på väskan och i
+  annonsbilden). `75a94825` är samma agilityset som `ee50f5bf` och
+  hoppades med den utan egen granskning. (N49)
+- `66bc1de2` (uppblåsbar tomte med LED och fläkt, 659 kr) hoppades som
+  trolig tvilling till den publicerade `46dd0605` (uppblåsbar tomte 243 cm med
+  polkagriskäpp). Skärmen hittade inga mått i källan och var blind för den;
+  kopplingen kom från en riktad kontroll mot de publicerade uppblåsbara
+  tomtarna. `480eefad`, `647fdeb9` och `66bc1de2` ersattes av reserverna
+  `ce59dcf5`, `f0817bea` och `e0d0d880`. (N49)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  `3a33819b` (agilityset för hund i fyra delar) mot `7167f9ac` (hopphinder för
+  hund, fyrpack), `2fe9b265` (förvaringsskåp med tyglådor) mot byråarna
+  `834b263f` och `b45d2544`, `5b62c8da` (två konstväxter) mot `47f6059d`
+  (konstgjorda lavendelträd, två stycken), `b8d21670` (låsbart medicinskåp)
+  mot `0d873780` och `6d653305`, `dafe6f89` (konstgjort körsbärsträd med
+  120 LED) mot `00d6f785` (LED-björk 150 cm), och golvlamporna med hyllor
+  `77b7367d`, `05652710` och `318a887e` — tvillingar till varandra — mot
+  `53e66496` och `d2dfd1fa`. (N49)
+- Skärmens träffar mot sidor av ANNAT slag räknades som brus och fällde inte:
+  springcykeln `115d3831` mot elmotorcykeln `27ffc74b`, blomstället
+  `8382289b` mot klösträdet `7f8e495b` och byrån `2ccf1182`, och bambuhyllan
+  `ce59dcf5` mot verktygsvagnarna `b920d526` och `d9965552`. Alla tre
+  publicerades i N49. (N49)
+- Färgsyskon till sidor som N48 publicerade, hoppade enligt
+  `FARGSYSKONEN.md`: `961df2a7` (pedalhink 20 l) till `af9c163f` och
+  `de94d315` (skjutdörrsbeslag i rustik stil) till `0a5d10dc`. (N49)
+- `f1eaa699` och `b5c9069f` är färgsyskon till rutschkanan `96451d83`, som
+  publicerades i N49. Hoppade enligt `FARGSYSKONEN.md`. (N49)
+- Hoppade för säsong: `5ee3dda6` (fotbollsmål för barn, saldo 26) och
+  trädgårdsvarorna för 649–659 kr: `05a58e2e` och `b176c9af` (fyra
+  sittdynor 150 × 50 cm), `389e10ce` (miniväxthus), `5b2164f3` och
+  `eff308d4` (plastväxthus), `c10a65c0` och `f49cb914` (odlingslådor),
+  `c56892d5` (slangvinda med 10 m slang) och `0dad2583` (paviljongtak
+  3 × 3 m). En trädgårdsvara som poleras i slutet av september får sina
+  första besökare på våren. (N49)
+- `dd8902e8` och `d499532f` (kattlådor i rostfritt stål) kom upp i
+  prislistan men är redan pensionerade som tvillingar till den publicerade
+  `adb8c31b` (`draftStatus: "rejected"`, se `CLAUDE.md`). Hoppade. (N49)
+- Inga reserver till N50. Alla arton kandidater i N49:s skärm som inte
+  publicerades föll på en av reglerna ovan, så N50 börjar med en ny skärm
+  från 669 kr. (N49)
