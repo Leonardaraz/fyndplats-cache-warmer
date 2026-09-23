@@ -121,7 +121,7 @@ ingen `SLUTSALD`, saldo över `LAGER_BUFFERT`.
 
 ## Slutgiltigt urval (8, 619–639 kr)
 
-Sju kandidater klarade allt på 639 kr och fyra platser återstod där efter de
+Sju kandidater klarade allt på 639 kr och fem platser återstod där efter de
 tre billigare. Oavgjort pris bröts MEKANISKT i jämförelsens egen ordning
 (listan sorterar lika pris på wix-id): `084b987b`, `12e66c66`, `285d9ab7`,
 `2af7ec2d`, `3bd54459` — `59b75ffa` och `7c3d438a` blev reserver.
@@ -248,7 +248,49 @@ engelska utöver vedertagna lånord (LCD-display, whiteboard). Namn 62–78 av
 80 tecken, SEO-titlar 39–53 av 60, beskrivningar 123–144 av 160. Alla
 grindar omkörda efter ändringarna: samma utfall som i tabellen ovan.
 
+Pushat i `6ffe5bb`.
+
+## Steg 6.1 — Wix-skrivningen, steg 1 (namn/slug/brödtext/visible/SEO)
+
+Omedelbart före: N37:s `ids.tsv` lästes om (0 gemensamma id), liksom N39:s
+nya `ids.tsv` (0 gemensamma, inget av mina färgsyskon); slugs och SKU:er
+jämförda mot N37:s `slugs.txt`/`sku.tsv` — 0 krockar, 0 prefixöverlapp
+(N39:s filer fanns inte än). `steg1.js` (bygg-skrivning.py + bygg-steg.py:s
+metaspärr `833325216 / 2655`) skickat ordagrant: ingen spärr utlöst, **8 av
+8 skrivna**. Revisionerna före var exakt källkontrollens (1, 2, 2, 4, 2, 2,
+5, 3) — ingen annan hade rört produkterna; efter +1.
+
+## Steg 6.2 — media (fil-id + alt-texter)
+
+`steg2.js` (bygg-medieskrivning.py) ordagrant: spärren över `id|altText` i
+samma anrop utlöstes inte, **8 av 8 skrivna**, 39 bilder (5, 5, 5, 4, 5, 5,
+5, 5), måttbilden sist, `media.main` inte skickad.
+
+## Steg 6.3 — kategorier
+
+`steg3.js` ordagrant, kategori-id uppslagna på NAMN i en färsk
+`categories/query` i samma anrop (54 kategorier, alla tio namnen träffade):
+**14 av 14 rader `success: true`**, attribuerade på radens eget
+`catalogItemId`, tio bulk-anrop med `totalFailures: 0` och
+`undetailedFailures: 0`.
+
+## Steg 6.4 — variant-SKU sist och ensam
+
+Omedelbart före: SKU:erna jämförda mot N37:s OCH N39:s `sku.tsv` (N39:s
+hade då kommit, åtta rader) — 0 krockar, 0 prefixöverlapp; N39:s nya
+`slugs.txt` likaså 0 krockar mot mina. `steg4.js` ordagrant, spärren
+`781405103 / 607` i samma anrop: **8 av 8 skrivna**. Färsk GET med
+`?fields=VARIANT_OPTION_CHOICE_NAMES`, varianten kopierad med bara `sku`
+ändrad, `visible` (och `options` om de finns) i kropp och fältmask. Alla åtta
+hade EN variant; variant och produkt var `visible: true` före; `prisFore`
+619, 619, 629, 639 × 5 — urvalets priser; variant-id stämde med
+`variant.tsv`. De tyska SKU:erna (`FP-kunstlicher-buchsbaum`,
+`FP-schirmstander-mit`, `FP-vordach-fur-haustur`, `FP-beistelltisch-mit`,
+`FP-elektronische`, `FP-mulleimer-30l-treteimer`, `FP-2-in-1`,
+`FP-vogel-futterstation-208`) är utbytta — skrivningen gjorde verkligt
+arbete.
+
 ## Läge
 
-Förberedelsen och granskningen klara, INGENTING skrivet till Wix. Nästa: de
-fyra Wix-stegen.
+Alla fyra Wix-stegen skrivna (8/8, 8/8, 14/14, 8/8). Nästa: pusha, sedan
+den separata återläsningen (`steg5.js`) i ett eget anrop.
