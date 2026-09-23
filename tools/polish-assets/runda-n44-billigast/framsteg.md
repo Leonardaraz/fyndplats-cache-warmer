@@ -38,7 +38,7 @@ säsong, husmärke, main-seriens växthus) och står kvar som flaggade.
 |---|---|
 | `cf92c3bd` konstgjord dieffenbachia 95 cm | **vald** (saldo 119) |
 | `e36dab73` julgran 150 cm, Ø46 cm | **vald** (saldo 79) |
-| `a7186f2b` skobänk i bambu, grå | **hålls** — samma bänk som den PUBLICERADE `8f0a4df1`, se nedan |
+| `a7186f2b` skobänk i bambu, grå | **hålls** — samma bänk som den PUBLICERADE `8f0a4df1` eller ett färgsyskon till den, se nedan |
 | `a7e88a1b` ergonomisk sittdyna | **vald** (N43:s reserv, saldo 155) |
 | `b5b3b852` elektronisk darttavla | **vald** (N43:s reserv, saldo 197) |
 | `e90dcc5a` balansstenar i TPR | **vald** (N43:s reserv, saldo 144) |
@@ -68,15 +68,18 @@ gnistskydd och halloweenfigurer. Specifikationerna för kandidaterna och 38
 närmaste motsvarigheter hämtades sedan server-side, med artikelnumren
 redigerade innan något lämnade anropet.
 
-**De fyra som hålls, avgjorda:**
+**De fyra som hålls** (tre avgjorda, gnistskyddet inte):
 
 - `aaa9f500` (549 kr) mot den publicerade `15746de3` (459 kr): samma
   40 × 30 × 60 cm, samma 72 liter, båda bambu med lock. **Samma korg**, och
   utkastet är dyrare än den publicerade sidan.
 - `a7186f2b` (grå och natur, 529 kr) mot den publicerade `8f0a4df1` (629 kr):
-  samma 60 × 29 × 49 cm och 4,8 kg, och den publicerade sidan anger färgerna
-  mörkgrå och vit. Namntvillingen `7febe06d` (499 kr) är den krämvita.
-  **Samma bänk.**
+  samma 60 × 29 × 49 cm och 4,8 kg. Den publicerade sidan anger färgerna
+  mörkgrå och vit, utkastet grått och naturträ, och namntvillingen `7febe06d`
+  (499 kr) är krämvit och naturträ. **Samma bänk eller ett färgsyskon** —
+  bilderna är inte jämförda, men båda skälen räcker för att hålla den.
+  (Rättat när rundan skrevs ihop: en tidigare version av raden sa bara
+  "samma bänk", vilket färgerna inte bär.)
 - `40b7dfa0` (grön och vit, 559 kr) mot den publicerade `6f101f90` (vit och
   brun, 659 kr): samma 56 × 27 × 39 cm och 2,8 kg. **Färgsyskon.** Utkastet
   `1dfa992a` (brun och vit, 599 kr) är sannolikt samma cykel som den
@@ -217,3 +220,36 @@ steg1-bas.js` och `bygg-steg.py steg1-bas.js > steg1.js` (skriver även
 `steg3.js`–`steg5.js`). Alla fem stegfiler parsar i Node. `media-hash.tsv` har
 tio rader, och `bygg-steg.py --stampla` ger en variant-SKU per produkt ur
 `variant.tsv` och `sku.tsv`.
+
+## Skrivningen och stämpeln
+
+Rundans filer pushades före Wix (`544ad5a`). Main var oförändrad på
+`2fbcfaa`, och senaste "Runda …"-commit var fortfarande Runda 147.
+
+| steg | resultat |
+|---|---|
+| 1 namn/slug/brödtext/`visible`/SEO, spärr över text OCH namn/slug/SEO i samma anrop | **10 av 10**, ingen spärr utlöst (revision 1→2 eller 3→4) |
+| 2 media (fil-id + alt, måttbilden sist) | **10 av 10**, 46 bilder (darttavlan tre, sittdynan och tipitältet fyra, övriga fem) |
+| 3 kategorier (bulk add-items, uppslag på namn i samma anrop, 54 kategorier) | **21 av 21 rader success** i tolv kategorier, `totalFailures: 0` överallt |
+| 4 variant-SKU sist och ensam, round-trip med `options` och `visible` | **10 av 10**; variant och produkt synliga före, priset före skrivningen 519–559 kr |
+| 5 separat återläsning | **10 av 10 helt verifierade** vid första läsningen: text, namn, slug, SEO, bilder, kategorier, SKU, variantens synlighet, pris och `IN_STOCK` |
+| stämpel (`stampla`, körningarna 4002–4011) | **10 av 10** `OK … uppdaterad`, var och en bevisad som min på `PRODUCT_ID` |
+| stämpeln verifierad med en EGEN `las` per produkt (4012–4021) | **10 av 10** `needsAiPolish: false`, `published`, rätt SKU, prisgrind `stämmer: true` |
+
+Ingen kategori släpade den här gången. Darttavlan `b5b3b852` har en ensam
+toppkategori (`Sport & Fritid`, inget löv passar), precis som N42:s
+brasskärm och N43:s sidobord, men den syntes i projektionen redan vid första
+återläsningen (två kategorier med `All Products`).
+
+Saldot i `las` efter stämpeln: 52–197, samma som i urvalet.
+
+## Live
+
+`hamta-live.sh 130`: alla tio `HTTP 200`, `age` 142–144. `livegrind.py`:
+**orddiff 0 på alla tio, 0 avvikelser**. `livekoll.py`: **10 av 10 OK**, 46 av
+46 alt-texter, brödsmulan rätt på alla, priserna 519–559 kr (samma som före
+SKU-skrivningen).
+
+Den andra korrekturläsningen av den publicerade texten gjordes INTE i N44
+(Leonards önskan om högre tempo 2026-09-23): orddiffen bevisar att live-texten
+är exakt filen, och filen korrekturlästes före skrivningen.

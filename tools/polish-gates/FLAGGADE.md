@@ -490,3 +490,52 @@ beslut — se den samlade frågan om detta.
   `e90dcc5a` (balansstenar, sex stycken, saldo 144; ett ANNAT set än N43:s
   `60f84a27` — mindre stenar, 21,5–34,3 cm, och TPR mot TPE; namntvillingen
   `dc71c3ac` med elva stenar är ett utkast). (N43)
+- `aaa9f500` (Bambus Wäschekorb mit Deckel 72 L, 549 kr, saldo 197) — samma
+  korg som den PUBLICERADE `15746de3` (tvättkorg bambu 72 L med lock, 459 kr):
+  samma 40 × 30 × 60 cm och 72 liter, båda bambu med lock. Ett DYRARE utkast
+  bakom en publicerad sida; att publicera det vore en dubblett. Pensionering
+  är Leonards beslut. (N44)
+- `a7186f2b` (Schuhbank mit Sitzfläche, Bambus, grå och naturträ, 529 kr,
+  saldo 8) — samma 60 × 29 × 49 cm och 4,8 kg som den PUBLICERADE `8f0a4df1`
+  (skobänk i bambu med sittdyna, 629 kr), vars text anger färgerna mörkgrå
+  och vit. Samma bänk eller ett färgsyskon; bilderna är inte jämförda.
+  Namntvillingen `7febe06d` (krämvit, 499 kr) har sin egen rad från N41. Båda
+  är BILLIGARE utkast bakom en publicerad sida, samma fråga som `ab47e35d`
+  (N37), `f981fbc0` (N42) och `b7465ef9` (N43). Leonards beslut. (N44)
+- `40b7dfa0` (Laufrad, grön och vit, 559 kr, saldo 197) — färgsyskon-mönster
+  (se `FARGSYSKONEN.md`): samma 56 × 27 × 39 cm och 2,8 kg som den
+  PUBLICERADE `6f101f90` (springcykel för barn 1–3 år, vit och brun, 659 kr).
+  Utkastet `1dfa992a` (brun och vit, 599 kr) är sannolikt samma cykel som den
+  publicerade sidan, alltså ännu ett billigare utkast bakom den. (N44)
+- `447234be` (Kinderschrank mit 6 Stoffboxen, ROSA, 569 kr, saldo 180) —
+  färgsyskon till `1476f00c` (grön), som publicerades i N44: samma
+  63 × 30 × 66 cm och sex tygboxar. (N44)
+- INTE PRÖVAD i N44: `2ffa80f1` (Funkenschutz, klappbar, 96 × 1,3 × 56 cm,
+  3 kg, 569 kr, saldo 73) mot den PUBLICERADE `ae2ac5e5` (gnistskydd 96 cm,
+  tre paneler, 569 kr), som anger 96 × 1 × 60 cm och 2,8 kg. Samma bredd och
+  pris, olika höjd och paketmått. Kan vara ett annat gnistskydd. Jämför
+  bilderna innan det väljs. (N44)
+- FEL SÄSONG i slutet av september, hoppade över i N44 och att ta upp till
+  våren: **paviljongdraperierna** `723b56c3` (549 kr), **häcksaxen** `45bd0805`
+  och **paviljongtaket** `6f972315`. (N44)
+- Utfall och mätningar i N44: N43:s reserver `a7e88a1b` (sittdyna), `b5b3b852`
+  (darttavla) och `e90dcc5a` (balansstenar) är PUBLICERADE, och så är
+  `cf92c3bd` (konstgjord dieffenbachia 95 cm), vars fråga N42 redan avgjort.
+  Dess namntvilling `376caddc` (120 cm, samma kruka, 729 kr) är ett
+  storlekssyskon, inte en dubblett. N41:s rättelserad om granfamiljen är nu
+  MÄTT: `520cc521` är Ø55 × 180 cm, `7727e1bf` Ø55 × 210 cm, `792562e3`
+  Ø60 × 210 cm och `e36dab73` Ø46 × 150 cm — fyra storlekar, inte kopior.
+  `e36dab73` är PUBLICERAD i N44; ingen publicerad gran är Ø46 × 150 cm.
+  `520cc521` hålls fortfarande som färgsyskon till `1f887213`. Raderna ovan
+  står kvar oförändrade. (N44)
+- ⚠️ LÄSANVISNING (N44): ett id som bara NÄMNS i en rad här, som
+  jämförelseobjekt, är inte flaggat. N43 slog upp id mot hela filen och ströp
+  därför även utkast som bara förekom som motpart i någon annans rad. Läs
+  raden bakom varje träff. (N44)
+- Reserver från N44, inte med bara för att rundan var full på tio, alla
+  dubblettskärmade men inte `las`-prövade: `173bc5bd` (smal julgran 195 cm,
+  saldo 112), `2cb5b77e` (LED-björk 180 cm med 96 LED, saldo 197; ett
+  storlekssyskon till den publicerade `3d3f90d3` på 120 cm, inte en dubblett)
+  och `300d3415` (julby i trä med 10 LED, saldo 197). `1204b022` (raden från N43
+  ovan) är fortfarande inte prövad mot `75a38b7b`; N44 nådde inte upp till
+  599 kr. (N44)
