@@ -210,3 +210,37 @@ kongruens, syftning, idiom och inre motsägelser som fråga. **Sexton
 | alt a9360e2a/95b6f5bd | i ett vardagsrum / i ett tvättrum | i ett ljust rum | bilderna visar inte vilket rum det är |
 
 Alla grindar omkörda efter rättningarna — oförändrat gröna.
+
+Pushat som `6e8ccdf` ("källor, svenska texter och grindar — före
+skrivningen"), rebasat ovanpå N38:s `2fc16e0`.
+
+## Steg 5 — oberoende, skeptisk granskning FÖRE skrivningen
+
+Alla åtta lästa en gång till som en utomstående granskare, med kontaktarket
+och källtexten bredvid: varje påstående om konstruktion, antal delar och vad
+som ingår prövat mot bilderna, varje tal mot källan, varje ord prövat mot hur
+en svensk kund läser det.
+
+**Ett fynd, och det var ett ordval med fel betydelse:** `d3655c3e` hette
+"tvättställ" — men på svenska är ett tvättställ ett HANDFAT. Varan är en
+hylla för tvätt. Ordet stod i namnet, SEO-titeln och metabeskrivningen, fyra
+alt-texter, brödtexten, slugen och SKU:n. Allt bytt till **tvätthylla**
+(`tvatthylla-bambu-tva-tygkorgar`, `FP-tvatthylla-bambu-tva-korgar`), och
+"ställningen" i texten till "hyllan" med "per hylla" → "per hyllplan" så att
+hyllan och hyllplanen inte blandas ihop. Ordet söktes i ALLA rundans filer
+efter bytet: inga förekomster kvar. Dessutom en stilrättelse i samma fil:
+"när de ska göras rena" → "när de ska rengöras".
+
+Allt annat prövat och behållet: balansbommens "samma bredd som en
+tävlingsbom" (*10 cm Wettkampfbreite*), golvlampans svart och vit (källans
+egen tekniska data och bilderna, mot spec-radens felaktiga "Blau, Orange,
+Gelb"), pilatesbrädans "handtagen vid plattorna, 22 cm isär" (*Abstand
+zwischen den Griffen* — armhävningshandtagen har egna mått, 16 × 6 cm, och
+sitter i hål, så ett fast avstånd hör till handtagen på glidplattorna) och
+tvättsorterarens mått, som följer måttbilden (påsen 27 × 32 × 44, varje fack
+29 × 31 × 16,5).
+
+Efter bytet: alla filgrindar omkörda (gröna), slug-krock mot hela katalogen
+omkörd (5 984 slugs, 0 krockar) och mot N38:s `slugs.txt` (0), SKU-krock
+omkörd (0), läck- och teckensvep 0, `raa-hash.tsv`, `vantat-hash.tsv`,
+`media-hash.tsv` och alla stegfiler ombyggda ur filerna.

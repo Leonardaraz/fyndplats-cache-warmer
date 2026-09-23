@@ -35,13 +35,13 @@ async function () {
       kort: "d3655c3e",
       pid: "d3655c3e-c066-4226-9860-0e960aa5315f",
       poster: [
-        { id: "b379ce_1acf4f4c67484a3ba2991452dc2262a2~mv2.jpg", altText: "Tvättställ i bambu med två grå tygkorgar och två hyllplan" },
-        { id: "b379ce_9dff974aeb234fbd8bc0cf9e72775fe6~mv2.jpg", altText: "Tvättstället i ett tvättrum bredvid tvättmaskinen, med flaskor och handdukar på hyllorna" },
-        { id: "b379ce_8f282542bfcc4cb98902174293fade2a~mv2.jpg", altText: "Tvättstället med utdragna korgar och handdukar på hyllplanen" },
-        { id: "b379ce_94fce9da29774a18b7f76fd936a7e496~mv2.jpg", altText: "Måttbild som visar ställningen 44 × 34 × 96 cm och en korg på 34 × 26 × 20 cm" },
+        { id: "b379ce_1acf4f4c67484a3ba2991452dc2262a2~mv2.jpg", altText: "Tvätthylla i bambu med två grå tygkorgar och två hyllplan" },
+        { id: "b379ce_9dff974aeb234fbd8bc0cf9e72775fe6~mv2.jpg", altText: "Tvätthyllan i ett tvättrum bredvid tvättmaskinen, med flaskor och handdukar på hyllplanen" },
+        { id: "b379ce_8f282542bfcc4cb98902174293fade2a~mv2.jpg", altText: "Tvätthyllan med utdragna korgar och handdukar på hyllplanen" },
+        { id: "b379ce_94fce9da29774a18b7f76fd936a7e496~mv2.jpg", altText: "Måttbild som visar hyllan 44 × 34 × 96 cm och en korg på 34 × 26 × 20 cm" },
       ],
-      raa: 953061641,
-      tecken: 477
+      raa: 723621927,
+      tecken: 472
     },
     {
       kort: "e514191b",
