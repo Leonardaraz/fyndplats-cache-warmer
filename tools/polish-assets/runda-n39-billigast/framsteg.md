@@ -244,3 +244,95 @@ Efter bytet: alla filgrindar omkörda (gröna), slug-krock mot hela katalogen
 omkörd (5 984 slugs, 0 krockar) och mot N38:s `slugs.txt` (0), SKU-krock
 omkörd (0), läck- och teckensvep 0, `raa-hash.tsv`, `vantat-hash.tsv`,
 `media-hash.tsv` och alla stegfiler ombyggda ur filerna.
+
+Pushat som `f9af64a`, rebasat ovanpå N38:s `965f1ee`.
+
+## Steg 6 — Wix-skrivningen
+
+N38:s `ids.tsv`, `slugs.txt` och `sku.tsv` lästes en gång till omedelbart
+före steg 1 (02:54 UTC): åtta id, åtta slugs, åtta SKU:er, inget överlapp.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **8 av 8 skrivna**, ingen spärr utlöst |
+| 2 | media (fil-id + alt-text, måttbilden sist, strukna bilder borta), spärr över id+alt i samma anrop | **8 av 8 skrivna**, 37 bilder |
+| 3 | kategorier, bulk add-items, id uppslagna färskt på namn (54 kategorier) | **19 av 19 rader success**, `totalFailures: 0` i alla nio bulkanrop |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med `options` och `visible` | **8 av 8 skrivna** |
+
+N38:s `sku.tsv` lästes en gång till omedelbart före steg 4: ingen krock.
+
+Steg 4:s svar bekräftade `visible: true` på både produkt OCH variant för alla
+åtta före skrivningen, oförändrade priser (599, 599, 599, 599, 599, 619, 619,
+629 kr — samma som i urvalet) och att de gamla tyska SKU:erna verkligen
+byttes (t.ex. `FP-schwebebalken-2-4-m` → `FP-balansbom-236-bla`,
+`FP-4-in-1-pilates-board-set` → `FP-pilatesbrada-hopfallbar`).
+Variant-id:na i svaret är exakt de i `variant.tsv`.
+
+### Steg 7 — separat återläsning, en stund efter steg 4
+
+En egen `GET` per produkt med
+`?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO&fields=VARIANT_OPTION_CHOICE_NAMES`
+(`steg5.js`, byggt ur filerna), i ett eget anrop efter steg 4 (02:57:45 →
+02:58:39 UTC), jämförd mot facit räknat ur filerna (`vantat-hash.tsv`,
+`media-hash.tsv`, `namn.tsv`, `slugs.txt`, `seo.tsv`, `kategori.tsv`,
+`sku.tsv`, `variant.tsv`):
+
+| kontroll | utfall |
+|---|---|
+| brödtext (wixnorm + FNV-1a mot `vantat-hash.tsv`) | **8 av 8 LIKA** |
+| namn, slug | 8 av 8 |
+| `visible: true` på produkt OCH variant | 8 av 8 |
+| SEO: två taggar (title + description), tomma keywords | 8 av 8 |
+| bilder: id och alt-text i ordning, måttbilden sist | 8 av 8 (37 bilder: 5, 3, 4, 5, 5, 5, 5, 5) |
+| kategorier: avsedda + `All Products` (antalet = avsedda + 1) | 8 av 8 |
+| variant-SKU och variant-id | 8 av 8 |
+| `IN_STOCK`, priset orört | 8 av 8 (599, 599, 599, 599, 599, 619, 619, 629 kr) |
+
+Revisioner efter steg 4: `a9360e2a` 5, `c694dcaa` 5, `d3655c3e` 5,
+`e514191b` 4, `f75a8a17` 6, `ba454107` 7, `f4bdb64c` 7, `95b6f5bd` 5 —
+exakt steg 4:s `revisionEfter`, alltså ingen annan skrivning emellan.
+
+### Steg 8 — `las` före stämpeln
+
+Urvalets `las` gick 02:31, stämpeln 02:58–02:59 — under en timme, så ingen
+ny `las` krävdes före stämpeln. Saldot och prisgrinden lästes ändå på nytt i
+verifieringskörningarna nedan.
+
+### Steg 9 — stämpeln (polish-mapping.yml, `stampla`, `ref: main`)
+
+Åtta körningar startades 02:58:52–02:59:10 UTC; 3855–3862 var de enda i
+fönstret. Mina, var och en bevisad på `PRODUCT_ID` och `OK: <id>`-raden i
+loggen:
+
+| körning | produkt | loggraden |
+|---|---|---|
+| 3855 | `a9360e2a` | `OK: a9360e2a-… uppdaterad — needsAiPolish, draftStatus, variantSkus` |
+| 3856 | `c694dcaa` | `OK: c694dcaa-… uppdaterad — …` |
+| 3857 | `d3655c3e` | `OK: d3655c3e-… uppdaterad — …` |
+| 3858 | `e514191b` | `OK: e514191b-… uppdaterad — …` |
+| 3859 | `f75a8a17` | `OK: f75a8a17-… uppdaterad — …` |
+| 3860 | `ba454107` | `OK: ba454107-… uppdaterad — …` |
+| 3861 | `f4bdb64c` | `OK: f4bdb64c-… uppdaterad — …` |
+| 3862 | `95b6f5bd` | `OK: 95b6f5bd-… uppdaterad — …` |
+
+Indata i varje logg: `NEEDS_POLISH: false`, `DRAFT_STATUS: published` och
+`VARIANT_SKUS` med rätt variant-id ur `variant.tsv` och rätt SKU ur `sku.tsv`.
+
+**Varje stämpel verifierad med en EGEN `las`-körning** (3863–3866 startade
+02:59:50–02:59:55, 3867–3870 startade 03:02:06–03:02:10; inga främmande
+körningar i de intervallen), var och en bevisad på `PRODUCT_ID` och
+`wixProductId` i mappningsraden:
+
+| körning | produkt | needsAiPolish | draftStatus | SKU på raden | pris | prisgrind | saldo |
+|---|---|---|---|---|--:|---|--:|
+| 3863 | `a9360e2a` | false | published | `FP-balansbom-236-bla` | 599 | stämmer | 70 |
+| 3864 | `c694dcaa` | false | published | `FP-golvlampa-trebensstativ-vit-skarm` | 599 | stämmer | 8 |
+| 3865 | `d3655c3e` | false | published | `FP-tvatthylla-bambu-tva-korgar` | 599 | stämmer | 44 |
+| 3866 | `e514191b` | false | published | `FP-skohylla-fyra-plan-blomdekor` | 599 | stämmer | 62 |
+| 3867 | `f75a8a17` | false | published | `FP-hornblomstall-tre-plan-svart` | 599 | stämmer | 104 |
+| 3868 | `ba454107` | false | published | `FP-pall-morkgra-stoppad-sits` | 619 | stämmer | 153 |
+| 3869 | `f4bdb64c` | false | published | `FP-pilatesbrada-hopfallbar` | 619 | stämmer | 186 |
+| 3870 | `95b6f5bd` | false | published | `FP-tvattsorterare-bambu-vit` | 629 | stämmer | 36 |
+
+Ingen `LÅST PRIS`, ingen `SLUTSALD`. Variant-id på raden = `variant.tsv` på
+alla åtta. Priserna är desamma som före rundan — inget pris är rört.
