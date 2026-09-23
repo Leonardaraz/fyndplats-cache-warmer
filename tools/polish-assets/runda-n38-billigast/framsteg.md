@@ -290,7 +290,58 @@ hade EN variant; variant och produkt var `visible: true` före; `prisFore`
 `FP-vogel-futterstation-208`) är utbytta — skrivningen gjorde verkligt
 arbete.
 
+Pushat i `2fc16e0`.
+
+## Steg 6.5 — separat återläsning, i ett eget senare anrop
+
+`steg5.js` (facit ur `ids`, `namn`, `seo`, `slugs`, `sku`, `kategori`,
+`vantat-hash` och `media-hash` — aldrig skrivet av), med
+`?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO&fields=VARIANT_OPTION_CHOICE_NAMES`
+och ett AVBROTT om något av fälten saknas i projektionen innan en nolla
+tolkas: **8 av 8 helt verifierade.**
+
+| kort | rev | text (wixnorm-hash + tecken) | bilder | kat. (inkl. All Products) | SKU | pris | lager |
+|---|--:|---|--:|--:|---|--:|---|
+| `0fda8bfe` | 4 | LIKA, 2 506 | 5 | 3 | LIKA | 619 | IN_STOCK |
+| `33c51730` | 5 | LIKA, 2 553 | 5 | 3 | LIKA | 619 | IN_STOCK |
+| `1a1487a8` | 5 | LIKA, 2 823 | 5 | 3 | LIKA | 629 | IN_STOCK |
+| `084b987b` | 7 | LIKA, 2 707 | 4 | 3 | LIKA | 639 | IN_STOCK |
+| `12e66c66` | 5 | LIKA, 2 865 | 5 | 2 | LIKA | 639 | IN_STOCK |
+| `285d9ab7` | 5 | LIKA, 2 412 | 5 | 2 | LIKA | 639 | IN_STOCK |
+| `2af7ec2d` | 8 | LIKA, 2 467 | 5 | 3 | LIKA | 639 | IN_STOCK |
+| `3bd54459` | 6 | LIKA, 2 594 | 5 | 3 | LIKA | 639 | IN_STOCK |
+
+Namn, slug, `visible: true`, SEO (exakt två taggar, inga nyckelord), media
+(`id|altText`-summan), variantens `visible` och variant-id stämde på alla
+åtta. Varje revision är källkontrollens +3 — tre produkt-PATCHar (text,
+media, SKU); kategorikopplingen rör inte produktens revision. Priserna är
+urvalets, orörda.
+
+## Steg 7 — stämpeln, och en egen `las` per stämpel
+
+`las` hade körts 02:17 och stämplingen startade 02:49 — inom timmen, så ingen
+ny förhandsläsning behövdes. Senaste körningen i listan före mina var 3838
+(02:31, N39:s). `stampla` (polish-mapping.yml, `ref: main`) med
+`needs_ai_polish: "false"`, `draft_status: "published"` och `variant_skus`
+ur `bygg-steg.py --stampla` — aldrig skrivna av. Varje körning bevisad på
+sin `OK: <wixProductId> uppdaterad`-rad:
+
+| stämpel | `las` efteråt | id | needsAiPolish | draftStatus | SKU (mappning) | pris | prisgrind | saldo |
+|---:|---:|---|---|---|---|--:|---|--:|
+| 3839 | 3847 | `0fda8bfe` | false | published | LIKA | 619 | stämmer | 162 |
+| 3840 | 3848 | `33c51730` | false | published | LIKA | 619 | stämmer | 83 |
+| 3841 | 3849 | `1a1487a8` | false | published | LIKA | 629 | stämmer | 39 |
+| 3842 | 3850 | `084b987b` | false | published | LIKA | 639 | stämmer | 83 |
+| 3843 | 3851 | `12e66c66` | false | published | LIKA | 639 | stämmer | 178 |
+| 3844 | 3852 | `285d9ab7` | false | published | LIKA | 639 | stämmer | 89 |
+| 3845 | 3853 | `2af7ec2d` | false | published | LIKA | 639 | stämmer | 103 |
+| 3846 | 3854 | `3bd54459` | false | published | LIKA | 639 | stämmer | 8 |
+
+Sexton körningar, alla gröna, alla med rätt produkt-id i loggen. Priserna
+är desamma som vid urvalet — ingen prisändring, ingen `LÅST PRIS`, ingen
+`SLUTSALD`. Mappningens `variants[].wixVariantId` stämmer med `variant.tsv`.
+
 ## Läge
 
-Alla fyra Wix-stegen skrivna (8/8, 8/8, 14/14, 8/8). Nästa: pusha, sedan
-den separata återläsningen (`steg5.js`) i ett eget anrop.
+Wix klart, återläst och stämplat. Nästa: live (`hamta-live.sh 130`, sedan
+`livegrind.py` till slut), JSON-LD, andra korrekturläsningen.
