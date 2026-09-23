@@ -1,0 +1,2 @@
+2b27c2a4	2	antal spakar och vred, räknade på bild 1 (en spak och ett vred för varje par fack)
+46c0fe07	2	antal ytor, räknade på bild 1 (skivan och den nedre hyllan i perforerad metall)
