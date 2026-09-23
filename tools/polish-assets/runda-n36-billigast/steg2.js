@@ -87,12 +87,12 @@ async function () {
       poster: [
         { id: "b379ce_c0b7ef2c97ea47aa995a733a5b01af63~mv2.jpg", altText: "Blå förvaringshurts för barn med tre lådor i olika nyanser" },
         { id: "b379ce_1245649d3aec44d890d52223fd68c9f8~mv2.jpg", altText: "Ett barn tar leksaker ur den översta lådan" },
-        { id: "b379ce_620fbc0440814a8fbfb1cfedc49c514b~mv2.jpg", altText: "Hurtsen med utdragna lådor med bollar och leksaker i ett barnrum" },
+        { id: "b379ce_620fbc0440814a8fbfb1cfedc49c514b~mv2.jpg", altText: "Hurtsen i ett barnrum med lådorna utdragna och bollar i den nedersta" },
         { id: "b379ce_acd23871feda45cd92922c86abbddb3f~mv2.jpg", altText: "Hurtsen med öppna lådor fulla av klossar och gosedjur bredvid en bokhylla" },
         { id: "b379ce_916392aaf5004584bc20b479aad3c4b8~mv2.jpg", altText: "Måttbild som visar hurtsen 37 × 37 × 56,5 cm och en låda 33 × 31,5 × 15 cm" },
       ],
-      raa: 990463742,
-      tecken: 555
+      raa: 640367162,
+      tecken: 559
     },
     {
       kort: "676e567f",
