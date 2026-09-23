@@ -76,6 +76,18 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "forvaring-organisering": 536,
   "badrum-hemtextil": 536,
   "tradgard-utemobler": 536,
+  // Möbler (436 = Furniture). Underkategorierna får samma toppnivå-ID: de
+  // specifika under-ID:na (stolar, soffor, sängar) är inte verifierade här,
+  // och regeln ovan gäller — fel kategori är sämre än en bred rätt.
+  mobler: 436,
+  kontorsstolar: 436,
+  fatoljer: 436,
+  "soffor-baddsoffor": 436,
+  "matbord-stolar": 436,
+  skrivbord: 436,
+  "soffbord-smabord": 436,
+  "sangar-sovrum": 436,
+  rumsavdelare: 436,
   belysning: 594,                    // Home & Garden > Lighting
   hushallsapparater: 604,            // Home & Garden > Household Appliances
   "kok-husgerad": 638,               // Home & Garden > Kitchen & Dining

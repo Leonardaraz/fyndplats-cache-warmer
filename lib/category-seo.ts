@@ -81,7 +81,55 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Väskor, necessärer, kepsar och accessoarer som håller säsong efter säsong. Skickas från EU-lager på 3–7 dagar med fri frakt över 499 kr.",
   },
 
+  // Möbler skapades i Wix 2026-09-23 (se MAIN_GROUPS i category-groups.ts).
+  mobler: {
+    title: "Möbler – fåtöljer, kontorsstolar & soffor",
+    description:
+      "Möbler till vardagsrum, kontor, kök och sovrum: fåtöljer, kontorsstolar, soffor, matbord och sängramar. Mått i varje beskrivning. Fri frakt över 499 kr.",
+  },
+
   // ── Underkategorier ───────────────────────────────────────────────────────
+  // ── Möbler (2026-09-23) ──────────────────────────────────────────────────
+  kontorsstolar: {
+    title: "Kontorsstolar – ergonomiska stolar & knästolar",
+    description:
+      "Ergonomiska kontorsstolar med nackstöd, fotstöd eller massage, samt knästolar, ritstolar och sadelpallar. Sitthöjd och maxvikt anges. Leverans 3–7 dagar.",
+  },
+  fatoljer: {
+    title: "Fåtöljer – reclinerfåtöljer, gungstolar & mer",
+    description:
+      "Reclinerfåtöljer, TV-fåtöljer med fotpall, gungstolar, massagefåtöljer och uppresningsfåtöljer. Ryggvinkel och maxvikt anges. 30 dagars öppet köp.",
+  },
+  "soffor-baddsoffor": {
+    title: "Soffor & bäddsoffor – hörnsoffa och modulsoffa",
+    description:
+      "Bäddsoffor med förvaring, hörnsoffor med schäslong, modulsoffor och U-soffor i manchester, linnelook och konstläder. Bäddmått anges. Fri frakt över 499 kr.",
+  },
+  "matbord-stolar": {
+    title: "Matbord, matstolar & barstolar",
+    description:
+      "Matbord, klaffbord, matstolar i flerpack, barstolar och barbord. Sitthöjd, bordsmått och maxvikt i varje beskrivning. Leverans 3–7 dagar från EU-lager.",
+  },
+  skrivbord: {
+    title: "Skrivbord – höj- och sänkbara & fällbara",
+    description:
+      "Elektriska höj- och sänkbara skrivbord med minnesfunktion, fällbara väggskrivbord och ståbord på hjul. Skivmått och höjdspann anges. 30 dagars öppet köp.",
+  },
+  "soffbord-smabord": {
+    title: "Soffbord, satsbord, sängbord & konsolbord",
+    description:
+      "Soffbord med förvaring och lyftbar skiva, satsbord i glas och stål, sängbord och smala konsolbord för hallen. Mått anges alltid. Fri frakt över 499 kr.",
+  },
+  "sangar-sovrum": {
+    title: "Sängramar & sängbänkar i furu och metall",
+    description:
+      "Sängramar i furu, metall och stoppat tyg från 90 till 160 cm, sängbänkar med förvaring och madrass i gelmemoryskum. Maxvikt anges. Leverans 3–7 dagar.",
+  },
+  rumsavdelare: {
+    title: "Rumsavdelare – skärmväggar med 3 till 8 paneler",
+    description:
+      "Fristående rumsavdelare med tre till åtta paneler i flätad bambu, polypropenväv, tyg eller pappersrep, 120–320 cm breda. Mått anges. 30 dagars öppet köp.",
+  },
   "baby-smabarn": {
     title: "Babybadkar, gunghästar & babyprylar",
     description:
