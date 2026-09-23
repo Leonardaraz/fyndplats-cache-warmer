@@ -90,7 +90,7 @@ lekmattans namnträff (`1adef24e`, 200 × 150 cm, 669 kr) är en annan storlek.
 | Slug-krock (6 025 slugs i katalogen + alla rundors `slugs.txt`) | **0** |
 | `gate-superlativ.py` | **REN** |
 | `gate-lankar.py` | **0 fynd** |
-| Läck- och teckensvep, 15 kundvända filer | **0 fynd** |
+| Läck- och teckensvep, 15 kundvända filer | **1 fynd, ett falsklarm**: `hojd` i klädställningens slug — se rättelsen sist i filen |
 | `npx vitest run lib/polish` | **99 av 99** |
 
 ⚠️ **`gate.py` fällde "360" på nattduksbordet**, och det var grinden som hade
@@ -139,3 +139,39 @@ varje stämpel bevisad med en EGEN `las` efteråt (körningarna 3891–3900, var
 en bevisad som min på `wixProductId`): `needsAiPolish: false`,
 `draftStatus: published`, den nya SKU:n på mappningsraden och prisgrinden
 `stämmer: true` på alla tio. Stämpeln kördes 28 minuter efter urvalets `las`.
+
+## Live-verifieringen och den andra korrekturläsningen
+
+`hamta-live.sh 130`: alla tio `HTTP 200` med `age` 143–144 — den rendering
+omträffen utlöste. `livegrind.py`: **10 av 10 REN, orddiff 0**. Ur samma
+sidor: JSON-LD `InStock` och oförändrat pris (459/469/479 kr) på alla tio,
+kategori i brödsmulan (`Hem & Inredning` resp. `Barn & Familj`), rätt namn i
+JSON-LD, `<title>` och metabeskrivning exakt som `seo.tsv`, och alla 49
+alt-texter på sidorna.
+
+Den andra korrekturläsningen gjordes på den PUBLICERADE texten, plockad
+mekaniskt ur de hämtade sidorna (drygt 330 rader). **Ett fynd, språkligt:**
+gunghästens första mening "ett glatt lejon – orange kropp och manen randig i
+rött och orange" blandar obestämd och bestämd form i en fragmentsats →
+"ett glatt lejon: kroppen är orange och manen randig i rött och orange".
+Rättat i filen, alla filgrindar omkörda (gröna), och BARA `plainDescription`
+omskriven med `bygg-steg.py --rattelse 8ded5e38`, kontrollsumman i samma
+anrop: **1 av 1**, revision 4 → 5.
+
+Efter rättelsen:
+
+- **Separat återläsning** (`steg5.js`, facit omräknat ur den rättade filen):
+  **10 av 10 helt verifierade**; gunghästen på revision 5, 2 323 tecken,
+  text-hash lika.
+- **Nytt live-svep** (`hamta-live.sh 130`, alla tio `HTTP 200`, `age` 142–143):
+  `livegrind.py` **10 av 10 REN, orddiff 0** mot den rättade filen. Den nya
+  meningen står på sidan, den gamla finns inte kvar. JSON-LD `InStock` och
+  oförändrat pris (459/469/479 kr) på alla tio.
+
+Rundan är klar utom faktakorten (medvetet uppskjutna, som i N15–N39).
+
+⚠️ **Rättelse av grindtabellen:** läcksvepet antecknades som "0 fynd", men
+utfallet var **1 fynd i 15 filer** både före skrivningen och vid avslutet:
+stavningsregelns `hojd` i klädställningens slug. Sluggar är ASCII med flit,
+så det är ett falsklarm. Namnet och brödtexten säger "höjd". Fyndet
+kvitterades men skrevs aldrig ned. Tabellen ovan är rättad.

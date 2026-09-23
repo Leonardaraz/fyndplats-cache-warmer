@@ -114,7 +114,7 @@ Kontaktarken byggdes innan en rad text skrevs. Rättelser mot källan:
 | Slug-krock (6 025 slugs i katalogen + alla rundors `slugs.txt`) | **0** |
 | `gate-superlativ.py` | **REN** |
 | `gate-lankar.py` | **0 fynd** |
-| Läck- och teckensvep, 15 kundvända filer | **0 fynd** |
+| Läck- och teckensvep, 15 kundvända filer | **1 fynd, ett falsklarm**: `hojd` i klädställningens slug (se nedan) |
 | `npx vitest run lib/polish` | **99 av 99** |
 
 ⚠️ **`gate.py` fällde "360" på nattduksbordet, med rätt utfall av fel skäl.**
@@ -122,6 +122,16 @@ Källan skriver `4 360°-Rollen`, och tusentalssammanslagningen i `gatelib.tal`
 läser `4 360` som 4 360 — alltså finns 360 inte i facit. Texten säger nu
 "fyra svängbara hjul", vilket är vad källan betyder. Grinden är inte ändrad.
 Kubhyllans trappform 3-2-1 är fotoräknad och kvitterad i `foto-tal.txt`.
+
+⚠️ **Läcksvepet antecknades först som "0 fynd". Det stämde inte.** Svepet gav
+samma utfall båda gångerna det kördes, före skrivningen och vid avslutet:
+**1 fynd i 15 filer**. Fyndet är stavningsregelns `hojd` i klädställningens
+slug `kladstallning-hjul-justerbar-hojd-bredd`. En slug är ASCII med flit
+(ö → o), så det är ett falsklarm på en adress och inget fel i kundtexten.
+Namnet och brödtexten säger "höjd". Felet låg i anteckningen, där fyndet
+kvitterades i huvudet men aldrig skrevs ned. Tidigare rundors sluggar
+träffades inte, eftersom `hojd` där sitter inuti ett längre ord
+(`hojdjusterbar`), och regeln kräver ordgräns.
 
 ## Två granskningar före skrivningen — båda egna
 
@@ -157,8 +167,29 @@ bevisades som min på produktens id i loggen innan dess utfall lästes.
 
 ## Live-verifieringen och den andra korrekturläsningen
 
-⚠️ Pågår — `hamta-live.sh 130` väntar ut butikens ISR-fönster. Avsnittet
-fylls i när `livegrind.py` och den andra korrekturläsningen är gjorda.
+`hamta-live.sh 130`: alla tio `HTTP 200` med `age` 143–144. `livegrind.py`:
+**10 av 10 REN, orddiff 0**. Ur samma sidor: JSON-LD `InStock` och
+oförändrat pris (459/469/479 kr) på alla tio, kategori i brödsmulan, rätt
+namn, `<title>` och metabeskrivning exakt som `seo.tsv`, och alla 49
+alt-texter.
+
+**Den andra korrekturläsningen** gjordes på den PUBLICERADE texten, plockad
+mekaniskt ur sidorna. Den gav ett språkfynd: gunghästens första mening
+"ett glatt lejon – orange kropp och manen randig i rött och orange" blandade
+obestämd och bestämd form. Nu lyder den "ett glatt lejon: kroppen är orange
+och manen randig i rött och orange". Rättat i filen och alla filgrindar
+omkörda. Därefter skrevs BARA `plainDescription` om med
+`bygg-steg.py --rattelse 8ded5e38` (`rattelse-8ded5e38.js`), med
+kontrollsumman i samma anrop: **1 av 1**, revision 4 → 5.
+
+Efter rättelsen gjordes tre kontroller:
+
+- En separat återläsning (`steg5.js` mot nytt facit) gav **10 av 10 helt
+  verifierade**. Gunghästen har revision 5, 2 323 tecken och en text-hash som
+  stämmer.
+- Ett nytt live-svep (`age` 142–143) gav **10 av 10 REN, orddiff 0** mot den
+  rättade filen. Den nya meningen står på sidan och den gamla finns inte kvar.
+- Alla tio sidor har fortsatt `InStock` och samma pris.
 
 ## `FLAGGADE.md` — nya rader
 
@@ -201,6 +232,7 @@ Skrivna för rundan: `bygg-kallor.py` (som bygger `kallor.json`), de tio
 `axelfacit.json`, `raa-hash.tsv`, `vantat-hash.tsv`, `nyttolast-media.json`,
 `medieskrivning.json`, `media-hash.tsv`, `steg1-bas.js`, `steg2.js`.
 Genererade av rundans `bygg-steg.py` (kopierad från N39 med rundnamnet
-ändrat): `steg1.js` (gitignorad), `steg3.js`, `steg4.js`, `steg5.js`. De
+ändrat): `steg1.js` (gitignorad), `steg3.js`, `steg4.js`, `steg5.js` och
+rättelsen `rattelse-8ded5e38.js` (`--rattelse`). De
 hämtade live-sidorna (`live/`) är gitignorerade, och kontaktarken och
 originalbilderna ligger utanför repot, som i tidigare rundor.
