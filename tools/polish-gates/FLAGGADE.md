@@ -702,3 +702,46 @@ beslut — se den samlade frågan om detta.
 - Inga reserver till N50. Alla arton kandidater i N49:s skärm som inte
   publicerades föll på en av reglerna ovan, så N50 börjar med en ny skärm
   från 669 kr. (N49)
+- Husmärke på varan, alltså hoppad enligt regeln från N36: `44d91c2f`
+  (armhävningsbräda, SPORTNOW tryckt på brädan). Den ersattes av
+  `a6820dd0` (spökbrud till halloween), som publicerades i N50. (N50)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  `43c151c1` (nio trampstenar) mot `60f84a27`, `9a66c056` (soptunna 30 l)
+  mot `1c9d8d05`, `b7e5c1ea` (byrå med sju tyglådor) mot `834b263f`,
+  `e4ef053e` (badrumsskåp) mot `6a070b3a`, `0fde20f5` (kattlåda) mot
+  `7162ea48` och `72ac915f`, `e0db96bb` (klädskåp i tyg) mot `135d0fc6`,
+  `ede5ab36` (LED-golvlampa med glashylla) mot `93af619c`, `1527a0a8` (runt
+  köksbord, 80 cm) mot `74d3c11c` och `29c688dc`, `54504ce8` (medicinskåp)
+  mot `715b4acd` med samma 30 × 46 cm, `0bace9e3` (smalt högskåp för
+  badrummet) mot `b8e81a24`, `5f627d89` och `44ba2466`, och `9bdc624a`
+  (gunghäst) mot `e72638dd` och `968209bd`. (N50)
+- `d49571d4` (soptunna 30 l med sensor) har samma trippel som `c3e0c4a6`, som
+  står i `runda-84` och `runda-85`, alltså i "Runda …"-seriens familj på
+  `main`. Hoppad. (N50)
+- Tio utkast i N50:s prisspann rörs av "Runda …"-serien på `main` och
+  filtrerades bort före skärmen: `a3330f79`, `ca3d32d0`, `05c91630`,
+  `100165e1`, `3350c5b2`, `79ccfef4`, `8eaf3ecc`, `4106fc63`, `6152ca30` och
+  `97ead85f`. (N50)
+- Saldo vid N50:s urval: `1adef24e` (lekmatta) hade **1**, alltså under
+  `LAGER_BUFFERT` (3), och `83894bad` och `364d724a` var slut i lager. Inte en
+  brist i varorna: prövas igen när saldot har stigit. (N50)
+- `739d7601` gav många träffar mot publicerade sidor (skärmen visade två och
+  sex till) och gick inte att avgöra utan utredning. Hoppad. (N50)
+- `277f5641` är ett djurboende. SJVFS-frågan är INTE prövad. Orörd. (N50)
+- Skärmens träffar som räknades som brus och inte fällde: väggskåpet
+  `0598eff2` mot en eltraktor och en slangvinda, lyftbocken `e138b637` mot
+  ett klösträd, vedstället `357a402a`, en byrå och en shoppingvagn,
+  sängbordet `007c6422` mot `1ee398af`, tvättkorgen `e797e8a4` mot
+  `3ee7a87a`, tv-bänken `e7bbadb2` mot `3f539249` och gnistskyddet
+  `261484e7` mot `db1d494f`. Alla sex publicerades i N50. (N50)
+- Hoppade för säsong: trädgårdsvarorna för 669–679 kr, `485086d2`,
+  `58172082`, `6334f635`, `a55a2ce7`, `a706542f`, `d38f7805`, `4375404d`,
+  `d043e0bf` och `e37269a4`. En trädgårdsvara som poleras i slutet av
+  september får sina första besökare på våren. (N50)
+- Reserver till N51, dubblettskärmade men inte `las`-prövade: `279635e9`
+  (spökbrudgum till halloween, 699 kr, saldo 197, ren skärm). Åtta till
+  behöver en riktad kontroll först: `80cb11ed` (julgran) mot `b0766f63`,
+  `dad09721` (små granar) mot `e1d9dfe8`, `d6d7e346` i samma familj som
+  `7c3d438a`, som bar en Outsunny-etikett, `0bd67073`, speglarna `08feb111`
+  och `0a4958cc` (familjelistan kapades i svaret) och sparkcyklarna
+  `8b42d5d1` och `cf0052ce`, där `d3cf8ebc` inte är kontrollerad. (N50)
