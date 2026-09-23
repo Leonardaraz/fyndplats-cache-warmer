@@ -371,3 +371,35 @@ beslut — se den samlade frågan om detta.
   i dubblettskärmen (träffarna var andra varor med samma paketmått
   respektive en permutation) — samt `eb029d50` (Mülleimer 20 L Treteimer,
   grå, 629 kr, noll träffar i dubblettskärmen, inte `las`-prövad). (N39)
+- `26d6b2ea` (Schaukeltier Esel, gungdjur som åsna, 459 kr, saldo 40) —
+  DESIGNSYSKON till `8ded5e38` (lejongunghästen, publicerad i N40): samma
+  pris, samma trippel 59 × 27 × 44 cm och samma paketmått 50 × 47 × 7,5 cm;
+  bara djuret skiljer. Publiceras inte parallellt utan beslutet i
+  `FARGSYSKONEN.md`. (N40)
+- `1103d67e` (Zuckerwattemaschine 550 W, 459 kr, saldo 49) — trippelträff mot
+  den PUBLICERADE `e4211f71` (sockervaddsmaskin 450 W, 529 kr). Namnen anger
+  olika effekt, så det kan vara en annan maskin; är det samma vara står ett
+  billigare utkast bakom en publicerad sida. Leonards beslut, samma fråga som
+  `ab47e35d` i N37. (N40)
+- `0bc12c7d` (Joghurtbereiter med sju glas, rostfritt, 469 kr, saldo 37) —
+  HUSMÄRKET TRYCKT på produkten i bilderna. Samma fråga som `8ad49cfe` (N39)
+  och `fd85cf0b`/`b2175a65` (N37). (N40)
+- `85a18e86` (Regenschutz für Hundebuggy, 399 kr, saldo 177) — ett tillbehör
+  vars källtext anger vilken hundvagn det passar genom leverantörens
+  artikelnummer (‹REDIGERAT›). Utan numren går passformen inte att beskriva,
+  och numren får aldrig nå kund; kräver att någon först identifierar vagnen i
+  vår katalog. (N40)
+- `fd3d0d6d` (Steckenpferd med ljud, handtag och hjul, 479 kr, saldo 12) —
+  trippelträff 95 × 25 × 27 cm mot den PUBLICERADE `bff32c89` (käpphäst
+  enhörning med ljud och hjul, 429 kr): sannolikt samma käpphäst i en annan
+  design. Se `FARGSYSKONEN.md`. Lämnad orörd. (N40)
+- Reserver från N40, inte med bara för att rundan var full på tio:
+  `3d3f90d3` (Kunstbirke mit LED, 479 kr, saldo 197) — noll trippelträffar,
+  men NAMNTVILLING till utkasten `2cb5b77e` (559 kr) och `0f627521` (180 LED,
+  639 kr); den billigaste är `3d3f90d3` — och `6baeb38b` (Weinregal aus
+  Bambus, 16 flaskor, 479 kr, saldo 67, noll träffar i dubblettskärmen).
+  Ingen av dem `las`-prövad. (N40)
+- INTE PRÖVADE i N40: `0b34e594` (Weihnachtsgirlande 1,8 m, 469 kr) och
+  `e3256412` (Faltgarage für Kinderanhänger, 469 kr) — billigare än två av de
+  valda men gick aldrig vidare till dubblettsvepet, och skälet antecknades
+  inte vid urvalet. Inte bortvalda: de står först i kön för nästa runda. (N40)

@@ -49,7 +49,7 @@ en rundas `ids.tsv`, i `FLAGGADE.md` (219 id) eller i main-seriens mängd
 | `0b34e594` julgirlang, `e3256412` vikgarage för cykelvagn | 469 | ⚠️ **inte prövade** — gick inte vidare till dubblettsvepet, och skälet antecknades inte vid urvalet. De är inte bortvalda: de står först i kön för nästa runda |
 | `0bc12c7d` yoghurtmaskin | 469 | **bortvald** — husmärket TRYCKT på produkten i bilden |
 | `9c456097` skobänk i bambu | 479 | **vald** |
-| `0c07eb82` kubhylla, sex kuber | 479 | **vald** — billigaste tvillingen; `1bcd1cfa` (559 kr) har samma mått |
+| `0c07eb82` kubhylla, sex kuber | 479 | **vald** — svepets träff `1bcd1cfa` (559 kr) delar bara kubmåttet 35 × 35 × 35 cm: det är ett annat kit med NIO kuber, 105 × 35 × 105 cm, ingen dubblett (kontrollerat i källan efter skrivningen; urvalsanteckningen kallade den felaktigt en dyrare tvilling) |
 | `fd3d0d6d` käpphäst | 479 | **hoppad** — designsyskon till publicerade `bff32c89` |
 | `3d3f90d3` konstbjörk med LED, `6baeb38b` vinställ i bambu | 479 | **reserver** |
 
@@ -118,3 +118,24 @@ fläckrengöring", och en alt-text som slutade på "36 cm upp".
 Den skeptiska granskningen gav **ett fynd, ett ord med fel betydelse**:
 källans *Ofenhandschuhe* är **grytvantar**, inte grytlappar. Rättat på alla
 tre ställena; ordet finns inte kvar i någon av rundans filer.
+
+## Wix-skrivningen
+
+Rundans filer pushades först (`3427dbc`). Main kontrollerades en gång till
+omedelbart före steg 1: senaste "Runda …"-commit fortfarande Runda 147, inget
+av de tio id:na i main:s filer.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **10 av 10 skrivna**, ingen spärr utlöst, revision 1 → 2 |
+| 2 | media + alt-texter (måttbilden sist, lekmattans bild 4 struken), spärr över id + alt i samma anrop | **10 av 10**, revision 2 → 3 |
+| 3 | kategorier, uppslag på namn i en färsk fråga i samma anrop | **24 av 24** rader `success` i bulk-svaret |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med options och visible | **10 av 10**, revision 3 → 4; variant och produkt synliga före, priset orört (459/469/479 kr), variant-id = `variant.tsv` |
+| 5 | separat återläsning (`steg5.js`) mot facit ur filerna | **10 av 10 helt verifierade**: text-hash, namn, slug, `visible`, SEO (två taggar, tomma keywords), bilder + alt, kategorier, SKU, variantens synlighet och id; priset orört, alla `IN_STOCK` |
+
+Stämpeln (`polish-mapping.yml` `stampla`, `ref: main`, körningarna 3881–3890,
+`variant_skus` byggda med `bygg-steg.py --stampla`) — **10 av 10 gröna**, och
+varje stämpel bevisad med en EGEN `las` efteråt (körningarna 3891–3900, var och
+en bevisad som min på `wixProductId`): `needsAiPolish: false`,
+`draftStatus: published`, den nya SKU:n på mappningsraden och prisgrinden
+`stämmer: true` på alla tio. Stämpeln kördes 28 minuter efter urvalets `las`.
