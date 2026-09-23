@@ -595,3 +595,34 @@ beslut — se den samlade frågan om detta.
   Skrivborden `c6e7e786` och `f6e74878` (599 kr) är tvillingar till varandra
   och till N38:s reserv `59b75ffa`: jämför färgerna på bilderna och välj ett.
   (N46)
+- Hoppade på träff mot en publicerad sida av samma slag, enligt den snabba
+  skärmen: `73609e3c` (leksakskista med förvaring, 619 kr) mot leksakskistan
+  `bc82b8ea`, `0d440505` (skrivarhylla på hjul med eluttag, 639 kr) mot
+  `fd940665` (sidobord med skåp i industristil), och `35360ea0` (brevlåda med
+  lock i stål, 619 kr) mot en publicerad brevlåda; närmaste i rundornas filer
+  är `676e567f`. (N47)
+- Skärmens träffar mot sidor av ANNAT slag räknades som brus och fällde inte:
+  skrivbordet `f6e74878` mot en kolgrill, transportvagnen `760dd23c` mot två
+  klösträd och badrumsspegeln `b94fab48` mot en träningsbräda. Alla tre
+  publicerades i N47. (N47)
+- Skrivbordet `f6e74878` (vit ram, ekfärgad skiva) publicerades i N47. Dess
+  tvillingar `c6e7e786` och N38:s reserv `59b75ffa` är samma skrivbord och ska
+  inte publiceras som egna sidor utan ett beslut om färgvarianter. (N47)
+- Slut i lager i N47: `3aaafff6` (konstgjort olivträd 150 cm), `60f44d5b`
+  (hopfällbar valphage med nättak) och `e1cb3f0e` (trehjuling för barn
+  2–5 år). (N47)
+- `626be705` (smådjursbur i trä med ramp, 639 kr) står i `runda-106` och
+  `01ac2f63` (väderfast hundbädd för utomhus, 619 kr) i `runda-140`, alltså
+  rörda av "Runda …"-serien på `main`. Hoppade. (N47)
+- Reserver från N47, dubblettskärmade utan träff av samma slag men inte
+  `las`-prövade: `127ec9c8` (halloweenskelett som kryper upp ur marken, saldo
+  197), `876e7e89` (paraplyställ i metall, saldo 158), `a08404ee`
+  (vinterskydd för utemöbler, saldo 73) och `3b4594da` (minimotionscykel för
+  armar och ben, saldo 41), alla 639 kr. (N47)
+- ⚠️ `934297b1` (upphöjd hundsäng med tak, 106 × 76 × 94 cm) publicerades i
+  N47 trots säsongsregeln för upphöjda hundbäddar med solskydd (N38). Den bär
+  inte klusternamnet "Hundeliege Outdoor mit Dach", så urvalet missade
+  kopplingen. N48:s dubblettskärm mätte klustret mot den: `7bc96b8f` och
+  `e9c5c6d3` är tvillingar till varandra, `04b9206a` och `4d8bf36f` likaså,
+  `7e140b40` står ensam — och ingen av dem träffar `934297b1`. Klustret väntar
+  fortfarande till våren. (N47)
