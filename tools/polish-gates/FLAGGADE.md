@@ -978,3 +978,18 @@ beslut — se den samlade frågan om detta.
   `d5ed3e90`, `d60cd696` och `ed39cd4c`. Ingen av dem är `las`-prövad eller
   bildgranskad. N50:s åtta för en riktad kontroll är fortfarande inte
   kontrollerade. (N54)
+- Husmärke på varan, alltså hoppade enligt regeln från N36:
+  boxningsmaskinen med musik `1bb4678d` (SPORTNOW tryckt på maskinens
+  front), den hopfällbara träningsbänken `2231814d` (SPORTNOW på
+  ryggstödet), sparkcykeln för barn `29852da4` (AIYAPLAY på styrstången),
+  plyoboxen 3-i-1 `3a5e0e72` (SPORTNOW ingraverat på lådans sidor, samma
+  slags vara som N49:s `647fdeb9`) och den hopfällbara magtränaren
+  `b9c41f57` (SPORTNOW-bricka på den röda kåpan). Alla fem var `las`-gröna.
+  (N55)
+- Reserv: toaletthyllan i bambu `ed39cd4c` (799 kr, saldo 50). Den är
+  `las`-prövad (grön) och kontakt- och högpassarken är granskade utan fynd,
+  men den är inte skriven. Nästa runda börjar med den. (N55)
+- Alla 21 kandidater på 799 kr i N54:s lista är nu publicerade (15 i N55),
+  hoppade för husmärke (fem ovan) eller reserv (en). Nästa runda börjar med
+  reserven och fortsätter på nästa prisnivå, som ännu inte är skärmad.
+  N50:s åtta för en riktad kontroll är fortfarande inte kontrollerade. (N55)
