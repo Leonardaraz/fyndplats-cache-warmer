@@ -867,3 +867,60 @@ beslut — se den samlade frågan om detta.
   719–739 kr är antingen publicerade eller har en rad ovan. Nästa runda
   börjar på 749 kr. N50:s åtta för en riktad kontroll är fortfarande inte
   kontrollerade. (N52)
+- Konstbambun `49b41e8c` (120 cm, 769 kr) hölls: namnet säger 2-pack och
+  huvudbilden visar två växter, men källans leveranslista säger en. Vikten,
+  8,1 kg mot 5,2 kg för den ensamma bambun på 140 cm, talar för två. En sida
+  som lovar två när kunden får en är det dyra felet, och en sida som lovar en
+  motsäger sin egen huvudbild. Den ersattes av `d8af896a` (skjutdörrsbeslag),
+  som publicerades i N53. (N53)
+- Husmärke på varan, alltså hoppad enligt regeln från N36: `d0e14ad8`
+  (hundtoalett med konstgräs, PawHut-etikett på brickan i alla fem bilderna).
+  (N53)
+- Färgsyskon till en produkt i N53: `7c50a452` (sittbänken med vita ben,
+  759 kr) är samma bänk som `eca2fa1e` med svarta ben, som publicerades. Läs
+  `FARGSYSKONEN.md` först. (N53)
+- Reserv till N54, med kontaktarket granskat även i högpassfiltret men utan
+  `las`: `f267fdc4` (vedställ på 0,6 m³ med överdrag, 769 kr, saldo 43).
+  (N53)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  kattlådorna med lock `0015497b` och `135d0f48` mot `1abd6c48`, `79c3738c`
+  och sju till, kattlådan med filter `c909254e` mot `7162ea48`, `72ac915f`
+  och två till, bokhyllan i nio nivåer `ee7a6776` mot `3b3705f5`,
+  LED-golvlamporna `015bf280` och `4a619f92` mot `93af619c`, det runda
+  köksbordet `4a3908ae` mot de utdragbara borden `74d3c11c` och `29c688dc`
+  med samma måtttrippel, hundgrinden i tre delar `fb06a304` mot `f65c4435`
+  och `c6554568`, det smala badrumsskåpet `3218ee4d` mot `b8e81a24`,
+  `5f627d89` och `44ba2466`, hantelsetet med ställning `4588a393` mot
+  `75728100`, gunghästen `73fd03c7` mot `e72638dd` och `968209bd`,
+  datorbordet `98ede682` mot `90c066c0`, soptunnan med pedal `c852f39e` mot
+  `1c9d8d05` och väggvärmaren `fa18dea0` mot `5f2bd483`. (N53)
+- Slut eller nästan slut i lager, alltså hoppade: `4ae828bc` (gunggiraff med
+  ljud, saldo 1), `e98ef716` (elektronisk darttavla, saldo 2), `7f2daa1e`
+  (rund pall i teddyfleece, saldo 0) och `57b0b4ae` (dörrgrind för hund,
+  saldo 0). Datorbordet `98ede682` ovan var också slut. Prövas igen när
+  saldot har stigit. (N53)
+- Skärmen kunde inte läsa några mått ur källan, alltså hoppade: `0641bd05`
+  (kontorsstol i mesh), `60ef71fa` (soffbord i 2-pack), `1e03f598` (dörr-
+  och trappgrind), `22ffcb7a` (garagedomkraft) och `d46f501b` (sittpall med
+  förvaring). (N53)
+- Familjer som redan är täckta eller inte gick att avgöra utan utredning,
+  hoppade: kontorsstolarna `20b97a56` och `756c02bb` (111 publicerade
+  kontorsstolar, många utan läsbara mått), grindarna `233c83cf` (saldo 4) och
+  `92344852` (25 publicerade grindar, där `a64af3a4` och `c30b626a` saknar
+  läsbara mått), teleskopet `f8b18da0`, troligen samma vara som `35c6c105`
+  (80 × 80 × 135 cm), sittgruppen för barn i fyra delar `a83c30b3`, troligen
+  med parasoll och alltså en säsongsvara, nära `86d10d60`, och agilitysetet
+  `f6ab1dd4` i en familj som redan är täckt. (N53)
+- Djurboenden, filtrerade bort före skärmen: fågelburen `ba1896cf` och
+  smådjurshagarna `adef1330` och `23cd89f6` på 749–769 kr, och fågelburarna
+  `887cf2a3` och `b2ad1ebc`, kattburen `87cbcb7f` och hamsterburen
+  `e7353e46` på 779–799 kr. SJVFS-avsnittet högst upp i filen gäller. (N53)
+- Skärmens träffar som räknades som brus och inte fällde: sidoborden
+  `4d7268c1` mot en loungefåtölj, bokhyllan `bd664764` mot en espressomaskin
+  och en ismaskin, byrån `1ae506e3` mot en husdjurstrappa och en hundkoja,
+  leksaksmotorn `85b1a737` mot en smådjurshage och stapelbara pallar och
+  sensorsoptunnan `a778baf1` mot en tvättkorg och en båtfender. Alla fem
+  publicerades i N53. (N53)
+- Alla 52 kandidater på 749–769 kr är antingen publicerade eller har en rad
+  ovan. Nästa runda börjar på 779 kr, med reserven `f267fdc4` först. N50:s
+  åtta för en riktad kontroll är fortfarande inte kontrollerade. (N53)
