@@ -201,6 +201,86 @@ Inga motsägande tal (gnistskyddets 50 + 2 × 23 = 96 cm går ihop; sidobordets
 26 + 21 cm ryms under 62,5 cm), inga tyska eller engelska rester utöver
 etablerade lånord (trälook, PU, MDF, HDPE), inget namn eller SEO-fält över
 taket. Grindarna och `npx vitest run lib/polish` (99/99) omkörda efter
-rättningen — gröna.
+rättningen — gröna. Pushat som `53b0687`.
+
+## Steg 6 — Wix-skrivningen
+
+N36:s `ids.tsv`, `slugs.txt` och `sku.tsv` lästes en gång till omedelbart
+före steg 1: inget överlapp i id, slug eller SKU.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **8 av 8 skrivna**, ingen spärr utlöst |
+| 2 | media (fil-id + alt-text, måttbilden sist), spärr över id+alt i samma anrop | **8 av 8 skrivna**, 39 bilder |
+| 3 | kategorier, bulk add-items, id uppslagna färskt på namn (54 kategorier) | **17 av 17 rader success**, `totalFailures: 0` i alla sju bulkanrop |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med `options` och `visible` | **8 av 8 skrivna** |
+
+N36:s `sku.tsv` lästes en gång till omedelbart före steg 4: ingen krock.
+
+Steg 4:s svar bekräftade `visible: true` på både produkt OCH variant för alla
+åtta före skrivningen, oförändrade priser (539, 539, 559, 569, 569, 579, 599,
+599 kr — samma som i urvalet) och att de gamla tyska SKU:erna verkligen
+byttes (t.ex. `FP-pflanzgefa-e-fur-die` → `FP-vaggkrukor-3-pack-svart`,
+`FP-salonhocker-mit` → `FP-sadelpall-hjul-svart`). Variant-id:na i svaret är
+exakt de i `variant.tsv`.
+
+### Steg 7 — separat återläsning, en stund efter steg 4
+
+En egen `GET` per produkt med
+`?fields=PLAIN_DESCRIPTION&fields=MEDIA_ITEMS_INFO&fields=DIRECT_CATEGORIES_INFO&fields=VARIANT_OPTION_CHOICE_NAMES`,
+jämförd mot facit räknat ur filerna (`vantat-hash.tsv`, `media-hash.tsv`,
+`namn.tsv`, `slugs.txt`, `seo.tsv`, `kategori.tsv`, `sku.tsv`):
+
+| kontroll | utfall |
+|---|---|
+| brödtext (wixnorm + FNV-1a mot `vantat-hash.tsv`) | **8 av 8 LIKA** |
+| namn, slug | 8 av 8 |
+| `visible: true` på produkt OCH variant | 8 av 8 |
+| SEO: två taggar (title + description), tomma keywords | 8 av 8 |
+| bilder: id och alt-text i ordning, måttbilden sist | 8 av 8 (39 bilder) |
+| kategorier: avsedda + `All Products` (antalet = avsedda + 1) | 8 av 8 |
+| variant-SKU och variant-id | 8 av 8 |
+| `IN_STOCK`, priset orört | 8 av 8 (539, 539, 559, 569, 569, 579, 599, 599 kr) |
+
+Revisioner efter steg 4: `81a3065e` 6, `ff10ccf5` 6, `e118ae32` 4,
+`ae2ac5e5` 4, `f1e0a996` 4, `af4409b8` 4, `9e16bd7c` 7, `a7bddc08` 4.
+
+### Steg 9 — stämpeln (polish-mapping.yml, `stampla`, `ref: main`)
+
+Åtta körningar startades 01:47–01:48 UTC. N36 körde åtta egna `las` i samma
+fönster (3798, 3800, 3801, 3803, 3805, 3807, 3808, 3809) — de lästes bara så
+långt att de kunde uteslutas, och inget utfall ur dem används här. Mina, var
+och en bevisad på `OK: <id> uppdaterad`-raden i loggen:
+
+| körning | produkt | loggraden |
+|---|---|---|
+| 3794 | `81a3065e` | `OK: 81a3065e-… uppdaterad — needsAiPolish, draftStatus, variantSkus` |
+| 3795 | `ff10ccf5` | `OK: ff10ccf5-… uppdaterad — …` |
+| 3796 | `e118ae32` | `OK: e118ae32-… uppdaterad — …` |
+| 3797 | `ae2ac5e5` | `OK: ae2ac5e5-… uppdaterad — …` |
+| 3799 | `f1e0a996` | `OK: f1e0a996-… uppdaterad — …` |
+| 3802 | `af4409b8` | `OK: af4409b8-… uppdaterad — …` |
+| 3804 | `9e16bd7c` | `OK: 9e16bd7c-… uppdaterad — …` |
+| 3806 | `a7bddc08` | `OK: a7bddc08-… uppdaterad — …` |
+
+Patchen i varje logg bär rätt variant-id och rätt SKU ur `sku.tsv`.
+
+**Varje stämpel verifierad med en EGEN `las`-körning** (3810–3817, startade
+01:52:46–01:52:56; ingen främmande körning i det intervallet), var och en
+bevisad på `wixProductId` i mappningsraden:
+
+| körning | produkt | needsAiPolish | draftStatus | SKU på raden | pris | prisgrind | saldo |
+|---|---|---|---|---|--:|---|--:|
+| 3810 | `81a3065e` | false | published | `FP-vaggkrukor-3-pack-svart` | 539 | stämmer | 55 |
+| 3811 | `ff10ccf5` | false | published | `FP-sidobord-smalt-tre-plan` | 539 | stämmer | 144 |
+| 3812 | `e118ae32` | false | published | `FP-fagelbogunga-110-bla` | 559 | stämmer | 69 |
+| 3813 | `ae2ac5e5` | false | published | `FP-gnistskydd-96-cm-tre-paneler` | 569 | stämmer | 101 |
+| 3814 | `f1e0a996` | false | published | `FP-gunghast-tra-zebra` | 569 | stämmer | 180 |
+| 3815 | `af4409b8` | false | published | `FP-sangbord-lada-hylla-natur` | 579 | stämmer | 17 |
+| 3816 | `9e16bd7c` | false | published | `FP-basketstall-barn-5-i-1` | 599 | stämmer | 101 |
+| 3817 | `a7bddc08` | false | published | `FP-sadelpall-hjul-svart` | 599 | stämmer | 74 |
+
+Ingen `LÅST PRIS`, ingen `SLUTSALD`. Variant-id på raden = `variant.tsv` på
+alla åtta. Priserna är desamma som före rundan — inget pris är rört.
 
 (fortsätter)
