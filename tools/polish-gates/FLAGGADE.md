@@ -924,3 +924,57 @@ beslut — se den samlade frågan om detta.
 - Alla 52 kandidater på 749–769 kr är antingen publicerade eller har en rad
   ovan. Nästa runda börjar på 779 kr, med reserven `f267fdc4` först. N50:s
   åtta för en riktad kontroll är fortfarande inte kontrollerade. (N53)
+- Reserven från N53, `f267fdc4` (vedstället på 0,6 m³ med överdrag), är
+  publicerad i N54 efter `las`, kontaktark och högpassark. (N54)
+- Färgsyskon till en produkt i N54: `e248ce9a` (779 kr, saldo 81) och
+  `b82184a0` (799 kr, saldo 102) har samma namn och samma måtttrippel som den
+  elektriska fyrhjulingen för barn `403dfd8d`, som publicerades, och är
+  troligen samma fyrhjuling i andra färger. Läs `FARGSYSKONEN.md` först.
+  (N54)
+- Sensorsoptunnor att jämföra med `0773ceb6` (50 liter, publicerad i N54)
+  innan någon av dem poleras: `b4f89004` (också 50 liter, 799 kr) och
+  `d4076659` (soptunna med rörelsesensor, 799 kr). Skärmen kunde inte läsa
+  deras mått, så de har varken fällts eller friats. (N54)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  adventskalendern `0b361be7` mot `4c0a0ef1`, väggnattduksborden i 2-pack
+  `1fe7b746` mot `cd473c5e`, träningsstudsmattan `3197b4b5` mot `018a5303`,
+  pallarna i 2-pack `5a1f173c` mot `31d6d517`, sensorsoptunnorna på 30 liter
+  `75e1a5b6` och `1d29a529` mot `3d3ebf08`, setet med vattenkokare och
+  brödrost `bc2368af` mot `acc9ab97` och `985ff6d3`, fönsterspegeln
+  `cc974ed4` mot `f23252d9` och `c438d4ba`, sensorsoptunnorna på 42 liter
+  `e20d0bbd` och `1c983826` mot `7846d05f`, byrån med fyra lådor `fcf237ca`
+  mot `222f59d6`, barnborden med stolar `010979fb` och `9517222e` mot
+  `cf263b21`, medicinskåpen `127d4305` och `9bf1a5db` mot `8c4cf7e9` och
+  `8eab3ebf`, golvfåtöljen som blir gästmadrass `339a695e` mot `db645ff8`,
+  balansstenarna `3e450479` mot `60f84a27`, det fällbara skrivbordet
+  `5ae05b43` mot `05e65736` och `3b868848`, sittbänken med stoppning
+  `63c426d0` mot `d5919be6`, förvaringslådorna för barn `77a5637e` och
+  `d40c42ae` mot `6707c9dd` och `281ed0b1`, väggspegeln `9210da17` mot
+  `a1d3d26c` och soffbordet `d1e4db23` mot `b7b5b37e`. (N54)
+- Slut i lager (saldo 0), alltså hoppade: `5f3ccb1a` (buffévärmare 2-i-1),
+  `e59affb3` (hopfällbar träningsmatta), `ea415e30` (diskställ med ställbar
+  längd) och `efde9936` (väggspegel i fönsterdesign). Prövas igen när
+  saldot har stigit. (N54)
+- Skärmen kunde inte läsa några mått ur källan, alltså hoppade: `1687eb94`
+  (sensorsoptunna på 42 liter), `292ae740` (hantelskiva), `2c5388f7`
+  (konstgjord julgran), `3a55cb47` (rund badrumsspegel), `b6266a80`
+  (motorcykelstöd), `ba632229` (satsbord i glas), `d8d0a4fc` (viktväst) och
+  `f726a1bc` (väggspegel), utöver de två sensorsoptunnorna ovan. (N54)
+- Familjer som redan är täckta eller inte gick att avgöra utan utredning,
+  hoppade: kontorsstolen `21992899` (utan läsbara mått, i en familj med över
+  hundra publicerade sidor), grindarna `f03ae746` (saldo 8), `29dbd506` (med
+  kattlucka), `a5f896d8` (hundgrind) och `d5fef2ec`, agilitysetet för hund
+  `d3c91eb3` och badrumsskåpet `dc6a703d`. (N54)
+- Skärmens träffar som räknades som brus och inte fällde: pedaltränaren
+  `1884a543` mot en sittbänk med förvaring, fotpallen `383d8de2` mot en
+  hundtrappa, fyrhjulingen `403dfd8d` mot två smådjursstall, leksaksmotorn
+  `916d2e9f` mot vilfåtöljer och knästolen `d2fb42b1` mot en badrumspelare.
+  Alla fem publicerades i N54. (N54)
+- Alla 28 kandidater på 769–779 kr är antingen publicerade eller har en rad
+  ovan. Nästa runda börjar på 799 kr, där skärmen gav 21 rena kandidater:
+  `07e3cb1d`, `16fe3c28`, `1bb4678d`, `2231814d`, `29852da4`, `3a5e0e72`,
+  `494e0dab`, `4bd41e91`, `4f0fa784`, `4fb02f99`, `53386372`, `6200b3c9`,
+  `92afa6e3`, `a1c98be2`, `b9c41f57`, `c40a2b10`, `c6ff6fe8`, `cbbabd2c`,
+  `d5ed3e90`, `d60cd696` och `ed39cd4c`. Ingen av dem är `las`-prövad eller
+  bildgranskad. N50:s åtta för en riktad kontroll är fortfarande inte
+  kontrollerade. (N54)
