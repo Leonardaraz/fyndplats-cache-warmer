@@ -164,10 +164,19 @@ omskrivet till *mattan … slitstark*, *avbrytning* → *stopp*, *uppvärmning* 
 | Teckensvep mot `TILLATNA_TECKEN` | **0 oväntade tecken** |
 | `npx vitest run lib/polish` | **99 av 99 gröna** |
 
-## Läge
+## Läge efter förberedelsen (historik)
 
 Förberedelsen klar, INGENTING skrivet till Wix. Nästa: oberoende granskning
 av utkasten, sedan de fyra Wix-stegen.
+
+## Oberoende granskning FÖRE skrivningen — ett språkfynd (`6d83236`)
+
+Efter att `d6a43a7` (OGRINDAD-TILL-WIX) var pushad lästes alla åtta
+utkasten som av en skeptisk utomstående, mot bilderna och källorna: namn,
+SEO, alt-texter och brödtext. **Inga sakfel, inga motsägande tal.** Ett
+språkfynd: hurtsens (`6707c9dd`) alt-text för bild 4 bar två "med" i rad —
+omskriven. Mediafacit och stegskripten omgenererade, alla grindar och
+`lib/polish` (99 av 99) omkörda, pushat.
 
 ## Steg 6.1 — Wix-skrivningen, steg 1 (namn/slug/brödtext/visible/SEO)
 
@@ -202,3 +211,124 @@ var `visible: true` före; `prisFore` 499, 549, 569, 579, 599 × 4 — urvalets
 priser; variant-id stämde med `variant.tsv`. De tyska SKU:erna
 (`FP-teppich`, `FP-kinder-staffelei-aus`, `FP-briefkasten-wandmontage` …) är
 utbytta — skrivningen gjorde verkligt arbete.
+
+Pushat efter en rebase på N37:s två commits (ingen konflikt): `a1979e2`.
+
+## Steg 6.5 — separat, senare återläsning av alla fyra stegen
+
+`steg5.js` ordagrant, i ett eget anrop efter pushen (alltså inte i samma
+anrop som någon skrivning). Facit ur filerna: brödtexten som FNV-1a över
+wixnorm-normaliserad text (`vantat-hash.tsv`), media som h·31 över
+`id|altText` (`media-hash.tsv`), namn, slug, SEO, kategorier och SKU ur
+respektive tsv. **8 av 8 helt verifierade**:
+
+| kort | rev | text | bilder | kat (+ All Products) | pris | lager |
+|---|---:|---:|---:|---:|---:|---|
+| 46c0fe07 | 4 | 2 390 | 5 | 2 | 499 | IN_STOCK |
+| 3bfee58b | 4 | 2 373 | 4 | 2 | 549 | IN_STOCK |
+| 265b0f61 | 6 | 2 250 | 4 | 2 | 569 | IN_STOCK |
+| 69ba5b8b | 4 | 2 517 | 3 | 3 | 579 | IN_STOCK |
+| 2b27c2a4 | 6 | 2 454 | 5 | 3 | 599 | IN_STOCK |
+| 37804a40 | 4 | 2 565 | 5 | 3 | 599 | IN_STOCK |
+| 6707c9dd | 4 | 2 173 | 5 | 3 | 599 | IN_STOCK |
+| 676e567f | 5 | 2 572 | 5 | 3 | 599 | IN_STOCK |
+
+Variant-`visible: true` och variant-id enligt `variant.tsv` på alla åtta.
+
+## Steg 7 — stämpling + separat verifiering
+
+Urvalets `las` kördes 01:15, stämplingen 01:44 — 29 minuter, alltså ingen
+extra `las` före stämplingen (gränsen är en timme).
+
+`stampla` (`ref: main`) på alla åtta, körning 3786–3793. Varje körning
+bevisad min på loggens `OK: <id> …`-rad — alla åtta
+`uppdaterad — needsAiPolish, draftStatus, variantSkus`.
+
+Sedan en EGEN `las` per produkt, från 01:48:02. Sexton körningar startade
+i samma fönster, eftersom N37 stämplade samtidigt: 3794, 3795, 3799, 3802,
+3804 och 3806 bar N37:s id i loggens `OK:`-rad och lästes inte vidare;
+3796 och 3797 startade 01:47:54 och 01:47:57, alltså före min första
+körning, och lästes inte alls. Mina, bevisade på mappningsradens
+`wixProductId`:
+
+| körning | kort | `needsAiPolish` | `draftStatus` | SKU | pris | grind |
+|---:|---|---|---|---|---:|---|
+| 3798 | 46c0fe07 | false | published | FP-sidobord-c-form-hjul-valnot | 499 | stämmer |
+| 3800 | 3bfee58b | false | published | FP-mopphink-20-l-press-svart | 549 | stämmer |
+| 3801 | 265b0f61 | false | published | FP-matta-170x120-morkgra | 569 | stämmer |
+| 3803 | 69ba5b8b | false | published | FP-staffli-barn-kritt-whiteboard | 579 | stämmer |
+| 3805 | 2b27c2a4 | false | published | FP-brodrost-4-skivor-gra-vag | 599 | stämmer |
+| 3807 | 37804a40 | false | published | FP-modulgarderob-111x183-cm | 599 | stämmer |
+| 3808 | 6707c9dd | false | published | FP-forvaringshurts-barn-3-lador | 599 | stämmer |
+| 3809 | 676e567f | false | published | FP-brevlada-vagg-tidningshallare | 599 | stämmer |
+
+**8 av 8.** Saldon oförändrade mot urvalet (26, 136, 33, 76, 106, 23, 171,
+104), fraktandel 0,387–0,496, ingen `prisLast`, ingen `slutsald`. Priset
+rördes inte.
+
+## Steg 8 — live-verifiering
+
+`hamta-live.sh 130` i bakgrunden: varm träff (alla åtta `200, age=0`),
+väntade ut 305 s, träffade om, pausade 130 s, skarp hämtning. **Alla åtta
+HTTP 200, 143–154 kB, `age: 140`** — pausens längd, alltså den rendering
+som omträffen utlöste och inte en äldre cachad sida.
+
+`livegrind.py`, kört till slut: **0 avvikelser i den PUBLICERADE texten**,
+alla åtta REN (orddiff 0 med 255–331 ord, homoglyfsvep, sid-, alt- och
+SEO-svep, flikraden och kategorin).
+
+Egen kontroll av JSON-LD på alla åtta: `availability`
+`https://schema.org/InStock`, `price` 499/549/569/579/599 × 4 (= urvalet),
+`sku` = Wix egen produkt-UUID, ingen `gtin`/`mpn`. Brödsmulan bär en riktig
+kategori överallt (Hem & Inredning × 4, Verktyg & Hemmafix, Barn & Familj,
+Kök & Husgeråd, Trädgård & Utemöbler). Alla tre flikarna renderas ordagrant
+på alla åtta sidor.
+
+## Steg 9 — andra korrekturläsningen, på den PUBLICERADE texten
+
+Varje mening plockades MEKANISKT ur `live/<kort>.html` (skript i
+scratchpad): h1, `<title>`, meta description, varje alt-text på produktens
+bilder (alla 36 hittade på sidorna, 0 saknas) och brödtexten block för
+block och mening för mening — 402 rader. Alla lästa, och alla påståenden
+som inte är siffror ställda mot `kallor.json` (siffrorna har `gate.py`
+redan tagit). De två påståendena som bara kommer från fotot
+(`3bfee58b`: varningssymbolen för vått golv på framsidan, pressen som
+manövreras med det långa handtaget) kontrollerade mot bild 1: stämmer.
+
+**0 sakfel, 0 korrekturfel.** Ingen omskrivning, alltså ingen ny
+återläsning och ingen ny `livegrind`. Två stilobservationer, medvetet
+orörda:
+
+- `265b0f61` meta description: "… med geometriskt randmönster i
+  polypropylen" — "i polypropylen" står närmast mönstret. Vanlig
+  listningssvenska och sakligt sant (mönstret ÄR polypropylen); inget fel.
+- `2b27c2a4`: det höga lyftet förklaras både i ingressen och i första
+  avsnittet. Ingressen sammanfattar, avsnittet utvecklar — husets form.
+
+Prövat och behållet: "kontrollera att alla förband sitter fast"
+(`46c0fe07`) är husets ordval i flera rundor; "Tillverkad i plast" mot
+spec-radens "Plast och metall" (`3bfee58b`) följer källans egen punktlista
+respektive spec-tabell; "Snabb leverans från Fyndplats" (`6707c9dd`, SEO)
+står i 16 tidigare rundors `seo.tsv` och är samma löfte som butikens
+EU-lager-ribbon.
+
+## Steg 10 — FLAGGADE.md (bara tillägg)
+
+Två rader under interna dubblettkluster (`7d1fb82b` med `70c17966` och
+`1dc4b1ba`; balansbomsklustret `02f935c8` med `a9360e2a`, `8d3d1de1`,
+`8f351be4`, `a17cf506`) och tre under bortvalda (`5d9e6795` saldo 3,
+`7819dd4f` fel säsong, färgsyskonen till de tre publicerade sidorna med
+kulörer kvar som utkast). Inga befintliga rader rörda.
+
+## Steg 11 — LÄS-MIG.md och läckkontrollen sist
+
+`LÄS-MIG.md` skriven i N35:s form, med ett nytt urvalsavsnitt (Leonards
+regel, de två fullständiga jämförelserna, förfiltreringen per skäl och
+uppdelningen med N37). Faktakorten är medvetet uppskjutna.
+
+## Läge
+
+**KLAR:** alla åtta publicerade, stämplade och verifierade (återläsning
+8/8, egen `las` 8/8, `livegrind` 8/8 REN, InStock 8/8). Kvar före
+rapporten: läckkontrollen, commit och push, sedan hela `lib/polish` och
+svepet över mina commit-meddelanden.

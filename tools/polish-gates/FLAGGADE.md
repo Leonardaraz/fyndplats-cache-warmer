@@ -168,6 +168,18 @@ beslut — se den samlade frågan om detta.
   i gul manchester med bokmedar" och "Gungstol i ljusgrå manchester med
   bokmedar") samt mot ytterligare två opublicerade utkast i samma kluster
   (`2cbc7b83`, `5126ad2e`). Samma bas-gungstol i minst fem varianter. (N35)
+- `7d1fb82b` 2er-Set Buchsbaumkugel (två konstgjorda buxbomsklot), 599 kr —
+  identisk tvilling till utkastet `70c17966` (639 kr): samma namn, samma
+  Ø40 cm, samma 2,2 kg. Billigast i paret, alltså samma läge som `b6e44df4`
+  (N31): lämnad orörd. Ett tredje utkast med samma namn, `1dc4b1ba`
+  (869 kr), fångades av namnskärmen men är inte uppmätt — det kan vara en
+  annan storlek. (N36)
+- `02f935c8` Schwebebalken 236 cm (violett och rosa), 619 kr — delar
+  trippeln 119 × 15 × 13 cm (±1) med fyra utkast som heter "Schwebebalken
+  2,4 m": `a9360e2a` (599 kr, billigast), `8d3d1de1` och `8f351be4` (619 kr)
+  och `a17cf506` (629 kr). Sannolikt samma balansbom i olika kulörer, men
+  kulörerna är inte uppmätta. Inte prövad vidare: N36:s åtta var fyllda
+  under 619 kr, och `a9360e2a` ligger i N37:s halva av id-rymden. (N36)
 
 ## Bortvalda av andra skäl (inte flaggade, bara sparade för senare)
 
@@ -227,3 +239,18 @@ beslut — se den samlade frågan om detta.
   `3c992c78` (1 659 mot 1 799 kr) men det är osäkert om hela klustret är
   kartlagt — inte prövad vidare utan att först hitta klustrets alla
   medlemmar. (N35)
+- `5d9e6795` (pall, 469 kr) — saldo 3, alltså lika med `LAGER_BUFFERT`:
+  sidan hade visats som slutsåld. Dessutom färgsyskon till utkastet
+  `40d0af10` (469 kr, samma trippel, grå mot mörkgrå, 3,7 mot 4,2 kg) och
+  med husmärket
+  fastsytt på själva varan. Pröva igen när saldot stigit. (N36)
+- `7819dd4f` (sittdynor för utomhusbruk, 559 kr, saldo 197) — fel säsong:
+  källan säger *Outdoor-Sitzauflage* och *auf der Terrasse*, samma skäl som
+  N2 avvisade utomhussittdynor. `las` ren. (N36)
+- Färgsyskon till sidor som N36 publicerade — publicera dem inte utan
+  beslutet i `FARGSYSKONEN.md`: mopphinken `3bfee58b` (svart) har `5b4aeb72`
+  gul 559, `d60bb2f2` röd 559 och `9ac669e4` blå 569 kr; förvaringshurtsen
+  `6707c9dd` (blå) har `2fb43729` rosa 639 och `0d9da8b5` gräddvit 659 kr;
+  brödrosten `2b27c2a4` (grå) har `13204f68` svart 619 kr. Alla sex ligger
+  på listan över opolerade utkast där vi är billigare än dealproffsen och
+  kommer alltså tillbaka i nästa urval. (N36)
