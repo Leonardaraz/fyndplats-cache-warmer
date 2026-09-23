@@ -403,3 +403,31 @@ beslut — se den samlade frågan om detta.
   `e3256412` (Faltgarage für Kinderanhänger, 469 kr) — billigare än två av de
   valda men gick aldrig vidare till dubblettsvepet, och skälet antecknades
   inte vid urvalet. Inte bortvalda: de står först i kön för nästa runda. (N40)
+- `7febe06d` (Schuhbank mit Sitzfläche, Bambus, 499 kr, saldo 159) —
+  trippelträff mot den PUBLICERADE `8f0a4df1` (skobänk i bambu med sittdyna,
+  629 kr) och mot utkastet `a7186f2b` (529 kr, samma tyska namn). Är det samma
+  bänk står ett billigare utkast bakom en publicerad sida; samma fråga som
+  `1103d67e` (N40) och `ab47e35d` (N37). Leonards beslut. (N41)
+- `0b34e594` (Weihnachtsgirlande 1,8 m, 469 kr) — saldo **2** vid N41:s urval,
+  alltså på eller under `LAGER_BUFFERT` (3); butiken visar den som slutsåld.
+  Inte en brist i varan: prövas igen när saldot har stigit. (N41)
+- Utfall för N40:s kö: `e3256412` (regnskydd för cykelvagn) och reserverna
+  `3d3f90d3` (LED-björk) och `6baeb38b` (vinställ i bambu) är PUBLICERADE i
+  N41. Raderna ovan står kvar oförändrade. (N41)
+- Reserver från N41, inte med bara för att rundan var full på tio, alla
+  499 kr och dubblettskärmade men inte `las`-prövade: `2cfd222e` (konstträd
+  95 cm, saldo 127; trippelträff mot utkastet `cf92c3bd`, 519 kr, avgör vilket
+  som är samma växt), `3e2c7389` (skobänk med tre plan, saldo 97; trippelträff
+  mot utkastet `a087ae3b`, 549 kr), `520cc521` (julgran, saldo 105; tre
+  namntvillingar bland utkasten i andra storlekar), `5c5aedca` (julgran 150 cm
+  med kulor, saldo 197) och `7f21945e` (tre förvaringskorgar i konstrotting,
+  saldo 109). (N41)
+- ⚠️ RÄTTELSE till N41:s reservrad ovan: `520cc521` (julgran 180 cm, 499 kr)
+  är inte en egen vara. Den är den GRÖNA versionen av den vita granen
+  `1f887213`, som publicerades i N41. Källtexten är densamma, och måtten står
+  som `Ø55 x H180` — en diameter, som trippelskärmen inte kan läsa. Därför
+  fångade dubblettskärmen den inte. Färgsyskon-mönster (se `FARGSYSKONEN.md`):
+  att publicera den gröna som egen sida är Leonards beslut. Dess tre
+  namntvillingar bland utkasten (`792562e3`, `e36dab73`, `7727e1bf`) kan vara
+  fler storlekar eller färger av samma gran. Det är inte prövat. Raden ovan
+  står kvar oförändrad. (N41)

@@ -126,3 +126,65 @@ bilderna. Den gav två ändringar, båda om regnskyddet:
 - Alt-texten till bild 4 kallade handtaget "ramen" och "röret". Den säger nu
   vad bilden visar: skjuthandtaget på plats utanpå skyddet, med ett svart band
   runt fästet.
+
+## Wix-skrivningen
+
+Rundans filer pushades först (`ed499df`). Main kontrollerades en gång till
+omedelbart före steg 1: senaste "Runda …"-commit fortfarande Runda 147, main
+oförändrad på `3516f83`.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **10 av 10 skrivna**, ingen spärr utlöst, revision 1→2 (2→3 för de tre som stod på revision 2) |
+| 2 | media + alt-texter (måttbilden sist, sex bilder strukna), spärr över id + alt i samma anrop | **10 av 10**, 44 bilder |
+| 3 | kategorier, uppslag på namn i en färsk fråga i samma anrop | **26 av 26** rader `success`, `totalFailures: 0` på alla femton kategorier |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med options och visible | **10 av 10**; variant och produkt synliga före, variant-id = `variant.tsv`, priset orört (469/479/499 kr) |
+| 5 | separat återläsning (`steg5.js`) mot facit ur filerna | **10 av 10 helt verifierade**: text-hash, namn, slug, `visible`, SEO (två taggar, tomma keywords), bilder + alt, kategorier, SKU, variantens synlighet och id; alla `IN_STOCK` |
+
+Stämpeln (`polish-mapping.yml` `stampla`, `ref: main`, körningarna 3911–3920,
+`variant_skus` byggda med `bygg-steg.py --stampla`) — **10 av 10** `OK …
+uppdaterad`, var och en bevisad som min på `PRODUCT_ID` i loggen. Varje stämpel
+verifierad med en EGEN `las` efteråt (körningarna 3921–3930):
+`needsAiPolish: false`, `draftStatus: published`, den nya SKU:n på
+mappningsraden och prisgrinden `stämmer: true` på alla tio.
+
+`FLAGGADE.md`: 19 rader tillagda sist, 0 borttagna (prefixet byte-identiskt
+med kopian före ändringen).
+
+## Live-verifieringen och den andra korrekturläsningen
+
+`hamta-live.sh 130`: alla tio `HTTP 200` med `age` 143–147. Det är
+renderingen som omträffen utlöste. `livegrind.py`: **10 av 10 REN,
+orddiff 0**.
+
+Ur samma sidor, kontrollerat med skript mot rundans filer:
+
+- JSON-LD `InStock` och oförändrat pris (469/479/499 kr) på alla tio.
+- Kategorin syns i brödsmulan, t.ex. `Sport & Fritid` för regnskyddet och
+  `Barn & Familj` för balanscykeln.
+- Namnet i JSON-LD är lika med `namn.tsv` på alla tio.
+- `<title>` och metabeskrivningen är exakt lika med `seo.tsv` på alla tio.
+- Alla **44 av 44** alt-texter ur `alt.tsv` står på sidorna.
+
+Den andra korrekturläsningen gjordes på den PUBLICERADE texten, plockad
+mekaniskt ur de hämtade sidorna (knappt 670 rader). **Den gav inga fynd.**
+
+Tre ställen prövades mot källan i stället för att tas för givna, och alla tre
+står sig:
+
+- **Spökena, "3 AA-batterier".** Källan säger `Batterie: 3 x AA-Batterie
+  (nicht enthalten)` för setet, och texten säger inget mer än så.
+- **Badrummet i väggdekorens rumslista.** Källan säger `Geeignet für Bad,
+  Wohnzimmer, …`.
+- **Granens grenmått 33 × 6 cm.** Det är källans `Zweigmaße: 33L x 6B cm`.
+
+Ingen rättelse, alltså inget omskrivningsanrop.
+
+Ett fynd gjordes vid sidan av, under N42:s urval: reserven `520cc521` är den
+gröna versionen av den vita granen `1f887213`, som publicerades i den här
+rundan. Källtexten är densamma. Måtten står som `Ø55 x H180`, och den formen
+kan trippelskärmen inte läsa. Fyndet är tillagt sist i `FLAGGADE.md` som en
+rättelse under reservraden. Reservraden själv är orörd: 9 rader till, 0
+borttagna, och prefixet är byte-identiskt med kopian.
+
+Rundan är klar utom faktakorten, som är medvetet uppskjutna, som i N15–N40.
