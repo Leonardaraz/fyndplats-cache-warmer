@@ -456,3 +456,37 @@ beslut — se den samlade frågan om detta.
   fråga om `cf92c3bd` är avgjord: det är en ANNAN växt än `2cfd222e` (kruka
   Ø17 × 14,5 cm och 4,7 kg mot Ø15 × 13 cm och 3 kg). Trippelträffen kom från
   paketmåtten. Raderna ovan står kvar oförändrade. (N42)
+- `9696bb71` (Schutzhülle für Gartenmöbel 600D-Oxford, grön, 519 kr) — saldo
+  **3** vid N43:s urval, alltså lika med `LAGER_BUFFERT`; butiken hade visat den
+  som slutsåld. Inte en brist i varan: prövas igen när saldot har stigit. (N43)
+- `b3e5b7d1` (Hocker Teddy, beige, 529 kr, saldo 119) — HUSMÄRKET PÅ SJÄLVA
+  PRODUKTEN: en vit etikett med HOMCOM-loggan är fastsydd vid dynkanten
+  (utsnitt av bild 1). Samma fråga som `5d9e6795` (N36) och
+  `fd85cf0b`/`b2175a65` (N37). Leonards beslut. (N43)
+- `b7465ef9` (Joghurtbereiter, åtta glas, silver, 529 kr, saldo 197) — samma
+  maskin som den PUBLICERADE `af7bf20d` (yoghurtmaskin med 8 glasburkar,
+  799 kr): samma mått 36 × 18,8 × 14 cm, åtta burkar à 180 ml, 25 W och 0,8 m
+  sladd. Enda skillnaden i texterna är temperaturområdet (20–50 mot 20–55 °C).
+  Ett BILLIGARE utkast bakom en publicerad sida, samma fråga som `ab47e35d`
+  (N37) och `f981fbc0` (N42). Leonards beslut. (N43)
+- `5be87e2b` (Künstliche Birke mit LEDs, VIT, 150 cm, 539 kr, saldo 197) —
+  färgsyskon-mönster (se `FARGSYSKONEN.md`): samma höjd, 96 LED och 5 m kabel
+  som den PUBLICERADE `68911c57` (LED-björk 150 cm med brun stam, 539 kr).
+  (N43)
+- FEL SÄSONG i slutet av september, hoppade över i N43 och att ta upp till
+  våren: **kupoltältet** `87a6c654` (två personer, 519 kr), **insynsskyddet**
+  `4a96df14` (konstgjord häck, 529 kr) och **utomhusmattan** `3ec9a0f5`
+  (182 × 274 cm, 499 kr; hoppad över redan i N41 och N42). **Växthuset**
+  `e891b752` (folie, tre rullfönster, 529 kr) är dessutom main-seriens familj
+  just nu (Runda 147 polerade tolv växthus). (N43)
+- INTE PRÖVAD i N43: `1204b022` (Weihnachtsbaum 1,2 m med LED och stjärna,
+  599 kr) — kan vara samma gran som N43:s `75a38b7b` (fiberoptik, 120 cm,
+  stjärna i toppen). Pröva den mot `75a38b7b` innan den väljs. (N43)
+- Reserver från N43, inte med bara för att rundan var full på tio, alla
+  539 kr och dubblettskärmade men inte `las`-prövade: `a7e88a1b` (ergonomisk
+  sittdyna, saldo 155; trippelträffarna är utkast av andra slag),
+  `b5b3b852` (elektronisk darttavla, platt, 47 × 41 × 2,5 cm, saldo 197; de
+  publicerade darttavlorna har dörrar, `12e66c66`, eller skåp, `7f938d91`) och
+  `e90dcc5a` (balansstenar, sex stycken, saldo 144; ett ANNAT set än N43:s
+  `60f84a27` — mindre stenar, 21,5–34,3 cm, och TPR mot TPE; namntvillingen
+  `dc71c3ac` med elva stenar är ett utkast). (N43)
