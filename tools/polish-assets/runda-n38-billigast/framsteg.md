@@ -140,7 +140,94 @@ tre billigare. Oavgjort pris bröts MEKANISKT i jämförelsens egen ordning
 `ids.tsv` bär färgsyskonen i beskrivningen, så att N39 inte publicerar en
 andra kulör parallellt (`c4df49ca` och `f39923d1` ligger i N39:s halva).
 
+Pushat i `26562d9` ("urvalet låst — ids.tsv för N39:s överlappskontroll").
+
+## Källor och kontroll mot skarpa V3
+
+Källtexterna hämtades server-side med artikelnummer räknade och redigerade på
+servern (samma tre alternativ som `gatelib.ARTNR`): **0 träffar i alla åtta**.
+`kallor.json` byggd i `bygg-kallor.py` (avskrift) och `bilder.tsv` ur samma
+hämtning. Kontrollerade i ett eget anrop utan skrivning (h·31 och längd per
+produkt): **8 av 8 text LIKA, 8 av 8 bildlista LIKA**. Revisionerna var då 1,
+2, 2, 4, 2, 2, 5, 3.
+
+## Bilder — kontaktark FÖRE texten
+
+Kontaktarken (`bygg-ark.py`, i scratchpad) lästes före en enda mening
+skrevs, och tre påståenden i källan prövades mot fotot:
+
+- `33c51730`: "24 Haken und 21 Öffnungen" — gallret ovanpå har 7 × 3 = 21
+  fack, och krokarna sitter i par under långsidorna (tolv synliga på
+  framsidan). Stämmer.
+- `2af7ec2d`: källans `49L x 53,5B` är BREDDEN som position 2 — måttbilden
+  sätter 53,5 cm längs fronten och 49 cm längs sidan. Texten följer bilden
+  (53,5 cm brett), se axelavsnittet nedan. Samma bild visar att krittavlan
+  och whiteboarden är EN rityta på 47 × 32 cm; texten säger därför "både
+  krittavla och whiteboard" och aldrig "en på varje sida".
+- `285d9ab7`: måttbilden visar hinken 30 cm bred och 36 cm djup (lock-gångjärn
+  bak, pedal fram) — källans `36L x 30B` lagt positionellt ger det omvända.
+  Texten säger "36 × 30 cm golvyta" och binder inget av talen till bredd
+  eller djup.
+- `12e66c66`: källans `Gesamtmaße: 50L x 44B x 4.4H` är en VÄGGTAVLA lagd ned;
+  måttbilden och källans egen `Ungefaltete Maße: 90,5L x 4,4B x 50H` ger 44
+  brett, 50 högt och 4,4 djupt. Källans svenska spec-rad (46,5 × 50,5) står
+  mot båda och används inte.
+- Tal som bara finns i bilderna och därför INTE står i texterna:
+  pedalhinkens 92 cm (öppet lock), innerhinkens 27 och 58,5 cm,
+  sidobordets hyllmått "24±6,4", pallens 48 cm-fot (utesluten produkt),
+  fågelmatarens 23 cm i måttbilden står däremot i källan (piggarna).
+- Tysk text inbränd: `084b987b` bild 4 ("VERSTELLBARE FUSSPOLSTER") —
+  struken (`bilder-bort.tsv`), produkten får fyra bilder.
+- Inga husmärken eller tredjepartslogotyper på de åtta valda (reserven
+  `7c3d438a` bär husmärket som etikett på själva stenen).
+
+## Texter och första korrekturläsningen (egen svenska, eget steg)
+
+Åtta texter i husets form (ingress, två–tre avsnitt, `Egenskaper`, de tre
+flikarna ordagrant). Under skrivningen ströks två påståenden som källan inte
+bär ("behandlad" metallyta → "motstår fingeravtryck"; "stadig" A-ram). Den
+första korrekturläsningen gav **5 rättelser**: en tvetydig syftning
+(`0fda8bfe`, "i olika storlek på tvinnade stammar"), en felkopplad
+prepositionsfras (`084b987b`, "i rustikt brunt och svart stålram"), en
+överlång mening delad (`084b987b`), ett upprepande FAQ-svar (`12e66c66`) och
+en oklar bisats (`2af7ec2d`, "ligga framme") — samt en alt-text
+(`33c51730`, "krokhyllor" → "krokhängare"). `gate.py` fällde dessutom
+`Pedalen` i meningsstart (ordet står i `TYSKA_ORD`); meningen skrevs om
+("Med pedalen …") i stället för att ordlistan rördes.
+
+## Grindar (före skrivningen)
+
+| Gate | Resultat |
+|---|---|
+| Trippelmönstrets självtest (9 former, i samma anrop som varje svep) | **9 av 9** i alla fyra svepen |
+| `kallor.json` + `bilder.tsv` mot skarpa V3 | **8 av 8 LIKA**, 0 artikelnummer i källorna |
+| `gate.py` | **0 fynd, 0 varningar** (tre ordtal kvitterade i `foto-tal.txt`) |
+| `bygg-axelfacit.py` + `gate-axel.py` | **0 axelfel** (5 axelkonflikter i källan, upplysning; 18 "anger aldrig måttet med ord") |
+| `gate-alt.py` | **REN**, 8 produkter, 39 alt-texter |
+| `gate-seo.py` | **0 fynd** i 8 rader |
+| `gate-lager.py` | **0 fynd**, lägsta saldo 8 |
+| `gate-sku.py` | **0 fynd** (längsta 32 av 40 tecken) |
+| SKU-krock mot alla rundors `sku.tsv` (grenen, 24 filer på `main`, N37) | **0 krockar, 0 prefixöverlapp** (478 SKU:er); N39:s fil fanns inte än |
+| Slug-krock mot hela katalogen (5 984 slugs) och N37 | **0 krockar, 0 prefixöverlapp** |
+| `gate-superlativ.py` / `gate-lankar.py` | **REN** / **0 fynd** |
+| Läcksvep (GRINDAR + NORM + 542 tyska källord) | **0 fynd**; `EN 71` två gånger på `2af7ec2d` (källan: `EN71-1-2-3`, grindad i `gate.py`); källorden i texterna är svenska (`Aluminium`, `Material`, `Metall`, `Pedal`, `Rosa`) |
+| Teckensvep mot `TILLATNA_TECKEN` | **0 oväntade tecken** |
+| `npx vitest run lib/polish` | **99 av 99 gröna** |
+
+### ⚠️ Axlarna: tre produkter där källans ordning inte är bildens
+
+`bygg-axelfacit.py` lägger källans tal positionellt (första = bredd). På
+`12e66c66`, `285d9ab7` och `2af7ec2d` säger måttbilden något annat (se
+ovan). Facit skrivs aldrig för hand, så grinden fick stå kvar som den är;
+texterna följer i stället bilden. Heltal binds till "bred/djup/hög" bara där
+bilden och facit är överens (`113 cm högt`). De bindningar som följer bilden
+men inte facit är decimaltal (`53,5 cm brett`, `4,4 cm djup`, `90,5 cm
+bred`), som grindens mönster inte läser — för dem är alltså BILDEN kvittot,
+inte grinden. Spec-raden skriver bredd först enligt bilden (`53,5 × 49 × 113
+cm`, `44 × 4,4 × 50 cm`); pedalhinkens rad står i källans ordning (`36 × 30 ×
+63,5 cm`) utan axelord.
+
 ## Läge
 
-Urvalet låst. Nästa: källtexterna ur V3 (`bygg-kallor.py` + kontroll mot
-skarpa V3), bilderna, texterna och grindarna.
+Förberedelsen klar, INGENTING skrivet till Wix. Nästa: pusha filerna, sedan
+den oberoende granskningen och de fyra Wix-stegen.
