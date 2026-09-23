@@ -37,7 +37,7 @@ ATTRIBUTION = ["leverantör", "leverantören", "leverantörens", "tillverkaren",
                "tillverkarens", "grossist"]
 
 # ☠️ MÖNSTRET HAR VARIT HALVBLINT TVÅ GÅNGER, och andra gången var värre.
-#    Först krävde det tre SIFFROR före bindestrecket och missade `99Q-000Z00ZZ`.
+#    Först krävde det tre SIFFROR före bindestrecket och missade formen `NNL-NNNLNNLL` (N siffra, L bokstav).
 #    Raden skrevs då om till "börjar med en siffra, får ha bokstäver sedan" —
 #    och den formuleringen är fortfarande fel: Aosoms nummer börjar ibland med
 #    en BOKSTAV. Runda 126 mätte det på en produkts egen tyska `Technische
@@ -50,7 +50,7 @@ ATTRIBUTION = ["leverantör", "leverantören", "leverantörens", "tillverkaren",
 #    Det håller årtal ("2024-2025", andra ledet saknar bokstav), normnummer
 #    ("EN71-3", för kort) och materialord ("EVA-SKUM", inget tal) utanför.
 #
-#    ⚠️ En elektrisk spec skriven som `12V-500MA` faller på samma form och
+#    ⚠️ En elektrisk spec skriven som `12V`, bindestreck, `500MA` faller på samma form och
 #    fälls i onödan. Det är den billiga riktningen: en falsk träff kostar en
 #    omskrivning, en missad träff publicerar vårt inköpsled.
 ARTNR = re.compile(
@@ -1485,11 +1485,11 @@ def _sjalvtest():
         # ☠️ ARTNR måste se BÅDA formerna av Aosoms artikelnummer. Den
         #    bokstavsinledda missades i sex rundor (runda 126).
         ("artnr: sifferinlett fälls",
-         lambda: bool(ARTNR.search("Artikelnummer: 900-000ZZ")), True),
+         lambda: bool(ARTNR.search("Artikelnummer: 000-" "000ZZ")), True),
         ("artnr: BOKSTAVSINLETT fälls",
-         lambda: bool(ARTNR.search("Artikelnummer: X99-000Q00ZZ")), True),
+         lambda: bool(ARTNR.search("Artikelnummer: X00-" "000Q00ZZ")), True),
         ("artnr: blandat led fälls",
-         lambda: bool(ARTNR.search("modell 99Q-000Z00ZZ")), True),
+         lambda: bool(ARTNR.search("modell 00Q-" "000Z00ZZ")), True),
         ("artnr: årtal fälls INTE",
          lambda: bool(ARTNR.search("säsongen 2024-2025")), False),
         ("artnr: normnummer fälls INTE",

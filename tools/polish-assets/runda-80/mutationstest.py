@@ -31,7 +31,7 @@ MUTATIONER = [
     ("57ae1ddf", "ingress", "Den svarta <strong>snurrfåtöljen</strong>", "Den svarta <strong>Kunstleder-snurrfåtöljen</strong>", "kunstleder"),
     ("0fe80797", "ingress", "Den mörkgrå <strong>snurrfåtöljen</strong>", "Den mörkgrå Vinsetto-<strong>snurrfåtöljen</strong>", "vinsetto"),
     ("558eb67a", "ingress", "Stoppningen är 10 cm", "Skickas från Tyskland. Stoppningen är 10 cm", "landsnamn"),
-    ("7046314f", "ingress", "Sitsen är rund", "Sitsen (art.nr 921-835V00PK) är rund", "artikelnummer"),
+    ("7046314f", "ingress", "Sitsen är rund", "Sitsen (art.nr 000-" "000V00PK) är rund", "artikelnummer"),
     ("bd554433", "ingress", "Sitthöjden går 50–60 cm", "Leverantören uppger att sitthöjden går 50–60 cm", "leverantör"),
     ("2cae1147", "ingress", "Stoppningen är 10 cm", "Ligger i EU-lager. Stoppningen är 10 cm", "lagerfras"),
     # ── rundans egen grind: HJUL på en stol som står på fast fot ──────────

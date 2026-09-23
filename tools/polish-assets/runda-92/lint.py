@@ -242,7 +242,7 @@ def sjalvtest():
         ("<p>Gummihjul i fotbollsdesign.</p>", "fotbollsmönster"),
         ("<p>Hjulen mäter 30,5 cm.</p>", "förkastat mått 30,5"),
         ("<p>Rundan gav sju sidor.</p>", "intern jargong"),
-        ("<p>Modellreferens: 371-021YG</p>", "artikelnummer"),
+        ("<p>Modellreferens: 000-" "000YG</p>", "artikelnummer"),
         ("<p>Tillverkad av HOMCOM.</p>", "husmärke"),
         ("<p>Bredden är 12.5 cm.</p>", "sifferstil decimalpunkt"),
         ("<p>Måtten är 115 x 50 cm.</p>", "sifferstil x"),

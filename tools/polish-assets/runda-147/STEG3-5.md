@@ -16,12 +16,12 @@ kräver alltid källtextens färgfält OCH en oberoende bildkontroll (task
 #532: mått och artikelnummer ensamma är inget bevis).
 
 - **`cc2add44` (grönt) ↔ runda 146:s `be595bfd` (vitt).** Samma
-  bas-artikelnummer `84H-565V00`, identiska mått 200×75×188 cm, samma
+  bas-artikelnummer `[artikelnr]`, identiska mått 200×75×188 cm, samma
   konstruktion (foliehus med rullbar dörr och nätfönster). Källtextens
   färgfält skiljer entydigt (Grön mot Weiß→"Vit"), och bilderna visar
   samma konstruktion i olika färg. Genuint färgsyskon, ingen dubblett.
 - **`87485b8a` (grå) ↔ runda 146:s `6e60b45a` (orange).** Samma
-  bas-artikelnummer `845-379V01`, identiska mått 90×46×40 cm (liten
+  bas-artikelnummer `[artikelnr]`, identiska mått 90×46×40 cm (liten
   drivbänk i trä/polykarbonat). Till skillnad från `6e60b45a`, vars
   brödtext och strukturerade data motsade varandra om färgen (se runda
   146:s STEG3-5.md), är `87485b8a`s egen brödtext och Technische Daten

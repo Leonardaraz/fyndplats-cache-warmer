@@ -124,7 +124,7 @@ MUTATIONER = [
     ("attribution mot kunden", "ceae31c1", "faq", "Ja, båda.",
      "Leverantören uppger att båda fungerar.", "attribution"),
     ("artikelnummer i texten", "9946e1eb", "spec", "Vikt: 24 kg",
-     "Vikt: 24 kg, modell 839-835V01CG", "artikelnummer"),
+     "Vikt: 24 kg, modell 000-" "000V00CG", "artikelnummer"),
 
     # --- vikten ------------------------------------------------------------
     ("C får syskonfamiljernas egenvikt",

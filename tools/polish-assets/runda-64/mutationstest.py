@@ -54,11 +54,11 @@ MUTATIONER = [
 
     # --- artikelnumret, husets farligaste läcka ---
     ("artikelnummer i spec", "b09d20b7", "spec",
-     "Maxlast: 120 kg", "Maxlast: 120 kg — art. 83F-028V00GY", "artikelnummer"),
+     "Maxlast: 120 kg", "Maxlast: 120 kg — art. 00F-" "000V00GY", "artikelnummer"),
     ("artikelnummer i namnet", "5e2dee74", "name",
-     "Reclinerfåtölj", "Reclinerfåtölj 830-701V02WT", "artikelnummer"),
+     "Reclinerfåtölj", "Reclinerfåtölj 000-" "000V00WT", "artikelnummer"),
     ("etiketten Modellreferens", "beacff5a", "spec",
-     "Maxlast: 120 kg", "Modellreferens: 845-030CG", "artikelnummer"),
+     "Maxlast: 120 kg", "Modellreferens: 000-" "000CG", "artikelnummer"),
 
     # --- attribution: mot kunden är VI leverantören ---
     ("leverantören anger", "17620f5b", "faq",

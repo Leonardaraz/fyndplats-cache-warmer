@@ -145,7 +145,7 @@ def sjalvtest():
     """Grinden ska fälla det som inte får nå en alt-text."""
     prov = [
         ("husmärke", "Rumsavdelare från Outsunny i ett vardagsrum.", "husmärke"),
-        ("artikelnummer", "Rumsavdelare 845-030CG i ett vardagsrum.", "artikelnummer"),
+        ("artikelnummer", "Rumsavdelare 000-" "000CG i ett vardagsrum.", "artikelnummer"),
         ("ohärlett tal", "Rumsavdelare 999 cm bred i ett vardagsrum.", "ohärlett tal"),
         ("tyskt ord", "Rumsavdelare som Sichtschutz i ett vardagsrum.", "tyskt ord"),
         ("barriärlöfte", "Rumsavdelare som stänger inne barn i ett rum.", "BARRIÄRLÖFTE"),

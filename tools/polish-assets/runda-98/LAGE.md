@@ -4,12 +4,12 @@
 
 | id8 | slug | pris | artikelnr | SKU |
 |---|---|--:|---|---|
-| `9cfc2f50` | `matskap-hund-35-5-cm-44-liter-vitt` | 879 | D08-040V00WT | `FP-matskap-35-5-44l-vit` |
-| `18b9ec99` | `matskap-hund-35-5-cm-44-liter-gratt` | 869 | D08-040V00GY | `FP-matskap-35-5-44l-gra` |
-| `f8594223` | `matskap-hund-35-5-cm-44-liter-svart` | 899 | D08-040V00BK | `FP-matskap-35-5-44l-svart` |
-| `d362f9b3` | `matskap-hund-43-cm-gallerluckor-vitt` | 929 | D08-054V00WT | `FP-matskap-43-galler-vit` |
-| `9a600fda` | `matskap-hund-43-cm-gallerluckor-gratt` | 899 | D08-054V00GY | `FP-matskap-43-galler-gra` |
-| `143bef7b` | `matskap-hund-46-cm-skjutdorrar-50-liter` | 859 | D08-090V00GY | `FP-matskap-46-skjutdorrar` |
+| `9cfc2f50` | `matskap-hund-35-5-cm-44-liter-vitt` | 879 | [artikelnr] | `FP-matskap-35-5-44l-vit` |
+| `18b9ec99` | `matskap-hund-35-5-cm-44-liter-gratt` | 869 | [artikelnr] | `FP-matskap-35-5-44l-gra` |
+| `f8594223` | `matskap-hund-35-5-cm-44-liter-svart` | 899 | [artikelnr] | `FP-matskap-35-5-44l-svart` |
+| `d362f9b3` | `matskap-hund-43-cm-gallerluckor-vitt` | 929 | [artikelnr] | `FP-matskap-43-galler-vit` |
+| `9a600fda` | `matskap-hund-43-cm-gallerluckor-gratt` | 899 | [artikelnr] | `FP-matskap-43-galler-gra` |
+| `143bef7b` | `matskap-hund-46-cm-skjutdorrar-50-liter` | 859 | [artikelnr] | `FP-matskap-46-skjutdorrar` |
 
 Prisgrinden stämmer på alla sex (×1,20, charm99). Priserna är oförändrade —
 lästa före SKU-skrivningen och ekade tillbaka, jämförda efteråt.

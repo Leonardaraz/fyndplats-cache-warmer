@@ -41,7 +41,7 @@ på 320 × 320. **Lägsta avstånd 23,74** — femton gånger över tröskeln 1,
 
 **Inköpsvägen skiljer också:** creme-sidan bär `supplierProductId 1005013005569582`
 (ett AliExpress-listnings-id, ES, prisgrinden svarar `EJ AVGÖRBAR`), grupp C är
-feed-import `aosom:84C-741V00GY` från DE. Det är precis CLAUDE.md:s kända hål —
+feed-import `aosom:[artikelnr]` från DE. Det är precis CLAUDE.md:s kända hål —
 samma slags vara köpt två vägar — men **inte samma artikel**, enligt husets egna mått.
 
 Grupp C poleras alltså som egna produkter, och korslänkar creme-sidan med en

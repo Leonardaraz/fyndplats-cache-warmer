@@ -398,7 +398,7 @@ def sjalvtest():
         ("tyska", "tyska",
          lambda: kor(fast_, h=infoga(fast_, "<p>Ein Gartentisch.</p>"))),
         ("artikelnummer", "artikelnummer",
-         lambda: kor(fast_, h=infoga(fast_, "<p>Modellreferens: 845-030CG.</p>"))),
+         lambda: kor(fast_, h=infoga(fast_, "<p>Modellreferens: 000-" "000CG.</p>"))),
         ("emoji", "emoji",
          lambda: kor(fast_, h=infoga(fast_, "<p>Snyggt ✅</p>"))),
         ("jargong", "intern jargong",

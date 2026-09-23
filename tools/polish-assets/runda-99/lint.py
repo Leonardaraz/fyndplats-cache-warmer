@@ -323,7 +323,7 @@ def sjalvtest():
         ("tyska: Deckel", "tyska",
          lambda: kor_d(h=infoga(T.beskrivning(pid_d), "<p>Ett Deckel.</p>"))),
         ("artikelnummer", "artikelnummer",
-         lambda: kor(h=infoga(h0, "<p>Modellreferens: D08-041V80GY.</p>"))),
+         lambda: kor(h=infoga(h0, "<p>Modellreferens: D00-" "000V00GY.</p>"))),
         ("emoji", "emoji",
          lambda: kor(h=infoga(h0, "<p>Bra val ✅</p>"))),
         ("jargong", "intern jargong",

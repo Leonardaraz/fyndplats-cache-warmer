@@ -41,7 +41,7 @@
    alltsa den enda kallan som sager vattentat, mot tre som inte gor det.
 
 ☠️ `9a3600f8`:s BRODTEXT NAMNGER ARTIKELNUMREN TVA GANGER: "Artikelnummer:
-   84C-175, 84C-175BK" och "Geeignet fur Sku: 84C-175, 84C-175BK". De far
+   [artikelnr], [artikelnr]" och "Geeignet fur Sku: [artikelnr], [artikelnr]". De far
    aldrig na sidan — de star i leverantorens egen URL och hos konkurrenten.
 
 ⚠️ `9a3600f8`:s BREDD PUBLICERAS INTE. Brodtexten och spec-tabellen sager

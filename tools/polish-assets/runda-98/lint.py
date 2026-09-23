@@ -274,7 +274,7 @@ def sjalvtest():
         ("tyska", "tyska",
          lambda: kor(h=h0.replace("skålar", "Näpfe"))),
         ("artikelnummer", "artikelnummer",
-         lambda: kor(h=h0 + "<p>Artikelnummer: 845-030CG.</p>")),
+         lambda: kor(h=h0 + "<p>Artikelnummer: 000-" "000CG.</p>")),
         ("emoji", "emoji",
          lambda: kor(h=h0 + "<p>Bra val ✅</p>")),
         ("jargong", "intern jargong",

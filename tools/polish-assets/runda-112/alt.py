@@ -189,7 +189,7 @@ SJALVTEST = [
     ("tyskt ord", "Leinwand med kvadratisk duk", True),
     ("husmärke", "Projektorduk från HOMCOM i vit kassett", True),
     ("lagerland", "Projektorduk som skickas från Tyskland", True),
-    ("artikelnummer", "Projektorduk 845-030CG i vit kassett", True),
+    ("artikelnummer", "Projektorduk 000-" "000CG i vit kassett", True),
     ("tal som inte står på sidan", "Projektorduk med 999 cm bred duk", True),
     ("för lång", "Projektorduk " + "x" * 130, True),
     ("utan produktord", "Fyra personer i en soffa en kväll", True),

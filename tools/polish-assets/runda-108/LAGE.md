@@ -11,12 +11,12 @@ Sex av sex prisgrindar gröna:
 
 | nyckel | artnr | pris | landedCost | prisgrind | lager | frakt ÷ inköp |
 |---|---|--:|--:|:-:|--:|--:|
-| `5f14c112` | 830-814V00WT | 1 069 | 888,09 | ✅ | 82 | 0,491 |
-| `957b042d` | 830-814V00BN | 1 139 | 942,80 | ✅ | 14 | 0,463 |
-| `6649471e` | 830-814V01ND | 1 329 | 1 104,29 | ✅ | 197 | 0,395 |
-| `854371fe` | 830-814V01BN | 1 179 | 976,08 | ✅ | 17 | 0,447 |
-| `da1a8a75` | 830-814V02WT | 1 499 | 1 251,66 | ✅ | 29 | 0,369 |
-| `64c0809d` | 830-814V02ND | 1 429 | 1 187,55 | ✅ | 63 | 0,367 |
+| `5f14c112` | [artikelnr] | 1 069 | 888,09 | ✅ | 82 | 0,491 |
+| `957b042d` | [artikelnr] | 1 139 | 942,80 | ✅ | 14 | 0,463 |
+| `6649471e` | [artikelnr] | 1 329 | 1 104,29 | ✅ | 197 | 0,395 |
+| `854371fe` | [artikelnr] | 1 179 | 976,08 | ✅ | 17 | 0,447 |
+| `da1a8a75` | [artikelnr] | 1 499 | 1 251,66 | ✅ | 29 | 0,369 |
+| `64c0809d` | [artikelnr] | 1 429 | 1 187,55 | ✅ | 63 | 0,367 |
 
 Alla sex har EU-lager, EN variant med `supplierVariantId`, och saldo över noll.
 Ingen ligger över 0,5 i fraktandel. Steg 6 är därmed ett no-op — men kollat, inte

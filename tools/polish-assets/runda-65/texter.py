@@ -4,7 +4,7 @@
 Alla siffror kommer ur leverantörens Technische Daten och måttritningarna.
 Åtta saker är MEDVETET utelämnade, och skälen står i LAGE.md:
 
-  1. Artikelnumret `83B-912V00GY`, som står i 89c89322:s egen brödtext.
+  1. Artikelnumret `[artikelnr]`, som står i 89c89322:s egen brödtext.
   2. Ordet "massagestol" om 3dab61f0 — dess tekniska not kallar den det.
   3. Ordet "säng" om db645ff8 — utfälld är den 108 cm, inte en sovplats.
   4. Egenvikten på 88425b27, som motsäger sig (10,4 mot 12 kg).

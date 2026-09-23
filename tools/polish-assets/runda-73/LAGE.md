@@ -104,7 +104,7 @@ pixlarna. Alla fem positionerna används på alla åtta.
 ## ⚠️ Eget ärende: familjen 833-359 säljs under tre namnmönster
 
 `vilfatolj-graddvit-med-fotpall`, `vilfatolj-morkgra-med-fotpall` och
-`tv-fatolj-forvaringspall-145` — den sista är SVART (`833-359BK`) men bär
+`tv-fatolj-forvaringspall-145` — den sista är SVART (`[artikelnr]`) men bär
 inget färgord alls i sitt namn, och står på `aosomSyncedQty: 0`. En kund som
 jämför de fyra kan inte se vilken som är vilken.
 

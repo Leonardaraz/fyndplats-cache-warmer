@@ -116,7 +116,7 @@ MUTATIONER = [
     ("attribution mot kunden", "da6d086a", "faq", "Nej, det är sammetslook",
      "Leverantören uppger att det är sammetslook", "attribution"),
     ("artikelnummer i texten", "824301a4", "spec", "Montering: krävs",
-     "Artikelnummer: 839-835V01CG", "artikelnummer"),
+     "Artikelnummer: 000-" "000V00CG", "artikelnummer"),
 
     # --- struktur och SEO ---
     ("två produkter får samma slug",
