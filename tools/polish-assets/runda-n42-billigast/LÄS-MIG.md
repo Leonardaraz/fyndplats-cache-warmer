@@ -225,8 +225,17 @@ Ett fjärde försök gjordes med flit INTE: Products V3:s
 ett asynkront jobb. Ett filter som inte respekteras hade lagt hela katalogen i
 kategorin, och `CLAUDE.md` har redan mätt ett filter som tyst ignoreras.
 
-Punkten är öppen och läses om vid nästa kontroll. Hela förloppet står i
-`framsteg.md`.
+✅ **Punkten är stängd — projektionen läkte av sig själv.** Vid N43:s
+kontroll visade produktens projektion `Hem & Inredning` och `All Products`:
+`entityEventSequence` 10 → 11 och `updatedDate` 14:30:58, utan ny revision
+(fortfarande 7). Wix räknade alltså om projektionen själv, ungefär en
+halvtimme efter det sista försöket. Live 15:08 (HTTP 200, `age` 130):
+`livegrind.py` REN (orddiff 0), brödsmulan `Hem & Inredning`, 499 kr och
+4 av 4 alt-texter. Samma släp kom tillbaka i N43 på sidobordet `e01513c6`,
+också den enda med en ensam toppkategori, och det läkte på ungefär sex
+minuter. **Lärdomen:** en ensam toppkategori tar längre tid att nå
+projektionen än en koppling som följs av ett löv. Läs om efter en stund i
+stället för att skriva om. Hela förloppet står i `framsteg.md`.
 
 **Den andra korrekturläsningen** gjordes på den PUBLICERADE texten, plockad
 mekaniskt ur sidorna. **Den gav inga fynd.** Fem ställen prövades mot källan
@@ -266,16 +275,13 @@ byte-identiskt med kopian före ändringen):
    samma matta, eller en annan matta?
 3. **Barnbilen `d9276e3d`**: husmärket är tryckt på produkten och fronten är
    formad som en MINI. Samma fråga som `b2175a65` i N37.
-4. **Brasskärmen `988ac121`**: kategorikopplingen når inte produkten. Den
-   ligger kvar publicerad och köpbar, men utan kategori i brödsmulan och på
-   kategorisidan. Inget av de sju löven under `Hem & Inredning` passar en
-   brasskärm. Om projektionen inte har läkt vid nästa kontroll är nästa steg
-   därför ett ärende till Wix support, om du inte hellre vill något annat.
+4. ~~**Brasskärmen `988ac121`**~~ — inte längre en fråga. Kategorin nådde
+   produkten av sig själv, se ovan.
 
 ## Faktakort
 
 Faktakorten är medvetet uppskjutna, som i N15–N41. Rundan räknas som klar
-utom dem och brasskärmens kategori.
+utom dem (brasskärmens kategori läkte, se ovan).
 
 ## Filer i katalogen
 

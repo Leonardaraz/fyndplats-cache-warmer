@@ -272,3 +272,28 @@ Alla fem står sig:
 - **Brödrosten, materialet plast.** Källan säger `Material: Kunststoff`.
 
 Ingen rättelse, alltså inget omskrivningsanrop.
+
+## Uppföljning i N43: brasskärmens kategori har läkt
+
+Läst om direkt efter N43:s steg 5, samma anrop som jämförde tolv tidigare
+produkter med bara `Hem & Inredning` (N33–N39, alla med kategorin i
+projektionen):
+
+| | vid N42 | vid N43 |
+|---|---|---|
+| projektionen (`directCategoriesInfo`) | `All Products` | `All Products`, `Hem & Inredning` |
+| `entityEventSequence` | 10 | **11** |
+| `updatedDate` | — | **14:30:58** |
+| revision | 7 | 7 |
+
+Projektionen räknades alltså om av Wix självt, utan ny revision, ungefär en
+halvtimme efter det sista försöket. Inget av de tre försöken behövdes.
+
+Live 15:08, hämtad med `hamta-live.sh 130` (varm träff på en inaktuell sida
+med `age` 3504, sedan en skarp hämtning med HTTP 200 och `age` 130):
+`livegrind.py` **REN**, orddiff 0; `livekoll.py` **OK**, brödsmulan
+`Hem & Inredning`, pris 499 kr och alt-texter 4 av 4.
+
+Samma släp kom tillbaka i N43 på sidobordet `e01513c6`, som också var den
+enda i sin runda med en ensam toppkategori. Det läkte på ungefär sex minuter
+(15:04:40). Se N43:s `framsteg.md`.

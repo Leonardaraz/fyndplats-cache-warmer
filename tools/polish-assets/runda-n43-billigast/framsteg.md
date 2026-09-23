@@ -73,6 +73,12 @@ artikelnummer redigerade innan något lämnade anropet. Svaret kapades vid
 - **Spegeln:** `5bd95c2c` (MDF, 2 mm glas, 5 kg) mot `2ad2fafd` (bågformad
   överkant, aluminium, 4 mm glas, 6 kg) och de spröjsade `f23252d9`/`c438d4ba`.
   **Andra speglar.**
+  ⚠️ Specialsvepet letade bara efter 50 och 70 cm, så det såg inte N40:s
+  publicerade `c2c6a332` (väggspegel 40 × 60 cm med svart ram). Den hittades
+  av en slump: när stämplingens indataform hämtades ur en tidigare runda var
+  exemplet just den spegelns stämpel. Samma ram och samma upphängning
+  i en annan storlek är ett **storlekssyskon**, inte en dubblett. Precedens:
+  N42:s skobänk `3e2c7389` (70 cm) bredvid N40:s `9c456097` (50 cm).
 - **Balansstenarna:** de publicerade `3783b551` (sex sköldpaddor i PP, med
   spelkort) och `1668a747` (fem grodor) är andra set. Trippelträffarna
   `3e450479`, `43c151c1` och `7c3d438a` (nio och elva stenar) är utkast.
@@ -196,3 +202,115 @@ steg1-bas.js` och `bygg-steg.py steg1-bas.js > steg1.js` (skriver även
 tio rader, och `bygg-steg.py --stampla` ger en variant-SKU per produkt ur
 `variant.tsv` och `sku.tsv`. Grindarna, läck-, tecken- och formsvepet och
 `vitest` (99 av 99) kördes en sista gång efter bygget: alla rena.
+
+## Wix-skrivningen
+
+Rundans filer pushades före Wix (`49a4313`). Samma kommando kontrollerade
+main: fortfarande `3516f83`, och senaste "Runda …"-commit var fortfarande
+Runda 147.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **10 av 10 skrivna**, ingen spärr utlöst. Revision 1→2 på sju; 2→3 på `923236e5` och `c4af8541`, 3→4 på `5bd95c2c` |
+| 2 | media + alt-texter (måttbilden sist, tre bilder strukna), spärr över id + alt i samma anrop | **10 av 10**, 47 bilder |
+| 3 | kategorier, uppslag på namn i en färsk fråga i samma anrop | **19 av 19** rader `success` i sex kategorier, `totalFailures: 0` överallt |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med options och visible | **10 av 10**; variant och produkt synliga före, variant-id = `variant.tsv`, priset orört (519–539 kr) |
+| 5 | separat återläsning (`steg5.js`) mot facit ur filerna | **9 av 10 helt verifierade** vid första läsningen. På `e01513c6` stämde allt utom kategorin, se nedan. Alla tio `IN_STOCK` |
+
+⚠️ **`e01513c6` läste tillbaka med EN kategori i stället för två**, precis som
+brasskärmen `988ac121` i N42. Båda är de enda i sin runda med en ensam
+toppkategori (`Hem & Inredning` utan löv). Bulk-svaret gav `success` för raden
+(`totalSuccesses: 9, totalFailures: 0`), och kategori-API:t
+(`list-categories-for-item`) visar `Hem & Inredning` och `All Products` som
+direkta kategorier. Produktens projektion visar bara `All Products`.
+
+✅ **Och brasskärmen från N42 har läkt av sig själv.** Samma läsning, gjord
+direkt efter N43:s steg 5, visar `988ac121` med `Hem & Inredning` i
+projektionen: `entityEventSequence` 10 → 11 och `updatedDate` 14:30:58, utan
+ny revision (7). Projektionen räknades alltså om ungefär en halvtimme efter
+N42:s sista kategoriförsök, av Wix självt. Släpet är långt, men inte
+permanent. Tolv tidigare produkter med bara `Hem & Inredning` (N33–N39) har
+kategorin i projektionen, så den ensamma toppkategorin fungerar — den tar bara
+längre tid att nå projektionen än en koppling som följs av ett löv.
+
+**Därför skrivs `e01513c6` inte om.** Den läses om en stund senare, som husets
+regel om efterläsningar säger: facit är bulk-svarets per-rad `success`, och en
+snabb återläsning kan underrapportera.
+
+✅ **Omläst en stund senare: `e01513c6` har läkt.** Projektionen visar
+`All Products` och `Hem & Inredning`, `entityEventSequence` 7 → 8 och
+`updatedDate` 15:04:40, med revisionen oförändrad (4). Släpet var ungefär sex
+minuter, mot brasskärmens ungefär en halvtimme. Ingen omskrivning gjordes.
+
+Stämpeln (`polish-mapping.yml` `stampla`, `ref: main`, körningarna 3972–3981,
+`variant_skus` byggda med `bygg-steg.py --stampla`) — **10 av 10** `OK …
+uppdaterad — needsAiPolish, draftStatus, variantSkus`, var och en bevisad som
+min på `PRODUCT_ID` i loggen, med `VISA_KOSTNAD: false`. Varje stämpel
+verifierad med en EGEN `las` efteråt (körningarna 3982–3991): `needsAiPolish:
+false`, `draftStatus: published`, den nya SKU:n på mappningsraden och
+prisgrinden `stämmer: true` på alla tio (charm99, x1.2).
+
+`FLAGGADE.md`: 34 rader tillagda sist, 0 borttagna (prefixet byte-identiskt
+med kopian före ändringen).
+
+## Live-verifieringen och den andra korrekturläsningen
+
+`hamta-live.sh 130`: sidorna var nya (`age` 0 på den varma träffen), så
+skriptet väntade ut fönstret, träffade om och hämtade skarpt: alla tio
+`HTTP 200` med `age` 143–144. `livegrind.py`: **orddiff 0 på alla tio, 10 av 10
+REN**. `livekoll.py` (JSON-LD-namnet mot `namn.tsv`, `InStock`, `<title>` och
+metabeskrivningen mot `seo.tsv`, varje alt-text ur `alt.tsv`, och brödsmulan
+mot produktens egna kategorier): **10 av 10 OK**, **47 av 47 alt-texter**.
+Brödsmulan är `Hem & Inredning` på nio och `Barn & Familj` på balansstenarna,
+och priserna är 519 (fem), 529 (fyra) och 539 kr (fiberoptikgranen), exakt
+som steg 4 läste dem före SKU-skrivningen. Sidobordet har alltså sin kategori
+även på sidan.
+
+**Den andra korrekturläsningen** gjordes på den PUBLICERADE texten, plockad
+mekaniskt ur sidorna (627 rader), och varje påstående som inte är ett mått
+ställdes mot källan en gång till. Den gav **ett fynd**:
+
+☠️ **Girlangen `c4af8541` påstod batteridrift, och källan säger det inte.**
+Texten sa "en timer på sex timmar gör att batterierna räcker längre", "Sätt i
+batterierna …", "Ta ur batterierna …" och i en fråga "Med batterier på 1,5 V.
+Batterierna finns inte med i leveransen." Källan anger bara `Eingang: 1,5V`,
+och bilderna visar varken batterifack eller sladd (utsnitt av båda ändarna i
+bild 1 och 2). Det var en slutsats ur spänningen, inte ett påstående ur
+källan — och N40:s publicerade gran `27ff1a8e`, med exakt samma `Eingang:
+1,5V`, samma 0,3 m kabel och samma timer, skrev därför bara "drivs med 1,5
+V". Julgranen `b0766f63` däremot står sig: dess källa säger ordagrant
+`batteriebetriebenem und kabellosem Design`.
+
+Rättelsen följer N40: "Belysningen drivs med 1,5 V och har en timer på sex
+timmar som sparar energi" (källan: `Energieeffizienz`), skötseln säger
+"Koppla in belysningen enligt anvisningen", och frågan om strömmen är
+ersatt med "Hur många lampor har girlangen? 50 varmvita LED-lampor." Namnet
+och SEO-texterna nämnde aldrig batterier och är orörda.
+
+Grindarna kördes om på den rättade texten (alla rena), facit byggdes om
+(`raa-hash.tsv` och `vantat-hash.tsv` ändrades bara på `c4af8541`), och
+rättelsen skrevs med `bygg-steg.py --rattelse c4af8541`, med
+transkriberingsspärren i samma anrop: **1 av 1 skriven**, revision 5 → 6.
+
+Resten stod sig mot källan, bland annat: spegelns ram och upphängning av MDF
+(`Rahmen und Halterung … aus MDF`) och "skruvas fast eller hängas upp"
+(`Wandmontage oder Aufhängung`), hyllan som kan målas (`mit Farbe
+individuell gestalten`), sidobordets bromsar (`Bremsen`), granens betongfot
+(`Betonfuß`), väggdekorens skruvar och pluggar (`Haken, Schrauben und
+Dübel`), fiberoptikgranen som tar liten plats i förrådet (`Platzsparende
+Aufbewahrung`) och att dess stjärna också lyser (`Ebenso der zugehörige
+Weihnachtsstern`).
+
+**Efter rättelsen**, i den ordning som gör talen meningsfulla:
+
+- Separat återläsning (den ombyggda `steg5.js`, med girlangens nya facit):
+  **10 av 10 helt verifierade**. Sidobordet har två kategorier (`Hem &
+  Inredning` och Wix egen `All Products`), girlangen revision 6. Alla tio
+  `IN_STOCK`, priserna orörda.
+- Girlangens livesida hämtad igen (`hamta-live.sh 130`: varm träff på en
+  inaktuell sida med `age` 467, sedan HTTP 200 med `age` 130):
+  `livegrind.py` **REN**, orddiff 0 mot den rättade filen; `livekoll.py`
+  med priset kontrollerat (529 kr) **OK**, 4 av 4 alt-texter; ordet
+  "batteri" förekommer inte på sidan.
+
+**Rundan är klar.** Faktakorten är medvetet uppskjutna, som i N15–N42.
