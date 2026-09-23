@@ -20,6 +20,7 @@ produktsidor.
 | Återläsning mot filens kontrollsumma | **16/16 LIKA** |
 | Varianter synliga efter skrivningen | 16/16 |
 | **Live: `<title>`, meta och `og:title` exakt lika `seo.tsv`** | **16/16** |
+| **Live-grind efter beskrivningslagningen** | **16/16 REN, 0 avvikelser** |
 
 ☠️ **De flesta sidorna rördes INTE, med flit.** 78 av 99 bar redan sökordet i
 titeln och i H1 — poleringen hade gjort sitt jobb. Plats 11–20 på ett
@@ -96,6 +97,9 @@ Lagat samma kväll, med husets metod från `reparation-flikar` (`skotsel/`):
 - Återläsning i eget anrop: **9/9 LIKA** mot den skickade textens
   kontrollsumma, flikarna i ordningen spec → skötsel → FAQ, varianterna
   synliga. `skotsel/skrivlogg.txt` bär längd och kontrollsumma före och efter.
+- Ny ISR-cykel och live-grind på alla sexton: **0 avvikelser**. Sidorna var
+  115 sekunder gamla vid mätningen, alltså renderade EFTER skrivningen —
+  inte en cachad version från före.
 
 ## Redirects: en rad skriven, men den BITER INTE förrän butiken ändras
 
@@ -143,4 +147,5 @@ Semrush-kostnad för rundan: ~2 200 API-enheter.
 att den bara rörde `tools/`. Det är läkningsbygget CLAUDE.md beskriver: grenen
 återskapades efter förra mergen, pekaren till förra byggda SHA:n låg utanför
 den grunda klonen, och `git cat-file` ger då `exit 1` med flit. Butiksprojektet
-hoppades över som det ska.
+hoppades över som det ska. Andra pushen (`dpl_7QFiUDgf…`) blev `CANCELED` med
+`errorLink: #ignored-build-step` — filtret biter igen efter läkningen.
