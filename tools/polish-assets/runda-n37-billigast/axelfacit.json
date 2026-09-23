@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "81a3065e": {
+  "tyska": "Ø30,5 x 5H cm (Groß), Ø20,5 x 5H cm (Mittel), Ø15,5 x 5H cm (Klein)",
+  "svenska": "30,5L x 30,5B x 5H cm",
+  "bokstaver": "HHH",
+  "hojd": 5
+ },
+ "9e16bd7c": {
+  "tyska": "46B x 51T x 134-152H cm",
+  "svenska": "46L x 51B x 134-152H cm",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": [
+   134,
+   152
+  ],
+  "bredd": 46
+ },
+ "a7bddc08": {
+  "tyska": "48L x 48B x 55-71H cm",
+  "svenska": "48L x 48B x 55-71H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   55,
+   71
+  ],
+  "bredd": 48,
+  "djup": 48
+ },
+ "ae2ac5e5": {
+  "tyska": "96B x 1T x 60H cm",
+  "svenska": "96L x 1B x 60H cm",
+  "bokstaver": "BTH",
+  "djup": 1,
+  "hojd": 60,
+  "bredd": 96
+ },
+ "af4409b8": {
+  "tyska": "40B x 35T x 66H cm",
+  "svenska": "40L x 35B x 66H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 66,
+  "bredd": 40
+ },
+ "e118ae32": {
+  "tyska": "Ø110 cm",
+  "svenska": "Ø110 x 170H cm"
+ },
+ "f1e0a996": {
+  "tyska": "68B x 26T x 53H cm, geeignet für Kinder von 1 bis 3 Jahren, als Schaukelpferd ab 1 Jahr",
+  "svenska": "68 x 26 x 53 cm",
+  "bokstaver": "BTH",
+  "djup": 26,
+  "hojd": 53,
+  "bredd": 68
+ },
+ "ff10ccf5": {
+  "tyska": "43B x 18T x 62,5H cm",
+  "svenska": "43L x 18B x 62,5H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 62.5,
+  "bredd": 43
+ }
+}
