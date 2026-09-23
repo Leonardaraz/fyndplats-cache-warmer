@@ -168,3 +168,37 @@ omskrivet till *mattan … slitstark*, *avbrytning* → *stopp*, *uppvärmning* 
 
 Förberedelsen klar, INGENTING skrivet till Wix. Nästa: oberoende granskning
 av utkasten, sedan de fyra Wix-stegen.
+
+## Steg 6.1 — Wix-skrivningen, steg 1 (namn/slug/brödtext/visible/SEO)
+
+Omedelbart före: slugs och SKU:er jämförda mot N37:s `slugs.txt`/`sku.tsv`
+(åtta rader var) — 0 krockar, 0 prefixöverlapp. `steg1.js` (bygg-skrivning.py
++ bygg-steg.py:s metaspärr `724214466 / 2614`) skickat ordagrant: ingen spärr
+utlöst, **8 av 8 skrivna**. Revisionerna före var exakt källkontrollens
+(1, 1, 3, 1, 3, 1, 1, 2) — ingen annan hade rört produkterna; efter +1.
+
+## Steg 6.2 — media (fil-id + alt-texter)
+
+`steg2.js` (bygg-medieskrivning.py) ordagrant: spärren över `id|altText` i
+samma anrop utlöstes inte, **8 av 8 skrivna**, 36 bilder (5, 4, 4, 3, 5, 5,
+5, 5), måttbilden sist, `media.main` inte skickad.
+
+## Steg 6.3 — kategorier
+
+`steg3.js` ordagrant, kategori-id uppslagna på NAMN i en färsk
+`categories/query` i samma anrop (54 kategorier, alla nio namnen träffade):
+**13 av 13 rader `success: true`**, attribuerade på radens eget
+`catalogItemId`, sju bulk-anrop med `totalFailures: 0` och
+`undetailedFailures: 0`.
+
+## Steg 6.4 — variant-SKU sist och ensam
+
+Omedelbart före: SKU:erna jämförda mot N37:s `sku.tsv` en gång till (åtta
+rader) — 0 krockar. `steg4.js` ordagrant, spärren `285341069 / 607` i samma
+anrop: **8 av 8 skrivna**. Färsk GET med `?fields=VARIANT_OPTION_CHOICE_NAMES`,
+varianten kopierad med bara `sku` ändrad, `visible` (och `options` om de
+finns) i kropp och fältmask. Alla åtta hade EN variant; variant och produkt
+var `visible: true` före; `prisFore` 499, 549, 569, 579, 599 × 4 — urvalets
+priser; variant-id stämde med `variant.tsv`. De tyska SKU:erna
+(`FP-teppich`, `FP-kinder-staffelei-aus`, `FP-briefkasten-wandmontage` …) är
+utbytta — skrivningen gjorde verkligt arbete.
