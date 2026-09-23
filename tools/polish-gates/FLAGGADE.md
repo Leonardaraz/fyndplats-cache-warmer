@@ -431,3 +431,28 @@ beslut — se den samlade frågan om detta.
   namntvillingar bland utkasten (`792562e3`, `e36dab73`, `7727e1bf`) kan vara
   fler storlekar eller färger av samma gran. Det är inte prövat. Raden ovan
   står kvar oförändrad. (N41)
+- `d9276e3d` (Rutschauto, rosa, 499 kr, saldo 197) — HUSMÄRKET TRYCKT PÅ
+  SJÄLVA PRODUKTEN: en rund AIYAPLAY-dekal på ryggstödet, synlig i tre av fem
+  bilder. Fronten är dessutom formad som en MINI Cooper S, med "S"-emblem i
+  grillen. Samma två frågor som `b2175a65` (N37) och de licensierade
+  barnbilarna (N32). Leonards beslut. (N42)
+- `88a0ab0b` (Wasserkocher 2200W, beige, 499 kr) — färgsyskon-mönster (se
+  `FARGSYSKONEN.md`): samma mått 24,2 × 19,5 × 23,4 cm som den PUBLICERADE
+  `d8c2dec6` (grå/koppar, 499 kr). (N42)
+- `f981fbc0` (Minibackofen 9 L, gräddvit, 499 kr) — färgsyskon-mönster: samma
+  mått 35 × 24,6 × 20 cm som den PUBLICERADE `691ffc27` (miniugn 9 liter,
+  silver, 649 kr). Ett BILLIGARE utkast bakom en publicerad sida, samma fråga
+  som `ab47e35d` (N37). (N42)
+- `e0cead19` (Spielmatte, faltbar, 176,5 × 148 cm, 499 kr) — hopvikt samma
+  mått, 74,5 × 36 × 10 cm, som den PUBLICERADE lekmattan `7ca63a31`
+  (150 × 180 cm, 599 kr), och samma upplägg. Utfälld skiljer måtten, så det kan
+  vara en annan storlek av samma matta. Leonards beslut. (N42)
+- `a087ae3b` (Schuhbank Bambus, VIT, 549 kr) — samma källtext som
+  `3e2c7389`, som publicerades naturfärgad i N42, men `Farbe: Weiß`.
+  Färgsyskon-mönster (se `FARGSYSKONEN.md`); båda var utkast när N42 valde
+  den billigare. (N42)
+- Utfall för N41:s reserver: `2cfd222e`, `3e2c7389`, `5c5aedca` och
+  `7f21945e` är PUBLICERADE i N42 (`520cc521` hålls, se rättelseraden). N41:s
+  fråga om `cf92c3bd` är avgjord: det är en ANNAN växt än `2cfd222e` (kruka
+  Ø17 × 14,5 cm och 4,7 kg mot Ø15 × 13 cm och 3 kg). Trippelträffen kom från
+  paketmåtten. Raderna ovan står kvar oförändrade. (N42)
