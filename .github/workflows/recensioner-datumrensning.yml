@@ -1,0 +1,90 @@
+name: Recensioner — dölj recensioner daterade före 2021
+
+# Döljer (status rejected) varje synlig eller väntande recension i lagret som
+# är daterad före 2021-01-01. Leonards beslut 2026-09-23. Inget raderas — en
+# dold rad kan återställas i /admin/reviews. Husets filter stoppar numera
+# sådana omdömen redan vid inläsningen; det här städar det som redan finns.
+#
+# Torrt som default: räknar bara. skarp = ja döljer, i omgångar om ~240 s tills
+# `kvar` är 0.
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE. Inga texter skrivs ut.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      skarp:
+        description: "ja = dölj. nej = torrkörning (räknar bara)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  rensa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dölj recensioner före 2021
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/recensioner-datumrensning"
+          [ "${SKARP:-nej}" = "ja" ] && url="${url}?skarp=ja"
+
+          tot_dolda=0; tot_fel=0; forsta=""; json=""
+          for varv in 1 2 3 4 5 6 7 8 9 10; do
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} i varv ${varv}" >&2
+              printf '%s\n' "$json" | jq -c '{ok, error, trunkerad}' >&2 || true
+              exit 1
+            fi
+            if [ "$(printf '%s' "$json" | jq -r '.trunkerad')" = "true" ]; then
+              echo "::error::Lagret är större än rutten läser — inget dolt" >&2
+              exit 1
+            fi
+            [ -z "$forsta" ] && forsta="$json"
+            tot_dolda=$((tot_dolda + $(printf '%s' "$json" | jq -r '.dolda')))
+            tot_fel=$((tot_fel + $(printf '%s' "$json" | jq -r '.skrivfel')))
+            printf '%s' "$json" | jq -r --arg v "$varv" '"varv \($v): \(.attDolja) att dölja, \(.dolda) dolda, \(.skrivfel) skrivfel, \(.kvar) kvar"'
+            [ "${SKARP:-nej}" = "ja" ] || break
+            [ "$(printf '%s' "$json" | jq -r '.kvar')" = "0" ] && break
+          done
+
+          {
+            echo "### Recensioner före $(printf '%s' "$forsta" | jq -r '.grans') — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| rader i lagret | $(printf '%s' "$forsta" | jq -r '.granskade') |"
+            echo "| daterade före gränsen | $(printf '%s' "$forsta" | jq -r '.foreGransen') |"
+            echo "| redan dolda | $(printf '%s' "$forsta" | jq -r '.redanDolda') |"
+            echo "| utan datum (behålls) | $(printf '%s' "$forsta" | jq -r '.utanDatum') |"
+            echo "| **att dölja** | **$(printf '%s' "$forsta" | jq -r '.attDolja')** |"
+            echo "| berörda produkter | $(printf '%s' "$forsta" | jq -r '.produkter') |"
+            echo "| per status | $(printf '%s' "$forsta" | jq -c '.perStatus') |"
+            echo "| per källa | $(printf '%s' "$forsta" | jq -c '.perKalla') |"
+            echo "| per år | $(printf '%s' "$forsta" | jq -c '.perAr') |"
+            echo "| **dolda nu** | **${tot_dolda}** |"
+            echo "| skrivfel | ${tot_fel} |"
+            echo "| kvar | $(printf '%s' "$json" | jq -r '.kvar') |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${tot_dolda} dolda, ${tot_fel} skrivfel"

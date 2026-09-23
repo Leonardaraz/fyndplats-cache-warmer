@@ -23,6 +23,7 @@ import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
 import { mentionsForeignDelivery } from "./review-locale-filter";
 import { ownImageUrlForReview } from "../wix/media-import";
 import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "../reviews/images";
+import { arForeDatumgransen } from "../reviews/datumgrans";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -205,6 +206,9 @@ function rankaMedGolv(
     if (!r || typeof r.text !== "string") continue;
     const text = r.text.trim();
     if (r.rating < REVIEW_FILTER.minRating) continue;
+    // Inga omdömen daterade före 2021 (Leonards beslut 2026-09-23) — butiken
+    // startade 2021. Okänt datum behålls. Regeln bor i lib/reviews/datumgrans.ts.
+    if (arForeDatumgransen(r.date)) continue;
     if (text.length < minLength || text.length > REVIEW_FILTER.maxLength) continue;
     if (isSpam(text)) continue;
     // "Kom snabbt till Tjeckien" hör inte hemma på en svensk produktsida
