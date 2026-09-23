@@ -745,3 +745,63 @@ beslut — se den samlade frågan om detta.
   `7c3d438a`, som bar en Outsunny-etikett, `0bd67073`, speglarna `08feb111`
   och `0a4958cc` (familjelistan kapades i svaret) och sparkcyklarna
   `8b42d5d1` och `cf0052ce`, där `d3cf8ebc` inte är kontrollerad. (N50)
+- Husmärke på varan, alltså hoppad enligt regeln från N36: `a32ac465`
+  (spegelskåp för badrummet, HOMCOM-etikett på själva skåpet). Den ersattes
+  av `7a70db2c` (fotbollsbord), som publicerades i N51. (N51)
+- `c40eb493` (väggdekor i åtta delar) prövades som ersättare men föll på
+  kontaktarket: källans färg stämmer inte med bilderna. Hoppad tills färgen
+  är utredd. (N51)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  golvlamporna med hyllor `1366b780` mot `3f539249` och `d286370d`,
+  `8e3dfb51` och `cabceb4c` mot `53e66496` och `d2dfd1fa`, och `48569385`
+  (dimbar LED-golvlampa) mot `93af619c`, `164c5ef0` (bokhylla för barn) mot
+  `dbf38846`, `2306bf9b` (klättervägg för katter) mot `b04b5375` och
+  `38c00989`, `23a63265` (hamsterbur i fem våningar) mot `42d80550`,
+  `47587c65` (vattenkokare och brödrost i set) mot sexton publicerade
+  frukostset, vattenkokare och brödrostar, `948b1e7a` (kattlåda med lock)
+  mot `7162ea48` och `72ac915f`, `a14b1d61` (byrå med sju tyglådor) mot
+  `834b263f`, `a4a24666` (medicinskåp) mot `8c4cf7e9` och `8eab3ebf`,
+  `aefcb451` (hundvippa) mot `2b7853e9`, `ddb5d205` (agilityset) mot
+  `7167f9ac`, `edafc2ab` (snurrpall på hjul) mot `711f7859`, sittbänkarna
+  `f7ba4bb8` och `698fd1bf` mot `d5919be6`, `f7fb7eb4` (springcykel) mot
+  `790451f4` och `cf7a01a5` (runt köksbord, 80 cm, samma bord som N50:s
+  `1527a0a8`) mot `74d3c11c` och `29c688dc`. (N51)
+- Familjer som redan är täckta eller inte gick att avgöra utan utredning,
+  hoppade: `8c983973` (uppblåsbar pepparkaksgubbe, fem publicerade redan:
+  `d0aeb070`, `be4a760b`, `ef75aa9a`, `321bdedf` och `3fe73fb5`),
+  `b353b130` (ministudsmatta) mot `018a5303` och `9c60b34d`, agilityseten
+  `61a19bac` och `d6283e97` i samma familj som N49:s, pallarna `55e72189`
+  och `e01410d6` (2-i-1 med förvaring, 152 publicerade pallar att jämföra
+  mot) och `84d0ca90` (väggspegel), där familjelistan kapades i svaret. (N51)
+- Slut i lager vid N51:s urval: `20ba8e58` (konstgjorda ormbunkar),
+  `e17505fb` (bokhylla), `63c91386` (sidobord på hjul), `9a4655e0`
+  (satsbord) och `e22c4a38` (vattenfontän för katt). Prövas igen när saldot
+  har stigit. (N51)
+- `19389039` (hamsterbur i trä) är ett djurboende. SJVFS-frågan är INTE
+  prövad. Orörd. (N51)
+- `c1b60644` och `7e9933e5` är färgsyskon till pianobänken `9b3b4255` och
+  rutschkanan `db607b53`, som publicerades i N51. Hoppade enligt
+  `FARGSYSKONEN.md`. (N51)
+- De åtta utkast i prisspannet som "Runda …"-serien på `main` rör är samma
+  som i N50:s rad och filtrerades bort igen. (N51)
+- Skärmens träffar som räknades som brus och inte fällde: sittbänken
+  `3068a60b` mot en fågelbogunga, badrumsskåpet `3ae559f2` mot en
+  sockervaddsmaskin, pedaltränaren `5646de67` mot två klösträd, pallen
+  `5a65a0ea` mot fällstolar, kubhyllan `7d09edd9` mot en snögubbe, en
+  kapselmaskin och ett spegelskåp, datorbordet `90c066c0` mot ett vinställ
+  och ett odlingsbord, pianobänken `9b3b4255` mot en springcykel, staffliet
+  `c7424c37` mot två gamingstolar, metallhyllan `ce77f5c4` mot ett högskåp
+  och fågelmataren `d227861d` mot en kattlåda. Alla tio publicerades i N51.
+  (N51)
+- Hoppade för säsong: tjugosju trädgårds- och utevaror för 699–729 kr,
+  `03d16233`, `095abf09`, `0bca1822`, `282ddb69`, `342f5b7f`, `719ed522`,
+  `7b35fd91`, `7fa0c077`, `8b0f479d`, `9d756ee0`, `a808aad6`, `ad49c6d5`,
+  `bb6580a6`, `e76a4098`, `fc5ef4c5`, `1bfcf297`, `343a913e`, `6906e59f`,
+  `7e104842`, `87217e68`, `a42f6149`, `c27f63ac`, `c641c10a`, `faa2bdb4`,
+  `1709efbc`, `1791f4f6` och `bd563a38`: dynor, växthus, odlingslådor,
+  paviljongdelar, en grill och utespel. En trädgårdsvara som poleras i slutet
+  av september får sina första besökare på våren. (N51)
+- Reserv till N52, dubblettskärmad men inte `las`-prövad och utan granskat
+  kontaktark: `80aac077` (trehjuling, 719 kr, saldo 63, ren skärm). De åtta
+  som N50 lämnade för en riktad kontroll är fortfarande inte kontrollerade.
+  (N51)
