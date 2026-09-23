@@ -161,11 +161,44 @@ produkten, noll på de andra sju — samma mönster som N34:s `6b91821a`).
    själv läcker det redigerade). `artikelnummer-lackage.test.ts` fällde,
    rättat, testet grönt igen. Körd EN gång till efter alla texträttningar
    ovan för säkerhets skull — fortsatt grön.
+4. **Steg 5 (oberoende skeptisk granskning), hittad EFTER
+   OGRINDAD-TILL-WIX-commiten**: `c4d8cb93`s inledande mening påstod att
+   ALLA tre delarna — övre skåp, öppen mellanhylla OCH nedre skåp — satt
+   "bakom dörrar". Det motsäger både resten av samma text (avsnittet
+   "Öppen mellanhylla för mikron", Egenskaper-listan, FAQ:ns "Får en
+   mikrovågsugn plats på mellanhyllan?") och bilderna: bara de två skåpen
+   har dörrar, mellanhyllan är uttryckligen ÖPPEN och det är själva poängen
+   med den (plats för en mikro utan att öppna en lucka). Ingen siffra
+   ändrades — bara meningens struktur, så inget nytt tal behövde grundas.
+   Alla åtta grindar (`gate.py`, `gate-axel.py`, `gate-alt.py`,
+   `gate-seo.py`, `gate-superlativ.py`, `gate-lankar.py`, `gate-lager.py`,
+   `gate-sku.py`) och `npx vitest run lib/polish` (99/99) kördes om efter
+   rättningen — alla oförändrat gröna, ingen ny miss.
 
 Fem `foto-tal.txt`-rader kvitterar bildräknade tal (ben, fötter,
 sidostolpar, skåpsantal) som ordtal-varningen annars hade flaggat.
 
+## Steg 5 — oberoende skeptisk granskning (efter OGRINDAD-TILL-WIX)
+
+Läste om alla åtta texter en gång till som en skeptisk granskare, oberoende
+av byggskripten: sakfel mot bilderna, motsägande tal, kvarvarande
+tyska/engelska, för lång SEO/namn.
+
+**Ett fynd** (`c4d8cb93`, se punkt 4 ovan) — rättat, grindarna omkörda.
+
+**Sju texter utan anmärkning**: `8a076c08`, `b28e1cbe`, `1bc0c04e`,
+`69513a61`, `3847b7ba`, `965ba956`, `093aedd2`. Enda punkten värd att notera
+är `1bc0c04e`s spec-tabell, som (som alla andra produkters) skriver bara
+"Mått:" utan kvalificeraren "Hopfällbar" — det är husets fasta 5-radiga
+schema och ändras aldrig per produkt; nyansen ligger redan i
+Egenskaper-listan ("Hopfällbar storlek …") och i brödtexten
+("Fälls ihop för att spara plats"), så ingen kund kan läsa spec-tabellen
+isolerat och tro att 140×133×43 är den uppfällda storleken. Samma
+avvägning som redan gjordes och dokumenterades vid byggtillfället, nu
+omprövad och bekräftad hålla.
+
 ## Läge
 
-**Filerna är byggda och grindade. Nästa steg: pusha OGRINDAD-TILL-WIX-commit,
-sedan Wix-skrivning i fyra steg.**
+**OGRINDAD-TILL-WIX-commiten är pushad. Steg 5 (oberoende granskning) klar,
+ett fynd rättat och omgrindat (se ovan). Nästa steg: pusha den här
+rättningen, sedan Wix-skrivning i fyra steg.**
