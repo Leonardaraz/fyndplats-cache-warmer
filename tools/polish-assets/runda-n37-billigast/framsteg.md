@@ -283,4 +283,75 @@ bevisad på `wixProductId` i mappningsraden:
 Ingen `LÅST PRIS`, ingen `SLUTSALD`. Variant-id på raden = `variant.tsv` på
 alla åtta. Priserna är desamma som före rundan — inget pris är rört.
 
-(fortsätter)
+## Steg 10 — live-verifiering
+
+`hamta-live.sh 130`: varm träff gav alla åtta `200, age=0` (sidorna hade
+aldrig renderats — de var 404-utkast före steg 1), en väntan på 305 s, och
+den skarpa hämtningen gav alla åtta **HTTP 200**, 144–154 kB, `age` 139–140
+— alltså den rendering den varma träffen utlöste.
+
+`livegrind.py`: **8 av 8 REN, orddiff 0**, homoglyf-, sid-, alt- och SEO-svep
+rena, alla tre flikarna ordagranna. Utöver grinden, ur samma hämtade sidor:
+JSON-LD `availability: InStock` och priset oförändrat på alla åtta (539, 539,
+559, 569, 569, 579, 599, 599), och brödsmulans andra led är en riktig
+kategori (`Hem & Inredning` eller `Barn & Familj`) på alla åtta.
+
+## Steg 11 — andra korrekturläsningen, på den PUBLICERADE texten
+
+Brödtexten plockades mekaniskt ur de åtta hämtade sidorna (samma ankare som
+livegrind) och lästes mening för mening — 319 rader — med källtexten och
+kontaktarket bredvid. **Två fynd, båda rättade:**
+
+| id | stod | blev | varför |
+|---|---|---|---|
+| `81a3065e` | i en **trappande** grupp | i en **grupp på olika höjd** | "trappande" är inte idiomatisk svenska — korrekturfel |
+| `f1e0a996` | … och **breda medar** som gungar mjukt (ingressen) | … och **medar** som gungar mjukt | sakfel: källan säger *verbreiterte Basis*, och bilderna visar vanliga medar i plywood — det är basen som är bred, inte medarna |
+| `f1e0a996` | **Breda medar** som minskar risken att tippa (Egenskaper) | **Bred bas** som minskar risken att tippa | samma sak |
+
+Båda orden söktes i ALLA rundans filer innan något skrevs: inga fler
+förekomster. Allt annat prövat och behållet: "passar suckulenter" och
+"passar eldstäder" (transitivt *passa* är vanlig produktsvenska), gunghästens
+"passar barn mellan 1 och 3 år; den rekommenderade åldern är 1,5–3 år"
+(källan anger båda: *Zugelassenes Alter 1-3*, *Empfohlenes Alter 1,5-3*).
+
+Rättningen skrevs efter samma regler som steg 1: filerna ändrade, alla
+filgrindar omkörda (oförändrat gröna), `raa-hash.tsv` och `vantat-hash.tsv`
+omräknade (bara de två raderna ändrades), och `bygg-steg.py --rattelse
+81a3065e,f1e0a996` byggde ett anrop som skriver BARA `plainDescription`, med
+kontrollsummorna i samma anrop som skrivningen. **2 av 2 skrivna**, ingen
+spärr utlöst, revision 6 → 7 respektive 4 → 5 — alltså ingen annan
+skrivning emellan sedan steg 4.
+
+Därefter en SEPARAT återläsning av alla åtta med `steg5.js`, ombyggd ur
+filerna så att facit bär de nya hasharna: **8 av 8 helt verifierade** —
+brödtext (FNV-1a), namn, slug, `visible`, SEO, bilder, kategorier, SKU,
+variant-`visible` och variant-id. Revisionerna: `81a3065e` 7, `f1e0a996` 5,
+de sex andra oförändrade sedan steg 4. Priserna oförändrade, `IN_STOCK` på
+alla åtta.
+
+Ny live-hämtning (`hamta-live.sh 130`): varm träff på `age` 369–370, alltså
+inaktuella sidor som omrenderades direkt, och den skarpa hämtningen gav alla
+åtta **HTTP 200** med `age` 140–141. `livegrind.py` mot de rättade filerna:
+**8 av 8 REN, orddiff 0** (väggkrukorna 390 ord, gunghästen 299). De gamla
+formuleringarna finns inte kvar på sidorna och de nya gör det. JSON-LD
+`InStock` och oförändrat pris på alla åtta.
+
+## Steg 12 — FLAGGADE.md, LÄS-MIG och läckkontroll
+
+`FLAGGADE.md`, bara tillägg: två rader under interna dubblettkluster
+(`e88f5d9c` mot sin billigare tvilling; miniugnarna mot den publicerade
+sidan, med det svarta 499-kronorsutkastet i samma kluster) och fem under
+bortvalda av andra skäl (tryckt husmärke, N36:s mopphinksyskon, sadelpallens
+krämvita syskon, växthusen, sex reserver). Inga befintliga rader rörda.
+N36:s tillägg i samma fil (balansbomsklustret, mopphinkens färgsyskon)
+säger samma sak som N37:s om de id som överlappar.
+
+`LÄS-MIG.md` skriven. `artikelnummer-lackage.test.ts` körd efter varje steg
+som skrev dokumentation eller skript — grön varje gång — och
+`npx vitest run lib/polish` 99 av 99 före den sista commiten.
+
+Under steg 10 kom beskedet att N36 är klar och att parallellreglerna
+därefter gäller mot Runda N38 (samma halva som N36, katalog
+`runda-n38-billigast`). Rättelsen i steg 11 rörde varken slug eller SKU, och
+N38 hade ingen katalog, alltså inga `sku.tsv`/`slugs.txt`, när den skrevs.
+Inga fler workflow-körningar startades efter beskedet.

@@ -180,6 +180,18 @@ beslut — se den samlade frågan om detta.
   och `a17cf506` (629 kr). Sannolikt samma balansbom i olika kulörer, men
   kulörerna är inte uppmätta. Inte prövad vidare: N36:s åtta var fyllda
   under 619 kr, och `a9360e2a` ligger i N37:s halva av id-rymden. (N36)
+- `e88f5d9c` Baby-Spielmatte, Tiermuster, 1,5 cm, 549 kr — identisk tvilling
+  (samma namn, samma trippel 200 × 150 × 1,5 och samma färg "Mehrfarbig") till
+  det BILLIGARE utkastet `9dd510a8` (499 kr). Huset polerar den billigaste;
+  `9dd510a8` är den som ska tas upp först om klustret prövas. (N37)
+- `d9f30244` Mini-Ofen Toasterofen 10 L (krämvit, 549 kr) och `ff145fb1` Mini
+  Backofen 10 L 750W (silver, 599 kr) — färgsyskon-mönster (se
+  `FARGSYSKONEN.md`): exakt trippel 36,5 × 26 × 22 mot den PUBLICERADE
+  `3f6a99f7` "Miniugn 10 liter 750 W" (svart och silver, 699 kr). I samma
+  kluster ligger dessutom det opublicerade SVARTA utkastet `ab47e35d` på
+  499 kr — alltså 200 kr under den publicerade sidan. Är det samma vara står
+  ett billigare utkast bakom en publicerad sida; det är Leonards beslut, inte
+  rundans. (N37)
 
 ## Bortvalda av andra skäl (inte flaggade, bara sparade för senare)
 
@@ -254,3 +266,29 @@ beslut — se den samlade frågan om detta.
   brödrosten `2b27c2a4` (grå) har `13204f68` svart 619 kr. Alla sex ligger
   på listan över opolerade utkast där vi är billigare än dealproffsen och
   kommer alltså tillbaka i nästa urval. (N36)
+- `fd85cf0b` (Boxgestell Doppelend mit Bungee-Seil, 499 kr) och `b2175a65`
+  (Rutschauto Dino-Design, 539 kr) — HUSMÄRKET TRYCKT PÅ SJÄLVA PRODUKTEN:
+  SPORTNOW på bollen i alla fem bilderna, respektive AIYAPLAY i fyra av fem
+  (den femte bär tysk text). Efter strykning finns för få bilder kvar för en
+  sida. Inte flaggade för licens — det är leverantörens eget märke — men om
+  ett tryckt husmärke på varan ska stoppa en publicering är Leonards fråga;
+  tidigare rundor har publicerat sådana och flaggat dem i efterhand. (N37)
+- `d60bb2f2` (röd, 559 kr) och `9ac669e4` (blå, 569 kr), 20 L Mopp-Eimer mit
+  Auswringer — färgsyskon till N36:s svarta `3bfee58b` (549 kr, den
+  billigaste, publicerad i N36). Se `FARGSYSKONEN.md`. Lämnade orörda. (N37)
+- `1a851435` (sadelpall i krämvitt konstläder, 639 kr) — färgsyskon till
+  `a7bddc08` (svart, 599 kr), som publicerades i N37. Se `FARGSYSKONEN.md`.
+  (N37)
+- `99d105f8` (Foliengewächshaus, 559 kr) och `b46705f9` (Mini-Gewächshaus
+  Frühbeet, 599 kr) — växthusfamiljen som main:s "Runda …"-serie (144–147)
+  arbetar igenom; lämnade åt den för att inte krocka. (N37)
+- Reserver från N37, inte med bara för att rundan var full på åtta:
+  `a9360e2a` (Schwebebalken 2,4 m, blå, 599 kr, saldo 70, `las` ren —
+  BILLIGAST av fem kulörer: `02f935c8`, `8d3d1de1`, `8f351be4`, `a17cf506`,
+  ingen av dem publicerad), `c694dcaa` (Stehlampe mit Lampenschirm, 599 kr,
+  saldo 8, `las` ren), `c8e3c2d6` (Sitzpolster für Bänke, röd, 599 kr —
+  billigast av fyra kulörer: `91b18246`, `c519b4fe`, `b1639189`; bild 2 och 3
+  bär tysk text, tre rena kvar), `d3655c3e` (Bambus-Wäscheregal, 599 kr —
+  bild 4 bär tysk text), `e514191b` (Schuhregal/Pflanzentreppe, 599 kr) och
+  `f75a8a17` (Eckpflanzenständer 3 Ebenen, 599 kr). Ingen av dem träffar en
+  PUBLICERAD sida i N37:s dubblettskärm. (N37)
