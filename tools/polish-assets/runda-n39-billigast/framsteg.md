@@ -50,11 +50,19 @@ billigare än dealproffsen och fortfarande opolerade.
 
 Kvar: 11 kandidater, 599–629 kr, varav fem reserver.
 
-`e375834f` (trampolinkant, flerfärgad, 629 kr) har dessutom ett färgsyskon
-till samma pris i N38:s halva (`05a110dc`, rosa, 629 kr) och en identisk,
-dyrare tvilling (`14ff500d`, 719 kr, slutsåld) — med oavgjort pris mellan
-halvorna ger regeln "billigaste tvillingen poleras" inget entydigt svar, och
-säsongen avgjorde ändå.
+`e375834f` (trampolinkant Ø366 cm, flerfärgad, 629 kr) har dessutom
+färgsyskon i samma storlek — `05a110dc` (rosa, 629 kr, i N38:s halva) och
+`0aca1b33` (blå, 679 kr) — och samma kant i Ø305 cm (`14ff500d`,
+flerfärgad, 719 kr, slutsåld). Med oavgjort pris mellan halvorna ger regeln
+"billigaste tvillingen poleras" inget entydigt svar, och säsongen avgjorde
+ändå.
+
+⚠️ **Rättat efter urvalet:** `14ff500d` stod här först som en "identisk,
+dyrare tvilling". Dubblettskärmens namnkolumn var kapad på 60 tecken — precis
+före diametern — och träffen var en NAMN- och färgträff, inte en
+trippelträff. En riktad läsning i Wix (`products/search`, filtret inuti
+`search`, en sida, ingen markör) visar Ø305 mot Ø366: en annan storlek, inte
+en tvilling.
 
 ### Dubblettskärmen
 
@@ -68,7 +76,7 @@ med trippel), utkast 2 881 (alla med trippel). Färgen lästes ur källans
 |---|---|---|
 | `a9360e2a` balansbom | 4 syskon (violett+rosa 619, ljusröd 619, rosa 619, flerfärgad 629), alla utkast | färgsyskon, ingen publicerad sida — **billigast, poleras** |
 | `c694dcaa` golvlampa | 0 (bara pakettrippel) | ren |
-| `d3655c3e` tvättställ | en publicerad kompostkvarn 44 × 34 × 96 | falsklarm, annan vara |
+| `d3655c3e` tvätthylla (här först kallad tvättställ, se steg 5) | en publicerad kompostkvarn 44 × 34 × 96 | falsklarm, annan vara |
 | `e514191b` skohylla | badrumsskåp, barnhyllor, förvaringsskåp ~60 × 30 × 90 | falsklarm, andra varor |
 | `f75a8a17` hörnblomställ | katthus och snurrfåtöljer (permutation), ett badrumsskåp (paket) | falsklarm |
 | `ba454107` pall | stolar, pallar och bord kring 42 × 42 × 44 — ingen med samma namn | falsklarm; ingen pall i samma tyg |
@@ -336,3 +344,89 @@ körningar i de intervallen), var och en bevisad på `PRODUCT_ID` och
 
 Ingen `LÅST PRIS`, ingen `SLUTSALD`. Variant-id på raden = `variant.tsv` på
 alla åtta. Priserna är desamma som före rundan — inget pris är rört.
+
+## Steg 10 — live-verifiering
+
+`hamta-live.sh 130`: varm träff gav alla åtta `200, age=0` (sidorna hade
+aldrig renderats — de var 404-utkast före steg 1), en väntan på 305 s, och
+den skarpa hämtningen gav alla åtta **HTTP 200**, 141–152 kB, `age` 140–181
+— alltså den rendering den varma träffen utlöste, gjord efter alla fyra
+skrivstegen. Två sidor (`ba454107`, `95b6f5bd`) gav `000` på första
+försöket och `200` på omförsöket efter 5 s.
+
+`livegrind.py`: **8 av 8 REN, orddiff 0**, homoglyf-, sid-, alt- och
+SEO-svep rena, alla tre flikarna ordagranna, kategori i brödsmulan och
+köpbarheten ren. Utöver grinden, ur samma hämtade sidor: JSON-LD
+`availability: InStock` och priset oförändrat på alla åtta (599, 599, 599,
+599, 599, 619, 619, 629), och brödsmulans andra led är en riktig kategori
+(`Sport & Fritid` på balansbommen och pilatesbrädan, `Hem & Inredning` på
+de sex andra).
+
+## Steg 11 — andra korrekturläsningen, på den PUBLICERADE texten
+
+Brödtexten plockades mekaniskt ur de åtta hämtade sidorna (samma ankare som
+livegrind) och lästes mening för mening — 319 meningar och listrader — med
+källtexten och kontaktarket bredvid. Namn, SEO-taggar och alt-texter lästes
+en gång till ur filerna, som livegrind redan bevisat ligger ute ordagrant.
+**Två fynd, båda i golvlampan och båda korrekturfel (ordval):**
+
+| id | stod | blev | varför |
+|---|---|---|---|
+| `c694dcaa` | tänds och släcks **med en dragkedja** under skärmen (ingressen), **Dragkedja** under skärmen (Egenskaper), **Med en dragkedja** under skärmen (FAQ), **Dragkedja**, sladd 3 m … (metabeskrivningen) | **genom att man drar i en kulkedja** under skärmen / **Dragströmbrytare med kulkedja** / **Man drar i en kulkedja** under skärmen / **Dragströmbrytare**, sladd 3 m … | "dragkedja" är på svenska i första hand ett BLIXTLÅS — samma klass som steg 5:s "tvättställ". Källan säger *Zugschalter*, och bild 4 och 5 visar en kulkedja |
+| `c694dcaa` | köps **till** separat (två ställen) | köps separat | dubbelt uttryck |
+
+Båda uttrycken söktes i ALLA rundans filer innan något skrevs: inga fler
+förekomster. Prövat och behållet: "Bommen passar från 3 år" (vanlig
+produktsvenska), skohyllans "praktiskt för den som flyttar ofta" (källan:
+*Ideal für Mieter, die oft umziehen*), "passar även krukväxter" i
+skohyllans metabeskrivning (samma transitiva *passa* som N37 behöll) och
+tvätthyllans listrad "6 cm över golvet" (den nedre ramen, som brödtexten
+säger).
+
+Rättningen skrevs efter samma regler som steg 1: filerna ändrade, alla
+filgrindar omkörda (oförändrat gröna, läck- och teckensvep 0),
+`raa-hash.tsv` och `vantat-hash.tsv` omräknade — bara golvlampans rad
+ändrades i båda. Två fält berördes, och bara de två skrevs:
+
+| fält | anrop | resultat |
+|---|---|---|
+| `plainDescription` | `bygg-steg.py --rattelse c694dcaa`, kontrollsumman i samma anrop | **1 av 1**, revision 5 → 6 |
+| `seoData` | `bygg-steg.py --seo-rattelse c694dcaa` (nytt läge i rundans byggskript, samma form som steg 1: två taggar, tomma keywords), kontrollsumman över kort, id, titel och beskrivning i samma anrop | **1 av 1**, revision 6 → 7 |
+
+Revisionerna följer varandra — ingen annan skrivning emellan sedan steg 4.
+
+Därefter en SEPARAT återläsning av alla åtta med `steg5.js`, ombyggd ur
+filerna så att facit bär den nya hashen och den nya metabeskrivningen:
+**8 av 8 helt verifierade** — brödtext (FNV-1a), namn, slug, `visible`,
+SEO, bilder, kategorier, SKU, variant-`visible` och variant-id. Revisionen
+på golvlampan 7, de sju andra oförändrade sedan steg 4. Priserna
+oförändrade, `IN_STOCK` på alla åtta.
+
+Ny live-hämtning (`hamta-live.sh 130`): varm träff på `age` 377 för
+golvlampan och tre andra (inaktuella sidor, omrendering startad efter
+rättelsen) och 0–31 för fyra sidor som renderats om av annan trafik; efter
+väntan och omträff gav den skarpa hämtningen alla åtta **HTTP 200** med `age`
+137–452 — golvlampans 452 är renderingen som den varma träffen utlöste,
+efter båda skrivningarna. `livegrind.py` mot de rättade filerna: **8 av 8
+REN, orddiff 0** (golvlampan 288 ord mot 284 före). "kulkedja" finns på
+sidan, "dragkedja" inte, och den nya metabeskrivningen står i sidans fyra
+beskrivningstaggar. JSON-LD `InStock`, oförändrat pris och en riktig
+kategori i brödsmulan på alla åtta.
+
+## Steg 12 — FLAGGADE.md, LÄS-MIG och läckkontroll
+
+`FLAGGADE.md`, bara tillägg, fem rader under "Bortvalda av andra skäl":
+vilka av N37:s reserver N39 publicerade och varför `c8e3c2d6` föll;
+balansbommens fyra färgsyskon till den nu publicerade `a9360e2a`, med
+kulörerna uppmätta; `8ad49cfe` (husmärket tryckt på den medföljande
+bärväskan); säsongsraden (bänkdynorna, trädgårdsbordet och trampolinkanten,
+vars familj redan står i N38:s rad); och N39:s reserver. Inga befintliga
+rader rörda. `FARGSYSKONEN.md`: inga nya rader.
+
+N38 pushade sina egna FLAGGADE-rader (`a552832`) medan N39 skrev sina.
+Rebasen lade N39:s rader efter N38:s; båda sidornas rader står kvar.
+
+`LÄS-MIG.md` skriven. `artikelnummer-lackage.test.ts` körd efter varje steg
+som skrev dokumentation eller skript — grön varje gång — och
+`npx vitest run lib/polish` 99 av 99 före den sista commiten. Svepet över
+commit-meddelandena `a1703ea..HEAD` (inklusive N38:s) gav `[]`.

@@ -339,3 +339,35 @@ beslut — se den samlade frågan om detta.
   Outsunny-etikett på själva stenen och bild 4 bär tysk text ("LEICHT ZU
   SÄUBERN"), så tre rena bilder återstår och frågan om ett tryckt husmärke
   är Leonards (samma som `fd85cf0b`/`b2175a65` i N37). (N38)
+- N37:s reserver (raden "Reserver från N37" ovan) — N39 publicerade
+  `a9360e2a`, `c694dcaa`, `d3655c3e`, `e514191b` och `f75a8a17`, alla fem
+  efter färsk jämförelse, `las`, dubblettskärm och bildgranskning.
+  `c8e3c2d6` (bänkdyna, röd, 599 kr) föll på SÄSONGEN — en dyna för
+  trädgårdsbänk i slutet av september, samma skäl som N2 och N36 — och har
+  dessutom bara tre rena bilder. (N39)
+- Färgsyskon till `a9360e2a` (balansbom 236 cm, BLÅ, 599 kr — den billigaste
+  kulören, publicerad i N39): `8d3d1de1` (Hellrot, 619 kr), `8f351be4` (Rosa,
+  619 kr), `a17cf506` (Mehrfarbig, 629 kr) och `02f935c8` (Violett+Rosa,
+  619 kr, i N38:s halva). Samma trippel 120 × 15 × 13 cm (±1); kulörerna lästes
+  ur källans `Farbe:` i N39:s svep, så klustret i N36:s rad ovan är nu
+  uppmätt. Publicera dem inte utan beslutet i `FARGSYSKONEN.md`. (N39)
+- `8ad49cfe` (Agility-Set für Hunde, 4-teilig, inkl. Tragetasche, vit och
+  orange, 619 kr) — HUSMÄRKET TRYCKT på den medföljande bärväskan i bild 1,
+  och måttbilden visar de fyra bågarna i en uppställning som källtexten inte
+  förklarar. Samma fråga som `fd85cf0b`/`b2175a65` i N37: ska ett tryckt
+  husmärke på en del av leveransen stoppa en publicering? (N39)
+- FEL SÄSONG i slutet av september — opolerade utkast i N39:s halva där vi
+  är billigare än dealproffsen, att ta upp till våren: **bänkdynorna**
+  150 × 98 × 8 cm `c8e3c2d6` (röd, 599 kr, billigast), `91b18246` (ljusgrå,
+  619 kr) och `c519b4fe` (mörkblå, 619 kr) — samma kulörfamilj som
+  `b1639189` (mörkgrå, 669 kr) i N37:s rad; **trädgårdsbordet** `ffc26041`
+  (Beistelltisch/Gartentisch 70 × 53 cm, vit, 619 kr); **trampolinkanten**
+  `e375834f` (Ø366 cm, flerfärgad, 629 kr) — hela familjen står i N38:s
+  säsongsrad ovan; N39 läste de fyra med samma namn oberoende och fick samma
+  diametrar. (N39)
+- Reserver från N39, inte med bara för att rundan var full på åtta:
+  `a6657b3d` (Ficusbaum Kunstpflanze 150 cm, 629 kr, saldo 32, `las` ren) och
+  `bd61c238` (Gewichtsweste 10 kg, 629 kr, saldo 114, `las` ren) — båda rena
+  i dubblettskärmen (träffarna var andra varor med samma paketmått
+  respektive en permutation) — samt `eb029d50` (Mülleimer 20 L Treteimer,
+  grå, 629 kr, noll träffar i dubblettskärmen, inte `las`-prövad). (N39)

@@ -28,6 +28,7 @@ ANVÄNDNING (från rundans katalog):
   python3 bygg-steg.py steg1-bas.js > steg1.js   (skriver även steg3/4/5.js)
   python3 bygg-steg.py --stampla                  (variant_skus per produkt)
   python3 bygg-steg.py --rattelse k1,k2 > r.js    (bara plainDescription)
+  python3 bygg-steg.py --seo-rattelse k1 > s.js   (bara seoData, ur seo.tsv)
 """
 import io, json, sys
 
@@ -146,6 +147,62 @@ if len(sys.argv) > 2 and sys.argv[1] == "--rattelse":
            "      },",
            "      fieldMask: {",
            "        paths: [\"plainDescription\"]",
+           "      }",
+           "    };",
+           "    try {",
+           "      const r = await wix.request({ method: \"PATCH\", url: \"/stores/v3/products/\" + p.pid, body: kropp });",
+           "      ut.push({ kort: p.kort, ok: true, revisionFore: rev, revisionEfter: (r.data || r).product.revision });",
+           "    } catch (e) {",
+           "      ut.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });",
+           "    }",
+           "  }",
+           "  const ok = ut.filter(function (r) { return r.ok; }).length;",
+           "  return { rader: ut, SAMMANFATTNING: ok + \" av \" + ut.length + \" skrivna\" };",
+           "}"]
+    print("\n".join(ut))
+    sys.exit(0)
+
+# ── rättelse efter publicering: BARA seoData, bara för namngivna kort ──
+# Samma form som steg 1 skrev (två taggar, tomma keywords), byggd ur seo.tsv.
+# Spärren över kort|pid|titel|beskrivning ligger i SAMMA anrop som skrivningen
+# och avbryter hela batchen; fältmasken bär bara seoData.
+if len(sys.argv) > 2 and sys.argv[1] == "--seo-rattelse":
+    valda = [k for k in sys.argv[2].split(",") if k]
+    plan = [r for r in rader if r["kort"] in valda]
+    if len(plan) != len(valda):
+        sys.stderr.write("BYGGET FALLER: okänt kort i listan\n")
+        sys.exit(1)
+    nyckel = "\n".join("|".join([r["kort"], r["pid"], r["seoTitel"], r["seoBesk"]]) for r in plan)
+    ut = ["async function () {",
+          "  // Genererad av runda N39:s bygg-steg.py --seo-rattelse ur seo.tsv — skriv den aldrig för hand.",
+          SUMMA_JS,
+          "  const PLAN = ["]
+    for r in plan:
+        ut.append("    " + json.dumps({"kort": r["kort"], "pid": r["pid"], "seoTitel": r["seoTitel"],
+                                        "seoBesk": r["seoBesk"]}, ensure_ascii=False) + ",")
+    ut += ["  ];",
+           "  // ☠️ SPÄRREN LIGGER I SAMMA ANROP SOM SKRIVNINGEN och avbryter HELA batchen.",
+           "  const NYCKEL = PLAN.map(function (p) { return [p.kort, p.pid, p.seoTitel, p.seoBesk].join(\"|\"); }).join(\"\\n\");",
+           f"  if (SUMMA(NYCKEL) !== {summa(nyckel)} || NYCKEL.length !== {len(nyckel)}) {{",
+           "    return { AVBRUTET: \"transkriberingsfel i SEO — ingenting skrivet\", fick: SUMMA(NYCKEL), tecken: NYCKEL.length };",
+           "  }",
+           "  const ut = [];",
+           "  for (const p of PLAN) {",
+           "    const f = await wix.request({ method: \"GET\", url: \"/stores/v3/products/\" + p.pid });",
+           "    const rev = (f.data || f).product.revision;",
+           "    const kropp = {",
+           "      product: {",
+           "        revision: rev,",
+           "        seoData: {",
+           "          tags: [",
+           "            { type: \"title\", children: p.seoTitel },",
+           "            { type: \"meta\", props: { name: \"description\", content: p.seoBesk } }",
+           "          ],",
+           "          settings: { keywords: [] }",
+           "        }",
+           "      },",
+           "      fieldMask: {",
+           "        paths: [\"seoData\"]",
            "      }",
            "    };",
            "    try {",
