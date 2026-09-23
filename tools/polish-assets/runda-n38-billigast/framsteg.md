@@ -166,8 +166,8 @@ skrevs, och tre påståenden i källan prövades mot fotot:
   krittavla och whiteboard" och aldrig "en på varje sida".
 - `285d9ab7`: måttbilden visar hinken 30 cm bred och 36 cm djup (lock-gångjärn
   bak, pedal fram) — källans `36L x 30B` lagt positionellt ger det omvända.
-  Texten säger "36 × 30 cm golvyta" och binder inget av talen till bredd
-  eller djup.
+  Texten binder inget av talen till bredd eller djup (och skriver sedan
+  granskningen bredden först, se nedan).
 - `12e66c66`: källans `Gesamtmaße: 50L x 44B x 4.4H` är en VÄGGTAVLA lagd ned;
   måttbilden och källans egen `Ungefaltete Maße: 90,5L x 4,4B x 50H` ger 44
   brett, 50 högt och 4,4 djupt. Källans svenska spec-rad (46,5 × 50,5) står
@@ -224,10 +224,31 @@ bilden och facit är överens (`113 cm högt`). De bindningar som följer bilden
 men inte facit är decimaltal (`53,5 cm brett`, `4,4 cm djup`, `90,5 cm
 bred`), som grindens mönster inte läser — för dem är alltså BILDEN kvittot,
 inte grinden. Spec-raden skriver bredd först enligt bilden (`53,5 × 49 × 113
-cm`, `44 × 4,4 × 50 cm`); pedalhinkens rad står i källans ordning (`36 × 30 ×
-63,5 cm`) utan axelord.
+cm`, `44 × 4,4 × 50 cm`, och efter granskningen även `30 × 36 × 63,5 cm`).
+
+Pushat OGRINDAT-TILL-WIX i `428f7b9`.
+
+## Oberoende granskning FÖRE skrivningen — två fynd
+
+Alla åtta utkasten lästes en gång till som av en skeptisk utomstående, mot
+kontaktarken och `kallor.json`: namn, SEO, alt-texter och brödtext.
+
+1. **`285d9ab7` — spec-raden motsade måttbilden.** `36 × 30 × 63,5 cm`
+   (källans ordning) läses som bredd × djup × höjd, alltså 36 cm bred — men
+   bilden visar 30 cm bred och 36 cm djup, och alt-texten till måttbilden
+   sa redan `30 × 36`. Spec-raden, `Egenskaper` och "golvyta"-meningen skriver
+   nu `30 × 36`. Samma princip som staffliet och darttavlan: bilden avgör
+   ordningen när källans axlar är fel.
+2. **`12e66c66` — "CE-certifikat enligt EMC-direktivet"** påstod mer än
+   källans `CE-EMC Zertifikat`; nu "CE-certifikat för elektromagnetisk
+   kompatibilitet (EMC)".
+
+Inga andra sakfel, inga motsägande tal, ingen kvarvarande tyska eller
+engelska utöver vedertagna lånord (LCD-display, whiteboard). Namn 62–78 av
+80 tecken, SEO-titlar 39–53 av 60, beskrivningar 123–144 av 160. Alla
+grindar omkörda efter ändringarna: samma utfall som i tabellen ovan.
 
 ## Läge
 
-Förberedelsen klar, INGENTING skrivet till Wix. Nästa: pusha filerna, sedan
-den oberoende granskningen och de fyra Wix-stegen.
+Förberedelsen och granskningen klara, INGENTING skrivet till Wix. Nästa: de
+fyra Wix-stegen.
