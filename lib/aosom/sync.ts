@@ -30,6 +30,7 @@ import { aosomSupplierProductId, type AosomFx } from "./to-product";
 import { SUPPLIER_VAT_RATE } from "../auction/seed";
 import { computePriceWithRules } from "../import/pricing";
 import type { PricingRules } from "../import/types";
+import { tillampaKonkurrentregel, type KonkurrentUtfall } from "../pricing/konkurrentregel";
 import type { ProductMappingRecord } from "../store";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
 
@@ -161,6 +162,26 @@ export interface AosomSyncSummary {
   utanWixPris: number;
   /** Rader vars pris är låst (`prisLast`) och därför medvetet inte rörs. */
   prisLasta: number;
+  /**
+   * Konkurrentregeln (lib/pricing/konkurrentregel.ts), per utfall. Rader utan
+   * `prisgrupp` räknas ingenstans här — de följer husets regel som förut.
+   *
+   *   - `konkurrentMal`     priset sattes strax under dealproffsen
+   *   - `konkurrentTak`     målet låg över taket (1,50 × landad) — taket gäller
+   *   - `konkurrentGolv`    deras pris ligger under vårt golv — vi står kvar,
+   *                         och raden är inte konkurrenskraftig att annonsera
+   *   - `konkurrentFrysta`  konkurrentpriset är äldre än sju dagar eller
+   *                         trasigt — INGET pris skrevs
+   *
+   * ☠️ `konkurrentFrysta` ÄR ETT LARM, INTE BRUS. Går talet upp har
+   * jämförelsen slutat köras, och då står varje testrad still tills någon
+   * ser det. Talet går ut i loggraden och audit-raden av samma skäl som
+   * `prisLasta`: ett lås ingen ser är ett lås som glöms bort.
+   */
+  konkurrentMal: number;
+  konkurrentTak: number;
+  konkurrentGolv: number;
+  konkurrentFrysta: number;
   /**
    * Varför butikens prislista inte gick att läsa, eller null när den gjorde det.
    *
@@ -328,6 +349,8 @@ export interface Produktplan {
   ejSkeppbar: boolean;
   utanWixPris: boolean;
   prisLast: boolean;
+  /** Konkurrentregelns utfall, eller null när raden aldrig nådde prisdelen. */
+  konkurrent: KonkurrentUtfall | null;
   varning: { sku: string; fran: number; till: number; andringPct: number } | null;
 }
 
@@ -347,7 +370,7 @@ export function planeraProdukt(
   sku: string,
   row: AosomRow | undefined,
   wixPris: WixProduktPris | undefined,
-  deps: Pick<AosomSyncDeps, "fx" | "rules">,
+  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
   opts: Pick<AosomSyncOptions, "skipPrices">,
 ): Produktplan {
   const variant = m.variants?.[0];
@@ -390,6 +413,7 @@ export function planeraProdukt(
     ejSkeppbar,
     utanWixPris: false,
     prisLast: false,
+    konkurrent: null,
     varning: null,
   };
 
@@ -420,7 +444,27 @@ export function planeraProdukt(
   // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
   // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
   // PawHut-sortimentet utan att någon regel sa det).
-  const pris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+  const regelPris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+
+  // ── KONKURRENTREGELN (2026-09-15) ────────────────────────────────────
+  // Husets regelpris är GOLVET. Bär raden en prisgrupp och ett färskt
+  // dealproffsen-pris lyfts priset mot strax under deras, aldrig över taket
+  // 1,50 × landad. Utan grupp svarar regeln med golvet — alltså exakt det
+  // pris synken alltid räknat fram. Se lib/pricing/konkurrentregel.ts.
+  //
+  // ☠️ FRYST SKRIVER INGET, och ligger FÖRE facit-jämförelsen av samma skäl
+  // som `prisLast`: en rad vi inte tänker skriva ska inte hamna i `varningar`.
+  const regel = tillampaKonkurrentregel({
+    regelPris,
+    landadInklMoms: nyLandad,
+    konkurrent: m.konkurrent,
+    prisgrupp: m.prisgrupp,
+    nu: (deps.now ?? Date.now)(),
+    rounding: deps.rules.rounding,
+  });
+  plan.konkurrent = regel;
+  if (regel.typ === "fryst") return plan;
+  const pris = regel.pris;
 
   // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad vi
   // TROR att kunden ser, och de två kan ha glidit isär.
@@ -545,6 +589,10 @@ export async function runAosomSync(
     oforandrade: 0,
     utanWixPris: 0,
     prisLasta: 0,
+    konkurrentMal: 0,
+    konkurrentTak: 0,
+    konkurrentGolv: 0,
+    konkurrentFrysta: 0,
     prislistaFel,
     utanLagerrader: 0,
     lagerDrift: 0,
@@ -604,6 +652,10 @@ export async function runAosomSync(
       if (p.ejSkeppbar) summary.ejSkeppbara++;
       if (p.utanWixPris) summary.utanWixPris++;
       if (p.prisLast) summary.prisLasta++;
+      if (p.konkurrent?.typ === "mal") summary.konkurrentMal++;
+      if (p.konkurrent?.typ === "tak") summary.konkurrentTak++;
+      if (p.konkurrent?.typ === "golv") summary.konkurrentGolv++;
+      if (p.konkurrent?.typ === "fryst") summary.konkurrentFrysta++;
       if (p.varning) summary.varningar.push(p.varning);
     }
 

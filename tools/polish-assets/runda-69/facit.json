@@ -1,0 +1,83 @@
+{
+ "37e5dfcf": {
+  "slug": "konstladerfatolj-morkgra-145-grader",
+  "sku": "FP-konstladerfatolj-morkgra",
+  "name": "Fåtölj i konstläder med 360° vridfot, rygg till 145° – mörkgrå",
+  "title": "Fåtölj i konstläder 145°, vridfot, mörkgrå | Fyndplats",
+  "meta": "Fåtölj i mörkgrå konstläder på träfot. Ryggen fälls till 145° och fotstödet fälls ut ur stolen. Snurrar 360°. Bär 120 kg.",
+  "synligLangd": 2555,
+  "synligHash": 463028731
+ },
+ "dd5553fa": {
+  "slug": "konstladerfatolj-ljusgra-145-grader",
+  "sku": "FP-konstladerfatolj-ljusgra",
+  "name": "Fåtölj i konstläder med 360° vridfot, rygg till 145° – ljusgrå",
+  "title": "Fåtölj i konstläder 145°, vridfot, ljusgrå | Fyndplats",
+  "meta": "Fåtölj i ljusgrå konstläder på träfot. Ryggen fälls till 145° och fotstödet fälls ut ur stolen. Snurrar 360°. Bär 120 kg.",
+  "synligLangd": 2558,
+  "synligHash": 622216984
+ },
+ "fd16efbc": {
+  "slug": "tv-fatolj-brun-med-fotpall",
+  "sku": "FP-tv-fatolj-brun-fotpall",
+  "name": "TV-fåtölj med fotpall, 360° vridfot och rygg till 135° – brun",
+  "title": "TV-fåtölj med fotpall och vridfot, brun | Fyndplats",
+  "meta": "TV-fåtölj i brun mikrofiber med lös fotpall. Ryggen ställs med vred till 135° och foten snurrar 360°. Bär 120 kg.",
+  "synligLangd": 2642,
+  "synligHash": 855746032
+ },
+ "4c1f5303": {
+  "slug": "tv-fatolj-ljusgra-med-fotpall",
+  "sku": "FP-tv-fatolj-ljusgra",
+  "name": "TV-fåtölj med fotpall, 360° vridfot och rygg till 135° – ljusgrå",
+  "title": "TV-fåtölj med fotpall och vridfot, ljusgrå | Fyndplats",
+  "meta": "TV-fåtölj i ljusgrå mikrofiber med lös fotpall. Ryggen ställs med vred till 135° och foten snurrar 360°. Bär 120 kg.",
+  "synligLangd": 2643,
+  "synligHash": 539547659
+ },
+ "7702de01": {
+  "slug": "biofatolj-graddvit-160-grader",
+  "sku": "FP-biofatolj-graddvit-160",
+  "name": "Biofåtölj 64 cm bred med fjäderkärna, rygg till 160° – gräddvit",
+  "title": "Smal biofåtölj 64 cm, 160° rygg, gräddvit | Fyndplats",
+  "meta": "Smal biofåtölj i gräddvit linnelook, 64 cm bred. Ryggen fälls till 160° med kroppsvikten och fotstödet fälls ut. Fjäderkärna i sitsen. Bär 120 kg.",
+  "synligLangd": 3058,
+  "synligHash": 123596414
+ },
+ "e818cf7e": {
+  "slug": "biofatolj-gra-160-grader",
+  "sku": "FP-biofatolj-gra-160-grader",
+  "name": "Biofåtölj 64 cm bred med fjäderkärna, rygg till 160° – grå",
+  "title": "Smal biofåtölj 64 cm, 160° rygg, grå | Fyndplats",
+  "meta": "Smal biofåtölj i grå linnelook, 64 cm bred. Ryggen fälls till 160° med kroppsvikten och fotstödet fälls ut. Fjäderkärna i sitsen. Bär 120 kg.",
+  "synligLangd": 3051,
+  "synligHash": 298495400
+ },
+ "afab8a41": {
+  "slug": "vilfatolj-beige-155-grader",
+  "sku": "FP-vilfatolj-beige-155",
+  "name": "Vilfåtölj med fjäderkärna, rygg till 155°, bär 150 kg – beige",
+  "title": "Vilfåtölj 155°, fjäderkärna, 150 kg, beige | Fyndplats",
+  "meta": "Vilfåtölj i beige linnelook med fjäderkärna i sitsen. Ryggen fälls till 155° och fotstödet fälls ut. Bär 150 kg och passar kroppslängd upp till 195 cm.",
+  "synligLangd": 2980,
+  "synligHash": 782688012
+ },
+ "a9c0fc05": {
+  "slug": "vilfatolj-svart-155-grader",
+  "sku": "FP-vilfatolj-svart-155",
+  "name": "Vilfåtölj med fjäderkärna, rygg till 155°, bär 150 kg – svart",
+  "title": "Vilfåtölj 155°, fjäderkärna, 150 kg, svart | Fyndplats",
+  "meta": "Vilfåtölj i svart linnelook med fjäderkärna i sitsen. Ryggen fälls till 155° och fotstödet fälls ut. Bär 150 kg och passar kroppslängd upp till 195 cm.",
+  "synligLangd": 2975,
+  "synligHash": 759199076
+ },
+ "75e5fa26": {
+  "slug": "vilfatolj-gra-155-grader",
+  "sku": "FP-vilfatolj-gra-155-grader",
+  "name": "Vilfåtölj med fjäderkärna, rygg till 155°, bär 150 kg – grå",
+  "title": "Vilfåtölj 155°, fjäderkärna, 150 kg, grå | Fyndplats",
+  "meta": "Vilfåtölj i grå linnelook med fjäderkärna i sitsen. Ryggen fälls till 155° och fotstödet fälls ut. Bär 150 kg och passar kroppslängd upp till 195 cm.",
+  "synligLangd": 2978,
+  "synligHash": 595858296
+ }
+}

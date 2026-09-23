@@ -154,6 +154,7 @@ jobs:
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
           utanrader=0; drift=0; prislasta=0; ejskeppbara=0
+          kmal=0; ktak=0; kgolv=0; kfrysta=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -182,6 +183,10 @@ jobs:
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
             ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
+            km=$(printf '%s' "$svar" | jq -r '.konkurrentMal // 0')
+            kt=$(printf '%s' "$svar" | jq -r '.konkurrentTak // 0')
+            kg=$(printf '%s' "$svar" | jq -r '.konkurrentGolv // 0')
+            kf=$(printf '%s' "$svar" | jq -r '.konkurrentFrysta // 0')
             stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okant"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
@@ -192,6 +197,7 @@ jobs:
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
             prislasta=$(( prislasta + pl ))
             ejskeppbara=$(( ejskeppbara + ejs ))
+            kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -208,7 +214,8 @@ jobs:
             # eller om prisskrivningarna måste batchas. Priscronen stannade på `limit`
             # fyra nätter i rad och lämnade 2 607 rader ogranskade utan att någon såg det.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
-                 "${pl} prislåsta, ${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
+                 "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
+                 "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
                  "${mi} misslyckade, stoppade på ${stopp}, ${kvar} kvar"
 
             # En rad Aosom slutat skicka till Sverige är ett LAGERBESKED, inte ett fel:
@@ -255,6 +262,8 @@ jobs:
             echo "| Priser | **${priser}** |"
             echo "| Utan butikspris | ${utan} |"
             echo "| Prislåsta (rörs aldrig) | ${prislasta} |"
+            echo "| Konkurrentregel: mål / tak / golv | ${kmal} / ${ktak} / ${kgolv} |"
+            echo "| **Konkurrentregel: FRYSTA (gammalt dealproffsen-pris)** | **${kfrysta}** |"
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"

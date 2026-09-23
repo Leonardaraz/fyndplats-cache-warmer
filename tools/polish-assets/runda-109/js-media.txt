@@ -1,0 +1,42 @@
+async function() {
+  const P = [{"k": "ffb5239f", "id": "ffb5239f-3cfd-49c8-ae10-5f8b9993c6f6", "vantade": ["b379ce_f4f8fa1cef834ac6a41559bdae708f80~mv2.jpg", "b379ce_0bce4494140d4816b5e9e770c3ba601d~mv2.jpg", "b379ce_fd3b2c7e365a4a57b95e32a45880b9e7~mv2.jpg", "b379ce_9ffa5049c6c8465bba32947d8a4e3b3b~mv2.jpg", "b379ce_1b90837fea5347b290ce7a49a758fc72~mv2.jpg"], "rader": [{"fil": "b379ce_f4f8fa1cef834ac6a41559bdae708f80~mv2.jpg", "alt": "Rumsavdelare i vit polypropenväv med sex paneler, uppställd i sicksack.", "kalla": "orig 1"}, {"fil": "b379ce_0bce4494140d4816b5e9e770c3ba601d~mv2.jpg", "alt": "Skärmen står i ett ljust rum med valvöppning, bakom en låg soffa och ett mörkt soffbord.", "kalla": "orig 2"}, {"fil": "b379ce_6be66c46946d4f15a8b584227ca6343a~mv2.jpg", "alt": "Faktakort: mått 240 × 1,6 × 170 cm (B × D × H), panel 40 × 1,6 × 170 cm, gångjärn 15 i metall, tre per skarv.", "kalla": "kort"}, {"fil": "b379ce_9ffa5049c6c8465bba32947d8a4e3b3b~mv2.jpg", "alt": "Skärmen står mot en ljus vägg bredvid en beige soffa, med ett litet sidobord i trä och en vas torkade blommor.", "kalla": "orig 4"}, {"fil": "b379ce_1b90837fea5347b290ce7a49a758fc72~mv2.jpg", "alt": "Skärmen delar av ett kök, med ett bord i ljus duk på ena sidan och köksinredning i trä på den andra.", "kalla": "orig 5"}, {"fil": "b379ce_fd3b2c7e365a4a57b95e32a45880b9e7~mv2.jpg", "alt": "Måttritning av rumsavdelaren: 240 cm bred, 170 cm hög och 40 cm per panel.", "kalla": "orig 3"}]}, {"k": "7bd4f691", "id": "7bd4f691-ad6d-4ae2-9fa4-656caa3933e8", "vantade": ["b379ce_8985b8b2094d4346b69bd8be3e6c00af~mv2.jpg", "b379ce_eb28232eb6874cb9888d776240fe4343~mv2.jpg", "b379ce_c646a0724c104e68ba947e579a696cda~mv2.jpg", "b379ce_563819e00e34496886d3991361bc6e06~mv2.jpg", "b379ce_72379767c7974d6c90fa24d853297c98~mv2.jpg"], "rader": [{"fil": "b379ce_8985b8b2094d4346b69bd8be3e6c00af~mv2.jpg", "alt": "Rumsavdelare i svart polypropenväv med sex paneler, uppställd i sicksack.", "kalla": "orig 1"}, {"fil": "b379ce_eb28232eb6874cb9888d776240fe4343~mv2.jpg", "alt": "Skärmen står i ett vardagsrum bakom en grön soffa och ett soffbord i trä med ljus.", "kalla": "orig 2"}, {"fil": "b379ce_8e1368d165394ee3be868680e31150cb~mv2.jpg", "alt": "Faktakort: mått 240 × 1,6 × 170 cm (B × D × H), panel 40 × 1,6 × 170 cm, gångjärn 15 i metall, tre per skarv.", "kalla": "kort"}, {"fil": "b379ce_563819e00e34496886d3991361bc6e06~mv2.jpg", "alt": "Närbild på skärmens svarta väv där banden är flätade över ljusa trästommar.", "kalla": "orig 4"}, {"fil": "b379ce_72379767c7974d6c90fa24d853297c98~mv2.jpg", "alt": "Närbild på skärmens svarta fötter mot ett ljust trägolv.", "kalla": "orig 5"}, {"fil": "b379ce_c646a0724c104e68ba947e579a696cda~mv2.jpg", "alt": "Måttritning av rumsavdelaren: 240 cm bred, 170 cm hög och 40 cm per panel.", "kalla": "orig 3"}]}];
+  const ut = [];
+  for (const p of P) {
+    const g = await wix.request({ method: "GET",
+      scope: "site", url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+    const gp = (g.data && g.data.product) || g.product || g;
+    const items = ((gp.media || {}).itemsInfo || {}).items || [];
+    const filnamn = items.map((it) => {
+      const u = (it.image && (it.image.url || it.image.id)) || it.id || "";
+      const m = String(u).match(/[^/]+~mv2\.[a-z]+/i);
+      return m ? m[0] : String(u);
+    });
+    if (JSON.stringify(filnamn) !== JSON.stringify(p.vantade)) {
+      ut.push(`${p.k} | AVBRUTEN: galleriet ser annorlunda ut: ${JSON.stringify(filnamn)}`);
+      continue;
+    }
+    const nya = p.rader.map((r) => ({ id: r.fil, altText: r.alt }));
+    await wix.request({ scope: "site", method: "PATCH", url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
+      body: { product: { id: p.id, revision: gp.revision, visible: false,
+                         media: { itemsInfo: { items: nya } } } } });
+    const r2 = await wix.request({ method: "GET",
+      scope: "site", url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+    const q = (r2.data && r2.data.product) || r2.product || r2;
+    const ef = (((q.media || {}).itemsInfo || {}).items) || [];
+    const efFil = ef.map((it) => {
+      const u = (it.image && (it.image.url || it.image.id)) || it.id || "";
+      const m = String(u).match(/[^/]+~mv2\.[a-z]+/i);
+      return m ? m[0] : String(u);
+    });
+    const vantFil = p.rader.map((r) => r.fil);
+    const vantAlt = p.rader.map((r) => r.alt);
+    const efAlt = ef.map((it) => it.altText || "");
+    ut.push([p.k,
+      ef.length === p.rader.length ? `${ef.length} bilder ok` : `ANTAL ${ef.length} != ${p.rader.length}`,
+      JSON.stringify(efFil) === JSON.stringify(vantFil) ? "ordning ok" : `ORDNING FEL: ${JSON.stringify(efFil)}`,
+      JSON.stringify(efAlt) === JSON.stringify(vantAlt) ? "alt ok" : `ALT FEL: ${JSON.stringify(efAlt.map((a, i) => a === vantAlt[i] ? "ok" : a))}`,
+      q.visible === false ? "utkast ok" : `PUBLICERAD! visible=${q.visible}`,
+    ].join(" | "));
+  }
+  return ut;
+}

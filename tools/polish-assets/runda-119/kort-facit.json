@@ -1,0 +1,236 @@
+{
+ "ad390a36": {
+  "kicker": "SMAL KÖKSVAGN, 53 CM",
+  "rubrik": "Två lådor och två öppna fack",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "53 × 37 × 89 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "2 st"
+   },
+   {
+    "etikett": "Lådmått",
+    "varde": "29 × 32,4 × 24,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "30 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "16,5 kg"
+   }
+  ]
+ },
+ "dac7a904": {
+  "kicker": "KÖKSVAGN MED LÅNG ARBETSYTA",
+  "rubrik": "101,5 cm att arbeta på",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "108,8 × 51 × 92,5 cm"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "101,5 × 51 cm"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "83,7 × 33,7 × 8,8 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "26 kg"
+   }
+  ]
+ },
+ "c86ff1a6": {
+  "kicker": "KÖKSVAGN MED VINSTÄLL",
+  "rubrik": "Sex flaskor liggande",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "83 × 40 × 83 cm"
+   },
+   {
+    "etikett": "Vinfack",
+    "varde": "sex platser"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "76 × 40 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "37 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "29,7 kg"
+   }
+  ]
+ },
+ "5d1696db": {
+  "kicker": "KÖKSVAGN I BAMBU",
+  "rubrik": "Handflätad rottingdörr",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "84 × 36 × 85 cm"
+   },
+   {
+    "etikett": "Glasyta",
+    "varde": "69,7 × 29,7 cm"
+   },
+   {
+    "etikett": "Skåp",
+    "varde": "34 × 32 × 57 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "19,6 kg"
+   }
+  ]
+ },
+ "6cf7cfcf": {
+  "kicker": "KÖKSVAGN I LANTSTIL",
+  "rubrik": "Furuskiva och avtagbar bricka",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "67 × 37 × 87 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "3 st"
+   },
+   {
+    "etikett": "Bricka",
+    "varde": "30 × 28,5 × 4,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "40 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "20 kg"
+   }
+  ]
+ },
+ "36526a8d": {
+  "kicker": "GRILLVAGN FÖR UTEPLATSEN",
+  "rubrik": "Skiva i rostfritt stål",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "86 × 50 × 86,5 cm"
+   },
+   {
+    "etikett": "Rostfri skiva",
+    "varde": "70 × 46,5 cm"
+   },
+   {
+    "etikett": "Skåp",
+    "varde": "69,9 × 43 × 73 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "15 kg på skivan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "16,8 kg"
+   }
+  ]
+ },
+ "9e5e788c": {
+  "kicker": "KÖKSÖ MED UTFÄLLBAR SKIVA",
+  "rubrik": "96 × 40 blir 96 × 70 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "115 × 70 × 89 cm"
+   },
+   {
+    "etikett": "Skiva nedfälld",
+    "varde": "96 × 40 cm"
+   },
+   {
+    "etikett": "Skiva uppfälld",
+    "varde": "96 × 70 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "105 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "48,7 kg"
+   }
+  ]
+ },
+ "d8bbbdde": {
+  "kicker": "KÖKSÖ MED KLAFFSKIVA",
+  "rubrik": "Stort skåp med hylla i tre lägen",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "120 × 68 × 85 cm"
+   },
+   {
+    "etikett": "Bänkskiva",
+    "varde": "90 × 39 cm"
+   },
+   {
+    "etikett": "Skåp",
+    "varde": "86 × 36 × 60,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "100 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "41,6 kg"
+   }
+  ]
+ },
+ "e0fed2c9": {
+  "kicker": "KÖKSÖ MED UTDRAGSBRICKOR",
+  "rubrik": "Skivan fälls ut till 120 × 65 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "129 × 65 × 91 cm"
+   },
+   {
+    "etikett": "Skiva nedfälld",
+    "varde": "120 × 40 cm"
+   },
+   {
+    "etikett": "Skiva uppfälld",
+    "varde": "120 × 65 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "112 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "57,8 kg"
+   }
+  ]
+ }
+}

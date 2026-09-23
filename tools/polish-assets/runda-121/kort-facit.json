@@ -1,0 +1,210 @@
+{
+ "45bac2cb": {
+  "kicker": "Mopphink 26 liter, gul",
+  "rubrik": "Press och två korgar",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "73 × 45 × 95 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkens volym",
+    "varde": "26 liter"
+   },
+   {
+    "etikett": "Korgens mått",
+    "varde": "30 × 16 × 25,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "40 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "10,3 kg"
+   }
+  ]
+ },
+ "731c8bfc": {
+  "kicker": "Mopphink 26 liter, blå",
+  "rubrik": "Press och två korgar",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "73 × 45 × 95 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkens volym",
+    "varde": "26 liter"
+   },
+   {
+    "etikett": "Korgens mått",
+    "varde": "30 × 16 × 25,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "40 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "10,3 kg"
+   }
+  ]
+ },
+ "74ea10dc": {
+  "kicker": "Mopphink 78 cm",
+  "rubrik": "Rent och smutsigt åtskilt",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "78 × 45 × 95 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Volym",
+    "varde": "26 liter"
+   },
+   {
+    "etikett": "Pressens mått",
+    "varde": "25 × 25 × 57 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "40 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "12,5 kg"
+   }
+  ]
+ },
+ "e526fd01": {
+  "kicker": "Rullhink 36 liter",
+  "rubrik": "Innerhink på 12 liter",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "54 × 41,5 × 91,5 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkens volym",
+    "varde": "36 liter"
+   },
+   {
+    "etikett": "Innerhinkens volym",
+    "varde": "12 liter"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "7,9 kg"
+   }
+  ]
+ },
+ "da0f30b2": {
+  "kicker": "Moppvagn 25 liter, gul",
+  "rubrik": "Korg och hylla på ramen",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "72 × 49,5 × 95 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkens volym",
+    "varde": "25 liter"
+   },
+   {
+    "etikett": "Korgens mått",
+    "varde": "42,6 × 18 × 22,2 cm"
+   },
+   {
+    "etikett": "Hyllans mått",
+    "varde": "37 × 18 × 14,7 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "9,5 kg"
+   }
+  ]
+ },
+ "d8ebb279": {
+  "kicker": "Moppvagn 25 liter, blå",
+  "rubrik": "Korg och hylla på ramen",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "72 × 49,5 × 95 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Hinkens volym",
+    "varde": "25 liter"
+   },
+   {
+    "etikett": "Korgens mått",
+    "varde": "42,6 × 18 × 22,2 cm"
+   },
+   {
+    "etikett": "Hyllans mått",
+    "varde": "37 × 18 × 14,7 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "9,5 kg"
+   }
+  ]
+ },
+ "9aa46e31": {
+  "kicker": "Städvagn 121 cm",
+  "rubrik": "Tre hyllplan och sopsäck",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "121 × 50,5 × 100 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Nedre hyllan",
+    "varde": "76 × 46 × 3,5 cm"
+   },
+   {
+    "etikett": "Sopsäckens öppning",
+    "varde": "39 × 30 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "14,4 kg"
+   }
+  ]
+ },
+ "75fcdcfb": {
+  "kicker": "Städvagn 122 cm",
+  "rubrik": "Mopphink och 70-literssäck",
+  "rader": [
+   {
+    "etikett": "Yttermått",
+    "varde": "122 × 46,5 × 101 cm (längd × bredd × höjd)"
+   },
+   {
+    "etikett": "Mopphinkens mått",
+    "varde": "61 × 38 × 94 cm"
+   },
+   {
+    "etikett": "Sopsäckens volym",
+    "varde": "70 liter, öppning 38 × 31 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "70 kg totalt, 40 kg på nedre hyllan och 10 kg på varje övrig del"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22,4 kg"
+   }
+  ]
+ }
+}

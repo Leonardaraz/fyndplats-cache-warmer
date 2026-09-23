@@ -1,0 +1,236 @@
+{
+ "764a3efc": {
+  "kicker": "RULLVAGN MED FYRA LÅDOR",
+  "rubrik": "Bara 24 cm djup",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "39,5 × 24 × 82 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "fyra"
+   },
+   {
+    "etikett": "Lådmått",
+    "varde": "39,5 × 19,5 × 6,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "4,6 kg"
+   }
+  ]
+ },
+ "820d076b": {
+  "kicker": "HOPFÄLLBAR BARVAGN I BAMBU",
+  "rubrik": "Viks ihop efter kvällen",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "66 × 40 × 70 cm"
+   },
+   {
+    "etikett": "Brickor",
+    "varde": "två"
+   },
+   {
+    "etikett": "Brickmått",
+    "varde": "54 × 33 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "12 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "5 kg"
+   }
+  ]
+ },
+ "15d6fcef": {
+  "kicker": "KÖKSVAGN MED FYRA KORGAR",
+  "rubrik": "Skiva i ljus stenlook",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "49,5 × 31 × 91 cm"
+   },
+   {
+    "etikett": "Korgar",
+    "varde": "fyra"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "43 × 31 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "22 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "8,8 kg"
+   }
+  ]
+ },
+ "0fd65541": {
+  "kicker": "KÖKSVAGN MED FYRA KORGAR",
+  "rubrik": "Skiva i ekfärgad träeffekt",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "49,5 × 31 × 91 cm"
+   },
+   {
+    "etikett": "Korgar",
+    "varde": "fyra"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "43 × 31 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "22 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "8,8 kg"
+   }
+  ]
+ },
+ "2e292a70": {
+  "kicker": "GRÖNSAKSVAGN, VRIDBARA KORGAR",
+  "rubrik": "Kommer färdigmonterad",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "33 × 33 × 77 cm"
+   },
+   {
+    "etikett": "Korgar",
+    "varde": "fyra"
+   },
+   {
+    "etikett": "Hylla",
+    "varde": "29,7 × 29,7 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "13 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "6 kg"
+   }
+  ]
+ },
+ "a4ee97c1": {
+  "kicker": "RULLBORD MED LÅDA OCH HYLLA",
+  "rubrik": "Krokar på valfri sida",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "61 × 32,6 × 58,5 cm"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "47 × 29 × 9 cm"
+   },
+   {
+    "etikett": "Hylla",
+    "varde": "48 × 32,6 × 25 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10,6 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "6,5 kg"
+   }
+  ]
+ },
+ "8a73caf4": {
+  "kicker": "BARVAGN FÖR UTEPLATSEN",
+  "rubrik": "Fyra flaskhållare i gran",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "97,5 × 65 × 81 cm"
+   },
+   {
+    "etikett": "Arbetsyta",
+    "varde": "88 × 61 cm"
+   },
+   {
+    "etikett": "Flaskhållare",
+    "varde": "fyra"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg per hylla"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "15 kg"
+   }
+  ]
+ },
+ "fcb86875": {
+  "kicker": "RUND BARVAGN I KONSTROTTING",
+  "rubrik": "Avtagbar bricka överst",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "Ø 50 × 66 cm"
+   },
+   {
+    "etikett": "Övre plan",
+    "varde": "Ø 45 cm"
+   },
+   {
+    "etikett": "Undre plan",
+    "varde": "Ø 50 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "30 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "6 kg"
+   }
+  ]
+ },
+ "ca20d60e": {
+  "kicker": "SERVERINGSVAGN FÖR UTEPLATSEN",
+  "rubrik": "Lamellplan som dränerar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "107 × 65 × 80 cm"
+   },
+   {
+    "etikett": "Övre hylla",
+    "varde": "97 × 65 cm"
+   },
+   {
+    "etikett": "Undre hylla",
+    "varde": "97 × 58,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg per plan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "16,5 kg"
+   }
+  ]
+ }
+}

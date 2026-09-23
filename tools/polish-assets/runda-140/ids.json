@@ -1,0 +1,22 @@
+{
+  "regel": "Fullstandiga id far ALDRIG skrivas av ur minnet (oppen anmarkning #536). De har ar MATTA ur Wix, inte kom-ihagda.",
+  "runda": 140,
+  "familj": "hundsoffor och hundbaddar i tyg (Hundesofa / Hundebett / Haustiersofa)",
+  "produkter": [
+    {"p8": "c9ccf5a3", "id": "c9ccf5a3-4061-465c-82e8-7e72c1e2ad21", "matt": "90 x 78 x 25", "farg": "Grau",              "pris": 1249},
+    {"p8": "4c5d4687", "id": "4c5d4687-9db1-43a6-9157-a36838c34733", "matt": "102 x 58,5 x 42,5", "farg": "Grau",        "pris": 1399},
+    {"p8": "01fcdf1d", "id": "01fcdf1d-37a9-4fed-9da7-b86cb80718da", "matt": "98 x 67 x 25", "farg": "Grau",             "pris": 1169},
+    {"p8": "bb3cd4ed", "id": "bb3cd4ed-f75c-4179-94a9-bb4965829642", "matt": "98 x 67 x 25", "farg": "Grun",             "pris": 1139},
+    {"p8": "881540a6", "id": "881540a6-6faa-4005-90a4-79b6c5a4778c", "matt": "98 x 67 x 25", "farg": "Blau",             "pris": 1059},
+    {"p8": "68f8cae9", "id": "68f8cae9-21af-4583-a878-cec4fba98b13", "matt": null,           "farg": "Dunkelblau",       "pris": 1039},
+    {"p8": "ee19a8c8", "id": "ee19a8c8-0ac5-4981-b7a2-85d823f70b3d", "matt": null,           "farg": "Cremeweiss",       "pris": 1259},
+    {"p8": "5b8162d1", "id": "5b8162d1-66f2-4a14-bfcb-af587b4611ab", "matt": null,           "farg": "Dunkelgrau",       "pris": 1039},
+    {"p8": "1835c144", "id": "1835c144-8d2f-4058-96b4-c3c0396cdd41", "matt": null,           "farg": "Dunkelgrau",       "pris": 1069},
+    {"p8": "9ee2fa6e", "id": "9ee2fa6e-2258-455d-a224-4b25b0e0af82", "matt": null,           "farg": "Grun",             "pris": 1519},
+    {"p8": "c11948ac", "id": "c11948ac-49b6-4129-a8e0-291aedde5d16", "matt": null,           "farg": "Dunkelgrau",       "pris": 1649},
+    {"p8": "2ba6baf0", "id": "2ba6baf0-ef7c-4ed9-9339-af546ac63a7a", "matt": null,           "farg": "Hellgrau",         "pris": 1099},
+    {"p8": "22c7de56", "id": "22c7de56-a936-4d16-8915-854613db44e9", "matt": null,           "farg": "Grun",             "pris": 1099},
+    {"p8": "07ac9918", "id": "07ac9918-294d-4db4-be5e-72a2b0f85bd6", "matt": null,           "farg": "Hellgrau",         "pris": 1119},
+    {"p8": "01ac2f63", "id": "01ac2f63-9230-448a-811b-efd02f71a172", "matt": null,           "farg": "Dunkelblau+Schwarz","pris": 749}
+  ]
+}

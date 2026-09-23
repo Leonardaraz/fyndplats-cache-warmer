@@ -1,0 +1,28 @@
+async function() {
+  const P = [{"k": "fe11166f", "id": "fe11166f-b0a6-471e-a39c-65a259eba09b", "items": [{"id": "b379ce_949ab881556c45aaa057c52b27634b2a~mv2.jpg", "altText": "Projektorduk på trebent stativ med vitt hölje, uppfälld med tom duk"}, {"id": "b379ce_e940125506e44d89ab3ddf55294dee9a~mv2.jpg", "altText": "Stativduken uppställd i ett ljust rum medan en person pekar på den projicerade bilden"}, {"id": "b379ce_72247113689f4681a59b64b33e1fdb38~mv2.jpg", "altText": "Faktakort: projektorduk på stativ 171 × 131 cm i 4:3, bildyta 165 × 125 cm, vit"}, {"id": "b379ce_558ddf8346be45a3910226bb84134065~mv2.jpg", "altText": "Närbild på det vita fästet i höljets överkant"}, {"id": "b379ce_81400c70cb934e8aaefb3d3e60b2fb93~mv2.jpg", "altText": "Närbild på stativets vita rör där det möter höljet"}, {"id": "b379ce_ecfc17202861441286753a24a1582f34~mv2.jpg", "altText": "Måttritning: duk 171 × 131 cm, 84 tum, bildyta 165 × 125 cm, 2,03 m total höjd"}]}, {"k": "623b6504", "id": "623b6504-c197-46a3-86e6-539ba411cf9a", "items": [{"id": "b379ce_0f05819ed3d74d3eb001aa20c49ddae0~mv2.jpg", "altText": "Motoriserad projektorduk med svart hölje, väggpanel på sladden och trådlös fjärrkontroll"}, {"id": "b379ce_bcd630942b134a3f8b5918ee6a6607d9~mv2.jpg", "altText": "Duken nedkörd i ett vardagsrum medan fyra personer ser på från soffan"}, {"id": "b379ce_682142889f9b488096aad3c5f4c34449~mv2.jpg", "altText": "Faktakort: motoriserad projektorduk 171 × 130 cm i 4:3, hölje 191 cm, 7,4 kg, svart"}, {"id": "b379ce_4f107a50366b4354956c81acff995d88~mv2.jpg", "altText": "Duken nedkörd över en mediabänk med högtalare i ett ljust rum"}, {"id": "b379ce_6ff3e7e73fef459cb2b5ffc1225e74b4~mv2.jpg", "altText": "Måttritning: hölje 191 cm brett, duk 84 tum, 171 × 130 cm"}]}, {"k": "77e4a558", "id": "77e4a558-8007-4a0e-8d6b-3306126f41b2", "items": [{"id": "b379ce_c3cc0f442b6949e3997d7ead35af6357~mv2.jpg", "altText": "Duken nedkörd på en vardagsrumsvägg med en fotbollsmatch projicerad framför fyra personer"}, {"id": "b379ce_8085763124a9497a80f4d7d74bcfd86f~mv2.jpg", "altText": "Faktakort: motoriserad projektorduk 171 × 130 cm i 4:3, hölje 191 cm, 7,4 kg, vit"}, {"id": "b379ce_bc7f42a6b38745f0873d709d8aeedddd~mv2.jpg", "altText": "Måttritning: hölje 191 cm brett, duk 84 tum, 171 × 130 cm"}]}];
+  const ut = [];
+  for (const p of P) {
+    const g0 = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}` });
+    const gp = (g0.data && g0.data.product) || g0.product || g0;
+    await wix.request({ scope: "site", method: "PATCH",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
+      body: { product: { id: p.id, revision: gp.revision, visible: gp.visible,
+        media: { itemsInfo: { items: p.items } } } } });
+    const r = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+    const q = (r.data && r.data.product) || r.product || r;
+    const it = (((q.media || {}).itemsInfo || {}).items) || [];
+    const ordning = it.map(x => x.id).join("|") === p.items.map(x => x.id).join("|");
+    const alt = it.every((x, n) => x.altText === p.items[n].altText);
+    const utanAlt = it.filter(x => !x.altText).length;
+    ut.push([p.k,
+      it.length === p.items.length ? `${it.length} bilder ok` : `ANTAL ${it.length} != ${p.items.length}`,
+      ordning ? "ordning ok" : "ORDNING FEL",
+      alt ? "alt ok" : "ALT FEL",
+      utanAlt === 0 ? "inga tomma alt" : `${utanAlt} UTAN ALT`,
+      q.visible === false ? "utkast ok" : `PUBLICERAD: ${q.visible}`,
+    ].join(" | "));
+  }
+  return ut;
+}

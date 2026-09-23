@@ -209,22 +209,32 @@ export async function listVisibleV3ProductIds(): Promise<Set<string>> {
  * Listar alla produkter i V3-katalogen med minimal data (id, name, slug, image).
  * Pagination hanteras automatiskt via cursor.
  */
-export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
+/**
+ * Hela V3-katalogen, sida för sida.
+ *
+ * `beskrivning: false` hoppar över PLAIN_DESCRIPTION. Fältet är det tyngsta i
+ * svaret och behövs bara av /admin/seo ("saknar beskrivning"); utan det blir
+ * `hasDescription` alltid false och `plainDescription` tom — läs dem inte då.
+ *
+ * ☠️ TAKET KASTAR, DET KORTAR INTE AV (2026-09-23). Loopen stannade tyst vid 50
+ * sidor = 5 000 produkter. Katalogen passerade det i september, så /admin/seo,
+ * lönsamhetsrapporten och /admin/mappings räknade på en avkortad lista utan
+ * att säga det. Redirect-grinden (`redirects.ts`) läser samma lista, så där såg
+ * en produkt bortom taket död ut. Samma tak och samma hållning som
+ * listVisibleV3ProductIds: en avkortad lista är värre än ett fel.
+ */
+export async function listAllV3Products(
+  opts: { beskrivning?: boolean } = {},
+): Promise<WixV3ProductSummary[]> {
+  const beskrivning = opts.beskrivning ?? true;
   const all: WixV3ProductSummary[] = [];
   let cursor: string | undefined;
-  // ☠️ TAKET LÅG PÅ 50 SIDOR = 5 000 PRODUKTER, mot en katalog på 5 748 —
-  // alltså redan passerat, och funktionen svarade med en TYST avkortad lista.
-  // Exakt samma bugg som `listVisibleV3ProductIds` hade (CLAUDE.md,
-  // 2026-09-14): en konstant som var rätt när den sattes och blev fel när
-  // volymen växte under den. Riktningen är dyr här också — sitemapen och
-  // redirect-grinden läser den här listan, så en produkt bortom sidan 50 ser
-  // död ut. Samma tak och samma kastning som systerfunktionerna.
   for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
     if (page === MAX_SYNLIGA_SIDOR) {
       throw new Error(
         `listAllV3Products passerade ${MAX_SYNLIGA_SIDOR} sidor `
           + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
-          + "lista är värre än ett fel: den gör publicerade produkter osynliga.",
+          + "lista räknar fel utan att säga det.",
       );
     }
     // V3 använder cursorPaging (inte paging). Cursor måste ligga INUTI
@@ -233,8 +243,10 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
     // PLAIN_DESCRIPTION är ett tungt fält som inte returneras by default —
-    // begär det explicit så vi kan se vilka produkter som saknar beskrivning.
-    const body = { fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } };
+    // begär det explicit bara när anroparen behöver se vilka som saknar beskrivning.
+    const body = beskrivning
+      ? { fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } }
+      : { query: { cursorPaging } };
 
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
       method: "POST",
@@ -949,6 +961,245 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
   throw new Error(
     `V3 prisquery nådde sidtaket (${MAX_PRIS_SIDOR} sidor, ${priser.size} produkter) med `
       + `markören kvar. Katalogen är större än väntat — höj taket hellre än att `
+      + `arbeta vidare på en halv lista.`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Katalogen som utgående produktflöde — facit för /api/feed/shopit.
+// ---------------------------------------------------------------------------
+
+export interface WixV3FeedProduct {
+  id: string;
+  name: string;
+  slug: string;
+  plainDescription?: string;
+  imageUrl?: string;
+  brandName?: string;
+  /** "Hem & Inredning > Badrum & Hemtextil" — undefined om produkten bara sitter i "All Products". */
+  categoryPath?: string;
+  /** SEK, null när varianterna har olika pris (inget entydigt produktpris). */
+  priceSek: number | null;
+  inStock: boolean;
+}
+
+interface WixHeadlessCategory {
+  id: string;
+  name: string;
+  parentId?: string;
+}
+
+/**
+ * Kategoriträdet för Shopit-flödets `g:product_type` — EGEN hämtning, inte
+ * `getCollections()` i lib/wix/client.ts. Den funktionen läser `WIX_SITE_ID`
+ * ("gamla Fyndplats", se dess egen kommentar), medan den här filens produkter
+ * (och deras `directCategoriesInfo`-id:n) lever på den HEADLESS-sajten
+ * (`HEADLESS_WIX_SITE_ID`). Två olika Wix-siter, två olika id-rymder — att
+ * återanvända client.ts-versionen hade slagit upp id:n mot fel träd och tyst
+ * gett en tom eller felaktig kategorisökväg.
+ *
+ * Samma endpoint och kroppsform som client.ts (verifierad tidigare mot samma
+ * headless-sajt), men med den här filens egna `headers()`.
+ */
+async function fetchHeadlessCategories(): Promise<WixHeadlessCategory[]> {
+  const out: WixHeadlessCategory[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/categories/v1/categories/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        treeReference: { appNamespace: "@wix/stores" },
+        query: { cursorPaging },
+      }),
+    });
+    if (!res.ok) {
+      // Ett kategorifel ska inte stoppa hela flödet — produkter utan
+      // upplösbar kategoripath hoppas bara över (se buildCategoryPath).
+      if (res.status === 404 || res.status === 403) return out;
+      const text = await res.text();
+      throw new Error(`V3 feed-sweep: kategoriläsning misslyckades (${res.status}): ${text.slice(0, 400)}`);
+    }
+    const data = (await res.json()) as {
+      categories?: Array<{ id: string; name?: string; parentCategory?: { id?: string } }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const c of data.categories ?? []) {
+      if (!c.name) continue;
+      out.push({ id: c.id, name: c.name, ...(c.parentCategory?.id ? { parentId: c.parentCategory.id } : {}) });
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!data.pagingMetadata?.hasNext || !cursor) break;
+  }
+  return out;
+}
+
+/**
+ * Väljer den mest specifika kategorin bland produktens egna (den med flest
+ * föräldrar) och bygger sökvägen från roten till den — "Hem & Inredning >
+ * Badrum & Hemtextil". "All Products" är alltid med på varje produkt och är
+ * ingen riktig kategori; den utesluts, precis som poleringens egna kategori-
+ * grindar redan gör. Ingen upplösbar kategori → undefined, gissas inte fram.
+ */
+function buildCategoryPath(
+  categoryIds: readonly string[],
+  byId: ReadonlyMap<string, WixHeadlessCategory>,
+  allProductsId: string | undefined,
+): string | undefined {
+  const kandidater = categoryIds.filter((id) => id !== allProductsId && byId.has(id));
+  if (kandidater.length === 0) return undefined;
+
+  const djup = (id: string): number => {
+    let d = 0;
+    let cur = byId.get(id);
+    while (cur?.parentId) {
+      d++;
+      cur = byId.get(cur.parentId);
+    }
+    return d;
+  };
+  const leaf = kandidater.reduce((best, id) => (djup(id) > djup(best) ? id : best));
+
+  const path: string[] = [];
+  let cur: WixHeadlessCategory | undefined = byId.get(leaf);
+  while (cur) {
+    path.unshift(cur.name);
+    cur = cur.parentId ? byId.get(cur.parentId) : undefined;
+  }
+  return path.length > 0 ? path.join(" > ") : undefined;
+}
+
+/**
+ * Katalogen i ETT svep, formad för ett utgående produktflöde (Shopit m.fl.).
+ *
+ * Samma försvar som `listV3ProductPrices`, av samma skäl: backoff/pacing på
+ * `PRIS_PAUS_MS`/`PRIS_SIDPAUS_MS`, sidtak, och kastar hellre än returnerar
+ * en halv katalog. Begär `PLAIN_DESCRIPTION` — tungt fält, men `listAllV3Products`
+ * gör redan exakt detta över hela katalogen utan problem.
+ *
+ * Bara `visible: true`-produkter tas med. Ett flöde till en extern
+ * prisjämförelsesajt ska aldrig lista opolerade tyska utkast — samma
+ * "Wix `visible` är sanningen"-regel som `listVisibleV3ProductIds`. Frånvaro
+ * av fältet räknas som synlig.
+ *
+ * Pris blir `null` när varianterna har olika belopp — samma regel som
+ * `listV3ProductPrices`: ett spann är inget "produktens pris", och att gissa
+ * på minsta beloppet hade sålt fel pris till en jämförelsesajts besökare.
+ * Anroparen utesluter sådana rader ur flödet i stället för att gissa.
+ *
+ * ☠️ Golvet (`MIN_WIX_PRODUKTER`) mäts mot ALLA lästa produkter, inte mot de
+ * synliga. Synliga är i praktiken en bråkdel av katalogen (opolerade Aosom-
+ * utkast är merparten), så ett golv på den delmängden hade antingen fällt en
+ * frisk körning eller inte fällt någonting alls. Vad golvet ska fånga är ett
+ * transportfel — en halvläst katalog som ser komplett ut.
+ */
+export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
+  const out: WixV3FeedProduct[] = [];
+  let totalRead = 0;
+  let cursor: string | undefined;
+
+  const categories = await fetchHeadlessCategories();
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  const allProductsId = categories.find((c) => c.name === "All Products")?.id;
+
+  for (let sida = 0; sida < MAX_PRIS_SIDOR; sida++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+
+    if (sida > 0) await sov(PRIS_SIDPAUS_MS);
+
+    let svar: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ fields: ["PLAIN_DESCRIPTION", "DIRECT_CATEGORIES_INFO"], query: { cursorPaging } }),
+        });
+      } catch (err) {
+        sistaFel = err instanceof Error ? err.message : String(err);
+        if (forsok === PRIS_PAUS_MS.length) break;
+        await sov(PRIS_PAUS_MS[forsok]);
+        continue;
+      }
+      if (res.ok) {
+        svar = res;
+        break;
+      }
+      const text = await res.text();
+      sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+      if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
+      const retryAfter = Number(res.headers.get("retry-after"));
+      await sov(
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 15_000)
+          : PRIS_PAUS_MS[forsok],
+      );
+    }
+    if (!svar) {
+      throw new Error(`V3 feed-sweep föll på sida ${sida} — ${sistaFel}`);
+    }
+
+    const data = (await svar.json()) as {
+      products?: Array<{
+        id?: string;
+        name?: string;
+        slug?: string;
+        visible?: boolean;
+        plainDescription?: string;
+        media?: { main?: { image?: { url?: string } } };
+        brand?: { name?: string };
+        directCategoriesInfo?: { categories?: Array<{ id?: string }> };
+        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+        inventory?: { availabilityStatus?: string };
+      }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+
+    const products = data.products ?? [];
+    totalRead += products.length;
+
+    for (const p of products) {
+      if (!p.id || !p.name || !p.slug) continue;
+      if (p.visible === false) continue;
+      const min = Number(p.actualPriceRange?.minValue?.amount);
+      const max = Number(p.actualPriceRange?.maxValue?.amount);
+      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+      const categoryIds = (p.directCategoriesInfo?.categories ?? [])
+        .map((c) => c.id)
+        .filter((id): id is string => !!id);
+      out.push({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        plainDescription: p.plainDescription,
+        imageUrl: p.media?.main?.image?.url,
+        brandName: p.brand?.name,
+        categoryPath: buildCategoryPath(categoryIds, byId, allProductsId),
+        priceSek: entydigt ? min : null,
+        inStock: p.inventory?.availabilityStatus === "IN_STOCK",
+      });
+    }
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (products.length === 0 || !cursor || data.pagingMetadata?.hasNext === false) {
+      if (totalRead < MIN_WIX_PRODUKTER) {
+        throw new Error(
+          `V3 feed-sweep läste bara ${totalRead} produkter totalt — under `
+            + `${MIN_WIX_PRODUKTER}-golvet. Sannolikt ett läsfel, inte en tom katalog.`,
+        );
+      }
+      return out;
+    }
+  }
+
+  throw new Error(
+    `V3 feed-sweep nådde sidtaket (${MAX_PRIS_SIDOR} sidor, ${totalRead} lästa produkter) `
+      + `med markören kvar. Katalogen är större än väntat — höj taket hellre än att `
       + `arbeta vidare på en halv lista.`,
   );
 }

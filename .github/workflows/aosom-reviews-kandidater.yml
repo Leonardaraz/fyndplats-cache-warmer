@@ -1,0 +1,137 @@
+name: Recensioner — vilka produkter saknar Aosom-recensioner (krypterat)
+
+# Svarar på "vilka produkter ska få recensioner hämtade nu?" och lämnar ut
+# artikelnumren PRIVAT, så att hämtningen i webbläsaren kan göras.
+#
+# VARFÖR DEN FINNS (2026-09-23). Hämtningen på aosom.de kräver artikelnumret.
+# Första omgången (2026-09-16) tog numren ur en jämförelsefil som bara täckte
+# annonsurvalet; för de 297 produkter som polerats sedan dess fanns ingen väg.
+# /admin/mappings bär numren men laddar inte vid den här katalogstorleken, och
+# kuvertet i polish-mapping.yml tar en produkt per körning.
+#
+# Urvalet: SYNLIGA Aosom-produkter som aldrig fått `reviewsCheckedAt` (sätts av
+# inläsningen, och av det gamla svepet bara vid svar — aldrig vid fel).
+#
+# ☠️ KUVERTET ÄR OBLIGATORISKT. Det finns inget klartextläge, med flit: det
+# finns ingen anledning att någonsin skriva artikelnummer till den här loggen,
+# som är PUBLIK. Samma hybridkryptering som polish-mapping.yml —
+# RSA-OAEP/SHA-256 på ett slumpat lösenord, AES-256-CBC/PBKDF2 på listan.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      kuvert:
+        description: "OBLIGATORISK: base64 av en RSA-publik nyckel (PEM). Listan krypteras mot den."
+        required: true
+        type: string
+      fore:
+        description: "Valfritt: ta även med produkter kontrollerade FÖRE detta datum (ISO, t.ex. 2026-09-16T00:00:00Z). Tomt = bara aldrig kontrollerade."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  kandidater:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hämta och kryptera
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          KUVERT: ${{ inputs.kuvert }}
+          FORE: ${{ inputs.fore }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          # Nyckeln kontrolleras FÖRE anropet: faller den ska ingenting ha
+          # hämtats, och absolut ingenting skrivas ut.
+          if ! printf '%s' "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+            echo "::error::kuvert: inputet ar inte giltig base64" >&2
+            exit 1
+          fi
+          if ! openssl pkey -pubin -in kuvert.pub -noout 2>kuvert.fel; then
+            echo "::error::kuvert: inte en RSA-publik nyckel i PEM-format" >&2
+            cat kuvert.fel >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-reviews-kandidater"
+          if [ -n "${FORE:-}" ]; then
+            url="${url}?fore=$(printf '%s' "$FORE" | jq -sRr @uri)"
+          fi
+
+          # ☠️ Svaret bär artikelnummer. Det går rakt till en FIL och läses
+          # sedan bara av jq — det passerar aldrig en variabel som något kan
+          # råka echo:a, och det skrivs aldrig ut.
+          kod=$(curl -sS -o svar.json -w '%{http_code}' --max-time 150 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$url")
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            jq -c '{ok, error}' svar.json >&2 2>/dev/null || true
+            rm -f svar.json
+            exit 1
+          fi
+
+          # Räknarna är ofarliga och går till loggen och sammanfattningen.
+          jq -r '"kandidater \(.antal) av \(.synligaAosom) synliga Aosom-produkter · redan kontrollerade \(.redanKontrollerade) · utan artikelnummer \(.utanArtikelnummer) · ej synliga \(.ejSynliga) · aosom-rader \(.aosomRader)"' svar.json
+          {
+            echo "### Aosom-recensioner — kandidater"
+            echo ""
+            jq -r '
+              "| | |\n|---|---:|",
+              "| **att hämta** | **\(.antal)** |",
+              "| synliga Aosom-produkter | \(.synligaAosom) |",
+              "| redan kontrollerade | \(.redanKontrollerade) |",
+              "| utan läsbart artikelnummer | \(.utanArtikelnummer) |",
+              "| ej synliga (utkast, dolda) | \(.ejSynliga) |",
+              "| omsvep före | \(.fore // "—") |"
+            ' svar.json
+            echo ""
+            echo "Listan finns bara krypterad i loggen."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          jq -j '.kandidater | tostring' svar.json > kuvert.klartext
+          rm -f svar.json
+
+          # ☠️ HYBRID, INTE RAK RSA — listan är tiotals kilobyte. Lösenordet
+          # ligger i en FIL, aldrig i argv. Och openssl:s fel SYNS: de
+          # beskriver nycklar och padding, aldrig innehållet.
+          openssl rand -base64 32 > kuvert.losen
+          if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+               -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+            echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
+            exit 1
+          fi
+          # ☠️ INGEN FALLBACK TILL KLARTEXT. Faller RSA-steget faller jobbet.
+          if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+               -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+               -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+            echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+            exit 1
+          fi
+          rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+          echo
+          echo "=== Kuvert (RSA-OAEP/SHA-256 + AES-256-CBC/PBKDF2, base64) ==="
+          echo "losen: $(base64 -w0 kuvert.losen.enc)"
+          # Datat bryts i rader om 4 000 tecken så loggvyn inte kortar av det.
+          echo "data-borjan"
+          base64 -w 4000 kuvert.data
+          echo "data-slut"
+          rm -f kuvert.losen.enc kuvert.data
+          echo "(dekryptera: RSA-oppna losen med din privata nyckel, sla ihop"
+          echo " data-raderna, sedan openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen>)"

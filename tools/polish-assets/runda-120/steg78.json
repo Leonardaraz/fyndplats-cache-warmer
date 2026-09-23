@@ -1,0 +1,18 @@
+{
+ "steg7": {
+  "kropp": ["id", "revision", "name", "slug", "plainDescription", "seoData"],
+  "utelamnat": "visible — se runbokens Steg 7-varning 2026-09-10",
+  "skrivna": 8,
+  "priset": "ororrt pa alla atta",
+  "produktSynlighet": "false pa alla atta"
+ },
+ "steg8wix": {
+  "skrivna": 8,
+  "variantSynlighet": "true pa alla atta",
+  "kvitto": "skun last tillbaka ur PATCH-svaret och jamford mot forvantad strang"
+ },
+ "revisionerEfterSteg8": {
+  "441d2209": 3, "394de213": 3, "f4ed1264": 4, "3b38e191": 3,
+  "51c43e67": 5, "c3bda64a": 3, "c88b5bbb": 5, "63a37524": 4
+ }
+}

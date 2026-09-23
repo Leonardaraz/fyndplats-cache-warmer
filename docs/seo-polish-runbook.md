@@ -22,6 +22,26 @@
   `Product`-JSON-LD och OpenGraph **genereras automatiskt** ur produktfälten; du behöver inte
   sätta `og:`-taggar.
 
+### ☠️ Katalogen nås BARA via Wix-kopplingen — det finns ingen nyckel i miljön (2026-09-05)
+
+Anropen går genom kopplingens `wix.request`. Det finns **ingen `WIX_API_TOKEN` i
+sessionens skal** — nycklarna bor i Vercel-produktionen. Ett rakt anrop mot
+`www.wixapis.com` svarar därför `403` med kroppen `{"message":"","details":{}}`, och
+**exakt samma svar kommer utan `Authorization`-huvud**. Felet avslöjar alltså inte att
+nyckeln SAKNAS snarare än är fel — det ser ut som ett behörighetsproblem hos Wix.
+
+☠️ **Och `ListConnectors` kan ljuga i den riktning som kostar mest tid.** Uppmätt
+samma dag: kopplingen svarade `connected: true, enabledInChat: true` medan **inga
+`wix`-verktyg alls fanns laddade** i sessionen. Kontrollen som faktiskt biter är att
+söka efter verktygen, inte att fråga om kopplingens status.
+
+⚠️ **Är verktygen borta går INGET steg att köra.** Steg 1, 3, 5, 6, 7, 8, 9, 10, 11,
+12 och 13 rör alla katalogen. Någon nyckel-lös omväg finns inte: `CRON_SECRET` är märkt
+Sensitive och `EXTENSION_API_TOKEN` bor bara i Vercel, så workflow-vägen når enbart de
+rutter som redan är byggda (mappningsraden, prisreparationen) — aldrig produkt-API:t.
+Rätt åtgärd är att be Leonard slå på Wix-kopplingen för chatten igen, inte att leta
+efter en nyckel att klistra in. Poleringen väntar; en halvfärdig runda skadar ingen.
+
 ### Märken: strippa husmärken, behåll etablerade
 
 *(Leonards beslut 2026-06-21.)* Råimporten lägger märkesnamnet först i titeln.
@@ -61,7 +81,79 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields`-fällan:** på GET fungerar `?fields=X` och repeterade `?fields=A&fields=B`. En
   **kommaseparerad** lista 400:ar med det missvisande `Failed to parse JSON or deserialize
   protobuf message` — felet ser ut att gälla bodyn men sitter i URL:en.
-- **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå). Giltiga värden:
+- ☠️ **`wix.request` tar kroppen i `body` — `data` SLUKAS TYST** *(uppmätt 2026-09-10)*.
+  Med `data` lyckas anropet, Wix svarar 200 med standardprojektionen, och allt du
+  skickade — markör, filter, `limit` — fanns aldrig i förfrågan. Uppmätt på `limit: 5`:
+
+  | kroppsfält | rader tillbaka |
+  |---|--:|
+  | `data` · `json` · `payload` | 100 |
+  | **`body`** | **5** |
+  | `body` som JSON-STRÄNG | `400 Expected an object` |
+
+  Det förklarar uppgift #404:s "svepet läste samma sida 30 gånger": markören låg i
+  en kropp som aldrig skickades, inte på fel nivå i den. Och det gjorde felet omöjligt
+  att felsöka — `search.cursorPaging`, toppnivå och `search.paging` gav alla 100 rader,
+  eftersom ingen av dem nådde fram.
+
+  🔒 **Pröva att kroppen biter innan du mäter något med den.** `limit: 5` mot ett API
+  som svarar 100 är den billigaste kontrollen som finns. Samma familj som en läsare
+  som blir TOM: ett fel fältnamn ger ett friskt svar, inte ett fel.
+- ✅ **`fields: ["PLAIN_DESCRIPTION"]` ligger på KROPPENS TOPPNIVÅ i `products/search`**,
+  bredvid `search`, inte inuti den. Uppmätt samma dag: 5 623 av 5 623 produkter kom
+  tillbaka med `plainDescription` ifylld. (`VARIANTS_INFO` finns däremot inte som enum
+  — en enskild GET ger `variantsInfo` i standardprojektionen ändå.)
+- ☠️ **Wix SKRIVER OM beskrivningens markup vid sparning** *(uppmätt 2026-09-07)*. Det du
+  skickar är inte det som lagras:
+
+  | skickat | lagrat |
+  |---|---|
+  | `<strong>X</strong>` | `<span style="font-weight: 700">X</span>` |
+  | `<li>text</li>` | `<li><p>text</p></li>` |
+  | `<a href="…">` | `<a href="…" target="_self">` |
+  | 4 605 tecken | 5 328 tecken |
+
+  Den SYNLIGA texten är oförändrad, så transkriptionshashen stämmer exakt — och det är
+  precis därför omskrivningen är osynlig i den vanliga verifieringen. Hashen är alltså
+  blind för **markup** på samma sätt som den är blind för **länkar**.
+
+  🔒 **Härled aldrig en syskonsidas text ur det Wix lagrat.** Ett substrängsbyte mot
+  `<strong>Färg:</strong> vit` matchar noll gånger i den lagrade texten. Härled ur den
+  LOKALA källan, där formen är den man själv skrev, och låt hashen grinda före skrivningen.
+- ☠️ **En `variantsInfo`-PATCH ERSÄTTER varianten** *(uppmätt 2026-09-07)*. `price` är
+  obligatoriskt — utan det svarar API:t `400 … price must not be empty` — och varje fält du
+  inte skickar med FÖRSVINNER.
+
+  🔒 **Läs varianten omedelbart före skrivningen och eka tillbaka `price` oförändrat**,
+  precis som `updateV3VariantPrices` måste eka tillbaka `visible`. Priset är Leonards
+  beslut, inte poleringens; jämför beloppet efteråt mot det du läste.
+
+  ☠️ **Variantens `media` FALLER BORT VID VARJE SÅDAN PATCH — även när du ekar tillbaka
+  den ordagrant** *(skärpt 2026-09-07, runda 99)*. Runda 98 mätte att den inte gick att
+  REPARERA i efterhand; runda 99 skickade med hela mediaobjektet — `id`, `altText`,
+  `mediaType` och `image` — på sju produkter som ALLA hade media kvar, och fick
+  `media: null` på alla sju. Det är alltså inte en reparationsbegränsning utan fältets
+  beteende: `variantsInfo` skriver aldrig `media`.
+
+  Sluta försöka. På en envariantsprodukt utan val är kundeffekten noll — sidan renderar
+  galleriet och `media.main`, och alla sju live-sidorna visar rätt bilder. Vill du ha
+  svensk alt-text på variantminiatyren är `variantsInfo` fel väg.
+
+  ☠️ **OCH DEN PUBLICERAR UTKASTET — även en ren SKU-skrivning** *(uppmätt 2026-09-07)*.
+  Sju utkast gick från `visible:false` till `visible:true` av en PATCH vars enda avsikt var
+  att byta SKU. Fällan är känd för prisreparationen (`CLAUDE.md`), men Steg 8 gör exakt
+  samma anrop och hade ingen vakt. Sidorna låg publicerade med rätt text men FEL galleri
+  (leverantörens tyska bildset) tills de sattes tillbaka.
+
+  🔒 **Skicka därför alltid `visible` uttryckligen i Steg 8:s PATCH** — produktens `false`
+  om du inte är klar, `true` om du är det. Och eftersom `visible` i masken KASKADERAR ner
+  till varianten (se avsnittet i Steg 4) måste variantens `visible: true` med i samma
+  anrop. Verifierat båda vägarna: mask `["visible","variantsInfo"]` med produkt `false` +
+  variant `true` ger en osynlig produkt med en köpbar variant.
+- **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå — bekräftat 2026-09-07:
+  en naken `GET /products/{id}` bär hela `variantsInfo` med `id`, `sku`, `price`, `media`,
+  `choices` och `inventoryStatus`, medan `?fields=VARIANTS_INFO` svarar
+  `400 Failed to parse JSON or deserialize protobuf message`). Giltiga värden:
   `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` ·
   `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO` ·
   `INFO_SECTION_PLAIN_DESCRIPTION` · `CURRENCY` · `MERCHANT_DATA` ·
@@ -123,6 +215,16 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   väntade talet. **Begär `PLAIN_DESCRIPTION` när du räknar tecken.** Samma familj som
   `MEDIA_ITEMS_INFO`: ett fält som saknas i begäran syns som ett tomt värde, inte som ett
   fel — och ett tomt värde ser i ett svar precis ut som en förlorad skrivning.
+
+  ☠️ **Och en sen TEXTRÄTTELSE är där fällan blir dyr.** Ett rättelseskript som ankrar
+  mot `product.description` läser `undefined` på en vanlig GET — fältet kommer inte med
+  utan projektion — och `(p.description || "")` gör då en tom sträng av det. Utan assert
+  hade PATCH:en skrivit **en tom beskrivning till tre publicerade sidor**, och svaret
+  hade sagt OK. Uppmätt 2026-09-04 på tre medicinskåp: `typeof description === "undefined"`,
+  `längd 0`, medan `plainDescription` var 2 644 tecken i samma produkt.
+  **Ankra rättelser mot `plainDescription`, hämta det med `fields=PLAIN_DESCRIPTION`,
+  och låt varje ankare ASSERTA att det finns exakt en gång innan något skrivs.**
+  Asserten är det som gör skillnad mellan ett avbrutet skript och tre tömda sidor.
 - ☠️ **Mappningsraden nås inte via Wix Data längre.** Den bor i Postgres sedan
   2026-09-01 och `FyndplatsMappings` är tömd. Läs och skriv den med workflowen
   **Polering — läs och stämpla mappningsraden** (Steg 3 och 13). De gamla
@@ -131,6 +233,30 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   läser tillbaka och verifierar att skrivningen faktiskt tog.
 - En PATCH är partiell **på fältnivå i produkten** — men skicka alltid `visible` explicit
   (Steg 13), och rör aldrig `options`/`variantsInfo` om du inte menar att ändra varianterna.
+- ☠️ **`wix.request` skickar request-bodyn under `body` — `data` slukas TYST (2026-09-05).**
+  Fällan är att SVARET läses som `r.data`, så `data:` ser ut att vara nyckeln åt båda
+  hållen. Det är den inte: bodyn under `data` når aldrig API:t, och V3 svarar då med
+  sin DEFAULTSIDA — inget fel, ingen varning. Uppmätt samma anrop, tre nycklar:
+
+  | nyckel | rader | träffar på filtret |
+  |---|--:|--:|
+  | `data` | 100 | 2 |
+  | **`body`** | **5** | **5** |
+  | `json` | 100 | 2 |
+
+  Symtomen är exakt de två som redan står ovan, och det är därför de är lätta att
+  feldiagnosticera: **filtret verkar ignoreras** (98 av 100 namn matchade inte
+  `$startsWith`, och 38 av 100 var `visible:true` trots `visible:false`) OCH
+  **markören står stilla** (`cursors.next` kom tillbaka IDENTISK med den som
+  skickades in, i alla fyra kroppsformer). En hel förmiddag kan gå åt till att
+  prova om paginering som aldrig var problemet. **Kontrollen är densamma: räkna
+  unika id och jämför den returnerade markören mot den du skickade — men leta
+  efter `data:` i anropet innan du felsöker paginering.**
+
+  ⚠️ `$contains` finns inte på `name` i `/products/search` (`400 … non allowed
+  operator`). `$startsWith` fungerar. Är operatorn fel svarar API:t alltså
+  ordentligt — det är bara den tysta bodyn som inte gör det.
+
 - ☠️ **`products/query` svarar 200 med SAMMA 50 rader i all evighet om bodyn inte är
   `query`-wrappad.** Rätt form är `{query: {filter, sort, cursorPaging}}`. Skickar du
   fälten på toppnivå — vilket ser rimligt ut och är vad varje annan V3-rutt tar — så
@@ -146,6 +272,37 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 
   **Kontrollen är en rad:** räkna unika id, inte rader. Är `unika < rader` paginerar du inte.
   Och när ett svep säger "noll träffar" i en kategori du vet finns — misstro svepet först.
+- ☠️ **`list-categories-for-items` svarar med `directCategoryIds` — INTE `categoryIds`.**
+  Läser du fel fältnamn får du `undefined`, `|| []` gör en tom lista av det, och
+  verifieringen rapporterar **"noll kategorier" på åtta produkter som alla har tre**.
+  Uppmätt 2026-09-08 i runda 105: skrivningen svarade `totalSuccesses: 2` per produkt,
+  och kontrollen sa ändå FEL på alla åtta. Det rätta svaret är
+  `{categoriesForItems: [{item: {catalogItemId, appId}, directCategoryIds: [...],
+  indirectCategoryIds: [...]}]}` — och `item`, inte `itemReference`.
+
+  ⚠️ Kroppen är dessutom `{treeReference, items: [...]}` med **`items`**, och
+  `bulk/categories/add-item` tar `{treeReference, item, categoryIds}` — alltså EN vara
+  till FLERA kategorier, inte tvärtom. Båda felformerna 400:ar tydligt, så de kostar en
+  runda men inget tyst.
+
+  ☠️ **OCH ADRESSERNA ÄR OSYMMETRISKA — läsningen har INGET `bulk/`.** Rätt par:
+
+  | | adress |
+  |---|---|
+  | skriva | `POST /categories/v1/**bulk**/categories/add-item` |
+  | läsa | `POST /categories/v1/categories/list-categories-for-items` |
+
+  Runda 106 antog att läsningen låg under `bulk/` som skrivningen och fick **404** två
+  gånger i rad. En 404 säger "either the URL did not match an API route, or … a resource
+  referenced in your request does not exist" — alltså precis det som gör den lätt att
+  feldiagnosticera som ett felaktigt produkt-id. Det var adressen. Facit står i
+  API-spec:en (`SearchWixAPISpec` på Stores Categories listar alla 22 metoderna med
+  publika adresser); gissa inte utifrån syskonmetodens form.
+
+  **Regeln, samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: ett fältnamn
+  som inte finns läses som TOMT, inte som fel** — och en tom lista ser i en grind exakt
+  ut som en misslyckad skrivning. Skriv ut det RÅA svaret innan du felsöker skrivningen.
+
 - ☠️ **Ett media-item tar `id` ELLER `url` — och `url` betyder EXTERN adress.** Skickar
   du `{image: {url: "https://static.wixstatic.com/..."}}` svarar V3 **400 `id or url must
   not be empty`**: fältet ligger på item-nivå, inte inuti `image`. Och hade det gått
@@ -348,6 +505,36 @@ räknar upp egenskaperna efter — den ordningen är det som gör huvudordskrave
 
 **Och läs alltid ut kandidaterna innan du bestämmer dig.** Felet syntes inte i siffran; det
 syntes när de 40 dyraste skrevs ut med namn. En kategorimätning utan namnlista är en gissning.
+
+### ☠️ …men huvudordsregeln har en blind fläck: ett LEDANDE ADJEKTIV (2026-09-05)
+
+Regeln ovan skyddar mot att `Regal` räknas när ordet står som egenskap. Den skyddar
+inte åt andra hållet, och det felet är dyrare: **ett adjektiv före produkttypen gör
+familjen osynlig för mätningen.**
+
+Uppmätt vid urvalet till runda 62:
+
+| mätning | träffar |
+|---|--:|
+| `^Kniestuhl` (huvudord) | **7** |
+| `/Kniestuhl\|Kniehocker/` var som helst i namnet | **17** |
+
+De tio som föll bort heter `Ergonomischer Kniestuhl…`, `Ergonomischer, schaukelnder
+Kniehocker…`. Familjen är alltså mer än dubbelt så stor som huvudordsräkningen sa —
+och hade den fått avgöra hade knästolarna sorterats bort som en småfamilj.
+
+⚠️ **Ledande adjektiv är sällsynta i katalogen men KONCENTRERADE till vissa
+familjer.** Mätt över 1 029 utkast: 3,7 % börjar med ett adjektiv ur listan
+`Ergonomischer · Klappbarer · Runder · Moderner · Drehbarer · Künstlicher ·
+Verstellbarer · Faltbarer · Elektrischer · Kleiner`. I knästolsfamiljen var andelen
+**59 %**. Det är ingen slump: adjektivet står först just när det ÄR säljargumentet —
+ergonomisk, hopfällbar, roterande — och då är hela familjen drabbad samtidigt.
+
+**Regeln: mät med BÅDA.** Huvudordet avgör vad som får RÄKNAS (det stänger ute
+`Regal` som egenskap), delsträngen avgör vad som får HITTAS. Kör delsträngen först,
+skriv ut namnen, och stryk de träffar där ordet står som egenskap i stället för som
+produkttyp. Ordningen spelar roll: en familj som aldrig hittades kan ingen namnlista
+rädda.
 
 ⚠️ **Räkna med att en dryg fjärdedel av utkasten redan finns publicerade.** Matstolarna i
 batch 53 gav den hittills högsta uppmätta andelen: **4 av 14** var identiska på alla tre
@@ -752,6 +939,48 @@ Steg 4 inte behöver göra aritmetiken för hand. Ingen hemlighet passerar chatt
 
 -----
 
+### ☠️ EN LÄSNING AV EN LEVERANTÖRSRAD ÄR ETT ANTAGANDE — läs TRE gånger
+
+Runda 120 hittade **tre tal som såg fullkomligt rimliga ut och kom från fel
+fält**. Inget av dem var uppenbart; alla tre hade nått kund utan grinden.
+
+| produkt | fältet | vad som stod | var det kom ifrån |
+|---|---|---|---|
+| `c3bda64a` | vikt | 29,4 kg | vikten på ett set **utanför batchen** |
+| `3b38e191` | stolens djup | 45 cm | **bordets** djup på samma produkt |
+| `f4ed1264` | sitsens diameter | Ø30 cm | ingen källa alls |
+
+Rundans `matt.py` har därför **tre källor**, och de fångar olika fel:
+
+1. **Steg 1:s katalogsvep** — den råa raden som den lästes när familjen
+   grupperades.
+2. **Steg 3:s spec-block** — den läsning som normalt fyller `matt.py`.
+3. **MÅTTRITNINGEN** (bild 3), inlagd som `RITNING` i `matt.py`.
+
+**Regel 7:** stämmer inte (1) och (2) om ett fält är fältet `None` tills det
+gått att läsa om — aldrig det tal som råkade skrivas sist. Sju av åtta rader
+stämde exakt; den åttonde bar ett tal som hörde till någon annan.
+
+☠️ **Regel 7 räckte inte.** `3b38e191`s stolsdjup stod fel i BÅDA
+textläsningarna, för båda kom ur samma rad. Det som skiljer måttritningen är
+att den inte är text: den är ortografisk, och regel 9 nedan är entydig — *står
+etiketten mot ritningen, mät ritningen.*
+
+**Regel 8:** varje bord- och sitsmått i `matt.py` måste stämma med `RITNING`.
+
+⚠️ **Bara geometri.** En LASTSIFFRA i en ritning är text som råkat ritas och
+vinner ingenting över spec-raden. Det är samma gräns regel 9 redan drar.
+
+⚠️ **Ett `None`-fält får aldrig nå ett kort eller en text.** `format()`
+renderar `None` som strängen `"None"`, som på ett spec-kort ser ut som en
+produktuppgift bland andra. `kort.kontroll()` fäller på det.
+
+**Fingeravtrycket att leta efter: ett tal som är IDENTISKT med grannfältets.**
+En stols djup som råkar vara exakt bordets, en vikt som råkar vara exakt
+syskonets. Det är sällan ett sammanträffande.
+
+-----
+
 ## Steg 4 – Titta på bilderna FÖRST (innan du skriver något)
 
 Den visuella förståelsen styr **allt nedströms** — sökordet (bilderna avslöjar produktens
@@ -789,6 +1018,229 @@ Notera per bild: inbränd text (och **var** — i ett band eller över varan), f
 dubbletter, och om bild 1 inte är den renaste produktbilden.
 
 -----
+
+### ☠️ Titta i bildernas ÖVRE VÄNSTRA HÖRN — leverantörens logotyp bor där
+
+Runda 64: `e76002c1` bild 2 bar **`HOMCOM by Aosom`** inbränt i hörnet. Både
+husmärket och leverantören, i samma logotyp, på en bild som var på väg till en
+kundsida.
+
+☠️ **Husets kontroll kan inte se det.** `CLAUDE.md` slår fast att vi inte
+läcker leverantörsspår, mätt som noll träffar på `aosom` eller ett husmärke i
+HTML:en. Den mätningen är korrekt och verkningslös mot en logotyp: text i en
+bild finns inte i källkoden. Ingen `grep`, ingen live-grind och ingen
+alt-textkontroll fångar den — bara ögon.
+
+**Så här görs det billigt:** klipp ut övre vänstra 45 × 17 % ur bild 1 och 2 för
+alla åtta, klistra ihop till en remsa och titta en gång. Sexton hörn på ett
+uppslag. Det tog en minut i runda 64 och hittade en.
+
+⚠️ Position 1 och 2 räcker inte alltid — men de är de enda som blir huvudbild
+och delningsbild, alltså de som följer med till Google och sociala medier.
+Måttritningen (position 3) och detaljfotona granskas ändå för tysk text.
+
+-----
+
+### ☠️ EN FÄRG SKRIVS ALDRIG UR KONTAKTKARTAN — bara ur en ZOOM
+
+Kontaktkartan ovan är rätt verktyg för att förstå VAD bilderna visar. Den är
+fel verktyg för att avgöra vilken FÄRG en detalj har, och det har kostat två
+rundor i rad:
+
+| runda | skrivet | uppmätt i zoom |
+|---|---|---|
+| 89 | "röd fälg" på `479e9c2e` | fälgen är SILVER, bara gaffeln är röd |
+| 90 | "silverfärgade fälgar" på `5129f6b0` | fälgbandet är **VITT**, ekrarna silver |
+| 90 | "svarta fälgar" på `50b28808` | fälgen är **VIT** — det svarta är DÄCKET |
+
+Alla tre skrevs efter att ha tittat på en 320- eller 420-pixels miniatyr, och
+alla tre var fel om en liten men synlig del av varan. På den storleken är en
+fälg tjugo pixlar bred: däckets svarta ring dominerar, och fälgbandets färg
+finns knappt.
+
+**Regeln: varje färgpåstående om en DEL av varan — fälg, gaffel, beslag,
+sömmar, handtag — kräver en beskärning i minst 2× förstoring av just den
+delen.** Färgen på HELA varan går att läsa ur kontaktkartan; en detalj gör det
+inte.
+
+⚠️ Och gör grinden mekanisk, inte till en vana. Runda 90 la in `FALG_OK` —
+en lista per produkt med de färgord som är UPPMÄTTA, och ett fel om texten
+använder något annat framför ordet "fälg". Ett mutationstest som återinför
+båda felen fäller på rätt regel. En regel man ska komma ihåg glöms bort.
+
+#### ☠️ EN GRIND TÄCKER BARA DEN DETALJ DEN NÄMNER — runda 91 fällde på nästa
+
+`FALG_OK` vaktade fälgen. `RAM_OK` (runda 91) vaktade ramen. **Ingen av dem
+tittade på RANDNINGEN**, och det var där felet satt: fyra sparkcyklar fick
+"guld- och svartrandning" om ett band som i 6× zoom är **guld, vitt OCH svart**.
+
+Tredje rundan i rad, samma familj, ny detalj varje gång. Slutsatsen är inte
+"lägg till en regel till" utan **räkna upp varje färgad DEL i produkten och ge
+var och en sin egen uppmätta lista** innan texten skrivs — fälg, ram, rand,
+gaffel, styre, beslag.
+
+☠️ **Och kravet ska vara LIKHET, inte delmängd, och gälla PER FRAS.** Båda de
+svagare varianterna provades mot mutationstestet och båda missade:
+
+| krav | vad som slapp igenom |
+|---|---|
+| delmängd (allt som nämns finns) | att UTELÄMNA vitbandet ur en tregfärgad rand |
+| union över hela sidan | en HALV rättning — ingressen ändrad, spec-raden inte |
+
+Ett utelämnande är inte en lögn, men det gör syskonen mer olika än de är: tre
+av fyra hade beskrivits som om de bar olika randband när alla fyra bär samma.
+
+⚠️ **Priset för per-fras-kravet:** texten får inte referera tillbaka till en
+enskild rand ("de svarta ränderna löper …") utan att räkna upp hela bandet.
+Det är billigare än en tyst halv sanning.
+
+#### ☠️ KORTETS RUBRIK ÄR OGRANSKAD om den bor i `kort.py`
+
+Runda 90 lintade bara produkttexten. Kortrubriken låg i kortbyggets egen
+`KORTPLAN` — och det är **exakt den plats där både runda 90 och 91 skrev fel
+färg**, eftersom rubriken är vald för att peka ut vad som skiljer syskonen åt.
+
+Lägg rubriken i `texter.py` (t.ex. som `KORT`), låt `kort.py` importera den, och
+kör den genom `brister()` som ett eget litet dokument. Ett kort är lika mycket
+ett påstående mot kunden som ett stycke brödtext.
+
+⚠️ **Och ge varje ny grind ett eget prov i självtestet.** Runda 91:s randgrind
+hade samma loopvariabel i den yttre loopen och den inre generatorn — kontrollen
+jämförde orden mot sig själva och svarade **grönt på allt**. Självtestet fällde
+den på en sekund; utan prov hade grinden legat där och tigit i rundor.
+
+-----
+
+### ☠️ När `ExecuteWixAPI` svarar 403 — runda 93 körde hela vägen på reservvägen
+
+Verktyget som alla rundor byggt på slutade svara mitt i en session: `403
+forbidden` på varje anrop, även en läsning av två rader. `GetSiteContext`
+fungerade, alltså inte site-bindningen. **`CallWixSiteAPI` fungerade hela
+tiden.** Fyra omförsök över ~15 minuter gav samma svar.
+
+Skillnaden är inte kosmetisk — den tar bort tre saker rundan lutar sig mot:
+
+| | `ExecuteWixAPI` | `CallWixSiteAPI` |
+|---|---|---|
+| Loopa 56 katalogsidor i ETT anrop | ja | **nej**, ett HTTP-anrop per verktygsanrop |
+| Bygga kroppen i kod | ja | **nej**, kroppen klistras in för hand |
+| Facit-grind FÖRE PATCHen | ja | **nej**, grinden flyttar till återläsningen |
+
+☠️ **Klistrad kropp är precis den risk hashen finns för.** Skriv i fil, linta
+filen, klistra, läs tillbaka, jämför. Ingen produkt räknas som skriven förrän
+återläsningen stämmer.
+
+✅ **De publicerade sidorna behöver inte API:t alls.** `https://www.fyndplats.se/sitemap.xml`
+gav 2 197 produktsidor gratis, och dubblettgrinden mot publicerade sidor kunde
+köras utan ett enda Wix-anrop. Använd den vägen även när API:t är friskt — den
+är billigare än ett katalogsvep.
+
+☠️ **En markör får inte skickas med sitt eget filter.** `cursor` tillsammans med
+`filter` eller `sort` ger `SE-1141: Search, filter and aggregations cannot be
+specified together with cursor` — filtret ligger inbakat i markören. Tidigare
+rundors svep såg aldrig det, för de svepte utan filter.
+
+☠️ **Det finns ingen fältmask.** `?fields=products.id,products.name` ger
+`400 Failed to parse JSON or deserialize protobuf message`. `fields` är en
+enum för TILLÄGG (`PLAIN_DESCRIPTION`, `MEDIA_ITEMS_INFO`), inte en trimning.
+Räkna med ~1,4 k tokens per produkt i varje svar och filtrera serversidan.
+
+### ☠️ `visible` i fieldMask KASKADERAR ner till varianten (2026-09-07)
+
+Spegelbilden av den kända fällan att en `variantsInfo`-PATCH publicerar ett
+utkast. Uppmätt på två produkter i samma runda, med och utan:
+
+| skickat | produktens `visible` | variantens `visible` |
+|---|---|---|
+| `fieldMask: [… , "visible"]`, `visible:false` | false (avsett) | **true → false** ☠️ |
+| samma PATCH UTAN `visible` i masken | false (oförändrad) | true (oförändrad) |
+
+En produkt vars enda variant är osynlig går inte att köpa ens efter
+publicering, och ingenting i svaret ser fel ut. **Utelämna `visible` ur masken
+när du bara skriver text** — och när du MÅSTE ha med den (en
+`variantsInfo`-PATCH, som publicerar utan den), skicka variantens `visible`
+uttryckligen i samma anrop.
+
+### ☠️ `product.name` TAR HÖGST 80 TECKEN (2026-09-07)
+
+Uppmätt i runda 94. Ett namn som bar båda färgerna på ett tvåfärgat tak blev
+91 tecken och avvisades:
+
+```
+400  product is invalid:
+     `-- name has size 91, expected 80 or less
+     violatedRule: MAX_LENGTH, threshold: 80
+```
+
+Gränsen står inte i produktdokumentationen; den syns bara i felmeddelandet —
+samma sort som `ignoreCommand`-radens 256 tecken i `CLAUDE.md`.
+
+**Det är en riktig avvägning, inte en formalitet.** Ett reservtak vill bära fyra
+saker i namnet: produkttyp, storlek, färg och `utan stomme`. Något måste bort.
+Runda 94 flyttade den andra färgen (toppens) till seo-titeln och kortet och
+behöll `utan stomme` — den dyraste missuppfattningen kunden kan göra väger
+tyngre än en färgnyans.
+
+**Räkna namnet i grinden, inte i API-svaret.** En rad räcker:
+
+```python
+if len(namn) > 80:
+    f.append("namnet är %d tecken — Wix tar högst 80" % len(namn))
+```
+
+### ☠️ FIL-REGELN SKYDDAR FÖRFATTANDET — INTE TRANSKRIBERINGEN (2026-09-07)
+
+`CLAUDE.md` mätte batch 64: text skriven inline i API-anropet gav nio fel, text
+skriven i en fil och grep-grindad gav noll. Runda 94 följde regeln — och fick
+ändå in ett stavfel i två av fyra produkter:
+
+| var | vad |
+|---|---|
+| `html-d52c6d1d.html` (filen) | `samma yttermått` ✓ |
+| PATCH-kroppen (mitt anrop) | `samma yttterm\u00e5tt` ✗ |
+
+Anledningen är mekanisk och gäller varje runda: `ExecuteWixAPI` svarar 403, så
+kroppen kan inte byggas i kod ur filen — den skrivs **för hand** in i
+`CallWixSiteAPI`. Filen är alltså grindad, men det som faktiskt skickas är en
+KOPIA av filen, och kopieringen är oskyddad. API-svaret ekar dessutom tillbaka
+exakt det man skrev, så det ser rätt ut.
+
+☠️ **Det enda som fångar det är en ÅTERLÄSNING.** Läs tillbaka
+`plainDescription` i ett SEPARAT anrop efter skrivningen och leta efter de ord
+du själv skrev in för hand. Runda 94:s fel hittades så, och rättades innan
+sidan publicerades.
+
+⚠️ Bäst är den MEKANISKA varianten i Steg 14: hämta den publicerade sidan med
+`curl` och hasha den synliga texten mot `facit.json`. Den kan inte missa ett
+tecken, till skillnad från ögon. Men den går bara att köra efter publicering —
+och en felstavning som redan nått kund är dyrare än en som stoppas. Gör båda.
+
+### ☠️ Wix SKRIVER OM din HTML — hasha synlig text, aldrig råmarkup
+
+Uppmätt vid återläsning: det som sparas är inte det som skickades.
+
+| skickat | lagrat |
+|---|---|
+| `<strong>Mått:</strong>` | `<span style="font-weight: 700">Mått:</span>` |
+| `<li>Passar …</li>` | `<li><p>Passar …</p></li>` |
+| `<a href="…">` | `<a href="…" target="_self">` |
+
+En hash över råmarkup kan alltså ALDRIG stämma, hur rätt texten än är. Facit
+räknas därför över **taggbefriad, mellanslagsnormaliserad synlig text** — vilket
+är precis vad `facitgen.py` alltid gjort, och skälet till att grinden hållit.
+Skriv inte om den till att hasha HTML:en.
+
+### ☠️ Ett färgsyskons bildset kan innehålla EN ANNAN färgvariant
+
+Runda 93, den bruna pergoladuken: bild 4 och 5 var **rena** från text och
+logotyp och hade passerat varje befintlig grind — men de visar en **khaki**
+duk, medan varan är varmbrun (mätt 146,122,99 i huvudbilden).
+
+Det är ett färgpåstående som ligger i PIXLARNA, alltså osynligt för både
+lint och muteringstest. Kontrollen är densamma som för randfärgerna i runda
+89–91, fast en nivå upp: **jämför varje behållen bilds dukfärg mot
+huvudbildens** innan galleriet skrivs. En median-RGB räcker inte när
+belysningen skiljer — titta i hög upplösning, sida vid sida.
 
 ## Steg 5 – Verifiera leverantörens påståenden
 
@@ -1048,6 +1500,48 @@ ur brödtexten och ur spec-tabellen — och flagga klustret. Det är samma regel
 Att gissa åt något håll är sämre än att tiga: en kund som beställer "gul" och får naturträ
 returnerar varan, och en kund som ser fotot får ändå veta hur den ser ut.
 
+### ☠️ Spec-tabellen är feedens KOLUMNER — inte den tyska texten. De kan säga emot varandra (2026-09-05)
+
+De två reglerna ovan säger vad man gör när två källor är oense. Den här säger varför
+de kan bli det, och den gör en del av fallen AVGÖRBARA i stället för utelämnade.
+
+`buildSpecifications` i `lib/aosom/to-product.ts` gör bokstavligen:
+
+```ts
+add("Mått",  row.size);    // feedens size-kolumn, ordagrant
+add("Färg",  row.color);   // feedens color-kolumn, ordagrant
+```
+
+Spec-tabellen är alltså **inte** härledd ur den tyska beskrivningen. De två är
+OBEROENDE källor ur samma feedrad, och Aosom fyller dem var för sig. Den svenska
+tabellen — det kunden faktiskt ser — är den som bär kolumnvärdet.
+
+Två fall uppmätta i samma familj (runda 62, knästolarna):
+
+| | spec-tabellen (`row.color`/`row.size`) | tyska Technische Daten | alt-texten |
+|---|---|---|---|
+| `9d626528` färg | `Grau` | **`Dunkelgrau`** | **`Dunkelgrau`** |
+| modell D mått | `55L x 85B x 55H` | **`55B x 85T x 55H`** | — |
+
+Måttfallet är det farligaste av de två, för det ser inte ut som ett fel: kolumnen
+säger att stolen är **85 cm bred** när den är 85 cm DJUP och 55 cm bred. En kund som
+mäter en nisch får fel svar av en tabell som är helt korrekt formaterad. Och ett av de
+fem syskonen (`c3e0af3f`) bär dessutom talen i en annan ordning än de fyra andra —
+samma produkt, transponerad.
+
+☠️ **Färgfallet hade blivit ett DUBBLETTBESLUT.** Två av fem syskon stod som `Grau` i
+spec-tabellen med samma mått och samma paketmått — alltså exakt signaturen för en
+intern dubblett, och regeln säger att en av dem ska pensioneras. Den tyska texten och
+alt-texten sa `Dunkelgrau` på den ena. **Ett fel i ett strukturerat fält kan dölja en
+verklig skillnad, inte bara hitta på en.**
+
+**Regeln, som skiljer sig från de två ovan:** när spec-tabellen och den tyska texten
+är oense är det inte automatiskt "utelämna". Räkna källorna först — den tyska
+brödtexten och alt-texten (som importen byggde ur den tyska titeln) är TVÅ oberoende
+vittnen mot kolumnens ett — och läs syskonuppsättningen: **en färg som skulle
+DUBBLERA ett syskons färg är i sig ett bevis att fältet är fel.** Håller inte den
+prövningen, då gäller utelämnanderegeln.
+
 ## Steg 6 – Variantsanering (bara flervariantprodukter)
 
 **Aosom-rader har en enda variant utan optioner — hoppa över.** Kontrollera ändå att
@@ -1137,6 +1631,34 @@ Bygg innehållet:
 > hittar du det i en `<meta>`-tagg är det `seoData` som ska patchas.
 > Fällan slog till 2026-08-26 på `f0e0ee14` (smal hurts 40 cm): "kullagrade skenor"
 > var borta ur beskrivning, h2 och spec-tabell men stod kvar i meta description.
+
+> ☠️ **SKICKA INTE `visible: false` I STEG 7 — DET SLÅR NER VARIANTEN (2026-09-10).**
+> Att skriva ut `visible: false` i textpatchen ser ut som det försiktiga valet:
+> produkten SKA ju förbli utkast. Det är tvärtom. Produktens `false` speglas ned
+> på varianten, och en variant med `visible: false` betyder att sidan saknar
+> köpbar variant den dag den publiceras.
+>
+> Uppmätt i runda 120, samma åtta produkter, samma runda, samma kropp så när som
+> på det ena fältet:
+>
+> | Steg 7-kroppen | produkter | `variantsInfo.variants[].visible` efteråt |
+> |---|--:|---|
+> | med `"visible": false` | 2 | **`false` på båda** |
+> | utan fältet | 6 | `true` på alla sex |
+>
+> Utelämnat fält rör inte synligheten alls — produkten låg redan på `false` och
+> stannade där. Steg 7 ska alltså skicka `id`, `revision`, `name`, `slug`,
+> `plainDescription` och `seoData` och **inget mer**.
+>
+> ⚠️ Steg 8:s `variantsInfo`-PATCH är undantaget och kräver båda leden
+> (`visible: false` på produkten, `visible: true` på varianten) — där publicerar
+> ett utelämnat produktfält i stället utkastet. Reglerna är alltså MOTSATTA i de
+> två stegen, och det är därför de mäts var för sig.
+>
+> ⚠️ **Vad som gör det farligt är att ingenting klagar.** PATCH-svaret ekar
+> `visible: false` på produkten — precis vad man ville — och variantens rad
+> ligger längre ned i samma svar. Kontrollen som biter är att läsa
+> `variantsInfo.variants[].visible` i kvittot, inte produktens.
 
 > **Viktigt:** en PATCH av `seoData` **ersätter hela objektet** – skicka därför ALLTID med samtliga taggar nedan, inte bara den du ändrar.
 
@@ -1350,6 +1872,61 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > en fällbar fåtölj, luggriktning på manchester, bryt strömmen vid proppskåpet före
 > lampbyte. Generiska rader som "torka av vid behov" bär ingenting.
 
+### ☠️ Läs ALDRIG tillbaka i samma loop som skrivningen — GET:en kan svara med tillståndet FÖRE (2026-09-05)
+
+Facit-kontrollen kördes inne i skrivloopen: `GET revision → PATCH → GET
+återläsning`, per produkt. Två av tre produkter kom tillbaka gröna. Den tredje
+(`c3e0af3f`) rapporterades som **misslyckad** — och läste tillbaka exakt den
+längd och den hash som den FÖREGÅENDE skrivningen hade lagt där, alltså inte
+skräp utan ett äldre giltigt tillstånd.
+
+En separat läsning en minut senare gav `revision 3`, rätt längd, rätt hash och
+rätt text. **Skrivningen hade tagit hela tiden.** Det var läsningen som var för
+tidig.
+
+☠️ **Och den farliga riktningen är den motsatta.** Här gjorde det stale svaret
+en LYCKAD skrivning till ett falsklarm, vilket är ofarligt — man kör om. Men om
+man kör om samma text efter en skrivning som INTE tog, returnerar en stale
+läsning det gamla innehållet — som är identiskt med det man just skickade — och
+grinden går grön på en skrivning som aldrig hände. Facit skulle då bekräfta
+exakt ingenting.
+
+**Regeln: skrivning och verifiering är TVÅ pass.** Skriv alla produkter, gör
+sedan återläsningen i ett eget anrop. Samma familj som ISR-cachen i Steg 14:
+det första svaret efter en ändring beställer den, det visar den inte.
+
+### ☠️ ETT LÄNKAT TAL FÅR BARA STÅ I LÄNKENS EGET STYCKE
+
+Korslänken till ett syskon förklarar oftast SKILLNADEN, och då måste den bära
+syskonets mått: *"143 cm-versionen — den är åtta centimeter längre och väger
+10,6 kg"*. De talen tillhör inte den här produkten.
+
+En talgrind som listar dem som "tillåtna" släpper dem därmed lösa på HELA
+sidan — och den vanligaste förväxlingen i en färgfamilj är just att skriva
+syskonets mått i sin egen spec-tabell.
+
+Runda 91 byggde listan så och kom undan: den länkade modellens styrhöjd
+(75–80 cm) kunde aldrig rimligen skrivas som den egna. Runda 92 kunde det, och
+**båda** mutationerna gick rakt igenom en grind som annars fällde nitton av
+tjugoen:
+
+| mutation | grinden såg |
+|---|---|
+| `Mått: 135 × …` → `Mått: 143 × …` | inget — 143 stod i "tillåtna" |
+| `Väger 9,8 kg` → `Väger 10,6 kg` | inget — 10,6 stod i "tillåtna" |
+
+**Regeln: zonindela talgrinden.** Dela texten i stycken, och tillåt ett länkat
+tal bara i ett stycke som faktiskt innehåller `<a href`. Utanför det gäller
+produktens egen uppsättning ensam.
+
+```python
+for stycke in re.findall(r"<(?:p|li)\b[^>]*>.*?</(?:p|li)>", html, re.S):
+    tillatna = tal | tal_lank if "<a href" in stycke else tal
+```
+
+Samma tanke som randgrindens per-fras-krav i Steg 4: **en tillåtelse ska gälla
+där den är motiverad, inte på hela sidan.**
+
 ### ☠️ En relativ länk i beskrivningen blir `https:/produkt/…` och går sönder
 
 Färgsyskon korslänkas i ingressen. Skriver du länken **rotrelativt** skriver Wix om
@@ -1409,7 +1986,64 @@ curl -s -o /dev/null -w '%{http_code}\n' "$adress"    # ska vara 200, inte 308
 
 -----
 
+### ☠️ SKU:n avgörs när du väljer SLUGGEN — räkna den i Steg 1, inte här (2026-09-05)
+
+`buildSku` fogar ihop slugens tokens upp till **`PRODUCT_PART_MAX = 24`** tecken
+och bryter på hel-ordsgräns. En slug som är ETT tecken för lång tappar därför
+hela sista token — tyst, och utan att något fel visas någonstans.
+
+Uppmätt i runda 62:
+
+| slug | tecken | SKU |
+|---|--:|---|
+| `gungande-knastol-ljusgra` | 24 | `FP-gungande-knastol-ljusgra` |
+| `gungande-knastol-gra` | 20 | `FP-gungande-knastol-gra` |
+| **`gungande-knastol-graddvit`** | **25** | **`FP-gungande-knastol`** ☠️ |
+
+Den sista är en av TRE färgsyskon, och dess SKU är den enda utan färg. Två
+konsekvenser: etiketten slutar skilja syskonen åt i flöden och på kvitton, och
+nästa produkt vars slug trunkeras likadant får samma SKU. **Det är precis så
+katalogen fick elva SKU:er delade av tjugofyra publicerade produkter.**
+
+**Regeln: räkna fram SKU:n i samma stund du låser sluggen (Steg 1).** Blir
+färgen — eller vilken kvalificerare som helst — borta, korta sluggen i stället
+för att acceptera SKU:n. I runda 62 löstes det genom att byta `gräddvit` mot
+`kräm`, som dessutom är katalogens egen term för färgen: den publicerade
+knästolssidans `Färg`-val heter `Kräm`. Sluggen gick från 25 till 21 tecken och
+alla åtta SKU:er behöll sin färg.
+
+⚠️ **Att korta sluggen är gratis bara på ett utkast.** På en publicerad sida
+gäller redirect-regeln nedan. Ännu ett skäl att räkna SKU:n före publicering.
+
 ## Steg 8 – Re-synka SKU till den nya sluggen (1 anrop, mutation)
+
+> ☠️ **STEGET HAR TVÅ HALVOR, OCH BARA DEN ENA GÅR VIA WORKFLOWEN.** Uppmätt i
+> runda 108. `polish-mapping.yml` (läge `stampla`, `variant_skus`) skriver
+> **mappningsradens** `variants[].sku`. Wix EGEN variant-SKU rörs inte av den,
+> och den är den kunden och feeden ser.
+>
+> Alla sex sidorna i rundan gick igenom mappningsstämplingen med grönt och bar
+> ändå kvar leverantörens tyska sträng i Wix — dessutom identisk inom varje
+> storlekspar, alltså en krock:
+>
+> | Wix-SKU efter mappningsstämplingen | satt på |
+> |---|---|
+> | `FP-4-teiliger-raumtrenner` | två produkter |
+> | `FP-6-teiliger-raumtrenner` | två produkter |
+> | `FP-8-teiliger-raumtrenner` | två produkter |
+>
+> Wix-halvan är en **`variantsInfo`-PATCH**: läs varianterna, byt bara `sku`,
+> skicka tillbaka dem verbatim. ☠️ Matcha på `wixVariantId`, aldrig på position
+> — två fält heter `sku` och betyder olika saker, och positionsmatchning
+> återinför precis den förväxling som gjorde att prissynken skrev till
+> ingenting i en månad. ☠️ Och skicka `visible` explicit i BÅDA leden: en
+> `variantsInfo`-PATCH publicerar annars ett utkast, och produktens `false`
+> speglas ned på varianten.
+>
+> ⚠️ **Det som hittade felet var KVITTOT, inte en grind.** Publiceringens egen
+> GET jämför SKU:n mot den förväntade strängen. Hade den bara räknat "finns en
+> SKU" hade sex sidor gått live med tyska, krockande artikelnummer. Kontrollera
+> alltså strängen, inte förekomsten.
 
 Importen byggde SKU:n ur den **råa** (engelska, märkesledda) sluggen, t.ex. `FP-2-4g-remote-control-1-st`. När du bytt slug i Steg 7 stämmer den inte längre — re-synka den så den matchar den **polerade svenska** sluggen, t.ex. `FP-radiostyrd-gravmaskin-1-st`. Ofarligt: synk/fulfillment nycklar på `wixVariantId`, inte på SKU-strängen (se SKU-noten i *Fasta fakta*).
 
@@ -1633,6 +2267,36 @@ Rå-importen ger fem bilder med leverantörens egen titel som alt-text på allih
 till svenska som beskriver **det som faktiskt syns** — motiv, färg, vinkel, miljö — med
 fokussökordet naturligt invävt. Inte samma mall × 5.
 
+### ☠️ Alt-texten passerar INGEN grind — den är kundtext utan skydd
+
+Steg-grinden läser `html`, `namn`, `titel` och `meta` ur rundans `texter.py`. Alt-texterna
+skrivs här, rakt in i Wix media, och finns aldrig i den filen. **Varje regel grinden vaktar
+är alltså oskyddad i alt-texten** — och det är det sämsta stället att ha ett hål, för
+alt-texten är vad Google och skärmläsaren läser.
+
+Uppmätt i runda 106: sex sidor vars brödtext säger ordagrant att hagen *"säljs inte som
+kaninbostad"*. Grinden var grön på alla sex. **Fem av dem hade "kaniner" i en alt-text** —
+*"…i en trädgård med två kaniner inuti"* — alltså precis det löfte rundans egen KANINLÖFTE-
+regel fanns för att stoppa, en nivå under där regeln letade.
+
+Två sätt att stänga det, och gör båda:
+
+1. **Kör rundans förbjudna-ord-lista mot alt-texterna innan du skriver dem** — samma lista,
+   samma mönster, inte en omskriven variant.
+2. **Låt live-grinden i Steg 14 läsa hela HTML:en**, inte bara brödtexten. Det var den som
+   hittade fallet ovan: alt-texten står i `<img alt="…">` i den renderade sidan, så en grind
+   som söker i hela svaret ser den. En som klipper ut beskrivningen först gör det inte.
+
+Regeln bakom är runbokens egen, från sifferstilen i Steg 13: **en grind skriven mot PLATSEN
+där felet hittades täcker inte REGELN.** Säger regeln "aldrig", är ytan all kundtext — och
+alt-texten är kundtext.
+
+⚠️ **Beskriv VARAN, inte stajlingen.** Leverantörens miljöbild är iscensatt, och djuret,
+barnet eller kaffekoppen i bilden är inte produktinformation. Tas de med blir alt-texten ett
+påstående om användningen; utelämnas de är den fortfarande sann och fullständig för sitt
+syfte. Runda 106:s rättning behöll varje verifierad detalj om varan (*"locken nedfällda"*,
+*"husets lucka öppen"*) och tog bort djuret.
+
 ### Galleriets ordning är fast
 
 | plats | vad |
@@ -1664,6 +2328,45 @@ skivan". Sidans text stod kvar; det var kortets löfte som inte höll, inte pås
 **Granska alltid de färdiga korten i ett kontaktark innan uppladdningen** — felet syns på
 en sekund där och aldrig i ett API-svar. Två av de fyra ändrade alt-texter som var
 felskrivna av leverantören föll ut i samma granskning.
+
+> ☠️ **STEGET GLÖMDES ÅTTA RUNDOR I RAD — och nu finns en grind.** Runda 110–120
+> bär 6–9 spårade kort var; runda 121–128 bar **noll**, alltså ~65 publicerade
+> sidor utan det enda i galleriet som är vårt. Leonard hittade det
+> (*"du har kört flera batcher utan att göra fyndplats kort varför?"*), ingen
+> grind gjorde det: kravet stod i runbooken men i INGEN KOD.
+>
+> `grindar.kortfel(html)` fäller nu en live sida som saknar `Faktakort`, bär
+> kortet på plats 1, eller använder fel alt-form. Den körs i Steg 14, på RÅ
+> html före `butikstvatt` — tvätten stryker bildattributen, och alt-texten ÄR
+> det grinden granskar. `grindar.kortfiler()` fäller dessutom ett kort som inte
+> är SPÅRAT i grenen, vilket är runda 106:s fel (sex kort laddades upp från
+> adresser som svarade 404, och Wix svarade `success: true` på varenda en).
+>
+> Grinden är mutationstestad mot verkligheten: den fäller på runda 121, 123,
+> 125 och 127:s live-sidor och är tyst på runda 128:s.
+>
+> ⚠️ **Och rubrikregeln kostade 7 av 65 kort en omskrivning** — alla samma fel,
+> alla fångade PÅ ARKET och omöjliga att fånga i en textgrind:
+>
+> | kort | stod | varför det föll |
+> |---|---|---|
+> | `2bf00891` | "18,5 cm hopfälld" | vagnen är fotad UTFÄLLD |
+> | `7b544155` | "Fem fack i tre plan" | lådan är fotad STÄNGD |
+> | `bdd01b5f` | "Arbetsytan dras ut" | vagnen är fotad HOPSKJUTEN |
+> | `1b534b0e`, `5447468e` | "Fem lådor med EVA-matta" | mattan ligger i stängda lådor |
+> | `941867cb` | "Hålplank med trettio krokar" | planket är fotat TOMT |
+> | `4d5b3bb5` | "Smal med löstagbart pennfack" | facket är INVÄNDIGT — pennkoppen i bilden är rekvisita |
+>
+> Mönstret är ett och detsamma: **rubriken tog ett tal ur spec-tabellen i
+> stället för ett intryck ur fotot.** Talen är sanna och hör hemma i RADERNA;
+> rubriken ska säga det läsaren ser i samma ögonkast. Ett åttonde kort,
+> `887d388d`, ändrades av motsatt skäl — rubriken var sann men pekade inte på
+> det som skiljer sidan från syskonet en rad ner i kategorilistan.
+>
+> Det rundageneriska i bygget bor i `tools/polish-assets/kortrunda.py`; en
+> runda skriver bara `KORT` (kicker + rubrik) och `RADER` (spec-etiketter).
+> `kortkvitto.py` kvitterar uppladdningen FÖRE media-PATCHen, och bevisar
+> kopplingen bild→produkt på md5 i stället för på ordningen i anropet.
 
 ⚠️ **Alt-texten på kortet börjar med `Faktakort: ` och beskriver FAKTA, inte kortet.**
 `Faktakort: fyra säckar på 27 liter, en per tvättsort. 86 × 38 × 82 cm` — inte
@@ -1702,6 +2405,16 @@ foton är just den dubblett Google straffar, och den uppstår av oss, inte av le
 `fields=MEDIA_ITEMS_INFO`, vilket PATCH inte tar. Svaret kan alltså inte skilja "sparat"
 från "raderat". **Verifiera alltid med en separat GET** och räkna bilderna.
 
+✅ **LADDA UPP VIA GRENEN, INTE VIA BASE64** *(runda 99)*. `UploadImageToWixSite` tar
+`imageUrls` med publika adresser, och repot ÄR publikt — så committa filerna till
+poleringsgrenen och skicka
+`https://raw.githubusercontent.com/<ägare>/<repo>/<gren>/<sökväg>`. Tolv filer gick i ETT
+anrop, och ingen bild passerade chatten som base64. Det är samma väg `CLAUDE.md` redan
+beskriver för korten ("måste ligga i grenen innan Wix hämtar dem"), och den är billigare i
+både tokens och risk: base64 kan kapas tyst, en URL kan det inte.
+
+⚠️ Pushen måste ligga FÖRE anropet — GitHub serverar bara det som finns i grenen.
+
 ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan
 MISSLYCKAS.** Svaret bär `operationStatus: "PENDING"` — Wix har tagit emot uppdraget, inte
 utfört det. Patchar du in ett `fileId` som hamnat i `FAILED` svarar V3 200 och **utelämnar
@@ -1722,7 +2435,59 @@ texten bor. ☠️ **`card_spec` bakar in fotot som data-URI i HTML:en, så en r
 återanvänder det GAMLA fotot.** Ändrar du beskärningen måste kortet BYGGAS om, inte bara
 renderas om — annars mäter du samma fil en gång till och tror att åtgärden inte biter.
 
+> ☠️ **OSKÄRPA ÄR DEN STARKASTE KNAPPEN AV DE TRE — och den var avskriven.**
+> Uppmätt i runda 108 på en väv (polypropenband över tallspjälor), där fem av
+> sex kort sprängde taket. På det värsta, 397 197 byte:
+>
+> | knapp | bästa utfall |
+> |---|---|
+> | krympa varan | 213 440 vid 42 % fyllnad av 79 % geometriskt möjliga |
+> | nedsampla panelfotot | 269 710 vid 4× — **räckte inte** |
+> | **gaussisk oskärpa** | **197 470 vid r=3 och varan i FULL storlek** |
+>
+> ⚠️ Runda 104 mätte r=1,3 till ~9 % och drog slutsatsen "oskärpa är fel
+> medicin på nät". Slutsatsen är sann om RADIEN och falsk om METODEN: r=1 ger
+> 14–23 %, r=2 ger 27–41 %, r=3 ger 43–50 %. **Kurvan är brant strax förbi
+> r=1** — alltså precis där runda 104 slutade mäta. Mät hela kurvan innan du
+> avskriver en metod.
+>
+> ☠️ **Lägg oskärpan på den BESKURNA varan, inte på den färdiga panelen.**
+> Läggs den efter inklistringen suddas produktens kant mot det vita fältet
+> till en grå gloria.
+>
+> ⚠️ **Och fyllnadsknappen kan vara helt overksam utan att se ut så.** När
+> varan är HÖGRE än panelens 1,83 styr höjden, och `fyll` ignoreras. Runda 108
+> fick byte för byte identiskt utfall vid 0,85 och 0,60 på ett sådant kort —
+> en sökning över fyllnadsvärden ser ut som en skala och är det inte. Räkna
+> först ut varans geometriska maxfyllnad (`bredd ÷ höjd ÷ 1,83`); ligger
+> sökningens svar nära det talet har knappen aldrig bitit.
+
 ### Bilden måste vara kvadratisk
+
+☠️ **OCH DET GÄLLER MÅTTRITNINGEN HÅRDAST — DÄR RYKER SIFFRORNA** *(uppmätt 2026-09-07)*.
+En ritning som kapats på sin tyska textruta blir liggande (900 × 632–669), och det PDP:n
+då beskär bort är vänster- och högerkanten — alltså exakt där måttetiketterna sitter.
+Mätt på runda 98:s publicerade `9cfc2f50-3` (900 × 642), hämtad i båda formerna:
+
+| hämtning | utfall |
+|---|---|
+| `fit/w_900,h_900` | hela ritningen: skål `24 cm` / `7 cm` / `≈2L`, djup `30 cm`, höjd `35,5 cm` |
+| `fill/w_600,h_600,al_c` | skålens `24 cm` och `≈2L` HALVA, **höjdmåttet `35,5 cm` helt borta** |
+
+Det är samma centrumbeskärning som gav runda 98:s falska "FEL PLATS"-larm — men här är
+den inte ett mätfel, den är det kunden ser.
+
+🔒 **Fyll ut till kvadrat med vitt i stället för att ladda upp den liggande.** Ritningarna
+ligger på vit botten, så utfyllnaden är osynlig, och den kostar ingenting:
+
+```python
+kv = Image.new("RGB", (w, w), (255, 255, 255))
+kv.paste(im, (0, (w - h) // 2))
+```
+
+⚠️ **Runda 98:s fem kapade ritningar ligger publicerade i liggande format** och tappar
+alltså sina sidoetiketter. Hur många fler rundor som gjort samma sak är inte mätt.
+
 
 PDP:n hämtar galleriet med `fill/w_N,h_N,al_c` och **centrumbeskär varje bild till kvadrat**.
 En liggande eller stående studiobild kapas därför i kanterna och kunden ser produkten
@@ -1882,6 +2647,21 @@ Ingen sida länkar till dem, men adressen svarar fortfarande. Att radera dem per
 
 ### 10A – Läs ALLTID hela trädet först (read-only, 1 anrop)
 
+> ☠️ **SVARSNYCKELN HETER `categoriesForItems` — och fel nyckel ger NOLL RADER
+> UTAN FEL.** Uppmätt i runda 108: ett anrop mot
+> `POST /categories/v1/categories/list-categories-for-items` som letade efter
+> `itemsWithCategories` returnerade en tom lista och såg ut att bevisa att
+> ingen produkt låg i någon kategori — inklusive en publicerad sida som
+> faktiskt gjorde det. Samma familj som `/api/tracking-events` 2026-09-01:
+> **en läsare som blir TOM ser i koden likadan ut som en frisk.** Det som
+> avslöjade den var att skriva ut RÅSVARET i stället för att tolka ett tomt
+> resultat.
+>
+> ⚠️ Båda kategori-anropen — läsningen och `bulk/categories/add-item` — kräver
+> `treeReference: {"appNamespace": "@wix/stores"}` i kroppen. Utan den svarar
+> API:t 400 och namnger fältet, vilket är det snälla felet; det tysta är det
+> ovan.
+
 ⚠️ **Gissa aldrig på en kategori ur minnet, och nöj dig aldrig med en toppkategori.** Trädet har **53 kategorier i två nivåer** — 12 toppkategorier och 41 löv (uppmätt 2026-08-23; siffran stod tidigare som "46 i tre nivåer") — och de flesta produkter hör hemma i ett *löv*, inte i roten. Detta gick fel 2026-08-09: hamsterburen hamnade i "Hem & Inredning" och torkhuven i "Elektronik & Tillbehör" trots att **Husdjur → Burar, Kläder & Tillbehör** och **Skönhet & Hälsa → Hår & Rakning** fanns hela tiden — en kortlista från tidigare i sessionen användes i stället för trädet.
 
 ```
@@ -1918,6 +2698,22 @@ POST https://www.wixapis.com/categories/v1/bulk/categories/remove-item
 > Hände 2026-08-29 på reclinerfåtöljen: `totalSuccesses: 3` i skrivningens svar,
 > `kategorier: 1` i GET:en mikrosekunder senare. Grinda på `totalSuccesses`, eller läs om i
 > ett SENARE anrop.
+>
+> ☠️ **`All Products` går INTE att skriva till.** Uppmätt i runda 67: kategorin
+> `05e96cd6-e4bc-4f55-b31c-6062ede453ff` svarar
+> `MANAGED_CATEGORY_OPERATION_NOT_ALLOWED` — *"externally managed by app"*. Stores-appen
+> äger den och produkter hamnar där av sig själva. Ta aldrig med den i `categoryIds`.
+>
+> ⚠️ **Och `totalSuccesses` ensamt räcker inte som kvitto när du skickar FLERA kategorier.**
+> Svaret räknar hur många som lyckades men säger inte VILKA: `[true, false]` per produkt ser
+> likadant ut vare sig det var lövet eller föräldern som föll. Runda 67 skickade två
+> kategorier till åtta produkter och fick `lyckade: 1, misslyckade: 1` på var och en — utan
+> namn hade det kunnat rapporteras som "kategorier satta". Läs `results[].itemMetadata.error`
+> och matcha mot `originalIndex`, eller kör om mot BARA den kategori du tror är satt och
+> kräv `ALREADY_EXISTS` — ett omvänt bevis som inte går att missförstå.
+>
+> ⚠️ **Endpointen tar ETT `item` och FLERA `categoryIds`**, aldrig en lista med `items`.
+> En items-lista ger `400 categoryIds has size 0, expected 1 or more`.
 >
 > ⚠️ **Och det gäller inte bara kategorierna — hela produkten kan läsas inaktuell.** En
 > `plainDescription`-PATCH följd av en verifierings-GET i samma anrop gav oförändrad text
@@ -2045,8 +2841,79 @@ hittade två fel i texten och ett i grinden själv.
    JS. Ett falsklarm i grinden kostar dubbelt: det stjäl tiden från de fel som är äkta,
    och lär läsaren att avfärda utslagen.
 
+4. ☠️ **En LIVE-grind mot en ordlista mäter sajten, inte din text — mät mot en
+   KONTROLLSIDA.** Runda 90:s första live-svep fällde **7 av 7** korrekta sidor på
+   tre fynd som alla fanns ordagrant på en publicerad sida rundan aldrig rört:
+
+   | fynd | vad det var |
+   |---|---|
+   | `Skickas från` | sajtens **EU-lager-ribbon** — enligt husets egen regel den ENDA plats där avsändarlandet får synas |
+   | `688-5623` (och fyra tal till i formen `\d{3}-\d{3}\w`) | sajtens `Organization`-JSON-LD, en Maps-URL — inte ett artikelnummer |
+   | tom kropp på en sida | EN misslyckad huvud/kropp-delning; omhämtning gav 200 och 145 kB |
+
+   Produktsidan är inte bara din text: den bär header, ribbon, JSON-LD, footer och
+   skript. Varje förbudsord du söker efter finns med god sannolikhet någonstans i det.
+
+   **Grinden ska därför hämta en KONTROLLSIDA först** — en publicerad produkt i samma
+   familj som rundan inte rört — samla dess träffar, och bara rapportera det som finns
+   på din sida men INTE på kontrollens. Tre rader kod, och skillnaden mellan
+   "7 av 7 sidor med problem" och sanningen, som var noll.
+
+   ⚠️ Samma familj som fyndet ovan, och som husets regel mot att varna vid 48 h på
+   token-förnyelsen: **ett larm som fyrar på varje korrekt sida är lika illa som
+   inget larm alls** — mottagaren lär sig att sluta läsa, och då är även det äkta
+   larmet borta.
+
 **Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
 tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
+
+#### ✅ Kontrollsidan är MEKANIK sedan runda 134 — inte längre en instruktion
+
+Regeln ovan skrevs efter runda 90 och stod i runbooken i fyrtiofyra rundor utan
+att finnas i någon kod. Runda 134 betalade för det: butikens bloggrubrik
+*"Klösträd & kattträd – så väljer du rätt"* bär tre t i rad och fälldes av
+rundans trekonsonantsgrind på två korrekta sidor. Grinden hade rätt om ORDET
+och fel om VEMS det var — och att avgöra det för hand är precis vad en grind
+finns till för att slippa.
+
+`liverunda.kontrollfynd` hämtar numera kontrollsidan själv och drar dess
+träffar från varje sida i rundan. Rundan behöver inte veta om den; den pekar
+bara ut vilken sida som är kontroll (`liverunda.KONTROLL`).
+
+☠️ **Kontrollsidan måste bära SAMMA BLOCK som din.** Första försöket valde en
+klöstunna, fick **noll** träffar och såg ut som en trasig mekanik. Butiken
+renderar blogglänken *"Klösträd & kattträd"* bara på **klösträd**-sidor — en
+kontroll ur fel undergrupp mäter alltså inte det chrome som fäller dig. Välj
+en publicerad sida i samma familj och samma produkttyp.
+
+☠️ **Två hål som båda hade gjort subtraktionen FARLIGARE ÄN INGEN ALLS**, och
+båda satt i den första versionen:
+
+1. **Rundans egna fält följer med in i kontrollen.** `granska(pid, …,
+   live=True)` provar `egna + NAMN + TITEL + META + SOKORD` — alltså rundans
+   egna fält, oavsett vems HTML den får. Ett stavfel i VÅR titel hade därför
+   fyrat på kontrollsidan också, hamnat i `butikens` och dragits bort från vår
+   sida: grinden hade tvättat bort vårt eget fel och kallat det butikens.
+   Grinden körs därför en gång till på TOM HTML, och det som fyrar då ingår
+   aldrig i subtraktionen.
+2. **Kortgrinden hör inte hemma i subtraktionen.** `kortfel` frågar om VÅR sida
+   bär ett eget Fyndplats-kort, och runda 121-128 publicerade ~62 sidor utan
+   ett — en kontrollsida ur den perioden hade fällt `SAKNAR EGET KORT`,
+   subtraherat det, och tystat exakt den grind som byggdes för att steget
+   glömdes åtta rundor i rad. Kortgrinden körs bara på våra sidor.
+
+⚠️ **Subtraktionen är på EXAKT STRÄNG, aldrig en heuristik.** Butikens chrome
+är byte-identisk mellan sidor; det som skiljer är vår text. En "liknar"-regel
+hade svalt våra egna fel.
+
+✅ **Och det som subtraheras SKRIVS UT.** En kontrollsida är en POLERAD sida
+från en tidigare runda, så dess egna defekter dras också bort — utskriften gör
+dem till uppgifter i stället för till tystnad. Den gjorde det direkt:
+`klostrad-200-cm-sex-nivaer` bär `Hoppplattform: 24 × 40 cm` i sin spec-tabell,
+alltså exakt det fel runda 134 fångade med ögon, redan publicerat.
+
+Utfall: runda 134:s sex sidor gick från 2 fel till 0, utan att en enda regel
+mildrades.
 
 ### ☠️ Ett jämförande påstående inom EGEN batch går att grinda mekaniskt — gör det
 
@@ -2315,6 +3182,106 @@ fel** — men här är det värre, för en tom array får ett `some()`-villkor a
 `some()`/`every()` — eller läs varianterna med en egen `GET` per produkt, vilket är
 vad Steg 13 gör ändå.
 
+### ☠️ En live-grind som mäter HELA sidan fäller på butikens EGET chrome (2026-09-08)
+
+Runda 100:s Steg 14-grind läste den renderade HTML:en och fällde **alla sex**
+sidorna på två träffar. Att de var IDENTISKA på varenda sida var i sig
+beviset att de inte kom från texten:
+
+| träff | vad det faktiskt var |
+|---|---|
+| `46-736` mot artikelnummermönstret `\d{2,3}-\d{3,4}` | butikens kundtjänstnummer **+46-736-630-990** i JSON-LD:ns `ContactPoint` |
+| `fri frakt` mot leveranslöftesmönstret | butikens EGEN utfästelse **"🚚 Fri frakt över 499 kr"** i banner och köpblock |
+
+Båda är Leonards egna beslut och står på varenda sida i butiken — kontrollmätt
+samma dag på startsidan och på två sidor från tidigare rundor: 1 träff var,
+överallt. Ingendera kommer från poleringen.
+
+⚠️ **Att snäva in till "produkttextens yta" räcker INTE.** Nästa försök klippte
+från ingressens början till sista korslänkens namn — och fick 58 000 tecken,
+för sidan bär texten TVÅ gånger: en gång renderad och en gång i Next.js
+flight-payloaden. `rfind` landade i den andra kopian och svepte in hela chromet
+igen.
+
+✅ **Det som avgör frågan är ett KONTROLLPROV, inte en bättre slice.** Hämta en
+sida grinden aldrig rört — startsidan, eller en sida från en tidigare runda —
+och sök samma sträng. Finns den där är den chrome, och grinden ska sluta leta
+efter den i den renderade sidan. Textens egen renhet är redan bevisad av
+`lint.py` på filen, före skrivningen; live-grindens jobb är att bevisa att
+texten NÅDDE fram och att inget nytt tillkommit.
+
+**Regeln: en grind byggd för produkttexten får inte köras mot sidans ram.**
+Samma familj som runda 99:s lärdom att regel 4 och 6 måste mätas på PROSAN och
+inte på listorna de själva genererar — en grind som mäter fel yta ger ett
+svar som ser ut som ett fynd.
+
+### ☠️ En grind som STRYKER innan den söker beskriver SIG SJÄLV i felmeddelandet (2026-09-09)
+
+Runda 107:s live-grind måste släppa igenom ordet "kanin" på två sanktionerade
+ställen — den rättsliga upplysningen och nej-svaret i FAQ — och gjorde det genom
+att stryka dem ur en arbetskopia före sökningen. Första körningen rapporterade:
+
+```
+KANINLÖFTE: …"name":"Går det att hålla kanin i stallet?",
+             "acceptedAnswer":{"@type":"Answer","text":""}…
+```
+
+Det ser ut som ett riktigt fynd, och ett allvarligt: ett FAQPage-JSON-LD där
+frågan står men **svaret är tomt**, på just den fråga sidan finns för att
+besvara. Det hade blivit en felanmälan mot butiksrepots strukturerade data.
+
+**Svaret var inte tomt.** `"text":""` är vad som blev kvar EFTER grindens egen
+strykning — den skrev ut sammanhanget ur den STRUKNA kopian. Kontrollmätt mot
+skarpa sidan samma minut: alla sju FAQ-svaren är ifyllda ordagrant.
+
+**Regeln: skriv ut sammanhanget ur ORÖRD text, aldrig ur arbetskopian.** Sök i
+den strukna, citera ur den hela — annars beskriver felmeddelandet grinden i
+stället för sidan. Samma familj som runda 61:s *"orsaken var live-grindens EGEN
+förhandskörning"*, och den är dyrare än den ser ut: ett artefakt som bokförs som
+fynd skickar nästa session att felsöka något som aldrig gick sönder.
+
+⚠️ **Och en sanktionerad FAQ-fråga måste strykas TILLSAMMANS med sitt svar.**
+Källtextgrinden (`grind.py`) strök hela nej-svarsparet; live-grinden strök bara
+svaret, och föll på frågans rubrik i JSON-LD:n. Härled frågan ur texten — den
+`<strong>…?</strong>` som står närmast före svaret — i stället för att skriva om
+den i grinden.
+
+### ☠️ Butikens "liknande produkter"-rad finns i TVÅ serialiseringar (2026-09-09)
+
+Samma runda, samma grind, nästa lager. Efter att de sanktionerade meningarna
+strukits föll två sidor fortfarande — på butikens rekommendationsrad, som
+länkade till `kaninhus-utomhus-122-cm-rastgard` och `kaninbur-inomhus-…`.
+Det är ANDRA produkters namn, alt-texter och länkar, alltså inget påstående om
+varan sidan säljer.
+
+☠️ **Första strykningen tog `<a class="prod">…</a>` och SÅG UT ATT BITA.** Den
+gjorde det inte: raden ligger också i Next.js **Flight-nyttolast**, som inte är
+HTML alls —
+
+```
+["$","$L40","kaninhus-utomhus-122-cm-rastgard",{"className":"prod","href":"/produkt/…
+```
+
+— och en strykning som bara känner den ena formen tar bort hälften av
+förekomsterna och lämnar resten. Det är runda 100:s lärdom om att sidan bär
+texten två gånger, fast åt andra hållet: där svepte en slice in för mycket, här
+tog en regex bort för lite.
+
+✅ **Stryk IDENTITETER, inte markup.** Andra produkters slug och namn är samma
+literal i båda serialiseringarna:
+
+```python
+andras  = set(re.findall(r"/produkt/([a-z0-9-]+)", norm)) - {egen_slug}
+andras |= set(re.findall(r'"pname">([^<]+)<', norm))
+```
+
+☠️ **Och varje strykning behöver en KONTROLLMÄTNING på sig själv:** sidans EGNA
+alt-texter måste finnas kvar efteråt. Hela poängen med att live-grinden läser
+hela HTML:en är att den ser alt-texterna (Steg 9), och en strykning som råkat
+svälja galleriet hade gjort "noll fel" precis lika meningslöst som en tom
+hämtning. Samma form som hjältebildens kontrollmätning, fast riktad mot grindens
+eget filter i stället för mot nätverket.
+
 ### ☠️ Ett köpavgörande tal kan finnas BARA i pixlarna
 
 Samma runda. Leverantörens egen infografik för planchan `f02917da` hade en panel med
@@ -2450,6 +3417,39 @@ De två sista fångar en annan sak: *"trettioen centimeter … vilket är det no
 benutrymmet för en matplats"* är ett påstående om möbler i allmänhet som ingen mätt.
 Samma familj som superlativen — **det ser ut som en beskrivning men är en mätning.**
 
+### ✅ Katalogsvepet: 408 sidor → 0, och grinden var orsaken (2026-09-08)
+
+Leonard bad om det uttryckligen: *"vi ska va leverantören ingen annan."* Mätt
+över hela katalogen, 5 553 produkter:
+
+| | före | efter |
+|---|--:|--:|
+| Publicerade sidor med aktörsord i brödtexten | **408** | **0** |
+| Förekomster | **~754** | **0** |
+
+☠️ **Regel 8 i `lint.py` var orsaken, inte poleringen.** Den fångade
+`leverantör*` men INTE `tillverkaren anger`, inte `tillverkarens ritning`, inte
+`enligt tillverkaren`, inte `producenten`. Fyra av fem verkliga former passerade
+— varje runda rapporterade grön grind medan 17 % av sortimentet bar
+formuleringen. Regeln delar sedan dess aktörslista med
+`tools/leverantorssvep/grind.py`, och självtestet har en mutering per aktörsord
+som svepet faktiskt hittade på en publicerad sida.
+
+☠️ **En sök-och-ersätt hade gått sönder på svenskan.** Svansen var 213 olika
+formuleringar på 228 förekomster. `Leverantören anger att X` går inte att
+stryka mekaniskt: bisatsen har adverbet före verbet och huvudsatsen efter, så
+*"…att uppsättningen dessutom går att anpassa"* blir *"Uppsättningen dessutom
+går att anpassa."* Bara det rena ADVERBIALET (`enligt leverantören`) är
+mekaniskt säkert — resten skrevs om för hand i 470 grindade par.
+
+⚠️ **Ärlighetsmeningar stryks inte, de skrivs om.** *"Leverantörens egen sida
+uppger 1,76 kg på ett ställe och 1,9 kg på ett annat"* är information kunden
+har nytta av. Motsägelsen står kvar, aktören försvinner: *"Uppgifterna går
+isär: 1,76 kg på ett ställe och 1,9 kg på ett annat."*
+
+Hela mätningen och de fem lärdomarna står i `tools/leverantorssvep/MATNING.md`.
+
+
 ### ☠️ En påstående-grind måste kunna skilja ett påstående från ett FÖRNEKANDE
 
 Samma runda, direkt efter rättningen ovan: grinden fällde den nya, korrekta meningen
@@ -2492,6 +3492,24 @@ s.count(chr(8))   # → 4. Skriv grindar i r"..." — eller räkna backspace eft
 
 Samma familj som *"en grind mot osynliga tecken får inte SKRIVAS med osynliga tecken"*
 (runda 46) — och nu med ett tecken som inte ens går att se i en diff.
+
+### ☠️ En mutation måste ta bort VARJE bärare av faktumet (2026-09-05)
+
+Besläktad med regeln nedan, men den slår tidigare och tystare. En grind läser
+oftast **fyra** bärare: `name`, `title`, `meta` och brödtexten. En mutation som
+bara rör HTML:en lämnar faktumet kvar i de tre andra — grinden tiger med rätta,
+och testet rapporterar en miss som ser ut som ett hål i grinden.
+
+Fyra av runda 62:s tjugonio mutationer föll på just det: `120 kg` stod kvar i
+namnet, `björk` i titeln, `15–30 minuter` i FAQ-svaret. Alla fyra grindarna var
+korrekta hela tiden.
+
+☠️ **Och en färgmutation får aldrig gå via produktens eget färgfält.**
+Spec-tabellen BYGGS ur det fältet, så en ändring där följer med in i texten och
+grinden jämför fältet med sig självt — den kan inte fälla. Defekten den vaktar
+är att TEXTEN säger en annan färg än produkten, alltså ska texten muteras och
+fältet lämnas orört. Samma form som varje annan självuppfyllande kontroll:
+**om mutationen ändrar både facit och det som mäts, mäter testet ingenting.**
 
 ### ⚠️ En mutation som pekar på en mening du skrivit om testar ingenting
 
@@ -2619,6 +3637,1250 @@ kategori. **Och åt andra hållet:** produktens `visible:false` speglas NED på 
 den avslutande PATCH:en måste bära `visible: true` på både produkt och variant — annars går
 sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktvyn.
 
+### ☠️ FLIKRUBRIKEN ÄR EN ALLOWLIST PÅ FYRA STRÄNGAR — mätt i butikens källkod
+
+Checklistan ovan sa redan att strängen måste stämma ordagrant. Runda 120 skrev
+ändå **`Montering och skötsel`**, och det gick igenom varenda grind: textgrinden
+hittade rubriken, live-grinden hittade ORDET på sidan, och åtta sidor gick live.
+
+Butikens `splitFlikar` (butiksrepot `headless-site`, `components/productview.tsx`)
+känner **exakt fyra** mönster och inget annat:
+
+```js
+const FLIK_TITLE_PATTERNS = [
+  /Tekniska\s+[Ss]pecifikationer/,
+  /Anv[äa]ndning\s+och\s+sk[öo]tsel/,
+  /(Vanliga\s+fr[åa]gor|Ofta\s+st[äa]llda\s+fr[åa]gor)/,
+  /Kontakta\s+oss/,
+]
+```
+
+Uppmätt live 2026-09-10 på `barbord-tva-pallar-80-cm-gra`:
+
+| | |
+|---|---|
+| `<summary>` på sidan | `Tekniska specifikationer` · `Vanliga frågor` · `Kontakta oss` |
+| `<h2>` i brödtexten | … `Montering och skötsel` · `Passar inte det här?` … |
+
+☠️ **Och skadan är större än en saknad flik.** `splitFlikar` lägger allt EFTER
+en matchande rubrik i den fliken, ända fram till nästa match. Skötseltexten OCH
+korslänkarna hamnade alltså **inne i spec-tabellen** — mellan `Tekniska
+specifikationer` och `Vanliga frågor`. Spec-fliken bar tre avsnitt.
+
+⚠️ **Ordningen i HTML:en är därför inte fri.** Allt som ska ligga i brödtexten
+måste stå **före den första flikrubriken**; ett block mellan två flikrubriker
+hamnar i den föregående fliken. Rundans korslänkar (`Passar inte det här?`) är
+flyttade dit.
+
+☠️ **Grinden måste läsa `<summary>`, inte texten.** En kontroll som frågar
+"står ordet på sidan?" svarar GRÖNT på alla åtta — ordet står ju där, som `<h2>`.
+Runda 119:s live-grind gjorde precis det. Kontrollen är sedan runda 120:
+
+```python
+SUMMARY = re.compile(r"<summary[^>]*>\s*(.*?)\s*</summary>", re.S)
+flikar = [m.strip() for m in SUMMARY.findall(html)]
+for flik in ["Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"]:
+    if flik not in flikar: …
+```
+
+Tre självtestfall låser den: bytt skötselrubrik, `Specifikationer` i stället för
+`Tekniska specifikationer`, och en flikrubrik nedgraderad till `<h2>`.
+
+⚠️ **Blast-radien är mätt, inte gissad.** En grep över `tools/polish-assets/`
+ger tre rundor som skrivit `Montering och skötsel`: **118, 119 och 120**.
+
+✅ **Alla tre är rättade 2026-09-10.** 17 live-sidor omskrivna och verifierade
+(8 i runda 118 + 9 i runda 119; runda 118:s nionde är fortfarande utkast och
+rättades i samma svep). Kvitto: `3 sidor, 0 fel` × flera pass — varje sida bär
+`Tekniska specifikationer`, `Användning och skötsel`, `Vanliga frågor` och
+butikens egen `Kontakta oss`.
+
+✅ **Regeln bor sedan dess i `grindar.flikfel`, inte i rundans egen fil**, och
+körs med `python3 flikkoll.py <pid>=<slug> …`. Fyra självtestfall i
+`grindar._sjalvtest()`.
+
+☠️ **Och den räknar FÖREKOMSTER, inte närvaro — det är dubblettkontrollen.**
+En beskrivning som råkat bli skriven två gånger ger **två**
+`<summary>Tekniska specifikationer</summary>`, för delaren öppnar en ny flik
+vid varje träff. Den kontrollen behövdes: runda 119:s `5d1696db` fick sin text
+dubblerad när PATCH-kroppen skrevs av för hand. Filen var rätt, avskriften
+fel — samma lärdom som husets *"skriv texten i en FIL först"*, ett steg senare
+i kedjan.
+
+⚠️ **Ett rött utfall ska verifieras mot Wix innan det tros om sidan.**
+`hamta_isr`:s 20-sekunderspaus räcker inte alltid direkt efter en skrivning.
+Uppmätt på `ad390a36`: grinden sa SAKNAS medan Wix bar rätt text
+(revision 8), och samma URL svarade korrekt 25 sekunder senare —
+`age 130 → 0 träffar`, `age 155 → 1 träff`. Datan var rätt; mätningen var för
+otålig. Kusin till runda 60:s cachegåta.
+
+**Regeln: en grind som mäter NÄRVARO svarar inte på en fråga om STRUKTUR.**
+
+### ☠️ En grind skriven mot PLATSEN där felet hittades täcker inte REGELN
+
+Runbokens sifferstil säger *"skriv **aldrig** en kommalista av tal med enheten sist"*.
+Regeln stod utan grind, jag hittade brottet i mina egna spec-tabeller, och byggde grinden
+där: `SPEC_LISTA` lästes bara ur `<li><p>Etikett: värde</p></li>`. Sju rader rättades, alla
+grindar blev gröna, och åtta sidor gick live.
+
+Sex förekomster stod kvar — i **brödtexten** och i **meta-beskrivningen**:
+
+| var | vad som stod |
+|---|---|
+| meta-beskrivning | `tre fack på 22, 22 och 16 cm` |
+| brödtext | `Innanför den finns tre fack, 22, 22 och 16 centimeter höga.` |
+| brödtext (FAQ) | `de tre planen är fasta med höjderna 14, 14 och 16 centimeter` |
+| brödtext | `Stommens fack är 13,5, 13,5 och 28,5 centimeter` |
+
+Den sista är den som visar varför regeln finns: **decimalkomma och listkomma bredvid
+varandra**. Meta-beskrivningen är dessutom det Google visar i träfflistan, alltså exakt
+den yta där felet kostar mest.
+
+Grinden granskar nu `name`, `title`, `meta` och hela HTML:en, inte bara spec-tabellen.
+**Regeln säger "aldrig" — då är ytan all text, och en grind som täcker mindre är ett
+påstående om att resten är ren.**
+
+☠️ **Skiljetecknet är mellanslaget, inte kommat.** `\d+(?:,\d+)?, \d` — listkommat har
+alltid ett mellanslag efter sig, decimalkommat aldrig. Tappas mellanslaget fäller mönstret
+varje decimaltal i katalogen. En mutation som INTE får fällas (`Skåpet väger 13,5 kg`)
+låser den riktningen.
+
+### ☠️ En mutation som BYTER UT ett uppmätt värde bevisar fel grind
+
+`m_kommalista` bytte `14 / 14 / 16 cm` mot `14, 14 och 16 cm` — och rapporterades som
+FÅNGAD. Meddelandet avslöjade att det inte var sifferstils-grinden som fällde:
+
+```
+kommalista av tal    FANGAD: saknar uppmätt värde '14 / 14 / 16 cm uppifrån och ner'
+```
+
+Utbytet tog bort ett uppmätt värde, så måtthämtnings-grinden fällde först, och
+sifferstils-grinden hade kunnat vara helt avväpnad utan att testet märkte något.
+**Mutera genom att LÄGGA TILL, inte byta ut** — då står det ursprungliga värdet kvar och
+bara den grind du testar kan fälla. Samma familj som "ett mutationstest som bara kräver
+någon brist provar inte grinden du tror": **läs meddelandet, inte bara utfallet.**
+
+### ☠️ Den tyska ordlistan måste väljas per FAMILJ — ord som är svenska får inte stå i den
+
+Live-kontrollens ordlista ärvs från förra rundan och ska skrivas om varje gång.
+`Metall`, `Glas` och `Magnet` stavas **exakt likadant** på svenska och tyska — och i
+medicinskåps-familjen är de tre av de vanligaste orden i korrekt svensk copy. Hade de
+följt med hade grinden fällt varenda rätt sida.
+
+Skillnaden mot runda 54:s `Hunde`/`hunden` är att där fanns en ordgräns att sätta. Här
+finns ingen: ordet ÄR svenskt. Enda försvaret är att välja listan efter familjens ordförråd
+— tyska ord som saknar svensk tvilling (`Schrank`, `Schlüssel`, `Fächer`, `Weiß`,
+`abschließbar`, `Lieferumfang`).
+
+### ☠️ Ordlistan behöver en ORDGRÄNS, inte bara ett bättre urval
+
+Runda 55 lärde att välja orden per familj. Runda 56 visar nästa lager, och det
+går inte att välja sig ur: **`Gelb` är entydigt tyskt och saknar svensk tvilling
+— och fällde ändå en korrekt sida**, för att det står inuti svenskans **re·gelb·undet**.
+
+| | |
+|---|---|
+| Träff | `…Dammsug regelbundet och borsta upp luggen…` — ordet är **re·gelb·undet** |
+| Sidan | `b09e94ca`, vars text var helt riktig |
+| Falsklarm | 1 av 8 sidor |
+
+Skillnaden mot `Metall`/`Glas`/`Magnet` är att där var ORDET svenskt; här är
+ordet tyskt och bara **delsträngen** svensk. Kurering hjälper alltså inte —
+mönstret måste bära gränsen: `re.search(r"\b" + re.escape(ord), text)`. Gränsen
+sitter i BÖRJAN, inte i slutet, så böjda tyska former (`Sitzbänke`) fortfarande
+fastnar.
+
+☠️ **Och regeln bakom: ett falsklarm på en riktig sida kostar lika mycket som
+ett missat fel.** Körningen gav åtta röda rader medan alla åtta sidor var rätt
+— en på ordlistan, sju på proxy-detaljen längre ner. Det är precis den sortens
+utfall som lär läsaren att kvittera bort listan i stället för att läsa den.
+
+### ☠️ Rubrikräkningen var ÄRVD från förra rundan och beskrev inte den här sidan
+
+Checklistan ovan säger `<h2>`-räkning 7. Runda 56:s sidor har **3**, och alla
+tre är butikens egen krom (`Beskrivning`, `Liknande produkter`, `Utforska fler
+avdelningar`). Poleringens egna rubriker finns — men butiken gör om dem:
+
+```
+min HTML:      <h2>Tekniska specifikationer</h2>
+renderad sida: <details class="pdp-flik"><summary>Tekniska specifikationer</summary>
+```
+
+Ett `<h2>`-tal svarar alltså på en fråga om butikens mall, inte om poleringen.
+Kontrollen ska i stället slå upp de tre flikarna **vid namn**
+(`<summary>Tekniska specifikationer`, `Användning och skötsel`, `Vanliga
+frågor`) — då mäter den det den påstår sig mäta, och den överlever nästa
+malländring genom att fälla i stället för att tystna.
+
+Samma familj som ordlistan ovan, och det är poängen: **en grind som ärvs från
+förra rundan bär ett påstående om DEN rundan.** Mät om talet, eller byt ut det
+mot något som beskriver innehållet.
+
+⚠️ **Miljödetalj som fick åtta sidor att se ocachade ut.** Utgående HTTPS går
+via en proxy, så `curl -D -` skriver FÖRST proxyns `HTTP/1.1 200 Connection
+Established` och en tom rad. Ett skript som delar på första tomraden får
+proxyns huvud som "huvud" och sidans huvud som "kropp" — `x-vercel-cache` och
+`age` blir tomma, och statusraden läser `Established`. Skriv huvud och kropp
+till **var sin fil** (`-D fil.h -o fil.html`) och ta den SISTA `HTTP/`-raden.
+
+### ☠️ Två grindar med var sin KOPIA av samma regel glider isär
+
+Runda 57:s live-grind fällde **åtta av åtta korrekta sidor** på ordet `rostfri`.
+Sidorna hade rätt: texterna säger med flit *"Ramen är lackerat stål, inte
+rostfritt"* — precis vad Steg 2-grinden krävde. Lintet hade undantaget:
+
+```python
+ROSTFRI    = re.compile(r"rostfri", re.I)
+ROSTFRI_OK = re.compile(r"inte rostfri", re.I)
+```
+
+Live-grinden hade en egen kopia av regeln, i en enkel lista över förbjudna ord,
+och den kopian saknade negationen. Två grindar om samma sak, skrivna två gånger.
+
+Fixen är husets vanligaste: **importera regeln, kopiera den inte.** Live-grinden
+gör nu `from lint import ROSTFRI, ROSTFRI_OK`. Samma familj som `SHIP_AXIS_RE`,
+`EU_TULL_CODES` och `mapWithConcurrency` — och den dyraste varianten, för en
+grind som fäller allt lär läsaren att kvittera bort den.
+
+#### ☠️ …och en kopia kan ligga FEL I TRE RUNDOR utan att någon märker det
+
+Runda 120 mätte samma sak igen, med datum. Jargonggrinden — husets ord för ett
+poleringspass, som läckt till publicerad kundtext tre gånger (uppgift #318) —
+kopierades in i varje rundas `grind.py`:
+
+| runda | mönster | |
+|---|---|---|
+| 115, 116 | `\brundans?\b\|\brunda\s+\d` | rätt |
+| **117–119** | `\brundan?\b` | ☠️ **matchar ADJEKTIVET** |
+| 120 | `\brundan\b\|\brunda\s+\d+` | rätt igen |
+
+Den breda formen fäller *"två **runda** pallar"*. Att den kunde ligga fel i tre
+rundor beror på att **ingen produkt i 117, 118 eller 119 var RUND** — runda 120
+sålde runda pallar och blev det första underlag som nådde grinden. Sju
+förekomster, två fällda korrekta sidor.
+
+☠️ **En trasig grind som aldrig får ett indata som utlöser den ser korrekt ut i
+källkoden hur länge som helst.** Samma runda hittade ett andra fall i samma
+familj: mönstret mot höjdjustering var `höj\w*\s*(och\|-)?\s*sänkbar\w*` —
+det tillåter bindestreck ELLER "och", medan den vanligaste svenska formen
+(`höj- och sänkbara`) bär BÅDA. Grinden var stum mot precis det den fanns för,
+och självtestet var det enda som kunde säga det.
+
+**Reglerna bor i `tools/polish-assets/grindar.py` sedan runda 120** — `JARGONG`,
+`TILLATNA_TECKEN` + `homoglyfer()`, `DELORD` + `fargfel()`, `flikfel()` (runda
+121) och `butikstvatt()` med `EU_RIBBON`/`BILDADRESS`/`SVG_GEOMETRI` (runda 121)
+— och `tvillingsvep()` i samma fil är källkodstestet som fäller om en runda från
+120 och framåt definierar om dem i stället för att importera. Samma mekanism som
+`store-access-audit.test.ts`.
+
+#### ☠️ LIVE-GRINDENS TVÄTT ÄR DEN FARLIGASTE TVILLINGEN — den ser ut som ett produktfel
+
+`egna_meningar` tar tvätten som ARGUMENT, så den har skrivits om i varje runda.
+Runda 121 mätte vad det kostar: **12 fel på 8 KORREKTA sidor**, i två klasser
+som båda läste som defekter på sidan.
+
+| klass | träffar | vad som faktiskt hände |
+|---|--:|---|
+| `LEVERANSLAND` | 8 | chromets ANDRA `EU-lager`-rad var otäckt |
+| `FÄRGORD` | 4 | tvätten dödade `href` → korslänken lästes som egen text |
+
+☠️ **Ett brett `https?://\S+` DÖDAR KORSLÄNKARNA.** Tvätten körs FÖRE
+`dela_pa_ankare`, och ankarmönstret kräver ett intakt `href="…"`. Utan adress
+är ankaret inget ankare, och länktexten — som NAMNGER grannens färg, med flit —
+faller ned bland sidans egna meningar. Grinden fyrar då på precis det
+korslänkarna finns för att säga. Mönstret ska vara wixstatic-SPECIFIKT, och
+attributstrykningen får bara röra `src`/`srcset`. Aldrig `href`.
+
+☠️ **`EU-lager & tull` har TRE former, och mönstret kände två.** `&` i DOM-texten
+och `\u0026` i payloadens JSON var täckta; `&amp;` — den form den renderade
+HTML:en faktiskt serverar — var det inte. Ett mönster som täcker två av tre ser
+fullständigt ut i källkoden.
+
+☠️ **Och SVG-heuristiken åt VÅR EGEN TEXT.** Runda 117–119 bar
+`\b[Mm]\s*[\d.]+[,\s][\d.]+` för att fånga rå banadata. Uppmätt på vanlig
+svenska:
+
+| mening | efter tvätten |
+|---|---|
+| `Bredd 0,9 m 1,2 m djup.` | `Bredd 0,9 «» m djup.` |
+| `…tar 1,8 m 20 30 skaft.` | `…tar 1,8 «» skaft.` |
+
+Ett metermått skrivet på det vanligaste sättet försvinner alltså UR grinden,
+och då kan ingen kontroll längre se det — uppgift #384:s klass åt andra hållet:
+en strykning som DÖLJER ett fynd i stället för att skapa ett. Heuristiken är
+borttagen; kvar står bara de två entydiga attributformerna. *(Kontrollmätt på
+runda 117–121:s texter: noll träffar, alltså maskerades ingenting.)*
+
+✅ **Tvätten prövas mot STRÄNGAR, inte mot en sida.** Den går inte att felsöka
+mot live-HTML — dess fel ser ut som produktfel — så den har åtta egna fall i
+`grindar._sjalvtest()`, inklusive ett som kräver att `href` ÖVERLEVER och ett
+som kräver att vår egen text om EU-lagret INTE stryks. Live-grinden kör
+`G._sjalvtest()` + `G.tvillingsvep()` FÖRE sidorna: en grind som prövar sig
+själv först är skillnaden mellan "sidan är trasig" och "grinden är trasig".
+
+⚠️ **Svepets EGET första utkast släppte igenom noll och fällde varje alias.**
+Mönstret var `^NAMN\s*=\s*(?!G\.)`, och `\s*` backtrackar till noll tecken —
+lookaheaden hamnade på MELLANSLAGET i stället för på `G`, så `NAMN = G.NAMN`
+lästes som en egen definition. Negationen måste sitta EFTER likhetstecknet och
+själv äta blanktecknen: `=(?!\s*G\.)`. Grinden mot trasiga grindar var alltså
+själv ett exempel på det den vaktar.
+
+#### ☠️ En NEGATION i en korslänk är inte ett påstående om grannen
+
+Brödtexten har gått genom `loftestraff` sedan runda 117 — den ursäktar en träff
+som är negerad i sin egen mening. **Länkmeningarna gick genom en naken
+`search`** ända till runda 120, som fälldes på sina egna korrekta länktexter:
+
+| länktext | grindens dom |
+|---|---|
+| "samma bredd **utan hylla**, i grått" | KORSLÄNK påstår FÖRVARING |
+| "pallar **utan rygg**" | KORSLÄNK påstår RYGGSTÖD |
+
+Samma familj som runda 114:s falska godkännande, fast åt andra hållet: där
+ursäktade en negation ett löfte som borde fällts, här fällde en negation ett
+korrekt nekande. Kör `G.loftestraff(monster, mening)` också på länkmeningarna.
+
+#### ⚠️ Ett FÄRGORD i en alt-text beskriver ofta SCENEN, inte varan
+
+Färggrinden byggdes i runda 89–91 efter tre rundor med fel färg, och letade
+färgord var som helst. Runda 120 mätte priset: den fällde *"Fristående mot vit
+bakgrund"* — husets vanligaste alt-textformulering, och en beskrivning av
+fotostudion. `G.fargfel()` tittar därför bara på färg som sitter på en DEL av
+varan, i båda svenska ordföljderna (`röd skiva`, `skivan är röd`). En bakgrund,
+en vägg eller en matta är ingen del.
+
+### ☠️ En borttagningsmutation som tar FÖRSTA förekomsten bevisar ingenting
+
+`m_borttaget_bandantal` tog bort `30 elastiska band` och rapporterades som
+grön — inget fel hittades. Värdet stod på **två** ställen (spec-raden och
+brödtexten), och `replace(värde, "", 1)` lämnade det andra kvar. Grinden såg
+värdet, sa inget, och mutationen bevisade ingenting om måttgrinden.
+
+Borttagningsmutationer ska ta ALLA förekomster, och hävda det:
+
+```python
+p[fält] = p[fält].replace(värde, "")
+assert värde not in p[fält], "värdet står kvar efter borttagning"
+```
+
+Systerregeln till runda 55:s *"mutera genom att lägga till, inte byta ut"*: en
+mutation måste faktiskt åstadkomma det den påstår, annars provar den ingenting.
+
+### ☠️ Körningsordningen i Actions är INTE den ordning du utlöste i
+
+Åtta `las`-körningar utlöstes i känd ordning. Den första — `run_number` lägst,
+tidigast `created_at` — rapporterade priset för en HELT ANNAN av de åtta.
+Körningsnumret tilldelas vid skapandet, och dispatcharna blandas: en annan
+session körde samma workflow samtidigt, och två av de åtta "mina" körningarna
+var deras `stampla` på en hundkoja och en kaninbur.
+
+**Enda facit är `PRODUCT_ID` i loggens env-block**, och för en stämpling raden
+`OK: <uuid> uppdaterad`. Samma lärdom som runda 56:s bulk-attribution: **lita på
+id:t i svaret, aldrig på ordningen.** Och följdsatsen: Steg 1:s krocksvep gäller
+bara i det ögonblick det kördes — en parallell session publicerar sidor medan du
+skriver.
+
+### ☠️ SKU-regeln kapar vid 24 tecken — färgsyskon kan få SAMMA SKU
+
+`PRODUCT_PART_MAX = 24` i `lib/import/sku.ts`, och `joinWithinLimit` kapar på
+hel ordgräns. Färgen står sist i en naturlig slug, alltså är det färgen som
+faller bort:
+
+| slug | SKU-del (≤24) |
+|---|---|
+| `studsmatta-barn-163-cm-bla` | `studsmatta-barn-163-cm` |
+| `studsmatta-barn-163-cm-rod` | `studsmatta-barn-163-cm` |
+| `studsmatta-barn-163-cm-svart` | `studsmatta-barn-163-cm` |
+
+Tre olika produkter, ett artikelnummer. I ett Google-Merchant-flöde är det tre
+erbjudanden med samma `sku`. Kodens kommentar kräver bara unikhet INOM en
+produkt, så regeln är inte bruten — men utfallet är ändå fel.
+
+**Räkna SKU:n INNAN du låser sluggen på en färgfamilj.** Här räckte det att
+stryka `cm`: `studsmatta-barn-163-bla` ger `FP-studsmatta-barn-163-bla`, och
+alla åtta blev unika. Ett `kvitto.py`-assert på `len(set(sku)) == len(sku)`
+fångar det, men bara om sluggen redan är rätt — talet 24 måste räknas för hand.
+
+### ⚠️ En kategori kan se TOM ut för att det svenska ordet är ett annat
+
+Mätningen sa **8 trampolinutkast, 0 publicerade** — en orörd kategori. Fel:
+slug-mönstret var `/trampolin/`, och det svenska kategoriordet är **studsmatta**.
+Två låg ute. Samma lucka som runda 56:s `/bank/`, som missade bänkar sålda som
+*puff* och *kista*.
+
+Skillnaden är att här hade ingen översättning hjälpt — ordet fanns inte i det
+tyska namnet. Det som gav rätt ord var **`web_search` mot återförsäljarna**:
+Jula, Clas Ohlson, JYSK, Rusta, Jollyroom och Bauhaus kategoriserar alla under
+*studsmatta*. **Täckningsmönstret ska bära det SVENSKA kategoriordet, och det
+hittar man hos handeln — inte i ordboken.**
+
+⚠️ Och kategorin var ändå öppen, av ett annat skäl: de två publicerade är
+TRÄNINGSmattor Ø102 med handtag och 100 kg maxlast, våra åtta är barnmodeller
+med skyddsnät och 50 kg. Fyra tal skiljer — samma produkttyp i ordet, olika
+produkt i verkligheten.
+
+### ⚠️ Tal som mäter olika saker ser ut som en motsägelse
+
+Ø163-modellernas måttritning anger **150 cm** vid fötterna medan spec-tabellen
+säger **Ø163**. Det såg ut som runda 54:s motsägande breddmått — men den
+sexkantiga systermodellens ritning visar BÅDA talen: `122 cm` vid ramen och
+`163,5 cm` vid fotändarna. Det nedersta talet är alltså fotspannet, inte ramen.
+
+Det löser inte Ø163 helt (150 mot 163 går inte att förena ur underlaget), och då
+gäller regeln: **ange det tal som skyddar kunden.** Rensar någon 163 cm golv och
+möbeln är 150 händer inget; rensar de 150 och den är 163 får den inte plats. Vi
+skriver 163 och flaggar avvikelsen — vi gissar inte fram en förening.
+
+### ⚠️ "Ett grönt jobb är inget kvitto" har ETT undantag, och det ska läsas fram
+
+`polish-mapping.yml` i läget `las` gör `exit 1` både på `EJ AVGORBAR` och när
+`stämmer` är falskt på en Aosom-rad. För DE raderna är ett grönt jobb därför ett
+äkta kvitto på att prisgrinden höll.
+
+Undantaget gäller bara för att jag **läste workflow-filen** och såg grenen. Det
+tredje fallet — en icke-Aosom-rad — ger `::warning::` och `exit 0`, alltså grönt
+utan att något bevisats. Regeln blir: *ett grönt jobb är ett kvitto när jobbet
+är byggt att fela på exakt det du kontrollerar, och du har verifierat att det
+är byggt så.* I alla andra lägen står husets regel oförändrad.
+
+### ☠️ En landgrind är TVÅ regler — den samlade fällde åtta korrekta sidor (2026-09-05)
+
+Live-kontrollen i runda 58 rapporterade **avsändarland på 8 av 8** minugnssidor.
+Ingen av texterna nämner något land. Träffen var butikens EGEN stående rad, som
+ligger på varenda produktsida:
+
+> Skickas från EU-lager – ingen importtull eller förtullningsavgift.
+
+Den är husets godkända formulering och namnger ingenting. Grinden var skriven
+mot **min källtext**, där `skickas från` är ett varningstecken, och sedan
+applicerad på **den renderade sidan**, där samma ord tillhör någon annan.
+
+Regeln bor nu i två mönster i stället för ett:
+
+| | gäller | var |
+|---|---|---|
+| `LAND_NAMN` | Tyskland, tysk, Kina, Polen, Spanien … | HELA sidan — ett landsnamn är fel var som helst |
+| `LAND_FRAS` | EU-lager, skickas från, fraktas från | bara i text VI äger |
+
+**Regeln bakom:** en grind ärver inte automatiskt sin giltighet när ytan byts.
+Samma familj som runda 57:s kopierade rostfri-regel, men spegelvänd — där gled
+två kopior isär, här flyttades EN regel till en yta den inte var skriven för.
+
+### ☠️ Att avgränsa "vår text" med bara en STARTmarkör räcker inte
+
+Första fixen ovan tog `sidan.split("Beskrivning")[-1]` som "vår region". Den
+fällde fortfarande 8 av 8 — butikens **sidfot** har navlänken *"EU-lager & tull"*,
+och sidfoten ligger efter beskrivningen.
+
+Regionen bindes nu i BÅDA ändar av vår egen text: första 70 tecknen och sista 70
+tecknen av det vi skrev, hämtade ur `texter.py`. Det är dessutom ett **starkare
+kvitto än grinden var tänkt att vara**: står både första och sista meningen på
+sidan har kunden fått exakt det lintet godkände, inte bara "något som inte
+innehåller fel ord".
+
+### ☠️ SKU:n RENDERAS INTE — en live-grind på den fäller varje korrekt sida
+
+Samma körning rapporterade *"SKU:n syns inte i sidkällan"* på alla åtta. Mätt på
+en sida som polerats i en TIDIGARE runda (`miniugn-32-liter`): **noll träffar på
+`FP-`** i hela HTML:en. Butiken publicerar alltså inte artikelnumret alls.
+
+Kvittot på SKU:n är API-återläsningen (`skuOk`), inte den renderade sidan. Det
+som DÄREMOT går att mäta live är att **vårt eget faktakort ligger i galleriet** —
+filens id ska stå i sidkällan. Den grinden ersatte SKU-grinden.
+
+⚠️ Följdsatsen är värd att notera för de kvarvarande oöversatta SKU:erna: de är
+osynliga för kunden. Det gör dem mindre brådskande, inte mindre fel — de går ut
+i flöden och kvitton.
+
+### ☠️ `fit_pane` beskär bort precis det kortets RUBRIK lovar
+
+Tre av nio kort i runda 58 fick fel rubrik, och alla tre av samma orsak.
+Källbilderna är **kvadratiska** (420 × 420); spec-panelen är 1416 × 776, alltså
+1,8:1. `fit_pane` beskär källan till panelens proportion — och tar därmed bort
+**45 % av höjden**. Det som låg i den bortskurna delen var kokplattorna på
+topplattan och frityrkorgen bakom luckan, alltså exakt vad rubrikerna
+*"36 liter, två plattor och grillspett"* och *"24 liter med frityrkorg"* pekade på.
+
+Runbokens regel fanns hela tiden och lyder *"`fit=True` (`contain`) för
+produktbilder så hela varan syns, `fit=False` (`cover`) bara för kontextfoton"*.
+Felet var att köra `fit_pane` FÖRE den: en förbeskärning gör `contain`
+meningslös, eftersom det som ska rymmas redan är bortkapat.
+
+**Skicka kvadraten rakt in i `card_spec(..., fit=True)`.** Panelen brevlådar då
+bilden i stället för att zooma in i den. `fit_pane` hör hemma på kontextfoton
+som ska täcka panelen.
+
+Ögongranskningen av kortarket är det enda som hittar det här — talen var gröna
+i alla tre fallen.
+
+### ⚠️ Två produkter i katalogen BAR redan samma SKU
+
+Runda 57 härledde ur `lib/import/sku.ts` att färgsyskon kan få samma SKU. Runda
+58 mätte det i drift: `2be44ec2` och `fc9c6885` — en 24-liters och en 10-liters
+varmluftsfritös, olika produkter i olika prisklass — bar båda
+`FP-minibackofen-mit-umluft`. Produktdelen kapas vid 24 tecken på hel ordgräns,
+och de tyska sluggarna var identiska ända dit.
+
+Grinden är `skugrind.py`: en Python-port av `buildVariantSkus` som räknar varje
+planerad slug FÖRE den låses, och jämför mot både batchens övriga och de redan
+publicerade syskonens SKU:er.
+
+### ⚠️ En jämförelse mot en produktkategori vi inte MÄTER är ett påhittat tal
+
+Två av åtta texter påstod *"36 liter är samma volym som en liten
+inbyggnadsugn"* respektive samma sak om 32 liter. En liten inbyggnadsugn är
+45–65 liter; påståendet var alltså fel, och det var fel i den riktning som
+smickrar varan. Ingen mekanisk grind kunde se det — talet stod i spec-tabellen,
+ordet var svenskt, meningen var välformad.
+
+Grinden `JAMFOR_OMATT` fäller nu *"samma volym som"*, *"lika stor som"*,
+*"samma storlek som"* och *"motsvarar en"*. Skriv i stället ut måttet:
+*"Ugnsrymden är 38 × 31,5 × 31 centimeter"* säger mer och är sant.
+
+Samma runda gav två grindar till av samma familj:
+
+- `SORTIMENT` — *"den minsta varmluftsfritösen i sortimentet"* var sann när den
+  skrevs och upphör att vara det nästa gång något mindre poleras.
+- `MATTETIKETT` — se nästa avsnitt.
+
+### ⚠️ Tyskans L/B/H är inkonsekvent i SAMMA dokument — etikettera inte ett ensamt mått
+
+Pizzaugnens underlag skriver måtten två gånger, med olika bokstäver på samma tal:
+
+```
+✔ Kompakte Maße von 46B x 49,7T x 28H cm     (säljpunkten)
+✔ Gesamtabmessungen: 46L x 49,7B x 28H cm     (Technische Daten)
+```
+
+Vilket tal som är BREDDEN går alltså inte att veta ur underlaget. Fyra texter
+skrev ändå *"44 centimeter bred"*, *"35 centimeter bred"* och liknande.
+
+`MATTETIKETT` fäller nu `<tal> cm bred|brett|djup|hög`. Skriv hela trippeln —
+*"kåpan mäter 35 × 24,6 × 20 centimeter"* — som varken gissar eller döljer.
+Undantaget är **diameter**, som bara har ett mått och därför inte kan förväxlas.
+
+### ⚠️ Leverantörens ingress kan beskriva en ANNAN produkt
+
+Niolitersugnens tyska ingress inleds *"Der Elektro-Minibackofen **mit
+Kochplatten** ist die Antwort…"*. Ugnen har inga kokplattor: `Lieferumfang` är
+ugn, grillgaller, bakplåt och anvisning, och effekten anges som ett enda tal
+(750 W) utan plattornas watt. Meningen är klippt från ett syskon i samma serie.
+
+Det är samma klass som `Lieferumfang` är kontraktet: **ingressen är
+marknadsföring och kan vara någon annans.** Kontrollera varje funktionspåstående
+i ingressen mot spec-blocket och paketinnehållet innan det översätts.
+
+Sidan har nu en FAQ som förnekar plattorna rakt ut, och `lint.py` har en
+negationsmedveten grind: ordet *kokplattor* får stå på den sidan bara i
+förnekandet, aldrig i ett påstående.
+
+### ⚠️ `bulk/categories/add-item` tar ETT item och MÅNGA kategorier
+
+Inte tvärtom. En kropp med `categoryId` + `items[]` avvisas med 400 och en
+felrad som namnger de riktiga fälten:
+
+```
+categoryIds has size 0, expected 1 or more · item must not be empty
+```
+
+Rätt form är `{ treeReference, item: { catalogItemId, appId }, categoryIds: [...] }`,
+alltså en loop över PRODUKTER med båda kategorierna i varje anrop.
+
+### ☠️ Ett ankare som korsar en radbrytning i en Python-sträng matchas inte
+
+Korrekturskriptet i runda 58 dog tre rättelser in, på ett ankare som i
+`texter.py` står som
+
+```python
+    "Torka av utsidan med fuktad trasa. Silverkåpan är lackerad metall och tar "
+    "märken av skursvamp."
+```
+
+— alltså med `" \n    "` mitt i meningen. Ett rakt `s.count(ankare) == 1` ser
+noll träffar, och assertionen sköt ner skriptet innan något skrevs. (Att den
+sköt ner det är rätt; att den behövde göra det är slöseri.)
+
+Fixen är generell och hör hemma i varje rättelseskript: bygg ankaret till ett
+mönster där varje mellanslag också får matcha en strängbrytning.
+
+```python
+GRANS = r'(?:\s|"\s*\n\s*")+'
+rx = re.compile(GRANS.join(re.escape(w) for w in ankare.split(" ")))
+```
+
+Samma runda gav också om den gamla lärdomen gratis: **ett `\n` i en vanlig
+konkatenerad Python-sträng är ett syntaxfel**, inte en radbrytning. Skriptet föll
+på `"…" \n "…"` och skrev ingenting alls — vilket är rätt utfall, men bara för
+att skrivningen låg sist i filen.
+
+### ☠️ Kategorikopplingens kvitto är EVENTUELLT KONSISTENT — läs inte tillbaka direkt (2026-09-05)
+
+`bulk/categories/add-item` svarade utan fel på alla åtta produkterna, och
+återläsningen i nästa anrop visade **en enda kategori** — `05e96cd6`
+("All Products"), alltså den som importen själv satt. De två kökskategorier som
+just skrivits fanns inte där.
+
+Det ser exakt ut som en misslyckad koppling, och den frestande åtgärden är att
+skriva om — vilket hade blivit en loop som aldrig blir klar, eftersom
+skrivningen hela tiden fungerade.
+
+Facit blev en produkt från FÖRRA rundan, kopplad på samma sätt och sedan länge
+publicerad. Den bar alla tre. Alltså var det inte formen på anropet.
+
+Isolerat efteråt, och det är hela poängen med att mäta i stället för att gissa:
+
+| läsning | tidpunkt | kategorier |
+|---|---|---|
+| `GET /products/{id}?fields=DIRECT_CATEGORIES_INFO` | direkt efter skrivningen | **1** |
+| `POST /products/query` med samma projektion | någon minut senare | **3** |
+| `GET /products/{id}` med samma projektion | långt efteråt | **3** |
+
+Tredje raden är den som avgör saken: **skillnaden var TIDEN, inte endpointen.**
+Utan den hade lärdomen blivit "använd query i stället för GET" — en regel som
+är fel och som hade gömt den riktiga.
+
+Kvittot ska alltså tas efter propageringen, och en enda kategori i svaret
+strax efter en skrivning är inget bevis på något. Referenspunkten som gör det
+avgörbart på sekunder är en produkt från en tidigare runda: bär den sina
+kategorier är formen på anropet rätt.
+
+### ☠️ `MEDIA_ITEMS_INFO` gäller ÅTERLÄSNINGEN — en nolla där ser ut som raderade bilder
+
+Runbokens projektionsfälla är gammal, men den bet på ett nytt ställe: i
+**verifieringen**, inte i läsningen.
+
+Publiceringens återläsning frågade efter `PLAIN_DESCRIPTION` och
+`VARIANT_OPTION_CHOICE_NAMES` — och rapporterade `antalBilder: 0` på alla åtta
+produkterna, minuter efter att galleriet skrivits och lästs tillbaka som
+komplett.
+
+Läst rakt av betyder den nollan "publiceringens `variantsInfo`-PATCH tömde
+galleriet", och den naturliga reaktionen är att skriva om bilderna. Det hade
+varit en riktig, förstörande skrivning mot ett korrekt tillstånd — utlöst av en
+projektion som utelämnade fältet.
+
+Mätt med `fields=MEDIA_ITEMS_INFO` i stället: 39 bilder, noll utan alt-text,
+exakt de tal galleriskrivningen lämnade. Ingenting hade hänt.
+
+**Regeln: en verifiering måste be om precis de fält den tänker döma på.** Ett
+utelämnat fält och ett tömt fält ser likadana ut i ett svar — och det är i en
+KONTROLL den förväxlingen kostar mest, för där leder den till en åtgärd.
+
+### ⚠️ Färgsyskonens kort går inte att kvittera med ögat — bara med filnamnet
+
+Sex av rundans åtta var färgsyskon till två modeller, fyra av dem samma
+21-litersugn i gräddvit, svart, silver och grå. Två av källbilderna är
+bevisligen **samma render omfärgad**.
+
+Ögongranskningen av kortarket gäller fortfarande och är obligatorisk — den
+fångar en rubrik som lovar något beskärningen tagit bort. Men den kan inte
+avgöra det här: fyra kort med rubrikerna "Gräddvit", "Svart", "Silver" och
+"Grå" ser rimliga ut i vilken ordning som helst, och ett förväxlat par är
+osynligt.
+
+Kvittot är mekaniskt i stället: varje korts foto är produktens EGEN huvudbild,
+kontrollerat i kod mot bild→produkt-listan (01/06/11/16/21/26/31/36 i
+`bilder.txt`). Samma grind fäller också om en bild hamnar i två gallerier.
+
+**De två kontrollerna svarar på olika frågor.** Ögat: *visar fotot det
+rubriken lovar?* Koden: *är det den här produktens foto?* Ingen av dem
+ersätter den andra, och på färgsyskon är den andra den som räddar dig.
+
+### ⚠️ Dubblett INOM ett galleri är inte dubblett MELLAN syskon
+
+Bildplanen ville först stryka den grå ugnens närbild på den tända luckan, med
+motiveringen att den är en omfärgad kopia av silverugnens.
+
+Det är fel jämförelse. En kund ser **en** sida i taget, och den grå ugnens
+interiörbild är en korrekt bild av den grå ugnen. Att stryka den hade gjort
+sidan magrare än sitt syskon utan att göra den sannare.
+
+Det som däremot ska strykas är en bild som dubblerar en ANNAN bild i SAMMA
+galleri — här en miljöbild i samma kök, samma vinkel, som en annan redan
+visade. Den ger kunden ingenting nytt att titta på.
+
+Regeln: **avdubblera inom galleriet, inte mellan syskonen.** Syskonen ska se
+lika kompletta ut, och de gör det just genom att var och en visa sin egen färg.
+
+### ☠️ En kategorimätning på TYSKA huvudord kan inte se de publicerade sidorna (2026-09-05)
+
+Urvalet till runda 60 räknade utkast per produkttyp med husets huvudordsregel
+och fick fram en till synes tom kategori:
+
+```
+Wasserkocher: {utkast: 13, publicerade: 0}
+```
+
+Tretton utkast och noll publicerade — alltså fri bana. Det var fel, och felet
+satt i mätningen, inte i katalogen.
+
+**Regexen letade tyska huvudord. Publicerade sidor bär SVENSKA namn.** En
+publicerad vattenkokare heter `Brödrost och vattenkokare i set – 4 skivor,
+1,7 liter, grön` och kan per definition aldrig matcha `/^Wasserkocher/`.
+Nollan mätte alltså ingenting: den var en garanterad nolla, inte ett fynd.
+
+En andra sökning på det SVENSKA ordet hittade sidan direkt. Tolv av de tretton
+utkasten visade sig dessutom vara samma produkttyp som den — brödrost- och
+vattenkokarset, inte fristående kokare.
+
+**Regeln: en kategorimätning är TVÅ sökningar, inte en.** Utkasten räknas på
+det tyska huvudordet, de publicerade på det svenska. Ett tal som bara kan bli
+noll är inget mått.
+
+⚠️ Utfallet blev ändå att alla tretton fick poleras: den publicerade sidan är
+en feed-import (`aosom:800-162V90GN`), och dubblettspärren nycklar på
+artikelnumret — alltså kan ingen av de tretton vara samma artikel. Den är ett
+FÄRGSYSKON, vilket är en länkmöjlighet och inte ett hinder. Men det visste jag
+först efter att ha letat, och hade nollan fått stå oemotsagd hade tolv sidor
+skrivits utan att någon jämfört dem med det som redan låg ute.
+
+### ☠️ En grind kan uppfyllas av ett ord som betyder MOTSATSEN
+
+Rundans farligaste påstående är koktiden. Leverantören skriver att kokaren
+"bringt Wasser in nur 42 Sekunden zum Kochen" — utan att säga att det gäller
+en kopp. 1,7 liter från 20 °C kräver ~569 kJ; vid 2200 W är det 259 sekunder.
+42 sekunder kan alltså bara gälla en kopp, och utan det ordet är talet en lögn.
+
+Grinden skrevs därefter:
+
+```python
+if "kopp" not in omkring.lower():
+    fel.append("… '42 sekunder' utan att säga EN KOPP")
+```
+
+Den fällde aldrig. Mutationstestet visade varför: när "en enskild kopp" byttes
+mot "vattnet" stod meningen **"sex till åtta koppar"** kvar i fönstret — och
+`"kopp" in "koppar"` är sant. Grinden godkändes alltså av precis den mening som
+säger raka motsatsen: att talet gäller hela kannan.
+
+Lagningen är en ordgräns, `\bkopp\b`, som inte matchar "koppar". Testet gick
+från 14/16 till 16/16.
+
+**Regeln, i sin skarpaste form hittills: en delsträngsmatchning är ingen grind.**
+Huset har lärt sig den två gånger förut — `Gelb` inne i "regelbundet" (runda 56),
+ordet "fem" som stod tre gånger till (runda 59) — men det här är värre än båda,
+för här var ordet som räddade grinden inte bara ovidkommande utan direkt
+motsägande.
+
+☠️ Och den hittades av mutationstestet, inte av att läsa koden. Grinden såg
+riktig ut. **En grind som aldrig fällt är obevisad**, och det enda som skiljer
+en obevisad grind från en trasig är att man kört mutationen.
+
+### ⚠️ Ett kortvärde som FÖRKORTAR tabellen är en andra sanning
+
+Kortgrinden fällde `3 min 15 s` mot spec-radens `3 minuter 15 sekunder`.
+Ingen av dem är fel, och det är hela poängen: kortet hade blivit en andra
+formulering av samma tal, som ingen grind jämför framåt. Nästa gång någon
+rättar tabellen följer kortet inte med.
+
+Regeln stod redan — *ett kortvärde ska citera den rad tabellen FAKTISKT har* —
+men den var skriven mot PÅHITTADE värden. Det här är den tystare formen:
+värdet är sant, bara omskrivet. RUBRIKEN får förkorta; VÄRDET ska citera.
+
+### ⚠️ En SKU som är unik idag kan vara en framtida krock
+
+SKU-regeln kapar produktdelen vid 24 tecken på hel ordsgräns. Sluggen
+`vattenkokare-temperaturval-…` gav därför
+
+```
+FP-vattenkokare
+```
+
+— unik i katalogen just nu, och exakt den sträng vilken framtida runda som
+helst med en vattenkokare återskapar. Runda 58 mätte upp två redan publicerade
+produkter som bar samma SKU; det här är hur en tredje uppstår.
+
+Sluggen lades om så att särskiljaren ryms inom 24 tecken
+(`frukostset-temperaturval-…` → `FP-frukostset-temperaturval`). Det kostade
+ingenting att göra före publicering och går inte att göra efteråt utan en
+redirect.
+
+**Regeln: läs SKU:n som en framtida granne skulle göra.** En SKU som beskriver
+en produktKATEGORI i stället för en produkt är inte färdig, hur unik den än är
+i dag.
+
+### ☠️ Live-grinden fällde åtta korrekta sidor — cachen svarade som utkastet
+
+Runda 60, Steg 14. Alla åtta nyss publicerade sidor gav **404**. Wix sa
+samtidigt `visible: true` på exakt de slugarna, med rätt revision.
+
+Svaret stod i huvudena, och det gick att läsa direkt:
+
+```
+HTTP/2 404
+x-vercel-cache: STALE
+age: 1410
+```
+
+Slugen svarade 404 medan produkten var **utkast** — det är rätt svar då — och
+det svaret ligger kvar i ISR-cachen efter publiceringen. `STALE` betyder per
+definition *det gamla svaret, medan omvalideringen pågår i bakgrunden*, och det
+gamla svaret var alltså den 404 sidan hade i tjugotre minuter.
+
+☠️ **Grindens gamla mönster kunde inte se det.** Den hämtade en gång "för att
+beställa ombyggnaden" och mätte på den andra hämtningen. Omvalideringen är
+ASYNKRON: den var inte klar mellan två curl-anrop i följd, så andra hämtningen
+gav samma STALE-404 som den första. Mönstret hade fungerat i tidigare rundor
+bara för att sidan då redan var byggd.
+
+⚠️ **Och `?cb=` löser det INTE på produktsidan.** Det var den självklara fixen
+och den fel. Uppmätt samma minut: en unik cb-parameter svarade `HIT age: 44` —
+samma cache-rad, alltså ingår frågesträngen inte i nyckeln. Det som hjälpte var
+att omvalideringen hunnit klart under tiden. Cache-bust-regeln i `CLAUDE.md`
+gäller butikens API-rutter (`x-vercel-cache: MISS`), inte produktsidan, och att
+läsa den som generell hade gett ett falskt kvitto: en 200:a som man tror kommer
+förbi cachen men som kommer UR den.
+
+`hamta()` väntar nu ut en STALE-rad (0/10/20/30/60/60/120 s) i stället för att
+rapportera den. Tre grenar, och alla tre behövs:
+
+| fall | vad som händer |
+|---|---|
+| STALE | hämtas om tills raden är färsk |
+| färsk sida | exakt **en** hämtning, ingen väntan |
+| ÄKTA 404 | fälls direkt, väntas inte ut i fem minuter per produkt |
+
+`vantetest.py` bevisar dem med en stubbad hämtare — grinden kunde annars ha
+"lagats" till att bara sova längre, vilket hade gjort en riktig 404 till fem
+minuters tystnad per produkt.
+
+**Regeln: en 404 direkt efter publiceringen är ett påstående om CACHEN, inte om
+sidan.** Facit är butiken — `visible` och slugen i Wix — och grinden ska mäta
+mot en FÄRSK rad. Det är samma familj som `jamforelsePris`: läs det kunden
+faktiskt får, men läs det när det faktiskt är byggt.
+
+☠️ **Och ORSAKEN mättes upp i runda 61: det var live-grindens EGEN förhandskörning
+som la 404:an i cachen.** Runda 60 körde `live.py` mot utkasten INNAN publiceringen
+för att bekräfta att de svarade 404 — en rimlig kontroll, och det var just den
+hämtningen som cachade svaret i en timme. Runda 61 hoppade över förhandskörningen
+och fick `200`, `x-vercel-cache: MISS`, `age: 0` på **alla sju sidor i första
+försöket**. Två rundor, två utfall, en enda skillnad.
+
+**Hämta alltså aldrig en produkt-URL medan produkten är utkast.** Att slugen
+svarar 404 som utkast är redan bevisat av `visible:false` i Wix — kontrollen
+tillför ingenting och kostar en timmes felaktig cache. Väntemekaniken ovan står
+kvar som skyddsnät för de fall där någon annan hunnit begära adressen först.
+
+### ☠️ En ISR-sida måste hämtas TVÅ gånger — den första är väckningen (2026-09-08)
+
+Runda 102 rättade en text på alla tretton sidorna i massagefamiljen och körde
+familjegrinden direkt efteråt. Den fällde **åtta av tretton**. Trettio sekunder
+senare gav samma skript, mot samma sidor, utan en enda skrivning emellan,
+**noll**.
+
+De åtta var exakt de **redan publicerade**. Deras cache-post fanns kvar sedan
+före textändringen; de fem nya hade fått sin post skapad efteråt och var färska
+från start. Next.js svarar *stale-while-revalidate*: den första hämtningen får
+den GAMLA sidan och startar omvalideringen i bakgrunden, den andra får den nya.
+
+| hämtning | vad grinden såg |
+|---|--:|
+| första | 8 av 13 sidor "saknar" den nya texten |
+| andra, 30 s senare | **0 av 13** |
+
+**Regeln: läs aldrig utfallet av den första hämtningen efter en skrivning.**
+Hämta, kasta svaret, hämta igen — eller läs `age` och `x-vercel-cache` och
+förkasta allt som inte är färskt. En grind som dömer på första svaret gör
+precis runda 60:s misstag: den fäller korrekta sidor, och ett larm som fyrar
+på varje korrekt sida lär mottagaren att sluta läsa.
+
+⚠️ **Och cache-bust i query-strängen hjälper INTE.** `?cb=<tidsstämpel>` gav
+samma cachade svar: Next.js ISR nycklar på RUTTEN, inte på okända parametrar.
+Uppmätt samma dag på fem nypublicerade sidor — `x-vercel-cache: HIT` med
+cache-bust, och 404 i femton minuter tills posten gick ut av sig själv
+(12:19 → 0/5, 12:25 → 3/5, 12:27 → 5/5).
+
+### ☠️ …och TVÅ räcker inte heller — andra hämtningen kan vara STALE (2026-09-11)
+
+Kortsvepet över runda 121–127 (53 publicerade sidor genom `grindar.kortfel`)
+gav **två fel**. Båda var falska, och båda bar samma sak i samma rad:
+
+| sida | svepets dom | cache-rad | omhämtning en minut senare |
+|---|---|---|---|
+| `verktygslada-49-cm-fyra-ladar-orange` | SAKNAR EGET KORT | **`STALE`** | `HIT age=179`, **0 fel** |
+| `verktygsvagn-83-cm-tre-plan-verktygshal` | SAKNAR EGET KORT | **`STALE`** | `HIT age=24`, **0 fel** |
+
+☠️ **Noll av 53 fel var på sidan.** Korten satt där hela tiden; det var
+`hamta_isr` som dömde på ett svar den själv redovisade som inaktuellt.
+Funktionen gjorde två hämtningar med paus emellan — vilket är runda 102:s
+regel, ordagrant — men den **läste aldrig `x-vercel-cache` på den andra**.
+Är ombyggnaden inte klar då är det gamla svaret fortfarande det som kommer.
+
+Runda 60 skrev redan ned väntemekaniken (`0/10/20/30/60/60/120 s`), men den
+bodde i den rundans egen `live.py`. Den delade modulen ärvde bara
+tvåhämtningsregeln. Husets vanligaste bugg, en gång till: **en regel som
+flyttas till en delad modul måste flytta HEL.**
+
+✅ `hamta_isr` väntar sedan dess ut en STALE-rad (`stale_forsok`, växande
+paus) i stället för att rapportera den. De tre grenarna är oförändrade — en
+färsk rad kostar ingen extra hämtning, en äkta 404 kastar direkt.
+
+☠️ **Och självtestet som skulle bevisa det kunde inte fälla.** De tre nya
+fallen skrevs som VÄRDEjämförelser (`lambda: h["x-vercel-cache"], "HIT"`) —
+och `_sjalvtest` `bool()`:ar båda sidor, med flit, så att en grind får svara
+med en Match, en lista eller `None`. `bool("HIT") == bool("STALE")`, alltså
+var alla tre fallen sanna oavsett vad koden gjorde. Mutationstestet
+(borttagen STALE-väntan) gav **grönt på alla tre**.
+
+Två lagningar, och den andra är den som håller framåt:
+
+1. Jämförelsen flyttad IN i lambdan, så `bool()` blir harmlös.
+2. `_sjalvtest` **vägrar ett fall vars väntade värde inte är en riktig bool**
+   och säger varför. Det skiljer "fyrade grinden?" (väntat värde ÄR en bool,
+   svaret får vara vad som helst) från "är värdet X?" (meningslöst under
+   `bool()`). Mätt: 20 befintliga fall svarar med Match/lista/None mot ett
+   bool-väntat värde — de är i sin ordning och berörs inte.
+
+Tre mutationer, tre rätt fällda fall och inget annat:
+
+| mutation | vilket fall som föll |
+|---|---|
+| STALE-väntan borttagen | `STALE väntas ut tills raden är färsk` |
+| väntan utan brytvillkor (sover alltid) | `färsk rad kostar INGEN extra hämtning` |
+| ett fall skrivet som värdejämförelse igen | harnessets egen vägran |
+
+**Regeln: ett självtestfall som jämför ett VÄRDE måste bära jämförelsen själv
+— annars är det en grind som aldrig kan fälla.** Samma familj som
+delsträngsmatchningen som godkändes av ordet den motsades av.
+
+### ✅ Live-grinden kan kontrollera VARJE MENING ordagrant — och den bet (2026-09-07)
+
+Tidigare rundor jämförde live-sidan påstående för påstående med ögon. Runda 94
+gjorde det mekaniskt i stället, och det är den kontroll som stänger hålet i
+avsnittet om transkriberingen ovan:
+
+```python
+kalla = synlig(T.beskrivning(pid))              # vår egen fil
+var   = var_del(synlig(live_html))              # sidans beskrivningsdel
+for mening in re.split(r"(?<=[.!?]) ", kalla):
+    if len(mening) >= 45 and mening not in var:
+        brister.append("saknas ordagrant: %r" % mening[:70])
+```
+
+Wix skriver om markupen men rör inte den synliga texten, så en jämförelse på
+tagg­strippad text stämmer exakt. Tröskeln 45 tecken hoppar över rubriker och
+korta etiketter, som återkommer i sidans chrome.
+
+☠️ **Grinden är MÄTT, inte skriven.** Den kördes mot samma sida två gånger: en
+gång mot källfilen (0 brister) och en gång mot källfilen med rundans faktiska
+felstavning återinförd. Den senare föll på rätt mening:
+
+```
+ratt text (som den ar nu)        0 brister
+med felstavningen ateriniford    FALLER: 'Duken är 298 × 298 cm och den
+                                          snedställda kanten 218 cm — mät båda…'
+```
+
+### ☠️ …men grinden fällde först alla fyra KORREKTA sidor
+
+Första versionen läste hela sidan och gav två brister per produkt. Båda var
+butikens egna:
+
+| grinden sa | vad det var |
+|---|---|
+| `avsandarland: 'skickas från'` | EU-lager-ribbonen: *"Skickas från EU-lager – ingen importtull eller förtullningsavgift"* — den enda sanktionerade platsen |
+| `dubblerade alt-texter (13/19)` | Klarna ×3, Mastercard ×2, Amex ×2, Apple Pay ×2, plus hjältebilden som står både som huvudbild och som galleripost |
+
+**Två avgränsningar räckte, och båda är principiella:**
+
+1. **Landgrinden läser bara BESKRIVNINGSDELEN** — från rubriken `Beskrivning`
+   till syskonkarusellen. Utanför den ägs texten av butiken, inte av poleringen.
+2. **Alt-grinden kräver att VÅRA FEM alt-texter finns och är inbördes olika** —
+   inte att sidans samtliga `alt`-attribut är unika. Betalningslogotyperna
+   kommer alltid att upprepas.
+
+Samma lärdom som runda 60 och som token-förnyelsens 48-timmarsvarning: **en
+grind som fyrar på varje korrekt sida lär mottagaren att sluta läsa.**
+
+### ✅ Live-grindens grind: FACIT PÅ LIVE-SIDAN, inte en längre ordlista
+
+Runda 62, Steg 14. Live-grinden hade vuxit till fjorton ordlistor och regex —
+tyska ord, medicinska påståenden, superlativ, husmärken, landsnamn, artikel-
+nummer. Var och en fångar ett fel någon en gång kom på. Ingen av dem svarar på
+den fråga steget faktiskt ställer: **är texten kunden ser den text som passerade
+lint?**
+
+Det går att svara exakt, och det kostar ingenting. `facit.json` bär redan längd
+och hash av den synliga texten. Skär ut samma region ur den hämtade sidan —
+bunden i BÅDA ändar av beskrivningens första och sista sjuttio tecken — och
+jämför. Stämmer båda talen håller **varje** regel lint körde, per konstruktion
+i stället för per uppräkning.
+
+Mätt först, grind sedan. Alla åtta gav `lika`:
+
+| id8 | slug | kod | cache | bilder | text | mot facit |
+|---|---|--:|---|--:|--:|---|
+| 67bd3628 | gungande-knastol-ljusgra | 200 | MISS | 5/5 | 2466 | lika |
+| b97ac1d8 | gungande-knastol-gra | 200 | MISS | 5/5 | 2436 | lika |
+| b5d8eb9c | gungande-knastol-kram | 200 | MISS | 5/5 | 2392 | lika |
+| 6d64de9b | knastol-bjork-kram | 200 | MISS | 5/5 | 2153 | lika |
+| 9d626528 | knastol-bjork-morkgra | 200 | MISS | 5/5 | 2208 | lika |
+| c3e0af3f | knastol-bjork-bla | 200 | MISS | 5/5 | 2130 | lika |
+| 05cc1f9c | knastol-bjork-svart | 200 | MISS | 5/5 | 2107 | lika |
+| 9e656e81 | knastol-bjork-ljusgra | 200 | MISS | 5/5 | 2137 | lika |
+
+Butiken renderar alltså beskrivningen ordagrant: ingen "Läs mer"-avkortning,
+ingen omskrivning utöver den blankteckenkollaps facit redan gör.
+
+☠️ **Längden ensam duger inte — hashen är det som biter.** Verifierat genom att
+mutera den HÄMTADE sidkällan: `120 kg` → `130 kg` är **samma antal tecken**, och
+en längdjämförelse släpper igenom den. Hashen fäller. Det är precis den sorts
+fel poleringen producerar (en siffra som glidit), inte den sort som ändrar
+textmassan.
+
+⚠️ **Ordlistorna tas ändå INTE bort.** De läser det som ligger UTANFÖR regionen
+— produktnamnet, avsnittsrubrikerna, artikelnumret var som helst på sidan — och
+där finns inget facit att jämföra mot. Facit bevisar beskrivningen; listorna
+bevakar resten.
+
+☠️ **Och landgrinden måste delas, annars fäller butikens egen chrome.** `LANDER`
+i lint innehåller både landsnamn och lagerfraser. Butikens sidhuvud säger
+"Skickas från EU-lager" — butikens text, inte vår. Delningen härleds ur listan i
+stället för att skrivas om (`"lager" in l.lower()`), så ett land som läggs till i
+lint hamnar automatiskt i rätt hink. Att kopiera regeln i stället är runda 57:s
+fel: en live-grind med en egen kopia av en regel utan dess undantag fällde åtta
+korrekta sidor.
+
+✅ **Kvitto på cache-regeln, andra gången.** Alla åtta gav `MISS`, `age: 0`,
+ingen väntan alls — därför att ingen av slugarna hämtades medan produkten var
+utkast. Runda 60 (som förhandskörde grinden mot utkasten) fick `404 STALE` på
+alla åtta; runda 61 och 62 (som inte gjorde det) fick rent på första försöket.
+**Regeln är alltså inte "vänta ut cachen" utan "förgifta den aldrig"** — väntan
+är reparationen, inte skyddet.
+
+
+### ✅ ExecuteWixAPI svarar igen — och grinden mot handtranskriberingen finns nu (2026-09-07)
+
+Verktyget gav **403 på varje anrop** i flera rundor. Runda 95 provade om det, och
+det fungerar. Det är inte en bekvämlighet: 403:an VAR mekanismen bakom runda 94:s
+`yttterm ått`. Bara `CallWixSiteAPI` gick att använda, alltså skrevs JSON-kroppen
+för hand ur filen, och den kopieringen var ogrindad.
+
+Med kod tillbaka går hela skrivningen att grinda i **samma anrop**:
+
+```js
+const skickadHash = hasha(synlig(d.html));
+if (skickadHash !== d.facit) { avbryt(); }        // ← FÖRE skrivningen
+await wix.request({ method: "PATCH", ... });
+const r = await wix.request({ method: "GET", url: ".../products/" + id + "?fields=PLAIN_DESCRIPTION" });
+return { lastHash: hasha(synlig(r.product.plainDescription)), facit: d.facit };
+```
+
+☠️ **Grinden måste ligga FÖRE skrivningen, inte bara efter.** Bara en återläsning
+hade också fångat felet — men efter att sidan redan burit det. Före-hashen gör
+produkten till en no-op i stället: skiljer transkriberingen sig från filen skrivs
+ingenting alls för just den produkten, och de andra i samma anrop går igenom.
+
+Hashen är husets vanliga: taggbefriad, blanksteg-normaliserad synlig text, sedan
+`h = (h*31 + kodpunkt) % 1000000007`. Den fungerar identiskt i Python och JS för
+BMP-tecken (`×`, `²`, `—`, `å ä ö`) — och regel 18 i lintet garanterar att ingen
+emoji smiter in, vilket är det enda som hade fått `codePointAt` och Pythons
+`ord()` att glida isär.
+
+Runda 95: **fyra av fyra `stammer: true` på båda sidor om skrivningen.**
+
+### ☠️ `list-categories-for-item` har INGEN `categories`-array
+
+Svaret bär `directCategoryIds` och `allCategoryIds` — inget annat. En läsning av
+`r.categories` ger `[]`, och det ser ut som en produkt utan kategorier.
+
+Uppmätt 2026-09-07 på `df5a7190`, en sida som bevisligen ligger i två löv:
+
+| läst fält | svar |
+|---|---|
+| `r.categories` | `[]` |
+| `r.directCategoryIds` | `["5d75e733…", "05e96cd6…", "653ab052…"]` |
+
+Nionde gången samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: **ett
+fält som inte finns syns som ett tomt värde, inte som ett fel.** Här hade det
+gjort Steg 10 blind — "noll kategorier" på en produkt som redan ligger rätt.
+
+⚠️ Och asymmetrin fortsätter: `?fields=VARIANTS_INFO` är INTE en giltig
+projektion. V3 svarar `400 Failed to parse JSON or deserialize protobuf message`.
+`variantsInfo` kommer i standardprojektionen och ska inte efterfrågas — tvärtemot
+`MEDIA_ITEMS_INFO`, som MÅSTE efterfrågas. Mät varje fält, härled inget.
+
+### ☠️ Leverantörens egen URL är en TREDJE källa om färgen
+
+Runda 95 hade två produkter där källan säger fel färg, och pixlarna sa emot:
+
+| id8 | tyska fältet | mätt RGB | HSL | `sourceUrl` säger |
+|---|---|---|---|---|
+| `b6ebc5ba` | **Kohlegrau** | 24, 72, 36 | H 135°, L 19 % | `…partyzelt-**grun**` |
+| `ef0a812d` | namnet **Kaffee** | 180, 36, 0 | H 12°, L 35 % | `…3x4m-**terra**` |
+
+Pixelmätningen ensam är ett omdöme ("är L 19 % mörkgrönt?"). URL:en är
+leverantörens EGEN klassificering, den ligger i mappningsraden, och den kommer
+gratis med `las`-läget i prisgrinden. **Läs `sourceUrl` i Steg 3, inte bara
+priset** — den avgör en färgtvist på en sekund, och den fällde två av fyra
+etiketter den här rundan.
+
+### ☠️ Två "färgsyskon" som inte delar EN enda mått-rad
+
+`b6ebc5ba` och `271327e1` är samma produkttyp, samma storleksklass, samma
+leverantör, importerade en minut isär. De ser ut som ett färgpar. De är det inte:
+
+| vad | `b6ebc5ba` | `271327e1` |
+|---|---|---|
+| lilla taket | **88 × 88 cm** | **86 × 86 cm** |
+| snedställd kant | 174 cm | — |
+| öppning | — | 68 × 68 cm |
+
+En talvitlista per GRUPP hade släppt igenom grannens mått i den egna
+spec-tabellen utan ett ljud — talet står ju på "sidan". **Vitlistan ska vara per
+PRODUKT**, och korslänken ska säga att måtten skiljer sig, inte att duken är
+densamma. Mutationstestet fick sex egna fall för just det bytet.
+
+### ☠️ Runbookens EGEN notation läckte in i en säljande mening
+
+Utkastet till syskonlänken bar `⚠️ Måtten på det lilla taket skiljer sig…` —
+varningstecknet kopierat rakt ur den här filen in i kundtexten. Ingen befintlig
+regel såg det: tecknet är varken tyskt, ett tal, en färg eller ett husmärke.
+
+Regel 18 i lintet fäller `[⚠☠✅❌✓✗️]` och `TODO` i namn, SEO, kort och HTML.
+Samma runda fick en tvilling: **"det säger tillverkaren själv i klartext"** —
+`leverantören` var grindat sedan länge, `tillverkaren` inte. Båda skjuter
+påståendet på en part kunden inte kan fråga. Grinden tar nu
+`leverantör|tillverkar|fabrikant|importör`.
+
+### ⚠️ Tysk text i bilden sitter inte alltid ÖVERST
+
+Runda 94 toppkapade måttritningen. Runda 95 hade fyra ritningar av samma slag och
+**en av dem var tvärtom**: ren ritning med cm-mått överst, tysk `HINWEIS`-ruta
+under. Den bottenkapades till 55 % i stället.
+
+| bild | vad | kapning |
+|--:|---|---|
+| 2 | banderoll över himlen/väggen | topp 15–25 %, hela paviljongen kvar |
+| 3 (tre av fyra) | tysk rubrik + tre rader, ritning under | topp 34–35 % |
+| 3 (`271327e1`) | ren ritning, tysk ruta under | **botten till 55 %** |
+
+**Titta på bilden innan du väljer riktning.** Ett toppkap på den fjärde hade
+kastat bort exakt de mått sidan bygger på och behållit den tyska rutan.
+
+
+
+### ☠️ Artikelnumrets BAS är modellen, suffixet är färgen
+
+Runda 61, sju frukostset. Att avgöra vilka som är färgsyskon tog i runda 59 en
+jämförelse av tysk brödtext, mått och bilder — och bilderna ljuger, för
+syskonbilderna är samma render omfärgad.
+
+Aosoms artikelnummer avgör det gratis:
+
+| bas | suffix | produkt |
+|---|---|---|
+| `800-287V90` | **CW** / **BK** | gräddvitt och svart set, båda nya |
+| `800-286V90` | **CW** / **BK** | grädde och svart set, båda nya |
+| `800-181V90` | **BK** / **PK** | den PUBLICERADE svarta och det rosa utkastet |
+
+Suffixet matchade tyskans `Farbe`-fält i **sju fall av sju** (GY = Grau,
+CW = Cremeweiß, BK = Schwarz, PK = Rosa) — mätt, inte antaget. Måtten och
+effekterna bekräftade varje par oberoende.
+
+**Regeln: läs basnumret först.** Det svarar på syskonfrågan innan en enda bild
+öppnas, och det är den enda källan som inte kan omfärgas.
+
+⚠️ **En NAMNKROCK bevisar däremot ingenting.** Två av utkasten bar identiskt
+tyskt namn — Wix la på `-2` i den andra sluggen — och var ändå helt olika
+produkter: 5,3 kg fyrskivsrost mot 3 kg tvåskivsrost.
+
+### ☠️ Importen skapar SKU-krockarna själv — sju utkast bar EN SKU
+
+Före publiceringen bar alla sju utkasten samma SKU:
+
+```
+FP-wasserkocher-und-toaster
+```
+
+Det är inte ett poleringsfel. Alla sju hette `Wasserkocher- und Toaster-Set …`
+på tyska, och SKU-regeln kapar produktdelen vid 24 tecken på hel ordsgräns —
+alltså blir varje set i familjen samma sträng. Uppgift #272 mätte elva SKU:er
+delade av 24 PUBLICERADE produkter och läste det som något poleringen orsakar.
+Det stämmer bara till hälften: **poleringen ÄRVER en krock som importen redan
+skapat**, och rättar den bara om den nya sluggen är tillräckligt särskiljande
+inom de 24 tecknen.
+
+**Följden: en opolerad familj är per definition en SKU-krock.** Katalogsvepet
+(`search-variants`, 7 sidor, 6 441 varianter, 4 915 distinkta SKU:er) är därför
+inte en lyx utan det enda som skiljer "unik" från "unik just idag".
+
+### ☠️ Skräpet i bilderna är ENGELSKT lika ofta som tyskt
+
+`CLAUDE.md` mätte 46 % tysk text inbränd i Aosom-bilderna, och grinden har sedan
+dess letat efter tyska ord. I runda 61 var fem av tretton spärrade bilder
+**engelska**: `Family-size`, `3.5CM WIDE SLOT`, `Crumb Tray`, `7 Cups`,
+`Limescale Filter`. En grind som bara känner tyska hade släppt igenom dem alla.
+
+**Regeln är UTLÄNDSK text, inte tysk text.**
+
+⚠️ Två gränsdragningar som håller:
+
+- En **måttritning utan ord** behålls (bara siffror). Samma ritning med
+  `Family-size` eller `7 Cups` på gör den obrukbar.
+- **Text som sitter FYSISKT på varan** — knapparna `CANCEL` / `REHEAT` /
+  `DEFROST` på brödrosten — är varan, inte pålagd grafik. Den bilden behålls;
+  det är bakgrunden bildpoleringen rör, aldrig varan.
+
+### ☠️ Ordlistan fällde fyra korrekta texter — på ett svenskt ord
+
+`Kalkfilter` lades in bland de tyska orden. Det är också ett fullkomligt vanligt
+svenskt ord, så linten fällde fyra egna, korrekta texter.
+
+Kommentaren överst i `lint.py` varnar uttryckligen för precis det (Grill, Timer,
+Metall, Glas, Rost, Filter, Tablett, Dörr) — och listan ÄRVS och VÄXER varje
+runda. **Varje nytt ord måste prövas mot svenskan innan det läggs in**, annars
+blir grinden en falsklarmsmaskin och nästa runda lär sig att stryka rader ur
+den i stället för att läsa dem.
+
+### ☠️ En antalsgrind behöver BÅDA halvorna
+
+Rostlägena hade två regler — rätt tal måste stå där, fel tal får inte stå där.
+Fackantalet hade bara den första. Mutationstestet bytte `fyra separata fack` mot
+`två separata fack` och grinden **fällde inte**: ingressen sa fortfarande
+"fyra fack", så kravet var uppfyllt medan texten motsade sig själv.
+
+En text som säger fyra på ett ställe och två på ett annat är värre än en som
+säger fel överallt — den ser granskad ut. **Kräv rätt tal OCH förbjud fel tal.**
+Testet gick från 24/25 till 26/26 när den negativa halvan kom på plats.
+
+⚠️ Och mutationen var för svag från början. **En mutation som inte tar bort
+påståendet prövar ingenting** — samma fälla som runda 59:s "fem" som stod tre
+gånger till.
+
+### ⚠️ Ett tal som är identiskt över flera artikelnummer mäter ingen av dem
+
+`3 Min. 15 Sek. bis zum Sieden` står på en marknadsföringsbild som dök upp på
+`800-287V90CW` och `800-286V90BK` — två olika modeller med olika kokare — och
+som runda 60 mötte på en tredje. Samma bild, samma tal, olika produkter.
+
+Det är alltså en mall, inte en mätning, och får inte lyftas in i någon text.
+Grinden fäller på den.
+
+### ⚠️ Ett bulk-anrop som "lyckas" kan ha misslyckats med allt
+
+Kategorikopplingen kördes först med UUID:n som gissats ur åttateckensprefix.
+Anropet **kastade inte** — det svarade 200 med
+
+```
+bulkActionMetadata: { totalSuccesses: 0, totalFailures: 2 }
+```
+
+sju gånger i rad. Utan att läsa räknarna hade sju produkter publicerats
+okategoriserade med grönt kvitto. Slå upp kategori-id:na med
+`categories/query` och **läs alltid `totalSuccesses`**.
+
+### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
+
+Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
+bild, i skarp fokus. Varje mekanisk grind var grön: talen stämde mot spec-tabellen, filerna
+låg under taket, rubrikerna beskrev fotona.
+
+Det är samma klass som leverantörens tyska band — text i pixlarna som inte kan visas för en
+svensk kund — men den upptäcks bara av att **titta på kortet**. Utvägen är runbokens
+vanliga: byt till produktens studiobild (157–159 kB vid q=94 mot 207 kB vid q=88), och låt
+inte de bilderna följa med i galleriet heller.
+
 ### Verifiera på den renderade sidan — men läs cache-huvudena
 
 ☠️ **Läs `<title>` och `<meta name="description">`, inte bara brödtexten.** Sidans huvud och
@@ -2629,7 +4891,7 @@ kontrollistan och låg ändå ute med tysk titel:
 | Kontroll | Utfall |
 |---|---|
 | HTTP-status | 200 |
-| `<h2>`-räkning | 7 (rätt) |
+| `<h2>`-räkning | 7 — *ärvt tal, se ovan* |
 | Priset oförändrat | ja |
 | Fyndplats-kortet på plats 3 | ja |
 | Leverantörsspår i brödtexten | noll |
@@ -2654,6 +4916,25 @@ curl -s "https://www.fyndplats.se/produkt/<slug>" \
 ⚠️ **Rättar du `seoData` i efterhand ligger den gamla titeln kvar i butikens ISR-cache**
 (`revalidate=3600`). En frågesträng bustar den inte. Kontrollera mot Wix att fältet är rätt,
 och läs om sidan senare — se cache-avsnittet nedan.
+
+☠️ **HUVUDET och KROPPEN cachas var för sig — och de kan drifta isär i SAMMA svar.**
+Uppmätt 2026-09-04, tolv minuter efter en rättelse som rörde både `plainDescription` och
+`seoData` på samma produkt:
+
+| | vad sidan visade |
+|---|---|
+| `<meta name="description">` | `tre fack på 22, 22 och 16 cm` — **gammal** |
+| brödtexten | `tre fack med höjderna 22 / 22 / 16 cm` — **ny** |
+| `age` / `x-vercel-cache` | 23 s / `HIT` |
+
+Wix bar rätt text i BÅDA fälten vid samma tidpunkt (`seoData.tags[meta].content` och
+`seoDescription`, båda lästa direkt). Sidan var alltså inte "gammal" — den var till hälften
+gammal, och `age: 23` sa ingenting om vilken halva.
+
+Konsekvensen: **att brödtexten är rättad är inget bevis för att huvudet är det.** En
+kontroll som ser den nya kroppen och drar slutsatsen "rättelsen gick igenom" missar precis
+det fält Google visar i träfflistan. Verifiera huvudet mot **Wix**, inte mot sidan, och läs
+om sidan senare.
 
 🔍 **Svepa hela katalogen efter tyska rester:** läs `seoData`-taggarna `title` +
 `meta description` för varje `visible`-produkt via `products/search` (markörsidor om 100) och
@@ -3275,6 +5556,322 @@ enskild produkt, och flyttades hit 2026-08-29.
 > Verifiera att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length +
 > antalTräffar` och `ny.split(" ").join("") === gammal.split(" ").join("")`. Massrättning går via
 > `POST /stores/v3/bulk/products/update` (max **100** produkter per anrop, varje post
+
+### ☠️ UTKASTLISTAN ÄR INTE FAMILJEN — en publicerad färg räknas aldrig (runda 96)
+
+Steg 1 svepte poleringskön, hittade två färgsyskon till en nyss publicerad duk
+och skrev **"tre färger"** på båda de nya sidorna. Sanningen var **fyra**:
+`paviljongtak-3x3-dubbeltak-creme` var redan publicerad och är SAMMA duk —
+identisk på stordukens 300 × 300 cm, det lilla takets 86 × 86 cm, kanthöjdens
+18 cm, 180 g/m², åtta dräneringshål och kardborrefästet. Bara `Farbe` skiljer.
+
+Fem publicerade sidor räknade fel samtidigt, och ingen grind kunde se det:
+lint läser rundans EGNA texter, och där stämde "tre" mot rundans egen världsbild.
+
+☠️ **Frågan Steg 1 ställer är "vilka UTKAST hör ihop?" — inte "vilka SIDOR
+säljer den här varan?".** Ett färgsyskon som redan är publicerat ligger inte i
+kön och dyker aldrig upp. Sedan runda 96 gäller därför: när en runda påstår
+"finns i N färger", **fråga katalogen, inte kön**:
+
+```js
+POST /stores/v3/products/search
+{ "search": { "filter": { "slug": { "$in": [ ...alla tänkbara färgsluggar ] } } } }
+```
+
+⚠️ Och `$startsWith` på `name` är INTE en filtrerbar kombination här — den
+returnerade hela katalogen (3 000 rader) i stället för att fälla. Ett filter
+som inte stöds ger fel svar TYST. Filtrera på `slug` med `$in`, eller hämta en
+avgränsad mängd och filtrera i egen kod.
+
+☠️ **En korslänk under fel rubrik är SÄMRE än ingen korslänk.** Creme-sidan var
+inte osynlig — den stod i den föregående rundans egen källfil, under rubriken
+**"Har du en annan storlek?"**, med texten *"ett dubbeltak i creme **i samma
+storlek**"*. Rubriken motsäger sin egen mening, och den som läser källan ser en
+sida som redan är avfärdad som "annan storlek". En länk placerad fel svarar
+"redan kollat" på en fråga den aldrig ställde.
+
+### ☠️ Söksträngen får stavas fel — ersättningen får inte
+
+När en runda rättar REDAN PUBLICERAD text är kirurgi rätt verktyg: sidorna
+kommer ofta från olika rundors generatorer, och att bygga om dem ur en
+generator ändrar mer än defekten. Formen som håller:
+
+```python
+def byt(html, gammalt, nytt, vad):
+    n = html.count(gammalt)
+    if n != 1:
+        raise SystemExit("FÄLLER: %s gav %d träffar, förväntade 1" % (vad, n))
+    return html.replace(gammalt, nytt)
+```
+
+Asymmetrin är hela poängen och den är gratis:
+
+| | felstavad | vad som händer |
+|---|---|---|
+| **SÖKsträngen** | ja | **0 träffar → skriptet dör innan något skickas** |
+| **ERSÄTTNINGEN** | ja | **når kunden, och API-svaret ekar tillbaka felet som "sparat"** |
+
+Söksträngarna behöver därför ingen grind. Ersättningarna behöver en, och den
+ska vara den som redan finns: **skriv meningarna i en FIL, linta dem där, och
+hasha varje färdig mening.** Bär skrivningen sedan samma mening (t.ex.
+handkopierad in i ett API-anrop), assertar anropet hashen innan det rör något.
+
+Uppmätt i runda 96: den fjärde sidans gamla stycke räknade upp färgerna i en
+annan ordning än den jag härledde ur datan. `byt()` gav **0 träffar** och
+avbröt — tre sidor var redan korrekt skrivna, den fjärde rördes inte, och
+felet var en minuts rättning i stället för fel text hos kunden.
+
+### ☠️ Två läsformer som ser lika ut svarar på olika frågor
+
+Poleringen har numera TVÅ sätt att göra HTML till text, och de är inte
+utbytbara:
+
+| | taggen blir | svarar på |
+|---|---|---|
+| `synlig()` — hashen | **ett blanksteg** | "är detta samma text som jag skickade?" |
+| `lasform()` — linten | inline-taggen **ingenting**, blocktaggen ett blanksteg | "läser detta rätt för en människa?" |
+
+Blandas de går det åt båda hållen:
+
+- Linten körd med hashens regel gör `</a>, <a` till `" , "` och rapporterar
+  **hängande komman som inte finns på sidan** — fem falska brister på fem
+  korrekta stycken.
+- Verifieringen efter skrivningen körd med de två blandade sa **"förekommer
+  0 ggr"** om alla fem sidor — inklusive två som i samma svar just bevisats
+  korrekta med hash. Verifieringen var fel, inte datan.
+
+**Regeln: jämför alltid samma läsform på båda sidor**, och när en grind säger
+att en sida är trasig medan en hash säger att den är rätt — **misstro grinden
+först.** Hashen mäter det Wix lagrade; grinden mäter det jag skrev om grinden.
+
+### ⚠️ En PATCH syns inte direkt — och `?cb=` hjälper inte mot det
+
+Runda 60 lärde att ISR-cachen kan servera UTKASTET efter en publicering.
+Runda 96 mätte samma sak åt andra hållet: efter en PATCH svarade sidan **200
+med den FÖRRA versionen på en helt färsk cache-bust**, och med den nya
+trettio sekunder senare. Syskonsidan, skriven i samma anropskedja, var färsk
+direkt.
+
+Cache-busten kringgår cachen; den påskyndar inte propageringen. Live-grinden
+gör därför om **hela** kontrollen när bristerna är av färskhetstyp
+(`saknas ordagrant`, `saknar korslänk`, `HTTP`) och dömer först när de står
+kvar efter fyra försök med paus emellan.
+
+⚠️ **Butiken svarar dessutom ibland 403 på en giltig begäran.** Samma slug gav
+403 i ett svep och 200 sekunder senare, utan att något ändrats. Ett 403 är
+inget verdikt förrän det upprepats — annars fäller grinden korrekta sidor, och
+en grind som fyrar på korrekta sidor slutar bli läst.
+
+### ⚠️ Självlänkskontrollen går inte att göra mot den renderade sidan
+
+En grind som letar "länkar sidan till sig själv?" i hela HTML:en svarar **JA
+för varje korrekt sida**: canonical, `og:url` och JSON-LD bär alltid sidans
+egen adress. Uppmätt i runda 96 på två sidor som i samma timme bevisats
+självlänksfria mot API:t.
+
+Kontrollen hör hemma **mot API:t**, där beskrivningens egen HTML går att läsa
+isolerad från sidans chrome. Samma familj som runda 95:s EU-lager-ribbon och
+betalikonernas alt-texter: en textgrind mot en renderad sida måste avgränsa
+sig till VÅR text, annars mäter den butiken.
+
+### ☠️ EN PRODUKTKATEGORIS STANDARDPÅSTÅENDE KAN VARA FEL ÅT ANDRA HÅLLET (runda 97)
+
+Foderstationsfamiljen säljs på ETT argument, och fem av sex utkast skriver ut
+det: den upphöjda skålen sägs skona nacke och rygg och ge bättre matsmältning.
+Det är inte bara ogrundat — det är **motsagt av den största studien som
+finns**.
+
+Glickman m.fl. (JAVMA 2000, Purdue) följde drygt 1 600 stora och jättestora
+hundar: att äta ur en upphöjd skål var förknippat med **förhöjd** risk för
+magomvridning (GDV). Ungefär **20 % av fallen hos stora raser och 52 % hos
+jätteraser** tillskrevs den upphöjda skålen. En senare studie (Pipan m.fl.
+2012) fann ingen signifikant effekt. Läget är alltså i bästa fall
+**motstridigt**, och ett motstridigt läge är aldrig ett säljargument.
+
+☠️ **Steg 2 ska därför fråga en fråga till på varje ny familj: vad SÄLJS den
+här produkttypen på, och håller det?** Ett påstående som står i nästan varje
+utkast i en familj känns som en produktegenskap. Det är precis då det är en
+kategoriklyscha, och kategoriklyschor är oftast obevisade — ibland motbevisade.
+
+⚠️ **Grinden ska vara en ORDLISTA, inte en bedömning.** En bedömning glider:
+nästa runda skriver "många väljer en upphöjd skål för att den är skonsammare"
+och en bedömande grind resonerar sig fram till att det ju bara är ett
+konstaterande om vad många gör. Ordlistan gör det inte. Runda 97:s lista:
+`magomvridn` · `uppblåsthet` · `matsmältn` · `nacke` · `rygg` · `leder` ·
+`artros` · `hållning` · `skonsam` · `skonar` · `avlastar` · `belastning` ·
+`veterinär` · `hälsosam` · `nyttigare` · `bättre för` · `ergonomisk`.
+
+✅ Det som är sant och räcker: skålarna står stadigt, maten hamnar inte på
+golvet, rostfritt går i diskmaskin, förvaringen tar ingen extra golvyta, och
+höjden går att välja efter hunden. Beskriv MEKANIKEN och låt kunden dra
+slutsatsen.
+
+### ☠️ PAKETMÅTTET ÄR FEL ÅT BÅDA HÅLLEN — inte bara otillräckligt
+
+#266 säger att vikt och paketmått inte BEVISAR två produkter. Runda 97 mätte
+upp att det är värre än så: paketmåttet ger både falska positiva och falska
+negativa.
+
+Regexen tog första `NN × NN × NN cm` i den tyska texten. Produktmåttet skrivs
+`60L x 30B x 35,5H cm` — med bokstäver emellan — så det matchade aldrig, och
+det som fastnade var `Paketmått`.
+
+| id | produktmått | paketmått |
+|---|---|---|
+| `79ccfef4` | **60 × 30 × 35,5** | 70 × 36 × 17 |
+| `9cfc2f50` | **60 × 30 × 35,5** | 70,5 × 38 × 15,5 |
+
+Två identiska produkter, två olika kartonger. `79ccfef4` låg i rundans första
+urval just för att paketet skilde. Åt andra hållet grupperade paketmåttet ihop
+produkter som bara råkar dela kartong.
+
+☠️ **Läs `Gesamtabmessungen` / `Gesamtmaße`, och räkna med att formen varierar:**
+
+```python
+m = re.search(r"Gesamt(?:abmessungen|maße|abmessung)\s*:?\s*([^✔]{0,48})", t, re.I)
+tal = m and re.search(r"(\d+(?:[,.]\d+)?)\s*[LlBbHhTt]?\s*[x×X]\s*"
+                      r"(\d+(?:[,.]\d+)?)\s*[LlBbHhTt]?\s*[x×X]\s*"
+                      r"(\d+(?:[,.]\d+)?)", m.group(1))
+```
+
+⚠️ Och i en familj med ett gemensamt fotavtryck räcker inte två tal.
+Foderstationerna delar 60 × 30 på fjorton av 26 utkast; det som skiljer
+modellerna är HÖJDEN, skåpsvolymen och skålarna. En måttjämförelse måste läsa
+alla tre talen.
+
+### ☠️ EN REGEL SOM MÄTER SIN EGEN NORMALISERING FÄLLER ALDRIG
+
+Runda 96 lärde att två läsformer som ser lika ut svarar på olika frågor.
+Runda 97 hittade nästa steg i samma familj, och det är farligare.
+
+Regeln "inga dubbla blanksteg" låg bland de förbjudna mönstren, och de körs på
+den taggstrippade texten — som normaliserar `\s+` till ETT blanksteg först.
+Regeln letade alltså efter något som borttagits en rad tidigare. Den kunde
+aldrig fälla, och självtestet visade det bara för att självtestet fanns.
+
+☠️ **Skillnaden mot runda 96:s fall:** där gav blandade läsformer FALSKA
+TRÄFFAR, som syns direkt. Här gav den TYSTA MISSAR, som inte syns alls.
+
+**Regeln: en kontroll som handlar om blanksteg, radbrytningar eller
+taggstruktur ska köras på den RÅA html:en.** Bara innehållsregler får läsa
+den normaliserade texten.
+
+### ⚠️ EN MUTATION SOM INTE MUTERAR RAPPORTERAS SOM ETT HÅL I GRINDEN
+
+Mutationstestet bytte `förvaring` mot `Stauraum` för att bevisa att
+tyska-regeln biter. Två av sex texter innehåller inte ordet — mutationen blev
+en no-op, texten var oförändrad och korrekt, och testet skrev ut
+`SLAPP IGENOM` om en grind som var helt frisk.
+
+Tio minuter gick åt att leta efter felet i regeln. Felet fanns i mutationen.
+
+**Regeln: en mutation ska bytas mot något som står i ALLA texter den körs på,
+och ett `SLAPP IGENOM` ska först misstänkas vara en trasig mutation.** Ett
+billigt skydd är att låta mutationen kräva att den ändrade något:
+`assert ny != h0`.
+
+### ✅ VÄLJ FAMILJ PÅ FÖRHÅLLANDET UTKAST/PUBLICERADE, inte på antal utkast
+
+Katalogen svept 2026-09-07: 5 527 produkter, 3 299 utkast, 2 228 publicerade.
+
+| familj | utkast | publicerade | vad talet betyder |
+|---|--:|--:|---|
+| växthus | 103 | 27 | mycket kvar, men tät |
+| sittbänk | 68 | 100 | fler publicerade än utkast — högsta krockrisk |
+| badrumsskåp | 68 | 51 | ser ut som en annan sessions område |
+| **foderstation** | **26** | **0** | orörd |
+
+Den största familjen är sällan den bästa. En familj med **noll publicerade
+sidor** ger noll sökordskrockar, noll måttvillingar mot katalogen — och,
+sedan runda 96, ingen möjlighet att ett redan publicerat färgsyskon räknas
+fel. Det är den billigaste rundan som finns.
+
+⚠️ Nio publicerade `badrumsspegel-led-*` och sju `spegelskap-*` är ett mönster,
+inte en slump: det är någon annans pågående arbete. #302 kostade en halv runda
+när den andra sessionen publicerade sex sidor mitt i.
+
+
+### ☠️ `products/query`:s MARKÖR FLYTTAR SIG INTE — svep måste gå via `search` (2026-09-08)
+
+Runda 104 skulle hitta tre utkast på deras id-prefix och lät ett svep paginera
+`POST /stores/v3/products/query`. Svepet rapporterade **"2 000 rader lästa på
+40 sidor, noll träffar"**. Talen var påhittade av API:t: varje sida var samma
+50 rader.
+
+Kontrollmätningen, tre anropsformer mot samma första sida:
+
+| form | första id | sista id | ny markör |
+|---|---|---|---|
+| sida 1 (filter + limit) | `ca3d32d0` | `b8d21670` | = markören |
+| markör **+** filter + limit | `ca3d32d0` | `b8d21670` | = markören |
+| **BARA** markören | `ca3d32d0` | `b8d21670` | = markören |
+
+Ingen form flyttar den. ☠️ **`query` kapar dessutom `limit: 100` till 50** utan
+att säga något.
+
+✅ **`products/search` gör rätt — och den ERRAR HÖGT när anropet är fel:**
+
+```
+400 SE-1141  Invalid usage of cursor paging:
+             Search, filter and aggregations cannot be specified together with cursor
+```
+
+Alltså: skicka `filter` bara på FÖRSTA sidan, därefter **enbart**
+`cursorPaging.cursor`. Så gjort läste svepet **3 158 unika utkast på 32 sidor**
+— och `unika == lästa` är kontrollmätningen som skiljer ett svep från fyrtio
+kopior av sida ett. `search` respekterar också `limit: 100`.
+
+**Regeln, en variant på husets vanligaste: ett svar utan fel är inget kvitto —
+och ett svar med PLAUSIBLA TAL är det inte heller.** Ett svep måste räkna
+UNIKA rader, aldrig summan av sidornas längder.
+
+### ☠️ `bulk/categories/add-item` kräver `treeReference` (2026-09-08)
+
+Utan fältet svarar Wix `400 treeReference must not be empty`. Formen är
+`{ "appNamespace": "@wix/stores" }` och går att läsa ur vilken kategori som
+helst i `POST /categories/v1/categories/query`. Hela kroppen:
+
+```json
+{ "treeReference": { "appNamespace": "@wix/stores" },
+  "item": { "catalogItemId": "<produkt-id>",
+            "appId": "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
+  "categoryIds": ["<kategori>", "<kategori>"] }
+```
+
+⚠️ Och `directCategoriesInfo` SLÄPAR: två av tre produkter visade bara
+`All Products` i en återläsning i SAMMA anrop som skrivningen, trots
+`totalSuccesses: 2`. En egen läsning en halv minut senare visade alla tre
+kompletta. Det är samma fälla som redan står som "en återläsning direkt efter
+en KATEGORI-skrivning kan ljuga NEGATIVT" — mätt igen, och den gäller.
+
+### ⚠️ Ritningen ska läsas av i FÖRSTORING, aldrig på ett kontaktark (2026-09-08)
+
+Runda 104:s Aprilia-ritning bär sitsens mått som en orange etikett. På ett
+kontaktark i 300 px gick den att läsa som **`36cm`**; en förstoring av samma
+ruta visar **`35cm`** — samma tal som spec-blocket. Talet hade annars stått
+fel på både sidan och spec-kortet, och kortets värde härleds ur sidans
+spec-tabell, så FELET HADE SETT KONSEKVENT UT.
+
+Kontaktarket duger för att se VAD en bild föreställer och om den bär tysk
+text. Det duger inte för att läsa en siffra.
+
+### ✅ Saknas ritningen: fotot duger som andra källa — för PROPORTIONER (2026-09-08)
+
+Runda 104:s fyrhjuling hade ingen måttritning alls, alltså exakt det läge där
+runda 103 hittade ett spec-block **kopierat från en annan modell**. Utan andra
+källa går det ändå att pröva blockets inre logik mot studiobilden:
+
+| | |
+|---|--:|
+| hjulets andel av produktens höjd i bilden | ~47 % |
+| specens 36 / 73 cm | 49 % |
+
+Talen hör ihop inom perspektivfelet, så blocket hör till den här modellen.
+⚠️ **Metoden ger bara ett FÖRHÅLLANDE.** Den kan avslöja ett block som gäller
+en annan modell; den kan aldrig bekräfta ett absolut mått.
+
+
+
 
 
 -----

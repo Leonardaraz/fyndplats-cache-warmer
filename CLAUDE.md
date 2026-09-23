@@ -44,6 +44,246 @@ en PR per produkt.
 - Poleringen är sällan brådskande. Ingen kund väntar på en omskriven
   produkttitel — det är precis den sortens arbete som ska samlas ihop.
 
+### ☠️ En PUSH till grenen bygger också — inte bara en merge (2026-09-05)
+
+Regeln ovan vaktade merges till `main`. Den missade hälften av notan: **Vercel
+bygger varje push till varje gren** som en preview. Uppmätt på ett dygns
+byggen i projektet `fyndplats-cache-warmer`:
+
+| gren | byggen | typ |
+|---|--:|---|
+| `claude/…-bz3j9l` | **8** | preview, alla READY |
+| `claude/…-uq6fwl` | 4 | preview |
+| `main` | 4 | production |
+
+**Tolv av sexton byggen var previews**, och de åtta från poleringsgrenen rörde
+uteslutande `docs/` och `tools/polish-assets/` — texter, kort och runbok.
+Ingenting som appen bygger eller serverar. Build CPU är 49 % av fakturan, och
+tre fjärdedelar av byggvolymen den dagen nådde aldrig en kund.
+
+☠️ **`[skip ci]` FUNGERAR INTE här — provat och mätt.** Den självklara fixen
+är Vercels dokumenterade markör i ämnesraden. Commiten `177c55d` bar
+`[skip ci]` först i ämnesraden och byggdes ändå:
+`dpl_GXiYPfKUfRBTf3J6Xyi7tVf7SjAp`, `state: READY`, `target: null`. Skriv
+alltså inte in markören i tron att den hjälper — den ger ett bygge OCH en
+felaktig känsla av att vara sparsam.
+
+**Det som återstår och faktiskt biter: PUSHA FÄRRE GÅNGER.** En poleringsrunda
+behöver som mest **två** pushar — korten (som måste ligga i grenen innan Wix
+hämtar dem från `raw.githubusercontent.com`) och allt annat vid rundans slut.
+Runda 60 och 61 kostade åtta byggen; samma arbete ryms i två. Committa fritt
+under vägen, pusha sällan.
+
+### ✅ Löst i `vercel.json` — dokumentation utlöser inget bygge (Leonards ja 2026-09-05)
+
+☠️ **Panelens *Ignored Build Step* är en återvändsgränd här.** `vercel.json`s
+`ignoreCommand` ÖVERRIDER den, och filen har burit en sedan tidigare. Att
+klicka i panelen hade alltså inte gjort någonting alls — och sett ut som att
+det gjorde det.
+
+Raden fanns redan och skiljde de två projekten åt; den har nu ett villkor till:
+
+```
+[ "$VERCEL_PROJECT_ID" = "prj_CEca…" ] && exit 0;
+[ -z "$VERCEL_GIT_PREVIOUS_SHA" ] && exit 1;
+git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- . ':!docs' ':!tools' ':!*.md'
+```
+
+Vercels egen dokumentation, ordagrant: *"Exiting with code 0 ignores the build,
+while code 1 continues it."*
+
+☠️ **Varje felläge bygger.** Saknas `VERCEL_GIT_PREVIOUS_SHA`, ligger den
+utanför den grunda klonen, eller failar git av något annat skäl — alla ger
+nollskilt slut. Den enda vägen till "hoppa över" är att git uttryckligen säger
+att ingenting utanför `docs/`, `tools/` och markdown ändrades.
+
+Provkört mot repots verkliga historik före ändringen:
+
+| spann | rörde | exit | utfall |
+|---|---|--:|---|
+| `7210d94~1..7210d94` | bara `CLAUDE.md` | 0 | hoppas över |
+| `300f49f~1..300f49f` | `docs/` + `tools/` | 0 | hoppas över |
+| `04142e7~1..04142e7` | `lib/`, workflows, `CLAUDE.md` | 1 | **bygger** |
+| kod…dokumentation i ETT spann | blandat | 1 | **bygger** |
+| SHA utanför klonen | — | 128 | **bygger** |
+
+⚠️ **Jämförelsen går mot `VERCEL_GIT_PREVIOUS_SHA`, inte mot `HEAD^`.** Det är
+skillnaden som gör batchade pushar säkra: `HEAD^ HEAD` ser bara den SISTA
+commiten, så fem rundor där en bär kodändring och den sista bara rör runboken
+hade hoppat över bygget. Mot förra deployade SHA:n täcks hela spannet — mätt
+i tabellens fjärde rad.
+
+⚠️ **Utesluter markdown ÖVERALLT**, inte bara i `docs/`. Kontrollerat samma
+dag: ingen `.md` importeras av `app/`, `lib/` eller `middleware.ts`, och
+byggkommandot är rena `next build`. Börjar någon rendera markdown måste raden
+snävas in.
+
+⚠️ Projektet `fyndplats-headless` är kopplat till SAMMA repo och startar också
+ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
+kontrollmätt samma dag, alla `CANCELED`.
+
+### ✅ Kvitterat i drift — och så här SER ett hoppat bygge ut
+
+Commiten `1e092da` rörde bara `CLAUDE.md` och pushades ensam. Utfallet:
+
+```
+dpl_AuG4gebWgTksRNhxJXxYPEJ4o2tC   state: CANCELED   target: null
+buildingAt 1788606981214 → ready 1788606990281        (9 sekunder)
+errorLink: https://vercel.com/docs/platform/projects#ignored-build-step
+```
+
+☠️ **Ett hoppat bygge heter `CANCELED`, inte `SKIPPED`** — och en deployment-rad
+skapas ändå. Läser man bara "kom det en deployment?" ser filtret alltså ut att
+inte bita. Tre fält skiljer, och det är dem man ska titta på:
+
+| | byggt | hoppat |
+|---|---|---|
+| `state` | `READY` | **`CANCELED`** |
+| `bundler` | `turbopack` | **saknas** |
+| `lambdaRuntimeStats` | `{"nodejs":10}` | **saknas** |
+| tid `buildingAt`→`ready` | minuter | **9–10 s** |
+| `errorLink` | — | **`#ignored-build-step`** |
+
+☠️ **`BUILDING` är INGEN dom — ett hoppat bygge passerar också `buildingAt`.**
+Uppmätt på båda utfallen: det hoppade `dpl_FcyV49nTCqAXdp9aSpSAbdjA4Bgs` stod
+som `BUILDING` fyra sekunder efter pushen och blev `CANCELED` tio sekunder in.
+Den självklara kontrollen — "startade ett bygge?" — svarar alltså JA i båda
+fallen. Vänta ut sluttillståndet, och läs det, inte starten.
+
+`errorLink` är det som gör det till ett kvitto i stället för en tolkning: Vercel
+namnger själv ignore-steget som orsak.
+
+⚠️ **Undantagen är `docs/`, `tools/` och markdown — INGET annat.** En fil i
+ROTEN bygger, hur dokumentationsartad den än är. Uppmätt samma dag: en
+poleringspush som utöver `docs/` och `tools/` också rörde **`.gitignore`** gav
+`dpl_55GKnt9rztTGCywNaXUgVcR79GS4`, `BUILDING`. Filtret gjorde rätt — men den
+som tror sig pusha "bara dokumentation" ska titta efter rotfiler först
+(`.gitignore`, `package.json`, konfig). Kolla med
+`git diff --name-only <förra deployade SHA> HEAD -- . ':!docs' ':!tools' ':!*.md'`;
+är den tom hoppas bygget över — verifierat båda vägarna samma dag: `.gitignore`
+i spannet gav `READY` på 41 sekunder, ren markdown gav `CANCELED` på tio.
+
+⚠️ **Följdregel, mätt på vägen dit: pusha inte två gånger inom samma
+byggfönster.** Första försöket misslyckades — den rena dokumentationscommiten
+`79718d9` byggdes (`dpl_7yFr3c1jKqMJza9DjvvcmjejCt6P`, `READY`). Orsaken var
+inte filtret utan gapet: de två pusharna låg **26 sekunder** isär, alltså långt
+innan `c0bdbcc`:s bygge hunnit bli `READY`. `VERCEL_GIT_PREVIOUS_SHA` är förra
+**lyckade** deployens SHA och pekade därför fortfarande på `7210d94` — och det
+spannet innehåller `vercel.json`. Filtret gjorde rätt; mätningen var fel
+uppställd. Ligger en poleringspush tätt efter en kodpush bygger den alltså i
+onödan.
+
+✅ **Vad det betyder för poleringen: en runda kostar noll byggen.** Allt en
+poleringsrunda skriver till grenen ligger i `docs/` och `tools/polish-assets/`.
+Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger, och de
+tömmer butikens ISR-cache), men pushar till poleringsgrenen behöver inte längre
+sparas ihop.
+
+### ☠️ Filtret FÖRGIFTAR SIG SJÄLVT — och slutade fungera efter sju hoppade byggen (2026-09-05)
+
+Sex pushar i rad gav `state: ERROR` och ett "Preview deployment failed"-mejl var.
+Ingen av dem rörde en kodrad. Felet står ordagrant i deployment-svaret:
+
+```
+errorStep:    ignoreStep
+errorMessage: Command failed with exit code 128
+              fatal: bad object 3e072fa96aab30d1f58d748f88eca717f3ef6014
+buildingAt → ready: 11 sekunder
+```
+
+☠️ **`VERCEL_GIT_PREVIOUS_SHA` är förra LYCKADE deployens SHA — och ett hoppat
+bygge är `CANCELED`, alltså inte lyckat.** Pekaren står därför still så länge
+filtret biter. Ju bättre filtret fungerar, desto längre bak hamnar referensen,
+tills den ligger utanför Vercels **grunda klon** — och då failar `git diff` med
+`exit 128` vid varje push, för alltid.
+
+Uppmätt på ett dygns byggen i grenen:
+
+| tid | utfall | antal |
+|---|---|--:|
+| 10:00–11:42 | `READY` (före/vid filtret) | 7 |
+| 11:16–12:31 | **`CANCELED`** — filtret bet | 7 |
+| 12:55–13:53 | ☠️ **`ERROR`** — pekaren utanför klonen | 6 |
+
+Raden `[ -z "$VERCEL_GIT_PREVIOUS_SHA" ] && exit 1` fångade bara det TOMMA
+fallet. Den täckte inte "satt men oåtkomlig", och det är just det fallet filtrets
+egen framgång skapar.
+
+☠️ **Och `ignoreCommand` får vara HÖGST 256 TECKEN.** Första lagningen försökte
+fördjupa klonen med `git fetch --deepen=500` och blev 430 tecken. Vercel svarade
+`The vercel.json schema validation failed: ignoreCommand should NOT be longer
+than 256 characters` — och den deployen blev ERROR den också. Gränsen står inte i
+den dokumentation raden hänvisar till; den syns bara i felmeddelandet.
+
+✅ **Den korta lagningen är dessutom den BÄTTRE.** `git cat-file -e` avgör om
+SHA:n går att nå; går den inte det blir det `exit 1`, alltså BYGG. Det bygget
+lyckas → `READY` → `VERCEL_GIT_PREVIOUS_SHA` flyttas fram till en nåbar commit →
+filtret fungerar igen. **Felet läker alltså ut sig självt med ett enda bygge**,
+medan `--deepen` bara hade skjutit upp samma problem till nästa 500 commits.
+
+Raden är 213 tecken och `[ -z … ]`-vakten behövs inte längre: `cat-file` på en
+tom sträng failar av sig själv. Provkört mot repots verkliga historik:
+
+| fall | gammal | ny |
+|---|--:|--:|
+| dagens spann, bara `docs/` + `tools/` | 0 | **0** |
+| spann med kod | 1 | **1** |
+| SHA utanför klonen | **128** | **1** (bygger, läker) |
+| tomt `VERCEL_GIT_PREVIOUS_SHA` | 1 | **1** |
+| butiksprojektet `prj_CEca…` | 0 | **0** |
+
+⚠️ **Kostnaden var liten, larmet var inte det.** Ett `ERROR` dör i ignore-steget
+efter elva sekunder och kör aldrig `next build` — ungefär samma CPU som ett
+hoppat bygge. Men det skickar ett mejl varje gång, och ett larm som fyrar på
+varje korrekt push lär mottagaren att sluta läsa. Samma regel som mot ett rött
+synk-jobb vid varje svep.
+
+☠️ **Och rapporteringen var fel innan den var mätt.** Den här sessionen sa
+"noll byggen idag" om femton commits, räknat på att spannet bara rörde `docs/`
+och `tools/`. Det var rätt om FILTRETS AVSIKT och fel om UTFALLET. **Räkna
+byggen i Vercels deployment-lista, inte i `git diff`** — filtret kan vara ur
+funktion utan att spannet ändras.
+
+✅ **Läkningen är mätt, inte utlovad.** Lagningens egen push rör `vercel.json` i
+roten och bygger alltså med flit — och det är precis det bygget som ger filtret
+en ny nåbar referenspunkt:
+
+```
+14:08:51  READY   055653d   ← lagningen; pekaren står här nu
+14:04:13  ERROR   765996d     fatal: bad object 3e072fa…
+13:23–13:53  ERROR × 4       samma sak, en push var
+11:42:23  READY   3e072fa   ← pekaren satt fast här i två och en halv timme
+```
+
+Hela förloppet syns i EN tabell om man läser deployment-listan i tidsordning:
+sju `READY`, sju `CANCELED`, sex `ERROR`, en `READY`. De sju `CANCELED` är inte
+oskyldiga i den kedjan — **de är orsaken**, för varje hoppat bygge lämnade
+pekaren still en runda till.
+
+### ✅ Läkningen är inte engångs — den upprepas, och det är meningen (2026-09-05)
+
+Runda 65:s poleringspush byggde: `dpl_Gczypgrm8LLYUxWewH2jd4AcyFhA`, `READY`,
+`bundler: turbopack`, `lambdaRuntimeStats {"nodejs":10}`. Den rörde bara
+`tools/polish-assets/`.
+
+Det är INTE filtret som slutat fungera. Diffen mättes lokalt mot varenda
+tänkbar referenspunkt i spannet — `055653d`, `fad67cd`, `9030055`, `6d49b02`,
+`9e62165` — och alla ger **noll** filer utanför `docs/`, `tools/` och markdown.
+Kvar står bara `git cat-file`-vakten: pekaren låg utanför den grunda klonen
+igen, och då är `exit 1` det RÄTTA svaret.
+
+☠️ **Orsaken är den som avsnittet ovan redan beskriver, och den återkommer med
+varje lyckad filtrering.** Ett hoppat bygge är `CANCELED`, alltså inte lyckat,
+så `VERCEL_GIT_PREVIOUS_SHA` står still. Efter tio hoppade pushar ligger den tio
+commits bak — och Vercels klon är grund. Läkningsbygget flyttar fram pekaren och
+allt fungerar igen tills nästa svit hoppade byggen hunnit dra iväg den.
+
+**Räkna alltså med ETT bygge per svit hoppade pushar, inte noll.** Det är
+priset för att inte fördjupa klonen (`--deepen` sprängde 256-teckengränsen), och
+det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skriv
+inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
+göra exakt rätt och ändå bygga.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
@@ -1156,6 +1396,20 @@ inget `mpn`, inget `gtin`. Feedens `EAN`-kolumn är dessutom tom i 100 % av
 raderna, så det finns ingen produktidentifierare att joina på. Husmärkena
 (HOMCOM, Outsunny, PawHut, Aiyaplay) stryks vid poleringen — bara 6 av 952
 produkter bär dem, och alla sex är opolerade utkast.
+
+☠️ **Men den mätningen ser bara HTML:en, och namnet kan ligga i PIXLARNA.**
+Uppmätt 2026-09-05 i runda 64: en bild på ett Aosom-utkast bär
+**`HOMCOM by Aosom` inbränt uppe till vänster** — husmärket och leverantören i
+samma logotyp. En `grep` över källkoden svarar grönt medan kundens öga läser
+leverantörens namn, och en logotyp leder till hela deras katalog på samma sätt
+som artikelnumret leder till dealproffsens sida.
+
+Stycket ovan är alltså riktigt om HTML:en och ofullständigt om SIDAN. Rundans
+Steg 4 granskar sedan dess bildernas övre vänstra hörn; av sexton granskade bar
+en logotyp, och den bilden plockades bort. **Hur många av de publicerade
+sidorna som bär en är inte mätt** — det är en bildmätning, inte en textmätning,
+och den görs i städningen tillsammans med kategoriträdet (Leonards
+sekvensering 2026-09-05: polera färdigt först, rätta strukturen sedan).
 
 **Det Google DÄREMOT ser är bilderna.** Att flytta hem dem till wixstatic byter
 adress, inte innehåll. Google Images matchar på bildinnehåll, och Aosoms foton
@@ -3176,6 +3430,211 @@ upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
 möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
 `feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
 var den ligger.
+
+## Konkurrentregeln: pris mot dealproffsen i synken (`lib/pricing/konkurrentregel.ts`, 2026-09-15)
+
+Marknadsplan v3 (Cowork-sessionen 2026-09-15) gjorde Leonards strategi till
+en regel som synken tillämpar var sjätte timme, i stället för 900 handsatta
+priser som synken hade skrivit över till kvällen:
+
+```
+golv = husets regelpris (1,20 × landad, charmavrundat)   — aldrig under
+mål  = (1 − d) × dealproffsens pris                      — d = 2 % (grupp A) / 5 % (grupp B)
+tak  = 1,50 × landad kostnad inkl. moms                  — aldrig över
+pris = min(max(mål, golv), tak), avrundat NEDÅT till charmpris
+```
+
+Grupp A mot B är ett test — "räcker 2 % under för en okänd butik?" — och
+efter fyra veckor blir vinnaren regel för hela sortimentet.
+
+Tre delar, två grindar:
+
+| del | var | skriver |
+|---|---|---|
+| dealproffsens pris per rad (`konkurrent: { pris, hamtad }`) | `/api/admin/konkurrentpris?lage=spara`, workflow **"Pris — konkurrentregeln"** | mappningen, torrt som default |
+| A/B-grupp per rad (`prisgrupp`) | samma rutt, `lage=lotta`, kräver `bekrafta` = torrkörningens antal | mappningen, torrt som default |
+| kundpriset | Aosom-synken, `planeraProdukt` | Wix, synkens egen torrkörning |
+
+### Sex egenskaper som inte ska tas bort
+
+1. ☠️ **Ingen grupp, ingen regel.** En rad utan `prisgrupp` följer husets regel
+   exakt som förut. Att deploya koden ändrade inte ett enda pris — utrullningen
+   är per rad, via lottningen, och lottningen tar `bara=<wix-id,…>` så
+   annonsurvalet styr vilka som går in först.
+2. ☠️ **Ett gammalt konkurrentpris FRYSER raden, det prissätter den inte.**
+   Äldre än `KONKURRENT_MAX_ALDER_DAGAR` (7) → inget pris skrivs, och raden
+   räknas i `konkurrentFrysta` som står i loggraden, audit-raden och
+   workflow-summeringen. Att falla tillbaka på golvet hade sänkt priset 200 kr
+   på tusen varor för att jämförelsen stod still. **Går `frysta` upp har
+   `spara` slutat köras** — kör den.
+3. ☠️ **Deras pris under vårt golv → vi står kvar på golvet.** Vi jagar inte
+   nedåt. Utfallet är eget (`konkurrentGolv`) så annonsurvalet kan lyfta ut
+   raden i stället för att betala klick vi förlorar.
+4. ☠️ **Taket finns för att vi inte vet var Amazon ligger.** Gapet mot
+   dealproffsen är över 30 % på 136 av de 972 publicerade där vi är billigare,
+   och 2 % under dem hade lyft oss över vad marknaden tål. 1,50 × landad är
+   +25 % mot regelpriset, vilket dessutom håller varje ändring under
+   `MAX_PRISANDRING_PCT = 40` — spärren rördes inte, och de 34 rader som annars
+   fastnat i den gör det inte.
+5. ☠️ **Avrundningen går NEDÅT.** charm9/charm99 rundar upp, och 2 % under
+   2 495 hade blivit 2 499 — över konkurrenten, på en regel vars enda poäng är
+   att ligga under. `rundaNedat` kliver ner i rutnätet tills priset ligger på
+   eller under målet; charm99:s 89 → 99-snäpp gör att det ibland är två steg.
+6. ☠️ **`spara` raderar aldrig.** En vara de inte säljer i dag behåller sitt
+   gamla pris på raden och får åldras in i frysningen (punkt 2). Ett
+   oförändrat pris skrivs om först när stämpeln är äldre än
+   `UPPFRISKNING_DAGAR` (2), så en full körning inte äter tidsbudgeten med
+   4 000 identiska skrivningar.
+
+Lottningen är deterministisk (FNV-1a på wix-id): en omkörning ger samma grupp,
+och under `LOTTNING_FRAN_SEK` (2 000 kr) blir alla A, för där finns bara ~6 %
+att ta och 5 % under är samma sak som ingen höjning.
+
+Verifierat mot koden samma dag, inte mot briefen: momsbasen är rätt
+(`landadKostnadSek` bruttar upp nettot, multiplikatorn ger slutpriset — netto
+mot netto blir 16,7 %), frakten ingår redan i landad kostnad och skalar med
+vikten (briefens "240–290 kr platt" var fel), och `MAX_PRISANDRING_PCT` hade
+fällt 34 rader utan taket. Fyrtioen tester: arton på regeln, tretton på
+planerna, tio i synken — bland dem kontrollerna åt andra hållet (samma fixtur
+utan grupp skriver inget; samma rad med färskt pris skrivs).
+
+## Google Shopping: huvudfeed i butiksrepot, TILLÄGGSFEED här (2026-09-15)
+
+Butiksrepot (`fyndplats-headless`, gren `headless-site`) har sedan 2026-07 en
+huvudfeed till Merchant Center: `/feed/google.xml`, RSS på variantnivå med
+`g:id` = Wix-variantens id, `g:item_group_id` = produktens, brand Fyndplats,
+`identifier_exists` no, kategori via kollektionens slug, upp till tio bilder,
+ISR en gång i timmen. **Den behöver ingen tvilling.** Briefens "ingen feed
+finns" gällde det här repot.
+
+⚠️ **Huvudfeeden skickar `g:mpn` = Wix-variantens SKU ("FP-…").** Det är vårt
+eget, inte Aosoms nummer, så det läcker inget — men briefens beslut #3 är
+"ingen mpn", och Google förväntar sig ingen mpn på en rad med
+`identifier_exists: no`. Tas bort i butiksrepot (marknadsplan v3, vecka 1).
+
+Det huvudfeeden inte kan bära är det som bara finns i mappningarna här:
+prisgruppen (A/B), prisbandet och konkurrensläget mot dealproffsen. Därför
+en **tilläggsfeed** (`lib/feed/google-shopping.ts`,
+`/api/feed/google-shopping-tillagg?nyckel=<GOOGLE_FEED_SECRET>`): bara `id`
++ `custom_label_0/1/2`. Merchant Center slår ihop den med huvudfeeden på `id`,
+och kampanjen väljer produkter på `custom_label_0` (A/B — tom = inte med).
+`?lage=status` (räknarna) nås även med CRON_SECRET — workflow
+**"Google Shopping — tillaggsfeedens status"**.
+
+### Fyra egenskaper som inte ska tas bort
+
+1. ☠️ **Id:t är VARIANTENS** (`variants[0].wixVariantId`), inte produktens.
+   En rad på produkt-id matchar ingenting i huvudfeeden och etiketten sätts
+   tyst aldrig. Utan variant-id utelämnas raden och räknas.
+2. ☠️ **Inget artikelnummer, inget inköpspris, inget belopp** — etiketterna
+   är ord. Dealproffsens pris i kronor står inte i feeden, bara om vi ligger
+   under eller över. Testet låser det.
+3. ☠️ **Band och läge räknas på BUTIKENS pris** (`listV3ProductPrices`),
+   aldrig på mappningens `grossSek`. Tvetydigt pris → ingen etikett.
+4. ☠️ **Under 200 rader svarar rutten 503**, så Google behåller förra
+   tilläggsfeeden. Ett tomt svar hade strukit varje etikett — och därmed
+   varje produkt ur kampanjen — tills nästa hämtning.
+
+Nyckeln ligger bara på Vercel och matas in i Merchant Center för hand; fel
+nyckel ger 404, inte 401. Nio tester.
+
+## Aosom-recensioner: hämtas i webbläsaren, läses in via rutt (2026-09-16)
+
+Svepet `/api/cron/aosom-reviews` (2026-08-29) fick 403 på varje sida — Akamai
+släpper bara igenom riktiga webbläsare, och 2026-09-16 mättes samma 403 för
+`curl` med fulla webbläsarrubriker. Samma dag gav Aosom skriftligt tillstånd
+att hämta och översätta recensionerna, så vägen blev:
+
+1. **Hämtning i Leonards Chrome** (Claude in Chrome, en egen flik på aosom.de).
+   Deras sök-API `/rest/v1/searchApi/product?keyword=<artikelnummer>` ger
+   `sin`, `skuid`, `urlkey`, `score`, `commentCount` och `stockQty`. Deras
+   recensions-API `/block/template/detailComment?pageNum&pageSize=50&sin&skuid&_lang=de&_siteId=210&_version=test3&sort=default`
+   — samma anrop som deras produktsida gör — ger ALLA recensioner
+   (`list[]`: `qualityScore`, `title`, `content`, `ct` = datum, `imgurls` =
+   semikolonseparerade foton på img.aosomcdn.com, `sourceName`) och
+   `globalRateCount`/`globalReviewCount`. Produktsidans JSON-LD (högst fem
+   texter, utan datum och foton) var första vägen och är passerad: gymstationen
+   hade tolv recensioner i API:t, fyra i JSON-LD. ~2,4 s per produkt.
+   Aosom sa ja till texter OCH foton (2026-09-16).
+2. **Inläsning** via `POST /api/admin/aosom-reviews-ingest`
+   (`lib/aosom/review-ingest.ts`, tio tester), workflow
+   `aosom-reviews-ingest.yml` med `payload_file` i grenen — samma mönster som
+   review-translate. Nyttolasten är nycklad på **wixProductId**, bär tyska
+   texter, valfria svenska översättningar (`sv`), datum, kundfoton (bara
+   img.aosomcdn.com släpps igenom, hemflytt sker i importen), Aosoms betyg och
+   antal — aldrig artikelnummer (workflowen vägrar filer som matchar
+   artikelnummermönstret) och aldrig recensentens namn.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. Samma lagring som svepet: `importReviewsForProduct(..., { source: "aosom" })`
+   med husets filter oförändrat (betyg ≥ 3, längd, spam, utlandsleverans,
+   dubbletter), och aggregatet på mappningen (`aosomRating`,
+   `aosomReviewCount`) — ☠️ aldrig uträknat ur texterna.
+2. ☠️ En översättning skrivs bara på en rad som ligger som `pending` och bara
+   om `validateTranslation` godkänner den — samma grind som /admin/reviews.
+   Underkända räknas per skäl (`underkandaSkal`) och ligger kvar i kön.
+3. Högst 60 rader per anrop och tidsbudget 240 s; svaret bär `kvarFran` så
+   workflowen fortsätter från rätt rad. Torrt som default (`dryRun: false`
+   krävs för att skriva).
+4. Loggen bär bara räknare — rutten anropas från en publik Actions-logg.
+
+Butikssidan räknar i dag snitt och antal ur de SYNLIGA raderna
+(headless-site `lib/reviews.ts`), inte ur `aosomRating`/`aosomReviewCount`.
+Med filtret betyg ≥ 3 lutar det synliga snittet uppåt mot Aosoms — att visa
+Aosoms eget aggregat är nästa steg, inte gjort. Observera att Aosoms API bara
+lämnar ut 4- och 5-stjärniga recensioner (8 329 hämtade, ingen under 4), så
+snittet är högt oavsett vad vi räknar på.
+
+**Första inläsningen gjordes 2026-09-16** (skarpt, 0 skrivfel): 972 produkter
+(alla Aosom-produkter i annonsurvalet), 8 329 texter hämtade, 4 383 kvar efter
+husets filter (863 med kundfoton), 2 510 översatta till svenska och synliga —
+upp till fem per kampanjprodukt, tre per övrig. Resterande 1 873 ligger som
+`pending` (osynliga) och tas i en andra omgång via `review-translate.yml`, som
+redan tar en `payload_file` med översättningar. Nyttolasten låg på den
+tillfälliga grenen `claude/aosom-recensioner-2026-09-16` (raderad efter
+inläsningen — repon är publik). Rådata, filtrerad mängd och alla
+översättningar finns lokalt hos Leonard i `_claude_tmp/recensioner/`
+(git-exkluderat, bär artikelnummer). Översättningsreglerna som gällde:
+leverantörsnamn, budfirmor, recensentens namn, rabatter, sajt/säljare och
+utlovade leveranstider bort; kritik kvar; recensioner som bara handlar om
+leverans/retur/kundtjänst hoppas över; längd 0,45–2,2 × källan; ordet "fast"
+undviks (engelsk-markör i `validateTranslation`). Butikssidorna cachar
+recensionerna en timme (`revalidate: 3600`, tagg `reviews`) — omedelbar
+uppdatering kräver headless-sitens `/api/admin/revalidate?tag=reviews` med
+`ADMIN_SECRET`, som Claude inte läser.
+
+**Kundfotona flyttas hem.** Publicerade recensionsbilder får aldrig peka på
+leverantörens CDN (adressen syns vid högerklick). `withOwnImage` i
+`lib/store/reviews.ts` gör flytten vid publicering, men listan över
+leverantörsvärdar i `lib/wix/media-import.ts` kände bara AliExpress —
+`img.aosomcdn.com` lades till 2026-09-16 efter att 709 synliga Aosom-rader
+(1 130 foton) publicerats med Aosom-adresser. Redan publicerade rader lagas
+med workflowen `review-image-repair.yml` (loopar `repairImages` i
+`/api/cron/review-translate`, 40 rader per anrop, stannar när inget minskar).
+Pending-rader behåller källadressen med flit — flytten sker när raden blir
+synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
+
+**Nästa omgång: vilka produkter, och deras artikelnummer (2026-09-23).**
+Workflowen `aosom-reviews-kandidater.yml` svarar med SYNLIGA Aosom-produkter
+som aldrig fått `reviewsCheckedAt`, och deras artikelnummer — krypterade mot
+anroparens engångsnyckel (`kuvert`, obligatoriskt; inget klartextläge). Rutten
+är `GET /api/admin/aosom-reviews-kandidater` (`?fore=<ISO>` tar även med
+produkter kontrollerade före ett datum), logiken `lib/aosom/review-kandidater.ts`
+med elva tester. Stämpeln sätts av inläsningen och av det gamla svepet bara vid
+svar, aldrig vid fel, så urvalet är exakt. Förra vägen — jämförelsefilen —
+täckte bara annonsurvalet, och `/admin/mappings` laddade inte vid ~5 500
+produkter (se nedan).
+
+**`/admin/mappings` laddade inte (2026-09-23).** Sidan skickade hela
+`WixV3ProductSummary` för varje produkt till webbläsaren — beskrivning och
+JSON-LD-taggar gånger ~5 500 — och ritade ett kort med bild per produkt. Nu går
+bara id, namn, slug, bild och varianträkning till klienten, beskrivningen hämtas
+inte alls (`listAllV3Products({ beskrivning: false })`), och listan ritas 60 kort
+i taget. `listAllV3Products` hade dessutom kvar det tysta 50-sidorstaket som
+`listVisibleV3ProductIds` fick bort 2026-09-14: /admin/seo, lönsamhetsrapporten
+och mappningssidan räknade på de första 5 000 produkterna. Taket är nu samma som
+den andras och KASTAR.
 
 ## Dubblett-spärr vid import
 

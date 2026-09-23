@@ -100,6 +100,8 @@ async function handle(req: NextRequest) {
           + `${summary.ejSkeppbara} EJ SKEPPBARA, `
           + `${summary.varningar.length} blockerade prishopp, `
           + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
+          + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
+          + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
           + `${summary.kvar} kvar`
@@ -116,6 +118,10 @@ async function handle(req: NextRequest) {
       `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
         + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
         + `${summary.prisLasta} prislåsta, `
+        // Konkurrentregeln (2026-09-15): FRYSTA är larmet — går det upp har
+        // dealproffsen-jämförelsen slutat köras och testraderna står still.
+        + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
+        + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} frysta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.ejSkeppbara} ej skeppbara, `
         + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `

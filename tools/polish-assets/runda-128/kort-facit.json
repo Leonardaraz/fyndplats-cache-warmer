@@ -1,0 +1,236 @@
+{
+ "bc2e7191": {
+  "kicker": "Svetsvagn 71 cm",
+  "rubrik": "Tre plan och två kedjor",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "71 × 39 × 70 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "Tre – 45 × 28 cm (övre, lutande), 39 × 28 cm (mellersta), 70 × 29 cm med 5 cm kant (nedre)"
+   },
+   {
+    "etikett": "Kedjor",
+    "varde": "Två stycken, 108 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "12,7 kg"
+   }
+  ]
+ },
+ "beeada22": {
+  "kicker": "Plåtskåp 110 cm",
+  "rubrik": "Ventilerade dörrar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "75 × 33 × 110 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Dörrar",
+    "varde": "Två i plåt med ventilationsspringor, magnetlås"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "Två justerbara, 17 fasta lägen"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "10 kg per hyllplan, 50 kg totalt"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "24 kg"
+   }
+  ]
+ },
+ "1654dd75": {
+  "kicker": "Verktygsvagn 96 cm",
+  "rubrik": "Sju lådor och ett sidoregal",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "96 × 33,5 × 75 cm med sidoregal, 62 × 33,5 × 64 cm utan (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Sju – grunda 50 × 28 × 4 cm, stora 50 × 28 × 7 cm"
+   },
+   {
+    "etikett": "Sidoregal",
+    "varde": "Avtagbart, tre fack på 26,5 × 32,5 × 5 cm, 30 cm mellan planen"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg totalt, 10 kg per låda, 10 kg per hyllplan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "29,7 kg"
+   }
+  ]
+ },
+ "f2495eee": {
+  "kicker": "Verktygsvagn 65,5 cm",
+  "rubrik": "Rostfri bänkskiva",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "65,5 × 34,5 × 76 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Fem djupa, invändigt 51 × 27 × 10 cm"
+   },
+   {
+    "etikett": "Bänkskiva",
+    "varde": "Rostfritt stål"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "80 kg totalt, 30 kg på bänkskivan, 10 kg per låda"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "25 kg"
+   }
+  ]
+ },
+ "1db06f83": {
+  "kicker": "Verktygsskåp 133 cm",
+  "rubrik": "Hålplatta, lådor och skåp",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "69 × 33 × 133 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Hålplatta",
+    "varde": "61,5 cm bred och 58 cm hög"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Tre, invändigt 51 × 27 × 6,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "80 kg totalt, 20 kg arbetsyta, 8 kg per låda, 5 kg per krok på hålplattan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "28 kg"
+   }
+  ]
+ },
+ "b920d526": {
+  "kicker": "Verktygsvagn i rött",
+  "rubrik": "Sexton lådor i två delar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "61,5 × 33 × 113 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Överkista",
+    "varde": "60 × 25,5 × 38,5 cm"
+   },
+   {
+    "etikett": "Underskåp",
+    "varde": "61,5 × 33 × 76 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Sexton – nio i överkistan, sju i underskåpet"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "41,7 kg"
+   }
+  ]
+ },
+ "d9965552": {
+  "kicker": "Verktygsvagn i blått",
+  "rubrik": "Sexton lådor i två delar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "61,5 × 33 × 113 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Överkista",
+    "varde": "60 × 25,5 × 38,5 cm"
+   },
+   {
+    "etikett": "Underskåp",
+    "varde": "61,5 × 33 × 76 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Sexton – nio i överkistan, sju i underskåpet"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "41,7 kg"
+   }
+  ]
+ },
+ "fc6fdd63": {
+  "kicker": "Verktygsvagn 109 cm",
+  "rubrik": "Fjorton lådor i två delar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "76 × 33 × 109 cm ihopsatt (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Överkista",
+    "varde": "60 × 26 × 34 cm"
+   },
+   {
+    "etikett": "Underskåp",
+    "varde": "76 × 33 × 75 cm"
+   },
+   {
+    "etikett": "Lådor",
+    "varde": "Fjorton – nio i överkistan, fem i underskåpet"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "41,1 kg"
+   }
+  ]
+ },
+ "81c123fa": {
+  "kicker": "Verktygsskåp 180 cm",
+  "rubrik": "Tre låszoner",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "75 × 40 × 180 cm (bredd × djup × höjd)"
+   },
+   {
+    "etikett": "Zoner",
+    "varde": "Tre – överskåp, låda och underskåp, var och en låsbar"
+   },
+   {
+    "etikett": "Hyllplan",
+    "varde": "Uttagbara, flyttas i steg om 1,5 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "210 kg totalt, 50 kg per hyllplan, 10 kg i lådan"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "36,2 kg"
+   }
+  ]
+ }
+}

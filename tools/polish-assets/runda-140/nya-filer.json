@@ -1,0 +1,20 @@
+{
+ "_regel": "Wix-fil-id for rundans EGNA bilder. UploadImageToWixSite svarar success:true + PENDING pa allt; en fil i FAILED utelamnas TYST ur media-PATCHen. Varje id nedan ar verifierat med en HTTP-hamtning av sin wixstatic-adress.",
+ "kort": {
+  "01fcdf1d": "b379ce_16bb79a86f714fe099f27c7fb761891d~mv2.jpg",
+  "bb3cd4ed": "b379ce_9cb11ccd915d425ba308534c4e553446~mv2.jpg",
+  "881540a6": "b379ce_34f40a8f05f6472b9fc5739b4f177039~mv2.jpg",
+  "5b8162d1": "b379ce_bd914ce0aefa4810aed42d56c93e5139~mv2.jpg",
+  "1835c144": "b379ce_ef0b04b43fb243028b2cec28d90a7911~mv2.jpg",
+  "9ee2fa6e": "b379ce_7169087d50314016b8390213af659f4a~mv2.jpg",
+  "c11948ac": "b379ce_11c293c561ca4463a790bcb7d0109264~mv2.jpg",
+  "c9ccf5a3": "b379ce_f0aa9d8460d44a35b87f72dcbed9bd35~mv2.jpg",
+  "4c5d4687": "b379ce_48365b9fad064e859f1e5ee45b1151fc~mv2.jpg",
+  "68f8cae9": "b379ce_d1d8fd0368e84f80992ccb5131d7c45c~mv2.jpg",
+  "ee19a8c8": "b379ce_c87513342431446ea6ca351c97f38ceb~mv2.jpg",
+  "2ba6baf0": "b379ce_15dc41b682ba4f0eb0dbdb7de801f3cc~mv2.jpg",
+  "22c7de56": "b379ce_5b0f57b5e06c41febc5e5981c3b1b9df~mv2.jpg",
+  "07ac9918": "b379ce_777942ecd40f4db989c1fa4af1dceb5c~mv2.jpg"
+ },
+ "kap": {"2ba6baf0-3": "b379ce_ffdb5d3ea70d463280ebf72b455d37e5~mv2.jpg"}
+}

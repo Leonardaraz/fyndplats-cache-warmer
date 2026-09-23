@@ -1,0 +1,212 @@
+{
+ "d739872f": {
+  "kicker": "Ritstol med uppfällbara armstöd",
+  "rubrik": "Sitthöjd 53–78 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 60 × 108–132 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "48 × 50 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "53–78 cm"
+   },
+   {
+    "etikett": "Armstöd",
+    "varde": "uppfällbara, 26,5 cm över sitsen"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "i krom, höjdreglerbar"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "795c5ee2": {
+  "kicker": "Ritstol utan armstöd",
+  "rubrik": "Sitthöjd 50–70 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "59 × 61 × 93–113 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "46 × 44 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "50–70 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "41 × 39 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "Ø45 cm, 17–34,5 cm över golvet"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "3033003c": {
+  "kicker": "Ritstol med svankstöd",
+  "rubrik": "53 cm bred sits",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "59 × 65 × 102–122 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "53 × 50 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "52–72 cm"
+   },
+   {
+    "etikett": "Svankstöd",
+    "varde": "37 × 40 cm"
+   },
+   {
+    "etikett": "Armstöd",
+    "varde": "uppfällbara, 20 cm över sitsen"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "83fd57c9": {
+  "kicker": "Ritstol 95–115 cm med armstöd",
+  "rubrik": "Sitthöjd 52–72 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "59 × 59 × 95–115 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "48 × 45 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "52–72 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "45 × 45 cm"
+   },
+   {
+    "etikett": "Armstöd",
+    "varde": "fasta, 19 cm över sitsen"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "f1f861ea": {
+  "kicker": "Ritstol för höga arbetsbänkar",
+  "rubrik": "Sitthöjd upp till 87 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "60 × 56 × 110–132 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "48 × 49 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "65,5–87 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "44,5 × 45,5 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "18–46 cm över golvet"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "df0d351f": {
+  "kicker": "Skrivbordsstol med hjärtformad rygg, vit",
+  "rubrik": "45 cm bred, utan armstöd",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "45 × 56 × 78–88 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "46 × 39 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "44–54 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "45 × 38 cm"
+   },
+   {
+    "etikett": "Klädsel",
+    "varde": "teddytyg, 100 % polyester, över skum"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "cc0ec7ba": {
+  "kicker": "Skrivbordsstol med hjärtformad rygg, rosa",
+  "rubrik": "45 cm bred, utan armstöd",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "45 × 56 × 78–88 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "46 × 39 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "44–54 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "45 × 38 cm"
+   },
+   {
+    "etikett": "Klädsel",
+    "varde": "teddytyg, 100 % polyester, över skum"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ }
+}
