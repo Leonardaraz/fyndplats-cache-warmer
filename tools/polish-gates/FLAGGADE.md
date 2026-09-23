@@ -147,6 +147,27 @@ beslut — se den samlade frågan om detta.
   TVÅ publicerade produkter, varav den ena är N33:s egen `07565140`. För hög
   dubblettrisk för att polera utan att först reda ut vilken av de tre som ska
   finnas kvar. (N34)
+- `5e91a8a2` Fahrradanhänger Klappbar Lastenanhänger, 1 619 kr — exakt
+  trippelträff (155 × 71,5 × 77 OCH 71 × 42 × 25) mot den PUBLICERADE
+  `566f41df` ("Cykelvagn för last", 1 869 kr) och mot det BILLIGARE utkastet
+  `fbfdba44` ("Fahrradanhänger Lastenanhänger für Fahrrad 40 kg
+  Belastbarkeit", 1 329 kr) — nästan identiskt namn. (N35)
+- `a8f70d31` Moderner Armlehnstuhl, Gepolsterter Akzentstuhl mit
+  Lendenkissen, 1 629 kr — exakt trippel (69 × 69,5 × 78) OCH nästan
+  identiskt namn mot det BILLIGARE utkastet `c2888f7e` (1 499 kr, samma
+  inledande namn). Huset polerar den billigaste; `c2888f7e` är den som ska
+  tas upp först om klustret prövas igen. (N35)
+- `ef2cbde0` Elektro Motorrad Kinder 6V Elektromotorrad mit Stützrädern,
+  1 659 kr — TREVÄGS internt dubblettkluster, alla med samma namn och samma
+  trippel (81 × 37 × 63): `f6c56546` (1 459 kr) och `ba477284` (1 099 kr,
+  billigast). Huset polerar den billigaste; ingen av de tre är polerad ännu.
+  (N35)
+- `e911531e` Schaukelstuhl in Vliesoptik mit Armlehnen, 1 669 kr —
+  färgsyskon-mönster (se `FARGSYSKONEN.md`): exakt trippel (98 × 71 × 101)
+  mot TVÅ redan PUBLICERADE svenska gungstolar i andra tygfärger ("Gungstol
+  i gul manchester med bokmedar" och "Gungstol i ljusgrå manchester med
+  bokmedar") samt mot ytterligare två opublicerade utkast i samma kluster
+  (`2cbc7b83`, `5126ad2e`). Samma bas-gungstol i minst fem varianter. (N35)
 
 ## Bortvalda av andra skäl (inte flaggade, bara sparade för senare)
 
@@ -181,3 +202,28 @@ beslut — se den samlade frågan om detta.
   publicerade `8832b73a`). Se `FARGSYSKONEN.md`. (N33)
 - `12ed7827` och `0e5f0951` (Gartenbox/Kissenbox) — fel säsong i slutet av
   september, rundan fylldes med annat. (N33)
+- `5873ae60` (Feuerwehrauto, Elektro-Kinderauto, 1 649 kr) — samma situation
+  som `0263494c`: bara 2 av 5 bilder rena (3 med tysk text inbränd:
+  "Gewichtsgrenze"/"Empfohlenes Alter", "ANGENEHMES FAHREN"/"HUPE"/"MUSIK",
+  "VERSCHIEDENE STRASSENBELÄGE"/"Zement"/"Asphalt"/"Ziegelstein"/
+  "Fußgängerweg"). `las` ren, ingen dubblett — bara uppskjutet tills
+  bildläget är bättre eller någon orkar beskriva produkten på bara två
+  bilder. (N35)
+- `526052d2` / `8729625c` / `9f3f78c4` (tre olika massage-kontorsstolar,
+  1 619–1 629 kr) — alla tre kolliderar (exakt eller inom tolerans) mot
+  flera andra kontorsstolar, både publicerade och opublicerade, i samma
+  mått-kluster (79 × 34,5 × 55 / 78 × 35 × 56-familjen). Kontorsstolar är
+  ett mättat mått-kluster i katalogen; att reda ut vilka som är äkta
+  dubbletter kräver en egen genomgång av hela familjen, inte en enskild
+  runda. Inte prövade vidare. (N35)
+- `00bbd350` (Sitzbank mit Stauraum, belastbar bis 120kg, 120x44x44,5cm,
+  Beige, 1 619 kr) — kolliderar mot flera andra förvaringsbänkar/pallar
+  (`081f2277`, `59567c6b`) inom 1–2 cm tolerans men med annan färg/stil.
+  Samma mättade kluster-problem som ovan. Inte prövad vidare. (N35)
+- `5dce837b` (Ganzkörperspiegel 150x40 cm RGB-LED Standspiegel mit 21
+  Glühbirnen, 1 659 kr) — exakt trippelträff (40 × 40 × 149,5 OCH
+  164 × 48 × 11, paketmått) mot `3c992c78`, som REDAN stod i det här
+  dokumentet som del av ett N31-dubblettkluster. Kandidaten är billigare än
+  `3c992c78` (1 659 mot 1 799 kr) men det är osäkert om hela klustret är
+  kartlagt — inte prövad vidare utan att först hitta klustrets alla
+  medlemmar. (N35)
