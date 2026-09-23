@@ -197,8 +197,119 @@ isolerat och tro att 140×133×43 är den uppfällda storleken. Samma
 avvägning som redan gjordes och dokumenterades vid byggtillfället, nu
 omprövad och bekräftad hålla.
 
+## Steg 6 — Wix-skrivningen, fyra steg
+
+Alla fyra körda i ordning, var och en med checksumma-spärren i SAMMA anrop
+som skrivningen:
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData | **8 av 8 skrivna** |
+| 2 | media (bild-id:n + alt-texter) | **8 av 8 skrivna** |
+| 3 | kategorier (bulk add-items) | **13 av 13 rader success** (8 produkter, en del i två kategorier) |
+| 4 | variant-SKU, sist och ensam, round-trip ur färsk GET | **8 av 8 skrivna** |
+
+Steg 4:s svar bekräftade dessutom att `visible` var `true` på både produkt
+OCH variant för alla åtta INNAN skrivningen (`variantVisibleFore`,
+`produktVisibleFore`), och att priset (`prisFore`) var oförändrat — samma
+åtta belopp som i urvalstabellen. De gamla, tyska SKU:erna syns i svaret
+(`skuFore`, t.ex. `FP-barhocker-2er-set-68-cm` → nya
+`FP-barstolar-konstlader-2-pack`), vilket bevisar att skrivningen gjorde
+riktigt arbete och inte var en no-op.
+
+## Steg 7 — separat återläsning
+
+`steg5.js` kört som ett EGET, senare anrop (inte i samma loop som
+skrivningarna). Bevisade att alla fyra projektionsfälten
+(`plainDescription`, `media.itemsInfo`, `directCategoriesInfo`,
+`variantsInfo`) FANNS innan noll tolkades.
+
+**8 av 8 helt verifierade.** Alla åtta: text (FNV-hash), namn, slug,
+`visible: true`, SEO (exakt 2 taggar, rätt titel/beskrivning, tomma
+keywords), media (checksumma över id+alt-text), kategori (alla tilltänkta
+kategori-id:n finns i `directCategoriesInfo`, `antalKat` = tilltänkt antal
++ 1 — Wix egen `All Products`, precis som CLAUDE.md varnar för), SKU,
+variant-`visible: true`, variant-id matchar. Priserna oförändrade
+(1619–1739 kr som i urvalet), lager `IN_STOCK` på alla åtta.
+
+## Steg 8 — färsk `las` före stämpling
+
+Kört på alla åtta via `polish-mapping.yml` (`ref: main`), drygt en timme
+efter urvalets ursprungliga `las`-körningar. **Ingenting hade ändrats**:
+samma `grossSek` (1619–1739), samma prisgrind (`stämmer: true`, `avrundning
+charm99`), samma `aosomFreightShare` (0,26–0,458, ingen över 0,5), inget
+`prisLast`, inget `slutsald`. Priset rördes inte.
+
+## Steg 9 — stämpling + separat verifiering
+
+`stampla`-läget kört på alla åtta (`needsAiPolish: false`,
+`draftStatus: published`, `variantSkus` per produkt). Alla åtta svarade
+`OK: … uppdaterad — needsAiPolish, draftStatus, variantSkus`.
+
+Eftersom "ett svar utan fel är inget kvitto" kördes en HELT SEPARAT `las`
+på alla åtta efteråt. **8 av 8 bekräftade**: `needsAiPolish: false`,
+`draftStatus: "published"`, rätt SKU per produkt, oförändrat pris.
+
+## Steg 10 — live-verifiering
+
+`hamta-live.sh 130` kört från rundans katalog: varm träff (alla åtta `200,
+age=0`), väntade ut 305 s (det äldsta STALE-fönstret av de åtta), sedan
+skarp hämtning. Alla åtta gav `HTTP 200`, storlek 146–154 kB, `age` 140–141
+sekunder — nästan exakt pausens längd, alltså bevisligen den rendering
+som den varma träffen utlöste och inte en äldre cachad sida.
+
+`livegrind.py`: **0 avvikelser i den PUBLICERADE texten**, alla åtta REN
+(orddiff 0, homoglyfsvep rent, sid- och alt-svep rent — inga husmärken,
+artikelnummer, fraktland eller tyska rester).
+
+Extra kontroller utöver `livegrind.py`:
+- Alla tre obligatoriska flikarna (`Tekniska specifikationer`,
+  `Användning och skötsel`, `Vanliga frågor`) renderas ordagrant på
+  samtliga åtta sidor.
+- Brödsmulans JSON-LD visar en RIKTIG kategori på alla åtta (aldrig
+  "Hem / Butik / produkt") — t.ex. `Hem / Utemöbler / Gungbänk 3-sits …`.
+- `c4d8cb93`s JSON-LD: `sku` är Wix egen produkt-UUID (inget
+  leverantörsspår), `availability: InStock`, `price: 1729`.
+
+## Steg 11 — andra korrekturläsningen (på den PUBLICERADE texten)
+
+Läste den faktiska renderade brödtexten (inte bara diff-rapporten) för
+`c4d8cb93` (den rättade meningen), `965ba956` och `3847b7ba` (de två andra
+korrigeringarna från steg 5/bygget) direkt ur `live/*.html`. Alla tre läser
+naturligt och korrekt i sitt sammanhang — `c4d8cb93`s omskrivna mening
+("… bakom dörrar … samt en öppen mellanhylla mellan de två skåpen")
+renderas ordagrant och utan motsägelse.
+
+**Inga nya fynd.** Eftersom `livegrind.py` redan visat 0 avvikelser mot de
+redan granskade källfilerna, och den manuella läsningen av de tre tidigare
+korrigerade ställena inte hittade något nytt, behövdes ingen ytterligare
+rättning och `livegrind.py` behövde inte köras om en tredje gång.
+
+## Steg 12 — läckkontrollen som SLUTLIG gate, efter LÄS-MIG.md
+
+`LÄS-MIG.md` skriven (samma form som N34:s). Eftersom filen uttryckligen
+BESKRIVER de två artikelnummerläckorna som hittades under bygget — exakt
+den sortens mening som själv läckte numret förra gången (`bygg-kallor.py`s
+docstring, sedan `framsteg.md`) — kördes läckkontrollen EN gång till, efter
+att filen fanns på disk, som den sanna sista grinden innan något rapporteras
+klart:
+
+```
+npx vitest run lib/polish/artikelnummer-lackage.test.ts \
+  lib/polish/gate-kopior.test.ts lib/polish/wixnorm-tvilling.test.ts
+```
+
+**9 av 9 gröna, ren direkt** — ingen tredje läcka den här gången. Kompletterad
+med en manuell `grep -rn "820-449"` över hela rundans katalog (0 träffar)
+innan testet kördes, som en andra, oberoende bekräftelse.
+
+## Steg 13 — LÄS-MIG.md, commit, push
+
+`LÄS-MIG.md` färdigställd med uppdaterade gap-tal (156 vid start → 148 kvar
+efter rundan) och den oförändrade under-1600-svansen (2 007), i samma form
+som N34:s.
+
 ## Läge
 
-**OGRINDAD-TILL-WIX-commiten är pushad. Steg 5 (oberoende granskning) klar,
-ett fynd rättat och omgrindat (se ovan). Nästa steg: pusha den här
-rättningen, sedan Wix-skrivning i fyra steg.**
+**KLAR. Alla 13 steg genomförda och verifierade. Väntar bara på den sista
+commit+push av LÄS-MIG.md/framsteg.md innan rapportering.**
