@@ -300,7 +300,7 @@ npx vitest run lib/polish/artikelnummer-lackage.test.ts \
 ```
 
 **9 av 9 gröna, ren direkt** — ingen tredje läcka den här gången. Kompletterad
-med en manuell `grep -rn "820-449"` över hela rundans katalog (0 träffar)
+med en manuell `grep` på artikelnumrets inledning (‹REDIGERAT›) över hela rundans katalog (0 träffar)
 innan testet kördes, som en andra, oberoende bekräftelse.
 
 ## Steg 13 — LÄS-MIG.md, commit, push
