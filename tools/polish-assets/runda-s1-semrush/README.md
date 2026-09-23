@@ -15,10 +15,11 @@ produktsidor.
 | Sidor som hämtades och lästes (`kallsidor.txt`) | 99 |
 | **Sidor där `seoData` skrevs om** | **16** |
 | — varav produktnamnet också rättades | 1 |
+| Beskrivningar lagade efter live-grinden (se nedan) | 9 |
 | Filgrind (`gate-seo.py`) | 0 fynd |
 | Återläsning mot filens kontrollsumma | **16/16 LIKA** |
 | Varianter synliga efter skrivningen | 16/16 |
-| Live-grind | se nedan |
+| **Live: `<title>`, meta och `og:title` exakt lika `seo.tsv`** | **16/16** |
 
 ☠️ **De flesta sidorna rördes INTE, med flit.** 78 av 99 bar redan sökordet i
 titeln och i H1 — poleringen hade gjort sitt jobb. Plats 11–20 på ett
@@ -66,6 +67,36 @@ Varje ändring kontrollerades mot sidans egna Semrush-rankningar först
    gamla adresser. *massageapparat bäst i test* (880/mån) lämnas: vi testar
    inte, och ordet ska inte tillbaka.
 
+## Live-grinden fällde nio sidor — på text rundan inte rört
+
+SEO-svepet var rent (16/16, och en egen jämförelse av `<title>`, meta och
+`og:title` gav samma svar; ett planterat fel fälldes). Men den breda grinden
+ställer alla runbook-krav, och nio av de sexton sidorna föll på
+BESKRIVNINGEN — äldre brister som ingen SEO-mätning hade letat efter:
+
+| fynd | sidor |
+|---|--:|
+| Fliken `Användning och skötsel` saknas (obligatorisk sedan 2026-08-30) | 8 |
+| *"Tillverkaren anger …"* — mot kunden är VI leverantören | 1 (4 ställen) |
+
+Lagat samma kväll, med husets metod från `reparation-flikar` (`skotsel/`):
+
+- Skötseltexten skriven **per vara**, ur produktens egen spec — bara det sidan
+  redan säger. Dammsugarens filter kallas aldrig tvättbart, för sidan säger
+  inte att det är det; dieselavskiljarens filterinsats nämns inte, för sidan
+  beskriver ingen.
+- `gate-fragment.py` 0 fynd, `gate-superlativ.py` ren.
+- **Sammanfogningen skedde server-side**: den gamla texten lästes och fick
+  fragmentet inskjutet FÖRE `<h2>Vanliga frågor</h2>` inne i anropet, och
+  passerade aldrig chatten. Förhandsvillkor per produkt: FAQ-rubriken exakt en
+  gång, ingen skötselflik sedan tidigare, spec-fliken före FAQ.
+- Vinkylens fyra ställen byttes som exakta strängar, var och en krävd exakt en
+  gång: *Skåpet går på 37 dB*, *Förbrukningen är 75 kWh per år enligt
+  energimärkningen(s provförhållanden)*.
+- Återläsning i eget anrop: **9/9 LIKA** mot den skickade textens
+  kontrollsumma, flikarna i ordningen spec → skötsel → FAQ, varianterna
+  synliga. `skotsel/skrivlogg.txt` bär längd och kontrollsumma före och efter.
+
 ## Redirects: en rad skriven, men den BITER INTE förrän butiken ändras
 
 `/produkt/sladdlos-handdammsugare-bil` rankade för *handdammsugare bil*
@@ -104,5 +135,12 @@ nästa butiksändring, inte gå ensam.
 | `skrivplan.json` | skrivplanen med kontrollsumma per rad |
 | `slugs.txt` | de 16 skrivna sidorna (för `hamta-live.sh`/`livegrind.py`) |
 | `butik-redirects.patch` | butiksändringen ovan |
+| `skotsel/` | skötselfragmenten, facit (`kallor.json`), vinkylens byten och skrivloggen |
 
 Semrush-kostnad för rundan: ~2 200 API-enheter.
+
+⚠️ **Rundans första push byggde** (`dpl_855UqFc6…`, `READY` på ~50 s) trots
+att den bara rörde `tools/`. Det är läkningsbygget CLAUDE.md beskriver: grenen
+återskapades efter förra mergen, pekaren till förra byggda SHA:n låg utanför
+den grunda klonen, och `git cat-file` ger då `exit 1` med flit. Butiksprojektet
+hoppades över som det ska.
