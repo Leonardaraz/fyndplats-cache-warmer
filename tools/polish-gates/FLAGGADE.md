@@ -626,3 +626,35 @@ beslut — se den samlade frågan om detta.
   `e9c5c6d3` är tvillingar till varandra, `04b9206a` och `4d8bf36f` likaså,
   `7e140b40` står ensam — och ingen av dem träffar `934297b1`. Klustret väntar
   fortfarande till våren. (N47)
+- Husmärke tryckt på själva varan, alltså hoppade enligt regeln från N36:
+  `3b4594da` (minimotionscykel för armar och ben, HOMCOM — N47:s reserv),
+  `9cf41b84` (tre fladdermusholkar, PawHut) och `aea52237` (kattlåda med två
+  ingångar, PawHut). Ersattes av `a6a16df2`, `af9c163f` och `c311e18f`. (N48)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  `28a708af` (sparkcykel 5-i-1) mot `ed5d6b85`, `9a1432fc` (hundvippa för
+  agility) mot `2b7853e9`, `b08dc0cb` (sittbänk med dyna, saldo 8) mot
+  `d5919be6`, `bd90f229` (upphöjd hundbädd med träram) mot `ee19a8c8` och
+  `0f627521` (LED-björk med 180 lampor) mot `2cb5b77e`. (N48)
+- Träffar som inte gick att bedöma utan utredning, hoppade enligt snabbregeln:
+  `c67437da` (litet skoställ) mot högskåpet `8085d0b6` — båda
+  förvaringsmöbler —, `085f8668` (satsbord) med fyra träffar, bland dem en
+  kubhylla (`0c07eb82`), och `3aef2500` (bokhylla för barn) med fyra träffar,
+  varav svepet bara visade två (klösträd). Ingen av dem är mätt närmare; de
+  kan tas i en senare runda med en riktad mätning. (N48)
+- Slut i lager i N48: `553a486b` (sidobord på hjul) och `83884eef`
+  (motorcykelstöd). (N48)
+- `1a851435` står i `runda-83` och `c3e0c4a6` i `runda-84` och `runda-85`,
+  alltså rörda av "Runda …"-serien på `main`. Hoppade. (N48)
+- `2fb43729` (förvaringshurts för barn, rosa) och `f39923d1` (pedalhink 30 l,
+  svart) kom upp i urvalet men är redan flaggade som färgsyskon (N36, N38).
+  Hoppade. (N48)
+- Hundbäddsklustret "Hundeliege Outdoor mit Dach" (`7bc96b8f`, `e9c5c6d3`,
+  `04b9206a`, `4d8bf36f`, `7e140b40`) mättes i N48:s skärm och hoppades för
+  säsong, se N38 och N47. (N48)
+- Reserver till N49, dubblettskärmade utan träff av samma slag men inte
+  `las`-prövade: `5eb079d2` (rund pall med förvaring, 649 kr, saldo 181 —
+  kontaktarket granskat och rent), `0dff6d43` (pokerset med 500 marker,
+  659 kr, saldo 178), `12c11f43` (pall i linne, 659 kr, saldo 54; träffen mot
+  gåvagnen `26ec5761` är brus), `4c8d9de4` (smal konstgjord julgran, 659 kr,
+  saldo 90), `875ca38b` (vinhylla för åtta flaskor, 659 kr, saldo 182) och
+  `f0817bea` (julby, 659 kr, saldo 197). (N48)
