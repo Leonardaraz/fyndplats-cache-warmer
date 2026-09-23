@@ -805,3 +805,65 @@ beslut — se den samlade frågan om detta.
   kontaktark: `80aac077` (trehjuling, 719 kr, saldo 63, ren skärm). De åtta
   som N50 lämnade för en riktad kontroll är fortfarande inte kontrollerade.
   (N51)
+- Husmärke på varan, alltså hoppad enligt regeln från N36: `c661b7de`
+  (fågellekplats i fyra nivåer, PawHut-skylt på själva varan). Den ersattes
+  av `855bae98` (cd- och dvd-hylla), som publicerades i N52. (N52)
+- Träff mot en publicerad sida av samma slag, hoppade utan utredning:
+  golvlamporna med hyllor `0ac59601` och `90881ca7` mot `3f539249` och
+  `d286370d`, `fd221e07` mot `53e66496` och `d2dfd1fa` och `087000f1` mot
+  `93af619c`, soptunnorna på 30 liter `24a1670b`, `3b191266`, `d658ff0c` och
+  `cd76581a` mot `1c9d8d05`, agilityseten `30d7c18d` mot `8cf7b1bb` och
+  `2810f5c7` mot `7167f9ac`, tyggarderoben `874d78ac` mot `4fdd5a7f` och
+  `63e6bc9d`, kattlådorna `87c69d6c` mot `7162ea48` och `72ac915f` och
+  `6a5a2caf` mot `b44a18ff`, hundgrindarna i tre delar `772a61c9` och
+  `6d093e8a` mot `f65c4435` och `c6554568`, `80a6b76b` (springcykel) mot
+  `790451f4`, `db228f4a` (hundvippa) mot `2b7853e9`, `1ea45139` (soffbord i
+  2-pack) mot `b7b5b37e`, `44663e99` (klättervägg för katter) mot
+  `b04b5375` och `38c00989`, `d9de7e1a` (fotpall) mot `a6a16df2` och
+  `e3e04d9a` (skjutdörr med beslag) mot `0a5d10dc`. (N52)
+- Familjer som redan är täckta eller inte gick att avgöra utan utredning,
+  hoppade: `644f1c32` (vedställ med brasverktyg), troligen samma vara som
+  `b1684bee`, `80622984` (pokerset), troligen samma som `0dff6d43`,
+  `5874495d` (klädställ i bambu på hjul) mot `61355ceb`, `2cf4c918`
+  (hopfällbar springcykel) mot `6f101f90`, `46c4d9b2` (soffbord i 2-pack)
+  med fem träffar av olika slag, `d645f2bb` (rund sittpall med förvaring),
+  där skärmens enda måtttrippel bara träffade brus, clownerna `b92a1717` och
+  `d99fb2f8`, där de publicerade clownerna saknar läsbara mått, och
+  `6d35a04f` (agilityset i sex delar) i samma familj som agilityseten ovan.
+  (N52)
+- Skärmen kunde inte läsa några mått ur källan, alltså hoppade: `08dce97d`
+  (RGB-golvlampa), `35e323d0` (dörrgrind), `9a34e8e8` (frisörstol),
+  `d0bacc46` (konstgjord fikus) och `be1a5215` (stolset för barn). (N52)
+- Slut i lager vid N52:s urval: `e95da565` (sidobord på hjul). Prövas igen
+  när saldot har stigit. (N52)
+- Troliga syskon till produkter i N52, med samma tyska namn: `addf1d20`
+  (staffliet `ac160e8e`), `68760ab6` (snögubben `eb7d67a4`) och `2f2ddb2c`
+  och `25544401` (dörrgrinden `a64af3a4`). De ligger på 769–799 kr, nådde
+  aldrig skärmen och är inte kontrollerade. Läs `FARGSYSKONEN.md` först.
+  (N52)
+- Filtrerade bort före skärmen eftersom "Runda …"-serien på `main` rör dem:
+  samma tre som förut i 719-kronorsspannet (`4106fc63`, `6152ca30` och
+  `97ead85f`) och sexton nya på 749–799 kr: `9b26cc3d`, `b5698ddf`,
+  `0cd30b65`, `19fc1a9e`, `402c820e`, `7a595f49`, `f8069f60`, `44894f02`,
+  `59d83c24`, `76124981`, `7bc8e179`, `b135a79c`, `b1dd61b1`, `ec967e62`,
+  `efd63441` och `f1066fb2`. (N52)
+- Skärmens träffar som räknades som brus och inte fällde: staffliet
+  `ac160e8e` mot ett klösträd, tvättkorgen `0b66ea13` mot två mopphinkar och
+  en stänkskärm, skostället `43d46471` mot en verktygsvagn, ministeppern
+  `cb08e980` mot ett klösträd, en tv-bänk och ett skoskåp, spegelskåpet
+  `5f833adb` mot en campingstol och cd-hyllan `855bae98` mot en
+  pakethållarväska. Alla sex publicerades i N52. (N52)
+- Hoppade för säsong: trettiofem trädgårds- och utevaror för 739–799 kr,
+  `135ecdd1`, `41eba57a`, `4925db53`, `518dd063`, `8c4607e2`, `ae07cfe6`,
+  `d17e275d`, `d4433240`, `341e1f74`, `ca0a9ae8`, `2c2e45d1`, `30f21947`,
+  `36ac1b5e`, `5335bbc1`, `5f7bf4a9`, `dfa8b3d1`, `30162f21`, `ad6e52cc`,
+  `d5f473c8`, `f37c72e4`, `348c4cb0`, `46f8279a`, `90b6a606`, `4ff354b2`,
+  `56bcb4f4`, `6b68df67`, `6d3aa3a0`, `83c43a37`, `95a8333f`, `a0e5941d`,
+  `b1c149dd`, `b729a465`, `b9934c81`, `cb828049` och `d4a39324`: växthus,
+  odlingslådor, en kompost, gungor, tält och campingmöbler, en grill,
+  gräsvältar och utespel. En trädgårdsvara som poleras i slutet av september
+  får sina första besökare på våren. (N52)
+- Ingen dubblettskärmad reserv står kvar efter N52: alla 52 kandidater på
+  719–739 kr är antingen publicerade eller har en rad ovan. Nästa runda
+  börjar på 749 kr. N50:s åtta för en riktad kontroll är fortfarande inte
+  kontrollerade. (N52)
