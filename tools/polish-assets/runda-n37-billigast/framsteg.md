@@ -180,4 +180,27 @@ genus, kongruens, syftning och inre motsägelser som enda fråga. **Elva
 
 Alla grindar omkörda efter rättningarna — oförändrat gröna.
 
+Pushat som `901e441` ("källor, svenska texter och grindar — före
+skrivningen"), ovanpå N36:s `6d83236`.
+
+## Steg 5 — oberoende, skeptisk granskning FÖRE skrivningen
+
+Alla åtta lästa en gång till som en utomstående granskare, med kontaktarket
+och källtexten bredvid: varje påstående om konstruktion, antal delar och vad
+som ingår prövat mot bilderna, varje tal mot källan, och varje adjektiv som
+lovar något om kvalitet prövat mot om källan säger det.
+
+**Ett fynd:** `9e16bd7c` sa "gjort av **slitstark** plast (HDPE och PP)".
+Källan anger materialet men lovar ingenting om slitstyrka — adjektivet var
+mitt. Struket. De tre andra kvalitetsorden i rundan är belagda:
+`af4409b8` "slitstark melaminyta" (*für Langlebigkeit*), `e118ae32`
+"slitstark Oxfordväv" (*strapazierfähigem 600D*), `ff10ccf5` "slät
+melaminyta" (*glatte … Oberfläche*).
+
+Inga motsägande tal (gnistskyddets 50 + 2 × 23 = 96 cm går ihop; sidobordets
+26 + 21 cm ryms under 62,5 cm), inga tyska eller engelska rester utöver
+etablerade lånord (trälook, PU, MDF, HDPE), inget namn eller SEO-fält över
+taket. Grindarna och `npx vitest run lib/polish` (99/99) omkörda efter
+rättningen — gröna.
+
 (fortsätter)
