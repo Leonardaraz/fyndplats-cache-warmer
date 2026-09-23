@@ -539,3 +539,31 @@ beslut — se den samlade frågan om detta.
   och `300d3415` (julby i trä med 10 LED, saldo 197). `1204b022` (raden från N43
   ovan) är fortfarande inte prövad mot `75a38b7b`; N44 nådde inte upp till
   599 kr. (N44)
+- `5eda1981` (Spielmatte Baby 196 × 176 × 1,5 cm, 599 kr) — samma lekmatta som
+  `be52938b`, som publicerades i N45 för 579 kr. Ett DYRARE utkast bakom en
+  publicerad sida. Leonards beslut. (N45)
+- `1dd5c81e` (Kinderroller mit LED-Rädern, 579 kr) — måtten träffar den
+  PUBLICERADE `d3cf8ebc` (sparkcykel för barn 2–6 år). Hoppad utan utredning,
+  enligt den snabba skärmen. (N45)
+- `91dbaaf9` (Bücherregal mit 7 Ebenen, schmal, 579 kr) — måtten träffar den
+  PUBLICERADE `79ab08fe` (bokhylla i trädform 109 cm, sju plan). Hoppad. (N45)
+- `c7eb46b2` (Laufrad/Dreirad, 579 kr) — måtten träffar den PUBLICERADE
+  `6f101f90` (springcykel för barn 1–3 år), samma sida som N44:s
+  `40b7dfa0` och `1dfa992a` står bakom. Hoppad. (N45)
+- `fde1f334` (Mini-Backofen 9 Liter, 579 kr) — måtten träffar den PUBLICERADE
+  `691ffc27` (miniugn 9 liter, 750 W). Hoppad. (N45)
+- Sadelpallarna `5183003d` (599 kr), `fb7d2703` (579 kr) och `34e4947c`
+  (599 kr) — `5183003d` träffar de PUBLICERADE sadelpallarna `12ce97db` och
+  `20782c24`. De två andra är rullpallar av samma slag utan egen träff;
+  hoppade tills bilderna jämförts. (N45)
+- `a7bbaf0e` (Aufbewahrungsregal für Kinder, 579 kr) — tretton måttträffar mot
+  publicerade sidor av olika slag, alltså för brusig för att avgöra snabbt.
+  Hoppad; kräver en egen jämförelse. (N45)
+- `2b290b3c` hoppad: slut i lager. `cfd4bd2d` hoppad: saldo 2. (N45)
+- `e95e39b9` (ljusgardin med 50 LED, 18 m, 559 kr, saldo 127) — `las`-prövad i
+  N45 utan anmärkning, men byttes mot snöskyffeln av säsongsskäl. Reserv. (N45)
+- Reserver från N45, dubblettskärmade utan träff men inte `las`-prövade:
+  `308cabee` (konstgjord palm 1 m), `423edb5d` (bokhylla för barn, fyra fack)
+  och `54f62954` (två konstgjorda lavendelträd 60 cm), alla 599 kr.
+  `34dee876` (elektronisk darttavla, 599 kr) ska jämföras mot
+  N44:s publicerade `b5b3b852` innan den väljs. (N45)

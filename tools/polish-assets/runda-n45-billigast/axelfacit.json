@@ -1,0 +1,111 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "06675244": {
+  "tyska": "Ø60 x 100H cm",
+  "svenska": "Ø60 x 100H cm",
+  "bokstaver": "H",
+  "hojd": 100
+ },
+ "119c6052": {
+  "tyska": "30B x 14T x 30H cm",
+  "svenska": "30 x 14 x 30 cm",
+  "bokstaver": "BTH",
+  "djup": 14,
+  "hojd": 30,
+  "bredd": 30
+ },
+ "173bc5bd": {
+  "tyska": "Ø54 x 195H cm",
+  "svenska": "54L x 54B x 195H cm",
+  "bokstaver": "H",
+  "hojd": 195
+ },
+ "2cb5b77e": {
+  "tyska": "22L x 22B x 180H cm",
+  "svenska": "22L x 22B x 180H cm",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 22,
+  "djup": 22
+ },
+ "2f1246a1": {
+  "tyska": "43L x 21B x 142H cm",
+  "svenska": "43L x 21B x 142H cm",
+  "bokstaver": "LBH",
+  "hojd": 142,
+  "bredd": 43,
+  "djup": 21
+ },
+ "300d3415": {
+  "tyska": "45L x 10B x 25H cm",
+  "svenska": "45L x 10B x 25H cm",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 45,
+  "djup": 10
+ },
+ "30fe3828": {
+  "tyska": "20B x 40T x 63H cm",
+  "svenska": "W20xD40xH63cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 63,
+  "bredd": 20
+ },
+ "33cf9b15": {
+  "tyska": "45L x 37B x 135H cm",
+  "svenska": "45 x 37 x 135 cm",
+  "bokstaver": "LBH",
+  "hojd": 135,
+  "bredd": 45,
+  "djup": 37
+ },
+ "5f8aed80": {
+  "tyska": "",
+  "svenska": "45L x 40B x 70,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 45B x 40T x 70,5H cm | ✔ Oberes Regal: 45B x 40T cm | ✔ Mittleres Regal: 40B x 39T x 21,5H cm | ✔ Schubladeninnenmaß: 38,5B x 37T x 24,5H cm"
+ },
+ "80558327": {
+  "tyska": "47,5L x 26B x 44,5H cm",
+  "svenska": "47,5L x 26B x 44,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 44.5,
+  "bredd": 47.5,
+  "djup": 26
+ },
+ "b99bb9cc": {
+  "tyska": "69L x 26B x 108H cm",
+  "svenska": "69L x 26B x 108H cm",
+  "bokstaver": "LBH",
+  "hojd": 108,
+  "bredd": 69,
+  "djup": 26
+ },
+ "badc577d": {
+  "tyska": "40L x 30B x 46H cm",
+  "svenska": "40L x 30B x 46H cm",
+  "bokstaver": "LBH",
+  "hojd": 46,
+  "bredd": 40,
+  "djup": 30
+ },
+ "be52938b": {
+  "tyska": "196L x 176B x 1,5T cm",
+  "svenska": "196L x 176B x 1,5H cm",
+  "bokstaver": "LBT",
+  "djup": 1.5,
+  "bredd": 196
+ },
+ "db4808e6": {
+  "tyska": "",
+  "svenska": "139L x 4,5B cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 139L x 4,5B cm (vollständig ausgezogen) | ✔ Gewichteter Ball Größe: Ø7 x 11L cm, 400 g | ✔ Seillänge: 5-38L cm"
+ },
+ "edac1214": {
+  "tyska": "✔ Gesamthöhe: 90 cm",
+  "svenska": "15L x 15B x 90H cm",
+  "bokstaver": "H",
+  "hojd": 90,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ }
+}
