@@ -2,18 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { WixV3ProductSummary } from "@/lib/wix/v3-products";
 import type { MappingSupplier } from "@/lib/store";
-import { MappingCard } from "./mapping-card";
+import { MappingCard, type MappingsProdukt } from "./mapping-card";
 import { repairSyntheticMappingsAction, type RepairBatchResult } from "./actions";
 
 /** En redan mappad produkt + dess leverantörskälla (för "Mappade"-fliken). */
-export type MappedProduct = WixV3ProductSummary & {
+export type MappedProduct = MappingsProdukt & {
   mapping: { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number; broken?: boolean };
 };
 
 interface Props {
-  unmapped: WixV3ProductSummary[];
+  unmapped: MappingsProdukt[];
   mapped: MappedProduct[];
   /** wixProductId → orsakstext för produkter som TAPPAT SYNK (listning
    *  borttagen / dold av synken / felsvit). Driver ⚠️-filtret + rad-badgen. */
@@ -32,6 +31,14 @@ interface Props {
 }
 
 type Tab = "unmapped" | "mapped";
+
+/**
+ * Så många kort ritas åt gången. Hela katalogen är över 5 000 produkter, och
+ * ett kort med bild per produkt fick webbläsaren att hänga (2026-09-23).
+ * Sökningen och filtren verkar på HELA listan; det är bara ritningen som
+ * sker i omgångar.
+ */
+const RITA_PER_OMGANG = 60;
 
 /** Ackumulerat resultat över alla batchar i en laga-körning. */
 interface RepairRunState {
@@ -66,6 +73,12 @@ export function MappingsList({
   // snabb feedback; router.refresh() reconcilerar serverlistorna strax efter.
   const [sessionMapped, setSessionMapped] = useState<Set<string>>(new Set());
   const [repairRun, setRepairRun] = useState<RepairRunState | null>(null);
+  // Antalet ritade kort hör till en viss vy. Byts flik, sökning eller filter
+  // börjar ritningen om från första omgången — utan en effekt, bara genom att
+  // jämföra vyns nyckel.
+  const vy = `${tab}|${filter}|${onlyIssues}|${onlyOos}`;
+  const [ritning, setRitning] = useState({ vy, antal: RITA_PER_OMGANG });
+  const ritade = ritning.vy === vy ? ritning.antal : RITA_PER_OMGANG;
   const nameById = useMemo(() => new Map(mapped.map((p) => [p.id, p.name])), [mapped]);
 
   async function runRepair() {
@@ -147,6 +160,7 @@ export function MappingsList({
 
   const activeList = tab === "unmapped" ? unmappedVisible : mappedVisible;
   const activeTotal = tab === "unmapped" ? unmappedCount : mapped.length;
+  const kvarAttRita = Math.max(0, activeList.length - ritade);
 
   return (
     <div>
@@ -293,7 +307,7 @@ export function MappingsList({
       {/* Lista */}
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {tab === "unmapped"
-          ? unmappedVisible.map((p) => (
+          ? unmappedVisible.slice(0, ritade).map((p) => (
               <MappingCard
                 key={p.id}
                 product={p}
@@ -302,7 +316,7 @@ export function MappingsList({
                 onMapped={handleMapped}
               />
             ))
-          : mappedVisible.map((p) => (
+          : mappedVisible.slice(0, ritade).map((p) => (
               <MappingCard
                 key={p.id}
                 product={p}
@@ -315,6 +329,18 @@ export function MappingsList({
               />
             ))}
       </ul>
+
+      {kvarAttRita > 0 ? (
+        <div style={{ textAlign: "center", margin: "12px 0 20px" }}>
+          <button
+            type="button"
+            onClick={() => setRitning({ vy, antal: ritade + RITA_PER_OMGANG })}
+            style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #ccc", background: "#fff", cursor: "pointer" }}
+          >
+            Visa {Math.min(RITA_PER_OMGANG, kvarAttRita)} till — {kvarAttRita} kvar
+          </button>
+        </div>
+      ) : null}
 
       {activeList.length === 0 ? (
         <p style={{ textAlign: "center", color: "#888", padding: 20 }}>

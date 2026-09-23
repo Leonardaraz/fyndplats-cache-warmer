@@ -200,18 +200,43 @@ export async function listVisibleV3ProductIds(): Promise<Set<string>> {
  * Listar alla produkter i V3-katalogen med minimal data (id, name, slug, image).
  * Pagination hanteras automatiskt via cursor.
  */
-export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
+/**
+ * Hela V3-katalogen, sida för sida.
+ *
+ * `beskrivning: false` hoppar över PLAIN_DESCRIPTION. Fältet är det tyngsta i
+ * svaret och behövs bara av /admin/seo ("saknar beskrivning"); utan det blir
+ * `hasDescription` alltid false och `plainDescription` tom — läs dem inte då.
+ *
+ * ☠️ TAKET KASTAR, DET KORTAR INTE AV (2026-09-23). Loopen stannade tyst vid 50
+ * sidor = 5 000 produkter. Katalogen passerade det i september, så /admin/seo,
+ * lönsamhetsrapporten och /admin/mappings räknade på en avkortad lista utan
+ * att säga det. Samma tak och samma hållning som listVisibleV3ProductIds: en
+ * avkortad lista är värre än ett fel.
+ */
+export async function listAllV3Products(
+  opts: { beskrivning?: boolean } = {},
+): Promise<WixV3ProductSummary[]> {
+  const beskrivning = opts.beskrivning ?? true;
   const all: WixV3ProductSummary[] = [];
   let cursor: string | undefined;
-  for (let page = 0; page < 50; page++) {
+  for (let page = 0; page <= MAX_SYNLIGA_SIDOR; page++) {
+    if (page === MAX_SYNLIGA_SIDOR) {
+      throw new Error(
+        `listAllV3Products passerade ${MAX_SYNLIGA_SIDOR} sidor `
+          + `(${MAX_SYNLIGA_SIDOR * 100} produkter). Höj taket — en avkortad `
+          + "lista räknar fel utan att säga det.",
+      );
+    }
     // V3 använder cursorPaging (inte paging). Cursor måste ligga INUTI
     // cursorPaging-objektet, annars ignoreras den och samma första 100
     // produkter returneras om och om igen (vilket buggade hela /admin/seo).
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
     // PLAIN_DESCRIPTION är ett tungt fält som inte returneras by default —
-    // begär det explicit så vi kan se vilka produkter som saknar beskrivning.
-    const body = { fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } };
+    // begär det explicit bara när anroparen behöver se vilka som saknar beskrivning.
+    const body = beskrivning
+      ? { fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } }
+      : { query: { cursorPaging } };
 
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
       method: "POST",
