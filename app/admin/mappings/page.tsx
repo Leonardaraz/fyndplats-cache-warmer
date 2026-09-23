@@ -7,12 +7,13 @@
 // (pairVariantMappings — positionellt bara som reserv, högljutt räknad).
 // "Laga trasiga variant-id"-knappen kör synkens självläkning på begäran.
 
-import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
+import { listAllV3Products } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
 import type { MappingSupplier } from "@/lib/store";
 import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { isSyntheticMappingId } from "@/lib/sync/mapping-repair";
 import { MappingsList, type MappedProduct } from "./mappings-list";
+import type { MappingsProdukt } from "./mapping-card";
 import { storeProductBase, wixProductEditBase } from "@/lib/admin-links";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ function oosLabel(s: SyncStateEntry): string | null {
 }
 
 export default async function MappingsAdminPage() {
-  let allProducts: WixV3ProductSummary[];
+  let allProducts: MappingsProdukt[];
   let mappingByProductId: Map<string, { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number; broken: boolean }>;
   let totalMappingRows = 0;
   let loadError: string | null = null;
@@ -59,11 +60,17 @@ export default async function MappingsAdminPage() {
 
   try {
     const [products, mappings, problems] = await Promise.all([
-      listAllV3Products(),
+      // Utan beskrivning: den behövs inte här och är svarets tyngsta fält.
+      listAllV3Products({ beskrivning: false }),
       getStore().listMappings(),
       getSyncStore().listProblemStates().catch(() => [] as SyncStateEntry[]),
     ]);
-    allProducts = products;
+    // ☠️ BARA DET LISTAN LÄSER GÅR TILL WEBBLÄSAREN. Hela sammanfattningen bär
+    // beskrivning och JSON-LD-taggar; gånger ~5 000 produkter blev klientens
+    // props så stora att sidan aldrig laddade (2026-09-23).
+    allProducts = products.map(({ id, name, slug, imageUrl, variantCount }) => ({
+      id, name, slug, imageUrl, variantCount,
+    }));
     totalMappingRows = mappings.length;
     problemStates = problems;
     mappingByProductId = new Map(

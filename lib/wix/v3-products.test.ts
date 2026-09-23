@@ -184,3 +184,82 @@ describe("listV3ProductInfo", () => {
     });
   });
 });
+
+// ☠️ VARFÖR DE HÄR TESTERNA FINNS (2026-09-23).
+//
+// Samma tak som listVisibleV3ProductIds hade — 50 sidor, tyst avkortning — satt
+// kvar i listAllV3Products när den rättades 2026-09-14. /admin/seo,
+// lönsamhetsrapporten och /admin/mappings räknade alltså på de första 5 000
+// produkterna av ~5 500. Och /admin/mappings laddade inte alls: den skickade
+// varje produkts beskrivning och JSON-LD till webbläsaren.
+
+describe("listAllV3Products", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+    process.env.WIX_SITE_ID = "s";
+    vi.resetModules();
+  });
+  afterEach(() => {
+    if (origToken === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = origToken;
+    if (origSite === undefined) delete process.env.WIX_SITE_ID;
+    else process.env.WIX_SITE_ID = origSite;
+    vi.restoreAllMocks();
+  });
+
+  /** En sida i listAllV3Products-formen (namn och slug krävs av mappningen). */
+  function helSida(antal: number, forstaId: number, sista = false) {
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        products: Array.from({ length: antal }, (_, i) => ({
+          id: `p${forstaId + i}`, name: `P${forstaId + i}`, slug: `p-${forstaId + i}`,
+        })),
+        pagingMetadata: sista
+          ? { hasNext: false }
+          : { cursors: { next: `c${forstaId + antal}` }, hasNext: true },
+      }),
+      text: async () => "",
+    } as unknown as Response;
+  }
+
+  it("☠️ KASTAR när sidtaket nås — den kapar aldrig tyst", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => helSida(100, 0)));
+    const { listAllV3Products } = await import("./v3-products");
+    await expect(listAllV3Products()).rejects.toThrow(/passerade .* sidor/);
+  });
+
+  it("~5 500 produkter går igenom — den gamla gränsen på 5 000 är borta", async () => {
+    let n = 0;
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      n++;
+      return n < 56 ? helSida(100, n * 100) : helSida(1, 99_999, true);
+    }));
+    const { listAllV3Products } = await import("./v3-products");
+    const ut = await listAllV3Products({ beskrivning: false });
+    expect(ut).toHaveLength(55 * 100 + 1);
+  });
+
+  it("beskrivning: false ber inte om PLAIN_DESCRIPTION — det tyngsta fältet i svaret", async () => {
+    const kroppar: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
+      kroppar.push(String(init?.body ?? ""));
+      return helSida(1, 0, true);
+    }));
+    const { listAllV3Products } = await import("./v3-products");
+    await listAllV3Products({ beskrivning: false });
+    expect(kroppar[0]).not.toContain("PLAIN_DESCRIPTION");
+  });
+
+  it("utan val ber den om beskrivningen som förut — /admin/seo behöver den", async () => {
+    const kroppar: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
+      kroppar.push(String(init?.body ?? ""));
+      return helSida(1, 0, true);
+    }));
+    const { listAllV3Products } = await import("./v3-products");
+    await listAllV3Products();
+    expect(kroppar[0]).toContain("PLAIN_DESCRIPTION");
+  });
+});

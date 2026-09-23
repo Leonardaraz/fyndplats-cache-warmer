@@ -3377,6 +3377,27 @@ med workflowen `review-image-repair.yml` (loopar `repairImages` i
 Pending-rader behåller källadressen med flit — flytten sker när raden blir
 synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
 
+**Nästa omgång: vilka produkter, och deras artikelnummer (2026-09-23).**
+Workflowen `aosom-reviews-kandidater.yml` svarar med SYNLIGA Aosom-produkter
+som aldrig fått `reviewsCheckedAt`, och deras artikelnummer — krypterade mot
+anroparens engångsnyckel (`kuvert`, obligatoriskt; inget klartextläge). Rutten
+är `GET /api/admin/aosom-reviews-kandidater` (`?fore=<ISO>` tar även med
+produkter kontrollerade före ett datum), logiken `lib/aosom/review-kandidater.ts`
+med elva tester. Stämpeln sätts av inläsningen och av det gamla svepet bara vid
+svar, aldrig vid fel, så urvalet är exakt. Förra vägen — jämförelsefilen —
+täckte bara annonsurvalet, och `/admin/mappings` laddade inte vid ~5 500
+produkter (se nedan).
+
+**`/admin/mappings` laddade inte (2026-09-23).** Sidan skickade hela
+`WixV3ProductSummary` för varje produkt till webbläsaren — beskrivning och
+JSON-LD-taggar gånger ~5 500 — och ritade ett kort med bild per produkt. Nu går
+bara id, namn, slug, bild och varianträkning till klienten, beskrivningen hämtas
+inte alls (`listAllV3Products({ beskrivning: false })`), och listan ritas 60 kort
+i taget. `listAllV3Products` hade dessutom kvar det tysta 50-sidorstaket som
+`listVisibleV3ProductIds` fick bort 2026-09-14: /admin/seo, lönsamhetsrapporten
+och mappningssidan räknade på de första 5 000 produkterna. Taket är nu samma som
+den andras och KASTAR.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

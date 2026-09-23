@@ -7,8 +7,15 @@ import type { WixV3ProductSummary } from "@/lib/wix/v3-products";
 import type { MappingSupplier } from "@/lib/store";
 import { leverantorskallaFor } from "@/lib/import/source-link";
 
+/**
+ * Det kortet och listan faktiskt läser. Servern skickar BARA de här fälten
+ * till webbläsaren — hela WixV3ProductSummary bär beskrivning och JSON-LD, och
+ * gånger fem tusen produkter blev det en sida som aldrig laddade (2026-09-23).
+ */
+export type MappingsProdukt = Pick<WixV3ProductSummary, "id" | "name" | "slug" | "imageUrl" | "variantCount">;
+
 interface Props {
-  product: WixV3ProductSummary;
+  product: MappingsProdukt;
   /** Satt när produkten REDAN är mappad (Mappade-fliken) — visar källa + "Ändra mappning". */
   mapping?: { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number };
   /** Orsakstext när produkten TAPPAT SYNK — röd badge + varningskant på kortet. */
