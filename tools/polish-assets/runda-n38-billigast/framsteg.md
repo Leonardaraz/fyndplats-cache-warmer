@@ -133,7 +133,7 @@ tre billigare. Oavgjort pris bröts MEKANISKT i jämförelsens egen ordning
 | 1a1487a8 | Skärmtak 103 cm | 629 | 659 | 39 |
 | 084b987b | Sidobord med skåp | 639 | 699 | 83 |
 | 12e66c66 | Elektronisk darttavla | 639 | 659 | 178 |
-| 285d9ab7 | Pedalhink 30 liter, krämvit | 639 | 669 | 89 |
+| 285d9ab7 | Pedalhink 30 liter, krämvit | 639 | 699 | 89 |
 | 2af7ec2d | Staffli för barn 2-i-1, rosa | 639 | 659 | 103 |
 | 3bd54459 | Fågelmatarstation 208 cm | 639 | 669 | 8 |
 
@@ -341,7 +341,111 @@ Sexton körningar, alla gröna, alla med rätt produkt-id i loggen. Priserna
 är desamma som vid urvalet — ingen prisändring, ingen `LÅST PRIS`, ingen
 `SLUTSALD`. Mappningens `variants[].wixVariantId` stämmer med `variant.tsv`.
 
+Pushat i `965f1ee` (efter en rebase på N39:s `6e8ccdf`, som bara rörde
+`runda-n39-billigast/` — ingen konflikt).
+
+## Steg 8 — live
+
+`bash ../../polish-gates/hamta-live.sh 130`: den varma träffen gav åldrar
+0–121 s (tre sidor renderades av själva träffen, fem ungefär två minuter
+tidigare — alla efter sista skrivningen), skriptet väntade EN gång 305 s
+tills den yngsta blev inaktuell, träffade om, pausade 130 s och hämtade:
+**8 av 8 HTTP 200,
+149–153 kB, `age: 140`/`141`** — alltså exakt renderingen som omträffen
+startade, inte en äldre cachad sida. `KLART`, inga avhuggna filer.
+
+`python3 ../../polish-gates/livegrind.py`, kört till slut:
+
+```
+0fda8bfe … ord=314 diff=0 -> REN      12e66c66 … ord=357 diff=0 -> REN
+33c51730 … ord=305 diff=0 -> REN      285d9ab7 … ord=296 diff=0 -> REN
+1a1487a8 … ord=345 diff=0 -> REN      2af7ec2d … ord=318 diff=0 -> REN
+084b987b … ord=375 diff=0 -> REN      3bd54459 … ord=338 diff=0 -> REN
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+Det omfattar orddiffen mot källfilen, homoglyfsvepet, sidsvepet, alt-svepet,
+SEO-svepet (exakt mot `seo.tsv`, plus `og:`-taggarna), de tre flikarna
+ordagrant, kategorin i brödsmulan, `OutOfStock`-kontrollen och korslänken.
+
+**JSON-LD** (varje `Product`-block ur de hämtade sidorna): `availability`
+**`https://schema.org/InStock` på alla åtta**, priserna 619, 619, 629, 639,
+639, 639, 639, 639 SEK — urvalets, orörda.
+
+## Steg 9 — andra korrekturläsningen, på den PUBLICERADE texten
+
+Varje mening plockades MEKANISKT ur `live/<kort>.html` (N36:s
+`meningar.py`, kopierad till scratchpad): h1, `<title>`, meta description,
+varje alt-text på produktens bilder (alla 39 hittade på sidorna, 0 saknas)
+och brödtexten block för block och mening för mening — **386 rader** (24 +
+39 + 323). Alla lästa. Varje påstående som inte är en siffra ställdes mot
+`kallor.json`, och de som bara kommer från fotot mot kontaktarken:
+buxbomsträdets största klot ÖVERST (måttbilden: 27 överst, 23, 18) och
+tvinnade stammar; paraplyställets andra galler ovanför droppskålen och
+svängda sidor; skärmtakets två svarta konsoler; staffliets A-ram och
+skylt (giraff, flodhäst, lejon, björn, apa); fågelmatarens två stora krokar
+överst och två små längre ned; och alla 39 alt-texter mot sina bilder.
+Stämmer överallt.
+
+**0 sakfel, 0 korrekturfel.** Ingen omskrivning, alltså ingen ny
+återläsning och ingen ny `livegrind`. Fyra observationer, medvetet orörda:
+
+- `1a1487a8`: "genomskinlig polykarbonat", "polykarbonaten" — utrum. Prövat:
+  svenska Wiktionary anger utrum (`-en`) som huvudform och neutrum som
+  "även förekommande", och husets tidigare publicerade texter (N3, N13, N19,
+  H1) använder samma form. Inget fel.
+- `084b987b`: ingressens "sidobord med skåp i rustikt brunt med svart
+  stålram" — två med-fraser i rad; grammatiskt och entydigt nog.
+- `285d9ab7`: "Metallytan motstår fingeravtryck, så de blir inte kvar" —
+  lite upprepande; "så" som samordnande konjunktion med rak ordföljd är
+  korrekt skriftsvenska.
+- `12e66c66`: "när ni spelar" — textens enda tilltal, naturligt för ett
+  spel för flera.
+
+⚠️ En nyansering av ett tidigare påstående i den här filen: avsnittet
+"Bilder" säger att staffliets krittavla och whiteboard är "EN rityta". Vid
+omläsningen av kontaktarket syns bakre panelens bruna baksida bakom
+whiteboarden, och tygboxarna har olika tryck i de två vyerna — det talar för
+en panel per sida. Det går ändå inte att avgöra säkert, och den publicerade
+texten påstår ingetdera ("på den svarta tavlan eller … på den vita",
+"ritytan mäter 47 × 32 cm"), så ingenting ändras i Wix. LÄS-MIG formulerar
+det försiktigt.
+
+## Steg 10 — `FLAGGADE.md` (bara tillägg)
+
+Namn, pris och synlighet för varje id slogs upp i Wix (`products/query`,
+ofiltrerat, 60 sidor, 5 984 rader) i stället för att skrivas ur minnet — och
+det lönade sig: radens första utkast räknade fem hundbäddar med tak, uppslaget
+gav SJU (`65d3d373` och `2ed2f82b`, CLAUDE.md:s hundbäddar, bär samma
+namnstart), och trampolinkanten har tre syskon till under ett annat namn.
+Sex nya rader längst ned i filen:
+
+1. `c4df49ca` — paraplyställets vita färgsyskon (619 kr, N39:s halva).
+2. `f39923d1` — pedalhinkens svarta färgsyskon (649 kr).
+3. `516f7c81` + `ae880fa2` — salongspallarna, samma rullpall som publicerade
+   `d348bf64`/`fa078e03`, och BILLIGARE än dem.
+4. `783318c1` — kattlådan, samma familj som publicerade `adb8c31b`.
+5. Säsongsvarorna med sina namnkluster (sju hundbäddar med tak, sju
+   trampolinkanter under två namn, trädgårdsbordet).
+6. Reserverna `59b75ffa` (ren) och `7c3d438a` (Outsunny-etikett på stenen i
+   bild 3, tysk text i bild 4).
+
+Ingen befintlig rad rörd.
+
+## Steg 11 — läckkontrollen
+
+- `npx vitest run lib/polish/artikelnummer-lackage.test.ts` efter varje steg
+  med dokumentation eller byggskript: grön varje gång (3 av 3).
+- `npx vitest run lib/polish`: **99 av 99 gröna**.
+- Commit-svepet `git log --format=%B 2da7655..HEAD` genom `gatelib.ARTNR`:
+  **`[]`** över alla åtta commits i spannet (N37:s, N38:s och N39:s), och
+  sista commit-meddelandet svepat på samma sätt innan det skrevs.
+- Inga artikelnummer i någon fil, varken hela eller delvis; inga
+  redigeringar behövdes (källorna räknades och redigerades på servern, 0
+  träffar).
+
 ## Läge
 
-Wix klart, återläst och stämplat. Nästa: live (`hamta-live.sh 130`, sedan
-`livegrind.py` till slut), JSON-LD, andra korrekturläsningen.
+**KLART.** Åtta produkter publicerade, återlästa, stämplade och
+live-verifierade; `FLAGGADE.md` och `LÄS-MIG.md` skrivna. Faktakorten är
+medvetet uppskjutna.

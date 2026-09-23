@@ -292,3 +292,50 @@ beslut — se den samlade frågan om detta.
   bild 4 bär tysk text), `e514191b` (Schuhregal/Pflanzentreppe, 599 kr) och
   `f75a8a17` (Eckpflanzenständer 3 Ebenen, 599 kr). Ingen av dem träffar en
   PUBLICERAD sida i N37:s dubblettskärm. (N37)
+- `c4df49ca` (Schirmständer mit herausnehmbarer Tropfwasserschale, VIT,
+  619 kr) — färgsyskon till `33c51730` (svart, 619 kr), som publicerades i
+  N38: samma namn och samma tripplar. Lika pris; den svarta togs för att den
+  ligger i N38:s id-halva (`0`–`7`) och den vita i N39:s. Se
+  `FARGSYSKONEN.md`. Lämnad orörd. (N38)
+- `f39923d1` (Mülleimer 30L Treteimer, SVART, 649 kr) — färgsyskon till
+  `285d9ab7` (krämvit, 639 kr, den billigaste), som publicerades i N38: samma
+  tripplar. Se `FARGSYSKONEN.md`. Lämnad orörd. (N38)
+- `516f7c81` (Salonhocker, höhenverstellbar, 5 Rollen, grå, 629 kr) och
+  `ae880fa2` (Rollhocker höhenverstellbar mit Rückenlehne, 629 kr) — samma
+  rullpall som de PUBLICERADE `d348bf64` (svart, 639 kr) och `fa078e03`
+  (beige, 659 kr), "Rullpall … med rygg – sitthöjd 43–55 cm": samma Ø35 cm
+  och 72–84 cm. Pallen har inget trippelmått, så trippelskärmen såg
+  ingenting; en riktad textkontroll på Ø-måttet och spannet hittade dem. En
+  tredje och fjärde kulör av en publicerad familj — samma läge som `1a851435`
+  i N37 — och båda är BILLIGARE än de publicerade sidorna, alltså samma fråga
+  som `ab47e35d` i N37. `las` ren på `516f7c81` (saldo 24). (N38)
+- `783318c1` (Katzenklo Edelstahl mit Deckel, 619 kr) — samma familj som den
+  PUBLICERADE `adb8c31b` ("Kattlåda i rostfritt 52 cm, täckt med
+  topputgång", 599 kr), alltså CLAUDE.md:s trefaldiga kattlåda: tråget
+  52 × 40 × 14, paketet och doftfacket lika, höjden 42 mot 39,8 cm. Antingen
+  samma låda eller en nästan identisk modell — och den publicerade är
+  billigare. Lämnad orörd. (N38)
+- FEL SÄSONG i slutet av september — opolerade utkast i N38:s halva där vi är
+  billigare än dealproffsen, att ta upp till våren. De två första är
+  dessutom namnkluster som ska redas ut innan någon medlem poleras (uppmätt i
+  Wix 2026-09-23, alla `visible: false`):
+  **upphöjda hundbäddar med solskydd**, "Hundeliege Outdoor mit Dach" — sju
+  utkast: `04b9206a` (91-varianten, 629 kr), `4d8bf36f` (91-varianten,
+  639 kr), `7bc96b8f` (106-varianten, 629 kr), `e9c5c6d3` (106-varianten,
+  649 kr), `7e140b40` (mellanstora hundar, 639 kr), `65d3d373` (579 kr) och
+  `2ed2f82b` (629 kr) — det sista paret är CLAUDE.md:s hundbäddar, där
+  `2ed2f82b` redan pensionerats som tvilling; par med samma namn och storlek
+  är sannolikt kulörer, inte uppmätta. **Trampolinkanten** "Ersatz-
+  Randabdeckung für Trampoline" — `05a110dc` och `e375834f` (båda Ø366,
+  629 kr), `0aca1b33` (Ø366, 679 kr), `14ff500d` (Ø305, 719 kr), och med
+  annat namn "Trampolin Randabdeckung": `72d8e656` (Ø366, 629 kr),
+  `14fb0f98` (Ø305, 569 kr) och `a6a79334` (579 kr). **Trädgårdsbordet**
+  `2c62b8b5` (Gartentisch mit Hartglas, 639 kr). (N38)
+- Reserver från N38, inte med bara för att rundan var full på åtta:
+  `59b75ffa` (Schreibtisch mit Ablage und Kabel Management, 639 kr, saldo 11,
+  `las` ren, ren i dubblettskärmen) och `7c3d438a` (Balance-Steine,
+  Trittsteine, 11 Stück, 639 kr, saldo 48, `las` ren, ren i
+  dubblettskärmen) — den andra med förbehåll: bild 3 visar en
+  Outsunny-etikett på själva stenen och bild 4 bär tysk text ("LEICHT ZU
+  SÄUBERN"), så tre rena bilder återstår och frågan om ett tryckt husmärke
+  är Leonards (samma som `fd85cf0b`/`b2175a65` i N37). (N38)
