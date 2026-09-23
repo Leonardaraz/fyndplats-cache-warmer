@@ -3398,6 +3398,44 @@ i taget. `listAllV3Products` hade dessutom kvar det tysta 50-sidorstaket som
 och mappningssidan räknade på de första 5 000 produkterna. Taket är nu samma som
 den andras och KASTAR.
 
+**Omgång 3 (2026-09-23): 1 086 svenska texter på 316 produkter.** Lärdomar
+som gäller nästa omgång:
+
+1. **Hämtningen går i en Web Worker.** En dold flik strypte sidans timers till
+   ett uppvaknande per minut (Chrome, "intensive wake-up throttling"); samma
+   loop i en worker skapad från en blob-URL gick i normal takt (~1,9 s per
+   produkt). Fetch från workern kräver absolut URL (`location.origin + väg`).
+2. **Aosoms recensionsdata är inte alltid rätt produkt.** Samma text låg på
+   upp till fyra olika produkter, och recensioner av en massagefåtölj låg på
+   en julgran. Därför: bara recensioner på exakt artikelnummer, INGEN text som
+   finns på två olika produkter, och en granskning av varje översättning mot
+   produktnamnet innan inläsning.
+3. **API:t ger bara 4–5 stjärnor.** Alla 4 545 hämtade texter hade betyg 4
+   eller 5.
+4. **Den publika recensionsrutten cachas.** Direkt efter inläsning svarade
+   `/api/reviews/<id>` tomt för åtta produkter (gammalt CDN-svar); nästa
+   anrop var rätt. Produktsidorna cachar i en timme (taggen `reviews`).
+
+## Recensioner daterade före 2021 visas inte (2026-09-23)
+
+Leonards beslut: "Alla recensioner som är äldre än 2021 måste bort." Butiken
+startade 2021, och Aosoms API ger omdömen ända från 2015 (159 av 1 086 i
+omgång 3). Regeln bor i `lib/reviews/datumgrans.ts` (`TIDIGASTE_RECENSIONSDATUM`)
+och används på två ställen:
+
+1. **Husets filter** (`rankaMedGolv` i `lib/import/review-import.ts`) slänger
+   omdömen daterade före gränsen vid inläsningen — alla källor, även i
+   räddningssvepet för korta texter.
+2. **Städningen** `POST /api/admin/recensioner-datumrensning` (workflow
+   `recensioner-datumrensning.yml`, torrt som default) DÖLJER det som redan
+   ligger i lagret: status → `rejected` på varje synlig eller väntande rad
+   före gränsen. Inget raderas; en rad kan återställas i /admin/reviews.
+
+☠️ Okänt datum behålls — att gissa hade tagit bort äkta omdömen. ☠️ Rutten
+läser HELA lagret: `listAll` sorterar nyast först och kapar vid 5 000 som
+standard, så de äldsta raderna — just de som söks — hade fallit bort tyst.
+Svaret säger `trunkerad: true` om läsgränsen ändå nås, och workflowen stannar.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
