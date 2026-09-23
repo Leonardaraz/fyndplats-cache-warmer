@@ -567,3 +567,31 @@ beslut — se den samlade frågan om detta.
   och `54f62954` (två konstgjorda lavendelträd 60 cm), alla 599 kr.
   `34dee876` (elektronisk darttavla, 599 kr) ska jämföras mot
   N44:s publicerade `b5b3b852` innan den väljs. (N45)
+- `54f62954` (två konstgjorda lavendelträd 60 cm, 599 kr, saldo 6) — samma
+  lavendelträd som `80de1b65`, som publicerades i N46. Ett utkast bakom en
+  publicerad sida. Leonards beslut. (N46)
+- `34dee876` (elektronisk darttavla, 18 spel, sex pilar, 1–8 spelare, 599 kr) —
+  samma siffror som N44:s PUBLICERADE `b5b3b852`. Sannolikt samma tavla eller
+  ett syskon; hoppad utan bildjämförelse. (N46)
+- Hoppade på träff mot en publicerad sida av samma slag, enligt den snabba
+  skärmen: `93a455ce` (hopfällbar transportbox för hund) mot `6297606f`,
+  `93b4782e` (väggspegel 70 cm, vintage) mot väggspeglarna `f23252d9` och
+  `c438d4ba`, `94a72871` (hopfällbar balansbom) mot `a77b0a31`, `af1c3932`
+  (adventskalender) mot `b26e8aa3`, `da2ffdde` (adventskalender med 24 lådor)
+  mot `4c0a0ef1`, `f78fc4fa` (två fällstolar, saldo 8) mot fällstolarna
+  `1628620b` och `4ca8a6c0`, och `b9d82334` (salongspall Ø42) mot `1d0ba82d`.
+  (N46)
+- `b2bddc3e` (salongspall i konstläder, 599 kr) — samma namn som `9c6fde71`
+  (619 kr), som "Runda …"-serien på `main` har rört. Hoppad. (N46)
+- `e95e39b9` (ljusgardin med 50 LED) hoppades igen: källtexten säljer den för
+  terrass och fest, alltså sommarsäsong. Ta upp den till våren. (N46)
+- FEL SÄSONG i N46, att ta upp till våren: `2a5d48f1` (skyddsöverdrag för
+  hammock), `940fca19` och `f3f0a394` (badmintonnät), `c3f319ad` (två
+  fotbollsmål). `4cfb861a` (tunnelväxthus) hör dessutom till växthusen som
+  "Runda …"-serien på `main` arbetar med. (N46)
+- Reserver från N46, dubblettskärmade utan träff men inte `las`-prövade:
+  `ccae0705` (låsbart medicinskåp i rostfritt stål, saldo 135) och `f787a854`
+  (julgirland med 216 snöade kvistar och 50 LED, saldo 197), båda 599 kr.
+  Skrivborden `c6e7e786` och `f6e74878` (599 kr) är tvillingar till varandra
+  och till N38:s reserv `59b75ffa`: jämför färgerna på bilderna och välj ett.
+  (N46)
