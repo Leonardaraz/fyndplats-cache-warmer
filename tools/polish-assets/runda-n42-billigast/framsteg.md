@@ -154,3 +154,121 @@ bilderna. Den gav tre ändringar:
   "Växten är gjord av PEVA och PE."
 - **Konstväxtens alt-text 5** sa "murgröna" om grönskan bakom spaljén. Det är
   en gissning; nu "grönska".
+
+## Wix-skrivningen
+
+Rundans filer pushades före Wix (`9b07d26`). Samma kommando kontrollerade
+main: fortfarande `3516f83`, och senaste "Runda …"-commit var fortfarande
+Runda 147.
+
+| steg | vad | resultat |
+|---|---|---|
+| 1 | namn/slug/plainDescription/visible/seoData, spärr över text OCH namn/slug/SEO i samma anrop | **10 av 10 skrivna**, ingen spärr utlöst. Revision 1→2 på sju; 2→3 på `7f21945e` och `b138effc`, 3→4 på `988ac121` |
+| 2 | media + alt-texter (måttbilden sist, fyra bilder strukna), spärr över id + alt i samma anrop | **10 av 10**, 46 bilder |
+| 3 | kategorier, uppslag på namn i en färsk fråga i samma anrop | **20 av 20** rader `success` i nio kategorier, `totalFailures: 0` överallt |
+| 4 | variant-SKU sist och ensam, round-trip ur färsk GET med options och visible | **10 av 10**; variant och produkt synliga före, variant-id = `variant.tsv`, priset orört (499 kr på alla tio) |
+| 5 | separat återläsning (`steg5.js`) mot facit ur filerna | **9 av 10 helt verifierade** vid första läsningen. På `988ac121` stämde allt utom kategorin, se nedan. Alla tio `IN_STOCK` |
+
+⚠️ **`988ac121` läste tillbaka med EN kategori i stället för två.** Facit är
+`Hem & Inredning` plus Wix egen `All Products`, men produktens projektion
+visade bara `All Products`. Steg 3 hade svarat `success` för raden (bulk
+`totalSuccesses: 7, totalFailures: 0` för `Hem & Inredning`). Det är husets
+dokumenterade släp i läsprojektionen (avsnittet om kategoriläsningen i
+`CLAUDE.md`): facit är bulk-svarets per-rad `success`, inte en snabb
+återläsning. Kontrollen gjordes därför en gång till mot kategori-API:t självt
+(`list-categories-for-item`), som inte går via produktens projektion. Det
+visade `Hem & Inredning` och `All Products` som direkta kategorier. Då
+tolkades det som släpet, och ingen omskrivning gjordes.
+
+☠️ **Tolkningen höll inte.** Live-sidan visade att projektionen fortfarande
+saknade kategorin åtta minuter senare, och den har inte läkt sedan dess. Se
+live-avsnittet nedan.
+
+Stämpeln (`polish-mapping.yml` `stampla`, `ref: main`, körningarna 3941–3950,
+`variant_skus` byggda med `bygg-steg.py --stampla`) — **10 av 10** `OK …
+uppdaterad`, var och en bevisad som min på `PRODUCT_ID` i loggen. Varje stämpel
+verifierad med en EGEN `las` efteråt (körningarna 3951–3960):
+`needsAiPolish: false`, `draftStatus: published`, den nya SKU:n på
+mappningsraden och prisgrinden `stämmer: true` på alla tio.
+
+`FLAGGADE.md`: 25 rader tillagda sist, 0 borttagna (prefixet byte-identiskt
+med kopian före ändringen).
+
+## Live-verifieringen och den andra korrekturläsningen
+
+`hamta-live.sh 130`: alla tio `HTTP 200` med `age` 143–148. En sida gav först
+`000` och gick fram på omförsöket. `livegrind.py`: **orddiff 0 på alla tio**
+och **9 av 10 REN**. Den tionde, brasskärmen `988ac121`, föll på `KATEGORI
+SAKNAS: brödsmulan går Hem / Butik / produkt`, se nedan.
+
+Ur samma sidor kontrollerades resten med ett skript mot rundans filer (JSON-LD,
+`<title>`, metabeskrivning, alt-texter och brödsmula). Skriptet är prövat åt
+båda hållen: N41:s tio sidor gav 10 av 10, och fyra planterade fel i en kopia
+av N41:s filer gav fyra träffar, var och en på rätt produkt. Utfall för N42:
+
+- JSON-LD `InStock` och priset 499 kr på alla tio.
+- Namnet i JSON-LD är lika med `namn.tsv`, och `<title>` och
+  metabeskrivningen är exakt lika med `seo.tsv`, på alla tio.
+- **46 av 46** alt-texter ur `alt.tsv` står på sidorna.
+- Brödsmulan visar en av produktens egna kategorier på nio sidor, till exempel
+  `Husdjur` för trimningsarmen och `Kök & Husgeråd` för brödrosten.
+  Brasskärmen visar `Butik`.
+
+### ☠️ Brasskärmens kategori når inte produkten
+
+Kategori-API:t har kopplingen: `Hem & Inredning` och `All Products` som
+direkta kategorier. Produktens egen projektion (`directCategoriesInfo`) visar
+bara `All Products`, i både GET och sökindexet. Butiken läser projektionen:
+produktsidan tar kategorin ur `collectionIds` från Wix `queryProducts`
+(butiksgrenens `app/produkt/[slug]/page.tsx` och `lib/products.ts`, lästa
+skrivskyddat). Därför faller brödsmulan tillbaka på `Butik`, och produkten
+syns inte på kategorisidan för `Hem & Inredning`. Den är publicerad, köpbar
+och syns i `/butik` och i sökningen.
+
+Det är inte ISR-fällan från runda K3. Sidan renderades 14:04, åtta minuter
+efter kopplingen, och Wix egen GET saknar kategorin fortfarande.
+
+Tre försök att få projektionen att räknas om, inget med verkan:
+
+| försök | utfall |
+|---|---|
+| ta bort och lägga tillbaka i samma anrop (`bulk/categories/remove-item` + `add-item`) | båda `success`; kategori-API:t visar kopplingen, projektionen oförändrad |
+| en produktskrivning som inte ändrar något: `visible: true` med fältmask bara `visible` | revision 6 → 7; variant synlig, SKU och pris orörda; projektionen oförändrad |
+| ta bort, vänta cirka två minuter (kategori-API:t bekräftade borttagningen), lägga tillbaka | båda `success`; projektionen oförändrad |
+
+Produktens `entityEventSequence` stod på 9 efter det första paret.
+Produktskrivningen tog den till 10, och det andra paret lämnade den på 10.
+Räknaren lästes inte före det första paret. Den enda skillnad mot de nio andra
+som går att se: brasskärmen är den enda med en enda kategori. De andra fick
+en andra koppling, ett löv, direkt efter `Hem & Inredning`.
+
+⚠️ **Ett fjärde försök gjordes INTE:** Products V3:s
+`bulk/products/add-to-categories-by-filter`. Den väljer produkter med ett
+filter och kör som ett asynkront jobb. Om filtret inte respekteras läggs hela
+katalogen i kategorin, och `CLAUDE.md` har redan mätt ett filter som
+`products/search` tyst ignorerar. Den risken är större än en brödsmula.
+
+Punkten är öppen. Den läses om vid nästa kontroll av grenen. Har
+projektionen inte läkt då är det en fråga till Leonard eller Wix support.
+
+### Den andra korrekturläsningen
+
+Den gjordes på den PUBLICERADE texten, plockad mekaniskt ur de hämtade sidorna
+(662 rader). **Den gav inga fynd.**
+
+Fem ställen prövades mot källan och bilderna i stället för att tas för givna.
+Alla fem står sig:
+
+- **Julgranen, "levereras utan ljusslinga".** Källans leveranslista räknar
+  upp gran, metallfot och pyntet, men ingen belysning.
+- **Korgarna, "grepp på kortsidorna".** Källtexten nämner dem inte, men bild 1
+  visar ett urtaget grepp i kortsidan på alla tre korgarna. Metallramen och att
+  plasten "släpper igenom luft" står i källan.
+- **Brasskärmen, "håller barn och husdjur på längre avstånd",
+  "tål värme" och gaskaminen.** Källan: *hält Kinder und Haustiere weiter vom
+  Kaminbereich fern*, *hitzebeständige Schutzbarriere*, *passen gut zu
+  Gaskaminen*.
+- **Konstväxten, "95 cm, räknat med krukan".** Källan säger `Gesamthöhe: 95 cm`.
+- **Brödrosten, materialet plast.** Källan säger `Material: Kunststoff`.
+
+Ingen rättelse, alltså inget omskrivningsanrop.
