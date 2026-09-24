@@ -150,6 +150,21 @@ describe("EN LÄNGD OCH INGET ANNAT — förklarat axellös, inte avbrott", () =
     expect(ut.aaa).toMatchObject({ bredd: 183, djup: 5, hojd: 6 });
     expect(ut.aaa.axellos).toBeUndefined();
   });
+
+  it("☠️ läser en längd i METER, som en kabel mäts i", () => {
+    // Runda N60, laddkabeln c28af8df: källans enda mått är `Kabellänge: 5 m`.
+    // Grenen krävde `cm`, så generatorn avbröt på en källa som säger
+    // sanningen om sig själv.
+    const ut = bygg({ aaa: kalla(["Kabellänge: 5 m", "Schutzart: IP65"]) });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+    expect(String(ut.aaa.axellos)).toMatch(/bara en längd: .*Kabellänge: 5 m/);
+  });
+
+  it("släpper INTE igenom millimeter", () => {
+    expect(() => bygg({ aaa: kalla(["Kabellänge: 5 mm", "Schutzart: IP65"]) })).toThrow();
+  });
 });
 
 describe("KVALIFICERAD ETIKETT — bara när den nakna tiger", () => {

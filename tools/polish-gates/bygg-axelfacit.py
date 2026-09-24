@@ -92,7 +92,14 @@ HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s
 #
 # Grenen kan bara fyra där den gamla koden avbröt, så ingen tidigare runda
 # kan få ett annat facit av den.
-LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Länge)\s*:\s*\d+(?:[.,]\d+)?\s*cm"
+#
+# ⚠️ OCH EN KABEL MÄTS I METER. Uppmätt i runda N60 på laddkabeln c28af8df,
+# vars enda mått är `Kabellänge: 5 m`. Samma sak som skenan — en längd och
+# inget annat — men enheten är `m`, och grenen krävde `cm`, så generatorn
+# avbröt. `c?m\b` läser båda och släpper fortfarande inte igenom `mm`.
+# Etiketten står uttryckligen i listan: mönstret är skiftlägeskänsligt, och
+# `Länge` matchar inte `länge` inne i en sammansättning.
+LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Kabellänge|Länge)\s*:\s*\d+(?:[.,]\d+)?\s*c?m\b"
 AXLAR = ("bredd", "djup", "hojd")
 
 
