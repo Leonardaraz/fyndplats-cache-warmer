@@ -1,0 +1,48 @@
+{
+  "slug": "halloweendekoration",
+  "seo": {
+    "title": "Halloweendekoration utomhus – spöken och skelett",
+    "description": "Halloweendekoration för trädgård och entré: uppblåsbara spöken, pumpor och liemän upp till 3,7 m, och animerade häxor och zombier med ljus och ljud."
+  },
+  "content": {
+    "intro": [
+      "Halloweendekoration gör entrén och trädgården till en del av kvällen. Här samlar vi två sorters figurer: uppblåsbara spöken, pumpor, skelett och portar för gräsmattan, och animerade häxor, zombier, clowner och liemän som rör sig, lyser och låter när någon kommer nära.",
+      "De uppblåsbara figurerna reser sig av sig själva när du kopplar in fläkten och håller formen så länge den går. De lyser inifrån, och de flesta har en duk som är IP44-klassad för regn och stänk. Till de flesta följer markpinnar och linor med för att förankra figuren i gräset. Fläkten behöver ström, så ställ figuren nära ett uttag eller använd en förlängningssladd för utomhusbruk.",
+      "De animerade figurerna drivs med batterier och behöver ingen sladd. De flesta startar av rörelse, ljud eller beröring och tänder ögonen, rör sig och skriker, ylar eller skrattar. Många är gjorda för att stå inne eller under tak, till exempel i hallen eller på verandan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Tål de uppblåsbara figurerna regn?",
+        "a": "De flesta har en duk som är IP44-klassad, vilket täcker regn och stänk. Förankra figuren med markpinnarna och linorna, och ta in den vid storm – en hög duk tar mycket vind."
+      },
+      {
+        "q": "Ingår batterier i de animerade figurerna?",
+        "a": "I de flesta gör de inte. Vilka batterier figuren behöver står i produktbeskrivningen, så köp dem samtidigt om figuren ska vara igång samma kväll som paketet kommer."
+      },
+      {
+        "q": "Varför startar figuren av sig själv?",
+        "a": "Sensorn är känslig med flit, så att den reagerar på ett barn som kommer gående. Blåst och trafikbuller kan därför också starta den. Står figuren blåsigt kan du slå av den mellan besöken och slå på den igen när det ringer på."
+      }
+    ]
+  },
+  "facit": {
+    "två sorters figurer": "22 uppblåsbara (namn 'Uppblåsbar/Uppblåsbart', fläkt i beskrivningen) och 37 animerade/batteridrivna; 59 kopplade 2026-09-24",
+    "uppblåsbara spöken, pumpor, skelett och portar": "143403ea spöke, eca8d6fd pumpa, 66c21a16 jätteskelett, fc40ff21/8477f25f halloweenport, 08c892b0 lieman-port",
+    "animerade häxor, zombier, clowner och liemän": "c5f52a22/a18f6901 häxa, 8cda502c/c409deea zombie, ed290528/5a56b0b5/ce8f60ff clown, 2f4163a1/30403377 lieman",
+    "upp till 3,7 m": "88f2d69c 'Uppblåsbar jättelieman 3,7 m med nio LED' (högst)",
+    "reser sig när du kopplar in fläkten": "143403ea 'hela figuren reser sig av sig själv så fort du kopplar in fläkten'",
+    "håller formen så länge den går": "143403ea 'spöket håller formen bara medan fläkten arbetar'. Inte 'hela kvällen': jul-snögubben 97cf9327 säger 'inte vara igång mer än åtta timmar i sträck'",
+    "lyser inifrån": "LED i beskrivningen på 21 av 22 uppblåsbara; 504dbf8b 'blinkande ögon och lyst mun' i namnet",
+    "de flesta IP44": "IP44 i beskrivningen på 20 av 22 uppblåsbara (143403ea 'Duken är polyester med IP44-klassning')",
+    "markpinnar och linor till de flesta": "markspett/pinnar/linor på 21 av 22 uppblåsbara (143403ea 'fyra markpinnar, två linor och en sandsäck')",
+    "nära ett uttag eller förlängningssladd för utomhusbruk": "143403ea 'du behöver ett uttag inom knappt tre meter — eller en jordad förlängningssladd för utomhusbruk'",
+    "drivs med batterier, ingen sladd": "batteri i beskrivningen på alla 37 animerade; 8cda502c 'drivs av tre AA-batterier och behöver ingen sladd'",
+    "de flesta startar av rörelse, ljud eller beröring": "sensor/aktivering på 33 av 37 animerade; 8cda502c 'Ljud, beröring och vibration aktiverar figuren'",
+    "skriker, ylar eller skrattar": "8cda502c 'börjar yla'; a6820dd0 'skrik'; 5a56b0b5 'skrattar'",
+    "många inne eller under tak": "25 av 59 anger inne/under tak; 2f1246a1 'Batteridriven, inne och under tak'",
+    "FAQ IP44 och storm": "143403ea 'Ta in spöket vid storm. IP44 täcker regn och stänk, men en 180 cm hög duk tar mycket vind'",
+    "FAQ batterier ingår oftast inte": "33 anger att batterier inte ingår, 3 att de ingår (279635e9 '3 AA-batterier ingår'); 8cda502c 'köp dem samtidigt om figuren ska vara igång samma kväll som paketet kommer'",
+    "FAQ känslig sensor": "8cda502c 'Sensorn är avsiktligt känslig — den ska reagera på ett barn som kommer gående … blåst och trafikbuller också startar den. Står figuren blåsigt: slå av strömbrytaren mellan besöken'"
+  }
+}
