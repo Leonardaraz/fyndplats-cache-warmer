@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 
@@ -36,6 +36,16 @@ export function CardGallery({
 }) {
   const [aktiv, setAktiv] = useState(0);
   const bildruta = useRef(0);
+  const spar = useRef<HTMLDivElement>(null);
+
+  // Svepet är ren CSS och fungerar innan sidan hydrerat — men onScroll finns
+  // först efter. Hann besökaren svepa på en långsam uppkoppling står raden på
+  // bild 2 medan prickarna säger 1. Läs läget en gång när komponenten vaknar.
+  useEffect(() => {
+    const el = spar.current;
+    if (el && el.clientWidth && el.scrollLeft > el.clientWidth / 2) setAktiv(1);
+    return () => { if (bildruta.current) cancelAnimationFrame(bildruta.current); };
+  }, []);
   const sizes = "(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw";
 
   // rAF-strypt: scroll fyrar per bildruta, men prickarna behöver bara det
@@ -52,7 +62,7 @@ export function CardGallery({
 
   return (
     <>
-      <div className={`pimg-track${altImg ? " pimg-track-swipe" : ""}`} onScroll={altImg ? onScroll : undefined}>
+      <div ref={spar} className={`pimg-track${altImg ? " pimg-track-swipe" : ""}`} onScroll={altImg ? onScroll : undefined}>
         <div className="pimg-slide">
           <Image
             className="pimg-main"
