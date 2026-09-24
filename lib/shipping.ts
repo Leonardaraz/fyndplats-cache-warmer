@@ -31,3 +31,11 @@ export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbets
 // "pratas aldrig bort"; täcker inte ev. fraktavgift under fri-frakt-gränsen eller returfrakt.
 export const EU_STOCK_NOTE = "Skickas från EU-lager – ingen importtull eller förtullningsavgift.";
 export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull tillkommer.";
+
+// Fraktpris — samma regel som kassan (components/cart.tsx FREE_SHIP) och
+// produktsidans JSON-LD: fri frakt när varans pris är minst 499 kr, annars 19 kr.
+// Används av prisjämförelse-feeden (/feed/pricerunner.xml), som måste ange
+// fraktkostnaden per produkt.
+export const STANDARD_SHIPPING_KR = 19;
+export const FREE_SHIPPING_FROM_KR = 499;
+export const SHIPPING_SERVICE = "Spårbar frakt";
