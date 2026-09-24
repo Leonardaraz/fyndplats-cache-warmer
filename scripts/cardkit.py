@@ -22,6 +22,7 @@ Anvandning (kor fran en scratchpad-katalog med bilderna i ./crops):
 
 Bildhjalpare: hero_white (vit studio-hjalte) · crop (relativa koordinater) ·
 fit_pane (beskar till panelens proportion sa att cover inte zoomar in) ·
+pane_2up (staende motiv i liggande panel: tva staende rutor) ·
 grid_overlay (rutnat for att lasa av exakta crop-granser).
 Kort: card_photo (ett stort foto) · card_grid (2-4 foton) · card_spec (foto +
 spec-rutnat) · card_swatch (en variant stor pa vitt + etikett). Rendera med
@@ -331,6 +332,59 @@ def fit_pane(src, dst, panel="photo", anchor=0.5, q=95):
     y = int(round((h - nh) * anchor))
     os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
     im.crop((x, y, x + nw, y + nh)).save(dst, quality=q)
+    return dst
+
+
+def pane_2up(dst, studio_src, scen_src, x0=0.0, x1=1.0, panel="spec",
+             ankare=0.5, ranna=52, fyll=0.94, skala=2, q=93):
+    """Bygger panelbilden som TVA staende rutor: vit studiobild + verklighetsbild.
+
+    For ett STAENDE motiv i en LIGGANDE panel racker inte fit_pane: beskar man
+    till panelens proportion kapas varan, och letterboxar man med fit=True blir
+    varan liten och panelen mest vit. Uppmatt 2026-09-09 pa tva massagestolar
+    (bbox 0,60:1 och 0,90:1) mot card_spec-panelens 1,83:1 — varan fyllde 94 %
+    av hojden men bara 31 % respektive 46 % av bredden.
+
+    Tva halvor med en vit ranna emellan ger ~0,90:1 per ruta, alltsa nara
+    produktens egen proportion, och varan behover aldrig beskaras. Mata in
+    resultatet med fit=False (cover) — bilden HAR redan panelens proportion.
+
+    x0/x1: vilket vagratt spann av scenbilden som far vara med (0-1). Anvands
+    for att fa rekvisita med frammande text ur bild.
+    """
+    import numpy as np
+    mal = PANEL[panel] if isinstance(panel, str) else float(panel)
+    bredd = int(round(1416 * skala))
+    hojd = int(round(bredd / mal))
+    halva = (bredd - ranna) // 2
+
+    im = Image.open(studio_src).convert("RGB")
+    a = np.asarray(im)
+    ys, xs = np.where((a < 238).any(axis=2))
+    vara = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+    mal_h = int(hojd * fyll)
+    ny_b = max(1, round(vara.width * mal_h / vara.height))
+    assert ny_b <= halva, (
+        f"varan blir {ny_b} px bred men rutan ar {halva} — for brett motiv for "
+        f"pane_2up, anvand fit_pane + fit=True i stallet")
+    vanster = Image.new("RGB", (halva, hojd), (255, 255, 255))
+    vanster.paste(vara.resize((ny_b, mal_h), Image.LANCZOS),
+                  ((halva - ny_b) // 2, (hojd - mal_h) // 2))
+
+    sc = Image.open(scen_src).convert("RGB")
+    sw, sh = sc.size
+    px0, px1 = int(sw * x0), int(sw * x1)
+    bw = px1 - px0
+    bh = round(bw * hojd / halva)
+    assert bh <= sh, f"scenfonstret {bw}x{bh} far inte plats i {sw}x{sh} — bredda x0..x1"
+    y = int(round((sh - bh) * ankare))
+    hoger = sc.crop((px0, y, px1, y + bh)).resize((halva, hojd), Image.LANCZOS)
+
+    duk = Image.new("RGB", (bredd, hojd), (255, 255, 255))
+    duk.paste(vanster, (0, 0))
+    duk.paste(hoger, (halva + ranna, 0))
+    os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+    duk.save(dst, quality=q)
     return dst
 
 
