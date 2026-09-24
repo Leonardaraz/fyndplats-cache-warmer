@@ -78,7 +78,7 @@ function pickTitle(v: string[], seed: number, salt: number, max = 48): string {
 // ─────────────────────────────────────────────────────────────────────────
 // Leverans och retur återkommer i BÅDE Pattern 1 och 3. Varje svar finns i 6
 // varianter med olika ordval OCH meningsbyggnad, så att två sidor sällan delar
-// samma 3-gram. Fakta hålls konstant: 3–7 arbetsdagar, spårning via mejl,
+// samma 3-gram. Fakta hålls konstant: 3–6 arbetsdagar, spårning via mejl,
 // frakt 19 kr (fri över 499 kr), 30 dagar totalt (14 lagstadgade + öppet köp
 // t.o.m. dag 30), info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
 // oberoende av övriga slots på sidan.
@@ -86,12 +86,12 @@ function pickTitle(v: string[], seed: number, salt: number, max = 48): string {
 function deliveryAnswer(singular: string, seed: number, salt: number): string {
   const noun = singular ? `din ${singular}` : "ditt paket";
   const v = [
-    `Normal leveranstid är 3–7 arbetsdagar, och du får alltid en spårningskod via mejl när ${noun} skickas. Frakten är 19 kr inom Sverige — eller helt fri vid köp över 499 kr.`,
-    `Räkna med 3–7 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller från 499 kr, annars en symbolisk peng på 19 kr.`,
-    `De flesta paket är hos dig inom 3–7 arbetsdagar. Du följer leveransen hela vägen via spårningskoden vi skickar på mejl. Under 499 kr kostar frakten 19 kr; över den gränsen bjuder vi på den.`,
-    `Leveransen tar vanligtvis 3–7 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för minst 499 kr.`,
-    `Förvänta dig ${noun} inom 3–7 arbetsdagar. Vi skickar en spårningskod via e-post så du vet exakt var paketet är. Fraktavgiften är 19 kr och försvinner helt vid köp över 499 kr.`,
-    `Vanlig leveranstid ligger på 3–7 arbetsdagar och varje order spåras — länken kommer på mejl vid avsändning. Handlar du för över 499 kr är frakten gratis, annars tillkommer 19 kr.`,
+    `Normal leveranstid är 3–6 arbetsdagar, och du får alltid en spårningskod via mejl när ${noun} skickas. Frakten är 19 kr inom Sverige — eller helt fri vid köp över 499 kr.`,
+    `Räkna med 3–6 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller från 499 kr, annars en symbolisk peng på 19 kr.`,
+    `De flesta paket är hos dig inom 3–6 arbetsdagar. Du följer leveransen hela vägen via spårningskoden vi skickar på mejl. Under 499 kr kostar frakten 19 kr; över den gränsen bjuder vi på den.`,
+    `Leveransen tar vanligtvis 3–6 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för minst 499 kr.`,
+    `Förvänta dig ${noun} inom 3–6 arbetsdagar. Vi skickar en spårningskod via e-post så du vet exakt var paketet är. Fraktavgiften är 19 kr och försvinner helt vid köp över 499 kr.`,
+    `Vanlig leveranstid ligger på 3–6 arbetsdagar och varje order spåras — länken kommer på mejl vid avsändning. Handlar du för över 499 kr är frakten gratis, annars tillkommer 19 kr.`,
   ];
   return pick(v, seed, salt);
 }
@@ -361,10 +361,10 @@ export function priceTierMetaTitle(categoryName: string, price: number, seed: nu
 export function priceTierMetaDesc(categoryName: string, price: number, count: number, seed: number): string {
   const v = [
     `${count} fynd inom ${categoryName.toLowerCase()} för under ${price} kr. Noga utvalda produkter till smarta priser — fri frakt över 499 kr. Handla hos Fyndplats.`,
-    `Spara pengar på ${categoryName.toLowerCase()}: ${count} produkter under ${price} kr, alla handplockade. Leverans 3–7 arbetsdagar och 30 dagars öppet köp hos Fyndplats.`,
+    `Spara pengar på ${categoryName.toLowerCase()}: ${count} produkter under ${price} kr, alla handplockade. Leverans 3–6 arbetsdagar och 30 dagars öppet köp hos Fyndplats.`,
     `Letar du efter prisvärd ${categoryName.toLowerCase()}? Vi har samlat ${count} fynd under ${price} kr. Smarta köp, fri frakt över 499 kr — Fyndplats.`,
     `${count} prisvärda ${categoryName.toLowerCase()}-fynd under ${price} kr, handplockade ur sortimentet. Fri frakt över 499 kr och trygga köp hos Fyndplats.`,
-    `Fynda ${categoryName.toLowerCase()} under ${price} kr — ${count} smarta köp samlade på ett ställe. Leverans 3–7 arbetsdagar, fri frakt över 499 kr. Fyndplats.`,
+    `Fynda ${categoryName.toLowerCase()} under ${price} kr — ${count} smarta köp samlade på ett ställe. Leverans 3–6 arbetsdagar, fri frakt över 499 kr. Fyndplats.`,
   ];
   return pick(v, seed, 11);
 }
@@ -455,9 +455,9 @@ export function interestMetaTitle(verb: string, seed: number): string {
 export function interestMetaDesc(verb: string, count: number, seed: number): string {
   const v = [
     `${count} handplockade fynd för dig som ${verb}. Smarta produkter till bra priser, fri frakt över 499 kr och 30 dagars öppet köp. Handla hos Fyndplats.`,
-    `För dig som ${verb}: vi har samlat ${count} favoriter som gör vardagen enklare. Noga utvalda, prisvärda och hemma på 3–7 arbetsdagar. Fyndplats.`,
+    `För dig som ${verb}: vi har samlat ${count} favoriter som gör vardagen enklare. Noga utvalda, prisvärda och hemma på 3–6 arbetsdagar. Fyndplats.`,
     `Är du en sån som ${verb}? Här är ${count} fynd vi tror du kommer älska — smarta köp till smarta priser hos Fyndplats.`,
-    `${count} utvalda favoriter för dig som ${verb}. Prisvärt, leverans 3–7 arbetsdagar och fri frakt över 499 kr — handplockat hos Fyndplats.`,
+    `${count} utvalda favoriter för dig som ${verb}. Prisvärt, leverans 3–6 arbetsdagar och fri frakt över 499 kr — handplockat hos Fyndplats.`,
     `Fynd som passar dig som ${verb}: ${count} smarta köp samlade på ett ställe. Fri frakt över 499 kr och 30 dagars öppet köp. Fyndplats.`,
   ];
   return pick(v, seed, 11);

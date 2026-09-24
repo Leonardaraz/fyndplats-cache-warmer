@@ -88,7 +88,7 @@ Ja. Det viktigaste glasögonen gör är att hålla fartvind, damm och insekter b
 
 ### Hur snabbt får jag hem tillbehören?
 
-Produkterna ovan ligger i lager inom EU och skickas spårbart, normalt inom 3–7 arbetsdagar. Det gör att du oftast hinner få hem dem inför helgens eller semesterns cykling.
+Produkterna ovan ligger i lager inom EU och skickas spårbart, normalt inom 3–6 arbetsdagar. Det gör att du oftast hinner få hem dem inför helgens eller semesterns cykling.
 
 ### Passar tillbehören alla cyklar?
 

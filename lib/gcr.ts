@@ -39,7 +39,7 @@ export function merchantId(): number {
  *
  * Google skickar enkäten EFTER det här datumet, så ett för kort fönster mejlar
  * kunden innan paketet kommit — ett dåligt betyg på vår egen leverans. Butiken
- * lovar 3–7 arbetsdagar från EU-lager, men det utlovade och det faktiska är
+ * lovar 3–6 arbetsdagar från EU-lager, men det utlovade och det faktiska är
  * inte samma sak. 14 dagar ligger med marginal efter det utlovade och är också
  * det den tidigare sessionen antog.
  */

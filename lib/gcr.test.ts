@@ -39,7 +39,7 @@ describe("estimatedDeliveryDate", () => {
     assert.equal(estimatedDeliveryDate(new Date("2028-02-20T12:00:00Z"), 10), "2028-03-01");
   });
 
-  it("fönstret ligger efter det utlovade 3–7 arbetsdagar", () => {
+  it("fönstret ligger efter det utlovade 3–6 arbetsdagar", () => {
     // Enkäten skickas EFTER datumet. Ett för kort fönster mejlar kunden innan
     // paketet kommit — ett dåligt betyg på vår egen leverans.
     assert.ok(DELIVERY_DAYS >= 10);

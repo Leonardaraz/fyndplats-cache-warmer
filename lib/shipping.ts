@@ -8,7 +8,7 @@
 //   • admin-mejltestet (app/api/admin/email-test/route.ts)
 //
 // De REDAKTIONELLA prosa-meningarna (informationssidor, kategori-FAQ och de
-// programmatiska SEO-mallarna) skriver medvetet ut "3–7 arbetsdagar" i naturlig,
+// programmatiska SEO-mallarna) skriver medvetet ut "3–6 arbetsdagar" i naturlig,
 // varierad text för läsbarhet/SEO — de kan inte rimligt interpoleras utan att copy
 // och variation blir lidande: app/kopvillkor, app/vanliga-fragor, app/kundtjanst,
 // app/omoss, app/anvandarvillkor-app, lib/category-content.ts,
@@ -22,7 +22,7 @@
 // fras + konkret datumintervall (components/delivery-estimate.tsx) ALLTID stämmer
 // överens — ändra bara siffrorna.
 export const DELIVERY_MIN_DAYS = 3;
-export const DELIVERY_MAX_DAYS = 7;
+export const DELIVERY_MAX_DAYS = 6;
 export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbetsdagar`;
 
 // EU-lager-trygghet (single source of truth). Alla produkter skickas från lager INOM EU →

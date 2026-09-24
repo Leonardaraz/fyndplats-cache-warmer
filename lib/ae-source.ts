@@ -26,7 +26,7 @@ export const AE_EVENTS_URL =
 
 /** 17TRACK ger ETA som datum-sträng ("2026-06-10"), AliExpress som epoch-ms.
  *  Formatera till svensk läsbar form ("10 juni 2026"). Returnerar null om
- *  saknas/ogiltigt → UI:n faller då tillbaka på "3–7 arbetsdagar". */
+ *  saknas/ogiltigt → UI:n faller då tillbaka på "3–6 arbetsdagar". */
 export function fmtEtaSv(s: string | null | undefined): string | null {
   if (!s) return null;
   const d = new Date(s);
