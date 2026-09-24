@@ -177,6 +177,13 @@ stycken, inte 106: tre av de 106 låg aldrig i den kategorin. Bulk-svaret gav
 Tillbehör 62 och Klösträd 106, med noll överlapp. De fyra produkter i Lek som
 bär sisal är kattbäddar och husdjurstrappor och ligger kvar.
 
+⚠️ **Återställning:** gör ett bulk-add av Klösträds medlemmar till Lek &
+Tillbehör (`ea1313f5-b60d-4264-b44b-76e83e96168c`). Då följer tre produkter
+med som inte låg där före flytten. **Vilka tre är inte sparat:** listan över
+de 103 räknades fram inne i skrivanropet och returnerades aldrig. Kategorierna
+per produkt efteråt skiljer dem inte heller åt. Nästa flytt ska spara
+id-listan före skrivningen.
+
 **Förhandsbygget och live gav samma utfall.** Alla 16 sidor hämtades och
 jämfördes mot `<slug>-text.json` med `livekoll.py`:
 
