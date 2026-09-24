@@ -1,0 +1,126 @@
+name: Recensioner — skriv om publicerade Aosom-recensioner
+
+# Läser en JSON-fil ur grenen och skickar den i omgångar till
+# /api/admin/recensioner-omskrivning. Varje rad byter svensk text på en
+# publicerad Aosom-recension — bara om den lagrade texten fortfarande är den
+# omskrivningen utgick från (`fore`) och bara genom översättningsgrinden.
+# En rad kan också dölja en recension (`dolj: true`).
+#
+# Nyttolasten bär svenska texter som redan är publika, produkt-id och
+# recensions-id — ALDRIG artikelnummer och ALDRIG namn (grenen är publik).
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE. Inga texter skrivs ut.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload_file:
+        description: "Sökväg i grenen till JSON-filen ({\"rader\": [...]}) — kör workflowen på den gren filen ligger i"
+        required: true
+        type: string
+      skarp:
+        description: "ja = skriv. nej = torrkörning (räknar bara)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      omgang:
+        description: "Rader per anrop (rutten tar högst 100)"
+        required: false
+        default: "60"
+        type: string
+
+jobs:
+  skriv-om:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skriv om
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FIL: ${{ inputs.payload_file }}
+          SKARP: ${{ inputs.skarp }}
+          OMGANG: ${{ inputs.omgang }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if [ ! -f "$FIL" ]; then
+            echo "::error::Filen finns inte i grenen: $FIL" >&2
+            exit 1
+          fi
+          if jq -r '.. | strings' "$FIL" | grep -Eq '\b[0-9A-Z]{3}-[0-9]{3}(V[0-9]{2})?[A-Z]{2}\b'; then
+            echo "::error::Filen ser ut att innehålla artikelnummer — vägrar" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/recensioner-omskrivning"
+          dry="true"
+          [ "${SKARP:-nej}" = "ja" ] && dry="false"
+          n="$(jq -r '.rader | length' "$FIL")"
+          steg="${OMGANG:-60}"
+          [ "$steg" -gt 100 ] && steg=100
+          echo "$n rader i filen, $steg per anrop, skarp=${SKARP:-nej}"
+
+          sum() { printf '%s' "$1" | jq -r --arg k "$2" '.[$k] // 0'; }
+          t_om=0; t_do=0; t_of=0; t_an=0; t_ej=0; t_ak=0; t_sa=0; t_un=0; t_fel=0
+          i=0
+          while [ "$i" -lt "$n" ]; do
+            kropp="$(jq -c --argjson i "$i" --argjson s "$steg" --argjson dry "$dry" \
+              '{dryRun: $dry, rader: .rader[$i:($i+$s)]}' "$FIL")"
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" -H "Content-Type: application/json" \
+              --data-binary "$kropp" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} vid rad ${i}" >&2
+              printf '%s\n' "$json" | jq -c '{ok, error}' >&2 || true
+              exit 1
+            fi
+            t_om=$((t_om + $(sum "$json" omskrivna)))
+            t_do=$((t_do + $(sum "$json" dolda)))
+            t_of=$((t_of + $(sum "$json" oforandrade)))
+            t_an=$((t_an + $(sum "$json" andradeSedan)))
+            t_ej=$((t_ej + $(sum "$json" ejSynliga)))
+            t_ak=$((t_ak + $(sum "$json" annanKalla)))
+            t_sa=$((t_sa + $(sum "$json" saknas)))
+            t_un=$((t_un + $(sum "$json" underkanda)))
+            t_fel=$((t_fel + $(sum "$json" skrivfel)))
+            printf '%s' "$json" | jq -r --argjson i "$i" '"rad \($i): \(.omskrivna) omskrivna, \(.dolda) dolda, \(.andradeSedan) ändrade sedan, \(.underkanda) underkända \(.underkandaSkal), \(.skrivfel) skrivfel, \(.stoppadAv)"' || true
+            kvar="$(printf '%s' "$json" | jq -r '.kvarFran // empty')"
+            if [ -n "$kvar" ]; then
+              i=$((i + kvar))
+            else
+              i=$((i + steg))
+            fi
+          done
+
+          {
+            echo "### Omskrivning av Aosom-recensioner — $([ "$dry" = "true" ] && echo TORRKÖRNING || echo SKARP)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| rader i filen | ${n} |"
+            echo "| **omskrivna** | **${t_om}** |"
+            echo "| dolda (fel produkt) | ${t_do} |"
+            echo "| oförändrade | ${t_of} |"
+            echo "| ändrade sedan (rördes inte) | ${t_an} |"
+            echo "| ej synliga (rördes inte) | ${t_ej} |"
+            echo "| annan källa (rördes inte) | ${t_ak} |"
+            echo "| saknas i lagret | ${t_sa} |"
+            echo "| underkända i grinden | ${t_un} |"
+            echo "| skrivfel | ${t_fel} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${t_om} omskrivna, ${t_do} dolda, ${t_un} underkända, ${t_fel} skrivfel"

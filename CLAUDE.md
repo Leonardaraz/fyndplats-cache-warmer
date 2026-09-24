@@ -3436,6 +3436,31 @@ läser HELA lagret: `listAll` sorterar nyast först och kapar vid 5 000 som
 standard, så de äldsta raderna — just de som söks — hade fallit bort tyst.
 Svaret säger `trunkerad: true` om läsgränsen ändå nås, och workflowen stannar.
 
+## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
+
+Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
+tankstreck, perfekt grammatik och stela fraser. 709 av 4 268 publicerade
+Aosom-texter hade tankstreck. Stilen från och med nu, för all översättning
+(även prompten i `buildTranslatePrompt` för /admin/reviews):
+
+- Inga tankstreck (`–`, `—`, ` - `), inga semikolon, inga citattecken, ingen `…`.
+- Vardagliga ord och korta meningar: "lätt att sätta ihop", "funkar bra",
+  "prisvärd", "rekommenderar". Inga AI-fraser: "Sammantaget",
+  "Sammanfattningsvis", "helt och hållet", "förhållandet mellan pris och
+  kvalitet", "kan varmt rekommenderas", "ett riktigt blickfång".
+- Samma längd och ton som originalet — ett slängigt original får bli lite
+  slängigt (gärna utan punkt sist). Inga påhittade stavfel: vardaglig, inte slarvig.
+- Innehållet ändras aldrig, och tvätten gäller som förut (inga varumärken,
+  butiker, budfirmor, namn, priser, leveranstider, kundtjänst, diagnoser).
+
+**Omskrivning av det som redan är publicerat:** `POST /api/admin/recensioner-omskrivning`
+(logik `lib/reviews/omskrivning.ts`, workflow `recensioner-omskrivning.yml` med
+`payload_file` i en tillfällig gren, torrt som default). Den ENDA vägen som
+byter text på en synlig rad, och bara när: raden är `source: "aosom"`, raden är
+synlig, den lagrade texten fortfarande är exakt `fore` (en människas ändring
+skrivs aldrig över), och den nya texten klarar `validateTranslation`. En rad
+med `dolj: true` döljer en recension som visat sig handla om en annan produkt.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
