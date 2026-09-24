@@ -150,6 +150,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Badrumsskåp i bambu, vitt och grått: smala skåp från 18 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
   },
+  badrumsspeglar: {
+    title: "Badrumsspegel med belysning – LED och antiimma",
+    description:
+      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm.",
+  },
   belysning: {
     title: "Taklampor, bordslampor & LED-belysning",
     description:
@@ -160,6 +165,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Cykelpumpar, sadlar, cykelryggsäckar, barncyklar och garagedomkrafter. Specifikationer i varje beskrivning. Fri frakt över 499 kr, öppet köp 30 dagar.",
   },
+  bokhyllor: {
+    title: "Bokhylla – smal, låg, kubhylla & barnbokhylla",
+    description:
+      "Bokhyllor och kubhyllor: smala från 30 cm bredd, låga med åtta fack, i trädform och på hjul, en med LED och barnbokhyllor där omslagen syns.",
+  },
   boxningssackar: {
     title: "Boxningssäck, punchingboll & boxställ",
     description:
@@ -169,6 +179,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Hundgård, hundgrind & burar för smådjur",
     description:
       "Hopfällbara hundgårdar, hundgrindar, hundtrappor, kaninhagar och hamsterburar. Mått i varje beskrivning så du väljer rätt. Leverans 3–7 dagar.",
+  },
+  byraer: {
+    title: "Byrå – smal eller bred, vit eller med tyglådor",
+    description:
+      "Byråer från smala modeller på 20 cm till breda på 130 cm, med vanliga lådor eller tyglådor. Flera har tippskydd, och två har eluttag ovanpå.",
   },
   "dator-gaming": {
     title: "Gamingstolar & datortillbehör",
@@ -196,9 +211,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Elkaminer med LED-lågor och 1800–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
   },
   "forvaring-organisering": {
-    title: "Förvaring – byrå, bokhylla & förvaringsbänk",
+    title: "Förvaring – förvaringsbänk, skåp & hurts på hjul",
     description:
-      "Byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar, hurtsar på hjul och klädställ till hall, sovrum och kontor. Mått anges alltid.",
+      "Förvaringsbänkar, skåp, kubhyllor, hurtsar på hjul och klädställ till hall, sovrum och kontor. Byråer, bokhyllor och tvättkorgar har egna sidor.",
   },
   "friluftsliv-resa": {
     title: "Campingutrustning & friluftsprylar",
@@ -385,6 +400,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Motionscyklar med magnetiskt motstånd i 8 steg, med ryggstöd eller hopfällbara, en spinningcykel och pedaltränare för armar och ben.",
   },
+  nattduksbord: {
+    title: "Nattduksbord – svävande, med lådor & laddstation",
+    description:
+      "Nattduksbord och sängbord med lådor och öppna fack, svävande modeller för väggen, smala bord på 25 cm och sängbord med eluttag och USB, flera i par.",
+  },
   "redskapsbodar-forrad": {
     title: "Redskapsbod, förrådstält & trädgårdsskåp",
     description:
@@ -405,6 +425,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
   },
+  sidobord: {
+    title: "Sidobord & avlastningsbord – runda och C-formade",
+    description:
+      "Sidobord och avlastningsbord: runda bord i metall, rotting och stenlook, C-format bord som skjuts in under soffan och sidobord med eluttag och USB.",
+  },
   "skoskap-skobankar": {
     title: "Skoskåp, skobänk & skohylla till hallen",
     description:
@@ -419,6 +444,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Sparkcykel för barn – stora hjul och broms",
     description:
       "Sparkcyklar för barn från 18 månader till 12 år – med stora hjul på upp till 16 tum, broms och justerbart styre, med luftdäck eller punkteringsfria hjul.",
+  },
+  speglar: {
+    title: "Spegel – helkroppsspegel, väggspegel, golvspegel",
+    description:
+      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 148 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
   },
   terrarier: {
     title: "Terrarium i glas – för ödla, orm och spindel",
@@ -455,6 +485,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "TV-bänkar från 80 till 200 cm för tv upp till 75 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
   },
+  tvattkorgar: {
+    title: "Tvättkorg med lock – i bambu, vide och med fack",
+    description:
+      "Tvättkorgar med lock i bambu och vide, tvättsorterare med två till fyra fack och uttagbara påsar, och två tvättskåp. Från 64 till 144 liter.",
+  },
   "utelek-spel": {
     title: "Studsmatta för barn, basketkorg & gungor",
     description:
@@ -474,6 +509,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Väskor & necessärer",
     description:
       "Väskor och necessärer med smart förvaring för resan och vardagen. Mått och material anges i beskrivningen. Leverans 3–7 dagar, öppet köp.",
+  },
+  "vattenkokare-brodrostar": {
+    title: "Vattenkokare, brödrost & frukostset",
+    description:
+      "Vattenkokare på 1,7 liter, brödrostar för två eller fyra skivor och frukostset där kokaren och rosten matchar, flera med temperaturval och varmhållning.",
   },
   "vaxthus-odling": {
     title: "Tunnelväxthus, väggväxthus & odlingslådor",

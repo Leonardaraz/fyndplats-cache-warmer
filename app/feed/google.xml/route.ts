@@ -161,6 +161,17 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "hantlar-hantelset": 3164,        // … > Weight Lifting > Free Weights
   traningsbankar: 499795,           // Sporting Goods > Exercise & Fitness > Exercise Benches
   motionscyklar: 994,               // … > Cardio > Cardio Machines > Exercise Bikes
+  // Runda S10 (2026-09-24), samma kontroll. Badrumsspeglar har ingen egen nod
+  // och delar Mirrors med Speglar; 730 Kitchen Appliances rymmer både
+  // vattenkokare och brödrostar, eftersom de flesta produkterna är set.
+  speglar: 595,                     // Home & Garden > Decor > Mirrors
+  badrumsspeglar: 595,              // samma nod
+  sidobord: 6369,                   // Furniture > Tables > Accent Tables (sv: Sidobord)
+  nattduksbord: 462,                // Furniture > Tables > Nightstands
+  byraer: 4195,                     // Furniture > Cabinets & Storage > Dressers
+  bokhyllor: 465,                   // Furniture > Shelving > Bookcases & Standing Shelves
+  tvattkorgar: 634,                 // … > Laundry Supplies > Laundry Baskets
+  "vattenkokare-brodrostar": 730,   // Home & Garden > Kitchen & Dining > Kitchen Appliances
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

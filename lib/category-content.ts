@@ -352,6 +352,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  badrumsspeglar: {
+    intro: [
+      "Här hittar du badrumsspeglar med och utan belysning: rektangulära och bågformade LED-speglar, en rund LED-spegel, en spegel med inbyggd förstoringsspegel och enkla speglar med hylla.",
+      "LED-speglarna har antiimma som håller en del av glaset fritt från imma efter duschen. Ljuset dimras och ställs i tre färgtemperaturer, 3 000, 4 500 och 6 500 K, och sju av speglarna har också Bluetooth och klocka.",
+      "Storlekarna går upp till 100 × 80 cm, och de flesta LED-speglarna har IP44, som tål vattenstänk. Placera ändå spegeln så att duschen inte sprutar direkt på den.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är antiimma?",
+        a: "En platta eller folie bakom glaset som håller en del av spegeln fri från imma när badrummet är fullt av ånga. Storleken står i beskrivningen, till exempel 50 × 40 cm, och på den runda spegeln stänger den av sig själv.",
+      },
+      {
+        q: "Vilken färgtemperatur ska jag välja?",
+        a: "LED-speglarna ställs om mellan 3 000 K, som är varmt och mjukt, 4 500 K och 6 500 K, som liknar dagsljus. Det kallare ljuset visar färgerna tydligare vid sminkning och rakning.",
+      },
+      {
+        q: "Har speglarna högtalare?",
+        a: "Sju av LED-speglarna har Bluetooth och klocka, och flera anger en högtalare på 6 W. Det står i beskrivningen vilka.",
+      },
+    ],
+  },
+
   belysning: {
     intro: [
       "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
@@ -397,6 +420,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  bokhyllor: {
+    intro: [
+      "Här hittar du bokhyllor till vardagsrummet, kontoret och barnrummet: smala och låga hyllor, kubhyllor med öppna fack, bokhyllor i trädform, en roterande kubhylla och hyllor på hjul.",
+      "De höga bokhyllorna levereras med tippskydd som fäster dem i väggen. En av dem har LED-belysning i sju färger på varje plan.",
+      "Barnbokhyllorna har lutande plan eller fack där omslagen syns i stället för ryggarna, så att ett barn som inte läser än hittar sin bok. Flera har formen av moln, hus eller björn, och två har tyglådor.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket tål hyllplanen?",
+        a: "Det skiljer sig mycket och står i beskrivningen: från 3 kg per plan i en barnbokhylla till 10 kg per plan i en metallhylla.",
+      },
+      {
+        q: "Måste bokhyllan fästas i väggen?",
+        a: "En hög eller smal hylla ska alltid fästas, och de flesta bokhyllorna levereras med tippskydd. Skruva i väggmaterialet, inte bara i gipsskivan.",
+      },
+      {
+        q: "Finns det bokhyllor för barn?",
+        a: "Ja, med lutande plan där omslagen syns, i form av moln, hus och björn, och en kubhylla med tyglådor. Flera har rundade kanter.",
+      },
+    ],
+  },
+
   boxningssackar: {
     intro: [
       "Med en boxningssäck hemma tränar du när det passar dig. Här samlar vi fristående boxningssäckar, boxsäcksställ med säck och speedball, punchingbollar på fjädrande stång, boxställ med två speedballs och ett väggfäste för en säck du redan har.",
@@ -438,6 +484,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Går hundgården att fälla ihop för förvaring?",
         a: "Ja, de hopfällbara modellerna viks ihop platt och kan förvaras eller tas med. Både utfällt och hopfällt mått anges i beskrivningen.",
+      },
+    ],
+  },
+
+  byraer: {
+    intro: [
+      "Här hittar du byråer till sovrummet, hallen och barnrummet: smala byråer från 20 cm bredd, breda byråer upp till 130 cm, en låg modell på 51,5 cm och höga byråer med fem lådor.",
+      "Nästan hälften har tyglådor på en stomme av stål, MDF eller bambu. Flera levereras med tippskydd som fäster byrån i väggen, och det står i beskrivningen vilka.",
+      "Två byråer har eluttag ovanpå, den ena också USB, så att mobilen laddas på byrån. En byrå har ett skåp bredvid lådorna.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur djup är en smal byrå?",
+        a: "Flera byråer är bara 29 eller 30 cm djupa och passar i hallen eller bredvid sängen. Djupet står alltid i måtten.",
+      },
+      {
+        q: "Varför ska byrån fästas i väggen?",
+        a: "En byrå med utdragna lådor kan välta framåt, till exempel om ett barn klättrar på den. Tippskyddet håller den mot väggen, och det följer med flera av byråerna.",
+      },
+      {
+        q: "Behöver byrån monteras?",
+        a: "Ja, byråerna levereras omonterade, med anvisning i kartongen.",
       },
     ],
   },
@@ -557,8 +626,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "forvaring-organisering": {
     intro: [
-      "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar att sitta på, kontorshurtsar på hjul, klädställ och förvaring till tvätt, garage och förråd. Skoskåp och skobänkar har dessutom en egen sida.",
-      "Mät först, köp sen. Djupet är det mått som oftast överraskar, och en byrå eller bokhylla som är några centimeter för djup tar mer golv än man tror. För hyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
+      "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du förvaringsbänkar att sitta på, skåp, kubhyllor, kontorshurtsar på hjul, klädställ och förvaring till garage och förråd. Byråer, bokhyllor, skoskåp och tvättkorgar har dessutom egna sidor.",
+      "Mät först, köp sen. Djupet är det mått som oftast överraskar, och ett skåp som är några centimeter för djupt tar mer golv än man tror. För hyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -568,11 +637,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Behöver möblerna monteras?",
-        a: "Ja, förvaringsmöbler levereras platt med skruv och anvisning. De flesta byråer och hyllor tar 30–60 minuter att montera.",
+        a: "Ja, förvaringsmöblerna levereras omonterade, med skruv och anvisning i kartongen.",
       },
       {
-        q: "Var hittar jag skoskåpen?",
-        a: "Skoskåp, skobänkar och skohyllor har en egen sida, Skoskåp & skobänkar, med skåp för 8 till 30 par och smala modeller från 15 cm djup.",
+        q: "Var hittar jag byråer och bokhyllor?",
+        a: "De har egna sidor, Byråer och Bokhyllor, liksom Skoskåp & skobänkar och Tvättkorgar. Där finns bland annat smala byråer från 20 cm bredd och skoskåp för 8 till 30 par.",
       },
     ],
   },
@@ -1395,6 +1464,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  nattduksbord: {
+    intro: [
+      "Nattduksbordet håller lampan, mobilen och boken inom räckhåll från sängen. Här hittar du nattduksbord och sängbord med lådor, öppna fack och hyllor, svävande modeller som skruvas fast i väggen och smala bord för trånga sovrum.",
+      "Flera säljs två och två, så att båda sidorna av sängen matchar. Två sängbord har inbyggda eluttag och USB-uttag, och ett nattduksbord har RGB-belysning dold i en springa.",
+      "De svävande borden sitter på väggen utan ben, så golvet under dem blir fritt. Maxlasten står i beskrivningen, till exempel 20 kg per bord.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Är nattduksbord och sängbord samma sak?",
+        a: "Ja, det är två namn på samma möbel: det lilla bordet bredvid sängen. Vi använder båda namnen.",
+      },
+      {
+        q: "Hur högt ska ett nattduksbord vara?",
+        a: "Ungefär i höjd med madrassens överkant, så att du når lampan och mobilen när du ligger. Mät sängen innan du väljer, höjden står i beskrivningen.",
+      },
+      {
+        q: "Hur sätts ett svävande nattduksbord upp?",
+        a: "Det skruvas fast direkt i väggen, med skruv och plugg som passar väggens material. Kontrollera maxlasten i beskrivningen innan du ställer tunga saker på det.",
+      },
+    ],
+  },
+
   "redskapsbodar-forrad": {
     intro: [
       "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
@@ -1481,6 +1573,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  sidobord: {
+    intro: [
+      "Ett sidobord håller lampan, koppen och mobilen nära där du sitter. Här hittar du runda sidobord i metall, rotting, stenlook och marmorlook, sidobord i industristil med hylla eller skåp och C-formade bord som ställs tätt intill soffan.",
+      "Av de C-formade borden står två på hjul och ett skjuts in under soffan. Det ena på hjul går att höja mellan 68 och 78 cm och fungerar också som sängbord eller litet rullbord.",
+      "Två sidobord har eluttag och USB, så att mobilen laddas där den ligger, och flera runda bord av metall och rotting klarar både inne och ute. De runda borden är 32 till 50 cm i diameter.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur högt ska ett sidobord vara?",
+        a: "Ungefär i höjd med soffans armstöd, så att du når koppen utan att luta dig fram. Sidoborden här är 35 till 80 cm höga, och höjden står i beskrivningen.",
+      },
+      {
+        q: "Är sidobord och avlastningsbord samma sak?",
+        a: "Ja, det är två ord för samma möbel: ett litet bord bredvid soffan, fåtöljen eller sängen.",
+      },
+      {
+        q: "Går borden att ha ute?",
+        a: "Några av de runda borden i metall och rotting passar både inne och ute. Det står i beskrivningen vilka.",
+      },
+    ],
+  },
+
   "skoskap-skobankar": {
     intro: [
       "Skor vid ytterdörren blir snabbt en hög. Här samlar vi skoskåp med tippfack eller luckor, skobänkar att sitta på medan du knyter skorna, öppna skohyllor och skoställ, och hallmöbler där skohylla, sittplats och krokar sitter ihop.",
@@ -1546,6 +1661,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur vet jag vilken storlek som passar?",
         a: "Utgå från barnets ålder och vikt: modellerna för 5–12 år bär 50 kg och de större 100 kg. Styrets höjd står i beskrivningen, till exempel 80–88 cm, och går att justera på nästan alla.",
+      },
+    ],
+  },
+
+  speglar: {
+    intro: [
+      "Här hittar du speglar till hela hemmet: helkroppsspeglar och golvspeglar, väggspeglar med ram i svart metall, guld eller furufaner, fönsterspeglar med spröjs och badrumsspeglar med LED-belysning.",
+      "Helkroppsspeglarna och golvspeglarna är 148 till 180 cm höga. Tre av dem har ett stöd som fälls ut, så att spegeln står på golvet, och en har dimbar LED-belysning.",
+      "Väggspeglarna finns i flera storlekar och former, och flera hängs stående eller liggande. Till badrummet finns speglar med LED-belysning och antiimma, samlade på sidan Badrumsspeglar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor spegel behöver jag för att se hela mig?",
+        a: "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Helkropps- och golvspeglarna här är 148 till 180 cm höga.",
+      },
+      {
+        q: "Hur hänger jag upp en tung spegel?",
+        a: "Med skruv och plugg som passar väggen, och skruvarna ska sitta i väggmaterialet, inte bara i gipsskivan. Flera väggspeglar väger runt 10 kg, och vikten står i beskrivningen.",
+      },
+      {
+        q: "Kan spegeln hänga liggande?",
+        a: "Flera väggspeglar kan hängas både stående och liggande. Speglarna med nio fält har fyra krokar på baksidan för just det.",
       },
     ],
   },
@@ -1707,6 +1845,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  tvattkorgar: {
+    intro: [
+      "Här hittar du tvättkorgar med lock i bambu och vide, tvättsorterare med två, tre eller fyra fack och två tvättskåp där korgarna tippas ut.",
+      "I en tvättsorterare hamnar vitt, kulört och mörkt i olika fack redan när tvätten läggs i. De flesta har en påse som lyfts ur och bärs till maskinen, och på flera kan påsen tvättas.",
+      "Volymen går från 64 till 144 liter. En tvättsorterare på 108 liter står på fyra hjul, två med broms, och tvättskåpen i vit MDF har tippbara korgar, det höga skåpet också lådor och hyllor.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är en tvättsorterare?",
+        a: "En tvättkorg med två eller flera fack, så att vitt, kulört och mörkt sorteras redan i korgen. Här finns sorterare med två, tre och fyra fack.",
+      },
+      {
+        q: "Kan påsen tvättas?",
+        a: "På flera av korgarna ja, påsen tas ur och kan tvättas. Det står i beskrivningen vilka.",
+      },
+      {
+        q: "Hur sköter jag en tvättkorg i bambu?",
+        a: "Torka av den med en fuktad trasa och torka torrt, och låt inte blöta handdukar bli liggande i korgen.",
+      },
+    ],
+  },
+
   "utelek-spel": {
     intro: [
       "Utelek får barnen ut i trädgården. Här samlar vi studsmattor för barn, basketkorgar för väggen och ett flyttbart basketställ, en gungställning, en fågelbogunga och en babygunga, sandlådor, en hoppborg med pool och rutschkana, bollnät för fotboll, badminton och volleyboll, och trädgårdsgolf för hela familjen.",
@@ -1790,6 +1951,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad gäller vid retur?",
         a: "Du har 30 dagars öppet köp. Hör av dig till kundtjänst så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
+  "vattenkokare-brodrostar": {
+    intro: [
+      "Här hittar du vattenkokare, brödrostar och frukostset där vattenkokaren och brödrosten har samma färg och form. Seten finns i bland annat svart, grått, gräddvitt, rosa och rostfritt, och två har bikakemönster.",
+      "Alla vattenkokare rymmer 1,7 liter. Flera har temperaturval, till exempel mellan 40 och 100 °C, och flera håller vattnet varmt i upp till tre timmar. Det passar till te, som ofta ska ha lägre temperatur än kokande vatten.",
+      "Brödrostarna tar två eller fyra skivor, de flesta har sju rostlägen, och ett set har också en äggkokare.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket rymmer vattenkokarna?",
+        a: "Alla rymmer 1,7 liter, och på flera ska det vara minst 500 ml i kannan när den slås på.",
+      },
+      {
+        q: "Varför välja temperaturval?",
+        a: "Grönt och vitt te blir bäst under kokpunkten, medan svart te vill ha kokande vatten. Med temperaturval stannar kokaren vid den temperatur du valt.",
+      },
+      {
+        q: "Vad ingår i ett frukostset?",
+        a: "En vattenkokare och en brödrost i samma utförande. Ett set har dessutom en äggkokare.",
       },
     ],
   },
