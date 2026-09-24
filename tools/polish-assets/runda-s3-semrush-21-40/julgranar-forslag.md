@@ -1,7 +1,8 @@
-# Förslag: sökordskategorin *Julgranar* — INTE genomfört, väntar på ett ja
+# Förslag: sökordskategorin *Julgranar* — GENOMFÖRT 2026-09-24
 
-Pilot för punkt 3 i README. Inget av det här är skrivet till Wix eller
-butiken.
+Pilot för punkt 3 i README. Genomfört efter Leonards ja — se README punkt 4.
+Texten som publicerades står i `julgranar-text.json` och skiljer sig från
+utkastet nedan där utkastet inte höll mot produktbeskrivningarna.
 
 ## Varför just nu
 

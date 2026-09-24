@@ -111,6 +111,104 @@ ska samåka med nästa).
 indexeras och klättra. 56 granar i lager är redan en fullständig
 listningssida. Utkastet ligger i `julgranar-forslag.md`.
 
+## 4. Genomfört 2026-09-24: sökordskategorin *Julgranar*
+
+Leonards ja: *"Ja gör din grej"*.
+
+### Wix: kategorin `5d1da7ba…` under *Hem & Inredning*
+
+| | |
+|---|--:|
+| Kopplade med `bulk/categories/{id}/add-items` | **59** (57 granar + julgranskrage + julgranståg) |
+| Bulk-svaret per rad | 59 `success`, 0 fel, `undetailedFailures` 0 |
+| Separat läsning: bär Julgranar | **59/59** |
+| Separat läsning: har kvar en annan kategori (additivt) | **59/59** |
+| `itemCounter` | 59 |
+
+Granarna hittades med ett helt katalogsvep (61 sidor) på namnet, plus fritextsök
+på *bordsgran*, *minigran*, *julträd*, *konstgjord gran*, *plastgran* och
+*tall* för att fånga namn som svepets mönster missar — inga fler hittades.
+
+Medvetet UTANFÖR kategorin:
+
+- `300d3415` julbyn och `4fc04535` julyktstolpen — inga granar;
+- `032b728d` och `5ed421c9` — uppblåsbara figurer;
+- `b51b6e6c` *Två konstgjorda granar 120 cm i kruka* — beskrivningen nämner
+  aldrig jul; en bedömning, inte en regel.
+
+`d1769923` (talljulgran, slutsåld) ÄR kopplad: butiken döljer den tills lagret
+är tillbaka, och då ligger den redan rätt.
+
+⚠️ **15 tyska utkast i lager är julgranar** (*Weihnachtsbaum …*, *Künstlicher
+Weihnachtsbaum …*). Polerade före november blir kategorin ~70 granar. Kopplingen
+är INTE automatisk — varje utkast måste läggas till i Julgranar när det
+publiceras.
+
+### Texten: varje tal har ett facit
+
+`julgranar-text.json` bär titel, beskrivning, intro och frågor, plus ett
+`facit`-fält med produkten bakom varje påstående (57 och 225 cm, 46–54 cm
+breda, över 2 000 grenspetsar, 50 och 700 LED). Talen stämdes av mot
+**beskrivningarna**, inte bara mot namnen — och det fällde ett påstående:
+
+☠️ Utkastet sa *"våra smalaste är 46 cm breda"*. Två bordsgranar är **Ø35 cm**
+(`27ff1a8e` och minsta granen i setet `62f42597`). Ersatt med den namngivna
+pelargranen. Förvaringsfrågan skärptes på samma sätt: 25 av 57 beskrivningar
+nämner sektioner och 20 en fot som fälls ihop, men inte samma granar — så texten
+säger "många … och flera", inte "många … och".
+
+Grinden är `tools/polish-gates/gate-kategori.py` (kanonisk, eftersom nästa
+sökordskategori behöver samma sak), mutationstestad: sju planterade fel, sju
+fällda.
+
+### Butiken: PR #645, en deploy
+
+`CATEGORY_SEO` + `CATEGORY_CONTENT` för `julgranar` och de tre
+`RETIRED_REDIRECT_OVERRIDES` ur runda S1 (handdammsugaren, ögonmasken,
+paraplyet) i samma deploy. Förhandsgranskningen mättes innan merge: titel, meta,
+`og:*`, canonical, H1, tre stycken intro, tre frågor i FAQ-JSON-LD, 58 granar
+(den slutsålda dold) och brödsmulan Hem › Butik › Hem & Inredning › Julgranar.
+Mergad `d0b17ad`.
+
+## 5. Tvillingarna: två av tre är samma vara
+
+| slutsåld AE-sida | Aosom-utkast | utfall | beläggning |
+|---|---|---|---|
+| fyrfatet `032669e3` | `40f50103` | **samma vara** | miljöbilden **byte-identisk** (1 048 318 byte); måttritningen pixelidentisk |
+| liggande motionscykeln `202385ce` | `184944a0` | **samma vara** | måttritningen **byte-identisk** (371 756 byte) |
+| — | `ece264dc` | annan vara | svart cykel, 132 × 62 × 100 cm |
+| smyckesskåpet `ca26c603` | `e74feea1` | **annan vara** | 108 mot 120 cm hög, annan front och inredning |
+
+### ☠️ Ommappningen stoppades — workflowen publicerade artikelnumret
+
+`aosom-remap.yml` krävde artikelnumret som **input** och skrev ut det två gånger
+i loggen (planen och `OK:`-raden). Repot är publikt. Alltså kördes den inte.
+
+Lagat på den här grenen, och det är numret som inte behöver passera alls:
+
+- Rutten läser numret ur **dubblettens** mappningsrad när `sku` utelämnas
+  (`väljRemapSku` i `lib/aosom/remap.ts`). Aosom-utkastet bär det redan.
+- Olika nummer i anropet och på dubbletten **vägras** — oftast en färgvariant.
+- Workflowen maskerar numret (`::add-mask::`), skriver aldrig ut det, och `sku`
+  är inte längre obligatoriskt.
+- Sex nya tester; fyra återinförda buggar, fyra fällda.
+
+**Körs efter att grenen mergats** (rutten ligger i produktion): läge `plan`,
+`sku` TOMT, och
+
+| `wix_product_id` (behålls) | `duplicate_wix_product_id` (pensioneras) |
+|---|---|
+| `032669e3-4bc6-4daa-8d2a-c3a97273bad2` | `40f50103-a5ac-49ce-9c3b-96a6e0387a74` |
+| `202385ce-cbd1-4cd3-8925-c4f90e5a49c7` | `184944a0-7199-4623-80f2-43202eda0021` |
+
+Marginalgolvet (5 %) och flervariantsspärren gäller som vanligt — planen säger
+om bytet går.
+
+⚠️ På vägen: `jq-syntax.test.ts` var **röd på main** för
+`aosom-reviews-ingest.yml` (`--argjson` efter programmet; jq tar båda
+ordningarna, testet läser bara den första). Argumenten flyttade, beteendet
+oförändrat, sviten grön: 3 023 tester.
+
 ## Semrush-kostnad
 
 ~2 900 API-enheter: konkurrenter 600, plats 21–40 500, sökordsgapet 1 600 (20

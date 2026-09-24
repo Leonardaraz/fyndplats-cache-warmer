@@ -1340,6 +1340,12 @@ Aosoms artikelnummer, och den andra pensioneras. `lib/aosom/remap.ts` +
 `/api/admin/aosom-remap`, workflowen **"Dubbletter — mappa om en produkt till
 Aosom"** (lägen `plan` · `byt`).
 
+☠️ **Lämna `sku` TOMT och ange Aosom-utkastet som dubblett (2026-09-24).** Rutten
+läser då artikelnumret ur utkastets mappningsrad (`väljRemapSku`). Tidigare var
+numret en obligatorisk workflow-input och skrevs ut två gånger i den PUBLIKA
+loggen, alltså publicerade varje ommappning kopplingen mellan vår sida och
+Aosoms nummer. Olika nummer i anropet och på dubbletten vägras.
+
 Ommappningen skriver `supplier`, `supplierProductId`, `sourceUrl`,
 `aosomFreightShare` och variantens `costUsd`/`landedCostSek` — **aldrig priset**.
 Det är Leonards beslut, och en ommappning som tyst räknade om kundpriset hade

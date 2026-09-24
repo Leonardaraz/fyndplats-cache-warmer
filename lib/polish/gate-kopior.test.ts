@@ -38,7 +38,7 @@ const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
 const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
                    "gate-lankar.py", "gate-sku.py", "hasha.py", "gatelib.py",
-                   "livegrind.py", "bygg-media.py"];
+                   "livegrind.py", "bygg-media.py", "gate-kategori.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade
