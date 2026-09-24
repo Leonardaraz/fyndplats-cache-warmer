@@ -439,6 +439,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "eldkorgar-eldstader": {
+    intro: [
+      "En eldkorg eller eldstad utomhus samlar sällskapet på uteplatsen, även när kvällarna blir kalla. Här samlar vi eldkorgar från Ø38 till Ø75 cm, rökfria modeller, eldkorgar med grillgaller och gnistkåpa, en eldkorg formad som ett torn, ett eldbord med bordsyta runt elden och ett fyrfat i stål.",
+      "De rökfria eldkorgarna har sekundärförbränning, som bygger på lufthål i korgen. Täcks hålen slutar den att fungera, och den förutsätter torr ved: blöt ved ryker oavsett vad korgen gör.",
+      "Flera eldkorgar har grillgaller och gnistskydd. Vad som ingår, till exempel gnistskydd, grillgaller och eldgaffel, står i produktbeskrivningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Varför ryker min rökfria eldkorg?",
+        a: "Fuktig ved är den vanligaste orsaken – den ryker oavsett hur förbränningen är konstruerad. Elda med torr ved, och täck inte lufthålen, för då slutar den sekundära förbränningen att fungera.",
+      },
+      {
+        q: "Kan jag grilla på eldkorgen?",
+        a: "Ja, flera av eldkorgarna har ett grillgaller som läggs över elden. Vilka som har det står i produktbeskrivningen.",
+      },
+      {
+        q: "Får jag elda när det är eldningsförbud?",
+        a: "Under eldningsförbud gäller länsstyrelsens eller kommunens besked, och reglerna skiljer sig åt beroende på om du lagar mat eller bara eldar för värmen. Kontrollera vad som gäller där du bor innan du tänder.",
+      },
+    ],
+  },
+
   "forvaring-organisering": {
     intro: [
       "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor i industristil, skoskåp som tar liten golvyta, kontorshurtsar på hjul, justerbara garagehyllor i stål, klocklådor och hopfällbara arbetsbord.",
@@ -525,6 +548,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur mycket får barnet väga?",
         a: "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den – kontrollera den i beskrivningen innan du köper.",
+      },
+    ],
+  },
+
+  halloweendekoration: {
+    intro: [
+      "Halloweendekoration gör entrén och trädgården till en del av kvällen. Här samlar vi två sorters figurer: uppblåsbara spöken, pumpor, skelett och portar för gräsmattan, och animerade häxor, zombier, clowner och liemän som rör sig, lyser och låter när någon kommer nära.",
+      "De uppblåsbara figurerna reser sig av sig själva när du kopplar in fläkten och håller formen så länge den går. De lyser inifrån, och de flesta har en duk som är IP44-klassad för regn och stänk. Till de flesta följer markpinnar och linor med för att förankra figuren i gräset. Fläkten behöver ström, så ställ figuren nära ett uttag eller använd en förlängningssladd för utomhusbruk.",
+      "De animerade figurerna drivs med batterier och behöver ingen sladd. De flesta startar av rörelse, ljud eller beröring och tänder ögonen, rör sig och skriker, ylar eller skrattar. Många är gjorda för att stå inne eller under tak, till exempel i hallen eller på verandan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Tål de uppblåsbara figurerna regn?",
+        a: "De flesta har en duk som är IP44-klassad, vilket täcker regn och stänk. Förankra figuren med markpinnarna och linorna, och ta in den vid storm – en hög duk tar mycket vind.",
+      },
+      {
+        q: "Ingår batterier i de animerade figurerna?",
+        a: "I de flesta gör de inte. Vilka batterier figuren behöver står i produktbeskrivningen, så köp dem samtidigt om figuren ska vara igång samma kväll som paketet kommer.",
+      },
+      {
+        q: "Varför startar figuren av sig själv?",
+        a: "Sensorn är känslig med flit, så att den reagerar på ett barn som kommer gående. Blåst och trafikbuller kan därför också starta den. Står figuren blåsigt kan du slå av den mellan besöken och slå på den igen när det ringer på.",
       },
     ],
   },
@@ -660,6 +706,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur lång är leveranstiden?",
         a: "Vi skickar från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+      },
+    ],
+  },
+
+  juldekoration: {
+    intro: [
+      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar och en pingvin, ljusfigurer som renfamiljer och isbjörnar, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
+      "De uppblåsbara figurerna är upp till 250 cm höga och reser sig när du kopplar in fläkten. De lyser inifrån med LED, och de flesta är IP44-klassade, alltså skyddade mot stänk. Till de flesta följer markspett och linor med för att förankra figuren i gräsmattan, och vid kraftigt regn, snö eller hård vind tar du in den.",
+      "Ljusfigurerna lyser med lysdioder – renfamiljen har 283 stycken – och de flesta är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, girlanger och två adventskalendrar med 24 lådor att fylla.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Tål de uppblåsbara figurerna regn och snö?",
+        a: "De flesta är IP44-klassade och skyddade mot stänk, så lätt regn går bra. Vid kraftigt regn, snö eller hård vind ska figuren tas in, och den håller längre om den står inne i dåligt väder.",
+      },
+      {
+        q: "Hur länge får fläkten gå?",
+        a: "Figuren håller formen bara medan fläkten går, så den ska vara på så länge figuren står uppe. För en del figurer anger produktbeskrivningen hur länge fläkten får gå i sträck, till exempel högst åtta timmar.",
+      },
+      {
+        q: "Ingår batterier i julbyarna och adventskalendrarna?",
+        a: "Nej, batterierna ingår inte. Vilka som behövs står i produktbeskrivningen.",
       },
     ],
   },
@@ -827,6 +896,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad gäller vid retur?",
         a: "Du har 30 dagars öppet köp. Hör av dig till kundtjänst så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
+  konstvaxter: {
+    intro: [
+      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter för inne och ute, från buxbomsklot, cypresser och lavendelträd till olivträd, monstera, bambu och palmer upp till 190 cm, och häck på rulle.",
+      "Många står färdiga i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett för rabatten. Växterna behöver varken vattnas eller beskäras, och de klarar sig där det är mörkt.",
+      "Ska växten stå ute, välj en som är UV-beständig, så att färgen inte bleks i solen. Många av växterna passar både inne och ute, men några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Kan konstväxterna stå ute?",
+        a: "Många kan det, och de UV-beständiga tappar inte färgen i solen. Några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen innan du ställer växten ute.",
+      },
+      {
+        q: "Hur gör jag rent en konstväxt?",
+        a: "Damma av bladen då och då med en mjuk borste eller en lätt fuktad trasa. Vissa kan också sköljas försiktigt med ljummet vatten – låt dem torka efteråt.",
+      },
+      {
+        q: "Välter växten om det blåser?",
+        a: "Många står i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett som sätts ner i marken.",
       },
     ],
   },

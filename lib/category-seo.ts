@@ -170,6 +170,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Elbilar för barn från 18 månader till 12 år: 6, 12 och 24 V, elfyrhjulingar, elmotorcyklar med stödhjul och eltraktorer – många med fjärrkontroll.",
   },
+  "eldkorgar-eldstader": {
+    title: "Eldkorg & eldstad utomhus – rökfri och med grill",
+    description:
+      "Eldkorgar och eldstäder för uteplatsen, från Ø38 till Ø75 cm: rökfria modeller med sekundärförbränning, eldkorgar med grillgaller, eldbord och fyrfat.",
+  },
   "forvaring-organisering": {
     title: "Förvaring – byrå, skoskåp & garagehylla",
     description:
@@ -189,6 +194,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Gunghäst för barn – i trä och plysch med ljud",
     description:
       "Gunghästar och gungdjur för barn från 12 månader – klassiska i trä och mjuka i plysch med ljud, bälte och ryggstöd, som häst, svan, giraff och dinosaurie.",
+  },
+  halloweendekoration: {
+    title: "Halloweendekoration utomhus – spöken och skelett",
+    description:
+      "Halloweendekoration för trädgård och entré: uppblåsbara spöken, pumpor och liemän upp till 3,7 m, och animerade häxor och zombier med ljus och ljud.",
   },
   "har-rakning": {
     title: "Frisörtillbehör & salongsutrustning",
@@ -219,6 +229,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Hushållsapparater & smarta maskiner",
     description:
       "Ultraljudstvättar och praktiska hushållsapparater som sparar tid. Kapacitet, effekt och mått anges. Leverans 3–7 dagar från EU-lager.",
+  },
+  juldekoration: {
+    title: "Juldekoration utomhus – uppblåsbar tomte och ren",
+    description:
+      "Juldekoration för trädgård och entré: uppblåsbara tomtar, snögubbar och renar upp till 250 cm, ljusfigurer med LED samt julbyar och girlanger för inomhus.",
   },
   julgranar: {
     title: "Konstgjord julgran – plastgranar 57–225 cm",
@@ -259,6 +274,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Köksredskap & kökstillbehör",
     description:
       "Köksredskap och tillbehör i hållbara material för vardagsmatlagningen. Material och skötselråd anges. Leverans 3–7 dagar, öppet köp 30 dagar.",
+  },
+  konstvaxter: {
+    title: "Konstgjorda växter – buxbom, olivträd, monstera",
+    description:
+      "Konstväxter för inne och ute: buxbom och cypresser på jordspett, olivträd upp till 180 cm, monstera och bambu i kruka med cementfylld botten – utan vattning.",
   },
   "kropp-valbefinnande": {
     title: "Massagebänkar & hjälpmedel för kroppen",

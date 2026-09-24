@@ -52,10 +52,13 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // för att lägga den på en sida. 2026-09-24 fick klösträd, elbilar och elva andra
 // sökord egna kategorier, och de gamla samlingssidorna (Lek & Tillbehör för
 // husdjur, Leksaker & Spel) bytte till ord som ingen annan sida tar.
+// Samma dag kom fyra säsongssidor till: halloweendekoration, juldekoration,
+// eldkorgar och konstväxter.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
     /hundkoj/i, /gunghäst/i, /leksakskök/i, /sandlåd/i, /garagetält/i, /redskapsbod/i,
+    /halloween/i, /juldekoration/i, /eldkorg/i, /konstgjorda växter/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

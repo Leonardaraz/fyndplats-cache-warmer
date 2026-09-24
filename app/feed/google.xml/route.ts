@@ -118,6 +118,17 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "gunghastar-gungdjur": 1239,
   "redskapsbodar-forrad": 536,
   garagetalt: 536,
+  // Säsongskategorierna 2026-09-24. Här är ID:na SMALARE än förut, och vart
+  // och ett är kontrollerat mot Googles egen taxonomifil (taxonomy-with-ids,
+  // sv-SE och en-US) samma dag. Före: halloweenfigurerna låg i Kalas & Fest
+  // (96 Party & Celebration) och Trädgårdsdekor (536), juldekorationerna och
+  // konstväxterna i Dekoration & Prydnad (696 Decor), eldkorgarna i Grill &
+  // Utekök (536 via Trädgård). Vilket ID en produkt får beror på dess FÖRSTA
+  // underkategori, så alla byter inte.
+  halloweendekoration: 596,         // Decor > Seasonal & Holiday Decorations
+  juldekoration: 596,
+  konstvaxter: 6265,                // Decor > Artificial Flora
+  "eldkorgar-eldstader": 2918,      // Lawn & Garden > Outdoor Living
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

@@ -31,7 +31,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar"],
+    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
