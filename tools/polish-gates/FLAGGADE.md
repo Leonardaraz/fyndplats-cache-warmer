@@ -1069,3 +1069,26 @@ beslut — se den samlade frågan om detta.
   fortsätter på 849 kr, där 27 utkast ligger utanför main-serien och inget
   är skärmat. N50:s åtta för en riktad kontroll är fortfarande inte
   kontrollerade. (N56)
+- Husmärke tryckt på varan, alltså hållna: takväskan `5b2ad18f` (Outsunny på
+  väskan i fyra av fem bilder) och projektorduken `926ec7a2` (en
+  HOMCOM-bricka på kassetten i bild 5). (N57)
+- Licensierat märke på varan, hållen för Leonards beslut: den elektriska
+  tippbilen för barn `be3dcfbc` bär CAT-märket, samma läge som Audi- och
+  Mercedes-bilarna. (N57)
+- Skärmträffar mot publicerade sidor av samma slag, hoppade utan utredning:
+  köksbordet `534e6f79` (mot `4a365ee5`), minitrampolinen `39523bd7` (mot
+  `018a5303`), pianopallen `6919217b` (mot `69387273`), golvfåtöljen
+  `69f39dad` (mot `db645ff8`), provdockan `9cff469a` (mot `4ccc699a`) och
+  golvlampan `d99ca95f` (mot `d3243ff4`). (N57)
+- Slutsåld (saldo 0), alltså hoppad: klädstället med skohylla `eb82cb85`.
+  (N57)
+- Rörda av main-serien, alltså orörda här: `0908bbf0`, `6e637343`,
+  `98e09361`, `9fb4812d` och `b4de6338`. (N57)
+- Säsongsvaror eller familjer som redan är täckta, hoppade utan skärm:
+  julgranarna `8763f8d0` och `c54ef786`, hundgrinden `8f3604cf`, markisväven
+  `93d6be69` och gungstolen för trädgården `aabad464`. (N57)
+- Tolv utkast på 579–639 kr som ingen tidigare runda nämner hittades sent i
+  N57. Skohyllan `bdd02765` togs med. De övriga elva, `fbfea355`,
+  `89f8e1e1`, `be072147`, `c850c185`, `4179a5ff`, `491c8d4c`, `a2dd5dc8`,
+  `3ee83787`, `640620af`, `9f174d86` och `fab6bd6e`, är oprövade och står
+  först i tur till N58. (N57)
