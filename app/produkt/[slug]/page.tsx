@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
       // Fraktvillkoren speglar kassan exakt: fri frakt ≥ 499 kr, annars 19 kr,
-      // leverans 3–7 arbetsdagar (samma sanningskälla som resten av sajten).
+      // leverans 3–6 arbetsdagar (samma sanningskälla som resten av sajten).
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const faqs: { q: string; a: string }[] = [
   { q: "Vad kostar frakten?", a: "Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri. Vi skickar med spårbar leverans hela vägen hem." },
-  { q: "Hur lång är leveranstiden?", a: "Vanlig leveranstid är 3–7 arbetsdagar från beställning. Du får en spårningskod via mejl så snart paketet lämnar lagret. Under storhelger kan det ta något längre." },
+  { q: "Hur lång är leveranstiden?", a: "Vanlig leveranstid är 3–6 arbetsdagar från beställning. Du får en spårningskod via mejl så snart paketet lämnar lagret. Under storhelger kan det ta något längre." },
   { q: "Måste jag betala tull eller importavgift på min beställning?", a: "Nej. Alla våra produkter skickas från lager inom EU, så EU:s nya importtull och förtullningsavgift för paket som skickas in i EU utifrån (från 1 juli 2026) tillkommer inte på din beställning. Moms (25 %) ingår alltid i priset du ser, och frakten är fri över 499 kr – under det visas fraktavgiften tydligt i kassan. Mer om detta finns på sidan EU-lager-garanti (fyndplats.se/eu-lager-garanti)." },
   { q: "Varifrån skickas varorna – kommer något utanför EU?", a: "Alla våra produkter kommer garanterat från lager inom EU. Vi skickar aldrig direkt från länder utanför EU, så du slipper ny importtull, förtullningsavgift och extra väntan i tull." },
   { q: "Vilka betalningsmetoder accepterar ni?", a: "Vi använder Klarna för alla betalningar – betala direkt (kort, Swish, autogiro, banköverföring), faktura 14 dagar eller dela upp betalningen." },

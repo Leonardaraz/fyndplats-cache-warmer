@@ -38,12 +38,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "elektronik-tillbehor": {
     title: "Elektroniktillbehör – gaming, mobil & ljud",
     description:
-      "Prisvärda elektroniktillbehör: gamingstolar, laddare, kablar och mobiltillbehör. Skickas från EU-lager på 3–7 dagar. Fri frakt över 499 kr.",
+      "Prisvärda elektroniktillbehör: gamingstolar, laddare, kablar och mobiltillbehör. Skickas från EU-lager på 3–6 dagar. Fri frakt över 499 kr.",
   },
   "hem-inredning": {
     title: "Heminredning – förvaring, belysning & textil",
     description:
-      "Heminredning till bra pris: förvaringsmöbler, golvlampor, hemtextil, hushållsapparater och verktyg. Leverans 3–7 dagar från EU-lager, 30 dagars öppet köp.",
+      "Heminredning till bra pris: förvaringsmöbler, golvlampor, hemtextil, hushållsapparater och verktyg. Leverans 3–6 dagar från EU-lager, 30 dagars öppet köp.",
   },
   "kok-husgerad": {
     title: "Köksredskap & köksmaskiner till hemmet",
@@ -53,7 +53,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "barn-familj": {
     title: "Leksaker & babyprylar till barn",
     description:
-      "Leksaker, elbilar, bilbanor och babyprylar för hela familjen. Åldersmärkning i varje beskrivning. Leverans 3–7 dagar, 30 dagars öppet köp.",
+      "Leksaker, elbilar, bilbanor och babyprylar för hela familjen. Åldersmärkning i varje beskrivning. Leverans 3–6 dagar, 30 dagars öppet köp.",
   },
   "skonhet-halsa": {
     title: "Hudvård, massage & frisörtillbehör",
@@ -63,7 +63,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   husdjur: {
     title: "Hundtillbehör & kattillbehör – allt för djuret",
     description:
-      "Klösträd, hundgårdar, selar, hundvagnar och skålar till hund, katt och smådjur. Mått i varje beskrivning. Leverans 3–7 dagar från EU-lager.",
+      "Klösträd, hundgårdar, selar, hundvagnar och skålar till hund, katt och smådjur. Mått i varje beskrivning. Leverans 3–6 dagar från EU-lager.",
   },
   "sport-fritid": {
     title: "Träning, camping & cykeltillbehör",
@@ -78,7 +78,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "mode-accessoarer": {
     title: "Väskor, kepsar & accessoarer",
     description:
-      "Väskor, necessärer, kepsar och accessoarer som håller säsong efter säsong. Skickas från EU-lager på 3–7 dagar med fri frakt över 499 kr.",
+      "Väskor, necessärer, kepsar och accessoarer som håller säsong efter säsong. Skickas från EU-lager på 3–6 dagar med fri frakt över 499 kr.",
   },
 
   // Möbler skapades i Wix 2026-09-23 (se MAIN_GROUPS i category-groups.ts).
@@ -93,7 +93,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   kontorsstolar: {
     title: "Kontorsstolar – ergonomiska stolar & knästolar",
     description:
-      "Ergonomiska kontorsstolar med nackstöd, fotstöd eller massage, samt knästolar, ritstolar och sadelpallar. Sitthöjd och maxvikt anges. Leverans 3–7 dagar.",
+      "Ergonomiska kontorsstolar med nackstöd, fotstöd eller massage, samt knästolar, ritstolar och sadelpallar. Sitthöjd och maxvikt anges. Leverans 3–6 dagar.",
   },
   fatoljer: {
     title: "Fåtöljer – reclinerfåtöljer, gungstolar & mer",
@@ -108,7 +108,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "matbord-stolar": {
     title: "Matbord, matstolar & barstolar",
     description:
-      "Matbord, klaffbord, matstolar i flerpack, barstolar och barbord. Sitthöjd, bordsmått och maxvikt i varje beskrivning. Leverans 3–7 dagar från EU-lager.",
+      "Matbord, klaffbord, matstolar i flerpack, barstolar och barbord. Sitthöjd, bordsmått och maxvikt i varje beskrivning. Leverans 3–6 dagar från EU-lager.",
   },
   skrivbord: {
     title: "Skrivbord – höj- och sänkbara & fällbara",
@@ -123,7 +123,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "sangar-sovrum": {
     title: "Sängramar & sängbänkar i furu och metall",
     description:
-      "Sängramar i furu, metall och stoppat tyg från 90 till 160 cm, sängbänkar med förvaring och madrass i gelmemoryskum. Maxvikt anges. Leverans 3–7 dagar.",
+      "Sängramar i furu, metall och stoppat tyg från 90 till 160 cm, sängbänkar med förvaring och madrass i gelmemoryskum. Maxvikt anges. Leverans 3–6 dagar.",
   },
   rumsavdelare: {
     title: "Rumsavdelare – skärmväggar med 3 till 8 paneler",
@@ -193,7 +193,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "burar-klader-tillbehor": {
     title: "Hundgård, hundgrind & burar för smådjur",
     description:
-      "Hopfällbara hundgårdar, hundgrindar, hundtrappor, kaninhagar och hamsterburar. Mått i varje beskrivning så du väljer rätt. Leverans 3–7 dagar.",
+      "Hopfällbara hundgårdar, hundgrindar, hundtrappor, kaninhagar och hamsterburar. Mått i varje beskrivning så du väljer rätt. Leverans 3–6 dagar.",
   },
   byraer: {
     title: "Byrå – smal eller bred, vit eller med tyglådor",
@@ -208,7 +208,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "dekoration-prydnad": {
     title: "Dekoration & prydnad till hemmet",
     description:
-      "Konstgjorda växter, prydnadsdetaljer och dekoration som gör hemmet personligt. Mått och material anges. Leverans 3–7 dagar från EU-lager.",
+      "Konstgjorda växter, prydnadsdetaljer och dekoration som gör hemmet personligt. Mått och material anges. Leverans 3–6 dagar från EU-lager.",
   },
   "elbilar-for-barn": {
     title: "Elbil för barn – fyrhjuling, traktor & gokart",
@@ -283,7 +283,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "har-rakning": {
     title: "Frisörtillbehör & salongsutrustning",
     description:
-      "Arbetsstolar för salong, torkhuvar, frisörväskor och redskap för hår och rakning. Höjdmått och effekt anges. Leverans 3–7 dagar, öppet köp.",
+      "Arbetsstolar för salong, torkhuvar, frisörväskor och redskap för hår och rakning. Höjdmått och effekt anges. Leverans 3–6 dagar, öppet köp.",
   },
   "honshus-honsgardar": {
     title: "Hönshus & hönsgård – för 2 till 30 höns",
@@ -323,7 +323,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   hushallsapparater: {
     title: "Hushållsapparater & smarta maskiner",
     description:
-      "Ultraljudstvättar och praktiska hushållsapparater som sparar tid. Kapacitet, effekt och mått anges. Leverans 3–7 dagar från EU-lager.",
+      "Ultraljudstvättar och praktiska hushållsapparater som sparar tid. Kapacitet, effekt och mått anges. Leverans 3–6 dagar från EU-lager.",
   },
   juldekoration: {
     title: "Juldekoration utomhus – uppblåsbar tomte och ren",
@@ -358,7 +358,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   keps: {
     title: "Keps herr & dam – baseballkepsar",
     description:
-      "Baseballkepsar med lång skärm för sol och sommar. Storlek och material anges i beskrivningen. Leverans 3–7 dagar, 30 dagars öppet köp.",
+      "Baseballkepsar med lång skärm för sol och sommar. Storlek och material anges i beskrivningen. Leverans 3–6 dagar, 30 dagars öppet köp.",
   },
   "kladhangare-hallmobler": {
     title: "Klädhängare, klädställning, hallmöbel & hallbänk",
@@ -383,7 +383,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "koksredskap-tillbehor": {
     title: "Köksredskap & kökstillbehör",
     description:
-      "Köksredskap och tillbehör i hållbara material för vardagsmatlagningen. Material och skötselråd anges. Leverans 3–7 dagar, öppet köp 30 dagar.",
+      "Köksredskap och tillbehör i hållbara material för vardagsmatlagningen. Material och skötselråd anges. Leverans 3–6 dagar, öppet köp 30 dagar.",
   },
   konstvaxter: {
     title: "Konstgjorda växter – buxbom, olivträd, monstera",
@@ -428,7 +428,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "mat-vattenskalar": {
     title: "Hundskålar & kattskålar",
     description:
-      "Mat- och vattenskålar till hund och katt i praktiska material. Volym och mått anges i beskrivningen. Leverans 3–7 dagar från EU-lager.",
+      "Mat- och vattenskålar till hund och katt i praktiska material. Volym och mått anges i beskrivningen. Leverans 3–6 dagar från EU-lager.",
   },
   matgrupper: {
     title: "Matgrupp – matbord med stolar för två eller fyra",
@@ -498,7 +498,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "servering-glas": {
     title: "Servering & glas till dukningen",
     description:
-      "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
+      "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–6 dagar, 30 dagars öppet köp.",
   },
   "serveringsvagnar-rullvagnar": {
     title: "Serveringsvagn, barvagn & rullvagn på hjul",
@@ -618,7 +618,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "vaskor-necessarer": {
     title: "Väskor & necessärer",
     description:
-      "Väskor och necessärer med smart förvaring för resan och vardagen. Mått och material anges i beskrivningen. Leverans 3–7 dagar, öppet köp.",
+      "Väskor och necessärer med smart förvaring för resan och vardagen. Mått och material anges i beskrivningen. Leverans 3–6 dagar, öppet köp.",
   },
   "vattenkokare-brodrostar": {
     title: "Vattenkokare, brödrost & frukostset",

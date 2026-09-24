@@ -1095,8 +1095,6 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .pdp-trust span{display:inline-flex;align-items:center;gap:10px}
 .pdp-trust svg{width:18px;height:18px;flex:none;color:#8a8178}
 /* EU-raden: längre etikett kan radbrytas → toppställ ikonen mot första raden. */
-.pdp-trust-eu{align-items:flex-start}
-.pdp-trust-eu svg{margin-top:1px}
 /* Länken till garanti-sidan ska vara synligt klickbar (inte bara färgskild) → WCAG 1.4.1. */
 .pdp-trust a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
 .pdp-trust a:hover{text-decoration-color:currentColor}

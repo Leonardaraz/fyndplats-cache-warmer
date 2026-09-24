@@ -23,7 +23,7 @@
 // Innehållet är medvetet UNIKT per kategori (egen P1/P2 + egna frågor) för att
 // undvika duplicerad boilerplate; de gemensamma trygghets-/fraktfakta är
 // omformulerade per kategori. Alla påståenden är sanna för Fyndplats: EU-lager
-// med 3–7 arbetsdagars leverans, fri frakt över 499 kr, Klarna, 30 dagars öppet
+// med 3–6 arbetsdagars leverans, fri frakt över 499 kr, Klarna, 30 dagars öppet
 // köp, svensk kundtjänst som svarar inom 24 h på vardagar.
 
 export type CategoryContent = {
@@ -36,7 +36,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Elektronik och smarta tillbehör ska göra vardagen enklare – inte krångligare. Hos Fyndplats hittar du noga utvalda prylar inom mobiltillbehör, laddare och kablar, dator och gaming samt hörlurar och ljud, till priser som inte sticker i ögonen. Vi väljer produkter som faktiskt håller måttet: laddare med rätt effekt, kablar i hållbara material och ljudtillbehör som låter bättre än prislappen antyder.",
       "När du handlar elektronik lönar det sig att tänka på kompatibilitet och anslutningar. Kontrollera vilken kontakt din enhet använder (USB-C, Lightning eller micro-USB), hur många watt din laddare behöver leverera och om tillbehöret ska tåla att slängas i väskan varje dag. I varje produktbeskrivning samlar vi specifikationerna så att du snabbt ser om prylen passar just din telefon, dator eller hörlur.",
-      "Alla beställningar skickas från EU-lager med leverans inom 3–7 arbetsdagar, och du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Alla beställningar skickas från EU-lager med leverans inom 3–6 arbetsdagar, och du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -45,7 +45,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden på elektronik?",
-        a: "Vi skickar från EU-lager, vilket ger en leveranstid på 3–7 arbetsdagar. Du får en spårbar leverans och kan följa paketet hela vägen hem.",
+        a: "Vi skickar från EU-lager, vilket ger en leveranstid på 3–6 arbetsdagar. Du får en spårbar leverans och kan följa paketet hela vägen hem.",
       },
       {
         q: "Vad gäller om en pryl inte fungerar som tänkt?",
@@ -58,7 +58,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Ett hem blir personligt i detaljerna. Hos Fyndplats samlar vi prisvärda fynd för hela hemmet – belysning, förvaring och organisering, dekoration, badrum och hemtextil, smarta hushållsapparater och praktiska verktyg för hemmafixaren. Oavsett om du vill fräscha upp ett rum eller lösa ett vardagsproblem hittar du noga utvalda produkter som gör skillnad utan att kosta en förmögenhet.",
       "Tänk på rummets mått och ljus innan du köper. En golvlampa eller stämningsfull belysning sätter tonen i vardagsrummet, medan förvaringskorgar och hyllor skapar ordning i hallen och garderoben. För badrummet och sovrummet lyfter mjuk hemtextil i rätt färg känslan direkt. Mått och material står i varje produktbeskrivning så att du vet att det passar innan du beställer.",
-      "Du handlar tryggt med Klarna och fri frakt över 499 kr. Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans, och du har alltid 30 dagars öppet köp om du ändrar dig.",
+      "Du handlar tryggt med Klarna och fri frakt över 499 kr. Beställningarna skickas från EU-lager med 3–6 arbetsdagars leverans, och du har alltid 30 dagars öppet köp om du ändrar dig.",
     ],
     faq: [
       {
@@ -67,7 +67,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Levererar ni större inredningsartiklar?",
-        a: "Ja. Allt skickas från EU-lager med spårbar leverans inom 3–7 arbetsdagar. Frakten är fri vid köp över 499 kr.",
+        a: "Ja. Allt skickas från EU-lager med spårbar leverans inom 3–6 arbetsdagar. Frakten är fri vid köp över 499 kr.",
       },
       {
         q: "Kan jag ångra ett köp om färgen inte blev som jag tänkt mig?",
@@ -80,7 +80,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt redskap gör matlagningen roligare. I Kök & Husgeråd hittar du noga utvalda köksredskap och tillbehör, köksmaskiner och apparater samt servering och glas – prisvärda fynd för både vardagsmiddagen och när du dukar upp för gäster.",
       "När du fyller på köket lönar det sig att tänka långsiktigt. Knivar och skärbrädor i hållbara material håller i åratal, en bra köksmaskin sparar tid varje vecka och matchande glas och serveringsdetaljer lyfter dukningen. Vi anger material, mått och skötselråd i produktbeskrivningarna så att du enkelt väljer rätt – och så att dina favoriter håller länge.",
-      "Alla beställningar skickas från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Alla beställningar skickas från EU-lager med leverans inom 3–6 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -89,7 +89,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt får jag mina köksprylar?",
-        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leveranstiden är 3–6 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
       {
         q: "Kan jag returnera en köksmaskin om den inte passar mina behov?",
@@ -102,7 +102,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Det bästa till barnen ska vara tryggt, hållbart och roligt. I Barn & Familj samlar vi genomtänkta favoriter inom baby och småbarn samt leksaker och spel – prisvärda fynd som tål lek och växer med barnet.",
       "När du handlar till barn är säkerhet och ålder viktigast. Kontrollera rekommenderad ålder och materialinnehåll i produktbeskrivningen, särskilt för de allra minsta. Pedagogiska träleksaker, aktivitetsleksaker och spel som tränar motorik och fantasi är populära val som håller längre än en snabb trend.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp – så att du hinner känna efter att allt blev rätt.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp – så att du hinner känna efter att allt blev rätt.",
     ],
     faq: [
       {
@@ -115,7 +115,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Vad gäller för leverans och retur?",
-        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om något inte passar.",
+        a: "Leverans sker inom 3–6 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om något inte passar.",
       },
     ],
   },
@@ -124,7 +124,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Egentid behöver inte vara dyr. I Skönhet & Hälsa hittar du noga utvalda produkter inom hudvård och ansikte, massage och återhämtning, hår och rakning samt kropp och välbefinnande – för en enkel rutin som får dig att må bra i vardagen.",
       "Bygg din rutin utifrån dina behov. Till ansiktet lönar det sig att tänka på hudtyp och vad du vill åstadkomma, oavsett om det är återfuktning, rengöring eller lite extra lyster. Massageverktyg och redskap för återhämtning hjälper mot spänningar efter en lång dag. Vi beskriver användning och innehåll i varje produkt så att du vet vad du köper.",
-      "Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med 3–6 arbetsdagars leverans. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -133,7 +133,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden?",
-        a: "Vi skickar från EU-lager med en leveranstid på 3–7 arbetsdagar och spårbar frakt. Fri frakt gäller över 499 kr.",
+        a: "Vi skickar från EU-lager med en leveranstid på 3–6 arbetsdagar och spårbar frakt. Fri frakt gäller över 499 kr.",
       },
       {
         q: "Kan jag returnera skönhetsprodukter?",
@@ -146,7 +146,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Våra fyrbenta vänner förtjänar det bästa. I kategorin Husdjur samlar vi prisvärda fynd för hund och katt – allt från lek och tillbehör, selar, koppel och transport till pälsvård, mat- och vattenskålar samt mysiga bäddar och tillbehör.",
       "Tänk på storlek och vikt när du väljer. En sele eller bädd ska sitta rätt för att vara bekväm, och rätt skål eller matautomat gör vardagen smidigare för både dig och djuret. Vi anger mått och material i produktbeskrivningarna så att du hittar något som passar just din hund eller katt.",
-      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -155,7 +155,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt levereras husdjursprodukterna?",
-        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
+        a: "Leveranstiden är 3–6 arbetsdagar från EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
       },
       {
         q: "Kan jag byta om produkten inte passar mitt djur?",
@@ -168,7 +168,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Vare sig du tränar hemma, packar för bilen eller ger dig ut i naturen ska utrustningen funka utan krångel. I Sport & Fritid hittar du smarta fynd inom träning och gym, friluftsliv och resa samt bil och cykel – prisvärt och noga utvalt.",
       "Tänk på hur och var du ska använda produkten. Till hemmaträningen är hållbarhet och rätt vikt avgörande, medan friluftsutrustning gärna ska vara lätt och tåla väder och vind. För bilen och cykeln gör rätt tillbehör resan tryggare och smidigare. Specifikationer som mått, material och kapacitet står i varje produktbeskrivning.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -177,7 +177,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden?",
-        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leverans sker inom 3–6 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
       {
         q: "Kan jag returnera om produkten inte motsvarar förväntningarna?",
@@ -190,7 +190,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En fin uteplats och en grönskande odling gör hela skillnaden under den ljusa delen av året. I Trädgård & Utemöbler hittar du prisvärda fynd för balkongen, altanen och trädgården – från odlingslådor och spaljéer till praktiska lösningar som gör uterummet trivsammare.",
       "Tänk på utrymme och väder när du planerar. Mät ytan på balkongen eller altanen innan du köper, och välj material som tål att stå ute. En odlingslåda med spaljé tar vara på höjden i ett litet utrymme, medan smarta odlings- och förvaringslösningar gör det enklare att lyckas med grönsaker, örter och klätterväxter. Mått och material står i varje produktbeskrivning.",
-      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -203,7 +203,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur fungerar leverans och retur?",
-        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om du ändrar dig.",
+        a: "Leverans sker inom 3–6 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om du ändrar dig.",
       },
     ],
   },
@@ -215,7 +215,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt accessoar lyfter en hel outfit. I Mode & Accessoarer hittar du tidlösa fynd inom smycken, klockor och solglasögon, väskor och necessärer samt accessoarer som kompletterar din stil – prisvärt och noga utvalt.",
       "Satsa på det som håller över tid. Ett slätt kedjehalsband, ett par klassiska solglasögon eller en väska i rätt storlek funkar säsong efter säsong. Tänk på material och mått i produktbeskrivningen, särskilt om du är känslig för vissa metaller eller vill ha en väska som rymmer det du bär varje dag.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -224,7 +224,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt levereras accessoarerna?",
-        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt över 499 kr.",
+        a: "Leveranstiden är 3–6 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt över 499 kr.",
       },
       {
         q: "Kan jag returnera om något inte passar?",
@@ -238,7 +238,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Möbler är det du lever med varje dag, och därför det som lönar sig mest att välja rätt. Här samlar vi allt från ergonomiska kontorsstolar och skrivbord till fåtöljer, bäddsoffor, matgrupper, soffbord, sängramar och rumsavdelare – prisvärda möbler för vardagsrummet, hemmakontoret, köket och sovrummet.",
       "Mät innan du beställer. Bredd och djup avgör om en soffa eller ett matbord ryms, men för stolar är sitthöjden och maxvikten minst lika viktiga, och för en fåtölj med fällbar rygg behöver du räkna med utrymmet bakom. Varje produktbeskrivning anger mått, material och hur mycket möbeln bär, så att du kan jämföra på riktigt och inte bara på bild.",
-      "Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med 3–6 arbetsdagars leverans. Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -311,7 +311,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Badrummet och sovrummet är de rum där mjuka material märks mest. I Badrum & Hemtextil samlar vi prisvärda tillbehör och textilier som gör de vardagliga rummen trivsammare utan att kosta en förmögenhet.",
       "Tänk på mått och skötsel innan du beställer. Mät hyllan, väggen eller sängen där produkten ska sitta, och läs tvättråden om det är textil — rätt tvättemperatur avgör hur länge färgen håller. Material och mått står i varje produktbeskrivning så att du slipper överraskningar när paketet kommer.",
-      "Allt skickas från EU-lager med 3–7 arbetsdagars leverans och spårning hela vägen. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med 3–6 arbetsdagars leverans och spårning hela vägen. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -448,7 +448,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Utrustningen till bilen och cykeln ska funka utan krångel den dag du behöver den. I Bil & Cykel hittar du cykelpumpar med golvfot och manometer, ergonomiska handtag med stötdämpning, cykelryggsäckar med hydreringssystem, barncyklar och hydrauliska garagedomkrafter.",
       "Tänk på mått och kapacitet. En domkraft ska klara bilens vikt med marginal och ha låg profil om bilen ligger nära marken. Till cykeln avgör ventiltypen (Presta eller Schrader) vilken pump som passar, och en barncykel väljs efter hjulstorlek snarare än ålder — 20 tum passar ungefär 6–9 år. Kapacitet, mått och kompatibilitet står i varje produktbeskrivning.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -539,7 +539,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En trygg plats gör skillnad för både djur och husse. Här hittar du hopfällbara hundgårdar med soltak, hundhagar i metall, hundgrindar som kläms fast utan borrning, hundtrappor, kaninhagar för inomhusbruk och hamsterburar med tunnlar och flera våningar.",
       "Utgå från djurets storlek och rörelsebehov. En hundgrind mäts mot dörr- eller trappöppningens bredd — modeller med klämfäste passar hyresrätter där man inte får borra. För kaniner och smådjur är golvytan viktigare än höjden, medan en hundtrappa ska matcha soffans eller sängens höjd och djurets maxvikt. Alla mått anges i produktbeskrivningen.",
-      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–6 arbetsdagar. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -584,7 +584,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Sitter du länge framför skärmen märks stolen mer än något annat. I Dator & Gaming hittar du gamingstolar med fotstöd och justerbar rygg — prisvärda alternativ som klarar långa pass utan att kännas hårda efter en timme.",
       "Kolla maxvikt, justermöjligheter och sitthöjd innan du väljer. En stol med utfällbart fotstöd fungerar även för en paus mellan passen, och justerbar rygg gör att du kan variera ställning under dagen. Måtten och maxbelastningen, till exempel 120 kg, anges i varje produktbeskrivning.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr, betalning med Klarna och 30 dagars öppet köp om stolen inte blev som du tänkt.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Fri frakt över 499 kr, betalning med Klarna och 30 dagars öppet köp om stolen inte blev som du tänkt.",
     ],
     faq: [
       {
@@ -606,7 +606,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Det är detaljerna som gör ett hus till ett hem. I Dekoration & Prydnad hittar du prisvärda inredningsdetaljer som konstgjorda träd och formklippta växter för både inne och ute — grönska som ser levande ut året runt utan vattning.",
       "Tänk på skala och placering. Ett konstgjort träd på 91 cm gör sig bäst på golv i ett hörn eller flankerande en entré, medan mindre detaljer fungerar på hyllor och byrålådor. Kontrollera i beskrivningen om produkten tål utomhusbruk — UV-beständiga material behåller färgen i solen, medan inomhusvarianter bleks med tiden.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -742,7 +742,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Bra friluftsutrustning märks först när vädret vänder. I Friluftsliv & Resa hittar du campingstolar med armstöd, uppblåsbara liggunderlag med inbyggd fotpump, bärbara campingvaskar med vattentank, infällbara bryggstegar med halkskydd och solelslösningar till husvagnen.",
       "Tänk på vikt, packmått och hur du transporterar utrustningen. Ska den bäras behöver den vara lätt; ska den ligga i husvagnen spelar packmåttet större roll än vikten. Ett liggunderlag med inbyggd pump sparar både plats och tid på plats, och campingstolar i tvåpack blir ofta billigare per stol. Maxvikt, mått och packmått anges i varje produktbeskrivning.",
-      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -948,7 +948,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Jobbar du med hår behöver utrustningen orka en hel arbetsdag. I Hår & Rakning hittar du höj- och sänkbara arbetsstolar för salong, torkhuvar på stativ med timer och frisörväskor med lås för verktygen — utrustning för salongen såväl som för dig som klipper hemma.",
       "Höjd och effekt är de mått som spelar roll. En arbetsstol ska kunna ställas så att du sitter med raka handleder mot kundens huvudhöjd, och en torkhuv på stativ behöver ett justerintervall som täcker både barn och vuxna, exempelvis 115–165 cm. Effekten avgör torktiden, och en timer på upp till 60 minuter gör att du kan lämna behandlingen igång. Mått och effekt anges per produkt.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1016,7 +1016,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En enkel rutin slår en komplicerad som aldrig blir av. I Hudvård & Ansikte hittar du prisvärd ansiktsvård för vardagen, som sheetmasks med snigelsekret och kollagen i flerpack — en snabb återfuktning som tar tjugo minuter framför tv:n.",
       "Tänk på din hudtyp och introducera en ny produkt i taget, så vet du vad som fungerar om huden reagerar. Sheetmasks är lämpliga att använda ett par gånger i veckan snarare än dagligen, och de fungerar bäst på ren hud. Innehåll och användning anges i varje produktbeskrivning.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1130,7 +1130,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En smart apparat gör det tråkiga jobbet åt dig. I Hushållsapparater hittar du praktiska maskiner för hemmet och verkstaden, som digitala ultraljudstvättar i rostfritt med värme och timer — de rengör smycken, glasögon, verktygsdelar och förgasarmunstycken utan skrubbning.",
       "Volymen avgör vad som får plats: en mindre tank räcker för smycken och glasögon, medan större modeller tar verkstadsdelar. Värmefunktionen lossar fett betydligt effektivare än kallt vatten, och timern gör att du kan gå ifrån under tiden. Kapacitet i liter, effekt och material anges i varje produktbeskrivning.",
-      "Allt skickas från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med 3–6 arbetsdagars leverans och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1143,7 +1143,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden?",
-        a: "Vi skickar från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Vi skickar från EU-lager med 3–6 arbetsdagars leverans och spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
     ],
   },
@@ -1197,7 +1197,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Det är detaljerna som gör kalaset minnesvärt. I Kalas & Fest hittar du prylar som lyfter festen hemma, som sockervaddsmaskiner för barnkalaset — några skedar strösocker blir till sockervadd på ett par minuter.",
       "Tänk på effekt och plats. En maskin på runt 450 W värmer upp snabbt och gör en vadd i taget, vilket räcker gott för ett kalas. Ställ den på en stadig yta med utrymme runt om, och låt en vuxen sköta själva maskinen eftersom skålen blir varm. Effekt, mått och medföljande tillbehör anges i produktbeskrivningen.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1288,7 +1288,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En keps är den enklaste lösningen på sol i ögonen. Här hittar du baseballkepsar med lång skärm för sol och sommar — enkla, tidlösa modeller som fungerar lika bra på stranden som på promenaden.",
       "Kolla justeringen och materialet. En keps med bakre spänne passar de flesta huvudstorlekar och kan delas i familjen, medan skärmens längd avgör hur mycket sol du faktiskt slipper i ögonen. Bomull och andningsbara material är svalast under sommaren. Storlek och material anges i produktbeskrivningen.",
-      "Beställningen skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningen skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1352,7 +1352,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En bra köksmaskin sparar tid varje vecka. I Köksmaskiner & Apparater hittar du prisvärda apparater som gör vardagsmatlagningen enklare och tar bort de mest tidsödande momenten.",
       "Tänk på effekt, kapacitet och var maskinen ska stå. En apparat som används dagligen förtjänar en plats framme på bänken, medan den du tar fram vid enstaka tillfällen bör vara lätt att ställa undan — kolla därför både mått och vikt. Effekt, volym och skötselråd anges i varje produktbeskrivning, inklusive om delar tål maskindisk.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1361,7 +1361,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt får jag maskinen hem?",
-        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leveranstiden är 3–6 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
     ],
   },
@@ -1393,7 +1393,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt redskap gör matlagningen roligare och snabbare. I Köksredskap & Tillbehör hittar du prisvärda basredskap i hållbara material för det dagliga arbetet vid spisen och bänken.",
       "Satsa på material som håller. Redskap i rostfritt stål och tåligt trä överlever år av användning, medan skötselrådet avgör hur länge de behåller sitt utseende — trä mår till exempel bäst av handdisk och en gnutta olja då och då. Material, mått och skötselråd anges i varje produktbeskrivning.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1595,7 +1595,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt skål gör måltiden lugnare för både hund och katt. Här hittar du mat- och vattenskålar i praktiska material som är enkla att hålla rena och står stadigt även när djuret är ivrigt.",
       "Storleken ska matcha djuret: en skål som är för djup gör att katter tar i med morrhåren, vilket många ogillar, medan en för liten skål gör att stora hundar äter för fort. Rostfria skålar är enklast att hålla rena och tar inte åt sig lukt. Volym, mått och material anges i produktbeskrivningen.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1659,7 +1659,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Ett tillbehör som passar är skillnaden mellan en bra dag och en tom telefon. I Mobiltillbehör hittar du prisvärda laddare, kablar och skydd för vardagen — sådant som helst ska funka utan att man tänker på det.",
       "Kolla anslutningen först. USB-C sitter på så gott som alla nyare telefoner, medan äldre iPhone-modeller använder Lightning. Laddarens effekt i watt avgör hur snabbt telefonen laddar, och en kabel i flätat material håller betydligt längre i väskan än en tunn plastkabel. Anslutningstyp och effekt anges i varje produktbeskrivning.",
-      "Beställningen skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningen skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1884,7 +1884,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt utrustning gör promenaden och bilresan tryggare för er båda. Här hittar du hundselar, koppel, hopfällbara hundramper till bilen och cykelvagnar som också fungerar som hundvagn.",
       "Mät innan du beställer. För selen är bröstomfånget det avgörande måttet, inte hundens vikt. En ramp ska vara tillräckligt lång för att ge en flack lutning mot din biltröskel — 158 cm som viks till 45 cm är ett vanligt och praktiskt format. För cykelvagnar och hundvagnar är maxvikten det som styr, ofta upp till 45 kg. Alla mått anges i produktbeskrivningen.",
-      "Allt skickas från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med 3–6 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1906,7 +1906,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Dukningen är det första gästerna ser. I Servering & Glas hittar du prisvärda serveringsdetaljer och glas som lyfter både vardagsmiddagen och festen.",
       "Tänk på material och skötsel. Glas och serveringsdetaljer som tål maskindisk sparar tid när gästerna gått, medan handdiskade material ofta behåller sin glans längre — dekorerade ytor och guldkanter mår nästan alltid bäst av handdisk. Mått är värt att kolla om du har begränsat skåputrymme, särskilt på högre glas som inte alltid får plats under en låg hylla. Ska serveringen fram ofta lönar det sig att välja något stapelbart som är enkelt att ställa undan.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1915,7 +1915,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur levereras ömtåliga glas?",
-        a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
+        a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–6 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
       },
     ],
   },
@@ -2449,7 +2449,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En bra väska är den du slutar tänka på. I Väskor & Necessärer hittar du praktiska väskor och necessärer med smart förvaring, som sminkväskor i aluminium med lås, spegel och flera nivåer — ordning på plats i stället för att gräva i botten.",
       "Tänk igenom vad som ska rymmas innan du väljer. Flera nivåer gör att småsaker inte blandas ihop, ett lås är värt mycket om väskan reser med, och en hård aluminiumkonstruktion skyddar innehållet bättre än ett mjukt tygfodral. Mått, antal fack och material anges i produktbeskrivningen.",
-      "Beställningen skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Beställningen skickas från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2536,7 +2536,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt verktyg gör projektet till ett nöje i stället för en kamp. I Verktyg & Hemmafix hittar du handvinschar för båt och trailer i flera kapaciteter, CNC-fräsar med GRBL-styrning för trä och akryl, justerbara laserstativ och garagehyllor i stål.",
       "Dimensionera efter last, inte efter hopp. En handvinsch väljs utifrån vad som faktiskt ska dras — 272, 725 eller 1588 kg — och utväxlingen avgör hur tungt det känns i handen: högre utväxling betyder lättare vev men fler varv. För en CNC-fräs är arbetsytan det som begränsar vad du kan tillverka, och GRBL innebär att den fungerar med de vanligaste gratisprogrammen. Kapacitet och mått anges i varje produktbeskrivning.",
-      "Allt skickas från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med 3–6 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2604,7 +2604,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En bra kontorsstol märks inte – det är en dålig som ger ont i ryggen efter en arbetsdag. Här hittar du kontorsstolar med nackstöd, justerbara armstöd och fällbar rygg, modeller med utdragbart fotstöd eller inbyggd massage, en rymlig big and tall-stol som bär 150 kg och stolar i bouclé och chenille som passar i ett hemmakontor. För den som vill variera sittställningen finns knästolar, sadelpallar och ritstolar med fotring för höga bänkar och ståbord.",
       "Titta på tre mått innan du väljer: sitthöjdens spann ska passa din skrivbordshöjd, sitsens bredd ska passa dig, och maxvikten ska ha marginal. Alla tre står i produktbeskrivningen.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2626,7 +2626,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En fåtölj är rummets bästa plats – den du går till med kaffet, boken eller fjärrkontrollen. Här finns reclinerfåtöljer och TV-fåtöljer med fotpall och 360° vridfot, gungstolar i manchester, teddy och bouclé, vilstolar i böjd björk och golvfåtöljer med flera ryggvinklar. För den som vill ha mer finns massagefåtöljer med värme och uppresningsfåtöljer med motor som hjälper dig upp ur stolen.",
       "Jämför ryggvinkel, sittdjup och maxvikt – de står i varje beskrivning. En fåtölj som fälls bakåt behöver fritt utrymme bakom sig, så mät innan du ställer den mot en vägg.",
-      "Leverans inom 3–7 arbetsdagar från EU-lager. Du betalar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Leverans inom 3–6 arbetsdagar från EU-lager. Du betalar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2648,7 +2648,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Soffan är vardagsrummets stora beslut. Här hittar du bäddsoffor med förvaring under sitsen, hörnsoffor med vändbar schäslong, modulsoffor och en rymlig U-soffa med två schäslonger, i manchester, linnelook, chenille och konstläder. En bäddsoffa gör vardagsrummet till gästrum när det behövs.",
       "Mät väggen, men mät också dörren och trapphuset. Sittdjup och sitthöjd avgör hur soffan känns, och för en bäddsoffa står även bäddmåttet i beskrivningen, så att du vet om det räcker för en eller för två. Titta på klädseln: manchester och chenille är mjuka och varma, konstläder är lättare att torka av.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–6 arbetsdagar. Fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2670,7 +2670,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Runt matbordet händer det mesta – frukost, läxor, middagar som drar ut på tiden. Här finns matbord och klaffbord som fälls ut när gästerna kommer, kompletta matgrupper, matstolar i flerpack i manchester, sammet och trä, barstolar och barbord för köksön och stapelbara pallar som tar lite plats när de inte används.",
       "Räkna med ungefär 60 cm bordskant per person och minst 70 cm fritt bakom stolarna så att man kommer ut. Sitthöjd och bordshöjd ska passa ihop: ett vanligt matbord kräver en sitthöjd runt 45–48 cm, en bardisk betydligt högre. Mått och maxvikt står i varje beskrivning.",
-      "Leverans inom 3–7 arbetsdagar från EU-lager, Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Leverans inom 3–6 arbetsdagar från EU-lager, Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2692,7 +2692,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Ett skrivbord ska passa både kroppen och rummet. Här finns elektriska höj- och sänkbara skrivbord med minnesfunktion, så att du kan växla mellan att sitta och stå, fällbara väggskrivbord och skrivbord på hjul för det lilla hemmakontoret, ståbord med lutbar skiva och klassiska skrivbord med lådor i trä och stål.",
       "Kolla skivans bredd och djup mot skärmen och tangentbordet du använder, och för ett höj- och sänkbart bord även höjdspannet – det ska räcka både till din sittande och stående arbetshöjd. Alla mått står i produktbeskrivningen.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2714,7 +2714,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Små bord gör stor skillnad för hur ett rum fungerar. Här hittar du soffbord med förvaring och lyftbar skiva som blir ett arbetsbord i soffan, satsbord i glas och stål som skjuts in i varandra, sängbord med låda och smala konsolbord för hallen eller bakom soffan.",
       "Ett soffbord brukar sitta bäst när det är ungefär i höjd med soffans sits, och ett sängbord när det når ungefär madrassens överkant. Mät djupet i hallen innan du väljer konsolbord – de smalaste är byggda för just trånga passager. Alla mått står i produktbeskrivningen.",
-      "Leverans inom 3–7 arbetsdagar från EU-lager. Du handlar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Leverans inom 3–6 arbetsdagar från EU-lager. Du handlar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2736,7 +2736,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Sovrummet är rummet där kvaliteten märks varje natt. Här finns sängramar i furu och metall i bredderna 90, 135, 140 och 160 cm, stoppade sängramar med justerbar gavel i bouclé och teddy, modeller med lådor eller högt fritt utrymme för förvaring under sängen, sängbänkar med förvaring och en madrass i gelmemoryskum.",
       "Kontrollera att sängramens mått matchar madrassen du har eller planerar att köpa – en ram för 140 × 200 cm kräver en madrass i exakt det måttet. Maxvikt och fritt utrymme under sängen står i beskrivningen, liksom om ribbotten ingår.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med 3–6 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -2758,7 +2758,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En rumsavdelare skapar ett rum i rummet utan att du behöver bygga något: en arbetshörna i vardagsrummet, en avskild sovplats i en etta eller en skärm framför det som inte ska synas. Här finns fristående skärmväggar med tre till åtta paneler i flätad bambu, polypropenväv på tallram, tyg och pappersrep, från 120 till 320 cm breda.",
       "Välj bredd efter ytan du vill dölja och höjd efter hur mycket insyn du vill stänga ute. Panelerna fälls i sicksack och står stadigt av sig själva, och viks ihop när de inte används. Mått och material står i varje beskrivning.",
-      "Leverans inom 3–7 arbetsdagar från EU-lager, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Leverans inom 3–6 arbetsdagar från EU-lager, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {

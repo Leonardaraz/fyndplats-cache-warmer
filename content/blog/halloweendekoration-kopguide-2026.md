@@ -23,7 +23,7 @@ Halloween infaller lördagen den 31 oktober i år, och det lönar sig att planer
 
 ## Beställ i god tid
 
-Beräknad leverans är 3–7 arbetsdagar, så beställ helst före den 20 oktober om allt ska stå på plats till helgen. Då hinner du också provköra figurerna i lugn och ro och flytta dem om placeringen inte blev som du tänkt. Det är fri frakt över 499 kr och 30 dagars öppet köp.
+Beräknad leverans är 3–6 arbetsdagar, så beställ helst före den 20 oktober om allt ska stå på plats till helgen. Då hinner du också provköra figurerna i lugn och ro och flytta dem om placeringen inte blev som du tänkt. Det är fri frakt över 499 kr och 30 dagars öppet köp.
 
 ## Fem saker att kolla innan du köper
 
@@ -187,7 +187,7 @@ Hela sortimentet finns under [Halloweendekoration](/kategori/halloweendekoration
 
 ### När ska jag beställa halloweendekorationen?
 
-Helst före den 20 oktober. Beräknad leverans är 3–7 arbetsdagar, och halloween infaller lördagen den 31 oktober 2026. Beställer du tidigt hinner du också provköra figurerna och hitta rätt plats.
+Helst före den 20 oktober. Beräknad leverans är 3–6 arbetsdagar, och halloween infaller lördagen den 31 oktober 2026. Beställer du tidigt hinner du också provköra figurerna och hitta rätt plats.
 
 ### Behöver uppblåsbara figurer el?
 

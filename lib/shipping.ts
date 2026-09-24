@@ -8,7 +8,7 @@
 //   • admin-mejltestet (app/api/admin/email-test/route.ts)
 //
 // De REDAKTIONELLA prosa-meningarna (informationssidor, kategori-FAQ och de
-// programmatiska SEO-mallarna) skriver medvetet ut "3–7 arbetsdagar" i naturlig,
+// programmatiska SEO-mallarna) skriver medvetet ut "3–6 arbetsdagar" i naturlig,
 // varierad text för läsbarhet/SEO — de kan inte rimligt interpoleras utan att copy
 // och variation blir lidande: app/kopvillkor, app/vanliga-fragor, app/kundtjanst,
 // app/omoss, app/anvandarvillkor-app, lib/category-content.ts,
@@ -22,7 +22,7 @@
 // fras + konkret datumintervall (components/delivery-estimate.tsx) ALLTID stämmer
 // överens — ändra bara siffrorna.
 export const DELIVERY_MIN_DAYS = 3;
-export const DELIVERY_MAX_DAYS = 7;
+export const DELIVERY_MAX_DAYS = 6;
 export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbetsdagar`;
 
 // EU-lager-trygghet (single source of truth). Alla produkter skickas från lager INOM EU →
@@ -31,3 +31,11 @@ export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbets
 // "pratas aldrig bort"; täcker inte ev. fraktavgift under fri-frakt-gränsen eller returfrakt.
 export const EU_STOCK_NOTE = "Skickas från EU-lager – ingen importtull eller förtullningsavgift.";
 export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull tillkommer.";
+
+// Fraktpris — samma regel som kassan (components/cart.tsx FREE_SHIP) och
+// produktsidans JSON-LD: fri frakt när varans pris är minst 499 kr, annars 19 kr.
+// Används av prisjämförelse-feeden (/feed/pricerunner.xml), som måste ange
+// fraktkostnaden per produkt.
+export const STANDARD_SHIPPING_KR = 19;
+export const FREE_SHIPPING_FROM_KR = 499;
+export const SHIPPING_SERVICE = "Spårbar frakt";

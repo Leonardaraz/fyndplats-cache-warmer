@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../lib/shipping";
 
 // "Beräknad leverans 30 juni – 4 juli" på produktsidan — det proffsiga konkreta
-// datumintervallet som de stora butikerna visar, i stället för bara "3–7
+// datumintervallet som de stora butikerna visar, i stället för bara "3–6
 // arbetsdagar".
 //
 // VIKTIGT: datumen räknas ut i WEBBLÄSAREN (useEffect), inte på servern. PDP:n är
@@ -12,9 +12,9 @@ import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../lib/ship
 // datum dagar senare. Klientberäkning = alltid dagens faktiska datum.
 //
 // Hydrering: före mount (server + första klient-render) visar callouten fallback
-// "Beräknad leverans 3–7 arbetsdagar" (DELIVERY_TIME) → identisk på båda sidor,
+// "Beräknad leverans 3–6 arbetsdagar" (DELIVERY_TIME) → identisk på båda sidor,
 // ingen hydration-mismatch. Efter mount byts duration:en mot datumintervallet. Det
-// betyder också att crawlers/utan-JS ser den ärliga "3–7 arbetsdagar" (röd tråd +
+// betyder också att crawlers/utan-JS ser den ärliga "3–6 arbetsdagar" (röd tråd +
 // SEO bevaras). Rutan har stabil höjd → inget layout-hopp vid bytet.
 
 // Lägg n arbetsdagar (mån–fre) till ett datum. Helger hoppas över; helgdagar
