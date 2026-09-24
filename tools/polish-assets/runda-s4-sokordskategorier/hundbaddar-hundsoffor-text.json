@@ -1,0 +1,42 @@
+{
+  "slug": "hundbaddar-hundsoffor",
+  "seo": {
+    "title": "Hundbädd & hundsoffa – upphöjda och tvättbara",
+    "description": "Hundbäddar och hundsoffor med ben i furu, upphöjda hundsängar med nät för ute och inne och bäddar med tvättbart överdrag – upp till 122 × 92 cm."
+  },
+  "content": {
+    "intro": [
+      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne och hopfällbara bäddar med bärväska.",
+      "En upphöjd bädd lyfter hunden från golvet. På hundsofforna lyfter furubenen bädden så att luften kommer åt underifrån, och på nätbäddarna cirkulerar luften under hunden så att den håller sig sval. En av nätbäddarna har dessutom tak som ger skugga och skydd mot regn.",
+      "Välj storlek efter hunden: bäddarna finns från små sängar på Ø40 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm som bär 50 kg.",
+      "Du betalar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Varför välja en upphöjd hundbädd?",
+        "a": "En upphöjd bädd lyfter hunden från golvet så att luften kommer åt underifrån. På bäddar med nät cirkulerar luften under hunden så att den håller sig sval, och de hopfällbara modellerna med bärväska är lätta att ta med."
+      },
+      {
+        "q": "Går överdraget att tvätta?",
+        "a": "På de flesta sofforna och bäddarna går överdraget eller dynan att ta av och tvätta. Tvättråden står i beskrivningen."
+      },
+      {
+        "q": "Vilken storlek behöver min hund?",
+        "a": "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. De minsta sofforna är gjorda för katter och små hundar som tax och chihuahua, medan de största bäddarna bär upp till 50 kg."
+      }
+    ]
+  },
+  "facit": {
+    "21 produkter": "alla i lager; fakta läst 2026-09-24",
+    "ben i furu": "c9ccf5a3 'furuben'; 4c5d4687 'furuben'; 01fcdf1d, bb3cd4ed, 881540a6 'de koniska furubenen'",
+    "tvättbart överdrag": "15 av 21 (TVÄTT-flagga), t.ex. c9ccf5a3 'avtagbart överdrag', 01fcdf1d 'tvättbar dyna'",
+    "upphöjda med nät, ute och inne": "934297b1 'liggyta av nät'; 34fadb7d 'nätbotten'; 3c104444 'med nätpanel'; ffb3f5b0, 3a5060ec, 18c17b03 'oxford på stålram' (UTE-flagga)",
+    "hopfällbara med bärväska": "18c17b03 'bärväska ingår'; 3a5060ec 'hopfällbar hundsäng med bärväska'",
+    "luften kommer åt underifrån": "01fcdf1d, bb3cd4ed, 881540a6 'lyfter bädden 8 cm från golvet så att luften kommer åt underifrån'",
+    "nät, sval, tak, skugga, regn": "934297b1 'tak ger skugga och skydd mot regn, och liggytan av luftigt nät håller hunden sval, eftersom luften cirkulerar under'",
+    "Ø40 cm för katter och små hundar": "4dc2759a 'Upphöjd husdjurssäng … Ø40,5' och 'för katten eller den lilla hunden'",
+    "XL 122 × 92 cm, 50 kg": "3a5060ec 'Upphöjd hundbädd XL 122x92 cm', maxlast 50 kg",
+    "tax och chihuahua": "5b8162d1, 1835c144 'avsedd för en tax, en chihuahua eller en katt'",
+    "de största bär upp till 50 kg": "3a5060ec 50 kg; 64f5d64b 'stora hundar … upp till cirka 30 kg'"
+  }
+}

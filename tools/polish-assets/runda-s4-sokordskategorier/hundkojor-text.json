@@ -1,0 +1,46 @@
+{
+  "slug": "hundkojor",
+  "seo": {
+    "title": "Hundkoja & hundhus utomhus – i trä och plast",
+    "description": "Hundkojor i gran och plast för hundar upp till 30 kg – upphöjda, med veranda, asfalttak eller tak som fälls upp – och en inomhuskoja i MDF."
+  },
+  "content": {
+    "intro": [
+      "En hundkoja ger hunden ett eget skydd mot regn, blåst och markfukt när den är ute på tomten. Här samlar vi våra hundkojor och hundhus i gran och plast för utomhusbruk, plus en koja i MDF för inomhus, i storlekar för hundar från 8 upp till 30 kilo.",
+      "Välj storlek efter hunden: den ska kunna gå in, vända sig och ligga utsträckt, och de flesta kojorna anger hur stor hund de är byggda för. Ett upphöjt golv med luftspalt håller fukt och frost från marken borta, ett asfaltstak håller regnet ute och ett tak som fälls upp gör det lätt att göra rent. Några modeller har veranda framför dörren, och en har takterrass med trappa. Plastkojorna tar inte upp fukt och kan spolas rena.",
+      "Utomhuskojorna är väderskydd, inte isolerade vinterbostäder. En hund som ska vara ute vintertid behöver en isolerad hydda.",
+      "Du betalar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Klarar hundkojan svensk vinter?",
+        "a": "Inte som enda skydd. Kojorna skyddar mot regn, blåst och markfukt, men väggarna är oisolerade. En hund som ska vistas ute vintertid behöver en isolerad hydda."
+      },
+      {
+        "q": "Hur stor hundkoja behöver min hund?",
+        "a": "Hunden ska kunna gå in, vända sig och ligga utsträckt. De flesta kojorna anger en maxvikt, från 8 kilo för de minsta till 30 kilo, och invändiga mått, så jämför med hundens längd och mankhöjd."
+      },
+      {
+        "q": "Trä eller plast – vad ska jag välja?",
+        "a": "En koja i gran ger ett klassiskt hundhus, ofta med asfaltstak, veranda eller ett tak som fälls upp. Plast är lätt, tar inte upp fukt och kan spolas ren. Ingen av sorterna är isolerad."
+      }
+    ]
+  },
+  "facit": {
+    "12 produkter": "10 i lager; alla 12 låg tidigare INTE i någon kategori (bara All Products); fakta läst 2026-09-24",
+    "skydd mot regn, blåst och markfukt": "f49d1592 'Den skyddar mot regn, blåst och markfukt'",
+    "gran och plast": "gran: 67e89cc8, f508cd5d, d19d4150, 98edd9bb, c8d03827, 328e4d6c (i lager); plast: f49d1592, 2a70c1ae, 86bd3751",
+    "koja i MDF för inomhus": "0879dcf0 'Hundkoja 69 cm i MDF med ventilationshål – inomhus' (f4bd85c4 inomhus är slut)",
+    "8 upp till 30 kilo": "d19d4150 'små hundar upp till 8 kilo'; f49d1592 'hundar upp till 30 kilo' (båda i lager)",
+    "de flesta anger hur stor hund": "10 av 12 anger 'hundar upp till X kg'; 2a70c1ae och 86bd3751 'små och medelstora hundar'",
+    "upphöjt golv med luftspalt, fukt och frost": "00d42706 '3 cm luftspalt håller fukt, frost …'; c8d03827 3,5 cm luftspalt; 328e4d6c 8 cm luftspalt; f49d1592 'Fem centimeter luft under golvet'",
+    "asfaltstak": "67e89cc8, f508cd5d, d19d4150, 98edd9bb, c8d03827, 328e4d6c; f508cd5d 'Taket är vattentätt'",
+    "tak som fälls upp, rengöring": "d19d4150 och 98edd9bb 'Hela takdelen går att fälla upp … Rengöringen görs uppifrån'; f508cd5d; 328e4d6c",
+    "några med veranda": "f508cd5d 'med veranda – upphöjd', d19d4150 'med veranda' (i lager), 00d42706 (slut)",
+    "en med takterrass och trappa": "c8d03827 'Hundkoja 121 cm med takterrass och trappa'",
+    "plast tar inte upp fukt, spolas": "2a70c1ae 'Plasten tar inte upp fukt, så kojan kan spolas ren'; 86bd3751",
+    "plast är lätt": "2a70c1ae 'Den väger 7,1 kg, vilket är lätt'",
+    "inte isolerade": "alla tio utomhuskojor: 'Den är ett väderskydd, inte en isolerad vinterbostad' / 'oisolerad'; 'En hund som ska vistas ute vintertid behöver en isolerad hydda'",
+    "invändiga mått, mankhöjd": "0879dcf0 'Invändigt 66 × 40 cm … mankhöjd under 30 cm'; 67e89cc8 '40 cm mankhöjd'; f49d1592 'Invändigt 80 × 69 cm'"
+  }
+}

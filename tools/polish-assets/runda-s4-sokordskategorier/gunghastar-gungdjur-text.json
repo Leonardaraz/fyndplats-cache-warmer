@@ -1,0 +1,48 @@
+{
+  "slug": "gunghastar-gungdjur",
+  "seo": {
+    "title": "Gunghäst för barn – i trä och plysch med ljud",
+    "description": "Gunghästar och gungdjur för barn från 12 månader – klassiska i trä och mjuka i plysch med ljud, bälte och ryggstöd, som häst, svan, giraff och dinosaurie."
+  },
+  "content": {
+    "intro": [
+      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år.",
+      "För de minsta är ryggstöd och bälte viktigast. En klassisk gunghäst kräver att barnet kan hålla balansen sittande själv, medan gungdjur med ryggstöd och bälte passar redan från 18 månader. Många av plyschdjuren har ljud, som gnäggande eller melodier, och maxvikten går från 25 upp till 60 kg.",
+      "Plyschhästar med ljud tål inte maskintvätt eftersom elektroniken sitter inuti – torka av dem med en lätt fuktad trasa. Låt alltid en vuxen ha uppsikt när barnet gungar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Från vilken ålder passar en gunghäst?",
+        "a": "Gungdjur med ryggstöd och bälte passar från 18 månader, och ett av gungdjuren redan från 12 månader. En klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv, och flera är gjorda för barn från två eller tre år."
+      },
+      {
+        "q": "Trä eller plysch?",
+        "a": "En gunghäst i trä är lätt att torka av med en fuktad trasa. En plyschhäst är mjukare och har ofta ljud, men tål inte maskintvätt eftersom elektroniken sitter inuti."
+      },
+      {
+        "q": "Hur mycket får barnet väga?",
+        "a": "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den – kontrollera den i beskrivningen innan du köper."
+      }
+    ]
+  },
+  "facit": {
+    "16 produkter": "14 i lager; fakta läst 2026-09-24",
+    "tränar balansen utan att barnet tänker på det": "5b080c23 'Gungandet tränar samtidigt balans och bålmuskler utan att barnet tänker på det'; f1e0a996 'tränar balansen och stärker musklerna'",
+    "klassiska i trä": "f1e0a996 'Gunghäst i trä med zebraränder', 8ded5e38 'med lejondesign i trä', 04270ebe 'Gunghäst barn i trä'",
+    "plysch på medar": "a0ccb9d4 'i plysch på medar av poppel'; 5b080c23 'i plysch … träbas'",
+    "svan, giraff, dinosaurie, nallebjörn": "12fa3f6b svan; 88c14d38 giraff; 67d8d559 dinosaurie; 68a02f8b nallebjörn",
+    "från 12 månader": "67d8d559 'från 12 månader' (i lager)",
+    "upp till sex år": "5b080c23 3–6 år; e72638dd 36–72 månader",
+    "klassisk gunghäst kräver balans": "a0ccb9d4 'En gunghäst kräver att barnet kan hålla balansen sittande utan stöd'",
+    "ryggstöd och bälte från 18 månader": "ce543173 '18–36 mån', 12fa3f6b 'från 18 mån … säkerhetsbälte', 88c14d38 och 68a02f8b 'från 18 mån'; 67d8d559 (utan bälte) från 12 månader",
+    "ljud, gnäggande eller melodier": "5b080c23 'gnäggljud'; 88c14d38 '32 melodier'; ljud i 11 av 16",
+    "maxvikt 25–60 kg, i varje beskrivning": "16 av 19 anger kg (25–60); d7b7f77f och 43b12b37 anger ingen maxvikt i beskrivningen — därför INTE 'i varje beskrivning'",
+    "tål inte maskintvätt": "e72638dd 'kan inte maskintvättas eftersom ljudmodulen sitter inuti'; 968209bd; 5b080c23 'Maskintvätta inte hästen'",
+    "torka av med fuktad trasa": "f1e0a996 'Torka av gunghästen med en lätt fuktad trasa'; 8ded5e38",
+    "vuxen uppsikt": "8ded5e38 'en vuxen ska alltid ha uppsikt när barnet gungar'",
+    "från två eller tre år": "8ded5e38 2–5 år; a0ccb9d4 och 968209bd från 3 år",
+    "ren och elefant": "d7b7f77f 'Gungren i plysch' och 43b12b37 'Gungelefant med djurljud' — tillagda 2026-09-24 efter svep på 'gung*', båda 'godkänd från 12 månader'",
+    "19 produkter": "16 + 3 tillagda efter svepet (d7b7f77f, 43b12b37, cb57e1dc)"
+  }
+}

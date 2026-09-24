@@ -1,0 +1,41 @@
+{
+  "slug": "garagetalt",
+  "seo": {
+    "title": "Garagetält för motorcykel, cyklar och redskap",
+    "description": "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap."
+  },
+  "content": {
+    "intro": [
+      "Ett garagetält ger motorcykeln, cyklarna och trädgårdsredskapen tak över huvudet utan att du behöver bygga något. Här samlar vi våra garagetält, från 120 × 179 cm för två cyklar eller en motorcykel till ett tält på 300 × 300 cm med 9 m² golvyta.",
+      "De flesta har stomme i galvaniserat stål och duk i PE eller polyester, och dörren rullas upp eller öppnas med dragkedja. Markankare och spännlinor följer med så att tältet står stadigt. Titta på snölasten – den anges per modell, till exempel 5 eller 10 kg per kvadratmeter – och borsta av taket efter snöfall.",
+      "Ett tält på 162 × 221,5 cm är djupt nog för en motorcykel eller ett par cyklar efter varandra.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Klarar garagetältet snö?",
+        "a": "Snölasten anges per modell, till exempel 5 eller 10 kg per kvadratmeter. Det räcker för ett lätt snölager, så borsta av taket efter snöfall."
+      },
+      {
+        "q": "Vad får plats i ett garagetält?",
+        "a": "Tälten på 120 × 179 cm rymmer två cyklar, en motorcykel eller trädgårdsredskap. Tälten på 162 × 221,5 cm är djupa nog för en motorcykel eller ett par cyklar efter varandra, och det stora tältet på 300 × 300 cm har 9 m² golvyta."
+      },
+      {
+        "q": "Hur förankras tältet?",
+        "a": "Markankare och spännlinor följer med, och ett av tälten har dessutom expanderskruvar för hårt underlag."
+      }
+    ]
+  },
+  "facit": {
+    "6 produkter": "alla i lager; fakta läst 2026-09-24",
+    "120 × 179 cm, två cyklar eller motorcykel": "72051417 och a165b178 'Garagetält 120 × 179 cm'; 'Angiven kapacitet är två cyklar, en motorcykel eller trädgårdsredskap'",
+    "300 × 300 cm, 9 m²": "6a419d8b 'Garagetält 300 × 300 cm med 9 m² golvyta'",
+    "de flesta galvaniserat stål": "0f5e3fea 'Rören i stommen är Ø25 mm galvaniserat stål'; 20c0942e och 5f6592ad 'galvaniserad stålstomme'; 72051417 'stommen galvaniserat stål'; a165b178 'stommen är desamma' — 5 av 6 (6a419d8b anger inte material)",
+    "PE eller polyester": "20c0942e och 5f6592ad 'UV-skyddad PE'; 72051417 'Duken är PE'; 0f5e3fea 'Vattenavvisande polyesterduk'",
+    "dörr rullas upp eller dragkedja": "20c0942e, 5f6592ad 'Dörren rullas upp'; 6a419d8b 'rullas upp mot taket'; 72051417 'Dörr 106 × 126 cm med dragkedja'",
+    "markankare och spännlinor följer med": "0f5e3fea '16 markankare, 12 expanderskruvar, 4 spännlinor'; 20c0942e och 5f6592ad 'sex markankare'; 72051417 'Sex markankare'; 6a419d8b 'spännlinor följer med'",
+    "snölast anges per modell, 5 eller 10 kg/m²": "alla sex nämner snölast; 0f5e3fea 5 kg/m²; 20c0942e och 5f6592ad 10 kg/m²",
+    "162 × 221,5 cm, motorcykel eller cyklar efter varandra": "5f6592ad '221,5 cm räcker för en motorcykel eller ett par cyklar efter varandra'",
+    "expanderskruvar": "0f5e3fea '12 expanderskruvar'"
+  }
+}

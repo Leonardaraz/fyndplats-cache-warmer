@@ -1,0 +1,44 @@
+{
+  "slug": "katthus",
+  "seo": {
+    "title": "Katthus utomhus i trä – för balkong och trädgård",
+    "description": "Katthus i trä för balkong och trädgård – från små hus på 62 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp."
+  },
+  "content": {
+    "intro": [
+      "Ett katthus ger utekatten ett torrt och skyddat ställe att vila på, på balkongen, altanen eller i trädgården. Här samlar vi våra katthus i trä – från små hus på 62 cm till hus i två och tre plan med balkong och fönster – och några katthus för inomhusbruk.",
+      "Titta på tak, golv och öppning. Ett tak med asfalt eller takpapp leder bort regnet, och ett hus på ben med golvet några centimeter över marken slipper suga upp markfukt. Ett tak eller en lucka som fälls upp gör det lätt att göra rent, och ett hus med två plan ger katten både en skyddad sovplats och en utsiktsplats. Har du två katter finns också ett hus byggt för två.",
+      "I flera av utomhushusen ingår ingen bädd – lägg i halm, en filt eller en värmematta avsedd för djur.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Ingår det en bädd i katthuset?",
+        "a": "I flera av utomhushusen gör det inte. Lägg i halm, en filt eller en värmematta avsedd för djur. Några modeller, som det upphöjda katthuset på 62 cm, levereras med bädd."
+      },
+      {
+        "q": "Hur gör jag rent katthuset?",
+        "a": "Flera av husen har ett tak eller en lucka som fälls upp, så du kommer åt hela insidan på en gång. Ett av husen har dessutom en botten som går att ta ur vid storstädningen."
+      },
+      {
+        "q": "Finns det katthus för inomhusbruk?",
+        "a": "Ja, till exempel ett katthus i tv-design med kudde och en hopfällbar kattkoja med klöspelare i sisal."
+      }
+    ]
+  },
+  "facit": {
+    "12 produkter": "11 i lager; fakta läst 2026-09-24",
+    "i trä": "barrträ/gran i 11 av 12 (TRÄ-flagga); b4f4d991 och 7d264875 'i barrträ', 13f60ff6 'i granträ'",
+    "62 cm": "4f43e58d 'Upphöjt katthus 62 cm – hopfällbart, vattenavvisande med bädd' (i lager)",
+    "140 cm, tre våningar": "ae8eeff9 'Katthus i trä för utomhus – 3 våningar med asfalttak, 140 cm'",
+    "två plan med balkong och fönster": "a34f54b4 'Katthus med balkong 87 cm – två plan'; ed3563b2 'två plan – fönster'",
+    "några för inomhusbruk": "24f55841 'Katthus i TV-design med kudde'; da9e9a73 'Hopfällbar kattkoja med klöspelare i sisal'",
+    "asfalt eller takpapp leder bort regnet": "0000fa76 'Takpappen leder bort regnet'; 13f60ff6 'asfaltduk … håller regnet ute'",
+    "på ben, slipper markfukt": "13f60ff6 'står på 8 cm höga ben så att bottnen inte suger upp markfukt'; a34f54b4 6 cm; 0000fa76 8,5 cm; b4f4d991 3,5 cm över marken",
+    "tak eller lucka fälls upp för rengöring": "a34f54b4 'Taket fälls upp för rengöring'; ed3563b2 frontlucka; 7d264875 hela taket; 0000fa76 takhalvan; b4f4d991 sidolucka; 84d4f368",
+    "två plan, sovplats och utsikt": "a34f54b4 'Lägg bädden på nedre planet … låt övre planet vara den svala platsen', 'se hela trädgården'",
+    "hus byggt för två": "84d4f368 'Katthus för två katter 85 cm'",
+    "ingen bädd i flera": "ed3563b2, 7d264875, b4f4d991 'Ingår bädd? Nej.'; 84d4f368 'Lägg in halm, en filt eller en värmematta avsedd för djur'",
+    "ett hus med botten som tas ur": "84d4f368 'Uttagbar botten är skillnaden vid storstädningen'"
+  }
+}

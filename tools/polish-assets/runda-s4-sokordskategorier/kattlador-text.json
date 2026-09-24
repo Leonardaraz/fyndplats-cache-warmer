@@ -1,0 +1,46 @@
+{
+  "slug": "kattlador",
+  "seo": {
+    "title": "Kattlåda med tak, rostfri & kattlådsmöbel",
+    "description": "Kattlådor med lock, tak och toppingång, rostfria kattlådor upp till 130 liter och kattlådsskåp som döljer lådan i en möbel – flera med kolfilter mot lukt."
+  },
+  "content": {
+    "intro": [
+      "En kattlåda ska vara lätt att hålla ren och stor nog för katten att vända sig och gräva i. Här samlar vi alla våra kattlådor: öppna lådor med höga kanter, täckta kattlådor med lock eller tak, lådor med toppingång och kattlådsskåp som döljer lådan i en möbel.",
+      "Rostfritt stål är värt att titta på. Plast får med tiden repor från klor och skopa, och i reporna fastnar urin som luktar – ett kar i stål har ingen sådan yta och går att skura rent. Rostfria lådor finns här från 52 cm upp till en XXL-låda på 130 liter. En täckt låda eller en låda med toppingång håller mer av sanden kvar, och flera modeller har kolfilter eller luktfilter. En utdragbar låda gör det enklare att tömma.",
+      "Kattlådsskåpen har en skiva ovanpå som tål vikt, så möbeln fungerar som sidobord eller hylla, och innermåtten står i beskrivningen så att du ser vilken låda som får plats.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Varför välja en kattlåda i rostfritt stål?",
+        "a": "Plast får med tiden repor från klor och skopa, och i reporna fastnar urin som luktar även efter rengöring. Rostfritt stål suger inte åt sig lukt på samma sätt och går att skura utan att ytan skadas."
+      },
+      {
+        "q": "Hur stor kattlåda behöver min katt?",
+        "a": "Katten ska kunna vända sig och gräva utan att kliva ur. Jämför sandytans mått i beskrivningen med kattens längd – en stor katt eller flera katter behöver en XL- eller XXL-låda."
+      },
+      {
+        "q": "Vad är ett kattlådsskåp?",
+        "a": "Ett kattlådsskåp är en möbel med plats för kattlådan inuti. Skivan ovanpå tål vikt, på en av modellerna 50 kg, och innermåtten står i beskrivningen, så att du ser vilken låda som får plats."
+      }
+    ]
+  },
+  "facit": {
+    "22 produkter": "19 i lager; fakta läst 2026-09-24",
+    "öppna lådor med höga kanter": "1abd6c48 'öppen med hög kant', 8ef08765 'höga kanter', c35c82ce 'högt kantskydd'",
+    "täckta med lock eller tak": "c79c502e avtagbart lock, ee1d2dec klafflock, 4515430a 'med tak', f6089d31 och 97d850b2 'täckt'",
+    "toppingång": "79c3738c 'fram- och toppingång', 8f54bd03 'toppingång', adb8c31b 'topputgång'",
+    "kattlådsskåp": "14cb2686, a2f82e08, 29bf0866 (i lager), 8d495aef (slut)",
+    "plast får repor, urin som luktar": "c35c82ce, ee1d2dec, 1abd6c48, 79c3738c, 5df0b431 — ordagrant 'Plastlådor får med tiden repor från klor och skovel, och i reporna fastnar urin som luktar'",
+    "går att skura": "5df0b431 'ett ståltråg går att skura utan att ytan bryts upp'",
+    "rostfria från 52 cm": "adb8c31b 'Kattlåda i rostfritt 52 cm'",
+    "XXL 130 liter": "ee1d2dec 'Kattlåda XXL 130 liter i rostfritt'",
+    "håller mer av sanden kvar": "adb8c31b '…zon fångar strön på vägen ut'",
+    "kolfilter eller luktfilter": "c79c502e två kolfilter, d3f864cb kolfilter, 5df0b431 kolfilter i taket, f6089d31 och 4515430a luktfilter",
+    "utdragbar låda": "c79c502e, d3f864cb, a2f82e08, b44a18ff, f6089d31, 4515430a",
+    "skiva ovanpå tål vikt, 50 kg": "a2f82e08 'Ovansidan bär 50 kg'; 14cb2686 'bordsskivan ovanpå 15 kg'",
+    "innermått i beskrivningen": "14cb2686 57 × 44 cm, a2f82e08 55 × 47 cm, 29bf0866 68 × 43 cm (i namnen)",
+    "suger inte åt sig lukt på samma sätt": "ee1d2dec 'varken repas av klor eller suger åt sig lukt på samma sätt som plast'"
+  }
+}
