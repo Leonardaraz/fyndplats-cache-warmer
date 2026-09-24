@@ -291,6 +291,51 @@ kommer tillbaka, och det är provat med felet återinfört.
     är en äldre sida.
   - **Ingen produkt får en sämre nod.**
 
+### Tredje bygget: färgfiltret och Google-flödets bilder
+
+Loggen från det andra bygget visade samma rad som produktionen:
+`[wix] färgval hämtade: 0 produkter har minst en färg`. Färgfiltret på
+listsidorna har alltså aldrig visat en färg. Felet låg i urvalet, och samma
+urval fanns på två ställen till.
+
+**Orsaken, mätt mot Wix:** tre hämtningar i butiken läste katalogen nyast
+först och slutade efter 12 sidor om 100. Katalogen har 6 067 produkter, och
+de 1 200 nyaste är Aosom-varor. De har en variant och inga färgval, och
+drygt hälften är dolda utkast.
+
+| hämtning | vad den missade |
+|---|---|
+| färgerna (`lib/product-colors.ts`) | alla 239 produkter med optioner. Ingen av dem finns bland de 5 100 nyaste |
+| Google-flödets gallerier (`fetchFeedGalleries`) | extrabilder till 2 836 av 3 393 produkter |
+| Google-flödets varianter (`fetchAllVariantsRaw`) | ingenting än. Taket var 10 000 varianter, katalogen har 7 006, och med ett sextiotal nya produkter per natt hade taket nåtts i mitten av november |
+
+**Lagat i #647** (`17b2f9d6`, `c660ab08`):
+
+- Färgfrågan filtrerar på `options.id` och får alla 239 på tre anrop.
+  Filtret skickas bara på första sidan, eftersom filter plus markör svarar
+  `400 INVALID_CURSOR` på `products/query`. Ett ofiltrerat svep över hela
+  katalogen hittade samma 239. Faller en sida visas ingen facett, i stället
+  för en facett med fel antal.
+- `google.xml` faller tillbaka på produktens eget galleri, upp till sex
+  bilder, som `products.xml` redan gjorde.
+- Variantsvepet har taket 30 000 och loggar ett fel om det slår i.
+
+Nio nya tester, alla provade mot sin bugg. Hela sviten ger 803 av 803.
+
+**Utfall** i `dpl_6Ett7YmBBDYxmMFEWPFRT4UKjJpH`, mätt med
+`bilder-farg-koll.py`:
+
+| | produktion i morse | förhandsbygget |
+|---|--:|--:|
+| produkter i Google-flödet | 3 393 | 3 420 |
+| med extrabilder | 557 | **3 420** |
+| färre extrabilder än förut | | 0 |
+| produkter med färg, byggloggen | 0 | **137** av 239 |
+| produkter med färg på /alla-produkter | 0 | 122, i 19 färger |
+
+63 av 63 sidor för S6–S13 är fortfarande lika källan, och sitemapen har 115
+kategori-URL:er.
+
 ## 7. Live
 
 Väntar på mergen av #647.
