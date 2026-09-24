@@ -4,6 +4,7 @@ import { imgKey } from "./image-alt";
 import { formatPrice } from "./price-range";
 import { clipText } from "./clip-text";
 import { hamtaAllaKategorier } from "./category-paging";
+import { asciiSlug } from "./category-slug";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -1126,17 +1127,6 @@ const MAIN_ORDER = [
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;
-
-// ASCII-safe slug from the category name. Wix slugs contain å/ä/ö (e.g. "kök",
-// "hörlurar") which Next.js dynamic routes mishandle → 404. We derive our own ASCII
-// slug instead; it's only an internal URL id (we match products by collectionId, not slug).
-function asciiSlug(s: string): string {
-  return (s || "")
-    .toLowerCase()
-    .replace(/[åä]/g, "a").replace(/ö/g, "o")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 // Första sidan av kategorifrågan. Resten hämtas av hamtaAllaKategorier via
 // SDK:ts next(), så den här är enda stället frågan byggs (lib/category-paging.ts).
