@@ -1424,3 +1424,209 @@ beslut — se den samlade frågan om detta.
 - N60:s lista är genomgången från 929 till 1199 kr. Nästa runda börjar på
   1209 kr. Jul- och vintervarorna ovan kan tas i oktober. Säsongs- och
   familjeskärmen för 1209 kr och uppåt är inte gjord. (N60)
+- Slutsålda (saldo 0), alltså hoppade: ismaskinen `4522d871` (1419 kr);
+  talarstolen på hjul `d6c30764` (1499 kr); benträningsbänken `18764cc2`
+  (1529 kr); latsdragsstationen för vägg `59f9ff96` (2419 kr); cykelvagnen
+  för barn `a67a45a2` (2999 kr). (N61)
+- Saldo på eller under lagerbufferten, alltså slutsålt för kunden:
+  sänggaveln `932c527a` har saldo 3, som butiken visar som slutsålt. (N61)
+- Märke tryckt på varan, hållna efter bildgranskningen: hollywoodspegeln
+  `aeda1c4e` bär HOMCOM på spegelglaset; madrassen `8f88e036` bär en
+  HOMCOM-etikett på sidan (och har saldo 3); pälsvårdssetet för hund
+  `83e480d9` bär PawHut på maskinen; sopmaskinen `1985302c` bär en
+  Outsunny-etikett på höljet; cykelvagnen för barn `4c9db98c` bär HOMCOM på
+  tyget; den mobila laddboxen `4a4a896c` bär HOMCOM på styrboxen. (N61)
+- För få bilder kvar, hållna efter bildgranskningen: skivstången `f73bd4ea`:
+  bild 3 bär SPORTNOW by Aosom och bild 2, 4 och 5 tysk text, så kvar hade
+  bara bilden på vit botten varit. (N61)
+- Skärmträffar mot publicerade sidor av samma slag, hoppade utan utredning:
+  köksskåpet i rotting `97ae916c` (mot skafferiskåpet `efb9b9b5`);
+  cykelkärran `86c2f6da` (mot cykelkärran för hund `571e37bf`);
+  bordtennisbordet `dfbed210` (mot pingisbordet `59cb0c95`); plåtskåpet för
+  kontor `bcac519e` (mot `f87e8390`); torktumlaren `1549acc6` (mot
+  `3c3514d7`); elkaminen `2d467737` (mot `0fe72ae2`). (N61)
+- Samma slag som en produkt i rundan, hoppade: mini-biljardbordet `10aef14d`
+  (rundan tar `1ddf15a5`, som redan var granskat); cykelvagnarna för barn
+  `d9cd502b`, `7ffc8543`, `3d8e7624` och `8c34a7cd`, inte granskade: samma
+  slag som `4c9db98c`, som hölls för HOMCOM-märket; gästsängarna `8a6cd257`,
+  `07435f1a` och `b3ffb5d1` (rundan tar extrasängen `26ae7fb2`). (N61)
+- Familjen är redan publicerad, hittad på familjeräkning och namn snarare än
+  av skärmen: stepparen `6185898b` (steppers publicerade sedan N58);
+  sminkborden `b594f90c` och `94b4242d` (8 sminkbord); konstväxterna
+  `389b3887` och `55b3998b` (över 40 konstväxter, bland dem en spiralformad
+  cypress); tvättskåpet `bab35244` (tvättskåpen `5022e9e5` och `3d297400` är
+  publicerade); väggskrivbordet `21ec71e3` (7 fällbara skrivbord och
+  väggskrivbord); golvfåtöljen med bäddfunktion `656bd6a0` (45 golvfåtöljer
+  och bäddfåtöljer); garagetälten `2c590cdd` och `9098fabd` och
+  motorcykelgaraget `cf638cc0` (sju garagetält, förrådstält och
+  cykelgarage); TV-bänken `a1431902` (18 TV-bänkar); kraftstationen
+  `9a923bb4` (5 gymstationer); torktumlarna `1acfb720`, `d7df3ba9` och
+  `4b006967` (3 torktumlare); inversionsbänken `d800e7a5` (`346b40f7` är
+  publicerad). (N61)
+- Familjer som redan är täckta, hoppade på namnet (familjeräkningarna inom
+  parentes är från N60 eller N61; de flesta gick aldrig genom skärmen):
+  elfordon och åkleksaker för barn (43 elfordon för barn): `e0590577`,
+  `70744919`, `3486aa0d`, `bc0f6426`, `cf098340`, `bd2f9152`, `0c2e072c`,
+  `fc195950`, `dc85a71f`, `f4c3b44c`, `617aae41`, `e811836f`, `02b1aec1`,
+  `70703864`, `6c62a150`, `9d710fe0`, `e47294df`, `e85197d2`, `12b04b77`,
+  `42a02619`, `9a63e0fd`, `d5a5301d`, `ea13272c`, `f373226f`, `f90b0993`,
+  `0acfc30a`, `857ff5d0`, `8ad1e003`, `fbe710b5`, `2daff9fd`, `21736548`,
+  `989dbf87`, `ba2b14ab`, `0fc2119d`, `329c24b2`, `b9ef8ca4`, `fa99285f`,
+  `68fe8e67`, `1c0b4b34`, `8e77ded7`, `c80ffdb1`, `ec2d9402`, `6e518fc6`,
+  `0125f9e2`, `72be1700`, `39d13508`, `0b30d422`, `7a8655f0` och `cde040a7`;
+  gokarter och trampbilar (8 gokarter): `8691cbc0`, `5f7b579e`, `8ab866bb`,
+  `39260484`, `b2b28cec`, `2564968e`, `807846b5`, `cc56eab4`, `2a6dcd2a`,
+  `5fe1d12e`, `cce8d35c` och `e6301e92`; trehjulingar: `aefd8818` och
+  `5ce744ab`; valphagar: `15bcfc1a`, `b89d2ee2`, `62d1d2b7`, `ea95b4c5` och
+  `17fcce99`; hundgrindar (23 grindar): `02c203cd`, `34f51bc7` och
+  `7aaea8cc`; hundburar: `15becae7`, `48940f33` och `82883d7e`; cykelkärror
+  och vagnar för hund: `c8ac6065`, `4e409e7c`, `8ccbd03d`, `01dae1bc`,
+  `540c231a`, `4fcf7ba6`, `61acb2dc` och `f1f976cf`; trimbord för hund (3
+  trimbord): `3a3c6c37` och `b9d0ffa0`; kattoaletter och kattlådemöbler:
+  `003ace14` och `d9fe1f8c`; katthus (17 katthus): `4bc7f355`, `832f8caa`,
+  `3cf10b11`, `faa4e2c5`, `dbb7108e` och `8e387e56`; agilityhinder för hund:
+  `6a6bfd64`; hundsängar: `f50803b9` och `e1b0fe59`; skumklossar och
+  klätterset för småbarn: `8cca1ae9`, `b50bd167`, `1841a1c2`, `99807672`,
+  `c3959819`, `361d09f5`, `9d8374aa`, `e27a64ec`, `8064c7e2`, `dbd5252f`,
+  `4b96899f`, `d70e483e`, `29d7e497`, `9ac61fa8`, `0d5eaa06`, `bd0c3133`,
+  `e3f94c88`, `520893a9` och `1ae041a3`; klätterställningar och rutschkanor:
+  `c75c7b95`, `2780d68b`, `49732af4`, `f04fbf51`, `f1f2504c`, `0103d4a7`,
+  `2485b8a5`, `b03bd2cc`, `7dddb439`, `184e281e` och `4daf2de1`; lekkök:
+  `a21f8df7`; tågbanor i trä: `695e72eb` och `75e9f5d6`; barnhyllor:
+  `8718ba8d`, `15db30cb` och `a173de00`; barnskrivbord och barnbord:
+  `e9e896b4`, `ec93f9f2` och `bdb8bbe2`; barnsoffor och barnfåtöljer:
+  `788a6e39` och `a3bd50fa`; sminkbord: `88a841f1`, `885b6a40`, `af72a543`,
+  `1857b226`, `e0085cd1` och `223b9ca7`; rullpallar: `087cb4b8`; bänkar med
+  och utan förvaring (141 bänkar): `4342f585`, `c7d8e5bd`, `6289af49`,
+  `a6310071`, `1d8341e7`, `b75edaf7`, `50e06edb`, `29f0fcb1`, `eee98f0f`,
+  `06d7dbdc`, `509641fa`, `1e75ba03`, `da7c199c`, `dd96a885`, `d6c0a146`,
+  `9b8fefe6`, `1bd5662e`, `419aae73`, `3352ee8d` och `ac117fa9`; pallar och
+  puffar: `e55deb32`, `2dd64ffa`, `6e48f38d` och `5cbdff80`; skoskåp (37
+  skoskåp och skohyllor): `643c0b2d`, `03e23634`, `41326448`, `748efdb6`,
+  `a32e2efa`, `29f4542a`, `3320bf1e`, `cc459bef`, `f40bae61`, `c0405c69`,
+  `e7a23c42`, `091f569d` och `58f0e4f1`; hallmöbler och garderober:
+  `e1ab9dc4`, `f560a565`, `c1afe3b2` och `8e34da16`; köksskåp och köksställ
+  (19 köksskåp): `1dda8d1b`, `c99d5592`, `3dc2f48d`, `6ff5dfc3`, `06424d4b`,
+  `0051b13b`, `59c46581`, `d489f371`, `553ad0d9`, `00ba5823`, `39a9b669`,
+  `138a24b0`, `f2a348ff`, `2b58d816`, `edb39a31`, `83f11a66`, `45f84852`,
+  `cfa18edc`, `2e6d120a`, `b7dae593`, `c4668acc`, `66bde4c1`, `f281972e`,
+  `23c88539` och `2945da6c`; badrumsskåp (31 badrumsskåp): `6ffadd2d`,
+  `635e7330`, `6e3c84cc`, `2666b42e`, `17eeff38`, `e7efc265`, `0fc17126`,
+  `ee539789`, `eae19ca7`, `e4e3dd68`, `37a26f7f`, `d5a629d7`, `06c114f3`,
+  `1e2c6427`, `86c26702` och `fc1970ff`; LED-badrumsspeglar: `2e3afa4e`,
+  `aba9f13e`, `af9c9f87` och `4f421b2e`; medicinskåp (15 medicinskåp):
+  `ca4d2e33` och `271f4bca`; speglar (64 speglar): `81c40958`, `c50f61a8`,
+  `18425aaf` och `6ca6b338`; skänkar och byråer (13 skänkar): `10626649`,
+  `1ac07434`, `ac5c5255`, `34d76ecf`, `af6f39a6`, `57e419f1`, `31732cff` och
+  `77b13bdd`; nattduksbord (17 nattduksbord): `d61f504b`; soffbord och
+  sidobord: `eec11af3`, `1b5eb871`, `4a91d973`, `96ad2ce3`, `3f7fbf5d`,
+  `afcddf6b`, `c78b886b`, `635955ab`, `21601f95`, `84a931f4` och `cc4a9285`;
+  barstolar och barset (25 barstolar): `fcb75f42`, `58bcad97`, `db8ecc32`,
+  `cee1f7e1`, `a3ddb29a`, `9794d190`, `44c2fc53`, `4d85ddd5`, `6830a4ae`,
+  `17b611b8`, `667f1544` och `1763826d`; matbord och matgrupper (34
+  matbord): `087a83ae`, `6ddedacc`, `c23dab52`, `c8c172a9`, `9053bc1a`,
+  `01de6b0d`, `43bb7c55`, `22d4bb3b`, `422fd52b`, `6a5e861d`, `20331e0b`,
+  `1beeab94`, `537b0f21`, `9a485726`, `cbd820c5`, `f49f7d80`, `53225be6`,
+  `7a6eff2a`, `f93b34cc`, `e70a8452`, `5e9655dd`, `90060b2d`, `7641050c`,
+  `04f05fad`, `a980b187`, `46c6166d`, `491effdc`, `51419a88`, `87245ccf`,
+  `6ad885bc`, `f00d4336`, `11a2f6d8` och `efe17351`; matstolar (75
+  matstolar): `8c42d667`, `f716feb0`, `2527be66`, `98245bb2`, `aadf86df`,
+  `5770aa6f`, `817e1869`, `338b2ac5`, `fa143813` och `020a028f`;
+  kontorsstolar och gamingstolar (111 kontorsstolar): `f1b631b8`,
+  `972f5195`, `f1d549fd`, `746befb0`, `eec39dc8`, `7986797d`, `bdc28a4b`,
+  `3016f35c`, `c2902bb8` och `cfdbd5e9`; skrivbord och datorbord:
+  `82e5c1cf`, `aced8aa9`, `b712d0e0`, `4bc1d734`, `7859405b`, `8d66da54`,
+  `4d8f63a1`, `3a27aabe`, `59478f27`, `0e2607cb` och `de87532d`; gungstolar:
+  `20885a84`, `a3e4a59c`, `aa474a47`, `501e19f4`, `f94de4c8`, `13ce0af4`,
+  `ea30c358`, `50233e0f`, `51d0bf3f`, `c793bf42`, `15758cbf`, `7307ec68`,
+  `5ec44a3b`, `1b1a1154`, `ee9242de`, `bc6c93da`, `26e5897c` och `20a30d5a`;
+  golvfåtöljer och bäddfåtöljer (45 publicerade): `4a0ef833`, `3efd8a70`,
+  `d0136f53`, `f69816ef`, `a3c16a1f`, `6640dd3c`, `fc3eec4f`, `c94c727e`,
+  `f4f8512a`, `b78f0945`, `de486caf`, `a7a8c839`, `32256e91`, `01088727` och
+  `4d930264`; soffor och bäddsoffor: `745b2f2c`, `86606498`, `0b6a0cc6`,
+  `615e7b54`, `e0d2f66f`, `8ff98faa`, `b58c3fb8`, `e7167b5b`, `e30d6f33`,
+  `6c20c70b`, `250b29f0`, `63e38606`, `6f1cc782`, `fcb0b18d`, `cff2dfc9`,
+  `f1878c34`, `ab0f4fb5`, `5c09e688`, `45f94f82`, `46443b89`, `efaa0c7b`,
+  `81f1c8b4`, `6c2cb286`, `f665ba8f`, `b58c8340`, `8038c2b8`, `1d0fd62b`,
+  `521ab91f`, `e43ec4a4`, `d555ca94`, `ef83458c` och `e81c4bba`; fåtöljer
+  (234 fåtöljer): `659a0370`, `98a7051f`, `7e0889e9`, `eab8d35e`,
+  `b1c75875`, `4a2d4402`, `71e3f286`, `d7c48c0f`, `717c8e74`, `4b401eb9`,
+  `298492a4`, `46927ff1`, `fb4579fa`, `73fd94aa`, `d03b6773`, `3934e029`,
+  `3fe90624`, `8b8ca20d`, `e16668e2`, `240ef0c1`, `7dfdf28d`, `6fe0966c`,
+  `3d99d8d2`, `91e7d09a`, `f7e8b4c9`, `f51a680e`, `cc3abd40`, `336fbec6`,
+  `c7e01483`, `10738e5e`, `bf16e055`, `015078dc`, `c169f30a`, `1439c5d7`,
+  `5335ebe1`, `b37a10e1` och `eef453b1`; sängramar: `1b7fd2b1` och
+  `e5c776ef`; bokhyllor och förvaringshyllor: `df26a1b6`, `8166f30f` och
+  `2be9bbaf`; motionscyklar (8 motionscyklar): `1f276824`, `0927ea10`,
+  `9159231f`, `bc2b4c66` och `192f92e6`; roddmaskiner: `5c00feee`,
+  `ca0c06f3`, `74768251`, `6b302afe` och `3a6988b8`; gymstationer (5
+  gymstationer): `23e9b154`, `9209ba21` och `eb34b17e`; träningsbänkar:
+  `d95921cc` och `00c9d508`; hantlar och hantelställ: `52a5d92b` och
+  `2e9dc959`; vibrationsplattor (7 vibrationsplattor): `e1977f20` och
+  `0ecc0773`; basketkorgar (11 basketställ): `90f864bf` och `a9281120`;
+  poledancemattor (`cfc2d4f4` är publicerad): `131c2b6b`; pedaltränare (3
+  pedaltränare): `6c9b71aa`; spelbord (sex spelbord): `0b05b8fb`, `72300edc`
+  och `c90227ec`; torktumlare (3 torktumlare): `198ab3a2`, `f183f420`,
+  `3d3cb2e5`, `f0f237cc`, `c5182de2`, `8fc506c6`, `2517c54b`, `24d28e2c`,
+  `856cfcee`, `7499709f`, `e109f3e2`, `2d256851` och `139048ad`; elkaminer
+  (34 elkaminer): `6e1378d6`; fritöser och miniugnar (18): `6be75d6e`;
+  köksmaskiner (hushållsassistenten `6bcbaf32` och en köksmaskin på 1400 W
+  är publicerade): `5cd3d289`; verktygsvagnar och verktygsskåp (45):
+  `a52f3cb7` och `be4b2385`; takkorgar (2 takkorgar): `2dfec8c3` och
+  `f4737c46`; cykelkärror för last (3 cykelkärror för last): `79f62076` och
+  `5b3d3c58`; elementskydd (5 elementskydd): `65057335`; steppers:
+  `795ab5c6`; tvättmaskinsskåp och hyllor (3): `8922751e`; TV-bänkar (18
+  TV-bänkar): `f41d9d28`. (N61)
+- Licensmärke eller husmärke i namnet, hoppade utan skärm: barnskrivbordet
+  med husmärket i namnet: `91d7dfd9`; elfordon för barn med ett bil- eller
+  motorcykelmärke i namnet: `e6fd72cd`, `b4eef374`, `fb484bfc`, `9d9130a0`,
+  `b23eb400`, `cd497196`, `a71deaf5`, `f2190e54`, `f73628e3`, `00570c67`,
+  `545e23b6`, `a2fdc66d`, `b53ddf34`, `7a738998`, `843f5f29`, `d15fc03d`,
+  `a5f894bb`, `360a9721` och `3746cb59`. (N61)
+- Djurbostäder som kräver en laglighetskontroll, hoppade: valplådorna
+  `eb40c39d` och `a95484cc`; burar, hägn, hönshus, ankhus, sköldpaddshus,
+  terrarier och hundkojor: `f2ff3a82`, `a145cba3`, `132bb22e`, `9c343e72`,
+  `43317ed5`, `92ef25c9`, `fc502b4e`, `ccefe742`, `e8140392`, `a208b0a2`,
+  `2a56e438`, `c54e93d2`, `1686860f`, `46b02dbb`, `2cac65dd`, `43fd24ad`,
+  `5eac8334`, `3a3fb7b4`, `b5cf7ec6`, `3623221b`, `637feb0f`, `25901957`,
+  `e58ca1e0`, `489c2a02`, `946d76bb`, `29457148`, `29b516fc`, `224627db` och
+  `2a30297a`. (N61)
+- Säsongsvaror i slutet av september (trädgård, camping och utelek),
+  hoppade: saxgrinden `3c9fab4e`, som enligt källan är en trädgårdsvara
+  (avspärrning, skärm eller spaljé); krokodiltunneln för barn `55587d19`, en
+  lekvara för trädgården; trädgårdsmöbler, växthus, grillar, paviljonger,
+  tält, markiser, redskapsbodar och utelek: `3bced72a`, `b1c50788`,
+  `f85512b3`, `326487d8`, `a2d6f42d`, `f22d6078`, `501e0b18`, `0d29b1cb`,
+  `f8599023`, `05441d19`, `95ef0ac5`, `a26e3503`, `e99cdb7d`, `525d6fa0`,
+  `99bfdab2`, `a0893f97`, `eda0df1f`, `0419fca4`, `0dcbf034`, `909f0f6a`,
+  `b6eb44de`, `94048673`, `316f4680`, `d982cbb0`, `255e8cfd`, `9ed97cf7`,
+  `f56e726d`, `0c4c0dd7`, `138236a6`, `1c9056a5`, `f75133e5`, `1aa75bd9`,
+  `3560976c`, `3e6fe711`, `4f265c91`, `60b25cb7`, `80e48248`, `b8271c3b`,
+  `2589bf5e`, `d811eb09`, `4e9e1ea5`, `72848cd2`, `7c063c35`, `9e86f695`,
+  `b1ee4485`, `c424ba51`, `659b49ba`, `6b1c4fde`, `cc8f89f8`, `2e4e3858`,
+  `70c4c0af`, `74c17a31`, `f095ca87`, `13e37050`, `10b56f2e`, `40f998eb`,
+  `e9fe3745`, `e2a048d0`, `479b1137`, `1c0f3c2c`, `4dbdde4f`, `9e774704`,
+  `770405a4`, `3410a911`, `cd270969`, `661d5b7c`, `d9fa791d`, `0a4e9adc`,
+  `5504a1c0`, `5882ea25`, `2737e77e`, `b609bb9b`, `615a660e`, `1f40e962`,
+  `297eae7c`, `52228eb3`, `826e8a29`, `08634fee`, `86f1e346`, `2070dfbd`,
+  `2ba15c4d`, `c00796e7`, `dbb5baea`, `b0ae40f7`, `bf1016fa`, `2d377e68`,
+  `5e0b0060`, `9a6f4c1c`, `cebea719`, `65006a1d`, `87ef1108`, `7103fe01`,
+  `6e96e32e`, `b789640e`, `f908018f`, `35d0756b`, `ad84b4aa`, `057f23b4`,
+  `516734c2`, `0d225366`, `7286aa34`, `ea7ac3f5`, `3b67e612`, `5a914e74`,
+  `28e8ba14`, `f82e0042`, `62b3a7fc`, `0a2b6d53`, `a887e594`, `d538dbff`,
+  `1b9d3ee5`, `563490a6`, `16319acd`, `7c4e2bc3`, `9ec1c833`, `56759c4c`,
+  `8f2ac8ec`, `305845ac`, `01827378`, `b464a034`, `c1164682`, `5263d6b7`,
+  `9e157d1d`, `393a194d`, `5b88bef7`, `6bacbb65`, `15ca48ac`, `220a3dd1`,
+  `608ff7b0`, `a2dc6d02` och `be469c2f`. (N61)
+- Skärmens träffar som räknades som brus och inte fällde: högtryckstvätten
+  `ff740501` mot ett sidobord med skåp (`084b987b`), en slumpträff på måtten
+  mellan två olika slags varor. Den publicerades i N61. (N61)
+- Varje okänt utkast i spannet har exakt ett skäl, kontrollerat med ett
+  skript: 725 utkast, 7 publicerade och 718 hoppade. Av de 16 som fick
+  kontaktark publicerades 7 och hölls 9, med skälen ovan. (N61)
+- N61:s lista är genomgången från 1209 till 2999 kr. Spannet 3000–4499 kr är
+  bara delvis läst: Wix svarade på drygt en sekund per sida, så namnsvepet
+  delades i bitar om 26 sidor, och två bitar hann köras, alltså 52 av
+  katalogens 61 sidor. Det som lästes gav inga kandidater, och utkasten i
+  spannet står inte i listan ovan. Nästa runda börjar på 3000 kr och läser
+  spannet från början. (N61)
