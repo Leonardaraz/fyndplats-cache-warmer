@@ -63,7 +63,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Skönhet & Hälsa",
     tag: "Egentid för hud och välmående",
-    subs: ["Hudvård & Ansikte", "Massage & Återhämtning", "Kropp & Välbefinnande", "Hår & Rakning"],
+    subs: ["Hudvård & Ansikte", "Massage & Återhämtning", "Kropp & Välbefinnande", "Hår & Rakning", "Massagebänkar"],
     heroPicks: ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon"],
   },
   {

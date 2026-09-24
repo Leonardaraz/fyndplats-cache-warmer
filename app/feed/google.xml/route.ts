@@ -184,6 +184,9 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "vinstall-vinkylar": 638,         // Home & Garden > Kitchen & Dining
   barnmobler: 554,                  // Furniture > Baby & Toddler Furniture
   projektordukar: 395,              // … > Projector Accessories > Projection Screens
+  // Runda S12 (2026-09-24), samma kontroll. Massage & Återhämtning och
+  // Kropp & Välbefinnande behåller 469: de blandar stolar, bänkar och hjälpmedel.
+  massagebankar: 2074,              // … > Massage & Relaxation > Massage Tables (sv: Massagebord)
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

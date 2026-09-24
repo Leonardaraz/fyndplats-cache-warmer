@@ -366,9 +366,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Konstväxter för inne och ute: buxbom och cypresser på jordspett, olivträd upp till 180 cm, monstera och bambu i kruka med cementfylld botten – utan vattning.",
   },
   "kropp-valbefinnande": {
-    title: "Massagebänkar & hjälpmedel för kroppen",
+    title: "Rollator, ljusterapilampa & sittdyna",
     description:
-      "Hopfällbara massagebänkar, rollatorer och redskap för kropp och välbefinnande. Maxvikt och mått anges alltid. Fri frakt över 499 kr.",
+      "Hopfällbara rollatorer med sits som bär 136 kg, en ljusterapilampa på 10 000 lux, en sittdyna i memoryskum och en duschpall med stödhandtag.",
   },
   "lek-tillbehor-for-husdjur": {
     title: "Hundtrappa, hundramp, agility & kattbädd",
@@ -386,9 +386,14 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Leksakskök och barnkök för barn från 3 år – i trä, MDF och plast, med ugn, diskho och ljud, flera med rinnande vatten och upp till 92 delar.",
   },
   "massage-aterhamtning": {
-    title: "Massagebänkar & massageutrustning",
+    title: "Uppresningsfåtölj & kontorsstol med massage",
     description:
-      "Hopfällbara massagebänkar i trä och aluminium för behandling hemma eller i salong. Mått, vikt och sektioner anges. Fri frakt över 499 kr.",
+      "Uppresningsfåtöljer med lyft, massage och värme, kontorsstolar med massage och fotstöd, reclinerfåtöljer och en fot- och vadmassage för hemmet.",
+  },
+  massagebankar: {
+    title: "Massagebänk & behandlingsbänk – hopfällbar",
+    description:
+      "Hopfällbara massagebänkar och behandlingsbänkar i trä och aluminium: 60 eller 70 cm breda, med två eller tre zoner och en maxlast på 130 till 250 kg.",
   },
   massagestolar: {
     title: "Massagestolar & massagefåtöljer med värme",

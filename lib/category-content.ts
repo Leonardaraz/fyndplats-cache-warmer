@@ -1317,22 +1317,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "kropp-valbefinnande": {
     intro: [
-      "Kroppen behöver återhämtning lika mycket som träning. I Kropp & Välbefinnande hittar du hopfällbara massagebänkar i aluminium och rollatorer med fjädring och sits — utrustning som gör vardagen bekvämare, hemma eller i behandlingsrummet.",
-      "Vikt och maxbelastning är de avgörande måtten. En massagebänk i aluminium är lättare att bära och fälla ihop än en i trä, medan antalet sektioner styr hur kompakt den blir hopvikt. För en rollator är sitshöjd och maxvikt viktigast, och fjädring gör stor skillnad på ojämnt underlag utomhus. Alla mått anges i produktbeskrivningen.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans och spårbar frakt. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Här hittar du hjälpmedel för kropp och vardag: två hopfällbara rollatorer med sits, en ljusterapilampa, en ergonomisk sittdyna, en duschpall med stödhandtag och en hopfällbar massagebänk. Här finns också en handpan och en tungtrumma.",
+      "Båda rollatorerna har fyra hjul och sits, fälls ihop och bär 136 kg. Den ena har fjädring i chassit, handbroms i båda handtagen och hjul på 20 cm. Den andra har korg och bricka, och handtagen ställs mellan 82 och 97 cm.",
+      "Ljusterapilampan ger upp till 10 000 lux och har tre färgtemperaturer, fem ljusstyrkor och timer. Sittdynan är av memoryskum med ett urtag för svanskotan och mäter 44 × 39 × 13 cm, och duschpallen ställs mellan 39 och 51,5 cm och bär 150 kg.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Hur mycket väger en hopfällbar massagebänk?",
-        a: "Vikten anges per modell. Bänkar i aluminium är märkbart lättare än motsvarande i trä och är därför lämpligare om du behöver bära och flytta bänken ofta.",
+        q: "Vad betyder 10 000 lux?",
+        a: "Lux mäter hur mycket ljus som når en yta, och värdet sjunker ju längre från lampan du sitter. 10 000 lux är den ljusstyrka som brukar anges för ljusterapi. Lampan har fem ljusstyrkor, så den kan också användas svagare.",
       },
       {
-        q: "Vad klarar en rollator för maxvikt?",
-        a: "Maxvikten anges per modell, ofta runt 136 kg. Kontrollera även sitthöjden så att den passar användarens längd.",
+        q: "Hur högt ska handtagen på en rollator sitta?",
+        a: "En vanlig tumregel är att handtagen ska vara i höjd med handleden när du står rak med armarna hängande. På rollatorn med korg och bricka ställs handtagen mellan 82 och 97 cm.",
       },
       {
-        q: "Går utrustningen att fälla ihop för förvaring?",
-        a: "Ja, både massagebänkarna och rollatorerna är hopfällbara. Mått i både utfällt och hopfällt läge står i beskrivningen.",
+        q: "Varför har sittdynan ett urtag?",
+        a: "Urtaget bak gör att svanskotan inte bär vikten när du sitter, och memoryskummet formar sig efter kroppen. Dynan är 13 cm hög och har ett överdrag i mesh.",
       },
     ],
   },
@@ -1408,22 +1409,46 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "massage-aterhamtning": {
     intro: [
-      "Återhämtning är halva träningen — och en bra bänk gör jobbet bekvämt för båda parter. I Massage & Återhämtning hittar du hopfällbara massagebänkar i två och tre sektioner, i trä och aluminium, för behandling hemma eller på plats hos kunden.",
-      "Välj efter hur ofta du flyttar bänken. Aluminium är lättare att bära och passar dig som åker mellan behandlingar, medan trä ofta upplevs stabilare för en bänk som står kvar. Antalet sektioner styr packmåttet: tre sektioner viks ihop mindre än två. Längd, vikt, maxbelastning och hopfällt mått anges i varje produktbeskrivning.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Här hittar du massage för hemmet: uppresningsfåtöljer med massage, kontorsstolar med massage, reclinerfåtöljer och en gungstol med massage, en fot- och vadmassage och en muskelmassageapparat. Massagebänkar och massagestolar finns också samlade på egna sidor.",
+      "En uppresningsfåtölj, eller fåtölj med uppresningshjälp, lyfter och tippar sitsen framåt så att det blir lättare att resa sig. De flesta här lyfts elektriskt och en har hydraulisk lyft. Alla har värme, de flesta har massage i åtta punkter, och ryggen fälls på flera av dem till 150 grader. Två har uttag för USB-A och USB-C, och en behöver bara 35 cm fritt mot väggen.",
+      "Kontorsstolarna med massage har fyra till sju vibrationspunkter, och en har knådande massage vid skuldror och midja. Nio av dem har värme, de flesta har ett utdragbart eller infällbart fotstöd, och på de flesta fälls ryggen till mellan 130 och 155 grader. De bär 120 kg, och en bär 135 kg.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Trä eller aluminium — vad ska jag välja?",
-        a: "Aluminium är lättare och smidigare att bära mellan behandlingar. Trä är oftast tyngre men upplevs mycket stabilt och passar bäst för en bänk som får stå kvar.",
+        q: "Vad är en uppresningsfåtölj?",
+        a: "En fåtölj med uppresningshjälp: en motor lyfter och tippar sitsen framåt, så att du kommer upp utan att ta spjärn. Fåtöljerna här fälls också bakåt till liggläge, och alla har värme.",
       },
       {
-        q: "Hur liten blir bänken hopfälld?",
-        a: "Det hopfällda måttet anges per modell och beror på antalet sektioner — en tresektionsbänk viks ihop mindre än en med två sektioner.",
+        q: "Hur mycket plats behöver en uppresningsfåtölj?",
+        a: "Räkna med utrymme både bakåt och framåt. Fåtöljerna här är 144 till 165 cm långa i liggläge och upp till 142 cm höga i lyft läge. Den cremevita behöver bara 35 cm fritt mot väggen.",
       },
       {
-        q: "Ingår bärväska?",
-        a: "Vad som ingår framgår av produktbeskrivningen. Många hopfällbara bänkar levereras med bärväska.",
+        q: "Går värmen att använda utan massage?",
+        a: "På flera av fåtöljerna, ja. Det står i beskrivningen. På bland annat uppresningsfåtöljen med 155 graders liggläge styrs ländvärmen separat.",
+      },
+    ],
+  },
+
+  massagebankar: {
+    intro: [
+      "Här hittar du hopfällbara massagebänkar, som också kallas massagebord, massagesäng eller behandlingsbänk. De fälls ihop till ett platt paket och passar både för behandling hemma och för hembesök hos kunden.",
+      "Stommen är av trä eller aluminium. Två bänkar i trä bär 250 kg och har en bärväska med i kartongen. På bänkarna med tre zoner fälls rygg, mitt och ben var för sig, och två av dem kan ställas i halvsittande läge.",
+      "Liggytan är 60 cm bred, och två bänkar har en liggyta på 70 cm som ger mer plats för armarna. Med ansiktsstödet på är de flesta 210 till 215 cm långa, och höjden går att ställa på alla. Den 70 cm breda med armstöd och handbrädor har en 9 cm tjock dyna.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken höjd ska en massagebänk ha?",
+        a: "En tumregel är att bänken ska nå ungefär till knogarna när du står bredvid den med armarna rakt ner. Höjden går att ställa på alla bänkarna här. Är du lång, titta efter en bänk som går högt: de två träbänkarna med bärväska går upp till 92 cm.",
+      },
+      {
+        q: "Trä eller aluminium?",
+        a: "Titta hellre på vikt, maxlast och bredd än på material. Vikten står på de flesta bänkarna och ligger mellan 13 och 17,5 kg. Den på 13 kg har träställ, och aluminiumbänkarna med tre zoner väger 17,5 kg.",
+      },
+      {
+        q: "Hur mycket bär en massagebänk?",
+        a: "Det skiljer mellan modellerna. Där maxlasten anges ligger den mellan 130 och 250 kg: den 70 cm breda bänken med armstöd och handbrädor bär 130 kg, och de två träbänkarna med bärväska bär 250 kg.",
       },
     ],
   },
