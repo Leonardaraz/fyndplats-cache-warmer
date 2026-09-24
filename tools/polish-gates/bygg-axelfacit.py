@@ -100,6 +100,20 @@ HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s
 # Etiketten står uttryckligen i listan: mönstret är skiftlägeskänsligt, och
 # `Länge` matchar inte `länge` inne i en sammansättning.
 LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Kabellänge|Länge)\s*:\s*\d+(?:[.,]\d+)?\s*c?m\b"
+
+# ☠️ OCH EN KRUKVÄXT KAN SKRIVA HÖJDEN UTAN "GESAMT". Uppmätt i runda N65 på
+# konstfikusen a6657b3d, vars enda mått är
+#
+#     Höhe: 150 cm
+#     Topfgröße: Ø15 x 12,5 cm
+#
+# Samma sak som `Gesamthöhe` på 67ba375c (N2), bara ett annat ord — och
+# generatorn avbröt. Etiketten är naken, så mönstret kräver att den står FÖRST
+# på raden och ensam: `Sitzhöhe:` och `Rückenlehne Höhe:` är delmått och får
+# aldrig bli produktens höjd. Grenen ligger dessutom SIST, där den gamla koden
+# avbröt, så ingen tidigare runda kan få ett annat facit av den. Fler än en
+# sådan rad är tvetydigt, och då avbryter generatorn som förr.
+NAKEN_HOJD = r"^(?:✔\s*)?Höhe\s*:\s*(\d+(?:[.,]\d+)?)\s*cm\s*$"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -327,10 +341,16 @@ def main():
                        if re.search(r"abmessungen\s*:", r, re.I)
                        or (":" in r and axelpar(r.split(":", 1)[1]))]
             langd = [r for r in rader if re.search(LANGDETIKETT, r)]
+            naken = [m for m in (re.search(NAKEN_HOJD, r) for r in rader) if m]
             if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
             elif langd and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara en längd: " + " | ".join(langd)
+            elif len(naken) == 1 and "axellos" not in d:
+                d["tyska"] = naken[0].group(0).strip()
+                d["bokstaver"] = "H"
+                d["hojd"] = tal(naken[0].group(1))
+                d["axelkalla"] = "tyska raden 'Höhe' (kallan har ingen totalmattrad)"
             elif "axellos" not in d:
                 # En rad som redan är märkt axellös av tvåtals-spärren ovan är
                 # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den

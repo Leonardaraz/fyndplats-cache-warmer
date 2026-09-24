@@ -1,0 +1,24 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+9053bc1a	litet runt matbord	1000	20	runt matbord; matbord runt; matbord för två; litet matbord
+295bb20f	smalt barbord	480	13	barbord; barbord kök; ståbord; högt bord
+8ed2dc38	rund spegel med belysning	1300	17	badrumsspegel med belysning; rund badrumsspegel; led spegel; spegel med belysning
+af9378d6	runt soffbord	8100	18	soffbord marmor; satsbord; soffbord grå
+40d0af10	liten pall	1000	19	fotpall; fotpall grå; fotpall soffa; fotstöd
+0a4958cc	hallspegel	1000	21	vit spegel; spegel vit ram; rektangulär spegel; väggspegel
+a6657b3d	ficus benjamina	260	13	fikus; konstgjord växt; konstväxt stor
+376caddc	konstväxt stor	170	14	dieffenbachia; konstgjorda växter; konstväxter
+792562e3	julgran plast	1600	19	plastgran; julgran 210 cm; konstgjord julgran
+7727e1bf	konstgjord gran	260	10	smal julgran; julgran 210 cm; julgran smal
+520cc521	billig julgran	480	20	grön julgran; julgran 180 cm
+2ffa80f1	gnistgaller	390	8	gnistskydd; gnistskydd öppen spis; eldskydd
+# Publicerade slugar med huvudordet, sökta i butikens sökning 2026-09-24: litet runt matbord 0, smalt barbord 0, rund spegel med belysning 0, runt soffbord 0, liten pall 0, hallspegel 0, ficus benjamina 0, konstväxt stor 0, julgran plast 0, konstgjord gran 0, billig julgran 0, gnistgaller 0.
+# 9053bc1a: runt köksbord (3 600, 23) bärs av ett publicerat köksbord på 60 cm, och runt bord (3 600, 23) av N64:s runda bord på 78 cm. Rundan tar litet runt matbord (1 000, 20).
+# 295bb20f: ståbord (1 900, 11) bärs av fyra publicerade ståbord på hjul. Rundan tar smalt barbord (480, 13).
+# 8ed2dc38: rund badrumsspegel (320, 16) bärs av den publicerade runda spegeln på Ø60 cm, samma serie i en mindre storlek. Rundan tar rund spegel med belysning (1 300, 17).
+# af9378d6: satsbord (3 600, 13) bärs av sju publicerade sidor. Rundan tar runt soffbord (8 100, 18), som ingen slug bär.
+# 40d0af10: fotpall (8 100, 18) bärs av 29 publicerade sidor. Rundan tar liten pall (1 000, 19).
+# 0a4958cc: väggspegel (2 400, 18) bärs av tio publicerade speglar, bland dem samma serie i svart på 40 × 60 och 50 × 70 cm. Rundan tar hallspegel (1 000, 21).
+# a6657b3d: fikus (3 600, 20) står i två publicerade slugar, fikonfikus och fiolfikus, som är andra arter. Rundan tar ficus benjamina (260, 13).
+# 376caddc: dieffenbachia (590, 11) bärs av den publicerade dieffenbachian på 95 cm. Rundan tar konstväxt stor (170, 14).
+# 792562e3, 7727e1bf och 520cc521: smal julgran (590, 14) bärs av sex publicerade granar, konstgjord julgran (390, 20) av sju och julgran 210 cm (260, 16) av sju. Rundan tar julgran plast (1 600, 19), konstgjord gran (260, 10) och billig julgran (480, 20), ett ord per gran. Julgran konstgjord (260, 18) valdes bort: det är samma sökning som konstgjord julgran, bara i omvänd ordning.
+# 2ffa80f1: gnistskydd (1 300, 13) och gnistskydd öppen spis (590, 10) bärs av tio publicerade gnistskydd. Rundan tar gnistgaller (390, 8).

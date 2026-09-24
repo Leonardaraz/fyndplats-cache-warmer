@@ -253,6 +253,36 @@ describe("GESAMTHÖHE — en totalhöjd utan totalmått", () => {
   });
 });
 
+describe("NAKEN HÖHE — samma totalhöjd utan ordet Gesamt", () => {
+  it("läser `Höhe: 150 cm` när källan inte har något annat mått", () => {
+    // Runda N65, konstfikusen a6657b3d: `Höhe: 150 cm` och
+    // `Topfgröße: Ø15 x 12,5 cm`. Samma form som den publicerade fikusen
+    // 63351b54 i L1, där generatorn också avbröt.
+    const ut = bygg({
+      aaa: kalla(["Höhe: 150 cm", "Topfgröße: Ø15 x 12,5 cm"], "Ø15 x 150H cm"),
+    });
+    expect(ut.aaa).toMatchObject({ hojd: 150, bokstaver: "H" });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(String(ut.aaa.axelkalla)).toContain("Höhe");
+  });
+
+  it("☠️ Gesamthöhe vinner över en naken Höhe", () => {
+    const ut = bygg({ aaa: kalla(["Gesamthöhe: 110 cm", "Höhe: 150 cm"]) });
+    expect(ut.aaa.hojd).toBe(110);
+  });
+
+  it("☠️ ett delmått med Höhe i etiketten blir aldrig produktens höjd", () => {
+    // `Sitzhöhe` och `Rückenlehne Höhe` mäter en DEL. Etiketten måste stå
+    // först på raden och ensam, annars avbryter generatorn som förr.
+    expect(() => bygg({ aaa: kalla(["Sitzhöhe: 45 cm"]) })).toThrow();
+    expect(() => bygg({ aaa: kalla(["Rückenlehne Höhe: 50 cm"]) })).toThrow();
+  });
+
+  it("☠️ två nakna Höhe-rader är tvetydiga och avbryter", () => {
+    expect(() => bygg({ aaa: kalla(["Höhe: 150 cm", "Höhe: 120 cm"]) })).toThrow();
+  });
+});
+
 describe("TREVÄGSKEDJA — en tredje siffra får inte tystas bort", () => {
   it("☠️ 54/62/70H behåller ALLA tre talen, inte bara de sista två", () => {
     // Runda N19, campingbordet ecb304cd: `Gesamtabmessungen: 240L x 60B x
