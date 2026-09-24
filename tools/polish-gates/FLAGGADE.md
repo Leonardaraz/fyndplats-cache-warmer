@@ -1102,3 +1102,57 @@ beslut — se den samlade frågan om detta.
   och gungöverdragen `491c8d4c` och `a2dd5dc8` (mot `786edb92`). Raden ovan
   skrevs ur minnet av en sammanfattning; skärmens utfall stod i sessionens
   logg. (N57)
+- Slutsålda (saldo 0), alltså hoppade: skärmtaken `0a4be3cd` och
+  `c8ef28aa`, blomställen i tre storlekar `cdbc026c`, barnstaffliet
+  `dc709681`, köksstolarna i fyrpack `4c378bbd` och klösbrädan för hörn
+  `8e559211`. (N58)
+- Tunt saldo, hoppad: sittställningen för papegojor `3e6e478c` har saldo
+  4 och visas alltså som en enda vara i butiken. (N58)
+- Skärmträffar mot publicerade sidor av samma slag, hoppade utan
+  utredning: köksbordet `6e10449e` (mot `4a365ee5`, samma bord: 40 kg last
+  och 10,2 kg vikt i båda), de fällbara skrivborden `76049a44` och
+  `e7d26cc2` (mot `21e0df93` och `872d06b2`), tyggarderoben `e6458b57`
+  (mot `4fdd5a7f`), elmotorcyklarna för barn `0a27ed50` och `5fafabd9`
+  (mot `372ee931` och `005aaee6`), byrån med tyglådor `1919bee5` (mot
+  `16b83e2f`), barsetet `3393a208` (mot barbordet `394de213`),
+  LED-badrumsspegeln `3a31f4cc` (mot fem sidor, bland dem `170f7e0a` och
+  `c5162985`), sittbänken `d9767b3c` (mot hallbänken `9383d686`),
+  elfyrhjulingen `fa5d1210` (mot `9d686a82`), pedalhinkarna på 30 liter
+  `6701fa36`, `3d3bd96a` och `72e07e63` (mot N57:s `753907f5`),
+  badrumsskåpet `12d74d4a` (mot `4239a0a5`), rumsavdelaren `747b2a73`
+  (mot tretton sidor, bland dem `1c1eb875` och `23d20823`) och soffbordet
+  `d46032c6` (mot `4009d67f`). (N58)
+- Familjen är redan publicerad, hittad på namn och mått snarare än av
+  skärmen: pokersetet med 500 marker `c70e65a5` (`0dff6d43` är publicerat
+  med 500 marker), sminkbordet för barn 2-i-1 `3df185a4` (mot
+  `e8f7eaed`, samma upplägg), golvlampan med tre hyllor på 158 cm
+  `3f3a9770` (nära `53e66496` på 159 cm, och åtta golvlampor med hyllor är
+  publicerade) och LED-badrumsspegeln 50 × 70 cm `40f26fb8` (samma storlek
+  som `4117e161`, och sjutton badrumsspeglar är publicerade). (N58)
+- Lekköket med 33 delar `901265e6` hoppades: elva lekkök är redan
+  publicerade, och varan bär engelska dekaler överallt. Skärmen gav ingen
+  träff. (N58)
+- Färgtvilling i samma runda: räcket med gymnastikringar i rosa
+  `a3dfcd1e` hoppades, eftersom den lila `68c9cfe0` publicerades i N58.
+  (N58)
+- Licensmärke, hoppad utan skärm: elmotorcykeln för barn med BMW-märket
+  `53095ce4`. (N58)
+- Säsongsvaror i slutet av september, hoppade utan skärm: julgranen
+  `020ce8ea`, lerköket för utomhusbruk `1f3321d8`, kolgrillen `3e732a0b`,
+  odlingsbädden `414cb255`, paviljongtaket `69808355`, trädgårdsstaketet
+  `9de455e3`, växthusskyddet `eb91e61b` och pickleballnätet `2c5b98a3`.
+  (N58)
+- Familjer som redan är täckta, hoppade utan skärm: grindarna `15d2ff64`,
+  `61f17e20`, `5de9fa24`, `a6fa9258`, `c23b62dc`, `d7e1529f` och
+  `5f84f2c1`, agilityseten `5f181a0c` och `bfa9f520`, kontorsstolen
+  `6af1977d`, hundvagnen `9de3703e` och trehjulingen `ad8facdb`. (N58)
+- Djurbostäder som kräver en laglighetskontroll, hoppade utan skärm:
+  kattburen på 105 cm `d8d3d714` och hamsterburen 2-i-1 `35930359`. (N58)
+- Skärmens träffar som räknades som brus och inte fällde: snurrstolen
+  `336359d7` mot en handpan, tvättställsskåpet `5b38973c` mot en
+  sparkcykel, bambuskåpet `9709043e` mot ett fällbart skrivbord och mot
+  rundans eget badrumsskåp `aa108611` (på ett innermått), och satsborden
+  `106819f0` mot ett rottingsidobord och en eldkorg. Alla fyra
+  publicerades i N58. (N58)
+- N58:s lista är genomgången från 859 till 879 kr. Nästa runda börjar på
+  889 kr. Säsongs- och familjeskärmen för 889–949 kr är inte gjord. (N58)
