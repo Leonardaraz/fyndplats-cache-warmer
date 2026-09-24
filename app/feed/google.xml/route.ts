@@ -420,7 +420,12 @@ export async function GET() {
       taxonomy = taxonomyFor(byId.get(pid), byColId);
       taxonomyCache.set(pid, taxonomy);
     }
-    const line = feedItem(v, byId.get(pid), galleries.get(pid) || [], taxonomy);
+    // Galleriet ur V3-svepet, annars produktens eget (upp till 6 bilder ur
+    // listningen), samma reserv som /feed/products.xml. Utan reserven fick
+    // 2 836 av 3 393 produkter NOLL extrabilder (2026-09-24): svepet läser bara
+    // de 1 200 nyaste produkterna, och drygt hälften av dem är dolda utkast.
+    const gallery = galleries.get(pid) || byId.get(pid)?.gallery || [];
+    const line = feedItem(v, byId.get(pid), gallery, taxonomy);
     if (line) items.push(line);
   }
 
