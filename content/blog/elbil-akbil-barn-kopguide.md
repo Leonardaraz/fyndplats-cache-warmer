@@ -109,4 +109,4 @@ Ja, elbilarna levereras i delar och ska monteras av en vuxen. Räkna med en kvä
 
 ---
 
-Hittar du inte rätt bland de här finns fler fordon och utomhusleksaker i [Leksaker & spel](/kategori/leksaker-spel) och [Barn & familj](/kategori/barn-familj).
+Alla elbilar finns under [Elbil för barn](/kategori/elbilar-for-barn) och elmotorcyklarna under [Motorcyklar för barn](/kategori/motorcyklar-for-barn). Hittar du inte rätt bland de här finns fler fordon och utomhusleksaker i [Leksaker & spel](/kategori/leksaker-spel) och [Barn & familj](/kategori/barn-familj).

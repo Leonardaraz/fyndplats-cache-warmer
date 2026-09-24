@@ -171,6 +171,8 @@ const nextConfig: NextConfig = {
       { source: "/kategori/ljud-horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
       { source: "/kategori/musmatta", destination: "/kategori/dator-gaming", permanent: true },
       { source: "/kategori/tangentbord", destination: "/kategori/dator-gaming", permanent: true },
+      // Rankade på "mus till dator" (590/mån, plats 56) och svarade 404 (Semrush 2026-09-24).
+      { source: "/kategori/datormus", destination: "/kategori/dator-gaming", permanent: true },
       { source: "/kategori/ovrigt", destination: "/alla-produkter", permanent: true },
 
       // Gamla Wix-sajtens rot-adresser (ihopskrivna slugs, ofta med åäö).
@@ -179,7 +181,9 @@ const nextConfig: NextConfig = {
       { source: "/heminredning", destination: "/kategori/hem-inredning", permanent: true },
       { source: "/horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
       { source: "/h%C3%B6rlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
-      { source: "/konstgjordablommor", destination: "/kategori/dekoration-prydnad", permanent: true },
+      // Konstväxter har egen kategori sedan runda S6 (2026-09-24), och den tar
+      // konstgjorda blommor och växter. Adressen rankar på "blommor dekoration".
+      { source: "/konstgjordablommor", destination: "/kategori/konstvaxter", permanent: true },
       { source: "/leksakerbarnbebisar", destination: "/kategori/leksaker-spel", permanent: true },
       // GSC listar även /mobiltillbehör?page=2. Query-strängar ingår inte i source-
       // matchningen och följer automatiskt med till destination, så raden nedan
@@ -197,6 +201,17 @@ const nextConfig: NextConfig = {
       // rot-regeln nedan? Nej: Next matchar hela sökvägen, och "/basta-i-test"
       // (exakt) och "/basta-i-test/:type" kan aldrig matcha samma URL. Ordningen
       // är därför likgiltig här — men de hör ihop och står bredvid varandra.
+      //
+      // Massagepistolerna är undantaget, och deras regler MÅSTE stå före den
+      // generella: Next tar första regeln som matchar. Butiken säljer inga
+      // massagepistoler, så köpguiden är tunn och /kopguider/massagepistoler
+      // svarar 307 → /butik. /basta-i-test/massagepistoler rankade ändå på
+      // "massageapparat bäst i test" (plats 18), "massagepistol bäst i test"
+      // och "bästa massagepistolen", sammanlagt 2 990 sökningar/mån
+      // (Semrush 2026-09-24). Kedjan slutade på /butik och tog rankningen med
+      // sig. Bloggens guide svarar på samma fråga.
+      { source: "/basta-i-test/massagepistoler", destination: "/blogg/massagepistol-kopguide-2026", permanent: true },
+      { source: "/kopguider/massagepistoler", destination: "/blogg/massagepistol-kopguide-2026", permanent: true },
       { source: "/basta-i-test/:type", destination: "/kopguider/:type", permanent: true },
 
       // PUNKT 16: rean har fått en egen permanent adress, /rea.

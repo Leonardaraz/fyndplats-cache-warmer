@@ -64,7 +64,7 @@ Vårt [takhöga kattträd (230–260 cm)](/produkt/takhogt-katttrad) spänns fas
 
 ## Utforska mer hos Fyndplats
 
-Allt till katten och resten av familjens djur hittar du inom [Husdjur](/kategori/husdjur) — och fler råd finns i vår [husdjursguide för hund och katt](/blogg/husdjursguide-hund-och-katt).
+Alla våra klösträd och kattträd finns under [Klösträd](/kategori/klostrad), och allt till katten och resten av familjens djur hittar du inom [Husdjur](/kategori/husdjur) — och fler råd finns i vår [husdjursguide för hund och katt](/blogg/husdjursguide-hund-och-katt).
 
 ## Vanliga frågor
 

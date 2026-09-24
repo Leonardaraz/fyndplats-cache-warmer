@@ -29,7 +29,7 @@ Här är tio enkla idéer som tillsammans bygger en riktigt mysig höstkänsla �
 Det enskilt största misstaget vi gör som svenskar är att tända taklampan så fort det skymmer. Resultatet är ett hårt, plant ljus som platta ut rummet och drar fram allt som är slitet.
 
 Lösningen: jobba med ljuskällor i tre nivåer.
-- **Golvnivå:** golvlampa i ett hörn
+- **Golvnivå:** [golvlampa](/kategori/golvlampor) i ett hörn
 - **Ögonhöjd:** bordslampa eller vägglampa
 - **Indirekt ljus:** ljusslinga, levande ljus
 
