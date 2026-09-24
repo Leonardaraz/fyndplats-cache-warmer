@@ -50,11 +50,16 @@ const KEEP_LIVE = new Set<string>([]);
 // 2026-07-09. Örhängen har inget relevant mål (smycken-kategorin är tom → /butik),
 // så den lämnas medvetet på /alla-produkter.
 const RETIRED_REDIRECT_OVERRIDES: Record<string, string> = {
-  "robust-paraply-med-uv-skydd": "/kategori/tradgard-utemobler",
+  "robust-paraply-med-uv-skydd": "/kategori/solskydd-paviljonger",
   "traningsvastar-for-lag-numrerade-sportvastar": "/kategori/traning-gym",
   "vikbar-skotbadd-vattentat-och-portabel-skotmatta": "/kategori/baby-smabarn",
   "vagghangd-utfallbar-kladhangare-i-tra-platsbesparande": "/kategori/forvaring-organisering",
   "elektrisk-aggkokare": "/kategori/koksmaskiner-apparater",
+  // Semrush 2026-09-23: de här två rankade fortfarande (390 resp. 110 sökningar/mån)
+  // men landade på /alla-produkter. Dammsugaren har en direkt efterträdare i
+  // katalogen; ögonmasken har ingen, så närmaste levande kategori.
+  "sladdlos-handdammsugare-bil": "/produkt/sladdlos-handdammsugare-30000pa-borstlos-bil",
+  "uppvarmd-ogonmask": "/kategori/kropp-valbefinnande",
 };
 const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map((slug) => ({
   source: `/produkt/${slug}`,
