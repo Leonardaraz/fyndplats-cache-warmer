@@ -175,6 +175,13 @@ går att göra från den här sessionen.
    butiken använder redan Klarna. Villkoren behöver kollas. Det här är den
    kanal där vårt prisläge mot dealproffsen syns direkt för köparen. Det är
    inte SEO i strikt mening, men det ger trafik utan domänstyrka.
+
+   **Flödena finns redan.** Butikens `/api/feed/products.xml` är byggd för
+   Prisjakt, PriceRunner och Kelkoo, och motorns `/api/feed/shopit` för
+   Shopit (#639, 2026-09-19). Det som återstår är registreringen hos
+   respektive sajt. PriceRunners sökning på "fyndplats" visar oss inte som
+   butik 2026-09-24. Om vi är registrerade hos Prisjakt är inte kontrollerat,
+   eftersom deras butikssök kräver JavaScript.
 3. **Rabattkodssajter:** Cuponation, Rabattkungen, rabattkodswe. En kod
    kostar marginal bara när den används. Många av sajterna hämtar butiker
    från affiliatenätverk, så steg 4 kan ge dem på köpet.
