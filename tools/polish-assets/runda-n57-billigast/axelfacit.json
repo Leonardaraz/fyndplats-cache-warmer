@@ -1,0 +1,113 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0c9f870d": {
+  "tyska": "50L x 1,5B x 170H cm (mit gefalteter Halterung)",
+  "svenska": "161,5L x 50B cm",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 50,
+  "djup": 1.5
+ },
+ "1612e633": {
+  "tyska": "230L x 160B x 0,5H cm",
+  "svenska": "230L x 160B x 1H cm",
+  "bokstaver": "LBH",
+  "hojd": 0.5,
+  "bredd": 230,
+  "djup": 160
+ },
+ "22f7688b": {
+  "tyska": "79L x 72B x 20H cm",
+  "svenska": "79L x 72B x 20H cm",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 79,
+  "djup": 72
+ },
+ "6db49bc9": {
+  "tyska": "60B x 3T x 87H cm",
+  "svenska": "60cm x 3cm x 87cm",
+  "bokstaver": "BTH",
+  "djup": 3,
+  "hojd": 87,
+  "bredd": 60
+ },
+ "753907f5": {
+  "tyska": "29L x 36W x 59.5H cm",
+  "svenska": "36 x 29 x 59,5 cm",
+  "bokstaver": "LH",
+  "hojd": 59.5,
+  "bredd": 29
+ },
+ "77e6e472": {
+  "tyska": "33B x 25T x 69H cm",
+  "svenska": "33cm x 25cm x 69cm",
+  "bokstaver": "BTH",
+  "djup": 25,
+  "hojd": 69,
+  "bredd": 33
+ },
+ "7d982b40": {
+  "tyska": "97,5B x 30T x 100H cm",
+  "svenska": "97,5L x 30B x 100Hcm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 100,
+  "bredd": 97.5
+ },
+ "86bbd2eb": {
+  "tyska": "",
+  "svenska": "120L x 20B x 170H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaß: 120L x 20B x 170H cm"
+ },
+ "9d2c88bd": {
+  "tyska": "L33 x B25 x H84cm",
+  "svenska": "50L",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 33,
+  "djup": 25
+ },
+ "a96f4c7e": {
+  "tyska": "35L x 35B x 45H cm",
+  "svenska": "35 x 35 x 45 cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 35,
+  "djup": 35
+ },
+ "ac1cc9a5": {
+  "tyska": "",
+  "svenska": "70L x 46B x 2,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (Groß): 70L x 46B x 2,5T cm | ✔ Gesamtabmessungen (Klein): 49,5L x 31B x 2,5T cm | ✔ Spiegelgröße (Groß): 69,5L x 45,5B cm | ✔ Spiegelgröße (Klein): 48,7L x 30,5B cm"
+ },
+ "af2ca910": {
+  "tyska": "30L x 30B x 70H cm (Groß), 25L x 25B x 60H cm (Mittel), 20L x 20B x 50H cm (Klein)",
+  "svenska": "30L x 30B x 70H cm",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 70,
+  "bredd": 30,
+  "djup": 30
+ },
+ "bdd02765": {
+  "tyska": "30B x 29T x 108H cm",
+  "svenska": "30L x 29B x 108H cm",
+  "bokstaver": "BTH",
+  "djup": 29,
+  "hojd": 108,
+  "bredd": 30
+ },
+ "d242e56d": {
+  "tyska": "47 B x 64 T x 189 H cm",
+  "svenska": "47 x 64 x 189 cm",
+  "bokstaver": "BTH",
+  "djup": 64,
+  "hojd": 189,
+  "bredd": 47
+ },
+ "f173eee1": {
+  "tyska": "",
+  "svenska": "63L x 63B x 67- 93H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Insgesamt: Ø63 x 67- 93H cm | ✔ Höhenverstellung: 67-93H cm"
+ }
+}
