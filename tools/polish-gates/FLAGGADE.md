@@ -993,3 +993,79 @@ beslut — se den samlade frågan om detta.
   hoppade för husmärke (fem ovan) eller reserv (en). Nästa runda börjar med
   reserven och fortsätter på nästa prisnivå, som ännu inte är skärmad.
   N50:s åtta för en riktad kontroll är fortfarande inte kontrollerade. (N55)
+- Husmärke på varan, alltså hoppade enligt regeln från N36: takboxen
+  `8bc0dd26` (Outsunny tryckt på själva väskan, och bild 3 och 4 bär
+  dessutom tysk text) och golvspegeln `ffc507bf` (en HOMCOM-etikett på
+  spegelglaset i bild 1, 3 och 5). Båda var `las`-gröna. (N56)
+- Reserv: förvaringspallen i vit manchester `a96f4c7e` (839 kr, saldo 67),
+  de två väggspeglarna i kiselform `ac1cc9a5` (839 kr, saldo 43) och de tre
+  växtpiedestalerna i vit metall `af2ca910` (839 kr, saldo 55). Alla tre är
+  `las`-prövade (gröna) och kontakt- och högpassarken är granskade utan
+  fynd, men de är inte skrivna. Nästa runda börjar med dem. (N56)
+- Slutsålda (saldo 0), alltså hoppade: det konstgjorda banyanträdet
+  `0730f7cb` och den elektriska skotorken `d8ce6568`. Prövas igen när
+  saldot har stigit. Kattlådan `e397f6b3` och byrån `66e1ebe3` var också
+  slutsålda, men de har dessutom en skärmträff (nedan). (N56)
+- Skärmen läste ingen måtttrippel ur källan, alltså hoppade: pallen 2-i-1
+  i sammetslook med förvaring `a36d6f82` och väggspegeln på 70 × 90 cm
+  `b6922dc8`. (N56)
+- Julgranarna `5d0d95d1` och `63fcc340` hoppade: skärmen läste noll
+  respektive en måtttrippel ur källan, och en konstgjord gran avgörs mot de
+  publicerade på höjd och diameter. Det kräver en riktad kontroll, inte en
+  snabb skärm. (N56)
+- Säsongsvaror i slutet av september, hoppade utan skärm: odlingslådorna
+  `baf66133`, `d86fdaf5` och `13f983f5`, komposterna `22966e58` och
+  `49faf165`, sittdynan för utemöbler `6aa94670`, insynsskyddsremsorna
+  `727e95ba`, sidobordet för trädgården `6bad04de`, kanotvagnen
+  `29050768`, basketkorgen `30703220`, fältsängen `764852d8` och den
+  självuppblåsande luftmadrassen `a2b6701d`. (N56)
+- Familjer som redan är täckta, hoppade utan skärm: kontorsstolarna
+  `1d70f204` och `94115aae`, grindarna `8477328f`, `49069c2c`, `726f69a2`,
+  `8018bb95` och `8481e705` och agilityseten för hund `48df62b1` och
+  `4d5c508e`. Det är samma familjer som N54 hoppade. (N56)
+- Skärmträffar mot publicerade sidor av samma slag, hoppade utan
+  utredning: barnfyrhjulingen `626e0b05` (mot `358f4559`), elfyrhjulingen
+  `8a3b21e3` (mot tre sidor, bland dem `403dfd8d` och `9d686a82`),
+  träningsstudsmattan `897713b8` (mot `018a5303`), rumsavdelaren
+  `c2bb00a0` (mot åtta sidor, bland dem `1c1eb875` och `23d20823`),
+  kattlådorna `e397f6b3` och `07601a29` (mot åtta respektive sex sidor,
+  bland dem kattlådorna `c35c82ce` och `1abd6c48`), vattenkokaren med
+  brödrost `217630f1` (mot sexton sidor, bland dem vattenkokaren
+  `acc9ab97` och brödrosten `985ff6d3`), de fällbara skrivborden
+  `329f3e32` (mot `872d06b2` och `21e0df93`) och `548dc0ad` (mot
+  `05e65736`), barnkeyboarden `36ac2f68` (mot barnpianot `8c10cb66`),
+  medicinskåpet `6858d7ee` (mot `c56ba889` och `54efbdc6`),
+  förvaringsbänken `801a4fe8` (mot `8c49e7cc`), badrumsspegeln `95888e16`
+  (mot fyra sidor, bland dem `f23252d9` och `c438d4ba`), hurtsen
+  `c24bd9fe` (mot `f0e0ee14`), trappkärran `40955576` (mot `8aa0bb6c`),
+  byråarna `66e1ebe3` (mot `267e9c90`) och `68e64f5e` (mot `16b83e2f` och
+  `ce12cf40`), sensorsoptunnan på 50 liter `e87ab865` (mot `92fc308c`),
+  trehjulingen `f2ad437d` (mot `80aac077`) och hundvagnen `2d65601c` (mot
+  sju sidor, bland dem hundvagnarna `d27a28ae`, `eb02039b` och
+  `0fdf9aba`). (N56)
+- Oklara skärmträffar, hoppade utan utredning: den rullbara bokhyllan
+  `8af6d2ab` (mot köksskåpet `5de3224e`, hurtsen `f0e0ee14` och kandidaten
+  `c24bd9fe`) och sidobordet på hjul `108aab26` (mot sex sidor, bland dem
+  sybordet `7c81fcbe`, sideboarden `7ae081a1` och byrån `499c4386`). (N56)
+- Skärmens träffar som räknades som brus och inte fällde: vinstället
+  `6f4baeef` mot ett förvaringsskåp, badrumsskåpet `e248e9db` mot ett
+  barnbord, satsborden `f2756389` mot tio sidor (kubhyllor, klösträd, en
+  fåtölj, en förvaringspall, bordsdiskmaskiner och en tyggarderob),
+  kabinväskan `1355eec8` mot en katthängmatta, fyra hundvagnar och en
+  marsvinsbur, pokersetet `1c908b3f` mot en byrå, klätterväggen `3ad8c7a4`
+  mot ett badrumsskåp, vedstället `7e3d0a23` mot ett skoskåp,
+  leksaksaffären `868b82c8` mot ett klösträd och en hundtrappa och staffliet
+  `98da447a` mot en chefsstol, en benmaskin och två nattduksbord. Alla nio
+  publicerades i N56. Reservernas träffar räknades också som brus:
+  `a96f4c7e` mot två modulgarderober och `af2ca910` mot en soptunna, ett
+  badrumsskåp och en trädgårdsfontän. (N56)
+- De två gnistskydden `1da6b037` och `6d0e2d27` träffade varandra i
+  skärmen (båda är 122 × 75 cm), men de är två olika varor: svart med
+  bågmönster respektive guldfärgat med dubbeldörrar. Båda publicerades i
+  N56. (N56)
+- Alla kandidater på 819–839 kr i N56:s lista är nu publicerade (14 i N56,
+  plus N55:s reserv på 799 kr), hoppade med en rad ovan, reserver eller
+  rörda av main-serien. Nästa runda börjar med de tre reserverna och
+  fortsätter på 849 kr, där 27 utkast ligger utanför main-serien och inget
+  är skärmat. N50:s åtta för en riktad kontroll är fortfarande inte
+  kontrollerade. (N56)
