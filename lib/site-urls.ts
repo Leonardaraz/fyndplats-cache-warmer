@@ -17,7 +17,7 @@ import { getProductSitemapEntries, getCollections, getProducts, forListings } fr
 import { saleProducts } from "./rea";
 import { getPosts } from "./blog";
 import { getProgrammaticUrls } from "./seo/programmatic";
-import { categoryInSitemap } from "./category-threshold";
+import { categoryInSitemap, countPerCategory } from "./category-threshold";
 
 export const SITE = "https://www.fyndplats.se";
 
@@ -114,10 +114,7 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
   // säger åt den att inte indexera. Regeln bor i lib/category-threshold.ts så
   // sitemap och robots inte kan säga olika saker. Räkningen använder samma
   // produktmängd som kategorisidan visar.
-  const catCounts = new Map<string, number>();
-  for (const p of forListings(await getProducts())) {
-    for (const cid of p.collectionIds || []) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
-  }
+  const catCounts = countPerCategory(forListings(await getProducts()));
   for (const c of collections) {
     if (!categoryInSitemap(catCounts.get(c.id) || 0)) continue;
     urls.push(entry(`/kategori/${c.slug}`, "kategori", "weekly", 0.7));
