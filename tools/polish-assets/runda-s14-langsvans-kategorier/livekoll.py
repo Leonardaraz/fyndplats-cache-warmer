@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live-kontroll av de 16 kategorisidorna mot källfilerna (runda S4+S5).
+"""Live-kontroll av rundans kategorisidor mot källfilerna (en sida per <slug>-text.json här bredvid).
 Läser sidan, jämför <title>, metabeskrivning, brödtext och FAQ mot <slug>-text.json,
 och rapporterar cache-huvudena så en gammal ISR-rendering syns i stället för att se rätt ut."""
 import json, re, html, sys, subprocess, os, tempfile
@@ -7,13 +7,13 @@ import json, re, html, sys, subprocess, os, tempfile
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = tempfile.mkdtemp(prefix="livekoll-")
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-SLUGS = ["elbilar-for-barn","klostrad","kattlador","katthus","hundkojor","redskapsbodar-forrad",
-         "sparkcyklar-for-barn","leksakskok","sandlador","gunghastar-gungdjur","hundbaddar-hundsoffor",
-         "hundburar","garagetalt","lek-tillbehor-for-husdjur","leksaker-spel","baby-smabarn"]
+import glob
 # En fil med "ersatt_av" beskriver en text som en senare runda skrivit om; den kontrolleras där.
-SLUGS = [s for s in SLUGS if not json.load(open(os.path.join(SRC, f"{s}-text.json"))).get("ersatt_av")]
+SLUGS = sorted(d["slug"] for d in (json.load(open(f)) for f in glob.glob(os.path.join(SRC, "*-text.json"))) if not d.get("ersatt_av"))
 if len(sys.argv) > 1: SLUGS = sys.argv[1:]
-def norm(s): return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",s))).strip()
+# Butiken visar kategoritexten som REN TEXT, så en ** i källan syns ordagrant på sidan. Stjärnorna strippas
+# ur källan men inte ur sidan, och därför FÄLLER en sådan rad här. Så hittades Belysnings asterisker 2026-09-24.
+def norm(s): return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",s.replace("**","")))).strip()
 fel = 0
 for slug in SLUGS:
     src = json.load(open(f"{SRC}/{slug}-text.json"))

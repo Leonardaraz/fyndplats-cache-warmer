@@ -1,0 +1,47 @@
+{
+  "slug": "serveringsvagnar-rullvagnar",
+  "namn": "Serveringsvagnar & rullvagnar",
+  "seo": {
+    "title": "Serveringsvagn, barvagn & rullvagn på hjul",
+    "description": "Serveringsvagnar och barvagnar med två eller tre plan, och smala rullvagnar med korgar eller lådor, 13 till 26,5 cm djupa. De flesta har fyra hjul, två med broms."
+  },
+  "content": {
+    "intro": [
+      "En vagn på hjul tar det du behöver dit du behöver det och rullar undan efteråt. Här samlar vi serveringsvagnar för kök och vardagsrum, barvagnar för glas och flaskor och smala rullvagnar som ger förvaring i glipan mellan kylen och skåpet, bredvid tvättmaskinen eller i badrummet.",
+      "Serveringsvagnarna har tre plan, och på den ena går mittplanet att flytta i höjdled. De flesta barvagnarna har flaskställ eller flaskplatser, och den runda barvagnen i konstrotting har en bricka som lyfts av och bärs in. Barvagnen i gran är gjord för uteplatsen, med en arbetsyta på 88 × 61 cm som bär 50 kg per hylla, och barvagnen i bambu fälls ihop när festen är över.",
+      "Rullvagnarna är 13 till 26,5 cm djupa och har korgar i metallnät, utdragslådor eller hyllplan med kant, och de bär 9 till 15 kg totalt. De flesta vagnarna har fyra hjul, där två har broms som håller vagnen på plats.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Vad är skillnaden mellan en serveringsvagn och en rullvagn?",
+        "a": "En serveringsvagn har hela plan att ställa brickor, tallrikar och glas på och används för att servera. En rullvagn är oftast smal, med korgar eller lådor, och används som förvaring i trånga utrymmen i kök, badrum och tvättstuga."
+      },
+      {
+        "q": "Får en rullvagn plats mellan kylen och väggen?",
+        "a": "Ofta, ja. Rullvagnen med fem plan är bara 13 cm på den smala sidan, och flera andra är 20 till 24 cm djupa. Mät glipan och jämför med måtten i beskrivningen."
+      },
+      {
+        "q": "Har vagnarna broms?",
+        "a": "De flesta har fyra hjul, varav två med broms. Barvagnen i gran för uteplatsen har två hjul i ena änden och ett handtag i den andra, så den rullas som en skottkärra och står still när den ställs ner."
+      }
+    ]
+  },
+  "facit": {
+    "urval": "12 synliga vagnar 2026-09-24, 11 i lager. Slutsåld, och inget påstående vilar på den: 03974ef0 (rullvagn i bambu, 30 cm djup).",
+    "serveringsvagnar tre plan, mittplanet flyttas": "306a7d49 'tre hela plan', 'Det mellersta planet går att sätta i olika höjd'; 43be9547 'barvagn i 3 plan'",
+    "de flesta barvagnar flaskställ/flaskplatser": "43be9547 'Glashållare och flaskställ'; 820d076b 'tre flaskplatser'; 8a73caf4 'Fyra flaskhållare'; fcb86875 har ett öppet plan som 'tar flaskorna', inget ställ (3 av 4)",
+    "rund barvagn i konstrotting, bricka lyfts av": "fcb86875 'Översta planet är en svart metallbricka som du lyfter av och bär in med'",
+    "barvagn i gran, uteplats, 88 × 61, 50 kg per hylla": "8a73caf4 'Barvagn utomhus 97,5 cm i gran', 'Arbetsyta på 88 × 61 cm', 'byggd för 50 kg per hylla'",
+    "barvagnen i bambu fälls ihop": "820d076b 'Hopfällbar barvagn i bambu', 'Viks ihop när den inte används'",
+    "två eller tre plan (beskrivning)": "två: 820d076b (två brickor), fcb86875 (två plan), 8a73caf4 (arbetsyta + undre hylla); tre: 306a7d49, 43be9547",
+    "rullvagnar 13 till 26,5 cm djupa": "cfb722e4 13; b250bfcf 20; 0910f983, 764a3efc, fba157f2 24; 2dbea163 26,5 (alla sex i lager)",
+    "korgar i metallnät, utdragslådor, hyllplan med kant": "2dbea163 '3 korgar i metallnät'; cfb722e4 'Korgarna … av metallnät'; 0910f983, fba157f2 trådkorgar; 764a3efc 'Fyra utdragslådor'; b250bfcf 'Kantlist på varje plan'",
+    "bär 9 till 15 kg totalt": "2dbea163 9; 764a3efc 10; cfb722e4 11; b250bfcf 12; 0910f983, fba157f2 15",
+    "de flesta fyra hjul, två med broms": "0910f983, 2dbea163, 306a7d49, 43be9547 ('2 låsbara'), 764a3efc, 820d076b, b250bfcf, fba157f2, fcb86875; cfb722e4 'två av hjulen har broms'; 8a73caf4 har två hjul (10 av 11)",
+    "fem plan, 13 cm på den smala sidan": "cfb722e4 'fem plan', 'bara mäter 13 cm på den smala sidan'",
+    "flera andra 20 till 24 cm": "b250bfcf 20; 0910f983, 764a3efc, fba157f2 24",
+    "barvagnen i gran: två hjul, handtag, skottkärra": "8a73caf4 'Den har två hjul i ena änden och ett handtag i den andra, så den rullas som en skottkärra'",
+    "serveringsvagn/rullvagn": "allmänt, stämmer med sortimentet"
+  }
+}

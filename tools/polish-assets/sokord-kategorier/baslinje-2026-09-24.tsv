@@ -101,3 +101,16 @@ S13	skarmtak-entretak	skärmtak	2400	18	ej topp 100
 S13	snurrfatoljer	snurrfåtölj	2900	13	ej topp 100		
 S13	soptunnor	soptunna	8100	30	ej topp 100		
 S13	soptunnor	sopsorteringskärl	2400	18	ej topp 100		
+S14	motorcyklar-for-barn	elmotorcykel barn	590	13	ej topp 100		
+S14	motorcyklar-for-barn	motorcykel barn	1900	15	ej topp 100		
+S14	valphagar-hundhagar	valphage	2400	18	ej topp 100		
+S14	valphagar-hundhagar	hundhage	590	16	ej topp 100		
+S14	blomstall-vaxthyllor	växthylla	1300	19	ej topp 100		
+S14	blomstall-vaxthyllor	blomställ	260	13	ej topp 100		
+S14	blomstall-vaxthyllor	blomhylla	880	19	ej topp 100		
+S14	blomstall-vaxthyllor	blompall	720	18	ej topp 100		
+S14	serveringsvagnar-rullvagnar	serveringsvagn	3600	18	ej topp 100		
+S14	serveringsvagnar-rullvagnar	barvagn	1900	17	ej topp 100		
+S14	serveringsvagnar-rullvagnar	rullvagn	6600	28	ej topp 100		
+S14	odlingslador	odlingslåda	5400	23	ej topp 100		
+S14	odlingslador	planteringslåda	2900	22	ej topp 100		

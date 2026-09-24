@@ -110,3 +110,17 @@ placeringarna.
 
 Kostnad i dag: 1 020 API-enheter för volymerna och 2 040 för domänfilen.
 Kategorifilen hämtades tidigare samma dag.
+
+## Tillägg: runda S14 (samma dag)
+
+Runda S14 (`../runda-s14-langsvans-kategorier/`) lade till **13
+huvudsökord på fem sidor, 29 040 sökningar i månaden**, sist i
+`baslinje-2026-09-24.tsv`. Inget av dem rankar topp 100 i dag. Filen har
+alltså 115 huvudsökord, och talet *102* ovan gäller S4–S13.
+
+S14 valdes efter en annan regel än de tidigare rundorna: dealproffsen.se, som
+säljer samma Aosom-varor, ligger på plats 1–5 på samma ord med en egen smal
+kategorisida. Vid omätningen är deras placering därför ett eget riktmärke.
+Samma ord, samma varor och samma sidtyp. Rör sig S14-sidorna inte när
+dealproffsen ligger på plats 1–5, är det domänens styrka som bromsar och inte
+sidorna.

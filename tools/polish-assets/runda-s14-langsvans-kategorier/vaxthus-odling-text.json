@@ -1,7 +1,7 @@
 {
   "slug": "vaxthus-odling",
   "seo": {
-    "title": "Tunnelväxthus, väggväxthus & odlingslådor",
+    "title": "Tunnelväxthus, väggväxthus & drivbänkar",
     "description": "Tunnelväxthus och foliehus från 3 × 1 till 6 × 3 m, väggväxthus, växthus i aluminium och polykarbonat, drivbänkar och odlingslådor i metall och trä."
   },
   "content": {
@@ -39,7 +39,7 @@
     "spaljé, foliekåpa, fågelnät": "a564244b 'Odlingslåda med spaljé'; 41968c79 'Odlingslåda med foliekåpa 121 cm'; 21c98a2d 'Odlingslåda med fågelnät 230 × 110 cm'",
     "arbetshöjd, slipper böja dig": "ffa3d111 '89 cm arbetshöjd'; f4724b04 'en timmes rensning kostar ingenting i ryggen'",
     "FAQ reservöverdrag": "8b2555a5 'Reservöverdrag tunnelväxthus 6×3×2 m'; 289ad16c 'Reservöverdrag till växthus 3×2×2 m'; dcd122c9 'Reservhölje till växthus'; 942ed73c 'Växthusduk 300 × 200 cm'",
-    "FAQ drivbänkar i trä med uppfällbart lock av polykarbonat": "bb3d824d 'Drivbänk i trä 100 × 50 cm med två uppfäll[bara]' (polykarbonat); 6e60b45a och 87485b8a 'Drivbänk i trä och polykarbonat'; undantaget 89aa6d9c 'Drivbänk 120 × 60 cm' har PE-duk, därav 'de flesta'"
-  },
-  "ersatt_av": "runda-s14-langsvans-kategorier: Odlingslådor fick en egen sida, och Växthus & odling släppte \"odlingslådor\" ur titeln"
+    "FAQ drivbänkar i trä med uppfällbart lock av polykarbonat": "bb3d824d 'Drivbänk i trä 100 × 50 cm med två uppfäll[bara]' (polykarbonat); 6e60b45a och 87485b8a 'Drivbänk i trä och polykarbonat'; undantaget 89aa6d9c 'Drivbänk 120 × 60 cm' har PE-duk, därav 'de flesta'",
+    "titelbyte (runda S14)": "Titeln var 'Tunnelväxthus, väggväxthus & odlingslådor'. Odlingslådor fick en egen sida, och Växthus & odling släppte \"odlingslådor\" ur titeln. Brödtext, FAQ och metabeskrivning är oförändrade från runda-s6-sasongskategorier."
+  }
 }
