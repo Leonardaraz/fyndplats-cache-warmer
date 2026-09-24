@@ -1858,3 +1858,96 @@ beslut — se den samlade frågan om detta.
   modell ska den avpubliceras. (N65)
 - Skärmens träffar som räknades som brus och inte fällde: pallen `40d0af10`
   mot två smala hurtsar, en byrå och ett nattduksbord. (N65)
+- Skärmträff mot en publicerad sida av samma slag, hoppade bland utkasten
+  81–160 i importen (skapade 2026-09-18–21): barnhyllan med kuber `a7bbaf0e`
+  mot kubhyllan för barn `1f54629b`, leksakshyllan `8832b73a`, bokhyllan i
+  husform `76430e8e` och hyllstegen `0274f2dd`; förvaringsbänken `801a4fe8`
+  mot `8c49e7cc`; badrumsskåpet `dc6a703d` mot de smala badrumsskåpen
+  `b8e81a24`, `5f627d89` och `44ba2466`; tvättställsskåpet `f631e89c` mot
+  `7c271233` och `1ee398af`; reclinerfåtöljerna `6b5dbee1` mot `99492092`
+  och `89dbec6d`, `48ee9b90` mot `5e2dee74` och `698470b4` mot `9ee24bae`;
+  rullpallen `55367179` mot sadelpallarna `12ce97db` och `20782c24`;
+  gokarterna `56bf5134` och `3c0795b6` mot `ea640f31`, `08bdee9f`,
+  `39a377f6` och `0926604b`; elmotorcykeln på 24 V `cde040a7` mot
+  `67d2d4f6`; gunghästen `a118c79a` mot `68a02f8b` och `ce543173`;
+  odlingsbädden `282ddb69` mot odlingslådan `ed342378`; DVD-hyllan
+  `fab903b6` mot mediahyllan `d7e75081`; väggskrivbordet `21ec71e3` mot
+  `0c27c71d`. (N66)
+- Står kvar på en tidigare rundas dubblettskäl, oprövade igen: miniugnen
+  `fde1f334` (mot `691ffc27`, N45); rullpallarna `516f7c81` och `ae880fa2`
+  (samma pall som `d348bf64` och `fa078e03`, N45; den senare är dessutom
+  slutsåld); salongspallen `b9d82334` (mot `1d0ba82d`, N46); sparkcyklarna
+  `1dd5c81e` (mot `d3cf8ebc`, N45) och `28a708af` (mot `ed5d6b85`);
+  springcyklarna `c7eb46b2`, `40b7dfa0` och `1dfa992a`, som alla står bakom
+  den publicerade `6f101f90` (N44–N45); sadelpallen `5183003d` (mot
+  `12ce97db` och `20782c24`, N45); åkbilen `89f8e1e1` (mot `a78da864`, N57);
+  pallarna på hjul `be072147` och `c850c185` (mot `20782c24`, N57);
+  leksakskistan `73609e3c` (mot `bc82b8ea`). (N66)
+- Billigare utkast bakom en publicerad sida, Leonards beslut som förut:
+  skobänkarna `ab47e35d` (N37), `1103d67e` (N40), `f981fbc0` (N42) och
+  `b7465ef9` (N43). Ny i N66: paviljongtaket `fbfea355` i cremevitt (579 kr)
+  är samma tak som den publicerade sidan `paviljongtak-3x3-dubbeltak-creme`
+  (949 kr): samma lilla tak på 86 × 86 cm, samma kant på 18 cm, samma väv på
+  180 g/m² och samma åtta dräneringshål. Den publicerade sidan säger själv
+  att duken finns i fyra färger. (N66)
+- Färgsyskon till publicerade sidor, väntar på beslutet i `FARGSYSKONEN.md`:
+  vattenkokaren `88a0ab0b` (N42), miniugnen `d9f30244`, mopphinkarna
+  `d60bb2f2`, `9ac669e4` och `5b4aeb72` (N37) och barnhyllan `447234be`
+  (N44). Nya i N66: sadelpallen `fb7d2703` i svart konstläder har samma
+  sadelsits, gaslyft och fot som den publicerade grå
+  `sadelpall-gra-svart-fot-45-59-cm`, jämfört bild för bild; redskapsboden
+  `4e05be02` i ljusgrått har exakt samma mått (154 × 206,5 × 160–181 cm,
+  skjutdörr 62 × 154 cm, fundament 132 × 141 cm, 60 kg) som de publicerade
+  vita och mörkgrå `redskapsbod-metall-2-81-m2-skjutdorr-vit` och
+  `-morkgra`. (N66)
+- Designsyskon till en publicerad sida, som förut: åsnegungdjuret `26d6b2ea`
+  bredvid lejongunghästen `8ded5e38` (N40–N41). (N66)
+- Märke eller licensierat namn på varan, hållna som förut: yoghurtmaskinen
+  `0bc12c7d` (N40), `b2175a65` (N37), åkbilen `d9276e3d`, projektorduken
+  `926ec7a2` (HOMCOM-bricka på kassetten, N57), elmotorcyklarna `49f05147`
+  (Vespa, N60) och `6c3634e8` (Honda, N33) och lekköket `901265e6`, som bär
+  engelska dekaler överallt (N58). (N66)
+- Rörda av main-grenens Runda-serie, som förut: salongspallen `b2bddc3e`
+  (N46) och växthuset `e891b752` (N43). (N66)
+- Saldo under 4, hoppade: vinstället `cfd4bd2d` (1) och möbelskyddet
+  `9696bb71` (3). (N66)
+- Färgsyskon i rundan, hoppade som ett sortimentsbeslut enligt runbookens
+  regel (en poleras, resten flaggas): det blå kantskyddet `a6a79334` (579
+  kr) är samma kantskydd på Ø305 cm som rundans gröna `14fb0f98` (569 kr);
+  de utdragbara matborden `77579a8b` (rustikt brun) och `11021efb` (svart
+  marmorlook) är samma bord som rundans ljusa `7f304255`, alla tre 4 469 kr.
+  (N66)
+- Kandidater som inte fick plats i rundan, först i tur till N67: byrån med
+  sex lådor `57e419f1`, modulsoffan `61ae7313`, tvåsitssoffan i manchester
+  `e81fc121`, smyckesskåpet `e74feea1` och köksskåpet `00ba5823` (2 159 kr);
+  dess tvilling `45f84852` (samma mått, 2 449 kr) prövas samtidigt.
+  Golvfåtöljen `33cde470` står i N33:s kluster med `22cfc372` och
+  `662a3683`, och den upplysta granen `dad09721` behöver en riktad kontroll
+  mot `e1d9dfe8` (N51); båda prövas i N67. (N66)
+- N66 tog de två följande omgångarna av importen, nyaste först: utkasten
+  81–120 (skapade 2026-09-20–21) och 121–160 (2026-09-18–20), med samma
+  regler som N64 och N65. Femton av de 80 publicerades. (N66)
+- Kontrollerat utöver skärmen, där den inte kan se: gnistskyddet `c0c6f5cf`
+  (135 × 85 cm, fiskbensmönster) mot de tio publicerade gnistskydden (inget
+  har 85 cm höjd eller fiskben); lekmattan `9dd510a8` (200 × 150 cm) mot de
+  fyra publicerade lekmattorna (160 × 100, 196 × 176, 150 × 180 och 180 ×
+  160/200 × 180 cm); salongspallen `34e4947c` (grå sammet, Ø35 cm) mot de
+  fyra publicerade salongspallarna, sminkpallen och den snurrbara pallen i
+  sammet; matbordet `7f304255` mot det publicerade utdragbara bordet i ekton
+  (120–160 cm); det runda bordet `13a52237` (Ø110 × 78 cm, fot Ø64,5, 30 kg)
+  mot det publicerade runda bordet med pelarfot (Ø110 × 75 cm, fot Ø61, 100
+  kg); elmotorcykeln `81a7d7e4` (85,5 × 44,5 × 56 cm) mot de tre publicerade
+  elmotorcyklarna för barn med liknande namn; clownerna `b92a1717` och
+  `d99fb2f8` mot de fyra publicerade clownerna, bild mot bild; förrådet
+  `cbd1c1cb` (143 × 270 cm) mot de tretton publicerade redskapsbodarna och
+  de elva plåtbodarna. Inget av dem är samma vara. (N66)
+- Uppmätt i skärmens steg A2: `products/search` med filter och sortering på
+  första sidan och BARA markören på den andra gav 100 rader, alla utkast och
+  i fallande skapandeordning. Markören bär alltså både filter och sortering
+  här. (N66)
+- Skärmens träffar som räknades som brus och inte fällde: skänken `477bcd1f`
+  mot ett sängbord och en smal byrå (lådans innermått); matborden
+  `77579a8b`, `7f304255` och `11021efb` mot ett trädgårdsbord och ett
+  klaffbord på 140 × 80 cm; modulsoffan mot ett kattorn; köksskåpen mot en
+  smal byrå och sängbord (lådmått); granen mot en kattlåda;
+  tvättställsskåpet mot en pedalhink. (N66)
