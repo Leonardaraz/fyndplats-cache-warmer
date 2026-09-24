@@ -133,6 +133,25 @@ describe("en rad utan måttrad AVBRYTER hellre än tiger", () => {
   });
 });
 
+describe("EN LÄNGD OCH INGET ANNAT — förklarat axellös, inte avbrott", () => {
+  it("☠️ ger inget facit alls, bara skälet med raden", () => {
+    // Runda N59, skjutdörrsbeslaget 87888f5f: källans enda mått är
+    // `Schienenlänge: 183 cm`. Vilken axel längden är går inte att läsa ur
+    // raden, så grenen får inte gissa bredd eller höjd.
+    const ut = bygg({ aaa: kalla(["Schienenlänge: 183 cm", "Geeignete Türblattbreite: 90 cm"]) });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+    expect(String(ut.aaa.axellos)).toMatch(/bara en längd: .*Schienenlänge: 183 cm/);
+  });
+
+  it("fyrar INTE när en riktig totalrad finns", () => {
+    const ut = bygg({ aaa: kalla(["Gesamtmaße: 183L x 5B x 6H cm", "Schienenlänge: 183 cm"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 183, djup: 5, hojd: 6 });
+    expect(ut.aaa.axellos).toBeUndefined();
+  });
+});
+
 describe("KVALIFICERAD ETIKETT — bara när den nakna tiger", () => {
   it("läser Gesamtgröße, som inte stod i etikettlistan", () => {
     // Runda N1, hörnsoffan fe56b0e6. Ordet fanns inte i ETIKETT alls, så

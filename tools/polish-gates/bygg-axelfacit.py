@@ -76,6 +76,23 @@ KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
 # när bladverket mäter långt mer, och gate-axel hade fällt varje korrekt
 # meningen om bredden. Grenen ger därför höjden ensam och ingen bredd alls.
 HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s*cm"
+
+# ☠️ EN SKENA HAR EN LÄNGD OCH INGET ANNAT. Uppmätt i runda N59 på
+# skjutdörrsbeslaget 87888f5f, vars enda mått är
+#
+#     Schienenlänge: 183 cm
+#     Geeignete Türblattbreite: 90 cm
+#
+# Ingen totalrad och ingen rad med axelbokstav, alltså varken facit eller
+# delmått — och generatorn avbröt. Men källan säger sanningen om sig själv:
+# produkten är ett beslag, och det enda den mäter är en längd. Vilken axel
+# längden är går INTE att läsa ur raden (en skena ligger vågrätt, en stolpe
+# står lodrätt), så grenen ger inget facit utan märker raden axellös med
+# raden som skäl — samma klass som isbjörnsparet och delmåtten ovan.
+#
+# Grenen kan bara fyra där den gamla koden avbröt, så ingen tidigare runda
+# kan få ett annat facit av den.
+LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Länge)\s*:\s*\d+(?:[.,]\d+)?\s*cm"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -302,8 +319,11 @@ def main():
             delmatt = [r for r in rader
                        if re.search(r"abmessungen\s*:", r, re.I)
                        or (":" in r and axelpar(r.split(":", 1)[1]))]
+            langd = [r for r in rader if re.search(LANGDETIKETT, r)]
             if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
+            elif langd and "axellos" not in d:
+                d["axellos"] = "inget totalmått i källan; bara en längd: " + " | ".join(langd)
             elif "axellos" not in d:
                 # En rad som redan är märkt axellös av tvåtals-spärren ovan är
                 # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den
