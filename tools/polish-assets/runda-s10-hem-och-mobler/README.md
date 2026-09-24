@@ -117,7 +117,9 @@ sidan gav 404 i produktion 05:29 UTC.
 
 Butiken sparar kategorilistan per lambda-instans. En instans som startade
 mellan 05:43 och 05:44 kan därför ge 404 på en S10-sida tills den återvinns.
-Förhandsbygget och #647:s produktionsbygge förrenderar alla 109.
+Mätt 05:56: alla åtta S10-sidor svarar 200 i produktion (MISS, nyrenderade)
+med mallens titel, så ingen sådan instans svarade. Förhandsbygget och #647:s
+produktionsbygge förrenderar alla 109.
 
 ## 4. Texterna
 

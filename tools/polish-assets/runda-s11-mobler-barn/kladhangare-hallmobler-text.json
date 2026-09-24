@@ -1,0 +1,48 @@
+{
+ "slug": "kladhangare-hallmobler",
+ "seo": {
+  "title": "Klädhängare, klädställning, hallmöbel & hallbänk",
+  "description": "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar som bär upp till 130 kg."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du klädhängare, klädställningar och hallmöbler: fristående klädhängare med krokar, klädställ på hjul, en öppen klädställning med tre stänger och hallmöbler som samlar krokar, bänk och skoförvaring i en och samma möbel.",
+   "Klädhängaren i furu har åtta krokar på olika höjder. Klädstället med paraplyställ tar bara 30,5 × 30,5 cm golv och har tolv krokar på tre höjder. Klädställningen på hjul ställs i höjd mellan 95 och 170 cm och i bredd mellan 86 och 160 cm.",
+   "Hallmöblerna har bänk, skobänk eller en tygkommod med sju lådor under krokarna. Hallmöbeln 3-i-1 har en bänk som bär 110 kg och levereras med tippskydd. Till den som vill sitta ner och ta på skorna finns också hallbänkar, varav en med rullade armstöd.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket klarar en klädhängare?",
+    "a": "Det står per krok och totalt i beskrivningen. Klädhängaren i furu tar 5 kg per krok och 30 kg totalt, och den trädformade klädhängaren för väggen tar 5 kg per krok och 40 kg totalt."
+   },
+   {
+    "q": "Får långa rockar plats på klädstället?",
+    "a": "Klädstället i vit metall har 133 cm fritt hängrum, vilket räcker för långrockar utan att de nuddar golvet. Den öppna klädställningen har hänghöjder på 132 och 85 cm."
+   },
+   {
+    "q": "Vilken hallmöbel passar en smal hall?",
+    "a": "Klädstället med paraplyställ tar 30,5 × 30,5 cm golv, och hallmöbeln med tygkommod är bara 30 cm djup. Hallmöbeln med stoppad sits är 72,5 cm bred."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "15 synliga produkter 2026-09-24: 6 klädställ och klädställningar, 2 fristående klädhängare, en klädhängare för väggen, 4 hallmöbler och 2 hallbänkar. Skobänken i bambu (8f0a4df1) ligger också i Skoskåp & skobänkar. INTE med: kontorsstolen med klädhängare och klädställningen för barn (den ligger i Barnmöbler).",
+  "klädställ på hjul": "5cdc868a 'Klädställning på hjul'; 61355ceb 'Klädställ i bambu på hjul'; 7d9afdf7 'Klädställ i vit metall på hjul'",
+  "öppen klädställning tre stänger": "1dfb9b0b 'Öppen klädställning 182 cm med tre stänger'",
+  "hallmöbler krokar, bänk, skoförvaring": "9768fb7a 'sex dubbelkrokar ... en bänk ... två gallerhyllor'; db8a09e0 'nio krokar ... skobänk'; 1199e887 'stoppad sits ... två skohyllor ... klädstång med fem krokar'; ce12cf40 'sju tyglådor ... åtta fasta dubbelkrokar'",
+  "paraplyställ 30,5 × 30,5, tolv krokar på tre höjder": "c51f87de 'tolv grenkrokar på tre olika höjder och ett paraplyställ inbyggt i den vita foten. Det tar bara 30,5 × 30,5 cm golv'",
+  "95–170 och 86–160 cm": "5cdc868a 'justerbar höjd 95–170 cm och bredd 86–160 cm'",
+  "sju lådor": "ce12cf40 'sju tyglådor, fyra stora och tre små'",
+  "3-i-1 110 kg, tippskydd": "9768fb7a 'Bänken bär 110 kg ... Tippskydd och justerbara fötter följer med'",
+  "hallbänkar, en med rullade armstöd": "9383d686 'Hallbänk 102 cm med rullade armstöd'; 8f0a4df1 'hallbänk för 6 par skor'",
+  "130 kg (beskrivningen)": "9383d686 'Maxlast: 130 kg'; 8f0a4df1 'sits 130 kg'",
+  "på hjul, skohylla, paraplyställ (beskrivningen)": "hjul se ovan; skohylla 3dc622f9, 61355ceb, 7d9afdf7; paraplyställ c51f87de",
+  "5 kg per krok, 30 och 40 kg": "b6a4e725 'Max last: 30 kg totalt, 5 kg per krok'; f0e40907 'Belastning: 40 kg totalt, 5 kg per krok'",
+  "133 cm hängrum": "7d9afdf7 '133 cm fritt hängrum, vilket räcker för långrockar utan att de nuddar golvet'",
+  "hänghöjder 132 och 85 cm": "1dfb9b0b 'Hänghöjd: 132 cm och 85 cm'",
+  "30 cm djup, 72,5 cm bred": "ce12cf40 '100 cm bred men bara 30 cm djup'; 1199e887 '72,5 cm bred'",
+  "åtta krokar i furu": "b6a4e725 'massiv furu', 'Antal krokar: 8', 'Krokhöjder: 78/90/101/112/129/140/151/162 cm'. Klädhängaren i bambu med bänk och låda (9352de8e) är slutsåld och nämns därför inte.",
+  "slutsålt": "Slutsålda 2026-09-24 och dolda i listan: a0386ca3, d348bf64 (Pallar), 9352de8e (Klädhängare & hallmöbler), 50a808d5 (Sideboards & vitrinskåp), 188a80b4 och 5c4772dc (Barnmöbler). Inget påstående vilar enbart på dem, så texten stämmer både när de är slut och när de kommer tillbaka."
+ }
+}
