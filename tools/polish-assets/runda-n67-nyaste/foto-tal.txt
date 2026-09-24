@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+33cde470 167 bäddens längd, 167 cm, avläst på måttbilden (bild 3); källans lista skriver 173 cm, och texten anger båda
+00ba5823 2 två överskåp med dörrar och två öppna fack under dem, räknade på produktbilden (bild 1)
+00ba5823 4 fyra dörrar, två uppe och två nere, räknade på produktbilden (bild 1)
+57e419f1 2 lådorna sitter i två rader om tre, räknade på produktbilden (bild 1)
