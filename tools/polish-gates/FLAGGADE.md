@@ -1800,3 +1800,61 @@ beslut — se den samlade frågan om detta.
   `f716feb0` mot en leksaksmotor och en barnfåtölj, sidobordet `6d064139`
   mot en elkamin och glasbordet `47bad2d7` mot tre utdragbara trädgårdsbord.
   (N64)
+- Skärmträff mot en publicerad sida av samma slag, hoppade bland utkasten
+  41–80 i nattens import (skapade 2026-09-21–23): pallen i teddy `b3e5b7d1`
+  mot pallen med stoppad sits `ba454107`; kubhyllan `1bcd1cfa` mot kubhyllan
+  i svart metall `0c07eb82`; skobänkarna i bambu `a7186f2b` och `7febe06d`
+  mot skobänken i bambu `8f0a4df1`; skobänken med två hyllplan `a087ae3b`
+  mot skobänken i bambu `3e2c7389`; bokhyllan med sju plan `91dbaaf9` mot
+  bokhyllan i trädform `3b3705f5`; skrivbordet `c6e7e786` mot skrivbordet
+  med hylla `f6e74878`; de runda matborden `1c6dcc6f` och `6c5a0648` mot
+  N64:s runda matbord i glas `47bad2d7`; matgrupperna `5e9655dd` och
+  `7a6eff2a` mot matbordet i glas `5684651e`; fällstolarna `f78fc4fa` mot
+  fällstolarna i 4-pack `1628620b`; badrumsskåpet på 174 cm `1e2c6427` mot
+  högskåpet för kök `fa793821`; rullpallen `edafc2ab` mot salongspallen
+  `711f7859`; väggspegeln på 70 × 50 cm `93b4782e` mot väggspeglarna
+  `f23252d9` och `c438d4ba`; rumsavdelarna `747b2a73` och `c2bb00a0` mot
+  rumsavdelarna `1c1eb875` och `23d20823`; lavendelträdet `54f62954` mot
+  lavendelträden `80de1b65`. (N65)
+- Saldo under 4, hoppade: matgruppen `f93b34cc` (0, slutsåld),
+  nattduksbordet `83894bad` (0, slutsålt), julgirlangen `0b34e594` (2),
+  matbordet `c6631918` (3) och pallen `5d9e6795` (3). (N65)
+- Märke på själva varan, hållen: golvspegeln `ffc507bf` bär en HOMCOM-bricka
+  på glaset, synlig på bild 1, 3 och 5. (N65)
+- Färgsyskon i rundan, hoppade som ett sortimentsbeslut enligt runbookens
+  regel (en poleras, resten flaggas): soffborden `532e02c2` (svart, 1 119
+  kr) och `635955ab` (guld och vit, 1 399 kr) har samma mått, Ø78,5 och Ø59
+  cm, som rundans grå `af9378d6` (1 099 kr); väggspegeln `84d0ca90` med
+  svart ram har samma mått, 60 × 80 cm, som rundans vita `0a4958cc`. Ska de
+  bli egna sidor eller färgval på en sida? (N65)
+- För få bilder, hållet: badrumsskåpet på 140 cm `37a26f7f` har två av fem
+  bilder kvar efter strykningen: tysk text inbränd i bild 4 och läsbar text
+  på flaskornas etiketter i bild 2 och 5. (N65)
+- N65 tog nästa omgång av nattens import, utkasten 41–80 i skapandeordning
+  (2026-09-21–23), med samma regler som N64: dubblett mot en publicerad
+  sida, märke på varan, licensierade märken, djurbostäder, saldo under 4 och
+  läsbar text i bilderna. Tolv av de 40 publicerades. (N65)
+- Kontrollerat utöver skärmen, där den inte kan se: den runda spegeln
+  `8ed2dc38` mot den publicerade runda badrumsspegeln på Ø60 cm (samma serie
+  i en ny storlek, Ø70 cm); hallspegeln `0a4958cc` mot de publicerade
+  speglarna i svart på 40 × 60 och 50 × 70 cm (samma serie i en ny storlek
+  och färg); fikusen `a6657b3d` mot de publicerade fikusarna på 135 och 180
+  cm och dieffenbachian `376caddc` mot den publicerade på 95 cm; bordet
+  `9053bc1a` mot N64:s runda bord på Ø78 cm (andra ben och annan skiva);
+  gnistgallret `2ffa80f1` mot det publicerade gnistskyddet på 96 cm (välvd
+  mittdel och 60 cm höjd mot rundans raka på 56 cm). (N65)
+- Granarna, kontrollerade mot de publicerade: `792562e3` (Ø60 × 210 cm, 499
+  spetsar) har ingen motsvarighet; `7727e1bf` (Ø55 × 210 cm, 499 spetsar,
+  3,8 kg) är inte pelargranen på 210 cm, som har 490 spetsar, snö och väger
+  5,5 kg. (N65)
+- ⚠️ MISSTAG I N65: den gröna granen `520cc521` (Ø55 × 180 cm, 390 spetsar,
+  499 kr) publicerades, fast N41 lämnade den åt Leonard som färgsyskon till
+  den publicerade vita granen `1f887213`, och fast N36:s regel är att
+  färgsyskon till publicerade sidor väntar på beslutet i `FARGSYSKONEN.md`.
+  Snögranen `87658529` (180 cm, 55 cm bred, 390 grenar) ser ut att vara
+  samma modell, så den gröna är den tredje sidan. Misstaget syntes först
+  efter skrivningen, när rundans id söktes i de tidigare rundornas
+  anteckningar. Sidan är korrekt och ligger ute; vill Leonard ha en sida per
+  modell ska den avpubliceras. (N65)
+- Skärmens träffar som räknades som brus och inte fällde: pallen `40d0af10`
+  mot två smala hurtsar, en byrå och ett nattduksbord. (N65)
