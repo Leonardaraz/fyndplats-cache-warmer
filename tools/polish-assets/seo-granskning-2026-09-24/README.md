@@ -140,14 +140,37 @@ Fyndplats finns inte på Cuponation (404).
 Allt nedan kräver ett konto eller ett beslut från Leonard. Inget av det
 går att göra från den här sessionen.
 
-1. **Gratisprofiler, samma vecka:**
-   - Reco.se (dealproffsen har en).
-   - Trustpilot.
-   - Google Företagsprofil.
-   - hitta.se, eniro.se och allabolag med webbadressen ifylld.
+1. **Profilerna finns redan, men två är tomma.** Första versionen av den
+   här planen sa "skapa gratisprofiler". Det var fel, och Leonard rättade det
+   samma dag. Butikens `sameAs` (`app/layout.tsx` på `headless-site`) listade
+   dem hela tiden. Läget, kontrollerat 2026-09-24:
 
-   Länkarna är oftast nofollow, men profilerna tar egna sökträffar på
-   "fyndplats" och bygger förtroende.
+   | profil | läge |
+   |---|---|
+   | Google Företagsprofil | 4,9 i betyg, länkad i `sameAs` |
+   | hitta.se | finns och länkar till butiken |
+   | Trustpilot | registrerad i september 2026, **0 omdömen** |
+   | Reco.se | **ej verifierad**, 0 omdömen, ingen länk till butiken, trovärdighet "låg" |
+
+   Det som återstår:
+   - **Ta över Reco-profilen** ("Ta kontroll" på reco.se/fyndplats) och fyll i
+     webbadressen. Dealproffsen har en verifierad profil där.
+   - **Trustpilot** har 0 omdömen, eftersom inbjudningarna är avstängda.
+     Leonard valde bort Trustpilot 2026-08-17 ("Jag vill inte ha trustpilot"),
+     och butikens cron `trustpilot-invite` togs ur schemat. Koden finns kvar.
+     Ska profilen fyllas behövs två saker: cron-raden tillbaka i butikens
+     `vercel.json` och `TRUSTPILOT_BUSINESS_UNIT_ID` i Vercel, enligt butikens
+     `docs/trustpilot-setup.md`. Det beslutet är Leonards.
+
+   ⚠️ **Profilernas länkar är `nofollow`**, mätt på hitta.se och Trustpilot.
+   De ger förtroende och egna sökträffar på "fyndplats", men ingen
+   rankningskraft. Den kommer från stegen nedan.
+
+   ⚠️ **Granskningens första kontroll bevisade ingenting.** Reco svarade 404
+   för både oss och dealproffsen, trots att dealproffsen har en profil, alltså
+   var adressen fel. Trustpilot svarade med en botspärr för curl. Rätt adresser
+   är reco.se/fyndplats och se.trustpilot.com/review/fyndplats.se, och
+   Trustpilot kräver en riktig webbläsare (Chromium via Playwright).
 2. **Prisjämförelse:** Prisjakt och PriceRunner, som ägs av Klarna, och
    butiken använder redan Klarna. Villkoren behöver kollas. Det här är den
    kanal där vårt prisläge mot dealproffsen syns direkt för köparen. Det är

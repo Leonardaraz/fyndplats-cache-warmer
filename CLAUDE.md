@@ -3838,9 +3838,16 @@ mer teknik flyttar oss förbi dem. Planen och underlaget står i
 `tools/polish-assets/seo-granskning-2026-09-24/`.
 
 ☠️ **Köp inte följbara länkar**, även om konkurrenten gör det. Googles
-spampolicy kräver `rel="sponsored"` på betalda länkar. Gratisprofiler,
-prisjämförelse, rabattkodssajter, affiliate och digital PR med vår egen
-prisdata är vägarna, och alla kräver Leonard.
+spampolicy kräver `rel="sponsored"` på betalda länkar. Prisjämförelse,
+rabattkodssajter, affiliate och digital PR med vår egen prisdata är vägarna,
+och alla kräver Leonard.
+
+⚠️ **Profilerna finns redan. Kolla butikens `sameAs` innan du föreslår en.**
+Google Företagsprofil (4,9), hitta.se, Trustpilot och Reco finns alla.
+`app/layout.tsx` på `headless-site` listar de flesta, och granskningen
+föreslog ändå att skapa dem. Deras länkar är `nofollow`, och Trustpilot och
+Reco har 0 omdömen. Reco är inte ens verifierad, och Trustpilots
+inbjudningscron togs ur schemat 2026-08-17 på Leonards beslut.
 
 ☠️ **En adress som rankar får aldrig sluta på `/butik`.** `/basta-i-test/massagepistoler`
 låg 18:e på *massageapparat bäst i test*. Köpguiden blev tunn när vi slutade
