@@ -1,0 +1,42 @@
+{
+ "slug": "skarmtak-entretak",
+ "seo": {
+  "title": "Skärmtak & entrétak för ytterdörr och fönster",
+  "description": "Skärmtak och entrétak i polykarbonat för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen med konsoler."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du skärmtak och entrétak som monteras på väggen ovanför ytterdörren eller ett fönster och skyddar mot regn. Takskivan är av polykarbonat, en slagtålig plast, och på de flesta är den genomskinlig så att entrén inte blir mörk.",
+   "De minsta är 100 till 122 cm breda och passar över en enkeldörr eller ett fönster. Entrétaket på 195 cm räcker över en dubbeldörr, och de två längsta är 295 och 303 cm.",
+   "Entrétaken på 122 och 195 cm har en takskiva av hålkammarplast på 5 mm och levereras med expanderbultar och täckproppar. Skärmtaket på 110 × 60 cm hänger på två väggkonsoler utan stolpe, anges för en snölast på 5 cm och ska sitta minst 30 cm ovanför öppningen.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur brett skärmtak ska jag välja?",
+    "a": "Välj ett tak som är bredare än dörren, så att det skyddar även när du står och letar efter nycklarna. För en enkeldörr finns tak på 100 till 122 cm, och för en dubbeldörr entrétaket på 195 cm."
+   },
+   {
+    "q": "Hur monteras ett skärmtak?",
+    "a": "Det skruvas fast i väggen med konsoler. Till entrétaken följer expanderbultar med, och monteringen kräver att du borrar i fasaden. Skärmtaket på 110 × 60 cm ska sitta minst 30 cm ovanför dörr- eller fönsteröppningen."
+   },
+   {
+    "q": "Vad är polykarbonat?",
+    "a": "En slagtålig plast som väger mycket mindre än glas, så att taket kan hänga på väggkonsoler. Skärmtaket för dörr och fönster på 100 × 75 cm har ett UV-skikt som skyddar skivan mot solen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "8 synliga 2026-09-24 med skärmtak eller entrétak i namnet, varav 1 slutsåld (fbef53b8). INTE med: sandlådan med skärmtak (9f27b49b).",
+  "polykarbonat": "1a1487a8, 1f055143, 3592fae6, 67786c00, b50a2c94, b8002629, c88b22ce 'polykarbonat'",
+  "100 till 303 cm": "b8002629 100; 1a1487a8 103; b50a2c94 110; 3592fae6 122; 67786c00 195; 1f055143 295; c88b22ce 303",
+  "skruvas fast i väggen med konsoler": "3592fae6, 67786c00 'monteras på vägg', konsoler; b50a2c94 'två väggkonsoler, ingen stolpe'; 1f055143 'med väggfäste'; c88b22ce 'Väggfäste: 96 × 27 cm'; 1a1487a8 'svarta konsoler'; b8002629 'Skärmtak för dörr och fönster'",
+  "dubbeldörr": "67786c00 'för dubbeldörr och fönster'",
+  "hålkammarplast 5 mm, expanderbultar, täckproppar": "3592fae6 'Takskiva: polykarbonat, 5 mm hålkammarplast', 'Ingår: entrétak, 4 expanderbultar, 4 täckproppar'; 67786c00 'Takskivor: polykarbonat, 5 mm hålkammarplast', 'Ingår: entrétak, sex expanderbultar, skruv, sex täckproppar'",
+  "110 × 60: ingen stolpe, snölast, 30 cm": "b50a2c94 'två väggkonsoler, ingen stolpe', 'Snölast: 5 cm', 'Monteringshöjd över öppningen: minst 30 cm'",
+  "UV-skikt": "b8002629 'polykarbonat med UV-skikt', 'Skärmtak för dörr och fönster, 100 × 75 cm'",
+  "polykarbonat, allmänt": "slagtålig, genomskinlig, lättare än glas (allmänt)",
+  "bredare än dörren": "allmänt råd",
+  "genomskinlig, de flesta": "1a1487a8 'Svart och transparent'; 1f055143 'Genomskinlig skiva'; 3592fae6, 67786c00 'transparent skiva'; b50a2c94 'svart och genomskinlig' (5 av 7); b8002629 'Svart' och c88b22ce 'brun/svart' anger inte skivans färg"
+ }
+}

@@ -5,6 +5,7 @@ import {
   pensioneraDubblett,
   planeraOmmappning,
   tillämpaOmmappning,
+  väljRemapSku,
 } from "./remap";
 import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
@@ -361,4 +362,47 @@ describe("pensioneraDubblett", () => {
     expect(med.hinder).not.toContain("marginal_under_golv");
   });
 
+});
+
+describe("väljRemapSku", () => {
+  const utkast = { supplier: "aosom" as const, supplierProductId: "aosom:000-000ZZ" };
+  const aeSida = { supplierProductId: "1005005972133031" };
+
+  it("☠️ hämtar numret ur Aosom-dubbletten när sku utelämnas", () => {
+    expect(väljRemapSku(undefined, utkast)).toEqual({ ok: true, sku: "000-000ZZ", kalla: "dubblett" });
+    expect(väljRemapSku("   ", utkast)).toEqual({ ok: true, sku: "000-000ZZ", kalla: "dubblett" });
+  });
+
+  it("hämtar numret även när raden saknar supplier-fältet (prefixet räcker)", () => {
+    expect(väljRemapSku("", { supplierProductId: "aosom:000-000ZZ" })).toEqual({
+      ok: true,
+      sku: "000-000ZZ",
+      kalla: "dubblett",
+    });
+  });
+
+  it("ett angivet nummer som stämmer med dubblettens går igenom", () => {
+    expect(väljRemapSku("000-000ZZ", utkast)).toEqual({ ok: true, sku: "000-000ZZ", kalla: "anrop" });
+  });
+
+  it("☠️ vägrar när angivet nummer och dubblettens skiljer sig", () => {
+    const val = väljRemapSku("000-000YY", utkast);
+    expect(val.ok).toBe(false);
+    // Felet går till en PUBLIK logg — det får inte bära något av numren.
+    if (!val.ok) {
+      expect(val.fel).not.toContain("000-000");
+    }
+  });
+
+  it("ett angivet nummer räcker när dubbletten inte är en Aosom-rad", () => {
+    expect(väljRemapSku("000-000ZZ", aeSida)).toEqual({ ok: true, sku: "000-000ZZ", kalla: "anrop" });
+    expect(väljRemapSku("000-000ZZ", null)).toEqual({ ok: true, sku: "000-000ZZ", kalla: "anrop" });
+  });
+
+  it("☠️ gissar aldrig: utan sku och utan Aosom-dubblett vägras det", () => {
+    expect(väljRemapSku(undefined, null).ok).toBe(false);
+    expect(väljRemapSku(undefined, aeSida).ok).toBe(false);
+    // En redan pensionerad dubblett har släppt numret — den ger inget att hämta.
+    expect(väljRemapSku(undefined, { supplier: "aosom", supplierProductId: "" }).ok).toBe(false);
+  });
 });

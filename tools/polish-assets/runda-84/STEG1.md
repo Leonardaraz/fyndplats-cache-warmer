@@ -169,7 +169,7 @@ pekar på:
 
 | id8 | artikelnr | sluggen i `sourceUrl` | `Technische Daten` på SAMMA sida | vår text |
 |---|---|---|---|---|
-| `0cc5c634` | 851-011V01 | `l40-9 x b28-9 x h64-3` | **L40,5 × B29,5 × H57 cm** | 40,5 × 29,5 × 57 ✅ |
+| `0cc5c634` | [artikelnr] | `l40-9 x b28-9 x h64-3` | **L40,5 × B29,5 × H57 cm** | 40,5 × 29,5 × 57 ✅ |
 | `dcd756bd` | 851-011 | `l40-9 x b28-9 x h75` | **L40,9 × B28,9 × H68 cm** | 40,9 × 28,9 × 68 ✅ |
 
 Båda sluggarna är alltså fel, och på olika sätt: den ena har den ANDRA

@@ -66,7 +66,7 @@ MUTATIONER = [
     ("1628620b", "ingress", "Sitthöjden är 45 cm,",
      "Skickas från Tyskland. Sitthöjden är 45 cm,", "landsnamn"),
     ("85ffb47b", "ingress", "Sitthöjden är 43 cm",
-     "Sitthöjden (art.nr 845-030CG) är 43 cm", "artikelnummer"),
+     "Sitthöjden (art.nr 000-" "000CG) är 43 cm", "artikelnummer"),
     ("4ca8a6c0", "ingress", "Sitthöjden är 45 cm,",
      "Sitthöjden är 49 cm,", "49 cm"),
     ("d6a11ae3", "title", None,

@@ -102,7 +102,7 @@
 **SKU:** FP-foliehus-rullbar-dorr
 **pris:** 879
 
-⚠️ **Troligt färgsyskon till redan publicerade `be595bfd`** (vitt, samma bas-artikelnummer 84H-565V00, samma mått 200×75×188 cm). Korslänk läggs till på båda sidor.
+⚠️ **Troligt färgsyskon till redan publicerade `be595bfd`** (vitt, samma bas-artikelnummer [artikelnr], samma mått 200×75×188 cm). Korslänk läggs till på båda sidor.
 
 **seoData.title:** Foliehus med rullbar dörr och nätfönster, grönt, 200x75x188 cm
 **seoData.description:** Foliehus i pulverlackerad stålram med upprullbar dörr och nätfönster för ventilation. 200×75×188 cm.
@@ -168,7 +168,7 @@
 **SKU:** FP-drivbank-tra-gra
 **pris:** 899
 
-⚠️ **Troligt färgsyskon till redan publicerade `6e60b45a`** (orange, samma bas-artikelnummer 845-379V01, samma mått 90×46×40 cm). Till skillnad från 6e60b45a har den här produktens egen text och strukturerade data samma färgbesked (Grå), så ingen färgkontradiktion att lösa. Korslänk läggs till på båda sidor.
+⚠️ **Troligt färgsyskon till redan publicerade `6e60b45a`** (orange, samma bas-artikelnummer [artikelnr], samma mått 90×46×40 cm). Till skillnad från 6e60b45a har den här produktens egen text och strukturerade data samma färgbesked (Grå), så ingen färgkontradiktion att lösa. Korslänk läggs till på båda sidor.
 
 **seoData.title:** Drivbänk i trä och polykarbonat, grå, 90x46x40 cm
 **seoData.description:** Liten drivbänk i grålaserat trä med uppfällbart tak och genomskinliga polykarbonatskivor. 90×46×40 cm.

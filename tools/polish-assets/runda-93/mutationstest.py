@@ -15,7 +15,7 @@ import texter, lint                                                  # noqa: E40
 
 MUT = [
     ("mått 250 → 260",          lambda h: h.replace("250", "260"), True),
-    ("artikelnummer i texten",  lambda h: h.replace("indragbart tak", "84C-054GY"), True),
+    ("artikelnummer i texten",  lambda h: h.replace("indragbart tak", "00C-" "000GY"), True),
     ("leverantörens namn",      lambda h: h.replace("Duken", "Outsunny-duken"), True),
     # ☠️ Påståendet står på TVÅ ställen (punktlistan med versal E och spec-raden
     #    med gemen e). En mutering som bara tog det ena tog inte bort påståendet

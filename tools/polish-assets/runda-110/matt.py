@@ -33,8 +33,8 @@ FÄRGAD DEL. Där de sagt olika har ritningen och zoomen fått avgöra.
    plasten som trä. Grupp A ärver därför deras ordval oförändrat.
 """
 
-#  A = polypropenväv på tallram, BÅGFORMAD överkant   (bas 830-816V01)
-#  B = bambuväv på tallram, rak överkant              (830-700V00ND, 830-311)
+#  A = polypropenväv på tallram, BÅGFORMAD överkant   (bas [artikelnr])
+#  B = bambuväv på tallram, rak överkant              ([artikelnr], 830-311)
 #  C = helt i bambu, rak överkant                     (bas 830-716)
 GRUPPER = {"a999f2b1": "A", "c35f9d4f": "A",
            "d72bde5e": "B", "316f9945": "B",
@@ -45,22 +45,22 @@ GRUPPER = {"a999f2b1": "A", "c35f9d4f": "A",
 RUNDAN = {
  "a999f2b1": (4, 180, "1,7", 180, "6,8", "6,5", "6,9 kg", "182 × 47 × 12 cm", 1199,
               "a999f2b1-2f1c-4942-9584-c73b2c206c14",
-              "6043f648-1a42-42ab-b51f-6c37f3245e9d", "830-816V01WT", 11),
+              "6043f648-1a42-42ab-b51f-6c37f3245e9d", "000-" "000V00WT", 11),
  "c35f9d4f": (4, 180, "1,7", 180, "6,8", "6,5", "7,25 kg", "182 × 47 × 12 cm", 1099,
               "c35f9d4f-5cb8-4f70-98d9-ae633d18941a",
-              "e22ae19d-1f37-45d7-bb1b-ae74b438dd26", "830-816V01DR", 52),
+              "e22ae19d-1f37-45d7-bb1b-ae74b438dd26", "000-" "000V00DR", 52),
  "d72bde5e": (4, 180, "1,7", 180, "6", None, "7,4 kg", "182 × 46 × 10,5 cm", 1179,
               "d72bde5e-0f44-4431-b8de-4ab8461d5710",
-              "be13eeaf-aef1-44eb-964b-58e4c1a85d4e", "830-700V00ND", 42),
+              "be13eeaf-aef1-44eb-964b-58e4c1a85d4e", "000-" "000V00ND", 42),
  "316f9945": (4, 180, "1,9", 180, "7,6", "5,5", "6 kg", "182 × 47 × 10 cm", 1179,
               "316f9945-54b5-4c39-94ff-16cb172ffe60",
               "11f53061-770b-4730-9762-7575a307c09a", "830-311", 52),
  "f8fd1b62": (4, 160, "1,8", 170, "8", "5", "7,6 kg", "173 × 42,5 × 10 cm", 1339,
               "f8fd1b62-9610-45dd-85f1-cbe0bed94387",
-              "52c26059-7027-4bdd-8b04-bdc3d51d59aa", "830-716V01ND", 54),
+              "52c26059-7027-4bdd-8b04-bdc3d51d59aa", "000-" "000V00ND", 54),
  "309076e2": (3, 120, "1,8", 170, "6", "5", "5,4 kg", "173 × 42,5 × 8 cm", 1299,
               "309076e2-fdb5-418c-836b-0ac679f7fb7b",
-              "9875f4df-d4f7-45b5-b320-466e7bf2f5a1", "830-716V00ND", 15),
+              "9875f4df-d4f7-45b5-b320-466e7bf2f5a1", "000-" "000V00ND", 15),
 }
 
 # Panelbredden ur MÅTTRITNINGEN (plats 3), inte ur spec-blocket: A och B har

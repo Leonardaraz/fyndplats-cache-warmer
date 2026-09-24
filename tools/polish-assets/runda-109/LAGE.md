@@ -34,8 +34,8 @@ sida, och att behöva den hade varit ett tecken på fel ordning.
 
 | nyckel | artnr | pris | landedCost | prisgrind | lager | frakt ÷ inköp |
 |---|---|--:|--:|:-:|--:|--:|
-| `ffb5239f` | 830-814V01WT | 1 329 | 1 100,61 | ✅ | 21 | 0,396 |
-| `7bd4f691` | 830-814V01BK | 1 239 | 1 031,52 | ✅ | 26 | 0,423 |
+| `ffb5239f` | [artikelnr] | 1 329 | 1 100,61 | ✅ | 21 | 0,396 |
+| `7bd4f691` | [artikelnr] | 1 239 | 1 031,52 | ✅ | 26 | 0,423 |
 
 Artikelnumrens `V01` kodar sex paneler. `matt.kontroll()` prövar det mekaniskt
 på alla åtta (V00=4, V01=6, V02=8) — familjeavläsningen är därmed testad, inte

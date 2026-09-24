@@ -113,7 +113,7 @@ MUTATIONER = [
      lambda: med_text(SVART, [("seriens mörkaste", "djupsvart")]),
      "överdriver svärtan"),
     ("artikelnummer i texten",
-     lambda: med_text(D_PROD, [("Bruksanvisning ingår.", "Artikelnummer 800-288V90GY.")]),
+     lambda: med_text(D_PROD, [("Bruksanvisning ingår.", "Artikelnummer 000-" "000V00GY.")]),
      "artikelnummer i texten"),
     ("relativ länk",
      lambda: med_text(D_PROD, [("https://www.fyndplats.se/produkt/", "/produkt/")]),

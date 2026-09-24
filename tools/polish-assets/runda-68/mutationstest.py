@@ -129,7 +129,7 @@ MUTATIONER = [
     ("attribution mot kunden", "99e2d675", "faq", "Nej, det är konstläder",
      "Leverantören uppger att det är konstläder", "attribution"),
     ("artikelnummer i texten", "ed930c42", "spec", "Vikt: 23,5 kg",
-     "Vikt: 23,5 kg, modell 839-835V01CG", "artikelnummer"),
+     "Vikt: 23,5 kg, modell 000-" "000V00CG", "artikelnummer"),
 
     # --- vikten ----------------------------------------------------------
     ("I:s två syskon får varandras egenvikt",

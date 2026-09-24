@@ -75,7 +75,7 @@ MUTATIONER = [
     ("251f0429", "ingress", "Liggytan är 185 × 70 cm",
      "Skickas från Tyskland. Liggytan är 185 × 70 cm", "landsnamn"),
     ("ed7a86fd", "ingress", "Den enda i rundan med",
-     "Den enda i rundan (art.nr 845-030CG) med", "artikelnummer"),
+     "Den enda i rundan (art.nr 000-" "000CG) med", "artikelnummer"),
     ("2cfd373a", "ingress", "<strong>Rundans lättaste bänk: 13 kg.</strong>",
      "<strong>Rundans lättaste bänk: 11 kg.</strong>", "11 kg"),
     ("5078bedf", "ingress", "Samma treszonsbänk som den vita",

@@ -302,7 +302,7 @@ def granska(pid):
 SJALVTEST = [
     ("husmärke", "Bocken är en HOMCOM-modell.", True),
     ("tredjepartsmärke", "Passar en Makita-kapsåg.", True),
-    ("artikelnummer", "Modellen heter 845-030CG.", True),
+    ("artikelnummer", "Modellen heter 000-" "000CG.", True),
     ("leveransland", "Skickas från Tyskland inom en vecka.", True),
     ("attribution", "Leverantören anger 580 kg.", True),
     ("tyskt ord", "Zwei klappbare Sägeböcke aus Stahl.", True),

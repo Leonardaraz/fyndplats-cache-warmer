@@ -1,0 +1,46 @@
+{
+ "slug": "verktygsvagnar-verktygslador",
+ "seo": {
+  "title": "Verktygsvagn & verktygslåda – med lås och lådor",
+  "description": "Verktygsvagnar i stål med upp till 16 lådor, lås och låsbara hjul, verkstadsvagnar i tre plan, verktygsskåp och verktygslådor med kullagerskenor."
+ },
+ "content": {
+  "intro": [
+   "En verktygsvagn samlar verktygen på ett ställe och rullar dit du jobbar, i garaget, verkstaden eller förrådet. Här samlar vi verktygsvagnar med lådor, verkstadsvagnar med öppna plan, verktygsskåp på hjul och för väggen, verktygslådor att ställa på vagnen eller bänken och en låsbar låda för lastbilsflak.",
+   "Vagnarna är av pulverlackerat stål och har upp till 16 lådor. I många modeller löper lådorna på kullagerskenor, och flera har inlägg i lådorna som skyddar verktygen. De flesta vagnar och skåp går att låsa, och på de flesta vagnar går två av hjulen att låsa, så att vagnen står still när du arbetar.",
+   "Bärigheten står per modell och går upp till 150 kg på vagnarna. Några har en arbetsyta på toppen, en av dem utdragbar från 70 till 130 cm, och verktygsskåpen med hålplatta ger plats för det som ska hänga synligt.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Går lådorna att låsa?",
+    "a": "På de flesta modeller, ja. Vagnarna har nyckellås eller cylinderlås, och verktygslådorna har nyckellås eller öglor för hänglås. Vilket lås det är står i produktbeskrivningen."
+   },
+   {
+    "q": "Hur mycket bär en verktygsvagn?",
+    "a": "Upp till 150 kg, beroende på modell. Maxlasten per låda och per plan är lägre och står i produktbeskrivningen."
+   },
+   {
+    "q": "Behöver vagnen monteras?",
+    "a": "Ja, de flesta levereras omonterade. Skruva ihop stommen på ett plant golv och montera hjulen sist."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "45 synliga produkter 2026-09-24 (verktygsvagn|verktygslåda|verktygsskåp|verkstadsvagn|verktygsväska) minus knäpallen 0d09a845, frisörväskan e386a044 och verktygssatsen cc570baf",
+  "lastbilsflak": "be75883f 'Verktygslåda för lastbil i stål – låsbar flaklåda'",
+  "verktygsskåp för väggen": "b43f5ca0 'Verktygsskåp för vägg i stål 76×31×76 cm'",
+  "pulverlackerat stål": "f9de10ab 'En verktygsvagn i pulverlackerat s[tål]'; stål-taggen på 41",
+  "upp till 16 lådor": "b920d526, d9965552 'verktygsvagn 113 cm med 16 lådor'",
+  "kullagerskenor i många": "18 träffar; 5910cd6f 'Kullagerskenor med EVA-inlägg i lådorna'",
+  "inlägg i lådorna": "5910cd6f, bdd01b5f 'EVA-inlägg i lådorna'",
+  "de flesta går att låsa": "lås-taggen på 27 av 45",
+  "två hjul låsbara": "broms-taggen på 23 av 31 med hjul; a389ddaa 'Två låsbara hjul'",
+  "upp till 150 kg": "f9de10ab, 50a64a95 '150 kg', df9475dc, 4e0a06c0",
+  "arbetsyta, utdragbar 70–130 cm": "bdd01b5f 'Verkstadsvagn med utdragbar arbetsyta 70–130 c[m]'; f2495eee 'rostfri bänkskiva'",
+  "hålplatta": "1db06f83 'Verktygsskåp på hjul 133 cm med hålplatta'; 81c123fa",
+  "nyckellås, cylinderlås, hänglåsöglor": "94925af2 'nyckellås'; bc698424 'Cylinderlås som stänger kistan'; 8a6922ce 'hänglåsö[glor]'",
+  "maxlast per låda": "1db06f83 '8 kilo per låda'",
+  "plant golv, hjulen sist": "f9de10ab 'Skruva ihop stommen på ett plant golv och montera hjulen sist'"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "slug": "hamsterburar-gnagarburar",
+ "seo": {
+  "title": "Hamsterbur & gnagarbur – stora, i flera plan",
+  "description": "Hamsterburar i trä, akryl och glas, dvärghamsterbur, burar med rörsystem och gnagarburar för råtta, degu och chinchilla. Flera med djup bädd."
+ },
+ "content": {
+  "intro": [
+   "Här finns hamsterburar i trä, en dvärghamsterbur, hamsterburar med rörsystem och tunnlar och större gnagarburar för råtta, degu och chinchilla. En stor hamsterbur i trä på ben mäter 110 cm, och hamsterburen på stativ är 120 cm hög och står på hjul.",
+   "Hamstrar gräver, så bäddens djup spelar roll. Två träburar har 31 cm fri höjd i bottenplanet, nog för en bädd där djuret kan gräva riktiga gångar, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. I dvärghamsterburen ger bottenvåningen plats för ett ordentligt lager strö.",
+   "Gnagarburen i akryl och aluminium ger 0,50 m² bottenyta i ett enda plan. Flera burar kommer med hus, löphjul, matskål och vattenflaska, och i dvärghamsterburen sitter löphjulet och vattenflaskan redan på plats.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vilka burar har djup bädd för grävning?",
+    "a": "Två hamsterburar i trä har 31 cm fri höjd i bottenplanet, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. Djupet står redan i produktnamnet."
+   },
+   {
+    "q": "Finns det burar för råtta, degu och chinchilla?",
+    "a": "Ja. Smådjursburen på 150 cm med fem plan är gjord för djur som klättrar, som råtta, chinchilla, degu och iller. Gnagarburen på 128 cm har fyra plan, ramper och en hängmatta och står på fyra hjul."
+   },
+   {
+    "q": "Vad följer med buren?",
+    "a": "Det varierar. Flera levereras med hus, löphjul, matskål och vattenflaska, och vad som ingår står i beskrivningen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "15 synliga produkter 2026-09-24 vars beskrivning nämner hamster, gnagare, råtta, degu eller chinchilla (vakten i skrivanropet)",
+  "dvärghamsterbur": "d2ebfcee namnet 'Dvärghamsterbur 47x30x27 cm'",
+  "rörsystem och tunnlar": "42d80550 namnet 'Hamsterbur på stativ 120 cm – rörsystem'; 272ed958 'Hamsterbur med rörsystem'; a97d3650 'Hamsterbur med tunnel och tillbehör'",
+  "råtta, degu, chinchilla": "fee40f78 'Det är en bur för djur som klättrar: iller, råtta, chinchilla, degu'",
+  "110 cm i trä": "7f4ae6d7 namnet 'Stor hamsterbur 110 cm i trä på ben' (måttet anges utan riktning, därför 'mäter')",
+  "120 cm på stativ med hjul": "42d80550 'En hamsterbur på eget stativ med hjul, 120 cm hög totalt'",
+  "31 cm, gräva gångar": "c30fac24 'bottenplanet: 31 cm fri höjd, tillräckligt för en bädd som djuret kan gräva riktiga gångar i'; 9c0fe514 samma modell i ljusgrått",
+  "26 cm glas, hjul": "056b68d4 'En gnagarbur på fyra låsbara hjul med tre plan, en 26 cm djup underdel i härdat glas'",
+  "dvärghamster strö": "d2ebfcee 'bottenvåningen ger fri yta för ett ordentligt lager strö att gräva i. Löphjulet och vattenflaskan sitter redan på plats'",
+  "akryl och aluminium 0,50 m²": "55f33f8b 'En gnagarbur i akryl och aluminium som ger 0,50 m² sammanhängande bottenyta i ett enda plan'",
+  "hus, löphjul, matskål, vattenflaska": "5b902b33 'ett hus att sova i, ett hjul, matskål och vattenflaska'; 056b68d4 'Löphjul, hydda, matskål, v…'",
+  "150 cm fem plan": "fee40f78 namnet 'Smådjursbur 150 cm med fem plan'",
+  "128 cm fyra plan, hängmatta, hjul": "a93e2e5a 'i pulverlackad metall med fyra plan, ramper mellan våningarna och en hängmatta högst upp. Burens stativ står på fyra hjul'; namnet 'Gnagarbur 128 cm'",
+  "djupet i namnet": "c30fac24/9c0fe514 'Hamsterbur i trä med 31 cm djup bädd'; 056b68d4 'Gnagarbur på hjul med tre plan och 26 cm djup glasunderdel'",
+  "stora": "7f4ae6d7 'Stor hamsterbur 110 cm'; 42d80550 '120 cm hög totalt'",
+  "trä, akryl och glas": "9d2d4074 m.fl. 'Hamsterbur i trä'; 55f33f8b 'akryl och aluminium'; 056b68d4 'härdat glas'"
+ }
+}

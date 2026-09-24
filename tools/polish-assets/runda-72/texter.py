@@ -9,11 +9,11 @@ ARTIKELNUMRET SKILJER DEM. Måttgruppering är regeln sedan runda 70 (familj J
 såg ut som ett par och var en kvartett). Den regeln hade slagit ihop två
 olika produkter här:
 
-    839-423V00LG  golvfatolj-360-grader-fem-lagen   62 × 70 × 95, 11 kg  PUBLICERAD
-    83B-380V00BG  golvfatolj-vridfot-beige          62 × 70 × 95, 11 kg  PUBLICERAD
-    839-423V00GY  64856235 grå                      62 × 70 × 95, 11 kg  ← runda 72
-    839-423V00BU  35872574 petrolblå                62 × 70 × 95, 11 kg  ← runda 72
-    839-423V00BG  4f6bef7d beige                    62 × 70 × 95, 11 kg  ← runda 72
+    [artikelnr]  golvfatolj-360-grader-fem-lagen   62 × 70 × 95, 11 kg  PUBLICERAD
+    [artikelnr]  golvfatolj-vridfot-beige          62 × 70 × 95, 11 kg  PUBLICERAD
+    [artikelnr]  64856235 grå                      62 × 70 × 95, 11 kg  ← runda 72
+    [artikelnr]  35872574 petrolblå                62 × 70 × 95, 11 kg  ← runda 72
+    [artikelnr]  4f6bef7d beige                    62 × 70 × 95, 11 kg  ← runda 72
 
 Måtten är identiska ned till kilot. Paketet skiljer en centimeter (66 × 61 × 27
 mot 66 × 62 × 28) och klädseln är sammetsimitation på den ena serien — men den

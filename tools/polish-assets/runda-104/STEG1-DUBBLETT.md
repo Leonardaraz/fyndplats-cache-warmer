@@ -37,7 +37,7 @@ supplierName       "Sold ByAosom ES (EU) Store(Trader)"
 ```
 
 Feed-importens dubblettspärr nycklar på `supplierProductId` och kan omöjligt
-se det: `aosom:370-402V90MX` och `1005010017272881` är två olika strängar för
+se det: `aosom:[artikelnr]` och `1005010017272881` är två olika strängar för
 samma fysiska vara. Spärren gjorde alltså exakt vad den är byggd för, och
 missade ändå.
 
@@ -47,7 +47,7 @@ Sidan vi BEHÅLLER pekar nu på Aosoms artikelnummer; utkastet är pensionerat.
 
 | | före | efter |
 |---|--:|--:|
-| leverantör | aliexpress | **aosom:370-402V90MX** |
+| leverantör | aliexpress | **aosom:[artikelnr]** |
 | landad kostnad (inkl. moms) | 1 779,54 kr | **1 726,60 kr** |
 | kundpris | 2 339 kr | **2 339 kr (ORÖRT)** |
 | marginal | 23,92 % | **26,18 %** |

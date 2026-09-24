@@ -8,8 +8,8 @@ polerade och publicerade; de två sista är den här rundan.
 
 | modell | artikelnummer | utkast | vad den är |
 |---|---|--:|---|
-| **C** | `D08-041` | 4 | lådskåp, 60 × 30 × 36 cm, EN stor låda på metallskenor |
-| **D** | `D08-021` | 3 | matstation, 60 × 30 × 41 cm, HELA skivan lyfts av |
+| **C** | `[artikelnr]` | 4 | lådskåp, 60 × 30 × 36 cm, EN stor låda på metallskenor |
+| **D** | `[artikelnr]` | 3 | matstation, 60 × 30 × 41 cm, HELA skivan lyfts av |
 
 Sju utkast, två kompletta färgfamiljer, noll rester. Efter den här rundan är
 foderstationsfamiljen slut.
@@ -20,8 +20,8 @@ foderstationsfamiljen slut.
 här för fjärde gången — men suffixet går inte att AVKODA, och det är nytt:
 
 ```
-D08-041V80GY   D08-041V80CF   D08-041V01BK   D08-041V00WT      ← fyra färger
-D08-021WT      D08-021V00GY   D08-021CF                        ← tre färger
+[artikelnr]   [artikelnr]   [artikelnr]   [artikelnr]      ← fyra färger
+[artikelnr]      [artikelnr]   [artikelnr]                        ← tre färger
 ```
 
 Fyra färger av SAMMA modell bär tre olika V-nummer (`V80`, `V01`, `V00`), och
@@ -40,13 +40,13 @@ Alla sju passerar. `las`-läget i poleringsworkflowen avslutar med `exit 1` på
 
 | id8 | artikelnummer | `landedCostSek` | pris |
 |---|---|--:|--:|
-| `8c1d08c5` | D08-041V80GY | 768,50 | 929 |
-| `3710a0c3` | D08-041V80CF | 792,23 | 959 |
-| `5eb270ed` | D08-041V01BK | 800,83 | 969 |
-| `31d6a3df` | D08-041V00WT | 830,23 | 999 |
-| `a8e376e7` | D08-021WT | 666,28 | 799 |
-| `5d7aab1b` | D08-021V00GY | 748,02 | 899 |
-| `edd89684` | D08-021CF | 747,71 | 899 |
+| `8c1d08c5` | [artikelnr] | 768,50 | 929 |
+| `3710a0c3` | [artikelnr] | 792,23 | 959 |
+| `5eb270ed` | [artikelnr] | 800,83 | 969 |
+| `31d6a3df` | [artikelnr] | 830,23 | 999 |
+| `a8e376e7` | [artikelnr] | 666,28 | 799 |
+| `5d7aab1b` | [artikelnr] | 748,02 | 899 |
+| `edd89684` | [artikelnr] | 747,71 | 899 |
 
 ## Sökord och sluggar
 

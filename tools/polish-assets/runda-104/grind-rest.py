@@ -125,7 +125,7 @@ def granska(pid, s):
 if __name__ == "__main__":
     # självtest: grinden MÅSTE fälla en känd defekt, annars mäter den ingenting
     prov = dict(rest.SIDOR["883db249-fa84-4836-b7ff-6bba71d6b596"])
-    prov["brod"] = prov["brod"] + "<p>Leverantören anger 45 minuter. Artikelnummer: 370-170V90OG</p>"
+    prov["brod"] = prov["brod"] + "<p>Leverantören anger 45 minuter. Artikelnummer: 000-" "000V00OG</p>"
     self_fel = granska("883db249", prov)
     vantat = ["attribution", "artikelnummer i texten", "förbjuden spec-etikett"]
     if not all(any(v in f for f in self_fel) for v in vantat):

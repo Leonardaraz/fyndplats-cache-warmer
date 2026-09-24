@@ -1,0 +1,42 @@
+{
+ "slug": "sidobord",
+ "seo": {
+  "title": "Sidobord & avlastningsbord – runda och C-formade",
+  "description": "Sidobord och avlastningsbord: runda bord i metall, rotting och stenlook, C-format bord som skjuts in under soffan och sidobord med eluttag och USB."
+ },
+ "content": {
+  "intro": [
+   "Ett sidobord håller lampan, koppen och mobilen nära där du sitter. Här hittar du runda sidobord i metall, rotting, stenlook och marmorlook, sidobord i industristil med hylla eller skåp och C-formade bord som ställs tätt intill soffan.",
+   "Av de C-formade borden står två på hjul och ett skjuts in under soffan. Det ena på hjul går att höja mellan 68 och 78 cm och fungerar också som sängbord eller litet rullbord.",
+   "Två sidobord har eluttag och USB, så att mobilen laddas där den ligger, och flera runda bord av metall och rotting klarar både inne och ute. De runda borden är 32 till 50 cm i diameter.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur högt ska ett sidobord vara?",
+    "a": "Ungefär i höjd med soffans armstöd, så att du når koppen utan att luta dig fram. Sidoborden här är 35 till 80 cm höga, och höjden står i beskrivningen."
+   },
+   {
+    "q": "Är sidobord och avlastningsbord samma sak?",
+    "a": "Ja, det är två ord för samma möbel: ett litet bord bredvid soffan, fåtöljen eller sängen."
+   },
+   {
+    "q": "Går borden att ha ute?",
+    "a": "Några av de runda borden i metall och rotting passar både inne och ute. Det står i beskrivningen vilka."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "19 synliga sidobord 2026-09-24 (18 i lager). INTE med: gasolgrillar och kolgrill med sidobord, golvlampa med bord, katthus, satsbordet 98891b79 (satsbord står i Soffbord & småbords titel) och trädgårdsbordet 13f2cc84",
+  "runda i metall, rotting, stenlook, marmorlook": "9d71bf28 'Pulverlackerat stål' Ø 40; d80df088 'Flätad PE-rotting' Ø 50; cc4aad40 'spräcklig stenlook'; 4d7268c1 namnet 'vit marmorlook'",
+  "industristil med hylla eller skåp": "fd940665 namnet 'Sidobord med skåp i industristil'; 61917e9a 'Sidobord i svart stål med hylla – industristil'",
+  "C-form, två på hjul": "e01513c6 och 46c0fe07 'C-form på fyra hjul'; c788becf 'C-format sidobord'",
+  "skjuts in under soffan": "c788becf namnet 'Sidobord C-form 30 cm djupt – skjuts in under so[ffan]'",
+  "68–78 cm, sängbord eller rullbord": "e01513c6 namnet 'höjd 68–78 cm'; 'som fungerar som soffbord, sängbord eller litet rullbord'",
+  "två med eluttag och USB": "30fe3828 namnet 'Sidobord med laddstation – eluttag, USB och USB-C'; d9b52d27 'Eluttag två … USB ett USB-A och ett USB-C'",
+  "inne och ute": "9d71bf28 och 20e85a4c 'både inne [och ute]'; d80df088 'utomhus'",
+  "Ø 32 till 50 cm": "20e85a4c 'Diameter bricka: 32 cm'; d80df088 'Diameter: 50 cm'",
+  "35 till 80 cm höga": "bd24e5f9 'Mått litet bord: 35 cm i diameter, 35 cm högt'; 084b987b 'Mått: 34 × 30 × 80 cm'",
+  "armstödet": "allmänt möbelråd, inget produktpåstående"
+ }
+}

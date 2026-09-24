@@ -362,7 +362,7 @@ def sjalvtest():
         ALT["d85ade1b"][4] = spar["d85ade1b"][4]
 
         ALT["a33447f9"][4] = ("Måttritning på klöstunnan, artikelnummer "
-                              "830-701V02WT, 45 cm i diameter och 79 cm hög.")
+                              "000-" "000V00WT, 45 cm i diameter och 79 cm hög.")
         prov("fäller artikelnummer i alt", bool(granska("a33447f9")))
         ALT["a33447f9"][4] = spar["a33447f9"][4]
     finally:

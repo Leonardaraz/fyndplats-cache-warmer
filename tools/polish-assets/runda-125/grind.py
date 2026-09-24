@@ -310,7 +310,7 @@ def granska(pid):
 SJALVTEST = [
     ("husmärke", "Vagnen är en HOMCOM-modell.", True),
     ("tredjepartsmärke", "Passar DeWalt-maskiner.", True),
-    ("artikelnummer", "Modellen heter 845-030CG.", True),
+    ("artikelnummer", "Modellen heter 000-" "000CG.", True),
     ("leveransland", "Skickas från Tyskland inom en vecka.", True),
     ("attribution", "Leverantören anger 150 kg.", True),
     ("tyskt ord", "Fyra Schubladen på kullagerskenor.", True),

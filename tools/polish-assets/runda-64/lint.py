@@ -69,7 +69,7 @@ ATTRIBUTION = ["leverantör", "leverantören", "leverantörens", "tillverkaren",
                "tillverkarens", "enligt tillverkare", "grossist"]
 
 # ☠️ Mönstret krävde tidigare tre SIFFROR före bindestrecket och missade därmed
-# `83F-028V00GY` — som är exakt det nummer som står i b09d20b7:s egen tyska
+# `[artikelnr]` — som är exakt det nummer som står i b09d20b7:s egen tyska
 # brödtext. Aosoms nummer börjar med en siffra men får ha bokstäver redan i
 # första ledet. Kravet på minst en versal håller årtal som "2024-2025" utanför.
 ARTNR = re.compile(r"\b(?=[0-9A-Z-]*[A-Z])[0-9][0-9A-Z]{1,3}-[0-9A-Z]{4,}\b")

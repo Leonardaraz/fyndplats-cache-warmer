@@ -118,7 +118,7 @@ MUTATIONER = [
      ersatt("b3672df6", "kattigloo-flatad-50-cm", "kattigloo-som-inte-finns")),
 
     ("artikelnumret i texten",
-     ersatt("ad90a1cc", "Färg: ljusbrun", "Artikelnummer: 845-030CG")),
+     ersatt("ad90a1cc", "Färg: ljusbrun", "Artikelnummer: 000-" "000CG")),
     ("relativ länk",
      ersatt("b3672df6", "https://www.fyndplats.se/produkt/kattigloo-flatad-50-cm",
             "/produkt/kattigloo-flatad-50-cm")),

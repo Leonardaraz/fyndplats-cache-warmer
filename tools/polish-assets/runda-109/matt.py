@@ -10,7 +10,7 @@ ett 1:2-fall: en AE-sida buntar två artiklar som leverantören säljer var för
 sig, och ommappningsverktyget vägrar en flervariantssida.
 
 ☠️ TALEN HÄRLEDS INTE. Läsningen 2026-09-09 gav samma spec-block som runda
-   108, samma två importfel, och artikelnumren `830-814V01WT` / `830-814V01BK`
+   108, samma två importfel, och artikelnumren `[artikelnr]` / `[artikelnr]`
    — samma bas 830-814 och samma V01 som familjens övriga sexpanelsrader.
 """
 
@@ -23,27 +23,27 @@ FOTHOJD = "6,5 cm"
 RUNDAN = {
  "ffb5239f": (6, "vit",   "vit",   1329, "7,9 kg", "173 × 43 × 15 cm",
               "ffb5239f-3cfd-49c8-ae10-5f8b9993c6f6",
-              "45f65bf5-3de5-4115-aa96-80cd94ad5b36", "830-814V01WT"),
+              "45f65bf5-3de5-4115-aa96-80cd94ad5b36", "000-" "000V00WT"),
  "7bd4f691": (6, "svart", "svart", 1239, "7,9 kg", "173 × 43 × 15 cm",
               "7bd4f691-ad6d-4ae2-9fa4-656caa3933e8",
-              "588c99cb-6055-42c2-b2cf-ace463a6d14a", "830-814V01BK"),
+              "588c99cb-6055-42c2-b2cf-ace463a6d14a", "000-" "000V00BK"),
 }
 
 # Runda 108:s sex, redan LIVE. De är med här för att syskonlistan ska bli
 # fullständig — fyra av dem får nya korslänkar när de två nya tillkommer.
 LIVE = {
  "5f14c112": (4, "vit",         "vit",   1069, "6 kg",    "173 × 43 × 9 cm",
-              "5f14c112-8c5e-44bf-9c71-321bbc7010c4", None, "830-814V00WT"),
+              "5f14c112-8c5e-44bf-9c71-321bbc7010c4", None, "000-" "000V00WT"),
  "957b042d": (4, "brun",        "brun",  1139, "6 kg",    "173 × 43 × 9 cm",
-              "957b042d-7896-4892-9f05-30ab5a32d95a", None, "830-814V00BN"),
+              "957b042d-7896-4892-9f05-30ab5a32d95a", None, "000-" "000V00BN"),
  "6649471e": (6, "naturfärgad", "natur", 1329, "7,9 kg",  "173 × 43 × 15 cm",
-              "6649471e-604e-497e-8ff1-e5833b8d0068", None, "830-814V01ND"),
+              "6649471e-604e-497e-8ff1-e5833b8d0068", None, "000-" "000V00ND"),
  "854371fe": (6, "brun",        "brun",  1179, "7,9 kg",  "173 × 43 × 15 cm",
-              "854371fe-f4d6-4700-be9a-ff54060e7374", None, "830-814V01BN"),
+              "854371fe-f4d6-4700-be9a-ff54060e7374", None, "000-" "000V00BN"),
  "da1a8a75": (8, "vit",         "vit",   1499, "9,65 kg", "173 × 43 × 18,5 cm",
-              "da1a8a75-6efe-4709-98e3-148ac6ceb2a5", None, "830-814V02WT"),
+              "da1a8a75-6efe-4709-98e3-148ac6ceb2a5", None, "000-" "000V00WT"),
  "64c0809d": (8, "naturfärgad", "natur", 1429, "9,6 kg",  "173 × 43 × 18,5 cm",
-              "64c0809d-002e-4e83-aa4a-a2941fe68392", None, "830-814V02ND"),
+              "64c0809d-002e-4e83-aa4a-a2941fe68392", None, "000-" "000V00ND"),
 }
 ALLA = dict(LIVE, **RUNDAN)
 

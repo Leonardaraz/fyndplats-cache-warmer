@@ -1,0 +1,46 @@
+{
+ "slug": "bokhyllor",
+ "seo": {
+  "title": "Bokhylla – smal, låg, kubhylla & barnbokhylla",
+  "description": "Bokhyllor och kubhyllor: smala från 30 cm bredd, låga med åtta fack, i trädform och på hjul, en med LED och barnbokhyllor där omslagen syns."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du bokhyllor till vardagsrummet, kontoret och barnrummet: smala och låga hyllor, kubhyllor med öppna fack, bokhyllor i trädform, en roterande kubhylla och hyllor på hjul.",
+   "De höga bokhyllorna levereras med tippskydd som fäster dem i väggen. En av dem har LED-belysning i sju färger på varje plan.",
+   "Barnbokhyllorna har lutande plan eller fack där omslagen syns i stället för ryggarna, så att ett barn som inte läser än hittar sin bok. Flera har formen av moln, hus eller björn, och två har tyglådor.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket tål hyllplanen?",
+    "a": "Det skiljer sig mycket och står i beskrivningen: från 3 kg per plan i en barnbokhylla till 10 kg per plan i en metallhylla."
+   },
+   {
+    "q": "Måste bokhyllan fästas i väggen?",
+    "a": "En hög eller smal hylla ska alltid fästas, och de flesta bokhyllorna levereras med tippskydd. Skruva i väggmaterialet, inte bara i gipsskivan."
+   },
+   {
+    "q": "Finns det bokhyllor för barn?",
+    "a": "Ja, med lutande plan där omslagen syns, i form av moln, hus och björn, och en kubhylla med tyglådor. Flera har rundade kanter."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "24 synliga bokhyllor och kubhyllor 2026-09-24 (22 i lager). INTE med: barnskrivbordet 37f968fe, barngarderoben 5de93e39 och leksaksförvaringen 3563d029",
+  "smala från 30 cm": "bd664764 'Mått: 30 × 24 × 158 cm'",
+  "låga med åtta fack": "7d982b40 namnet 'Låg bokhylla med åtta fack'",
+  "trädform": "3b3705f5 'Bokhylla i trädform, 136 cm'; 79ab08fe 'Bokhylla i trädform 109 cm'",
+  "roterande kubhylla": "12bc7c3a 'Kuber 16 st … Rotation 360°'",
+  "på hjul": "b99bb9cc 'Bokhylla på hjul'; 709f7aac 'Kubhylla på hjul'; fb26b6d9 'Barnbokhylla på hjul'",
+  "höga levereras med tippskydd": "alla fyra höga i lager: bd664764 'tippskydd för väggen följer med'; b5f9a520 och 200d13dc 'Tippskydd Ingår'; a1d3b9bc 'Tippskyddsremmar och justerbara fötter'",
+  "LED i sju färger på varje plan": "200d13dc namnet 'Bokhylla med LED i 7 färger'; 'Belysning LED-list per pla[n]'",
+  "omslagen syns, barn som inte läser": "160c1e93 'omslagen i stället för ryggarna, så ett barn som inte läser'; dbf38846 'omslagen syns'; cdb043b4 'lutande plan'; 423edb5d och fb26b6d9 'framsidan utåt'",
+  "moln, hus, björn": "160c1e93 'Bokhylla i molnform'; 76430e8e 'Bokhylla i husform'; dbf38846 'Bokhylla i björnform'",
+  "två med tyglådor": "76430e8e 'Tyglådor 2 st'; 1f54629b 'Tyglådor 3 st'",
+  "3 till 10 kg per plan": "cdb043b4 '3 kg per plan'; a1d3b9bc '10 kg per plan' (namnet 'Bokhylla fem plan i metall')",
+  "de flesta med tippskydd": "18 av 24 anger att tippskydd ingår eller följer med; c1ed35a7 'tippskydd? Nej'",
+  "rundade kanter": "160c1e93 'rundade hörn'; 76430e8e 'Tippskydd och rundade kanter'; dbf38846 'Tippskydd och rundade kanter'",
+  "en kubhylla med tyglådor": "1f54629b 'Kubhylla för barn 91,5 cm' 'Tyglådor 3 st'"
+ }
+}

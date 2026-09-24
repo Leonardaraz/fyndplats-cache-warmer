@@ -4,7 +4,11 @@
 // Bakgrunden och spärrarnas motiv bor i lib/aosom/remap.ts och är testade där.
 // Rutten är bara transporten: hämta feeden, läs raden, planera, skriv.
 //
-//   POST { wixProductId, sku, duplicateWixProductId?, apply? }
+//   POST { wixProductId, sku?, duplicateWixProductId?, apply? }
+//
+// `sku` får utelämnas när dubbletten är ett Aosom-utkast: då läses numret ur
+// dubblettens mappningsrad (`väljRemapSku`), och det behöver aldrig passera
+// en workflow-input eller en publik Actions-logg.
 //
 // ☠️ TORRKÖRNING ÄR DEFAULT. Utan `apply: true` skrivs ingenting alls — du får
 // planen med ny landad kostnad, ny marginal och eventuella hinder. Samma
@@ -31,6 +35,7 @@ import {
   pensioneraDubblett,
   planeraOmmappning,
   tillämpaOmmappning,
+  väljRemapSku,
 } from "@/lib/aosom/remap";
 
 export const runtime = "nodejs";
@@ -62,7 +67,6 @@ export async function POST(req: NextRequest) {
   }
 
   const wixProductId = body.wixProductId?.trim();
-  const sku = body.sku?.trim();
   const dubblett = body.duplicateWixProductId?.trim() || undefined;
   const apply = body.apply === true;
   // ☠️ MARGINALGOLVET GAR ATT SANKA, MEN BARA MEDVETET OCH PER ANROP.
@@ -75,9 +79,9 @@ export async function POST(req: NextRequest) {
     ? (body.minMarginPct as number)
     : undefined;
 
-  if (!wixProductId || !sku) {
+  if (!wixProductId) {
     return NextResponse.json(
-      { ok: false, error: "wixProductId och sku krävs" },
+      { ok: false, error: "wixProductId krävs" },
       { status: 400 },
     );
   }
@@ -90,6 +94,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const store = getStore();
+    // Artikelnumret: angivet, eller ur dubblettens rad. Se väljRemapSku —
+    // olika nummer på de två ställena vägras i stället för att ett väljs tyst.
+    const dubblettensRad = dubblett ? await store.getMappingByWixProductId(dubblett) : null;
+    const skuVal = väljRemapSku(body.sku, dubblettensRad);
+    if (!skuVal.ok) {
+      return NextResponse.json({ ok: false, error: skuVal.fel }, { status: 400 });
+    }
+    const sku = skuVal.sku;
     // ☠️ BUTIKENS PRIS AR FACIT. Mappningens `grossSek` ar vad vi TROR att
     // kunden ser. Glider de isar raknar marginalgrinden pa fel underlag och
     // faller en lonsam ommappning — uppmatt pa kontorsstolen f13cd415
@@ -111,10 +123,13 @@ export async function POST(req: NextRequest) {
     const plan = planeraOmmappning({ mappning, rad, alla, fx, dubblett, butikensPrisSek, minMarginPct });
 
     if (plan.hinder.length > 0) {
-      return NextResponse.json({ ok: false, torrkörning: !apply, plan }, { status: 422 });
+      return NextResponse.json(
+        { ok: false, torrkörning: !apply, plan, skuKalla: skuVal.kalla },
+        { status: 422 },
+      );
     }
     if (!apply) {
-      return NextResponse.json({ ok: true, torrkörning: true, plan });
+      return NextResponse.json({ ok: true, torrkörning: true, plan, skuKalla: skuVal.kalla });
     }
 
     // Skrivningen. `mappning` och `rad` är garanterat satta här — hinderlistan
@@ -164,7 +179,13 @@ export async function POST(req: NextRequest) {
         + (dubblettPensionerad ? `dubblett ${dubblettPensionerad} pensionerad` : "utan dubblett"),
     });
 
-    return NextResponse.json({ ok: true, torrkörning: false, plan, dubblettPensionerad });
+    return NextResponse.json({
+      ok: true,
+      torrkörning: false,
+      plan,
+      skuKalla: skuVal.kalla,
+      dubblettPensionerad,
+    });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },

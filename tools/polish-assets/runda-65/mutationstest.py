@@ -99,9 +99,9 @@ MUTATIONER = [
 
     # --- artikelnumret ------------------------------------------------------
     ("artikelnummer med BOKSTAV i första ledet", "89c89322", "spec",
-     "Maxlast: 120 kg", "Maxlast: 120 kg — art. 83B-912V00GY", "artikelnummer"),
+     "Maxlast: 120 kg", "Maxlast: 120 kg — art. 00B-" "000V00GY", "artikelnummer"),
     ("etiketten Modellreferens", "eb400961", "spec",
-     "Färg: svart med silverfärgad ram", "Modellreferens: 845-030CG",
+     "Färg: svart med silverfärgad ram", "Modellreferens: 000-" "000CG",
      "artikelnummer"),
 
     # --- språk, märke, land, attribution ------------------------------------

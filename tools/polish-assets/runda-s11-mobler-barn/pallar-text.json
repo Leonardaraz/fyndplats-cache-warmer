@@ -1,0 +1,47 @@
+{
+ "slug": "pallar",
+ "seo": {
+  "title": "Pall – stegpall, duschpall, pianopall & rullpall",
+  "description": "Pallar till hem och verkstad: stegpallar, duschpallar som bär upp till 150 kg, pianopallar på 45–58 cm, rullpallar och sadelpallar på hjul och sittpallar i fyrpack."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du pallar till hela hemmet: stegpallar, duschpallar, pianopallar, rullpallar och sadelpallar på hjul, salongspallar, stoppade pallar och stapelbara sittpallar i fyrpack. Det finns också verkstadspallar med verktygsfack eller verktygsbricka och en trädgårdspall på hjul.",
+   "Pianopallarna ställs i höjd mellan 45 och 58 cm, och pianopallen med notförvaring har ett dolt fack under sitsen. Rullpallarna, sadelpallarna och salongspallarna är höj- och sänkbara, de flesta med gaslyft, och flera har ryggstöd eller fotring.",
+   "Tre av duschpallarna ställs i höjd i fem eller åtta steg, och duschpallarna bär 100 till 150 kg. Stegpallen i stål fälls ihop med ett knapptryck, och till barnen finns stegpallar med två och tre steg. De stapelbara pallarna kommer i fyrpack, och fem av dem bär 120 kg per pall.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vilken höjd ska en pianopall ha?",
+    "a": "Underarmarna ska vara ungefär vågräta när fingrarna vilar på tangenterna. Pianopallarna här ställs i höjd mellan 45 och 58 cm, så sitsen kan följa den som spelar."
+   },
+   {
+    "q": "Vad är skillnaden på en sadelpall och en rullpall?",
+    "a": "En sadelpall har en sits formad som en ridsadel, högre fram och i sidorna och nedsänkt i mitten, så att du sitter med bäckenet framåtlutat. En rullpall har en rund sits, och flera har ryggstöd."
+   },
+   {
+    "q": "Hur mycket bär en duschpall?",
+    "a": "Duschpallarna här bär 100 till 150 kg. Den med U-formad sits och stödhandtag bär 150 kg, och de i aluminium bär 135 kg."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "46 synliga pallar 2026-09-24, valda för hand ur alla synliga produkter med pall i namnet. INTE med: fåtöljer, soffor och barbord med pall eller fotpall, golvpallar för varor (fb43f847), blompallar (ed1e585f), sminkbord med pall, trumset, piano och handpan med pall. Puffar, fotpallar och förvaringspallar ligger på sidan Sittpuffar & fotpallar.",
+  "familjerna": "stegpall 4868c7e5, 516dfd7c, dcf149d1; duschpall 80558327, d1130320, 94aa692a, 9a5de6f9; pianopall 20169ffa, e0a73975, 69387273, a0386ca3, 981bd035; rullpall 98c1b3cb, 983fe163, df3a97c6, fa078e03, 87de04ad, d348bf64, 28532aab, c328a7c0 samt arbetspallarna 1ac305ac och 15ff0d64; sadelpall 12ce97db, c0d9c97a, 20782c24, a7bddc08; salongspall 711f7859, 93b7d87b, 239e68b8, 1d0ba82d; stoppade 12c11f43, ba454107, 5240178f; stapelbara fyrpack 92afa6e3, cb31a581, d38db7a0, 39d1df49, 17c747cb, 4c97bd93; verkstadspall 5646a8ff 'verktygsfack', a65eefea 'verktygsbricka'; trädgårdspall på hjul d886ce9e; övriga: pendelpall f18dfc3b, knäpall 0d09a845, sminkpall fb0bf4f0, snurrbar pall a1c98be2",
+  "pianopall 45–58 cm": "20169ffa 45–56; e0a73975 48–58; 69387273 45–55; a0386ca3 46–56; 981bd035 45–56",
+  "de flesta med gaslyft": "gaslyft uttryckligen: 98c1b3cb, 983fe163, fa078e03, 87de04ad, d348bf64, 28532aab, 1ac305ac ('gaslift klass III'), 15ff0d64, 12ce97db, 20782c24, 711f7859, 93b7d87b, 239e68b8, 1d0ba82d = 14 av 18 rull-, arbets-, sadel- och salongspallar",
+  "flera har ryggstöd eller fotring": "ryggstöd 98c1b3cb, 983fe163, df3a97c6, fa078e03, 87de04ad, d348bf64, c328a7c0, 711f7859, 93b7d87b, 15ff0d64; fotring 98c1b3cb, 983fe163, c328a7c0, 1d0ba82d, 15ff0d64",
+  "tre duschpallar i fem eller åtta steg": "d1130320 'i åtta steg'; 94aa692a 'i åtta steg'; 9a5de6f9 'i fem steg'. 80558327 (bambu) har ingen höjdinställning i beskrivningen",
+  "duschpallar 100–150 kg": "80558327 'bär 100 kg'; d1130320 135; 94aa692a 135; 9a5de6f9 150",
+  "stegpall fälls ihop med knapptryck": "4868c7e5 'Hopfällbar: ja, knapptryck'; 'stål'",
+  "stegpallar för barn två och tre steg": "516dfd7c 'Stegpall barn med 2 steg'; dcf149d1 'Pall för barn med tre steg och handtag'",
+  "fyrpack, fem bär 120 kg per pall": "fyrpack: 92afa6e3 'Fyra stapelbara pallar', cb31a581, d38db7a0, 39d1df49, 17c747cb, 4c97bd93 '4-pack'. 120 kg: cb31a581, d38db7a0, 39d1df49, 17c747cb, 4c97bd93 (92afa6e3 anger ingen last)",
+  "vågräta underarmar": "allmän ergonomi vid instrument, inget produktpåstående",
+  "sadelsits": "c0d9c97a 'En sadelpall har en sits formad som en ridsadel: högre fram och i sidorna, nedsänkt i mitten ... bäckenet framåtlutat'",
+  "rullpall rund sits": "98c1b3cb 'Sits: Ø 32,5 cm'; fa078e03 'Sitsens diameter: 35 cm'; 28532aab 'Sitsens diameter: 35,5 cm'; 1ac305ac 'rund, ø35,5 cm'",
+  "U-sits 150 kg, aluminium 135 kg": "9a5de6f9 'U-formad', 'Stödhandtag', 'Maxlast: 150 kg'; d1130320 'lackerad aluminium', 135; 94aa692a 'aluminiumlegering', 135",
+  "pianopallen med notförvaring, dolt fack": "e0a73975 'Vit pianopall med notförvaring', 'hela sitsen fälls upp och döljer ett fack på 50 × 30 × 5 cm'. a0386ca3 har också ett dolt fack men är slutsåld och nämns därför inte.",
+  "slutsålt": "Slutsålda 2026-09-24 och dolda i listan: a0386ca3, d348bf64 (Pallar), 9352de8e (Klädhängare & hallmöbler), 50a808d5 (Sideboards & vitrinskåp), 188a80b4 och 5c4772dc (Barnmöbler). Inget påstående vilar enbart på dem, så texten stämmer både när de är slut och när de kommer tillbaka."
+ }
+}

@@ -1,0 +1,44 @@
+{
+  "slug": "vaxthus-odling",
+  "seo": {
+    "title": "Tunnelväxthus, väggväxthus & odlingslådor",
+    "description": "Tunnelväxthus och foliehus från 3 × 1 till 6 × 3 m, väggväxthus, växthus i aluminium och polykarbonat, drivbänkar och odlingslådor i metall och trä."
+  },
+  "content": {
+    "intro": [
+      "Ett växthus ger plantorna ett skyddat ställe tidigt på våren och sent på hösten, och en odlingslåda gör det enkelt att odla även utan trädgårdsland. Här samlar vi tunnelväxthus och foliehus, väggväxthus mot husväggen, växthus i aluminium med polykarbonat, miniväxthus och drivbänkar, odlingslådor i metall, trä och plast, och blomställ, spaljéer och reservöverdrag.",
+      "Tunnelväxthusen och foliehusen har en duk av PE-plast, och de flesta har rullbar dörr och nätfönster. Vid kraftig vind ska växthuset förankras, och till flera av dem ingår jordankare, spännlinor och markpinnar. Växthusen i aluminium har väggar av polykarbonat och takfönster.",
+      "Odlingslådorna finns i galvaniserad metall, trä, träkomposit, plast och konstrotting, upp till 241 × 90 cm, och några har spaljé, foliekåpa eller fågelnät. Ett odlingsbord eller en upphöjd låda ger en arbetshöjd där du slipper böja dig ner till marken.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Måste tunnelväxthuset förankras?",
+        "a": "Ja, vid kraftig vind ska det förankras eller ställas mot en vägg. Till flera av växthusen ingår jordankare, spännlinor och markpinnar – vad som ingår står i produktbeskrivningen."
+      },
+      {
+        "q": "Finns det reservöverdrag till växthusen?",
+        "a": "Ja, det finns reservöverdrag till tunnelväxthus på 6 × 3 × 2 m och 3 × 2 × 2 m, ett reservhölje och en växthusduk på 300 × 200 cm."
+      },
+      {
+        "q": "Vad är en drivbänk?",
+        "a": "En låg låda med genomskinligt lock, där du drar upp plantor tidigt på våren innan de planteras ut. De flesta av våra drivbänkar är i trä med lock av polykarbonat som fälls upp."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "105 i kategorin 2026-09-24: ~30 tunnelväxthus/foliehus/polytunnlar, 5 väggväxthus, 5 växthus i aluminium med polykarbonat, ~12 miniväxthus och drivbänkar, ~25 odlingslådor och odlingsbord, blomställ, spaljéer, tomatstöd, 4 reservdukar, en kompostbehållare",
+    "från 3 × 1 till 6 × 3 m": "44662bbc 'Tunnelväxthus 300 × 100 cm' (minst); 7f51c1c3 'Tunnelväxthus 6x3 m', f5f02f8a 'XL-tunnelväxthus … 600x300', 75b88995 'Polytunnelväxthus … 600x30[0]' (störst)",
+    "växthus i aluminium och polykarbonat, takfönster": "5f7566a1 'aluminiumprofil … väggarna och taket är 4 mm polykarbonat', 'med takfönster'; ca16f9ab 'aluminiumlegering … paneler i polykarbonat', 'med skjutdörr och takf[önster]'; b5ba12b8, 1a46d2af, eac7fdca 'med takfönster'",
+    "duk av PE-plast": "PE i beskrivningen på de flesta tunnel- och foliehus (t.ex. 7f51c1c3, 4d1be3b0, 00e49c84); 289ad16c 'Tåligt PE-nät'",
+    "de flesta rullbar dörr och nätfönster": "rulldörr/rullbar i beskrivningen på de flesta tunnel- och foliehus; nätfönster t.ex. 7f51c1c3, 4d1be3b0, 5cec1f40 'med rulldörr och två nä[tfönster]'",
+    "förankras vid kraftig vind": "807231e0 'Vid kraftig vind rekommenderar vi att du förankrar växthuset eller ställer det mot en vägg'",
+    "till flera ingår jordankare, spännlinor och markpinnar": "7f51c1c3 'Jordankare och 4 spännlinor med markpinnar ingår för förankring'; 4d1be3b0 'Fyra spännlinor och fyra jordankare ingår'",
+    "odlingslådor: metall, trä, träkomposit, plast, konstrotting": "2db35e92/ed342378/3d0f6711 i metall (galvaniserad/förzinkad), a564244b/dc33b355 trä, 6347f19b 'Odlingslåda träkomposit', ffe4cdd3 'Odlingslåda plast', 1490dd12 'Odlingslåda konstrotting'",
+    "upp till 241 × 90 cm": "3d0f6711 'Odlingslåda i metall 241 × 90,5 cm'",
+    "spaljé, foliekåpa, fågelnät": "a564244b 'Odlingslåda med spaljé'; 41968c79 'Odlingslåda med foliekåpa 121 cm'; 21c98a2d 'Odlingslåda med fågelnät 230 × 110 cm'",
+    "arbetshöjd, slipper böja dig": "ffa3d111 '89 cm arbetshöjd'; f4724b04 'en timmes rensning kostar ingenting i ryggen'",
+    "FAQ reservöverdrag": "8b2555a5 'Reservöverdrag tunnelväxthus 6×3×2 m'; 289ad16c 'Reservöverdrag till växthus 3×2×2 m'; dcd122c9 'Reservhölje till växthus'; 942ed73c 'Växthusduk 300 × 200 cm'",
+    "FAQ drivbänkar i trä med uppfällbart lock av polykarbonat": "bb3d824d 'Drivbänk i trä 100 × 50 cm med två uppfäll[bara]' (polykarbonat); 6e60b45a och 87485b8a 'Drivbänk i trä och polykarbonat'; undantaget 89aa6d9c 'Drivbänk 120 × 60 cm' har PE-duk, därav 'de flesta'"
+  }
+}

@@ -29,7 +29,7 @@ Runda 72:s regel körd skarpt. Alla tre grupper är äkta färgsyskon:
 
 | familj | bas | utkastet | publicerade syskon |
 |---|---|---|---|
-| Gungande tv-fåtölj 88 × 96 × 108 | **839-974** | b72f093d `839-974V00LR` | `V00DB` mörkblå + grå + beige |
+| Gungande tv-fåtölj 88 × 96 × 108 | **839-974** | b72f093d `[artikelnr]` | `V00DB` mörkblå + grå + beige |
 | Vilfåtölj m. fotpall 80 × 86 × 99 | **833-359** | b67fdc2b `833-359` | `V00CW` gräddvit · `V00CG` mörkgrå · `BK` svart |
 | Reclinerfåtölj m. fotpall 78 × 67 × 98 | **833-360** | b1e98da4 `833-360` | `BK` svart |
 
@@ -84,6 +84,6 @@ inbränd tysk text.** Alla fem positioner går att använda på alla åtta.
 
 Familjen `833-359` säljs i fyra färger under **tre olika namnmönster**:
 `vilfatolj-graddvit-med-fotpall`, `vilfatolj-morkgra-med-fotpall` och
-`tv-fatolj-forvaringspall-145` — den sista är SVART (`833-359BK`) men bär
+`tv-fatolj-forvaringspall-145` — den sista är SVART (`[artikelnr]`) men bär
 inget färgord alls i sitt namn, och står dessutom på `aosomSyncedQty: 0`.
 En kund som jämför de fyra kan inte se vilken som är vilken. Eget ärende.

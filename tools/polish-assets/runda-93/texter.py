@@ -6,8 +6,8 @@
    skrivna via fil och grep-grind gav noll.
 
 ☠️ KÄLLAN NAMNGER LEVERANTÖRENS ARTIKELNUMMER SOM PASSFORMSNYCKEL. Den tyska
-   texten säger "Nur geeignet für 3 x 3 m Pavillons (Sku: 84C-054GY,
-   84C-054BK)". Numret är det farligaste vi har att läcka — dealproffsen.se
+   texten säger "Nur geeignet für 3 x 3 m Pavillons (Sku: [artikelnr],
+   [artikelnr])". Numret är det farligaste vi har att läcka — dealproffsen.se
    publicerar samma sträng som `sku`/`mpn`. Passformen uttrycks därför med
    MÅTT i stället: 250 × 255 cm, 3 × 3 m stomme, indragbart tak, mät själv.
 

@@ -169,7 +169,7 @@ MUTATIONER = [
 
     # --- husreglerna --------------------------------------------------------
     ("☠️ leverantörens artikelnummer smiter in", "79690bf4", "spec",
-     "Vikt: 26 kg", "Artikelnummer: 839-863V80GY", "artikelnummer"),
+     "Vikt: 26 kg", "Artikelnummer: 000-" "000V00GY", "artikelnummer"),
     ("☠️ etiketten Modellreferens används", "99492092", "spec",
      "Vikt: 27,5 kg", "Modellreferens: 839-863", "artikelnummer"),
     ("☠️ avsändarlandet skrivs ut", "d760fffc", "ingress",

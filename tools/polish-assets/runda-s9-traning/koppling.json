@@ -1,0 +1,82 @@
+{
+ "kontrollsumma": 3013935733,
+ "signatur": "slug:id,id,…|slug:… i planens ordning, FNV-1a 32 bitar över ASCII",
+ "antal": 41,
+ "kategorier": {
+  "hantlar-hantelset": {
+   "namn": "Hantlar & hantelset",
+   "foralder": "sport-fritid",
+   "beskrivning": "Hantlar, hantelset, kettlebell och skivstång.",
+   "kontroll": "hantl|hantel|kettlebell|skivstång",
+   "falt": "namn",
+   "produkter": [
+    "0ea9876e-5cb6-4bcf-bbac-83924a44a0f4",
+    "1b0e7544-475e-4053-b930-b4dac0316680",
+    "1c883b87-94cd-4659-8349-3999f922d892",
+    "2c1d652d-d832-4531-9cf7-9ad9c3f3fd52",
+    "3139e839-4f5a-4f74-b876-4a77a788b1c6",
+    "48625288-83eb-4420-95d1-3ca88b4a26e5",
+    "75728100-8bdd-4c1f-a5d3-0be22637c6a4",
+    "7b436e58-9d20-4cde-8b95-b728f1dfb697",
+    "856bdf7e-bd81-4377-8df8-ad96fbada5a0",
+    "9ab9eda7-3bf5-4fde-a895-ee6c1663e81b",
+    "b62bb65c-d933-4a61-bda5-b12aca4a5b25",
+    "c6ff6fe8-2f00-4c3d-881f-06c6630a8150",
+    "db6f36b9-b630-470e-85b1-5cbea5f4388c",
+    "f9c6992d-3d7e-4a2a-86c3-a9aa0c414a3e"
+   ],
+   "wix_id": "f259167d-dfb4-46cf-b366-df757fc45c76",
+   "verifierad": "14/14 lika planen i separat återläsning 2026-09-24"
+  },
+  "traningsbankar": {
+   "namn": "Träningsbänkar",
+   "foralder": "sport-fritid",
+   "beskrivning": "Träningsbänkar, scottbänk och sit-up-bänk.",
+   "kontroll": "bänk",
+   "falt": "namn",
+   "produkter": [
+    "1518c06f-3c2b-4536-b43a-470fb512998d",
+    "18b94738-c6ea-4cf9-8e46-ef63a3cef62a",
+    "3ef0e656-6f28-47df-a46d-377a54d7f3ca",
+    "4c50a4db-f9dd-4c61-8de3-8592627a561e",
+    "583622e8-ce1b-4852-a5f3-a0c2eb924cdc",
+    "6bce6e3a-4b19-47b2-9f53-54f5c3107d93",
+    "77d3bfc2-6b9b-42a3-9b11-32e20cf2c5a4",
+    "7b818c3b-ba37-40ec-8900-ecfe010081a8",
+    "83b2cf8b-1d16-4454-b2cf-66cd3621b2a8",
+    "8a0e05f4-004e-45c7-9481-dba535267a45",
+    "8de3c3ef-e6f6-4ade-8533-343a1f754510",
+    "9521d113-f8da-4e17-a676-fc0d624e224f",
+    "a4bbe667-9fd7-4d98-99bf-9262ad85db36",
+    "b4961e6f-2ed3-4647-b9bb-59ea3d2ed22b",
+    "e580e506-be12-4935-b0cb-4c09805865d4"
+   ],
+   "wix_id": "91dd953e-5e50-4187-bd21-1c98b9ca2118",
+   "verifierad": "15/15 lika planen i separat återläsning 2026-09-24"
+  },
+  "motionscyklar": {
+   "namn": "Motionscyklar",
+   "foralder": "sport-fritid",
+   "beskrivning": "Motionscyklar, spinningcykel och pedaltränare.",
+   "kontroll": "motionscykel|spinningcykel|pedaltränare|pedalmaskin",
+   "falt": "namn",
+   "produkter": [
+    "07d1208e-dc6e-45ab-9c2a-515309167cbd",
+    "1884a543-6c2e-49f1-981a-f2fdb206cbfe",
+    "202385ce-cbd1-4cd3-8925-c4f90e5a49c7",
+    "22816ea5-c79c-48d5-97ec-21057e9ace9d",
+    "2b7ddfc8-106b-43ff-8bd1-6d0c0555457f",
+    "3a1f7574-7d6e-4102-8fe7-5024c1e46c85",
+    "4d3c458c-5d7e-47bc-aa45-eaf730fc093b",
+    "4e68327e-3c5b-4de9-b544-69457ea83949",
+    "5646de67-0a1e-4662-a591-25a3f070d799",
+    "5f730167-3348-49e6-b5f1-bf95ca423b25",
+    "6ab7b3b0-f67d-4f31-a2f9-b820c4ad86b6",
+    "9aa4fbb6-0051-4f27-a098-d7fd1156da82"
+   ],
+   "wix_id": "d8ee1f91-ec07-42bd-8359-6afc0eb0aedd",
+   "verifierad": "12/12 lika planen i separat återläsning 2026-09-24"
+  }
+ },
+ "skriven": "2026-09-24, 41/41 ok, 0 fel, vakterna 1,6 s"
+}

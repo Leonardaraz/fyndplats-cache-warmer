@@ -1,0 +1,45 @@
+{
+  "slug": "klostrad",
+  "seo": {
+    "title": "Klösträd & kattträd – takhöga och klöspelare",
+    "description": "Klösträd och kattträd från 46 cm till takhöga modeller på 275 cm, klöspelare och klöstunnor i sisal, jute och naturfiber – med grottor och hängmattor."
+  },
+  "content": {
+    "intro": [
+      "Ett klösträd ger katten ett eget ställe att klösa, klättra och sova på. Här samlar vi alla våra klösträd och kattträd, från ett litet klösträd på 46 cm till takhöga modeller som spänns fast mellan golv och tak och når 275 cm. Här finns också klöspelare, klöstunnor med hålor att gömma sig i och väggklösträd som monteras på väggen.",
+      "Välj efter katten och bostaden. Katter sitter gärna högt med uppsikt över rummet, så ett högt träd med flera plan används ofta mer än ett lågt. Har du ont om golvyta tar ett takhögt träd eller ett väggklösträd mindre plats. De flesta träden har sisal på stammarna, som tål klor bra, medan andra har jute eller naturfiber som vattenhyacint och sjögräs. Höga träd bör fästas i väggen, och flera levereras med tippskydd.",
+      "Titta också på plattformarnas mått, så att katten kan ligga utsträckt, och på hur mycket trädet bär – flera modeller bär upp till 30 kg totalt.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur högt ska ett klösträd vara?",
+        "a": "Katter sitter gärna högt, så ett träd på 130 cm eller mer används ofta mer än ett lågt. Har du flera katter är fler plan och en grotta att dra sig undan i värt mycket, medan kattungar och äldre katter klarar sig bra med ett lägre träd."
+      },
+      {
+        "q": "Hur sitter ett takhögt klösträd fast?",
+        "a": "Ett takhögt klösträd har en justerbar del som spänns mot taket, så trädet står stadigt i hela sin höjd. Mät takhöjden innan du beställer – varje takhög modell har ett höjdspann, till exempel 228–260 cm."
+      },
+      {
+        "q": "Vad är skillnaden mellan klösträd, klöspelare och klöstunna?",
+        "a": "Ett klösträd har flera plan, ofta med grotta, hängmatta och bädd. En klöspelare är en ensam stam att klösa och sträcka sig mot, och den tar liten plats. En klöstunna är en sluten tunna med hålor där katten kan gömma sig, med klösytor av sisal eller naturfiber."
+      }
+    ]
+  },
+  "facit": {
+    "106 produkter": "100 i lager eller delvis; fakta i scratch klostrad.json, läst 2026-09-24",
+    "46 cm": "b3b1625f 'Litet klösträd 46 cm för katt' (i lager)",
+    "275 cm, spänns mellan golv och tak": "839a2ef5 230–275 cm och 396ba0e6 225–275 cm, båda TAK-flaggade (spänns/takfäste i beskrivningen), i lager",
+    "klöspelare": "11 st i namnet, t.ex. f489937f, 5616c567, 27b607dc",
+    "klöstunnor med hålor": "20 st, t.ex. ec29ad45 'tre hålor', cc31a73b 'två grottor'",
+    "väggklösträd": "8d074911, b04b5375, 837334f8, dbcdae41, b951477f, 38c00989 — väggmonterade (VÄGG-flagga 14 st)",
+    "takhöga tar mindre golvyta": "takhöga modeller står på en bas och spänns mot taket; 0801a975 'Tar 45 × 40 cm i golvyta'",
+    "de flesta har sisal": "sisal nämns i 89 av 100 i lager",
+    "jute": "20 st, t.ex. 5d64f423 'i trä och jute', ab6c0b93 'jutestolpar'",
+    "vattenhyacint, sjögräs": "09336fdf och 2fdbc619 vattenhyacint; a33447f9 och b6bf627f sjögräs",
+    "flera med tippskydd": "75293096 och 62f7cf98 'tippskydd' i namnet; d82beee4 och 70f4481a 'Ett tippskyddsband ingår och fästs i väggen'; 396ba0e6",
+    "bär upp till 30 kg totalt": "0801a975 'bär 30 kg totalt'; 55dc854b 'bär 30 kg'; bd476b1e 'bär 30 kg'",
+    "takhög modell har höjdspann, 228–260 cm": "21 namn bär höjdspann; 75391d11, 8db487c1, 6f0b43f0 'Takhögt klösträd 228–260 cm'",
+    "130 cm eller mer": "husets tidigare råd på lek-tillbehor-for-husdjur, flyttat hit — ett råd, inget påstående om sortimentet"
+  }
+}

@@ -25,7 +25,7 @@ MUTATIONER = [
     ("83fd57c9", "ingress", "fasta armstöd", "fasta armstöd i Kunstleder", "tyskt ord"),
     ("f1f861ea", "ingress", "höga arbetsbänkar", "höga arbetsbänkar. Vinsetto bygger bra stolar", "husmärke"),
     ("df0d351f", "ingress", "med kort, krusig lugg", "med kort, krusig lugg. Skickas från Tyskland", "landsnamn"),
-    ("cc0ec7ba", "ingress", "hjärtformad rygg", "hjärtformad rygg (art.nr 921-762V00PK)", "artikelnummer"),
+    ("cc0ec7ba", "ingress", "hjärtformad rygg", "hjärtformad rygg (art.nr 000-" "000V00PK)", "artikelnummer"),
     ("d739872f", "ingress", "Ryggen är av nätväv", "Leverantören anger att ryggen är av nätväv", "attribution"),
     ("795c5ee2", "ingress", "Utan armstöd tar", "Skickas från EU-lager. Utan armstöd tar", "lagerfras"),
     # talgrinden

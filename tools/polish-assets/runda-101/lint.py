@@ -323,7 +323,7 @@ MUTATIONER = [
     ("10", "cd7e9036", lambda h: h.replace('href="https://www.fyndplats.se/produkt/',
                                            'href="/produkt/')),
     ("11", "b8b6fee1", lambda h: h.replace("</p><h2>Tekniska",
-        " Artikelnummer 700-164V90BK.</p><h2>Tekniska")),
+        " Artikelnummer 000-" "000V00BK.</p><h2>Tekniska")),
     ("12", "1932abe1", lambda h: re.sub(
         r'<li><a href="https://www\.fyndplats\.se/produkt/massagefatolj-tyg[^<]*</a>[^<]*</li>',
         "", h)),

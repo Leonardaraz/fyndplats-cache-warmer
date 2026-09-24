@@ -1,0 +1,45 @@
+{
+  "slug": "konstvaxter",
+  "seo": {
+    "title": "Konstgjorda växter – buxbom, olivträd, monstera",
+    "description": "Konstväxter för inne och ute: buxbom och cypresser på jordspett, olivträd upp till 180 cm, monstera och bambu i kruka med cementfylld botten – utan vattning."
+  },
+  "content": {
+    "intro": [
+      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter för inne och ute, från buxbomsklot, cypresser och lavendelträd till olivträd, monstera, bambu och palmer upp till 190 cm, och häck på rulle.",
+      "Många står färdiga i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett för rabatten. Växterna behöver varken vattnas eller beskäras, och de klarar sig där det är mörkt.",
+      "Ska växten stå ute, välj en som är UV-beständig, så att färgen inte bleks i solen. Många av växterna passar både inne och ute, men några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Kan konstväxterna stå ute?",
+        "a": "Många kan det, och de UV-beständiga tappar inte färgen i solen. Några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen innan du ställer växten ute."
+      },
+      {
+        "q": "Hur gör jag rent en konstväxt?",
+        "a": "Damma av bladen då och då med en mjuk borste eller en lätt fuktad trasa. Vissa kan också sköljas försiktigt med ljummet vatten – låt dem torka efteråt."
+      },
+      {
+        "q": "Välter växten om det blåser?",
+        "a": "Många står i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett som sätts ner i marken."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "59 kopplade 2026-09-24; inne och ute blandat",
+    "buxbomsklot, cypresser, lavendelträd": "8802b999/45fd6bc6 'Konstgjorda buxbomsklot 2-pack'; 85619689/7e66b14b cypress; 80de1b65/47f6059d lavendelträd",
+    "olivträd, monstera, bambu": "654d3653/7e51f64c/fddc9bf4 olivträd; 84bfc22a/a6113d64/67ba375c monstera; edac1214/560edb9f/0136a1b6/8ba12ba1/227fae7d/3c002664 bambu",
+    "palmer upp till 190 cm": "927bd0b8 'Konstgjord arecapalm 190 cm'; 308cabee och 4f2d20a0 palm",
+    "häck på rulle": "756a7cd2 'Konstgjord häck på rulle 300 × 150 cm'; c8376256 '300 × 100 cm'",
+    "olivträd upp till 180 cm": "654d3653 'Konstgjort olivträd 180 cm'",
+    "buxbom och cypresser på jordspett": "5a2bd33d 'Konstgjorda cypresser 2-pack 100 cm på jordspett'; 74330920 'cypressbuskar … på jordspett'; 8802b999 och 45fd6bc6 buxbomsklot med jordspett",
+    "kruka med cementfylld botten som håller dem stadiga": "cement i 40 av 59 (räknat per produkt ur beskrivningen); 0fda8bfe 'Cement i krukan håller trädet stadigt'; edac1214 'stadig kruka med förstärkt cementbotten'",
+    "varken vattnas eller beskäras, klarar sig där det är mörkt": "edac1214 'Den behöver varken vattnas eller beskäras, vissnar inte och kan stå där det är mörkt'; 2cfd222e 'kan stå även där det inte kommer in något dagsljus'",
+    "UV-beständig, färgen bleks inte": "fa0c30ac 'Plasten är UV-beständig, så att färgen inte bleks i solen'; 80de1b65 'UV-beständigt, så träden kan stå både inomhus och utomhus'",
+    "många passar både inne och ute": "0fda8bfe 'passar både inomhus och utomhus'; 560edb9f 'För inne och ute'; cf92c3bd 'både inomhus och utomhus'",
+    "några för inomhusbruk": "edac1214 'För inomhusbruk'; b51b6e6c 'Granarna är gjorda för inomhusbruk'",
+    "FAQ rengöring": "0fda8bfe 'Damma av bladverket då och då med en mjuk borste, eller skölj det försiktigt med ljummet vatten och låt det torka'; edac1214 'Torka av bladen med en lätt fuktad trasa'",
+    "FAQ stadig": "0fda8bfe 'Cement i krukan håller trädet stadigt'; jordspett se ovan"
+  }
+}

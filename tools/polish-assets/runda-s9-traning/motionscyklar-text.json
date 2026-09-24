@@ -1,0 +1,43 @@
+{
+ "slug": "motionscyklar",
+ "seo": {
+  "title": "Motionscykel, spinningcykel & pedaltränare",
+  "description": "Motionscyklar med magnetiskt motstånd i 8 steg, med ryggstöd eller hopfällbara, en spinningcykel och pedaltränare för armar och ben."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du motionscyklar för träning hemma, bland dem en liggande modell och hopfällbara modeller med ryggstöd, en spinningcykel och pedaltränare som ställs på golvet framför en stol eller soffa.",
+   "De flesta motionscyklarna har magnetiskt motstånd i 8 steg och en LCD-display, och två av dem har Bluetooth. Maxvikten är 110 eller 120 kg. Spinningcykeln har filtbroms och steglöst motstånd, och sadeln ställs mellan 78 och 93 cm över golvet.",
+   "Pedaltränarna används sittande och tränar benen, flera också armarna. Den eldrivna pedaltränaren har en motor som håller benen i rörelse, med 12 hastigheter och fjärrkontroll.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur tung får jag vara?",
+    "a": "Maxvikten står i beskrivningen: 110 eller 120 kg för motionscyklarna och 100 kg för spinningcykeln."
+   },
+   {
+    "q": "Finns det motionscykel med ryggstöd?",
+    "a": "Ja. På den liggande motionscykeln sitter du tillbakalutat med stöd för ryggen, och två hopfällbara modeller har ryggstöd och fälls ihop mellan passen."
+   },
+   {
+    "q": "Vad är en pedaltränare?",
+    "a": "En liten trampmaskin som ställs på golvet framför en stol eller soffa. Den tränar benen, flera också armarna, och den eldrivna håller benen i rörelse med en motor."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "12 synliga produkter i Träning & Gym 2026-09-24 med motionscykel, spinningcykel, pedaltränare eller pedalmaskin i namnet",
+  "liggande med ryggstöd": "202385ce 'Den här liggande motionscykeln med ryggstöd … Du sitter tillbakalutat med stöd f[ör ryggen]'",
+  "hopfällbara med ryggstöd": "2b7ddfc8 'Den här hopfällbara motionscykeln med ryggstöd'; 5f730167 namnet 'Motionscykel hopfällbar med ryggstöd'",
+  "framför en stol eller soffa": "5646de67 'som ställs på golvet framför en stol eller soffa. Den tränar både ben och armar med samma redskap'",
+  "magnetiskt motstånd 8 steg": "6ab7b3b0 'En motionscykel med magnetiskt motstånd i 8 steg'; 202385ce, 2b7ddfc8 och 3a1f7574 'magnetiskt', '8 nivåer'; 5f730167 'magnetmotst[ånd]'",
+  "LCD-display": "LCD eller display i 202385ce, 22816ea5, 2b7ddfc8, 3a1f7574, 4e68327e, 5f730167 och 6ab7b3b0",
+  "två med Bluetooth": "6ab7b3b0 namnet '… Bluetooth'; 5f730167 'bluetooth'",
+  "110 eller 120 kg": "110 kg i 202385ce, 2b7ddfc8 och 3a1f7574; 120 kg i 22816ea5, 4e68327e, 5f730167 och 6ab7b3b0",
+  "spinning filtbroms, steglöst, sadel 78–93": "07d1208e namnet 'Spinningcykel med filtbroms'; 'Sadeln ställs mellan 78 och 93 cm över golvet … och motståndet ändras steglöst'",
+  "spinning 100 kg": "07d1208e 'bär 100 kg'",
+  "eldriven, motor, 12 hastigheter, fjärrkontroll": "9aa4fbb6 'En eldriven pedaltränare som håller benen i rörelse medan du sitter … motorn'; namnet '12 hastigheter, fjärrk[ontroll]'",
+  "benen, flera också armarna": "1884a543 'tränar både armar och ben medan du sitter'; 5646de67 'Den tränar både ben och armar'; 9aa4fbb6 'håller benen i rörelse'"
+ }
+}

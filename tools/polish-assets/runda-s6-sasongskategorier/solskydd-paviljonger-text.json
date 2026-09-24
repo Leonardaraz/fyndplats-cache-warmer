@@ -1,0 +1,44 @@
+{
+  "slug": "solskydd-paviljonger",
+  "seo": {
+    "title": "Paviljong 3x3, paviljongtak & pop up-tält",
+    "description": "Paviljonger och pop up-tält från 3 × 3 till 6 × 3 m, paviljongtak i 3 × 3 och 3 × 4 m, partytält, parasoll med fot, markiser och skärmtak i polykarbonat."
+  },
+  "content": {
+    "intro": [
+      "Tak och skugga över uteplatsen gör den användbar i både sol och regn. Här samlar vi paviljonger, pop up-tält och partytält, reservtak till paviljonger och pergolor, parasoll med fot och vikter, markiser och skärmtak i polykarbonat.",
+      "Är duken på paviljongen sliten behöver du inte byta hela paviljongen. Reservtaken finns i 3 × 3 och 3 × 4 m och sätts på den stomme du redan har, flera har en ventilerad topp så att varmluften slipper ut, och några är i Oxfordväv. Kontrollera stommens mått innan du beställer.",
+      "Ett pop up-tält fälls ut på några minuter, och flera har väggar eller myggnät. Vid kraftig vind eller storm ska tältet tas ner, och markisen vevas in när det blåser.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Passar paviljongtaket min paviljong?",
+        "a": "Reservtaken finns i 3 × 3 och 3 × 4 m och sätts på den stomme du redan har. Kontrollera stommens mått och form innan du beställer."
+      },
+      {
+        "q": "Tål paviljongen blåst?",
+        "a": "Förankra tältet ordentligt, och ta ner det vid kraftig vind eller storm. En markis ska vevas in när det blåser, oavsett väder."
+      },
+      {
+        "q": "Vilken parasollfot behöver jag?",
+        "a": "Det finns parasollfötter i cement på 12 kg, en fot för markmontering och vikter till hängparasoll. Kontrollera att foten passar parasollets stång."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "44 i kategorin 2026-09-24, räknade på namn: 12 paviljongtak, 4 pergolatak, 1 pergolamarkis, 1 skuggväv, 4 paviljonger, 5 pop up-tält, 2 partytält, 4 parasoll, 3 parasollfötter, 1 par parasollvikter, 3 markiser, 4 skärmtak",
+    "från 3 × 3 till 6 × 3 m": "3eb52634 'Pop-up-tält 3 × 3 m'; 0b8582bd 'Paviljong 3x3 m'; bb5297b7 'Pop-up-tält 6 × 3 m'; 9b13a069 'Partytält 6 × 3 m'",
+    "paviljongtak 3 × 3 och 3 × 4 m": "fc5e7fde 'Paviljongtak 3x3 m' m.fl.; ef0a812d och dc7d2513 'Paviljongtak 3 × 4 m dubbeltak'",
+    "parasoll med fot och vikter": "7491ab34 'Parasollfot cement 12 kg'; bb0454c1 'Svart parasollfot 12 kg'; 2a5a75df 'Parasollfot för markmontering'; 32e6ea15 'Parasollvikter för hängparasoll 2-pack'",
+    "markiser": "3ae79fc9 'Markis med vev 200 × 150 cm'; 70ef279b 'Fristående markis'; bee36f80 'Vertikalmarkis för balkong'; 9a3600f8 'Pergolamarkis'",
+    "skärmtak i polykarbonat": "fbef53b8 och b50a2c94 'Skärmtak 110 × 60 cm i polykarbonat'; c88b22ce och 1f055143 'Skärmtak i polykarbonat'",
+    "behöver inte byta hela paviljongen, sätts på stommen": "fc5e7fde 'Då behöver du inte byta hela paviljongen – det här reservtaket sätter du på stommen du redan har'",
+    "ventilerad topp, varmluften slipper ut": "fc5e7fde 'Toppen är ventilerad så varmluften slipper ut'",
+    "några i Oxfordväv": "d52c6d1d och d01a6d2b 'Paviljongtak 3 × 3 m Oxfordväv 370 g/m²'",
+    "pop up-tält fälls ut på några minuter": "5520eff3 'Slå upp ditt eget myggfria uterum på minuter'; 3eb52634 'fälls ut och låser sig utan verktyg'; abc2fb8b 'på sekunder'",
+    "väggar eller myggnät": "3eb52634 'kommer med väggarna'; 5520eff3 'Pop up-paviljong med myggnät'; abc2fb8b 'med 4 nätväggar'",
+    "ta ner vid kraftig vind eller storm": "0b8582bd 'Ta ner tältet vid kraftig vind eller storm'",
+    "markisen vevas in när det blåser": "3ae79fc9 'Veva ändå in markisen i blåst, oavsett väder'"
+  }
+}

@@ -24,7 +24,7 @@ stämplingen grön på alla åtta (`stampla`-körning 1323–1330).
 
 Fem golvfåtöljer i katalogen mäter 62 × 70 × 95 cm och väger 11 kg, identiskt
 ned till kilot, men bär två olika artikelnummerbaser (`839-423…` mot
-`83B-380…`). Regeln sedan runda 70 — att måtten grupperar — är fortfarande rätt
+`[artikelnr]…`). Regeln sedan runda 70 — att måtten grupperar — är fortfarande rätt
 för att SÖKA men fel för att BESLUTA. Kör båda: måtten först, basen sist.
 
 ## ☠️ Ett publicerat syskon är en REFERENS, inte ett facit

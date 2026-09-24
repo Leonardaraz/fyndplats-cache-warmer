@@ -103,7 +103,7 @@ jobs:
             tot_utan=$((tot_utan + $(printf '%s' "$json" | jq -r '.oversattningUtanRad')))
             tot_st=$((tot_st + $(printf '%s' "$json" | jq -r '.stamplade')))
             tot_fel=$((tot_fel + $(printf '%s' "$json" | jq -r '.skrivfel')))
-            printf '%s' "$json" | jq -r '"rad \($i): \(.behandlade) behandlade, \(.importerade) importerade, \(.oversatta) översatta, \(.underkanda) underkända \(.underkandaSkal), \(.skrivfel) skrivfel, \(.stoppadAv)"' --argjson i "$i" || true
+            printf '%s' "$json" | jq -r --argjson i "$i" '"rad \($i): \(.behandlade) behandlade, \(.importerade) importerade, \(.oversatta) översatta, \(.underkanda) underkända \(.underkandaSkal), \(.skrivfel) skrivfel, \(.stoppadAv)"' || true
             if [ -n "$kvar" ]; then
               i=$((i + kvar))
             else

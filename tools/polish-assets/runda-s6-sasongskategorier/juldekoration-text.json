@@ -1,0 +1,47 @@
+{
+  "slug": "juldekoration",
+  "seo": {
+    "title": "Juldekoration utomhus – uppblåsbar tomte och ren",
+    "description": "Juldekoration för trädgård och entré: uppblåsbara tomtar, snögubbar och renar upp till 250 cm, ljusfigurer med LED samt julbyar och girlanger för inomhus."
+  },
+  "content": {
+    "intro": [
+      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar och en pingvin, ljusfigurer som renfamiljer och isbjörnar, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
+      "De uppblåsbara figurerna är upp till 250 cm höga och reser sig när du kopplar in fläkten. De lyser inifrån med LED, och de flesta är IP44-klassade, alltså skyddade mot stänk. Till de flesta följer markspett och linor med för att förankra figuren i gräsmattan, och vid kraftigt regn, snö eller hård vind tar du in den.",
+      "Ljusfigurerna lyser med lysdioder – renfamiljen har 283 stycken – och de flesta är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, girlanger och två adventskalendrar med 24 lådor att fylla.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Tål de uppblåsbara figurerna regn och snö?",
+        "a": "De flesta är IP44-klassade och skyddade mot stänk, så lätt regn går bra. Vid kraftigt regn, snö eller hård vind ska figuren tas in, och den håller längre om den står inne i dåligt väder."
+      },
+      {
+        "q": "Hur länge får fläkten gå?",
+        "a": "Figuren håller formen bara medan fläkten går, så den ska vara på så länge figuren står uppe. För en del figurer anger produktbeskrivningen hur länge fläkten får gå i sträck, till exempel högst åtta timmar."
+      },
+      {
+        "q": "Ingår batterier i julbyarna och adventskalendrarna?",
+        "a": "Nej, batterierna ingår inte. Vilka som behövs står i produktbeskrivningen."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "45 kopplade 2026-09-24: 27 uppblåsbara, 10 ljusfigurer (renfamilj, isbjörnar, lysande ren med släde, lysande jultomte, lysande snögubbefamilj, julyktstolpe, julgranar 2-pack med jordspjut, tre snögubbar), 3 julbyar, 3 girlanger, 2 adventskalendrar",
+    "pingvin": "69331178 'Uppblåsbar pingvin 250 cm med polkagris och 3 LED'",
+    "upp till 250 cm": "d0aeb070 'Uppblåsbar pepparkaksgubbe 250 cm'; 69331178 pingvin 250 cm (släden 07e3cb1d är 319 cm LÅNG, inte hög)",
+    "reser sig när du kopplar in fläkten": "aab0a1e5 'figuren håller formen bara när fläkten går'; 07e3cb1d 'Låt fläkten gå så länge figuren ska stå uppblåst'",
+    "lyser inifrån med LED": "LED i namn eller beskrivning på de uppblåsbara, t.ex. 97cf9327 '180 cm med LED', 7bc7805a 'med LED'",
+    "de flesta IP44, skyddade mot stänk": "IP44 på 21 av 27 uppblåsbara; 07e3cb1d 'vattentät polyester med skyddsklass IP44'; c6f8a0f1 'IP44, alltså skyddad mot stänk'",
+    "markspett och linor till de flesta": "markspett/linor/förankring på 26 av 27 uppblåsbara (saknas bara på d2e7bd0c)",
+    "kraftigt regn, snö eller hård vind": "97cf9327 'Ta in honom vid kraftigt regn, snö eller hård vind'; c6f8a0f1 samma formulering",
+    "renfamiljen 283 lysdioder": "c6f8a0f1 'Renfamilj med LED i tre delar – 283 lysdioder'",
+    "de flesta ljusfigurer IP44": "IP44 på 7 av 10: c6f8a0f1, 5a14cc4d, ae8f0037, 5b824903, f534e36a, 4fc04535, e1d9dfe8; inte de tre batteridrivna snögubbarna 3225c539, b2dc0011, 9988cc5a",
+    "flera har timer": "5a14cc4d 'Lysande isbjörnar 2-pack med 140 LED och timer'; b2dc0011 och 9988cc5a 'dygnstimer'",
+    "julbyar i trä med LED": "f0817bea 'Julby i trä med 20 LED'; 300d3415 'Julby i trä med 10 LED'; d60cd696 'Julby i trä som ljusbåge'",
+    "två adventskalendrar med 24 lådor": "4c0a0ef1 'Adventskalender i trä med 24 lådor'; b26e8aa3 '24 stora lådor'",
+    "FAQ håller längre inne": "07e3cb1d 'den håller längre om du tar in den i dåligt väder'",
+    "FAQ högst åtta timmar": "97cf9327 'Fläkten måste vara på hela tiden för att han ska hålla formen, och den ska inte vara igång mer än åtta timmar i sträck'",
+    "FAQ batterier ingår inte": "batterier ingår inte på alla fem: f0817bea, d60cd696, 300d3415, 4c0a0ef1, b26e8aa3"
+  }
+}

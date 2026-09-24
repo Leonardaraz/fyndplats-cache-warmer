@@ -1,0 +1,45 @@
+{
+ "slug": "golvlampor",
+ "seo": {
+  "title": "Golvlampor – båglampor, LED och dimbara",
+  "description": "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och trebenta lampor med tygskärm."
+ },
+ "content": {
+  "intro": [
+   "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, trebenta lampor med tygskärm, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
+   "Lamporna är från 129 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Ungefär hälften går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
+   "Titta på ljuskällan innan du beställer. I lamporna med inbyggd LED sitter ljuset fast, till några lampor med E27-sockel ingår lamporna och till andra köper du dem separat. Flera LED-lampor går att ställa om mellan varmt och kallt ljus, från 3000 till 6500 kelvin.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Ingår glödlampan?",
+    "a": "Det beror på lampan. I lamporna med inbyggd LED sitter ljuskällan fast. Till några lampor med E27-sockel ingår lamporna, till andra köps de separat, och det står i produktbeskrivningen."
+   },
+   {
+    "q": "Vad är en båglampa?",
+    "a": "En golvlampa med en lång, böjd arm som når ut över soffan eller bordet, så att ljuset kommer ovanifrån. Foten är tung, ofta i marmor, så att lampan står stadigt."
+   },
+   {
+    "q": "Kan jag ladda mobilen i lampan?",
+    "a": "Ja, i två av golvlamporna med hyllor. Den ena har USB-uttag och den andra både USB-A, USB-C och ett vanligt eluttag."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "39 synliga produkter 2026-09-24 med golvlamp|båglamp i namnet, inkl. två lampset (2715425e 'golvlampa 162 cm och två bordslampor', 27f5b385 'golvlampa på 158 centimeter och två bordslampor')",
+  "129 cm": "5424c202 'Golvlampa som lysande pelare 129 cm'",
+  "190 cm": "9e81d573 'Golvlampa båge 190 cm i svart'",
+  "båglampor med marmorfot": "2f31a1d9 'Båglampa med vit kupa och marmorfot', 4d9a2e7c 'marmorfot', 21c72bf0 'Båglampa 167 cm med marmorfot', 2f3a9686 'Båglampa med marmorfot' (4 av 6 båglampor)",
+  "dimbara LED-lampor med fjärrkontroll": "13a53d52 'LED-golvlampa 170 cm dimbar – 3000–6500 K, fjärrkontroll och timer'; fbddd5b6 'LED-golvlampa 150 cm, dimbar 3000–6000 K, fj[ärrkontroll]'",
+  "golvlampor med hyllor": "3f539249, f9dc9307, 93af619c, 65ca6f6d, 53e66496, d2dfd1fa, b18ec555 (hylla i namnet)",
+  "trebenta med tygskärm": "c694dcaa 'Golvlampa med trebensstativ i svart metall – vit tygskärm'; f6567b76 'Trebent golvlampa 153 cm med plisséskärm'",
+  "några går att höja och sänka": "08b40e95 'höjdjusterbar 133–168 cm'; 8563fe5a 'höjdjusterbar 166–177 cm'; 4d9a2e7c 'höjdjusterbar 144–175 cm' (5 träffar)",
+  "ungefär hälften dimbara": "dimbar-taggen på 20 av 39",
+  "många har fjärrkontroll": "17 av 39",
+  "de flesta har fotbrytare": "25 av 39, t.ex. 09a5bb9a 'fotströmbrytaren växlar mellan tre färgtemperaturer'",
+  "till några E27 ingår lamporna, andra separat": "09a5bb9a 'Två E27-lampor ingår'; c694dcaa 'Glödlampan ingår inte och köps separat'; 2f31a1d9 'Ljuskällan ingår inte'",
+  "3000 till 6500 kelvin": "13a53d52 '3000–6500 K'",
+  "två med USB, en med USB-A, USB-C och eluttag": "65ca6f6d 'Golvlampa 170 cm med bambuhylla – USB-uttag'; d2dfd1fa 'LED-golvlampa 161 cm med tre hyllplan – USB-A, USB-C och eluttag'"
+ }
+}

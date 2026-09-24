@@ -1340,6 +1340,12 @@ Aosoms artikelnummer, och den andra pensioneras. `lib/aosom/remap.ts` +
 `/api/admin/aosom-remap`, workflowen **"Dubbletter — mappa om en produkt till
 Aosom"** (lägen `plan` · `byt`).
 
+☠️ **Lämna `sku` TOMT och ange Aosom-utkastet som dubblett (2026-09-24).** Rutten
+läser då artikelnumret ur utkastets mappningsrad (`väljRemapSku`). Tidigare var
+numret en obligatorisk workflow-input och skrevs ut två gånger i den PUBLIKA
+loggen, alltså publicerade varje ommappning kopplingen mellan vår sida och
+Aosoms nummer. Olika nummer i anropet och på dubbletten vägras.
+
 Ommappningen skriver `supplier`, `supplierProductId`, `sourceUrl`,
 `aosomFreightShare` och variantens `costUsd`/`landedCostSek` — **aldrig priset**.
 Det är Leonards beslut, och en ommappning som tyst räknade om kundpriset hade
@@ -3711,6 +3717,92 @@ byter text på en synlig rad, och bara när: raden är `source: "aosom"`, raden 
 synlig, den lagrade texten fortfarande är exakt `fore` (en människas ändring
 skrivs aldrig över), och den nya texten klarar `validateTranslation`. En rad
 med `dolj: true` döljer en recension som visat sig handla om en annan produkt.
+
+## ☠️ Butikens kategorilista kapades vid 100 (2026-09-24)
+
+Sökordsrundorna S4–S10 skapade drygt 40 kategorier på ett dygn, och
+katalogen passerade 100 kategorier. Butiken (`headless-site`,
+`lib/products.ts`) läste kategorierna med `.limit(100)` och hämtade aldrig
+nästa sida. Det gällde både menyn och listan över kända slugar.
+
+Wix sorterar på id, så en kategori över plats 100 faller bort oavsett hur
+gammal eller stor den är. Den försvinner ur menyn, och dess sida svarar 404.
+Så gick det:
+
+- Golvlampor gav 404 i produktion.
+- Efter S10 låg nio kategorier utanför, bland dem Skönhet & Hälsa, som är en
+  huvudavdelning.
+
+Lagat i #649 (`lib/category-paging.ts`). Lagningen hämtar alla sidor, och taket
+kastar i stället för att kapa. Tills den var ute var de åtta nya
+S10-kategorierna dolda i Wix. Bara synligheten ändrades, inte kopplingarna.
+
+☠️ **Felet syntes på en GAMMAL sida, inte på de nya.** Hantlar & hantelset, som
+var OK i förra förhandsbygget, gav 404 i nästa. Den som skapar kategorier ska
+därför hämta minst en befintlig kategorisida i förhandsbygget, inte bara de nya.
+
+☠️ **Sida två får bara bära markören.** `categories/query` svarar `400
+INVALID_CURSOR` på filter och markör i samma anrop. Det är samma familj som
+`inventory-items/query` och `products/search`. SDK:ts `next()` gör rätt av sig
+självt, men en handskriven loop gör det inte.
+
+## ☠️ Kategorisidans adress räknas ur NAMNET, och é blev bindestreck (2026-09-24)
+
+Butiken gör sin egen adress av kategorinamnet i Wix (`asciiSlug`, sedan #647 i
+`lib/category-slug.ts`). Fram till dess gjorde den bara om å, ä och ö, och alla
+andra tecken blev bindestreck. *Skärmtak & entrétak* (runda S13) fick därför
+adressen `skarmtak-entr-tak`, medan texterna och Google-flödet var nycklade på
+`skarmtak-entretak`. Sidan renderades med den generiska mallen, och den väntade
+adressen gav 404.
+
+☠️ **Vakten i skrivanropet kunde inte se det**, för den räknade med en egen
+avskrift av funktionen, och avskriften hade två extra regler (`é→e`, `ü→u`).
+En vakt som kör en kopia av butikens kod mäter kopian. Det som fångade felet
+var förhandsbygget, som läser butikens riktiga svar. **Adressen kontrolleras
+alltså i förhandsbygget, inte i skrivanropet.**
+
+Lagningen tar bort accenter med NFD. Mätt mot alla 128 kategorinamn: bara den
+kategorins adress ändrades.
+
+## ☠️ Butikens sidovagnar läste bara de 1 200 nyaste produkterna (2026-09-24)
+
+Tre hämtningar i butiken gick nyast först och slutade efter 12 sidor om 100.
+De 1 200 nyaste produkterna är Aosom-varor utan färgval, och drygt hälften är
+dolda utkast. Färgfiltret visade därför aldrig en färg (alla 239 produkter
+med optioner låg bakom taket), och Google-flödet hade extrabilder på 557 av
+3 393 produkter. Variantsvepet till flödet hade kapat tyst vid 10 000 i
+mitten av november.
+
+Lagat i #647: färgfrågan filtrerar på `options.id`, flödet faller tillbaka på
+produktens galleri, och varianttaket loggar ett fel. Detaljerna står i
+butikens `CLAUDE.md`. **Ett tak räknat nyast först ser inte katalogen**, och
+`filter` går bara med på första sidan, eftersom filter plus markör svarar
+`400 INVALID_CURSOR` även på `products/query`.
+
+## ☠️ Menyns underkategorier syntes inte för Google (2026-09-24)
+
+Mega-menyn renderade bara panelen man hovrar över, och Googlebot hovrar
+aldrig. Mätt i produktion, både i server-HTML och renderat i Chromium utan
+interaktion: **startsidan länkade till 0 av 105 underkategorier**, en
+produktsida till 1 (bläddringsraden). Bara /butik (48) och avdelningssidornas
+Förfina-chips, som syns först när JS har kört, länkade dit. Startsidan är den
+enda sidan med externa länkar (Semrush: 62 + 23 refererande domäner, ingen
+annan sida har någon).
+
+En PageRank-modell över sajtens egna länkar gav därför varje
+sökordskategori ungefär samma interna värde som en medianprodukt. Kategorin
+fanns, med text och FAQ, men sajten pekade inte på den.
+
+Lagat i #647 (`2513ae85`): alla tio paneler ligger i HTML:en, dolda med
+`hidden`. Modellen ger underkategorierna 45–86 gånger mer, och en
+medianprodukt behåller 77–82 %. Underlaget och skripten står i
+`tools/polish-assets/meny-underkategorier/`.
+
+**En ny kategori får sina länkar från menyn, och menyn läser Wix.** Den som
+skapar en kategori behöver alltså inte lägga in en länk någonstans. Men den
+som bygger en länk som bara renderas vid hovring, klick eller efter mount har
+byggt en länk som Google inte ser. Regeln och testet står i butikens
+`CLAUDE.md` (`lib/meganav-ssr.test.ts`).
 
 ## Dubblett-spärr vid import
 

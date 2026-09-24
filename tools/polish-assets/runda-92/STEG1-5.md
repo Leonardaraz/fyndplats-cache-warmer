@@ -55,7 +55,7 @@ rörs inte, namnges aldrig.
 
 Allt nedan står i den tyska källan OCH stämmer mot ritningen:
 
-- `Gesamtgröße: L135 x B58 x H92-100 cm` ✅
+- `Gesamtgröße: L135 x B58 x [artikelnr] cm` ✅
 - `Pedal Größe: L36 x B12 cm`, `Pedal Höhe vom Boden: 11 cm` ✅
 - `Belastbarkeit: 100 kg`, `ab 5 Jahren` ✅
 - `Material: Stahl, Gummi` → **stålram** (INTE "rostfri" — runda 57, 90 och 91

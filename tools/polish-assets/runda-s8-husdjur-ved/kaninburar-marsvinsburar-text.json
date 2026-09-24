@@ -1,0 +1,49 @@
+{
+ "slug": "kaninburar-marsvinsburar",
+ "seo": {
+  "title": "Kaninbur, kaninhus & marsvinsbur – inne och ute",
+  "description": "Kaninburar och kaninhus för trädgården, marsvinshyddor, smådjursstall med löpgård och hagar utan botten eller för inomhus, de flesta för kanin och marsvin."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du kaninburar och kaninhus för trädgården, burar på hjul, marsvinshyddor, smådjursstall med löpgård och hagar för kanin och marsvin. De flesta är gjorda för båda djuren, och vilka djur en bur passar för står i beskrivningen.",
+   "Flera utomhusburar har tak av asfaltpapp eller bitumen, stomme i granträ och galler eller nät i galvaniserat stål. Många har två plan: ett stängt sovhus överst och en öppen rastgård under, med en ramp emellan. Smådjursstallen på 230 cm har löpgård åt båda håll och en tredje yta under själva huset.",
+   "Hagarna utan botten ställs direkt på gräsmattan, så att djuren går på riktig mark och kan beta. För inomhus finns en modulhage av 47 trådpaneler som blir 175 × 105 cm och en modulär bur av 27 paneler. Den hopfällbara hagen på 110 × 105 cm viks ihop till 13,5 cm när den inte används.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Passar burarna både för kanin och marsvin?",
+    "a": "De flesta gör det, och flera av smådjursstallen nämner också råtta och degu. Vilka djur en bur är gjord för står i beskrivningen."
+   },
+   {
+    "q": "Vad är skillnaden på en hydda och en hage?",
+    "a": "En hydda eller ett stall har tak och ett stängt sovhus, ofta med en rastgård bredvid eller under. En hage är en inhägnad där djuren rör sig, och flera har ett hus eller ett tak som fälls upp. Hagarna utan botten ställs på gräset, och modulhagarna för inomhus byggs av paneler."
+   },
+   {
+    "q": "Hur ser jag hur stor buren är?",
+    "a": "Längd, djup och höjd står i beskrivningen, och flera anger bottenytan i kvadratmeter. Kaninhyddan i två plan har 0,81 m² bottenplan, och kaninhuset på 122 cm har en rastgård på 1,02 m²."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "31 synliga produkter 2026-09-24 vars beskrivning nämner kanin eller marsvin (vakten i skrivanropet); 25 av 31 nämner båda djuren",
+  "burar på hjul": "14a20f23 'En smådjursbur i granträ på hjul, 90 cm lång och i två plan'",
+  "marsvinshyddor": "1ba178fa 'Marsvinshydda 90 cm med två plan'; 11e948fa 'Marsvinshydda utomhus 157 cm'",
+  "de flesta för båda djuren": "25 av 31 beskrivningar nämner både kanin och marsvin",
+  "bitumen": "faa61f7f 'Ett kaninhus på 144 cm i två plan, med bitumentak, galvaniserat nät och en ramp mellan våningarna. Stommen är massivt granvirke'",
+  "sovhus överst, rastgård under, ramp": "290af543 'två plan: ett stängt sovhus överst och en öppen rastgård på 1,02 m² under, sammanbundna av en ramp'",
+  "230 cm, löpgård åt båda håll, tredje yta": "c0770388 '230 × 53 × 93,5 cm ... ett upphöjt hus i mitten med löpgård åt båda håll och en tredje yta under själva huset'",
+  "hagar utan botten på gräsmattan, betar": "7eebd0eb 'ställs direkt på gräsmattan. Hagen har ingen botten, så marsvinen går på riktig mark och betar själva'",
+  "modulhage 47 paneler, 175 × 105 cm": "738f4b56 'En modulhage av 47 trådpaneler som du sätter ihop själv. Byggd som på bilderna mäter den 175 × 105 × 70 cm'; namnet 'Kaninhage inomhus'",
+  "modulär bur 27 paneler": "b4b0e122 'modulär smådjursbur. Buren består av 27 paneler'",
+  "hopfällbar hage 13,5 cm": "117691b5 'En hopfällbar smådjurshage på 110 × 105 cm som viks ihop till 13,5 cm tjocklek när den inte används'",
+  "råtta och degu": "2253c509, 2435c4d1, 525e6acf, 079f2901, a75fcfde, c0770388 och dcdf889d (smådjursstall) nämner råtta och degu",
+  "0,81 m²": "4cc04232 'Bottenplanet mäter 90 × 90,5 cm, alltså 0,81 m²'; namnet 'Kaninhydda i trä med två plan'",
+  "122 cm, 1,02 m²": "290af543 namnet 'Kaninhus utomhus 122 × 93,5 cm – rastgård 1,02 m²'",
+  "flera utomhusburar asfalt/bitumen": "711cad58 'Taket är klätt med asfaltpapp, stommen är granträ och gallret är galvaniserat stål'; 1ba178fa och 11e948fa namnen '… asfalttak'",
+  "hage med hus eller tak": "edc81021 namnet 'Smådjurshage 123 × 120 cm med hus och uppfällbart tak'; b54e7a23 'Smådjurshage 125,5 cm med hus och uppfällbart tak'",
+  "de flesta för kanin och marsvin (beskrivning)": "25 av 31 beskrivningar nämner båda djuren",
+  "många i två plan": "4cc04232, 290af543, faa61f7f, 14a20f23, 80fbb644, 69452dd2, 27dc50ae, 1ba178fa, 11e948fa, 5d79afbe, 525e6acf och 079f2901 har två plan eller våningar i namnet"
+ }
+}

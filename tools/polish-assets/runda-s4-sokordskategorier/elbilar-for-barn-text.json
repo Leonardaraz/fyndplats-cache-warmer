@@ -1,0 +1,52 @@
+{
+  "slug": "elbilar-for-barn",
+  "seo": {
+    "title": "Elbil för barn – fyrhjuling, motorcykel, traktor",
+    "description": "Elbilar för barn från 18 månader till 12 år: 6, 12 och 24 V, elfyrhjulingar, elmotorcyklar med stödhjul och eltraktorer – många med fjärrkontroll."
+  },
+  "content": {
+    "intro": [
+      "En elbil ger barnet egen fart på gården, i parken och på uppfarten. Här samlar vi alla våra eldrivna åkfordon för barn: elbilar och terrängbilar, elfyrhjulingar, elmotorcyklar, Vespa-scootrar, eltraktorer med släp och elgokarts. Det finns modeller för barn från 18 månader upp till 12 år, och flera är licensierade modeller av riktiga bilar från Mercedes-Benz, Audi, BMW, Lamborghini och Toyota.",
+      "Välj efter ålder och volt. 6 V passar de minsta: farten ligger oftast på 2,5–3 km/h, och de flesta motorcyklarna i klassen har stödhjul. 12 V är det vanligaste valet från tre år, med en toppfart på upp till 8 km/h, och nästan hälften av modellerna har en fjärrkontroll så att du kan styra tills barnet kör själv. 24 V ger mer kraft för äldre barn, upp till 16 km/h, och här finns också en tvåsitsig elfyrhjuling.",
+      "En full laddning räcker till 30–70 minuters körning beroende på modell, underlag och barnets vikt, och laddningen tar oftast 8–12 timmar. Maxvikten går från 20 kg på de minsta fordonen till 65 kg på de största, och flera modeller har bälte, fjädring och mjukstart.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Vilken elbil passar mitt barns ålder?",
+        "a": "För barn från 18 månader passar 6 V-fordon med låg fart, till exempel elfyrhjulingar och elmotorcyklar med stödhjul. Från tre år är 12 V det vanligaste valet, och för barn upp till 12 år finns 24 V-modeller med två hastighetslägen. Kontrollera åldersintervallet och maxvikten i produktbeskrivningen."
+      },
+      {
+        "q": "Går det att styra elbilen med fjärrkontroll?",
+        "a": "Ja, nästan hälften av modellerna har en fjärrkontroll för föräldern. Med den styr du bilen tills barnet klarar det själv, och de flesta av de modellerna har dessutom bälte."
+      },
+      {
+        "q": "Hur länge räcker batteriet?",
+        "a": "En full laddning ger 30–70 minuters körning, beroende på modell, underlag och barnets vikt. Laddningen tar oftast 8–12 timmar, så det enklaste är att ladda över natten."
+      }
+    ]
+  },
+  "facit": {
+    "54 produkter": "6 V 17 st, 12 V 31 st, 24 V 6 st (fakta i scratch elbilar.json, läst 2026-09-24)",
+    "18 månader": "358f4559, 403dfd8d, 408e80e4, 5419c746, 69042231, 9d686a82, f24ea348 'från 18 månader'",
+    "upp till 12 år": "0926604b 6–12 år, 67d2d4f6 8–12 år (båda i lager)",
+    "terrängbil": "6c6b1c44 'Terrängbil barn 12V – eljeep'",
+    "Vespa-scootrar": "69042231, f24ea348 'Vespa GTS elscooter'",
+    "eltraktorer med släp": "91d28d6f 'avtagbar släpvagn' (i lager), 065eb3e8 och e6615ddd (slut)",
+    "elgokarts": "0926604b, f18ef690 (i lager)",
+    "licensierade: Mercedes-Benz, Audi, BMW, Lamborghini, Toyota": "240d5d8f, 4d989256, b0dbfc97, f87dcf65, 8782aa48 — alla 'licens' i beskrivningen, alla i lager",
+    "6 V oftast 2,5–3 km/h": "10 av 13 i lager ligger på exakt 2,5 eller 3 km/h; 7c0f8b4b 2,8–4,6, 9d686a82 1,5–3",
+    "de flesta 6 V-motorcyklar har stödhjul": "5 av 6 i lager (408e80e4, 5419c746, 7b62aa26, 816e745c, b2ccab13; inte 372ee931)",
+    "12 V vanligast från tre år": "31 av 54 är 12 V; åldrar 3–5, 3–6, 3–8 år (240d5d8f från 2,5 år)",
+    "12 V upp till 8 km/h": "883db249 3–8 km/h, fc2b894a 3–8 km/h",
+    "nästan hälften har fjärrkontroll": "25 av 54 (46 %), i lager 19 av 41 (46 %)",
+    "24 V upp till 16 km/h": "67d2d4f6 '8 eller 16 km/h' (i lager)",
+    "tvåsitsig elfyrhjuling": "7cdc167c 'Elfyrhjuling barn 24 V tvåsitsig'",
+    "två hastighetslägen 24 V": "67d2d4f6 8 och 16 km/h, 0926604b 6 och 12 km/h, 7cdc167c 4 och 6,5 km/h",
+    "30–70 minuter": "i lager: 67d2d4f6 30 min … 7cdc167c 70 min",
+    "oftast 8–12 timmar": "majoriteten anger 8–12 timmar; 7c0f8b4b 'ladda över natten'",
+    "maxvikt 20–65 kg": "i lager: 408e80e4 och 7c0f8b4b 20 kg; 67d2d4f6 65 kg (08bdee9f 70 kg är slut)",
+    "bälte, fjädring, mjukstart": "i lager: bälte 15, fjädring 18, mjukstart 16",
+    "de flesta med fjärrkontroll har bälte": "19 av 25 modeller med fjärrkontroll har bälte"
+  }
+}
