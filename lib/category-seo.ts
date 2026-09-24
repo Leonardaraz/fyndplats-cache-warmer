@@ -142,6 +142,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Ultraljudstvättar och praktiska hushållsapparater som sparar tid. Kapacitet, effekt och mått anges. Leverans 3–7 dagar från EU-lager.",
   },
+  julgranar: {
+    title: "Konstgjord julgran – plastgranar 57–225 cm",
+    description:
+      "Konstgjorda julgranar från 57 till 225 cm: smala pelargranar, täta granar med över 2 000 grenspetsar, snötäckta modeller och granar med LED-belysning.",
+  },
   "kalas-fest": {
     title: "Kalas & fest – sockervadd och partyprylar",
     description:

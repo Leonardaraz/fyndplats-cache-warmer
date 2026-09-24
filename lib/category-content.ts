@@ -501,6 +501,28 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  julgranar: {
+    intro: [
+      "En konstgjord julgran – eller plastgran, som många säger – ställer du upp varje december i många år, utan barr på golvet och utan vattning. Här samlar vi alla våra julgranar: från små granar på 57 cm till granar på 225 cm för rum med högt i tak, och från smala pelarmodeller som bara är 46–54 cm breda till täta granar med över 2 000 grenspetsar.",
+      "Välj efter rummet. Mät takhöjden och lämna plats för toppen, och tänk på bredden: en bred gran på 180 cm kan vara över en meter i diameter, medan en smal modell får plats bredvid soffan. Antalet grenspetsar säger hur tät granen blir – samma höjd finns från några hundra till flera tusen spetsar. Vill du ha en julgran med belysning finns granar där LED-lamporna redan sitter i grenverket, och de snötäckta modellerna ger vinterkänsla direkt.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur hög julgran ska jag välja?",
+        a: "Utgå från takhöjden och dra av 20–30 cm för toppen och stjärnan. I ett rum med 2,4 meter i tak passar en gran på 180–210 cm. Har du ont om golvyta är en smal modell ofta rätt – en pelargran på 180 cm är bara 46 cm bred.",
+      },
+      {
+        q: "Finns det julgranar med belysning?",
+        a: "Ja. Flera av våra granar har varmvita LED-lampor som redan sitter i grenverket – från små granar med 50 LED till en 210 cm hög gran med 700 LED. Då slipper du linda en ljusslinga runt granen själv.",
+      },
+      {
+        q: "Hur förvarar jag en konstgjord julgran?",
+        a: "Många av våra granar delas i sektioner, och flera har en fot som fälls ihop – då ryms granen i en kartong till nästa jul. Förvara den torrt och fluffa upp grenarna när du ställer upp den igen.",
+      },
+    ],
+  },
+
   "kalas-fest": {
     intro: [
       "Det är detaljerna som gör kalaset minnesvärt. I Kalas & Fest hittar du prylar som lyfter festen hemma, som sockervaddsmaskiner för barnkalaset — några skedar strösocker blir till sockervadd på ett par minuter.",
