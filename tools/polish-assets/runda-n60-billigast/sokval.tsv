@@ -1,0 +1,23 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+eee66352	dipsställning	590	13	dipstation; dips station; dipställning
+9960e638	gungbräda	880	14	gungbräda barn; balansbräda barn; balansbom barn
+1ee16fbb	elelement	1900	18	wifi element; elelement vägg; elradiator; panelelement
+5bc44269	mc lyft	1900	18	mc lyftbord; lyftbord mc; motorcykellyft; saxlyft mc
+ae9ac784	sittpinnar höns	260	13	sittpinne höns; sittpinnar till höns; hönsgunga
+cf17d23c	hylla med lådor	1000	26	kubhylla; förvaringshylla; förvaringshylla med lådor
+e1d7ecf4	kattlådemöbel	480	20	kattlåda skåp; kattlådeskåp; dold kattlåda
+ce3aa654	stor resväska	4400	19	resväska stor; resväska large; resväska 100 liter; resväska expanderbar
+8e52b20b	golvlampa dimbar	390	12	led golvlampa; lash lamp; golvlampa båge
+aafbc5f2	öppen garderob	880	25	garderob på hjul; klädställning; liten garderob
+049f5441	metalldetektor	6600	21	metallsökare; metalldetektor vattentät
+c28af8df	laddkabel typ 2	1600	23	typ 2 laddkabel; laddkabel elbil; typ 2 kabel
+9ee7785f	ståpall	210	18	ergonomisk pall; balanspall; ståstöd
+6bcbaf32	hushållsassistent	5400	25	köksmaskin; degblandare
+6c9f3c8c	ritbord	1300	18	arkitektbord; ritbord barn
+# Publicerade namn med huvudordet eller närmaste ord: dipsställning 1, gungbräda 1, elelement 0, mc-lyft 0 (motorcykellyft och lyftbock för motorcykel 2), sittpinnar 4 (hönshus), hylla med lådor och kubhylla 5, kattlådemöbel 0 (kattlådeskåp 1), resväska 2, dimbar golvlampa 0 (båglampa och golvlampa båge 13), öppen garderob 0 (klädställning 4), metalldetektor 1, laddkabel 1, ståpall 0 (sadelstol 1), hushållsassistent 0 (köksmaskin 1), ritbord 0.
+# 6bcbaf32: köksmaskin (5 400, 19) bärs redan av en publicerad köksmaskin på 1400 W. Rundan tar hushållsassistent (5 400, 25).
+# 8e52b20b: golvlampa båge (590) bärs redan av en publicerad båglampa. Rundan tar golvlampa dimbar (390, 12).
+# e1d7ecf4: kattlådeskåp bärs redan av ett publicerat skåp. Rundan tar kattlådemöbel (480, 20).
+# 5bc44269: två publicerade motorcykellyftar heter motorcykellyft och lyftbock. Rundan tar mc lyft (1 900, 18), som inget av namnen bär.
+# c28af8df: en publicerad laddkabel på 22 kW bär laddkabel elbil typ 2, och typ 2 laddkabel (720, 13) är samma sökning i annan ordning. Rundan behåller laddkabel typ 2 och skiljer sidorna åt med 11 kW och 16 A i namn och titel.
+# 049f5441: en publicerad metalldetektor med fyra söklägen bär metalldetektor. Rundan behåller ordet och skiljer sidorna åt med hörlurar och spade i titeln.
