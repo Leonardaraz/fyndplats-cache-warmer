@@ -1,0 +1,63 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "093aedd2": {
+  "tyska": "✔ Gesamthöhe: 120 cm",
+  "svenska": "30 x 30 x 120 cm",
+  "bokstaver": "H",
+  "hojd": 120,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "1bc0c04e": {
+  "tyska": "",
+  "svenska": "140cm x 133cm x 43cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Klappgröße: 140L x 133B x 43H cm | ✔ Rutschengröße: 100L x 36B cm | ✔ Plattformgröße der Rutsche: 50B x 40T cm | ✔ Schaukelgröße: 38B x 20T cm | ✔ Ballkorb Höhe: 96H cm"
+ },
+ "3847b7ba": {
+  "tyska": "115B x 66,5T x 73H cm",
+  "svenska": "115B x 66,5T x 73H cm",
+  "bokstaver": "BTH",
+  "djup": 66.5,
+  "hojd": 73,
+  "bredd": 115
+ },
+ "69513a61": {
+  "tyska": "147L x 70B x 85H cm",
+  "svenska": "147L x 70B x 85H cm",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 147,
+  "djup": 70
+ },
+ "8a076c08": {
+  "tyska": "47B x 54,5T x 97,5H cm",
+  "svenska": "54,5L x 47B x 97,5H cm",
+  "bokstaver": "BTH",
+  "djup": 54.5,
+  "hojd": 97.5,
+  "bredd": 47
+ },
+ "965ba956": {
+  "tyska": "62,5L x 20B x 72,5H cm",
+  "svenska": "62,5L x 20B x 72,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 72.5,
+  "bredd": 62.5,
+  "djup": 20
+ },
+ "b28e1cbe": {
+  "tyska": "90 x 53 x 48cm (L x B x H)",
+  "svenska": "3 Stück (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 48,
+  "bredd": 90,
+  "djup": 53
+ },
+ "c4d8cb93": {
+  "tyska": "70B x 40T x 170H cm",
+  "svenska": "70L x 40B x 170H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 170,
+  "bredd": 70
+ }
+}

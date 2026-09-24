@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "37f968fe": {
+  "tyska": "",
+  "svenska": "80L x 29B x 80H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 80L x 29B x 80H cm | ✔ Stuhlabmessungen: 76,5L x 27B x 38H cm | ✔ Tischplattenabmessungen: 77L x 28B cm | ✔ Sitzabmessungen: 76,5L x 25,5B cm | ✔ Bücherregal: 30L x 12B x 18,5H cm | ✔ Aufbewahrungsbox: 45,5L x 11B x 18,5H cm | ✔ Tischbein: 29B x 80H cm"
+ },
+ "4b48e10f": {
+  "tyska": "53L x 43B x 110H cm",
+  "svenska": "53L x 43B x 110H cm",
+  "bokstaver": "LBH",
+  "hojd": 110,
+  "bredd": 53,
+  "djup": 43
+ },
+ "590b1f2d": {
+  "tyska": "",
+  "svenska": "100cm x 52,5cm x 48cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kletterbogen Größe: 100B x 52,5T x 48H cm | ✔ Rutschengröße: 95,5B x 43T x 7H cm | ✔ Tafelgröße: 57,5B x 42,5T cm"
+ },
+ "a93e2e5a": {
+  "tyska": "80L x 52B x 128H cm",
+  "svenska": "80L x 52B x 128H cm",
+  "bokstaver": "LBH",
+  "hojd": 128,
+  "bredd": 80,
+  "djup": 52
+ },
+ "bf4298b2": {
+  "tyska": "150L x 50B x 39H cm",
+  "svenska": "150L x 50B x 39H cm",
+  "bokstaver": "LBH",
+  "hojd": 39,
+  "bredd": 150,
+  "djup": 50
+ },
+ "d7e75081": {
+  "tyska": "78,5B x 24T x 175H cm",
+  "svenska": "78,5cm x 24cm x 175cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 175,
+  "bredd": 78.5
+ },
+ "e5049d65": {
+  "tyska": "100L x 50B x 60H cm",
+  "svenska": "100cm x 50cm x 60cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 100,
+  "djup": 50
+ },
+ "e903f29c": {
+  "tyska": "70L x 30B x 75H cm",
+  "svenska": "70cm x 30cm x 75cm",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 70,
+  "djup": 30
+ }
+}

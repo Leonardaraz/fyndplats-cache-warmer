@@ -1,0 +1,4 @@
+bd2c7da3	7	antal hyllnivåer, räknat på bild 4 (sex hyllplan skapar sju fack, räknade radvis)
+6b91821a	3	hyllor per sida runt spegeln, räknat på bild 1 (tre synliga på varje sidotorn)
+4f9ef409	2	antal dörrar på skåpet till vänster, räknat på bild 1
+bd2c7da3	2	antal dörrar, räknat på bild 1

@@ -20,7 +20,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-alt.py
 """
 import re, sys, os, json, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import GRINDAR, tal, las_facit
+from gatelib import GRINDAR, tal, las_facit, las_kvittenser
 
 # ☠️ BÅDA FACIT-FORMATEN, via gatelib. Fram till 2026-09-07 läste den bara
 # `kallor-tal.json` och KRASCHADE med FileNotFoundError på en runda som bär
@@ -32,6 +32,11 @@ if kallor is None:
     print("AVBRYT: varken kallor-tal.json eller kallor.json finns — "
           "siffergrinden kan inte köras och alt.tsv får inte passera ogrindad")
     sys.exit(1)
+# ☠️ SAMMA KVITTENSER SOM BRÖDTEXTEN. Grinden läste bara `kallor`, alltså
+# fällde den ett tal som `foto-tal.txt` redan kvitterat — en alt-text får
+# beskriva måttritningen den faktiskt visar. Uppmätt i N8 på a389ddaa
+# (31 cm mellan hyllplanen). Definitionen bor i gatelib, inte här.
+RAD_TAL, FOTO_TAL = las_kvittenser()
 rader = [l.rstrip("\n").split("\t") for l in open("alt.tsv", encoding="utf-8") if l.strip()]
 
 bort = collections.Counter()
@@ -62,7 +67,8 @@ for nr, r in enumerate(rader, 1):
         for t in re.findall(m, alt):
             t = t if isinstance(t, str) else t[0]
             print(f"alt.tsv:{nr}  {namn}: {t!r}  ({kort})"); fynd += 1
-    for t in tal(alt) - set(kallor.get(kort, [])):
+    facit = set(kallor.get(kort, [])) | RAD_TAL | FOTO_TAL.get(kort, set())
+    for t in tal(alt) - facit:
         print(f"alt.tsv:{nr}  SIFFRA UTAN KÄLLA: {t}  ({kort})"); fynd += 1
 
 for kort, n in sorted(per.items()):

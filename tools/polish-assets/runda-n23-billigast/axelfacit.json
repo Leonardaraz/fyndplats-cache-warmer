@@ -1,0 +1,65 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2aa6ff77": {
+  "tyska": "47,5T x 38,5B x 99H cm",
+  "svenska": "47,5T x 38,5B x 99H cm",
+  "bokstaver": "TBH",
+  "djup": 47.5,
+  "hojd": 99,
+  "bredd": 38.5
+ },
+ "3563d029": {
+  "tyska": "100L x 30B x 80H cm",
+  "svenska": "100L x 30B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 100,
+  "djup": 30
+ },
+ "46843188": {
+  "tyska": "100B x 40T x 42H cm",
+  "svenska": "100L x 40B x 42H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 42,
+  "bredd": 100
+ },
+ "58f8338d": {
+  "tyska": "50B x 3,6T x 150H cm (eingeklappte Halterung), 50B x 37T x 148H cm (ausgeklappte Halterung)",
+  "svenska": "L",
+  "bokstaver": "BTHBTH",
+  "djup": 3.6,
+  "hojd": 150,
+  "bredd": 50
+ },
+ "5b5855b9": {
+  "tyska": "83B x 30T x 90H cm",
+  "svenska": "83 x 30 x 90 cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 90,
+  "bredd": 83
+ },
+ "62f42597": {
+  "tyska": "Ø35 x 90H cm (Klein), Ø40 x 120H cm (Mittel), Ø48 x 150H cm (Groß)",
+  "svenska": "48L x 48B x 150H cm",
+  "bokstaver": "HHH",
+  "hojd": 90
+ },
+ "9ebd976b": {
+  "tyska": "68B x 32T x 86H cm",
+  "svenska": "68L x 32B x 86H cm",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": 86,
+  "bredd": 68
+ },
+ "e42eca69": {
+  "tyska": "61,9L x 36,6B x 43,2H cm",
+  "svenska": "3 x 15L",
+  "bokstaver": "LBH",
+  "hojd": 43.2,
+  "bredd": 61.9,
+  "djup": 36.6
+ }
+}

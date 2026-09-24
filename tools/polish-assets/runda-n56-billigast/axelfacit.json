@@ -1,0 +1,112 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1355eec8": {
+  "tyska": "24L x 36B x 56H cm",
+  "svenska": "24 x 36 x 56 cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 24,
+  "djup": 36
+ },
+ "1c908b3f": {
+  "tyska": "",
+  "svenska": "39,5L x 28B x 8H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kofferabmessungen: 39,5L x 28B x 8H cm | ✔ Mattenabmessungen: 90L x 60B cm | ✔ Chip: Ø40 x 3,1T mm, 11,5 Gramm | ✔ Dealer-Scheibe: Ø49 x 5T mm, 13 Gramm"
+ },
+ "1da6b037": {
+  "tyska": "122B x 2T x 75H cm",
+  "svenska": "122 x 2 x 75 cm",
+  "bokstaver": "BTH",
+  "djup": 2,
+  "hojd": 75,
+  "bredd": 122
+ },
+ "3ad8c7a4": {
+  "tyska": "",
+  "svenska": "30L x 30B x 96H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Doppelsprungplattform: 30L x 30B x 96H cm (mit Hängematte) | ✔ Hängematte: 34B x 22T x 25H cm | ✔ Doppelplattform mit Leiter: 84,5B x 19T x 12,5H cm | ✔ Gebogene Dreistufenleiter: 42B x 22T x 10H cm"
+ },
+ "6d0e2d27": {
+  "tyska": "122L x 10B x 75H cm",
+  "svenska": "122 x 10 x 75 cm",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 122,
+  "djup": 10
+ },
+ "6f4baeef": {
+  "tyska": "59B x 30T x 88,5H cm",
+  "svenska": "59L x 30B x 88,5H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 88.5,
+  "bredd": 59
+ },
+ "7e3d0a23": {
+  "tyska": "120B x 36T x 99H cm",
+  "svenska": "120L x 36B x 99H cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 99,
+  "bredd": 120
+ },
+ "856bdf7e": {
+  "tyska": "95L x 16B x 16H cm",
+  "svenska": "95cm x 16cm x 16Hcm",
+  "axelkalla": "tyska raden 'Kurzhantel' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 16,
+  "bredd": 95,
+  "djup": 16
+ },
+ "868b82c8": {
+  "tyska": "52L x 30B x 92,5H cm",
+  "svenska": "52cm x 30cm x 92,5cm",
+  "bokstaver": "LBH",
+  "hojd": 92.5,
+  "bredd": 52,
+  "djup": 30
+ },
+ "95a0993c": {
+  "tyska": "70L x 46B x 40H cm",
+  "svenska": "70L x 46B x 40H cm",
+  "bokstaver": "LBH",
+  "hojd": 40,
+  "bredd": 70,
+  "djup": 46
+ },
+ "98da447a": {
+  "tyska": "43,5L x 43B x ‹FORM› cm",
+  "svenska": "43.5L x 43B x 190H cm",
+  "axellos": "totalraden har tva tal utan H eller T (43,5L x 43B x ‹FORM› cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "b62bb65c": {
+  "tyska": "",
+  "svenska": "92,5cm x 50,5cm x 80,5cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 92,5L x 50,5B x 80,5H cm | ✔ Maße je Ablage: 80L x 23B cm"
+ },
+ "e248e9db": {
+  "tyska": "30L x 30B x 80H cm",
+  "svenska": "30L x 30B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 30,
+  "djup": 30
+ },
+ "ed39cd4c": {
+  "tyska": "68B x 20T x 165Hcm",
+  "svenska": "68L x 20B x 165Hcm",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 165,
+  "bredd": 68
+ },
+ "f2756389": {
+  "tyska": "45L x 45B x 44H cm, 40L x 40B x 39,5H cm, 34L x 34B x 34,5H cm",
+  "svenska": "45L x 45B x 44H cm",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 44,
+  "bredd": 45,
+  "djup": 45
+ }
+}

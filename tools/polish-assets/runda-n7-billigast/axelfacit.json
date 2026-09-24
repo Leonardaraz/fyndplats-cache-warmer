@@ -1,0 +1,76 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "358f4559": {
+  "tyska": "106B x 41,5T x 48,5H cm",
+  "svenska": "106L x 41,5B x 48,5H cm",
+  "bokstaver": "BTH",
+  "djup": 41.5,
+  "hojd": 48.5,
+  "bredd": 106
+ },
+ "62d2a0a9": {
+  "tyska": "50B x 1,9T x 80H cm (einzel)",
+  "svenska": "150cm x 1,9cm x 80cm",
+  "bokstaver": "BTH",
+  "djup": 1.9,
+  "hojd": 80,
+  "bredd": 50
+ },
+ "77d3bfc2": {
+  "tyska": "137,5L x 55,5B x 50-68H cm",
+  "svenska": "137,5L x 55,5B x 50-68H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   50,
+   68
+  ],
+  "bredd": 137.5,
+  "djup": 55.5
+ },
+ "7f1a45a6": {
+  "tyska": "128L x 118B x 108-120H cm",
+  "svenska": "128L x 118B x 120H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   108,
+   120
+  ],
+  "bredd": 128,
+  "djup": 118
+ },
+ "85c4c097": {
+  "tyska": "71L x 51,5B x 42H cm",
+  "svenska": "71B x 51,5T x 42H cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 71,
+  "djup": 51.5
+ },
+ "8df525e3": {
+  "tyska": "",
+  "svenska": "348cm x 69cm x 69cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sprungring: 93L x 72B x 92H cm | ✔ Sprunghürde: 93L x 72B x 92H cm | ✔ Slalomstangen: 348L x 69B x 69H cm | ✔ Pausenbox: 87L x 87B cm"
+ },
+ "9ab9eda7": {
+  "tyska": "32L x 9B x 9H cm",
+  "svenska": "32L x 9B x 9H cm",
+  "bokstaver": "LBH",
+  "hojd": 9,
+  "bredd": 32,
+  "djup": 9
+ },
+ "b45d2544": {
+  "tyska": "110B x 30T x 76H cm",
+  "svenska": "110L x 30B x 76H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 76,
+  "bredd": 110
+ },
+ "bd24e5f9": {
+  "tyska": "Ø40 x 40Hcm (großer Tisch), Ø35 x 35Hcm (kleiner Tisch)",
+  "svenska": "40L x 40B x 40H cm",
+  "bokstaver": "HH",
+  "hojd": 40
+ }
+}

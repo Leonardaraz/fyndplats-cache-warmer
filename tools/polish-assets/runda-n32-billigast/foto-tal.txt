@@ -1,0 +1,6 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+2808fff3	3	antal sektioner (vanster, mitt, hoger), raknade pa bild 1 och 2; 3 x 2 = kallans 6 fack
+6ab7b3b0	2	antal uppatbojda handtag pa styret, raknade pa bild 1
+8f95113c	2	antal skumlager: kallan namner tva skikt, 4 cm gelskum och 16 cm basskum
+b42b4802	3	antal lagen: kallan namner L-formig, gerade och gefaltet

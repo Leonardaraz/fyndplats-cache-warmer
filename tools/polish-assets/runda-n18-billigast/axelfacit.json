@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "08e388b6": {
+  "tyska": "70-139L x 26B x 30H cm",
+  "svenska": "70-139L x 26B x 30H cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": [
+   70,
+   139
+  ],
+  "djup": 26
+ },
+ "0e2b93bb": {
+  "tyska": "178L x 70B x 86H cm",
+  "svenska": "178cm x 70cm x 86cm",
+  "bokstaver": "LBH",
+  "hojd": 86,
+  "bredd": 178,
+  "djup": 70
+ },
+ "1518c06f": {
+  "tyska": "103L x 65B x 67-98H cm",
+  "svenska": "103L x 65B x 67-98H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   67,
+   98
+  ],
+  "bredd": 103,
+  "djup": 65
+ },
+ "2318c310": {
+  "tyska": "100L x 40B x 49H cm",
+  "svenska": "100L x 40B x 49H cm",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 100,
+  "djup": 40
+ },
+ "24cf38d1": {
+  "tyska": "32L x 30B x 163H",
+  "svenska": "32L x 30B x 163H cm",
+  "bokstaver": "LBH",
+  "hojd": 163,
+  "bredd": 32,
+  "djup": 30
+ },
+ "2f8d1c8f": {
+  "tyska": "",
+  "svenska": "75L x 268B x 18H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 75L x 80B x 72H cm | ✔ Bettmaße: 75L x 268B x 12/18H cm | ✔ Sitzgröße: 75L x 60B x 29H cm | ✔ Rückengröße: 75B x 53H cm"
+ },
+ "2fdbc619": {
+  "tyska": "Ø40 x 73H cm",
+  "svenska": "40L x 40B x 73H cm",
+  "bokstaver": "H",
+  "hojd": 73
+ }
+}

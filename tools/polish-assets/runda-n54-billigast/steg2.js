@@ -1,0 +1,249 @@
+async function () {
+  // Genererad av tools/polish-gates/bygg-medieskrivning.py — skriv den aldrig för hand.
+  const SUMMA = function (s) {
+    let h = 0;
+    for (const c of s) h = (h * 31 + (c.codePointAt(0) & 0xFFFF)) % 1000000007;
+    return h;
+  };
+
+  const PLAN = [
+    {
+      kort: "f267fdc4",
+      pid: "f267fdc4-47a0-445b-8542-b776029f2371",
+      poster: [
+        { id: "b379ce_b3a0a2002cae4df7843bb219ef18e06d~mv2.jpg", altText: "Vedställ i svart metall med det mörkgröna överdraget på, öppet framtill" },
+        { id: "b379ce_157fae5e30c149d083c36df61e1d47a7~mv2.jpg", altText: "En man bär ved till det fyllda vedstället med överdrag vid en entré" },
+        { id: "b379ce_9289cd094bf04f37832915800759f125~mv2.jpg", altText: "Vedstället helt täckt av överdraget vid en husvägg, med en katt i gräset framför" },
+        { id: "b379ce_797b639b0f194934bc6373407b3b7be8~mv2.jpg", altText: "Vedstället utan överdrag, fyllt med ved på en uteplats bredvid en eldstad" },
+        { id: "b379ce_242d9e64f6894fa5843275c3b878f510~mv2.jpg", altText: "Måttbild: stället är 200 × 36 × 99 cm med botten 19 cm upp, och överdraget 200 × 50 × 95 cm" },
+      ],
+      raa: 893710544,
+      tecken: 626
+    },
+    {
+      kort: "0773ceb6",
+      pid: "0773ceb6-0c35-4825-aaea-33c219e38d73",
+      poster: [
+        { id: "b379ce_3fc0227f8eee44f0bcce1c09dab8cb72~mv2.jpg", altText: "Smal soptunna i rostfritt stål med svart lock och sensor" },
+        { id: "b379ce_b9d5e2a6f9564a4aa5faed3cbc9c81fb~mv2.jpg", altText: "Soptunnan på ett klinkergolv i ett kök bredvid en krukväxt" },
+        { id: "b379ce_bf888f4eb2b64be7ba5d81511cf63230~mv2.jpg", altText: "Soptunnan vid en köksö på ett trägolv" },
+        { id: "b379ce_7f6af1392cf147eab0bb605e1228d359~mv2.jpg", altText: "Soptunnan i ett ljust kök framför en köksö" },
+        { id: "b379ce_3e2a83bfbad94f09a2697a3c246917e8~mv2.jpg", altText: "Måttbild: tunnan är 35,5 × 26 × 67 cm och rymmer 50 liter, och öppningen är 30,8 × 16,3 cm" },
+      ],
+      raa: 468301065,
+      tecken: 527
+    },
+    {
+      kort: "0ad9c123",
+      pid: "0ad9c123-c9b4-4fd2-97eb-6013557a682e",
+      poster: [
+        { id: "b379ce_d9cb6093b7184df7b453b67a2b4ea93c~mv2.jpg", altText: "Fristående golvspegel i vitt med rektangulär ram på ett stativ" },
+        { id: "b379ce_8ed8347ce3294144895261c0818b70fd~mv2.jpg", altText: "Golvspegeln bredvid ett vitt sminkbord med pall i ett sovrum" },
+        { id: "b379ce_bdca7294435a4780802880927b4aa974~mv2.jpg", altText: "Golvspegeln i ett ljust rum med gardiner och en krukväxt" },
+        { id: "b379ce_4ddcfdd88aca4cd7bb2c73ddaee75d6c~mv2.jpg", altText: "Golvspegeln bredvid ett sminkbord och en stoppad bänk" },
+        { id: "b379ce_a649529703d34a768ed676f014587bb1~mv2.jpg", altText: "Måttbild: spegeln är 47 × 46 × 148 cm och glaset 108 × 32 cm" },
+      ],
+      raa: 356866080,
+      tecken: 535
+    },
+    {
+      kort: "1884a543",
+      pid: "1884a543-6c2e-49f1-981a-f2fdb206cbfe",
+      poster: [
+        { id: "b379ce_c4859eb6fca54089b9b2beec8cf0915c~mv2.jpg", altText: "Vit pedaltränare med handvevar upptill och pedaler nedtill" },
+        { id: "b379ce_5bb948f4d910499997ac0ff14d22de24~mv2.jpg", altText: "Pedaltränaren på ett trägolv i ett vardagsrum" },
+        { id: "b379ce_cc9eeb33b2a34af2b7873cec3eb2b2d3~mv2.jpg", altText: "Närbild på displayen och ett av vreden på ramen" },
+        { id: "b379ce_22872a00d0844f0f83641331f78b158b~mv2.jpg", altText: "Måttbild: pedaltränaren är 100 cm hög" },
+      ],
+      raa: 555723656,
+      tecken: 382
+    },
+    {
+      kort: "2f31a1d9",
+      pid: "2f31a1d9-5b41-4834-9a75-dd3a58814239",
+      poster: [
+        { id: "b379ce_fbb8210f3201457b830a02ec8ebe22a2~mv2.jpg", altText: "Båglampa med rund vit kupa, böjd arm i förnicklad metall och fot i vit marmor" },
+        { id: "b379ce_25b5fcca56134020933d0a4ace815831~mv2.jpg", altText: "Båglampan tänd bredvid en säng med blommigt överkast" },
+        { id: "b379ce_04b5b972aaff41de9371a1ed68859e2d~mv2.jpg", altText: "Båglampan tänd i ett vardagsrum med en grön fåtölj" },
+        { id: "b379ce_8f83f470f4fa4a0fad5203b5759a19f1~mv2.jpg", altText: "Båglampan lyser över en soffa där en kvinna och en flicka sitter på golvet" },
+        { id: "b379ce_2923ac941eec4ec8b10349371173ee52~mv2.jpg", altText: "Måttbild: lampan är 180 cm hög, bågen når 90 cm ut och kupan mäter 25 × 19 cm" },
+      ],
+      raa: 95519263,
+      tecken: 574
+    },
+    {
+      kort: "383d8de2",
+      pid: "383d8de2-fa39-4205-acae-fe4e04469f43",
+      poster: [
+        { id: "b379ce_2aef24e1e5754320b7dc605c76dcfeeb~mv2.jpg", altText: "Fotpall i mörkgrå chenille med svarta stålben" },
+        { id: "b379ce_da62c3af5dad43bc8d88635d607634d4~mv2.jpg", altText: "En kvinna läser och vilar fötterna på pallen framför en fåtölj" },
+        { id: "b379ce_865b8751351c44fa883eee132ac1ec19~mv2.jpg", altText: "Närbild på dynan i mörkgrå chenille och ett av stålbenen" },
+        { id: "b379ce_c1e03c0914cc495f9b2203db23a1722a~mv2.jpg", altText: "Närbild på chenilletygets struktur" },
+        { id: "b379ce_99e29a6a056342748a41fa180abd889d~mv2.jpg", altText: "Måttbild: pallen är 45 × 41 × 38 cm och bär 120 kg" },
+      ],
+      raa: 567801923,
+      tecken: 491
+    },
+    {
+      kort: "403dfd8d",
+      pid: "403dfd8d-a812-466f-9a24-beb4965b006d",
+      poster: [
+        { id: "b379ce_e7a0262b866249a0baa5272c73004599~mv2.jpg", altText: "Blå elektrisk fyrhjuling för barn med svart sits och stora hjul" },
+        { id: "b379ce_8af72ae5446143d1b711295738323293~mv2.jpg", altText: "Ett litet barn kör fyrhjulingen på en väg i en park" },
+        { id: "b379ce_fdef7c2bf88242159c01ec0571608a3e~mv2.jpg", altText: "Närbild på den röda fotpedalen i fotutrymmet" },
+        { id: "b379ce_550225b2a3c74d2fa0a317c574ae2a41~mv2.jpg", altText: "Fyrhjulingen på en grusväg i en park" },
+        { id: "b379ce_d9cc269fab414ff79e0f54f911eefdff~mv2.jpg", altText: "Måttbild: fyrhjulingen är 70 × 41,5 × 48,5 cm, och sitsen är 28 cm lång" },
+      ],
+      raa: 354093876,
+      tecken: 509
+    },
+    {
+      kort: "50adf7ed",
+      pid: "50adf7ed-73e8-4050-9e4c-c6444c6f22ce",
+      poster: [
+        { id: "b379ce_b59c71b22865432ab95053545cea7939~mv2.jpg", altText: "Tre växtpiedestaler i olika höjd med krukväxter, svart stålram och skiva i träimitation" },
+        { id: "b379ce_0db00345fa6e4a70a370b41e3ca86822~mv2.jpg", altText: "Piedestalerna med blommor på ett trädäck framför ett trähus" },
+        { id: "b379ce_85a86ae3a2134ceb9675b0ae0c1b9851~mv2.jpg", altText: "Piedestalerna med gröna växter mot en vit vägg" },
+        { id: "b379ce_c1c2762c3588458facc326b614f75c73~mv2.jpg", altText: "Närbild på stålramen och fötterna" },
+        { id: "b379ce_c8e25377c39f436ba5020820a19faf7e~mv2.jpg", altText: "Måttbild: piedestalerna är 21 × 21 cm och 50, 70 och 90 cm höga" },
+      ],
+      raa: 434376924,
+      tecken: 532
+    },
+    {
+      kort: "71341341",
+      pid: "71341341-db6b-44df-a6ac-98535547e94a",
+      poster: [
+        { id: "b379ce_3d2499d67d204aa6aecc31c3ac753899~mv2.jpg", altText: "Vit bokhylla med åtta öppna fack i två storlekar" },
+        { id: "b379ce_79272ebad432405a929b85cc17da712f~mv2.jpg", altText: "Bokhyllan med böcker, en radio och prydnadssaker i ett vardagsrum" },
+        { id: "b379ce_5230d337ece54806ad6a877fd63760b4~mv2.jpg", altText: "En flicka läser på golvet bredvid bokhyllan" },
+        { id: "b379ce_29834953c328404e8577dea2bfe15f7a~mv2.jpg", altText: "Bokhyllan med böcker och en klocka i ett sovrum" },
+        { id: "b379ce_b80950da7be249518ba2e475f702f777~mv2.jpg", altText: "Måttbild: hyllan är 74,3 × 24 × 80 cm och bär 64 kg" },
+      ],
+      raa: 168641427,
+      tecken: 498
+    },
+    {
+      kort: "916d2e9f",
+      pid: "916d2e9f-6a41-4a26-aaed-550dca7f8191",
+      poster: [
+        { id: "b379ce_e93b1b836100411087133562af9ab783~mv2.jpg", altText: "Gul leksaksmotor formad som en hjullastare, med uppfälld motorhuv, tända lampor och dim ur avgasröret" },
+        { id: "b379ce_ed4c9b9635774f19b7a5fa389af7529d~mv2.jpg", altText: "En pojke lagar motorn med ett leksaksverktyg i ett barnrum" },
+        { id: "b379ce_1a2bedbeab61452791796134b624c020~mv2.jpg", altText: "Leksakens baksida med ratt och instrumentbräda" },
+        { id: "b379ce_c960e2ee55d8405c9ae5e25f8da30ee3~mv2.jpg", altText: "Leksaken med stängd motorhuv och skopa i ett lekrum" },
+        { id: "b379ce_6cb84e7429cf46f49721a93045de88f8~mv2.jpg", altText: "Måttbild: leksaken är 46 × 41 × 47 cm" },
+      ],
+      raa: 477163463,
+      tecken: 537
+    },
+    {
+      kort: "b281ec33",
+      pid: "b281ec33-cadb-447c-8043-972e2fb6d33a",
+      poster: [
+        { id: "b379ce_642d2f913c9b4abd8ab0c5f0c66360ae~mv2.jpg", altText: "Aktivitetstavla formad som en larv med xylofon, kugghjul, en klocka och former på snören" },
+        { id: "b379ce_656d055de9474b43a3ab1ccefcc0186d~mv2.jpg", altText: "Barn leker med tavlan på väggen i ett barnrum" },
+        { id: "b379ce_ac82e1d26050437bbb19c75d22235e0b~mv2.jpg", altText: "Tavlan på väggen i ett barnrum med en nallebjörn på golvet" },
+        { id: "b379ce_97cfea0ab3834bef8c66e56f8c6cf724~mv2.jpg", altText: "Tavlan på en vägg i ett lekrum på en förskola" },
+        { id: "b379ce_69c3e969ec174fe49553f0d0edec2a47~mv2.jpg", altText: "Måttbild: tavlan är 108 cm lång och 62 cm hög" },
+      ],
+      raa: 362771804,
+      tecken: 525
+    },
+    {
+      kort: "d2fb42b1",
+      pid: "d2fb42b1-2a90-4d35-b716-e88232a01508",
+      poster: [
+        { id: "b379ce_ed55d20d566d47ddb950f272c9e55ef5~mv2.jpg", altText: "Knästol med gungande ram i ljus björk och grå dynor" },
+        { id: "b379ce_efe7d44ebc40471ea7b1de4937f8ae20~mv2.jpg", altText: "Knästolen framför ett hörnskrivbord med en bärbar dator" },
+        { id: "b379ce_3cec69e55f9240789dc77d544d92bc90~mv2.jpg", altText: "En hand trycker på den stoppade sitsen" },
+        { id: "b379ce_7109be1c8abc4ded9a881ad02d4287b3~mv2.jpg", altText: "Närbild på knästödet med grå klädsel" },
+        { id: "b379ce_a9a4aa6092a94e5aabe7023cb41ce899~mv2.jpg", altText: "Måttbild: stolen är 73 cm lång, 50 cm bred och 55 cm hög" },
+      ],
+      raa: 651621206,
+      tecken: 480
+    },
+    {
+      kort: "d444fbae",
+      pid: "d444fbae-a151-422f-8159-8d620461060a",
+      poster: [
+        { id: "b379ce_2db6879568344bf9986831ad55967abb~mv2.jpg", altText: "Konstgjord fiolfikus med stora gröna blad och trästammar i en vit kruka" },
+        { id: "b379ce_08a5ad5f074341d082b3ec91f53237c1~mv2.jpg", altText: "Fiolfikusen bredvid en ljusgrå soffa i ett vardagsrum" },
+        { id: "b379ce_2ab86dd8ef914cf4a384e04ba34deb70~mv2.jpg", altText: "Fiolfikusen bredvid en fåtölj vid ett fönster" },
+        { id: "b379ce_180deb82aff945c0b1d6ab62e1f7c4dc~mv2.jpg", altText: "Fiolfikusen bredvid en säng i ett sovrum" },
+        { id: "b379ce_35ef8bdc14ae489aa6dde58c6e87e84e~mv2.jpg", altText: "Måttbild: trädet är 150 cm högt och krukan Ø18 × 17 cm" },
+      ],
+      raa: 712095170,
+      tecken: 507
+    },
+    {
+      kort: "f3d0cde9",
+      pid: "f3d0cde9-3b5c-4631-8646-03236e43f491",
+      poster: [
+        { id: "b379ce_6c39ea6f44304540bda3440b3417e541~mv2.jpg", altText: "Elektronisk darttavla med sifferring, display och sex pilar på sidorna" },
+        { id: "b379ce_bc8e8cde003f4c738903ba94e0bc9c2e~mv2.jpg", altText: "En familj spelar dart med tavlan på väggen i ett vardagsrum" },
+        { id: "b379ce_b7d26c6a5da14d6e972e45079332bf17~mv2.jpg", altText: "Vänner spelar dart i ett ljust rum" },
+        { id: "b379ce_86d5d2a2f43e4477acaf0273c7e7e5be~mv2.jpg", altText: "En man kastar pil mot tavlan i ett källarrum" },
+        { id: "b379ce_e3f8a64da2df4278aca92b554d1fb5c3~mv2.jpg", altText: "Måttbild: tavlan är 44 × 51,5 × 3,2 cm" },
+      ],
+      raa: 81034041,
+      tecken: 489
+    },
+    {
+      kort: "fa0c30ac",
+      pid: "fa0c30ac-c917-46f3-8bc6-3592ad789d28",
+      poster: [
+        { id: "b379ce_60af2a819b1d41e8894edabe8a19f6bd~mv2.jpg", altText: "Två konstgjorda eukalyptusklot i höga, vita krukor" },
+        { id: "b379ce_2a66d60939154f6d8fee6b3e326a370f~mv2.jpg", altText: "Eukalyptusklot på var sin sida om en ytterdörr" },
+        { id: "b379ce_fcc7c213f029424cbc47393e41f287e6~mv2.jpg", altText: "Klot på var sin sida om en trappa upp till en altan" },
+        { id: "b379ce_27fbed3e72d946d588fc2aab4f3a7c42~mv2.jpg", altText: "Eukalyptusklot på en uteplats med stolar och parasoll" },
+        { id: "b379ce_90f77851597d46c0b7a151d56f663ef9~mv2.jpg", altText: "Måttbild: växten är 65 cm hög och krukan 40 cm" },
+      ],
+      raa: 134552576,
+      tecken: 490
+    },
+  ];
+
+  // ☠️ SPÄRREN LIGGER HÄR, I SAMMA ANROP SOM SKRIVNINGEN, och den avbryter
+  // HELA batchen. Facit räknas på `id + "|" + altText` per rad, sammanfogat
+  // med radbrytning — alltså BÅDE bildernas ordning och alt-texternas ord.
+  const NYCKEL = function (poster) {
+    return poster.map(function (p) { return p.id + "|" + p.altText; }).join("\n");
+  };
+  const avvik = PLAN
+    .filter(function (p) { const s = NYCKEL(p.poster); return SUMMA(s) !== p.raa || s.length !== p.tecken; })
+    .map(function (p) { const s = NYCKEL(p.poster); return { kort: p.kort, fick: SUMMA(s), vantat: p.raa, tecken: s.length, vantatTecken: p.tecken }; });
+  if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik: avvik };
+
+  const utfall = [];
+  for (const p of PLAN) {
+    // ⚠️ Revisionen läses i SAMMA anrop — en äldre är inaktuell.
+    const f = await wix.request({ method: "GET", url: "/stores/v3/products/" + p.pid });
+    // ☠️ Svarets form läses tolerant (#280) — ett svar är ett SVAR, inte en
+    // skrivmall. Kroppen som SKICKAS heter alltid `body`.
+    const rev = (f.data || f).product.revision;
+
+    // ⚠️ MEDIA SKRIVS ENSAM. `media.main` skickas INTE — den är read-only i
+    // V3 och gav en extra omimport av huvudbilden. Hela `itemsInfo.items`
+    // ersätts, så listan ÄR produktens bilder efteråt.
+    const kropp = {
+      product: {
+        revision: rev,
+        media: { itemsInfo: { items: p.poster } }
+      },
+      fieldMask: { paths: ["media"] }
+    };
+
+    try {
+      const r = await wix.request({ method: "PATCH", url: "/stores/v3/products/" + p.pid, body: kropp });
+      const prod = (r.data || r).product;
+      utfall.push({ kort: p.kort, ok: true, skickade: p.poster.length, revisionEfter: prod.revision });
+    } catch (e) {
+      utfall.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });
+    }
+  }
+
+  // ⚠️ PATCH-svaret bär INTE media.itemsInfo i sin projektion — en lyckad
+  // skrivning rapporterar 0 bilder (#253). Kvittot är aterlas.js senare.
+  const ok = utfall.filter(function (r) { return r.ok; }).length;
+  return { rader: utfall, SAMMANFATTNING: ok + " av " + utfall.length + " skrivna" };
+}

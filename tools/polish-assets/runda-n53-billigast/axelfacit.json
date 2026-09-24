@@ -1,0 +1,119 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "12704344": {
+  "tyska": "✔ Gesamthöhe: 95 cm",
+  "svenska": "22L x 22B x 95H cm",
+  "bokstaver": "H",
+  "hojd": 95,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "1ae506e3": {
+  "tyska": "60L x 40B x 60H cm",
+  "svenska": "60L x 40B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 60,
+  "djup": 40
+ },
+ "1e139971": {
+  "tyska": "37L x 33,5B x 47,5H cm",
+  "svenska": "37 x 33,5 x 47,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 47.5,
+  "bredd": 37,
+  "djup": 33.5
+ },
+ "2af51f93": {
+  "tyska": "34,5L x 32,4B x 46H cm",
+  "svenska": "34,5cm x 32,4cm x 46cm",
+  "bokstaver": "LBH",
+  "hojd": 46,
+  "bredd": 34.5,
+  "djup": 32.4
+ },
+ "3dc622f9": {
+  "tyska": "116L x 43,5B x 160H cm",
+  "svenska": "116L x 43,5B x 160H cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 116,
+  "djup": 43.5
+ },
+ "4d7268c1": {
+  "tyska": "45B x 45T x 55H cm (groß), 40B x 40T x 50H cm (klein)",
+  "svenska": "45B x 45T x 55H cm",
+  "bokstaver": "BTHBTH",
+  "djup": 45,
+  "hojd": 55,
+  "bredd": 45
+ },
+ "560edb9f": {
+  "tyska": "✔ Gesamthöhe: 140 cm",
+  "svenska": "17L x 17B x 140H cm",
+  "bokstaver": "H",
+  "hojd": 140,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "85b1a737": {
+  "tyska": "42L x 42B x 47H cm",
+  "svenska": "42L x 42B x 47H cm",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 42,
+  "djup": 42
+ },
+ "a778baf1": {
+  "tyska": "Ø30,5 x H51,5 cm",
+  "svenska": "30.5 x 30.5 x 55.5 cm",
+  "bokstaver": "H",
+  "hojd": 51.5
+ },
+ "aa7637fb": {
+  "tyska": "75L x 30B x 60H cm",
+  "svenska": "75L x 30B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 75,
+  "djup": 30
+ },
+ "b398fe7b": {
+  "tyska": "110B x 40T x 20H cm",
+  "svenska": "110B x 40T x 20H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 20,
+  "bredd": 110
+ },
+ "bd664764": {
+  "tyska": "30B x 24T x 158H cm",
+  "svenska": "30L x 24B x 158H cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 158,
+  "bredd": 30
+ },
+ "d8af896a": {
+  "tyska": "122B x 0,5T x 4H cm",
+  "svenska": "122x0.5x4cm",
+  "bokstaver": "BTH",
+  "djup": 0.5,
+  "hojd": 4,
+  "bredd": 122
+ },
+ "db1f6697": {
+  "tyska": "100B x 48T x 87,5H cm",
+  "svenska": "100L x 48B x 87,5H cm",
+  "bokstaver": "BTH",
+  "djup": 48,
+  "hojd": 87.5,
+  "bredd": 100
+ },
+ "eca2fa1e": {
+  "tyska": "102L x 36B x 45H cm",
+  "svenska": "102L x 36B x 45H cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 102,
+  "djup": 36
+ }
+}

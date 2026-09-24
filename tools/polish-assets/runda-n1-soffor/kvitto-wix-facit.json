@@ -1,0 +1,11 @@
+{
+ "_om": "Vad som SKICKADES till Wix. Facit för den separata återläsningen — inte för PATCH-svaret, som utelämnar plainDescription och media.itemsInfo ur sin projektion (#259).",
+ "1fd11824": {"tecken": 3271, "summa": 216110552, "bilder": 5, "sku": "FP-baddfatolj-manchester-193", "slug": "baddfatolj-manchester-utan-armstod-193x82"},
+ "b99570fd": {"tecken": 3093, "summa": 179918699, "bilder": 3, "sku": "FP-modulsoffa-146-konstlader", "slug": "modulsoffa-2-sits-konstlader-146-graddvit"},
+ "8aad177d": {"tecken": 3064, "summa": 877327331, "bilder": 5, "sku": "FP-tvasits-130-kramvit", "slug": "tvasitssoffa-130-kramvit-gummitraben"},
+ "617ce9ff": {"tecken": 3245, "summa": 2060254425, "bilder": 4, "sku": "FP-tvasits-117-vingrygg", "slug": "tvasitssoffa-117-chenille-vingrygg"},
+ "d372e8e9": {"tecken": 3282, "summa": 821071256, "bilder": 3, "sku": "FP-baddsoffa-skum-203", "slug": "baddsoffa-skum-203-utan-montering"},
+ "45e68631": {"tecken": 3419, "summa": 1345048744, "bilder": 4, "sku": "FP-tresits-218-fickfjadring", "slug": "tresitssoffa-218-manchester-fickfjadring"},
+ "59aeb88a": {"tecken": 3323, "summa": 4179803257, "bilder": 4, "sku": "FP-tresits-212-stalram", "slug": "tresitssoffa-212-manchester-stalram-450kg"},
+ "fe56b0e6": {"tecken": 3362, "summa": 3658266045, "bilder": 5, "sku": "FP-hornsoffa-193-schaslong", "slug": "hornsoffa-193x136-linnelook-vandbar-schaslong"}
+}

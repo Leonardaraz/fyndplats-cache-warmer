@@ -1,0 +1,3 @@
+# Ordtal utan siffertäckning i källan — kvitterade med skäl, inte fel.
+05e65736 två     # "gör två jobb" — beskriver skrivbord+sidobord, ingen mätning
+3ee7a87a fyra    # "fyra hjul" — härlett 2+2 ur källans "2 feststellbaren und 2 leicht laufenden Rollen", inte ett fritt påstått tal

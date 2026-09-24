@@ -1,0 +1,246 @@
+async function () {
+  // Genererad av tools/polish-gates/bygg-medieskrivning.py — skriv den aldrig för hand.
+  const SUMMA = function (s) {
+    let h = 0;
+    for (const c of s) h = (h * 31 + (c.codePointAt(0) & 0xFFFF)) % 1000000007;
+    return h;
+  };
+
+  const PLAN = [
+    {
+      kort: "1e139971",
+      pid: "1e139971-9d92-468b-abc5-1e47e087aaae",
+      poster: [
+        { id: "b379ce_756c40009da34a83a2ded44ada20234b~mv2.jpg", altText: "Gåvagn i trä med aktivitetstavla med xylofon, klocka, spegel och kulbana, och en förvaringspåse baktill" },
+        { id: "b379ce_04ed31dc4b834279b0e44d8aeff8d73a~mv2.jpg", altText: "Ett litet barn går med gåvagnen medan en kvinna sitter på golvet bredvid" },
+        { id: "b379ce_658a168ab7964f91ae7b5b0c732c68b2~mv2.jpg", altText: "Aktivitetstavlans andra sida med kulram, kugghjul och en regel, liggande på ett bord" },
+        { id: "b379ce_75a16fd24f2244d3902a62d30988018f~mv2.jpg", altText: "Närbild på gåvagnens hjul och den målade sidan" },
+      ],
+      raa: 322228167,
+      tecken: 500
+    },
+    {
+      kort: "3dc622f9",
+      pid: "3dc622f9-665e-4e12-a55b-2e69ad330b8a",
+      poster: [
+        { id: "b379ce_a6065ccf669a42429b1343a8c9a380c8~mv2.jpg", altText: "Klädställ i bambu i A-form med klädstång och en hylla med ribbor nedtill" },
+        { id: "b379ce_5504881bca0741f9be9f018fbac4febc~mv2.jpg", altText: "Klädstället med jackor på galgar, en väska och en hatt på krokarna och skor under hyllan i ett sovrum" },
+        { id: "b379ce_399217d565144e3a8de6f43b64c15ad4~mv2.jpg", altText: "Närbild på kavajer på galgar och en hatt på kroken i stångens ände" },
+        { id: "b379ce_e1f3590ef676454ab27da72f08c0c164~mv2.jpg", altText: "Närbild på hyllan med en väska och vikta kläder, och tofflor på golvet under" },
+        { id: "b379ce_498cf78f436943c38b11a374e39c36ba~mv2.jpg", altText: "Måttbild: klädstället är 116 × 43,5 × 160 cm och hyllan 84 × 35 cm" },
+      ],
+      raa: 50572224,
+      tecken: 625
+    },
+    {
+      kort: "4d7268c1",
+      pid: "4d7268c1-4c06-4dcd-8c71-82666b6d1d47",
+      poster: [
+        { id: "b379ce_03eb87029e814843acf0899a176bcbd1~mv2.jpg", altText: "Två runda sidobord i vit marmorlook med guldfärgad ram, ett stort och ett litet" },
+        { id: "b379ce_7db61dab7a3c4f7b9c1c2892e81fe999~mv2.jpg", altText: "Sidoborden framför en grå soffa med en karaff, glas och en tidning" },
+        { id: "b379ce_7688826c7f4a4117bf337a260fc9f79b~mv2.jpg", altText: "Skivorna i vit marmorlook sedda ovanifrån" },
+        { id: "b379ce_ef6def5f62224f99b6cd6f49e544d132~mv2.jpg", altText: "Närbild på det lilla bordet inskjutet under det stora framför en soffa" },
+        { id: "b379ce_c109e6bec4464cc3be019ce47d4c9ff1~mv2.jpg", altText: "Måttbild: borden är 45 × 45 × 55 cm och 40 × 40 × 50 cm" },
+      ],
+      raa: 734710770,
+      tecken: 555
+    },
+    {
+      kort: "560edb9f",
+      pid: "560edb9f-5d79-4bc9-9f41-fa2f95579378",
+      poster: [
+        { id: "b379ce_3c1c17998ebe4a12ac9d263bd2cb4606~mv2.jpg", altText: "Konstgjord bambu med tätt lövverk i en svart kruka" },
+        { id: "b379ce_d97e7b67ea0d44a096c5a113f5d929f3~mv2.jpg", altText: "Den konstgjorda bambun bredvid ett skrivbord och en fåtölj i ett vardagsrum" },
+        { id: "b379ce_78a5d3377fbc4620a777f182d8ae4ff0~mv2.jpg", altText: "Närbild på en stam med led och blad" },
+        { id: "b379ce_5a8f594920f94c49b912a3cc35d5a70c~mv2.jpg", altText: "Närbild på bambuns blad" },
+        { id: "b379ce_443a975515d2494ea18356b574548e47~mv2.jpg", altText: "Måttbild: bambun är 140 cm hög och krukan Ø17 × 14,5 cm" },
+      ],
+      raa: 137829519,
+      tecken: 482
+    },
+    {
+      kort: "aa7637fb",
+      pid: "aa7637fb-e145-46bc-9c9a-c0b278a68434",
+      poster: [
+        { id: "b379ce_21da949f080e4b90844eee917164758a~mv2.jpg", altText: "Vedställ i svart stål med snirklar på gavlarna och borste, skyffel, eldgaffel och tång på sidorna" },
+        { id: "b379ce_bc1e91b6e8434636b60785e204caa564~mv2.jpg", altText: "Vedstället fyllt med ved bredvid en eldstad i sten på en uteplats" },
+        { id: "b379ce_9aafd7402e4d4f7dbb3fe0cc55ddc049~mv2.jpg", altText: "Närbild på gavelns snirklar och en krok för redskapen" },
+        { id: "b379ce_b375cd560c24446c9f7702048fc6a8e2~mv2.jpg", altText: "Närbild på redskapens handtag som hänger på krokarna" },
+        { id: "b379ce_79ec12d6b22340deb906ebd7ef47b2fc~mv2.jpg", altText: "Måttbild: vedstället är 75 × 30 × 60 cm och botten ligger 15 cm över golvet" },
+      ],
+      raa: 230257850,
+      tecken: 586
+    },
+    {
+      kort: "bd664764",
+      pid: "bd664764-2bb5-48b2-bd9d-1002f54757f2",
+      poster: [
+        { id: "b379ce_e384c8bb0eb944c0983ce03c52e95ff1~mv2.jpg", altText: "Smal vit bokhylla med öppna fack, två lådor och ett skåp med dörr längst ner" },
+        { id: "b379ce_086892fd565940e5b2fb5f782ee773ed~mv2.jpg", altText: "Bokhyllan med böcker och en korg i ett hörn bredvid ett skrivbord" },
+        { id: "b379ce_11767cebbc0141b5a2f725fc3eaf4173~mv2.jpg", altText: "Bokhyllan med böcker och prydnadssaker bredvid ett skrivbord med en lampa" },
+        { id: "b379ce_d94bc993f77b4cea86858263c57f4e45~mv2.jpg", altText: "Tre av bokhyllorna bredvid varandra i ett arbetsrum" },
+        { id: "b379ce_e1562810dd42445ea935e563c821dd70~mv2.jpg", altText: "Måttbild: bokhyllan är 30 × 24 × 158 cm och lådorna 24,2 × 18,8 × 7,8 cm invändigt" },
+      ],
+      raa: 85947708,
+      tecken: 591
+    },
+    {
+      kort: "eca2fa1e",
+      pid: "eca2fa1e-8c64-43e5-b561-c367c4dc15b2",
+      poster: [
+        { id: "b379ce_5cf69373b8164544a8ca40daf098f81e~mv2.jpg", altText: "Sittbänk med naturfärgad sits i furu och svarta ben" },
+        { id: "b379ce_58f610b32e4d4c04be0a5da4863d1381~mv2.jpg", altText: "Sittbänken vid ett matbord med svarta ben i ett kök" },
+        { id: "b379ce_9c976c572a624250a7f0012ed3add1a3~mv2.jpg", altText: "Sittbänken framför ett matbord i ljust trä" },
+        { id: "b379ce_e8bf5a2523f84c6da4b2688d1550da90~mv2.jpg", altText: "Närbild på sitsens ådring och ett av de svarta benen" },
+        { id: "b379ce_d406c56567244ba09816b90df87cf057~mv2.jpg", altText: "Måttbild: bänken är 102 × 36 × 45 cm" },
+      ],
+      raa: 708388211,
+      tecken: 476
+    },
+    {
+      kort: "1ae506e3",
+      pid: "1ae506e3-a1e6-4d5c-9e95-39762664e253",
+      poster: [
+        { id: "b379ce_34ca0575de17454db93c39e8287f8b16~mv2.jpg", altText: "Byrå för barnrummet med tre rosa lådor, vita halvmåneformade handtag och vita sidor" },
+        { id: "b379ce_6e37b825f0e3460e965724fd9554a099~mv2.jpg", altText: "Byrån i ett rosa barnrum med gosedjur i den öppna nedersta lådan" },
+        { id: "b379ce_99d8dfb7f1364e3dbe1696f999db49b3~mv2.jpg", altText: "Byrån i ett barnrum med ett gosedjur och en stapelleksak ovanpå" },
+        { id: "b379ce_0368a60349aa4d289c7b7ca103f5c75b~mv2.jpg", altText: "Närbild på de utdragna lådorna med vita handtag" },
+        { id: "b379ce_51bddd4ae1984ca29f0cf80051f9257a~mv2.jpg", altText: "Måttbild: byrån är 60 × 40 × 60 cm med ben på 12 cm, och lådorna är 52,5 × 28,5 × 7,5 cm invändigt" },
+      ],
+      raa: 567488394,
+      tecken: 599
+    },
+    {
+      kort: "85b1a737",
+      pid: "85b1a737-f5b2-4a36-afc4-4ebd1325483e",
+      poster: [
+        { id: "b379ce_c25faa60dbef4016891a4bd04c3dd977~mv2.jpg", altText: "Leksaksmotor i form av en grön traktor med öppen motorhuv, dimma ur avgasröret och verktyg framför" },
+        { id: "b379ce_5253026c68b44fafb428cb4fed772305~mv2.jpg", altText: "En pojke skruvar på leksaksmotorn med ett verktyg i ett barnrum" },
+        { id: "b379ce_bca92f6a73314064a54860ee8dc2ca16~mv2.jpg", altText: "Leksaksmotorns baksida med ratt, mätare och knappar" },
+        { id: "b379ce_0433cc76188a4c598e4421bf084aa21d~mv2.jpg", altText: "Leksaksmotorn med stängd motorhuv och handtag ovanpå, på en rund matta" },
+        { id: "b379ce_143f701e3eab4e578ad9029dcf430d31~mv2.jpg", altText: "Måttbild: leksaksmotorn är 42 × 42 × 47 cm" },
+      ],
+      raa: 622603730,
+      tecken: 568
+    },
+    {
+      kort: "a778baf1",
+      pid: "a778baf1-f987-40f3-8069-a35506c266bc",
+      poster: [
+        { id: "b379ce_61cdf7c3b3474528b92bb96e82f982c9~mv2.jpg", altText: "Sensorsoptunna i rostfritt stål med svart lock och knappar framtill" },
+        { id: "b379ce_cee62c4b879b432899e60305557d7d2d~mv2.jpg", altText: "Soptunnan med öppet lock i ett kök" },
+        { id: "b379ce_9af7b3ae7a404f348694f0ecb37f17bb~mv2.jpg", altText: "Batterifacket på lockets undersida med luckan bredvid" },
+        { id: "b379ce_a39843e0bf6e49d8851dda3caab1ce5d~mv2.jpg", altText: "Närbild på lockets knappar och sensor" },
+      ],
+      raa: 410495904,
+      tecken: 386
+    },
+    {
+      kort: "b398fe7b",
+      pid: "b398fe7b-ff80-4911-a267-61ae785d1ce1",
+      poster: [
+        { id: "b379ce_29d854e20c2f42d88071ee08313013ba~mv2.jpg", altText: "Stegbräda med svart ovansida, mintgrön kant och lila förhöjningar" },
+        { id: "b379ce_ec09f64637d0406a921ee1d315710ea2~mv2.jpg", altText: "En kvinna gör utfall med ena foten på stegbrädan i ett träningsrum" },
+        { id: "b379ce_cf90659ac3d8403f9618b583247dea5a~mv2.jpg", altText: "En man och en kvinna tränar på var sin stegbräda i ett gym" },
+        { id: "b379ce_72064f35f7064746b7cfdf2e4bf31e9e~mv2.jpg", altText: "En kvinna gör armhävningar med händerna på stegbrädan" },
+        { id: "b379ce_71bbb8cd25a247e4b9f3373765749f79~mv2.jpg", altText: "Måttbild: stegbrädan är 110 × 40 cm och går att ställa på 10, 15 och 20 cm" },
+      ],
+      raa: 657698230,
+      tecken: 560
+    },
+    {
+      kort: "db1f6697",
+      pid: "db1f6697-5cc7-4431-866e-7f7ae0c28a01",
+      poster: [
+        { id: "b379ce_8e821f317da94d0f9acec4a699079ee7~mv2.jpg", altText: "Vitt skrivbord med en hylla för skärmen ovanpå och ben i vitt stål" },
+        { id: "b379ce_60d8157a60f343b3808eee834c36668f~mv2.jpg", altText: "Skrivbordet utan hylla med en lampa, en bok och en bärbar dator framför ett fönster mot en trädgård" },
+        { id: "b379ce_c5cb142e0fea44b481dafc44e1040cf8~mv2.jpg", altText: "Måttbild: skrivbordet är 100 × 48 × 87,5 cm och hopfällt 100 × 75 × 5,5 cm, och det bär 70 kg" },
+      ],
+      raa: 142223859,
+      tecken: 404
+    },
+    {
+      kort: "12704344",
+      pid: "12704344-038f-4a8e-8a3d-03d75c84693d",
+      poster: [
+        { id: "b379ce_fc11c1dd582d42c8a51ce8eb9bb8a0cc~mv2.jpg", altText: "Konstgjord kaktus med tre gröna stammar i olika höjd i en ljus kruka" },
+        { id: "b379ce_063e16c51ea24ffb84e05c3153c21c58~mv2.jpg", altText: "Kaktusen bredvid en beige soffa vid ett fönster" },
+        { id: "b379ce_526457b2fc7d457286f94cdfcb77bb94~mv2.jpg", altText: "Kaktusen på en terrass bredvid en utemöbel med dynor" },
+        { id: "b379ce_d1b8e08593f84f2f9c3b0aee22a33fad~mv2.jpg", altText: "Kaktusen vid ett fönster med vita gardiner och en blå fåtölj" },
+        { id: "b379ce_8112d63ae61449fb9f31bb5447bda5e2~mv2.jpg", altText: "Måttbild: kaktusen är 95 cm hög och krukan 22 × 22 cm" },
+      ],
+      raa: 469157721,
+      tecken: 524
+    },
+    {
+      kort: "2af51f93",
+      pid: "2af51f93-6175-437a-acf5-9701c3bd1eae",
+      poster: [
+        { id: "b379ce_98c00ce533314879914fca363150a5b4~mv2.jpg", altText: "Gåvagn i trä med kulram, xylofon, kugghjul, bokstavsklossar och formlåda, och fem klossar framför" },
+        { id: "b379ce_7221dcb9cd4e4d4d93917d22564a7cf2~mv2.jpg", altText: "Ett litet barn går med gåvagnen medan en kvinna sitter på golvet och ler" },
+        { id: "b379ce_a80a979ed52a46e0b99f7cb25606eee6~mv2.jpg", altText: "Gåvagnen sedd ovanifrån med facket baktill" },
+        { id: "b379ce_0f746caf1e7547ebb0b80aafaa718dbc~mv2.jpg", altText: "Närbild på aktivitetstavlan med xylofon, kugghjul och formlåda" },
+        { id: "b379ce_595c42e03cfc49fe88c3fbd3c419e95e~mv2.jpg", altText: "Måttbild: gåvagnen är 34,5 × 32,4 × 46 cm" },
+      ],
+      raa: 341059807,
+      tecken: 558
+    },
+    {
+      kort: "d8af896a",
+      pid: "d8af896a-dd56-4a46-808a-c72f5f8187bb",
+      poster: [
+        { id: "b379ce_f6f1c557bd0e4396830efa00f707bf3d~mv2.jpg", altText: "Skjutdörrsbeslag i svart med skena, hjul och fästmaterial bredvid en hopvikt dörr, som inte ingår" },
+        { id: "b379ce_88114622a09f4fd2a1cc216b8ecb5ec2~mv2.jpg", altText: "En stängd vikdörr i ljust trä som hänger i beslaget, dörren ingår inte" },
+        { id: "b379ce_8e728334eeae4e19b88186dce849a3a0~mv2.jpg", altText: "Vikdörren hopvikt mot väggen i en dörröppning" },
+        { id: "b379ce_870db212bfd946da897da86bae6eb237~mv2.jpg", altText: "Vikdörren stängd i ett ljust rum med en fåtölj bredvid" },
+        { id: "b379ce_a0e94cb52f1f48a2a03b189c8dcfbbb8~mv2.jpg", altText: "Måttbild: skenan och hjulen till beslaget" },
+      ],
+      raa: 146608842,
+      tecken: 551
+    },
+  ];
+
+  // ☠️ SPÄRREN LIGGER HÄR, I SAMMA ANROP SOM SKRIVNINGEN, och den avbryter
+  // HELA batchen. Facit räknas på `id + "|" + altText` per rad, sammanfogat
+  // med radbrytning — alltså BÅDE bildernas ordning och alt-texternas ord.
+  const NYCKEL = function (poster) {
+    return poster.map(function (p) { return p.id + "|" + p.altText; }).join("\n");
+  };
+  const avvik = PLAN
+    .filter(function (p) { const s = NYCKEL(p.poster); return SUMMA(s) !== p.raa || s.length !== p.tecken; })
+    .map(function (p) { const s = NYCKEL(p.poster); return { kort: p.kort, fick: SUMMA(s), vantat: p.raa, tecken: s.length, vantatTecken: p.tecken }; });
+  if (avvik.length) return { AVBRUTET: "transkriberingsfel — ingenting skrivet", avvik: avvik };
+
+  const utfall = [];
+  for (const p of PLAN) {
+    // ⚠️ Revisionen läses i SAMMA anrop — en äldre är inaktuell.
+    const f = await wix.request({ method: "GET", url: "/stores/v3/products/" + p.pid });
+    // ☠️ Svarets form läses tolerant (#280) — ett svar är ett SVAR, inte en
+    // skrivmall. Kroppen som SKICKAS heter alltid `body`.
+    const rev = (f.data || f).product.revision;
+
+    // ⚠️ MEDIA SKRIVS ENSAM. `media.main` skickas INTE — den är read-only i
+    // V3 och gav en extra omimport av huvudbilden. Hela `itemsInfo.items`
+    // ersätts, så listan ÄR produktens bilder efteråt.
+    const kropp = {
+      product: {
+        revision: rev,
+        media: { itemsInfo: { items: p.poster } }
+      },
+      fieldMask: { paths: ["media"] }
+    };
+
+    try {
+      const r = await wix.request({ method: "PATCH", url: "/stores/v3/products/" + p.pid, body: kropp });
+      const prod = (r.data || r).product;
+      utfall.push({ kort: p.kort, ok: true, skickade: p.poster.length, revisionEfter: prod.revision });
+    } catch (e) {
+      utfall.push({ kort: p.kort, ok: false, fel: String(e && e.message || e).slice(0, 300) });
+    }
+  }
+
+  // ⚠️ PATCH-svaret bär INTE media.itemsInfo i sin projektion — en lyckad
+  // skrivning rapporterar 0 bilder (#253). Kvittot är aterlas.js senare.
+  const ok = utfall.filter(function (r) { return r.ok; }).length;
+  return { rader: utfall, SAMMANFATTNING: ok + " av " + utfall.length + " skrivna" };
+}

@@ -1,0 +1,3 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+583622e8 2 vadrullar räknade på bilderna 1 och 3 — källan skriver "Knöchelpolstern" i plural men anger aldrig antalet

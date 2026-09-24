@@ -1,0 +1,74 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00d6f785": {
+  "tyska": "20L x 20B x 150H cm",
+  "svenska": "20L x 20B x 150H cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 20,
+  "djup": 20
+ },
+ "0dfaa38b": {
+  "tyska": "25B x 12T x 48H cm",
+  "svenska": "25B x 12T x 48H cm",
+  "bokstaver": "BTH",
+  "djup": 12,
+  "hojd": 48,
+  "bredd": 25
+ },
+ "0feec456": {
+  "tyska": "60L x 60B x 76H cm",
+  "svenska": "60L x 60B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 60,
+  "djup": 60
+ },
+ "10cd6afb": {
+  "tyska": "75L x 24B x 76H cm",
+  "svenska": "75L x 24B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 75,
+  "djup": 24
+ },
+ "1476f00c": {
+  "tyska": "63L x 30B x 66H cm",
+  "svenska": "63L x 30B x 66H cm",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 63,
+  "djup": 30
+ },
+ "a7e88a1b": {
+  "tyska": "",
+  "svenska": "44L x 39B x 13H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sitzkissenmaße: 44L x 39B x 13H cm | ✔ Geeignete Mindestsitzfläche: 45L x 40B cm"
+ },
+ "b5b3b852": {
+  "tyska": "47L x 41B x 2,5H cm",
+  "svenska": "47L x 41B x 2,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 2.5,
+  "bredd": 47,
+  "djup": 41
+ },
+ "cf92c3bd": {
+  "tyska": "✔ Gesamthöhe: 95 cm",
+  "svenska": "95 cm",
+  "bokstaver": "H",
+  "hojd": 95,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "e36dab73": {
+  "tyska": "Ø46 x 150H cm",
+  "svenska": "Ø46 x H150 cm",
+  "bokstaver": "H",
+  "hojd": 150
+ },
+ "e90dcc5a": {
+  "tyska": "",
+  "svenska": "34,3L x 34,3B x 15,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kleine Größe: 21,5L x 21,5B x 4H cm | ✔ Mittlere Größe: 29L x 29B x 8,5H cm | ✔ Große Größe: 34,3L x 34,3B x 5,5H cm"
+ }
+}

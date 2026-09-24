@@ -48,6 +48,14 @@ on:
         required: false
         default: "1"
         type: string
+      fran_pris:
+        # Poleringsrundorna gar BILLIGAST UPPAT (Leonards regel for N-serien),
+        # och ett band som redan ar polerat ska inte fylla tabellen igen.
+        # N2 tackte 599-699, N3 699-879, N4 899-939.
+        description: "Opolerade-tabellen: lagsta pris i kr att visa. Default 0."
+        required: false
+        default: "0"
+        type: string
       av:
         description: "vara-sidor: hur manga skivor. 1 = hela pa en gang."
         required: false
@@ -71,6 +79,7 @@ jobs:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MODE: ${{ inputs.mode }}
+          FRAN_PRIS: ${{ inputs.fran_pris }}
           VARV: ${{ inputs.varv }}
           VISA_RADER: ${{ inputs.visa_rader }}
           DETALJLOGG: ${{ inputs.detaljlogg }}
@@ -307,7 +316,39 @@ jobs:
               | sort_by(-.underMedKr) | .[:30][]
               | "| `\(.wixProductId)` | \(.vartPris) | \(.derasPris) | **\(.underMedKr) kr** (\(.underMedPct) %) |"
             ' rader.ndjson || true
+
+            # ⚠️ SAMMA DATA, ANNAN SORTERING — och den har svarar pa en annan
+            # fraga. Tabellen ovan rankar PENGAR; poleringsrundorna gar
+            # BILLIGAST UPPAT (Leonards regel: "borja fran billigast uppat
+            # istallet"). Utan den har raden harleds sorteringen om for hand
+            # vid varje runda, och da ar den inte langre ett facit utan en
+            # avskrift — samma klass som hasharna i aterlas.py.
+            echo ""
+            echo "#### Opolerade utkast sorterat pa VART PRIS stigande, fran ${FRAN_PRIS:-0} kr (topp 40)"
+            echo ""
+            echo "| wix-id | vart | deras | under med |"
+            echo "|---|---:|---:|---:|"
+            jq -s -r --argjson golv "${FRAN_PRIS:-0}" '
+              unique_by(.wixProductId)
+              | map(select(.underMedKr > 0 and .behoverPolering == true and .vartPris >= $golv))
+              | sort_by(.vartPris) | .[:40][]
+              | "| `\(.wixProductId)` | \(.vartPris) | \(.derasPris) | \(.underMedKr) kr (\(.underMedPct) %) |"
+            ' rader.ndjson || true
           } >> "$GITHUB_STEP_SUMMARY"
+
+          # ☠️ OCH TILL STDOUT. En summering gar inte att lasa tillbaka
+          # programmatiskt — samma lardom som feed-info:s kolumnlista, dar
+          # hela svaret fanns men bara skrevs till GITHUB_STEP_SUMMARY och
+          # darfor maste hamtas en gang till. Raderna bar wix-id och tva
+          # priser som redan star publikt pa bada sajterna; artikelnumret
+          # lamnar aldrig servern.
+          echo "== opolerade, billigast uppat fran ${FRAN_PRIS:-0} kr =="
+          jq -s -r --argjson golv "${FRAN_PRIS:-0}" '
+            unique_by(.wixProductId)
+            | map(select(.underMedKr > 0 and .behoverPolering == true and .vartPris >= $golv))
+            | sort_by(.vartPris) | .[:40][]
+            | "\(.wixProductId)\t\(.vartPris)\t\(.derasPris)\t\(.underMedKr)"
+          ' rader.ndjson || true
 
           # Fordelningen ar det som styr beslutet: "vi ar billigare pa 2 500"
           # sager ingenting om HUR MYCKET som ligger pa bordet. Bandet 0-2 %

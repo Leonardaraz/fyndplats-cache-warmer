@@ -1,0 +1,120 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2fc13340": {
+  "tyska": "203L x 152B x 22H cm",
+  "svenska": "203L x 152B x 22H cm",
+  "bokstaver": "LBH",
+  "hojd": 22,
+  "bredd": 203,
+  "djup": 152
+ },
+ "308cabee": {
+  "tyska": "Ø 16 x 17H cm",
+  "svenska": "100H cm",
+  "axelkalla": "tyska raden 'Topf' (etiketten bar ett bestämningsord)",
+  "bokstaver": "H",
+  "hojd": 17
+ },
+ "423edb5d": {
+  "tyska": "60L x 10B x 98H cm",
+  "svenska": "60L x 10B x 98H cm",
+  "bokstaver": "LBH",
+  "hojd": 98,
+  "bredd": 60,
+  "djup": 10
+ },
+ "4dc2759a": {
+  "tyska": "Ø40,5 x 33H cm",
+  "svenska": "40,5L x 40,5B x 33H cm",
+  "bokstaver": "H",
+  "hojd": 33
+ },
+ "61917e9a": {
+  "tyska": "40L x 40B x 45H cm",
+  "svenska": "40L x 40B x 45H cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 40,
+  "djup": 40
+ },
+ "6690086e": {
+  "tyska": "60B x 29T x 67H cm",
+  "svenska": "60L x 29B x 67H cm",
+  "bokstaver": "BTH",
+  "djup": 29,
+  "hojd": 67,
+  "bredd": 60
+ },
+ "7ba0423b": {
+  "tyska": "95L x 28B x 96,5H cm",
+  "svenska": "98cm x 28cm x 96,5cm",
+  "bokstaver": "LBH",
+  "hojd": 96.5,
+  "bredd": 95,
+  "djup": 28
+ },
+ "80de1b65": {
+  "tyska": "✔ Gesamthöhe: 60 cm",
+  "svenska": "14,5L x 14,5B x 60H cm",
+  "bokstaver": "H",
+  "hojd": 60,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "8aab4f48": {
+  "tyska": "33L x 36,5B x 67H cm",
+  "svenska": "33L x 36,5B x 67H cm",
+  "bokstaver": "LBH",
+  "hojd": 67,
+  "bredd": 33,
+  "djup": 36.5
+ },
+ "97cf9327": {
+  "tyska": "120L x 80B x 180H cm",
+  "svenska": "120L x 80B x 180H cm",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 120,
+  "djup": 80
+ },
+ "9c3b6e2f": {
+  "tyska": "Ø18 x 90H cm",
+  "svenska": "18L x 18B x 90H cm",
+  "bokstaver": "H",
+  "hojd": 90
+ },
+ "af994f2d": {
+  "tyska": "38B x 38T x 62-83H cm",
+  "svenska": "38 x 38 x 62-83 cm",
+  "bokstaver": "BTH",
+  "djup": 38,
+  "hojd": [
+   62,
+   83
+  ],
+  "bredd": 38
+ },
+ "b73863ff": {
+  "tyska": "27B x 10T x 71H cm",
+  "svenska": "27L x 10B x 71H cm",
+  "bokstaver": "BTH",
+  "djup": 10,
+  "hojd": 71,
+  "bredd": 27
+ },
+ "b8d8a982": {
+  "tyska": "83L x 45B x 4H cm",
+  "svenska": "83 x 45 x 4 cm",
+  "axelkalla": "tyska raden 'ausgeklappt' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 4,
+  "bredd": 83,
+  "djup": 45
+ },
+ "cc18bc6f": {
+  "tyska": "✔ Gesamthöhe: 150 cm",
+  "svenska": "17L x 17B x150H cm",
+  "bokstaver": "H",
+  "hojd": 150,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ }
+}

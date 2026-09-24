@@ -44,6 +44,15 @@ export interface WixV3ProductSummary {
   inStock?: boolean;
   handle?: string;
   existingTags?: Array<Record<string, unknown>>;
+  /**
+   * ☠️ SYNLIGHETEN MÅSTE BÄRAS, INTE ANTAS. `products/query` lägger INTE på
+   * något implicit `visible:true` — det är uppmätt mot skarpa V3 och står i
+   * CLAUDE.md. Fältet saknades här, så `findRedirectConflicts` kallade varje
+   * UTKAST "en levande produkt": en 301 från ett pensionerat utkast vägrades,
+   * och en 301 TILL ett utkast släpptes igenom rakt in i en 404. Samma
+   * riktning som systerfunktionen: saknat fält räknas som synligt.
+   */
+  visible?: boolean;
   /** HTML-brödtext (PLAIN_DESCRIPTION-fältet) — tomt = saknar beskrivning. */
   plainDescription?: string;
 }
@@ -210,8 +219,9 @@ export async function listVisibleV3ProductIds(): Promise<Set<string>> {
  * ☠️ TAKET KASTAR, DET KORTAR INTE AV (2026-09-23). Loopen stannade tyst vid 50
  * sidor = 5 000 produkter. Katalogen passerade det i september, så /admin/seo,
  * lönsamhetsrapporten och /admin/mappings räknade på en avkortad lista utan
- * att säga det. Samma tak och samma hållning som listVisibleV3ProductIds: en
- * avkortad lista är värre än ett fel.
+ * att säga det. Redirect-grinden (`redirects.ts`) läser samma lista, så där såg
+ * en produkt bortom taket död ut. Samma tak och samma hållning som
+ * listVisibleV3ProductIds: en avkortad lista är värre än ett fel.
  */
 export async function listAllV3Products(
   opts: { beskrivning?: boolean } = {},
@@ -264,6 +274,7 @@ export async function listAllV3Products(
         actualPriceRange?: { minValue?: { amount?: string } };
         inventory?: { availabilityStatus?: string };
         handle?: string;
+        visible?: boolean;
       }>;
       pagingMetadata?: { count?: number; cursors?: { next?: string }; hasNext?: boolean };
     };
@@ -297,6 +308,7 @@ export async function listAllV3Products(
         inStock: p.inventory?.availabilityStatus === "IN_STOCK",
         handle: p.handle,
         existingTags: tags as Array<Record<string, unknown>>,
+        visible: p.visible !== false,
       });
     }
 
@@ -1190,4 +1202,13 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
       + `med markören kvar. Katalogen är större än väntat — höj taket hellre än att `
       + `arbeta vidare på en halv lista.`,
   );
+}
+
+/**
+ * Modulens egna rubriker (token + butikens site-id), för en rutt som talar
+ * direkt med butikens sajt. Exporterad i stället för kopierad: två kopior av
+ * site-id-valet hade kunnat glida isär, och då skriver den ena till fel sajt.
+ */
+export function headlessWixHeaders(): Record<string, string> {
+  return headers();
 }

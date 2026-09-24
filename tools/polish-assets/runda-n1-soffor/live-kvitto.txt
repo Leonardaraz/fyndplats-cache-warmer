@@ -1,0 +1,10 @@
+1fd11824 baddfatolj-manchester-utan-armstod-193x82: ord=508 diff=0 -> REN
+b99570fd modulsoffa-2-sits-konstlader-146-graddvit: ord=447 diff=0 -> REN
+8aad177d tvasitssoffa-130-kramvit-gummitraben: ord=467 diff=0 -> REN
+617ce9ff tvasitssoffa-117-chenille-vingrygg: ord=499 diff=0 -> REN
+d372e8e9 baddsoffa-skum-203-utan-montering: ord=524 diff=0 -> REN
+45e68631 tresitssoffa-218-manchester-fickfjadring: ord=504 diff=0 -> REN
+59aeb88a tresitssoffa-212-manchester-stalram-450kg: ord=501 diff=0 -> REN
+fe56b0e6 hornsoffa-193x136-linnelook-vandbar-schaslong: ord=491 diff=0 -> REN
+
+TOTALT: 0 avvikelser i den PUBLICERADE texten

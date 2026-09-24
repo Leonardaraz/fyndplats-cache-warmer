@@ -1,0 +1,9 @@
+# Tal som INTE står i någon produkts källtext och ändå får användas.
+# Varje rad ska kunna försvaras av en människa som läser filen.
+#
+# 305 — officiell korghöjd för basketboll (FIBA och NBA), alltså ett yttre
+# referenstal och inget produktmått. Det står i 57c7e4f4 för att säga rakt ut
+# att stället INTE är fullhöjd: korgen sitter på 156–210 cm. Utan talet blir
+# meningen "inte fullstor" utan att säga hur mycket, och då är den snarare
+# undvikande än ärlig.
+305

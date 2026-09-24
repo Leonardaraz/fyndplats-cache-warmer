@@ -68,7 +68,17 @@ describe("gatelib fäller det den ska", () => {
     ["STAVNING", "svenskt ord utan diakriter", "En fatolj med justerbar hojd."],
     ["STAVNING", "dansk falsk vän", "Ställ den på et plant gulv."],
     ["HOMOGLYF", "kyrilliskt t i granträ", "Stommen är i massivt granтrä."],
-    ["EN-NORM UTAN KÄLLA", "utskriven EN-norm", "Tyget är testat enligt EN 1021."],
+    // ☠️ EN-NORMEN LIGGER INTE LÄNGRE HÄR, och det är med flit. Den satt i
+    // GRINDAR och fyrade alltså på VARJE normangivelse — även en som källan
+    // certifierar ordagrant (uppmätt 2026-09-17 på runda N9:s basketställ:
+    // fyra fynd på en korrekt uppgift). Om en norm är ett fel avgörs av något
+    // ett blint mönster inte kan se: står den i produktens källtext?
+    //
+    // ⚠️ TÄCKNINGEN ÄR FLYTTAD, INTE BORTTAGEN — `en-norm-grind.test.ts` kör
+    // gate.py skarpt och låser fyra riktningar: sourcad norm är REN, påhittad
+    // FÄLLER, tvåsiffrig EN 71 syns numera, och utan källtext är den
+    // fail-closed. Att bara stryka raden här hade sett likadant ut i en diff
+    // och lämnat normen ogrindad.
     // Runda H3: tyskans "kippen" läckte in i en rubrik ("Kippskydd") på en
     // sida som var på väg att publiceras. Ordet såg svenskt ut och passerade
     // varje grind — syskonprodukten i samma batch stavade det rätt.
@@ -116,6 +126,15 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["spänningsintervall med bindestreck", "Ingående spänning 220-240 V och 50-60 Hz."],
     ["höjdintervall med bindestreck", "Höjden justeras mellan 228-260 cm."],
     ["måttintervall i specraden", "Sitthöjd 113-132 cm och bredd 202-242 cm."],
+    // ☠️ EFFEKTANGIVELSEN ÄR HELLER INTE ETT ARTIKELNUMMER, och kravet på två
+    // alfanumeriska tecken räddade inte där. Uppmätt 2026-09-16 på runda N6:s
+    // köksset: `850-1000W`. Den andra siffergruppen är FYRA siffror, så
+    // `\d{3}-\d{3}` matchar mitt inne i talet (`850-100`) och svansen blir
+    // `0W` — alltså två tecken, alltså träff. Spärren är `(?!\d)`: ett äkta
+    // artikelnummer har exakt tre siffror i andra gruppen.
+    ["effektintervall med fyrsiffrigt slut", "Effekt 850-1000W för brödrosten."],
+    ["effektintervall i samma rad som ett annat", "Effekt 1850-2200W och 850-1000W."],
+    ["strömstyrka med bindestreck", "Laddaren ger 100-2400mA beroende på läge."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {

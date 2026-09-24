@@ -1,0 +1,12 @@
+# md5 för de renderade korten, räknat lokalt. Parningen mot Wix-id är
+# BEVISAD genom att varje uppladdad fil hämtats hem igen och md5-jämförts
+# — inte antagen ur uppladdningssvarets ordning (#N2). 9 av 9 identiska.
+67b131fa6f33a8a337d66ad7c58d4bb1  26642cff.png
+fc7b0f25166cb1da7dcd9b70a0270717  2a4b9c68.png
+2e07c1fbd432fef51a16f57e079f3a7e  3cadee08.png
+ffafca474a45f7b4beb8cc7aeecb4693  49463fd8.png
+77ecb8540b601e4adfd597de21dfb022  57c7e4f4.png
+a86c56ffff1e5f46278342fde06484f6  67d8d559.png
+47e704cd08b3b8be1dff967467e00da8  8cd456f9.png
+74e639d861f90bfd33d71c17fb9f90ab  9e1942fc.png
+a07b2323618e640a0073248631747046  a1d3b9bc.png

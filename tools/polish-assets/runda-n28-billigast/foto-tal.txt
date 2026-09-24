@@ -1,0 +1,12 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+c804d1b7	3	antal hjulpositioner raknade pa bild 1 och 3 (dubbelhjul fram, tva hjul bak)
+cb31a581	40	sitsens diameter, utsatt i mattbilden pa bild 3
+e5e8754c	59,2	fritt matt mellan benen, utsatt i mattbilden pa bild 3
+e5e8754c	4	antal nyanser pa ladfronterna raknade pa bild 1
+329beada	40	sitthojd over marken, utsatt i mattbilden pa bild 3
+329beada	2	antal backspeglar raknade pa bild 1 och 4
+8ee517cc	62	lagsta sitthojd, utsatt i mattbilden pa bild 3
+8ee517cc	82	hogsta sitthojd, utsatt i mattbilden pa bild 3
+8ee517cc	21	fotstodets lagsta hojd over golvet, utsatt i mattbilden pa bild 3
+8ee517cc	41	fotstodets hogsta hojd over golvet, utsatt i mattbilden pa bild 3

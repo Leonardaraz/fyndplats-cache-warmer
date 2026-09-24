@@ -1,0 +1,122 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0773ceb6": {
+  "tyska": "35,5L x 26B x 67H cm",
+  "svenska": "50L",
+  "bokstaver": "LBH",
+  "hojd": 67,
+  "bredd": 35.5,
+  "djup": 26
+ },
+ "0ad9c123": {
+  "tyska": "B47 x T46 x H148 cm",
+  "svenska": "B47 x T46 x H148 cm",
+  "bokstaver": "BTH",
+  "djup": 46,
+  "hojd": 148,
+  "bredd": 47
+ },
+ "1884a543": {
+  "tyska": "L40 x B42,5 x H100 cm",
+  "svenska": "L40 x B42,5 x H100cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 40,
+  "djup": 42.5
+ },
+ "2f31a1d9": {
+  "tyska": "26L x 90B x 180H cm",
+  "svenska": "26cm x 90cm x 180cm",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 26,
+  "djup": 90
+ },
+ "383d8de2": {
+  "tyska": "45B x 41T x 38H cm",
+  "svenska": "45L x 41B x 38H cm",
+  "bokstaver": "BTH",
+  "djup": 41,
+  "hojd": 38,
+  "bredd": 45
+ },
+ "403dfd8d": {
+  "tyska": "",
+  "svenska": "70L x 41,5B x 48,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 70L x 41,5B x 48,5H cm | ✔ Sitz: 28L x 10B x 30H cm"
+ },
+ "50adf7ed": {
+  "tyska": "21L x 21B x 50/70/90Hcm",
+  "svenska": "21L x 21B x 90H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   50,
+   70,
+   90
+  ],
+  "bredd": 21,
+  "djup": 21
+ },
+ "71341341": {
+  "tyska": "74,3B x 24T x 80H cm",
+  "svenska": "74,3L x 24B x 80H cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 80,
+  "bredd": 74.3
+ },
+ "916d2e9f": {
+  "tyska": "46L x 41B x 47H cm",
+  "svenska": "46cm x 41cm x 47cm",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 46,
+  "djup": 41
+ },
+ "b281ec33": {
+  "tyska": "108L x 8B x 62H cm",
+  "svenska": "108cm x 8cm x 62cm",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 108,
+  "djup": 8
+ },
+ "d2fb42b1": {
+  "tyska": "50B x 73T x 55H cm",
+  "svenska": "73L x 50B x 55H cm",
+  "bokstaver": "BTH",
+  "djup": 73,
+  "hojd": 55,
+  "bredd": 50
+ },
+ "d444fbae": {
+  "tyska": "50L x 50B x 150H cm",
+  "svenska": "150 cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 50,
+  "djup": 50
+ },
+ "f267fdc4": {
+  "tyska": "200B x 36T x 99H cm",
+  "svenska": "200L x 36B x 99H cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 99,
+  "bredd": 200
+ },
+ "f3d0cde9": {
+  "tyska": "44L x 51,5B x 3,2H cm",
+  "svenska": "44 x 50 x 3.2 cm (B x H x T)",
+  "bokstaver": "LBH",
+  "hojd": 3.2,
+  "bredd": 44,
+  "djup": 51.5
+ },
+ "fa0c30ac": {
+  "tyska": "Ø32 x 65H cm",
+  "svenska": "Ø32 x 65H cm",
+  "bokstaver": "H",
+  "hojd": 65
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07565140": {
+  "tyska": "100B x 40T x 81H cm",
+  "svenska": "100L x 40B x 81H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 81,
+  "bredd": 100
+ },
+ "2f251ce3": {
+  "tyska": "54L x 57B x 80H cm",
+  "svenska": "54L x 57B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 54,
+  "djup": 57
+ },
+ "30f2151f": {
+  "tyska": "54L x 48B x 48,2H cm",
+  "svenska": "54 x 48 x 48,2 cm",
+  "bokstaver": "LBH",
+  "hojd": 48.2,
+  "bredd": 54,
+  "djup": 48
+ },
+ "5c566983": {
+  "tyska": "120L x 61,5B x 85H cm",
+  "svenska": "120 x 61,5 x 85 cm",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 120,
+  "djup": 61.5
+ },
+ "82000c6b": {
+  "tyska": "",
+  "svenska": "110L x 28B x 70H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rückwandabmessungen: 110L x 70B cm | ✔ Abstand der Schraubenlöcher: 45B x 42H cm"
+ },
+ "b2b731c7": {
+  "tyska": "38L x 37B x 46H cm",
+  "svenska": "37cm x 38cm x 46cm",
+  "bokstaver": "LBH",
+  "hojd": 46,
+  "bredd": 38,
+  "djup": 37
+ },
+ "b3efdd39": {
+  "tyska": "120B x 60T x 75,5H cm",
+  "svenska": "120 x 60 x 75,5 cm",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": 75.5,
+  "bredd": 120
+ },
+ "dbedaf4c": {
+  "tyska": "105B x 40T x 76H cm",
+  "svenska": "105L x 40B x 76H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 76,
+  "bredd": 105
+ }
+}

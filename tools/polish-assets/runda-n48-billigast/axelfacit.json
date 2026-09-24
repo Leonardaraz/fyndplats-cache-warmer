@@ -1,0 +1,113 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0a5d10dc": {
+  "tyska": "",
+  "svenska": "200cm x 4cm x 0,6cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen des Schienens: 200L x 4B x 0,6H cm | ✔ Abmessungen der Rolle: 6,9L x 5B x 29H cm"
+ },
+ "127ec9c8": {
+  "tyska": "40L x 16B x 70H cm",
+  "svenska": "40L x 16B x 70H cm",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 40,
+  "djup": 16
+ },
+ "5a6001cf": {
+  "tyska": "33,5B x 36T x 46,8H cm",
+  "svenska": "33,5cm x 36cm x 46,8cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 46.8,
+  "bredd": 33.5
+ },
+ "876e7e89": {
+  "tyska": "15,5B x 15,5T x 49H cm",
+  "svenska": "15,5 x 15,5 x 49 cm",
+  "bokstaver": "BTH",
+  "djup": 15.5,
+  "hojd": 49,
+  "bredd": 15.5
+ },
+ "8cf7b1bb": {
+  "tyska": "",
+  "svenska": "100x19.5x95cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße jedes Elements: 100L x 19,5B x 95H cm | ✔ Verstellbare Breite: 95-114B cm | ✔ Basenladung: 1,5L (Sand oder Wasser)"
+ },
+ "a08404ee": {
+  "tyska": "275L x 205B x 90H cm",
+  "svenska": "275L x 205B x 90H cm",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 275,
+  "djup": 205
+ },
+ "a6a16df2": {
+  "tyska": "67L x 45B x 38H cm",
+  "svenska": "67L x 45B x 38H cm",
+  "bokstaver": "LBH",
+  "hojd": 38,
+  "bredd": 67,
+  "djup": 45
+ },
+ "af9c163f": {
+  "tyska": "34,2L x 30,6B x 44,2H cm",
+  "svenska": "34,2 x 30,6 x 44,2 cm",
+  "bokstaver": "LBH",
+  "hojd": 44.2,
+  "bredd": 34.2,
+  "djup": 30.6
+ },
+ "c031a4bc": {
+  "tyska": "Ø40 x 48H cm",
+  "svenska": "Ø40 x 48H cm",
+  "bokstaver": "H",
+  "hojd": 48
+ },
+ "c311e18f": {
+  "tyska": "45L x 21B x 140H cm",
+  "svenska": "45L x 21B x 140H cm",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 45,
+  "djup": 21
+ },
+ "c4c404c5": {
+  "tyska": "50L x 15B x 76H cm",
+  "svenska": "50L x 15B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 50,
+  "djup": 15
+ },
+ "e03a7e2e": {
+  "tyska": "L44 x B25 x H96 cm",
+  "svenska": "L44 x B25 x H96 cm",
+  "bokstaver": "LBH",
+  "hojd": 96,
+  "bredd": 44,
+  "djup": 25
+ },
+ "eefbc35f": {
+  "tyska": "102L x 32B x 75H cm",
+  "svenska": "102L x 32B x 75H cm",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 102,
+  "djup": 32
+ },
+ "fa8d498b": {
+  "tyska": "40L x 40B x 81H cm",
+  "svenska": "40cm x 40cm x 81cm",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 40,
+  "djup": 40
+ },
+ "fca0d000": {
+  "tyska": "Ø36,5 x 46,5H cm",
+  "svenska": "Ø36,5 x 46,5H cm",
+  "bokstaver": "H",
+  "hojd": 46.5
+ }
+}

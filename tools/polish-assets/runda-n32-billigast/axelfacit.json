@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2808fff3": {
+  "tyska": "120L x 40B x 54H cm",
+  "svenska": "120L x 40B x 54H cm",
+  "bokstaver": "LBH",
+  "hojd": 54,
+  "bredd": 120,
+  "djup": 40
+ },
+ "40fb1b24": {
+  "tyska": "89,2 x 13,5 x 48 cm (L x B X H)",
+  "svenska": "Modell7/88,5 x 13,5 x 56cm",
+  "bokstaver": "LBH",
+  "hojd": 48,
+  "bredd": 89.2,
+  "djup": 13.5
+ },
+ "41b2bc81": {
+  "tyska": "46L x 52T x 76H cm",
+  "svenska": "46 x 52 x 76 cm",
+  "bokstaver": "LTH",
+  "djup": 52,
+  "hojd": 76,
+  "bredd": 46
+ },
+ "6ab7b3b0": {
+  "tyska": "86L x 51B x 128H cm",
+  "svenska": "86L x 51B x 128H cm",
+  "bokstaver": "LBH",
+  "hojd": 128,
+  "bredd": 86,
+  "djup": 51
+ },
+ "8f95113c": {
+  "tyska": "200L x 140B x 20H cm",
+  "svenska": "140 x 200 cm",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 200,
+  "djup": 140
+ },
+ "b42b4802": {
+  "tyska": "105B x 85T x 75H cm (L-förmig), 150B x 40T x 75H cm (gerade), 100B x 40T x 75H cm (gefaltet)",
+  "svenska": "150L x 40B x 75H cm",
+  "bokstaver": "BTHBTHBTH",
+  "djup": 85,
+  "hojd": 75,
+  "bredd": 105
+ },
+ "c6f8a0f1": {
+  "tyska": "",
+  "svenska": "64L x 37B x 134H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rentierabmessungen: 64L x 37B x 134H cm (größtes), 71L x 23B x 112H cm (mittel), 45L x 17B x 70H cm (kleinstes)"
+ },
+ "db1d494f": {
+  "tyska": "",
+  "svenska": "110L x 23B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rückwandabmessungen: 110L x 75H cm | ✔ Abstand der Montagelöcher: 113B x 23H cm"
+ }
+}

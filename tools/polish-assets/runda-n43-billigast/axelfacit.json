@@ -1,0 +1,76 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "5a825b3f": {
+  "tyska": "20B x 12T x 58H cm",
+  "svenska": "20B x 12T x 58H cm",
+  "bokstaver": "BTH",
+  "djup": 12,
+  "hojd": 58,
+  "bredd": 20
+ },
+ "5bd95c2c": {
+  "tyska": "50L x 70H cm",
+  "svenska": "50 x 70 cm",
+  "bokstaver": "LH",
+  "hojd": 70,
+  "bredd": 50
+ },
+ "60f84a27": {
+  "tyska": "",
+  "svenska": "37,5L x 37,5B x 16H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Große Steine: 37,5L x 37,5B x 16H cm | ✔ Mittlere Steine: 34,3L x 34,3B x 7,6H cm | ✔ Kleine Steine: 23L x 23B x 4,3H cm"
+ },
+ "75a38b7b": {
+  "tyska": "Ø60 x H120 cm",
+  "svenska": "60.0 x 60.0 x 120.0 cm",
+  "bokstaver": "H",
+  "hojd": 120
+ },
+ "923236e5": {
+  "tyska": "83B x 2,5T x 39H cm",
+  "svenska": "83cm x 2,5cm x 39cm",
+  "bokstaver": "BTH",
+  "djup": 2.5,
+  "hojd": 39,
+  "bredd": 83
+ },
+ "a794b9e7": {
+  "tyska": "Ø60 x 180H cm",
+  "svenska": "Ø60 x 180H cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "b0766f63": {
+  "tyska": "Ø47 x 92H cm",
+  "svenska": "47L x 47B x 92H cm",
+  "bokstaver": "H",
+  "hojd": 92
+ },
+ "c4af8541": {
+  "tyska": "180L x 30B x 30H cm",
+  "svenska": "180L x 30B x 30H cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 180,
+  "djup": 30
+ },
+ "c61ced0e": {
+  "tyska": "62L x 33B x 80H cm",
+  "svenska": "3 Regalböden",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 62,
+  "djup": 33
+ },
+ "e01513c6": {
+  "tyska": "60B x 40T x 68-78H cm",
+  "svenska": "60B x 40T x 78H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": [
+   68,
+   78
+  ],
+  "bredd": 60
+ }
+}
