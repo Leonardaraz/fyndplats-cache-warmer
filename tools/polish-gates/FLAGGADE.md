@@ -1951,3 +1951,75 @@ beslut — se den samlade frågan om detta.
   klaffbord på 140 × 80 cm; modulsoffan mot ett kattorn; köksskåpen mot en
   smal byrå och sängbord (lådmått); granen mot en kattlåda;
   tvättställsskåpet mot en pedalhink. (N66)
+- Skärmträff mot en publicerad sida av samma slag, hoppade bland utkasten
+  161–200 i importen (skapade 2026-09-16–18): elkaminen `8ecc9a1b` mot
+  väggkaminen `32140f01` (samma tre tripplar, som redan i N32);
+  reclinerfåtöljerna med massage `30e9caf4` och `e999206f` mot N66:s
+  `46d8342f`, samma mått 96 × 90 × 105 cm; matskåpet för hund `7e796983` mot
+  `8c1d08c5` och `3710a0c3`; kontorsstolen `c2902bb8` mot tretton
+  publicerade kontorsstolar, bland dem `3cdf4bf3` och `0945e4dd`;
+  matstolarna i 2-pack `6a5c33ce` mot matgruppen `f53c076a` och pallarna
+  `ba454107` och `d38db7a0`; LED-badrumsspeglarna `9a046532` mot `f77e7ac6`
+  och `32d2e5c3` och `ef78ea0e` mot sminkspegeln `170f7e0a`;
+  adventskalendrarna `da2ffdde` och `0b361be7` mot `4c0a0ef1` och `af1c3932`
+  mot `b26e8aa3`; sensorsoptunnan `9161b414` mot `77e6e472`; elkaminen
+  `2d467737` mot `0fe72ae2`; väggvärmaren `fa18dea0` mot `5f2bd483`;
+  elmotorcykeln på 24 V `3b83c51d` mot `67d2d4f6`; barnfyrhjulingen
+  `626e0b05` mot `358f4559`. (N67)
+- Licensierat märke på varan, hållna som förut: elmotorcykeln `24d19d6a`
+  (Vespa), elbilen `a5f894bb` (BMW M4) och elbilen `843f5f29`, som säljs som
+  licensierad bil. (N67)
+- Märke tryckt på varan: springcykeln `2cf4c918` bär AIYAPLAY på bakre
+  fästet, synligt på produktbilden och måttbilden. Samma regel som
+  projektorduken `926ec7a2` (N57). (N67)
+- Djurbon, hoppade som förut: hamsterburen `1686860f`, katthuset för utomhus
+  `8e387e56` och hundkojan `a208b0a2`. (N67)
+- Saldo under 4, hoppade: kattunneln `fe33e227` (2) och fotbollsmålet
+  `4925db53` (0, slutsålt). (N67)
+- Står kvar på en tidigare rundas skäl: elbilen `211ffd83` (2 079 kr) är
+  samma bil som det billigare utkastet `30439125` (1 879 kr, N33), och huset
+  polerar den billigaste; regnskyddet till hundvagnen `85a18e86` anger
+  passformen bara genom leverantörens artikelnummer, som inte får nå kund.
+  (N67)
+- Färgsyskon i rundan, hoppad som ett sortimentsbeslut enligt runbookens
+  regel (en poleras, resten flaggas): den bruna gunghästen `3223376b` är
+  samma häst som rundans grå `b15b7854`, samma mått, samma pris (1 059 kr)
+  och samma bilder i en annan färg. (N67)
+- Dyrare tvilling bakom ett utkast som polerades i rundan: köksskåpet
+  `45f84852` (2 449 kr) har samma mått som `00ba5823` (2 159 kr), som
+  publicerades i N67. Huset polerar den billigaste. (N67)
+- N67 tog de 40 följande utkasten i fallande skapandeordning (skapade
+  2026-09-16–18) och de sju kandidater som N66 lämnade över. Nitton
+  publicerades: sju av de överförda och tolv av de nya. Kandidaterna var 20,
+  precis skrivplanens tak, men springcykeln föll på märket. (N67)
+- Kontrollerat utöver skärmen, där den inte kan se (intervall i höjden,
+  speglar med två mått, en pall utan måtttrippel), och friat: byrån
+  `57e419f1` mot sideboarden på 105 cm, den smala byrån på 95 cm och skänken
+  på 120 cm (skärmens träffar kom av toleransen ±0,5 cm mot paketmåtten);
+  smyckesskåpet `e74feea1` (37 × 120 × 10 cm) mot det publicerade
+  `smyckesskap-spegel-led` (37 × 10,5 × 108 cm); köksskåpet `00ba5823` (80 ×
+  35 × 180 cm) mot `koksskap-med-glasdorrar-172-cm` (90 × 35 × 172 cm);
+  frisörpallen `087cb4b8` (sitthöjd 47,5–63 cm) mot de fyra salongspallarna
+  och rullpallarna med rygg (sitthöjd 53–73, 51–67, 51–66 och 47–62 cm i
+  2-pack); kontorsstolarna `bdc28a4b` (67 × 72 × 93–103 cm) och `cfdbd5e9`
+  (71 × 70 × 119–129 cm) mot de närmaste av 111 publicerade (62 × 72, 66 ×
+  72, 67 × 71, 67 × 74, 63 × 70 cm och två massagestolar); elkaminen
+  `6e1378d6` (80 × 21,6 × 67,8 cm) mot `elkamin-omramning-80-cm-hylla` (80,5
+  × 32,3 × 80,5 cm) och etanolbrasan på 79 cm; vedhyllan `181a3522` (60 cm
+  bred) mot `vedstall-inomhus-150-cm-svart` (40 cm bred); granarna
+  `dad09721` (Ø40 cm, 1,8 kg) mot `julgran-60-cm-led-timer-kottar-bar` (Ø35
+  cm, 2,2 kg) och mot `e1d9dfe8` (57 cm), som N50 bad om; gunghästen
+  `b15b7854` (71 × 30 × 68 cm) mot gunghästarna på 68 × 26 × 53 och 70 × 28
+  × 57 cm; uppresningsfåtöljen `99ab915a` (98 × 99 × 104 cm, 155°) mot de 25
+  publicerade uppresningsfåtöljerna, närmast den grå med massage och
+  ländvärme (101 × 93 × 104 cm, 135°, sammet). Inget av dem är samma vara.
+  (N67)
+- Klustret `33cde470` / `662a3683` / `22cfc372` (N31–N33): den billigaste,
+  `33cde470` på 1 699 kr, publicerades i N67 enligt husets regel. De två
+  dyrare (1 799 och 1 869 kr) står kvar som utkast; om de ska pensioneras är
+  Leonards beslut. (N67)
+- Bildgranskningen strök tio bilder: tysk text i sex, en varningsetikett på
+  tre språk, och läsbar engelsk text på rekvisitan i tre (förpackningar, en
+  tidning i en sidoficka, tidningar i en hylla). Rekvisitatext som bara syns
+  vid förstoring, som köksskåpets förpackningar, räknas inte – måttet är
+  arkets cell på 600 px, samma som bygg-ark mäter läsbarhet med. (N67)

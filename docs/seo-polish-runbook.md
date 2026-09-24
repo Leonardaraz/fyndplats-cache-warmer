@@ -510,6 +510,15 @@ direkt ur grenen.
    `livekoll.py` ur samma katalog. `livekoll.py` kontrollerar det livegrind
    inte ser: `InStock`, brödsmulan och att varje alt-text står på sidan.
 
+⚠️ **Faller verifieringen BARA på `kategorier`, för alla produkter: skriv inte
+om. Vänta och kör läge `stampla`.** Runda N67 (2026-09-24): alla 52
+kopplingar svarade ok, men produktläsningen visade bara `All Products` i
+ungefär en kvart, alltså längre än workflowens 90 + 60 sekunder.
+`list-categories-for-items` visade kopplingarna direkt. Under väntan visade
+butiken brödsmulan *Hem / Butik / produkt*, men felet gick över av sig självt.
+Läs om efter några minuter, och kör `stampla` när produktläsningen bär
+kategorierna. Den verifierar och stämplar utan att skriva något.
+
 ☠️ **Workflowen kör mot den `ref` du anger, och default är `main`.** Där finns
 inte rundans plan. Kontrollen av `plan_sha256` fäller en körning mot fel gren
 eller mot en äldre commit innan något skrivs.
