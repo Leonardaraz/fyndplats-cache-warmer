@@ -3398,6 +3398,69 @@ i taget. `listAllV3Products` hade dessutom kvar det tysta 50-sidorstaket som
 och mappningssidan räknade på de första 5 000 produkterna. Taket är nu samma som
 den andras och KASTAR.
 
+**Omgång 3 (2026-09-23): 1 086 svenska texter på 316 produkter.** Lärdomar
+som gäller nästa omgång:
+
+1. **Hämtningen går i en Web Worker.** En dold flik strypte sidans timers till
+   ett uppvaknande per minut (Chrome, "intensive wake-up throttling"); samma
+   loop i en worker skapad från en blob-URL gick i normal takt (~1,9 s per
+   produkt). Fetch från workern kräver absolut URL (`location.origin + väg`).
+2. **Aosoms recensionsdata är inte alltid rätt produkt.** Samma text låg på
+   upp till fyra olika produkter, och recensioner av en massagefåtölj låg på
+   en julgran. Därför: bara recensioner på exakt artikelnummer, INGEN text som
+   finns på två olika produkter, och en granskning av varje översättning mot
+   produktnamnet innan inläsning.
+3. **API:t ger bara 4–5 stjärnor.** Alla 4 545 hämtade texter hade betyg 4
+   eller 5.
+4. **Den publika recensionsrutten cachas.** Direkt efter inläsning svarade
+   `/api/reviews/<id>` tomt för åtta produkter (gammalt CDN-svar); nästa
+   anrop var rätt. Produktsidorna cachar i en timme (taggen `reviews`).
+
+## Recensioner daterade före 2021 visas inte (2026-09-23)
+
+Leonards beslut: "Alla recensioner som är äldre än 2021 måste bort." Butiken
+startade 2021, och Aosoms API ger omdömen ända från 2015 (159 av 1 086 i
+omgång 3). Regeln bor i `lib/reviews/datumgrans.ts` (`TIDIGASTE_RECENSIONSDATUM`)
+och används på två ställen:
+
+1. **Husets filter** (`rankaMedGolv` i `lib/import/review-import.ts`) slänger
+   omdömen daterade före gränsen vid inläsningen — alla källor, även i
+   räddningssvepet för korta texter.
+2. **Städningen** `POST /api/admin/recensioner-datumrensning` (workflow
+   `recensioner-datumrensning.yml`, torrt som default) DÖLJER det som redan
+   ligger i lagret: status → `rejected` på varje synlig eller väntande rad
+   före gränsen. Inget raderas; en rad kan återställas i /admin/reviews.
+
+☠️ Okänt datum behålls — att gissa hade tagit bort äkta omdömen. ☠️ Rutten
+läser HELA lagret: `listAll` sorterar nyast först och kapar vid 5 000 som
+standard, så de äldsta raderna — just de som söks — hade fallit bort tyst.
+Svaret säger `trunkerad: true` om läsgränsen ändå nås, och workflowen stannar.
+
+## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
+
+Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
+tankstreck, perfekt grammatik och stela fraser. 709 av 4 268 publicerade
+Aosom-texter hade tankstreck. Stilen från och med nu, för all översättning
+(även prompten i `buildTranslatePrompt` för /admin/reviews):
+
+- Inga tankstreck (`–`, `—`, ` - `), inga semikolon, inga citattecken, ingen `…`.
+- Vardagliga ord och korta meningar: "lätt att sätta ihop", "funkar bra",
+  "prisvärd", "rekommenderar". Inga AI-fraser: "Sammantaget",
+  "Sammanfattningsvis", "helt och hållet", "förhållandet mellan pris och
+  kvalitet", "kan varmt rekommenderas", "ett riktigt blickfång".
+- Samma längd och ton som originalet — ett slängigt original får bli lite
+  slängigt (gärna utan punkt sist). Inga påhittade stavfel: vardaglig, inte slarvig.
+- Innehållet ändras aldrig, och tvätten gäller som förut (inga varumärken,
+  butiker, budfirmor, namn, priser, leveranstider, kundtjänst, diagnoser).
+
+**Omskrivning av det som redan är publicerat:** `POST /api/admin/recensioner-omskrivning`
+(logik `lib/reviews/omskrivning.ts`, workflow `recensioner-omskrivning.yml` med
+`payload_file` i en tillfällig gren, torrt som default). Den ENDA vägen som
+byter text på en synlig rad, och bara när: raden är `source: "aosom"`, raden är
+synlig, den lagrade texten fortfarande är exakt `fore` (en människas ändring
+skrivs aldrig över), och den nya texten klarar `validateTranslation`. En rad
+med `dolj: true` döljer en recension som visat sig handla om en annan produkt.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
