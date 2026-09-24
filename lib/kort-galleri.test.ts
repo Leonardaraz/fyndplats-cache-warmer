@@ -32,3 +32,13 @@ test("huvudbilden behöver inte ligga först i galleriet", () => {
   // hover = första som inte är huvudbilden = b
   assert.deepEqual(extraKortbilder(W + "a~mv2.jpg", g, nyckel), ["c~mv2.jpg"]);
 });
+
+import { lasSlugs, KORT_GALLERI_MAX_SLUGS } from "./kort-galleri.ts";
+
+test("lasSlugs: giltiga, unika, sorterade och kapade", () => {
+  assert.deepEqual(lasSlugs("b-2,a-1,b-2, c ,<script>,../x"), ["a-1", "b-2", "c"]);
+  assert.deepEqual(lasSlugs(null), []);
+  assert.deepEqual(lasSlugs(""), []);
+  const många = Array.from({ length: 100 }, (_, i) => `p${String(i).padStart(3, "0")}`).join(",");
+  assert.equal(lasSlugs(många).length, KORT_GALLERI_MAX_SLUGS);
+});

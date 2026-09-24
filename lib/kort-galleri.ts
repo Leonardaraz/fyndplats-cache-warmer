@@ -43,3 +43,16 @@ export function extraKortbilder(
   }
   return ut;
 }
+
+/** Högst så många produkter per förfrågan till /api/kort-galleri. */
+export const KORT_GALLERI_MAX_SLUGS = 48;
+
+/**
+ * Läser ?s=a,b,c: bara giltiga slugs (a–z, 0–9, bindestreck), unika, sorterade
+ * (samma urval ger samma CDN-nyckel oavsett ordning) och kapade.
+ */
+export function lasSlugs(s: string | null): string[] {
+  if (!s) return [];
+  const ut = [...new Set(s.split(",").map((x) => x.trim()).filter((x) => /^[a-z0-9-]{1,120}$/.test(x)))];
+  return ut.sort().slice(0, KORT_GALLERI_MAX_SLUGS);
+}

@@ -417,7 +417,10 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
    reserverade tomhöjden på betygsraden: pris och knapp linjerar mellan
    grannkort oavsett hur långt namnet är eller om produkten har omdömen. */
 .prod{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#fff;transition:transform .25s,box-shadow .25s;box-shadow:var(--e1)}
-.prod:hover{transform:translateY(-5px);box-shadow:var(--e3)}
+/* Lyftet bara med hovrande pekare. På iPhone fyrar :hover vid första beröringen,
+   och transformen på kortet mitt i gesten bröt svepet mellan bilderna — man fick
+   svepa två gånger på varje ny produkt (Leonard 2026-09-24). */
+@media (hover:hover){.prod:hover{transform:translateY(-5px);box-shadow:var(--e3)}}
 .prod .pimg{aspect-ratio:1;background:var(--surface-2);position:relative;overflow:hidden}
 .prod .pbody{flex:1;display:flex;flex-direction:column;padding:16px}
 /* min-height borta: bottenjusteringen sköter linjeringen nu. */
@@ -451,9 +454,11 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
    och priset — som är det man faktiskt jämför — dränks i dem. Knappen bär
    formen och tryckytan; accenten sparas till priset och till hjältens enda
    primärknapp. */
-.prod:hover .pbtn,.prod:focus-visible .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}
+.prod:focus-visible .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}
+@media (hover:hover){.prod:hover .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}}
 .prod .pbtn-oos{color:#52606D}
-.prod:hover .pbtn-oos,.prod:focus-visible .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}
+.prod:focus-visible .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}
+@media (hover:hover){.prod:hover .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}}
 .center{text-align:center;margin-top:34px}
 .linkbtn{display:inline-block;border:1.5px solid var(--ink);border-radius:var(--r-md);padding:13px 28px;font-weight:700;font-size:var(--text-sm);transition:background .2s,color .2s}
 .linkbtn:hover{background:var(--ink);color:#fff}
