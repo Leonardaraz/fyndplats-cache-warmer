@@ -65,7 +65,7 @@ inte, och ingen kategorisida rankar på dem.
 
 ## Vad mer som ändras med #647
 
-Utöver texterna ändrar samma deploy två saker som påverkar hur mätningen ska
+Utöver texterna ändrar samma deploy tre saker som påverkar hur mätningen ska
 läsas:
 
 - **Produktsidornas brödsmula länkar till den smalaste underkategorin**
@@ -77,6 +77,12 @@ läsas:
   mätningen kan inte skilja de två effekterna åt.
 - **Google-flödet får extrabilder på alla produkter** (557 av 3 393 före). Det
   rör Shopping, inte de organiska placeringarna här.
+- **Menyns underkategorier ligger i HTML:en** (`2513ae85`). Förut renderades
+  bara panelen man hovrar över, och startsidan, den enda sidan med externa
+  länkar, länkade till 0 av 105 underkategorier. En PageRank-modell ger
+  underkategorierna 45–86 gånger mer internt värde, se
+  `../meny-underkategorier/`. Det är sannolikt den största av de tre
+  ändringarna, och mätningen kan inte skilja den från de andra två.
 
 ## Mät om
 
