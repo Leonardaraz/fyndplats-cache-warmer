@@ -71,7 +71,8 @@ läsas:
 - **Produktsidornas brödsmula länkar till den smalaste underkategorin**
   (`ae95508e`), alltså Hem / Möbler / Snurrfåtöljer / produkt. Före ändringen
   länkade 5 av 40 mätta produktsidor till sin sökordskategori. Efter den länkar
-  alla produkter i en indexerbar underkategori dit, i förhandsbygget 70 av 70.
+  alla produkter i en indexerbar underkategori dit. I förhandsbygget gjorde alla
+  60 stickprov som ligger i en underkategori det.
   Sökordskategorierna får alltså både text och länkar på en gång, och
   mätningen kan inte skilja de två effekterna åt.
 - **Google-flödet får extrabilder på alla produkter** (557 av 3 393 före). Det
