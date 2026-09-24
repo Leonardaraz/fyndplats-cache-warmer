@@ -171,3 +171,42 @@ affärsdata. De står i mättriggern och räknas om ur BigQuery vid omätningen.
 `AI Assistant`, källa `chatgpt.com`). Besökarna tittar på varor, lägger i
 varukorgen och köper, så det är människor och inte robotar. Semrush ser inte
 den trafiken, och `robots.txt` släpper in ChatGPT:s robotar.
+
+## Daglig bevakning i Semrush (tillägg 2026-09-24 kväll)
+
+Semrush-projektet `www.fyndplats.se` (id 31338911) har rankningsbevakning
+(Position Tracking) och webbplatsgranskning (Site Audit) påslagna. Bevakningen
+har ingen kampanj och alltså inga sökord, så den mäter ingenting.
+Granskningen har en körning som blev klar 2026-09-23 22:27 UTC. Den är inte
+läst här.
+
+`semrush-bevakning.txt` är färdig att klistra in, ett sökord per rad, 212
+stycken:
+
+- de 115 kategoriorden i `baslinje-2026-09-24.tsv`
+- de 97 sökorden i produktsidetestet (`tools/polish-assets/sokord-s1/` på
+  grenen `claude/seo-polering-runbook-review-uq6fwl`), där fem sidor fick nya
+  ord och resten är kontrollgrupp
+
+Lägg upp kampanjen på Google Sverige och **mobil**. De flesta organiska
+besöken kommer från mobilen, enligt GA4 sedan vecka 37.
+
+Med bevakningen syns placeringen varje dag. Semrush-databasen som
+omätningen använder visar bara en ögonblicksbild. Man ser alltså inom några
+dagar om Google indexerar och rankar #647:s sidor, och testet får en tidsserie
+i stället för två mätpunkter.
+
+⚠️ **API-enheterna tog slut 2026-09-24 kväll.** De sista 300 gick åt till att
+läsa projektets status, och nästa anrop svarade `no_api_units`. Omätningarna
+2026-10-29 och 2026-10-30 använder samma anrop som baslinjen och behöver
+alltså enheter. Att läsa bevakningen eller granskningen genom API:t kostar
+också enheter.
+
+**Att byta till mindre sökord på produktsidor är inte en egen runda.**
+Frågan är mätt tre gånger. I S1 (plats 4–20) bar 78 av 99 sidor redan sitt
+sökord i titeln. I S3 (plats 21–40) stod ordet först i titeln på nästan alla.
+Produktsidetestet (plats 11–30) hittade ett verkligt glapp på 5 av 67 sidor.
+Till det kommer S14: dealproffsens produktsidor ligger topp 10 på 120
+långsvansord, och vi syns i topp 100 på 8 av dem. Det som bromsar är sidornas
+styrka, inte orden. De mindre orden ligger därför på smala kategorisidor
+(S14), och testet avgör om produktsidorna ska få fler.
