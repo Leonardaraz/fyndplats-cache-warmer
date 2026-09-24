@@ -217,19 +217,24 @@ inne i `getProducts`, alltså i varje ISR-sida. När en kall instans renderar en
 sida som inte är förgenererad blir sidan dynamisk mitt i renderingen, och Next
 svarar 500.
 
-**Samma fel fanns i produktion**, mätt 2026-09-24 för det senaste dygnet:
+**Samma fel fanns i produktion.** Mätt 2026-09-24 för det senaste dygnet
+föll 1 081 renderingar:
 
-- 84 svar med 500
-- 1 084 loggrader om felet:
+| utfall | antal |
+|---|--:|
+| besökaren fick 500 | 85 |
+| besökaren fick den gamla sidan (`200`, `cache=STALE`), och förnyelsen i bakgrunden föll | 996 |
 
-  | sida | loggrader |
-  |---|--:|
-  | `/produkt/[slug]` | 1 075 |
-  | `/kategori/[slug]` | 7 |
-  | `/` | 2 |
+Nästan alla gällde `/produkt/[slug]`. Felet slår till på den första
+renderingen på varje ny instans. Timcronen som värmer katalogen startar många
+instanser på en gång, så under varje uppvärmning föll förnyelser i klump.
 
-Det drabbar alltså nya produktsidor när de besöks första gången, och varje
-poleringsrunda publicerar nya produktsidor.
+Följderna är två:
+
+- En ny produktsida kan ge 500 första gången den besöks, och varje
+  poleringsrunda publicerar nya produktsidor.
+- En ändrad sida förnyas inte när förnyelsen körs på en ny instans. Besökaren
+  ser den gamla versionen tills nästa försök lyckas.
 
 **Lagningen (`d2488452`)** tar bort cache-valet. Utan det gör Next inte sidan
 dynamisk, och svaret lagras inte i Data Cache. Färskheten styrs som förut av
