@@ -101,6 +101,24 @@ påståendena i texterna stämdes av med riktade sökningar i beskrivningarna.
 - **Kopplingarna är additiva.** Produkterna ligger kvar i sina gamla
   kategorier.
 
+### Dolda i 13 minuter, eftersom butikens kategorilista kapades vid 100
+
+Med S10 hade Wix 109 kategorier. Butiken läste bara de första 100, sorterade
+på id. Nio kategorier föll därför bort ur menyn och gav 404, bland dem
+Skönhet & Hälsa och Golvlampor. Golvlampor låg redan utanför efter S9, och
+sidan gav 404 i produktion 05:29 UTC.
+
+| tid (UTC) | vad | synliga |
+|---|---|--:|
+| 05:21 | S10 skapade och kopplade | 109 |
+| 05:31 | de åtta dolda med `categories/visibility`, bara synligheten, kopplingarna kvar | 101 |
+| 05:43 | hotfix #649 (`1779e155`) READY i produktion. Alla nio sidor som låg utanför svarar 200 | 101 |
+| 05:44 | visade igen med `bulk/categories/show`. 8 av 8 lyckades, och återläsningen visar 8 av 8 synliga | **109** |
+
+Butiken sparar kategorilistan per lambda-instans. En instans som startade
+mellan 05:43 och 05:44 kan därför ge 404 på en S10-sida tills den återvinns.
+Förhandsbygget och #647:s produktionsbygge förrenderar alla 109.
+
 ## 4. Texterna
 
 Nio filer med `seo`, `content` och `facit`, alla RENT genom
@@ -159,7 +177,45 @@ Commit `d9710540` på `claude/sasongskategorier-s6-bz3j9l` (#647).
 
 ## 6. Förhandsbygget
 
-(fylls i)
+Förhandsbygget är `dpl_HvaSkA8AgtYxJzqFhQxBKzSLa91x`, byggt på `b46675e6`. Det är #647-grenen med
+`headless-site` inslagen, alltså med hotfixen #649. Det var READY 05:48 UTC, med alla 109 kategorier
+synliga. Det första S10-bygget (`d9710540`) gick inte att använda, eftersom butiken då kapade
+kategorilistan vid 100.
+
+- **43 av 43 sidor är lika källan** för S6–S10. Jämförelsen gäller `<title>`, metabeskrivning,
+  canonical, varje introstycke, varje FAQ och antalet frågor i FAQPage-JSON-LD. Ingen sida visar
+  `**`. Rundans nio sidor är med, också Förvarings nya text.
+- **Kontrollsidorna** Golvlampor, Skönhet & Hälsa, Hantlar, Köksmaskiner och Badrumsskåp svarar
+  200. Det är sidor som låg utanför de 100 första innan hotfixen.
+- **Sitemapen** har 96 kategori-URL:er, och alla 43 sidor finns med.
+- **Antal produkter på sidan mot antal kopplade:**
+
+  | sida | på sidan | kopplade |
+  |---|--:|--:|
+  | Speglar | 35 | 35 |
+  | Badrumsspeglar | 17 | 17 |
+  | Sidobord | 18 | 19 |
+  | Nattduksbord | 16 | 16 |
+  | Byråer | 26 | 27 |
+  | Bokhyllor | 22 | 24 |
+  | Tvättkorgar | 13 | 14 |
+  | Vattenkokare & brödrostar | 20 | 20 |
+
+  Skillnaden är slutsålda produkter, som sidan döljer i listan (`forListings`).
+- **Google-flödet i samma bygge:** 100 av 172 kopplingar bär sidans nya taxonomi-id.
+  - Vattenkokare & brödrostar har 20 av 20 och Byråer 21 av 27.
+  - Sidobord har bara 4 av 19. De flesta ligger först i Soffbord & småbord, och `taxonomyFor` tar
+    produktens första underkategori.
+- **Mot produktionens flöde:** 75 av 155 unika produkter byter Shopping-kategori.
+  - Alla byten går från en bred nod till en smalare. De breda noderna är 536 Home & Garden,
+    436 Furniture, 696 Decor och 594 Lighting.
+  - Fem av bytena kommer från S6:s och S7:s mappningar i samma PR: fyra utemöbler går till 4299 och
+    ett badrumsskåp till 6356.
+  - Stickprov, alla rätt:
+    - En tvättsorterare i bambu går till 634 Laundry Baskets.
+    - Ett nattduksbord med RGB-LED går från Lighting till 462 Nightstands.
+    - Ett C-format sidobord går från Furniture till 6369 Accent Tables.
+    - En badrumsspegel med hyllor går till 595 Mirrors.
 
 ## 7. Live
 
