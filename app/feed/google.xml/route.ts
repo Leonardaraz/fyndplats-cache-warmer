@@ -149,6 +149,14 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "skoskap-skobankar": 5559,        // … > Clothing & Closet Storage > Shoe Racks & Organizers
   "koksoar-koksvagnar": 442,        // Furniture > Carts & Islands
   boxningssackar: 499720,           // … > Boxing & Martial Arts Training Equipment
+  // Runda S8 (2026-09-24), samma kontroll mot taxonomifilen. Hönshus saknar
+  // egen nod; 6991 Animal Husbandry är där äggkläckare och hönsfoder ligger.
+  "kaninburar-marsvinsburar": 5017, // … > Small Animal Supplies > Small Animal Habitats & Cages
+  "hamsterburar-gnagarburar": 5017, // samma nod
+  terrarier: 5029,                  // … > Reptile & Amphibian Supplies > Reptile & Amphibian Habitats
+  "honshus-honsgardar": 6991,       // Business & Industrial > Agriculture > Animal Husbandry
+  hundvagnar: 6276,                 // Animals & Pet Supplies > Pet Supplies > Pet Strollers
+  "vedstall-vedbodar": 695,         // Home & Garden > Fireplace & Wood Stove Accessories > Log Racks & Carriers
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

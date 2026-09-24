@@ -69,7 +69,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Husdjur",
     tag: "Det bästa för dina fyrbenta vänner",
-    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar", "Klösträd", "Kattlådor", "Katthus", "Hundbäddar & hundsoffor", "Hundburar", "Hundkojor"],
+    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar", "Klösträd", "Kattlådor", "Katthus", "Hundbäddar & hundsoffor", "Hundburar", "Hundkojor", "Kaninburar & marsvinsburar", "Hamsterburar & gnagarburar", "Terrarier", "Hönshus & hönsgårdar", "Hundvagnar"],
     heroPicks: [],
   },
   {

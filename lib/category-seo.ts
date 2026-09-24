@@ -230,10 +230,20 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Halloweendekoration för trädgård och entré: uppblåsbara spöken, pumpor och liemän upp till 3,7 m, och animerade häxor och zombier med ljus och ljud.",
   },
+  "hamsterburar-gnagarburar": {
+    title: "Hamsterbur & gnagarbur – stora, i flera plan",
+    description:
+      "Hamsterburar i trä, akryl och glas, dvärghamsterbur, burar med rörsystem och gnagarburar för råtta, degu och chinchilla. Flera med djup bädd.",
+  },
   "har-rakning": {
     title: "Frisörtillbehör & salongsutrustning",
     description:
       "Arbetsstolar för salong, torkhuvar, frisörväskor och redskap för hår och rakning. Höjdmått och effekt anges. Leverans 3–7 dagar, öppet köp.",
+  },
+  "honshus-honsgardar": {
+    title: "Hönshus & hönsgård – för 2 till 30 höns",
+    description:
+      "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², hönsreden och en automatisk hönslucka. För 2 till 30 höns.",
   },
   "hudvard-ansikte": {
     title: "Ansiktsmasker & hudvård",
@@ -255,6 +265,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Hundkojor i gran och plast för hundar upp till 30 kg – upphöjda, med veranda, asfalttak eller tak som fälls upp – och en inomhuskoja i MDF.",
   },
+  hundvagnar: {
+    title: "Hundvagn & cykelvagn för hund – upp till 45 kg",
+    description:
+      "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till 45 kg och en vagn som blir bärväska. Flera är hopfällbara.",
+  },
   hushallsapparater: {
     title: "Hushållsapparater & smarta maskiner",
     description:
@@ -274,6 +289,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Kalas & fest – sockervadd och partyprylar",
     description:
       "Sockervaddsmaskiner och partyprylar som gör kalaset minnesvärt. Effekt och användning anges i beskrivningen. Fri frakt över 499 kr.",
+  },
+  "kaninburar-marsvinsburar": {
+    title: "Kaninbur, kaninhus & marsvinsbur – inne och ute",
+    description:
+      "Kaninburar och kaninhus för trädgården, marsvinshyddor, smådjursstall med löpgård och hagar utan botten eller för inomhus, de flesta för kanin och marsvin.",
   },
   katthus: {
     title: "Katthus utomhus i trä – för balkong och trädgård",
@@ -390,6 +410,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Sparkcyklar för barn från 18 månader till 12 år – med stora hjul på upp till 16 tum, broms och justerbart styre, med luftdäck eller punkteringsfria hjul.",
   },
+  terrarier: {
+    title: "Terrarium i glas – för ödla, orm och spindel",
+    description:
+      "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, med gallerlock och frontlucka eller skjutdörrar. Flera kan låsas.",
+  },
   "terrassvarmare-infravarmare": {
     title: "Terrassvärmare & infravärmare – 2000 och 2500 W",
     description:
@@ -439,6 +464,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Tunnelväxthus, väggväxthus & odlingslådor",
     description:
       "Tunnelväxthus och foliehus från 3 × 1 till 6 × 3 m, väggväxthus, växthus i aluminium och polykarbonat, drivbänkar och odlingslådor i metall och trä.",
+  },
+  "vedstall-vedbodar": {
+    title: "Vedställ & vedbod – vedförvaring inne och ute",
+    description:
+      "Vedställ i svart stål för brasveden inne och ute, stora vedställ med vattentätt överdrag och vedbodar med lutande tak. Flera med eldstadsverktyg.",
   },
   "verktyg-hemmafix": {
     title: "Verktyg & hemmafix – vinschar och fräsar",

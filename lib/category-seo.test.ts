@@ -57,6 +57,8 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // Runda S7 lade till elva: badrumsskåp, golvlampor, elkaminer, värmefläktar,
 // verktygsvagnar, bäddfåtöljer, massagestolar, tv-bänkar, skoskåp, köksöar och
 // boxningssäckar. Belysning och Förvaring släppte golvlampor och skoskåp.
+// Runda S8 lade till sex: kaninburar, hamsterburar, terrarier, hönshus, hundvagnar
+// och vedställ.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -66,6 +68,7 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /studsmatta/i, /basketkorg/i, /kompostkvarn/i, /terrassvärmare/i,
     /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
     /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
+    /kaninbur/i, /hamsterbur/i, /terrari/i, /hönshus/i, /hundvagn/i, /vedställ/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

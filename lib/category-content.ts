@@ -714,6 +714,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "hamsterburar-gnagarburar": {
+    intro: [
+      "Här finns hamsterburar i trä, en dvärghamsterbur, hamsterburar med rörsystem och tunnlar och större gnagarburar för råtta, degu och chinchilla. En stor hamsterbur i trä på ben mäter 110 cm, och hamsterburen på stativ är 120 cm hög och står på hjul.",
+      "Hamstrar gräver, så bäddens djup spelar roll. Två träburar har 31 cm fri höjd i bottenplanet, nog för en bädd där djuret kan gräva riktiga gångar, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. I dvärghamsterburen ger bottenvåningen plats för ett ordentligt lager strö.",
+      "Gnagarburen i akryl och aluminium ger 0,50 m² bottenyta i ett enda plan. Flera burar kommer med hus, löphjul, matskål och vattenflaska, och i dvärghamsterburen sitter löphjulet och vattenflaskan redan på plats.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilka burar har djup bädd för grävning?",
+        a: "Två hamsterburar i trä har 31 cm fri höjd i bottenplanet, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. Djupet står redan i produktnamnet.",
+      },
+      {
+        q: "Finns det burar för råtta, degu och chinchilla?",
+        a: "Ja. Smådjursburen på 150 cm med fem plan är gjord för djur som klättrar, som råtta, chinchilla, degu och iller. Gnagarburen på 128 cm har fyra plan, ramper och en hängmatta och står på fyra hjul.",
+      },
+      {
+        q: "Vad följer med buren?",
+        a: "Det varierar. Flera levereras med hus, löphjul, matskål och vattenflaska, och vad som ingår står i beskrivningen.",
+      },
+    ],
+  },
+
   "har-rakning": {
     intro: [
       "Jobbar du med hår behöver utrustningen orka en hel arbetsdag. I Hår & Rakning hittar du höj- och sänkbara arbetsstolar för salong, torkhuvar på stativ med timer och frisörväskor med lås för verktygen — utrustning för salongen såväl som för dig som klipper hemma.",
@@ -732,6 +755,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Kan jag använda utrustningen hemma?",
         a: "Absolut. Utrustningen är salongsklassad men fungerar lika bra hemma — kontrollera bara att du har plats för stativet och ett eluttag i närheten.",
+      },
+    ],
+  },
+
+  "honshus-honsgardar": {
+    intro: [
+      "Här hittar du hönshus i trä, hönsgårdar att gå in i, värpreden och en automatisk hönslucka. Flera anger hur många höns de är gjorda för, från hönshus för två höns till hönsgården på 24 m² för 24–30 höns.",
+      "De flesta hönshus har både värprede och sittpinnar, och flera har en rastgård i samma stycke. Städningen går fortare med en utdragbar bricka eller bottenlåda, och på ett av husen fälls både taket och värpredet upp.",
+      "Hönsgårdarna ger hönsen yta att röra sig på under dagen, från 3,07 m² med ståhöjd upp till 24 m². De stora är byggda av galvaniserat stålrör med tak av duk mot sol och regn. Den automatiska hönsluckan öppnar på morgonen och stänger på kvällen, och i hönsredet i galvat stål rullar ägget ner i en uppsamlingslåda.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur många höns får plats?",
+        a: "Det beror på modellen. Hönshusen är gjorda för två till tio höns, och hönsgårdarna i stål rymmer från 4–6 höns upp till 24–30 höns på 24 m². De flesta beskrivningar anger antalet.",
+      },
+      {
+        q: "Vad är skillnaden mellan hönshus och hönsgård?",
+        a: "I hönshuset sover och värper hönsen, med sittpinnar och värprede. Hönsgården är en inhägnad rastgård där de rör sig under dagen, i trä eller galvaniserat stål och ofta med tak. Flera hönshus har en mindre rastgård i samma stycke.",
+      },
+      {
+        q: "Hur fungerar den automatiska hönsluckan?",
+        a: "Den öppnar på morgonen och stänger på kvällen av sig själv. Du styr den med timer eller den inbyggda ljussensorn och kan öppna den manuellt med fjärrkontrollen.",
       },
     ],
   },
@@ -827,6 +873,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  hundvagnar: {
+    intro: [
+      "Här finns hundvagnar för allt från små hundar på upp till 4 kg till stora hundar på upp till 30 kg, och cykelvagnar för hund som bär upp till 45 kg. Maxvikten står oftast redan i namnet, och flera anger också liggytan och hur lång hunden får vara.",
+      "Flera är hopfällbara. En fälls i ett enda drag och lägger sig platt, och en annan blir bärväska: kabinen lossas från chassit och packas ned till 61 × 40 × 10 cm.",
+      "Cykelvagnarna för hund dras efter cykeln, och modellerna 2-i-1 blir hundvagn när ni kommit fram: dragstaget hakas av och handtaget fälls upp. Joggingvagnen har ett låsbart framhjul, och på en vagn med tre hjul kan framhjulet svänga fritt eller låsas rakt fram.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor hund får plats i vagnen?",
+        a: "Titta på maxvikten och liggytan. Vagnen med fyra hjul och sufflett för hundar upp till 4 kg tar högst 32 cm kroppslängd, vagnarna för mellanstora hundar har 93 × 52 cm liggyta och bär 25 kg, och de största hundvagnarna tar upp till 30 kg.",
+      },
+      {
+        q: "Kan jag cykla med hundvagnen?",
+        a: "Med cykelvagnarna för hund, ja. De dras efter cykeln, och på modellerna 2-i-1 hakas dragstaget av så att vagnen blir en hundvagn med handtag. En av dem bär upp till 45 kg.",
+      },
+      {
+        q: "Går vagnen att fälla ihop?",
+        a: "Flera är hopfällbara, och det står i namnet. En vagn för hundar upp till 30 kg fälls i ett enda drag och lägger sig platt i 87 × 56 × 32 cm.",
+      },
+    ],
+  },
+
   hushallsapparater: {
     intro: [
       "En smart apparat gör det tråkiga jobbet åt dig. I Hushållsapparater hittar du praktiska maskiner för hemmet och verkstaden, som digitala ultraljudstvättar i rostfritt med värme och timer — de rengör smycken, glasögon, verktygsdelar och förgasarmunstycken utan skrubbning.",
@@ -912,6 +981,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Är den säker att använda med barn?",
         a: "Skålen blir varm under användning, så en vuxen bör sköta maskinen medan barnen snurrar upp vadden på pinnen. Följ alltid tillverkarens anvisning.",
+      },
+    ],
+  },
+
+  "kaninburar-marsvinsburar": {
+    intro: [
+      "Här hittar du kaninburar och kaninhus för trädgården, burar på hjul, marsvinshyddor, smådjursstall med löpgård och hagar för kanin och marsvin. De flesta är gjorda för båda djuren, och vilka djur en bur passar för står i beskrivningen.",
+      "Flera utomhusburar har tak av asfaltpapp eller bitumen, stomme i granträ och galler eller nät i galvaniserat stål. Många har två plan: ett stängt sovhus överst och en öppen rastgård under, med en ramp emellan. Smådjursstallen på 230 cm har löpgård åt båda håll och en tredje yta under själva huset.",
+      "Hagarna utan botten ställs direkt på gräsmattan, så att djuren går på riktig mark och kan beta. För inomhus finns en modulhage av 47 trådpaneler som blir 175 × 105 cm och en modulär bur av 27 paneler. Den hopfällbara hagen på 110 × 105 cm viks ihop till 13,5 cm när den inte används.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Passar burarna både för kanin och marsvin?",
+        a: "De flesta gör det, och flera av smådjursstallen nämner också råtta och degu. Vilka djur en bur är gjord för står i beskrivningen.",
+      },
+      {
+        q: "Vad är skillnaden på en hydda och en hage?",
+        a: "En hydda eller ett stall har tak och ett stängt sovhus, ofta med en rastgård bredvid eller under. En hage är en inhägnad där djuren rör sig, och flera har ett hus eller ett tak som fälls upp. Hagarna utan botten ställs på gräset, och modulhagarna för inomhus byggs av paneler.",
+      },
+      {
+        q: "Hur ser jag hur stor buren är?",
+        a: "Längd, djup och höjd står i beskrivningen, och flera anger bottenytan i kvadratmeter. Kaninhyddan i två plan har 0,81 m² bottenplan, och kaninhuset på 122 cm har en rastgård på 1,02 m².",
       },
     ],
   },
@@ -1412,6 +1504,25 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  terrarier: {
+    intro: [
+      "Här finns terrarier i glas från 24 till 140 liter: små kuber på 30 × 30 × 30 cm, ett lågt terrarium på 50 × 30 × 25 cm och ett högt på 45 × 45 × 60 cm. Terrariet på 140 liter står på egna träben i stället för på ett bord.",
+      "Välj efter hur djuret lever. Det höga terrariet har 60 cm från botten till gallerlocket, och det låga har samma golvyta som 48-litersmodellen men lägre höjd. Mellanstorleken på 50 × 30 × 35 cm är lång nog för en marklevande art och hög nog för en klättrare.",
+      "Flera öppnas framifrån, med skjutdörrar eller en frontlucka med knapplås som ett djur inte kan trycka upp, och de har lock av galler eller nät. Två modeller har en strukturerad bakvägg som djuret kan klättra på.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilka djur passar terrarierna för?",
+        a: "Beskrivningarna nämner ödlor och ormar, och terrariet på 86 liter anges passa små ödlor, grodor, ormar och spindlar, till exempel leopardgecko och dvärggecko. Välj höjd efter om djuret klättrar eller lever på marken och golvyta efter hur stort det är.",
+      },
+      {
+        q: "Går terrarierna att låsa?",
+        a: "Flera gör det. Terrariet på 86 liter har två lås, ett på dörren och ett på ovansidan, och flera av de mindre har en frontlucka med knapplås.",
+      },
+    ],
+  },
+
   "terrassvarmare-infravarmare": {
     intro: [
       "En terrassvärmare gör altanen och balkongen användbar även en sval kväll. Här samlar vi fem elektriska värmare: en terrassvärmare på stativ på 2500 W, en terrassvärmare med oscillering, en takvärmare för terrassen och två infravärmare för vägg.",
@@ -1632,6 +1743,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad är en drivbänk?",
         a: "En låg låda med genomskinligt lock, där du drar upp plantor tidigt på våren innan de planteras ut. De flesta av våra drivbänkar är i trä med lock av polykarbonat som fälls upp.",
+      },
+    ],
+  },
+
+  "vedstall-vedbodar": {
+    intro: [
+      "Här hittar du vedställ för brasveden vid kaminen, större vedställ med vattentätt överdrag och vedbodar för trädgården. I ett vedställ ligger veden på en ram i stället för direkt på golvet eller marken, vilket skyddar den mot fukt underifrån, och flera är gjorda för både inne och ute.",
+      "De flesta vedställ i svart stål bär 100 kg. De stora ställen med överdrag rymmer 0,33 eller 0,6 m³ ved och håller den torr, och det mindre av dem har en bärväska i canvas. Flera vedställ levereras med eldstadsverktyg, till exempel skyffel, eldgaffel, tång och borste på krokar längs sidan.",
+      "Vedbodarna är av stålplåt med lutande tak, och bodarna på 150 och 213 cm har upphöjd botten för luftcirkulation och 0,77 respektive 1,12 m² golvyta. Vedboden på 235 cm har ett öppet vedfack och ett stängt fack för redskap.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Kan vedstället stå ute?",
+        a: "Flera kan det. Vedstället på 60 × 100 cm och det smala på 40 × 100 cm är gjorda för både inne och ute, och de stora ställen har ett vattentätt överdrag. Vedbodarna har lutande tak.",
+      },
+      {
+        q: "Hur mycket ved rymmer ett vedställ?",
+        a: "De stora ställen med överdrag rymmer 0,33 och 0,6 m³ ved. För de andra anges måtten och hur mycket de bär, oftast 100 kg.",
+      },
+      {
+        q: "Ingår eldstadsverktyg?",
+        a: "Till några vedställ, ja: skyffel, eldgaffel, tång och borste som hänger på krokar. Vad som ingår står i produktnamnet eller beskrivningen.",
       },
     ],
   },
