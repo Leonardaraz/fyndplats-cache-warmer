@@ -111,6 +111,10 @@ placeringarna.
 Kostnad i dag: 1 020 API-enheter för volymerna och 2 040 för domänfilen.
 Kategorifilen hämtades tidigare samma dag.
 
+Och ett fjärde tal, ur Googles egna siffror: **organiska landningar på
+kategorisidorna per vecka**, före mot efter mergen (`ga4-organisk.sql`,
+fråga 2). Se avsnittet om GA4 nedan.
+
 ## Tillägg: runda S14 (samma dag)
 
 Runda S14 (`../runda-s14-langsvans-kategorier/`) lade till **13
@@ -124,3 +128,46 @@ kategorisida. Vid omätningen är deras placering därför ett eget riktmärke.
 Samma ord, samma varor och samma sidtyp. Rör sig S14-sidorna inte när
 dealproffsen ligger på plats 1–5, är det domänens styrka som bromsar och inte
 sidorna.
+
+## Verklig trafik ur GA4 (tillägg 2026-09-24)
+
+Semrush räknar placeringar och uppskattar trafiken. Googles egna siffror
+ligger i BigQuery, i projektet `fyndplats`:
+
+| dataset | innehåll | läge 2026-09-24 |
+|---|---|---|
+| `analytics_361016118` | GA4-exporten, en tabell per dag sedan 2026-08-09 | fungerar, tabellerna har inget utgångsdatum |
+| `searchconsole` | Search Consoles massdataexport | ☠️ **tom**, se nedan |
+| `merchant_center` | Merchant Centers produkter och resultat | inte undersökt |
+
+Frågorna står i `ga4-organisk.sql`. Den första räknar organiska besök per
+vecka och typ av landningssida. Den andra räknar organiska landningar per
+kategorisida, före och efter #647.
+
+**Måttet är kolumnen `kategori`.** Före #647 fick kategorisidorna ett fåtal
+organiska landningar i veckan, alla på gamla breda sidor och ingen på en
+sökordssida. Produktsidorna tar merparten av den organiska trafiken. Fungerar
+sökordsrundorna syns det här först, veckor innan Semrush hinner mäta om.
+
+☠️ **Samtyckesbrottet vecka 37.** Från 2026-09-07 exporteras också besök utan
+samtycke, och de saknar kanal. Ett Google-besök utan samtycke syns bara som
+en hänvisning från google.com. Frågorna räknar det som organiskt när
+landningsadressen saknar annonsparametrar (`gclid`, `gad_source`, `gbraid`,
+`wbraid`, `dclid`). Före vecka 37 finns bara besök med samtycke, så serien
+har ett brott där. Jämför helst perioder som båda ligger efter vecka 37.
+
+☠️ **Search Console-exporten har aldrig levererat.** Tabellerna skapades
+2026-08-10, men `ExportLog` och båda datatabellerna har 0 rader. Search
+Consoles tjänstekonto äger datasetet, så det är inte datasetets behörighet
+som fattas. Felet står i Search Console under Inställningar →
+Massdataexport. En vanlig orsak är att kontot saknar rollen BigQuery Job User
+i projektet. Det är en hypotes, inte en mätning. När exporten fungerar finns
+visningar, klick och placering per sida och sökord, direkt från Google.
+
+⚠️ **Siffrorna står inte här.** Repot är publikt, och sessioner och köp är
+affärsdata. De står i mättriggern och räknas om ur BigQuery vid omätningen.
+
+⚠️ **ChatGPT är ungefär lika stor som organisk Google** (kanalen
+`AI Assistant`, källa `chatgpt.com`). Besökarna tittar på varor, lägger i
+varukorgen och köper, så det är människor och inte robotar. Semrush ser inte
+den trafiken, och `robots.txt` släpper in ChatGPT:s robotar.
