@@ -18,11 +18,13 @@ import { productCountLabel } from "../lib/rating";
 // ALLA paneler ligger i HTML:en, dolda med `hidden` tills man hovrar. Förut
 // renderades bara den hovrade panelen, och Googlebot hovrar aldrig. Mätt
 // 2026-09-24: startsidan länkade till 0 av 105 underkategorier, både i
-// server-HTML och renderad i Chromium, och en produktsida till 1. En
-// underkategori hade därmed mindre intern PageRank än en medianprodukt, fast
-// sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …) ska ranka på ord med
-// tiotusentals sökningar. Med panelerna i HTML länkar varje sida till varje
-// underkategori, precis som menyn redan gör för den som hovrar.
+// server-HTML och renderad i Chromium, och en produktsida till 1. Bara /butik
+// (48 av 105) och avdelningssidornas Förfina-chips länkade dit. En
+// underkategori hade därmed ungefär samma interna PageRank som en
+// medianprodukt, fast sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …)
+// ska ranka på ord med tiotusentals sökningar. Med panelerna i HTML länkar
+// varje sida till varje underkategori, precis som menyn redan gör för den som
+// hovrar.
 
 // Kort etikett = första ordet i kategorinamnet ("Elektronik & Tillbehör" → "Elektronik").
 function shortLabel(name: string): string {

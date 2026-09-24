@@ -2,12 +2,13 @@
 //
 // Menyns underkategorier ska ligga i HTML:en, inte bara visas vid hovring.
 //
-// Mega-menyn renderade bara den hovrade panelen ({current && …}). Googlebot
-// hovrar aldrig, så ingen sida på sajten länkade till en underkategori i det
-// Google läser. Mätt 2026-09-24: startsidan länkade till 0 av 105
+// Mega-menyn renderade bara den hovrade panelen ({current && …}), och
+// Googlebot hovrar aldrig. Mätt 2026-09-24: startsidan länkade till 0 av 105
 // underkategorier, både i server-HTML och renderad i Chromium, och en
-// produktsida till 1. Sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …)
-// hade därmed mindre intern PageRank än en medianprodukt.
+// produktsida till 1. Det enda som länkade dit var /butik (48 av 105) och
+// avdelningssidornas Förfina-chips, som syns först när JS har kört.
+// Sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …) hade därmed ungefär
+// samma interna PageRank som en medianprodukt.
 //
 // Komponenten är TSX och går inte att rendera med node --test, så provet läser
 // källan. Det fäller om panelen blir villkorlig igen, eller om CSS:en ger

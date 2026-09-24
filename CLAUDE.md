@@ -89,6 +89,31 @@ Tre regler:
 3. **Ett tak ska kasta eller logga ett fel, aldrig kapa tyst.** En avkortad
    lista ser frisk ut.
 
+## Länkar som bara renderas vid hovring finns inte för Google (2026-09-24)
+
+Mega-menyn renderade bara den hovrade panelen. Googlebot hovrar och klickar
+aldrig, så de 105 underkategorierna saknade länkar från nästan hela sajten.
+Uppmätt i produktion, både i server-HTML och renderat i Chromium utan
+interaktion:
+
+| sida | länkar till underkategorier |
+|---|--:|
+| startsidan | 0 |
+| en produktsida | 1 (bläddringsraden) |
+| /butik | 48 |
+| en avdelningssida | bara efter JS (Förfina-chipsen ligger bakom en Suspense-gräns) |
+
+En PageRank-modell över sajtens egna länkar gav underkategorierna ungefär
+samma interna värde som en medianprodukt. Med panelerna i HTML
+(`components/meganav.tsx`) blir det 43–80 gånger mer.
+
+Regeln: **en länk som ska räknas ska finnas i HTML:en från början.** Dölj den
+med `hidden` eller CSS, men rendera den inte villkorligt vid hovring, klick
+eller först efter mount. Mobilmenyn (portal efter mount) och
+kategori-dropdownen (`{open && …}`) är bekvämligheter för kunden, inte länkar
+för Google. `lib/meganav-ssr.test.ts` fäller om desktopmenyns paneler blir
+villkorliga igen.
+
 # Analytics
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
