@@ -10,7 +10,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { nameScore, fuzzyContains, expandSynonyms, stem } from "./search.ts";
+import { nameScore, nameMatch, rankByName, fuzzyContains, expandSynonyms, stem } from "./search.ts";
 
 // ── Oförändrat beteende: exakt, stemming, compound ──────────────────────────
 test("exakt fras → 100", () => {
@@ -154,4 +154,52 @@ test("stem: enteckens-suffix kapar INTE korta rotord (n/t/s, ≥4-regeln)", () =
 test("precision (rot): 'barn' matchar barnstol men INTE expanderbar", () => {
   assert.equal(nameScore("Barnstol i trä", "barn"), 100);
   assert.equal(nameScore("Pakethållarväska expanderbar", "barn"), 0);
+});
+
+// ── "Visa alla resultat" (2026-09-24) ───────────────────────────────────────
+test("fras bara i namnets tillägg → 90, i huvuddelen → 100", () => {
+  assert.equal(nameScore("Lekmatta 160 × 100 cm med stadsmotiv", "matta"), 100);
+  assert.equal(nameScore("Klösträd 200 cm med sex nivåer – tre grottor och hängmatta", "matta"), 90);
+  assert.equal(nameScore("Sidobord för soffan i svart stål", "soffa"), 90);
+  assert.equal(nameScore("Bäddsoffa 2-sits i beige sammet – ryggstöd i tre lägen", "soffa"), 100);
+});
+
+test("för korta synonym-needles träffar inte orelaterade namn", () => {
+  assert.equal(nameScore("Soptunna 45 liter med pedal och soft close-lock", "soffa"), 0);
+  assert.equal(nameScore("Trådlös CarPlay-adapter 4-i-1", "matta"), 0);
+  assert.equal(nameScore("Metalldetektor med 4 söklägen, vattentät IP68", "tält"), 0);
+  assert.equal(nameScore("Bagagerumsgaller för hund, 89–150 cm brett", "väska"), 0);
+  // Åt andra hållet fungerar synonymen fortfarande.
+  assert.ok(nameScore("Bäddsoffa 2-sits i beige sammet", "sofa") > 0);
+});
+
+test("nameMatch.full: alla sökord måste träffa", () => {
+  assert.equal(nameMatch("Solcellslampa 177 cm – trädgårdslykta", "solcell lampa").full, true);
+  assert.equal(nameMatch("Golvlampa med trebensstativ i svart metall", "solcell lampa").full, false);
+  assert.equal(nameMatch("Golvlampa med trebensstativ", "solcell lampa").score > 0, true);
+});
+
+test("rankByName: delträffar bara när inget matchar alla sökord", () => {
+  const names = [
+    "Golvlampa med två glaskulor 170 cm",
+    "Solcellslampa 177 cm – trädgårdslykta med sex lysdioder",
+    "Solcellslyktor 2-pack i konstrotting",
+  ];
+  assert.deepEqual(rankByName(names, (n) => n, "solcell lampa"), [
+    "Solcellslampa 177 cm – trädgårdslykta med sex lysdioder",
+    "Solcellslyktor 2-pack i konstrotting",
+  ]);
+  // Ingen vara har både "solcell" och "kudde" → delträffarna visas som reserv.
+  assert.deepEqual(rankByName(names, (n) => n, "solcell kudde").length, 2);
+});
+
+test("rankByName: sorterar på relevans", () => {
+  const names = [
+    "Klösträd 200 cm med sex nivåer – tre grottor och hängmatta",
+    "Lekmatta 160 × 100 cm med stadsmotiv",
+  ];
+  assert.deepEqual(rankByName(names, (n) => n, "matta"), [
+    "Lekmatta 160 × 100 cm med stadsmotiv",
+    "Klösträd 200 cm med sex nivåer – tre grottor och hängmatta",
+  ]);
 });

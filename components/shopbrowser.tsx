@@ -58,7 +58,11 @@ const SORTS = [
   { v: "price-desc", label: "Pris: högt → lågt" },
   { v: "name", label: "Namn: A–Ö" },
 ];
-const SORT_VALUES = new Set(SORTS.map((s) => s.v));
+// "Bäst match" = listans egen ordning, dvs. den relevansordning söksidan redan
+// räknat fram. Finns bara där den är förvald (defaultSort "rel", /sok) — på en
+// kategorisida vore den en slumpmässig katalogordning.
+const REL_SORT = { v: "rel", label: "Bäst match" };
+const SORT_VALUES = new Set([...SORTS, REL_SORT].map((s) => s.v));
 
 /** Underkategori till den kategori sidan visar — chips i filterpanelen. */
 export type SubCategory = { name: string; slug: string; count: number };
@@ -83,7 +87,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
   const [sort, setSort] = useState(() => {
     const s = sp.get("sortera");
-    return s && SORT_VALUES.has(s) ? s : defaultSort;
+    return s && SORT_VALUES.has(s) && (s !== "rel" || defaultSort === "rel") ? s : defaultSort;
   });
   // Prisreglagets skala härleds ur produkterna i vyn. null = spridningen är för
   // liten för att ett reglage ska hjälpa någon (t.ex. tre sökträffar) → inget
@@ -330,7 +334,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
               rör reglaget, inte när man släpper det. */}
           <select value={sort} onChange={(e) => setSort(e.target.value)}
             onPointerEnter={hamtaBilder} onFocus={hamtaBilder} aria-label="Sortera produkter">
-            {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
+            {(defaultSort === "rel" ? [REL_SORT, ...SORTS] : SORTS).map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
           </select>
         </label>
 

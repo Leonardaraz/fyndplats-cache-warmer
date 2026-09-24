@@ -18,6 +18,10 @@
 //         cykel, "sdael"→sadel. Transposition = 1 redigering (vanligaste typo:n).
 //    Poängen är skiktad: exakt (100/60) > synonym (~51) > stavfel (~36) så en
 //    korrekt träff ALLTID rankas före en synonym-/typo-träff.
+//  • 2026-09-24: "Visa alla resultat" matchade sämre än förslagen (Leonard).
+//    rankByName tar bort delträffar när riktiga finns, en fras som bara står i
+//    namnets tillägg ger 90 i stället för 100, och fyra för korta synonym-
+//    needles stängdes av (AMBIGUOUS_NEEDLES).
 
 // Längsta suffix först — vi tar bort EN matchande ändelse och bara om stammen
 // blir ≥3 tecken (annars blir "set"→"" och allt matchar).
@@ -134,10 +138,18 @@ function canon(term: string): string {
 
 // Bygg: kanonisk nyckel → övriga gruppmedlemmars needles (kanoniska stammar,
 // ≥3 tecken). Enkelriktad iteration men grupperna är symmetriska → bidirektionellt.
+// Needles som stammen gör för korta och som därför träffar orelaterade namn.
+// Uppmätt mot katalogen 2026-09-24: "sof" (sofa) → "soft close"-soptunnor och
+// soffbord, "carp" (carpet) → CarPlay och carport, "tent" (tent) → 14 st
+// "vattentät", "bag" → bagagerumsgaller för hund. Söker man på termen själv
+// fungerar synonymen fortfarande ("sofa" hittar soffor); det är bara åt andra
+// hållet ("soffa" → needle "sof") den stängs av.
+const AMBIGUOUS_NEEDLES = new Set(["sof", "carp", "tent", "bag"]);
+
 const SYN: Map<string, string[]> = (() => {
   const map = new Map<string, string[]>();
   for (const group of SYNONYM_GROUPS) {
-    const needles = [...new Set(group.map(canon))].filter((x) => x.length >= 3);
+    const needles = [...new Set(group.map(canon))].filter((x) => x.length >= 3 && !AMBIGUOUS_NEEDLES.has(x));
     for (const term of group) {
       const key = canon(term);
       const others = needles.filter((nd) => nd !== key);
@@ -202,26 +214,69 @@ function tokenQuality(unit: { stem: string; key: string }, nameNorm: string): nu
   return 0;
 }
 
-// Hur väl matchar `query` ett produktNAMN? 0 = ingen träff.
-//   100 — hela söksträngen finns som delsträng i namnet ("vinöppnare")
+// Produktnamnen skrivs "Vad det är – detaljer" ("Klösträd 200 cm med sex
+// nivåer – tre grottor och hängmatta"). Huvuddelen är texten före första
+// tankstreck, komma eller " med "/" för "/" till ". En fras som bara finns i
+// resten beskriver ett tillbehör eller en egenskap, inte varan: "matta" i
+// "…och hängmatta" eller "soffa" i "Sidobord för soffan".
+function mainPart(nameNorm: string): string {
+  const cut = nameNorm.search(/ [–-] |,| med | för | till /);
+  return cut >= 0 ? nameNorm.slice(0, cut) : nameNorm;
+}
+
+export type NameMatch = {
+  /** 0 = ingen träff; se nameScore för skalan. */
+  score: number;
+  /** Sant när VARJE sökterm hittades (exakt, synonym eller stavfel). */
+  full: boolean;
+};
+
+// Hur väl matchar `query` ett produktNAMN?
+//   100 — hela söksträngen finns i namnets huvuddel ("vinöppnare")
+//    90 — hela söksträngen finns, men bara efter huvuddelen ("…med hängmatta")
 //    60 — alla söktermer matchar exakt (compound-aware: "knivset"→"kniv" i
 //         "knivhållare", "halsband" i "kedjehalsband")
 //   ~51 — alla söktermer matchar men minst en via synonym ("mtb"→cykel)
 //   ~36 — alla söktermer matchar men minst en via stavfelstolerans ("cyckel"→cykel)
 //   1–59 — bara några termer matchade (delvis), proportionellt & kvalitetsviktat
-export function nameScore(name: string, query: string): number {
+export function nameMatch(name: string, query: string): NameMatch {
+  const none = { score: 0, full: false };
   const nameNorm = normalize(name);
   const q = normalize(query);
-  if (!q || !nameNorm) return 0;
-  if (nameNorm.includes(q)) return 100;
+  if (!q || !nameNorm) return none;
+  if (nameNorm.includes(q)) return { score: mainPart(nameNorm).includes(q) ? 100 : 90, full: true };
   const units = tokenize(q)
     .map((t) => ({ stem: stem(t), key: canon(t) }))
     .filter((u) => u.stem.length >= 2);
-  if (units.length === 0) return 0;
+  if (units.length === 0) return none;
   let sum = 0;
-  for (const u of units) sum += tokenQuality(u, nameNorm);
-  if (sum === 0) return 0;
+  let hit = 0;
+  for (const u of units) {
+    const qual = tokenQuality(u, nameNorm);
+    sum += qual;
+    if (qual > 0) hit++;
+  }
+  if (sum === 0) return none;
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
-  return Math.max(1, Math.round((sum / units.length) * 60));
+  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length };
+}
+
+export function nameScore(name: string, query: string): number {
+  return nameMatch(name, query).score;
+}
+
+// Rankar en lista på namn-relevans — delad av autocomplete och /sok så att
+// "Visa alla resultat" visar samma sak som förslagen, bara fler.
+//
+// DELTRÄFFAR BARA SOM RESERV. "solcell lampa" gav förr 114 träffar: 15
+// solcellslampor och -lyktor, och sedan 99 vanliga golv- och bordslampor som
+// bara matchade "lampa". Finns det minst en vara som matchar VARJE sökord
+// visas bara sådana; annars (inget matchar allt) visas delträffarna som förut.
+export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string): T[] {
+  const scored = items
+    .map((item) => ({ item, ...nameMatch(nameOf(item), query) }))
+    .filter((r) => r.score > 0);
+  const kept = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
+  return kept.sort((a, b) => b.score - a.score).map((r) => r.item);
 }
