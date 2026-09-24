@@ -1,4 +1,4 @@
-ff740501 hogtryckstvatt-135-bar-1800-w
+ff740501 hogtryckstvatt-1800-w-med-hjul
 81f655da kajakstall-tva-kajaker-fristaende
 6b635cbb gymnastikmatta-240-x-120-cm-vikbar
 26ae7fb2 extrasang-80-x-200-cm-hopfallbar
