@@ -1630,3 +1630,90 @@ beslut — se den samlade frågan om detta.
   katalogens 61 sidor. Det som lästes gav inga kandidater, och utkasten i
   spannet står inte i listan ovan. Nästa runda börjar på 3000 kr och läser
   spannet från början. (N61)
+- Märke tryckt på varan, hållna efter bildgranskningen: den självrengörande
+  kattlådan med kamera `8b1f4f03` bär PawHut på handtaget; cykelvagnarna för
+  barn `727b850e` och `0c5003d8` bär AIYAPLAY på fronten i alla bilder.
+  (N62)
+- För få bilder kvar, hållna efter bildgranskningen: benpressen `a5f36d84`:
+  bild 4 bär tysk text och bild 2 och 5 läsbar text på viktskivorna, så kvar
+  hade bara bilden på vit botten och måttbilden varit. (N62)
+- Samma slag som en produkt i rundan, hoppade: bordtennisbordet `6427cd72`
+  (rundan tar `dee45dce`, samma mått och billigare); entrétaket i glas på
+  200 cm `75768a6c` (rundan tar entrétaket på 150 cm `996b85ef`). (N62)
+- Familjen är redan publicerad, hittad på familjeräkning och namn snarare än
+  av skärmen: garagetältet `82a743b9` (sju garagetält, förrådstält och
+  cykelgarage); bäddsofforna `e7476853`, `69716c9d` och `749372df` (soffor
+  och bäddsoffor); den självrengörande kattlådan med app `b60b0392`
+  (`17ffe9ab`, självrengörande med app, är publicerad). (N62)
+- Familjer som redan är täckta, hoppade på namnet (familjeräkningarna inom
+  parentes är från N60 eller N61; de flesta gick aldrig genom skärmen):
+  elfordon och åkleksaker för barn (43 elfordon för barn): `746785d0`,
+  `8b073d5c`, `6220378a`, `3b83c51d` och `6a2451c4`; gokarter och trampbilar
+  (8 gokarter): `3c0795b6`, `56bf5134`, `5a4f53a9` och `f244bb55`;
+  hundburar: `73d2973b`; klätterställningar och rutschkanor: `51ad9485`;
+  hallmöbler och garderober: `aa54c4f9`; köksskåp och köksställ (19
+  köksskåp): `da121dc3`; skänkar och byråer (13 skänkar): `b61b829e` och
+  `662e516f`; barstolar och barset (25 barstolar): `c65e64e0`; matbord och
+  matgrupper (34 matbord): `cc952c3b`, `91d2f8da`, `b09b79b1`, `a235537d`,
+  `11021efb`, `77579a8b` och `7f304255`; kontorsstolar och gamingstolar (111
+  kontorsstolar): `6575766f`, `b945f081` och `7dbf3a0c`; gungstolar:
+  `b341d832` och `5bc96aac`; golvfåtöljer och bäddfåtöljer (45 publicerade):
+  `c424b8c0` och `88cc5a58`; soffor och bäddsoffor: `e81fc121`, `5f02e762`,
+  `c2211af6`, `d213446c`, `163b4c99`, `5023eba7`, `8027716a`, `9e549ab2`,
+  `11eeaf5f`, `c1286cc5`, `eee175a6`, `6c1a2691`, `e93b1b0d`, `61ae7313`,
+  `94ab9ff4`, `bb648b5d`, `eb4391a1`, `de22ee2a`, `000985c4`, `c67a4f02`,
+  `d0ac62d6`, `f3555135` och `2dfdcca1`; fåtöljer (234 fåtöljer):
+  `f008f656`, `5ce84dc9`, `c9b05838`, `383570d2`, `b837faf5`, `bde4ec47`,
+  `18593043`, `686a7db2`, `afc0c368`, `deeee4a6`, `30e9caf4`, `6b5dbee1`,
+  `60adbe7d`, `b9649c4e`, `74074760`, `024eb02c`, `46d8342f`, `6afc0a29`,
+  `c2a36ce1`, `e5be35a4`, `4de4f329`, `e999206f`, `4164ef63`, `911b4a59`,
+  `694831df`, `f8efe733`, `554c8716`, `21d18f05`, `8a3508ec`, `f6ff9aba`,
+  `9ba8a7fb`, `14519c64`, `547fb652`, `a726fffb`, `48ee9b90`, `47978f82`,
+  `1af65e68`, `52921fb2`, `d82d9416`, `0dbef9f5`, `74d55202`, `4ac48a3f`,
+  `76311647`, `f44642e5`, `142b3ad9`, `8e2a1b0d`, `f2db11ae`, `d34f6bab`,
+  `3bd27e91`, `698470b4`, `99ab915a` och `536cfd1e`; roddmaskiner:
+  `38cc8e02`; gymstationer (5 gymstationer): `f24d41b7`, `00ed3b62` och
+  `9beaf0bd`; träningsbänkar: `fe84e88c`; basketkorgar (11 basketställ):
+  `1c588628`. (N62)
+- Licensmärke eller husmärke i namnet, hoppade utan skärm: grävmaskinen för
+  barn `fe13c03b` bär Caterpillar i namnet; redskapsboden `a4221b8b` bär
+  husmärket Outsunny i namnet; elfordon för barn med ett bil- eller
+  motorcykelmärke i namnet: `65862929`. (N62)
+- Djurbostäder som kräver en laglighetskontroll, hoppade: burar, hägn,
+  hönshus, ankhus, sköldpaddshus, terrarier och hundkojor: `88567cd8`,
+  `6eed8652`, `ef20bec9`, `9104911c`, `3d89c580`, `2adeb36b`, `07164e5a`,
+  `feb91896` och `cabde1b6`. (N62)
+- Säsongsvaror i slutet av september (trädgård, camping och utelek),
+  hoppade: pergolan `1a4a7b9b`, en trädgårdsvara; trädgårdsmöbler, växthus,
+  grillar, paviljonger, tält, markiser, redskapsbodar och utelek:
+  `2b9669be`, `179aa068`, `4832aec4`, `a75b4e26`, `037b6ee0`, `47cfcd75`,
+  `5626b01f`, `78eef8b4`, `7da0de8c`, `ac3e326c`, `a3d54210`, `efd76274`,
+  `59db3215`, `714b5895`, `d56fe1f2`, `dabd19d7`, `dffaf7e5`, `591ee60d`,
+  `f6a0b941`, `295e2fa3`, `4b3724d2`, `0f77925e`, `f185f55d`, `f71251bd`,
+  `b5f1b724`, `cffbab12`, `8a7e64bc`, `c0219b88`, `1837f27b`, `3ceb17fc`,
+  `56edf3f5`, `67a43acf`, `d5476b58`, `d8be09d1`, `99850a5e`, `2a3a93d5`,
+  `c9adc07d`, `761eefaf`, `a27a6119`, `92410927`, `05e870b5`, `ca339418`,
+  `1bc56ff2`, `f5b268bf`, `66714337`, `725e47c4`, `d8ada591`, `e3b0e9a5`,
+  `4e05be02`, `08755391`, `fdc96d7e`, `c0d9b013`, `c08e8cf3`, `56ee2359`,
+  `7b9f441e`, `213ddf65`, `b3d60f53`, `d2dc5061`, `53b4a3b9`, `f770dc11`,
+  `b4642aa3`, `05b87a61`, `9c78a73a`, `cc843bcc`, `5d4a3fab`, `621e63e8`,
+  `a7a8f57d`, `00458dc0`, `67f0f8bb`, `5aa2aac0`, `04f305ad`, `f2ed141c`,
+  `7bf76ef0`, `834c66fd`, `e804e271`, `fbc6ab89`, `5a28ad9f`, `ca4fa9cb`,
+  `b77e5f14`, `86808b63`, `0cd2dc1a`, `cbd1c1cb`, `e071b2a6`, `081c9343`,
+  `a88d7003`, `40d0bd6a`, `828ccd93`, `6ad7b725`, `31b33576`, `a8e5db2d` och
+  `bb45be9d`. (N62)
+- Föräldralös produkt utan mappningsrad, hoppad: hörnsoffan `3e6f2d24`:
+  produkten saknar mappningsrad (den föräldralösa produkten från 2026-08-31)
+  och går inte att stämpla. (N62)
+- Skärmens träffar som räknades som brus och inte fällde: den
+  självrengörande kattlådan `b60b0392` mot tolv fåtöljer och massagefåtöljer
+  och kattlådan `8b1f4f03` mot ett spegelskåp, alla slumpträffar på mått
+  mellan olika slags varor. Ingen av dem publicerades. (N62)
+- Varje okänt utkast från 3000 kr och uppåt har exakt ett skäl, kontrollerat
+  med ett skript: 232 utkast, 5 publicerade och 227 hoppade. Elva fick
+  kontaktark: 5 publicerades, 4 hölls på bilderna och 2 som samma slag som
+  en produkt i rundan. (N62)
+- Katalogen är genomläst från 3000 kr och uppåt, alla 61 sidor. En mätning
+  över hela katalogen direkt efter N62 (6 067 produkter, 2 647 utkast) gav
+  23 utkast under 3000 kr som ingen runda rört, alla på katalogens första 13
+  sidor. De står i runda N62:s LÄS-MIG, och nästa runda tar dem. (N62)
