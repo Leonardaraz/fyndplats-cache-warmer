@@ -155,6 +155,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm.",
   },
+  barbord: {
+    title: "Barbord med pallar, bardisk & höj- och sänkbart",
+    description:
+      "Barbord med två eller fyra pallar, barbord med stolar, höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk.",
+  },
   barnmobler: {
     title: "Barnfåtölj, barnsoffa, sminkbord & barngarderob",
     description:
@@ -210,6 +215,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Eldkorgar och eldstäder för uteplatsen, från Ø38 till Ø75 cm: rökfria modeller med sekundärförbränning, eldkorgar med grillgaller, eldbord och fyrfat.",
   },
+  elementskydd: {
+    title: "Elementskydd – spjälat radiatorskydd i MDF",
+    description:
+      "Elementskydd i MDF med spjälad front, 60 till 172 cm breda och 81 till 95,5 cm höga. Fyra är vita, och ett i ekton har två lådor i överkant.",
+  },
   elkaminer: {
     title: "Elkamin – elektrisk kamin för vägg eller golv",
     description:
@@ -229,6 +239,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Garagetält för motorcykel, cyklar och redskap",
     description:
       "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
+  },
+  gnistskydd: {
+    title: "Gnistskydd för öppen spis – svart eller guld",
+    description:
+      "Gnistskydd och brasskärmar för öppen spis i svart metall eller guldfärg, med två eller tre paneler, från 96 till 141 cm breda och 50 till 81 cm höga.",
   },
   golvlampor: {
     title: "Golvlampor – båglampor, LED och dimbara",
@@ -269,6 +284,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Hönshus & hönsgård – för 2 till 30 höns",
     description:
       "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², hönsreden och en automatisk hönslucka. För 2 till 30 höns.",
+  },
+  hornskrivbord: {
+    title: "Hörnskrivbord med laddstation, hyllor & lådor",
+    description:
+      "Hörnskrivbord i L-form med eluttag och USB, hylltorn, lådor eller skärmställ, ett gamingbord för två skärmar och två som också kan ställas raka.",
   },
   "hudvard-ansikte": {
     title: "Ansiktsmasker & hudvård",
@@ -405,6 +425,16 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Mat- och vattenskålar till hund och katt i praktiska material. Volym och mått anges i beskrivningen. Leverans 3–7 dagar från EU-lager.",
   },
+  matgrupper: {
+    title: "Matgrupp – matbord med stolar för två eller fyra",
+    description:
+      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och ett furubord från 60 till 120 cm.",
+  },
+  "miniugnar-airfryers": {
+    title: "Miniugn & airfryer – varmluftsfritös och bänkugn",
+    description:
+      "Miniugnar från 9 till 36 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering.",
+  },
   mobiltillbehor: {
     title: "Mobiltillbehör – laddare, kablar & skal",
     description:
@@ -419,6 +449,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Nattduksbord – svävande, med lådor & laddstation",
     description:
       "Nattduksbord och sängbord med lådor och öppna fack, svävande modeller för väggen, smala bord på 25 cm och sängbord med eluttag och USB, flera i par.",
+  },
+  oronlappsfatoljer: {
+    title: "Öronlappsfåtölj – knappad rygg, sammet & linne",
+    description:
+      "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, gungstolar med öronlappsrygg och en uppresningsfåtölj.",
   },
   pallar: {
     title: "Pall – stegpall, duschpall, pianopall & rullpall",
@@ -465,15 +500,30 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Sittpuffar, fotpallar och förvaringspuffar i sammet, manchester, teddyfleece och sherpa. De flesta bär 120 kg, och de flesta har ett fack under locket.",
   },
+  "skarmtak-entretak": {
+    title: "Skärmtak & entrétak för ytterdörr och fönster",
+    description:
+      "Skärmtak och entrétak i polykarbonat för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen med konsoler.",
+  },
   "skoskap-skobankar": {
     title: "Skoskåp, skobänk & skohylla till hallen",
     description:
       "Skoskåp för 8 till 30 par, smala från 15 cm djup, skoskåp med spegeldörrar och tippfack, skobänkar med sittdyna och skohyllor i bambu och metall.",
   },
+  snurrfatoljer: {
+    title: "Snurrfåtölj – vrids 360°, på ben eller fast fot",
+    description:
+      "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och två reclinerfåtöljer.",
+  },
   "solskydd-paviljonger": {
     title: "Paviljong 3x3, paviljongtak & pop up-tält",
     description:
       "Paviljonger och pop up-tält från 3 × 3 till 6 × 3 m, paviljongtak i 3 × 3 och 3 × 4 m, partytält, parasoll med fot, markiser och skärmtak i polykarbonat.",
+  },
+  soptunnor: {
+    title: "Soptunna & sopsorteringskärl – sensor och pedal",
+    description:
+      "Soptunnor med sensor eller pedal, sopsorteringskärl med två eller tre fack och utdragbara sopsorterare för köksskåpet, från 20 till 72 liter.",
   },
   "sparkcyklar-for-barn": {
     title: "Sparkcykel för barn – stora hjul och broms",

@@ -31,7 +31,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter", "Badrumsskåp", "Golvlampor", "Elkaminer", "Värmefläktar", "Verktygsvagnar & verktygslådor", "Speglar", "Badrumsspeglar", "Tvättkorgar"],
+    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter", "Badrumsskåp", "Golvlampor", "Elkaminer", "Värmefläktar", "Verktygsvagnar & verktygslådor", "Speglar", "Badrumsspeglar", "Tvättkorgar", "Gnistskydd", "Elementskydd"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
@@ -43,13 +43,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp"],
+    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
     heroPicks: [],
   },
   {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
-    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar"],
+    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar", "Soptunnor", "Miniugnar & airfryers"],
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {

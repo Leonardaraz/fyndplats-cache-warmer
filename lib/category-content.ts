@@ -375,6 +375,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  barbord: {
+    intro: [
+      "Här hittar du barbord för köket och vardagsrummet: set med två eller fyra pallar, ett set med två stolar med ryggstöd, två höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk som packas i en väska.",
+      "Borden i seten är 80 till 121,5 cm breda, och sitthöjden är 57 till 68 cm, alltså högre än vid ett matbord. Två av seten har hyllor under skivan, och på det ena bär skivan 170 kg. Ett annat har vinställ och glashållare.",
+      "De höj- och sänkbara barborden är runda, drygt 60 cm i diameter, och ställs mellan 70 och 90 cm respektive 67 och 93 cm. Det vridbara barbordet på 150 cm har skåp med dörrar i räfflat glas och en sidomodul, och bardelen vrids ut i vinkel eller läggs rakt.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur högt är ett barbord?",
+        a: "De flesta barbord i seten här är 87 till 95 cm höga, och sitthöjden är 57 till 68 cm. Ett vanligt matbord är runt 75 cm högt, så barbordet passar med pallar eller barstolar och inte med vanliga stolar.",
+      },
+      {
+        q: "Hur mycket plats behöver ett barbord med pallar?",
+        a: "Räkna med utrymme att dra ut pallarna. För setet på 105 cm anges en golvyta på minst 200 × 140 cm, och för setet med två hyllplan 1,5 × 1,5 meter.",
+      },
+      {
+        q: "Vad är en bardisk?",
+        a: "En disk att stå bakom och servera från. Bardisken här fälls upp utan verktyg, har en förvaringshylla och en front i tyg som går att ta av, och packas i en bärväska. Den finns i två längder, 98 och 110 cm.",
+      },
+    ],
+  },
+
   barnmobler: {
     intro: [
       "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, stapelbara barnpallar, stegpallar, en barnsäng, sminkbord för barn och låga barngarderober med klädstång och spegel.",
@@ -624,6 +647,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  elementskydd: {
+    intro: [
+      "Här hittar du elementskydd, också kallade radiatorskydd, som döljer elementet bakom en spjälad front. Fronten släpper igenom den varma luften, och ovansidan blir en hylla där du kan ställa lätta saker.",
+      "Skydden är 60 till 172 cm breda, 18 till 19 cm djupa och 81 till 95,5 cm höga. Det vita på 60 eller 90 cm finns i två bredder, och det längsta på 172 cm täcker ett långt element under ett fönster.",
+      "Elementskyddet i ekton har vågräta spjälor och två lådor i överkant, och gavlarna har ett förskuret urtag för golvlisten. Flera förankras i väggen med beslag, vältskydd eller väggclips som följer med.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mäter jag för ett elementskydd?",
+        a: "Mät elementets bredd, höjd och djup, inklusive rör och termostat, och jämför med skyddets innermått. Det vita på 112 cm har till exempel innermåttet 106,8 × 16,8 × 80,3 cm.",
+      },
+      {
+        q: "Minskar ett elementskydd värmen?",
+        a: "Något, eftersom skyddet står framför elementet. Den spjälade fronten släpper ändå igenom den varma luften, så värmen når rummet.",
+      },
+      {
+        q: "Hur mycket tål hyllan ovanpå?",
+        a: "På det vita skyddet på 60 eller 90 cm tål toppskivan 5 kg. Ställ bara lätta saker där, som några böcker, och torka upp spill direkt, eftersom MDF inte tål väta.",
+      },
+    ],
+  },
+
   elkaminer: {
     intro: [
       "En elkamin ger känslan av en brasa utan skorsten, ved eller aska. Lågorna är LED-ljus, och kaminen värmer rummet när du vill. Här samlar vi väggkaminer att hänga på väggen eller bygga in, fristående kaminer och konsolmodeller, en cylindrisk kamin och små elkaminer på ben.",
@@ -710,6 +756,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur förankras tältet?",
         a: "Markankare och spännlinor följer med, och ett av tälten har dessutom expanderskruvar för hårt underlag.",
+      },
+    ],
+  },
+
+  gnistskydd: {
+    intro: [
+      "Här hittar du gnistskydd, också kallade brasskärmar, som ställs framför den öppna spisen och fångar gnistor och glöd som flyger ut ur elden. De står fritt och flyttas undan när du lägger in ved.",
+      "De flesta har tre paneler, där sidopanelerna vinklas bakåt så att skyddet står stadigt och täcker även åt sidorna. Bredden är 96 till 141 cm och höjden 50 till 81 cm, så mät spisens öppning innan du väljer.",
+      "Ett gnistskydd är guldfärgat och har dubbeldörrar i mitten, och ett har handtag och en välvd mittpanel. Gnistskyddet i smidesdesign på 128 cm levereras färdigmonterat, och flera går att fälla ihop när de inte används.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stort gnistskydd behöver jag?",
+        a: "Skyddet ska vara bredare och högre än spisens öppning, så att det täcker hela eldstaden. Ett tredelat skydd tar mindre bredd när det vinklas: det som är 114 cm brett utfällt spänner 108 cm vinklat.",
+      },
+      {
+        q: "Vad är skillnaden mellan gnistskydd och brasskärm?",
+        a: "Ingen, det är två namn på samma sak: en skärm av metall som ställs framför en öppen eld och tar emot gnistorna.",
+      },
+      {
+        q: "Blir gnistskyddet varmt?",
+        a: "Ja, metallen blir varm när den står nära elden. Låt skyddet svalna innan du flyttar det, och håll barn och husdjur borta från det medan det brinner.",
       },
     ],
   },
@@ -893,6 +962,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur fungerar den automatiska hönsluckan?",
         a: "Den öppnar på morgonen och stänger på kvällen av sig själv. Du styr den med timer eller den inbyggda ljussensorn och kan öppna den manuellt med fjärrkontrollen.",
+      },
+    ],
+  },
+
+  hornskrivbord: {
+    intro: [
+      "Här hittar du hörnskrivbord som tar vara på ett hörn i rummet. De flesta är L-formade med en stor och en mindre skiva, så att du har datorn på den ena och papper eller en andra skärm på den andra.",
+      "Fyra har eluttag och USB i bordet, så att datorn och telefonen laddas vid skrivbordet. Två av dem har ett hylltorn med fem plan, ett har tre lådor, och gamingbordet har ett skärmställ för två skärmar upp till 42 tum. Flera har ett skärmställ som höjer skärmen.",
+      "Två kan byggas om till raka skrivbord. Det ena blir 240 cm långt, och det andra blir 150 cm och vrids på stället mellan hörnläge och rakt läge. Hörnskrivbordet på 150 × 150 cm har två lika stora arbetsytor på 90 × 55 cm.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stort hörn behöver ett hörnskrivbord?",
+        a: "Mät längs båda väggarna. Gamingbordet tar 128 × 128 cm, bordet med tre lådor 170 × 100 cm och bordet med lika långa sidor 150 × 150 cm. Det vridbara skrivbordet tar 105 × 85 cm i hörnläge.",
+      },
+      {
+        q: "Hur mycket tål skrivbordet?",
+        a: "Det skiljer mellan modellerna. Gamingbordet tål 45 kg totalt, och borden med hylltorn tål 135 kg totalt och 50 kg per bordsskiva.",
+      },
+      {
+        q: "Har hörnskrivborden förvaring?",
+        a: "De flesta har det. Två har ett hylltorn med fem plan, ett har tre lådor och fyra hyllor, ett har hyllor och ett datorställ, och det vridbara skrivbordet har också förvaring. Hörnskrivbordet på 150 × 150 cm har bara arbetsytor.",
       },
     ],
   },
@@ -1494,6 +1586,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  matgrupper: {
+    intro: [
+      "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. Sex är tredelade med ett bord och två stolar, och fyra är femdelade med ett bord och fyra stolar.",
+      "De små grupperna passar i köket eller i en liten lägenhet: ett kvadratiskt bord på 60 cm, ett på 70 × 70 cm, ett smalt bord på 90 × 47 cm och ett ovalt bord på 80 cm med en hylla under skivan. Klaffbordet fälls ut från 70 till 110 cm, och i en av grupperna har stolarna stoppad klädsel.",
+      "Grupperna för fyra har bord på 100 till 120 cm: två i MDF och metall, ett glasbord med stolar i konstläder och ett bord med stolar i furu.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket plats behöver en matgrupp?",
+        a: "Räkna med bordets mått plus utrymme att dra ut stolarna. För glasbordet för fyra anges en golvyta på 180 × 170 cm, och för gruppen med bord på 80 × 60 cm minst 2,5 kvadratmeter.",
+      },
+      {
+        q: "Hur höga är bordet och stolarna?",
+        a: "Borden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 47,5 cm där den anges. Det är vanlig höjd för ett matbord. Ett barbord är runt 90 cm.",
+      },
+      {
+        q: "Hur mycket bär stolarna?",
+        a: "Mellan 100 och 120 kg per stol där maxlasten anges, och de flesta bär 120 kg. Borden tål mellan 30 och 100 kg.",
+      },
+    ],
+  },
+
+  "miniugnar-airfryers": {
+    intro: [
+      "Här hittar du miniugnar och bänkugnar för köksbänken, och miniugnar med frityrkorg som fungerar som airfryer. De rymmer från 9 till 36 liter och tar mindre plats än en vanlig ugn, så de passar i ett litet kök eller som en extra ugn.",
+      "Sju av ugnarna har frityrkorg och varmluft. Maten ligger i korgen och den varma luften cirkulerar runt den, så att den blir krispig med betydligt mindre olja än i en vanlig fritös. Ugnarna med frityrkorg rymmer från 10 till 36 liter.",
+      "De vanliga miniugnarna har timer och flera har tre värmelägen: övervärme, undervärme eller båda. Två bänkugnar har två kokplattor ovanpå, så att du kan koka och baka samtidigt, och tre ugnar har grillspett.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Är en varmluftsfritös samma sak som en airfryer?",
+        a: "Ja, varmluftsfritös är det svenska ordet för airfryer. Här är funktionen inbyggd i en miniugn: maten ligger i en frityrkorg och varm luft blåser runt den. Samma ugn bakar också, och flera av dem kan grilla.",
+      },
+      {
+        q: "Hur stor miniugn behöver jag?",
+        a: "Titta på innermåttet och på bakplåten. Ugnen på 9 liter tar en bakplåt på 25 × 20 cm, medan ugnarna på 36 liter har en bakplåt på 37,8 × 28 cm. Innermåtten står i varje beskrivning.",
+      },
+      {
+        q: "Hur varm blir en miniugn?",
+        a: "Upp till 230 °C på de ugnar där temperaturen anges, och flera börjar redan på 80 eller 90 °C. Timern går upp till 60 minuter på de flesta.",
+      },
+    ],
+  },
+
   mobiltillbehor: {
     intro: [
       "Ett tillbehör som passar är skillnaden mellan en bra dag och en tom telefon. I Mobiltillbehör hittar du prisvärda laddare, kablar och skydd för vardagen — sådant som helst ska funka utan att man tänker på det.",
@@ -1554,6 +1692,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur sätts ett svävande nattduksbord upp?",
         a: "Det skruvas fast direkt i väggen, med skruv och plugg som passar väggens material. Kontrollera maxlasten i beskrivningen innan du ställer tunga saker på det.",
+      },
+    ],
+  },
+
+  oronlappsfatoljer: {
+    intro: [
+      "Här hittar du öronlappsfåtöljer, fåtöljer med hög rygg och sidostycken i huvudhöjd som ger stöd när du lutar dig åt sidan. Här finns också två gungstolar och en uppresningsfåtölj med samma rygg.",
+      "Sex av fåtöljerna har samma form: 102 cm höga, 74 cm breda, med knappad rygg och en maxlast på 160 kg. De finns i grått, grå sammet, cremevit flanell, blått, mörkgrått och brunt. På den mörkgrå och den bruna går klädseln att ta av och tvätta, och på den blå går sitsdynans överdrag att tvätta.",
+      "Två fåtöljer har ländkudde: den gula med fotpall och den beige i linnelook, som är 110 cm hög och står på ben i gummiträ. Gungstolarna i fleece har fotpall, nackkudde och ryggkudde, och uppresningsfåtöljen har två motorer och fälls till 155 grader.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är en öronlappsfåtölj?",
+        a: "En fåtölj med hög rygg och sidostycken i överkant, öronlapparna, som ger stöd åt huvudet när du lutar dig åt sidan. Öronlappsfåtöljerna här är 102 till 110 cm höga.",
+      },
+      {
+        q: "Hur mycket bär en öronlappsfåtölj?",
+        a: "Sex av dem bär 160 kg. De andra fåtöljerna, gungstolarna och uppresningsfåtöljen bär 120 kg.",
+      },
+      {
+        q: "Går klädseln att tvätta?",
+        a: "På den mörkgrå och den bruna öronlappsfåtöljen går klädseln att ta av och tvätta i maskin, och på den blå går sitsdynans överdrag att tvätta. Hur de andra sköts står under Användning och skötsel i varje beskrivning.",
       },
     ],
   },
@@ -1759,6 +1920,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "skarmtak-entretak": {
+    intro: [
+      "Här hittar du skärmtak och entrétak som monteras på väggen ovanför ytterdörren eller ett fönster och skyddar mot regn. Takskivan är av polykarbonat, en slagtålig plast, och på de flesta är den genomskinlig så att entrén inte blir mörk.",
+      "De minsta är 100 till 122 cm breda och passar över en enkeldörr eller ett fönster. Entrétaket på 195 cm räcker över en dubbeldörr, och de två längsta är 295 och 303 cm.",
+      "Entrétaken på 122 och 195 cm har en takskiva av hålkammarplast på 5 mm och levereras med expanderbultar och täckproppar. Skärmtaket på 110 × 60 cm hänger på två väggkonsoler utan stolpe, anges för en snölast på 5 cm och ska sitta minst 30 cm ovanför öppningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur brett skärmtak ska jag välja?",
+        a: "Välj ett tak som är bredare än dörren, så att det skyddar även när du står och letar efter nycklarna. För en enkeldörr finns tak på 100 till 122 cm, och för en dubbeldörr entrétaket på 195 cm.",
+      },
+      {
+        q: "Hur monteras ett skärmtak?",
+        a: "Det skruvas fast i väggen med konsoler. Till entrétaken följer expanderbultar med, och monteringen kräver att du borrar i fasaden. Skärmtaket på 110 × 60 cm ska sitta minst 30 cm ovanför dörr- eller fönsteröppningen.",
+      },
+      {
+        q: "Vad är polykarbonat?",
+        a: "En slagtålig plast som väger mycket mindre än glas, så att taket kan hänga på väggkonsoler. Skärmtaket för dörr och fönster på 100 × 75 cm har ett UV-skikt som skyddar skivan mot solen.",
+      },
+    ],
+  },
+
   "skoskap-skobankar": {
     intro: [
       "Skor vid ytterdörren blir snabbt en hög. Här samlar vi skoskåp med tippfack eller luckor, skobänkar att sitta på medan du knyter skorna, öppna skohyllor och skoställ, och hallmöbler där skohylla, sittplats och krokar sitter ihop.",
@@ -1782,6 +1966,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  snurrfatoljer: {
+    intro: [
+      "Här hittar du snurrfåtöljer som vrids 360 grader, på ben eller på en fot i mitten. Sju av dem har en fotpall, och två är reclinerfåtöljer vars rygg fälls bakåt.",
+      "Tre snurrfåtöljer i linnelook har gaslyft, så att sitsen ställs mellan 45 och 57 cm, och de står på en rund kromad fot utan hjul. Fåtöljerna med lös fotpall på rund stålfot bär 150 kg, och på dem snurrar sitsen ovanpå foten. Fyra snurrfåtöljer med knappad rygg är 60 cm breda och passar där det är ont om plats.",
+      "Den armlösa snurrfåtöljen i chenille har en 35 cm tjock sittdyna, och på fåtöljen med höjdjusterbar fotpall snurrar både stolen och pallen. Fåtöljen i konstläder har en rygg som låses i önskad vinkel med ett vred.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket plats behöver en snurrfåtölj?",
+        a: "Eftersom stolen vrids behövs utrymme runt om, inte bara framför. Fåtöljerna med lös fotpall tar 71 × 69 cm i golvyta men blir 93 cm djupa när ryggen fälls, och reclinerfåtöljen med snurrfot behöver 80 cm fritt bakom sig.",
+      },
+      {
+        q: "Hur mycket bär en snurrfåtölj?",
+        a: "Nio av dem bär 120 kg. Snurrfåtöljerna med gaslyft bär 136 kg, och fåtöljerna med lös fotpall och reclinerfåtöljen med snurrfot bär 150 kg.",
+      },
+      {
+        q: "Kan fåtöljen fällas bakåt?",
+        a: "Flera kan det. Reclinerfåtöljen med snurrfot fälls till 130 grader, fåtöljen i konstläder låses med ett vred i den vinkel du vill ha, och fåtöljerna med lös fotpall har ett bakåtlutat läge.",
+      },
+    ],
+  },
+
   "solskydd-paviljonger": {
     intro: [
       "Tak och skugga över uteplatsen gör den användbar i både sol och regn. Här samlar vi paviljonger, pop up-tält och partytält, reservtak till paviljonger och pergolor, parasoll med fot och vikter, markiser och skärmtak i polykarbonat.",
@@ -1801,6 +2008,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vilken parasollfot behöver jag?",
         a: "Det finns parasollfötter i cement på 12 kg, en fot för markmontering och vikter till hängparasoll. Kontrollera att foten passar parasollets stång.",
+      },
+    ],
+  },
+
+  soptunnor: {
+    intro: [
+      "Här hittar du soptunnor för köket: sensortunnor som öppnar locket när du håller handen över dem, pedaltunnor med mjukstängande lock, sopsorteringskärl med två eller tre fack och utdragbara sopsorterare som sitter i köksskåpet.",
+      "Sensortunnorna rymmer från 20 till 68 liter och finns i rostfritt stål eller i svart. De flesta går på fyra AA-batterier och några på fyra D-batterier, och batterierna ingår inte. På flera går locket också att öppna med en knapp. Sopsorteringstunnan med sensor har ett stort fack på 47 liter och två mindre under.",
+      "Sopsorteringskärlen har två fack på 15 till 30 liter eller tre fack på 15 eller 20 liter, och på flera har varje fack en egen pedal. Flera har ett fack för doftblock eller luktfilter i locket. Behöver du en smal tunna finns en som är 40 cm bred och en som är 30 cm djup. De utdragbara sopsorterarna har två eller tre fack och dras ut ur köksskåpet.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur fungerar en soptunna med sensor?",
+        a: "En sensor i locket känner av handen och öppnar locket, och efter några sekunder stänger det sig självt. Räckvidden är 15 till 20 centimeter på de tunnor där den anges. Tunnan går på batterier som inte ingår, så köp dem samtidigt.",
+      },
+      {
+        q: "Hur många fack behöver jag för sopsortering?",
+        a: "Två fack räcker för matavfall och restavfall, och med tre fack får förpackningarna ett eget. Facken är ofta lika stora medan soporna inte är det, så det fack som fylls först bestämmer hur ofta du tömmer. Den utdragbara sopsorteraren med tre fack har ett stort fack på 15 liter och två på 8 liter.",
+      },
+      {
+        q: "Ryms en utdragbar sopsorterare i mitt köksskåp?",
+        a: "Mät skåpets insida och jämför med ramens mått i beskrivningen. Ramen är 47 × 33 × 32 cm på den med tre fack och 52 × 26 × 40,8 cm på dem med 20 plus 10 liter. Tre av dem levereras förmonterade, och den med tre fack skruvas fast i skåpbotten med skruvarna som följer med.",
       },
     ],
   },

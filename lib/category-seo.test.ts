@@ -70,6 +70,8 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // Runda S12 lade till massagebänkar. Massage & Återhämtning och Kropp &
 // Välbefinnande hade båda "Massagebänkar" i titeln och tog uppresningsfåtölj
 // och kontorsstol med massage respektive rollator, ljusterapilampa och sittdyna.
+// Runda S13 lade till soptunnor, miniugnar och airfryers, barbord, snurrfåtöljer,
+// öronlappsfåtöljer, matgrupper, hörnskrivbord, skärmtak, gnistskydd och elementskydd.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -89,6 +91,9 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /sminkbord/i, /barngarderob/i, /projektorduk/i,
     /massagebänk/i, /behandlingsbänk/i, /uppresningsfåtölj/i, /kontorsstol med massage/i,
     /rollator/i, /ljusterapi/i, /sittdyna/i,
+    /soptunn/i, /sopsortering/i, /miniugn/i, /airfryer/i, /varmluftsfritös/i, /barbord/i,
+    /bardisk/i, /snurrfåtölj/i, /öronlappsfåtölj/i, /matgrupp/i, /hörnskrivbord/i,
+    /skärmtak/i, /entrétak/i, /gnistskydd/i, /elementskydd/i, /radiatorskydd/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

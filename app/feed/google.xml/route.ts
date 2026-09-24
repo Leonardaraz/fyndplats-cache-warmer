@@ -187,6 +187,20 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   // Runda S12 (2026-09-24), samma kontroll. Massage & Återhämtning och
   // Kropp & Välbefinnande behåller 469: de blandar stolar, bänkar och hjälpmedel.
   massagebankar: 2074,              // … > Massage & Relaxation > Massage Tables (sv: Massagebord)
+  // Runda S13 (2026-09-24), samma kontroll. Barbord får Kitchen & Dining Room
+  // Tables: de flesta är set, och Google klassar ett set efter huvudprodukten.
+  // Matgrupper har en egen setnod. Skärmtak saknar egen nod; Awnings är
+  // närmast (sv-etiketten är Markiser).
+  soptunnor: 637,                   // … > Waste Containment > Trash Cans & Wastebaskets
+  "miniugnar-airfryers": 761,       // … > Toasters & Grills > Countertop & Toaster Ovens
+  barbord: 4355,                    // Furniture > Tables > Kitchen & Dining Room Tables
+  snurrfatoljer: 6499,              // Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs
+  oronlappsfatoljer: 6499,          // samma nod
+  matgrupper: 6347,                 // Furniture > Furniture Sets > Kitchen & Dining Furniture Sets
+  hornskrivbord: 4191,              // Furniture > Office Furniture > Desks
+  "skarmtak-entretak": 499907,      // … > Lawn & Garden > Outdoor Living > Awnings
+  gnistskydd: 2365,                 // … > Fireplace & Wood Stove Accessories > Fireplace Screens
+  elementskydd: 7110,               // … > Household Appliance Accessories > Heating Radiator Accessories
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler
