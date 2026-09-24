@@ -143,12 +143,44 @@ Den följer alltså med **#647 i EN deploy** 2026-09-25, i stället för en egen
 
 - **Testet för unika huvudsökord** har elva ord till.
 - **/butik** länkar till de nya sidorna via `MAIN_GROUPS`.
-- **Kontroller:** `npm test` 781 av 781. `tsc` gav samma 75 fel före och
+- **Kontroller:** `npm test` 781 av 781 (782 efter belysningsrättelsen, avsnitt 5). `tsc` gav samma 75 fel före och
   efter; alla fanns redan och alla ligger i testfiler. `eslint` rent.
 
 ## 5. Förhandsbygget
 
-(fylls i)
+`dpl_Fx34qYP3QKEyVU2tjpeBSXwZsPvH` (commit `6608dc65`) blev `READY` efter 166
+sekunder. Alla 13 sidor hämtades och jämfördes med källfilerna med
+`previewkoll.py`, som kontrollerar status, `<title>`, metabeskrivning, varje
+introstycke, varje FAQ och antalet frågor i JSON-LD.
+
+**12 av 13 var lika källan.** Den trettonde var Belysning, och felet fanns
+redan live:
+
+☠️ **Butiken visar kategoritexten som REN TEXT** (`<p>{para}</p>` i
+`app/kategori/[slug]/page.tsx`). Introstycket om sockel, IP-klass och lumen
+hade `**Sockeln**`, `**IP-klassen**` och `**Ljusmängden**`, och asteriskerna
+syntes på sidan. Det har de gjort på www.fyndplats.se sedan #400
+(2026-08-12), uppmätt samma natt. Styckets text togs oförändrad in i rundan
+och bar därför med sig felet.
+
+Kontrollen fällde av en slump: den strippade `**` ur KÄLLAN men inte ur sidan.
+Syftet var att tolerera fetstil. Utfallet var att den fångade att fetstilen
+aldrig renderas.
+
+- **Rättat** i `belysning-text.json`. Orden är desamma; bara markeringarna är
+  borta. Butiksraden är byggd ur filen med ett skript (`a5bafa95`).
+- **Grindat på två ställen**, eftersom en regel utan grind glider:
+  - `gate-kategori.py` fäller på markup (`**`, `_`, `` ` ``, `<tagg>`,
+    `[länk](…)`, `&entitet;`, `#`-rubrik). Alla 42 befintliga kategoritexter
+    går igenom. Åtta planterade fel ger åtta fynd, och utan kollen går den
+    gamla belysningstexten RENT igenom.
+  - Butikstestet `kategoritexterna bär ingen markup` i `category-seo.test.ts`
+    täcker titel, beskrivning, intro och FAQ för alla kategorier. Med den
+    gamla raden återinförd fäller det, och bara det. `npm test` 782 av 782.
+- `jamfor.mts` efter rättelsen: **S7 13 av 13 och S6 12 av 12** lika källan.
+
+Rättelsen verifieras i nästa förhandsbygge, tillsammans med det som mer
+följer med i samma push.
 
 ## 6. Live
 

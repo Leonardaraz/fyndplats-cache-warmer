@@ -9,6 +9,10 @@ exakt de två poster som läggs i `lib/category-seo.ts` och
 - husets GRINDAR ur gatelib (husmärke, artikelnummer, fraktland, leverantör,
   tyska rester, stavning, homoglyfer, EN-norm),
 - teckenlistan (TILLATNA_TECKEN),
+- markup: butiken visar intro och FAQ som REN TEXT (`<p>{para}</p>`,
+  `<dd>{f.a}</dd>`), så `**fet**`, `<strong>`, `[länk](…)` och `&nbsp;` syns
+  ordagrant för kunden. Uppmätt på /kategori/belysning 2026-09-24:
+  `**Sockeln**` hade stått med asteriskerna sedan 2026-08-12,
 - superlativ i samma mening som ett omfång ("smalast av våra"),
 - och butikstesternas längdkrav (`category-seo.test.ts`): titel ≤ 48 + suffix,
   beskrivning 110–165, intro ≥ 90 ord, minst två frågor.
@@ -34,11 +38,16 @@ texter += [(f"intro[{i}]", t) for i, t in enumerate(d["content"]["intro"])]
 for i, f in enumerate(d["content"]["faq"]):
     texter += [(f"faq[{i}].q", f["q"]), (f"faq[{i}].a", f["a"])]
 
+# Butiken renderar texterna som ren text; allt här syns ordagrant för kunden.
+MARKUP = re.compile(r"\*+|`+|_+|<[^>]*>|\[[^\]]*\]\([^)]*\)|&[A-Za-z0-9#]+;|^#{1,6}\s", re.M)
+
 fynd = []
 for namn, t in texter:
     for etikett, monster in G.GRINDAR:
         for m in re.finditer(monster, t):
             fynd.append(f"{namn}: {etikett} {m.group(0)!r}")
+    for m in MARKUP.finditer(t):
+        fynd.append(f"{namn}: MARKUP {m.group(0)!r} (butiken visar ren text)")
     for ch in t:
         if ord(ch) > 127 and ch not in G.TILLATNA_TECKEN:
             fynd.append(f"{namn}: TECKEN {ch!r} U+{ord(ch):04X}")

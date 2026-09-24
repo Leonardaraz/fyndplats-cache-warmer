@@ -1,6 +1,6 @@
 {
  "slug": "belysning",
- "andring": "omtitel: golvlamporna har egen sida (golvlampor), och Belysning tar taklampor och bordslampor. intro[1] och alla tre FAQ är oförändrade från 1914cb2e. Slutraden om EU-lager och leveranstid är utbytt mot rundans standardrad, eftersom gatelib fäller fraktland.",
+ "andring": "omtitel: golvlamporna har egen sida (golvlampor), och Belysning tar taklampor och bordslampor. intro[1] och alla tre FAQ är oförändrade i sak från 1914cb2e, men intro[1] har tappat sina markdown-asterisker: butiken visar texten som ren text, så **Sockeln**, **IP-klassen** och **Ljusmängden** syntes med asteriskerna live. Slutraden om EU-lager och leveranstid är utbytt mot rundans standardrad, eftersom gatelib fäller fraktland.",
  "seo": {
   "title": "Taklampor, bordslampor & LED-belysning",
   "description": "Taklampor i glas, kristall och linne, bordslampor i keramik och trä, LED-björkar, vägglampor för utomhus och LED-armatur till garaget. Sockel och IP-klass anges."
@@ -8,7 +8,7 @@
  "content": {
   "intro": [
    "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
-   "Tre saker avgör valet. **Sockeln** måste matcha lampan du tänkt använda (E27 är vanligast). **IP-klassen** talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. **Ljusmängden** mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
+   "Tre saker avgör valet. Sockeln måste matcha lampan du tänkt använda (E27 är vanligast). IP-klassen talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. Ljusmängden mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
    "Taklamporna finns med glaskulor, i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
    "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
   ],
