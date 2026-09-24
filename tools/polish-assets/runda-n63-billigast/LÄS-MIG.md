@@ -98,3 +98,9 @@ bilden på vit botten, en miljöbild och måttbilden.
   fyra och kategorier för alla nio rader, bland dem Juldekoration.
 - Skrivningen (körning 35984650238) svarade "Verifierade 4 av 4, stämplade 4,
   stämpelfel 0".
+- Live-kontrollen läste alla fyra sidor med HTTP 200. `age` var 134–135,
+  alltså renderingar efter skrivningen. `livegrind.py` gav 0 avvikelser i den
+  publicerade texten, och `livekoll.py` gav 4 av 4 OK med rätt brödsmula och
+  oförändrat pris. Alla 17 alt-texter står på sidorna.
+- Läcktestet och kopiegrinden har noll rader om rundan. De två fel testerna
+  ger gäller huvudseriens äldre rundor och fanns redan.
