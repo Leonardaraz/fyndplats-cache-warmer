@@ -1717,3 +1717,44 @@ beslut — se den samlade frågan om detta.
   över hela katalogen direkt efter N62 (6 067 produkter, 2 647 utkast) gav
   23 utkast under 3000 kr som ingen runda rört, alla på katalogens första 13
   sidor. De står i runda N62:s LÄS-MIG, och nästa runda tar dem. (N62)
+- Familjer som redan är täckta, hoppade på namnet bland de 23 utkast som
+  ingen runda hade rört: sidobord och satsbord (39 publicerade sidor med
+  sidobord i namnet, bland dem sidoborden med laddstation `30fe3828` och
+  `d9b52d27` och sidoborden i C-form `e01513c6`, `46c0fe07` och `c788becf`):
+  `97b1d071`, `a32ca919`, `98b6eb87`, `1db2d56f`, `efa4b5d6`, `5e5ede44`,
+  `6d064139`, `2f1fc319`, `9a880464` och `80743d8f`; soffbord (14 soffbord
+  och satsbord, räknat i N60): `836163cd`; bokhyllor (24 bokhyllor):
+  `c8de34ad`; pallar, fotpallar och sittpuffar: `47da978f`, `315d571c`,
+  `93ea6c3f`, `06375f5f`, `38a5ded1`, `be193739` och `b1cd2e69`; julgranar
+  (68 publicerade sidor med julgran i namnet): `6c54c9c3` och `7a5e5c31`.
+  (N63)
+- Samma slag som en produkt i rundan, hoppad: gatlyktan för jul med varmvita
+  LED `7c18b805` (1179 kr). Den har samma mått, 43 × 43 × 150 cm och 6,1 kg,
+  som rundans `c0c2822f` (1029 kr), men varmvitt ljus, 159 grenspetsar och
+  grönt ris utan snö. Den kan tas i en senare runda om varmvitt ska finnas
+  vid sidan av den flerfärgade. (N63)
+- Jul- och vintervaror prövade i N63 och hoppade: julgirlangen `0b34e594`
+  har saldo 2; de uppblåsbara julfigurerna `709c228d`, `66bc1de2`,
+  `ae7484b4`, `fe8e2baa`, `8c983973` och `68760ab6` hör till en täckt familj
+  (62 publicerade sidor med uppblåsbar i namnet, bland dem 15 uppblåsbara
+  tomtar); adventskalendrarna `da2ffdde`, `af1c3932` och `0b361be7` träffade
+  publicerade adventskalendrar i tidigare skärmar (N46 och N54); julgranarna
+  `792562e3`, `7727e1bf`, `520cc521`, `dad09721`, `80cb11ed`, `63fcc340`,
+  `020ce8ea`, `f39ef57c`, `1204b022`, `2f01cebe`, `c54ef786`, `4311dbed`,
+  `2c5388f7`, `5d0d95d1` och `8763f8d0` hör till en täckt familj (68
+  publicerade sidor med julgran i namnet). (N63)
+- Jul- och vintervarorna togs i N63 och inte i oktober som N60 skrev: en
+  sida som publiceras i slutet av september hinner indexeras före julhandeln
+  i november. Gatlyktan `c0c2822f` och snöskyffeln `60e250d4` publicerades;
+  snöskyffeln är den andra i katalogen (den publicerade `33cf9b15` är en
+  skyffel på 45 cm utan hjul). (N63)
+- Skärmens träffar som räknades som brus och inte fällde: toalettpallen
+  `fa1fdcbf` mot ett väggklösträd och bambuhyllan `071dbdf8` mot en köksvagn
+  i bambu och ett set balansstenar, slumpträffar på mått mellan olika slags
+  varor. (N63)
+- Efter N63 är poleringskön tom med de regler som gäller. Mätningen direkt
+  efter N62:s skrivning (6 067 produkter, 2 647 utkast) gav 23 utkast som
+  ingen runda hade rört, och N63 har publicerat eller hoppat alla 23 med ett
+  skäl. Det som återstår är nattens nya importer och de grupper som hoppats
+  med skäl: täckta familjer, säsongsvaror för trädgård och utelek,
+  djurbostäder och varor med märke. (N63)
