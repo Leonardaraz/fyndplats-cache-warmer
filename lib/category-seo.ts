@@ -190,6 +190,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
   },
+  "grill-utekok": {
+    title: "Gasolgrill, kolgrill, plancha & kylbox",
+    description:
+      "Gasolgrillar med två till fem brännare, kolgrillar, planchor med regulator och slang, grillvagnar och kylboxar som håller kylan upp till 72 timmar.",
+  },
   "gunghastar-gungdjur": {
     title: "Gunghäst för barn – i trä och plysch med ljud",
     description:
@@ -335,20 +340,55 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
   },
+  "solskydd-paviljonger": {
+    title: "Paviljong 3x3, paviljongtak & pop up-tält",
+    description:
+      "Paviljonger och pop up-tält från 3 × 3 till 6 × 3 m, paviljongtak i 3 × 3 och 3 × 4 m, partytält, parasoll med fot, markiser och skärmtak i polykarbonat.",
+  },
   "sparkcyklar-for-barn": {
     title: "Sparkcykel för barn – stora hjul och broms",
     description:
       "Sparkcyklar för barn från 18 månader till 12 år – med stora hjul på upp till 16 tum, broms och justerbart styre, med luftdäck eller punkteringsfria hjul.",
+  },
+  "terrassvarmare-infravarmare": {
+    title: "Terrassvärmare & infravärmare – 2000 och 2500 W",
+    description:
+      "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg, tak och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg.",
+  },
+  "tradgardsdekor-belysning": {
+    title: "Solcellslampor, trädgårdsfontäner & dekor",
+    description:
+      "Solcellslampor och solcellslyktor för trädgården, trädgårdsfontäner med pump, fågelmatare med kamera, spaljéer och blomställ – och säsongsdekor.",
+  },
+  "tradgardsskotsel-bevattning": {
+    title: "Slangvagn, kompostkvarn & trädgårdsredskap",
+    description:
+      "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, droppslang, kompostkvarn på 2500 W, gödselspridare, lövblås, häcksax och gräsklippare.",
   },
   "traning-gym": {
     title: "Träningsutrustning hemma – hantlar & gym",
     description:
       "Hantelset, hexhantlar, motionscyklar och studsmattor till hemmagymmet. Vikt och maxbelastning anges alltid. Fri frakt över 499 kr, Klarna.",
   },
+  "utelek-spel": {
+    title: "Studsmatta för barn, basketkorg & gungor",
+    description:
+      "Utelek för trädgården: studsmattor för barn med skyddsnät, basketkorgar och basketställ, gungställning och gungor, sandlådor, hoppborg och bollnät.",
+  },
+  utemobler: {
+    title: "Utemöbler – loungeset, trädgårdsbänk & hängstol",
+    description:
+      "Utemöbler för altan, balkong och trädgård: loungeset i konstrotting, trädgårdsbänkar och bord, matgrupper, hängstolar med stativ, solsängar och dynboxar.",
+  },
   "vaskor-necessarer": {
     title: "Väskor & necessärer",
     description:
       "Väskor och necessärer med smart förvaring för resan och vardagen. Mått och material anges i beskrivningen. Leverans 3–7 dagar, öppet köp.",
+  },
+  "vaxthus-odling": {
+    title: "Tunnelväxthus, väggväxthus & odlingslådor",
+    description:
+      "Tunnelväxthus och foliehus från 3 × 1 till 6 × 3 m, väggväxthus, växthus i aluminium och polykarbonat, drivbänkar och odlingslådor i metall och trä.",
   },
   "verktyg-hemmafix": {
     title: "Verktyg & hemmafix – vinschar och fräsar",

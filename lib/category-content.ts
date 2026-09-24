@@ -529,6 +529,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "grill-utekok": {
+    intro: [
+      "Grillen är samlingspunkten på altanen. Här samlar vi gasolgrillar, kolgrillar och planchor, grillvagnar och campingbord, kylboxar och kylvagnar för drycken, och tillbehör som grilltält och eldstadsverktyg. Eldkorgarna har en egen sida under Eldkorgar & eldstäder.",
+      "Gasolgrillarna har från två till fem brännare, och en plancha är en stekhäll som värms av gasolbrännare. Till både gasolgrillarna och planchorna följer regulator och slang med, så du behöver bara en gasolflaska. Kolgrillarna finns på vagn och på hjul, och som portabla och hopfällbara modeller.",
+      "Två av kylboxarna håller kylan i upp till 72 timmar på is, den ena helt utan el, och flera kylboxar och kylvagnar står på hjul.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Ingår regulator och slang?",
+        a: "Ja, till både gasolgrillarna och planchorna ligger regulator och slang i kartongen. Gasolflaskan köper du separat.",
+      },
+      {
+        q: "Hur länge håller kylboxen kylan?",
+        a: "Det beror på modell och på hur mycket is du lägger i. Den som håller längst klarar upp till 72 timmar på is, och tiden anges i produktbeskrivningen.",
+      },
+      {
+        q: "Kan jag grilla på en eldkorg?",
+        a: "Ja, flera av eldkorgarna har grillgaller. De finns under Eldkorgar & eldstäder.",
+      },
+    ],
+  },
+
   "gunghastar-gungdjur": {
     intro: [
       "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år.",
@@ -1158,6 +1181,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "solskydd-paviljonger": {
+    intro: [
+      "Tak och skugga över uteplatsen gör den användbar i både sol och regn. Här samlar vi paviljonger, pop up-tält och partytält, reservtak till paviljonger och pergolor, parasoll med fot och vikter, markiser och skärmtak i polykarbonat.",
+      "Är duken på paviljongen sliten behöver du inte byta hela paviljongen. Reservtaken finns i 3 × 3 och 3 × 4 m och sätts på den stomme du redan har, flera har en ventilerad topp så att varmluften slipper ut, och några är i Oxfordväv. Kontrollera stommens mått innan du beställer.",
+      "Ett pop up-tält fälls ut på några minuter, och flera har väggar eller myggnät. Vid kraftig vind eller storm ska tältet tas ner, och markisen vevas in när det blåser.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Passar paviljongtaket min paviljong?",
+        a: "Reservtaken finns i 3 × 3 och 3 × 4 m och sätts på den stomme du redan har. Kontrollera stommens mått och form innan du beställer.",
+      },
+      {
+        q: "Tål paviljongen blåst?",
+        a: "Förankra tältet ordentligt, och ta ner det vid kraftig vind eller storm. En markis ska vevas in när det blåser, oavsett väder.",
+      },
+      {
+        q: "Vilken parasollfot behöver jag?",
+        a: "Det finns parasollfötter i cement på 12 kg, en fot för markmontering och vikter till hängparasoll. Kontrollera att foten passar parasollets stång.",
+      },
+    ],
+  },
+
   "sparkcyklar-for-barn": {
     intro: [
       "En sparkcykel med stora hjul tar sig lätt över trottoarkanter och grus och passar både skolvägen och cykelbanan. Här samlar vi alla våra sparkcyklar för barn: modeller med hjul på 12–16 tum för barn från fem år, sparkcyklar med korg och stänkskärmar och trehjuliga sparkcyklar för de minsta, från 18 månader.",
@@ -1177,6 +1223,75 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur vet jag vilken storlek som passar?",
         a: "Utgå från barnets ålder och vikt: modellerna för 5–12 år bär 50 kg och de större 100 kg. Styrets höjd står i beskrivningen, till exempel 80–88 cm, och går att justera på nästan alla.",
+      },
+    ],
+  },
+
+  "terrassvarmare-infravarmare": {
+    intro: [
+      "En terrassvärmare gör altanen och balkongen användbar även en sval kväll. Här samlar vi fem elektriska värmare: en terrassvärmare på stativ på 2500 W, en terrassvärmare med oscillering, en takvärmare för terrassen och två infravärmare för vägg.",
+      "Karbonfiberröret på stativvärmaren värmer 10–15 m², och infravärmaren för vägg eller stativ 15–20 m². Effekten ställs i steg, upp till nio, med vred, touchpanel, fjärrkontroll eller app, och takvärmaren har timer på upp till 24 timmar.",
+      "Två av värmarna är IP65-klassade, och till en av dem följer ett skyddshölje för vintern. Infravärmaren med app bygger bara 8 cm ut från väggen och passar därför också på en smal balkong.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor yta värmer en terrassvärmare?",
+        a: "Det beror på effekt och placering. Stativvärmaren med karbonfiberrör värmer 10–15 m² och infravärmaren för vägg eller stativ 15–20 m².",
+      },
+      {
+        q: "Tål värmarna väder?",
+        a: "Två av dem är IP65-klassade, och till infravärmaren för vägg eller stativ följer ett skyddshölje för vintern.",
+      },
+      {
+        q: "Hur styr jag värmen?",
+        a: "Med vred, touchpanel, fjärrkontroll eller app beroende på modell. Infravärmaren för vägg ställs i nio steg från telefonen, och takvärmaren har timer på upp till 24 timmar.",
+      },
+    ],
+  },
+
+  "tradgardsdekor-belysning": {
+    intro: [
+      "Belysning och dekor gör trädgården trivsam även när det blir mörkt. Här samlar vi solcellslampor och solcellslyktor, en pollarlampa och en vägglampa, trädgårdsfontäner, fågelmatare, spaljéer och blomställ, en trädgårdsbro och en vedförvaringshylla – och uppblåsbara figurer och konstväxter, som också har egna sidor.",
+      "Solcellslamporna laddas av en solpanel och behöver ingen elkabel. De flesta är stänkskyddade, och hur länge de lyser beror på modellen: en laddar på sex timmar och lyser i åtta, en annan laddar på åtta och lyser i sex.",
+      "Trädgårdsfontänerna har en pump som cirkulerar vattnet, och en av dem har LED. Fågelmataren med kamera visar fåglarna i trädgården på nära håll, direkt i mobilen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur länge lyser en solcellslampa?",
+        a: "Det beror på modellen och på hur mycket sol panelen får. Ett exempel: en lampa laddar på sex timmar och lyser i åtta, en annan laddar på åtta och lyser i sex.",
+      },
+      {
+        q: "Tål solcellslamporna regn?",
+        a: "De flesta är stänkskyddade, flera enligt IP44, och pollarlampan är IP65-klassad.",
+      },
+      {
+        q: "Var hittar jag halloween- och julfigurerna?",
+        a: "De uppblåsbara figurerna ligger både här och på egna sidor, Halloweendekoration och Juldekoration. Konstväxterna finns samlade under Konstväxter.",
+      },
+    ],
+  },
+
+  "tradgardsskotsel-bevattning": {
+    intro: [
+      "Här samlar vi det som håller trädgården i ordning: slangvagnar, en väggmonterad slangvinda och droppslang för bevattningen, en elektrisk kompostkvarn och en kompostbehållare på 240 liter, gödselspridare och gräsmattsluftare, batteridriven lövblås, häcksax och gräsklippare, en transportvagn, en hopfällbar vattentank och trädgårdsskåp för redskapen.",
+      "De batteridrivna maskinerna slipper sladd. Lövblåsen levereras med två batterier, medan gräsklipparen är gjord för ett 36 V-batteri, så kontrollera vad som ingår innan du beställer.",
+      "Trädgårdsskåpen finns också under Redskapsbodar & förråd, där bodarna och förrådstälten ligger.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Ingår slang i slangvagnen?",
+        a: "En av slangvagnarna levereras med 45 m slang och munstycke, och den väggmonterade slangvindan rymmer 10 m. Kontrollera i produktbeskrivningen om slang ingår i den modell du väljer.",
+      },
+      {
+        q: "Vad gör en kompostkvarn?",
+        a: "Den maler ner grenar och trädgårdsavfall till mindre bitar. Vår elektriska kompostkvarn har en motor på 2500 W.",
+      },
+      {
+        q: "Vad är en droppslang?",
+        a: "En slang som släpper ut vatten längs hela sin längd och vattnar jorden runt häcken eller rabatten.",
       },
     ],
   },
@@ -1203,6 +1318,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "utelek-spel": {
+    intro: [
+      "Utelek får barnen ut i trädgården. Här samlar vi studsmattor för barn, basketkorgar för väggen och ett flyttbart basketställ, en gungställning, en fågelbogunga och en babygunga, sandlådor, en hoppborg med pool och rutschkana, bollnät för fotboll, badminton och volleyboll, och trädgårdsgolf för hela familjen.",
+      "Studsmattorna är gjorda för barn och finns i tre storlekar: sexkantiga på 122 cm, 140 cm utan fjädrar och Ø163 cm med skyddsnät. På 140-modellerna hänger hoppytan i elastiska band i stället för fjädrar.",
+      "Flera av basketkorgarna för väggmontering har en stötsäker ryggplatta och passar både barn och vuxna, och på det flyttbara basketstället ställs korghöjden mellan 156 och 210 cm. Gungställningen på 280 cm har två gungor.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken storlek på studsmatta passar?",
+        a: "Den minsta är sexkantig på 122 cm, 140 cm-modellerna har elastiska band i stället för fjädrar, och Ø163 cm har den största hoppytan och skyddsnät. Kontrollera ålder och maxvikt i produktbeskrivningen.",
+      },
+      {
+        q: "Går det att justera höjden på basketkorgen?",
+        a: "På det flyttbara basketstället ställs korghöjden mellan 156 och 210 cm. Korgarna för väggmontering sitter på den höjd du monterar dem.",
+      },
+      {
+        q: "Finns det sandlådor?",
+        a: "Ja, sandlådorna har en egen sida under Sandlådor, med modeller med soltak, lekkök och lekstuga.",
+      },
+    ],
+  },
+
+  utemobler: {
+    intro: [
+      "Utemöbler gör altanen, balkongen och trädgården till ett rum till. Här samlar vi loungeset och matgrupper, trädgårdsbord och trädgårdsstolar, trädgårdsbänkar i trä, metall och gjutjärn, hängstolar och gungbänkar, solsängar och solstolar, hammockar och dynboxar för dynorna.",
+      "De flesta möblerna tål att stå ute, men de får längre livslängd om du skyddar dem vid hårt väder och förvarar dem skyddat vintertid. Det finns skyddsöverdrag både för utemöbler och för hammock.",
+      "Hängstolarna har eget stativ, och flera rymmer två personer. Kontrollera maxvikten i produktbeskrivningen, och läs också vad som följer med: till en del loungeset och solsängar ingår dynor, medan andra möbler är gjorda för att användas utan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Kan utemöblerna stå ute hela året?",
+        a: "De tål att stå ute, men de håller längre om du skyddar dem vid hårt väder och förvarar dem skyddat vintertid. Det finns skyddsöverdrag för utemöbler och för hammock.",
+      },
+      {
+        q: "Ingår dynor?",
+        a: "Det varierar. Till en del loungeset och solsängar följer dynor med, medan andra möbler har flätad sits och används som de är. Vad som ingår står i produktbeskrivningen.",
+      },
+      {
+        q: "Var förvarar jag dynorna?",
+        a: "I en dynbox. Vi har dynboxar i stål på 295 och 350 liter, och förvaringsboxar på 93 och 253 liter.",
+      },
+    ],
+  },
+
   "vaskor-necessarer": {
     intro: [
       "En bra väska är den du slutar tänka på. I Väskor & Necessärer hittar du praktiska väskor och necessärer med smart förvaring, som sminkväskor i aluminium med lås, spegel och flera nivåer — ordning på plats i stället för att gräva i botten.",
@@ -1217,6 +1378,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad gäller vid retur?",
         a: "Du har 30 dagars öppet köp. Hör av dig till kundtjänst så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
+  "vaxthus-odling": {
+    intro: [
+      "Ett växthus ger plantorna ett skyddat ställe tidigt på våren och sent på hösten, och en odlingslåda gör det enkelt att odla även utan trädgårdsland. Här samlar vi tunnelväxthus och foliehus, väggväxthus mot husväggen, växthus i aluminium med polykarbonat, miniväxthus och drivbänkar, odlingslådor i metall, trä och plast, och blomställ, spaljéer och reservöverdrag.",
+      "Tunnelväxthusen och foliehusen har en duk av PE-plast, och de flesta har rullbar dörr och nätfönster. Vid kraftig vind ska växthuset förankras, och till flera av dem ingår jordankare, spännlinor och markpinnar. Växthusen i aluminium har väggar av polykarbonat och takfönster.",
+      "Odlingslådorna finns i galvaniserad metall, trä, träkomposit, plast och konstrotting, upp till 241 × 90 cm, och några har spaljé, foliekåpa eller fågelnät. Ett odlingsbord eller en upphöjd låda ger en arbetshöjd där du slipper böja dig ner till marken.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Måste tunnelväxthuset förankras?",
+        a: "Ja, vid kraftig vind ska det förankras eller ställas mot en vägg. Till flera av växthusen ingår jordankare, spännlinor och markpinnar – vad som ingår står i produktbeskrivningen.",
+      },
+      {
+        q: "Finns det reservöverdrag till växthusen?",
+        a: "Ja, det finns reservöverdrag till tunnelväxthus på 6 × 3 × 2 m och 3 × 2 × 2 m, ett reservhölje och en växthusduk på 300 × 200 cm.",
+      },
+      {
+        q: "Vad är en drivbänk?",
+        a: "En låg låda med genomskinligt lock, där du drar upp plantor tidigt på våren innan de planteras ut. De flesta av våra drivbänkar är i trä med lock av polykarbonat som fälls upp.",
       },
     ],
   },

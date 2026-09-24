@@ -129,6 +129,10 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   juldekoration: 596,
   konstvaxter: 6265,                // Decor > Artificial Flora
   "eldkorgar-eldstader": 2918,      // Lawn & Garden > Outdoor Living
+  // Två av Trädgårds underkategorier där hela sortimentet ryms i en smalare
+  // kategori; resten faller som förut tillbaka på tradgard-utemobler (536).
+  utemobler: 4299,                  // Furniture > Outdoor Furniture
+  "terrassvarmare-infravarmare": 2649, // … > Climate Control Appliances > Patio Heaters
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler
