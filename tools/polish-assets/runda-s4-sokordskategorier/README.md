@@ -162,4 +162,71 @@ avgör vilken sida som tävlar.
 
 ## 6. Live
 
-Fylls i efter merge och ISR.
+PR #646 mergades 2026-09-24 (`9c5c8b34`, `dpl_CsasozhJWhmfnubiNQWByTCTZxH6`).
+Den nya titeln syntes på `/kategori/klostrad` 120 sekunder efter merge.
+
+☠️ **Det blev dagens TREDJE butiksdeploy, inte den andra.** Julgranarna (#645)
+byggdes först, och #641 från en annan session byggdes däremellan. Jag räknade
+bara mina egna och läste inte deployment-listan före merge. Regeln i
+`CLAUDE.md` säger att man ska räkna byggen i listan, och den gäller även för
+butiken.
+
+**Klösträden flyttades ur Lek & Tillbehör precis före merge.** Det var 103
+stycken, inte 106: tre av de 106 låg aldrig i den kategorin. Bulk-svaret gav
+103 lyckade, 0 fel och 0 odetaljerade. En separat återläsning visade Lek &
+Tillbehör 62 och Klösträd 106, med noll överlapp. De fyra produkter i Lek som
+bär sisal är kattbäddar och husdjurstrappor och ligger kvar.
+
+**Förhandsbygget och live gav samma utfall.** Alla 16 sidor hämtades och
+jämfördes mot `<slug>-text.json` med `livekoll.py`:
+
+| kontroll | utfall |
+|---|--:|
+| `<title>` = källans titel + ` \| Fyndplats` | 16/16 |
+| metabeskrivning ordagrant | 16/16 |
+| brödtextens stycken på sidan | 4/4 på varje sida |
+| FAQ, fråga och svar | 3/3 på varje sida |
+| FAQPage-JSON-LD, antal frågor | 3 på varje sida |
+| brödsmula *Hem / Butik / förälder / sida* | 16/16 |
+
+Antal produkter per sida live, efter butikens egna filter (slutsålda döljs
+och bilddubbletter slås ihop):
+
+| sida | kopplade i Wix | visas |
+|---|--:|--:|
+| Klösträd | 106 | 100 |
+| Elbilar för barn | 54 | 41 |
+| Redskapsbodar & förråd | 31 | 27 |
+| Sparkcyklar för barn | 31 | 31 |
+| Kattlådor | 22 | 19 |
+| Hundbäddar & hundsoffor | 21 | 21 |
+| Gunghästar & gungdjur | 19 | 16 |
+| Hundburar | 17 | 16 |
+| Katthus | 12 | 11 |
+| Hundkojor | 12 | 10 |
+| Leksakskök | 10 | 8 |
+| Sandlådor | 8 | 8 |
+| Garagetält | 6 | 6 |
+| Lek & Tillbehör för husdjur | 62 | **56** (154 före flytten) |
+
+Samtliga ligger över gränsen fem.
+
+**Struktur:**
+- Alla 14 nya kategorier (de 13 plus Julgranar) finns i kategoriträdet som
+  mega-menyn och dropdownen byggs av, med samma antal som sidan visar.
+- Alla 14 finns i `sitemap.xml`.
+- /butik länkar 12 av dem. Redskapsbodar och Garagetält saknas där eftersom
+  Trädgård & Utemöbler inte finns i `MAIN_GROUPS`, se avsnitt 5.
+
+**Google-flödet** (`/feed/google.xml`, 4 264 rader): varje rad för en produkt
+på de nya sidorna bär `g:google_product_category`, noll saknas. Klösträd,
+kattlådor och hundkojor ger 2, redskapsbodar och garagetält 536, och
+leksakskök 1239. De rader som får 537 (Baby & Toddler) eller 536 gör det via
+en äldre kategori som produkten redan låg i (Baby & Småbarn, Utelek & Spel).
+Det är samma val av första underkategori som före rundan, alltså ingen
+regression.
+
+⚠️ **CollectionPage-JSON-LD:ns `description` är fortfarande mallen**
+(*"Handla {namn} hos Fyndplats – noga utvalda fynd …"*) och inte sidans
+metabeskrivning. Det gäller alla kategorisidor och är inte nytt, men det är
+en rad att byta vid nästa butiksdeploy.
