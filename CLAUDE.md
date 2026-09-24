@@ -64,6 +64,31 @@ mergas sällan.**
 Ett polerpass som blir tjugo PR:ar kostar tjugo byggen och tjugo
 katalogvärmningar för arbete som ingen kund märker snabbare.
 
+## Wix-hämtningar: ett sidtak räknat nyast först ser inte katalogen
+
+Katalogen har över 6 000 produkter, och de nyaste tusentalen är Aosom-varor:
+en variant, inga optioner och till hälften dolda utkast. En hämtning som går
+nyast först och slutar efter N sidor läser alltså bara dem. Uppmätt
+2026-09-24 på tre sidovagnar med tak på 12 sidor (1 200 produkter):
+
+- **Färgfiltret** hittade 0 färger. Alla 239 produkter med optioner låg bakom
+  taket. Nu filtrerar frågan på `options.id` (`lib/product-colors-paging.ts`).
+- **Google-flödets gallerier** gav extrabilder till 557 av 3 393 produkter.
+  Svepet har kvar sitt tak, men flödet faller nu tillbaka på produktens eget
+  galleri.
+- **Variantsvepet** till flödet hade kapat tyst vid 10 000 varianter runt
+  mitten av november. Nu är taket 30 000, och slår det i loggas ett fel.
+
+Tre regler:
+
+1. **Filtrera i frågan** på det du behöver, i stället för att svepa och
+   hoppas att det ligger tidigt.
+2. **Filtret går bara med på första sidan.** Filter plus markör svarar
+   400 INVALID_CURSOR på products/query, inventory-items/query och
+   categories/query. Markören bär frågan själv.
+3. **Ett tak ska kasta eller logga ett fel, aldrig kapa tyst.** En avkortad
+   lista ser frisk ut.
+
 # Analytics
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**

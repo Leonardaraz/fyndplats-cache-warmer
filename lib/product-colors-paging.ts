@@ -30,7 +30,12 @@ export const FARGVAL_SIDTAK = 30;
 export type FargvalSvar = {
   ok: boolean;
   status: number;
-  json: () => Promise<any>;
+  json: () => Promise<unknown>;
+};
+
+type FargvalSida<O> = {
+  products?: { id?: string; options?: O }[];
+  pagingMetadata?: { hasNext?: boolean; cursors?: { next?: string } };
 };
 
 /** Kroppen till products/query: filtret på första sidan, sedan bara markören. */
@@ -40,9 +45,9 @@ export function fargvalKropp(cursor?: string) {
     : { query: { filter: FARGVAL_FILTER, cursorPaging: { limit: 100 } } };
 }
 
-export async function hamtaFargval(
+export async function hamtaFargval<O>(
   post: (kropp: unknown) => Promise<FargvalSvar>,
-  tolka: (options: any) => string[],
+  tolka: (options: O | undefined) => string[],
   sidtak: number = FARGVAL_SIDTAK,
 ): Promise<{ farger: Map<string, string[]>; medOptioner: number }> {
   const farger = new Map<string, string[]>();
@@ -58,7 +63,7 @@ export async function hamtaFargval(
     if (!res.ok) {
       throw new Error(`färgfrågan svarade HTTP ${res.status} på sida ${sida} — visar hellre ingen facett än fel antal`);
     }
-    const data = await res.json();
+    const data = (await res.json()) as FargvalSida<O> | null;
     for (const p of data?.products || []) {
       if (!p?.id) continue;
       medOptioner++;

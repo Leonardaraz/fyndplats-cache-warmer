@@ -7,7 +7,7 @@ import { FARGVAL_FILTER, FARGVAL_SIDTAK, fargvalKropp, hamtaFargval, type Fargva
 // En kedja sidor som products/query svarar med. Varje produkt får ett id och
 // en option; `tolka` bestämmer om optionen bär en färg.
 function wix(storlekar: number[], fel?: { sida: number; status: number }) {
-  const kroppar: any[] = [];
+  const kroppar: unknown[] = [];
   let n = 0;
   const post = async (kropp: unknown): Promise<FargvalSvar> => {
     kroppar.push(kropp);
@@ -29,7 +29,8 @@ function wix(storlekar: number[], fel?: { sida: number; status: number }) {
 }
 
 // Varannan produkt har ett färgord i valet, varannan inte.
-const tolka = (options: any) => {
+type Option = { choicesSettings?: { choices?: { name?: string }[] } };
+const tolka = (options: Option[] | undefined) => {
   const namn = options?.[0]?.choicesSettings?.choices?.[0]?.name ?? "";
   return Number(namn.slice(1)) % 2 === 0 ? ["svart"] : [];
 };
