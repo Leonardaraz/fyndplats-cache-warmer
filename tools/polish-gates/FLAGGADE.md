@@ -1092,3 +1092,13 @@ beslut — se den samlade frågan om detta.
   `89f8e1e1`, `be072147`, `c850c185`, `4179a5ff`, `491c8d4c`, `a2dd5dc8`,
   `3ee83787`, `640620af`, `9f174d86` och `fab6bd6e`, är oprövade och står
   först i tur till N58. (N57)
+- Rättelse av raden ovan om de tolv utkasten på 579–639 kr: de elva utöver
+  skohyllan är PRÖVADE, inte oprövade, och står inte först i tur. Säsong
+  (trädgård och camping), hoppade utan skärm: paviljongtaket `fbfea355`,
+  campingbordet `4179a5ff`, dammpumpen `3ee83787` och odlingsbäddarna
+  `640620af` och `fab6bd6e`. Slutsålt: duschtältet `9f174d86`.
+  Skärmträffar mot publicerade sidor av samma slag: åkbilen `89f8e1e1` (mot
+  `a78da864`), pallarna på hjul `be072147` och `c850c185` (mot `20782c24`)
+  och gungöverdragen `491c8d4c` och `a2dd5dc8` (mot `786edb92`). Raden ovan
+  skrevs ur minnet av en sammanfattning; skärmens utfall stod i sessionens
+  logg. (N57)
