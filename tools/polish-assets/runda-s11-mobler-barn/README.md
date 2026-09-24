@@ -115,7 +115,7 @@ till butiken:
 ### Inget påstående vilar på en slutsåld produkt
 
 Förhandsbygget visade färre produkter på fyra sidor än vad som var kopplat.
-Sex av de 146 är slutsålda, och kategorisidan döljer dem i listan
+Sex av de 144 produkterna är slutsålda, och kategorisidan döljer dem i listan
 (`forListings`). Fyra texter hade ett påstående som bara gällde en av dem, så
 sidan lovade något kunden inte kunde se:
 
@@ -165,7 +165,47 @@ Vinställ, se nedan).
 
 ## 6. Förhandsbygget
 
-(fylls i när förhandsbygget är mätt)
+Tre förhandsbyggen, ett per butikscommit. Det sista, `dpl_BzMXd4e79p4FjFYMuUHT8AJFqCbE`
+(`fe511a7c`), är PR:ens huvud och har alla 116 synliga kategorier.
+
+- **50 av 50 sidor är lika källan** för S6–S11. Jämförelsen gäller `<title>`, metabeskrivning,
+  canonical, varje introstycke, varje FAQ och antalet frågor i FAQPage-JSON-LD. Ingen sida visar
+  `**`. Det första S11-bygget (`dfb9ada9`, `dpl_7gM2RDJuG7p8AqSrWdG62DCGWcyr`) gav också 50 av 50,
+  med texterna före rättelsen för slutsålda produkter.
+- **Kontrollsidorna** Golvlampor, Skönhet & Hälsa, Hantlar, Köksmaskiner och Badrumsskåp svarar
+  200.
+- **Sitemapen** har 103 kategori-URL:er (96 före S11), och alla 50 sidor finns med.
+- **Antal produkter på sidan mot antal kopplade:**
+
+  | sida | på sidan | kopplade | slutsålda |
+  |---|--:|--:|--:|
+  | Pallar | 44 | 46 | 2 |
+  | Sittpuffar & fotpallar | 21 | 21 | 0 |
+  | Klädhängare & hallmöbler | 14 | 15 | 1 |
+  | Sideboards & vitrinskåp | 13 | 14 | 1 |
+  | Vinställ & vinkylar | 15 | 15 | 0 |
+  | Barnmöbler | 24 | 26 | 2 |
+  | Projektordukar | 9 | 9 | 0 |
+
+  Skillnaden är exakt de slutsålda produkterna i läsningen före planen.
+
+- **Google-flödet i slutbygget:** 100 av 146 kopplingar bär sidans taxonomi-id. Projektordukar har
+  9 av 9 och Pallar 34 av 46. Resten behåller en äldre underkategoris id, eftersom `taxonomyFor`
+  tar produktens första underkategori.
+- **Mot produktionens flöde byter 95 av 141 unika produkter Shopping-kategori.** Nästan alla byten
+  går från en bred nod till en smalare: 536 Home & Garden eller 436 Furniture blir Chairs, Ottomans,
+  Coat & Hat Racks eller Buffets & Sideboards. Nio barnmöbler hade ingen Google-kategori alls och
+  får 554.
+- **Fyra produkter får en sämre nod, och det går inte att undvika med ett id per kategori:**
+  - två duschpallar går från 469 Health & Beauty till 443 Chairs. Den rätta noden, 7243 Shower
+    Benches & Seats, ligger under Health & Beauty.
+  - en stegpall för barn går från 537 Baby & Toddler till 443 Chairs. Den rätta noden är 635 Step
+    Stools.
+  - hallbänken med armstöd går från 536 Home & Garden till 5708 Coat & Hat Racks. Den rätta noden
+    är 6851 Storage & Entryway Benches.
+- **Köksön och köksvagnen behåller 638 Kitchen & Dining**, som de har i produktion. Utan S11 hade
+  S7:s mappning gett dem 442 Carts & Islands, men nu är Vinställ & vinkylar deras första
+  underkategori. Med 5578 Wine Racks hade de klassats som vinställ, se avsnitt 5.
 
 ## 7. Live
 
