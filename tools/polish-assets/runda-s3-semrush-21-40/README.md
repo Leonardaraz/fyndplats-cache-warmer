@@ -51,7 +51,7 @@ produkter i vår katalog med ordet i namnet, räknat i Wix samma natt:
 
 | huvudord | vol/mån | KD | vi i dag | i lager hos oss |
 |---|--:|--:|---|--:|
-| **julgran** | **22 200** | 25 | syns inte | **59** |
+| **julgran** | **22 200** | 25 | syns inte | **56** |
 | plastgran · julgran med belysning | 5 400 · 5 400 | 25 · 18 | syns inte | (samma) |
 | **badrumsskåp** | **27 100** | 20 | syns inte | 33 |
 | **skoskåp** · skohylla · skoställ | 18 100 · 18 100 · 8 100 | 25–28 | syns inte | 28 |
@@ -96,8 +96,8 @@ ska samåka med nästa).
 
 ⚠️ **Julgranarna först, och nu.** Sökningarna toppar i november–december
 (Semrushs trend: 0,82 → 1,00 → 0,07), och en ny sida behöver veckor för att
-indexeras och klättra. 59 granar i lager är redan en fullständig
-listningssida.
+indexeras och klättra. 56 granar i lager är redan en fullständig
+listningssida. Utkastet ligger i `julgranar-forslag.md`.
 
 ## Semrush-kostnad
 

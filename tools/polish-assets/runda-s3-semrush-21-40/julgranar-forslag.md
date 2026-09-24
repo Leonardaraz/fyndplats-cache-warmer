@@ -21,14 +21,14 @@ ser julbyar, kransar och ljusstakar.
 
 ## Sortimentet (publicerat och i lager, läst ur Wix 2026-09-24)
 
-Minst 54 granar, från **57 cm** (2-pack med LED) till **225 cm**, 459–1 679 kr:
+**56 granar**, från **57 cm** (2-pack med LED) till **225 cm**, 459–1 679 kr:
 
 - **smala pelargranar**, 46–54 cm breda;
 - **täta granar** med 1 942, 2 380, 2 419 och 4 030 grenspetsar;
 - **snötäckta** och **vita** modeller;
 - **med LED monterad från fabrik** (50, 100, 200, 250, 300 och 700 LED);
 - fiberoptisk gran, gran i kruka, gran i lykta, set i tre storlekar;
-- julgranskrage i trä (tillbehör).
+- tillbehör: julgranskrage i trä och ett julgranståg som hängs i granen.
 
 Uppblåsbara figurer räknas inte som granar och kopplas inte.
 
