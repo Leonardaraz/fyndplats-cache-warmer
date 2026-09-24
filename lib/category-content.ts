@@ -375,6 +375,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  barnmobler: {
+    intro: [
+      "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, stapelbara barnpallar, stegpallar, en barnsäng, sminkbord för barn och låga barngarderober med klädstång och spegel.",
+      "Barnfåtöljerna finns i teddyfleece, manchester, sammet, linnelook och konstläder, och tre av dem har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsofforna på 77 cm har plats för två barn och bär 80 kg.",
+      "Sminkborden för barn har spegel och pall eller stol, och tre av dem har speglar i akryl, som inte splittras. Ett blir skrivbord när spegeln tas av. Ett barnbord och två sminkbord är testade enligt leksaksstandarden EN 71.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Från vilken ålder passar barnfåtöljerna?",
+        a: "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och de två med fotpall från 3 år. Barnsofforna för två barn bär 80 kg.",
+      },
+      {
+        q: "Vad är en utklädningsgarderob?",
+        a: "En låg garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Garderoberna här är 106 till 113,5 cm höga, och två är gjorda i massivt trä efter Montessoriidén.",
+      },
+      {
+        q: "Behöver barnmöblerna monteras?",
+        a: "Borden, garderoberna och flera av sminkborden monteras, och till garderoberna följer skruvar och anvisning med. Barnfåtöljen med kronrygg levereras färdig att använda.",
+      },
+    ],
+  },
+
   belysning: {
     intro: [
       "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
@@ -1164,6 +1187,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "kladhangare-hallmobler": {
+    intro: [
+      "Här hittar du klädhängare, klädställningar och hallmöbler: fristående klädhängare med krokar, klädställ på hjul, en öppen klädställning med tre stänger och hallmöbler som samlar krokar, bänk och skoförvaring i en och samma möbel.",
+      "Klädhängarna i furu och bambu har åtta krokar på olika höjder, och den i bambu har en bänk med låda i foten. Klädstället med paraplyställ tar bara 30,5 × 30,5 cm golv och har tolv krokar på tre höjder. Klädställningen på hjul ställs i höjd mellan 95 och 170 cm och i bredd mellan 86 och 160 cm.",
+      "Hallmöblerna har bänk, skobänk eller en tygkommod med sju lådor under krokarna. Hallmöbeln 3-i-1 har en bänk som bär 110 kg och levereras med tippskydd. Till den som vill sitta ner och ta på skorna finns också hallbänkar, varav en med rullade armstöd.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket klarar en klädhängare?",
+        a: "Det står per krok och totalt i beskrivningen. Klädhängaren i furu tar 5 kg per krok och 30 kg totalt, och den trädformade klädhängaren för väggen tar 5 kg per krok och 40 kg totalt.",
+      },
+      {
+        q: "Får långa rockar plats på klädstället?",
+        a: "Klädstället i vit metall har 133 cm fritt hängrum, vilket räcker för långrockar utan att de nuddar golvet. Den öppna klädställningen har hänghöjder på 132 och 85 cm.",
+      },
+      {
+        q: "Vilken hallmöbel passar en smal hall?",
+        a: "Klädstället med paraplyställ tar 30,5 × 30,5 cm golv, och hallmöbeln med tygkommod är bara 30 cm djup. Hallmöbeln med stoppad sits är 72,5 cm bred.",
+      },
+    ],
+  },
+
   klostrad: {
     intro: [
       "Ett klösträd ger katten ett eget ställe att klösa, klättra och sova på. Här samlar vi alla våra klösträd och kattträd, från ett litet klösträd på 46 cm till takhöga modeller som spänns fast mellan golv och tak och når 275 cm. Här finns också klöspelare, klöstunnor med hålor att gömma sig i och väggklösträd som monteras på väggen.",
@@ -1487,6 +1533,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  pallar: {
+    intro: [
+      "Här hittar du pallar till hela hemmet: stegpallar, duschpallar, pianopallar, rullpallar och sadelpallar på hjul, salongspallar, stoppade pallar och stapelbara sittpallar i fyrpack. Det finns också verkstadspallar med verktygsfack eller verktygsbricka och en trädgårdspall på hjul.",
+      "Pianopallarna ställs i höjd mellan 45 och 58 cm, och två av dem har ett dolt fack under sitsen. Rullpallarna, sadelpallarna och salongspallarna är höj- och sänkbara, de flesta med gaslyft, och flera har ryggstöd eller fotring.",
+      "Tre av duschpallarna ställs i höjd i fem eller åtta steg, och duschpallarna bär 100 till 150 kg. Stegpallen i stål fälls ihop med ett knapptryck, och till barnen finns stegpallar med två och tre steg. De stapelbara pallarna kommer i fyrpack, och fem av dem bär 120 kg per pall.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken höjd ska en pianopall ha?",
+        a: "Underarmarna ska vara ungefär vågräta när fingrarna vilar på tangenterna. Pianopallarna här ställs i höjd mellan 45 och 58 cm, så sitsen kan följa den som spelar.",
+      },
+      {
+        q: "Vad är skillnaden på en sadelpall och en rullpall?",
+        a: "En sadelpall har en sits formad som en ridsadel, högre fram och i sidorna och nedsänkt i mitten, så att du sitter med bäckenet framåtlutat. En rullpall har en rund sits, och flera har ryggstöd.",
+      },
+      {
+        q: "Hur mycket bär en duschpall?",
+        a: "Duschpallarna här bär 100 till 150 kg. Den med U-formad sits och stödhandtag bär 150 kg, och de i aluminium bär 135 kg.",
+      },
+    ],
+  },
+
+  projektordukar: {
+    intro: [
+      "Här hittar du projektordukar på 84 till 120 tum: motoriserade dukar som körs upp och ner med fjärrkontroll, manuella dukar som dras ner för hand och låser sig där du släpper dem, och dukar på stativ som ställs upp utan att något skruvas i väggen.",
+      "Dukarna finns i tre bildformat. 16:9 är formatet för film, tv och spel, 4:3 passar presentationer och äldre material, och en kvadratisk duk i 1:1 kan visa båda, eftersom bilden då bara fyller en del av höjden.",
+      "De motoriserade dukarna går på 230 V och drar 25 W, och fjärrkontrollen är trådlös. Både de motoriserade och de manuella skruvas i vägg eller tak och är gjorda för inomhusbruk. De två stativdukarna på 84 tum står på ett trebent stativ och kan användas ute i uppehållsväder, och 120-tumsduken förankras med markankare och stormlinor i gräsmattan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor projektorduk behöver jag?",
+        a: "Utgå från rummet och avståndet. I projektorns manual står hur bred bilden blir på ett visst avstånd, och det avgör var projektorn ska stå för att fylla duken. Dukarna här är 152 till 263 cm breda, och ingen av dem har egen elektronik som behöver matcha projektorn.",
+      },
+      {
+        q: "Vad betyder 84 tum?",
+        a: "Tum anger dukens diagonal, alltså avståndet från hörn till hörn. En duk på 84 tum i formatet 4:3 är 171 cm bred och 128 till 131 cm hög, och duken på 120 tum i 16:9 är 263 × 148 cm.",
+      },
+      {
+        q: "Kan duken användas utomhus?",
+        a: "Stativdukarna kan det. Duken på 120 tum ställs upp på gräsmattan och är gjord för att stå ute en kväll, och de två på trebent stativ används inne och ute i uppehållsväder. De motoriserade och de manuella dukarna skruvas i vägg eller tak och är gjorda för inomhusbruk.",
+      },
+    ],
+  },
+
   "redskapsbodar-forrad": {
     intro: [
       "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
@@ -1573,6 +1665,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "sideboards-vitrinskap": {
+    intro: [
+      "Här hittar du sideboards, skänkar och vitrinskåp: sideboards i vitt, högglans, metall och flätad rotting, en skänk med guldfärgade ben, ett köksskåp i lantstil med glasvitrin och vitrinskåp för väggen och golvet.",
+      "Sideboardsen är 80 till 180 cm breda. De flesta har både lådor och skåp, och två har dörrar med soft close. Ett har eluttag, USB-portar och en LED-list som lyser i sju färger, och på det bredaste får en tv på 75 tum plats. Flera levereras med tippskydd eller tippband.",
+      "Vitrinskåpen för väggen är 9,5 cm djupa, har glasdörrar och hyllplan som kan flyttas och passar samlarfigurer och modeller. Det fristående vitrinskåpet är 139 cm högt med fyra fack och luckor i akryl som fälls upp och glider in ovanför facket.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden på ett sideboard och en skänk?",
+        a: "Orden betyder i stort sett samma sak: en låg förvaringsmöbel med lådor och skåp. Skänk är det svenska ordet och sideboard det engelska. Sideboardsen här är 75 till 81 cm höga.",
+      },
+      {
+        q: "Hur mycket tål skivan?",
+        a: "Det står i beskrivningen. Skänken med guldben tål 94 kg ovanpå, och sideboardet på 120 cm med soft close tål 30 kg på skivan och 65 kg totalt. Hyllplanen i vitrinskåpen för väggen tål 2 kg vardera.",
+      },
+      {
+        q: "Hur sätter jag upp ett vitrinskåp på väggen?",
+        a: "Med skruv och plugg som passar väggen. Det fristående vitrinskåpet har ett väggfäste som ingår, så att det står säkert även när facken är fulla.",
+      },
+    ],
+  },
+
   sidobord: {
     intro: [
       "Ett sidobord håller lampan, koppen och mobilen nära där du sitter. Här hittar du runda sidobord i metall, rotting, stenlook och marmorlook, sidobord i industristil med hylla eller skåp och C-formade bord som ställs tätt intill soffan.",
@@ -1592,6 +1707,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Går borden att ha ute?",
         a: "Några av de runda borden i metall och rotting passar både inne och ute. Det står i beskrivningen vilka.",
+      },
+    ],
+  },
+
+  "sittpuffar-fotpallar": {
+    intro: [
+      "Här hittar du sittpuffar, fotpallar och puffar med förvaring. De är klädda i sammet, manchester, chenille, teddyfleece eller sherpa, och en sittpuff är flätad i vattenhyacint.",
+      "De flesta har ett förvaringsfack under locket, från 19 liter i den minsta förvaringspallen till 97 liter i den största förvaringspuffen. På flera är locket vändbart, med en mjuk sida att sitta på och en hård sida som fungerar som bricka eller avlastningsbord.",
+      "Fotpallarna är 45 till 70 cm breda, och tre av de fem bär 120 kg, så de går också att sitta på. En fotpall och en sittpuff har plats för katten inuti, och till setet med två sittpallar hör förvaring i den stora.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden på en sittpuff och en fotpall?",
+        a: "En fotpall är oftast avlång och gjord för att vila benen på, medan en sittpuff oftast är rund eller oval. Tre av fotpallarna här bär ändå 120 kg, så de går lika bra att sitta på.",
+      },
+      {
+        q: "Hur mycket får plats i en förvaringspuff?",
+        a: "Från 19 liter i den minsta förvaringspallen till 97 liter i förvaringspuffen på 60 cm i diameter. Det räcker till filtar, leksaker eller ett par kuddar.",
+      },
+      {
+        q: "Går det att sitta på puffen?",
+        a: "Tolv av puffarna och pallarna bär 120 kg. Fotpallen med kattbädd är gjord för benen och bär 30 kg ovanpå, och sittpuffen i vattenhyacint bär 80 kg.",
       },
     ],
   },
@@ -2065,6 +2203,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Behöver vagnen monteras?",
         a: "Ja, de flesta levereras omonterade. Skruva ihop stommen på ett plant golv och montera hjulen sist.",
+      },
+    ],
+  },
+
+  "vinstall-vinkylar": {
+    intro: [
+      "Här hittar du vinställ, vinhyllor och vinkylar: stapelbara vinställ i metall och bambu, vinställ för väggen i svart stålrör, en vinhylla med glashållare och köksmöbler med inbyggt vinställ, som ett köksskåp, en köksvagn, en köksö och ett barbord.",
+      "Vinställen tar från sex flaskor på väggen till 72 flaskor i stället i bambu, som staplas i moduler och monteras på ungefär fem minuter utan verktyg. Vinhyllan på 148 cm har plats för 12 flaskor och 9 glas.",
+      "Vinkylarna rymmer 12, 16, 18 eller 20 flaskor på 75 cl. Tre av dem ställs mellan 5 och 18 °C och den för 12 flaskor mellan 8 och 18 °C. Vinkylen för 12 flaskor är 26,5 cm bred, och den för 16 flaskor är 56,5 cm hög och får plats under en bänk.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken temperatur ska vin förvaras i?",
+        a: "För lagring brukar en jämn temperatur runt 10 till 14 °C rekommenderas, och det viktigaste är att den inte svänger. Vinkylarna här ställs mellan 5 eller 8 och 18 °C, så samma kyl kan både lagra vin och hålla vitt vin kallt.",
+      },
+      {
+        q: "Hur mycket el drar en vinkyl?",
+        a: "Det står i beskrivningen. Vinkylarna här drar 75 till 133 kWh om året. Den för 12 flaskor har energiklass E, och de tre andra har energiklass G.",
+      },
+      {
+        q: "Hur mycket bär ett vinställ?",
+        a: "Vinstället i bambu för 16 flaskor bär 75 kg och det i metall för 16 flaskor 32 kg. I köksvagnen tar varje vinfack 3 kg, vilket räcker för en vanlig flaska.",
       },
     ],
   },

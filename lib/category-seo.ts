@@ -155,6 +155,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm.",
   },
+  barnmobler: {
+    title: "Barnfåtölj, barnsoffa, sminkbord & barngarderob",
+    description:
+      "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, sminkbord för barn, låga barngarderober med spegel och stegpallar från 2 år.",
+  },
   belysning: {
     title: "Taklampor, bordslampor & LED-belysning",
     description:
@@ -330,6 +335,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Baseballkepsar med lång skärm för sol och sommar. Storlek och material anges i beskrivningen. Leverans 3–7 dagar, 30 dagars öppet köp.",
   },
+  "kladhangare-hallmobler": {
+    title: "Klädhängare, klädställning, hallmöbel & hallbänk",
+    description:
+      "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar som bär upp till 130 kg.",
+  },
   klostrad: {
     title: "Klösträd & kattträd – takhöga och klöspelare",
     description:
@@ -405,6 +415,16 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Nattduksbord och sängbord med lådor och öppna fack, svävande modeller för väggen, smala bord på 25 cm och sängbord med eluttag och USB, flera i par.",
   },
+  pallar: {
+    title: "Pall – stegpall, duschpall, pianopall & rullpall",
+    description:
+      "Pallar till hem och verkstad: stegpallar, duschpallar som bär upp till 150 kg, pianopallar på 45–58 cm, rullpallar och sadelpallar på hjul och sittpallar i fyrpack.",
+  },
+  projektordukar: {
+    title: "Projektorduk – motoriserad, manuell & på stativ",
+    description:
+      "Projektordukar på 84 till 120 tum: motoriserade med fjärrkontroll, manuella med autolås för vägg eller tak och dukar på stativ som ställs upp inne eller ute.",
+  },
   "redskapsbodar-forrad": {
     title: "Redskapsbod, förrådstält & trädgårdsskåp",
     description:
@@ -425,10 +445,20 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
   },
+  "sideboards-vitrinskap": {
+    title: "Sideboard, skänk & vitrinskåp för vägg och golv",
+    description:
+      "Sideboards och skänkar i vitt, högglans, metall och rotting, 80 till 180 cm breda, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
+  },
   sidobord: {
     title: "Sidobord & avlastningsbord – runda och C-formade",
     description:
       "Sidobord och avlastningsbord: runda bord i metall, rotting och stenlook, C-format bord som skjuts in under soffan och sidobord med eluttag och USB.",
+  },
+  "sittpuffar-fotpallar": {
+    title: "Sittpuff, fotpall & puff med förvaring",
+    description:
+      "Sittpuffar, fotpallar och förvaringspuffar i sammet, manchester, teddyfleece och sherpa. De flesta bär 120 kg, och de flesta har ett fack under locket.",
   },
   "skoskap-skobankar": {
     title: "Skoskåp, skobänk & skohylla till hallen",
@@ -534,6 +564,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Verktygsvagn & verktygslåda – med lås och lådor",
     description:
       "Verktygsvagnar i stål med upp till 16 lådor, lås och låsbara hjul, verkstadsvagnar i tre plan, verktygsskåp och verktygslådor med kullagerskenor.",
+  },
+  "vinstall-vinkylar": {
+    title: "Vinställ, vinhylla & vinkyl – 6 till 72 flaskor",
+    description:
+      "Vinställ för golv och vägg, vinhyllor med glashållare, köksmöbler med vinställ och vinkylar för 12 till 20 flaskor som ställs mellan 5 och 18 °C.",
   },
 };
 

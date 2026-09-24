@@ -25,7 +25,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Elektronik & Tillbehör",
     tag: "Smart teknik för vardagen",
-    subs: ["Mobiltillbehör", "Laddare & Kablar", "Dator & Gaming", "Hörlurar & Ljud"],
+    subs: ["Mobiltillbehör", "Laddare & Kablar", "Dator & Gaming", "Hörlurar & Ljud", "Projektordukar"],
     heroPicks: ["mini-luftfuktare"],
   },
   {
@@ -43,13 +43,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor"],
+    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp"],
     heroPicks: [],
   },
   {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
-    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar", "Vattenkokare & brödrostar"],
+    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar"],
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
@@ -57,7 +57,7 @@ export const MAIN_GROUPS: MainGroup[] = [
     tag: "Genomtänkta favoriter för familjen",
     // Sökordskategorierna 2026-09-24 står här för att /butik ska länka till dem;
     // mega-menyn hämtar dem ur Wix på egen hand.
-    subs: ["Baby & Småbarn", "Leksaker & Spel", "Elbilar för barn", "Sparkcyklar för barn", "Gunghästar & gungdjur", "Leksakskök", "Sandlådor"],
+    subs: ["Baby & Småbarn", "Leksaker & Spel", "Elbilar för barn", "Sparkcyklar för barn", "Gunghästar & gungdjur", "Leksakskök", "Sandlådor", "Barnmöbler"],
     heroPicks: ["montessori-musikset-i-tra-5-delars", "babygym-i-tra-stabil-aktivitetsstallning"],
   },
   {

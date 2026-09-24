@@ -65,6 +65,8 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // släppte hantlar för hemmagym.
 // Runda S10 lade till speglar, badrumsspeglar, sidobord, nattduksbord, byråer,
 // bokhyllor, tvättkorgar och vattenkokare, och Förvaring släppte byrå och bokhylla.
+// Runda S11 lade till pallar, sittpuffar, klädhängare och hallmöbler, sideboards,
+// vinställ, barnmöbler och projektordukar.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -78,6 +80,10 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /hantl/i, /träningsbänk/i, /motionscykel/i, /hemmagym/i,
     /\bspegel\b/i, /badrumsspegel/i, /sidobord/i, /avlastningsbord/i, /nattduksbord/i,
     /byrå/i, /bokhyll/i, /tvättkorg/i, /vattenkokare/i, /brödrost/i,
+    /\bpall\b/i, /stegpall/i, /duschpall/i, /pianopall/i, /rullpall/i, /sittpuff/i, /fotpall/i,
+    /klädhängare/i, /klädställning/i, /hallmöbel/i, /hallbänk/i, /sideboard/i, /skänk/i,
+    /vitrinskåp/i, /vinställ/i, /vinkyl/i, /vinhylla/i, /barnfåtölj/i, /barnsoffa/i,
+    /sminkbord/i, /barngarderob/i, /projektorduk/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

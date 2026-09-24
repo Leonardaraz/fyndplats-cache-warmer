@@ -172,6 +172,16 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   bokhyllor: 465,                   // Furniture > Shelving > Bookcases & Standing Shelves
   tvattkorgar: 634,                 // … > Laundry Supplies > Laundry Baskets
   "vattenkokare-brodrostar": 730,   // Home & Garden > Kitchen & Dining > Kitchen Appliances
+  // Runda S11 (2026-09-24), samma kontroll. Pallar har ingen egen nod för
+  // stegpallar, duschpallar och rullpallar tillsammans, så de får Chairs.
+  // Vinställ & vinkylar tar Wine Racks, eftersom de flesta produkterna är ställ.
+  pallar: 443,                      // Furniture > Chairs
+  "sittpuffar-fotpallar": 458,      // Furniture > Ottomans (sv: Fotpallar)
+  "kladhangare-hallmobler": 5708,   // Home & Garden > Decor > Coat & Hat Racks
+  "sideboards-vitrinskap": 447,     // Furniture > Cabinets & Storage > Buffets & Sideboards
+  "vinstall-vinkylar": 5578,        // Furniture > Cabinets & Storage > Wine Racks
+  barnmobler: 554,                  // Furniture > Baby & Toddler Furniture
+  projektordukar: 395,              // … > Projector Accessories > Projection Screens
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler
