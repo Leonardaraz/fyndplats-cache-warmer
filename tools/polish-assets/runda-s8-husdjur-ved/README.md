@@ -157,7 +157,47 @@ och S7, alltså **#647 i EN deploy** 2026-09-25. Commiten före den,
 
 ## 6. Förhandsbygget
 
-(fylls i)
+`dpl_7qahdxrmYn9cyFZQmPHnTHm9u5h8` (commit `a538c2df`) blev `READY` efter
+174 sekunder. Alla sex S8-sidor och alla tretton S7-sidor hämtades och
+jämfördes med källfilerna (`previewkoll.py`: status, `<title>`,
+metabeskrivning, varje introstycke, varje FAQ, antalet frågor i JSON-LD
+och bokstavliga `**`).
+
+**19 av 19 lika källan.** Belysning är med, nu utan asterisker.
+
+| sida | visas | kopplade |
+|---|--:|--:|
+| kaninburar-marsvinsburar | 29 | 31 |
+| hamsterburar-gnagarburar | 13 | 15 |
+| terrarier | 7 | 8 |
+| honshus-honsgardar | 18 | 20 |
+| hundvagnar | 23 | 28 |
+| vedstall-vedbodar | 13 | 15 |
+
+Skillnaden är väntad: kategorisidan döljer slutsålda produkter i listan
+(`forListings` i `app/kategori/[slug]/page.tsx`).
+
+### ⚠️ Google-flödet: bara drygt hälften får den smalare kategorin
+
+Förhandsbyggets `/feed/google.xml` (4 279 rader, 3 364 produkter) visar att
+**257 av 466** produkter på S7- och S8-sidorna bär sidans nya taxonomi-ID.
+Resten behåller en äldre underkategoris ID, eftersom `taxonomyFor` tar
+produktens **första** underkategori och den gamla oftast kommer först.
+
+| sida | nytt ID | behåller |
+|---|--:|---|
+| kaninburar-marsvinsburar | 24 av 31 | 2 Pet Supplies (7) |
+| hundvagnar | 21 av 28 | 2 (7) |
+| hamsterburar-gnagarburar | 9 av 15 | 2 (6) |
+| honshus-honsgardar | 8 av 20 | 2 (12) |
+| terrarier | 2 av 8 | 2 (6) |
+| vedstall-vedbodar | 10 av 15 | 536 Home & Garden (5) |
+| baddfatoljer (S7) | **1 av 26** | 436 Furniture (25) |
+
+Ingen produkt har fått en sämre kategori än förut. De har bara inte fått
+den bättre. Att låta den smalaste mappade kategorin vinna är en ändring i
+appkoden som flyttar Shopping-kategorin för hundratals produkter på en gång,
+så den tas inte med i den här rundan. Den är ett förslag till Leonard.
 
 ## 7. Live
 

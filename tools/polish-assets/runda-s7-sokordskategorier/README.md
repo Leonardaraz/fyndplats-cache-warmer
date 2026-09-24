@@ -179,8 +179,11 @@ aldrig renderas.
     gamla raden återinförd fäller det, och bara det. `npm test` 782 av 782.
 - `jamfor.mts` efter rättelsen: **S7 13 av 13 och S6 12 av 12** lika källan.
 
-Rättelsen verifieras i nästa förhandsbygge, tillsammans med det som mer
-följer med i samma push.
+**Rättelsen är verifierad i nästa förhandsbygge** (`dpl_7qahdxrmYn9cyFZQmPHnTHm9u5h8`,
+commit `a538c2df`, som också bär runda S8): **13 av 13** S7-sidor lika källan,
+och Belysning har noll `**`. Se `../runda-s8-husdjur-ved/README.md`, avsnitt 6,
+som också mäter hur många produkter Google-flödet ger den nya kategorin
+(S7 och S8: 257 av 466).
 
 ## 6. Live
 
