@@ -3,6 +3,7 @@ import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { formatPrice } from "./price-range";
 import { clipText } from "./clip-text";
+import { hamtaAllaKategorier } from "./category-paging";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -1137,17 +1138,23 @@ function asciiSlug(s: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+// Första sidan av kategorifrågan. Resten hämtas av hamtaAllaKategorier via
+// SDK:ts next(), så den här är enda stället frågan byggs (lib/category-paging.ts).
+// V3 Categories API (the new site is on Catalog V3). The query requires at
+// least one filter clause, so we use an always-true ne() against a fake id.
+function forstaKategorisidan(): Promise<any> {
+  return (wix as any).categories
+    .queryCategories({ treeReference: { appNamespace: "@wix/stores" } })
+    .ne("_id", "00000000-0000-0000-0000-000000000000")
+    .limit(100)
+    .find();
+}
+
 async function fetchCollections(): Promise<Collection[]> {
   if (!wix) return [];
   try {
-    // V3 Categories API (the new site is on Catalog V3). The query requires at
-    // least one filter clause, so we use an always-true ne() against a fake id.
-    const [res, products] = await Promise.all([
-      (wix as any).categories
-        .queryCategories({ treeReference: { appNamespace: "@wix/stores" } })
-        .ne("_id", "00000000-0000-0000-0000-000000000000")
-        .limit(100)
-        .find(),
+    const [kategorier, products] = await Promise.all([
+      hamtaAllaKategorier<any>(forstaKategorisidan),
       getProducts(),
     ]);
     // Collection ids som innehåller ≥1 KÖPBAR produkt (tomma kategorier tas bort
@@ -1181,7 +1188,7 @@ async function fetchCollections(): Promise<Collection[]> {
     }
 
     const seen = new Set<string>();
-    const list: Collection[] = (res.items || [])
+    const list: Collection[] = kategorier
       .map((c: any) => ({
         id: c._id || c.id,
         name: c.name,
@@ -1210,7 +1217,7 @@ async function fetchCollections(): Promise<Collection[]> {
     // kategorier; tomt betyder att något gick fel, inte att de är borta.
     if (list.length === 0) {
       console.error(
-        `[wix] getCollections gav 0 kategorier (${(res.items || []).length} råa, `
+        `[wix] getCollections gav 0 kategorier (${kategorier.length} råa, `
           + `${products.length} produkter) — cachar INTE, nästa request försöker igen.`,
       );
       collectionsPromise = null;
@@ -1239,13 +1246,9 @@ let allCategorySlugsPromise: Promise<Set<string> | null> | null = null;
 async function fetchAllCategorySlugs(): Promise<Set<string> | null> {
   if (!wix) return null;
   try {
-    const res = await (wix as any).categories
-      .queryCategories({ treeReference: { appNamespace: "@wix/stores" } })
-      .ne("_id", "00000000-0000-0000-0000-000000000000")
-      .limit(100)
-      .find();
+    const kategorier = await hamtaAllaKategorier<any>(forstaKategorisidan);
     const out = new Set<string>();
-    for (const c of res.items || []) {
+    for (const c of kategorier) {
       const id = c && (c._id || c.id);
       if (!c || !c.name || !id) continue;
       const base = asciiSlug(c.name) || "kategori";
