@@ -1156,3 +1156,67 @@ beslut — se den samlade frågan om detta.
   publicerades i N58. (N58)
 - N58:s lista är genomgången från 859 till 879 kr. Nästa runda börjar på
   889 kr. Säsongs- och familjeskärmen för 889–949 kr är inte gjord. (N58)
+- Slutsålda, hoppade: helkroppsspegeln `e629367a` och nattduksbordet
+  `23d31b41` (899 kr), whiteboardkalendern `bb29459d` och fotpallen
+  `4bec8fc2` (919 kr). (N59)
+- Märke eller text tryckt på varan, hållna efter bildgranskningen:
+  aktivitetstavlan `0c3eae51` bär en engelsk text tryckt på brädan (bild 4,
+  i förstoring), och sju aktivitetstavlor är redan publicerade.
+  Viktskivorna `36d30778` bär SPORTNOW tryckt på båda skivorna i alla
+  bilder. Matbordet `6c5a0648` har en HOMCOM-bricka på skivans kant, läsbar
+  i bild 5. Massagedynan `1a48d902` har HOMCOM tryckt på fjärrkontrollen i
+  bild 1. (N59)
+- Badrumsskåpet `d6e4c7fc` hölls: tre av fem bilder bär märkesnamn på
+  flaskor, tuber och en tvålask (bland dem ett svenskt hudvårdsmärke) eller
+  läsbara engelska bokryggar. Kvar hade bara bilden på vit botten och
+  måttbilden varit. Bild 2 och 5 kan kanske beskäras i en senare runda. (N59)
+- Skärmens träffar mot en publicerad sida av samma slag, hoppade utan
+  utredning: tvättställsskåpet `7d0d4ec5` (mot `4239a0a5`), matskåpet för
+  hund `7e796983` (mot `8c1d08c5` och `3710a0c3`), staffliet `7ec3386e`
+  (mot `7ccc27f7`), skobänken `937f24a4` (mot sängbänken `2318c310`),
+  shoppingvagnen `df3ef4e0` (mot `d3fd579b`), skoskåpet `efa28899` (mot
+  `163ce1e2`), medicinskåpet `f4116718` (mot `c72c97c3`), hallmöbeln
+  `09e56b4d` (mot hallträdet `a492b6f8`) och barnbordet med två stolar
+  `65d84215` (mot `cf263b21`). (N59)
+- Familjen är redan publicerad, hittad på familjeräkning och namn snarare
+  än av skärmen: trimborden `5eeba20a` och `63fd748c` (tre trimbord är
+  publicerade, och de två är varandras tvillingar), barbordet `7fd5f45c`
+  (samma slag som `9190a8af`, höj- och sänkbart med snurrbar skiva),
+  barsetet `f2d7353f` (sju barset), rullpallen `be8f28cd` (22 rullpallar
+  och ritstolar), väggspegeln `aa2158bc` (64 speglar), sittbänken med
+  förvaring `d3e77879` (34 bänkar), barnhyllan `1259355d` (nio barnhyllor),
+  valphagen `12764f53` (27 hagar och grindar), högskåpet för badrum
+  `ca0b2be9` (30 badrumsskåp) och barnbordet med två stolar `ed1094fc`
+  (samma slag som `cf263b21`). (N59)
+- Familjer som redan är täckta, hoppade utan skärm: kattoaletten
+  `19de4990`, LED-badrumsspegeln `23940121`, miniugnen `24747909` (mot
+  `3f6a99f7`), matstationen för hund `4fb98338`, hundvagnarna `4d612c36`,
+  `56dc1ed5`, `73f881f0` och `959edf45`, elfordonen för barn `38e70184`,
+  `5dae95cd`, `72dd9729`, `a0d4a944`, `e1f50194`, `03dc4fb7`, `4a7969f2`
+  och `f7274e5a`, satsborden `c070a3e9`, skumklossarna `ce0265ee`,
+  klösträdet `fcfe68f1`, soptunnan på 50 liter `0a0feeac`, stepparen
+  `4ce36e86` (N58 publicerade `aebd7dae`), bänken `9d47905c`, ficusen på
+  150 cm `ac77591c` (N58 publicerade `ae748e48` på 135 cm), hundhagen
+  `cc46b5eb` och sminkbordet för barn `c68c2ca0`, som dessutom bär HOMCOM i
+  namnet. (N59)
+- Licensmärke, hoppade utan skärm: sparkbilen med Mercedes-Benz-märket
+  `d55a25f4` och elmotorcykeln för barn med Honda-märket `d6275621`. (N59)
+- Djurbostad som kräver en laglighetskontroll, hoppad utan skärm:
+  terrariet `ef26b87f`. (N59)
+- Säsongsvaror i slutet av september, hoppade utan skärm: bänkdynan
+  `b2a73ee9` (889 kr), sittdynorna `34a43113`, slangvindan `3d9ed134`,
+  odlingslådorna `6de684bb` och `7f5456c7` (909 kr), växthuset `77220e5d`,
+  växthusskyddet `c6a9dfce`, tälten `870bcc17` och `d12aa5e4`,
+  gungställningen `df0a9c0c`, de uppblåsbara tomtarna `ae7484b4` och
+  `fe8e2baa`, paviljongtaket `72ba2812`, returväggen för fotboll `4a19cec9`,
+  sand- och vattenbordet `58615473` och campingtoaletten `b66f8c37`. (N59)
+- Skärmens träffar som räknades som brus och inte fällde: datorbordet
+  `0a251021` mot en hundbur och en hundvagn, pallarna `44068117` mot ett
+  klösträd och en kattkoja, förvaringspuffen `74afa40e` mot en
+  boxningssäck, katthyllorna `cc20d515` mot en skänk, en fåtölj och fyra
+  sidor till, och skrivbordet `da9dda33` mot två odlingslådor och en sida
+  till. Alla fem publicerades i N59. (N59)
+- N59 har fjorton produkter, inte femton: sex av de tänkta hölls på
+  bilderna eller på skärmen, och listan på 889–919 kr tog slut. (N59)
+- N59:s lista är genomgången från 889 till 919 kr. Nästa runda börjar på
+  929 kr. Säsongs- och familjeskärmen för 929–949 kr är inte gjord. (N59)
