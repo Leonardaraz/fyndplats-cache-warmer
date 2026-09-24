@@ -1,0 +1,46 @@
+{
+ "slug": "koksoar-koksvagnar",
+ "seo": {
+  "title": "Köksö & köksvagn på hjul – med förvaring",
+  "description": "Köksöar och köksvagnar på hjul från 53 till 129 cm, med utfällbar skiva, lådor, kryddhylla, vinställ eller handdukshängare och skiva i trä eller stenlook."
+ },
+ "content": {
+  "intro": [
+   "En köksö eller köksvagn ger köket mer arbetsyta och förvaring utan att du behöver bygga om. Här samlar vi köksöar med skåp och utfällbar skiva, köksvagnar med lådor och hyllor, smala vagnar med utdragskorgar och vagnar med kryddhylla eller vinställ.",
+   "Alla står på hjul, och på nästan alla har två av hjulen broms, så att vagnen står stilla när du arbetar och rullar undan när du städar. Köksöarna är från 113 till 129 cm breda, och de har en skiva som fälls ut eller brickor som dras ut när du behöver mer yta.",
+   "Skivorna är av massivt gummiträ, furu eller i trälook och stenlook, och flera vagnar har kryddhylla, handdukshängare och plats för flaskor. Bärigheten står per modell och går upp till 112 kg på den största köksön. Vagnarna levereras omonterade med anvisning.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är skillnaden mellan en köksö och en köksvagn?",
+    "a": "Köksön är större, med skåp och en skiva som ger en ny arbetsplats mitt i köket. Köksvagnen är smalare och fungerar som extra förvaring och avlastningsyta som rullas åt sidan."
+   },
+   {
+    "q": "Går hjulen att låsa?",
+    "a": "Ja, på nästan alla köksöar och köksvagnar har två av hjulen broms."
+   },
+   {
+    "q": "Hur mycket tål skivan?",
+    "a": "Det står per modell. Den största köksön bär 112 kg totalt, och de smala vagnarna med utdragskorgar är gjorda för lättare saker som burkar och flaskor."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "22 synliga produkter 2026-09-24 med Köksvagn eller Köksö i namnet; barvagnar och serveringsvagnar är inte med",
+  "53 cm": "ad390a36 'Köksvagn 53 cm med två lådor och öppna fack'",
+  "129 cm": "e0fed2c9 'Köksö 129 cm med utdragsbrickor'",
+  "köksöar 113–129 cm": "3bb5837e 113 × 72,2 cm; 9e5e788c 'Köksö 115 cm'; d8bbbdde 'Köksö 120 cm'; 07a6b8bf 120 × 72 cm; e0fed2c9 129 cm",
+  "utfällbar skiva / brickor": "9e5e788c 'med utfällbar skiva'; d8bbbdde 'med klaffskiva'; 07a6b8bf 'med fällbar bänkskiva'; e0fed2c9 'tre brickor dras ut som lådor'",
+  "alla på hjul": "hjul-taggen på 22 av 22",
+  "nästan alla två hjul med broms": "21 av 22; d0f68e25 'Fyra hjul, två med broms'; ad390a36 'Fyra 50 mm länkhjul, två av dem bromsade'",
+  "utdragskorgar": "15d6fcef, 0fd65541 'Köksvagn med fyra utdragskorgar 91 cm'",
+  "stenlook": "15d6fcef 'skiva i ljus stenlook'",
+  "gummiträ, furu": "4ab392f7, 0af14e23 'med massiv gummiträskiva'; 6cf7cfcf 'med furuskiva'",
+  "kryddhylla": "12 träffar; 41d31478 'Köksvagn 82 cm med kryddhylla i tre plan'",
+  "handdukshängare": "12 träffar; dac7a904 'låda, två hyllplan och handdukshängare'",
+  "flaskor": "c86ff1a6 'med vinställ för sex flaskor'; e0fed2c9 'dörrfack för burkar och flaskor'",
+  "112 kg": "e0fed2c9 '112 kg'",
+  "omonterade": "ad390a36 'Vagnen levereras omonterad med monteringsan[visning]'; montering-taggen på 22"
+ }
+}

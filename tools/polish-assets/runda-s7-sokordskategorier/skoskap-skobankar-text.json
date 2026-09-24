@@ -1,0 +1,44 @@
+{
+ "slug": "skoskap-skobankar",
+ "seo": {
+  "title": "Skoskåp, skobänk & skohylla till hallen",
+  "description": "Skoskåp för 8 till 30 par, smala från 15 cm djup, skoskåp med spegeldörrar och tippfack, skobänkar med sittdyna och skohyllor i bambu och metall."
+ },
+ "content": {
+  "intro": [
+   "Skor vid ytterdörren blir snabbt en hög. Här samlar vi skoskåp med tippfack eller luckor, skobänkar att sitta på medan du knyter skorna, öppna skohyllor och skoställ, och hallmöbler där skohylla, sittplats och krokar sitter ihop.",
+   "Skoskåpen rymmer från 8 till 30 par, och de smalaste är bara 15 till 26 cm djupa, så att de får plats i en trång hall. I ett skåp med tippfack står skorna lutade bakom en lucka som fälls ut, och flera skåp har spegeldörrar, så att hallen får en stor spegel på köpet.",
+   "Skobänkarna har sittyta, flera med dyna eller stoppad sits, och bär mellan 120 och 220 kg. De höga skoskåpen levereras med tippskydd som ska fästas i väggen, och de flesta möbler monteras efter anvisningen i paketet. Den hopfällbara skohyllan i bambu behöver ingen montering alls.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur många par skor rymmer ett skoskåp?",
+    "a": "Det står per modell, från 8 par i de smalaste skåpen till 30 par i det största. Stövlar och stora storlekar tar mer plats än antalet par räknar med."
+   },
+   {
+    "q": "Vad är ett tippfack?",
+    "a": "Ett fack där skorna står snett bakom en lucka som fälls ut nedtill. Det gör att skåpet kan vara grunt, och skorna tar liten plats i djupled."
+   },
+   {
+    "q": "Passar ett skoskåp i en smal hall?",
+    "a": "Ja, välj efter djupet. Det smalaste skoskåpet är 15 cm djupt och flera andra är 24 till 26 cm. Mät väggen och räkna med plats att fälla ut luckan."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "36 synliga produkter 2026-09-24 (skoskåp|skobänk|skohylla|skoställ i namnet eller beskrivningen) minus torkställ 3639194b och klädställen 3dc622f9, 61355ceb, 7d9afdf7; hallmöblerna db8a09e0 'skobänk', 1199e887 'två skohyllor' och entréset f79ecefa 'ett skoskåp på 90 × 24 × 75 cm' är med",
+  "8 par": "12ab0eab, 8dab8380, dd22c3ee, b58ad0aa '8 par'",
+  "30 par": "fa508fd3 'Skoskåp 106 cm för 30 par, vit högglans'",
+  "15 cm djup": "12ab0eab 'skoskåp i helmetall som bara är 15 cm djupt men 139,5 cm högt'",
+  "24 till 26 cm": "e8463eba 'bara 24 djupt'; dd22c3ee 60 × 24 × 105,5 cm; b58ad0aa 60 x 24 x 80 cm; e5fa9771 'Smalt skoskåp 26 cm djupt'",
+  "spegeldörrar": "5e63f5ce 'Skoskåp med spegeldörrar'; fc339dce 'spegelyta på 146 centimeters höjd'; e51b117a '3 speglade luckor'; f79ecefa 'väggpanel … med spegel'",
+  "tippfack": "e8463eba 'fyra tippfack'; 6fce1d1d 'tre tippfack'; 12ab0eab 'fyra nedfällbara luckor tar åtta par'; 5e63f5ce 'fem vippfack'",
+  "skobänkar med sittdyna": "00a83f2f 'stoppad si[ts]'; 2bc98714 'stoppad sits'; 78f22e96 'med dyna'; 2cce736b 'med dyna'; 8f0a4df1 'med sittdyna'",
+  "skohyllor i bambu och metall": "6690086e, a928c645, 8fe2a5fb (bambu); e514191b 'Skohylla i svart metall'",
+  "bär 120 till 220 kg": "00a83f2f 120 kg; 9c456097 'sittyta som bär 130 kg'; 8f0a4df1 150 kg; 2bc98714 220 kg; 78f22e96 220 kg",
+  "tippskydd": "tipp-taggen på 19, t.ex. d475b0b9 'vältskyddet sitter kvar förankrat', bae80676 'tippskyddad konstruktion'",
+  "hopfällbar skohylla utan montering": "6690086e 'Den kräver ingen montering: du fäller bara ut den'",
+  "krokar i hallmöbler": "db8a09e0 'nio krokar'; 1199e887 'klädstång med fem krokar'"
+ }
+}
