@@ -76,8 +76,35 @@ På den korrekta sammanslagningen gav butikens tester 816 av 816,
 `jamfor.mts` i S6–S14 noll avvikelser på 69 källfiler, och `tsc` noll fel
 utanför testfilerna (81 i `.test.ts`, samma som #647 ensam).
 
-## Efteråt
+## Utfört 2026-09-24
 
-S4:s facit `runda-s4-sokordskategorier/sandlador-text.json` har 3–7 (sidan
-gick live med #646). När #651 är ute visar sidan 3–6, så facit ska ändras
-till 3–6. Annars fäller S4:s `livekoll.py` på Sandlådor.
+#651 mergades 15:41 UTC med ett huvud till, `f03f6eab`, som lade till ett
+PriceRunner-flöde (tre nya filer och åtta rader i `lib/shipping.ts`). Det
+rörde inga filer som #647 rör, och konflikten blev exakt den uppmätta: två
+filer, sex block. Receptet kördes i #647-grenen, och sammanslagningen är
+`f06de05c`:
+
+| kontroll | utfall |
+|---|---|
+| `trevagskoll.py` | 122 av 122 för både seo och content, inget 3–7 kvar |
+| butikens tester | 824 av 824 (816 plus #651:s åtta för PriceRunner-flödet) |
+| `jamfor.mts` i S6–S14 | 0 avvikelser på 69 källfiler |
+| `tsc` | 0 fel utanför testfilerna |
+
+Förhandsbygget `dpl_AZSB493P7R2U8PEvuL3Y5nqS1i5x` (READY efter drygt tre
+minuter):
+
+| kontroll | utfall |
+|---|---|
+| kategorisidorna S6–S14 mot källfilerna | 69 av 69, sitemapen 120 kategoriadresser |
+| `lackkoll.py` | inga fel |
+| `menykoll.py` mot produktion | 10 dolda paneler och 114 underkategorier på varje sida, mot 0 på startsidan i produktion |
+| #651 i samma bygge | 3–6 på produktsidan, inget 3–7, `transitTime` 6 dagar, `/feed/pricerunner.xml` 200 med 4 007 produkter |
+
+S4:s sexton sidor gav OK i produktion efter #651.
+
+⚠️ **Rättelse: S4:s facit ska INTE ändras.** Första versionen av den här
+README:n sa att `runda-s4-sokordskategorier/sandlador-text.json` bär 3–7 och
+skulle bytas till 3–6. Strängen är barnens **ålder** i belägget ("3–7 år"),
+inte leveranstiden, och Sandlådor-sidan nämner ingen leveranstid alls. Ett
+blint sök-och-ersätt på "3–7" hade gjort facit fel.
