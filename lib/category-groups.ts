@@ -35,6 +35,18 @@ export const MAIN_GROUPS: MainGroup[] = [
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
+    // Skapad i Wix 2026-09-23. Katalogen hade vuxit till 3 300 produkter, varav
+    // 1 693 i Hem & Inredning — och 783 av dem låg BARA där, utan underkategori.
+    // Nästan alla var möbler: fåtöljer, kontorsstolar, matstolar, soffor. Det
+    // fanns ingen möbelkategori alls, så en kund som letade kontorsstol fick
+    // bläddra bland lampor och ljusslingor. Möblerna ligger kvar i Hem &
+    // Inredning också; Möbler är en ingång till, inte en flytt.
+    main: "Möbler",
+    tag: "Stolar, soffor och bord till hela hemmet",
+    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare"],
+    heroPicks: [],
+  },
+  {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
     subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas"],
@@ -222,6 +234,22 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Trädgårdsskötsel & Bevattning": UNSPLASH("1780328868286-9650af900bd5"), // slangvagn mot tegelvägg
   "Trädgårdsdekor & Belysning": UNSPLASH("1776524582404-852271a6551d"), // utomhuslampa bland blommor
   "Utelek & Spel": UNSPLASH("1536557925410-b8df780eb58a"), // repgunga under träd, kvällssol
+
+  // Möbler
+  // Grenen skapades i Wix 2026-09-23. Samma granskning som trädgårdsgrenen:
+  // varje bild hämtad på exakt den URL UNSPLASH() bygger, 1600×1280, äkta foto,
+  // inga läsbara varumärken. Två kandidater föll: ett skrivbord med en affisch
+  // med svordom och en iMac-logga, och en sovrumsbild som var en 3D-rendering.
+  // Rumsavdelare saknar medvetet nyckel — ingen kandidat visade en skärm av
+  // den sort vi säljer (tyg- och flätpaneler), och en glasvägg vore fel löfte.
+  "Möbler": UNSPLASH("1583847268964-b28dc8f51f92"), // ljust vardagsrum, soffa och träbord
+  "Kontorsstolar": UNSPLASH("1688578735352-9a6f2ac3b70a"), // ergonomisk kontorsstol i nätväv vid skrivbord
+  "Fåtöljer": UNSPLASH("1506332088442-9e0024864f5d"), // senapsgul fåtölj med träarmstöd
+  "Soffor & bäddsoffor": UNSPLASH("1555041469-a586c61ea9bc"), // grön sammetssoffa på trägolv
+  "Matbord & stolar": UNSPLASH("1615066390971-03e4e1c36ddf"), // matbord i trä med sex stolar
+  "Skrivbord": UNSPLASH("1623177623442-979c1e42c255"), // höj- och sänkbart skrivbord i trä
+  "Soffbord & småbord": UNSPLASH("1581428982868-e410dd047a90"), // soffbord i trä framför soffa
+  "Sängar & sovrum": UNSPLASH("1560185128-e173042f79dd"), // stoppad säng med sängbord
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan

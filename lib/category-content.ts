@@ -232,6 +232,30 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
     ],
   },
+  // Möbler skapades i Wix 2026-09-23 — se MAIN_GROUPS i category-groups.ts.
+  // Texterna är skrivna mot de ~710 produkter som sorterades in samma kväll.
+  mobler: {
+    intro: [
+      "Möbler är det du lever med varje dag, och därför det som lönar sig mest att välja rätt. Här samlar vi allt från ergonomiska kontorsstolar och skrivbord till fåtöljer, bäddsoffor, matgrupper, soffbord, sängramar och rumsavdelare – prisvärda möbler för vardagsrummet, hemmakontoret, köket och sovrummet.",
+      "Mät innan du beställer. Bredd och djup avgör om en soffa eller ett matbord ryms, men för stolar är sitthöjden och maxvikten minst lika viktiga, och för en fåtölj med fällbar rygg behöver du räkna med utrymmet bakom. Varje produktbeskrivning anger mått, material och hur mycket möbeln bär, så att du kan jämföra på riktigt och inte bara på bild.",
+      "Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Behöver möblerna monteras?",
+        a: "De flesta möbler levereras omonterade i kartong, med beslag och monteringsanvisning. Stolar och fåtöljer är ofta klara efter att fot och rygg skruvats fast; större bord och sängramar tar längre tid. Vad som ingår står i produktbeskrivningen.",
+      },
+      {
+        q: "Hur vet jag att möbeln får plats?",
+        a: "Alla mått anges i beskrivningen. Mät ytan där möbeln ska stå och tänk på dörröppningar, fällbara ryggar och utdragbara fotstöd som tar extra plats när de används.",
+      },
+      {
+        q: "Kan jag returnera en möbel?",
+        a: "Ja, du har 30 dagars öppet köp. Kontakta kundtjänst innan du skickar tillbaka något, så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
   // ══ UNDERKATEGORIER (tillagda 2026-08-12) ═════════════════════════════════
   // Skrivna mot det faktiska sortimentet i respektive kategori. Tunna kategorier
   // (1–3 produkter) får kortare text som handlar om just de produkterna — hellre
@@ -824,6 +848,179 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
     ],
   },
+  // ── Möbler (2026-09-23) ──────────────────────────────────────────────────
+  kontorsstolar: {
+    intro: [
+      "En bra kontorsstol märks inte – det är en dålig som ger ont i ryggen efter en arbetsdag. Här hittar du kontorsstolar med nackstöd, justerbara armstöd och fällbar rygg, modeller med utdragbart fotstöd eller inbyggd massage, en rymlig big and tall-stol som bär 150 kg och stolar i bouclé och chenille som passar i ett hemmakontor. För den som vill variera sittställningen finns knästolar, sadelpallar och ritstolar med fotring för höga bänkar och ståbord.",
+      "Titta på tre mått innan du väljer: sitthöjdens spann ska passa din skrivbordshöjd, sitsens bredd ska passa dig, och maxvikten ska ha marginal. Alla tre står i produktbeskrivningen.",
+      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken sitthöjd behöver jag?",
+        a: "Sitt med fötterna i golvet och knäna i ungefär rät vinkel, med armbågarna i nivå med skrivbordsskivan. Vid ett vanligt skrivbord på cirka 72 cm passar de flesta en sitthöjd runt 45–55 cm. Vid ett ståbord eller en hög bänk behövs en ritstol med fotring.",
+      },
+      {
+        q: "Vad är skillnaden mellan en knästol och en vanlig kontorsstol?",
+        a: "En knästol har framåtlutande sits och vilar delvis på smalbenen, vilket ger en mer upprätt hållning. Många använder den omväxlande med en vanlig stol snarare än hela dagen.",
+      },
+      {
+        q: "Behöver kontorsstolen monteras?",
+        a: "Ja, kontorsstolar levereras omonterade: fot, gaskolv, sits och rygg skruvas ihop enligt anvisningen. Maxlasten står i produktbeskrivningen.",
+      },
+    ],
+  },
+
+  fatoljer: {
+    intro: [
+      "En fåtölj är rummets bästa plats – den du går till med kaffet, boken eller fjärrkontrollen. Här finns reclinerfåtöljer och TV-fåtöljer med fotpall och 360° vridfot, gungstolar i manchester, teddy och bouclé, vilstolar i böjd björk och golvfåtöljer med flera ryggvinklar. För den som vill ha mer finns massagefåtöljer med värme och uppresningsfåtöljer med motor som hjälper dig upp ur stolen.",
+      "Jämför ryggvinkel, sittdjup och maxvikt – de står i varje beskrivning. En fåtölj som fälls bakåt behöver fritt utrymme bakom sig, så mät innan du ställer den mot en vägg.",
+      "Leverans inom 3–7 arbetsdagar från EU-lager. Du betalar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket plats tar en reclinerfåtölj?",
+        a: "Utfällt blir en recliner betydligt längre än hopfälld. Både det utfällda måttet och ryggvinkeln anges i produktbeskrivningen – räkna med fritt utrymme bakom ryggen.",
+      },
+      {
+        q: "Vad är en uppresningsfåtölj?",
+        a: "En fåtölj med elektrisk motor som lyfter och tippar sitsen framåt, så att det blir lättare att resa sig. Den fälls också bakåt till viloläge med samma kontroll.",
+      },
+      {
+        q: "Behöver fåtöljen monteras?",
+        a: "Oftast bara lätt: rygg, armstöd eller fot skruvas fast med medföljande beslag. Vad som behöver monteras framgår av beskrivningen.",
+      },
+    ],
+  },
+
+  "soffor-baddsoffor": {
+    intro: [
+      "Soffan är vardagsrummets stora beslut. Här hittar du bäddsoffor med förvaring under sitsen, hörnsoffor med vändbar schäslong, modulsoffor och en rymlig U-soffa med två schäslonger, i manchester, linnelook, chenille och konstläder. En bäddsoffa gör vardagsrummet till gästrum när det behövs.",
+      "Mät väggen, men mät också dörren och trapphuset. Sittdjup och sitthöjd avgör hur soffan känns, och för en bäddsoffa står även bäddmåttet i beskrivningen, så att du vet om det räcker för en eller för två. Titta på klädseln: manchester och chenille är mjuka och varma, konstläder är lättare att torka av.",
+      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor blir bädden i en bäddsoffa?",
+        a: "Bäddmåttet anges i produktbeskrivningen för varje modell. Jämför det med en vanlig säng – 140 cm bredd räcker för två, smalare bäddar är tänkta för en person.",
+      },
+      {
+        q: "Går schäslongen att flytta till andra sidan?",
+        a: "På hörnsoffor med vändbar schäslong kan den monteras till vänster eller höger. Det står i beskrivningen om modellen har den funktionen.",
+      },
+      {
+        q: "Vad gäller om soffan inte passar?",
+        a: "Du har 30 dagars öppet köp. Kontakta kundtjänst innan du skickar tillbaka den, så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
+  "matbord-stolar": {
+    intro: [
+      "Runt matbordet händer det mesta – frukost, läxor, middagar som drar ut på tiden. Här finns matbord och klaffbord som fälls ut när gästerna kommer, kompletta matgrupper, matstolar i flerpack i manchester, sammet och trä, barstolar och barbord för köksön och stapelbara pallar som tar lite plats när de inte används.",
+      "Räkna med ungefär 60 cm bordskant per person och minst 70 cm fritt bakom stolarna så att man kommer ut. Sitthöjd och bordshöjd ska passa ihop: ett vanligt matbord kräver en sitthöjd runt 45–48 cm, en bardisk betydligt högre. Mått och maxvikt står i varje beskrivning.",
+      "Leverans inom 3–7 arbetsdagar från EU-lager, Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur många får plats vid bordet?",
+        a: "Räkna med cirka 60 cm bordskant per person. Ett klaffbord ger fler platser när det fälls ut – både hopfällt och utfällt mått anges i produktbeskrivningen.",
+      },
+      {
+        q: "Vilken sitthöjd ska barstolarna ha?",
+        a: "Sitthöjden ska vara ungefär 25–30 cm lägre än bänkskivan. Sitthöjden står i beskrivningen för varje barstol.",
+      },
+      {
+        q: "Säljs matstolarna styckvis?",
+        a: "Många matstolar säljs i 2- eller 4-pack. Antalet står i produktnamnet, och priset gäller hela förpackningen.",
+      },
+    ],
+  },
+
+  skrivbord: {
+    intro: [
+      "Ett skrivbord ska passa både kroppen och rummet. Här finns elektriska höj- och sänkbara skrivbord med minnesfunktion, så att du kan växla mellan att sitta och stå, fällbara väggskrivbord och skrivbord på hjul för det lilla hemmakontoret, ståbord med lutbar skiva och klassiska skrivbord med lådor i trä och stål.",
+      "Kolla skivans bredd och djup mot skärmen och tangentbordet du använder, och för ett höj- och sänkbart bord även höjdspannet – det ska räcka både till din sittande och stående arbetshöjd. Alla mått står i produktbeskrivningen.",
+      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken höjd ska ett skrivbord ha?",
+        a: "Sittande passar de flesta en höjd runt 70–75 cm, men det beror på din längd. Ett höj- och sänkbart bord löser det genom att du ställer in exakt rätt höjd, sittande som stående. Höjdspannet anges i beskrivningen.",
+      },
+      {
+        q: "Vad betyder minnesfunktion?",
+        a: "Att bordet kan spara ett par förinställda höjder, till exempel din sitt- och ståhöjd, så att du byter läge med en knapptryckning.",
+      },
+      {
+        q: "Får ett skrivbord plats i ett litet rum?",
+        a: "Fällbara väggskrivbord och modeller på hjul är byggda för trånga ytor. Både utfällt och hopfällt mått står i beskrivningen.",
+      },
+    ],
+  },
+
+  "soffbord-smabord": {
+    intro: [
+      "Små bord gör stor skillnad för hur ett rum fungerar. Här hittar du soffbord med förvaring och lyftbar skiva som blir ett arbetsbord i soffan, satsbord i glas och stål som skjuts in i varandra, sängbord med låda och smala konsolbord för hallen eller bakom soffan.",
+      "Ett soffbord brukar sitta bäst när det är ungefär i höjd med soffans sits, och ett sängbord när det når ungefär madrassens överkant. Mät djupet i hallen innan du väljer konsolbord – de smalaste är byggda för just trånga passager. Alla mått står i produktbeskrivningen.",
+      "Leverans inom 3–7 arbetsdagar från EU-lager. Du handlar med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur fungerar ett lyftbart soffbord?",
+        a: "Skivan lyfts upp och fram på ett beslag, så att den hamnar i bekväm höjd för dator eller middag i soffan. Under skivan finns ofta ett förvaringsfack.",
+      },
+      {
+        q: "Vad är ett satsbord?",
+        a: "Två eller flera bord i olika storlek som skjuts in under varandra när de inte används – praktiskt när du behöver extra avställningsyta ibland.",
+      },
+      {
+        q: "Behöver borden monteras?",
+        a: "De flesta levereras omonterade med beslag och anvisning. Vad som ingår står i produktbeskrivningen.",
+      },
+    ],
+  },
+
+  "sangar-sovrum": {
+    intro: [
+      "Sovrummet är rummet där kvaliteten märks varje natt. Här finns sängramar i furu och metall i bredderna 90, 135, 140 och 160 cm, stoppade sängramar med justerbar gavel i bouclé och teddy, modeller med lådor eller högt fritt utrymme för förvaring under sängen, sängbänkar med förvaring och en madrass i gelmemoryskum.",
+      "Kontrollera att sängramens mått matchar madrassen du har eller planerar att köpa – en ram för 140 × 200 cm kräver en madrass i exakt det måttet. Maxvikt och fritt utrymme under sängen står i beskrivningen, liksom om ribbotten ingår.",
+      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Ingår madrass i sängramen?",
+        a: "Nej, sängramarna säljs utan madrass om inget annat står i beskrivningen. Välj en madrass i samma mått som ramen.",
+      },
+      {
+        q: "Hur mycket förvaring får jag under sängen?",
+        a: "Det fria utrymmet under ramen anges i centimeter i beskrivningen. Vissa modeller har dessutom lådor på hjul.",
+      },
+      {
+        q: "Vad gäller för retur av en säng?",
+        a: "Du har 30 dagars öppet köp. Kontakta kundtjänst innan du skickar tillbaka något, så hjälper vi dig med returen.",
+      },
+    ],
+  },
+
+  rumsavdelare: {
+    intro: [
+      "En rumsavdelare skapar ett rum i rummet utan att du behöver bygga något: en arbetshörna i vardagsrummet, en avskild sovplats i en etta eller en skärm framför det som inte ska synas. Här finns fristående skärmväggar med tre till åtta paneler i flätad bambu, polypropenväv på tallram, tyg och pappersrep, från 120 till 320 cm breda.",
+      "Välj bredd efter ytan du vill dölja och höjd efter hur mycket insyn du vill stänga ute. Panelerna fälls i sicksack och står stadigt av sig själva, och viks ihop när de inte används. Mått och material står i varje beskrivning.",
+      "Leverans inom 3–7 arbetsdagar från EU-lager, fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Står en rumsavdelare stadigt utan att fästas?",
+        a: "Ja, panelerna ställs i sicksack och bär upp varandra. Ju fler paneler och ju större vinkel, desto stadigare står den.",
+      },
+      {
+        q: "Släpper rumsavdelaren igenom ljus?",
+        a: "Det beror på materialet. Flätade paneler och tunn väv släpper igenom en del ljus men skymmer insyn, medan tät tygfyllning avskärmar mer. Materialet anges i beskrivningen.",
+      },
+    ],
+  },
+
 };
 
 /** Redaktionellt innehåll för en kategori-slug, annars undefined. */
