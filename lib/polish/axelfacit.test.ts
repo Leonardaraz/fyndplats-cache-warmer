@@ -283,6 +283,34 @@ describe("NAKEN HÖHE — samma totalhöjd utan ordet Gesamt", () => {
   });
 });
 
+describe("BARA EN DIAMETER — en ring har inga axlar att binda", () => {
+  it("märker raden axellös med skälet i stället för att avbryta", () => {
+    // Runda N66, kantskyddet till en studsmatta 14fb0f98: `Durchmesser:
+    // Ø305 cm` och `Dicke der Polsterung: 15 mm`. Ingen bredd, inget djup,
+    // ingen höjd — och generatorn avbröt på en källa som säger sanningen.
+    const ut = bygg({
+      aaa: kalla(["Durchmesser: Ø305 cm", "Dicke der Polsterung: 15 mm"], "Ø 305cm"),
+    });
+    expect(String(ut.aaa.axellos)).toContain("bara en diameter");
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+  });
+
+  it("☠️ en naken Höhe vinner över diametern — en cylinder har en höjd", () => {
+    const ut = bygg({ aaa: kalla(["Durchmesser: Ø30 cm", "Höhe: 50 cm"]) });
+    expect(ut.aaa.hojd).toBe(50);
+    expect(ut.aaa.axellos).toBeUndefined();
+  });
+
+  it("☠️ en diameter på en DEL gör inte produkten axellös", () => {
+    // `Rädergröße: Durchm. 24 cm` och `Sockelgröße: Ø64,5 cm` mäter delar.
+    // Etiketten måste stå först på raden och ensam, annars avbryter
+    // generatorn som förr.
+    expect(() => bygg({ aaa: kalla(["Raddurchmesser: 24 cm"]) })).toThrow();
+    expect(() => bygg({ aaa: kalla(["Rädergröße: Durchm. 24 cm"]) })).toThrow();
+  });
+});
+
 describe("TREVÄGSKEDJA — en tredje siffra får inte tystas bort", () => {
   it("☠️ 54/62/70H behåller ALLA tre talen, inte bara de sista två", () => {
     // Runda N19, campingbordet ecb304cd: `Gesamtabmessungen: 240L x 60B x

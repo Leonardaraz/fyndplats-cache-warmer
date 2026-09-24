@@ -114,6 +114,21 @@ LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Kabellänge|Länge)\s*:\s*\d+(?:
 # avbröt, så ingen tidigare runda kan få ett annat facit av den. Fler än en
 # sådan rad är tvetydigt, och då avbryter generatorn som förr.
 NAKEN_HOJD = r"^(?:✔\s*)?Höhe\s*:\s*(\d+(?:[.,]\d+)?)\s*cm\s*$"
+
+# ☠️ OCH EN RING HAR BARA EN DIAMETER. Uppmätt i runda N66 på kantskyddet till
+# en studsmatta, 14fb0f98, vars enda mått är
+#
+#     Durchmesser: Ø305 cm
+#     Dicke der Polsterung: 15 mm
+#
+# Det finns ingen bredd, inget djup och ingen höjd att binda — produkten är en
+# ring som följer ramen. Samma klass som isbjörnsparet (M1): källan säger
+# sanningen om sig själv, och generatorn avbröt ändå. Raden märks axellös med
+# ett skäl, så gate-axel säger "jämförde inte" i stället för att tiga.
+# Etiketten måste stå FÖRST på raden och ensam, och grenen ligger efter den
+# nakna höjden: en källa med både diameter och höjd är en cylinder, och då
+# finns en höjdaxel att grinda.
+DIAMETER = r"^(?:✔\s*)?Durchmesser\s*:\s*Ø?\s*\d+(?:[.,]\d+)?\s*cm\s*$"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -342,6 +357,7 @@ def main():
                        or (":" in r and axelpar(r.split(":", 1)[1]))]
             langd = [r for r in rader if re.search(LANGDETIKETT, r)]
             naken = [m for m in (re.search(NAKEN_HOJD, r) for r in rader) if m]
+            diameter = [r for r in rader if re.search(DIAMETER, r)]
             if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
             elif langd and "axellos" not in d:
@@ -351,6 +367,8 @@ def main():
                 d["bokstaver"] = "H"
                 d["hojd"] = tal(naken[0].group(1))
                 d["axelkalla"] = "tyska raden 'Höhe' (kallan har ingen totalmattrad)"
+            elif diameter and "axellos" not in d:
+                d["axellos"] = "inget totalmått i källan; bara en diameter: " + " | ".join(diameter)
             elif "axellos" not in d:
                 # En rad som redan är märkt axellös av tvåtals-spärren ovan är
                 # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den
