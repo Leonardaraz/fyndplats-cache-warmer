@@ -737,6 +737,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "hantlar-hantelset": {
+    intro: [
+      "Här hittar du hantlar för hemmagymmet: hantelset med ställ, justerbara hantlar, gummerade hexhantlar och enskilda hantlar på 15 och 20 kg. Här finns också en kettlebell på 10 kg, en skivstång med viktskivor och ett hantelställ i två hyllor som bär 270 kg.",
+      "Justerbara hantlar sparar plats. Den justerbara hanteln går från 2 till 11 kg i fem steg, 4-i-1-paret ställs om mellan 1, 1,5, 2 och 2,5 kg, och två hantlar på 20 kg sammanlagt blir en skivstång när du sätter ihop dem med förbindelsestången.",
+      "Hexhantlarna har sexkantiga huvuden, så de ligger stilla där du lägger dem i stället för att rulla i väg, och på de gummerade skonar gummit golvet. Hantelsetet på 36 kg har sex gummerade hexhantlar och ett kompakt ställ, och setet med väska har fyra färgkodade par från 0,5 till 2 kg.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Justerbara hantlar eller fasta hexhantlar?",
+        a: "Justerbara hantlar tar mindre plats och låter dig öka vikten utan att köpa nya. Fasta hexhantlar går snabbare att byta mellan under ett pass, eftersom varje vikt redan ligger färdig.",
+      },
+      {
+        q: "Kan hantlarna ställas direkt på golvet?",
+        a: "De gummerade hexhantlarna skonar underlaget, och hanteln på 20 kg är gummiklädd för att kunna sättas ned på ett trägolv. För förvaringen finns hantelstället, där varje hylla bär 135 kg.",
+      },
+      {
+        q: "Finns det skivstång?",
+        a: "Ja, en justerbar skivstång med viktskivor på 20 kg, och ett set där två hantlar blir en skivstång med en förbindelsestång.",
+      },
+    ],
+  },
+
   "har-rakning": {
     intro: [
       "Jobbar du med hår behöver utrustningen orka en hel arbetsdag. I Hår & Rakning hittar du höj- och sänkbara arbetsstolar för salong, torkhuvar på stativ med timer och frisörväskor med lås för verktygen — utrustning för salongen såväl som för dig som klipper hemma.",
@@ -1349,6 +1372,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  motionscyklar: {
+    intro: [
+      "Här hittar du motionscyklar för träning hemma, bland dem en liggande modell och hopfällbara modeller med ryggstöd, en spinningcykel och pedaltränare som ställs på golvet framför en stol eller soffa.",
+      "De flesta motionscyklarna har magnetiskt motstånd i 8 steg och en LCD-display, och två av dem har Bluetooth. Maxvikten är 110 eller 120 kg. Spinningcykeln har filtbroms och steglöst motstånd, och sadeln ställs mellan 78 och 93 cm över golvet.",
+      "Pedaltränarna används sittande och tränar benen, flera också armarna. Den eldrivna pedaltränaren har en motor som håller benen i rörelse, med 12 hastigheter och fjärrkontroll.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur tung får jag vara?",
+        a: "Maxvikten står i beskrivningen: 110 eller 120 kg för motionscyklarna och 100 kg för spinningcykeln.",
+      },
+      {
+        q: "Finns det motionscykel med ryggstöd?",
+        a: "Ja. På den liggande motionscykeln sitter du tillbakalutat med stöd för ryggen, och två hopfällbara modeller har ryggstöd och fälls ihop mellan passen.",
+      },
+      {
+        q: "Vad är en pedaltränare?",
+        a: "En liten trampmaskin som ställs på golvet framför en stol eller soffa. Den tränar benen, flera också armarna, och den eldrivna håller benen i rörelse med en motor.",
+      },
+    ],
+  },
+
   "redskapsbodar-forrad": {
     intro: [
       "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
@@ -1594,22 +1640,46 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "traning-gym": {
     intro: [
-      "Hemmagymmet vinner på att vara enkelt att komma igång med. I Träning & Gym hittar du hantelset med väska, gummerade hexhantlar med kromat grepp, motionscyklar med justerbart motstånd och tysta studsmattor med handtag.",
-      "Välj vikt och belastning efter hur du tränar. Ett färgkodat hantelset från 0,5 till 2 kg passar konditions- och rehabpass, medan tyngre hexhantlar behövs för styrka — gummeringen skyddar dessutom golvet och dämpar ljudet. För motionscykeln är maxvikt och antal motståndslägen det som avgör, och en studsmatta med gummirep i stället för fjädrar är märkbart tystare i lägenhet. Alla mått och maxvikter anges i beskrivningen.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Här samlar vi allt för hemmagymmet: chinsstänger för vägg eller fristående, stepbrädor, pilatesbrädor, gymstationer med viktblock, vibrationsplattor och studsmattor för träning. Här ligger också hantlar, träningsbänkar, motionscyklar och boxningssäckar, som har egna sidor.",
+      "Den fristående chinsstången ställs i 12 höjdlägen mellan 176 och 227 cm, och en av de väggmonterade har dipsställning. Flera stepbrädor ställs i tre höjder, och pilatesbrädan Reformer i trä har motståndsband.",
+      "Två gymstationer och hemmagymmet med benpress har viktblock på 45 eller 65 kg, och den kompakta gymstationen på 162 × 162 cm har latsdrag. Vibrationsplattorna har upp till 120 hastigheter, och en av dem har Bluetooth.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Vilken hantelvikt ska jag börja med?",
-        a: "För konditionspass och rehab räcker ofta 0,5–2 kg, medan styrketräning kräver tyngre hantlar. Ett set med flera vikter ger dig utrymme att öka efter hand.",
+        q: "Vilken chinsstång passar mig?",
+        a: "Den fristående kräver inga hål i väggen och ställs i 12 höjdlägen mellan 176 och 227 cm. De väggmonterade tar mindre plats, och en av dem har dipsställning.",
       },
       {
-        q: "Är studsmattan tyst nog för lägenhet?",
-        a: "Modeller med gummirep i stället för stålfjädrar är betydligt tystare och skonsammare mot leder. Diameter, maxvikt och antal rep anges per modell.",
+        q: "Vad passar om jag har lite plats?",
+        a: "Väggmonterade chinsstänger och stepbrädor tar lite plats, och den kompakta gymstationen samlar flera övningar på 162 × 162 cm.",
       },
       {
-        q: "Hur mycket klarar motionscykeln?",
-        a: "Maxvikten anges per modell, ofta runt 120 kg. Kontrollera även justermöjligheterna för sadel och styre så att du får rätt sittställning.",
+        q: "Var hittar jag hantlarna?",
+        a: "Hantlar, träningsbänkar, motionscyklar och boxningssäckar har egna sidor under Sport & Fritid, och de finns också här.",
+      },
+    ],
+  },
+
+  traningsbankar: {
+    intro: [
+      "Här hittar du träningsbänkar för hemmagymmet: hopfällbara bänkar med justerbart ryggstöd, bänkar med benrullar och bensträckare, bänkar med skivstångsställ och specialbänkar som scottbänk, sit-up-bänk och sissy squat-bänk.",
+      "Ryggstödet ställs i tre till sju lägen på de flesta. En bänk har i stället en plan, fast dyna och ett fristående ställ, och många fälls ihop mellan passen så att de går att ställa undan.",
+      "Bänken med skivstångsställ har ställ i sex höjder mellan 107,5 och 130 cm och ett armstöd för bicepscurl. På scottbänken vilar armarna mot en lutande dyna, och du curlar uppåt för biceps eller pressar nedåt för triceps. Maxvikten för användaren är oftast 120 kg.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur mycket klarar bänken?",
+        a: "Maxvikten för användaren är oftast 120 kg och som mest 150 kg. Bänken med benrullar och gummiband tål 350 kg total belastning, alltså du och vikterna tillsammans.",
+      },
+      {
+        q: "Går bänken att fälla ihop?",
+        a: "Många gör det, och det står i namnet eller beskrivningen. Bänken med fristående ställ fälls ihop i två delar, var för sig.",
+      },
+      {
+        q: "Vad är en scottbänk?",
+        a: "En bänk för armträning där överarmen vilar mot en lutande dyna. Scottbänken här är 2-i-1: du curlar uppåt för biceps och pressar nedåt för triceps.",
       },
     ],
   },

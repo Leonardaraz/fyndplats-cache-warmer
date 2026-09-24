@@ -45,7 +45,9 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
   assert.match(categorySeo("lek-tillbehor-for-husdjur")!.title, /[Hh]undtrappa/);
   assert.match(categorySeo("klostrad")!.title, /[Kk]lösträd/);
   assert.match(categorySeo("elbilar-for-barn")!.title, /[Ee]lbil/);
-  assert.match(categorySeo("traning-gym")!.title, /[Hh]antlar|[Tt]räningsutrustning/);
+  // Runda S9: hantlarna fick en egen sida, och Träning & Gym tog hemmagym i stället.
+  assert.match(categorySeo("traning-gym")!.title, /[Hh]emmagym/);
+  assert.match(categorySeo("hantlar-hantelset")!.title, /[Hh]antlar/);
 });
 
 // Två kategorisidor som siktar på samma huvudord delar på rankingen i stället
@@ -59,6 +61,8 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // boxningssäckar. Belysning och Förvaring släppte golvlampor och skoskåp.
 // Runda S8 lade till sex: kaninburar, hamsterburar, terrarier, hönshus, hundvagnar
 // och vedställ.
+// Runda S9 lade till hantlar, träningsbänkar och motionscyklar, och Träning & Gym
+// släppte hantlar för hemmagym.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -69,6 +73,7 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
     /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
     /kaninbur/i, /hamsterbur/i, /terrari/i, /hönshus/i, /hundvagn/i, /vedställ/i,
+    /hantl/i, /träningsbänk/i, /motionscykel/i, /hemmagym/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

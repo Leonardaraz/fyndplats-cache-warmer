@@ -75,7 +75,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Sport & Fritid",
     tag: "Smart utrustning för träning, resa och uteliv",
-    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym", "Boxningssäckar"],
+    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym", "Boxningssäckar", "Hantlar & hantelset", "Träningsbänkar", "Motionscyklar"],
     heroPicks: ["digital-bagagevag"],
   },
   {

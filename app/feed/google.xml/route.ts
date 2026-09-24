@@ -157,6 +157,10 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "honshus-honsgardar": 6991,       // Business & Industrial > Agriculture > Animal Husbandry
   hundvagnar: 6276,                 // Animals & Pet Supplies > Pet Supplies > Pet Strollers
   "vedstall-vedbodar": 695,         // Home & Garden > Fireplace & Wood Stove Accessories > Log Racks & Carriers
+  // Runda S9 (2026-09-24), samma kontroll. Träning & Gym behåller 990.
+  "hantlar-hantelset": 3164,        // … > Weight Lifting > Free Weights
+  traningsbankar: 499795,           // Sporting Goods > Exercise & Fitness > Exercise Benches
+  motionscyklar: 994,               // … > Cardio > Cardio Machines > Exercise Bikes
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

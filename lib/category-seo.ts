@@ -235,6 +235,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Hamsterburar i trä, akryl och glas, dvärghamsterbur, burar med rörsystem och gnagarburar för råtta, degu och chinchilla. Flera med djup bädd.",
   },
+  "hantlar-hantelset": {
+    title: "Hantlar & hantelset – justerbara och hexhantlar",
+    description:
+      "Hantelset med ställ, justerbara hantlar, gummerade hexhantlar, kettlebell och skivstång med viktskivor för hemmagymmet. Vikterna står i beskrivningen.",
+  },
   "har-rakning": {
     title: "Frisörtillbehör & salongsutrustning",
     description:
@@ -375,6 +380,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Mobiltillbehör till vardagen: laddare, kablar och skydd. Kolla anslutningstyp i beskrivningen så tillbehöret passar din telefon. Öppet köp 30 dagar.",
   },
+  motionscyklar: {
+    title: "Motionscykel, spinningcykel & pedaltränare",
+    description:
+      "Motionscyklar med magnetiskt motstånd i 8 steg, med ryggstöd eller hopfällbara, en spinningcykel och pedaltränare för armar och ben.",
+  },
   "redskapsbodar-forrad": {
     title: "Redskapsbod, förrådstält & trädgårdsskåp",
     description:
@@ -431,9 +441,14 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, droppslang, kompostkvarn på 2500 W, gödselspridare, lövblås, häcksax och gräsklippare.",
   },
   "traning-gym": {
-    title: "Träningsutrustning hemma – hantlar & gym",
+    title: "Hemmagym – chinsstång, stepbräda & pilates",
     description:
-      "Hantelset, hexhantlar, motionscyklar och studsmattor till hemmagymmet. Vikt och maxbelastning anges alltid. Fri frakt över 499 kr, Klarna.",
+      "Träningsredskap för hemmagymmet: chinsstänger för vägg eller fristående, stepbrädor, pilatesbrädor, gymstationer med viktblock och vibrationsplattor.",
+  },
+  traningsbankar: {
+    title: "Träningsbänk – hopfällbar, justerbar & scottbänk",
+    description:
+      "Träningsbänkar som fälls ihop, med ryggstöd i flera lägen, benrullar eller skivstångsställ, plus scottbänk, sit-up-bänk och sissy squat-bänk.",
   },
   "tv-bankar": {
     title: "TV-bänk – 80 till 200 cm, med lådor och LED",
