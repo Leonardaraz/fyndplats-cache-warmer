@@ -131,9 +131,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Fristående rumsavdelare med tre till åtta paneler i flätad bambu, polypropenväv, tyg eller pappersrep, 120–320 cm breda. Mått anges. 30 dagars öppet köp.",
   },
   "baby-smabarn": {
-    title: "Babybadkar, gunghästar & babyprylar",
+    title: "Lekmatta, gåvagn & babygunga – för de minsta",
     description:
-      "Babybadkar, gunghästar och praktiska prylar till de minsta. Åldersrekommendation och material i varje beskrivning. Leverans 3–7 dagar, öppet köp.",
+      "Lekmattor i skum, gåvagnar i trä, babygungor, hopfällbara babybadkar, lekhage och juniorsängar för de minsta – med ålder och mått i beskrivningen.",
   },
   "badrum-hemtextil": {
     title: "Badrumstillbehör & hemtextil",
@@ -165,6 +165,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Konstgjorda växter, prydnadsdetaljer och dekoration som gör hemmet personligt. Mått och material anges. Leverans 3–7 dagar från EU-lager.",
   },
+  "elbilar-for-barn": {
+    title: "Elbil för barn – fyrhjuling, motorcykel, traktor",
+    description:
+      "Elbilar för barn från 18 månader till 12 år: 6, 12 och 24 V, elfyrhjulingar, elmotorcyklar med stödhjul och eltraktorer – många med fjärrkontroll.",
+  },
   "forvaring-organisering": {
     title: "Förvaring – byrå, skoskåp & garagehylla",
     description:
@@ -175,6 +180,16 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Campingstolar, liggunderlag, campingvaskar, bryggstegar och solel till husvagnen. Vikt och mått i varje beskrivning. Fri frakt över 499 kr.",
   },
+  garagetalt: {
+    title: "Garagetält för motorcykel, cyklar och redskap",
+    description:
+      "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
+  },
+  "gunghastar-gungdjur": {
+    title: "Gunghäst för barn – i trä och plysch med ljud",
+    description:
+      "Gunghästar och gungdjur för barn från 12 månader – klassiska i trä och mjuka i plysch med ljud, bälte och ryggstöd, som häst, svan, giraff och dinosaurie.",
+  },
   "har-rakning": {
     title: "Frisörtillbehör & salongsutrustning",
     description:
@@ -184,6 +199,21 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Ansiktsmasker & hudvård",
     description:
       "Sheetmasks och hudvård för ansiktet till vardagsrutinen. Innehåll och användning anges i beskrivningen. Fri frakt över 499 kr, Klarna.",
+  },
+  "hundbaddar-hundsoffor": {
+    title: "Hundbädd & hundsoffa – upphöjda och tvättbara",
+    description:
+      "Hundbäddar och hundsoffor med ben i furu, upphöjda hundsängar med nät för ute och inne och bäddar med tvättbart överdrag – upp till 122 × 92 cm.",
+  },
+  hundburar: {
+    title: "Hundbur – möbelbur, metallbur och mjuk bur",
+    description:
+      "Hundburar för hundar upp till 30 kg: möbelburar i valnöt, ek och vitt med skiva som sidobord, burar i metall och mjuka burar i väv som viks ihop.",
+  },
+  hundkojor: {
+    title: "Hundkoja & hundhus utomhus – i trä och plast",
+    description:
+      "Hundkojor i gran och plast för hundar upp till 30 kg – upphöjda, med veranda, asfalttak eller tak som fälls upp – och en inomhuskoja i MDF.",
   },
   hushallsapparater: {
     title: "Hushållsapparater & smarta maskiner",
@@ -200,10 +230,25 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Sockervaddsmaskiner och partyprylar som gör kalaset minnesvärt. Effekt och användning anges i beskrivningen. Fri frakt över 499 kr.",
   },
+  katthus: {
+    title: "Katthus utomhus i trä – för balkong och trädgård",
+    description:
+      "Katthus i trä för balkong och trädgård – från små hus på 62 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp.",
+  },
+  kattlador: {
+    title: "Kattlåda med tak, rostfri & kattlådsmöbel",
+    description:
+      "Kattlådor med lock, tak och toppingång, rostfria kattlådor upp till 130 liter och kattlådsskåp som döljer lådan i en möbel – flera med kolfilter mot lukt.",
+  },
   keps: {
     title: "Keps herr & dam – baseballkepsar",
     description:
       "Baseballkepsar med lång skärm för sol och sommar. Storlek och material anges i beskrivningen. Leverans 3–7 dagar, 30 dagars öppet köp.",
+  },
+  klostrad: {
+    title: "Klösträd & kattträd – takhöga och klöspelare",
+    description:
+      "Klösträd och kattträd från 46 cm till takhöga modeller på 275 cm, klöspelare och klöstunnor i sisal, jute och naturfiber – med grottor och hängmattor.",
   },
   "koksmaskiner-apparater": {
     title: "Köksmaskiner & köksapparater",
@@ -221,14 +266,19 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Hopfällbara massagebänkar, rollatorer och redskap för kropp och välbefinnande. Maxvikt och mått anges alltid. Fri frakt över 499 kr.",
   },
   "lek-tillbehor-for-husdjur": {
-    title: "Klösträd, klöspelare & hundleksaker",
+    title: "Hundtrappa, hundramp, agility & kattbädd",
     description:
-      "Klösträd med grotta och hängmatta, väggmonterade klöspelare och automatiska bollkastare för hund. Höjd och material anges. Leverans 3–7 dagar.",
+      "Hundtrappor och hundramper till soffa och säng, agilityset för trädgården, kattbäddar och kattrappor samt aktiveringsleksaker för hund och katt.",
   },
   "leksaker-spel": {
-    title: "Leksaker – elbilar, bilbanor & spel",
+    title: "Gåbil, balanscykel & klätterställning för barn",
     description:
-      "Elbilar och eltraktorer för barn, bilbanor, rutschkanor och spel. Rekommenderad ålder anges alltid. Leverans 3–7 dagar, 30 dagars öppet köp.",
+      "Gåbilar och sparkbilar för de minsta, balanscyklar, klätterställningar för inomhusbruk, byggsatser, lasertag och spelbord för hela familjen.",
+  },
+  leksakskok: {
+    title: "Leksakskök & barnkök i trä, MDF och plast",
+    description:
+      "Leksakskök och barnkök för barn från 3 år – i trä, MDF och plast, med ugn, diskho och ljud, flera med rinnande vatten och upp till 92 delar.",
   },
   "massage-aterhamtning": {
     title: "Massagebänkar & massageutrustning",
@@ -245,6 +295,16 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Mobiltillbehör till vardagen: laddare, kablar och skydd. Kolla anslutningstyp i beskrivningen så tillbehöret passar din telefon. Öppet köp 30 dagar.",
   },
+  "redskapsbodar-forrad": {
+    title: "Redskapsbod, förrådstält & trädgårdsskåp",
+    description:
+      "Redskapsbodar i galvad plåt och plast från 1,1 till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för verktyg och trädgårdsredskap.",
+  },
+  sandlador: {
+    title: "Sandlåda med tak – sandlådor i trä för barn",
+    description:
+      "Sandlådor i barrträ för barn från 3 år – med soltak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med fiberduk i botten på flera.",
+  },
   "selar-koppel-transport": {
     title: "Hundsele, koppel & hundtransport",
     description:
@@ -254,6 +314,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Servering & glas till dukningen",
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
+  },
+  "sparkcyklar-for-barn": {
+    title: "Sparkcykel för barn – stora hjul och broms",
+    description:
+      "Sparkcyklar för barn från 18 månader till 12 år – med stora hjul på upp till 16 tum, broms och justerbart styre, med luftdäck eller punkteringsfria hjul.",
   },
   "traning-gym": {
     title: "Träningsutrustning hemma – hantlar & gym",

@@ -100,6 +100,24 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "lek-tillbehor-for-husdjur": 2,
   "mat-vattenskalar": 2,
   "selar-koppel-transport": 2,
+  // Sökordskategorierna 2026-09-24. taxonomyFor tar produktens FÖRSTA under-
+  // kategori, och en omappad sådan faller tillbaka på föräldern — för Barn &
+  // Familj (medvetet omappad) blir det INGEN kategori alls. Utan raderna nedan
+  // hade t.ex. en elbil som förut fick 1239 via leksaker-spel tappat den. Varje
+  // ID är alltså samma som produkterna redan fick via sin tidigare kategori.
+  klostrad: 2,
+  kattlador: 2,
+  katthus: 2,
+  hundkojor: 2,
+  "hundbaddar-hundsoffor": 2,
+  hundburar: 2,
+  "elbilar-for-barn": 1239,
+  "sparkcyklar-for-barn": 1239,
+  leksakskok: 1239,
+  sandlador: 1239,
+  "gunghastar-gungdjur": 1239,
+  "redskapsbodar-forrad": 536,
+  garagetalt: 536,
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

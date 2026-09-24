@@ -31,7 +31,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad"],
+    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
@@ -55,7 +55,9 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Barn & Familj",
     tag: "Genomtänkta favoriter för familjen",
-    subs: ["Baby & Småbarn", "Leksaker & Spel"],
+    // Sökordskategorierna 2026-09-24 står här för att /butik ska länka till dem;
+    // mega-menyn hämtar dem ur Wix på egen hand.
+    subs: ["Baby & Småbarn", "Leksaker & Spel", "Elbilar för barn", "Sparkcyklar för barn", "Gunghästar & gungdjur", "Leksakskök", "Sandlådor"],
     heroPicks: ["montessori-musikset-i-tra-5-delars", "babygym-i-tra-stabil-aktivitetsstallning"],
   },
   {
@@ -67,7 +69,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Husdjur",
     tag: "Det bästa för dina fyrbenta vänner",
-    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar"],
+    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar", "Klösträd", "Kattlådor", "Katthus", "Hundbäddar & hundsoffor", "Hundburar", "Hundkojor"],
     heroPicks: [],
   },
   {

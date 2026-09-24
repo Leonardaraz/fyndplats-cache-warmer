@@ -42,8 +42,25 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
   assert.match(categorySeo("friluftsliv-resa")!.title, /[Cc]amping/);
   assert.match(categorySeo("mat-vattenskalar")!.title, /skålar/i);
   assert.match(categorySeo("burar-klader-tillbehor")!.title, /[Hh]undgård|bur/);
-  assert.match(categorySeo("lek-tillbehor-for-husdjur")!.title, /[Kk]lösträd/);
+  assert.match(categorySeo("lek-tillbehor-for-husdjur")!.title, /[Hh]undtrappa/);
+  assert.match(categorySeo("klostrad")!.title, /[Kk]lösträd/);
+  assert.match(categorySeo("elbilar-for-barn")!.title, /[Ee]lbil/);
   assert.match(categorySeo("traning-gym")!.title, /[Hh]antlar|[Tt]räningsutrustning/);
+});
+
+// Två kategorisidor som siktar på samma huvudord delar på rankingen i stället
+// för att lägga den på en sida. 2026-09-24 fick klösträd, elbilar och elva andra
+// sökord egna kategorier, och de gamla samlingssidorna (Lek & Tillbehör för
+// husdjur, Leksaker & Spel) bytte till ord som ingen annan sida tar.
+test("ett huvudsökord finns i exakt en kategorititel", () => {
+  const ord = [
+    /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
+    /hundkoj/i, /gunghäst/i, /leksakskök/i, /sandlåd/i, /garagetält/i, /redskapsbod/i,
+  ];
+  for (const re of ord) {
+    const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);
+    assert.equal(traffar.length, 1, `${re} finns i ${traffar.length} titlar: ${traffar.join(", ")}`);
+  }
 });
 
 test("okänd slug faller tillbaka på mallen (ingen krasch)", () => {
