@@ -1897,6 +1897,19 @@ tecken, och den som sett den tillräckligt många gånger slutar titta efter
 vilket det var. Spärren gjorde rätt som fällde — det som saknades var ett
 facit som mätte samma sträng.
 
+✅ **Sedan 2026-09-24 transkriberas ingenting alls** (Leonards beslut). Rundans
+filer blir `skrivplan.json` (`tools/polish-gates/bygg-skrivplan.py`), och
+workflowen **"Polering — skriv en runda till Wix"** läser planen ur grenen,
+kontrollerar dess sha256 och skickar den till `/api/admin/polish-write`
+(`lib/polish/skrivplan.ts`). Den skriver text, media, kategorier och SKU i den
+ordningen, verifierar i en separat läsning och stämplar varje verifierad
+produkt. Spärren ovan behövs inte längre, eftersom det inte finns någon avskrift
+kvar som kan bli fel. Arbetsgången står i runbooken under *Rundor om femton*.
+
+☠️ **Kör workflowen med `ref` satt till poleringsgrenen.** Default är `main`,
+och där finns inte planen. Kontrollen av sha256 fäller en sådan körning innan
+något skrivs.
+
 ##### ☠️ Och `seoData` glömdes bort av regeln — fem av åtta drev isär (2026-09-07)
 
 Regeln ovan säger *skriv i en fil först*, och runda H3 följde den för

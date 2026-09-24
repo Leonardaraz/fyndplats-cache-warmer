@@ -1203,3 +1203,12 @@ export async function listV3ProductsForFeed(): Promise<WixV3FeedProduct[]> {
       + `arbeta vidare på en halv lista.`,
   );
 }
+
+/**
+ * Modulens egna rubriker (token + butikens site-id), för en rutt som talar
+ * direkt med butikens sajt. Exporterad i stället för kopierad: två kopior av
+ * site-id-valet hade kunnat glida isär, och då skriver den ena till fel sajt.
+ */
+export function headlessWixHeaders(): Record<string, string> {
+  return headers();
+}

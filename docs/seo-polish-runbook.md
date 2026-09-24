@@ -483,6 +483,65 @@ tvätt- och kortmetoder) och [`polish/varianter.md`](polish/varianter.md) (varia
 Reglerna står här — mekaniken där. [Katalogsvepen](#katalogsvep--återkommande-underhåll-inte-per-produkt)
 sist i dokumentet är periodiska kontroller över hela katalogen, inte moment i en polering.
 
+### Rundor om femton: skrivningen går via en workflow (Leonards beslut 2026-09-24)
+
+Fram till runda N56 skrevs varje runda till Wix genom att hela skrivskriptet
+(`steg1–5.js`, ~87 000 tecken) skrevs av i chatten och kördes i Wix körmiljö,
+följt av femton separata stämplingar. Avskriften var rundans största tidstjuv,
+och Wix körmiljö kan inte läsa filerna själv: hämtningar från
+`raw.githubusercontent.com` nekas med 403. Nu läser en workflow rundans plan
+direkt ur grenen.
+
+1. Bygg planen i rundans katalog, efter att grindarna och `hasha.py` gått rent:
+   `python3 ../../polish-gates/bygg-skrivplan.py`. Skriptet skriver
+   `skrivplan.json` och dess `plan_sha256`. Är `vantat-hash.tsv` inaktuell
+   faller bygget.
+2. Committa och pusha. Allt ligger under `tools/`, så pushen bygger ingenting
+   på Vercel.
+3. Kör workflowen **"Polering — skriv en runda till Wix"** med `ref` satt till
+   poleringsgrenen och läge `torr`. Workflowen prövar planen mot ruttens
+   validering och kör alla fyra skrivstegen utan att skriva något. Kör sedan
+   läge `skriv`: text, media, kategorier och sku, i den ordningen, med stopp vid
+   första fel. Därefter väntar den 90 sekunder, läser tillbaka produkterna
+   separat och stämplar mappningsraden för varje produkt som är helt
+   verifierad.
+4. Kör live-kontrollen en gång, från rundans katalog:
+   `bash ../../polish-gates/hamta-live.sh 130`, sedan `livegrind.py` och
+   `livekoll.py` ur samma katalog. `livekoll.py` kontrollerar det livegrind
+   inte ser: `InStock`, brödsmulan och att varje alt-text står på sidan.
+
+☠️ **Workflowen kör mot den `ref` du anger, och default är `main`.** Där finns
+inte rundans plan. Kontrollen av `plan_sha256` fäller en körning mot fel gren
+eller mot en äldre commit innan något skrivs.
+
+Stegen och deras regler bor i `lib/polish/skrivplan.ts` och är desamma som i
+`steg1–5.js`: SEO-data med två taggar och tomma nyckelord, media ensamt och
+utan `media.main`, kategorier via namnuppslag (ett okänt namn skriver
+ingenting), SKU sist och ensam ur en färsk läsning med `visible` och
+`options`, och en återläsning som bevisar att fälten fanns innan en nolla
+tolkas som fel. En plan med artikelnummerform vägras (`gatelib.ARTNR` plus
+formsvepets bredare form). Felmeddelanden från Wix tvättas innan de når den
+publika loggen.
+
+**Borttaget från rundorna**, med Leonards ja:
+
+- **`las` (prisgrinden).** Poleringen rör aldrig priset. Saldot läses ur Wix
+  vid urvalet och grindas av `gate-lager.py`.
+- **Högpassark** (`bygg-ghost.py`) görs bara vid misstanke, alltså när
+  kontaktarket och en förstoring inte räcker för att avgöra om något är ett
+  tryck eller en logotyp.
+- **Fyra katalogsvep blir ett.** Live-kontrollen i punkt 4 räcker.
+- **Den separata återläsningen i chatten.** Workflowens verifieringssteg gör
+  den.
+- **LÄS-MIG** blir kort: vad som publicerades, vad som hölls och varför, och
+  det som överraskade.
+- **FLAGGADE.md** får en kort rad per hoppad produkt. Filen är fortfarande
+  append-only.
+- **PR-beskrivningen** uppdateras bara inför merge, inte efter varje runda.
+
+Kvar, oförändrat: bilderna före texten, dubblettskärmen, alla textgrindar och
+läcktestet.
+
 ### ☠️ Räkna en kategori på HUVUDORDET, aldrig på förekomst (2026-09-02)
 
 Att välja batchens kategori börjar med en mätning: hur många tyska utkast finns det, och hur

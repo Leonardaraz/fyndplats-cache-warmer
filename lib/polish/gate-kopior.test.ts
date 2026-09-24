@@ -47,7 +47,8 @@ const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
 const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
                    "gate-lankar.py", "gate-sku.py", "gate-kort.py", "hasha.py",
-                   "gatelib.py", "livegrind.py", "bygg-media.py", "bygg-kort.py"];
+                   "gatelib.py", "livegrind.py", "bygg-media.py", "bygg-kort.py",
+                   "bygg-skrivplan.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade
@@ -61,7 +62,10 @@ const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
 // bilder.tsv + alt.tsv och sorterar måttskissen sist; en runda som kopierar
 // den och tappar sorteringen får måttskissen som HUVUDBILD och ser ändå ut
 // att fungera. Delad sanning ska bo på ett ställe, grind eller inte.
-const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py|bygg-(media|kort)\.py)$/;
+// ⚠️ `bygg-skrivplan.py` likaså (2026-09-24): den bygger det workflowen skriver
+// till Wix, och en rundekopia som tappat facit-kontrollen hade skickat ett
+// inaktuellt facit som får en korrekt skrivning att se misslyckad ut.
+const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py|bygg-(media|kort|skrivplan)\.py)$/;
 
 // ⚠️ Undantagen är UTTRYCKLIGA och få. En rundespecifik grind kodar en enskild
 // rundas materialgrupper och har ingen delad sanning att glida ifrån — men den
