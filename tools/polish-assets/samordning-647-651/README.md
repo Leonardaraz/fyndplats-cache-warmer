@@ -40,7 +40,7 @@ har rört.
 ```
 git merge origin/headless-site      # konflikt i exakt de två filerna, annars: stanna och titta
 python3 <denna katalog>/ta-647-sidan.py --sida var lib/category-seo.ts lib/category-content.ts
-python3 <denna katalog>/trevagskoll.py . 1779e155 02f123f9 origin/headless-site
+python3 <denna katalog>/trevagskoll.py . $(git merge-base HEAD MERGE_HEAD) HEAD MERGE_HEAD
 ```
 
 **#647 mergas först.** Kör i #651-grenen:
@@ -48,8 +48,12 @@ python3 <denna katalog>/trevagskoll.py . 1779e155 02f123f9 origin/headless-site
 ```
 git merge origin/headless-site
 python3 <denna katalog>/ta-647-sidan.py --sida deras lib/category-seo.ts lib/category-content.ts
-python3 <denna katalog>/trevagskoll.py . 1779e155 origin/headless-site <#651:s huvud>
+python3 <denna katalog>/trevagskoll.py . $(git merge-base HEAD MERGE_HEAD) MERGE_HEAD HEAD
 ```
+
+Kontrollen körs innan sammanslagningen committas, medan `MERGE_HEAD` finns.
+Argumenten är alltid `<bas> <#647> <#651>`, därför byter `HEAD` och
+`MERGE_HEAD` plats mellan de två fallen.
 
 `trevagskoll.py` läser kategoritexterna ur basen, ur båda PR:erna och ur den
 sammanslagna koden, och prövar varje slug. Om #647 har lagt till eller ändrat
