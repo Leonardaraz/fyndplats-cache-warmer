@@ -170,6 +170,17 @@ paraplyet) i samma deploy. Förhandsgranskningen mättes innan merge: titel, met
 (den slutsålda dold) och brödsmulan Hem › Butik › Hem & Inredning › Julgranar.
 Mergad `d0b17ad`.
 
+**Verifierat live** (`dpl_HKYGERej…`, `READY` 150 s efter merge):
+
+| | |
+|---|---|
+| `/kategori/julgranar` | 200. Titel, meta, canonical, H1, intro, 3 frågor i FAQ-JSON-LD, **58 granar**, ingen `noindex` |
+| Menyträdet (startsidan) | `Julgranar`, `count: 58` |
+| `sitemap.xml` | `/kategori/julgranar` finns |
+| handdammsugaren | 308 → efterträdaren |
+| ögonmasken | 308 → `/kategori/kropp-valbefinnande` |
+| paraplyet | 308 → `/kategori/solskydd-paviljonger` |
+
 ## 5. Tvillingarna: två av tre är samma vara
 
 | slutsåld AE-sida | Aosom-utkast | utfall | beläggning |
