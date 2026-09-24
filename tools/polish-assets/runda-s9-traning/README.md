@@ -111,7 +111,32 @@ Commit `b02deb27` på `claude/sasongskategorier-s6-bz3j9l` (#647).
 
 ## 6. Förhandsbygget
 
-(fylls i)
+`dpl_G8wNVeM5o4wWsPite5bRLFPBtwBb` (`b02deb27`) var READY efter 163 sekunder.
+Varje sida hämtades och jämfördes mot sin källfil på `<title>`,
+metabeskrivning, varje introstycke, varje FAQ och antalet frågor i
+FAQPage-JSON-LD.
+
+- **S9: 4 av 4 lika.** Ingen sida bär `**`.
+- **Stickprov från S7 och S8 i samma bygge:** Belysning och Hundvagnar är
+  fortfarande lika. Det är samma head som mergas 2026-09-25.
+
+Sidorna visar färre produkter än vad som är kopplat, eftersom kategorisidan
+döljer slutsålda produkter (`forListings`):
+
+| sida | visas | kopplade |
+|---|--:|--:|
+| hantlar-hantelset | 14 | 14 |
+| traningsbankar | 14 | 15 |
+| motionscyklar | **5** | 12 |
+| traning-gym | 111 | 123 |
+
+⚠️ **Motionscyklar visar bara 5 av 12.** Wix säger `OUT_OF_STOCK` på sju, och
+sex av dem skapades före Aosom-kontot (2026-08-27), alltså som
+AliExpress-importer: fem motionscyklar från 22–23 juni och en pedaltränare
+från 21 augusti. Den sjunde, en elektrisk pedalmaskin, skapades 28 augusti. Den liggande motionscykeln `202385ce` har redan en
+Aosom-tvilling som väntar på ommappningen efter #642. De andra är inte
+undersökta. Hittas tvillingar för dem fylls sidan på utan någon ändring i
+butiken, eftersom kategorin hämtar sina produkter ur Wix vid varje rendering.
 
 ## 7. Live
 
