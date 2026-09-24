@@ -7,7 +7,6 @@ const { CATEGORY_CONTENT } = await import(BUTIK + "/lib/category-content.ts");
 let fel = 0, n = 0;
 for (const f of readdirSync(KALLA).filter((x) => x.endsWith("-text.json"))) {
   const d = JSON.parse(readFileSync(`${KALLA}/${f}`, "utf8"));
-  if (d.ersatt_av) { console.log("ERSATT", d.slug, "→", d.ersatt_av.split(":")[0]); continue; }
   n++;
   const seo = CATEGORY_SEO[d.slug], c = CATEGORY_CONTENT[d.slug];
   if (JSON.stringify(seo) !== JSON.stringify(d.seo)) { fel++; console.log("SEO OLIKA", d.slug); }

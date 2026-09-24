@@ -1,0 +1,43 @@
+{
+ "slug": "speglar",
+ "seo": {
+  "title": "Spegel – helkroppsspegel, väggspegel, golvspegel",
+  "description": "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 148 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du speglar till hela hemmet: helkroppsspeglar och golvspeglar, väggspeglar med ram i svart metall, guld eller furufaner, fönsterspeglar med spröjs och badrumsspeglar med LED-belysning.",
+   "Helkroppsspeglarna och golvspeglarna är 148 till 180 cm höga. Tre av dem har ett stöd som fälls ut, så att spegeln står på golvet, och en har dimbar LED-belysning.",
+   "Väggspeglarna finns i flera storlekar och former, och flera hängs stående eller liggande. Till badrummet finns speglar med LED-belysning och antiimma, samlade på sidan Badrumsspeglar.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur stor spegel behöver jag för att se hela mig?",
+    "a": "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Helkropps- och golvspeglarna här är 148 till 180 cm höga."
+   },
+   {
+    "q": "Hur hänger jag upp en tung spegel?",
+    "a": "Med skruv och plugg som passar väggen, och skruvarna ska sitta i väggmaterialet, inte bara i gipsskivan. Flera väggspeglar väger runt 10 kg, och vikten står i beskrivningen."
+   },
+   {
+    "q": "Kan spegeln hänga liggande?",
+    "a": "Flera väggspeglar kan hängas både stående och liggande. Speglarna med nio fält har fyra krokar på baksidan för just det."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "35 synliga speglar 2026-09-24 med spegel i namnet: 17 badrumsspeglar och 18 övriga. Spegelskåp, sminkbord, smyckesskåp, kosmetikkylar och garderober med spegel är INTE med.",
+  "148 till 180 cm": "0ad9c123 'Golvspegel i vitt, 148 cm hög'; 05fcfc35 'Mått med stödet infällt 50 × 4 × 180 cm'; 0c9f870d 161,5; 58f8338d 150; e78ebbb6 150",
+  "tre med utfällbart stöd": "0c9f870d 'Ställ spegeln på ett plant golv med stödet helt utfällt'; 58f8338d '50 x 3,6 x 150 cm (hopfällt stöd), 50 x 37 x 148 cm (utfällt stöd)'; 05fcfc35 'Mått med stödet utfällt 50 × 41 × 179 cm'",
+  "en med dimbar LED": "e78ebbb6 namnet 'LED-helkroppsspegel 40x150 cm, dimbar, ramlös'",
+  "ram i svart metall, guld eller furufaner": "0d42d53f 'Järn, glas' svart; c438d4ba 'Ram Metall, svart'; f23252d9 'Ram Metall, guldfärgad'; 6db49bc9 'Guld'; e4df6dc7 'Furufaner, MDF, glas'",
+  "fönsterspeglar med spröjs": "fd205e45 namnet 'Fönsterspegel i guld 60×91 cm'; 7f8fd990 'Fönsterspegel svart 76x149 cm – 3 delar'; f23252d9 namnet 'spröjsad metallram'",
+  "flera stående eller liggande": "f23252d9, c438d4ba och 719ffb14 'Upphängning Fyra krokar på baksidan, stående eller liggande'; c2c6a332 och 5bd95c2c namnet 'hängs stående eller liggande'",
+  "nio fält, fyra krokar": "f23252d9, c438d4ba, 719ffb14 'Rutindelning Nio fält Upphängning Fyra krokar på baksidan'; a1d3d26c 'Antal fält: 9 … 4 krokar'",
+  "skruva i väggmaterialet": "a1d3d26c 'Skruva i väggmaterialet, inte bara i gipsskivan.'",
+  "runt 10 kg": "719ffb14 'Vikt 10,5 kg'; a1d3d26c 'Vikt: 10 kg'; 6db49bc9 'Vikt: 9,5 kg'",
+  "halva kroppslängden": "optik: en plan spegel visar hela kroppen om den är hälften så hög som personen och hänger rätt (reflektionslagen), inget produktpåstående",
+  "storlekar och former": "c2c6a332 40 × 60; a1d3d26c 90 × 60; 719ffb14 50 × 110; ac1cc9a5 två storlekar, 70 × 46 och 49,5 × 31; e4df6dc7 organisk form; 7f8fd990 bågformad del"
+ }
+}

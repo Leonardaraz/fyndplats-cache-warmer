@@ -1,0 +1,42 @@
+{
+ "slug": "byraer",
+ "seo": {
+  "title": "Byrå – smal eller bred, vit eller med tyglådor",
+  "description": "Byråer från smala modeller på 20 cm till breda på 130 cm, med vanliga lådor eller tyglådor. Flera har tippskydd, och två har eluttag ovanpå."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du byråer till sovrummet, hallen och barnrummet: smala byråer från 20 cm bredd, breda byråer upp till 130 cm, en låg modell på 51,5 cm och höga byråer med fem lådor.",
+   "Nästan hälften har tyglådor på en stomme av stål, MDF eller bambu. Flera levereras med tippskydd som fäster byrån i väggen, och det står i beskrivningen vilka.",
+   "Två byråer har eluttag ovanpå, den ena också USB, så att mobilen laddas på byrån. En byrå har ett skåp bredvid lådorna.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur djup är en smal byrå?",
+    "a": "Flera byråer är bara 29 eller 30 cm djupa och passar i hallen eller bredvid sängen. Djupet står alltid i måtten."
+   },
+   {
+    "q": "Varför ska byrån fästas i väggen?",
+    "a": "En byrå med utdragna lådor kan välta framåt, till exempel om ett barn klättrar på den. Tippskyddet håller den mot väggen, och det följer med flera av byråerna."
+   },
+   {
+    "q": "Behöver byrån monteras?",
+    "a": "Ja, byråerna levereras omonterade, med anvisning i kartongen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "27 synliga byråer 2026-09-24 (26 i lager), alla med byrå i namnet",
+  "smala från 20 cm": "8fb854aa 'Yttermått: 20 × 47 × 84,5 cm'",
+  "upp till 130 cm": "d1ce0490 namnet 'Byrå 130 cm med laddstation'",
+  "låg 51,5 cm": "16b83e2f 'Yttermått: 100 × 30 × 51,5 cm'",
+  "höga med fem lådor": "15c66a4d namnet 'Byrå 100 cm hög med 5 lådor'; 57873e12 'Smal byrå 95 cm hög med 5 lådor'",
+  "nästan hälften tyglådor": "13 av 27: tyglådor i 16b83e2f, 8fb854aa, d1ce0490, 834b263f, b45d2544, d49a557a, 49a2d0e4, 222f59d6, d1570672, 267e9c90, 1397a340; 859644b3 'Byrå med 9 lådor i tyg'; 834b263f 'Stommen är stål'",
+  "flera med tippskydd": "11 av 27, bl.a. e5e8754c 'Tippskydd ligger med i kartongen'; 58cf88f0 'Tippskyddsremmar ingår'; a59e97af 'tippskydd följer med i kartongen'. 499c4386 'Tippskyddet ingår inte'",
+  "två med eluttag, den ena USB": "d1ce0490 'laddstation i skivan: två eluttag, ett USB och ett USB-C'; b45d2544 'eluttagspaket längst upp'",
+  "skåp bredvid lådorna": "9b679006 'Antal lådor 4 st, plus 1 skåp'",
+  "29 eller 30 cm djupa": "57873e12 och dfa3710c '… × 29 × …'; d49a557a 60 × 29 × 85; 267e9c90 80 × 30 × 62,5",
+  "anvisning": "d49a557a 'tippskyddsband och monteringsanvisning'; 1ae506e3 'Montera byrån enligt anvisning[en]'"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "slug": "badrumsspeglar",
+ "seo": {
+  "title": "Badrumsspegel med belysning – LED och antiimma",
+  "description": "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du badrumsspeglar med och utan belysning: rektangulära och bågformade LED-speglar, en rund LED-spegel, en spegel med inbyggd förstoringsspegel och enkla speglar med hylla.",
+   "LED-speglarna har antiimma som håller en del av glaset fritt från imma efter duschen. Ljuset dimras och ställs i tre färgtemperaturer, 3 000, 4 500 och 6 500 K, och sju av speglarna har också Bluetooth och klocka.",
+   "Storlekarna går upp till 100 × 80 cm, och de flesta LED-speglarna har IP44, som tål vattenstänk. Placera ändå spegeln så att duschen inte sprutar direkt på den.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är antiimma?",
+    "a": "En platta eller folie bakom glaset som håller en del av spegeln fri från imma när badrummet är fullt av ånga. Storleken står i beskrivningen, till exempel 50 × 40 cm, och på den runda spegeln stänger den av sig själv."
+   },
+   {
+    "q": "Vilken färgtemperatur ska jag välja?",
+    "a": "LED-speglarna ställs om mellan 3 000 K, som är varmt och mjukt, 4 500 K och 6 500 K, som liknar dagsljus. Det kallare ljuset visar färgerna tydligare vid sminkning och rakning."
+   },
+   {
+    "q": "Har speglarna högtalare?",
+    "a": "Sju av LED-speglarna har Bluetooth och klocka, och flera anger en högtalare på 6 W. Det står i beskrivningen vilka."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "17 synliga badrumsspeglar 2026-09-24: 14 med LED (en slutsåld) och tre utan belysning",
+  "förstoringsspegel": "32d2e5c3 'Förstoringsspegel: Ø 14,5 cm, 3× förstoring, inbyggd'",
+  "enkla med hylla": "b94fab48 namnet 'Badrumsspegel med hyllor'; 76aae51f 'Hylla (B × D) 50 × 12 cm … Belysning Nej'",
+  "antiimma på alla LED": "alla 14 LED-speglar nämner antiimma; 26c59183 'antiimmaplatta på 50 × 40 centimeter'",
+  "dimras, 3 000/4 500/6 500 K": "alla 14: 'Färgtemperatur: 3 000 K / 4 500 K / 6 500 K', 'dimbar'",
+  "sju med Bluetooth och klocka": "26c59183, f77e7ac6, cc52007e, c5162985, 340b5601 i namnet; 9ea2228f och 4117e161 i texten",
+  "högtalare 6 W": "26c59183 '6 W högtalare'; f77e7ac6, cc52007e, c5162985 '6 W högtalare'; 340b5601 'högtalare 6 W'",
+  "upp till 100 × 80 cm": "26c59183 'Mått (bredd × höjd × djup): 100 × 80 × 3,5 cm'",
+  "de flesta IP44": "11 av 14 LED-speglar: bl.a. 170f7e0a 'IP44', 480c30d5 'IP44'; saknas i 9ea2228f, f606d271, 4117e161",
+  "duschen": "b94fab48 'placera den så att den inte får vattenstänk direkt från duschen'",
+  "runda stänger av sig själv": "c6a489bf 'Antiimmafolien mäter 30 × 20 centimeter och stänger av sig själv'",
+  "rektangulära, bågformade, en rund": "e839cf6f 'Form: bågformad överkant'; c6a489bf 'Form: rund'; övriga rektangulära mått",
+  "platta eller folie": "26c59183 'antiimmaplatta på 50 × 40 centimeter'; c6a489bf 'Antiimmafolien mäter 30 × 20 centimeter'"
+ }
+}
