@@ -1,0 +1,40 @@
+{
+ "slug": "terrarier",
+ "seo": {
+  "title": "Terrarium i glas – för ödla, orm och spindel",
+  "description": "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, med gallerlock och frontlucka eller skjutdörrar. Flera kan låsas."
+ },
+ "content": {
+  "intro": [
+   "Här finns terrarier i glas från 24 till 140 liter: små kuber på 30 × 30 × 30 cm, ett lågt terrarium på 50 × 30 × 25 cm och ett högt på 45 × 45 × 60 cm. Terrariet på 140 liter står på egna träben i stället för på ett bord.",
+   "Välj efter hur djuret lever. Det höga terrariet har 60 cm från botten till gallerlocket, och det låga har samma golvyta som 48-litersmodellen men lägre höjd. Mellanstorleken på 50 × 30 × 35 cm är lång nog för en marklevande art och hög nog för en klättrare.",
+   "Flera öppnas framifrån, med skjutdörrar eller en frontlucka med knapplås som ett djur inte kan trycka upp, och de har lock av galler eller nät. Två modeller har en strukturerad bakvägg som djuret kan klättra på.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vilka djur passar terrarierna för?",
+    "a": "Beskrivningarna nämner ödlor och ormar, och terrariet på 86 liter anges passa små ödlor, grodor, ormar och spindlar, till exempel leopardgecko och dvärggecko. Välj höjd efter om djuret klättrar eller lever på marken och golvyta efter hur stort det är."
+   },
+   {
+    "q": "Går terrarierna att låsa?",
+    "a": "Flera gör det. Terrariet på 86 liter har två lås, ett på dörren och ett på ovansidan, och flera av de mindre har en frontlucka med knapplås."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "8 synliga produkter 2026-09-24 med terrari i namnet; reptilinkubatorn är inte med",
+  "24 liter, 30 × 30 × 30": "ebf8a214 namnet 'Litet glasterrarium 30 × 30 × 30 cm, 24 liter'",
+  "140 liter på träben": "e5049d65 'Ett reptilterrarium på 140 liter som står på egna träben i stället för på ett bord'",
+  "lågt 50 × 30 × 25": "df5a9c3e 'Ett lågt glasterrarium på 50 × 30 × 25 cm och 34 liter. Det har samma golvyta som seriens 48-l…'",
+  "högt 45 × 45 × 60, 60 cm till gallerlocket": "a37d686f namnet 'Högt glasterrarium 45 × 45 × 60 cm, 120 liter med lås'; 'Seriens högsta terrarium: 60 cm från botten till gallerlock och 120 liter volym'",
+  "marklevande / klättrare": "ef9d5b47 (50 × 30 × 35 cm, 48 liter) '…långt för en marklevande art och tillräckligt högt för en klättrare'",
+  "skjutdörrar": "37679d51 'Ett glasterrarium på 86 liter med skjutdörrar fram, nätgaller i taket och två lås — ett på dörren och ett på ovansidan'",
+  "frontlucka med knapplås": "ebf8a214 'Frontlucka 14 × 19,5 cm med knapplås. Luckan hålls stängd av ett knapplås som ett djur inte kan trycka upp'; ef9d5b47 'Frontluckan har knapplås'",
+  "lock av galler eller nät": "ef9d5b47 'locket är ett heltäckande galler'; a37d686f 'gallerlock'; 37679d51 'nätgaller i taket'",
+  "strukturerad bakvägg, klättra": "b1b782c5 'en strukturerad bakvägg i klippoptik som täcker hela baksidan. Väggen ger både en yta att klättra på'; 48883de3 namnet 'med strukturerad bakvägg'",
+  "ödlor, ormar, spindlar, grodor, gecko": "37679d51 'Passar små ödlor, grodor, ormar och spindlar … leopardgecko, dvärggecko, mindre grodor'",
+  "flera kan låsas": "37679d51 'två lås'; a37d686f namnet 'med lås'; ebf8a214 och ef9d5b47 'knapplås'",
+  "framifrån + lock av galler/nät": "37679d51 skjutdörrar + 'nätgaller i taket'; ebf8a214 frontlucka + 'Gallerlocket'; ef9d5b47 frontlucka + 'locket är ett heltäckande galler'"
+ }
+}

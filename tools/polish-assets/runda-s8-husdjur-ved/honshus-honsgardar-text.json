@@ -1,0 +1,48 @@
+{
+ "slug": "honshus-honsgardar",
+ "seo": {
+  "title": "Hönshus & hönsgård – för 2 till 30 höns",
+  "description": "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², hönsreden och en automatisk hönslucka. För 2 till 30 höns."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du hönshus i trä, hönsgårdar att gå in i, värpreden och en automatisk hönslucka. Flera anger hur många höns de är gjorda för, från hönshus för två höns till hönsgården på 24 m² för 24–30 höns.",
+   "De flesta hönshus har både värprede och sittpinnar, och flera har en rastgård i samma stycke. Städningen går fortare med en utdragbar bricka eller bottenlåda, och på ett av husen fälls både taket och värpredet upp.",
+   "Hönsgårdarna ger hönsen yta att röra sig på under dagen, från 3,07 m² med ståhöjd upp till 24 m². De stora är byggda av galvaniserat stålrör med tak av duk mot sol och regn. Den automatiska hönsluckan öppnar på morgonen och stänger på kvällen, och i hönsredet i galvat stål rullar ägget ner i en uppsamlingslåda.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur många höns får plats?",
+    "a": "Det beror på modellen. Hönshusen är gjorda för två till tio höns, och hönsgårdarna i stål rymmer från 4–6 höns upp till 24–30 höns på 24 m². De flesta beskrivningar anger antalet."
+   },
+   {
+    "q": "Vad är skillnaden mellan hönshus och hönsgård?",
+    "a": "I hönshuset sover och värper hönsen, med sittpinnar och värprede. Hönsgården är en inhägnad rastgård där de rör sig under dagen, i trä eller galvaniserat stål och ofta med tak. Flera hönshus har en mindre rastgård i samma stycke."
+   },
+   {
+    "q": "Hur fungerar den automatiska hönsluckan?",
+    "a": "Den öppnar på morgonen och stänger på kvällen av sig själv. Du styr den med timer eller den inbyggda ljussensorn och kan öppna den manuellt med fjärrkontrollen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "20 synliga produkter 2026-09-24 med höns i namnet; ankhuset är inte med",
+  "för två höns": "a80e19ae 'byggt för två höns'; 9379cdb9 och 9d96611b 'för två höns'",
+  "24 m², 24–30 höns": "3b8ab8da namnet 'Hönsgård 300 × 800 cm – 24 m² för 24–30 höns'",
+  "flera anger antalet / de flesta": "14 av 17 hus och gårdar anger antal höns i beskrivningen",
+  "de flesta värprede och sittpinnar": "7 av 9 hönshus nämner både rede och sittpinne (ef062897 saknar rede, ea02080f sittpinne)",
+  "rastgård i samma stycke": "8 av 9 hönshus nämner rastgård, rasthage eller utegård; 9d96611b 'sovhus, värprede och en rasthage i ett stycke'",
+  "utdragbar bricka eller bottenlåda": "a80e19ae 'en utdragbar bricka i botten'; ea02080f 'en utdragbar bottenlåda'; 9d96611b 'bottenbrickan dras ut för städning'",
+  "tak och värprede fälls upp": "ea02080f 'Uppfällbart tak, uppfällbart värprede och en utdragbar bottenlåda gör städningen till några minuters arbete'",
+  "3,07 m² med ståhöjd": "c5f3914e 'En hönsgård på 168 × 183 × 182 cm med ståhöjd, 3,07 kvadratmeter åt 6–8 höns'",
+  "att gå in i": "c5f3914e 'med ståhöjd'; b3e20f91 'en framdörr du går rakt in genom'; 1c28e09c namnet 'Hönshage 3,9 m² att gå in i'",
+  "galvaniserat stålrör, tak av duk": "2e0a7448 och 3b8ab8da 'Stommen är galvat stålrör med plastbelagt nät, taket 420D Oxford-duk mot sol och regn'",
+  "trä eller stål": "c5f3914e 'Barrträ med vattentät och UV-beständig takduk'; 2e0a7448 'galvat stålrör'",
+  "4–6 höns": "82d04879 '4–6 höns'",
+  "två till tio höns (hus)": "a80e19ae 'två höns'; ef062897 namnet 'för 7–10 höns'",
+  "hönslucka": "6d2301ca 'öppnar på morgonen och stänger på kvällen – helt av sig själv. Styr med timer eller den inbyggda ljussensorn, eller öppna manuellt med fjärrkontrollen'",
+  "hönsrede, ägget rullar": "69e58954 'Ett hönsrede i galvat stål med tre fack och lutande botten. Ägget rullar ur facket ner i en uppsamlingslåda på framsidan'",
+  "ofta med tak": "b3e20f91 'rastyta under tak'; ac759277 'Det sexkantiga taket'; 9158341c namnet 'Hönsgård med tak'"
+ }
+}
