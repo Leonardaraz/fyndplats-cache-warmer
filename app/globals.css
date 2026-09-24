@@ -1722,6 +1722,8 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
  * den klibbiga :hover-växlingen ovanpå svepet. */
 .pimg-track,.pimg-slide{position:absolute;inset:0}
 .pimg-dots{display:none}
+/* Extrabilderna (hämtas vid svep) hör bara hemma i svepraden. */
+.pimg-slide-extra{display:none}
 @media (hover:hover){
   .prod:hover .pimg-alt{opacity:1}
   .prod:hover .pimg-main{opacity:0}
@@ -1734,6 +1736,7 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   .pimg-track-swipe::-webkit-scrollbar{display:none}
   .pimg-track-swipe .pimg-slide{position:relative;inset:auto;flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
   .pimg-track-swipe .pimg-alt{opacity:1}
+  .pimg-track-swipe .pimg-slide-extra{display:block}
   .pimg-dots{display:flex;position:absolute;left:0;right:0;bottom:10px;z-index:2;justify-content:center;gap:6px;pointer-events:none}
   .pimg-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.18);transition:background .2s}
   .pimg-dots span.on{background:var(--ink)}
