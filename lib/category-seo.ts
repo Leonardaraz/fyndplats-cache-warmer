@@ -175,6 +175,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Cykelpumpar, sadlar, cykelryggsäckar, barncyklar och garagedomkrafter. Specifikationer i varje beskrivning. Fri frakt över 499 kr, öppet köp 30 dagar.",
   },
+  "blomstall-vaxthyllor": {
+    title: "Växthylla & blomställ – blomhylla och blompall",
+    description:
+      "Blomställ, växthyllor och blompallar för krukväxter inne och ute: i trappform, för hörnet, hopfällbara eller med krokar för hängande krukor.",
+  },
   bokhyllor: {
     title: "Bokhylla – smal, låg, kubhylla & barnbokhylla",
     description:
@@ -206,7 +211,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Konstgjorda växter, prydnadsdetaljer och dekoration som gör hemmet personligt. Mått och material anges. Leverans 3–7 dagar från EU-lager.",
   },
   "elbilar-for-barn": {
-    title: "Elbil för barn – fyrhjuling, motorcykel, traktor",
+    title: "Elbil för barn – fyrhjuling, traktor & gokart",
     description:
       "Elbilar för barn från 18 månader till 12 år: 6, 12 och 24 V, elfyrhjulingar, elmotorcyklar med stödhjul och eltraktorer – många med fjärrkontroll.",
   },
@@ -445,10 +450,20 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Motionscyklar med magnetiskt motstånd i 8 steg, med ryggstöd eller hopfällbara, en spinningcykel och pedaltränare för armar och ben.",
   },
+  "motorcyklar-for-barn": {
+    title: "Motorcykel för barn – elmotorcykel 6, 12 & 24 V",
+    description:
+      "Elmotorcyklar för barn från 18 månader till 12 år: 6 V med stödhjul eller tre hjul, 12 V för 3–8 år och 24 V med 16 km/h, plus sparkfordon och trehjulingar.",
+  },
   nattduksbord: {
     title: "Nattduksbord – svävande, med lådor & laddstation",
     description:
       "Nattduksbord och sängbord med lådor och öppna fack, svävande modeller för väggen, smala bord på 25 cm och sängbord med eluttag och USB, flera i par.",
+  },
+  odlingslador: {
+    title: "Odlingslåda & planteringslåda – metall och trä",
+    description:
+      "Odlingslådor i galvaniserad metall, trä, träkomposit och plast, upp till 241 × 90,5 cm, och upphöjda lådor och odlingsbord där du slipper böja dig ner.",
   },
   oronlappsfatoljer: {
     title: "Öronlappsfåtölj – knappad rygg, sammet & linne",
@@ -484,6 +499,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Servering & glas till dukningen",
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
+  },
+  "serveringsvagnar-rullvagnar": {
+    title: "Serveringsvagn, barvagn & rullvagn på hjul",
+    description:
+      "Serveringsvagnar och barvagnar med två eller tre plan, och smala rullvagnar med korgar eller lådor, 13 till 26,5 cm djupa. De flesta har fyra hjul, två med broms.",
   },
   "sideboards-vitrinskap": {
     title: "Sideboard, skänk & vitrinskåp för vägg och golv",
@@ -585,6 +605,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Utemöbler för altan, balkong och trädgård: loungeset i konstrotting, trädgårdsbänkar och bord, matgrupper, hängstolar med stativ, solsängar och dynboxar.",
   },
+  "valphagar-hundhagar": {
+    title: "Valphage & hundhage – inomhus och utomhus",
+    description:
+      "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, och en hopfällbar hage i tyg med soltak. Flera har markpinnar för gräsmattan.",
+  },
   varmeflaktar: {
     title: "Värmefläkt – för vägg eller som torn, 2000 W",
     description:
@@ -601,7 +626,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Vattenkokare på 1,7 liter, brödrostar för två eller fyra skivor och frukostset där kokaren och rosten matchar, flera med temperaturval och varmhållning.",
   },
   "vaxthus-odling": {
-    title: "Tunnelväxthus, väggväxthus & odlingslådor",
+    title: "Tunnelväxthus, väggväxthus & drivbänkar",
     description:
       "Tunnelväxthus och foliehus från 3 × 1 till 6 × 3 m, väggväxthus, växthus i aluminium och polykarbonat, drivbänkar och odlingslådor i metall och trä.",
   },

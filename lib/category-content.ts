@@ -466,6 +466,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "blomstall-vaxthyllor": {
+    intro: [
+      "Ett blomställ samlar krukväxterna på liten yta och ger varje växt sitt eget ljus. Här samlar vi blomställ, växthyllor och blompallar för vardagsrummet, balkongen och altanen: i trappform, för hörnet, hopfällbara eller med krokar för hängande krukor.",
+      "De flesta har en stomme av pulverlackerad eller rostskyddad metall och kan stå både inne och ute. Hyllor av galler släpper igenom vatten, och växtstället med tråg har en kant runt det övre planet och två dräneringshål, så att krukorna står kvar och vattnet inte blir stående.",
+      "Titta på bärförmågan per plan. På de flesta ställ i metall bär varje plan 10 till 25 kg, medan blomstället i vitt med sju nivåer bär 2 kg per nivå och passar för mindre krukor. Blompallarna med mosaikskiva är tre stycken, 51, 61 och 71 cm höga, och de ryms i varandra när de ställs undan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Kan blomstället stå ute?",
+        a: "De flesta kan det. Stommen är pulverlackerad eller rostskyddad, och i beskrivningen står om stället är gjort för både inne och ute. Står det ute över vintern, ta in det eller ställ det under tak.",
+      },
+      {
+        q: "Hur mycket bär ett blomställ?",
+        a: "Det skiljer sig mycket. På de flesta ställ i metall bär varje plan 10 till 25 kg, blompallarna bär 30 till 50 kg och blomstället med sju nivåer 2 kg per nivå. Bärförmågan står i varje produktbeskrivning.",
+      },
+      {
+        q: "Vad är skillnaden mellan ett blomställ och en växthylla?",
+        a: "Ingen egentlig, det är två namn på samma sak: ett ställ med flera plan där krukväxterna står på olika höjd. Blompallar är lösa pallar för en kruka var, som kan ställas bredvid varandra som en trappa.",
+      },
+    ],
+  },
+
   bokhyllor: {
     intro: [
       "Här hittar du bokhyllor till vardagsrummet, kontoret och barnrummet: smala och låga hyllor, kubhyllor med öppna fack, bokhyllor i trädform, en roterande kubhylla och hyllor på hjul.",
@@ -1673,6 +1696,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "motorcyklar-for-barn": {
+    intro: [
+      "En motorcykel för barn är ofta det första egna fordonet med gas och styre. Här samlar vi elmotorcyklar för barn från 18 månader upp till 12 år, bland dem licensierade modeller av BMW och Honda. För de allra minsta finns också ett sparkfordon och två trehjulingar i motorcykelform, som drivs med fötterna eller med pedaler.",
+      "Välj efter ålder. För barn på 18–36 månader finns elmotorcyklar på 6 V med en toppfart på 2,5–3 km/h, antingen med två avtagbara stödhjul eller med tre hjul som står stadigt utan stödhjul. För 3–8 år finns modeller på 12 V med stödhjul och fjädring bak, som går i upp till 5 eller 6 km/h.",
+      "Elmotorcykeln på 24 V är gjord för 8–12 år och kräver att barnet redan kan cykla: den har två farter, 8 och 16 km/h, luftfyllda bakdäck och en maxlast på 65 kg. En laddning räcker i 30 minuter till en timme beroende på modell, och laddningen tar oftast 8–12 timmar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Från vilken ålder passar en elmotorcykel?",
+        a: "De minsta modellerna på 6 V är gjorda för barn från 18 månader och går i 2,5–3 km/h. Från tre år passar modellerna på 12 V, och för barn på 8–12 år finns en elmotorcykel på 24 V. Rekommenderad ålder står i varje produktbeskrivning, och på de flesta också maxvikten.",
+      },
+      {
+        q: "Går stödhjulen att ta bort?",
+        a: "Ja, på de flesta modellerna med stödhjul skruvas de av när barnet håller balansen själv. Elmotorcyklarna med tre hjul har inga stödhjul, eftersom de står stadigt ändå.",
+      },
+      {
+        q: "Hur länge räcker batteriet?",
+        a: "Mellan 30 minuter och en timme per laddning, beroende på modell, underlag och barnets vikt. Laddningen tar oftast 8–12 timmar, så det enklaste är att ladda över natten.",
+      },
+    ],
+  },
+
   nattduksbord: {
     intro: [
       "Nattduksbordet håller lampan, mobilen och boken inom räckhåll från sängen. Här hittar du nattduksbord och sängbord med lådor, öppna fack och hyllor, svävande modeller som skruvas fast i väggen och smala bord för trånga sovrum.",
@@ -1692,6 +1738,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur sätts ett svävande nattduksbord upp?",
         a: "Det skruvas fast direkt i väggen, med skruv och plugg som passar väggens material. Kontrollera maxlasten i beskrivningen innan du ställer tunga saker på det.",
+      },
+    ],
+  },
+
+  odlingslador: {
+    intro: [
+      "En odlingslåda gör det enkelt att odla grönsaker, kryddor och blommor även utan trädgårdsland, på gräsmattan, uteplatsen eller balkongen. Här samlar vi odlingslådor och planteringslådor i galvaniserad metall, trä, träkomposit, plast och konstrotting, från lådor som står direkt på marken till upphöjda odlingsbord.",
+      "Flera lådor i metall och plast har öppen botten och ställs direkt på marken, så att rötterna når jorden under. Metallådan på 241 × 90,5 cm levereras tillsammans med en mindre låda på 126 cm i samma paket. Flera av lådorna i trä har en fiberduk på insidan.",
+      "Vill du slippa böja dig finns upphöjda lådor och odlingsbord, några på hjul eller med skåp eller hylla under. Andra har spaljé för klätterväxter, en foliekåpa som rullas upp eller ett nät som håller fåglarna borta.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Behöver odlingslådan en botten?",
+        a: "Nej, inte om den står på marken. Flera av lådorna har öppen botten, så att rötterna når jorden under. På altanen eller balkongen passar en låda med botten och dräneringshål bättre, till exempel de upphöjda lådorna med vattenmagasin eller lådan på hjul.",
+      },
+      {
+        q: "Vilket material ska jag välja?",
+        a: "Galvaniserad metall och träkomposit ruttnar inte och står ute år efter år. Trä ger ett varmare intryck men behöver skötas, och plast är lätt. Flera av lådorna i plast monteras utan verktyg.",
+      },
+      {
+        q: "Hur mycket jord går det åt?",
+        a: "Räkna längd gånger bredd gånger djup på odlingsytan. Odlingsbordet med drivbänk rymmer cirka 75 liter jord och lådan med skåp 131 liter, och för de andra står odlingsytans mått i beskrivningen.",
       },
     ],
   },
@@ -1847,6 +1916,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur levereras ömtåliga glas?",
         a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
+      },
+    ],
+  },
+
+  "serveringsvagnar-rullvagnar": {
+    intro: [
+      "En vagn på hjul tar det du behöver dit du behöver det och rullar undan efteråt. Här samlar vi serveringsvagnar för kök och vardagsrum, barvagnar för glas och flaskor och smala rullvagnar som ger förvaring i glipan mellan kylen och skåpet, bredvid tvättmaskinen eller i badrummet.",
+      "Serveringsvagnarna har tre plan, och på den ena går mittplanet att flytta i höjdled. De flesta barvagnarna har flaskställ eller flaskplatser, och den runda barvagnen i konstrotting har en bricka som lyfts av och bärs in. Barvagnen i gran är gjord för uteplatsen, med en arbetsyta på 88 × 61 cm som bär 50 kg per hylla, och barvagnen i bambu fälls ihop när festen är över.",
+      "Rullvagnarna är 13 till 26,5 cm djupa och har korgar i metallnät, utdragslådor eller hyllplan med kant, och de bär 9 till 15 kg totalt. De flesta vagnarna har fyra hjul, där två har broms som håller vagnen på plats.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden mellan en serveringsvagn och en rullvagn?",
+        a: "En serveringsvagn har hela plan att ställa brickor, tallrikar och glas på och används för att servera. En rullvagn är oftast smal, med korgar eller lådor, och används som förvaring i trånga utrymmen i kök, badrum och tvättstuga.",
+      },
+      {
+        q: "Får en rullvagn plats mellan kylen och väggen?",
+        a: "Ofta, ja. Rullvagnen med fem plan är bara 13 cm på den smala sidan, och flera andra är 20 till 24 cm djupa. Mät glipan och jämför med måtten i beskrivningen.",
+      },
+      {
+        q: "Har vagnarna broms?",
+        a: "De flesta har fyra hjul, varav två med broms. Barvagnen i gran för uteplatsen har två hjul i ena änden och ett handtag i den andra, så den rullas som en skottkärra och står still när den ställs ner.",
       },
     ],
   },
@@ -2303,6 +2395,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Var förvarar jag dynorna?",
         a: "I en dynbox. Vi har dynboxar i stål på 295 och 350 liter, och förvaringsboxar på 93 och 253 liter.",
+      },
+    ],
+  },
+
+  "valphagar-hundhagar": {
+    intro: [
+      "En valphage ger valpen en egen plats att leka och vila på, utan att den kommer åt sladdar, skor och trappor. Här samlar vi valphagar och hundhagar i metall och en hopfällbar hage i tyg, för både inomhus och utomhus. Några passar också för katt, kanin och marsvin.",
+      "Metallhagarna är 60 till 91 cm höga och har en dörr eller en grind. Panelerna går att vinkla efter rummet, till exempel till en åttkant mitt på golvet, en rektangel längs väggen eller en rak avspärrning, och de flesta fälls ihop när hagen inte används. Hagarna på 366 och 488 cm har en grind som svänger 180 grader och stänger sig själv.",
+      "Välj höjd efter hunden, eftersom en hund som når överkanten med framtassarna tar sig över förr eller senare. Valphagen på 91 cm är gjord för hundar med en mankhöjd upp till 46 cm. Hagen med tak har ett tak av Oxfordväv och nät som öppnas med dragkedja, och hagen i tyg har soltak och myggnät runt om.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur hög valphage behöver jag?",
+        a: "Hagen ska vara så hög att hunden inte når överkanten med framtassarna. Hagarna i metall är 60 till 91 cm höga, och i de flesta beskrivningar står vilken mankhöjd hagen är gjord för, till exempel upp till 46 cm för valphagen på 91 cm.",
+      },
+      {
+        q: "Kan hagen stå utomhus?",
+        a: "Ja, flera är gjorda för både inne och ute. Till dem ingår markpinnar eller markkrokar som förankrar hagen i gräsmattan, så att den varken glider eller lyfter när hunden trycker mot sidan.",
+      },
+      {
+        q: "Passar hagen för andra djur än hund?",
+        a: "Några gör det. Hagen med tak passar också katt, kanin och marsvin, flera metallhagar fungerar för kanin och marsvin, och hagen i tyg är gjord för både hund, valp och katt.",
       },
     ],
   },

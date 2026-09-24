@@ -201,6 +201,14 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "skarmtak-entretak": 499907,      // … > Lawn & Garden > Outdoor Living > Awnings
   gnistskydd: 2365,                 // … > Fireplace & Wood Stove Accessories > Fireplace Screens
   elementskydd: 7110,               // … > Household Appliance Accessories > Heating Radiator Accessories
+  // Runda S14 (2026-09-24), samma kontroll mot taxonomifilen (sv-SE och en-US).
+  // Motorcyklarna får Electric Riding Vehicles, eftersom 14 av 17 är eldrivna.
+  // Som förut avgör produktens FÖRSTA underkategori vilken nod den får.
+  "motorcyklar-for-barn": 2753,    // Toys & Games > Toys > Riding Toys > Electric Riding Vehicles
+  "valphagar-hundhagar": 5087,     // Animals & Pet Supplies > Pet Supplies > Pet Playpens
+  "blomstall-vaxthyllor": 6428,    // … > Lawn & Garden > Gardening > Plant Stands (sv: Växtställ)
+  "serveringsvagnar-rullvagnar": 442, // Furniture > Carts & Islands (sv: Rullbord)
+  odlingslador: 721,                // … > Gardening > Pots & Planters
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler
