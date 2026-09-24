@@ -33,8 +33,14 @@ const extraCache = new Map<string, Promise<string[]>>();
 function hamtaExtra(slug: string): Promise<string[]> {
   let p = extraCache.get(slug);
   if (!p) {
-    p = fetch(`/api/kort-galleri/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(6000) })
+    // Tidsgränsen med AbortController + setTimeout, inte AbortSignal.timeout:
+    // den senare saknas i Safari före iOS 16 och kastar då synkront — inuti
+    // scroll-hanteraren, så varken hämtningen eller prickarna hade uppdaterats.
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 10000) : 0;
+    p = fetch(`/api/kort-galleri/${encodeURIComponent(slug)}`, ctl ? { signal: ctl.signal } : undefined)
       .then((r) => (r.ok ? r.json() : []))
+      .finally(() => clearTimeout(timer))
       .then((d: unknown) => (Array.isArray(d) ? d.filter((x): x is string => typeof x === "string") : []))
       .catch(() => {
         extraCache.delete(slug);
@@ -68,10 +74,14 @@ export function CardGallery({
   const begarExtra = () => {
     if (begard.current || !altImg) return;
     begard.current = true;
-    hamtaExtra(slug).then((e) => {
-      if (e.length) setExtra(e);
-      else begard.current = false;
-    });
+    try {
+      hamtaExtra(slug).then((e) => {
+        if (e.length) setExtra(e);
+        else begard.current = false;
+      });
+    } catch {
+      begard.current = false; // försök igen vid nästa svep
+    }
   };
 
   // Svepet är ren CSS och fungerar innan sidan hydrerat — men onScroll finns
@@ -93,18 +103,28 @@ export function CardGallery({
   // hämta resten av galleriet.
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
+    // Prickarna först: går något fel i hämtningen ska de ändå följa med.
+    if (!bildruta.current) {
+      bildruta.current = requestAnimationFrame(() => {
+        bildruta.current = 0;
+        const i = el.clientWidth ? Math.round(el.scrollLeft / el.clientWidth) : 0;
+        setAktiv((a) => (a === i ? a : i));
+      });
+    }
     begarExtra();
-    if (bildruta.current) return;
-    bildruta.current = requestAnimationFrame(() => {
-      bildruta.current = 0;
-      const i = el.clientWidth ? Math.round(el.scrollLeft / el.clientWidth) : 0;
-      setAktiv((a) => (a === i ? a : i));
-    });
   };
 
   return (
     <>
-      <div ref={spar} className={`pimg-track${altImg ? " pimg-track-swipe" : ""}`} onScroll={altImg ? onScroll : undefined}>
+      {/* Hämtningen startar redan när fingret nuddar bilden (touchstart
+          fyrar före första scroll-händelsen), så bild 3 hinner
+          komma medan besökaren sveper till bild 2. onScroll är reserven. */}
+      <div
+        ref={spar}
+        className={`pimg-track${altImg ? " pimg-track-swipe" : ""}`}
+        onScroll={altImg ? onScroll : undefined}
+        onTouchStart={altImg ? begarExtra : undefined}
+      >
         <div className="pimg-slide">
           <Image
             className="pimg-main"
