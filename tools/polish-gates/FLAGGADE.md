@@ -1220,3 +1220,207 @@ beslut — se den samlade frågan om detta.
   bilderna eller på skärmen, och listan på 889–919 kr tog slut. (N59)
 - N59:s lista är genomgången från 889 till 919 kr. Nästa runda börjar på
   929 kr. Säsongs- och familjeskärmen för 929–949 kr är inte gjord. (N59)
+- Slutsålda (saldo 0), alltså hoppade: sängramen `9ed05344` (929 kr);
+  LED-sminkspegeln `34199a4c` (949 kr); badrumsskåpet med spegeldörr
+  `ab765586` (959 kr); skärmtaket `4204cc13` och barstolarna `e5dc37c4` (979
+  kr); den trappklättrande säckkärran `4b50aea6` och klättersetet för barn
+  `a59650f2` (999 kr); bagarhyllan `f599e722` (1069 kr); kontorspallen
+  `1d5c39be` (1169 kr). (N60)
+- Märke eller text tryckt på varan, hållna efter bildgranskningen:
+  plyo-lådan `75f7eee3` bär SPORTNOW på sidorna i alla bilder,
+  pickleballracketarna `3ce5861a` bär SPORTNOW på racketarna,
+  pickleballnätet `42c65748` bär SPORTNOW på stolparna (och två bilder har
+  tysk text), träningsmaskinen `40600986` bär SPORTNOW på stången, fritösen
+  `69cabbc9` bär HOMCOM på kontrollpanelen, högtryckstvätten `759156fe` bär
+  DURHAND på höljet, foderautomaten `fb830b35` bär PawHut på behållaren i
+  alla bilder och barnpianots mikrofon `a8130281` bär en engelsk
+  logotyptext. (N60)
+- För få bilder kvar, hållna efter bildgranskningen: lagerhyllan `98461525`:
+  bild 2 har läsbara engelska förpackningstexter och bild 4 och 5 tysk text,
+  så kvar hade bara bilden på vit botten och måttbilden varit;
+  förvaringslådorna `6e1f4d71`: bild 1 och 2 har läsbara engelska bokryggar
+  och bild 4 visar en färg som inte säljs, så kvar hade bara måttbilden och
+  en närbild varit. (N60)
+- Skärmträffar mot publicerade sidor av samma slag, hoppade utan utredning:
+  bokhyllorna `44ceee6b` och `78ee034b` (mot `bd664764`); brödrost- och
+  vattenkokarseten `4add1c3a`, `4546b12a` och `c0463ce2` och vattenkokaren
+  `982262ec` (mot `6f79738d`); nattduksbordet med laddning `e6315714` (mot
+  `c8430ad6`); badrumsskåpet `4c82eb96` (mot `d9238d45`); tvättställsskåpet
+  `0d1d781c` (mot `7c271233`); högskåpet för kök `5f7abda8` (samma mått som
+  badrumsskåpen `8607c452` och `e0bf2497`); badrumshyllan med tvättsäck
+  `cf81955a` (mot `72491f25`); shoppingvagnen `b3d5bdb3` (mot `d3fd579b`);
+  lekköken `321f878a` och `962fc483` (mot `10957741`); golvlampan med hyllor
+  `d8b45bf1` (mot `bb919be8`); matgruppen `227d4899` och bistrosetet
+  `c01f915f` (mot `f8a5196f`); matstolarna `5e48ce3b` (mot matgruppen
+  `b07189d2`); glasbordet `b133698e` (mot `5684651e`); gunghästen `a118c79a`
+  (mot `68a02f8b`); byrån med tyglådor `d018014a` (mot `16b83e2f`);
+  barnsoffan `d9544fac` (mot barnfåtöljen `31710969`); förvaringskistan
+  `33566d4a` (mot `b129d5ae`); träningsbänken `105a58ac` (mot `66c2a9f8`);
+  basketkorgen `3a1fd501` (mot `db1118d0`); sittpallen `a17d0773` (mot
+  `92afa6e3`); förvaringsmöbeln för barn `c61fdbb4` (mot `93b9d4da`);
+  rutschkanan 5-i-1 `9f605da4` (mot `7d914d36`); mediahyllan `ae508a90` (mot
+  `c40a2b10`); hundrampen `bf3ae611` (mot A-hindret `fdefa04b`); barnsängen
+  `f6da9a00` (mot `77460b11`), som dessutom bär ett husmärke i namnet. (N60)
+- Samma slag som en produkt i rundan, hoppade: dipsstället `e8b8bbfd`
+  (rundan tar `eee66352`), hushållsassistenten `b4d17208` (skärmen gav träff
+  mot rundans `6bcbaf32`), aktivitetsställningen för höns `1d23b7a3` (rundan
+  tar `ae9ac784`) och balansbommen för barn `24597637` (rundan tar
+  gungbrädan `9960e638`). (N60)
+- Familjen är redan publicerad, hittad på familjeräkning och namn snarare än
+  av skärmen: vedstället `181a3522` (14 vedställ publicerade); barbordet
+  `295bb20f` (20 barbord och ståbord); kontorsstolarna `4a9feeeb` och
+  `76018ae4` (111 kontorsstolar); medicinskåpet `825c12a2` (15 medicinskåp);
+  konsolbordet `ba2a1ab2` (10 konsolbord); skoskåpet `ca96d450` (37 skoskåp
+  och skohyllor); nattduksbordet `ff3824a1` (17 nattduksbord); hantlarna
+  `117a9e5e` (13 hantlar och hantelset); badrumsskåpet `278fe7b3` (31
+  badrumsskåp); matborden `85f1694f` och `7fe7127a` (34 matbord, nio runda);
+  sidoborden `d838bc96` och `fdf98fa0` (34 sidobord); blomtrappan `b85ec83a`
+  (fyra blomtrappor och växthyllor); plyo-lådan `3e70b606` (`967d53e2` är
+  publicerad); hallstället `12976d46` (15 hallställ och klädställ);
+  golvstolen `c61b3314` (19 golvfåtöljer); studsmattan `3f7ef4a1` (10
+  studsmattor); tågbanan i trä `0d8d0d2d` (`69b24641` är publicerad);
+  gnistskydden `b2a46e43` och `c0c6f5cf` (13 gnistskydd); skänken `bd53ba9a`
+  (13 skänkar och sideboards); varmluftsfritösen `e3804952` (18 fritöser och
+  miniugnar); datorbordet `1df32c29` (12 datorbord); pedaltränaren
+  `1884c2c7` (tre pedaltränare); barnskrivbordet `728ded00` (fem
+  barnskrivbord); trehjulingarna `a76e97f1` och `29d13add` (sju
+  trehjulingar); tvättmaskinshyllan `f243289f` (tre tvättmaskinsskåp och
+  hyllor); hundsoffan `c457c72d` (15 hundsoffor och hundsängar); katthuset
+  `37b89f16` (17 katthus); sopsorteringen `b2872810` (44 soptunnor och
+  sopsorteringar); hjullastaren för barn `5b69e81c` (16 barnfordon); den
+  fällbara madrassen `b69b9d3a` (tre vikbara bäddmadrasser); roddmaskinen
+  `af5f111f` (`7a095db9` är publicerad); spelborden `d1a00ccc` och
+  `e6f6734b` (sex fotbollsspel och spelbord); vibrationsplattan `a680ce72`
+  (sju vibrationsplattor); skrivarstället på hjul `89c52807` (samma slag som
+  `6188e987`); poledancemattan `9dc146ed` (`cfc2d4f4` är publicerad). (N60)
+- Familjer som redan är täckta, hoppade på namnet utan skärm:
+  elmotorcyklarna för barn `1416e4a4`, `51c81c2c`, `81a7d7e4`, `850034ea`
+  och `bc9f1cef`; elfyrhjulingarna `1f05f7d5`, `96d3f0ed`, `fcdeca34`,
+  `2116f56f` och `4d6922a9`; radiobilen `70a721cd`, sittgrävaren `2c280af2`
+  och elhästarna `9f0ade76` och `2e7a68fd` (43 elfordon för barn);
+  gunghästarna `3223376b`, `b15b7854` och `063cbb9e` (17 gunghästar);
+  trehjulingarna `0bab65e3`, `3e34331b`, `a5844ce3`, `0dac99b5`, `24c5274b`,
+  `b3740e7d`, `e89e68ce` och `3f2f8af0`; hundgrindarna `b9334405`,
+  `d10c3344`, `4be084cc`, `62e8a0ac`, `74165baa`, `da80fe95`, `ae4ca8b1`,
+  `edac20c7`, `5eadb592`, `d09324b5`, `5fa26137`, `476aab20`, `a21e5490`,
+  `59a6c2f6`, `334518c4`, `1ca2e45e`, `1ccbc5ed` och `3186c5b9` (23
+  grindar); valphagarna `6c637ec1`, `858f3d10`, `e8bd46e1`, `9844cdf8`,
+  `de17f2d5` och `ef09bf2a` (nio hagar); hundvagnarna `68ddd90b`, `77028303`
+  och `49e8fc63`; hundburarna `2ded4775` och `d1070500` (17 hundburar);
+  kattoaletterna `161439a2`, `e16aea3b` och `7a8f3d9c` (20 kattoaletter);
+  katthjulen `fcb3dd7c` och `1e1f9dcb` (`7253f433` är publicerat);
+  klösträdet `e3cdd25f` och klätterväggen för katt `c32bf2d0`; utekatthuset
+  `aee9dfa8` (17 katthus); hundsoffan `e77c265a`; trimbordet för hund
+  `f1b045ce` (tre trimbord); cykelkärran för hund `66c9ed9f` (sex
+  cykelkärror för hund); barseten `f9af54c0`, `8be6d8ea`, `07e9ceef` och
+  `9b3b3c5c` och det höj- och sänkbara barbordet `f15dd51b`; barstolarna
+  `68bfefd6`, `67e82548`, `9d9bb226`, `9d3f4bd6`, `62b97643`, `9d1857f6`,
+  `cad2e713` och `92bf5665` (25 barstolar); kontorsstolarna `40bf617b`,
+  `8a0de453`, `9835d89f`, `19401932`, `a2b8af9e`, `8e9be448` och `3b8a4398`
+  och kontorsstolen med massage `b2fa51ba`; knästolarna `03d790a9`,
+  `431da897` och `b318a046` (14 knästolar); matstolarna `8dba2f32`,
+  `a91ed978`, `47d77ea1`, `272d57f6` och `3d872eca` (75 matstolar); de
+  fällbara och utdragbara matborden `515c164c`, `1bca9e41`, `19c5e09d`,
+  `ca5e4c55`, `7a614247`, `934caba5`, `a41fb1a9` och `1ce217ba` (12 fällbara
+  bord); de runda matborden `e5464d91`, `5196962a`, `59e92b8a`, `76018da4`,
+  `b6590bd3`, `eb8db828`, `0feb64b9`, `d756c049` och `47bad2d7`; matborden
+  för två `1c6dcc6f`, `c6631918`, `d5cb218a` och `120f3d62` och matgruppen
+  för två `69f1532b`; soffborden `a20c7072`, `a855f1cd`, `3b03606e`,
+  `df8cfda9`, `7361549c`, `08367feb`, `af9378d6`, `532e02c2`, `3bce807d`,
+  `bf870d91` och `f445cef5` (14 soffbord och satsbord); sidoborden
+  `033529fe` och `0e5e588e`; bänkarna med och utan förvaring `4d816d58`,
+  `e1a1b0db`, `2ae1ed0c`, `398fd97e`, `7902181a`, `e352bc3e`, `1fc5606f`,
+  `f7214d14`, `46307163`, `7c86fe87`, `865acfdf` och `8122f22b` (141
+  bänkar); pallarna och puffarna `91871b0d`, `08cf6128`, `d199b134`,
+  `8aed5faf`, `57d9917a`, `aab71949`, `062bdd81` och `d278d127` och
+  rullpallen `55367179`; speglarna `d1026aaa`, `3570107c`, `4d946ee9`,
+  `c387420b`, `c9c98ab1`, `6d05fcd2`, `98e2b710`, `cabd168d`, `87b0c350` och
+  `d9a5ec62` (64 speglar); LED-badrumsspeglarna `e01ae1b3`, `0bb73db6` och
+  `8ed2dc38`; badrumsskåpen `7420158c`, `8c965dfc`, `37d1bcd0`, `93c6fdcf`,
+  `9dc0f858`, `08dba609`, `a44d2528`, `5a337f94`, `790eb885`, `4612a7b1`,
+  `8057e869`, `f631e89c`, `2c52a683` och `bb7853f1` och spegelskåpen
+  `4f9a888a` och `a04185b6`; byråerna `ca182d50` och `7b56d280` och
+  skänkarna `48fc4bf8` och `80657793`; bokhyllorna `5ed047b1`, `77619c61`
+  och `7e1e5070` (24 bokhyllor); barnhyllorna `73409286`, `2fb66ffd`,
+  `2b422e06`, `91cd635b`, `889ca93f` och `5c176543`, barnhyllan med sittbänk
+  `acfcc8a3` (samma som `d3b26d84`) och förvaringslådan för barn `97a2c2c2`
+  (samma som skärmträffen `c61fdbb4`); skoskåpen `680ccaa6`, `3a598fb1` och
+  `3d32b060`; hallställen `788aca8e` och `e1ac4d7f`; golvlamporna
+  `24c2d1e6`, `8549cda0`, `f05941f7`, `a9013b5c` och `eb31f593` (36
+  golvlampor); konsolbordet `2f734f34`; cd-hyllan `644f1c50` (14
+  mediahyllor); rullskrivborden `3b05642c` och `89e84531`, de fällbara
+  datorborden `568b2812` och `29534b41`, skrivbordet med hyllor `9e874195`,
+  hörnskrivbordet `f7ee0e63` och ståpulpeterna `f6cf5ee7` och `873e1523`;
+  skrivarstället `1cdb544e` (samma slag som `89c52807` och `6188e987`);
+  köksregalen `8e4a9df0` och `46574b65` (18 köksvagnar och köksställ);
+  pianobänken `bdcfa4db`; fåtöljerna `3edfed51`, `56bf23a2`, `76738f85` och
+  `90222804` (234 fåtöljer); barnsoffan `87b86ba8`; barnborden med stolar
+  `565d0075` och `0e43328e`; sminkborden för barn `ab5f2a13`, `3fbd5e8c`,
+  `c61c471d` och `23e31398`; lekköken `2ff713c1`, `bb7160d3`, `6fafe249` och
+  `41a257cb`; skumklossarna `b2ab1b14`, `05007fea`, `d68f6683` och
+  `92d994d4`; tågbanan i trä `c8db0a3d`; staffliet `ec744016` och `32b5c938`
+  (nio staffli); barnsängen `33bab850`; rutschkanorna `c387e649` och
+  `0f276512`; klätterbågen `9b6aea55` och klättersetet `de6b2640` (sju
+  klätterbågar och klätterställningar); plyo-lådorna `091be9cb`, `9820ab5f`
+  och `bc2cedf0` (`967d53e2` är publicerad); stepparna `9629d138`,
+  `881a434c`, `c156f092` och `42ddf338` (N58 publicerade `aebd7dae`);
+  hantelseten och hantelstället `33dd1d05`, `f361d8d5`, `a49a1fe2` och
+  `3a96e9bb`; chinsstängerna och power towers `1ce371b1`, `0132ed3c`,
+  `8dc3c05e` och `9a5c643b`; studsmattorna för träning `180bce3e`,
+  `7ab714b3` och `5af70a89`; sensorsoptunnorna `9161b414`, `a129ccb7` och
+  `e02973e3`; shoppingvagnarna `64f3203a` och `65df60bc`; vattenkokarna och
+  köksseten `6147cb18` och `e0cd758d`; varmluftsfritösen `ba80cee2`;
+  skjutdörrsbeslaget `88cdbba1` (sex skjutdörrsbeslag). (N60)
+- Licensmärke eller husmärke i namnet, hoppade utan skärm: elmotorcyklarna
+  för barn med BMW-märket `707a329d` och `68ec5e08`; elmotorcyklarna för
+  barn med Vespa-namnet `0d3bad5e`, `bb18870d`, `24d19d6a` och `49f05147`;
+  bokhyllan för barn `9ec91f90`, som bär ett husmärke i namnet. (N60)
+- Djurbostäder som kräver en laglighetskontroll, hoppade utan skärm:
+  hamsterburarna `cc5bb82c`, `e13b7b5e` och `a22bfee3`; fågelburen
+  `19d79ad9`; smådjurshägnen `ad05a616`, `a12bffed` och `4c819a2a`;
+  hönshusen `d2033e57` och `ce3918b0`; hundkojan `2d976bed`. (N60)
+- Kroppsnära produkt, flaggad och inte polerad: benmassageapparaten med
+  värme och kompression `8fb25201`. (N60)
+- Utkast som redan har svenskt namn och alltså är någon annans: elkaminen
+  `d618473f`, som redan har ett svenskt namn. (N60)
+- Säsongsvaror i slutet av september (trädgård, camping och pool), hoppade:
+  odlingsbäddarna `97464fe7`, `64af4d96`, `6e8be06f`, `57d5b474`, `aa9f6bc1`
+  och `35724538` och odlingsskottkärran `b341e41d`; växthusen och
+  växthusplasten `c380d5db`, `96956f42`, `d17733fd`, `3627023e`, `7beb7f2b`,
+  `5a6c343e`, `7c6d76b9`, `9bcb8db1` och `0e1c53c7`; blomkrukorna och
+  planteringslådorna `cae58211`, `b9292e55`, `9b8c202e`, `28055d67` och
+  `bca19735` och växtställen `15438044` och `073a9f50`; trädgårdsbänkarna
+  `4f21be89`, `53a27505`, `0bfe11fa`, `7780d131`, `81830099`, `1f89f67b`,
+  `19b93e32` och `70632f9e`; trädgårdsstolarna `e64da165`, `6ec77b68`,
+  `a1553dc1`, `47524d2c` och `ba0697d5`, bistroseten `ae69c55c`, `e3a3a2bb`
+  och `6e7a50cf` och balkongbordet `423f506d`; trädgårdsvagnarna `518d57aa`,
+  `2b16013d` och `aa0c67e4`; slangvindorna `d20ba2ef` och `b3834599`,
+  häcksaxen `9668acec` och gödselspridaren `c1f94510`; markiserna `31359358`
+  och `55197cbb`, paviljongen `d0eb0803`, trädgårdsboxen `a1eac851` och
+  garagen för robotgräsklippare `9a19676b` och `db58e9a7`; hammockgungan för
+  barn `79b4295e`, sandlådan `aac544b0`, fotbollsmålen `dc79274c` och
+  `208e2018` och poolstaketet `3a95e896`; campingtvättställen `7cd091e5` och
+  `91cb640f`, campingsängen `ded83a68` och tältet `79002649`. (N60)
+- Jul- och vintervaror, hoppade nu men möjliga att ta i oktober: den
+  uppblåsbara tomten `709c228d`, granarna `2f01cebe` och `f39ef57c` och
+  gatlyktorna `c0c2822f` och `7c18b805`; snöskyffeln `60e250d4`. (N60)
+- Skärmens träffar som räknades som brus och inte fällde: mc-lyften
+  `5bc44269` mot ett badrumsskåp, aktivitetsställningen för höns `ae9ac784`
+  mot snurrbara matstolar, kubhyllan `cf17d23c` mot ett badrumsskåp,
+  kattlådemöbeln `e1d7ecf4` mot en julby i trä, resväskan `ce3aa654` mot en
+  campingprodukt och ritbordet `6c9f3c8c` mot en whiteboard och en
+  väggspegel. Alla sex publicerades i N60. (N60)
+- Skälen ovan är rekonstruerade efter en kontextkomprimering, eftersom
+  urvalets egna anteckningar inte fanns kvar. De bygger på skärmfilerna från
+  urvalet, en ny genomgång av arken för de tretton kandidater som hölls på
+  bilderna och två nya familjeräkningar mot katalogens 3 408 publicerade
+  sidor. Varje okänt utkast i spannet har exakt ett skäl, kontrollerat med
+  ett skript: 469 utkast, 15 publicerade och 454 hoppade. (N60)
+- Publicerad men flaggad: metalldetektorn `049f5441` gick inte genom
+  dubblettskärmen före publiceringen, och efterkontrollen kan inte jämföra
+  ett mått som bara är ett intervall. Texten säger dessutom att det i
+  Sverige i regel krävs tillstånd från länsstyrelsen för att använda en
+  metalldetektor. Båda bör granskas av en människa. (N60)
+- N60:s lista är genomgången från 929 till 1199 kr. Nästa runda börjar på
+  1209 kr. Jul- och vintervarorna ovan kan tas i oktober. Säsongs- och
+  familjeskärmen för 1209 kr och uppåt är inte gjord. (N60)
