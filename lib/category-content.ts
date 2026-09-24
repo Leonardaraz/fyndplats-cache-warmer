@@ -284,6 +284,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  baddfatoljer: {
+    intro: [
+      "En bäddfåtölj är en fåtölj till vardags och en säng när någon sover över. Du fäller ut den, lägger ryggen plant och har en bädd som är lika lång som en vanlig säng, utan att gästrummet behöver en säng som står tom resten av året.",
+      "Bäddarna är 180 till 193 cm långa och 60 till 98 cm breda. De smala fåtöljerna tar liten plats i ett litet rum, och de med 90 cm bred bädd ger gästen mer utrymme. Ryggen går att ställa i tre till sex lägen, så att du kan luta dig bakåt även när fåtöljen inte är bäddad.",
+      "Klädseln är sammet, manchester, chenille eller tyg i linnelook, och flera har armstöd i gummiträ. Stommen är av stål, och de flesta bär 120 kg. Till de flesta följer en kudde, och fåtöljerna levereras omonterade med anvisning.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur lång blir bädden?",
+        a: "Mellan 180 och 193 cm, beroende på modell. De flesta ger 183 till 190 cm, alltså en vanlig sänglängd.",
+      },
+      {
+        q: "Hur mycket bär en bäddfåtölj?",
+        a: "De flesta bär 120 kg. En modell i manchester utan armstöd är byggd för 200 kg.",
+      },
+      {
+        q: "Går klädseln att tvätta?",
+        a: "Kudden som följer med har avtagbart och tvättbart överdrag på flera modeller. Själva fåtöljen torkar du av, och skötselråden står i produktbeskrivningen.",
+      },
+    ],
+  },
+
   "badrum-hemtextil": {
     intro: [
       "Badrummet och sovrummet är de rum där mjuka material märks mest. I Badrum & Hemtextil samlar vi prisvärda tillbehör och textilier som gör de vardagliga rummen trivsammare utan att kosta en förmögenhet.",
@@ -306,11 +329,35 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  badrumsskap: {
+    intro: [
+      "Ett badrumsskåp ska rymma mycket på liten yta och klara badrummets fukt. Här samlar vi smala skåp som får plats bredvid tvättstället, högskåp för handdukar och flaskor, tvättställsskåp, spegelskåp och medicinskåp som går att låsa.",
+      "De smala skåpen börjar på 18 cm i bredd och högskåpen går upp till 185 cm, så de flesta badrum har en plats för ett. Stommarna är av lackerad MDF eller spånskiva, bambu eller rostfritt stål, och flera har justerbara hyllplan. Ett av högskåpen har en inbyggd tvättkorg som tippas ut, och på några skåp stängs dörrarna mjukt.",
+      "Nästan alla medicinskåp låses med kod eller nyckel, så att mediciner hålls utom räckhåll för barn, och de flesta hängs på väggen. Till de höga skåpen följer tippskydd som ska fästas i väggen. Torka av skåpen med en lätt fuktad trasa och vädra badrummet efter duschen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Passar ett badrumsskåp i ett litet badrum?",
+        a: "Ja, välj efter bredden. De smala skåpen är från 18 cm breda och flera högskåp är bara 20 cm. Mät platsen bredvid tvättstället och räkna med utrymme för att öppna dörren.",
+      },
+      {
+        q: "Går medicinskåpen att låsa?",
+        a: "Ja, nästan alla. Fyra har kodlås och tio har nyckellås, och vilket lås skåpet har står i produktbeskrivningen.",
+      },
+      {
+        q: "Behöver skåpen monteras?",
+        a: "Ja, de flesta levereras omonterade och monteras efter anvisningen i paketet. De höga skåpen ska dessutom fästas i väggen med tippskyddet som följer med.",
+      },
+    ],
+  },
+
   belysning: {
     intro: [
-      "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du golvlampor med inbyggda hyllor, vägglampor i retro-stil för utomhusbruk och kraftiga LED-armaturer för garage och verkstad — prisvärt och noga utvalt.",
+      "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
       "Tre saker avgör valet. **Sockeln** måste matcha lampan du tänkt använda (E27 är vanligast). **IP-klassen** talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. **Ljusmängden** mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
-      "Beställningarna skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Taklamporna finns med glaskulor, i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -346,6 +393,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur mycket klarar en garagedomkraft?",
         a: "Maxlasten anges per modell, till exempel 2,5 ton. Välj alltid en domkraft med marginal till bilens vikt, och använd pallbockar när du arbetar under bilen.",
+      },
+    ],
+  },
+
+  boxningssackar: {
+    intro: [
+      "Med en boxningssäck hemma tränar du när det passar dig. Här samlar vi fristående boxningssäckar, boxsäcksställ med säck och speedball, punchingbollar på fjädrande stång, boxställ med två speedballs och ett väggfäste för en säck du redan har.",
+      "De fristående säckarna står på en fot som fylls med vatten eller sand. Foten levereras tom och fylls först när säcken står på plats, och flera har sugproppar under foten som ger grepp mot ett slätt golv. Punchingbollarna och ställen går att höja och sänka, och höjderna går från 125 till 231 cm.",
+      "Till flera följer boxhandskar med, och boxsäcksställen har plats för både säck och speedball. Väggfästet håller en säck på upp till 100 kg, 80 cm ut från väggen, men säcken köper du separat.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad fyller man foten med?",
+        a: "Vatten, sand eller båda. Sand ger mest tyngd: i en av säckarna tar foten 120 kg sand eller 70 kg vatten. Sanden eller vattnet köper du själv, eftersom foten levereras tom.",
+      },
+      {
+        q: "Behöver jag borra i väggen?",
+        a: "Nej, de fristående säckarna och ställen står på golvet. Bara väggfästet skruvas i väggen.",
+      },
+      {
+        q: "Vad är en speedball?",
+        a: "En liten boll som sitter på en fjäder eller i ett ställ och studsar tillbaka när du slår, så att du tränar snabbhet och träffsäkerhet.",
       },
     ],
   },
@@ -462,11 +532,34 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  elkaminer: {
+    intro: [
+      "En elkamin ger känslan av en brasa utan skorsten, ved eller aska. Lågorna är LED-ljus, och kaminen värmer rummet när du vill. Här samlar vi väggkaminer att hänga på väggen eller bygga in, fristående kaminer och konsolmodeller, en cylindrisk kamin och små elkaminer på ben.",
+      "Effekten är 1800 eller 2000 W, och de flesta har två värmelägen, så att du kan välja 1000 W en sval kväll och full effekt när det är kallt. De flesta går också att köra som ren flameffekt utan värme, och flera har fjärrkontroll, termostat, timer och överhettningsskydd.",
+      "Väggkaminerna finns upp till 152 cm breda, och några är gjorda för att byggas in i en vägg eller nisch. Andra ska sitta utanpå väggen, och det står i beskrivningen. Ljudnivån ligger under 50 till 55 dB, alltså hörbar i ett tyst rum men inte påträngande.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Går elkaminen att använda utan värme?",
+        a: "Ja, de flesta kan köras som ren flameffekt, så att du har lågorna året om utan att rummet blir varmt.",
+      },
+      {
+        q: "Hur mycket värmer en elkamin?",
+        a: "Effekten är 1800 eller 2000 W, och de flesta har ett lägre läge. En av konsolmodellerna anges värma ett rum på upp till 30 kvadratmeter.",
+      },
+      {
+        q: "Kan man bygga in en elkamin i väggen?",
+        a: "Några väggkaminer är gjorda för inbyggnad, och det står i beskrivningen. Andra ska sitta utanpå väggen och ska inte byggas in i en nisch.",
+      },
+    ],
+  },
+
   "forvaring-organisering": {
     intro: [
-      "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor i industristil, skoskåp som tar liten golvyta, kontorshurtsar på hjul, justerbara garagehyllor i stål, klocklådor och hopfällbara arbetsbord.",
-      "Mät först, köp sen. Djupet är det mått som oftast överraskar — ett skoskåp på 24 cm djup passar i en smal hall där en vanlig byrå aldrig hade gått in. För garagehyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar att sitta på, kontorshurtsar på hjul, klädställ och förvaring till tvätt, garage och förråd. Skoskåp och skobänkar har dessutom en egen sida.",
+      "Mät först, köp sen. Djupet är det mått som oftast överraskar, och en byrå eller bokhylla som är några centimeter för djup tar mer golv än man tror. För hyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -478,8 +571,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
         a: "Ja, förvaringsmöbler levereras platt med skruv och anvisning. De flesta byråer och hyllor tar 30–60 minuter att montera.",
       },
       {
-        q: "Passar ett skoskåp i en smal hall?",
-        a: "Kolla djupmåttet — våra smalare skoskåp är runt 24 cm djupa och byggda för just trånga hallar. Mät väggen och räkna med utrymme för att kunna öppna luckan.",
+        q: "Var hittar jag skoskåpen?",
+        a: "Skoskåp, skobänkar och skohyllor har en egen sida, Skoskåp & skobänkar, med skåp för 8 till 30 par och smala modeller från 15 cm djup.",
       },
     ],
   },
@@ -525,6 +618,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur förankras tältet?",
         a: "Markankare och spännlinor följer med, och ett av tälten har dessutom expanderskruvar för hårt underlag.",
+      },
+    ],
+  },
+
+  golvlampor: {
+    intro: [
+      "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, trebenta lampor med tygskärm, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
+      "Lamporna är från 129 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Ungefär hälften går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
+      "Titta på ljuskällan innan du beställer. I lamporna med inbyggd LED sitter ljuset fast, till några lampor med E27-sockel ingår lamporna och till andra köper du dem separat. Flera LED-lampor går att ställa om mellan varmt och kallt ljus, från 3000 till 6500 kelvin.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Ingår glödlampan?",
+        a: "Det beror på lampan. I lamporna med inbyggd LED sitter ljuskällan fast. Till några lampor med E27-sockel ingår lamporna, till andra köps de separat, och det står i produktbeskrivningen.",
+      },
+      {
+        q: "Vad är en båglampa?",
+        a: "En golvlampa med en lång, böjd arm som når ut över soffan eller bordet, så att ljuset kommer ovanifrån. Foten är tung, ofta i marmor, så att lampan står stadigt.",
+      },
+      {
+        q: "Kan jag ladda mobilen i lampan?",
+        a: "Ja, i två av golvlamporna med hyllor. Den ena har USB-uttag och den andra både USB-A, USB-C och ett vanligt eluttag.",
       },
     ],
   },
@@ -905,6 +1021,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "koksoar-koksvagnar": {
+    intro: [
+      "En köksö eller köksvagn ger köket mer arbetsyta och förvaring utan att du behöver bygga om. Här samlar vi köksöar med skåp och utfällbar skiva, köksvagnar med lådor och hyllor, smala vagnar med utdragskorgar och vagnar med kryddhylla eller vinställ.",
+      "Alla står på hjul, och på nästan alla har två av hjulen broms, så att vagnen står stilla när du arbetar och rullar undan när du städar. Köksöarna är från 113 till 129 cm breda, och de har en skiva som fälls ut eller brickor som dras ut när du behöver mer yta.",
+      "Skivorna är av massivt gummiträ, furu eller i trälook och stenlook, och flera vagnar har kryddhylla, handdukshängare och plats för flaskor. Bärigheten står per modell och går upp till 112 kg på den största köksön. Vagnarna levereras omonterade med anvisning.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden mellan en köksö och en köksvagn?",
+        a: "Köksön är större, med skåp och en skiva som ger en ny arbetsplats mitt i köket. Köksvagnen är smalare och fungerar som extra förvaring och avlastningsyta som rullas åt sidan.",
+      },
+      {
+        q: "Går hjulen att låsa?",
+        a: "Ja, på nästan alla köksöar och köksvagnar har två av hjulen broms.",
+      },
+      {
+        q: "Hur mycket tål skivan?",
+        a: "Det står per modell. Den största köksön bär 112 kg totalt, och de smala vagnarna med utdragskorgar är gjorda för lättare saker som burkar och flaskor.",
+      },
+    ],
+  },
+
   "koksredskap-tillbehor": {
     intro: [
       "Rätt redskap gör matlagningen roligare och snabbare. I Köksredskap & Tillbehör hittar du prisvärda basredskap i hållbara material för det dagliga arbetet vid spisen och bänken.",
@@ -1059,6 +1198,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  massagestolar: {
+    intro: [
+      "En massagefåtölj är en fåtölj att vila i, med vibration och värme i ryggen och ett fotstöd som fälls upp. Här samlar vi massagefåtöljer för vardagsrummet och massagestolar, där flera är kontorsstolar med massage i ryggen för dig som sitter länge vid skrivbordet.",
+      "De flesta har både värme och vibration, och några har knådande massage i stället för vibration. Massagen och värmen styrs med en fjärr- eller handkontroll, och flera har timer som stänger av av sig själv. Många går att vrida runt, några har gungfunktion och flera har mugghållare och sidofickor för kontrollen.",
+      "Några fåtöljer har uppresningshjälp: en elmotor lyfter sitsen och hjälper dig upp när du ska resa dig. Fåtöljerna bär upp till 160 kg, och klädseln är konstläder, mikrofiber, sammet, chenille eller tyg i linnelook. Kör massagen i korta pass i stället för i timmar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden mellan en massagestol och en massagefåtölj?",
+        a: "Massagefåtöljen är en vilfåtölj med fotstöd och ryggläge. Flera av massagestolarna är kontorsstolar, med vibration eller knådning i ryggen, som du sitter i vid skrivbordet.",
+      },
+      {
+        q: "Finns det massagefåtöljer som hjälper en upp?",
+        a: "Ja, några har uppresningshjälp. Samma handkontroll styr uppresningen, liggläget och massagen.",
+      },
+      {
+        q: "Hur mycket bär en massagefåtölj?",
+        a: "Det står per modell. De flesta bär 120 kg, flera 135 eller 150 kg, och fyra modeller är byggda för 160 kg.",
+      },
+    ],
+  },
+
   "mat-vattenskalar": {
     intro: [
       "Rätt skål gör måltiden lugnare för både hund och katt. Här hittar du mat- och vattenskålar i praktiska material som är enkla att hålla rena och står stadigt även när djuret är ivrigt.",
@@ -1177,6 +1339,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur levereras ömtåliga glas?",
         a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
+      },
+    ],
+  },
+
+  "skoskap-skobankar": {
+    intro: [
+      "Skor vid ytterdörren blir snabbt en hög. Här samlar vi skoskåp med tippfack eller luckor, skobänkar att sitta på medan du knyter skorna, öppna skohyllor och skoställ, och hallmöbler där skohylla, sittplats och krokar sitter ihop.",
+      "Skoskåpen rymmer från 8 till 30 par, och de smalaste är bara 15 till 26 cm djupa, så att de får plats i en trång hall. I ett skåp med tippfack står skorna lutade bakom en lucka som fälls ut, och flera skåp har spegeldörrar, så att hallen får en stor spegel på köpet.",
+      "Skobänkarna har sittyta, flera med dyna eller stoppad sits, och bär mellan 120 och 220 kg. De höga skoskåpen levereras med tippskydd som ska fästas i väggen, och de flesta möbler monteras efter anvisningen i paketet. Den hopfällbara skohyllan i bambu behöver ingen montering alls.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur många par skor rymmer ett skoskåp?",
+        a: "Det står per modell, från 8 par i de smalaste skåpen till 30 par i det största. Stövlar och stora storlekar tar mer plats än antalet par räknar med.",
+      },
+      {
+        q: "Vad är ett tippfack?",
+        a: "Ett fack där skorna står snett bakom en lucka som fälls ut nedtill. Det gör att skåpet kan vara grunt, och skorna tar liten plats i djupled.",
+      },
+      {
+        q: "Passar ett skoskåp i en smal hall?",
+        a: "Ja, välj efter djupet. Det smalaste skoskåpet är 15 cm djupt och flera andra är 24 till 26 cm. Mät väggen och räkna med plats att fälla ut luckan.",
       },
     ],
   },
@@ -1318,6 +1503,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "tv-bankar": {
+    intro: [
+      "En tv-bänk ska bära tv:n, gömma sladdarna och ge plats för spelkonsol, router och fjärrkontroller. Här samlar vi tv-bänkar från 80 till 200 cm, en väggmonterad bänk som svävar över golvet, små bänkar på hjul och bänkar med lådor, luckor och öppna fack.",
+      "Titta på tv:ns storlek och vikt. Flera bänkar anger vilken tv som får plats, upp till 75 tum, och bärigheten står per modell, upp till 100 kg för hela bänken. Bänkarna på hjul har kabelhål i bakstycket, och under bänkar med ben kan sladdarna dras i stället för bakom.",
+      "Stommarna är av spånskiva eller MDF, i vitt, svart, högglans eller ektoner, och några har ben i metall. Tre bänkar har luckor som stängs mjukt, och en har RGB-LED och glashylla. De flesta levereras omonterade med anvisning.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor tv passar på bänken?",
+        a: "Det står i produktbeskrivningen. De största bänkarna är gjorda för en tv på upp till 75 tum, och bärigheten för skivan anges för sig.",
+      },
+      {
+        q: "Finns det tv-bänk att hänga på väggen?",
+        a: "Ja, en tv-bänk på 180 cm är gjord för väggmontering och har tre nedfällbara luckor med mjukstängande gångjärn.",
+      },
+      {
+        q: "Hur mycket bär en tv-bänk?",
+        a: "Det står per modell, och skivan och hyllorna anges var för sig. Den som bär mest klarar 100 kg totalt, varav 50 kg på skivan.",
+      },
+    ],
+  },
+
   "utelek-spel": {
     intro: [
       "Utelek får barnen ut i trädgården. Här samlar vi studsmattor för barn, basketkorgar för väggen och ett flyttbart basketställ, en gungställning, en fågelbogunga och en babygunga, sandlådor, en hoppborg med pool och rutschkana, bollnät för fotboll, badminton och volleyboll, och trädgårdsgolf för hela familjen.",
@@ -1360,6 +1568,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Var förvarar jag dynorna?",
         a: "I en dynbox. Vi har dynboxar i stål på 295 och 350 liter, och förvaringsboxar på 93 och 253 liter.",
+      },
+    ],
+  },
+
+  varmeflaktar: {
+    intro: [
+      "En värmefläkt ger snabb värme där elementen inte räcker: i hallen, i ett kallt sovrum eller i hemmakontoret. Här samlar vi värmefläktar som sitter på väggen och tornmodeller som står på golvet, alla med termostat, timer och överhettningsskydd.",
+      "Effekten är 2000 W, och tornfläkten på 73 cm ger 2200 W. Du väljer mellan flera effektlägen, till exempel 1000 eller 2000 W, och fläkten sveper fram och tillbaka så att värmen sprids i rummet. De flesta har ett värmeelement av keramik och styrs med fjärrkontroll.",
+      "Flera väggmodeller har veckotimer, så att värmen går på när du behöver den, och fönstervakt som stänger av när du vädrar. En av tornmodellerna har vältskydd som bryter strömmen om den välter. Kapslingsklassen står i varje produktbeskrivning, och den avgör var värmefläkten får sitta.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Får värmefläkten sitta i badrummet?",
+        a: "Det beror på modell och placering. Kapslingsklassen står i varje produktbeskrivning, och i badrummet finns regler för hur nära dusch och badkar en elapparat får sitta. Fråga en elektriker om du är osäker.",
+      },
+      {
+        q: "Vad gör fönstervakten?",
+        a: "Den stänger av värmen automatiskt när du vädrar, så att du inte värmer upp luften som går ut genom fönstret.",
+      },
+      {
+        q: "Hur stort rum värmer en värmefläkt?",
+        a: "Det står per modell. Väggmodellen på 50 cm anges för 20 till 25 kvadratmeter.",
       },
     ],
   },
@@ -1427,6 +1658,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
   // ── Möbler (2026-09-23) ──────────────────────────────────────────────────
+  "verktygsvagnar-verktygslador": {
+    intro: [
+      "En verktygsvagn samlar verktygen på ett ställe och rullar dit du jobbar, i garaget, verkstaden eller förrådet. Här samlar vi verktygsvagnar med lådor, verkstadsvagnar med öppna plan, verktygsskåp på hjul och för väggen, verktygslådor att ställa på vagnen eller bänken och en låsbar låda för lastbilsflak.",
+      "Vagnarna är av pulverlackerat stål och har upp till 16 lådor. I många modeller löper lådorna på kullagerskenor, och flera har inlägg i lådorna som skyddar verktygen. De flesta vagnar och skåp går att låsa, och på de flesta vagnar går två av hjulen att låsa, så att vagnen står still när du arbetar.",
+      "Bärigheten står per modell och går upp till 150 kg på vagnarna. Några har en arbetsyta på toppen, en av dem utdragbar från 70 till 130 cm, och verktygsskåpen med hålplatta ger plats för det som ska hänga synligt.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Går lådorna att låsa?",
+        a: "På de flesta modeller, ja. Vagnarna har nyckellås eller cylinderlås, och verktygslådorna har nyckellås eller öglor för hänglås. Vilket lås det är står i produktbeskrivningen.",
+      },
+      {
+        q: "Hur mycket bär en verktygsvagn?",
+        a: "Upp till 150 kg, beroende på modell. Maxlasten per låda och per plan är lägre och står i produktbeskrivningen.",
+      },
+      {
+        q: "Behöver vagnen monteras?",
+        a: "Ja, de flesta levereras omonterade. Skruva ihop stommen på ett plant golv och montera hjulen sist.",
+      },
+    ],
+  },
+
   kontorsstolar: {
     intro: [
       "En bra kontorsstol märks inte – det är en dålig som ger ont i ryggen efter en arbetsdag. Här hittar du kontorsstolar med nackstöd, justerbara armstöd och fällbar rygg, modeller med utdragbart fotstöd eller inbyggd massage, en rymlig big and tall-stol som bär 150 kg och stolar i bouclé och chenille som passar i ett hemmakontor. För den som vill variera sittställningen finns knästolar, sadelpallar och ritstolar med fotring för höga bänkar och ståbord.",

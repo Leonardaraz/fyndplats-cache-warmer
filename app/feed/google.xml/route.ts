@@ -133,6 +133,22 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   // kategori; resten faller som förut tillbaka på tradgard-utemobler (536).
   utemobler: 4299,                  // Furniture > Outdoor Furniture
   "terrassvarmare-infravarmare": 2649, // … > Climate Control Appliances > Patio Heaters
+  // Sökordskategorierna i runda S7 (2026-09-24). Varje ID är kontrollerat mot
+  // Googles taxonomifil (sv-SE och en-US) samma dag och är smalare än
+  // förälderns: 536 Home & Garden, 436 Furniture, 638 Kitchen & Dining,
+  // 988 Sporting Goods. Samma regel som ovan: det är produktens FÖRSTA
+  // underkategori som avgör, så alla produkter byter inte.
+  badrumsskap: 6356,                // Furniture > Cabinets & Storage
+  golvlampor: 4636,                 // Home & Garden > Lighting > Lamps
+  elkaminer: 6792,                  // Home & Garden > Fireplaces
+  varmeflaktar: 611,                // … > Climate Control Appliances > Space Heaters
+  "verktygsvagnar-verktygslador": 3974, // Hardware > … > Tool Storage & Organization
+  baddfatoljer: 6499,               // Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs
+  massagestolar: 1442,              // … > Massage & Relaxation > Massage Chairs
+  "tv-bankar": 457,                 // Furniture > Entertainment Centers & TV Stands
+  "skoskap-skobankar": 5559,        // … > Clothing & Closet Storage > Shoe Racks & Organizers
+  "koksoar-koksvagnar": 442,        // Furniture > Carts & Islands
+  boxningssackar: 499720,           // … > Boxing & Martial Arts Training Equipment
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler

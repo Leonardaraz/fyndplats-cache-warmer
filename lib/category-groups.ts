@@ -31,7 +31,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter"],
+    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter", "Badrumsskåp", "Golvlampor", "Elkaminer", "Värmefläktar", "Verktygsvagnar & verktygslådor"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
@@ -43,13 +43,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare"],
+    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar"],
     heroPicks: [],
   },
   {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
-    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas"],
+    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar"],
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
@@ -75,7 +75,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Sport & Fritid",
     tag: "Smart utrustning för träning, resa och uteliv",
-    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym"],
+    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym", "Boxningssäckar"],
     heroPicks: ["digital-bagagevag"],
   },
   {

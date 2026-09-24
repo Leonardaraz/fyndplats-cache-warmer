@@ -135,20 +135,35 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Lekmattor i skum, gåvagnar i trä, babygungor, hopfällbara babybadkar, lekhage och juniorsängar för de minsta – med ålder och mått i beskrivningen.",
   },
+  baddfatoljer: {
+    title: "Bäddfåtölj – fåtölj som blir gästsäng",
+    description:
+      "Bäddfåtöljer som fälls ut till en bädd på 180–193 cm och 60–98 cm bredd, i sammet, manchester och linnelook, med ryggen i tre till sex lägen.",
+  },
   "badrum-hemtextil": {
     title: "Badrumstillbehör & hemtextil",
     description:
       "Badrumstillbehör, handdukar och hemtextil som lyfter känslan i badrum och sovrum. Mått och material anges. Fri frakt över 499 kr, 30 dagars öppet köp.",
   },
-  belysning: {
-    title: "Golvlampor, vägglampor & LED-belysning",
+  badrumsskap: {
+    title: "Badrumsskåp – högskåp, medicinskåp & spegelskåp",
     description:
-      "Golvlampor med hyllor, vägglampor för utomhus och LED-armaturer till garage och verkstad. Sockel och IP-klass anges. Leverans 3–7 dagar.",
+      "Badrumsskåp i bambu, vitt och grått: smala skåp från 18 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
+  },
+  belysning: {
+    title: "Taklampor, bordslampor & LED-belysning",
+    description:
+      "Taklampor i glas, kristall och linne, bordslampor i keramik och trä, LED-björkar, vägglampor för utomhus och LED-armatur till garaget. Sockel och IP-klass anges.",
   },
   "bil-cykel": {
     title: "Cykeltillbehör & biltillbehör",
     description:
       "Cykelpumpar, sadlar, cykelryggsäckar, barncyklar och garagedomkrafter. Specifikationer i varje beskrivning. Fri frakt över 499 kr, öppet köp 30 dagar.",
+  },
+  boxningssackar: {
+    title: "Boxningssäck, punchingboll & boxställ",
+    description:
+      "Fristående boxningssäckar med fot som fylls med vatten eller sand, boxsäcksställ med säck, punchingbollar och boxställ med speedball, 125–231 cm höga.",
   },
   "burar-klader-tillbehor": {
     title: "Hundgård, hundgrind & burar för smådjur",
@@ -175,10 +190,15 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Eldkorgar och eldstäder för uteplatsen, från Ø38 till Ø75 cm: rökfria modeller med sekundärförbränning, eldkorgar med grillgaller, eldbord och fyrfat.",
   },
-  "forvaring-organisering": {
-    title: "Förvaring – byrå, skoskåp & garagehylla",
+  elkaminer: {
+    title: "Elkamin – elektrisk kamin för vägg eller golv",
     description:
-      "Byrålådor, skoskåp, garagehyllor, hurtsar och smarta förvaringslösningar till hall, kontor och garage. Mått anges alltid. 30 dagars öppet köp.",
+      "Elkaminer med LED-lågor och 1800–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
+  },
+  "forvaring-organisering": {
+    title: "Förvaring – byrå, bokhylla & förvaringsbänk",
+    description:
+      "Byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar, hurtsar på hjul och klädställ till hall, sovrum och kontor. Mått anges alltid.",
   },
   "friluftsliv-resa": {
     title: "Campingutrustning & friluftsprylar",
@@ -189,6 +209,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Garagetält för motorcykel, cyklar och redskap",
     description:
       "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
+  },
+  golvlampor: {
+    title: "Golvlampor – båglampor, LED och dimbara",
+    description:
+      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och trebenta lampor med tygskärm.",
   },
   "grill-utekok": {
     title: "Gasolgrill, kolgrill, plancha & kylbox",
@@ -275,6 +300,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Köksmaskiner och apparater som sparar tid i vardagen. Effekt, kapacitet och skötselråd anges i varje beskrivning. Fri frakt över 499 kr.",
   },
+  "koksoar-koksvagnar": {
+    title: "Köksö & köksvagn på hjul – med förvaring",
+    description:
+      "Köksöar och köksvagnar på hjul från 53 till 129 cm, med utfällbar skiva, lådor, kryddhylla, vinställ eller handdukshängare och skiva i trä eller stenlook.",
+  },
   "koksredskap-tillbehor": {
     title: "Köksredskap & kökstillbehör",
     description:
@@ -310,6 +340,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Hopfällbara massagebänkar i trä och aluminium för behandling hemma eller i salong. Mått, vikt och sektioner anges. Fri frakt över 499 kr.",
   },
+  massagestolar: {
+    title: "Massagestolar & massagefåtöljer med värme",
+    description:
+      "Massagefåtöljer med vibration, värme och fotstöd, några med uppresningshjälp, och massagestolar med vibration eller knådning i ryggen. Bär upp till 160 kg.",
+  },
   "mat-vattenskalar": {
     title: "Hundskålar & kattskålar",
     description:
@@ -339,6 +374,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Servering & glas till dukningen",
     description:
       "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–7 dagar, 30 dagars öppet köp.",
+  },
+  "skoskap-skobankar": {
+    title: "Skoskåp, skobänk & skohylla till hallen",
+    description:
+      "Skoskåp för 8 till 30 par, smala från 15 cm djup, skoskåp med spegeldörrar och tippfack, skobänkar med sittdyna och skohyllor i bambu och metall.",
   },
   "solskydd-paviljonger": {
     title: "Paviljong 3x3, paviljongtak & pop up-tält",
@@ -370,6 +410,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Hantelset, hexhantlar, motionscyklar och studsmattor till hemmagymmet. Vikt och maxbelastning anges alltid. Fri frakt över 499 kr, Klarna.",
   },
+  "tv-bankar": {
+    title: "TV-bänk – 80 till 200 cm, med lådor och LED",
+    description:
+      "TV-bänkar från 80 till 200 cm för tv upp till 75 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
+  },
   "utelek-spel": {
     title: "Studsmatta för barn, basketkorg & gungor",
     description:
@@ -379,6 +424,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Utemöbler – loungeset, trädgårdsbänk & hängstol",
     description:
       "Utemöbler för altan, balkong och trädgård: loungeset i konstrotting, trädgårdsbänkar och bord, matgrupper, hängstolar med stativ, solsängar och dynboxar.",
+  },
+  varmeflaktar: {
+    title: "Värmefläkt – för vägg eller som torn, 2000 W",
+    description:
+      "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, timer, oscillation och överhettningsskydd. Flera har veckotimer och fönstervakt.",
   },
   "vaskor-necessarer": {
     title: "Väskor & necessärer",
@@ -394,6 +444,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Verktyg & hemmafix – vinschar och fräsar",
     description:
       "Handvinschar för båt och trailer, CNC-fräsar, laserstativ och garagehyllor för hemmafixaren. Kapacitet och mått anges. Fri frakt över 499 kr.",
+  },
+  "verktygsvagnar-verktygslador": {
+    title: "Verktygsvagn & verktygslåda – med lås och lådor",
+    description:
+      "Verktygsvagnar i stål med upp till 16 lådor, lås och låsbara hjul, verkstadsvagnar i tre plan, verktygsskåp och verktygslådor med kullagerskenor.",
   },
 };
 

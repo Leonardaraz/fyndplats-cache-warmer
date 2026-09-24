@@ -54,6 +54,9 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // husdjur, Leksaker & Spel) bytte till ord som ingen annan sida tar.
 // Samma dag kom fyra säsongssidor till: halloweendekoration, juldekoration,
 // eldkorgar och konstväxter, och Trädgårds åtta underkategorier fick egna titlar.
+// Runda S7 lade till elva: badrumsskåp, golvlampor, elkaminer, värmefläktar,
+// verktygsvagnar, bäddfåtöljer, massagestolar, tv-bänkar, skoskåp, köksöar och
+// boxningssäckar. Belysning och Förvaring släppte golvlampor och skoskåp.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -61,6 +64,8 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /halloween/i, /juldekoration/i, /eldkorg/i, /konstgjorda växter/i,
     /tunnelväxthus/i, /loungeset/i, /paviljongtak/i, /plancha/i, /solcellslamp/i,
     /studsmatta/i, /basketkorg/i, /kompostkvarn/i, /terrassvärmare/i,
+    /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
+    /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);
