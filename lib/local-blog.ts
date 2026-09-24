@@ -71,12 +71,19 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function renderInline(s: string): string {
+export function renderInline(s: string): string {
   let out = escapeHtml(s);
   // Länkar — gör först så att bold/italic inte korrumperar markdown-syntaxen.
-  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text: string, href: string) => {
+  // Betald länk i ett annonsinlägg skrivs för hand som [text](https://… "sponsored")
+  // och får då rel="sponsored" (Googles krav på köpta länkar). Märkningen är
+  // manuell med flit: inget märks automatiskt. Se docs/SAMARBETEN.md.
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text: string, rawHref: string) => {
+    const sponsored = rawHref.match(/^(\S+)\s+"sponsored"$/i);
+    const href = sponsored ? sponsored[1] : rawHref;
     const safeHref = href.replace(/"/g, "&quot;");
-    return `<a href="${safeHref}">${text}</a>`;
+    return sponsored
+      ? `<a href="${safeHref}" rel="sponsored">${text}</a>`
+      : `<a href="${safeHref}">${text}</a>`;
   });
   // Bold före italic (annars äter italic-regeln upp **).
   out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
