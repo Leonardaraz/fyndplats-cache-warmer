@@ -1,0 +1,42 @@
+{
+ "slug": "kropp-valbefinnande",
+ "andring": "Titeln från #400 (2026-08-12) var 'Massagebänkar & hjälpmedel för kroppen'. Sidan har en massagebänk av åtta produkter, och massagebänk tas nu av sidan Massagebänkar.",
+ "seo": {
+  "title": "Rollator, ljusterapilampa & sittdyna",
+  "description": "Hopfällbara rollatorer med sits som bär 136 kg, en ljusterapilampa på 10 000 lux, en sittdyna i memoryskum och en duschpall med stödhandtag."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du hjälpmedel för kropp och vardag: två hopfällbara rollatorer med sits, en ljusterapilampa, en ergonomisk sittdyna, en duschpall med stödhandtag och en hopfällbar massagebänk. Här finns också en handpan och en tungtrumma.",
+   "Båda rollatorerna har fyra hjul och sits, fälls ihop och bär 136 kg. Den ena har fjädring i chassit, handbroms i båda handtagen och hjul på 20 cm. Den andra har korg och bricka, och handtagen ställs mellan 82 och 97 cm.",
+   "Ljusterapilampan ger upp till 10 000 lux och har tre färgtemperaturer, fem ljusstyrkor och timer. Sittdynan är av memoryskum med ett urtag för svanskotan och mäter 44 × 39 × 13 cm, och duschpallen ställs mellan 39 och 51,5 cm och bär 150 kg.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad betyder 10 000 lux?",
+    "a": "Lux mäter hur mycket ljus som når en yta, och värdet sjunker ju längre från lampan du sitter. 10 000 lux är den ljusstyrka som brukar anges för ljusterapi. Lampan har fem ljusstyrkor, så den kan också användas svagare."
+   },
+   {
+    "q": "Hur högt ska handtagen på en rollator sitta?",
+    "a": "En vanlig tumregel är att handtagen ska vara i höjd med handleden när du står rak med armarna hängande. På rollatorn med korg och bricka ställs handtagen mellan 82 och 97 cm."
+   },
+   {
+    "q": "Varför har sittdynan ett urtag?",
+    "a": "Urtaget bak gör att svanskotan inte bär vikten när du sitter, och memoryskummet formar sig efter kroppen. Dynan är 13 cm hög och har ett överdrag i mesh."
+   }
+  ]
+ },
+ "facit": {
+  "innehåll": "8 produkter 2026-09-24: rollatorerna 08f67f7e och 40aee365, ljusterapilampan 3aba6e74, sittdynan a7e88a1b, duschpallen 9a5de6f9, massagebänken 0baf501b, handpanen 54c60162 och tungtrumman 7a6cf901",
+  "rollatorer: fyra hjul, sits, hopfällbara, 136 kg": "08f67f7e 'Rollator med sits – hopfällbar, 4 hjul, korg och bricka, max 136 kg'; 40aee365 'Rollator med fjädring och sits – hopfällbar, 4 hjul, 136 kg'",
+  "fjädring, handbroms, 20 cm": "40aee365 'Fjädring: spiralfjädrad stötdämpare i chassit', 'Broms: handbroms i båda handtagen', 'Hjul: fyra stycken, Ø 20 cm'",
+  "handtag 82–97 cm": "08f67f7e 'Mått uppfälld: 59 × 66,5 × 82–97 cm (B×D×H)'",
+  "ljusterapilampa": "3aba6e74 'upp till 10 000 lux', 'Färgtemperaturer: 3 lägen', 'Ljusstyrkenivåer: 5', 'Timerlägen: 6'",
+  "sittdyna": "a7e88a1b 'memoryskum', 'urtag för svanskotan', 'Mått: 44 × 39 × 13 cm', 'Mesh (100 % polyester)'",
+  "duschpall": "9a5de6f9 'Sitshöjd: 39–51,5 cm i fem steg', 'Maxlast: 150 kg', 'stödhandtag'",
+  "lux, 10 000 lux för ljusterapi": "allmän kunskap om ljusterapi och om att belysningsstyrkan sjunker med avståndet, inget produktpåstående utöver lampans 10 000 lux och fem ljusstyrkor",
+  "handleden": "allmän tumregel för rollatorhöjd, inget produktpåstående",
+  "ergonomisk sittdyna": "a7e88a1b heter 'Ergonomisk sittdyna i memoryskum – urtag för svanskotan, 44 × 39 × 13 cm'"
+ }
+}
