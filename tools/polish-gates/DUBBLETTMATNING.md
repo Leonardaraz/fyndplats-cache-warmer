@@ -170,3 +170,38 @@ först `/api/admin/mapping` som svarar 404 på den.
 ⚠️ Wix suffix `-3` på syskonets slug betyder att slug-basen krockat mer än en
 gång. Ett tredje exemplar är alltså möjligt — det syns inte i den här mätningen
 eftersom skärmen bara läser utkast som är IN_STOCK och bär ett fotavtryck.
+
+## ☠️ Mönstret var blint för HALVA katalogen — axelbokstaven kan stå på båda sidor (runda N28, 2026-09-19)
+
+Trippel-regexen ovan (`\d+ x \d+ x \d+ cm`) antar att talen kommer FÖRE en
+axelbokstav eller inte alls. Aosoms källtext skriver den ibland EFTER också:
+
+```
+"150L x 50B x 30H cm"   ← bokstaven efter varje tal, mönstret ovan matchar
+"L130 x B73 x H45 cm"   ← bokstaven FÖRE varje tal, mönstret ovan ser ingenting
+```
+
+Effekten var inte marginell. Körd om med ett mönster som accepterar
+axelbokstaven på VARDERA sidan av talet gick antalet publicerade sidor med en
+tolkbar trippel från **2 005 till 2 282** — 277 sidor, hela tiden dubblett-
+prövningsbara, som den gamla regexen tyst hoppade över och därmed räknade som
+"utan mått" i stället för "utan träff". Fem äkta publicerade dubbletter som
+den gamla körningen rapporterade som RENA föll ut i omkörningen, bland dem en
+hundvagn N27 redan (under ett annat artikelnummer) hade avvisat av samma skäl.
+
+**Regeln: en trippel-regex som bara läser en axelform mäter halva katalogen
+och kallar det hela.** Samma familj som `#146`/`#218` (etiketten glider, ordet
+glider) men på FORMEN i stället för på ordvalet. Kopiera mönstret nedan, inte
+det äldre ovan:
+
+```js
+const trip = [...text.matchAll(
+  /(?:(\d{2,3}(?:,\d)?)\s*[LBHTlbht]?\s*[×x]\s*){2}(\d{2,3}(?:,\d)?)\s*[LBHTlbht]?\s*cm/g
+)]
+// eller enklare: kör båda mönstren (bokstav-efter, bokstav-före) och slå ihop
+// träfflistorna — se runda N28:s bygg-kallor.py för den fungerande varianten.
+```
+
+**Prova alltid åt båda hållen i samma körning** (ett självtest som beviser att
+mönstret KAN matcha bägge formerna, inte bara att det gick grönt på dagens
+data) — annars är den nya täckningssiffran lika obevisad som den gamla var.

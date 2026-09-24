@@ -1,0 +1,3 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+1fd11824 4 antal ben, räknade på bild 1 och 5
+45e68631 30 monteringstiden i minuter, läst på bild 3 (borttagen: tysk banner)

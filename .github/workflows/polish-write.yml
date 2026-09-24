@@ -1,0 +1,185 @@
+name: Polering — skriv en runda till Wix
+
+# Ersätter steg1–5.js och de femton separata stämplingarna (2026-09-24).
+#
+# Fram till N56 skrevs varje runda genom att hela skrivskriptet (~87 000
+# tecken) skrevs av i chatten och kördes i Wix körmiljö, följt av en
+# polish-mapping-körning per produkt. Här läses rundans skrivplan.json ur
+# grenen, kontrolleras mot sin sha256 och skickas till /api/admin/polish-write
+# ett steg i taget. Ingenting skrivs av.
+#
+# Planen byggs med tools/polish-gates/bygg-skrivplan.py, som skriver ut
+# sha256:n. Kontrollen fångar en körning mot fel gren eller en äldre commit:
+# workflow_dispatch kör mot den ref man anger, och default är main.
+#
+# Lägen:
+#   torr       prövar planen och alla fyra skrivstegen, skriver ingenting
+#   skriv      text → media → kategorier → sku, stoppar vid första fel;
+#              väntar, verifierar och stämplar de produkter som verifieras
+#   verifiera  läser bara: jämför Wix mot planen
+#   stampla    verifierar och stämplar det som stämmer (efter en avbruten körning)
+#
+# Alla steg tål omkörning: texten och bilderna skrivs likadant igen, en koppling
+# som redan finns svarar ALREADY_EXISTS och räknas som gjord, SKU:n blir densamma.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara kort-id, ok/fel och antal. Rutten
+# tvättar dessutom varje felmeddelande från artikelnummerformer innan det
+# lämnar servern, och planen kan inte bära sådana (valideraPlan).
+
+on:
+  workflow_dispatch:
+    inputs:
+      runda:
+        description: "Rundans katalog under tools/polish-assets, t.ex. runda-n57-billigast"
+        required: true
+        type: string
+      plan_sha256:
+        description: "sha256 av skrivplan.json — bygg-skrivplan.py skriver ut den"
+        required: true
+        type: string
+      lage:
+        description: "torr = pröva, skriv inget · skriv = skriv, verifiera, stämpla · verifiera = bara läs · stampla = verifiera och stämpla"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skriv
+          - verifiera
+          - stampla
+
+concurrency:
+  # Två rundor som skriver samtidigt mot samma butik ger revisionskonflikter.
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  skriv:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUNDA: ${{ inputs.runda }}
+          PLAN_SHA256: ${{ inputs.plan_sha256 }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! [[ "${RUNDA}" =~ ^runda-[a-z0-9-]+$ ]]; then
+            echo "::error::runda ska ha formen runda-<namn>" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::plan_sha256 ska vara 64 hextecken" >&2
+            exit 1
+          fi
+
+          fil="tools/polish-assets/${RUNDA}/skrivplan.json"
+          if [ ! -f "${fil}" ]; then
+            echo "::error::${fil} finns inte på ${GITHUB_REF_NAME} — kör mot poleringsgrenen, inte main" >&2
+            exit 1
+          fi
+          faktisk=$(sha256sum "${fil}" | cut -d' ' -f1)
+          if [ "${faktisk}" != "${PLAN_SHA256}" ]; then
+            echo "::error::skrivplan.json på ${GITHUB_REF_NAME} har sha256 ${faktisk}, inte den angivna. Fel gren, eller en plan som byggts om efter pushen? Ingenting skrivet." >&2
+            exit 1
+          fi
+          echo "Plan: ${fil} ($(jq '.produkter | length' "${fil}") produkter), ${GITHUB_REF_NAME}@${GITHUB_SHA:0:7}, läge ${LAGE}"
+
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # Ett steg mot rutten. Svaret hamnar i svar.json; returnerar 0 bara
+          # när rutten svarar ok. Skriver bara kort, ok/fel och antal.
+          steg() {
+            jq -c --arg s "$1" --argjson d "$2" '{steg: $s, dryRun: $d, plan: .}' "${fil}" > kropp.json
+            http=$(curl -sS --max-time 310 -o svar.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              --data-binary @kropp.json \
+              "${rot}/api/admin/polish-write") || http="000"
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "== $1: HTTP ${http}, svaret är inte JSON" >&2
+              return 1
+            fi
+            echo "== $1 (HTTP ${http}): $(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            jq -r '.avbrutet // empty | "   AVBRUTET: \(.)"' svar.json
+            jq -r '.fel[]? | "   plan: \(.)"' svar.json
+            jq -r '.rader[]? | "   \(.kort // "-")\(if .kat then " [\(.kat)]" else "" end) \(if .ok then "ok" else "FEL: \(.fel // "?")" end)"' svar.json
+            [ "$(jq -r '.ok' svar.json)" = "true" ]
+          }
+
+          # Verifierar; läser om en gång efter en paus om något faller, för
+          # läsprojektionen släpar ibland efter skrivningen. Stämplar sedan
+          # varje produkt som är helt verifierad i den SENASTE läsningen.
+          verifiera_och_stampla() {
+            if ! steg verifiera true; then
+              echo "Något föll — väntar 60 s och läser om (projektionen kan släpa)."
+              sleep 60
+              steg verifiera true || true
+            fi
+            jq -c '[.rader[]? | select(.ok) | .kort]' svar.json > verifierade.json
+            jq -c --slurpfile ok verifierade.json \
+              '.produkter[] | select(.kort as $k | $ok[0] | index($k)) | {kort, pid, variantId, sku}' \
+              "${fil}" > att-stampla.jsonl
+
+            stamplade=0; stampelfel=0
+            while IFS= read -r rad; do
+              kort=$(echo "${rad}" | jq -r '.kort')
+              kropp=$(echo "${rad}" | jq -c '{wixProductId: .pid, patch: {needsAiPolish: false, draftStatus: "published", variantSkus: {(.variantId): .sku}}}')
+              svar=$(curl -sS --max-time 60 -X POST \
+                -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" \
+                -d "${kropp}" "${rot}/api/admin/mapping") || svar='{"ok":false,"error":"curl misslyckades"}'
+              if [ "$(echo "${svar}" | jq -r '.ok' 2>/dev/null || echo false)" = "true" ]; then
+                stamplade=$((stamplade + 1))
+                echo "   ${kort} stämplad"
+              else
+                stampelfel=$((stampelfel + 1))
+                echo "   ${kort} STÄMPEL FEL: $(echo "${svar}" | jq -r '.error // "?"' 2>/dev/null | cut -c1-200)" >&2
+              fi
+            done < att-stampla.jsonl
+
+            totalt=$(jq '.produkter | length' "${fil}")
+            verifierade=$(jq 'length' verifierade.json)
+            echo "Verifierade ${verifierade} av ${totalt}, stämplade ${stamplade}, stämpelfel ${stampelfel}"
+            {
+              echo "### ${RUNDA} — ${LAGE}"
+              echo "Verifierade **${verifierade} av ${totalt}**, stämplade **${stamplade}**, stämpelfel **${stampelfel}**."
+            } >> "${GITHUB_STEP_SUMMARY}"
+            [ "${verifierade}" = "${totalt}" ] && [ "${stampelfel}" = "0" ]
+          }
+
+          case "${LAGE}" in
+            torr)
+              # Alla fyra stegen körs även om ett faller, så varje problem syns på en gång.
+              fel=0
+              for s in text media kategorier sku; do steg "${s}" true || fel=1; done
+              exit "${fel}"
+              ;;
+            skriv)
+              for s in text media kategorier sku; do
+                if ! steg "${s}" false; then
+                  echo "::error::Steget ${s} föll — stoppar här. Alla steg tål omkörning: rätta orsaken och kör läge skriv igen." >&2
+                  exit 1
+                fi
+              done
+              echo "Skrivet. Väntar 90 s innan den separata återläsningen."
+              sleep 90
+              verifiera_och_stampla
+              ;;
+            verifiera)
+              steg verifiera true
+              ;;
+            stampla)
+              verifiera_och_stampla
+              ;;
+          esac

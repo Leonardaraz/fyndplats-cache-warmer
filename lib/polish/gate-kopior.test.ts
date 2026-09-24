@@ -22,9 +22,18 @@
 // Grindarna bor i tools/polish-gates/ och rundorna anropar dem därifrån —
 // precis som livegrind.py redan gjorde.
 //
-// ⚠️ Rundespecifika grindar (gate-skotsel.py, gate-kort.py) är UNDANTAGNA:
-// de kodar en enskild rundas materialgrupper och har ingen delad sanning att
-// glida ifrån. Det är de fyra generella som ska bo på ett ställe.
+// ⚠️ Rundespecifika grindar (gate-skotsel.py) är UNDANTAGNA: de kodar en
+// enskild rundas materialgrupper och har ingen delad sanning att glida ifrån.
+// Det är de generella som ska bo på ett ställe.
+//
+// ☠️ OCH `gate-kort.py` VAR ETT FELAKTIGT UNDANTAG. Den stod här som
+// "rundespecifik" och hann bli TRE kopior (F2, G1, G2) som kontrollerade
+// olika saker: F2 talen, G1 talen plus syskonregeln, G2 något tredje. Varje
+// kopia `exec`:ade dessutom rundans `bygg-kort.py` KÄLLKOD med strängdelning
+// för att komma åt kortdefinitionen, så den gick bara att grinda genom att
+// köra byggaren. Undantaget var alltså inte "det finns ingen delad sanning"
+// utan "ingen har skrivit ned den än" — och det är exakt hur en tvilling
+// uppstår. Kortgrinden är kanonisk sedan 2026-09-16 och läser `kort.tsv`.
 
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -37,8 +46,9 @@ import { fileURLToPath } from "node:url";
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
 const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
-                   "gate-lankar.py", "gate-sku.py", "hasha.py", "gatelib.py",
-                   "livegrind.py", "bygg-media.py", "gate-kategori.py"];
+                   "gate-lankar.py", "gate-sku.py", "gate-kort.py", "hasha.py",
+                   "gatelib.py", "livegrind.py", "bygg-media.py", "bygg-kort.py",
+                   "bygg-skrivplan.py", "gate-kategori.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade
@@ -52,12 +62,15 @@ const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
 // bilder.tsv + alt.tsv och sorterar måttskissen sist; en runda som kopierar
 // den och tappar sorteringen får måttskissen som HUVUDBILD och ser ändå ut
 // att fungera. Delad sanning ska bo på ett ställe, grind eller inte.
-const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py|bygg-media\.py)$/;
+// ⚠️ `bygg-skrivplan.py` likaså (2026-09-24): den bygger det workflowen skriver
+// till Wix, och en rundekopia som tappat facit-kontrollen hade skickat ett
+// inaktuellt facit som får en korrekt skrivning att se misslyckad ut.
+const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py|bygg-(media|kort|skrivplan)\.py)$/;
 
 // ⚠️ Undantagen är UTTRYCKLIGA och få. En rundespecifik grind kodar en enskild
 // rundas materialgrupper och har ingen delad sanning att glida ifrån — men den
 // ska vara ett medvetet tillägg här, inte något som slinker igenom ett mönster.
-const RUNDESPECIFIKA = new Set(["gate-skotsel.py", "gate-kort.py"]);
+const RUNDESPECIFIKA = new Set(["gate-skotsel.py"]);
 
 /** Rundornas underkataloger PLUS roten själv — kopian låg i roten. */
 function platser(rot: string): string[] {

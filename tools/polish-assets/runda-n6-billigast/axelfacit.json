@@ -1,0 +1,69 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03207c35": {
+  "tyska": "206L x 35,5B x 76H cm",
+  "svenska": "206L x 35,5B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 206,
+  "djup": 35.5
+ },
+ "0783b515": {
+  "tyska": "",
+  "svenska": "80,5L x 51,5B x 100H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 80,5L x 51,5B x 100H cm. | ✔ Träger: 55L x 33B x 51/21H cm (mit/ohne Verdeck) | ✔ Zusammengeklappt: 85L x 51,5B x 24H cm | ✔ Vorderes Fenster: 26B x 17H cm | ✔ Unterer Korb: 50L x 32B x 20H cm | ✔ Kissen: 53,5L x 32B x 2,5T cm | ✔ Regenschutz: 55L x 36B x 75/65H cm (vorne/hinten)"
+ },
+ "1c883b87": {
+  "tyska": "",
+  "svenska": "1 x 20kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 16,6B x 16,6T x 11,4H cm"
+ },
+ "2d308bc1": {
+  "tyska": "55B x 40T x 77Hcm",
+  "svenska": "55 x 40 x 77 cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 77,
+  "bredd": 55
+ },
+ "8f1b8163": {
+  "tyska": "68L x 38B x 42Hcm",
+  "svenska": "38T x 68B x 42H cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 68,
+  "djup": 38
+ },
+ "949ffbb1": {
+  "tyska": "80L x 35B x 42H cm",
+  "svenska": "80L x 35B x 42H cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 80,
+  "djup": 35
+ },
+ "cb57e1dc": {
+  "tyska": "L60 x B40 x H57 cm",
+  "svenska": "60x40x57 cm (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 60,
+  "djup": 40
+ },
+ "d0f68e25": {
+  "tyska": "68L x 35B x 85H cm",
+  "svenska": "68L x 35B x 85H cm",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 68,
+  "djup": 35
+ },
+ "e2932b74": {
+  "tyska": "60L x 31,6B x 58H cm",
+  "svenska": "60cm x 31,6cm x 58cm",
+  "bokstaver": "LBH",
+  "hojd": 58,
+  "bredd": 60,
+  "djup": 31.6
+ }
+}

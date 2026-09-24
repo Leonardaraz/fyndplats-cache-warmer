@@ -1,0 +1,59 @@
+{
+ "kalla": "GET /stores/v3/products/{id}?fields=PLAIN_DESCRIPTION, 2026-09-18",
+ "metod": "kontrollsumman räknad på SERVERN i samma anrop som hämtningen, och jämförd mot samma aritmetik på den nedskrivna filen — så en källa som förvanskas på vägen in i repot går inte att missa",
+ "alla": true,
+ "rader": {
+  "ffaa3fad": {
+   "summa": 4527879,
+   "vantatSumma": 4527879,
+   "tecken": 1616,
+   "vantatTecken": 1616,
+   "LIKA": true
+  },
+  "0136e7d9": {
+   "summa": 736926958,
+   "vantatSumma": 736926958,
+   "tecken": 1882,
+   "vantatTecken": 1882,
+   "LIKA": true
+  },
+  "17c747cb": {
+   "summa": 129251300,
+   "vantatSumma": 129251300,
+   "tecken": 2021,
+   "vantatTecken": 2021,
+   "LIKA": true
+  },
+  "227fae7d": {
+   "summa": 354433639,
+   "vantatSumma": 354433639,
+   "tecken": 1648,
+   "vantatTecken": 1648,
+   "LIKA": true
+  },
+  "2bc98714": {
+   "summa": 932471741,
+   "vantatSumma": 932471741,
+   "tecken": 2009,
+   "vantatTecken": 2009,
+   "LIKA": true
+  },
+  "56b32f2f": {
+   "summa": 463258027,
+   "vantatSumma": 463258027,
+   "tecken": 1859,
+   "vantatTecken": 1859,
+   "LIKA": true
+  },
+  "5f66bf37": {
+   "summa": 601834748,
+   "vantatSumma": 601834748,
+   "tecken": 2131,
+   "vantatTecken": 2131,
+   "LIKA": true
+  }
+ },
+ "transkriberingsfel": "2bc98714 fällde vid första försöket: en vanlig space i stället för U+202F (narrow no-break space) mellan \"220\" och \"kg\" i öppningsstycket. Källan bär tecknet bara DÄR — de två andra \"220 kg\"-förekomstena i samma produkt använder vanligt mellanslag. Fixat med en exakt kodpunktsersättning, verifierat på nytt.",
+ "artikelnummer": "noll träffar på mönstret NNN-NNNXX i alla sju källor (#257)",
+ "utbytta": "Fotbollsmålet (4f7c87ea) och hundmatstationen (4fb98338) uteslöts efter kontaktarksgranskning — SPORTNOW respektive PawHut tryckt/monterat på den FYSISKA produkten, inte en bildoverlay. Ersatta av soptunnan (56b32f2f) och vibrationsplattan (5f66bf37), båda dubblettskärmade rena mot hela katalogen."
+}

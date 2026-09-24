@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1f3077a4": {
+  "tyska": "107L x 60B x 170H cm",
+  "svenska": "107L x 60B x 170H cm",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 107,
+  "djup": 60
+ },
+ "53550f18": {
+  "tyska": "61L x 47B x 81H cm",
+  "svenska": "61L x 47B x 81H cm",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 61,
+  "djup": 47
+ },
+ "583622e8": {
+  "tyska": "180L x 68,5B x 93,5H cm",
+  "svenska": "180L x 68,5B x 93,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 93.5,
+  "bredd": 180,
+  "djup": 68.5
+ },
+ "651939aa": {
+  "tyska": "80L x 45B x 160H cm",
+  "svenska": "80L x 45B x 160H cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 80,
+  "djup": 45
+ },
+ "66d781f8": {
+  "tyska": "",
+  "svenska": "60L x 60B x 65H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 60L x 60B x 65H cm | ✔ Sitzabmessungen: 40B x 45T x 86H cm"
+ },
+ "a23ea344": {
+  "tyska": "102L x 22B x 16H cm",
+  "svenska": "102cm x 22cm x 16cm",
+  "bokstaver": "LBH",
+  "hojd": 16,
+  "bredd": 102,
+  "djup": 22
+ },
+ "bd8af49c": {
+  "tyska": "115L x 60B x 55H cm",
+  "svenska": "115L x 60B x 55H cm",
+  "bokstaver": "LBH",
+  "hojd": 55,
+  "bredd": 115,
+  "djup": 60
+ },
+ "e392b9d6": {
+  "tyska": "90,7L x 60B x 73,8H cm",
+  "svenska": "90,7L x 60B x 73,8H cm",
+  "bokstaver": "LBH",
+  "hojd": 73.8,
+  "bredd": 90.7,
+  "djup": 60
+ }
+}

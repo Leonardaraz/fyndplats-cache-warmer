@@ -1,0 +1,7 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som räknades>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoräknad uppgift måste kvitteras här för att slippa igenom.
+73457d36 7 nivåer: källans höjdlista ger 3 + 2 + 2 hyllplan (vänster, mitten, höger), och huvudbilden och måttbilden visar sju; talet står också i produktens tyska namn
+73457d36 3 höjder: de tre delarna (vänster, mitten, höger) räknade på huvudbilden och måttbilden; källan listar just tre höjdgrupper
+ce77f5c4 3 rader: nio fack i ett rutnät med tre rader och tre kolumner, räknat på huvudbilden och måttbilden

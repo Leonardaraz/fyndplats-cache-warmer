@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07d1208e": {
+  "tyska": "",
+  "svenska": "L85 x B46 x H114 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaß: L85 x B46 x H114 cm | ✔ Sitzgröße: L24 x B22 cm"
+ },
+ "180f81c1": {
+  "tyska": "115L x 66B x 44H cm",
+  "svenska": "115 x 66 x 44 cm",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 115,
+  "djup": 66
+ },
+ "81bff775": {
+  "tyska": "135,5L x 74B x 91H cm",
+  "svenska": "135,5L x 74B x 91H cm",
+  "bokstaver": "LBH",
+  "hojd": 91,
+  "bredd": 135.5,
+  "djup": 74
+ },
+ "86c60239": {
+  "tyska": "294L x 294B x 265H cm",
+  "svenska": "294L x 294B x 265H cm",
+  "bokstaver": "LBH",
+  "hojd": 265,
+  "bredd": 294,
+  "djup": 294
+ },
+ "a7c39a89": {
+  "tyska": "",
+  "svenska": "121,5L x 40B x 122H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 121,5B x 40T x 122H cm | ✔ Hockerabmessungen: Ø30 x 60H cm | ✔ Tischplattengröße: 120B x 40T cm | ✔ Regalgröße: 40B x 35T cm (oben), 29B x 40T x 30H cm (unter dem Tisch), 29B x 40T x 13,5H cm (unten) | ✔ Weinregalgröße: 29B x 40T x 13,5H cm"
+ },
+ "cae81077": {
+  "tyska": "55L x 62B x 80H cm",
+  "svenska": "55L x 62B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 55,
+  "djup": 62
+ },
+ "cec4d9a9": {
+  "tyska": "121L x 87B x 77H cm",
+  "svenska": "121L x 87B x 77H cm",
+  "bokstaver": "LBH",
+  "hojd": 77,
+  "bredd": 121,
+  "djup": 87
+ },
+ "fda8a9de": {
+  "tyska": "131L x 46B x 109H cm",
+  "svenska": "131L x 46B x 109H cm",
+  "bokstaver": "LBH",
+  "hojd": 109,
+  "bredd": 131,
+  "djup": 46
+ }
+}

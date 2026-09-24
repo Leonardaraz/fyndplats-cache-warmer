@@ -1,0 +1,3 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+3ad8c7a4 4 antal delar, räknade på bild 1 och 2; källans namn säger 4-teilig, men namnet ingår inte i källtexten
+3ad8c7a4 2 plattformarna på hängbron, räknade på bild 1 och 3; källtexten kallar delen Doppelplattform

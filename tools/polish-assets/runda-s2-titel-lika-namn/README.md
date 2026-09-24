@@ -89,5 +89,5 @@ De nio foliehusen ur runda 145 har dessutom råa beskrivningar (bock-listor,
 | `kontroll.py` | kontrollsumman (samma som i skrivanropen) och verifieringen av säkerhetskopian |
 | `overrides.tsv` | de handskrivna titlarna och metabeskrivningarna |
 | `seo.tsv` | det som skrevs (källan för grindarna) |
-| `bygg-skrivplan.py` · `skrivplan.json` | skrivplanen med kontrollsumma per rad |
+| `bygg-seoplan.py` · `skrivplan.json` | skrivplanen med kontrollsumma per rad (hette `bygg-skrivplan.py` till 2026-09-24, då det namnet blev en kanonisk grind i `tools/polish-gates/`) |
 | `skrivlogg.txt` | revision före/efter per produkt |

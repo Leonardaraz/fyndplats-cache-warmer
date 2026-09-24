@@ -1,0 +1,5 @@
+8a076c08	4	antal ben, räknat på bild 1 (fyra pallben synliga på varje barstol)
+b28e1cbe	4	antal träfötter, räknat på bild 1 (fyra fötter synliga under soffan)
+3847b7ba	4	antal ben, räknat på bild 1 (fyra ben synliga under soffan)
+c4d8cb93	2	antal skåp, räknat på bild 1 (ett övre och ett nedre skåp bakom varsina två dörrar)
+1bc0c04e	2	antal sidostolpar i A-stativet, räknat på bild 1

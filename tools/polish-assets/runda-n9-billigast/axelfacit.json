@@ -1,0 +1,72 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "26642cff": {
+  "tyska": "70L x 28B x 57H cm",
+  "svenska": "70x28x57 cm (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 70,
+  "djup": 28
+ },
+ "2a4b9c68": {
+  "tyska": "16L x 5B x 90H cm",
+  "svenska": "16cm x 5cm x 90cm",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 16,
+  "djup": 5
+ },
+ "3cadee08": {
+  "tyska": "116B x 20T x 112H cm",
+  "svenska": "116L x 20B x 112H cm",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 112,
+  "bredd": 116
+ },
+ "49463fd8": {
+  "tyska": "400L x 22,4B x 155H cm",
+  "svenska": "400L x 22,4B x 155H cm",
+  "bokstaver": "LBH",
+  "hojd": 155,
+  "bredd": 400,
+  "djup": 22.4
+ },
+ "57c7e4f4": {
+  "tyska": "",
+  "svenska": "83B x 75T x 260H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Backboard Abmessungen: 83B x 55T cm | ✔ Größe des Sockels: 75B x 45T x 13H cm"
+ },
+ "67d8d559": {
+  "tyska": "73L x 39B x 66H cm",
+  "svenska": "73cm x 39cm x 66cm",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 73,
+  "djup": 39
+ },
+ "8cd456f9": {
+  "tyska": "110B x 52T x 45H cm",
+  "svenska": "110cm x 52cm x 45cm",
+  "bokstaver": "BTH",
+  "djup": 52,
+  "hojd": 45,
+  "bredd": 110
+ },
+ "9e1942fc": {
+  "tyska": "45L x 44B x 78H cm",
+  "svenska": "45L x 44B x 78H cm",
+  "bokstaver": "LBH",
+  "hojd": 78,
+  "bredd": 45,
+  "djup": 44
+ },
+ "a1d3b9bc": {
+  "tyska": "79B x 35T x 161H cm",
+  "svenska": "79L x 35B x 161H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 161,
+  "bredd": 79
+ }
+}

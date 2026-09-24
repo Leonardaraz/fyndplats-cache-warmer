@@ -1,0 +1,117 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "007c6422": {
+  "tyska": "60L x 29,8B x 58,5H cm",
+  "svenska": "60L x 29,8B x 58,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 58.5,
+  "bredd": 60,
+  "djup": 29.8
+ },
+ "0598eff2": {
+  "tyska": "30B x 17T x 67H cm",
+  "svenska": "30L x 17B x 67H cm",
+  "bokstaver": "BTH",
+  "djup": 17,
+  "hojd": 67,
+  "bredd": 30
+ },
+ "10fe3278": {
+  "tyska": "",
+  "svenska": "36cm x 30cm x 15cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kofferabmessungen: 36L x 30B x 15H cm | ✔ Mattenabmessungen: 90L x 60B cm | ✔ Chip: Ø40 x 3,2H mm, 11,5 Gramm | ✔ Dealer Button: Ø49 x 5H mm, 13 Gramm | ✔ Blind Button: Ø48 x 4H mm, 6,5 Gramm"
+ },
+ "17595feb": {
+  "tyska": "71,5B x 3,8T x 71,5H cm (mit Schutzring)",
+  "svenska": "71,5L x 71,5B x 3,8H cm",
+  "bokstaver": "BTH",
+  "djup": 3.8,
+  "hojd": 71.5,
+  "bredd": 71.5
+ },
+ "261484e7": {
+  "tyska": "110B x 24T x 76,5H cm",
+  "svenska": "110B x 24T x 76,5H cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 76.5,
+  "bredd": 110
+ },
+ "536e0244": {
+  "tyska": "94L x 74B x 60H cm.",
+  "svenska": "94L x 74B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 94,
+  "djup": 74
+ },
+ "5fce6a95": {
+  "tyska": "60L x 25B x 100H cm",
+  "svenska": "L60 x B25 x H100 cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 60,
+  "djup": 25
+ },
+ "7fdf42e9": {
+  "tyska": "41,8B x 39,8T x 53,5H cm",
+  "svenska": "41.8 x 39.8 x 53.5 cm",
+  "bokstaver": "BTH",
+  "djup": 39.8,
+  "hojd": 53.5,
+  "bredd": 41.8
+ },
+ "a6820dd0": {
+  "tyska": "116L x 65B x 178H cm",
+  "svenska": "116L x 65B x 178H cm",
+  "bokstaver": "LBH",
+  "hojd": 178,
+  "bredd": 116,
+  "djup": 65
+ },
+ "ad88f2b4": {
+  "tyska": "40L x 25B x 100H cm",
+  "svenska": "L40 x B25 x H100 cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 40,
+  "djup": 25
+ },
+ "cc5b0c14": {
+  "tyska": "80L x 23B x 83H cm",
+  "svenska": "80L x 23B x 83H cm",
+  "bokstaver": "LBH",
+  "hojd": 83,
+  "bredd": 80,
+  "djup": 23
+ },
+ "e138b637": {
+  "tyska": "48L x 34B x 43H cm",
+  "svenska": "48L x 34B x 43H cm",
+  "bokstaver": "LBH",
+  "hojd": 43,
+  "bredd": 48,
+  "djup": 34
+ },
+ "e797e8a4": {
+  "tyska": "50L x 36B x 60H cm",
+  "svenska": "50L x 36B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 50,
+  "djup": 36
+ },
+ "e7bbadb2": {
+  "tyska": "98B x 29T x 56H cm",
+  "svenska": "98L x 29B x 56H cm",
+  "bokstaver": "BTH",
+  "djup": 29,
+  "hojd": 56,
+  "bredd": 98
+ },
+ "e947f7aa": {
+  "tyska": "",
+  "svenska": "21,7 x 21,4 x 26,3 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kesselabmessungen: 21,7L x 21,4B x 26,3H cm | ✔ Kesselkapazität: 1,7 L"
+ }
+}

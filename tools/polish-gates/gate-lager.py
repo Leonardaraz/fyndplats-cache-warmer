@@ -18,16 +18,31 @@ Det är hela poängen med formen: grinden kan inte hämta talet åt dig, så den
 tvingar fram att NÅGON slog upp det och skrev ned det innan texten skrevs.
 Talet är därmed också en daterad anteckning om vad som gällde vid urvalet.
 
+☠️ ETT SALDO PÅ ELLER UNDER LAGER_BUFFERT ÄR SLUTSÅLT FÖR KUNDEN, INTE BARA
+"TUNT". `lib/aosom/sync.ts`s `synligtSaldo()` drar av `LAGER_BUFFERT` innan
+saldot visas i butiken — ett Aosom-saldo på 1, 2 eller 3 renderas alltså som
+0 och sidan säger "Slutsåld" från sekunden den publiceras. Uppmätt i runda
+N28 (2026-09-19): två kandidater med saldo 1 (en takfläkt, en sideboard)
+skulle ha passerat den GAMLA gränsen (`saldo[kort] < TUNT`, fail bara vid
+<= 0) som en ofarlig varning — "tunt, men köpbart" — trots att ingen kund
+någonsin hade kunnat lägga varan i kundvagnen. Den gamla varningstexten var
+alltså sakligt fel för just det spannet. `LAGER_BUFFERT` speglas här som ett
+tal, inte importeras (Python når inte in i `lib/`) — ändras konstanten i
+`sync.ts` måste den här följa med, samma disciplin som `SHIP_AXIS_RE` och
+`EU_TULL_CODES`.
+
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-lager.py
   ids.tsv    "kort  pris  kort beskrivning"  (facit för vilka produkter som ingår)
   lager.tsv  "kort  saldo"                   (saldot vid urvalet)
 """
 import io, os, sys
 
-# En rad som Aosom tillfälligt plockat ur feeden får saldo 0 och ska INTE
-# poleras — men gränsen är medvetet lågt satt i övrigt. Ett ensiffrigt saldo är
-# en varning, inte ett stopp: varan går att köpa, och feeden uppdateras tre
-# gånger per dygn.
+# Speglar lib/aosom/sync.ts:s LAGER_BUFFERT — se docstringen ovan.
+LAGER_BUFFERT = 3
+
+# Feeden uppdateras tre gånger per dygn, så ett saldo strax över bufferten är
+# äkta men tunt: varan går att köpa, men kan sälja slut innan nästa synk.
+# Det är en varning, inte ett stopp.
 TUNT = 5
 
 
@@ -59,6 +74,12 @@ def main():
             fynd.append(f"  {kort}: [SALDO SAKNAS] produkten står i ids.tsv men inte i lager.tsv")
         elif saldo[kort] <= 0:
             fynd.append(f"  {kort}: [SLUTSÅLD] saldo {saldo[kort]} — polera den inte")
+        elif saldo[kort] <= LAGER_BUFFERT:
+            fynd.append(
+                f"  {kort}: [VISAS SOM SLUTSÅLD] saldo {saldo[kort]} ≤ LAGER_BUFFERT "
+                f"({LAGER_BUFFERT}) — synligtSaldo() visar 0, kunden ser \"Slutsåld\" direkt. "
+                "Polera den inte."
+            )
         elif saldo[kort] < TUNT:
             varningar.append(f"  {kort}: saldo {saldo[kort]} — tunt, men köpbart")
 

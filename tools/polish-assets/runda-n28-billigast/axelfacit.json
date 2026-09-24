@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0000fa76": {
+  "tyska": "L99,5 x B76 x H91 cm",
+  "svenska": "L99,5 x B76 x H91 cm",
+  "bokstaver": "LBH",
+  "hojd": 91,
+  "bredd": 99.5,
+  "djup": 76
+ },
+ "01d8e819": {
+  "tyska": "175L x 70B x 89H cm",
+  "svenska": "175L x 70B cm",
+  "bokstaver": "LBH",
+  "hojd": 89,
+  "bredd": 175,
+  "djup": 70
+ },
+ "329beada": {
+  "tyska": "L108 x B51 x H75cm",
+  "svenska": "L108 x B51 x H75cm",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 108,
+  "djup": 51
+ },
+ "8ee517cc": {
+  "tyska": "54B x 56T x 91-111H cm",
+  "svenska": "51B x 53T x 92-112H cm",
+  "bokstaver": "BTH",
+  "djup": 56,
+  "hojd": [
+   91,
+   111
+  ],
+  "bredd": 54
+ },
+ "a9c2bfd8": {
+  "tyska": "",
+  "svenska": "129cm x 45cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße jedes Panels: 129L x 45B cm"
+ },
+ "c804d1b7": {
+  "tyska": "92L x 63B x 95H cm",
+  "svenska": "92cm x 63cm x 95cm",
+  "bokstaver": "LBH",
+  "hojd": 95,
+  "bredd": 92,
+  "djup": 63
+ },
+ "cb31a581": {
+  "tyska": "45B x 45T x 47,5H cm",
+  "svenska": "45 x 45 x 47,5 cm",
+  "bokstaver": "BTH",
+  "djup": 45,
+  "hojd": 47.5,
+  "bredd": 45
+ },
+ "e5e8754c": {
+  "tyska": "38T x 70B x 85H cm",
+  "svenska": "70L x 38B x 85H cm",
+  "bokstaver": "TBH",
+  "djup": 38,
+  "hojd": 85,
+  "bredd": 70
+ }
+}

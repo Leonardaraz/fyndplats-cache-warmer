@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "062c9bd0": {
+  "tyska": "30L x 30B x 93H cm",
+  "svenska": "30L x 30B x 93H cm",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 30,
+  "djup": 30
+ },
+ "372ee931": {
+  "tyska": "86L x 42B x 52H cm",
+  "svenska": "86L x 42B x 52H cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 86,
+  "djup": 42
+ },
+ "39d1df49": {
+  "tyska": "Ø40 x 45H cm",
+  "svenska": "40L x 40B x 45H cm",
+  "bokstaver": "H",
+  "hojd": 45
+ },
+ "3ab4521a": {
+  "tyska": "63B x 61,5T x 93-101H cm",
+  "svenska": "63L x 61,5B x 93-101H cm",
+  "bokstaver": "BTH",
+  "djup": 61.5,
+  "hojd": [
+   93,
+   101
+  ],
+  "bredd": 63
+ },
+ "70ef279b": {
+  "tyska": "150B x 220-310H cm",
+  "svenska": "150B x 220-310H cm",
+  "bokstaver": "BH",
+  "hojd": [
+   220,
+   310
+  ],
+  "bredd": 150
+ },
+ "84bfc22a": {
+  "tyska": "✔ Gesamthöhe: 180cm",
+  "svenska": "Ø20 x 180H cm",
+  "bokstaver": "H",
+  "hojd": 180,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "87689f8d": {
+  "tyska": "290L x 92B x 88Hcm",
+  "svenska": "290L x 92B x 88H cm",
+  "bokstaver": "LBH",
+  "hojd": 88,
+  "bredd": 290,
+  "djup": 92
+ }
+}

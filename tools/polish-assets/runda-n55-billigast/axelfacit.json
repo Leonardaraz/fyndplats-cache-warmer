@@ -1,0 +1,120 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07e3cb1d": {
+  "tyska": "319B x 59T x 132H cm",
+  "svenska": "319B x 59T x 132H cm",
+  "bokstaver": "BTH",
+  "djup": 59,
+  "hojd": 132,
+  "bredd": 319
+ },
+ "16fe3c28": {
+  "tyska": "48L x 39,5B x 51H cm",
+  "svenska": "48 x 39,5 x 51 cm",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 48,
+  "djup": 39.5
+ },
+ "494e0dab": {
+  "tyska": "Ø42 x 39H cm",
+  "svenska": "42L x 42B x 39H cm",
+  "bokstaver": "H",
+  "hojd": 39
+ },
+ "4bd41e91": {
+  "tyska": "94L x 63B x 76H cm",
+  "svenska": "94 x 63 x 76 cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 94,
+  "djup": 63
+ },
+ "4f0fa784": {
+  "tyska": "132,5L x 76,5H cm",
+  "svenska": "132,5L x 76,5H cm",
+  "bokstaver": "LH",
+  "hojd": 76.5,
+  "bredd": 132.5
+ },
+ "4fb02f99": {
+  "tyska": "52L x 48B x 100H cm",
+  "svenska": "52L x 48B x 100H cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 52,
+  "djup": 48
+ },
+ "53386372": {
+  "tyska": "141L x 1B x 50H cm",
+  "svenska": "141 x 1 x 50 cm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 141,
+  "djup": 1
+ },
+ "6200b3c9": {
+  "tyska": "200,5L x 90,6B x 32,5H cm",
+  "svenska": "200,5L x 90,6B x 32,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 32.5,
+  "bredd": 200.5,
+  "djup": 90.6
+ },
+ "92afa6e3": {
+  "tyska": "40B x 40T x 45H cm",
+  "svenska": "Kleine",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 45,
+  "bredd": 40
+ },
+ "a1c98be2": {
+  "tyska": "39B x 39T x 49-65H cm",
+  "svenska": "Ø39 x 49-65H cm",
+  "bokstaver": "BTH",
+  "djup": 39,
+  "hojd": [
+   49,
+   65
+  ],
+  "bredd": 39
+ },
+ "c40a2b10": {
+  "tyska": "58B x 24T x 126,3H cm",
+  "svenska": "58 x 24 x 126,3 cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 126.3,
+  "bredd": 58
+ },
+ "c6ff6fe8": {
+  "tyska": "",
+  "svenska": "18kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelabmessungen: (1kg) 14L x 6B x 6H cm, (3kg) 19,5L x 8,5B x 8,5H cm, (5kg) 22L x 9,7B x 9,7H cm | ✔ Gestellabmessungen: 42B x 10T x 30H cm | ✔ Griffgröße: (1kg) Ø2,8 x 8L cm, (3kg) Ø3,1 x 9,5L cm, (5kg) Ø3,7 x 9,7L cm"
+ },
+ "cbbabd2c": {
+  "tyska": "40B x 30T x 148H cm",
+  "svenska": "40L x 30B x 148H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 148,
+  "bredd": 40
+ },
+ "d5ed3e90": {
+  "tyska": "60B x 26T x 161H cm",
+  "svenska": "60L x 26B x 161H cm",
+  "bokstaver": "BTH",
+  "djup": 26,
+  "hojd": 161,
+  "bredd": 60
+ },
+ "d60cd696": {
+  "tyska": "45L x 10B x 35H cm",
+  "svenska": "45L x 10B x 35H cm",
+  "bokstaver": "LBH",
+  "hojd": 35,
+  "bredd": 45,
+  "djup": 10
+ }
+}

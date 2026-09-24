@@ -1,0 +1,10 @@
+# Tal avlasta pa produktens egen mattbild eller raknade pa ett foto.
+# De star INTE i den tyska kalltexten. Form: <kort> <tal> <skal>
+82d04879	146	takfotens hojd avlast pa mattbilden, bild 3
+82d04879	2	antal reglar pa dorren, raknade pa bild 1 och 4
+041fa621	2	antal plattor i bordsskivan, fogen avlast pa bild 1 och 3
+d5229703	6	antal olika former raknade pa mattbilden, bild 3
+5f730167	140	nedre kroppslangd i tillverkningens mattbild, bild 3
+5f730167	190	ovre kroppslangd i tillverkningens mattbild, bild 3
+10957741	45	bankskivans hojd avlast pa mattbilden, bild 3
+10957741	4	antal koksredskap i tra raknade pa bild 1

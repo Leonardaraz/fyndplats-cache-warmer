@@ -1,0 +1,74 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "179b3613": {
+  "tyska": "34L x 36B x 10H cm",
+  "svenska": "34cm x 36cm x 10cm",
+  "bokstaver": "LBH",
+  "hojd": 10,
+  "bredd": 34,
+  "djup": 36
+ },
+ "35c6c105": {
+  "tyska": "80L x 80B x 135H cm",
+  "svenska": "80cm x 80cm x 135cm",
+  "bokstaver": "LBH",
+  "hojd": 135,
+  "bredd": 80,
+  "djup": 80
+ },
+ "4b9346a3": {
+  "tyska": "133L x 60B x 70H cm",
+  "svenska": "133cm x 60cm x 70cm",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 133,
+  "djup": 60
+ },
+ "a0ccb9d4": {
+  "tyska": "L74 x B33 x H62 cm",
+  "svenska": "1 Stück (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 74,
+  "djup": 33
+ },
+ "a6113d64": {
+  "tyska": "✔ Gesamthöhe: 120cm",
+  "svenska": "Ø17,5 x 120H cm",
+  "bokstaver": "H",
+  "hojd": 120,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "b50a2c94": {
+  "tyska": "110L x 60B x 18H cm",
+  "svenska": "110L x 60B x 18H cm",
+  "bokstaver": "LBH",
+  "hojd": 18,
+  "bredd": 110,
+  "djup": 60
+ },
+ "c164e459": {
+  "tyska": "35L x 18,5B x 30,5H cm",
+  "svenska": "35cm x 18,5cm x 30,5cm",
+  "bokstaver": "LBH",
+  "hojd": 30.5,
+  "bredd": 35,
+  "djup": 18.5
+ },
+ "e14d7903": {
+  "tyska": "50L x 48,5B x 144H cm",
+  "svenska": "50L x 48,5B x 144H cm",
+  "bokstaver": "LBH",
+  "hojd": 144,
+  "bredd": 50,
+  "djup": 48.5
+ },
+ "e4c14db3": {
+  "tyska": "46B x 30T x 70H cm",
+  "svenska": "46B x 29T x 70H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 70,
+  "bredd": 46
+ }
+}

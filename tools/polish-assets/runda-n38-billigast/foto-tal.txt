@@ -1,0 +1,3 @@
+0fda8bfe	3	antal klot, räknade på bild 1 och måttbilden (Ø27, Ø23, Ø18)
+12e66c66	2	antal dörrar, räknade på bild 1 (en på var sida om tavlan)
+12e66c66	3	antal pilar i varje dörr, räknade på bild 1 och 4

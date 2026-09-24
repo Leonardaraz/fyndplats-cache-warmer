@@ -1,0 +1,117 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0dff6d43": {
+  "tyska": "L55,5 x B22 x H6,5 cm",
+  "svenska": "500 Chips",
+  "axelkalla": "tyska raden 'Koffer' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 6.5,
+  "bredd": 55.5,
+  "djup": 22
+ },
+ "115d3831": {
+  "tyska": "77L x 37B x 51H cm",
+  "svenska": "77L x 37B x 51H cm",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 77,
+  "djup": 37
+ },
+ "12c11f43": {
+  "tyska": "42B x 32T x 46,5H cm",
+  "svenska": "42L x 32B x 46,5H cm",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": 46.5,
+  "bredd": 42
+ },
+ "4c8d9de4": {
+  "tyska": "Ø65 x 183H cm",
+  "svenska": "65L x 65B x 183H cm",
+  "bokstaver": "H",
+  "hojd": 183
+ },
+ "5eb079d2": {
+  "tyska": "Ø38,5 x 33,5H cm",
+  "svenska": "38,5 x 38,5 x 33,5 cm",
+  "bokstaver": "H",
+  "hojd": 33.5
+ },
+ "63a725ab": {
+  "tyska": "54,3L x 30,6B x 159,6H cm",
+  "svenska": "54,3cm x 30,6cm x 159,6cm",
+  "bokstaver": "LBH",
+  "hojd": 159.6,
+  "bredd": 54.3,
+  "djup": 30.6
+ },
+ "7720d168": {
+  "tyska": "44,5L x 24B x 79H cm",
+  "svenska": "44,5cm x 24cm x 79cm",
+  "bokstaver": "LBH",
+  "hojd": 79,
+  "bredd": 44.5,
+  "djup": 24
+ },
+ "8382289b": {
+  "tyska": "60L x 40B x 80H cm",
+  "svenska": "60L x 40B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 60,
+  "djup": 40
+ },
+ "875ca38b": {
+  "tyska": "27B x 10T x 93.5H cm",
+  "svenska": "27L x 10B x 93.5H cm",
+  "bokstaver": "BTH",
+  "djup": 10,
+  "hojd": 93.5,
+  "bredd": 27
+ },
+ "96451d83": {
+  "tyska": "106L x 51,5B x 52H cm",
+  "svenska": "106cm x 51,5cm x 52cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 106,
+  "djup": 51.5
+ },
+ "b69e5b38": {
+  "tyska": "75L x 70B x 66H cm",
+  "svenska": "75L x 70B x 66H cm",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 75,
+  "djup": 70
+ },
+ "cc7ab001": {
+  "tyska": "",
+  "svenska": "L128 x B23 x H100 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße beim Hindernisparcours: L128 x B23 x H9–100 cm"
+ },
+ "ce59dcf5": {
+  "tyska": "62L x 33B x 112H cm",
+  "svenska": "4 Regalböden",
+  "bokstaver": "LBH",
+  "hojd": 112,
+  "bredd": 62,
+  "djup": 33
+ },
+ "e0d0d880": {
+  "tyska": "36L x 30B x 44,5H cm",
+  "svenska": "20 L",
+  "bokstaver": "LBH",
+  "hojd": 44.5,
+  "bredd": 36,
+  "djup": 30
+ },
+ "f0817bea": {
+  "tyska": "45L x 12B x 30H cm",
+  "svenska": "45L x 12B x 30H cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 45,
+  "djup": 12
+ }
+}

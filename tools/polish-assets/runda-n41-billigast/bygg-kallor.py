@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Bygger rundans kallor.json ur de tyska källtexterna (hämtade server-side
+via ExecuteWixAPI mot skarpa V3, ?fields=PLAIN_DESCRIPTION).
+
+☠️ FILEN ÄR EN AVSKRIFT och får därför inte litas på. Kör kontrollen mot
+skarpa V3 (samma anrop som ingen skrivning) innan en enda grind körs — samma
+ordning som N26–N40. Det är SUMMAN som avgör, inte längden.
+
+☠️ TRE KÄLLTEXTER BÄR LEVERANTÖRENS ARTIKELNUMMER i sin `Technische Daten`:
+`acc9ab97` och `42949f67` ("Artikelnummer: ‹REDIGERAT›") och `5e126c2f`
+("Artikelbezeichnung: ‹REDIGERAT›"). Repot är publikt, så numret är ersatt
+med ‹REDIGERAT› här. Kontrollsumman mot Wix räknas därför på texten EFTER
+samma ersättning, med exakt EN träff på var och en av de tre och noll på de
+andra sju — samma form som N34/N35. Annars hade de tre produkter där
+avskriften medvetet avviker sett ut som transkriberingsfel.
+"""
+import io, json, collections
+
+K = collections.OrderedDict()
+
+SPEC = '<h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">Mått:</span> '
+F = '<li><p><span style="font-weight: 700">'
+
+K["e3256412"] = (
+ '<p>Mit diesem Regenschutz bleibt Ihr Kinderfahrradanhänger trocken und sicher geschützt, egal bei welchem Wetter!'
+ ' Hergestellt aus kindersicherem, Polyethylen, bietet diese wasserdichte Abdeckung zuverlässigen Schutz vor Regen und'
+ ' Feuchtigkeit. Die verstärkten Nähte sorgen für zusätzliche Robustheit. Genießen Sie unbeschwerte Ausflüge mit Ihrem'
+ ' Kind, ohne sich um das Wetter sorgen zu müssen!</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Genießen Sie Ausflüge mit Ihrem Kind unabhängig vom Wetter</p></li>'
+ '<li><p>✔ Garantiert frei von Schadstoffen</p></li>'
+ '<li><p>✔ Die Folie besteht aus cadmiumfreiem Polyethylen</p></li>'
+ '<li><p>✔ Wasserdichte Regenabdeckung für Kinderanhänger</p></li></ul>'
+ '<h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Transparent</p></li>'
+ '<li><p>✔ Gesamtmaße: 76L x 61B x 61H cm</p></li>'
+ '<li><p>✔ Material: Kunststoff</p></li>'
+ '<li><p>✔ Passt zu unseren Anhängern</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Regenschutz;</p></li></ul>'
+ + SPEC + '1 Stück (1er Pack)</p></li>'
+ + F + 'Färg:</span> Transparent</p></li>'
+ + F + 'Material:</span> Polyäthylen</p></li>'
+ + F + 'Vikt:</span> 0,5 kg</p></li>'
+ + F + 'Paketmått:</span> 33 × 23 × 2 cm</p></li></ul>'
+)
+
+K["3d3f90d3"] = (
+ '<p>Es muss nicht immer eine Tanne sein: Mit dieser wunderschönen Kunstbirke von wird Ihr Garten sicher zum Blickfang'
+ ' in der Nachbarschaft! Der robuste, wetterfeste Kunststoff imitiert täuschend echt die Rinde einer echten Birke. Die'
+ ' integrierte Beleuchtung sorgt für eine stimmungsvolle Atmosphäre, egal ob im Sommer oder Winter. Verleihen Sie Ihrem'
+ ' Außenbereich das gewisse Etwas und genießen Sie die pflegeleichte Eleganz dieser einzigartigen Kunstbirke.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Kunstbirke mit realistischer Rinde und dekorativen LEDs</p></li>'
+ '<li><p>✔ LEDs bereits am Baum angebracht</p></li>'
+ '<li><p>✔ Sparsame und helle LEDs</p></li>'
+ '<li><p>✔ Robuste und biegsame Äste können mit weiterem Baumschmuck behangen werden</p></li>'
+ '<li><p>✔ Geeignet für den Innen- und überdachten Außenbereich</p></li></ul>'
+ '<h3> Technische Daten:</h3><ul><li><p>✔ Baumfarbe: Weiß</p></li>'
+ '<li><p>✔ Material: Kunststoff, Metall</p></li>'
+ '<li><p>✔ Typ: Weißer Birkenbaum</p></li>'
+ '<li><p>✔ Gesamtmaße: 17L x 17B x 120H cm</p></li>'
+ '<li><p>✔ Länge Netzkabel: 5 m</p></li>'
+ '<li><p>✔ Anzahl der LEDs: 72</p></li>'
+ '<li><p>✔ Anzahl der Äste: 8</p></li>'
+ '<li><p>✔ Eingang: 220-240 V, 50/60 HZ</p></li>'
+ '<li><p>✔ Ausgang: DC 31 V, 3,6 W</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Kunstbaum</p></li>'
+ '<li><p>✔ 1 x Anleitung</p></li></ul>'
+ + SPEC + '17L x 17B x 120H cm</p></li>'
+ + F + 'Färg:</span> Weiß</p></li>'
+ + F + 'Material:</span> Kunststoff</p></li>'
+ + F + 'Vikt:</span> 1,3 kg</p></li>'
+ + F + 'Paketmått:</span> 90 × 20 × 9 cm</p></li></ul>'
+)
+
+K["6baeb38b"] = (
+ '<p>Sparen Sie Platz und bleiben Sie organisiert mit diesem Weinregal aus Bambus von . Dank seines kompakten Designs'
+ ' mit 4 Regalen spart es viel Platz und kann bis zu 16 Weinflaschen lagern. Das freistehende Flaschenregal aus'
+ ' strapazierfähigem Bambus bietet einen natürlichen und stilvollen Look und ist für den täglichen Gebrauch geeignet.'
+ ' Dieser Weinhalter ist ein Muss für alle, die ihre erste Weinsammlung anlegen wollen, oder für erfahrene Sammler.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Freistehendes Weinregal mit 4 Regalen für 16 Weinflaschen</p></li>'
+ '<li><p>✔ Durch seinen natürlichen Stil passt das Weinregal hervorragend in ein modernes oder traditionelles'
+ ' Ambiente</p></li>'
+ '<li><p>✔ Konstruiert aus Bambus für eine solide Konstruktion</p></li>'
+ '<li><p>✔ Die lackierte Oberfläche ist wasserfest und kratzfest, zuverlässig für den täglichen Gebrauch</p></li>'
+ '<li><p>✔ Montage erforderlich</p></li></ul>'
+ '<h3>Technische Daten:</h3><ul><li><p>✔ Farbe: Naturholz</p></li>'
+ '<li><p>✔ Material: Bambus</p></li>'
+ '<li><p>✔ Gesamtmaße: 43L x 23,5B x 38H cm</p></li>'
+ '<li><p>✔ Schichthöhe: 9 cm</p></li>'
+ '<li><p>✔ Schlitz für Flasche: Ø8 cm</p></li>'
+ '<li><p>✔ Gewichtskapazität: 75 kg</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Weinregal</p></li>'
+ '<li><p>✔ 1 x Handbuch</p></li></ul>'
+ + SPEC + '43L x 23,5B x 38H cm</p></li>'
+ + F + 'Färg:</span> Naturholz</p></li>'
+ + F + 'Material:</span> Bambus</p></li>'
+ + F + 'Vikt:</span> 2 kg</p></li>'
+ + F + 'Paketmått:</span> 45 × 30 × 4,8 cm</p></li></ul>'
+)
+
+K["8fc578fc"] = (
+ '<p>Mit dieser Schaukelsitz von können Sie mit Ihren Kleinen und unvergesslichen Schaukelspaß erleben! Diese robuste'
+ ' Babyschaukel trägt bis zu 70 kg und ist mit einer bequemen Rücklehne, einem Sicherheitsgurt und einem vorderen'
+ ' Sicherheitsbügel ausgestattet, damit Ihr kleiner Schatz immer fest im Sitz bleibt. Die Seile sind zudem'
+ ' längenverstellbar, sodass Sie die Schaukelhöhe optimal einstellen können, egal, ob die Kleinkindschaukel im Garten'
+ ' aufgehängt oder im Haus angebracht wird.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ 3-in-1-Design: abnehmbare Rücklehne und Sicherheitsbügel</p></li>'
+ '<li><p>✔ Längenverstellbare Seile (120 - 180 cm)</p></li>'
+ '<li><p>✔ Kann im Innen- und Außenbereich verwendet werden</p></li>'
+ '<li><p>✔ Vorderer Sicherheitsbügel als Herausfallschutz</p></li>'
+ '<li><p>✔ Robuster Kunststoffrahmen für Stabilität</p></li>'
+ '<li><p>✔ Langlebiges Seil für sicheren Halt</p></li>'
+ '<li><p>✔ Montage erforderlich</p></li></ul>'
+ '<h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Blau+Gelb+Lila</p></li>'
+ '<li><p>✔ Material: Kunststoff</p></li>'
+ '<li><p>✔ Gesamtmaße: 42L x 33B x 120-180H cm</p></li>'
+ '<li><p>✔ Sitzmaße: 42L x 33B x 39,5H cm</p></li>'
+ '<li><p>✔ Seillänge: 1,20 - 1,80 m</p></li>'
+ '<li><p>✔ Zertifizierung Alter: 9+ Monate</p></li>'
+ '<li><p>✔ Empfohlenes Alter: 9-36 Monate</p></li>'
+ '<li><p>✔ Belastbarkeit: 70 kg</p></li>'
+ '<li><p>✔ Hinweis: Bitte stellen Sie sicher, dass die Schaukel mind. 35 cm über dem Boden hängt</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Kinderschaukel</p></li>'
+ '<li><p>✔ 2 x Kauschen</p></li>'
+ '<li><p>✔ 2 x Stellacht</p></li></ul>'
+ + SPEC + '42L x 33B x 120-180H cm</p></li>'
+ + F + 'Färg:</span> Blau, Gelb, Lila</p></li>'
+ + F + 'Material:</span> Kunststoff</p></li>'
+ + F + 'Vikt:</span> 2,6 kg</p></li>'
+ + F + 'Paketmått:</span> 45 × 39 × 20,5 cm</p></li></ul>'
+)
+
+K["acc9ab97"] = (
+ '<p>Das Wasserkochen dauert oft zu lange und ist ungenau, wodurch Ihr Morgenritual frustrierend wird. Der'
+ ' -Wasserkocher löst dieses Problem mit sieben Temperatureinstellungen (40-100 ℃), schnellem Erhitzen (42'
+ ' Sekunden/Tasse) und 1,7 L Kapazität. Die 304-Edelstahl-Innenfläche, automatische Abschaltung und'
+ ' Trockenlaufschutz bieten Sicherheit und Komfort. Kein Aufbau nötig – sofort einsatzbereit!</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Genießen Sie präzises Brühen mit sieben Temperatureinstellungen von 40-100 ℃ und einer'
+ ' Zwei-Stunden-Warmhaltefunktion, ideal für einen Wasserkocher mit Temperatureinstellung</p></li>'
+ '<li><p>✔ Das leistungsstarke 2200-W-Heizelement kocht eine Tasse Wasser in nur 42 Sekunden</p></li>'
+ '<li><p>✔ Eine Kapazität von 1,7 L reicht für bis zu sieben Tassen, sodass dieser Wasserkocher die Bedürfnisse der'
+ ' ganzen Familie erfüllt</p></li>'
+ '<li><p>✔ Hergestellt mit einer PTFE-freien Innenfläche aus 304 Edelstahl, sorgt dieser Wasserkocher mit'
+ ' Temperatureinstellung für sicheres, rein schmeckendes Wasser</p></li>'
+ '<li><p>✔ Verfügt über einen Trockenlaufschutz und eine automatische Abschaltung für erhöhte Sicherheit und ein'
+ ' beruhigendes Gefühl</p></li>'
+ '<li><p>✔ Der automatisch auf 80° öffnende Deckel und der 360°-Schwenkfuß ermöglichen einfaches Befüllen, Reinigen'
+ ' und Handling</p></li>'
+ '<li><p>✔ Keine Montage erforderlich</p></li></ul>'
+ '<h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Schwarz+Silber</p></li>'
+ '<li><p>✔ Material: Edelstahl, Kunststoff</p></li>'
+ '<li><p>✔ Wasserkocher-Abmessungen: 21,8L x 15,5B x 26H cm</p></li>'
+ '<li><p>✔ Wasserkocher-Kapazität: 1,7 L</p></li>'
+ '<li><p>✔ Spannung: 220-240V</p></li>'
+ '<li><p>✔ Leistung: 2200 W</p></li>'
+ '<li><p>✔ Stromstärke: 9,6 A</p></li>'
+ '<li><p>✔ Kabellänge: 0,7 m</p></li>'
+ '<li><p>✔ Artikelnummer: ‹REDIGERAT›</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Wasserkocher</p></li>'
+ '<li><p>✔ 1 x Bedienungsanleitung</p></li></ul>'
+ + SPEC + '21,8cm x 15,5cm x 26cm</p></li>'
+ + F + 'Färg:</span> Schwarz</p></li>'
+ + F + 'Material:</span> Edelstahl/Kunststoff</p></li>'
+ + F + 'Vikt:</span> 1,3 kg</p></li>'
+ + F + 'Paketmått:</span> 21,5 × 17,6 × 25,2 cm</p></li></ul>'
+)
+
+K["42949f67"] = (
+ '<p>Verleihen Sie Ihrer Halloween-Feier mit den Halloween-Dekorationen einen schaurigen Touch! Diese drei gruseligen'
+ ' Geister sorgen für unvergessliche Gänsehaut-Momente. Bei eingeschaltetem Strom leuchten die Köpfe in einem'
+ ' unheimlichen, warmen Weiß und ziehen alle Blicke auf sich. Ideal für Ihren verwunschenen Garten oder als'
+ ' eindrucksvolle Außen-Dekoration für Terrassen und Türeingänge – verwandeln Sie Ihren Außenbereich in ein wahres'
+ ' Gruselkabinett und begeistern Sie Ihre Gäste!</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Drei Geister mit verschiedenen Ausdrücken</p></li>'
+ '<li><p>✔ Gruselig leuchtende Köpfe in warmem Weiß</p></li>'
+ '<li><p>✔ Batteriebetrieben für einfache Platzierung drinnen oder draußen</p></li>'
+ '<li><p>✔ Manuelle Aktivierungsoption über einen Knopf</p></li>'
+ '<li><p>✔ Keine Montage erforderlich</p></li></ul>'
+ '<h3>Technische Daten:</h3><ul><li><p>✔ Farbe: Weiß</p></li>'
+ '<li><p>✔ Lichtfarbe: Warmweiß</p></li>'
+ '<li><p>✔ Material: Stahl, Polyester, Kunststoff</p></li>'
+ '<li><p>✔ Gesamtabmessungen: 54L x 10B x 60H cm</p></li>'
+ '<li><p>✔ Gesamthöhe: 60 cm</p></li>'
+ '<li><p>✔ Leistung: 0,48 W</p></li>'
+ '<li><p>✔ Batterie: 3 x AA-Batterie (nicht enthalten)</p></li>'
+ '<li><p>✔ Artikelnummer: ‹REDIGERAT›</p></li>'
+ '<li><p>✔ HINWEIS: Unser Produkt hat eine hohe Empfindlichkeit. Es wird empfohlen, die Stromversorgung in lauten oder'
+ ' windigen Umgebungen auszuschalten!</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 3 x Halloween-Dekoration (Geist)</p></li>'
+ '<li><p>✔ 1 x Anleitung</p></li></ul>'
+ + SPEC + '54L x 10B x 60H cm</p></li>'
+ + F + 'Färg:</span> Weiß</p></li>'
+ + F + 'Material:</span> Polyester</p></li>'
+ + F + 'Vikt:</span> 0,9 kg</p></li>'
+ + F + 'Paketmått:</span> 34 × 14 × 24 cm</p></li></ul>'
+)
+
+K["5e126c2f"] = (
+ "<p>Lassen Sie dieses Halloween mit 's Zombie-Old-Lady das Grauen los, eine schaurige, animierte Dekoration, die"
+ ' gespenstisch kriecht und deren Augen rot glühen. Diese aus Polyesterfaser gefertigte und mit einem wasserdichten'
+ ' Batteriekasten versehene große Halloween-Dekoration wird sicherlich der Mittelpunkt Ihrer gruseligen'
+ ' Halloween-Deko.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Zombie alte Dame kriecht vorwärts und verstärkt die gruselige Halloween-Atmosphäre</p></li>'
+ '<li><p>✔ Dynamischer Sound schafft eine immersive, erschreckende Halloween-Atmosphäre</p></li>'
+ '<li><p>✔ Rote Lichter in den Augen leuchten auf und dimmen für einen unheimlichen Effekt</p></li>'
+ '<li><p>✔ Wasserdichtes Batteriefach ermöglicht sicheres Platzieren im Freien</p></li>'
+ '<li><p>✔ Benötigt 3 AA-Batterien, was einen einfachen Zugang zur Stromversorgung sicherstellt</p></li></ul>'
+ '<h3>Technische Daten:</h3><ul><li><p>✔ Farbe: Braun</p></li>'
+ '<li><p>✔ Material: Polyesterfaser, Kunststoff</p></li>'
+ '<li><p>✔ Gesamtabmessungen: 140L x 60B x 20H cm</p></li>'
+ '<li><p>✔ Batterie: 3 x AA-Batterien (nicht enthalten)</p></li>'
+ '<li><p>✔ Artikelbezeichnung: ‹REDIGERAT›</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Halloween Animierter Kriechzombie</p></li>'
+ '<li><p>✔ 1 x Bedienungsanleitung</p></li></ul>'
+ + SPEC + '140L x 60B x 20H cm</p></li>'
+ + F + 'Färg:</span> Braun</p></li>'
+ + F + 'Material:</span> Kunststoff</p></li>'
+ + F + 'Vikt:</span> 0,8 kg</p></li>'
+ + F + 'Paketmått:</span> 26 × 18 × 26 cm</p></li></ul>'
+)
+
+K["050db4d8"] = (
+ '<p>Sie möchten Ihr Zuhause verschönern? Dann sind unsere Wanddekorationen genau das Richtige für Sie. Das exklusive'
+ ' und einzigartige 3 D Design verschönert jedes Zuhause und passt zu vielen Einrichtungsstilen. Die Wandbefestigung,'
+ ' ist für eine einfache Montage, ist im Lieferumfang enthalten. Kaufen Sie unsere Wanddekoration aus Metall und'
+ ' verschönern Sie die Wände in Ihrem Zuhause.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ 2er-Set Wandbilder in Schwarz und Natur</p></li>'
+ '<li><p>✔ Wandbilder im einzigartigen 3 D Design.</p></li>'
+ '<li><p>✔ Kommt fertig zum Aufhängen, mit Haken und Montagmaterial</p></li>'
+ '<li><p>✔ Geeignet für Bad, Wohnzimmer, Schlafzimmer, Esszimmer, Diele</p></li>'
+ '<li><p>✔ Ist ein schönes Geschenk für Freunde, Partner, Eltern sein</p></li></ul>'
+ '<h3> Technische Daten:</h3><ul><li><p>✔ Farbe: Schwarz+Natur</p></li>'
+ '<li><p>✔ Material: Eisen, MDF</p></li>'
+ '<li><p>✔ Gesamtmaße: 40L x 46H cm</p></li>'
+ '<li><p>✔ Tiefe: 30 mm</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Wanddekoration aus Metall</p></li>'
+ '<li><p>✔ 1 x Zubehör zum Aufhängen</p></li></ul>'
+ + SPEC + '40cm x 46cm</p></li>'
+ + F + 'Färg:</span> Schwarz, Natur</p></li>'
+ + F + 'Material:</span> Metall</p></li>'
+ + F + 'Vikt:</span> 1,7 kg</p></li>'
+ + F + 'Paketmått:</span> 54 × 12 × 49 cm</p></li></ul>'
+)
+
+K["1c92e587"] = (
+ '<p>Genervt von den Tränen und Stürzen durch herkömmliche Stützräder? Es ist frustrierend, wenn man sieht, wie sich'
+ ' Ihr Kind mit Pedalen und dem Gleichgewicht abmüht. Das Kinder Laufrad ändert das. Mit dem Lauflernrad konzentrieren'
+ ' sich Kinder aufs Gleiten und Lenken, verbessern spielend Vertrauen und Koordination. Bald beherrschen sie das'
+ ' Zweiradfahren und starten mit einem Lächeln in viele Radabenteuer.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ Geeignet für Kleinkinder, fördert die Entwicklung von Gleichgewicht und motorischen Fähigkeiten</p></li>'
+ '<li><p>✔ Lenker mit 30-Grad-Rotation des Laufrads verhindern das Umkippen für zusätzliche Sicherheit</p></li>'
+ '<li><p>✔ Vollständig geschlossene Räder des Lauflernrads schützen kleine Füße während des Spielens.</p></li>'
+ '<li><p>✔ Leise Räder des Kinder Laufrads sorgen für ruhiges Spielen ohne Störungen</p></li>'
+ '<li><p>✔ EVA-Räder des Laufrads sind pannensicher, verschleißfest und stoßdämpfend</p></li>'
+ '<li><p>✔ Schnelle Montage in Minuten, weniger Aufwand, mehr Spielzeit</p></li>'
+ '<li><p>✔ Ideal für den Einsatz drinnen und draußen, überall sanfte Fahrten</p></li></ul>'
+ '<h3>Technische Daten:</h3><ul><li><p>✔ Farbe: Grün+Braun</p></li>'
+ '<li><p>✔ Material: Metall, Kunststoff, EVA</p></li>'
+ '<li><p>✔ Gesamtabmessungen: 69L x 40B x 49H cm</p></li>'
+ '<li><p>✔ Sitzgröße: 12B x 22T cm</p></li>'
+ '<li><p>✔ Sitzhöhe: 26,5 cm</p></li>'
+ '<li><p>✔ Rädergröße: Ø21,5 cm (vorne), Ø16,5 cm (hinten)</p></li>'
+ '<li><p>✔ Belastbarkeit: 20 kg</p></li>'
+ '<li><p>✔ Empfohlenes Alter: 12-36 Monate</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Kinderlaufrad</p></li>'
+ '<li><p>✔ 1 x Bedienungsanleitung</p></li></ul>'
+ + SPEC + '69L x 40B x 49H cm</p></li>'
+ + F + 'Färg:</span> Grün</p></li>'
+ + F + 'Material:</span> Kunststoff</p></li>'
+ + F + 'Vikt:</span> 3 kg</p></li>'
+ + F + 'Paketmått:</span> 64 × 20 × 23 cm</p></li></ul>'
+)
+
+K["1f887213"] = (
+ '<p>Dieser schöne Weihnachtsbaum von ist eine großartige Alternative zu herkömmlichen Bäumen, da er einfach'
+ ' aufgestellt werden kann und kaum Pflege erfordert. Dieser hohe Tannenbaum besteht aus vollen und realistischen'
+ ' Kunststoffzweigen und -nadeln. Besonders groß und immergrün, wird dieser Christbaum Ihnen und Ihrer Familie die'
+ ' Weihnachtstage verzaubern und für eine märchenhafte, festliche Stimmung sorgen.</p>'
+ '<h3>Beschreibung:</h3><ul>'
+ '<li><p>✔ 1,8 m hoher, künstlicher Weihnachtsbaum</p></li>'
+ '<li><p>✔ Realistische Kunststoffzweige verleihen dem Baum ein volles und üppiges Aussehen</p></li>'
+ '<li><p>✔ 390 Baumspitzen bieten reichlich Platz für Weihnachtsbaumschmuck</p></li>'
+ '<li><p>✔ Der Ständer ist abnehmbar und faltbar für eine einfache Lagerung</p></li>'
+ '<li><p>✔ Robuste und langlebige Basis sorgt für Sicherheit und Stabilität</p></li>'
+ '<li><p>✔ Hinweis: Um ein volles, üppiges Erscheinungsbild zu gewinnen, breiten Sie bitte alle Zweige aus</p></li>'
+ '<li><p>der Lieferumfang enthält nur den Baum mit Ständer. Baumschmuck ist NICHT INBEGRIFFEN und wird nur'
+ ' beispielhaft auf Produktfotos des Baums gezeigt</p></li></ul>'
+ '<h3>Technische Daten:</h3><ul><li><p>✔ Material: Kunststoff</p></li>'
+ '<li><p>✔ Farbe: Weiß</p></li>'
+ '<li><p>✔ Gesamtmaße: Ø55 x H180 cm</p></li>'
+ '<li><p>✔ Spitzenanzahl: 390</p></li>'
+ '<li><p>✔ Zweigmaße: 33L x 6B cm</p></li></ul>'
+ '<h3>Lieferumfang:</h3><ul><li><p>✔ 1 x Weihnachtsbaum</p></li>'
+ '<li><p>✔ 1 x Ständer</p></li>'
+ '<li><p>✔ 1 x Anleitung</p></li></ul>'
+ + SPEC + 'Ø55 x H180 cm</p></li>'
+ + F + 'Färg:</span> Weiß</p></li>'
+ + F + 'Material:</span> Kunststoff/Metall</p></li>'
+ + F + 'Vikt:</span> 3,6 kg</p></li>'
+ + F + 'Paketmått:</span> 80 × 19 × 19 cm</p></li></ul>'
+)
+
+
+def summa(s):
+    h = 0
+    for c in s:
+        h = (h * 31 + (ord(c) & 0xFFFF)) % 1000000007
+    return h
+
+
+if __name__ == "__main__":
+    with io.open("kallor.json", "w", encoding="utf-8") as f:
+        json.dump(K, f, ensure_ascii=False, indent=1)
+    for k, v in K.items():
+        print(k, len(v), summa(v))
