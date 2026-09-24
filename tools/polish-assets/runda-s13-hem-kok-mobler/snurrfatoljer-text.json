@@ -1,0 +1,45 @@
+{
+ "slug": "snurrfatoljer",
+ "seo": {
+  "title": "Snurrfåtölj – vrids 360°, på ben eller fast fot",
+  "description": "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och två reclinerfåtöljer."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du snurrfåtöljer som vrids 360 grader, på ben eller på en fot i mitten. Sju av dem har en fotpall, och två är reclinerfåtöljer vars rygg fälls bakåt.",
+   "Tre snurrfåtöljer i linnelook har gaslyft, så att sitsen ställs mellan 45 och 57 cm, och de står på en rund kromad fot utan hjul. Fåtöljerna med lös fotpall på rund stålfot bär 150 kg, och på dem snurrar sitsen ovanpå foten. Fyra snurrfåtöljer med knappad rygg är 60 cm breda och passar där det är ont om plats.",
+   "Den armlösa snurrfåtöljen i chenille har en 35 cm tjock sittdyna, och på fåtöljen med höjdjusterbar fotpall snurrar både stolen och pallen. Fåtöljen i konstläder har en rygg som låses i önskad vinkel med ett vred.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket plats behöver en snurrfåtölj?",
+    "a": "Eftersom stolen vrids behövs utrymme runt om, inte bara framför. Fåtöljerna med lös fotpall tar 71 × 69 cm i golvyta men blir 93 cm djupa när ryggen fälls, och reclinerfåtöljen med snurrfot behöver 80 cm fritt bakom sig."
+   },
+   {
+    "q": "Hur mycket bär en snurrfåtölj?",
+    "a": "Nio av dem bär 120 kg. Snurrfåtöljerna med gaslyft bär 136 kg, och fåtöljerna med lös fotpall och reclinerfåtöljen med snurrfot bär 150 kg."
+   },
+   {
+    "q": "Kan fåtöljen fällas bakåt?",
+    "a": "Flera kan det. Reclinerfåtöljen med snurrfot fälls till 130 grader, fåtöljen i konstläder låses med ett vred i den vinkel du vill ha, och fåtöljerna med lös fotpall har ett bakåtlutat läge."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "18 synliga 2026-09-24, alla i lager. Med: allt som heter snurrfåtölj, fåtöljerna med lös fotpall på rund stålfot (sitsen vrids, sluggen är snurrfatolj-…) och reclinerfåtöljerna 2823c605 och 9e924d08 med 360° snurrfot. INTE med: snurrstolar som är skrivbordsstolar (18afa056, 348ee535, 4d83eca6, d710da91) och snurrstolen för barn 336359d7.",
+  "360 grader": "0fe80797, 57ae1ddf, b9ab45db 'Vridning: 360°'; 543fd196, 827314e4, bb0d9831, ea30fc2a, 3a3ed89e, dada3f6b 'Rotation: 360 grader'; b1e98da4 'Rotation: 360°'; 89c89322 '360° fot'; b09d20b7 'båda snurrar 360°'; 2823c605 '360° snurrfot'; 9e924d08 'vridbar 360°'; 021a268e, 266c5e75, 5d150926, d2409a95 'stolens sits vrids ovanpå sin fot'",
+  "sju med fotpall": "021a268e, 266c5e75, 5d150926, d2409a95, b09d20b7, b1e98da4, 2823c605",
+  "två reclinerfåtöljer": "2823c605 '130° liggläge'; 9e924d08 'Tillbakalutad 69 × 157'",
+  "tre med gaslyft, 45–57, rund kromad fot utan hjul": "0fe80797, 57ae1ddf, b9ab45db 'Sitthöjd: 45–57 cm', 'Höjdreglering: gaslyft', 'Fot: rund, kromad — inga hjul'",
+  "lös fotpall på rund stålfot, 150 kg, sitsen snurrar": "021a268e, 266c5e75, 5d150926, d2409a95 'Maxlast fåtölj: 150 kg', 'stolens sits vrids ovanpå sin fot'",
+  "fyra 60 cm med knappad rygg": "543fd196, 827314e4, bb0d9831, ea30fc2a 'Snurrfåtölj 60 cm med knappad rygg', 'Mått (B × D × H): 60 × 61 × 88 cm'",
+  "armlös, 35 cm sittdyna": "89c89322 'Sittdyna: 35 cm tjock'",
+  "både stol och pall snurrar": "b09d20b7 'båda snurrar 360°', 'Fotpall (B × D × H): 54 × 41 × 40–47 cm'",
+  "vred": "b1e98da4 'ryggen låses med vred', 'Vredet låser ryggen'",
+  "golvyta och utrymme": "021a268e m.fl. 'Golvyta fåtölj: 71 × 69 cm', 'Djup tillbakalutad: 93 cm'; 2823c605 'Fritt utrymme bakom: 80 cm'",
+  "maxlast": "120 kg: 3a3ed89e, 543fd196, 827314e4, bb0d9831, ea30fc2a, 89c89322, b09d20b7, b1e98da4, dada3f6b (nio); 136 kg: 0fe80797, 57ae1ddf, b9ab45db; 150 kg: 021a268e, 266c5e75, 5d150926, d2409a95, 2823c605; 9e924d08 anges inte",
+  "fälls bakåt": "2823c605 'Ryggen fälls till 130°'; b1e98da4 vred; 021a268e m.fl. 'Höjd tillbakalutad: 97 cm'",
+  "titeln": "Första utkastet hade 'med fotpall' i titeln och fälldes av butikstestet: fotpall är Sittpuffar & fotpallars sökord. 'vrids 360°' gäller alla 18 (utkastet 'vridbar 360°, …' blev 49 tecken) (se '360 grader'); ben: 543fd196-familjen 'Benhöjd: 35 cm', 3a3ed89e 'stålben'; fast fot: 0fe80797, 57ae1ddf, b9ab45db 'Fot: rund, kromad — inga hjul'"
+ }
+}

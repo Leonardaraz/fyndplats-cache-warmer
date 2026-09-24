@@ -1,0 +1,45 @@
+{
+ "slug": "barbord",
+ "seo": {
+  "title": "Barbord med pallar, bardisk & höj- och sänkbart",
+  "description": "Barbord med två eller fyra pallar, barbord med stolar, höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du barbord för köket och vardagsrummet: set med två eller fyra pallar, ett set med två stolar med ryggstöd, två höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk som packas i en väska.",
+   "Borden i seten är 80 till 121,5 cm breda, och sitthöjden är 57 till 68 cm, alltså högre än vid ett matbord. Två av seten har hyllor under skivan, och på det ena bär skivan 170 kg. Ett annat har vinställ och glashållare.",
+   "De höj- och sänkbara barborden är runda, drygt 60 cm i diameter, och ställs mellan 70 och 90 cm respektive 67 och 93 cm. Det vridbara barbordet på 150 cm har skåp med dörrar i räfflat glas och en sidomodul, och bardelen vrids ut i vinkel eller läggs rakt.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur högt är ett barbord?",
+    "a": "De flesta barbord i seten här är 87 till 95 cm höga, och sitthöjden är 57 till 68 cm. Ett vanligt matbord är runt 75 cm högt, så barbordet passar med pallar eller barstolar och inte med vanliga stolar."
+   },
+   {
+    "q": "Hur mycket plats behöver ett barbord med pallar?",
+    "a": "Räkna med utrymme att dra ut pallarna. För setet på 105 cm anges en golvyta på minst 200 × 140 cm, och för setet med två hyllplan 1,5 × 1,5 meter."
+   },
+   {
+    "q": "Vad är en bardisk?",
+    "a": "En disk att stå bakom och servera från. Bardisken här fälls upp utan verktyg, har en förvaringshylla och en front i tyg som går att ta av, och packas i en bärväska. Den finns i två längder, 98 och 110 cm."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "15 synliga 2026-09-24, varav 1 slutsåld (e80eee8b). Barbordet med vinställ a7c39a89 ligger också i Vinställ & vinkylar.",
+  "set med två pallar": "394de213, 441d2209, 51c43e67, a7c39a89 ('två barpallar ingår'), bb166ef9, c3bda64a, f4ed1264",
+  "set med fyra pallar": "63a37524, c88b5bbb 'Antal delar: 5'",
+  "set med två stolar med ryggstöd": "3b38e191 'Barbord 89 cm med två stolar med ryggstöd'",
+  "två höj- och sänkbara, runda": "9190a8af 'Höjd 70–90 cm', 'Skivans diameter Ø61 cm'; f173eee1 'Ø63 × 67–93 cm'",
+  "vridbart barbord 150 cm": "4b0f9b7c 'Mått, L-läge: 150 × 80', 'Mått, linjärt läge: 138 × 39', 'Vridbar bardel: 120 × 39 cm', 'dörrar i räfflat glas', 'Sidomodul'",
+  "bardisk i väska": "768adf42 'Bärväska: oxfordtyg … ingår', 'fälls upp utan verktyg', 'Front/kjol: avtagbart oxfordtyg', '98 cm-modellen', '110 cm-modellen', namnet 'med förvaringshylla'",
+  "bord 80 till 121,5 cm": "394de213, 441d2209 80; 3b38e191 89; 51c43e67, 63a37524, c3bda64a, c88b5bbb, f4ed1264 100; bb166ef9 105; a7c39a89 121,5",
+  "sitthöjd 57 till 68": "441d2209, 63a37524, c88b5bbb 57; 394de213, 51c43e67, f4ed1264 60; 3b38e191 64; c3bda64a 68; bb166ef9 pall 60 cm hög; a7c39a89 anges inte",
+  "två med hyllor, 170 kg": "394de213 'Mått hylla: 64 × 34 cm'; c3bda64a 'Mått hyllplan', 'Maxlast skiva: 170 kg'",
+  "vinställ och glashållare": "a7c39a89 namnet",
+  "de flesta 87 till 95 cm höga": "441d2209 87, 3b38e191 87, 63a37524 88, c88b5bbb 88, 394de213 90, bb166ef9 90, f4ed1264 90, 51c43e67 90,5, c3bda64a 95 (9 av 10); a7c39a89 122 cm med vinställ",
+  "matbord runt 75 cm": "matgrupperna i S13: borden 74,5–76,5 cm",
+  "golvyta": "bb166ef9 'Rekommenderad golvyta: minst 200 × 140 cm'; c3bda64a 'Golvyta: 1,5 × 1,5 m'"
+ }
+}

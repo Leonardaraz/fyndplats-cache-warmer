@@ -1,0 +1,42 @@
+{
+ "slug": "oronlappsfatoljer",
+ "seo": {
+  "title": "Öronlappsfåtölj – knappad rygg, sammet & linne",
+  "description": "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, gungstolar med öronlappsrygg och en uppresningsfåtölj."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du öronlappsfåtöljer, fåtöljer med hög rygg och sidostycken i huvudhöjd som ger stöd när du lutar dig åt sidan. Här finns också två gungstolar och en uppresningsfåtölj med samma rygg.",
+   "Sex av fåtöljerna har samma form: 102 cm höga, 74 cm breda, med knappad rygg och en maxlast på 160 kg. De finns i grått, grå sammet, cremevit flanell, blått, mörkgrått och brunt. På den mörkgrå och den bruna går klädseln att ta av och tvätta, och på den blå går sitsdynans överdrag att tvätta.",
+   "Två fåtöljer har ländkudde: den gula med fotpall och den beige i linnelook, som är 110 cm hög och står på ben i gummiträ. Gungstolarna i fleece har fotpall, nackkudde och ryggkudde, och uppresningsfåtöljen har två motorer och fälls till 155 grader.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är en öronlappsfåtölj?",
+    "a": "En fåtölj med hög rygg och sidostycken i överkant, öronlapparna, som ger stöd åt huvudet när du lutar dig åt sidan. Öronlappsfåtöljerna här är 102 till 110 cm höga."
+   },
+   {
+    "q": "Hur mycket bär en öronlappsfåtölj?",
+    "a": "Sex av dem bär 160 kg. De andra fåtöljerna, gungstolarna och uppresningsfåtöljen bär 120 kg."
+   },
+   {
+    "q": "Går klädseln att tvätta?",
+    "a": "På den mörkgrå och den bruna öronlappsfåtöljen går klädseln att ta av och tvätta i maskin, och på den blå går sitsdynans överdrag att tvätta. Hur de andra sköts står under Användning och skötsel i varje beskrivning."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "12 synliga 2026-09-24 som har öronlapp i namnet, varav 1 slutsåld (c0e67ea5). Två är gungstolar och en är en uppresningsfåtölj med öronlappsrygg.",
+  "sex med samma form, 102 cm, 74 cm, knappad, 160 kg": "121ce68f, 16f36d37, 72f30eb9, 7b98c4c1, 80e4ed24, a29af9b5 'Mått: 74 × 86 × 102 cm'; knappad: namnen på 121ce68f, 16f36d37, 72f30eb9, a29af9b5 och 'hög rygg med knappad stoppning' på 7b98c4c1 och 80e4ed24; 160 kg i namnen och a29af9b5 'Maxlast 160 kg'",
+  "färger": "grått 121ce68f, grå sammet 16f36d37, cremevit flanell 72f30eb9, blått a29af9b5, mörkgrått 7b98c4c1, brunt 80e4ed24",
+  "tvättbar klädsel och sits": "7b98c4c1 och 80e4ed24 'Klädseln går av och i tvättmaskinen'; a29af9b5 'Sitsdynans överdrag är avtagbart och tvättbart'",
+  "klädseln sitter fast på de andra": "ersatt: alla tolv sidor har avsnittet 'Användning och skötsel' (räknat i de hämtade sidorna 2026-09-24)",
+  "ländkudde": "92a64ccd 'Ingår: Fåtölj, fotpall, ländkudde'; f77a6177 'Ländkudde: 48 × 30 cm, ingår', '77 × 77 × 110 cm', 'ben i gummiträ'",
+  "gungstolar": "2c0f466e, 93144f85 'Ingår: Gungstol, fotpall, nackkudde, ryggkudde'",
+  "uppresningsfåtölj": "d3ee8cea 'Motorer: Två', 'Liggläge: Steglöst upp till 155°'",
+  "102 till 110 cm": "de sex 102 cm, 92a64ccd 104 cm, f77a6177 110 cm",
+  "maxlast 120 för övriga": "92a64ccd, f77a6177, 2c0f466e, 93144f85, d3ee8cea 'Maxlast: 120 kg'",
+  "titeln": "Första utkastet hade 'med fotpall' i titeln och fälldes av butikstestet: fotpall är Sittpuffar & fotpallars sökord. Knappad rygg: se 'sex med samma form' och 92a64ccd; sammet: 16f36d37 'Sammet (100 % polyester)'; linne: f77a6177 'Linneväv', 92a64ccd 'Linneimitation'"
+ }
+}

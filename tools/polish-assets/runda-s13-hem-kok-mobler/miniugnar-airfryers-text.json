@@ -1,0 +1,44 @@
+{
+ "slug": "miniugnar-airfryers",
+ "seo": {
+  "title": "Miniugn & airfryer – varmluftsfritös och bänkugn",
+  "description": "Miniugnar från 9 till 36 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du miniugnar och bänkugnar för köksbänken, och miniugnar med frityrkorg som fungerar som airfryer. De rymmer från 9 till 36 liter och tar mindre plats än en vanlig ugn, så de passar i ett litet kök eller som en extra ugn.",
+   "Sju av ugnarna har frityrkorg och varmluft. Maten ligger i korgen och den varma luften cirkulerar runt den, så att den blir krispig med betydligt mindre olja än i en vanlig fritös. Ugnarna med frityrkorg rymmer från 10 till 36 liter.",
+   "De vanliga miniugnarna har timer och flera har tre värmelägen: övervärme, undervärme eller båda. Två bänkugnar har två kokplattor ovanpå, så att du kan koka och baka samtidigt, och tre ugnar har grillspett.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Är en varmluftsfritös samma sak som en airfryer?",
+    "a": "Ja, varmluftsfritös är det svenska ordet för airfryer. Här är funktionen inbyggd i en miniugn: maten ligger i en frityrkorg och varm luft blåser runt den. Samma ugn bakar också, och flera av dem kan grilla."
+   },
+   {
+    "q": "Hur stor miniugn behöver jag?",
+    "a": "Titta på innermåttet och på bakplåten. Ugnen på 9 liter tar en bakplåt på 25 × 20 cm, medan ugnarna på 36 liter har en bakplåt på 37,8 × 28 cm. Innermåtten står i varje beskrivning."
+   },
+   {
+    "q": "Hur varm blir en miniugn?",
+    "a": "Upp till 230 °C på de ugnar där temperaturen anges, och flera börjar redan på 80 eller 90 °C. Timern går upp till 60 minuter på de flesta."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "20 synliga 2026-09-24, varav 2 slutsålda (airfryern 7351684b och miniugnen 83cc8ba7). Inget påstående vilar på dem.",
+  "9 till 36 liter": "691ffc27 9 liter; c26677bf och 8cc3f006 36 liter; 30f2151f 36 liter",
+  "fungerar som airfryer, frityrkorg, sju": "2be44ec2, 36e555ea, fc9c6885 'Varmluftsfritös och miniugn', 'Frityrkorg'; 30f2151f 'en frityrkorg'; 4ac902ed 'Frityrkorg, grillgaller, bakplåt'; 62e7b292, 6900c387 'Frityrkorg: 27,8 × 27,2 cm'",
+  "10 till 36 liter med frityrkorg": "36e555ea, fc9c6885 10; 62e7b292, 6900c387 20; 2be44ec2 24; 4ac902ed 30; 30f2151f 36",
+  "betydligt mindre olja": "30f2151f 'Varmluften cirkulerar runt maten, så att den blir krispig med betydligt mindre olja än i en vanlig fritös'",
+  "tre värmelägen: över, under, båda": "0ef7500a, 772fde20, 89c22404, b5dbf2fd 'Värmelägen: tre — övervärme, undervärme eller båda'; 0e2a1cd9 'Värmelägen: tre'",
+  "två bänkugnar med kokplattor": "6db7fcc4 'Effekt kokplattor: 1000 W (stor) och 600 W (liten)'; 8cc3f006 'Effekt kokplattor: 790 W (stor) och 610 W (liten)'",
+  "tre med grillspett": "30f2151f (namnet), c26677bf och 8cc3f006 'grillspett'",
+  "timer": "0–60 minuter på 0e2a1cd9, 0ef7500a, 2be44ec2, 36e555ea, 3f6a99f7, 4ac902ed, 691ffc27, 6db7fcc4, 772fde20, 89c22404, 8cc3f006, b5dbf2fd, c26677bf, f5527fef, fc9c6885; inte angivet på 62e7b292, 6900c387, 30f2151f",
+  "bakplåt 25 × 20 och 37,8 × 28": "691ffc27 'Bakplåt: 25 × 20 cm'; c26677bf 'Bakplåt: 37,8 × 28 cm', 8cc3f006 '37,8 × 28,5 cm'",
+  "upp till 230 °C, från 80 eller 90": "maxtemperatur 230 °C på alla som anger den; 36e555ea, fc9c6885 från 80 °C; 2be44ec2, 4ac902ed, 8cc3f006, c26677bf från 90 °C",
+  "varmluftsfritös = airfryer": "allmänt språkbruk",
+  "bakar och grillar": "bakplåt ingår i alla med frityrkorg; grill: 62e7b292, 6900c387 'grill', 30f2151f grillspett, 4ac902ed grillgaller"
+ }
+}
