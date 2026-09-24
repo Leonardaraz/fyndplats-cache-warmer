@@ -187,7 +187,7 @@ allt för rundan ligger i den.
 
 **Förhandsbygget** för grenen (`dpl_Gr3ji8CRgPfAtQqDgNKntE8fuwne`, READY) hämtades sida för sida och jämfördes med källfilerna. Alla 12 sidor var LIKA: `<title>`, metabeskrivning, fyra stycken brödtext, tre frågor med svar och tre frågor i FAQPage-JSON-LD.
 
-**Bygglovsmeningen på bodarna rättades i Wix samma natt**, eftersom den var fel i sak och kostade försäljning. Den skrevs med kontrollsumma i anropet och en separat återläsning. Se `bodar-bygglov/README.md`.
+**Bygglovsmeningen på bodarna rättades i Wix samma natt**, eftersom den var fel i sak och kostade försäljning. Den skrevs med kontrollsumma i anropet och en separat återläsning, och den är live på alla fem sidor (03:17 UTC). Se `bodar-bygglov/README.md`.
 
 ## 6. Beslut som lämnas till Leonard
 

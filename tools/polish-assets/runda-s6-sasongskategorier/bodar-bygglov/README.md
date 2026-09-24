@@ -44,6 +44,21 @@ PATCH:en bar bara `id`, `revision` och `plainDescription`.
 svaret) gav den nya meningen 1 gång och den gamla 0 gånger på alla fem, med
 `visible: true` oförändrat.
 
+**Live, 2026-09-24 kl 03:17 UTC:** alla fem produktsidor på
+www.fyndplats.se visar den nya meningen 1 gång och den gamla 0 gånger.
+Ingen butiksdeploy behövdes; texten kommer från Wix.
+
+⚠️ Mätningen tog två försök, av två skäl:
+
+- **Mörkgrön låg kvar i cachen.** Första hämtningen gav `STALE` med
+  `age: 1608` och den gamla meningen. Den hämtningen startade en ny
+  rendering, och nästa gav `HIT` med `age: 10` och den nya meningen.
+- **Pollslingan räknade nätverksfel som gammal text.** `curl` fick
+  `SSL_ERROR_SYSCALL` på några anrop, och då blev räkningen 0. Därför
+  rapporterade den "3 av 5" när sidorna i själva verket var rätt. Mätningen
+  gjordes om med återförsök och läste status, `x-vercel-cache` och `age`
+  per sida.
+
 **Återställning:** byt tillbaka `ny-mening.txt` mot `gammal-mening.txt` med
 samma vakter.
 
