@@ -144,8 +144,8 @@ avgör vilken sida som tävlar.
   *"12,4 kvadratmeter är större än vad som är bygglovsfritt i många
   kommuner"*. Friggeboden får vara 15 m² och 3 meter hög. Bodarna har
   yttermått 3,85 × 3,4 m (13,1 m²) och 2 m i nock, så de ryms. Meningen kan
-  skrämma bort köpare av de dyraste bodarna (8 779–9 869 kr). Den rättas i
-  poleringsflödet, med grindar och återläsning, inte här.
+  skrämma bort köpare av de dyraste bodarna (8 779–9 869 kr). ✅ **Rättad
+  samma natt i runda S6**, se `../runda-s6-sasongskategorier/bodar-bygglov/`.
 - **Trädgårdens åtta underkategorier saknar egen SEO-titel och text**:
   Växthus & Odling, Utemöbler, Solskydd & Paviljonger, Grill & Utekök,
   Trädgårdsskötsel & Bevattning, Trädgårdsdekor & Belysning, Utelek & Spel

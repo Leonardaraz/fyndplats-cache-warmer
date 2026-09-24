@@ -183,7 +183,13 @@ befintliga `.test.ts`, precis som på basen.
 #641, #646), och regeln är en eller två per dag. Grenen pushas en gång, när
 allt för rundan ligger i den.
 
-## 5. Beslut som lämnas till Leonard
+## 5. Förhandsbygget och en rättelse på vägen
+
+**Förhandsbygget** för grenen (`dpl_Gr3ji8CRgPfAtQqDgNKntE8fuwne`, READY) hämtades sida för sida och jämfördes med källfilerna. Alla 12 sidor var LIKA: `<title>`, metabeskrivning, fyra stycken brödtext, tre frågor med svar och tre frågor i FAQPage-JSON-LD.
+
+**Bygglovsmeningen på bodarna rättades i Wix samma natt**, eftersom den var fel i sak och kostade försäljning. Den skrevs med kontrollsumma i anropet och en separat återläsning. Se `bodar-bygglov/README.md`.
+
+## 6. Beslut som lämnas till Leonard
 
 - **Trädgård & Utemöbler i `MAIN_GROUPS`.** Den saknas där och har därför inget
   kort på /butik eller startsidan. Startsidan visar de fyra största grupperna.
