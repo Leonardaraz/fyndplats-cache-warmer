@@ -105,7 +105,7 @@ Om du ska bygga ett bra hemmakontor stegvis, rekommenderar vi den här ordningen
 
 Sammanlagt kommer du långt under 5 000 kronor — och de flesta stegen får du på halva budgeten om du letar smart.
 
-Bra fynd för dessa produkter samlas i kategorin [Kontor & arbetsplats](https://www.fyndplats.se/kategori/hem-inredning) på Fyndplats. Och om du vill kombinera kontoret med att hålla igång kroppen, kika på vår guide [Träna hemma utan utrustning](https://www.fyndplats.se/blogg/trana-hemma-utan-utrustning) — fem minuter mellan möten gör underverk.
+Stolar och skrivbord hittar du under [Kontorsstolar](/kategori/kontorsstolar) och [Skrivbord](/kategori/skrivbord) på Fyndplats. Och om du vill kombinera kontoret med att hålla igång kroppen, kika på vår guide [Träna hemma utan utrustning](https://www.fyndplats.se/blogg/trana-hemma-utan-utrustning) — fem minuter mellan möten gör underverk.
 
 ## Avslutning
 
