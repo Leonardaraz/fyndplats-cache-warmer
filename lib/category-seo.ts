@@ -448,7 +448,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "sideboards-vitrinskap": {
     title: "Sideboard, skänk & vitrinskåp för vägg och golv",
     description:
-      "Sideboards och skänkar i vitt, högglans, metall och rotting, 80 till 180 cm breda, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
+      "Sideboards och skänkar i vitt, högglans, metall och rotting, de flesta med lådor och skåp, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
   },
   sidobord: {
     title: "Sidobord & avlastningsbord – runda och C-formade",

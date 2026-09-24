@@ -378,18 +378,18 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   barnmobler: {
     intro: [
       "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, stapelbara barnpallar, stegpallar, en barnsäng, sminkbord för barn och låga barngarderober med klädstång och spegel.",
-      "Barnfåtöljerna finns i teddyfleece, manchester, sammet, linnelook och konstläder, och tre av dem har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsofforna på 77 cm har plats för två barn och bär 80 kg.",
+      "Barnfåtöljerna finns i teddyfleece, manchester, linnelook och konstläder, och den med kronrygg och den med rutmönstrad rygg har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsofforna på 77 cm har plats för två barn och bär 80 kg.",
       "Sminkborden för barn har spegel och pall eller stol, och tre av dem har speglar i akryl, som inte splittras. Ett blir skrivbord när spegeln tas av. Ett barnbord och två sminkbord är testade enligt leksaksstandarden EN 71.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Från vilken ålder passar barnfåtöljerna?",
-        a: "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och de två med fotpall från 3 år. Barnsofforna för två barn bär 80 kg.",
+        a: "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och fåtöljen med kronrygg och fotpall från 3 år. Barnsofforna för två barn bär 80 kg.",
       },
       {
         q: "Vad är en utklädningsgarderob?",
-        a: "En låg garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Garderoberna här är 106 till 113,5 cm höga, och två är gjorda i massivt trä efter Montessoriidén.",
+        a: "En låg garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Garderoberna här är drygt en meter höga, och två är gjorda i massivt trä efter Montessoriidén.",
       },
       {
         q: "Behöver barnmöblerna monteras?",
@@ -1190,7 +1190,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   "kladhangare-hallmobler": {
     intro: [
       "Här hittar du klädhängare, klädställningar och hallmöbler: fristående klädhängare med krokar, klädställ på hjul, en öppen klädställning med tre stänger och hallmöbler som samlar krokar, bänk och skoförvaring i en och samma möbel.",
-      "Klädhängarna i furu och bambu har åtta krokar på olika höjder, och den i bambu har en bänk med låda i foten. Klädstället med paraplyställ tar bara 30,5 × 30,5 cm golv och har tolv krokar på tre höjder. Klädställningen på hjul ställs i höjd mellan 95 och 170 cm och i bredd mellan 86 och 160 cm.",
+      "Klädhängaren i furu har åtta krokar på olika höjder. Klädstället med paraplyställ tar bara 30,5 × 30,5 cm golv och har tolv krokar på tre höjder. Klädställningen på hjul ställs i höjd mellan 95 och 170 cm och i bredd mellan 86 och 160 cm.",
       "Hallmöblerna har bänk, skobänk eller en tygkommod med sju lådor under krokarna. Hallmöbeln 3-i-1 har en bänk som bär 110 kg och levereras med tippskydd. Till den som vill sitta ner och ta på skorna finns också hallbänkar, varav en med rullade armstöd.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1536,7 +1536,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   pallar: {
     intro: [
       "Här hittar du pallar till hela hemmet: stegpallar, duschpallar, pianopallar, rullpallar och sadelpallar på hjul, salongspallar, stoppade pallar och stapelbara sittpallar i fyrpack. Det finns också verkstadspallar med verktygsfack eller verktygsbricka och en trädgårdspall på hjul.",
-      "Pianopallarna ställs i höjd mellan 45 och 58 cm, och två av dem har ett dolt fack under sitsen. Rullpallarna, sadelpallarna och salongspallarna är höj- och sänkbara, de flesta med gaslyft, och flera har ryggstöd eller fotring.",
+      "Pianopallarna ställs i höjd mellan 45 och 58 cm, och pianopallen med notförvaring har ett dolt fack under sitsen. Rullpallarna, sadelpallarna och salongspallarna är höj- och sänkbara, de flesta med gaslyft, och flera har ryggstöd eller fotring.",
       "Tre av duschpallarna ställs i höjd i fem eller åtta steg, och duschpallarna bär 100 till 150 kg. Stegpallen i stål fälls ihop med ett knapptryck, och till barnen finns stegpallar med två och tre steg. De stapelbara pallarna kommer i fyrpack, och fem av dem bär 120 kg per pall.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1668,7 +1668,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   "sideboards-vitrinskap": {
     intro: [
       "Här hittar du sideboards, skänkar och vitrinskåp: sideboards i vitt, högglans, metall och flätad rotting, en skänk med guldfärgade ben, ett köksskåp i lantstil med glasvitrin och vitrinskåp för väggen och golvet.",
-      "Sideboardsen är 80 till 180 cm breda. De flesta har både lådor och skåp, och två har dörrar med soft close. Ett har eluttag, USB-portar och en LED-list som lyser i sju färger, och på det bredaste får en tv på 75 tum plats. Flera levereras med tippskydd eller tippband.",
+      "Sideboardsen finns från 80 cm i bredd, och de flesta har både lådor och skåp. Två har dörrar med soft close, och ett har eluttag, USB-portar och en LED-list som lyser i sju färger. Flera levereras med tippskydd eller tippband.",
       "Vitrinskåpen för väggen är 9,5 cm djupa, har glasdörrar och hyllplan som kan flyttas och passar samlarfigurer och modeller. Det fristående vitrinskåpet är 139 cm högt med fyra fack och luckor i akryl som fälls upp och glider in ovanför facket.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
