@@ -86,6 +86,26 @@ test("varje kategori med SEO-titel har också redaktionell text", () => {
   }
 });
 
+// Sidan renderar intro och FAQ som ren text (<p>{para}</p>, <dd>{f.a}</dd>), och
+// titel och beskrivning hamnar i <title> och metataggen. Markdown eller HTML syns
+// alltså ordagrant för kunden: /kategori/belysning visade "**Sockeln**" med
+// asteriskerna från #400 (2026-08-12) tills det mättes 2026-09-24.
+const MARKUP = /\*+|`+|_+|<[^>]*>|\[[^\]]*\]\([^)]*\)|&[A-Za-z0-9#]+;|^#{1,6}\s/m;
+
+test("kategoritexterna bär ingen markup (sidan visar ren text)", () => {
+  const texter: [string, string][] = [];
+  for (const [slug, s] of Object.entries(CATEGORY_SEO)) {
+    texter.push([slug, s.title], [slug, s.description]);
+  }
+  for (const [slug, c] of Object.entries(CATEGORY_CONTENT)) {
+    for (const t of [...c.intro, ...c.faq.flatMap((f) => [f.q, f.a])]) texter.push([slug, t]);
+  }
+  for (const [slug, t] of texter) {
+    const m = t.match(MARKUP);
+    assert.equal(m, null, `${slug}: ${JSON.stringify(m?.[0])} syns ordagrant i "${t.slice(0, 60)}…"`);
+  }
+});
+
 test("redaktionellt innehåll håller måttet: text + minst två frågor", () => {
   for (const [slug, c] of Object.entries(CATEGORY_CONTENT)) {
     const words = c.intro.join(" ").split(/\s+/).filter(Boolean).length;

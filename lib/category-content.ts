@@ -355,7 +355,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   belysning: {
     intro: [
       "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
-      "Tre saker avgör valet. **Sockeln** måste matcha lampan du tänkt använda (E27 är vanligast). **IP-klassen** talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. **Ljusmängden** mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
+      "Tre saker avgör valet. Sockeln måste matcha lampan du tänkt använda (E27 är vanligast). IP-klassen talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. Ljusmängden mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
       "Taklamporna finns med glaskulor, i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
