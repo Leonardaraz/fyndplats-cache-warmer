@@ -1,7 +1,7 @@
 """Lägger in rundans kategoriposter i butikens lib/category-seo.ts och
 lib/category-content.ts, i bokstavsordning bland underkategorierna.
 
-    python3 infoga.py <sökväg till headless-site>
+    python3 infoga.py <sökväg till headless-site> [slug ...]
 
 Posterna genereras ur <slug>-text.json här bredvid, så inget skrivs av för hand.
 Kör sedan jamfor.mts, som importerar båda filerna och jämför dem mot källan.
@@ -9,7 +9,8 @@ Kör sedan jamfor.mts, som importerar båda filerna och jämför dem mot källan
 import json, re, sys, os
 KALLA = os.path.dirname(os.path.abspath(__file__))
 BUTIK = sys.argv[1]  # sökväg till en utcheckning av headless-site
-NYA = ["halloweendekoration","juldekoration","konstvaxter","eldkorgar-eldstader"]
+# Slugar att lägga in; utan argument de fyra säsongskategorierna.
+NYA = sys.argv[2:] or ["halloweendekoration","juldekoration","konstvaxter","eldkorgar-eldstader"]
 ERSATT = []
 data = {s: json.load(open(f"{KALLA}/{s}-text.json", encoding="utf-8")) for s in NYA + ERSATT}
 for s,d in data.items():

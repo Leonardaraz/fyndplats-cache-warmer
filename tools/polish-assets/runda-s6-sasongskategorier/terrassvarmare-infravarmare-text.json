@@ -1,0 +1,38 @@
+{
+  "slug": "terrassvarmare-infravarmare",
+  "seo": {
+    "title": "Terrassvärmare & infravärmare – 2000 och 2500 W",
+    "description": "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg, tak och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg."
+  },
+  "content": {
+    "intro": [
+      "En terrassvärmare gör altanen och balkongen användbar även en sval kväll. Här samlar vi fem elektriska värmare: en terrassvärmare på stativ på 2500 W, en terrassvärmare med oscillering, en takvärmare för terrassen och två infravärmare för vägg.",
+      "Karbonfiberröret på stativvärmaren värmer 10–15 m², och infravärmaren för vägg eller stativ 15–20 m². Effekten ställs i steg, upp till nio, med vred, touchpanel, fjärrkontroll eller app, och takvärmaren har timer på upp till 24 timmar.",
+      "Två av värmarna är IP65-klassade, och till en av dem följer ett skyddshölje för vintern. Infravärmaren med app bygger bara 8 cm ut från väggen och passar därför också på en smal balkong.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur stor yta värmer en terrassvärmare?",
+        "a": "Det beror på effekt och placering. Stativvärmaren med karbonfiberrör värmer 10–15 m² och infravärmaren för vägg eller stativ 15–20 m²."
+      },
+      {
+        "q": "Tål värmarna väder?",
+        "a": "Två av dem är IP65-klassade, och till infravärmaren för vägg eller stativ följer ett skyddshölje för vintern."
+      },
+      {
+        "q": "Hur styr jag värmen?",
+        "a": "Med vred, touchpanel, fjärrkontroll eller app beroende på modell. Infravärmaren för vägg ställs i nio steg från telefonen, och takvärmaren har timer på upp till 24 timmar."
+      }
+    ]
+  },
+  "facit": {
+    "fem elektriska värmare": "8152449a 'Terrassvärmare på stativ 2500 W'; 9c7c6e95 'Terrassvärmare 2000 W med oscillering'; 8f88f072 'Takvärmare för terrass 2000 W'; 96a45e2b 'Infravärmare 2000 W för vägg eller stati[v]'; fca538b2 'Infravärmare för vägg 2000 W med app'",
+    "10–15 m²": "8152449a 'Karbonfiberröret värmer 10–15 m², effekten ställs i tre steg och höljet tål väder enligt IP65'",
+    "15–20 m²": "96a45e2b 'Karbonfiberröret värmer 15–20 m², kapslingsklassen är IP65, och ett skyddshölje följer med för vintern'",
+    "upp till nio steg, vred, touchpanel, fjärrkontroll, app": "fca538b2 'effekten ställs i nio steg från telefonen, med touchpanelen'; 9c7c6e95 'åtta steg med vredet på framsidan eller med fjärrkontrollen'; 8f88f072 'touchpanel och … fjärrkontroll'",
+    "timer upp till 24 timmar": "8f88f072 'timern går att ställa i upp till 24 timmar'",
+    "två IP65": "96a45e2b och 8152449a, se ovan",
+    "8 cm ut från väggen": "fca538b2 'Staven är 70 cm lång och bygger bara 8 cm ut från väggen'"
+  }
+}

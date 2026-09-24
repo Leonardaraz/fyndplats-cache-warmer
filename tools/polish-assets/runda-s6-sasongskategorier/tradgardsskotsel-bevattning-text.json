@@ -1,0 +1,40 @@
+{
+  "slug": "tradgardsskotsel-bevattning",
+  "seo": {
+    "title": "Slangvagn, kompostkvarn & trädgårdsredskap",
+    "description": "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, droppslang, kompostkvarn på 2500 W, gödselspridare, lövblås, häcksax och gräsklippare."
+  },
+  "content": {
+    "intro": [
+      "Här samlar vi det som håller trädgården i ordning: slangvagnar, en väggmonterad slangvinda och droppslang för bevattningen, en elektrisk kompostkvarn och en kompostbehållare på 240 liter, gödselspridare och gräsmattsluftare, batteridriven lövblås, häcksax och gräsklippare, en transportvagn, en hopfällbar vattentank och trädgårdsskåp för redskapen.",
+      "De batteridrivna maskinerna slipper sladd. Lövblåsen levereras med två batterier, medan gräsklipparen är gjord för ett 36 V-batteri, så kontrollera vad som ingår innan du beställer.",
+      "Trädgårdsskåpen finns också under Redskapsbodar & förråd, där bodarna och förrådstälten ligger.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Ingår slang i slangvagnen?",
+        "a": "En av slangvagnarna levereras med 45 m slang och munstycke, och den väggmonterade slangvindan rymmer 10 m. Kontrollera i produktbeskrivningen om slang ingår i den modell du väljer."
+      },
+      {
+        "q": "Vad gör en kompostkvarn?",
+        "a": "Den maler ner grenar och trädgårdsavfall till mindre bitar. Vår elektriska kompostkvarn har en motor på 2500 W."
+      },
+      {
+        "q": "Vad är en droppslang?",
+        "a": "En slang som släpper ut vatten längs hela sin längd och vattnar jorden runt häcken eller rabatten."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "26 i kategorin 2026-09-24 (namnen): 2 slangvagnar, slangvinda, droppslang, kompostkvarn, kompostbehållare, gödselspridare, gräsmattsluftare, lövblås, häcksax, gräsklippare, högtryckstvätt, transportvagn, vattentank, knäpall, gödselgrep, snökäppar, insynsskydd, trapetsplåt och 7 trädgårdsskåp",
+    "slangvagnar, slangvinda, droppslang": "71ffe42b 'Slangvagn för trädgård med hjul och vev'; 9e1942fc 'Slangvagn med 45 m slang och munstycke'; 4c94aa56 'Väggmonterad slangvinda 10 m'; 6f5f014b 'Droppslang för trädgård & häck'",
+    "kompostkvarn 2500 W, kompostbehållare 240 liter": "f9c719dd 'Elektrisk kompostkvarn 2500 W'; 6b8aa5a3 'Kompostbehållare 240 liter'",
+    "gödselspridare, gräsmattsluftare": "4bdb33d4 'Gödselspridare 75 L'; c311e18f 'Gräsmattsluftare med spikvals, 45 cm'",
+    "lövblås med två batterier": "a23ea344 'Batteridriven lövblås 20 V med två batte[rier]'",
+    "häcksax, gräsklippare för 36 V-batteri": "dd5216cc 'Batteridriven häcksax 51 cm'; fda8a9de 'Gräsklippare 40 cm för 36 V-batteri'",
+    "transportvagn, vattentank": "bf2089e0 'Transportvagn 2-i-1 med nätsidor'; bc082417 'Hopfällbar vattentank 113–400 L'",
+    "trädgårdsskåpen även under Redskapsbodar & förråd": "de 7 trädgårdsskåpen (c9a24404, bb112e08, 1e11480e, d6666869, 43e312b7, 364bc564, 8b00022f) ligger också i Redskapsbodar & förråd, se runda S4",
+    "FAQ 45 m och 10 m": "9e1942fc 'Slangvagn med 45 m slang och munstycke'; 4c94aa56 'slangvinda 10 m'"
+  }
+}

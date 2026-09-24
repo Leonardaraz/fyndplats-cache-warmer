@@ -112,21 +112,67 @@ Fyra formuleringar som ändrades av vad beskrivningarna faktiskt säger:
 - **Batterier ingår i 3 av 37 animerade halloweenfigurer.** Därför står
   det "i de flesta" och inte "aldrig".
 
+### Trädgårds åtta underkategorier
+
+Underkategorierna rankade på mallens titel (*"Utemöbler | Fyndplats"*) och
+hade ingen brödtext, trots att de har mer än 400 produkter i lager. Varje
+titel siktar nu på ord där vi har varorna och svårigheten är låg:
+
+| underkategori | titel | huvudsökord (sök/mån · svårighet) |
+|---|---|---|
+| Växthus & Odling | Tunnelväxthus, väggväxthus & odlingslådor | tunnelväxthus 2 900 · 13; väggväxthus 1 900 · 15; odlingslådor 1 900 · 16 |
+| Utemöbler | Utemöbler – loungeset, trädgårdsbänk & hängstol | loungeset 8 100 · 18; trädgårdsbänk 3 600 · 19; hängstol utomhus 2 400 · 15 |
+| Solskydd & Paviljonger | Paviljong 3x3, paviljongtak & pop up-tält | pop up tält 6 600 · 12; paviljong 3x3 2 900 · 16; paviljongtak 3x3 880 · 17 |
+| Grill & Utekök | Gasolgrill, kolgrill, plancha & kylbox | plancha 320 · 11; kylbox 8 100 · 23; gasolgrill 22 200 · 19 |
+| Trädgårdsdekor & Belysning | Solcellslampor, trädgårdsfontäner & dekor | solcellslampor 8 100 · 20; fontän trädgård 2 400 · 18 |
+| Utelek & Spel | Studsmatta för barn, basketkorg & gungor | basketkorg 5 400 · 14; studsmatta barn 2 400 · 26 |
+| Trädgårdsskötsel & Bevattning | Slangvagn, kompostkvarn & trädgårdsredskap | slangvagn 590 · 15; kompostkvarn 5 400 · 20 |
+| Terrassvärmare & Infravärmare | Terrassvärmare & infravärmare – 2000 och 2500 W | terrassvärmare 3 600 · 28; infravärmare 6 600 · 30 |
+
+Ord som ingen av oss vinner valdes bort. Exempel är *växthus* (40 500 · 30),
+*utemöbler* (49 500 · 33), *studsmatta* (27 100 · 35) och *pergola*
+(27 100 · 24). *Gasolgrill* står i titeln för att sidan säljer sex sådana, inte
+för att den ska slå Weber.
+
+**Texterna hänvisar till varandra**, så att sidorna länkar i ordet om inte i
+koden:
+- Grill & Utekök pekar på Eldkorgar & eldstäder.
+- Utelek & Spel pekar på Sandlådor.
+- Trädgårdsdekor pekar på Halloweendekoration, Juldekoration och
+  Konstväxter.
+- Trädgårdsskötsel pekar på Redskapsbodar & förråd, där samma sju
+  trädgårdsskåp ligger.
+
+**Två påståenden rättades av en kontroll per produkt, före skrivningen:**
+- ☠️ *"Till våra planchor följer regulator och slang med"* byggde på de tre
+  första träffarna i ett svep. En kontroll av varje produkt visade att det
+  gäller alla tre planchorna **och** alla sex gasolgrillarna, så meningen
+  blev bredare, inte smalare.
+- *"En av kylboxarna håller 72 timmar"*: det är två, på 42,6 och 70 liter.
+
 ## 4. Butiken
 
 Grenen `claude/sasongskategorier-s6-bz3j9l` mot `headless-site` bär:
 
-- **Poster i `lib/category-seo.ts` och `lib/category-content.ts`,
-  genererade** med `infoga.py`. `jamfor.mts` importerar båda filerna och gav
-  4 av 4 identiska mot källan.
-- **Testet** *ett huvudsökord finns i exakt en kategorititel* täcker
-  `halloween`, `juldekoration`, `eldkorg` och `konstgjorda växter`.
+- **Tolv poster i `lib/category-seo.ts` och `lib/category-content.ts`,
+  genererade** med `infoga.py`. Fyra är säsongssidor och åtta är Trädgårds
+  underkategorier. `jamfor.mts` importerar båda filerna och gav 12 av 12
+  identiska mot källan.
+- **Testet** *ett huvudsökord finns i exakt en kategorititel* täcker 13 nya
+  ord: `halloween`, `juldekoration`, `eldkorg`, `konstgjorda växter`,
+  `tunnelväxthus`, `loungeset`, `paviljongtak`, `plancha`, `solcellslamp`,
+  `studsmatta`, `basketkorg`, `kompostkvarn` och `terrassvärmare`.
   Mutationsprovat: med *halloween* i Kalas & Fests titel fäller testet.
-- **`google.xml`:** 596 (Seasonal & Holiday Decorations) för halloween och jul,
-  6265 (Artificial Flora) för konstväxter och 2918 (Outdoor Living) för
-  eldkorgar. Alla fyra är kontrollerade mot Googles egen taxonomifil samma
-  dag. Förut låg halloweenfigurerna på 96 (Party & Celebration) via Kalas &
-  Fest.
+- **`google.xml`:** alla sex id är kontrollerade mot Googles egen taxonomifil
+  samma dag.
+  - 596 (Seasonal & Holiday Decorations) för halloween och jul.
+  - 6265 (Artificial Flora) för konstväxter.
+  - 2918 (Outdoor Living) för eldkorgar.
+  - 4299 (Outdoor Furniture) för utemöbler.
+  - 2649 (Patio Heaters) för terrassvärmarna.
+
+  Förut låg halloweenfigurerna på 96 (Party & Celebration) via Kalas & Fest.
+  Övriga trädgårdssidor faller som förut på 536.
 - **`category-groups.ts`:** Juldekoration, Halloweendekoration och Konstväxter
   länkas från Hem & Inredning på /butik.
 
