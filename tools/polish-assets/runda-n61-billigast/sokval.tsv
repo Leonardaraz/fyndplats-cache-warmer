@@ -1,0 +1,13 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+ff740501	högtryckstvätt	18100	29	högtryckstvättar; högtryckstvätt billig
+81f655da	kajakhållare	210	18	kajakställ; kanotställ; kajakställning
+6b635cbb	gymnastikmatta	2400	18	tjockmatta; träningsmatta tjock; gymnastikmatta vikbar; gympamatta
+26ae7fb2	extrasäng	1900	17	gästsäng; hopfällbar säng; gästsäng hopfällbar; fällsäng
+5ebe7102	bilramper	1600	18	bilramp; uppkörningsramper; uppkörningsramp
+1ddf15a5	biljardbord	4400	18	biljardbord hopfällbart; litet biljardbord; mini biljardbord
+4a5ce0dd	klädskåp	3600	18	omklädningsskåp; låsbart skåp; skåp med lås; personalskåp; metallskåp
+# Publicerade namn med huvudordet eller närmaste ord: högtryckstvätt 1 (batteridriven), kajakhållare och kajakställ 0, gymnastikmatta 0 (poledancematta 1), extrasäng 0 (gästsäng 4, alla bäddfåtöljer), bilramper 0 (lastramper 1), biljardbord 0 (spelbord med biljard 1), klädskåp 0 (plåtskåp 1, kontorsskåp i metall 1).
+# ff740501: en publicerad batteridriven högtryckstvätt bär högtryckstvätt. Rundan behåller ordet och skiljer sidorna åt med 135 bar och 1800 W i namn och titel.
+# 81f655da: kajakhållare (210, 18) har mer volym än kajakställ (70, 10). Titeln bär kajakhållare och namnet kajakställ.
+# 26ae7fb2: gästsäng (2 900, 17) bärs av fyra publicerade bäddfåtöljer. Rundan tar extrasäng (1 900, 17), som inget publicerat namn bär.
+# 4a5ce0dd: plåtskåp (2 400, 13) bärs av ett publicerat plåtskåp. Rundan tar klädskåp (3 600, 18), som inget publicerat namn bär.
