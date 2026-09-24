@@ -263,22 +263,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "baby-smabarn": {
     intro: [
-      "De första åren går fort, och prylarna ska hänga med. I Baby & Småbarn hittar du praktiska favoriter som babybadkar med ställning, gunghästar med ryggstöd och bälte och annat som gör vardagen med de minsta enklare.",
-      "Säkerhet och ålder går före allt annat när du handlar till småbarn. Kontrollera rekommenderad ålder, maxvikt och materialinnehåll i produktbeskrivningen — särskilt för produkter barnet sitter i, som gunghästar och badkar, där stödet ska passa barnets storlek. Ett hopfällbart babybadkar sparar dessutom plats i ett litet badrum.",
-      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Fri frakt över 499 kr, betalning med Klarna och 30 dagars öppet köp.",
+      "De första åren går fort, och prylarna ska hänga med. I Baby & Småbarn hittar du lekmattor i skum, gåvagnar i trä, babygungor, hopfällbara babybadkar, en lekhage med bollhavsbollar, juniorsängar och ett väggmonterat skötbord.",
+      "Säkerhet och ålder går före allt annat när du handlar till småbarn. Kontrollera rekommenderad ålder och maxvikt i produktbeskrivningen, särskilt för sådant barnet sitter i, som babygungor med ryggstöd, säkerhetsbälte och bygel. En gåvagn i trä ger stöd när barnet tar sina första steg, och en lekmatta i XPE-skum dämpar när barnet ramlar.",
+      "Babybadkaren viks ihop platt för förvaring och resa, och två av dem har inbyggd termometer som visar vattnets temperatur.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Från vilken ålder passar en gunghäst?",
-        a: "Våra gunghästar med ryggstöd och bälte är avsedda från ungefär 18 månader, när barnet sitter stadigt själv. Exakt åldersintervall och maxvikt står i produktbeskrivningen — följ alltid den märkningen.",
+        q: "Från vilken ålder passar en gåvagn?",
+        a: "Gåvagnarna i trä är gjorda för barn från 12 till 18 månader och ger stöd när barnet tar sina första steg. Låt barnet gå med vagnen under uppsikt på plant golv.",
+      },
+      {
+        q: "Vad ska jag tänka på med en babygunga?",
+        a: "Välj en gunga med ryggstöd, säkerhetsbälte och bygel framtill för de minsta. En av gungorna står på ett eget stativ och behöver ingen takmontering, och på en annan går ryggstöd och bygel att ta av när barnet växer.",
       },
       {
         q: "Tar ett babybadkar mycket plats?",
-        a: "Hopfällbara modeller viks ihop platt efter badet och kan hängas eller ställas på högkant, vilket gör dem tacksamma i ett litet badrum. Mått i både utfällt och hopfällt läge anges i beskrivningen.",
-      },
-      {
-        q: "Vad gäller för leverans och retur?",
-        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om något inte passar — kontakta kundtjänst så hjälper vi dig.",
+        a: "Nej, babybadkaren är hopfällbara och viks ihop platt för förvaring och resa. Ett av dem står på en hopfällbar ställning som lyfter badkaret till en bekväm höjd.",
       },
     ],
   },
@@ -415,6 +416,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "elbilar-for-barn": {
+    intro: [
+      "En elbil ger barnet egen fart på gården, i parken och på uppfarten. Här samlar vi alla våra eldrivna åkfordon för barn: elbilar och terrängbilar, elfyrhjulingar, elmotorcyklar, Vespa-scootrar, eltraktorer med släp och elgokarts. Det finns modeller för barn från 18 månader upp till 12 år, och flera är licensierade modeller av riktiga bilar från Mercedes-Benz, Audi, BMW, Lamborghini och Toyota.",
+      "Välj efter ålder och volt. 6 V passar de minsta: farten ligger oftast på 2,5–3 km/h, och de flesta motorcyklarna i klassen har stödhjul. 12 V är det vanligaste valet från tre år, med en toppfart på upp till 8 km/h, och nästan hälften av modellerna har en fjärrkontroll så att du kan styra tills barnet kör själv. 24 V ger mer kraft för äldre barn, upp till 16 km/h, och här finns också en tvåsitsig elfyrhjuling.",
+      "En full laddning räcker till 30–70 minuters körning beroende på modell, underlag och barnets vikt, och laddningen tar oftast 8–12 timmar. Maxvikten går från 20 kg på de minsta fordonen till 65 kg på de största, och flera modeller har bälte, fjädring och mjukstart.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vilken elbil passar mitt barns ålder?",
+        a: "För barn från 18 månader passar 6 V-fordon med låg fart, till exempel elfyrhjulingar och elmotorcyklar med stödhjul. Från tre år är 12 V det vanligaste valet, och för barn upp till 12 år finns 24 V-modeller med två hastighetslägen. Kontrollera åldersintervallet och maxvikten i produktbeskrivningen.",
+      },
+      {
+        q: "Går det att styra elbilen med fjärrkontroll?",
+        a: "Ja, nästan hälften av modellerna har en fjärrkontroll för föräldern. Med den styr du bilen tills barnet klarar det själv, och de flesta av de modellerna har dessutom bälte.",
+      },
+      {
+        q: "Hur länge räcker batteriet?",
+        a: "En full laddning ger 30–70 minuters körning, beroende på modell, underlag och barnets vikt. Laddningen tar oftast 8–12 timmar, så det enklaste är att ladda över natten.",
+      },
+    ],
+  },
+
   "forvaring-organisering": {
     intro: [
       "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor i industristil, skoskåp som tar liten golvyta, kontorshurtsar på hjul, justerbara garagehyllor i stål, klocklådor och hopfällbara arbetsbord.",
@@ -459,6 +483,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  garagetalt: {
+    intro: [
+      "Ett garagetält ger motorcykeln, cyklarna och trädgårdsredskapen tak över huvudet utan att du behöver bygga något. Här samlar vi våra garagetält, från 120 × 179 cm för två cyklar eller en motorcykel till ett tält på 300 × 300 cm med 9 m² golvyta.",
+      "De flesta har stomme i galvaniserat stål och duk i PE eller polyester, och dörren rullas upp eller öppnas med dragkedja. Markankare och spännlinor följer med så att tältet står stadigt. Titta på snölasten – den anges per modell, till exempel 5 eller 10 kg per kvadratmeter – och borsta av taket efter snöfall.",
+      "Ett tält på 162 × 221,5 cm är djupt nog för en motorcykel eller ett par cyklar efter varandra.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Klarar garagetältet snö?",
+        a: "Snölasten anges per modell, till exempel 5 eller 10 kg per kvadratmeter. Det räcker för ett lätt snölager, så borsta av taket efter snöfall.",
+      },
+      {
+        q: "Vad får plats i ett garagetält?",
+        a: "Tälten på 120 × 179 cm rymmer två cyklar, en motorcykel eller trädgårdsredskap. Tälten på 162 × 221,5 cm är djupa nog för en motorcykel eller ett par cyklar efter varandra, och det stora tältet på 300 × 300 cm har 9 m² golvyta.",
+      },
+      {
+        q: "Hur förankras tältet?",
+        a: "Markankare och spännlinor följer med, och ett av tälten har dessutom expanderskruvar för hårt underlag.",
+      },
+    ],
+  },
+
+  "gunghastar-gungdjur": {
+    intro: [
+      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år.",
+      "För de minsta är ryggstöd och bälte viktigast. En klassisk gunghäst kräver att barnet kan hålla balansen sittande själv, medan gungdjur med ryggstöd och bälte passar redan från 18 månader. Många av plyschdjuren har ljud, som gnäggande eller melodier, och maxvikten går från 25 upp till 60 kg.",
+      "Plyschhästar med ljud tål inte maskintvätt eftersom elektroniken sitter inuti – torka av dem med en lätt fuktad trasa. Låt alltid en vuxen ha uppsikt när barnet gungar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Från vilken ålder passar en gunghäst?",
+        a: "Gungdjur med ryggstöd och bälte passar från 18 månader, och ett av gungdjuren redan från 12 månader. En klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv, och flera är gjorda för barn från två eller tre år.",
+      },
+      {
+        q: "Trä eller plysch?",
+        a: "En gunghäst i trä är lätt att torka av med en fuktad trasa. En plyschhäst är mjukare och har ofta ljud, men tål inte maskintvätt eftersom elektroniken sitter inuti.",
+      },
+      {
+        q: "Hur mycket får barnet väga?",
+        a: "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den – kontrollera den i beskrivningen innan du köper.",
+      },
+    ],
+  },
+
   "har-rakning": {
     intro: [
       "Jobbar du med hår behöver utrustningen orka en hel arbetsdag. I Hår & Rakning hittar du höj- och sänkbara arbetsstolar för salong, torkhuvar på stativ med timer och frisörväskor med lås för verktygen — utrustning för salongen såväl som för dig som klipper hemma.",
@@ -499,6 +569,75 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Kan jag returnera hudvård?",
         a: "Du har 30 dagars öppet köp. Av hygienskäl bör förseglade produkter vara oöppnade vid retur — hör av dig till kundtjänst så guidar vi dig.",
+      },
+    ],
+  },
+
+  "hundbaddar-hundsoffor": {
+    intro: [
+      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne och hopfällbara bäddar med bärväska.",
+      "En upphöjd bädd lyfter hunden från golvet. På hundsofforna lyfter furubenen bädden så att luften kommer åt underifrån, och på nätbäddarna cirkulerar luften under hunden så att den håller sig sval. En av nätbäddarna har dessutom tak som ger skugga och skydd mot regn.",
+      "Välj storlek efter hunden: bäddarna finns från små sängar på Ø40 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm som bär 50 kg.",
+      "Du betalar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Varför välja en upphöjd hundbädd?",
+        a: "En upphöjd bädd lyfter hunden från golvet så att luften kommer åt underifrån. På bäddar med nät cirkulerar luften under hunden så att den håller sig sval, och de hopfällbara modellerna med bärväska är lätta att ta med.",
+      },
+      {
+        q: "Går överdraget att tvätta?",
+        a: "På de flesta sofforna och bäddarna går överdraget eller dynan att ta av och tvätta. Tvättråden står i beskrivningen.",
+      },
+      {
+        q: "Vilken storlek behöver min hund?",
+        a: "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. De minsta sofforna är gjorda för katter och små hundar som tax och chihuahua, medan de största bäddarna bär upp till 50 kg.",
+      },
+    ],
+  },
+
+  hundburar: {
+    intro: [
+      "En hundbur ger hunden en egen plats hemma, i bilen och på resan. Här samlar vi våra hundburar: möbelburar i valnöt, ek och vitt som också fungerar som sidobord, en bur i metall med hjul och topplucka och mjuka burar i väv som viks ihop när de inte används.",
+      "Mät hunden på längden, inte bara vikten: de flesta burarna anger både maxvikt och kroppslängd, oftast upp till 30 kg och 60 cm. Hunden ska kunna stå, vända sig och ligga utsträckt. En skjutdörr tar ingen plats framför buren, och möbelburarnas skiva ovanpå bär mellan 20 och 50 kg – plats för lampan och böckerna.",
+      "Möbelburarna väger mellan 25 och 47 kg och monteras där de ska stå, medan de mjuka burarna väger från 3,8 kg och följer med i bagageutrymmet. För två hundar finns en bur på 120 cm med mellanvägg och två skjutdörrar.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur stor hundbur behöver min hund?",
+        a: "Hunden ska kunna stå upp, vända sig och ligga utsträckt. Mät kroppslängden och jämför med burens innermått – de flesta burarna anger både maxvikt och kroppslängd, till exempel 30 kg och 60 cm.",
+      },
+      {
+        q: "Vad är en möbelbur?",
+        a: "En hundbur byggd som en möbel, med en hel skiva ovanpå som fungerar som sidobord. Den smälter in i rummet, och skivan bär mellan 20 och 50 kg.",
+      },
+      {
+        q: "Vilken bur passar på resan?",
+        a: "De mjuka burarna i väv väger från 3,8 kg och viks ihop, så de är lätta att ta med i bilen. Metallburen med hjul och bricka går också att fälla ihop.",
+      },
+    ],
+  },
+
+  hundkojor: {
+    intro: [
+      "En hundkoja ger hunden ett eget skydd mot regn, blåst och markfukt när den är ute på tomten. Här samlar vi våra hundkojor och hundhus i gran och plast för utomhusbruk, plus en koja i MDF för inomhus, i storlekar för hundar från 8 upp till 30 kilo.",
+      "Välj storlek efter hunden: den ska kunna gå in, vända sig och ligga utsträckt, och de flesta kojorna anger hur stor hund de är byggda för. Ett upphöjt golv med luftspalt håller fukt och frost från marken borta, ett asfaltstak håller regnet ute och ett tak som fälls upp gör det lätt att göra rent. Några modeller har veranda framför dörren, och en har takterrass med trappa. Plastkojorna tar inte upp fukt och kan spolas rena.",
+      "Utomhuskojorna är väderskydd, inte isolerade vinterbostäder. En hund som ska vara ute vintertid behöver en isolerad hydda.",
+      "Du betalar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Klarar hundkojan svensk vinter?",
+        a: "Inte som enda skydd. Kojorna skyddar mot regn, blåst och markfukt, men väggarna är oisolerade. En hund som ska vistas ute vintertid behöver en isolerad hydda.",
+      },
+      {
+        q: "Hur stor hundkoja behöver min hund?",
+        a: "Hunden ska kunna gå in, vända sig och ligga utsträckt. De flesta kojorna anger en maxvikt, från 8 kilo för de minsta till 30 kilo, och invändiga mått, så jämför med hundens längd och mankhöjd.",
+      },
+      {
+        q: "Trä eller plast – vad ska jag välja?",
+        a: "En koja i gran ger ett klassiskt hundhus, ofta med asfaltstak, veranda eller ett tak som fälls upp. Plast är lätt, tar inte upp fukt och kan spolas ren. Ingen av sorterna är isolerad.",
       },
     ],
   },
@@ -569,6 +708,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  katthus: {
+    intro: [
+      "Ett katthus ger utekatten ett torrt och skyddat ställe att vila på, på balkongen, altanen eller i trädgården. Här samlar vi våra katthus i trä – från små hus på 62 cm till hus i två och tre plan med balkong och fönster – och några katthus för inomhusbruk.",
+      "Titta på tak, golv och öppning. Ett tak med asfalt eller takpapp leder bort regnet, och ett hus på ben med golvet några centimeter över marken slipper suga upp markfukt. Ett tak eller en lucka som fälls upp gör det lätt att göra rent, och ett hus med två plan ger katten både en skyddad sovplats och en utsiktsplats. Har du två katter finns också ett hus byggt för två.",
+      "I flera av utomhushusen ingår ingen bädd – lägg i halm, en filt eller en värmematta avsedd för djur.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Ingår det en bädd i katthuset?",
+        a: "I flera av utomhushusen gör det inte. Lägg i halm, en filt eller en värmematta avsedd för djur. Några modeller, som det upphöjda katthuset på 62 cm, levereras med bädd.",
+      },
+      {
+        q: "Hur gör jag rent katthuset?",
+        a: "Flera av husen har ett tak eller en lucka som fälls upp, så du kommer åt hela insidan på en gång. Ett av husen har dessutom en botten som går att ta ur vid storstädningen.",
+      },
+      {
+        q: "Finns det katthus för inomhusbruk?",
+        a: "Ja, till exempel ett katthus i tv-design med kudde och en hopfällbar kattkoja med klöspelare i sisal.",
+      },
+    ],
+  },
+
+  kattlador: {
+    intro: [
+      "En kattlåda ska vara lätt att hålla ren och stor nog för katten att vända sig och gräva i. Här samlar vi alla våra kattlådor: öppna lådor med höga kanter, täckta kattlådor med lock eller tak, lådor med toppingång och kattlådsskåp som döljer lådan i en möbel.",
+      "Rostfritt stål är värt att titta på. Plast får med tiden repor från klor och skopa, och i reporna fastnar urin som luktar – ett kar i stål har ingen sådan yta och går att skura rent. Rostfria lådor finns här från 52 cm upp till en XXL-låda på 130 liter. En täckt låda eller en låda med toppingång håller mer av sanden kvar, och flera modeller har kolfilter eller luktfilter. En utdragbar låda gör det enklare att tömma.",
+      "Kattlådsskåpen har en skiva ovanpå som tål vikt, så möbeln fungerar som sidobord eller hylla, och innermåtten står i beskrivningen så att du ser vilken låda som får plats.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Varför välja en kattlåda i rostfritt stål?",
+        a: "Plast får med tiden repor från klor och skopa, och i reporna fastnar urin som luktar även efter rengöring. Rostfritt stål suger inte åt sig lukt på samma sätt och går att skura utan att ytan skadas.",
+      },
+      {
+        q: "Hur stor kattlåda behöver min katt?",
+        a: "Katten ska kunna vända sig och gräva utan att kliva ur. Jämför sandytans mått i beskrivningen med kattens längd – en stor katt eller flera katter behöver en XL- eller XXL-låda.",
+      },
+      {
+        q: "Vad är ett kattlådsskåp?",
+        a: "Ett kattlådsskåp är en möbel med plats för kattlådan inuti. Skivan ovanpå tål vikt, på en av modellerna 50 kg, och innermåtten står i beskrivningen, så att du ser vilken låda som får plats.",
+      },
+    ],
+  },
+
   keps: {
     intro: [
       "En keps är den enklaste lösningen på sol i ögonen. Här hittar du baseballkepsar med lång skärm för sol och sommar — enkla, tidlösa modeller som fungerar lika bra på stranden som på promenaden.",
@@ -583,6 +768,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Kan man tvätta en keps?",
         a: "Handtvätt i ljummet vatten är skonsammast och behåller skärmens form. Låt kepsen lufttorka — undvik torktumlare, som kan deformera skärmen.",
+      },
+    ],
+  },
+
+  klostrad: {
+    intro: [
+      "Ett klösträd ger katten ett eget ställe att klösa, klättra och sova på. Här samlar vi alla våra klösträd och kattträd, från ett litet klösträd på 46 cm till takhöga modeller som spänns fast mellan golv och tak och når 275 cm. Här finns också klöspelare, klöstunnor med hålor att gömma sig i och väggklösträd som monteras på väggen.",
+      "Välj efter katten och bostaden. Katter sitter gärna högt med uppsikt över rummet, så ett högt träd med flera plan används ofta mer än ett lågt. Har du ont om golvyta tar ett takhögt träd eller ett väggklösträd mindre plats. De flesta träden har sisal på stammarna, som tål klor bra, medan andra har jute eller naturfiber som vattenhyacint och sjögräs. Höga träd bör fästas i väggen, och flera levereras med tippskydd.",
+      "Titta också på plattformarnas mått, så att katten kan ligga utsträckt, och på hur mycket trädet bär – flera modeller bär upp till 30 kg totalt.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Hur högt ska ett klösträd vara?",
+        a: "Katter sitter gärna högt, så ett träd på 130 cm eller mer används ofta mer än ett lågt. Har du flera katter är fler plan och en grotta att dra sig undan i värt mycket, medan kattungar och äldre katter klarar sig bra med ett lägre träd.",
+      },
+      {
+        q: "Hur sitter ett takhögt klösträd fast?",
+        a: "Ett takhögt klösträd har en justerbar del som spänns mot taket, så trädet står stadigt i hela sin höjd. Mät takhöjden innan du beställer – varje takhög modell har ett höjdspann, till exempel 228–260 cm.",
+      },
+      {
+        q: "Vad är skillnaden mellan klösträd, klöspelare och klöstunna?",
+        a: "Ett klösträd har flera plan, ofta med grotta, hängmatta och bädd. En klöspelare är en ensam stam att klösa och sträcka sig mot, och den tar liten plats. En klöstunna är en sluten tunna med hålor där katten kan gömma sig, med klösytor av sisal eller naturfiber.",
       },
     ],
   },
@@ -647,44 +855,69 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "lek-tillbehor-for-husdjur": {
     intro: [
-      "En katt som får klösa på rätt ställe låter soffan vara. Här hittar du klösträd med grotta och hängmatta, väggmonterade klöspelare med flera plattformar, klöspelare i sisal med hängande lekboll och automatiska bollkastare för hund.",
-      "Höjd och stabilitet avgör om katten faktiskt använder trädet. Katter vill klättra högt och sitta med uppsikt, så ett träd på 130 cm eller mer används mer än ett lågt. Väggmonterade lösningar tar noll golvyta och passar små lägenheter, men kräver att du kan borra i väggen. Sisal är det material som håller längst mot klor. För hundar avgör kastlängden — 3, 6 eller 9 meter — hur stor yta ni behöver.",
-      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar. Fri frakt över 499 kr, Klarna och 30 dagars öppet köp.",
+      "Här samlar vi tillbehör för lek och vila för hund och katt: hundtrappor och hundramper upp till soffan och sängen, agilityset med tunnlar, hinder och slalom, kattbäddar, kattrappor och leksaker som håller djuret aktivt.",
+      "Hopp ner från soffan eller sängen sliter på leder och rygg, särskilt hos äldre djur och kortbenta raser – där gör en trappa eller ramp skillnad. Välj höjd efter möbeln och titta på maxvikten: trapporna bär från 4,5 upp till 50 kg. Agilityseten finns från tre delar upp till elva delar med två tunnlar, och flera levereras med bärväska.",
+      "För katten finns bäddar på ben, kattkojor i vattenhyacint, en hängmatta för fönsterbrädan, kattrappor och en automatisk kattleksak. Klösträden har fått en egen kategori.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Hur högt bör ett klösträd vara?",
-        a: "Katter söker sig till högt belägna platser, så ett träd på minst 130 cm används oftast mer än ett lågt. Har du flera katter är fler nivåer och en grotta att dra sig undan i värt mycket.",
+        q: "Trappa eller ramp – vad passar min hund?",
+        a: "En ramp har inga steg och passar hundar som har svårt att kliva, till exempel en äldre hund med stela leder. En trappa tar mindre plats på golvet. Mät höjden på soffan eller sängen innan du väljer.",
       },
       {
-        q: "Måste väggklösträdet borras fast?",
-        a: "Ja, väggmonterade modeller skruvas i väggen och behöver fäste som klarar kattens vikt och hopp. Det tar noll golvyta, vilket gör dem populära i mindre lägenheter.",
+        q: "Vad ingår i ett agilityset?",
+        a: "Seten består av hopphinder, tunnlar, hoppringar och slalompinnar i olika kombinationer, från tre till elva delar, och flera levereras med bärväska.",
       },
       {
-        q: "Fungerar en automatisk bollkastare inomhus?",
-        a: "Kastlängden går att ställa i steg, ofta 3, 6 eller 9 meter — det kortaste läget fungerar i en längre korridor, medan de längre passar bäst i trädgården.",
+        q: "Finns det något för katten?",
+        a: "Ja, kattbäddar på ben, kattkojor, kattrappor, en hängmatta för fönsterbrädan och en automatisk kattleksak med fjärrkontroll.",
       },
     ],
   },
 
   "leksaker-spel": {
     intro: [
-      "Det bästa leksakerna gör är att hålla längre än nyhetsglädjen. I Leksaker & Spel hittar du elbilar och elmotorcyklar för barn, eltraktorer med släp och fjärrkontroll, bilbanor med loopar och lysande detaljer, rutschkanor för inomhusbruk och spel för hela familjen.",
-      "Ålder och plats styr valet. Rekommenderad ålder står alltid i beskrivningen och är viktig — inte bara för smådelar utan för att barnet ska klara körningen. Elfordon för de minsta har stödhjul och låg toppfart (runt 2 km/h), och de flesta har föräldrafjärrkontroll så att du kan ta över. Mät också ytan: en bilbana eller rutschkana behöver sin plats, och många viks ihop till en förvaringslåda efter leken.",
-      "Vi skickar från EU-lager med 3–7 arbetsdagars leverans. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Här samlar vi leksaker och spel för barn i olika åldrar: gåbilar och sparkbilar för de minsta, balanscyklar och trampbilar, klätterställningar och rutschkanor för inomhusbruk, byggsatser med tusentals delar, lasertag och spelbord för hela familjen.",
+      "Rekommenderad ålder står i beskrivningen och är viktig, både för smådelar och för att barnet ska klara leksaken. Gåbilarna för de minsta har ofta skjutstång och skyddsbåge, så att du kan styra medan barnet sitter. Mät också ytan: en klätterställning eller ett spelbord behöver sin plats, och flera fälls ihop efter leken.",
+      "Elbilar, sparkcyklar, gunghästar, leksakskök och sandlådor har numera egna kategorier.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Från vilken ålder passar en elbil för barn?",
-        a: "Åldersintervallet anges per modell — vanligt är 3 år och uppåt. De minsta modellerna har stödhjul, låg hastighet och fjärrkontroll så att en vuxen kan styra vid behov.",
+        q: "Vad är skillnaden mellan gåbil, sparkbil och trampbil?",
+        a: "En gåbil har ofta en skjutstång så att en vuxen kan skjuta på, en sparkbil drivs framåt med fötterna och en trampbil har pedaler. Åldern står i beskrivningen – de minsta modellerna passar från ett år.",
       },
       {
-        q: "Hur länge räcker batteriet i ett elfordon?",
-        a: "Körtiden beror på batteri, underlag och barnets vikt. Räkna med ungefär en timmes lek per laddning, och ladda alltid enligt tillverkarens anvisning.",
+        q: "Vilken balanscykel passar mitt barn?",
+        a: "Balanscyklarna finns för barn från 12 månader till fem år. Den minsta har tre hjul och en sitthöjd på 26,5 cm, och sadeln går att justera på flera.",
       },
       {
-        q: "Tar bilbanan mycket plats?",
-        a: "Många modeller viks ihop till sin egen förvaringslåda efter leken. Både utfällt och hopfällt mått anges i produktbeskrivningen.",
+        q: "Kan klätterställningarna stå inomhus?",
+        a: "Ja, flera är gjorda för inomhusbruk, till exempel klätterställningar i trä med ramp och rutschkana, och några fälls ihop efter leken.",
+      },
+    ],
+  },
+
+  leksakskok: {
+    intro: [
+      "I ett leksakskök lagas låtsasmat, diskas och dukas. Här samlar vi våra leksakskök och barnkök för barn från tre år: kök i trä och MDF med ugn och diskho, kök i plast med ljud och ljus, ett hörnkök och en leksaksdiskmaskin.",
+      "Några av köken har rinnande vatten: en batteridriven kran pumpar upp vatten ur diskhon så att det går runt i kretslopp. Andra har en diskho med kran men utan vatten, och det står i beskrivningen vilket som gäller. Kök med ljud, ljus och vatten drivs med AA-batterier, som inte alltid ingår.",
+      "Titta också på höjden och tillbehören – köken kommer med allt från några få tillbehör upp till 92 delar. Köken i MDF tål avtorkning men inte blötläggning, så torka upp vattenspill direkt.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Har leksaksköken riktigt vatten?",
+        a: "Några har det. I dem pumpar en batteridriven kran upp vatten ur diskhon så att det rinner i kretslopp. Andra har en diskho med kran men utan vatten – det står i beskrivningen.",
+      },
+      {
+        q: "Från vilken ålder passar ett leksakskök?",
+        a: "De flesta köken är gjorda för barn från tre år, och flera upp till sex eller åtta år. Följ åldersrekommendationen i beskrivningen.",
+      },
+      {
+        q: "Behöver köket batterier?",
+        a: "Kök med ljud, ljus eller rinnande vatten drivs med AA-batterier, som inte alltid ingår. Kök utan elektronik behöver inga batterier.",
       },
     ],
   },
@@ -747,6 +980,52 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  "redskapsbodar-forrad": {
+    intro: [
+      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
+      "Börja med yta och höjd. Vill du kunna gå in, titta på nockhöjden: bodarna på 4,1 m² har 2,28 meter i nock och de på 12,4 m² har två meter, och skjutdörrar behöver ingen plats framför boden. De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke – läs i beskrivningen vad som ingår.",
+      "Välj material efter hur mycket underhåll du vill ha. Galvaniserad plåt har ett zinkskikt som skyddar stålet, plastbodarna är genomfärgade och ska inte målas, och trä behöver målas eller laseras innan det tas i bruk.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Behöver jag bygglov för en redskapsbod?",
+        a: "Mindre bodar kan ofta byggas som friggebod utan bygglov. Enligt Boverket får en friggebod vara högst 15 kvadratmeter och 3 meter hög, och den får inte stå närmare tomtgränsen än 4,5 meter utan grannens medgivande. Kommunen kan ha egna regler, så kontrollera alltid med din kommun innan du beställer.",
+      },
+      {
+        q: "Ingår golv i redskapsboden?",
+        a: "De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. En av plastbodarna levereras med golv. Läs i beskrivningen vad som ingår.",
+      },
+      {
+        q: "Redskapsbod, förrådstält eller trädgårdsskåp?",
+        a: "En redskapsbod är ett litet hus som du går in i. Förrådstältet täcker 13,4 m² och har 255 cm i nock, så du går upprätt över hela golvet. Ett trädgårdsskåp tar minst plats och har hyllor och fack för redskap – bra när ytan är liten.",
+      },
+    ],
+  },
+
+  sandlador: {
+    intro: [
+      "En sandlåda med tak ger skugga under leken och kan skydda sanden mellan gångerna. Här samlar vi våra sandlådor i barrträ för barn från tre år: låga sandlådor med lekkök och diskho, sandlådor med soltak eller lekstugetak och sandlådor formade som ett piratskepp och en bil.",
+      "Titta på tak och botten. På flera modeller täcker duken hela sandytan, och på en kan taket sänkas ända ner till 18 cm så att det fungerar som lock – det håller regn, löv och katter borta. Flera har fiberduk i botten, och en av lådorna rymmer 200 kilo sand.",
+      "Måla eller olja träet en gång om året.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Behöver sandlådan ett lock?",
+        a: "Ett lock eller ett skynke håller löv, regn och katter borta när ingen leker, och torr sand är trevligare att gräva i. På en av lådorna sänks taket ner till 18 cm och fungerar som lock.",
+      },
+      {
+        q: "Hur mycket sand behövs?",
+        a: "Det beror på sandytan och djupet. En av lådorna har en sandyta på 77,5 × 77,5 cm som är 20 cm djup och rymmer 200 kilo sand. Sandytans mått står i beskrivningen.",
+      },
+      {
+        q: "Vilken ålder passar sandlådorna för?",
+        a: "De är gjorda för barn från tre år, och de flesta upp till sju eller åtta år.",
+      },
+    ],
+  },
+
   "selar-koppel-transport": {
     intro: [
       "Rätt utrustning gör promenaden och bilresan tryggare för er båda. Här hittar du hundselar, koppel, hopfällbara hundramper till bilen och cykelvagnar som också fungerar som hundvagn.",
@@ -783,6 +1062,29 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Hur levereras ömtåliga glas?",
         a: "Glas packas skyddat och skickas spårbart från EU-lager med leverans inom 3–7 arbetsdagar. Skulle något gå sönder på vägen ersätter vi det.",
+      },
+    ],
+  },
+
+  "sparkcyklar-for-barn": {
+    intro: [
+      "En sparkcykel med stora hjul tar sig lätt över trottoarkanter och grus och passar både skolvägen och cykelbanan. Här samlar vi alla våra sparkcyklar för barn: modeller med hjul på 12–16 tum för barn från fem år, sparkcyklar med korg och stänkskärmar och trehjuliga sparkcyklar för de minsta, från 18 månader.",
+      "Välj hjul efter var barnet åker. Luftdäck dämpar skarvar, grus och kullersten men behöver pumpas då och då, medan massiva EVA-hjul aldrig punkterar och aldrig behöver pumpas. Nästan alla har broms – handbroms, bakbroms eller broms på båda hjulen – och styret går att justera på nästan alla, så sparkcykeln växer med barnet.",
+      "Maxvikten är 50 kg på modellerna för 5–12 år och 100 kg på de större, och flera har stödben så att sparkcykeln står själv.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Från vilken ålder passar en sparkcykel?",
+        a: "För de minsta, från 18 månader, finns en trehjulig sparkcykel med sits och föräldrahandtag. De flesta modellerna med stora hjul är gjorda för barn från fem år, och flera upp till tolv år.",
+      },
+      {
+        q: "Luftdäck eller massiva hjul?",
+        a: "Luftdäck dämpar skarvar och grus bättre men tappar tryck när sparkcykeln står still, så de behöver pumpas. Massiva EVA-hjul punkterar aldrig och behöver aldrig pumpas, men ger en hårdare åktur på ojämn mark.",
+      },
+      {
+        q: "Hur vet jag vilken storlek som passar?",
+        a: "Utgå från barnets ålder och vikt: modellerna för 5–12 år bär 50 kg och de större 100 kg. Styrets höjd står i beskrivningen, till exempel 80–88 cm, och går att justera på nästan alla.",
       },
     ],
   },
