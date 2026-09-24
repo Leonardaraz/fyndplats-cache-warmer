@@ -43,6 +43,18 @@ närmaste hylla, `/kategori/baby-smabarn`. Sluggen står INTE i butikens
 `data/retired-china-slugs.json`, så raden läses på 404-vägen och biter —
 till skillnad från handdammsugaren i runda S1.
 
+**Verifierat live:** `/product-page/…` → 308 → `/produkt/…` → 308 →
+`/kategori/baby-smabarn`, **200**.
+
+⚠️ **Två cacher står i vägen, och båda måste vänta ut.** Workflowen gick grön
+och skrev raden (`written: [...]`), men sidan svarade 404 i sju minuter till:
+uppslaget cachas fem minuter per slug (`lib/redirects.ts`, `revalidate: 300`),
+och min egen kontroll före skrivningen hade fyllt just den cachen med "ingen
+redirect". Därefter serverade ISR den cachade 404-sidan en gång till. Först
+hämtningen EFTER den som triggade omrenderingen gav 308 (`age: 10`,
+`x-vercel-cache: HIT`). Ett grönt jobb är inget kvitto, och det är inte den
+första hämtningen efter fönstret heller.
+
 ## 3. Huvudorden: vi syns inte alls, för att det inte finns en sida att visa
 
 Sökordsgap mot costway.se (närmaste konkurrent i Semrushs data, 27 gemensamma
