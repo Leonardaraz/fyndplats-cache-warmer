@@ -1758,3 +1758,45 @@ beslut — se den samlade frågan om detta.
   skäl. Det som återstår är nattens nya importer och de grupper som hoppats
   med skäl: täckta familjer, säsongsvaror för trädgård och utelek,
   djurbostäder och varor med märke. (N63)
+- Skärmträff mot en publicerad sida av samma slag, hoppade bland de 40
+  nyaste utkasten (nattens import 2026-09-24, skapade 04:40–04:44):
+  soffbordet `836163cd` och satsborden `80743d8f` mot satsborden i tre
+  storlekar `f2756389`; pallarna `47da978f` och `315d571c` mot
+  förvaringspallen `31d6d517`; fotpallarna `93ea6c3f` och `06375f5f` mot
+  fotpallen `a6a16df2`; sittpuffen `38a5ded1` mot puffen med förvaring
+  `a96f4c7e`; pallarna `be193739` och `b1cd2e69` mot pallen med stoppad sits
+  `ba454107`; det smala sidobordet `1db2d56f` mot sidobordet `ff10ccf5`; de
+  utdragbara matborden `04f05fad` och `90060b2d` mot klaffbordet på hjul
+  `7e487213`; de fällbara matborden `22d4bb3b` och `f49f7d80` och köksbordet
+  `6a5e861d` mot matbordet i glas `5684651e`; reclinerfåtöljerna `c7e01483`,
+  `4de4f329` och `8a3508ec` mot reclinerfåtöljerna `6a4e92c4`, `04feb176`
+  och `2823c605`; uppresningsfåtöljen `8e2a1b0d` mot uppresningsfåtöljen
+  `485cf3e8`. (N64)
+- Saldo under 4, hoppade: det runda sidobordet med hylla `98b6eb87` (0,
+  slutsålt) och satsborden `c78b886b` (2). (N64)
+- Tvilling i rundan, hoppad: avlastningsbordet med laddstation `a32ca919`
+  (599 kr) har samma namn och samma mått, 39 × 29 × 57 cm, som rundans
+  `97b1d071` (539 kr), som är billigare. (N64)
+- Märke på själva varan, hållet: det smala sidobordet med tygficka
+  `9a880464` bär en HOMCOM-bricka på bordsskivans kant, synlig på alla fem
+  bilderna. (N64)
+- N64 tog nattens import först, på Leonards begäran 2026-09-24: en sida som
+  publiceras innan konkurrenterna lagt upp samma vara har ett försprång i
+  indexeringen. För de nyaste gäller därför inte familjeregeln eller
+  säsongsregeln, men skyddsreglerna gör det: dubblett mot en publicerad
+  sida, märke på varan, licensierade märken, djurbostäder, saldo under 4 och
+  läsbar text i bilderna. Sjutton av de 40 publicerades. Åtta av dem hade
+  N63 hoppat för familj: `97b1d071`, `efa4b5d6`, `5e5ede44`, `6d064139`,
+  `2f1fc319`, `c8de34ad`, `6c54c9c3` och `7a5e5c31`. (N64)
+- Kontrollerat utöver skärmen, där den inte kan se: barstolarna `cad2e713`
+  mot de publicerade barstolarna i chenille (annan modell, kanalsydd rygg
+  mot rundans kvadratsydda); bänken `eee98f0f` mot de publicerade bänkarna i
+  furu på 120 och 175 cm (samma serie i en ny längd, 150 cm); granarna
+  `6c54c9c3` och `7a5e5c31` mot de publicerade smala granarna (ingen har
+  samma höjd, diameter och antal spetsar). (N64)
+- Skärmens träffar som räknades som brus och inte fällde: avlastningsbordet
+  `97b1d071` mot ett barbord, bäddsoffan `46443b89` mot en buffé och ett
+  nattduksbord, sidobordet `efa4b5d6` mot ett skruvstäd, matstolarna
+  `f716feb0` mot en leksaksmotor och en barnfåtölj, sidobordet `6d064139`
+  mot en elkamin och glasbordet `47bad2d7` mot tre utdragbara trädgårdsbord.
+  (N64)
