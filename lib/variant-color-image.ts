@@ -72,6 +72,8 @@ const COLOR_WORD_TO_KEY: Record<string, string> = {
   // beige/vit. "gräddvit"/"gräddvitt" exakt-mappas hit så de INTE suffix-faller till "vit".
   "kräm": "kräm", "kräme": "kräm", "krämvit": "kräm", "cream": "kräm", "creme": "kräm",
   "gräddvit": "kräm", "gräddvitt": "kräm", "elfenben": "kräm", "ivory": "kräm",
+  "gräddvita": "kräm", "krämvitt": "kräm", "krämvita": "kräm",
+  "cremevit": "kräm", "cremevitt": "kräm", "cremevita": "kräm",
 };
 
 // Den kortaste nyckeln vi tillåter suffix-fallbacken att matcha på. Färgord är
@@ -130,6 +132,41 @@ export function colorKeysFromOptions(options: OptionLike[] | null | undefined): 
       }
     }
   }
+  return keys;
+}
+
+// Ord som gör att ett färgord i namnet beskriver en DETALJ, inte varan:
+// "clown med röda LED-ögon", "spöke med grönt sken", "lavendelträd – vita
+// blommor". Kollas på de två orden närmast efter färgordet.
+const DETALJORD = new Set([
+  "ögon", "led", "sken", "ljus", "ljuset", "lampor", "lysdioder", "ljusslinga",
+  "blommor", "bär", "prickar", "ränder", "mönster",
+]);
+
+/**
+ * Kanoniska färgnycklar ur ett PRODUKTNAMN — reserven för färgfiltret när
+ * produkten saknar färgval (lib/products.ts). Katalogen skriver färgen i namnet
+ * ("Bäddsoffa 2-sits i beige sammet", "Smalt badrumsskåp 20 cm – svart"), men
+ * bara ~130 av ~3 500 produktgrupper har den som variantval (mätt 2026-09-25).
+ *
+ * Striktare än colorKeysOf: bara HELA ord ur ordlistan, plus "-färgad" på ett
+ * färgord ("naturfärgad", "guldfärgade"). Suffixregeln används inte — i löptext
+ * ger den "bröd" → röd och "signatur" → natur. Ett färgord som följs av ett
+ * detaljord (ovan) räknas inte.
+ */
+export function colorKeysFromName(name: string): string[] {
+  const tokens = (name || "").toLowerCase().match(/[a-zåäöé]+/g) || [];
+  const keys: string[] = [];
+  tokens.forEach((tok, i) => {
+    let key = COLOR_WORD_TO_KEY[tok];
+    if (!key) {
+      const m = tok.match(/^([a-zåäöé]+?)färgad[et]?$/);
+      if (m) key = COLOR_WORD_TO_KEY[m[1]];
+    }
+    if (!key || keys.includes(key)) return;
+    if (DETALJORD.has(tokens[i + 1]) || DETALJORD.has(tokens[i + 2])) return;
+    keys.push(key);
+  });
   return keys;
 }
 

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { colorKeysFromOptions, colorLabel, colorOf } from "./variant-color-image.ts";
+import { colorKeysFromName, colorKeysFromOptions, colorLabel, colorOf } from "./variant-color-image.ts";
 
 // Färgfacetten bygger på V3:s options. Testerna låser att vi läser VÄRDET och
 // inte optionsnamnet — katalogen har färger under "Färg", "Variant",
@@ -79,6 +79,40 @@ describe("colorLabel / colorOf", () => {
     assert.ok(alla.length >= 20, `förväntade minst 20 färgnycklar, fick ${alla.length}`);
     for (const key of alla) {
       assert.notEqual(colorOf(key), "", `${key} saknar hex`);
+    }
+  });
+});
+
+describe("colorKeysFromName", () => {
+  it("läser färgen ur katalogens namn", () => {
+    assert.deepEqual(colorKeysFromName("Bäddsoffa 2-sits i beige sammet – ryggstöd i tre lägen"), ["beige"]);
+    assert.deepEqual(colorKeysFromName("Smalt badrumsskåp 20 cm – högskåp 180 cm, svart"), ["svart"]);
+    assert.deepEqual(colorKeysFromName("Kontorsstol i bouclé, ljusgrå – nackstöd"), ["grå"]);
+    assert.deepEqual(colorKeysFromName("Manchestersoffa 2-sits i grönt – 134 cm"), ["grön"]);
+    assert.deepEqual(colorKeysFromName("Öppen bokhylla – svart stålram och bruna hyllplan"), ["svart", "brun"]);
+    assert.deepEqual(colorKeysFromName("Matbänk i massiv furu – naturfärgad"), ["natur"]);
+    assert.deepEqual(colorKeysFromName("Retro fåtölj – guldfärgade ben i stål"), ["guld"]);
+    assert.deepEqual(colorKeysFromName("Byrå med 9 lådor i tyg, cremevit"), ["kräm"]);
+    assert.deepEqual(colorKeysFromName("Golvlampa med fjärrkontroll, silver/beige"), ["silver", "beige"]);
+  });
+
+  it("räknar inte färgen på en detalj", () => {
+    assert.deepEqual(colorKeysFromName("Halloweendekoration: clown 183 cm med röda ögon"), []);
+    assert.deepEqual(colorKeysFromName("Animerad halloweenzombie 170 cm med ljud och röda LED-ögon"), []);
+    assert.deepEqual(colorKeysFromName("Uppblåsbart pumpspöke 240 cm med grönt sken"), []);
+    assert.deepEqual(colorKeysFromName("Konstgjorda lavendelträd 2-pack 70 cm – vita blommor"), []);
+  });
+
+  it("inga träffar mitt i andra ord", () => {
+    assert.deepEqual(colorKeysFromName("Brödrost med signatur-design"), []);
+    assert.deepEqual(colorKeysFromName("Odlingslåda för grönsaker och blåbär"), []);
+    assert.deepEqual(colorKeysFromName("Vitlökspress i rostfritt stål"), []);
+    assert.deepEqual(colorKeysFromName(""), []);
+  });
+
+  it("varje nyckel har en färg på skenan", () => {
+    for (const k of colorKeysFromName("svart grå vit grön blå beige rosa kräm brun röd guld gul natur orange silver khaki turkos vinröd lila marin champagne")) {
+      assert.notEqual(colorOf(k), "", `${k} saknar hex`);
     }
   });
 });

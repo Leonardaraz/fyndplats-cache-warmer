@@ -22,6 +22,9 @@ import { productCountLabel } from "../lib/rating";
 // gång → layout-arbete för hundratals kort frös scrollen. Vi paginerar till en
 // hanterbar batch och håller DOM:en liten tills användaren ber om mer.
 const PAGE_SIZE = 24;
+// Underkategori-chips som syns på dator innan "Visa alla" — två rader på
+// 1200 px. Mobilen visar alla i en rad man sveper i sidled.
+const SUB_SYNLIGA = 10;
 
 /**
  * Handtagens startläge, ur URL:ens ?pris. Skalan (lib/price-range) räknas ur de
@@ -85,6 +88,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
   const sp = useSearchParams();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
+  const [allaSubs, setAllaSubs] = useState(false);
   const [sort, setSort] = useState(() => {
     const s = sp.get("sortera");
     return s && SORT_VALUES.has(s) && (s !== "rel" || defaultSort === "rel") ? s : defaultSort;
@@ -311,6 +315,38 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
 
   return (
     <>
+      {/* Underkategorier som LÄNKAR, inte klientfilter. Kategorisidorna
+          länkade tidigare bara till syskonavdelningar, aldrig till sina egna
+          barn — de sidorna låg i sitemapen utan en enda intern länk. Som chips
+          här får kunden en genväg och crawlern en väg in, med samma antal som
+          målsidan faktiskt visar.
+
+          EGEN RAD, INTE I FILTERPANELEN (Leonard 2026-09-25: "mycket död
+          yta"). I panelen blev de en smal kolumn på dator — tretton rader chips
+          bredvid pris och färg — och på mobil en lång lista man fick scrolla
+          förbi innan filtren. Nu: på mobil en rad man sveper i sidled, alltid
+          synlig ovanför filterknappen; på dator hela bredden, de första
+          SUB_SYNLIGA och resten bakom "Visa alla". Alla länkar ligger kvar i
+          HTML:en, så crawlern ser dem oavsett. */}
+      {subs.length > 0 && (
+        <nav className={`subnav ${allaSubs ? "alla" : ""}`} aria-label="Underkategorier">
+          <span className="filter-label subnav-label">Förfina</span>
+          <div className="subchips">
+            {subs.map((sub, i) => (
+              <a key={sub.slug} className={`subchip ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+                {sub.name} <span className="subchip-n">{sub.count}</span>
+              </a>
+            ))}
+            {subs.length > SUB_SYNLIGA && (
+              <button type="button" className="subchip subchip-fler" aria-expanded={allaSubs}
+                onClick={() => setAllaSubs((v) => !v)}>
+                {allaSubs ? "Visa färre" : `Visa alla ${subs.length}`}
+              </button>
+            )}
+          </div>
+        </nav>
+      )}
+
       {/* Top toolbar — filter vänster, count mitten/subtilt, sort höger */}
       <div className={`shopbar ${open ? "open" : ""}`}>
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
@@ -339,24 +375,6 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
         </label>
 
         <div className="shopbar-panel">
-          {/* Underkategorier som LÄNKAR, inte klientfilter. Kategorisidorna
-              länkade tidigare bara till syskonavdelningar, aldrig till sina egna
-              barn — de sidorna låg i sitemapen utan en enda intern länk. Som
-              chips här får kunden en genväg och crawlern en väg in, med samma
-              antal som målsidan faktiskt visar. */}
-          {subs.length > 0 && (
-            <div className="filter-group">
-              <span className="filter-label">Förfina</span>
-              <div className="subchips">
-                {subs.map((sub) => (
-                  <a key={sub.slug} className="subchip" href={`/kategori/${sub.slug}`}>
-                    {sub.name} <span className="subchip-n">{sub.count}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
           {bounds && (
             <div className="filter-group">
               <span className="filter-label">Pris</span>
@@ -482,7 +500,7 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
             </div>
           )}
 
-          <div className="filter-group">
+          <div className="filter-group filter-group-tight">
             <span className="filter-label">Tillgänglighet</span>
             <div className="filter-toggles">
               {/* "I lager" visas bara när listan FAKTISKT innehåller något
