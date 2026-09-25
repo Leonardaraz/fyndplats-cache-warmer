@@ -15,7 +15,7 @@ import { getSoldUnits } from "./popularity";
 import { getProductColors } from "./product-colors";
 import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
-import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
+import { linkVariantImagesByAltText, colorOf, colorKeysFromName } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
 
 export type Product = {
@@ -525,6 +525,15 @@ async function fetchProducts(): Promise<Product[]> {
         if (keys?.length) p.colors = keys;
       }
     } catch { /* färger får aldrig fälla produktlistan */ }
+    // Reserv: färgen ur produktnamnet. Bara ~130 produktgrupper har färg som
+    // variantval, men namnen bär den för över tusen ("…i beige sammet",
+    // "…– svart"). Variantvalen vinner alltid: de är kompletta, medan namnet
+    // bara nämner en av färgerna på en vara som finns i flera.
+    for (const p of unique) {
+      if (p.colors?.length) continue;
+      const keys = colorKeysFromName(p.name);
+      if (keys.length) p.colors = keys;
+    }
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
     // CACHA ALDRIG EN KAPAD KATALOG. productsPromise lever hela lambdans
     // livstid, så en degraderad hämtning frös förr det lägre antalet tills
