@@ -588,9 +588,15 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
             </div>
           </div>
 
-          {activeFilters > 0 && (
-            <button type="button" className="filter-reset" onClick={reset}>✕ Rensa filter</button>
-          )}
+          {/* Alltid på plats, bara osynlig utan aktiva filter. Renderades den
+              villkorligt dök den upp i samma rad som reglagen så fort ett
+              handtag lämnade ändläget, och prisskenan krympte under musen
+              (461 → 389 px): handtaget hamnade på ett annat pris, nära toppen
+              försvann knappen igen — sidan skakade (Leonard 2026-09-25). */}
+          <button type="button" className={`filter-reset ${activeFilters > 0 ? "" : "is-hidden"}`}
+            onClick={reset} disabled={activeFilters === 0} aria-hidden={activeFilters === 0}>
+            ✕ Rensa filter
+          </button>
         </div>
       </div>
 
