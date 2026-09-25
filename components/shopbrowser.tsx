@@ -76,19 +76,61 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs }:
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
   // rutnätet som fallback så inget hoppar.
   return (
-    <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
-      <ShopBrowserInner products={products} defaultSort={defaultSort} subs={subs} dayMs={dayMs} />
-    </Suspense>
+    <>
+      <SubNav subs={subs} />
+      <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
+        <ShopBrowserInner products={products} defaultSort={defaultSort} dayMs={dayMs} />
+      </Suspense>
+    </>
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { products: ListProduct[]; defaultSort: string; subs: SubCategory[]; dayMs?: number }) {
+// UTANFÖR Suspense-gränsen: resten av ShopBrowser läser useSearchParams och
+// renderas därför först i webbläsaren på de statiska kategorisidorna. Chipsen
+// behöver ingen URL-state, och en länk som ska räknas ska finnas i HTML:en
+// från början (CLAUDE.md, "Länkar som bara renderas vid hovring…").
+function SubNav({ subs }: { subs: SubCategory[] }) {
+  const [allaSubs, setAllaSubs] = useState(false);
+  if (!subs.length) return null;
+  // Underkategorier som LÄNKAR, inte klientfilter. Kategorisidorna
+  // länkade tidigare bara till syskonavdelningar, aldrig till sina egna
+  // barn — de sidorna låg i sitemapen utan en enda intern länk. Som chips
+  // här får kunden en genväg och crawlern en väg in, med samma antal som
+  // målsidan faktiskt visar.
+  //
+  // EGEN RAD, INTE I FILTERPANELEN (Leonard 2026-09-25: "mycket död
+  // yta"). I panelen blev de en smal kolumn på dator — tretton rader chips
+  // bredvid pris och färg — och på mobil en lång lista man fick scrolla
+  // förbi innan filtren. Nu: på mobil en rad man sveper i sidled, alltid
+  // synlig ovanför filterknappen; på dator hela bredden, de första
+  // SUB_SYNLIGA och resten bakom "Visa alla" (dolda med CSS, inte villkorligt
+  // renderade).
+  return (
+    <nav className={`subnav ${allaSubs ? "alla" : ""}`} aria-label="Underkategorier">
+      <span className="filter-label subnav-label">Förfina</span>
+      <div className="subchips">
+        {subs.map((sub, i) => (
+          <a key={sub.slug} className={`subchip ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+            {sub.name} <span className="subchip-n">{sub.count}</span>
+          </a>
+        ))}
+        {subs.length > SUB_SYNLIGA && (
+          <button type="button" className="subchip subchip-fler" aria-expanded={allaSubs}
+            onClick={() => setAllaSubs((v) => !v)}>
+            {allaSubs ? "Visa färre" : `Visa alla ${subs.length}`}
+          </button>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { products: ListProduct[]; defaultSort: string; dayMs?: number }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
-  const [allaSubs, setAllaSubs] = useState(false);
   const [sort, setSort] = useState(() => {
     const s = sp.get("sortera");
     return s && SORT_VALUES.has(s) && (s !== "rel" || defaultSort === "rel") ? s : defaultSort;
@@ -315,38 +357,6 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
 
   return (
     <>
-      {/* Underkategorier som LÄNKAR, inte klientfilter. Kategorisidorna
-          länkade tidigare bara till syskonavdelningar, aldrig till sina egna
-          barn — de sidorna låg i sitemapen utan en enda intern länk. Som chips
-          här får kunden en genväg och crawlern en väg in, med samma antal som
-          målsidan faktiskt visar.
-
-          EGEN RAD, INTE I FILTERPANELEN (Leonard 2026-09-25: "mycket död
-          yta"). I panelen blev de en smal kolumn på dator — tretton rader chips
-          bredvid pris och färg — och på mobil en lång lista man fick scrolla
-          förbi innan filtren. Nu: på mobil en rad man sveper i sidled, alltid
-          synlig ovanför filterknappen; på dator hela bredden, de första
-          SUB_SYNLIGA och resten bakom "Visa alla". Alla länkar ligger kvar i
-          HTML:en, så crawlern ser dem oavsett. */}
-      {subs.length > 0 && (
-        <nav className={`subnav ${allaSubs ? "alla" : ""}`} aria-label="Underkategorier">
-          <span className="filter-label subnav-label">Förfina</span>
-          <div className="subchips">
-            {subs.map((sub, i) => (
-              <a key={sub.slug} className={`subchip ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
-                {sub.name} <span className="subchip-n">{sub.count}</span>
-              </a>
-            ))}
-            {subs.length > SUB_SYNLIGA && (
-              <button type="button" className="subchip subchip-fler" aria-expanded={allaSubs}
-                onClick={() => setAllaSubs((v) => !v)}>
-                {allaSubs ? "Visa färre" : `Visa alla ${subs.length}`}
-              </button>
-            )}
-          </div>
-        </nav>
-      )}
-
       {/* Top toolbar — filter vänster, count mitten/subtilt, sort höger */}
       <div className={`shopbar ${open ? "open" : ""}`}>
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
