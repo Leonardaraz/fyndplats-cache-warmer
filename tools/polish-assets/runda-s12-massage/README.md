@@ -214,5 +214,8 @@ Commit `cdf72170` på `claude/sasongskategorier-s6-bz3j9l` (#647).
   *Hem / Skönhet & Hälsa / Massagebänkar / …*. Bänken som ligger kvar i Kropp &
   Välbefinnande (avsnitt 2) får Kropp & Välbefinnande som nivå tre, eftersom
   den sidan har 8 produkter mot Massagebänkars 9 synliga. Regeln gör rätt.
-  Ska alla tio bänkar peka på Massagebänkar är lagningen att ta bort den bänken
-  ur Kropp & Välbefinnande i Wix, som sedan har sju produkter.
+  ☠️ Ska alla tio bänkar peka på Massagebänkar måste bänken ut ur Kropp &
+  Välbefinnande. Men sidans intro räknar upp den (*"… och en hopfällbar
+  massagebänk"*), och den texten är live. Texten ändras därför först, i en
+  butiksdeploy, och kopplingen tas bort i Wix efteråt. Sidan har då sju
+  produkter. Omvänd ordning ger en sida som lovar en bänk den inte har.
