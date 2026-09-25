@@ -140,7 +140,14 @@ butiken, eftersom kategorin hämtar sina produkter ur Wix vid varje rendering.
 
 ## 7. Live
 
-(fylls i efter merge 2026-09-25)
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **4 av 4** sidor lika källan, med Träning & Gyms nya titel.
+- De tre nya sidorna finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 41 planerade
+  kopplingarna saknas. Träningsbänkar har fått en nypolerad situpbänk (16
+  mot 15).
 
 ## Återställning
 

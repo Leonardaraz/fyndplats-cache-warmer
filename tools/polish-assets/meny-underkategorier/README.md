@@ -144,6 +144,31 @@ källan, kontrollsidorna svarar 200, och sitemapen har 115 kategori-URL:er.
    brödsmulan och texterna går live i samma deploy, så mätningen kan inte
    skilja dem åt.
 
+**Uppmätt i produktion 2026-09-25**, med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (`cf724a67`) mot det förra
+(`dpl_DPXzSGybG2VQepNtWiDvc1LX243S`, #652):
+
+| sida | kategorilänkar | underkategorier | paneler, varav dolda | gzip kB |
+|---|--:|--:|--:|--:|
+| / | 14 → 148 | 0 → 114 | 10, 10 | 33,0 → 36,0 |
+| /kategori/mobler | 19 → 153 | 0 → 114 | 10, 10 | 174,8 → 177,8 |
+| /kategori/tv-bankar | 20 → 154 | 0 → 114 | 10, 10 | 29,8 → 34,8 |
+| /produkt/agilityset-hund-3-delar | 21 → 156 | 1 → 114 | 10, 10 | 29,0 → 32,0 |
+| /butik | 85 → 269 | 48 → 114 | 10, 10 | 38,2 → 52,1 |
+| /blogg | 10 → 144 | 0 → 114 | 10, 10 | 35,3 → 38,0 |
+| /vanliga-fragor | 10 → 144 | 0 → 114 | 10, 10 | 21,7 → 25,3 |
+
+- **114 unika underkategorier** i menypanelerna, fem fler än i förhandsbygget
+  ovan (S14). Startsidan länkade till 0 före.
+- /butik växer mer än de andra sidorna. Skälet är inte menyn utan 50 nya
+  kategorirutor med bild för sökordskategorierna i MAIN_GROUPS. Produktkorten
+  är desamma, och ingen länk från det förra bygget försvinner.
+- `hovertest.cjs` på startsidan och en produktsida: ingen panel synlig vid
+  laddning. Hovring över Möbler visar bara Möbler, med 25 underkategorier.
+  Bytet till Hem visar bara Hem & Inredning, utan animering. När musen flyttas
+  bort stängs panelen, och nästa öppning animeras igen. På mobilen är menyn
+  dold. **0 konsolfel.**
+
 `rendera.cjs` och `hovertest.cjs` kör Chromium genom sessionens proxy. Chromium
 har ingen flagga för en CA-fil, så skripten litar på proxyns CA via dess
 publika nyckel (`--ignore-certificate-errors-spki-list`, räknad ur

@@ -221,9 +221,19 @@ kategorilistan vid 100.
 
 ## 7. Live
 
-(fylls i efter merge 2026-09-25)
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **9 av 9** sidor lika källan. Förvarings nya titel är
+  "Förvaring – förvaringsbänk, skåp & hurts på hjul".
+- Alla åtta nya sidor finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 172 planerade
+  kopplingarna saknas. Poleringen har lagt till 13: Speglar har 40 (35
+  planerade), Badrumsspeglar 19 (17), Sidobord 23 (19), Byråer 28 (27) och
+  Bokhyllor 25 (24). Två av speglarna ligger i både Speglar och
+  Badrumsspeglar.
 
 ## Återställning
 
 Kopplingarna är additiva. Butiksposterna tas bort genom att backa `d9710540`.
-Förvarings live-text är fortfarande den från `1914cb2e` tills #647 mergas.
+Förvarings gamla text finns i `1914cb2e`.

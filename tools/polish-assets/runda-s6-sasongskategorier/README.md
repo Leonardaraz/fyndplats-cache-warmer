@@ -198,3 +198,15 @@ allt för rundan ligger i den.
   en plats bland de fyra och trängt undan en annan grupp mitt i
   leksakssäsongen. Det är ett beslut om startsidans sortiment, inte om sökord,
   och det är inte fattat här.
+
+## 7. Live
+
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **11 av 11** sidor lika källan. Växthus & odling hoppas över
+  här och kontrolleras i S14.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 179 planerade
+  produkterna har lämnat sin kategori. Poleringen 2026-09-24 har lagt till nya:
+  Halloweendekoration har 63 (59 planerade), Juldekoration 52 (45) och
+  Konstväxter 63 (59). Eldkorgar & eldstäder har sina 16.

@@ -209,6 +209,22 @@ Commit `8a534b3a` på `claude/sasongskategorier-s6-bz3j9l` (#647):
    och inte sidorna som bromsar. Då är nästa steg externa länkar, inte fler
    sidor.
 
+## 8. Live
+
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **7 av 7** sidor lika källan. Elbil för barn heter "Elbil för
+  barn – fyrhjuling, traktor & gokart" och Växthus & odling "Tunnelväxthus,
+  väggväxthus & drivbänkar".
+- De fem nya sidorna finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC. Ingen av de 71 kopplingarna saknas.
+  Motorcyklar för barn har fått en nypolerad elmotorcykel för småbarn (18 mot
+  17).
+- Brödsmulan på en motorcykel, en valphage och en odlingslåda har nivå tre
+  Motorcyklar för barn, Valphagar & hundhagar och Odlingslådor.
+- Omätningen mot dealproffsen görs 2026-10-30 (avsnitt 7).
+
 ## Semrush-kostnad
 
 Cirka 5 400 enheter: domänöversikt för båda domänerna (20), dealproffsens

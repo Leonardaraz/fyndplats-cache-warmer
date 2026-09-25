@@ -338,7 +338,90 @@ kategori-URL:er.
 
 ## 7. Live
 
-Väntar på mergen av #647.
+**Vägen till produktion, 2026-09-25**
+
+- **#652 kom först.** #652 (sökningen, julguiderna och bildsvepet, en annan
+  session) mergades 01:01 UTC och blev dagens första produktionsbygge. Dess
+  huvud `dc256901` var samma som provsammanslagningen 00:46 UTC.
+- **headless-site slogs in i #647** som `22de7a2f`, utan konflikter. Båda
+  PR:ernas ändringar i `lib/category-groups.ts` (MAIN_GROUPS och
+  CATEGORY_HERO_IMAGES) och i `app/globals.css` finns kvar. npm test gav 836
+  av 836, och tsc 0 fel utanför testfilerna.
+- **Förhandsbygget** `dpl_6ESFohHPoF91HWcRUdziDNvGewL7`:
+  - 69 av 69 sidor lika källan, kontrollsidorna 200 och sitemapen 120
+    kategoriadresser.
+  - Läckkollen utan fel, och menykollen 10 dolda paneler och 114
+    underkategorier på varje sida.
+  - #652:s delar är intakta: /sok har "Bäst match" förvald, /kategori/mobler
+    har den inte, och /kategori/julgranar har `pimg-track-swipe` i
+    server-HTML:en.
+  - /butik växer från 330 till 515 kB rå HTML mot produktionen. Det beror på 50
+    nya kategorirutor med bild för sökordskategorierna i MAIN_GROUPS.
+    Produktkorten är identiska, och ingen länk från produktionen försvinner.
+- **#647 mergades 01:29:32 UTC** (`cf724a67`).
+
+☠️ **Mergen gav inget bygge.** GitHub skickade ingen push-händelse för
+merge-commiten. Händelseloggen har `PullRequestEvent merged` och en
+`DeleteEvent` för grenen, men ingen `PushEvent` för headless-site. Vercel
+skapade ingen deployment i något av de två projekten på elva minuter. Både
+GitHub och Vercel rapporterade full drift. #652:s merge en halvtimme tidigare
+fick sin push-händelse efter en sekund.
+
+Produktionsbygget startades därför för hand, via Vercels API mot exakt
+`cf724a67` på headless-site: `dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK`, skapat 01:40 UTC
+och READY 01:43 UTC. Det är samma bygge som mergen skulle ha gett, och dagens
+andra. Ingen dubblett från en sen webhook har dykt upp.
+
+**Kontrollera efter varje merge att merge-commiten fått ett bygge**
+(`list_deployments` med `sha`). En merge utan bygge ser annars ut som en
+lyckad.
+
+**Hela deployen i produktion**
+
+- `livekoll.py` gav rätt på alla rundor: S4 15, S6 11, S7 12, S8 6, S9 4,
+  S10 9, S11 7, S12 3, S13 10 och S14 7. Det är 69 av 69 sidor för S6–S14.
+- De 51 nya sidorna (S7 11, S8 6, S9 3, S10 8, S11 7, S12 1, S13 10, S14 5)
+  finns alla i sitemapen, som har 120 kategoriadresser, och i menyn på
+  startsidan.
+- `skarmtak-entretak` svarar 200 med titeln "Skärmtak & entrétak för ytterdörr
+  och fönster | Fyndplats". `skarmtak-entr-tak` svarar 404 och saknas i
+  sitemapen.
+- Golvlampor och Skönhet & Hälsa svarar 200.
+- Läckkollen (`../seo-granskning-2026-09-24/lackkoll.py`): 14 av 14 utan fel.
+- Wix lästes före mergen, 01:22–01:29 UTC:
+  - 132 kategorier synliga, 133 med den dolda Örhängen.
+  - Ingen av de 1 230 planerade kopplingarna i S6–S14 saknas.
+  - Poleringen 2026-09-24 har lagt till 55 nypolerade produkter (58
+    kopplingar) i 25 av kategorierna, alla synliga.
+  - I S13: Miniugnar & airfryers har 21 (20 planerade), Barbord 17 (15) och
+    Gnistskydd 11 (9).
+
+**Färgfiltret och flödet** (`bilder-farg-koll.py` mot produktionen, med
+produktionens flöde 01:30 UTC som referens):
+
+- `/feed/google.xml`: 3 487 produkter, **alla 3 487 med extrabilder**. Före
+  mergen hade 632 extrabilder, och ingen produkt fick färre.
+- `/alla-produkter`: 122 produkter med färg, i 19 färger.
+- Byggloggen: "[wix] färgval hämtade: 137 produkter har minst en färg (av 239
+  med optioner)".
+- ⚠️ Byggloggen visar också att `/feed/google.xml` och `/feed/pricerunner.xml`
+  tog mer än 60 sekunder i första försöket. Omförsöket gick igenom. Tre
+  misslyckade försök fäller bygget, så tiden är värd att följa.
+
+**Brödsmulan:** tio produktsidor i produktion, en per sökordskategori
+(Hörnskrivbord, Snurrfåtöljer, Soptunnor, Matgrupper, Massagebänkar,
+Motorcyklar för barn, Valphagar & hundhagar, Odlingslådor, Hantlar & hantelset
+och Terrarier).
+
+- **10 av 10** har fyra nivåer, och nivå tre är den smalaste indexerbara
+  underkategorin.
+- Den synliga brödsmulan har samma länkar.
+- Massagebänken i urvalet fick Kropp & Välbefinnande. Se S12:s avsnitt 7.
+
+**Menyn** i produktion står i `../meny-underkategorier/README.md`.
+
+**500-lagningen** mäts i uppföljningen 03:45 UTC, mer än en timme efter att
+produktionsbygget blev READY.
 
 ## 8. Baslinjen
 

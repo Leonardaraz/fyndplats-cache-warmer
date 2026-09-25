@@ -284,6 +284,26 @@ det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skri
 inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
 göra exakt rätt och ändå bygga.
 
+### ☠️ En merge gav inget bygge — GitHub skickade ingen push-händelse (2026-09-25)
+
+Butiks-PR #647 mergades 01:29:32 UTC via API:t, och refen `headless-site`
+flyttades till merge-commiten. GitHubs händelselogg fick `PullRequestEvent
+merged` och en `DeleteEvent` för grenen, men ingen `PushEvent`, och Vercel
+skapade ingen deployment i något av de två projekten på elva minuter. Både
+GitHub och Vercel rapporterade full drift. #652:s merge en halvtimme tidigare
+fick sin push-händelse efter en sekund.
+
+En merge utan bygge ser ut som en lyckad: PR:en är mergad, grenen raderad och
+produktionen svarar 200. Den kör bara den gamla koden.
+
+**Kontrollera efter varje merge att merge-commiten fått ett bygge**
+(`list_deployments` med `sha`, eller commit-statusen på merge-commiten). Saknas
+det efter några minuter: starta det via Vercels API, `create_deployment` med
+`gitSource` (org, repo, ref och sha) och `target: production`, mot exakt
+merge-commiten. Det är samma bygge som mergen skulle ha gett. Håll sedan utkik
+efter en dubblett från en sen webhook, och avbryt den medan den bygger. För
+#647 kom ingen.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är

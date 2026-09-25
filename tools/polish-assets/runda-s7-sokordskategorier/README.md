@@ -187,7 +187,19 @@ som också mäter hur många produkter Google-flödet ger den nya kategorin
 
 ## 6. Live
 
-(fylls i efter merge 2026-09-25)
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **12 av 12** sidor lika källan. Förvaring räknas som ersatt
+  av S10, och Belysning visar ingen `**`.
+- Alla elva nya sidor finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 349 planerade
+  kopplingarna saknas. Poleringen 2026-09-24 har lagt till tio produkter:
+  Badrumsskåp har 59 (54 planerade), Golvlampor 40 (39), Elkaminer 28 (27),
+  Värmefläktar 14 (13), Bäddfåtöljer 27 (26) och Massagestolar 42 (41). De
+  andra fem kategorierna är oförändrade.
+- Golvlampor svarar 200. Den var en av de första sidorna att falla bort när
+  kategorilistan kapades vid 100.
 
 ## Återställning
 
