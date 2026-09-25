@@ -38,6 +38,15 @@ const pagaende = new Set<string>();
 let koTimer: ReturnType<typeof setTimeout> | null = null;
 const MAX_PER_ANROP = 48;
 
+// Kallstart: rutten läser hela katalogen, och på en kall instans tar det upp
+// till ~35 s (uppmätt på bildkartan, som gör samma läsning). Första versionen
+// gav upp efter 10 s och försökte sedan aldrig igen — prickarna kom först när
+// Leonard öppnade sidan på nytt (2026-09-25). Nu väntar vi ut kallstarten och
+// försöker en gång till om det ändå misslyckas.
+const TIDSGRANS_MS = 40000;
+const OMFORSOK_MS = 3000;
+const forsok = new Map<string, number>();
+
 function skickaKon() {
   koTimer = null;
   const slugs = [...ko].slice(0, MAX_PER_ANROP);
@@ -47,9 +56,12 @@ function skickaKon() {
   // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
   // Safari före iOS 16 och kastar då synkront.
   const ctl = typeof AbortController === "function" ? new AbortController() : null;
-  const t = ctl ? setTimeout(() => ctl.abort(), 10000) : null;
+  const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
   fetch(`/api/kort-galleri?s=${slugs.map(encodeURIComponent).join(",")}`, ctl ? { signal: ctl.signal } : undefined)
-    .then((r) => (r.ok ? r.json() : {}))
+    .then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
     .then((d: Record<string, unknown>) => {
       for (const s of slugs) {
         const v = d?.[s];
@@ -58,7 +70,13 @@ function skickaKon() {
         lyssnare.get(s)?.forEach((cb) => cb(k));
       }
     })
-    .catch(() => { /* kortet står kvar på två bilder; nästa beröring försöker igen */ })
+    .catch(() => {
+      // Kortet står kvar på två bilder tills vidare. Ett automatiskt omförsök;
+      // därefter bara när besökaren rör kortet.
+      const igen = slugs.filter((s) => (forsok.get(s) ?? 0) < 1);
+      igen.forEach((s) => forsok.set(s, (forsok.get(s) ?? 0) + 1));
+      if (igen.length) setTimeout(() => igen.forEach(begar), OMFORSOK_MS);
+    })
     .finally(() => {
       if (t) clearTimeout(t);
       slugs.forEach((s) => pagaende.delete(s));

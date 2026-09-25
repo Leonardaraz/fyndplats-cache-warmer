@@ -1726,6 +1726,13 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
  * Hover-växlingen gäller bara enheter med hovrande pekare, så iOS får aldrig
  * den klibbiga :hover-växlingen ovanpå svepet. */
 .pimg-track,.pimg-slide{position:absolute;inset:0}
+/* Ingen orange hinna vid tryck. Sajtens markeringsfärg (::selection, peach)
+   lade sig över hela bildytan när iOS tolkade ett långt tryck på svepraden som
+   markering, och trycket i sig fick Safaris egen tryckfärg. Bilderna är inget
+   man markerar (Leonard 2026-09-25). */
+.prod{-webkit-tap-highlight-color:transparent}
+.prod .pimg{-webkit-user-select:none;user-select:none}
+.prod .pimg img{-webkit-user-drag:none}
 .pimg-dots{display:none}
 /* Extrabilderna (hämtas vid svep) hör bara hemma i svepraden. */
 .pimg-slide-extra{display:none}
