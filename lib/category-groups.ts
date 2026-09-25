@@ -206,6 +206,12 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Badrum & Hemtextil": UNSPLASH("1616663717839-2fea42e1a1f6"), // mjuka handdukar, badrum
   "Verktyg & Hemmafix": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
   "Kalas & Fest": UNSPLASH("1556125574-d7f27ec36a06"), // festscen med ljusslingor
+  // Julkategorierna föll tillbaka på en produktbild: en hög, smal gran som
+  // beskars till en inzoomad bit i den breda hero-rutan (Leonard 2026-09-24).
+  // Granskade i exakt UNSPLASH()-beskärningen 2026-09-24, inga varumärken
+  // eller figurer med upphovsrätt i bild.
+  "Julgranar": UNSPLASH("1642335911245-238e13dcabf2"), // snöad, pyntad gran vid öppen spis
+  "Juldekoration": UNSPLASH("1767471662293-55cae5cbea6f"), // snöig trädgård med lysande snögubbar
 
   // Husdjur
   "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas

@@ -3,7 +3,7 @@ import { getProducts } from "../../lib/products";
 import { forListClient } from "../../lib/list-payload";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { attachRatings } from "../../lib/review-aggregates";
-import { nameScore, normalize } from "../../lib/search";
+import { normalize, rankByName } from "../../lib/search";
 import { productCountLabel } from "../../lib/rating";
 
 export const metadata: Metadata = {
@@ -34,12 +34,9 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // varje grupp) så det man faktiskt kan handla möter ögat överst.
   let results: typeof all = [];
   if (term) {
-    const scored = all
-      .map((p) => ({ p, score: nameScore(p.name, term) }))
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score);
-    if (scored.length > 0) {
-      results = scored.map((r) => r.p);
+    const ranked = rankByName(all, (p) => p.name, term);
+    if (ranked.length > 0) {
+      results = ranked;
     } else {
       const phrase = normalize(term);
       results = all.filter(
@@ -65,7 +62,11 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
               på skarp sajt 2026-09-04 vägde /sok?q=bord 791 kB HTML, varav 465 kB
               flight-payload. Listsidorna mappade redan ner; söksidan var den enda
               som inte gjorde det. */}
-          {results.length > 0 && <ShopBrowser products={forListClient(results)} />}
+          {/* defaultSort "rel": behåll relevansordningen ovan. Förr sorterades
+              träffarna om efter Rekommenderat (samma mix som kategorisidorna),
+              så "soffa" gav "Sidobord för soffan" på plats två och en
+              hängmatta i ett klösträd före riktiga mattor. */}
+          {results.length > 0 && <ShopBrowser products={forListClient(results)} defaultSort="rel" />}
           {q && results.length === 0 && (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
               Inga resultat för “{q}”. Prova att söka på kategori eller varumärke — eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.

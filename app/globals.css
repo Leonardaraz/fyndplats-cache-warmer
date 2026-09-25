@@ -420,7 +420,10 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
    reserverade tomhöjden på betygsraden: pris och knapp linjerar mellan
    grannkort oavsett hur långt namnet är eller om produkten har omdömen. */
 .prod{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#fff;transition:transform .25s,box-shadow .25s;box-shadow:var(--e1)}
-.prod:hover{transform:translateY(-5px);box-shadow:var(--e3)}
+/* Lyftet bara med hovrande pekare. På iPhone fyrar :hover vid första beröringen,
+   och transformen på kortet mitt i gesten bröt svepet mellan bilderna — man fick
+   svepa två gånger på varje ny produkt (Leonard 2026-09-24). */
+@media (hover:hover){.prod:hover{transform:translateY(-5px);box-shadow:var(--e3)}}
 .prod .pimg{aspect-ratio:1;background:var(--surface-2);position:relative;overflow:hidden}
 .prod .pbody{flex:1;display:flex;flex-direction:column;padding:16px}
 /* min-height borta: bottenjusteringen sköter linjeringen nu. */
@@ -454,9 +457,11 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
    och priset — som är det man faktiskt jämför — dränks i dem. Knappen bär
    formen och tryckytan; accenten sparas till priset och till hjältens enda
    primärknapp. */
-.prod:hover .pbtn,.prod:focus-visible .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}
+.prod:focus-visible .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}
+@media (hover:hover){.prod:hover .pbtn{background:var(--orange-fill);border-color:var(--orange-fill);color:#fff}}
 .prod .pbtn-oos{color:#52606D}
-.prod:hover .pbtn-oos,.prod:focus-visible .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}
+.prod:focus-visible .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}
+@media (hover:hover){.prod:hover .pbtn-oos{background:#52606D;border-color:#52606D;color:#fff}}
 .center{text-align:center;margin-top:34px}
 .linkbtn{display:inline-block;border:1.5px solid var(--ink);border-radius:var(--r-md);padding:13px 28px;font-weight:700;font-size:var(--text-sm);transition:background .2s,color .2s}
 .linkbtn:hover{background:var(--ink);color:#fff}
@@ -1711,28 +1716,46 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .pimg-vantar{position:absolute;inset:0;background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);background-size:220% 100%;animation:pimg-svep 1.4s ease-in-out infinite}
 @keyframes pimg-svep{from{background-position:180% 0}to{background-position:-20% 0}}
 @media (prefers-reduced-motion:reduce){.pimg-vantar{animation:none}}
-/* HOVER-BILDEN RENDERAS PÅ ALLA ENHETER — RÖR INTE DEN HÄR REGELN IGEN.
+/* PRODUKTKORTETS BILDER: SVEP PÅ PEKSKÄRM, HOVER PÅ DATOR (2026-09-24).
  *
- * 2026-09-04 lade jag in `@media (hover: none){.pimg-alt{display:none}}` för
- * att spara 24 bildhämtningar per skärm på mobil. Resonemanget var att en
- * pekskärm aldrig når :hover, så bilden bara kostade bandbredd.
+ * Historik: 2026-09-04 doldes hover-bilden med `(hover: none)` för att spara
+ * bandbredd — fel, för iOS Safari fyrar :hover vid beröring och mobilbesökarna
+ * använde växlingen. Men beröringen fastnade: bilden bytte vid första tryck och
+ * stod sedan kvar, utan väg tillbaka (Leonard 2026-09-24).
  *
- * DET VAR FEL, och Leonard märkte det samma dag: på iOS Safari fyrar :hover
- * när man lägger fingret på ett element och håller kvar. Bildväxlingen var
- * alltså en funktion mobilbesökarna FAKTISKT använde — den slutade bara
- * fungera. `(hover: none)` beskriver att enheten inte har en hovrande pekare,
- * inte att :hover aldrig kan matcha.
- *
- * Vill man ta tillbaka bandbredden är rätt väg att låta bilden ligga kvar men
- * hämtas först vid behov (t.ex. display:none som slås på i :hover-regeln, så
- * lazy-bilden får en box först när fingret rör kortet). Det byter bort en
- * omedelbar växling mot en som börjar ladda vid beröring — en avvägning som
- * ska mätas och visas, inte antas. */
-.prod:hover .pimg-alt{opacity:1}
-.prod:hover .pimg-main{opacity:0}
-/* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,
-   ingen reflow; syns bara på pekare-enheter (ingen hover på mobil). */
-.prod:hover .pimg-main,.prod:hover .pimg-alt{transform:scale(1.045)}
+ * Nu får pekskärmar ett riktigt svep i stället (components/card-gallery.tsx):
+ * bilderna ligger i en rad med scroll-snap och prickar visar läget. Båda
+ * bilderna hämtas som förut — samma bandbredd som före 09-04-ändringen.
+ * Hover-växlingen gäller bara enheter med hovrande pekare, så iOS får aldrig
+ * den klibbiga :hover-växlingen ovanpå svepet. */
+.pimg-track,.pimg-slide{position:absolute;inset:0}
+/* Ingen orange hinna vid tryck. Sajtens markeringsfärg (::selection, peach)
+   lade sig över hela bildytan när iOS tolkade ett långt tryck på svepraden som
+   markering, och trycket i sig fick Safaris egen tryckfärg. Bilderna är inget
+   man markerar (Leonard 2026-09-25). */
+.prod{-webkit-tap-highlight-color:transparent}
+.prod .pimg{-webkit-user-select:none;user-select:none}
+.prod .pimg img{-webkit-user-drag:none}
+.pimg-dots{display:none}
+/* Extrabilderna (hämtas vid svep) hör bara hemma i svepraden. */
+.pimg-slide-extra{display:none}
+@media (hover:hover){
+  .prod:hover .pimg-alt{opacity:1}
+  .prod:hover .pimg-main{opacity:0}
+  /* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,
+     ingen reflow. */
+  .prod:hover .pimg-main,.prod:hover .pimg-alt{transform:scale(1.045)}
+}
+@media (hover:none){
+  .pimg-track-swipe{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pimg-track-swipe::-webkit-scrollbar{display:none}
+  .pimg-track-swipe .pimg-slide{position:relative;inset:auto;flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+  .pimg-track-swipe .pimg-alt{opacity:1}
+  .pimg-track-swipe .pimg-slide-extra{display:block}
+  .pimg-dots{display:flex;position:absolute;left:0;right:0;bottom:10px;z-index:2;justify-content:center;gap:6px;pointer-events:none}
+  .pimg-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.18);transition:background .2s}
+  .pimg-dots span.on{background:var(--ink)}
+}
 
 /* #11 Wishlist heart on cards */
 /* Ytan till 44px UTAN att cirkeln växer: en 44px-disk ovanpå produktbilden
