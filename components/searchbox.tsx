@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { nameScore } from "../lib/search";
+import { rankByName } from "../lib/search";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
 type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
@@ -120,13 +120,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     // dvs. söker man på varan man just sett hittar man den inte. Nu visas alltid
     // de 7 mest relevanta; slutsålda bland dem hamnar längst ned. (sort är stabil
     // i JS, så relevansordningen består inom varje grupp.)
-    const ranked = idx
-      .map((h) => ({ h, score: nameScore(h.n, term) }))
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score)
+    const ranked = rankByName(idx, (h) => h.n, term)
       .slice(0, SUGGESTION_COUNT)
-      .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0))
-      .map((r) => r.h);
+      .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
     setHits(ranked);
   };
 

@@ -1,9 +1,7 @@
-import Image from "next/image";
 import { PrefetchLink } from "./prefetch-link";
 import type { ListProduct } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
-import { SHIMMER_BLUR } from "../lib/lqip";
-import { tightFillUrl } from "../lib/wix-image";
+import { CardGallery } from "./card-gallery";
 import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
 import { formatPrice } from "../lib/price-range";
@@ -50,32 +48,9 @@ export function ProductCard({ p, priority = false }: { p: ListProduct; priority?
             fylls i. Svepet är samma funktion som blur-placeholdern <Image>
             redan visar medan en bild laddas ner. */}
         {!p.img && <span className="pimg-vantar" aria-hidden="true" />}
-        {p.img && (
-          <Image
-            className="pimg-main"
-            src={tightFillUrl(p.img, 600, 600)}
-            alt={p.name}
-            fill
-            priority={priority}
-            sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
-            placeholder="blur"
-            blurDataURL={SHIMMER_BLUR}
-            style={{ objectFit: "cover" }}
-          />
-        )}
-        {altImg && (
-          <Image
-            className="pimg-alt"
-            src={tightFillUrl(altImg, 600, 600)}
-            // Dekorativ: samma länk visar redan huvudbilden med alt={p.name} och
-            // produktnamnet som text. Med alt här läste skärmläsare namnet två
-            // gånger per kort. Tom alt = hoppa över dubbletten.
-            alt=""
-            fill
-            sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
-            style={{ objectFit: "cover" }}
-          />
-        )}
+        {/* Bilderna: svep på pekskärm, hover-växling på dator. Se
+            components/card-gallery.tsx. */}
+        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} />}
       </div>
       <div className="pbody">
         <div className="pname">{p.name}</div>
