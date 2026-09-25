@@ -1,6 +1,6 @@
 "use client";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, sortColorKeys } from "../lib/variant-color-image";
@@ -126,7 +126,6 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
 }
 
 function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { products: ListProduct[]; defaultSort: string; dayMs?: number }) {
-  const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
 
@@ -141,7 +140,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   const bounds = useMemo(() => priceBounds(products), [products]);
   // Handtagen är källan; slugen härleds ur dem. URL:en skrivs först när
   // handtaget släpps (commitPrice) — annars hade varje pixel i draget blivit
-  // en router.replace.
+  // en URL-skrivning.
   const [handles, setHandles] = useState<[number, number]>(() => handlesFromSlug(bounds, sp.get("pris")));
   const [urlPrice, setUrlPrice] = useState(() => {
     const h = handlesFromSlug(bounds, sp.get("pris"));
@@ -169,8 +168,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     const current = window.location.pathname + window.location.search;
-    if (url !== current) router.replace(url, { scroll: false });
-  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname, router]);
+    // history.replaceState, inte router.replace. Den senare hämtade en ny
+    // RSC-nyttolast för sidan vid varje filterval — ett funktionsanrop per klick
+    // för sökparametrar som ingen serverkomponent läser — och när den kom
+    // tillbaka rullade sidan upp till innehållets topp trots scroll:false
+    // (uppmätt: 747 → 180 px efter ett klick på "Rea"). Next 16 synkar
+    // useSearchParams med den inbyggda historiken, så inget annat behöver ändras.
+    if (url !== current) window.history.replaceState(null, "", url);
+  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.
@@ -204,8 +209,16 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   // Skenans läge: 0 = alla färger, 1..n = colorKeys[i-1]. Ett enda tal, så
   // native <input type="range"> gör hela jobbet — drag, tangentbord och touch.
   const colorIdx = Math.max(0, colorKeys.indexOf(color) + 1);
-  const commitColor = () => setUrlColor(color);
-  const dragColor = (i: number) => setColor(i <= 0 ? "" : colorKeys[i - 1] ?? "");
+  // Refen skrivs i händelsehanterarna (dragColor, reset), inte under
+  // renderingen — se handlesRef nedan.
+  const colorRef = useRef(color);
+  const commitColor = useCallback(() => setUrlColor(colorRef.current), []);
+  const armColor = () => window.addEventListener("pointerup", commitColor, { once: true });
+  const dragColor = (i: number) => {
+    const c = i <= 0 ? "" : colorKeys[i - 1] ?? "";
+    colorRef.current = c;
+    setColor(c);
+  };
   // Bandad gradient: varje färg äger en lika stor bit av banan, med hårda stopp
   // så det blir distinkta fält att sikta på — inte en utsmetad övergång där man
   // inte ser var en färg slutar. Första bandet är "alla färger".
@@ -245,13 +258,53 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
     }));
   }, [products, bounds]);
 
-  const commitPrice = () => setUrlPrice(bounds ? priceSlug(handles[0], handles[1], bounds) : "");
-  const dragLo = (v: number) => setHandles(([, hi]) => [Math.min(v, hi - (bounds?.step ?? 1)), hi]);
-  const dragHi = (v: number) => setHandles(([lo]) => [lo, Math.max(v, lo + (bounds?.step ?? 1))]);
+  // Släpp ALLTID draget, även när musen släpps utanför reglaget: rutnätet
+  // uppdateras först vid släppet (se `list` nedan), så ett missat pointerup
+  // hade lämnat det i det gamla läget. Refen bär handtagens senaste värde till
+  // lyssnaren på window, som annars hade sett renderingens gamla closure.
+  const handlesRef = useRef(handles);
+  const commitPrice = useCallback(() => {
+    const [lo, hi] = handlesRef.current;
+    setUrlPrice(bounds ? priceSlug(lo, hi, bounds) : "");
+  }, [bounds]);
+  const armPrice = () => window.addEventListener("pointerup", commitPrice, { once: true });
+  const satHandles = (h: [number, number]) => {
+    handlesRef.current = h;
+    setHandles(h);
+  };
+  const dragLo = (v: number) => {
+    const [, hi] = handlesRef.current;
+    satHandles([Math.min(v, hi - (bounds?.step ?? 1)), hi]);
+  };
+  const dragHi = (v: number) => {
+    const [lo] = handlesRef.current;
+    satHandles([lo, Math.max(v, lo + (bounds?.step ?? 1))]);
+  };
+
+  // RUTNÄTET FÖLJER DET SLÄPPTA LÄGET, INTE HANDTAGET. Förr filtrerades det
+  // för varje steg i draget. Sidan blev då kortare och längre under musen, och
+  // när den krympte under scrollpositionen hoppade webbläsaren upp och tog
+  // reglaget med sig: "hela sidan skakar" (Leonard 2026-09-25, Utemöbler, drag
+  // från högsta priset nedåt). Räknaren och histogrammet följer handtaget
+  // live; produkterna byts när man släpper. Samma sak för färgskenan.
+  const [valtLo, valtHi] = useMemo(() => handlesFromSlug(bounds, urlPrice), [bounds, urlPrice]);
+  const listLo = bounds ? valtLo : 0;
+  const listHi = bounds ? upperLimit(valtHi, bounds) : Infinity;
+  const liveCount = useMemo(() => {
+    let n = 0;
+    for (const p of products) {
+      if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
+      if (color && !p.colors?.includes(color)) continue;
+      if (onlyInStock && !p.inStock) continue;
+      if (onlyOnSale && !p.onSale) continue;
+      n++;
+    }
+    return n;
+  }, [products, priceLo, priceHi, color, onlyInStock, onlyOnSale]);
 
   const list = useMemo(() => {
-    let out = products.filter((p) => p.priceNum >= priceLo && p.priceNum < priceHi);
-    if (color) out = out.filter((p) => p.colors?.includes(color));
+    let out = products.filter((p) => p.priceNum >= listLo && p.priceNum < listHi);
+    if (urlColor) out = out.filter((p) => p.colors?.includes(urlColor));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
@@ -283,7 +336,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
-  }, [products, sort, priceLo, priceHi, color, onlyInStock, onlyOnSale, dayMsProp]);
+  }, [products, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -293,8 +346,9 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   // något syns) om en gammal delad länk bär ?lager=1.
   const activeFilters = (priceActive ? 1 : 0) + (color ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
   const reset = () => {
-    if (bounds) setHandles([bounds.min, bounds.max]);
+    if (bounds) satHandles([bounds.min, bounds.max]);
     setUrlPrice("");
+    colorRef.current = "";
     setColor("");
     setUrlColor("");
     setOnlyInStock(false);
@@ -368,7 +422,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
         </button>
 
         <div className="shopcount-inline" aria-live="polite">
-          {productCountLabel(list.length)}
+          {productCountLabel(liveCount)}
           {activeFilters > 0 && <span className="shopcount-of"> av {products.length}</span>}
         </div>
 
@@ -421,6 +475,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                   step={bounds.step}
                   value={handles[0]}
                   onChange={(e) => dragLo(Number(e.target.value))}
+                  onPointerDown={armPrice}
                   onPointerUp={commitPrice}
                   onKeyUp={commitPrice}
                   onBlur={commitPrice}
@@ -435,6 +490,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                   step={bounds.step}
                   value={handles[1]}
                   onChange={(e) => dragHi(Number(e.target.value))}
+                  onPointerDown={armPrice}
                   onPointerUp={commitPrice}
                   onKeyUp={commitPrice}
                   onBlur={commitPrice}
@@ -490,6 +546,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                   step={1}
                   value={colorIdx}
                   onChange={(e) => dragColor(Number(e.target.value))}
+                  onPointerDown={armColor}
                   onPointerUp={commitColor}
                   onKeyUp={commitColor}
                   onBlur={commitColor}
