@@ -420,8 +420,19 @@ och Terrarier).
 
 **Menyn** i produktion står i `../meny-underkategorier/README.md`.
 
-**500-lagningen** mäts i uppföljningen 03:45 UTC, mer än en timme efter att
-produktionsbygget blev READY.
+**500-lagningen, mätt 03:46 UTC** (runtime-loggen per deployment):
+
+| produktionsbygge | tog trafik | loggade svar | *static to dynamic* | 5xx |
+|---|---|--:|--:|--:|
+| #652, utan lagningen | 01:01–01:43 UTC | drygt 3 470 | **ja** | **18** |
+| #647, med lagningen | 01:43–03:22 UTC | drygt 3 550 | **0** | **0** |
+| #654, som tog över | från 03:22 UTC | — | **0** | — |
+
+Raden för #652 är motprovet. Sökningen hittar felet där, med orsaken
+`revalidate: 0 fetch https://www.wixapis.com/ecom/v1/orders/search`, alltså
+precis den hämtning `d2488452` lagade. Nollan för #647 är därför en mätning
+och inte en blind fläck. #654 (en annan session) bygger på samma kod och
+har heller inga sådana rader.
 
 ## 8. Baslinjen
 
