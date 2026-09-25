@@ -96,3 +96,24 @@ test("den gamla adressen 301:as till den nya", () => {
     "saknar permanent redirect /basta-i-test/:type → /kopguider/:type",
   );
 });
+
+test("massagepistolerna går till bloggens guide, och regeln står före den generella", () => {
+  // Butiken säljer inga massagepistoler, så /kopguider/massagepistoler är tunn
+  // och svarar 307 → /butik. /basta-i-test/massagepistoler rankade ändå
+  // (plats 18 på "massageapparat bäst i test", Semrush 2026-09-24), och kedjan
+  // tog rankningen till /butik. Next tar FÖRSTA regeln som matchar: står den
+  // generella /basta-i-test/:type först når adressen aldrig guiden.
+  const cfg = readFileSync("next.config.ts", "utf8");
+  const specifik = cfg.indexOf('source: "/basta-i-test/massagepistoler"');
+  const generell = cfg.indexOf('source: "/basta-i-test/:type"');
+  assert.ok(specifik >= 0, "saknar regeln för /basta-i-test/massagepistoler");
+  assert.ok(specifik < generell, "regeln för massagepistolerna måste stå före /basta-i-test/:type");
+  for (const src of ["/basta-i-test/massagepistoler", "/kopguider/massagepistoler"]) {
+    const rad = new RegExp(
+      `source:\\s*"${src}"\\s*,\\s*destination:\\s*"/blogg/massagepistol-kopguide-2026"\\s*,\\s*permanent:\\s*true`,
+    );
+    assert.match(cfg, rad, `${src} ska gå permanent till bloggens massagepistolguide`);
+  }
+  // Målet måste finnas, annars blir lagningen en 404 i stället för en 307.
+  assert.ok(statSync("content/blog/massagepistol-kopguide-2026.md").isFile());
+});

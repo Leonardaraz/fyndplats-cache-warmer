@@ -45,17 +45,61 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
   assert.match(categorySeo("lek-tillbehor-for-husdjur")!.title, /[Hh]undtrappa/);
   assert.match(categorySeo("klostrad")!.title, /[Kk]lösträd/);
   assert.match(categorySeo("elbilar-for-barn")!.title, /[Ee]lbil/);
-  assert.match(categorySeo("traning-gym")!.title, /[Hh]antlar|[Tt]räningsutrustning/);
+  // Runda S9: hantlarna fick en egen sida, och Träning & Gym tog hemmagym i stället.
+  assert.match(categorySeo("traning-gym")!.title, /[Hh]emmagym/);
+  assert.match(categorySeo("hantlar-hantelset")!.title, /[Hh]antlar/);
 });
 
 // Två kategorisidor som siktar på samma huvudord delar på rankingen i stället
 // för att lägga den på en sida. 2026-09-24 fick klösträd, elbilar och elva andra
 // sökord egna kategorier, och de gamla samlingssidorna (Lek & Tillbehör för
 // husdjur, Leksaker & Spel) bytte till ord som ingen annan sida tar.
+// Samma dag kom fyra säsongssidor till: halloweendekoration, juldekoration,
+// eldkorgar och konstväxter, och Trädgårds åtta underkategorier fick egna titlar.
+// Runda S7 lade till elva: badrumsskåp, golvlampor, elkaminer, värmefläktar,
+// verktygsvagnar, bäddfåtöljer, massagestolar, tv-bänkar, skoskåp, köksöar och
+// boxningssäckar. Belysning och Förvaring släppte golvlampor och skoskåp.
+// Runda S8 lade till sex: kaninburar, hamsterburar, terrarier, hönshus, hundvagnar
+// och vedställ.
+// Runda S9 lade till hantlar, träningsbänkar och motionscyklar, och Träning & Gym
+// släppte hantlar för hemmagym.
+// Runda S10 lade till speglar, badrumsspeglar, sidobord, nattduksbord, byråer,
+// bokhyllor, tvättkorgar och vattenkokare, och Förvaring släppte byrå och bokhylla.
+// Runda S11 lade till pallar, sittpuffar, klädhängare och hallmöbler, sideboards,
+// vinställ, barnmöbler och projektordukar.
+// Runda S12 lade till massagebänkar. Massage & Återhämtning och Kropp &
+// Välbefinnande hade båda "Massagebänkar" i titeln och tog uppresningsfåtölj
+// och kontorsstol med massage respektive rollator, ljusterapilampa och sittdyna.
+// Runda S13 lade till soptunnor, miniugnar och airfryers, barbord, snurrfåtöljer,
+// öronlappsfåtöljer, matgrupper, hörnskrivbord, skärmtak, gnistskydd och elementskydd.
+// Runda S14 lade till motorcyklar för barn, valphagar, blomställ, serveringsvagnar
+// och odlingslådor. Elbil för barn tappade "motorcykel" och Växthus & odling
+// "odlingslådor" ur titeln, så att ingen gammal sida delar ord med en ny.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
     /hundkoj/i, /gunghäst/i, /leksakskök/i, /sandlåd/i, /garagetält/i, /redskapsbod/i,
+    /halloween/i, /juldekoration/i, /eldkorg/i, /konstgjorda växter/i,
+    /tunnelväxthus/i, /loungeset/i, /paviljongtak/i, /plancha/i, /solcellslamp/i,
+    /studsmatta/i, /basketkorg/i, /kompostkvarn/i, /terrassvärmare/i,
+    /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
+    /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
+    /kaninbur/i, /hamsterbur/i, /terrari/i, /hönshus/i, /hundvagn/i, /vedställ/i,
+    /hantl/i, /träningsbänk/i, /motionscykel/i, /hemmagym/i,
+    /\bspegel\b/i, /badrumsspegel/i, /sidobord/i, /avlastningsbord/i, /nattduksbord/i,
+    /byrå/i, /bokhyll/i, /tvättkorg/i, /vattenkokare/i, /brödrost/i,
+    /\bpall\b/i, /stegpall/i, /duschpall/i, /pianopall/i, /rullpall/i, /sittpuff/i, /fotpall/i,
+    /klädhängare/i, /klädställning/i, /hallmöbel/i, /hallbänk/i, /sideboard/i, /skänk/i,
+    /vitrinskåp/i, /vinställ/i, /vinkyl/i, /vinhylla/i, /barnfåtölj/i, /barnsoffa/i,
+    /sminkbord/i, /barngarderob/i, /projektorduk/i,
+    /massagebänk/i, /behandlingsbänk/i, /uppresningsfåtölj/i, /kontorsstol med massage/i,
+    /rollator/i, /ljusterapi/i, /sittdyna/i,
+    /soptunn/i, /sopsortering/i, /miniugn/i, /airfryer/i, /varmluftsfritös/i, /barbord/i,
+    /bardisk/i, /snurrfåtölj/i, /öronlappsfåtölj/i, /matgrupp/i, /hörnskrivbord/i,
+    /skärmtak/i, /entrétak/i, /gnistskydd/i, /elementskydd/i, /radiatorskydd/i,
+    /elmotorcykel/i, /motorcykel för barn/i, /valphag/i, /hundhag/i, /växthyll/i, /blomställ/i,
+    /blomhyll/i, /blompall/i, /serveringsvagn/i, /barvagn/i, /rullvagn/i, /odlingslåd/i,
+    /planteringslåd/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);
@@ -73,6 +117,26 @@ test("okänd slug faller tillbaka på mallen (ingen krasch)", () => {
 test("varje kategori med SEO-titel har också redaktionell text", () => {
   for (const slug of Object.keys(CATEGORY_SEO)) {
     assert.ok(CATEGORY_CONTENT[slug], `${slug}: saknar redaktionellt innehåll`);
+  }
+});
+
+// Sidan renderar intro och FAQ som ren text (<p>{para}</p>, <dd>{f.a}</dd>), och
+// titel och beskrivning hamnar i <title> och metataggen. Markdown eller HTML syns
+// alltså ordagrant för kunden: /kategori/belysning visade "**Sockeln**" med
+// asteriskerna från #400 (2026-08-12) tills det mättes 2026-09-24.
+const MARKUP = /\*+|`+|_+|<[^>]*>|\[[^\]]*\]\([^)]*\)|&[A-Za-z0-9#]+;|^#{1,6}\s/m;
+
+test("kategoritexterna bär ingen markup (sidan visar ren text)", () => {
+  const texter: [string, string][] = [];
+  for (const [slug, s] of Object.entries(CATEGORY_SEO)) {
+    texter.push([slug, s.title], [slug, s.description]);
+  }
+  for (const [slug, c] of Object.entries(CATEGORY_CONTENT)) {
+    for (const t of [...c.intro, ...c.faq.flatMap((f) => [f.q, f.a])]) texter.push([slug, t]);
+  }
+  for (const [slug, t] of texter) {
+    const m = t.match(MARKUP);
+    assert.equal(m, null, `${slug}: ${JSON.stringify(m?.[0])} syns ordagrant i "${t.slice(0, 60)}…"`);
   }
 });
 

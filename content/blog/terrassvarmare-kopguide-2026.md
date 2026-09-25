@@ -121,7 +121,7 @@ En sak att notera: den är **IP45**, medan de övriga är IP65. Skillnaden ligge
 
 Med en värmare på plats flyttas gränsen ungefär en månad i varje ände. Uteplatsen blir användbar i april i stället för maj, och håller in i oktober i stället för att ta slut i augusti. Det är sex, sju extra veckor per år — och de veckorna är ofta de finaste, med färg i träden och ingen som konkurrerar om altanen.
 
-Ska du samtidigt se över resten av uteplatsen har vi en genomgång av [hur du gör uteplatsen klar från grunden](/blogg/gor-uteplatsen-sommarklar-2026), och hela sortimentet finns under [Trädgård & Utemöbler](/kategori/tradgard-utemobler).
+Ska du samtidigt se över resten av uteplatsen har vi en genomgång av [hur du gör uteplatsen klar från grunden](/blogg/gor-uteplatsen-sommarklar-2026), och hela sortimentet finns under [Terrassvärmare & infravärmare](/kategori/terrassvarmare-infravarmare) i [Trädgård & Utemöbler](/kategori/tradgard-utemobler).
 
 ## Vanliga frågor
 

@@ -87,6 +87,8 @@ En licensierad modell betyder att tillverkaren betalat för att få kopiera bilm
 
 **De räknade inte med monteringen.** 12V-bilarna kommer i delar och kräver vuxen montering. Avsätt en kväll och gör det innan kalaset, inte under.
 
+Alla elbilar finns under [Elbil för barn](/kategori/elbilar-for-barn) och elmotorcyklarna under [Motorcyklar för barn](/kategori/motorcyklar-for-barn). Hittar du inte rätt bland de här finns fler fordon och utomhusleksaker i [Leksaker & spel](/kategori/leksaker-spel) och [Barn & familj](/kategori/barn-familj).
+
 ## Vanliga frågor
 
 ### Från vilken ålder passar en elbil för barn?
@@ -107,6 +109,3 @@ De flesta 12V-modeller är byggda för upp till 25–30 kg. Åkbilarna för de m
 ### Krävs montering?
 Ja, elbilarna levereras i delar och ska monteras av en vuxen. Räkna med en kväll för den första monteringen.
 
----
-
-Hittar du inte rätt bland de här finns fler fordon och utomhusleksaker i [Leksaker & spel](/kategori/leksaker-spel) och [Barn & familj](/kategori/barn-familj).

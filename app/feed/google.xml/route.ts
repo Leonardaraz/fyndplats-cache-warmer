@@ -118,6 +118,97 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "gunghastar-gungdjur": 1239,
   "redskapsbodar-forrad": 536,
   garagetalt: 536,
+  // Säsongskategorierna 2026-09-24. Här är ID:na SMALARE än förut, och vart
+  // och ett är kontrollerat mot Googles egen taxonomifil (taxonomy-with-ids,
+  // sv-SE och en-US) samma dag. Före: halloweenfigurerna låg i Kalas & Fest
+  // (96 Party & Celebration) och Trädgårdsdekor (536), juldekorationerna och
+  // konstväxterna i Dekoration & Prydnad (696 Decor), eldkorgarna i Grill &
+  // Utekök (536 via Trädgård). Vilket ID en produkt får beror på dess FÖRSTA
+  // underkategori, så alla byter inte.
+  halloweendekoration: 596,         // Decor > Seasonal & Holiday Decorations
+  juldekoration: 596,
+  konstvaxter: 6265,                // Decor > Artificial Flora
+  "eldkorgar-eldstader": 2918,      // Lawn & Garden > Outdoor Living
+  // Två av Trädgårds underkategorier där hela sortimentet ryms i en smalare
+  // kategori; resten faller som förut tillbaka på tradgard-utemobler (536).
+  utemobler: 4299,                  // Furniture > Outdoor Furniture
+  "terrassvarmare-infravarmare": 2649, // … > Climate Control Appliances > Patio Heaters
+  // Sökordskategorierna i runda S7 (2026-09-24). Varje ID är kontrollerat mot
+  // Googles taxonomifil (sv-SE och en-US) samma dag och är smalare än
+  // förälderns: 536 Home & Garden, 436 Furniture, 638 Kitchen & Dining,
+  // 988 Sporting Goods. Samma regel som ovan: det är produktens FÖRSTA
+  // underkategori som avgör, så alla produkter byter inte.
+  badrumsskap: 6356,                // Furniture > Cabinets & Storage
+  golvlampor: 4636,                 // Home & Garden > Lighting > Lamps
+  elkaminer: 6792,                  // Home & Garden > Fireplaces
+  varmeflaktar: 611,                // … > Climate Control Appliances > Space Heaters
+  "verktygsvagnar-verktygslador": 3974, // Hardware > … > Tool Storage & Organization
+  baddfatoljer: 6499,               // Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs
+  massagestolar: 1442,              // … > Massage & Relaxation > Massage Chairs
+  "tv-bankar": 457,                 // Furniture > Entertainment Centers & TV Stands
+  "skoskap-skobankar": 5559,        // … > Clothing & Closet Storage > Shoe Racks & Organizers
+  "koksoar-koksvagnar": 442,        // Furniture > Carts & Islands
+  boxningssackar: 499720,           // … > Boxing & Martial Arts Training Equipment
+  // Runda S8 (2026-09-24), samma kontroll mot taxonomifilen. Hönshus saknar
+  // egen nod; 6991 Animal Husbandry är där äggkläckare och hönsfoder ligger.
+  "kaninburar-marsvinsburar": 5017, // … > Small Animal Supplies > Small Animal Habitats & Cages
+  "hamsterburar-gnagarburar": 5017, // samma nod
+  terrarier: 5029,                  // … > Reptile & Amphibian Supplies > Reptile & Amphibian Habitats
+  "honshus-honsgardar": 6991,       // Business & Industrial > Agriculture > Animal Husbandry
+  hundvagnar: 6276,                 // Animals & Pet Supplies > Pet Supplies > Pet Strollers
+  "vedstall-vedbodar": 695,         // Home & Garden > Fireplace & Wood Stove Accessories > Log Racks & Carriers
+  // Runda S9 (2026-09-24), samma kontroll. Träning & Gym behåller 990.
+  "hantlar-hantelset": 3164,        // … > Weight Lifting > Free Weights
+  traningsbankar: 499795,           // Sporting Goods > Exercise & Fitness > Exercise Benches
+  motionscyklar: 994,               // … > Cardio > Cardio Machines > Exercise Bikes
+  // Runda S10 (2026-09-24), samma kontroll. Badrumsspeglar har ingen egen nod
+  // och delar Mirrors med Speglar; 730 Kitchen Appliances rymmer både
+  // vattenkokare och brödrostar, eftersom de flesta produkterna är set.
+  speglar: 595,                     // Home & Garden > Decor > Mirrors
+  badrumsspeglar: 595,              // samma nod
+  sidobord: 6369,                   // Furniture > Tables > Accent Tables (sv: Sidobord)
+  nattduksbord: 462,                // Furniture > Tables > Nightstands
+  byraer: 4195,                     // Furniture > Cabinets & Storage > Dressers
+  bokhyllor: 465,                   // Furniture > Shelving > Bookcases & Standing Shelves
+  tvattkorgar: 634,                 // … > Laundry Supplies > Laundry Baskets
+  "vattenkokare-brodrostar": 730,   // Home & Garden > Kitchen & Dining > Kitchen Appliances
+  // Runda S11 (2026-09-24), samma kontroll. Pallar har ingen egen nod för
+  // stegpallar, duschpallar och rullpallar tillsammans, så de får Chairs.
+  // Vinställ & vinkylar får Kitchen & Dining och inte Wine Racks: sidan har
+  // också vinkylar, en köksö och en köksvagn, och taxonomyFor tar produktens
+  // första underkategori. Wine Racks hade klassat köksön som ett vinställ.
+  pallar: 443,                      // Furniture > Chairs
+  "sittpuffar-fotpallar": 458,      // Furniture > Ottomans (sv: Fotpallar)
+  "kladhangare-hallmobler": 5708,   // Home & Garden > Decor > Coat & Hat Racks
+  "sideboards-vitrinskap": 447,     // Furniture > Cabinets & Storage > Buffets & Sideboards
+  "vinstall-vinkylar": 638,         // Home & Garden > Kitchen & Dining
+  barnmobler: 554,                  // Furniture > Baby & Toddler Furniture
+  projektordukar: 395,              // … > Projector Accessories > Projection Screens
+  // Runda S12 (2026-09-24), samma kontroll. Massage & Återhämtning och
+  // Kropp & Välbefinnande behåller 469: de blandar stolar, bänkar och hjälpmedel.
+  massagebankar: 2074,              // … > Massage & Relaxation > Massage Tables (sv: Massagebord)
+  // Runda S13 (2026-09-24), samma kontroll. Barbord får Kitchen & Dining Room
+  // Tables: de flesta är set, och Google klassar ett set efter huvudprodukten.
+  // Matgrupper har en egen setnod. Skärmtak saknar egen nod; Awnings är
+  // närmast (sv-etiketten är Markiser).
+  soptunnor: 637,                   // … > Waste Containment > Trash Cans & Wastebaskets
+  "miniugnar-airfryers": 761,       // … > Toasters & Grills > Countertop & Toaster Ovens
+  barbord: 4355,                    // Furniture > Tables > Kitchen & Dining Room Tables
+  snurrfatoljer: 6499,              // Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs
+  oronlappsfatoljer: 6499,          // samma nod
+  matgrupper: 6347,                 // Furniture > Furniture Sets > Kitchen & Dining Furniture Sets
+  hornskrivbord: 4191,              // Furniture > Office Furniture > Desks
+  "skarmtak-entretak": 499907,      // … > Lawn & Garden > Outdoor Living > Awnings
+  gnistskydd: 2365,                 // … > Fireplace & Wood Stove Accessories > Fireplace Screens
+  elementskydd: 7110,               // … > Household Appliance Accessories > Heating Radiator Accessories
+  // Runda S14 (2026-09-24), samma kontroll mot taxonomifilen (sv-SE och en-US).
+  // Motorcyklarna får Electric Riding Vehicles, eftersom 14 av 17 är eldrivna.
+  // Som förut avgör produktens FÖRSTA underkategori vilken nod den får.
+  "motorcyklar-for-barn": 2753,    // Toys & Games > Toys > Riding Toys > Electric Riding Vehicles
+  "valphagar-hundhagar": 5087,     // Animals & Pet Supplies > Pet Supplies > Pet Playpens
+  "blomstall-vaxthyllor": 6428,    // … > Lawn & Garden > Gardening > Plant Stands (sv: Växtställ)
+  "serveringsvagnar-rullvagnar": 442, // Furniture > Carts & Islands (sv: Rullbord)
+  odlingslador: 721,                // … > Gardening > Pots & Planters
   // Barn & leksaker
   "leksaker-spel": 1239,             // Toys & Games
   "baby-smabarn": 537,               // Baby & Toddler
@@ -337,7 +428,12 @@ export async function GET() {
       taxonomy = taxonomyFor(byId.get(pid), byColId);
       taxonomyCache.set(pid, taxonomy);
     }
-    const line = feedItem(v, byId.get(pid), galleries.get(pid) || [], taxonomy);
+    // Galleriet ur V3-svepet, annars produktens eget (upp till 6 bilder ur
+    // listningen), samma reserv som /feed/products.xml. Utan reserven fick
+    // 2 836 av 3 393 produkter NOLL extrabilder (2026-09-24): svepet läser bara
+    // de 1 200 nyaste produkterna, och drygt hälften av dem är dolda utkast.
+    const gallery = galleries.get(pid) || byId.get(pid)?.gallery || [];
+    const line = feedItem(v, byId.get(pid), gallery, taxonomy);
     if (line) items.push(line);
   }
 

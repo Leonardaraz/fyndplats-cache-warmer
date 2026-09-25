@@ -6,7 +6,9 @@ import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
-import { getProduct, getProducts, getCollections, dedupeProducts, type Product } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, dedupeProducts, forListings, type Product } from "../../../lib/products";
+import { valjBrodsmula } from "../../../lib/breadcrumb-category";
+import { categoryIndexable, countPerCategory } from "../../../lib/category-threshold";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
 import { produktGrannar } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
@@ -83,15 +85,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   const cols = await getCollections();
-  // Brödsmulans/JSON-LD:ns kategori: produktens HUVUDavdelning (parentId null) om
-  // den finns, annars en underkategori — men ALDRIG promo-/rotkollektioner
-  // (All Products, REA, Populära). Används för synlig brödsmula, breadcrumb-JSON-LD
-  // OCH GA4-kategori, så alla tre är konsekventa. Faller tillbaka på "Butik" (visuellt)
-  // / utelämnas (JSON-LD) om produkten saknar en riktig kategori.
+  // Brödsmulans/JSON-LD:ns kategorier: avdelning och den smalaste indexerbara
+  // underkategorin (lib/breadcrumb-category.ts) — men ALDRIG promo-/rotkollektioner
+  // (All Products, REA, Populära). Avdelningen används för synlig brödsmula,
+  // breadcrumb-JSON-LD OCH GA4-kategori, så alla tre är konsekventa. Faller
+  // tillbaka på "Butik" (visuellt) / utelämnas (JSON-LD) om produkten saknar en
+  // riktig kategori.
   const ownCats = (p.collectionIds || [])
     .map((id) => cols.find((c) => c.id === id))
     .filter((c): c is (typeof cols)[number] => c !== undefined && !NAV_EXCLUDED.has(c.name));
-  const primaryCol = ownCats.find((c) => c.parentId === null) || ownCats[0];
+  // navCols, inte cols: promo-kollektionerna (REA, Populära, All Products) är
+  // föräldralösa och hade annars kunnat bli "avdelningen" för en produkt som
+  // ligger i dem — samma NAV_EXCLUDED-filter som ownCats redan går igenom.
+  const navCols = cols.filter((c) => !NAV_EXCLUDED.has(c.name));
+  // Hela katalogen behövs ändå längre ner (relaterade, bläddring). Den är
+  // modulcachad, så att hämta den redan här kostar inget extra anrop.
+  const all = await getProducts();
+  const brodsmula = valjBrodsmula(ownCats, navCols, countPerCategory(forListings(all)), categoryIndexable);
+  const primaryCol = brodsmula.avdelning;
+  const subCol = brodsmula.underkategori;
 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   const reviewData = await getProductReviews(p.id);
@@ -200,7 +212,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ];
   if (primaryCol) {
     breadcrumbItems.push({ "@type": "ListItem", position: 2, name: primaryCol.name, item: `https://www.fyndplats.se/kategori/${primaryCol.slug}` });
-    breadcrumbItems.push({ "@type": "ListItem", position: 3, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
+    if (subCol) {
+      breadcrumbItems.push({ "@type": "ListItem", position: 3, name: subCol.name, item: `https://www.fyndplats.se/kategori/${subCol.slug}` });
+    }
+    breadcrumbItems.push({ "@type": "ListItem", position: breadcrumbItems.length + 1, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
   } else {
     // Matcha den SYNLIGA brödsmulan (Hem → Butik → produkt) — schemat hoppade
     // tidigare över Butik-steget för okategoriserade produkter.
@@ -226,7 +241,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // prispassning) med meningsfullt kategori-överlapp som fallback/påfyllning.
   // All logik (universell-kategori-exkludering, i-lager, dedup, aldrig tomt) i den
   // testade rena pickRelated(). Se lib/related-products.test.ts.
-  const all = await getProducts();
   const related: Product[] = await attachRatings(pickRelated(p, all, curatedRelatedSlugs(p.slug), 4));
 
   // Föregående/nästa, så man slipper backa till kategorisidan för varje produkt.
@@ -246,10 +260,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Både cols och ownCats: ownCats säger vilken avdelning produkten hör till,
   // cols bygger avdelningens alla avsnitt.
   //
-  // navCols, inte cols: promo-kollektionerna (REA, Populära, All Products) är
-  // föräldralösa och hade annars kunnat bli "avdelningen" för en produkt som
-  // ligger i dem — samma NAV_EXCLUDED-filter som ownCats redan går igenom.
-  const navCols = cols.filter((c) => !NAV_EXCLUDED.has(c.name));
+  // navCols, inte cols: se ovan.
   const grannar = produktGrannar(navCols, ownCats, all, p.slug, dedupeProducts);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
@@ -294,7 +305,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <nav className="crumbs">
           <a href="/">Hem</a> <span>/</span>{" "}
           {primaryCol ? (
-            <><a href={`/kategori/${primaryCol.slug}`}>{primaryCol.name}</a> <span>/</span> </>
+            <>
+              <a href={`/kategori/${primaryCol.slug}`}>{primaryCol.name}</a> <span>/</span>{" "}
+              {subCol && (
+                <><a href={`/kategori/${subCol.slug}`}>{subCol.name}</a> <span>/</span> </>
+              )}
+            </>
           ) : (
             <><a href="/butik">Butik</a> <span>/</span> </>
           )}

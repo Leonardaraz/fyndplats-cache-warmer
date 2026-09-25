@@ -71,7 +71,7 @@ Ja. Med WiFi kan du spegla din mobil eller surfplatta, och med HDMI ansluter du 
 
 ### Vilken duk behöver jag?
 
-En slät, vit vägg fungerar utmärkt till att börja med. Vill du ha det lilla extra ger en dedikerad projektorduk en jämnare och skarpare bild.
+En slät, vit vägg fungerar utmärkt till att börja med. Vill du ha det lilla extra ger en dedikerad [projektorduk](/kategori/projektordukar) en jämnare och skarpare bild.
 
 ## Sammanfattning
 

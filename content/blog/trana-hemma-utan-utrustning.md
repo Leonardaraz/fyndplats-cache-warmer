@@ -148,7 +148,7 @@ Det blir det. Efter 6–8 veckor kommer många övningar att kännas hanterbara.
 
 1. **Öka tempo eller minska vila** — gör 5 set istället för 3, eller 30 sekunders vila istället för 60.
 2. **Gå över till svårare varianter** — armhävningar med fötterna på en stol, enbensknäböj, längre plankor.
-3. **Lägg till lätt utrustning** — ett par enkla hantlar, ett gummiband eller en kettlebell ger nytt liv åt programmet utan att kosta mycket.
+3. **Lägg till lätt utrustning** — ett par enkla [hantlar](/kategori/hantlar-hantelset), ett gummiband eller en kettlebell ger nytt liv åt programmet utan att kosta mycket.
 
 Vi har ett urval av enkel hemmaträning-utrustning i kategorin [Träning](https://www.fyndplats.se/kategori/traning-gym) — bra fynd för dig som vill ta steget från ren kroppsviktsträning till lätt motstånd.
 

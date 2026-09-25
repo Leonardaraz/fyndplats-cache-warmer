@@ -60,7 +60,7 @@ Vår [popup-paviljong 3,6×3,6 m](/produkt/popup-paviljong-3-6x3-6-m-natvaggar) 
 
 ## Utforska mer hos Fyndplats
 
-Gör hela uteplatsen klar med fler fynd inom [Trädgård & Utemöbler](/kategori/tradgard-utemobler) — och läs gärna [Gör uteplatsen sommarklar](/blogg/gor-uteplatsen-sommarklar-2026) för helheten, eller [Nytt för utelivet](/blogg/nytt-for-utelivet-2026) om du hellre drar ut i det fria.
+Alla paviljonger och paviljongtak finns under [Solskydd & paviljonger](/kategori/solskydd-paviljonger). Gör hela uteplatsen klar med fler fynd inom [Trädgård & Utemöbler](/kategori/tradgard-utemobler) — och läs gärna [Gör uteplatsen sommarklar](/blogg/gor-uteplatsen-sommarklar-2026) för helheten, eller [Nytt för utelivet](/blogg/nytt-for-utelivet-2026) om du hellre drar ut i det fria.
 
 ## Vanliga frågor
 

@@ -52,6 +52,8 @@ Du behöver inte leta eller jämföra – **alla våra produkter kommer garanter
 
 [Se hela sortimentet →](/butik)
 
+*Källa: Europeiska kommissionen, Taxation and Customs Union. Den här texten är allmän information, inte juridisk rådgivning – kontrollera med Tullverket eller din transportör för detaljer i ditt enskilda fall.*
+
 ## Vanliga frågor
 
 ### Slipper jag den nya tullen på mina beställningar?
@@ -66,6 +68,3 @@ En fast tull på 3 euro per vara, plus en planerad hanteringsavgift och ofta en 
 ### Gäller detta allt jag köper på nätet?
 Bara varor som skickas in i EU utifrån. Köper du varor som redan finns i EU-lager – som hos Fyndplats – tillkommer inga sådana avgifter.
 
----
-
-*Källa: Europeiska kommissionen, Taxation and Customs Union. Den här texten är allmän information, inte juridisk rådgivning – kontrollera med Tullverket eller din transportör för detaljer i ditt enskilda fall.*

@@ -63,3 +63,11 @@ export function categoryInMainNav(count: number): boolean {
   const t = categoryTier(count);
   return t === "bedom" || t === "full";
 }
+
+/** Antal produkter per kategori-id. Ge den forListings(produkter), samma mängd
+ *  som kategorisidan visar, annars säger räkningen något annat än sidan. */
+export function countPerCategory(products: ReadonlyArray<{ collectionIds?: string[] }>): Map<string, number> {
+  const antal = new Map<string, number>();
+  for (const p of products) for (const cid of p.collectionIds || []) antal.set(cid, (antal.get(cid) || 0) + 1);
+  return antal;
+}

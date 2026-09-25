@@ -26,7 +26,7 @@ Den här guiden samlar de mest effektiva tipsen för att bygga ett bra hemmakont
 
 ## 1. Stolen är viktigare än skrivbordet
 
-Om du bara har råd att investera i en sak: välj stolen. Du tillbringar sex till åtta timmar om dagen i den. En billig kontorsstol med justerbar höjd, lutningsjusterad rygg och ordentligt svankstöd kostar långt mindre än ett höj- och sänkbart skrivbord och gör mycket större skillnad för ryggen.
+Om du bara har råd att investera i en sak: välj stolen. Du tillbringar sex till åtta timmar om dagen i den. En billig [kontorsstol](/kategori/kontorsstolar) med justerbar höjd, lutningsjusterad rygg och ordentligt svankstöd kostar långt mindre än ett höj- och sänkbart skrivbord och gör mycket större skillnad för ryggen.
 
 Vill du inte köpa ny stol direkt: skaffa ett **svankstöd** att placera bakom ryggen. Det är en 30-minuters investering som kan rädda dig från flera år av låg ryggsmärta.
 
@@ -42,7 +42,7 @@ Lösningen är enkel: höj upp skärmen så att toppkanten är i ögonhöjd. Tre
 
 När skärmen är i ögonhöjd kan du inte längre använda laptopens tangentbord bekvämt. Skaffa ett externt tangentbord och en mus. Det här är förmodligen den billigaste och mest underskattade investering du kan göra för din ergonomi.
 
-Trådlösa varianter är bekvämare och ger ett renare skrivbord. Behöver du inspiration finns flera prisvärda alternativ i kategorin [Kontor & arbetsplats](https://www.fyndplats.se/kategori/hem-inredning).
+Trådlösa varianter är bekvämare och ger ett renare skrivbord.
 
 [![Golvlampa med två runda avlastningsbord och E27-sockel, vit](https://static.wixstatic.com/media/b379ce_1dc64d5986524dd689d64cf2f95d1c75~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/golvlampa-med-bord "Se i butiken →")
 
@@ -105,7 +105,7 @@ Om du ska bygga ett bra hemmakontor stegvis, rekommenderar vi den här ordningen
 
 Sammanlagt kommer du långt under 5 000 kronor — och de flesta stegen får du på halva budgeten om du letar smart.
 
-Bra fynd för dessa produkter samlas i kategorin [Kontor & arbetsplats](https://www.fyndplats.se/kategori/hem-inredning) på Fyndplats. Och om du vill kombinera kontoret med att hålla igång kroppen, kika på vår guide [Träna hemma utan utrustning](https://www.fyndplats.se/blogg/trana-hemma-utan-utrustning) — fem minuter mellan möten gör underverk.
+Stolar och skrivbord hittar du under [Kontorsstolar](/kategori/kontorsstolar) och [Skrivbord](/kategori/skrivbord) på Fyndplats. Och om du vill kombinera kontoret med att hålla igång kroppen, kika på vår guide [Träna hemma utan utrustning](https://www.fyndplats.se/blogg/trana-hemma-utan-utrustning) — fem minuter mellan möten gör underverk.
 
 ## Avslutning
 

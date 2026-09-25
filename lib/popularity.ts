@@ -56,7 +56,14 @@ async function fetchSoldUnitsRaw(): Promise<Map<string, number>> {
             cursorPaging: cursor ? { limit: 100, cursor } : { limit: 100 },
           },
         }),
-        cache: "no-store",
+        // INGET cache-val, med flit. Hämtningen körs inne i ISR-renderingen
+        // (getProducts), och `cache: "no-store"` gör en ISR-sida dynamisk mitt
+        // i renderingen. Next svarar då 500 med "Page changed from static to
+        // dynamic at runtime … revalidate: 0 fetch …/orders/search". Det
+        // hände i produktion på kalla instanser: 84 svar med 500 på ett dygn
+        // (2026-09-24), nästan alla på /produkt/[slug]. Utan cache-val lagras
+        // svaret inte i Data Cache och sidan förblir statisk. Färskheten styrs
+        // av TTL:en ovan, som förut.
       });
       if (!res.ok) return new Map(); // 403 READ_ORDER_FORBIDDEN m.m. → fail-open
       const data = await res.json();

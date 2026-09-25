@@ -181,7 +181,7 @@ Belys gången med några [solcellslampor med jordspett](/produkt/solcellslampa-1
 
 ## Utforska mer hos Fyndplats
 
-Fler idéer till fest och stämning hittar du under [Kalas & fest](/kategori/kalas-fest), [Dekoration & prydnad](/kategori/dekoration-prydnad) och [Trädgårdsdekor & belysning](/kategori/tradgardsdekor-belysning). Och när pumporna har plockats undan väntar nästa säsong – läs vår guide till [mysig höstinredning](/blogg/mysig-hostinredning).
+Hela sortimentet finns under [Halloweendekoration](/kategori/halloweendekoration). Fler idéer till fest och stämning hittar du under [Kalas & fest](/kategori/kalas-fest), [Dekoration & prydnad](/kategori/dekoration-prydnad) och [Trädgårdsdekor & belysning](/kategori/tradgardsdekor-belysning). Och när pumporna har plockats undan väntar nästa säsong – läs vår guide till [mysig höstinredning](/blogg/mysig-hostinredning).
 
 ## Vanliga frågor
 

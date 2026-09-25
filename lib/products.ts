@@ -4,6 +4,7 @@ import { imgKey } from "./image-alt";
 import { formatPrice } from "./price-range";
 import { clipText } from "./clip-text";
 import { hamtaAllaKategorier } from "./category-paging";
+import { asciiSlug } from "./category-slug";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -996,9 +997,16 @@ export { imgKey };
 export async function fetchAllVariantsRaw(): Promise<any[]> {
   if (!WIX_API_KEY) return [];
   const out: any[] = [];
+  // TAKET VAR 10 SIDOR = 10 000 VARIANTER, och det kapade TYST. Katalogen hade
+  // 7 006 varianter 2026-09-24 och växer med ~60 produkter per natt: taket hade
+  // nåtts runt mitten av november, och varianterna bortom det hade fallit ur
+  // Google Shopping utan ett enda fel. Nu är taket bara en rundgångsspärr, och
+  // slår det i loggas det som ett FEL.
+  const MAX_VARIANTSIDOR = 30; // 30 000 varianter
+  let slogITaket = true;
   try {
     let cursor: string | undefined;
-    for (let page = 0; page < 10; page++) { // hård gräns 10 000 varianter
+    for (let page = 0; page < MAX_VARIANTSIDOR; page++) {
       let data: any = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
@@ -1013,13 +1021,24 @@ export async function fetchAllVariantsRaw(): Promise<any[]> {
         } catch { /* nätverksfel → backoff */ }
         await new Promise((r) => setTimeout(r, 500 * (attempt + 1) ** 2));
       }
-      if (!data) break;
+      if (!data) {
+        slogITaket = false;
+        console.error(`[wix] fetchAllVariantsRaw: sida ${page + 1} svarade inte efter tre försök — flödet får ${out.length} varianter`);
+        break;
+      }
       out.push(...(data.variants || []));
       cursor = data?.pagingMetadata?.cursors?.next || undefined;
-      if (!cursor || !data?.pagingMetadata?.hasNext) break;
+      if (!cursor || !data?.pagingMetadata?.hasNext) { slogITaket = false; break; }
     }
   } catch (e) {
+    slogITaket = false;
     console.error("[wix] fetchAllVariantsRaw failed:", (e as Error).message);
+  }
+  if (slogITaket) {
+    console.error(
+      `[wix] fetchAllVariantsRaw: SIDTAKET SLOG I efter ${out.length} varianter på ${MAX_VARIANTSIDOR} sidor — `
+        + "Google-flödet saknar resten. Höj MAX_VARIANTSIDOR.",
+    );
   }
   return out;
 }
@@ -1029,7 +1048,10 @@ export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
   if (!WIX_API_KEY) return out;
   try {
     let cursor: string | undefined;
-    for (let page = 0; page < 12; page++) { // hård gräns ~1200 produkter
+    // Hård gräns ~1 200 produkter, räknat nyast först. Katalogen har över
+    // 6 000, så de flesta produkter får sitt galleri ur listningen i stället
+    // (upp till 6 bilder, se reserven i /feed/google.xml och /feed/products.xml).
+    for (let page = 0; page < 12; page++) {
       const res = await fetch("https://www.wixapis.com/stores/v3/products/query", {
         method: "POST",
         headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
@@ -1126,17 +1148,6 @@ const MAIN_ORDER = [
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;
-
-// ASCII-safe slug from the category name. Wix slugs contain å/ä/ö (e.g. "kök",
-// "hörlurar") which Next.js dynamic routes mishandle → 404. We derive our own ASCII
-// slug instead; it's only an internal URL id (we match products by collectionId, not slug).
-function asciiSlug(s: string): string {
-  return (s || "")
-    .toLowerCase()
-    .replace(/[åä]/g, "a").replace(/ö/g, "o")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 // Första sidan av kategorifrågan. Resten hämtas av hamtaAllaKategorier via
 // SDK:ts next(), så den här är enda stället frågan byggs (lib/category-paging.ts).

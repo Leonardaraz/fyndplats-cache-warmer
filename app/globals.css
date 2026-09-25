@@ -211,6 +211,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 
 .meganav-panel{position:absolute;top:100%;left:0;right:0;z-index:55;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:var(--e4);animation:megaIn .2s cubic-bezier(.2,.7,.2,1)}
 @keyframes megaIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+/* Alla paneler ligger i HTML:en (se meganav.tsx). Vid byte mellan två öppna
+   paneler glider den nya inte in, precis som när samma element bytte innehåll. */
+.meganav.byte .meganav-panel{animation:none}
 .meganav-panel-inner{padding-top:26px;padding-bottom:30px}
 .meganav-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .meganav-panel-title{font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;letter-spacing:-.015em;color:var(--ink);transition:color .15s}
