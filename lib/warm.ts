@@ -53,13 +53,6 @@ export const varmProdukt = (slug: string) => varmSida(`/produkt/${slug}`);
  *  35 s uppmätt; den hämtningen ska inte vara en kunds. */
 export const varmBildkartan = () => varmSida("/api/kort-bilder");
 
-/** Kortens extrabilder (app/api/kort-galleri). Varje sida ber om sin egen
- *  kombination av produkter, så CDN-posten hjälper bara den som öppnar samma
- *  sida igen — det som ska hållas varmt är funktionen och dess katalog. Därför
- *  en unik fråga varje gång: den går alltid förbi CDN:en till en instans. */
-export const varmKortgalleriet = (slug: string) =>
-  varmSida(`/api/kort-galleri?s=${encodeURIComponent(slug)}&v=${Date.now()}`);
-
 export async function varmAlla(
   slugs: readonly string[],
   deadline = Infinity,

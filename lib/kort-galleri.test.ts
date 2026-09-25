@@ -33,12 +33,24 @@ test("huvudbilden behöver inte ligga först i galleriet", () => {
   assert.deepEqual(extraKortbilder(W + "a~mv2.jpg", g, nyckel), ["c~mv2.jpg"]);
 });
 
-import { lasSlugs, KORT_GALLERI_MAX_SLUGS } from "./kort-galleri.ts";
+import { kortDel, lasDel, KORT_DELAR } from "./kort-galleri.ts";
 
-test("lasSlugs: giltiga, unika, sorterade och kapade", () => {
-  assert.deepEqual(lasSlugs("b-2,a-1,b-2, c ,<script>,../x"), ["a-1", "b-2", "c"]);
-  assert.deepEqual(lasSlugs(null), []);
-  assert.deepEqual(lasSlugs(""), []);
-  const många = Array.from({ length: 100 }, (_, i) => `p${String(i).padStart(3, "0")}`).join(",");
-  assert.equal(lasSlugs(många).length, KORT_GALLERI_MAX_SLUGS);
+test("kortDel: stabil, inom intervallet och någorlunda jämnt fördelad", () => {
+  assert.equal(kortDel("pelarjulgran-180-cm-46-cm-bred"), kortDel("pelarjulgran-180-cm-46-cm-bred"));
+  const antal = new Array(KORT_DELAR).fill(0);
+  for (let i = 0; i < 4000; i++) {
+    const d = kortDel(`produkt-${i}-cm`);
+    assert.ok(Number.isInteger(d) && d >= 0 && d < KORT_DELAR);
+    antal[d]++;
+  }
+  // ~31 per del i snitt; ingen del tom och ingen som bär en orimlig andel.
+  assert.ok(Math.min(...antal) > 5, `minsta del ${Math.min(...antal)}`);
+  assert.ok(Math.max(...antal) < 70, `största del ${Math.max(...antal)}`);
+});
+
+test("lasDel: bara heltal inom antalet delar", () => {
+  assert.equal(lasDel("0"), 0);
+  assert.equal(lasDel(String(KORT_DELAR - 1)), KORT_DELAR - 1);
+  assert.equal(lasDel(String(KORT_DELAR)), null);
+  for (const fel of ["", "-1", "01", "1.5", "abc", "1e2", " 3"]) assert.equal(lasDel(fel), null, fel);
 });

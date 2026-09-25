@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { kortDel } from "../lib/kort-galleri";
 
 // Produktkortets bilder: en rad bilder man sveper mellan på pekskärm, och
 // hover-växlingen på dator.
@@ -16,8 +17,8 @@ import { tightFillUrl } from "../lib/wix-image";
 // FLER BILDER, HÄMTADE I FÖRVÄG — MEN ALDRIG MITT I ETT SVEP.
 // Kortet börjar med de två bilder listan redan bär (img + altImg). Resten av
 // galleriet (högst sex bilder totalt) hämtas så fort kortet visas på en
-// pekskärm, samlat för alla kort som ritas samtidigt: EN förfrågan till
-// /api/kort-galleri för 24 kort, inte en per kort.
+// pekskärm, ur förbyggda delar av katalogen som alla kort på sidan delar
+// (/api/kort-galleri/<del>).
 //
 // Första versionen hämtade per kort vid första svepet. På Leonards iPhone kom
 // bilderna sent, och raden byggdes om mitt i gesten så att svepet studsade
@@ -29,74 +30,74 @@ import { tightFillUrl } from "../lib/wix-image";
 // rätt fysik, fungerar inuti länken (en panorering blir aldrig ett klick) och
 // kostar ingenting på dator, där raden inte kan scrollas och inget hämtas.
 
-// ── Samlad hämtning ─────────────────────────────────────────────────────────
-// Delad mellan alla kort: varje produkt hämtas högst en gång per sidbesök.
-const klara = new Map<string, string[]>();
+// ── Hämtning per del ────────────────────────────────────────────────────────
+// Delad mellan alla kort. Katalogen ligger i KORT_DELAR förbyggda svar
+// (/api/kort-galleri/<del>, se lib/kort-galleri.ts); varje del hämtas högst en
+// gång per sidbesök och täcker alla kort som hör till den.
+//
+// Kallstart: förra versionen frågade efter just sidans produkter, vilket gick
+// till en funktion som på en kall instans läste hela katalogen — 47,5 s
+// uppmätt. Leonards prickar kom först när han öppnade sidan igen (2026-09-25).
+// Delarna är förbyggda och svarar från CDN:en direkt.
+const delar = new Map<number, Record<string, string[]>>();
+const pagaende = new Set<number>();
+const forsok = new Map<number, number>();
 const lyssnare = new Map<string, Set<(k: string[]) => void>>();
-const ko = new Set<string>();
-const pagaende = new Set<string>();
-let koTimer: ReturnType<typeof setTimeout> | null = null;
-const MAX_PER_ANROP = 48;
-
-// Kallstart: rutten läser hela katalogen, och på en kall instans tar det upp
-// till ~35 s (uppmätt på bildkartan, som gör samma läsning). Första versionen
-// gav upp efter 10 s och försökte sedan aldrig igen — prickarna kom först när
-// Leonard öppnade sidan på nytt (2026-09-25). Nu väntar vi ut kallstarten och
-// försöker en gång till om det ändå misslyckas.
-const TIDSGRANS_MS = 40000;
+const TIDSGRANS_MS = 20000;
 const OMFORSOK_MS = 3000;
-const forsok = new Map<string, number>();
 
-function skickaKon() {
-  koTimer = null;
-  const slugs = [...ko].slice(0, MAX_PER_ANROP);
-  slugs.forEach((s) => { ko.delete(s); pagaende.add(s); });
-  if (ko.size) koTimer = setTimeout(skickaKon, 0); // resten i nästa anrop
-  if (!slugs.length) return;
+function resultat(slug: string): string[] | undefined {
+  const m = delar.get(kortDel(slug));
+  if (!m) return undefined;
+  const v = m[slug];
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+function hamtaDel(del: number) {
+  if (delar.has(del) || pagaende.has(del)) return;
+  pagaende.add(del);
   // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
   // Safari före iOS 16 och kastar då synkront.
   const ctl = typeof AbortController === "function" ? new AbortController() : null;
   const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
-  fetch(`/api/kort-galleri?s=${slugs.map(encodeURIComponent).join(",")}`, ctl ? { signal: ctl.signal } : undefined)
+  fetch(`/api/kort-galleri/${del}`, ctl ? { signal: ctl.signal } : undefined)
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     })
-    .then((d: Record<string, unknown>) => {
-      for (const s of slugs) {
-        const v = d?.[s];
-        const k = Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
-        klara.set(s, k);
-        lyssnare.get(s)?.forEach((cb) => cb(k));
+    .then((d: unknown) => {
+      delar.set(del, d && typeof d === "object" ? (d as Record<string, string[]>) : {});
+      for (const [slug, set] of lyssnare) {
+        if (kortDel(slug) !== del) continue;
+        const k = resultat(slug) ?? [];
+        set.forEach((cb) => cb(k));
       }
     })
     .catch(() => {
       // Kortet står kvar på två bilder tills vidare. Ett automatiskt omförsök;
       // därefter bara när besökaren rör kortet.
-      const igen = slugs.filter((s) => (forsok.get(s) ?? 0) < 1);
-      igen.forEach((s) => forsok.set(s, (forsok.get(s) ?? 0) + 1));
-      if (igen.length) setTimeout(() => igen.forEach(begar), OMFORSOK_MS);
+      const n = forsok.get(del) ?? 0;
+      forsok.set(del, n + 1);
+      if (n < 1) setTimeout(() => hamtaDel(del), OMFORSOK_MS);
     })
     .finally(() => {
       if (t) clearTimeout(t);
-      slugs.forEach((s) => pagaende.delete(s));
+      pagaende.delete(del);
     });
 }
 
-function begar(slug: string) {
-  if (klara.has(slug) || pagaende.has(slug) || ko.has(slug)) return;
-  ko.add(slug);
-  // Kort som ritas i samma omgång samlas i samma anrop.
-  if (!koTimer) koTimer = setTimeout(skickaKon, 60);
-}
+const begar = (slug: string) => hamtaDel(kortDel(slug));
 
 function prenumerera(slug: string, cb: (k: string[]) => void): () => void {
-  const k = klara.get(slug);
+  const k = resultat(slug);
   if (k) cb(k);
   let set = lyssnare.get(slug);
   if (!set) { set = new Set(); lyssnare.set(slug, set); }
   set.add(cb);
-  return () => { set!.delete(cb); };
+  return () => {
+    set!.delete(cb);
+    if (!set!.size) lyssnare.delete(slug);
+  };
 }
 
 const arPekskarm = () =>

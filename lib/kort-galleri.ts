@@ -5,8 +5,8 @@
 // i listnyttolasten kostar alla besökare: mätt 2026-09-24 hade en tredje
 // nyckel per produkt gjort bildkartan (/api/kort-bilder) 40 % större, 178 → 246
 // kB gzip, för bilder de flesta aldrig sveper fram till. I stället hämtar
-// kortet resten av galleriet från /api/kort-galleri/<slug> när besökaren
-// börjar svepa — då betalar bara den som faktiskt tittar.
+// kortet resten av galleriet från /api/kort-galleri/<del> på pekskärmar — och
+// visar själva bilden först när besökaren sveper fram till den.
 //
 // Ren funktion utan importer (node:test kör den direkt); rutten skickar in
 // nyckelfunktionen.
@@ -44,15 +44,37 @@ export function extraKortbilder(
   return ut;
 }
 
-/** Högst så många produkter per förfrågan till /api/kort-galleri. */
-export const KORT_GALLERI_MAX_SLUGS = 48;
+// ── Katalogen i fasta delar ─────────────────────────────────────────────────
+// Extrabilderna ligger i KORT_DELAR förbyggda svar, /api/kort-galleri/<del>,
+// och varje produkt hör alltid till samma del. Webbläsaren ber om de delar
+// sidans kort hör till.
+//
+// VARFÖR INTE EN FRÅGA PER SIDA (?s=a,b,c, 2026-09-24 → 25). En sådan fråga är
+// en ny nyckel för varje urval, alltså ett funktionsanrop — och på en kall
+// instans läser rutten hela katalogen: 47,5 s uppmätt på preview. Leonards
+// prickar kom först när han öppnade sidan igen. Fasta delar byggs vid deployen
+// (generateStaticParams) och förnyas i bakgrunden, som /api/kort-bilder, så
+// ingen besökare väntar på en kall katalog.
+//
+// 128 delar: ett kort svar per del (~30 produkter), och en sida med 24 kort
+// rör i snitt ~22 delar. Färre delar ger färre anrop men mer data man inte
+// behöver; det här är en balans, inte ett magiskt tal. Ändras talet byter
+// alla produkter del — det är ofarligt, klient och server delar funktionen.
+export const KORT_DELAR = 128;
 
-/**
- * Läser ?s=a,b,c: bara giltiga slugs (a–z, 0–9, bindestreck), unika, sorterade
- * (samma urval ger samma CDN-nyckel oavsett ordning) och kapade.
- */
-export function lasSlugs(s: string | null): string[] {
-  if (!s) return [];
-  const ut = [...new Set(s.split(",").map((x) => x.trim()).filter((x) => /^[a-z0-9-]{1,120}$/.test(x)))];
-  return ut.sort().slice(0, KORT_GALLERI_MAX_SLUGS);
+/** Vilken del en produkt hör till: FNV-1a över sluggen, modulo KORT_DELAR. */
+export function kortDel(slug: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < slug.length; i++) {
+    h ^= slug.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h % KORT_DELAR;
+}
+
+/** "0".."127" → delens nummer; allt annat → null. */
+export function lasDel(s: string): number | null {
+  if (!/^(0|[1-9][0-9]{0,3})$/.test(s)) return null;
+  const n = Number(s);
+  return n < KORT_DELAR ? n : null;
 }

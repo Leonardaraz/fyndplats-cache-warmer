@@ -27,7 +27,7 @@
 // är precis det värmande vi vill ha. Se den längre noten i warm-and-ping.
 import { NextResponse } from "next/server";
 import { getProductSitemapEntries } from "../../../../lib/products";
-import { katalogenArKall, roterad, varmAlla, varmBildkartan, varmKortgalleriet } from "../../../../lib/warm";
+import { katalogenArKall, roterad, varmAlla, varmBildkartan } from "../../../../lib/warm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,14 +71,11 @@ export async function GET(request: Request) {
   // som inte kostar något alls; ungefär en gång i timmen faller den på ett
   // utgånget fönster och renderas om. Det är billigare än att låta en kund göra
   // det åt oss.
-  const [bildkartan, kortgalleriet] = await Promise.all([
-    varmBildkartan(),
-    slugs[0] ? varmKortgalleriet(slugs[0]) : Promise.resolve(false),
-  ]);
+  const bildkartan = await varmBildkartan();
 
   const prov = await katalogenArKall(slugs);
   if (!prov.kall) {
-    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan, kortgalleriet });
+    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan });
   }
 
   const varmning = await varmAlla(roterad(slugs), deadline);
@@ -89,5 +86,5 @@ export async function GET(request: Request) {
       + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}`,
   );
 
-  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan, kortgalleriet });
+  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan });
 }
