@@ -1,0 +1,131 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "02199100": {
+  "tyska": "130L x 85B x 75H cm (nicht ausgezogen), 160L x 85B x 75H cm (ausgezogen)",
+  "svenska": "160 x 85 x 75 cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 75,
+  "bredd": 130,
+  "djup": 85
+ },
+ "08dc9c52": {
+  "tyska": "(jedes Paneel) 80B x 80H x 3,5T cm",
+  "svenska": "80cm x 3,5cm x 80cm",
+  "bokstaver": "BHT",
+  "hojd": 80,
+  "djup": 3.5,
+  "bredd": 80
+ },
+ "0b300510": {
+  "tyska": "42B x 32T x 80H cm",
+  "svenska": "42 x 32 x 80 cm",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": 80,
+  "bredd": 42
+ },
+ "0f1abb61": {
+  "tyska": "83B x 93T x 106H cm",
+  "svenska": "83 x 93 x 106 cm",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 106,
+  "bredd": 83
+ },
+ "2b33d9bc": {
+  "tyska": "",
+  "svenska": "90/120/150 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Baumgrößen: Ø45 x 90H cm (klein), Ø60 x 120H cm (mittel), Ø70 x 150H cm (groß) | ✔ Topfgröße: Ø11,5 x 11,5H cm (klein), Ø15 x 15H cm (mittel), Ø19 x 19H cm (groß)"
+ },
+ "4f2be50b": {
+  "tyska": "16L x 16B x 25H cm",
+  "svenska": "16cm x 16cm x 25cm",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 16,
+  "djup": 16
+ },
+ "4f40817c": {
+  "tyska": "55L x 55B x 150H cm",
+  "svenska": "55 x 55 x 150 cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 55,
+  "djup": 55
+ },
+ "5a3de5da": {
+  "tyska": "80B x 30T x 94,5H cm",
+  "svenska": "80 x 30 x 94,5 cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 94.5,
+  "bredd": 80
+ },
+ "5b1df31b": {
+  "tyska": "",
+  "svenska": "80 x 97 x 107 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (sitzend): 80B x 97T x 107H cm | ✔ Gesamtabmessungen (liegend): 80B x 169T x 82H cm | ✔ Sitzgröße: 46B x 54T x 48H cm"
+ },
+ "6b5ba024": {
+  "tyska": "76B x 76T x 47H cm",
+  "svenska": "76B x 76T x 47H cm",
+  "bokstaver": "BTH",
+  "djup": 76,
+  "hojd": 47,
+  "bredd": 76
+ },
+ "6fd03f3a": {
+  "tyska": "✔ Gesamthöhe: 90 cm",
+  "svenska": "33 × 40 × 90 cm",
+  "bokstaver": "H",
+  "hojd": 90,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "b18a010f": {
+  "tyska": "Klein: Ø38 x 90H cm, Mittel: Ø43 x 120H cm, Groß: Ø48 x 150H cm",
+  "svenska": "48 x 48 x 150 cm",
+  "bokstaver": "HHH",
+  "hojd": 90
+ },
+ "ca547b56": {
+  "tyska": "40B x 40T x 48,4H cm",
+  "svenska": "40L x 40B x 48,4H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 48.4,
+  "bredd": 40
+ },
+ "d36b35fc": {
+  "tyska": "40L x 35B x 60H cm",
+  "svenska": "40L x 35B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 40,
+  "djup": 35
+ },
+ "d57f908e": {
+  "tyska": "",
+  "svenska": "120 x 90 x 107 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße in aufrechter Position: 120B x 90T x 107H cm | ✔ Maße in Liegeposition: 120B x 161T x 90H cm | ✔ Sitzmaße: 68B x 55T x 48H cm | ✔ Rückenlehnenmaße: 97B x 65H cm"
+ },
+ "e466c1cb": {
+  "tyska": "Ø60 x 12T cm",
+  "svenska": "60 x 60 x 12 cm",
+  "bokstaver": "T",
+  "djup": 12
+ },
+ "ecec71de": {
+  "tyska": "Ø69 x 90H cm",
+  "svenska": "69 x 69 x 90 cm",
+  "bokstaver": "H",
+  "hojd": 90
+ },
+ "f1944853": {
+  "tyska": "(aufrecht) 96T x 94B x 106H cm",
+  "svenska": "94cm x 96cm x 106cm",
+  "bokstaver": "TBH",
+  "djup": 96,
+  "hojd": 106,
+  "bredd": 94
+ }
+}
