@@ -39,39 +39,78 @@ import { kortDel } from "../lib/kort-galleri";
 // till en funktion som på en kall instans läste hela katalogen — 47,5 s
 // uppmätt. Leonards prickar kom först när han öppnade sidan igen (2026-09-25).
 // Delarna är förbyggda och svarar från CDN:en direkt.
-const delar = new Map<number, Record<string, string[]>>();
+//
+// NYA PRODUKTER (2026-09-26). En del byggs ur katalogen som den instans som
+// byggde den hade, och en produkt som lagts upp efter det saknas i delen —
+// Leonard såg bara två bilder per kort när han sorterade på "Nyast". Varje del
+// bär därför `_senast`: det högsta createdAt i katalogen den byggdes ur. Ett
+// kort som är NYARE än så, och som saknas i delen, hämtar sina extrabilder
+// från /api/kort-galleri/nya, som läser produkten direkt från Wix. Ett kort
+// som bara saknas i delen utan att vara nyare har helt enkelt inga
+// extrabilder — delen utelämnar sådana för att hålla nere storleken.
+type Del = { rader: Record<string, unknown>; senast: number };
+const delar = new Map<number, Del>();
 const pagaende = new Set<number>();
 const forsok = new Map<number, number>();
 const lyssnare = new Map<string, Set<(k: string[]) => void>>();
+const skapad = new Map<string, number>();
+const nya = new Map<string, string[]>();
+const nyaKo = new Set<string>();
+const nyaPagaende = new Set<string>();
+let nyaTimer: ReturnType<typeof setTimeout> | null = null;
 const TIDSGRANS_MS = 20000;
 const OMFORSOK_MS = 3000;
+const NYA_PER_ANROP = 12;
 
+const nycklar = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+
+/** Är kortet nyare än katalogen delen byggdes ur, och saknas i den? */
+function arOkandForDelen(slug: string, del: Del): boolean {
+  if (slug in del.rader) return false;
+  const t = skapad.get(slug) ?? 0;
+  return del.senast > 0 && t > del.senast;
+}
+
+/** Extrabilderna om de är kända, annars undefined (och hämtningen startas). */
 function resultat(slug: string): string[] | undefined {
-  const m = delar.get(kortDel(slug));
-  if (!m) return undefined;
-  const v = m[slug];
-  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  const n = nya.get(slug);
+  if (n) return n;
+  const del = delar.get(kortDel(slug));
+  if (!del) return undefined;
+  if (arOkandForDelen(slug, del)) {
+    begarNy(slug);
+    return undefined;
+  }
+  return nycklar(del.rader[slug]);
+}
+
+function meddela(slug: string) {
+  const k = resultat(slug);
+  if (k) lyssnare.get(slug)?.forEach((cb) => cb(k));
+}
+
+function hamta(url: string): Promise<Record<string, unknown>> {
+  // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
+  // Safari före iOS 16 och kastar då synkront.
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
+  return fetch(url, ctl ? { signal: ctl.signal } : undefined)
+    .then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then((d: unknown) => (d && typeof d === "object" ? (d as Record<string, unknown>) : {}))
+    .finally(() => { if (t) clearTimeout(t); });
 }
 
 function hamtaDel(del: number) {
   if (delar.has(del) || pagaende.has(del)) return;
   pagaende.add(del);
-  // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
-  // Safari före iOS 16 och kastar då synkront.
-  const ctl = typeof AbortController === "function" ? new AbortController() : null;
-  const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
-  fetch(`/api/kort-galleri/${del}`, ctl ? { signal: ctl.signal } : undefined)
-    .then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r.json();
-    })
-    .then((d: unknown) => {
-      delar.set(del, d && typeof d === "object" ? (d as Record<string, string[]>) : {});
-      for (const [slug, set] of lyssnare) {
-        if (kortDel(slug) !== del) continue;
-        const k = resultat(slug) ?? [];
-        set.forEach((cb) => cb(k));
-      }
+  hamta(`/api/kort-galleri/${del}`)
+    .then((d) => {
+      delar.set(del, { rader: d, senast: Number(d._senast) || 0 });
+      for (const slug of lyssnare.keys()) if (kortDel(slug) === del) meddela(slug);
     })
     .catch(() => {
       // Kortet står kvar på två bilder tills vidare. Ett automatiskt omförsök;
@@ -80,15 +119,38 @@ function hamtaDel(del: number) {
       forsok.set(del, n + 1);
       if (n < 1) setTimeout(() => hamtaDel(del), OMFORSOK_MS);
     })
-    .finally(() => {
-      if (t) clearTimeout(t);
-      pagaende.delete(del);
-    });
+    .finally(() => pagaende.delete(del));
+}
+
+function begarNy(slug: string) {
+  if (nya.has(slug) || nyaPagaende.has(slug) || nyaKo.has(slug)) return;
+  nyaKo.add(slug);
+  if (!nyaTimer) nyaTimer = setTimeout(skickaNya, 60);
+}
+
+function skickaNya() {
+  nyaTimer = null;
+  const slugs = [...nyaKo].slice(0, NYA_PER_ANROP);
+  slugs.forEach((s) => { nyaKo.delete(s); nyaPagaende.add(s); });
+  if (nyaKo.size) nyaTimer = setTimeout(skickaNya, 0);
+  if (!slugs.length) return;
+  hamta(`/api/kort-galleri/nya?s=${slugs.map(encodeURIComponent).join(",")}`)
+    .then((d) => {
+      for (const s of slugs) {
+        nya.set(s, nycklar(d[s]));
+        meddela(s);
+      }
+    })
+    // Misslyckas det står kortet på sina två bilder. Inget omförsök här: det
+    // är ovanligt, och nästa sidladdning försöker igen.
+    .catch(() => { for (const s of slugs) nya.set(s, []); })
+    .finally(() => slugs.forEach((s) => nyaPagaende.delete(s)));
 }
 
 const begar = (slug: string) => hamtaDel(kortDel(slug));
 
-function prenumerera(slug: string, cb: (k: string[]) => void): () => void {
+function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number): () => void {
+  if (createdAt) skapad.set(slug, createdAt);
   const k = resultat(slug);
   if (k) cb(k);
   let set = lyssnare.get(slug);
@@ -109,12 +171,15 @@ export function CardGallery({
   altImg,
   name,
   priority,
+  createdAt,
 }: {
   slug: string;
   img: string;
   altImg?: string;
   name: string;
   priority: boolean;
+  /** Produktens createdAt (Wix numericId) — avgör om delen kan känna till den. */
+  createdAt?: number;
 }) {
   const [aktiv, setAktiv] = useState(0);
   const [extra, setExtra] = useState<string[]>([]);
@@ -146,7 +211,7 @@ export function CardGallery({
       if (!k.length) return;
       vantande.current = k;
       tillampa();
-    });
+    }, createdAt);
     begar(slug);
     // Svepte besökaren innan sidan hydrerat står raden kanske redan på bild 2.
     const el = spar.current;
@@ -158,7 +223,7 @@ export function CardGallery({
       if (vantaTimer) clearTimeout(vantaTimer);
       if (bildruta.current) cancelAnimationFrame(bildruta.current);
     };
-  }, [slug, altImg]);
+  }, [slug, altImg, createdAt]);
 
   const sizes = "(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw";
 
