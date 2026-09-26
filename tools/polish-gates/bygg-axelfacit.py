@@ -60,6 +60,32 @@ ETIKETT = r"(?:Gesamtabmessungen|Gesamtabmessung|Gesamtgröße|Gesamtgrösse|Ges
 #      ur i stället för att behöva gissa.
 KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
 
+# ☠️ EN KÄLLA KAN VARA ENGELSK. Uppmätt i runda B1 (2026-09-26), som tog de
+# ÄLDSTA utkasten: tre av åtta är AliExpress-importer från Aosoms spanska
+# butik, och deras måttrader är engelska med bokstäverna i en parentes efteråt:
+#
+#     91d7dfd9   total measurements: 80x50x100 cm (lxwxh)
+#     c68c2ca0   dresser measurements: 52x32x85 cm (lxwxh)
+#                stool measurements:   32x22x30 cm (lxwxh)
+#
+# Ingen av de tyska etiketterna matchar, så generatorn avbröt på alla tre —
+# rätt beteende, men källan är entydig. Två pass, i samma ordning och av samma
+# skäl som de tyska: den nakna totalraden först, och bara om den tiger den
+# FÖRSTA raden med ett bestämningsord (sminkbordet före pallen).
+#
+# ⚠️ DET ENGELSKA `w` ÄR INTE BREDDEN. I `(lxwxh)` är w det BORTRE måttet —
+# skrivbordet är 80 cm brett och 50 cm djupt, aldrig 50 cm brett. Samma fälla
+# som K14:s B, och samma lösning: bokstäverna l, w och b läggs POSITIONELLT
+# (se `EN_AXEL` i axelpar), och bara d och h läses ur bokstaven.
+#
+# Passen ligger EFTER de tyska och fyrar bara när de tiger, så varje runda som
+# byggts hittills regenererar byte-identiskt.
+#
+# Båda är förankrade i radens början (efter punkttecknet), så att den nakna
+# etiketten inte kan hitta `measurements:` INUTI `dresser measurements:`.
+ETIKETT_EN = r"^[^A-Za-z]*((?:(?:total|overall)\s+)?(?:measurements|dimensions))\s*:\s*(.+)$"
+KVALIFICERAD_EN = r"^[^A-Za-z]*([A-Za-z]+\s+(?:measurements|dimensions))\s*:\s*(.+)$"
+
 # ☠️ EN PRODUKT KAN HA EN TOTALHÖJD OCH INGET TOTALMÅTT. Uppmätt i runda N2 på
 # konstväxten 67ba375c, vars enda måttrader är
 #
@@ -139,6 +165,18 @@ def axelpar(rad):
         talen = re.findall(TAL, rad[:m.start()])
         if len(talen) == len(bokstaver):
             return list(zip(talen, bokstaver))
+    # Samma form på ENGELSKA, med gemena bokstäver: `80x50x100 cm (lxwxh)`,
+    # `27x27x23 cm (wxdxh)`. Se ETIKETT_EN ovan. l, w och b är horisontaler och
+    # läggs positionellt, d är djup och h höjd — därför mappas de till husets
+    # bokstäver i stället för att läsas som ord. Samma spärr som ovan: talen
+    # före parentesen måste vara exakt lika många som bokstäverna i den.
+    EN_AXEL = {"l": "L", "w": "B", "b": "B", "d": "T", "h": "H"}
+    m = re.search(r"\(\s*([lwbdh])((?:\s*[x×]\s*[lwbdh])+)\s*\)", rad, re.I)
+    if m:
+        bokstaver = [EN_AXEL[b.lower()] for b in [m.group(1)] + re.findall(r"[lwbdh]", m.group(2), re.I)]
+        talen = re.findall(TAL, rad[:m.start()])
+        if len(talen) == len(bokstaver):
+            return list(zip(talen, bokstaver))
     return ut
 
 
@@ -185,6 +223,17 @@ def main():
                     kvalificerare = m.group(1)
                     tysk = m.group(2).strip()
                     break
+        engelsk = ""
+        for monster, skal in ((ETIKETT_EN, "källan är engelsk"),
+                              (KVALIFICERAD_EN, "källan är engelsk och etiketten bar ett bestämningsord")):
+            if tysk:
+                break
+            for rad in rader:
+                m = re.search(monster, rad, re.I)
+                if m:
+                    engelsk = f"engelska raden '{m.group(1)}' ({skal})"
+                    tysk = m.group(2).strip()
+                    break
         svensk = ""
         for i, rad in enumerate(rader):
             if rad == "Mått:" and i + 1 < len(rader):
@@ -193,6 +242,8 @@ def main():
         d = {"tyska": tysk, "svenska": svensk}
         if kvalificerare:
             d["axelkalla"] = f"tyska raden '{kvalificerare}' (etiketten bar ett bestämningsord)"
+        if engelsk:
+            d["axelkalla"] = engelsk
         par = axelpar(tysk)
         # ☠️ DEN TYSKA TOTALRADEN BÄR INTE ALLTID EN AXELBOKSTAV. Uppmätt i
         # runda M4 på 86fdd9af: `Gesamtabmessung: Ø70 x 210 cm` — ingen `H`

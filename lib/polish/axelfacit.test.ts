@@ -266,3 +266,107 @@ describe("TVÅ TAL UTAN H ELLER T — positionen räcker inte", () => {
     expect(ut.aaa).toMatchObject({ bredd: 40, hojd: 56 });
   });
 });
+
+/** En ENGELSK källa i samma form som AliExpress-importerna från Aosoms
+ *  spanska butik: ett enda `<p>` med `●`-rader åtskilda av `<br>`. */
+function engelskKalla(rader: string[]): string {
+  const punkter = rader.map((r) => `<br>  ● ${r}`).join("");
+  return `<p><span style="font-weight: 700">Specifications:</span>${punkter}<br> </p>`;
+}
+
+describe("ENGELSK KÄLLA — Aosom ES via AliExpress (runda B1)", () => {
+  it("läser totalraden positionellt: w är DJUPET, inte bredden", () => {
+    // Runda B1, skrivbordet 91d7dfd9: `total measurements: 80x50x100 cm
+    // (lxwxh)`. Bordet är 80 cm brett och 50 cm djupt. Läser man `w` som
+    // "width" blir det 50 cm brett — samma fälla som K14:s B.
+    const ut = bygg({
+      aaa: engelskKalla(["color: white", "total measurements: 80x50x100 cm (lxwxh)"]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 80, djup: 50, hojd: 100, bokstaver: "LBH" });
+    expect(String(ut.aaa.axelkalla)).toContain("total measurements");
+  });
+
+  it("(wxdxh): w är fronten och d djupet", () => {
+    const ut = bygg({ aaa: engelskKalla(["total measurements: 27x33x23 cm (wxdxh)"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 27, djup: 33, hojd: 23 });
+  });
+
+  it("☠️ den nakna etiketten vinner över en kvalificerad som står först", () => {
+    // Skrivbordets källa har också `desk measurements: 80x48.2 cm (lxw)`,
+    // alltså bordsskivan. Den får aldrig bli produktens mått.
+    const ut = bygg({
+      aaa: engelskKalla([
+        "desk measurements: 80x48.2 cm (lxw)",
+        "total measurements: 80x50x100 cm (lxwxh)",
+      ]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 80, djup: 50, hojd: 100 });
+  });
+
+  it("utan totalrad: FÖRSTA raden med bestämningsord, och den namnges", () => {
+    // Runda B1, sminkbordet c68c2ca0: sminkbordet och pallen har var sin
+    // rad och setet saknar totalmått — samma form som bäddsoffans Sofa/Bett.
+    const ut = bygg({
+      aaa: engelskKalla([
+        "dresser measurements: 52x32x85 cm (lxwxh)",
+        "stool measurements: 32x22x30 cm (lxwxh)",
+      ]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 52, djup: 32, hojd: 85 });
+    expect(String(ut.aaa.axelkalla)).toContain("dresser measurements");
+  });
+
+  it("☠️ AVBRYTER när talen och bokstäverna inte är lika många", () => {
+    // Två tal och tre bokstäver: vilket tal som hör till vilken axel går
+    // inte att avgöra, och ett gissat facit är värre än inget.
+    expect(() =>
+      bygg({ aaa: engelskKalla(["total measurements: 80x50 cm (lxwxh)"]) }),
+    ).toThrow();
+  });
+
+  it("en TYSK totalrad vinner alltid över en engelsk", () => {
+    // Passen ligger efter de tyska, så varje runda som byggts hittills
+    // regenererar byte-identiskt (kontrollerat mot alla 72 rundor i B1).
+    const ut = bygg({
+      aaa:
+        kalla(["Gesamtabmessungen: 160L x 90B x 240H cm"]) +
+        engelskKalla(["total measurements: 80x50x100 cm (lxwxh)"]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 160, djup: 90, hojd: 240 });
+    expect(ut.aaa.axelkalla).toBeUndefined();
+  });
+});
+
+const GRIND = join(ROT, "tools", "polish-gates", "gate-axel.py");
+
+/** Kör gate-axel i en temp-katalog med ett färdigt facit och en text. */
+function grinda(facit: Rad, html: string): { kod: number; ut: string } {
+  const dir = mkdtempSync(join(tmpdir(), "gate-axel-"));
+  writeFileSync(join(dir, "axelfacit.json"), JSON.stringify({ aaa: facit }), "utf-8");
+  writeFileSync(join(dir, "aaa.html"), html, "utf-8");
+  try {
+    const ut = execFileSync("python3", [GRIND], { cwd: dir, encoding: "utf-8" });
+    return { kod: 0, ut };
+  } catch (e) {
+    const fel = e as { status?: number; stdout?: string };
+    return { kod: fel.status ?? -1, ut: fel.stdout ?? "" };
+  }
+}
+
+describe("gate-axel läser NEUTRUM — 'brett' innehåller inte 'bred' (runda B1)", () => {
+  const skrivbord = { tyska: "80x50x100 cm (lxwxh)", bredd: 80, djup: 50, hojd: 100 };
+
+  it("☠️ fäller djupet skrivet som bredd i neutrum", () => {
+    // Före lagningen såg grinden bara `cm bred`, så ett skrivbord som sades
+    // vara "50 cm brett" (djupet) gick igenom utan ett ord.
+    const r = grinda(skrivbord, "<p>Skrivbordet är 50 cm brett.</p>");
+    expect(r.kod).toBe(1);
+    expect(r.ut).toContain("binder talet till BREDD");
+  });
+
+  it("räknar en rätt bredd i neutrum som sedd", () => {
+    const r = grinda(skrivbord, "<p>Skrivbordet är 80 cm brett och 50 cm djupt.</p>");
+    expect(r.kod).toBe(0);
+    expect(r.ut).not.toContain("produktens bredd");
+  });
+});
