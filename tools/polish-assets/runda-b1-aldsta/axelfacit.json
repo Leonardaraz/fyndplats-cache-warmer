@@ -1,0 +1,69 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "75768a6c": {
+  "tyska": "2000L x 900B x 12T mm",
+  "svenska": "200x90 cm",
+  "bokstaver": "LBT",
+  "djup": 12,
+  "bredd": 2000
+ },
+ "788a6e39": {
+  "tyska": "58B x 53T x 70H cm",
+  "svenska": "58x53x70 cm (1er Pack)",
+  "bokstaver": "BTH",
+  "djup": 53,
+  "hojd": 70,
+  "bredd": 58
+ },
+ "91d7dfd9": {
+  "tyska": "80x50x100 cm (lxwxh)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'total measurements' (källan är engelsk)",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 80,
+  "djup": 50
+ },
+ "9ec91f90": {
+  "tyska": "60x30x76 cm (lxwxh)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'total measurements' (källan är engelsk)",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 60,
+  "djup": 30
+ },
+ "c68c2ca0": {
+  "tyska": "52x32x85 cm (lxwxh)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'dresser measurements' (källan är engelsk och etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 52,
+  "djup": 32
+ },
+ "cf638cc0": {
+  "tyska": "345L x 135B x 191H cm",
+  "svenska": "345cm x 135cm x 191cm",
+  "bokstaver": "LBH",
+  "hojd": 191,
+  "bredd": 345,
+  "djup": 135
+ },
+ "f1f2504c": {
+  "tyska": "168L x 62,5B x 57H cm",
+  "svenska": "168cm x 62,5cm x 57cm",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 168,
+  "djup": 62.5
+ },
+ "f85512b3": {
+  "tyska": "160L x 55B x 183H cm",
+  "svenska": "160L x 55B x 183H cm",
+  "bokstaver": "LBH",
+  "hojd": 183,
+  "bredd": 160,
+  "djup": 55
+ }
+}

@@ -1,0 +1,7 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+91d7dfd9 3 öppna fack under hyllplanet, räknade på bild 1 och 3; källan säger bara integrated storage
+9ec91f90 3 tygfacken; källan skriver three på engelska med bokstäver, och bild 1 och 3 visar tre
+9ec91f90 2 förvaringslådorna; källan skriver two drawers på engelska med bokstäver, och bild 1 och 3 visar två
+f1f2504c 3 delarna klättertriangel, båge och ramp, räknade på bild 1
+f85512b3 4 rutpanelerna i spaljén, räknade på bild 1 och 3
+75768a6c 3 dragstagen, räknade på bild 1, 2 och 3
