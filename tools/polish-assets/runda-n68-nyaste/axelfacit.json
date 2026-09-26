@@ -1,0 +1,139 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1236c73a": {
+  "tyska": "Ø15 x 77H cm",
+  "svenska": "Ø15 x 77H cm",
+  "bokstaver": "H",
+  "hojd": 77
+ },
+ "19526d20": {
+  "tyska": "227 B x 113 T x 206 H cm",
+  "svenska": "227B x 113T x 206H cm",
+  "bokstaver": "BTH",
+  "djup": 113,
+  "hojd": 206,
+  "bredd": 227
+ },
+ "21839061": {
+  "tyska": "40L x 10B x 110H cm, 30L x 10B x 90H cm, 60L x 17B x 200H cm",
+  "svenska": "60L x 17B x 200H cm",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 110,
+  "bredd": 40,
+  "djup": 10
+ },
+ "3387604c": {
+  "tyska": "",
+  "svenska": "74 x 82 x 89 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sesselmaße: 74B x 82T x 89H cm | ✔ Fußhockermaße: 56B x 44T x 45-51H cm | ✔ Sitzmaße: 74B x 45T x 50H cm | ✔ Rückenlehnenmaße: 82B x 44H cm"
+ },
+ "3f2bf381": {
+  "tyska": "79B x 67T x 155H cm",
+  "svenska": "79B x 67T x 155H cm",
+  "bokstaver": "BTH",
+  "djup": 67,
+  "hojd": 155,
+  "bredd": 79
+ },
+ "4362ebd1": {
+  "tyska": "",
+  "svenska": "30 x 30 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße pro Element: 30L x B30 x H3,5cm"
+ },
+ "516ca092": {
+  "tyska": "70L x 45B x 120H cm",
+  "svenska": "Modell 2",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 70,
+  "djup": 45
+ },
+ "526d7fb5": {
+  "tyska": "",
+  "svenska": "208 x 181 x 58 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 208B x 104T x 85H cm | ✔ Bettmaße: 208B x 181T x 58H cm | ✔ Liegefläche: 154B x 140T cm | ✔ Sitzmaße: 154B x 55T x 41H cm | ✔ Rückenlehnenmaße: 154B x 45H cm | ✔ Armlehnenmaße: 26B x 104T cm | ✔ Rückenkissenmaße: 77L x 50B x 27T cm"
+ },
+ "55017e3e": {
+  "tyska": "60L x 18B x 183Hcm",
+  "svenska": "130L x 18B x 183H cm",
+  "bokstaver": "LBH",
+  "hojd": 183,
+  "bredd": 60,
+  "djup": 18
+ },
+ "5a1e8d57": {
+  "tyska": "",
+  "svenska": "71 x 90 x 100 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße in aufrechter Position: 71B x 90T x 100H cm | ✔ Sitzmaße: 46B x 48T x 50H cm | ✔ Rückenlehnenmaße: 65B x 62H x 15T cm"
+ },
+ "5ea9939c": {
+  "tyska": "123B x 85T x 180H cm",
+  "svenska": "123B x 85T x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 85,
+  "hojd": 180,
+  "bredd": 123
+ },
+ "8e7a2b9a": {
+  "tyska": "77B x 104T x 93H cm",
+  "svenska": "77 x 104 x 93 cm",
+  "bokstaver": "BTH",
+  "djup": 104,
+  "hojd": 93,
+  "bredd": 77
+ },
+ "935f0ff6": {
+  "tyska": "Ø15,5 x 120H cm",
+  "svenska": "Ø15,5 x 120H cm",
+  "bokstaver": "H",
+  "hojd": 120
+ },
+ "93dfdaba": {
+  "tyska": "65L x 75B x 150H cm",
+  "svenska": "75L x 65B x 150H cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 65,
+  "djup": 75
+ },
+ "ab747da4": {
+  "tyska": "Ø16 x 125H cm",
+  "svenska": "Ø16 x 125H cm",
+  "bokstaver": "H",
+  "hojd": 125
+ },
+ "c0b12a9f": {
+  "tyska": "202B x 25T x 113H cm, ideal für ein aufgeräumtes Wohnzimmer oder eine Terrasse",
+  "svenska": "202 x 25 x 113 cm",
+  "bokstaver": "BTH",
+  "djup": 25,
+  "hojd": 113,
+  "bredd": 202
+ },
+ "cfac92b3": {
+  "tyska": "",
+  "svenska": "79 x 94 x 88 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sesselmaße: 79B x 94T x 88H cm | ✔ Hockermaße: 53B x 40T x 41-47H cm | ✔ Sitzmaße: 79B x 50T x 54H cm | ✔ Rückenlehnenmaße: 70,5B x 48H cm"
+ },
+ "d4a79b77": {
+  "tyska": "140L x 40B x 240H cm",
+  "svenska": "140L x 40B x 240H cm",
+  "bokstaver": "LBH",
+  "hojd": 240,
+  "bredd": 140,
+  "djup": 40
+ },
+ "e1d34336": {
+  "tyska": "",
+  "svenska": "72 x 92 x 90 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sesselmaße: 72B x 92T x 90H cm | ✔ Fußhockermaße: 51B x 41T x 43-51H cm | ✔ Sitzmaße: 69B x 56T x 48H cm | ✔ Rückenlehnenmaße: 72B x 52H cm"
+ },
+ "f8f44ef7": {
+  "tyska": "40B x 30T x 69H cm",
+  "svenska": "40L x 30B x 69H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 69,
+  "bredd": 40
+ }
+}
