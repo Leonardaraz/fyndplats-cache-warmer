@@ -80,6 +80,15 @@ describe("egna kundomdömen", () => {
     expect(body.omdomen.map((o: { reviewIdAE: string }) => o.reviewIdAE)).toEqual(["b", "a"]);
   });
 
+  it("☠️ ett tak som slår i syns — loggas och flaggas, kapas inte tyst", async () => {
+    const { MAX_LIST_ALL } = await import("@/lib/store/reviews");
+    rader = Array.from({ length: MAX_LIST_ALL }, (_, i) => rad({ reviewIdAE: `ae-${i}`, source: undefined }));
+    const fel = vi.spyOn(console, "error").mockImplementation(() => {});
+    const body = await (await GET()).json();
+    expect(body.kapad).toBe(true);
+    expect(fel).toHaveBeenCalled();
+  });
+
   it("☠️ en läsning som faller är 502, inte en tom lista", async () => {
     kastar = new Error("db nere");
     const res = await GET();
