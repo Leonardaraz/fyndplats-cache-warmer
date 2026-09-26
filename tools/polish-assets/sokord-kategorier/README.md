@@ -110,3 +110,103 @@ placeringarna.
 
 Kostnad i dag: 1 020 API-enheter för volymerna och 2 040 för domänfilen.
 Kategorifilen hämtades tidigare samma dag.
+
+Och ett fjärde tal, ur Googles egna siffror: **organiska landningar på
+kategorisidorna per vecka**, före mot efter mergen (`ga4-organisk.sql`,
+fråga 2). Se avsnittet om GA4 nedan.
+
+## Tillägg: runda S14 (samma dag)
+
+Runda S14 (`../runda-s14-langsvans-kategorier/`) lade till **13
+huvudsökord på fem sidor, 29 040 sökningar i månaden**, sist i
+`baslinje-2026-09-24.tsv`. Inget av dem rankar topp 100 i dag. Filen har
+alltså 115 huvudsökord, och talet *102* ovan gäller S4–S13.
+
+S14 valdes efter en annan regel än de tidigare rundorna: dealproffsen.se, som
+säljer samma Aosom-varor, ligger på plats 1–5 på samma ord med en egen smal
+kategorisida. Vid omätningen är deras placering därför ett eget riktmärke.
+Samma ord, samma varor och samma sidtyp. Rör sig S14-sidorna inte när
+dealproffsen ligger på plats 1–5, är det domänens styrka som bromsar och inte
+sidorna.
+
+## Verklig trafik ur GA4 (tillägg 2026-09-24)
+
+Semrush räknar placeringar och uppskattar trafiken. Googles egna siffror
+ligger i BigQuery, i projektet `fyndplats`:
+
+| dataset | innehåll | läge 2026-09-24 |
+|---|---|---|
+| `analytics_361016118` | GA4-exporten, en tabell per dag sedan 2026-08-09 | fungerar, tabellerna har inget utgångsdatum |
+| `searchconsole` | Search Consoles massdataexport | ☠️ **tom**, se nedan |
+| `merchant_center` | Merchant Centers produkter och resultat | inte undersökt |
+
+Frågorna står i `ga4-organisk.sql`. Den första räknar organiska besök per
+vecka och typ av landningssida. Den andra räknar organiska landningar per
+kategorisida, före och efter #647.
+
+**Måttet är kolumnen `kategori`.** Före #647 fick kategorisidorna ett fåtal
+organiska landningar i veckan, alla på gamla breda sidor och ingen på en
+sökordssida. Produktsidorna tar merparten av den organiska trafiken. Fungerar
+sökordsrundorna syns det här först, veckor innan Semrush hinner mäta om.
+
+☠️ **Samtyckesbrottet vecka 37.** Från 2026-09-07 exporteras också besök utan
+samtycke, och de saknar kanal. Ett Google-besök utan samtycke syns bara som
+en hänvisning från google.com. Frågorna räknar det som organiskt när
+landningsadressen saknar annonsparametrar (`gclid`, `gad_source`, `gbraid`,
+`wbraid`, `dclid`). Före vecka 37 finns bara besök med samtycke, så serien
+har ett brott där. Jämför helst perioder som båda ligger efter vecka 37.
+
+☠️ **Search Console-exporten har aldrig levererat.** Tabellerna skapades
+2026-08-10, men `ExportLog` och båda datatabellerna har 0 rader. Search
+Consoles tjänstekonto äger datasetet, så det är inte datasetets behörighet
+som fattas. Felet står i Search Console under Inställningar →
+Massdataexport. En vanlig orsak är att kontot saknar rollen BigQuery Job User
+i projektet. Det är en hypotes, inte en mätning. När exporten fungerar finns
+visningar, klick och placering per sida och sökord, direkt från Google.
+
+⚠️ **Siffrorna står inte här.** Repot är publikt, och sessioner och köp är
+affärsdata. De står i mättriggern och räknas om ur BigQuery vid omätningen.
+
+⚠️ **ChatGPT är ungefär lika stor som organisk Google** (kanalen
+`AI Assistant`, källa `chatgpt.com`). Besökarna tittar på varor, lägger i
+varukorgen och köper, så det är människor och inte robotar. Semrush ser inte
+den trafiken, och `robots.txt` släpper in ChatGPT:s robotar.
+
+## Daglig bevakning i Semrush (tillägg 2026-09-24 kväll)
+
+Semrush-projektet `www.fyndplats.se` (id 31338911) har rankningsbevakning
+(Position Tracking) och webbplatsgranskning (Site Audit) påslagna. Bevakningen
+har ingen kampanj och alltså inga sökord, så den mäter ingenting.
+Granskningen har en körning som blev klar 2026-09-23 22:27 UTC. Den är inte
+läst här.
+
+`semrush-bevakning.txt` är färdig att klistra in, ett sökord per rad, 212
+stycken:
+
+- de 115 kategoriorden i `baslinje-2026-09-24.tsv`
+- de 97 sökorden i produktsidetestet (`tools/polish-assets/sokord-s1/` på
+  grenen `claude/seo-polering-runbook-review-uq6fwl`), där fem sidor fick nya
+  ord och resten är kontrollgrupp
+
+Lägg upp kampanjen på Google Sverige och **mobil**. De flesta organiska
+besöken kommer från mobilen, enligt GA4 sedan vecka 37.
+
+Med bevakningen syns placeringen varje dag. Semrush-databasen som
+omätningen använder visar bara en ögonblicksbild. Man ser alltså inom några
+dagar om Google indexerar och rankar #647:s sidor, och testet får en tidsserie
+i stället för två mätpunkter.
+
+⚠️ **API-enheterna tog slut 2026-09-24 kväll.** De sista 300 gick åt till att
+läsa projektets status, och nästa anrop svarade `no_api_units`. Omätningarna
+2026-10-29 och 2026-10-30 använder samma anrop som baslinjen och behöver
+alltså enheter. Att läsa bevakningen eller granskningen genom API:t kostar
+också enheter.
+
+**Att byta till mindre sökord på produktsidor är inte en egen runda.**
+Frågan är mätt tre gånger. I S1 (plats 4–20) bar 78 av 99 sidor redan sitt
+sökord i titeln. I S3 (plats 21–40) stod ordet först i titeln på nästan alla.
+Produktsidetestet (plats 11–30) hittade ett verkligt glapp på 5 av 67 sidor.
+Till det kommer S14: dealproffsens produktsidor ligger topp 10 på 120
+långsvansord, och vi syns i topp 100 på 8 av dem. Det som bromsar är sidornas
+styrka, inte orden. De mindre orden ligger därför på smala kategorisidor
+(S14), och testet avgör om produktsidorna ska få fler.

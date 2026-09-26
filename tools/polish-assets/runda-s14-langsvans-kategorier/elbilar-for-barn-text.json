@@ -1,7 +1,7 @@
 {
   "slug": "elbilar-for-barn",
   "seo": {
-    "title": "Elbil för barn – fyrhjuling, motorcykel, traktor",
+    "title": "Elbil för barn – fyrhjuling, traktor & gokart",
     "description": "Elbilar för barn från 18 månader till 12 år: 6, 12 och 24 V, elfyrhjulingar, elmotorcyklar med stödhjul och eltraktorer – många med fjärrkontroll."
   },
   "content": {
@@ -47,7 +47,7 @@
     "oftast 8–12 timmar": "majoriteten anger 8–12 timmar; 7c0f8b4b 'ladda över natten'",
     "maxvikt 20–65 kg": "i lager: 408e80e4 och 7c0f8b4b 20 kg; 67d2d4f6 65 kg (08bdee9f 70 kg är slut)",
     "bälte, fjädring, mjukstart": "i lager: bälte 15, fjädring 18, mjukstart 16",
-    "de flesta med fjärrkontroll har bälte": "19 av 25 modeller med fjärrkontroll har bälte"
-  },
-  "ersatt_av": "runda-s14-langsvans-kategorier: Motorcyklar för barn fick en egen sida, och Elbil för barn släppte \"motorcykel\" ur titeln"
+    "de flesta med fjärrkontroll har bälte": "19 av 25 modeller med fjärrkontroll har bälte",
+    "titelbyte (runda S14)": "Titeln var 'Elbil för barn – fyrhjuling, motorcykel, traktor'. Motorcyklar för barn fick en egen sida, och Elbil för barn släppte \"motorcykel\" ur titeln. Brödtext, FAQ och metabeskrivning är oförändrade från runda-s4-sokordskategorier."
+  }
 }

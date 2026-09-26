@@ -284,6 +284,26 @@ det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skri
 inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
 göra exakt rätt och ändå bygga.
 
+### ☠️ En merge gav inget bygge — GitHub skickade ingen push-händelse (2026-09-25)
+
+Butiks-PR #647 mergades 01:29:32 UTC via API:t, och refen `headless-site`
+flyttades till merge-commiten. GitHubs händelselogg fick `PullRequestEvent
+merged` och en `DeleteEvent` för grenen, men ingen `PushEvent`, och Vercel
+skapade ingen deployment i något av de två projekten på elva minuter. Både
+GitHub och Vercel rapporterade full drift. #652:s merge en halvtimme tidigare
+fick sin push-händelse efter en sekund.
+
+En merge utan bygge ser ut som en lyckad: PR:en är mergad, grenen raderad och
+produktionen svarar 200. Den kör bara den gamla koden.
+
+**Kontrollera efter varje merge att merge-commiten fått ett bygge**
+(`list_deployments` med `sha`, eller commit-statusen på merge-commiten). Saknas
+det efter några minuter: starta det via Vercels API, `create_deployment` med
+`gitSource` (org, repo, ref och sha) och `target: production`, mot exakt
+merge-commiten. Det är samma bygge som mergen skulle ha gett. Håll sedan utkik
+efter en dubblett från en sen webhook, och avbryt den medan den bygger. För
+#647 kom ingen.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
@@ -3803,6 +3823,59 @@ skapar en kategori behöver alltså inte lägga in en länk någonstans. Men den
 som bygger en länk som bara renderas vid hovring, klick eller efter mount har
 byggt en länk som Google inte ser. Regeln och testet står i butikens
 `CLAUDE.md` (`lib/meganav-ssr.test.ts`).
+
+## Långsvansen bärs av smala kategorier, inte av produktsidor (2026-09-24)
+
+Leonards fråga: ett sämre sökord på sida 1 ger mer trafik än det bästa på
+sida 3. Det stämmer, och det är mätt. Av domänens 30 sökord på sida 1 har 26
+under 200 sökningar i månaden, och av 62 sökord över 500 ligger inget där.
+
+Men sidtypen avgör. dealproffsen.se säljer samma Aosom-varor och ligger topp
+10 på 1 425 sökord, mot våra 30. Deras produktsidor ligger topp 10 på 120
+långsvansord över 200 sökningar. Vi syns i topp 100 på 8 av dem, även där vår
+titel börjar med exakt ordet (*Hundsoffa 98 cm i blått*). Titeln är inte
+bromsen, sidans styrka är.
+
+☠️ **Lägg därför ett mindre sökord på en smal kategori, inte på en
+produktsida.** Efter #647 länkas varje underkategori från varje sida via
+menyn, och produktsidorna har inga sådana länkar. Välj ord där en jämnstor
+konkurrent redan rankar med samma sidtyp. Urvalsregeln och mätningen står i
+`tools/polish-assets/runda-s14-langsvans-kategorier/`.
+
+⚠️ **Omätningen 2026-10-30 är provet.** Om S14-sidorna inte rör sig medan
+dealproffsen ligger på plats 1–5 med samma upplägg, är det domänens styrka som
+bromsar. Då är nästa steg externa länkar, inte fler sidor.
+
+## ☠️ Domänen saknar riktiga länkar — det är bromsen nu (2026-09-24)
+
+Semrush räknar 224 länkande domäner till fyndplats.se. De 40 starkaste är
+alla automatiska spamsajter (`bye.fyi`, `metamagic.top`, `byteshort.xyz` …),
+alltså ingen enda riktig svensk sajt. dealproffsen har 456, varav ett
+tjugotal äkta: Reco.se, Cuponation, forum som ifokus, en affiliatesajt och
+köpta artiklar på Expressen och lokaltidningar. Tekniken är mätt frisk
+(Lighthouse SEO 100, komplett Product-JSON-LD), så varken fler sidor eller
+mer teknik flyttar oss förbi dem. Planen och underlaget står i
+`tools/polish-assets/seo-granskning-2026-09-24/`.
+
+☠️ **Köp inte följbara länkar**, även om konkurrenten gör det. Googles
+spampolicy kräver `rel="sponsored"` på betalda länkar. Prisjämförelse,
+rabattkodssajter, affiliate och digital PR med vår egen prisdata är vägarna,
+och alla kräver Leonard.
+
+⚠️ **Profilerna finns redan. Kolla butikens `sameAs` innan du föreslår en.**
+Google Företagsprofil (4,9), hitta.se, Trustpilot och Reco finns alla.
+`app/layout.tsx` på `headless-site` listar de flesta, och granskningen
+föreslog ändå att skapa dem. Deras länkar är `nofollow`, och Trustpilot och
+Reco har 0 omdömen. Reco är inte ens verifierad, och Trustpilots
+inbjudningscron togs ur schemat 2026-08-17 på Leonards beslut.
+
+☠️ **En adress som rankar får aldrig sluta på `/butik`.** `/basta-i-test/massagepistoler`
+låg 18:e på *massageapparat bäst i test*. Köpguiden blev tunn när vi slutade
+sälja massagepistoler, och koden skickade vidare med 307 till `/butik`, så
+rankningen följde med dit. Den pekar nu på bloggens guide (#647, med test).
+Före en omdirigering: kontrollera vad adressen rankar på
+(`rankande-adresser.tsv` i granskningen) och välj en sida som svarar på
+samma fråga. Finns ingen sådan är en ärlig 404 bättre än en irrelevant sida.
 
 ## Dubblett-spärr vid import
 

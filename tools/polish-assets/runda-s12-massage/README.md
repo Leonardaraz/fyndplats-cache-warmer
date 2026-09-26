@@ -203,4 +203,19 @@ Commit `cdf72170` på `claude/sasongskategorier-s6-bz3j9l` (#647).
 
 ## 7. Live
 
-Väntar på mergen av #647.
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **3 av 3** sidor lika källan. Massage & Återhämtning heter
+  "Uppresningsfåtölj & kontorsstol med massage" och Kropp & Välbefinnande
+  "Rollator, ljusterapilampa & sittdyna".
+- Massagebänkar har sina 10 i Wix och finns i sitemapen och menyn.
+- **Brödsmulan:** tre bänkar som bara ligger i Massagebänkar får
+  *Hem / Skönhet & Hälsa / Massagebänkar / …*. Bänken som ligger kvar i Kropp &
+  Välbefinnande (avsnitt 2) får Kropp & Välbefinnande som nivå tre, eftersom
+  den sidan har 8 produkter mot Massagebänkars 9 synliga. Regeln gör rätt.
+  ☠️ Ska alla tio bänkar peka på Massagebänkar måste bänken ut ur Kropp &
+  Välbefinnande. Men sidans intro räknar upp den (*"… och en hopfällbar
+  massagebänk"*), och den texten är live. Texten ändras därför först, i en
+  butiksdeploy, och kopplingen tas bort i Wix efteråt. Sidan har då sju
+  produkter. Omvänd ordning ger en sida som lovar en bänk den inte har.

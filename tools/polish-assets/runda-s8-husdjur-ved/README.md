@@ -201,7 +201,16 @@ så den tas inte med i den här rundan. Den är ett förslag till Leonard.
 
 ## 7. Live
 
-(fylls i efter merge 2026-09-25)
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **6 av 6** sidor lika källan. Första körningen föll på en
+  enda hämtning som aldrig kom fram (ingen fil skrevs), och omkörningen gav 6
+  av 6.
+- Alla sex nya sidor finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 117 planerade
+  kopplingarna saknas. Poleringen har lagt till tre: Hönshus & hönsgårdar har
+  21 (20 planerade) och Vedställ & vedbodar 17 (15).
 
 ## Återställning
 

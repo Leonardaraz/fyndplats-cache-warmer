@@ -209,7 +209,15 @@ Tre förhandsbyggen, ett per butikscommit. Det sista, `dpl_BzMXd4e79p4FjFYMuUHT8
 
 ## 7. Live
 
-(fylls i efter merge 2026-09-25)
+#647 mergades 2026-09-25 01:29 UTC och gick live 01:43 UTC med produktionsbygget
+`dpl_3Mb4VcsjhGdcxtR5rpuKuVvDFqbK` (hur bygget kom till står i S13:s avsnitt 7).
+
+- `livekoll.py`: **7 av 7** sidor lika källan.
+- Alla sju nya sidor finns i sitemapen och i menyn på startsidan.
+- Wix lästes före mergen, 01:22–01:29 UTC, med `list-items` per kategori. Ingen av de 146 planerade
+  kopplingarna saknas. Poleringen har lagt till tio: Pallar har 50 (46
+  planerade), Sittpuffar & fotpallar 22 (21), Klädhängare & hallmöbler 17 (15)
+  och Sideboards & vitrinskåp 17 (14).
 
 ## Återställning
 
