@@ -1069,3 +1069,28 @@ beslut — se den samlade frågan om detta.
   fortsätter på 849 kr, där 27 utkast ligger utanför main-serien och inget
   är skärmat. N50:s åtta för en riktad kontroll är fortfarande inte
   kontrollerade. (N56)
+- Runda B1 polerar från den ÄLDSTA änden av kön, parallellt med SEO 2 som
+  tar de nyaste. Av de 18 äldsta opolerade utkasten publicerades åtta, och
+  tio hoppades över av skälen nedan. (B1)
+- Slutsålda (saldo 0): paviljongen `9c78a73a` (390 × 290 cm) och
+  spegelteleskopet `5108bef9` (114 mm). (B1)
+- Samma måtttrippel som en publicerad sida av samma slag, alltså dubblett
+  eller färgsyskon: plåtboden `a4221b8b` (277 × 195 × 192 cm) mot
+  `646720e3` och `4fa6ebd7`, plåtboden `2861bf83` (213 × 130 × 185 cm)
+  mot `cd628af2`, barnsängen `f6da9a00` (70 × 140 cm) mot `77460b11`,
+  trädgårdsbänken `4f265c91` (96 × 47,5 × 14,5 cm) mot `ee3acaea`,
+  bistrosetet `4b0a1fdb` mot `66d781f8` (saldo dessutom 9), pianopallen
+  `bdcfa4db` mot `e0a73975` och `a0386ca3`, och pianopallen `6919217b`
+  mot `69387273` och `981bd035`. Ingen är bildjämförd; kör pixel- eller
+  hashgrinden innan någon av dem poleras som en egen vara. (B1)
+- Barnsoffan med ottoman `d9544fac` är samma vara som publicerade
+  `9adac852`. Källan skriver måtten med bokstaven före talet
+  (L58 x B40,5 x H49), så måttskärmen missade den; den hittades med en
+  riktad sökning på namn och slug. (B1)
+- Barnfåtöljen `a3bd50fa` är färgsyskon till `788a6e39`, som publicerades
+  i B1: samma mått, samma pris och saldo 27. Den väntar till en senare
+  runda, med samma namnform som syskonet. (B1)
+- Feed-utkastet `ec93f9f2` (tyskt barnskrivbord) är samma vara som B1:s
+  `91d7dfd9`: samma mått, samma låda och belastning, och tre bilder med
+  samma pixlar. `91d7dfd9` är ommappad till Aosom och `ec93f9f2`
+  pensionerad (`rejected`). (B1)
