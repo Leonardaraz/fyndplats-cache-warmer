@@ -2023,3 +2023,58 @@ beslut — se den samlade frågan om detta.
   tidning i en sidoficka, tidningar i en hylla). Rekvisitatext som bara syns
   vid förstoring, som köksskåpets förpackningar, räknas inte – måttet är
   arkets cell på 600 px, samma som bygg-ark mäter läsbarhet med. (N67)
+- Billigare utkast bakom en publicerad sida, till Leonards beslut:
+  väggskåpet för badrum `0eadb8cf` (649 kr) har samma tre måtttripplar och
+  vikter (20, 5 och 11,7 kg) som det publicerade `730c4df6` (829 kr), och
+  paraplystället med droppskål `c4981165` (499 kr) samma tripplar som
+  `7ae083dd` (639 kr). Om utkastet ska ersätta sidan eller pensioneras är
+  Leonards beslut. (N68)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): tvåsitssoffan `33825b88` (1 929 kr) har samma
+  tripplar och vikt (22,2 kg) som den gräddvita `95c2008d` (2 269 kr), och
+  den konstgjorda häcken `fbb87ca3` (240 × 100 cm, 469 kr) är samma häck som
+  `756a7cd2` i en annan storlek. (N68)
+- Samma vara som en publicerad sida, hoppade: serveringsvagnen i bambu
+  `451cbfa5` (539 kr) mot `b250bfcf` (499 kr), samma tripplar och vikter (12
+  och 4 kg); den konstgjorda häcken `244f8cb5` mot `c8376256` (300 × 100 cm,
+  2,1 kg) och häcken `1f53c75c` mot `756a7cd2` (300 × 150 cm, 2,5 kg). (N68)
+- Skärmträff mot en publicerad sida av samma slag, hoppade: den fristående
+  elkaminen `4e79205e` (39 × 24 × 56,5 cm, 6 kg) mot `31245d0d` med samma
+  mått och vikt, och mot `c56fb251` och `8b495a41`; sittpuffarna med
+  förvaring `a84ebcf5` (579 kr) och `7910a37d` (599 kr), färgtvillingar
+  sinsemellan, mot `a96f4c7e`; terrassplattorna `5bcb891e` mot `ddf64946`.
+  (N68)
+- Tvilling i rundan: konstgräsplattorna `eaa37062` (569 kr, 11 000
+  fibrer/m²) är samma platta som rundans `4362ebd1` (499 kr, 6 500
+  fibrer/m²), med tätare gräs. Huset polerar den billigaste; om den tätare
+  ska få en egen sida är Leonards beslut. (N68)
+- N68 tog de 40 utkast som skapades i nattens import (2026-09-26,
+  04:40–04:44), i fallande skapandeordning. Tjugo publicerades, skrivplanens
+  tak, tolv hoppades med skälen ovan, och åtta som klarade skärmen får vänta
+  till N69: det utdragbara matbordet `02199100`, reclinerfåtöljen
+  `5b1df31b`, nattduksbordet `ca547b56`, vinstället `b00fa3b1`,
+  uppresningsfåtöljerna `2c7ae2cc` och `0f1abb61` (tvillingar till samma
+  pris, 4 669 kr, så en poleras och den andra flaggas) och massagefåtöljerna
+  `f1944853` och `d57f908e`. (N68)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  nattduksbordet `ca547b56` mot `af4409b8`, gungstolen `5a1e8d57` mot
+  `bbcb8f31`, reclinerfåtöljen `5b1df31b` mot `e76002c1`,
+  uppresningsfåtöljerna `2c7ae2cc` och `0f1abb61` mot `6a4e92c4`, `04feb176`
+  och `ee670ba9`, massagefåtöljen `f1944853` mot `ceae31c1` och `1b39b14e`
+  (53,4 mot 44,3 kg), loungefåtöljen `cfac92b3` mot `b8b6fee1` och
+  sidobordet `f8f44ef7` mot `91c4388b`. Konstväxterna och häckarna jämfördes
+  riktat mot alla publicerade sidor av samma slag, på diameter, höjd och
+  vikt; för växterna gällde träffarna bara krukor eller andra höjder. Inget
+  av de friade är samma vara. (N68)
+- Bildgranskningen strök nio bilder: husmärkets logga med tysk text på tre
+  julfigurer (en bild som dessutom visar andra produkter), tysk text om
+  leveransen på bäddsoffans måttbild och läsbar engelsk text på rekvisitan i
+  fem (boktitlar, en tidskrift och böcker i en hylla). Att bäddsoffan kommer
+  i två kartonger står i texten och är kvitterat i `foto-tal.txt`. (N68)
+- Färgen följer fotot: loungefåtöljen `cfac92b3` är brun i källan men beige
+  på alla bilder, och gungstolen `5a1e8d57` har medar i ljust trä där källan
+  säger valnöt. Texterna följer bilderna. (N68)
+- Semrush gav mätvärden för två sökord (uppblåsbar tomte 880 och konstgjord
+  palm 140 sökningar i månaden) och svarade sedan att API-enheterna är slut.
+  Övriga sökord bygger på tidigare rundors mätvärden eller är valda på
+  produkttypen och sökta i butikens egen sökning. (N68)
