@@ -72,6 +72,15 @@ describe("byggRecensionsflode", () => {
     assert.match(xml, /max="5">2</);
   });
 
+  it("en trasig rad fäller inte flödet — den redovisas och resten följer med", () => {
+    const trasig = { productId: "p1", reviewIdAE: "t", rating: 4, date: "2026-09-20T10:00:00Z" } as unknown as EgetOmdome;
+    const utanInitialer = { ...omdome({ reviewIdAE: "u" }), initials: undefined } as unknown as EgetOmdome;
+    const { antal, bortfall, xml } = byggRecensionsflode([trasig, utanInitialer, omdome({ reviewIdAE: "ok" })], produkter, OPTS);
+    assert.equal(antal, 2);
+    assert.deepEqual(bortfall, [{ reviewIdAE: "t", skal: "saknar_text" }]);
+    assert.match(xml, /is_anonymous="true"/);
+  });
+
   it("utan initialer blir recensenten anonym, aldrig ett namn vi hittar på", () => {
     const { xml } = byggRecensionsflode([omdome({ initials: "" })], produkter, OPTS);
     assert.match(xml, /<name is_anonymous="true">Verifierad köpare<\/name>/);

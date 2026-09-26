@@ -109,7 +109,7 @@ export interface FlodesResultat {
   /** Omdömen som kom med. */
   antal: number;
   /** Omdömen som föll bort, med skäl — loggas av routen, tyst tapp är förbjudet. */
-  bortfall: { reviewIdAE: string; skal: "okand_produkt" | "saknar_datum" }[];
+  bortfall: { reviewIdAE: string; skal: "okand_produkt" | "saknar_datum" | "saknar_text" }[];
 }
 
 /**
@@ -128,16 +128,20 @@ export function byggRecensionsflode(
     if (!p) { bortfall.push({ reviewIdAE: o.reviewIdAE, skal: "okand_produkt" }); continue; }
     const t = o.date ? Date.parse(o.date) : NaN;
     if (!Number.isFinite(t)) { bortfall.push({ reviewIdAE: o.reviewIdAE, skal: "saknar_datum" }); continue; }
+    // Motorns rader är typade, men flödet får inte falla på EN trasig rad —
+    // då hade alla omdömen försvunnit från Google i stället för ett.
+    const text = String(o.text ?? "").trim();
+    if (!text) { bortfall.push({ reviewIdAE: o.reviewIdAE, skal: "saknar_text" }); continue; }
     const betyg = Math.min(5, Math.max(1, Math.round(Number(o.rating) || 0)));
-    const namn = o.initials.trim();
+    const namn = String(o.initials ?? "").trim();
     const recensent = namn
       ? `<name>${esc(namn)}</name>`
       : `<name is_anonymous="true">Verifierad köpare</name>`;
     rader.push(`    <review>
-      <review_id>${flodesId(o.reviewIdAE)}</review_id>
+      <review_id>${flodesId(String(o.reviewIdAE))}</review_id>
       <reviewer>${recensent}</reviewer>
       <review_timestamp>${new Date(t).toISOString()}</review_timestamp>
-      <content>${esc(o.text)}</content>
+      <content>${esc(text)}</content>
       <review_url type="group">${esc(p.url)}</review_url>
       <ratings>
         <overall min="1" max="5">${betyg}</overall>
