@@ -563,6 +563,28 @@ export const getProducts = cache((): Promise<Product[]> => {
   return productsPromise;
 });
 
+/**
+ * Bara huvudbild och galleri för en produkt, direkt från Wix — ETT uppslag.
+ *
+ * För produktkortens extrabilder (/api/kort-galleri/nya). getProduct gör sex
+ * V3-anrop efter varandra (varianter, färgbilder, fullt galleri …) som kortet
+ * inte behöver: uppmätt 38 s på en kall instans mot 0,2 s varm. Kortet visar
+ * högst sex bilder, och mapProducts galleri bär sex.
+ */
+export async function getProductImages(slug: string): Promise<Pick<Product, "img" | "gallery"> | undefined> {
+  if (!wix) return undefined;
+  try {
+    const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
+    const item = res.items?.[0];
+    if (!item) return undefined;
+    const p = mapProduct(item);
+    return { img: p.img, gallery: p.gallery };
+  } catch (e) {
+    console.warn(`[products] getProductImages(${slug}) föll:`, (e as Error).message);
+    return undefined;
+  }
+}
+
 // Per-request dedup: if two RSCs on the same product page both call getProduct(slug),
 // React reuses the in-flight Promise instead of round-tripping to Wix twice.
 export const getProduct = cache(async (slug: string): Promise<Product | undefined> => {

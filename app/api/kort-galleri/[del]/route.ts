@@ -34,11 +34,17 @@ export function generateStaticParams() {
 export async function GET(_req: Request, { params }: { params: Promise<{ del: string }> }) {
   const del = lasDel((await params).del);
   if (del === null) return NextResponse.json({}, { status: 404 });
-  const ut: Record<string, string[]> = {};
+  const ut: Record<string, string[] | number> = {};
+  // Högsta createdAt i katalogen delen byggs ur. Ett kort som är nyare än så
+  // kan inte finnas här, och hämtar sina bilder från /api/kort-galleri/nya i
+  // stället (components/card-gallery.tsx). Slugs börjar aldrig med "_".
+  let senast = 0;
   for (const p of await getProducts()) {
+    if (p.createdAt > senast) senast = p.createdAt;
     if (kortDel(p.slug) !== del) continue;
     const k = extraKortbilder(p.img, p.gallery, wixMediaKey);
     if (k.length) ut[p.slug] = k;
   }
+  ut._senast = senast;
   return NextResponse.json(ut, { headers: { "Cache-Control": CACHE } });
 }

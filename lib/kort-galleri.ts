@@ -78,3 +78,16 @@ export function lasDel(s: string): number | null {
   const n = Number(s);
   return n < KORT_DELAR ? n : null;
 }
+
+/** Högst så många produkter per anrop till /api/kort-galleri/nya. */
+export const NYA_MAX_SLUGS = 12;
+
+/**
+ * Läser ?s=a,b,c för /api/kort-galleri/nya: bara giltiga slugs (a–z, 0–9,
+ * bindestreck), unika, sorterade (samma urval ger samma CDN-nyckel) och kapade.
+ */
+export function lasNyaSlugs(s: string | null): string[] {
+  if (!s) return [];
+  const ut = [...new Set(s.split(",").map((x) => x.trim()).filter((x) => /^[a-z0-9-]{1,120}$/.test(x)))];
+  return ut.sort().slice(0, NYA_MAX_SLUGS);
+}
