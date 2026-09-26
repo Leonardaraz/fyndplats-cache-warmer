@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+526d7fb5 2 soffan levereras i två kartonger, avläst på måttbilden (bild 3, struken för tysk text); texten säger det för att kunden ska vänta in båda

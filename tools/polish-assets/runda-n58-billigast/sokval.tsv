@@ -1,0 +1,19 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+4caae7b4	runt köksbord	3600	23	litet köksbord; cafébord; bistrobord
+6fcce4f6	konstgjord palm	140	11	konstväxt palm; konstväxter
+965090e1	situp bänk	390	12	sit up bänk; magbänk
+aa108611	badrumsskåp vit	170	10	badrumsskåp
+336359d7	snurrstol barn	90	16	snurrskiva
+38f9bf22	ståbord	1900	11	laptopbord; höj och sänkbart bord; datorbord på hjul
+5b38973c	tvättställsskåp	2400	18	tvättställsskåp fristående; underskåp handfat; kommod handfat
+68c9cfe0	gymnastikringar	720	12	ringar barn; gymnastik barn
+9709043e	skåp över toalett	140	14	väggskåp badrum; badrumsskåp vägg; badrumsskåp bambu
+b9e2faf5	järnsäng	260	12	sängram 90x200; säng 90x200
+106819f0	satsbord	3600	13	satsbord ek; sidobord; soffbord
+121a8ef7	enkelsäng	1600	24	enkelsäng 90x200; sängram metall
+ae748e48	konstgjort träd	320	7	ficus; konstväxt träd
+aebd7dae	stepper	590	12	mini stepper; ministepper
+af2bd004	handfatsskåp	390	18	litet tvättställsskåp; litet badrumsskåp
+# Två par i rundan ville ha samma huvudord och fick var sitt: tvättställsskåp (5b38973c) och handfatsskåp (af2bd004), järnsäng (b9e2faf5) och enkelsäng (121a8ef7).
+# Publicerade namn med huvudordet: runt köksbord 0, skåp över toalett 0, järnsäng 0, enkelsäng 0, handfatsskåp 0, situpbänk 1, stepper 1, konstgjort träd 1, konstgjord palm 2, tvättställsskåp 4, satsbord 6, badrumsskåp 25.
+# 68c9cfe0: räcket har inget sökord med volym (gymnastikräck 0); namnet leder därför med gymnastikringar (720), som är en del av varan.

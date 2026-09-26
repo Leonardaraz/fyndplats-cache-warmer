@@ -1,0 +1,12 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+2dd38cab	kärlskåp	320	11	sopkärlsskydd; sopskåp; sopkärlsskåp
+6d2d6b58	skjutdörr inomhus	2400	18	skjutdörr glas; glasdörr inomhus; skjutdörr med skena; skjutdörr badrum
+dee45dce	bordtennisbord	1000	18	bordtennis bord; pingisbord inomhus; pingisbord hopfällbart
+996b85ef	entrétak glas	480	10	glastak; skärmtak glas; glastak entré
+fe36942e	smithmaskin	1600	13	power rack; squat rack; smith maskin; power cage
+# Publicerade namn med huvudordet eller närmaste ord: kärlskåp 0 (soptunneskydd 1), skjutdörr inomhus 0 (skjutdörr 1, i en skenas namn), bordtennisbord 0 (pingisbord 1, ett minibord på 152 × 76 cm), entrétak glas 0 (entrétak 2 och skärmtak 6, alla åtta i polykarbonat), smithmaskin 0 (hemmagym 1, multigym 1).
+# 2dd38cab: soptunneskydd (1 300, 15) bärs av det publicerade, mindre skyddet på 150 × 80 cm. Rundan tar kärlskåp (320, 11).
+# 6d2d6b58: skjutdörr (3 600, 17) står i namnet på en publicerad skena för skjutdörr. Rundan tar skjutdörr inomhus (2 400, 18), som inget publicerat namn bär.
+# dee45dce: pingisbord (8 100, 20) bärs av det publicerade minibordet. Rundan tar bordtennisbord (1 000, 18).
+# 996b85ef: entrétak (4 400, 20) och skärmtak (2 400, 18) bärs av åtta publicerade tak i polykarbonat. Rundan tar entrétak glas (480, 10).
+# fe36942e: hemmagym (3 600, 14) och multigym (1 900, 23) bärs av publicerade sidor. Rundan tar smithmaskin (1 600, 13), som inget publicerat namn bär.

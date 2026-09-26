@@ -133,6 +133,40 @@ describe("en rad utan måttrad AVBRYTER hellre än tiger", () => {
   });
 });
 
+describe("EN LÄNGD OCH INGET ANNAT — förklarat axellös, inte avbrott", () => {
+  it("☠️ ger inget facit alls, bara skälet med raden", () => {
+    // Runda N59, skjutdörrsbeslaget 87888f5f: källans enda mått är
+    // `Schienenlänge: 183 cm`. Vilken axel längden är går inte att läsa ur
+    // raden, så grenen får inte gissa bredd eller höjd.
+    const ut = bygg({ aaa: kalla(["Schienenlänge: 183 cm", "Geeignete Türblattbreite: 90 cm"]) });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+    expect(String(ut.aaa.axellos)).toMatch(/bara en längd: .*Schienenlänge: 183 cm/);
+  });
+
+  it("fyrar INTE när en riktig totalrad finns", () => {
+    const ut = bygg({ aaa: kalla(["Gesamtmaße: 183L x 5B x 6H cm", "Schienenlänge: 183 cm"]) });
+    expect(ut.aaa).toMatchObject({ bredd: 183, djup: 5, hojd: 6 });
+    expect(ut.aaa.axellos).toBeUndefined();
+  });
+
+  it("☠️ läser en längd i METER, som en kabel mäts i", () => {
+    // Runda N60, laddkabeln c28af8df: källans enda mått är `Kabellänge: 5 m`.
+    // Grenen krävde `cm`, så generatorn avbröt på en källa som säger
+    // sanningen om sig själv.
+    const ut = bygg({ aaa: kalla(["Kabellänge: 5 m", "Schutzart: IP65"]) });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.djup).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+    expect(String(ut.aaa.axellos)).toMatch(/bara en längd: .*Kabellänge: 5 m/);
+  });
+
+  it("släpper INTE igenom millimeter", () => {
+    expect(() => bygg({ aaa: kalla(["Kabellänge: 5 mm", "Schutzart: IP65"]) })).toThrow();
+  });
+});
+
 describe("KVALIFICERAD ETIKETT — bara när den nakna tiger", () => {
   it("läser Gesamtgröße, som inte stod i etikettlistan", () => {
     // Runda N1, hörnsoffan fe56b0e6. Ordet fanns inte i ETIKETT alls, så
@@ -216,6 +250,64 @@ describe("GESAMTHÖHE — en totalhöjd utan totalmått", () => {
     });
     expect(ut.aaa).toMatchObject({ bredd: 160, djup: 90, hojd: 240 });
     expect(ut.aaa.axelkalla).toBeUndefined();
+  });
+});
+
+describe("NAKEN HÖHE — samma totalhöjd utan ordet Gesamt", () => {
+  it("läser `Höhe: 150 cm` när källan inte har något annat mått", () => {
+    // Runda N65, konstfikusen a6657b3d: `Höhe: 150 cm` och
+    // `Topfgröße: Ø15 x 12,5 cm`. Samma form som den publicerade fikusen
+    // 63351b54 i L1, där generatorn också avbröt.
+    const ut = bygg({
+      aaa: kalla(["Höhe: 150 cm", "Topfgröße: Ø15 x 12,5 cm"], "Ø15 x 150H cm"),
+    });
+    expect(ut.aaa).toMatchObject({ hojd: 150, bokstaver: "H" });
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(String(ut.aaa.axelkalla)).toContain("Höhe");
+  });
+
+  it("☠️ Gesamthöhe vinner över en naken Höhe", () => {
+    const ut = bygg({ aaa: kalla(["Gesamthöhe: 110 cm", "Höhe: 150 cm"]) });
+    expect(ut.aaa.hojd).toBe(110);
+  });
+
+  it("☠️ ett delmått med Höhe i etiketten blir aldrig produktens höjd", () => {
+    // `Sitzhöhe` och `Rückenlehne Höhe` mäter en DEL. Etiketten måste stå
+    // först på raden och ensam, annars avbryter generatorn som förr.
+    expect(() => bygg({ aaa: kalla(["Sitzhöhe: 45 cm"]) })).toThrow();
+    expect(() => bygg({ aaa: kalla(["Rückenlehne Höhe: 50 cm"]) })).toThrow();
+  });
+
+  it("☠️ två nakna Höhe-rader är tvetydiga och avbryter", () => {
+    expect(() => bygg({ aaa: kalla(["Höhe: 150 cm", "Höhe: 120 cm"]) })).toThrow();
+  });
+});
+
+describe("BARA EN DIAMETER — en ring har inga axlar att binda", () => {
+  it("märker raden axellös med skälet i stället för att avbryta", () => {
+    // Runda N66, kantskyddet till en studsmatta 14fb0f98: `Durchmesser:
+    // Ø305 cm` och `Dicke der Polsterung: 15 mm`. Ingen bredd, inget djup,
+    // ingen höjd — och generatorn avbröt på en källa som säger sanningen.
+    const ut = bygg({
+      aaa: kalla(["Durchmesser: Ø305 cm", "Dicke der Polsterung: 15 mm"], "Ø 305cm"),
+    });
+    expect(String(ut.aaa.axellos)).toContain("bara en diameter");
+    expect(ut.aaa.bredd).toBeUndefined();
+    expect(ut.aaa.hojd).toBeUndefined();
+  });
+
+  it("☠️ en naken Höhe vinner över diametern — en cylinder har en höjd", () => {
+    const ut = bygg({ aaa: kalla(["Durchmesser: Ø30 cm", "Höhe: 50 cm"]) });
+    expect(ut.aaa.hojd).toBe(50);
+    expect(ut.aaa.axellos).toBeUndefined();
+  });
+
+  it("☠️ en diameter på en DEL gör inte produkten axellös", () => {
+    // `Rädergröße: Durchm. 24 cm` och `Sockelgröße: Ø64,5 cm` mäter delar.
+    // Etiketten måste stå först på raden och ensam, annars avbryter
+    // generatorn som förr.
+    expect(() => bygg({ aaa: kalla(["Raddurchmesser: 24 cm"]) })).toThrow();
+    expect(() => bygg({ aaa: kalla(["Rädergröße: Durchm. 24 cm"]) })).toThrow();
   });
 });
 

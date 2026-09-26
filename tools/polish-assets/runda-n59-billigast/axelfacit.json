@@ -1,0 +1,108 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0a251021": {
+  "tyska": "56B x 51T x 79H cm",
+  "svenska": "56L x 51B x 79H cm",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": 79,
+  "bredd": 56
+ },
+ "44068117": {
+  "tyska": "36B x 36T x 30H cm",
+  "svenska": "36L x 36B x 30H cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 30,
+  "bredd": 36
+ },
+ "74afa40e": {
+  "tyska": "Ø60 x 41H cm",
+  "svenska": "60L x 60B x 41H cm",
+  "bokstaver": "H",
+  "hojd": 41
+ },
+ "7afb4dfe": {
+  "tyska": "180L x 25,5B x 6,5H cm",
+  "svenska": "180L x 25,5B x 6,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 6.5,
+  "bredd": 180,
+  "djup": 25.5
+ },
+ "839b9c31": {
+  "tyska": "L40 x B25 x H150 cm",
+  "svenska": "L40 x B25 x H150 cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 40,
+  "djup": 25
+ },
+ "87888f5f": {
+  "tyska": "",
+  "svenska": "183L x 4,7B x 6,1H cm",
+  "axellos": "inget totalmått i källan; bara en längd: ✔ Schienenlänge: 183 cm"
+ },
+ "92389b54": {
+  "tyska": "27L x 43B x 66H cm",
+  "svenska": "27 x 43 x 66 cm",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 27,
+  "djup": 43
+ },
+ "95fcccd9": {
+  "tyska": "77B x 30T x 157,5H cm, 45,4/24B x 30T x 33H cm",
+  "svenska": "74 x 30 x 157,5 cm",
+  "bokstaver": "BTHBTH",
+  "djup": 30,
+  "hojd": 157.5,
+  "bredd": 77
+ },
+ "cb3b4e9f": {
+  "tyska": "16B x 48T x 58H cm",
+  "svenska": "16 x 48 x 58 cm",
+  "bokstaver": "BTH",
+  "djup": 48,
+  "hojd": 58,
+  "bredd": 16
+ },
+ "cc20d515": {
+  "tyska": "",
+  "svenska": "133L x 34B x 28H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kratzpfosten: 12,5B x 15T x 54H cm | ✔ Plattform in Wolkenform: 44B x 22T x 28H cm | ✔ Deckenplattform: 60B x 28T x 27H cm | ✔ Plattform mit Haus: 133B x 34T x 28H cm | ✔ Leitergröße: 43L x 16B cm | ✔ Haus: Ø34 x 28H cm"
+ },
+ "da9dda33": {
+  "tyska": "60L x 60B x 70,5-120H cm",
+  "svenska": "60L x 60B x 120H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   70.5,
+   120
+  ],
+  "bredd": 60,
+  "djup": 60
+ },
+ "ed1e585f": {
+  "tyska": "28L x 28B x 71H cm, 23L x 23B x 61H cm, 18L x 18B x 51H cm",
+  "svenska": "28L x 28B x 71H cm",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 71,
+  "bredd": 28,
+  "djup": 28
+ },
+ "fb0bf4f0": {
+  "tyska": "Ø40 x 45H cm",
+  "svenska": "Ø40 x 45H cm",
+  "bokstaver": "H",
+  "hojd": 45
+ },
+ "fc4b663c": {
+  "tyska": "130L x 115B x 8,5H cm",
+  "svenska": "130L x 115B x 8,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 8.5,
+  "bredd": 130,
+  "djup": 115
+ }
+}

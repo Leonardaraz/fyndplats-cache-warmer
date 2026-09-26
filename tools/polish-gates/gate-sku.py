@@ -26,16 +26,39 @@ runbooken säger. Det är ingen brist i grinden utan i vad en fil kan veta:
 `variantsInfo` ligger ALDRIG i sökprojektionen, så en katalogomfattande
 SKU-revision är ett GET-anrop per produkt.
 
+☠️ OCH RUTTENS BREDARE ARTIKELNUMMERFORM (2026-09-24). `lib/polish/skrivplan.ts`
+vägrar en plan där slug eller SKU bär en artikelnummerform: gatelibs ARTNR,
+eller tre tecken, bindestreck, minst tre till och minst en siffra (mått och
+spänningar som `230-240V` släpps). Runda N61:s högtryckstvätt fick `135-bar` i
+både slug och SKU. Grinden här var ren, och först workflowens torrkörning
+vägrade planen. Formen speglas därför här, tecken för tecken som i rutten, för
+SKU:n och för slugen i `slugs.txt`. Felet namnger fältet, aldrig träffen.
+
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-sku.py
-  sku.tsv   "kort  FP-svensk-sku", en rad per produkt
-  ids.tsv   VALFRI: används för att fälla en produkt som saknar SKU-rad
+  sku.tsv    "kort  FP-svensk-sku", en rad per produkt
+  ids.tsv    VALFRI: används för att fälla en produkt som saknar SKU-rad
+  slugs.txt  VALFRI: "kort slug", slugen prövas mot samma artikelnummerform
 """
 import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gatelib import ARTNR  # noqa: E402
+
 MAX = 40                       # Wix MAX_LENGTH, uppmätt — inte antaget.
 FORM = re.compile(r"^FP-[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+# Speglar FORM och TILLATEN_FORM i lib/polish/skrivplan.ts.
+BRED_FORM = re.compile(r"\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b")
+TILLATEN_FORM = re.compile(r"^\d{2,4}-\d{2,4}(V|W|HZ|MM|CM)?$", re.I)
+
+
+def artikelnummerformer(s):
+    """Antal träffar med ruttens artikelnummerform. Returnerar aldrig träffen."""
+    breda = sum(1 for m in BRED_FORM.finditer(s)
+                if re.search(r"\d", m.group(0)) and not TILLATEN_FORM.match(m.group(0)))
+    return breda + len(re.findall(ARTNR, s))
 
 if not os.path.exists("sku.tsv"):
     raise SystemExit("  [AVBRYT] sku.tsv saknas — kör från rundans katalog")
@@ -64,12 +87,25 @@ for nr, rad in enumerate(rader, 1):
               f"siffror och bindestreck  ({kort})")
         fynd += 1
 
+    if artikelnummerformer(sku):
+        print(f"sku.tsv:{nr}  [ARTIKELNUMMERFORM] SKU:n för {kort} bär en form som "
+              "rutten vägrar (tre tecken, bindestreck, minst tre till med en siffra)")
+        fynd += 1
+
     if sku in sedda:
         print(f"sku.tsv:{nr}  [DUBBLETT] {sku!r} används av både "
               f"{sedda[sku]} och {kort}")
         fynd += 1
     else:
         sedda[sku] = kort
+
+if os.path.exists("slugs.txt"):
+    for nr, rad in enumerate(open("slugs.txt", encoding="utf-8"), 1):
+        delar = rad.split()
+        if len(delar) == 2 and artikelnummerformer(delar[1]):
+            print(f"slugs.txt:{nr}  [ARTIKELNUMMERFORM] slugen för {delar[0]} bär en form "
+                  "som rutten vägrar (tre tecken, bindestreck, minst tre till med en siffra)")
+            fynd += 1
 
 # En produkt utan SKU-rad blir tyst kvar med sin TYSKA SKU. Steget räknas som
 # gjort och ingenting säger emot — samma klass som alt-steget som saknades helt

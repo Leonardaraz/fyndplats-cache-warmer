@@ -1,0 +1,26 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+97b1d071	avlastningsbord	14800	18	sängbord med laddare; sidobord; avlastningsbord soffa
+46443b89	bäddsoffa 2-sits	1900	17	liten bäddsoffa; bäddsoffa sammet; bäddsoffa 2 sits
+efa4b5d6	smalt sidobord	590	15	tidningsställ; sängbord; sidobord smalt
+f716feb0	matstolar grå	320	13	matstolar sammet; köksstolar; matstol sammet
+cad2e713	barstol med ryggstöd	1000	23	barstol snurrbar; barstol höj och sänkbar; barstolar
+c23dab52	fällbord	1300	17	väggbord; hopfällbart matbord; fällbart bord
+6ddedacc	vitt runt matbord	480	17	matbord för två; litet matbord; matbord furu
+c8c172a9	runt bord	3600	23	litet köksbord; runt köksbord
+5e5ede44	sidobord glas	320	13	satsbord glas; satsbord; satsbord svart
+6d064139	sidobord soffa	720	22	laptopbord; sidobord svart; sidobord metall
+2f1fc319	brickbord	4400	23	runda satsbord; brickbord svart; runt sidobord
+7dfdf28d	retro fåtölj	880	13	fåtölj retro; hundtandsmönster; läsfåtölj
+47bad2d7	matbord glas	590	13	runt glasbord; runt matbord glas; glasbord
+c8de34ad	öppen bokhylla	390	10	hylla vardagsrum; bokhylla svart; bokhylla
+eee98f0f	matbänk	6600	21	sittbänk trä; hallbänk; bänk trä
+6c54c9c3	plastgran	5400	25	julgran plast; julgran smal; julgran med snö
+7a5e5c31	konstgran	880	15	konstgjord julgran; konstgjord gran
+# Publicerade slugar med huvudordet, sökta i butikens sökning 2026-09-24: avlastningsbord 0, bäddsoffa 2-sits 0 (bäddsoffa 10), smalt sidobord 0, matstolar grå 0 (matstolar 18), barstol med ryggstöd 0 (barstol 21), fällbord 0, vitt runt matbord 0, runt bord 0, sidobord glas 0, sidobord soffa 0, brickbord 0, retro fåtölj 0, matbord glas 0, öppen bokhylla 0, matbänk 0, plastgran 0, konstgran 0.
+# 97b1d071 och 6d064139 är båda sidobord i C-form. Det med laddstation tar avlastningsbord (14 800, 18) och det i stål sidobord soffa (720, 22), så de två inte tävlar om samma ord.
+# f716feb0: matstolar (12 100, 27) bärs av 18 publicerade sidor. Rundan tar matstolar grå (320, 13).
+# cad2e713: barstol (8 100, 25) bärs av 21 publicerade sidor. Rundan tar barstol med ryggstöd (1 000, 23).
+# c23dab52: klaffbord (8 100, 19) bärs av nio publicerade sidor och är en annan konstruktion. Rundan tar fällbord (1 300, 17).
+# c8c172a9: runt köksbord (3 600, 23) bärs av ett publicerat köksbord på 60 cm. Rundan tar runt bord (3 600, 23), som ingen sida bär.
+# eee98f0f: träbänk (2 400, 18) bärs av två publicerade bänkar i furu på 120 och 175 cm. Rundan tar matbänk (6 600, 21).
+# 6c54c9c3 och 7a5e5c31: smal julgran (590, 14) bärs av sex publicerade granar och julgran 180 cm (210, 13) av 24. Rundan tar plastgran (5 400, 25) och konstgran (880, 15).

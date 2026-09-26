@@ -1,0 +1,123 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2f1fc319": {
+  "tyska": "",
+  "svenska": "Ø43 x 38H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen des Tisches: Ø 43 x 38H cm (großer Tisch) | ✔ Abmessungen des Tisches: Ø 35 x 34H cm (kleiner Tisch)"
+ },
+ "46443b89": {
+  "tyska": "",
+  "svenska": "181L x 73B x 78,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 181B x 73T x 78,5H cm | ✔ Bettmaße: 181L x 93B x 63H cm | ✔ Sitzgröße: 161B x 47,5T x 42H cm | ✔ Rückenlehnenmaße: 160B x 44H cm | ✔ Armlehnenmaße: 60L x 8,5B cm | ✔ Bettflächenmaße: 160L x 93B x 5T cm | ✔ Kissenmaße: 45L x 28B x 11T cm"
+ },
+ "47bad2d7": {
+  "tyska": "80L x 80B x 75H cm",
+  "svenska": "80L x 80B x 75H cm",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 80,
+  "djup": 80
+ },
+ "5e5ede44": {
+  "tyska": "",
+  "svenska": "42L x 42B x 51H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Große Tischabmessungen: 42L x 42B x 51H cm | ✔ Kleine Tischabmessungen: 33L x 33B x 45,5H cm"
+ },
+ "6c54c9c3": {
+  "tyska": "Ø53 x 190H cm",
+  "svenska": "Ø53 x 190H cm",
+  "bokstaver": "H",
+  "hojd": 190
+ },
+ "6d064139": {
+  "tyska": "46L x 26B x 60Hcm",
+  "svenska": "46L x 26B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 46,
+  "djup": 26
+ },
+ "6ddedacc": {
+  "tyska": "Ø75 x 76 Hcm",
+  "svenska": "75cm x 75cm x 76cm",
+  "bokstaver": "H",
+  "hojd": 76
+ },
+ "7a5e5c31": {
+  "tyska": "Ø56x180 cm (DxH)",
+  "svenska": "Ø56 x 180H cm",
+  "axelkalla": "svenska spec-raden (tyska raden saknar axelbokstav)",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "7dfdf28d": {
+  "tyska": "72L x 81,5B x 87,5H cm",
+  "svenska": "72L x 81,5B x 87,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 87.5,
+  "bredd": 72,
+  "djup": 81.5
+ },
+ "97b1d071": {
+  "tyska": "39L x 29B x 57H cm",
+  "svenska": "39L x 29B x 57H cm",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 39,
+  "djup": 29
+ },
+ "c23dab52": {
+  "tyska": "",
+  "svenska": "90L x 80B x 93H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Ausgeklappte Abmessungen: 80B x 90T x 93H cm | ✔ Gefaltete Abmessungen: 80B x 20T x 93H cm | ✔ Tischabmessungen: 77B x 72T x 73,5H cm | ✔ Größe des oberen Regals: 77B x 20T x 18H cm | ✔ Größe des unten Regals: 77B x 20T x 22H cm"
+ },
+ "c8c172a9": {
+  "tyska": "Ø78 x 75H cm",
+  "svenska": "Ø78 x 75H cm",
+  "bokstaver": "H",
+  "hojd": 75
+ },
+ "c8de34ad": {
+  "tyska": "80B x 30T x 141H cm",
+  "svenska": "80L x 30B x 141H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 141,
+  "bredd": 80
+ },
+ "cad2e713": {
+  "tyska": "47B x 48T x 93,5-115,5H cm",
+  "svenska": "48L x 47B x 93,5-115,5H cm",
+  "bokstaver": "BTH",
+  "djup": 48,
+  "hojd": [
+   93.5,
+   115.5
+  ],
+  "bredd": 47
+ },
+ "eee98f0f": {
+  "tyska": "150B x 33T x 45H cm",
+  "svenska": "150L x 33B x 45H cm",
+  "bokstaver": "BTH",
+  "djup": 33,
+  "hojd": 45,
+  "bredd": 150
+ },
+ "efa4b5d6": {
+  "tyska": "43B x 18T x 56H cm",
+  "svenska": "43L x 18B x 56H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 56,
+  "bredd": 43
+ },
+ "f716feb0": {
+  "tyska": "45B x 57T x 89H cm",
+  "svenska": "Kleine",
+  "bokstaver": "BTH",
+  "djup": 57,
+  "hojd": 89,
+  "bredd": 45
+ }
+}
