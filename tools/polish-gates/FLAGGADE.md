@@ -2078,3 +2078,74 @@ beslut — se den samlade frågan om detta.
   palm 140 sökningar i månaden) och svarade sedan att API-enheterna är slut.
   Övriga sökord bygger på tidigare rundors mätvärden eller är valda på
   produkttypen och sökta i butikens egen sökning. (N68)
+- Husmärket tryckt på varan: sparkcykeln `60c4cb71` (569 kr) och
+  färgtvillingarna `3c07a78f` (vit) och `9407d3fc` (grön), båda 579 kr, har
+  husmärket (Aiyaplay) i färgade bokstäver på styrstången, på alla tre
+  färgerna. Märket syns på huvudbilden och går inte att stryka bort. (N69)
+- Bilderna säger emot varandra: julkransen `22e3e9b9` (599 kr) har en rutig
+  röd och svart rosett på huvudbilden och en enfärgat röd sammetsrosett på
+  de fyra andra, och källan säger bara att en rosett ingår. Vilken kunden
+  får går inte att avgöra härifrån. Leonards beslut, eller en fråga till
+  Aosom. (N69)
+- Billigare utkast bakom en publicerad sida, till Leonards beslut: den
+  fristående markisen `f5f140f6` (859 kr) har samma fem nyckeltal (310 och
+  120 cm, rör på Ø28 och Ø24 mm, 7 kg) som den publicerade `70ef279b` (949
+  kr). (N69)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): vinstället `b00fa3b1` (10 flaskor, 27 × 10 × 116 cm,
+  499 kr) är den större storleken av `875ca38b` (8 flaskor, 639 kr) och
+  `b73863ff` (6 flaskor, 599 kr); vedstället `090841a9` (106 × 25 × 113 cm,
+  999 kr) den mindre storleken av N68:s `c0b12a9f` (202 cm, 1 019 kr);
+  gungstolen `811e7f74` (3 599 kr) en annan färg av N68:s `5a1e8d57` (71 ×
+  90 × 100 cm, 3 099 kr); och loungefåtöljen med fotpall `100e632c` (2 099
+  kr) en annan färg av N68:s `e1d34336` (72 × 92 × 90 cm, 2 529 kr), och
+  billigare. (N69)
+- Skärmträff mot en publicerad sida av samma slag, hoppade: vilfåtöljen
+  `a3331d61` (72 × 62 × 70 cm) mot `75e5fa26`, `a9c0fc05` och `afab8a41` och
+  tv-fåtöljerna `4c1f5303` och `fd16efbc`; tvättställsskåpet `32e265e0` (60
+  × 30 × 60 cm) mot `7c271233` och `1ee398af`; den snöade granen `3a0a5f3e`
+  (180 cm) mot `fc68547e` och `5f646ce6`; rumsavdelaren `72dc5144` (180 ×
+  180 cm) mot `a999f2b1`, `c35f9d4f`, `d72bde5e`, `db70e38c` och `316f9945`.
+  (N69)
+- Tvilling i rundan: uppresningsfåtöljen `2c7ae2cc` (greige) är samma fåtölj
+  som rundans `0f1abb61` (mörkgrå), båda 4 669 kr; eldstaden `1976d40d`
+  (svart) samma som rundans `4f2be50b` (grå), båda 479 kr; och ljusträdet
+  `e0593c23` (180 cm, 779 kr) samma träd som rundans `4f40817c` i en större
+  storlek (150 cm, 739 kr). Huset polerar ett per familj; om det större
+  ljusträdet ska få en egen sida är Leonards beslut. (N69)
+- Saldo under fyra: det hängande nattduksbordet `0dfc4423` har 1 i lager.
+  (N69)
+- N69 tog de 40 nyaste utkasten, i fallande skapandeordning: resten av
+  importen 2026-09-26 (de åtta som N68 förde över) och importen 2026-09-25.
+  Arton publicerades, sjutton hoppades med skälen ovan, och fem som klarade
+  skärmen får vänta till N70: vägghyllan `fad620ef`, mattan `c1741d3b` (ska
+  ställas mot den publicerade mattan `1612e633`, 160 × 230 cm), cypresserna
+  `5772c68d`, bambusidobordet `4af47dc2` och tv-stället på hjul `80512112`.
+  (N69)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  nattduksbordet `ca547b56` mot `378dd4f7`, `fd940665` och `badc577d` (en
+  första läsning tog `378dd4f7` för ett syskon, men träffen var falsk på
+  ±0,5: sidan mäter 40 × 35 × 45 cm); nattduksbordet `d36b35fc` mot
+  `378dd4f7` och `dfa3710c`; byrån `5a3de5da` mot `4239a0a5` och `b45d2544`;
+  julgransseten `b18a010f` och `2b33d9bc` mot `62f42597` (utan ljus, 6,5 kg)
+  och mot varandra (olika krukor, diametrar och antal ljus);
+  uppresningsfåtöljen `0f1abb61` mot `99ab915a` (98 × 99 × 104 cm),
+  `6a4e92c4`, `04feb176` och `ee670ba9`; massagefåtöljen `f1944853` mot
+  `ceae31c1` och `1b39b14e`; reclinerfåtöljen `5b1df31b` mot `e76002c1`;
+  rosenträdet `6fd03f3a` mot det rosa `9c3b6e2f` (Ø18 × 90 cm, vit kruka, 5
+  kg). Inget av de friade är samma vara. (N69)
+- Bildgranskningen strök nio bilder: tysk text i tre (monteringsråd och
+  etiketter på uppresningsfåtöljen `f1944853`, rubrik och skötselråd på
+  rosenträdet), engelsk text om leveransen på massagefåtöljens måttbild och
+  läsbar text på rekvisitan i fem (fyra boktitlar och en tavla). Att
+  massagefåtöljen kommer i två kartonger står i texten och är kvitterat i
+  `foto-tal.txt`, liksom byråns åtta lådor och eldstadens tre ben. (N69)
+- Färgen följer fotot: reclinerfåtöljen `5b1df31b` är svart i källan men
+  mörkgrå på bilderna, uppresningsfåtöljen `f1944853` mörkgrå i källan men
+  ljusgrå, 3D-tavlan `08dc9c52` vit i källan men en vit och en ljusgrå
+  panel, och matbordet `02199100` ljus valnöt i källan men mellanbrun
+  valnöt. Texterna följer bilderna. (N69)
+- Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
+  tidigare rundors mätvärden eller är valda på produkttypen och sökta i
+  butikens egen sökning, med en smalare variant där en publicerad adress
+  redan bar ordet. (N69)
