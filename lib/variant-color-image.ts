@@ -271,3 +271,87 @@ export function linkVariantImagesByAltText(
     usedKeys.add(hit.key);
   }
 }
+
+// ── Bild per variant, för Google-flödet ─────────────────────────────────────
+//
+// VARFÖR (2026-09-27). Flödet tog varje variants `media` ur Wix query-variants,
+// och där bär ALLA varianter produktens huvudbild — den grå balansbommen fick
+// den orangea bilden. Uppmätt i flödet samma dag: 122 produkter med färg-
+// varianter, och på 121 av dem skickades samma bild för olika färger (upp till
+// elva färger på en och samma bild). Produktsidan visade rätt bild för varje
+// färg på alla 15 i ett stickprov — kopplingen fanns, flödet läste den bara
+// inte.
+//
+// Samma källor och samma ordning som produktsidan (lib/products.ts
+// getProduct): valets länkade bild i V3 (linkedMedia) först, sedan den
+// statiska exporten data/variant-images.json, och sist — bara för produkter
+// med EN option, som på produktsidan — matchning mot galleribildernas
+// alt-text. På en variant med flera axlar äger färgen bilden
+// (v3MultiVariantData i lib/variant-price.ts); övriga axlars bilder är reserv.
+
+/** V3-produktens option så som products/query returnerar den. */
+export type V3Option = {
+  id?: string | null;
+  name?: string | null;
+  choicesSettings?: {
+    choices?: {
+      choiceId?: string | null;
+      name?: string | null;
+      linkedMedia?: { image?: { url?: string | null } | null }[] | null;
+    }[] | null;
+  } | null;
+};
+
+/** En valbild: URL:en och om den hör till en färgaxel. */
+export type ValBild = { url: string; farg: boolean };
+
+const FARGAXEL = /färg|color|colour|kulör/i;
+
+/**
+ * choiceId → bild för en produkts alla val. Val utan bild saknas i kartan.
+ *
+ * `statisk` är produktens rad ur data/variant-images.json (valvärde → URL),
+ * `media` galleriet med alt-texter.
+ */
+export function valbilder(
+  options: readonly V3Option[] | null | undefined,
+  statisk?: Readonly<Record<string, string>> | null,
+  media?: ReadonlyArray<AltTextMediaItem> | null,
+): Map<string, ValBild> {
+  const ut = new Map<string, ValBild>();
+  const opts = (options || []).filter((o) => o?.choicesSettings?.choices?.length);
+  for (const opt of opts) {
+    const farg = FARGAXEL.test(opt.name || "");
+    const val = (opt.choicesSettings?.choices || [])
+      .filter((c) => c?.choiceId && c?.name)
+      .map((c) => ({
+        choiceId: c.choiceId as string,
+        label: c.name as string,
+        image: c.linkedMedia?.[0]?.image?.url || statisk?.[c.name as string] || "",
+      }));
+    // Alt-text bara på produkter med EN option — samma avgränsning som
+    // produktsidan, där matchningen bara körs i en-axel-grenen.
+    if (opts.length === 1) linkVariantImagesByAltText(val, media);
+    for (const v of val) if (v.image) ut.set(v.choiceId, { url: v.image, farg });
+  }
+  return ut;
+}
+
+/**
+ * Bilden för en variant ur dess val (query-variants `optionChoices`). Färgens
+ * bild vinner, annars första valets; "" när inget val har en bild.
+ */
+export function bildForVariant(
+  optionChoices: ReadonlyArray<{ optionChoiceIds?: { choiceId?: string | null } | null }> | null | undefined,
+  bilder: ReadonlyMap<string, ValBild> | null | undefined,
+): string {
+  if (!bilder?.size) return "";
+  let forsta = "";
+  for (const oc of optionChoices || []) {
+    const b = oc?.optionChoiceIds?.choiceId ? bilder.get(oc.optionChoiceIds.choiceId) : undefined;
+    if (!b) continue;
+    if (b.farg) return b.url;
+    if (!forsta) forsta = b.url;
+  }
+  return forsta;
+}

@@ -20,10 +20,12 @@ import {
   getCollections,
   fetchAllVariantsRaw,
   fetchFeedGalleries,
+  fetchVariantImageMaps,
   imgKey,
   type Collection,
   type Product,
 } from "@/lib/products";
+import { bildForVariant, type ValBild } from "@/lib/variant-color-image";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -282,6 +284,8 @@ function feedItem(
   product: Product | undefined,
   gallery: string[],
   taxonomy: { productType?: string; googleCategory?: number },
+  valbilder: ReadonlyMap<string, ValBild> | undefined,
+  flerVarianter: boolean,
 ): string | null {
   const pd = v?.productData || {};
   const slug: string = pd.slug || product?.slug || "";
@@ -325,7 +329,13 @@ function feedItem(
       : "");
 
   const mainImg: string = product?.img || gallery[0] || "";
-  const image: string = v?.media?.image?.url || mainImg;
+  // VARIANTENS BILD, INTE PRODUKTENS. `v.media` i query-variants är produktens
+  // huvudbild på varje variant — den grå balansbommen bar den orangea bilden.
+  // Uppmätt 2026-09-27: på 121 av 122 produkter med färgvarianter skickades
+  // samma bild för olika färger. Bilden tas nu ur valens länkade bilder med
+  // samma källor och ordning som produktsidan (valbilder i
+  // lib/variant-color-image.ts); saknas en sådan blir det huvudbilden, som förut.
+  const image: string = bildForVariant(v?.optionChoices, valbilder) || v?.media?.image?.url || mainImg;
   if (!image) return null;
 
   // Extra bilder: galleriet exkl. huvudbilden OCH exkl. den valda item-bilden,
@@ -386,12 +396,21 @@ function feedItem(
   // exakt vad Googles spec förbjuder ("tillverkarens tilldelade MPN").
   const inStock = v?.inventoryStatus?.inStock !== false;
 
+  // Länken öppnar produktsidan på JUST den här varianten (productview läser
+  // ?variant=), så bilden och priset kunden landar på är de Google visade.
+  // Förut pekade alla färger på sidan med första färgen vald. Canonical är
+  // fortfarande /produkt/<slug>, så parametern skapar ingen dubblett i index.
+  const variantId: string = v.id || v.variantId || "";
+  const link = flerVarianter && variantId
+    ? `${SITE}/produkt/${slug}?variant=${encodeURIComponent(variantId)}`
+    : `${SITE}/produkt/${slug}`;
+
   return `    <item>
       <g:id>${xmlEscape(v.id || v.variantId)}</g:id>
       <g:item_group_id>${xmlEscape(pd.productId || "")}</g:item_group_id>
       <g:title>${xmlEscape(title)}</g:title>
       <g:description>${xmlEscape(description)}</g:description>
-      <g:link>${xmlEscape(`${SITE}/produkt/${slug}`)}</g:link>
+      <g:link>${xmlEscape(link)}</g:link>
       <g:image_link>${xmlEscape(image)}</g:image_link>${additional}
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
       <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
@@ -402,10 +421,11 @@ function feedItem(
 }
 
 export async function GET() {
-  // Tre batchade, cachade källor — inga per-produkt-anrop:
-  //   getProducts()        → visible-filtrerad katalog (seoDescription, img, slug)
-  //   fetchFeedGalleries() → fulla gallerier, id → URL:er (~4 anrop)
-  //   fetchAllVariantsRaw()→ alla varianter (~2 anrop, retry/backoff)
+  // Fyra batchade, cachade källor — inga per-produkt-anrop:
+  //   getProducts()           → visible-filtrerad katalog (seoDescription, img, slug)
+  //   fetchFeedGalleries()    → fulla gallerier, id → URL:er (~4 anrop)
+  //   fetchAllVariantsRaw()   → alla varianter (~2 anrop, retry/backoff)
+  //   fetchVariantImageMaps() → valens bilder för produkter med optioner (~3 anrop)
   let products: Product[] = [];
   try { products = await getProducts(); } catch { products = []; }
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -418,6 +438,16 @@ export async function GET() {
   } catch { /* taxonomin är berikning — får aldrig fälla feeden */ }
   const galleries = await fetchFeedGalleries();
   const variants = await fetchAllVariantsRaw();
+  // Valens bilder (produkt-id → choiceId → bild), för produkter med optioner.
+  // Fail-open: en tom karta ger huvudbilden på varje variant, som förut.
+  const valbilderPerProdukt = await fetchVariantImageMaps();
+  // Hur många varianter varje produkt har i flödet — länken får ?variant= bara
+  // när det finns något att välja mellan.
+  const antalVarianter = new Map<string, number>();
+  for (const v of variants) {
+    const pid = v?.productData?.productId || "";
+    antalVarianter.set(pid, (antalVarianter.get(pid) ?? 0) + 1);
+  }
 
   const items: string[] = [];
   const taxonomyCache = new Map<string, { productType?: string; googleCategory?: number }>();
@@ -433,7 +463,7 @@ export async function GET() {
     // 2 836 av 3 393 produkter NOLL extrabilder (2026-09-24): svepet läser bara
     // de 1 200 nyaste produkterna, och drygt hälften av dem är dolda utkast.
     const gallery = galleries.get(pid) || byId.get(pid)?.gallery || [];
-    const line = feedItem(v, byId.get(pid), gallery, taxonomy);
+    const line = feedItem(v, byId.get(pid), gallery, taxonomy, valbilderPerProdukt.get(pid), (antalVarianter.get(pid) ?? 0) > 1);
     if (line) items.push(line);
   }
 
