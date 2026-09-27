@@ -2472,3 +2472,96 @@ beslut — se den samlade frågan om detta.
   slugar prövades mot hela katalogen (6 153 produkter): ingen krockar, och
   där en publicerad slug redan bar huvudsökordet valdes en smalare variant.
   (N73)
+- Slutsålda (saldo 0), alltså hoppade: markisen med vev `5263d6b7`,
+  elfyrhjulingen `1f05f7d5` och den fristående hundgrinden i trä `d10c3344`.
+  Prövas igen när saldot har stigit. (N74)
+- Saldo under 4: köksskänken `2e6d120a` (saldo 3). (N74)
+- Licensmärke, hoppade: sparkbilarna `7a595f49` och `efd63441` bär
+  Porsche-licensen (samma bil två gånger), och el-motorcyklarna `03c25ad3`
+  och `819c8151` bär Honda-licensen (samma modell två gånger). (N74)
+- Djurbostad, hoppade: smådjursburarna med två rastgårdar `512a4396` och
+  `beb5d127` och smådjurshuset med ramp `626be705`. (N74)
+- Rörs av main:s Runda-serie, alltså hoppade: medicinskåpet `b8d21670`
+  (runda 104), trädgårdsskåpet i trä och stål `fecc1b3f` (runda 125 och 126)
+  och sparkbilen `58690dbb` (runda 115). (N74)
+- Dubblett av en publicerad sida: kattlådan i rostfritt stål `07601a29` är
+  samma kattlåda som den publicerade `c35c82ce`. (N74)
+- Märke på varan: boxningsstället `fd85cf0b` har SPORTNOW på bollen (N37),
+  och roddmaskinen med vattentank `3a6988b8` har SPORTNOW tryckt på
+  vattentankens kåpa. (N74)
+- Inte billigast i sin grupp: det fällbara matbordet `aa8ce611` (1 699 kr)
+  är det dyraste av fyra likadana bord (N34). (N74)
+- Tvilling inom rundan: loungefåtöljen `c9b05838` (3 039 kr) har samma namn
+  och samma mått som rundans loungefåtölj med fotpall, som publicerades
+  eftersom den är billigare (2 999 kr). (N74)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): mini-torktumlaren `1acfb720` (grå, 2 149 kr) är samma
+  torktumlare som den publicerade svarta `2517c54b` (2 519 kr); golvstolen
+  `69f39dad` (849 kr) är samma golvstol som den publicerade `db645ff8` (739
+  kr); elfyrhjulingarna `96d3f0ed` (1 019 kr), `4d6922a9` (1 069 kr) och
+  `2116f56f` (1 059 kr) är samma 6 V-fyrhjuling som den publicerade
+  `9d686a82` (999 kr) i andra färger; uppresningsfåtöljen med massage
+  `1af65e68` (5 099 kr) är samma fåtölj som den publicerade `ed03b52f` (5
+  399 kr); den hydrauliska roddmaskinen `2967c62c` (1 499 kr) är samma
+  roddmaskin med tolv motståndslägen som den publicerade `7a095db9` (2 269
+  kr); trampbilen `bc0f6426` (1 319 kr) är samma gokart med handbroms som
+  den publicerade gröna `60869ff2` (2 399 kr); kantskyddet till studsmatta
+  `72d8e656` (blått, Ø366 cm, 629 kr) är samma kantskydd som det publicerade
+  gröna `14fb0f98` på Ø305 cm (569 kr), samma tyska namn och samma 15 mm
+  stoppning; och den fiberoptiska julgranen `8763f8d0` (150 cm, 849 kr) är
+  samma gran som den publicerade `75a38b7b` på 120 cm (539 kr), vars
+  källtext redan räknar upp båda storlekarna. Fyra av dem är billigare än
+  sina publicerade syskon: torktumlaren, uppresningsfåtöljen, roddmaskinen
+  och trampbilen. (N74)
+- För få bilder utan läsbar text, alltså hållna: konsolhyllan i svart stål
+  `2f734f34` (tre av fem bilder visar läsbara bokryggar), LED-badrumsspegeln
+  med glashylla `0bb73db6` (två bilder bär tysk text och en visar läsbara
+  etiketter på flaskorna) och hundgrinden med katthål `5fa26137` (tre av fem
+  bilder bär tysk text). Alla tre har två bilder kvar, och regeln kräver
+  tre. (N74)
+- N74 tog de 40 nyaste utkasten efter N73 (importerna 2026-09-01–07). N64:s
+  regel gäller: för de nyaste gäller inte familje- och säsongsregeln, bara
+  skyddsreglerna. De 20 som inte redan bar ett skyddsskäl dubblettskärmades
+  mot 3 675 publicerade sidor, med kalibrering 4 av 4 väntade träffar och 2
+  av 2 väntade missar och självtest 9 av 9. Åtta publicerades och 32
+  hoppades med skälen ovan. (N74)
+- Skärmen kan inte se ett storlekssyskon, eftersom måtten skiljer.
+  Kantskyddet och julgranen hittades i stället i tidigare rundors filer: N38
+  räknar redan upp kantskydden under samma tyska namn, och den publicerade
+  120 cm-granens källtext nämner båda storlekarna. Ett namnsvep över hela
+  katalogen prövade dessutom de åtta mot publicerade sidor av samma slag.
+  (N74)
+- Kontrollerat och friat: reclinersoffan `f3555135` mot `808ea6b4` (114 cm
+  bred, manuell, chenille); leksaksköket `a21f8df7` mot `2ff713c1` (72 × 33
+  × 85,2 cm) och `7838bc0e` (79,5 × 24 × 94 cm); leksaksköket `41a257cb` mot
+  `a57587a8` (83,8 × 26,8 × 81 cm, kritavla) och `bb7160d3` (55 × 24 × 86
+  cm); trampbilen `2564968e` mot `5b69e81c` (gul hjullastare, 167 × 41 × 52
+  cm); reclinerfåtöljen `27380bf4` mot vilfåtöljerna `75e5fa26`, `a9c0fc05`
+  och `afab8a41` (bara ett delmått sammanföll); massagefåtöljen `afc0c368`
+  mot konstläderfåtöljerna `dd5553fa`, `73112149`, `5c0e83d1` och `37e5dfcf`
+  (120 kg och 21,5 kg mot 150 kg och 26,5 kg); loungefåtöljen `b37a10e1` mot
+  `cfac92b3` (79 × 94 × 88 cm), `8ca7b3c3` och `79797c9a` (78 × 93 × 100
+  cm); badrumsspegeln `40f26fb8` mot `4117e161` (ramljus, rundade hörn),
+  `2ad2fafd` och `e839cf6f` (svart ram); och LED-spegeln `0bb73db6` mot
+  `c5162985` (liggande 70 × 50 cm med Bluetooth och klocka). Inget av de
+  friade är samma vara. Reclinerfåtöljens tvilling bland de äldre utkasten,
+  `6a65351e`, är dyrare (N33). (N74)
+- Bildgranskningen strök 7 bilder på rundans åtta: tysk text i tre och
+  läsbar text på rekvisitan i fyra (bokryggar två gånger, tuber och en
+  griffeltavla med leverantörens namn). Text som sitter på själva varan, som
+  dekalerna på trampbilen och ON/OFF vid spisvreden, räknas som varans
+  design och behölls. Alla åtta behöll minst tre bilder. (N74)
+- Konstruktionen och färgen följer fotot: leksaksköket `a21f8df7` är vitt
+  och ljusblått (Weiß+Blau i källan); leksaksköket `41a257cb` är vitt och
+  trä (Weiß i källan), har ett kylskåp med klocka och automat, och redskapen
+  på krokarna är tre olika redskap, inte gafflar; trampbilens `2564968e`
+  släp bär en grävarm; badrumsspegeln `40f26fb8` har välvd överkant och två
+  lodräta ljuslister; och reclinersoffans `f3555135` USB-uttag sitter i
+  armstödet. Att automaten i kylskåpsdörren drivs med två AA-batterier, som
+  inte ingår, står i leverantörens bild 4, som ströks för sin tyska text;
+  talet är kvitterat i `foto-tal.txt`. (N74)
+- Inga nya sökord mättes (Semrush-enheterna var slut vid prövningen i N73).
+  Sökorden bygger på tidigare rundors mätvärden eller är valda på
+  produkttypen. Alla åtta slugar prövades mot hela katalogen (6 153
+  produkter): ingen krockar, och där en publicerad slug redan bar
+  huvudsökordet valdes en smalare variant. (N74)
