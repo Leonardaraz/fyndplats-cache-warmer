@@ -125,11 +125,59 @@ nio publicerade skumseten.
 
 ## Wix, i den ordning det skrevs
 
-SKRIV-PLATSHÅLLARE
+Workflowen "Polering — skriv en runda till Wix" mot grenen, plan
+`d06d6f99…`:
+
+| steg | utfall |
+|---|---|
+| torr (körning 36289065992) | text, media och SKU 8 av 8 lästa, kategorier 22 av 22 rader planerade |
+| skriv, första försöket (körning 36289151682) | text 8 av 8, ☠️ media 5 av 8, stoppade där |
+| skriv, omkörning (körning 36289336737) | text 8 av 8, media 8 av 8 (32 bilder), kategorier 22 av 22 |
+| SKU, sist och ensam | 8 av 8 skrivna, sista skrivningen 02:44:08 UTC |
+| separat återläsning efter 90 s | 8 av 8 helt verifierade |
+| stämpel | 8 av 8 stämplade, 0 stämpelfel |
+
+☠️ **Första skrivningen föll på `409 INVALID_REVISION` i mediesteget**, på
+`b2ab1b14`, `d70e483e` och `a6e01595`. Mediesteget läser revisionen
+färskt med en `GET` innan det skriver, men textsteget hade skrivit samma
+produkter fyra sekunder tidigare, och för tre av dem gav läsningen
+fortfarande revisionen från före textskrivningen. Det är samma släp i
+produktläsningen som `CLAUDE.md` beskriver för runda M2, fast här i
+revisionsfältet: en läsning strax efter en skrivning kan vara gammal.
+
+Workflowen gjorde rätt: den stoppade vid det första fallna steget, så
+varken kategorier eller SKU skrevs mot ett halvfärdigt läge. Under de
+knappa fyra minuterna till omkörningen var alla åtta sidor synliga med
+svensk text, men tre hade kvar sina gamla bilder, bland dem de strukna
+med tysk text, och alla åtta saknade kategorier och ny SKU. Alla steg tål
+omkörning, och den andra körningen gick igenom helt.
+
+⚠️ Felet kan komma tillbaka i vilken runda som helst, och B1–B8 hade bara
+haft tur. Den hållbara lagningen är att mediesteget (och SKU-steget) läser
+om revisionen och försöker en gång till vid `INVALID_REVISION`, i
+`lib/polish/skrivplan.ts`. Det är en kodändring som bygger och tömmer
+butikens cache vid merge, så den ska följa med nästa kodmerge och inte gå
+ut ensam.
+
+Pushen med planen (`b8c35f18`) rörde bara `tools/`, och Vercel hoppade
+över bygget i båda projekten: `CANCELED`, med `errorLink` till
+ignore-steget.
 
 ## Live
 
-LIVE-PLATSHÅLLARE
+`hamta-live.sh 130`: alla 8 gav HTTP 200. En gav först `000` och gick
+igenom på omförsöket fem sekunder senare. Alla åtta hade `age` 139–146 s
+vid den skarpa hämtningen 02:55:29–02:55:44 UTC, alltså renderade omkring
+02:53, efter den sista skrivningen 02:44:08.
+
+`livegrind.py`: orddiff 0 på alla 8. `livekoll.py`: 8 av 8 OK med
+brödsmula i rundans kategori, och 32 av 32 alt-texter står på sidorna. En
+separat kontroll av JSON-LD gav `InStock` och samma pris som i `ids.tsv`
+på alla åtta.
+
+Eftersom tre produkter en stund bar sina gamla bilder söktes också varje
+struken bild i de publicerade sidorna: alla åtta är borta, och alla 32
+behållna står kvar.
 
 ## Kategorier
 
