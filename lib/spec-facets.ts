@@ -1086,7 +1086,8 @@ export function lasSpecSlug(slug: string | null | undefined, skala: SpecSkala): 
   else if ((m = new RegExp(`^over-${n}$`).exec(slug))) lo = Number(m[1]);
   else if ((m = new RegExp(`^${n}-${n}$`).exec(slug))) { lo = Number(m[1]); hi = Number(m[2]); }
   else return hela;
-  const snap = (v: number) => Math.min(Math.max(Math.round(v / skala.step) * skala.step, skala.min), skala.max);
+  // Inget steg: en inskriven gräns ("högst 57 cm") ska stå kvar som den skrevs.
+  const snap = (v: number) => Math.min(Math.max(Math.round(v * 10) / 10, skala.min), skala.max);
   lo = snap(lo);
   hi = snap(hi);
   return lo < hi ? [lo, hi] : hela;

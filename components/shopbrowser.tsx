@@ -10,14 +10,13 @@ import {
   parsePriceSlug,
   priceBounds,
   prisHistogram,
-  priceRangeLabel,
   priceSlug,
   upperLimit,
   type PriceBounds,
 } from "../lib/price-range";
 import type { ListProduct } from "../lib/products";
 import {
-  FACETTER, inomIntervall, lasSpecSlug, passarVal, specEtikett, specOvre, specSlug, specUndre,
+  FACETTER, formatTal, inomIntervall, lasSpecSlug, passarVal, specOvre, specSlug, specUndre,
   type IntervallNyckel, type SpecFacett,
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
@@ -44,7 +43,8 @@ function handlesFromSlug(bounds: PriceBounds | null, slug: string | null): [numb
   if (!bounds) return [0, 0];
   const r = parsePriceSlug(slug);
   if (!r || r.max <= bounds.min || r.min >= bounds.max) return [bounds.min, bounds.max];
-  const snap = (v: number) => Math.min(Math.max(Math.round(v / bounds.step) * bounds.step, bounds.min), bounds.max);
+  // Inget steg: en inskriven gräns ("högst 1 499 kr") ska stå kvar som den skrevs.
+  const snap = (v: number) => Math.min(Math.max(Math.round(v), bounds.min), bounds.max);
   const lo = snap(r.min);
   const hi = Number.isFinite(r.max) ? snap(r.max) : bounds.max;
   return lo < hi ? [lo, hi] : [bounds.min, bounds.max];
@@ -707,11 +707,11 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
                   }
                 />
               </div>
-              <span className="pr-val">
-                {priceActive
-                  ? priceRangeLabel(handles[0] <= bounds.min ? 0 : handles[0], upperLimit(handles[1], bounds))
-                  : "Alla priser"}
-              </span>
+              <GransRutor
+                namn="pris" lo={handles[0]} hi={handles[1]} min={bounds.min} max={bounds.max}
+                openTop={bounds.openTop} enhet="kr" glapp={1}
+                onSatt={(h) => { satHandles(h); commitPrice(); }}
+              />
             </div>
           )}
 
@@ -818,7 +818,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
               ))}
               {valF.map((f) => (
                 // En kort grupp ("Vägghängd / Fristående") tar en kolumn, en lång två.
-                <div key={f.nyckel} className={`filter-group spec-grupp spec-val ${f.val.reduce((n, v) => n + v.namn.length + 5, 0) > 26 ? "spec-val-bred" : ""}`}>
+                <div key={f.nyckel} className={`filter-group spec-grupp spec-val ${f.val.reduce((n, v) => n + v.namn.length + 5, 0) > 40 ? "spec-val-bred" : ""}`}>
                   <span className="filter-label">{f.namn}</span>
                   <div className="filter-toggles spec-val-rad">
                     {f.val.map((v) => {
@@ -900,10 +900,7 @@ function SpecReglage({ f, handtag, onDrag, onCommit }: {
   const text = (v: number) => `${String(Math.round(v * 10) / 10).replace(".", ",")}${enhet}`;
   return (
     <div className="filter-group spec-grupp">
-      <div className="spec-huvud">
-        <span className="filter-label">{f.namn}</span>
-        <span className="spec-avlas">{specEtikett(lo, hi, skala, f.enhet)}</span>
-      </div>
+      <span className="filter-label">{f.namn}</span>
       <div className="pricerange is-kompakt">
         <div className="pr-hist" aria-hidden="true">
           {f.hist.map((b, i) => (
@@ -930,6 +927,83 @@ function SpecReglage({ f, handtag, onDrag, onCommit }: {
           aria-valuetext={hi >= skala.max && skala.openTop ? `${text(hi)} och uppåt` : text(hi)}
         />
       </div>
+      <GransRutor
+        namn={f.namn.toLowerCase()} lo={lo} hi={hi} min={skala.min} max={skala.max}
+        openTop={skala.openTop} enhet={f.enhet} glapp={Math.min(skala.step, 1)}
+        onSatt={(h) => { onDrag(h); onCommit(); }}
+      />
     </div>
+  );
+}
+
+/**
+ * Min- och max-rutorna under ett reglage: skriv in gränsen i stället för att
+ * dra (Leonard 2026-09-27: "att man knappar in vad man vill ha mest eller
+ * minst"). En tom ruta är ingen gräns; ytterlägena visas som ledtext.
+ * Gränsen sätts när rutan lämnas eller med Enter, inte för varje siffra.
+ */
+function GransRutor({ namn, lo, hi, min, max, openTop, enhet, glapp, onSatt }: {
+  namn: string;
+  lo: number;
+  hi: number;
+  min: number;
+  max: number;
+  openTop: boolean;
+  enhet: string;
+  /** Minsta avstånd mellan gränserna, så att intervallet aldrig blir tomt. */
+  glapp: number;
+  onSatt: (h: [number, number]) => void;
+}) {
+  const klampa = (v: number) => Math.min(Math.max(Math.round(v * 10) / 10, min), max);
+  return (
+    <div className="gr-rad">
+      <GransRuta
+        etikett="Min" varde={lo <= min ? null : lo} ledtext={formatTal(min)} enhet={enhet}
+        aria={`Min ${namn}${enhet ? ` i ${enhet}` : ""}`}
+        onSatt={(v) => onSatt([v === null ? min : Math.min(klampa(v), hi - glapp), hi])}
+      />
+      <span className="gr-streck" aria-hidden="true">–</span>
+      <GransRuta
+        etikett="Max" varde={hi >= max ? null : hi} ledtext={`${formatTal(max)}${openTop ? "+" : ""}`} enhet={enhet}
+        aria={`Max ${namn}${enhet ? ` i ${enhet}` : ""}`}
+        onSatt={(v) => onSatt([lo, v === null ? max : Math.max(klampa(v), lo + glapp)])}
+      />
+    </div>
+  );
+}
+
+function GransRuta({ etikett, varde, ledtext, enhet, aria, onSatt }: {
+  etikett: string;
+  varde: number | null;
+  ledtext: string;
+  enhet: string;
+  aria: string;
+  onSatt: (v: number | null) => void;
+}) {
+  // Utkastet lever bara medan rutan har fokus; annars visas gränsen.
+  const [utkast, setUtkast] = useState<string | null>(null);
+  const text = utkast ?? (varde === null ? "" : formatTal(varde));
+  const klar = () => {
+    if (utkast === null) return;
+    const s = utkast.replace(/\s/g, "").replace(",", ".");
+    const n = Number(s);
+    setUtkast(null);
+    onSatt(s && Number.isFinite(n) ? n : null);
+  };
+  return (
+    <label className="gr-ruta">
+      <span className="gr-etikett">{etikett}</span>
+      <span className="gr-varde">
+        <input
+          type="text" inputMode="decimal" autoComplete="off" className="gr-input"
+          value={text} placeholder={ledtext} aria-label={aria}
+          onFocus={(e) => { setUtkast(text); e.currentTarget.select(); }}
+          onChange={(e) => setUtkast(e.target.value)}
+          onBlur={klar}
+          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+        />
+        {enhet && <span className="gr-enhet">{enhet}</span>}
+      </span>
+    </label>
   );
 }
