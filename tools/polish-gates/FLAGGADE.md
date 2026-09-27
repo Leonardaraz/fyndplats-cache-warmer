@@ -3251,3 +3251,10 @@ beslut — se den samlade frågan om detta.
   Båda är kvitterade i `foto-tal.txt`. (N78)
 - Inga nya sökord mättes (Semrush-enheterna var slut, 403). Alla åtta slugar
   prövades mot hela katalogen utan krock. (N78)
+- Matbordet `7f304255`: utkastet `04f05fad` ser på bilden ut som sidans egen
+  ljusa träton men kostar 2 279 kr mot 4 469 kr. Det blev inte ett val, eftersom
+  två knappar med samma utseende och olika pris är en prisfråga. (N79)
+- Utkast som inte blev val på sina sidor: köksskåpet `45f84852` (ingen bild som
+  visar den vita färgen), gunghästen `26d6b2ea` (annan design än `8ded5e38`) och
+  konstgräset `eaa37062` (samma storlek som `4362ebd1` men tätare gräs, så varken
+  färg eller storlek). (N79)
