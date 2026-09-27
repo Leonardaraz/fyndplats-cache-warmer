@@ -15,7 +15,8 @@ import { getSoldUnits } from "./popularity";
 import { getProductColors } from "./product-colors";
 import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
-import { linkVariantImagesByAltText, colorOf, colorKeysFromName } from "./variant-color-image";
+import { linkVariantImagesByAltText, colorOf, colorKeysFromName, valbilder, type ValBild, type V3Option } from "./variant-color-image";
+import { fargvalKropp, FARGVAL_SIDTAK } from "./product-colors-paging";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
 
 export type Product = {
@@ -1111,6 +1112,58 @@ export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
     }
   } catch (e) {
     console.error("[wix] fetchFeedGalleries failed:", (e as Error).message);
+  }
+  return out;
+}
+
+/**
+ * Bild per variantval för Google-flödet: produkt-id → (choiceId → bild).
+ *
+ * Varianternas egen `media` i query-variants är produktens huvudbild på varje
+ * variant, så flödet kan inte ta bilden därifrån (se valbilder i
+ * lib/variant-color-image.ts). Här läses i stället produkternas optioner med
+ * sina länkade bilder — bara de produkter som HAR optioner, filtrerat i frågan
+ * (lib/product-colors-paging.ts: 239 av 6 067 produkter 2026-09-24, tre sidor).
+ * Ett ofiltrerat svep nyast först hade inte nått dem (se CLAUDE.md, "Ett
+ * sidtak räknat nyast först ser inte katalogen").
+ *
+ * Fail-open mot flödet: en produkt som saknas i kartan får huvudbilden, alltså
+ * samma bild som förut. Men ett fel eller ett tak loggas — en halv karta ser
+ * frisk ut.
+ */
+export async function fetchVariantImageMaps(): Promise<Map<string, Map<string, ValBild>>> {
+  const out = new Map<string, Map<string, ValBild>>();
+  if (!WIX_API_KEY) return out;
+  let cursor: string | undefined;
+  try {
+    for (let sida = 1; ; sida++) {
+      if (sida > FARGVAL_SIDTAK) {
+        console.error(`[wix] fetchVariantImageMaps: sidtaket ${FARGVAL_SIDTAK} slog i efter ${out.size} produkter — resten av flödets varianter får huvudbilden`);
+        break;
+      }
+      const res = await fetch("https://www.wixapis.com/stores/v3/products/query", {
+        method: "POST",
+        headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+        // Filtret bara på första sidan — markören bär frågan. Fälten får följa
+        // med markören (verifierat mot V3 2026-09-27).
+        body: JSON.stringify({ ...fargvalKropp(cursor), fields: ["MEDIA_ITEMS_INFO"] }),
+      });
+      if (!res.ok) {
+        console.error(`[wix] fetchVariantImageMaps: HTTP ${res.status} på sida ${sida} — ${out.size} produkter hann läsas, resten får huvudbilden`);
+        break;
+      }
+      const data = await res.json();
+      for (const p of data?.products || []) {
+        if (!p?.id) continue;
+        const media = (p?.media?.itemsInfo?.items || []).map((it: any) => ({ url: it?.image?.url, altText: it?.altText ?? it?.image?.altText }));
+        const karta = valbilder(p.options as V3Option[], variantImageBySlug[p.slug], media);
+        if (karta.size) out.set(p.id, karta);
+      }
+      cursor = data?.pagingMetadata?.cursors?.next || undefined;
+      if (!cursor || !data?.pagingMetadata?.hasNext) break;
+    }
+  } catch (e) {
+    console.error(`[wix] fetchVariantImageMaps failed efter ${out.size} produkter:`, (e as Error).message);
   }
   return out;
 }

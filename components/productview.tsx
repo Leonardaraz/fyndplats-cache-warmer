@@ -389,6 +389,36 @@ export function ProductView({
     setGalleryIdx(variantActive);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variantActive]);
+  // FÖRVAL UR ADRESSEN: ?variant=<variant-id>. Google-flödet länkar varje färg
+  // hit med sin egen variant (app/feed/google.xml), så den som klickar på den
+  // grå varianten i Shopping landar på den grå — med dess bild och pris — i
+  // stället för på första färgen. Läses i webbläsaren efter mount: sidan är
+  // ISR-cachad och får inte bli dynamisk för en parameter, och canonical är
+  // fortfarande /produkt/<slug>. Okänt id → inget händer.
+  //
+  // Valet görs i nästa bildruta, inte direkt i effekten: sidan har redan ritats
+  // med första varianten, och ett synkront setState här hade gett en extra
+  // renderingsvända (react-hooks/set-state-in-effect).
+  useEffect(() => {
+    let vid: string | null = null;
+    try { vid = new URLSearchParams(window.location.search).get("variant"); } catch { /* ingen adress */ }
+    if (!vid) return;
+    const valj = () => {
+      if (multiAxis) {
+        const rad = table.find((t) => t.variantId === vid);
+        if (rad) setPicked({ ...rad.choices });
+        return;
+      }
+      const i = imageChoices.findIndex((c) => c.variantId === vid);
+      if (hasImageVariants && i >= 0) { pickVariant(i); return; }
+      const j = variants.findIndex((v) => v.id === vid);
+      if (j >= 0) setSel(j);
+    };
+    const id = window.requestAnimationFrame(valj);
+    return () => window.cancelAnimationFrame(id);
+    // Bara vid mount — ett senare val i väljaren ska inte skrivas över.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const hasTextVariants = !multiAxis && !hasImageVariants && variants.length > 1;
   const variantId = multiAxis
     ? currentVariant?.variantId
