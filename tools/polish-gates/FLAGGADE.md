@@ -1350,3 +1350,23 @@ beslut — se den samlade frågan om detta.
   huvudbilden, boktiteln WAR STORM, husmärkets vattenstämpel och YESTERDAY
   TOMORROW på en vas. Den kan poleras om leverantören har renare bilder.
   (B14)
+- Samma soffa som en publicerad sida i en annan färg, hålls: 2-sitssoffan i
+  13 färger och tyger, `250b29f0`, `e0d2f66f`, `e30d6f33`, `0b6a0cc6`,
+  `13d9a960`, `615e7b54`, `77f94d6c`, `86606498`, `8ff98faa`, `c97a132d`,
+  `4f21c7c1`, `d0191013` och `ff3b6e47`, och utkastet `33825b88` från 04:41
+  (= `95c2008d`; 117 × 56,5 × 77 cm, 150 kg och 22,2 kg identiska, samma
+  foto i en annan färg). `fcb0b18d` bär samma tyska namn men en annan
+  kartong, och har saldo 2. (B15)
+- Samma bäddfåtölj som en publicerad sida, hålls: `7d67adb3`, svart
+  (= `7eee41b6`; 65 × 69 × 80 cm), som `de486caf` i B14. (B15)
+- Färgsyskon inom lagret, hålls: bäddsofforna `5023eba7` (blå) och
+  `9e549ab2` (koksgrå, saldo 0) (= `749372df`), klaffbordet `cd9b4686`
+  (svart och ek) (= `a6bd7d56`) och golvlamporna `05652710` (svart),
+  `77b7367d` (natur) och `8e3dfb51` (vit) (= `318a887e`). (B15)
+- ✅ Två falska träffar på måtten, frikända på bild: klaffbordet `934caba5`
+  är inte `85f1694f` (båda 120 × 80 × 73 cm, men vit skiva i teakfärg mot
+  grå betonglook på stålben), och golvlamporna på 26 × 26 × 160 cm är inte
+  `53e66496` eller `d2dfd1fa`. `934caba5` är polerad. (B15)
+- Att jämföra när lagret kommer upp: golvlampan `fd221e07` (polerad i B15)
+  har samma kartong och vikt som utkastet `cabceb4c` från 16:15. Det är
+  troligen samma lampa i en annan färg. (B15)
