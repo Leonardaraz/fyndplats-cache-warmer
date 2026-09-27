@@ -63,6 +63,7 @@ import type { ProductMappingRecord } from "../store";
 import type { StoredReview } from "../store/reviews";
 import { validateRedirect, type RedirectRow } from "../wix/redirects";
 import { redigera, felText, type WixAnrop } from "../polish/skrivplan";
+import { SKU_MAX } from "../import/sku";
 import { harVerkligSeFrakt, type AosomRow } from "./feed";
 import { synligtSaldo } from "./sync";
 import { aosomArtikelbild, aosomArtiklarPaRaden, radensArtikel } from "./artiklar";
@@ -574,6 +575,9 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
   // tre tecken + bindestreck + tre till med en siffra: färgen före ett
   // tresiffrigt mått fälls, måttet före färgen går igenom. Fälls SKU:n ändå
   // blir det hindret `sku_ogiltig`, och den anges för hand.
+  // ☠️ Wix tar högst SKU_MAX (40) tecken — sidans SKU plus givarens värden
+  // spränger det lätt. Då blir det `sku_for_lang` i PLANEN; annars hade först
+  // `byt` fallit, på en 400 från Wix.
   const delar = (["Storlek", "Färg"] as const)
     .filter((a) => axlar.includes(a) && nyttVal[a] && !lika(nyttVal[a]!, huvudKoordinat[a] ?? ""))
     .map((a) => fargSlug(nyttVal[a]!));
@@ -667,6 +671,7 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     hindra("kombinationen_finns");
   }
   if (!/^FP-[a-z0-9-]{3,90}$/.test(skuUtkast) || redigera(skuUtkast) !== skuUtkast) hindra("sku_ogiltig");
+  if (skuUtkast.length > SKU_MAX) hindra("sku_for_lang");
   const sidansSkuer = new Set([...pmV.map((v) => v.sku), ...wpVar.map((v) => String(v.sku ?? ""))]);
   const skuPaSidan = sidansSkuer.has(skuUtkast);
   const skuUpptagen = l.alla.some(
@@ -1203,7 +1208,19 @@ export async function korSammanslagning(
         + "Synken nollar den nya variantens lager tills den är mappad. Kör om.",
     );
   }
-  if (k.lankade < krav) steg.push(`⚠️ ${krav - k.lankade} val saknar kopplad bild — kör om för att koppla`);
+  // ☠️ En färg utan kopplad bild visar sidans huvudbild, alltså fel färg, i
+  // butiken och i Google-flödet. Den stoppar därför mappningen, precis som en
+  // återläsning som inte stämmer: omkörningen ser `wix_klar` och kopplar igen.
+  // En varning som lät körningen gå vidare skrev mappningen och pensionerade
+  // givaren, och då hamnade omkörningen i `klar`, som inte kopplar något.
+  // Rådet "kör om" gjorde alltså ingenting.
+  if (k.lankade < krav) {
+    return svar(
+      false,
+      `${krav - k.lankade} val saknar kopplad bild efter ${KOPPLING_FORSOK} försök — mappningen skrevs INTE. `
+        + "Synken nollar den nya variantens lager tills den är mappad. Kör om, så kopplas bilderna igen.",
+    );
+  }
   const lager = await lasLager(deps.wix, input.behall);
   const antal = (id: string | undefined) => lager.find((x) => x.variantId === id)?.quantity;
   const qNy = antal(k.nyId);

@@ -315,6 +315,28 @@ describe("färgsammanslagning — planen", () => {
     expect((await korSammanslagning({ ...PAR, sku: "FP-abc-12345" }, deps)).plan.hinder).toContain("sku_ogiltig");
   });
 
+  it("hinder: en SKU över Wix gräns på 40 tecken, given eller härledd, fälls i planen", async () => {
+    const fyrtio = `FP-${"a".repeat(37)}`;
+    expect(fyrtio).toHaveLength(40);
+    const { deps } = miljo();
+    expect((await korSammanslagning({ ...PAR, sku: fyrtio }, deps)).plan.hinder).not.toContain("sku_for_lang");
+    expect((await korSammanslagning({ ...PAR, sku: `${fyrtio}b` }, deps)).plan.hinder).toContain("sku_for_lang");
+
+    // Sidans egen SKU ryms, men sidans SKU + givarens färg gör det inte.
+    const lang = "FP-kontorsstol-med-nackstod-och-hjulen";
+    const sida = miljo({
+      wix: fejkWix({
+        sida: { variantsInfo: { variants: [{ id: "var-sida", visible: true, sku: lang, choices: [], price: { actualPrice: { amount: "699" } } }] } },
+      }),
+    });
+    const svar = await korSammanslagning(PAR, sida.deps, { apply: true });
+    expect(svar.plan.skuUtkast).toBe(`${lang}-gra`);
+    expect(svar.plan.skuUtkast.length).toBeGreaterThan(40);
+    expect(svar.plan.hinder).toEqual(["sku_for_lang"]);
+    expect(svar.ok).toBe(false);
+    expect(patchar(sida.w)).toEqual([]);
+  });
+
   it("varnar när beskrivningen nämner sidans färg", async () => {
     const { deps } = miljo({ wix: fejkWix({ sida: { plainDescription: "<p>En svart stol.</p>" } }) });
     const svar = await korSammanslagning(PAR, deps);
@@ -426,6 +448,29 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(svar.ok).toBe(true);
     const val = ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
     expect(val.every((c) => (c.linkedMedia as Obj[]).length === 1)).toBe(true);
+  });
+
+  it("☠️ en bild som aldrig kopplas stoppar mappningen, och omkörningen kopplar den", async () => {
+    const w = fejkWix();
+    w.fel.koppling = 1000;
+    const { deps, rader } = miljo({ wix: w });
+    const forsta = await korSammanslagning(PAR, deps, { apply: true });
+    expect(forsta.ok).toBe(false);
+    expect(forsta.fel).toMatch(/saknar kopplad bild.*mappningen skrevs INTE/);
+    // Wix bär färgen men mappningen och givaren är orörda — en omkörning ska
+    // alltså hamna i `wix_klar`, inte i `klar`, som inte kopplar något.
+    expect(rader.get("sida")!.variants).toHaveLength(1);
+    expect(rader.get("utkast")!.draftStatus).toBe("pending_review");
+
+    w.fel.koppling = 0;
+    const plan = await korSammanslagning(PAR, deps);
+    expect(plan.plan.tillstand).toBe("wix_klar");
+    const andra = await korSammanslagning(PAR, deps, { apply: true });
+    expect(andra.ok).toBe(true);
+    const val = ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
+    expect(val.map((c) => [c.name, bildPa(c)])).toEqual([["Svart", "bild-s1"], ["Grå", "bild-u1"]]);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
   });
 
   it("☠️ föll mappningen: omkörningen ser att Wix är klart och gör bara resten", async () => {

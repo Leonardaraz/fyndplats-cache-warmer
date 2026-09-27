@@ -92,7 +92,7 @@ on:
           - nej
           - ja
       sku:
-        description: "Den nya variantens SKU. TOMT = sidans SKU + givarens nya värden."
+        description: "Den nya variantens SKU, högst 40 tecken. TOMT = sidans SKU + givarens nya värden."
         required: false
         default: ""
         type: string
