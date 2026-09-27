@@ -26,7 +26,7 @@ export default function IntegritetspolicyApp() {
           <strong>Fyndplats</strong><br />
           Bergviksgatan 10<br />
           152 44 Södertälje, Sverige<br />
-          Organisationsnummer: 199509144037<br />
+          Organisationsnummer: 950914-4037<br />
           E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>
         </p>
       </div>

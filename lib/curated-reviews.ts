@@ -9,9 +9,15 @@
 // expanderar resten. Datum är ungefärliga (Google visar bara "för X sedan");
 // de ersätts av exakta datum när API:t är på.
 //
+// STÄMD MOT PROFILEN 2026-09-27, mot Leonards skärmdumpar av hela listan. Ett
+// omdöme som inte längre finns på Google ska inte stå kvar här — kortet säger
+// "Recension från Google" och länkar dit. Sex var borta (Google rensar i svep,
+// se noten i lib/social-proof.ts) och togs bort, bilderna med dem; fem nya
+// med text lades till.
+//
 // Snittbetyget kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles eget när API:t svarar, annars reserven i
-// lib/social-proof.ts. Korten nedan (23 st med text) är ett urval — "Se alla på
+// lib/social-proof.ts. Korten nedan (22 st med text) är ett urval — "Se alla på
 // Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
 // text och har inget att visa här. Något TOTALANTAL visas inte längre någonstans;
 // se noten överst i lib/social-proof.ts för varför.
@@ -52,57 +58,20 @@ import { GOOGLE_RATING } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
   {
-    id: "sigvard-aberg",
+    id: "mattias-mentes",
     rating: 5,
-    author: "Sigvard Åberg",
-    // Google visade "för 12 timmar sedan" 2026-09-04.
-    date: "2026-09-04",
-    // Låg först här i trimmad form: Google visade bara första meningen och
-    // dolde resten bakom "… Mer". Leonard läste ut hela texten på profilen
-    // 2026-09-04, så nu står den ordagrant och i sin helhet.
-    //
-    // RADBRYTNINGARNA ÄR KUNDENS EGNA och bärs igenom av white-space:pre-line
-    // på .greview-text. Utan den regeln hade de tre styckena kollapsat till en
-    // enda vägg av text — och det här är sajtens längsta omdöme.
-    text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp. Jag ringde och berättade måtten på mitt badrum och vilken färg jag önskade, och de tog sig verkligen tid att ge mig flera bra förslag.\n\nSom äldre man uppskattade jag särskilt det vänliga bemötandet och tålamodet. Det kändes tryggt att få prata med någon som verkligen ville hjälpa mig att hitta rätt.\n\nJag blev jättenöjd med skåpet och kan varmt rekommendera deras kundtjänst. Stort tack för all hjälp!",
-    // Kundens egen bild — se noten om kundbilder överst i filen.
-    photos: [
-      {
-        src: "https://static.wixstatic.com/media/b379ce_d0085ffa7b7046a8a40d3b25ccc7e6ac~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
-        alt: "Ett smalt badrumsskåp i ljus trälook, uppställt intill toaletten.",
-      },
-    ],
+    author: "Mattias Mentes",
+    // Google visade "för en vecka sedan" 2026-09-27.
+    date: "2026-09-20",
+    text: "Väldigt nöjd med Fyndplats! Trevlig och hjälpsam kundtjänst som gav ett bra bemötande. Även leveransen överträffade mina förväntningar och allt gick smidigt. Handlar gärna här igen!",
   },
   {
-    id: "maja-kowalski",
+    id: "samia-karam",
     rating: 5,
-    author: "Maja Kowalski",
-    // Google visade "för 3 dagar sedan" 2026-09-04.
-    date: "2026-09-01",
-    // Ordagrant, inklusive att sista meningen saknar punkt på Google.
-    text: "Tack för bra service och ett mycket professionellt bemötande! Vi är väldigt nöjda med vårt köp och det kan absolut bli fler affärer framöver",
-  },
-  {
-    id: "adam-ekdahl",
-    rating: 5,
-    author: "Adam Ekdahl",
-    // Google visade "för en vecka sedan" 2026-09-02.
-    date: "2026-08-26",
-    text: "Jag är supernöjd med min upplevelse! Kundtjänsten var väldigt hjälpsam och gav mig tydlig och bra information om produkten, vilket fick mig att känna mig trygg och säker med mitt köp. Mycket uppskattad service och en stor fördel att de tar sig tid att hjälpa kunden. Varmt rekommenderad!",
-  },
-  {
-    id: "emilia-rosen",
-    rating: 5,
-    author: "Emilia Rosén",
-    date: "2026-08-19",
-    text: "Trevlig kundservice! Mycket nöjd.",
-  },
-  {
-    id: "sebastian",
-    rating: 5,
-    author: "Sebastian",
-    date: "2026-08-05",
-    text: "Bra! Kom snabbt, funkar bra, bra pris. Vad mer behöver man säga.",
+    author: "Samia Karam",
+    // Google visade "för 2 dagar sedan" 2026-09-27.
+    date: "2026-09-25",
+    text: "Jag tycker allt gick bra och smidigt, produkten var som beskrivet och leveransen kom i tid:)",
   },
   {
     id: "stefan-gajic",
@@ -119,24 +88,6 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     ],
   },
   {
-    id: "felicia-stromberg",
-    rating: 5,
-    author: "Felicia Strömberg",
-    date: "2026-06-26",
-    text: "Toppenbur till min dvärgpapegoja! Min papegoja älskar toppen som går att öppna, sitter däruppe direkt 😄 Stadig, lagom stor och lätt att hålla ren. Rekommenderas!",
-    // Kundens egen bild — se noten om kundbilder överst i filen.
-    photos: [
-      {
-        src: "https://static.wixstatic.com/media/b379ce_832f77bb6a83482bbc5d199763eb71ed~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
-        alt: "En svart fågelbur med öppningsbar topp, med en dvärgpapegoja sittande på pinnen ovanpå.",
-      },
-      {
-        src: "https://static.wixstatic.com/media/b379ce_037d662dc2c24a2ebe80ddf2142167d1~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
-        alt: "En hand innanför burens galler, som visar avståndet mellan spjälorna.",
-      },
-    ],
-  },
-  {
     id: "orlando",
     rating: 5,
     author: "Orlando",
@@ -144,11 +95,27 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     text: "Beställde en projektor från Fyndplats och är väldigt nöjd med köpet. Vi använder den hemma till filmkvällar med barnen och bildkvaliteten är riktigt bra.",
   },
   {
-    id: "fredrik-gustafsson",
+    id: "malin-eklof",
     rating: 5,
-    author: "Fredrik Gustafsson",
-    date: "2026-06-09",
-    text: "Klockren service och ett så himla trevligt bemötande!",
+    author: "Malin Eklöf",
+    // Google visade "för 2 veckor sedan" 2026-09-27.
+    date: "2026-09-13",
+    text: "Jag är jättenöjd! Snabb frakt och bra pris:)",
+  },
+  {
+    id: "emilia-rosen",
+    rating: 5,
+    author: "Emilia Rosén",
+    date: "2026-08-19",
+    text: "Trevlig kundservice! Mycket nöjd.",
+  },
+  {
+    id: "gabriel-arslan",
+    rating: 5,
+    author: "Gabriel Arslan",
+    // Google visade "för 3 veckor sedan" 2026-09-27.
+    date: "2026-09-06",
+    text: "Enkelt! Bra service!",
   },
   {
     id: "nicolas-moreira",
@@ -163,6 +130,14 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Andrew Herranen",
     date: "2023-06-15",
     text: "Beställde hem Astronaut lampan, den var väldigt fin i mörkret. Snabb leverans också",
+  },
+  {
+    id: "stefan-gajic-musikbox",
+    rating: 4,
+    author: "Stefan Gajic",
+    // Samma kund som drönaromdömet, ett eget äldre omdöme ("för 3 år sedan").
+    date: "2023-06-15",
+    text: "Det var längre leveranstid än jag förväntade mig. Men den musikaliska boxen jag köpte hade mycket fler ljud och funktioner än jag trodde:)",
   },
   {
     id: "jonathan-hawsho",

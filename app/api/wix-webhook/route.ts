@@ -21,6 +21,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
+import { getGpsr } from "@/lib/gpsr";
+import { byggOrderSakerhet } from "@/lib/gpsr-order";
 import OrderConfirmationEmail, {
   type OrderConfirmationProps,
   type OrderLineItem,
@@ -1295,6 +1297,20 @@ export async function POST(req: NextRequest) {
           `[wix-webhook] order_created ${props.orderNumber}: dubblett-webhook — bekräftelse redan skickad, hoppar mejl + push (dedup)`,
         );
       } else if (resend) {
+        // Produktsäkerheten för varorna (lib/gpsr-order.ts). Bara när mejlet
+        // faktiskt skickas — inte för Wix dubbelfyrningar — och med ett tak på
+        // väntan: svarar motorn inte i tid går bekräftelsen ändå, utan
+        // avsnittet. En upplysning får ALDRIG blockera orderbekräftelsen.
+        try {
+          const ids = extractContentIdsAligned(entity);
+          const gpsr = await Promise.race([
+            Promise.all(ids.map((id) => (id ? getGpsr(id) : Promise.resolve(null)))),
+            new Promise<null[]>((resolve) => setTimeout(() => resolve(ids.map(() => null)), 2500)),
+          ]);
+          props.sakerhet = byggOrderSakerhet(props.items.map((it) => it.name), gpsr);
+        } catch (err) {
+          console.error("[wix-webhook] produktsäkerhet till orderbekräftelsen misslyckades (skickar utan)", err);
+        }
         try {
           const html = await render(OrderConfirmationEmail(props));
           const sent = await resend.emails.send({

@@ -13,6 +13,8 @@ import {
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { COMPLAINT_SHORT } from "../lib/retur-policy";
 import { delsummaInklMoms, momsetikett } from "../lib/vat";
+import { GPSR_BRUKSANVISNING } from "../lib/gpsr-flik";
+import type { OrderSakerhet } from "../lib/gpsr-order";
 
 export interface OrderLineItem {
   name: string;
@@ -52,11 +54,30 @@ export interface OrderConfirmationProps {
   paymentMethod?: string;
   estimatedDelivery?: string;
   orderUrl?: string;
+  /**
+   * Säkerhetsinformationen på svenska för varorna (lib/gpsr-order.ts). Saknas
+   * den får mejlet inget avsnitt. Bruksanvisningen i kartongen är inte på
+   * svenska — det här är den svenska texten kunden har kvar efter köpet.
+   */
+  sakerhet?: OrderSakerhet | null;
 }
 
 const rowStyle = {
   borderBottom: `1px solid ${BRAND.line}`,
   padding: "12px 0",
+};
+
+const sakerhetRuta = {
+  marginTop: "24px",
+  padding: "14px 16px",
+  border: `1px solid ${BRAND.line}`,
+  borderRadius: "10px",
+};
+
+const sakerhetText = {
+  fontSize: "12px",
+  lineHeight: "1.5",
+  color: BRAND.muted,
 };
 
 const summaryRow = {
@@ -79,6 +100,7 @@ export default function OrderConfirmationEmail({
   paymentMethod,
   estimatedDelivery,
   orderUrl,
+  sakerhet,
 }: OrderConfirmationProps) {
   return (
     <EmailShell preview={`Tack för din beställning ${orderNumber} hos Fyndplats!`}>
@@ -260,6 +282,41 @@ export default function OrderConfirmationEmail({
       <Text style={{ ...text.muted, marginTop: "4px" }}>
         {COMPLAINT_SHORT}
       </Text>
+
+      {/* Produktsäkerheten sist, som en egen diskret ruta: den är en upplysning
+          kunden ska kunna leta fram, inte en del av köpets sammanfattning. */}
+      {sakerhet && sakerhet.varor.length > 0 ? (
+        <Section style={sakerhetRuta}>
+          <Text style={{ fontSize: "14px", fontWeight: 800, margin: "0 0 4px 0", color: BRAND.ink }}>
+            Produktsäkerhet
+          </Text>
+          <Text style={{ ...sakerhetText, margin: "0 0 10px 0" }}>
+            Säkerhetsinformation för varorna i din beställning. Spara
+            mejlet tillsammans med bruksanvisningen som följer med varan.
+          </Text>
+          {sakerhet.varor.map((v, i) => (
+            <Section key={i} style={{ margin: "0 0 10px 0" }}>
+              <Text style={{ fontSize: "13px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
+                {v.namn}
+              </Text>
+              {v.marke ? (
+                <Text style={{ ...sakerhetText, margin: "1px 0 0 0" }}>Varumärke: {v.marke}</Text>
+              ) : null}
+              {[...v.rader, GPSR_BRUKSANVISNING].map((r, j) => (
+                <Text key={j} style={{ ...sakerhetText, margin: "2px 0 0 0", paddingLeft: "12px" }}>
+                  • {r}
+                </Text>
+              ))}
+            </Section>
+          ))}
+          {sakerhet.ansvariga.map((a, i) => (
+            <Text key={i} style={{ ...sakerhetText, margin: "6px 0 0 0" }}>
+              <strong style={{ color: BRAND.ink }}>Tillverkare och ansvarig i EU:</strong>{" "}
+              {a.namn}, {a.gata}, {[a.postnummer, a.ort].filter(Boolean).join(" ")}, {a.land} · {a.epost}
+            </Text>
+          ))}
+        </Section>
+      ) : null}
     </EmailShell>
   );
 }
