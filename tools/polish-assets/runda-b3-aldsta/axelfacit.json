@@ -1,0 +1,46 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0e43328e": {
+  "tyska": "",
+  "svenska": "69L x 69B x 45H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischgröße: 69L x 69B x 45H cm | ✔ Stuhlgröße: 34B x 34T x 44H cm | ✔ Hockergröße: 34B x 34T x 28H cm | ✔ Tischplattengröße: 59,5L x 59,5B cm | ✔ Sitzgröße: 26B x 26T cm | ✔ Sitzhöhe: 28H cm | ✔ Rückenlehne des Stuhls: 23B x 16H cm | ✔ Größe der Aufbewahrungstasche: Ø29 x 9,5H cm"
+ },
+ "2b422e06": {
+  "tyska": "54L x 50B x 56H cm",
+  "svenska": "54L x 50B x 56H cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 54,
+  "djup": 50
+ },
+ "565d0075": {
+  "tyska": "",
+  "svenska": "60L x 60B x 44H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch: 60B x 60T x 44H cm | ✔ Stuhl: 26,5B x 26,5T x 50H cm | ✔ Sitzgröße: 26,5B x 26,5T x 26H cm"
+ },
+ "6588ac81": {
+  "tyska": "",
+  "svenska": "80L x 41B x 74,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schreibtischgröße: 80L x 41B x 74,5H cm | ✔ Stuhlgröße: 32,5B x 38T x 59H cm | ✔ Tischplattengröße: 80B x 40T cm | ✔ Schublade: 57B x 33,5T X 7,5H cm | ✔ Sitzgröße: 28B x 28T cm | ✔ Rückenlehnenmaße: 24L x 18B cm"
+ },
+ "65d84215": {
+  "tyska": "",
+  "svenska": "60L x 60B x 44H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch: 60L x 60B x 44H cm | ✔ Stuhl: 26,5B x 26,5T x 50H cm | ✔ Stauraum: 18,5B x 15,8T x 8H cm (Klein), 37,5B x 20,5T x 8H cm (Groß)"
+ },
+ "728ded00": {
+  "tyska": "",
+  "svenska": "60L x 48B x 68H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schreibtischgröße: 60B x 48T x 68H cm | ✔ Stuhlgröße: 30B x 33,5T x 53H cm | ✔ Tischplattengröße: 57,5B x 33T cm | ✔ Fachgröße: 28B x 42T x 7,5H cm | ✔ Stehorganisatorgröße: 11,5B x 8T x 8H cm (klein), 32B x 8T x 8H cm (groß) | ✔ Sitzgröße: 27,5B x 28T cm | ✔ Rückenlehnenmaße: 27,5L x 15B cm"
+ },
+ "ab5f2a13": {
+  "tyska": "",
+  "svenska": "56L x 38B x 87,8H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schminktisch Abmessungen: 56L x 38B x 87,8H cm | ✔ Hocker Abmessungen: 25L x 25B x 24H cm | ✔ Spiegelgröße: 25,5L x 20,8B cm | ✔ Schubladen Innenmaß: 24,2L x 14,3B x 7,8H cm"
+ },
+ "c61c471d": {
+  "tyska": "",
+  "svenska": "68L x 35B x 86H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 68L x 35B x 86H cm | ✔ Stuhlabmessungen: 33B x 32,5T x 58,5H cm | ✔ Schubladen-Innenmaße: 50B x 26,5T x 6H cm | ✔ Sitzgröße: 28B x 28T cm | ✔ Rückenlehnenmaße: 24B x 18H cm"
+ }
+}
