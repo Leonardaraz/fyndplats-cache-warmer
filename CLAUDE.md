@@ -32,6 +32,11 @@ betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
 det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
 OCH snabbare för kunden.
 
+⚠️ **Det gäller butikens egna byggen** (grenen `headless-site`). En merge till `main` i
+det här repot bygger bara motorn: `vercel.json` avbryter butiksprojektets bygge, och
+butikens cache ligger kvar. Mätt 2026-09-27: butikssidor renderade 15:02 UTC hade
+fortfarande sin cache 15:24, efter motorns produktionsbygge 15:08.
+
 ### Särskilt för import- och poleringspass
 
 Ett pass som rör dussintals produkter ska bli **EN PR, mergad sällan** — inte
@@ -175,9 +180,9 @@ onödan.
 
 ✅ **Vad det betyder för poleringen: en runda kostar noll byggen.** Allt en
 poleringsrunda skriver till grenen ligger i `docs/` och `tools/polish-assets/`.
-Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger, och de
-tömmer butikens ISR-cache), men pushar till poleringsgrenen behöver inte längre
-sparas ihop.
+Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger motorn, men
+butikens ISR-cache rör de inte, se ovan), men pushar till poleringsgrenen behöver
+inte längre sparas ihop.
 
 ### ☠️ Filtret FÖRGIFTAR SIG SJÄLVT — och slutade fungera efter sju hoppade byggen (2026-09-05)
 
