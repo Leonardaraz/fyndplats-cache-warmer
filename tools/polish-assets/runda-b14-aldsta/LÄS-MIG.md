@@ -130,11 +130,37 @@ Källan kallar garderoben *Flurgarderobe Set*, och därför ligger den i
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `296e1fb51aab52d4d343144ede3a27c082d7ff2cbd3572948cc2c46bddd419e2`,
+grenen `cd6494dc`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36297344584 | torr | 7 texter, 7 bildlistor, 28 av 28 kategorirader och 7 SKU:er |
+| 36297393166 | skriv | text 7/7, bilder 7/7, kategorier 28/28, SKU 7/7 |
+
+Den separata återläsningen verifierade 7 av 7, och alla sju är stämplade
+(0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_6cg7yAoszQLoDgRbmXVvv71V6hcJ` blev `CANCELED`
+med `errorLink` till `#ignored-build-step`. Pekaren står kvar på
+`3da05c19`, som nu ligger sex commits bak. Klonen är tio djup, så ett
+läkningsbygge är att vänta inom några pushar.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 05:42 UTC med `hamta-live.sh 130`, alla sju HTTP 200 och `age`
+138–139 s. Sluggarna var nya, så den första träffen renderade redan den nya
+sidan (`age=0`), och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 7 av 7 |
+| `livekoll.py` | 7 av 7 OK, alt-texter 23 av 23 |
+| strukna bilder på sidan | 0 av 12 |
+| kvarvarande bilder på sidan | 23 av 23 |
+| JSON-LD | rätt namn, pris och `InStock` på 7 av 7 |
+
+Brödsmulan visar huvudkategorin Möbler på alla sju.
 
 ## Nästa runda
 
