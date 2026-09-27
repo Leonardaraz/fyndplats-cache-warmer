@@ -3270,3 +3270,29 @@ beslut — se den samlade frågan om detta.
   N22:s blå sammetsbänk `d1132894`, som är en annan modell (118 cm, utan förvaring). Givarna
   fick `FP-sittbank-sammet-forvaring-<färg>`. Sök nya SKU:er mot alla rundors `sku.tsv`
   innan planen körs. (B22)
+- AVGJORT 2026-09-27, genomfört i B23: åtta publicerade barnfordon skrevs om med alla färger
+  och fick 21 färger som val. 12 V-fyrhjulingen `883db249` (orange) fick vit, grön, röd och
+  gul (`72c44dc9`, `746785d0`, `ab96f4a3`, `de3f7b68`). 6 V-fyrhjulingen `9d686a82` (rosa)
+  fick röd, vit och blå (`2116f56f`, `4d6922a9`, `96d3f0ed`). Elmotorcykeln `372ee931` (röd)
+  fick svart, blå och rosa (`0a27ed50`, `5fafabd9`, `bc9f1cef`). Eltraktorn med släpvagn
+  `ec2d9402` (röd) fick grön, blå och orange (`329c24b2`, `8e77ded7`, `fbe710b5`). Eltraktorn
+  `91d28d6f` (blå) fick grön och röd (`b1dc7de9`, `f90b0993`). Elgokarten med driftläge
+  `0926604b` (vit) fick grön och röd (`0e88d62a`, `f244bb55`). Elgokarten med bakhjulsdrift
+  `49494b1a` (vit) fick röd och blå (`3c0795b6`, `5a4f53a9`). Pedalgokarten `cc56eab4` (röd)
+  fick rosa och blå (`39260484`, `b2b28cec`). Givarna är pensionerade, och raderna om de här
+  syskonen i B6, B7, B8, N58, N73 och N74 är därmed avklarade. Livekontrollen gav 8 av 8 OK,
+  32 av 32 alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B23)
+- Den svarta 6 V-fyrhjulingen `1f05f7d5` har saldo 0 och lades inte in. Den läggs som färg på
+  `9d686a82` med samma workflow när den finns i lager. (B23)
+- Två publicerade slugar hade tre tecken med en siffra före ett bindestreck (12 V- och
+  24 V-formen), och skrivplanens artikelnummergrind fäller dem nu. `883db249` och `0926604b`
+  fick nya slugar (`elfyrhjuling-barn-12v`, `elgokart-barn-driftlage-24v`) med omdirigering,
+  och de gamla adresserna svarar 308. Samma form i namn och SKU fälls också: skriv `12 V`
+  eller låt talet stå sist (`…-12v`), och skriv MP3-spelare som "musikspelare". (B23)
+- `gate-axel` läser L som bredd och B som djup, efter möbelkonventionen. Källorna för fordon
+  anger längden först, så en mening som "76 cm bred" fälls fast den stämmer. Skriv då måtten
+  utan axelord ("mäter 120 × 76 × 53,5 cm") i stället för att stänga av grinden. (B23)
+- Elmotorcykelns blå givare föll först på `sku_upptagen`: `FP-elmotorcykel-barn-bla` bärs redan
+  av en annan produkt, som inte finns i någon rundas `sku.tsv`. Ingenting skrevs. Den blå och
+  den rosa fick `FP-elmotorcykel-trehjul-<färg>`. Planläget fångar krocken innan något skrivs,
+  så kör alltid plan först. (B23)
