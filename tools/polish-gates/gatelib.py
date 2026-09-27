@@ -178,6 +178,14 @@ TYSKA_ORD = [
     "Motorrad", "Fernbedienung", "Akku", "Ladegerät", "Geschwindigkeit",
     "Federung", "Sicherheitsgurt", "Scheinwerfer", "Spielzeug",
     "Kleinkinder", "Monate", "Batterien", "Pedale", "Pedalen",
+    # runda N77 — sparkcykel, satsbord, sidobord, spegel, självrengörande
+    # kattlåda, fågellekplats och foderautomat. "Roller" och "Tablett" är
+    # medvetet utelämnade: "roller" och "tablett" är också svenska ord.
+    "Kinderroller", "Tretroller", "Cityroller", "Trittbrett", "Satztische",
+    "Beistelltisch", "Wohnzimmertisch", "Couchtisch", "Standspiegel",
+    "Ganzkörperspiegel", "Ankleidespiegel", "Spiegel", "Futterautomat",
+    "Futterspender", "Vogelständer", "Vogelspielplatz", "Vogelbaum",
+    "Stofftasche", "Auffangbehälter", "Kotbeutel",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
