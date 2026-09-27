@@ -3390,3 +3390,29 @@ beslut — se den samlade frågan om detta.
   `elfyrhjuling-barn-gaspedal-12v`, kontrollerat 22:10. Den cachade sidan låg kvar tills en
   träff kom efter cachefönstret; den träffen startar omrenderingen, och nästa svar är 308.
   Kontrollera en gammal adress med två träffar och några minuters mellanrum. (B27)
+- AVGJORT 2026-09-27, genomfört i B28: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 11 färger som val. Piratsandlådan `098b77f5` (natur) fick orange och grå
+  (`1c9056a5`, `80e48248`). Sandlådan med lekstugetak `2606fa30` (brun) fick grå och orange
+  (`3bced72a`, `fdd915bc`). Barstolarna `463b807e` (svart) fick vit (`9d9bb226`). Bäddsoffan
+  `749372df` (ljusgrå) fick blå (`5023eba7`). Bänken `d197d3e5` (beige) fick svart och grön
+  (`14eb4cb4`, `1e75ba03`). Massagefåtöljen `d34f6bab` (gråbrun) fick beige (`698470b4`). De
+  stapelbara pallarna `d38db7a0` (grå) fick svart (`cee5437b`). Matbordet `12889c63` (ekton)
+  fick mörkgrå (`d66937fb`). Givarna är pensionerade. Livekontrollen gav 8 av 8 OK, 33 av 33
+  alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B28)
+- Fyra givare hålls med saldo 0 och slås ihop när de får lager: barstolarna i grått
+  (`e5dc37c4`, till `463b807e`), bäddsoffan i svart (`9e549ab2`, till `749372df`) och
+  massagefåtöljen i grått (`52921fb2`, till `d34f6bab`). Pallarna i mörkgrått (`4c378bbd`)
+  har samma färg som sidan `d38db7a0` och blir därför inget eget val. (B28)
+- Bäddsoffans blå givare `5023eba7` är klädd i sammetslook, medan sidan `749372df` är
+  ljusgrå mockalook. Sidan beskriver tyget neutralt. Titta på det om en kund frågar. (B28)
+- Sparkbilen `2e12de07` och dess två färgsyskon (`7a595f49`, `efd63441`) är en licensierad
+  Porsche. Leksaksbilen `1e5eac85` är en licensierad Land Rover. Båda lämnades utanför rundan.
+  Leonard avgör om bilmärkena får säljas. (B28)
+- Nio bilder ströks. Sex av dem visar läsbar text på rekvisitan: krukan med ordet sweet på
+  `2606fa30` i två bilder, boktitlar och en tidningsrubrik på `d197d3e5` och en affisch på
+  `12889c63`. Fyra egna faktakort visar feedens fraktvikt som produktens vikt: `463b807e`
+  ("Vikt 13 kg"), `d197d3e5` ("Vikt 14,5 kg"), `d38db7a0` ("Vikt 11 kg") och `12889c63`
+  ("Vikt 29,5 kg"). Kortet på `d197d3e5` räknas i båda grupperna. (B28)
+- Bänkens SKU byttes från `FP-bank-107-armstod`, som har artikelnumrets form, till
+  `FP-bank-armstod-beige`. `FP-sittbank-forvaring-beige` bars redan av `3068a60b`. (B28)
+- Bänken `d197d3e5` hade saldo 2 när rundan skrevs. (B28)
