@@ -12,7 +12,7 @@
 // produkt-delen dedupas, så SKU:n blir kort och ren ("…-26-st" inte "…-26-26-st",
 // och "för stativstöd" → "…-stativstod" INTE "…-for"/"…-for-2").
 
-const SKU_MAX = 40; // Wix SKU MAX_LENGTH
+export const SKU_MAX = 40; // Wix SKU MAX_LENGTH
 const PRODUCT_PART_MAX = 24;
 const VARIANT_PART_MAX = 12;
 

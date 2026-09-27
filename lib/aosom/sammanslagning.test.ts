@@ -315,6 +315,28 @@ describe("färgsammanslagning — planen", () => {
     expect((await korSammanslagning({ ...PAR, sku: "FP-abc-12345" }, deps)).plan.hinder).toContain("sku_ogiltig");
   });
 
+  it("hinder: en SKU över Wix gräns på 40 tecken, given eller härledd, fälls i planen", async () => {
+    const fyrtio = `FP-${"a".repeat(37)}`;
+    expect(fyrtio).toHaveLength(40);
+    const { deps } = miljo();
+    expect((await korSammanslagning({ ...PAR, sku: fyrtio }, deps)).plan.hinder).not.toContain("sku_for_lang");
+    expect((await korSammanslagning({ ...PAR, sku: `${fyrtio}b` }, deps)).plan.hinder).toContain("sku_for_lang");
+
+    // Sidans egen SKU ryms, men sidans SKU + givarens färg gör det inte.
+    const lang = "FP-kontorsstol-med-nackstod-och-hjulen";
+    const sida = miljo({
+      wix: fejkWix({
+        sida: { variantsInfo: { variants: [{ id: "var-sida", visible: true, sku: lang, choices: [], price: { actualPrice: { amount: "699" } } }] } },
+      }),
+    });
+    const svar = await korSammanslagning(PAR, sida.deps, { apply: true });
+    expect(svar.plan.skuUtkast).toBe(`${lang}-gra`);
+    expect(svar.plan.skuUtkast.length).toBeGreaterThan(40);
+    expect(svar.plan.hinder).toEqual(["sku_for_lang"]);
+    expect(svar.ok).toBe(false);
+    expect(patchar(sida.w)).toEqual([]);
+  });
+
   it("varnar när beskrivningen nämner sidans färg", async () => {
     const { deps } = miljo({ wix: fejkWix({ sida: { plainDescription: "<p>En svart stol.</p>" } }) });
     const svar = await korSammanslagning(PAR, deps);

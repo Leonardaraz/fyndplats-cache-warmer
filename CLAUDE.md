@@ -1591,6 +1591,12 @@ Sex egenskaper som inte ska tas bort:
    på ett ord med tre tecken kan den ändå fällas (`sku_ogiltig`), och då anges
    SKU:n för hand.
 
+   ☠️ **Och Wix tar högst 40 tecken** (`SKU_MAX` i `lib/import/sku.ts`, uppmätt
+   i `gate-sku.py`). Sidans SKU plus givarens värden spränger det lätt. Formen
+   släppte igenom 93 tecken, så en för lång SKU föll först i `byt`, på en 400
+   från Wix, efter att planen sett ren ut. Sedan 2026-09-27 fäller planen den
+   (`sku_for_lang`), och SKU:n anges för hand.
+
 ⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
 det.** Kommentaren där säger att en delad option ("customization") tar högst 100
 val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) har
@@ -1667,6 +1673,17 @@ och `?par=` visade varför.** Tre skäl, och bara det första går att laga i sv
 - **Det sista paret skiljer sig i feeden:** agilitysetet i tre delar mot utkastet
   har olika klunga, andra mått och 32 % skillnad i vikt. Svepet gör rätt som
   inte slår ihop dem. Paret bör ses om med bilderna.
+
+**Efter lagningen (samma dag, körning 3):** 777 familjer över 1 949 sidor (873
+publicerade, 1 076 utkast): 666 färg, 84 storlek, 14 färg och storlek och 13 samma
+vara. 277 har en publicerad sida, 254 bara utkast och 246 flera publicerade.
+Verktyget klarar minst ett par i 512. Underlaget är detsamma, så skillnaden är
+regeln: 96 färgfamiljer till. A-hindret och agilitybågarna står nu som färgfamiljer
+med en publicerad sida var, och hopphindren som förut. Regeln är lösare, så varje
+ny färgfamilj ses med bilderna innan något slås ihop (punkt 5 ovan).
+
+Arbetsgången för poleringen står i **`docs/polish/syskon.md`**: hitta syskonen,
+förbered sidan, planen och hindren, skrivningen och texten efteråt.
 
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
