@@ -3363,3 +3363,30 @@ beslut — se den samlade frågan om detta.
 - Skrivbordets färger renderas som kort med pris i stället för färgrutor, eftersom de tre
   färgerna har olika pris. Livekollens rutsökning (`varswatch-name`) hittar dem därför inte;
   sök på `varcard-label`. (B26)
+- AVGJORT 2026-09-27, genomfört i B27: åtta publicerade möbelsidor skrevs om utan färg i
+  namnet och fick 17 färger som val. Gungstolen `63f3a60f` (cremevit) fick gul och mörkgrå
+  (`5bc96aac`, `b341d832`). Golvfåtöljen `db645ff8` (blå) fick mörkgrå och ljusgrå
+  (`339a695e`, `69f39dad`). Den ovala bänken `fa500aa8` (grå) fick grön och cremevit
+  (`3352ee8d`, `419aae73`). Massagefåtöljen `505eb413` (beige) fick grå och blå (`4ac48a3f`,
+  `5439026e`). Uppresningsfåtöljen `ed03b52f` (beige) fick ljusgrå och grå (`1af65e68`,
+  `e2dee113`). Massagekontorsstolen `cd3320e8` (mörkgrå) fick ljusgrå och brun (`e4b60035`,
+  `f1c5a026`). Matgruppen `4b1c099a` (grå) fick natur och rustik brun (`422fd52b`,
+  `43bb7c55`). Sadelpallen `20782c24` (rosa) fick svart, grå och vit (`5183003d`, `be072147`,
+  `c850c185`). Givarna är pensionerade. Livekontrollen gav 8 av 8 OK, 37 av 37 alt-texter
+  och noll textavvikelser, och varje sida visar sina färger som val. (B27)
+- Uppresningsfåtöljens maxlast skiljer mellan färgerna: den ljusgrå källan anger 120 kg och
+  den grå 135 kg. Sidan anger den lägsta, 120 kg, och måttritningen som visade 135 kg
+  ströks. (B27)
+- `505eb413` fick ny slug (`massagefatolj-chenille-landvarme`), eftersom den gamla slutade
+  på `145-grader`, som har artikelnumrets form. Den gamla adressen svarar 308. (B27)
+- Tre givares självklara SKU:er bars redan av andra sidor: `FP-uppresningsfatolj-massage-ljusgra`,
+  `FP-kontorsstol-massage-ljusgra` och `FP-sadelpall-hjul-svart`. De fick
+  `FP-uppresningsfatolj-lyft-ljusgra`, `FP-kontorsstol-massage-timer-ljusgra` och
+  `FP-sadelpall-hjul-49-61-svart`. Sök alla rundors `sku.tsv` innan en SKU anges. (B27)
+- Fyra egna faktakort ströks, eftersom de visar feedens fraktvikt som produktens vikt:
+  `63f3a60f` ("Vikt 20,5 kg"), `db645ff8` ("Vikt 7 kg"), `fa500aa8` ("Vikt 14 kg") och
+  `4b1c099a` ("Vikt 19,7 kg"). (B27)
+- AVGJORT 2026-09-27: `3c13da94`:s gamla adress (B25) svarar 308 till
+  `elfyrhjuling-barn-gaspedal-12v`, kontrollerat 22:10. Den cachade sidan låg kvar tills en
+  träff kom efter cachefönstret; den träffen startar omrenderingen, och nästa svar är 308.
+  Kontrollera en gammal adress med två träffar och några minuters mellanrum. (B27)
