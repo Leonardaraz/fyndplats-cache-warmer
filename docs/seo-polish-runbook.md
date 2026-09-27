@@ -1873,65 +1873,102 @@ en hopfälld flik **Produktsäkerhet** före *Kontakta oss*.
 
 **Vem gör vad.**
 
-| Del | Källa | Du gör |
+| Del av fliken | Kommer från | Du gör |
 |---|---|---|
-| Tillverkare + ansvarig i EU | Motorn (`GET /api/gpsr`), samma för alla Aosom-märken | Ingenting |
-| Varumärke | Motorns datafil `lib/gpsr/aosom-data.json` | Ingenting |
+| Varumärke (HOMCOM, Outsunny …) | Motorn (`lib/gpsr/aosom-data.json`) | Ingenting |
+| Tillverkare och ansvarig i EU (MH Handel GmbH, Hamburg) | Motorn, samma för alla Aosom-märken | Ingenting |
 | Produkt (namn + bild) | Sidan själv | Ingenting |
-| **Säkerhetsinformation** | **Du, ur den tyska texten** | **Skriv avsnittet nedan** |
+| **Säkerhetsinformation** | **Ditt avsnitt i beskrivningen** | **Skriv det** |
+| *"Läs bruksanvisningen … och spara den."* | Butiken, på varje produkt | Ingenting |
 
-Butiken lyfter ut ditt avsnitt ur beskrivningen och visar det i fliken tillsammans
-med tillverkaren — det blir **inte** en egen flik bredvid, och det står inte i
-brödtexten. Finns inget avsnitt använder fliken motorns förhandsöversättning (gjord
-2026-09-27 för hela feeden), och saknas den också visar fliken tillverkaren och
-bruksanvisningsraden. **Ditt avsnitt vinner alltid** — det är skrivet för den
-polerade produkten.
+Butiken lyfter ut ditt avsnitt ur beskrivningen och lägger det i fliken under
+tillverkaren. Det blir **inte** en egen flik bredvid och syns inte i brödtexten.
+Skriver du inget avsnitt använder fliken motorns förhandsöversättning (hela feeden,
+2026-09-27) — **ditt avsnitt vinner alltid**, för det är skrivet för den polerade sidan.
 
-**Så skriver du det** — sist i `plainDescription`, efter *Vanliga frågor*:
+#### Så skriver du det
+
+Sist i rundans källfil `{p}.html` (den som blir `plainDescription`), efter *Vanliga frågor*:
 
 ```html
-<h2>Produktsäkerhet</h2><ul><li>Maxbelastning: 120 kg.</li><li>Rekommenderad ålder: 3–5 år.</li></ul>
+<h2>Produktsäkerhet</h2><ul><li>Maxbelastning: 120 kg.</li><li>Rekommenderad ålder: 3–5 år.</li><li>Endast för användning under tillsyn av vuxen.</li></ul>
 ```
 
-Samma flikregel som ovan: ren `<h2>Produktsäkerhet</h2>`, ingen fetstil på rubriken.
-En rad per `<li>`, varje rad en fristående mening som slutar med punkt. Högst 12 rader.
+- Ren `<h2>Produktsäkerhet</h2>` — samma flikregel som ovan, ingen fetstil på rubriken.
+- En uppgift per `<li>`, en fristående mening som slutar med punkt. Högst 12 rader.
+- Inga stycken före eller efter listan, ingen egen underrubrik.
 
-**Vad som ska med** — ur feed-radens tyska `Description` och `Bullet Points` (Steg 3),
-och **bara** det som står där:
+#### Källan och vad som ska med
 
-- uttryckliga varningar (*Achtung, Warnung, Vorsicht, Gefahr*)
-- ålder och tillsyn: *"Rekommenderad ålder: 3–8 år."* · *"Ej lämplig för barn under 36 månader."*
-- maxbelastning, max användarvikt/-längd: *"Maxbelastning: 35 kg totalt, 5 kg per hylla."*
-- tippskydd och väggförankring, inomhus/utomhus, ej för yrkesmässigt bruk
-- el-, brand-, värme-, kläm- och kvävningsrisk, batterisäkerhet
-- uppfyllda standarder (EN 71, CE, TÜV/GS) — *"Uppfyller EN 71-1, EN 71-2 och EN 71-3."*;
-  står det bara *geprüft* skriver du *"Testad enligt …"*, inte *"Uppfyller"*
+Läs feed-radens tyska text (Steg 3) — **punktlistan, `Produktdetails`/`Technische Daten`
+och brödtexten** — och ta med **bara** det som står där:
 
-**Tre regler som inte får brytas** — alla tre hittades i översättningen av hela feeden:
+| Typ | Tyskt i källan | Skriv så här |
+|---|---|---|
+| Maxbelastning | `Belastbarkeit: 35 kg (gesamt), 5 kg (pro Regal)` | `Maxbelastning: 35 kg totalt, 5 kg per hylla.` |
+| Användarvikt / -längd | `Max. Benutzergewicht: 120 kg` · `bis 190 cm` | `Max användarvikt: 120 kg.` · `Lämplig för en kroppslängd upp till 190 cm.` |
+| Ålder | `Empfohlenes Alter: 3–5 Jahre` · `ab 18 Monaten` | `Rekommenderad ålder: 3–5 år.` · `Rekommenderad ålder: från 18 månader.` |
+| Ålderspärr | `Nicht geeignet für Kinder unter 36 Monaten` | `Ej lämplig för barn under 36 månader.` |
+| Tillsyn | `unter Aufsicht eines Erwachsenen` | `Endast för användning under tillsyn av vuxen.` |
+| Tillsyn, skarp | `nur unter **unmittelbarer** Aufsicht` | `Endast för användning under direkt tillsyn av vuxen.` |
+| Tippskydd medföljer | `Anti-Kipp-Set zur Wandbefestigung` | `Levereras med tippskydd för förankring i väggen.` |
+| Förankring krävs | `**muss** an der Wand befestigt werden` | `Möbeln ska förankras i väggen för att förhindra att den tippar.` |
+| Inomhus / utomhus | `Nur für den Innenbereich` | `Endast för inomhusbruk.` |
+| Ej yrkesmässigt | `nicht für gewerbliche Nutzung` | `Ej för yrkesmässigt bruk.` |
+| Uttrycklig varning | `Achtung: …` · `Warnung: …` | `Varning: …` (översätt meningen) |
+| Standard, certifierad | `Sicherheitsstandard: EN71-1-2-3` | `Uppfyller EN 71-1, EN 71-2 och EN 71-3.` |
+| Standard, provad | `Geprüft nach EN71` | `Testad enligt EN 71.` |
 
-1. ☠️ **Skärp aldrig källan.** *"unter Aufsicht"* blir *"Endast för användning under
-   tillsyn av vuxen."* — **"direkt"** bara när källan säger *unmittelbar/direkt*.
-   *"Möbeln ska förankras i väggen"* bara när källan kräver det (*muss, sollte*);
-   följer det bara med ett tippskydd skriver du *"Levereras med tippskydd för
-   förankring i väggen."*, och kan möbeln fästas *"Möbeln kan förankras i väggen …"*.
-   73 + 77 rader fick rättas i efterhand för att översättningen lät säkrare än varan.
-2. ☠️ **Varje siffra ska stå i källan**, exakt, med decimalkomma. Månader förblir
-   månader (*36 månader*, inte *3 år*). Säger Aosoms text emot sig själv (120 kg i
-   specen, 135 kg i brödtexten — ett tjugotal produkter) tar du **det lägre värdet**.
-3. ☠️ **Hitta inte på.** Säljtext som nämner säkerhet (*"kippsicheres Design"*,
-   *"sicher für Kinder"*) är inte säkerhetsinformation. Hellre ett avsnitt för lite än
-   en varning som inte står på varan. Finns ingenting: skriv **inget** avsnitt.
+Även el-, brand-, värme-, kläm- och kvävningsrisk (smådelar) och batterisäkerhet —
+när källan säger det. Formuleringarna ovan är desamma som i motorns datafil; håll
+dig till dem så att katalogen läser likadant.
 
-**Det här är inte ett varningsblock.** Förbudet mot *"Det du bör veta"*-block ovan gäller
-text högt upp i beskrivningen som kunden läser som skäl att avstå. Det här är en
-hopfälld lagkrävd flik sist på sidan — skriv den alltid när källan har uppgifterna, och
-flytta **aldrig** upp raderna i ingressen eller egenskapslistan.
+**Inte med:** säljtext som nämner säkerhet (*"kippsicheres Design"*, *"stabil"*,
+*"sicher für Kinder"* utan gräns), mått och funktioner som inte är en gräns,
+*"Montage erforderlich"* utan krav på vuxen, *"Batterien nicht enthalten"* (det är
+leveransinnehåll — hör hemma i specifikationerna), varumärken och
+leverantörsnamn. **Finns ingen säkerhetsinformation i källan: skriv inget avsnitt.**
 
-**Inga leverantörsnamn** i avsnittet — tillverkaren sköter fliken själv. Märket skrivs inte
-heller; det kommer från motorn.
+#### Fyra regler — alla hittades när hela feeden översattes
 
-**AliExpress-varor:** skriv avsnittet på samma sätt. Motorn har ännu inga
-tillverkaruppgifter för dem (öppet arbete) — fliken visar då bara ditt avsnitt.
+1. ☠️ **Skärp aldrig källan.** *"direkt tillsyn"* bara vid *unmittelbar/direkt*;
+   *"ska förankras"* bara vid *muss/sollte*. Översättningen av feeden skärpte
+   150 rader som fick rättas — en säkerhetsuppgift som låter strängare än varan är
+   lika fel som en som låter mildare.
+2. ☠️ **Varje siffra ska stå i källan**, med decimalkomma. Månader förblir månader
+   (*36 månader*, inte *3 år*). `gate.py` kontrollerar det redan mot källtexten,
+   liksom varje EN-norm — ett fynd där är ett riktigt fel, inte ett falsklarm.
+3. ☠️ **Samma värde i spec-tabellen och i avsnittet.** Aosoms text säger ofta emot
+   sig själv: produktdatan säger `max. Belastbarkeit: 98 kg`, punktlistan
+   `Bis max. 100 kg`. Uppmätt 2026-09-27: 38 produkter i feeden anger mer än ett
+   belastningsvärde; i åtta är det SAMMA del med två olika tal, och alla åtta gånger
+   bär punktlistan det högre, avrundade. **Produktdatan gäller** — och säger även
+   den emot sig själv tar du **det lägre värdet**. Skriv sedan SAMMA tal i
+   *Tekniska specifikationer* och i *Produktsäkerhet*; två olika maxlaster på samma
+   sida är två påståenden om varan, och ett av dem är fel.
+4. ☠️ **Hitta inte på.** Hellre en rad för lite än en varning som inte står på varan.
+   Är det oklart vad en mening syftar på (*"Um dies zu verhindern …"*) — ta med
+   uppmaningen, gissa inte risken.
+
+#### Det här är inte ett varningsblock
+
+Förbudet mot *"Det du bör veta"*-block ovan gäller text högt upp som kunden läser som
+skäl att avstå. Det här är en hopfälld, lagkrävd flik sist på sidan. Skriv den alltid
+när källan har uppgifterna — och flytta **aldrig** upp raderna i ingressen eller
+egenskapslistan.
+
+#### Grindarna
+
+- **`gate.py`** läser avsnittet som all annan text: siffror och normer mot källan,
+  husmärken, fraktland, leverantörsord. Märket och tillverkaren hör inte hemma i ditt
+  avsnitt — fliken lägger dit dem själv.
+- **`livegrind.py`** klipper ut fliken innan sidsvepet, eftersom fliken *ska* visa
+  `HOMCOM` och `Tyskland` (lagen kräver tillverkarens namn och adress). Dina rader
+  svepas och orddiffas som vanligt. Har källfilen ett avsnitt fäller grinden en sida
+  där fliken saknas, eller där den saknar tillverkaren (motorn svarade inte när sidan
+  renderades — hämta om efter ISR-fönstret).
+
+**AliExpress-varor omfattas inte** (Leonard 2026-09-27) — skriv inget avsnitt för dem.
 
 > **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
 
@@ -5234,11 +5271,11 @@ rundor klarar båda, så grinden går grön när arbetet är gjort.
 
 **Text**
 
-- **`<h2>Produktsäkerhet</h2>` sist i beskrivningen** när feed-raden har säkerhetsinformation
-  (se [Produktsäkerhet](#produktsäkerhet-gpsr--sista-avsnittet-skrivs-vid-varje-polering-2026-09-27)):
-  varje siffra står i den tyska källan, ingen rad är skarpare än källan. På den publicerade
-  sidan: `<summary>Produktsäkerhet</summary>` finns och fliken innehåller
-  *Tillverkare och ansvarig i EU*.
+- **`<h2>Produktsäkerhet</h2>` sist i beskrivningen** när Aosom-radens tyska text har
+  säkerhetsinformation (se [Produktsäkerhet](#produktsäkerhet-gpsr--sista-avsnittet-skrivs-vid-varje-polering-2026-09-27)):
+  varje siffra står i källan, ingen rad är skarpare än källan, och maxlasten är **samma**
+  som i *Tekniska specifikationer*. På den publicerade sidan kontrollerar `livegrind.py`
+  att fliken finns och bär tillverkaren.
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inklusive
   kvalificeraren. Inget dropship-märke kvar.
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 1), och skillnaden mot
