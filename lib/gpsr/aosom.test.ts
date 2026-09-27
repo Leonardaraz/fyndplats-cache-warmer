@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   AOSOM_ANSVARIG,
-  kallHash,
-  kallText,
+  kandidatHash,
+  kandidatMeningar,
   markeUrAosomUrl,
+  paHittadeTal,
   tillPublik,
   tvattaSakerhet,
 } from "./aosom";
@@ -28,24 +29,43 @@ describe("markeUrAosomUrl", () => {
   });
 });
 
-describe("kallText", () => {
-  it("skalar HTML och platshållaren [BRAND NAME]", () => {
-    const t = kallText({
-      namn: "Kinderküche",
-      kategori: "Baby & Kind > Spielzeug",
-      punkterHtml: "<ul><li>Achtung: Nicht geeignet für Kinder unter 36 Monaten.</li></ul>",
-      beskrivningHtml: "<p>Diese Küche von [BRAND NAME] ist &amp; bleibt schön.</p>",
-    });
-    expect(t).toContain("Achtung: Nicht geeignet für Kinder unter 36 Monaten.");
-    expect(t).toContain("Diese Küche von ist & bleibt schön.");
-    expect(t).not.toMatch(/BRAND NAME|<li>|&amp;/);
+describe("kandidatMeningar", () => {
+  it("plockar säkerhetsmeningar, punktlistan först, och lämnar säljtexten", () => {
+    const k = kandidatMeningar(
+      "<p>Diese Küche von [BRAND NAME] ist schön. Achtung: Nur unter Aufsicht von Erwachsenen verwenden.</p>",
+      "<ul><li>✔ Belastbarkeit: 30 kg</li><li>✔ Gute Belüftung durch Gitter</li></ul>",
+    );
+    expect(k).toEqual(["Belastbarkeit: 30 kg", "Achtung: Nur unter Aufsicht von Erwachsenen verwenden."]);
+  });
+
+  it("tar bort dubbletter och platshållaren", () => {
+    const k = kandidatMeningar("<p>Belastbarkeit: 30 kg</p>", "<li>Belastbarkeit: 30 kg</li><li>[BRAND NAME] Warnung: heiß.</li>");
+    expect(k).toEqual(["Belastbarkeit: 30 kg", "Warnung: heiß."]);
+  });
+
+  it("ger en tom lista när texten saknar säkerhetsinformation", () => {
+    expect(kandidatMeningar("<p>Ein schönes Sofa in Grau.</p>", "")).toEqual([]);
   });
 });
 
-describe("kallHash", () => {
-  it("är stabil för samma text och ändras med texten", () => {
-    expect(kallHash("a")).toBe(kallHash("a"));
-    expect(kallHash("a")).not.toBe(kallHash("b"));
+describe("kandidatHash", () => {
+  it("är stabil och ändras när en mening ändras", () => {
+    expect(kandidatHash(["a", "b"])).toBe(kandidatHash(["a", "b"]));
+    expect(kandidatHash(["a", "b"])).not.toBe(kandidatHash(["a", "c"]));
+  });
+});
+
+describe("paHittadeTal", () => {
+  it("godtar tal som står i källan, även med decimalkomma och tusentalsavgränsare", () => {
+    expect(paHittadeTal("Maxbelastning: 1,5 kg.", ["Belastbarkeit: 1.5 kg"])).toEqual([]);
+    expect(paHittadeTal("Maxbelastning: 1 000 kg.", ["Belastbarkeit: 1.000 kg"])).toEqual([]);
+    expect(paHittadeTal("Rekommenderad ålder: 3–8 år.", ["für Kinder von 3 bis 8 Jahren"])).toEqual([]);
+    expect(paHittadeTal("Uppfyller EN 71-1, -2, -3.", ["Geprüft nach EN71-1.2.3"])).toEqual([]);
+  });
+
+  it("flaggar ett tal som inte finns i källan", () => {
+    expect(paHittadeTal("Maxbelastning: 150 kg.", ["Belastbarkeit: 120 kg"])).toEqual(["150"]);
+    expect(paHittadeTal("Ej lämplig för barn under 3 år.", ["Nicht geeignet für Kinder unter 36 Monaten."])).toEqual(["3"]);
   });
 });
 
@@ -74,7 +94,7 @@ describe("tvattaSakerhet", () => {
 
 describe("tillPublik", () => {
   it("bär märke, ansvarig och säkerhetstext — aldrig artikelnummer eller källa", () => {
-    const pub = tillPublik({ marke: "HOMCOM", sakerhet: ["Endast för inomhusbruk."] });
+    const pub = tillPublik({ m: "HOMCOM", s: ["Endast för inomhusbruk."] });
     expect(pub).toEqual({ marke: "HOMCOM", ansvarig: { ...AOSOM_ANSVARIG }, sakerhet: ["Endast för inomhusbruk."] });
     expect(Object.keys(pub).sort()).toEqual(["ansvarig", "marke", "sakerhet"]);
   });

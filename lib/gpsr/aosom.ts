@@ -28,11 +28,16 @@
 // kartongen och i manualen kunden får hem. Butiken skriver "Tillverkare och
 // ansvarig i EU", aldrig "leverantör". Beslutat av Leonard 2026-09-27.
 //
+// INGA MODELLANROP I DRIFT (Leonard 2026-09-27). Säkerhetstexten översätts en
+// gång, utanför motorn, och checkas in i aosom-data.json. Motorn läser bara
+// filen. Se scripts/gpsr-kandidater.ts för hur nya och ändrade produkter tas
+// fram och scripts/gpsr-bygg.ts för hur översättningarna förs in.
+//
 // MÄRKET står inte i feeden som fält — beskrivningarna bär platshållaren
 // "[BRAND NAME]", eftersom Aosom säljer varorna omärkta till återförsäljare.
 // Det står däremot först i adressen till Aosoms egen produktsida
-// (aosom.de/item/homcom-…). Uppmätt 2026-09-27 på 6 234 rader: alla utom ett
-// tiotal har ett av märkena nedan där. "homcomr" är samma märke med ®.
+// (aosom.de/item/homcom-…). Uppmätt 2026-09-27 på 6 234 rader: alla utom 25
+// har ett av märkena nedan där. "homcomr" är samma märke med ®.
 
 import { createHash } from "node:crypto";
 
@@ -78,69 +83,60 @@ export function markeUrAosomUrl(url: string | null | undefined): string | null {
   return null;
 }
 
-/** Den tyska källtexten ur en feed-rad, som ren text. */
-export interface Kalla {
-  namn: string;
-  beskrivningHtml: string;
-  punkterHtml: string;
-  kategori: string;
-}
+/**
+ * Meningar i den tyska texten som KAN vara säkerhetsinformation. Det är vad
+ * som översätts — resten av texten är säljtext och mått.
+ *
+ * Mönstret är brett med flit: det ska hellre ta med en säljmening för mycket
+ * (översättningen sållar bort den) än tappa en varning. Uppmätt 2026-09-27:
+ * 9 475 meningar på 4 223 produkter, 633 000 tecken. Ett bredare mönster
+ * (kg, Kinder, Montage) gav 55 000 meningar av nästan bara brus.
+ */
+const KANDIDAT_RE = /(warn|achtung|vorsicht|gefahr|nicht geeignet|ungeeignet|aufsicht|beaufsichtig|verschluck|erstick|kleinteil|kipp|verankern|wandbefestigung|an der wand (zu )?befestig|wandhalterung|nur für den (innen|außen|haus|privat)|nur im innen|nur für (innen|außen)|nicht für den (gewerb|kommerz|außen|innen)|en ?71|en ?1176|en ?957|en ?12520|ce[- ]?(zert|kennz|konform|gepr)|tüv|gs[- ]?(zeich|gepr)|stromschlag|brandgefahr|feuergefahr|verbrennung|unbeaufsichtigt|ab \d+ jahren|ab \d+ monaten|im alter (von|ab|zwischen)|altersempfehlung|empfohlenes alter|jahre alt|belastbar|max(\.|imale)? ?(belast|trag|gewicht|nutzer|benutzer|last)|tragfähig|tragkraft|nutzergewicht|benutzergewicht|körpergröße (bis|von))/i;
 
-const MAX_KALLA = 6000;
-
-function tillText(html: string): string {
-  return html
+function meningar(html: string): string[] {
+  const text = html
     .replace(/<br\s*\/?>|<\/(p|li|div|h\d|tr)>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
     .replace(/\[BRAND NAME\]\s*/gi, "")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\s*\n\s*/g, "\n")
-    .trim();
+    .replace(/[ \t]+/g, " ");
+  return text
+    .split(/\n+|(?<=[.!?])\s+(?=[A-ZÄÖÜ✔•])/)
+    .map((s) => s.replace(/^[✔•\-\s]+/, "").trim())
+    .filter((s) => s.length > 3);
+}
+
+/** Kandidatmeningarna för en produkt, punktlistan först, utan dubbletter. */
+export function kandidatMeningar(beskrivningHtml: string, punkterHtml: string): string[] {
+  const alla = [...meningar(punkterHtml), ...meningar(beskrivningHtml)];
+  return [...new Set(alla.filter((s) => KANDIDAT_RE.test(s)))];
 }
 
 /**
- * Texten som skickas till utvinningen. Märket är redan bortskalat ur
- * beskrivningen hos Aosom; platshållaren tas bort så att den inte hamnar i
- * den svenska texten.
+ * Fingeravtryck för kandidatmeningarna. Skiljer det sig från det sparade har
+ * Aosom skrivit om säkerhetstexten, och produkten ska översättas igen.
  */
-export function kallText(k: Kalla): string {
-  const delar = [
-    `Produkt: ${tillText(k.namn)}`,
-    k.kategori ? `Kategori: ${tillText(k.kategori)}` : "",
-    tillText(k.punkterHtml),
-    tillText(k.beskrivningHtml),
-  ].filter(Boolean);
-  return delar.join("\n").slice(0, MAX_KALLA);
+export function kandidatHash(k: readonly string[]): string {
+  return createHash("sha256").update(k.join("\n")).digest("hex").slice(0, 16);
 }
 
-/**
- * Fingeravtryck för källtexten. Samma avtryck = samma säkerhetstext, och då
- * behövs ingen ny utvinning. Versionen bumpas när prompten ändras, så att
- * allt görs om med den nya.
- */
-export const UTVINNING_VERSION = "1";
-
-export function kallHash(text: string): string {
-  return createHash("sha256").update(`${UTVINNING_VERSION}\n${text}`).digest("hex").slice(0, 32);
+/** En post i aosom-data.json, nycklad på Aosoms artikelnummer. */
+export interface GpsrDataPost {
+  /** Märket, eller null. */
+  m: string | null;
+  /** Säkerhetsinformation på svenska. */
+  s: string[];
+  /** kandidatHash för den tyska texten översättningen gjordes från. */
+  h: string;
 }
 
-/** En sparad post, en per Wix-produkt. */
-export interface GpsrPost {
-  wixProductId: string;
-  /** Aosoms artikelnummer. Internt — lämnar aldrig motorn. */
-  sku: string;
-  marke: string | null;
-  /** Säkerhetsuppgifter på svenska, i den ordning de står i källan. */
-  sakerhet: string[];
-  kallHash: string;
-  /** ISO-tid för senaste utvinning. */
-  at: string;
+export interface GpsrDataFil {
+  version: 1;
+  /** ISO-datum för senaste bygget. */
+  genererad: string;
+  poster: Record<string, GpsrDataPost>;
 }
 
 /** Det publika svaret — exakt det butiken visar, inget mer. */
@@ -150,18 +146,18 @@ export interface GpsrPublik {
   sakerhet: string[];
 }
 
-export function tillPublik(p: Pick<GpsrPost, "marke" | "sakerhet">): GpsrPublik {
-  return { marke: p.marke, ansvarig: { ...AOSOM_ANSVARIG }, sakerhet: [...p.sakerhet] };
+export function tillPublik(p: Pick<GpsrDataPost, "m" | "s">): GpsrPublik {
+  return { marke: p.m, ansvarig: { ...AOSOM_ANSVARIG }, sakerhet: [...p.s] };
 }
 
 const MAX_RADER = 12;
 const MAX_RAD = 280;
 
 /**
- * Tvättar modellens svar innan det sparas. Svaret går rakt ut på en publik
- * sida, så allt som inte är en kort svensk mening faller bort: tomma rader,
+ * Tvättar en översättning innan den förs in. Raderna går rakt ut på en publik
+ * sida, så allt som inte är en kort mening faller bort: tomma rader,
  * dubbletter, överlånga rader, och rader som nämner leverantören eller
- * platshållaren (då har modellen läst in något den inte skulle).
+ * platshållaren.
  */
 export function tvattaSakerhet(rader: unknown): string[] {
   if (!Array.isArray(rader)) return [];
@@ -179,4 +175,23 @@ export function tvattaSakerhet(rader: unknown): string[] {
     if (ut.length >= MAX_RADER) break;
   }
   return ut;
+}
+
+/** Talen i en text, normaliserade: "1,5" och "1.5" blir "1.5", tusental utan mellanrum. */
+function tal(text: string): string[] {
+  return (text.replace(/(\d)[\s .](?=\d{3}\b)/g, "$1").match(/\d+(?:[.,]\d+)?/g) ?? [])
+    .map((t) => t.replace(",", "."));
+}
+
+/**
+ * Talen i en svensk rad som INTE finns i den tyska källan. En översättning
+ * får aldrig hitta på en siffra — en maxbelastning eller åldersgräns som inte
+ * står på varan är en felaktig säkerhetsuppgift.
+ */
+export function paHittadeTal(sv: string, tyska: readonly string[]): string[] {
+  const text = tyska.join(" ");
+  // Även varje heltal för sig: "EN71-1.2.3" är tre delnummer, inte decimaltalet
+  // 1.2, och den svenska raden skriver dem "EN 71-1, -2, -3".
+  const kalla = new Set([...tal(text), ...(text.match(/\d+/g) ?? [])]);
+  return tal(sv).filter((t) => !kalla.has(t));
 }
