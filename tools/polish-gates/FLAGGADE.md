@@ -3198,3 +3198,26 @@ beslut — se den samlade frågan om detta.
   huvudsökord är valda på produkttypen. Alla sex slugar prövades mot hela
   katalogen (6 195 produkter): ingen krockar, och där en publicerad slug
   redan bar huvudsökordet valdes en smalare variant. (N76)
+- ⚠️ Frysboxen `da0e9379` (35 l) hålls: kyl- och frysprodukter på 10–1 500 l ska visa
+  energimärkningen och länka produktinformationsbladet på produktsidan (EU 2019/2016),
+  och vi har inget av dem. Bilderna och texten är granskade; sidan kan poleras när
+  etiketten finns. (B20)
+- Vattenkokar- och brödrostseten med räfflat hölje `f5964946` (cremevit) och
+  `40a1f491` (grå) är samma set i två färger, bara bland utkasten. Bara huvudbilden är
+  ren: miljöbilden bär läsbar text på en bok (*STREET FOOD*) och bild 3–5 har tysk text.
+  När egna kort finns blir de en sida med två färgval. (B20)
+- Bikakeseten `eb19eca6` (fyra skivor, svart och grått) och `982262ec` (glaskokare och
+  fyra skivor) är publicerade men inte kopplade till *Vattenkokare & brödrostar*, eftersom
+  kategoritexten säger att två set har bikakemönster. Rätta meningen vid nästa
+  butiksdeploy, till exempel till "flera har bikakemönster", och koppla då båda. (B20)
+- De publicerade frukostseten med bikakemönster för två skivor, `b330de9c` (svart, i
+  koppar och svart) och `0ab3483a` (rosa), är samma set i två färger: samma kokare
+  24,2 × 19,5 × 23,4 cm och samma rost 27,4 × 17,7 × 18,8 cm. Enligt beslutet
+  2026-09-27 ska de bli en sida med två färgval. Båda är publicerade, så givaren kräver
+  `omdirigera=ja`, och sidans namn bär färgen och måste skrivas om först. Nästa runda. (B20)
+- AVGJORT 2026-09-27, genomfört i B20: miniugnarna. Den publicerade AliExpress-sidan
+  `3f6a99f7` är ommappad till Aosom med `ff145fb1` (samma ugn i svart och silver, nu
+  pensionerad), och `ab47e35d` (helsvart) och `d9f30244` (cremevit) läggs in som färger
+  på sidan. Setet `6f79738d` får familj A:s fem färger (`4546b12a`, `4add1c3a`,
+  `980dd9a1`, `c0463ce2`, `d7fea466`), bikakesetet `eb19eca6` får `c0dd9d0c` och
+  brödrosten `2b27c2a4` får `13204f68`. (B20)
