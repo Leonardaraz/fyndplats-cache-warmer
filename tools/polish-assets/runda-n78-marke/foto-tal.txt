@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5f84f2c1 45 mankhöjd under 45 cm, avläst på bild 3 (stryks för sin tyska text)
+5f84f2c1 5,4 spjälavståndet 5,4 cm, avläst på bild 3 (stryks för sin tyska text)
+6a6bfd64 300 tunnlarnas längd, 300 cm, avläst på måttbilden (bild 3)
+480eefad 6 slalomet har sex stänger, räknade på bild 1 och 3
+480eefad 3 tre övningar (hoppring, hopphinder och slalom), räknade på bild 1
+5f84f2c1 4 fyra paneler, räknade på bild 1

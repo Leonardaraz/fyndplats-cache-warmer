@@ -186,6 +186,15 @@ TYSKA_ORD = [
     "Ganzkörperspiegel", "Ankleidespiegel", "Spiegel", "Futterautomat",
     "Futterspender", "Vogelständer", "Vogelspielplatz", "Vogelbaum",
     "Stofftasche", "Auffangbehälter", "Kotbeutel",
+    # runda N78 — agilityset, katthjul, hundgrind, självrengörande kattlåda
+    # och kattlådemöbel. "Tunnel" och "Slalom" stavas likadant på svenska och
+    # är medvetet utelämnade.
+    "Katzenlaufrad", "Katzenrad", "Laufrad", "Kratzmatte", "Kratzmatten",
+    "Kratzbrett", "Wellpapier", "Haustiertor", "Hundegitter", "Absperrgitter",
+    "Hundeabsperrgitter", "Stützfüße", "Durchgangstür", "Hürde", "Hürden",
+    "Sprungreifen", "Sprungring", "Slalomstangen", "Pausenbox", "Trillerpfeife",
+    "Tragetasche", "Heringe", "Erdspieß", "Bodenspieß", "Sandsack", "Sandsäcke",
+    "Katzenschrank", "Fernsehständer",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med

@@ -1,0 +1,13 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde; Semrush-enheterna var slut 2026-09-27, 403 API UNITS BALANCE IS ZERO)
+# Volymerna i parentes är hämtade ur tidigare rundors sokval.tsv. Publicerade namn som redan bär ordet styr mot en smalare variant:
+# agilitybana (08230ec1), agilityset (16 publicerade), kattlådemöbel (e1d7ecf4), självrengörande kattlåda med app (17ffe9ab),
+# fristående hundgrind (516cf07c), katthjul (7253f433). Varje planerad slug är prövad mot hela katalogen 2026-09-27 (6 195
+# produkter, två kända publicerade sluggar som kontroll, båda hittades): ingen krockar.
+ee50f5bf	agilitybågar för hund	–	–	agilitybågar; agility för hund; agilityset för hund
+4664e423	katthjul med klösmatta	–	–	katthjul; löphjul för katt; kattlöphjul
+5f84f2c1	fristående hundgrind med dörr	–	–	fristående hundgrind; hundgrind med dörr; hundgrind trä
+8ad49cfe	agilityset i fyra delar	–	–	agilitybågar; agility för hund; agilityset för hund
+480eefad	agilityset med hoppring	–	–	hoppring för hund; slalom för hund; agilityset för hund
+6a6bfd64	agilityset med två tunnlar	–	–	hundtunnel; agilityset med tunnel; agility för hund
+b60b0392	täckt självrengörande kattlåda	–	–	självrengörande kattlåda med app; automatisk kattlåda; kattlåda med wifi
+003ace14	kattlådemöbel för två katter	–	–	kattlådemöbel (480, 20); kattlåda skåp (390, 16); dold kattlåda
