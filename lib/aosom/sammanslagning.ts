@@ -1,26 +1,36 @@
-// Sammanslagning: en Aosom-artikel blir ett VAL — en färg eller en storlek — på
-// en publicerad sida.
+// Sammanslagning: en Aosom-artikel blir en VARIANT — en färg, en storlek eller
+// båda — på en publicerad sida.
 //
 // VARFÖR DEN FINNS (Leonards frågor 2026-09-27)
 //
 // Dubblettskärmen och syskonsvepet (familjer.ts) hittar sidor och utkast som är
 // samma vara i en annan färg eller en annan storlek. Att publicera varje sådan
 // som en egen sida ger flera URL:er för samma produkt; att pensionera dem
-// slänger varor vi kan sälja. Svaret är att lägga artikeln som ett val på en
-// sida: en option ("Färg" eller "Storlek"), en variant per val, och ett val som
-// byter huvudbild.
+// slänger varor vi kan sälja. Svaret är att lägga artikeln som en variant på en
+// sida: optionerna "Färg" och "Storlek", en variant per artikel, och en färg
+// som byter huvudbild.
 //
 // Efter sammanslagningen bär sidan en Aosom-artikel PER VARIANT. Resten av
-// koden läser det via lib/aosom/artiklar.ts: synken speglar varje vals saldo
-// och pris för sig, beställningsfilen beställer det val kunden gjorde, och
-// importens dubblettspärr ser alla artiklarna.
+// koden läser det via lib/aosom/artiklar.ts: synken speglar varje variants
+// saldo och pris för sig, beställningsfilen beställer den variant kunden valde,
+// och importens dubblettspärr ser alla artiklarna.
+//
+// FÄRG OCH STORLEK PÅ SAMMA SIDA
+//
+// En sida har en axel eller båda. Givaren anger sitt värde på varje axel sidan
+// har, och på den axel den lägger till; sidan anger sitt värde bara på en axel
+// den får för första gången. Varje variant är en artikel, så alla kombinationer
+// behöver inte finnas: Wix tillåter färre varianter än kombinationer, och
+// butikens väljare (headless-site, lib/variant-multi.ts) dämpar en kombination
+// som saknas och byter till en som finns. En kombination Aosom inte säljer ska
+// inte heller finnas på sidan.
 //
 // FYRA LÄGEN, ETT PER KÖRNING
 //
-//   ny       sidan har inga optioner än: optionen skapas med två val.
-//   utoka    sidan har redan optionen (en tidigare sammanslagning): ett val
-//            till läggs på. Så blir en familj med sju färger en sida — ett
-//            utkast per körning.
+//   ny       sidan har inga optioner än: optionerna skapas, med två varianter.
+//   utoka    sidan har redan optioner (en tidigare sammanslagning): en variant
+//            till, och vid behov ett nytt val på en axel eller en ny axel. Så
+//            blir en familj med sju färger en sida — ett utkast per körning.
 //   wix_klar en tidigare körning föll efter Wix-skrivningen: bara resten görs.
 //   klar     artikeln sitter redan på sidan: bara efterarbetet görs.
 //
@@ -37,13 +47,13 @@
 //   4. Givaren pensioneras, som ett utkast.
 //
 // ☠️ HALVGJORT ÄR SÄKERT, OCH DET ÄR MED FLIT. Faller något efter Wix-skrivningen
-// har Wix ett val som mappningen inte känner till. Synken NOLLAR då det valets
-// lager och räknar det i `okandaVarianter` (jobbet blir rött), och
-// beställningsfilen HÅLLER en order på det — ingen kund kan få fel vara. En
+// har Wix en variant som mappningen inte känner till. Synken NOLLAR då dess
+// lager och räknar den i `okandaVarianter` (jobbet blir rött), och
+// beställningsfilen HÅLLER en order på den — ingen kund kan få fel vara. En
 // omkörning ser hur långt det kom och gör bara det som återstår.
 //
-// ☠️ PRISET RÖRS INTE. Det nya valet får givarens pris som det står i butiken,
-// de gamla behåller sina. Leonards regel: poleringen rör aldrig ett pris.
+// ☠️ PRISET RÖRS INTE. Den nya varianten får givarens pris som det står i
+// butiken, de gamla behåller sina. Leonards regel: poleringen rör aldrig ett pris.
 //
 // ☠️ SVARET BÄR ALDRIG ETT ARTIKELNUMMER ELLER EN KOSTNAD. Det går till en
 // PUBLIK Actions-logg. Planen säger kundpriser, saldon, val, bildantal och
@@ -59,13 +69,17 @@ import { aosomArtikelbild, aosomArtiklarPaRaden, radensArtikel } from "./artikla
 import { pensioneraDubblett } from "./remap";
 
 type Obj = Record<string, unknown>;
+type MappningsVariant = ProductMappingRecord["variants"][number];
 
-/** Axlarna ett val kan ligga på. Samma ord som AE-sidornas optioner. */
+/**
+ * Axlarna en variant kan skilja sig på, i den ordning en ny sida får dem. Samma
+ * ord som AE-sidornas optioner, och samma som butikens väljare letar efter.
+ */
 export const AXLAR = ["Färg", "Storlek"] as const;
 export type Axel = (typeof AXLAR)[number];
+/** Ett värde per axel: en variants plats bland valen. */
+export type Koordinat = Partial<Record<Axel, string>>;
 
-/** Optionens namn för färg — den axel sammanslagningen hade först. */
-export const OPTION_NAMN: Axel = "Färg";
 const RENDER = "TEXT_CHOICES";
 
 /** Hur länge återläsningen väntar på att valens bilder kopplats (ms per försök). */
@@ -84,20 +98,23 @@ export interface SammanslagningInput {
   behall: string;
   /** Givaren: ett utkast, eller (med `omdirigera`) en publicerad sida. */
   utkast: string;
+  /** Givarens färg, t.ex. "Grå". Krävs när sidan har eller får färgval. */
+  fargUtkast?: string;
+  /** Givarens storlek, t.ex. "110 × 85 cm". Krävs när sidan har eller får storleksval. */
+  storlekUtkast?: string;
   /**
-   * Värdet sidan redan har, t.ex. "Vit". Krävs bara första gången, när sidan
-   * saknar optioner — efter det står sidans val i Wix och i mappningen.
+   * Sidans färg, t.ex. "Vit". Bara när sidan FÅR färgvalet i den här
+   * körningen — efter det står sidans färger i Wix och i mappningen.
    */
-  fargBehall: string;
-  /** Givarens värde, t.ex. "Grå" eller "90 × 70 cm". */
-  fargUtkast: string;
-  /** "Färg" (default) eller "Storlek". */
-  axel?: Axel;
-  /** Den nya variantens SKU. Utelämnad = sidans SKU + värdet. */
+  fargBehall?: string;
+  /** Sidans storlek. Bara när sidan får storleksvalet i den här körningen. */
+  storlekBehall?: string;
+  /** Den nya variantens SKU. Utelämnad = sidans SKU + givarens nya värden. */
   sku?: string;
   /**
    * Vilka av givarens bilder som följer med, 1-baserat i givarens ordning.
-   * Default [1]: huvudbilden, som i mätningen 2026-08-27 var ren på 30 av 30.
+   * Default: huvudbilden när givaren för in en ny färg (eller en ny storlek på
+   * en sida utan färgval) — annars ingen, för då finns bilden redan på sidan.
    *
    * ☠️ BARA GRANSKADE BILDER. 46 % av feedens bilder bär tysk text inbränd, och
    * en del bär husmärkets logotyp. Ett utkast är opolerat — ingen har tittat på
@@ -147,17 +164,28 @@ export interface SammanslagningPlan {
   varningar: string[];
   behall: string;
   utkast: string;
-  axel: Axel;
-  fargBehall: string;
-  fargUtkast: string;
-  /** Sidans val efter sammanslagningen, i den ordning de visas. */
-  varden: string[];
+  /** Sidans axlar efter sammanslagningen, i den ordning butiken visar dem. */
+  axlar: Axel[];
+  /** Axlar sidan får i den här körningen. */
+  nyaAxlar: Axel[];
+  /** Axlar där givaren för in ett värde sidan inte har. */
+  nyaVarden: Axel[];
+  /** Den nya variantens plats: givarens värde på varje axel. */
+  nyttVal: Koordinat;
+  /** Sidans värde på de nya axlarna — varje befintlig variant får det. */
+  sidansVal: Koordinat;
+  /** Valen per axel efter sammanslagningen. */
+  varden: Partial<Record<Axel, string[]>>;
+  /** Varianter efter sammanslagningen. */
+  varianter: number;
+  /** Kombinationer av valen utan variant. Butiken visar dem som ej valbara. */
+  saknadeKombinationer: number;
   skuBehall: string | null;
   skuUtkast: string;
   /** Kundpriserna i butiken — redan publika. Rörs inte av sammanslagningen. */
   prisBehall: number | null;
   prisUtkast: number | null;
-  /** Saldot sidan har i dag (alla varianter), och det synliga saldot det nya valet får. */
+  /** Saldot sidan har i dag (alla varianter), och det synliga saldot den nya varianten får. */
   saldoBehall: number | null;
   saldoUtkast: number | null;
   bilderBehall: number;
@@ -295,10 +323,44 @@ function vardeAv(v: Obj, axel: string): string | null {
   return null;
 }
 
+/** Mappningsvariantens val på axeln, eller "". */
+function valFor(v: MappningsVariant | undefined, axel: Axel): string {
+  return String((v?.choices ?? {})[axel] ?? "").trim();
+}
+
 /** Valets kopplade bild, om det har en. */
 function lankadBild(c: Obj): string | null {
   const m = ((c.linkedMedia ?? []) as Obj[])[0];
   return m && typeof m.id === "string" ? m.id : null;
+}
+
+const arAxel = (s: string): s is Axel => (AXLAR as readonly string[]).includes(s);
+
+/** Axelns kortform i hindrens namn: `farg_lika`, `saknar_storlek_behall`. */
+const kodFor = (axel: Axel) => (axel === "Färg" ? "farg" : "storlek");
+
+/**
+ * Axeln som bär variantbilden. Butiken tar kombinationens bild från FÄRGEN när
+ * sidan har en (headless-site, lib/variant-price.ts — Leonards regel
+ * 2026-08-08), annars från storleken.
+ */
+export function bildAxel(axlar: readonly Axel[]): Axel {
+  return axlar.includes("Färg") ? "Färg" : "Storlek";
+}
+
+/** Givarens (eller sidans) värden, utan de tomma. */
+function givnaVarden(farg: string | undefined, storlek: string | undefined): Koordinat {
+  const ut: Koordinat = {};
+  const f = (farg ?? "").trim();
+  const s = (storlek ?? "").trim();
+  if (f) ut.Färg = f;
+  if (s) ut.Storlek = s;
+  return ut;
+}
+
+/** "färg Grå, storlek 110 cm" — för steg, audit och loggrader. */
+export function beskrivVal(val: Koordinat): string {
+  return AXLAR.filter((a) => val[a]).map((a) => `${a.toLowerCase()} ${val[a]}`).join(", ");
 }
 
 /** ASCII-slug för en SKU: å/ä → a, ö → o, allt annat bindestreck. */
@@ -329,8 +391,11 @@ function giltigtVarde(axel: Axel, v: string): boolean {
   return /^[0-9A-Za-zÅÄÖåäöÉéØø][0-9A-Za-zÅÄÖåäöÉéØø ×x,./–-]*$/.test(v) && redigera(v) === v;
 }
 
-function altFor(namn: string, axel: Axel, varde: string, n: number): string {
-  const bas = axel === "Färg" ? `${namn} i färgen ${varde.toLowerCase()}` : `${namn} i storleken ${varde}`;
+function altFor(namn: string, val: Koordinat, n: number): string {
+  const delar: string[] = [];
+  if (val.Färg) delar.push(`färgen ${val.Färg.toLowerCase()}`);
+  if (val.Storlek) delar.push(`storleken ${val.Storlek}`);
+  const bas = delar.length ? `${namn} i ${delar.join(" och ")}` : namn;
   return n === 1 ? bas : `${bas}, bild ${n}`;
 }
 
@@ -341,8 +406,12 @@ function sammaMangd(a: string[], b: string[]): boolean {
   return a.every((x) => b.some((y) => lika(x, y)));
 }
 
-/** Axelns kortform i hindrens namn: `farg_lika`, `storlek_lika`. */
-const kodFor = (axel: Axel) => (axel === "Färg" ? "farg" : "storlek");
+/** Listan utan tomma och utan dubbletter (skiftlägesokänsligt), i ordning. */
+function unika(lista: string[]): string[] {
+  const ut: string[] = [];
+  for (const x of lista) if (x && !ut.some((y) => lika(x, y))) ut.push(x);
+  return ut;
+}
 
 const normText = (s: string | undefined) => (s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 
@@ -369,6 +438,17 @@ function omdirigeringsrad(wp: Obj, wd: Obj): RedirectRow {
     toPath: `/produkt/${String(wp.slug ?? "").trim()}`,
     reason: "Sammanslagen: sidan är nu ett val på en annan sida",
   };
+}
+
+/**
+ * Givarens bilder som följer med (1-baserat). Default är huvudbilden när
+ * givaren för in ett nytt värde på bildaxeln — en ny färg, eller en ny storlek
+ * på en sida utan färgval. Annars ingen: en ny storlek i en färg sidan redan
+ * har visar samma vara som sidans bild, och en extra bild är bara brus.
+ */
+function valdaBilder(input: SammanslagningInput, plan: SammanslagningPlan): number[] {
+  if (input.bilder?.length) return input.bilder;
+  return plan.nyaVarden.includes(bildAxel(plan.axlar)) ? [1] : [];
 }
 
 // ── planen ──────────────────────────────────────────────────────────────────
@@ -419,11 +499,12 @@ function planeraGivaren(
  */
 export function planeraSammanslagning(input: SammanslagningInput, l: SammanslagningLast): SammanslagningPlan {
   const hinder: string[] = [];
+  const hindra = (h: string) => {
+    if (!hinder.includes(h)) hinder.push(h);
+  };
   const varningar: string[] = [];
-  const axel: Axel = input.axel ?? OPTION_NAMN;
-  const kod = kodFor(axel);
-  const fargBehall = (input.fargBehall ?? "").trim();
-  const fargUtkast = (input.fargUtkast ?? "").trim();
+  const givetUtkast = givnaVarden(input.fargUtkast, input.storlekUtkast);
+  const givetBehall = givnaVarden(input.fargBehall, input.storlekBehall);
 
   // Sidans huvudvariant: den som bär radens egen artikel. Efter en halv körning
   // har Wix flera varianter, och ordningen mellan dem är inget att lita på.
@@ -435,14 +516,68 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     ?? wpVar.find((v) => !!huvud?.sku && v.sku === huvud.sku)
     ?? (wpVar.length === 1 ? wpVar[0] : undefined);
   const skuBehall = typeof v1?.sku === "string" ? v1.sku : (huvud?.sku ?? null);
-  const skuUtkast = (input.sku ?? "").trim() || (skuBehall ? `${skuBehall}-${fargSlug(fargUtkast)}` : "");
-
   const bild = l.pm ? aosomArtikelbild(l.pm) : null;
-  // Sidans val i dag: ur mappningen när sidan redan är sammanslagen, annars det
-  // värde anroparen säger att sidan har.
-  const grund = bild?.typ === "flera"
-    ? pmV.map((v) => String((v.choices ?? {})[axel] ?? "").trim())
-    : [fargBehall];
+  const sammanslagen = bild?.typ === "flera";
+
+  // ── Axlarna ────────────────────────────────────────────────────────────
+  // En sammanslagen sida bär sina val i mappningen. Ordningen tas ur Wix, som
+  // är den ordning butiken visar axlarna i; nya axlar läggs sist.
+  const nycklar = new Set<string>();
+  if (sammanslagen) {
+    for (const v of pmV) for (const [k, x] of Object.entries(v.choices ?? {})) if (String(x ?? "").trim()) nycklar.add(k);
+  }
+  const okandaNycklar = [...nycklar].filter((k) => !arAxel(k));
+  const wixOrdning = optionerAv(l.wp).map((o) => String(o.name ?? ""));
+  const plats = (a: Axel) => {
+    const i = wixOrdning.indexOf(a);
+    return i < 0 ? 100 + AXLAR.indexOf(a) : i;
+  };
+  const fore: Axel[] = AXLAR.filter((a) => nycklar.has(a)).sort((a, b) => plats(a) - plats(b));
+  const nyaAxlar: Axel[] = AXLAR.filter((a) => !!givetUtkast[a] && !fore.includes(a));
+  const axlar: Axel[] = [...fore, ...nyaAxlar];
+
+  const sidansVal: Koordinat = {};
+  for (const a of nyaAxlar) if (givetBehall[a]) sidansVal[a] = givetBehall[a];
+
+  // Varje befintlig variants plats efter sammanslagningen: dess val på sidans
+  // axlar, och sidans värde på de nya.
+  const koordinaterFore: Koordinat[] = sammanslagen
+    ? pmV.map((v) => {
+      const k: Koordinat = { ...sidansVal };
+      for (const a of fore) {
+        const x = valFor(v, a);
+        if (x) k[a] = x;
+      }
+      return k;
+    })
+    : [{ ...sidansVal }];
+  const huvudKoordinat = sammanslagen ? (koordinaterFore[Math.max(0, pmV.indexOf(huvud!))] ?? {}) : { ...sidansVal };
+
+  // Givarens värde, stavat som sidan redan stavar det: "grå" på en sida med
+  // "Grå" är samma val. Annars skapar Wix ett andra val med samma namn.
+  const nyttVal: Koordinat = {};
+  const varden: Partial<Record<Axel, string[]>> = {};
+  const nyaVarden: Axel[] = [];
+  for (const a of axlar) {
+    const fanns = unika(koordinaterFore.map((k) => k[a] ?? ""));
+    const givet = givetUtkast[a] ?? "";
+    const stavat = fanns.find((x) => lika(x, givet)) ?? givet;
+    if (stavat) nyttVal[a] = stavat;
+    if (stavat && !fanns.some((x) => lika(x, stavat))) nyaVarden.push(a);
+    varden[a] = unika([...fanns, stavat]);
+  }
+  const varianter = koordinaterFore.length + 1;
+  const kombinationer = axlar.length ? axlar.reduce((n, a) => n * (varden[a]?.length ?? 0), 1) : 0;
+
+  // SKU:n får givarens värden där den skiljer sig från sidans huvudvariant —
+  // storleken FÖRE färgen. Artikelnummerspärren (skrivplan.ts, FORM) fäller
+  // tre tecken + bindestreck + tre till med en siffra: färgen före ett
+  // tresiffrigt mått fälls, måttet före färgen går igenom. Fälls SKU:n ändå
+  // blir det hindret `sku_ogiltig`, och den anges för hand.
+  const delar = (["Storlek", "Färg"] as const)
+    .filter((a) => axlar.includes(a) && nyttVal[a] && !lika(nyttVal[a]!, huvudKoordinat[a] ?? ""))
+    .map((a) => fargSlug(nyttVal[a]!));
+  const skuUtkast = (input.sku ?? "").trim() || (skuBehall && delar.length ? `${skuBehall}-${delar.join("-")}` : "");
 
   const plan: SammanslagningPlan = {
     tillstand: null,
@@ -450,10 +585,14 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     varningar,
     behall: input.behall,
     utkast: input.utkast,
-    axel,
-    fargBehall,
-    fargUtkast,
-    varden: [...grund, fargUtkast],
+    axlar,
+    nyaAxlar,
+    nyaVarden,
+    nyttVal,
+    sidansVal,
+    varden,
+    varianter,
+    saknadeKombinationer: Math.max(0, kombinationer - varianter),
     skuBehall,
     skuUtkast,
     prisBehall: prisAv(v1),
@@ -468,23 +607,23 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     omdirigeringarAttPekaOm: 0,
   };
 
-  if (!(AXLAR as readonly string[]).includes(axel)) hinder.push("axel_ogiltig");
-  if (input.behall === input.utkast) hinder.push("samma_produkt");
-  if (!l.pm) hinder.push("behall_saknar_mappning");
-  if (!l.dm) hinder.push("utkast_saknar_mappning");
-  if (!l.wp) hinder.push("behall_saknas_i_wix");
-  if (!l.wd) hinder.push("utkast_saknas_i_wix");
+  if (Object.keys(givetUtkast).length === 0) hindra("inget_val");
+  if (input.behall === input.utkast) hindra("samma_produkt");
+  if (!l.pm) hindra("behall_saknar_mappning");
+  if (!l.dm) hindra("utkast_saknar_mappning");
+  if (!l.wp) hindra("behall_saknas_i_wix");
+  if (!l.wd) hindra("utkast_saknas_i_wix");
   if (hinder.length) return plan;
   const pm = l.pm!;
   const dm = l.dm!;
   const wp = l.wp!;
   const wd = l.wd!;
 
-  if (pm.supplier !== "aosom" || !a1) hinder.push("behall_ej_aosom");
-  if (dm.supplier !== "aosom") hinder.push("utkast_ej_aosom");
+  if (pm.supplier !== "aosom" || !a1) hindra("behall_ej_aosom");
+  if (dm.supplier !== "aosom") hindra("utkast_ej_aosom");
   const a2 = utkastetsArtikel(dm);
-  if (!a2) hinder.push("utkast_saknar_artikel");
-  if (a1 && a2 && a1 === a2) hinder.push("samma_artikel");
+  if (!a2) hindra("utkast_saknar_artikel");
+  if (a1 && a2 && a1 === a2) hindra("samma_artikel");
 
   // ── Redan klart? Då återstår bara efterarbetet ──────────────────────────
   if (a2 && aosomArtiklarPaRaden(pm).includes(a2) && a1 !== a2) {
@@ -493,24 +632,47 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     return plan;
   }
   if (bild?.typ === "tvetydig") {
-    hinder.push("behall_tvetydig");
+    hindra("behall_tvetydig");
     return plan;
   }
-  if (aosomArtikelbild(dm).typ !== "en") hinder.push("givaren_redan_sammanslagen");
-  if ((dm.variants ?? []).length !== 1) hinder.push("utkast_flera_varianter");
+  if (aosomArtikelbild(dm).typ !== "en") hindra("givaren_redan_sammanslagen");
+  if ((dm.variants ?? []).length !== 1) hindra("utkast_flera_varianter");
 
-  // ── Värdena och SKU:n ────────────────────────────────────────────────────
-  if (bild?.typ === "en" && !giltigtVarde(axel, fargBehall)) hinder.push(`${kod}_ogiltig`);
-  if (!giltigtVarde(axel, fargUtkast)) hinder.push(`${kod}_ogiltig`);
-  if (bild?.typ === "flera" && grund.some((g) => !g)) hinder.push("behall_mappning_saknar_val");
-  if (grund.some((g) => g && lika(g, fargUtkast))) hinder.push(`${kod}_lika`);
-  if (!/^FP-[a-z0-9-]{3,90}$/.test(skuUtkast) || redigera(skuUtkast) !== skuUtkast) hinder.push("sku_ogiltig");
+  // ── Axlarna och värdena ──────────────────────────────────────────────────
+  if (okandaNycklar.length) hindra("annan_axel");
+  if (sammanslagen && (fore.length === 0 || pmV.some((v) => fore.some((a) => !valFor(v, a))))) {
+    hindra("behall_mappning_saknar_val");
+  }
+  // Varje axel sidan har måste givaren ha ett värde på — en variant bär ett val
+  // per axel, och att gissa givarens hade kunnat sälja fel storlek.
+  for (const a of fore) if (!givetUtkast[a]) hindra(`saknar_${kodFor(a)}_utkast`);
+  for (const a of AXLAR) {
+    const u = givetUtkast[a];
+    if (u && !giltigtVarde(a, u)) hindra(`${kodFor(a)}_ogiltig`);
+    // Sidans värde på en axel givaren inte anger: en axel som skulle läggas
+    // till men där givarens värde glömdes bort.
+    if (givetBehall[a] && !u && !fore.includes(a)) hindra(`saknar_${kodFor(a)}_utkast`);
+  }
+  for (const a of nyaAxlar) {
+    const b = givetBehall[a];
+    if (!b) hindra(`saknar_${kodFor(a)}_behall`);
+    else if (!giltigtVarde(a, b)) hindra(`${kodFor(a)}_ogiltig`);
+    // En ny axel där sidan och givaren har samma värde skiljer ingenting åt.
+    else if (lika(b, givetUtkast[a]!)) hindra(`${kodFor(a)}_lika`);
+  }
+  for (const a of fore) {
+    if (givetBehall[a]) varningar.push(`sidans ${a.toLowerCase()} står redan i Wix — ${kodFor(a)}_behall används inte`);
+  }
+  if (nyaAxlar.length === 0 && koordinaterFore.some((k) => axlar.every((a) => lika(k[a] ?? "", nyttVal[a] ?? "")))) {
+    hindra("kombinationen_finns");
+  }
+  if (!/^FP-[a-z0-9-]{3,90}$/.test(skuUtkast) || redigera(skuUtkast) !== skuUtkast) hindra("sku_ogiltig");
   const sidansSkuer = new Set([...pmV.map((v) => v.sku), ...wpVar.map((v) => String(v.sku ?? ""))]);
   const skuPaSidan = sidansSkuer.has(skuUtkast);
   const skuUpptagen = l.alla.some(
     (m) => m.wixProductId !== pm.wixProductId && (m.variants ?? []).some((v) => v.sku === skuUtkast),
   );
-  if (skuUpptagen) hinder.push("sku_upptagen");
+  if (skuUpptagen) hindra("sku_upptagen");
 
   // ── Artikeln får inte redan sitta på en annan sida ───────────────────────
   if (a2) {
@@ -518,45 +680,53 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
       (m) => m.wixProductId !== pm.wixProductId && m.wixProductId !== dm.wixProductId
         && aosomArtiklarPaRaden(m).includes(a2),
     );
-    if (upptagen) hinder.push("artikeln_upptagen");
+    if (upptagen) hindra("artikeln_upptagen");
   }
 
   // ── Wix: sidan, givaren och deras läge ───────────────────────────────────
-  if (wp.visible !== true) hinder.push("behall_ej_publicerad");
+  if (wp.visible !== true) hindra("behall_ej_publicerad");
   if (wd.visible === true) planeraGivaren(input, l, plan, wp, wd);
   const namn = typeof wp.name === "string" ? wp.name : "";
-  if (grund.some((g) => g && innehallerOrdet(namn, g))) hinder.push(`namnet_bar_${kod}`);
   const text = typeof wp.plainDescription === "string" ? wp.plainDescription : "";
-  if (grund.some((g) => g && innehallerOrdet(text, g))) {
-    varningar.push(`beskrivningen nämner sidans ${axel === "Färg" ? "färg" : "storlek"} — läs om texten efter sammanslagningen`);
+  for (const a of axlar) {
+    const sidans = unika(koordinaterFore.map((k) => k[a] ?? ""));
+    if (sidans.some((g) => innehallerOrdet(namn, g))) hindra(`namnet_bar_${kodFor(a)}`);
+    if (sidans.some((g) => innehallerOrdet(text, g))) {
+      varningar.push(`beskrivningen nämner sidans ${a.toLowerCase()} — läs om texten efter sammanslagningen`);
+    }
   }
-  if (axel === "Storlek") {
+  if (nyaVarden.includes("Storlek")) {
     varningar.push("beskrivningens mått gäller bara en av storlekarna — skriv om spec-fliken efter sammanslagningen");
   }
-  // ☠️ PRISET RÖRS INTE AV SAMMANSLAGNINGEN — MEN SYNKEN TAR ÖVER DET. Det nya
-  // valet följer husets regel från nästa körning (konkurrentpriset gäller bara
-  // radens EGEN artikel, och prislåset sitter på raden). För ett utkast är det
-  // exakt vad det hade; för en givare med konkurrentpris eller lås är det inte.
-  if (dm.prisLast) varningar.push("givarens pris är låst — låset följer inte med, synken räknar om det nya valets pris");
-  if (dm.prisgrupp || dm.konkurrent) {
-    varningar.push("givarens pris styrs av konkurrentregeln — efter sammanslagningen följer det nya valet husets regel");
+  if (axlar.length > 1 && kombinationer > varianter) {
+    varningar.push(
+      `${kombinationer - varianter} av ${kombinationer} kombinationer finns inte som vara — butiken visar dem som ej valbara`,
+    );
   }
-  if (plan.prisUtkast === null) hinder.push("utkast_saknar_pris");
-  if (varianterAv(wd).length !== 1) hinder.push("utkast_flera_varianter_i_wix");
+  // ☠️ PRISET RÖRS INTE AV SAMMANSLAGNINGEN — MEN SYNKEN TAR ÖVER DET. Den nya
+  // varianten följer husets regel från nästa körning (konkurrentpriset gäller
+  // bara radens EGEN artikel, och prislåset sitter på raden). För ett utkast är
+  // det exakt vad det hade; för en givare med konkurrentpris eller lås är det inte.
+  if (dm.prisLast) varningar.push("givarens pris är låst — låset följer inte med, synken räknar om den nya variantens pris");
+  if (dm.prisgrupp || dm.konkurrent) {
+    varningar.push("givarens pris styrs av konkurrentregeln — efter sammanslagningen följer den nya varianten husets regel");
+  }
+  if (plan.prisUtkast === null) hindra("utkast_saknar_pris");
+  if (varianterAv(wd).length !== 1) hindra("utkast_flera_varianter_i_wix");
 
   const bilderUtkast = bilderAv(wd);
-  const valda = input.bilder?.length ? input.bilder : [1];
+  const valda = valdaBilder(input, plan);
   if (valda.some((n) => !Number.isInteger(n) || n < 1 || n > bilderUtkast.length) || new Set(valda).size !== valda.length) {
-    hinder.push("bilder_ogiltiga");
+    hindra("bilder_ogiltiga");
   }
   plan.bilderUtkast = valda.length;
-  if (bilderAv(wp).length === 0) hinder.push("behall_saknar_bilder");
-  if (bilderUtkast.length === 0) hinder.push("utkast_saknar_bilder");
+  if (bilderAv(wp).length === 0) hindra("behall_saknar_bilder");
+  if (nyaVarden.includes(bildAxel(axlar)) && bilderUtkast.length === 0) hindra("utkast_saknar_bilder");
 
-  // ── Feedraden för det nya valet ──────────────────────────────────────────
-  if (!l.rad) hinder.push("utkast_saknas_i_feeden");
-  else if (!harVerkligSeFrakt(l.rad)) hinder.push("utkast_skickas_inte_till_sverige");
-  else if (plan.saldoUtkast === 0) varningar.push("det nya valet är slutsålt hos Aosom just nu — det syns som slut tills synken ser lager");
+  // ── Feedraden för den nya varianten ──────────────────────────────────────
+  if (!l.rad) hindra("utkast_saknas_i_feeden");
+  else if (!harVerkligSeFrakt(l.rad)) hindra("utkast_skickas_inte_till_sverige");
+  else if (plan.saldoUtkast === 0) varningar.push("den nya varianten är slutsåld hos Aosom just nu — den syns som slut tills synken ser lager");
 
   // ── Tillståndet i Wix ────────────────────────────────────────────────────
   const optioner = optionerAv(wp);
@@ -564,49 +734,52 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
 
   if (optioner.length === 0) {
     if (bild?.typ !== "en" || wpVar.length !== 1 || pmV.length !== 1) {
-      hinder.push(pmV.length !== 1 ? "behall_flera_varianter" : "behall_mappning_matchar_inte_wix");
+      hindra(pmV.length !== 1 ? "behall_flera_varianter" : "behall_mappning_matchar_inte_wix");
       return plan;
     }
-    if (huvud?.wixVariantId && wpVar[0].id !== huvud.wixVariantId) hinder.push("behall_variant_matchar_inte");
-    if (skuPaSidan) hinder.push("sku_lika");
+    if (huvud?.wixVariantId && wpVar[0].id !== huvud.wixVariantId) hindra("behall_variant_matchar_inte");
+    if (skuPaSidan) hindra("sku_lika");
     plan.tillstand = "ny";
     const post = lagerFor(wpVar[0].id);
-    if (!post || typeof post.quantity !== "number") hinder.push("behall_saknar_lagerrad");
+    if (!post || typeof post.quantity !== "number") hindra("behall_saknar_lagerrad");
     else plan.saldoBehall = post.quantity;
     return plan;
   }
 
-  if (arRedanSkrivenIWix(wp, axel, plan.varden, skuUtkast, fargUtkast, pmV)) {
+  if (arRedanSkrivenIWix(wp, plan, pmV)) {
     plan.tillstand = "wix_klar";
     return plan;
   }
-  if (skuPaSidan) hinder.push("sku_lika");
+  if (skuPaSidan) hindra("sku_lika");
   if (bild?.typ === "en") {
     // Wix har optioner som mappningen inte känner till — de är inte våra.
-    hinder.push("behall_har_redan_optioner");
+    hindra("behall_har_redan_optioner");
     return plan;
   }
-  if (optioner.length !== 1) {
-    hinder.push("flera_optioner_stods_inte");
+  if (optioner.length > AXLAR.length) {
+    hindra("flera_optioner_stods_inte");
     return plan;
   }
-  if (optioner[0].name !== axel) {
-    hinder.push("annan_axel");
+  if (optioner.some((o) => !arAxel(String(o.name ?? "")))) {
+    hindra("annan_axel");
     return plan;
   }
 
-  // ── Utöka: ett val till på en sida som redan är sammanslagen ────────────
-  const valNamn = valAv(optioner[0]).map((c) => String(c.name ?? ""));
+  // ── Utöka: en variant till på en sida som redan är sammanslagen ──────────
   const kanns = pmV.every((mv) => wpVar.some((v) => (!!mv.wixVariantId && v.id === mv.wixVariantId) || v.sku === mv.sku));
-  if (!sammaMangd(valNamn, grund) || wpVar.length !== grund.length || !kanns) {
-    hinder.push("behall_mappning_matchar_inte_wix");
+  const valStammer = fore.every((a) => {
+    const o = optioner.find((x) => x.name === a);
+    return !!o && sammaMangd(valAv(o).map((c) => String(c.name ?? "")), unika(pmV.map((v) => valFor(v, a))));
+  });
+  if (!sammaMangd(optioner.map((o) => String(o.name ?? "")), fore) || !valStammer || wpVar.length !== pmV.length || !kanns) {
+    hindra("behall_mappning_matchar_inte_wix");
     return plan;
   }
   let summa = 0;
   for (const v of wpVar) {
     const post = lagerFor(v.id);
     if (!post || typeof post.quantity !== "number") {
-      hinder.push("behall_saknar_lagerrad");
+      hindra("behall_saknar_lagerrad");
       return plan;
     }
     summa += post.quantity;
@@ -618,25 +791,25 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
 
 /**
  * Wix bär redan sammanslagningen (en tidigare körning föll efter
- * Wix-skrivningen): en option på axeln med exakt de förväntade valen, en
- * variant per val, varje variant mappningen känner till kvar, och en ny
- * variant med den planerade SKU:n på det nya valet.
+ * Wix-skrivningen): exakt de planerade axlarna med exakt de planerade valen,
+ * rätt antal varianter, varje variant mappningen känner till kvar, och en ny
+ * variant med den planerade SKU:n på givarens plats.
  */
 function arRedanSkrivenIWix(
   wp: Obj,
-  axel: Axel,
-  forvantade: string[],
-  skuUtkast: string,
-  fargUtkast: string,
+  plan: SammanslagningPlan,
   pmV: ProductMappingRecord["variants"],
 ): boolean {
   const optioner = optionerAv(wp);
   const varianter = varianterAv(wp);
-  if (optioner.length !== 1 || optioner[0].name !== axel || varianter.length !== forvantade.length) return false;
-  const namn = valAv(optioner[0]).map((c) => String(c.name ?? ""));
-  if (!sammaMangd(namn, forvantade)) return false;
-  const ny = varianter.find((v) => v.sku === skuUtkast);
-  if (!ny || !lika(vardeAv(ny, axel) ?? "", fargUtkast)) return false;
+  if (plan.axlar.length === 0 || !sammaMangd(optioner.map((o) => String(o.name ?? "")), plan.axlar)) return false;
+  for (const a of plan.axlar) {
+    const o = optioner.find((x) => x.name === a);
+    if (!o || !sammaMangd(valAv(o).map((c) => String(c.name ?? "")), plan.varden[a] ?? [])) return false;
+  }
+  if (varianter.length !== plan.varianter) return false;
+  const ny = varianter.find((v) => v.sku === plan.skuUtkast);
+  if (!ny || !plan.axlar.every((a) => lika(vardeAv(ny, a) ?? "", plan.nyttVal[a] ?? ""))) return false;
   return pmV.every((mv) => varianter.some((v) => (!!mv.wixVariantId && v.id === mv.wixVariantId) || v.sku === mv.sku));
 }
 
@@ -646,8 +819,13 @@ function valBody(varde: string): Obj {
   return { choiceType: "CHOICE_TEXT", name: varde };
 }
 
-function valReferens(axel: Axel, varde: string): Obj[] {
-  return [{ optionChoiceNames: { optionName: axel, choiceName: varde, renderType: RENDER } }];
+function nyOption(axel: Axel, varden: string[]): Obj {
+  return { name: axel, optionRenderType: RENDER, choicesSettings: { choices: varden.map(valBody) } };
+}
+
+/** Variantens val, ett per axel, i den form V3 tar emot. */
+function valReferenser(axlar: Axel[], val: Koordinat): Obj[] {
+  return axlar.map((a) => ({ optionChoiceNames: { optionName: a, choiceName: val[a] ?? "", renderType: RENDER } }));
 }
 
 /** Variantobjektet ur GET:en, med bara det ändrat vi menar. Aldrig byggt från grunden. */
@@ -674,12 +852,24 @@ function kostnad(v: { landedCostSek?: number } | undefined): Obj {
     : {};
 }
 
+/** Bilden varje val ska bära: axel → valets namn → Wix-mediets id. */
+type BildKarta = Record<string, Record<string, string>>;
+
+function satt(karta: BildKarta, axel: string, varde: string, id: string): void {
+  (karta[axel] ??= {})[varde] = id;
+}
+
+const antalIBildkarta = (karta: BildKarta) =>
+  Object.values(karta).reduce((n, m) => n + Object.keys(m).length, 0);
+
 /** Varianten före skrivningen, som återläsningen jämför mot. */
 interface Fore {
   id: string;
   sku: string;
   pris: number | null;
   synlig: boolean;
+  /** Variantens plats efter skrivningen. */
+  val: Koordinat;
 }
 
 interface Kontroll {
@@ -698,19 +888,23 @@ function kontrollera(
   plan: SammanslagningPlan,
   fore: Fore[],
   forvantadeBilder: string[],
-  bildPerVarde: Record<string, string>,
+  bildPerVal: BildKarta,
 ): Kontroll {
   const skal: string[] = [];
   if (!p) return { ok: false, skal: ["produkten gick inte att läsa"], idFor: {}, lankade: 0 };
   if (p.visible !== true) skal.push("sidan är inte längre publicerad");
   const optioner = optionerAv(p);
-  const val = optioner.length === 1 && optioner[0].name === plan.axel ? valAv(optioner[0]) : [];
-  if (!sammaMangd(val.map((c) => String(c.name ?? "")), plan.varden)) {
-    skal.push(`optionen ${plan.axel} har inte exakt de väntade valen`);
+  if (!sammaMangd(optioner.map((o) => String(o.name ?? "")), plan.axlar)) skal.push("sidan har inte exakt de väntade axlarna");
+  let lankade = 0;
+  for (const a of plan.axlar) {
+    const val = valAv(optioner.find((o) => o.name === a) ?? {});
+    if (!sammaMangd(val.map((c) => String(c.name ?? "")), plan.varden[a] ?? [])) {
+      skal.push(`optionen ${a} har inte exakt de väntade valen`);
+    }
+    lankade += val.filter((c) => bildPerVal[a]?.[String(c.name ?? "")] && lankadBild(c)).length;
   }
-  const lankade = val.filter((c) => bildPerVarde[String(c.name ?? "")] && lankadBild(c)).length;
   const varianter = varianterAv(p);
-  if (varianter.length !== plan.varden.length) skal.push("fel antal varianter");
+  if (varianter.length !== plan.varianter) skal.push("fel antal varianter");
   const idFor: Record<string, string> = {};
   for (const f of fore) {
     const v = varianter.find((x) => x.id === f.id) ?? varianter.find((x) => x.sku === f.sku);
@@ -721,13 +915,14 @@ function kontrollera(
     idFor[f.id] = v.id;
     if (f.pris !== null && prisAv(v) !== f.pris) skal.push("ett befintligt pris har ändrats");
     if (f.synlig && v.visible !== true) skal.push("en befintlig variant är inte längre synlig");
+    if (plan.axlar.some((a) => !lika(vardeAv(v, a) ?? "", f.val[a] ?? ""))) skal.push("en befintlig variant bär fel val");
   }
   const ny = varianter.find((v) => v.sku === plan.skuUtkast);
   if (!ny) skal.push("den nya varianten saknas (SKU)");
   else {
-    if (ny.visible !== true) skal.push("det nya valet är inte synligt");
-    if (plan.prisUtkast !== null && prisAv(ny) !== plan.prisUtkast) skal.push("det nya valets pris stämmer inte");
-    if (!lika(vardeAv(ny, plan.axel) ?? "", plan.fargUtkast)) skal.push("den nya varianten bär fel val");
+    if (ny.visible !== true) skal.push("den nya varianten är inte synlig");
+    if (plan.prisUtkast !== null && prisAv(ny) !== plan.prisUtkast) skal.push("den nya variantens pris stämmer inte");
+    if (plan.axlar.some((a) => !lika(vardeAv(ny, a) ?? "", plan.nyttVal[a] ?? ""))) skal.push("den nya varianten bär fel val");
   }
   const idn = new Set(bilderAv(p).map((b) => b.id));
   if (forvantadeBilder.some((id) => !idn.has(id))) skal.push("bildlistan saknar bilder");
@@ -741,15 +936,15 @@ function kontrollera(
 }
 
 /**
- * Kopplar valens bilder på en produkt som redan har optionen. Samma metod som
- * `linkChoiceMedia`: options med `linkedMedia` + variantsInfo ordagrant, och
- * `visible` med — en variantsInfo-PATCH publicerar annars ett utkast. Val som
- * inte står i kartan lämnas som de är.
+ * Kopplar valens bilder på en produkt som redan har optionerna. Samma metod
+ * som `linkChoiceMedia`: options med `linkedMedia` + variantsInfo ordagrant,
+ * och `visible` med — en variantsInfo-PATCH publicerar annars ett utkast. Val
+ * som inte står i kartan lämnas som de är.
  */
 async function kopplaValbilder(
   wix: WixAnrop,
   id: string,
-  bildPerVarde: Record<string, string>,
+  bildPerVal: BildKarta,
 ): Promise<void> {
   const p = await lasProdukt(wix, id);
   if (!p) throw new Error("produkten gick inte att läsa inför bildkopplingen");
@@ -758,7 +953,7 @@ async function kopplaValbilder(
     choicesSettings: {
       ...((o.choicesSettings as Obj | undefined) ?? {}),
       choices: valAv(o).map((c) => {
-        const bildId = bildPerVarde[String(c.name ?? "")];
+        const bildId = bildPerVal[String(o.name ?? "")]?.[String(c.name ?? "")];
         return bildId ? { ...c, linkedMedia: [{ id: bildId }] } : c;
       }),
     },
@@ -814,36 +1009,53 @@ export async function korSammanslagning(
   const dm = l.dm!;
   const wp = l.wp!;
   const wd = l.wd!;
-  const axel = plan.axel;
   const pNamn = String(wp.name ?? "");
   const bilderP = bilderAv(wp);
   const bilderD = bilderAv(wd);
-  const valda = (input.bilder?.length ? input.bilder : [1]).map((n, i) => ({
+  const valda = valdaBilder(input, plan).map((n, i) => ({
     id: bilderD[n - 1].id,
-    altText: altFor(pNamn, axel, plan.fargUtkast, i + 1),
+    altText: altFor(pNamn, plan.nyttVal, i + 1),
   }));
   const forvantadeBilder = [...bilderP.map((b) => b.id), ...valda.map((b) => b.id)];
 
   // Bilderna valen ska bära efteråt. Ett val som redan har en kopplad bild
   // behåller den — och står med i kartan, så en skrivning som tappat den
   // kopplas om i återläsningen i stället för att tyst lämnas bildlös.
-  const optionFore = optionerAv(wp)[0];
-  const bildPerVarde: Record<string, string> = {};
-  if (optionFore) {
-    for (const c of valAv(optionFore)) {
+  const bildPerVal: BildKarta = {};
+  for (const o of optionerAv(wp)) {
+    for (const c of valAv(o)) {
       const b = lankadBild(c);
-      if (b) bildPerVarde[String(c.name ?? "")] = b;
+      if (b) satt(bildPerVal, String(o.name ?? ""), String(c.name ?? ""), b);
     }
   }
-  // Första sammanslagningen (eller en omkörning av den): sidans eget val får
-  // sidans huvudbild, om det inte redan har en.
-  if (aosomArtikelbild(pm).typ === "en" && !bildPerVarde[plan.fargBehall]) {
-    bildPerVarde[plan.fargBehall] = bilderP[0].id;
+  const bAx = bildAxel(plan.axlar);
+  // Sidans eget värde får sidans huvudbild när bildaxeln är ny på sidan — utom
+  // när en annan axel redan bär bilder. En storlekssida som får färg behåller
+  // då storlekarnas bilder i butiken (färgen utan bild faller tillbaka på dem).
+  const annanAxelHarBilder = Object.entries(bildPerVal).some(([a, m]) => a !== bAx && Object.keys(m).length > 0);
+  const sidansBildval = plan.sidansVal[bAx];
+  if (plan.nyaAxlar.includes(bAx) && sidansBildval && !annanAxelHarBilder && !bildPerVal[bAx]?.[sidansBildval] && bilderP[0]) {
+    satt(bildPerVal, bAx, sidansBildval, bilderP[0].id);
   }
-  if (!bildPerVarde[plan.fargUtkast]) bildPerVarde[plan.fargUtkast] = valda[0].id;
+  const givarensBildval = plan.nyttVal[bAx];
+  if (givarensBildval && valda[0] && !bildPerVal[bAx]?.[givarensBildval]) {
+    satt(bildPerVal, bAx, givarensBildval, valda[0].id);
+  }
 
-  // Varianterna före skrivningen — återläsningen jämför mot dem.
+  // Varianterna före skrivningen — återläsningen jämför mot dem. Varje variant
+  // behåller sina val på sidans axlar och får sidans värde på de nya.
   const variantFore = varianterAv(wp);
+  const mappningFor = (v: Obj) =>
+    (pm.variants ?? []).find((m) => (!!m.wixVariantId && m.wixVariantId === v.id) || m.sku === v.sku);
+  const koordinatFor = (v: Obj): Koordinat => {
+    const mv = mappningFor(v);
+    const k: Koordinat = {};
+    for (const a of plan.axlar) {
+      const x = vardeAv(v, a) ?? (valFor(mv, a) || plan.sidansVal[a]);
+      if (x) k[a] = x;
+    }
+    return k;
+  };
   const fore: Fore[] = (plan.tillstand === "wix_klar"
     ? variantFore.filter((v) => v.sku !== plan.skuUtkast)
     : variantFore
@@ -852,24 +1064,30 @@ export async function korSammanslagning(
     sku: String(v.sku ?? ""),
     pris: prisAv(v),
     synlig: v.visible === true || plan.tillstand === "ny",
+    val: koordinatFor(v),
   }));
 
   // ── 1 + 2: Wix, bara från "ny" och "utoka" ─────────────────────────────
   if (plan.tillstand === "ny" || plan.tillstand === "utoka") {
     const saldoUtkast = plan.saldoUtkast ?? 0;
     const nyLista = [...bilderP, ...valda.filter((b) => !bilderP.some((x) => x.id === b.id))];
-    const efterBilder = produktAv(await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(input.behall)}`, {
-      product: { revision: wp.revision, media: { itemsInfo: { items: nyLista } } },
-      fieldMask: { paths: ["media"] },
-    }));
-    steg.push(`bilder: ${bilderP.length} → ${nyLista.length}`);
+    const bytBilder = nyLista.length !== bilderP.length;
+    let revision = wp.revision;
+    if (bytBilder) {
+      const efterBilder = produktAv(await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(input.behall)}`, {
+        product: { revision: wp.revision, media: { itemsInfo: { items: nyLista } } },
+        fieldMask: { paths: ["media"] },
+      }));
+      revision = efterBilder?.revision ?? revision;
+      steg.push(`bilder: ${bilderP.length} → ${nyLista.length}`);
+    }
 
     const nyVariant: Obj = {
       visible: true,
       sku: plan.skuUtkast,
       price: { actualPrice: { amount: String(plan.prisUtkast) } },
       ...kostnad(dm.variants?.[0]),
-      choices: valReferens(axel, plan.fargUtkast),
+      choices: valReferenser(plan.axlar, plan.nyttVal),
       physicalProperties: {},
       inventoryItem: { quantity: saldoUtkast },
     };
@@ -883,16 +1101,12 @@ export async function korSammanslagning(
       // koppling i samma skrivning kan falla på 404 PRODUCT_MEDIA_NOT_EXIST
       // (uppmätt vid import 2026-06-01). Då hade hela sammanslagningen fallit
       // för en bildfråga. Kopplingen görs i återläsningen, med försök.
-      options = [{
-        name: axel,
-        optionRenderType: RENDER,
-        choicesSettings: { choices: [valBody(plan.fargBehall), valBody(plan.fargUtkast)] },
-      }];
+      options = plan.axlar.map((a) => nyOption(a, [plan.sidansVal[a]!, plan.nyttVal[a]!]));
       variants = [
         {
           ...utanLasfalt(v1),
           visible: true,
-          choices: valReferens(axel, plan.fargBehall),
+          choices: valReferenser(plan.axlar, fore[0].val),
           physicalProperties: (v1.physicalProperties as Obj | undefined) ?? {},
           ...kostnad(pm.variants?.[0]),
           // Lagret följer VARIANTEN (standardplatsen), inte ett id: schemat för
@@ -902,26 +1116,33 @@ export async function korSammanslagning(
         nyVariant,
       ];
     } else {
-      // ☠️ OPTIONEN OCH VARIANTERNA TAS UR GET:EN, INTE BYGGDA FRÅN GRUNDEN.
+      // ☠️ OPTIONERNA OCH VARIANTERNA TAS UR GET:EN, INTE BYGGDA FRÅN GRUNDEN.
       // Samma regel som `visible` och `options` i prissynken: ett handbyggt
       // objekt tappar tyst varje fält man inte tänkte på — här valens kopplade
-      // bilder och varianternas id. Bara det nya valet läggs till.
-      options = [{
-        ...optionFore,
-        choicesSettings: {
-          ...((optionFore.choicesSettings as Obj | undefined) ?? {}),
-          choices: [...valAv(optionFore), valBody(plan.fargUtkast)],
-        },
-      }];
+      // bilder och varianternas id. Bara det nya läggs till: ett val på en axel
+      // där givaren för in ett nytt värde, och en option för en ny axel.
+      options = [
+        ...optionerAv(wp).map((o) => {
+          const a = String(o.name ?? "") as Axel;
+          if (!plan.nyaVarden.includes(a) || plan.nyaAxlar.includes(a)) return o;
+          return {
+            ...o,
+            choicesSettings: {
+              ...((o.choicesSettings as Obj | undefined) ?? {}),
+              choices: [...valAv(o), valBody(plan.nyttVal[a]!)],
+            },
+          };
+        }),
+        ...plan.nyaAxlar.map((a) => nyOption(a, [plan.sidansVal[a]!, plan.nyttVal[a]!])),
+      ];
       variants = [
-        ...variantFore.map((v) => {
-          const mv = (pm.variants ?? []).find((m) => (!!m.wixVariantId && m.wixVariantId === v.id) || m.sku === v.sku);
+        ...variantFore.map((v, i) => {
           const post = l.lager.find((x) => x.variantId === v.id)!;
           return {
             ...utanLasfalt(v),
-            choices: valReferens(axel, vardeAv(v, axel) ?? String((mv?.choices ?? {})[axel] ?? "")),
+            choices: valReferenser(plan.axlar, fore[i].val),
             physicalProperties: (v.physicalProperties as Obj | undefined) ?? {},
-            ...kostnad(mv),
+            ...kostnad(mappningFor(v)),
             inventoryItem: { quantity: post.quantity },
           };
         }),
@@ -932,7 +1153,7 @@ export async function korSammanslagning(
     const kropp = {
       product: {
         id: input.behall,
-        revision: efterBilder?.revision ?? wp.revision,
+        revision,
         visible: wp.visible,
         options,
         variantsInfo: { variants },
@@ -940,8 +1161,9 @@ export async function korSammanslagning(
     };
     try {
       await deps.wix("PATCH", `/stores/v3/products-with-inventory/${encodeURIComponent(input.behall)}`, kropp);
-      steg.push(`varianter: ${axel.toLowerCase()} ${plan.fargUtkast} tillagd med saldo ${saldoUtkast} (${plan.varden.length} val)`);
+      steg.push(`varianter: ${beskrivVal(plan.nyttVal)} tillagd med saldo ${saldoUtkast} (${plan.varianter} varianter)`);
     } catch (e) {
+      if (!bytBilder) return svar(false, `variantskrivningen föll: ${felText(e)} — ingenting skrevs`);
       // ☠️ BILDERNA RULLAS TILLBAKA. Utan varianten visar sidan det nya valets
       // bilder på en produkt som inte säljs i det.
       let aterstallt = false;
@@ -963,53 +1185,58 @@ export async function korSammanslagning(
   }
 
   // ── 3: återläsning, med väntan på de kopplade bilderna ─────────────────
-  const krav = Object.keys(bildPerVarde).length;
-  let k = kontrollera(await lasProdukt(deps.wix, input.behall), plan, fore, forvantadeBilder, bildPerVarde);
+  const krav = antalIBildkarta(bildPerVal);
+  let k = kontrollera(await lasProdukt(deps.wix, input.behall), plan, fore, forvantadeBilder, bildPerVal);
   for (let forsok = 0; k.ok && k.lankade < krav && forsok < KOPPLING_FORSOK; forsok++) {
     try {
-      await kopplaValbilder(deps.wix, input.behall, bildPerVarde);
+      await kopplaValbilder(deps.wix, input.behall, bildPerVal);
     } catch {
       // Ett 404/409 medan bilden fortfarande tas emot — försök igen.
     }
     await vanta(KOPPLING_PAUS_MS);
-    k = kontrollera(await lasProdukt(deps.wix, input.behall), plan, fore, forvantadeBilder, bildPerVarde);
+    k = kontrollera(await lasProdukt(deps.wix, input.behall), plan, fore, forvantadeBilder, bildPerVal);
   }
   if (!k.ok || !k.nyId) {
     return svar(
       false,
       `Wix stämmer inte efter skrivningen (${k.skal.join("; ")}) — mappningen skrevs INTE. `
-        + "Synken nollar det nya valets lager tills det är mappat. Kör om.",
+        + "Synken nollar den nya variantens lager tills den är mappad. Kör om.",
     );
   }
   if (k.lankade < krav) steg.push(`⚠️ ${krav - k.lankade} val saknar kopplad bild — kör om för att koppla`);
   const lager = await lasLager(deps.wix, input.behall);
   const antal = (id: string | undefined) => lager.find((x) => x.variantId === id)?.quantity;
   const qNy = antal(k.nyId);
-  steg.push(`återläst: ${plan.varden.length} varianter, ${k.lankade} av ${krav} val med bild, nytt saldo ${qNy ?? "?"}`);
+  steg.push(`återläst: ${plan.varianter} varianter, ${k.lankade} av ${krav} val med bild, nytt saldo ${qNy ?? "?"}`);
 
   // ── 4: mappningen på sidan vi behåller ─────────────────────────────────
   const bild = aosomArtikelbild(pm);
-  const nuId = (v: ProductMappingRecord["variants"][number]) => {
+  const nuId = (v: MappningsVariant) => {
     const f = fore.find((x) => (!!v.wixVariantId && x.id === v.wixVariantId) || x.sku === v.sku);
     return f ? k.idFor[f.id] : undefined;
   };
+  // De befintliga varianterna får sidans värde på de nya axlarna.
+  const nyaAxlarsVal: Record<string, string> = {};
+  for (const a of plan.nyaAxlar) nyaAxlarsVal[a] = plan.sidansVal[a]!;
   const befintliga = bild.typ === "en"
     ? [{
       ...pm.variants[0],
       wixVariantId: nuId(pm.variants[0]) ?? pm.variants[0].wixVariantId,
-      choices: { [axel]: plan.fargBehall },
+      choices: { ...nyaAxlarsVal },
       aosomSyncedQty: antal(nuId(pm.variants[0])),
     }]
     : pm.variants.map((v) => {
       const id = nuId(v) ?? v.wixVariantId;
-      return { ...v, wixVariantId: id, aosomSyncedQty: antal(id) };
+      return { ...v, wixVariantId: id, choices: { ...(v.choices ?? {}), ...nyaAxlarsVal }, aosomSyncedQty: antal(id) };
     });
   const dv = dm.variants[0];
+  const nyttValSomRad: Record<string, string> = {};
+  for (const a of plan.axlar) nyttValSomRad[a] = plan.nyttVal[a]!;
   const nyMappning = {
     supplierVariantId: utkastetsArtikel(dm),
     sku: plan.skuUtkast,
     wixVariantId: k.nyId,
-    choices: { [axel]: plan.fargUtkast },
+    choices: nyttValSomRad,
     costUsd: dv.costUsd,
     landedCostSek: dv.landedCostSek,
     grossSek: plan.prisUtkast ?? dv.grossSek,
@@ -1028,12 +1255,13 @@ export async function korSammanslagning(
   const efter = await deps.getMapping(input.behall);
   const bildEfter = efter ? aosomArtikelbild(efter) : null;
   if (
-    !bildEfter || bildEfter.typ !== "flera" || bildEfter.varianter.length !== plan.varden.length
+    !bildEfter || bildEfter.typ !== "flera" || bildEfter.varianter.length !== plan.varianter
     || !bildEfter.varianter.some((v) => v.artikel === utkastetsArtikel(dm))
+    || (efter?.variants ?? []).some((v) => plan.axlar.some((a) => !valFor(v, a)))
   ) {
-    return svar(false, "mappningen läste inte tillbaka som en sida med ett val per artikel — ingenting är verifierat, kör om");
+    return svar(false, "mappningen läste inte tillbaka som en sida med en artikel per variant — ingenting är verifierat, kör om");
   }
-  steg.push(`mappning: ${plan.varden.length} val, en artikel per val (återläst)`);
+  steg.push(`mappning: ${plan.varianter} varianter, en artikel per variant (återläst)`);
 
   // ── 5 + 6: givarens efterarbete och pensionering ───────────────────────
   return efterarbete(l, plan, input, deps, steg, svar);
@@ -1110,7 +1338,7 @@ async function efterarbete(
 }
 
 /**
- * Steg 6. Artikeln släpps från givarens rad — den sitter nu som ett val på
+ * Steg 6. Artikeln släpps från givarens rad — den sitter nu som en variant på
  * sidan vi behåller, och importens dubblettspärr ser den där
  * (lib/aosom/artiklar.ts). Givaren RADERAS inte: en osynlig sida kostar
  * ingenting, och en radering går inte att ångra.

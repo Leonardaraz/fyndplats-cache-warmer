@@ -498,7 +498,11 @@ describe("sammanslagning — ett val till på en sammanslagen sida", () => {
     expect(svar.plan).toMatchObject({
       tillstand: "utoka",
       hinder: [],
-      varden: ["Svart", "Grå", "Blå"],
+      axlar: ["Färg"],
+      nyaAxlar: [],
+      varden: { Färg: ["Svart", "Grå", "Blå"] },
+      varianter: 3,
+      saknadeKombinationer: 0,
       skuUtkast: "FP-stol-bla",
       prisUtkast: 679,
       saldoBehall: 40 + synligtSaldo(23),
@@ -550,12 +554,14 @@ describe("sammanslagning — ett val till på en sammanslagen sida", () => {
     expect(varianter.map((v) => v.id)).toEqual(["var-sida", "var-ny-1", undefined]);
   });
 
-  it("hinder: ett val sidan redan har, och en annan axel", async () => {
+  it("hinder: en färg sidan redan har, och en storlek utan givarens färg", async () => {
     const { deps } = tre();
     await korSammanslagning(PAR, deps, { apply: true });
-    expect((await korSammanslagning({ ...TREDJE, fargUtkast: "grå" }, deps)).plan.hinder).toContain("farg_lika");
-    const storlek = await korSammanslagning({ ...TREDJE, fargUtkast: "110 cm", axel: "Storlek" }, deps);
-    expect(storlek.plan.hinder).toContain("annan_axel");
+    expect((await korSammanslagning({ ...TREDJE, fargUtkast: "grå" }, deps)).plan.hinder).toContain("kombinationen_finns");
+    // Sidan har färgval: givaren måste säga sin färg, och en ny storleksaxel
+    // kräver sidans storlek.
+    const storlek = await korSammanslagning({ ...TREDJE, fargUtkast: "", storlekUtkast: "110 cm" }, deps);
+    expect(storlek.plan.hinder).toEqual(expect.arrayContaining(["saknar_farg_utkast", "saknar_storlek_behall"]));
   });
 
   it("☠️ föll mappningen efter den tredje färgen: omkörningen gör bara resten", async () => {
@@ -578,7 +584,7 @@ describe("sammanslagning — ett val till på en sammanslagen sida", () => {
 
 describe("sammanslagning — storlek", () => {
   const STORLEK: SammanslagningInput = {
-    behall: "sida", utkast: "utkast", fargBehall: "90 × 70 cm", fargUtkast: "110 × 85 cm", axel: "Storlek",
+    behall: "sida", utkast: "utkast", storlekBehall: "90 × 70 cm", storlekUtkast: "110 × 85 cm",
   };
 
   it("en storlek blir optionen Storlek, med storleken i SKU:n och alt-texten", async () => {
@@ -599,14 +605,14 @@ describe("sammanslagning — storlek", () => {
 
   it("varnar alltid att måtten i texten bara gäller en storlek, och tar tankstreck", async () => {
     const { deps } = miljo();
-    const svar = await korSammanslagning({ ...STORLEK, fargUtkast: "120–160 cm" }, deps);
+    const svar = await korSammanslagning({ ...STORLEK, storlekUtkast: "120–160 cm" }, deps);
     expect(svar.plan.hinder).toEqual([]);
     expect(svar.plan.varningar.join(" ")).toMatch(/spec-fliken/);
   });
 
   it("☠️ hinder: en storlek i artikelnummerform, och namnet som bär storleken", async () => {
     const { deps } = miljo();
-    expect((await korSammanslagning({ ...STORLEK, fargUtkast: "999-999ZZ" }, deps)).plan.hinder).toContain("storlek_ogiltig");
+    expect((await korSammanslagning({ ...STORLEK, storlekUtkast: "999-999ZZ" }, deps)).plan.hinder).toContain("storlek_ogiltig");
     const { deps: d2 } = miljo({ wix: fejkWix({ sida: { name: "Kontorsstol 90 × 70 cm" } }) });
     expect((await korSammanslagning(STORLEK, d2)).plan.hinder).toContain("namnet_bar_storlek");
   });
@@ -738,5 +744,276 @@ describe("sammanslagning — en publicerad givare", () => {
     const text = JSON.stringify(await korSammanslagning(PUBLICERAD, deps, { apply: true }));
     expect(text).not.toMatch(/A-1|G-7/);
     expect(text).not.toMatch(/525|landed|costUsd/);
+  });
+});
+
+describe("sammanslagning — färg och storlek på samma sida", () => {
+  const BADA: SammanslagningInput = {
+    behall: "sida",
+    utkast: "utkast",
+    fargBehall: "Svart",
+    fargUtkast: "Grå",
+    storlekBehall: "90 × 70 cm",
+    storlekUtkast: "110 × 85 cm",
+  };
+  /** Blå, sidans storlekar får en ny: 110 cm. Sidan är svart/grå i 90 cm. */
+  const NY_STORLEK: SammanslagningInput = {
+    behall: "sida", utkast: "utkast2", fargUtkast: "Blå", storlekUtkast: "110 cm", storlekBehall: "90 cm",
+  };
+
+  const axelVal = (w: ReturnType<typeof fejkWix>, axel: string) =>
+    (((w.produkter.sida.options as Obj[]).find((o) => o.name === axel)!.choicesSettings) as { choices: Obj[] }).choices;
+  const platsPa = (v: Obj) => Object.fromEntries(((v.choices ?? []) as Obj[]).map((c) => {
+    const n = c.optionChoiceNames as { optionName: string; choiceName: string };
+    return [n.optionName, n.choiceName];
+  }));
+  const bildPatchar = (w: ReturnType<typeof fejkWix>) => w.anrop.filter((a) =>
+    a.metod === "PATCH" && a.sokvag === "/stores/v3/products/sida"
+    && ((a.kropp as { fieldMask: { paths: string[] } }).fieldMask.paths).includes("media")).length;
+
+  /** Ett fjärde utkast: samma stol i grått, fast stor. Artikel J-9. */
+  function laggTillUtkast3(w: ReturnType<typeof fejkWix>) {
+    w.produkter.utkast3 = {
+      id: "utkast3",
+      revision: "1",
+      visible: false,
+      name: "Bürostuhl grau groß",
+      slug: "burostuhl-grau-gross",
+      options: [],
+      variantsInfo: { variants: [{ id: "var-utkast3", visible: true, sku: "FP-stuhl-grau-gross", choices: [], price: { actualPrice: { amount: "719" } } }] },
+      media: { itemsInfo: { items: [{ id: "bild-g1", altText: "Bürostuhl" }] } },
+    };
+    w.lager.utkast3 = [{ id: "inv-utkast3", variantId: "var-utkast3", quantity: 11 }];
+  }
+
+  function fyra(over: { sparaFaller?: number } = {}) {
+    const w = fejkWix();
+    laggTillUtkast2(w);
+    laggTillUtkast3(w);
+    const utkast3 = mappning("J-9", "utkast3", { draftStatus: "pending_review", needsAiPolish: true });
+    utkast3.variants[0] = { ...utkast3.variants[0], sku: "FP-stuhl-grau-gross", wixVariantId: "var-utkast3", grossSek: 719 };
+    const m = miljo({
+      wix: w,
+      feed: [...TRE, rad("J-9", { qty: 31 })],
+      mappningar: [
+        mappning("A-1", "sida"),
+        mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true }),
+        mappningUtkast2(),
+        utkast3,
+      ],
+      sparaFaller: over.sparaFaller,
+    });
+    return { ...m, w };
+  }
+
+  it("☠️ en sida utan val får båda axlarna på en gång — två varianter, två kombinationer saknas", async () => {
+    const { deps, rader, w } = miljo();
+    const plan = (await korSammanslagning(BADA, deps)).plan;
+    expect(plan).toMatchObject({
+      tillstand: "ny",
+      hinder: [],
+      axlar: ["Färg", "Storlek"],
+      nyaAxlar: ["Färg", "Storlek"],
+      varden: { Färg: ["Svart", "Grå"], Storlek: ["90 × 70 cm", "110 × 85 cm"] },
+      varianter: 2,
+      saknadeKombinationer: 2,
+      skuUtkast: "FP-stol-110-85-cm-gra",
+      bilderUtkast: 1,
+    });
+    expect(plan.varningar.join(" ")).toMatch(/2 av 4 kombinationer/);
+
+    const svar = await korSammanslagning(BADA, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    // Färgen bär bilderna — butiken tar kombinationens bild därifrån. Storleken är text.
+    expect(axelVal(w, "Färg").map((c) => [c.name, bildPa(c)])).toEqual([["Svart", "bild-s1"], ["Grå", "bild-u1"]]);
+    expect(axelVal(w, "Storlek").map((c) => [c.name, bildPa(c)])).toEqual([["90 × 70 cm", undefined], ["110 × 85 cm", undefined]]);
+    expect(varianterPa(w).map((v) => [v.sku, platsPa(v)])).toEqual([
+      ["FP-stol", { Färg: "Svart", Storlek: "90 × 70 cm" }],
+      ["FP-stol-110-85-cm-gra", { Färg: "Grå", Storlek: "110 × 85 cm" }],
+    ]);
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
+    expect(alt).toBe("Kontorsstol med nackstöd i färgen grå och storleken 110 × 85 cm");
+
+    const sida = rader.get("sida")!;
+    expect(sida.variants.map((v) => [v.supplierVariantId, v.choices])).toEqual([
+      ["A-1", { Färg: "Svart", Storlek: "90 × 70 cm" }],
+      ["G-7", { Färg: "Grå", Storlek: "110 × 85 cm" }],
+    ]);
+    // En order som bara bär valen beställer rätt artikel.
+    const task = { wixVariantId: "", sku: "", variantChoices: { Färg: "Grå", Storlek: "110 × 85 cm" } };
+    expect(aosomArtikelForTask(task, sida)).toEqual({ artikel: "G-7" });
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+  });
+
+  it("☠️ en färgsida får storleksaxeln: de gamla varianterna behåller id och bilder och får sidans storlek", async () => {
+    const { deps, rader, w } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    const fore = varianterPa(w).map((v) => [v.id, v.sku, prisPa(v)]);
+
+    const plan = (await korSammanslagning(NY_STORLEK, deps)).plan;
+    expect(plan).toMatchObject({
+      tillstand: "utoka",
+      hinder: [],
+      axlar: ["Färg", "Storlek"],
+      nyaAxlar: ["Storlek"],
+      nyaVarden: ["Färg", "Storlek"],
+      varianter: 3,
+      saknadeKombinationer: 3,
+      skuUtkast: "FP-stol-110-cm-bla",
+    });
+
+    const svar = await korSammanslagning(NY_STORLEK, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(axelVal(w, "Färg").map((c) => [c.name, bildPa(c)])).toEqual([
+      ["Svart", "bild-s1"],
+      ["Grå", "bild-u1"],
+      ["Blå", "bild-b1"],
+    ]);
+    expect(axelVal(w, "Storlek").map((c) => c.name)).toEqual(["90 cm", "110 cm"]);
+    expect(varianterPa(w).map((v) => [v.id, v.sku, prisPa(v)])).toEqual([...fore, ["var-ny-2", "FP-stol-110-cm-bla", "679"]]);
+    expect(varianterPa(w).map(platsPa)).toEqual([
+      { Färg: "Svart", Storlek: "90 cm" },
+      { Färg: "Grå", Storlek: "90 cm" },
+      { Färg: "Blå", Storlek: "110 cm" },
+    ]);
+    expect(rader.get("sida")!.variants.map((v) => [v.supplierVariantId, v.choices])).toEqual([
+      ["A-1", { Färg: "Svart", Storlek: "90 cm" }],
+      ["G-7", { Färg: "Grå", Storlek: "90 cm" }],
+      ["H-8", { Färg: "Blå", Storlek: "110 cm" }],
+    ]);
+    expect(rader.get("utkast2")!.draftStatus).toBe("rejected");
+  });
+
+  it("☠️ en ny storlek i en färg sidan redan har: stavas som sidan, och ingen ny bild", async () => {
+    const { deps, rader, w } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    await korSammanslagning(NY_STORLEK, deps, { apply: true });
+    const bilderFore = bildPatchar(w);
+
+    // "grå" med litet g: samma val som sidans "Grå", inte ett andra.
+    const GRA_STOR: SammanslagningInput = { behall: "sida", utkast: "utkast3", fargUtkast: "grå", storlekUtkast: "110 cm" };
+    const plan = (await korSammanslagning(GRA_STOR, deps)).plan;
+    expect(plan).toMatchObject({
+      tillstand: "utoka",
+      hinder: [],
+      nyaAxlar: [],
+      nyaVarden: [],
+      nyttVal: { Färg: "Grå", Storlek: "110 cm" },
+      varianter: 4,
+      saknadeKombinationer: 2,
+      bilderUtkast: 0,
+      skuUtkast: "FP-stol-110-cm-gra",
+    });
+
+    const svar = await korSammanslagning(GRA_STOR, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(bildPatchar(w)).toBe(bilderFore);
+    expect(axelVal(w, "Färg").map((c) => c.name)).toEqual(["Svart", "Grå", "Blå"]);
+    expect(axelVal(w, "Storlek").map((c) => c.name)).toEqual(["90 cm", "110 cm"]);
+    expect(platsPa(varianterPa(w).at(-1)!)).toEqual({ Färg: "Grå", Storlek: "110 cm" });
+    expect(rader.get("sida")!.variants.at(-1)).toMatchObject({ supplierVariantId: "J-9", choices: { Färg: "Grå", Storlek: "110 cm" } });
+  });
+
+  it("☠️ en storlekssida som får färg behåller storlekarnas bilder — sidans färg får ingen", async () => {
+    const { deps, w } = fyra();
+    await korSammanslagning(
+      { behall: "sida", utkast: "utkast", storlekBehall: "90 × 70 cm", storlekUtkast: "110 × 85 cm" },
+      deps,
+      { apply: true },
+    );
+    const svar = await korSammanslagning(
+      { behall: "sida", utkast: "utkast2", fargBehall: "Svart", fargUtkast: "Blå", storlekUtkast: "90 × 70 cm" },
+      deps,
+      { apply: true },
+    );
+    expect(svar.ok).toBe(true);
+    expect(svar.plan.skuUtkast).toBe("FP-stol-bla");
+    // Butiken tar bilden från färgen när den har en, annars från storleken:
+    // de svarta varianterna visar fortfarande sin storleks bild.
+    expect(axelVal(w, "Storlek").map((c) => [c.name, bildPa(c)])).toEqual([
+      ["90 × 70 cm", "bild-s1"],
+      ["110 × 85 cm", "bild-u1"],
+    ]);
+    expect(axelVal(w, "Färg").map((c) => [c.name, bildPa(c)])).toEqual([["Svart", undefined], ["Blå", "bild-b1"]]);
+    expect(varianterPa(w).map(platsPa)).toEqual([
+      { Storlek: "90 × 70 cm", Färg: "Svart" },
+      { Storlek: "110 × 85 cm", Färg: "Svart" },
+      { Storlek: "90 × 70 cm", Färg: "Blå" },
+    ]);
+  });
+
+  it.each([
+    ["saknar_storlek_utkast", { behall: "sida", utkast: "utkast3", fargUtkast: "Grå" }],
+    ["kombinationen_finns", { behall: "sida", utkast: "utkast3", fargUtkast: "Blå", storlekUtkast: "110 cm" }],
+  ])("☠️ hinder på en sida med båda axlarna: %s — ingenting skrivs", async (hinder, input) => {
+    const { deps, w } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    await korSammanslagning(NY_STORLEK, deps, { apply: true });
+    const fore = patchar(w).length;
+    const svar = await korSammanslagning(input as SammanslagningInput, deps, { apply: true });
+    expect(svar.ok).toBe(false);
+    expect(svar.plan.hinder).toContain(hinder);
+    expect(patchar(w).length).toBe(fore);
+  });
+
+  it("hinder när axlarna läggs till: samma storlek på sidan och givaren, och en glömd givarfärg", async () => {
+    const { deps } = miljo();
+    expect((await korSammanslagning({ ...BADA, storlekUtkast: "90 × 70 CM" }, deps)).plan.hinder).toContain("storlek_lika");
+    const glomd = await korSammanslagning(
+      { behall: "sida", utkast: "utkast", fargBehall: "Svart", storlekBehall: "90 × 70 cm", storlekUtkast: "110 × 85 cm" },
+      deps,
+    );
+    expect(glomd.plan.hinder).toContain("saknar_farg_utkast");
+    expect((await korSammanslagning({ behall: "sida", utkast: "utkast" }, deps)).plan.hinder).toContain("inget_val");
+  });
+
+  it("☠️ föll mappningen efter att storleksaxeln lades till: omkörningen gör bara resten", async () => {
+    const { deps, rader, w, fall } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    fall(1);
+    await expect(korSammanslagning(NY_STORLEK, deps, { apply: true })).rejects.toThrow(/databasen/);
+    const skrivningar = () => w.anrop.filter((a) => a.sokvag.includes("products-with-inventory")).length;
+    expect(skrivningar()).toBe(2);
+    expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([{ Färg: "Svart" }, { Färg: "Grå" }]);
+
+    const svar = await korSammanslagning(NY_STORLEK, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.plan.tillstand).toBe("wix_klar");
+    expect(skrivningar()).toBe(2);
+    expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
+      { Färg: "Svart", Storlek: "90 cm" },
+      { Färg: "Grå", Storlek: "90 cm" },
+      { Färg: "Blå", Storlek: "110 cm" },
+    ]);
+  });
+
+  it("☠️ bär en befintlig variant fel val efter skrivningen skrivs ingen mappning", async () => {
+    const { deps, rader, w } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    // Wix "tappar" storleken på den svarta varianten i skrivningen.
+    const orig = deps.wix;
+    deps.wix = async (metod, sokvag, kropp) => {
+      const svar = await orig(metod, sokvag, kropp);
+      if (metod === "PATCH" && sokvag.includes("products-with-inventory")) {
+        const v = varianterPa(w)[0];
+        v.choices = ((v.choices ?? []) as Obj[]).filter((c) => (c.optionChoiceNames as Obj).optionName !== "Storlek");
+      }
+      return svar;
+    };
+    const svar = await korSammanslagning(NY_STORLEK, deps, { apply: true });
+    expect(svar.ok).toBe(false);
+    expect(svar.fel).toMatch(/fel val/);
+    expect(svar.fel).toMatch(/mappningen skrevs INTE/);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
+  });
+
+  it("☠️ svaret bär aldrig ett artikelnummer eller en kostnad, inte heller med två axlar", async () => {
+    const { deps } = fyra();
+    await korSammanslagning(PAR, deps, { apply: true });
+    for (const apply of [false, true]) {
+      const text = JSON.stringify(await korSammanslagning(NY_STORLEK, deps, { apply }));
+      expect(text).not.toMatch(/A-1|G-7|H-8|J-9/);
+      expect(text).not.toMatch(/525|560|landed|costUsd/);
+    }
   });
 });

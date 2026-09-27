@@ -31,8 +31,17 @@ describe("aosom-sammanslagning", () => {
     expect(res.status).toBe(401);
   });
 
-  it("kräver sida, utkast och båda färgerna", async () => {
+  it("kräver sida, utkast och givarens färg eller storlek", async () => {
     const res = await POST(req({ authorization: "Bearer hemlig" }, { behall: "a", utkast: "b", fargBehall: "Vit" }));
     expect(res.status).toBe(400);
+  });
+
+  it("☠️ vägrar den gamla kroppen med `axel` — ett storleksvärde hade blivit en färg", async () => {
+    const res = await POST(req(
+      { authorization: "Bearer hemlig" },
+      { behall: "a", utkast: "b", fargBehall: "90 cm", fargUtkast: "110 cm", axel: "Storlek" },
+    ));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/axel finns inte längre/);
   });
 });

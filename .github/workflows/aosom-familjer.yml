@@ -12,8 +12,8 @@ name: Dubbletter — hitta färg- och storlekssyskon
 #
 # ☠️ SVEPET SKRIVER INGENTING. Listan är ett underlag för en människa, och varje
 #    familj ska ses med bilderna innan något slås ihop. Sammanslagningen är sin
-#    egen workflow ("Dubbletter — lägg ett utkast som färg på en publicerad
-#    sida"), med torrkörning som default.
+#    egen workflow ("Dubbletter — lägg ett utkast som färg eller storlek på en
+#    publicerad sida"), med torrkörning som default.
 # ☠️ Svaret bär aldrig artikelnummer, inköpspris eller utkastens tyska namn —
 #    loggen är PUBLIK. Publicerade sidor visar sitt svenska namn, som ändå står
 #    på sajten.

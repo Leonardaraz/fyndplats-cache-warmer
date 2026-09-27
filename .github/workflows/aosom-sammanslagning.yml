@@ -1,15 +1,25 @@
-name: Dubbletter — lägg ett utkast som färg på en publicerad sida
+name: Dubbletter — lägg ett utkast som färg eller storlek på en publicerad sida
 
 # Leonards frågor 2026-09-27: dubblettskärmen och syskonsvepet hittar sidor och
 # utkast som är samma vara i en annan färg eller storlek. I stället för egna
 # sidor (flera URL:er för samma produkt) eller pensionering (en vara vi kan sälja
-# slängs) blir givarens artikel ett VAL på en publicerad sida: en option ("Färg"
-# eller "Storlek"), en variant per val, och ett val som byter bild.
+# slängs) blir givarens artikel en VARIANT på en publicerad sida: optionerna
+# "Färg" och "Storlek", en variant per artikel, och en färg som byter bild.
 #
-#   - Första gången skapas optionen med två val (sidans och givarens).
-#   - Sedan läggs ett val till per körning — kör igen för nästa färg.
+#   - Givaren anger sitt värde på varje axel sidan har — och på den axel den
+#     lägger till. En sida kan ha färg, storlek eller båda.
+#   - Sidans värde (farg_behall, storlek_behall) behövs bara på en axel sidan
+#     får för FÖRSTA gången. Sedan står sidans val i Wix och i mappningen.
+#   - Alla kombinationer behöver inte finnas. En kombination Aosom inte säljer
+#     visar butiken som ej valbar.
+#   - En variant per körning — kör igen för nästa syskon.
 #   - Ligger givaren UTE krävs omdirigera=ja: dess recensioner kopieras hit, dess
 #     adress omdirigeras hit, och den avpubliceras.
+#
+# Exempel: sidan är en grå hundbädd i 90 cm (inga val än), givaren är samma
+# bädd i blått och 110 cm. Då: farg_behall=Grå, farg_utkast=Blå,
+# storlek_behall=90 cm, storlek_utkast=110 cm. Nästa syskon (grå, 110 cm):
+# farg_utkast=Grå, storlek_utkast=110 cm — resten står redan på sidan.
 #
 # Hela förloppet står i lib/aosom/sammanslagning.ts. Efteråt bär sidan en
 # Aosom-artikel per variant, och synken, beställningsfilen och importens
@@ -24,12 +34,14 @@ name: Dubbletter — lägg ett utkast som färg på en publicerad sida
 #    följer med är en människas granskning — det finns ingen kör-allt-flagga.
 # ☠️ EN PUBLICERAD GIVARE FÖRSVINNER FRÅN SAJTEN. Dess adress omdirigeras (301)
 #    och sidan avpubliceras — därför krävs omdirigera=ja uttryckligen.
-# ☠️ SIDANS NAMN FÅR INTE BÄRA SIDANS FÄRG. Rutten vägrar då (`namnet_bar_farg`):
-#    efter sammanslagningen hade namnet sagt en färg medan sidan säljer två.
-#    Skriv om namnet först (polerrundan, med oförändrad slug).
-# ☠️ BARA GRANSKADE BILDER. Default följer bara utkastets huvudbild med. Ange
-#    fler (`bilder`, t.ex. "1,2") bara när du sett dem — 46 % av feedens bilder
-#    bär tysk text inbränd, och en del bär husmärkets logotyp.
+# ☠️ SIDANS NAMN FÅR INTE BÄRA SIDANS FÄRG ELLER STORLEK. Rutten vägrar då
+#    (`namnet_bar_farg`, `namnet_bar_storlek`): efter sammanslagningen hade
+#    namnet sagt en färg medan sidan säljer två. Skriv om namnet först
+#    (polerrundan, med oförändrad slug).
+# ☠️ BARA GRANSKADE BILDER. Default följer utkastets huvudbild med när givaren
+#    för in en ny färg (eller en ny storlek på en sida utan färgval) — annars
+#    ingen. Ange fler (`bilder`, t.ex. "1,2") bara när du sett dem — 46 % av
+#    feedens bilder bär tysk text inbränd, och en del bär husmärkets logotyp.
 # ☠️ Svaret bär aldrig artikelnummer eller inköpspris — loggen är PUBLIK.
 
 on:
@@ -51,22 +63,25 @@ on:
         description: "Givaren: ett utkast, eller en publicerad sida (kräver omdirigera=ja) (Wix-produkt-id)"
         required: true
         type: string
-      axel:
-        description: "Färg eller Storlek"
-        required: true
-        default: "Färg"
-        type: choice
-        options:
-          - Färg
-          - Storlek
-      farg_behall:
-        description: "Värdet sidan redan har, t.ex. Vit. Bara FÖRSTA gången — sedan TOMT."
+      farg_utkast:
+        description: "Givarens färg, t.ex. Grå. Krävs när sidan har eller får färgval."
         required: false
         default: ""
         type: string
-      farg_utkast:
-        description: "Givarens värde, t.ex. Grå eller 90 × 70 cm"
-        required: true
+      storlek_utkast:
+        description: "Givarens storlek, t.ex. 110 × 85 cm. Krävs när sidan har eller får storleksval."
+        required: false
+        default: ""
+        type: string
+      farg_behall:
+        description: "Sidans färg — bara när sidan FÅR färgval nu. Annars TOMT."
+        required: false
+        default: ""
+        type: string
+      storlek_behall:
+        description: "Sidans storlek — bara när sidan FÅR storleksval nu. Annars TOMT."
+        required: false
+        default: ""
         type: string
       omdirigera:
         description: "Givaren ligger ute: kopiera recensioner, omdirigera och avpublicera den"
@@ -77,12 +92,12 @@ on:
           - nej
           - ja
       sku:
-        description: "Den nya färgens SKU. TOMT = sidans SKU + färgen."
+        description: "Den nya variantens SKU. TOMT = sidans SKU + givarens nya värden."
         required: false
         default: ""
         type: string
       bilder:
-        description: "Utkastets bilder som följer med, 1-baserat (t.ex. 1,2). TOMT = bara huvudbilden."
+        description: "Utkastets bilder som följer med, 1-baserat (t.ex. 1,2). TOMT = huvudbilden vid ny färg, annars ingen."
         required: false
         default: ""
         type: string
@@ -98,10 +113,11 @@ jobs:
           MODE: ${{ inputs.mode }}
           BEHALL: ${{ inputs.behall }}
           UTKAST: ${{ inputs.utkast }}
-          AXEL: ${{ inputs.axel }}
           OMDIRIGERA: ${{ inputs.omdirigera }}
-          FARG_BEHALL: ${{ inputs.farg_behall }}
           FARG_UTKAST: ${{ inputs.farg_utkast }}
+          STORLEK_UTKAST: ${{ inputs.storlek_utkast }}
+          FARG_BEHALL: ${{ inputs.farg_behall }}
+          STORLEK_BEHALL: ${{ inputs.storlek_behall }}
           SKU: ${{ inputs.sku }}
           BILDER: ${{ inputs.bilder }}
         run: |
@@ -123,14 +139,15 @@ jobs:
           kropp=$(jq -nc \
             --arg behall "${BEHALL}" \
             --arg utkast "${UTKAST}" \
-            --arg fb "${FARG_BEHALL}" \
             --arg fu "${FARG_UTKAST}" \
+            --arg su "${STORLEK_UTKAST}" \
+            --arg fb "${FARG_BEHALL}" \
+            --arg sb "${STORLEK_BEHALL}" \
             --arg sku "${SKU}" \
             --arg bilder "${BILDER}" \
-            --arg axel "${AXEL}" \
             --argjson apply "${apply}" \
             --argjson omdirigera "${omdirigera}" \
-            '{behall: $behall, utkast: $utkast, fargBehall: $fb, fargUtkast: $fu, axel: $axel, omdirigera: $omdirigera, apply: $apply}
+            '{behall: $behall, utkast: $utkast, fargUtkast: $fu, storlekUtkast: $su, fargBehall: $fb, storlekBehall: $sb, omdirigera: $omdirigera, apply: $apply}
              + (if $sku == "" then {} else {sku: $sku} end)
              + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(gsub("\\s"; "") | select(. != "") | tonumber))} end)')
 
@@ -144,7 +161,18 @@ jobs:
           echo "=== Plan ==="
           # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
           # blocket avslutar YAML:ens `run: |`.
-          echo "$svar" | jq -r '.plan // {} | "  tillstånd       \(.tillstand // "–")\n  \(.axel // "Färg") efteråt   \((.varden // []) | join(" · ")) (nytt: \(.fargUtkast))\n  kundpris        \(.prisBehall) kr (sidan) + \(.prisUtkast) kr (nytt) — ORÖRDA\n  saldo           \(.saldoBehall // "–") (sidan) + \(.saldoUtkast // "–") (nytt)\n  SKU             \(.skuBehall) + \(.skuUtkast)\n  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) följer med"' || true
+          echo "$svar" | jq -r '
+            .plan // {} |
+            "  tillstånd       \(.tillstand // "–")",
+            "  axlar           \((.axlar // []) | join(" × "))\(if ((.nyaAxlar // []) | length) > 0 then " (ny: \(.nyaAxlar | join(", ")))" else "" end)",
+            ((.varden // {}) | to_entries[] | "  \(.key) efteråt: \(.value | join(" · "))"),
+            "  nya varianten   \((.nyttVal // {}) | to_entries | map("\(.key) \(.value)") | join(", "))",
+            "  varianter       \(.varianter // "–")\(if (.saknadeKombinationer // 0) > 0 then " (\(.saknadeKombinationer) kombinationer finns inte)" else "" end)",
+            "  kundpris        \(.prisBehall) kr (sidan) + \(.prisUtkast) kr (nytt) — ORÖRDA",
+            "  saldo           \(.saldoBehall // "–") (sidan) + \(.saldoUtkast // "–") (nytt)",
+            "  SKU             \(.skuBehall) + \(.skuUtkast)",
+            "  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) följer med"
+          ' || true
           echo "$svar" | jq -r 'if .plan.givarenPublicerad then "  givaren ligger UTE\n  recensioner     \(.plan.recensionerAttKopiera // "–") kopieras till sidan\n  omdirigering    \(.plan.omdirigering // "–")\n  äldre som pekas om \(.plan.omdirigeringarAttPekaOm)" else empty end' || true
           echo "$svar" | jq -r '.plan.varningar[]? | "  ⚠️ \(.)"' || true
           echo "$svar" | jq -r '.steg[]? | "  · \(.)"' || true
@@ -161,6 +189,6 @@ jobs:
             echo "TORRKÖRNING: ingenting skrevs. Kör om med läge 'byt' när planen ser rimlig ut." || true
             exit 0
           fi
-          echo "OK: ${UTKAST} är nu valet ${FARG_UTKAST} (${AXEL}) på ${BEHALL} (verifierat vid återläsning)" || true
+          echo "OK: ${UTKAST} är nu en variant på ${BEHALL} (verifierat vid återläsning)" || true
           echo "Nästa steg: läs sidan live, och skriv om texten om den nämner färgen eller måtten." || true
           exit 0

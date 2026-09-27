@@ -1,15 +1,17 @@
 // POST /api/admin/aosom-sammanslagning
 //
-// Lägger en Aosom-artikel som ett VAL — en färg eller en storlek — på en
-// publicerad sida, och pensionerar givaren. Givaren är ett utkast, eller med
+// Lägger en Aosom-artikel som en VARIANT — en färg, en storlek eller båda — på
+// en publicerad sida, och pensionerar givaren. Givaren är ett utkast, eller med
 // `omdirigera` en publicerad sida vars adress omdirigeras hit. Hela förloppet,
 // hindren och varför ordningen är som den är står i lib/aosom/sammanslagning.ts.
 //
 // Kropp:
-//   { behall, utkast, fargBehall?, fargUtkast, axel?, sku?, bilder?, omdirigera?, apply? }
+//   { behall, utkast, fargUtkast?, storlekUtkast?, fargBehall?, storlekBehall?,
+//     sku?, bilder?, omdirigera?, apply? }
 //
-// `fargBehall` krävs bara första gången, när sidan saknar optioner. `axel` är
-// "Färg" (default) eller "Storlek".
+// Givaren anger sitt värde på varje axel sidan har eller får. Sidans värde
+// (`fargBehall`, `storlekBehall`) behövs bara på en axel sidan får för första
+// gången — efter det står sidans val i Wix och i mappningen.
 //
 // ☠️ TORRKÖRNING ÄR DEFAULT. Utan `apply: true` skrivs ingenting — svaret är
 // planen: priser, saldon, bildantal, recensioner, omdirigering och hinder.
@@ -27,10 +29,9 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { fetchAosomFeed } from "@/lib/aosom/feed";
 import {
-  AXLAR,
   MAX_OMDIRIGERINGAR,
+  beskrivVal,
   korSammanslagning,
-  type Axel,
   type SammanslagningInput,
 } from "@/lib/aosom/sammanslagning";
 import { getReviewStore } from "@/lib/store/reviews";
@@ -53,25 +54,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Otillåten" }, { status: 401 });
   }
 
-  let body: Partial<SammanslagningInput> & { apply?: boolean } = {};
+  let body: Partial<SammanslagningInput> & { apply?: boolean; axel?: unknown } = {};
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Ogiltig JSON" }, { status: 400 });
   }
-  const behall = body.behall?.trim();
-  const utkast = body.utkast?.trim();
-  const fargBehall = body.fargBehall?.trim() ?? "";
-  const fargUtkast = body.fargUtkast?.trim();
-  if (!behall || !utkast || !fargUtkast) {
+  // ☠️ `axel` FINNS INTE LÄNGRE. Den gamla kroppen bar ett storleksvärde i
+  // `fargUtkast` när `axel` var "Storlek" — tolkad på nytt hade den blivit en
+  // färg. Hellre ett tydligt fel än en sida med storleken som färgval.
+  if (body.axel !== undefined) {
     return NextResponse.json(
-      { ok: false, error: "behall, utkast och fargUtkast krävs (fargBehall första gången)" },
+      { ok: false, error: "axel finns inte längre — ange givarens färg och/eller storlek (fargUtkast, storlekUtkast)" },
       { status: 400 },
     );
   }
-  const axel = (body.axel?.trim() || "Färg") as Axel;
-  if (!(AXLAR as readonly string[]).includes(axel)) {
-    return NextResponse.json({ ok: false, error: `axel ska vara en av ${AXLAR.join(", ")}` }, { status: 400 });
+  const behall = body.behall?.trim();
+  const utkast = body.utkast?.trim();
+  const text = (x: unknown) => (typeof x === "string" ? x.trim() : "");
+  const fargUtkast = text(body.fargUtkast);
+  const storlekUtkast = text(body.storlekUtkast);
+  if (!behall || !utkast || (!fargUtkast && !storlekUtkast)) {
+    return NextResponse.json(
+      { ok: false, error: "behall, utkast och givarens färg eller storlek krävs (sidans värde första gången en axel läggs till)" },
+      { status: 400 },
+    );
   }
   const bilder = Array.isArray(body.bilder) ? body.bilder.map(Number) : undefined;
   const apply = body.apply === true;
@@ -80,7 +87,17 @@ export async function POST(req: NextRequest) {
   try {
     const store = getStore();
     const svar = await korSammanslagning(
-      { behall, utkast, fargBehall, fargUtkast, axel, sku: body.sku?.trim() || undefined, bilder, omdirigera },
+      {
+        behall,
+        utkast,
+        fargUtkast,
+        storlekUtkast,
+        fargBehall: text(body.fargBehall),
+        storlekBehall: text(body.storlekBehall),
+        sku: text(body.sku) || undefined,
+        bilder,
+        omdirigera,
+      },
       {
         wix: skapaWixAnrop(),
         getMapping: (id) => store.getMappingByWixProductId(id),
@@ -107,7 +124,7 @@ export async function POST(req: NextRequest) {
         kind: "aosom-sammanslagning",
         ref: behall,
         detail: `${svar.plan.givarenPublicerad ? "publicerade sidan" : "utkastet"} ${utkast} blev `
-          + `${axel.toLowerCase()} ${svar.plan.fargUtkast} (${svar.plan.prisUtkast} kr) — ${svar.steg.join(" · ")}`,
+          + `${beskrivVal(svar.plan.nyttVal)} (${svar.plan.prisUtkast} kr) — ${svar.steg.join(" · ")}`,
       });
     }
 
