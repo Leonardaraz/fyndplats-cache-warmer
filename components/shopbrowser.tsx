@@ -168,7 +168,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   // antal, som hos IKEA, Mio och Chilli (jämförelsen 2026-09-27) — skenan
   // kunde bara välja en färg åt gången. En äldre länk med ?farg=svart läses
   // som en färg.
-  const [colors, setColors] = useState<string[]>(() => (sp.get("farg") ?? "").split(",").filter(Boolean));
+  const [colors, setColors] = useState<string[]>(() => [...new Set((sp.get("farg") ?? "").split(",").filter(Boolean))]);
   const colorStr = colors.join(",");
   const vaxlaFarg = (k: string) => setColors((c) => (c.includes(k) ? c.filter((x) => x !== k) : [...c, k]));
   const [allaFarger, setAllaFarger] = useState(false);
@@ -346,7 +346,8 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   }, [alla, ov, priceActive, priceLo, priceHi, onlyInStock, onlyOnSale, specLive, valStr]);
   // Rutorna: de vanligaste först, resten bakom "Visa alla".
   const FARGER_SYNS = 10;
-  const synligaFarger = allaFarger ? colorKeys : colorKeys.slice(0, FARGER_SYNS);
+  // En vald färg syns alltid, även om den ligger bortom de första.
+  const synligaFarger = allaFarger ? colorKeys : colorKeys.filter((k, i) => i < FARGER_SYNS || colors.includes(k));
 
   // Prisfördelningen som histogram bakom reglaget. Räknas ur HELA listan i vyn
   // och står därför stilla när man filtrerar: räknades den om per filter hade
@@ -539,13 +540,24 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
 
   // Mobil: panelen är ett lager över sidan. Sidan bakom rullar inte medan det
   // är öppet, och Escape stänger det.
+  // Vrids telefonen till en bredd där lagret inte längre gäller stängs det,
+  // annars hade sidan stått kvar utan att gå att rulla.
+  const stangRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!open || !window.matchMedia("(max-width: 700px)").matches) return;
+    const mq = window.matchMedia("(max-width: 700px)");
+    if (!open || !mq.matches) return;
     const forr = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    stangRef.current?.focus();
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const bredd = () => { if (!mq.matches) setOpen(false); };
     window.addEventListener("keydown", esc);
-    return () => { document.body.style.overflow = forr; window.removeEventListener("keydown", esc); };
+    mq.addEventListener("change", bredd);
+    return () => {
+      document.body.style.overflow = forr;
+      window.removeEventListener("keydown", esc);
+      mq.removeEventListener("change", bredd);
+    };
   }, [open]);
 
   // Paginering: visa PAGE_SIZE kort, "Visa fler" laddar nästa batch. Återställs
@@ -697,11 +709,11 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
 
         {/* På dator syns panelen alltid, utan att filterknappen rörs — att
             närma sig den är avsikten. */}
-        <div className="shopbar-panel" onPointerEnter={hamta} onFocusCapture={hamta}>
+        <div className="shopbar-panel" role="region" aria-label="Filter" onPointerEnter={hamta} onFocusCapture={hamta}>
           {/* Mobil: rubrik och stängknapp överst i lagret. Döljs på dator. */}
           <div className="panel-huvud">
             <span className="panel-titel">Filter</span>
-            <button type="button" className="panel-stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
+            <button type="button" ref={stangRef} className="panel-stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
@@ -770,7 +782,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
               </div>
               <GransRutor
                 namn="pris" lo={handles[0]} hi={handles[1]} min={bounds.min} max={bounds.max}
-                openTop={bounds.openTop} enhet="kr" glapp={1}
+                openTop={bounds.openTop} enhet="kr" glapp={1} heltal
                 onSatt={(h) => { satHandles(h); commitPrice(); }}
               />
             </div>
@@ -877,7 +889,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
       </div>
 
       {aktiva.length > 0 && (
-        <div className="aktiva-filter" aria-label="Valda filter">
+        <div className="aktiva-filter" role="group" aria-label="Valda filter">
           {aktiva.map((a) => (
             <button key={a.id} type="button" className="aktiv-chip" onClick={() => taBort(a.id)} aria-label={`Ta bort ${a.text}`}>
               {a.prick && <span className="farg-prick" style={{ background: a.prick }} aria-hidden="true" />}
@@ -993,7 +1005,7 @@ function SpecReglage({ f, handtag, onDrag, onCommit }: {
  * minst"). En tom ruta är ingen gräns; ytterlägena visas som ledtext.
  * Gränsen sätts när rutan lämnas eller med Enter, inte för varje siffra.
  */
-function GransRutor({ namn, lo, hi, min, max, openTop, enhet, glapp, onSatt }: {
+function GransRutor({ namn, lo, hi, min, max, openTop, enhet, glapp, heltal = false, onSatt }: {
   namn: string;
   lo: number;
   hi: number;
@@ -1003,9 +1015,11 @@ function GransRutor({ namn, lo, hi, min, max, openTop, enhet, glapp, onSatt }: {
   enhet: string;
   /** Minsta avstånd mellan gränserna, så att intervallet aldrig blir tomt. */
   glapp: number;
+  /** Hela tal (priset: URL:en bär hela kronor, "under-1499.5" läses inte). */
+  heltal?: boolean;
   onSatt: (h: [number, number]) => void;
 }) {
-  const klampa = (v: number) => Math.min(Math.max(Math.round(v * 10) / 10, min), max);
+  const klampa = (v: number) => Math.min(Math.max(heltal ? Math.round(v) : Math.round(v * 10) / 10, min), max);
   return (
     <div className="gr-rad">
       <GransRuta
@@ -1034,12 +1048,14 @@ function GransRuta({ etikett, varde, ledtext, enhet, aria, onSatt }: {
   // Utkastet lever bara medan rutan har fokus; annars visas gränsen.
   const [utkast, setUtkast] = useState<string | null>(null);
   const text = utkast ?? (varde === null ? "" : formatTal(varde));
+  // "2 000:-", "2000 kr" och "47,5" läses som tal. En tom ruta tar bort
+  // gränsen; skräp lämnar den som den var.
   const klar = () => {
     if (utkast === null) return;
-    const s = utkast.replace(/\s/g, "").replace(",", ".");
-    const n = Number(s);
     setUtkast(null);
-    onSatt(s && Number.isFinite(n) ? n : null);
+    if (!utkast.trim()) { onSatt(null); return; }
+    const n = Number(utkast.replace(/[^\d,.]/g, "").replace(",", "."));
+    if (/\d/.test(utkast) && Number.isFinite(n)) onSatt(n);
   };
   return (
     <label className="gr-ruta">
