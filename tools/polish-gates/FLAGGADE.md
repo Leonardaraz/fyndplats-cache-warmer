@@ -3319,3 +3319,24 @@ beslut — se den samlade frågan om detta.
   en källa som inte anger någon produktvikt, fördelade på 18 rundor. Bilder redigeras inte,
   så lagningen är att stryka korten eller bygga nya med `Fraktvikt`. Hur många av de 136 som
   fortfarande ligger publicerade är inte mätt. (B24)
+- AVGJORT 2026-09-27, genomfört i B25: åtta publicerade barnsidor skrevs om med alla färger
+  och fick nio färger som val. Barnförvaringen `281ed0b1` (cremevit) fick blå och rosa
+  (`d40c42ae`, `77a5637e`). Crossmotorcykeln med stödhjul `f4c3b44c` (grön) fick röd
+  (`cf098340`). Radiobilen `3486aa0d` (röd) fick rosa (`70a721cd`). Sparkfordonet `382f99ee`
+  (röd och vit) fick blå och vit (`8eaf3ecc`). Elfyrhjulingen med gaspedal `3c13da94` (gul)
+  fick blå (`5562dc2a`). 24 V-motorcykeln `67d2d4f6` (grön) fick rosa (`cde040a7`).
+  Barnskrivbordet med björnstol `6588ac81` (natur) fick rosa (`db663f78`). Skumklossarna
+  `1841a1c2` (gul) fick ljusgrå (`c3959819`). Givarna är pensionerade. Livekontrollen gav
+  8 av 8 OK, 34 av 34 alt-texter och noll textavvikelser, och varje sida visar sina färger
+  som val. (B25)
+- Den blå crossmotorcykeln `bd2f9152` har saldo 0 och lades inte in. Den läggs som färg på
+  `f4c3b44c` med samma workflow när den finns i lager. (B25)
+- Radiobilens rosa givare föll två gånger i planläget innan något skrevs:
+  `FP-radiobil-barn-rosa` bärs redan av en annan produkt (`sku_upptagen`), och
+  `FP-radiobil-snurr-360-rosa` fälls av artikelnummergrinden (`sku_ogiltig`), eftersom tre
+  siffror före ett bindestreck och ett ord har artikelnumrets form. Den fick
+  `FP-radiobil-snurrande-rosa`. Sätt aldrig ett tresiffrigt tal före ett ord i en SKU. (B25)
+- `3c13da94` fick ny slug (`elfyrhjuling-barn-gaspedal-12v`), eftersom den gamla bar färgen
+  och 12 V-formen. Omdirigeringen är skriven, men den gamla adressen serverade fortfarande
+  sin cachade sida 21:12 (`x-vercel-cache: HIT`). Kontrollera den igen. (B25)
+- `281ed0b1`:s egna faktakort ("Vikt 6,3 kg", feedens fraktvikt) ströks. (B25)
