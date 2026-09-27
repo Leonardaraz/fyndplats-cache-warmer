@@ -2224,3 +2224,76 @@ beslut — se den samlade frågan om detta.
   tidigare rundors mätvärden eller är valda på produkttypen och sökta i
   butikens egen sökning, med en smalare variant där en publicerad adress
   redan bar ordet. (N70)
+- Licensmärke, hoppad: barnbilen `0b30d422` (2 379 kr) nämner licensen i
+  källtexten och har samma mått som den publicerade BMW-bilen `b0dbfc97`
+  (115 cm lång, hjul Ø23 cm, 30 kg last). (N71)
+- Märke på varan: lastkärran för cykel `d22b83b1` (1 299 kr) har husmärket
+  (HOMCOM) tryckt på kapellet, synligt på tre av fem bilder, och
+  trehjulingarna `0bab65e3` (1 119 kr, grå) och `a5844ce3` (1 199 kr, blå)
+  har märket Lovely tryckt på ramen. (N71)
+- Billigare utkast bakom en publicerad sida, till Leonards beslut: den
+  uppblåsbara tomten med släde `709c228d` (969 kr) har samma mått, 240 × 57
+  × 112 cm, som den publicerade `d2e7bd0c` (1 169 kr); snögranen `020ce8ea`
+  (859 kr) har samma höjd, bredd, 329 grenspetsar och 150 LED som den
+  publicerade `8c72424e` (1 139 kr); och klaffbordet med förvaring
+  `a67f4999` (1 299 kr) har samma mått och last som den publicerade
+  `e7a451ab` (1 819 kr). (N71)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): den snurrbara massagefåtöljen `c2a36ce1` (4 169 kr)
+  är samma fåtölj i mörkgrått som den publicerade beige `e5be35a4` (4 169
+  kr, N70), och snögranen `f39ef57c` (999 kr) är samma gran i 210 cm som den
+  publicerade `8c72424e` i 180 cm. (N71)
+- Färgsyskon i rundan, hoppade som ett sortimentsbeslut enligt runbookens
+  regel (en poleras, resten flaggas): klaffborden `19c5e09d` (rustikt brun,
+  1 099 kr), `1bca9e41` (ek, 1 059 kr), `ca5e4c55` (vit, 1 099 kr) och
+  `7a614247` (ek och svart, 1 119 kr) har samma mått, 120 × 80 × 73 cm och
+  17,2 kg, som rundans grå `85f1694f` (939 kr). Ska de bli egna sidor eller
+  färgval på en sida? (N71)
+- Dyrare tvilling till ett utkast: klaffbordet på hjul `d2b4b403` (1 519 kr)
+  har samma namn och mått som utkastet `88eb3627` (1 219 kr), som main:s
+  runda 125 har kvar i sin familj; husets regel tar det billigaste. (N71)
+- Hoppade med tidigare rundors skyddsskäl, som fortfarande gäller:
+  djurbostäderna `3d89c580`, `29457148` och `f2ff3a82` (N61–N62);
+  spegelskåpet `a32ac465` med husmärket på varan (N51); tvättkorgen
+  `aaa9f500`, samma korg som den publicerade `15746de3` (N44); golvsoffan
+  `662a3683`, den dyrare i N33:s kluster, där den billigaste publicerades i
+  N67 och resten väntar på Leonards beslut; och den uppblåsbara tomten
+  `66bc1de2`, trolig tvilling till den publicerade `46dd0605` (N49). (N71)
+- N71 tog de 40 nyaste utkasten efter N70 (importerna 2026-09-12–16). N64:s
+  regel gäller: för de nyaste gäller inte familje- och säsongsregeln, bara
+  skyddsreglerna. Tidigare rundors familje- och säsongsskäl prövades därför
+  på nytt genom skärmen, medan skyddsskälen står kvar. Nitton publicerades,
+  bland dem de fem som N70 förde över (`b03bd2cc`, `f1f976cf`, `fe8e2baa`,
+  `8c983973` och `68760ab6`), och 21 hoppades med skälen ovan. (N71)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  cykelvagnen `f1f976cf` mot hundvagnen `f0ee6c6a` (8,4 kg mot 19,1 kg);
+  badrumsskåpen `12d74d4a` mot `4239a0a5` (vitt, tre lådor) och `8607c452`
+  (108 cm högt, två lådor), och `a44d2528` mot `e248e9db` (bambu,
+  lamelldörr); sängramen `e5c776ef` mot `1b7fd2b1` (grå, gavel i tre fält,
+  107–112 cm); skoskåpet `643c0b2d` mot `77245062` och `fc339dce`;
+  köksskåpet `6f4cd43f` mot `c4d8cb93` (70 × 40 cm) och `a531a427` (buffé
+  168 cm); snögranen `80cb11ed` mot `b0766f63` (92 cm, 133 grenspetsar);
+  pepparkaksgubben `8c983973` mot de fem publicerade (andra motiv:
+  presentask, cylinderhatt, grön halsduk, tre paket och en kopp); snögubben
+  `68760ab6` mot `eb7d67a4` (fågel och kvistarmar) och `9e025f93` (180 cm
+  med skylt); och de två motorcykeltomtarna `fe8e2baa` och `ae7484b4` mot
+  varandra (olika figurer och mått). Inget av de friade är samma vara. (N71)
+- Bildgranskningen strök 17 bilder på rundans nitton: tysk text i sju
+  (måttbilder, kollage och säljbilder), husmärket med tysk text i tre, och
+  läsbar text på rekvisitan eller varan i sju (märket på en espressomaskin
+  och en whiskyflaska, en tidskriftstitel, en boktitel, flasketiketter,
+  bokstäver på en vimpel och präglad text på en närbild). Skylten North Pole
+  på snögubben `68760ab6` är tryckt på själva figuren och räknas som varans
+  design, som på den publicerade snögubben med skylt; bilderna behölls.
+  (N71)
+- Konstruktionen och färgen följer fotot: pepparkaksgubben `8c983973` håller
+  en polkagris, inte den chokladbit källan anger, och är pepparkaksbrun,
+  inte gul; ljusslingan `e95e39b9` är en slinga med lampor, inte en
+  ljusgardin som det tyska namnet säger; snögranarna `63fcc340` står på
+  markspett; och sängramen `e5c776ef` är gräddvit, beige i källan.
+  Klaffbordet `85f1694f` har två klaffar, badrumsskåpet `12d74d4a` två
+  dörrar och skoskåpet `643c0b2d` tre fällfack, avlästa på fotot och
+  kvitterade i `foto-tal.txt`. (N71)
+- Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
+  tidigare rundors mätvärden eller är valda på produkttypen, med en smalare
+  variant där en publicerad slug redan bar ordet. (N71)
