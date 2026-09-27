@@ -14,6 +14,8 @@ import { produktGrannar } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
+import { getGpsr } from "../../../lib/gpsr";
+import { gpsrFlikHtml } from "../../../lib/gpsr-flik";
 import { reviewSchemaMode, shouldEmitReviewSchema } from "../../../lib/review-schema";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
@@ -106,7 +108,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const subCol = brodsmula.underkategori;
 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
-  const reviewData = await getProductReviews(p.id);
+  // Produktsäkerheten (GPSR, lib/gpsr-flik.ts) hämtas parallellt — null för
+  // produkter utan uppgifter, och då visas ingen flik.
+  const [reviewData, gpsr] = await Promise.all([getProductReviews(p.id), getGpsr(p.id)]);
+  const gpsrHtml = gpsr ? gpsrFlikHtml(gpsr, p.name) : null;
 
   // Trustpilot Product Reviews-widget matchar recensioner mot produktens SKU
   // (= Wix-produkt-ID). När business unit-ID:t är ifyllt visar vi Trustpilot;
@@ -346,6 +351,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           // och länka till en sektion som inte finns.
           reviewCount={trustpilotBU ? 0 : reviewData.count}
           reviewAverage={trustpilotBU ? null : reviewData.average}
+          gpsrHtml={gpsrHtml}
         />
       </div>
 

@@ -12,6 +12,7 @@ import { KlarnaOSM } from "./klarna-osm";
 import { formatPrice } from "../lib/price-range";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
+import { GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -49,12 +50,20 @@ const CONTACT_FLIK_RE = /Kontakta\s+oss/;
 // produkter (gamla med V1-block + nya importer) får samma tabb-struktur:
 //  • Tekniska specifikationer — från specLines om beskrivningen saknar den fliken
 //  • Kontakta oss — statisk, läggs alltid till om den saknas (sist)
-function buildFlikar(descFlikar: Flik[], specLines: string[]): Flik[] {
+function buildFlikar(descFlikar: Flik[], specLines: string[], gpsrHtml?: string | null): Flik[] {
   const out = [...descFlikar];
   if (!out.some((f) => SPEC_FLIK_RE.test(f.title)) && specLines.length > 0) {
     const items = specLines.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
     // Lägg specifikationerna efter beskrivningen men före Kontakta oss.
     out.push({ title: "Tekniska specifikationer", contentHtml: `<ul>${items}</ul>` });
+  }
+  // Produktsäkerhet (GPSR, lib/gpsr-flik.ts) — före Kontakta oss, som alltid
+  // står sist. Saknas uppgifterna visas ingen flik.
+  if (gpsrHtml) {
+    const kontakt = out.findIndex((f) => CONTACT_FLIK_RE.test(f.title));
+    const flik = { title: GPSR_FLIK_TITEL, contentHtml: gpsrHtml };
+    if (kontakt >= 0) out.splice(kontakt, 0, flik);
+    else out.push(flik);
   }
   if (!out.some((f) => CONTACT_FLIK_RE.test(f.title))) {
     out.push({ title: "Kontakta oss", contentHtml: CONTACT_FLIK_HTML });
@@ -226,6 +235,7 @@ export function ProductView({
   priceNum,
   reviewCount,
   reviewAverage,
+  gpsrHtml,
 }: {
   productId: string;
   name: string;
@@ -252,6 +262,8 @@ export function ProductView({
   // sidan hämtar dem en gång och skickar hit, inget extra anrop.
   reviewCount?: number;
   reviewAverage?: number | null;
+  // Flikens färdiga HTML (lib/gpsr-flik.ts), byggd på servern. Null = ingen flik.
+  gpsrHtml?: string | null;
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
@@ -663,7 +675,7 @@ export function ProductView({
           // Kontakta oss. Specbox:en nedan visas BARA om specifikationerna inte
           // redan hamnat i en flik (undviker dubbletter).
           const split = descriptionHtml ? splitFlikar(descriptionHtml) : { mainHtml: "", flikar: [] as Flik[] };
-          const flikar = buildFlikar(split.flikar, specLines);
+          const flikar = buildFlikar(split.flikar, specLines, gpsrHtml);
           const specInFlik = flikar.some((f) => SPEC_FLIK_RE.test(f.title));
           return (
             <>
