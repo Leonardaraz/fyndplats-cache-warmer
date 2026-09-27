@@ -50,7 +50,7 @@ export function ProductCard({ p, priority = false }: { p: ListProduct; priority?
         {!p.img && <span className="pimg-vantar" aria-hidden="true" />}
         {/* Bilderna: svep på pekskärm, hover-växling på dator. Se
             components/card-gallery.tsx. */}
-        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} />}
+        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} />}
       </div>
       <div className="pbody">
         <div className="pname">{p.name}</div>

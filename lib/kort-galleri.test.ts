@@ -54,3 +54,12 @@ test("lasDel: bara heltal inom antalet delar", () => {
   assert.equal(lasDel(String(KORT_DELAR)), null);
   for (const fel of ["", "-1", "01", "1.5", "abc", "1e2", " 3"]) assert.equal(lasDel(fel), null, fel);
 });
+
+import { lasNyaSlugs, NYA_MAX_SLUGS } from "./kort-galleri.ts";
+
+test("lasNyaSlugs: giltiga, unika, sorterade och kapade", () => {
+  assert.deepEqual(lasNyaSlugs("b-2,a-1,b-2, c ,<script>,../x,_senast"), ["a-1", "b-2", "c"]);
+  assert.deepEqual(lasNyaSlugs(null), []);
+  const många = Array.from({ length: 40 }, (_, i) => `p${String(i).padStart(3, "0")}`).join(",");
+  assert.equal(lasNyaSlugs(många).length, NYA_MAX_SLUGS);
+});
