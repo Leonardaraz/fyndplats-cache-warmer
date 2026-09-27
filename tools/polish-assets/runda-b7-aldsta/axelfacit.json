@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "24c5274b": {
+  "tyska": "112L x 50B x 104H cm",
+  "svenska": "112L x 50B x 104H cm",
+  "bokstaver": "LBH",
+  "hojd": 104,
+  "bredd": 112,
+  "djup": 50
+ },
+ "3486aa0d": {
+  "tyska": "74L x 53B x 48H cm",
+  "svenska": "74L x 53B x 48H cm",
+  "bokstaver": "LBH",
+  "hojd": 48,
+  "bredd": 74,
+  "djup": 53
+ },
+ "7a8655f0": {
+  "tyska": "109L x 67B x 68,5H cm",
+  "svenska": "109L x 67B x 68,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 68.5,
+  "bredd": 109,
+  "djup": 67
+ },
+ "9a63e0fd": {
+  "tyska": "113L x 74B x 63H cm",
+  "svenska": "113cm x 74cm x 63cm",
+  "bokstaver": "LBH",
+  "hojd": 63,
+  "bredd": 113,
+  "djup": 74
+ },
+ "a76e97f1": {
+  "tyska": "96,5L x 49B x 101H cm",
+  "svenska": "96,5L x 49B x 101H cm",
+  "bokstaver": "LBH",
+  "hojd": 101,
+  "bredd": 96.5,
+  "djup": 49
+ },
+ "d5a5301d": {
+  "tyska": "",
+  "svenska": "95cm x 62,5cm x 65cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 95L x 62,5B x 65H cm | ✔ Sitzfläche: 35,5B x 19T cm | ✔ Kennzeichen: 12L x 3B cm"
+ },
+ "ec2d9402": {
+  "tyska": "139L x 58B x 55H cm",
+  "svenska": "139L x 58B x 55H cm",
+  "bokstaver": "LBH",
+  "hojd": 55,
+  "bredd": 139,
+  "djup": 58
+ },
+ "f4c3b44c": {
+  "tyska": "106,5L x 51,5B x 68H cm",
+  "svenska": "Groß",
+  "bokstaver": "LBH",
+  "hojd": 68,
+  "bredd": 106.5,
+  "djup": 51.5
+ }
+}

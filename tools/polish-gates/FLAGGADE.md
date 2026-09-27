@@ -1173,3 +1173,56 @@ beslut — se den samlade frågan om detta.
 - Slutsålda eller nästan (saldo 0–5), inte polerade: åkhästen `9f0ade76`,
   bubbelmotorcykeln `1416e4a4`, motorcykeln `bd2f9152`, elbilen
   `72be1700` (2) och motorcykeln `e0590577` (5). (B6)
+- Rättelse till raden ovan: trehjulingen `24c5274b` är INTE syskon till
+  `3e34331b`/`0bab65e3`. Den är en annan modell (vit ram, korg vid styret,
+  ringklocka, 112 × 50 × 104 cm) och delar bara kartongmåtten. Den poleras
+  i B7. (B7)
+- Märket står på själva fordonet fast namnet inte bär det, och hålls
+  därför som märkesraden ovan: fyrhjulingarna `fcdeca34` och `38e70184`
+  (HONDA på karossen), motorcyklarna `70744919` och `e0590577` (BMW HP4,
+  BMW-emblemet på kåpan) och tippbilen `be3dcfbc` (CAT-loggan på fronten).
+  (B7)
+- Märke i texten, hålls: Mercedes `0fc2119d`, `0acfc30a` och `834cbe61`,
+  McLaren `39d13508`, Land Rover `8ad1e003`, `fa99285f`, `1c0b4b34` och
+  `6e518fc6`, Lamborghini `68fe8e67`, `e47294df`, `ea13272c` och
+  `e85197d2`, Audi `21736548`, `ba2b14ab` och `0125f9e2` och Ford
+  `70703864`. Polisbilen `9308a7dc` hålls för *Polizei*. Tre bär
+  *lizenziert* utan ett namn jag känner igen: `b9ef8ca4` (två måttripplar
+  med publicerade BMW i4 `b0dbfc97`) och motorcyklarna `ef2cbde0` och
+  `f6c56546`, oprövade på bild. (B7)
+- Syskon till publicerade sidor (minst två gemensamma måttripplar):
+  motorcyklarna `dc85a71f` och `0c2e072c` (`7b62aa26`), `617aae41` och
+  `e811836f` (`ad46f9cc`) och `850034ea` (`81a7d7e4`), gokarten `f244bb55`
+  (`0926604b`), traktorn `f90b0993` (`91d28d6f`), elbilarna `6c62a150`,
+  `f373226f` och `9d710fe0` (Mercedes SLC `55b92ab2`) och `12b04b77` (Audi
+  `4d989256`), staffliet `addf1d20`/`dc709681` (`ac160e8e`), trehjulingarna
+  `f2ad437d` (`80aac077`) och `aefd8818`/`5ce744ab` (`7c975a86`) och
+  fyrhjulingarna `5562dc2a` (`3c13da94`) och `7b26df6f`/`8ae5b383`
+  (`7cdc167c`). Rutschfyrhjulingarna `89f8e1e1`, `1a3ac422` och `2b890006`
+  är samma vara som publicerade `a78da864`, vars bilder visar den rosa och
+  den gröna. (B7)
+- Grävskopan `2c280af2` har AIYAPLAY tryckt på fordonet, alltså
+  leverantörens husmärke. Hålls, som SPORTNOW och PawHut i N11. (B7)
+- Fyrhjulingen `fa5d1210` i rött och `a0d4a944` i rosa är samma modell som
+  `17c253d6` i grönt, som N11 höll mot #285-klustret. De hålls med den.
+  Den publicerade `9d686a82` är en annan fyrhjuling. (B7)
+- Gokartklustren från N27–N33, hålls: `5fe1d12e`, `cce8d35c` och
+  `e6301e92` (med `8b04789b`, `589058f1`, `fdae2809` och `2c7c7f76`) och
+  `2a6dcd2a` och `fc195950` (med `28b06f78`, `d0ab51e9`, `b4e961b7` och
+  `a23a9d86`). (B7)
+- Färgsyskon inom B7:s familjer, som väntar: jeepen `c80ffdb1` i rött
+  (saldo 5), crossarna `cf098340` i rött (7) och `bd2f9152` i blått (0),
+  traktorerna `8e77ded7` i blått, `329c24b2` i grönt och `fbe710b5` i
+  orange, trehjulingen `0dac99b5` i rosa och radiobilen `70a721cd` i rosa.
+  Den färg med störst saldo poleras i B7. (B7)
+- Slutsålda eller nästan (saldo 0–5), inte polerade: motorcyklarna
+  `e1f50194` (1), `72dd9729` (5) och `51c81c2c` (0), tågbordet `695e72eb`
+  (0), gokarten `f61e3a5b` (0), tvåsitsbilarna `6220378a` och `8b073d5c`
+  (0) och elbilen `57dda9ba` (0). (B7)
+- Utomhus, fel säsong i slutet av september: lerköket `1f3321d8`,
+  hoppborgarna `b0ae40f7`, `35d0756b`, `16319acd` och `08755391`,
+  sandlådorna `aac544b0`, `4e9e1ea5`, `80e48248`, `1c9056a5`, `3bced72a`
+  och `fdd915bc`, vattenbordet `58615473`, gungställningarna `df0a9c0c`,
+  `d9fa791d`, `a75b4e26`, `f8599023` och `b3d60f53` och lekstugorna
+  `6bacbb65`, `8a7e64bc`, `f185f55d`, `99850a5e`, `f6a0b941` och
+  `2a3a93d5`. (B7)
