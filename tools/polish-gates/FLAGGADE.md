@@ -2149,3 +2149,78 @@ beslut — se den samlade frågan om detta.
   tidigare rundors mätvärden eller är valda på produkttypen och sökta i
   butikens egen sökning, med en smalare variant där en publicerad adress
   redan bar ordet. (N69)
+- Licensmärke, hoppade: barnbilen `65862929` (3 299 kr) bär Mercedes-Benz
+  namn och märke, och elmotorcykeln för barn `c6c67294` (2 219 kr) är en
+  Aprilia – samma motorcykel som de publicerade `1e27f7e0` och `5e9cc2d2`
+  (106,5 × 56 × 80 cm, hjul Ø33,5 cm, 30 kg). (N70)
+- Djurbostad som kräver en laglighetskontroll, hoppad: sköldpaddslådan
+  `a2bf8b4d` (1 519 kr), flaggad redan i N29. (N70)
+- Husmärket på varan: satsborden `fff1b063` (599 kr) har en etikett med
+  husmärket (HOMCOM) mitt på den stora bordsskivan, synlig på fyra av fem
+  bilder. (N70)
+- För få bilder utan läsbar text, under tre kvar: mattan `c1741d3b` (579 kr;
+  tidskrifter och boktitlar på tre bilder), den vägghängda elkaminen
+  `7d3e296f` (1 919 kr; tyska säljrubriker på två bilder och en affisch och
+  boktitlar på en), sängramen `f433cc0f` (1 999 kr; bara tre bilder, varav
+  en med tysk text) och medicinskåpet `825c12a2` (949 kr; tysk rubrik på en
+  bild och läsbara läkemedelsförpackningar på två). (N70)
+- Billigare utkast bakom en publicerad sida, till Leonards beslut:
+  arbetspallen `be8f28cd` (899 kr, svart) har samma fyra nyckeltal (46, 7
+  och 93 cm och 7,2 kg) som den publicerade svarta `7e730857` (999 kr).
+  (N70)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): fåtöljen `336fbec6` (2 739 kr) är samma fåtölj i
+  ljusbrun chenille som den publicerade beige `cc3846b8` (2 299 kr);
+  lavendelträden `5b62c8da` (659 kr) samma par med lila blommor som den
+  publicerade `47f6059d` med vita (679 kr); hundjoggern `61acb2dc` (2 199
+  kr) samma vagn i svart och grått som den publicerade `c6928b61` i svart
+  och blått (1 949 kr); hundvagnarna `2d65601c` (839 kr) och `9de3703e` (879
+  kr) två svarta utföranden av vagnen som redan är publicerad i grått, rött,
+  ljusgrått, dammrosa och blått (`d27a28ae`, `eb02039b`, `0fdf9aba`,
+  `1f311250` och `3b0aca0a`); och mediahyllan `ae508a90` (1 069 kr, 106,5 cm
+  bred) den bredare storleken av den publicerade `c40a2b10` (58 cm). (N70)
+- N70 tog de 40 nyaste utkasten efter N69, i fallande skapandeordning:
+  resten av importen 2026-09-25, med de fem som N69 förde över, och
+  importerna 2026-09-16 och 2026-09-15. Tjugo publicerades, femton hoppades
+  med skälen ovan, och fem som klarade skärmen får vänta till N71:
+  lekställningen `b03bd2cc`, hundcykelvagnen `f1f976cf` och de uppblåsbara
+  julfigurerna `fe8e2baa` (tomte på motorcykel), `8c983973`
+  (pepparkaksgubbe) och `68760ab6` (snögubbe). (N70)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  vägghyllan `fad620ef` mot `c8de34ad` och `71341341`; cypresserna
+  `5772c68d` mot `39c90d59` (Ø33 × 90 cm, 831 blad) och `7e66b14b` (en
+  cypress på 120 cm); tv-stället `80512112` mot `c5d73d3d` (85,3 × 64,8 cm,
+  129,5–189 cm); reclinerfåtöljen `c6156256` mot `4c1f5303`, `fbba0de8`,
+  `99e2d675` och `b8001a1b`; sidoborden `1a5b0d42` mot `97b1d071` och
+  `d9b52d27` (55 × 35 cm, två lådor), `329af28e` mot `c788becf`, och
+  `cd753d3d` mot `efa4b5d6` och `5e5ede44`; glasbordet `ef7a48b0` mot
+  `a00a6b82` och `69458759`; skänken `be02f382` mot `9b679006` och
+  `222f59d6`; adventskalendrarna `0e1a8545` mot `4c0a0ef1` och `b26e8aa3`,
+  och `8a17ae82` mot `4c0a0ef1`; massagefåtöljen `d0fe9214` mot `8ca7b3c3`,
+  `79797c9a`, `92a64ccd`, `c0e67ea5` och `1932abe1`; massagebänken
+  `e13d094a` mot `754a4749`, `a9555a7d`, `251f0429` och `ed7a86fd`;
+  sängramen `1b7fd2b1` mot `4f922e8d` (205 × 151 cm, 31,4 kg); frukostsetet
+  `e0cd758d` mot sex publicerade vattenkokare och set på 1,7 l; fåtöljerna
+  `536cfd1e` mot `4635adcb` och `da6d086a`, och `e5be35a4` mot `2823c605`
+  och `07d52f21`. Inget av de friade är samma vara. Mattan `c1741d3b`
+  (vintagemedaljong) är dessutom en annan matta än den publicerade
+  `1612e633` (abstrakt mönster), och sängramarna `f433cc0f` (sammet,
+  kanalstoppad gavel) och `1b7fd2b1` (linnelook, gavel i tre fält) är två
+  olika modeller, inte färgtvillingar. (N70)
+- Bildgranskningen strök 16 bilder på rundans tjugo: tysk text i fyra
+  (måttbilder och säljrubriker), engelsk text i tre (VESA-mönster, leverans
+  i två kartonger och en skärm med ett datormärke) och läsbar text på
+  rekvisitan i nio (boktitlar, tidskrifter och märket på färgburkar). Att
+  massagefåtöljen `e5be35a4` kommer i två kartonger står i texten och är
+  kvitterat i `foto-tal.txt`, liksom sängramens tre gavelfält och
+  sidobordets två stora och två små fack. (N70)
+- Konstruktionen och färgen följer fotot: sänggaveln på `1b7fd2b1` har tre
+  stoppade fält, inte den vertikala quiltning källan beskriver, och det
+  smala sidobordet `cd753d3d` är 18 cm djupt och 40 cm brett, inte 18 cm
+  brett som källans inledning säger. Reclinerfåtöljen `c6156256` och
+  sängramen är grå på bilderna (mörkgrå i källan), och uppresningsfåtöljen
+  `536cfd1e` gråbrun (brun i källan). (N70)
+- Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
+  tidigare rundors mätvärden eller är valda på produkttypen och sökta i
+  butikens egen sökning, med en smalare variant där en publicerad adress
+  redan bar ordet. (N70)
