@@ -37,6 +37,7 @@ import type { Product, ListProduct } from "./products";
 import { forClient } from "./products";
 import { currentDayMs, orderRecommended, orderPopular, createdAtMs } from "./sort-products";
 import { universalCollectionIds } from "./related-pick";
+import type { Nyckel } from "./spec-facets";
 
 /** Hur många av visningsordningen som bär bild direkt: 24 synliga + 24 i
  *  bakfickan, alltså ett "Visa fler"-klick utan hämtning. Matchar PAGE_SIZE × 2
@@ -76,7 +77,9 @@ export function slugarMedBild(list: readonly Product[], dayMs = currentDayMs()):
   return ut;
 }
 
-/** forClient, men med bilder bara för de produkter som kan stå i vyn direkt. */
-export function forListClient(list: Product[], dayMs?: number): ListProduct[] {
-  return forClient(list, slugarMedBild(list, dayMs));
+/** forClient, men med bilder bara för de produkter som kan stå i vyn direkt.
+ *  `specNycklar` = kategorins måttfilter (lib/spec-config.ts); utan dem
+ *  följer inga mått med. */
+export function forListClient(list: Product[], dayMs?: number, specNycklar?: ReadonlySet<Nyckel>): ListProduct[] {
+  return forClient(list, slugarMedBild(list, dayMs), specNycklar);
 }

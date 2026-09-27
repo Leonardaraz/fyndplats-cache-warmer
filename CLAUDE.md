@@ -135,6 +135,35 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## Måttfilter på kategorisidorna (2026-09-27)
+
+Kategorisidorna filtrerar på bredd, djup, höjd, sitthöjd, maxlast, vikt,
+effekt, volym, ålder och material, utöver pris, färg och rea. Värdena läses ur
+produktbeskrivningens spec-rader (`lib/spec-facets.ts`). Wix har inga fält för
+dem. Uppmätt på 3 783 produkter: bredd 80 %, höjd 78 %, djup 75 %, material
+84 %, vikt 62 %, maxlast 43 %. 108 av 115 kategorier får minst ett filter.
+
+Fyra regler:
+
+1. **Hellre tomt än fel.** Kartongens mått läses aldrig. Två mått utan
+   förklaring ger bara bredden. Ett ensamt mått i namnet ("bred sits på
+   79 cm") räknas inte. Justerbar höjd sparas som ett intervall. En produkt
+   utan värde försvinner bara när just det filtret används, och det skrivs
+   inte ut hur många det gäller (Leonard).
+2. **Kategorin föreslår, datan avgör.** `lib/spec-config.ts` säger vilka
+   filter kategorin erbjuder och vad de heter, och underkategorier ärver.
+   Ett filter visas bara när minst 60 % av listan har värdet
+   (`specOversikt`).
+3. **Hela sortimentet får inga måttfilter.** Det gäller /alla-produkter, /rea,
+   /populara och /sok. En bredd som gäller både soffor och vattenkokare säger
+   ingenting.
+4. **Måtten följer bara med där de filtreras.** Bara kategorins nycklar
+   skickas (`specFor`), och bara med `/api/lista` eller korta listor, aldrig
+   med sidans första kort. `/api/lista` växte 6–10 % komprimerat.
+
+Beskrivningarnas format styr täckningen: "Mått: 82 × 35 × 76 cm (B × D × H)",
+"Maxlast: 120 kg" och "Material: stål och MDF" läses alltid.
+
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
   (`@vercel/speed-insights/next`) are mounted in `app/layout.tsx`. Both are

@@ -37,7 +37,8 @@ for (const [fil, nyckel] of Object.entries(SIDOR)) {
 
   test(`${fil}: skickar bara början av listan`, () => {
     const sb = src.match(/<ShopBrowser\b[^>]*\/>/)![0];
-    assert.ok(sb.includes(`{...listaForSidan(list, ${nyckel})}`), sb);
+    // Kategorisidan skickar dessutom sina måttfilter (lib/spec-config.ts).
+    assert.ok(sb.includes(`{...listaForSidan(list, ${nyckel}`), sb);
     assert.doesNotMatch(src, /forListClient|forClient\(/, "hela listan får inte gå ut i sidans HTML");
   });
 }
@@ -54,7 +55,9 @@ test("/api/lista räknar samma lista som sidorna", () => {
   const lib = readFileSync("lib/list-pages.ts", "utf8");
   assert.match(route, /const dagMs = currentDayMs\(\);\s*const lista = await listaFor\(nyckel, dagMs\);/);
   // Bara bilder för det som kan synas direkt — resten ur bildkartan.
-  assert.match(route, /forListClient\(lista, dagMs\)/);
+  // Plus kategorins måttnycklar, räknade med samma funktion som sidan.
+  assert.match(route, /forListClient\(lista, dagMs, specNycklar\)/);
+  assert.match(route, /const specNycklar = await specNycklarFor\(nyckel\);/);
   assert.match(route, /Cache-Control/);
   // Samma urval som kategorisidan: kategoriProdukter + dedupeProducts + ordnaLista.
   assert.match(lib, /ordnaLista\(dedupeProducts\(kategoriProdukter\(active, collections, produkter\)\), dagMs\)/);
@@ -81,7 +84,9 @@ test("ShopBrowser: sidans egna kort flyttas inte när hela listan kommer", () =>
 
 test("korta listor skickas hela i sidan, utan hämtning", () => {
   const lib = readFileSync("lib/list-pages.ts", "utf8");
-  assert.match(lib, /if \(ordnad\.length <= FORSTA_KORT\) return \{ products: forClient\(ordnad\) \};/);
+  assert.match(lib, /if \(ordnad\.length <= FORSTA_KORT\) return \{ products: forClient\(ordnad, undefined, nycklar\), \.\.\.medFacetter \};/);
+  // Långa listor: sidans första kort bär inga mått — de följer med /api/lista.
+  assert.match(lib, /products: forClient\(ordnad\.slice\(0, FORSTA_KORT\)\),/);
 });
 
 test("ShopBrowser: sammanfattningen, inte de första korten, styr filterpanelen", () => {

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { forListClient } from "../../../lib/list-payload";
-import { listaFor } from "../../../lib/list-pages";
+import { listaFor, specNycklarFor } from "../../../lib/list-pages";
 import { tolkaNyckel } from "../../../lib/list-key";
 import { currentDayMs } from "../../../lib/sort-products";
 
@@ -47,5 +47,8 @@ export async function GET(req: NextRequest) {
   // En tom lista är nästan alltid ett tillfälligt läsfel mot Wix, inte en tom
   // kategori (sådana omdirigeras). Cacha den kort, så nästa hämtning försöker igen.
   const cache = lista.length ? CACHE : "public, s-maxage=60";
-  return NextResponse.json(forListClient(lista, dagMs), { headers: { "Cache-Control": cache } });
+  // Kategorins måttfilter följer med produkterna (lib/spec-config.ts). Samma
+  // nycklar som sidan, så filtren räknar på samma värden.
+  const specNycklar = await specNycklarFor(nyckel);
+  return NextResponse.json(forListClient(lista, dagMs, specNycklar), { headers: { "Cache-Control": cache } });
 }
