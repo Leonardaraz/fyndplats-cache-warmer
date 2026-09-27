@@ -1,0 +1,42 @@
+{
+  "slug": "tradgardsdekor-belysning",
+  "seo": {
+    "title": "Solcellslampor, trädgårdsfontäner & dekor",
+    "description": "Solcellslampor och solcellslyktor för trädgården, trädgårdsfontäner med pump, fågelmatare med kamera, spaljéer och blomställ – och säsongsdekor."
+  },
+  "content": {
+    "intro": [
+      "Belysning och dekor gör trädgården trivsam även när det blir mörkt. Här samlar vi solcellslampor och solcellslyktor, en pollarlampa och en vägglampa, trädgårdsfontäner, fågelmatare, spaljéer och blomställ, en trädgårdsbro och en vedförvaringshylla – och uppblåsbara figurer och konstväxter, som också har egna sidor.",
+      "Solcellslamporna laddas av en solpanel och behöver ingen elkabel. De flesta är stänkskyddade, och hur länge de lyser beror på modellen: en laddar på sex timmar och lyser i åtta, en annan laddar på åtta och lyser i sex.",
+      "Trädgårdsfontänerna har en pump som cirkulerar vattnet, och en av dem har LED. Fågelmataren med kamera visar fåglarna i trädgården på nära håll, direkt i mobilen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur länge lyser en solcellslampa?",
+        "a": "Det beror på modellen och på hur mycket sol panelen får. Ett exempel: en lampa laddar på sex timmar och lyser i åtta, en annan laddar på åtta och lyser i sex."
+      },
+      {
+        "q": "Tål solcellslamporna regn?",
+        "a": "De flesta är stänkskyddade, flera enligt IP44, och pollarlampan är IP65-klassad."
+      },
+      {
+        "q": "Var hittar jag halloween- och julfigurerna?",
+        "a": "De uppblåsbara figurerna ligger både här och på egna sidor, Halloweendekoration och Juldekoration. Konstväxterna finns samlade under Konstväxter."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "102 i kategorin 2026-09-24: ~30 lampor, fontäner, fågelmatare och trädgårdsinredning, resten uppblåsbara säsongsfigurer och konstväxter som också ligger i Halloweendekoration, Juldekoration och Konstväxter",
+    "pollarlampa och vägglampa": "2a4b9c68 'Pollarlampa 90 cm med 28 lysdioder, IP65'; 66317189 'Vägglampa utomhus i retro-stil'",
+    "trädgårdsfontäner, fågelmatare": "5581c89a, da347579, 575a9992 'Trädgårdsfontän'; 13b69cb8 'Fågelmatare med kamera 2K HD'; 3bd54459 'Fågelmatarstation 208 cm'",
+    "spaljéer, blomställ, trädgårdsbro, vedförvaringshylla": "87c4d80b 'Plantetagerie med spaljé'; fdea573f 'Blomlåda med spaljé'; f75a8a17 'Hörnblomställ i tre plan'; 81bff775 'Trädgårdsbro 135,5 cm i svart metall'; a41af4d0 'Vedförvaringshylla utomhus'",
+    "solpanel": "c9ab8531 'Solpanelen är 6 × 3,5 cm och drar 1,08 watt'",
+    "de flesta stänkskyddade": "IP-klass i beskrivningen på 14 av 15 solcellslampor; 14aa1777 och 1f14ab66 'Stänkskyddad enligt IP44'",
+    "sex timmar/åtta timmar": "14aa1777 'Sex timmars laddning ger åtta timmars ljus'; 1f14ab66 'Laddar på åtta timmar och lyser i sex'",
+    "pump som cirkulerar vattnet": "5581c89a 'Trädgårdsfontän med pump'; da347579 'Vattnet pumpas upp till den översta skålen och faller sedan i fyra steg … ner till basen, där pumpen tar upp det'",
+    "en fontän med LED": "575a9992 'Trädgårdsfontän 72 cm med LED'",
+    "fågelmatare med kamera, direkt i mobilen": "13b69cb8 'låter dig se fåglarna i trädgården på nära håll, direkt i mobilen'",
+    "FAQ pollarlampan IP65": "2a4b9c68 namn 'IP65'"
+  }
+}

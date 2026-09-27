@@ -1,0 +1,42 @@
+{
+  "slug": "lek-tillbehor-for-husdjur",
+  "seo": {
+    "title": "Hundtrappa, hundramp, agility & kattbädd",
+    "description": "Hundtrappor och hundramper till soffa och säng, agilityset för trädgården, kattbäddar och kattrappor samt aktiveringsleksaker för hund och katt."
+  },
+  "content": {
+    "intro": [
+      "Här samlar vi tillbehör för lek och vila för hund och katt: hundtrappor och hundramper upp till soffan och sängen, agilityset med tunnlar, hinder och slalom, kattbäddar, kattrappor och leksaker som håller djuret aktivt.",
+      "Hopp ner från soffan eller sängen sliter på leder och rygg, särskilt hos äldre djur och kortbenta raser – där gör en trappa eller ramp skillnad. Välj höjd efter möbeln och titta på maxvikten: trapporna bär från 4,5 upp till 50 kg. Agilityseten finns från tre delar upp till elva delar med två tunnlar, och flera levereras med bärväska.",
+      "För katten finns bäddar på ben, kattkojor i vattenhyacint, en hängmatta för fönsterbrädan, kattrappor och en automatisk kattleksak. Klösträden har fått en egen kategori.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Trappa eller ramp – vad passar min hund?",
+        "a": "En ramp har inga steg och passar hundar som har svårt att kliva, till exempel en äldre hund med stela leder. En trappa tar mindre plats på golvet. Mät höjden på soffan eller sängen innan du väljer."
+      },
+      {
+        "q": "Vad ingår i ett agilityset?",
+        "a": "Seten består av hopphinder, tunnlar, hoppringar och slalompinnar i olika kombinationer, från tre till elva delar, och flera levereras med bärväska."
+      },
+      {
+        "q": "Finns det något för katten?",
+        "a": "Ja, kattbäddar på ben, kattkojor, kattrappor, en hängmatta för fönsterbrädan och en automatisk kattleksak med fjärrkontroll."
+      }
+    ]
+  },
+  "facit": {
+    "ersätter": "titeln 'Klösträd, klöspelare & hundleksaker' — klösträden flyttas till kategorin Klösträd (60 % av den här sidans lista), så sidan ska inte längre konkurrera om 'klösträd'",
+    "Semrush 2026-09-24": "hundtrappa 2 900/KD 17, hundramp 880/13, kattbädd 1 900/18, agility hund 320/23; sidan rankade bara på 'djurleksak' (pos 90–92)",
+    "hundtrappor": "8f6147b5, 4c25eb86, f384c51d, 3ff2bc32, 03715963, c38f929e, 96d2803c, 11436227, 71e8e879, 543b9076, 5b73bead",
+    "hundramper": "935cd17b 'Hundramp till hög säng 61 cm', 1b64abde 'Hundramp med plattform 125 cm' (i lager)",
+    "agilityset med tunnlar, hinder, slalom": "08230ec1 '11 delar – två tunnlar, hopphinder, hoppring och slalom'; 82fec275 '8 delar med tunnel'",
+    "tre till elva delar": "cc7ab001 och 1746334e '3 delar'; 08230ec1 '11 delar'",
+    "flera med bärväska": "8df525e3 'med bärväska'; 8cf7b1bb 'och väska'; cc7ab001 och 1746334e 'med väska'",
+    "leder och rygg, äldre djur, kortbenta raser": "543b9076 'Hopp ner från möbelhöjd sliter på leder och rygg, särskilt på äldre djur och kortbenta raser'",
+    "äldre hund med stela leder": "edf78ba9 'en äldre hund med stela leder'",
+    "trappor bär 4,5–50 kg": "543b9076 'max 4,5 kg'; 8f6147b5 och 4c25eb86 'max 50 kg'",
+    "katt: bäddar på ben, kojor i vattenhyacint, hängmatta, kattrappor, automatisk leksak": "165471af 'Kattsäng på ben'; e16338a9 'Kattkoja i vattenhyacint'; ed63cbaa 'Katthängmatta för fönsterbräda'; 762cc411, 1ae60dbc, 819bf51c kattrappor; c663bcb0 'Automatisk kattleksak med fjärrkontroll'"
+  }
+}

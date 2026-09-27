@@ -1,0 +1,45 @@
+{
+  "slug": "leksaker-spel",
+  "seo": {
+    "title": "Gåbil, balanscykel & klätterställning för barn",
+    "description": "Gåbilar och sparkbilar för de minsta, balanscyklar, klätterställningar för inomhusbruk, byggsatser, lasertag och spelbord för hela familjen."
+  },
+  "content": {
+    "intro": [
+      "Här samlar vi leksaker och spel för barn i olika åldrar: gåbilar och sparkbilar för de minsta, balanscyklar och trampbilar, klätterställningar och rutschkanor för inomhusbruk, byggsatser med tusentals delar, lasertag och spelbord för hela familjen.",
+      "Rekommenderad ålder står i beskrivningen och är viktig, både för smådelar och för att barnet ska klara leksaken. Gåbilarna för de minsta har ofta skjutstång och skyddsbåge, så att du kan styra medan barnet sitter. Mät också ytan: en klätterställning eller ett spelbord behöver sin plats, och flera fälls ihop efter leken.",
+      "Elbilar, sparkcyklar, gunghästar, leksakskök och sandlådor har numera egna kategorier.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Vad är skillnaden mellan gåbil, sparkbil och trampbil?",
+        "a": "En gåbil har ofta en skjutstång så att en vuxen kan skjuta på, en sparkbil drivs framåt med fötterna och en trampbil har pedaler. Åldern står i beskrivningen – de minsta modellerna passar från ett år."
+      },
+      {
+        "q": "Vilken balanscykel passar mitt barn?",
+        "a": "Balanscyklarna finns för barn från 12 månader till fem år. Den minsta har tre hjul och en sitthöjd på 26,5 cm, och sadeln går att justera på flera."
+      },
+      {
+        "q": "Kan klätterställningarna stå inomhus?",
+        "a": "Ja, flera är gjorda för inomhusbruk, till exempel klätterställningar i trä med ramp och rutschkana, och några fälls ihop efter leken."
+      }
+    ]
+  },
+  "facit": {
+    "ersätter": "titeln 'Leksaker – elbilar, bilbanor & spel' — elbilarna har egen kategori (Elbilar för barn), så sidan ska inte längre konkurrera om 'elbil barn'",
+    "Semrush 2026-09-24": "gåbil 1 000/KD 16, sparkbil 880/11, balanscykel 5 400/18, klätterställning 1 300/13; sparkcykel, leksakskök, sandlåda, gunghäst har egna sidor",
+    "gåbilar": "e6134e61 'Gåbil Mercedes G350', a6b24d45 'Gåbil 3-i-1 med skjutstång, sufflett och skyddsbåge', 7d243274, 5a4f16a3, f87c0ccb",
+    "sparkbilar": "c86aefc6, 2e12de07, 1e5eac85, 9afb5483",
+    "balanscyklar": "a80765e8, 6f101f90, 1c92e587, 115d3831",
+    "trampbilar": "71be99af och 7cc112c2 'Trampgokart', 60869ff2 'Trampbil för barn med broms'",
+    "klätterställningar och rutschkanor för inomhusbruk": "1bc0c04e och 590b1f2d 'klätterställning i trä för inomhusbruk'; d48f0b07 'inomhusbruk'; 7d914d36 'Barnrutschkana 5-i-1 inomhus'",
+    "byggsatser med tusentals delar": "5bccd6d8 2 260 delar; 2bdd6e15 3 719 delar; 9578fed4 4 706 delar",
+    "lasertag och spelbord": "9aaeed8f, 37f8802d, 74f77b14 lasertag; 81f85c3f 'Spelbord 3 i 1'; 59cb0c95 pingisbord",
+    "skjutstång och skyddsbåge": "a6b24d45 'skjutstång, sufflett och skyddsbåge'; 5a4f16a3, f87c0ccb, 973743f8 'skjutstång'",
+    "flera fälls ihop": "01d8e819 'hopfällbar med rutschkana och klättervägg'; 7e414be8 'hopfällbar'; 59cb0c95 'Pingisbord hopfällbart'",
+    "de minsta från ett år": "a6b24d45 och f87c0ccb '12–36 månader'",
+    "balanscyklar 12 mån–5 år, 26,5 cm, justerbar sadel": "1c92e587 'tre hjul för 12–36 månader … sitthöjd 26,5 cm'; 115d3831 '3–5 år – justerbar sadel'; a80765e8 och 6f101f90 'justerbar sadel'",
+    "klätterställning i trä med ramp och rutschkana": "1bc0c04e 'klätterställning i trä för inomhusbruk med gunga, en ramp'; 01d8e819 'med rutschkana och klättervägg'"
+  }
+}

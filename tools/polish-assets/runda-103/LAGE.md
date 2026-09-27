@@ -16,10 +16,10 @@ Publicerat syskon, skrivet av den ANDRA sessionen 15:22: `297d8979`, svart,
 
 | id8 | artikelnummer | landat | förväntat | i Wix |
 |---|---|--:|--:|--:|
-| `c396356f` | `700-050V94GY` | 3 813,71 | 4 579 | 4 579 ✅ |
-| `a7f029bf` | `700-050V94DR` | 3 845,42 | 4 619 | 4 619 ✅ |
-| `7e84e482` | `700-050V94CW` | 4 009,60 | 4 819 | 4 819 ✅ |
-| `a0760ed1` | `700-050V94LR` | 3 681,72 | 4 419 | 4 419 ✅ |
+| `c396356f` | `[artikelnr]` | 3 813,71 | 4 579 | 4 579 ✅ |
+| `a7f029bf` | `[artikelnr]` | 3 845,42 | 4 619 | 4 619 ✅ |
+| `7e84e482` | `[artikelnr]` | 4 009,60 | 4 819 | 4 819 ✅ |
+| `a0760ed1` | `[artikelnr]` | 3 681,72 | 4 419 | 4 419 ✅ |
 
 Alla ×1,2 med `charm99`. Fraktandel 0,29–0,32 — långt under 0,5.
 
@@ -27,7 +27,7 @@ Alla ×1,2 med `charm99`. Fraktandel 0,29–0,32 — långt under 0,5.
 
 Se `STEG4.md`. Kort: dess tyska spec-block är BYTE-IDENTISKT med modell A:s,
 men ritningen säger `85 × 94 × 104`, `150°` och `150 kg`. Leverantören har
-kopierat texten mellan två olika stolar. ☠️ Artikelnumrets bas `700-050V94` är
+kopierat texten mellan två olika stolar. ☠️ Artikelnumrets bas `[artikelnr]` är
 identisk på båda, så runda 61:s mekaniska syskongrind svarade "samma modell" på
 två olika varor.
 

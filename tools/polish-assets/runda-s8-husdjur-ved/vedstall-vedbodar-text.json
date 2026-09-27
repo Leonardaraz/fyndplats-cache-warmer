@@ -1,0 +1,45 @@
+{
+ "slug": "vedstall-vedbodar",
+ "seo": {
+  "title": "Vedställ & vedbod – vedförvaring inne och ute",
+  "description": "Vedställ i svart stål för brasveden inne och ute, stora vedställ med vattentätt överdrag och vedbodar med lutande tak. Flera med eldstadsverktyg."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du vedställ för brasveden vid kaminen, större vedställ med vattentätt överdrag och vedbodar för trädgården. I ett vedställ ligger veden på en ram i stället för direkt på golvet eller marken, vilket skyddar den mot fukt underifrån, och flera är gjorda för både inne och ute.",
+   "De flesta vedställ i svart stål bär 100 kg. De stora ställen med överdrag rymmer 0,33 eller 0,6 m³ ved och håller den torr, och det mindre av dem har en bärväska i canvas. Flera vedställ levereras med eldstadsverktyg, till exempel skyffel, eldgaffel, tång och borste på krokar längs sidan.",
+   "Vedbodarna är av stålplåt med lutande tak, och bodarna på 150 och 213 cm har upphöjd botten för luftcirkulation och 0,77 respektive 1,12 m² golvyta. Vedboden på 235 cm har ett öppet vedfack och ett stängt fack för redskap.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Kan vedstället stå ute?",
+    "a": "Flera kan det. Vedstället på 60 × 100 cm och det smala på 40 × 100 cm är gjorda för både inne och ute, och de stora ställen har ett vattentätt överdrag. Vedbodarna har lutande tak."
+   },
+   {
+    "q": "Hur mycket ved rymmer ett vedställ?",
+    "a": "De stora ställen med överdrag rymmer 0,33 och 0,6 m³ ved. För de andra anges måtten och hur mycket de bär, oftast 100 kg."
+   },
+   {
+    "q": "Ingår eldstadsverktyg?",
+    "a": "Till några vedställ, ja: skyffel, eldgaffel, tång och borste som hänger på krokar. Vad som ingår står i produktnamnet eller beskrivningen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "15 synliga produkter 2026-09-24 med ved i namnet; eldkorgarna med vedhylla, elkaminen med vedfack och eldstadsverktygen utan ställ är inte med",
+  "vid kaminen": "5fce6a95, ad88f2b4, 7e3d0a23 och 7f806a07 nämner kaminen",
+  "ram i stället för golvet, fukt": "5fce6a95 'Veden ligger på stålramen i stället för direkt på golvet eller marken, vilket skyddar den mot fukt underifrån'",
+  "inne och ute": "5fce6a95 'gjort för både inne och ute och bär upp till 100 kg'; ad88f2b4 namnet 'för brasved inne och ute'",
+  "de flesta bär 100 kg": "100 kg i 5fce6a95, ad88f2b4, aa7637fb, e4c14db3, b1684bee och a41af4d0; f267fdc4 bär 200 kg, 7e3d0a23 150 kg",
+  "0,33 och 0,6 m³, torr": "7e3d0a23 'Stället rymmer 0,33 m³ ved och håller den torr'; f267fdc4 'Det rymmer 0,6 m³ ved och håller brasveden ordnad och tor[r]'",
+  "vattentätt överdrag": "7e3d0a23 'med vattentätt överdrag och en bärväska i canvas'; f267fdc4 'med ett vattentätt överdrag i mörkgrönt'",
+  "eldstadsverktyg på krokar": "e4c14db3 'med fyra eldstadsverktyg på kroken'; 21b6dcbe 'ett komplett eldstadsset på köpet: skyffel, eldgaffel, tång och borste. Verktygen hänger på fyra krokar'",
+  "stålplåt, lutande tak": "a6872a92 och 4a2ab58e 'taket lutar och är av korrugerad plåt'; d24952b6 'Galvaniserat och färgbelagd stålplåt, lutande tak'; a5baf81c namnet '… lutande tak'",
+  "upphöjd botten, luftcirkulation": "a6872a92 'Bottnen är upphöjd för luftcirkulation'; 4a2ab58e 'Upphöjd botten'",
+  "0,77 och 1,12 m², 150 och 213 cm": "4a2ab58e namnet 'Vedbod 150 cm i mörkgrå – 0,77 m² golvyta'; 'Golvytan är 0,77 kvadratmeter'; a6872a92 namnet 'Vedbod 213 cm i grön – 1,12 m² golvyta'",
+  "235 cm, två fack": "d24952b6 'Vedbod på 235 centimeter som är två saker i en: ett öppet fack där veden ligger luftigt och ett stän[gt]'; namnet 'med stängt redskapsfack'",
+  "60 × 100 och 40 × 100": "5fce6a95 namnet 'Vedställ i svart stål, 60 × 100 cm'; ad88f2b4 'Smalt vedställ i svart stål, 40 × 100 cm'",
+  "flera med eldstadsverktyg": "21b6dcbe 'ett komplett eldstadsset på köpet: skyffel, eldgaffel, tång och borste. Verktygen hänger på fyra krokar längs sidan'; e4c14db3 'med fyra eldstadsverktyg på kroken'; namnen aa7637fb 'med fyra brasredskap' och b1684bee 'med brasverktyg' (aa7637fb:s beskrivning nämner dem inte, därav 'produktnamnet eller beskrivningen')"
+ }
+}

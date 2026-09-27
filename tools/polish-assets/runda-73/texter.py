@@ -34,7 +34,7 @@ mättare nyans (`konstladerfatolj-brun-145-grader`, S 18 %).
 DEM. Tre av åtta är dimensionella tvillingar till publicerade sidor. Alla tre
 visade sig vara äkta FÄRGSYSKON, bevisat på basen (runda 72:s regel):
 
-    839-974V00LR  b72f093d gråbrun    ← V00DB mörkblå + grå + beige
+    [artikelnr]  b72f093d gråbrun    ← V00DB mörkblå + grå + beige
     833-359       b67fdc2b gråbrun    ← V00CW gräddvit · V00CG mörkgrå · BK svart
     833-360       b1e98da4 ljusgrå    ← BK svart
 

@@ -161,7 +161,7 @@ MUTATIONER = [
     ("☠️ attribution till tillverkaren", "348ee535", "skotsel",
      "Foten är fast", "Tillverkaren anger att foten är fast", "attribution"),
     ("☠️ artikelnumret läcker in i specen", "7ab2f8aa", "spec",
-     "Vikt: 22,6 kg", "Artikelnummer: 839-455V00BU", "artikelnummer"),
+     "Vikt: 22,6 kg", "Artikelnummer: 000-" "000V00BU", "artikelnummer"),
     ("☠️ lagerfras i texten", "0945e4dd", "eg",
      "Levereras omonterad", "Skickas från vårt EU-lager", "lagerfras"),
 

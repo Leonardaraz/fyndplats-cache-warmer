@@ -1,0 +1,33 @@
+{
+ "kontrollsumma": 1273416337,
+ "signatur": "slug:id,id,…|slug:… i planens ordning, FNV-1a 32 bitar över ASCII",
+ "antal": 10,
+ "kategorier": {
+  "massagebankar": {
+   "namn": "Massagebänkar",
+   "foralder": "skönhet-hälsa",
+   "beskrivning": "Hopfällbara massagebänkar och behandlingsbänkar i trä och aluminium.",
+   "kontroll": "massagebänk",
+   "falt": "namn",
+   "produkter": [
+    "0baf501b-8575-4615-985f-3633eda66235",
+    "c1e0bc54-e2db-47b0-8231-c1dec641d7ec",
+    "a353ea02-df1f-42ad-af50-77bcbe0c7bbc",
+    "5078bedf-91c6-4971-b7e3-9637debc899f",
+    "a9555a7d-dbd9-4e35-a856-d22db42da79b",
+    "754a4749-d67f-4d12-9cb6-0c9d849de350",
+    "251f0429-49bc-4520-91ba-d6496fe80136",
+    "ed7a86fd-84d8-47f0-9d29-5fca2e6cd97d",
+    "d7eca2ba-9825-4366-a21c-a3756d5d866f",
+    "fd3cd842-d804-4deb-baf2-68a248ff51e3"
+   ]
+  }
+ },
+ "kategoriId": {
+  "massagebankar": "95861adf-4118-4418-914d-85c67853c50a"
+ },
+ "skriven": "2026-09-24, ett anrop: kontrollsumman och alla vakter före första skrivningen (0,4 s), 10 av 10 kopplade, 0 fel. Separat återläsning lika planen (10 av 10, varken saknade eller extra); Wix 118 kategorier, 117 synliga",
+ "forlader": {
+  "skönhet-hälsa": "f6fac3c5-6728-4c05-ba74-73306cb4c4c1"
+ }
+}

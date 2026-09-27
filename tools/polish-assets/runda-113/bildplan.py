@@ -13,8 +13,8 @@
      ☠️ ARTIKELNUMMER    de två EU-energietiketterna, se nedan
 
 ☠️ TVÅ BILDER ÄR EU-ENERGIETIKETTER MED AOSOMS ARTIKELNUMMER TRYCKT PÅ SIG:
-   `b2c76518` bild 5 bär `800-127V90BK` och `480849a7` bild 5 bär
-   `800-196V90BK`. Numret står i Aosoms egen produkt-URL och dealproffsen.se
+   `b2c76518` bild 5 bär `[artikelnr]` och `480849a7` bild 5 bär
+   `[artikelnr]`. Numret står i Aosoms egen produkt-URL och dealproffsen.se
    publicerar samma sträng som `sku`/`mpn` — en googling ställer vår sida
    bredvid deras. Bilderna går bort.
 

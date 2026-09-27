@@ -1,0 +1,36 @@
+{
+ "slug": "forvaring-organisering",
+ "andring": "omtitel i S10: byråer, bokhyllor och tvättkorgar får egna sidor, så titeln släpper byrå och bokhylla (S7-titeln hann aldrig gå live). Första FAQ oförändrad sedan 1914cb2e. Monteringssvaret har inte längre påståendet om 30–60 minuter, som saknade facit.",
+ "seo": {
+  "title": "Förvaring – förvaringsbänk, skåp & hurts på hjul",
+  "description": "Förvaringsbänkar, skåp, kubhyllor, hurtsar på hjul och klädställ till hall, sovrum och kontor. Byråer, bokhyllor och tvättkorgar har egna sidor."
+ },
+ "content": {
+  "intro": [
+   "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du förvaringsbänkar att sitta på, skåp, kubhyllor, kontorshurtsar på hjul, klädställ och förvaring till garage och förråd. Byråer, bokhyllor, skoskåp och tvättkorgar har dessutom egna sidor.",
+   "Mät först, köp sen. Djupet är det mått som oftast överraskar, och ett skåp som är några centimeter för djupt tar mer golv än man tror. För hyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket tål en garagehylla?",
+    "a": "Maxlast per hyllplan anges i produktbeskrivningen. Fördela tunga saker jämnt och placera det tyngsta längst ned för bästa stabilitet."
+   },
+   {
+    "q": "Behöver möblerna monteras?",
+    "a": "Ja, förvaringsmöblerna levereras omonterade, med skruv och anvisning i kartongen."
+   },
+   {
+    "q": "Var hittar jag byråer och bokhyllor?",
+    "a": "De har egna sidor, Byråer och Bokhyllor, liksom Skoskåp & skobänkar och Tvättkorgar. Där finns bland annat smala byråer från 20 cm bredd och skoskåp för 8 till 30 par."
+   }
+  ]
+ },
+ "facit": {
+  "sortimentet": "se runda-s7-sokordskategorier/forvaring-organisering-text.json (399 synliga 2026-09-24)",
+  "egna sidor": "Byråer, Bokhyllor och Tvättkorgar skapas i S10 (koppling.json); Skoskåp & skobänkar i S7",
+  "smala byråer från 20 cm": "se byraer-text.json, 8fb854aa",
+  "skoskåp 8 till 30 par": "se runda-s7-sokordskategorier/skoskap-skobankar-text.json",
+  "garagehylla, montering": "första FAQ oförändrad sedan 1914cb2e; monteringssvaret utan tidsuppgift"
+ }
+}

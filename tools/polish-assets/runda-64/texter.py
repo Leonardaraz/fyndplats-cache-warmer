@@ -4,7 +4,7 @@
 Alla siffror kommer ur leverantörens Technische Daten. Ingenting är påhittat.
 Sju saker är MEDVETET utelämnade, och skälen står i LAGE.md:
 
-  1. Artikelnumret `83F-028V00GY`, som står i b09d20b7:s egen brödtext.
+  1. Artikelnumret `[artikelnr]`, som står i b09d20b7:s egen brödtext.
   2. Ordet "gummi" om ca92e3ce — feedkolumnen kapade `Gummiholz` till `Gummi`.
   3. Ordet "bomull" om beacff5a — ingressen säger bomull, materialet polyester.
   4. Ordet "matstol" om beacff5a — brödtexten kallar den `Esszimmerstuhl`.

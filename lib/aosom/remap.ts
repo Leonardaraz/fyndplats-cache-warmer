@@ -23,7 +23,7 @@
 // mappningsraden och feed-raden och får tillbaka en plan eller en ny rad.
 
 import type { ProductMappingRecord } from "../store";
-import { mappingSupplier } from "../store/supplier";
+import { aosomSkuOf, mappingSupplier } from "../store/supplier";
 import { SUPPLIER_VAT_RATE } from "../import/pricing";
 import { marginEfterByte } from "../sync/warehouse-failover";
 import { freightShare, isShippableToSe, landedCostEur, type AosomRow } from "./feed";
@@ -315,5 +315,56 @@ export function pensioneraDubblett(m: ProductMappingRecord): ProductMappingRecor
     draftStatus: "rejected",
     needsAiPolish: false,
     reviewedAt: new Date().toISOString(),
+  };
+}
+
+export type RemapSkuKalla = "anrop" | "dubblett";
+
+export type RemapSkuVal =
+  | { ok: true; sku: string; kalla: RemapSkuKalla }
+  | { ok: false; fel: string };
+
+/**
+ * Vilket artikelnummer ommappningen ska använda.
+ *
+ * ☠️ NUMRET BEHÖVER INTE PASSERA WORKFLOWEN. Så hittas en äkta dubblett i
+ * praktiken: Aosom-utkastet bär artikelnumret på sin mappningsrad, och
+ * utkastet är det som pensioneras. Rutten kan alltså läsa numret där i stället
+ * för att få det som workflow-input. Workflow-inputs och Actions-loggar på det
+ * här PUBLIKA repot går att läsa utan inloggning, och numret är exakt den
+ * sträng dealproffsen publicerar som `sku`/`mpn`. Med ett input-fält blev
+ * varje ommappning en publicering av den kopplingen.
+ *
+ * ☠️ ANGIVET NUMMER MOT DUBBLETTENS NUMMER: OLIKA → VÄGRA. Paret är en
+ * människas bedömning av att två sidor är samma vara. Pekar hon ut ett
+ * Aosom-utkast som dubblett men skriver ett annat artikelnummer har något av
+ * de två fel — oftast en färgvariant i samma serie. Att då välja det ena
+ * tyst hade pensionerat en vara och bytt till en annan.
+ *
+ * Ren funktion; rutten läser dubblettens rad och skickar in den.
+ */
+export function väljRemapSku(
+  anropetsSku: string | undefined,
+  dubblett: Pick<ProductMappingRecord, "supplier" | "supplierProductId"> | null | undefined,
+): RemapSkuVal {
+  const angivet = anropetsSku?.trim() || undefined;
+  const frånDubblett = dubblett ? aosomSkuOf(dubblett) : null;
+
+  if (angivet) {
+    if (frånDubblett && frånDubblett !== angivet) {
+      return {
+        ok: false,
+        fel: "Angivet artikelnummer skiljer sig från dubblettens. Lämna sku tomt "
+          + "så används dubblettens, eller kontrollera paret.",
+      };
+    }
+    return { ok: true, sku: angivet, kalla: "anrop" };
+  }
+  if (frånDubblett) return { ok: true, sku: frånDubblett, kalla: "dubblett" };
+  return {
+    ok: false,
+    fel: dubblett
+      ? "sku saknas och dubbletten bär inget Aosom-artikelnummer"
+      : "sku saknas — ange sku eller en Aosom-dubblett att hämta numret ur",
   };
 }

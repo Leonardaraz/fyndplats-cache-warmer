@@ -198,7 +198,7 @@ MUTATIONER = [
     ("avsändarlandet skrivs ut", "8f6636e4", "eg",
      "Levereras omonterad", "Tillverkad i Tyskland", "land"),
     ("artikelnumret läcker", "dbbe7253", "spec",
-     "Vikt: 11 kg", "Artikelnummer: 839-423V00BG", "artikelnummer"),
+     "Vikt: 11 kg", "Artikelnummer: 000-" "000V00BG", "artikelnummer"),
     ("lagerfras i texten", "f192540f", "eg",
      "Levereras omonterad", "Skickas från vårt EU-lager", "lagerfras"),
     ("länk till en slug som ingen har skrivit", "78cb09ba", "faq",

@@ -74,7 +74,7 @@ poleras i en egen runda när måtten jämförts mot de publicerade sidorna en oc
 
 ### ☠️ Artikelnumret står i LEVERANTÖRENS EGEN BRÖDTEXT
 
-`b09d20b7` har raden `✔ Artikelnummer: 83F-028V00GY` mitt i den tyska
+`b09d20b7` har raden `✔ Artikelnummer: [artikelnr]` mitt i den tyska
 beskrivningen — inte i spec-tabellen, utan bland säljpunkterna.
 
 Det förklarar husets öppna fråga från 2026-09-03: fyra publicerade sidor bär

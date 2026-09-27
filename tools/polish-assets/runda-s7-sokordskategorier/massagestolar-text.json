@@ -1,0 +1,46 @@
+{
+ "slug": "massagestolar",
+ "seo": {
+  "title": "Massagestolar & massagefåtöljer med värme",
+  "description": "Massagefåtöljer med vibration, värme och fotstöd, några med uppresningshjälp, och massagestolar med vibration eller knådning i ryggen. Bär upp till 160 kg."
+ },
+ "content": {
+  "intro": [
+   "En massagefåtölj är en fåtölj att vila i, med vibration och värme i ryggen och ett fotstöd som fälls upp. Här samlar vi massagefåtöljer för vardagsrummet och massagestolar, där flera är kontorsstolar med massage i ryggen för dig som sitter länge vid skrivbordet.",
+   "De flesta har både värme och vibration, och några har knådande massage i stället för vibration. Massagen och värmen styrs med en fjärr- eller handkontroll, och flera har timer som stänger av av sig själv. Många går att vrida runt, några har gungfunktion och flera har mugghållare och sidofickor för kontrollen.",
+   "Några fåtöljer har uppresningshjälp: en elmotor lyfter sitsen och hjälper dig upp när du ska resa dig. Fåtöljerna bär upp till 160 kg, och klädseln är konstläder, mikrofiber, sammet, chenille eller tyg i linnelook. Kör massagen i korta pass i stället för i timmar.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är skillnaden mellan en massagestol och en massagefåtölj?",
+    "a": "Massagefåtöljen är en vilfåtölj med fotstöd och ryggläge. Flera av massagestolarna är kontorsstolar, med vibration eller knådning i ryggen, som du sitter i vid skrivbordet."
+   },
+   {
+    "q": "Finns det massagefåtöljer som hjälper en upp?",
+    "a": "Ja, några har uppresningshjälp. Samma handkontroll styr uppresningen, liggläget och massagen."
+   },
+   {
+    "q": "Hur mycket bär en massagefåtölj?",
+    "a": "Det står per modell. De flesta bär 120 kg, flera 135 eller 150 kg, och fyra modeller är byggda för 160 kg."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "41 synliga produkter 2026-09-24: 15 med Massagestol i namnet och 26 med Massagefåtölj i namnet",
+  "kontorsstolar med massage": "e9b06d4c 'En svart kontorsstol i…'; fab492d8 'En grå kontor[sstol]'; 45172748 'svart och femarmad med hjul, och sitsen snurrar fritt'",
+  "de flesta värme och vibration": "värme 33 av 41, vibration 28 av 41",
+  "knådande massage": "8 träffar: fab492d8 'fyra knådpunkter'; e9b06d4c 'Massagestol med 3D-knådning'; 522103fd 'Massagefåtölj med knådande massage'",
+  "fjärr- eller handkontroll": "34 av 41; fab492d8 'Massagen styrs med en handkontroll på 1,1 meter sladd'",
+  "timer som stänger av": "8 träffar; 45172748 'en avstängningstimer som slår av av sig själv'",
+  "många går att vrida runt": "28 av 41; fab492d8 '360° snurr'; 7062dc79 'går att vrida runt utan att du reser dig'",
+  "några gungfunktion": "6 träffar; 2a046f66 'Massagestol beige med gungfunktion'",
+  "mugghållare och sidofickor": "18 träffar; 6fb217e5 'fyra fickor och två mugghållare'",
+  "uppresningshjälp": "6fb217e5 'Massagefåtölj med uppresningshjälp'; 4439f2a0 'handkontroll som styr tre saker: uppresning, liggläge och vibrationsmassage'; c79c22f7 'uppresningsfåtöljen med elektrisk lyft'",
+  "bär upp till 160 kg, fyra modeller": "54d25930, c50fa916, 3b61e50c, 70d0a9ea 'Massagefåtölj … för 160 kg'",
+  "flera 135 eller 150 kg": "135: c7f46a23, c79c22f7, 7a4ec9c6, 297d8979; 150: 6fb217e5, 505eb413, d3d7b291",
+  "de flesta 120 kg": "maxvikt 120 kg på flertalet, t.ex. 1c22b7bd 'Bärförmåga: 120 kg'",
+  "klädsel": "konstläder 28 (1c22b7bd); mikrofiber (25ae2ad8); sammet (fab492d8 'tryckt sammet'); chenille (505eb413); linnelook (b8b6fee1)",
+  "korta pass": "e9b06d4c 'kör den i korta pass, inte i timmar'; fab492d8 'Kör massagen i korta pass'"
+ }
+}

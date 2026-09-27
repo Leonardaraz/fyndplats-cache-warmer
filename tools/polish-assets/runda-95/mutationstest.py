@@ -96,9 +96,9 @@ FALL = [
                                         (k[0], "Roströd duk med litet tak 94 × 47 cm"))),
 
     # --- husregler -------------------------------------------------------
-    ("artikelnumret 84C-041 slapps in",
+    ("artikelnumret 00C-" "000 slapps in",
      "271327e1", lambda h, n, t, b, k: (byt(h, "med tak i två nivåer",
-                                            "med tak i två nivåer, 84C-041"),
+                                            "med tak i två nivåer, 00C-" "000"),
                                         n, t, b, k)),
     ("avsandarland i skotselstycket",
      "dc7d2513", lambda h, n, t, b, k: (byt(h, "Mät stommen",

@@ -1,0 +1,45 @@
+{
+ "slug": "elementskydd",
+ "seo": {
+  "title": "Elementskydd – spjälat radiatorskydd i MDF",
+  "description": "Elementskydd i MDF med spjälad front, 60 till 172 cm breda och 81 till 95,5 cm höga. Fyra är vita, och ett i ekton har två lådor i överkant."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du elementskydd, också kallade radiatorskydd, som döljer elementet bakom en spjälad front. Fronten släpper igenom den varma luften, och ovansidan blir en hylla där du kan ställa lätta saker.",
+   "Skydden är 60 till 172 cm breda, 18 till 19 cm djupa och 81 till 95,5 cm höga. Det vita på 60 eller 90 cm finns i två bredder, och det längsta på 172 cm täcker ett långt element under ett fönster.",
+   "Elementskyddet i ekton har vågräta spjälor och två lådor i överkant, och gavlarna har ett förskuret urtag för golvlisten. Flera förankras i väggen med beslag, vältskydd eller väggclips som följer med.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mäter jag för ett elementskydd?",
+    "a": "Mät elementets bredd, höjd och djup, inklusive rör och termostat, och jämför med skyddets innermått. Det vita på 112 cm har till exempel innermåttet 106,8 × 16,8 × 80,3 cm."
+   },
+   {
+    "q": "Minskar ett elementskydd värmen?",
+    "a": "Något, eftersom skyddet står framför elementet. Den spjälade fronten släpper ändå igenom den varma luften, så värmen når rummet."
+   },
+   {
+    "q": "Hur mycket tål hyllan ovanpå?",
+    "a": "På det vita skyddet på 60 eller 90 cm tål toppskivan 5 kg. Ställ bara lätta saker där, som några böcker, och torka upp spill direkt, eftersom MDF inte tål väta."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "5 synliga 2026-09-24, alla i lager.",
+  "MDF, spjälad front": "21344450 'MDF, 12 mm', 'Front: spjälad'; 675ba9bc 'MDF och stål', 'spjälat'; 732cd951 'MDF', 'spjälad med ventilation'; 7bf0bb41 'MDF', 'Spjälor: Lodräta'; eedca823 'MDF i ekton', 'Spjälor: Vågräta'",
+  "hylla ovanpå": "21344450 'Ovansida: plan hylla'; 732cd951 'hylla på ovansidan'; 675ba9bc 'Maxlast på toppskivan: 5 kg'; 7bf0bb41 'Toppskiva'",
+  "60 till 172 cm breda": "675ba9bc 60 eller 90; 21344450 78; eedca823 111; 7bf0bb41 112; 732cd951 172",
+  "18 till 19 cm djupa": "675ba9bc 18; 21344450, 732cd951, 7bf0bb41, eedca823 19",
+  "81 till 95,5 cm höga": "732cd951, 7bf0bb41 81; 21344450 82; 675ba9bc 84; eedca823 95,5",
+  "fyra vita": "21344450, 675ba9bc, 732cd951, 7bf0bb41 'Färg: vit'",
+  "ekton, två lådor, sockelurtag": "eedca823 'Lådor: 2 st i överkant', 'Spjälor: Vågräta', 'Sockelurtag: Förskuret i gavlarna', 'MDF i ekton'",
+  "förankras i väggen, flera": "21344450 'Ingår: vältskydd med skruv och plugg'; 675ba9bc 'väggmontering, tippskydd och beslag ingår'; 7bf0bb41 'Väggförankring, beslag ingår'; eedca823 'Infästning: Väggclips'",
+  "innermått 112": "7bf0bb41 'Innermått: 106,8 × 16,8 × 80,3 cm'",
+  "toppskiva 5 kg": "675ba9bc 'Maxlast på toppskivan: 5 kg'",
+  "värmen, varm luft": "allmänt; 732cd951 'spjälad med ventilation'",
+  "mät inklusive rör och termostat": "allmänt råd",
+  "MDF tål inte väta": "allmänt om MDF"
+ }
+}

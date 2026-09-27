@@ -178,7 +178,7 @@ P["1409d762"] = {
     "ingar": ["sack", "anvisning"],
     # ☠☠☠ TVA ALLVARLIGA FYND I SAMMA PRODUKT:
     #
-    # 1. Leverantorens text bar `Artikelnummern: A91-122` — det ar #470
+    # 1. Leverantorens text bar `Artikelnummern: [artikelnr]` — det ar #470
     #    ordagrant. Numret far ALDRIG na var text, var spec-tabell eller
     #    det publika repot. Det star har som ett FAKTUM OM TEXTEN, utan
     #    numret sjalvt.

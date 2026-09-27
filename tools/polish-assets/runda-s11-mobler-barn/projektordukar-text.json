@@ -1,0 +1,47 @@
+{
+ "slug": "projektordukar",
+ "seo": {
+  "title": "Projektorduk – motoriserad, manuell & på stativ",
+  "description": "Projektordukar på 84 till 120 tum: motoriserade med fjärrkontroll, manuella med autolås för vägg eller tak och dukar på stativ som ställs upp inne eller ute."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du projektordukar på 84 till 120 tum: motoriserade dukar som körs upp och ner med fjärrkontroll, manuella dukar som dras ner för hand och låser sig där du släpper dem, och dukar på stativ som ställs upp utan att något skruvas i väggen.",
+   "Dukarna finns i tre bildformat. 16:9 är formatet för film, tv och spel, 4:3 passar presentationer och äldre material, och en kvadratisk duk i 1:1 kan visa båda, eftersom bilden då bara fyller en del av höjden.",
+   "De motoriserade dukarna går på 230 V och drar 25 W, och fjärrkontrollen är trådlös. Både de motoriserade och de manuella skruvas i vägg eller tak och är gjorda för inomhusbruk. De två stativdukarna på 84 tum står på ett trebent stativ och kan användas ute i uppehållsväder, och 120-tumsduken förankras med markankare och stormlinor i gräsmattan.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur stor projektorduk behöver jag?",
+    "a": "Utgå från rummet och avståndet. I projektorns manual står hur bred bilden blir på ett visst avstånd, och det avgör var projektorn ska stå för att fylla duken. Dukarna här är 152 till 263 cm breda, och ingen av dem har egen elektronik som behöver matcha projektorn."
+   },
+   {
+    "q": "Vad betyder 84 tum?",
+    "a": "Tum anger dukens diagonal, alltså avståndet från hörn till hörn. En duk på 84 tum i formatet 4:3 är 171 cm bred och 128 till 131 cm hög, och duken på 120 tum i 16:9 är 263 × 148 cm."
+   },
+   {
+    "q": "Kan duken användas utomhus?",
+    "a": "Stativdukarna kan det. Duken på 120 tum ställs upp på gräsmattan och är gjord för att stå ute en kväll, och de två på trebent stativ används inne och ute i uppehållsväder. De motoriserade och de manuella dukarna skruvas i vägg eller tak och är gjorda för inomhusbruk."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "9 synliga produkter 2026-09-24: 4 motoriserade (422ab1bd, a8c82049, 623b6504, 77e4a558), 2 manuella med autolås (ddca577d, 77d2b35c), 2 på trebent stativ (0370673c, fe11166f) och 120-tumsduken på stativ (1b87909f).",
+  "84 till 120 tum": "ddca577d, 0370673c, fe11166f, 623b6504, 77e4a558 84 tum; a8c82049 85; 422ab1bd 92; 77d2b35c 99; 1b87909f 120",
+  "motoriserade med fjärrkontroll, alla fyra": "422ab1bd och a8c82049 'duken går upp och ner med fjärrkontroll'; 623b6504 och 77e4a558 'körs ut och in med trådlös fjärrkontroll'",
+  "manuella, låser sig där du släpper": "ddca577d och 77d2b35c 'Den dras ner för hand och låser sig i det läge du släpper den'",
+  "stativ, inget skruvas i väggen": "0370673c och fe11166f 'Montering: ingen — står på stativ'; 1b87909f 'två stativ bär upp den', 'Montering: ram i delar, skruvas ihop' (ramen skruvas ihop, inte i väggen)",
+  "tre bildformat": "16:9 1b87909f; 4:3 ddca577d, 0370673c, fe11166f, 623b6504, 77e4a558; 1:1 422ab1bd, a8c82049, 77d2b35c",
+  "16:9 film, 4:3 presentationer, 1:1 visar båda": "allmän kunskap om bildformat, inget produktpåstående",
+  "230 V, 25 W, trådlös fjärrkontroll": "alla fyra motoriserade 'Anslutning: 230 V / 50 Hz', 'Effekt: 25 W'; 77e4a558 'fjärrkontrollen är trådlös med en räckvidd på upp till 30 meter'",
+  "motoriserade och manuella i vägg eller tak, inomhus": "alla sex 'Montering: skruvas i vägg eller tak', 'Användning: inomhus'",
+  "två stativdukar på 84 tum, ute i uppehållsväder": "0370673c och fe11166f 'Användning: inomhus, och utomhus i uppehållsväder'",
+  "120 tum, markankare och stormlinor, gräsmatta": "1b87909f 'Åtta markankare och två stormlinor på fem meter ingår, så den kan förankras i gräs', 'också på en gräsmatta'",
+  "ute en kväll": "1b87909f 'den är gjord för att stå ute en kväll, inte en säsong'",
+  "manualen, avståndet, ingen elektronik": "produkternas egen FAQ 'Duken har ingen egen elektronik som behöver matcha projektorn — det som avgör är att projektorns bild ryms inom … Ställ den på det avstånd som ger den bildbredden'",
+  "152 till 263 cm breda": "Dukstorlek a8c82049 152; 422ab1bd 165; ddca577d, 0370673c, fe11166f, 623b6504, 77e4a558 171; 77d2b35c 178; 1b87909f 263",
+  "84 tum 4:3 = 171 × 128–131": "ddca577d 171 × 128; 623b6504 och 77e4a558 171 × 130; 0370673c och fe11166f 171 × 131. Diagonal √(171² + 128²) ≈ 213,6 cm = 84,1 tum",
+  "120 tum = 263 × 148": "1b87909f 'Dukstorlek: 263 × 148 cm (120 tum)'"
+ }
+}

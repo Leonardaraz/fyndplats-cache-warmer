@@ -57,7 +57,7 @@ med.
   marknadsföringsnivå. `d99cc578` ger ingen sifferbeteckning alls, bara
   "Gewölbtes Dach verteilt die Windkraft effektiv".
 - **`ed4fd2a9` är sannolikt grönt FÄRGSYSKON till runda 145:s publicerade
-  `601ae5f5`.** Samma bas-artikelnummer `845-775V00` (WT i runda 145, GN
+  `601ae5f5`.** Samma bas-artikelnummer `[artikelnr]` (WT i runda 145, GN
   här), samma namn ("Gewächshaus, Tragbares Pflanzenhaus mit Stahlrahmen"),
   samma vikt (9,4 kg) och samma mått (180×180×200 cm). Mekanisk
   syskonregel från runda 61 ("artikelnumrets BAS är modellen, suffixet är

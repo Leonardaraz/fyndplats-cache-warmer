@@ -1,0 +1,44 @@
+{
+ "slug": "vinstall-vinkylar",
+ "seo": {
+  "title": "Vinställ, vinhylla & vinkyl – 6 till 72 flaskor",
+  "description": "Vinställ för golv och vägg, vinhyllor med glashållare, köksmöbler med vinställ och vinkylar för 12 till 20 flaskor som ställs mellan 5 och 18 °C."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du vinställ, vinhyllor och vinkylar: stapelbara vinställ i metall och bambu, vinställ för väggen i svart stålrör, en vinhylla med glashållare och köksmöbler med inbyggt vinställ, som ett köksskåp, en köksvagn, en köksö och ett barbord.",
+   "Vinställen tar från sex flaskor på väggen till 72 flaskor i stället i bambu, som staplas i moduler och monteras på ungefär fem minuter utan verktyg. Vinhyllan på 148 cm har plats för 12 flaskor och 9 glas.",
+   "Vinkylarna rymmer 12, 16, 18 eller 20 flaskor på 75 cl. Tre av dem ställs mellan 5 och 18 °C och den för 12 flaskor mellan 8 och 18 °C. Vinkylen för 12 flaskor är 26,5 cm bred, och den för 16 flaskor är 56,5 cm hög och får plats under en bänk.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vilken temperatur ska vin förvaras i?",
+    "a": "För lagring brukar en jämn temperatur runt 10 till 14 °C rekommenderas, och det viktigaste är att den inte svänger. Vinkylarna här ställs mellan 5 eller 8 och 18 °C, så samma kyl kan både lagra vin och hålla vitt vin kallt."
+   },
+   {
+    "q": "Hur mycket el drar en vinkyl?",
+    "a": "Det står i beskrivningen. Vinkylarna här drar 75 till 133 kWh om året. Den för 12 flaskor har energiklass E, och de tre andra har energiklass G."
+   },
+   {
+    "q": "Hur mycket bär ett vinställ?",
+    "a": "Vinstället i bambu för 16 flaskor bär 75 kg och det i metall för 16 flaskor 32 kg. I köksvagnen tar varje vinfack 3 kg, vilket räcker för en vanlig flaska."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "15 synliga produkter 2026-09-24: 6 vinställ och vinhyllor för golv och vägg, vinhyllan med glashållare, 4 köksmöbler med vinställ i namnet och 4 vinkylar. Barbordet med 'flaskställ' (e80eee8b) är INTE med.",
+  "stapelbara i metall och bambu": "a7d072fc 'svart metall ... fyra stapelbara plan'; f2611776 'bambu – stapelbart'",
+  "vägg i svart stålrör": "875ca38b 'Vinhylla för väggen – åtta flaskor i svart stålrör'; b73863ff 'Vinställ för väggen, sex flaskor – svart stålrör'",
+  "vinhylla med glashållare": "cbbabd2c 'Vinhylla med glashållare och låda – 12 flaskor och 9 glas, 148 cm hög'",
+  "köksmöbler med vinställ": "98b318b2 'Köksskåp med vinställ för 8 flaskor'; c86ff1a6 'Köksvagn 83 cm med vinställ för sex flaskor'; 3bb5837e 'Köksö på hjul ... vinställ'; a7c39a89 'Barbord 121,5 cm med vinställ'",
+  "sex till 72 flaskor": "b73863ff 'sex flaskor'; f2611776 '48 eller 72 flaskor (välj variant)'",
+  "moduler, fem minuter, inga verktyg": "f2611776 'stapelbart och modulärt', 'Montering: ja, cirka 5 minuter, inga verktyg'",
+  "12, 16, 18 eller 20 flaskor à 75 cl": "47a91a17 12; 15d30e23 16; 480849a7 18; fdbfcea0 20; alla 'à 750 ml'",
+  "5–18 och 8–18 °C": "15d30e23, fdbfcea0, 480849a7 'Temperaturområde: 5–18 °C'; 47a91a17 '8–18 °C'",
+  "26,5 cm bred; 56,5 cm under bänk": "47a91a17 '26,5 × 51,5 × 65 cm'; 15d30e23 '56,5 cm hög, får plats under bänken'",
+  "10–14 °C för lagring": "allmän vinkunskap, inget produktpåstående",
+  "75–133 kWh, E och G": "47a91a17 75 kWh, 'Energiklass: E'; 480849a7 120; fdbfcea0 132; 15d30e23 133; de tre 'Energiklass: G'",
+  "75 kg, 32 kg, 3 kg per vinfack": "6baeb38b 'bär 75 kg'; a7d072fc 'bär 32 kg'; c86ff1a6 '3 kg per vinfack'. En 75 cl-flaska väger runt 1,2–1,5 kg (allmänt)"
+ }
+}

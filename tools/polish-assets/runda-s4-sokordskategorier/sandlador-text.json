@@ -1,0 +1,43 @@
+{
+  "slug": "sandlador",
+  "seo": {
+    "title": "Sandlåda med tak – sandlådor i trä för barn",
+    "description": "Sandlådor i barrträ för barn från 3 år – med soltak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med fiberduk i botten på flera."
+  },
+  "content": {
+    "intro": [
+      "En sandlåda med tak ger skugga under leken och kan skydda sanden mellan gångerna. Här samlar vi våra sandlådor i barrträ för barn från tre år: låga sandlådor med lekkök och diskho, sandlådor med soltak eller lekstugetak och sandlådor formade som ett piratskepp och en bil.",
+      "Titta på tak och botten. På flera modeller täcker duken hela sandytan, och på en kan taket sänkas ända ner till 18 cm så att det fungerar som lock – det håller regn, löv och katter borta. Flera har fiberduk i botten, och en av lådorna rymmer 200 kilo sand.",
+      "Måla eller olja träet en gång om året.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Behöver sandlådan ett lock?",
+        "a": "Ett lock eller ett skynke håller löv, regn och katter borta när ingen leker, och torr sand är trevligare att gräva i. På en av lådorna sänks taket ner till 18 cm och fungerar som lock."
+      },
+      {
+        "q": "Hur mycket sand behövs?",
+        "a": "Det beror på sandytan och djupet. En av lådorna har en sandyta på 77,5 × 77,5 cm som är 20 cm djup och rymmer 200 kilo sand. Sandytans mått står i beskrivningen."
+      },
+      {
+        "q": "Vilken ålder passar sandlådorna för?",
+        "a": "De är gjorda för barn från tre år, och de flesta upp till sju eller åtta år."
+      }
+    ]
+  },
+  "facit": {
+    "8 produkter": "alla i lager; fakta läst 2026-09-24",
+    "barrträ": "a60a5370 'i barrträ'; 9f27b49b, 098b77f5, 47a5d596 'Material: Massivt barrträ'; c973c771 'grått barrträ'",
+    "lekkök och diskho": "a60a5370 'lekköksyta … vit skål infälld'; c973c771 'utekök … diskho'",
+    "soltak eller lekstugetak": "978d0e5d 'med soltak'; 2606fa30 'med lekstugetak'; 7650694f 'med lekstuga … blått tak'; 9f27b49b 'skärmtak'",
+    "piratskepp och bil": "098b77f5 'Sandlåda som piratskepp'; 9f27b49b 'Sandlåda i bilform'",
+    "duken täcker hela sandytan": "978d0e5d 'Duken mäter 114 × 112 cm och täcker hela sandytan'; 2606fa30 'Duken mäter 180 × 104 cm och täcker hela sandytan'",
+    "taket sänks till 18 cm, lock": "47a5d596 'Sänkt till 18 cm ligger duken nästan mot kanten och fungerar som lock över sanden'",
+    "regn, löv och katter": "47a5d596 'håller regn, löv och katter borta från sanden'; a60a5370 'håller löv, regn och katter borta, och torr sand är trevligare att gräva i än blöt'",
+    "fiberduk i botten": "978d0e5d 'botten är klädd med fiberduk'; 7650694f; 9f27b49b och 47a5d596 'fiberduk' i materiallistan",
+    "200 kilo sand, 77,5 × 77,5 × 20 cm": "7650694f 'Sandytan är 77,5 × 77,5 cm och 20 cm djup … Lådan rymmer 200 kg sand'",
+    "måla eller olja en gång om året": "9f27b49b 'Måla eller olja träet en gång om året'",
+    "ålder": "978d0e5d 3–6 år; 9f27b49b, c973c771, 2606fa30, 098b77f5, 47a5d596 3–7 år; a60a5370, 7650694f 3–8 år"
+  }
+}

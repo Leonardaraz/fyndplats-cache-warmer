@@ -1,0 +1,48 @@
+{
+  "slug": "redskapsbodar-forrad",
+  "seo": {
+    "title": "Redskapsbod, förrådstält & trädgårdsskåp",
+    "description": "Redskapsbodar i galvad plåt och plast från 1,1 till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för verktyg och trädgårdsredskap."
+  },
+  "content": {
+    "intro": [
+      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
+      "Börja med yta och höjd. Vill du kunna gå in, titta på nockhöjden: bodarna på 4,1 m² har 2,28 meter i nock och de på 12,4 m² har två meter, och skjutdörrar behöver ingen plats framför boden. De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke – läs i beskrivningen vad som ingår.",
+      "Välj material efter hur mycket underhåll du vill ha. Galvaniserad plåt har ett zinkskikt som skyddar stålet, plastbodarna är genomfärgade och ska inte målas, och trä behöver målas eller laseras innan det tas i bruk.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Behöver jag bygglov för en redskapsbod?",
+        "a": "Mindre bodar kan ofta byggas som friggebod utan bygglov. Enligt Boverket får en friggebod vara högst 15 kvadratmeter och 3 meter hög, och den får inte stå närmare tomtgränsen än 4,5 meter utan grannens medgivande. Kommunen kan ha egna regler, så kontrollera alltid med din kommun innan du beställer."
+      },
+      {
+        "q": "Ingår golv i redskapsboden?",
+        "a": "De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. En av plastbodarna levereras med golv. Läs i beskrivningen vad som ingår."
+      },
+      {
+        "q": "Redskapsbod, förrådstält eller trädgårdsskåp?",
+        "a": "En redskapsbod är ett litet hus som du går in i. Förrådstältet täcker 13,4 m² och har 255 cm i nock, så du går upprätt över hela golvet. Ett trädgårdsskåp tar minst plats och har hyllor och fack för redskap – bra när ytan är liten."
+      }
+    ]
+  },
+  "facit": {
+    "31 produkter": "26 i lager; fakta läst 2026-09-24",
+    "gräsklippare, cyklar": "5dd1a836 'golvet räcker till gräsklippare, dynor och säckar'; 333b56d0 'hänga upp en cykel'",
+    "galvad plåt": "7f7aa2a4, ca2f0e47, 74e737ee, e74d5f67, 5a30aaa8 'Material: galvaniserad stålplåt'; ebb45ac6, 9421c86b, 5dd1a836 'i metall'",
+    "plast 1,1 m²": "aca9e661 'Redskapsbod i plast 1,1 m² med golv', 67376f7e 'utan golv' (båda i lager)",
+    "12,4 m²": "7f7aa2a4, ca2f0e47, 74e737ee, e74d5f67, 5a30aaa8",
+    "förrådstält 13,4 m², nock 255 cm": "95a9d7cc 'Förrådstält 300 × 447 cm med 13,4 m²'; 'nocken sitter på 255 cm och väggarna är fulla två meter'",
+    "trädgårdsskåp i trä, spadar och krattor": "c24a9b56 'i gran', bb112e08 och c9a24404 'i trä'; 1a41b6a9 'spadar, krattor och räfsor står upprätt'",
+    "4,1 m² 2,28 m i nock": "333b56d0 och ee5ea781 'Nockhöjd: 2,28 meter'",
+    "12,4 m² två meter i nock": "7f7aa2a4, ca2f0e47 'Nockhöjd: 2 meter'",
+    "skjutdörrar": "12,4 m²-bodarna 'Dörr: 138 × 152 centimeter, skjutbar'; 9421c86b och 5dd1a836 'med skjutdörr'",
+    "de flesta utan golv": "ebb45ac6 'Golv ingår inte'; 333b56d0, ee5ea781, fem 12,4 m² 'Ingår golv? Nej.'; 67376f7e 'utan golv' — 8 av 11 bodar",
+    "gjuten platta eller ram i tryckimpregnerat virke": "ebb45ac6 '… en gjuten platta eller en ram i tryckimpregnerat virke'",
+    "en plastbod med golv": "aca9e661 'Ja, ett fundament följer med'",
+    "zinkskikt": "ebb45ac6 'Stommen är galvaniserad, vilket betyder att zinkskiktet offrar sig i stället för stålet'",
+    "plast genomfärgad, ska inte målas": "aca9e661 och 67376f7e 'Polypropen ska inte målas. Plasten är genomfärgad'",
+    "trä målas eller laseras": "25ed0c55 'Trät är obehandlat i ytan vid leverans. Måla eller lasera det innan du fyller'; 2b6d2766 'träolja eller lasyr'",
+    "friggebod 15 m², 3 m, 4,5 m, grannens medgivande": "Boverket, PBL kunskapsbanken 'Friggebod' (boverket.se/sv/pbl-kunskapsbanken/lov--byggande/anmalningsplikt/bygglovbefriade-atgarder/friggebod) via sökning 2026-09-24"
+  }
+}

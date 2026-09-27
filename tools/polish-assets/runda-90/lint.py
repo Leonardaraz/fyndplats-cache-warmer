@@ -210,7 +210,7 @@ def sjalvtest():
         ("<p>Hjälm är lag i Sverige.</p>", "hjälm som lag"),
         ("<p>Ramen är i rostfritt stål.</p>", "rostfri"),
         ("<p>Rundan gav sju sidor.</p>", "intern jargong"),
-        ("<p>Modellreferens: 371-021YG</p>", "artikelnummer"),
+        ("<p>Modellreferens: 000-" "000YG</p>", "artikelnummer"),
         ("<p>Tillverkad av HOMCOM.</p>", "husmärke"),
         ("<p>Skärmen är 12,5 cm hög.</p>", "förkastat mått"),
         ("<p>Hjulet mäter 41 cm.</p>", "förkastat mått"),

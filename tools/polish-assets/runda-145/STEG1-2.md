@@ -44,15 +44,15 @@ kommer tillbaka"-post behövs eftersom den aldrig polerades.
 
 | pid | wixProductId | pris | konstruktion | supplierProductId |
 |---|---|--:|---|---|
-| `0fc3c252` | 0fc3c252-94d2-4c05-b916-bfaf7e1ae356 | 1 519 | hyllförsett foliehus, rullbar dörr, 198×275×191 | aosom:84H-542V00WT |
-| `97f5f728` | 97f5f728-d291-45ed-8435-dfdec4a9f0a3 | 1 699 | pop-up-foliehus, sadeltak, två dragkedjedörrar | aosom:84H-536V00GN |
-| `9cdca665` | 9cdca665-a1e0-4809-b719-11a6bdb81c83 | 2 299 | stor genomskinlig tunnel, 40 clips, vindklass 5 | aosom:84H-443V01CR |
-| `f5f02f8a` | f5f02f8a-ef76-414f-8d59-1a82071c601b | 3 169 | XL-tunnel med solskyddsnät, rullbara sidoväggar | aosom:84H-198V03GN |
-| `601ae5f5` | 601ae5f5-8945-4182-a018-b799b8badb50 | 1 019 | litet portabelt växthus, 9,4 kg | aosom:845-775V00WT |
+| `0fc3c252` | 0fc3c252-94d2-4c05-b916-bfaf7e1ae356 | 1 519 | hyllförsett foliehus, rullbar dörr, 198×275×191 | aosom:[artikelnr] |
+| `97f5f728` | 97f5f728-d291-45ed-8435-dfdec4a9f0a3 | 1 699 | pop-up-foliehus, sadeltak, två dragkedjedörrar | aosom:[artikelnr] |
+| `9cdca665` | 9cdca665-a1e0-4809-b719-11a6bdb81c83 | 2 299 | stor genomskinlig tunnel, 40 clips, vindklass 5 | aosom:[artikelnr] |
+| `f5f02f8a` | f5f02f8a-ef76-414f-8d59-1a82071c601b | 3 169 | XL-tunnel med solskyddsnät, rullbara sidoväggar | aosom:[artikelnr] |
+| `601ae5f5` | 601ae5f5-8945-4182-a018-b799b8badb50 | 1 019 | litet portabelt växthus, 9,4 kg | aosom:[artikelnr] |
 | `dd97fbc9` | dd97fbc9-1fd8-4ec2-abf4-a1956f6cd39b | 1 769 | 3-plans drivbänksskåp trä/PC, två låsbara dörrar | aosom:845-502 |
-| `62d2071e` | 62d2071e-96ee-48e7-aa23-709992fdfc92 | 1 249 | budget-foliehus, 3 plan trådhyllor | aosom:845-302V01GN |
-| `a7d1a29b` | a7d1a29b-81c4-4890-bf58-6a0a99b53e0c | 1 819 | genomskinlig gångtunnel, 40 clips, vindklass 5 | aosom:84H-011V00CR |
-| `2da078c9` | 2da078c9-71c8-4929-9e39-6379163dfec5 | 1 019 | väggmonterat lutande växthus, plast/stål | aosom:84H-195V01WT |
+| `62d2071e` | 62d2071e-96ee-48e7-aa23-709992fdfc92 | 1 249 | budget-foliehus, 3 plan trådhyllor | aosom:[artikelnr] |
+| `a7d1a29b` | a7d1a29b-81c4-4890-bf58-6a0a99b53e0c | 1 819 | genomskinlig gångtunnel, 40 clips, vindklass 5 | aosom:[artikelnr] |
+| `2da078c9` | 2da078c9-71c8-4929-9e39-6379163dfec5 | 1 019 | väggmonterat lutande växthus, plast/stål | aosom:[artikelnr] |
 
 Två observationer om diversiteten innan Steg 5:
 

@@ -218,7 +218,7 @@ def _sjalvtest():
         ("J tyskt ord                  ", A, "tyskt ord",
          med(A, "<p>Ett riktigt Hundebuggy.</p>"), True),
         ("K artikelnummer              ", A, "artikelnummer",
-         med(A, "<p>Modell 000-0000X.</p>"), True),
+         med(A, "<p>Modell 000-" "0000X.</p>"), True),
         ("L ohärlett tal               ", A, "OHÄRLETT TAL",
          med(A, "<p>Den väger 77 kg.</p>"), True),
         ("M jargong: substantivet      ", A, "INTERN JARGONG",

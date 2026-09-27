@@ -1,0 +1,49 @@
+{
+ "slug": "tv-bankar",
+ "seo": {
+  "title": "TV-bänk – 80 till 200 cm, med lådor och LED",
+  "description": "TV-bänkar från 80 till 200 cm för tv upp till 75 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED."
+ },
+ "content": {
+  "intro": [
+   "En tv-bänk ska bära tv:n, gömma sladdarna och ge plats för spelkonsol, router och fjärrkontroller. Här samlar vi tv-bänkar från 80 till 200 cm, en väggmonterad bänk som svävar över golvet, små bänkar på hjul och bänkar med lådor, luckor och öppna fack.",
+   "Titta på tv:ns storlek och vikt. Flera bänkar anger vilken tv som får plats, upp till 75 tum, och bärigheten står per modell, upp till 100 kg för hela bänken. Bänkarna på hjul har kabelhål i bakstycket, och under bänkar med ben kan sladdarna dras i stället för bakom.",
+   "Stommarna är av spånskiva eller MDF, i vitt, svart, högglans eller ektoner, och några har ben i metall. Tre bänkar har luckor som stängs mjukt, och en har RGB-LED och glashylla. De flesta levereras omonterade med anvisning.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur stor tv passar på bänken?",
+    "a": "Det står i produktbeskrivningen. De största bänkarna är gjorda för en tv på upp till 75 tum, och bärigheten för skivan anges för sig."
+   },
+   {
+    "q": "Finns det tv-bänk att hänga på väggen?",
+    "a": "Ja, en tv-bänk på 180 cm är gjord för väggmontering och har tre nedfällbara luckor med mjukstängande gångjärn."
+   },
+   {
+    "q": "Hur mycket bär en tv-bänk?",
+    "a": "Det står per modell, och skivan och hyllorna anges var för sig. Den som bär mest klarar 100 kg totalt, varav 50 kg på skivan."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "18 synliga produkter 2026-09-24 med TV-bänk i namnet (namnsökning, ingen fler sida)",
+  "80 cm": "27ab5be6 'TV-bänk på hjul 80 cm, vit'; 5d46fd57 '…, svart'",
+  "200 cm": "7c5c90c5 'TV-bänk 200 cm med två klaffluckor och soft close'",
+  "75 tum": "8211fa8f 'godkänd för en tv upp till 75 tum'; c329ea34 'TV-bänk 180 cm för 75 tums TV'",
+  "väggmonterad": "b373ce2d 'TV-bänk 180 cm väggmonterad – tre nedfällbara luckor', 'mjukstängande gångjärn'",
+  "på hjul": "27ab5be6, 5d46fd57 'En tv-bänk på fyra hjul'",
+  "högglans": "26f28bf2 'i högglans vit'; e60b4d1a 'högglans med ekskiva'; c329ea34 'högglansvit'",
+  "ektoner": "d1fe16a5 'en lucka i ekton'; 98b85a6e 'Ekfärgad stomme'",
+  "glashylla": "8211fa8f 'med RGB-LED och glashylla'; 98b85a6e 'med glashylla'",
+  "RGB-LED": "8211fa8f",
+  "100 kg, 50 kg på skivan": "8211fa8f 'Bärighet: 100 kg totalt — 50 kg ovanplattan'",
+  "kabelhål på hjulbänkarna": "27ab5be6 'Ett kabelhål på 5 centimeter i bakstycket'",
+  "sladdar under bänkar med ben": "d1fe16a5 'sladdar kan dras under i stället för bakom'",
+  "fjärrkontroller och sladdar": "26f28bf2 'fjärrkontroller, handkontroller och sladdar'",
+  "spånskiva eller MDF": "mdf-taggen på 18 av 18, t.ex. 8211fa8f 'Material: spånskiva, MDF, glas och rostfritt stål'",
+  "ben i metall": "d1fe16a5 'TV-bänk 140 cm med metallben'",
+  "tre med mjukstängning": "b373ce2d 'mjukstängande gångjärn'; 7c5c90c5 'soft close'; 4f9ef409 (soft-taggen)",
+  "de flesta omonterade": "16 av 18 'Montering krävs'"
+ }
+}

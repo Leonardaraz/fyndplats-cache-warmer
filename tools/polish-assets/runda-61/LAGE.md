@@ -9,20 +9,20 @@ revision 1–3, och **noll** av dem är dubbletter av en publicerad sida.
 
 | id8 | artikelnummer | färg | pris | prisgrind |
 |---|---|---|--:|---|
-| f523b18d | 800-288V90GY | grå | 1 059 | ✔ |
-| 83d2db1a | 800-287V90CW | gräddvit | 1 049 | ✔ |
-| e7f69e8a | 800-287V90BK | svart | 1 039 | ✔ |
-| 375bb3c8 | 800-286V90CW | grädde | 1 029 | ✔ |
-| 7805b8bc | 800-286V90BK | svart | 959 | ✔ |
-| 2f2c1c88 | 800-267V90CW | grädde | 1 069 | ✔ |
-| 0ab3483a | 800-181V90PK | rosa | 999 | ✔ |
+| f523b18d | [artikelnr] | grå | 1 059 | ✔ |
+| 83d2db1a | [artikelnr] | gräddvit | 1 049 | ✔ |
+| e7f69e8a | [artikelnr] | svart | 1 039 | ✔ |
+| 375bb3c8 | [artikelnr] | grädde | 1 029 | ✔ |
+| 7805b8bc | [artikelnr] | svart | 959 | ✔ |
+| 2f2c1c88 | [artikelnr] | grädde | 1 069 | ✔ |
+| 0ab3483a | [artikelnr] | rosa | 999 | ✔ |
 
 ☠️ **Basnumret är modellen, suffixet är färgen.** Tre syskonpar faller ut
 mekaniskt, utan att jämföra text eller bild:
 
-- `800-287V90` **CW ↔ BK** — 83d2db1a och e7f69e8a, båda nya
-- `800-286V90` **CW ↔ BK** — 375bb3c8 och 7805b8bc, båda nya
-- `800-181V90` **BK ↔ PK** — den PUBLICERADE b330de9c och utkastet 0ab3483a
+- `[artikelnr]` **CW ↔ BK** — 83d2db1a och e7f69e8a, båda nya
+- `[artikelnr]` **CW ↔ BK** — 375bb3c8 och 7805b8bc, båda nya
+- `[artikelnr]` **BK ↔ PK** — den PUBLICERADE b330de9c och utkastet 0ab3483a
 
 Suffixet matchar tyskans `Farbe` i sju fall av sju (GY, CW, BK, PK). Runda 59
 bevisade syskonskap genom att jämföra tysk brödtext och bilder; basnumret gör

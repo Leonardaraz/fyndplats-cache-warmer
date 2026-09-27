@@ -114,7 +114,7 @@ def sjalvtest():
         ("för lång", "x" * 200, "tecken (max"),
         ("tyskt ord", "Ett Raumteiler i vardagsrummet", "förbjudet ord"),
         ("husmärke", "Rumsavdelare från Outsunny i vitt", "förbjudet ord"),
-        ("artikelnummer", "Rumsavdelare 830-816V01WT mot vit bakgrund", "artikelnummer"),
+        ("artikelnummer", "Rumsavdelare 000-" "000V00WT mot vit bakgrund", "artikelnummer"),
         ("ohärlett tal", "Rumsavdelare 999 cm bred mot vit bakgrund", "ohärlett tal"),
         ("säger ingenting", "Ett ljust rum med en soffa och en lampa", "varken vad varan är"),
     ]

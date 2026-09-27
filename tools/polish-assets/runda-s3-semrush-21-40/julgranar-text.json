@@ -1,0 +1,44 @@
+{
+  "slug": "julgranar",
+  "seo": {
+    "title": "Konstgjord julgran – plastgranar 57–225 cm",
+    "description": "Konstgjorda julgranar från 57 till 225 cm: smala pelargranar, täta granar med över 2 000 grenspetsar, snötäckta modeller och granar med LED-belysning."
+  },
+  "content": {
+    "intro": [
+      "En konstgjord julgran – eller plastgran, som många säger – ställer du upp varje december i många år, utan barr på golvet och utan vattning. Här samlar vi alla våra julgranar: från små granar på 57 cm till granar på 225 cm för rum med högt i tak, och från smala pelarmodeller som bara är 46–54 cm breda till täta granar med över 2 000 grenspetsar.",
+      "Välj efter rummet. Mät takhöjden och lämna plats för toppen, och tänk på bredden: en bred gran på 180 cm kan vara över en meter i diameter, medan en smal modell får plats bredvid soffan. Antalet grenspetsar säger hur tät granen blir – samma höjd finns från några hundra till flera tusen spetsar. Vill du ha en julgran med belysning finns granar där LED-lamporna redan sitter i grenverket, och de snötäckta modellerna ger vinterkänsla direkt.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur hög julgran ska jag välja?",
+        "a": "Utgå från takhöjden och dra av 20–30 cm för toppen och stjärnan. I ett rum med 2,4 meter i tak passar en gran på 180–210 cm. Har du ont om golvyta är en smal modell ofta rätt – en pelargran på 180 cm är bara 46 cm bred."
+      },
+      {
+        "q": "Finns det julgranar med belysning?",
+        "a": "Ja. Flera av våra granar har varmvita LED-lampor som redan sitter i grenverket – från små granar med 50 LED till en 210 cm hög gran med 700 LED. Då slipper du linda en ljusslinga runt granen själv."
+      },
+      {
+        "q": "Hur förvarar jag en konstgjord julgran?",
+        "a": "Många av våra granar delas i sektioner, och flera har en fot som fälls ihop – då ryms granen i en kartong till nästa jul. Förvara den torrt och fluffa upp grenarna när du ställer upp den igen."
+      }
+    ]
+  },
+  "facit": {
+    "57 cm": "e1d9dfe8 Julgranar 2-pack 57 cm",
+    "225 cm": "9f776653 Smal julgran 225 cm",
+    "46–54 cm breda": "eb5af7a1 Pelarjulgran 180 cm 46 cm bred; 9345c5ca Pelarjulgran 210 cm 54 cm bred",
+    "över 2 000 grenspetsar": "bc6d3edc 2 154; 0065fe6b 2 380; 03658e32 2 419; d4cfaf97 4 030",
+    "180 cm över en meter i diameter": "3523deaa 122 cm; 5edc1480 136 cm; 8fc833e2 105 cm; c9c6b721 Ø120",
+    "några hundra till flera tusen (samma höjd)": "180 cm: 1f887213 390 grentoppar … d4cfaf97 4 030",
+    "LED redan i grenverket": "d09b1b4c 'redan monterade'; bc6d3edc 'redan sitter i grenverket'; 0ae1b285 'redan monterade'; 87c41ed3 'sitter redan på plats'; 27ff1a8e 'inbyggda'",
+    "50 LED": "b0766f63; 27ff1a8e",
+    "210 cm med 700 LED": "bc6d3edc",
+    "varmvita": "b0766f63, 27ff1a8e, bdc71526, d09b1b4c, bc6d3edc, 0ae1b285, 87c41ed3",
+    "pelargran 180 cm 46 cm bred": "eb5af7a1",
+    "sektioner": "25 av 57 beskrivningar",
+    "fot som fälls ihop": "20 av 57 beskrivningar",
+    "INTE 'våra smalaste är 46 cm'": "27ff1a8e och julgransset 62f42597 är Ø35 cm"
+  }
+}

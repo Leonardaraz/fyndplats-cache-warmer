@@ -4,20 +4,20 @@ Lästa via workflowen "Polering — läs och stämpla mappningsraden", läge `la
 
 | id8 | artikelnummer | landedCostSek | förväntat | faktiskt | grind | frakt­andel |
 |---|---|--:|--:|--:|---|--:|
-| 67bd3628 | 921-789V00**LG** | 984,43 | 1199 | 1199 | ✅ | 0,338 |
-| b97ac1d8 | 921-789V00**GY** | 860,58 | 1039 | 1039 | ✅ | 0,386 |
-| b5d8eb9c | 921-789V00**CW** | 797,69 | 959 | 959 | ✅ | 0,417 |
-| 6d64de9b | 921-589V00**CW** | 949,33 | 1149 | 1149 | ✅ | 0,338 |
-| 9d626528 | 921-589V00**CG** | 737,32 | 899 | 899 | ✅ | 0,451 |
-| c3e0af3f | 921-589V00**BU** | 805,98 | 969 | 969 | ✅ | 0,412 |
-| 05cc1f9c | 921-589V00**BK** | 867,72 | 1049 | 1049 | ✅ | 0,383 |
+| 67bd3628 | [artikelnr]**LG** | 984,43 | 1199 | 1199 | ✅ | 0,338 |
+| b97ac1d8 | [artikelnr]**GY** | 860,58 | 1039 | 1039 | ✅ | 0,386 |
+| b5d8eb9c | [artikelnr]**CW** | 797,69 | 959 | 959 | ✅ | 0,417 |
+| 6d64de9b | [artikelnr]**CW** | 949,33 | 1149 | 1149 | ✅ | 0,338 |
+| 9d626528 | [artikelnr]**CG** | 737,32 | 899 | 899 | ✅ | 0,451 |
+| c3e0af3f | [artikelnr]**BU** | 805,98 | 969 | 969 | ✅ | 0,412 |
+| 05cc1f9c | [artikelnr]**BK** | 867,72 | 1049 | 1049 | ✅ | 0,383 |
 | 9e656e81 | **921-589** | 783,83 | 949 | 949 | ✅ | 0,424 |
 
 **Åtta av åtta prisgrindar gröna.** Ingen fraktandel över 0,5, så ingen behöver
 skjutas till sist.
 
-Baserna bekräftar modellindelningen mekaniskt: modell D är `921-789V00`, modell
-G är `921-589V00`. Runda 61:s regel — basen är modellen, suffixet är färgen —
+Baserna bekräftar modellindelningen mekaniskt: modell D är `[artikelnr]`, modell
+G är `[artikelnr]`. Runda 61:s regel — basen är modellen, suffixet är färgen —
 håller på båda familjerna.
 
 ☠️ **Suffixet `CG` avgör färgfrågan en tredje gång.** 9d626528 bär `…V00CG`,

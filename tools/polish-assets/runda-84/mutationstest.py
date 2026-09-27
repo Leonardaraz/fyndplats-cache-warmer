@@ -65,7 +65,7 @@ MUTATIONER = [
     ("aabcd677", "ingress", "En <strong>smal 45-litare</strong>",
      "En <strong>smal Outsunny-45-litare</strong>", "outsunny"),
     ("7846d05f", "ingress", "En <strong>rund tunna</strong>",
-     "En <strong>rund tunna (art.nr 845-030CG)</strong>",
+     "En <strong>rund tunna (art.nr 000-" "000CG)</strong>",
      "artikelnummer"),
     ("96beca79", "ingress", "Ett lager <strong>aktivt kolfiber</strong>",
      "Leverantören anger att ett lager <strong>aktivt kolfiber</strong>",

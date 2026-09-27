@@ -39,7 +39,7 @@ säger tio andra tal.
    sidoficka och en **blank kromad** vridbas; de tre andra har en veckad ficka
    och en **svart** bas.
 
-☠️ **Och artikelnumrets bas höll inte heller.** `700-050V94` är identisk på
+☠️ **Och artikelnumrets bas höll inte heller.** `[artikelnr]` är identisk på
 alla fyra — `LR`, `GY`, `DR`, `CW`. Runda 61:s mekaniska syskongrind (bas =
 modell, suffix = färg) svarade alltså "samma modell" på två olika stolar. Basen
 är en SERIE hos den här leverantören, inte en modell.

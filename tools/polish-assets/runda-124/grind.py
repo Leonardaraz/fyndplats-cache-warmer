@@ -299,7 +299,7 @@ def granska(pid):
 
 SJALVTEST = [
     ("husmärke", "En låda från HOMCOM med tre lådor.", True),
-    ("artikelnummer", "Modellreferens: 845-030CG står i specen.", True),
+    ("artikelnummer", "Modellreferens: 000-" "000CG står i specen.", True),
     ("land", "Lådan skickas från Tyskland inom två dagar.", True),
     ("attribution", "Leverantören anger 30 kilo som maxlast.", True),
     ("tyskt ord", "Lådan har tre Schubladen och ett Staufach.", True),

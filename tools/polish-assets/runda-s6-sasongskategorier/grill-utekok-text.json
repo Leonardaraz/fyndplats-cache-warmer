@@ -1,0 +1,40 @@
+{
+  "slug": "grill-utekok",
+  "seo": {
+    "title": "Gasolgrill, kolgrill, plancha & kylbox",
+    "description": "Gasolgrillar med två till fem brännare, kolgrillar, planchor med regulator och slang, grillvagnar och kylboxar som håller kylan upp till 72 timmar."
+  },
+  "content": {
+    "intro": [
+      "Grillen är samlingspunkten på altanen. Här samlar vi gasolgrillar, kolgrillar och planchor, grillvagnar och campingbord, kylboxar och kylvagnar för drycken, och tillbehör som grilltält och eldstadsverktyg. Eldkorgarna har en egen sida under Eldkorgar & eldstäder.",
+      "Gasolgrillarna har från två till fem brännare, och en plancha är en stekhäll som värms av gasolbrännare. Till både gasolgrillarna och planchorna följer regulator och slang med, så du behöver bara en gasolflaska. Kolgrillarna finns på vagn och på hjul, och som portabla och hopfällbara modeller.",
+      "Två av kylboxarna håller kylan i upp till 72 timmar på is, den ena helt utan el, och flera kylboxar och kylvagnar står på hjul.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Ingår regulator och slang?",
+        "a": "Ja, till både gasolgrillarna och planchorna ligger regulator och slang i kartongen. Gasolflaskan köper du separat."
+      },
+      {
+        "q": "Hur länge håller kylboxen kylan?",
+        "a": "Det beror på modell och på hur mycket is du lägger i. Den som håller längst klarar upp till 72 timmar på is, och tiden anges i produktbeskrivningen."
+      },
+      {
+        "q": "Kan jag grilla på en eldkorg?",
+        "a": "Ja, flera av eldkorgarna har grillgaller. De finns under Eldkorgar & eldstäder."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "38 i kategorin 2026-09-24, varav 16 eldkorgar som också ligger i Eldkorgar & eldstäder; resten gasolgrillar, planchor, kolgrillar, kylboxar/kylvagnar, grillvagn, campingbord, grilltält, vedställ och eldstadsverktyg",
+    "gasolgrillar två till fem brännare": "namn: ca5b0d48 'Gasolgrill 2 brännare 5 kW', 7031e170 'Gasolgrill 3 brännare', c386b5b5 'Gasolgrill 5 brännare 15,2 kW'",
+    "planchor med regulator och slang": "kontrollerat per produkt: alla tre planchorna (dacc2294, d5c7964d, f02917da) och alla sex gasolgrillarna (ca5b0d48, c386b5b5, 04cc454f, f63c095e, 7031e170 m.fl.) nämner regulator och slang; f02917da 'I kartongen ligger plattan, locket, en regulator, en slang på 80 cm och anvisningen' (ingen gasolflaska)",
+    "plancha = stekhäll med gasolbrännare": "f02917da 'Stekytan är 63 × 37,5 cm och värms av tre brännare på 2,5 kW vardera'",
+    "kolgrillar på vagn, på hjul, portabla, hopfällbara": "namn: 'Kolgrill på vagn i stål med låsbart lock', 'Kolgrill på hjul 83 cm', 'Portabel kolgrill i rostfritt stål', 'Hopfällbar kolgrill'",
+    "grillvagnar och campingbord, grilltält, eldstadsverktyg": "namn: 'Grillvagn utomhus 86 cm med rostfri skiva', 'Campingbord med förvaringsskåp 120 cm', 'Grilltält 245 × 152 cm', 'Eldstadsverktyg 5 delar'",
+    "upp till 72 timmar, utan sladd och batteri": "b3e3aac8 'Kylbox 42,6 liter utan el' 'håller kylan i upp till 72 timmar på is, utan sladd och utan batteri'; b815de72 'Kylbox 70 liter på hjul' 72 timmar; övriga 397b845e 36 timmar, fc21434f 8 timmar is/48 timmar isolering",
+    "kylboxar och kylvagnar på hjul": "namn: b815de72 'Kylbox 70 liter på hjul', 31d047f9 'Kylvagn 56 liter på hjul', fc21434f 'Kylbox på hjul 56 L'",
+    "FAQ eldkorgar med grillgaller": "grillgaller i 9 av 16 eldkorgar, se eldkorgar-eldstader-text.json"
+  }
+}

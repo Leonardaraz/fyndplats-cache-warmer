@@ -236,7 +236,7 @@ MUTATIONER = [
      "b72f093d", "faq", "Gungfunktionen är gjord för",
      "Tillverkaren anvisar att gungfunktionen är gjord för", "attribution"),
     ("artikelnumret läcker", "b67fdc2b", "spec",
-     "Vikt: 24 kg", "Artikelnummer: 833-359V00CW", "artikelnummer"),
+     "Vikt: 24 kg", "Artikelnummer: 000-" "000V00CW", "artikelnummer"),
     ("lagerfras i texten", "acb1f904", "eg",
      "Levereras omonterad", "Skickas från vårt EU-lager", "lagerfras"),
     ("länk till en slug som ingen har skrivit", "969d9ec9", "faq",

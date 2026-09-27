@@ -172,7 +172,7 @@ MUTATIONER = [
      "Massiv bok, med justerbara", "Leverantören anger massiv bok, med justerbara",
      "attribution"),
     ("artikelnumret läcker", "7e00970f", "spec",
-     "Vikt: 10,3 kg", "Artikelnummer: 833-041V80", "artikelnummer"),
+     "Vikt: 10,3 kg", "Artikelnummer: 000-" "000V00", "artikelnummer"),
     ("lagerfras i texten", "58fb3025", "eg",
      "Levereras omonterad", "Skickas från vårt EU-lager", "lagerfras"),
     ("länk till en slug som ingen har skrivit", "66adcdff", "faq",

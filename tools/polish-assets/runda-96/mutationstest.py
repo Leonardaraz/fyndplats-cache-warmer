@@ -102,9 +102,9 @@ FALL = [
                                         (k[0], "Kaffebrun duk 300 × 300 cm med litet tak"))),
 
     # --- husregler --------------------------------------------------------
-    ("☠️ artikelnumret 84C-175 ur brodtexten slapps in",
+    ("☠️ artikelnumret 00C-" "000 ur brodtexten slapps in",
      "9a3600f8", lambda h, n, t, b, k: (byt(h, "med stolpavstånd 2,85 × 2 m",
-                                            "med stolpavstånd 2,85 × 2 m, 84C-175"),
+                                            "med stolpavstånd 2,85 × 2 m, 00C-" "000"),
                                         n, t, b, k)),
     ("avsandarland i skotselstycket",
      "22dbd372", lambda h, n, t, b, k: (byt(h, "Mät pergolan",

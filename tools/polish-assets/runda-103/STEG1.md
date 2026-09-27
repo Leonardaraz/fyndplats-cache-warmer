@@ -141,7 +141,7 @@ dessutom precis det kluster den andra sessionen medvetet lade undan.
 |---|--:|--:|--:|---|
 | `c396356f` | 3 813,71 | 4 579 | 4 579 | **stämmer** |
 
-Leverantörsartikel `aosom:700-050V94GY`, DE-lager, fraktandel 0,306.
+Leverantörsartikel `aosom:[artikelnr]`, DE-lager, fraktandel 0,306.
 
 ## ✅ `a0760ed1` är måttverifierad — den ÄR modell A (2026-09-08)
 

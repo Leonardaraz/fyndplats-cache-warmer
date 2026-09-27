@@ -117,7 +117,7 @@ säger något annat:
 
 | | utkastet `65a730a4` | publicerade `fa683626` |
 |---|---|---|
-| `supplierProductId` | **`aosom:84B-915ND`** | **`1005012416577337`** (AliExpress) |
+| `supplierProductId` | **`aosom:[artikelnr]`** | **`1005012416577337`** (AliExpress) |
 | skickas från | DE | ES |
 | bilder | aosom-renderingar | `alicdn.com` / `aliexpress-media.com` |
 | pris | 2 629 kr (utkast) | 2 429 kr (live) |
@@ -160,7 +160,7 @@ marginal        24.02 -> 100 %
 [hinder] saknas_i_feeden
 ```
 
-**`84B-915ND` finns inte längre i Aosoms feed.** Landad kostnad skulle bli 0
+**`[artikelnr]` finns inte längre i Aosoms feed.** Landad kostnad skulle bli 0
 och marginalen 100 % — nonsens, och exakt det spärren finns för att stoppa.
 
 Utkastets egen mappningsrad säger samma sak från andra hållet:

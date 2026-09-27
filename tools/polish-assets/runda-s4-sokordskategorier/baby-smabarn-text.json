@@ -1,0 +1,46 @@
+{
+  "slug": "baby-smabarn",
+  "seo": {
+    "title": "Lekmatta, gåvagn & babygunga – för de minsta",
+    "description": "Lekmattor i skum, gåvagnar i trä, babygungor, hopfällbara babybadkar, lekhage och juniorsängar för de minsta – med ålder och mått i beskrivningen."
+  },
+  "content": {
+    "intro": [
+      "De första åren går fort, och prylarna ska hänga med. I Baby & Småbarn hittar du lekmattor i skum, gåvagnar i trä, babygungor, hopfällbara babybadkar, en lekhage med bollhavsbollar, juniorsängar och ett väggmonterat skötbord.",
+      "Säkerhet och ålder går före allt annat när du handlar till småbarn. Kontrollera rekommenderad ålder och maxvikt i produktbeskrivningen, särskilt för sådant barnet sitter i, som babygungor med ryggstöd, säkerhetsbälte och bygel. En gåvagn i trä ger stöd när barnet tar sina första steg, och en lekmatta i XPE-skum dämpar när barnet ramlar.",
+      "Babybadkaren viks ihop platt för förvaring och resa, och två av dem har inbyggd termometer som visar vattnets temperatur.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Från vilken ålder passar en gåvagn?",
+        "a": "Gåvagnarna i trä är gjorda för barn från 12 till 18 månader och ger stöd när barnet tar sina första steg. Låt barnet gå med vagnen under uppsikt på plant golv."
+      },
+      {
+        "q": "Vad ska jag tänka på med en babygunga?",
+        "a": "Välj en gunga med ryggstöd, säkerhetsbälte och bygel framtill för de minsta. En av gungorna står på ett eget stativ och behöver ingen takmontering, och på en annan går ryggstöd och bygel att ta av när barnet växer."
+      },
+      {
+        "q": "Tar ett babybadkar mycket plats?",
+        "a": "Nej, babybadkaren är hopfällbara och viks ihop platt för förvaring och resa. Ett av dem står på en hopfällbar ställning som lyfter badkaret till en bekväm höjd."
+      }
+    ]
+  },
+  "facit": {
+    "ersätter": "titeln 'Babybadkar, gunghästar & babyprylar' — gunghästarna har egen kategori (Gunghästar & gungdjur), och butikstestet 'ett huvudsökord finns i exakt en kategorititel' fällde krocken",
+    "Semrush 2026-09-24": "lekmatta 3 600/KD 13, gåvagn 2 400/20, babygunga 1 600/19, babybadkar 480/23",
+    "lekmattor i skum": "be52938b '196 × 176 cm i 1,5 cm tjockt XPE-skum … dämpar när barnet ramlar'; 20d00a82 'XPE-skummet … dämpar fall'; 4a4721fa 'Lekmatta 160 × 100 cm med stadsmotiv'",
+    "gåvagnar i trä, första stegen": "26ec5761 'hjälper småbarn att ta sina första steg'; 1e139971 'ger stöd när barnet tar sina första steg'; 5a6001cf; 2af51f93",
+    "babygungor med ryggstöd, bälte och bygel": "8fc578fc 'Sitsen har ryggstöd, säkerhetsbälte och en främre bygel'; 1ae3c94b 'Höga sidor, högt ryggstöd, frontbygel och säkerhetssele'",
+    "stativ utan takmontering": "1ae3c94b 'fristående stativ – ingen takmontering behövs'",
+    "ryggstöd och bygel går att ta av": "8fc578fc 'Ryggstödet och säkerhetsbygeln går att ta av'",
+    "hopfällbara babybadkar, viks platt": "314168d1 'viks ihop platt för förvaring och transport'; 00abe427 'hopfällbart'; 17daa78c 'Hopfällbart' i namnet",
+    "två med termometer": "17daa78c 'inbyggd termometer'; 314168d1 'inbyggd termometer'",
+    "ställning som lyfter badkaret": "17daa78c 'Den hopfällbara metallställningen lyfter badkaret till bekväm …'",
+    "lekhage med bollhavsbollar": "147f159f 'Lekhage baby XXL … 50 bollhavsbollar'",
+    "juniorsängar": "77460b11 'Barnsäng 140x70', 06ad0f91 'Juniorsäng 140x70'",
+    "väggmonterat skötbord": "7099a9fa 'Väggmonterat skötbord'",
+    "gåvagn från 12 till 18 månader": "1e139971 och 26ec5761 'från 1 år'; 2af51f93 och 5a6001cf 'från 18 månader'",
+    "under uppsikt på plant golv": "2af51f93 'Låt barnet gå under uppsikt på plant golv'"
+  }
+}

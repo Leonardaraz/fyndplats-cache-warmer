@@ -1,0 +1,46 @@
+{
+ "slug": "hundvagnar",
+ "seo": {
+  "title": "Hundvagn & cykelvagn för hund – upp till 45 kg",
+  "description": "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till 45 kg och en vagn som blir bärväska. Flera är hopfällbara."
+ },
+ "content": {
+  "intro": [
+   "Här finns hundvagnar för allt från små hundar på upp till 4 kg till stora hundar på upp till 30 kg, och cykelvagnar för hund som bär upp till 45 kg. Maxvikten står oftast redan i namnet, och flera anger också liggytan och hur lång hunden får vara.",
+   "Flera är hopfällbara. En fälls i ett enda drag och lägger sig platt, och en annan blir bärväska: kabinen lossas från chassit och packas ned till 61 × 40 × 10 cm.",
+   "Cykelvagnarna för hund dras efter cykeln, och modellerna 2-i-1 blir hundvagn när ni kommit fram: dragstaget hakas av och handtaget fälls upp. Joggingvagnen har ett låsbart framhjul, och på en vagn med tre hjul kan framhjulet svänga fritt eller låsas rakt fram.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur stor hund får plats i vagnen?",
+    "a": "Titta på maxvikten och liggytan. Vagnen med fyra hjul och sufflett för hundar upp till 4 kg tar högst 32 cm kroppslängd, vagnarna för mellanstora hundar har 93 × 52 cm liggyta och bär 25 kg, och de största hundvagnarna tar upp till 30 kg."
+   },
+   {
+    "q": "Kan jag cykla med hundvagnen?",
+    "a": "Med cykelvagnarna för hund, ja. De dras efter cykeln, och på modellerna 2-i-1 hakas dragstaget av så att vagnen blir en hundvagn med handtag. En av dem bär upp till 45 kg."
+   },
+   {
+    "q": "Går vagnen att fälla ihop?",
+    "a": "Flera är hopfällbara, och det står i namnet. En vagn för hundar upp till 30 kg fälls i ett enda drag och lägger sig platt i 87 × 56 × 32 cm."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "28 synliga produkter 2026-09-24 med hundvagn, cykelvagn för hund eller joggingvagn för hund i namnet",
+  "upp till 4 kg, 32 cm": "40f46441 'Vagnen är avsedd för hundar upp till 4 kg med en kroppslängd på högst 32 cm'",
+  "upp till 30 kg": "c21cf56b 'Hopfällbar hundvagn för stora hundar upp till 30 kg'; 41fddd87 namnet 'Hundvagn för 30 kg'",
+  "cykelvagn 45 kg": "acfa3c39 namnet 'Cykelvagn för hund 2-i-1 – även hundvagn, upp till 45 kg'",
+  "4, 10, 20, 25, 30 kg": "namnen: 40f46441 4 kg; 0783b515 10 kg; c804d1b7 20 kg; ffbed4f1 25 kg; c21cf56b 30 kg",
+  "maxvikten oftast i namnet": "25 av 28 namn anger kg",
+  "liggyta": "ffbed4f1 'liggytan är 93 × 52 centimeter … ramen bär 25 kilo'",
+  "hopfällbara": "namnen c804d1b7, 0783b515, d7967ad2, 96c6f6f1, c21cf56b, 7b344636 'hopfällbar'",
+  "ett enda drag, platt, 87 × 56 × 32": "41fddd87 'Den här fälls i ett enda drag: ett grepp om handtaget och vagnen lägger sig platt i 87 × 56 × 32 c…'",
+  "bärväska 61 × 40 × 10": "3f18c4d3 'En hundvagn som blir bärväska. Kabinen lossas från chassit och packas ned till 61 × 40 × 10 cm'",
+  "drar efter cykeln, dragstag, handtag": "0f83c211 'Samma vagn drar du efter cykeln på väg ut och skjuter framför dig när ni kommit fram. Dragstaget hakas av, handtaget fälls upp'",
+  "joggingvagn låsbart framhjul": "c6928b61 namnet 'Joggingvagn för hund upp till 20 kg med låsbart framhjul'",
+  "tre hjul, svänga fritt eller låsas": "594d5f4b 'det enda framhjulet kan antingen svänga fritt eller låsas rakt fram'",
+  "2-i-1 blir hundvagn": "acfa3c39 'En cykelvagn för hund 2-i-1 som faktiskt är två vagnar i en'; 0f83c211 namnet 'Cykelvagn för hund 2-i-1'; ae436a28 namnet 'Cykelvagn för hund 2-i-1'",
+  "4 kg med fyra hjul och sufflett": "40f46441 namnet 'Hundvagn upp till 4 kg, röd – fyra hjul, sufflett och korg'; samma modell i grått (adc81917) och blått (cbb38884)"
+ }
+}

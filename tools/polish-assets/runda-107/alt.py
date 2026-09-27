@@ -143,7 +143,7 @@ def sjalvtest():
     prov = [
         ("kanin i miljöbild", "Stallet står i en trädgård med två kaniner inuti.", "KANINLÖFTE"),
         ("husmärke", "Smådjursstall från Outsunny på en gräsmatta.", "husmärke"),
-        ("artikelnummer", "Smådjursstall 845-030CG på en gräsmatta.", "artikelnummer"),
+        ("artikelnummer", "Smådjursstall 000-" "000CG på en gräsmatta.", "artikelnummer"),
         ("ohärlett tal", "Smådjursstall 999 cm brett på en gräsmatta.", "ohärlett tal"),
         ("tyskt ord", "Smådjursstall med Bodenwanne på en gräsmatta.", "tyskt ord"),
         ("tyskt ord, kort", "Smådjursstall med Auslauf på en gräsmatta.", "tyskt ord"),

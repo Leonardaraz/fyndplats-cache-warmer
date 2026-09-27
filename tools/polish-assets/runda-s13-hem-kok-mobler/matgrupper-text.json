@@ -1,0 +1,42 @@
+{
+ "slug": "matgrupper",
+ "seo": {
+  "title": "Matgrupp – matbord med stolar för två eller fyra",
+  "description": "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och ett furubord från 60 till 120 cm."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. Sex är tredelade med ett bord och två stolar, och fyra är femdelade med ett bord och fyra stolar.",
+   "De små grupperna passar i köket eller i en liten lägenhet: ett kvadratiskt bord på 60 cm, ett på 70 × 70 cm, ett smalt bord på 90 × 47 cm och ett ovalt bord på 80 cm med en hylla under skivan. Klaffbordet fälls ut från 70 till 110 cm, och i en av grupperna har stolarna stoppad klädsel.",
+   "Grupperna för fyra har bord på 100 till 120 cm: två i MDF och metall, ett glasbord med stolar i konstläder och ett bord med stolar i furu.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket plats behöver en matgrupp?",
+    "a": "Räkna med bordets mått plus utrymme att dra ut stolarna. För glasbordet för fyra anges en golvyta på 180 × 170 cm, och för gruppen med bord på 80 × 60 cm minst 2,5 kvadratmeter."
+   },
+   {
+    "q": "Hur höga är bordet och stolarna?",
+    "a": "Borden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 47,5 cm där den anges. Det är vanlig höjd för ett matbord. Ett barbord är runt 90 cm."
+   },
+   {
+    "q": "Hur mycket bär stolarna?",
+    "a": "Mellan 100 och 120 kg per stol där maxlasten anges, och de flesta bär 120 kg. Borden tål mellan 30 och 100 kg."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "10 synliga matgrupper för inomhus 2026-09-24, alla i lager. INTE med: matgrupperna för utomhus aeff0074 och 7871b01e, som ligger i Utemöbler.",
+  "sex tredelade, fyra femdelade": "3 delar: 0058ad50, 4b1c099a, 5dd1b062, e278db40, f53c076a, f8a5196f; 5 delar: 3bf5bd08, b07189d2, cc794ee4, f965f9c7",
+  "små bord": "4b1c099a 'Bord: 60 × 60 × 76 cm'; e278db40 '70 × 70 × 76 cm'; 5dd1b062 '90 × 47 × 76 cm'; f8a5196f '80 × 52 × 76 cm, ovalt', 'Hylla: 50 × 43,5 × 14,8 cm'",
+  "klaffbord 70 till 110": "f53c076a 'Bord uppfällt: 110 × 70', 'Bord nedfällt: 70 × 70'",
+  "stoppade stolar": "0058ad50 'två stoppade stolar', 'klädsel i polyester, skumstopp', 'grå sitsar'",
+  "fyra: 100 till 120 cm": "3bf5bd08 100 × 63 'MDF och metall'; cc794ee4 100 × 63 'MDF och lackerad metall'; b07189d2 120 × 60 'Glasskiva, stål, konstläder'; f965f9c7 118 × 73 'Furu'",
+  "60 till 120 cm (beskrivningen)": "4b1c099a 60 cm; b07189d2 120 cm",
+  "golvyta": "b07189d2 'Golvyta: 180 × 170 cm'; 0058ad50 'Golvyta: Minst 2,5 m²'",
+  "höjder": "bord 0058ad50 74,5; b07189d2, f53c076a, f965f9c7 75; 4b1c099a, 5dd1b062, e278db40, f8a5196f 76; 3bf5bd08, cc794ee4 76,5. Sits 43,5 (f8a5196f) till 47,5 (cc794ee4)",
+  "barbord runt 90 cm": "barborden i S13: 87–95 cm",
+  "maxlast": "per stol 120 kg: 0058ad50, 4b1c099a, b07189d2, f53c076a, f8a5196f, f965f9c7; 110: 5dd1b062; 100: cc794ee4, e278db40. Bord 30 (b07189d2) till 100 kg (0058ad50)"
+ }
+}

@@ -39,7 +39,7 @@ MUTATIONER = [
     ("98c1b3cb", "ingress", "Den svarta <strong>rullpallen", "Den svarta Kunstleder-<strong>rullpallen", "kunstleder"),
     ("20782c24", "ingress", "Den rosa <strong>sadelpallen</strong>", "Den rosa Vinsetto-<strong>sadelpallen</strong>", "vinsetto"),
     ("c328a7c0", "ingress", "Priset gäller båda", "Skickas från Tyskland. Priset gäller båda", "landsnamn"),
-    ("1d0ba82d", "ingress", "Sitsen är Ø 32 cm", "Sitsen (art.nr 921-835V00PK) är Ø 32 cm", "artikelnummer"),
+    ("1d0ba82d", "ingress", "Sitsen är Ø 32 cm", "Sitsen (art.nr 000-" "000V00PK) är Ø 32 cm", "artikelnummer"),
     ("983fe163", "ingress", "Ryggstödet är 33 cm brett", "Leverantören uppger att ryggstödet är 33 cm brett", "leverantör"),
     ("93b7d87b", "ingress", "Klädseln är vattentät", "Ligger i EU-lager. Klädseln är vattentät", "lagerfras"),
     # ── talgrinden: ett tal som inte står i produktens egen spec ──────────

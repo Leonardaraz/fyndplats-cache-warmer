@@ -149,7 +149,7 @@ MUTATIONER = [
     ("☠️ husmärket smyger in", "10235819", "eg",
      "Bär 120 kg", "Tillverkad av HOMCOM", "husmärke"),
     ("☠️ artikelnumret läcker", "4fa0ae0a", "spec",
-     "Maxlast: 120 kg", "Artikelnummer: 921-884V00CW", "artikelnummer"),
+     "Maxlast: 120 kg", "Artikelnummer: 000-" "000V00CW", "artikelnummer"),
     ("☠️ tyskt ord blir kvar", "6e05f8b7", "eg",
      "Bär 120 kg", "Rückenlehne i nätväv", "tyskt"),
     ("decimalpunkt i stället för komma", "143f9b2d", "ingress",

@@ -1,0 +1,40 @@
+{
+  "slug": "utemobler",
+  "seo": {
+    "title": "Utemöbler – loungeset, trädgårdsbänk & hängstol",
+    "description": "Utemöbler för altan, balkong och trädgård: loungeset i konstrotting, trädgårdsbänkar och bord, matgrupper, hängstolar med stativ, solsängar och dynboxar."
+  },
+  "content": {
+    "intro": [
+      "Utemöbler gör altanen, balkongen och trädgården till ett rum till. Här samlar vi loungeset och matgrupper, trädgårdsbord och trädgårdsstolar, trädgårdsbänkar i trä, metall och gjutjärn, hängstolar och gungbänkar, solsängar och solstolar, hammockar och dynboxar för dynorna.",
+      "De flesta möblerna tål att stå ute, men de får längre livslängd om du skyddar dem vid hårt väder och förvarar dem skyddat vintertid. Det finns skyddsöverdrag både för utemöbler och för hammock.",
+      "Hängstolarna har eget stativ, och flera rymmer två personer. Kontrollera maxvikten i produktbeskrivningen, och läs också vad som följer med: till en del loungeset och solsängar ingår dynor, medan andra möbler är gjorda för att användas utan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Kan utemöblerna stå ute hela året?",
+        "a": "De tål att stå ute, men de håller längre om du skyddar dem vid hårt väder och förvarar dem skyddat vintertid. Det finns skyddsöverdrag för utemöbler och för hammock."
+      },
+      {
+        "q": "Ingår dynor?",
+        "a": "Det varierar. Till en del loungeset och solsängar följer dynor med, medan andra möbler har flätad sits och används som de är. Vad som ingår står i produktbeskrivningen."
+      },
+      {
+        "q": "Var förvarar jag dynorna?",
+        "a": "I en dynbox. Vi har dynboxar i stål på 295 och 350 liter, och förvaringsboxar på 93 och 253 liter."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "93 i kategorin 2026-09-24 (namnen): loungeset, matgrupper, trädgårdsbord, trädgårdsstolar, trädgårdsbänkar, hängstolar, gungbänkar, solsängar, solstolar, 2 hammockar, 2 dynboxar, 2 förvaringsboxar, skyddsöverdrag",
+    "loungeset i konstrotting": "58c5bc3a 'Modulärt loungeset i konstrotting i 5 delar'; 'Loungeset i rotting 4 delar' (namn)",
+    "trädgårdsbänkar i trä, metall och gjutjärn": "namn: 'Trädgårdsbänk i akacia 112 cm', 'i gran 114 cm', 'i furu 122 cm med stålram', 'i gjutjärn 128 cm', 'i aluminium 100 cm', 'utomhus i metall och trä'",
+    "hängstolar med stativ, flera för två": "namn: 'Hängstol med stativ och nackstöd', 'Hängstol för två med stativ' (två stycken), 'Hängsoffa 2-sits', 'Hängstol med stativ'",
+    "tål att stå ute, längre livslängd skyddat vintertid": "95cd383a 'Bordet tål att stå ute, men du får längre livslängd om du skyddar det vid hårt väder och vintertid'; fa683626 'Förvara gärna skyddat vintertid för längre livslängd'; vinter/täck nämns i 63 av 93",
+    "skyddsöverdrag för utemöbler och hammock": "namn: 'Skyddsöverdrag för utemöbler', 'Skyddsöverdrag för hammock 205 cm i Oxfo[rd]'",
+    "maxvikt i beskrivningen": "last anges på 14 hängande och gungande möbler, t.ex. 5becb693 'Maxbelastning 120 kg', 2de2c549 'bär upp till 240 kg', 76ac907c 'Max belastning: 210 kg'",
+    "dynor ingår till en del, andra utan": "namn: 'Loungeset 4 delar med dynor', 'Solsäng med dyna och huvudkudde', 'S-formad solsäng i konstrotting med dyna'; 4f2c288d 'Sittdynor ingår inte — sitsen är flätad och används som den är'",
+    "FAQ dynboxar 295 och 350 liter, förvaringsboxar 93 och 253 liter": "namn: 'Dynbox 350 liter i stål med gasfjädrar', 'Dynbox 295 liter i galvad stål', 'Förvaringsbox i konstrotting 253 L', 'Förvaringsbox utomhus 93 L'"
+  }
+}

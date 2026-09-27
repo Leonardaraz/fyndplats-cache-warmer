@@ -1,0 +1,39 @@
+{
+ "slug": "nattduksbord",
+ "seo": {
+  "title": "Nattduksbord – svävande, med lådor & laddstation",
+  "description": "Nattduksbord och sängbord med lådor och öppna fack, svävande modeller för väggen, smala bord på 25 cm och sängbord med eluttag och USB, flera i par."
+ },
+ "content": {
+  "intro": [
+   "Nattduksbordet håller lampan, mobilen och boken inom räckhåll från sängen. Här hittar du nattduksbord och sängbord med lådor, öppna fack och hyllor, svävande modeller som skruvas fast i väggen och smala bord för trånga sovrum.",
+   "Flera säljs två och två, så att båda sidorna av sängen matchar. Två sängbord har inbyggda eluttag och USB-uttag, och ett nattduksbord har RGB-belysning dold i en springa.",
+   "De svävande borden sitter på väggen utan ben, så golvet under dem blir fritt. Maxlasten står i beskrivningen, till exempel 20 kg per bord.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Är nattduksbord och sängbord samma sak?",
+    "a": "Ja, det är två namn på samma möbel: det lilla bordet bredvid sängen. Vi använder båda namnen."
+   },
+   {
+    "q": "Hur högt ska ett nattduksbord vara?",
+    "a": "Ungefär i höjd med madrassens överkant, så att du når lampan och mobilen när du ligger. Mät sängen innan du väljer, höjden står i beskrivningen."
+   },
+   {
+    "q": "Hur sätts ett svävande nattduksbord upp?",
+    "a": "Det skruvas fast direkt i väggen, med skruv och plugg som passar väggens material. Kontrollera maxlasten i beskrivningen innan du ställer tunga saker på det."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "16 synliga nattduksbord och sängbord 2026-09-24 (15 i lager). INTE med: barnbokhyllan 38fae72a, som bär nattduksbord i namnet men är en bokhylla",
+  "svävande, skruvas i väggen, utan ben": "c62d1496 'skruvas direkt i väggen utan ben, vilket betyder att golvytan'; 91c4388b och d51d6981 namnet 'Svävande nattduksbord'",
+  "smala": "c8430ad6 namnet 'Smala sängbord 2-pack – 25 cm breda'; a5f552e2 'Yttermått per bord (B × D × H) 25 × 30 × 60 cm'",
+  "flera två och två": "2-pack i namnet: cd473c5e, c8430ad6, a5f552e2, 91c4388b, c62d1496, d51d6981, 378dd4f7",
+  "två med laddstation": "007c6422 'eluttag, en USB-port och en USB-C-port'; a5f552e2 'laddstationen inbyggd i skivan'. b37d426f har USB men bara för belysningen ('USB-drift')",
+  "RGB dold i en springa": "b37d426f 'Belysning: RGB-LED, dold i springan'",
+  "20 kg per bord": "c62d1496 'Max belastning: 20 kg per bord'",
+  "madrassens överkant": "allmänt möbelråd, inget produktpåstående"
+ }
+}

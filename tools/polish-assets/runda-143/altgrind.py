@@ -130,7 +130,7 @@ def granska():
 def _sjalvtest():
     """Fäller grinden på det den finns för? Verifierat genom att mata in felen."""
     prov = [
-        ("Boxsäcksstället 838-172BG i svart stål.", "ARTIKELNUMMER"),
+        ("Boxsäcksstället 000-" "000BG i svart stål.", "ARTIKELNUMMER"),
         ("Boxningssäcken från HOMCOM sedd framifrån.", "HUSMÄRKE"),
         ("Säcken hoppplattform mot golvet.", "TREKONSONANT"),
         ("Den största säcken i hela sortimentet.", "SORTIMENTSSUPERLATIV"),

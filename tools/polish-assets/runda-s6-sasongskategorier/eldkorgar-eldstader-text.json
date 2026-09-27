@@ -1,0 +1,44 @@
+{
+  "slug": "eldkorgar-eldstader",
+  "seo": {
+    "title": "Eldkorg & eldstad utomhus – rökfri och med grill",
+    "description": "Eldkorgar och eldstäder för uteplatsen, från Ø38 till Ø75 cm: rökfria modeller med sekundärförbränning, eldkorgar med grillgaller, eldbord och fyrfat."
+  },
+  "content": {
+    "intro": [
+      "En eldkorg eller eldstad utomhus samlar sällskapet på uteplatsen, även när kvällarna blir kalla. Här samlar vi eldkorgar från Ø38 till Ø75 cm, rökfria modeller, eldkorgar med grillgaller och gnistkåpa, en eldkorg formad som ett torn, ett eldbord med bordsyta runt elden och ett fyrfat i stål.",
+      "De rökfria eldkorgarna har sekundärförbränning, som bygger på lufthål i korgen. Täcks hålen slutar den att fungera, och den förutsätter torr ved: blöt ved ryker oavsett vad korgen gör.",
+      "Flera eldkorgar har grillgaller och gnistskydd. Vad som ingår, till exempel gnistskydd, grillgaller och eldgaffel, står i produktbeskrivningen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Varför ryker min rökfria eldkorg?",
+        "a": "Fuktig ved är den vanligaste orsaken – den ryker oavsett hur förbränningen är konstruerad. Elda med torr ved, och täck inte lufthålen, för då slutar den sekundära förbränningen att fungera."
+      },
+      {
+        "q": "Kan jag grilla på eldkorgen?",
+        "a": "Ja, flera av eldkorgarna har ett grillgaller som läggs över elden. Vilka som har det står i produktbeskrivningen."
+      },
+      {
+        "q": "Får jag elda när det är eldningsförbud?",
+        "a": "Under eldningsförbud gäller länsstyrelsens eller kommunens besked, och reglerna skiljer sig åt beroende på om du lagar mat eller bara eldar för värmen. Kontrollera vad som gäller där du bor innan du tänder."
+      }
+    ]
+  },
+  "facit": {
+    "sortimentet": "16 kopplade 2026-09-24: 14 eldkorgar (varav den vinkelbara 2f098490 på stativ och 3-i-1-korgen a7de7a15), eldbordet eb96e60d och fyrfatet 032669e3",
+    "från Ø38 till Ø75 cm": "fea32e1b 'Rökfri eldkorg Ø38 cm med gnistskydd' (minst rund); eeaaa482 'Stor eldkorg Ø75 cm med gnistkåpa och grillgaller' (störst)",
+    "rökfria modeller": "82bf19ed, f3b447f2, 67bba566, fea32e1b heter 'Rökfri eldkorg'; 4dec45fa och def90472 nämner 'Rökfri eldkorg 48 × 48 cm' som hänvisning, räknas inte",
+    "grillgaller och gnistkåpa": "grillgaller i 9 av 16 (t.ex. f6a7bc98, eeaaa482, def90472); gnistskydd/kåpa/lock i 11 av 16",
+    "eldkorg formad som ett torn": "4dec45fa 'Eldkorg som torn 87 cm'",
+    "eldbord med bordsyta runt elden": "eb96e60d 'Eldbord 81 cm med bordsyta runt elden'",
+    "fyrfat i stål": "032669e3 'Fyrfat utomhus 67 cm i stål'",
+    "sekundärförbränning": "82bf19ed 'Eldkorg med sekundärförbränning'; f3b447f2 och 67bba566 samma",
+    "bygger på lufthål, täcks hålen slutar den fungera": "fea32e1b 'Täcks lufthålen slutar den sekundära förbränningen att fungera och du får en vanlig, rykande brasa'",
+    "förutsätter torr ved": "82bf19ed 'det förutsätter torr ved: blöt ved ryker oavsett vad korgen gör'",
+    "vad som ingår står i beskrivningen": "fea32e1b 'Gnistskydd och eldgaffel ingår'; 50ff8383 'Gnistlock, kolgaller och eldgaffel ingår'",
+    "FAQ fuktig ved vanligaste orsaken": "fea32e1b 'Fuktig ved ryker oavsett hur förbränningen är konstruerad, och är den vanligaste orsaken till att en rökfri eldkorg ändå ryker'",
+    "FAQ eldningsförbud": "efcd59c7, 2f098490, a7de7a15, fea32e1b 'Under eldningsförbud gäller länsstyrelsens eller kommunens besked, och reglerna skiljer sig åt beroende på om du lagar mat eller bara eldar för värmen'"
+  }
+}

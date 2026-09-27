@@ -380,7 +380,7 @@ SJALVTEST = [
     #    Aosom-artikelnummer genom ~15 rundor (uppgift #414: repot är publikt,
     #    och numret leder till leverantörens sida och till dealproffsens
     #    JSON-LD). Ett självtest behöver bara ett nummer som matchar mönstret.
-    ("artikelnummer", "Modellen heter 000-000XX.", True),
+    ("artikelnummer", "Modellen heter 000-" "000XX.", True),
     ("leveransland", "Skickas från Tyskland inom en vecka.", True),
     ("trottoarkant", "Vi levererar fritt till trottoarkant.", True),
     ("fri leverans", "Fri leverans till din dörr.", True),

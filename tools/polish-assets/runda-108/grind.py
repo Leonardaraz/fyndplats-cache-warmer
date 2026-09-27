@@ -228,7 +228,7 @@ def sjalvtest():
         ("ogenomskinlig", "<p>Panelen är ogenomskinlig.</p>", "MÖRKLÄGGNINGSLÖFTE"),
         ("utomhuslöfte", "<p>Skärmen är väderbeständig året om.</p>", "UTOMHUSLÖFTE"),
         ("husmärke", "<p>En rumsavdelare från Outsunny.</p>", "husmärke"),
-        ("artikelnummer", "<p>Rumsavdelare 845-030CG i väv.</p>", "artikelnummer"),
+        ("artikelnummer", "<p>Rumsavdelare 000-" "000CG i väv.</p>", "artikelnummer"),
         ("ohärlett tal", "<p>Skärmen är 999 cm bred.</p>", "ohärlett tal"),
         ("tyskt ord", "<p>En Sichtschutz för vardagsrummet.</p>", "tyskt ord"),
         ("punktdecimal", "<p>Panelen är 1.6 cm djup.</p>", "punktdecimal"),

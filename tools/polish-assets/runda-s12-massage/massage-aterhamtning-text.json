@@ -1,0 +1,50 @@
+{
+ "slug": "massage-aterhamtning",
+ "andring": "Titeln från #400 (2026-08-12) var 'Massagebänkar & massageutrustning' och texten handlade bara om massagebänkar, fast 64 av 78 produkter är stolar och fåtöljer. Massagebänk tas av den nya sidan Massagebänkar.",
+ "seo": {
+  "title": "Uppresningsfåtölj & kontorsstol med massage",
+  "description": "Uppresningsfåtöljer med lyft, massage och värme, kontorsstolar med massage och fotstöd, reclinerfåtöljer och en fot- och vadmassage för hemmet."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du massage för hemmet: uppresningsfåtöljer med massage, kontorsstolar med massage, reclinerfåtöljer och en gungstol med massage, en fot- och vadmassage och en muskelmassageapparat. Massagebänkar och massagestolar finns också samlade på egna sidor.",
+   "En uppresningsfåtölj, eller fåtölj med uppresningshjälp, lyfter och tippar sitsen framåt så att det blir lättare att resa sig. De flesta här lyfts elektriskt och en har hydraulisk lyft. Alla har värme, de flesta har massage i åtta punkter, och ryggen fälls på flera av dem till 150 grader. Två har uttag för USB-A och USB-C, och en behöver bara 35 cm fritt mot väggen.",
+   "Kontorsstolarna med massage har fyra till sju vibrationspunkter, och en har knådande massage vid skuldror och midja. Nio av dem har värme, de flesta har ett utdragbart eller infällbart fotstöd, och på de flesta fälls ryggen till mellan 130 och 155 grader. De bär 120 kg, och en bär 135 kg.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är en uppresningsfåtölj?",
+    "a": "En fåtölj med uppresningshjälp: en motor lyfter och tippar sitsen framåt, så att du kommer upp utan att ta spjärn. Fåtöljerna här fälls också bakåt till liggläge, och alla har värme."
+   },
+   {
+    "q": "Hur mycket plats behöver en uppresningsfåtölj?",
+    "a": "Räkna med utrymme både bakåt och framåt. Fåtöljerna här är 144 till 165 cm långa i liggläge och upp till 142 cm höga i lyft läge. Den cremevita behöver bara 35 cm fritt mot väggen."
+   },
+   {
+    "q": "Går värmen att använda utan massage?",
+    "a": "På flera av fåtöljerna, ja. Det står i beskrivningen. På bland annat uppresningsfåtöljen med 155 graders liggläge styrs ländvärmen separat."
+   }
+  ]
+ },
+ "facit": {
+  "innehåll": "79 kopplingar 2026-09-24, varav en till en raderad produkt (e9865458 svarar 404). De 78 som finns: 10 uppresningsfåtöljer, 14 kontorsstolar med massage, 36 massagestolar och massagefåtöljer (också i Massagestolar), 3 reclinerfåtöljer och gungstolen 67a84f9e (64 stolar och fåtöljer), 11 massagebänkar (10 också i Massagebänkar; 2cfd373a är dold), fot- och vadmassagen b2b731c7, muskelmassageapparaten 18386a6c och vakuumapparaten eb8afc49. Slutsålda: fd3cd842 (bänk) och 1932abe1 (massagefåtölj); inget påstående vilar på dem",
+  "uppresningsfåtöljer": "117aa0fc, 4635adcb, 8151ce59, 87acd466, a2c01713, a3a8d261, bf2447a6, d2ca4c26, ed03b52f, fcac3d22",
+  "elektrisk lyft, en hydraulisk": "4635adcb och 8151ce59 'Uppresningshjälp: Elektrisk'; bf2447a6 'elektrisk lyft 60°'; ed03b52f 'elektrisk lyft 45°'; 87acd466 'Lyft och rygg med en knapp i sidan'; fcac3d22 'Liggläge: Elektriskt'; a3a8d261 'hydraulisk lyft'",
+  "alla har värme": "117aa0fc och a2c01713 'värme i ländryggen'; 4635adcb och 8151ce59 'Värme: Värmedyna'; a3a8d261, bf2447a6, ed03b52f, fcac3d22, d2ca4c26 ländvärme; 87acd466 'massage och värme med fjärrkontroll'",
+  "de flesta åtta punkter": "åtta punkter på 117aa0fc, 4635adcb, 8151ce59, a2c01713, a3a8d261, bf2447a6, d2ca4c26, ed03b52f, fcac3d22; 87acd466 anger tre program",
+  "150 grader på flera": "4635adcb, 8151ce59, a3a8d261, ed03b52f 'upp till 150°'; d2ca4c26 155°; bf2447a6 135°",
+  "USB-A och USB-C på två": "87acd466 'Ett USB-A och ett USB-C'; bf2447a6 'USB-A och USB-C, 5 V / 2 A'",
+  "35 cm mot väggen": "87acd466 '35 centimeter fri vägg'",
+  "kontorsstolar med massage": "09ae62db, 31cbadae, 3829477a, 46f475c4, 6870d76a, 820d5370, 924a6f45, 94979299, aef1b477, b78d4cc6, cd3320e8, d09647b4, d48decb1, f809b33e",
+  "fyra till sju vibrationspunkter, en knådande": "f809b33e fyra; 31cbadae, 3829477a, 46f475c4, 6870d76a, 820d5370, 94979299, aef1b477, b78d4cc6, cd3320e8, d09647b4, d48decb1 sex; 09ae62db sju; 924a6f45 'Fem knådlägen mot fyra punkter vid skuldror och midja'",
+  "nio med värme": "31cbadae, 3829477a, 6870d76a, 94979299, aef1b477, b78d4cc6, d09647b4, d48decb1, f809b33e",
+  "fotstöd på de flesta": "12 av 14 har utdragbart, utfällbart, infällbart eller manuellt fotstöd; b78d4cc6 'Fotstöd: Saknas'; 820d5370 nämner inget",
+  "130–155 grader på de flesta": "46f475c4 130°; 31cbadae, 6870d76a, 924a6f45, b78d4cc6, cd3320e8, d09647b4, f809b33e 135°; 94979299, aef1b477, d48decb1 155° = 11 av 14",
+  "120 kg, en 135 kg": "alla 'Maxlast: 120 kg' utom 6870d76a 'Maxlast: 135 kg'",
+  "upp till 142 cm i lyft läge": "117aa0fc, a2c01713, a3a8d261 142; fcac3d22 138; bf2447a6 134; 87acd466 125",
+  "värmen separat": "d2ca4c26 'Går värmen att köra utan massage? Ja, ländvärmen styrs separat.'; fcac3d22 'Ländvärme, körs separat'",
+  "144–165 cm i liggläge": "117aa0fc och a2c01713 'Tillbakalutad 135°: 91 × 144 × 88 cm'; a3a8d261 150; 87acd466 'Liggande 82 × 150'; 8151ce59 153; fcac3d22 156; 4635adcb 158; bf2447a6 160; ed03b52f 163,5; d2ca4c26 165. Första utkastet sa 150–165 och missade de två på 144 (kontrollerat 2026-09-24)",
+  "alla lyfts elektriskt utom en": "117aa0fc och a2c01713 'Både uppresningen och liggläget drivs av motorn'; övriga enligt raden ovan; a3a8d261 hydraulisk"
+ }
+}

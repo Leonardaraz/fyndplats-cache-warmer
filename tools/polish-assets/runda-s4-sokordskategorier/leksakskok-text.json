@@ -1,0 +1,43 @@
+{
+  "slug": "leksakskok",
+  "seo": {
+    "title": "Leksakskök & barnkök i trä, MDF och plast",
+    "description": "Leksakskök och barnkök för barn från 3 år – i trä, MDF och plast, med ugn, diskho och ljud, flera med rinnande vatten och upp till 92 delar."
+  },
+  "content": {
+    "intro": [
+      "I ett leksakskök lagas låtsasmat, diskas och dukas. Här samlar vi våra leksakskök och barnkök för barn från tre år: kök i trä och MDF med ugn och diskho, kök i plast med ljud och ljus, ett hörnkök och en leksaksdiskmaskin.",
+      "Några av köken har rinnande vatten: en batteridriven kran pumpar upp vatten ur diskhon så att det går runt i kretslopp. Andra har en diskho med kran men utan vatten, och det står i beskrivningen vilket som gäller. Kök med ljud, ljus och vatten drivs med AA-batterier, som inte alltid ingår.",
+      "Titta också på höjden och tillbehören – köken kommer med allt från några få tillbehör upp till 92 delar. Köken i MDF tål avtorkning men inte blötläggning, så torka upp vattenspill direkt.",
+      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Har leksaksköken riktigt vatten?",
+        "a": "Några har det. I dem pumpar en batteridriven kran upp vatten ur diskhon så att det rinner i kretslopp. Andra har en diskho med kran men utan vatten – det står i beskrivningen."
+      },
+      {
+        "q": "Från vilken ålder passar ett leksakskök?",
+        "a": "De flesta köken är gjorda för barn från tre år, och flera upp till sex eller åtta år. Följ åldersrekommendationen i beskrivningen."
+      },
+      {
+        "q": "Behöver köket batterier?",
+        "a": "Kök med ljud, ljus eller rinnande vatten drivs med AA-batterier, som inte alltid ingår. Kök utan elektronik behöver inga batterier."
+      }
+    ]
+  },
+  "facit": {
+    "10 produkter": "8 i lager; mudkök 23a87749 och e34fc582 slut; fakta läst 2026-09-24",
+    "trä och MDF med ugn och diskho": "e2932b74 'Barnkök i MDF 60 cm'; 7838bc0e 'Barnkök med ugn, diskho och ljudeffekter'",
+    "plast med ljud och ljus": "7720d168 'Lekkök för barn 3–6 år med 92 delar – ljud, ljus, ångeffekt' (PLAST-flagga)",
+    "hörnkök": "10957741 'Leksakskök i hörn med 14 delar'",
+    "leksaksdiskmaskin": "163cd19d 'Leksaksdiskmaskin i trä med diskho och kran'",
+    "rinnande vatten via pump, kretslopp": "89b2a551 'Vattnet i diskhon pumpas tillbaka i kretslopp'; 10957741 'Vattenkranen drivs av 2 AA-batterier och pumpar upp vatten ur diskhon'; 7720d168",
+    "diskho med kran utan vatten": "0d661515 'diskho med kran (inget rinnande vatten)'",
+    "AA-batterier som inte alltid ingår": "7720d168 'drivs med 3 AA-batterier, som inte ingår'; 10957741 2 AA",
+    "kök utan elektronik utan batterier": "e34fc582 'Inga batterier behövs'",
+    "upp till 92 delar": "7720d168 '92 delar'",
+    "MDF tål avtorkning men inte blötläggning": "e2932b74 'MDF tål avtorkning men inte blötläggning — vattnet går in i kanten och sväller skivan'",
+    "från tre år, upp till sex eller åtta": "7720d168 3–6 år; 89b2a551 3–8 år; e2932b74, 7838bc0e, 10957741, 0d661515, 163cd19d från 3 år"
+  }
+}

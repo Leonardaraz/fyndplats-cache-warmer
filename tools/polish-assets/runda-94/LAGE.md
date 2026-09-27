@@ -54,10 +54,10 @@ beskrivningsdelen och till våra egna fem alt-texter.
 | `dc7d2513` | 769 | 3 × 4 m |
 | `b6ebc5ba` | 749 | 3 × 3 m |
 | `271327e1` | 779 | 3 × 3 m |
-| `2bfaf6dd` | 779 | ☠️ huvudbildens filnamn är `aosom-84C-041-2.jpg` (#340) |
+| `2bfaf6dd` | 779 | ☠️ huvudbildens filnamn är `aosom-[artikelnr]-2.jpg` (#340) |
 | `22dbd372` | 729 | pergola/solsegel, slut i lager |
 
 ⚠️ **#340 fick sin mekanism mätt i den här rundan.** Wix behåller filnamnet från
 adressen man laddar upp ifrån: våra egna filer heter nu `df5a7190-3.jpg` och
 `60eaf40e.jpg` i mediabiblioteket. Det är alltså importen som skrivit in
-`aosom-84C-041-2.jpg` — den passerade en URL med det basnamnet.
+`aosom-[artikelnr]-2.jpg` — den passerade en URL med det basnamnet.

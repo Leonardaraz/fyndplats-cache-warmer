@@ -40,7 +40,7 @@ fällda, och grön igen efteråt:
 | införd mutation | grinden svarade |
 |---|---|
 | husmärke i en alt-text | `HUSMÄRKE 'homcom'` |
-| artikelnummer i en alt-text | `ARTIKELNUMMER '838-172BG'` |
+| artikelnummer i en alt-text | `ARTIKELNUMMER '[artikelnr]'` |
 | landord i en alt-text | `LANDORD 'tyskland'` |
 | utdömd bild tillbaka i ordningen | `bild 5 är utdömd men ligger kvar` |
 | måttritningen inte sist | `måttritningen ligger inte sist` |

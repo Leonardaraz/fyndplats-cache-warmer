@@ -1,0 +1,46 @@
+{
+  "slug": "sparkcyklar-for-barn",
+  "seo": {
+    "title": "Sparkcykel för barn – stora hjul och broms",
+    "description": "Sparkcyklar för barn från 18 månader till 12 år – med stora hjul på upp till 16 tum, broms och justerbart styre, med luftdäck eller punkteringsfria hjul."
+  },
+  "content": {
+    "intro": [
+      "En sparkcykel med stora hjul tar sig lätt över trottoarkanter och grus och passar både skolvägen och cykelbanan. Här samlar vi alla våra sparkcyklar för barn: modeller med hjul på 12–16 tum för barn från fem år, sparkcyklar med korg och stänkskärmar och trehjuliga sparkcyklar för de minsta, från 18 månader.",
+      "Välj hjul efter var barnet åker. Luftdäck dämpar skarvar, grus och kullersten men behöver pumpas då och då, medan massiva EVA-hjul aldrig punkterar och aldrig behöver pumpas. Nästan alla har broms – handbroms, bakbroms eller broms på båda hjulen – och styret går att justera på nästan alla, så sparkcykeln växer med barnet.",
+      "Maxvikten är 50 kg på modellerna för 5–12 år och 100 kg på de större, och flera har stödben så att sparkcykeln står själv.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Från vilken ålder passar en sparkcykel?",
+        "a": "För de minsta, från 18 månader, finns en trehjulig sparkcykel med sits och föräldrahandtag. De flesta modellerna med stora hjul är gjorda för barn från fem år, och flera upp till tolv år."
+      },
+      {
+        "q": "Luftdäck eller massiva hjul?",
+        "a": "Luftdäck dämpar skarvar och grus bättre men tappar tryck när sparkcykeln står still, så de behöver pumpas. Massiva EVA-hjul punkterar aldrig och behöver aldrig pumpas, men ger en hårdare åktur på ojämn mark."
+      },
+      {
+        "q": "Hur vet jag vilken storlek som passar?",
+        "a": "Utgå från barnets ålder och vikt: modellerna för 5–12 år bär 50 kg och de större 100 kg. Styrets höjd står i beskrivningen, till exempel 80–88 cm, och går att justera på nästan alla."
+      }
+    ]
+  },
+  "facit": {
+    "31 produkter": "alla i lager; fakta läst 2026-09-24",
+    "trottoarkanter och grus": "e9cfa7bf 'Trettio centimeter är stort nog att ta grus och trottoarkanter utan att haka upp sig'; 41269686 'rullar över en trottoarkant'",
+    "hjul 12–16 tum, från fem år": "12 tum: 41269686, 68f8f1a7, b1dcd424, 82b5a517, d9239c8e, 479e9c2e; 16 tum: 79186373, c4375606, bd3bdc1b; de flesta '5–12 år' eller 'från 5 år'",
+    "stora hjul på upp till 16 tum": "79186373 och c4375606 '16 tum fram och bak'; bd3bdc1b '16 tum (ø40 cm)'",
+    "korg och stänkskärmar": "b03784dc, e4e5a8ef 'med korg och stänkskärmar'",
+    "trehjuliga från 18 månader": "ed5d6b85 'Trehjulig sparkcykel 3-i-1 – avtagbar sits och föräldrahandtag', från 18 mån; d3cf8ebc 2–6 år",
+    "luftdäck dämpar, behöver pumpas": "c4375606 'Luft dämpar där massivt skum studsar, så grus och kullersten …'; d9239c8e 'Luftdäck tappar tryck av att stå still'",
+    "massiva EVA-hjul punkterar aldrig": "85be4535 'massiva EVA-hjul som aldrig behöver pumpas och inte kan punktera'; b1dcd424 'de punkterar aldrig och behöver aldrig pumpas'",
+    "däckfördelning": "luftdäck 15, massiva EVA/PU 13, gummidäck med slitbana 2, okänt 1 — därför INTE 'de flesta har luftdäck'",
+    "nästan alla har broms": "30 av 31 anger broms (handbroms, bakbroms, V-broms, broms fram och bak)",
+    "styret justerbart på nästan alla": "30 av 31",
+    "maxvikt 50 och 100 kg": "5–12-årsmodellerna 50 kg; 139/143/120 cm-modellerna 100 kg",
+    "flera med stödben": "12 st, t.ex. 85be4535, c851d101, 5129f6b0",
+    "styrhöjd 80–88 cm": "41269686, 68f8f1a7, b1dcd424, 82b5a517 'styre 80–88 cm'",
+    "hårdare åktur på massiva hjul": "c4375606 'Luft dämpar där massivt skum studsar'"
+  }
+}

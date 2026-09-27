@@ -1,0 +1,43 @@
+{
+ "slug": "varmeflaktar",
+ "seo": {
+  "title": "Värmefläkt – för vägg eller som torn, 2000 W",
+  "description": "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, timer, oscillation och överhettningsskydd. Flera har veckotimer och fönstervakt."
+ },
+ "content": {
+  "intro": [
+   "En värmefläkt ger snabb värme där elementen inte räcker: i hallen, i ett kallt sovrum eller i hemmakontoret. Här samlar vi värmefläktar som sitter på väggen och tornmodeller som står på golvet, alla med termostat, timer och överhettningsskydd.",
+   "Effekten är 2000 W, och tornfläkten på 73 cm ger 2200 W. Du väljer mellan flera effektlägen, till exempel 1000 eller 2000 W, och fläkten sveper fram och tillbaka så att värmen sprids i rummet. De flesta har ett värmeelement av keramik och styrs med fjärrkontroll.",
+   "Flera väggmodeller har veckotimer, så att värmen går på när du behöver den, och fönstervakt som stänger av när du vädrar. En av tornmodellerna har vältskydd som bryter strömmen om den välter. Kapslingsklassen står i varje produktbeskrivning, och den avgör var värmefläkten får sitta.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Får värmefläkten sitta i badrummet?",
+    "a": "Det beror på modell och placering. Kapslingsklassen står i varje produktbeskrivning, och i badrummet finns regler för hur nära dusch och badkar en elapparat får sitta. Fråga en elektriker om du är osäker."
+   },
+   {
+    "q": "Vad gör fönstervakten?",
+    "a": "Den stänger av värmen automatiskt när du vädrar, så att du inte värmer upp luften som går ut genom fönstret."
+   },
+   {
+    "q": "Hur stort rum värmer en värmefläkt?",
+    "a": "Det står per modell. Väggmodellen på 50 cm anges för 20 till 25 kvadratmeter."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "13 synliga produkter 2026-09-24: tio väggvärmare (väggmonterade värmefläktar) och tre värmefläktar torn",
+  "alla termostat, timer, överhettningsskydd, oscillation": "termostat 13, timer 13, överhettning 13, oscillation 13 av 13",
+  "2000 W": "watt-taggen på 13; ded410a9 'samma 2000 W'",
+  "tornfläkten 73 cm 2200 W": "82a1756d 'Värmefläkt torn 73 cm, 2200 W med 65° os[cillation]'",
+  "1000 eller 2000 W": "ded410a9 '1000 W eller 2000 W'",
+  "keramik": "10 av 13; ded410a9 'Värmeelement ¶ PTC-keramik'",
+  "fjärrkontroll": "12 av 13",
+  "veckotimer": "ded410a9, 157a06a5, 589690ac 'veckotimer'",
+  "fönstervakt, stänger av": "4 av 13; ded410a9 'Fönstervakt ¶ Ja, stänger av automatiskt'",
+  "vältskydd": "82a1756d 'både överhettningsskydd och vältskydd — välter tornet bryts strömmen'",
+  "kapslingsklass per modell": "ded410a9, 589690ac, 8475ed8f 'kapslingsklass IP23'; d15b8a6a 'Kapslingen är IPX2'",
+  "20 till 25 kvadratmeter": "ded410a9 'Uppvärmningsyta ¶ 20–25 m²'"
+ }
+}

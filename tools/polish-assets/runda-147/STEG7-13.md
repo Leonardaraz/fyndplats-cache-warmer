@@ -145,8 +145,8 @@ köade 204:an.
 
 Utredda i detalj i `STEG3-5.md`, sammanfattat här för spårbarhet:
 
-- `cc2add44` (grönt) ↔ runda 146:s `be595bfd` (vitt) — bas `84H-565V00`.
-- `87485b8a` (grått) ↔ runda 146:s `6e60b45a` (orange) — bas `845-379V01`,
+- `cc2add44` (grönt) ↔ runda 146:s `be595bfd` (vitt) — bas `[artikelnr]`.
+- `87485b8a` (grått) ↔ runda 146:s `6e60b45a` (orange) — bas `[artikelnr]`,
   inget färgkontradiktionsfynd (till skillnad från `6e60b45a` självt).
 - `1a46d2af` (grönt/transparent) ↔ runda 146:s `b5ba12b8`
   (grått/transparent) — bas `845-059`, ärver samma

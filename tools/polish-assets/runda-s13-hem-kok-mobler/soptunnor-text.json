@@ -1,0 +1,51 @@
+{
+ "slug": "soptunnor",
+ "seo": {
+  "title": "Soptunna & sopsorteringskärl – sensor och pedal",
+  "description": "Soptunnor med sensor eller pedal, sopsorteringskärl med två eller tre fack och utdragbara sopsorterare för köksskåpet, från 20 till 72 liter."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du soptunnor för köket: sensortunnor som öppnar locket när du håller handen över dem, pedaltunnor med mjukstängande lock, sopsorteringskärl med två eller tre fack och utdragbara sopsorterare som sitter i köksskåpet.",
+   "Sensortunnorna rymmer från 20 till 68 liter och finns i rostfritt stål eller i svart. De flesta går på fyra AA-batterier och några på fyra D-batterier, och batterierna ingår inte. På flera går locket också att öppna med en knapp. Sopsorteringstunnan med sensor har ett stort fack på 47 liter och två mindre under.",
+   "Sopsorteringskärlen har två fack på 15 till 30 liter eller tre fack på 15 eller 20 liter, och på flera har varje fack en egen pedal. Flera har ett fack för doftblock eller luktfilter i locket. Behöver du en smal tunna finns en som är 40 cm bred och en som är 30 cm djup. De utdragbara sopsorterarna har två eller tre fack och dras ut ur köksskåpet.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur fungerar en soptunna med sensor?",
+    "a": "En sensor i locket känner av handen och öppnar locket, och efter några sekunder stänger det sig självt. Räckvidden är 15 till 20 centimeter på de tunnor där den anges. Tunnan går på batterier som inte ingår, så köp dem samtidigt."
+   },
+   {
+    "q": "Hur många fack behöver jag för sopsortering?",
+    "a": "Två fack räcker för matavfall och restavfall, och med tre fack får förpackningarna ett eget. Facken är ofta lika stora medan soporna inte är det, så det fack som fylls först bestämmer hur ofta du tömmer. Den utdragbara sopsorteraren med tre fack har ett stort fack på 15 liter och två på 8 liter."
+   },
+   {
+    "q": "Ryms en utdragbar sopsorterare i mitt köksskåp?",
+    "a": "Mät skåpets insida och jämför med ramens mått i beskrivningen. Ramen är 47 × 33 × 32 cm på den med tre fack och 52 × 26 × 40,8 cm på dem med 20 plus 10 liter. Tre av dem levereras förmonterade, och den med tre fack skruvas fast i skåpbotten med skruvarna som följer med."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "40 synliga soptunnor 2026-09-24, varav 5 slutsålda (300a9113, 3d3ebf08, 4ef74d40, 96beca79, dd163bd7). INTE med: soptunneskyddet af27fffe, som är ett skydd för kärl utomhus.",
+  "sensortunnor, i lager": "0773ceb6 50, 0cc5c634 48, 3f6f548f 55, 466e799a 20, 618b1de9 50, 62c7d72d 68, 77e6e472 48, 7846d05f 42, 92fc308c 50, 9d2c88bd 50, a778baf1 30, aabcd677 45, dcd756bd 58, e77edc35 50 liter; och sopsorteringstunnan med sensor efd99fb0 47 + 2 × 12,5 liter",
+  "20 till 68 liter": "466e799a 20 liter och 62c7d72d 68 liter; de slutsålda 30, 55 och 60 liter ligger inom spannet",
+  "rostfritt stål eller svart": "618b1de9 'svart metall', 92fc308c 'svart stål'; övriga rostfritt stål",
+  "de flesta AA, några D, batterierna ingår inte": "4 × AA: 0773ceb6, 77e6e472, 9d2c88bd, a778baf1 ('som inte ingår'), 466e799a, 7846d05f, aabcd677, 618b1de9, 92fc308c, e77edc35 ('ingår inte'), 3f6f548f (inte i 'Ingår'); 6 × AA: efd99fb0 ('ingår inte'); 4 × D: 0cc5c634, dcd756bd, 62c7d72d ('ingår inte')",
+  "knapp på locket, flera": "0cc5c634, 466e799a, dcd756bd 'Manuell öppning: knapp på locket'; 7846d05f, aabcd677 'Locket går att öppna manuellt med knappen'",
+  "sopsorteringstunnan med sensor": "efd99fb0 '47 + 2 × 12,5 liter, 72 liter totalt', 'Övre fack', 'Undre fack … vardera'",
+  "20 till 72 liter (beskrivningen)": "minst 466e799a 20 liter, störst efd99fb0 72 liter totalt",
+  "pedaltunnor med mjukstängande lock": "1c9d8d05 'Fotpedal, soft close'; 5977ba57 'Soft close'; 7396dd6c 'Soft close, stannar öppet'; 849082f6 'Soft close'",
+  "två fack 15 till 30 liter": "17fb1869 2 × 15; 10c47f8e, b10b80ee, 213be879, 56b32f2f 2 × 20; 9a18b68b 2 × 25; 70843637 2 × 28; 9fa9af24, a00882ed 2 × 30",
+  "tre fack 15 eller 20 liter": "c841717c 3 × 15; 212bfc97, 493bebfa 3 × 20",
+  "pedal per fack, flera": "10c47f8e, 17fb1869, b10b80ee, 212bfc97, c841717c 'Fotpedal per fack'; 493bebfa, 9fa9af24 'Ett per fack'",
+  "doftblock eller luktfilter, flera": "10c47f8e, 17fb1869, b10b80ee 'Doftblockshållare'; 212bfc97 'Blocken ingår inte'; 493bebfa, 5977ba57, 7396dd6c 'Luktfack'; 849082f6 'Luktfilter: Hållare i locket'",
+  "40 cm bred, 30 cm djup": "213be879 'smal, 40 cm bred'; 70843637 '30 cm djup'",
+  "utdragbara, två eller tre fack": "38f29034 20 + 10; bc506e51 20 + 10; bf07db34 2 × 20; ec672f4d 15 + 8 + 8",
+  "stänger sig självt efter några sekunder": "618b1de9 'Locket stängs efter: 5 sekunder'; 7846d05f, 92fc308c, e77edc35 'Locket står öppet: 5 sekunder'; aabcd677 'mjukt, på 5 sekunder'",
+  "räckvidd 15 till 20 cm": "3f6f548f, 618b1de9, 7846d05f, 92fc308c, aabcd677, efd99fb0 15 cm; 466e799a, 62c7d72d, e77edc35 15–20 cm",
+  "två fack, tre fack, lika stora fack": "allmänt om sopsortering; ec672f4d '15 + 8 + 8 liter'",
+  "ramens mått": "ec672f4d 'Rammått (B × D × H): 47 × 33 × 32 cm'; 38f29034 '52 × 26 × 40,8 cm'; bc506e51 'Totalmått: 52 × 26 × 40,8 cm'",
+  "tre förmonterade, en skruvas i skåpbotten": "38f29034 'Förmonterad'; bf07db34 'Förmonterad, skruvas i skåpet'; bc506e51 'levereras färdigmonterad'; ec672f4d 'Montering: krävs, skruvar ingår', 'skruvas fast i skåpbotten med skruvarna som följer med'"
+ }
+}

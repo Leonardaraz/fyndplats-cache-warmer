@@ -64,7 +64,7 @@ MUTATIONER = [
      '4a8e7f21', 'MONTERINGSGRINDEN'),
 
     ('artikelnummer: leverantörens rad följer med in i spec-blocket',
-     [('("Montering", "Krävs inte"),\n        ("Ingår", "Två sågbockar och bruksanvisning"),', '("Montering", "Krävs inte"),\n        ("Artikelnummer", "X99-000Q00ZZ"),\n        ("Ingår", "Två sågbockar och bruksanvisning"),')],
+     [('("Montering", "Krävs inte"),\n        ("Ingår", "Två sågbockar och bruksanvisning"),', '("Montering", "Krävs inte"),\n        ("Artikelnummer", "X00-' '000Q00ZZ"),\n        ("Ingår", "Två sågbockar och bruksanvisning"),')],
      '17e683e0', 'ARTIKELNUMMER'),
 
     ('tvåpack: 3afe7275 slutar säga att man får två bockar',

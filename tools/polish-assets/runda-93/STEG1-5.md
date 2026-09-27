@@ -66,7 +66,7 @@ kund som mäter och upptäcker att stommen inte är indragbar.
 ## Steg 2 — grindar innan något skrivs
 
 1. ☠️ **Passformen anges med LEVERANTÖRENS ARTIKELNUMMER i källan.** Tyska
-   texten: *"Nur geeignet für 3 x 3 m Pavillons (Sku: 84C-054GY, 84C-054BK)"*.
+   texten: *"Nur geeignet für 3 x 3 m Pavillons (Sku: [artikelnr], [artikelnr])"*.
    Numret är husets farligaste läcka — dealproffsen.se publicerar samma sträng
    som `sku`/`mpn`. Passformen skrivs därför som MÅTT: 250 × 255 cm, 3 × 3 m
    stomme, indragbart tak, och en uttrycklig uppmaning att mäta.
@@ -117,7 +117,7 @@ Två skilda fel, och det andra hade ingen grind letat efter:
   på bildnivå.
 
 ☠️ **Och ett tredje spår, utanför rundan:** `2bfaf6dd` har huvudbildens filnamn
-**`aosom-84C-041-2.jpg`** — leverantörens namn OCH artikelnummer i Wix
+**`aosom-[artikelnr]-2.jpg`** — leverantörens namn OCH artikelnummer i Wix
 filmetadata. En `grep` i HTML:en svarar grönt på det.
 
 ## Steg 5 — SKU-krocken finns redan i utkasten

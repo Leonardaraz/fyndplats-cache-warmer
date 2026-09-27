@@ -1,0 +1,48 @@
+{
+ "slug": "barnmobler",
+ "seo": {
+  "title": "Barnfåtölj, barnsoffa, sminkbord & barngarderob",
+  "description": "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, sminkbord för barn, låga barngarderober med spegel och stegpallar från 2 år."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, stapelbara barnpallar, stegpallar, en barnsäng, sminkbord för barn och låga barngarderober med klädstång och spegel.",
+   "Barnfåtöljerna finns i teddyfleece, manchester, linnelook och konstläder, och den med kronrygg och den med rutmönstrad rygg har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsofforna på 77 cm har plats för två barn och bär 80 kg.",
+   "Sminkborden för barn har spegel och pall eller stol, och tre av dem har speglar i akryl, som inte splittras. Ett blir skrivbord när spegeln tas av. Ett barnbord och två sminkbord är testade enligt leksaksstandarden EN 71.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Från vilken ålder passar barnfåtöljerna?",
+    "a": "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och fåtöljen med kronrygg och fotpall från 3 år. Barnsofforna för två barn bär 80 kg."
+   },
+   {
+    "q": "Vad är en utklädningsgarderob?",
+    "a": "En låg garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Garderoberna här är drygt en meter höga, och två är gjorda i massivt trä efter Montessoriidén."
+   },
+   {
+    "q": "Behöver barnmöblerna monteras?",
+    "a": "Borden, garderoberna och flera av sminkborden monteras, och till garderoberna följer skruvar och anvisning med. Barnfåtöljen med kronrygg levereras färdig att använda."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "26 synliga produkter 2026-09-24: 8 barnfåtöljer, 3 barnsoffor, 2 barnbord med stolar, barnpallarna (44068117), 2 stegpallar för barn, en barnsäng, 4 barngarderober och 5 sminkbord för barn. INTE med: sminkbordet 8d2e36a5 (pallen bär 110 kg, alltså en vuxenmöbel) och djurpallen 1d6567b8 (en vuxenmöbel enligt beskrivningen).",
+  "familjerna": "barnfåtöljer 4791575c, 7e7cc803, 37d254ee, 1a73ab8d, 188a80b4, 4e92e841, 31710969, 9adac852; barnsoffor b28e1cbe, 8f150623, b24ce3da; barnbord cf263b21, dcafad20; barnpallar 44068117 'fyra stapelbara'; stegpallar 516dfd7c, dcf149d1; barnsäng 77460b11; garderober 5c4772dc, a86a2e9a, 5de93e39, 2239b907; sminkbord e8f7eaed, 9bde8456, 97fecb99, f0cf4e31, 34acc52f",
+  "låga garderober, klädstång och spegel": "5c4772dc 113,5 cm 'Klädstång', 'Spegelstorlek'; a86a2e9a 106 cm; 5de93e39 106 cm; 2239b907 108 cm; alla med klädstång och fast spegel",
+  "stegpallar från 2 år": "dcf149d1 '2–5 år'; 516dfd7c 'från 3 år'",
+  "fällbart ryggstöd, 90 cm": "4791575c 'Barnfåtölj med fällbart ryggstöd – blå, fälls ut till 90 cm'",
+  "barnsoffor 77 cm, två barn, 80 kg": "8f150623 och b24ce3da 'Barnsoffa 77 cm för två barn ... bär 80 kg'",
+  "spegel och pall eller stol": "e8f7eaed pall; 9bde8456 'Stol med ryggstöd'; 97fecb99 pall; f0cf4e31 pall; 34acc52f pall",
+  "tre med akrylspegel som inte splittras": "9bde8456 'Spegeln är akryl i stället för glas och kan därför inte splittras'; 97fecb99 'Spegel: 30 × 38,5 cm, akryl'; e8f7eaed 'MDF och akryl'",
+  "blir skrivbord": "e8f7eaed 'Sminkbord barn 2-i-1 – avtagbar spegel, blir skrivbord'",
+  "EN 71: ett barnbord och två sminkbord": "cf263b21 'Testad enligt: EN71-1-2-3'; 97fecb99 'Standard: EN71-1-2-3'; 34acc52f 'Certifiering: EN71-1-2-3'. EN 71 är den europeiska standarden för leksakers säkerhet (allmänt)",
+  "i barnets höjd": "allmänt om utklädningsgarderober; höjderna 106–113,5 cm",
+  "montering": "cf263b21 'Montering: Krävs'; dcafad20 'Montering krävs'; garderoberna 'Kräver montering (skruvsats och manual ingår)'; 97fecb99 'Montering: krävs'; 34acc52f 'Monter[ing]'; 9adac852 'Levereras färdig att använda – ingen montering'",
+  "klädslar": "teddyfleece 7e7cc803; manchester 37d254ee; linnelook 4e92e841; konstläder 31710969, 4791575c. Sammet (188a80b4) är slutsåld och nämns därför inte.",
+  "kronrygg och rutmönstrad rygg med fotpall eller pall": "9adac852 'Barnfåtölj med fotpall – mjuk fåtölj för barn med kronrygg'; 1a73ab8d 'Barnfåtölj med pall – grå, rutmönstrad rygg'",
+  "18 månader; kronrygg och fotpall från 3 år": "7e7cc803 'från 18 månader'; 9adac852 'Rekommenderad ålder: från 3 år'",
+  "drygt en meter; två i massivt trä, Montessori": "a86a2e9a 106 cm, 5de93e39 106 cm, 2239b907 108 cm och den slutsålda 5c4772dc 113,5 cm; alla över en meter. a86a2e9a och 5de93e39 'Massivt trä', 'Montessori'",
+  "slutsålt": "Slutsålda 2026-09-24 och dolda i listan: a0386ca3, d348bf64 (Pallar), 9352de8e (Klädhängare & hallmöbler), 50a808d5 (Sideboards & vitrinskåp), 188a80b4 och 5c4772dc (Barnmöbler). Inget påstående vilar enbart på dem, så texten stämmer både när de är slut och när de kommer tillbaka."
+ }
+}

@@ -52,7 +52,7 @@ MUTATIONER = [
     ("e39db7dd", "ingress", "De kommer färdigmonterade",
      "Skickas från Tyskland. De kommer färdigmonterade", "landsnamn"),
     ("bdb600fe", "ingress", "Sitthöjden är 37 cm",
-     "Sitthöjden (art.nr 845-030CG) är 37 cm", "artikelnummer"),
+     "Sitthöjden (art.nr 000-" "000CG) är 37 cm", "artikelnummer"),
     ("cce86277", "ingress", "Stommen är pulverlackerat stål",
      "Leverantören uppger att stommen är pulverlackerat stål", "leverantör"),
     ("6307893c", "ingress", "Fotstödet är avtagbart",

@@ -39,5 +39,5 @@
 
 `9a3600f8` (639, 2,85 × 2 m) · `3f9fda98` (729, 3 × 3 m, påstår **"wasserdicht"**
 — kräver egen kontroll) · `2bfaf6dd` (779, huvudbildens filnamn är
-`aosom-84C-041-2.jpg`, uppgift #340) · `22dbd372` (729, pergola/soltak,
+`aosom-[artikelnr]-2.jpg`, uppgift #340) · `22dbd372` (729, pergola/soltak,
 OUT_OF_STOCK).

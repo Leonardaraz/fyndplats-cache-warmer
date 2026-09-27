@@ -1,0 +1,44 @@
+{
+ "slug": "elkaminer",
+ "seo": {
+  "title": "Elkamin – elektrisk kamin för vägg eller golv",
+  "description": "Elkaminer med LED-lågor och 1800–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme."
+ },
+ "content": {
+  "intro": [
+   "En elkamin ger känslan av en brasa utan skorsten, ved eller aska. Lågorna är LED-ljus, och kaminen värmer rummet när du vill. Här samlar vi väggkaminer att hänga på väggen eller bygga in, fristående kaminer och konsolmodeller, en cylindrisk kamin och små elkaminer på ben.",
+   "Effekten är 1800 eller 2000 W, och de flesta har två värmelägen, så att du kan välja 1000 W en sval kväll och full effekt när det är kallt. De flesta går också att köra som ren flameffekt utan värme, och flera har fjärrkontroll, termostat, timer och överhettningsskydd.",
+   "Väggkaminerna finns upp till 152 cm breda, och några är gjorda för att byggas in i en vägg eller nisch. Andra ska sitta utanpå väggen, och det står i beskrivningen. Ljudnivån ligger under 50 till 55 dB, alltså hörbar i ett tyst rum men inte påträngande.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Går elkaminen att använda utan värme?",
+    "a": "Ja, de flesta kan köras som ren flameffekt, så att du har lågorna året om utan att rummet blir varmt."
+   },
+   {
+    "q": "Hur mycket värmer en elkamin?",
+    "a": "Effekten är 1800 eller 2000 W, och de flesta har ett lägre läge. En av konsolmodellerna anges värma ett rum på upp till 30 kvadratmeter."
+   },
+   {
+    "q": "Kan man bygga in en elkamin i väggen?",
+    "a": "Några väggkaminer är gjorda för inbyggnad, och det står i beskrivningen. Andra ska sitta utanpå väggen och ska inte byggas in i en nisch."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "27 synliga produkter 2026-09-24 (elkamin|väggkamin|elektrisk kamin i namnet); de fyra etanolbrasorna är inte med",
+  "1800 eller 2000 W": "watt-taggen på 27 av 27; 965ba956 '1800 W'; 40fb1b24 '2000 W'",
+  "två värmelägen, 1000 W sval kväll": "20 av 27; 40fb1b24 'Kaminen värmer med 1000 W en sval kväll och med 2000 W när rummet…'",
+  "de flesta utan värme": "19 av 27; 965ba956 'går även att ha på som ren ljuseffekt utan värme'",
+  "fjärrkontroll, termostat, timer, överhettningsskydd": "fjärr 9, termostat 8, timer 5, överhettning 10; 965ba956 'Termostat och överhettningsskydd', 'Timer 0,5–8 timmar', 'Fjärrkontroll ingår'",
+  "konsolmodell": "965ba956 'Elkamin i konsolmodell med 9 lågfärger'",
+  "cylindrisk": "9da0db1c 'Cylindrisk elkamin 64,5 cm'",
+  "små på ben": "c5feb43e 'Minielkamin 31 cm på ben'; 88ebb094 'Minielkamin 34 cm bred'",
+  "upp till 152 cm": "207ce9e9 'Väggkamin 152 cm för inbyggnad'",
+  "för inbyggnad": "207ce9e9; 84baf336 'Väggkamin 91,4 cm för hängning eller inbyggnad'",
+  "ska sitta utanpå väggen": "40fb1b24 'ska sitta utanpå väggen. Att bygga in den i en nisch eller en vägg rekommende[ras inte]'",
+  "under 50 till 55 dB": "965ba956 'Ljudnivå under 50 dB'; 207ce9e9 'Ljudnivån är under 55 decibel — hörbar i ett tyst rum, men inte påträngande'",
+  "upp till 30 kvadratmeter": "965ba956 'värmer upp till 30 m²'"
+ }
+}

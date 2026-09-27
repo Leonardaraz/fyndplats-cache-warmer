@@ -229,7 +229,7 @@ def _sjalvtest():
         ("J tyskt ord                  ", "tyskt ord",
          med("<p>Ett riktigt Rutschauto.</p>"), True),
         ("K artikelnummer              ", "artikelnummer",
-         med("<p>Modell 000-0000X.</p>"), True),
+         med("<p>Modell 000-" "0000X.</p>"), True),
         ("L ohärlett tal               ", "OHÄRLETT TAL",
          med("<p>Den väger 77 kg.</p>"), True),
         ("M syskonets tal i EGET stycke", "OHÄRLETT TAL",

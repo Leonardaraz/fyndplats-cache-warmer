@@ -1,0 +1,41 @@
+{
+ "slug": "tvattkorgar",
+ "seo": {
+  "title": "Tvättkorg med lock – i bambu, vide och med fack",
+  "description": "Tvättkorgar med lock i bambu och vide, tvättsorterare med två till fyra fack och uttagbara påsar, och två tvättskåp. Från 64 till 144 liter."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du tvättkorgar med lock i bambu och vide, tvättsorterare med två, tre eller fyra fack och två tvättskåp där korgarna tippas ut.",
+   "I en tvättsorterare hamnar vitt, kulört och mörkt i olika fack redan när tvätten läggs i. De flesta har en påse som lyfts ur och bärs till maskinen, och på flera kan påsen tvättas.",
+   "Volymen går från 64 till 144 liter. En tvättsorterare på 108 liter står på fyra hjul, två med broms, och tvättskåpen i vit MDF har tippbara korgar, det höga skåpet också lådor och hyllor.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vad är en tvättsorterare?",
+    "a": "En tvättkorg med två eller flera fack, så att vitt, kulört och mörkt sorteras redan i korgen. Här finns sorterare med två, tre och fyra fack."
+   },
+   {
+    "q": "Kan påsen tvättas?",
+    "a": "På flera av korgarna ja, påsen tas ur och kan tvättas. Det står i beskrivningen vilka."
+   },
+   {
+    "q": "Hur sköter jag en tvättkorg i bambu?",
+    "a": "Torka av den med en fuktad trasa och torka torrt, och låt inte blöta handdukar bli liggande i korgen."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "12 tvättkorgar och tvättsorterare med tvättkorg eller tvättsorterare i namnet, plus tvättskåpet 5022e9e5 och högskåpet 3c0f58f1 med tippbar tvättkorg: 14 synliga 2026-09-24 (13 i lager)",
+  "bambu och vide": "6e73f024 'Material: vide'; bambu i bl.a. 53247cf3, 8e7dd6dc, 15746de3, e7b660a6",
+  "två, tre, fyra fack": "6dc4e2d7 '2 fack'; 17470e43 'Fack: 2 st'; e7b660a6 '3 fack'; c57e6f12 'Säck … (4 st)'",
+  "tippas ut": "5022e9e5 namnet 'Tvättskåp 70 × 38 cm med två tippbara korgar'; 3c0f58f1 namnet 'med tippbar tvättkorg'",
+  "lyfts ur och bärs": "15746de3 'lyft ur hela påsen och bär'; e7b660a6 'enkelt att bära tvätten till mas[kinen]'",
+  "flera kan tvättas": "15746de3 'tvättbar tygpåse'; 53247cf3 och 8e7dd6dc 'kan tvättas'; e7b660a6 'tvättbara'; 95b6f5bd 'kan tvättas i maskin'",
+  "64 till 144 liter": "8e7dd6dc 'Total volym: 64 liter'; e7b660a6 'Kapacitet: 144 liter (3 fack)'",
+  "108 liter, fyra hjul, två med broms": "c57e6f12 'Total volym: 108 liter Hjul: fyra länkhjul, två med broms'",
+  "vit MDF, lådor och hyllor": "5022e9e5 'Färg: Vit Material: MDF'; 3c0f58f1 'MDF, tvättkorg i textil Lådornas innermått … Öppna hyllfack'",
+  "skötsel": "e797e8a4 'fuktad trasa och torka torrt, och låt inte blöta handdukar bli liggande i korgen'"
+ }
+}

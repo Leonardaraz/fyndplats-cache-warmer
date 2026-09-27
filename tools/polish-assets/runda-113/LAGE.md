@@ -58,7 +58,7 @@ Ordet "tyst" står inte på någon av de fyra sidorna; dB-talet får tala.
 Högsta andelen någon runda mätt. 26 behålls, 14 tas bort, 3 beskärs, 1 övermålas.
 
 ☠️ **TVÅ av dem var EU-energietiketten med AOSOMS ARTIKELNUMMER tryckt på sig:**
-`b2c76518` bild 5 (`800-127V90BK`) och `480849a7` bild 5 (`800-196V90BK`).
+`b2c76518` bild 5 (`[artikelnr]`) och `480849a7` bild 5 (`[artikelnr]`).
 Båda är ute ur galleriet.
 
 ⚠️ **Och det är en äkta målkonflikt, inte bara ett misstag.** Bilaga VII kräver

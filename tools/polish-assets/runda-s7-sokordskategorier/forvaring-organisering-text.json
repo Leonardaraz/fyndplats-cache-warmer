@@ -1,0 +1,39 @@
+{
+ "slug": "forvaring-organisering",
+ "ersatt_av": "runda-s10-hem-och-mobler: Byråer och Bokhyllor fick egna sidor, och Förvaring släppte byrå och bokhylla innan S7-titeln hann gå live",
+ "andring": "omtitel: skoskåpen har egen sida (skoskap-skobankar). De två första FAQ är oförändrade från 1914cb2e. Slutraden om EU-lager och leveranstid är utbytt mot rundans standardrad, eftersom gatelib fäller fraktland.",
+ "seo": {
+  "title": "Förvaring – byrå, bokhylla & förvaringsbänk",
+  "description": "Byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar, hurtsar på hjul och klädställ till hall, sovrum och kontor. Mått anges alltid."
+ },
+ "content": {
+  "intro": [
+   "Ordning börjar med rätt möbel på rätt plats. I Förvaring & Organisering hittar du byråer med tyglådor, bokhyllor och kubhyllor, förvaringsbänkar att sitta på, kontorshurtsar på hjul, klädställ och förvaring till tvätt, garage och förråd. Skoskåp och skobänkar har dessutom en egen sida.",
+   "Mät först, köp sen. Djupet är det mått som oftast överraskar, och en byrå eller bokhylla som är några centimeter för djup tar mer golv än man tror. För hyllor avgör antal hyllplan och maxlast per plan hur mycket du får plats med, och en hurts på hjul kan rullas undan under skrivbordet när den inte används. Alla mått står i beskrivningen.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur mycket tål en garagehylla?",
+    "a": "Maxlast per hyllplan anges i produktbeskrivningen. Fördela tunga saker jämnt och placera det tyngsta längst ned för bästa stabilitet."
+   },
+   {
+    "q": "Behöver möblerna monteras?",
+    "a": "Ja, förvaringsmöbler levereras platt med skruv och anvisning. De flesta byråer och hyllor tar 30–60 minuter att montera."
+   },
+   {
+    "q": "Var hittar jag skoskåpen?",
+    "a": "Skoskåp, skobänkar och skohyllor har en egen sida, Skoskåp & skobänkar, med skåp för 8 till 30 par och smala modeller från 15 cm djup."
+   }
+  ]
+ },
+ "facit": {
+  "sortimentet": "399 synliga i Förvaring & Organisering 2026-09-24; första ord: byrå 18, tv-bänk 16, köksvagn 16, bokhylla 13, redskapsbod 13, skoskåp 12, förvaringsbänk 7, kubhylla 4, klädställ 4, hurts 3",
+  "byråer med tyglådor": "par 'byrå tyglådor' 4 i produktsvepet",
+  "kubhyllor": "d4b87c0a 'Kubhylla 140 cm med 10 fack'; 709f7aac 'Kubhylla på hjul 111 cm'; 0c07eb82",
+  "hurtsar på hjul": "4959ab0b 'Hurts med hjul, 5 lådor och skåp'; 66c9f2b5 'Hurts på hjul med tre låsbara lådor'",
+  "klädställ": "c51f87de 'Klädställ med paraplyställ 174,5 cm'; 1dfb9b0b 'Öppen klädställning 182 cm'; 5cdc868a 'Klädställning på hjul'",
+  "tvätt, garage, förråd": "tvättkorg 8, torkvagn 5; redskapsbod 13, plåtbod 7, garagetält 6",
+  "skoskåp 8 till 30 par, från 15 cm djup": "se skoskap-skobankar-text.json"
+ }
+}

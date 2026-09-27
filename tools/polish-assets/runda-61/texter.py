@@ -8,7 +8,7 @@ B = "https://www.fyndplats.se/produkt/"
 
 P = {}
 
-# ── f523b18d — 800-288V90GY, grått set med fyrskivig brödrost ───────────────
+# ── f523b18d — [artikelnr], grått set med fyrskivig brödrost ───────────────
 P["f523b18d"] = {
  "id": "f523b18d-c7a7-43f0-9c44-87da34dd037f",
  "ord": "frukostset i grått",
@@ -68,7 +68,7 @@ P["f523b18d"] = {
  ),
 }
 
-# ── 83d2db1a — 800-287V90CW, gräddvitt set med mekanisk termometer ──────────
+# ── 83d2db1a — [artikelnr], gräddvitt set med mekanisk termometer ──────────
 P["83d2db1a"] = {
  "id": "83d2db1a-655c-4bf3-bef0-910b18935442",
  "ord": "frukostset i gräddvitt",
@@ -126,7 +126,7 @@ P["83d2db1a"] = {
  ),
 }
 
-# ── e7f69e8a — 800-287V90BK, svart syskon till 83d2db1a ─────────────────────
+# ── e7f69e8a — [artikelnr], svart syskon till 83d2db1a ─────────────────────
 P["e7f69e8a"] = {
  "id": "e7f69e8a-3e3b-46e0-94ea-bd9bacae2c72",
  "ord": "frukostset med termometer",
@@ -183,7 +183,7 @@ P["e7f69e8a"] = {
  ),
 }
 
-# ── 375bb3c8 — 800-286V90CW, grädde med LED-display och 40–100 °C ───────────
+# ── 375bb3c8 — [artikelnr], grädde med LED-display och 40–100 °C ───────────
 P["375bb3c8"] = {
  "id": "375bb3c8-8ddd-4095-8ed3-913c77d7d6f9",
  "ord": "frukostset med LED-display",
@@ -246,7 +246,7 @@ P["375bb3c8"] = {
  ),
 }
 
-# ── 7805b8bc — 800-286V90BK, svart syskon med minnesfunktion ────────────────
+# ── 7805b8bc — [artikelnr], svart syskon med minnesfunktion ────────────────
 P["7805b8bc"] = {
  "id": "7805b8bc-1f1b-4da1-9c4f-c52c8ff79e2c",
  "ord": "frukostset med varmhållning",
@@ -309,7 +309,7 @@ P["7805b8bc"] = {
  ),
 }
 
-# ── 2f2c1c88 — 800-267V90CW, gräddvitt i rostfritt med fyra fack ────────────
+# ── 2f2c1c88 — [artikelnr], gräddvitt i rostfritt med fyra fack ────────────
 P["2f2c1c88"] = {
  "id": "2f2c1c88-885e-49ad-97dd-572388c642dc",
  "ord": "frukostset i rostfritt",
@@ -368,7 +368,7 @@ P["2f2c1c88"] = {
  ),
 }
 
-# ── 0ab3483a — 800-181V90PK, rosa bikakemönster (färgsyskon till b330de9c) ──
+# ── 0ab3483a — [artikelnr], rosa bikakemönster (färgsyskon till b330de9c) ──
 P["0ab3483a"] = {
  "id": "0ab3483a-e993-46ef-81f7-18502bb9f1cf",
  "ord": "rosa frukostset",

@@ -34,7 +34,7 @@ MUTATIONER = [
     ("d348bf64", "ingress", "En <strong>rullpall</strong>", "En <strong>rullpall</strong> i Kunstleder", "kunstleder"),
     ("fa078e03", "ingress", "En <strong>rullpall</strong> i beige", "En Vinsetto-rullpall i beige", "vinsetto"),
     ("87de04ad", "ingress", "Fotkrysset är brett", "Skickas från Tyskland. Fotkrysset är brett", "landsnamn"),
-    ("28532aab", "ingress", "rutstickad sits", "rutstickad sits (art.nr 921-835V00PK)", "artikelnummer"),
+    ("28532aab", "ingress", "rutstickad sits", "rutstickad sits (art.nr 000-" "000V00PK)", "artikelnummer"),
     ("5646a8ff", "ingress", "Sitthöjden är fast", "Leverantören uppger att sitthöjden är fast", "leverantör"),
     ("239e68b8", "ingress", "Ingen rygg", "Ligger i EU-lager. Ingen rygg", "lagerfras"),
     # ── talgrinden: ett tal som inte står i produktens egen spec ──────────

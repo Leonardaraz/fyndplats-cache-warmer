@@ -170,7 +170,7 @@ FALL = [
     ("husmärke", "e16c1515",
      lambda: T.EGENSKAPER["B"].insert(0, "Tillverkad av HOMCOM"), "HUSMÄRKE"),
     ("artikelnummer", "e16c1515",
-     lambda: T.SPEC["B"].append(("Modellreferens", "839-835V01CG")), "ARTIKELNUMMER"),
+     lambda: T.SPEC["B"].append(("Modellreferens", "000-" "000V00CG")), "ARTIKELNUMMER"),
     ("leveransland", "4ab392f7",
      lambda: T.EGENSKAPER["C"].insert(0, "Skickas från Tyskland"), "LEVERANSLAND"),
     ("attribution", "4ab392f7",

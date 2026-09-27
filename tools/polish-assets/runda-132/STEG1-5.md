@@ -285,7 +285,7 @@ c38f929e  hundtrappa-morkbla-forvaring         HIT  0 fel
 SUMMA: 10 sidor, 0 fel
 ```
 
-`livegrind.py` är en **datafil** — tio pid och ett anrop till `liverunda.kor`.
+`live.py` (hette `livegrind.py` till 2026-09-23) är en **datafil** — tio pid och ett anrop till `liverunda.kor`.
 Uppgift #491 mätte att live-grinden drev isär i fem rundor och att runda 129
 tappade rundans EGET självtest utan att någon såg det; båda självtesterna står
 därför i utskriften ovan, och de kördes för att den delade modulen kör dem, inte

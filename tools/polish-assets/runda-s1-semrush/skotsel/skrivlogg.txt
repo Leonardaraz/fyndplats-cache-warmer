@@ -1,0 +1,11 @@
+# Beskrivningsskrivning 2026-09-23 — längd/kontrollsumma (h*31 mod 1e9+7) på plainDescription FÖRE och EFTER.
+# Återställning: ta bort fragmentet <kort>.html ur texten (skötsel), respektive byt tillbaka raderna i vinkyl-byten.tsv.
+40955353 SKRIVEN rev 8->9 före=3356/136422820 efter=3852/486854949 vis=true
+4a14c839 SKRIVEN rev 11->12 före=2209/960486741 efter=2671/169633883 vis=true
+548d70fd SKRIVEN rev 19->20 före=2588/381667157 efter=3200/961052605 vis=true
+7099a9fa SKRIVEN rev 14->15 före=2144/334098056 efter=2697/493867713 vis=true
+c38f528f SKRIVEN rev 26->27 före=3647/710475253 efter=4158/882412123 vis=true
+d5f6bab3 SKRIVEN rev 14->15 före=3335/743359129 efter=3848/429269555 vis=true
+db1dd65c SKRIVEN rev 18->19 före=2687/329098167 efter=3247/228940016 vis=true
+e0b154ec SKRIVEN rev 8->9 före=2614/359393009 efter=3173/90314795 vis=true
+47a91a17 SKRIVEN rev 7->8 före=5318/428423449 efter=5322/848927948 vis=true kvar=0

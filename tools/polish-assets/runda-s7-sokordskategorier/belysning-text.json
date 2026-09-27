@@ -1,0 +1,41 @@
+{
+ "slug": "belysning",
+ "andring": "omtitel: golvlamporna har egen sida (golvlampor), och Belysning tar taklampor och bordslampor. intro[1] och alla tre FAQ är oförändrade i sak från 1914cb2e, men intro[1] har tappat sina markdown-asterisker: butiken visar texten som ren text, så **Sockeln**, **IP-klassen** och **Ljusmängden** syntes med asteriskerna live. Slutraden om EU-lager och leveranstid är utbytt mot rundans standardrad, eftersom gatelib fäller fraktland.",
+ "seo": {
+  "title": "Taklampor, bordslampor & LED-belysning",
+  "description": "Taklampor i glas, kristall och linne, bordslampor i keramik och trä, LED-björkar, vägglampor för utomhus och LED-armatur till garaget. Sockel och IP-klass anges."
+ },
+ "content": {
+  "intro": [
+   "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
+   "Tre saker avgör valet. Sockeln måste matcha lampan du tänkt använda (E27 är vanligast). IP-klassen talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. Ljusmängden mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
+   "Taklamporna finns med glaskulor, i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Vilken lampsockel behöver jag?",
+    "a": "Sockeltypen anges för varje armatur, och E27 är den vanligaste i svenska hem. Har du redan lampor hemma, kontrollera att sockeln stämmer innan du beställer."
+   },
+   {
+    "q": "Kan vägglamporna sitta utomhus?",
+    "a": "De modeller som är avsedda för utomhusbruk har en IP-klass angiven, till exempel IP45. Är ingen IP-klass angiven är armaturen tänkt för inomhusbruk."
+   },
+   {
+    "q": "Passar en hexagonlampa i ett vanligt garage?",
+    "a": "Måtten anges i beskrivningen, och modulerna monteras i mönster efter takytan. Mät takhöjd och yta först, och räkna med god marginal till portens rörelseområde."
+   }
+  ]
+ },
+ "facit": {
+  "taklampor i glas, kristall, linne, hampsnöre": "d1d9a210 'Taklampa med fem glaskulor Ø64 cm'; 9cc6d5a9 'Taklampa i kristall Ø39 cm'; 61f64b5a 'Taklampa med dubbel linneskärm Ø40 cm'; 8bf8dedd 'Taklampa i hampsnöre Ø30 cm'",
+  "LED-lampor med fjärrkontroll": "a2748770 'Taklampa avlång 100 cm med fjärrkontroll – 38 W, 3000–6500 K'; b964138a 'Taklampa LED 50 W med fem vridbara ljusrör'",
+  "bordslampor i keramik, trä och glas": "a9908d30 'Bordslampa i keramik 45 cm'; ecfe0314 'Bordslampa i keramik 39 cm'; 74f4db49 'Bordslampa i trä'; 1e7dfab3 'Bordslampa i färgat glas'; e206fdd8 'bärnstensglas'",
+  "flera USB-uttag i foten": "f594905f 'Bordslampor med USB 2-pack – … uttag i foten'; 74f4db49 'med USB-A och USB-C – tre fack i foten'",
+  "ett par sladdlösa och laddbara": "6b57083d 'Laddbara bordslampor 2-pack – sladdlösa, touch och tre färgtemperaturer'",
+  "vägglampor för utomhusbruk": "66317189 'Vägglampa utomhus i retro-stil – E27, IP45'; 4311c3a2 'Vägglampor 2-pack med gallerdesign'",
+  "LED-björkar": "LED-björk 120 cm med 72 varmvita lampor; LED-björk 150 cm; LED-björk 180 cm (fyra st i Belysning)",
+  "LED-armatur till garaget": "'Hexagonlampa garage 244 × 170 cm'",
+  "golvlamporna har en egen sida": "kategorin Golvlampor, runda S7"
+ }
+}

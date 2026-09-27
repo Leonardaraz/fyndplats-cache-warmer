@@ -4,12 +4,12 @@
 
 | id | artnr | pris | landedCostSek | prisgrind | lager | fraktandel | Wix-SKU |
 |---|---|--:|--:|:-:|--:|--:|---|
-| `a999f2b1` | 830-816V01WT | 1 199 | 1 004,97 | ✅ | 11 | 0,447 | `FP-raumteiler-4-teilig` |
-| `c35f9d4f` | 830-816V01DR | 1 099 | 907,01 | ✅ | 52 | 0,463 | `FP-raumteiler-4-teilig` |
-| `d72bde5e` | 830-700V00ND | 1 179 | 982,38 | ✅ | 42 | 0,444 | `FP-4-teiliger-raumteiler` |
+| `a999f2b1` | [artikelnr] | 1 199 | 1 004,97 | ✅ | 11 | 0,447 | `FP-raumteiler-4-teilig` |
+| `c35f9d4f` | [artikelnr] | 1 099 | 907,01 | ✅ | 52 | 0,463 | `FP-raumteiler-4-teilig` |
+| `d72bde5e` | [artikelnr] | 1 179 | 982,38 | ✅ | 42 | 0,444 | `FP-4-teiliger-raumteiler` |
 | `316f9945` | 830-311 | 1 179 | 981,54 | ✅ | 52 | 0,444 | `FP-raumteiler-faltbar` |
-| `f8fd1b62` | 830-716V01ND | 1 339 | 1 108,80 | ✅ | 54 | 0,393 | `FP-4-teiliger-raumteiler` |
-| `309076e2` | 830-716V00ND | 1 299 | 1 082,53 | ✅ | 15 | 0,403 | `FP-raumteiler-klappbare` |
+| `f8fd1b62` | [artikelnr] | 1 339 | 1 108,80 | ✅ | 54 | 0,393 | `FP-4-teiliger-raumteiler` |
+| `309076e2` | [artikelnr] | 1 299 | 1 082,53 | ✅ | 15 | 0,403 | `FP-raumteiler-klappbare` |
 
 Alla sex: `supplier: aosom`, `hasEuWarehouse: true`, `draftStatus: pending_review`,
 `needsAiPolish: true`, `visible: false`, en variant, kategori bara `All Products`.

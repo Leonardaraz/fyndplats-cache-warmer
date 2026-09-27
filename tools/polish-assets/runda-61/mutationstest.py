@@ -76,7 +76,7 @@ MUTATIONER = [
  # ── husreglerna ──────────────────────────────────────────────────────────
  (lagg_till("f523b18d", "Termostaten kommer från Strix."),
   "husmärke", "namnger termostatens varumärke"),
- (lagg_till("83d2db1a", "Artikelnummer: 800-287V90CW."),
+ (lagg_till("83d2db1a", "Artikelnummer: 000-" "000V00CW."),
   "artikelnummer", "skriver ut Aosoms artikelnummer"),
  (lagg_till("e7f69e8a", "Setet skickas från Tyskland."),
   "avsändarland", "skriver ut avsändarlandet"),

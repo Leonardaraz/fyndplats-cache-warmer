@@ -318,7 +318,7 @@ def sjalvtest():
          lambda: rakna(h=h0.replace("Kanthöjd", "Volant"))),
         ("husmärke", "leverantör/husmärke", lambda: rakna(n="Outsunny paviljongtak")),
         ("artikelnummer", "artikelnummer-mönster",
-         lambda: rakna(h=h0.replace("174 cm", "84C-175 cm"))),
+         lambda: rakna(h=h0.replace("174 cm", "00C-" "000 cm"))),
         ("artikelnummer-etikett", "artikelnummer-etikett",
          lambda: rakna(h=h0.replace("Kanthöjd", "Artikelnummer"))),
         ("avsändarland", "avsändarland", lambda: rakna(b=b0 + " Skickas från Tyskland.")),

@@ -21,7 +21,7 @@ egen grind inte fångade det som runbooken redan bar.
 
 | id8 | utfall |
 |---|---|
-| `9308a7dc` | ☠️ BEVISAD dubblett av publicerade `4e85a6b7`. Den publicerade sidan ommappad till `aosom:370-402V90MX`, utkastet pensionerat. Se `STEG1-DUBBLETT.md`. |
+| `9308a7dc` | ☠️ BEVISAD dubblett av publicerade `4e85a6b7`. Den publicerade sidan ommappad till `aosom:[artikelnr]`, utkastet pensionerat. Se `STEG1-DUBBLETT.md`. |
 
 ## Kvar i rundan
 

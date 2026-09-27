@@ -1,0 +1,44 @@
+{
+ "slug": "hornskrivbord",
+ "seo": {
+  "title": "Hörnskrivbord med laddstation, hyllor & lådor",
+  "description": "Hörnskrivbord i L-form med eluttag och USB, hylltorn, lådor eller skärmställ, ett gamingbord för två skärmar och två som också kan ställas raka."
+ },
+ "content": {
+  "intro": [
+   "Här hittar du hörnskrivbord som tar vara på ett hörn i rummet. De flesta är L-formade med en stor och en mindre skiva, så att du har datorn på den ena och papper eller en andra skärm på den andra.",
+   "Fyra har eluttag och USB i bordet, så att datorn och telefonen laddas vid skrivbordet. Två av dem har ett hylltorn med fem plan, ett har tre lådor, och gamingbordet har ett skärmställ för två skärmar upp till 42 tum. Flera har ett skärmställ som höjer skärmen.",
+   "Två kan byggas om till raka skrivbord. Det ena blir 240 cm långt, och det andra blir 150 cm och vrids på stället mellan hörnläge och rakt läge. Hörnskrivbordet på 150 × 150 cm har två lika stora arbetsytor på 90 × 55 cm.",
+   "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+  ],
+  "faq": [
+   {
+    "q": "Hur stort hörn behöver ett hörnskrivbord?",
+    "a": "Mät längs båda väggarna. Gamingbordet tar 128 × 128 cm, bordet med tre lådor 170 × 100 cm och bordet med lika långa sidor 150 × 150 cm. Det vridbara skrivbordet tar 105 × 85 cm i hörnläge."
+   },
+   {
+    "q": "Hur mycket tål skrivbordet?",
+    "a": "Det skiljer mellan modellerna. Gamingbordet tål 45 kg totalt, och borden med hylltorn tål 135 kg totalt och 50 kg per bordsskiva."
+   },
+   {
+    "q": "Har hörnskrivborden förvaring?",
+    "a": "De flesta har det. Två har ett hylltorn med fem plan, ett har tre lådor och fyra hyllor, ett har hyllor och ett datorställ, och det vridbara skrivbordet har också förvaring. Hörnskrivbordet på 150 × 150 cm har bara arbetsytor."
+   }
+  ]
+ },
+ "facit": {
+  "urval": "8 synliga 2026-09-24, varav 1 slutsåld (cfab9c4e, samma bord som 6341b51a i ljus ekton). Med: skrivbordet som vrids 360° (b42b4802), som är ett hörnbord i vinkelläge.",
+  "de flesta L-formade med stor och mindre skiva": "2299c521, 9734c1b3 '102 × 50 cm' och '100 × 35 cm'; 6341b51a '168 × 48' och '120 × 48'; b9c3c384 '140 × 50' och '100 × 30'; c342826f '80 × 48 cm och 48 × 48 cm'. 58b51373 har två lika stora",
+  "fyra med eluttag och USB": "2299c521, 9734c1b3 'Eluttag', 'USB och USB-C'; b9c3c384 'Eluttag', 'USB'; c342826f 'USB-uttag', 'Eluttag'",
+  "hylltorn fem plan": "2299c521, 9734c1b3 'Hylltorn: 5 plan'",
+  "tre lådor": "b9c3c384 'Lådor: 3 st'",
+  "två skärmar upp till 42 tum": "c342826f 'för upp till 2 skärmar (max 42 tum)'",
+  "skärmställ, flera": "2299c521, 9734c1b3 'Skärmställ: 99 × 15 × 14,8 cm'; 6341b51a 'Skärmställ: 60 × 20 × 15 cm'; b9c3c384 'Skärmställ: 80 × 16 × 14 cm'; c342826f",
+  "två raka": "6341b51a 'Rakt läge: 240 × 48 × 90 cm'; b42b4802 '150 × 40 × 75 cm rakt', 'Skrivbord som vrids 360° – hörnbord, rakt eller ihopvridet'",
+  "150 × 150, 90 × 55": "58b51373 'Yttermått: 150 × 150 × 76 cm', 'Arbetsyta per sida: 90 × 55 cm'",
+  "mått i hörn": "c342826f 128 × 128; b9c3c384 170 × 100; 58b51373 150 × 150; b42b4802 '105 × 85 × 75 cm i vinkel'",
+  "maxlast": "c342826f 'Maxlast: 45 kg totalt'; 2299c521, 9734c1b3 'Maxlast: 135 kg totalt, 50 kg per bordsskiva'",
+  "description: skärmställ, lådor, hylltorn": "se ovan",
+  "förvaring, de flesta": "2299c521, 9734c1b3 'Hylltorn: 5 plan'; b9c3c384 'Lådor: 3 st', 'Hyllor: 47 × 30 × 65, 36 × 48 × 15, 24,5 × 62 × 26 och 24,5 × 62 × 32,5 cm'; 6341b51a 'Tvåstegshylla', 'Datorställ', 'Förvaringsficka'; b42b4802 'med förvaring' (namnet); 58b51373 anger bara arbetsytor (5 av 7 har förvaring)"
+ }
+}

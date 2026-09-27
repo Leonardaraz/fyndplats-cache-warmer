@@ -48,7 +48,7 @@ const RUNDOR = join(ROT, "tools", "polish-assets");
 const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
                    "gate-lankar.py", "gate-sku.py", "gate-kort.py", "hasha.py",
                    "gatelib.py", "livegrind.py", "bygg-media.py", "bygg-kort.py",
-                   "bygg-skrivplan.py"];
+                   "bygg-skrivplan.py", "gate-kategori.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade

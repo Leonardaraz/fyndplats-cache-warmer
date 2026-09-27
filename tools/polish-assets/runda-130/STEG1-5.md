@@ -339,7 +339,7 @@ Runda 128 körde alltså rundans EGEN grindsjälvtest i Steg 14; runda 129 banta
 filen och tappade anropet, och ingen såg det — ett bortfall av exakt samma slag
 som `kortbygge.mjuka` ovan. Reglerna hade redan flyttat till
 `grind.granska(pid, html, live=True)`; **ordningen att köra dem** bor nu i
-`liverunda.kor`, och `runda-130/livegrind.py` är 25 rader data. Anropet till
+`liverunda.kor`, och `runda-130/live.py` (hette `livegrind.py` till 2026-09-23) är 25 rader data. Anropet till
 rundans självtest är villkorat på förekomst och skriver ut när det SAKNAS —
 tystnad var det som gjorde bortfallet osynligt.
 

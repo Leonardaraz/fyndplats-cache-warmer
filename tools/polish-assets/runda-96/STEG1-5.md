@@ -72,7 +72,7 @@ A-duk fäller med texten "MÄTFÄLLAN: bild 1 är en miljöbild, gräset är int
 ## Steg 5 — vad som inte publiceras
 
 ☠️ **`9a3600f8`:s artikelnummer.** Brödtexten namnger dem **två gånger**:
-"Artikelnummer: 84C-175, 84C-175BK" och "Geeignet für Sku: 84C-175, 84C-175BK".
+"Artikelnummer: [artikelnr], [artikelnr]" och "Geeignet für Sku: [artikelnr], [artikelnr]".
 
 ⚠️ **`9a3600f8`:s bredd.** Brödtexten och spec-tabellen säger "286L × 245B cm",
 ritningen säger "231 cm × 286 cm". Längden 286 cm är alla överens om; den andra

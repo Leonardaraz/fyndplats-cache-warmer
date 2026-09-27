@@ -1,0 +1,47 @@
+{
+  "slug": "hundburar",
+  "seo": {
+    "title": "Hundbur – möbelbur, metallbur och mjuk bur",
+    "description": "Hundburar för hundar upp till 30 kg: möbelburar i valnöt, ek och vitt med skiva som sidobord, burar i metall och mjuka burar i väv som viks ihop."
+  },
+  "content": {
+    "intro": [
+      "En hundbur ger hunden en egen plats hemma, i bilen och på resan. Här samlar vi våra hundburar: möbelburar i valnöt, ek och vitt som också fungerar som sidobord, en bur i metall med hjul och topplucka och mjuka burar i väv som viks ihop när de inte används.",
+      "Mät hunden på längden, inte bara vikten: de flesta burarna anger både maxvikt och kroppslängd, oftast upp till 30 kg och 60 cm. Hunden ska kunna stå, vända sig och ligga utsträckt. En skjutdörr tar ingen plats framför buren, och möbelburarnas skiva ovanpå bär mellan 20 och 50 kg – plats för lampan och böckerna.",
+      "Möbelburarna väger mellan 25 och 47 kg och monteras där de ska stå, medan de mjuka burarna väger från 3,8 kg och följer med i bagageutrymmet. För två hundar finns en bur på 120 cm med mellanvägg och två skjutdörrar.",
+      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur stor hundbur behöver min hund?",
+        "a": "Hunden ska kunna stå upp, vända sig och ligga utsträckt. Mät kroppslängden och jämför med burens innermått – de flesta burarna anger både maxvikt och kroppslängd, till exempel 30 kg och 60 cm."
+      },
+      {
+        "q": "Vad är en möbelbur?",
+        "a": "En hundbur byggd som en möbel, med en hel skiva ovanpå som fungerar som sidobord. Den smälter in i rummet, och skivan bär mellan 20 och 50 kg."
+      },
+      {
+        "q": "Vilken bur passar på resan?",
+        "a": "De mjuka burarna i väv väger från 3,8 kg och viks ihop, så de är lätta att ta med i bilen. Metallburen med hjul och bricka går också att fälla ihop."
+      }
+    ]
+  },
+  "facit": {
+    "17 produkter": "16 i lager; fakta läst 2026-09-24",
+    "möbelburar i valnöt, ek och vitt": "bef2ef76, 6bad5a05, 9b2b0927 valnöt; c027776b 'Hundbur i ek'; 022575a2 'Vit hundbur'",
+    "sidobord": "6bad5a05 'Skivan är möbeln … sidobord'",
+    "metall med hjul och topplucka": "50714d60 'Hundbur i metall med topplucka – uttagbar bottenbricka och hjul'",
+    "mjuka burar i väv som viks": "f140b561, d6547090, 6297606f '600D-väv'; d6547090 'viks till 20 cm'",
+    "i bilen": "f140b561 'En bur som följer med på picknick och i bagageutrymmet'",
+    "maxvikt och kroppslängd, oftast 30 kg och 60 cm": "bef2ef76, 79ec6d2c, 022575a2, 9b2b0927, 9d4559d5 '30 kg och 60 cm kroppslängd'; d3b47c8b 25 kg/55 cm; a5741a22 20 kg/50 cm; 50714d60 25 kg/75 cm",
+    "stå, vända sig, ligga utsträckt": "a5741a22 '… vända sig och lägga sig utsträckt'",
+    "mät längden, inte bara vikten": "d3b47c8b 'Mät längden, inte bara vikten'",
+    "skjutdörr tar ingen plats": "c65185c7 'Dörren tar noll golvyta'",
+    "skiva bär 20–50 kg": "d3b47c8b '50 kg på ovansidan'; a5741a22 och 022575a2 '20 kg på ovansidan'; 9b2b0927 30 kg",
+    "lampan och böckerna": "6bad5a05 'lampan, böckerna'",
+    "möbelburar 25–47 kg, monteras där de ska stå": "d3b47c8b 25,5 kg; 9b2b0927 26,3 kg; 0ae3c59a 34,5 kg; 57f4489e 47 kg; 'Montera buren där den ska stå'",
+    "mjuka från 3,8 kg": "6297606f 'väger 3,8 kg'; f140b561 5,7 kg",
+    "två hundar, 120 cm, mellanvägg": "57f4489e 'Hundbur för två hundar 120 cm – delbar med mellanvägg, två skjutdörrar'",
+    "metallburen fälls ihop": "50714d60 'hjulen, brickan och att den viks ihop pekar mot resa'"
+  }
+}

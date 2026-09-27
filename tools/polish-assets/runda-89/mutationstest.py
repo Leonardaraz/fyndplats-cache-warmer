@@ -106,7 +106,7 @@ MUTATIONER = [
      "förbjudet ord: 'tyskland'"),
     ("artikelnumret smyger in i spec-tabellen UTAN att heta artikelnummer",
      '"Montering krävs",\n]\nF_SKOTSEL',
-     '"Ram: pulverlackerat stål (371-042V01)",\n]\nF_SKOTSEL',
+     '"Ram: pulverlackerat stål (000-' '000V00)",\n]\nF_SKOTSEL',
      "artikelnummer i texten"),
     ("en certifiering hittas på",
      "Pulverlackerad stålram, maxlast 100 kg\",\n    \"Väger 8,2 kg",

@@ -1,0 +1,95 @@
+# Skrivningen 2026-09-23/24, fyra anrop. Kontrollsumman kontrollerad i SAMMA anrop
+# som skrivningen, före första PATCH; avvikelse hade avbrutit hela anropet.
+# kort status revision-före>efter
+del 1 (22): kontrollsummor 22/22 lika
+e1a46c56 ok 11>12
+872d06b2 ok 11>12
+cb403b5c ok 12>13
+66c9f2b5 ok 8>9
+c57e6f12 ok 6>7
+711cad58 ok 6>7
+fee40f78 ok 11>12
+b3e20f91 ok 4>5
+14a20f23 ok 6>7
+80fbb644 ok 6>7
+faa61f7f ok 7>8
+4540695f ok 6>7
+1abd6c48 ok 5>6
+adb8c31b ok 5>6
+ed63cbaa ok 4>5
+bf519490 ok 5>6
+e44f5882 ok 5>6
+dd7052d3 ok 6>7
+e1f10ce1 ok 5>6
+288381a0 ok 2>3
+c8d03827 ok 5>6
+00d42706 ok 5>6
+del 2 (22): kontrollsummor 22/22 lika
+328e4d6c ok 7>8
+f4bd85c4 ok 5>6
+21226a36 ok 6>7
+1493fb2b ok 7>8
+de64bbc8 ok 11>12
+b3c7c0a3 ok 8>9
+4d3c458c ok 7>8
+61354a0f ok 3>4
+1dfb9b0b ok 5>6
+224fd3ee ok 7>8
+9a8339f7 ok 6>7
+53247cf3 ok 7>8
+8e7dd6dc ok 5>6
+35100ffa ok 6>7
+cc2add44 ok 4>5
+c85c49af ok 5>6
+ebb45ac6 ok 6>7
+2b6d2766 ok 8>9
+75b88995 ok 4>5
+b8496223 ok 4>5
+9421c86b ok 4>5
+5dd1a836 ok 4>5
+del 3 (22): kontrollsummor 22/22 lika
+11d486a3 ok 4>5
+eac7fdca ok 5>6
+2c3f2a17 ok 3>4
+184e9c32 ok 3>4
+e0b85bb6 ok 4>5
+83a5fc0e ok 5>6
+aca9e661 ok 5>6
+67376f7e ok 7>8
+87485b8a ok 6>7
+c24a9b56 ok 6>7
+ad667726 ok 4>5
+3e60d4ee ok 5>6
+1a46d2af ok 3>4
+69c5e15c ok 11>12
+f463194c ok 5>6
+d197d3e5 ok 5>6
+3d297400 ok 6>7
+ec9ba819 ok 4>5
+0667fc10 ok 6>7
+3e9796c2 ok 10>11
+4f2c288d ok 12>13
+927bd0b8 ok 15>16
+del 4 (21): kontrollsummor 21/21 lika
+21344450 ok 28>29
+8fea992e ok 27>28
+bb5297b7 ok 14>15
+44ff2bac ok 10>11
+4ff03bbd ok 8>9
+efb9b9b5 ok 7>8
+9521d113 ok 7>8
+f4661601 ok 19>20
+89aa6d9c ok 9>10
+7bf0bb41 ok 22>23
+9d3f9ef1 ok 9>10
+66411959 ok 21>22
+0fc3c252 ok 4>5
+97f5f728 ok 5>6
+9cdca665 ok 5>6
+f5f02f8a ok 4>5
+2da078c9 ok 5>6
+a7d1a29b ok 4>5
+601ae5f5 ok 4>5
+dd97fbc9 ok 4>5
+62d2071e ok 5>6
+SUMMA: 87/87 skrivna, 0 fel, 0 avbrott

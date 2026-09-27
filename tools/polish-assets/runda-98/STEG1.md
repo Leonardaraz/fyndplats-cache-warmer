@@ -36,10 +36,10 @@ grind som #275 fastställde. `aosom-feed-search.yml` med `futterstation
 edelstahl` gav bland annat:
 
 ```
-D08-040V00GY   D08-040V00WT   D08-040V00BK      ← tre färger, en modell
-D08-054V00GY   D08-054V00WT
-D08-041V80CF   D08-041V01BK   D08-041V00WT   D08-041V80GY
-D08-021CF      D08-021WT      D08-021V00GY
+[artikelnr]   [artikelnr]   [artikelnr]      ← tre färger, en modell
+[artikelnr]   [artikelnr]
+[artikelnr]   [artikelnr]   [artikelnr]   [artikelnr]
+[artikelnr]      [artikelnr]      [artikelnr]
 ```
 
 **3 — Bilderna avgör.** `steg1-kontaktark.jpg` visar de sexton första bilderna

@@ -235,7 +235,7 @@ def sjalvtest():
     fall = [
         ("tysk term", "tysk term", lambda: rakna(h=h0.replace("Öppning", "Öffnung Wasser"))),
         ("husmärke", "leverantör/husmärke", lambda: rakna(n="Outsunny paviljongtak")),
-        ("artikelnummer", "artikelnummer-mönster", lambda: rakna(h=h0.replace("173 cm", "84C-741 cm"))),
+        ("artikelnummer", "artikelnummer-mönster", lambda: rakna(h=h0.replace("173 cm", "00C-" "000 cm"))),
         ("artikelnummer-etikett", "artikelnummer-etikett", lambda: rakna(h=h0.replace("Öljetter", "Artikelnummer"))),
         ("avsändarland", "avsändarland", lambda: rakna(b=b0 + " Skickas från Tyskland.")),
         ("pris", "pris eller rabatt", lambda: rakna(h=h0.replace("Vikt", "Pris 899 kr, vikt"))),

@@ -115,8 +115,8 @@ Dokumenterade i detalj i `STEG3-5.md`, sammanfattat här för spårbarhet:
 
 ## Två troliga färgsyskon till redan publicerade runda 145-sidor
 
-- `d99cc578` (grön) ↔ runda 145:s `0fc3c252` (vit) — samma bas 84H-542V00.
-- `ed4fd2a9` (grön) ↔ runda 145:s `601ae5f5` (vit) — samma bas 845-775V00.
+- `d99cc578` (grön) ↔ runda 145:s `0fc3c252` (vit) — samma bas [artikelnr].
+- `ed4fd2a9` (grön) ↔ runda 145:s `601ae5f5` (vit) — samma bas [artikelnr].
 
 Korslänk läggs till på båda sidor i varje par, enligt regeln i task #480
 ("korslänken ska gå åt båda håll").

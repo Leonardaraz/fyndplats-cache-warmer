@@ -14,6 +14,13 @@ name: Dubbletter — mappa om en produkt till Aosom
 # jobbet att starta från en telefon.
 #
 # ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs marginalen innan du kör `byt`.
+# ☠️ LÄMNA `sku` TOMT NÄR DUBBLETTEN ÄR ETT AOSOM-UTKAST (2026-09-24). Rutten
+#    läser då artikelnumret ur dubblettens mappningsrad, och numret passerar
+#    varken en workflow-input eller den här loggen. Repot är PUBLIKT och
+#    Actions-loggar går att läsa utan inloggning; numret är exakt den sträng
+#    dealproffsen publicerar som sku/mpn. Tidigare skrevs det ut två gånger
+#    per körning. Ett angivet nummer maskeras (::add-mask::) men står kvar i
+#    körningens input — använd det bara när dubbletten inte är ett utkast.
 # ☠️ EN PRODUKT PER KÖRNING. Paret (wix-id, artikelnummer) är en människas
 #    bedömning av att två sidor är samma vara. Det finns ingen kör-allt-flagga.
 
@@ -33,8 +40,9 @@ on:
         required: true
         type: string
       sku:
-        description: "Aosoms artikelnummer, t.ex. 845-030CG"
-        required: true
+        description: "Aosoms artikelnummer. TOMT = hämtas ur dubblettens mappning (rekommenderat, hamnar aldrig i loggen)"
+        required: false
+        default: ""
         type: string
       duplicate_wix_product_id:
         description: "Dubblettsidan som pensioneras (rejected). TOMT = ingen."
@@ -78,6 +86,16 @@ jobs:
             exit 1
           fi
 
+          # ☠️ MASKERA FÖRST, INNAN NAGOT SKRIVS UT. Ett angivet artikelnummer
+          # ersatts med *** i resten av loggen.
+          if [ -n "${SKU}" ]; then
+            echo "::add-mask::${SKU}"
+          fi
+          if [ -z "${SKU}" ] && [ -z "${DUPLICATE}" ]; then
+            echo "::error::Ange duplicate_wix_product_id (Aosom-utkastet) sa hamtas artikelnumret darifran, eller sku" >&2
+            exit 1
+          fi
+
           url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-remap"
           apply=false
           [ "${MODE}" = "byt" ] && apply=true
@@ -88,7 +106,8 @@ jobs:
             --arg dup "${DUPLICATE}" \
             --arg mm "${MIN_MARGIN}" \
             --argjson apply "${apply}" \
-            '{wixProductId: $id, sku: $sku, apply: $apply}
+            '{wixProductId: $id, apply: $apply}
+             + (if $sku == "" then {} else {sku: $sku} end)
              + (if $dup == "" then {} else {duplicateWixProductId: $dup} end)
              + (if $mm == "" then {} else {minMarginPct: ($mm | tonumber)} end)')
 
@@ -98,6 +117,13 @@ jobs:
             -H "Content-Type: application/json" \
             -d "${kropp}" \
             "${url}")
+
+          # ☠️ Numret rutten svarar med maskeras innan svaret rors — aven det
+          # som hamtades ur dubbletten och aldrig stod i nagon input.
+          svar_sku=$(echo "$svar" | jq -r '.plan.sku // empty' 2>/dev/null || true)
+          if [ -n "${svar_sku}" ]; then
+            echo "::add-mask::${svar_sku}"
+          fi
 
           echo "=== Plan ==="
           # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag an
@@ -113,7 +139,8 @@ jobs:
           # Kundpriset star kvar: det ar redan publikt pa var egen sajt.
           # Marginalen ar det som avgor om planen ar rimlig, sa den finns
           # bakom `visa_kostnad` — och `marginalen haller` sags alltid.
-          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)"'
+          echo "$svar" | jq -r '"  artikelnummer   (skrivs inte ut, ur \(if .skuKalla == "dubblett" then "dubblettens mappning" else "anropet" end))"'
+          echo "$svar" | jq -r '.plan // {} | "  fran            \(.["frånLeverantör"])\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)"'
           if [ "${VISA_KOSTNAD}" = "true" ]; then
             echo "  ⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_kostnad=true)"
             echo "$svar" | jq -r '.plan // {} | "  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
@@ -141,7 +168,7 @@ jobs:
             exit 0
           fi
 
-          echo "OK: ${PRODUCT_ID} -> aosom:${SKU} (verifierat vid aterlasning)" || true
+          echo "OK: ${PRODUCT_ID} ommappad till Aosom (verifierat vid aterlasning)" || true
           dup=$(echo "$svar" | jq -r '.dubblettPensionerad // "ingen"') || true
           echo "Dubblett: ${dup}" || true
           exit 0

@@ -75,7 +75,7 @@ MUTATIONER = [
     ("17fb1869", "spec", "Innerhinkar: uttagbara, med hål för påsen",
      "Inneneimer: uttagbara, med hål för påsen", "förbjudet ord"),
     ("b10b80ee", "eg", "2 × 20 liter, 40 liter totalt",
-     "2 × 20 liter, 40 liter totalt, art.nr 851-011V01", "artikelnummer"),
+     "2 × 20 liter, 40 liter totalt, art.nr 000-" "000V00", "artikelnummer"),
     ("213be879", "ingress", "den smalaste tunnan med två fack här",
      "rundans smalaste tunna med två fack", "intern jargong"),
     ("a00882ed", "eg", "67 cm hög — 48,8 × 39,5 cm på golvet",
