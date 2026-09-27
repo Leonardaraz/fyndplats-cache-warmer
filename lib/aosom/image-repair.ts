@@ -183,7 +183,11 @@ export interface ImageRepairSummary {
   kvar: number;
   cursor: string | null;
   stoppedBy: "klart" | "limit" | "tidsbudget";
-  errors: { sku: string; error: string }[];
+  /**
+   * `wixProductId` är det workflowen skriver ut. `sku` är Aosoms artikelnummer
+   * och når aldrig den publika loggen — se lib/aosom/markor.ts.
+   */
+  errors: { sku: string; wixProductId?: string; error: string }[];
 }
 
 export interface ImageRepairDeps {
@@ -380,6 +384,7 @@ export async function runImageRepair(
         summary.misslyckade++;
         summary.errors.push({
           sku: m.sku,
+          wixProductId: m.wixProductId,
           error: `skrivningen tog inte: ${efter?.media.length ?? 0} bilder på produkten `
             + `efter ${uppladdade.length} uppladdade (hade ${nu.media.length})`,
         });
@@ -405,7 +410,11 @@ export async function runImageRepair(
       }
     } catch (err) {
       summary.misslyckade++;
-      summary.errors.push({ sku: m.sku, error: err instanceof Error ? err.message : String(err) });
+      summary.errors.push({
+        sku: m.sku,
+        wixProductId: m.wixProductId,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

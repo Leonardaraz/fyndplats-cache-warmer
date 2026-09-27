@@ -63,16 +63,12 @@ on:
         #
         # ☠️ Talen som kommer ut är RÄKNARE, aldrig belopp. Loggen är publik.
         #
-        # ☠️ MEN ARTIKELNUMRET SJÄLVT BLIR PUBLIKT, och det går inte att undvika.
-        # GitHub visar ett `workflow_dispatch`-inputs värde i körningsvyn och i
-        # env-blocket i loggen, oavsett vad skriptet skriver ut. Ett artikelnummer
-        # som skickas hit är alltså publicerat i samma sekund körningen startar.
-        # Det är samma hållning som aosom-feed-search.yml redan valt (artikelnummer,
-        # namn och Aosoms publika URL står kvar; priset ligger bakom en flagga) —
-        # men det är ett val, inte en bieffekt, och det ska inte upptäckas i
-        # efterhand av någon som antog att inputet var privat. Behöver du ställa
-        # en fråga om en rad UTAN att namnge den publikt: kör hela katalogen och
-        # läs räknarna, eller gå via kuvertet i polish-mapping.yml.
+        # ☠️ INPUTEN ÄR INTE PRIVAT. Loggen maskerar den sedan 2026-09-27 (steget
+        # "Maskera" nedan läser den ur händelsen och registrerar varje nummer
+        # innan något annat skrivs ut), men själva körningen bär fortfarande
+        # värdet. Behöver du ställa en fråga om en rad UTAN att namnge den
+        # publikt: kör hela katalogen och läs räknarna, eller gå via kuvertet i
+        # polish-mapping.yml.
         description: "Bara dessa artikelnummer, kommaseparerat. Tomt = hela katalogen."
         required: false
         default: ""
@@ -83,6 +79,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      # ☠️ MASKERA FÖRST, I ETT EGET STEG. Nästa steg skriver ut sitt env-block
+      # INNAN en enda rad av dess skript kör — en `::add-mask::` där kommer för
+      # sent för `SKU:`-raden. Värdet läses ur händelsen, inte via `env:` eller
+      # `${{ }}`, för då hade det här stegets eget env-block eller skriptkälla
+      # visat det. Uppmätt 2026-09-27: sex nummer i synkens loggar kom den vägen.
+      - name: Maskera
+        run: |
+          sku=$(jq -r '.inputs.sku // ""' "$GITHUB_EVENT_PATH")
+          [ -z "$sku" ] && exit 0
+          echo "::add-mask::${sku}"
+          printf '%s\n' "$sku" | tr ',' '\n' | while IFS= read -r s; do
+            s=$(printf '%s' "$s" | tr -d '[:space:]')
+            [ -n "$s" ] && echo "::add-mask::${s}"
+          done
+          exit 0
+
       - name: Kör
         env:
           # VIA MILJÖN, inte ${{ }} inuti skriptet: interpolerat direkt i bash
@@ -136,16 +148,28 @@ jobs:
           # stället för i loggen: bildstädningen 2026-08-28 föll med exit 1 och
           # NOLL rader om varför, medan rutten hela tiden svarade 500 med ett
           # tydligt meddelande.
+          # ☠️ SISTA SKYDDET MOT ETT ARTIKELNUMMER I LOGGEN. Det första är att
+          # aldrig skriva ut `.sku`, och markören kommer förseglad från rutten
+          # (lib/aosom/markor.ts). Men en felkropp eller ett felmeddelande är
+          # fritext, och fritext har ingen form att lita på. Formerna är husets
+          # tre plus de två som uppmättes 2026-09-27 att gatelibs mönster missar
+          # (tre siffror–tre siffror utan svans, och siffra-bokstav-siffra).
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g'
+          }
+
           anropa() {
             local url="$1"
             local body
+            # ☠️ URL:EN SKRIVS INTE UT. Den bär `after` och `sku`, alltså
+            # artikelnummer — en misslyckad körning skrev ut markören den vägen.
             body=$(curl -sS --max-time 310 -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
-                echo "::error::Anropet gick inte fram: $url" >&2
+                echo "::error::Anropet till aosom-sync gick inte fram (varv ${varv})" >&2
                 return 1
               }
             if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
-              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)" >&2
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500 | redigera)" >&2
               return 1
             fi
             printf '%s' "$body"
@@ -232,25 +256,32 @@ jobs:
             fi
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
-            printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+            # ☠️ Med produktens Wix-id, ALDRIG `.sku`: det är Aosoms artikelnummer,
+            # och 113 av dem stod i den här raden i loggarna fram till 2026-09-27.
+            printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
 
             # ☠️ FELEN SKA SYNAS, INTE BARA RÄKNAS. En räknare som säger "1190
             # misslyckade" utan att säga VARFÖR är samma tysta fel som huset
             # redan lärt sig fem gånger. Grupperat på meddelande: 1 190 rader
             # är oläsbart, åtta distinkta orsaker är en diagnos.
+            # ☠️ Exemplen är Wix-id, INTE artikelnummer. Raden hette
+            # "exempel-artikelnummer" fram till 2026-09-27 och skrev ut dem.
             printf '%s' "$svar" | jq -r '
               (.errors // []) as $e
               | if ($e | length) > 0 then
                   "  ── \($e | length) fel, grupperade på orsak:",
                   ( $e | group_by(.error) | sort_by(-length) | .[:8][]
                     | "     \(length)×  \(.[0].error[:200])" ),
-                  "  ── exempel-artikelnummer: \($e[:5] | map(.sku) | join(", "))"
-                else empty end' || true
+                  "  ── exempel-produkter (Wix-id): \($e[:5] | map(.wixProductId // "okänd") | join(", "))"
+                else empty end' | redigera || true
 
             after=$(printf '%s' "$svar" | jq -r '.cursor // ""')
             if [ -z "$after" ]; then
               break
             fi
+            # Rutten förseglar markören (m1.…). Kommer den ändå i klartext — en
+            # äldre deploy — maskeras den innan något hinner skriva ut den.
+            case "$after" in m1.*) ;; *) echo "::add-mask::${after}" ;; esac
           done
 
           {

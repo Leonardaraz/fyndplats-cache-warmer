@@ -102,7 +102,7 @@ jobs:
             --argjson apply "${apply}" \
             '{behall: $behall, utkast: $utkast, fargBehall: $fb, fargUtkast: $fu, apply: $apply}
              + (if $sku == "" then {} else {sku: $sku} end)
-             + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(tonumber))} end)')
+             + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(gsub("\\s"; "") | select(. != "") | tonumber))} end)')
 
           echo "Läge: ${MODE} (apply=${apply})"
           svar=$(curl -sS --max-time 150 -X POST \

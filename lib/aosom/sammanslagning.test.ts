@@ -106,8 +106,14 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
       const varianter = ((k.variantsInfo as Obj).variants as Obj[]).map((v, i) => {
         const { inventoryItem, ...rest } = v;
         const vid = (v.id as string) ?? `var-ny-${i}`;
-        const post = inventoryItem as { id?: string; quantity: number };
-        const befintlig = lager[id].find((x) => x.id === post.id);
+        const post = inventoryItem as { quantity: number };
+        // Strikt som schemat: `quantity` ELLER `inStock` (plus `preorderInfo`),
+        // och lagret följer varianten — inget id.
+        const falt = Object.keys(post);
+        if (falt.some((f) => !["quantity", "inStock", "preorderInfo"].includes(f))) {
+          throw new Error(`Wix 400: okänt fält i inventoryItem: ${falt.join(",")}`);
+        }
+        const befintlig = lager[id].find((x) => x.variantId === vid);
         if (befintlig) befintlig.quantity = post.quantity;
         else lager[id].push({ id: `inv-${vid}`, variantId: vid, quantity: post.quantity });
         return { ...rest, id: vid };
@@ -272,6 +278,37 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(utkast.draftStatus).toBe("rejected");
     expect(utkast.needsAiPolish).toBe(false);
     expect(utkast.supplierProductId).toBe("");
+  });
+
+  it("☠️ varukostnaden sätts ur mappningarna — Wix handelsdata läses aldrig", async () => {
+    // `fields=MERCHANT_DATA` kräver behörigheten SCOPE.STORES.PRODUCT_READ_ADMIN.
+    // Saknas den svarar Wix 403 och redan PLANEN hade fallit. Kostnaden tas
+    // därför ur mappningen — samma tal importen skriver — och skickas alltid:
+    // en variantsInfo-PATCH ersätter varianten, och Wix räknade fält
+    // (`profit`, `profitMargin`) är skrivskyddade och ska inte ekas tillbaka.
+    const w = fejkWix({
+      sida: {
+        variantsInfo: { variants: [{
+          id: "var-sida", visible: true, sku: "FP-stol", choices: [],
+          price: { actualPrice: { amount: "699" } },
+          revenueDetails: { cost: { amount: "1" }, profit: { amount: "698" }, profitMargin: 0.99 },
+        }] },
+      },
+    });
+    const utkast = mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true });
+    utkast.variants[0].landedCostSek = 612.5;
+    const { deps } = miljo({ wix: w, mappningar: [mappning("A-1", "sida"), utkast] });
+
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+
+    expect(svar.ok).toBe(true);
+    const lasningar = w.anrop.filter((a) => a.metod === "GET");
+    expect(lasningar.length).toBeGreaterThan(0);
+    expect(lasningar.some((a) => a.sokvag.includes("MERCHANT_DATA"))).toBe(false);
+    const skriv = w.anrop.find((a) => a.metod === "PATCH" && a.sokvag.startsWith("/stores/v3/products-with-inventory/"))!;
+    const varianter = ((skriv.kropp as { product: Obj }).product.variantsInfo as Obj).variants as Obj[];
+    expect(varianter[0].revenueDetails).toEqual({ cost: { amount: "525.00" } });
+    expect(varianter[1].revenueDetails).toEqual({ cost: { amount: "612.50" } });
   });
 
   it("en order på den nya färgen beställer utkastets artikel efteråt", async () => {

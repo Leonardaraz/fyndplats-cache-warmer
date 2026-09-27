@@ -254,9 +254,14 @@ export interface AosomSyncSummary {
   kvar: number;
   cursor: string | null;
   stoppedBy: "klart" | "limit" | "tidsbudget";
-  errors: { sku: string; error: string }[];
+  /**
+   * `wixProductId` är produktens PUBLIKA id och det som workflowen skriver ut.
+   * `sku` är Aosoms artikelnummer och får aldrig nå en publik logg — se
+   * lib/aosom/markor.ts för varför.
+   */
+  errors: { sku: string; wixProductId?: string; error: string }[];
   /** Prisändringar som blockerades av taket. Kräver mänskligt öga. */
-  varningar: { sku: string; fran: number; till: number; andringPct: number }[];
+  varningar: { sku: string; wixProductId?: string; fran: number; till: number; andringPct: number }[];
 }
 
 /**
@@ -353,7 +358,7 @@ export interface AosomSyncDeps {
    * ☠️ Tar variantens WIX-identitet, inte Aosoms artikelnummer.
    *
    * Den här signaturen sa tidigare `sku: string`, och anroparen skickade
-   * loopens `sku` — som är feedens artikelnummer ("839-835V01CG"), nyckeln
+   * loopens `sku` — som är feedens artikelnummer ("‹REDIGERAT›"), nyckeln
    * till feed-raden. Wix-variantens SKU är något helt annat
    * ("FP-schlafsofa-2er-sofa-mit"), så matchningen kunde aldrig lyckas.
    * `setStock` tog samma argument men IGNORERADE det (`_sku`) och slog upp
@@ -542,7 +547,7 @@ export function planeraProdukt(
   // `isShippableToSe` hade fem anropare — importen, ommappningen, bildfixen och
   // feed-sökningen — och synken var inte en av dem. En rad som blir oskeppbar
   // EFTER importen fortsatte därför få sitt saldo speglat, och massagebänken
-  // 503-001V00CW låg publicerad och köpbar med Aosoms "skickas inte hit"-frakt
+  // ‹REDIGERAT› låg publicerad och köpbar med Aosoms "skickas inte hit"-frakt
   // (999,90 €) i feeden. Mappningens egen fraktandel var 0,292 vid importen —
   // frakten var alltså normal då. Exakt samma mönster som den döda
   // AE-listningen: importen gatade, synken gjorde det inte, och felet nådde kund.
@@ -1011,8 +1016,8 @@ export async function runAosomSync(
       if (p.konkurrent?.typ === "fryst") summary.konkurrentFrysta++;
       if (p.varianter) summary.flerartikelrader++;
       if (p.tvetydig) summary.tvetydiga++;
-      if (p.varning) summary.varningar.push(p.varning);
-      for (const v of p.fleraVarningar ?? []) summary.varningar.push(v);
+      if (p.varning) summary.varningar.push({ ...p.varning, wixProductId: p.m.wixProductId });
+      for (const v of p.fleraVarningar ?? []) summary.varningar.push({ ...v, wixProductId: p.m.wixProductId });
     }
 
     // ── FAS 2: LÄS LAGERPOSTERNA FÖR HELA TUGGAN, I ETT ANROP ────────────
@@ -1109,7 +1114,7 @@ export async function runAosomSync(
         for (const [produkt, fel] of felPerProdukt) {
           const p = planer.find((x) => x.m.wixProductId === produkt);
           summary.misslyckade++;
-          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+          summary.errors.push({ sku: p?.sku ?? produkt, wixProductId: produkt, error: fel });
         }
       } catch (err) {
         // Hela anropet föll (nätverk, 4xx/5xx efter återförsök). Ingen rad är
@@ -1119,7 +1124,7 @@ export async function runAosomSync(
         for (const produkt of new Set(rader.map((r) => r.produkt))) {
           const p = planer.find((x) => x.m.wixProductId === produkt);
           summary.misslyckade++;
-          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+          summary.errors.push({ sku: p?.sku ?? produkt, wixProductId: produkt, error: fel });
         }
       }
     } else {
@@ -1138,6 +1143,7 @@ export async function runAosomSync(
       summary.okandaVarianter += antal;
       summary.errors.push({
         sku: p?.sku ?? pid,
+        wixProductId: pid,
         error: `${antal} variant(er) i Wix som mappningen inte känner till — deras lager nollas`,
       });
     }
@@ -1147,7 +1153,11 @@ export async function runAosomSync(
       for (const p of planer) {
         if (p.nyttSaldo === null) continue;
         summary.misslyckade++;
-        summary.errors.push({ sku: p.sku, error: `lagerposterna gick inte att läsa: ${lasfel}` });
+        summary.errors.push({
+          sku: p.sku,
+          wixProductId: p.m.wixProductId,
+          error: `lagerposterna gick inte att läsa: ${lasfel}`,
+        });
       }
     }
 
@@ -1159,6 +1169,7 @@ export async function runAosomSync(
       if (p.tvetydig) {
         summary.errors.push({
           sku: p.sku,
+          wixProductId: p.m.wixProductId,
           error: `mappningen är tvetydig: ${p.tvetydig} — lagret nollas tills raden är rättad`,
         });
         continue;
@@ -1193,7 +1204,11 @@ export async function runAosomSync(
               skrevPris = true;
             } catch (err) {
               summary.misslyckade++;
-              summary.errors.push({ sku: v.artikel, error: err instanceof Error ? err.message : String(err) });
+              summary.errors.push({
+                sku: v.artikel,
+                wixProductId: p.m.wixProductId,
+                error: err instanceof Error ? err.message : String(err),
+              });
             }
           }
         } else if (p.nyttPris !== null && p.nyLandad !== null && p.variant) {
@@ -1248,7 +1263,11 @@ export async function runAosomSync(
         }
       } catch (err) {
         summary.misslyckade++;
-        summary.errors.push({ sku: p.sku, error: err instanceof Error ? err.message : String(err) });
+        summary.errors.push({
+          sku: p.sku,
+          wixProductId: p.m.wixProductId,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }

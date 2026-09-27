@@ -133,7 +133,11 @@ export interface SammanslagningLast {
   lager: { id: string; variantId?: string; quantity?: number }[];
 }
 
-const FALT = "fields=VARIANT_OPTION_CHOICE_NAMES&fields=MEDIA_ITEMS_INFO&fields=MERCHANT_DATA&fields=PLAIN_DESCRIPTION";
+// ☠️ INTE `MERCHANT_DATA`. Den kräver behörigheten SCOPE.STORES.PRODUCT_READ_ADMIN,
+// och saknas den svarar Wix 403 NO_PERMISSION_TO_READ_MERCHANT_DATA — då hade
+// redan PLANEN fallit, för läsningen är det första verktyget gör. Varukostnaden
+// tas i stället ur mappningen, se `kostnad` nedan.
+const FALT = "fields=VARIANT_OPTION_CHOICE_NAMES&fields=MEDIA_ITEMS_INFO&fields=PLAIN_DESCRIPTION";
 
 function produktAv(svar: unknown): Obj | null {
   const p = ((svar ?? {}) as Obj).product;
@@ -404,7 +408,23 @@ function utanLasfalt(v: Obj): Obj {
   const ut: Obj = { ...v };
   delete ut.inventoryStatus;
   delete ut.media;
+  // `profit` och `profitMargin` är räknade av Wix och skrivskyddade; kostnaden
+  // sätts ur mappningen (`kostnad`), så hela fältet tas bort här.
+  delete ut.revenueDetails;
   return ut;
+}
+
+/**
+ * Varukostnaden i Wix, ur MAPPNINGEN: samma tal som importen skriver
+ * (`costAmount = landedCostSek`, lib/import/pipeline.ts) och som synken håller
+ * i fas. Den skickas alltid när den är känd — en variantsInfo-PATCH ersätter
+ * varianten, och ett utelämnat fält kan nollas på samma sätt som `visible`.
+ */
+function kostnad(v: { landedCostSek?: number } | undefined): Obj {
+  const k = v?.landedCostSek;
+  return typeof k === "number" && Number.isFinite(k) && k > 0
+    ? { revenueDetails: { cost: { amount: k.toFixed(2) } } }
+    : {};
 }
 
 interface Kontroll {
@@ -542,7 +562,6 @@ export async function korSammanslagning(
     }));
     steg.push(`bilder: ${bilderP.length} → ${nyLista.length}`);
 
-    const v2Kalla = varianterAv(wd)[0] ?? {};
     const kropp = {
       product: {
         id: input.behall,
@@ -564,13 +583,16 @@ export async function korSammanslagning(
               visible: true,
               choices: valReferens(plan.fargBehall),
               physicalProperties: (v1.physicalProperties as Obj | undefined) ?? {},
-              inventoryItem: { id: post.id, quantity: post.quantity },
+              ...kostnad(pm.variants?.[0]),
+              // Lagret följer VARIANTEN (standardplatsen), inte ett id: schemat för
+              // products-with-inventory har bara `quantity` ELLER `inStock` här.
+              inventoryItem: { quantity: post.quantity },
             },
             {
               visible: true,
               sku: plan.skuUtkast,
               price: { actualPrice: { amount: String(plan.prisUtkast) } },
-              ...(v2Kalla.revenueDetails ? { revenueDetails: v2Kalla.revenueDetails } : {}),
+              ...kostnad(dm.variants?.[0]),
               choices: valReferens(plan.fargUtkast),
               physicalProperties: {},
               inventoryItem: { quantity: saldoUtkast },

@@ -286,6 +286,9 @@ describe("runAosomSync", () => {
     expect(priser).toHaveLength(0);
     expect(s.varningar).toHaveLength(1);
     expect(s.varningar[0].sku).toBe("A-1");
+    // ☠️ Det publika id:t följer med — det är vad workflowen skriver ut.
+    // Artikelnumret stannar i svaret och når aldrig den publika loggen.
+    expect(s.varningar[0].wixProductId).toBe("wix-A-1");
     expect(Math.abs(s.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
   });
 
@@ -599,7 +602,8 @@ describe("runAosomSync — tuggor", () => {
     const s = await runAosomSync(d, { dryRun: false });
 
     expect(s.misslyckade).toBe(1);
-    expect(s.errors[0]).toEqual({ sku: "A-1", error: "INVALID_REVISION" });
+    // wixProductId är det workflowen skriver ut — artikelnumret når aldrig loggen.
+    expect(s.errors[0]).toEqual({ sku: "A-1", wixProductId: "wix-A-1", error: "INVALID_REVISION" });
     expect(s.lagerUppdaterade).toBe(1);
     expect(sparade.map((m) => m.supplierProductId)).toEqual(["aosom:B-2"]);
   });
@@ -847,7 +851,7 @@ describe("prisLast — låst pris", () => {
 
 describe("☠️ ej skeppbar rad — fraktsentinelen gatas i SYNKEN, inte bara vid importen", () => {
   // Bakgrund (2026-09-10): `isShippableToSe` hade fem anropare och synken var
-  // inte en av dem. Massagebänken 503-001V00CW importerades med fraktandel
+  // inte en av dem. Massagebänken ‹REDIGERAT› importerades med fraktandel
   // 0,292 — helt normal frakt — och bar sedan Aosoms "skickas inte hit"-värde
   // 999,90 €. Synken speglade saldot vidare, och sidan låg publicerad och
   // köpbar för en vara vi inte kunde expediera. Samma mönster som den döda

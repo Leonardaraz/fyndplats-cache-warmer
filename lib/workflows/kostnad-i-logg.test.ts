@@ -6,7 +6,7 @@
 // Uppmätt 2026-09-07 i körning 34 av `aosom-feed-search.yml`, ordagrant ur en
 // publik logg:
 //
-//   83A-358V00DR  747.72 kr landat (inkl. moms)  saldo 130  frakt 44%
+//   ‹REDIGERAT›  747.72 kr landat (inkl. moms)  saldo 130  frakt 44%
 //
 // Det är Aosoms artikelnummer, vårt exakta inköpspris, vårt saldo och
 // fraktandelen — som dessutom låter en läsare räkna ut grossistpris och frakt

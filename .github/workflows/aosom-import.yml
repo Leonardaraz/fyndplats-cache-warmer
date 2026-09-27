@@ -9,15 +9,20 @@ name: Aosom — importera sortimentet som osynliga utkast
 #              rader feeden har och hur många som går att frakta hit. Kör den
 #              först: den bevisar att feed-adressen hittas i Wix-raden
 #              FyndplatsAppConfig utan att röra katalogen.
-#   rökprov  — tre riktiga produkter, skarpt. SKU:na är handkontrollerade mot
-#              katalogen (två distinkta mått + produkttyp, noll träffar) och ska
-#              INTE bytas: de tre första kandidaterna visade sig alla vara varor
-#              vi redan säljer, inköpta via AliExpress. Dubblettspärren nycklar
-#              på supplierProductId och ser inte den sortens dubblett.
+#   rökprov  — de tre nästa raderna svepet skulle ta, skarpt. Ett helt varv i
+#              liten skala: feed, prissättning, bilder, Wix och mappning.
+#              ☠️ Fram till 2026-09-27 stod tre handplockade artikelnummer
+#              hårdkodade här, med förväntat pris bredvid. GitHub skriver ut
+#              skriptets källa i VARJE körnings logg, så alla 29 importkörningar
+#              bar dem i klartext, oavsett läge. Skriv aldrig in ett nummer i
+#              den här filen igen.
 #   svep     — loopar tills sortimentet är inne eller tidsbudgeten tar slut.
 #              Markören sparas i grenen efter VARJE varv, så en avbruten körning
 #              fortsätter där den slutade. Omkörning av redan importerade
 #              produkter är en no-op tack vare dubblettspärren.
+#              ☠️ Markören är ett artikelnummer och kommer därför FÖRSEGLAD från
+#              rutten (lib/aosom/markor.ts). Den skrivs aldrig ut — inte i
+#              loggen, inte i summeringen och inte i commitmeddelandet.
 #   bildfix-torr — räknar hur många produkter som har för få bilder. Skriver inget.
 #   bildfix  — laddar om bilderna på dem. Egen markör (bildfix-state.json).
 #              Rör BARA `media`, via fieldMask — synlighet, priser, varianter och
@@ -58,7 +63,8 @@ on:
         default: "150"
         type: string
       after:
-        description: "svep: fortsätt efter det här artikelnumret. Tomt = från sparad markör."
+        # Maskeras i loggen (steget "Maskera"), men körningen bär värdet.
+        description: "svep/bildfix: fortsätt efter den här markören. Tomt = från sparad markör."
         required: false
         default: ""
         type: string
@@ -85,6 +91,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+
+      # ☠️ MASKERA FÖRST, I ETT EGET STEG. Nästa steg skriver ut sitt env-block
+      # (med AFTER_IN) innan en enda rad av dess skript kör. Värdet läses ur
+      # händelsen, inte via `env:` eller `${{ }}` — då hade det här stegets eget
+      # env-block eller skriptkälla visat det.
+      - name: Maskera
+        run: |
+          after=$(jq -r '.inputs.after // ""' "$GITHUB_EVENT_PATH")
+          [ -n "$after" ] && echo "::add-mask::${after}"
+          exit 0
 
       - name: Kör
         env:
@@ -118,16 +134,31 @@ jobs:
           # NOLL rader om varför, medan rutten hela tiden svarade 500 med ett
           # tydligt meddelande. Samma klass av fel som huset redan lärt sig tre
           # gånger — ett misslyckande som ingen kan se är värre än ett som skriker.
+          # ☠️ SISTA SKYDDET MOT ETT ARTIKELNUMMER I LOGGEN. Det första är att
+          # aldrig skriva ut `.sku` eller markören. Men felmeddelanden är
+          # fritext. Formerna är husets tre plus de två som uppmättes
+          # 2026-09-27 att gatelibs mönster missar.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g'
+          }
+
+          # Rutten förseglar markören (m1.…). Kommer den ändå i klartext — en
+          # äldre deploy, eller en gammal markörfil — maskeras den direkt.
+          maskera_markor() {
+            case "${1:-}" in ""|null|m1.*) ;; *) echo "::add-mask::$1" ;; esac
+          }
+
           anropa() {
             local url="$1"
             local body
+            # ☠️ URL:en skrivs inte ut — den bär `after` och `sku`.
             body=$(curl -sS --max-time 310 -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
-                echo "::error::Anropet gick inte fram: $url" >&2
+                echo "::error::Anropet gick inte fram (läge ${MODE})" >&2
                 return 1
               }
             if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
-              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)" >&2
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500 | redigera)" >&2
               return 1
             fi
             printf '%s' "$body"
@@ -160,11 +191,10 @@ jobs:
 
           # ── rökprov ─────────────────────────────────────────────────────────
           if [ "$MODE" = "rökprov" ]; then
-            # Kontrollerade mot katalogen 2026-08-27. Byt dem inte utan att
-            # först söka på två distinkta mått plus produkttyp — se filhuvudet.
-            skus="845-999V00OG,331-058V00MX,C30-035V00BK"
+            # ☠️ INGA ARTIKELNUMMER HÄR — se filhuvudet. De tre nästa raderna
+            # svepet skulle ta; dubblettspärren hoppar över allt som redan finns.
             start=$(date +%s)
-            svar=$(anropa "${base}?dryRun=false&sku=${skus}")
+            svar=$(anropa "${base}?dryRun=false&limit=3")
             tid=$(( $(date +%s) - start ))
             inf=$(printf '%s' "$svar" | jq -r '.imported')
             fel=$(printf '%s' "$svar" | jq -r '.failed')
@@ -175,13 +205,11 @@ jobs:
               echo "- Fel: **${fel}**"
               echo "- Tid: ${tid} s (≈ $(( tid / 3 )) s per produkt)"
               echo ""
-              echo "Förväntade priser: 845-999V00OG **1 419 kr** · 331-058V00MX **1 849 kr** · C30-035V00BK **2 209 kr**"
               echo "Kontrollera i /admin/queue: alla tre som utkast, fem bilder var."
               if [ "$fel" != "0" ]; then
                 echo ""
-                echo '```json'
-                printf '%s' "$svar" | jq -c '.errors'
-                echo '```'
+                # ☠️ Orsakerna, aldrig raderna — `.errors[].sku` är artikelnumret.
+                printf '%s' "$svar" | jq -r '.errors[]? | "- \(.error[:200])"' | redigera
               fi
             } >> "$GITHUB_STEP_SUMMARY"
             echo "Importerade ${inf}, fel ${fel}, ${tid} s."
@@ -244,7 +272,7 @@ jobs:
               forald_totalt=$(( forald_totalt + forald ))
 
               echo "varv ${varv}: ${filer} filer i fönstret, ${anvanda} används, ${forald} föräldralösa, ${rad} raderade (${mb} MB), ${fel} fel [${stopp}]"
-              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"'
+              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"' | redigera
 
               # Markören är slut = hela Media Manager är genomgången.
               if [ -z "$nasta" ] || [ "$nasta" = "null" ]; then
@@ -289,6 +317,7 @@ jobs:
             after="$AFTER_IN"
             if [ -z "$after" ] && [ -f "$RSTATE" ]; then
               after=$(jq -r '.cursor // ""' "$RSTATE"); [ "$after" = "null" ] && after=""
+              maskera_markor "$after"
             fi
 
             slut=$(( $(date +%s) + 300 * 60 ))
@@ -318,17 +347,20 @@ jobs:
               f=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
               kvar=$(printf '%s' "$svar" | jq -r '.kvar')
               markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+              maskera_markor "$markor"
               trasiga=$(( trasiga + t )); lagade=$(( lagade + l ))
               missar=$(( missar + mi )); fel=$(( fel + f ))
               atv_totalt=$(( ${atv_totalt:-0} + atv )); fo_totalt=$(( ${fo_totalt:-0} + fo ))
               echo "varv ${varv}: ${t} trasiga, ${l} lagade (${atv} bilder behölls, ${fo} full omladdning), ${f} misslyckade, ${mi} kvar att hämta, ${kvar} kvar"
-              [ "$f" -gt 0 ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.sku): \(.error)"'
+              # ☠️ Wix-id, aldrig `.sku`.
+              [ "$f" -gt 0 ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.wixProductId // "okänd produkt"): \(.error)"' | redigera
 
               printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, misslyckade,
                 kvarstaendeMissar, uppdaterad: (now | todate)}' > "$RSTATE"
               git add "$RSTATE"
               git diff --cached --quiet || {
-                git commit -q -m "Aosom bildfix: markör ${markor:-klart} (${kvar} kvar)"
+                # ☠️ Markören står INTE i meddelandet. Den ligger förseglad i filen.
+                git commit -q -m "Aosom bildfix: markör sparad (${kvar} kvar)"
                 git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
               }
 
@@ -360,7 +392,9 @@ jobs:
           if [ -z "$after" ] && [ -f "$STATE" ]; then
             after=$(jq -r '.cursor // ""' "$STATE")
             [ "$after" = "null" ] && after=""
-            [ -n "$after" ] && echo "Fortsätter efter sparad markör: $after"
+            maskera_markor "$after"
+            # ☠️ Markören skrivs inte ut, bara att den finns.
+            [ -n "$after" ] && echo "Fortsätter efter sparad markör."
           fi
 
           # Stanna i god tid före jobbets tak så markören hinner committas.
@@ -380,8 +414,11 @@ jobs:
             fel=$(printf '%s' "$svar" | jq -r '.failed')
             kvar=$(printf '%s' "$svar" | jq -r '.remaining')
             markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+            maskera_markor "$markor"
             totalt=$(( totalt + inf )); fel_totalt=$(( fel_totalt + fel ))
-            echo "varv ${varv}: +${inf} (fel ${fel}), ${kvar} kvar, markör ${markor:-—}"
+            # ☠️ INGEN MARKÖR I RADEN. Den stod här fram till 2026-09-27, och
+            # markören ÄR ett artikelnummer: ~115 av dem i fyra körningars loggar.
+            echo "varv ${varv}: +${inf} (fel ${fel}), ${kvar} kvar"
 
             # MARKÖREN SPARAS EFTER VARJE VARV, inte i slutet. Dör jobbet mitt i
             # ska nästa körning kunna fortsätta, inte börja om från noll.
@@ -389,7 +426,8 @@ jobs:
               uppdaterad: (now | todate)}' > "$STATE"
             git add "$STATE"
             git diff --cached --quiet || {
-              git commit -q -m "Aosom-svep: markör ${markor:-klart} (${kvar} kvar)"
+              # ☠️ Markören står INTE i meddelandet. Den ligger förseglad i filen.
+              git commit -q -m "Aosom-svep: markör sparad (${kvar} kvar)"
               git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
             }
 
@@ -406,7 +444,8 @@ jobs:
             echo "- Importerade denna körning: **${totalt}**"
             echo "- Fel: **${fel_totalt}**"
             echo "- Kvar: **$(jq -r '.remaining // "?"' "$STATE" 2>/dev/null)**"
-            echo "- Markör: \`$(jq -r '.cursor // "klart"' "$STATE" 2>/dev/null)\`"
+            # ☠️ Markörens VÄRDE står inte här — bara om svepet är klart.
+            echo "- Markör: $(jq -r 'if .cursor then "sparad i grenen (förseglad)" else "klart" end' "$STATE" 2>/dev/null)"
             echo ""
             echo "Kör workflowen igen för att fortsätta — markören läses automatiskt."
           } >> "$GITHUB_STEP_SUMMARY"
