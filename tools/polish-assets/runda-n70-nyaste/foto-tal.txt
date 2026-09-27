@@ -1,0 +1,10 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+329af28e 2 bordet har två stora och två små fack; källan säger "vier Fächer" med storlekarna groß och klein, och produktfotot (bild 1 och 3) visar två av varje
+1b7fd2b1 3 sänggaveln är indelad i tre stoppade fält; källan säger "vertikal gesteppt", men produktfotot (bild 1, 2, 4 och 5) visar tre fält
+e5be35a4 2 fåtöljen levereras i två kartonger, avläst på måttbilden (bild 3, struken för engelsk text); texten säger det för att kunden ska vänta in båda
+536cfd1e 2 fåtöljen har två mugghållare, en i vart armstöd, räknade på produktfotot (bild 1 och 5)
+0e2607cb 2 skrivbordet har två skivor, huvudskivan och sidoskivan, som källan anger var för sig (120 × 47 och 110 × 35 cm) och produktfotot (bild 1) visar
+4af47dc2 2 bordet har två spjälhyllor under skivan; källan anger två hyllmått och produktfotot (bild 1 och 3) visar två hyllor
