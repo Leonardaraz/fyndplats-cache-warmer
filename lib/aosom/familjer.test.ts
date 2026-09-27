@@ -170,7 +170,7 @@ describe("hittaFamiljer", () => {
     expect(f.varningar).toContain("priset skiljer 43 %");
   });
 
-  it("storlekssyskon blir en storleksfamilj, som dagens verktyg inte klarar", () => {
+  it("storlekssyskon blir en storleksfamilj, som verktyget klarar", () => {
     const svar = hittaFamiljer(indata(
       [
         rad("T-1"),
@@ -179,17 +179,16 @@ describe("hittaFamiljer", () => {
       [mappning("T-1", "liten"), mappning("T-2", "stor")],
       [wix("liten", true), wix("stor", false)],
     ));
-    expect(svar.familjer[0]).toMatchObject({ typ: "storlek", verktygetIdag: false, prisSpannPct: null });
+    expect(svar.familjer[0]).toMatchObject({ typ: "storlek", verktygetIdag: true, prisSpannPct: null });
   });
 
-  it("två publicerade i olika färger kräver mer än dagens verktyg", () => {
+  it("två publicerade i olika färger: verktyget klarar dem, med omdirigering", () => {
     const svar = hittaFamiljer(indata(
       [rad("T-1"), rad("T-2", { color: "Beige" }), rad("T-3", { color: "Blau" })],
       [mappning("T-1", "a"), mappning("T-2", "b"), mappning("T-3", "c")],
       [wix("a", true), wix("b", true), wix("c", false)],
     ));
     expect(svar.familjer[0]).toMatchObject({ typ: "farg", lage: "flera_publicerade", publicerade: 2, utkast: 1 });
-    // Ett utkast i en tredje färg går fortfarande att lägga på en av sidorna.
     expect(svar.familjer[0].verktygetIdag).toBe(true);
   });
 
@@ -275,8 +274,8 @@ describe("hittaFamiljer", () => {
     const f = svar.familjer[0];
     expect(f.medlemmar[0]).toMatchObject({ wixProductId: "sida", artiklar: 2, farg: "Grau / Blau" });
     expect(f.varningar).toContain("en sida är redan sammanslagen");
-    // Verktyget tar inte en sida som redan har optioner.
-    expect(f.verktygetIdag).toBe(false);
+    // En redan sammanslagen sida kan få ett val till.
+    expect(f.verktygetIdag).toBe(true);
   });
 
   it("samma artikel på två sidor är en dubblett även utan feedrad", () => {
@@ -361,5 +360,29 @@ describe("diagnosPar", () => {
 
   it("☠️ ett nummer inklistrat i stället för ett Wix-id ekas aldrig tillbaka", () => {
     expect(JSON.stringify(diagnosPar(data, "sida", "999-999ZZ"))).not.toContain("999-999ZZ");
+  });
+});
+
+describe("verktygetIdag", () => {
+  it("färg och storlek på en gång klarar verktyget inte", () => {
+    const svar = hittaFamiljer(indata(
+      [
+        rad("T-1"),
+        rad("T-2", { name: "PawHut Hundebett Wolke 110 cm mit Kissen, waschbar", size: "110L x 85B x 24H cm", packageSize: "112x87x26 cm", weightKg: 5.1 }),
+        rad("T-3", { color: "Blau", name: "PawHut Hundebett Wolke 110 cm mit Kissen, waschbar", size: "110L x 85B x 24H cm", packageSize: "112x87x26 cm", weightKg: 5.1 }),
+      ],
+      [mappning("T-1", "gra-liten"), mappning("T-3", "bla-stor")],
+      [wix("gra-liten", true), wix("bla-stor", false)],
+    ));
+    expect(svar.familjer[0]).toMatchObject({ typ: "farg_storlek", verktygetIdag: false });
+  });
+
+  it("samma vara två gånger är en pensionering, inte ett val", () => {
+    const svar = hittaFamiljer(indata(
+      [rad("T-1"), rad("T-2")],
+      [mappning("T-1", "sida"), mappning("T-2", "utkast")],
+      [wix("sida", true), wix("utkast", false)],
+    ));
+    expect(svar.familjer[0]).toMatchObject({ typ: "samma", verktygetIdag: false });
   });
 });

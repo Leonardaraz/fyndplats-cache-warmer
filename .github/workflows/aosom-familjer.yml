@@ -105,7 +105,7 @@ jobs:
             "Familjer: \($s.familjer) över \($s.sidorIFamiljer) sidor (\($s.publiceradeIFamiljer) publicerade, \($s.utkastIFamiljer) utkast)",
             "  per typ:   färg \($s.perTyp.farg) · storlek \($s.perTyp.storlek) · färg och storlek \($s.perTyp.farg_storlek) · samma vara \($s.perTyp.samma)",
             "  per läge:  en publicerad \($s.perLage.en_publicerad) · bara utkast \($s.perLage.bara_utkast) · flera publicerade \($s.perLage.flera_publicerade)",
-            "  dagens verktyg klarar minst ett utkast i \($s.verktygetIdag) familjer",
+            "  verktyget kan slå ihop minst ett par i \($s.verktygetIdag) familjer",
             "  dubblettgrupper \($s.dubblettgrupper) · samma artikel på två sidor \($s.sammaArtikelPaTvaSidor)",
             "  ensamma sidor med syskon i feeden som vi inte har: \($s.ensammaMedSyskonIFeeden)",
             "Underlag: \($u.feedrader) feedrader · \($u.mappningar) mappningar · \($u.sidor) sidor · \($u.artiklar) artiklar (\($u.artiklarMedPsin) med klunga)",
@@ -133,7 +133,7 @@ jobs:
             "Visar \(.urval.visade) av \(.urval.traffar)\(if .urval.kapad then " (kapad av max)" else "" end)",
             (.familjer[] |
               "",
-              "[\($typer[.typ]) · \($lagen[.lage]) · \(.publicerade) P + \(.utkast) U\(if .verktygetIdag then " · verktyget idag" else "" end)\(if .ejHosOss > 0 then " · \(.ejHosOss) till i feeden" else "" end)\(if (.prisSpannPct // 0) > 0 then " · prisspann \(.prisSpannPct) %" else "" end)]",
+              "[\($typer[.typ]) · \($lagen[.lage]) · \(.publicerade) P + \(.utkast) U\(if .verktygetIdag then " · verktyget klarar" else "" end)\(if .ejHosOss > 0 then " · \(.ejHosOss) till i feeden" else "" end)\(if (.prisSpannPct // 0) > 0 then " · prisspann \(.prisSpannPct) %" else "" end)]",
               (.medlemmar[] |
                 "  \(if .status == "publicerad" then "P" else "U" end) \(.wixProductId)  \(.farg)  \(.matt)  \(.pris // "–") kr  saldo \(.saldo)\(if .artiklar > 1 then "  (\(.artiklar) färger)" else "" end)\(if .namn != "" then "  \(.namn)" else "" end)"),
               (.sammaVara[] | "  = samma vara: \(join(", "))"),

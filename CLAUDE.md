@@ -1495,6 +1495,56 @@ Wix redan är klart (`wix_klar`) och gör bara resten.
 Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
 mappningen inte känner till — och de nollas vid nästa skarpa körning.
 
+#### Sammanslagning v2: storlek, fler val och en publicerad givare (2026-09-27)
+
+Leonards fråga efter första sammanslagningen: går det att göra bättre? Verktyget
+klarade bara två färger och bara ett utkast in på en publicerad sida. Nu klarar
+samma workflow fyra lägen, ett per körning:
+
+| läge | när | vad som skrivs |
+|---|---|---|
+| `ny` | sidan saknar optioner | optionen skapas med två val |
+| `utoka` | sidan är redan sammanslagen | ett val till, befintliga varianter orörda |
+| `wix_klar` | en körning föll efter Wix | bara återläsning, mappning och resten |
+| `klar` | artikeln sitter redan på sidan | bara givarens efterarbete |
+
+- **Axel:** `Färg` (default) eller `Storlek`. Två axlar på en gång (färg OCH
+  storlek) klarar verktyget inte — hindret är `annan_axel`.
+- **Fler val:** kör workflowen en gång per syskon. `farg_behall` behövs bara
+  första gången; sedan står sidans val i Wix och i mappningen.
+- **Publicerad givare** kräver `omdirigera=ja`. Då kopieras givarens recensioner
+  till sidan, en 301 skrivs från givarens adress, och givaren avpubliceras och
+  pensioneras.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **`utoka` tar optionen och varianterna ur GET:en.** Ett handbyggt objekt
+   hade tappat valens kopplade bilder och varianternas id — samma regel som
+   `visible` och `options` i prissynken. Ett test fäller om id eller bild tappas.
+2. ☠️ **Omdirigeringen skrivs FÖRE avpubliceringen.** Butiken läser
+   `FyndplatsRedirects` först på 404-vägen, så en rad som skrivs medan givaren
+   ligger ute gör ingenting — och i omvänd ordning svarar adressen 404 i
+   mellanrummet. Omdirigeringar som redan pekade PÅ givaren pekas om, så ingen
+   kedja uppstår.
+3. ☠️ **Recensionerna KOPIERAS, originalen rörs inte.** Dolda rader följer inte
+   med, och inte heller en recension sidan redan har (samma id eller samma text
+   — Aosom visar ibland samma recension på syskonartiklar).
+4. ☠️ **En givare med obehandlade ordrar vägras** (`givaren_har_oppna_ordrar`).
+   Beställningsfilen läser artikeln ur givarens mappning, och pensioneringen
+   släpper den.
+5. ☠️ **Priset rörs inte av sammanslagningen — men synken tar över det.** Det
+   nya valet följer husets regel från nästa körning. För ett utkast är det vad
+   det hade; för en givare med konkurrentpris eller prislås är det inte, och
+   planen varnar.
+6. **Omdirigeringslistan läses med ett tak** (`MAX_OMDIRIGERINGAR`), eftersom
+   `listRedirects` inte sidar. Når listan taket vägrar verktyget hellre än
+   missar en kedja.
+
+⚠️ **Utkast som bara har varandra slås ihop EFTER poleringen, inte före.**
+Poleringens skrivsteg (`skrivplan.ts`) klarar bara sidor med en variant. Polera
+därför ett av syskonen, publicera det, och lägg sedan de andra som val med den
+här workflowen — samma väg som balansbommen.
+
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 
 Leonards fråga: finns det fler färgdubbletter, och storleksdubbletter, alltså
@@ -1534,7 +1584,8 @@ Fem egenskaper som inte ska tas bort:
    ut som saknade, och svaret hade sett komplett ut.
 5. **Listan är ett underlag för en människa.** Varje familj ses med bilderna
    innan något slås ihop. `verktygetIdag` betyder bara att sammanslagningen
-   *kan* ta ett av utkasten, inte att den ska.
+   *kan* lägga ett syskon som ett val (en axel, en publicerad sida att behålla),
+   inte att den ska.
 
 `?par=<id>,<id>` kalibrerar mot par som redan är granskade: svaret säger vad
 jämförelsen såg (samma klunga, mått, färg, vikt och namnlikhet) utan att något

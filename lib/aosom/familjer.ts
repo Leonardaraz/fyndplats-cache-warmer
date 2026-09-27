@@ -117,9 +117,10 @@ export interface Familj {
   publicerade: number;
   utkast: number;
   /**
-   * Kan dagens verktyg (`aosom-sammanslagning`) ta ett av utkasten? Det kräver
-   * en publicerad sida med en enda artikel och ett utkast med en enda artikel,
-   * i samma mått och olika, kända färger. Verktyget tar ett utkast per sida.
+   * Kan verktyget (`aosom-sammanslagning`) lägga minst ett syskon som ett val
+   * på en publicerad sida? Det kräver en familj på EN axel (färg eller
+   * storlek), en publicerad sida att behålla och en givare med en enda artikel.
+   * En publicerad givare kräver `omdirigera` — se sammanslagning.ts.
    */
   verktygetIdag: boolean;
   medlemmar: FamiljMedlem[];
@@ -141,7 +142,7 @@ export interface FamiljSvar {
     sidorIFamiljer: number;
     publiceradeIFamiljer: number;
     utkastIFamiljer: number;
-    /** Familjer där dagens verktyg kan ta minst ett utkast. */
+    /** Familjer där verktyget kan lägga minst ett syskon som ett val. */
     verktygetIdag: number;
     dubblettgrupper: number;
     /** Samma artikel mappad till två olika sidor — en dubblett importen släppt igenom. */
@@ -650,17 +651,24 @@ function byggFamilj(
   }
   const sammaVara = [...perRot.values()].filter((l) => l.length > 1).map((l) => l.sort());
 
-  // Dagens verktyg: en publicerad enkelartikelsida och ett enkelartikelutkast
-  // i samma mått och olika, kända färger.
-  const enkel = (s: Sida) => s.artiklar.length === 1 ? dragPerArtikel.get(s.artiklar[0]) : undefined;
-  const verktygetIdag = vara.some((p) => {
+  // Verktyget (aosom-sammanslagning) behöver en publicerad sida att behålla —
+  // gärna redan sammanslagen — och en givare med EN artikel vars värde sidan
+  // inte har. Givaren får vara ett utkast eller en publicerad sida. Färg: samma
+  // mått, annan känd färg. Storlek: samma kända färg, andra mått. Två axlar på
+  // en gång klarar verktyget inte.
+  const dragAvSida = (s: Sida) =>
+    s.artiklar.map((a) => dragPerArtikel.get(a)).filter((d): d is Drag => Boolean(d));
+  const verktygetIdag = (typ === "farg" || typ === "storlek") && vara.some((p) => {
     if (p.status !== "publicerad") return false;
-    const dp = enkel(p);
-    if (!dp || !dp.farg) return false;
+    const dp = dragAvSida(p);
+    if (dp.length === 0 || dp.some((d) => !d.farg)) return false;
     return vara.some((u) => {
-      if (u.status !== "utkast") return false;
-      const du = enkel(u);
-      return Boolean(du && du.farg && du.farg !== dp.farg && listorNara(dp.matt, du.matt));
+      if (u === p || u.artiklar.length !== 1) return false;
+      const du = dragPerArtikel.get(u.artiklar[0]);
+      if (!du || !du.farg) return false;
+      return typ === "farg"
+        ? dp.every((d) => d.farg !== du.farg) && dp.some((d) => listorNara(d.matt, du.matt))
+        : du.matt.length > 0 && dp.every((d) => d.farg === du.farg && d.matt.length > 0 && !listorNara(d.matt, du.matt));
     });
   });
 
