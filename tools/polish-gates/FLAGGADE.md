@@ -1384,3 +1384,16 @@ beslut — se den samlade frågan om detta.
   (saldo 0, samma kartong som `41395340`). (B16)
 - Saldo 0–7, inte polerade: fåtöljerna `659a0370` (0) och `76738f85` (7).
   (B16)
+- Samma produkt som en publicerad sida eller i en annan färg, hålls:
+  LED-spegeln `af9c9f87` (= `cc52007e`; samma spegel med Bluetooth,
+  90 × 70 cm), medicinskåpen `6858d7ee`, grått (= `54efbdc6`, vitt; även
+  kartongen 22 × 44 × 65 cm stämmer), `54504ce8` (= `715b4acd`) och
+  `9bf1a5db` (måtten = `8eab3ebf`, på bild som `8c4cf7e9`), och högskåpet
+  `e7efc265` (= `4f291ccb`; 182 cm, alla fack stämmer). (B17)
+- Samma spegel inom lagret, hålls: `3a31f4cc` (= `23940121`; samma bilder
+  och 50 × 70 cm, saldo 40 mot 74). (B17)
+- ✅ Falsk träff, frikänd på bild: LED-spegeln `aba9f13e` är inte `e839cf6f`
+  trots samma kartong — rektangulär mot bågformad, båda med svart kant.
+  `aba9f13e` kan poleras. (B17)
+- Saldo 0–7, inte polerade: `7420158c`, `eae19ca7` och `ab765586` (alla 0)
+  och `8057e869` (3). (B17)

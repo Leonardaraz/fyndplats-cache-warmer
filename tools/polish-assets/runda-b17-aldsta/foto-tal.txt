@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+e4ef053e 6 måttbilden anger 6 cm från golvet till skåpets botten
+4612a7b1 2 bild 1 visar två lamelldörrar; källan skriver Drehtür i singular
+8c965dfc 2 bild 1 och 3 visar två lamelldörrar
+4f421b2e 3 källan räknar upp tre ljusfärger: warmweiß, weiß och kaltweiß (3000K, 4500K, 6500K)
