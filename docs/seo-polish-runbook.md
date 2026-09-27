@@ -69,7 +69,7 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | 7 | [Grindar och skrivplan](#7-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
 | 8 | [Skriv till Wix](#8-skriv-till-wix) | — |
 | 9 | [Kontrollera live](#9-kontrollera-live) | `live/` |
-| 10 | [Dokumentera](#10-dokumentera) | `LÄS-MIG.md`, rader i `FLAGGADE.md` |
+| 10 | [Dokumentera](#10-dokumentera) | rader i `FLAGGADE.md` |
 
 `kort` är produkt-id:ts första åtta tecken. `ark/`, `orig/` och `live/` är hämtad data och
 committas inte.
@@ -439,7 +439,7 @@ leverantören som inte stämmer.
 3. **Två källor som säger olika:** ta talet som skyddar kunden om det är fel, alltså det
    större för yttermått och utrymmesbehov och det mindre för innermått, last och "passar upp
    till". Går de inte att förena utelämnar du uppgiften. Gäller det huvudmåttet, som inte
-   går att utelämna, skriver du det skyddande talet och noterar avvikelsen i `LÄS-MIG.md`.
+   går att utelämna, skriver du det skyddande talet och noterar avvikelsen i commitmeddelandet.
    Skriv aldrig en brasklapp som "leverantören anger X, men …". Rättelsen står i löptexten
    och i tabellen.
 4. **Måttritningen avgör geometrin.** Säger en etikett något annat än ritningen, mät
@@ -862,9 +862,8 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 
 ## 10. Dokumentera
 
-- **`LÄS-MIG.md`** i rundans katalog, kort: vad som publicerades (id, namn, SKU, pris och
-  saldo), vad som hölls tillbaka och varför, vad som var oväntat och vad nästa runda bör
-  veta. Grindutfallet och läsningen som kund får en rad var, inte en tabell.
+- **Ingen `LÄS-MIG.md`** i rundans katalog *(Leonard 2026-09-27)*. Vad som publicerades och
+  vad som var oväntat står kort i commitmeddelandet.
 - **`tools/polish-gates/FLAGGADE.md`**: en rad per produkt som hoppades över (dubblett,
   slutsåld, laglighet eller fel produkttyp). Filen fylls bara på, inget tas bort.
 - PR-beskrivningen uppdateras inför merge, inte efter varje runda.
