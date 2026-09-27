@@ -191,7 +191,7 @@ export const VAL: Record<KodNyckel, Kod[]> = {
     { kod: "e", namn: "Rektangulär", slug: "rektangular" },
   ],
   pl: [
-    { kod: "v", namn: "Vägghängd", slug: "vagghangd", ord: sv(/vägghängd|väggmonter|väggfäst|vägghylla|väggskåp|väggspegel|väggmodell|väggkamin|väggvärmare|för väggen|hängs på väggen|monteras på väggen|sätts upp på väggen|skruvas (?:fast )?(?:upp )?i väggen/) },
+    { kod: "v", namn: "Vägghängd", slug: "vagghangd", ord: sv(/vägghängd|väggmonter|väggfäst|vägghylla|väggskåp|väggspegel|väggmodell|väggkamin|väggvärmare|hängs på väggen|monteras på väggen|sätts upp på väggen|skruvas (?:fast )?(?:upp )?i väggen/) },
     { kod: "f", namn: "Fristående", slug: "fristaende", ord: sv(/fristående|golvstående|golvmodell|står på golvet|golvspegel|stående spegel|står fritt|står på egna ben/) },
   ],
   eg: [
@@ -524,9 +524,22 @@ const ANDRAS_AVSNITT = /vanliga frågor|passar inte|^fler\b|andra utföranden|an
  * sänkbara bord", "då ska du välja en höj- och sänkbar i stället").
  */
 export function egenText(html: string, forsta = ingress(html)): string[] {
+  const egen = egenHtml(html);
+  // Punkterna och rubrikerna, en per rad.
+  const bitar = [...egen.matchAll(/<(li|h[1-6])\b[^>]*>([\s\S]*?)<\/\1>/gi)].map((m) => m[2]).join("\n");
+  const text = forsta + "\n" + avkoda(bitar.replace(/<[^>]+>/g, " "));
+  return text
+    .split(/[.!?;]+(?=\s|$)|\n+/)
+    .map((x) => x.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+/**
+ * Beskrivningen utan länkar och utan avsnitten om annat än produkten
+ * ("Vanliga frågor", "Fler …"), som klipps från sin rubrik fram till nästa.
+ */
+function egenHtml(html: string): string {
   const utanLankar = (html || "").replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, " ");
-  // Avsnitten om annat än produkten ("Vanliga frågor", "Fler …") klipps bort
-  // från sin rubrik fram till nästa.
   let egen = "";
   let fran = 0;
   let hoppa = false;
@@ -536,13 +549,7 @@ export function egenText(html: string, forsta = ingress(html)): string[] {
     fran = m.index ?? 0;
   }
   if (!hoppa) egen += utanLankar.slice(fran);
-  // Punkterna och rubrikerna, en per rad.
-  const bitar = [...egen.matchAll(/<(li|h[1-6])\b[^>]*>([\s\S]*?)<\/\1>/gi)].map((m) => m[2]).join("\n");
-  const text = forsta + "\n" + avkoda(bitar.replace(/<[^>]+>/g, " "));
-  return text
-    .split(/[.!?;]+(?=\s|$)|\n+/)
-    .map((x) => x.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
+  return egen;
 }
 
 /** Beskrivningens första stycke: produkten med egna ord. */
@@ -638,7 +645,8 @@ function forstaAntal(kallor: readonly string[], monster: readonly RegExp[], lags
     const t = k.toLowerCase();
     for (const re of monster) {
       const m = re.exec(t);
-      if (!m || nekad(t, m.index)) continue;
+      // "… där en tresitsare inte får plats": ett nej efter talet.
+      if (!m || nekad(t, m.index) || /^[^,.;]{0,25}\b(?:inte|ej)\b/.test(t.slice(m.index + m[0].length))) continue;
       const tal = m.slice(1).filter((x) => x !== undefined).map(tolkaTal);
       if (!tal.length || tal.some((x) => !Number.isFinite(x))) continue;
       const lo = tal[0];
@@ -663,6 +671,7 @@ const LADOR = [
   sv(new RegExp(String.raw`\b${FLERA}[ -]${ADJ}[a-zåäö]*lådor\b`)),
   sv(new RegExp(String.raw`\b${FLERA}-lådig`)),
 ];
+const LADOR_SUMMA = sv(new RegExp(String.raw`\b${FLERA} [a-zåäö]+ och ${FLERA}[ -]${ADJ}[a-zåäö]*lådor\b`));
 const EN_LADA = sv(/\b(?:med|och) (?:en )?låda\b/);
 
 const SITTPLATSER = [
@@ -685,11 +694,15 @@ const VANINGAR = [
 const SANGBREDD = sv(/\b(70|80|90|105|120|135|140|150|160|180|200)\s*(?:cm\s*)?[×x]\s*(?:190|195|200|210)\b|\b(?:190|195|200|210)\s*(?:cm\s*)?[×x]\s*(70|80|90|105|120|135|140|150|160|180)\b/);
 
 /** Ord som betyder att formen varken är rund eller rak. */
-const OKAND_FORM = sv(/halvrund|halvcirkel|njurform|hjärtform|\bl-form|hörn|båg|välvd|oregelbunden|asymmetrisk|organisk|kiselsten|vågform|blomform|stjärn|sexkant|åttkant|triangel/);
+const OKAND_FORM = sv(/halvrund|halvcirkel|njurform|hjärtform|\bl-form|hörn|båg|välvd|oregelbunden|asymmetrisk|organisk|kiselsten|vågform|blomform|stjärn|sexkant|åttkant|triangel|trekant/);
 /** Samma sak i löptexten, där "hörn" och "båge" oftast handlar om rummet. */
-const OKAND_FORM_TEXT = sv(/halvrund|halvcirkel|njurform|hjärtform|bågform|välvd|oregelbunden|asymmetrisk|organisk|kiselsten|sexkant|åttkant/);
+const OKAND_FORM_TEXT = sv(/halvrund|halvcirkel|njurform|hjärtform|bågform|välvd|oregelbunden|asymmetrisk|organisk|kiselsten|sexkant|åttkant|trekant|triangel/);
+/** Ett formord om varan i ingressen: "en rund pall", "rektangulär skiva". */
+const FORMORD = sv(/\b(rund|runt|runda|oval|ovalt|ovala|kvadratisk|kvadratiskt|fyrkantig|fyrkantigt|rektangulär|rektangulärt)(?: [a-zåäö]+)? (?:bord|skiva|bordsskiva|spegel|spegelglas|matbord|soffbord|sidobord|glasskiva|topp|ram|pall|puff|fotpall|eldkorg|korg)\b/);
 /** Varor där formen är en fråga: bord, speglar, puffar, eldkorgar. Inte stolar. */
 const HAR_FORM = /bord|spegel|puff|fotpall|eldkorg|eldstad|fyrfat|matta|bricka/;
+/** … men inte stolar, lampor eller en studsmatta ("Bordslampa", "Fåtölj med fotpall"). */
+const UTAN_FORM = /stol|fåtölj|lampa|lampor|hängmatta|studsmatta|soffa/;
 
 /**
  * Klädsel, djur, bränsle, form, placering, antal och egenskaper. `matt` är
@@ -699,7 +712,12 @@ const HAR_FORM = /bord|spegel|puff|fotpall|eldkorg|eldstad|fyrfat|matta|bricka/;
 function lasEgenskaper(namn: string, html: string, rad: Map<string, string>, spec: Spec, mattRad: string): void {
   const n = namn.toLowerCase();
   const ingr = ingress(html);
-  const satser = [...egenText(html, ingr), ...[...rad].map(([k, v]) => `${k}: ${v}`)];
+  // Spec-tabellens rader läses som "nyckel: värde". Inte specRaders textrader:
+  // där blir varje mening med ett kolon en rad, också "Andra
+  // uppresningsfåtöljer: … modellen med hjul".
+  const tabell = [...egenHtml(html).matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>\s*<td[^>]*>([\s\S]*?)<\/td>/gi)]
+    .map(([, k, v]) => `${utanTaggar(k)}: ${utanTaggar(v)}`);
+  const satser = [...egenText(html, ingr), ...tabell];
 
   const ky = forstaKoder([namn, radText(rad, ["klädsel", "material", "tyg", "överdrag", "sits", "sitsmaterial", "stoppning"]), ingr], VAL.ky);
   if (ky) spec.ky = ky;
@@ -719,14 +737,14 @@ function lasEgenskaper(namn: string, html: string, rad: Map<string, string>, spe
   // Form: ord i namnet, sedan Ø i måttet, sedan ett formord om skivan eller
   // spegeln i ingressen, sist måtten själva (lika bredd och djup = kvadratisk).
   let fo = "";
-  if (HAR_FORM.test(n) && !OKAND_FORM.test(n)) {
+  if (HAR_FORM.test(n) && !UTAN_FORM.test(n) && !OKAND_FORM.test(n)) {
     if (/\brund(?:a|t)?\b|\brunt\b|ø/.test(n)) fo += "r";
     if (/\boval/.test(n)) fo += "o";
     if (/kvadratisk|fyrkantig/.test(n)) fo += "k";
     if (/rektangulär|avlång/.test(n)) fo += "e";
     if (!fo && (/ø/i.test(mattRad) || rad.has("diameter"))) fo = "r";
     if (!fo) {
-      const m = sv(/\b(rund|runt|runda|oval|ovalt|ovala|kvadratisk|kvadratiskt|fyrkantig|fyrkantigt|rektangulär|rektangulärt)(?: [a-zåäö]+)? (?:bord|skiva|bordsskiva|spegel|spegelglas|matbord|soffbord|sidobord|glasskiva|topp|ram)\b/).exec(ingr.toLowerCase());
+      const m = FORMORD.exec(ingr.toLowerCase());
       if (m && !OKAND_FORM_TEXT.test(ingr.toLowerCase())) fo = /^run/.test(m[1]) ? "r" : /^oval/.test(m[1]) ? "o" : /^(kvad|fyrk)/.test(m[1]) ? "k" : "e";
     }
     if (!fo && !OKAND_FORM_TEXT.test(ingr.toLowerCase())) {
@@ -771,9 +789,13 @@ function lasEgenskaper(namn: string, html: string, rad: Map<string, string>, spe
       break;
     }
   }
+  // En solcellslampa har ett batteri men drivs av solen.
+  if (eg.includes("s") && eg.includes("b") && !/batteri|aa-/.test(n)) eg = eg.replace("b", "");
   if (eg) spec.eg = eg;
 
-  const ld = forstaAntal([namn], LADOR, 2, 24) ?? radAntal(rad, ["antal lådor", "lådor"], 1, 24)
+  // "två små och två breda lådor" = fyra.
+  const summa = LADOR_SUMMA.exec(n);
+  const ld = (summa ? tolkaTal(summa[1]) + tolkaTal(summa[2]) : null) ?? forstaAntal([namn], LADOR, 2, 24) ?? radAntal(rad, ["antal lådor", "lådor"], 1, 24)
     ?? forstaAntal([ingr], LADOR, 2, 24) ?? (EN_LADA.test(n) ? 1 : null);
   if (ld !== null) spec.ld = ld;
   const sp = forstaAntal([namn], GRUPP.test(n) ? [SITTPLATSER_NAMN, ...SITTPLATSER] : SITTPLATSER, 2, 20)
@@ -912,7 +934,7 @@ export const MIN_ANDEL_VAL = 0.4;
 const MIN_EGENSKAP = 3;
 /** … och inte nästan alla: "Med hjul" bland kontorsstolar väljer ingenting. */
 const MAX_ANDEL_EGENSKAP = 0.9;
-/** Fler antal än så blir "N+" på sista knappen. */
+/** Högst så många antal-knappar; den sista blir "N+" när det finns fler. */
 const MAX_ANTAL_KNAPPAR = 6;
 
 /** Knapparna för ett antal ("2", "3", "4", "5+") och hur många som har värdet. */
@@ -927,17 +949,15 @@ function antalVal(items: readonly { spec?: Spec }[], k: AntalNyckel): { val: Val
     if (k === "sb") antal.set(v[0], (antal.get(v[0]) ?? 0) + 1);
     else for (let n = Math.round(v[0]); n <= Math.min(Math.round(v[1]), v[0] + 20); n++) antal.set(n, (antal.get(n) ?? 0) + 1);
   }
-  let tal = [...antal].filter(([, c]) => c >= 2).map(([n]) => n).sort((a, b) => a - b);
+  const tal = [...antal].filter(([, c]) => c >= 2).map(([n]) => n).sort((a, b) => a - b).slice(0, MAX_ANTAL_KNAPPAR);
   const enhet = FACETTER[k].enhet ? ` ${FACETTER[k].enhet}` : "";
-  const val: Val[] = [];
-  if (tal.length > MAX_ANTAL_KNAPPAR && k !== "sb") {
-    const plus = tal[MAX_ANTAL_KNAPPAR - 1];
-    tal = tal.slice(0, MAX_ANTAL_KNAPPAR - 1);
-    for (const n of tal) val.push({ kod: String(n), namn: `${n}${enhet}`, slug: String(n) });
-    val.push({ kod: `${plus}+`, namn: `${plus}+${enhet}`, slug: `${plus}-plus` });
-  } else {
-    for (const n of tal) val.push({ kod: String(n), namn: `${n}${enhet}`, slug: String(n) });
-  }
+  // Finns det fler än sista knappen visar (också en ensam byrå med tio lådor)
+  // blir den "N+", annars går de aldrig att välja. Sängbredden är exakta mått.
+  const sista = tal[tal.length - 1];
+  const plus = k !== "sb" && [...antal.keys()].some((n) => n > sista);
+  const val: Val[] = tal.map((n) => (plus && n === sista
+    ? { kod: `${n}+`, namn: `${n}+${enhet}`, slug: `${n}-plus` }
+    : { kod: String(n), namn: `${n}${enhet}`, slug: String(n) }));
   return { val, med };
 }
 

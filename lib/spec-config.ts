@@ -2,8 +2,8 @@
 //
 // Vilka mått- och egenskapsfilter varje kategori erbjuder, och vad de heter
 // där. Kategorin FÖRESLÅR, datan AVGÖR: ett reglage visas bara när minst 60 %
-// av produkterna i listan har värdet, en knappgrupp vid 40 % (lib/spec-facets.ts,
-// specOversikt). En kategori kan alltså stå med ett filter här som inte syns
+// av produkterna i listan har värdet, material också 60 %, övriga knappgrupper
+// 40 % (lib/spec-facets.ts, specOversikt). En kategori kan alltså stå med ett filter här som inte syns
 // förrän beskrivningarna bär värdet.
 //
 // VARFÖR PER KATEGORI. Datan finns ofta där den inte hjälper kunden: en

@@ -295,3 +295,40 @@ test("översikt: en knappgrupp kräver 40 % och två val", () => {
   assert.equal(specOversikt(items, [{ nyckel: "ky", namn: "" }]).length, 1);
   assert.equal(specOversikt([...items, ky(), ky()], [{ nyckel: "ky", namn: "" }]).length, 0);
 });
+
+// ── Fynden från den oberoende granskningen (2026-09-27) ────────────────────
+
+test("egenskaper: spec-raderna i löptext om andra varor räknas inte", () => {
+  const html = "<p>En uppresningsfåtölj med 180° liggläge, utan massage och värme, i mörkgrått tyg.</p>"
+    + "<p>Fyra andra uppresningsfåtöljer: modellen med hjul, den med massage och två till.</p>"
+    + "<table><tr><td>Material</td><td>Polyester</td></tr></table>";
+  assert.equal(lasSpec("Uppresningsfåtölj mörkgrå med 180° liggläge", html)?.eg, undefined);
+  const tabell = "<table><tr><td>Hjul</td><td>Fyra låsbara hjul</td></tr></table>";
+  assert.equal(lasSpec("Rullvagn", tabell)?.eg, "h");
+});
+
+test("sittplatser: ett nej efter talet ('en tresitsare inte får plats')", () => {
+  const html = "<p>En bäddsoffa för hallen eller arbetsrummet, där en tresitsare inte får plats men gästerna ändå behöver en säng.</p>";
+  assert.equal(lasSpec("Bäddsoffa 167 cm med utdragbar bädd", html)?.sp, undefined);
+});
+
+test("form: 'en rund pall' i ingressen, och trekantiga skivor är ingen rektangel", () => {
+  assert.equal(lasSpec("Sittpuff i vattenhyacint med kattgömma", "<p>En rund pall i flätad vattenhyacint med plats för katten inuti.</p><p>Mått: 41 × 40 × 45 cm</p>")?.fo, "r");
+  assert.equal(lasSpec("Satsbord 2-pack – trekantiga vita skivor", "<p>Mått: 50 × 43 × 45 cm</p>")?.fo, undefined);
+  assert.equal(lasSpec("Bordslampa med glaskupa", "<p>Mått: 20 × 20 × 40 cm</p>")?.fo, undefined);
+});
+
+test("lådor: 'två små och två breda lådor' är fyra", () => {
+  assert.equal(lasSpec("Byrå 74 cm i vitt – två små och två breda lådor, 97 cm hög", "")?.ld, 4);
+});
+
+test("översikt: en ensam byrå med tio lådor går att välja via N+", () => {
+  const items = [3, 3, 4, 4, 5, 5, 10].map((ld) => ({ spec: { ld } as Spec }));
+  const f = specOversikt(items, [{ nyckel: "ld", namn: "" }]);
+  assert.deepEqual(f.length && "val" in f[0] ? f[0].val.map((v) => v.kod) : [], ["3", "4", "5+"]);
+  assert.ok(passarVal({ ld: 10 }, "ld", ["5+"], false));
+});
+
+test("egenskaper: en solcellslampa är inte batteridriven", () => {
+  assert.equal(lasSpec("Solcellslampa 77 cm", "<ul><li><p>Litiumbatteriet ingår och laddas av solpanelen</p></li></ul>")?.eg, "s");
+});
