@@ -21,6 +21,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
+import { getGpsr } from "@/lib/gpsr";
+import { byggOrderSakerhet } from "@/lib/gpsr-order";
 import OrderConfirmationEmail, {
   type OrderConfirmationProps,
   type OrderLineItem,
@@ -1279,6 +1281,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, handled: false, mirrored: true }, { status: 200 });
       }
       const customer = extractCustomer(entity)!;
+
+      // Produktsäkerheten på svenska för varorna (lib/gpsr-order.ts). Best
+      // effort: svarar motorn inte går bekräftelsen ändå, bara utan avsnittet —
+      // den får ALDRIG blockeras av en upplysning.
+      try {
+        const ids = extractContentIdsAligned(entity);
+        const gpsr = await Promise.all(ids.map((id) => (id ? getGpsr(id) : Promise.resolve(null))));
+        props.sakerhet = byggOrderSakerhet(props.items.map((it) => it.name), gpsr);
+      } catch (err) {
+        console.error("[wix-webhook] produktsäkerhet till orderbekräftelsen misslyckades (skickar utan)", err);
+      }
 
       // DEDUP-VAKT mot dubbla orderbekräftelser. Wix fyrar order-eventet flera
       // gånger för samma order — slug "created" OCH "approved" klassas BÅDA som
