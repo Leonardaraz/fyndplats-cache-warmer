@@ -1,0 +1,62 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "20782c24": {
+  "tyska": "",
+  "svenska": "52L x 53B x 49-61H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Hockers: 52B x 53T x 49-61H cm"
+ },
+ "4b1c099a": {
+  "tyska": "60L x 60B x 76H cm",
+  "svenska": "L60 x B60 x H76 cm",
+  "axelkalla": "tyska raden 'Tisch' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 60,
+  "djup": 60
+ },
+ "505eb413": {
+  "tyska": "",
+  "svenska": "98L x 90B x 98H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße im aufrechten Zustand: 98B x 90T x 98H cm | ✔ Maße im liegenden Zustand: 98B x 157T x 77H cm | ✔ Sitzgröße: 55B x 52T x 48H cm | ✔ Rückenlehne: 64B x 93T x 27T cm | ✔ Armlehnen-Größe: 28B x 26T x 11H cm | ✔ Taschengröße: 38/33B x 18H cm"
+ },
+ "63f3a60f": {
+  "tyska": "80B x 103T x 91H cm",
+  "svenska": "103L x 80B x 91H cm",
+  "bokstaver": "BTH",
+  "djup": 103,
+  "hojd": 91,
+  "bredd": 80
+ },
+ "cd3320e8": {
+  "tyska": "68,5B x 68,5T x 113-121H cm",
+  "svenska": "68,5B x 68,5T x 113-121H cm",
+  "bokstaver": "BTH",
+  "djup": 68.5,
+  "hojd": [
+   113,
+   121
+  ],
+  "bredd": 68.5
+ },
+ "db645ff8": {
+  "tyska": "",
+  "svenska": "55L x 71B x 53,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe des Ständers: 55B x 71T x 53,5H cm | ✔ Flachformat: 55B x 108T x 14H cm"
+ },
+ "ed03b52f": {
+  "tyska": "(Normal) 87B x 87,5T x 108H cm",
+  "svenska": "87,5L x 87B x 108H cm",
+  "bokstaver": "BTH",
+  "djup": 87.5,
+  "hojd": 108,
+  "bredd": 87
+ },
+ "fa500aa8": {
+  "tyska": "108B x 44T x 43,5H cm",
+  "svenska": "108L x 44B x 43,5H cm",
+  "bokstaver": "BTH",
+  "djup": 44,
+  "hojd": 43.5,
+  "bredd": 108
+ }
+}
