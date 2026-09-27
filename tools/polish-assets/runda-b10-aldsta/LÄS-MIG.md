@@ -187,11 +187,39 @@ möbel, och bilden visar barnen sitta vid bordet.
 
 ## SKRIV
 
-*Fylls i efter skrivningen.*
+Plan `3d3278cdf37a82134d5ceed540e6e45c01183bd38321f8547fa5fe784622e57f`,
+grenen `2ec746fd`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36291719490 | torr | 7 texter, 17 av 17 kategorirader och 7 SKU:er hittade |
+| 36291805123 | skriv | text 7/7, bilder 7/7, kategorier 17/17, SKU 7/7 |
+
+Den separata återläsningen efter 90 s verifierade 7 av 7, och alla sju är
+stämplade (0 stämpelfel). B9:s 409 kom inte tillbaka, så ingen omkörning
+behövdes. Torrkörningen stod en minut i kö bakom en annan körning av samma
+workflow.
+
+Vercel byggde inte pushen: `2ec746fd` blev `CANCELED` efter 32 s med
+`errorLink` till *ignored build step*.
 
 ## LIVE
 
-*Fylls i efter livekontrollen.*
+Hämtat 03:46 UTC med `hamta-live.sh 130`, alla sju HTTP 200. `age` var
+138–168 s på sex sidor. Dartspelets sida hade 486 s, eftersom den varma
+träffen 03:38 renderade den efter skrivningen 03:35. Orddiffen visar att
+det är den nya texten.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 7 av 7 |
+| `livekoll.py` | 7 av 7 OK, alt-texter 30 av 30 |
+| strukna bilder på sidan | 0 av 5 |
+| kvarvarande bilder på sidan | 30 av 30 |
+| JSON-LD | rätt namn, pris och `InStock` på 7 av 7 |
+
+Brödsmulorna visar huvudkategorin: Barn & Familj, Sport & Fritid, Husdjur,
+Möbler och Hem & Inredning.
 
 ## Nästa runda
 
