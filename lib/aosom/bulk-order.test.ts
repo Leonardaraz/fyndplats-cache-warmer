@@ -95,6 +95,37 @@ describe("grupperaPerOrder", () => {
   });
 });
 
+describe("grupperaPerOrder — artikel som inte går att avgöra", () => {
+  // En färgsammanslagen sida där orderradens färg inte går att läsa ut ger ett
+  // skäl i stället för ett artikelnummer (lib/aosom/artiklar.ts).
+  const avgor = (t: FulfillmentTask) =>
+    t.lineItemId === "l2" ? { skal: "orderradens färg gick inte att avgöra" } : `SKU-${t.lineItemId}`;
+
+  it("☠️ håller HELA ordern — resten läggs inte, annars blir det två leveranser", () => {
+    const { ordrar, hoppadeOver } = grupperaPerOrder(
+      [task({ taskId: "o1:l1", lineItemId: "l1" }), task({ taskId: "o1:l2", lineItemId: "l2" })],
+      avgor,
+    );
+    expect(ordrar).toEqual([]);
+    expect(hoppadeOver).toEqual([
+      { taskId: "o1:l1", skal: "en annan rad i samma order gick inte att avgöra — hela ordern hålls" },
+      { taskId: "o1:l2", skal: "artikeln gick inte att avgöra: orderradens färg gick inte att avgöra" },
+    ]);
+  });
+
+  it("andra ordrar i samma fil påverkas inte", () => {
+    const { ordrar, hoppadeOver } = grupperaPerOrder(
+      [
+        task({ taskId: "o1:l2", lineItemId: "l2" }),
+        task({ taskId: "o2:l1", orderId: "o2", orderNumber: "10002", lineItemId: "l1" }),
+      ],
+      avgor,
+    );
+    expect(ordrar.map((o) => [o.orderNumber, o.skus])).toEqual([["10002", ["SKU-l1"]]]);
+    expect(hoppadeOver.map((h) => h.taskId)).toEqual(["o1:l2"]);
+  });
+});
+
 describe("delaIBatchar", () => {
   it("håller sig under taket på antal ordrar", () => {
     const ordrar = Array.from({ length: MAX_ORDRAR + 5 }, (_, i) =>

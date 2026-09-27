@@ -11,7 +11,9 @@
 > utkastet en dubblett (se [Dubblettskärmen](#dubblettskärmen)).
 >
 > Fördjupning: [`polish/bildmetoder.md`](polish/bildmetoder.md) för bildbearbetning när den
-> behövs, och [`polish/varianter.md`](polish/varianter.md) för produkter med flera varianter.
+> behövs, [`polish/syskon.md`](polish/syskon.md) för färg- och storlekssyskon som blir val på
+> en sida, och [`polish/varianter.md`](polish/varianter.md) för AliExpress-sidor med flera
+> varianter.
 
 ## Fasta regler
 
@@ -175,15 +177,23 @@ varningsblock.
 
 ### Dubblettskärmen
 
-I vissa familjer finns vart fjärde utkast redan som publicerad sida. Dubbletterna är av tre
+I vissa familjer finns vart fjärde utkast redan som publicerad sida. Träffarna är av fyra
 sorter:
 
 - **Aosom-varor som vi redan säljer som AliExpress-sidor.** De bär ett AliExpress-id, så
   ingen spärr som jämför id ser dem.
 - **Samma vara två gånger i Aosoms feed**, under två artikelnummer och ofta till olika pris.
-- **Färgsyskon:** samma vara i flera färger, bland utkasten eller mot en publicerad sida.
+- **Färgsyskon:** samma vara i en annan färg, bland utkasten eller mot en publicerad sida.
+- **Storlekssyskon:** samma modell i ett annat mått, ibland också i en annan färg.
 
-Gör två kontroller, i den här ordningen:
+Kör först **"Dubbletter — hitta färg- och storlekssyskon"** (`typ` och `lage` satta till
+`alla`), en gång per runda. Svepet grupperar alla Aosom-sidor och Aosom-utkast i familjer
+utifrån feedens mått, paketmått, vikt, färg, material och Aosoms egen gruppering. Det skriver
+ut id, feedens färg, mått, pris och saldo, men aldrig artikelnummer. Ett utkast som står i en
+familj är ett syskon eller en dubblett tills bilderna säger annat. Svepet ser bara sidor som
+är mappade mot Aosom, så en publicerad AliExpress-sida hittar du bara med kontrollerna nedan.
+
+Gör sedan två kontroller, i den här ordningen:
 
 1. **Måtten sållar.** Läs produktens totalmått ur `Gesamtabmessungen` eller `Gesamtmaße`.
    Axelbokstaven sitter ofta inne i talet (`218B x 79T x 91H cm`), och `Paketmått` är
@@ -201,20 +211,76 @@ Gör två kontroller, i den här ordningen:
    bevisar ingenting, eftersom de två inköpsvägarna fotograferar samma vara var för sig.
    Avgör på konstruktion, detaljer och måttritning.
 
-En dubblett poleras inte och raderas aldrig:
+En träff poleras inte som egen sida och raderas aldrig:
 
-- **Mot en publicerad AliExpress-sida** mappar du om den publicerade sidan till Aosom
-  (Leonards regel 2026-09-03): workflowen **"Dubbletter — mappa om en produkt till Aosom"**,
-  först i läget `plan` och sedan `byt`, med den publicerade sidan som `wix_product_id`,
-  utkastet som `duplicate_wix_product_id` och `sku` tomt. Kundpriset rörs inte. Stoppar
-  marginalhindret flaggar du i stället.
-- **Mot en publicerad Aosom-sida** pensioneras utkastet (`draftStatus: rejected`,
-  `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**.
+| träffen är | så gör du |
+|---|---|
+| samma vara som en publicerad **AliExpress-sida** | Mappa om den publicerade sidan till Aosom (Leonards regel 2026-09-03): **"Dubbletter — mappa om en produkt till Aosom"**, först `plan` och sedan `byt`, med den publicerade sidan som `wix_product_id`, utkastet som `duplicate_wix_product_id` och `sku` tomt. Kundpriset rörs inte. Stoppar marginalhindret flaggar du i stället. |
+| samma vara i samma färg och mått som en publicerad **Aosom-sida** | Pensionera utkastet (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**. |
+| ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
+| syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
+| ett syskon till en publicerad **AliExpress-sida** | Flagga till Leonard. Verktyget kräver en sida som är mappad mot Aosom. |
 
-Skriv en rad i `FLAGGADE.md` i båda fallen och ta nästa. Av färgsyskon poleras ett, och
-resten flaggas som ett sortimentsbeslut. Ska en sida säga "finns i N färger" räknar du
-färgerna i katalogen, inte i kön, eftersom ett publicerat syskon inte ligger i kön. Skriv
-det som ett faktum om varan, aldrig som ett val: en Aosom-sida har en enda variant.
+Skriv en rad i `FLAGGADE.md` för varje utkast som inte blir en egen sida och ta nästa.
+
+### Syskon blir val på sidan
+
+En publicerad Aosom-sida kan bära en Aosom-artikel per variant, med valen `Färg`, `Storlek`
+eller båda. Synken, beställningsfilen och Google-flödet läser artikeln per variant. Syskonet
+läggs in med **"Dubbletter — lägg ett utkast som färg eller storlek på en publicerad
+sida"**, ett syskon per körning. Hela arbetsgången och alla hinder står i
+[`polish/syskon.md`](polish/syskon.md).
+
+1. **Plan först.** Kör `plan` med sidan som `behall` och syskonet som `utkast`. Ange
+   syskonets värde på varje axel sidan har eller får (`farg_utkast`, `storlek_utkast`).
+   Ange sidans eget värde bara på en axel sidan får för första gången (`farg_behall`,
+   `storlek_behall`). Stava som i butiken (`Grå`, `110 × 85 cm`). Svepets färger är
+   feedens tyska värden, så översätt dem efter bilden.
+2. **Läs planen och hindren.** Bär sidans namn färgen eller måttet
+   (`namnet_bar_farg`, `namnet_bar_storlek`) skriver du om namnet först. Sluggen står
+   kvar. Stoppar SKU:n (`sku_ogiltig`, `sku_upptagen`, `sku_lika`) anger du `sku` själv.
+   Håll den till högst 40 tecken, för det är Wix tak (`gate-sku.py`). Verktyget räknar inte
+   längden, så räkna själv på standard-SKU:n också. Vid `kombinationen_finns` är utkastet en
+   dubblett: pensionera det.
+3. **Bilder.** Utan `bilder` följer utkastets huvudbild med när en ny färg läggs till,
+   annars ingen. Ange fler (`bilder: 1,2`) bara för bilder du har granskat enligt steg 3.
+   Huvudbilden ska visa varan **i syskonets färg**. Gör den inte det anger du den bild som
+   gör det, och finns ingen sådan bild slår du inte ihop. Se
+   [Varje färg har sin egen bild](#varje-färg-har-sin-egen-bild).
+4. **Kör `byt`.** Varianten och dess lager skrivs i samma anrop och läses tillbaka innan
+   mappningen skrivs. Utkastet pensioneras. Priset rörs inte, och från nästa synk följer
+   det nya valet husets regel.
+5. **Rätta texten.** Sidan beskriver fortfarande en färg eller ett mått, och planen varnar
+   när beskrivningen nämner sidans värde. `Färg:`-raden ska räkna upp alla färger och
+   `Mått:`-raden alla mått. Stryk meningar som påstår en enda färg. Ändringen görs utanför
+   rundan, se [Utanför poleringen](#utanför-poleringen).
+
+En sammanslagen sida tas aldrig med i en runda igen. Skrivworkflowen klarar bara sidor med
+en variant, och rundans gamla filer skulle skriva tillbaka en enda färg.
+
+#### Varje färg har sin egen bild
+
+Varje färgval ska ha en egen bild kopplad i Wix (`linkedMedia` på valet). Butiken och
+Google-flödet läser färgens bild just därifrån: produktsidan byter till den när kunden
+väljer färgen, och flödet ger varje färgvariant den bilden. En färg utan kopplad bild
+visar produktens huvudbild, alltså fel färg. Kunden väljer vit och ser grön, och Google
+Shopping annonserar den vita varianten med ett grönt foto.
+
+Sammanslagningen kopplar bilderna själv: sidans färg får sidans huvudbild och syskonets
+färg syskonets bild. Återläsningen väntar på kopplingen, och står
+`⚠️ … val saknar kopplad bild` i loggen kör du `byt` igen. Ett undantag är med flit: en
+storlekssida som får färg behåller storlekarnas bilder, och sidans egen färg får ingen.
+Verktyget kopplar bara bilden. Du ansvarar för att den visar rätt färg.
+
+Kontrollera efter `byt` att varje färg i väljaren byter till ett foto i just den färgen.
+Samma krav gäller färger som kommit in på annat sätt, som AliExpress-importer och
+handlagda val. Den 27 september 2026 saknade fyra sådana sidor färgbilder:
+skoskåpet med tre speglade luckor (vit), tunnelväxthuset 597 × 295 cm (vit),
+trehjulingen 6-i-1 (alla tre, fotona fanns i galleriet och kopplades samma dag) och
+dieselvärmaren till husbil (röd och blå).
+
+Finns inget foto i färgen är valet fel på sidan. Flagga det till Leonard i `FLAGGADE.md`.
+Lägg aldrig en annan färgs bild på valet.
 
 ### Sökordet och krocken
 
@@ -264,8 +330,8 @@ Skriv filerna:
 | `kallor.json` | `{ "kort": "källtext" }`, alltså `plainDescription` med artikelnumren redigerade |
 
 Skriv filerna ur verktygssvaret med ett skript och redigera artikelnumren redan i det
-steget. Skriv aldrig av en källtext eller ett id. En Aosom-rad har en enda variant och inga
-variantval.
+steget. Skriv aldrig av en källtext eller ett id. Ett Aosom-utkast har en enda variant och
+inga variantval.
 
 ### Vad källan är värd
 
@@ -431,7 +497,9 @@ Skriv allt i rundans filer. Ingen text skrivs direkt i ett anrop.
 | **Meta** | `seo.tsv` | Sikta på högst 155 tecken (`gate-seo.py` fäller över 160), med nyttan och sökordet och inga påståenden som inte är verifierade. |
 
 Fokussökordet står i namnet, sluggen och titeln. Det som skiljer produkten från ett syskon
-ska synas i alla tre.
+som får en egen sida ska synas i alla tre. Ett färg- eller storlekssyskon som ska bli ett val
+på sidan får däremot ingen egen sida. Skriv då namn, slug och titel utan färgen och måttet,
+eftersom sammanslagningen vägrar ett namn som bär sidans färg eller mått.
 
 **Sluggen byts bara på utkast.** Butiken är headless och gör ingen automatisk
 omdirigering, så en ändrad slug på en publicerad sida ger en 404. Måste en publicerad slug
@@ -640,7 +708,8 @@ egenskapslistan.
 Skriv `kort ⇥ FP-…`: `FP-` följt av svenska ord som skiljer varan från syskonen, med mått
 före färg, till exempel `FP-tvattstallsskap-76cm-svart`. Högst 40 tecken, eftersom Wix avvisar fler
 (`gate-sku.py` fäller). Bara gemener, siffror och bindestreck, inget husmärke och ingen tysk
-råtext. SKU:n beskriver produkten, inte kategorin.
+råtext. SKU:n beskriver produkten, inte kategorin. Ska sidan få syskon som val blir deras
+SKU sidans SKU plus syskonets mått och färg, så håll den kort (`FP-tvattstallsskap-76cm`).
 
 SKU:n ska vara unik i rundan och mot familjens publicerade sidor, som du ändå läser en i
 taget (`variantsInfo` finns bara då). Den syns inte för kunden och går inte ut i
@@ -876,11 +945,16 @@ som ser friskt ut men har fel innehåll, inte ett felmeddelande.
 
 ## Utanför poleringen
 
-- **Produkter med flera varianter**, i praktiken AliExpress-sidor: mekaniken står i
-  [`polish/varianter.md`](polish/varianter.md). Workflowen hanterar inte varianter, så de
-  PATCHarna görs för hand; regeln om att aldrig skriva för hand gäller rundorna. Den delade
-  optionen "Färg" finns i två upplagor (`0b32a475-…` och `719645a9-…`), används av över
-  hundra produkter och får aldrig döpas om.
+- **Sidor med flera varianter:** äldre AliExpress-sidor och Aosom-sidor där syskon lagts
+  in som val. Skrivworkflowen klarar bara sidor med en variant, eftersom SKU-steget och
+  återläsningen kräver det. Sådana sidor tas därför aldrig med i en runda. En textändring,
+  som färgraden efter en sammanslagning, görs med en PATCH av bara de fält som ändras
+  (`plainDescription`, och `seoData` om titeln ändras), med fältmask och med texten ur en
+  fil. Läs sedan tillbaka texten och jämför den med filen. Variantobjekt och optioner byggs
+  aldrig för hand. Mekaniken står i [`polish/varianter.md`](polish/varianter.md) för
+  AliExpress-sidorna och i [`polish/syskon.md`](polish/syskon.md) för sammanslagna sidor.
+  Den delade optionen "Färg" finns i två upplagor (`0b32a475-…` och `719645a9-…`), används
+  av över hundra produkter och får aldrig döpas om.
 - **Fraktvikten på äldre sidor:** 616 texter i 69 rundor före B1 bär fraktvikten som `Vikt`.
   Workflowen **"SEO — städa publicerad produkttext"** byter etiketten där talet är
   fraktvikten, och listar meningarna i löptexten som måste skrivas om för hand.

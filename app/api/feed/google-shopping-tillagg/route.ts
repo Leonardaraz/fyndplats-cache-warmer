@@ -24,7 +24,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { getStore } from "@/lib/store/factory";
-import { listV3ProductPrices } from "@/lib/wix/v3-products";
+import { getV3VariantPriser, listV3ProductPrices } from "@/lib/wix/v3-products";
+import { aosomArtikelbild } from "@/lib/aosom/artiklar";
+import { isAliExpressMapping } from "@/lib/store/supplier";
 import { byggTillaggsfeed, tillTsv } from "@/lib/feed/google-shopping";
 
 export const runtime = "nodejs";
@@ -59,7 +61,20 @@ export async function GET(req: NextRequest) {
   }
 
   const [mappningar, priser] = await Promise.all([getStore().listMappings(), listV3ProductPrices()]);
-  const u = byggTillaggsfeed(mappningar, priser);
+
+  // Färgsammanslagna sidor: priset per variant, ett GET per sida — de är få.
+  // En sida vars läsning faller får etiketten bara om produktpriset är
+  // entydigt (se byggTillaggsfeed); felet loggas i stället för att fälla feeden.
+  const variantPriser = new Map<string, Map<string, number>>();
+  for (const m of mappningar) {
+    if (isAliExpressMapping(m) || aosomArtikelbild(m).typ !== "flera") continue;
+    try {
+      variantPriser.set(m.wixProductId, await getV3VariantPriser(m.wixProductId));
+    } catch (err) {
+      console.error(`[google-tillagg] variantpriserna för ${m.wixProductId} gick inte att läsa: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  const u = byggTillaggsfeed(mappningar, priser, variantPriser);
   const { rader, ...raknare } = u;
 
   if (rader.length < MIN_RADER) {

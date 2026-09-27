@@ -1,0 +1,27 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur tidigare rundors sokord.tsv. Varje huvudsökord och varje planerad slug är
+# prövade mot hela katalogen 2026-09-27 (6 153 produkter, 3 620 publicerade): ingen slug krockar, och där en
+# publicerad slug redan bar huvudsökordet valdes en smalare variant: julgran med belysning (1) → julgran med
+# belysning 120 cm, konstgjord julgran 180 cm (1) → konstgjord tall 180 cm, badrumshylla bambu (1) → badrumshylla
+# med tvättkorg, konstgjord gran (1) → konstgjord gran 150 cm, hantelset (4) → hantelset 1–5 kg. Paviljong 3x6,
+# smal gran, snurrbar loungefåtölj, hundgrind utan borrning, modern brevlåda, liten torktumlare, motorcykelstöd,
+# sopsortering underskåp, fåtöljer 2-pack, reclinerfåtölj teddy, skoskåp bambu, julgran med ljus och
+# behandlingsbänk bar ingen publicerad slug.
+297eae7c	paviljong 3x6	–	–	partytält 3x6; pop up paviljong; paviljong med väggar
+2f01cebe	smal gran	50	10	smal julgran (590, 14); julgran smal (590, 16); julgran 210 cm
+383570d2	snurrbar loungefåtölj	–	–	loungefåtölj (2400, 19); läsfåtölj (1300, 16); snurrfåtölj
+25544401	hundgrind utan borrning	–	–	hundgrind; dörrgrind; trappgrind
+35360ea0	modern brevlåda	–	–	brevlåda; brevlåda med lås; väggbrevlåda
+2517c54b	liten torktumlare	–	–	torktumlare; minitorktumlare; väggmonterad torktumlare
+b6266a80	motorcykelstöd	–	–	hjulstöd motorcykel; framhjulsstöd; mc-stöd
+4588a393	hantelset 1–5 kg	–	–	hantelset; hexhantlar; hantlar med ställ
+b2872810	sopsortering underskåp	–	–	sopsortering; soptunna (8100, 30); källsortering kök
+c54ef786	julgran med belysning 120 cm	–	–	julgran med belysning; julgran (22200, 25); liten julgran
+4311dbed	konstgjord tall 180 cm	–	–	konstgjord julgran 180 cm (30, 0); julgran 180 cm (210, 13); konstgjord julgran (390, 20)
+d03b6773	fåtöljer 2-pack	–	–	fåtölj (60500, 27); fåtölj med armstöd (110, 13); chenille fåtölj
+18593043	reclinerfåtölj teddy	–	–	reclinerfåtölj; gungfåtölj; snurrbar reclinerfåtölj
+a32e2efa	skoskåp bambu	–	–	skoskåp; skohylla (18100, 27); skoskåp med dörrar
+cf81955a	badrumshylla med tvättkorg	–	–	badrumshylla (8100, 28); badrumshylla bambu (110, 16); tvättkorg bambu
+2c5388f7	konstgjord gran 150 cm	–	–	konstgjord gran (260, 10); konstgran (880, 15); julgran konstgjord (260, 18)
+5d0d95d1	julgran med ljus och kulor	–	–	julgran med belysning; julgran med pynt; julgran 150 cm
+91691f8a	behandlingsbänk	–	–	massagebänk; behandlingsstol; hopfällbar massagebänk

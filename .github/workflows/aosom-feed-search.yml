@@ -29,12 +29,10 @@ on:
         required: false
         default: false
         type: boolean
-      visa_pris:
-        # ☠️ Actions-loggar pa ett PUBLIKT repo gar att lasa utan inloggning.
-        description: "Skriv INKOPSPRIS och fraktandel till loggen. ⚠️ Loggen ar PUBLIK."
-        required: false
-        default: false
-        type: boolean
+      # ☠️ `visa_pris` ÄR BORTTAGEN (2026-09-27). Den skrev inköpspriset bredvid
+      # artikelnumret till den publika loggen — och användes ändå: 29 av 53
+      # sparade körningar bar sådana rader, flera av dem efter att flaggan
+      # infördes som "undantag". Priset finns i kuvertet.
       kuvert:
         # ☠️ SAMMA KANAL SOM I polish-mapping.yml, OCH AV SAMMA SKAL.
         #
@@ -62,13 +60,22 @@ jobs:
   sok:
     runs-on: ubuntu-latest
     steps:
+      # ☠️ MASKERA FÖRST, I ETT EGET STEG. En fråga som ÄR ett artikelnummer
+      # hade annars stått i nästa stegs env-block (`Q:`) och i "Fraga:"-raden.
+      # Bara artikelnummerformade ord maskeras — att maskera "sofa" hade gjort
+      # varje produktnamn oläsligt. Värdet läses ur händelsen, inte via `env:`.
+      - name: Maskera
+        run: |
+          jq -r '.inputs.q // ""' "$GITHUB_EVENT_PATH" \
+            | perl -ne 'print "::add-mask::$1\n" while /\b((?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*)\b/gi'
+          exit 0
+
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           Q: ${{ inputs.q }}
           ALLA: ${{ inputs.alla_rader }}
-          VISA_PRIS: ${{ inputs.visa_pris }}
           KUVERT: ${{ inputs.kuvert }}
         run: |
           set -euo pipefail
@@ -99,26 +106,25 @@ jobs:
           # läsa filen — workflowen registreras aldrig och går inte att starta.
           # Radbrytningar skrivs därför som \n, inte som verkliga rader.
           echo "$svar" | jq -r '"Fraga: \(.fraga)\nRader i feeden: \(.raderILista)\nTraffar: \(.traffar)\(if .kapad then " (kapad till \(.visade|length))" else "" end)\n"'
-          # ☠️ INKOPSPRISET SKRIVS INTE TILL LOGGEN SOM DEFAULT (2026-09-07).
-          # Raden har skrev tidigare `<artikelnummer>  <landat pris>  saldo
-          # <n>  frakt <p>%` — alltsa artikelnumret bredvid exakt vad vi
-          # betalar, plus fraktandelen som later en lasare rakna ut grossist
-          # och frakt var for sig. Repot ar PUBLIKT och Actions-loggar gar att
-          # lasa utan inloggning, sa varje sokning publicerade upp till femtio
-          # sadana rader. Det ar ordagrant det som motiverar att feed-adressen
-          # ar hemlig: "detsamma som att publicera vad vi betalar for varje
-          # vara — for de svenska aterforsaljare vi konkurrerar med om exakt
-          # samma artikelnummer". Uppmatt i korning 34: atta rader.
+          # ☠️ LOGGEN BÄR NAMN OCH SALDO — ALDRIG ARTIKELNUMMER, URL ELLER PRIS.
           #
-          # Artikelnummer, namn, saldo och Aosoms publika produkt-URL star
-          # kvar — de svarar pa "finns varan och finns saldo", vilket ar
-          # workflowens fraga. Priset ligger bakom `visa_pris`.
-          if [ "${VISA_PRIS}" = "true" ]; then
-            echo "⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_pris=true)"
-            echo "$svar" | jq -r '.visade[] | "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%\n    \(.namn)\n    \(.url)\n"'
-          else
-            echo "$svar" | jq -r '.visade[] | "  \(.sku)  saldo \(.saldo)\n    \(.namn)\n    \(.url)\n"'
-            echo "(inkopspris utelamnat — loggen ar publik. Kor med visa_pris=true om du behover det.)"
+          # 2026-09-07 togs priset bort ur standardutskriften men artikel-
+          # numret och Aosoms produkt-URL stod kvar, med motiveringen att de
+          # svarar på "finns varan". Uppmätt 2026-09-27 över 53 sparade
+          # körningar: 42 bar artikelnummer och 29 bar dessutom inköpspriset
+          # bredvid (`visa_pris`). URL:en bär numret den också. Numret är den
+          # sträng som kopplar vår sida till Aosoms och dealproffsens — samma
+          # skäl som gör feed-adressen hemlig.
+          #
+          # "Finns varan och finns saldo" besvaras av namnet och saldot. Vilken
+          # artikel det är, var den ligger och vad den kostar oss står i
+          # kuvertet nedan — krypterat mot anroparens engångsnyckel.
+          # Namnet är fritext från feeden och kan bära en modellkod — samma
+          # redigering som felraderna i import- och synkworkflowen.
+          echo "$svar" | jq -r '.visade | to_entries[] | "  \(.key + 1). \(.value.namn)\n     saldo \(.value.saldo)\(if .value.skeppbarTillSe == false then " (skickas inte till Sverige)" else "" end)\n"' \
+            | perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g'
+          if [ -z "${KUVERT:-}" ]; then
+            echo "(artikelnummer, länk och pris skrivs inte ut — loggen är publik. Skicka en kuvert-nyckel för dem.)"
           fi
 
           # --- Kuvertet: prisfalten, krypterade i stallet for loggade ---

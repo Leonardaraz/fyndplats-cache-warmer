@@ -1,0 +1,82 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0a4958cc": {
+  "tyska": "60L x 80H cm",
+  "svenska": "60 x 80 cm",
+  "bokstaver": "LH",
+  "hojd": 80,
+  "bredd": 60
+ },
+ "295bb20f": {
+  "tyska": "120L x 40B x 100H cm",
+  "svenska": "120L x 40B x 100H cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 120,
+  "djup": 40
+ },
+ "2ffa80f1": {
+  "tyska": "96B x 1,3T x 56H cm",
+  "svenska": "96L x 1,3B x 56H cm",
+  "bokstaver": "BTH",
+  "djup": 1.3,
+  "hojd": 56,
+  "bredd": 96
+ },
+ "376caddc": {
+  "tyska": "✔ Gesamthöhe: 120 cm",
+  "svenska": "120 cm",
+  "bokstaver": "H",
+  "hojd": 120,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "40d0af10": {
+  "tyska": "40L x 30B x 24H cm",
+  "svenska": "L40 x B30 x H24 cm",
+  "bokstaver": "LBH",
+  "hojd": 24,
+  "bredd": 40,
+  "djup": 30
+ },
+ "520cc521": {
+  "tyska": "Ø55 x H180 cm",
+  "svenska": "Ø55 x H180 cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "7727e1bf": {
+  "tyska": "Ø55 x H210 cm",
+  "svenska": "Ø55 x H210 cm",
+  "bokstaver": "H",
+  "hojd": 210
+ },
+ "792562e3": {
+  "tyska": "Ø60 x H210 cm",
+  "svenska": "Ø60 x H210 cm",
+  "bokstaver": "H",
+  "hojd": 210
+ },
+ "8ed2dc38": {
+  "tyska": "Ø70 x 3H cm",
+  "svenska": "Ø70 x 3H cm",
+  "bokstaver": "H",
+  "hojd": 3
+ },
+ "9053bc1a": {
+  "tyska": "",
+  "svenska": "Ø75 x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: Ø75 x 75H cm"
+ },
+ "a6657b3d": {
+  "tyska": "✔ Höhe: 150 cm",
+  "svenska": "Ø15 x 150H cm",
+  "bokstaver": "H",
+  "hojd": 150,
+  "axelkalla": "tyska raden 'Höhe' (kallan har ingen totalmattrad)"
+ },
+ "af9378d6": {
+  "tyska": "",
+  "svenska": "78,5L x 78,5B x 46,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Große Tischgröße: 78,5L x 78,5B x 46,5H cm | ✔ Kleine Tischgröße: 59L x 59B x 36,5H cm"
+ }
+}

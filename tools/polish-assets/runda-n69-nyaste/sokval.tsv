@@ -1,0 +1,27 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Semrush svarade 403 API UNITS BALANCE IS ZERO 2026-09-26 även för den här rundan; alla volymer i parentes är
+# hämtade ur tidigare rundors sokord.tsv. Varje huvudsökord är sökt i butikens sökning 2026-09-26, och där en
+# publicerad slug redan bar ordet valdes en smalare variant: utdragbart matbord (3 slugar) → utdragbart matbord
+# valnöt, reclinerfåtölj (19) → manuell reclinerfåtölj, nattduksbord (9) → nattduksbord rotting och vitt
+# nattduksbord, uppresningsfåtölj (24) → uppresningsfåtölj med värme och uppresningsfåtölj med massage,
+# massagefåtölj (24) → bred massagefåtölj, smal byrå (4) och byrå med tyglådor (1) → tygbyrå och byrå med åtta
+# lådor, smal julgran (6) → julgran med belysning och julgran i kruka, konstgjort rosenträd (1) → konstgjort
+# rosenträd vitt. eldskål, julkrans, ljusträd, 3d tavla och liten julgran bar ingen publicerad slug.
+02199100	utdragbart matbord valnöt	–	–	utdragbart matbord; matbord (27100, 26); matbord 6 personer
+5b1df31b	manuell reclinerfåtölj	–	–	reclinerfåtölj; tv-fåtölj; fåtölj med fotstöd
+ca547b56	nattduksbord rotting	–	–	nattduksbord (18100, 29); sängbord (40500, 30)
+0f1abb61	uppresningsfåtölj med värme	–	–	uppresningsfåtölj; massagefåtölj; elektrisk reclinerfåtölj
+f1944853	uppresningsfåtölj med massage	–	–	uppresningsfåtölj; massagefåtölj; fåtölj med mugghållare
+d57f908e	bred massagefåtölj	–	–	bred fåtölj; massagefåtölj med värme; reclinerfåtölj
+4f2be50b	mini eldstad	–	–	bordseldstad; rökfri eldstad; eldskål
+6b5ba024	eldstad med grill	–	–	eldstad; eldkorg; eldstad med gnistskydd
+0b300510	tygbyrå	–	–	byrå med tyglådor; smal byrå; klädförvaring (1900, 29)
+d36b35fc	vitt nattduksbord	–	–	nattduksbord med lådor; nattduksbord (18100, 29); sängbord (40500, 30)
+5a3de5da	byrå med åtta lådor	–	–	klädförvaring (1900, 29); hylla med lådor (1000, 26); förvaringshylla med lådor (140, 29)
+b18a010f	julgran med belysning	–	–	smal julgran (590, 14); julgran med snö (260, 13); julgran (22200, 25)
+e466c1cb	julkrans med belysning	–	–	julkrans; juldekoration utomhus (1300, 18)
+2b33d9bc	julgran i kruka	–	–	julgran med snö (260, 13); smal julgran (590, 14); julgran (22200, 25)
+ecec71de	liten julgran	–	–	bordsgran; julgran med snö (260, 13); julgran plast (1600, 19)
+4f40817c	ljusträd	–	–	körsbärsträd med led; julbelysning (3600, 21); konstgjort träd (320, 7)
+6fd03f3a	konstgjort rosenträd vitt	–	–	konstväxt (2900, 20); konstgjorda växter (3600, 23); konstgjort träd (320, 7)
+08dc9c52	3d tavla	–	–	väggkonst; väggdekoration; tavlor

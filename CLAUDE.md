@@ -522,6 +522,45 @@ sextimmarstak, med marginal nog att hinna committa markören.
 `tools/aosom/sweep.sh` finns kvar för den som hellre kör från en terminal och
 har `CRON_SECRET` för handen.
 
+### ☠️ Artikelnumret når aldrig en Actions-logg (2026-09-27)
+
+Granskat lokalt, utan att ett enda nummer skrevs ut: **142 publika loggar** bar
+Aosoms artikelnummer — 28 av 35 synkkörningar, alla 29 importkörningar, 42 av
+53 feedsökningar och 43 av 57 ommappningar. **29 av feedsökningarna bar
+dessutom inköpspriset bredvid numret.** Loggarna är raderade. Kanalerna var
+fem, och alla är stängda:
+
+| kanal | var | lagning |
+|---|---|---|
+| hårdkodade nummer i källan | importens `rökprov` | GitHub skriver ut källan i VARJE körning; `rökprov` tar nu `limit=3` |
+| markören i varvsraden, summeringen, markörfilen och commitmeddelandet | import, bildfix | rutterna **förseglar** markören (`lib/aosom/markor.ts`, AES-256-GCM, nyckel ur `CRON_SECRET`) |
+| `\(.sku)` i utskrifter | synkens prisvarningar och "exempel-artikelnummer", bildfixens fel | Wix-id i stället — `wixProductId` finns i synkens och bildfixens `errors`/`varningar` |
+| inputen i env-blocket | synkens `sku`, importens `after`, ommappningens `sku`, feedsökningens `q` | eget steg **"Maskera"** före det steg som läser den |
+| numret, Aosom-länken och priset som standard | feedsökningen | bara i kuvertet; `visa_pris` är borttagen |
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Maskeringen ligger i ett EGET steg.** Ett stegs env-block skrivs ut
+   innan dess skript kör, så `::add-mask::` i samma steg kommer för sent.
+   Värdet läses ur `$GITHUB_EVENT_PATH`, aldrig via `env:` eller `${{ }}`.
+2. ☠️ **En förseglad markör som inte går att öppna är 400**, inte "börja om".
+   En handskriven markör i klartext tas fortfarande emot.
+3. **`redigera()` i workflowerna är sista skyddet, inte det första.** Fritext
+   (felkroppar, produktnamn) har ingen form att lita på.
+4. ☠️ **gatelibs `ARTNR` missar två former som finns i drift:** tre siffror–tre
+   siffror utan svans, och siffra-bokstav-siffra. Den första går inte att
+   skilja från ett intervall på formen, så den stängs av kanalreglerna ovan.
+
+Grinden är `lib/workflows/artikelnummer-i-logg.test.ts` — tvilling till
+`kostnad-i-logg.test.ts`. Den fäller på ett nummer i en workflow-källa, en
+interpolation av ett artikelfält, en utskriven anrops-URL, en markör i ett
+commitmeddelande och en artikel-input utan maskeringssteg. Verifierad genom att
+återinföra varje gammalt fel: sju av sju fälls, var och en av exakt en regel.
+
+⚠️ **Lagningen biter först när den ligger på `main`** — `workflow_dispatch`
+kör `main` som default (se "En OMERGAD gren skyddar ingenting"). Git-historiken
+bär fortfarande de gamla numren; den skrivs inte om utan Leonards uttryckliga ja.
+
 ### Fyra saker som inte ska tas bort
 
 1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,
@@ -1405,6 +1444,249 @@ raden och läser aldrig tillståndet igen. Aosom-synken äger raden från nästa
 Dubbletten **raderas inte** — den får `draftStatus: "rejected"` och
 `needsAiPolish: false`. Ett osynligt utkast kostar ingenting medan det ligger,
 och en radering går inte att ångra om matchningen visar sig vara fel.
+
+### Färgsammanslagning: ett utkast blir en FÄRG på en publicerad sida (2026-09-27)
+
+Leonards fråga: dubblettskärmen hittar utkast som är samma vara som en
+publicerad sida i en annan färg — kan de bli ett andra färgval på sidan, med
+kopplad bild? Svaret är ja, men bara för att koden först lärt sig att en sida
+kan bära **en Aosom-artikel per variant**. Före det läste varje väg radens
+artikel för hela sidan, och en sammanslagning hade gett tre dyra fel: synken
+hade skrivit den ena färgens saldo på båda (vi säljer en färg Aosom inte har),
+beställningsfilen hade beställt fel färg, och importen hade skapat ett nytt
+utkast för den andra färgen.
+
+`lib/aosom/artiklar.ts` (`aosomArtikelbild`) är den enda definitionen, med tre
+utfall: `en` (radens artikel, **exakt som förut** — varje befintlig rad),
+`flera` (en artikel per variant) och `tvetydig` (olika artiklar men inte
+entydigt läsbar — då nollas lagret och ordern hålls). Läsarna:
+
+| väg | vad den gör med en sammanslagen sida |
+|---|---|
+| synken (`lib/aosom/sync.ts`) | saldo och pris PER VARIANT, facit per variant (`getV3VariantPriser`) |
+| beställningsfilen (`aosom-order`) | artikeln väljs på orderradens variant-id, sedan SKU, sedan val |
+| importens dubblettspärr | ser varianternas artiklar |
+| ommappningen | en artikel som sitter som färg är upptagen |
+| bildfixen | hoppar över sidan (`sammanslagnaHoppade`) |
+| Google-tilläggsfeeden | en rad per färg; grupp och konkurrensläge bara för radens egen artikel |
+| poleringens bildsteg | vägrar en lista som tappar en bild ett färgval pekar på |
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Orderradens variant-id är NOLLAN för en produkt utan optioner** —
+   uppmätt på skarpa ordrar: `catalogReference.options.variantId =
+   "00000000-…"`, inte produktens V3-id. Nollan går aldrig att slå upp mot
+   mappningen; en order lagd före sammanslagningen matchas därför på SKU.
+   Tasken bär `wixVariantId` sedan 2026-09-27.
+2. ☠️ **Okända Wix-varianter NOLLAS i synken** (`okandaVarianter`, fäller
+   workflow-jobbet även i torrläge). Det är läget efter en halvgjord
+   sammanslagning: Wix fick färgen, mappningen gjorde det inte. Den gamla vägen
+   hade sålt den nya färgen på den gamla färgens lager. En produkt med EN
+   lagerpost skrivs som förut, vad dess id än är.
+3. ☠️ **Beställningsfilen håller hela ordern** när en rad inte går att avgöra —
+   en halv order är två leveranser och två fraktavgifter.
+4. ☠️ **Konkurrentpriset gäller bara radens EGEN artikel.** Det är hämtat för
+   den; den andra färgen får husets regel — exakt vad den hade som eget utkast.
+5. ☠️ **Sammanslagningen rör inget pris.** Den nya färgen får utkastets pris
+   som det står i butiken.
+6. ☠️ **Färgen och dess lager skrivs i SAMMA anrop**
+   (`products-with-inventory`), så den nya färgen finns aldrig med ett lager vi
+   inte satt. Faller skrivningen rullas bilderna tillbaka.
+7. **Utkastet pensioneras, raderas aldrig** (`pensioneraDubblett`). Artikeln
+   släpps från dess rad och bor sedan som färg på sidan vi behåller.
+8. ☠️ **Varukostnaden tas ur MAPPNINGEN, aldrig ur Wix.** `revenueDetails`
+   kommer bara med `fields=MERCHANT_DATA`, som kräver behörigheten
+   `SCOPE.STORES.PRODUCT_READ_ADMIN` — saknas den svarar Wix 403 och redan
+   planen faller. Båda varianterna får `landedCostSek` som kostnad, samma tal
+   importen skriver, och lagret följer varianten: `inventoryItem` bär bara
+   `quantity` (schemat har inget id där).
+
+**Så körs den:** workflowen **"Dubbletter — lägg ett utkast som färg eller
+storlek på en publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sammanslagning`,
+logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
+körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
+får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
+oförändrad slug), och **bara utkastets huvudbild följer med** om du inte anger
+fler (`bilder`) — utkastet är opolerat och ingen har granskat dess bilder för
+tysk text eller husmärkets logotyp. Faller en körning halvvägs ser nästa att
+Wix redan är klart (`wix_klar`) och gör bara resten.
+
+⚠️ **Efter första deployen: kör synken i torrläge och läs `okandaVarianter`.**
+Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
+mappningen inte känner till — och de nollas vid nästa skarpa körning.
+
+#### Sammanslagning v2: storlek, fler val och en publicerad givare (2026-09-27)
+
+Leonards fråga efter första sammanslagningen: går det att göra bättre? Verktyget
+klarade bara två färger och bara ett utkast in på en publicerad sida. Nu klarar
+samma workflow fyra lägen, ett per körning:
+
+| läge | när | vad som skrivs |
+|---|---|---|
+| `ny` | sidan saknar optioner | optionen skapas med två val |
+| `utoka` | sidan är redan sammanslagen | ett val till, befintliga varianter orörda |
+| `wix_klar` | en körning föll efter Wix | bara återläsning, mappning och resten |
+| `klar` | artikeln sitter redan på sidan | bara givarens efterarbete |
+
+- **Axlar:** `Färg`, `Storlek` eller båda — se nästa avsnitt.
+- **Fler val:** kör workflowen en gång per syskon. Sidans värde (`farg_behall`,
+  `storlek_behall`) behövs bara första gången en axel läggs till; sedan står
+  sidans val i Wix och i mappningen.
+- **Publicerad givare** kräver `omdirigera=ja`. Då kopieras givarens recensioner
+  till sidan, en 301 skrivs från givarens adress, och givaren avpubliceras och
+  pensioneras.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **`utoka` tar optionen och varianterna ur GET:en.** Ett handbyggt objekt
+   hade tappat valens kopplade bilder och varianternas id — samma regel som
+   `visible` och `options` i prissynken. Ett test fäller om id eller bild tappas.
+2. ☠️ **Omdirigeringen skrivs FÖRE avpubliceringen.** Butiken läser
+   `FyndplatsRedirects` först på 404-vägen, så en rad som skrivs medan givaren
+   ligger ute gör ingenting — och i omvänd ordning svarar adressen 404 i
+   mellanrummet. Omdirigeringar som redan pekade PÅ givaren pekas om, så ingen
+   kedja uppstår.
+3. ☠️ **Recensionerna KOPIERAS, originalen rörs inte.** Dolda rader följer inte
+   med, och inte heller en recension sidan redan har (samma id eller samma text
+   — Aosom visar ibland samma recension på syskonartiklar).
+4. ☠️ **En givare med obehandlade ordrar vägras** (`givaren_har_oppna_ordrar`).
+   Beställningsfilen läser artikeln ur givarens mappning, och pensioneringen
+   släpper den.
+5. ☠️ **Priset rörs inte av sammanslagningen — men synken tar över det.** Det
+   nya valet följer husets regel från nästa körning. För ett utkast är det vad
+   det hade; för en givare med konkurrentpris eller prislås är det inte, och
+   planen varnar.
+6. **Omdirigeringslistan läses med ett tak** (`MAX_OMDIRIGERINGAR`), eftersom
+   `listRedirects` inte sidar. Når listan taket vägrar verktyget hellre än
+   missar en kedja.
+
+⚠️ **Utkast som bara har varandra slås ihop EFTER poleringen, inte före.**
+Poleringens skrivsteg (`skrivplan.ts`) klarar bara sidor med en variant. Polera
+därför ett av syskonen, publicera det, och lägg sedan de andra som val med den
+här workflowen — samma väg som balansbommen.
+
+#### Färg och storlek på samma sida (2026-09-27)
+
+Leonards fråga: går det att ha färg och storlek på samma sida på en gång? Ja.
+Svepet räknade **12 familjer** som skiljer sig på båda (av 679), och butiken
+klarade det redan: väljaren för AliExpress-sidorna (headless-site,
+`lib/variant-multi.ts`) har två axlar, dämpar en kombination som saknas och byter
+till en som finns. Synken, beställningsfilen och feeden läser per variant. Det
+som saknades var verktyget.
+
+**Inputs:** givarens värde på varje axel sidan har eller får (`farg_utkast`,
+`storlek_utkast`), och sidans värde bara på en axel den får för första gången
+(`farg_behall`, `storlek_behall`). `axel` finns inte längre — rutten svarar 400
+på den gamla kroppen, eftersom den bar storleken i `fargUtkast`.
+
+| sidan har | givaren anger | resultat |
+|---|---|---|
+| inga val | färg + storlek (och sidans båda) | två axlar, två varianter |
+| färg | färg + storlek (och sidans storlek) | storleksaxeln läggs till, de gamla varianterna får sidans storlek |
+| färg + storlek | färg + storlek | en variant till, nya val bara där värdet är nytt |
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Alla kombinationer behöver inte finnas.** Wix tillåter färre varianter
+   än kombinationer (dokumenterat), och en kombination Aosom inte säljer ska inte
+   finnas på sidan. Planen varnar med antalet som saknas (`saknadeKombinationer`).
+2. ☠️ **Givarens värde stavas som sidans.** "grå" på en sida med "Grå" är samma
+   val. Utan det hade Wix fått ett andra val med samma namn.
+3. ☠️ **Färgen bär bilden.** Butiken tar kombinationens bild från färgaxeln när
+   den finns (`lib/variant-price.ts`, Leonards regel 2026-08-08). En ny färg får
+   givarens huvudbild. En ny storlek i en färg sidan redan har tar ingen bild som
+   standard, för den visar samma vara. En storlekssida som får färg behåller
+   storlekarnas bilder, och sidans egen färg får ingen, så de gamla varianterna
+   fortsätter visa sin storleks bild.
+4. ☠️ **Varje befintlig variant kontrolleras på alla axlar** efter skrivningen.
+   Bär en variant fel val skrivs ingen mappning, och synken nollar den nya
+   varianten tills en omkörning är klar.
+5. **Hinder med två axlar:** `saknar_farg_utkast` och `saknar_storlek_utkast`
+   (givaren måste ange sitt värde på varje axel sidan har), `saknar_*_behall`
+   (en ny axel utan sidans värde), `*_lika` (en ny axel där sidan och givaren
+   har samma värde skiljer ingenting åt) och `kombinationen_finns`.
+6. **Standard-SKU:n tar storleken före färgen** (`FP-stol-110-cm-gra`).
+   Artikelnummerspärren fäller färgen före ett tresiffrigt mått (tre tecken,
+   bindestreck, tre siffror), men inte måttet före färgen. Slutar sidans SKU
+   på ett ord med tre tecken kan den ändå fällas (`sku_ogiltig`), och då anges
+   SKU:n för hand.
+
+⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
+det.** Kommentaren där säger att en delad option ("customization") tar högst 100
+val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) har
+**293** val och `Storlek` **203**, och importerna fungerar. Taket på 100 per
+delad option gäller alltså inte i dag. Nya storleksvärden tar ändå en plats var i
+den delade listan, så välj korta, återanvändbara etiketter där det går.
+
+### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
+
+Leonards fråga: finns det fler färgdubbletter, och storleksdubbletter, alltså
+samma artikel i olika storlekar? Poleringen har hittat syskonen ett i taget, med
+måttsvep över polerade texter (`FARGSYSKONEN.md`, runda N76). Feeden har svaret
+strukturerat: färg, yttermått, material, vikt och paketmått är egna kolumner, och
+mappningen säger vilken sida varje rad blev.
+
+Workflowen **"Dubbletter — hitta färg- och storlekssyskon"** →
+`/api/admin/aosom-familjer` → `lib/aosom/familjer.ts`. Den skriver ingenting.
+
+| relation | kräver |
+|---|---|
+| färg | samma mått, paket och vikt, olika färg, samma modellnamn — eller samma klunga, material och kategori |
+| samma vara | samma mått, paket och vikt, samma färg, samma modellnamn — eller samma klunga, material och kategori |
+| storlek | samma klunga (`Psin`), olika mått, samma färg, material och kategori, samma modellnamn |
+
+"Samma modellnamn" jämförs på feedens tyska namn efter att färgord, siffror,
+enheter, storleksord och husmärken skalats bort. Kandidaterna kommer från
+`Psin` och från den fysiska signaturen (mått plus paket), som täcker raderna
+utan klunga.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **`Psin` väljer bara kandidater och avgör ingenting.** Klungan är ingen
+   variantgrupp (se `feed.ts`), och en storleksrelation kräver ändå samma
+   modellnamn, färg och material. Utan klungan räknas två olika mått inte som
+   något alls.
+2. ☠️ **Svaret bär aldrig artikelnummer, `Psin`, utkastens tyska namn eller
+   kostnader.** Utkastens namn är Aosoms egna titlar, och en sökning på dem leder
+   till Aosoms produktsida. Publicerade sidor visar sitt svenska namn, och all
+   fritext går genom `redigera`. Ett test serialiserar svaret och letar.
+3. **Familjens typ räknas på VÅRA sidors färger och mått**, inte på kanterna. En
+   familj kan hålla ihop genom en feedrad vi inte har (`ejHosOss`).
+4. ☠️ **Samma massfel-spärrar som synken** (`MIN_FEED_RADER`,
+   `MIN_WIX_PRODUKTER`). En halvläst katalog hade fått publicerade sidor att se
+   ut som saknade, och svaret hade sett komplett ut.
+5. **Listan är ett underlag för en människa.** Varje familj ses med bilderna
+   innan något slås ihop. `verktygetIdag` betyder bara att sammanslagningen
+   *kan* lägga ett syskon som en ny kombination av färg och storlek på en
+   publicerad sida, inte att den ska.
+
+`?par=<id>,<id>` kalibrerar mot par som redan är granskade: svaret säger vad
+jämförelsen såg (samma klunga, mått, färg, vikt och namnlikhet) utan att något
+nummer skrivs ut.
+
+**Första körningen i produktion (2026-09-27):** 679 familjer över 1 615 sidor
+(722 publicerade, 893 utkast). Av dem är 570 färgfamiljer, 87 storleksfamiljer,
+12 färg och storlek och 10 samma vara. 225 har en publicerad sida, 243 bara
+utkast och 211 flera publicerade. Verktyget klarade minst ett par i 416. Underlag:
+6 229 feedrader och 5 223 mappningar. 233 artiklar saknades i feeden, och noll
+artiklar satt på två sidor.
+
+☠️ **Kalibreringen mot N76 fann bara ett av åtta granskade par (hopphindren),
+och `?par=` visade varför.** Tre skäl, och bara det första går att laga i svepet:
+
+- **Aosom ger färgsyskon olika titlar.** A-hindret i grått och orange och
+  agilitybågarna i gult och blått har samma klunga, mått, paket, vikt, material
+  och kategori, men namnlikheten är **0 och 0,17**. Därför räcker nu samma klunga
+  plus identisk fysik (mått, paket och vikt på båda, material och kategori inte
+  olika) för en färg- eller samma-relation, oavsett namn. Utan klunga ligger
+  namnkravet kvar. Talen ovan är uppmätta FÖRE lagningen.
+- **Fyra av paren har en publicerad sida som är mappad mot AliExpress**
+  (klättersetet två gånger, kattlådan och det ena agilitysetet i tre delar).
+  Svepet ser bara Aosom-mappningar, och det är den blinda fläcken som står i
+  "Vad spärren INTE ser".
+- **Det sista paret skiljer sig i feeden:** agilitysetet i tre delar mot utkastet
+  har olika klunga, andra mått och 32 % skillnad i vikt. Svepet gör rätt som
+  inte slår ihop dem. Paret bör ses om med bilderna.
 
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 

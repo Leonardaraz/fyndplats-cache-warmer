@@ -1,0 +1,17 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+bdd02765	smal skohylla	590	22	skohylla; skoställ
+a96f4c7e	puff med förvaring	1300	18	sittpuff med förvaring; pall med förvaring
+ac1cc9a5	asymmetrisk spegel	1900	18	väggspegel
+af2ca910	piedestal	9900	21	blompall; växtställ
+0c9f870d	helkroppsspegel	4400	19	golvspegel; stående spegel
+22f7688b	speedball	480	23	boxningsboll
+6db49bc9	spegel guldram	880	18	guldspegel; spegel guld
+753907f5	pedalhink svart	110	13	pedalhink
+77e6e472	sophink	480	18	sophink kök; soptunna med sensor
+9d2c88bd	soptunna med lock	1300	25	soptunna med sensor; automatisk soptunna
+f173eee1	runt barbord	210	15	barbord; cafébord
+1612e633	vardagsrumsmatta	1900	24	matta vardagsrum; grå matta; mönstrad matta; matta 160x230
+7d982b40	låg bokhylla	1900	20	bokhylla ek; bokhylla
+86bbd2eb	halloween clown	1300	20	halloween dekoration utomhus; halloween dekoration
+d242e56d	halloween häxa	210	13	halloween dekoration utomhus; halloween dekoration
+# 77e6e472 och 9d2c88bd ville båda ha soptunna (8100/30). Katalogen har 32 publicerade sidor med ordet i namnet, 16 av dem sensortunnor; sophink har noll.

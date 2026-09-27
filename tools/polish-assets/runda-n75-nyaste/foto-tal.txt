@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+b725bb2e 77,5 dörrens bredd, 0,775 m på måttbilden (bild 3)
+b725bb2e 156 dörrens höjd, 1,56 m på måttbilden (bild 3)
+79ca3053 40 iläggsskivan i mitten av bordet, 40 cm på måttbilden (bild 3)
+b725bb2e 2 två hyllor på var sida om gången, räknade på bild 1 och 3

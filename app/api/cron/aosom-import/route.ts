@@ -30,9 +30,10 @@
 // Query:
 //   ?dryRun=false        skarpt läge (default: torrkörning, skriver ingenting)
 //   ?limit=25            produkter denna körning
-//   ?after=845-030CG     fortsätt efter det här artikelnumret (markören ur förra svaret)
+//   ?after=<markör>     fortsätt efter förra svarets `cursor` — förseglad, se
+//                        lib/aosom/markor.ts (klartext tas emot vid en körning för hand)
 //   ?skipFreightHeavy=1  hoppa över de 1 175 där frakten kostar mer än varan
-//   ?sku=845-030CG,...   kör bara dessa (rökprov och riktad omkörning)
+//   ?sku=<artikel>,…   kör bara dessa (rökprov och riktad omkörning)
 //   ?delayMs=250         paus mellan produkter om Wix börjar svara 429
 //   ?bilder=alla         hämta alla nio bilderna (default: 1,2,3,8,9 — se
 //                        RENA_BILDPOSITIONER; 46 % av feedens bilder bär tysk
@@ -41,6 +42,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
+import { forseglaMarkor, MarkorFel, oppnaMarkor } from "@/lib/aosom/markor";
 import { audit } from "@/lib/audit";
 import { runAosomImport, liveDeps } from "@/lib/aosom/import-run";
 
@@ -74,7 +76,20 @@ async function handle(req: NextRequest) {
 
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
   const limit = intParam(req, "limit", 25);
-  const after = req.nextUrl.searchParams.get("after") ?? undefined;
+  // ☠️ Markören är ett artikelnummer. Den går ut FÖRSEGLAD och kommer tillbaka
+  // förseglad — se lib/aosom/markor.ts. En handskriven markör i klartext tas
+  // fortfarande emot; en förseglad som inte går att öppna är 400, aldrig
+  // "börja om från början".
+  const hemlighet = process.env.CRON_SECRET ?? "";
+  let after: string | undefined;
+  try {
+    after = oppnaMarkor(req.nextUrl.searchParams.get("after"), hemlighet);
+  } catch (err) {
+    if (err instanceof MarkorFel) {
+      return NextResponse.json({ ok: false, error: err.message }, { status: 400 });
+    }
+    throw err;
+  }
   const skipFreightHeavy = boolParam(req, "skipFreightHeavy");
   const delayMs = intParam(req, "delayMs", 0);
   const bilderParam = (req.nextUrl.searchParams.get("bilder") ?? "").trim();
@@ -109,14 +124,19 @@ async function handle(req: NextRequest) {
       );
     }
 
+    const cursor = forseglaMarkor(summary.cursor, hemlighet);
+
     return NextResponse.json(
       {
         ok: true,
         ...summary,
+        // Förseglad — den når en publik logg, en jobbsummering och en fil i
+        // grenen. Artikelnumret i klartext stannar här i rutten.
+        cursor,
         // Nästa anrop, färdigt att klistra in. Null när sortimentet är inne.
-        next: summary.cursor
+        next: cursor
           ? `/api/cron/aosom-import?dryRun=${dryRun ? "true" : "false"}&limit=${limit}`
-            + `&after=${encodeURIComponent(summary.cursor)}`
+            + `&after=${encodeURIComponent(cursor)}`
           : null,
       },
       { status: 200 },

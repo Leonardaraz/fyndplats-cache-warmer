@@ -1,0 +1,24 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur tidigare rundors sokord.tsv. Varje huvudsökord och varje planerad slug är
+# prövade mot hela katalogen 2026-09-27 (6 153 produkter, 3 654 publicerade): ingen slug krockar, och där en
+# publicerad slug redan bar huvudsökordet valdes en smalare variant: miniugn (14) → miniugn med grillspett,
+# uppresningsfåtölj (29) → uppresningsfåtölj beige, massagefåtölj (29) → elektrisk massagefåtölj, reclinerfåtölj
+# (22) → reclinerfåtölj med massage, tågbana i trä (1) → tågbana i trä med batterilok, radiobil (1) → radiobil för
+# barn i rosa, juniorsäng (1) → juniorsäng med skyddsräcke, redskapsskåp (3) → redskapsskåp med vedförvaring,
+# gnistskydd (11) → gnistskydd med bladmönster, skrivarställ (1) → skrivarställ med eluttag, runt köksbord (1) →
+# köksbord för två och fällbart skrivbord (5) → skrivbord med klaffar. Skrivarskåp och skrivbord med bokhylla bar
+# ingen publicerad slug.
+6be75d6e	miniugn med grillspett	–	–	miniugn; miniugn 46 liter; bänkugn
+21d18f05	uppresningsfåtölj beige	–	–	uppresningsfåtölj; fåtölj med massage; elektrisk fåtölj
+d34f6bab	elektrisk massagefåtölj	–	–	massagefåtölj; uppresningsfåtölj med värme; fåtölj (60500, 27)
+4164ef63	reclinerfåtölj med massage	–	–	reclinerfåtölj; snurrfåtölj med massage; gungfåtölj
+75e9f5d6	tågbana i trä med batterilok	–	–	tågbana i trä; träjärnväg; tågbana för barn
+81eb4872	radiobil för barn i rosa	–	–	radiobil; radiobil för barn; elbil för barn
+33bab850	juniorsäng med skyddsräcke	–	–	juniorsäng; barnsäng 140x70; säng med skyddsräcke
+7da0de8c	redskapsskåp med vedförvaring	–	–	vedförvaring (1300, 16); redskapsskåp; redskapsbod
+cbc31873	gnistskydd med bladmönster	–	–	gnistskydd (1300, 13); gnistskydd öppen spis (590, 10); brasskärm (20, 0)
+0d440505	skrivarställ med eluttag	–	–	skrivarställ; skrivarbord; skrivbord på hjul (210, 12)
+4a3908ae	köksbord för två	10	0	runt köksbord (3600, 23); köksbord runt (3600, 25); litet runt matbord (1000, 20)
+1cdb544e	skrivarskåp	–	–	skrivarskåp på hjul; kontorsskåp med lådor; skrivarbord
+568b2812	skrivbord med klaffar	–	–	klaffbord (8100, 19); fällbart skrivbord; skrivbord för två skärmar
+9e874195	skrivbord med bokhylla	–	–	skrivbord med hylla; vitt skrivbord; kontorsbord

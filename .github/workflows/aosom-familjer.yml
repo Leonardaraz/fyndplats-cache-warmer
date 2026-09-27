@@ -1,0 +1,141 @@
+name: Dubbletter — hitta färg- och storlekssyskon
+
+# Leonards fråga 2026-09-27: vilka av våra Aosom-sidor och -utkast är samma vara
+# i en annan färg, samma vara i en annan storlek — eller samma vara två gånger?
+#
+# Svepet läser feeden (färg, mått, material, vikt, paketmått och Aosoms
+# relaterade-varor-klunga), mappningarna och katalogen, och grupperar hela
+# sortimentet i familjer. Logiken står i lib/aosom/familjer.ts.
+#
+# Samma nyckel-lösa upplägg som sammanslagningen: produktionen har feeden,
+# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET, och de möts här.
+#
+# ☠️ SVEPET SKRIVER INGENTING. Listan är ett underlag för en människa, och varje
+#    familj ska ses med bilderna innan något slås ihop. Sammanslagningen är sin
+#    egen workflow ("Dubbletter — lägg ett utkast som färg eller storlek på en
+#    publicerad sida"), med torrkörning som default.
+# ☠️ Svaret bär aldrig artikelnummer, inköpspris eller utkastens tyska namn —
+#    loggen är PUBLIK. Publicerade sidor visar sitt svenska namn, som ändå står
+#    på sajten.
+#
+# Läget `par` kalibrerar: ange par av Wix-produkt-id som en människa redan
+# granskat (id,id;id,id), så svarar rutten vad jämförelsen såg mellan dem —
+# samma klunga, mått, färg, vikt och namnlikhet — utan att något nummer skrivs
+# ut.
+
+on:
+  workflow_dispatch:
+    inputs:
+      typ:
+        description: "Vilka familjer: alla · farg · storlek · farg_storlek · samma"
+        required: true
+        default: "alla"
+        type: choice
+        options:
+          - alla
+          - farg
+          - storlek
+          - farg_storlek
+          - samma
+      lage:
+        description: "Vilka lägen: alla · en_publicerad · bara_utkast · flera_publicerade"
+        required: true
+        default: "alla"
+        type: choice
+        options:
+          - alla
+          - en_publicerad
+          - bara_utkast
+          - flera_publicerade
+      max:
+        description: "Högst så många familjer i listan. TOMT = alla."
+        required: false
+        default: ""
+        type: string
+      par:
+        description: "Diagnos för granskade par av Wix-produkt-id: id,id;id,id. TOMT = ingen."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  familjer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Svep
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TYP: ${{ inputs.typ }}
+          LAGE: ${{ inputs.lage }}
+          MAX: ${{ inputs.max }}
+          PAR: ${{ inputs.par }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR — en ::error::-rad på stdout slukas av en
+            # kommandosubstitution.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-familjer"
+          args=()
+          if [ "${TYP}" != "alla" ]; then args+=(--data-urlencode "typ=${TYP}"); fi
+          if [ "${LAGE}" != "alla" ]; then args+=(--data-urlencode "lage=${LAGE}"); fi
+          if [ -n "${MAX}" ]; then args+=(--data-urlencode "max=${MAX}"); fi
+          if [ -n "${PAR}" ]; then args+=(--data-urlencode "par=${PAR}"); fi
+
+          svar=$(curl -sS --max-time 290 -G \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${args[@]}" \
+            "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+            exit 1
+          fi
+
+          echo "=== Summering ==="
+          # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
+          # blocket avslutar YAML:ens `run: |`.
+          echo "$svar" | jq -r '
+            .summering as $s | .underlag as $u |
+            "Familjer: \($s.familjer) över \($s.sidorIFamiljer) sidor (\($s.publiceradeIFamiljer) publicerade, \($s.utkastIFamiljer) utkast)",
+            "  per typ:   färg \($s.perTyp.farg) · storlek \($s.perTyp.storlek) · färg och storlek \($s.perTyp.farg_storlek) · samma vara \($s.perTyp.samma)",
+            "  per läge:  en publicerad \($s.perLage.en_publicerad) · bara utkast \($s.perLage.bara_utkast) · flera publicerade \($s.perLage.flera_publicerade)",
+            "  verktyget kan slå ihop minst ett par i \($s.verktygetIdag) familjer",
+            "  dubblettgrupper \($s.dubblettgrupper) · samma artikel på två sidor \($s.sammaArtikelPaTvaSidor)",
+            "  ensamma sidor med syskon i feeden som vi inte har: \($s.ensammaMedSyskonIFeeden)",
+            "Underlag: \($u.feedrader) feedrader · \($u.mappningar) mappningar · \($u.sidor) sidor · \($u.artiklar) artiklar (\($u.artiklarMedPsin) med klunga)",
+            "  utan feedrad \($u.utanFeedrad) · utan Wix-produkt \($u.utanWixProdukt) · för stora grupper \($u.forStoraGrupper)",
+            "  kopplade radpar: färg \($u.kanter.farg) · samma \($u.kanter.samma) · storlek \($u.kanter.storlek)"
+          '
+
+          if [ "$(echo "$svar" | jq -r '.par | length')" != "0" ]; then
+            echo "=== Diagnos för angivna par ==="
+            echo "$svar" | jq -r '
+              .par[] |
+              if .fel then "  \(.a) + \(.b): \(.fel)"
+              else .jamforelse as $j |
+                "  \(.a) + \(.b): \($j.relation // "ingen relation")",
+                "      samma klunga \($j.sammaPsin) · mått lika \($j.mattLika) · paket lika \($j.paketLika) · vikt skiljer \($j.viktSkillnadPct // "–") %",
+                "      färg lika \($j.fargLika) · material \($j.materialLikhet // "–") · kategori lika \($j.kategoriLika) · namnlikhet \($j.namnLikhet)"
+              end
+            '
+          fi
+
+          echo "=== Familjer ==="
+          echo "$svar" | jq -r '
+            {"farg": "färg", "storlek": "storlek", "farg_storlek": "färg och storlek", "samma": "samma vara"} as $typer |
+            {"en_publicerad": "en publicerad", "bara_utkast": "bara utkast", "flera_publicerade": "flera publicerade"} as $lagen |
+            "Visar \(.urval.visade) av \(.urval.traffar)\(if .urval.kapad then " (kapad av max)" else "" end)",
+            (.familjer[] |
+              "",
+              "[\($typer[.typ]) · \($lagen[.lage]) · \(.publicerade) P + \(.utkast) U\(if .verktygetIdag then " · verktyget klarar" else "" end)\(if .ejHosOss > 0 then " · \(.ejHosOss) till i feeden" else "" end)\(if (.prisSpannPct // 0) > 0 then " · prisspann \(.prisSpannPct) %" else "" end)]",
+              (.medlemmar[] |
+                "  \(if .status == "publicerad" then "P" else "U" end) \(.wixProductId)  \(.farg)  \(.matt)  \(.pris // "–") kr  saldo \(.saldo)\(if .artiklar > 1 then "  (\(.artiklar) färger)" else "" end)\(if .namn != "" then "  \(.namn)" else "" end)"),
+              (.sammaVara[] | "  = samma vara: \(join(", "))"),
+              (.varningar[] | "  ⚠️ \(.)"))
+          '

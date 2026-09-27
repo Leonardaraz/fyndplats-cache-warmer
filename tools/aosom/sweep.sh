@@ -40,14 +40,11 @@ fi
 DRY="true"
 EXTRA=""
 case "$LAGE" in
-  # Rökprovets tre SKU:n är kontrollerade mot katalogen 2026-08-27: noll träffar
-  # på både mått och produkttyp. Det är inte en formalitet — de tre första
-  # kandidaterna (350-219V00PK, 845-030CG, 833-132V00BK) visade sig alla vara
-  # varor vi REDAN säljer, inköpta via AliExpress. Dubblettspärren nyckar på
-  # supplierProductId och ser dem inte, så provet hade skapat tre dubblettsidor
-  # med samma foton — precis den dubblett Google straffar. Byter du SKU här:
-  # sök katalogen på två distinkta mått + produkttyp först.
-  rökprov)      DRY="false"; EXTRA="&sku=845-999V00OG,331-058V00MX,C30-035V00BK" ;;
+  # Rökprovet tar de tre nästa raderna svepet skulle ta. Dubblettspärren hoppar
+  # över allt som redan finns, så provet skapar bara nya, osynliga utkast.
+  # ☠️ Fram till 2026-09-27 stod tre handplockade artikelnummer här. Repot är
+  # PUBLIKT — skriv aldrig in ett nummer i den här filen igen.
+  rökprov)      DRY="false"; LIMIT=3 ;;
   torr)         DRY="true" ;;
   kör)          DRY="false" ;;
   kör-lönsamma) DRY="false"; EXTRA="&skipFreightHeavy=1" ;;

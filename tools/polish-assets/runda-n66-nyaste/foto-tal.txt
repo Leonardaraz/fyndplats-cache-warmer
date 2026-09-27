@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+14fb0f98 30 kantskyddets bredd, 30 cm, avläst på måttbilden (bild 3); källans lista skriver "30 mm", vilket måttbilden motsäger
+e4e8c76b 38,5 fotens diameter, 38,5 cm, avläst på måttbilden (bild 3)
+7f304255 40 iläggsskivans längd, 40 cm, avläst på måttbilden (bild 3)
+13a52237 11 pelarens diameter, 11 cm, avläst på måttbilden (bild 3)

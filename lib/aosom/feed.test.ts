@@ -85,6 +85,11 @@ describe("parseAosomFeed", () => {
     expect(parseAosomFeed(HEADER)).toEqual([]);
   });
 
+  it("läser Aosoms klunga (Psin) för syskonsvepet, och tom sträng utan kolumn", () => {
+    expect(parseAosomFeed('"SKU","Name","Psin"\n"T-1","Tisch","PSIN-1"')[0].psin).toBe("PSIN-1");
+    expect(parseAosomFeed('"SKU","Name"\n"T-1","Tisch"')[0].psin).toBe("");
+  });
+
   it("äter BOM i filens början", () => {
     expect(parseAosomFeed(`﻿${HEADER}\n${rad()}`)[0].sku).toBe("350-219V00PK");
   });

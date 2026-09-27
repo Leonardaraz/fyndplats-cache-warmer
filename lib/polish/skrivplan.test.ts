@@ -241,6 +241,26 @@ describe("redigera", () => {
 });
 
 describe("stegMedia", () => {
+  it("☠️ skriver ingenting när listan tappar en bild som ett färgval pekar på", async () => {
+    // En sida med färgval — t.ex. en färgsammanslagen Aosom-sida — bär en
+    // kopplad bild per val. Listan ersätter allt, så en tappad bild hade tagit
+    // valets bild med sig.
+    const val = { choicesSettings: { choices: [{ name: "Grå", linkedMedia: [{ id: "fil-gra" }] }] } };
+    const { wix, anrop } = fakeWix(() => ({ product: { revision: "4", options: [val] } }));
+    const u = await stegMedia(plan(), wix, false);
+    expect(anrop.some((a) => a.metod === "PATCH")).toBe(false);
+    expect(u.ok).toBe(false);
+  });
+
+  it("släpper igenom en lista som bär varje kopplad bild", async () => {
+    const id = produkt().media[0].id;
+    const val = { choicesSettings: { choices: [{ name: "Svart", linkedMedia: [{ id }] }] } };
+    const { wix, anrop } = fakeWix((a) =>
+      a.metod === "GET" ? { product: { revision: "4", options: [val] } } : { product: { revision: "5" } });
+    await stegMedia(plan(), wix, false);
+    expect(anrop.some((a) => a.metod === "PATCH")).toBe(true);
+  });
+
   it("skriver bildlistan ensam, utan media.main", async () => {
     const { wix, anrop } = fakeWix((a) => (a.metod === "GET" ? { product: { revision: "4" } } : { product: { revision: "5" } }));
     await stegMedia(plan(), wix, false);
