@@ -1,0 +1,15 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur tidigare rundors sokord.tsv. Varje planerad slug är prövad mot hela
+# katalogen 2026-09-27 (6 153 produkter, 3 675 publicerade): ingen krockar, och där en publicerad slug redan bar
+# huvudsökordet valdes en smalare variant: reclinersoffa (1) → elektrisk reclinersoffa, leksakskök (7) →
+# leksakskök med kaffemaskin och leksakskök i trä, reclinerfåtölj med fotpall (1) → reclinerfåtölj i konstläder,
+# massagefåtölj (30) → massagefåtölj med värme, loungefåtölj med fotpall (1) → loungefåtölj med fotpall i krämvit
+# och badrumsspegel med belysning (1) → badrumsspegel med glashylla. Trampbil traktor bar ingen publicerad slug.
+f3555135	elektrisk reclinersoffa	–	–	reclinersoffa; soffa med massage; tvåsitssoffa
+a21f8df7	leksakskök med kaffemaskin	–	–	leksakskök; leksakskök med ljud och ljus; barnkök
+27380bf4	reclinerfåtölj i konstläder	–	–	reclinerfåtölj med fotpall; snurrfåtölj; fotpall (8100, 18)
+afc0c368	massagefåtölj med värme	–	–	massagefåtölj; reclinerfåtölj med massage; fåtölj (60500, 27)
+b37a10e1	loungefåtölj med fotpall i krämvit	–	–	loungefåtölj (2400, 19); snurrfåtölj; fåtölj med fotpall
+40f26fb8	badrumsspegel med glashylla	–	–	badrumsspegel med belysning (3600, 22); spegel med belysning (5400, 21); badrumsspegel (5400, 23)
+41a257cb	leksakskök i trä	–	–	leksakskök; barnkök; leksakskök med telefon
+2564968e	trampbil traktor	–	–	trampbil; traktor för barn; trampbil med släp
