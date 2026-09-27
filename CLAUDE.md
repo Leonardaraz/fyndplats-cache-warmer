@@ -1452,6 +1452,12 @@ och en radering går inte att ångra om matchningen visar sig vara fel.
 
 ### Färgsammanslagning: ett utkast blir en FÄRG på en publicerad sida (2026-09-27)
 
+☠️ **Leonards beslut 2026-09-27: alla färger publiceras.** *"har dom olika priser
+får dom ha det … är det samma produkt med olika färger ska den finns som olika
+alterantiv på samma produkt sida när man sammanslagit dom."* Ett färgsyskon hålls
+alltså aldrig tillbaka i väntan på ett beslut, och `FARGSYSKONEN.md` är borttagen.
+Varje färg behåller sitt pris. Hur det görs står i runbookens *Dubblettskärmen*.
+
 Leonards fråga: dubblettskärmen hittar utkast som är samma vara som en
 publicerad sida i en annan färg — kan de bli ett andra färgval på sidan, med
 kopplad bild? Svaret är ja, men bara för att koden först lärt sig att en sida
@@ -1643,7 +1649,7 @@ den delade listan, så välj korta, återanvändbara etiketter där det går.
 
 Leonards fråga: finns det fler färgdubbletter, och storleksdubbletter, alltså
 samma artikel i olika storlekar? Poleringen har hittat syskonen ett i taget, med
-måttsvep över polerade texter (`FARGSYSKONEN.md`, runda N76). Feeden har svaret
+måttsvep över polerade texter (runda N76). Feeden har svaret
 strukturerat: färg, yttermått, material, vikt och paketmått är egna kolumner, och
 mappningen säger vilken sida varje rad blev.
 
