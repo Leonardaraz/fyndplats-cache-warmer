@@ -10,6 +10,11 @@
 // Samma SDK-begränsning gäller per-variant-LAGRET → en slut-variant kunde köpas på
 // sidan (produkten räknades som "i lager" så länge NÅGON variant fanns). Vi läser
 // därför även `inventoryStatus.inStock` per variant ur samma V3-svar.
+//
+// DOLDA VARIANTER OCH VAL HOPPAS ÖVER (2026-09-27). V3-admin-API:t returnerar
+// alla varianter, även de som är dolda i Wix (`visible: false`), medan det
+// publika SDK:t och Google-flödet redan utelämnar dem. Utan filtret hade en färg
+// Leonard dolt — för att den saknar foto — ändå stått i väljaren på sidan.
 
 const SEK_FMT = new Intl.NumberFormat("sv-SE", {
   style: "currency",
@@ -63,7 +68,7 @@ export function v3VariantData(product: any): V3VariantData {
     // paviljongen Grå/Kräm) föll till SDK:ns text-läge UTAN variantbilder (ingen
     // bildväxling). v3MultiVariantData fixades redan; detta var samma bugg kvar i
     // single-axel-vägen.
-    if (!c?.choiceId || !c?.name) continue;
+    if (!c?.choiceId || !c?.name || c.visible === false) continue;
     order.push(c.choiceId);
     meta[c.choiceId] = { name: c.name, image: c?.linkedMedia?.[0]?.image?.url || "" };
   }
@@ -71,6 +76,7 @@ export function v3VariantData(product: any): V3VariantData {
   // choiceId → variantpris/-id/lager (första varianten per val).
   const byChoiceId: Record<string, { variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean }> = {};
   for (const v of variants) {
+    if (v?.visible === false) continue;
     const cid = v?.choices?.[0]?.optionChoiceIds?.choiceId;
     if (!cid || byChoiceId[cid]) continue;
     const num = Number(v?.price?.actualPrice?.amount);
@@ -136,7 +142,7 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
       // → axeln blev tom → axes < 2 → multi-axel-data null → fleraxlade produkter
       // (t.ex. skjutdörren Längd × Typ) föll tillbaka till SDK:ns enda axel på live.
       // Matchar nu variant-loopens cid-uppslag (optionChoiceIds.choiceId) nedan.
-      if (!c?.choiceId || !c?.name) continue;
+      if (!c?.choiceId || !c?.name || c.visible === false) continue;
       const img = c?.linkedMedia?.[0]?.image?.url || "";
       choiceName[c.choiceId] = c.name;
       choiceImage[c.choiceId] = img;
@@ -150,6 +156,7 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
 
   const table: NonNullable<V3MultiVariantData>["table"] = [];
   for (const v of variants) {
+    if (v?.visible === false) continue;
     const choices: Record<string, string> = {};
     // FÄRGEN äger variantbilden (Leonards regel 2026-08-08): på en Storlek × Färg-
     // produkt låg storleks-axeln först och dess länkade storlekskort blev

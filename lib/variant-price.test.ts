@@ -164,3 +164,67 @@ test("utan färg-axel gäller första-bild-fallbacken (Längd × Typ-produkter)"
   assert.ok(r);
   assert.equal(r.table[0].image, "2m.jpg");
 });
+
+// Dolda varianter (visible:false i Wix) ska inte stå i väljaren. V3-admin-API:t
+// returnerar dem ändå; SDK:t och Google-flödet utelämnar dem redan. Fixturen
+// speglar skoskåpet 2026-09-27: "Vit" doldes för att den saknar foto, och Wix
+// satte då valets visible till false.
+test("v3VariantData hoppar över dolda varianter och val", () => {
+  const p = {
+    options: [{
+      name: "Färg",
+      choicesSettings: { choices: [
+        { choiceId: "tra", name: "Naturligt trä", visible: true },
+        { choiceId: "vit", name: "Vit", visible: false },
+        { choiceId: "svart", name: "Svart", visible: true },
+      ] },
+    }],
+    variantsInfo: { variants: [
+      { id: "v-vit", visible: false, choices: [{ optionChoiceIds: { choiceId: "vit" } }], price: { actualPrice: { amount: "1439" } } },
+      { id: "v-tra", visible: true, choices: [{ optionChoiceIds: { choiceId: "tra" } }], price: { actualPrice: { amount: "1399" } } },
+      { id: "v-svart", visible: true, choices: [{ optionChoiceIds: { choiceId: "svart" } }], price: { actualPrice: { amount: "1399" } } },
+    ] },
+  };
+  const d = v3VariantData(p);
+  assert.deepEqual(d?.choices.map((c) => c.label), ["Naturligt trä", "Svart"]);
+  assert.ok(!d?.choices.some((c) => c.variantId === "v-vit"));
+});
+
+test("v3VariantData: en enda synlig variant kvar ger ingen väljare", () => {
+  const p = {
+    options: [{
+      name: "Färg",
+      choicesSettings: { choices: [
+        { choiceId: "tra", name: "Naturligt trä", visible: true },
+        { choiceId: "vit", name: "Vit", visible: false },
+      ] },
+    }],
+    variantsInfo: { variants: [
+      { id: "v-vit", visible: false, choices: [{ optionChoiceIds: { choiceId: "vit" } }], price: { actualPrice: { amount: "1439" } } },
+      { id: "v-tra", visible: true, choices: [{ optionChoiceIds: { choiceId: "tra" } }], price: { actualPrice: { amount: "1399" } } },
+    ] },
+  };
+  assert.equal(v3VariantData(p), null);
+});
+
+test("v3MultiVariantData hoppar över dolda varianter och val", () => {
+  const p = {
+    options: [
+      { id: "f", name: "Färg", choicesSettings: { choices: [
+        { choiceId: "gra", name: "Grå" }, { choiceId: "bla", name: "Blå", visible: false }, { choiceId: "rod", name: "Röd" },
+      ] } },
+      { id: "s", name: "Storlek", choicesSettings: { choices: [
+        { choiceId: "s90", name: "90 cm" }, { choiceId: "s110", name: "110 cm" },
+      ] } },
+    ],
+    variantsInfo: { variants: [
+      { id: "a", choices: [{ optionChoiceIds: { optionId: "f", choiceId: "gra" } }, { optionChoiceIds: { optionId: "s", choiceId: "s90" } }], price: { actualPrice: { amount: "500" } } },
+      { id: "b", visible: false, choices: [{ optionChoiceIds: { optionId: "f", choiceId: "bla" } }, { optionChoiceIds: { optionId: "s", choiceId: "s90" } }], price: { actualPrice: { amount: "500" } } },
+      { id: "c", choices: [{ optionChoiceIds: { optionId: "f", choiceId: "rod" } }, { optionChoiceIds: { optionId: "s", choiceId: "s110" } }], price: { actualPrice: { amount: "600" } } },
+      { id: "d", visible: false, choices: [{ optionChoiceIds: { optionId: "f", choiceId: "gra" } }, { optionChoiceIds: { optionId: "s", choiceId: "s110" } }], price: { actualPrice: { amount: "600" } } },
+    ] },
+  };
+  const d = v3MultiVariantData(p);
+  assert.deepEqual(d?.axes.find((a) => a.name === "Färg")?.choices.map((c) => c.label), ["Grå", "Röd"]);
+  assert.deepEqual(d?.table.map((t) => t.variantId), ["a", "c"]);
+});
