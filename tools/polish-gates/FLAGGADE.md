@@ -3442,3 +3442,36 @@ beslut — se den samlade frågan om detta.
   sortimentet. Länkarna och jämförelserna är borta. Den röda verktygsvagnen med sju lådor
   (`verktygsvagn-rod-7-lador`) är en annan modell, 69 cm bred och utan sidoregal, alltså
   ingen dubblett. (B29)
+- AVGJORT 2026-09-27, genomfört i B30: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Salongspallen `1d0ba82d` (vit) fick svart (`b9d82334`).
+  Rullpallen `d348bf64` (svart) fick vit (`ae880fa2`). Hallbänken `9383d686` (mörkgrå) fick
+  svart (`6fb7b740`). Förvaringsbänken `cb68fb84` (gul) fick grå (`9d47905c`). Matstolen
+  `7aa34c09` (grå) fick beige (`a91ed978`). Fåtöljen `8f6636e4` (ljusgrå) fick svart
+  (`8a3508ec`). Fåtöljen med träram `cc3846b8` (beige) fick ljusbrun (`336fbec6`). Den
+  väggnära fåtöljen `e57125fb` (brun) fick beige (`60adbe7d`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll textavvikelser, och varje sida
+  visar sina två färger som val. (B30)
+- Fyra givares pris styrdes av konkurrentregeln: den väggnära fåtöljen i beige (`60adbe7d`),
+  matstolen i beige (`a91ed978`), förvaringsbänken i grått (`9d47905c`) och hallbänken i
+  svart (`6fb7b740`). Efter sammanslagningen följer de nya varianterna husets regel, så deras
+  pris kan ändras vid nästa synk. (B30)
+- Samma rullpall finns i beige som en egen publicerad sida, `fa078e03`
+  (`rullpall-beige-rygg-43-55-cm`, slutsåld), och som det grå utkastet `516f7c81`. Ingen av dem
+  kom med i syskonsvepet, så de ligger kvar utanför sidan `d348bf64`. Hallbänken finns också i
+  ljusgrått (`d9767b3c`), som inte heller kom med i svepet. (B30)
+- Rullpallens maxlast skiljer mellan källorna: sidan angav 136 kg och den vita givarens källa
+  135 kg. Sidan anger den lägre, 135 kg, och kortet med 136 kg ströks. (B30)
+- Den väggnära fåtöljens adress `vaggnara-fatolj-brun-150-grader` hade artikelnumrets form
+  (`150-grader`). Sidan heter nu `vaggnara-fatolj-i-linnelook`, och den gamla adressen skickar
+  vidare med 308, kontrollerat live. (B30)
+- Givarvariantens SKU `FP-fatolj-svart-fotpall` var upptagen, så fåtöljen `8f6636e4` fick
+  `FP-fatolj-svart-fotpall-trafot` för den svarta varianten. (B30)
+- Sexton bilder ströks. Åtta visar läsbar text eller ett märke på rekvisitan: en datorskärm
+  med tillverkarens logotyp på `1d0ba82d`, en burk med etikett på `d348bf64`, tidningstitlar på
+  `9383d686` och `cb68fb84` och boktitlar på `cc3846b8` och `e57125fb` (två bilder var). Åtta
+  egna faktakort ströks: fyra med färgen i rubriken (`1d0ba82d`, `d348bf64`, `8f6636e4`,
+  `e57125fb`) och fyra med feedens fraktvikt som Vikt (`9383d686`, `cb68fb84`, `7aa34c09`,
+  `cc3846b8`). Kortet på `d348bf64` angav dessutom maxlasten 136 kg. (B30)
+- Sju av de gamla texterna länkade till andra produkter, och sju angav feedens fraktvikt som
+  produktens vikt, bland annat "seriens lättaste, 4 kg" på salongspallen. Länkarna, vikterna
+  och jämförelserna med sortimentet är borta. (B30)
