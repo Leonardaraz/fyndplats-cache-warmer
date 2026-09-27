@@ -141,7 +141,7 @@ Kategorisidorna filtrerar på bredd, djup, höjd, sitthöjd, maxlast, vikt,
 effekt, volym, ålder och material, utöver pris, färg och rea. Värdena läses ur
 produktbeskrivningens spec-rader (`lib/spec-facets.ts`). Wix har inga fält för
 dem. Uppmätt på 3 783 produkter: bredd 80 %, höjd 78 %, djup 75 %, material
-84 %, vikt 62 %, maxlast 43 %. 108 av 115 kategorier får minst ett filter.
+84 %, vikt 62 %, maxlast 43 %. 112 av 114 kategorier får minst ett filter.
 
 Fyra regler:
 
@@ -152,6 +152,9 @@ Fyra regler:
    inte ut hur många det gäller (Leonard).
 2. **Kategorin föreslår, datan avgör.** `lib/spec-config.ts` säger vilka
    filter kategorin erbjuder och vad de heter, och underkategorier ärver.
+   Nycklarna är butikens slugar (`asciiSlug` av namnet, t.ex.
+   `koksmaskiner-apparater`), inte Wix (`köksmaskiner-apparater`); med Wix
+   slugar gick 16 kategorier utan filter första kvällen.
    Ett filter visas bara när minst 60 % av listan har värdet
    (`specOversikt`).
 3. **Hela sortimentet får inga måttfilter.** Det gäller /alla-produkter, /rea,

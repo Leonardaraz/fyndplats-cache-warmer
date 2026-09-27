@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { facetterFor, KONFIGURERADE } from "./spec-config.ts";
 
 test("egen rad vinner, med kategorins namn på filtret", () => {
-  const f = facetterFor("vaxthus-odling", ["trädgård-utemöbler"]);
+  const f = facetterFor("vaxthus-odling", ["tradgard-utemobler"]);
   assert.deepEqual(f.slice(0, 2), [{ nyckel: "b", namn: "Längd" }, { nyckel: "d", namn: "Bredd" }]);
 });
 
@@ -37,4 +37,12 @@ test("en knappgrupp kan begränsas till kategorins egna val", () => {
   const eg = facetterFor("skrivbord").find((f) => f.nyckel === "eg");
   assert.deepEqual(eg, { nyckel: "eg", namn: "", koder: "hjl" });
   assert.equal(facetterFor("fatoljer").find((f) => f.nyckel === "ky")?.koder, undefined);
+});
+
+test("nycklarna är butikens slugar: bara a–z, 0–9 och bindestreck", () => {
+  // Wix slugar har å, ä, ö ("köksmaskiner-apparater"); sajtens adresser har det
+  // inte (asciiSlug). En sådan nyckel matchar aldrig och kategorin blir utan filter.
+  for (const s of KONFIGURERADE) assert.match(s, /^[a-z0-9-]+$/, s);
+  assert.ok(facetterFor("koksmaskiner-apparater").length > 0);
+  assert.ok(facetterFor("okand", ["tradgard-utemobler"]).length > 0, "arv via butikens slug");
 });
