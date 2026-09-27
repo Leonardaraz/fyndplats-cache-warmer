@@ -2565,3 +2565,135 @@ beslut — se den samlade frågan om detta.
   produkttypen. Alla åtta slugar prövades mot hela katalogen (6 153
   produkter): ingen krockar, och där en publicerad slug redan bar
   huvudsökordet valdes en smalare variant. (N74)
+- Djurbostad, hoppade: kaninburar och smådjurshus `2cac65dd`, `3a3fb7b4`,
+  `c78d5a19`, `4f5d5afe`, `a2acfed0`, `d40ec79e`, `8acfd813`, `f75b26c4`,
+  `6e20595e`, `1d344d6d`, `07b3ee0e`, `a1f87d83`, `0cd30b65`, `6e637343`,
+  `20d5c17d`, `5096db33`, `0d75b83d`, `efe14f20`, `ad8fcc1c`, `389da1d6` och
+  `6d806998`; hagar för smådjur `23cd89f6`, `277f5641`, `adef1330`,
+  `4c819a2a`, `e58ca1e0`, `a12bffed` och `ad05a616`; hönshus och hönsgårdar
+  `ccefe742`, `d2033e57`, `feb91896`, `ef20bec9`, `9104911c`, `2adeb36b`,
+  `29b516fc`, `c54e93d2`, `eb8bdf09`, `ce3918b0`, `88567cd8`, `25901957`,
+  `cabde1b6`, `6eed8652`, `946d76bb`, `3623221b`, `c5541fef` och `43fd24ad`;
+  ankhusen `e8140392` och `2a56e438`; burar för hamstrar och andra gnagare
+  `f8ca8cb6`, `35930359`, `79afd14f`, `a40a86bb`, `5e538454`, `5eac8334`,
+  `e7353e46`, `a145cba3`, `c1c1d34c`, `92ef25c9`, `e13b7b5e`, `a22bfee3`,
+  `13fe619f`, `cc5bb82c`, `23a63265` och `d93d729a`; kattburen `87cbcb7f`;
+  och fladdermusholken `9cf41b84`. Tre av dem är dessutom slutsålda, och
+  åtta rörs av main:s eller bz3j9l-grenens filer. (N75)
+- Slutsålda (saldo 0), alltså hoppade: trädgårdsbordet Ø60 cm `ef71bb42` och
+  konstväxten bambu 160 cm `fa7ca5c5`. Prövas igen när saldot har stigit.
+  (N75)
+- Saldo under 4: den fällbara odlingslådan i massivt trä `0b17669e` (saldo
+  2). (N75)
+- Rörs av main:s Runda-serie, alltså hoppade: husdjurstrappan `59d83c24`
+  (runda 131 och 138) och barstolen i retrodesign `570ddf5d` (runda i1).
+  (N75)
+- Dubblett av en publicerad sida, dokumenterad tidigare: hörnsoffan
+  `34341c4f` är samma soffa som den publicerade `69c5e15c` (CLAUDE.md), och
+  väggvärmaren `8383377c` hade blivit en tredje sida för samma värmare som
+  de publicerade `8475ed8f` och `589690ac` (N10). (N75)
+- Föräldralös produkt utan mappningsrad: hörnsoffan `3e6f2d24` (N62). (N75)
+- Märke på varan: lekställningen för höns `1d23b7a3` bär husmärkets skylt.
+  (N75)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`), ur rundans två första omgångar: bäddsoffan 4-i-1
+  `956a4b10` (4 969 kr) är samma soffa som den publicerade `526d7fb5` (4 439
+  kr); det utdragbara matbordet `5556f4e0` (3 199 kr) är samma bord på
+  130–160 cm som det publicerade valnötsbordet `02199100` (3 299 kr);
+  golvsoffan `3c935dd8` (1 869 kr) är samma golvsoffa som de publicerade
+  `9c71885a`, `724cc4b5` och `a8d37d72` (1 349–1 369 kr); matstolarna
+  `338b2ac5` (två stycken, 2 659 kr) är samma stol som den publicerade
+  `cc3a3dc1` (1 329 kr); tvåsitssoffan i chenille `775003b0` (3 299 kr) är
+  samma soffa som den publicerade `617ce9ff` (2 999 kr); bäddsoffan i sammet
+  `c2211af6` (3 129 kr) är samma bäddmöbel som den publicerade bäddfåtöljen
+  `6efbe712` (2 539 kr); balansstenarna `3e450479` (elva delar, 799 kr) är
+  en större sats av samma stenar som det publicerade sexpacket `60f84a27`
+  (529 kr); sängbordet med laddstation `e6315714` (949 kr) är samma sängbord
+  som det publicerade `a5f552e2` (999 kr); väggväxthuset `71826ab8` (559 kr)
+  är samma växthus som det publicerade `fd0ada87` (919 kr); och odlingslådan
+  `d1fba99b` (120 × 60 cm, 499 kr) är samma odlingslåda i en mindre storlek
+  som den publicerade `2db35e92` på 180 × 90 cm (1 249 kr, slutsåld). (N75)
+- Samma varor som redan ligger ute, ur nattens import (2026-09-27), till
+  Leonards beslut (`FARGSYSKONEN.md`): förrådet i mörkgrått stål `a3c4bdba`
+  (2 579 kr) är samma förråd på 100 × 103 cm som det publicerade ljusgröna
+  `9e157d1d` (2 879 kr); odlingslådan i galvaniserat stål `45822d9c` (120 ×
+  90 cm, 499 kr) är samma slags låda i en annan storlek som den publicerade
+  `2db35e92`, precis som odlingslådan i raden ovan; växthusen `8dbdfb14`
+  (vitt nät, 529 kr) och `0e2d3be0` (grönt, 539 kr) är samma växthus på 180
+  cm som det publicerade genomskinliga `ec7c8ea5` (649 kr); reservöverdraget
+  `14361bef` (vitt, 3 × 2 × 2 m, 599 kr) är samma överdrag som det
+  publicerade `289ad16c` (879 kr), med samma bild; trädgårdsskåpet i
+  mintgrönt trä `75c0bbf0` (1 439 kr) är samma skåp på 115 cm som de
+  publicerade `bb112e08` (1 639 kr), `c9a24404` (1 809 kr) och `ca9e1fa5` (1
+  659 kr); odlingstunnlarna `b806cec6` (grön, 529 kr), `15dee6da` (vit, 519
+  kr) och `8844359d` (genomskinlig, 499 kr) är samma tunnel på 295 × 100 ×
+  80 cm som den publicerade gröna `87ceed8d` (749 kr), och den gröna har
+  samma bilder som den; tunnlarna `b1d34b11` (350 cm, 499 kr) och `16a62fb3`
+  (395 cm med fyra fönster, 559 kr) är samma tunnel i längre utföranden;
+  småväxthusen med fyra hyllor och hjul `0562a1a2` (vitt, 529 kr),
+  `7452a562` (grönt, 499 kr) och `3b7d4577` (genomskinligt, 529 kr) är samma
+  växthus som det publicerade vita `807231e0` (699 kr), och det vita har
+  samma bilder som det; `47101c1c` (469 kr), `9229f787` (499 kr), `ee194678`
+  (479 kr) och `011e2d6e` (499 kr) är samma fyrhyllsväxthus utan hjul, 70 ×
+  50 × 160 cm; `1c1950cc` (479 kr), `4a01e8d0` (549 kr) och `b783a99c` (499
+  kr) är samma växthus med fem hyllor, 193 cm högt; väggväxthuset `6cd86ce8`
+  (vitt, 519 kr) är samma växthus som det publicerade `fd0ada87` (919 kr),
+  som redan har två färgval; och bågtunneln `f7f36e85` (vit, 270 cm med tre
+  rulldörrar, 519 kr) är samma tunnel som de publicerade `ad667726` (659 kr)
+  och `3e60d4ee` (649 kr) på 360 cm. Alla 23 är billigare än sina
+  publicerade motsvarigheter. (N75)
+- Syskon inom rundan: odlingslådan `74d512a8` (125 × 47 × 44 cm, 599 kr,
+  saldo 7) är samma odlingslåda som rundans på 66 × 47 cm, som publicerades
+  eftersom den är billigare, och odlingstunneln `4e09584a` (vit, 579 kr) är
+  samma tunnel på 200 × 100 × 80 cm som rundans gröna, som publicerades
+  eftersom den är billigare (499 kr). (N75)
+- N75 tog de 120 nyaste utkasten efter N74 i tre omgångar om 40, eftersom
+  nattens import (2026-09-27 04:40–04:44) kom in medan rundan skärmades.
+  N64:s regel gäller: för de nyaste gäller inte familje- och säsongsregeln,
+  bara skyddsreglerna. De som inte redan bar ett skyddsskäl
+  dubblettskärmades mot hela den publicerade katalogen, med kalibrering 4 av
+  4 väntade träffar och 2 av 2 väntade missar och självtest 9 av 9 i alla
+  tre omgångarna. Tio publicerades och 110 hoppades med skälen ovan. (N75)
+- Den del av nattens import som kom in medan rundan skärmades var nästan
+  bara växthus och odling: 32 trädgårdsvaror, följda av åtta äldre
+  djurbostäder från 2026-08-28. Tjugotre av trädgårdsvarorna är samma varor
+  som redan ligger ute, i en annan färg eller storlek och billigare.
+  Måttskärmen fångade 11 av dem. Ett namnsvep över hela katalogen och en
+  bildjämförelse per varugrupp fångade de övriga 12, bland dem
+  femhyllsväxthuset, tunnlarna på 350 och 395 cm och bågtunneln på 270 cm,
+  som skärmen inte kan se eftersom måtten skiljer. (N75)
+- Kontrollerat och friat: blomtrappan `b9b14cf3` mot blomsterhyllan i bränd
+  gran `7ba0423b` (andra hyllor, inga hjul); odlingslådan `4c9ce3a5` mot
+  odlingslådorna i metall `1720c27a`, `6e4bb0a4`, `fffbe044`, `3d0f6711` och
+  `a2f4a42b` (korrugerad plåt eller andra former); växthyllorna `bccb39f7`
+  mot bokhyllan på hjul `b99bb9cc` (skärmträff på nästan samma mått);
+  drivbänken `bcd973f0` och den låga odlingstunneln `38f70f83` mot
+  drivbänken `89aa6d9c` (vit, 120 × 60 cm, två runda fönster);
+  odlingstunneln `d674d035` mot tunneln `87ceed8d` (tre separata luckor);
+  det gångbara växthuset `b725bb2e` mot `94ee540a` och `8498de60` (vit och
+  grön PE-väv, dörr 86 cm, annan höjd och annat djup); jultomten `dd744448`
+  mot `a62db5fd` (röd släde med snögubbe, 200 × 80 × 128 cm) och `2f881d00`
+  (andra mått och annan vikt); matbordet `79ca3053` mot valnötsbordet
+  `02199100` (raka hörn, 130–160 cm), `7f304255` (140–180 cm) och de
+  utdragbara trädgårdsborden `29c688dc` och `2dccee2f`; och
+  gräsmatteluftaren `365fda7d` mot `c311e18f` (gröna spikskivor, 45 cm).
+  Inget av de friade är samma vara. (N75)
+- Bildgranskningen strök 3 bilder på rundans tio: husmärkets logotyp på
+  jultomtens bild 5, en bild av den låga odlingstunneln `38f70f83` som visar
+  en konstruktion utan nätfönster och en bild av odlingstunneln `d674d035`
+  som visar en genomskinlig duk. Texten MERRY CHRISTMAS sitter på själva
+  släden och räknas som varans design, och sifferetiketten NO.05 på en kruka
+  i två av växthyllornas bilder räknas som siffror, som måttbilderna. Alla
+  tio behöll minst fyra bilder. (N75)
+- Konstruktionen och färgen följer fotot: matbordet `79ca3053` har ingen
+  hylla, fast källans namn säger det, och skivan har rundade kortändar;
+  växthyllornas `bccb39f7` stomme är mörkgrön med blågrå kopplingar; och det
+  gångbara växthuset `b725bb2e` har två hyllor på var sida. Dörrens mått på
+  växthuset (77,5 × 156 cm) och matbordets iläggsskiva på 40 cm är avlästa
+  på måttbilderna, och talen är kvitterade i `foto-tal.txt`. (N75)
+- Inga nya sökord mättes (Semrush-enheterna var slut vid prövningen i N73).
+  Sökorden bygger på tidigare mätvärden, bland dem main:s mätningar av
+  tunnelväxthus och odlingslåda metall, eller är valda på produkttypen. Alla
+  tio slugar prövades mot hela katalogen (6 195 produkter): ingen krockar,
+  och där en publicerad slug redan bar huvudsökordet valdes en smalare
+  variant. (N75)
