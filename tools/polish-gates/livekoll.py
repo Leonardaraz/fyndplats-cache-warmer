@@ -77,7 +77,10 @@ for k in ids:
         else:
             rad.append(f'alt {pos} saknas: {a!r}')
     steg = [e.get('name') for e in (crumb or {}).get('itemListElement', [])]
-    if not crumb or len(steg) < 3 or steg[1] not in kat[k]:
+    # Sedan #647 visar butiken Hem / förälder i trädet / smal kategori / produkt,
+    # och föräldern är ofta en kategori produkten inte ligger i. Vilket steg som
+    # helst mellan Hem och produkten räcker; "Hem / Butik / produkt" faller ändå.
+    if not crumb or len(steg) < 3 or not set(steg[1:-1]) & set(kat[k]):
         rad.append(f'brödsmula {steg!r} (väntat en av {kat[k]!r})')
     if rad:
         fel += 1
