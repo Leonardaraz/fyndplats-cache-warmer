@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+69cabbc9 3 bild 1 och 5 visar tre korghandtag: en stor korg och två små
+69cabbc9 2 bild 5 visar två små korgar bredvid varandra
+2b27c2a4 2 bild 1 visar två spakar och två vred, ett för varje par fack
