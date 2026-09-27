@@ -1264,3 +1264,23 @@ beslut — se den samlade frågan om detta.
 - ⚠️ `8064c7e2` bild 2 visar en blå skumfåtölj i bakgrunden som inte ingår
   i setet (den liknar fåtöljen i `92d994d4`). Bilden ströks. En bild där ett annat
   föremål i samma stil ser ut att ingå är ett returskäl, även utan text. (B9)
+- Syskon till publicerade sidor, hålls: barnfåtöljen `87b86ba8` (samma
+  som `4791575c`, i rosa), rullpallen `013de4a2` (samma mått som
+  `087cb4b8`), snurrpallen `9c6fde71` (färgsyskon till `1ac305ac` och
+  `28532aab`), uppresningsfåtöljen `f6ff9aba` (samma stomme som
+  `ed03b52f`, i konstläder), miniugnen `24747909` (samma ugn och samma
+  bilder som `83cc8ba7`), köksmaskinen `b4d17208` (svart, samma maskin
+  och tillbehör som `6bcbaf32` i gräddvitt) och provdockan `9cff469a`.
+  Provdockan har samma byst, stativ, höjd 130–168 cm och samma butiksbild
+  som `4ccc699a`. Byst 86 mot 84 cm, och den publicerade har knappnålar
+  med. Två sidor för samma docka är den interna dubbletten. (B10)
+- ⚠️ Husmärket tryckt på själva produkten, hålls tills Leonard avgör:
+  cykelvagnarna `3d8e7624`, `d9cd502b`, `4c9db98c`, `7ffc8543` och
+  `d22b83b1` (HOMCOM på vagnen) och `0c5003d8` och `727b850e` (AIYAPLAY
+  på fronten), miniugnarna `ff145fb1`, `d9f30244` och `ab47e35d`
+  (HOMCOM på luckan) och fritösen `69cabbc9` och vattenkokar- och
+  brödrostseten `f5964946`, `40a1f491` och `982262ec` (HOMCOM på
+  panelen). Märket sitter på produkten i varje bild och går inte att
+  stryka. De publicerade miniugnarna `0e2a1cd9` och `83cc8ba7` bär samma
+  märke, så katalogen är redan oenig med sig själv. (B10)
+- Säsong: campingtoaletten `b66f8c37` väntar till våren. (B10)
