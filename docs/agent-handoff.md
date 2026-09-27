@@ -1,10 +1,15 @@
 # Fyndplats – Agent-handbok: hela produkt-pipelinen (sourca → SEO-live)
 
+> ⚠️ **Inaktuell sedan 2026-09-27.** AliExpress importeras inte längre, så Fas A–C
+> (sourca, välja och importera från AliExpress) gäller inte. Poleringen följer
+> [`docs/seo-polish-runbook.md`](./seo-polish-runbook.md), och stegnumren och
+> cheat-sheeten i Fas D nedan hör till runbookens äldre version.
+
 > **START HÄR.** Det här är orienteringsdokumentet för en autonom agent (t.ex. Claude
 > Agent) som ska sköta hela kedjan: hitta produkt → välja → importera → SEO-polera →
 > publicera live. Läs detta i sin helhet **först**, och läs sedan
 > **[`docs/seo-polish-runbook.md`](./seo-polish-runbook.md)** i sin helhet — det är den
-> exekverbara, beprövade poleringsproceduren (Steg 0–6) med färdiga API-anrop.
+> exekverbara, beprövade poleringsproceduren.
 >
 > **Två dokument, en sanning:** den här handboken förklarar *hela processen och allt runt
 > omkring*. Runbooken är *facit för själva poleringen*. Duplicera inte runbookens steg —
@@ -95,7 +100,7 @@ Ranka/filtrera kandidater mot kriterier (justera med Leonard):
   (0 / 10,5 / 85 öre), daglig budgetcap `ANTHROPIC_DAILY_BUDGET_USD`, bulk-dagskap.
 
 ### Fas D — SEO-polera
-**Läs och följ [`docs/seo-polish-runbook.md`](./seo-polish-runbook.md) exakt, Steg 0–6.**
+**Läs och följ [`docs/seo-polish-runbook.md`](./seo-polish-runbook.md) exakt.**
 Cheat-sheet (runbooken styr i detalj):
 
 - **Steg 0 – Fokussökord:** svenskt = **huvudord + kvalificerare** (t.ex. `airfryer 7

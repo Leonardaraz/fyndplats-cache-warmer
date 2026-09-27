@@ -1,7 +1,9 @@
 # Bildmetoder – fördjupning
 
 > Detta är **mekaniken**. Reglerna för vilka bilder som ska finnas och hur de får
-> se ut står i [`seo-polish-runbook.md`](../seo-polish-runbook.md) — den här filen
+> se ut står i [`seo-polish-runbook.md`](../seo-polish-runbook.md), där rundorna väljer
+> bland befintliga bilder utan att bearbeta dem. Stegnummer nedan syftar på runbookens
+> äldre version. Den här filen
 > beskriver bara **hur** man gör det, när standardvägen inte räcker.
 >
 > **Standardvägen för en hjältebild:** `hero_white()` (H-0) → ren leverantörsbild →

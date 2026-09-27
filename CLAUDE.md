@@ -1472,8 +1472,9 @@ bilder (93 %)** och släpper in 15 tyska (10 % av det som behålls). Att också 
 
 Mönstret är **oberoende av var i feeden produkten ligger** (49/46/45 % tyska i
 början, mitten, slutet) — regeln behöver inte justeras per sortimentsdel.
-Poleringen granskar **3, 8 och 9**; position 1 och 2 kan hoppas över helt, och
-det är de två som blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
+Tysk text sitter alltså i 3, 8 och 9, men poleringen granskar alla fem: varumärken
+på rekvisita sitter i miljöbilden på position 2 (i runda B19 på de flesta), och
+position 1 och 2 blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
 
 Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
 av det som är hela svepets flaskhals.
@@ -1930,7 +1931,7 @@ kontrollerar dess sha256 och skickar den till `/api/admin/polish-write`
 (`lib/polish/skrivplan.ts`). Den skriver text, media, kategorier och SKU i den
 ordningen, verifierar i en separat läsning och stämplar varje verifierad
 produkt. Spärren ovan behövs inte längre, eftersom det inte finns någon avskrift
-kvar som kan bli fel. Arbetsgången står i runbooken under *Rundor om femton*.
+kvar som kan bli fel. Arbetsgången står i runbooken under *Rundan steg för steg*.
 
 ☠️ **Kör workflowen med `ref` satt till poleringsgrenen.** Default är `main`,
 och där finns inte planen. Kontrollen av sha256 fäller en sådan körning innan
