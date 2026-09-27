@@ -152,11 +152,37 @@ Prydnad*, eftersom den i första hand är en väggdekoration.
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `14f9db8be7bbcd68a6b432b66df2f5d4004f5a6f75db7eab6e438b28c2ee4a3a`,
+grenen `dd5fbbde`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36294590195 | torr | 8 texter, 8 bildlistor, 19 av 19 kategorirader och 8 SKU:er |
+| 36294767593 | skriv | text 8/8, bilder 8/8, kategorier 19/19, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_21EfgHCBE56EogTSAkbWj6NLyT5k` blev `CANCELED`
+efter 37 s med `errorLink` till `#ignored-build-step`. Pekaren står kvar på
+`3da05c19`, som B11:s läkningsbygge flyttade fram.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 04:46 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age` 140 s.
+Sluggarna var nya, så den första träffen renderade redan den nya sidan
+(`age=0`), och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 33 av 33 |
+| strukna bilder på sidan | 0 av 7 |
+| kvarvarande bilder på sidan | 33 av 33 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulorna visar huvudkategorin: Hem & Inredning för speglarna och
+Möbler för sängen.
 
 ## Nästa runda
 
