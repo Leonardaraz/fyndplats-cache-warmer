@@ -1,0 +1,3 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+2485b8a5 126 cm hög, läst på måttbilden (bild 3); källans spec säger 59, som inte stämmer med bilden
+2ff713c1 2 spisplattor, räknade på bild 1 och 3

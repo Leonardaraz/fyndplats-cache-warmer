@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0c3eae51": {
+  "tyska": "87B x 52T x 5,5H cm, Montage erforderlich",
+  "svenska": "87cm x 52cm x 5,5cm",
+  "bokstaver": "BTH",
+  "djup": 52,
+  "hojd": 5.5,
+  "bredd": 87
+ },
+ "2485b8a5": {
+  "tyska": "",
+  "svenska": "108cm x 120cm x 59cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rutschengröße Innen: 125L x 36,5B cm | ✔ Größe der Kletterblöcke: 11B x 6T cm (jeweils)"
+ },
+ "2ff713c1": {
+  "tyska": "72L x 33B x 85,2H cm",
+  "svenska": "72L x 33B x 85,2H cm",
+  "bokstaver": "LBH",
+  "hojd": 85.2,
+  "bredd": 72,
+  "djup": 33
+ },
+ "51ad9485": {
+  "tyska": "189L x 180B x 111H cm",
+  "svenska": "189cm x 180cm x 111cm",
+  "bokstaver": "LBH",
+  "hojd": 111,
+  "bredd": 189,
+  "djup": 180
+ },
+ "55587d19": {
+  "tyska": "194L x 88B x 92H cm",
+  "svenska": "194L x 88B x 92H cm",
+  "bokstaver": "LBH",
+  "hojd": 92,
+  "bredd": 194,
+  "djup": 88
+ },
+ "b464a034": {
+  "tyska": "250L x 150B x 94H cm",
+  "svenska": "250cm x 150cm x 94cm",
+  "bokstaver": "LBH",
+  "hojd": 94,
+  "bredd": 250,
+  "djup": 150
+ },
+ "c387e649": {
+  "tyska": "191L x 100B x 84H cm",
+  "svenska": "191L x 100B x 84H cm",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 191,
+  "djup": 100
+ },
+ "f04fbf51": {
+  "tyska": "",
+  "svenska": "80cm x 42cm x 38cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe des Dreieckskletterers: 76,5B x 74T cm | ✔ Größe des Bogenkletterers: 80B x 42T x 38H cm | ✔ Rutschengröße: 92L x 38,5B x 18H cm"
+ }
+}

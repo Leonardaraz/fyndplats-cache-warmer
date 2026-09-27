@@ -1132,3 +1132,24 @@ beslut — se den samlade frågan om detta.
 - Klätterställningen `c75c7b95` i regnbågsfärger är ett färgsyskon till
   publicerade `7e414be8` i natur (samma mått, samma konstruktion). Den
   väntar. (B4)
+- Sminkbordet `23e31398` var en äkta dubblett av publicerade `e8f7eaed`:
+  samma färg, samma tre måttripplar och tre byte-identiska bilder. Sidan
+  är ommappad från AliExpress till Aosom och utkastet pensionerat.
+  Kundpriset 1 479 kr är orört; Aosom-synken räknar om det. (B5)
+- Färgsyskon till publicerade sidor, som väntar: förvaringstornet
+  `97a2c2c2` (`0136e7d9`, samma tre måttripplar som `c61fdbb4`),
+  gymnastikställningen `a3dfcd1e` i rosa (`68c9cfe0` i lila) och
+  leksaksköket `6fafe249` i rosa och vitt (`a57587a8` i vitt). (B5)
+- ☠️ Gråskalejämförelsen är FÄRGBLIND. Huvudbilderna på `a3dfcd1e` (rosa)
+  och `68c9cfe0` (lila) gav medelavvikelse 0,3 i 64 × 64 gråskala, alltså
+  "samma bild", men rosa och lila har nästan samma ljushet. Det var ögat
+  på bilderna som avgjorde. Pixelkontrollen behöver färg, eller en titt.
+  (B5)
+- Leksaksköket med rinnande vatten finns i två färger, `962fc483` och
+  `321f878a`, och ingen av dem är publicerad. En av dem kan poleras, den
+  andra väntar då som färgsyskon. (B5)
+- Gokartfamiljen `8691cbc0`, `8ab866bb` och `5f7b579e` delar måttripplar
+  med varandra och med publicerade `71be99af`; `5f7b579e` har saldo 9.
+  Hålls, som gokartklustret i N27–N31. (B5)
+- Balansbalken `24597637` hade saldo 5 och togs inte med. Den prövas igen
+  när saldot är högre. (B5)
