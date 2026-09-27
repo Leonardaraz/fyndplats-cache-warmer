@@ -3221,3 +3221,36 @@ beslut — se den samlade frågan om detta.
   på sidan. Setet `6f79738d` får familj A:s fem färger (`4546b12a`, `4add1c3a`,
   `980dd9a1`, `c0463ce2`, `d7fea466`), bikakesetet `eb19eca6` får `c0dd9d0c` och
   brödrosten `2b27c2a4` får `13204f68`. (B20)
+- AVGJORT 2026-09-27, genomfört i B21: åtta publicerade sidor skrevs om utan färg i
+  namnet och fick 30 färger som val. Mopphinken `3bfee58b` fick gul, blå och röd
+  (`5b4aeb72`, `9ac669e4`, `d60bb2f2`). Hundgrinden `12cd40a2` fick honungsgul,
+  mörkbrun, vit och natur (`02c203cd`, `34f51bc7`, `635c990e`, `7aaea8cc`). 2-sitssoffan
+  `95c2008d` fick gul, grön och grå (`250b29f0`, `e0d2f66f`, `e30d6f33`), alltså de tre
+  i manchesterlook ur B15:s rad om soffan i 13 färger och tyger. Bäddfåtöljen `6efbe712`
+  fick beige, grön, blå, mörkgrå och svart (`e43ec4a4`, `1d0fd62b`, `f665ba8f`,
+  `81f1c8b4`, `c2211af6`). Teddygungstolen `bc32d396` fick vit, ljusgrå, mörkgrå, rosa
+  och brun (`e911531e`, `7307ec68`, `1b1a1154`, `5ec44a3b`, `ee9242de`). Gungstolen med
+  fotpall `6c50fee9` fick cremevit, ljusgrå och mörkgrå (`13ce0af4`, `e55deb32`,
+  `c793bf42`). Köksbordet `4a3908ae` fick grå, brun och rustik brun (`1527a0a8`,
+  `534e6f79`, `cf7a01a5`). Klaffbordet `85f1694f` fick rustik brun, vit, ek och svart
+  samt ek och vit (`19c5e09d`, `ca5e4c55`, `7a614247`, `1bca9e41`). Givarna är
+  pensionerade. (B21)
+- Samma stomme som 2-sitssoffan `95c2008d` men en annan modell, hålls: `0b6a0cc6`
+  (cremevit, saldo 5), `33825b88` (gul), `615e7b54` (grå), `86606498` (ljusblå) och
+  `8ff98faa` (mörkgrå). Samma mått 117 × 56,5 × 77 cm, men ryggen är kanalsydd i ett
+  slätt vävt tyg och inte manchester. De blir en egen sida med fem färgval: polera ett av
+  utkasten, publicera det och lägg de andra som färger. (B21)
+- Samma bäddfåtölj som `6efbe712` men i teddytyg med knappade kuddar, hålls: `b58c8340`
+  (beige) och `efaa0c7b` (mörkgrå). Samma mått 102 × 73 × 81 cm. Egen sida med två
+  färgval, samma väg som soffan ovan. (B21)
+- Teddygungstolen `bc32d396`: `15758cbf` (ljusblå) har samma stomme men ett slätt vävt
+  tyg, inte teddy, och hölls utanför sidan. Den kan bli en egen sida. (B21)
+- Gungstolen med fotpall `6c50fee9`: `50233e0f` (mörkgrön) är samma stol men har saldo 0
+  och lades inte in. Den läggs som färg med samma workflow när den finns i lager. `51d0bf3f`
+  (grå) har andra armstöd och en annan rygg och hölls utanför som en annan modell. (B21)
+- Köksbordet `4a3908ae`: `6e10449e` (ek) har ett annat underrede, där benen korsas högre
+  upp, och hölls utanför. N58 parade det redan med den publicerade `4a365ee5` (samma
+  last och vikt). Pröva om det ska läggas som färg där. (B21)
+- Sammanslagningen föll en gång på en timeout i rutten utan att skriva något
+  (sidan hade kvar tre bilder och inga val), och samma körning gick igenom vid andra
+  försöket. Läs sidan innan en omkörning, så syns det om något hann skrivas. (B21)
