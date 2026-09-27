@@ -1,0 +1,119 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "049f5441": {
+  "tyska": "",
+  "svenska": "28L x 21B x 48-130H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktabmessungen: 28L x 21B x 48-130H cm"
+ },
+ "1ee16fbb": {
+  "tyska": "70L x 21,5B x 43,5H cm",
+  "svenska": "70 x 21,5 x 43,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 43.5,
+  "bredd": 70,
+  "djup": 21.5
+ },
+ "5bc44269": {
+  "tyska": "49,5L x 39,5B x 13,5H cm",
+  "svenska": "49,5L x 39,5B x 13,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 13.5,
+  "bredd": 49.5,
+  "djup": 39.5
+ },
+ "6bcbaf32": {
+  "tyska": "",
+  "svenska": "35 x 22 x 29 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 35L x 22B x 29H cm | ✔ Rührschüsselvolumen: 4,5 L"
+ },
+ "6c9f3c8c": {
+  "tyska": "90B x 60T x 90H cm",
+  "svenska": "90 x 60 x 70-90 cm",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": 90,
+  "bredd": 90
+ },
+ "8e52b20b": {
+  "tyska": "77,5B x 20,5T x ‹FORM› cm",
+  "svenska": "77,5cm x 20,5cm x 186cm",
+  "bokstaver": "BT",
+  "djup": 20.5,
+  "bredd": 77.5
+ },
+ "9960e638": {
+  "tyska": "133B x 38T x 24H cm",
+  "svenska": "133L x 38B x 24H cm",
+  "bokstaver": "BTH",
+  "djup": 38,
+  "hojd": 24,
+  "bredd": 133
+ },
+ "9ee7785f": {
+  "tyska": "34B x 34T x 65,5-83,5H cm",
+  "svenska": "34L x 34B x 65,5-83,5H cm",
+  "bokstaver": "BTH",
+  "djup": 34,
+  "hojd": [
+   65.5,
+   83.5
+  ],
+  "bredd": 34
+ },
+ "aafbc5f2": {
+  "tyska": "80L x 40B x 128H cm",
+  "svenska": "80L x 40B x 128H cm",
+  "bokstaver": "LBH",
+  "hojd": 128,
+  "bredd": 80,
+  "djup": 40
+ },
+ "ae9ac784": {
+  "tyska": "82B x 60T x 55H cm",
+  "svenska": "82cm x 60cm x 55cm",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": 55,
+  "bredd": 82
+ },
+ "c28af8df": {
+  "tyska": "",
+  "svenska": "500 x 8 x 8 cm",
+  "axellos": "inget totalmått i källan; bara en längd: ✔ Kabellänge: 5 m"
+ },
+ "ce3aa654": {
+  "tyska": "30L x 50B x 77H cm",
+  "svenska": "30 x 50 x 77 cm",
+  "bokstaver": "LBH",
+  "hojd": 77,
+  "bredd": 30,
+  "djup": 50
+ },
+ "cf17d23c": {
+  "tyska": "105,9B x 30T x 53,7H cm",
+  "svenska": "105.9 x 30 x 53.7 cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 53.7,
+  "bredd": 105.9
+ },
+ "e1d7ecf4": {
+  "tyska": "90B x 48T x 43,5H cm",
+  "svenska": "90L x 48B x 43,5H cm",
+  "bokstaver": "BTH",
+  "djup": 48,
+  "hojd": 43.5,
+  "bredd": 90
+ },
+ "eee66352": {
+  "tyska": "70L x 50B x 80-105H cm",
+  "svenska": "70L x 50B x 80-100H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   80,
+   105
+  ],
+  "bredd": 70,
+  "djup": 50
+ }
+}

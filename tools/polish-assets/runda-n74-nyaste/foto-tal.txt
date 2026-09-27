@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+41a257cb 2 automaten i kylskåpsdörren drivs med två AA-batterier som inte ingår, enligt leverantörens bild 4 (struken för sin tyska text)

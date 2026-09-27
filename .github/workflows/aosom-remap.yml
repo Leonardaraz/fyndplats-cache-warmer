@@ -65,6 +65,16 @@ jobs:
   remap:
     runs-on: ubuntu-latest
     steps:
+      # ☠️ MASKERA FÖRST, I ETT EGET STEG. `::add-mask::` inne i Kör kommer för
+      # sent: stegets env-block (`SKU:`) skrivs ut innan skriptet kör. Uppmätt
+      # 2026-09-27: 43 körningar före 2026-09-24 bar numret den vägen. Värdet
+      # läses ur händelsen, inte via `env:` eller `${{ }}`.
+      - name: Maskera
+        run: |
+          sku=$(jq -r '.inputs.sku // ""' "$GITHUB_EVENT_PATH")
+          [ -n "$sku" ] && echo "::add-mask::${sku}"
+          exit 0
+
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}

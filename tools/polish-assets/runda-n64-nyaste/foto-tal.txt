@@ -1,0 +1,7 @@
+# Tal som är RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som räknades>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoräknad uppgift måste kvitteras här för att slippa igenom.
+47bad2d7 4 ben räknade på huvudbilden och närbilden: fyra ben i svart stål som korsar varandra under glasskivan
+6ddedacc 4 ben räknade på huvudbilden och måttbilden: fyra ben i furu, ett i varje hörn av sargen
+c23dab52 2 ben räknade på huvudbilden och måttbilden: skivan vilar på två ben med fällbara stöd på den fria sidan

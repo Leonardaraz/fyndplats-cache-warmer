@@ -27,8 +27,18 @@
 //
 // ☠️ PRISET SOM AVGÖR BAND OCH LÄGE ÄR BUTIKENS (`listV3ProductPrices`),
 // aldrig mappningens `grossSek` — samma regel som `jamforelsePris`.
+//
+// ☠️ EN FÄRGSAMMANSLAGEN SIDA FÅR EN RAD PER FÄRG (2026-09-27). Den bär en
+// Aosom-artikel per variant (lib/aosom/artiklar.ts), och färgerna kan kosta
+// olika — då är produktens pris ett spann och den gamla vägen gav sidan INGEN
+// etikett alls, alltså föll den ur kampanjen. Varje variant får nu sin egen rad
+// på sitt eget pris. Prisgruppen och konkurrensläget gäller bara radens EGEN
+// artikel: konkurrentpriset är hämtat för den, och den andra färgen har ingen
+// jämförelse — den får `ingen_jamforelse` och ingen grupp, alltså är den inte
+// med i kampanjen förrän någon mätt den.
 
 import type { ProductMappingRecord } from "../store";
+import { aosomArtikelbild } from "../aosom/artiklar";
 import { isAliExpressMapping } from "../store/supplier";
 import type { WixProduktPris } from "../wix/v3-products";
 import type { Prisgrupp } from "../pricing/konkurrentregel";
@@ -87,6 +97,8 @@ export function tillTsv(rader: readonly TillaggsRad[]): string {
 export function byggTillaggsfeed(
   mappningar: readonly ProductMappingRecord[],
   vartPris: ReadonlyMap<string, WixProduktPris>,
+  /** Butikens pris per variant för sammanslagna sidor: produkt → (variant → pris). */
+  variantPriser: ReadonlyMap<string, ReadonlyMap<string, number>> = new Map(),
 ): TillaggsUtfall {
   const ut: TillaggsUtfall = {
     rader: [],
@@ -99,6 +111,32 @@ export function byggTillaggsfeed(
   for (const m of mappningar) {
     if (isAliExpressMapping(m)) {
       ut.ejAosom++;
+      continue;
+    }
+    const bild = aosomArtikelbild(m);
+    if (bild.typ === "flera") {
+      const w = vartPris.get(m.wixProductId);
+      const entydigt = w && w.priceSek !== null && w.priceSek > 0 ? w.priceSek : undefined;
+      for (const v of bild.varianter) {
+        // Variantens eget pris vinner; ett entydigt produktpris gäller alla
+        // färger lika. Annars ingen etikett — aldrig en gissning.
+        const pris = variantPriser.get(m.wixProductId)?.get(v.wixVariantId) ?? entydigt;
+        if (!(pris !== undefined && pris > 0)) {
+          ut.utanPris++;
+          continue;
+        }
+        const egen = v.artikel === bild.artikel;
+        const lage = egen ? konkurrenslage(pris, m.konkurrent) : "ingen_jamforelse";
+        const grupp = egen ? m.prisgrupp : undefined;
+        ut.perGrupp[grupp ?? "ingen"]++;
+        ut.perKonkurrenslage[lage] = (ut.perKonkurrenslage[lage] ?? 0) + 1;
+        ut.rader.push({
+          id: v.wixVariantId,
+          custom_label_0: grupp ?? "",
+          custom_label_1: prisband(pris),
+          custom_label_2: lage,
+        });
+      }
       continue;
     }
     const variantId = m.variants?.[0]?.wixVariantId;

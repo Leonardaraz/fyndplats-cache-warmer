@@ -1,0 +1,31 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur tidigare rundors sokord.tsv. Varje huvudsökord är sökt i butikens sökning
+# 2026-09-27, och där en publicerad slug redan bar ordet valdes en smalare variant: vägghylla (3 slugar) → svävande
+# hylla, konstgjord cypress (2) → cypress i kruka, tv-stativ (1) → tv-ställ på hjul, fåtölj med fotpall (3) →
+# reclinerfåtölj med fotpall, sidobord med eluttag (1) → smalt sidobord med eluttag, smalt sidobord (1) och sidobord
+# glas (1) → sidobord med glashyllor, adventskalender (2) och adventskalender trä (1) → adventskalender med
+# belysning och adventskalender julkrubba, massagefåtölj konstläder (1) → massagefåtölj med fotstöd, massagebänk
+# (10) → massagebänk hopfällbar, sängram 140x200 (2) och stoppad sängram (2) → sängram 140x200 grå, hörnskrivbord
+# (7) och gamingbord (3) → l-format skrivbord, frukostset (10) → vattenkokare och brödrost, uppresningsfåtölj (24)
+# → elektrisk uppresningsfåtölj, gungfåtölj (5) → snurrbar massagefåtölj. sidobord bambu, sidobord med förvaring,
+# reclinersoffa, skänk svart och runt glasbord bar ingen publicerad slug.
+fad620ef	svävande hylla	–	–	vägghylla; vägghylla vit; hylla vardagsrum (720, 19)
+5772c68d	cypress i kruka	–	–	konstgjord cypress; konstväxt (2900, 20); konstgjorda växter (3600, 23)
+80512112	tv-ställ på hjul	–	–	tv-stativ; tv-ställ; tv-stativ med hjul
+4af47dc2	sidobord bambu	–	–	sidobord (18100, 18); litet sidobord (1000, 21); bambuhylla (260, 11)
+c6156256	reclinerfåtölj med fotpall	–	–	fåtölj med fotpall; fotpall (8100, 18); reclinerfåtölj
+1a5b0d42	smalt sidobord med eluttag	–	–	smalt sidobord (590, 15); sidobord med usb; sidobord med laddare
+329af28e	sidobord med förvaring	390	13	sidobord soffa (720, 22); avlastningsbord soffa (110, 16); smalt sidobord (590, 15)
+808ea6b4	reclinersoffa	–	–	reclinersoffa 2-sits; soffa med fotstöd; tvåsitssoffa
+cd753d3d	sidobord med glashyllor	–	–	sidobord glas (320, 13); smalt sidobord (590, 15); nattduksbord (18100, 29)
+be02f382	skänk svart	–	–	skänk högglans; sideboard; skänk
+ef7a48b0	runt glasbord	260	14	matbord glas (590, 13); runt matbord glas (140, 15); litet runt matbord (1000, 20)
+0e1a8545	adventskalender med belysning	–	–	adventskalender; adventskalender trä; adventskalender att fylla
+8a17ae82	adventskalender julkrubba	–	–	adventskalender; adventskalender trä; julkrubba
+d0fe9214	massagefåtölj med fotstöd	–	–	massagefåtölj; reclinerfåtölj; tv-fåtölj
+e13d094a	massagebänk hopfällbar	–	–	massagebänk; massagebrits; behandlingsbänk
+1b7fd2b1	sängram 140x200 grå	–	–	sängram 140x200; sängram med sänggavel; sänggavel (27100, 18)
+0e2607cb	l-format skrivbord	–	–	hörnskrivbord; gamingbord; skrivbord med lådor
+e0cd758d	vattenkokare och brödrost	–	–	frukostset; vattenkokare med temperatur; brödrost
+536cfd1e	elektrisk uppresningsfåtölj	–	–	uppresningsfåtölj; uppresningsfåtölj med mugghållare; massagefåtölj med värme
+e5be35a4	snurrbar massagefåtölj	–	–	gungfåtölj; snurrfåtölj; massagefåtölj med värme

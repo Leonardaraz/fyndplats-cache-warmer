@@ -27,6 +27,7 @@
 
 import { fetchAosomFeed, harVerkligSeFrakt, landedCostEur, type AosomRow } from "./feed";
 import { aosomSupplierProductId, type AosomFx } from "./to-product";
+import { aosomArtikelbild, aosomArtiklarPaRaden, radensArtikel, type AosomArtikelbild } from "./artiklar";
 import { SUPPLIER_VAT_RATE } from "../auction/seed";
 import { computePriceWithRules } from "../import/pricing";
 import type { PricingRules } from "../import/types";
@@ -81,6 +82,11 @@ export interface AosomLagerpost {
   id: string;
   revision: string;
   productId: string;
+  /**
+   * Wix-variantens id. Avgör vilken färg en post tillhör på en sammanslagen
+   * sida (lib/aosom/artiklar.ts). Saknas det behandlas posten som förut.
+   */
+  variantId?: string;
   /** Saldot som FAKTISKT står i butiken. Används bara för drift-mätningen. */
   quantity?: number;
 }
@@ -221,13 +227,41 @@ export interface AosomSyncSummary {
    * inget hål; är det stort är nästa PR skriven åt oss.
    */
   lagerDrift: number;
+  /**
+   * Färgsammanslagna sidor som granskades — en Aosom-artikel per variant, var
+   * och en med sitt eget saldo och pris (lib/aosom/artiklar.ts). Ett mått,
+   * inget fel.
+   */
+  flerartikelrader: number;
+  /**
+   * ☠️ Wix-varianter som mappningen inte känner till, på en produkt med mer än
+   * en lagerrad. Deras lager NOLLAS i stället för att få radens saldo.
+   *
+   * Det är läget efter en sammanslagning där Wix fick den nya färgen men
+   * mappningen aldrig skrevs. Den gamla vägen skrev radens saldo på VARJE
+   * lagerrad, alltså hade den nya färgen sålts på den gamla färgens lager och
+   * beställts som den gamla färgen. Nollat går den inte att köpa, och talet
+   * ska vara noll — allt annat är en halvgjord sammanslagning.
+   */
+  okandaVarianter: number;
+  /**
+   * ☠️ Rader vars varianter bär olika artiklar men inte går att läsa entydigt.
+   * Lagret nollas och raden stämplas aldrig, så varje körning säger det igen
+   * tills någon rättat mappningen.
+   */
+  tvetydiga: number;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
   stoppedBy: "klart" | "limit" | "tidsbudget";
-  errors: { sku: string; error: string }[];
+  /**
+   * `wixProductId` är produktens PUBLIKA id och det som workflowen skriver ut.
+   * `sku` är Aosoms artikelnummer och får aldrig nå en publik logg — se
+   * lib/aosom/markor.ts för varför.
+   */
+  errors: { sku: string; wixProductId?: string; error: string }[];
   /** Prisändringar som blockerades av taket. Kräver mänskligt öga. */
-  varningar: { sku: string; fran: number; till: number; andringPct: number }[];
+  varningar: { sku: string; wixProductId?: string; fran: number; till: number; andringPct: number }[];
 }
 
 /**
@@ -295,6 +329,17 @@ export interface AosomSyncDeps {
    */
   lasLagerposter: (wixProductIds: string[]) => Promise<AosomLagerpost[]>;
   /**
+   * Butikens pris PER VARIANT för färgsammanslagna sidor: wixProductId →
+   * (wixVariantId → pris).
+   *
+   * `listWixPriser` ger ett pris per PRODUKT, och på en sida vars färger
+   * kostar olika är det ett spann, inte ett pris (`jamforelsePris` svarar
+   * "flera"). Facit måste då läsas per variant — ett GET per sammanslagen sida,
+   * och de är få. Saknas depen, eller faller läsningen, skrivs inget pris på
+   * de sidorna: samma hållning som "saknas" i `jamforelsePris`.
+   */
+  lasVariantPriser?: (wixProductIds: string[]) => Promise<Map<string, Map<string, number>>>;
+  /**
    * Skriver absoluta lagersaldon i klump och svarar PER RAD.
    *
    * ☠️ PER RAD ÄR INTE EN BEKVÄMLIGHET. "Wix före mappningen" är en garanti
@@ -313,7 +358,7 @@ export interface AosomSyncDeps {
    * ☠️ Tar variantens WIX-identitet, inte Aosoms artikelnummer.
    *
    * Den här signaturen sa tidigare `sku: string`, och anroparen skickade
-   * loopens `sku` — som är feedens artikelnummer ("839-835V01CG"), nyckeln
+   * loopens `sku` — som är feedens artikelnummer ("‹REDIGERAT›"), nyckeln
    * till feed-raden. Wix-variantens SKU är något helt annat
    * ("FP-schlafsofa-2er-sofa-mit"), så matchningen kunde aldrig lyckas.
    * `setStock` tog samma argument men IGNORERADE det (`_sku`) och slog upp
@@ -352,6 +397,123 @@ export interface Produktplan {
   /** Konkurrentregelns utfall, eller null när raden aldrig nådde prisdelen. */
   konkurrent: KonkurrentUtfall | null;
   varning: { sku: string; fran: number; till: number; andringPct: number } | null;
+  /**
+   * Färgsammanslagen sida: en plan per variant, med variantens egen artikel,
+   * eget saldo och eget pris (lib/aosom/artiklar.ts). Saknas på en vanlig rad,
+   * och då gäller fälten ovan precis som förut.
+   *
+   * På en sådan plan är `nyttSaldo` icke-null när NÅGON variant ska skrivas,
+   * och `onskatSaldo` är summan — talen per variant står här.
+   */
+  varianter?: VariantPlan[];
+  /** Raden bär olika artiklar men går inte att läsa entydigt: skälet. */
+  tvetydig?: string;
+  /** Fler blockerade prishopp än ett — bara på en sammanslagen sida. */
+  fleraVarningar?: NonNullable<Produktplan["varning"]>[];
+}
+
+/** En variants del av planen på en färgsammanslagen sida. */
+export interface VariantPlan {
+  /** Index i `m.variants`. */
+  index: number;
+  artikel: string;
+  wixVariantId: string;
+  sku: string;
+  onskatSaldo: number;
+  /** Saldot som ska skrivas på just den här variantens lagerrad, eller null. */
+  nyttSaldo: number | null;
+  nyttPris: number | null;
+  nyLandad: number | null;
+}
+
+/** Prisdelen av en plan, för EN artikel mot ETT facit. */
+interface Prisutfall {
+  nyttPris: number | null;
+  nyLandad: number | null;
+  konkurrent: KonkurrentUtfall;
+  utanWixPris: boolean;
+  varning: Produktplan["varning"];
+}
+
+/**
+ * Priset för EN artikel: regelpriset ur feedraden, konkurrentregeln, och
+ * jämförelsen mot butikens facit.
+ *
+ * ☠️ EN DEFINITION, TVÅ ANROPARE. Utbruten ur `planeraProdukt` när
+ * färgsammanslagna sidor kom till (2026-09-27), så att en variant på en
+ * sammanslagen sida prissätts med EXAKT samma regel som en vanlig rad. En
+ * kopia hade glidit isär — huset har betalat för det tre gånger
+ * (SHIP_AXIS_RE, EU_TULL_CODES, mapWithConcurrency).
+ */
+function planeraPris(
+  row: AosomRow,
+  konkurrent: ProductMappingRecord["konkurrent"],
+  prisgrupp: ProductMappingRecord["prisgrupp"],
+  facit: { pris: number } | "saknas" | "flera",
+  sku: string,
+  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+): Prisutfall {
+  const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
+  const costUsd = nyLandad / deps.fx.usdToSek;
+  // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
+  // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
+  // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
+  // PawHut-sortimentet utan att någon regel sa det).
+  const regelPris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+
+  // ── KONKURRENTREGELN (2026-09-15) ────────────────────────────────────
+  // Husets regelpris är GOLVET. Bär raden en prisgrupp och ett färskt
+  // dealproffsen-pris lyfts priset mot strax under deras, aldrig över taket
+  // 1,50 × landad. Utan grupp svarar regeln med golvet — alltså exakt det
+  // pris synken alltid räknat fram. Se lib/pricing/konkurrentregel.ts.
+  //
+  // ☠️ FRYST SKRIVER INGET, och ligger FÖRE facit-jämförelsen av samma skäl
+  // som `prisLast`: en rad vi inte tänker skriva ska inte hamna i `varningar`.
+  const regel = tillampaKonkurrentregel({
+    regelPris,
+    landadInklMoms: nyLandad,
+    konkurrent,
+    prisgrupp,
+    nu: (deps.now ?? Date.now)(),
+    rounding: deps.rules.rounding,
+  });
+  const ut: Prisutfall = { nyttPris: null, nyLandad: null, konkurrent: regel, utanWixPris: false, varning: null };
+  if (regel.typ === "fryst") return ut;
+  const pris = regel.pris;
+
+  // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad vi
+  // TROR att kunden ser, och de två kan ha glidit isär.
+  const gammalt = typeof facit === "object" ? facit.pris : -1;
+
+  if (typeof facit === "string") {
+    // Vet vi inte vad kunden ser skriver vi inget pris. Lagret är redan
+    // planerat — det uppslaget går på produkt-id och berörs inte.
+    ut.utanWixPris = true;
+    return ut;
+  }
+  if (pris < MIN_RIMLIGT_PRIS_SEK) {
+    ut.varning = { sku, fran: gammalt, till: pris, andringPct: 0 };
+    return ut;
+  }
+  if (gammalt > 0) {
+    const andringPct = ((pris - gammalt) / gammalt) * 100;
+    if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
+      // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
+      // storleken är oftare en trasig feed-rad än en verklig prisändring.
+      ut.varning = { sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
+      return ut;
+    }
+    if (pris !== gammalt) {
+      ut.nyttPris = pris;
+      ut.nyLandad = nyLandad;
+    }
+    return ut;
+  }
+  if (pris > 0) {
+    ut.nyttPris = pris;
+    ut.nyLandad = nyLandad;
+  }
+  return ut;
 }
 
 /**
@@ -385,7 +547,7 @@ export function planeraProdukt(
   // `isShippableToSe` hade fem anropare — importen, ommappningen, bildfixen och
   // feed-sökningen — och synken var inte en av dem. En rad som blir oskeppbar
   // EFTER importen fortsatte därför få sitt saldo speglat, och massagebänken
-  // 503-001V00CW låg publicerad och köpbar med Aosoms "skickas inte hit"-frakt
+  // ‹REDIGERAT› låg publicerad och köpbar med Aosoms "skickas inte hit"-frakt
   // (999,90 €) i feeden. Mappningens egen fraktandel var 0,292 vid importen —
   // frakten var alltså normal då. Exakt samma mönster som den döda
   // AE-listningen: importen gatade, synken gjorde det inte, och felet nådde kund.
@@ -438,68 +600,233 @@ export function planeraProdukt(
     return plan;
   }
 
-  const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
-  const costUsd = nyLandad / deps.fx.usdToSek;
-  // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
-  // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
-  // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
-  // PawHut-sortimentet utan att någon regel sa det).
-  const regelPris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
-
-  // ── KONKURRENTREGELN (2026-09-15) ────────────────────────────────────
-  // Husets regelpris är GOLVET. Bär raden en prisgrupp och ett färskt
-  // dealproffsen-pris lyfts priset mot strax under deras, aldrig över taket
-  // 1,50 × landad. Utan grupp svarar regeln med golvet — alltså exakt det
-  // pris synken alltid räknat fram. Se lib/pricing/konkurrentregel.ts.
-  //
-  // ☠️ FRYST SKRIVER INGET, och ligger FÖRE facit-jämförelsen av samma skäl
-  // som `prisLast`: en rad vi inte tänker skriva ska inte hamna i `varningar`.
-  const regel = tillampaKonkurrentregel({
-    regelPris,
-    landadInklMoms: nyLandad,
-    konkurrent: m.konkurrent,
-    prisgrupp: m.prisgrupp,
-    nu: (deps.now ?? Date.now)(),
-    rounding: deps.rules.rounding,
-  });
-  plan.konkurrent = regel;
-  if (regel.typ === "fryst") return plan;
-  const pris = regel.pris;
-
-  // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad vi
-  // TROR att kunden ser, och de två kan ha glidit isär.
-  const facit = jamforelsePris(wixPris);
-  const gammalt = typeof facit === "object" ? facit.pris : -1;
-
-  if (typeof facit === "string") {
-    // Vet vi inte vad kunden ser skriver vi inget pris. Lagret ovan är redan
-    // planerat — det uppslaget går på produkt-id och berörs inte.
-    plan.utanWixPris = true;
-    return plan;
-  }
-  if (pris < MIN_RIMLIGT_PRIS_SEK) {
-    plan.varning = { sku, fran: gammalt, till: pris, andringPct: 0 };
-    return plan;
-  }
-  if (gammalt > 0) {
-    const andringPct = ((pris - gammalt) / gammalt) * 100;
-    if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
-      // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
-      // storleken är oftare en trasig feed-rad än en verklig prisändring.
-      plan.varning = { sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
-      return plan;
-    }
-    if (pris !== gammalt) {
-      plan.nyttPris = pris;
-      plan.nyLandad = nyLandad;
-    }
-    return plan;
-  }
-  if (pris > 0) {
-    plan.nyttPris = pris;
-    plan.nyLandad = nyLandad;
-  }
+  const pr = planeraPris(row, m.konkurrent, m.prisgrupp, jamforelsePris(wixPris), sku, deps);
+  plan.konkurrent = pr.konkurrent;
+  plan.utanWixPris = pr.utanWixPris;
+  plan.varning = pr.varning;
+  plan.nyttPris = pr.nyttPris;
+  plan.nyLandad = pr.nyLandad;
   return plan;
+}
+
+/**
+ * Planen för en FÄRGSAMMANSLAGEN sida — en Aosom-artikel per variant.
+ *
+ * Varje variant planeras som en egen vanlig rad: sitt eget feedsaldo, sin egen
+ * skeppbarhet, sitt eget regelpris och sitt eget facit i butiken. Det enda
+ * som delas är raden — prislåset och prisgruppen gäller hela sidan.
+ *
+ * ☠️ KONKURRENTPRISET GÄLLER BARA RADENS EGEN ARTIKEL. `konkurrent` på raden
+ * hämtas för radens artikelnummer (lib/pricing/konkurrentpris-plan.ts), alltså
+ * för den FÖRSTA färgen. Att låta den styra den andra färgen hade satt ett pris
+ * räknat på en annan artikels konkurrentpris. Övriga färger får husets regel,
+ * vilket är exakt vad de hade som egna sidor före sammanslagningen.
+ *
+ * ☠️ FACIT ÄR VARIANTENS PRIS I BUTIKEN, INTE PRODUKTENS. Saknas det skrivs
+ * inget pris på den varianten — samma hållning som "saknas" i `jamforelsePris`.
+ */
+export function planeraFlerartikel(
+  m: ProductMappingRecord,
+  bild: Extract<AosomArtikelbild, { typ: "flera" }>,
+  perSku: ReadonlyMap<string, AosomRow>,
+  variantPriser: ReadonlyMap<string, number> | undefined,
+  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+  opts: Pick<AosomSyncOptions, "skipPrices">,
+): Produktplan {
+  const varianter: VariantPlan[] = [];
+  const varningar: NonNullable<Produktplan["varning"]>[] = [];
+  const plan: Produktplan = {
+    sku: bild.artikel,
+    m,
+    variant: m.variants?.[0],
+    nyttSaldo: null,
+    onskatSaldo: 0,
+    nyttPris: null,
+    nyLandad: null,
+    urFeeden: false,
+    slutsald: false,
+    ejSkeppbar: false,
+    utanWixPris: false,
+    prisLast: false,
+    konkurrent: null,
+    varning: null,
+    varianter,
+  };
+
+  for (const va of bild.varianter) {
+    const row = perSku.get(va.artikel);
+    const feedSaldo = row ? synligtSaldo(row.qty) : 0;
+    const ejSkeppbar = !!row && !harVerkligSeFrakt(row);
+    const onskat = ejSkeppbar ? 0 : feedSaldo;
+    const synkat = m.variants[va.index]?.aosomSyncedQty;
+    const vp: VariantPlan = {
+      index: va.index,
+      artikel: va.artikel,
+      wixVariantId: va.wixVariantId,
+      sku: va.sku,
+      onskatSaldo: onskat,
+      nyttSaldo: synkat !== onskat ? onskat : null,
+      nyttPris: null,
+      nyLandad: null,
+    };
+    varianter.push(vp);
+    if (!row) plan.urFeeden = true;
+    if (ejSkeppbar) plan.ejSkeppbar = true;
+    if (row && !ejSkeppbar && feedSaldo === 0) plan.slutsald = true;
+
+    if (!row || ejSkeppbar || opts.skipPrices) continue;
+    if (m.prisLast) {
+      plan.prisLast = true;
+      continue;
+    }
+    const egen = va.artikel === bild.artikel;
+    const pris = variantPriser?.get(va.wixVariantId);
+    const pr = planeraPris(
+      row,
+      egen ? m.konkurrent : undefined,
+      m.prisgrupp,
+      typeof pris === "number" ? { pris } : "saknas",
+      va.artikel,
+      deps,
+    );
+    if (egen) plan.konkurrent = pr.konkurrent;
+    if (pr.utanWixPris) plan.utanWixPris = true;
+    if (pr.varning) varningar.push(pr.varning);
+    vp.nyttPris = pr.nyttPris;
+    vp.nyLandad = pr.nyLandad;
+  }
+
+  plan.onskatSaldo = varianter.reduce((sum, v) => sum + v.onskatSaldo, 0);
+  plan.nyttSaldo = varianter.some((v) => v.nyttSaldo !== null) ? plan.onskatSaldo : null;
+  plan.varning = varningar[0] ?? null;
+  if (varningar.length > 1) plan.fleraVarningar = varningar.slice(1);
+  return plan;
+}
+
+/**
+ * Planen för en TVETYDIG rad: skriv inget pris, nolla lagret, stämpla aldrig.
+ *
+ * ☠️ NOLLAT, INTE ORÖRT. Går det inte att avgöra vilken artikel en variant är,
+ * går det inte heller att veta vilket saldo den har — och den gamla vägen hade
+ * skrivit radens saldo på varje variant. En vara vi inte vet om vi kan leverera
+ * ska inte gå att köpa. Raden stämplas aldrig, så varje körning säger det igen.
+ */
+export function planeraTvetydig(m: ProductMappingRecord, sku: string, skal: string): Produktplan {
+  return {
+    sku,
+    m,
+    variant: m.variants?.[0],
+    nyttSaldo: null,
+    onskatSaldo: 0,
+    nyttPris: null,
+    nyLandad: null,
+    urFeeden: false,
+    slutsald: false,
+    ejSkeppbar: false,
+    utanWixPris: false,
+    prisLast: false,
+    konkurrent: null,
+    varning: null,
+    tvetydig: skal,
+  };
+}
+
+/**
+ * Lagerraderna EN produkt ska skriva, ur planen och butikens lagerposter. Ren.
+ *
+ *   - vanlig rad: radens saldo på produktens poster, som förut.
+ *   - sammanslagen sida: varje variants eget saldo på varje variants post.
+ *   - tvetydig rad: noll på allt som inte redan är noll.
+ *
+ * ☠️ OKÄNDA VARIANTER NOLLAS. Har produkten mer än en lagerpost och bär någon
+ * av dem ett variant-id som mappningen inte känner till, får den posten noll —
+ * aldrig radens saldo. Det är läget efter en sammanslagning där Wix fick den
+ * nya färgen men mappningen inte skrevs: den gamla vägen hade sålt den nya
+ * färgen på den gamla färgens lager. En produkt med EN lagerpost skrivs som
+ * förut oavsett id — där finns ingen annan variant att förväxla den med.
+ *
+ * `saknas` betyder att en planerad skrivning inte hade någon post att landa
+ * på: räknas i `utanLagerrader`, stämplas inte.
+ */
+export function lagerraderForProdukt(
+  p: Produktplan,
+  poster: ReadonlyArray<AosomLagerpost>,
+): { rader: { id: string; revision: string; quantity: number }[]; saknas: boolean; okanda: number } {
+  const rad = (x: AosomLagerpost, quantity: number) => ({ id: x.id, revision: x.revision, quantity });
+
+  if (p.tvetydig) {
+    return { rader: poster.filter((x) => x.quantity !== 0).map((x) => rad(x, 0)), saknas: false, okanda: 0 };
+  }
+
+  if (p.varianter) {
+    const perVariant = new Map(p.varianter.map((v) => [v.wixVariantId, v]));
+    const rader: { id: string; revision: string; quantity: number }[] = [];
+    let okanda = 0;
+    for (const x of poster) {
+      const v = x.variantId ? perVariant.get(x.variantId) : undefined;
+      if (v) {
+        if (v.nyttSaldo !== null) rader.push(rad(x, v.nyttSaldo));
+        continue;
+      }
+      okanda++;
+      if (x.quantity !== 0) rader.push(rad(x, 0));
+    }
+    const saknas = p.varianter.some(
+      (v) => v.nyttSaldo !== null && !poster.some((x) => x.variantId === v.wixVariantId),
+    );
+    return { rader, saknas, okanda };
+  }
+
+  const kanda = new Set(
+    (p.m.variants ?? []).map((v) => (v.wixVariantId ?? "").trim()).filter(Boolean),
+  );
+  const okanda = poster.length > 1 && kanda.size > 0
+    ? poster.filter((x) => !!x.variantId && !kanda.has(x.variantId))
+    : [];
+  const egna = poster.filter((x) => !okanda.includes(x));
+  const rader: { id: string; revision: string; quantity: number }[] = [];
+  if (p.nyttSaldo !== null) for (const x of egna) rader.push(rad(x, p.nyttSaldo));
+  for (const x of okanda) if (x.quantity !== 0) rader.push(rad(x, 0));
+  return { rader, saknas: p.nyttSaldo !== null && egna.length === 0, okanda: okanda.length };
+}
+
+/**
+ * Mappningsraden efter en skrivning på en sammanslagen sida. Stämplar BARA det
+ * som faktiskt skrevs: saldot per variant (när lagret gick igenom) och priset
+ * per variant (bara de varianter vars prisskrivning lyckades).
+ *
+ * Radens `aosomSyncedQty` blir summan av varianternas — sidans totala saldo,
+ * vilket är vad de få läsarna av radens fält frågar efter.
+ */
+function flerartikelStampel(
+  p: Produktplan,
+  skrevLager: boolean,
+  prisSkrivna: ReadonlyArray<VariantPlan>,
+  usdToSek: number,
+  nu: number,
+): ProductMappingRecord {
+  const lager = new Map((p.varianter ?? []).filter((v) => v.nyttSaldo !== null).map((v) => [v.index, v]));
+  const priser = new Map(prisSkrivna.map((v) => [v.index, v]));
+  const variants = (p.m.variants ?? []).map((v, idx) => {
+    let ut = v;
+    const l = skrevLager ? lager.get(idx) : undefined;
+    if (l) ut = { ...ut, aosomSyncedQty: l.onskatSaldo };
+    const pr = priser.get(idx);
+    if (pr && pr.nyttPris !== null && pr.nyLandad !== null) {
+      ut = { ...ut, grossSek: pr.nyttPris, landedCostSek: pr.nyLandad, costUsd: pr.nyLandad / usdToSek };
+    }
+    return ut;
+  });
+  const synkade = variants
+    .map((v) => v.aosomSyncedQty)
+    .filter((q): q is number => typeof q === "number");
+  return {
+    ...p.m,
+    ...(skrevLager
+      ? { aosomSyncedQty: synkade.reduce((a, b) => a + b, 0), aosomSyncedAt: new Date(nu).toISOString() }
+      : {}),
+    variants,
+  };
 }
 
 /**
@@ -570,12 +897,36 @@ export async function runAosomSync(
   const perSku = new Map(feed.map((r) => [r.sku, r]));
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
 
+  // `sku` är RADENS artikel även på en färgsammanslagen sida — den bär
+  // markören, så `?after=` betyder samma sak som förut. Artikeln per variant
+  // står i `bild` (lib/aosom/artiklar.ts). `?sku=` träffar en sammanslagen
+  // sida på vilken som helst av dess artiklar.
   const mappningar = (await deps.listAosom())
     .filter((m) => !!m.wixProductId)
-    .map((m) => ({ m, sku: (m.supplierProductId ?? "").slice(aosomSupplierProductId("").length) }))
-    .filter((x) => x.sku && (!onlySkus || onlySkus.has(x.sku)))
+    .map((m) => ({ m, sku: radensArtikel(m), bild: aosomArtikelbild(m) }))
+    .filter((x) => x.sku && (!onlySkus || aosomArtiklarPaRaden(x.m).some((a) => onlySkus.has(a))))
     .filter((x) => !opts.after || x.sku.localeCompare(opts.after) > 0)
     .sort((a, b) => a.sku.localeCompare(b.sku));
+
+  // ── PRISER PER VARIANT, FÖR DE SAMMANSLAGNA SIDORNA ────────────────────
+  // En sida vars färger kostar olika har inget produktpris att jämföra mot —
+  // `jamforelsePris` svarar "flera". Facit läses därför per variant, ett GET
+  // per sammanslagen sida. Faller läsningen bär `prislistaFel` det, och de
+  // sidorna får inget pris skrivet: samma hållning som för hela prislistan.
+  let variantPriser = new Map<string, Map<string, number>>();
+  const flerartikelIdn = mappningar.filter((x) => x.bild.typ === "flera").map((x) => x.m.wixProductId);
+  if (!opts.skipPrices && flerartikelIdn.length > 0) {
+    if (!deps.lasVariantPriser) {
+      prislistaFel = `${prislistaFel ? `${prislistaFel}; ` : ""}priser per variant går inte att läsa i den här körningen`;
+    } else {
+      try {
+        variantPriser = await deps.lasVariantPriser(flerartikelIdn);
+      } catch (err) {
+        const fel = err instanceof Error ? err.message : String(err);
+        prislistaFel = `${prislistaFel ? `${prislistaFel}; ` : ""}priserna per variant gick inte att läsa: ${fel}`;
+      }
+    }
+  }
 
   const summary: AosomSyncSummary = {
     dryRun,
@@ -596,6 +947,9 @@ export async function runAosomSync(
     prislistaFel,
     utanLagerrader: 0,
     lagerDrift: 0,
+    flerartikelrader: 0,
+    okandaVarianter: 0,
+    tvetydiga: 0,
     misslyckade: 0,
     kvar: mappningar.length,
     cursor: null,
@@ -639,8 +993,12 @@ export async function runAosomSync(
     // hämtades före loopen. Att räkna först och skriva sedan är vad som gör
     // batchningen möjlig: vi vet vilka rader som ska med i anropet innan vi
     // gör det.
-    const planer = tugga.map(({ m, sku }) =>
-      planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, opts),
+    const planer = tugga.map(({ m, sku, bild }) =>
+      bild.typ === "flera"
+        ? planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, opts)
+        : bild.typ === "tvetydig"
+          ? planeraTvetydig(m, sku, bild.skal)
+          : planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, opts),
     );
 
     summary.granskade += tugga.length;
@@ -656,7 +1014,10 @@ export async function runAosomSync(
       if (p.konkurrent?.typ === "tak") summary.konkurrentTak++;
       if (p.konkurrent?.typ === "golv") summary.konkurrentGolv++;
       if (p.konkurrent?.typ === "fryst") summary.konkurrentFrysta++;
-      if (p.varning) summary.varningar.push(p.varning);
+      if (p.varianter) summary.flerartikelrader++;
+      if (p.tvetydig) summary.tvetydiga++;
+      if (p.varning) summary.varningar.push({ ...p.varning, wixProductId: p.m.wixProductId });
+      for (const v of p.fleraVarningar ?? []) summary.varningar.push({ ...v, wixProductId: p.m.wixProductId });
     }
 
     // ── FAS 2: LÄS LAGERPOSTERNA FÖR HELA TUGGAN, I ETT ANROP ────────────
@@ -682,6 +1043,17 @@ export async function runAosomSync(
     if (!lasfel) {
       for (const p of planer) {
         const poster = posterPerProdukt.get(p.m.wixProductId) ?? [];
+        if (p.tvetydig) continue;
+        if (p.varianter) {
+          // Per variant: variantens post mot variantens stämpel.
+          const driver = p.varianter.some((v) => {
+            const iButiken = poster.find((x) => x.variantId === v.wixVariantId)?.quantity;
+            const synkat = p.m.variants[v.index]?.aosomSyncedQty;
+            return typeof iButiken === "number" && typeof synkat === "number" && iButiken !== synkat;
+          });
+          if (driver) summary.lagerDrift++;
+          continue;
+        }
         const iButiken = poster[0]?.quantity;
         if (
           typeof iButiken === "number"
@@ -696,30 +1068,30 @@ export async function runAosomSync(
     // ── FAS 3: SKRIV SALDONA I KLUMP ─────────────────────────────────────
     /** wixProductId → lagerskrivningen gick igenom (eller behövdes inte). */
     const lagerOk = new Map<string, boolean>();
+    /** Produkter där en planerad skrivning inte hade någon lagerrad att landa på. */
+    const saknarRad = new Set<string>();
+    /** wixProductId → antal Wix-varianter som mappningen inte känner till. */
+    const okandaPerProdukt = new Map<string, number>();
     const rader: { id: string; revision: string; quantity: number; produkt: string }[] = [];
-
     for (const p of planer) {
-      if (p.nyttSaldo === null) continue;
+      const pid = p.m.wixProductId;
       if (lasfel) {
-        lagerOk.set(p.m.wixProductId, false);
+        if (p.nyttSaldo !== null) lagerOk.set(pid, false);
         continue;
       }
-      const poster = posterPerProdukt.get(p.m.wixProductId) ?? [];
-      if (poster.length === 0) {
+      // Raderna räknas ur planen och butikens poster — se lagerraderForProdukt
+      // för hur en sammanslagen sida, en tvetydig rad och en okänd variant
+      // hanteras. En vanlig rad får exakt samma rader som förut.
+      const utfall = lagerraderForProdukt(p, posterPerProdukt.get(pid) ?? []);
+      if (utfall.okanda > 0) okandaPerProdukt.set(pid, utfall.okanda);
+      if (utfall.saknas) {
         // ☠️ Räknas, stämplas inte. Den gamla vägen svarade tyst `return` här
         // och bokförde ändå produkten som synkad — för alltid.
         summary.utanLagerrader++;
-        lagerOk.set(p.m.wixProductId, false);
-        continue;
+        saknarRad.add(pid);
+        lagerOk.set(pid, false);
       }
-      for (const post of poster) {
-        rader.push({
-          id: post.id,
-          revision: post.revision,
-          quantity: p.nyttSaldo,
-          produkt: p.m.wixProductId,
-        });
-      }
+      for (const r of utfall.rader) rader.push({ ...r, produkt: pid });
     }
 
     if (rader.length > 0 && !dryRun) {
@@ -737,12 +1109,12 @@ export async function runAosomSync(
         // lager är svårare att upptäcka än orört: mappningen hade sagt
         // "synkad" medan en variant stod kvar på gammalt saldo.
         for (const produkt of new Set(rader.map((r) => r.produkt))) {
-          lagerOk.set(produkt, !felPerProdukt.has(produkt));
+          lagerOk.set(produkt, !felPerProdukt.has(produkt) && !saknarRad.has(produkt));
         }
         for (const [produkt, fel] of felPerProdukt) {
           const p = planer.find((x) => x.m.wixProductId === produkt);
           summary.misslyckade++;
-          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+          summary.errors.push({ sku: p?.sku ?? produkt, wixProductId: produkt, error: fel });
         }
       } catch (err) {
         // Hela anropet föll (nätverk, 4xx/5xx efter återförsök). Ingen rad är
@@ -752,13 +1124,28 @@ export async function runAosomSync(
         for (const produkt of new Set(rader.map((r) => r.produkt))) {
           const p = planer.find((x) => x.m.wixProductId === produkt);
           summary.misslyckade++;
-          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+          summary.errors.push({ sku: p?.sku ?? produkt, wixProductId: produkt, error: fel });
         }
       }
     } else {
       // Torrläge, eller inga saldon att skriva: allt som skulle skrivas räknas
       // som lyckat, precis som förr.
-      for (const produkt of new Set(rader.map((r) => r.produkt))) lagerOk.set(produkt, true);
+      for (const produkt of new Set(rader.map((r) => r.produkt))) {
+        lagerOk.set(produkt, !saknarRad.has(produkt));
+      }
+    }
+
+    // ☠️ OKÄNDA VARIANTER SKA SYNAS, INTE BARA NOLLAS. Nollningen gör sidan
+    // säker; talet är det som får någon att laga mappningen. Står i torrläge
+    // också — det är där den ska upptäckas, före en skarp körning.
+    for (const [pid, antal] of okandaPerProdukt) {
+      const p = planer.find((x) => x.m.wixProductId === pid);
+      summary.okandaVarianter += antal;
+      summary.errors.push({
+        sku: p?.sku ?? pid,
+        wixProductId: pid,
+        error: `${antal} variant(er) i Wix som mappningen inte känner till — deras lager nollas`,
+      });
     }
 
     // Lässkadan bokförs en gång per drabbad produkt, efter att raderna räknats.
@@ -766,7 +1153,11 @@ export async function runAosomSync(
       for (const p of planer) {
         if (p.nyttSaldo === null) continue;
         summary.misslyckade++;
-        summary.errors.push({ sku: p.sku, error: `lagerposterna gick inte att läsa: ${lasfel}` });
+        summary.errors.push({
+          sku: p.sku,
+          wixProductId: p.m.wixProductId,
+          error: `lagerposterna gick inte att läsa: ${lasfel}`,
+        });
       }
     }
 
@@ -775,6 +1166,14 @@ export async function runAosomSync(
     // produkt-id), så den delen kan inte batchas. Den är också den lilla
     // delen: efter konvergens vill nästan inga priser skrivas.
     for (const p of planer) {
+      if (p.tvetydig) {
+        summary.errors.push({
+          sku: p.sku,
+          wixProductId: p.m.wixProductId,
+          error: `mappningen är tvetydig: ${p.tvetydig} — lagret nollas tills raden är rättad`,
+        });
+        continue;
+      }
       const skrevLager = p.nyttSaldo !== null;
       if (skrevLager && lagerOk.get(p.m.wixProductId) !== true) continue;
 
@@ -782,7 +1181,37 @@ export async function runAosomSync(
         if (skrevLager) summary.lagerUppdaterade++;
 
         let skrevPris = false;
-        if (p.nyttPris !== null && p.nyLandad !== null && p.variant) {
+        /** Sammanslagen sida: de varianter vars pris faktiskt skrevs. */
+        const prisSkrivna: VariantPlan[] = [];
+        if (p.varianter) {
+          // ☠️ EN VARIANT I TAGET, och ett fel fäller bara den varianten. Gick
+          // den första färgens pris igenom ska det stämplas även om den andras
+          // föll — annars jämför nästa körning mot butiken, ser rätt pris och
+          // lämnar mappningens tal gammalt för alltid.
+          for (const v of p.varianter) {
+            if (v.nyttPris === null || v.nyLandad === null) continue;
+            try {
+              if (!dryRun) {
+                await deps.setPrice(
+                  p.m.wixProductId,
+                  { wixVariantId: v.wixVariantId, sku: v.sku },
+                  v.nyttPris,
+                  v.nyLandad,
+                );
+              }
+              summary.prisUppdaterade++;
+              prisSkrivna.push(v);
+              skrevPris = true;
+            } catch (err) {
+              summary.misslyckade++;
+              summary.errors.push({
+                sku: v.artikel,
+                wixProductId: p.m.wixProductId,
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+        } else if (p.nyttPris !== null && p.nyLandad !== null && p.variant) {
           if (!dryRun) {
             await deps.setPrice(
               p.m.wixProductId,
@@ -812,27 +1241,33 @@ export async function runAosomSync(
         // bara priset behåller fältet sitt gamla värde, så nästa körning
         // fortfarande ser att saldot vill skrivas.
         if (!dryRun) {
-          const uppdaterad: ProductMappingRecord = {
-            ...p.m,
-            ...(skrevLager
-              ? { aosomSyncedQty: p.onskatSaldo, aosomSyncedAt: new Date(now()).toISOString() }
-              : {}),
-            variants: (p.m.variants ?? []).map((v, idx) =>
-              idx === 0 && p.nyttPris !== null && p.nyLandad !== null
-                ? {
-                    ...v,
-                    grossSek: p.nyttPris,
-                    landedCostSek: p.nyLandad,
-                    costUsd: p.nyLandad / deps.fx.usdToSek,
-                  }
-                : v,
-            ),
-          };
+          const uppdaterad: ProductMappingRecord = p.varianter
+            ? flerartikelStampel(p, skrevLager, prisSkrivna, deps.fx.usdToSek, now())
+            : {
+                ...p.m,
+                ...(skrevLager
+                  ? { aosomSyncedQty: p.onskatSaldo, aosomSyncedAt: new Date(now()).toISOString() }
+                  : {}),
+                variants: (p.m.variants ?? []).map((v, idx) =>
+                  idx === 0 && p.nyttPris !== null && p.nyLandad !== null
+                    ? {
+                        ...v,
+                        grossSek: p.nyttPris,
+                        landedCostSek: p.nyLandad,
+                        costUsd: p.nyLandad / deps.fx.usdToSek,
+                      }
+                    : v,
+                ),
+              };
           await deps.saveMapping(uppdaterad);
         }
       } catch (err) {
         summary.misslyckade++;
-        summary.errors.push({ sku: p.sku, error: err instanceof Error ? err.message : String(err) });
+        summary.errors.push({
+          sku: p.sku,
+          wixProductId: p.m.wixProductId,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }
@@ -890,6 +1325,13 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
         (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
       ),
     lasLagerposter: (ids) => wix.queryInventoryItemsByProductIds(ids),
+    // Ett GET per färgsammanslagen sida, en i taget — de är få, och ett fel
+    // ska fälla prisdelen synligt (`prislistaFel`), inte gissas förbi.
+    lasVariantPriser: async (ids) => {
+      const ut = new Map<string, Map<string, number>>();
+      for (const id of ids) ut.set(id, await v3.getV3VariantPriser(id));
+      return ut;
+    },
     // Pacingen ligger kvar trots att anropen är ~40 i stället för ~2 000.
     // Den kostar fem sekunder på ett helt svep och är den enda kuren mot en
     // strypning som utlöses av tempo — se `aosomSkrivPausMs`.

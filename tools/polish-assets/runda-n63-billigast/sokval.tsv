@@ -1,0 +1,10 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord
+fa1fdcbf	toalettpall	390	18	toalett pall; pall toalett; bajspall
+071dbdf8	badrumshylla	8100	28	badrumshyllor; hylla badrum; smal hylla; badrumshylla bambu
+c0c2822f	julbelysning utomhus	6600	21	gatlykta; juldekoration utomhus; julbelysning; lyktstolpe utomhus
+60e250d4	snöskyffel med hjul	210	11	snöplog; snöskyffel aluminium; snöskyffel bred; snöskovel
+# Publicerade namn och slugar med huvudordet, sökta i butikens sökning 2026-09-24: toalettpall 0, badrumshylla 0, julbelysning 0, gatlykta 0, snöskyffel med hjul 0 (snöskyffel 1).
+# fa1fdcbf: toalettpall (390, 18) bärs inte av någon publicerad sida. bajspall (880, 18) står en gång i texten, squatty potty (590, 63) är ett varumärke och används inte.
+# 071dbdf8: bambuhylla (260, 11) bärs av två publicerade bambuhyllor. Rundan tar badrumshylla (8 100, 28), som inget publicerat namn bär.
+# c0c2822f: lyktstolpe (2 400, 14) bärs av den publicerade julyktstolpen och fem solcellslampor. Rundan tar julbelysning utomhus (6 600, 21) med gatlykta (320, 20) i namnet.
+# 60e250d4: snöskyffel (9 900, 22) bärs av den publicerade snöskyffeln på 45 cm. Rundan tar snöskyffel med hjul (210, 11) och snöplog (1 300, 11).

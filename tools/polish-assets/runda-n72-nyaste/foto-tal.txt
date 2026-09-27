@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+a32e2efa 2 skåpet har två lamelldörrar, avlästa på produktfotot (bild 1, 2 och 5)

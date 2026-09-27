@@ -89,6 +89,51 @@ describe("byggTillaggsfeed", () => {
   });
 });
 
+describe("byggTillaggsfeed — färgsammanslagna sidor", () => {
+  // En sammanslagen sida bär en artikel per färg (lib/aosom/artiklar.ts).
+  // Syntetiska artikelnummer: riktiga får aldrig stå här.
+  function sammanslagen(over: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
+    const bas = mappning("S-1");
+    return {
+      ...bas,
+      variants: [bas.variants[0], { ...bas.variants[0], supplierVariantId: "S-2", sku: "FP-S-2", wixVariantId: variantId("S-2") }],
+      ...over,
+    };
+  }
+  const konkurrent = { pris: 3000, hamtad: "2026-09-27T00:00:00Z" };
+
+  it("☠️ en rad per färg på färgens eget pris — sidan faller inte ur kampanjen", () => {
+    // Färgerna kostar olika, så produktens pris är ett spann (null). Den gamla
+    // vägen gav då sidan ingen etikett alls.
+    const u = byggTillaggsfeed(
+      [sammanslagen({ prisgrupp: "A", konkurrent })],
+      priser({ "wix-S-1": null }),
+      new Map([["wix-S-1", new Map([[variantId("S-1"), 2499], [variantId("S-2"), 1899]])]]),
+    );
+    expect(u.rader).toEqual([
+      { id: variantId("S-1"), custom_label_0: "A", custom_label_1: "2000_4000", custom_label_2: "under_dealproffsen" },
+      // Den andra färgen har ingen jämförelse och är därför inte med i kampanjen.
+      { id: variantId("S-2"), custom_label_0: "", custom_label_1: "1000_2000", custom_label_2: "ingen_jamforelse" },
+    ]);
+    expect(u.perGrupp).toEqual({ A: 1, B: 0, ingen: 1 });
+    expect(u.utanPris).toBe(0);
+  });
+
+  it("ett entydigt produktpris gäller alla färger när variantpriset saknas", () => {
+    const u = byggTillaggsfeed([sammanslagen()], priser({ "wix-S-1": 1499 }));
+    expect(u.rader.map((r) => [r.id, r.custom_label_1])).toEqual([
+      [variantId("S-1"), "1000_2000"],
+      [variantId("S-2"), "1000_2000"],
+    ]);
+  });
+
+  it("☠️ utan något pris får färgen ingen etikett — aldrig en gissning", () => {
+    const u = byggTillaggsfeed([sammanslagen()], priser({ "wix-S-1": null }));
+    expect(u.rader).toEqual([]);
+    expect(u.utanPris).toBe(2);
+  });
+});
+
 describe("tillTsv", () => {
   it("rubrikrad + en rad per produkt, TSV-säkra fält", () => {
     const tsv = tillTsv([{ id: "v\t1", custom_label_0: "A", custom_label_1: "2000_4000", custom_label_2: "x" }]);

@@ -502,6 +502,45 @@ sextimmarstak, med marginal nog att hinna committa markören.
 `tools/aosom/sweep.sh` finns kvar för den som hellre kör från en terminal och
 har `CRON_SECRET` för handen.
 
+### ☠️ Artikelnumret når aldrig en Actions-logg (2026-09-27)
+
+Granskat lokalt, utan att ett enda nummer skrevs ut: **142 publika loggar** bar
+Aosoms artikelnummer — 28 av 35 synkkörningar, alla 29 importkörningar, 42 av
+53 feedsökningar och 43 av 57 ommappningar. **29 av feedsökningarna bar
+dessutom inköpspriset bredvid numret.** Loggarna är raderade. Kanalerna var
+fem, och alla är stängda:
+
+| kanal | var | lagning |
+|---|---|---|
+| hårdkodade nummer i källan | importens `rökprov` | GitHub skriver ut källan i VARJE körning; `rökprov` tar nu `limit=3` |
+| markören i varvsraden, summeringen, markörfilen och commitmeddelandet | import, bildfix | rutterna **förseglar** markören (`lib/aosom/markor.ts`, AES-256-GCM, nyckel ur `CRON_SECRET`) |
+| `\(.sku)` i utskrifter | synkens prisvarningar och "exempel-artikelnummer", bildfixens fel | Wix-id i stället — `wixProductId` finns i synkens och bildfixens `errors`/`varningar` |
+| inputen i env-blocket | synkens `sku`, importens `after`, ommappningens `sku`, feedsökningens `q` | eget steg **"Maskera"** före det steg som läser den |
+| numret, Aosom-länken och priset som standard | feedsökningen | bara i kuvertet; `visa_pris` är borttagen |
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Maskeringen ligger i ett EGET steg.** Ett stegs env-block skrivs ut
+   innan dess skript kör, så `::add-mask::` i samma steg kommer för sent.
+   Värdet läses ur `$GITHUB_EVENT_PATH`, aldrig via `env:` eller `${{ }}`.
+2. ☠️ **En förseglad markör som inte går att öppna är 400**, inte "börja om".
+   En handskriven markör i klartext tas fortfarande emot.
+3. **`redigera()` i workflowerna är sista skyddet, inte det första.** Fritext
+   (felkroppar, produktnamn) har ingen form att lita på.
+4. ☠️ **gatelibs `ARTNR` missar två former som finns i drift:** tre siffror–tre
+   siffror utan svans, och siffra-bokstav-siffra. Den första går inte att
+   skilja från ett intervall på formen, så den stängs av kanalreglerna ovan.
+
+Grinden är `lib/workflows/artikelnummer-i-logg.test.ts` — tvilling till
+`kostnad-i-logg.test.ts`. Den fäller på ett nummer i en workflow-källa, en
+interpolation av ett artikelfält, en utskriven anrops-URL, en markör i ett
+commitmeddelande och en artikel-input utan maskeringssteg. Verifierad genom att
+återinföra varje gammalt fel: sju av sju fälls, var och en av exakt en regel.
+
+⚠️ **Lagningen biter först när den ligger på `main`** — `workflow_dispatch`
+kör `main` som default (se "En OMERGAD gren skyddar ingenting"). Git-historiken
+bär fortfarande de gamla numren; den skrivs inte om utan Leonards uttryckliga ja.
+
 ### Fyra saker som inte ska tas bort
 
 1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,
@@ -834,7 +873,7 @@ ha ett pris som satts av något annat än kostnaden.
 
 Fallet som byggde låset: kontorsstolen `f13cd415` såldes som AliExpress-vara på
 **1 299 kr**. Leonards regel 2026-09-05 (*"alla ska peka om mot Aosom DE oavsett
-om de är billigare eller inte"*) mappade om den till `921-672V00BG`, och därmed
+om de är billigare eller inte"*) mappade om den till `‹REDIGERAT›`, och därmed
 gäller Aosom-regeln på raden: nästa synk hade skrivit **1 099 kr**. Sänkningen
 kom av att vi bytte LEVERANTÖR, inte av att marknaden rört sig — och kunderna
 betalar redan 1 299.
@@ -921,7 +960,7 @@ Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` ha
 Orsaken är en förväxling av två helt olika nycklar som båda heter `sku`:
 
 ```ts
-.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "839-835V01CG"
+.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "‹REDIGERAT›"
 setStock: async (wixProductId, _sku, antal) => { … }        // IGNORERAR den → fungerade
 setPrice: async (wixProductId, sku, …) => updateV3VariantPrices(…, [{ sku }])  // fel nyckel
 ```
@@ -1186,7 +1225,7 @@ handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
 hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
-via `aliexpress.ds.order.create`. En Aosom-mappning bär "845-030CG" i exakt
+via `aliexpress.ds.order.create`. En Aosom-mappning bär "‹REDIGERAT›" i exakt
 samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
 uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
 Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
@@ -1256,7 +1295,7 @@ letat efter, och den ligger i AliExpress egen produktbeskrivning:
 ● material: pu (60% polyurethane, 40% base fabric), foam, mdf, metal
 ● total measurements: 41x47x92 cm (wxdxh)
 ● maximum load: 130 kg
-● reference: 83a-526v00rb          ← Aosoms artikelnummer
+● reference: ‹REDIGERAT›          ← Aosoms artikelnummer
 ```
 
 Uppmätt på `1005012777765014` (`ae_item_base_info_dto.detail`, via
@@ -1278,9 +1317,9 @@ dealproffsen.se publicerar som `sku`/`mpn` — se poleringsavsnittet. Det hör
 hemma på `supplierProductId` och ingen annanstans.
 
 ⚠️ **Och en träff i beskrivningen är inte en träff i feeden.** Barstolen
-`83A-526V00RB` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
+`‹REDIGERAT›` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
 har **noll träffar i B2B-feedens 6 067 rader** — varken den färgen eller någon
-annan `83A-526`. Aosoms egen guide säger att artiklar med lågt saldo plockas
+annan `‹REDIGERAT›`. Aosoms egen guide säger att artiklar med lågt saldo plockas
 bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
 sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
 ggr/dygn) innan slutsatsen dras.
@@ -1385,6 +1424,76 @@ raden och läser aldrig tillståndet igen. Aosom-synken äger raden från nästa
 Dubbletten **raderas inte** — den får `draftStatus: "rejected"` och
 `needsAiPolish: false`. Ett osynligt utkast kostar ingenting medan det ligger,
 och en radering går inte att ångra om matchningen visar sig vara fel.
+
+### Färgsammanslagning: ett utkast blir en FÄRG på en publicerad sida (2026-09-27)
+
+Leonards fråga: dubblettskärmen hittar utkast som är samma vara som en
+publicerad sida i en annan färg — kan de bli ett andra färgval på sidan, med
+kopplad bild? Svaret är ja, men bara för att koden först lärt sig att en sida
+kan bära **en Aosom-artikel per variant**. Före det läste varje väg radens
+artikel för hela sidan, och en sammanslagning hade gett tre dyra fel: synken
+hade skrivit den ena färgens saldo på båda (vi säljer en färg Aosom inte har),
+beställningsfilen hade beställt fel färg, och importen hade skapat ett nytt
+utkast för den andra färgen.
+
+`lib/aosom/artiklar.ts` (`aosomArtikelbild`) är den enda definitionen, med tre
+utfall: `en` (radens artikel, **exakt som förut** — varje befintlig rad),
+`flera` (en artikel per variant) och `tvetydig` (olika artiklar men inte
+entydigt läsbar — då nollas lagret och ordern hålls). Läsarna:
+
+| väg | vad den gör med en sammanslagen sida |
+|---|---|
+| synken (`lib/aosom/sync.ts`) | saldo och pris PER VARIANT, facit per variant (`getV3VariantPriser`) |
+| beställningsfilen (`aosom-order`) | artikeln väljs på orderradens variant-id, sedan SKU, sedan val |
+| importens dubblettspärr | ser varianternas artiklar |
+| ommappningen | en artikel som sitter som färg är upptagen |
+| bildfixen | hoppar över sidan (`sammanslagnaHoppade`) |
+| Google-tilläggsfeeden | en rad per färg; grupp och konkurrensläge bara för radens egen artikel |
+| poleringens bildsteg | vägrar en lista som tappar en bild ett färgval pekar på |
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Orderradens variant-id är NOLLAN för en produkt utan optioner** —
+   uppmätt på skarpa ordrar: `catalogReference.options.variantId =
+   "00000000-…"`, inte produktens V3-id. Nollan går aldrig att slå upp mot
+   mappningen; en order lagd före sammanslagningen matchas därför på SKU.
+   Tasken bär `wixVariantId` sedan 2026-09-27.
+2. ☠️ **Okända Wix-varianter NOLLAS i synken** (`okandaVarianter`, fäller
+   workflow-jobbet även i torrläge). Det är läget efter en halvgjord
+   sammanslagning: Wix fick färgen, mappningen gjorde det inte. Den gamla vägen
+   hade sålt den nya färgen på den gamla färgens lager. En produkt med EN
+   lagerpost skrivs som förut, vad dess id än är.
+3. ☠️ **Beställningsfilen håller hela ordern** när en rad inte går att avgöra —
+   en halv order är två leveranser och två fraktavgifter.
+4. ☠️ **Konkurrentpriset gäller bara radens EGEN artikel.** Det är hämtat för
+   den; den andra färgen får husets regel — exakt vad den hade som eget utkast.
+5. ☠️ **Sammanslagningen rör inget pris.** Den nya färgen får utkastets pris
+   som det står i butiken.
+6. ☠️ **Färgen och dess lager skrivs i SAMMA anrop**
+   (`products-with-inventory`), så den nya färgen finns aldrig med ett lager vi
+   inte satt. Faller skrivningen rullas bilderna tillbaka.
+7. **Utkastet pensioneras, raderas aldrig** (`pensioneraDubblett`). Artikeln
+   släpps från dess rad och bor sedan som färg på sidan vi behåller.
+8. ☠️ **Varukostnaden tas ur MAPPNINGEN, aldrig ur Wix.** `revenueDetails`
+   kommer bara med `fields=MERCHANT_DATA`, som kräver behörigheten
+   `SCOPE.STORES.PRODUCT_READ_ADMIN` — saknas den svarar Wix 403 och redan
+   planen faller. Båda varianterna får `landedCostSek` som kostnad, samma tal
+   importen skriver, och lagret följer varianten: `inventoryItem` bär bara
+   `quantity` (schemat har inget id där).
+
+**Så körs den:** workflowen **"Dubbletter — lägg ett utkast som färg på en
+publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sammanslagning`,
+logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
+körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
+får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
+oförändrad slug), och **bara utkastets huvudbild följer med** om du inte anger
+fler (`bilder`) — utkastet är opolerat och ingen har granskat dess bilder för
+tysk text eller husmärkets logotyp. Faller en körning halvvägs ser nästa att
+Wix redan är klart (`wix_klar`) och gör bara resten.
+
+⚠️ **Efter första deployen: kör synken i torrläge och läs `okandaVarianter`.**
+Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
+mappningen inte känner till — och de nollas vid nästa skarpa körning.
 
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
@@ -1750,8 +1859,8 @@ rader och underlaget kommer från de strukturerade kolumnerna i stället.
 raden räknade tidigare upp en sjätte etikett som koden aldrig har skrivit, och
 det stod kvar i månader. Uppmätt 2026-09-03 på live-sajten: **fyra publicerade
 produktsidor bär Aosoms artikelnummer i spec-tabellen** — `Artikelnummer:
-844-657V90MX`, `845-823V00GN`, och en som döpt om etiketten till
-`Modellreferens: 830-701V02WT`. Importen kan inte ha skrivit dem: `to-product.ts`
+‹REDIGERAT›`, `‹REDIGERAT›`, och en som döpt om etiketten till
+`Modellreferens: ‹REDIGERAT›`. Importen kan inte ha skrivit dem: `to-product.ts`
 sätter fem etiketter och `to-product.test.ts` fäller om numret dyker upp. De är
 alltså skrivna vid **poleringen**, av någon som läste den här listan.
 
@@ -2437,7 +2546,7 @@ Följden var exakt det par som feed-adressen är hemlig för att skydda:
 
 ```
 "costUsd": 132.33,  "landedCostSek": 1389.47,
-"supplierProductId": "aosom:921-815V00CW",
+"supplierProductId": "aosom:‹REDIGERAT›",
 "sourceUrl": "https://www.aosom.de/item/…"
 ```
 
@@ -2653,7 +2762,7 @@ oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/5
 
 ### Referenspriser är fiktion — båda hållen
 
-Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på 845-030CG där idealo
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på ‹REDIGERAT› där idealo
 listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
 siffran prissätter efter fantasi — avblåst.
 
@@ -2714,7 +2823,7 @@ prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
 
 ### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
 
-Leonard lade samma bod (`845-030CG`) i kassan på aosom.de två gånger, utloggad och
+Leonard lade samma bod (`‹REDIGERAT›`) i kassan på aosom.de två gånger, utloggad och
 inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
 varan dyrare.**
 
@@ -3247,7 +3356,7 @@ Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
 **Henriks mejl ÄR den skriften** — spara det.
 
 ⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
-publicerar `gtin13: 4255826873673` för artikel `83B-129V00GY`, och koderna är
+publicerar `gtin13: 4255826873673` för artikel `‹REDIGERAT›`, och koderna är
 mätt äkta (187/187 giltig kontrollsiffra, 186/187 TYSKT GS1-prefix 425x — en
 svensk återförsäljare kan inte få ett sådant). Någon tysk part har alltså
 registrerat koder för de här artiklarna. Henriks *"we do not provide or
@@ -3346,7 +3455,7 @@ raderade, och redigeringen täcker nu identifierarkolumner också.
 ⚠️ **Ryggtäckningen är på FORMEN, inte bara på namnet.** Döper Aosom om
 kolumnen imorgon glider namnlistan, och **en spärr man måste komma ihåg glöms
 bort** — samma argument som gjorde `AliExpressProductId` till en typ.
-`serUtSomArtikelnummer` fäller på mönstret `845-030CG` oavsett vad kolumnen
+`serUtSomArtikelnummer` fäller på mönstret `‹REDIGERAT›` oavsett vad kolumnen
 heter. Två tester, ett för namnet och ett för formen.
 
 **Utfallet av första körningen:** feeden har **6 085 rader**, EAN-kolumnen
@@ -4301,7 +4410,7 @@ kassa.
 
 Det lämnade en tyst lucka i motorn: ingenting kunde få veta att ordern var lagd, och
 när Aosom skickar paketet fanns ingen väg alls att få ut spårningen till kunden.
-Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen `921-471LG`): betald
+Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen `‹REDIGERAT›`): betald
 14:57, lagd för hand samma kväll, och tasken hade blivit liggande som `pending`
 medan vakten påminde om en order som redan var gjord.
 

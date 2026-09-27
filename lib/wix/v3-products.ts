@@ -894,6 +894,39 @@ export async function getV3ProductPris(productId: string): Promise<WixProduktPri
   return tolkaProduktPris(data.product);
 }
 
+/**
+ * Butikens pris PER VARIANT för en produkt: wixVariantId → pris i SEK.
+ *
+ * Facit för en färgsammanslagen Aosom-sida, där färgerna kan kosta olika och
+ * produktens `actualPriceRange` därför är ett spann (lib/aosom/sync.ts).
+ * `variantsInfo` finns aldrig i sökprojektionen — bara i ett GET per produkt,
+ * och där utan att behöva begäras.
+ *
+ * ☠️ En variant utan läsbart belopp utelämnas i stället för att bli 0. Ett
+ * saknat facit skriver inget pris; ett facit på noll hade sett ut som ett hopp
+ * från noll och passerat varje spärr som räknar i procent.
+ */
+export async function getV3VariantPriser(productId: string): Promise<Map<string, number>> {
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`,
+    { method: "GET", headers: headers() },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3VariantPriser(${productId}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    product?: { variantsInfo?: { variants?: { id?: string; price?: { actualPrice?: { amount?: string } } }[] } };
+  };
+  if (!data.product) throw new Error(`getV3VariantPriser(${productId}): tom payload`);
+  const ut = new Map<string, number>();
+  for (const v of data.product.variantsInfo?.variants ?? []) {
+    const pris = Number(v.price?.actualPrice?.amount);
+    if (v.id && Number.isFinite(pris) && pris > 0) ut.set(v.id, pris);
+  }
+  return ut;
+}
+
 export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
   const priser = new Map<string, WixProduktPris>();
   let cursor: string | undefined;

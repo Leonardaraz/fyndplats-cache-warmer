@@ -1,0 +1,123 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "13a52237": {
+  "tyska": "Ø110 x 78H cm",
+  "svenska": "110L x 110B x 78H cm",
+  "bokstaver": "H",
+  "hojd": 78
+ },
+ "14fb0f98": {
+  "tyska": "",
+  "svenska": "Ø 305cm",
+  "axellos": "inget totalmått i källan; bara en diameter: ✔ Durchmesser: Ø305 cm"
+ },
+ "34e4947c": {
+  "tyska": "Ø35 x 49-61H cm",
+  "svenska": "35B x 35T x 49-61H cm",
+  "bokstaver": "H",
+  "hojd": [
+   49,
+   61
+  ]
+ },
+ "3fe90624": {
+  "tyska": "103B x 80T x 88H cm",
+  "svenska": "103L x 80B x 88H cm",
+  "bokstaver": "BTH",
+  "djup": 80,
+  "hojd": 88,
+  "bredd": 103
+ },
+ "46d8342f": {
+  "tyska": "96B x 90T x 105H cm",
+  "svenska": "96 x 90 x 105 cm",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 105,
+  "bredd": 96
+ },
+ "477bcd1f": {
+  "tyska": "117B x 36T x 74H cm",
+  "svenska": "117 x 36 x 74 cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 74,
+  "bredd": 117
+ },
+ "7f304255": {
+  "tyska": "180L x 80B x 75H cm (ausziehbar), 140L x 80B x 75H cm (nicht ausziehbar)",
+  "svenska": "180 x 80 x 75 cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 75,
+  "bredd": 180,
+  "djup": 80
+ },
+ "81a7d7e4": {
+  "tyska": "85,5L x 44,5B x 56H cm",
+  "svenska": "85,5L x 44,5B x 56H cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 85.5,
+  "djup": 44.5
+ },
+ "9dd510a8": {
+  "tyska": "200L x 150B x 1,5H cm",
+  "svenska": "200L x 150B x 1,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 1.5,
+  "bredd": 200,
+  "djup": 150
+ },
+ "b92a1717": {
+  "tyska": "70L x 16B x 165H cm",
+  "svenska": "70L x 16B x 165H cm",
+  "bokstaver": "LBH",
+  "hojd": 165,
+  "bredd": 70,
+  "djup": 16
+ },
+ "c0c6f5cf": {
+  "tyska": "135L x 1,2B x 85H cm",
+  "svenska": "135L x 1,2B x 85H cm",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 135,
+  "djup": 1.2
+ },
+ "cbd1c1cb": {
+  "tyska": "143B x 270T x 176/202H cm",
+  "svenska": "143 x 270 x 202 cm",
+  "bokstaver": "BTH",
+  "djup": 270,
+  "hojd": [
+   176,
+   202
+  ],
+  "bredd": 143
+ },
+ "d99fb2f8": {
+  "tyska": "65L x 18B x 183H cm",
+  "svenska": "65L x 18B x 183H cm",
+  "bokstaver": "LBH",
+  "hojd": 183,
+  "bredd": 65,
+  "djup": 18
+ },
+ "e3804952": {
+  "tyska": "34,2L x 32B x 28,2H cm",
+  "svenska": "34,2 x 32 x 28,2 cm",
+  "bokstaver": "LBH",
+  "hojd": 28.2,
+  "bredd": 34.2,
+  "djup": 32
+ },
+ "e4e8c76b": {
+  "tyska": "40l x 40P x 63-84H cm",
+  "svenska": "40 x 40 x 84 cm",
+  "bokstaver": "H",
+  "hojd": [
+   63,
+   84
+  ]
+ }
+}

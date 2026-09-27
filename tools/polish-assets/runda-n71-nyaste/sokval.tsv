@@ -1,0 +1,29 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur tidigare rundors sokord.tsv. Varje huvudsökord är prövat mot de publicerade
+# slugarna 2026-09-27, och där en publicerad slug redan bar ordet valdes en smalare variant: cykelvagn för hund (6
+# slugar) → cykelvagn hund blå, uppblåsbar pepparkaksgubbe (5) → uppblåsbar pepparkaksgubbe 240 cm, uppblåsbar
+# snögubbe (2) → uppblåsbar snögubbe med lyktstolpe, uppblåsbar tomte (9) → tomte på motorcykel och tomte med
+# solglasögon, modulsoffa (4) → modulsoffa u-form 294 cm, smalt badrumsskåp (6) → smalt badrumsskåp med lådor,
+# sängram 140x200 (3) → sängram 140x200 vit, snögran (4, alla 180 cm) → snögran 90 cm, skoskåp (19) → skoskåp vit,
+# schäslong (5, alla hörnsoffor) → schäslong manchester, köksskåp (9) → köksskåp med kaffehörna, barpall (2) →
+# barpallar i metall, julgran med snö (2) → julgranar med snö 2-pack, julgran 120 cm (4) → julgran med julkulor.
+# lekställning, ljusslinga och hopfällbart matbord bar ingen publicerad slug.
+b03bd2cc	lekställning med rutschkana	–	–	klätterställning inomhus (720, 16); rutschkana inomhus; lekställning inomhus
+f1f976cf	cykelvagn hund blå	–	–	cykelvagn för hund; hundvagn cykel; hundcykelvagn
+fe8e2baa	uppblåsbar tomte på motorcykel	–	–	uppblåsbar tomte (880, –); juldekoration utomhus (1300, 18); juldekoration trädgård (110, 16)
+8c983973	uppblåsbar pepparkaksgubbe 240 cm	–	–	uppblåsbar pepparkaksgubbe; juldekoration utomhus (1300, 18); uppblåsbar juldekoration
+68760ab6	uppblåsbar snögubbe med lyktstolpe	–	–	uppblåsbar snögubbe; juldekoration utomhus (1300, 18); juldekoration trädgård (110, 16)
+ae7484b4	uppblåsbar tomte med solglasögon	–	–	uppblåsbar tomte (880, –); uppblåsbar tomte motorcykel; juldekoration utomhus (1300, 18)
+c67a4f02	modulsoffa u-form 294 cm	–	–	modulsoffa; u-soffa; hörnsoffa
+12d74d4a	badrumsskåp fristående	30	18	badrumsskåp (27100, 20); badrumsskåp ek; skåp med låda
+a44d2528	smalt badrumsskåp med lådor	–	–	smalt badrumsskåp (720, 18); badrumsskåp smalt (880, 20); lådskåp
+e5c776ef	sängram 140x200 vit	–	–	sängram 140x200; stoppad sängram; sängram med sänggavel
+80cb11ed	snögran 90 cm	–	–	julgran med snö (260, 13); liten julgran; julgran med belysning
+643c0b2d	skoskåp vit	–	–	skohylla (18100, 27); smal skohylla (590, 22); smalt skoskåp
+e95e39b9	ljusslinga utomhus	–	–	ljusslinga; partyslinga; ljusslinga med lampor
+d0ac62d6	schäslong manchester	–	–	schäslong; bäddsoffa 2 sits (1900, 17); loungesoffa
+6f4cd43f	köksskåp med kaffehörna	–	–	köksskåp; skafferiskåp; köksbuffé
+85f1694f	hopfällbart matbord	210	18	klaffbord (8100, 19); fällbart matbord (110, 16); matbord på hjul
+4d85ddd5	barpallar i metall	–	–	barpall (1600, 23); barstol (8100, 25); barpallar 4-pack
+63fcc340	julgranar med snö 2-pack	–	–	julgran med snö (260, 13); julgran utomhus; julgran med belysning
+1204b022	julgran med julkulor	–	–	julgran (22200, 25); julgran konstgjord (260, 18); julgran 120 cm

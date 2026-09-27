@@ -32,9 +32,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
-import { isAosomSupplierProductId, AOSOM_ID_PREFIX } from "@/lib/aosom/to-product";
+import { isAosomSupplierProductId } from "@/lib/aosom/to-product";
+import { aosomArtikelForTask } from "@/lib/aosom/artiklar";
 import { planeraBulkOrder, byggCsv } from "@/lib/aosom/bulk-order";
 import type { FulfillmentTask } from "@/lib/orders/types";
+import type { ProductMappingRecord } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -64,12 +66,18 @@ export async function GET(req: NextRequest) {
     const store = getStore();
     const [tasks, mappningar] = await Promise.all([store.listTasks(), store.listMappings()]);
 
-    // wixProductId → Aosom-artikelnummer. Bara Aosom-mappningar: en AE-order ska
+    // wixProductId → Aosom-mappningen. Bara Aosom-mappningar: en AE-order ska
     // aldrig hamna i den här filen, den läggs via place-order som vanligt.
-    const skuPerWixId = new Map<string, string>();
+    //
+    // ☠️ ARTIKELN VÄLJS PER ORDERRAD, INTE PER SIDA. En färgsammanslagen sida
+    // bär en artikel per färg, och radens egen artikel är bara den första
+    // färgens. Att beställa den för varje orderrad hade skickat fel färg till
+    // varje kund som valt den andra. `aosomArtikelForTask` väljer på orderradens
+    // variant och håller raden hellre än att gissa (lib/aosom/artiklar.ts).
+    const mappningPerWixId = new Map<string, ProductMappingRecord>();
     for (const m of mappningar) {
       if (!m.wixProductId || !isAosomSupplierProductId(m.supplierProductId)) continue;
-      skuPerWixId.set(m.wixProductId, (m.supplierProductId ?? "").slice(AOSOM_ID_PREFIX.length));
+      mappningPerWixId.set(m.wixProductId, m);
     }
 
     const vantande = tasks.filter(
@@ -78,12 +86,15 @@ export async function GET(req: NextRequest) {
         && !t.aliexpressOrderId
         && !t.refundFlagged
         && !!t.wixCatalogItemId
-        && skuPerWixId.has(t.wixCatalogItemId),
+        && mappningPerWixId.has(t.wixCatalogItemId),
     );
 
-    const plan = planeraBulkOrder(vantande, (t) =>
-      t.wixCatalogItemId ? (skuPerWixId.get(t.wixCatalogItemId) ?? null) : null,
-    );
+    const plan = planeraBulkOrder(vantande, (t) => {
+      const m = t.wixCatalogItemId ? mappningPerWixId.get(t.wixCatalogItemId) : undefined;
+      if (!m) return null;
+      const utfall = aosomArtikelForTask(t, m);
+      return "artikel" in utfall ? utfall.artikel : utfall;
+    });
 
     const format = req.nextUrl.searchParams.get("format");
     if (format === "csv") {

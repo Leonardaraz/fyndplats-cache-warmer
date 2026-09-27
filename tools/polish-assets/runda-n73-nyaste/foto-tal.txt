@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+0d440505 3 ställningen har tre plan, skivan överst och två hyllor under, avlästa på produktfotot (bild 1 och 3)
+568b2812 3 skrivbordet har tre längder, 100, 135 och 170 cm, enligt källan och måttbilden (bild 3)

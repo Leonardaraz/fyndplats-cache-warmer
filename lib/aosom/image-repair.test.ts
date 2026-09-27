@@ -151,6 +151,19 @@ describe("runImageRepair", () => {
     expect(skrivna).toHaveLength(0);
   });
 
+  it("☠️ rör ALDRIG en färgsammanslagen sida — den andra färgens bilder hade fallit bort", async () => {
+    // A saknar alla bilder och hade annars lagats. Som sammanslagen sida bär den
+    // två artiklars bilder, och reparationen bygger listan ur EN artikel.
+    const { d, skrivna, uppladdade } = deps({
+      listAosom: async () => [{ sku: "A-1", wixProductId: "wix-a", sammanslagen: true }],
+    });
+    const s = await runImageRepair(d, { dryRun: false });
+    expect(skrivna).toEqual([]);
+    expect(uppladdade).toEqual([]);
+    expect(s.sammanslagnaHoppade).toBe(1);
+    expect(s.trasiga).toBe(0);
+  });
+
   it("reparerar bara de som har färre bilder än feeden kan ge", async () => {
     const { d, skrivna } = deps();
     const s = await runImageRepair(d, { dryRun: false });

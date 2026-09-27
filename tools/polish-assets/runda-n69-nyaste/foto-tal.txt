@@ -1,0 +1,7 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+d57f908e 2 fåtöljen levereras i två kartonger, avläst på måttbilden (bild 3, struken för engelsk text); texten säger det för att kunden ska vänta in båda
+5a3de5da 8 byrån har åtta lådor; källan skriver talet med bokstäver ("acht"), och produktfotot visar åtta
+4f2be50b 3 eldstaden står på tre ben, räknade på produktfotot (bild 1, 3 och 5)

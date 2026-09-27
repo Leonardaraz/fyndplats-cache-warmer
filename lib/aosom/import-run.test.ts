@@ -111,6 +111,33 @@ describe("urval", () => {
     expect(d.sparade.map((m) => m.supplierProductId)).toEqual(["aosom:A-2"]);
   });
 
+  it("☠️ en artikel som sitter som FÄRG på en sammanslagen sida importeras inte igen", async () => {
+    // Den andra färgens artikel står på en variant, inte i supplierProductId.
+    // Utan varianternas artiklar hade den blivit ett nytt utkast för en vara som
+    // redan ligger ute (lib/aosom/artiklar.ts).
+    const variant = (artikel: string) => ({
+      supplierVariantId: artikel,
+      sku: `FP-${artikel}`,
+      wixVariantId: `wixvar-${artikel}`,
+      choices: {},
+      costUsd: 10,
+      landedCostSek: 105,
+      grossSek: 129,
+    });
+    const d = deps([rad("A-1"), rad("A-2"), rad("A-3")], {
+      listMappings: async () => [
+        {
+          supplier: "aosom",
+          supplierProductId: aosomSupplierProductId("A-1"),
+          variants: [variant("A-1"), variant("A-2")],
+        },
+      ],
+    });
+    const s = await runAosomImport(d, { dryRun: false });
+    expect(s.alreadyImported).toBe(2);
+    expect(d.sparade.map((m) => m.supplierProductId)).toEqual(["aosom:A-3"]);
+  });
+
   it("skipFreightHeavy lämnar raderna där frakten är dyrare än varan", async () => {
     const s = await runAosomImport(
       deps([rad("A-1"), rad("A-2", { wholesaleEur: 10, seFreightEur: 25 })]),

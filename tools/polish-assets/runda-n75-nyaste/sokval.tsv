@@ -1,0 +1,19 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur sokord.tsv. Varje planerad slug är prövad mot hela katalogen 2026-09-27
+# (6 195 produkter, 3 714 publicerade): ingen krockar, och där en publicerad slug redan bar huvudsökordet valdes en
+# smalare variant: odlingstunnel (1) → låg odlingstunnel och odlingstunnel med rulldörr, odlingslåda metall (4) →
+# odlingslåda i stål, drivbänk (6) → drivbänk 180 cm, blomtrappa (1) → blomtrappa i bränd gran, uppblåsbar tomte (12)
+# → uppblåsbar jultomte i släde och utdragbart matbord (5) → utdragbart matbord 160–200 cm. Gångbart växthus,
+# växthyllor och gräsmatteluftare bar ingen publicerad slug. De tre närmaste publicerade grannarna (tomten i röd
+# släde med snögubbe, valnötsbordet på 130–160 cm och luftaren med gröna spikskivor) är jämförda på bild och är
+# andra varor.
+38f70f83	låg odlingstunnel	–	–	odlingstunnel; tunnelväxthus (2900, 13); minitunnel
+4c9ce3a5	odlingslåda i stål	–	–	odlingslåda metall (210, 8); upphöjd odlingslåda; pallkrage i metall
+bccb39f7	växthyllor	–	–	växthylla; blomställ (260, 13); hylla för växthus
+bcd973f0	drivbänk 180 cm	–	–	drivbänk; odlingstunnel; kallbänk
+b9b14cf3	blomtrappa i bränd gran	–	–	blomtrappa; blomställ (260, 13); blomhylla på hjul
+d674d035	odlingstunnel med rulldörr	–	–	odlingstunnel; tunnelväxthus (2900, 13); växthustunnel
+b725bb2e	gångbart växthus	–	–	växthus med hyllor; miniväxthus; plastväxthus
+365fda7d	gräsmatteluftare	–	–	luftare för gräsmatta; spikvält; gräsmatteskötsel
+dd744448	uppblåsbar jultomte i släde	–	–	uppblåsbar tomte (880, –); uppblåsbar julfigur; juldekoration utomhus
+79ca3053	utdragbart matbord 160–200 cm	–	–	utdragbart matbord; matbord 8 personer; matbord (27100, 26)

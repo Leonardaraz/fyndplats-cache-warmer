@@ -149,6 +149,7 @@ export function deriveTasks(event: OrderEvent): FulfillmentTask[] {
     productName: li.productName?.translated || li.productName?.original || "",
     sku: extractSku(li),
     wixCatalogItemId: li.catalogReference?.catalogItemId,
+    wixVariantId: extractVariantId(li),
     variantChoices: extractVariantChoices(li),
     quantity: li.quantity ?? 1,
     status: "pending",
@@ -159,6 +160,12 @@ export function deriveTasks(event: OrderEvent): FulfillmentTask[] {
 
 function extractSku(li: WixLineItem): string | undefined {
   return li.physicalProperties?.sku || undefined;
+}
+
+/** Orderradens Wix variant-id, eller undefined. Se `FulfillmentTask.wixVariantId`. */
+function extractVariantId(li: WixLineItem): string | undefined {
+  const id = li.catalogReference?.options?.variantId;
+  return typeof id === "string" && id.trim() ? id.trim() : undefined;
 }
 
 /**

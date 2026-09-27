@@ -1,0 +1,42 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2dd38cab": {
+  "tyska": "179,5B x 108T x 129,5/113H cm",
+  "svenska": "179,5L x 108B x 129,5H cm",
+  "bokstaver": "BTH",
+  "djup": 108,
+  "hojd": [
+   129.5,
+   113
+  ],
+  "bredd": 179.5
+ },
+ "6d2d6b58": {
+  "tyska": "",
+  "svenska": "91,4L x 4B x 203,2H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schienengröße: 183L x 0,6T x 4H cm | ✔ Türplattengröße: 91,4L x 4B x 203,2H cm"
+ },
+ "996b85ef": {
+  "tyska": "1500L x 900B x 12T mm",
+  "svenska": "150x90 cm",
+  "bokstaver": "LBT",
+  "djup": 12,
+  "bredd": 1500
+ },
+ "dee45dce": {
+  "tyska": "274L x 152,5B x 76Hcm",
+  "svenska": "274L x 152,5B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 274,
+  "djup": 152.5
+ },
+ "fe36942e": {
+  "tyska": "168L x 128B x 215H cm",
+  "svenska": "168L x 128B x 215H cm",
+  "bokstaver": "LBH",
+  "hojd": 215,
+  "bredd": 168,
+  "djup": 128
+ }
+}

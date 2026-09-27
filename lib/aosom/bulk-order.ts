@@ -73,15 +73,46 @@ export interface AosomBulkPlan {
  * inte tre rader. Tre rader hade blivit tre separata leveranser med varsin
  * fraktavgift — och frakten är redan den dyraste delen av en Aosom-order.
  */
+/**
+ * Artikeln en orderrad ska beställas med: artikelnumret, `null` när raden
+ * saknar Aosom-mappning, eller ett skäl när mappningen finns men inte räcker
+ * för att avgöra artikeln (en färgsammanslagen sida där orderradens färg inte
+ * går att läsa ut — se lib/aosom/artiklar.ts).
+ */
+export type ArtikelForTask = string | { skal: string } | null;
+
 export function grupperaPerOrder(
   tasks: ReadonlyArray<FulfillmentTask>,
-  skuForTask: (t: FulfillmentTask) => string | null,
+  skuForTask: (t: FulfillmentTask) => ArtikelForTask,
 ): { ordrar: AosomOrderRad[]; hoppadeOver: { taskId: string; skal: string }[] } {
   const perOrder = new Map<string, AosomOrderRad>();
   const hoppadeOver: { taskId: string; skal: string }[] = [];
 
+  // ☠️ EN RAD VARS ARTIKEL INTE GÅR ATT AVGÖRA HÅLLER HELA ORDERN. Att lägga
+  // resten av ordern hade delat den i två leveranser med två fraktavgifter —
+  // samma skäl som att en order aldrig delas mellan två batchar. Ordern ligger
+  // kvar i kön, och en människa ser skälet i `hoppadeOver`.
+  const artiklar = new Map(tasks.map((t) => [t.taskId, skuForTask(t)]));
+  const hallna = new Set<string>();
   for (const t of tasks) {
-    const sku = skuForTask(t);
+    const a = artiklar.get(t.taskId);
+    if (a && typeof a === "object") hallna.add(t.orderNumber);
+  }
+
+  for (const t of tasks) {
+    const utfall = artiklar.get(t.taskId) ?? null;
+    if (utfall && typeof utfall === "object") {
+      hoppadeOver.push({ taskId: t.taskId, skal: `artikeln gick inte att avgöra: ${utfall.skal}` });
+      continue;
+    }
+    if (hallna.has(t.orderNumber)) {
+      hoppadeOver.push({
+        taskId: t.taskId,
+        skal: "en annan rad i samma order gick inte att avgöra — hela ordern hålls",
+      });
+      continue;
+    }
+    const sku = utfall;
     if (!sku) {
       hoppadeOver.push({ taskId: t.taskId, skal: "ingen Aosom-mappning" });
       continue;
@@ -240,7 +271,7 @@ export function byggCsv(batch: AosomBatch): string {
 /** Hela vägen: orderrader → grupperade ordrar → batchar innanför taken. */
 export function planeraBulkOrder(
   tasks: ReadonlyArray<FulfillmentTask>,
-  skuForTask: (t: FulfillmentTask) => string | null,
+  skuForTask: (t: FulfillmentTask) => ArtikelForTask,
 ): AosomBulkPlan {
   const { ordrar, hoppadeOver } = grupperaPerOrder(tasks, skuForTask);
   const { batchar, omojliga } = delaIBatchar(ordrar);

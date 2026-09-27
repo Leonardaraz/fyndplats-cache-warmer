@@ -1,0 +1,149 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0e1a8545": {
+  "tyska": "36L x 9B x 52H cm",
+  "svenska": "36L x 9B x 52H cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 36,
+  "djup": 9
+ },
+ "0e2607cb": {
+  "tyska": "155B x 110T x 91,4H cm",
+  "svenska": "155L x 110B x 91,4H cm",
+  "bokstaver": "BTH",
+  "djup": 110,
+  "hojd": 91.4,
+  "bredd": 155
+ },
+ "1a5b0d42": {
+  "tyska": "45B x 18T x 60,2H cm",
+  "svenska": "45L x 18B x 60,2H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 60.2,
+  "bredd": 45
+ },
+ "1b7fd2b1": {
+  "tyska": "150B x 208T x ‹FORM› cm",
+  "svenska": "Doppel",
+  "bokstaver": "BT",
+  "djup": 208,
+  "bredd": 150
+ },
+ "329af28e": {
+  "tyska": "50B x 19,5T x 58H cm",
+  "svenska": "50 x 19,5 x 58 cm",
+  "bokstaver": "BTH",
+  "djup": 19.5,
+  "hojd": 58,
+  "bredd": 50
+ },
+ "4af47dc2": {
+  "tyska": "40,6B x 30T x 50,5H cm",
+  "svenska": "40,6L x 30B x 50,5H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 50.5,
+  "bredd": 40.6
+ },
+ "536cfd1e": {
+  "tyska": "(aufrecht) 93B x 91T x 110H cm",
+  "svenska": "93 x 91 x 110 cm",
+  "bokstaver": "BTH",
+  "djup": 91,
+  "hojd": 110,
+  "bredd": 93
+ },
+ "5772c68d": {
+  "tyska": "Ø40 x 90H cm",
+  "svenska": "90H cm",
+  "bokstaver": "H",
+  "hojd": 90
+ },
+ "80512112": {
+  "tyska": "76B x 56T x 120–187,5H cm",
+  "svenska": "76 x 56 x 187,5 cm",
+  "bokstaver": "BTH",
+  "djup": 56,
+  "hojd": 187.5,
+  "bredd": 76
+ },
+ "808ea6b4": {
+  "tyska": "",
+  "svenska": "Zweisitzer",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (aufrecht): 114B x 91T x 98H cm | ✔ Gesamtabmessungen (zurückgelehnt): 114B x 157T x 78H cm | ✔ Sitzgröße: 97B x 56T cm | ✔ Einzelne Rückengröße: 47B x 59H cm"
+ },
+ "8a17ae82": {
+  "tyska": "26,6L x 6B x 30H cm",
+  "svenska": "26,6L x 6B x 30H cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 26.6,
+  "djup": 6
+ },
+ "be02f382": {
+  "tyska": "79L x 36B x 74H cm",
+  "svenska": "79L x 36B x 74H cm",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 79,
+  "djup": 36
+ },
+ "c6156256": {
+  "tyska": "80B x 85,5T x 102H cm",
+  "svenska": "80 x 85,5 x 102 cm",
+  "bokstaver": "BTH",
+  "djup": 85.5,
+  "hojd": 102,
+  "bredd": 80
+ },
+ "cd753d3d": {
+  "tyska": "40B x 18T x 62H cm",
+  "svenska": "40L x 18B x 62H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 62,
+  "bredd": 40
+ },
+ "d0fe9214": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen im Sitzmodus: 68L x 88P x 98Acm | ✔ Maße in Liegeposition: 68L x 158P x 77Acm | ✔ Abmessungen des Sitzes: 48L x 50.5Pcm | ✔ Maße der Rückenlehne: 52L x 57Acm"
+ },
+ "e0cd758d": {
+  "tyska": "",
+  "svenska": "22,1 x 15,8 x 24,1 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Wasserkochers: 22,1L x 15,8B x 24,1H cm | ✔ Maße des Toasters: 25,3L x 17,8B x 18,9H cm | ✔ Maße je Schlitz: 13,5L x 3,5B cm"
+ },
+ "e13d094a": {
+  "tyska": "210L x 90B x 59-84H cm",
+  "svenska": "210L x 90B x 59-84H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   59,
+   84
+  ],
+  "bredd": 210,
+  "djup": 90
+ },
+ "e5be35a4": {
+  "tyska": "",
+  "svenska": "97 x 97 x 104 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen in aufrechter Position: 97B x 97T x 104H cm | ✔ Abmessungen in Liegeposition: 97B x 164T x 82H cm | ✔ Sitzgröße: 53B x 56T x 49H cm | ✔ Armlehnenhöhe ab Sitzfläche: 14H cm | ✔ Rückenlehnengröße: 78B x 65H cm"
+ },
+ "ef7a48b0": {
+  "tyska": "Ø70 x H74,5 cm",
+  "svenska": "70L x 70B x 74,5H cm",
+  "bokstaver": "H",
+  "hojd": 74.5
+ },
+ "fad620ef": {
+  "tyska": "80L x 16,5B x 20H cm",
+  "svenska": "80L x 16,5B x 20H cm",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 80,
+  "djup": 16.5
+ }
+}

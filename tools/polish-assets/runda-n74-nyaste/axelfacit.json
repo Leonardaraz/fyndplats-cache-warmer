@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2564968e": {
+  "tyska": "179L x 42B x 59H cm",
+  "svenska": "1 Stück (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 59,
+  "bredd": 179,
+  "djup": 42
+ },
+ "27380bf4": {
+  "tyska": "",
+  "svenska": "81L x 76B x 101H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sessel Abmessung: (aufrecht) 76B x 81T x 101H cm | ✔ Sessel Abmessung: (zurückgelehnt) 76B x 103T x 91H cm | ✔ Fußhocker Abmessung: 50B x 41T x 41H cm | ✔ Abmessung Sitz: 50B x 51,5T x 45H cm"
+ },
+ "40f26fb8": {
+  "tyska": "50L x 12B x 70H cm",
+  "svenska": "50L x 12B x 70H cm",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 50,
+  "djup": 12
+ },
+ "41a257cb": {
+  "tyska": "74L x 30B x 81H cm",
+  "svenska": "1 Stück (1er Pack)",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 74,
+  "djup": 30
+ },
+ "a21f8df7": {
+  "tyska": "88,6L x 31,7B x 90,4H cm",
+  "svenska": "88,6L x 31,7B x 90,4H cm",
+  "bokstaver": "LBH",
+  "hojd": 90.4,
+  "bredd": 88.6,
+  "djup": 31.7
+ },
+ "afc0c368": {
+  "tyska": "77B x 87T x 100H cm",
+  "svenska": "87 x 77 x 100 cm",
+  "bokstaver": "BTH",
+  "djup": 87,
+  "hojd": 100,
+  "bredd": 77
+ },
+ "b37a10e1": {
+  "tyska": "71B x 88T x 98-104H cm",
+  "svenska": "71 x 88 x 98-104 cm",
+  "bokstaver": "BTH",
+  "djup": 88,
+  "hojd": [
+   98,
+   104
+  ],
+  "bredd": 71
+ },
+ "f3555135": {
+  "tyska": "145B x 91T x 102H cm",
+  "svenska": "145 x 91 x 102 cm",
+  "bokstaver": "BTH",
+  "djup": 91,
+  "hojd": 102,
+  "bredd": 145
+ }
+}

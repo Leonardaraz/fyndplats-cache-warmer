@@ -1,0 +1,162 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00ba5823": {
+  "tyska": "80B x 35T x 180H cm",
+  "svenska": "80L x 35B x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 180,
+  "bredd": 80
+ },
+ "087cb4b8": {
+  "tyska": "34,5L x 34,5B x 72-87,5H cm",
+  "svenska": "34,5 x 34,5 x 72-87,5 cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   72,
+   87.5
+  ],
+  "bredd": 34.5,
+  "djup": 34.5
+ },
+ "181a3522": {
+  "tyska": "60L x 25B x 150H cm",
+  "svenska": "L60 x B25 x H150 cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 60,
+  "djup": 25
+ },
+ "33cde470": {
+  "tyska": "102L x 73B x 60H cm (Sofa), 102L x 173B x 11H cm (Bett)",
+  "svenska": "102L x 73B x 60H cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 60,
+  "bredd": 102,
+  "djup": 73
+ },
+ "57e419f1": {
+  "tyska": "118L x 39,5B x 75,5H cm",
+  "svenska": "118 x 39,5 x 75,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 75.5,
+  "bredd": 118,
+  "djup": 39.5
+ },
+ "61ae7313": {
+  "tyska": "245B x 86T x 82H cm",
+  "svenska": "245 x 86 x 82 cm",
+  "bokstaver": "BTH",
+  "djup": 86,
+  "hojd": 82,
+  "bredd": 245
+ },
+ "6e1378d6": {
+  "tyska": "80B x 21,6T x 67,8H cm",
+  "svenska": "80 x 21,6 x 67,8 cm",
+  "bokstaver": "BTH",
+  "djup": 21.6,
+  "hojd": 67.8,
+  "bredd": 80
+ },
+ "90c30789": {
+  "tyska": "70L x 4B x 100H cm",
+  "svenska": "70 x 100 cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 70,
+  "djup": 4
+ },
+ "99ab915a": {
+  "tyska": "98B x 99T x 104H cm",
+  "svenska": "98 x 99 x 104 cm",
+  "bokstaver": "BTH",
+  "djup": 99,
+  "hojd": 104,
+  "bredd": 98
+ },
+ "9e157d1d": {
+  "tyska": "100L x 103B x 160H cm",
+  "svenska": "100 x 103 x 160 cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 100,
+  "djup": 103
+ },
+ "af6f39a6": {
+  "tyska": "110L x 29,5B x 82H cm",
+  "svenska": "110L x 29,5B x 82H cm",
+  "bokstaver": "LBH",
+  "hojd": 82,
+  "bredd": 110,
+  "djup": 29.5
+ },
+ "b15b7854": {
+  "tyska": "71 x 30 x 68 cm (L x B x H)",
+  "svenska": "71 x 30 x 68 cm",
+  "bokstaver": "LBH",
+  "hojd": 68,
+  "bredd": 71,
+  "djup": 30
+ },
+ "bb45be9d": {
+  "tyska": "260B x 177T x 173/190H cm",
+  "svenska": "260 x 177 x 190 cm",
+  "bokstaver": "BTH",
+  "djup": 177,
+  "hojd": [
+   173,
+   190
+  ],
+  "bredd": 260
+ },
+ "bdc28a4b": {
+  "tyska": "67B x 72T x 93-103H cm",
+  "svenska": "67 x 72 x 103 cm",
+  "bokstaver": "BTH",
+  "djup": 72,
+  "hojd": [
+   93,
+   103
+  ],
+  "bredd": 67
+ },
+ "cfdbd5e9": {
+  "tyska": "71L x 70B x 119–129H cm",
+  "svenska": "71 x 70 x 129 cm",
+  "bokstaver": "LBH",
+  "hojd": 129,
+  "bredd": 71,
+  "djup": 70
+ },
+ "d1026aaa": {
+  "tyska": "40L x 3B x 120H cm",
+  "svenska": "40L x 3B x 120H cm",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 40,
+  "djup": 3
+ },
+ "dad09721": {
+  "tyska": "Ø40 x 60H cm (Baumkörper)",
+  "svenska": "40 x 40 x 60 cm",
+  "bokstaver": "H",
+  "hojd": 60
+ },
+ "e74feea1": {
+  "tyska": "B37 x H120 x T10 cm",
+  "svenska": "37 x 120 x 10 cm",
+  "bokstaver": "BHT",
+  "hojd": 120,
+  "djup": 10,
+  "bredd": 37
+ },
+ "e81fc121": {
+  "tyska": "134B x 74T x 84H cm",
+  "svenska": "134L x 74B x 84H cm",
+  "bokstaver": "BTH",
+  "djup": 74,
+  "hojd": 84,
+  "bredd": 134
+ }
+}

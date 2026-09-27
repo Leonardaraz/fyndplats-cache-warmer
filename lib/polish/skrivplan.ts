@@ -284,11 +284,42 @@ export async function stegText(plan: Skrivplan, wix: WixAnrop, torr: boolean): P
   return summera(rader, torr ? "lästa (torrt)" : "skrivna");
 }
 
+/** Bild-id som produktens färgval pekar på (`options[].choicesSettings.choices[].linkedMedia`). */
+function kopplandeBildIdn(produkt: Obj): string[] {
+  const idn = new Set<string>();
+  for (const o of ((produkt.options ?? []) as Obj[])) {
+    const val = (((o.choicesSettings as Obj | undefined)?.choices ?? []) as Obj[]);
+    for (const c of val) {
+      for (const m of ((c.linkedMedia ?? []) as Obj[])) {
+        if (typeof m.id === "string" && m.id) idn.add(m.id);
+      }
+    }
+  }
+  return [...idn];
+}
+
 export async function stegMedia(plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
     try {
       const fore = produktAv(await wix("GET", `/stores/v3/products/${p.pid}`));
+      // ☠️ LISTAN ERSÄTTER ALLT — ÄVEN BILDER SOM ETT FÄRGVAL PEKAR PÅ. En sida
+      // med färgval (en färgsammanslagen Aosom-sida, eller en AE-sida med
+      // färger) bär `linkedMedia` på varje val, och en bild som faller ur listan
+      // tar valets bild med sig. Planens lista måste alltså bära varje sådan
+      // bild, annars skrivs ingenting. Ett vanligt GET bär valen och deras
+      // `linkedMedia` — uppmätt 2026-09-27, tre av tre val.
+      const kopplade = kopplandeBildIdn(fore);
+      const iPlanen = new Set(p.media.map((m) => m.id));
+      const tappade = kopplade.filter((id) => !iPlanen.has(id));
+      if (tappade.length > 0) {
+        rader.push({
+          kort: p.kort,
+          ok: false,
+          fel: `bildlistan tappar ${tappade.length} bild(er) som ett färgval pekar på — hoppad`,
+        });
+        continue;
+      }
       if (torr) {
         rader.push({ kort: p.kort, ok: true, revision: fore.revision, bilder: p.media.length });
         continue;

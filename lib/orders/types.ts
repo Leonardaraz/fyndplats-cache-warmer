@@ -27,6 +27,15 @@ export interface FulfillmentTask {
   sku?: string;
   /** Wix produkt-id (catalogItemId) — koppling till leverantörsmappning. */
   wixCatalogItemId?: string;
+  /**
+   * Wix variant-id ur orderraden (`catalogReference.options.variantId`).
+   *
+   * Avgör vilken artikel som ska beställas på en färgsammanslagen Aosom-sida,
+   * där varje färg är en egen artikel (lib/aosom/artiklar.ts). En produkt UTAN
+   * optioner ger nollan här, inte sitt V3-variant-id — uppmätt på skarpa
+   * ordrar 2026-09-27. Saknas på tasks skapade innan fältet fanns.
+   */
+  wixVariantId?: string;
   variantChoices: Record<string, string>;
   quantity: number;
   status: TaskStatus;
@@ -121,7 +130,10 @@ export interface WixLineItem {
   productName?: { original?: string; translated?: string };
   quantity?: number;
   physicalProperties?: { sku?: string };
-  catalogReference?: { catalogItemId?: string; options?: { options?: Record<string, string> } };
+  catalogReference?: {
+    catalogItemId?: string;
+    options?: { options?: Record<string, string>; variantId?: string };
+  };
   // Variantval (färg/storlek) ligger i praktiken HÄR på riktiga ordrar, inte i
   // catalogReference.options.options. COLOR-rader bär värdet i `color`/`colorInfo`,
   // text-rader i `plainText`. Nyckeln är `name` (t.ex. "Färg").

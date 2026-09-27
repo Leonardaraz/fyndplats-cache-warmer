@@ -28,6 +28,7 @@ import { SUPPLIER_VAT_RATE } from "../import/pricing";
 import { marginEfterByte } from "../sync/warehouse-failover";
 import { freightShare, isShippableToSe, landedCostEur, type AosomRow } from "./feed";
 import { aosomSupplierProductId, type AosomFx } from "./to-product";
+import { aosomArtiklarPaRaden } from "./artiklar";
 
 /**
  * Lägsta marginal (netto mot netto) vi accepterar EFTER ommappningen.
@@ -89,8 +90,13 @@ export interface RemapInput {
   mappning: ProductMappingRecord | null | undefined;
   /** Feed-raden vi pekar om till, eller undefined om SKU:n inte fanns. */
   rad: AosomRow | undefined;
-  /** Alla mappningsrader — för att se om SKU:n redan är upptagen. */
-  alla: Pick<ProductMappingRecord, "supplier" | "supplierProductId" | "wixProductId">[];
+  /**
+   * Alla mappningsrader — för att se om SKU:n redan är upptagen. `variants`
+   * gör att en artikel som sitter som färg på en sammanslagen sida också
+   * räknas som upptagen (lib/aosom/artiklar.ts).
+   */
+  alla: (Pick<ProductMappingRecord, "supplier" | "supplierProductId" | "wixProductId">
+    & Partial<Pick<ProductMappingRecord, "variants">>)[];
   fx: AosomFx;
   /** Wix-produkten som ska pensioneras som dubblett (valfritt). */
   dubblett?: string;
@@ -160,11 +166,18 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   // mot ett utkast. Uppmätt 2026-09-03: båda de två lönsamma paren föll här,
   // och ingen av dem hade skapat en dubblett — utkastet pensioneras i samma
   // skrivning, och `pensioneraDubblett` släpper artikelnumret.
+  //
+  // ☠️ OCH EN ARTIKEL SOM SITTER SOM FÄRG PÅ EN SAMMANSLAGEN SIDA ÄR UPPTAGEN.
+  // Den står på en variant, inte i `supplierProductId`, och en jämförelse mot
+  // bara radens fält hade släppt igenom en ommappning som gör samma artikel
+  // till två sidor — exakt den dubblett grinden finns för att stoppa.
   if (rad) {
     const id = aosomSupplierProductId(rad.sku);
     const upptagenAv = alla.find(
       (m) =>
-        m.supplierProductId === id
+        (m.supplierProductId === id
+          || aosomArtiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] })
+            .includes(rad.sku))
         && m.wixProductId !== mappning?.wixProductId
         && m.wixProductId !== input.dubblett,
     );

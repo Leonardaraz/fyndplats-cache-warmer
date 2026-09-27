@@ -76,6 +76,59 @@ KVALIFICERAD = ETIKETT + r"\s+([A-Za-zÄÖÜäöüß]+)\s*:\s*(.+)$"
 # när bladverket mäter långt mer, och gate-axel hade fällt varje korrekt
 # meningen om bredden. Grenen ger därför höjden ensam och ingen bredd alls.
 HOJDETIKETT = r"(?:Gesamthöhe|Gesamthoehe|Gesamthohe)\s*:\s*(\d+(?:[.,]\d+)?)\s*cm"
+
+# ☠️ EN SKENA HAR EN LÄNGD OCH INGET ANNAT. Uppmätt i runda N59 på
+# skjutdörrsbeslaget 87888f5f, vars enda mått är
+#
+#     Schienenlänge: 183 cm
+#     Geeignete Türblattbreite: 90 cm
+#
+# Ingen totalrad och ingen rad med axelbokstav, alltså varken facit eller
+# delmått — och generatorn avbröt. Men källan säger sanningen om sig själv:
+# produkten är ett beslag, och det enda den mäter är en längd. Vilken axel
+# längden är går INTE att läsa ur raden (en skena ligger vågrätt, en stolpe
+# står lodrätt), så grenen ger inget facit utan märker raden axellös med
+# raden som skäl — samma klass som isbjörnsparet och delmåtten ovan.
+#
+# Grenen kan bara fyra där den gamla koden avbröt, så ingen tidigare runda
+# kan få ett annat facit av den.
+#
+# ⚠️ OCH EN KABEL MÄTS I METER. Uppmätt i runda N60 på laddkabeln c28af8df,
+# vars enda mått är `Kabellänge: 5 m`. Samma sak som skenan — en längd och
+# inget annat — men enheten är `m`, och grenen krävde `cm`, så generatorn
+# avbröt. `c?m\b` läser båda och släpper fortfarande inte igenom `mm`.
+# Etiketten står uttryckligen i listan: mönstret är skiftlägeskänsligt, och
+# `Länge` matchar inte `länge` inne i en sammansättning.
+LANGDETIKETT = r"(?:Schienenlänge|Gesamtlänge|Kabellänge|Länge)\s*:\s*\d+(?:[.,]\d+)?\s*c?m\b"
+
+# ☠️ OCH EN KRUKVÄXT KAN SKRIVA HÖJDEN UTAN "GESAMT". Uppmätt i runda N65 på
+# konstfikusen a6657b3d, vars enda mått är
+#
+#     Höhe: 150 cm
+#     Topfgröße: Ø15 x 12,5 cm
+#
+# Samma sak som `Gesamthöhe` på 67ba375c (N2), bara ett annat ord — och
+# generatorn avbröt. Etiketten är naken, så mönstret kräver att den står FÖRST
+# på raden och ensam: `Sitzhöhe:` och `Rückenlehne Höhe:` är delmått och får
+# aldrig bli produktens höjd. Grenen ligger dessutom SIST, där den gamla koden
+# avbröt, så ingen tidigare runda kan få ett annat facit av den. Fler än en
+# sådan rad är tvetydigt, och då avbryter generatorn som förr.
+NAKEN_HOJD = r"^(?:✔\s*)?Höhe\s*:\s*(\d+(?:[.,]\d+)?)\s*cm\s*$"
+
+# ☠️ OCH EN RING HAR BARA EN DIAMETER. Uppmätt i runda N66 på kantskyddet till
+# en studsmatta, 14fb0f98, vars enda mått är
+#
+#     Durchmesser: Ø305 cm
+#     Dicke der Polsterung: 15 mm
+#
+# Det finns ingen bredd, inget djup och ingen höjd att binda — produkten är en
+# ring som följer ramen. Samma klass som isbjörnsparet (M1): källan säger
+# sanningen om sig själv, och generatorn avbröt ändå. Raden märks axellös med
+# ett skäl, så gate-axel säger "jämförde inte" i stället för att tiga.
+# Etiketten måste stå FÖRST på raden och ensam, och grenen ligger efter den
+# nakna höjden: en källa med både diameter och höjd är en cylinder, och då
+# finns en höjdaxel att grinda.
+DIAMETER = r"^(?:✔\s*)?Durchmesser\s*:\s*Ø?\s*\d+(?:[.,]\d+)?\s*cm\s*$"
 AXLAR = ("bredd", "djup", "hojd")
 
 
@@ -302,8 +355,20 @@ def main():
             delmatt = [r for r in rader
                        if re.search(r"abmessungen\s*:", r, re.I)
                        or (":" in r and axelpar(r.split(":", 1)[1]))]
+            langd = [r for r in rader if re.search(LANGDETIKETT, r)]
+            naken = [m for m in (re.search(NAKEN_HOJD, r) for r in rader) if m]
+            diameter = [r for r in rader if re.search(DIAMETER, r)]
             if delmatt and "axellos" not in d:
                 d["axellos"] = "inget totalmått i källan; bara delmått: " + " | ".join(delmatt)
+            elif langd and "axellos" not in d:
+                d["axellos"] = "inget totalmått i källan; bara en längd: " + " | ".join(langd)
+            elif len(naken) == 1 and "axellos" not in d:
+                d["tyska"] = naken[0].group(0).strip()
+                d["bokstaver"] = "H"
+                d["hojd"] = tal(naken[0].group(1))
+                d["axelkalla"] = "tyska raden 'Höhe' (kallan har ingen totalmattrad)"
+            elif diameter and "axellos" not in d:
+                d["axellos"] = "inget totalmått i källan; bara en diameter: " + " | ".join(diameter)
             elif "axellos" not in d:
                 # En rad som redan är märkt axellös av tvåtals-spärren ovan är
                 # ett FÖRKLARAT utfall, inte en tom facitrad. Att avbryta på den

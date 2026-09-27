@@ -510,6 +510,15 @@ direkt ur grenen.
    `livekoll.py` ur samma katalog. `livekoll.py` kontrollerar det livegrind
    inte ser: `InStock`, brödsmulan och att varje alt-text står på sidan.
 
+⚠️ **Faller verifieringen BARA på `kategorier`, för alla produkter: skriv inte
+om. Vänta och kör läge `stampla`.** Runda N67 (2026-09-24): alla 52
+kopplingar svarade ok, men produktläsningen visade bara `All Products` i
+ungefär en kvart, alltså längre än workflowens 90 + 60 sekunder.
+`list-categories-for-items` visade kopplingarna direkt. Under väntan visade
+butiken brödsmulan *Hem / Butik / produkt*, men felet gick över av sig självt.
+Läs om efter några minuter, och kör `stampla` när produktläsningen bär
+kategorierna. Den verifierar och stämplar utan att skriva något.
+
 ☠️ **Workflowen kör mot den `ref` du anger, och default är `main`.** Där finns
 inte rundans plan. Kontrollen av `plan_sha256` fäller en körning mot fel gren
 eller mot en äldre commit innan något skrivs.
@@ -2750,7 +2759,7 @@ föräldralös och städas av orphan-svepet, utan risk att döda en fil en annan
 ### ☠️ Kortets fotremsa är TEXT SOM INGEN GREP HITTAR (2026-09-02)
 
 Trettiotre kort på trettiotvå **publicerade** produkter bar leverantörens namn och
-artikelnummer — `Aosom 838-172BG` — inbränt i fotremsan. De hade legat live sedan
+artikelnummer — `Aosom ‹REDIGERAT›` — inbränt i fotremsan. De hade legat live sedan
 2026-08-30.
 
 Det bryter mot husets hårdaste regel om leverantörsspår, och just artikelnumret är det
@@ -4494,7 +4503,7 @@ det tyska huvudordet, de publicerade på det svenska. Ett tal som bara kan bli
 noll är inget mått.
 
 ⚠️ Utfallet blev ändå att alla tretton fick poleras: den publicerade sidan är
-en feed-import (`aosom:800-162V90GN`), och dubblettspärren nycklar på
+en feed-import (`aosom:‹REDIGERAT›`), och dubblettspärren nycklar på
 artikelnumret — alltså kan ingen av de tretton vara samma artikel. Den är ett
 FÄRGSYSKON, vilket är en länkmöjlighet och inte ett hinder. Men det visste jag
 först efter att ha letat, och hade nollan fått stå oemotsagd hade tolv sidor
@@ -4936,9 +4945,9 @@ Aosoms artikelnummer avgör det gratis:
 
 | bas | suffix | produkt |
 |---|---|---|
-| `800-287V90` | **CW** / **BK** | gräddvitt och svart set, båda nya |
-| `800-286V90` | **CW** / **BK** | grädde och svart set, båda nya |
-| `800-181V90` | **BK** / **PK** | den PUBLICERADE svarta och det rosa utkastet |
+| `‹REDIGERAT›` | **CW** / **BK** | gräddvitt och svart set, båda nya |
+| `‹REDIGERAT›` | **CW** / **BK** | grädde och svart set, båda nya |
+| `‹REDIGERAT›` | **BK** / **PK** | den PUBLICERADE svarta och det rosa utkastet |
 
 Suffixet matchade tyskans `Farbe`-fält i **sju fall av sju** (GY = Grau,
 CW = Cremeweiß, BK = Schwarz, PK = Rosa) — mätt, inte antaget. Måtten och
@@ -5017,7 +5026,7 @@ gånger till.
 ### ⚠️ Ett tal som är identiskt över flera artikelnummer mäter ingen av dem
 
 `3 Min. 15 Sek. bis zum Sieden` står på en marknadsföringsbild som dök upp på
-`800-287V90CW` och `800-286V90BK` — två olika modeller med olika kokare — och
+`‹REDIGERAT›` och `‹REDIGERAT›` — två olika modeller med olika kokare — och
 som runda 60 mötte på en tredje. Samma bild, samma tal, olika produkter.
 
 Det är alltså en mall, inte en mätning, och får inte lyftas in i någon text.
@@ -5518,7 +5527,7 @@ Den första är den obehagliga. Filens egen kommentar sa *"FORMEN ÄR MÄTT, INT
 GISSAD"* — och det var sant, formen var mätt över 51 sidor. Men varenda kod i det
 urvalet råkade vara versal, så mätningen bevisade en form och antog en teckenrymd.
 Svepet läste 5 485 produkter och rapporterade `medKod: 0` medan `Referens:
-d30-670v00yl` låg live på en publicerad sida.
+‹REDIGERAT›` låg live på en publicerad sida.
 
 ☠️ **En spärr som är blind för halva teckenrymden är värre än ingen spärr:** den
 ger ett grönt kvitto på en läcka som pågår, och den gröna rapporten är skälet att
@@ -5526,7 +5535,7 @@ ingen tittar efter.
 
 **Tre regler ur det:**
 
-1. **Ett mätt urval bevisar formen, inte rymden.** Har du mätt `Z00-111V00XX` vet
+1. **Ett mätt urval bevisar formen, inte rymden.** Har du mätt `‹REDIGERAT›` vet
    du hur raden ser ut — inte att koden alltid är versal, alltid har det prefixet,
    alltid saknar parentes. Skriv mönstret så vitt som datan tillåter och strama
    åt med ett *innehållskrav* i stället: koden här kräver nu **minst en siffra
