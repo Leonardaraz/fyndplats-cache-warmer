@@ -3258,3 +3258,36 @@ beslut — se den samlade frågan om detta.
   visar den vita färgen), gunghästen `26d6b2ea` (annan design än `8ded5e38`) och
   konstgräset `eaa37062` (samma storlek som `4362ebd1` men tätare gräs, så varken
   färg eller storlek). (N79)
+- Tre AliExpress-sidor pekar nu på Aosom: `9521d113` (dubbletten `d42c5b69`
+  pensionerad), `8dd5887b` (`faa0af12` pensionerad) och trimbordet `b1c5fa1d`
+  (`ba0fbcb4` pensionerad). Priserna rördes inte. `184944a0` var redan
+  pensionerad genom ommappningen av `202385ce`. (N80)
+- Cykelkärran `571e37bf` fick det blå syskonet `99cae2fd` som val. Färgraden
+  säger nu röd och svart eller grå och blå, och vikten 15–15,5 kg, eftersom den
+  blå raden anger 15,5 kg. Givaren är pensionerad, och dess pris följer husets
+  regel från nästa synk, som planen varnade för. (N80)
+- `b64241c9` blev inte ett val på cykelkärran `571e37bf`: den anger cykelhjul
+  på 24–29 tum mot sidans 22–28 tum och ligger kvar som utkast. (N80)
+- `4b49e851` är samma vara som AliExpress-sidan `e580e506`, men sidan har två
+  varianter, och ommappningen vägrar en sida med flera varianter. Utkastet
+  ligger kvar. (N80)
+- Kategoritexter som inte stämmer för rundans produkter: Motionscyklar säger
+  att maxvikten är 110 eller 120 kg och att det finns en liggande modell. Den
+  liggande motionscykeln `ece264dc` bär 135 kg och är kopplad till Träning &
+  Gym. Bäddfåtöljer säger bäddar på 180–193 cm, stålstomme och omonterade
+  fåtöljer. Golvfåtöljen `31bb560b` ger 194 cm, är skumblock utan stomme och
+  monteras inte, och den är kopplad till Fåtöljer. Båda kopplas till sina
+  löv när texterna är omskrivna. (N80)
+- Bildgranskningen strök 14 av 35 bilder: tysk eller engelsk text på fyra,
+  läsbar text eller logotyp på rekvisita på åtta (bokryggar, kalender, tidning,
+  viktskiva, hantel och cykelram) och två bord i samma bild på barbordets bild 4
+  och 5. Cykelvagnen, motionscykeln och plåtskåpet har två bilder var. (N80)
+- Tal som bara står i bilderna är kvitterade i `foto-tal.txt`: minsta
+  dörröppning 71 cm (cykelvagnen), kroppslängd 160–195 cm (motionscykeln),
+  fotringen 21–42 cm över golvet (barstolarna) och takfläktens tre blad. (N80)
+- Barbordet `14d95b9a` säljs utan stolar, men bild 2 visar två stolar.
+  Ingressen, metan och en fråga säger att stolarna inte ingår. (N80)
+- Takfläkten `eb8ed6ce` har saldo 1 i Wix. Inkopplingen av en behörig
+  elektriker står som villkor med egen rubrik och i Produktsäkerhet. (N80)
+- Hoppade över i urvalet för saldo 0: `0b36127f`, `58c60fb4` och `b47f2372`.
+  Utkast med syskon lämnades till färgsyskonrundorna. (N80)
