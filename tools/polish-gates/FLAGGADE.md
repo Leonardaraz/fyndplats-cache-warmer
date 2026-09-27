@@ -13,6 +13,19 @@ När Leonard fattar ett beslut om en rad: stryk den (med ett kort resultat, t.ex
 bara ta bort den — historiken är billig och nästa runda ska inte behöva undra
 varför något inte längre står här.
 
+## Beslut 2026-09-27
+
+- **Ett husmärke på varan stoppar inte en publicering.** Leonard: *"att märkena är
+  tryckta på varan är inga problem, det får vara så, vi ändrar inget på deras
+  utseende eller bild"*. "Regeln från N36" gäller alltså inte längre. Raderna nedan
+  som hölls bara för den är märkta AVGJORT och är kandidater igen, ett femtiotal
+  utkast. Bilden med märket behålls hel. Andra skäl på samma rad står kvar:
+  färgsyskon, dubblett, säsong, saldo och licens.
+- **Frågan gällde leverantörens egna husmärken** (HOMCOM, Outsunny, PawHut, SPORTNOW,
+  AIYAPLAY med flera). Andras varumärken på varan, som HONDA, BMW, CAT och MINI, är en
+  licensfråga som inte är ställd. De raderna står kvar.
+- **Rött kors:** medicinskåpet `8c4cf7e9` behålls (Leonard: *"skitsamma"*).
+
 ## Licensierade tredjepartskaraktärer/varumärken
 
 - **`c5fc0b7b`** (Kinder-Autoscooter, ~1 699 kr) — bär Angry Birds/Rovio-dekaler,
@@ -50,9 +63,9 @@ varför något inte längre står här.
 - Medicinskåpet `8c4cf7e9` är **publicerat** och är ett vitt skåp med **rött kors
   på vit botten** på själva varan. Röda korsets emblem får inte användas i handel
   utan tillstånd. Utkasten `9bf1a5db`, `834b263f`, `a4a24666` och `127d4305`
-  jämfördes mot det i dubblettskärmarna och är inte polerade. Leonards beslut:
-  avpublicera, eller behålla. Ett grönt kors (`715b4acd`) är tillåtet.
-  (Granskningen 2026-09-27)
+  jämfördes mot det i dubblettskärmarna och är inte polerade. Ett grönt kors
+  (`715b4acd`) är tillåtet. (Granskningen 2026-09-27)
+  **AVGJORT 2026-09-27: behålls** (Leonard: *"skitsamma"*).
 - Före 2026-09-27 hade B17:s `LÄS-MIG.md` noterat korset utan att flagga det: den
   gamla runbooken sa att regeln "i praktiken bara gäller AliExpress".
 
@@ -267,6 +280,7 @@ beslut — se den samlade frågan om detta.
   `40d0af10` (469 kr, samma trippel, grå mot mörkgrå, 3,7 mot 4,2 kg) och
   med husmärket
   fastsytt på själva varan. Pröva igen när saldot stigit. (N36)
+  **Märket AVGJORT 2026-09-27:** stoppar inte. Färgsyskonet och saldot står kvar.
 - `7819dd4f` (sittdynor för utomhusbruk, 559 kr, saldo 197) — fel säsong:
   källan säger *Outdoor-Sitzauflage* och *auf der Terrasse*, samma skäl som
   N2 avvisade utomhussittdynor. `las` ren. (N36)
@@ -284,6 +298,8 @@ beslut — se den samlade frågan om detta.
   sida. Inte flaggade för licens — det är leverantörens eget märke — men om
   ett tryckt husmärke på varan ska stoppa en publicering är Leonards fråga;
   tidigare rundor har publicerat sådana och flaggat dem i efterhand. (N37)
+  **AVGJORT 2026-09-27: kandidater igen.** Bilderna med märket behålls, och `b2175a65`:s
+  femte bild stryks för den tyska texten som vanligt.
 - `d60bb2f2` (röd, 559 kr) och `9ac669e4` (blå, 569 kr), 20 L Mopp-Eimer mit
   Auswringer — färgsyskon till N36:s svarta `3bfee58b` (549 kr, den
   billigaste, publicerad i N36). Se `FARGSYSKONEN.md`. Lämnade orörda. (N37)
@@ -350,6 +366,7 @@ beslut — se den samlade frågan om detta.
   Outsunny-etikett på själva stenen och bild 4 bär tysk text ("LEICHT ZU
   SÄUBERN"), så tre rena bilder återstår och frågan om ett tryckt husmärke
   är Leonards (samma som `fd85cf0b`/`b2175a65` i N37). (N38)
+  **AVGJORT 2026-09-27: kandidat igen.** Bild 3 behålls, bild 4 stryks för den tyska texten.
 - N37:s reserver (raden "Reserver från N37" ovan) — N39 publicerade
   `a9360e2a`, `c694dcaa`, `d3655c3e`, `e514191b` och `f75a8a17`, alla fem
   efter färsk jämförelse, `las`, dubblettskärm och bildgranskning.
@@ -367,6 +384,8 @@ beslut — se den samlade frågan om detta.
   och måttbilden visar de fyra bågarna i en uppställning som källtexten inte
   förklarar. Samma fråga som `fd85cf0b`/`b2175a65` i N37: ska ett tryckt
   husmärke på en del av leveransen stoppa en publicering? (N39)
+  **Märket AVGJORT 2026-09-27:** nej. Uppställningen i måttbilden är fortfarande
+  oförklarad.
 - FEL SÄSONG i slutet av september — opolerade utkast i N39:s halva där vi
   är billigare än dealproffsen, att ta upp till våren: **bänkdynorna**
   150 × 98 × 8 cm `c8e3c2d6` (röd, 599 kr, billigast), `91b18246` (ljusgrå,
@@ -394,7 +413,7 @@ beslut — se den samlade frågan om detta.
   `ab47e35d` i N37. (N40)
 - `0bc12c7d` (Joghurtbereiter med sju glas, rostfritt, 469 kr, saldo 37) —
   HUSMÄRKET TRYCKT på produkten i bilderna. Samma fråga som `8ad49cfe` (N39)
-  och `fd85cf0b`/`b2175a65` (N37). (N40)
+  och `fd85cf0b`/`b2175a65` (N37). (N40) **AVGJORT 2026-09-27: kandidat igen.**
 - `85a18e86` (Regenschutz für Hundebuggy, 399 kr, saldo 177) — ett tillbehör
   vars källtext anger vilken hundvagn det passar genom leverantörens
   artikelnummer (‹REDIGERAT›). Utan numren går passformen inte att beskriva,
@@ -447,6 +466,8 @@ beslut — se den samlade frågan om detta.
   bilder. Fronten är dessutom formad som en MINI Cooper S, med "S"-emblem i
   grillen. Samma två frågor som `b2175a65` (N37) och de licensierade
   barnbilarna (N32). Leonards beslut. (N42)
+  **Märket AVGJORT 2026-09-27:** stoppar inte. MINI-formen och S-emblemet är
+  en licensfråga och står kvar.
 - `88a0ab0b` (Wasserkocher 2200W, beige, 499 kr) — färgsyskon-mönster (se
   `FARGSYSKONEN.md`): samma mått 24,2 × 19,5 × 23,4 cm som den PUBLICERADE
   `d8c2dec6` (grå/koppar, 499 kr). (N42)
@@ -473,7 +494,7 @@ beslut — se den samlade frågan om detta.
 - `b3e5b7d1` (Hocker Teddy, beige, 529 kr, saldo 119) — HUSMÄRKET PÅ SJÄLVA
   PRODUKTEN: en vit etikett med HOMCOM-loggan är fastsydd vid dynkanten
   (utsnitt av bild 1). Samma fråga som `5d9e6795` (N36) och
-  `fd85cf0b`/`b2175a65` (N37). Leonards beslut. (N43)
+  `fd85cf0b`/`b2175a65` (N37). Leonards beslut. (N43) **AVGJORT 2026-09-27: kandidat igen.**
 - `b7465ef9` (Joghurtbereiter, åtta glas, silver, 529 kr, saldo 197) — samma
   maskin som den PUBLICERADE `af7bf20d` (yoghurtmaskin med 8 glasburkar,
   799 kr): samma mått 36 × 18,8 × 14 cm, åtta burkar à 180 ml, 25 W och 0,8 m
@@ -641,6 +662,7 @@ beslut — se den samlade frågan om detta.
   `3b4594da` (minimotionscykel för armar och ben, HOMCOM — N47:s reserv),
   `9cf41b84` (tre fladdermusholkar, PawHut) och `aea52237` (kattlåda med två
   ingångar, PawHut). Ersattes av `a6a16df2`, `af9c163f` och `c311e18f`. (N48)
+  **AVGJORT 2026-09-27: kandidater igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   `28a708af` (sparkcykel 5-i-1) mot `ed5d6b85`, `9a1432fc` (hundvippa för
   agility) mot `2b7853e9`, `b08dc0cb` (sittbänk med dyna, saldo 8) mot
@@ -675,6 +697,7 @@ beslut — se den samlade frågan om detta.
   `ee50f5bf` (agilityset för hund med fyra bågar, PawHut på väskan och i
   annonsbilden). `75a94825` är samma agilityset som `ee50f5bf` och
   hoppades med den utan egen granskning. (N49)
+  **AVGJORT 2026-09-27: kandidater igen.** Av `ee50f5bf` och `75a94825` blir bara en sida.
 - `66bc1de2` (uppblåsbar tomte med LED och fläkt, 659 kr) hoppades som
   trolig tvilling till den publicerade `46dd0605` (uppblåsbar tomte 243 cm med
   polkagriskäpp). Skärmen hittade inga mått i källan och var blind för den;
@@ -716,6 +739,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `44d91c2f`
   (armhävningsbräda, SPORTNOW tryckt på brädan). Den ersattes av
   `a6820dd0` (spökbrud till halloween), som publicerades i N50. (N50)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   `43c151c1` (nio trampstenar) mot `60f84a27`, `9a66c056` (soptunna 30 l)
   mot `1c9d8d05`, `b7e5c1ea` (byrå med sju tyglådor) mot `834b263f`,
@@ -759,6 +783,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `a32ac465`
   (spegelskåp för badrummet, HOMCOM-etikett på själva skåpet). Den ersattes
   av `7a70db2c` (fotbollsbord), som publicerades i N51. (N51)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - `c40eb493` (väggdekor i åtta delar) prövades som ersättare men föll på
   kontaktarket: källans färg stämmer inte med bilderna. Hoppad tills färgen
   är utredd. (N51)
@@ -819,6 +844,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `c661b7de`
   (fågellekplats i fyra nivåer, PawHut-skylt på själva varan). Den ersattes
   av `855bae98` (cd- och dvd-hylla), som publicerades i N52. (N52)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   golvlamporna med hyllor `0ac59601` och `90881ca7` mot `3f539249` och
   `d286370d`, `fd221e07` mot `53e66496` och `d2dfd1fa` och `087000f1` mot
@@ -886,7 +912,7 @@ beslut — se den samlade frågan om detta.
   som publicerades i N53. (N53)
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `d0e14ad8`
   (hundtoalett med konstgräs, PawHut-etikett på brickan i alla fem bilderna).
-  (N53)
+  (N53) **AVGJORT 2026-09-27: kandidat igen.**
 - Färgsyskon till en produkt i N53: `7c50a452` (sittbänken med vita ben,
   759 kr) är samma bänk som `eca2fa1e` med svarta ben, som publicerades. Läs
   `FARGSYSKONEN.md` först. (N53)
@@ -996,7 +1022,7 @@ beslut — se den samlade frågan om detta.
   plyoboxen 3-i-1 `3a5e0e72` (SPORTNOW ingraverat på lådans sidor, samma
   slags vara som N49:s `647fdeb9`) och den hopfällbara magtränaren
   `b9c41f57` (SPORTNOW-bricka på den röda kåpan). Alla fem var `las`-gröna.
-  (N55)
+  (N55) **AVGJORT 2026-09-27: kandidater igen.**
 - Reserv: toaletthyllan i bambu `ed39cd4c` (799 kr, saldo 50). Den är
   `las`-prövad (grön) och kontakt- och högpassarken är granskade utan fynd,
   men den är inte skriven. Nästa runda börjar med den. (N55)
@@ -1008,6 +1034,7 @@ beslut — se den samlade frågan om detta.
   `8bc0dd26` (Outsunny tryckt på själva väskan, och bild 3 och 4 bär
   dessutom tysk text) och golvspegeln `ffc507bf` (en HOMCOM-etikett på
   spegelglaset i bild 1, 3 och 5). Båda var `las`-gröna. (N56)
+  **AVGJORT 2026-09-27: kandidater igen.** Takboxens bild 3 och 4 stryks för den tyska texten.
 - Reserv: förvaringspallen i vit manchester `a96f4c7e` (839 kr, saldo 67),
   de två väggspeglarna i kiselform `ac1cc9a5` (839 kr, saldo 43) och de tre
   växtpiedestalerna i vit metall `af2ca910` (839 kr, saldo 55). Alla tre är
@@ -1192,7 +1219,8 @@ beslut — se den samlade frågan om detta.
   därför som märkesraden ovan: fyrhjulingarna `fcdeca34` och `38e70184`
   (HONDA på karossen), motorcyklarna `70744919` och `e0590577` (BMW HP4,
   BMW-emblemet på kåpan) och tippbilen `be3dcfbc` (CAT-loggan på fronten).
-  (B7)
+  (B7) Beslutet 2026-09-27 gällde husmärkena. Det här är andras varumärken,
+  alltså en licensfråga, och raden står kvar.
 - Märke i texten, hålls: Mercedes `0fc2119d`, `0acfc30a` och `834cbe61`,
   McLaren `39d13508`, Land Rover `8ad1e003`, `fa99285f`, `1c0b4b34` och
   `6e518fc6`, Lamborghini `68fe8e67`, `e47294df`, `ea13272c` och
@@ -1214,6 +1242,7 @@ beslut — se den samlade frågan om detta.
   den gröna. (B7)
 - Grävskopan `2c280af2` har AIYAPLAY tryckt på fordonet, alltså
   leverantörens husmärke. Hålls, som SPORTNOW och PawHut i N11. (B7)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - Fyrhjulingen `fa5d1210` i rött och `a0d4a944` i rosa är samma modell som
   `17c253d6` i grönt, som N11 höll mot #285-klustret. De hålls med den.
   Den publicerade `9d686a82` är en annan fyrhjuling. (B7)
@@ -1294,12 +1323,16 @@ beslut — se den samlade frågan om detta.
   panelen). Märket sitter på produkten i varje bild och går inte att
   stryka. De publicerade miniugnarna `0e2a1cd9` och `83cc8ba7` bär samma
   märke, så katalogen är redan oenig med sig själv. (B10)
+  **AVGJORT 2026-09-27: kandidater igen.** Dubblettskärmen gäller som vanligt, och `ab47e35d` har
+  dessutom N37:s fråga om ett billigare utkast bakom en publicerad sida.
 - Säsong: campingtoaletten `b66f8c37` väntar till våren. (B10)
 - Husmärket på produkten, hålls tills Leonard avgör (samma regel som B10):
   sju set med vattenkokare och brödrost (`c0dd9d0c`, `eb19eca6`,
   `980dd9a1`, `c0463ce2`, `d7fea466`, `4546b12a` och `4add1c3a`, HOMCOM på
   brödrostens och kokarens panel), brödrosten `13204f68` och frysboxen
   `da0e9379` (HOMCOM på dörren). (B11)
+  **AVGJORT 2026-09-27: kandidater igen**, utom `13204f68`, som också är
+  färgsyskon (N36).
 - Väntar på en samlad skärm: fem brödrost- och vattenkokarset utan synligt
   märke, `47587c65`, `217630f1` och `bc2368af` (samma formgivning i tre
   färger) och `c7c74ab2` och `6147cb18` (samma digitala formgivning i två).
@@ -1342,7 +1375,7 @@ beslut — se den samlade frågan om detta.
   som `b7e5c1ea` i B13, och bänken `63c426d0` (grön) samma som `698fd1bf` i
   B13. (B13)
 - Husmärket på produkten, väntar på Leonard: Hollywoodspegeln `aeda1c4e` bär
-  HOMCOM-loggan tryckt på glaset i tre av fem bilder. (B13)
+  HOMCOM-loggan tryckt på glaset i tre av fem bilder. (B13) **AVGJORT 2026-09-27: kandidat igen.**
 - ✅ Tre flaggor ur N51 och N54 är utredda i B13. Bänken `698fd1bf` är en
   annan modell än `d5919be6`. Ramens mått och vikt är desamma, men klädseln
   (grå manchester med knappar) och maxlasten (220 kg) skiljer, och den är

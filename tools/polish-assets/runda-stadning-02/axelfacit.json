@@ -1,0 +1,96 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00e49c84": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0667fc10": {
+  "tyska": "",
+  "svenska": "L245 x B200 x H198 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 245L x 200B x 198H cm | ✔ Dörr: 107L x 175B cm"
+ },
+ "1a46d2af": {
+  "tyska": "",
+  "svenska": "190L x 252B x 201H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 190L x 252B x 201H cm | ✔ Fönsterstorlek: 60,2L x 60B cm | ✔ Dörrstorlek: 60L x 161,5H cm"
+ },
+ "2da078c9": {
+  "tyska": "",
+  "svenska": "300L x 80B x 157H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 300L x 80B x 157H cm | ✔ Dörrmått: 68B x 143H cm | ✔ Upprullningsbar väggpanel: 266B x 80H cm"
+ },
+ "52b12860": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5556a448": {
+  "tyska": "",
+  "svenska": "195 x 295 x 195 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 195L x 295B x 195H cm | ✔ Dörrstorlek (enkeldörr): 120B x 164H cm"
+ },
+ "601ae5f5": {
+  "tyska": "",
+  "svenska": "180L x 180B x 200H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 180L x 180B x 200H cm | ✔ Sidofönster: 120B x 45H cm | ✔ Dörrstorlek: 123B x 158H cm"
+ },
+ "75b88995": {
+  "tyska": "",
+  "svenska": "600L x 300B x 197H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 600L x 300B x 197H cm | ✔ Fönsterstorlek: 40B x 40H cm | ✔ Dörrstorlek: 196B x 153H cm"
+ },
+ "7db29345": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "97f5f728": {
+  "tyska": "",
+  "svenska": "295cm x 200cm x 270cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 295B x 200D x 270H cm | ✔ Sidofönster: 60B x 60H cm | ✔ Dörrstorlek: 118B x 185H cm"
+ },
+ "9cc6d5a9": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b5ba12b8": {
+  "tyska": "",
+  "svenska": "190 x 252 x 201 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 190L x 252B x 201H cm | ✔ Fönsterstorlek: 60,2L x 60B cm | ✔ Dörrstorlek: 60L x 161,5H cm"
+ },
+ "b8496223": {
+  "tyska": "",
+  "svenska": "300L x 200B x 195H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 300L x 200B x 197H cm | ✔ Fönsterstorlek: 40B x 40H cm | ✔ Dörrstorlek: 113B x 172H cm"
+ },
+ "ca16f9ab": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e478cc02": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "eac7fdca": {
+  "tyska": "",
+  "svenska": "192L x 192B x 204H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 192L x 192B x 204H cm | ✔ Inre utrymme: 185B x 124T cm | ✔ Dörrstorlek: 62B x 162H cm | ✔ Fönsterstorlek: 59B x 51H cm | ✔ Bottenplattans storlek: 192B x 192T x 5H cm"
+ },
+ "eadb1015": {
+  "tyska": "",
+  "svenska": "200 x 80 x 157 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 200L x 80B x 157H cm | ✔ Dörrmått: 68B x 143H cm | ✔ Upprullningsbar väggpanel: 170B x 80H cm"
+ },
+ "ed4fd2a9": {
+  "tyska": "",
+  "svenska": "180 x 180 x 200 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 180L x 180B x 200H cm | ✔ Sidofönstermått: 120B x 45H cm | ✔ Dörrmått: 123B x 158H cm"
+ },
+ "f837b05d": {
+  "tyska": "",
+  "svenska": "200 x 100 x 215 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 200L x 100B x 215H cm | ✔ Dörrmått: 70B x 200H cm | ✔ Fönstermått: 35B x 35H cm"
+ },
+ "f8d3a8fd": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

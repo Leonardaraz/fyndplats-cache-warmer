@@ -41,10 +41,10 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 # Skillnaden är mätbar och entydig: ett äkta artikelnummer bär MINST TVÅ
 # alfanumeriska tecken efter den andra siffergruppen (`V00BG`, `CG`, `LG`),
 # spänningen bär exakt ETT (`V`). Kravet gäller BARA den helt numeriska
-# formen — `84B-956` och `83F-023` är äkta artikelnummer utan svans, och
+# formen — två äkta artikelnummer i formen `DDL-DDD` saknar svans, och
 # formen DDL-DDD har ingen legitim annan betydelse.
 #
-# ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `D51-530V00BK` (#230) börjar
+# ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `LDD-DDDLDDLL` (#230) börjar
 # med en BOKSTAV och matchade varken alternativ. Den har ett eget uttryck nu.
 #
 # ☠️ OCH ETT FALSKLARM TILL, uppmätt 2026-09-16 på runda N6:s köksset: en
@@ -58,9 +58,9 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 # ser ut som en läcka av leverantörens artikelnummer lär mottagaren att sluta
 # läsa just den grinden. Mätt åt båda hållen — sex kända artikelnummer fångas
 # fortfarande, sju icke-nummer avvisas.
-ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
-         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # D51-530V00BK
-         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # 921-672V00BG, INTE 220-240V eller 850-1000W
+ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # DDL-DDDLDDLL, DDL-DDD
+         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # LDD-DDDLDDLL
+         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # DDD-DDDLDDLL, INTE 220-240V eller 850-1000W
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 # ☠️ AKTÖRS- OCH GARDERINGSORDEN ÄR FLER ÄN "LEVERANTÖREN" (2026-09-27).
@@ -74,10 +74,20 @@ LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kine
 # säger "ett fast nackstöd sitter där tillverkaren gissat" om fasta stöd i
 # allmänhet, vilket inte lägger vårt påstående på någon annan. Verbet är det
 # som gör en uppgift till någon annans.
+# ☠️ OCH GARDERINGEN HAR FLER FORMER ÄN "anges inte" (städrundan 2026-09-27).
+# Äldre publicerade sidor skriver "anges ingen maxvikt", "vi gissar inte fram
+# en", "vi skriver hellre inget mått än ett vi inte kan stå för" och
+# "underlaget för just den här kulören anger två olika höjdspann" — samma sak
+# som runbooken förbjuder, alltså att visa kunden att vi inte vet. Mätt över
+# rundornas 1 021 kundfiler utanför städrundan: noll träffar, alltså inget
+# falsklarm. "med flit" står INTE här: tolv legitima träffar ("kort med flit").
 LEV = (r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift"
        r"|[Tt]illverkaren (?:uppger|rekommenderar|skriver|lovar|garanterar|påstår|säger)"
        r"|[Ee]nligt (?:uppgift|tillverkaren|fabrikanten)"
-       r"|framgår inte|anges inte|uppges inte|specificeras inte|kan inte garantera|[Mm]ät själv)\b")
+       r"|framgår inte|anges inte|uppges inte|specificeras inte|kan inte garantera|[Mm]ät själv"
+       r"|gissa[rs]? (?:inte )?fram|[Vv]i gissar|an(?:ges|ger) ingen|[Ii]ngen angiven|[Ii]nga angivna"
+       r"|[Vv]i skriver (?:hellre|inget)|så vi skriver|inte kan stå för|i underlaget|[Uu]nderlaget för"
+       r"|[Mm]askinsatt\w*)\b")
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
 
 # ☠️ RUNDANS EGNA ORD NÅR KUNDEN (2026-09-27). "Det här är rundans enda
@@ -253,6 +263,12 @@ OMFANG_ORD = [
     "i vårt", "i vår", "på sidan", "andra stolarna", "övriga stolarna",
     # Tillagda 2026-09-27: sex publicerade texter skrev "i sortimentet".
     "i sortimentet", "i butiken",
+    # Tillagda 2026-09-27 i städrundan: "familjens minsta", "det enda i
+    # familjen" är samma rankning av våra varor som "rundans bredaste", och
+    # grinden såg dem inte. Mätt över rundornas kundfiler: 13 meningar, alla
+    # äkta rankningar. "i gruppen" står INTE här: en av tre träffar var tre
+    # snögubbar i en och samma produkt ("den minsta sitter främst i gruppen").
+    "i familjen", "familjens",
 ]
 SUPERLATIV = r"(?<![A-Za-zÅÄÖÉÜåäöéü])(" + "|".join(SUPERLATIV_ORD) + r")(?![A-Za-zÅÄÖÉÜåäöéü])"
 OMFANG = r"(" + "|".join(OMFANG_ORD) + r")"

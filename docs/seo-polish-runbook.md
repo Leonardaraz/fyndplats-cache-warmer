@@ -34,10 +34,12 @@
   Zonekiz, Durhand och Aosom (`gatelib.MARKEN`, `lib/import/sku.ts`) stryks ur namn,
   SEO-titel, meta, slug, sökord och alt-texter. Etablerade märken med eget sökvärde behålls.
   Är du osäker: behåll märket och flagga till Leonard.
-- **Ett märke som sitter fysiskt på varan** (tryckt, graverat eller gjutet) hör till varan.
-  Bilden behålls och ingenting flaggas *(Leonard 2026-08-06)*. Testet: skulle märket synas
-  om du fotade varan själv efter uppackning? Undantaget gäller inte rött kors, se
-  [Laglighetsgrinden](#laglighetsgrinden).
+- **Ett märke som sitter fysiskt på varan** (tryckt, graverat, gjutet eller en fastsydd
+  etikett) hör till varan. Bilden behålls hel och produkten hålls inte tillbaka för det
+  *(Leonard 2026-08-06, bekräftat 2026-09-27: "vi ändrar inget på deras utseende eller
+  bild")*. Testet: skulle märket synas om du fotade varan själv efter uppackning?
+  Skriv det aldrig i texten. Beslutet gäller leverantörens husmärken. Andras varumärken på
+  varan (bilmärken, licensfigurer) är en licensfråga: flagga till Leonard.
 - **Skriv aldrig avsändarland eller lagerland** *(Leonard 2026-08-15)*. Bara
   EU-lager-ribbonen får visa det. Sök på `skickas från` utan hänsyn till versaler i
   slutkollen, eftersom `gate.py` bara ser den gemena formen.
@@ -104,7 +106,7 @@ och varnar under 5.
 
 ### Laglighetsgrinden
 
-Kör den innan du skriver något; rött kors och husdjurens mått syns ofta först på bilderna.
+Kör den innan du skriver något; husdjurens mått och normer syns ofta först på bilderna.
 Den gäller bara klasserna nedan.
 
 **Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80). Minimimåtten är bindande i Sverige,
@@ -162,9 +164,9 @@ den andra.
   som ett positivt villkor med egen rubrik.
 - **El som används mot kroppen, medicintekniska produkter och kosttillskott:** flagga till
   Leonard och polera inte.
-- **Rött kors på vit botten**, på varan eller i en bild, är Röda korsets skyddade emblem
-  (lag 1953:771) och får inte användas i handel. Polera inte, flagga till Leonard. Ett grönt
-  kors är tillåtet.
+- **Rött kors på varan** stoppar inte en publicering *(Leonard 2026-09-27, om medicinskåpet
+  `8c4cf7e9`: "skitsamma")*. Emblemet är skyddat (lag 1953:771), så nämn det inte i namn
+  eller text.
 
 Har produkten en säkerhetsrelevant gräns (maxlast, ålder) står siffran i spec-tabellen.
 Avgör gränsen hur varan får användas skrivs den som ett positivt villkor med egen rubrik,
@@ -320,7 +322,10 @@ när den bär:
 **Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
 bara har siffror och enheter, och text som går att läsa först i flerfaldig förstoring. Stryk
 bara det listan ovan tar upp: så många användbara bilder som möjligt *(Leonard 2026-07-10)*,
-men hellre två rena bilder än tre där en bär ett varumärke.
+men hellre två rena bilder än tre där en bär ett varumärke på rekvisitan.
+
+**Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
+eller maskning av varan *(Leonard 2026-09-27)*.
 
 **Läs siffrorna i en infografik innan du stryker den.** Ett tal som avgör köpet kan finnas
 bara i bilden. Ett exempel är gasolregulatorn på 50 mbar, där svenska tuber kräver 30 mbar.

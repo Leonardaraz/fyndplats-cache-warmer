@@ -1,0 +1,98 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07d52f21": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0fc3c252": {
+  "tyska": "",
+  "svenska": "198cm x 275cm x 191cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 198B x 275D x 191H cm | ✔ Dörrstorlek: 105B x 166H cm | ✔ Fönsterstorlek: 35B x 35H cm | ✔ Hyllstorlek: 25B x 273L cm"
+ },
+ "11d486a3": {
+  "tyska": "",
+  "svenska": "185cm x 94cm x 150cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 185L x 94B x 150H cm | ✔ Dörrmått: 72B x 150H cm | ✔ Frontfönstrets mått: 40B x 30H cm | ✔ Sidofönstrets mått: 30B x 30H cm"
+ },
+ "2b5c2a89": {
+  "tyska": "",
+  "svenska": "300 x 100 x 200 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 300L x 100B x 200H cm | ✔ Fönsterstorlek: 35L x 35B cm | ✔ Dörrstorlek: 124L x 147B cm"
+ },
+ "3e60d4ee": {
+  "tyska": "",
+  "svenska": "360L x 90B x 90H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 360L x 90B x 90H cm | ✔ Fönsterstorlek: 74L x 115B cm"
+ },
+ "62d2071e": {
+  "tyska": "",
+  "svenska": "300L x 150B x 213H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 300L x 150B x 213H cm | ✔ Fönsterstorlek: 35B x 35H cm | ✔ Dörrstorlek: 123B x 195H cm | ✔ Gallerpanelstorlek: 87L x 28,5B cm"
+ },
+ "6e60b45a": {
+  "tyska": "",
+  "svenska": "90 x 46 x 40 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 90L x 46B x 40H cm | ✔ Innermått: 86L x 42B cm"
+ },
+ "83a5fc0e": {
+  "tyska": "",
+  "svenska": "100L x 65B x 40H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 100L x 65B x 40H cm | ✔ Inre odlingsyta: 96L x 59,5B cm"
+ },
+ "94ee540a": {
+  "tyska": "",
+  "svenska": "143 x 74 x 190 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 143L x 74B x 190H cm | ✔ Dörrmått: 86B x 157H cm | ✔ Fönstermått: 30B x 30H cm | ✔ Trådhyllans mått: 60B x 25D cm"
+ },
+ "9cdca665": {
+  "tyska": "",
+  "svenska": "297L x 395B x 199H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 297B x 395D x 199H cm | ✔ Dörrstorlek (per dörr): 200B x 150H cm"
+ },
+ "ad667726": {
+  "tyska": "",
+  "svenska": "360L x 90B x 90H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 360L x 90B x 90H cm | ✔ Fönsterstorlek: 74L x 115B cm"
+ },
+ "bb14015b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "be595bfd": {
+  "tyska": "",
+  "svenska": "200 x 75 x 188 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 200B x 75D x 188H cm | ✔ Dörrstorlek: 163B x 163H cm | ✔ Fönsterstorlek: 35B x 35H cm"
+ },
+ "cc2add44": {
+  "tyska": "",
+  "svenska": "200L x 75B x 188H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 200B x 75T x 188H cm | ✔ Dörrstorlek: 163B x 163H cm | ✔ Fönsterstorlek: 35B x 35H cm"
+ },
+ "d44fd4bd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "d99cc578": {
+  "tyska": "",
+  "svenska": "198 x 275 x 191 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 198B x 275D x 191H cm | ✔ Dörrstorlek: 105B x 166H cm | ✔ Fönsterstorlek: 35B x 35H cm | ✔ Hyllstorlek: 25B x 273L cm"
+ },
+ "dd97fbc9": {
+  "tyska": "",
+  "svenska": "70,5L x 42B x 132H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 70,5L x 42B x 132H cm | ✔ Dörrmått (per dörr): 31,5B x 89H cm | ✔ Fönsterstorlek: 50L x 40B cm"
+ },
+ "e0b85bb6": {
+  "tyska": "",
+  "svenska": "100L x 65B x 40H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 100L x 65B x 40H cm | ✔ Inre odlingsyta: 96L x 59,5B cm"
+ },
+ "ed930c42": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "ff590562": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

@@ -3,6 +3,11 @@
 Uppmätt 2026-09-06. Nio publicerade produktsidor bär Aosoms artikelnummer
 eller husmärket Outsunny **inbränt i en bild som vi själva har gjort**.
 
+☠️ **Tabellen nedan läckte själv numren i tre veckor** (redigerad 2026-09-27).
+De stod med gemener, och läcktestet i CI ser bara versaler och bara
+`tools/polish-assets/`. Redigera därför på formen, oavsett skiftläge och
+oavsett katalog.
+
 ## Vad som står där
 
 Korten är husets egna: off-white botten, Fyndplats-logotyp nere till vänster,
@@ -11,14 +16,14 @@ den källan:
 
 | produkt (slug) | bild | vad fotnoten säger |
 |---|---:|---|
-| `partytalt-3x3-m-stalstomme-pe-tak` | 4 | Uppgifter ur Outsunnys datablad, **ref 84c-433v00wt** |
-| `partytalt-6x3-m-sex-vaggar-fyra-fonster` | 4 | Uppgifter ur Outsunnys datablad, **ref 84c-197v01wt** |
-| `paviljong-3x3-6-m-dubbeltak-myggnat` | 4 | Uppgifter ur Outsunnys datablad, **ref 84c-710v00** |
-| `popup-talt-3-5x3-5-m-dubbeltak-upf50` | 4 | Uppgifter ur Outsunnys datablad, **ref 84c-818v00cg** |
-| `popup-talt-3x3-m-fyra-vaggar-justerbar-hojd` | 4 | Uppgifter ur Outsunnys datablad, **ref 84c-799v00c** |
-| `hollywoodgunga-3-sits-randig-dyna` | 5 | Uppgifter ur Outsunnys datablad, **ref 84a-118v01** |
-| `parasoll-260-cm-vev-aluminium-lutbart` | 4 | Uppgifter ur Outsunnys datablad, **ref 84d-032cf** |
-| `parasoll-300-cm-tra-dubbeltak` | 4 | Uppgifter ur Outsunnys datablad, **ref 01-0244** |
+| `partytalt-3x3-m-stalstomme-pe-tak` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `partytalt-6x3-m-sex-vaggar-fyra-fonster` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `paviljong-3x3-6-m-dubbeltak-myggnat` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `popup-talt-3-5x3-5-m-dubbeltak-upf50` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `popup-talt-3x3-m-fyra-vaggar-justerbar-hojd` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `hollywoodgunga-3-sits-randig-dyna` | 5 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `parasoll-260-cm-vev-aluminium-lutbart` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
+| `parasoll-300-cm-tra-dubbeltak` | 4 | Uppgifter ur Outsunnys datablad, **ref ‹REDIGERAT›** |
 | `popup-talt-6x3-m-sex-vaggar-justerbar-hojd` | 4 och 5 | *"Uppgifter ur Outsunnys datablad."* och i brödtexten *"Outsunny anger UPF 30+"* |
 
 ## ☠️ Varför ingen grind har sett det
@@ -63,7 +68,7 @@ Nio av tjugofyra tält-, paviljong- och parasollsidor bär en — **38 %**.
 
 ☠️ **Räkna alltså inte med 1,3 % över katalogen.** Rätt fråga är vilka andra
 familjer som fick kort ur samma omgång. Alla nio citerar Outsunny, och sju av
-åtta artikelnummer börjar på `84`.
+åtta artikelnummer har samma inledande siffror.
 
 ## Vad som INTE är fixat
 
