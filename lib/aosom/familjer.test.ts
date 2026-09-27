@@ -120,8 +120,39 @@ describe("jamfor", () => {
   });
 
   it("☠️ samma klunga men en annan modell är ingenting — Psin är ingen variantgrupp", () => {
-    const annan = rad("T-2", { name: "PawHut Welpenlaufstall faltbar, 8 Paneele" });
+    // Klungans andra varor mäter annorlunda: valphagen med åtta paneler är
+    // större, tyngre och i ett annat paket. Det är måtten som skiljer dem åt.
+    const annan = rad("T-2", {
+      name: "PawHut Welpenlaufstall faltbar, 8 Paneele",
+      size: "160L x 160B x 60H cm", packageSize: "82x62x8 cm", weightKg: 9.2,
+    });
     expect(jamfor(dragAv(rad("T-1")), dragAv(annan)).relation).toBeNull();
+  });
+
+  it("☠️ samma klunga och samma mått, paket och vikt räcker — även med en helt annan titel", () => {
+    // Uppmätt i produktion 2026-09-27: A-hindret i grått och i orange har samma
+    // klunga och identisk fysik, men namnlikhet 0 — Aosom skrev olika titlar.
+    const gra = rad("T-2", { color: "Grau", name: "Trainingsrampe Welpen, rutschfest" });
+    const orange = rad("T-1", { color: "Orange", name: "Agility Gerät Kletterwand, klappbar" });
+    const j = jamfor(dragAv(orange), dragAv(gra));
+    expect(j.namnLikhet).toBe(0);
+    expect(j.relation).toBe("farg");
+    // Samma färg också: samma vara två gånger.
+    expect(jamfor(dragAv({ ...orange, color: "Grau" }), dragAv(gra)).relation).toBe("samma");
+  });
+
+  it("utan klunga räcker inte fysiken — då bär namnet bevisningen", () => {
+    const a = rad("T-1", { psin: "", color: "Orange", name: "Agility Gerät Kletterwand, klappbar" });
+    const b = rad("T-2", { psin: "", color: "Grau", name: "Trainingsrampe Welpen, rutschfest" });
+    expect(jamfor(dragAv(a), dragAv(b)).relation).toBeNull();
+  });
+
+  it("klunga och fysik räcker inte när materialet eller kategorin skiljer", () => {
+    const bas = rad("T-1", { name: "Agility Gerät Kletterwand" });
+    const tra = rad("T-2", { color: "Blau", name: "Trainingsrampe Welpen", material: "Kiefernholz, Metall" });
+    expect(jamfor(dragAv(bas), dragAv(tra)).relation).toBeNull();
+    const katt = rad("T-3", { color: "Blau", name: "Trainingsrampe Welpen", category: "Haustier > Katze > Möbel" });
+    expect(jamfor(dragAv(bas), dragAv(katt)).relation).toBeNull();
   });
 
   it("utan gemensam klunga krävs ett närmare namn", () => {
@@ -364,7 +395,7 @@ describe("diagnosPar", () => {
 });
 
 describe("verktygetIdag", () => {
-  it("färg och storlek på en gång klarar verktyget inte", () => {
+  it("färg och storlek på en gång klarar verktyget — givaren blir en ny kombination", () => {
     const svar = hittaFamiljer(indata(
       [
         rad("T-1"),
@@ -374,7 +405,24 @@ describe("verktygetIdag", () => {
       [mappning("T-1", "gra-liten"), mappning("T-3", "bla-stor")],
       [wix("gra-liten", true), wix("bla-stor", false)],
     ));
-    expect(svar.familjer[0]).toMatchObject({ typ: "farg_storlek", verktygetIdag: false });
+    expect(svar.familjer[0]).toMatchObject({ typ: "farg_storlek", verktygetIdag: true });
+  });
+
+  it("en givare i en färg sidan redan har, utan mått, är ingen ny storlek", () => {
+    // Sidan bär redan grått och blått. Givaren är grå, och varken den eller
+    // sidan har yttermått — att kalla den en ny storlek hade varit en gissning.
+    const sida = mappning("T-1", "sida");
+    sida.variants = [
+      { ...sida.variants[0], wixVariantId: "v-1" },
+      { ...sida.variants[0], supplierVariantId: "T-2", sku: "FP-sida-bla", wixVariantId: "v-2" },
+    ];
+    const svar = hittaFamiljer(indata(
+      [rad("T-1", { size: "" }), rad("T-2", { size: "", color: "Blau" }), rad("T-3", { size: "" })],
+      [sida, mappning("T-3", "utkast")],
+      [wix("sida", true), wix("utkast", false)],
+    ));
+    expect(svar.familjer).toHaveLength(1);
+    expect(svar.familjer[0]).toMatchObject({ typ: "farg", verktygetIdag: false });
   });
 
   it("samma vara två gånger är en pensionering, inte ett val", () => {

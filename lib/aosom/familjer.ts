@@ -118,8 +118,8 @@ export interface Familj {
   utkast: number;
   /**
    * Kan verktyget (`aosom-sammanslagning`) lägga minst ett syskon som ett val
-   * på en publicerad sida? Det kräver en familj på EN axel (färg eller
-   * storlek), en publicerad sida att behålla och en givare med en enda artikel.
+   * på en publicerad sida? Det kräver en publicerad sida att behålla och en
+   * givare med en enda artikel som blir en ny kombination av färg och storlek.
    * En publicerad givare kräver `omdirigera` — se sammanslagning.ts.
    */
   verktygetIdag: boolean;
@@ -332,8 +332,21 @@ export function jamfor(a: Drag, b: Drag): Jamforelse {
 
   let relation: Relation | null = null;
   const fysisktSamma = mattLika && paketLika !== false && viktNara(a.vikt, b.vikt);
+  // ☠️ AOSOM GER FÄRGSYSKON OLIKA TITLAR. Uppmätt 2026-09-27 med `?par=` på två
+  // par som granskats för hand (runda N76): A-hindret i grått och orange och
+  // agilitybågarna i gult och blått har samma klunga, mått, paket, vikt,
+  // material och kategori — och namnlikhet 0 och 0,17. Namnet kan alltså inte
+  // bära beslutet när klungan och hela den fysiska signaturen redan är
+  // identiska. Utan klunga ligger namnkravet kvar: där är namnet enda bandet
+  // mellan två rader som råkar mäta lika.
+  const fullFysik = sammaPsin
+    && a.matt.length > 0 && b.matt.length > 0
+    && paketLika === true
+    && a.vikt !== null && b.vikt !== null
+    && (materialLikhet === null || materialLikhet >= MATERIAL_GRANS)
+    && kategoriLika !== false;
   if (fysisktSamma) {
-    if (namnLikhet >= (sammaPsin ? NAMN_GRANS_SAMMA_PSIN : NAMN_GRANS_UTAN_PSIN)) {
+    if (fullFysik || namnLikhet >= (sammaPsin ? NAMN_GRANS_SAMMA_PSIN : NAMN_GRANS_UTAN_PSIN)) {
       relation = fargLika === true ? "samma" : "farg";
     }
   } else if (
@@ -652,13 +665,13 @@ function byggFamilj(
   const sammaVara = [...perRot.values()].filter((l) => l.length > 1).map((l) => l.sort());
 
   // Verktyget (aosom-sammanslagning) behöver en publicerad sida att behålla —
-  // gärna redan sammanslagen — och en givare med EN artikel vars värde sidan
-  // inte har. Givaren får vara ett utkast eller en publicerad sida. Färg: samma
-  // mått, annan känd färg. Storlek: samma kända färg, andra mått. Två axlar på
-  // en gång klarar verktyget inte.
+  // gärna redan sammanslagen — och en givare med EN artikel som blir en ny
+  // KOMBINATION på sidan: en annan färg, en annan storlek eller båda. Givaren
+  // får vara ett utkast eller en publicerad sida. Färgen måste vara känd på
+  // båda, och en storlek känns igen på måtten.
   const dragAvSida = (s: Sida) =>
     s.artiklar.map((a) => dragPerArtikel.get(a)).filter((d): d is Drag => Boolean(d));
-  const verktygetIdag = (typ === "farg" || typ === "storlek") && vara.some((p) => {
+  const verktygetIdag = typ !== "samma" && vara.some((p) => {
     if (p.status !== "publicerad") return false;
     const dp = dragAvSida(p);
     if (dp.length === 0 || dp.some((d) => !d.farg)) return false;
@@ -666,9 +679,8 @@ function byggFamilj(
       if (u === p || u.artiklar.length !== 1) return false;
       const du = dragPerArtikel.get(u.artiklar[0]);
       if (!du || !du.farg) return false;
-      return typ === "farg"
-        ? dp.every((d) => d.farg !== du.farg) && dp.some((d) => listorNara(d.matt, du.matt))
-        : du.matt.length > 0 && dp.every((d) => d.farg === du.farg && d.matt.length > 0 && !listorNara(d.matt, du.matt));
+      // En annan storlek kräver mått på båda — annars vet ingen vad valet heter.
+      return dp.every((d) => d.farg !== du.farg || (du.matt.length > 0 && d.matt.length > 0 && !listorNara(d.matt, du.matt)));
     });
   });
 

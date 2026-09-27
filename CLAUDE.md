@@ -1481,8 +1481,8 @@ Sju egenskaper som inte ska tas bort:
    importen skriver, och lagret följer varianten: `inventoryItem` bär bara
    `quantity` (schemat har inget id där).
 
-**Så körs den:** workflowen **"Dubbletter — lägg ett utkast som färg på en
-publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sammanslagning`,
+**Så körs den:** workflowen **"Dubbletter — lägg ett utkast som färg eller
+storlek på en publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sammanslagning`,
 logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
 körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
 får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
@@ -1508,10 +1508,10 @@ samma workflow fyra lägen, ett per körning:
 | `wix_klar` | en körning föll efter Wix | bara återläsning, mappning och resten |
 | `klar` | artikeln sitter redan på sidan | bara givarens efterarbete |
 
-- **Axel:** `Färg` (default) eller `Storlek`. Två axlar på en gång (färg OCH
-  storlek) klarar verktyget inte — hindret är `annan_axel`.
-- **Fler val:** kör workflowen en gång per syskon. `farg_behall` behövs bara
-  första gången; sedan står sidans val i Wix och i mappningen.
+- **Axlar:** `Färg`, `Storlek` eller båda — se nästa avsnitt.
+- **Fler val:** kör workflowen en gång per syskon. Sidans värde (`farg_behall`,
+  `storlek_behall`) behövs bara första gången en axel läggs till; sedan står
+  sidans val i Wix och i mappningen.
 - **Publicerad givare** kräver `omdirigera=ja`. Då kopieras givarens recensioner
   till sidan, en 301 skrivs från givarens adress, och givaren avpubliceras och
   pensioneras.
@@ -1545,6 +1545,59 @@ Poleringens skrivsteg (`skrivplan.ts`) klarar bara sidor med en variant. Polera
 därför ett av syskonen, publicera det, och lägg sedan de andra som val med den
 här workflowen — samma väg som balansbommen.
 
+#### Färg och storlek på samma sida (2026-09-27)
+
+Leonards fråga: går det att ha färg och storlek på samma sida på en gång? Ja.
+Svepet räknade **12 familjer** som skiljer sig på båda (av 679), och butiken
+klarade det redan: väljaren för AliExpress-sidorna (headless-site,
+`lib/variant-multi.ts`) har två axlar, dämpar en kombination som saknas och byter
+till en som finns. Synken, beställningsfilen och feeden läser per variant. Det
+som saknades var verktyget.
+
+**Inputs:** givarens värde på varje axel sidan har eller får (`farg_utkast`,
+`storlek_utkast`), och sidans värde bara på en axel den får för första gången
+(`farg_behall`, `storlek_behall`). `axel` finns inte längre — rutten svarar 400
+på den gamla kroppen, eftersom den bar storleken i `fargUtkast`.
+
+| sidan har | givaren anger | resultat |
+|---|---|---|
+| inga val | färg + storlek (och sidans båda) | två axlar, två varianter |
+| färg | färg + storlek (och sidans storlek) | storleksaxeln läggs till, de gamla varianterna får sidans storlek |
+| färg + storlek | färg + storlek | en variant till, nya val bara där värdet är nytt |
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Alla kombinationer behöver inte finnas.** Wix tillåter färre varianter
+   än kombinationer (dokumenterat), och en kombination Aosom inte säljer ska inte
+   finnas på sidan. Planen varnar med antalet som saknas (`saknadeKombinationer`).
+2. ☠️ **Givarens värde stavas som sidans.** "grå" på en sida med "Grå" är samma
+   val. Utan det hade Wix fått ett andra val med samma namn.
+3. ☠️ **Färgen bär bilden.** Butiken tar kombinationens bild från färgaxeln när
+   den finns (`lib/variant-price.ts`, Leonards regel 2026-08-08). En ny färg får
+   givarens huvudbild. En ny storlek i en färg sidan redan har tar ingen bild som
+   standard, för den visar samma vara. En storlekssida som får färg behåller
+   storlekarnas bilder, och sidans egen färg får ingen, så de gamla varianterna
+   fortsätter visa sin storleks bild.
+4. ☠️ **Varje befintlig variant kontrolleras på alla axlar** efter skrivningen.
+   Bär en variant fel val skrivs ingen mappning, och synken nollar den nya
+   varianten tills en omkörning är klar.
+5. **Hinder med två axlar:** `saknar_farg_utkast` och `saknar_storlek_utkast`
+   (givaren måste ange sitt värde på varje axel sidan har), `saknar_*_behall`
+   (en ny axel utan sidans värde), `*_lika` (en ny axel där sidan och givaren
+   har samma värde skiljer ingenting åt) och `kombinationen_finns`.
+6. **Standard-SKU:n tar storleken före färgen** (`FP-stol-110-cm-gra`).
+   Artikelnummerspärren fäller färgen före ett tresiffrigt mått (tre tecken,
+   bindestreck, tre siffror), men inte måttet före färgen. Slutar sidans SKU
+   på ett ord med tre tecken kan den ändå fällas (`sku_ogiltig`), och då anges
+   SKU:n för hand.
+
+⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
+det.** Kommentaren där säger att en delad option ("customization") tar högst 100
+val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) har
+**293** val och `Storlek` **203**, och importerna fungerar. Taket på 100 per
+delad option gäller alltså inte i dag. Nya storleksvärden tar ändå en plats var i
+den delade listan, så välj korta, återanvändbara etiketter där det går.
+
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 
 Leonards fråga: finns det fler färgdubbletter, och storleksdubbletter, alltså
@@ -1558,8 +1611,8 @@ Workflowen **"Dubbletter — hitta färg- och storlekssyskon"** →
 
 | relation | kräver |
 |---|---|
-| färg | samma mått, paket och vikt, olika färg, samma modellnamn |
-| samma vara | samma mått, paket och vikt, samma färg, samma modellnamn |
+| färg | samma mått, paket och vikt, olika färg, samma modellnamn — eller samma klunga, material och kategori |
+| samma vara | samma mått, paket och vikt, samma färg, samma modellnamn — eller samma klunga, material och kategori |
 | storlek | samma klunga (`Psin`), olika mått, samma färg, material och kategori, samma modellnamn |
 
 "Samma modellnamn" jämförs på feedens tyska namn efter att färgord, siffror,
@@ -1584,12 +1637,36 @@ Fem egenskaper som inte ska tas bort:
    ut som saknade, och svaret hade sett komplett ut.
 5. **Listan är ett underlag för en människa.** Varje familj ses med bilderna
    innan något slås ihop. `verktygetIdag` betyder bara att sammanslagningen
-   *kan* lägga ett syskon som ett val (en axel, en publicerad sida att behålla),
-   inte att den ska.
+   *kan* lägga ett syskon som en ny kombination av färg och storlek på en
+   publicerad sida, inte att den ska.
 
 `?par=<id>,<id>` kalibrerar mot par som redan är granskade: svaret säger vad
 jämförelsen såg (samma klunga, mått, färg, vikt och namnlikhet) utan att något
 nummer skrivs ut.
+
+**Första körningen i produktion (2026-09-27):** 679 familjer över 1 615 sidor
+(722 publicerade, 893 utkast). Av dem är 570 färgfamiljer, 87 storleksfamiljer,
+12 färg och storlek och 10 samma vara. 225 har en publicerad sida, 243 bara
+utkast och 211 flera publicerade. Verktyget klarade minst ett par i 416. Underlag:
+6 229 feedrader och 5 223 mappningar. 233 artiklar saknades i feeden, och noll
+artiklar satt på två sidor.
+
+☠️ **Kalibreringen mot N76 fann bara ett av åtta granskade par (hopphindren),
+och `?par=` visade varför.** Tre skäl, och bara det första går att laga i svepet:
+
+- **Aosom ger färgsyskon olika titlar.** A-hindret i grått och orange och
+  agilitybågarna i gult och blått har samma klunga, mått, paket, vikt, material
+  och kategori, men namnlikheten är **0 och 0,17**. Därför räcker nu samma klunga
+  plus identisk fysik (mått, paket och vikt på båda, material och kategori inte
+  olika) för en färg- eller samma-relation, oavsett namn. Utan klunga ligger
+  namnkravet kvar. Talen ovan är uppmätta FÖRE lagningen.
+- **Fyra av paren har en publicerad sida som är mappad mot AliExpress**
+  (klättersetet två gånger, kattlådan och det ena agilitysetet i tre delar).
+  Svepet ser bara Aosom-mappningar, och det är den blinda fläcken som står i
+  "Vad spärren INTE ser".
+- **Det sista paret skiljer sig i feeden:** agilitysetet i tre delar mot utkastet
+  har olika klunga, andra mått och 32 % skillnad i vikt. Svepet gör rätt som
+  inte slår ihop dem. Paret bör ses om med bilderna.
 
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
