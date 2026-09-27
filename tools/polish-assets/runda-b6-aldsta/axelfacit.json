@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0bab65e3": {
+  "tyska": "",
+  "svenska": "102cm x 49cm x 102cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 102L x 49B x 102H cm | ✔ Sitzbreite: 26B cm | ✔ Sitz bis Boden: 33H cm | ✔ Sonnendach: 60L x 42B cm | ✔ Gefaltetes Sonnendach: 14L x 42B cm | ✔ Schiebegriff für Eltern: 98-102L cm | ✔ Aufbewahrungskorb: 33L x 26,5B x 15H cm | ✔ Muttertasche: 27,5L x 18B cm"
+ },
+ "2daff9fd": {
+  "tyska": "100L x 65B x 72H cm",
+  "svenska": "100cm x 65cm x 72cm",
+  "bokstaver": "LBH",
+  "hojd": 72,
+  "bredd": 100,
+  "djup": 65
+ },
+ "321f878a": {
+  "tyska": "66L x 24B x 83H cm",
+  "svenska": "66L x 24B x 83H cm",
+  "bokstaver": "LBH",
+  "hojd": 83,
+  "bredd": 66,
+  "djup": 24
+ },
+ "3fbd5e8c": {
+  "tyska": "",
+  "svenska": "59,8L x 29,6B x 89,8H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 59,8L x 29,6B x 89,8H cm | ✔ Hockerabmessungen: 23L x 23B x 21H cm | ✔ Spiegelgröße: 22,9L x 17,5B cm | ✔ Tischplattenhöhe: 48,5H cm | ✔ Schubladengröße: 29,5L x 17,5T x 8H cm | ✔ Lagergröße: 29,5L x 6,5B x 5,7H cm"
+ },
+ "5b69e81c": {
+  "tyska": "L167 x B41 x H52cm",
+  "svenska": "167L x 41B x 52H cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 167,
+  "djup": 41
+ },
+ "6a2451c4": {
+  "tyska": "117L x 72B x 67H cm",
+  "svenska": "117L x 72B x 67H cm",
+  "bokstaver": "LBH",
+  "hojd": 67,
+  "bredd": 117,
+  "djup": 72
+ },
+ "ad8facdb": {
+  "tyska": "105L x 47B x 98H cm",
+  "svenska": "105L x 47B x 98H cm",
+  "bokstaver": "LBH",
+  "hojd": 98,
+  "bredd": 105,
+  "djup": 47
+ },
+ "bb7160d3": {
+  "tyska": "55L x 24B x 86H cm",
+  "svenska": "55cm x 24cm x 86cm",
+  "bokstaver": "LBH",
+  "hojd": 86,
+  "bredd": 55,
+  "djup": 24
+ }
+}

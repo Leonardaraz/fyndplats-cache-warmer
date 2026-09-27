@@ -1153,3 +1153,23 @@ beslut — se den samlade frågan om detta.
   Hålls, som gokartklustret i N27–N31. (B5)
 - Balansbalken `24597637` hade saldo 5 och togs inte med. Den prövas igen
   när saldot är högre. (B5)
+- Barnfordon med licensierat märke i namnet hålls, som i N32 och N33
+  (licensfrågan är Leonards): BMW-motorcyklarna `53095ce4`, `707a329d` och
+  `68ec5e08`, Audi-bilarna `9d9130a0`, `cd497196`, `a2fdc66d`, `fb484bfc`
+  och `e6fd72cd`, Vespa-motorcyklarna `0d3bad5e` och `bb18870d`,
+  Mercedes-rutschbilarna `88140d98` och `d55a25f4`, Lamborghini-bilarna
+  `00570c67` och `7a738998`, Honda-motorcykeln `d6275621`, McLaren-bilen
+  `f73628e3`, BMW M4-bilarna `d15fc03d`, `b23eb400` och `a71deaf5` och
+  Caterpillar-grävaren `fe13c03b`. Elbilen `42a02619` har inget märke i
+  namnet men delar tre måttripplar med Audi e-tron-familjen. (B6)
+- Färgsyskon till publicerade barnfordon, som väntar: elmotorcyklarna
+  `bc9f1cef`, `5fafabd9` och `0a27ed50` (`372ee931`) och SUV-elbilen
+  `989dbf87` (`479f7291`). (B6)
+- Syskon inom B6:s familjer, som väntar: trehjulingarna `3e34331b` i mint
+  och `a5844ce3` i blått (den grå `0bab65e3` poleras i B6), trehjulingen
+  `24c5274b` i marinblått (liknar `3e34331b` men delar bara en måttrippel,
+  oprövad) och leksaksköket `962fc483` i rosa (det turkosa `321f878a` poleras i
+  B6, saldo 15 mot 176). (B6)
+- Slutsålda eller nästan (saldo 0–5), inte polerade: åkhästen `9f0ade76`,
+  bubbelmotorcykeln `1416e4a4`, motorcykeln `bd2f9152`, elbilen
+  `72be1700` (2) och motorcykeln `e0590577` (5). (B6)
