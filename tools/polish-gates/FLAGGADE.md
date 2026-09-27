@@ -1244,3 +1244,23 @@ beslut — se den samlade frågan om detta.
   först vid inzoomning. Leverantörens livsstilsbilder kan alltså vara
   AI-genererade och märkta, så zooma in på hörnen när en bild ser
   renderad ut. (B8)
+- ☠️ Rättelse av B8-raden om skumseten ovan: fyra av måttträffarna var inga
+  skumset. `b2ab1b14` matchade en barstol, `a6e01595` en soptunna,
+  `05007fea` en katthängmatta, ett verktygsskåp och en stepper, och
+  `8cca1ae9` en byrå, en husdjurstrappa och en hundkoja. På bild är
+  `b2ab1b14`, `a6e01595` och `05007fea` egna produkter och fria (de två
+  första poleras i B9). `8cca1ae9` och `e27a64ec` är samma femdelsset som
+  publicerade `19f7c013`/`1d3f6755` i pastell och hålls, liksom `b50bd167`.
+  `638f2110` och `ebb597b4` är fyrdelssetet `bf4298b2` i andra färger,
+  `99807672` är `05646c64` i pastell och `361d09f5` är `05646c64` med samma
+  bilder. Lärdom: mått på 20–60 cm delas av orelaterade produkter, så läs
+  namnet på det publicerade syskonet och avgör på bild. (B9)
+- Färgsyskon inom B9:s familjer, som väntar: sjudelssetet `4b96899f` i
+  marinblått (10), krypbanan `c3959819` i pastell (1) och klätterhuset
+  `d68f6683` i petrol (32). Den färg med störst saldo poleras i B9. (B9)
+- Saldo 0–3, inte polerade: skumseten `0418cc67` (0), `d288fee7` (0) och
+  `92d994d4` (3), sminkspeglarna `34199a4c` och `3a42c047` (0) och
+  cykelvagnarna `8c34a7cd` och `a67a45a2` (0). (B9)
+- ⚠️ `8064c7e2` bild 2 visar en blå skumfåtölj i bakgrunden som inte ingår
+  i setet (den liknar fåtöljen i `92d994d4`). Bilden ströks. En bild där ett annat
+  föremål i samma stil ser ut att ingå är ett returskäl, även utan text. (B9)

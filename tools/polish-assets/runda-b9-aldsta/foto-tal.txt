@@ -1,0 +1,9 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+2443094a 177 måttbilden (bild 3) visar 177 cm, summan av tre delar på 59 cm; källans text säger 181
+1841a1c2 3 delar, syns på bild 1 och 3; källan säger Dreiteiliges
+bd0c3133 7 delar, två bågar, fyra dynor och en pall på bild 1; källan säger Sieben einzigartige Blöcke
+a6e01595 2 halvrunda mattor, syns på bild 1 och 2; källan listar Halbrund en gång men säger 8 delar
+bd0c3133 4 kvartsrunda dynor, syns på bild 1 och 3; källan anger måttet per dyna
+2443094a 2 bågar, en stor och en mellanstor, syns på bild 1 och 3; källan listar Großer och Mittlerer Bogen
+bd0c3133 2 bågar, syns på bild 1, 2 och 3; källan anger måttet per båge
+4fc0b3b5 8 former; källans lista har åtta slags delar (Quadratische Block, Stufe, Pentagon, Bogen, Zylinder, Trapez, Dreieck, Halbrund)
