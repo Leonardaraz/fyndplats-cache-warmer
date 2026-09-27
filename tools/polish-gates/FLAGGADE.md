@@ -1370,3 +1370,17 @@ beslut — se den samlade frågan om detta.
 - Att jämföra när lagret kommer upp: golvlampan `fd221e07` (polerad i B15)
   har samma kartong och vikt som utkastet `cabceb4c` från 16:15. Det är
   troligen samma lampa i en annan färg. (B15)
+- Samma fåtölj som en publicerad sida i en annan färg, hålls: öronlappsfåtöljen
+  `e16668e2` (= `72f30eb9`, `a29af9b5`, `16f36d37`, `121ce68f`, `7b98c4c1`
+  och `80e4ed24`; 74 × 86 × 102 cm och kartongen identiska), relaxfåtöljen
+  med fotpall `024eb02c`, grå (= `9946e1eb` och `9794b6df`; 79 × 80 × 100
+  cm), golvfåtöljen `339a695e` (= `db645ff8`; tre måttripplar identiska) och
+  den väggnära fåtöljen `60adbe7d` (= `e57125fb`; tre måttripplar
+  identiska). Ur fingeravtrycket i B15: `240ef0c1` (= `121ce68f`,
+  `7b98c4c1`, `80e4ed24`), `6a65351e` (= `27380bf4`) och `22cfc372`
+  (= `33cde470`). (B16)
+- Färgsyskon inom lagret, hålls: sidoborden på hjul `108aab26` (rustik
+  brun) och `63c91386` (saldo 0) (= `e95da565`), och fåtöljen `e93fab42`
+  (saldo 0, samma kartong som `41395340`). (B16)
+- Saldo 0–7, inte polerade: fåtöljerna `659a0370` (0) och `76738f85` (7).
+  (B16)
