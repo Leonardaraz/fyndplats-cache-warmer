@@ -29,6 +29,19 @@ varför något inte längre står här.
   hölls 22 utkast för ett husmärke tryckt på varan, och de raderna är inte märkta
   AVGJORT en och en. Ett utkast som hölls bara för märket är en kandidat igen; andra skäl
   på samma rad står kvar.
+- **Färgsyskon publiceras och slås ihop.** Leonard: *"alla färger ska publiceras har dom
+  olika priser får dom ha det … är det samma produkt med olika färger ska den finns som
+  olika alterantiv på samma produkt sida när man sammanslagit dom"*. `FARGSYSKONEN.md` är
+  borttagen. Varje rad nedan som väntar på beslutet i `FARGSYSKONEN.md` eller hölls som
+  färgsyskon till en publicerad sida är avgjord och en kandidat igen. Syskonet läggs som ett
+  val på den publicerade sidan med sammanslagningen (runbookens *Dubblettskärmen* och
+  `docs/polish/syskon.md`). Olika priser är inget hinder, och givaren behåller sitt pris.
+  Raderna är inte märkta AVGJORT en och en. Andra skäl på samma rad står kvar: dubblett i
+  samma färg, saldo, säsong, laglighet och licens.
+- **Ett syskon till en publicerad AliExpress-sida flaggas inte längre.** Finns sidans egen
+  färg som Aosom-utkast mappas sidan om först, och sedan läggs syskonen in som val. Finns den
+  inte blir syskonet en egen sida, eftersom verktyget kräver en Aosom-sida och alla färger
+  ska säljas.
 
 ## Licensierade tredjepartskaraktärer/varumärken
 

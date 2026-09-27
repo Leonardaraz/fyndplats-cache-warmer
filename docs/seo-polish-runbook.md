@@ -211,7 +211,8 @@ Gör sedan två kontroller, i den här ordningen:
    bevisar ingenting, eftersom de två inköpsvägarna fotograferar samma vara var för sig.
    Avgör på konstruktion, detaljer och måttritning.
 
-En träff poleras inte som egen sida och raderas aldrig:
+Alla färger publiceras, och olika priser är inget hinder: varje färg behåller sitt pris
+(Leonard 2026-09-27). En träff raderas aldrig:
 
 | träffen är | så gör du |
 |---|---|
@@ -219,9 +220,10 @@ En träff poleras inte som egen sida och raderas aldrig:
 | samma vara i samma färg och mått som en publicerad **Aosom-sida** | Pensionera utkastet (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**. |
 | ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
 | syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
-| ett syskon till en publicerad **AliExpress-sida** | Flagga till Leonard. Verktyget kräver en sida som är mappad mot Aosom. |
+| ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den inte polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
 
-Skriv en rad i `FLAGGADE.md` för varje utkast som inte blir en egen sida och ta nästa.
+Skriv en rad i `FLAGGADE.md` för varje utkast som varken blir en egen sida eller ett val, och
+ta nästa.
 
 ### Syskon blir val på sidan
 
@@ -463,10 +465,12 @@ leverantören som inte stämmer.
 10. **Ett dörrmått kan gälla en dörrhalva.** Räkna gångjärnen på bild 1. Två uppsättningar
     betyder dubbeldörr, och då skriver du `2 × B × H`.
 11. **Räkna efter dina egna tal.** Fyra stolar på 42 cm kräver 168 cm, inte 160.
-    Superlativ om sortimentet ("smalast", "den lättaste … i sortimentet", "den enda")
-    kräver en mätning mot hela katalogen och en rad i `superlativ.txt` (`<kort> <vad som
-    mättes>`), annars fäller `gate-superlativ.py`. Den ser inte superlativ om marknaden i
-    stort ("den lättaste sortens gran"), så de hittar du själv.
+    Rangordna aldrig varan mot resten av sortimentet ("smalast", "den lättaste … i
+    sortimentet", "den enda"), inte ens med en mätning bakom, se *Tonen*.
+    `gate-superlativ.py` fäller ett superlativ i samma mening som ett omfång. En rad i
+    `superlativ.txt` (`<kort> <skäl>`) är bara till för en träff som inte rankar
+    sortimentet. Grinden ser inte superlativ om marknaden i stort ("den lättaste sortens
+    gran"), så de hittar du själv.
 12. **Upprepa aldrig ett superlativ utan mätvärde**, varken leverantörens eller våra egna.
 13. **Översätt inte marknadsord, beskriv förhållandet.** `begehbar` med 58 cm invändigt djup
     är inget förråd man går in i. `passt durch Standardtüren` säger inget om en svensk
@@ -773,7 +777,7 @@ Bygget kör grindarna i tur och ordning och vägrar skriva planen vid ett enda f
 | `gate-seo.py` | `seo.tsv`, `namn.tsv` och `slugs.txt`: längder, suffix, tal mot källan, samma mönster, husmärke i sluggen |
 | `gate-sku.py` | längd, form, husmärke, dubbletter och att alla produkter har en rad |
 | `gate-lager.py` | slutsålt och tunt |
-| `gate-superlativ.py` | superlativ om sortimentet utan rad i `superlativ.txt` |
+| `gate-superlativ.py` | superlativ om sortimentet; `superlativ.txt` kvitterar bara en träff som inte rankar |
 | `bygg-axelfacit.py`, `gate-axel.py` | bredd, djup och höjd mot källans totalmått |
 | `bygg-media.py` | bygger `nyttolast-media.json` på nytt ur `bilder.tsv`, `bilder-bort.tsv` och `alt.tsv` |
 
