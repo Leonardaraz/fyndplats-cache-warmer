@@ -145,11 +145,37 @@ varje produkt i jämförelsen hade varianter att jämföra med.
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `5a1e19c083940d284d0b09981e4d42e79a80355ca79e30660e7a73a4b09ccbee`,
+grenen `e1a67988`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36298988986 | torr | 8 texter, 8 bildlistor, 27 av 27 kategorirader och 8 SKU:er |
+| 36299035796 | skriv | text 8/8, bilder 8/8, kategorier 27/27, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_9NTDa8pZQiPWREWk1VfmgUD6GD3g` blev `CANCELED`.
+Pekaren står kvar på `3da05c19`, nu åtta commits bak. Klonen är tio djup,
+så läkningsbygget kommer inom ett par pushar.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 06:13 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age`
+139–140 s. Sluggarna var nya, så den första träffen renderade redan den nya
+sidan (`age=0`), och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 34 av 34 |
+| strukna bilder på sidan | 0 av 6 |
+| kvarvarande bilder på sidan | 34 av 34 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulan visar huvudkategorin: Möbler för sofforna, fåtöljen, borden och
+kistan, och Hem & Inredning för lamporna.
 
 ## Nästa runda
 
