@@ -31,18 +31,25 @@ tal, inte importeras (Python når inte in i `lib/`) — ändras konstanten i
 `sync.ts` måste den här följa med, samma disciplin som `SHIP_AXIS_RE` och
 `EU_TULL_CODES`.
 
+☠️ RÄTTELSE 2026-09-27: SALDOT I WIX ÄR REDAN BUFFRAT. Stycket ovan gäller
+LEVERANTÖRENS siffra, men runbooken läser saldot ur Wix
+(`inventory-items/query`), och synken skriver `synligtSaldo(feed)` dit
+(`sync.ts`: `feedSaldo = synligtSaldo(row.qty)` blir `nyttSaldo`). Samma tal
+bär mappningens `aosomSyncedQty`. Grinden drog alltså av bufferten en gång
+till och fällde köpbara varor: ett Wix-saldo på 1–3 betyder 4–6 i feeden och
+en vara kunden kan lägga i kundvagnen. B17 hoppade över `8057e869` på saldo 3
+av just det skälet. Grinden fäller nu bara 0 och varnar under TUNT.
+
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-lager.py
   ids.tsv    "kort  pris  kort beskrivning"  (facit för vilka produkter som ingår)
   lager.tsv  "kort  saldo"                   (saldot vid urvalet)
 """
 import io, os, sys
 
-# Speglar lib/aosom/sync.ts:s LAGER_BUFFERT — se docstringen ovan.
-LAGER_BUFFERT = 3
-
-# Feeden uppdateras tre gånger per dygn, så ett saldo strax över bufferten är
-# äkta men tunt: varan går att köpa, men kan sälja slut innan nästa synk.
-# Det är en varning, inte ett stopp.
+# Wix-saldot är redan minskat med synkens LAGER_BUFFERT (3), se rättelsen
+# ovan. Feeden uppdateras tre gånger per dygn, så ett lågt saldo är äkta men
+# tunt: varan går att köpa, men kan sälja slut innan nästa synk. Det är en
+# varning, inte ett stopp.
 TUNT = 5
 
 
@@ -74,12 +81,6 @@ def main():
             fynd.append(f"  {kort}: [SALDO SAKNAS] produkten står i ids.tsv men inte i lager.tsv")
         elif saldo[kort] <= 0:
             fynd.append(f"  {kort}: [SLUTSÅLD] saldo {saldo[kort]} — polera den inte")
-        elif saldo[kort] <= LAGER_BUFFERT:
-            fynd.append(
-                f"  {kort}: [VISAS SOM SLUTSÅLD] saldo {saldo[kort]} ≤ LAGER_BUFFERT "
-                f"({LAGER_BUFFERT}) — synligtSaldo() visar 0, kunden ser \"Slutsåld\" direkt. "
-                "Polera den inte."
-            )
         elif saldo[kort] < TUNT:
             varningar.append(f"  {kort}: saldo {saldo[kort]} — tunt, men köpbart")
 

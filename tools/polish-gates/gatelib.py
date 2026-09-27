@@ -550,3 +550,63 @@ def las_kvittenser(katalog="."):
                 )
             foto_tal.setdefault(delar[0], set()).add(delar[1])
     return rad_tal, foto_tal
+
+
+# ☠️ IMPORTENS "VIKT" ÄR FRAKTVIKTEN (2026-09-27). Spec-blocket som importen
+# skriver sätter `Vikt` ur feedkolumnen `Weight (incl. Package) in kg`, alltså
+# vikten MED förpackning. Rundorna skrev av raden som varans vikt: 142 av 145
+# sidor i B1–B19 och 616 texter i 69 andra rundor, och i 131 av dem stod det
+# dessutom i löptexten att varan väger så mycket. Regeln fanns i runbooken och
+# följdes ändå inte; den blir en grind här. Samma logik som seo-text-repairs
+# sax (lib/seo/fraktvikt.ts), som lagar det som redan är publicerat.
+#
+# Grinden fäller bara när talet är EXAKT importens och den tyska texten inte
+# anger samma tal som produktens vikt (`Gewicht`, `Nettogewicht` …). Ett annat
+# tal kan vara varans verkliga vikt, och en mening om paketet är sann.
+_TAL = r"(\d+(?:[.,]\d+)?)"
+_IMPORTVIKT = re.compile(r"Vikt\s*:?\s*(?:</[^>]+>\s*)*" + _TAL + r"\s*kg")
+_PRODUKTVIKT = re.compile(r"\b(?:Netto|Produkt|Eigen|Artikel)?[Gg]ewicht\b"
+                          r"(?:<[^>]+>|[^0-9<]){0,40}" + _TAL + r"\s*kg")
+_VIKTRAD = re.compile(r"^(?:[✔•·]\s*)?Vikt\s*:\s*" + _TAL + r"\s*kg\.?$")
+_VAGER = re.compile(r"\bväger\s+(?:bara\s+|endast\s+|cirka\s+|ca\.?\s+|ungefär\s+|omkring\s+"
+                    r"|runt\s+|drygt\s+)?" + _TAL + r"\s*kg")
+_PAKET = re.compile(r"paket|förpackning|kartong|fraktvikt", re.I)
+
+
+def _kg(s):
+    return float(s.replace(",", "."))
+
+
+def fraktvikt_fel(html, kalltext):
+    """Rader och meningar i `html` som kallar fraktvikten för varans vikt.
+
+    Returnerar en lista med beskrivningar; tom lista när allt stämmer, när
+    källan saknar importens viktrad eller när den tyska texten anger samma
+    tal som produktens egen vikt."""
+    m = _IMPORTVIKT.search(kalltext or "")
+    if not m:
+        return []
+    frakt = _kg(m.group(1))
+    lika = lambda x: abs(_kg(x) - frakt) < 0.005
+    if any(lika(x) for x in _PRODUKTVIKT.findall(kalltext)):
+        return []
+    fel = []
+    for rad in re.findall(r"<li\b[^>]*>.*?</li>", html, re.S):
+        t = " ".join(re.sub(r"<[^>]+>", " ", rad).split())
+        r = _VIKTRAD.match(t)
+        if r and lika(r.group(1)):
+            fel.append(f"spec-raden '{t}' är fraktvikten — skriv 'Fraktvikt:'")
+    for rad in re.findall(r"<tr\b[^>]*>.*?</tr>", html, re.S):
+        celler = [" ".join(re.sub(r"<[^>]+>", " ", c).split())
+                  for c in re.findall(r"<td\b[^>]*>(.*?)</td>", rad, re.S)]
+        if len(celler) == 2 and re.fullmatch(r"Vikt\s*:?", celler[0]):
+            r = re.fullmatch(_TAL + r"\s*kg\.?", celler[1])
+            if r and lika(r.group(1)):
+                fel.append(f"tabellraden 'Vikt | {celler[1]}' är fraktvikten — skriv 'Fraktvikt'")
+    lop = re.sub(r"<li\b[^>]*>.*?</li>|<tr\b[^>]*>.*?</tr>", " ", html, flags=re.S)
+    lop = " ".join(re.sub(r"<[^>]+>", " ", lop).split())
+    for v in _VAGER.finditer(lop):
+        fore = lop[max(0, v.start() - 40):v.start()]
+        if lika(v.group(1)) and not _PAKET.search(fore):
+            fel.append(f"'…{lop[max(0, v.start() - 30):v.end()]}' — {v.group(1)} kg är fraktvikten")
+    return fel

@@ -40,10 +40,12 @@ RAD_TAL, FOTO_TAL = las_kvittenser()
 rader = [l.rstrip("\n").split("\t") for l in open("alt.tsv", encoding="utf-8") if l.strip()]
 
 bort = collections.Counter()
+struken = set()   # se bygg-media.py: antalet räcker inte, positionen avgör
 if os.path.exists("bilder-bort.tsv"):
     for rad in open("bilder-bort.tsv", encoding="utf-8"):
         if rad.strip():
             bort[rad.split("\t")[0]] += 1
+            struken.add(tuple(rad.split("\t")[:2]))
 
 # Produktens FAKTISKA bildantal, mätt ur bilder.tsv i stället för antaget till fem.
 har = collections.Counter()
@@ -62,6 +64,8 @@ for nr, r in enumerate(rader, 1):
     per[kort] += 1
     if pos in sedda[kort]:
         print(f"alt.tsv:{nr}  DUBBEL POSITION: {kort} position {pos} två gånger"); fynd += 1
+    if (kort, pos) in struken:
+        print(f"alt.tsv:{nr}  STRUKEN BILD: {kort} position {pos} står i bilder-bort.tsv"); fynd += 1
     sedda[kort].add(pos)
     for namn, m in GRINDAR:
         for t in re.findall(m, alt):

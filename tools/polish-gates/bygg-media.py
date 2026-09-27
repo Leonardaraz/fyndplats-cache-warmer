@@ -45,10 +45,17 @@ for r in open("bilder.tsv", encoding="utf-8"):
     fil[(kort, pos)] = f
 
 bort = collections.Counter()
+# ☠️ STRUKNA POSITIONER, inte bara antalet (2026-09-27). Bygget räknade bara
+# hur många bilder varje produkt fick stryka. En alt-rad för en struken
+# position gick då igenom så länge antalet stämde: strök man bild 2 men
+# skrev alt för 1–4 i stället för 1, 3, 4 och 5 publicerades den strukna
+# bilden och en ren föll bort, utan ett enda fel.
+struken = set()
 if os.path.exists("bilder-bort.tsv"):
     for r in open("bilder-bort.tsv", encoding="utf-8"):
         if r.strip():
             bort[r.split("\t")[0]] += 1
+            struken.add(tuple(r.split("\t")[:2]))
 
 vis = collections.OrderedDict()
 fel = []
@@ -59,6 +66,8 @@ for nr, r in enumerate(open("alt.tsv", encoding="utf-8"), 1):
     if (kort, pos) not in fil:
         fel.append(f"alt.tsv:{nr}  {kort} saknar fil-id för källposition {pos}")
         continue
+    if (kort, pos) in struken:
+        fel.append(f"alt.tsv:{nr}  {kort} position {pos} är struken i bilder-bort.tsv")
     # ☠️ G1:s kontroller, återinförda. En tom alt-text skriver över en befintlig
     # med ingenting — hela itemsInfo.items ERSÄTTS av skrivningen, så det som
     # inte står i listan finns inte kvar.

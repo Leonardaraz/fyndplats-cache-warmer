@@ -1,0 +1,1 @@
+bygg-axelfacit.py 34dee876 är en darttavla som hängs på väggen; källans 44L × 50B × 3,2H har ingen totalmåttrad att bygga ett facit ur, och texten skriver måtten utan axelord (se LÄS-MIG.md)
