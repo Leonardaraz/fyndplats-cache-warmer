@@ -131,11 +131,39 @@ fåtöljer med liknande namn. Inga krockar.
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `66e4306ab6ea79467f605a5293c4ff89dc95478a5a9b82c2ba71815ac8842d96`,
+grenen `c1e84a97`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36300068051 | torr | 8 texter, 8 bildlistor, 26 av 26 kategorirader och 8 SKU:er |
+| 36300120196 | skriv | text 8/8, bilder 8/8, kategorier 26/26, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen gav det väntade läkningsbygget: `dpl_8dUHyLyRFRzgvQKqPukc2K42gUR4`,
+`READY`. Pekaren `3da05c19` låg tio commits bak och därmed utanför den
+grunda klonen, så `git cat-file` svarade nej och bygget gick igenom, precis
+som `CLAUDE.md` beskriver. Pekaren står nu på `c1e84a97`, och nästa
+poleringspush hoppas över igen.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 06:35 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age`
+139–141 s. Sluggarna var nya, så den första träffen renderade redan den nya
+sidan, och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 31 av 31 |
+| strukna bilder på sidan | 0 av 9 |
+| kvarvarande bilder på sidan | 31 av 31 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulan visar huvudkategorin: Möbler för borden, fåtöljerna och
+schäslongen, och Hem & Inredning för badrumsskåpen.
 
 ## Nästa runda
 
