@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { korSammanslagning, fargSlug, type SammanslagningDeps, type SammanslagningInput } from "./sammanslagning";
+import {
+  korSammanslagning,
+  fargSlug,
+  MAX_OMDIRIGERINGAR,
+  type SammanslagningDeps,
+  type SammanslagningInput,
+} from "./sammanslagning";
+import type { StoredReview } from "../store/reviews";
+import type { RedirectRow } from "../wix/redirects";
 import { aosomArtikelbild, aosomArtikelForTask } from "./artiklar";
 import { synligtSaldo } from "./sync";
 import type { AosomRow } from "./feed";
@@ -56,6 +64,7 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
       revision: "5",
       visible: true,
       name: "Kontorsstol med nackstöd",
+      slug: "kontorsstol-nackstod",
       plainDescription: "<p>En stol.</p>",
       options: [],
       variantsInfo: { variants: [{ id: "var-sida", visible: true, sku: "FP-stol", choices: [], price: { actualPrice: { amount: "699" } }, inventoryStatus: { inStock: true } }] },
@@ -67,6 +76,7 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
       revision: "2",
       visible: false,
       name: "Bürostuhl grau",
+      slug: "burostuhl-grau",
       options: [],
       variantsInfo: { variants: [{ id: "var-utkast", visible: true, sku: "FP-stuhl-grau", choices: [], price: { actualPrice: { amount: "649" } } }] },
       media: { itemsInfo: { items: [{ id: "bild-u1", altText: "Bürostuhl" }, { id: "bild-u2", altText: "Bürostuhl" }] } },
@@ -78,6 +88,8 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
     utkast: [{ id: "inv-utkast", variantId: "var-utkast", quantity: 12 }],
   };
   const anrop: { metod: string; sokvag: string; kropp?: unknown }[] = [];
+  /** Delad händelselogg — ordningen mellan Wix och omdirigeringarna testas. */
+  const logg: string[] = [];
   const fel: { [nyckel: string]: number } = {};
   const kast = (nyckel: string) => {
     if ((fel[nyckel] ?? 0) > 0) {
@@ -126,7 +138,11 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
       const id = idAv(sokvag);
       const p = produkter[id];
       const k = kropp as { product: Obj; fieldMask: { paths: string[] } };
-      if (k.fieldMask.paths.includes("media")) {
+      if (k.fieldMask.paths.length === 1 && k.fieldMask.paths[0] === "visible") {
+        kast("avpublicering");
+        p.visible = k.product.visible;
+        logg.push(`synlighet ${id} ${String(k.product.visible)}`);
+      } else if (k.fieldMask.paths.includes("media")) {
         kast("bilder");
         p.media = structuredClone(k.product.media);
       } else {
@@ -138,7 +154,7 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
     }
     throw new Error(`oväntat anrop ${metod} ${sokvag}`);
   };
-  return { wix, produkter, lager, anrop, fel };
+  return { wix, produkter, lager, anrop, fel, logg };
 }
 
 function miljo(over: {
@@ -146,6 +162,7 @@ function miljo(over: {
   mappningar?: ProductMappingRecord[];
   feed?: AosomRow[];
   sparaFaller?: number;
+  extra?: Partial<SammanslagningDeps>;
 } = {}) {
   const w = over.wix ?? fejkWix();
   const rader = new Map<string, ProductMappingRecord>();
@@ -166,9 +183,79 @@ function miljo(over: {
     },
     fetchFeed: async () => over.feed ?? [rad("A-1", { qty: 43 }), rad("G-7", { qty: 23 })],
     vanta: async () => {},
+    ...over.extra,
   };
-  return { deps, rader, w };
+  return { deps, rader, w, fall: (n: number) => { sparaFaller = n; } };
 }
+
+// ── hjälpare för de nya fallen ──────────────────────────────────────────────
+
+/** Ett tredje utkast: samma stol i blått, artikel H-8. */
+function laggTillUtkast2(w: ReturnType<typeof fejkWix>, over: Obj = {}) {
+  w.produkter.utkast2 = {
+    id: "utkast2",
+    revision: "3",
+    visible: false,
+    name: "Bürostuhl blau",
+    slug: "burostuhl-blau",
+    options: [],
+    variantsInfo: { variants: [{ id: "var-utkast2", visible: true, sku: "FP-stuhl-blau", choices: [], price: { actualPrice: { amount: "679" } } }] },
+    media: { itemsInfo: { items: [{ id: "bild-b1", altText: "Bürostuhl" }] } },
+    ...over,
+  };
+  w.lager.utkast2 = [{ id: "inv-utkast2", variantId: "var-utkast2", quantity: 9 }];
+}
+
+function mappningUtkast2(): ProductMappingRecord {
+  const m = mappning("H-8", "utkast2", { draftStatus: "pending_review", needsAiPolish: true });
+  m.variants[0] = { ...m.variants[0], sku: "FP-stuhl-blau", wixVariantId: "var-utkast2", grossSek: 679, landedCostSek: 560 };
+  return m;
+}
+
+const TRE = [rad("A-1", { qty: 43 }), rad("G-7", { qty: 23 }), rad("H-8", { qty: 13 })];
+const TREDJE: SammanslagningInput = { behall: "sida", utkast: "utkast2", fargBehall: "", fargUtkast: "Blå" };
+
+const valPa = (w: ReturnType<typeof fejkWix>) =>
+  ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
+const bildPa = (c: Obj) => ((c.linkedMedia ?? []) as Obj[])[0]?.id;
+const varianterPa = (w: ReturnType<typeof fejkWix>) => (w.produkter.sida.variantsInfo as { variants: Obj[] }).variants;
+const prisPa = (v: Obj) => (v.price as { actualPrice: { amount: string } }).actualPrice.amount;
+
+function fejkRecensioner(start: StoredReview[]) {
+  const rader = structuredClone(start);
+  const lager = {
+    listByProduct: async (id: string) => structuredClone(rader.filter((r) => r.productId === id)),
+    upsert: async (r: StoredReview) => {
+      const i = rader.findIndex((x) => x.productId === r.productId && x.reviewIdAE === r.reviewIdAE);
+      if (i >= 0) rader[i] = structuredClone(r);
+      else rader.push(structuredClone(r));
+    },
+  };
+  return { lager, rader };
+}
+
+function fejkOmdirigeringar(start: RedirectRow[], logg: string[]) {
+  const rader = structuredClone(start);
+  let faller = 0;
+  const lager = {
+    lista: async () => structuredClone(rader),
+    skriv: async (r: RedirectRow) => {
+      if (faller > 0) {
+        faller--;
+        throw new Error("Wix Data svarade inte");
+      }
+      logg.push(`omdirigering ${r.fromSlug} ${r.toPath}`);
+      const i = rader.findIndex((x) => x.fromSlug === r.fromSlug);
+      if (i >= 0) rader[i] = { ...r };
+      else rader.push({ ...r });
+    },
+  };
+  return { lager, rader, fall: (n: number) => { faller = n; } };
+}
+
+const recension = (productId: string, id: string, text: string, status: StoredReview["status"] = "approved"): StoredReview => ({
+  productId, reviewIdAE: id, rating: 5, textOriginal: text, textSwedish: text, initials: "A.B.", hasImage: false, status,
+});
 
 const PAR: SammanslagningInput = { behall: "sida", utkast: "utkast", fargBehall: "Svart", fargUtkast: "Grå" };
 const patchar = (w: ReturnType<typeof fejkWix>) => w.anrop.filter((a) => a.metod === "PATCH");
@@ -384,5 +471,272 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(svar.ok).toBe(false);
     expect(svar.fel).toMatch(/mappningen skrevs INTE/);
     expect(rader.get("sida")!.variants).toHaveLength(1);
+  });
+});
+
+describe("sammanslagning — ett val till på en sammanslagen sida", () => {
+  function tre() {
+    const w = fejkWix();
+    laggTillUtkast2(w);
+    const m = miljo({
+      wix: w,
+      feed: TRE,
+      mappningar: [
+        mappning("A-1", "sida"),
+        mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true }),
+        mappningUtkast2(),
+      ],
+    });
+    return { ...m, w };
+  }
+
+  it("planen säger utoka, och värdet sidan har behövs inte längre", async () => {
+    const { deps } = tre();
+    expect((await korSammanslagning(PAR, deps, { apply: true })).ok).toBe(true);
+    const svar = await korSammanslagning(TREDJE, deps);
+    expect(svar.ok).toBe(true);
+    expect(svar.plan).toMatchObject({
+      tillstand: "utoka",
+      hinder: [],
+      varden: ["Svart", "Grå", "Blå"],
+      skuUtkast: "FP-stol-bla",
+      prisUtkast: 679,
+      saldoBehall: 40 + synligtSaldo(23),
+      saldoUtkast: synligtSaldo(13),
+    });
+  });
+
+  it("☠️ lägger en tredje färg utan att röra de två första", async () => {
+    const { deps, rader, w } = tre();
+    await korSammanslagning(PAR, deps, { apply: true });
+    const fore = varianterPa(w).map((v) => [v.id, v.sku, prisPa(v)]);
+
+    const svar = await korSammanslagning(TREDJE, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+
+    // De två första valen behåller sina bilder, det nya får sin.
+    expect(valPa(w).map((c) => [c.name, bildPa(c)])).toEqual([
+      ["Svart", "bild-s1"],
+      ["Grå", "bild-u1"],
+      ["Blå", "bild-b1"],
+    ]);
+    // De befintliga varianterna behåller id, SKU och pris.
+    expect(varianterPa(w).map((v) => [v.id, v.sku, prisPa(v)])).toEqual([...fore, ["var-ny-2", "FP-stol-bla", "679"]]);
+    expect(w.lager.sida.map((x) => x.quantity)).toEqual([40, synligtSaldo(23), synligtSaldo(13)]);
+
+    const sida = rader.get("sida")!;
+    expect(sida.variants.map((v) => [v.supplierVariantId, v.sku, v.choices, v.wixVariantId])).toEqual([
+      ["A-1", "FP-stol", { Färg: "Svart" }, "var-sida"],
+      ["G-7", "FP-stol-gra", { Färg: "Grå" }, "var-ny-1"],
+      ["H-8", "FP-stol-bla", { Färg: "Blå" }, "var-ny-2"],
+    ]);
+    expect(aosomArtikelbild(sida).typ).toBe("flera");
+    expect(sida.aosomSyncedQty).toBe(40 + synligtSaldo(23) + synligtSaldo(13));
+    expect(rader.get("utkast2")!.draftStatus).toBe("rejected");
+
+    // En order på den blå varianten beställer den blå artikeln.
+    expect(aosomArtikelForTask({ wixVariantId: "var-ny-2", variantChoices: {} }, sida)).toEqual({ artikel: "H-8" });
+  });
+
+  it("☠️ skrivningen tar optionen och varianterna ur GET:en — id och kopplade bilder följer med", async () => {
+    const { deps, w } = tre();
+    await korSammanslagning(PAR, deps, { apply: true });
+    await korSammanslagning(TREDJE, deps, { apply: true });
+    const skriv = w.anrop.filter((a) => a.sokvag.startsWith("/stores/v3/products-with-inventory/")).at(-1)!;
+    const produkt = (skriv.kropp as { product: Obj }).product;
+    const val = ((produkt.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
+    expect(val.slice(0, 2).map(bildPa)).toEqual(["bild-s1", "bild-u1"]);
+    const varianter = (produkt.variantsInfo as Obj).variants as Obj[];
+    expect(varianter.map((v) => v.id)).toEqual(["var-sida", "var-ny-1", undefined]);
+  });
+
+  it("hinder: ett val sidan redan har, och en annan axel", async () => {
+    const { deps } = tre();
+    await korSammanslagning(PAR, deps, { apply: true });
+    expect((await korSammanslagning({ ...TREDJE, fargUtkast: "grå" }, deps)).plan.hinder).toContain("farg_lika");
+    const storlek = await korSammanslagning({ ...TREDJE, fargUtkast: "110 cm", axel: "Storlek" }, deps);
+    expect(storlek.plan.hinder).toContain("annan_axel");
+  });
+
+  it("☠️ föll mappningen efter den tredje färgen: omkörningen gör bara resten", async () => {
+    const { deps, rader, w, fall } = tre();
+    await korSammanslagning(PAR, deps, { apply: true });
+    fall(1);
+    await expect(korSammanslagning(TREDJE, deps, { apply: true })).rejects.toThrow(/databasen/);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
+    const skrivningar = () => w.anrop.filter((a) => a.sokvag.includes("products-with-inventory")).length;
+    expect(skrivningar()).toBe(2);
+
+    const svar = await korSammanslagning(TREDJE, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.plan.tillstand).toBe("wix_klar");
+    expect(skrivningar()).toBe(2);
+    expect(rader.get("sida")!.variants.map((v) => v.supplierVariantId)).toEqual(["A-1", "G-7", "H-8"]);
+    expect(rader.get("utkast2")!.draftStatus).toBe("rejected");
+  });
+});
+
+describe("sammanslagning — storlek", () => {
+  const STORLEK: SammanslagningInput = {
+    behall: "sida", utkast: "utkast", fargBehall: "90 × 70 cm", fargUtkast: "110 × 85 cm", axel: "Storlek",
+  };
+
+  it("en storlek blir optionen Storlek, med storleken i SKU:n och alt-texten", async () => {
+    const { deps, rader, w } = miljo();
+    const svar = await korSammanslagning(STORLEK, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.plan.skuUtkast).toBe("FP-stol-110-85-cm");
+    const option = (w.produkter.sida.options as Obj[])[0];
+    expect(option.name).toBe("Storlek");
+    expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "110 × 85 cm"]);
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
+    expect(alt).toBe("Kontorsstol med nackstöd i storleken 110 × 85 cm");
+    expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
+      { Storlek: "90 × 70 cm" },
+      { Storlek: "110 × 85 cm" },
+    ]);
+  });
+
+  it("varnar alltid att måtten i texten bara gäller en storlek, och tar tankstreck", async () => {
+    const { deps } = miljo();
+    const svar = await korSammanslagning({ ...STORLEK, fargUtkast: "120–160 cm" }, deps);
+    expect(svar.plan.hinder).toEqual([]);
+    expect(svar.plan.varningar.join(" ")).toMatch(/spec-fliken/);
+  });
+
+  it("☠️ hinder: en storlek i artikelnummerform, och namnet som bär storleken", async () => {
+    const { deps } = miljo();
+    expect((await korSammanslagning({ ...STORLEK, fargUtkast: "999-999ZZ" }, deps)).plan.hinder).toContain("storlek_ogiltig");
+    const { deps: d2 } = miljo({ wix: fejkWix({ sida: { name: "Kontorsstol 90 × 70 cm" } }) });
+    expect((await korSammanslagning(STORLEK, d2)).plan.hinder).toContain("namnet_bar_storlek");
+  });
+});
+
+describe("sammanslagning — en publicerad givare", () => {
+  const PUBLICERAD: SammanslagningInput = { ...PAR, omdirigera: true };
+
+  function publicerad(opts: { recensioner?: StoredReview[]; omdirigeringar?: RedirectRow[]; ordrar?: number } = {}) {
+    const w = fejkWix({ utkast: { visible: true } });
+    const r = fejkRecensioner(opts.recensioner ?? [
+      recension("utkast", "R1", "Bra stol"),
+      recension("utkast", "R2", "Skön att sitta i"),
+      recension("utkast", "R3", "Dold recension", "rejected"),
+      recension("utkast", "R4", "Samma text som på sidan"),
+      recension("sida", "R9", "Samma text som på sidan"),
+      recension("sida", "R2", "Skön att sitta i"),
+    ]);
+    const o = fejkOmdirigeringar(opts.omdirigeringar ?? [{ fromSlug: "gammal-stol", toPath: "/produkt/burostuhl-grau" }], w.logg);
+    const m = miljo({
+      wix: w,
+      extra: { recensioner: r.lager, omdirigeringar: o.lager, oppnaOrdrar: async () => opts.ordrar ?? 0 },
+    });
+    return { ...m, w, r, o };
+  }
+
+  it("planen visar recensionerna, omdirigeringen och kedjan som pekas om — och skriver ingenting", async () => {
+    const { deps, w, r, o } = publicerad();
+    const svar = await korSammanslagning(PUBLICERAD, deps);
+    expect(svar.ok).toBe(true);
+    expect(svar.plan).toMatchObject({
+      tillstand: "ny",
+      givarenPublicerad: true,
+      recensionerAttKopiera: 1,
+      omdirigering: "/produkt/burostuhl-grau → /produkt/kontorsstol-nackstod",
+      omdirigeringarAttPekaOm: 1,
+    });
+    expect(patchar(w)).toEqual([]);
+    expect(r.rader).toHaveLength(6);
+    expect(o.rader).toHaveLength(1);
+  });
+
+  it("☠️ kopierar recensionerna, omdirigerar FÖRE avpubliceringen och pensionerar givaren", async () => {
+    const { deps, rader, w, r, o } = publicerad();
+    const svar = await korSammanslagning(PUBLICERAD, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+
+    // Bara R1 kopieras: R2 finns redan (samma id), R3 är dold, R4 har samma text.
+    expect(r.rader.filter((x) => x.productId === "sida").map((x) => x.reviewIdAE).sort()).toEqual(["R1", "R2", "R9"]);
+    // Givarens rader rörs inte.
+    expect(r.rader.filter((x) => x.productId === "utkast")).toHaveLength(4);
+
+    expect(o.rader).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fromSlug: "burostuhl-grau", toPath: "/produkt/kontorsstol-nackstod" }),
+      expect.objectContaining({ fromSlug: "gammal-stol", toPath: "/produkt/kontorsstol-nackstod" }),
+    ]));
+    const iOmd = w.logg.findIndex((x) => x.startsWith("omdirigering burostuhl-grau"));
+    const iAvp = w.logg.indexOf("synlighet utkast false");
+    expect(iOmd).toBeGreaterThanOrEqual(0);
+    expect(iAvp).toBeGreaterThan(iOmd);
+    expect(w.produkter.utkast.visible).toBe(false);
+    expect(w.produkter.sida.visible).toBe(true);
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+    expect(rader.get("sida")!.variants.map((v) => v.supplierVariantId)).toEqual(["A-1", "G-7"]);
+  });
+
+  it.each([
+    ["utkast_publicerat", { omdirigera: false }, {}],
+    ["givaren_har_oppna_ordrar", {}, { ordrar: 1 }],
+    ["omdirigering_krockar", {}, { omdirigeringar: [{ fromSlug: "burostuhl-grau", toPath: "/produkt/annan-sida" }] }],
+    ["omdirigeringar_for_manga", {}, {
+      omdirigeringar: Array.from({ length: MAX_OMDIRIGERINGAR }, (_, i) => ({ fromSlug: `rad-${i}`, toPath: "/produkt/x" })),
+    }],
+  ])("☠️ hinder: %s — ingenting skrivs", async (hinder, input, opts) => {
+    const { deps, w, r, o } = publicerad(opts as Parameters<typeof publicerad>[0]);
+    const svar = await korSammanslagning({ ...PUBLICERAD, ...input }, deps, { apply: true });
+    expect(svar.ok).toBe(false);
+    expect(svar.plan.hinder).toContain(hinder);
+    expect(patchar(w)).toEqual([]);
+    expect(r.rader).toHaveLength(6);
+    expect(o.rader.some((x) => x.fromSlug === "burostuhl-grau" && x.toPath === "/produkt/kontorsstol-nackstod")).toBe(false);
+  });
+
+  it("utan verktygen för en publicerad givare vägras den", async () => {
+    const { deps } = miljo({ wix: fejkWix({ utkast: { visible: true } }) });
+    expect((await korSammanslagning(PUBLICERAD, deps, { apply: true })).plan.hinder).toContain("givare_publicerad_saknar_verktyg");
+  });
+
+  it("☠️ föll omdirigeringen: givaren ligger kvar ute, och omkörningen gör klart utan dubbla recensioner", async () => {
+    const { deps, rader, w, r, o } = publicerad();
+    o.fall(1);
+    await expect(korSammanslagning(PUBLICERAD, deps, { apply: true })).rejects.toThrow(/Wix Data/);
+    expect(w.produkter.utkast.visible).toBe(true);
+    expect(rader.get("utkast")!.draftStatus).not.toBe("rejected");
+
+    // Utan omdirigera vägras omkörningen — givaren får inte lämnas halv.
+    expect((await korSammanslagning(PAR, deps, { apply: true })).plan.hinder).toContain("utkast_publicerat");
+
+    const svar = await korSammanslagning(PUBLICERAD, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.plan.tillstand).toBe("klar");
+    expect(r.rader.filter((x) => x.productId === "sida" && x.reviewIdAE === "R1")).toHaveLength(1);
+    expect(w.produkter.utkast.visible).toBe(false);
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+
+    // Och en körning till är en no-op.
+    const fore = patchar(w).length;
+    expect((await korSammanslagning(PUBLICERAD, deps, { apply: true })).steg).toEqual(["redan sammanslagen — ingenting att göra"]);
+    expect(patchar(w).length).toBe(fore);
+  });
+
+  it("varnar när givarens pris styrs av konkurrentregeln eller ett lås — synken tar över det", async () => {
+    const w = fejkWix({ utkast: { visible: true } });
+    const r = fejkRecensioner([]);
+    const o = fejkOmdirigeringar([], w.logg);
+    const givare = mappning("G-7", "utkast", { prisgrupp: "A", prisLast: true });
+    const { deps } = miljo({
+      wix: w,
+      mappningar: [mappning("A-1", "sida"), givare],
+      extra: { recensioner: r.lager, omdirigeringar: o.lager, oppnaOrdrar: async () => 0 },
+    });
+    const text = (await korSammanslagning(PUBLICERAD, deps)).plan.varningar.join(" ");
+    expect(text).toMatch(/låst/);
+    expect(text).toMatch(/konkurrentregeln/);
+  });
+
+  it("☠️ svaret bär aldrig ett artikelnummer eller en kostnad, inte heller här", async () => {
+    const { deps } = publicerad();
+    const text = JSON.stringify(await korSammanslagning(PUBLICERAD, deps, { apply: true }));
+    expect(text).not.toMatch(/A-1|G-7/);
+    expect(text).not.toMatch(/525|landed|costUsd/);
   });
 });

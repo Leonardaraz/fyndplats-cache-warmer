@@ -1,10 +1,15 @@
 name: Dubbletter — lägg ett utkast som färg på en publicerad sida
 
-# Leonards fråga 2026-09-27: dubblettskärmen hittar Aosom-utkast som är samma
-# vara som en publicerad sida, bara i en annan färg. I stället för en egen sida
-# (två URL:er för samma produkt) eller pensionering (en färg vi kan sälja
-# slängs) blir utkastets artikel ett FÄRGVAL på den publicerade sidan: en
-# option "Färg" med två val, en variant per färg, och ett val som byter bild.
+# Leonards frågor 2026-09-27: dubblettskärmen och syskonsvepet hittar sidor och
+# utkast som är samma vara i en annan färg eller storlek. I stället för egna
+# sidor (flera URL:er för samma produkt) eller pensionering (en vara vi kan sälja
+# slängs) blir givarens artikel ett VAL på en publicerad sida: en option ("Färg"
+# eller "Storlek"), en variant per val, och ett val som byter bild.
+#
+#   - Första gången skapas optionen med två val (sidans och givarens).
+#   - Sedan läggs ett val till per körning — kör igen för nästa färg.
+#   - Ligger givaren UTE krävs omdirigera=ja: dess recensioner kopieras hit, dess
+#     adress omdirigeras hit, och den avpubliceras.
 #
 # Hela förloppet står i lib/aosom/sammanslagning.ts. Efteråt bär sidan en
 # Aosom-artikel per variant, och synken, beställningsfilen och importens
@@ -15,8 +20,10 @@ name: Dubbletter — lägg ett utkast som färg på en publicerad sida
 # passerar chatten — och jobbet går att starta från en telefon.
 #
 # ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs planen innan du kör `byt`.
-# ☠️ EN SIDA PER KÖRNING. Paret är en människas bedömning, och bilderna som
+# ☠️ EN GIVARE PER KÖRNING. Paret är en människas bedömning, och bilderna som
 #    följer med är en människas granskning — det finns ingen kör-allt-flagga.
+# ☠️ EN PUBLICERAD GIVARE FÖRSVINNER FRÅN SAJTEN. Dess adress omdirigeras (301)
+#    och sidan avpubliceras — därför krävs omdirigera=ja uttryckligen.
 # ☠️ SIDANS NAMN FÅR INTE BÄRA SIDANS FÄRG. Rutten vägrar då (`namnet_bar_farg`):
 #    efter sammanslagningen hade namnet sagt en färg medan sidan säljer två.
 #    Skriv om namnet först (polerrundan, med oförändrad slug).
@@ -41,17 +48,34 @@ on:
         required: true
         type: string
       utkast:
-        description: "Utkastet vars artikel blir den nya färgen (Wix-produkt-id)"
+        description: "Givaren: ett utkast, eller en publicerad sida (kräver omdirigera=ja) (Wix-produkt-id)"
         required: true
         type: string
-      farg_behall:
-        description: "Färgen sidan redan har, t.ex. Vit"
+      axel:
+        description: "Färg eller Storlek"
         required: true
+        default: "Färg"
+        type: choice
+        options:
+          - Färg
+          - Storlek
+      farg_behall:
+        description: "Värdet sidan redan har, t.ex. Vit. Bara FÖRSTA gången — sedan TOMT."
+        required: false
+        default: ""
         type: string
       farg_utkast:
-        description: "Utkastets färg, t.ex. Grå"
+        description: "Givarens värde, t.ex. Grå eller 90 × 70 cm"
         required: true
         type: string
+      omdirigera:
+        description: "Givaren ligger ute: kopiera recensioner, omdirigera och avpublicera den"
+        required: true
+        default: "nej"
+        type: choice
+        options:
+          - nej
+          - ja
       sku:
         description: "Den nya färgens SKU. TOMT = sidans SKU + färgen."
         required: false
@@ -74,6 +98,8 @@ jobs:
           MODE: ${{ inputs.mode }}
           BEHALL: ${{ inputs.behall }}
           UTKAST: ${{ inputs.utkast }}
+          AXEL: ${{ inputs.axel }}
+          OMDIRIGERA: ${{ inputs.omdirigera }}
           FARG_BEHALL: ${{ inputs.farg_behall }}
           FARG_UTKAST: ${{ inputs.farg_utkast }}
           SKU: ${{ inputs.sku }}
@@ -91,6 +117,8 @@ jobs:
           url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-sammanslagning"
           apply=false
           [ "${MODE}" = "byt" ] && apply=true
+          omdirigera=false
+          [ "${OMDIRIGERA}" = "ja" ] && omdirigera=true
 
           kropp=$(jq -nc \
             --arg behall "${BEHALL}" \
@@ -99,8 +127,10 @@ jobs:
             --arg fu "${FARG_UTKAST}" \
             --arg sku "${SKU}" \
             --arg bilder "${BILDER}" \
+            --arg axel "${AXEL}" \
             --argjson apply "${apply}" \
-            '{behall: $behall, utkast: $utkast, fargBehall: $fb, fargUtkast: $fu, apply: $apply}
+            --argjson omdirigera "${omdirigera}" \
+            '{behall: $behall, utkast: $utkast, fargBehall: $fb, fargUtkast: $fu, axel: $axel, omdirigera: $omdirigera, apply: $apply}
              + (if $sku == "" then {} else {sku: $sku} end)
              + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(gsub("\\s"; "") | select(. != "") | tonumber))} end)')
 
@@ -114,7 +144,8 @@ jobs:
           echo "=== Plan ==="
           # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
           # blocket avslutar YAML:ens `run: |`.
-          echo "$svar" | jq -r '.plan // {} | "  tillstånd       \(.tillstand // "–")\n  färger          \(.fargBehall) (sidan) + \(.fargUtkast) (utkastet)\n  kundpris        \(.prisBehall) kr + \(.prisUtkast) kr (ORÖRDA)\n  saldo           \(.saldoBehall // "–") + \(.saldoUtkast // "–")\n  SKU             \(.skuBehall) + \(.skuUtkast)\n  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) följer med"' || true
+          echo "$svar" | jq -r '.plan // {} | "  tillstånd       \(.tillstand // "–")\n  \(.axel // "Färg") efteråt   \((.varden // []) | join(" · ")) (nytt: \(.fargUtkast))\n  kundpris        \(.prisBehall) kr (sidan) + \(.prisUtkast) kr (nytt) — ORÖRDA\n  saldo           \(.saldoBehall // "–") (sidan) + \(.saldoUtkast // "–") (nytt)\n  SKU             \(.skuBehall) + \(.skuUtkast)\n  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) följer med"' || true
+          echo "$svar" | jq -r 'if .plan.givarenPublicerad then "  givaren ligger UTE\n  recensioner     \(.plan.recensionerAttKopiera // "–") kopieras till sidan\n  omdirigering    \(.plan.omdirigering // "–")\n  äldre som pekas om \(.plan.omdirigeringarAttPekaOm)" else empty end' || true
           echo "$svar" | jq -r '.plan.varningar[]? | "  ⚠️ \(.)"' || true
           echo "$svar" | jq -r '.steg[]? | "  · \(.)"' || true
 
@@ -130,6 +161,6 @@ jobs:
             echo "TORRKÖRNING: ingenting skrevs. Kör om med läge 'byt' när planen ser rimlig ut." || true
             exit 0
           fi
-          echo "OK: ${UTKAST} är nu färgen ${FARG_UTKAST} på ${BEHALL} (verifierat vid återläsning)" || true
-          echo "Nästa steg: läs sidan live, och skriv om texten om den nämner färgen." || true
+          echo "OK: ${UTKAST} är nu valet ${FARG_UTKAST} (${AXEL}) på ${BEHALL} (verifierat vid återläsning)" || true
+          echo "Nästa steg: läs sidan live, och skriv om texten om den nämner färgen eller måtten." || true
           exit 0
