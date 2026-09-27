@@ -174,11 +174,37 @@ sminkborden ligger bara i *Hem & Inredning*. Det här ligger också under
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `3c3524810e9aebc0af119b9d4d81d29b5f1fde1f761ce28babc29c5180d84ada`,
+grenen `ad7e070c`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36296416215 | torr | 8 texter, 8 bildlistor, 25 av 25 kategorirader och 8 SKU:er |
+| 36296470373 | skriv | text 8/8, bilder 8/8, kategorier 25/25, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_8aJ83tnofgyiRiU8rrRbnV7kn5Xm` blev `CANCELED`.
+Pekaren står kvar på `3da05c19`, fyra commits bak och alltså inom Vercels
+grunda klon.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 05:21 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age` 139 s.
+Sluggarna var nya, så den första träffen renderade redan den nya sidan
+(`age=0`), och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 29 av 29 |
+| strukna bilder på sidan | 0 av 11 |
+| kvarvarande bilder på sidan | 29 av 29 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulorna visar huvudkategorin: Möbler för sju av dem och Hem &
+Inredning för golvspegeln.
 
 ## Nästa runda
 
