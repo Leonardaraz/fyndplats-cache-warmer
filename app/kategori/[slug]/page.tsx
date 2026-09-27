@@ -3,7 +3,7 @@ import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
-import { kategoriProdukter, listaForSidan, ordnaLista } from "../../../lib/list-pages";
+import { kategoriProdukter, listaForSidan, ordnaLista, specDefsFor } from "../../../lib/list-pages";
 import { currentDayMs } from "../../../lib/sort-products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
@@ -262,7 +262,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
           {/* Sidan bär de första korten och en sammanfattning för filtren;
               resten hämtar ShopBrowser från /api/lista (lib/list-pages.ts). */}
-          <ShopBrowser {...listaForSidan(list, `kategori/${active.slug}`)} dayMs={dagMs} subs={subs} />
+          <ShopBrowser {...listaForSidan(list, `kategori/${active.slug}`, specDefsFor(active, collections))} dayMs={dagMs} subs={subs} />
 
           {/* Crawlbart A–Ö-index för kategorin: gridden visar 24 (perf-gräns) och
               på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt

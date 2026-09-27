@@ -25,6 +25,8 @@ import { universalCollectionIds } from "./related-pick";
 import { saleProducts } from "./rea";
 import { listOversikt, type ListOversikt } from "./list-overview";
 import { listaUrl, type ListNyckel } from "./list-key";
+import { specOversikt, type FacettDef, type Nyckel, type SpecFacett } from "./spec-facets";
+import { facetterFor } from "./spec-config";
 
 export type { ListNyckel };
 
@@ -83,6 +85,30 @@ export async function listaFor(nyckel: ListNyckel, dagMs: number): Promise<Produ
   return ordnaLista(dedupeProducts(kategoriProdukter(active, collections, produkter)), dagMs);
 }
 
+/**
+ * Kategorins måttfilter (lib/spec-config.ts), med förfäderna för arvet.
+ * Tom för listor över hela sortimentet.
+ */
+export function specDefsFor(active: Collection, collections: Collection[]): FacettDef[] {
+  const foraldrar: string[] = [];
+  let c: Collection | undefined = active;
+  for (let i = 0; i < 5 && c?.parentId; i++) {
+    c = collections.find((x) => x.id === c!.parentId);
+    if (c) foraldrar.push(c.slug);
+  }
+  return facetterFor(active.slug, foraldrar);
+}
+
+/** Nycklarna som ska följa med produkterna i listan för en nyckel. Samma för
+ *  sidan och /api/lista, så filtren räknar på samma värden. */
+export async function specNycklarFor(nyckel: ListNyckel): Promise<Set<Nyckel>> {
+  if (!nyckel.startsWith("kategori/")) return new Set();
+  const slug = nyckel.slice("kategori/".length);
+  const collections = await getCollections();
+  const active = collections.find((c) => c.slug === slug);
+  return new Set(active ? specDefsFor(active, collections).map((d) => d.nyckel) : []);
+}
+
 /** Det ShopBrowser behöver för att hämta resten själv. */
 export type ListaInfo = {
   url: string;
@@ -93,13 +119,26 @@ export type ListaInfo = {
  * Sidans del av listan: de första korten och sammanfattningen. `ordnad` ska
  * vara listan i visningsordning (ordnaLista).
  */
-export function listaForSidan(ordnad: Product[], nyckel: ListNyckel): { products: ListProduct[]; lista?: ListaInfo } {
+export function listaForSidan(
+  ordnad: Product[],
+  nyckel: ListNyckel,
+  specDefs: readonly FacettDef[] = [],
+): { products: ListProduct[]; lista?: ListaInfo; facetter?: SpecFacett[] } {
+  // Måttfiltren räknas på HELA listan, här på servern, så panelen öppnas
+  // färdig (skalor och staplar) innan resten av listan hämtats.
+  const facetter = specDefs.length ? specOversikt(ordnad, specDefs) : [];
+  const nycklar = new Set(facetter.map((f) => f.nyckel));
+  const medFacetter = facetter.length ? { facetter } : {};
   // Ryms hela listan i sidans kort (rean, de flesta underkategorier) finns
-  // inget att hämta: sidan får hela listan och ShopBrowser räknar allt själv.
-  if (ordnad.length <= FORSTA_KORT) return { products: forClient(ordnad) };
+  // inget att hämta: sidan får hela listan och ShopBrowser räknar allt själv —
+  // då behöver korten sina mått.
+  if (ordnad.length <= FORSTA_KORT) return { products: forClient(ordnad, undefined, nycklar), ...medFacetter };
+  // Längre listor: måtten följer med listan från /api/lista, inte med sidans
+  // första kort — filtren väntar ändå på hela listan.
   return {
     products: forClient(ordnad.slice(0, FORSTA_KORT)),
     lista: { url: listaUrl(nyckel), oversikt: listOversikt(ordnad) },
+    ...medFacetter,
   };
 }
 

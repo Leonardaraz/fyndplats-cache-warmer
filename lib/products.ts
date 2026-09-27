@@ -13,6 +13,7 @@ import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { getSoldUnits } from "./popularity";
 import { getProductColors } from "./product-colors";
+import { lasSpec, specFor, type Nyckel, type Spec } from "./spec-facets";
 import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf, colorKeysFromName, valbilder, type ValBild, type V3Option } from "./variant-color-image";
@@ -87,6 +88,9 @@ export type Product = {
    *  som sidovagn (lib/product-colors.ts) eftersom V1-listan plattar bort
    *  optionsnamnen. undefined = ingen färgdata; [] förekommer aldrig. */
   colors?: string[];
+  /** Mått och egenskaper för listsidornas filter, lästa ur beskrivningen
+   *  (lib/spec-facets.ts). undefined när inget gick att läsa. */
+  spec?: Spec;
   // Betygssammandrag för produktkortet. Sätts INTE av produkthämtningen utan av
   // attachRatings() (lib/review-aggregates.ts) i serverkomponenten, precis innan
   // listan skickas vidare — så att recensionerna aldrig kopplas in i den heta
@@ -342,6 +346,7 @@ function mapProduct(p: any): Product {
     imageAlts,
     blurb: clipText(stripHtml(firstP ? firstP[1] : p.description || ""), 220),
     specs: clipText(stripHtml(specsSection ? specsSection.description : ""), 400),
+    spec: lasSpec(String(p.name ?? ""), String(p.description ?? "")),
     seoTitle: curatedSeoTitle,
     seoDescription: curatedSeoDesc,
     inStock: !!(p.stock && p.stock.inStock),
@@ -827,6 +832,9 @@ export type ListProduct = {
   inStock: boolean;
   stockQuantity?: number;
   colors?: string[];
+  /** Bara på kategorisidorna, och bara kategorins egna filter (specFor i
+   *  forClient). Se lib/spec-facets.ts. */
+  spec?: Spec;
   /* INGEN `ribbon` HÄR — MEDVETET. Kortet hade en "Bästsäljare"-bricka som
    * grindade på ribbon === "Bestseller". Mätt på skarp katalog 2026-09-04:
    * fältet var "EU-lager" på 1 618 av 1 619 produkter, "Slut i lager" på en,
@@ -860,7 +868,7 @@ export type ListProduct = {
  * typeof p.stockQuantity === "number"), så en saknad nyckel och en nyckel med
  * default-värdet räknas likadant. Lägger du till ett fält här: kontrollera att
  * läsaren tål att det saknas, annars skriv ut det ovillkorligt. */
-export function forClient(products: Product[], medBild?: ReadonlySet<string>): ListProduct[] {
+export function forClient(products: Product[], medBild?: ReadonlySet<string>, specNycklar?: ReadonlySet<Nyckel>): ListProduct[] {
   // KATEGORI-ID:N SKICKAS SOM KORTA TOKENS, INTE SOM GUID:er.
   //
   // Mätt på skarp /alla-produkter 2026-09-04: 4 867 kategorireferenser fördelade
@@ -960,6 +968,13 @@ export function forClient(products: Product[], medBild?: ReadonlySet<string>): L
     // truthiness, avgör här.
     if (typeof p.stockQuantity === "number") lp.stockQuantity = p.stockQuantity;
     if (p.colors?.length) lp.colors = p.colors;
+    // MÅTTEN FÖLJER BARA MED DÄR DE FILTRERAS. Kategorisidan skickar sina
+    // egna nycklar (lib/spec-config.ts); alla andra anropare skickar inga, och
+    // då följer inget med — ingen extra byte på /alla-produkter eller /sok.
+    if (specNycklar?.size) {
+      const spec = specFor(p.spec, specNycklar);
+      if (spec) lp.spec = spec;
+    }
     if (p.rating) lp.rating = p.rating;
     if (p.collectionIds?.length) lp.collectionIds = p.collectionIds.map(tokenFor);
     if (p.createdAt) lp.createdAt = p.createdAt;
