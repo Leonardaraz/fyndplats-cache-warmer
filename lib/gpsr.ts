@@ -3,10 +3,10 @@
 // Hämtar produktsäkerhetsuppgifterna (GPSR) för en produkt från motorn.
 // Se lib/gpsr-flik.ts för vad de är och varför.
 //
-// Fail-closed: svarar motorn inte, eller saknar produkten uppgifter (en
-// AliExpress-vara, eller en Aosom-vara importerad efter motorns senaste bygge
-// av säkerhetsdatan), blir
-// svaret null och produktsidan visar ingen flik — precis som innan.
+// Fail-closed: svarar motorn inte, eller är produkten ingen Aosom-vara, blir
+// svaret null och produktsidan visar ingen flik — precis som innan. En
+// Aosom-vara får alltid minst tillverkaren; säkerhetsraderna kommer från
+// motorns datafil eller från poleringens avsnitt i beskrivningen.
 
 import { tolkaGpsr, type GpsrData } from "./gpsr-flik";
 

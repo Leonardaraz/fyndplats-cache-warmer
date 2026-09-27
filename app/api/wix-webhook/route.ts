@@ -1282,17 +1282,6 @@ export async function POST(req: NextRequest) {
       }
       const customer = extractCustomer(entity)!;
 
-      // Produktsäkerheten på svenska för varorna (lib/gpsr-order.ts). Best
-      // effort: svarar motorn inte går bekräftelsen ändå, bara utan avsnittet —
-      // den får ALDRIG blockeras av en upplysning.
-      try {
-        const ids = extractContentIdsAligned(entity);
-        const gpsr = await Promise.all(ids.map((id) => (id ? getGpsr(id) : Promise.resolve(null))));
-        props.sakerhet = byggOrderSakerhet(props.items.map((it) => it.name), gpsr);
-      } catch (err) {
-        console.error("[wix-webhook] produktsäkerhet till orderbekräftelsen misslyckades (skickar utan)", err);
-      }
-
       // DEDUP-VAKT mot dubbla orderbekräftelser. Wix fyrar order-eventet flera
       // gånger för samma order — slug "created" OCH "approved" klassas BÅDA som
       // order_created, plus Wix at-least-once-retries. Atomiskt anspråk på orderns
@@ -1308,6 +1297,20 @@ export async function POST(req: NextRequest) {
           `[wix-webhook] order_created ${props.orderNumber}: dubblett-webhook — bekräftelse redan skickad, hoppar mejl + push (dedup)`,
         );
       } else if (resend) {
+        // Produktsäkerheten för varorna (lib/gpsr-order.ts). Bara när mejlet
+        // faktiskt skickas — inte för Wix dubbelfyrningar — och med ett tak på
+        // väntan: svarar motorn inte i tid går bekräftelsen ändå, utan
+        // avsnittet. En upplysning får ALDRIG blockera orderbekräftelsen.
+        try {
+          const ids = extractContentIdsAligned(entity);
+          const gpsr = await Promise.race([
+            Promise.all(ids.map((id) => (id ? getGpsr(id) : Promise.resolve(null)))),
+            new Promise<null[]>((resolve) => setTimeout(() => resolve(ids.map(() => null)), 2500)),
+          ]);
+          props.sakerhet = byggOrderSakerhet(props.items.map((it) => it.name), gpsr);
+        } catch (err) {
+          console.error("[wix-webhook] produktsäkerhet till orderbekräftelsen misslyckades (skickar utan)", err);
+        }
         try {
           const html = await render(OrderConfirmationEmail(props));
           const sent = await resend.emails.send({
