@@ -1,10 +1,10 @@
 // lib/spec-config.ts
 //
 // Vilka mått- och egenskapsfilter varje kategori erbjuder, och vad de heter
-// där. Kategorin FÖRESLÅR, datan AVGÖR: ett filter visas bara när minst 60 %
-// av produkterna i listan har värdet (lib/spec-facets.ts, specOversikt). En
-// kategori kan alltså stå med ett filter här som inte syns förrän
-// beskrivningarna bär värdet.
+// där. Kategorin FÖRESLÅR, datan AVGÖR: ett reglage visas bara när minst 60 %
+// av produkterna i listan har värdet, en knappgrupp vid 40 % (lib/spec-facets.ts,
+// specOversikt). En kategori kan alltså stå med ett filter här som inte syns
+// förrän beskrivningarna bär värdet.
 //
 // VARFÖR PER KATEGORI. Datan finns ofta där den inte hjälper kunden: en
 // fåtöljs vikt eller en massagestols effekt står i beskrivningen, men ingen
@@ -21,119 +21,131 @@
 //
 // Ren modul utan importer utöver typerna, så node --test kör den direkt.
 
-import type { FacettDef, Nyckel } from "./spec-facets";
+import type { FacettDef, KodNyckel, Nyckel } from "./spec-facets";
 
-/** En nyckel, eller en nyckel med kategorins eget namn på filtret. */
-type Rad = (Nyckel | [Nyckel, string])[];
+/**
+ * En nyckel, en nyckel med kategorins eget namn på filtret, eller en
+ * knappgrupp begränsad till vissa val: "eg:hj" = egenskaperna hjul och höj-
+ * och sänkbar. Egenskaper som inte hör hemma i kategorin visas då inte, även
+ * om en produkt där har dem (en timer på en massagefåtölj bland möblerna).
+ */
+type Rad = (Nyckel | `${KodNyckel}:${string}` | [Nyckel, string])[];
 
-const STOLAR: Rad = ["sh", "b", "ml", "m"];
-const BORD: Rad = ["b", "d", "h", "m"];
+// Egenskaperna (lib/spec-facets.ts, VAL.eg): h hjul, j höj- och sänkbar,
+// v vattenavvisande, u UV-skydd, l LED, b batteri, s solcell, f fjärrkontroll,
+// t timer.
+const STOLAR: Rad = ["sh", "b", "ml", "ky", "m"];
+const BORD: Rad = ["b", "d", "h", "fo", "m"];
 const SKAP: Rad = ["b", "h", "d", "m"];
-const TAKTALT: Rad = [["b", "Längd"], ["d", "Bredd"], "h", "m"];
+const TAKTALT: Rad = [["b", "Längd"], ["d", "Bredd"], "h", "eg:vu", "m"];
 const BURAR: Rad = [["b", "Längd"], ["d", "Bredd"], "h", "m"];
-const APPARATER: Rad = ["w", "l", "b", "h"];
-const HOJD: Rad = ["h", "b", "m"];
-const BARNFORDON: Rad = ["a", "ml", "m"];
+const SMADJURSBURAR: Rad = [["b", "Längd"], ["d", "Bredd"], "h", "vn", "m"];
+const APPARATER: Rad = ["w", "l", "b", "h", "eg:ft"];
+const PYNT: Rad = ["h", "b", "eg:lbst", "m"];
+const BARNFORDON: Rad = ["a", "ml", "eg:f", "m"];
+const VAGNAR: Rad = ["b", "d", "h", "eg:h", "m"];
+const SPEGLAR: Rad = [["h", "Höjd"], "b", "fo", "pl", "eg:l", "m"];
+const DJURTILLBEHOR: Rad = ["dj", "b", "h", "m"];
 
 const KATEGORIER: Record<string, Rad> = {
   // ── Hem & Inredning ──
   "hem-inredning": ["b", "h", "d", "m"],
-  "förvaring-städ": ["b", "h", "d", "ml", "m"],
-  "dekoration-prydnad": HOJD,
+  "förvaring-städ": ["b", "h", "d", "ml", "eg:h", "m"],
+  "dekoration-prydnad": PYNT,
   "verktyg-hemmafix": ["w", "b", "h", "m"],
   "hemtextil-badrum": ["b", "h", "m"],
-  "kalas-fest": ["h", "b", "m"],
-  "badrumsskap": SKAP,
-  "julgranar": [["h", "Höjd"], ["b", "Diameter"], "m"],
-  "juldekoration": HOJD,
-  "halloweendekoration": HOJD,
-  "belysning": ["h", "w", "m"],
-  "golvlampor": ["h", "w", "m"],
-  "konstvaxter": HOJD,
+  "kalas-fest": PYNT,
+  "badrumsskap": ["b", "h", "d", "pl", "eg:l", "m"],
+  "julgranar": [["h", "Höjd"], ["b", "Diameter"], "eg:lb", "m"],
+  "juldekoration": PYNT,
+  "halloweendekoration": PYNT,
+  "belysning": ["h", "w", "eg:bsft", "m"],
+  "golvlampor": ["h", "w", "eg:bft", "m"],
+  "konstvaxter": ["h", "b", "eg:lu", "m"],
   "hushållsapparater": APPARATER,
-  "speglar": [["h", "Höjd"], "b", "m"],
-  "badrumsspeglar": [["h", "Höjd"], "b", "m"],
-  "verktygsvagnar-verktygslador": ["b", "h", "d", "ml", "m"],
-  "elkaminer": ["w", "b", "h"],
-  "varmeflaktar": ["w", "h"],
-  "tvattkorgar": ["l", "h", "m"],
+  "speglar": SPEGLAR,
+  "badrumsspeglar": SPEGLAR,
+  "verktygsvagnar-verktygslador": ["b", "h", "d", "ml", "ld", "eg:h", "m"],
+  "elkaminer": ["w", "b", "h", "pl", "eg:ft"],
+  "varmeflaktar": ["w", "h", "pl", "eg:ft"],
+  "tvattkorgar": ["l", "h", "eg:h", "m"],
   "gnistskydd": ["b", "h", "m"],
   "elementskydd": ["b", "h", "m"],
 
   // ── Möbler ──
-  "mobler": ["b", "d", "h", "sh", "ml", "m"],
+  "mobler": ["b", "d", "h", "sh", "ml", "eg:hj", "m"],
   "fatoljer": STOLAR,
   "kontorsstolar": STOLAR,
-  "massagestolar": STOLAR,
+  "massagestolar": [...STOLAR, "eg:ft"],
   "baddfatoljer": STOLAR,
   "snurrfatoljer": STOLAR,
   "oronlappsfatoljer": STOLAR,
-  "pallar": ["sh", "ml", "m"],
-  "sittpuffar-fotpallar": ["h", "b", "m"],
-  "matbord-stolar": ["b", "d", "h", "sh", "m"],
-  "matgrupper": ["b", "m"],
-  "soffor-baddsoffor": ["b", "d", "sh", "m"],
-  "soffbord-smabord": BORD,
-  "sidobord": BORD,
-  "nattduksbord": BORD,
-  "barbord": BORD,
-  "skrivbord": ["b", "d", "h", "ml", "m"],
-  "hornskrivbord": ["b", "d", "h", "m"],
-  "tv-bankar": BORD,
-  "sangar-sovrum": ["b", "d", "h", "m"],
+  "pallar": ["sh", "ml", "ky", "eg:hj", "m"],
+  "sittpuffar-fotpallar": ["h", "b", "fo", "ky", "m"],
+  "matbord-stolar": ["b", "d", "h", "sh", "sp", "fo", "ky", "m"],
+  "matgrupper": ["b", "sp", "fo", "m"],
+  "soffor-baddsoffor": ["b", "d", "sh", "sp", "ky", "m"],
+  "soffbord-smabord": [...BORD, "ld", "eg:hjlf"],
+  "sidobord": [...BORD, "eg:hj"],
+  "nattduksbord": [...BORD, "ld", "eg:l"],
+  "barbord": [...BORD, "eg:j"],
+  "skrivbord": ["b", "d", "h", "ml", "ld", "eg:hjl", "m"],
+  "hornskrivbord": ["b", "d", "h", "eg:jl", "m"],
+  "tv-bankar": ["b", "d", "h", "ld", "eg:hlf", "m"],
+  "sangar-sovrum": ["sb", "b", "d", "h", "ky", "m"],
   "skoskap-skobankar": SKAP,
-  "byraer": SKAP,
-  "bokhyllor": ["b", "h", "d", "ml", "m"],
-  "sideboards-vitrinskap": SKAP,
-  "kladhangare-hallmobler": SKAP,
+  "byraer": ["b", "h", "d", "ld", "m"],
+  "bokhyllor": ["b", "h", "d", ["vn", "Hyllplan"], "ml", "pl", "m"],
+  "sideboards-vitrinskap": ["b", "h", "d", "ld", "eg:l", "m"],
+  "kladhangare-hallmobler": ["b", "h", "d", "pl", "m"],
   "rumsavdelare": ["b", "h", "m"],
 
   // ── Trädgård & Utemöbler ──
-  "trädgård-utemöbler": ["b", "d", "h", "m"],
+  "trädgård-utemöbler": ["b", "d", "h", "eg:vus", "m"],
   "vaxthus-odling": TAKTALT,
   "solskydd-paviljonger": TAKTALT,
   "redskapsbodar-forrad": TAKTALT,
   "garagetalt": TAKTALT,
   "skarmtak-entretak": ["b", "d", "m"],
-  "utemobler": ["b", "sh", "ml", "m"],
-  "grill-utekok": ["b", "h", "m"],
-  "tradgardsdekor-belysning": HOJD,
+  "utemobler": ["b", "sh", "ml", "sp", "eg:vu", "m"],
+  "grill-utekok": ["br", "b", "h", "eg:h", "m"],
+  "tradgardsdekor-belysning": ["h", "b", "eg:lbs", "m"],
   "odlingslador": ["b", "d", "h", "m"],
-  "blomstall-vaxthyllor": SKAP,
+  "blomstall-vaxthyllor": ["b", "h", "d", ["vn", "Hyllplan"], "m"],
   "vedstall-vedbodar": SKAP,
-  "eldkorgar-eldstader": [["b", "Diameter"], "h", "m"],
-  "terrassvärmare-infravärmare": ["w", "h"],
+  "eldkorgar-eldstader": [["b", "Diameter"], "h", "fo", "m"],
+  "terrassvärmare-infravärmare": ["w", "h", "br"],
   "utelek-spel": ["a", "b", "m"],
 
   // ── Husdjur ──
-  "husdjur": BURAR,
-  "klostrad": [["h", "Höjd"], ["b", "Bredd"], "ml", "m"],
-  "katthus": BURAR,
-  "burar-kläder-tillbehör": BURAR,
-  "kaninburar-marsvinsburar": BURAR,
-  "hamsterburar-gnagarburar": BURAR,
-  "hundburar": BURAR,
+  "husdjur": ["dj", ["b", "Längd"], ["d", "Bredd"], "h", "m"],
+  "klostrad": [["h", "Höjd"], ["b", "Bredd"], "vn", "ml", "m"],
+  "katthus": SMADJURSBURAR,
+  "burar-kläder-tillbehör": ["dj", ["b", "Längd"], ["d", "Bredd"], "h", "m"],
+  "kaninburar-marsvinsburar": SMADJURSBURAR,
+  "hamsterburar-gnagarburar": SMADJURSBURAR,
+  "hundburar": [...BURAR, "eg:h"],
   "hundkojor": BURAR,
-  "honshus-honsgardar": BURAR,
+  "honshus-honsgardar": SMADJURSBURAR,
   "valphagar-hundhagar": BURAR,
   "terrarier": BURAR,
   "hundvagnar": ["ml", "kg", "m"],
   "hundbaddar-hundsoffor": [["b", "Längd"], ["d", "Bredd"], "m"],
   "kattlador": ["b", "h", "m"],
-  "mat-vattenskålar": ["l", "m"],
-  "selar-koppel-transport": ["ml", "m"],
-  "lek-bädd-tillbehör": ["b", "h", "m"],
+  "mat-vattenskålar": ["dj", "l", "m"],
+  "selar-koppel-transport": ["dj", "ml", "m"],
+  "lek-bädd-tillbehör": DJURTILLBEHOR,
 
   // ── Barn & Familj ──
-  "barn-familj": ["a", "ml", "m"],
-  "leksaker-spel": ["a", "m"],
-  "baby-småbarn": ["a", "ml", "m"],
+  "barn-familj": ["a", "ml", "eg:bf", "m"],
+  "leksaker-spel": ["a", "eg:bf", "m"],
+  "baby-småbarn": ["a", "ml", "eg:b", "m"],
   "elbilar-for-barn": BARNFORDON,
   "motorcyklar-for-barn": BARNFORDON,
-  "sparkcyklar-for-barn": BARNFORDON,
-  "gunghastar-gungdjur": BARNFORDON,
-  "barnmobler": ["a", "h", "ml", "m"],
-  "leksakskok": ["a", "h", "m"],
+  "sparkcyklar-for-barn": ["a", "ml", "m"],
+  "gunghastar-gungdjur": ["a", "ml", "eg:b", "m"],
+  "barnmobler": ["a", "h", "ml", "eg:j", "m"],
+  "leksakskok": ["a", "h", "eg:b", "m"],
   "sandlador": ["b", "m"],
 
   // ── Sport & Fritid ──
@@ -143,29 +155,29 @@ const KATEGORIER: Record<string, Rad> = {
   "motionscyklar": ["ml", "kg", "m"],
   "hantlar-hantelset": ["kg", "m"],
   "boxningssackar": ["kg", "h", "m"],
-  "friluftsliv-resa": ["kg", "m"],
-  "bil-cykel": ["w", "ml", "kg", "m"],
+  "friluftsliv-resa": ["kg", "eg:vus", "m"],
+  "bil-cykel": ["w", "ml", "kg", "eg:bl", "m"],
 
   // ── Kök & Husgeråd ──
-  "kök-matlagning": ["w", "l", "b", "h", "m"],
+  "kök-matlagning": ["w", "l", "b", "h", "eg:t", "m"],
   "köksmaskiner-apparater": APPARATER,
   "miniugnar-airfryers": APPARATER,
   "vattenkokare-brodrostar": ["l", "w"],
-  "soptunnor": ["l", "b", "h", "m"],
-  "koksoar-koksvagnar": BORD,
-  "serveringsvagnar-rullvagnar": BORD,
-  "vinstall-vinkylar": ["b", "h", "m"],
+  "soptunnor": ["l", "b", "h", "eg:h", "m"],
+  "koksoar-koksvagnar": VAGNAR,
+  "serveringsvagnar-rullvagnar": VAGNAR,
+  "vinstall-vinkylar": ["b", "h", "eg:l", "m"],
   "köksredskap-tillbehör": ["m"],
   "servering-glas": ["m"],
 
   // ── Elektronik ──
-  "elektronik": ["w", "m"],
-  "dator-gaming": ["ml", "b", "m"],
-  "projektordukar": ["b"],
+  "elektronik": ["w", "eg:bf", "m"],
+  "dator-gaming": ["ml", "b", "eg:l", "m"],
+  "projektordukar": ["b", "eg:f"],
 
   // ── Skönhet & Hälsa ──
-  "skönhet-hälsa": ["ml", "w", "m"],
-  "massage-återhämtning": ["ml", "w", "m"],
+  "skönhet-hälsa": ["ml", "w", "eg:bt", "m"],
+  "massage-återhämtning": ["ml", "w", "eg:bft", "m"],
   "massagebankar": ["ml", "b", "kg"],
 };
 
@@ -180,7 +192,11 @@ export function facetterFor(slug: string, foraldrar: readonly string[] = []): Fa
   if (UTAN.has(slug)) return [];
   const rad = KATEGORIER[slug] ?? foraldrar.map((f) => KATEGORIER[f]).find(Boolean);
   if (!rad) return [];
-  return rad.map((r): FacettDef => (Array.isArray(r) ? { nyckel: r[0], namn: r[1] } : { nyckel: r, namn: "" }));
+  return rad.map((r): FacettDef => {
+    if (Array.isArray(r)) return { nyckel: r[0], namn: r[1] };
+    const [nyckel, koder] = r.split(":") as [Nyckel, string | undefined];
+    return koder ? { nyckel, namn: "", koder } : { nyckel, namn: "" };
+  });
 }
 
 /** Alla slugs med egen rad — testet håller dem ärliga mot katalogen. */

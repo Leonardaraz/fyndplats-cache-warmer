@@ -13,7 +13,7 @@ test("egen rad vinner, med kategorins namn på filtret", () => {
 });
 
 test("underkategori utan egen rad ärver närmaste förälder", () => {
-  assert.deepEqual(facetterFor("okand-underkategori", ["mobler"]).map((f) => f.nyckel), ["b", "d", "h", "sh", "ml", "m"]);
+  assert.deepEqual(facetterFor("okand-underkategori", ["mobler"]).map((f) => f.nyckel), ["b", "d", "h", "sh", "ml", "eg", "m"]);
 });
 
 test("hela sortimentet får inga måttfilter", () => {
@@ -31,4 +31,10 @@ test("inga dubbletter i någon rad", () => {
     const k = facetterFor(s).map((f) => f.nyckel);
     assert.equal(new Set(k).size, k.length, s);
   }
+});
+
+test("en knappgrupp kan begränsas till kategorins egna val", () => {
+  const eg = facetterFor("skrivbord").find((f) => f.nyckel === "eg");
+  assert.deepEqual(eg, { nyckel: "eg", namn: "", koder: "hjl" });
+  assert.equal(facetterFor("fatoljer").find((f) => f.nyckel === "ky")?.koder, undefined);
 });

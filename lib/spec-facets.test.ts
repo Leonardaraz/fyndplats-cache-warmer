@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  lasMatt, lasSpec, lasAlder, specRader, inomIntervall, harMaterial,
+  lasMatt, lasSpec, lasAlder, specRader, inomIntervall, passarVal,
   specSkala, specOversikt, specFor, specSlug, lasSpecSlug, specEtikett, specUndre, specOvre,
   type Spec,
 } from "./spec-facets.ts";
@@ -100,10 +100,22 @@ test("filter: justerbar höjd passar urval som överlappar", () => {
   assert.ok(!inomIntervall({}, "h", 0, 999), "saknat värde passar aldrig");
 });
 
-test("filter: material är ELLER mellan valen", () => {
-  assert.ok(harMaterial({ m: "tm" }, "my"));
-  assert.ok(!harMaterial({ m: "tm" }, "y"));
-  assert.ok(!harMaterial({}, "t"));
+test("filter: material är ELLER mellan valen, egenskaper OCH", () => {
+  assert.ok(passarVal({ m: "tm" }, "m", ["m", "y"], false));
+  assert.ok(!passarVal({ m: "tm" }, "m", ["y"], false));
+  assert.ok(!passarVal({}, "m", ["t"], false));
+  assert.ok(passarVal({ eg: "hj" }, "eg", ["h", "j"], true));
+  assert.ok(!passarVal({ eg: "h" }, "eg", ["h", "j"], true));
+  assert.ok(passarVal({}, "eg", [], true), "inget valt = allt passar");
+});
+
+test("filter: antal som knappar, spann och N+", () => {
+  assert.ok(passarVal({ sp: [6, 8] }, "sp", ["6"], false));
+  assert.ok(passarVal({ sp: [6, 8] }, "sp", ["7"], false));
+  assert.ok(!passarVal({ sp: 4 }, "sp", ["6"], false));
+  assert.ok(passarVal({ ld: 9 }, "ld", ["6+"], false));
+  assert.ok(!passarVal({ ld: 5 }, "ld", ["6+"], false));
+  assert.ok(!passarVal({}, "ld", ["2"], false));
 });
 
 test("skala: kapar svansen och kräver spridning", () => {
@@ -125,7 +137,7 @@ test("översikt: material kräver minst två material med minst två produkter",
   const items = [...Array(5).fill({ spec: { m: "t" } }), ...Array(5).fill({ spec: { m: "m" } })];
   const f = specOversikt(items, [{ nyckel: "m", namn: "Material" }]);
   assert.equal(f.length, 1);
-  assert.deepEqual(f[0].nyckel === "m" ? f[0].val : null, [["t", 5], ["m", 5]]);
+  assert.deepEqual(f[0].nyckel === "m" && "val" in f[0] ? f[0].val.map((v) => v.kod) : null, ["t", "m"]);
   assert.equal(specOversikt(Array(10).fill({ spec: { m: "t" } }), [{ nyckel: "m", namn: "Material" }]).length, 0);
 });
 
@@ -148,4 +160,138 @@ test("URL: slug fram och tillbaka, skräp ger hela skalan", () => {
   assert.equal(specEtikett(40, 120, s, "cm"), "Upp till 120 cm");
   assert.equal(specUndre(40, s), -Infinity);
   assert.equal(specOvre(200, s), Infinity);
+});
+
+// ── Egenskaper ur texten (2026-09-27) ──────────────────────────────────────
+// Varje fall nedan är ett fel eller en fälla som hittades i stickprov mot
+// katalogen.
+
+test("ordgräns: å, ä och ö räknas som bokstäver", () => {
+  assert.equal(lasSpec("Byrå", "<p>Material: trä</p>")?.m, "t", "\\bträ\\b hittade aldrig trä");
+  assert.equal(lasSpec("Byrå med åtta tyglådor, 80 × 30 × 94,5 cm", "")?.ld, 8);
+});
+
+test("lådor: antal i namnet, siffra i raden, aldrig 'en … med lådor'", () => {
+  assert.equal(lasSpec("Byrå med 4 lådor 47 cm", "")?.ld, 4);
+  assert.equal(lasSpec("Verktygsvagn med lådor 3-i-1", "<p>En verktygsvagn med lådor som är byggd i tre delar och kan användas på tre sätt.</p><p>Antal lådor: 5</p>")?.ld, 5);
+  assert.equal(lasSpec("Rullbord 61 cm med låda, hylla och hängkorg", "")?.ld, 1);
+  assert.equal(lasSpec("Förvaringstorn", "<p>En verktygsvagn med lådor som rullar dit du jobbar och står stadigt.</p>")?.ld, undefined);
+});
+
+test("sittplatser: tresits, 'för sex till åtta', men inte fotpallar eller sitsdynor", () => {
+  assert.equal(lasSpec("Tresitssoffa 218 cm i ljusgrå manchester", "")?.sp, 3);
+  assert.equal(lasSpec("2-sitssoffa 137 cm i sherpafleece", "")?.sp, 2);
+  assert.deepEqual(lasSpec("Utdragbart matbord 160–200 cm för sex till åtta", "")?.sp, [6, 8]);
+  assert.equal(lasSpec("Matgrupp 5 delar — furubord 118 cm och fyra stolar", "")?.sp, 4);
+  assert.equal(lasSpec("Hörnsoffa med förvaring och två fotpallar", "")?.sp, undefined);
+  assert.equal(lasSpec("Soffa med två sitsdynor", "")?.sp, undefined);
+  assert.equal(lasSpec("Hundbur för två hundar", "")?.sp, undefined);
+});
+
+test("våningar: två eller fler, 'en plan yta' är inget plan", () => {
+  assert.equal(lasSpec("Hamsterbur i trä med tre våningar, 68 × 61,5 cm", "")?.vn, 3);
+  assert.equal(lasSpec("Hylla", "<p>Hyllan står på en plan yta och tål fukt från krukorna ovanför.</p>")?.vn, undefined);
+});
+
+test("sängbredd: madrassmåttet i namnet, åt båda hållen", () => {
+  assert.equal(lasSpec("Sängram 140 × 200 cm i grå linnelook", "")?.sb, 140);
+  assert.equal(lasSpec("Hopfällbar säng 190 × 80 cm med madrass", "")?.sb, 80);
+  assert.equal(lasSpec("Byrå 140 × 40 × 80 cm", "")?.sb, undefined);
+});
+
+test("klädsel: namnet först, sedan raden", () => {
+  assert.equal(lasSpec("Läsfåtölj i beige manchester", "")?.ky, "m");
+  assert.equal(lasSpec("Bred fåtölj i krämvitt tyg", "<p>Material: Sammetsliknande tyg (100 % polyester), gummiträ och stål</p>")?.ky, "s");
+  assert.equal(lasSpec("Kontorsstol i mesh", "")?.ky, "n");
+});
+
+test("djur: namnet, även sammansatta ord", () => {
+  assert.equal(lasSpec("Väggklösträd 73 cm i beige", "")?.dj, "k");
+  assert.equal(lasSpec("Gnagarbur i akryl 100 × 50 cm", "")?.dj, "g");
+  assert.equal(lasSpec("Ankhus i trä för tre ankor", "")?.dj, "o");
+  assert.equal(lasSpec("Sköldpaddshus 91 cm med nätlock", "")?.dj, "r");
+});
+
+test("bränsle: bara på det som eldar — ett vedställ drivs inte med ved", () => {
+  assert.equal(lasSpec("Gasolgrill 3 brännare med sidobord", "")?.br, "g");
+  assert.equal(lasSpec("Kolgrill på vagn i stål", "")?.br, "k");
+  assert.equal(lasSpec("Vedställ med brasverktyg – två plan", "<p>Ett vedställ för ved till kaminen.</p>")?.br, undefined);
+});
+
+test("form: namn, Ø, mått — men aldrig på stolar eller organiska speglar", () => {
+  assert.equal(lasSpec("Runt matbord Ø80 cm", "")?.fo, "r");
+  assert.equal(lasSpec("Golvspegel oval 50 × 180 cm", "")?.fo, "o");
+  assert.equal(lasSpec("Matbord", "<p>Mått: 120 × 75 × 75 cm</p>")?.fo, "e");
+  assert.equal(lasSpec("Soffbord", "<p>Mått: 60 × 60 × 45 cm</p>")?.fo, "k");
+  assert.equal(lasSpec("Badrumsspegel LED 80 × 60 cm", "")?.fo, "e");
+  assert.equal(lasSpec("Matstolar 2-pack i linnelook", "<p>Mått: 45 × 55 × 80 cm</p>")?.fo, undefined);
+  assert.equal(lasSpec("Väggspegel i organisk form 91,5 × 45 cm", "")?.fo, undefined);
+  assert.equal(lasSpec("Bågformad badrumsspegel 50 × 70 cm", "")?.fo, undefined);
+});
+
+test("placering: vägg eller golv, men tippskyddet gör inget vägghängt", () => {
+  assert.equal(lasSpec("Väggspegel 40 × 60 cm med svart ram", "")?.pl, "v");
+  assert.equal(lasSpec("Golvspegel i vitt, 148 cm hög", "")?.pl, "f");
+  assert.equal(lasSpec("Elelement 1500 W – för vägg eller golv", "")?.pl, "vf");
+  assert.equal(lasSpec("Klösträd 200 cm", "<p>Ett klösträd på 200 cm, och en tippskyddslina fästs på väggen.</p>")?.pl, undefined);
+});
+
+test("egenskaper: hjul, men inte löphjul, 'inte hjul' eller en rullbar dörr", () => {
+  assert.equal(lasSpec("Sidobord på hjul med C-form", "")?.eg, "h");
+  assert.equal(lasSpec("Verktygsvagn", "<ul><li><p>Fyra hjul, två av dem med broms</p></li></ul>")?.eg, "h");
+  assert.equal(lasSpec("Klaffbord 168 cm", "<h2>Fast underrede, inte hjul</h2>")?.eg, undefined);
+  assert.equal(lasSpec("Hamsterbur", "<ul><li><p>Hus, löphjul och vattenflaska</p></li></ul>")?.eg, undefined);
+  assert.equal(lasSpec("Tomatväxthus 170 cm med rullport", "<p>Port: Rullbar, 112 × 163 cm</p>")?.eg, undefined);
+});
+
+test("egenskaper: höj- och sänkbar bara om varan själv, inte ett råd om en annan", () => {
+  assert.equal(lasSpec("Elektriskt skrivbord 120 × 60 cm höj- och sänkbart 72–116 cm", "")?.eg, "j");
+  assert.equal(lasSpec("Kontorsstol", "<ul><li><p>Höjdjusterbar med säker klass 3-gasfjäder</p></li></ul>")?.eg, "j");
+  assert.equal(lasSpec("Ritstol med fotring", "<p>En hög arbetsstol för dig som sitter vid ritbord eller ett höj- och sänkbart skrivbord i stående läge.</p>")?.eg, undefined);
+  assert.equal(lasSpec("Barstolar 2-pack", "<ul><li><p>Vill du ändra höjden, då ska du välja en höj- och sänkbar i stället</p></li></ul>")?.eg, undefined);
+  assert.equal(lasSpec("Sparkcykel barn 12 tum", "<ul><li><p>Höjdjusterbart styre, 80 till 88 cm</p></li></ul>")?.eg, undefined);
+});
+
+test("egenskaper: brödtext och Vanliga frågor räknas inte, länkar inte heller", () => {
+  const html = "<p>En skänk i vitt med två lådor och tre luckor bakom tryck-öppning, helt utan handtag.</p>"
+    + "<p>Det här är motpolen till våra höj- och sänkbara bord.</p>"
+    + "<h2>Vanliga frågor</h2><p>Finns den på hjul?</p><p>Ja, se <a href=\"/x\">skänk på hjul</a>.</p>";
+  assert.equal(lasSpec("Skänk vit 117 cm", html)?.eg, undefined);
+});
+
+test("egenskaper: batteri, men inte 'utan batteri' eller fjärrkontrollens", () => {
+  assert.equal(lasSpec("Lysande snögubbe 51 cm med 30 LED – batteridriven", "")?.eg, "lb");
+  assert.equal(lasSpec("Frontlastare att sitta på 80 cm", "<ul><li><p>Batteri: tutan kräver inget batteri</p></li></ul>")?.eg, undefined);
+  assert.equal(lasSpec("Golvlampa 177 cm med fjärrkontroll", "<ul><li><p>Ingår: golvlampa, fjärrkontroll och bruksanvisning. Två AAA-batterier ingår ej</p></li></ul>")?.eg, "f");
+  assert.equal(lasSpec("Elkamin", "<ul><li><p>Fjärrkontroll ingår (batterier ingår inte)</p></li></ul>")?.eg, "f");
+});
+
+test("egenskaper: LED bara med versaler, fjärrkontroll inte som ficka", () => {
+  assert.equal(lasSpec("Armstöd med led", "")?.eg, undefined);
+  assert.equal(lasSpec("Badrumsspegel LED 80 × 60 cm", "")?.eg, "l");
+  assert.equal(lasSpec("Tv-fåtölj i chenille", "<ul><li><p>Två sidofickor, 35 × 28 cm, för fjärrkontroll och surfplatta</p></li></ul>")?.eg, undefined);
+});
+
+test("översikt: egenskaper visas från tre produkter men inte när nästan alla har dem", () => {
+  const med = (eg: string) => ({ spec: { eg } as Spec });
+  const items = [med("h"), med("h"), med("h"), med("j"), med("j"), { spec: undefined }, { spec: undefined }, { spec: undefined }, { spec: undefined }, { spec: undefined }];
+  const f = specOversikt(items, [{ nyckel: "eg", namn: "" }]);
+  assert.deepEqual(f.length && "val" in f[0] ? f[0].val.map((v) => v.kod) : [], ["h"]);
+  const alla = Array.from({ length: 10 }, () => med("h"));
+  assert.equal(specOversikt(alla, [{ nyckel: "eg", namn: "" }]).length, 0);
+  assert.deepEqual(specOversikt(items, [{ nyckel: "eg", namn: "", koder: "j" }]), []);
+});
+
+test("översikt: antal blir knappar med N+ på slutet", () => {
+  const items = [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 9, 9].map((ld) => ({ spec: { ld } as Spec }));
+  const f = specOversikt(items, [{ nyckel: "ld", namn: "" }]);
+  assert.deepEqual(f.length && "val" in f[0] ? f[0].val.map((v) => v.kod) : [], ["2", "3", "4", "5", "6", "7+"]);
+  assert.equal(f.length && "val" in f[0] ? f[0].val[5].slug : "", "7-plus");
+});
+
+test("översikt: en knappgrupp kräver 40 % och två val", () => {
+  const ky = (k?: string) => ({ spec: k ? ({ ky: k } as Spec) : undefined });
+  const items = [ky("s"), ky("s"), ky("m"), ky("m"), ky(), ky(), ky(), ky(), ky(), ky()];
+  assert.equal(specOversikt(items, [{ nyckel: "ky", namn: "" }]).length, 1);
+  assert.equal(specOversikt([...items, ky(), ky()], [{ nyckel: "ky", namn: "" }]).length, 0);
 });

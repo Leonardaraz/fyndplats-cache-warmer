@@ -164,6 +164,32 @@ Fyra regler:
 Beskrivningarnas format styr täckningen: "Mått: 82 × 35 × 76 cm (B × D × H)",
 "Maxlast: 120 kg" och "Material: stål och MDF" läses alltid.
 
+### Knappgrupperna: klädsel, djur, form, antal, egenskaper (2026-09-27)
+
+Utöver reglagen finns knappar för klädsel, djur, bränsle, form, placering,
+antal (lådor, sittplatser, våningar, sängbredd) och egenskaper (hjul, höj- och
+sänkbar, vattenavvisande, UV-skydd, LED, batteri, solcell, fjärrkontroll,
+timer). De läses ur produktens EGEN text: namnet, spec-raderna, ingressen,
+punktlistorna och rubrikerna. Brödtexten, "Vanliga frågor", "Passar inte den
+här?" och länkar räknas inte, för där jämförs det med andra varor ("motpolen
+till våra höj- och sänkbara bord"). Stickprov per kategori hittade och
+låste (`lib/spec-facets.test.ts`):
+
+- **JavaScripts `\b` räknar inte å, ä, ö som bokstäver.** `/\bträ\b/` hittade
+  aldrig "Material: trä", `/\båtta/` aldrig "åtta lådor". Alla mönster med
+  svenska ord går genom `sv()`.
+- **Nekat räknas inte**: "inte hjul", "utan batteri", "Batteri: tutan kräver
+  inget batteri". Batterierna till fjärrkontrollen gör inte lampan
+  batteridriven.
+- **Delar är inte varan**: "höjdjusterbart styre", "löphjul", "rullbar dörr",
+  "två fotpallar" (inga sittplatser), tippskyddet i väggen (inte vägghängd),
+  ett vedställ (inget bränsle), stolar (ingen form).
+
+Knapparna visas vid 40 % täckning och minst två val, egenskaperna när minst
+tre produkter har dem men inte nästan alla (90 %). Kategorin kan begränsa
+egenskaperna ("eg:hj" i `lib/spec-config.ts`). Rumsstorlek för värmare
+byggdes inte: texterna anger medvetet inte tillverkarnas m²-siffror.
+
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
   (`@vercel/speed-insights/next`) are mounted in `app/layout.tsx`. Both are

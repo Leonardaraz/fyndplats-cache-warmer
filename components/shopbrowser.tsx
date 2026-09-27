@@ -17,7 +17,7 @@ import {
 } from "../lib/price-range";
 import type { ListProduct } from "../lib/products";
 import {
-  FACETTER, MATERIAL, harMaterial, inomIntervall, lasSpecSlug, specEtikett, specOvre, specSlug, specUndre,
+  FACETTER, inomIntervall, lasSpecSlug, passarVal, specEtikett, specOvre, specSlug, specUndre,
   type IntervallNyckel, type SpecFacett,
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
@@ -182,11 +182,12 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   // En produkt utan värdet försvinner bara när just det filtret används. Det
   // skrivs inte ut hur många det gäller (Leonard 2026-09-27).
   const intervallF = useMemo(
-    () => (facetter ?? []).filter((f): f is Extract<SpecFacett, { skala: unknown }> => f.nyckel !== "m"),
+    () => (facetter ?? []).filter((f): f is Extract<SpecFacett, { skala: unknown }> => "skala" in f),
     [facetter],
   );
-  const materialF = useMemo(
-    () => (facetter ?? []).find((f): f is Extract<SpecFacett, { nyckel: "m" }> => f.nyckel === "m"),
+  // Knappgrupperna: material, klädsel, djur, egenskaper, antal …
+  const valF = useMemo(
+    () => (facetter ?? []).filter((f): f is Extract<SpecFacett, { val: unknown }> => "val" in f),
     [facetter],
   );
   const [specHandtag, setSpecHandtag] = useState<Record<string, [number, number]>>(() =>
@@ -195,10 +196,20 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   const [specValt, setSpecValt] = useState<Record<string, string>>(() =>
     Object.fromEntries(intervallF.map((f) => [f.nyckel, specSlug(...lasSpecSlug(sp.get(FACETTER[f.nyckel].param), f.skala), f.skala)])),
   );
-  // Material är ELLER mellan valen: "trä eller metall". Koderna i en sträng.
-  const [material, setMaterial] = useState(() => {
-    const valda = new Set((sp.get("material") ?? "").split(","));
-    return MATERIAL.filter((m) => valda.has(m.slug) && materialF?.val.some(([k]) => k === m.kod)).map((m) => m.kod).join("");
+  // Valda knappar per grupp, som koder. Material, klädsel, djur … är ELLER
+  // mellan valen ("trä eller metall"), egenskaperna OCH ("hjul och höj- och
+  // sänkbar") — gruppen säger vilket (`och`). I URL:en står slugs.
+  const [val, setVal] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(valF.map((f) => {
+      const slugs = new Set((sp.get(FACETTER[f.nyckel].param) ?? "").split(","));
+      return [f.nyckel, f.val.filter((v) => slugs.has(v.slug)).map((v) => v.kod)];
+    })),
+  );
+  const valStr = valF.map((f) => (val[f.nyckel] ?? []).join(",")).join("|");
+  const valAktiva = valF.filter((f) => val[f.nyckel]?.length).length;
+  const vaxla = (nyckel: string, kod: string) => setVal((v) => {
+    const nu = v[nyckel] ?? [];
+    return { ...v, [nyckel]: nu.includes(kod) ? nu.filter((k) => k !== kod) : [...nu, kod] };
   });
   const specHandtagRef = useRef(specHandtag);
   const satSpec = (k: string, h: [number, number]) => {
@@ -227,7 +238,8 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   const specSlappt = useMemo(() => specGranser("valt"), [specGranser]);
   const passarSpec = (p: ListProduct, granser: { k: IntervallNyckel; lo: number; hi: number }[]) => {
     for (const g of granser) if (!inomIntervall(p.spec, g.k, g.lo, g.hi)) return false;
-    return !material || harMaterial(p.spec, material);
+    for (const f of valF) if (!passarVal(p.spec, f.nyckel, val[f.nyckel] ?? [], f.och)) return false;
+    return true;
   };
   const specValtStr = intervallF.map((f) => specValt[f.nyckel] ?? "").join("|");
 
@@ -278,8 +290,11 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
       const v = specValt[f.nyckel];
       if (v) params.set(FACETTER[f.nyckel].param, v); else params.delete(FACETTER[f.nyckel].param);
     }
-    const materialSlugs = MATERIAL.filter((m) => material.includes(m.kod)).map((m) => m.slug).join(",");
-    if (materialSlugs) params.set("material", materialSlugs); else params.delete("material");
+    for (const f of valF) {
+      const valda = val[f.nyckel] ?? [];
+      const slugs = f.val.filter((v) => valda.includes(v.kod)).map((v) => v.slug).join(",");
+      if (slugs) params.set(FACETTER[f.nyckel].param, slugs); else params.delete(FACETTER[f.nyckel].param);
+    }
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     const current = window.location.pathname + window.location.search;
@@ -290,7 +305,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     // (uppmätt: 747 → 180 px efter ett klick på "Rea"). Next 16 synkar
     // useSearchParams med den inbyggda historiken, så inget annat behöver ändras.
     if (url !== current) window.history.replaceState(null, "", url);
-  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname, intervallF, specValt, material]);
+  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.
@@ -312,7 +327,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   // andra filter. Med filter vet vi inte, och då visas inget hellre än fel
   // siffra (null → "…").
   const colorCounts = useMemo(() => {
-    if (!alla) return ov && !priceActive && !onlyInStock && !onlyOnSale && !specLive.length && !material ? new Map(ov.farger) : null;
+    if (!alla) return ov && !priceActive && !onlyInStock && !onlyOnSale && !specLive.length && !valAktiva ? new Map(ov.farger) : null;
     const antal = new Map<string, number>();
     for (const p of alla) {
       if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
@@ -322,9 +337,9 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
       for (const k of p.colors || []) antal.set(k, (antal.get(k) ?? 0) + 1);
     }
     return antal;
-    // passarSpec läser bara specLive och material, som står i listan.
+    // passarSpec läser bara specLive och valen (valStr), som står i listan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, ov, priceActive, priceLo, priceHi, onlyInStock, onlyOnSale, specLive, material]);
+  }, [alla, ov, priceActive, priceLo, priceHi, onlyInStock, onlyOnSale, specLive, valStr]);
   const fargAntal = (k: string): string => (colorCounts ? String(colorCounts.get(k) ?? 0) : "…");
   // Skenans läge: 0 = alla färger, 1..n = colorKeys[i-1]. Ett enda tal, så
   // native <input type="range"> gör hela jobbet — drag, tangentbord och touch.
@@ -391,7 +406,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   const [valtLo, valtHi] = useMemo(() => handlesFromSlug(bounds, urlPrice), [bounds, urlPrice]);
   const listLo = bounds ? valtLo : 0;
   const listHi = bounds ? upperLimit(valtHi, bounds) : Infinity;
-  const utanFilter = !priceActive && !color && !onlyInStock && !onlyOnSale && !specLive.length && !material;
+  const utanFilter = !priceActive && !color && !onlyInStock && !onlyOnSale && !specLive.length && !valAktiva;
   // null = okänt just nu (filter valt innan hela listan kommit).
   const liveCount = useMemo(() => {
     if (!alla) return utanFilter && ov ? ov.antal : null;
@@ -406,10 +421,10 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     }
     return n;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, ov, utanFilter, priceLo, priceHi, color, onlyInStock, onlyOnSale, specLive, material]);
+  }, [alla, ov, utanFilter, priceLo, priceHi, color, onlyInStock, onlyOnSale, specLive, valStr]);
 
   // Standardläget: förvald sortering och inga filter — det sidans HTML visar.
-  const arStandard = sort === defaultSort && !urlPrice && !urlColor && !onlyInStock && !onlyOnSale && !specSlappt.length && !material;
+  const arStandard = sort === defaultSort && !urlPrice && !urlColor && !onlyInStock && !onlyOnSale && !specSlappt.length && !valAktiva;
 
   const list = useMemo(() => {
     // Innan hela listan kommit finns bara sidans egna kort att visa.
@@ -418,7 +433,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     if (urlColor) out = out.filter((p) => p.colors?.includes(urlColor));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
-    if (specSlappt.length || material) out = out.filter((p) => passarSpec(p, specSlappt));
+    if (specSlappt.length || valAktiva) out = out.filter((p) => passarSpec(p, specSlappt));
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
     // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
     //
@@ -457,7 +472,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, products, lista, arStandard, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp, specSlappt, material]);
+  }, [alla, products, lista, arStandard, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp, specSlappt, valStr]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -466,13 +481,13 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
   const activeFilters = (priceActive ? 1 : 0) + (color ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0)
-    + specLive.length + (material ? 1 : 0);
+    + specLive.length + valAktiva;
   const reset = () => {
     const hela = Object.fromEntries(intervallF.map((f): [string, [number, number]] => [f.nyckel, [f.skala.min, f.skala.max]]));
     specHandtagRef.current = hela;
     setSpecHandtag(hela);
     setSpecValt({});
-    setMaterial("");
+    setVal({});
     if (bounds) satHandles([bounds.min, bounds.max]);
     setUrlPrice("");
     colorRef.current = "";
@@ -525,7 +540,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, products, specValtStr, material]);
+  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
   const visible = list.slice(0, shown);
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
@@ -790,7 +805,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
 
           {/* Mått och egenskaper — en egen rad under pris och färg. Bara de
               filter kategorin erbjuder OCH datan bär (lib/spec-facets.ts). */}
-          {(intervallF.length > 0 || materialF) && (
+          {(intervallF.length > 0 || valF.length > 0) && (
             <div className="specrad">
               {intervallF.map((f) => (
                 <SpecReglage
@@ -801,28 +816,23 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
                   onCommit={() => commitSpec(f.nyckel)}
                 />
               ))}
-              {materialF && (
-                <div className="filter-group spec-grupp spec-material">
-                  <span className="filter-label">{materialF.namn}</span>
+              {valF.map((f) => (
+                // En kort grupp ("Vägghängd / Fristående") tar en kolumn, en lång två.
+                <div key={f.nyckel} className={`filter-group spec-grupp spec-val ${f.val.reduce((n, v) => n + v.namn.length + 5, 0) > 26 ? "spec-val-bred" : ""}`}>
+                  <span className="filter-label">{f.namn}</span>
                   <div className="filter-toggles spec-val-rad">
-                    {materialF.val.map(([kod]) => {
-                      const m = MATERIAL.find((x) => x.kod === kod);
-                      if (!m) return null;
-                      const pa = material.includes(kod);
+                    {f.val.map((v) => {
+                      const pa = (val[f.nyckel] ?? []).includes(v.kod);
                       return (
-                        <label key={kod} className={`toggle toggle-sm ${pa ? "on" : ""}`}>
-                          <input
-                            type="checkbox"
-                            checked={pa}
-                            onChange={() => setMaterial((v) => (pa ? v.replace(kod, "") : v + kod))}
-                          />
-                          <span>{m.namn}</span>
+                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}`}>
+                          <input type="checkbox" checked={pa} onChange={() => vaxla(f.nyckel, v.kod)} />
+                          <span>{v.namn}</span>
                         </label>
                       );
                     })}
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>
