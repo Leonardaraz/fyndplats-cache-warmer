@@ -33,7 +33,8 @@ bilder i färg.
 - **Skumklossarna** är en stor familj med många publicerade set. De två som
   poleras här är andra set än de publicerade: tolv lika kuber, och en
   modulär klätterbana med vågformad ramp och kvartsrunda mattor. Tio andra
-  skumset delar mått med publicerade sidor och hålls.
+  skumset delar mått med publicerade sidor och hålls. ⚠️ Tre av dem var
+  falska träffar, se rättelsen under *Live*.
 - **Saldo 0–7** hoppas över: lekmattan `1adef24e` (0), klätterklossarna
   `29d7e497` (0) och `dbd5252f` (7).
 
@@ -102,11 +103,39 @@ från B7, som det hittade).
 
 ## Wix, i den ordning det skrevs
 
-SKRIV-PLATSHÅLLARE
+Workflowen "Polering — skriv en runda till Wix" mot grenen, plan
+`8c9661d8…`:
+
+| steg | utfall |
+|---|---|
+| torr (körning 36287700331) | text, media och SKU 8 av 8 lästa, kategorier 20 av 20 rader planerade |
+| text, namn, slug, SEO och synlighet | 8 av 8 skrivna (körning 36287809220) |
+| media | 8 av 8 skrivna, 29 bilder |
+| kategorier | 20 av 20 rader kopplade |
+| SKU, sist och ensam | 8 av 8 skrivna, sista skrivningen 02:12:36 UTC |
+| separat återläsning efter 90 s | 8 av 8 helt verifierade |
+| stämpel | 8 av 8 stämplade, 0 stämpelfel |
+
+Pushen med planen (`6e48f072`) rörde bara `tools/`, och Vercel hoppade
+över bygget i båda projekten: `CANCELED`, med `errorLink` till
+ignore-steget.
 
 ## Live
 
-LIVE-PLATSHÅLLARE
+`hamta-live.sh 130`: alla 8 gav HTTP 200. Alla åtta hade `age` 139–140 s
+vid den skarpa hämtningen 02:24:13–02:24:22 UTC, alltså renderade omkring
+02:22, efter den sista skrivningen 02:12:36.
+
+`livegrind.py`: orddiff 0 på alla 8. `livekoll.py`: 8 av 8 OK med
+brödsmula i rundans kategori, och 29 av 29 alt-texter står på sidorna. En
+separat kontroll av JSON-LD gav `InStock` och samma pris som i `ids.tsv`
+på alla åtta.
+
+⚠️ **Rättelse, gjord i B9:** de tio skumset som den här rundan höll för
+att de delade mått med publicerade sidor är nu kontrollerade på bild. Sju
+är äkta syskon. Tre (`b2ab1b14`, `a6e01595` och `05007fea`) hölls på falska
+måttträffar mot en barstol, en soptunna, en katthängmatta, ett
+verktygsskåp och en stepper. Se `runda-b9-aldsta/LÄS-MIG.md`.
 
 ## Kategorier
 
