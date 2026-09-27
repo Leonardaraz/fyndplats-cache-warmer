@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+8fb25201 3 källans produkttitel anger 3 automatiska lägen och 3 styrkor; beskrivningen nämner lägen och styrkor utan antal
+65057335 2 två sidodelar: källan anger måtten för vänster och höger sidodel (57 × 19 × 80 cm), och bild 1 och 3 visar dem på var sin sida om mittdelen
+5b3d3c58 22 bild 4 (tas bort för sin tyska text) anger rekommenderad hjulstorlek på cykeln, 22–28 tum
+5b3d3c58 28 bild 4 (tas bort för sin tyska text) anger rekommenderad hjulstorlek på cykeln, 22–28 tum

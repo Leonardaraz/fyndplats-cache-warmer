@@ -1284,3 +1284,30 @@ beslut — se den samlade frågan om detta.
   stryka. De publicerade miniugnarna `0e2a1cd9` och `83cc8ba7` bär samma
   märke, så katalogen är redan oenig med sig själv. (B10)
 - Säsong: campingtoaletten `b66f8c37` väntar till våren. (B10)
+- Husmärket på produkten, hålls tills Leonard avgör (samma regel som B10):
+  sju set med vattenkokare och brödrost (`c0dd9d0c`, `eb19eca6`,
+  `980dd9a1`, `c0463ce2`, `d7fea466`, `4546b12a` och `4add1c3a`, HOMCOM på
+  brödrostens och kokarens panel), brödrosten `13204f68` och frysboxen
+  `da0e9379` (HOMCOM på dörren). (B11)
+- Väntar på en samlad skärm: fem brödrost- och vattenkokarset utan synligt
+  märke, `47587c65`, `217630f1` och `bc2368af` (samma formgivning i tre
+  färger) och `c7c74ab2` och `6147cb18` (samma digitala formgivning i två).
+  Jämför mot de 20 publicerade i *Vattenkokare & brödrostar* och välj en
+  färg per formgivning. (B11)
+- Syskon, hålls: cykelkärran `9429fdc7` (grå, samma kärra som `5b3d3c58` i
+  B11), sängbänken `59567c6b` (samma bänk som `6e48f38d` i B11), gästsängen
+  `07435f1a` (samma säng och samma huvudbild som publicerade `26ae7fb2`) och
+  sittbänken `6fb7b740` (samma bänk som publicerade `9383d686`, i svart).
+  Köksmaskinen `b4d17208`, hållen i B10, har också samma maskin som
+  publicerade `1327c4c6`. (B11)
+- ✅ Sittbänken `b08dc0cb`, som N48 hoppade utan utredning mot `d5919be6`,
+  är utredd och polerad i B11. De är två olika bänkar: `d5919be6` är
+  mörkgrön, 100 × 36 × 45 cm, med 13 cm sits, sneda ben och 120 kg;
+  `b08dc0cb` är grå, 100 × 35 × 47 cm, med 8 cm dyna, rak ram med diagonala
+  stag och 200 kg. Bänken har en insydd märkeslapp på dynans kortsida som
+  bara syns på bild 4, och den bilden ströks. (B11)
+- Saldo 0–6, inte polerade: ryggmassagern `1a48d902` (6), resårmadrassen
+  `8f88e036` (2), fritösen `ba80cee2`, buffévärmaren `5f3ccb1a`,
+  glassmaskinen `4522d871`, rullstolsrampen `730e0746`, städvagnen
+  `832f9eec`, kökshyllorna `3dc2f48d` och `46574b65`, diskstället
+  `ea415e30` och bakhyllan `f599e722` (alla 0). (B11)
