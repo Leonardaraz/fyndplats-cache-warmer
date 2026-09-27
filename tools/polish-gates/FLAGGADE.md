@@ -1123,3 +1123,9 @@ beslut — se den samlade frågan om detta.
 - `65d84215` och `565d0075` delar måtten 60 × 60 × 44 cm men är olika bord:
   fyrkantigt med tavelskiva och björnstolar mot runt med förvaring och
   molnstolar. Båda står kvar som kandidater. (B2)
+- ☠️ Belastningen på det rosa sminkbordet `c61c471d` går inte ihop: källan
+  ger skivan 20 kg och stolen 30 kg, måttbilden tvärtom. Björnstolen säljs
+  också med skrivbordet `6588ac81`, vars källa ger den 20 kg, så bilden är
+  troligen rätt. Ingen av de två siffrorna står på sidan. (B3)
+- Björnskrivbordet `6588ac81` i trä och vitt är publicerat. Det rosa
+  `db663f78` väntar som färgsyskon. (B3)
