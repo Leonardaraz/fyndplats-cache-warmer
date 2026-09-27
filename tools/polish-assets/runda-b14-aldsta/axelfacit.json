@@ -1,0 +1,56 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1919bee5": {
+  "tyska": "100B x 30T x 78,5H cm",
+  "svenska": "100L x 30B x 78,5H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 78.5,
+  "bredd": 100
+ },
+ "68e64f5e": {
+  "tyska": "",
+  "svenska": "98L x 29B x 85H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 98B x 29T x 85H cm | ✔ Oberes Regal: 95B x 27,5T cm | ✔ Schubladeninnenmaß: 46B x 28T x 21,5H cm"
+ },
+ "7b12a7f5": {
+  "tyska": "112B x 34T x 75H cm",
+  "svenska": "6 Schubladen",
+  "bokstaver": "BTH",
+  "djup": 34,
+  "hojd": 75,
+  "bredd": 112
+ },
+ "c1afe3b2": {
+  "tyska": "80B x 30T x 175H cm",
+  "svenska": "80L x 30B x 175H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 175,
+  "bredd": 80
+ },
+ "ca182d50": {
+  "tyska": "55B x 34T x 75H cm",
+  "svenska": "3 Schubladen",
+  "bokstaver": "BTH",
+  "djup": 34,
+  "hojd": 75,
+  "bredd": 55
+ },
+ "d018014a": {
+  "tyska": "100B x 30T x 100H cm",
+  "svenska": "100cm x 30cm x 100cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 100,
+  "bredd": 100
+ },
+ "fcf237ca": {
+  "tyska": "58B x 29T x 78,5H cm",
+  "svenska": "58 x 29 x 78,5 cm",
+  "bokstaver": "BTH",
+  "djup": 29,
+  "hojd": 78.5,
+  "bredd": 58
+ }
+}

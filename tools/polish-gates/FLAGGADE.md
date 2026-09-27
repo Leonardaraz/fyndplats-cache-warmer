@@ -1342,3 +1342,11 @@ beslut — se den samlade frågan om detta.
   golvspeglarna `e629367a`, `cabd168d` och `81c40958`, sängramen `9ed05344`
   och nattduksbordet `23d31b41` (alla 0), och sminkbordet `b594f90c` (2).
   (B13)
+- Samma bäddfåtölj som en publicerad sida, hålls: `de486caf` (= `7eee41b6`;
+  65 × 69 × 80 cm, bädd 185,5 × 60 × 25 cm, 120 kg och 19,5 kg identiska).
+  (B14)
+- För få rena bilder, hålls: byrån med hyllor `7b56d280`. Varje bild utom
+  måttbilden bär ett varumärke eller läsbar text: en LUMIX-kamera i
+  huvudbilden, boktiteln WAR STORM, husmärkets vattenstämpel och YESTERDAY
+  TOMORROW på en vas. Den kan poleras om leverantören har renare bilder.
+  (B14)
