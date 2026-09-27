@@ -86,11 +86,37 @@ bär inte spänningen längre, och rundan sveptes om med båda formerna ur
 `lib/polish/skrivplan.ts`: 0 träffar. Svepet provades åt båda hållen, och
 det fäller de gamla formerna och släpper de nya.
 
-SKRIV-PLATSHÅLLARE
+Den rättade planen, `f7d997a9…`, gick igenom:
+
+| steg | utfall |
+|---|---|
+| torr (körning 36285131459) | text, media och SKU 8 av 8 lästa, kategorier 20 av 20 rader planerade |
+| text, namn, slug, SEO och synlighet | 8 av 8 skrivna (körning 36285315894) |
+| media | 8 av 8 skrivna, 27 bilder |
+| kategorier | 20 av 20 rader kopplade |
+| SKU, sist och ensam | 8 av 8 skrivna, sista skrivningen 01:22:52 UTC |
+| separat återläsning efter 90 s | 8 av 8 helt verifierade |
+| stämpel | 8 av 8 stämplade, 0 stämpelfel |
+
+Pushen med den första planen (`e85b0ebb`) hoppades över i båda projekten
+(`CANCELED`). Pushen med den rättade planen (`e7aff177`) rörde också bara
+`tools/`, men `fyndplats-cache-warmer` byggde den: `READY` på 59 sekunder.
+Det är läkningsbygget som CLAUDE.md beskriver. Spannet från förra
+`READY` (`49c16bf`, runda B1) till `e7aff177` är tio commits och rör noll
+filer utanför `docs/`, `tools/` och markdown. Pekaren låg alltså utanför
+den grunda klonen, och bygget flyttade fram den. `fyndplats-headless`
+avbröt som vanligt.
 
 ## Live
 
-LIVE-PLATSHÅLLARE
+`hamta-live.sh 130`: alla 8 gav HTTP 200. Alla åtta hade `age` 139 s
+vid den skarpa hämtningen 01:35:30–01:35:38 UTC, alltså renderade omkring
+01:33, efter den sista skrivningen 01:22:52.
+
+`livegrind.py`: orddiff 0 på alla 8. `livekoll.py`: 8 av 8 OK med
+brödsmula i rundans kategori, och 27 av 27 alt-texter står på sidorna. En
+separat kontroll av JSON-LD gav `InStock` och samma pris som i `ids.tsv`
+på alla åtta.
 
 ## Kategorier
 
