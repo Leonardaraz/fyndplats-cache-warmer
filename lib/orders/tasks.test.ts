@@ -285,6 +285,11 @@ describe("extractAddress — riktig order-shape (addressLine/contactDetails, #10
     expect(tasks[0].variantChoices).toEqual({ Färg: "Blå" });
   });
 
+  it("bär orderradens variant-id — det avgör färgen på en sammanslagen Aosom-sida", () => {
+    const ev = normalizeOrderEvent(realOrderEnvelope)!;
+    expect(deriveTasks(ev)[0].wixVariantId).toBe("4930dcb9");
+  });
+
   it("läser gata från strukturerad streetAddress {name, number} som fallback", () => {
     const env = {
       ...realOrderEnvelope,

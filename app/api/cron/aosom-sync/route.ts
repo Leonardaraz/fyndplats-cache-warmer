@@ -91,6 +91,7 @@ async function handle(req: NextRequest) {
     // skriva någonting såg då ut exakt som en körning där allt redan stämde.
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
       || summary.utanWixPris > 0 || summary.utanLagerrader > 0 || summary.misslyckade > 0
+      || summary.okandaVarianter > 0 || summary.tvetydiga > 0
       || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
@@ -104,6 +105,8 @@ async function handle(req: NextRequest) {
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
+          + `${summary.flerartikelrader} sammanslagna sidor, `
+          + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
           + `${summary.kvar} kvar`
           + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
           + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
@@ -126,6 +129,10 @@ async function handle(req: NextRequest) {
         + `${summary.ejSkeppbara} ej skeppbara, `
         + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `
         + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `
+        // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
+        // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.
+        + `${summary.flerartikelrader} sammanslagna, ${summary.okandaVarianter} okända varianter, `
+        + `${summary.tvetydiga} tvetydiga, `
         // ☠️ `stoppedBy` SKA STÅ I LOGGEN (2026-09-10). Fältet har funnits i
         // summaryn sedan loopen byggdes om, men skrevs varken här eller i
         // workflowen — så en körning som slog i `limit` och en som blev klar

@@ -155,6 +155,7 @@ jobs:
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
           utanrader=0; drift=0; prislasta=0; ejskeppbara=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
+          flera=0; okanda=0; tvetydiga=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -187,6 +188,9 @@ jobs:
             kt=$(printf '%s' "$svar" | jq -r '.konkurrentTak // 0')
             kg=$(printf '%s' "$svar" | jq -r '.konkurrentGolv // 0')
             kf=$(printf '%s' "$svar" | jq -r '.konkurrentFrysta // 0')
+            fl=$(printf '%s' "$svar" | jq -r '.flerartikelrader // 0')
+            ok=$(printf '%s' "$svar" | jq -r '.okandaVarianter // 0')
+            tv=$(printf '%s' "$svar" | jq -r '.tvetydiga // 0')
             stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okant"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
@@ -198,6 +202,7 @@ jobs:
             prislasta=$(( prislasta + pl ))
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
+            flera=$(( flera + fl )); okanda=$(( okanda + ok )); tvetydiga=$(( tvetydiga + tv ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -216,7 +221,8 @@ jobs:
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
                  "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
                  "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
-                 "${mi} misslyckade, stoppade på ${stopp}, ${kvar} kvar"
+                 "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
+                 "stoppade på ${stopp}, ${kvar} kvar"
 
             # En rad Aosom slutat skicka till Sverige är ett LAGERBESKED, inte ett fel:
             # saldot nollas, sidan ligger kvar. Men den ska SYNAS — en publicerad sida
@@ -269,6 +275,9 @@ jobs:
             echo "| Blockerade prishopp | ${varningar} |"
             echo "| Utan lagerrader i Wix | ${utanrader} |"
             echo "| Lagerdrift (bara mätt) | ${drift} |"
+            echo "| Färgsammanslagna sidor | ${flera} |"
+            echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
+            echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
             if [ -n "$prislistefel" ]; then
@@ -320,6 +329,16 @@ jobs:
           fi
           if [ "$misslyckade" -gt 0 ]; then
             echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — nästa körning skriver om dem."
+          fi
+
+          # ☠️ OKÄNDA VARIANTER OCH TVETYDIGA RADER FÄLLER JOBBET, även i torrläge.
+          # Båda nollar lagret, så ingen kund kan köpa fel färg — men båda betyder
+          # att en färgsammanslagning är halvgjord eller att en mappning är
+          # trasig, och det lagar ingen körning av sig själv. Talen ska vara
+          # noll; se lib/aosom/artiklar.ts och "Färgsammanslagning" i CLAUDE.md.
+          if [ "$okanda" -gt 0 ] || [ "$tvetydiga" -gt 0 ]; then
+            echo "::error::${okanda} okända varianter och ${tvetydiga} tvetydiga rader — lagret är nollat, mappningen behöver lagas." >&2
+            exit 1
           fi
 
           # ☠️ Ett läsfel i prislistan fäller jobbet ÄVEN om varje produkt gick

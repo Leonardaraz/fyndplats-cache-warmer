@@ -135,6 +135,27 @@ describe("planeraOmmappning", () => {
     expect(p.hinder).toContain("skun_upptagen");
   });
 
+  it("☠️ vägrar när artikelnumret sitter som FÄRG på en sammanslagen sida", () => {
+    // Den andra färgens artikel står på en variant, inte i supplierProductId
+    // (lib/aosom/artiklar.ts). Syntetiskt nummer på sidans egen artikel.
+    const v = mappning().variants[0];
+    const p = planeraOmmappning({
+      mappning: mappning(),
+      rad: rad(),
+      alla: [{
+        supplierProductId: "aosom:X-1",
+        wixProductId: "wix-2",
+        supplier: "aosom",
+        variants: [
+          { ...v, supplierVariantId: "X-1", wixVariantId: "v1" },
+          { ...v, supplierVariantId: rad().sku, wixVariantId: "v2" },
+        ],
+      }],
+      fx: FX,
+    });
+    expect(p.hinder).toContain("skun_upptagen");
+  });
+
   it("tillåter att raden pekar på sig själv (omkörning av samma par)", () => {
     const p = planeraOmmappning({
       mappning: mappning(),

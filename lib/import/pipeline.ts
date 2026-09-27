@@ -150,6 +150,16 @@ export interface VariantMapping {
    * faktiskt låg i. Saknas = importerad innan fältet fanns, eller lager okänt.
    */
   shipFrom?: string;
+  /**
+   * AOSOM, BARA PÅ EN FLERARTIKELRAD: saldot vi senast skrev till Wix för just
+   * den här varianten (lib/aosom/artiklar.ts).
+   *
+   * En vanlig Aosom-rad är EN artikel, och där bär radens `aosomSyncedQty`
+   * saldot. En färgsammanslagen sida har en artikel per variant, och varje färg
+   * har sitt eget saldo hos Aosom — alltså måste stämpeln finnas per variant.
+   * Skrivs först efter en lyckad skrivning, av samma skäl som radens.
+   */
+  aosomSyncedQty?: number;
 }
 
 export interface ImportResult {

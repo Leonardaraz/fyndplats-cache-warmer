@@ -1386,6 +1386,70 @@ Dubbletten **raderas inte** — den får `draftStatus: "rejected"` och
 `needsAiPolish: false`. Ett osynligt utkast kostar ingenting medan det ligger,
 och en radering går inte att ångra om matchningen visar sig vara fel.
 
+### Färgsammanslagning: ett utkast blir en FÄRG på en publicerad sida (2026-09-27)
+
+Leonards fråga: dubblettskärmen hittar utkast som är samma vara som en
+publicerad sida i en annan färg — kan de bli ett andra färgval på sidan, med
+kopplad bild? Svaret är ja, men bara för att koden först lärt sig att en sida
+kan bära **en Aosom-artikel per variant**. Före det läste varje väg radens
+artikel för hela sidan, och en sammanslagning hade gett tre dyra fel: synken
+hade skrivit den ena färgens saldo på båda (vi säljer en färg Aosom inte har),
+beställningsfilen hade beställt fel färg, och importen hade skapat ett nytt
+utkast för den andra färgen.
+
+`lib/aosom/artiklar.ts` (`aosomArtikelbild`) är den enda definitionen, med tre
+utfall: `en` (radens artikel, **exakt som förut** — varje befintlig rad),
+`flera` (en artikel per variant) och `tvetydig` (olika artiklar men inte
+entydigt läsbar — då nollas lagret och ordern hålls). Läsarna:
+
+| väg | vad den gör med en sammanslagen sida |
+|---|---|
+| synken (`lib/aosom/sync.ts`) | saldo och pris PER VARIANT, facit per variant (`getV3VariantPriser`) |
+| beställningsfilen (`aosom-order`) | artikeln väljs på orderradens variant-id, sedan SKU, sedan val |
+| importens dubblettspärr | ser varianternas artiklar |
+| ommappningen | en artikel som sitter som färg är upptagen |
+| bildfixen | hoppar över sidan (`sammanslagnaHoppade`) |
+| Google-tilläggsfeeden | en rad per färg; grupp och konkurrensläge bara för radens egen artikel |
+| poleringens bildsteg | vägrar en lista som tappar en bild ett färgval pekar på |
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Orderradens variant-id är NOLLAN för en produkt utan optioner** —
+   uppmätt på skarpa ordrar: `catalogReference.options.variantId =
+   "00000000-…"`, inte produktens V3-id. Nollan går aldrig att slå upp mot
+   mappningen; en order lagd före sammanslagningen matchas därför på SKU.
+   Tasken bär `wixVariantId` sedan 2026-09-27.
+2. ☠️ **Okända Wix-varianter NOLLAS i synken** (`okandaVarianter`, fäller
+   workflow-jobbet även i torrläge). Det är läget efter en halvgjord
+   sammanslagning: Wix fick färgen, mappningen gjorde det inte. Den gamla vägen
+   hade sålt den nya färgen på den gamla färgens lager. En produkt med EN
+   lagerpost skrivs som förut, vad dess id än är.
+3. ☠️ **Beställningsfilen håller hela ordern** när en rad inte går att avgöra —
+   en halv order är två leveranser och två fraktavgifter.
+4. ☠️ **Konkurrentpriset gäller bara radens EGEN artikel.** Det är hämtat för
+   den; den andra färgen får husets regel — exakt vad den hade som eget utkast.
+5. ☠️ **Sammanslagningen rör inget pris.** Den nya färgen får utkastets pris
+   som det står i butiken.
+6. ☠️ **Färgen och dess lager skrivs i SAMMA anrop**
+   (`products-with-inventory`), så den nya färgen finns aldrig med ett lager vi
+   inte satt. Faller skrivningen rullas bilderna tillbaka.
+7. **Utkastet pensioneras, raderas aldrig** (`pensioneraDubblett`). Artikeln
+   släpps från dess rad och bor sedan som färg på sidan vi behåller.
+
+**Så körs den:** workflowen **"Dubbletter — lägg ett utkast som färg på en
+publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sammanslagning`,
+logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
+körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
+får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
+oförändrad slug), och **bara utkastets huvudbild följer med** om du inte anger
+fler (`bilder`) — utkastet är opolerat och ingen har granskat dess bilder för
+tysk text eller husmärkets logotyp. Faller en körning halvvägs ser nästa att
+Wix redan är klart (`wix_klar`) och gör bara resten.
+
+⚠️ **Efter första deployen: kör synken i torrläge och läs `okandaVarianter`.**
+Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
+mappningen inte känner till — och de nollas vid nästa skarpa körning.
+
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
 Två skilda problem, med olika svar.

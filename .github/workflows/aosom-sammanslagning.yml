@@ -1,0 +1,135 @@
+name: Dubbletter — lägg ett utkast som färg på en publicerad sida
+
+# Leonards fråga 2026-09-27: dubblettskärmen hittar Aosom-utkast som är samma
+# vara som en publicerad sida, bara i en annan färg. I stället för en egen sida
+# (två URL:er för samma produkt) eller pensionering (en färg vi kan sälja
+# slängs) blir utkastets artikel ett FÄRGVAL på den publicerade sidan: en
+# option "Färg" med två val, en variant per färg, och ett val som byter bild.
+#
+# Hela förloppet står i lib/aosom/sammanslagning.ts. Efteråt bär sidan en
+# Aosom-artikel per variant, och synken, beställningsfilen och importens
+# dubblettspärr läser det via lib/aosom/artiklar.ts.
+#
+# Samma nyckel-lösa upplägg som ommappningen: produktionen har Wix-nycklarna
+# och DATABASE_URL, Actions har CRON_SECRET, och de möts här. Ingen hemlighet
+# passerar chatten — och jobbet går att starta från en telefon.
+#
+# ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs planen innan du kör `byt`.
+# ☠️ EN SIDA PER KÖRNING. Paret är en människas bedömning, och bilderna som
+#    följer med är en människas granskning — det finns ingen kör-allt-flagga.
+# ☠️ SIDANS NAMN FÅR INTE BÄRA SIDANS FÄRG. Rutten vägrar då (`namnet_bar_farg`):
+#    efter sammanslagningen hade namnet sagt en färg medan sidan säljer två.
+#    Skriv om namnet först (polerrundan, med oförändrad slug).
+# ☠️ BARA GRANSKADE BILDER. Default följer bara utkastets huvudbild med. Ange
+#    fler (`bilder`, t.ex. "1,2") bara när du sett dem — 46 % av feedens bilder
+#    bär tysk text inbränd, och en del bär husmärkets logotyp.
+# ☠️ Svaret bär aldrig artikelnummer eller inköpspris — loggen är PUBLIK.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan = torrkörning (skriver inget) · byt = skriv"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - byt
+      behall:
+        description: "Den PUBLICERADE sidan som behålls (Wix-produkt-id)"
+        required: true
+        type: string
+      utkast:
+        description: "Utkastet vars artikel blir den nya färgen (Wix-produkt-id)"
+        required: true
+        type: string
+      farg_behall:
+        description: "Färgen sidan redan har, t.ex. Vit"
+        required: true
+        type: string
+      farg_utkast:
+        description: "Utkastets färg, t.ex. Grå"
+        required: true
+        type: string
+      sku:
+        description: "Den nya färgens SKU. TOMT = sidans SKU + färgen."
+        required: false
+        default: ""
+        type: string
+      bilder:
+        description: "Utkastets bilder som följer med, 1-baserat (t.ex. 1,2). TOMT = bara huvudbilden."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  sammanslagning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          BEHALL: ${{ inputs.behall }}
+          UTKAST: ${{ inputs.utkast }}
+          FARG_BEHALL: ${{ inputs.farg_behall }}
+          FARG_UTKAST: ${{ inputs.farg_utkast }}
+          SKU: ${{ inputs.sku }}
+          BILDER: ${{ inputs.bilder }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR — en ::error::-rad på stdout slukas av en
+            # kommandosubstitution.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-sammanslagning"
+          apply=false
+          [ "${MODE}" = "byt" ] && apply=true
+
+          kropp=$(jq -nc \
+            --arg behall "${BEHALL}" \
+            --arg utkast "${UTKAST}" \
+            --arg fb "${FARG_BEHALL}" \
+            --arg fu "${FARG_UTKAST}" \
+            --arg sku "${SKU}" \
+            --arg bilder "${BILDER}" \
+            --argjson apply "${apply}" \
+            '{behall: $behall, utkast: $utkast, fargBehall: $fb, fargUtkast: $fu, apply: $apply}
+             + (if $sku == "" then {} else {sku: $sku} end)
+             + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(tonumber))} end)')
+
+          echo "Läge: ${MODE} (apply=${apply})"
+          svar=$(curl -sS --max-time 150 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${kropp}" \
+            "${url}")
+
+          echo "=== Plan ==="
+          # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
+          # blocket avslutar YAML:ens `run: |`.
+          echo "$svar" | jq -r '.plan // {} | "  tillstånd       \(.tillstand // "–")\n  färger          \(.fargBehall) (sidan) + \(.fargUtkast) (utkastet)\n  kundpris        \(.prisBehall) kr + \(.prisUtkast) kr (ORÖRDA)\n  saldo           \(.saldoBehall // "–") + \(.saldoUtkast // "–")\n  SKU             \(.skuBehall) + \(.skuUtkast)\n  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) följer med"' || true
+          echo "$svar" | jq -r '.plan.varningar[]? | "  ⚠️ \(.)"' || true
+          echo "$svar" | jq -r '.steg[]? | "  · \(.)"' || true
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.fel // .error // "hinder — se listan nedan"')" >&2
+            echo "$svar" | jq -r '.plan.hinder[]? | "    [hinder] \(.)"' >&2
+            exit 1
+          fi
+
+          # ☠️ HÄRIFRÅN ÄR SKRIVNINGEN GJORD (i läge `byt`). Rapporteringen får
+          # aldrig fälla jobbet. `|| true` på varje rad härifrån.
+          if [ "${MODE}" = "plan" ]; then
+            echo "TORRKÖRNING: ingenting skrevs. Kör om med läge 'byt' när planen ser rimlig ut." || true
+            exit 0
+          fi
+          echo "OK: ${UTKAST} är nu färgen ${FARG_UTKAST} på ${BEHALL} (verifierat vid återläsning)" || true
+          echo "Nästa steg: läs sidan live, och skriv om texten om den nämner färgen." || true
+          exit 0

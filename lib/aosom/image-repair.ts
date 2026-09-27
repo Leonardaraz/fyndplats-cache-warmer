@@ -53,6 +53,7 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import { fetchAosomFeed, isShippableToSe } from "./feed";
 import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
+import { aosomArtikelbild } from "./artiklar";
 
 const DEFAULT_LIMIT = 25;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
@@ -170,6 +171,14 @@ export interface ImageRepairSummary {
    * Ska sjunka mot noll — kopplingen sparas efter varje lagning.
    */
   fullOmladdning: number;
+  /**
+   * Färgsammanslagna sidor som hoppades över (lib/aosom/artiklar.ts).
+   *
+   * ☠️ REPARATIONEN FÅR ALDRIG RÖRA DEM. Den bygger om bildlistan ur EN artikels
+   * källbilder, och en sammanslagen sida bär två artiklars bilder — den andra
+   * färgens hade fallit bort, och färgvalets kopplade bild med dem.
+   */
+  sammanslagnaHoppade: number;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -179,8 +188,11 @@ export interface ImageRepairSummary {
 
 export interface ImageRepairDeps {
   fetchFeed: () => Promise<AosomRow[]>;
-  /** Aosom-mappningar: artikelnummer → Wix-produkt. */
-  listAosom: () => Promise<{ sku: string; wixProductId: string }[]>;
+  /**
+   * Aosom-mappningar: artikelnummer → Wix-produkt. `sammanslagen` markerar en
+   * sida med en artikel per färg, som reparationen hoppar över.
+   */
+  listAosom: () => Promise<{ sku: string; wixProductId: string; sammanslagen?: boolean }[]>;
   /** Nuvarande bilder på produkten, eller null om den är borta. */
   getMedia: (wixProductId: string) => Promise<{ revision: string; media: ProduktBild[] } | null>;
   /** Sparad koppling fil-id → källbild för produkten. Tom om den aldrig sparats. */
@@ -247,6 +259,7 @@ export async function runImageRepair(
     kvarstaendeMissar: 0,
     atervandaBilder: 0,
     fullOmladdning: 0,
+    sammanslagnaHoppade: 0,
     misslyckade: 0,
     kvar: aosom.length,
     cursor: null,
@@ -268,6 +281,11 @@ export async function runImageRepair(
     summary.granskade++;
     summary.kvar--;
     summary.cursor = m.sku;
+
+    if (m.sammanslagen) {
+      summary.sammanslagnaHoppade++;
+      continue;
+    }
 
     const row = perSku.get(m.sku);
     // Raden kan ha försvunnit ur feeden sedan importen. Då finns inga källbilder
@@ -425,6 +443,8 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
         .map((m) => ({
           sku: (m.supplierProductId ?? "").slice(aosomSupplierProductId("").length),
           wixProductId: m.wixProductId,
+          // En tvetydig rad räknas också — den bär mer än en artikel.
+          sammanslagen: aosomArtikelbild(m).typ !== "en",
         })),
     getMedia: async (id) => {
       const snap = await wix.getProductMedia(id);

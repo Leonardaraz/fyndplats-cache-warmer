@@ -41,6 +41,7 @@ import {
   type AosomRow,
 } from "./feed";
 import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
+import { aosomArtiklarPaRaden } from "./artiklar";
 
 /** Rått läge, alltid. Se modulhuvudet — det är det som håller produkterna osynliga. */
 export const RAW_FLAGS: FeatureFlags = { qualityMode: "raw", enableAI: false };
@@ -125,7 +126,14 @@ export interface AosomImportSummary {
 
 export interface AosomImportDeps {
   fetchFeed: () => Promise<AosomRow[]>;
-  listMappings: () => Promise<Pick<ProductMappingRecord, "supplier" | "supplierProductId">[]>;
+  /**
+   * `variants` följer med för dubblettspärren: en artikel som sitter som färg
+   * på en sammanslagen sida är upptagen (lib/aosom/artiklar.ts). Fältet är
+   * valfritt för att en rad utan varianter ska se ut exakt som förut.
+   */
+  listMappings: () => Promise<
+    (Pick<ProductMappingRecord, "supplier" | "supplierProductId"> & Partial<Pick<ProductMappingRecord, "variants">>)[]
+  >;
   importOne: (product: AliExpressProduct) => Promise<ImportResult>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
   fx: AosomFx;
@@ -153,9 +161,19 @@ export async function runAosomImport(
   const feed = await deps.fetchFeed();
   const shippable = feed.filter(isShippableToSe).sort((a, b) => a.sku.localeCompare(b.sku));
 
-  const existing = new Set(
-    (await deps.listMappings()).map((m) => m.supplierProductId).filter(Boolean),
-  );
+  // ☠️ EN SAMMANSLAGEN SIDA BÄR FLER ARTIKLAR ÄN SIN EGEN. Den andra färgens
+  // artikel står på en variant, inte i `supplierProductId` — och spärren
+  // nycklade bara på det senare. Utan varianternas artiklar hade nattens
+  // import sett den andra färgen som ny och skapat ett nytt utkast för en vara
+  // som redan ligger ute. Det pensionerade utkastets egen rad fångar det också,
+  // men en spärr ska inte hänga på att en annan rad råkar finnas kvar.
+  const existing = new Set<string>();
+  for (const m of await deps.listMappings()) {
+    if (m.supplierProductId) existing.add(m.supplierProductId);
+    for (const artikel of aosomArtiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] })) {
+      existing.add(aosomSupplierProductId(artikel));
+    }
+  }
 
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
   let alreadyImported = 0;
