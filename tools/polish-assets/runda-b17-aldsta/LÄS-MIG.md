@@ -155,9 +155,37 @@ B16.
 
 ## SKRIV
 
-Plan `2ffc88c38df2d5af1d5f02bee22f58203feb286215bd65f9ca545d01b2817b92`.
+Plan `2ffc88c38df2d5af1d5f02bee22f58203feb286215bd65f9ca545d01b2817b92`,
+grenen `f44aeb4d`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36301793128 | torr | 8 texter, 8 bildlistor, 27 av 27 kategorirader och 8 SKU:er |
+| 36301853572 | skriv | text 8/8, bilder 8/8, kategorier 27/27, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_9r9G12AKiCjeFQmX69QVr6N7rW5B` blev `CANCELED`.
+Pekaren står på `c1e84a97` från B16:s läkningsbygge, två commits bak.
 
 ## LIVE
+
+Hämtat 07:13 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age`
+139–494 s. Sluggarna var nya, så den första träffen renderade redan den nya
+sidan (`age=0`), och den skarpa hämtningen läste om den efter pausen.
+`2e3afa4e` kom från en rendering som var äldre än pausen, men sluggen fanns
+inte före skrivningen, och orddiffen är 0.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 28 av 28 |
+| strukna bilder på sidan | 0 av 12 |
+| kvarvarande bilder på sidan | 28 av 28 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulan visar huvudkategorin Hem & Inredning på alla åtta.
 
 ## Nästa runda
 
@@ -172,3 +200,18 @@ speglarna `95888e16` och `3a55cb47`, bambuskåpet under handfatet
 stämmer. På bild är den ena rektangulär och den andra bågformad, båda med
 svart kant. Det är alltså två olika speglar ur samma serie, och `aba9f13e`
 kan poleras.
+
+Måttsvepet kördes om efter B17 mot 3 300 publicerade sidor med
+måttripplar, eftersom B16 och B17 nu själva ligger ute. Det gav två nya
+träffar, och båda friades på källtexten:
+
+- **Spegelskåpet `4f9a888a`** har samma 90 × 15,5 × 60 cm som B16:s grå
+  `a04185b6`. Men det är vitt, har fem fack i en annan indelning (58,7 och
+  28 cm breda mot 22,5 och 62,5 cm), bär 30 kg i stället för 17 kg och
+  ligger i en annan kartong.
+- **Högskåpet `ee539789`** liknar B17:s `ca0b2be9` på bild: bambu, tre
+  öppna hyllor och en lamelldörr. Men det är 170 cm högt, har ett skåp med
+  tre hyllplan, väger 17 kg mot 11 kg och bär 18 kg mot 25 kg.
+
+Båda är alltså andra produkter och kan poleras. Namnen måste skilja dem åt
+från sina grannar.
