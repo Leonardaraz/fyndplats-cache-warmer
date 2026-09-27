@@ -81,12 +81,17 @@ LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kine
 # som runbooken förbjuder, alltså att visa kunden att vi inte vet. Mätt över
 # rundornas 1 021 kundfiler utanför städrundan: noll träffar, alltså inget
 # falsklarm. "med flit" står INTE här: tolv legitima träffar ("kort med flit").
+# ⚠️ "underlaget" bara i källbetydelsen ("i underlaget för den här modellen",
+# "Underlaget för just den här kulören"). Ensamt "i underlaget" gav falsklarm
+# i städrundans våg 2: "ojämnheter i underlaget", "förankra i underlaget" —
+# marken, inte källan.
 LEV = (r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift"
        r"|[Tt]illverkaren (?:uppger|rekommenderar|skriver|lovar|garanterar|påstår|säger)"
        r"|[Ee]nligt (?:uppgift|tillverkaren|fabrikanten)"
        r"|framgår inte|anges inte|uppges inte|specificeras inte|kan inte garantera|[Mm]ät själv"
        r"|gissa[rs]? (?:inte )?fram|[Vv]i gissar|an(?:ges|ger) ingen|[Ii]ngen angiven|[Ii]nga angivna"
-       r"|[Vv]i skriver (?:hellre|inget)|så vi skriver|inte kan stå för|i underlaget|[Uu]nderlaget för"
+       r"|[Vv]i skriver (?:hellre|inget)|så vi skriver|inte kan stå för"
+       r"|i underlaget för|[Uu]nderlaget för (?:just )?(?:den|det) här"
        r"|[Mm]askinsatt\w*)\b")
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
 
