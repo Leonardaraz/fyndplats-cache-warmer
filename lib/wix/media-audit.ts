@@ -60,10 +60,20 @@ function budgetExceeded(b?: AuditBudget): boolean {
 }
 
 /**
+ * Sidstorlek för mediasökningen.
+ *
+ * DOKUMENTATIONEN LJUGER HÄR. Search Files beskrivs som "up to 200 files", men
+ * API:t svarar 400 INVALID_ARGUMENT — "'paging.limit' must be less than or
+ * equal to 100" — på allt över 100 (mätt 2026-08-29, efter att första skarpa
+ * körningen föll på just det). Talet är därför uppmätt, inte läst.
+ */
+export const MEDIA_PAGE_LIMIT = 100;
+
+/**
  * Listar ALLA bildfiler i ett site:s Media Manager.
  *
- * Sidstorleken är 200 (API:ets tak). `nextCursor.total` läses från första
- * sidan så anroparen kan se om körningen hann klart eller stannade på budget.
+ * `nextCursor.total` läses från första sidan så anroparen kan se om körningen
+ * hann klart eller stannade på budget.
  */
 export async function listAllMediaFiles(
   siteId: string,
@@ -74,14 +84,16 @@ export async function listAllMediaFiles(
   let total = 0;
 
   // Taket är en säkring mot en cursor som aldrig tar slut, inte en förväntan:
-  // 400 sidor à 200 = 80 000 filer, rejält över de 30 231 som fanns 2026-08-27.
-  for (let page = 0; page < 400; page++) {
+  // 600 sidor à 100 = 60 000 filer, dubbelt mot de ~30 000 som fanns 2026-08-29.
+  for (let page = 0; page < 600; page++) {
     if (budgetExceeded(budget)) return { files, total, complete: false };
 
     const body: Record<string, unknown> = {
       rootFolder: "MEDIA_ROOT",
       mediaTypes: ["IMAGE"],
-      paging: cursor ? { limit: 200, cursor } : { limit: 200 },
+      paging: cursor
+        ? { limit: MEDIA_PAGE_LIMIT, cursor }
+        : { limit: MEDIA_PAGE_LIMIT },
     };
     const res = await fetch(`${WIX_BASE}/site-media/v1/files/search`, {
       method: "POST",
