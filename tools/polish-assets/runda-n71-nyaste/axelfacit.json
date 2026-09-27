@@ -1,0 +1,145 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1204b022": {
+  "tyska": "Ø75 x 120H cm",
+  "svenska": "Ø75 x 120H cm",
+  "bokstaver": "H",
+  "hojd": 120
+ },
+ "12d74d4a": {
+  "tyska": "60B x 30T x 80H cm",
+  "svenska": "60L x 30B x 80H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 80,
+  "bredd": 60
+ },
+ "4d85ddd5": {
+  "tyska": "43B x 43T x 76H cm",
+  "svenska": "43L x 43B x 76H cm",
+  "bokstaver": "BTH",
+  "djup": 43,
+  "hojd": 76,
+  "bredd": 43
+ },
+ "63fcc340": {
+  "tyska": "Ø55 x 107H cm",
+  "svenska": "55L x 55B x 107H cm",
+  "bokstaver": "H",
+  "hojd": 107
+ },
+ "643c0b2d": {
+  "tyska": "63B x 24T x 117H cm",
+  "svenska": "63 x 24 x 117 cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 117,
+  "bredd": 63
+ },
+ "68760ab6": {
+  "tyska": "164L x 103B x 240H cm",
+  "svenska": "164L x 103B x 240H cm",
+  "bokstaver": "LBH",
+  "hojd": 240,
+  "bredd": 164,
+  "djup": 103
+ },
+ "6f4cd43f": {
+  "tyska": "68B x 38T x 170H cm",
+  "svenska": "68L x 38B x 170H cm",
+  "bokstaver": "BTH",
+  "djup": 38,
+  "hojd": 170,
+  "bredd": 68
+ },
+ "80cb11ed": {
+  "tyska": "Ø45 x 90H cm",
+  "svenska": "45 x 45 x 90 cm",
+  "bokstaver": "H",
+  "hojd": 90
+ },
+ "85f1694f": {
+  "tyska": "",
+  "svenska": "120L x 80B x 73H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Vollständig ausgeklappte Größe: 120B x 80T x 73H cm | ✔ Zusammengeklappte Größe: 80B x 26T x 73H cm | ✔ Tischplattengröße: 120L x 80B cm | ✔ Einseitiges klappbares Panel: 52,5L x 80B cm"
+ },
+ "8c983973": {
+  "tyska": "170B x 65T x 240H cm",
+  "svenska": "170B x 65T x 240H cm",
+  "bokstaver": "BTH",
+  "djup": 65,
+  "hojd": 240,
+  "bredd": 170
+ },
+ "a44d2528": {
+  "tyska": "30L x 30B x 82H cm",
+  "svenska": "30L x 30B x 82H cm",
+  "bokstaver": "LBH",
+  "hojd": 82,
+  "bredd": 30,
+  "djup": 30
+ },
+ "ae7484b4": {
+  "tyska": "180B x 90T x 165H",
+  "svenska": "180B x 90T x 165H",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 165,
+  "bredd": 180
+ },
+ "b03bd2cc": {
+  "tyska": "186L x 153B x 111H cm",
+  "svenska": "186cm x 153cm x 111cm",
+  "bokstaver": "LBH",
+  "hojd": 111,
+  "bredd": 186,
+  "djup": 153
+ },
+ "c67a4f02": {
+  "tyska": "294B x 165T x 70H cm",
+  "svenska": "294L x 165B x 70H cm",
+  "bokstaver": "BTH",
+  "djup": 165,
+  "hojd": 70,
+  "bredd": 294
+ },
+ "d0ac62d6": {
+  "tyska": "134B x 151T x 89H cm",
+  "svenska": "151L x 134B x 89H cm",
+  "bokstaver": "BTH",
+  "djup": 151,
+  "hojd": 89,
+  "bredd": 134
+ },
+ "e5c776ef": {
+  "tyska": "153B x 207T x ‹FORM› cm",
+  "svenska": "Doppel",
+  "bokstaver": "BT",
+  "djup": 207,
+  "bredd": 153
+ },
+ "e95e39b9": {
+  "tyska": "1800L x 3,8B x 9H cm",
+  "svenska": "1800cm x 3,8cm x 9cm",
+  "bokstaver": "LBH",
+  "hojd": 9,
+  "bredd": 1800,
+  "djup": 3.8
+ },
+ "f1f976cf": {
+  "tyska": "160L x 71B x 101H cm",
+  "svenska": "160L x 71B x 101H cm",
+  "bokstaver": "LBH",
+  "hojd": 101,
+  "bredd": 160,
+  "djup": 71
+ },
+ "fe8e2baa": {
+  "tyska": "180L x 95B x 170H cm",
+  "svenska": "180L x 95B x 170H cm",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 180,
+  "djup": 95
+ }
+}

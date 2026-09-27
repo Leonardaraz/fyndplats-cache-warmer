@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av>
+# Runbookens J1-regel: bilden är facit för konstruktion. Grinden ser bara text,
+# så en fotoavläst uppgift måste kvitteras här för att slippa igenom.
+12d74d4a 2 skåpet har två dörrar under lådan, avlästa på produktfotot (bild 1 och 3); bild 5 visar två skåp bredvid varandra
+85f1694f 2 bordet har två klaffar, en på vardera sidan om mittdelen, avlästa på måttbilden (bild 3)
+b03bd2cc 2 bild 2 visar två barn som leker med ställningen
+643c0b2d 3 skåpet har tre fällfack, avlästa på produktfotot (bild 1 och 5); det tyska namnet säger också 3 Klappen
