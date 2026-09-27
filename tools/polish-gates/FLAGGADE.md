@@ -3340,3 +3340,26 @@ beslut — se den samlade frågan om detta.
   och 12 V-formen. Omdirigeringen är skriven, men den gamla adressen serverade fortfarande
   sin cachade sida 21:12 (`x-vercel-cache: HIT`). Kontrollera den igen. (B25)
 - `281ed0b1`:s egna faktakort ("Vikt 6,3 kg", feedens fraktvikt) ströks. (B25)
+- AVGJORT 2026-09-27, genomfört i B26: åtta publicerade hemsidor skrevs om utan färg i namnet
+  och fick 15 färger som val. Torktumlaren `2517c54b` (svart) fick grå och vit (`1acfb720`,
+  `f183f420`). Redskapsboden `bb45be9d` (ljusgrå) fick grön och mörkgrå (`828ccd93`,
+  `e071b2a6`). Skrivbordet `f6e74878` (ek och vit) fick valnöt och svart och helt svart
+  (`59b75ffa`, `c6e7e786`). Blomlådan `fdea573f` (grå) fick natur och svart (`9b8c202e`,
+  `b9292e55`). Högskåpet `5f627d89` (svart) fick grå (`0bace9e3`). Medicinskåpet 55 cm
+  `73addc4e` (svart) fick vit och mörkgrå (`271f4bca`, `ca4d2e33`). Medicinskåpet 40 cm
+  `8eab3ebf` (svart) fick vit och mörkgrå (`127d4305`, `a4a24666`). Miniugnen `691ffc27`
+  (silver) fick cremevit och svart (`f981fbc0`, `fde1f334`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 42 av 42 alt-texter och noll textavvikelser. (B26)
+- Högskåpets vita utkast `dc6a703d` hålls: samma skåp ligger redan publicerat i vitt som
+  `44ba2466` (`smalt-badrumsskap-20-cm-hogskap`), och den sidan finns inte i syskonsvepet,
+  alltså har den ingen Aosom-mappning i feeden. Vägen är att mappa om `44ba2466` till det
+  vita utkastets artikel (ommappningen med `dc6a703d` som dubblett) och sedan lägga den som
+  färg på `5f627d89` med `omdirigera=ja`. (B26)
+- Fyra egna faktakort ströks, eftersom de visar feedens fraktvikt som produktens vikt:
+  `fdea573f` ("Vikt 8 kg", som dessutom bara beskrev den grå), `8eab3ebf` två kort ("Fem kilo
+  tungt" och "Egen vikt 5,1 kg") och `691ffc27` ("Vikt 3,2 kg"). (B26)
+- Fraktvikten skiljer mellan färgerna på boden (84 och 86 kg) och miniugnen (3,15 och 3,2 kg).
+  Sidorna anger källans tal. (B26)
+- Skrivbordets färger renderas som kort med pris i stället för färgrutor, eftersom de tre
+  färgerna har olika pris. Livekollens rutsökning (`varswatch-name`) hittar dem därför inte;
+  sök på `varcard-label`. (B26)
