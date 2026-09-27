@@ -1311,3 +1311,12 @@ beslut — se den samlade frågan om detta.
   glassmaskinen `4522d871`, rullstolsrampen `730e0746`, städvagnen
   `832f9eec`, kökshyllorna `3dc2f48d` och `46574b65`, diskstället
   `ea415e30` och bakhyllan `f599e722` (alla 0). (B11)
+- Samma spegel som en publicerad sida, hålls: fönsterspegeln `98e2b710` i
+  guld 91 × 60 cm (= `fd205e45`) och den tredelade fönsterspegeln `6ca6b338`
+  i svart (= `7f8fd990`). (B12)
+- Färgsyskon till publicerade speglar, hålls: `4d946ee9` (svart, samma
+  valvspegel som `fd205e45`), `9210da17` (guld, samma spegel med nio fält som
+  `a1d3d26c`) och `b12666e7` (guld, samma spröjsade spegel 110 × 50 cm som
+  `719ffb14`). Väggspegeln `f726a1bc` med vit ram är samma spegel som
+  `b6922dc8` i B12 (155 mot 156 i saldo). (B12)
+- Saldo 0, inte polerad: fönsterspegeln `efde9936`. (B12)
