@@ -29,7 +29,7 @@ export default function Butikspolicyer() {
         </p>
         <p style={{ marginTop: 12 }}>
           Ansvarig utgivare: A. Leonard<br />
-          Organisationsnummer: 199509144037<br />
+          Organisationsnummer: 950914-4037<br />
           Utfärdande myndighet: Skatteverket<br />
           Momsregistreringsnummer: SE950914403701
         </p>
