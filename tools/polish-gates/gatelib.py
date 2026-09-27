@@ -63,8 +63,39 @@ ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
          r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # 921-672V00BG, INTE 220-240V eller 850-1000W
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
-LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"
+# ☠️ AKTÖRS- OCH GARDERINGSORDEN ÄR FLER ÄN "LEVERANTÖREN" (2026-09-27).
+# Leonards regel är att VI är leverantören mot kunden. Mönstret fångade bara
+# `leverantör*` och två fraser, och tre publicerade texter gick förbi det:
+# "Tillverkaren rekommenderar 12–36 månader" (två leksaker) och "ungefär 60
+# minuter enligt tillverkaren". Tillägget är mätt över rundornas 1 352
+# kundfiler: tre träffar, alla tre äkta, noll falsklarm.
+#
+# ⚠️ Ordet "tillverkaren" ENSAMT är inte med, med flit: fyra kontorsstolar
+# säger "ett fast nackstöd sitter där tillverkaren gissat" om fasta stöd i
+# allmänhet, vilket inte lägger vårt påstående på någon annan. Verbet är det
+# som gör en uppgift till någon annans.
+LEV = (r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift"
+       r"|[Tt]illverkaren (?:uppger|rekommenderar|skriver|lovar|garanterar|påstår|säger)"
+       r"|[Ee]nligt (?:uppgift|tillverkaren|fabrikanten)"
+       r"|framgår inte|anges inte|uppges inte|specificeras inte|kan inte garantera|[Mm]ät själv)\b")
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
+
+# ☠️ RUNDANS EGNA ORD NÅR KUNDEN (2026-09-27). "Det här är rundans enda
+# gungstol utan trä", "rundans minsta tomte", "den djupaste bakåtlutningen i
+# rundan": tretton publicerade texter i fyra rundor (G1, G2, M2, M3). Ordet
+# är vår arbetsenhet och säger kunden ingenting — och påståendet blir falskt så
+# fort en annan runda publicerar något större.
+#
+# ⚠️ Bara de böjda formerna. "runda" är ett vanligt ADJEKTIV ("runda hörn",
+# "det runda bordet": 105 träffar i samma filer) och "omgång" står i legitim
+# svenska ("klipp i två omgångar").
+INTERNT = r"\b([Rr]undans?|den här omgången|i omgången|[Bb]atch\w*)\b"
+# Runbookens och råimportens tecken hör inte hemma i kundtext. Noll träffar i
+# rundornas kundfiler, så mönstret kostar inget falsklarm.
+SYMBOL = r"[☠⚠✅✔✓❌⛔]|\b(?:TODO|FIXME)\b"
+# Osynliga tecken bryter sökningen på sidan och ordet i Googles index utan att
+# synas. Mjukt bindestreck låg i tre publicerade texter (D2, D3).
+OSYNLIG = "[­​‌‍⁠﻿]"
 
 # ☠️ EN-NORMEN LIGGER INTE I `GRINDAR`, och det är hela poängen med namnet.
 # Mönstret fångar varje `EN 1270`, `EN 71` och `EN 12520` i texten — men om
@@ -201,11 +232,21 @@ SUPERLATIV_ORD = [
     "brantast", "brantaste", "mjukast", "hårdast", "varmast", "kallast",
     "starkast", "svagast", "längst", "kortast", "tjockast", "tunnast",
     "rymligast", "stabilast", "främst", "bäst", "sämst",
+    # ☠️ BESTÄMD FORM, tillagd 2026-09-27. Grinden såg bara "lättast", inte
+    # "den lättaste fåtöljen i sortimentet". Mätt över alla rundors texter:
+    # 19 nya träffar, 17 äkta rankningar av katalogen och 2 som kvitteras.
+    "lägsta", "högsta", "största", "minsta", "bredaste", "smalaste", "djupaste",
+    "grundaste", "tyngsta", "lättaste", "billigaste", "dyraste", "kraftigaste",
+    "tystaste", "snabbaste", "mjukaste", "hårdaste", "varmaste", "kallaste",
+    "starkaste", "svagaste", "längsta", "kortaste", "tjockaste", "tunnaste",
+    "rymligaste", "stabilaste", "främsta", "bästa", "sämsta", "plattaste",
 ]
 OMFANG_ORD = [
     "vårt sortiment", "vår katalog", "vårt utbud", "i serien", "i den här serien",
     "av våra", "bland våra", "hos oss", "vi säljer", "vi har", "vårt massagesortiment",
     "i vårt", "i vår", "på sidan", "andra stolarna", "övriga stolarna",
+    # Tillagda 2026-09-27: sex publicerade texter skrev "i sortimentet".
+    "i sortimentet", "i butiken",
 ]
 SUPERLATIV = r"(?<![A-Za-zÅÄÖÉÜåäöéü])(" + "|".join(SUPERLATIV_ORD) + r")(?![A-Za-zÅÄÖÉÜåäöéü])"
 OMFANG = r"(" + "|".join(OMFANG_ORD) + r")"
@@ -219,9 +260,17 @@ def meningar(text):
     return [m for m in re.split(r"(?<=[.!?])\s+(?=[A-ZÅÄÖ])|\n", text) if m.strip()]
 
 
-GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
+# ☠️ HUSMÄRKET GRINDAS UTAN HÄNSYN TILL VERSALER i rundans filer (2026-09-27).
+# Aosom skriver själv `AIYAPLAY`, `SPORTNOW` och `kleankin`, och `MARKEN`
+# såg bara den form som står i listan. Mätt över rundornas 1 352 kundfiler:
+# noll träffar i båda formerna, alltså inget falsklarm. livegrind behåller
+# `MARKEN` som den är: produktsidans säkerhetsflik ska visa märket.
+MARKEN_I = "(?i:" + MARKEN + ")"
+
+GRINDAR = [("HUSMÄRKE", MARKEN_I), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
-           ("HOMOGLYF", HOMO)]
+           ("HOMOGLYF", HOMO), ("INTERNT ORD", INTERNT), ("SYMBOL", SYMBOL),
+           ("OSYNLIGT TECKEN", OSYNLIG)]
 
 FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor")
 

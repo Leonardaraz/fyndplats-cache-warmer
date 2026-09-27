@@ -94,6 +94,16 @@ describe("gatelib fäller det den ska", () => {
     ["ARTIKELNUMMER", "artikelnummer med inledande bokstav", "Modellreferens: D51-530V00BK i specen."],
     ["ARTIKELNUMMER", "artikelnummer utan svans", "Artikelnr 84B-956 står i tabellen."],
     ["ARTIKELNUMMER", "helt numeriskt artikelnummer", "Referens 921-672V00BG i raden."],
+    // 2026-09-27: tre publicerade texter lade uppgiften på tillverkaren, och
+    // mönstret såg bara "leverantör*". Meningarna nedan är deras egna.
+    ["LEVERANTÖR", "tillverkaren som tredje part", "Tillverkaren rekommenderar 12–36 månader."],
+    ["LEVERANTÖR", "enligt tillverkaren", "Monteringen tar ungefär 60 minuter enligt tillverkaren."],
+    ["LEVERANTÖR", "gardering om det vi inte vet", "Materialet i fyllningen framgår inte."],
+    // Tretton publicerade texter i fyra rundor bar vår arbetsenhet.
+    ["INTERNT ORD", "rundans som jämförelse", "Det här är rundans enda gungstol utan trä."],
+    ["INTERNT ORD", "i rundan", "Den djupaste bakåtlutningen i rundan."],
+    ["SYMBOL", "runbookens bock", "✔ Tål 120 kg."],
+    ["OSYNLIGT TECKEN", "mjukt bindestreck inne i ett ord", "en trestegs­rygg aldrig ger"],
   ];
 
   it.each(FALLER)("[%s] %s", (grind, _vad, text) => {
@@ -135,6 +145,13 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["effektintervall med fyrsiffrigt slut", "Effekt 850-1000W för brödrosten."],
     ["effektintervall i samma rad som ett annat", "Effekt 1850-2200W och 850-1000W."],
     ["strömstyrka med bindestreck", "Laddaren ger 100-2400mA beroende på läge."],
+    // De nya mönstren 2026-09-27, prövade mot verkliga meningar som ska passera.
+    // "runda" är ett adjektiv (105 träffar i rundornas texter), "omgångar" är
+    // vanlig svenska, och "tillverkaren" utan verb lägger inget på någon annan.
+    ["runda som adjektiv", "Fyra runda speglar i olika storlekar vid det runda bordet."],
+    ["omgångar i en skötselråd", "Klipp då i två omgångar, eller ta det värsta först."],
+    ["tillverkaren utan påstående", "Ett fast nackstöd sitter där tillverkaren gissat."],
+    ["en rundbåge i en konstruktion", "Rundbågen i taket och den rundade kanten."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {
