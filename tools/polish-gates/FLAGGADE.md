@@ -3416,3 +3416,29 @@ beslut — se den samlade frågan om detta.
 - Bänkens SKU byttes från `FP-bank-107-armstod`, som har artikelnumrets form, till
   `FP-bank-armstod-beige`. `FP-sittbank-forvaring-beige` bars redan av `3068a60b`. (B28)
 - Bänken `d197d3e5` hade saldo 2 när rundan skrevs. (B28)
+- AVGJORT 2026-09-27, genomfört i B29: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Köksskåpet `00ba5823` (svart) fick vit (`45f84852`). Datorbordet
+  `0a251021` (svart) fick vit (`89e84531`). Väggskrivbordet `0c27c71d` (svart) fick vit med
+  svart skrivtavla (`21ec71e3`). Elkaminen `0fe72ae2` (vit) fick natur (`2d467737`).
+  Verktygsvagnen `1654dd75` (svart) fick röd (`be4b2385`). Teddyfåtöljen `18593043` (grå)
+  fick beige (`eef453b1`). Kontorsstolen `19f3239f` (mörkgrå) fick brun (`c2902bb8`).
+  Reclinerfåtöljen `27380bf4` (brun) fick svart (`6a65351e`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 30 av 30 alt-texter och noll textavvikelser, och varje sida
+  visar sina färger som val. (B29)
+- Tre givares pris styrdes av konkurrentregeln: datorbordet i vitt (`89e84531`),
+  teddyfåtöljen i beige (`eef453b1`) och reclinerfåtöljen i svart (`6a65351e`). Efter
+  sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras vid
+  nästa synk. (B29)
+- Väggskrivbordets bordshöjd skiljer mellan källorna: sidans gamla text angav 73,5 cm och
+  den vita givarens källa 71 cm. Sidan anger ingen bordshöjd. Paketmåtten skiljer med en
+  centimeter (93 och 92); sidan anger källans 92 × 65 × 10 cm. (B29)
+- Tio bilder ströks. Sju visar läsbar text på rekvisitan: förpackningar och burkar med namn
+  på köksskåpet `00ba5823` (tre bilder), en tidningsrubrik på `0a251021`, skrivtavlan med
+  veckodagarna och en affisch på `0c27c71d`, en flaska märkt glass cleaner på `1654dd75` och
+  boktitlar på `27380bf4`. Tre egna faktakort ströks: elkaminens två (`0fe72ae2`, det ena med
+  fraktvikten 25,5 kg som Vikt och färgen i rubriken, det andra med en rangordning av
+  omramningarna) och verktygsvagnens (`1654dd75`, fraktvikten 29,7 kg som Vikt). (B29)
+- Elkaminens och verktygsvagnens gamla texter länkade till andra produkter och jämförde med
+  sortimentet. Länkarna och jämförelserna är borta. Den röda verktygsvagnen med sju lådor
+  (`verktygsvagn-rod-7-lador`) är en annan modell, 69 cm bred och utan sidoregal, alltså
+  ingen dubblett. (B29)
