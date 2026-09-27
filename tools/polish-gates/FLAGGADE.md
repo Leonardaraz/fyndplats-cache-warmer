@@ -1129,3 +1129,6 @@ beslut — se den samlade frågan om detta.
   troligen rätt. Ingen av de två siffrorna står på sidan. (B3)
 - Björnskrivbordet `6588ac81` i trä och vitt är publicerat. Det rosa
   `db663f78` väntar som färgsyskon. (B3)
+- Klätterställningen `c75c7b95` i regnbågsfärger är ett färgsyskon till
+  publicerade `7e414be8` i natur (samma mått, samma konstruktion). Den
+  väntar. (B4)
