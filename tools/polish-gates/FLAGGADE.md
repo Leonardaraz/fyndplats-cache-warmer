@@ -1320,3 +1320,25 @@ beslut — se den samlade frågan om detta.
   `719ffb14`). Väggspegeln `f726a1bc` med vit ram är samma spegel som
   `b6922dc8` i B12 (155 mot 156 i saldo). (B12)
 - Saldo 0, inte polerad: fönsterspegeln `efde9936`. (B12)
+- Samma möbel som en publicerad sida i en annan färg, hålls. Måtten, maxlasten,
+  vikten och paketmåtten är identiska: sittbänken `865acfdf` i grå sammet
+  (= `d1132894`, blå), bänken `d9767b3c` med rullade armstöd i ljusgrått
+  (= `9383d686`, mörkgrå), sittbänken `f7ba4bb8` i grå sammetslook
+  (= `d5919be6`, mörkgrön), de ovala förvaringsbänkarna `419aae73`
+  (gräddvit) och `3352ee8d` (olivgrön) (= `fa500aa8`, grå) och
+  helkroppsspegeln `3570107c` i bågform, svart (= `58f8338d`, guld). (B13)
+- Färgsyskon inom lagret, hålls: byrån `a14b1d61` (ljus, saldo 8) är samma
+  som `b7e5c1ea` i B13, och bänken `63c426d0` (grön) samma som `698fd1bf` i
+  B13. (B13)
+- Husmärket på produkten, väntar på Leonard: Hollywoodspegeln `aeda1c4e` bär
+  HOMCOM-loggan tryckt på glaset i tre av fem bilder. (B13)
+- ✅ Tre flaggor ur N51 och N54 är utredda i B13. Bänken `698fd1bf` är en
+  annan modell än `d5919be6`. Ramens mått och vikt är desamma, men klädseln
+  (grå manchester med knappar) och maxlasten (220 kg) skiljer, och den är
+  polerad. Byrån `a14b1d61` är inte `834b263f` (sju lådor mot åtta), men
+  hålls som färgsyskon. Byrån `fcf237ca` är en egen storlek i samma serie som
+  `222f59d6` (58 cm och fyra lådor mot 80 cm och sju) och tas i B14. (B13)
+- Saldo 0–2, inte polerade: bänkarna `50e06edb`, `9b8fefe6` och `55f4c0d9`,
+  golvspeglarna `e629367a`, `cabd168d` och `81c40958`, sängramen `9ed05344`
+  och nattduksbordet `23d31b41` (alla 0), och sminkbordet `b594f90c` (2).
+  (B13)

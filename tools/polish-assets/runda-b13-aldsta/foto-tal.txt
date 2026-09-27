@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+b7e5c1ea 7 källans beskrivning anger 3 stora och 4 små lådor, och produkttiteln 7 tyglådor
+ff3824a1 2 bild 1 och 3 visar två skjutdörrar med var sitt handtag; källan anger dörrarna utan antal
+223b9ca7 3 bild 1 och 3 visar tre lådor på vardera sidan om den breda mittlådan
