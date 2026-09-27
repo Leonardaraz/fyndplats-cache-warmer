@@ -339,13 +339,17 @@ export async function completeJsonRouted<T>(opts: {
    *  (samma råvärde MÅSTE alltid ge samma svenska). */
   temperature?: number;
   failOpen?: T;
+  /** Ingen Gemini-reserv: över budget eller vid fel blir svaret `failOpen`.
+   *  För text som publiceras som fakta om en vara (GPSR-säkerhetstexten), där
+   *  ett sämre svar är värre än att vänta en körning. */
+  utanGemini?: boolean;
 }): Promise<T> {
   const model = opts.model || TEXT_MODEL;
   const run = await runOperation<T>({
     op: opts.op,
     cacheKey: opts.cacheKey,
     claudeCall: () => completeJsonClaude<T>({ ...opts, model }),
-    geminiCall: () =>
+    geminiCall: opts.utanGemini ? undefined : () =>
       completeJsonGemini<T>({
         system: opts.system,
         user: opts.user,
