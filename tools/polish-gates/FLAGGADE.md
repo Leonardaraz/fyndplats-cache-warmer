@@ -2297,3 +2297,89 @@ beslut — se den samlade frågan om detta.
 - Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
   tidigare rundors mätvärden eller är valda på produkttypen, med en smalare
   variant där en publicerad slug redan bar ordet. (N71)
+- Licensmärke, hoppad: barnbilen `cf18cd15` bär Audi-licensen och är samma
+  Audi Q8-bil som den publicerade `fde98f23`. (N72)
+- Märke på varan: trehjulingarna `29d13add` (1 039 kr), `e89e68ce` (1 159
+  kr), `b3740e7d` (1 159 kr) och `3f2f8af0` (1 169 kr) har märket Lovely på
+  ramen och är samma modell som den publicerade `eeb4a919` (1 599 kr);
+  kattoaletten `d9fe1f8c` (2 499 kr) har husmärket (PawHut) på fronten;
+  vibrationsplattan `0ecc0773` (2 599 kr) har SPORTNOW på plattan;
+  fotbollsmålet `5ee3dda6` (659 kr) har husmärket (HOMCOM) på en lapp i
+  nätet; och sparkcykeln `cf0052ce` (679 kr) har AIYAPLAY på styrstången.
+  (N72)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): lastkärran för cykel `79f62076` (1 319 kr) är samma
+  kärra i rött och svart som den publicerade vit och svarta `681e5c63` (1
+  569 kr); verktygsvagnen med sju lådor `be4b2385` (2 929 kr) är samma vagn
+  i rött som den publicerade svarta `1654dd75` (2 479 kr); verktygsvagnen
+  `a52f3cb7` (2 519 kr) är svart med röda lådor och har samma mått, fem
+  lådor och 26,1 kg som den publicerade helsvarta `f9de10ab` (2 119 kr);
+  gungstolen `b341d832` (3 369 kr) är samma stol i mörkgrått, med identiska
+  mått och 20,5 kg, som den publicerade beige `63f3a60f` (3 119 kr); och
+  gatlyktan `7c18b805` (1 179 kr) med varmvita LED och grönt ris är samma
+  lykta som den publicerade snöiga, flerfärgade `c0c2822f` (1 029 kr). (N72)
+- För få bilder kvar, hållen efter bildgranskningen: grinden `f03ae746` (779
+  kr), där bild 3 och 4 bär tysk text och bild 5 engelsk, så bara två bilder
+  hade varit kvar. (N72)
+- Hoppade med tidigare rundors skyddsskäl, som fortfarande gäller:
+  fågelburen `224627db`, en djurbostad (N61); valphagen `60f44d5b` och
+  skärmtaket `0a4be3cd`, som fortfarande står på saldo 0 (N47 och N58);
+  hundtoaletten `d0e14ad8` med PawHut-etiketten på brickan (N53); benpressen
+  `a5f36d84`, som har för få bilder utan text (N62); sparkcykeln `29852da4`
+  med AIYAPLAY på styrstången (N55); och fyrfatet `40f50103`, samma vara som
+  det publicerade `032669e3`, hanterat i S3 (main och bz3j9l). (N72)
+- N72 tog de 40 nyaste utkasten efter N71 (importerna 2026-09-10–12). N64:s
+  regel gäller: för de nyaste gäller inte familje- och säsongsregeln, bara
+  skyddsreglerna. De 33 som inte redan bar ett skyddsskäl dubblettskärmades
+  mot 3 612 publicerade sidor, med kalibrering 4 av 4 väntade träffar och 2
+  av 2 väntade missar och självtest 9 av 9. Arton publicerades och 22
+  hoppades med skälen ovan. (N72)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  reclinerfåtöljen `18593043` mot den rundade designfåtöljen `da6d086a`,
+  vilfåtöljerna `75e5fa26`, `a9c0fc05` och `afab8a41` (155°, 150 kg) och
+  uppresningsfåtöljen `bf2447a6`; hundgrinden `25544401` mot `a64af3a4`
+  (böjda förlängningar, 75–95 cm); brevlådan `35360ea0` mot `676e567f`
+  (paneler i rostfritt stål; innermåtten stämmer men fronten skiljer);
+  julgranen `c54ef786` mot `bdc71526` (snöig, Ø70 cm, 242 spetsar);
+  paviljongen `297eae7c` mot `bb5297b7` och `9b13a069` (sex väggar, andra
+  modeller); torktumlaren `2517c54b` mot `3c3514d7` (vit och rundad);
+  hantelsetet `4588a393` mot `1b0e7544` (ställ i trä) och `75728100` (4, 6
+  och 8 kg); tallen `4311dbed` mot `fc68547e` och `5f646ce6` (961 och 889
+  spetsar mot 3 026); snurrfåtöljen `383570d2` mot `1fd11824` och
+  `ed930c42`; badrumshyllan `cf81955a` mot `72491f25`; behandlingsbänken
+  `91691f8a` mot `e13d094a` (210 cm, 16,3 kg); sopsorteringen `b2872810` mot
+  `ec672f4d` (31 liter); fåtöljparet `d03b6773` mot `f81daa29`; julgranen
+  `5d0d95d1` mot `62f42597` (set om tre); grinden `f03ae746` mot `cc0043b8`
+  (94 cm hög); och sparkcykeln `cf0052ce` mot `eb4418ad`. Inget av de friade
+  är samma vara. (N72)
+- Bildgranskningen strök 13 bilder på rundans arton: tysk text i tre, tysk
+  och engelsk text i en, husmärket med tysk text i tre, engelsk text eller
+  en engelsk måttenhet i tre, och läsbar text på rekvisitan i tre
+  (bokryggar, en förvaringslåda och en toppdekoration med ljusbokstäver).
+  Viktmärkningen 1KG, 3KG och 5KG på hantlarna `4588a393` sitter på själva
+  varan och räknas som varans design; bilderna behölls. Alla arton behöll
+  minst tre bilder. (N72)
+- Konstruktionen och färgen följer fotot: snurrfåtöljen `383570d2` är
+  mellangrå (mörkgrå i källan); skoskåpet `a32e2efa` är ett bambuskåp med
+  två lamelldörrar och ställbara hyllplan, utan den låda och rotting som det
+  tyska namnet nämner; hundgrinden `25544401` har en dörr med 49 cm passage,
+  som måttbilden visar och som källan kallar gallrets höjd;
+  behandlingsbänken `91691f8a` har armstöd och vit ram; julgranen `c54ef786`
+  står i en fot som liknar en lykta i bronsfärg med en lysande stjärna; och
+  reclinerfåtöljen `18593043` har ett fotstöd som fälls ut. Skoskåpets två
+  dörrar är kvitterade i `foto-tal.txt`. (N72)
+- Axelgrindens positionsregel läser första talet som bredd, och på
+  sopsorteringen `b2872810` (48L × 34,2B × 41,8H) slår den fel: måttbilden
+  visar fronten på 34,2 cm-sidan och enheten 48 cm bakåt. Texten anger
+  därför 48 cm från front till bakkant, och grinden gick ren utan att facit
+  rördes. (N72)
+- Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
+  tidigare rundors mätvärden eller är valda på produkttypen. Alla arton
+  slugar prövades mot hela katalogen (6 153 produkter): ingen krockar, och
+  där en publicerad slug redan bar huvudsökordet valdes en smalare variant.
+  (N72)
+- Utanför rundan, inte rört: kortbilden på den publicerade paviljongen
+  `9b13a069` bär raden "Uppgifter ur Outsunnys datablad" följt av
+  leverantörens artikelnummer, och kortet på `bb5297b7` bär samma rad utan
+  nummer. Båda sidorna hör till main:s runda S2 och står inte i
+  `KORTLACKAN.md`. (N72)
