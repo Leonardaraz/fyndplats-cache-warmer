@@ -1094,3 +1094,32 @@ beslut — se den samlade frågan om detta.
   `91d7dfd9`: samma mått, samma låda och belastning, och tre bilder med
   samma pixlar. `91d7dfd9` är ommappad till Aosom och `ec93f9f2`
   pensionerad (`rejected`). (B1)
+- Runda B2 fortsätter från den ÄLDSTA änden: åtta barnmöbler publicerade,
+  alla tyska feed-utkast från 2026-08-27. (B2)
+- Gunghästen: feed-utkastet `063cbb9e` är samma vara som publicerade
+  `16bdf5d8`. Huvudbilden har samma pixlar, och båda anger 85 × 28 × 60 cm
+  och 60 kg. `16bdf5d8` är ommappad till Aosom och `063cbb9e` pensionerad
+  (`rejected`). Kundpriset 1 499 kr är orört; feed-utkastet stod på
+  1 169 kr. (B2)
+- Rutschkanan: feed-utkastet `0f276512` är samma turkosgula kana som
+  publicerade `7d914d36`, med två bilder som har samma pixlar och samma
+  70 × 177 × 92 cm. `7d914d36` är ommappad till Aosom och `0f276512`
+  pensionerad. Kundpriset 1 579 kr är orört; feed-utkastet stod på
+  1 119 kr. (B2)
+- Färgsyskon till publicerade sidor, bekräftade med ögat på bilderna, som
+  väntar till en senare runda: rutschkanan `9f605da4` i grått och vitt
+  (`7d914d36`), bänkhyllan `acfcc8a3` i ekfärg (`d3b26d84`),
+  förvaringstornet `c61fdbb4` i rosa (`0136e7d9`; bild 5 bär husmärket
+  inbränt och ska strykas), husbokhyllan `889ca93f` i grönt (`76430e8e`),
+  hörnhyllan `2fb66ffd` i vitt med färgade tyglådor (`73409286`),
+  bokhyllan med låda i mintgrönt `15db30cb`, rosa `8718ba8d` och vitt
+  `a173de00` (`5c176543`), och klätterställningen `2780d68b` i trä
+  (`d48f0b07`, saldo dessutom 9). (B2)
+- Slutsåld (saldo 0): klätterställningen `a59650f2` (147 × 64,5 × 63 cm).
+  (B2)
+- Björnskrivbordet finns som två utkast i olika färger: `6588ac81` i trä
+  och vitt, `db663f78` i rosa och vitt, båda 80 × 41 × 74,5 cm. Nästa runda
+  tar det ena, och det andra väntar som färgsyskon. (B2)
+- `65d84215` och `565d0075` delar måtten 60 × 60 × 44 cm men är olika bord:
+  fyrkantigt med tavelskiva och björnstolar mot runt med förvaring och
+  molnstolar. Båda står kvar som kandidater. (B2)
