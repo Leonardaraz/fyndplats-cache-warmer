@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { getProducts, forListings } from "../../lib/products";
-import { forListClient } from "../../lib/list-payload";
-import { currentDayMs, orderRecommended } from "../../lib/sort-products";
-import { universalCollectionIds } from "../../lib/related-pick";
+import { listaForSidan, ordnaLista } from "../../lib/list-pages";
+import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString, pageMeta } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { ProductIndex } from "../../components/product-index";
-import { attachRatings } from "../../lib/review-aggregates";
 import { productCountLabel } from "../../lib/rating";
 import { REA_TITLE, REA_H1, REA_INTRO, REA_META_DESC, reaLede, saleProducts } from "../../lib/rea";
 
@@ -29,12 +27,9 @@ export default async function Rea() {
   const all = forListings(await getProducts());
   const rea = saleProducts(all);
 
-  // attachRatings FÖRE orderRecommended — recommendedScore läser p.rating, och
-  // körs den på en olik lista blir ordningen en annan vid hydrering. Samma
-  // ordningskrav som /alla-produkter dokumenterar utförligt.
+  // Ordnad med samma dag som webbläsaren får — se ordnaLista i lib/list-pages.
   const dagMs = currentDayMs();
-  const rated = await attachRatings(rea);
-  const list = orderRecommended(rated, universalCollectionIds(rated), dagMs);
+  const list = await ordnaLista(rea, dagMs);
 
   const pageUrl = "https://www.fyndplats.se/rea";
   const breadcrumbLd = {
@@ -96,14 +91,14 @@ export default async function Rea() {
                 ))}
               </div>
 
-              {/* forClient skär bort fälten klienten aldrig läser (se ListProduct
-                  i lib/products.ts) — samma besparing som på /alla-produkter. */}
-              <ShopBrowser products={forListClient(list, dagMs)} dayMs={dagMs} />
+              {/* De första korten och en sammanfattning för filtren; resten
+                  hämtar ShopBrowser från /api/lista (lib/list-pages.ts). */}
+              <ShopBrowser {...listaForSidan(list, "rea")} dayMs={dagMs} />
 
-              {/* Rutnätet visar 24 åt gången bakom en JS-knapp. Utan den här
-                  listan saknar resten av reavarorna interna ankarlänkar helt —
-                  och att Google FAKTISKT når reavarorna är hela poängen med
-                  sidan. */}
+              {/* Rutnätet visar 24 åt gången bakom en JS-knapp, och att Google
+                  FAKTISKT når reavarorna är hela poängen med sidan. Listan är
+                  kort (39 varor 2026-09-27), så den får stå kvar även om varje
+                  reavara också har sin länk i sin kategoris A–Ö. */}
               <ProductIndex products={list} title="Alla reavaror A–Ö" />
             </>
           ) : (

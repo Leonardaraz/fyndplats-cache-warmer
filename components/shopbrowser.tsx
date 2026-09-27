@@ -3,18 +3,20 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { usePathname, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
-import { colorLabel, colorOf, sortColorKeys } from "../lib/variant-color-image";
+import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
 import {
   formatPrice,
   parsePriceSlug,
   priceBounds,
+  prisHistogram,
   priceRangeLabel,
   priceSlug,
   upperLimit,
   type PriceBounds,
 } from "../lib/price-range";
 import type { ListProduct } from "../lib/products";
+import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel } from "../lib/rating";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
@@ -70,7 +72,13 @@ const SORT_VALUES = new Set([...SORTS, REL_SORT].map((s) => s.v));
 /** Underkategori till den kategori sidan visar — chips i filterpanelen. */
 export type SubCategory = { name: string; slug: string; count: number };
 
-export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number }) {
+/**
+ * `products` är HELA listan — utom när `lista` är satt. Då är `products` bara
+ * de första korten i visningsordning, `lista.oversikt` beskriver hela listan
+ * för filterpanelen, och resten hämtas från `lista.url` när kunden behöver den
+ * (se lib/list-pages.ts). Listsidorna använder det senare; /sok det förra.
+ */
+export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
@@ -79,7 +87,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs }:
     <>
       <SubNav subs={subs} />
       <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
-        <ShopBrowserInner products={products} defaultSort={defaultSort} dayMs={dayMs} />
+        <ShopBrowserInner key={lista?.url} products={products} defaultSort={defaultSort} dayMs={dayMs} lista={lista} />
       </Suspense>
     </>
   );
@@ -125,7 +133,7 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { products: ListProduct[]; defaultSort: string; dayMs?: number }) {
+function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo }) {
   const pathname = usePathname();
   const sp = useSearchParams();
 
@@ -137,7 +145,12 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   // Prisreglagets skala härleds ur produkterna i vyn. null = spridningen är för
   // liten för att ett reglage ska hjälpa någon (t.ex. tre sökträffar) → inget
   // prisfilter renderas alls.
-  const bounds = useMemo(() => priceBounds(products), [products]);
+  //
+  // Med `lista` räknas skalan på servern ur HELA listan (lib/list-overview) —
+  // de kort sidan bär är bara början, och en skala ur dem hade flyttat sig när
+  // resten kom.
+  const ov = lista?.oversikt;
+  const bounds = useMemo(() => (ov ? ov.bounds : priceBounds(products)), [ov, products]);
   // Handtagen är källan; slugen härleds ur dem. URL:en skrivs först när
   // handtaget släpps (commitPrice) — annars hade varje pixel i draget blivit
   // en URL-skrivning.
@@ -154,6 +167,37 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
   const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
   const [open, setOpen] = useState(false); // mobile-collapsible filter panel
+
+  // ── Hela listan, när sidan bara bär början av den ─────────────────────────
+  //
+  // Listsidorna skickar de första korten i HTML:en och resten från /api/lista
+  // (lib/list-pages.ts). `alla` är null tills den kommit. Utan `lista` är
+  // `products` redan hela listan och inget hämtas.
+  const [hamtad, setHamtad] = useState<ListProduct[] | null>(null);
+  // true när tre försök i rad misslyckats — då visas "Försök igen" i stället
+  // för ett rutnät som väntar på något som inte kommer.
+  const [listaFel, setListaFel] = useState(false);
+  const alla = lista ? hamtad : products;
+  const listaBegard = useRef(false);
+  const listaUrl = lista?.url;
+  const hamtaLista = useCallback(() => {
+    if (!listaUrl || listaBegard.current) return;
+    listaBegard.current = true;
+    setListaFel(false);
+    // Tre försök med växande paus. Knappen "Visa fler" är låst medan kunden
+    // väntar på listan, så ett enda misslyckat anrop hade annars lämnat den
+    // låst. Går alla tre fel visas "Försök igen" (se listaFel).
+    const forsok = (n: number) => {
+      fetch(listaUrl)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((d: ListProduct[]) => setHamtad(d))
+        .catch(() => {
+          if (n < 3) window.setTimeout(() => forsok(n + 1), 1500 * n);
+          else { listaBegard.current = false; setListaFel(true); }
+        });
+    };
+    forsok(1);
+  }, [listaUrl]);
 
   // Sync state → URL. Bygger på window.location.search så befintliga params
   // (t.ex. ?kategori på /alla-produkter) bevaras. Kör vid mount men skriver bara
@@ -186,26 +230,28 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   // Färgfacetten. Nycklarna hängs på server-side (lib/product-colors) och
   // saknas helt när Wix-nyckeln inte är satt — då blir listan tom och gruppen
   // renderas inte alls.
-  const colorKeys = useMemo(() => {
-    const funna = new Set<string>();
-    for (const p of products) for (const k of p.colors || []) funna.add(k);
-    // Minst två distinkta färger, annars är det inget att välja mellan.
-    return funna.size >= 2 ? sortColorKeys([...funna]) : [];
-  }, [products]);
+  // Minst två distinkta färger, annars är det inget att välja mellan.
+  const colorKeys = useMemo(() => (ov ? ov.farger.map(([k]) => k) : fargNycklar(products)), [ov, products]);
   // Antalet räknas ur listan filtrerad på de ANDRA facetterna.
   // Drar man i prisreglaget ändras färgernas antal; väljer man en färg gör de
   // det inte. Utan siffran hade kunden fått upptäcka efter klicket att bara en
   // bråkdel av sortimentet har en färg angiven alls.
+  //
+  // Innan hela listan kommit gäller sammanfattningens antal — men bara utan
+  // andra filter. Med filter vet vi inte, och då visas inget hellre än fel
+  // siffra (null → "…").
   const colorCounts = useMemo(() => {
+    if (!alla) return ov && !priceActive && !onlyInStock && !onlyOnSale ? new Map(ov.farger) : null;
     const antal = new Map<string, number>();
-    for (const p of products) {
+    for (const p of alla) {
       if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
       if (onlyInStock && !p.inStock) continue;
       if (onlyOnSale && !p.onSale) continue;
       for (const k of p.colors || []) antal.set(k, (antal.get(k) ?? 0) + 1);
     }
     return antal;
-  }, [products, priceLo, priceHi, onlyInStock, onlyOnSale]);
+  }, [alla, ov, priceActive, priceLo, priceHi, onlyInStock, onlyOnSale]);
+  const fargAntal = (k: string): string => (colorCounts ? String(colorCounts.get(k) ?? 0) : "…");
   // Skenans läge: 0 = alla färger, 1..n = colorKeys[i-1]. Ett enda tal, så
   // native <input type="range"> gör hela jobbet — drag, tangentbord och touch.
   const colorIdx = Math.max(0, colorKeys.indexOf(color) + 1);
@@ -235,28 +281,9 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   // landskapet rört sig under fingret, och då går det inte att sikta.
   // Kvadratroten på höjden ger de glesa facken synlig närvaro utan att pucklen
   // trycker ner dem till en osynlig strimma.
-  const hist = useMemo(() => {
-    if (!bounds) return [];
-    const BINS = 46;
-    const w = (bounds.max - bounds.min) / BINS;
-    const antal = new Array(BINS).fill(0);
-    for (const p of products) {
-      const i = Math.floor((p.priceNum - bounds.min) / w);
-      antal[Math.min(BINS - 1, Math.max(0, i))] += 1;
-    }
-    const topp = Math.max(1, ...antal);
-    return antal.map((n, i) => ({
-      // 68 = .pr-hist-höjden i globals.css. Ändras den ena måste den andra med,
-      // annars slår staplarna i taket eller lämnar luft över den högsta.
-      h: Math.max(4, Math.round(Math.sqrt(n / topp) * 68)),
-      mid: bounds.min + (i + 0.5) * w,
-      // Sista facket samlar ALLT ovanför skalans topp, inte bara sitt eget
-      // intervall — på den här katalogen är det svansens 5 %. Oritat som en
-      // vanlig stapel läser det som en puckel vid takpriset, alltså tvärtemot
-      // sanningen. Det märks ut och ritas randigt.
-      over: i === antal.length - 1 && bounds.openTop,
-    }));
-  }, [products, bounds]);
+  // Själva uträkningen bor i lib/price-range, så serverns sammanfattning
+  // (lib/list-overview) och den här ger samma staplar.
+  const hist = useMemo(() => (ov ? ov.hist : prisHistogram(products, bounds)), [ov, products, bounds]);
 
   // Släpp ALLTID draget, även när musen släpps utanför reglaget: rutnätet
   // uppdateras först vid släppet (se `list` nedan), så ett missat pointerup
@@ -290,9 +317,12 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
   const [valtLo, valtHi] = useMemo(() => handlesFromSlug(bounds, urlPrice), [bounds, urlPrice]);
   const listLo = bounds ? valtLo : 0;
   const listHi = bounds ? upperLimit(valtHi, bounds) : Infinity;
+  const utanFilter = !priceActive && !color && !onlyInStock && !onlyOnSale;
+  // null = okänt just nu (filter valt innan hela listan kommit).
   const liveCount = useMemo(() => {
+    if (!alla) return utanFilter && ov ? ov.antal : null;
     let n = 0;
-    for (const p of products) {
+    for (const p of alla) {
       if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
       if (color && !p.colors?.includes(color)) continue;
       if (onlyInStock && !p.inStock) continue;
@@ -300,10 +330,15 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
       n++;
     }
     return n;
-  }, [products, priceLo, priceHi, color, onlyInStock, onlyOnSale]);
+  }, [alla, ov, utanFilter, priceLo, priceHi, color, onlyInStock, onlyOnSale]);
+
+  // Standardläget: förvald sortering och inga filter — det sidans HTML visar.
+  const arStandard = sort === defaultSort && !urlPrice && !urlColor && !onlyInStock && !onlyOnSale;
 
   const list = useMemo(() => {
-    let out = products.filter((p) => p.priceNum >= listLo && p.priceNum < listHi);
+    // Innan hela listan kommit finns bara sidans egna kort att visa.
+    if (!alla) return products;
+    let out = alla.filter((p) => p.priceNum >= listLo && p.priceNum < listHi);
     if (urlColor) out = out.filter((p) => p.colors?.includes(urlColor));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
@@ -328,20 +363,28 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
     // saknas den är signalen 0 och ordningen faller tillbaka på kategori-
     // blandning + nyhet. Ordningarna är rena funktioner i lib/sort-products —
     // där ligger också mätningarna, vikterna och testerna.
-    const universal = universalCollectionIds(products);
+    const universal = universalCollectionIds(alla);
     if (sort === "img") out = orderRecommended(out, universal, dayMs);
     else if (sort === "pop") out = orderPopular(out, universal);
     else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
     else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+    // KORTEN SOM REDAN STÅR FLYTTAS INTE. Sidan och /api/lista räknar samma
+    // lista med samma dag, men de cachas var för sig och kan vara byggda från
+    // olika ögonblick av katalogen. I standardläget står därför sidans egna kort
+    // kvar först, i sin ordning, och listan fyller på bakom dem.
+    if (lista && arStandard) {
+      const forst = new Set(products.map((p) => p.slug));
+      out = [...products, ...out.filter((p) => !forst.has(p.slug))];
+    }
     return out;
-  }, [products, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp]);
+  }, [alla, products, lista, arStandard, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
   // så det stämmer per sida: kategori = nej, sökresultat = ofta ja.
-  const hasOos = useMemo(() => products.some((p) => !p.inStock), [products]);
+  const hasOos = useMemo(() => (ov ? ov.harSlutsalda : products.some((p) => !p.inStock)), [ov, products]);
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
   const activeFilters = (priceActive ? 1 : 0) + (color ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
@@ -363,8 +406,10 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
 
   // ── Bilderna som inte fick plats i sidans HTML ────────────────────────────
   //
-  // Sidan bär hela katalogen (filtren räknas här) men ritar 24 kort. Bilderna
-  // för produkter långt ner skickas därför inte med — se lib/list-payload.ts.
+  // Listan — sökträffarna i sidan, eller listsidornas lista från /api/lista —
+  // bär bilder bara för de produkter som kan stå i vyn direkt (de första och
+  // toppen av varje sortering). Bilderna för produkter långt ner skickas inte
+  // med — se lib/list-payload.ts.
   // De hämtas som EN karta från /api/kort-bilder, hårt cachad, och återanvänds
   // sedan för hela besöket och över alla listsidor.
   //
@@ -398,7 +443,66 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
     setShown(PAGE_SIZE);
   }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, products]);
   const visible = list.slice(0, shown);
-  const remaining = list.length - visible.length;
+  // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
+  // och bara i standardläget, som är det sidans kort visar. Med ett filter
+  // valt vet vi inte, och då visas ingen "Visa fler" förrän listan kommit
+  // (hellre ingen knapp än en med fel antal).
+  const totalt = alla ? list.length : arStandard && ov ? ov.antal : visible.length;
+  const remaining = totalt - visible.length;
+  // Kunden har bett om något som kräver hela listan och den har inte kommit:
+  // ett filter eller en sortering, eller fler kort än sidan bär.
+  const behoverLista = !!lista && !alla && (!arStandard || shown > products.length);
+  const vantar = behoverLista && !listaFel;
+
+  // Behövs listan och har den inte begärts, begär den. Täcker allt som inte
+  // går via avsikts-signalerna nedan — framför allt prisreglaget, färgskenan
+  // och kryssrutorna, som på dator alltid syns utan att filterknappen rörs.
+  // (Utan det här fastnade en besökare med datasparläge i väntläget.)
+  useEffect(() => {
+    if (behoverLista && !listaFel) hamtaLista();
+  }, [behoverLista, listaFel, hamtaLista]);
+
+  // Avsikt att se mer än sidans egna kort: listsidorna hämtar hela listan, och
+  // alla hämtar bildkartan för korten långt ner (lib/list-payload.ts).
+  const hamta = useCallback(() => {
+    if (lista) hamtaLista();
+    hamtaBilder();
+  }, [lista, hamtaLista, hamtaBilder]);
+
+  // FÖRHÄMTNING NÄR WEBBLÄSAREN ÄR LEDIG. Avsikts-signalerna räcker oftast,
+  // men en snabb tumme hinner före. Listan låg förr i sidans HTML och laddades
+  // av alla, så att hämta den efter sidladdningen kostar ingen besökare mer än
+  // förut — utom den som valt att spara data, eller sitter på 2G. Dem låter vi
+  // vara tills de faktiskt rör något.
+  //
+  // Landar man på ett filtrerat läge (delad länk med ?pris=…) behövs listan
+  // direkt, så då hämtas den på en gång.
+  useEffect(() => {
+    if (!lista) return;
+    if (!arStandard) { hamtaLista(); return; }
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (conn?.saveData || /2g$/.test(conn?.effectiveType ?? "")) return;
+    let avbruten = false;
+    let idle: number | undefined;
+    const start = () => {
+      if (avbruten) return;
+      idle = typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(() => hamtaLista(), { timeout: 4000 })
+        : window.setTimeout(hamtaLista, 1500);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      avbruten = true;
+      window.removeEventListener("load", start);
+      if (idle !== undefined) {
+        if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idle);
+        else window.clearTimeout(idle);
+      }
+    };
+    // Bara vid mount: senare lägesbyten hämtar via avsikts-signalerna.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Skyddsnätet. Avsikts-signalerna ovan täcker de vanliga vägarna, men en delad
   // länk kan landa direkt i ett filtrerat läge (?pris=…&farg=…) där korten i vyn
@@ -416,14 +520,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
             landa på produkter långt ner i katalogen. */}
         <button type="button" className="shopbar-toggle"
-          onPointerEnter={hamtaBilder} onTouchStart={hamtaBilder}
-          onClick={() => { hamtaBilder(); setOpen((b) => !b); }} aria-expanded={open}>
+          onPointerEnter={hamta} onTouchStart={hamta}
+          onClick={() => { hamta(); setOpen((b) => !b); }} aria-expanded={open}>
           ⚙ Filter {activeFilters > 0 && <span className="filter-count">{activeFilters}</span>}
         </button>
 
         <div className="shopcount-inline" aria-live="polite">
-          {productCountLabel(liveCount)}
-          {activeFilters > 0 && <span className="shopcount-of"> av {products.length}</span>}
+          {liveCount === null ? "Räknar …" : productCountLabel(liveCount)}
+          {activeFilters > 0 && <span className="shopcount-of"> av {ov ? ov.antal : products.length}</span>}
         </div>
 
         <label className="sortsel shopbar-sort">
@@ -433,12 +537,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
               men ett filter ovanpå kan nå längre ner — så vi hämtar när man
               rör reglaget, inte när man släpper det. */}
           <select value={sort} onChange={(e) => setSort(e.target.value)}
-            onPointerEnter={hamtaBilder} onFocus={hamtaBilder} aria-label="Sortera produkter">
+            onPointerEnter={hamta} onFocus={hamta} aria-label="Sortera produkter">
             {(defaultSort === "rel" ? [REL_SORT, ...SORTS] : SORTS).map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
           </select>
         </label>
 
-        <div className="shopbar-panel">
+        {/* På dator syns panelen alltid, utan att filterknappen rörs — att
+            närma sig den är avsikten. */}
+        <div className="shopbar-panel" onPointerEnter={hamta} onFocusCapture={hamta}>
           {bounds && (
             <div className="filter-group">
               <span className="filter-label">Pris</span>
@@ -535,7 +641,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                 >
                   <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} />
                   {color ? colorLabel(color) : ""}
-                  <span className="cr-n">{colorCounts.get(color) ?? 0}</span>
+                  <span className="cr-n">{fargAntal(color)}</span>
                 </div>
                 <div className="cr-track" style={{ background: railGradient }} />
                 <input
@@ -551,7 +657,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                   onKeyUp={commitColor}
                   onBlur={commitColor}
                   aria-label="Färg"
-                  aria-valuetext={color ? `${colorLabel(color)}, ${productCountLabel(colorCounts.get(color) ?? 0)}` : "Alla färger"}
+                  aria-valuetext={color ? `${colorLabel(color)}, ${colorCounts ? productCountLabel(colorCounts.get(color) ?? 0) : "antal räknas"}` : "Alla färger"}
                   style={{ ["--cr-thumb" as string]: color ? colorOf(color) || "#ddd" : "#fff" }}
                 />
               </div>
@@ -560,7 +666,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
                   <>
                     <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} aria-hidden="true" />
                     {colorLabel(color)}
-                    <span className="cr-n">{colorCounts.get(color) ?? 0}</span>
+                    <span className="cr-n">{fargAntal(color)}</span>
                   </>
                 ) : "Alla färger"}
               </span>
@@ -605,15 +711,28 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp }: { product
           {/* De fyra första korten är över vikningen på varje skärmbredd (1–4
               kolumner), så deras bilder hämtas eager med hög prioritet. Resten
               är kvar på lazy — 24 kort × 2 bilder är inget att förladda. */}
-          <div className="prodgrid">{visible.map((p, i) => <ProductCard p={medBild(p)} key={p.slug} priority={i < 4} />)}</div>
-          {remaining > 0 && (
+          {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
+              (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
+              rutnät eller kort som byts ut under fingret. */}
+          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => <ProductCard p={medBild(p)} key={p.slug} priority={i < 4} />)}</div>
+          {listaFel && behoverLista && (
+            <div className="loadmore-wrap">
+              <button type="button" className="loadmore" onClick={hamtaLista}>
+                Kunde inte hämta fler produkter · Försök igen
+              </button>
+            </div>
+          )}
+          {remaining > 0 && !(listaFel && behoverLista) && (
             <div className="loadmore-wrap">
               {/* onPointerEnter/onTouchStart: bildkartan är på väg innan klicket
                   hinner registreras, så nästa 24 kort har sina foton direkt. */}
               <button type="button" className="loadmore"
-                onPointerEnter={hamtaBilder} onTouchStart={hamtaBilder}
-                onClick={() => { hamtaBilder(); setShown((n) => n + PAGE_SIZE); }}>
-                Visa fler <span className="loadmore-rem">({remaining} kvar)</span>
+                onPointerEnter={hamta} onTouchStart={hamta}
+                disabled={vantar && shown > products.length}
+                onClick={() => { hamta(); setShown((n) => n + PAGE_SIZE); }}>
+                {vantar && shown > products.length
+                  ? "Hämtar fler …"
+                  : <>Visa fler <span className="loadmore-rem">({remaining} kvar)</span></>}
               </button>
             </div>
           )}

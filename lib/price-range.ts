@@ -192,3 +192,48 @@ export function priceRangeLabel(min: number, max: number): string {
   const from = String(Math.round(min)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return `${from}–${formatPrice(max)}`;
 }
+
+/** En stapel i prishistogrammet bakom reglaget. */
+export type HistStapel = {
+  /** Höjd i px. 68 = .pr-hist-höjden i globals.css. */
+  h: number;
+  /** Stapelns mittpris, för att avgöra om den ligger inom handtagen. */
+  mid: number;
+  /** Sista facket när skalan har ett öppet tak — ritas randigt. */
+  over: boolean;
+};
+
+const HIST_FACK = 46;
+// 68 = .pr-hist-höjden i globals.css. Ändras den ena måste den andra med,
+// annars slår staplarna i taket eller lämnar luft över den högsta.
+const HIST_HOJD = 68;
+
+/**
+ * Prisfördelningen som histogram bakom reglaget. Räknas ur HELA listan och står
+ * därför still när man filtrerar: räknades den om per filter hade landskapet
+ * rört sig under fingret, och då går det inte att sikta. Kvadratroten på höjden
+ * ger de glesa facken synlig närvaro utan att pucklen trycker ner dem till en
+ * osynlig strimma.
+ *
+ * Ren funktion — servern räknar den för listsidornas sammanfattning
+ * (lib/list-overview.ts) och ShopBrowser för sökresultaten, med samma svar.
+ */
+export function prisHistogram(items: readonly PricedItem[], bounds: PriceBounds | null): HistStapel[] {
+  if (!bounds) return [];
+  const w = (bounds.max - bounds.min) / HIST_FACK;
+  const antal = new Array<number>(HIST_FACK).fill(0);
+  for (const p of items) {
+    const i = Math.floor((p.priceNum - bounds.min) / w);
+    antal[Math.min(HIST_FACK - 1, Math.max(0, i))] += 1;
+  }
+  const topp = Math.max(1, ...antal);
+  return antal.map((n, i) => ({
+    h: Math.max(4, Math.round(Math.sqrt(n / topp) * HIST_HOJD)),
+    mid: bounds.min + (i + 0.5) * w,
+    // Sista facket samlar ALLT ovanför skalans topp, inte bara sitt eget
+    // intervall — på den här katalogen är det svansens 5 %. Oritat som en
+    // vanlig stapel läser det som en puckel vid takpriset, alltså tvärtemot
+    // sanningen. Det märks ut och ritas randigt.
+    over: i === antal.length - 1 && bounds.openTop,
+  }));
+}

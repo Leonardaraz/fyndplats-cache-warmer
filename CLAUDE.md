@@ -114,7 +114,27 @@ kategori-dropdownen (`{open && …}`) är bekvämligheter för kunden, inte län
 för Google. `lib/meganav-ssr.test.ts` fäller om desktopmenyns paneler blir
 villkorliga igen.
 
-# Analytics
+## Listsidor: HTML:en ska vara det kunden ser (2026-09-27)
+
+Kategorisidorna skickade sina kort i katalogordning, och ShopBrowser sorterade
+om dem i webbläsaren. När sidan laddat klart stod 0 av 24 kort kvar på
+/kategori/husdjur. Sökmotorn läste alltså andra produkter än kunden såg, och
+rutnätet blinkade om. Samtidigt låg hela produktlistan i sidan: 1,3 MB av
+/alla-produkters 2,8 MB. Bing flaggade tre sidor som över 1 MB.
+
+Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
+
+1. **Ordna listan på servern** med `ordnaLista` och skicka samma `dayMs` till
+   ShopBrowser.
+2. **Skicka bara början av listan.** `listaForSidan` ger de första 48 korten
+   plus en sammanfattning för filtren. Resten hämtar ShopBrowser från
+   `/api/lista`, som räknar samma lista med samma funktion.
+3. **A–Ö-listorna stannar på kategorisidorna.** Enligt en PageRank-modell över
+   sajtens egna 4 015 sidor halveras produkternas interna värde utan dem
+   (median 0,320 → 0,170), och sidnumrering var sämre (0,175). De skickas som
+   färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
+   stor, i React-datan.
+
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
   (`@vercel/speed-insights/next`) are mounted in `app/layout.tsx`. Both are
