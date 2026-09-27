@@ -1226,3 +1226,21 @@ beslut — se den samlade frågan om detta.
   `d9fa791d`, `a75b4e26`, `f8599023` och `b3d60f53` och lekstugorna
   `6bacbb65`, `8a7e64bc`, `f185f55d`, `99850a5e`, `f6a0b941` och
   `2a3a93d5`. (B7)
+- Sparkcyklarna `28d7dfd9` i ljusblått och `aef9a8d9` i grönt är samma
+  modell som publicerade `4080448d`, `ea013fde` och `79186373`. Hålls som
+  färgsyskon. (B8)
+- Färgsyskon inom B8:s familjer, som väntar: pedalgokartarna `b2b28cec` i
+  blått (72) och `39260484` i rosa (50), elgokartarna `3c0795b6` i rött
+  (57) och `5a4f53a9` i blått (31), keyboardet `36ac2f68` i svart (52) och
+  skumkuberna `ce0265ee` i pastell (58) och `c867663e` (173). Den färg med
+  störst saldo poleras i B8. (B8)
+- Skumset som delar minst två måttripplar med publicerade skumklossar,
+  hålls: `b50bd167`, `361d09f5`, `99807672`, `638f2110`, `ebb597b4`,
+  `b2ab1b14`, `e27a64ec`, `8cca1ae9`, `a6e01595` och `05007fea`. (B8)
+- Saldo 0–7, inte polerade: lekmattan `1adef24e` (0) och
+  klätterklossarna `29d7e497` (0) och `dbd5252f` (7). (B8)
+- ☠️ Tågbanan `0d8d0d2d` hade vattenstämpeln *AI生成* (”AI-genererad”)
+  inbränd på bild 2. Stämpeln syntes knappt i kontaktarket och hittades
+  först vid inzoomning. Leverantörens livsstilsbilder kan alltså vara
+  AI-genererade och märkta, så zooma in på hörnen när en bild ser
+  renderad ut. (B8)

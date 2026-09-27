@@ -1,0 +1,3 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+8df88104 6 färger, två kuber av varje, syns på bild 1
+0d5eaa06 2 kvartsrunda mattor, syns på bild 1 och 2; källan listar Sektor en gång men säger 6 delar
