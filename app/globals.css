@@ -1303,7 +1303,15 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .varswatch.text{padding:9px 18px}
 .varswatch:hover{opacity:.85;border-color:#C2410C66}
 /* Vald variant: emfas helt INNANFÖR pillens egen box. Tidigare låg här en yttre
-   ring (box-shadow:var(--e2){opacity:1;border-color:var(--brand);box-shadow:inset 0 0 0 1.5px var(--brand),0 8px 18px -12px rgba(194,65,12,.45);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
+   ring (box-shadow:0 0 0 3px) + transform:scale(1.05) som båda växte UTÅT — på
+   den första pillen sköt det vänsterkanten ~5–6 px till vänster om hjältebilden
+   (Leonards rapport: vald pill "sticker ut till vänster", ej i linje). Nu en
+   inre ring + tjockare kant + mjuk nedåtglow: pillen behåller exakt samma box i
+   vilo- och vald-läge, så vänsterkanten ligger i linje med hero och titel.
+   ☠️ Designsystemets token-byte (#491) åt 2026-08-22 upp slutet på den här
+   kommentaren och selektorn nedan, så sju regler var bortkommenterade i fem
+   veckor. lib/css-kommentarer.test.ts fäller om det händer igen. */
+.varswatch.active{opacity:1;border-color:var(--brand);box-shadow:inset 0 0 0 1.5px var(--brand),0 8px 18px -12px rgba(194,65,12,.45);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
 .varswatch.text.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 .varswatch:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .varswatch-thumb{width:44px;height:44px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:var(--surface-2);display:block}
