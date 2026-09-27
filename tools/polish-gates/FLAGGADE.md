@@ -3224,3 +3224,30 @@ beslut — se den samlade frågan om detta.
   självrengörande kattlådan `d9fe1f8c` stod också under täckta familjer.
   Enligt N64:s regel gäller familjeregeln inte för de nyaste utkasten, och
   dubblettskärmens träffar för dem var andra varor. (N77)
+- N78 tog de tretton som N77 lämnade. Åtta publicerades och fem blev val på
+  tre av sidorna. Alla tretton hade gått genom N77:s dubblettskärm, och N78
+  jämförde dessutom med de publicerade sidor som namnen pekade på. (N78)
+- Val i stället för egna sidor: agilitybågarna med gula `75a94825` och vita
+  `d6283e97` bågar på `ee50f5bf`, katthjulen i valnöt `1e1f9dcb` och grått
+  `fcb3dd7c` på `4664e423`, och grinden på 91,5 cm `edac20c7` som storlek på
+  `5f84f2c1`. Givarna är pensionerade. Deras priser följde konkurrentregeln och
+  följer husets regel från nästa synk, som planen varnade för. (N78)
+- Kontrollerat och friat: katthjulen mot det publicerade `7253f433`
+  (AliExpress-hjul i massivt trä, ribbor med 6 mm mellanrum, fem storlekar i
+  tum); agilitysetet med två tunnlar `6a6bfd64` mot `08230ec1` och `82fec275`
+  (andra mått på hinder, slalom och ruta); och grinden `5f84f2c1` mot `03207c35`
+  och `c6554568` (vita, utan dörr, andra mått). Inget av de friade är samma
+  vara. (N78)
+- Källtext från ett annat set: `480eefad` räknar i källan upp två tunnlar och
+  två hopphinder, men fotot och förpackningslistan visar hoppring, ett
+  hopphinder, slalom och pausruta. Texten följer fotot och listan. (N78)
+- Bildgranskningen strök 9 av 40 bilder: tysk text på sju, engelsk reklamtext
+  med husmärkets logotyp på agilitybågarnas bild 5, och en ramp och en hundpool
+  som inte ingår på tunnelsetets bild 5. Varningsetiketten på den
+  självrengörande kattlådan `b60b0392` sitter på varan och behölls. Alla åtta
+  behöll minst tre bilder. (N78)
+- Grindens mankhöjd står bara i bilderna: under 45 cm på bild 3 (struken för
+  sin tyska text) och under 60 cm för den höga grinden på syskonets bild 3.
+  Båda är kvitterade i `foto-tal.txt`. (N78)
+- Inga nya sökord mättes (Semrush-enheterna var slut, 403). Alla åtta slugar
+  prövades mot hela katalogen utan krock. (N78)
