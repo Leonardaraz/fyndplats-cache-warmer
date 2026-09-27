@@ -450,6 +450,29 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(val.every((c) => (c.linkedMedia as Obj[]).length === 1)).toBe(true);
   });
 
+  it("☠️ en bild som aldrig kopplas stoppar mappningen, och omkörningen kopplar den", async () => {
+    const w = fejkWix();
+    w.fel.koppling = 1000;
+    const { deps, rader } = miljo({ wix: w });
+    const forsta = await korSammanslagning(PAR, deps, { apply: true });
+    expect(forsta.ok).toBe(false);
+    expect(forsta.fel).toMatch(/saknar kopplad bild.*mappningen skrevs INTE/);
+    // Wix bär färgen men mappningen och givaren är orörda — en omkörning ska
+    // alltså hamna i `wix_klar`, inte i `klar`, som inte kopplar något.
+    expect(rader.get("sida")!.variants).toHaveLength(1);
+    expect(rader.get("utkast")!.draftStatus).toBe("pending_review");
+
+    w.fel.koppling = 0;
+    const plan = await korSammanslagning(PAR, deps);
+    expect(plan.plan.tillstand).toBe("wix_klar");
+    const andra = await korSammanslagning(PAR, deps, { apply: true });
+    expect(andra.ok).toBe(true);
+    const val = ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
+    expect(val.map((c) => [c.name, bildPa(c)])).toEqual([["Svart", "bild-s1"], ["Grå", "bild-u1"]]);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+  });
+
   it("☠️ föll mappningen: omkörningen ser att Wix är klart och gör bara resten", async () => {
     const { deps, rader, w } = miljo({ sparaFaller: 1 });
     await expect(korSammanslagning(PAR, deps, { apply: true })).rejects.toThrow(/databasen/);

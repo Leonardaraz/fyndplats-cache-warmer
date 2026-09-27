@@ -1208,7 +1208,19 @@ export async function korSammanslagning(
         + "Synken nollar den nya variantens lager tills den är mappad. Kör om.",
     );
   }
-  if (k.lankade < krav) steg.push(`⚠️ ${krav - k.lankade} val saknar kopplad bild — kör om för att koppla`);
+  // ☠️ En färg utan kopplad bild visar sidans huvudbild, alltså fel färg, i
+  // butiken och i Google-flödet. Den stoppar därför mappningen, precis som en
+  // återläsning som inte stämmer: omkörningen ser `wix_klar` och kopplar igen.
+  // En varning som lät körningen gå vidare skrev mappningen och pensionerade
+  // givaren, och då hamnade omkörningen i `klar`, som inte kopplar något.
+  // Rådet "kör om" gjorde alltså ingenting.
+  if (k.lankade < krav) {
+    return svar(
+      false,
+      `${krav - k.lankade} val saknar kopplad bild efter ${KOPPLING_FORSOK} försök — mappningen skrevs INTE. `
+        + "Synken nollar den nya variantens lager tills den är mappad. Kör om, så kopplas bilderna igen.",
+    );
+  }
   const lager = await lasLager(deps.wix, input.behall);
   const antal = (id: string | undefined) => lager.find((x) => x.variantId === id)?.quantity;
   const qNy = antal(k.nyId);

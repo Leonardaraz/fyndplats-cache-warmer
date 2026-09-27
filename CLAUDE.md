@@ -1597,6 +1597,16 @@ Sex egenskaper som inte ska tas bort:
    från Wix, efter att planen sett ren ut. Sedan 2026-09-27 fäller planen den
    (`sku_for_lang`), och SKU:n anges för hand.
 
+☠️ **En färg utan kopplad bild stoppar mappningen (2026-09-27).** Återläsningen
+försöker koppla valens bilder åtta gånger. Tidigare varnade den sedan
+"kör om för att koppla", men skrev ändå mappningen och pensionerade givaren. Då
+hamnade omkörningen i `klar`, som bara gör givarens efterarbete och svarade
+"redan sammanslagen — ingenting att göra" medan färgen fortfarande visade fel
+foto. Nu returnerar körningen fel innan mappningen skrivs, och omkörningen ser
+`wix_klar` och kopplar igen. Runbookens regel om en bild per färg (#667) byggde
+på att omkörningen fungerar, och ett test låser det: bilden faller i första
+körningen och kopplas i den andra.
+
 ⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
 det.** Kommentaren där säger att en delad option ("customization") tar högst 100
 val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) har
@@ -1682,8 +1692,9 @@ regeln: 96 färgfamiljer till. A-hindret och agilitybågarna står nu som färgf
 med en publicerad sida var, och hopphindren som förut. Regeln är lösare, så varje
 ny färgfamilj ses med bilderna innan något slås ihop (punkt 5 ovan).
 
-Arbetsgången för poleringen står i **`docs/polish/syskon.md`**: hitta syskonen,
-förbered sidan, planen och hindren, skrivningen och texten efteråt.
+När ett syskon ska bli ett val står i runbooken (Dubblettskärmen). Verktygets
+referens står i **`docs/polish/syskon.md`**: inputs, lägen, arbetsgång, bilder,
+hinder och färger som inte kom via verktyget.
 
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 

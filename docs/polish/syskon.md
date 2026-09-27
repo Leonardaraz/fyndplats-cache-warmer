@@ -7,7 +7,7 @@
 > Koden finns i `lib/aosom/sammanslagning.ts` och rutten i
 > `/api/admin/aosom-sammanslagning`. Workflowen heter **"Dubbletter — lägg ett utkast som
 > färg eller storlek på en publicerad sida"** (`.github/workflows/aosom-sammanslagning.yml`).
-> Planen är aktuell per #664 (2026-09-27).
+> Planen är aktuell per #666 (2026-09-27).
 
 ## Vad den gör
 
@@ -37,9 +37,10 @@ körningar.
 
 Värdena stavas som i butiken (`Grå`, `110 × 85 cm`). Skriver du `grå` på en sida som har
 `Grå` räknas det som samma val, så Wix får inget dubbelval. En färg har 2–30 tecken och
-bara bokstäver, mellanslag och bindestreck. En storlek har högst 30 tecken och får
-innehålla siffror, `×`, `x`, komma, punkt och snedstreck. Värden utanför det ger
-`farg_ogiltig` eller `storlek_ogiltig`.
+bara bokstäver, mellanslag, bindestreck och snedstreck. En storlek har högst 30 tecken och
+får innehålla siffror, bokstäver, `×`, `x`, komma, punkt, snedstreck och bindestreck, men
+inte ha formen av ett artikelnummer. Värden utanför det ger `farg_ogiltig` eller
+`storlek_ogiltig`.
 
 Vilka axlar sidan får beror på vad den har från början:
 
@@ -76,7 +77,8 @@ Planen anger ett `tillstånd`:
 4. **Kör `byt`.** Ordningen är: bilderna läggs i sidans galleri, optionerna, varianterna och
    lagret skrivs i ett anrop (`products-with-inventory`), valen kopplas till sina bilder, och
    Wix läses tillbaka. Faller variantskrivningen tas de nya bilderna bort igen. Mappningen
-   skrivs först när återläsningen stämmer. Därefter pensioneras givaren.
+   skrivs först när återläsningen stämmer och varje val har sin bild. Därefter pensioneras
+   givaren.
 5. **Kontrollera live.** Välj varje färg på sidan och se att bilden byter till rätt färg.
    Kontrollera också att varje kombination har rätt pris och lagerstatus.
 6. **Rätta texten.** Namnet får inte nämna en enda färg eller ett enda mått. `Färg:`-raden
@@ -101,14 +103,17 @@ Så väljer verktyget bilder:
   kopplas den om vid återläsningen.
 
 Återläsningen väntar på kopplingen, eftersom Wix tar emot bilden asynkront. Den försöker
-upp till åtta gånger med 2,5 sekunders paus. Står `⚠️ … val saknar kopplad bild` i loggen
-kör du `byt` igen. Omkörningen ser `wix_klar` och gör bara det som återstår.
+upp till åtta gånger med 2,5 sekunders paus. Hinner en bild inte kopplas stoppar körningen
+(`… val saknar kopplad bild … mappningen skrevs INTE`), och givaren pensioneras inte. Kör
+`byt` igen. Omkörningen ser `wix_klar` och kopplar bilderna. Tills dess är varianten
+omappad: nästa synk nollar dess lager, och beställningsfilen håller en order på den.
 
 ☠️ **Bara granskade bilder.** 46 % av feedens bilder har tysk text inbränd, och en del
 har husmärkets logotyp. Ett utkast är opolerat, så ingen har tittat på dess bilder.
 
 ☠️ **Huvudbilden måste visa syskonets färg.** Gör den inte det anger du med `bilder` en
-bild som gör det. Finns ingen sådan bild slår du inte ihop.
+bild som gör det. Den första bilden i `bilder` är den som kopplas till färgen, så sätt den
+först. Finns ingen sådan bild slår du inte ihop.
 
 ## Publicerad givare
 
@@ -152,6 +157,7 @@ Hindren stoppar körningen. Varningarna stoppar ingenting men ska läsas.
 | `farg_lika`, `storlek_lika` | Den nya axeln har samma värde för sidan och givaren. | En axel som inte skiljer något åt är fel. Kontrollera värdena. |
 | `kombinationen_finns` | Sidan har redan exakt den kombinationen. | Givaren är en dubblett. Pensionera den. |
 | `sku_ogiltig` | Standard-SKU:n bryter mot formen `FP-…` eller fälls av artikelnummerspärren. | Ange `sku` för hand. Storleken står före färgen. |
+| `sku_for_lang` | SKU:n har fler än 40 tecken, som är Wix tak. Standard-SKU:n blir lätt för lång. | Ange en kortare `sku`. |
 | `sku_upptagen`, `sku_lika` | SKU:n finns redan, på en annan sida eller på den här. | Ange en annan `sku`. |
 | `behall_ej_publicerad` | Sidan ligger inte ute. | Publicera sidan först, eller byt håll. |
 | `namnet_bar_farg`, `namnet_bar_storlek` | Sidans namn har sidans färg eller storlek. | Skriv om namnet först. Sluggen står kvar. |

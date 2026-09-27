@@ -238,14 +238,14 @@ sida"**, ett syskon per körning. Hela arbetsgången och alla hinder står i
    feedens tyska värden, så översätt dem efter bilden.
 2. **Läs planen och hindren.** Bär sidans namn färgen eller måttet
    (`namnet_bar_farg`, `namnet_bar_storlek`) skriver du om namnet först. Sluggen står
-   kvar. Stoppar SKU:n (`sku_ogiltig`, `sku_upptagen`, `sku_lika`) anger du `sku` själv.
-   Håll den till högst 40 tecken, för det är Wix tak (`gate-sku.py`). Verktyget räknar inte
-   längden, så räkna själv på standard-SKU:n också. Vid `kombinationen_finns` är utkastet en
-   dubblett: pensionera det.
+   kvar. Stoppar SKU:n (`sku_ogiltig`, `sku_for_lang`, `sku_upptagen`, `sku_lika`) anger
+   du `sku` själv, högst 40 tecken, eftersom det är Wix tak. Vid `kombinationen_finns` är
+   utkastet en dubblett: pensionera det.
 3. **Bilder.** Utan `bilder` följer utkastets huvudbild med när en ny färg läggs till,
    annars ingen. Ange fler (`bilder: 1,2`) bara för bilder du har granskat enligt steg 3.
    Huvudbilden ska visa varan **i syskonets färg**. Gör den inte det anger du den bild som
-   gör det, och finns ingen sådan bild slår du inte ihop. Se
+   gör det, först i `bilder`, eftersom den första bilden kopplas till färgen. Finns ingen
+   sådan bild slår du inte ihop. Se
    [Varje färg har sin egen bild](#varje-färg-har-sin-egen-bild).
 4. **Kör `byt`.** Varianten och dess lager skrivs i samma anrop och läses tillbaka innan
    mappningen skrivs. Utkastet pensioneras. Priset rörs inte, och från nästa synk följer
@@ -267,10 +267,11 @@ visar produktens huvudbild, alltså fel färg. Kunden väljer vit och ser grön,
 Shopping annonserar den vita varianten med ett grönt foto.
 
 Sammanslagningen kopplar bilderna själv: sidans färg får sidans huvudbild och syskonets
-färg syskonets bild. Återläsningen väntar på kopplingen, och står
-`⚠️ … val saknar kopplad bild` i loggen kör du `byt` igen. Ett undantag är med flit: en
-storlekssida som får färg behåller storlekarnas bilder, och sidans egen färg får ingen.
-Verktyget kopplar bara bilden. Du ansvarar för att den visar rätt färg.
+färg syskonets bild. Återläsningen väntar på kopplingen. Hinner en bild inte kopplas
+stoppar körningen med `… val saknar kopplad bild … mappningen skrevs INTE`, och då kör du
+`byt` igen. Omkörningen ser att Wix är klart och kopplar bilderna. Ett undantag är med
+flit: en storlekssida som får färg behåller storlekarnas bilder, och sidans egen färg får
+ingen. Verktyget kopplar bara bilden. Du ansvarar för att den visar rätt färg.
 
 Kontrollera efter `byt` att varje färg i väljaren byter till ett foto i just den färgen.
 Samma krav gäller färger som kommit in på annat sätt, som AliExpress-importer och
