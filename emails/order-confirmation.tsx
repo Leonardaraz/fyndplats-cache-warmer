@@ -291,7 +291,7 @@ export default function OrderConfirmationEmail({
             Produktsäkerhet
           </Text>
           <Text style={{ ...sakerhetText, margin: "0 0 10px 0" }}>
-            Säkerhetsinformation på svenska för varorna i din beställning. Spara
+            Säkerhetsinformation för varorna i din beställning. Spara
             mejlet tillsammans med bruksanvisningen som följer med varan.
           </Text>
           {sakerhet.varor.map((v, i) => (
