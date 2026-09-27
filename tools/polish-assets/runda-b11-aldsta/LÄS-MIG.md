@@ -195,19 +195,62 @@ skoförvaring, så den ligger inte i *Skoskåp & skobänkar*.
 
 ## SKRIV
 
-(fylls i efter körningen)
+Plan `3b8ccd21836989ca4bbd76d1acaf448a58430781a0efed7381c1fb7d85e2ddc5`,
+grenen `3da05c19`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36293651859 | torr | 8 texter, 8 bildlistor, 23 av 23 kategorirader och 8 SKU:er |
+| 36293697714 | skriv | text 8/8, bilder 8/8, kategorier 23/23, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409 den här gången heller.
+
+⚠️ **Pushen byggde, och det var väntat.** `dpl_FvVgp5KrdNtbu1feLx61Pqsrc7fX`
+blev `READY` efter 70 s. Diffen mot förra byggda SHA:n `e7aff177` rör bara
+`tools/` och markdown, men `e7aff177` låg exakt tio commits bak, alltså
+utanför Vercels grunda klon. `git cat-file` fann den inte och gav bygge, som
+`CLAUDE.md` beskriver under *Läkningen är inte engångs*. Pekaren står nu på
+`3da05c19`, så nästa rundas push hoppas över igen.
 
 ## LIVE
 
-(fylls i efter livekontrollen)
+Hämtat 04:24 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age` 139 s.
+Sluggarna var nya, så den första träffen renderade redan den nya sidan
+(`age=0`), och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 33 av 33 |
+| strukna bilder på sidan | 0 av 6 |
+| kvarvarande bilder på sidan | 33 av 33 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulorna visar huvudkategorin: Sport & Fritid, Skönhet & Hälsa,
+Kök & Husgeråd, Hem & Inredning och Möbler.
 
 ## Nästa runda
 
-B12 börjar med den hopfällbara sängen `b3ffb5d1` (saldo 103) och lagret
-00:16–00:20: bänkarna `d9767b3c`, `865acfdf`, `9b8fefe6`, `50e06edb` och
-`29f0fcb1` och byråerna med tyglådor `b7e5c1ea`, `a14b1d61` och
-`ca182d50`. De ska jämföras på bild med de publicerade bänkarna och
-byråerna på samma sätt som `b08dc0cb` här.
+⚠️ **Rundan hoppade över ett lager.** Mellan elementskyddet (00:04) och
+bänkarna (00:16) ligger förutom konstväxterna fjorton väggspeglar,
+skapade 00:08–00:15: `4d946ee9`, `cc974ed4`, `efde9936`, `98e2b710`,
+`c387420b`, `c9c98ab1`, `08feb111`, `d9a5ec62`, `9210da17`, `aa2158bc`,
+`b12666e7`, `b6922dc8`, `f726a1bc` och `6ca6b338`. De är inte skärmade.
+Flera ser ut att vara färgsyskon till varandra (`9210da17`/`b12666e7`,
+`b6922dc8`/`f726a1bc`), och kategorin *Speglar* har 40 publicerade att
+jämföra med.
+
+**B12 börjar därför med speglarna**, i skapandeordning och med samma
+skärm som här. Därefter kommer den hopfällbara sängen `b3ffb5d1` (saldo
+103) och lagret 00:16–00:21: bänkarna `d9767b3c`, `865acfdf`, `9b8fefe6`,
+`50e06edb`, `29f0fcb1`, `081f2277`, `f7ba4bb8` och `55f4c0d9` och
+byråerna med tyglådor `b7e5c1ea`, `a14b1d61`, `1919bee5`, `d018014a`,
+`68e64f5e` och `7b56d280`.
+
+Utkastet `d618473f` (23:58) har redan ett svenskt namn, *Elkamin vit
+54,8 cm*. Det rörs inte förrän det är utrett varför det ligger kvar som
+utkast.
 
 Fortfarande i väntan på en samlad skärm: de 44 fåtöljerna från B10, de fem
 brödrost- och vattenkokarseten ovan och konstväxterna i lagret
