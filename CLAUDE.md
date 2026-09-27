@@ -1495,6 +1495,51 @@ Wix redan är klart (`wix_klar`) och gör bara resten.
 Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
 mappningen inte känner till — och de nollas vid nästa skarpa körning.
 
+### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
+
+Leonards fråga: finns det fler färgdubbletter, och storleksdubbletter, alltså
+samma artikel i olika storlekar? Poleringen har hittat syskonen ett i taget, med
+måttsvep över polerade texter (`FARGSYSKONEN.md`, runda N76). Feeden har svaret
+strukturerat: färg, yttermått, material, vikt och paketmått är egna kolumner, och
+mappningen säger vilken sida varje rad blev.
+
+Workflowen **"Dubbletter — hitta färg- och storlekssyskon"** →
+`/api/admin/aosom-familjer` → `lib/aosom/familjer.ts`. Den skriver ingenting.
+
+| relation | kräver |
+|---|---|
+| färg | samma mått, paket och vikt, olika färg, samma modellnamn |
+| samma vara | samma mått, paket och vikt, samma färg, samma modellnamn |
+| storlek | samma klunga (`Psin`), olika mått, samma färg, material och kategori, samma modellnamn |
+
+"Samma modellnamn" jämförs på feedens tyska namn efter att färgord, siffror,
+enheter, storleksord och husmärken skalats bort. Kandidaterna kommer från
+`Psin` och från den fysiska signaturen (mått plus paket), som täcker raderna
+utan klunga.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **`Psin` väljer bara kandidater och avgör ingenting.** Klungan är ingen
+   variantgrupp (se `feed.ts`), och en storleksrelation kräver ändå samma
+   modellnamn, färg och material. Utan klungan räknas två olika mått inte som
+   något alls.
+2. ☠️ **Svaret bär aldrig artikelnummer, `Psin`, utkastens tyska namn eller
+   kostnader.** Utkastens namn är Aosoms egna titlar, och en sökning på dem leder
+   till Aosoms produktsida. Publicerade sidor visar sitt svenska namn, och all
+   fritext går genom `redigera`. Ett test serialiserar svaret och letar.
+3. **Familjens typ räknas på VÅRA sidors färger och mått**, inte på kanterna. En
+   familj kan hålla ihop genom en feedrad vi inte har (`ejHosOss`).
+4. ☠️ **Samma massfel-spärrar som synken** (`MIN_FEED_RADER`,
+   `MIN_WIX_PRODUKTER`). En halvläst katalog hade fått publicerade sidor att se
+   ut som saknade, och svaret hade sett komplett ut.
+5. **Listan är ett underlag för en människa.** Varje familj ses med bilderna
+   innan något slås ihop. `verktygetIdag` betyder bara att sammanslagningen
+   *kan* ta ett av utkasten, inte att den ska.
+
+`?par=<id>,<id>` kalibrerar mot par som redan är granskade: svaret säger vad
+jämförelsen såg (samma klunga, mått, färg, vikt och namnlikhet) utan att något
+nummer skrivs ut.
+
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
 Två skilda problem, med olika svar.

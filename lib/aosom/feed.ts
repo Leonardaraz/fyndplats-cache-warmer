@@ -101,6 +101,16 @@ export interface AosomRow {
   seFreightEur: number | null;
   /** 1-baserat radnummer i feeden — för felmeddelanden. */
   rowIndex: number;
+  /**
+   * Aosoms "relaterade varor"-klunga. ☠️ INTE en variantgrupp (se överst i
+   * filen). Läses bara av syskonsvepet (familjer.ts), som använder den för att
+   * välja vilka rader som är värda att jämföra — aldrig som svar.
+   *
+   * ☠️ EN IDENTIFIERARE, INTE EN EGENSKAP. feed-info.ts redigerar kolumnen av
+   * samma skäl som artikelnumret, och den får aldrig stå i ett svar som når en
+   * Actions-logg. Valfri för att äldre testfixturer inte ska behöva bära den.
+   */
+  psin?: string;
 }
 
 /**
@@ -146,6 +156,7 @@ export function parseAosomFeed(input: string): AosomRow[] {
       wholesaleEur: parseNumber(at(rec, "Wholesale Price")),
       seFreightEur: parseNumber(at(rec, "SE Ship Fee")),
       rowIndex: i,
+      psin: at(rec, "Psin"),
     });
   }
   return rows;
