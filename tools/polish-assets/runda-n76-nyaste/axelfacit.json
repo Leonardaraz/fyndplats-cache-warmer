@@ -1,0 +1,42 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "135d0f48": {
+  "tyska": "60,4L x 40,4B x 41,8H cm",
+  "svenska": "60,4L x 40,4B x 41,8H cm",
+  "bokstaver": "LBH",
+  "hojd": 41.8,
+  "bredd": 60.4,
+  "djup": 40.4
+ },
+ "61a19bac": {
+  "tyska": "305L x 60T x 94H cm",
+  "svenska": "305L x 60T x 94H cm",
+  "bokstaver": "LTH",
+  "djup": 60,
+  "hojd": 94,
+  "bredd": 305
+ },
+ "6d35a04f": {
+  "tyska": "",
+  "svenska": "6-teilig",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 80L x 22,5B x 30H cm | ✔ Querstange: 40L cm | ✔ Höhenverstellbar: 6, 13,5, 20,5H cm | ✔ Gerades Rohrmaß: Ø25 x 1,9T mm"
+ },
+ "d3c91eb3": {
+  "tyska": "",
+  "svenska": "124cm x 19,5cm x 103cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 124L x 19,5B x 103H cm | ✔ Höhenverstellung: 15-95H cm | ✔ Basisbelastung: 1,5 L (Sand oder Wasser)"
+ },
+ "e3cdd25f": {
+  "tyska": "69L x 40B x 131H cm",
+  "svenska": "69L x 40B x 131H cm",
+  "bokstaver": "LBH",
+  "hojd": 131,
+  "bredd": 69,
+  "djup": 40
+ },
+ "f6ab1dd4": {
+  "tyska": "",
+  "svenska": "60 x 148L cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tunnel-Set: L148 x Ø 60 cm, 1 x Tasche: Ø 65 cm | ✔ Hürden-Set: 2 x Stangen: H86 x Ø3,2 cm, 1 x Stange: L85 x Ø 3,2 cm | ✔ Slalom-Set: 4 x Stangen: H60 x Ø 3,2 cm | ✔ Startfeld: L88 x B88 x H2,5 cm"
+ }
+}

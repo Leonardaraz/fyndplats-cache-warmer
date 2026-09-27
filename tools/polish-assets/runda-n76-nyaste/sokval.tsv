@@ -1,0 +1,11 @@
+# kort, huvudsökord, volym, svårighet, sekundära sökord ('–' = inget mätvärde, Semrush-enheterna slut)
+# Alla volymer i parentes är hämtade ur sokord.tsv. Varje planerad slug är prövad mot hela katalogen 2026-09-27
+# (6 195 produkter, 3 740 publicerade): ingen krockar. Där en publicerad slug redan bar huvudsökordet valdes en
+# smalare variant: hopphinder (1) → hopphinder med fyllbar fot och agilityset (5) → agilityset med tunnel.
+# Kattlåda med lock, klösträd med stege, hinderset, slalomset och startfält bar ingen publicerad slug.
+135d0f48	kattlåda med lock	–	–	kattlåda (8100, 23); täckt kattlåda; kattlåda i rostfritt stål
+e3cdd25f	klösträd med stege	–	–	klösträd (5400, 27); klösträd med hus; klösträd i sjögräs
+6d35a04f	hinderset med koner	–	–	hinderset för hund; agility för hund; koner för hundträning
+61a19bac	slalomset för hund	–	–	slalom för hund; slalomstänger; agility för hund
+d3c91eb3	hopphinder med fyllbar fot	–	–	hopphinder för hund; agilityhinder; agility för hund
+f6ab1dd4	agilityset med tunnel	–	–	agilityset för hund; hundtunnel; agility för hund
