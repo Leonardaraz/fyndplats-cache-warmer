@@ -568,6 +568,56 @@ startsidan. Rutten vägrar så länge den gamla sluggen fortfarande är synlig.
 - **Inga länkar i produkttexten.** Karusellen *Liknande produkter* länkar mellan
   produktsidorna och menyn till kategorierna. `gate.py` fäller en länk.
 
+#### Filtren på kategorisidorna läser texten (2026-09-27)
+
+Kategorisidorna filtrerar på mått, material, klädsel, antal, form, placering och
+egenskaper. Wix har inga fält för det, så butiken läser uppgifterna ur beskrivningen
+(`lib/spec-facets.ts` på headless-site). En uppgift som inte står där den läses finns inte
+för filtret, och varan försvinner när kunden använder det. En fel uppgift är värre: då
+hamnar varan i fel filter. **Skriv bara det som stämmer, och hoppa över det varan inte har.**
+
+Filtren läser **namnet, ingressen, punkterna under `Egenskaper` och raderna i `Tekniska
+specifikationer`**. De läser inte brödtextens avsnitt, `Vanliga frågor`, `Passar inte den
+här?` eller länkar, eftersom där ofta jämförs med andra varor. En egenskap som bara står i
+en fråga räknas alltså inte.
+
+Raderna i `Tekniska specifikationer`. Formerna nedan är provade mot butikens tolkning:
+
+| Filter | Skriv så här |
+|---|---|
+| Bredd, djup, höjd | `Mått: 90 × 60 × 75 cm`, alltid bredd × djup × höjd |
+| Sitthöjd | `Sitthöjd: 45 cm` eller `Sitthöjd: 45–52 cm` |
+| Maxlast | `Maxlast: 120 kg` |
+| Vikt | `Vikt: 14,5 kg` |
+| Effekt | `Effekt: 2000 W` |
+| Volym | `Volym: 1,7 liter` |
+| Ålder | `Rekommenderad ålder: 3–8 år` |
+| Material | `Material: stål och MDF` |
+| Klädsel | `Klädsel: sammet` (manchester, bouclé, chenille, linne, konstläder, nätväv) |
+| Lådor | `Antal lådor: 5` |
+| Sittplatser | `Sittplatser: 3` |
+| Hyllplan, våningar | `Antal hyllplan: 4` eller `Våningar: 3` |
+| Sängbredd | `Madrassmått: 140 × 200 cm` |
+| Djur | `Passar för: katt och kanin` |
+| Placering | `Placering: vägghängd` eller `Placering: fristående` |
+| Bränsle | `Bränsle: gasol` (kol, ved, el, pellets, bioetanol). Läses bara på grillar, eldstäder, kaminer och värmare |
+
+- **Form** läses ur namnet (`Runt matbord`, `Oval spegel`) eller ett `Ø` i måttet. Bord
+  och speglar utan formord får formen ur måtten.
+- **Egenskaperna** skrivs som punkter under `Egenskaper`, så som kunden läser dem:
+  `Fyra hjul, två med broms`, `Höj- och sänkbar 72–116 cm`, `LED-belysning i tre
+  ljusfärger`, `Batteridriven, 3 × AA (ingår inte)`, `Fjärrkontroll ingår`, `Timer
+  1–8 h`, `UV-skyddad duk`, `Vattenavvisande duk`, `Solcellspanel`.
+- **Nekat räknas inte:** "inte hjul", "utan batteri". En del av varan räknas inte heller
+  som varan: "höjdjusterbart styre", "löphjul", "rullbar dörr". Skriv därför egenskapen
+  om varan själv, inte om en del av den.
+- **Batterierna till fjärrkontrollen** gör inte lampan batteridriven. Skriv `Fjärrkontroll
+  ingår (2 × AAA, ingår inte)` på samma rad, så läses de rätt.
+
+Var det lönar sig att börja står i `docs/polish/filterluckor.md`: kategorier där några få
+produkter till tänder ett nytt filter, och produkter som faller bort ur filter som redan
+syns.
+
 ### Tonen
 
 Leonard, 2026-08-14: *"Vi ska ju försöka sälja produkter, inte försöka få dom att skita i
