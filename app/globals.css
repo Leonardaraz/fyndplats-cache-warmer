@@ -1884,6 +1884,9 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   .shopbar-panel .pricerange,.shopbar-panel .colorrail{max-width:none}
   .specrad{grid-template-columns:1fr;gap:16px}
   .spec-material{grid-column:auto}
+  /* "Rensa filter" längst ner i mobilpanelen, efter måttraden — annars står
+     den osynliga knappen som ett glapp mellan tillgänglighet och måtten. */
+  .shopbar-panel>.filter-reset{order:2}
 }
 
 /* #7 Branded 404 */
