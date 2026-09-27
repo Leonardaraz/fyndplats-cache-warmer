@@ -44,6 +44,8 @@ const KNOWN_BRAND_TOKENS = new Set([
   "sportnow", "vinsetto", "aiyaplay",
   // Fler Aosom-husmärken (upptäckt 2026-08-19 via FP-zonekiz-toy-shelf-6-gron)
   "zonekiz", "kleankin",
+  // Det sista husmärket i gatelib.MARKEN, som listan här saknade (2026-09-27)
+  "durhand",
 ]);
 
 /** Tar bort ledande märkes-token ur en redan slugifierad sträng ("succebuy-x-y" → "x-y"). */
