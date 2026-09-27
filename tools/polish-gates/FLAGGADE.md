@@ -3198,3 +3198,29 @@ beslut — se den samlade frågan om detta.
   huvudsökord är valda på produkttypen. Alla sex slugar prövades mot hela
   katalogen (6 195 produkter): ingen krockar, och där en publicerad slug
   redan bar huvudsökordet valdes en smalare variant. (N76)
+- N77 tog de utkast som bara hölls för ett husmärke på varan och blev
+  kandidater igen genom beslutet 2026-09-27: de 17 från N76 och tio från
+  äldre rundor, eftersom de 250 nyaste utkasten redan var hanterade. Alla 27
+  dubblettskärmades mot de 3 770 publicerade sidorna, och huvudbilderna
+  jämfördes med de sidor som skärmen och ett namnsvep pekade ut. Åtta
+  publicerades och tre blev färgval. Tretton väntar på nästa runda och står i
+  rundans `LÄS-MIG.md`, inte här. (N77)
+- Färgval i stället för egna sidor: sparkcyklarna i rosa `29852da4`, vitt
+  `3c07a78f` och grönt `9407d3fc` ligger som val på den publicerade
+  `60c4cb71` och är pensionerade som utkast. Källtexterna är identiska utom
+  färgen. Syskonsvepets varning om materialet gällde bara feedens
+  materialkolumn. (N77)
+- Samma vara som en publicerad sida, till Leonards beslut: cykelkärran
+  `d22b83b1` (1 299 kr, saldo 6) har samma namn, färg och mått (140 × 88 ×
+  60 cm) som den publicerade Aosom-sidan `5b3d3c58` (1 459 kr, B11). Båda är
+  Aosom-rader, så en ommappning är ingen väg. Frågan är vilken artikel sidan
+  ska bära. (N77)
+- Leksak utan EN 71 i källan, hoppad: springcykeln `2cf4c918` (729 kr). Bild
+  3 bär dessutom tysk text. Den är inte samma vara som den publicerade
+  `6f101f90`, som har andra mått. (N77)
+- För få användbara bilder, hoppad: den självrengörande kattlådan XL
+  `8b1f4f03` (3 639 kr) har två. (N77)
+- Publicerade trots familjeraden: sidobordet `9a880464` och den
+  självrengörande kattlådan `d9fe1f8c` stod också under täckta familjer.
+  Enligt N64:s regel gäller familjeregeln inte för de nyaste utkasten, och
+  dubblettskärmens träffar för dem var andra varor. (N77)
