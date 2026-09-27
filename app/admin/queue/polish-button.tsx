@@ -13,25 +13,27 @@ import { useState } from "react";
  * sökordsvalidering, SKU-resync, kategori och varianter. Nu påminner den bara
  * om de lätt-missade MOMENTEN (koncept, inte stegnummer), så den håller sig i synk
  * även när runbooken numreras om.
+ *
+ * Källadressen följer INTE med: för en Aosom-vara är den aosom.de-adressen, och den
+ * bär artikelnumret, som aldrig får hamna i en fil, en logg eller en commit. Chatten
+ * läser produkten ur Wix ändå.
  */
-export function buildPolishPrompt(wixProductId: string, title?: string, sourceUrl?: string): string {
+export function buildPolishPrompt(wixProductId: string, title?: string): string {
   return [
     "SEO-polera denna RÅ-importerade produkt.",
     "FÖRST: läs HELA docs/seo-polish-runbook.md och följ ALLA steg i ordning, EXAKT —",
     "hoppa inte över något. Runbooken (inte den här texten) är sanningskällan; listan",
     "nedan är bara en påminnelse om de lätt-missade momenten:",
-    "• validera fokussökordet mot verklig sökdata INNAN du skriver något",
-    "• analysera ALLA bilder visuellt INNAN sökord/beskrivning/alt-texter",
-    "• tvätta bort dropship-loggor och inbränd text (spanska/engelska/kinesiska) där det går",
-    "• gör HJÄLTEBILDEN till en ren produktbild på vit studio-bakgrund (mjuk skugga) vid ful/mörk/rörig bakgrund — behåll nyttiga kontextbilder, släng infografik",
-    "• re-synka SKU till den nya sluggen",
-    "• koppla rätt kategori",
-    "• kontrollera varianterna (lager/dubbletter/koppling)",
-    "Granska resultatet med Read och PUBLICERA produkten (visible:true) först när allt är klart och verifierat.",
+    "• titta på ALLA bilder innan du skriver något, och stryk bilder med utländsk text, varumärken eller läsbar text på rekvisita",
+    "• kör dubblettskärmen (mått och bilder) mot publicerade sidor och andra utkast",
+    "• validera fokussökordet och kolla krock mot hela katalogen innan du låser det",
+    "• importens Vikt är fraktvikten — skriv Fraktvikt när källan saknar produktvikt",
+    "• ge produkten en egen SKU (FP-…) och koppla kategori (förälder + löv)",
+    "• skriv aldrig för hand i Wix: bygg skrivplanen och kör workflowen \"Polering — skriv en runda till Wix\", som också publicerar",
+    "• kontrollera den publicerade sidan efteråt",
     "",
     `Wix-produkt-ID: ${wixProductId}`,
     title ? `Titel (rå): ${title}` : null,
-    sourceUrl ? `AliExpress-källa: ${sourceUrl}` : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -46,16 +48,14 @@ export function buildPolishPrompt(wixProductId: string, title?: string, sourceUr
 export function PolishButton({
   wixProductId,
   title,
-  sourceUrl,
 }: {
   wixProductId: string;
   title?: string;
-  sourceUrl?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const payload = buildPolishPrompt(wixProductId, title, sourceUrl);
+  const payload = buildPolishPrompt(wixProductId, title);
 
   async function onClick() {
     setFailed(false);
