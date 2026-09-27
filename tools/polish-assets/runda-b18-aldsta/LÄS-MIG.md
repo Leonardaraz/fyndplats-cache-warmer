@@ -142,9 +142,37 @@ LED-spegeln de publicerade LED-speglarna.
 
 ## SKRIV
 
-Plan `0792394ff29158403f65df78c4846560ba1f5bd9ae2f015292ea2a32736b4be7`.
+Plan `0792394ff29158403f65df78c4846560ba1f5bd9ae2f015292ea2a32736b4be7`,
+grenen `ba204fba`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36303026789 | torr | 8 texter, 8 bildlistor, 25 av 25 kategorirader och 8 SKU:er |
+| 36303076059 | skriv | text 8/8, bilder 8/8, kategorier 25/25, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_CdHGVb6f2uG3Gycb5L8WQcbuznKh` blev `CANCELED`.
+Pekaren står kvar på `c1e84a97`, fyra commits bak.
 
 ## LIVE
+
+Hämtat 07:37 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age`
+139–175 s. Spegelskåpet `9dc0f858` gav `HTTP 000` på första försöket och
+200 på omförsöket fem sekunder senare. Sluggarna var nya, så den första
+träffen renderade redan den nya sidan, och den skarpa hämtningen läste om
+den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 27 av 27 |
+| strukna bilder på sidan | 0 av 13 |
+| kvarvarande bilder på sidan | 27 av 27 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulan visar huvudkategorin Hem & Inredning på alla åtta.
 
 ## Nästa runda
 
