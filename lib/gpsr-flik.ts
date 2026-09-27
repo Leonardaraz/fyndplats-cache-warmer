@@ -39,6 +39,9 @@ export interface GpsrData {
 
 export const GPSR_FLIK_TITEL = "Produktsäkerhet";
 
+/** Rubriken poleringen skriver i beskrivningen (docs/seo-polish-runbook.md i motorn). */
+export const GPSR_FLIK_RE = /Produkts[äa]kerhet/;
+
 /** Gäller varje vara: alla levereras med bruksanvisning. */
 export const GPSR_BRUKSANVISNING =
   "Läs bruksanvisningen som följer med varan före montering och användning, och spara den.";
@@ -77,6 +80,46 @@ export function tolkaGpsr(body: unknown): GpsrData | null {
     : [];
   const marke = str(b.marke) || null;
   return { marke, ansvarig, sakerhet };
+}
+
+function textUr(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Säkerhetsraderna ur beskrivningens eget avsnitt <h2>Produktsäkerhet</h2>,
+ * eller null när avsnittet saknas.
+ *
+ * VARFÖR. Poleringen skriver produktens säkerhetsinformation i beskrivningen
+ * när den polerar varan, på samma sätt som specifikationerna — ur samma tyska
+ * källa den ändå läser. Då behöver ingen ny produkt vänta på att motorns
+ * datafil byggs om, och ingen deploy behövs. Avsnittet vinner över motorns
+ * data: det är skrivet för den polerade produkten.
+ *
+ * Raderna är avsnittets <li>, eller dess stycken om det saknar lista. Ett
+ * avsnitt utan text räknas som saknat.
+ */
+export function sakerhetUrBeskrivning(html: string | null | undefined): string[] | null {
+  if (!html) return null;
+  const m = /<h2[^>]*>\s*Produkts[äa]kerhet\s*<\/h2>/i.exec(html);
+  if (!m) return null;
+  const efter = html.slice(m.index + m[0].length);
+  const nasta = efter.search(/<h2[^>]*>/i);
+  const avsnitt = nasta >= 0 ? efter.slice(0, nasta) : efter;
+  const li = [...avsnitt.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)].map((x) => textUr(x[1]));
+  const rader = (li.length ? li : [...avsnitt.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((x) => textUr(x[1])))
+    .filter((r) => r.length > 0)
+    .slice(0, 12);
+  return rader.length ? rader : null;
 }
 
 /** Flikens HTML. Allt från motorn escapas. */

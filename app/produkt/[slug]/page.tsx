@@ -15,7 +15,7 @@ import { ProductBrowse } from "../../../components/product-browse";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { getGpsr } from "../../../lib/gpsr";
-import { gpsrFlikHtml } from "../../../lib/gpsr-flik";
+import { gpsrFlikHtml, sakerhetUrBeskrivning } from "../../../lib/gpsr-flik";
 import { reviewSchemaMode, shouldEmitReviewSchema } from "../../../lib/review-schema";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
@@ -111,7 +111,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Produktsäkerheten (GPSR, lib/gpsr-flik.ts) hämtas parallellt — null för
   // produkter utan uppgifter, och då visas ingen flik.
   const [reviewData, gpsr] = await Promise.all([getProductReviews(p.id), getGpsr(p.id)]);
-  const gpsrHtml = gpsr ? gpsrFlikHtml(gpsr, p.name) : null;
+  // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
+  const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
+  const gpsrHtml = gpsr
+    ? gpsrFlikHtml({ ...gpsr, sakerhet: egnaSakerhetsrader ?? gpsr.sakerhet }, p.name)
+    : null;
 
   // Trustpilot Product Reviews-widget matchar recensioner mot produktens SKU
   // (= Wix-produkt-ID). När business unit-ID:t är ifyllt visar vi Trustpilot;

@@ -12,7 +12,7 @@ import { KlarnaOSM } from "./klarna-osm";
 import { formatPrice } from "../lib/price-range";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
-import { GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
+import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -24,6 +24,9 @@ const FLIK_TITLE_PATTERNS = [
   /Anv[äa]ndning\s+och\s+sk[öo]tsel/,
   /(Vanliga\s+fr[åa]gor|Ofta\s+st[äa]llda\s+fr[åa]gor)/,
   /Kontakta\s+oss/,
+  // Poleringens säkerhetsavsnitt. Blir en egen flik om motorn inte svarar;
+  // annars slås det ihop med tillverkaruppgifterna (se buildFlikar).
+  /Produkts[äa]kerhet/,
 ];
 
 type Flik = { title: string; contentHtml: string };
@@ -60,6 +63,9 @@ function buildFlikar(descFlikar: Flik[], specLines: string[], gpsrHtml?: string 
   // Produktsäkerhet (GPSR, lib/gpsr-flik.ts) — före Kontakta oss, som alltid
   // står sist. Saknas uppgifterna visas ingen flik.
   if (gpsrHtml) {
+    // Beskrivningens eget säkerhetsavsnitt ingår redan i gpsrHtml (sidan
+    // byggde den med sakerhetUrBeskrivning) — två flikar vore en dubblett.
+    for (let i = out.length - 1; i >= 0; i--) if (GPSR_FLIK_RE.test(out[i].title)) out.splice(i, 1);
     const kontakt = out.findIndex((f) => CONTACT_FLIK_RE.test(f.title));
     const flik = { title: GPSR_FLIK_TITEL, contentHtml: gpsrHtml };
     if (kontakt >= 0) out.splice(kontakt, 0, flik);

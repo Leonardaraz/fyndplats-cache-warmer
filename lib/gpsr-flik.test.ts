@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GPSR_BRUKSANVISNING, gpsrFlikHtml, tolkaGpsr } from "./gpsr-flik.ts";
+import { GPSR_BRUKSANVISNING, gpsrFlikHtml, sakerhetUrBeskrivning, tolkaGpsr } from "./gpsr-flik.ts";
 
 const SVAR = {
   marke: "HOMCOM",
@@ -56,4 +56,19 @@ test("allt från motorn escapas", () => {
 test("utan säkerhetsrader visas ändå bruksanvisningsraden", () => {
   const html = gpsrFlikHtml(tolkaGpsr({ ...SVAR, sakerhet: [] })!, "X");
   assert.match(html, new RegExp(`<ul><li>${GPSR_BRUKSANVISNING}</li></ul>`));
+});
+
+test("sakerhetUrBeskrivning läser listan under rubriken, fram till nästa rubrik", () => {
+  const html = "<p>Ingress</p><h2>Vanliga frågor</h2><p>F?</p><h2>Produktsäkerhet</h2><ul><li>Maxbelastning: 120 kg.</li><li><span style=\"font-weight: 700\">Obs!</span> Endast för inomhusbruk.</li></ul><h2>Kontakta oss</h2><p>x</p>";
+  assert.deepEqual(sakerhetUrBeskrivning(html), ["Maxbelastning: 120 kg.", "Obs! Endast för inomhusbruk."]);
+});
+
+test("sakerhetUrBeskrivning tar stycken när avsnittet saknar lista, och tål ä som a", () => {
+  assert.deepEqual(sakerhetUrBeskrivning("<h2>Produktsakerhet</h2><p>Rekommenderad ålder: 3–5 år.</p><p></p>"), ["Rekommenderad ålder: 3–5 år."]);
+});
+
+test("sakerhetUrBeskrivning ger null utan avsnitt eller med tomt avsnitt", () => {
+  assert.equal(sakerhetUrBeskrivning("<p>Bara text.</p>"), null);
+  assert.equal(sakerhetUrBeskrivning("<h2>Produktsäkerhet</h2><h2>Kontakta oss</h2>"), null);
+  assert.equal(sakerhetUrBeskrivning(undefined), null);
 });
