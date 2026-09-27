@@ -152,6 +152,8 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["omgångar i en skötselråd", "Klipp då i två omgångar, eller ta det värsta först."],
     ["tillverkaren utan påstående", "Ett fast nackstöd sitter där tillverkaren gissat."],
     ["en rundbåge i en konstruktion", "Rundbågen i taket och den rundade kanten."],
+    // Ur en kundrecension som fällde B4:s livekontroll 2026-09-27.
+    ["robust är svenska också", "Väldigt robust konstruktion och vävt i robust PE."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {

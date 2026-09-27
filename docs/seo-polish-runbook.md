@@ -761,7 +761,8 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 - Läs HTTP-koderna som `hamta-live.sh` skriver ut. Koden `000` ger en tom fil som ser ren
   ut, och en enstaka 403 betyder ingenting. Hämta om det som faller innan du drar
   slutsatsen att sidan är trasig.
-- `age` ska vara ungefär lika lång som pausen. `?cb=` hjälper inte på produktsidan.
+- `age` ska vara ungefär lika lång som pausen. `?cb=` hjälper inte på produktsidan. Har en
+  sida nyss renderats väntar skriptet ut den först, alltså upp till fem minuter extra.
 - Hämta från `https://www.fyndplats.se`, inte från adressen utan www. Den svarar med 308,
   och utan `-L` får du en tom sida.
 - Sidhuvudet (`<title>` och meta) och brödtexten cachas var för sig och kan skilja sig åt i

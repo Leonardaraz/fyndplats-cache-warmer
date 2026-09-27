@@ -133,8 +133,14 @@ TYSKA_ORD = [
     # bindeord och verb — funnits i alla versioner
     "und", "mit", "für", "der", "die", "das", "ist", "sind",
     # runda A/F1
+    # ☠️ "robust" är BORTTAGET 2026-09-27, av samma skäl som `storlek` och
+    # `gult` i STAV_ORD nedan: ordet stavas likadant på svenska och kan aldrig
+    # avslöja tyska. Mätt: 0 träffar i rundornas 1 352 kundfiler (grinden hade
+    # lärt skribenterna att undvika ett korrekt svenskt ord) och 22 på
+    # publicerade sidor, alla korrekt svenska, bland dem en kundrecension som
+    # fällde B4:s livekontroll.
     "Kinder", "Sessel", "Sofa", "Jahre", "Maße", "Farbe", "Gewicht",
-    "Lieferumfang", "Montage", "Rückenlehne", "weich", "robust", "niedlich",
+    "Lieferumfang", "Montage", "Rückenlehne", "weich", "niedlich",
     "gemütlich",
     # runda F2
     "Kratzbaum", "Katzen", "Plüsch",
