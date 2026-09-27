@@ -148,11 +148,73 @@ de publicerade LED-speglarna.
 
 ## SKRIV
 
+Plan `70eb420472f20bfdaf3b703abfa28ba9fff3480d6acaf7fd3695b9bf0e2cfee6`,
+grenen `3cda5900`.
+
+| körning | läge | utfall |
+|---|---|---|
+| 36304549076 | torr | 8 texter, 8 bildlistor, 25 av 25 kategorirader och 8 SKU:er |
+| 36304603409 | skriv | text 8/8, bilder 8/8, kategorier 25/25, SKU 8/8 |
+
+Den separata återläsningen efter 90 s verifierade 8 av 8, och alla åtta är
+stämplade (0 stämpelfel). Ingen 409.
+
+Pushen byggde inte: `dpl_86ydHsJtBSkoNom5whMiye4WTDQs` blev `CANCELED`.
+Pekaren står kvar på `c1e84a97`, som nu ligger sex commits bak. Klonen är
+tio djup, så ett läkningsbygge är att vänta inom några pushar.
+
 ## LIVE
+
+Hämtat 08:06 UTC med `hamta-live.sh 130`, alla åtta HTTP 200 och `age`
+139–140 s. Sluggarna var nya, så den första träffen renderade redan den nya
+sidan, och den skarpa hämtningen läste om den efter pausen.
+
+| kontroll | utfall |
+|---|---|
+| `livegrind.py`, orddiff mot filen | 0 på 8 av 8 |
+| `livekoll.py` | 8 av 8 OK, alt-texter 22 av 22 |
+| strukna bilder på sidan | 0 av 18 |
+| kvarvarande bilder på sidan | 22 av 22 |
+| JSON-LD | rätt namn, pris och `InStock` på 8 av 8 |
+
+Brödsmulan visar huvudkategorin Hem & Inredning på alla åtta.
 
 ## Nästa runda
 
-Kvar i lagret 00:43–00:45: högskåpet i bambu `ee539789` (saldo 128),
-friat på källtexten i B17. Dess bild 4 har tysk text (*Kippschutz-Set*), och
-bild 2 och 5 bär varumärken, så den har produktbilden och måttbilden kvar.
-Lagret efter 00:45 är inte skärmat än.
+Kvar i lagret 00:43–00:45 är högskåpet i bambu `ee539789` (saldo 128),
+friat på källtexten i B17. Dess bild 4 har tysk text (*Kippschutz-Set*),
+och bild 2 och 5 bär varumärken, så produktbilden och måttbilden står kvar.
+Bild 5 är samma fil som `7d0d4ec5` bild 4, som ströks här.
+
+Lagret 00:45–00:53 har 36 utkast. De skärmades samma morgon med det tåliga
+måttsvepet (1,5 cm) mot 3 316 publicerade sidor med måttripplar. **Bilderna
+är inte jämförda än**, så listan nedan är ett underlag och inget beslut.
+
+**Hålls på saldo 0–7:** `ab765586`, `790eb885`, `bab35244`, `3da48fb6`,
+`07e9ceef`, `cc6549e3` och `4c378bbd` (alla 0), `00483b4f` (4) och
+`227d4899` (7).
+
+**Redan flaggad:** `e7efc265` är `4f291ccb` (B17).
+
+**Troliga dubbletter, som ska läggas bredvid den publicerade sidan på bild:**
+
+| utkast | publicerad sida | vad som stämmer |
+|---|---|---|
+| `0d1d781c` | `7c271233`, `1ee398af` | tvättställsskåp 30 × 60 × 60 cm |
+| `f4116718` | `c72c97c3` | medicinskåp, två måttripplar identiska |
+| `4c82eb96` | `d9238d45`, `062c9bd0` | smalt badrumsskåp 30 × 30 × 94 cm |
+| `422fd52b`, `43bb7c55` | `4b1c099a` | matgrupp med kvadratiskt bord 60 × 60 × 76 cm |
+| `8be6d8ea`, `f2d7353f`, `f9af54c0` | `5dd1b062` | matgrupp med smalt bord 47 × 76 × 90 cm |
+| `3393a208` | `394de213` | barbord med hylla och två pallar, två måttripplar identiska |
+| `a28ef0e6` | `c3e9b292` | fåtölj med furuben, två måttripplar identiska |
+| `cee5437b` | `92afa6e3` | stapelbara pallar, inom 1,5 cm |
+| `f15dd51b` | `f173eee1` | runt barbord med höjdjustering |
+| `8c42d667` | `f716feb0` | matstolar två och två, på kartongens mått |
+
+**Färgsyskon bland utkasten:** retrobarstolarna `1049f5ec`, `44ca7533` och
+`357b5789` (och `00483b4f` med saldo 4). En av dem poleras.
+
+**Inga träffar, eller bara på helt andra varor:** LED-spegelskåpet
+`86c26702`, tvättmaskinshyllan `f243289f`, underskåpet `2666b42e`, det höga
+smala badrumsskåpet `93c6fdcf` (samma serie som `4c82eb96`) och barstolarna
+och barborden `667f1544`, `a3ddb29a`, `7fd5f45c`, `9d1857f6` och `aa5720a4`.
