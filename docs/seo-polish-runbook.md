@@ -89,15 +89,13 @@ Steg 1–3 går omlott: laglighets- och dubblettskärmen behöver källtexten oc
 dem för kandidaterna innan du bestämmer dig.
 
 **Välj familj efter luckan, inte efter högen.** Räkna utkasten mot de publicerade sidorna
-av samma produkttyp. En familj med många publicerade sidor ger krockar och dubbletter,
-medan en familj med få ger lediga sökord. Hitta familjen med en delsträng, eftersom ett
-ledande adjektiv (`Ergonomischer Kniestuhl`) annars gömmer halva familjen. Räkna den sedan
-på huvudordet, alltså namn som börjar med produkttypen (`^Konsolentisch`), så att `Regal`
-inte räknas när ordet bara beskriver en egenskap. Läs igenom namnen innan du bestämmer dig.
-Räkna luckan på distinkta produkter, så att färgsyskon och utkast med samma totalmått räknas
-en gång. Räkna de publicerade sidorna på det svenska ord handeln använder (`studsmatta`, inte
-`Trampolin`), eftersom ett tyskt mönster mot svenska namn alltid ger noll. Undvik en familj där
-en annan session nyss har publicerat.
+av samma produkttyp: många publicerade sidor ger krockar och dubbletter, få ger lediga
+sökord. Hitta utkasten med en delsträng på det tyska ordet, eftersom ett ledande adjektiv
+(`Ergonomischer Kniestuhl`) annars gömmer halva familjen, och läs namnen, så att `Regal` inte
+räknas där ordet bara beskriver en egenskap. Räkna de publicerade sidorna på det svenska ord
+handeln använder (`studsmatta`, inte `Trampolin`); ett tyskt mönster mot svenska namn ger
+alltid noll. Räkna distinkta produkter, så att färgsyskon och utkast med samma totalmått
+räknas en gång, och undvik en familj där en annan session nyss har publicerat.
 
 **Saldo.** Skriv varje produkts saldo i `lager.tsv` (summan av `quantity` ur
 `inventory-items/query`) och kör `gate-lager.py` redan här. Saldot i Wix är redan minskat med
@@ -106,7 +104,8 @@ och varnar under 5.
 
 ### Laglighetsgrinden
 
-Kör den före allt bild- och textarbete. Den gäller bara klasserna nedan.
+Kör den innan du skriver något; rött kors och husdjurens mått syns ofta först på bilderna.
+Den gäller bara klasserna nedan.
 
 **Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80). Minimimåtten är bindande i Sverige,
 och många burar är för små.
@@ -187,14 +186,16 @@ Gör två kontroller, i den här ordningen:
 1. **Måtten sållar.** Läs produktens totalmått ur `Gesamtabmessungen` eller `Gesamtmaße`.
    Axelbokstaven sitter ofta inne i talet (`218B x 79T x 91H cm`), och `Paketmått` är
    kartongen, alltså fel nyckel. Bokstaven kan också stå före talet (`B73`). Jämför alla tre
-   talen, med en tolerans på ±1,5 cm, mot varje publicerad sida och mellan utkasten. Material-
+   talen, med en tolerans på ±1 cm för bredd och djup och ±2 cm för höjd
+   (`tools/polish-gates/DUBBLETTMATNING.md`), mot varje publicerad sida och mellan utkasten. Material-
    och lastrader stärker en träff. Ta med en publicerad sida med kända mått som kontroll:
    hittar svepet inte den är svepet trasigt. Svep hela katalogen och sök brett, eftersom samma
    vara kan heta `redskapsbod`, `redskapsskap`, `förråd` och `skjul`. Karusellen *Liknande
    produkter* på en publicerad syskonsida hittar dubbletter under andra namn.
    `https://www.fyndplats.se/sitemap.xml` listar de publicerade sidorna utan något Wix-anrop.
 2. **Bilderna avgör.** Lägg varje träffs bilder sida vid sida. Är medelavståndet under 1,0
-   på 320 × 320 i gråskala (`dubblettgrind.py`) är det samma foto. Ett högre avstånd
+   på 320 × 320 i gråskala (`dubblettgrind.py`, med kandidaternas bilder i `img/` och de
+   publicerade i `pub/`) är det samma foto. Ett högre avstånd
    bevisar ingenting, eftersom de två inköpsvägarna fotograferar samma vara var för sig.
    Avgör på konstruktion, detaljer och måttritning.
 
@@ -625,8 +626,8 @@ egenskapslistan.
 
 ### SKU (`sku.tsv`)
 
-Skriv `FP-` följt av svenska ord som skiljer varan från syskonen, med mått före färg, till
-exempel `FP-tvattstallsskap-76cm-svart`. Högst 40 tecken, eftersom Wix avvisar fler
+Skriv `kort ⇥ FP-…`: `FP-` följt av svenska ord som skiljer varan från syskonen, med mått
+före färg, till exempel `FP-tvattstallsskap-76cm-svart`. Högst 40 tecken, eftersom Wix avvisar fler
 (`gate-sku.py` fäller). Bara gemener, siffror och bindestreck, inget husmärke och ingen tysk
 råtext. SKU:n beskriver produkten, inte kategorin.
 
@@ -715,8 +716,8 @@ som `360-graders`, `100-pack` och `E27-sockel`. Skriv `360 grader` och `100 st`.
    `runda` satt till katalogens namn, `plan_sha256` från bygget och läget `torr`.
    Körningen prövar planen utan att skriva något.
 3. Kör samma sak med läget `skriv`. Workflowen skriver texten, som också publicerar
-   produkten, och därefter bilderna, kategorierna och SKU:n, i den ordningen. Den stannar
-   vid första fel. Sedan väntar den 90 sekunder, läser tillbaka varje produkt separat och
+   produkten, och därefter bilderna, kategorierna och SKU:n, i den ordningen. Faller en
+   produkt i ett steg stannar den efter det steget. Sedan väntar den 90 sekunder, läser tillbaka varje produkt separat och
    stämplar mappningsraden (`needsAiPolish: false`, `draftStatus: published`) för varje
    produkt som är helt verifierad.
 

@@ -173,3 +173,6 @@ runda-135/zoom-*.jpg
 # `*/ark-*.jpg` ovan, bara i en egen mapp: byggda ur `orig/` (ignorerad) på
 # ett kommando, och vad de visade står i LÄS-MIG.md och bilder-bort.tsv.
 */ark/
+
+# bygg-ghost.py:s högpassark. Mellanled för ögat, återskapbart ur orig/.
+*/ghost/

@@ -3,7 +3,7 @@
 // Importens spec-block (`buildSpecifications` i lib/aosom/to-product.ts) skriver
 // raden "Vikt" ur feedkolumnen "Weight (incl. Package) in kg", alltså vikten MED
 // förpackning. Poleringen skrev av raden som varans vikt. Mätt 2026-09-27 på
-// rundornas egna filer: 142 av 145 sidor i B-rundorna och 616 texter i 69 andra
+// rundornas egna filer: 142 av 147 sidor i B-rundorna och 616 texter i 69 andra
 // rundor bar fraktvikten som "Vikt", och i 131 av de 616 stod det dessutom i
 // löptexten att varan väger så mycket.
 //

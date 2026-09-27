@@ -2,7 +2,7 @@
 // en regel stod i runbooken men ingen grind höll den, eller så höll grinden
 // fel sak.
 //
-//   1. FRAKTVIKTEN. Importens "Vikt" är vikten med förpackning. 142 av 145
+//   1. FRAKTVIKTEN. Importens "Vikt" är vikten med förpackning. 142 av 147
 //      B-sidor bar den som varans vikt, fast runbooken sa "Fraktvikt". Den nya
 //      kontrollen i gate.py fäller exakt de 142 sidorna i filerna före
 //      rättelsen och ingen efter.

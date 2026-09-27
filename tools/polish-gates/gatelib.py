@@ -554,7 +554,7 @@ def las_kvittenser(katalog="."):
 
 # ☠️ IMPORTENS "VIKT" ÄR FRAKTVIKTEN (2026-09-27). Spec-blocket som importen
 # skriver sätter `Vikt` ur feedkolumnen `Weight (incl. Package) in kg`, alltså
-# vikten MED förpackning. Rundorna skrev av raden som varans vikt: 142 av 145
+# vikten MED förpackning. Rundorna skrev av raden som varans vikt: 142 av 147
 # sidor i B1–B19 och 616 texter i 69 andra rundor, och i 131 av dem stod det
 # dessutom i löptexten att varan väger så mycket. Regeln fanns i runbooken och
 # följdes ändå inte; den blir en grind här. Samma logik som seo-text-repairs

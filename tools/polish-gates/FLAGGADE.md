@@ -45,6 +45,17 @@ varför något inte längre står här.
   (1 679/1 739 kr) och `cf18cd15`. Källtexterna lästes inte i N33; raderna är
   orörda. (N33)
 
+## Skyddade emblem på varan (lag 1953:771)
+
+- Medicinskåpet `8c4cf7e9` är **publicerat** och är ett vitt skåp med **rött kors
+  på vit botten** på själva varan. Röda korsets emblem får inte användas i handel
+  utan tillstånd. Utkasten `9bf1a5db`, `834b263f`, `a4a24666` och `127d4305`
+  jämfördes mot det i dubblettskärmarna och är inte polerade. Leonards beslut:
+  avpublicera, eller behålla. Ett grönt kors (`715b4acd`) är tillåtet.
+  (Granskningen 2026-09-27)
+- Före 2026-09-27 hade B17:s `LÄS-MIG.md` noterat korset utan att flagga det: den
+  gamla runbooken sa att regeln "i praktiken bara gäller AliExpress".
+
 ## Djurboenden — SJVFS-minimimått oavgörbart eller underskridet
 
 - **`16b8a47c`** (papegojbur, 1 659 kr) — mäter UNDER SJVFS 2019:15:s krav
@@ -1397,6 +1408,9 @@ beslut — se den samlade frågan om detta.
   `aba9f13e` kan poleras. (B17)
 - Saldo 0–7, inte polerade: `7420158c`, `eae19ca7` och `ab765586` (alla 0)
   och `8057e869` (3). (B17)
+  RÄTTELSE 2026-09-27: saldot i Wix är redan buffrat, så `8057e869` på 3 var
+  köpbar. gate-lager.py drog av bufferten en gång till; den är lagad, och
+  `8057e869` kan poleras i en senare runda.
 - Färgsyskon inom lagret, hålls: högskåpet `d5a629d7`, vitt (= `635e7330`,
   grått; 30 × 30 × 180 cm och alla fackmått identiska). Tre av det vita
   skåpets fem bilder bär varumärken (*BYREDO*, *MARVIS*). (B18)
