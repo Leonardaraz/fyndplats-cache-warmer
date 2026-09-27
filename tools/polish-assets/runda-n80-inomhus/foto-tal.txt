@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f9fb33f0 71 minsta dörröppning 71 cm, avläst på bild 3 (stryks för sin tyska text)
+ece264dc 160 kroppslängd 160–195 cm, avläst på bild 3 (stryks för sin tyska text)
+ece264dc 195 kroppslängd 160–195 cm, avläst på bild 3 (stryks för sin tyska text)
+4207445a 21 fotringen 21–42 cm över golvet, avläst på måttbilden (bild 3)
+4207445a 42 fotringen 21–42 cm över golvet, avläst på måttbilden (bild 3)
+eb8ed6ce 3 tre blad, räknade på bild 1
