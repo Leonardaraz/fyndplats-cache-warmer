@@ -4,7 +4,7 @@ name: SEO — städa publicerad produkttext
 # GitHub Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar
 # chatten eller en terminal.
 #
-# ☠️ TVÅ FEL, BÅDA HITTADE AV SVEP OCH INGET AV EN SPÄRR
+# ☠️ TRE FEL, ALLA HITTADE AV SVEP OCH INGET AV EN SPÄRR
 #
 # 1. Leverantörens artikelnummer i texten. dealproffsen.se publicerar Aosoms
 #    artikelnummer som `sku`/`mpn` i sin JSON-LD, så samma sträng hos oss gör
@@ -16,6 +16,11 @@ name: SEO — städa publicerad produkttext
 # 2. Trasiga syskonlänkar. Wix skriver om en rotrelativ `href="/produkt/x"` till
 #    `https:/produkt/x` — en snedstreck, alltså värdnamnet `produkt`. Länken
 #    pekar på en domän som inte finns.
+# 3. Fraktvikten som "Vikt". Importens spec-rad "Vikt" är feedens vikt MED
+#    förpackning, och poleringen skrev av den som varans vikt (616 texter i 69
+#    rundor och 142 i B-rundorna, mätt 2026-09-27). Saxen byter etiketten till
+#    "Fraktvikt", bara där talet är exakt artikelns fraktvikt i feeden. Meningar
+#    som "väger X kg" listas som `viktILoptext` och skrivs om av en människa.
 #
 # LÄGEN
 #   scan   torrkörning. Skriver ingenting. Planen läggs i grenen som
@@ -103,8 +108,9 @@ jobs:
             l=$(echo "$svar" | jq -r '.lagade'); m=$(echo "$svar" | jq -r '.misslyckade')
             t=$(echo "$svar" | jq -r '.traffar'); s=$(echo "$svar" | jq -r '.lasta')
             k=$(echo "$svar" | jq -r '.medKod'); lk=$(echo "$svar" | jq -r '.medTrasigLank')
+            fv=$(echo "$svar" | jq -r '.medFraktvikt // 0')
             totLag=$((totLag+l)); totMiss=$((totMiss+m)); totTraff=$((totTraff+t)); totLast=$((totLast+s))
-            echo "varv ${varv}: lasta=${s} traffar=${t} (kod=${k} lankar=${lk}) lagade=${l} misslyckade=${m}"
+            echo "varv ${varv}: lasta=${s} traffar=${t} (kod=${k} lankar=${lk} fraktvikt=${fv}) lagade=${l} misslyckade=${m}"
 
             # ☠️ Läs `misslyckade`, inte bara HTTP-statusen. Ett "hoppade över"
             # ÄR 200, och en workflow som bara tittar på statuskoden rapporterar
@@ -114,6 +120,12 @@ jobs:
               echo "$svar" | jq -r '.fel[]?' | sed 's/^/    /'
             fi
             echo "$svar" | jq -r '.kodINamn[]?' | sed 's/^/    kod i rubriken: /'
+
+            # Fraktvikten: ett feedfel stoppar inte de andra saxarna, men det ska
+            # synas — annars ser "fraktvikt=0" ut som en ren katalog.
+            ff=$(echo "$svar" | jq -r '.fraktviktFel // ""')
+            [ -n "$ff" ] && echo "::warning::fraktvikten rattades inte: ${ff}"
+            echo "$svar" | jq -r '.viktILoptext[]?' | sed 's/^/    vikt i lopttexten (skriv om for hand): /'
 
             # ☠️ `kodIText` = sidor som bar en kod EFTER att saxen fatt gora sitt.
             # Ar listan icke-tom ar det SAXEN som ar blind, inte katalogen som ar
@@ -128,7 +140,7 @@ jobs:
             # visar med flit inte den trasiga formen: extraktionen lasar hela
             # filen, aven kommentarrader.) Varvet syns i loggraden ovan och i
             # ordningen mellan objekten; det behover inte sta i JSON:en.
-            echo "$svar" | jq '{lasta, traffar, medKod, medTrasigLank, lagade, misslyckade, kodINamn, kodIText, plan, fel, cursor, fullstandig}' \
+            echo "$svar" | jq '{lasta, traffar, medKod, medTrasigLank, medFraktvikt, viktILoptext, fraktviktFel, lagade, misslyckade, kodINamn, kodIText, plan, fel, cursor, fullstandig}' \
               >> tools/seo-text-repair/scan-latest.json
 
             after=$(echo "$svar" | jq -r '.cursor // ""')

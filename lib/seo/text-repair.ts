@@ -12,6 +12,9 @@
 //   2. Trasiga syskonlänkar (`relativa-lankar.ts`) — Wix skriver om en
 //      rotrelativ `href="/produkt/x"` till `https:/produkt/x`, alltså
 //      värdnamnet `produkt`. Saxen SKRIVER OM en href.
+//   3. Fraktvikten som "Vikt" (`fraktvikt.ts`) — 616 texter i 69 rundor och
+//      142 i B-rundorna 2026-09-27. Saxen BYTER ETIKETT till "Fraktvikt", och
+//      bara där talet är exakt artikelns fraktvikt i Aosom-feeden.
 //
 // Systerverktyg till `price-repair` och `aosom-image-repair`, byggd efter samma
 // tre husregler:
@@ -23,6 +26,7 @@
 
 import { barKod, hittaKodrader, taBortKodrader } from "./leverantorskod";
 import { hittaTrasigaLankar, lagaTrasigaLankar } from "./relativa-lankar";
+import { hittaFraktviktsrader, rattaFraktvikt, viktILoptext } from "./fraktvikt";
 
 export interface TextProdukt {
   id: string;
@@ -40,6 +44,13 @@ export interface TextRepairDeps {
   skrivBeskrivning(id: string, revision: string, html: string): Promise<{ revision: string }>;
   /** Produktens revision behövs för skrivningen och kommer inte ur listningen. */
   hamtaRevision(id: string): Promise<string | null>;
+  /**
+   * Fraktvikten (kg) per Wix-produkt, ur Aosom-feeden. Valfri: utan den körs
+   * bara de två första saxarna. Kastar den blir det `fraktviktFel` i svaret —
+   * de andra saxarna körs ändå, men körningen får inte se ut som att det inte
+   * fanns någon fraktvikt att rätta.
+   */
+  laddaFraktvikter?(): Promise<Map<string, number>>;
   nu(): number;
 }
 
@@ -49,6 +60,7 @@ export interface TextTraff {
   namn: string;
   kodrader: string[];
   trasigaLankar: string[];
+  fraktviktsrader: string[];
 }
 
 export interface TextRepairSummary {
@@ -57,6 +69,15 @@ export interface TextRepairSummary {
   traffar: number;
   medKod: number;
   medTrasigLank: number;
+  /** Sidor med en "Vikt"-rad som är fraktvikten. */
+  medFraktvikt: number;
+  /**
+   * Sidor där LÖPTEXTEN eller en vanlig fråga säger att varan väger fraktvikten.
+   * Lagas av en människa: meningen måste skrivas om, inte bara märkas om.
+   */
+  viktILoptext: string[];
+  /** Satt när fraktvikterna inte gick att läsa. Då har den saxen inte körts. */
+  fraktviktFel: string | null;
   lagade: number;
   misslyckade: number;
   /** Sidor där koden syns i NAMNET eller slug:en — kan inte lagas automatiskt. */
@@ -101,8 +122,8 @@ function liRader(html: string): number {
 }
 
 /** Saxarna i ordning. Exporterad så ett test kan visa att den är idempotent. */
-export function stada(html: string): string {
-  return lagaTrasigaLankar(taBortKodrader(html));
+export function stada(html: string, fraktviktKg?: number | null): string {
+  return rattaFraktvikt(lagaTrasigaLankar(taBortKodrader(html)), fraktviktKg);
 }
 
 export async function runTextRepair(
@@ -120,6 +141,9 @@ export async function runTextRepair(
     traffar: 0,
     medKod: 0,
     medTrasigLank: 0,
+    medFraktvikt: 0,
+    viktILoptext: [],
+    fraktviktFel: null,
     lagade: 0,
     misslyckade: 0,
     kodINamn: [],
@@ -129,6 +153,15 @@ export async function runTextRepair(
     cursor: null,
     fullstandig: false,
   };
+
+  let fraktvikter = new Map<string, number>();
+  if (deps.laddaFraktvikter) {
+    try {
+      fraktvikter = await deps.laddaFraktvikter();
+    } catch (e) {
+      sum.fraktviktFel = e instanceof Error ? e.message : String(e);
+    }
+  }
 
   let cursor = opts.after;
   for (let sida = 0; sida < 400; sida++) {
@@ -143,7 +176,7 @@ export async function runTextRepair(
     // Massfel-spärren kan bara skydda det som ännu inte skrivits — körs den mitt
     // i en skrivslinga hinner en trasig sax rensa halva sidan innan andelen ens
     // går att räkna. Testet visade 49 skrivningar innan spärren fällde.
-    const attLaga: { p: TextProdukt; kodrader: string[]; lankar: string[] }[] = [];
+    const attLaga: { p: TextProdukt; kodrader: string[]; lankar: string[]; kg: number | null }[] = [];
     for (const p of produkter) {
       if (endastPublicerade && !p.visible) continue;
       sum.lasta++;
@@ -153,25 +186,30 @@ export async function runTextRepair(
 
       const kodrader = hittaKodrader(p.plainDescription);
       const lankar = hittaTrasigaLankar(p.plainDescription);
+      const kg = fraktvikter.get(p.id) ?? null;
+      const viktrader = hittaFraktviktsrader(p.plainDescription, kg);
+      if (viktILoptext(p.plainDescription, kg)) sum.viktILoptext.push(p.slug);
 
       // ☠️ Frågan är inte "hittade saxen något?" utan "är texten ren EFTER
       // saxen?". De två är olika frågor så fort saxen har en blind fläck, och
       // bara den andra kan avslöja att den har en.
       if (barKod(taBortKodrader(p.plainDescription))) sum.kodIText.push(p.slug);
 
-      if (kodrader.length === 0 && lankar.length === 0) continue;
+      if (kodrader.length === 0 && lankar.length === 0 && viktrader.length === 0) continue;
 
       sum.traffar++;
       if (kodrader.length) sum.medKod++;
       if (lankar.length) sum.medTrasigLank++;
+      if (viktrader.length) sum.medFraktvikt++;
       sum.plan.push({
         wixProductId: p.id,
         slug: p.slug,
         namn: p.name,
         kodrader,
         trasigaLankar: lankar,
+        fraktviktsrader: viktrader,
       });
-      attLaga.push({ p, kodrader, lankar });
+      attLaga.push({ p, kodrader, lankar, kg });
     }
 
     if (sum.lasta >= MIN_LASTA_FOR_ANDEL && sum.medKod / sum.lasta > MAX_ANDEL_KODTRAFFAR) {
@@ -183,11 +221,11 @@ export async function runTextRepair(
     }
 
     if (!torrkorning) {
-      for (const { p, kodrader } of attLaga) {
+      for (const { p, kodrader, kg } of attLaga) {
         if (sum.lagade + sum.misslyckade >= tak) break;
         if (deps.nu() - start > TIDSBUDGET_MS) break;
         try {
-          const ny = stada(p.plainDescription);
+          const ny = stada(p.plainDescription, kg);
           const tappade = liRader(p.plainDescription) - liRader(ny);
           if (tappade !== kodrader.length) {
             throw new Error(`saxen tog ${tappade} li-rader men hittade ${kodrader.length}`);
@@ -205,6 +243,9 @@ export async function runTextRepair(
           }
           if (hittaTrasigaLankar(efter.plainDescription).length > 0) {
             throw new Error("den trasiga länken står kvar efter skrivningen");
+          }
+          if (hittaFraktviktsrader(efter.plainDescription, kg).length > 0) {
+            throw new Error("Vikt-raden med fraktvikten står kvar efter skrivningen");
           }
           if (liRader(efter.plainDescription) !== liRader(ny)) {
             throw new Error("antalet li-rader stämmer inte efter skrivningen");
@@ -288,6 +329,37 @@ export async function liveDeps(): Promise<TextRepairDeps> {
     },
     async skrivBeskrivning(id, revision, html) {
       return updateProductDescription(id, revision, html);
+    },
+    // ☠️ Fraktvikten ur SAMMA feed som Aosom-synken läser, och med samma spärr:
+    // en halvhämtad feed kastar i stället för att ge färre rättelser tyst. Felet
+    // hamnar i `fraktviktFel`; de andra saxarna körs ändå.
+    async laddaFraktvikter() {
+      const [{ fetchAosomFeed }, { MIN_FEED_RADER }, { getStore }, { mappingSupplier }, { aosomSupplierProductId }] =
+        await Promise.all([
+          import("@/lib/aosom/feed"),
+          import("@/lib/aosom/sync"),
+          import("@/lib/store/factory"),
+          import("@/lib/store/supplier"),
+          import("@/lib/aosom/to-product"),
+        ]);
+      const feed = await fetchAosomFeed();
+      if (feed.length < MIN_FEED_RADER) {
+        throw new Error(
+          `Aosom-feeden gav bara ${feed.length} rader (minst ${MIN_FEED_RADER} krävs) — fraktvikten rättas inte`,
+        );
+      }
+      const perArtikel = new Map<string, number>();
+      for (const r of feed) {
+        if (r.weightKg !== null && r.weightKg > 0) perArtikel.set(r.sku, r.weightKg);
+      }
+      const prefix = aosomSupplierProductId("");
+      const karta = new Map<string, number>();
+      for (const m of await getStore().listMappings()) {
+        if (mappingSupplier(m) !== "aosom") continue;
+        const kg = perArtikel.get((m.supplierProductId ?? "").slice(prefix.length));
+        if (kg) karta.set(m.wixProductId, kg);
+      }
+      return karta;
     },
     nu: () => Date.now(),
   };
