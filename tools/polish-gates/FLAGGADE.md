@@ -2383,3 +2383,92 @@ beslut — se den samlade frågan om detta.
   leverantörens artikelnummer, och kortet på `bb5297b7` bär samma rad utan
   nummer. Båda sidorna hör till main:s runda S2 och står inte i
   `KORTLACKAN.md`. (N72)
+- Slutsålda (saldo 0), alltså hoppade: fåtöljen `52921fb2` (se tvillingraden
+  nedan), byrån `66e1ebe3`, soffbordet med LED `84a931f4`, det utdragbara
+  matbordet `6ad885bc`, sidobordet på hjul `553a486b`, den runda pallen i
+  teddyfleece `7f2daa1e`, bokhyllan `e17505fb` och hurtsen `364d724a`.
+  Prövas igen när saldot har stigit. (N73)
+- Licensmärke, hoppade: barnbilen `f2190e54` bär Lamborghini-licensen,
+  el-motorcyklarna `545e23b6` och `b53ddf34` bär Honda-licensen (samma
+  modell två gånger), och el-motorcykeln med stödhjul `ba477284` är samma
+  Vespa-modell som de publicerade `5419c746`, `69042231` och `f24ea348`.
+  (N73)
+- Rörs av main:s Runda-serie, alltså hoppade: dipstationen `ca3d32d0` (runda
+  104), sparkbilen i trä `ff44f16d`, polissparkbilarna `abe9a95c` och
+  `e897045f` och grävmaskinen att sitta på `cc6b56f9` (runda 115). (N73)
+- Märke på varan: sparkcykeln `8b42d5d1` (679 kr) har AIYAPLAY på
+  styrstången, precis som tvillingen `cf0052ce` som hoppades i N72. (N73)
+- Färgsyskon inom rundan: radiobilen `1af22c51` (blå, 1 799 kr) är samma bil
+  som rundans rosa radiobil, som publicerades. Den rosa valdes eftersom den
+  blås bilder visar en etikett med husmärket och engelsk text framför sätet.
+  (N73)
+- Färg- och storlekssyskon till publicerade sidor, till Leonards beslut
+  (`FARGSYSKONEN.md`): elfyrhjulingen `e248ce9a` (779 kr) är samma
+  fyrhjuling som den publicerade `403dfd8d` i en annan färg, som redan N54
+  noterade; elfyrhjulingen `746785d0` (grön, 3 199 kr) är samma fyrhjuling
+  som den publicerade orange `883db249` (3 079 kr), med samma mått, sits och
+  hjul; skrivbordet `59b75ffa` (639 kr) är samma skrivbord som det
+  publicerade `f6e74878` (N47); redskapsskåpet `08634fee` (ljusgrått, 2 069
+  kr) är samma skåp som det publicerade `bd3fe8da` i naturträ (1 839 kr);
+  trädgårdsskåpet `dbb5baea` (natur, 2 139 kr) är samma skåp som det
+  publicerade gråa `c24a9b56` (2 149 kr); cd-hyllorna `644f1c50` (vita, 1
+  099 kr) är samma hyllor som de publicerade ekfärgade `f3616423` (1 049
+  kr); och vedstället `644f1c32` (svart, 729 kr) är samma vedställ med
+  brasverktyg som det publicerade antikbruna `b1684bee` (1 009 kr), med
+  samma miljöbild. Vedstället och trädgårdsskåpet är billigare än sina
+  publicerade syskon. (N73)
+- N73 tog de 40 nyaste utkasten efter N72 (importerna 2026-09-07–10). N64:s
+  regel gäller: för de nyaste gäller inte familje- och säsongsregeln, bara
+  skyddsreglerna. De 22 som inte redan bar ett skyddsskäl dubblettskärmades
+  mot 3 654 publicerade sidor, med kalibrering 4 av 4 väntade träffar och 2
+  av 2 väntade missar och självtest 9 av 9. Fjorton publicerades och 26
+  hoppades med skälen ovan. (N73)
+- Tvillingar: den slutsålda fåtöljen `52921fb2` (5 129 kr) har samma namn
+  och samma mått som uppresningsfåtöljen `d34f6bab` (6 099 kr), som
+  publicerades eftersom den finns i lager. Kommer tvillingen tillbaka i
+  lager är den ett syskon till en publicerad sida och går till Leonards
+  beslut, och den är billigare. Radiobilarna `81eb4872` (rosa, publicerad)
+  och `1af22c51` (blå) är tvillingar på namn, pris och alla mått. (N73)
+- Tidigare rundors tvillingmisstankar prövades mot sidorna själva.
+  Vedstället `644f1c32` var mycket riktigt samma vara som `b1684bee` (se
+  ovan). Skrivarskåpet `1cdb544e` är inte samma vara som `89c52807` (utkast,
+  skrivarställ med delat fack) eller den publicerade `6188e987` (skrivarvagn
+  i två plan), skrivbordet `568b2812` inte samma som utkastet `29534b41`
+  (mobilt klappbord), och tågbanan `75e9f5d6` inte samma som utkastet
+  `695e72eb` (lekbord med tågbana) eller den publicerade `c8db0a3d` (79
+  delar i fyra plan). (N73)
+- Kontrollerat där skärmen gav träff eller inte kan se, och friat:
+  uppresningsfåtöljen `21d18f05` mot `0f1abb61` (en annan design);
+  massagefåtöljen `d34f6bab` mot `9ee24bae` (27,5 kg mot 46,5 kg) och
+  `536cfd1e` (150 kg, 49,9 kg); reclinerfåtöljen `4164ef63` mot `5e2dee74`;
+  tågbanan `75e9f5d6` mot `0d8d0d2d` (100 delar) och `69b24641` (70 delar);
+  radiobilen `81eb4872` mot `3486aa0d` (röd, 6 V, 3–8 år); juniorsängen
+  `33bab850` mot `06ad0f91` (rosa med furuben) och `77460b11` (molngavel);
+  redskapsskåpet `7da0de8c` mot `275e9b8a` (179 cm, tre hyllor, inget
+  vedförråd); brasskärmen `cbc31873` mot `1da6b037` och `6d0e2d27` (bågar
+  och guldfärgade dörrar) och `988ac121` (100 × 51 cm, rutmönster);
+  skrivarstället `0d440505` mot `fd940665` (sidobord med skåp) och
+  `2d308bc1` (55 cm, tre plan, ställbara fötter); köksbordet `4a3908ae` mot
+  `47bad2d7` (glasskiva), de utdragbara borden `74d3c11c` och `29c688dc` och
+  `4caae7b4` (Ø60 cm); och skrivarskåpet `1cdb544e` mot `6690086e`. Inget av
+  de friade är samma vara. (N73)
+- Bildgranskningen strök 13 bilder på rundans fjorton: tysk text i fyra, en
+  vattenstämpel med kinesisk text i en och läsbar text på rekvisitan i åtta
+  (en bok, hinkar, böcker med kyrilliska titlar, en kaffepåse, bokryggar, en
+  surfplatta med klocka och en tavla med kyrilliska bokstäver). Text och
+  siffror som sitter på själva varan, som skyltarna på tågbanans hus och 28
+  på radiobilens ryggstöd, räknas som varans design och behölls. Alla
+  fjorton behöll minst tre bilder. (N73)
+- Konstruktionen och färgen följer fotot: uppresningsfåtöljen `21d18f05` är
+  beige (krämvit i källan); massagefåtöljen `d34f6bab` är gråbrun (ljusbrun
+  i källan); juniorsängens `33bab850` skyddsräcken sitter vid huvudändan på
+  båda sidor, så att barnet kliver i vid fotändan; skrivbordet `568b2812`
+  har en uppstående list längs bakkanten; skrivarskåpet `1cdb544e` har
+  handtag i ljus träton; och redskapsskåpets `7da0de8c` fack upptill har en
+  egen lucka. Skrivarställets tre plan och skrivbordets tre längder är
+  kvitterade i `foto-tal.txt`. (N73)
+- Semrush svarade fortfarande att API-enheterna är slut. Sökorden bygger på
+  tidigare rundors mätvärden eller är valda på produkttypen. Alla fjorton
+  slugar prövades mot hela katalogen (6 153 produkter): ingen krockar, och
+  där en publicerad slug redan bar huvudsökordet valdes en smalare variant.
+  (N73)
