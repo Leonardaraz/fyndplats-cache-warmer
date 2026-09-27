@@ -1,0 +1,63 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "06c114f3": {
+  "tyska": "60L x 30B x 93H cm",
+  "svenska": "60L x 30B x 93H cm",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 60,
+  "djup": 30
+ },
+ "3a55cb47": {
+  "tyska": "",
+  "svenska": "Ø70 x 2,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Spiegelabmessung: Ø70 x 2,5H cm"
+ },
+ "635e7330": {
+  "tyska": "30B x 30T x 180H cm",
+  "svenska": "30L x 30B x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 180,
+  "bredd": 30
+ },
+ "6e3c84cc": {
+  "tyska": "30B x 30T x 161H cm",
+  "svenska": "30L x 30B x 161H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 161,
+  "bredd": 30
+ },
+ "95888e16": {
+  "tyska": "50B x 2,5T x 70H cm",
+  "svenska": "Mittelgroße",
+  "bokstaver": "BTH",
+  "djup": 2.5,
+  "hojd": 70,
+  "bredd": 50
+ },
+ "9dc0f858": {
+  "tyska": "56B x 20T x 65H cm",
+  "svenska": "56L x 20B x 65H cm",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 65,
+  "bredd": 56
+ },
+ "e01ae1b3": {
+  "tyska": "70L x 50B x 5T cm",
+  "svenska": "70L x 5B x 50H cm",
+  "bokstaver": "LBT",
+  "djup": 5,
+  "bredd": 70
+ },
+ "e4e3dd68": {
+  "tyska": "70B x 12T x 55H cm",
+  "svenska": "70L x 12B x 55H cm",
+  "bokstaver": "BTH",
+  "djup": 12,
+  "hojd": 55,
+  "bredd": 70
+ }
+}

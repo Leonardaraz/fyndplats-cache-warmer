@@ -1397,3 +1397,6 @@ beslut — se den samlade frågan om detta.
   `aba9f13e` kan poleras. (B17)
 - Saldo 0–7, inte polerade: `7420158c`, `eae19ca7` och `ab765586` (alla 0)
   och `8057e869` (3). (B17)
+- Färgsyskon inom lagret, hålls: högskåpet `d5a629d7`, vitt (= `635e7330`,
+  grått; 30 × 30 × 180 cm och alla fackmått identiska). Tre av det vita
+  skåpets fem bilder bär varumärken (*BYREDO*, *MARVIS*). (B18)
