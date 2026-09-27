@@ -3296,3 +3296,26 @@ beslut — se den samlade frågan om detta.
   av en annan produkt, som inte finns i någon rundas `sku.tsv`. Ingenting skrevs. Den blå och
   den rosa fick `FP-elmotorcykel-trehjul-<färg>`. Planläget fångar krocken innan något skrivs,
   så kör alltid plan först. (B23)
+- AVGJORT 2026-09-27, genomfört i B24: åtta publicerade barnsidor skrevs om med alla färger
+  och fick 18 färger som val. Tvåsitsiga elfyrhjulingen `7cdc167c` (lila) fick blå och svart
+  (`7b26df6f`, `8ae5b383`). Elmotorcykeln med stödhjul `ad46f9cc` (blå) fick orange och grön
+  (`617aae41`, `e811836f`). Fyrhjulingen för 18–36 månader `403dfd8d` (blå) fick grön och vit
+  (`b82184a0`, `e248ce9a`). Fyrhjulingen med släpvagn `358f4559` (röd) fick grön och blå
+  (`5dae95cd`, `626e0b05`). Trehjulingen `0bab65e3` (grå) fick mintgrön och ljusblå
+  (`3e34331b`, `a5844ce3`). Giraffrutschkanan `96451d83` (blå) fick grå och rosa (`b5c9069f`,
+  `f1eaa699`). Balansbommen `a9360e2a` (blå) fick lila och rosa, rosa, gammelrosa och
+  flerfärgad (`02f935c8`, `8d3d1de1`, `8f351be4`, `a17cf506`). Förvaringshurtsen `6707c9dd`
+  (blå) fick cremevit och rosa (`0d9da8b5`, `2fb43729`). Givarna är pensionerade, och raderna
+  om de här syskonen i B6, B7, N54 och N73 är därmed avklarade. Livekontrollen gav 8 av 8 OK,
+  34 av 34 alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B24)
+- `7cdc167c` och `ad46f9cc` fick nya slugar (`elfyrhjuling-barn-tvasitsig-24v`,
+  `elmotorcykel-barn-stodhjul-musik`), eftersom de gamla bar 24 V- och 12 V-formen före ett
+  bindestreck. De gamla adresserna svarar 308. (B24)
+- Balansbommens färger är namngivna efter bilden, inte efter feeden: den som feeden kallar
+  ljusröd är rosa, och den som feeden kallar rosa är gammelrosa. (B24)
+- Egna faktakort bär fraktvikten som `Vikt`. `358f4559`:s kort ("Vikt 7,4 kg", feedens
+  fraktvikt) ströks i B24, och `281ed0b1`:s ("Vikt 6,3 kg") stryks i B25. Mätt över alla
+  rundors `kort.tsv`: 155 kort har ett viktfält, och 136 av dem är exakt feedens fraktvikt i
+  en källa som inte anger någon produktvikt, fördelade på 18 rundor. Bilder redigeras inte,
+  så lagningen är att stryka korten eller bygga nya med `Fraktvikt`. Hur många av de 136 som
+  fortfarande ligger publicerade är inte mätt. (B24)
