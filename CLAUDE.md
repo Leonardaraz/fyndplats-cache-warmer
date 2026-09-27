@@ -185,6 +185,19 @@ låste (`lib/spec-facets.test.ts`):
   "två fotpallar" (inga sittplatser), tippskyddet i väggen (inte vägghängd),
   ett vedställ (inget bränsle), stolar (ingen form).
 
+### Panelens utseende (jämfört med IKEA, Chilli, Mio, JYSK m.fl., 2026-09-27)
+
+- **Mobil:** filtren i ett lager över sidan med fast fot, "Rensa alla" och
+  "Visa N produkter". Inline sköt panelen ner produkterna nästan 3 000 px.
+- **Valda filter** står som chips med kryss ovanför rutnätet, plus "Rensa
+  alla". Det är den enda rensa-knappen på dator.
+- **Antal** står på varje knapp och färg, räknat på de ANDRA filtren; noll
+  tonas ned. Det är något annat än "12 st saknar uppgift", som inte visas.
+- **Färg** är rutor med namn, flera kan väljas (`?farg=svart,gra`). Skenan
+  valde bara en.
+- **Reglagen** har Min/Max-rutor att skriva i; en inskriven gräns står kvar
+  exakt (1 499 kr), den rundas inte till reglagets steg.
+
 Knapparna visas vid 40 % täckning och minst två val, egenskaperna när minst
 tre produkter har dem men inte nästan alla (90 %). Kategorin kan begränsa
 egenskaperna ("eg:hj" i `lib/spec-config.ts`). Rumsstorlek för värmare

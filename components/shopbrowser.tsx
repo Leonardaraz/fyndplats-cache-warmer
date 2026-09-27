@@ -9,6 +9,7 @@ import {
   formatPrice,
   parsePriceSlug,
   priceBounds,
+  priceRangeLabel,
   prisHistogram,
   priceSlug,
   upperLimit,
@@ -16,7 +17,7 @@ import {
 } from "../lib/price-range";
 import type { ListProduct } from "../lib/products";
 import {
-  FACETTER, formatTal, inomIntervall, lasSpecSlug, passarVal, specOvre, specSlug, specUndre,
+  FACETTER, formatTal, inomIntervall, lasSpecSlug, passarVal, specEtikett, specOvre, specSlug, specUndre,
   type IntervallNyckel, type SpecFacett,
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
@@ -163,11 +164,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     const h = handlesFromSlug(bounds, sp.get("pris"));
     return bounds ? priceSlug(h[0], h[1], bounds) : "";
   });
-  // Vald färg. Skenan är till sin natur enkelval — man drar till EN färg — så
-  // tillståndet är en nyckel, inte en mängd. URL:en skrivs när handtaget
-  // släpps, precis som prisreglagets.
-  const [color, setColor] = useState(() => sp.get("farg") ?? "");
-  const [urlColor, setUrlColor] = useState(() => sp.get("farg") ?? "");
+  // Valda färger, ELLER mellan dem ("svart eller grå"). Rutor med namn och
+  // antal, som hos IKEA, Mio och Chilli (jämförelsen 2026-09-27) — skenan
+  // kunde bara välja en färg åt gången. En äldre länk med ?farg=svart läses
+  // som en färg.
+  const [colors, setColors] = useState<string[]>(() => (sp.get("farg") ?? "").split(",").filter(Boolean));
+  const colorStr = colors.join(",");
+  const vaxlaFarg = (k: string) => setColors((c) => (c.includes(k) ? c.filter((x) => x !== k) : [...c, k]));
+  const [allaFarger, setAllaFarger] = useState(false);
   const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
   const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
 
@@ -283,7 +287,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     const params = new URLSearchParams(window.location.search);
     if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
     if (urlPrice) params.set("pris", urlPrice); else params.delete("pris");
-    if (urlColor) params.set("farg", urlColor); else params.delete("farg");
+    if (colorStr) params.set("farg", colorStr); else params.delete("farg");
     if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
     if (onlyOnSale) params.set("rea", "1"); else params.delete("rea");
     for (const f of intervallF) {
@@ -305,7 +309,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     // (uppmätt: 747 → 180 px efter ett klick på "Rea"). Next 16 synkar
     // useSearchParams med den inbyggda historiken, så inget annat behöver ändras.
     if (url !== current) window.history.replaceState(null, "", url);
-  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
+  }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.
@@ -340,30 +344,9 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     // passarSpec läser bara specLive och valen (valStr), som står i listan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alla, ov, priceActive, priceLo, priceHi, onlyInStock, onlyOnSale, specLive, valStr]);
-  const fargAntal = (k: string): string => (colorCounts ? String(colorCounts.get(k) ?? 0) : "…");
-  // Skenans läge: 0 = alla färger, 1..n = colorKeys[i-1]. Ett enda tal, så
-  // native <input type="range"> gör hela jobbet — drag, tangentbord och touch.
-  const colorIdx = Math.max(0, colorKeys.indexOf(color) + 1);
-  // Refen skrivs i händelsehanterarna (dragColor, reset), inte under
-  // renderingen — se handlesRef nedan.
-  const colorRef = useRef(color);
-  const commitColor = useCallback(() => setUrlColor(colorRef.current), []);
-  const armColor = () => window.addEventListener("pointerup", commitColor, { once: true });
-  const dragColor = (i: number) => {
-    const c = i <= 0 ? "" : colorKeys[i - 1] ?? "";
-    colorRef.current = c;
-    setColor(c);
-  };
-  // Bandad gradient: varje färg äger en lika stor bit av banan, med hårda stopp
-  // så det blir distinkta fält att sikta på — inte en utsmetad övergång där man
-  // inte ser var en färg slutar. Första bandet är "alla färger".
-  const railGradient = useMemo(() => {
-    if (!colorKeys.length) return "";
-    const band = 100 / (colorKeys.length + 1);
-    const stopp = ["#EFE7DE", ...colorKeys.map((k) => colorOf(k) || "#ddd")]
-      .map((c, i) => `${c} ${i * band}%, ${c} ${(i + 1) * band}%`);
-    return `linear-gradient(to right, ${stopp.join(", ")})`;
-  }, [colorKeys]);
+  // Rutorna: de vanligaste först, resten bakom "Visa alla".
+  const FARGER_SYNS = 10;
+  const synligaFarger = allaFarger ? colorKeys : colorKeys.slice(0, FARGER_SYNS);
 
   // Prisfördelningen som histogram bakom reglaget. Räknas ur HELA listan i vyn
   // och står därför stilla när man filtrerar: räknades den om per filter hade
@@ -406,14 +389,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   const [valtLo, valtHi] = useMemo(() => handlesFromSlug(bounds, urlPrice), [bounds, urlPrice]);
   const listLo = bounds ? valtLo : 0;
   const listHi = bounds ? upperLimit(valtHi, bounds) : Infinity;
-  const utanFilter = !priceActive && !color && !onlyInStock && !onlyOnSale && !specLive.length && !valAktiva;
+  const utanFilter = !priceActive && !colors.length && !onlyInStock && !onlyOnSale && !specLive.length && !valAktiva;
   // null = okänt just nu (filter valt innan hela listan kommit).
   const liveCount = useMemo(() => {
     if (!alla) return utanFilter && ov ? ov.antal : null;
     let n = 0;
     for (const p of alla) {
       if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
-      if (color && !p.colors?.includes(color)) continue;
+      if (colors.length && !p.colors?.some((k) => colors.includes(k))) continue;
       if (onlyInStock && !p.inStock) continue;
       if (onlyOnSale && !p.onSale) continue;
       if (!passarSpec(p, specLive)) continue;
@@ -421,16 +404,41 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     }
     return n;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, ov, utanFilter, priceLo, priceHi, color, onlyInStock, onlyOnSale, specLive, valStr]);
+  }, [alla, ov, utanFilter, priceLo, priceHi, colorStr, onlyInStock, onlyOnSale, specLive, valStr]);
+
+  // Antalet bakom varje knapp, räknat som färgernas: listan filtrerad på allt
+  // UTOM gruppens egna val, så siffran säger vad ett klick ger ("Sammet 46").
+  // Egenskaperna är OCH, där räknas gruppens val med. En knapp som ger noll
+  // tonas ned. Utan hela listan visas inga siffror hellre än fel.
+  const valAntal = useMemo(() => {
+    if (!alla) return null;
+    const ut = new Map<string, Map<string, number>>();
+    for (const f of valF) {
+      const antal = new Map<string, number>();
+      for (const p of alla) {
+        if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
+        if (colors.length && !p.colors?.some((k) => colors.includes(k))) continue;
+        if (onlyInStock && !p.inStock) continue;
+        if (onlyOnSale && !p.onSale) continue;
+        if (specLive.some((g) => !inomIntervall(p.spec, g.k, g.lo, g.hi))) continue;
+        if (valF.some((g) => (g !== f || g.och) && !passarVal(p.spec, g.nyckel, val[g.nyckel] ?? [], g.och))) continue;
+        for (const v of f.val) if (passarVal(p.spec, f.nyckel, [v.kod], false)) antal.set(v.kod, (antal.get(v.kod) ?? 0) + 1);
+      }
+      ut.set(f.nyckel, antal);
+    }
+    return ut;
+    // colors och val står i colorStr och valStr.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alla, valF, priceLo, priceHi, colorStr, onlyInStock, onlyOnSale, specLive, valStr]);
 
   // Standardläget: förvald sortering och inga filter — det sidans HTML visar.
-  const arStandard = sort === defaultSort && !urlPrice && !urlColor && !onlyInStock && !onlyOnSale && !specSlappt.length && !valAktiva;
+  const arStandard = sort === defaultSort && !urlPrice && !colors.length && !onlyInStock && !onlyOnSale && !specSlappt.length && !valAktiva;
 
   const list = useMemo(() => {
     // Innan hela listan kommit finns bara sidans egna kort att visa.
     if (!alla) return products;
     let out = alla.filter((p) => p.priceNum >= listLo && p.priceNum < listHi);
-    if (urlColor) out = out.filter((p) => p.colors?.includes(urlColor));
+    if (colors.length) out = out.filter((p) => p.colors?.some((k) => colors.includes(k)));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     if (specSlappt.length || valAktiva) out = out.filter((p) => passarSpec(p, specSlappt));
@@ -472,7 +480,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, products, lista, arStandard, sort, listLo, listHi, urlColor, onlyInStock, onlyOnSale, dayMsProp, specSlappt, valStr]);
+  }, [alla, products, lista, arStandard, sort, listLo, listHi, colorStr, onlyInStock, onlyOnSale, dayMsProp, specSlappt, valStr]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -480,7 +488,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
   const hasOos = useMemo(() => (ov ? ov.harSlutsalda : products.some((p) => !p.inStock)), [ov, products]);
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
-  const activeFilters = (priceActive ? 1 : 0) + (color ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0)
+  const activeFilters = (priceActive ? 1 : 0) + (colors.length ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0)
     + specLive.length + valAktiva;
   const reset = () => {
     const hela = Object.fromEntries(intervallF.map((f): [string, [number, number]] => [f.nyckel, [f.skala.min, f.skala.max]]));
@@ -490,12 +498,55 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     setVal({});
     if (bounds) satHandles([bounds.min, bounds.max]);
     setUrlPrice("");
-    colorRef.current = "";
-    setColor("");
-    setUrlColor("");
+    setColors([]);
     setOnlyInStock(false);
     setOnlyOnSale(false);
   };
+
+  // De valda filtren som chips ovanför rutnätet, med ett kryss var. "Filter
+  // (3)" säger inte vilka tre; Baymard räknar raden som grundläggande och IKEA
+  // har den. Chipsen visar det SLÄPPTA läget, samma som rutnätet.
+  const forstaLiten = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+  const aktiva: { id: string; text: string; prick?: string }[] = [];
+  if (bounds && urlPrice) aktiva.push({ id: "pris", text: priceRangeLabel(valtLo <= bounds.min ? 0 : valtLo, upperLimit(valtHi, bounds)) });
+  for (const k of colors) aktiva.push({ id: `farg:${k}`, text: colorLabel(k), prick: colorOf(k) || "#ddd" });
+  if (onlyInStock && hasOos) aktiva.push({ id: "lager", text: "I lager" });
+  if (onlyOnSale) aktiva.push({ id: "rea", text: "Rea" });
+  for (const f of intervallF) {
+    const slug = specValt[f.nyckel];
+    if (!slug) continue;
+    const [lo, hi] = lasSpecSlug(slug, f.skala);
+    aktiva.push({ id: `spec:${f.nyckel}`, text: `${f.namn} ${forstaLiten(specEtikett(lo, hi, f.skala, f.enhet))}` });
+  }
+  for (const f of valF) {
+    for (const kod of val[f.nyckel] ?? []) {
+      const v = f.val.find((x) => x.kod === kod);
+      // Ett antal behöver sin grupp ("Lådor 4"); "Sammet" står för sig själv.
+      if (v) aktiva.push({ id: `val:${f.nyckel}:${kod}`, text: /^\d/.test(v.namn) ? `${f.namn} ${v.namn}` : v.namn });
+    }
+  }
+  const taBort = (id: string) => {
+    const [typ, a, b] = id.split(":");
+    if (typ === "pris" && bounds) { satHandles([bounds.min, bounds.max]); setUrlPrice(""); }
+    else if (typ === "farg") vaxlaFarg(a);
+    else if (typ === "lager") setOnlyInStock(false);
+    else if (typ === "rea") setOnlyOnSale(false);
+    else if (typ === "spec") {
+      const f = intervallF.find((x) => x.nyckel === a);
+      if (f) { satSpec(a, [f.skala.min, f.skala.max]); setSpecValt((v) => ({ ...v, [a]: "" })); }
+    } else if (typ === "val") vaxla(a, b);
+  };
+
+  // Mobil: panelen är ett lager över sidan. Sidan bakom rullar inte medan det
+  // är öppet, och Escape stänger det.
+  useEffect(() => {
+    if (!open || !window.matchMedia("(max-width: 700px)").matches) return;
+    const forr = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", esc);
+    return () => { document.body.style.overflow = forr; window.removeEventListener("keydown", esc); };
+  }, [open]);
 
   // Paginering: visa PAGE_SIZE kort, "Visa fler" laddar nästa batch. Återställs
   // till första sidan när filter/sortering/produktlista ändras (annars skulle en
@@ -540,7 +591,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
+  }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
   const visible = list.slice(0, shown);
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
@@ -621,7 +672,10 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
         <button type="button" className="shopbar-toggle"
           onPointerEnter={hamta} onTouchStart={hamta}
           onClick={() => { hamta(); setOpen((b) => !b); }} aria-expanded={open}>
-          ⚙ Filter {activeFilters > 0 && <span className="filter-count">{activeFilters}</span>}
+          <svg className="shopbar-ikon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" />
+          </svg>
+          Filter {activeFilters > 0 && <span className="filter-count">{activeFilters}</span>}
         </button>
 
         <div className="shopcount-inline" aria-live="polite">
@@ -644,6 +698,13 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
         {/* På dator syns panelen alltid, utan att filterknappen rörs — att
             närma sig den är avsikten. */}
         <div className="shopbar-panel" onPointerEnter={hamta} onFocusCapture={hamta}>
+          {/* Mobil: rubrik och stängknapp överst i lagret. Döljs på dator. */}
+          <div className="panel-huvud">
+            <span className="panel-titel">Filter</span>
+            <button type="button" className="panel-stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
           {bounds && (
             <div className="filter-group">
               <span className="filter-label">Pris</span>
@@ -716,59 +777,32 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
           )}
 
           {colorKeys.length > 0 && (
-            <div className="filter-group">
+            <div className="filter-group farg-grupp">
               <span className="filter-label">Färg</span>
-              {/* Färgskena: dra handtaget till färgen du vill ha. Ett native
-                  range-element ovanpå en bandad gradient — varje färg äger ett
-                  eget fält på banan, handtaget fylls med den valda färgen, och
-                  piltangenter stegar färg för färg utan en rad extra kod.
-                  Längst till vänster = alla färger. */}
-              <div className="colorrail">
-                {/* Luppen rider med handtaget: färg, namn och antal vid fingret
-                    i stället för i en fottext. */}
-                <div
-                  className={`cr-loupe ${color ? "show" : ""}`}
-                  // Handtagets mitt går inte 0–100 % av banan utan mellan sina
-                  // egna halvor — ett range-element håller thumben innanför
-                  // spåret. Räknar vi i ren procent glider luppen ifrån
-                  // handtaget mot ändarna, och sticker ut vid den sista färgen.
-                  // 24px = thumbbredden i globals.css.
-                  style={{
-                    left: `calc(12px + ${colorIdx / Math.max(1, colorKeys.length)} * (100% - 24px))`,
-                  }}
-                  aria-hidden="true"
-                >
-                  <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} />
-                  {color ? colorLabel(color) : ""}
-                  <span className="cr-n">{fargAntal(color)}</span>
-                </div>
-                <div className="cr-track" style={{ background: railGradient }} />
-                <input
-                  type="range"
-                  className="cr-input"
-                  min={0}
-                  max={colorKeys.length}
-                  step={1}
-                  value={colorIdx}
-                  onChange={(e) => dragColor(Number(e.target.value))}
-                  onPointerDown={armColor}
-                  onPointerUp={commitColor}
-                  onKeyUp={commitColor}
-                  onBlur={commitColor}
-                  aria-label="Färg"
-                  aria-valuetext={color ? `${colorLabel(color)}, ${colorCounts ? productCountLabel(colorCounts.get(color) ?? 0) : "antal räknas"}` : "Alla färger"}
-                  style={{ ["--cr-thumb" as string]: color ? colorOf(color) || "#ddd" : "#fff" }}
-                />
+              {/* Rutor med namn och antal, flera kan väljas. Antalet räknas på
+                  de andra filtren (colorCounts); en färg som ger noll tonas ned. */}
+              <div className="farg-rutor">
+                {synligaFarger.map((k) => {
+                  const pa = colors.includes(k);
+                  const n = colorCounts ? colorCounts.get(k) ?? 0 : undefined;
+                  const tom = n === 0 && !pa;
+                  return (
+                    <button
+                      key={k} type="button" className={`farg-ruta${pa ? " on" : ""}${tom ? " is-tom" : ""}`}
+                      aria-pressed={pa} disabled={tom} onClick={() => vaxlaFarg(k)}
+                    >
+                      <span className="farg-prick" style={{ background: colorOf(k) || "#ddd" }} aria-hidden="true" />
+                      <span className="farg-namn">{colorLabel(k)}</span>
+                      {n !== undefined && <span className="farg-n">{n}</span>}
+                    </button>
+                  );
+                })}
               </div>
-              <span className="cr-val">
-                {color ? (
-                  <>
-                    <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} aria-hidden="true" />
-                    {colorLabel(color)}
-                    <span className="cr-n">{fargAntal(color)}</span>
-                  </>
-                ) : "Alla färger"}
-              </span>
+              {colorKeys.length > FARGER_SYNS && (
+                <button type="button" className="farg-fler" onClick={() => setAllaFarger((v) => !v)} aria-expanded={allaFarger}>
+                  {allaFarger ? "Visa färre" : `Visa alla ${colorKeys.length} färger`}
+                </button>
+              )}
             </div>
           )}
 
@@ -793,15 +827,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
             </div>
           </div>
 
-          {/* Alltid på plats, bara osynlig utan aktiva filter. Renderades den
-              villkorligt dök den upp i samma rad som reglagen så fort ett
-              handtag lämnade ändläget, och prisskenan krympte under musen
-              (461 → 389 px): handtaget hamnade på ett annat pris, nära toppen
-              försvann knappen igen — sidan skakade (Leonard 2026-09-25). */}
-          <button type="button" className={`filter-reset ${activeFilters > 0 ? "" : "is-hidden"}`}
-            onClick={reset} disabled={activeFilters === 0} aria-hidden={activeFilters === 0}>
-            ✕ Rensa filter
-          </button>
+
 
           {/* Mått och egenskaper — en egen rad under pris och färg. Bara de
               filter kategorin erbjuder OCH datan bär (lib/spec-facets.ts). */}
@@ -823,10 +849,13 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
                   <div className="filter-toggles spec-val-rad">
                     {f.val.map((v) => {
                       const pa = (val[f.nyckel] ?? []).includes(v.kod);
+                      const n = valAntal?.get(f.nyckel)?.get(v.kod) ?? (valAntal ? 0 : undefined);
+                      const tom = n === 0 && !pa;
                       return (
-                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}`}>
-                          <input type="checkbox" checked={pa} onChange={() => vaxla(f.nyckel, v.kod)} />
+                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}${tom ? " is-tom" : ""}`}>
+                          <input type="checkbox" checked={pa} disabled={tom} onChange={() => vaxla(f.nyckel, v.kod)} />
                           <span>{v.namn}</span>
+                          {n !== undefined && <span className="toggle-n">{n}</span>}
                         </label>
                       );
                     })}
@@ -835,8 +864,30 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
               ))}
             </div>
           )}
+
+          {/* Mobil: fast fot i lagret — rensa, eller se resultatet. Siffran
+              följer filtren live. Döljs på dator. */}
+          <div className="panel-fot">
+            <button type="button" className="panel-rensa" onClick={reset} disabled={activeFilters === 0}>Rensa alla</button>
+            <button type="button" className="panel-visa" onClick={() => setOpen(false)}>
+              {liveCount === null ? "Visa produkter" : `Visa ${productCountLabel(liveCount)}`}
+            </button>
+          </div>
         </div>
       </div>
+
+      {aktiva.length > 0 && (
+        <div className="aktiva-filter" aria-label="Valda filter">
+          {aktiva.map((a) => (
+            <button key={a.id} type="button" className="aktiv-chip" onClick={() => taBort(a.id)} aria-label={`Ta bort ${a.text}`}>
+              {a.prick && <span className="farg-prick" style={{ background: a.prick }} aria-hidden="true" />}
+              {a.text}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          ))}
+          <button type="button" className="aktiv-rensa" onClick={reset}>Rensa alla</button>
+        </div>
+      )}
 
       {list.length ? (
         <>

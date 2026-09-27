@@ -1891,6 +1891,42 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .gr-input::placeholder{color:#B5A99D;font-weight:500}
 .gr-enhet{flex:none;font-size:var(--text-xs);font-weight:600;color:var(--soft)}
 .gr-streck{flex:none;color:var(--soft)}
+
+/* Antalet bakom varje knapp ("Sammet 46"), räknat på de andra filtren. En
+   knapp som ger noll tonas ned och går inte att trycka på. */
+.toggle-n,.farg-n{margin-left:6px;font-size:11px;font-weight:600;color:var(--soft);font-variant-numeric:tabular-nums}
+.toggle.on .toggle-n{color:rgba(255,255,255,.72)}
+.toggle.is-tom,.farg-ruta.is-tom{opacity:.42;cursor:default}
+.toggle.toggle-sm.is-tom:hover,.farg-ruta.is-tom:hover{border-color:var(--line);background:#fff}
+
+/* Färgerna: rutor med prick, namn och antal, flera kan väljas. Ersätter
+   skenan, som bara kunde välja en färg (jämförelsen 2026-09-27). */
+.farg-rutor{display:flex;flex-wrap:wrap;gap:6px}
+.farg-ruta{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:4px 12px 4px 5px;
+  border:1px solid var(--line);border-radius:var(--r-pill);background:#fff;font:inherit;font-size:13px;
+  font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.farg-ruta:hover{border-color:var(--ink)}
+.farg-ruta.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.farg-ruta .farg-n{margin-left:0}
+.farg-prick{width:24px;height:24px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(28,28,28,.14)}
+.farg-ruta.on .farg-prick{box-shadow:inset 0 0 0 1px rgba(28,28,28,.14),0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+.farg-fler{align-self:flex-start;background:none;border:none;padding:2px 0;font:inherit;font-size:13px;
+  font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* De valda filtren ovanför rutnätet, ett kryss per filter. */
+.aktiva-filter{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 20px}
+.aktiv-chip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 14px;border:none;
+  border-radius:var(--r-pill);background:var(--ink);color:#fff;font:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;transition:background .15s}
+.aktiv-chip:hover{background:#3a3733}
+.aktiv-chip .farg-prick{width:14px;height:14px;box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+.aktiv-rensa{background:none;border:none;padding:0 6px;font:inherit;font-size:13px;font-weight:600;
+  color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* Mobilens lager: rubrik och fot finns bara där. */
+.panel-huvud,.panel-fot{display:none}
+.shopbar-ikon{flex:none}
+@keyframes panel-in{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
 .filter-count{margin-left:6px;background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;min-width:18px;height:18px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
 .shopcount-of{color:var(--soft);font-weight:400}
 @media(max-width:700px){
@@ -1906,9 +1942,35 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   /* 16 px: mindre text i en ruta får iOS att zooma in när den får fokus. */
   .gr-input{font-size:16px}
   .spec-val-bred{grid-column:auto}
-  /* "Rensa filter" längst ner i mobilpanelen, efter måttraden — annars står
-     den osynliga knappen som ett glapp mellan tillgänglighet och måtten. */
-  .shopbar-panel>.filter-reset{order:2}
+  /* Filtren i ett lager över sidan, med rubrik och stängknapp överst och en
+     fast fot med "Rensa alla" och "Visa N produkter" — som hos IKEA, Mio,
+     Chilli och JYSK. Inline sköt panelen ner produkterna nästan 3 000 px. */
+  /* nowrap: med fast höjd hade flex-wrap lagt grupperna i en andra kolumn. */
+  .shopbar.open .shopbar-panel{position:fixed;inset:0;z-index:1300;display:flex;flex-wrap:nowrap;margin:0;padding:0 16px;
+    gap:22px;border-radius:0;overflow-y:auto;overscroll-behavior:contain;background:var(--warm);
+    animation:panel-in .22s cubic-bezier(.2,.7,.2,1)}
+  .shopbar.open .shopbar-panel>*{flex-shrink:0}
+  /* flex-basis:100 % är bredd på dator men höjd i en kolumn: raden sträckte
+     korten till lagrets höjd. */
+  .shopbar.open .specrad{flex-basis:auto}
+  /* z-index över reglagens handtag (.pr-hi har 4). */
+  .panel-huvud{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;
+    margin:0 -16px;padding:12px 16px;background:var(--warm);border-bottom:1px solid var(--line)}
+  .panel-titel{font-family:var(--font-display),Georgia,serif;font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .panel-stang{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);
+    border-radius:50%;background:#fff;color:var(--ink);cursor:pointer}
+  .panel-fot{display:flex;gap:10px;position:sticky;bottom:0;z-index:20;margin:auto -16px 0;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);
+    box-shadow:0 -8px 20px -12px rgba(28,28,28,.22)}
+  .panel-rensa{flex:none;height:50px;padding:0 20px;border:1px solid var(--line);border-radius:var(--r-pill);
+    background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}
+  .panel-rensa:disabled{opacity:.45;cursor:default}
+  .panel-visa{flex:1;height:50px;border:none;border-radius:var(--r-pill);background:var(--brand);color:#fff;
+    font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .shopbar-panel>.filter-reset{display:none}
+}
+@media(max-width:700px) and (prefers-reduced-motion:reduce){
+  .shopbar.open .shopbar-panel{animation:none}
 }
 
 /* #7 Branded 404 */
