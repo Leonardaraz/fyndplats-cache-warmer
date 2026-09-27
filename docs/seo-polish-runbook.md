@@ -1765,7 +1765,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400) → **`<h2>Produktsäkerhet</h2>` sist** (se [Produktsäkerhet](#produktsäkerhet-gpsr--sista-avsnittet-skrivs-vid-varje-polering-2026-09-27) nedan).
 
 > 🛑 **Skriv INTE ett "Det du bör veta innan du köper"-block.** *(Leonards beslut 2026-08-14, omtaget 2026-08-22 efter att blocket smugit tillbaka på 23 sidor — Klart-kriteriet krävde det som regeln förbjöd. Båda ställena är nu rättade.)* Ordagrant: **"Vi ska ju försöka sälja produkter, inte försöka få dom att skita i att köpa."** Ett varningsblock högt upp på sidan läser kunden som en lista över skäl att avstå. De flesta produkter ska inte ha något sådant alls. **Samma sak gäller ett "Bra att veta"-block** — förbudet sitter på formen, inte på rubriken: byt inte ut namnet och behåll listan.
 >
@@ -1871,6 +1871,113 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > ett delta man börjar ignorera slutar vara ett kvitto.
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
+
+### Produktsäkerhet (GPSR) — sista avsnittet, skrivs vid varje polering (2026-09-27)
+
+**Varför.** EU:s produktsäkerhetsförordning (EU) 2023/988, artikel 19, kräver att
+varje produktsida visar tillverkare, ansvarig i EU, produktens identitet och
+**säkerhetsinformation på svenska**. Den föreslagna svenska kompletteringslagen ger
+sanktionsavgift för brott mot just artikel 19 (lägst 10 000 kr). Butiken visar det i
+en hopfälld flik **Produktsäkerhet** före *Kontakta oss*.
+
+**Vem gör vad.**
+
+| Del av fliken | Kommer från | Du gör |
+|---|---|---|
+| Varumärke (HOMCOM, Outsunny …) | Motorn (`lib/gpsr/aosom-data.json`) | Ingenting |
+| Tillverkare och ansvarig i EU (MH Handel GmbH, Hamburg) | Motorn, samma för alla Aosom-märken | Ingenting |
+| Produkt (namn + bild) | Sidan själv | Ingenting |
+| **Säkerhetsinformation** | **Ditt avsnitt i beskrivningen** | **Skriv det** |
+| *"Läs bruksanvisningen … och spara den."* | Butiken, på varje produkt | Ingenting |
+
+Butiken lyfter ut ditt avsnitt ur beskrivningen och lägger det i fliken under
+tillverkaren. Det blir **inte** en egen flik bredvid och syns inte i brödtexten.
+Skriver du inget avsnitt använder fliken motorns förhandsöversättning (hela feeden,
+2026-09-27) — **ditt avsnitt vinner alltid**, för det är skrivet för den polerade sidan.
+
+#### Så skriver du det
+
+Sist i rundans källfil `{p}.html` (den som blir `plainDescription`), efter *Vanliga frågor*:
+
+```html
+<h2>Produktsäkerhet</h2><ul><li>Maxbelastning: 120 kg.</li><li>Rekommenderad ålder: 3–5 år.</li><li>Endast för användning under tillsyn av vuxen.</li></ul>
+```
+
+- Ren `<h2>Produktsäkerhet</h2>` — samma flikregel som ovan, ingen fetstil på rubriken.
+- En uppgift per `<li>`, en fristående mening som slutar med punkt. Högst 12 rader.
+- Inga stycken före eller efter listan, ingen egen underrubrik.
+
+#### Källan och vad som ska med
+
+Läs feed-radens tyska text (Steg 3) — **punktlistan, `Produktdetails`/`Technische Daten`
+och brödtexten** — och ta med **bara** det som står där:
+
+| Typ | Tyskt i källan | Skriv så här |
+|---|---|---|
+| Maxbelastning | `Belastbarkeit: 35 kg (gesamt), 5 kg (pro Regal)` | `Maxbelastning: 35 kg totalt, 5 kg per hylla.` |
+| Användarvikt / -längd | `Max. Benutzergewicht: 120 kg` · `bis 190 cm` | `Max användarvikt: 120 kg.` · `Lämplig för en kroppslängd upp till 190 cm.` |
+| Ålder | `Empfohlenes Alter: 3–5 Jahre` · `ab 18 Monaten` | `Rekommenderad ålder: 3–5 år.` · `Rekommenderad ålder: från 18 månader.` |
+| Ålderspärr | `Nicht geeignet für Kinder unter 36 Monaten` | `Ej lämplig för barn under 36 månader.` |
+| Tillsyn | `unter Aufsicht eines Erwachsenen` | `Endast för användning under tillsyn av vuxen.` |
+| Tillsyn, skarp | `nur unter **unmittelbarer** Aufsicht` | `Endast för användning under direkt tillsyn av vuxen.` |
+| Tippskydd medföljer | `Anti-Kipp-Set zur Wandbefestigung` | `Levereras med tippskydd för förankring i väggen.` |
+| Förankring krävs | `**muss** an der Wand befestigt werden` | `Möbeln ska förankras i väggen för att förhindra att den tippar.` |
+| Inomhus / utomhus | `Nur für den Innenbereich` | `Endast för inomhusbruk.` |
+| Ej yrkesmässigt | `nicht für gewerbliche Nutzung` | `Ej för yrkesmässigt bruk.` |
+| Uttrycklig varning | `Achtung: …` · `Warnung: …` | `Varning: …` (översätt meningen) |
+| Standard, certifierad | `Sicherheitsstandard: EN71-1-2-3` | `Uppfyller EN 71-1, EN 71-2 och EN 71-3.` |
+| Standard, provad | `Geprüft nach EN71` | `Testad enligt EN 71.` |
+
+Även el-, brand-, värme-, kläm- och kvävningsrisk (smådelar) och batterisäkerhet —
+när källan säger det. Formuleringarna ovan är desamma som i motorns datafil; håll
+dig till dem så att katalogen läser likadant.
+
+**Inte med:** säljtext som nämner säkerhet (*"kippsicheres Design"*, *"stabil"*,
+*"sicher für Kinder"* utan gräns), mått och funktioner som inte är en gräns,
+*"Montage erforderlich"* utan krav på vuxen, *"Batterien nicht enthalten"* (det är
+leveransinnehåll — hör hemma i specifikationerna), varumärken och
+leverantörsnamn. **Finns ingen säkerhetsinformation i källan: skriv inget avsnitt.**
+
+#### Fyra regler — alla hittades när hela feeden översattes
+
+1. ☠️ **Skärp aldrig källan.** *"direkt tillsyn"* bara vid *unmittelbar/direkt*;
+   *"ska förankras"* bara vid *muss/sollte*. Översättningen av feeden skärpte
+   150 rader som fick rättas — en säkerhetsuppgift som låter strängare än varan är
+   lika fel som en som låter mildare.
+2. ☠️ **Varje siffra ska stå i källan**, med decimalkomma. Månader förblir månader
+   (*36 månader*, inte *3 år*). `gate.py` kontrollerar det redan mot källtexten,
+   liksom varje EN-norm — ett fynd där är ett riktigt fel, inte ett falsklarm.
+3. ☠️ **Samma värde i spec-tabellen och i avsnittet.** Aosoms text säger ofta emot
+   sig själv: produktdatan säger `max. Belastbarkeit: 98 kg`, punktlistan
+   `Bis max. 100 kg`. Uppmätt 2026-09-27: 38 produkter i feeden anger mer än ett
+   belastningsvärde; i åtta är det SAMMA del med två olika tal, och alla åtta gånger
+   bär punktlistan det högre, avrundade. **Produktdatan gäller** — och säger även
+   den emot sig själv tar du **det lägre värdet**. Skriv sedan SAMMA tal i
+   *Tekniska specifikationer* och i *Produktsäkerhet*; två olika maxlaster på samma
+   sida är två påståenden om varan, och ett av dem är fel.
+4. ☠️ **Hitta inte på.** Hellre en rad för lite än en varning som inte står på varan.
+   Är det oklart vad en mening syftar på (*"Um dies zu verhindern …"*) — ta med
+   uppmaningen, gissa inte risken.
+
+#### Det här är inte ett varningsblock
+
+Förbudet mot *"Det du bör veta"*-block ovan gäller text högt upp som kunden läser som
+skäl att avstå. Det här är en hopfälld, lagkrävd flik sist på sidan. Skriv den alltid
+när källan har uppgifterna — och flytta **aldrig** upp raderna i ingressen eller
+egenskapslistan.
+
+#### Grindarna
+
+- **`gate.py`** läser avsnittet som all annan text: siffror och normer mot källan,
+  husmärken, fraktland, leverantörsord. Märket och tillverkaren hör inte hemma i ditt
+  avsnitt — fliken lägger dit dem själv.
+- **`livegrind.py`** klipper ut fliken innan sidsvepet, eftersom fliken *ska* visa
+  `HOMCOM` och `Tyskland` (lagen kräver tillverkarens namn och adress). Dina rader
+  svepas och orddiffas som vanligt. Har källfilen ett avsnitt fäller grinden en sida
+  där fliken saknas, eller där den saknar tillverkaren (motorn svarade inte när sidan
+  renderades — hämta om efter ISR-fönstret).
+
+**AliExpress-varor omfattas inte** (Leonard 2026-09-27) — skriv inget avsnitt för dem.
 
 > **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
 
@@ -5173,6 +5280,11 @@ rundor klarar båda, så grinden går grön när arbetet är gjort.
 
 **Text**
 
+- **`<h2>Produktsäkerhet</h2>` sist i beskrivningen** när Aosom-radens tyska text har
+  säkerhetsinformation (se [Produktsäkerhet](#produktsäkerhet-gpsr--sista-avsnittet-skrivs-vid-varje-polering-2026-09-27)):
+  varje siffra står i källan, ingen rad är skarpare än källan, och maxlasten är **samma**
+  som i *Tekniska specifikationer*. På den publicerade sidan kontrollerar `livegrind.py`
+  att fliken finns och bär tillverkaren.
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inklusive
   kvalificeraren. Inget dropship-märke kvar.
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 1), och skillnaden mot

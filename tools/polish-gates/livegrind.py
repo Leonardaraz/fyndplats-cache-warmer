@@ -73,6 +73,41 @@ from gatelib import TILLATNA_TECKEN, MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO
 # SEO-falten ar samma trafft fortfarande ett fel.
 RIBBON_UNDANTAG = {"EU-lager"}
 
+# ☠️ PRODUKTSAKERHETSFLIKEN MASTE NAMNGE TILLVERKAREN (2026-09-27). EU:s
+# produktsakerhetsforordning, artikel 19, kraver att varje produktsida visar
+# tillverkarens namn, varumarke och adress — for Aosom-varorna "HOMCOM" och
+# "MH Handel GmbH ... Tyskland". Det ar exakt vad HUSMARKE- och LAND-grindarna
+# ar byggda att falla, och sidsvepet hade darfor fallt VARJE polerad
+# Aosom-sida den dag fliken gick live.
+#
+# Fliken klipps darfor ut ur sidan innan svepet och kontrolleras for sig:
+# den ska bara ha tillverkarblocket (som butiken bygger ur motorns data, aldrig
+# ur var text) plus sakerhetsraderna. Raderna ar VAR text och svepas som
+# vanligt. I orddiffen ersatts fliken med rubrik + rader, precis som
+# kallfilens <h2>Produktsakerhet</h2><ul>…</ul> — tillverkarblocket star inte i
+# kallfilen och ska inte synas som ett diff. Se docs/seo-polish-runbook.md,
+# avsnittet Produktsakerhet.
+GPSR_FLIK = re.compile(
+    r'<details class="pdp-flik"><summary>Produkts(?:ä|a|&#228;|&auml;)kerhet</summary>(.*?)</details>', re.S)
+GPSR_BRUKSANVISNING = "Läs bruksanvisningen som följer med varan före montering och användning, och spara den."
+
+
+def gpsr_utklipp(live):
+    """(sida utan tillverkarblock, sakerhetsraderna, fliken fanns, tillverkaren fanns).
+
+    Fliken byts mot rubrik + sakerhetsrader, i samma form som kallfilens avsnitt,
+    sa att bade orddiffen och sidsvepet ser var text och bara var text."""
+    m = GPSR_FLIK.search(live)
+    if not m:
+        return live, [], False, False
+    kropp = m.group(1)
+    rader = [" ".join(html.unescape(re.sub(r"<[^>]+>", " ", x)).split())
+             for x in re.findall(r"<li[^>]*>(.*?)</li>", kropp, re.S)]
+    rader = [r for r in rader if r and r != GPSR_BRUKSANVISNING]
+    tillverkare = "Tillverkare och ansvarig i EU" in html.unescape(kropp)
+    ersatt = "<h2>Produktsäkerhet</h2><ul>" + "".join(f"<li>{html.escape(r)}</li>" for r in rader) + "</ul>"
+    return live[:m.start()] + ersatt + live[m.end():], rader, True, tillverkare
+
 LIVE_GRINDAR = [("HUSMARKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("LAND", LAND),
                 ("LEVERANTOR", LEV), ("TYSKT", TYSKA), ("HOMOGLYF", HOMO)]
 
@@ -109,6 +144,7 @@ for rad in open("slugs.txt", encoding="utf-8"):
     p, slug = rad.split()
     live = open(f"live/{p}.html", encoding="utf-8").read()
     problem = []
+    live, gpsr_rader, gpsr_flik, gpsr_tillverkare = gpsr_utklipp(live)
 
     # ☠️ EN BACKFILL-RUNDA HAR INGEN KALLFIL. Da ar brodtexten inte skriven i
     # den har rundan — bara SEO-faltet ar det — och orddiffen har ingenting att
@@ -192,6 +228,16 @@ for rad in open("slugs.txt", encoding="utf-8"):
     for flik in ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"):
         if f"<summary>{flik}</summary>" not in live:
             problem.append(f"FLIK SAKNAS: <summary>{flik}</summary>")
+
+    # Produktsakerhet: har kallfilen ett avsnitt ska fliken finnas pa sidan OCH
+    # bara tillverkaren. En flik utan tillverkare betyder att motorn inte svarade
+    # nar sidan renderades — da star bara vara rader dar, och sidan saknar det
+    # lagen kraver forst.
+    if har_kalla and re.search(r"<h2>\s*Produkts[äa]kerhet\s*</h2>", fil):
+        if not gpsr_flik:
+            problem.append("FLIK SAKNAS: <summary>Produktsäkerhet</summary>")
+        elif not gpsr_tillverkare:
+            problem.append("PRODUKTSAKERHET: fliken saknar tillverkaren (svarade motorn?)")
 
     # Kategorin syns som andra ledet i brodsmulan. "Butik" ar butikens rot, alltsa
     # ingen kategori alls — en okategoriserad produkt natt bara via sok och sitemap.
