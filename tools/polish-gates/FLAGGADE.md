@@ -2697,3 +2697,109 @@ beslut — se den samlade frågan om detta.
   tio slugar prövades mot hela katalogen (6 195 produkter): ingen krockar,
   och där en publicerad slug redan bar huvudsökordet valdes en smalare
   variant. (N75)
+- Djurbostad, hoppade: hönshusen `b5cf7ec6`, `637feb0f` och `2a30297a`;
+  burar för hamstrar och andra gnagare `132bb22e`, `19389039` och
+  `fc502b4e`; smådjurshus och kaninburar `8847f712`, `a8a4c7f1`, `8c6ef998`,
+  `8869a0f7` och `5ac1815c`; hagen för smådjur `9c343e72`; sköldpaddshusen
+  `acbb7bad`, `0b927ed9`, `7480b509`, `1f9fe2c2`, `f8d0f2b6`, `c08fd055`,
+  `4001e475`, `9fa7b6e1` och `d4787641`; terrarierna `43317ed5`, `46d43f2f`,
+  `636e14f1` och `ef26b87f`; kattburen `d8d3d714`; katthusen för utomhus
+  `faa4e2c5`, `aee9dfa8`, `3cf10b11`, `dbb7108e`, `a32b547e`, `2d47b7e7`,
+  `4bc7f355`, `832f8caa`, `6a5c831a`, `37b89f16` och `13328c0c`; och
+  fågelburarna och voljärerna `489c2a02`, `07164e5a`, `19d79ad9`,
+  `46b02dbb`, `16b8a47c`, `ba1896cf`, `b2ad1ebc` och `887cf2a3`. Fem av dem
+  är dessutom slutsålda, och tolv rörs av main:s Runda-serie. (N76)
+- Rörs av main:s Runda-serie, alltså hoppade: kattlådorna `8a14bd89`,
+  `19de4990`, `4ab77ce5`, `e397f6b3`, `b310b9a0`, `5cd447de`, `0fde20f5`,
+  `87c69d6c` och `948b1e7a` (runda h1, en av dem också h2); katthusen och
+  kattkorgarna i rotting och vattenhyacint `40690da1`, `b1dd61b1`,
+  `6f9fee21`, `9b26cc3d` och `f8069f60` (runda 63 och 135); katttunnorna
+  `97b5e7e9` och `b92a9b5f` (runda 63 och 135); klösträden `05c91630`,
+  `0908bbf0`, `ed8f0e56` och `fcfe68f1` (runda 136, 137, 139 och f1 och
+  main:s dubblettkatalog); klätterväggen `5121ffc8` och hundrampen
+  `11c2b7e8` (runda 131); och matstationerna för hund och foderautomaten för
+  katt `4fb98338`, `79ccfef4`, `e9309338` och `ec859f4e` (runda 97 och 98).
+  Tre av dem är dessutom slutsålda. (N76)
+- Slutsålda (saldo 0), alltså hoppade: kattlådan `7a8f3d9c`, klösbrädan för
+  hörn `8e559211`, klätterväggen `c32bf2d0`, vattenfontänen för katt
+  `e22c4a38`, agilitysetet `4d5c508e` och trappgrinden `49069c2c`. Saldo
+  under 4: sittställningen för papegojor `3e6e478c` (saldo 3). Prövas igen
+  när saldot har stigit. (N76)
+- Dubblett av en publicerad sida, dokumenterad tidigare: kattlådorna
+  `d499532f` och `dd8902e8` är pensionerade tvillingar till den publicerade
+  `adb8c31b` (`CLAUDE.md`), och kattlådan `783318c1` är samma låda som
+  `adb8c31b`, som är billigare (N38). (N76)
+- Märke på varan, alltså hoppade: de självrengörande kattlådorna `8b1f4f03`
+  (på handtaget, N62) och `b60b0392` (på fronten); kattlådsskåpet
+  `003ace14`, katthjulen `fcb3dd7c`, `1e1f9dcb` och `4664e423` och de
+  fristående grindarna `5f84f2c1` och `edac20c7`, som alla bär husmärkets
+  skylt på själva varan; kattlådan med två ingångar `aea52237` (N48);
+  fågellekplatsen `c661b7de` (N52); foderautomaten `fb830b35` (N60); och
+  agilityseten `480eefad` (N49), `8ad49cfe` (N39), `ee50f5bf` (N49),
+  `75a94825`, `d6283e97` och `6a6bfd64`, som alla bär husmärket på väskan.
+  (N76)
+- Samma varor som redan ligger ute, i en annan färg eller som samma vara,
+  till Leonards beslut (`FARGSYSKONEN.md`): XXL-kattlådorna `161439a2`
+  (brunt lock, 1 099 kr) och `e16aea3b` (grått lock, 1 099 kr) är samma
+  kattlåda som den publicerade `97d850b2` (1 529 kr), och den bruna har
+  samma färg; kattlådan `6a5a2caf` (svart och grå, 729 kr) är samma kattlåda
+  som den publicerade gröna `b44a18ff` (899 kr); kattlådan `c909254e` (vit
+  och brun, 759 kr) är samma kattlåda som den publicerade `72ac915f` (699
+  kr) och bär, precis som den, husmärket på locket; klätterseten `2306bf9b`
+  (grått, 699 kr) och `44663e99` (beige, 739 kr) är samma set i fyra delar
+  som det publicerade grå `38c00989` (1 199 kr); agilitysetet i tre delar
+  `5f181a0c` (749 kr) är samma set som de publicerade `cc7ab001` (659 kr)
+  och `1746334e` (759 kr); bågarna `30d7c18d` (719 kr) är samma fyra bågar
+  som den publicerade `8cf7b1bb` (639 kr), med blå stolpar i stället för
+  gula; hopphindren `2810f5c7` (turkos, 729 kr), `3a33819b` (grön, 649 kr)
+  och `ddb5d205` (blå, 699 kr) är samma fyra hinder som de publicerade vita
+  `7167f9ac` (719 kr); A-hindret `bf3ae611` (grått, 1 199 kr) är samma
+  hinder som det publicerade orange `fdefa04b` (1 349 kr); och balansbommen
+  `0625d9a7` (grå, 1 659 kr) är samma bom som den publicerade orange
+  `4fdd8d3c` (1 679 kr). (N76)
+- Syskon inom rundan: kattlådan `0015497b` (ljusgrå, 749 kr, saldo 107) är
+  samma kattlåda som rundans vita och grå (749 kr, saldo 127), som
+  publicerades eftersom den har större saldo till samma pris; hopphindren
+  `48df62b1` (blå, 829 kr) är samma fyra hinder med fyllbara fötter som
+  rundans gula, som publicerades eftersom de är billigare (669 kr); och
+  agilitysetet `bfa9f520` (åtta slalomstänger, 869 kr) är samma set som
+  rundans med fyra stänger, som publicerades eftersom det är billigare (749
+  kr). (N76)
+- N76 tog de 120 nyaste utkasten efter N75 i tre omgångar om 40, skapade
+  2026-08-28 16:58–17:39: nästan bara djur- och husdjursvaror. N64:s regel
+  gäller: för de nyaste gäller inte familje- och säsongsregeln, bara
+  skyddsreglerna. De som inte redan bar ett skyddsskäl dubblettskärmades mot
+  hela den publicerade katalogen, med kalibrering 4 av 4 väntade träffar och
+  2 av 2 väntade missar och självtest 9 av 9 i alla tre omgångarna, och
+  huvudbilderna jämfördes med de publicerade sidor som skärmen och ett
+  namnsvep pekade ut. Sex publicerades och 114 hoppades med skälen ovan.
+  (N76)
+- Katthuset för utomhus `13328c0c` är dessutom samma katthus som det
+  publicerade `fb63ea3d` (919 kr) i en annan färg. De publicerade `cc7ab001`
+  (659 kr) och `1746334e` (759 kr) är samma agilityset i tre delar, alltså
+  två sidor för en vara. (N76)
+- Kontrollerat och friat: kattlådan `135d0f48` mot `adb8c31b`, `79c3738c`,
+  `1abd6c48`, `8ef08765`, `8f54bd03`, `c79c502e` och `d3f864cb` (annan huv,
+  andra mått eller öppen låda; skärmträffarna kom från skopans mått, som
+  flera lådor delar); klösträdet `e3cdd25f` mot de åtta publicerade
+  klösträden på 113–149 cm (inget har hus i sjögräs); hinderkonerna
+  `6d35a04f`, slalomsetet `61a19bac` och agilitysetet `f6ab1dd4` mot
+  `8df525e3`, `08230ec1`, `82fec275`, `cc7ab001` och `1746334e` (andra set);
+  och hopphindren `d3c91eb3` mot `7167f9ac` (ram av plaströr) och `cc7ab001`
+  och `1746334e` (samma fötter, men hinder, ring och slalom i stället för
+  fyra hinder). Inget av de friade är samma vara. (N76)
+- Bildgranskningen strök 5 bilder på rundans sex: husmärkets logotyp på
+  kattlådans bild 3 och tysk text på dess bild 4, tysk text på
+  hinderkonernas bild 4 och husmärkets logotyp med tysk text på deras bild
+  5, och tysk text på hopphindrens bild 4. Mönstret på kattlådans huv är ett
+  grepp av knoppar och räfflor, inte text, och skalan på agilitysetets
+  stolpar räknas som siffror, som måttbilderna. Alla sex behöll minst tre
+  bilder. (N76)
+- Hopphindrens ribba (100 cm) är avläst på måttbilden och kvitterad i
+  `foto-tal.txt`, och deras fötter beskrivs som röda efter fotot, fast
+  källan säger orange. (N76)
+- Inga nya sökord mättes (Semrush-enheterna var slut vid prövningen i N73).
+  Kattlåda (8100, 23) och klösträd (5400, 27) är main:s mätningar; övriga
+  huvudsökord är valda på produkttypen. Alla sex slugar prövades mot hela
+  katalogen (6 195 produkter): ingen krockar, och där en publicerad slug
+  redan bar huvudsökordet valdes en smalare variant. (N76)
