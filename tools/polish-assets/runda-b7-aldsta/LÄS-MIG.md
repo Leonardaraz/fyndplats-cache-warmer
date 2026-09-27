@@ -122,11 +122,34 @@ och Baby & Småbarn finns.
 
 ## Wix, i den ordning det skrevs
 
-SKRIV-PLATSHÅLLARE
+Workflowen "Polering — skriv en runda till Wix" mot grenen, plan
+`4be088e2…`:
+
+| steg | utfall |
+|---|---|
+| torr (körning 36286785962) | text, media och SKU 8 av 8 lästa, kategorier 24 av 24 rader planerade |
+| text, namn, slug, SEO och synlighet | 8 av 8 skrivna (körning 36286864994) |
+| media | 8 av 8 skrivna, 24 bilder |
+| kategorier | 24 av 24 rader kopplade |
+| SKU, sist och ensam | 8 av 8 skrivna, sista skrivningen 01:53:35 UTC |
+| separat återläsning efter 90 s | 8 av 8 helt verifierade |
+| stämpel | 8 av 8 stämplade, 0 stämpelfel |
+
+Pushen med planen (`605eb829`) rörde bara `tools/`, och Vercel hoppade
+över bygget i båda projekten: `CANCELED`, med `errorLink` till
+ignore-steget. Läkningsbygget i B6 hade flyttat fram pekaren, så spannet
+var bara två commits.
 
 ## Live
 
-LIVE-PLATSHÅLLARE
+`hamta-live.sh 130`: alla 8 gav HTTP 200. Alla åtta hade `age` 133–140 s
+vid den skarpa hämtningen 02:03:40–02:03:49 UTC, alltså renderade omkring
+02:01, efter den sista skrivningen 01:53:35.
+
+`livegrind.py`: orddiff 0 på alla 8. `livekoll.py`: 8 av 8 OK med
+brödsmula i rundans kategori, och 24 av 24 alt-texter står på sidorna. En
+separat kontroll av JSON-LD gav `InStock` och samma pris som i `ids.tsv`
+på alla åtta.
 
 ## Kategorier
 
