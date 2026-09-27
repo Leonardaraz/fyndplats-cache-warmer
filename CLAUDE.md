@@ -854,7 +854,7 @@ ha ett pris som satts av något annat än kostnaden.
 
 Fallet som byggde låset: kontorsstolen `f13cd415` såldes som AliExpress-vara på
 **1 299 kr**. Leonards regel 2026-09-05 (*"alla ska peka om mot Aosom DE oavsett
-om de är billigare eller inte"*) mappade om den till `921-672V00BG`, och därmed
+om de är billigare eller inte"*) mappade om den till sitt Aosom-artikelnummer, och därmed
 gäller Aosom-regeln på raden: nästa synk hade skrivit **1 099 kr**. Sänkningen
 kom av att vi bytte LEVERANTÖR, inte av att marknaden rört sig — och kunderna
 betalar redan 1 299.
@@ -941,7 +941,7 @@ Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` ha
 Orsaken är en förväxling av två helt olika nycklar som båda heter `sku`:
 
 ```ts
-.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "839-835V01CG"
+.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "DDD-DDDLDDLL"
 setStock: async (wixProductId, _sku, antal) => { … }        // IGNORERAR den → fungerade
 setPrice: async (wixProductId, sku, …) => updateV3VariantPrices(…, [{ sku }])  // fel nyckel
 ```
@@ -1206,7 +1206,7 @@ handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
 hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
-via `aliexpress.ds.order.create`. En Aosom-mappning bär "845-030CG" i exakt
+via `aliexpress.ds.order.create`. En Aosom-mappning bär ett artikelnummer i formen "DDD-DDDLL" i exakt
 samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
 uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
 Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
@@ -1276,7 +1276,7 @@ letat efter, och den ligger i AliExpress egen produktbeskrivning:
 ● material: pu (60% polyurethane, 40% base fabric), foam, mdf, metal
 ● total measurements: 41x47x92 cm (wxdxh)
 ● maximum load: 130 kg
-● reference: 83a-526v00rb          ← Aosoms artikelnummer
+● reference: ‹artikelnumret›          ← Aosoms artikelnummer
 ```
 
 Uppmätt på `1005012777765014` (`ae_item_base_info_dto.detail`, via
@@ -1298,9 +1298,9 @@ dealproffsen.se publicerar som `sku`/`mpn` — se poleringsavsnittet. Det hör
 hemma på `supplierProductId` och ingen annanstans.
 
 ⚠️ **Och en träff i beskrivningen är inte en träff i feeden.** Barstolen
-`83A-526V00RB` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
+finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
 har **noll träffar i B2B-feedens 6 067 rader** — varken den färgen eller någon
-annan `83A-526`. Aosoms egen guide säger att artiklar med lågt saldo plockas
+annan färg av samma modell. Aosoms egen guide säger att artiklar med lågt saldo plockas
 bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
 sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
 ggr/dygn) innan slutsatsen dras.
@@ -1770,9 +1770,8 @@ rader och underlaget kommer från de strukturerade kolumnerna i stället.
 ☠️ **`Artikelnummer` är INTE en av dem, och får aldrig läggas till.** Den här
 raden räknade tidigare upp en sjätte etikett som koden aldrig har skrivit, och
 det stod kvar i månader. Uppmätt 2026-09-03 på live-sajten: **fyra publicerade
-produktsidor bär Aosoms artikelnummer i spec-tabellen** — `Artikelnummer:
-844-657V90MX`, `845-823V00GN`, och en som döpt om etiketten till
-`Modellreferens: 830-701V02WT`. Importen kan inte ha skrivit dem: `to-product.ts`
+produktsidor bär Aosoms artikelnummer i spec-tabellen** — två som `Artikelnummer: …` och en som döpt om etiketten till
+`Modellreferens: …`. Importen kan inte ha skrivit dem: `to-product.ts`
 sätter fem etiketter och `to-product.test.ts` fäller om numret dyker upp. De är
 alltså skrivna vid **poleringen**, av någon som läste den här listan.
 
@@ -2457,8 +2456,8 @@ workflowen, som skriver ut hela mappningsraden.
 Följden var exakt det par som feed-adressen är hemlig för att skydda:
 
 ```
-"costUsd": 132.33,  "landedCostSek": 1389.47,
-"supplierProductId": "aosom:921-815V00CW",
+"costUsd": …,  "landedCostSek": …,
+"supplierProductId": "aosom:…",
 "sourceUrl": "https://www.aosom.de/item/…"
 ```
 
@@ -2674,7 +2673,7 @@ oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/5
 
 ### Referenspriser är fiktion — båda hållen
 
-Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på 845-030CG där idealo
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på en bod där idealo
 listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
 siffran prissätter efter fantasi — avblåst.
 
@@ -2735,7 +2734,7 @@ prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
 
 ### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
 
-Leonard lade samma bod (`845-030CG`) i kassan på aosom.de två gånger, utloggad och
+Leonard lade samma bod i kassan på aosom.de två gånger, utloggad och
 inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
 varan dyrare.**
 
@@ -3268,7 +3267,7 @@ Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
 **Henriks mejl ÄR den skriften** — spara det.
 
 ⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
-publicerar `gtin13: 4255826873673` för artikel `83B-129V00GY`, och koderna är
+publicerar en `gtin13` med prefixet 425 för en av artiklarna, och koderna är
 mätt äkta (187/187 giltig kontrollsiffra, 186/187 TYSKT GS1-prefix 425x — en
 svensk återförsäljare kan inte få ett sådant). Någon tysk part har alltså
 registrerat koder för de här artiklarna. Henriks *"we do not provide or
@@ -3367,7 +3366,7 @@ raderade, och redigeringen täcker nu identifierarkolumner också.
 ⚠️ **Ryggtäckningen är på FORMEN, inte bara på namnet.** Döper Aosom om
 kolumnen imorgon glider namnlistan, och **en spärr man måste komma ihåg glöms
 bort** — samma argument som gjorde `AliExpressProductId` till en typ.
-`serUtSomArtikelnummer` fäller på mönstret `845-030CG` oavsett vad kolumnen
+`serUtSomArtikelnummer` fäller på mönstret `DDD-DDDLL` (D = siffra, L = bokstav) oavsett vad kolumnen
 heter. Två tester, ett för namnet och ett för formen.
 
 **Utfallet av första körningen:** feeden har **6 085 rader**, EAN-kolumnen
@@ -4375,7 +4374,7 @@ kassa.
 
 Det lämnade en tyst lucka i motorn: ingenting kunde få veta att ordern var lagd, och
 när Aosom skickar paketet fanns ingen väg alls att få ut spårningen till kunden.
-Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen `921-471LG`): betald
+Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen): betald
 14:57, lagd för hand samma kväll, och tasken hade blivit liggande som `pending`
 medan vakten påminde om en order som redan var gjord.
 
