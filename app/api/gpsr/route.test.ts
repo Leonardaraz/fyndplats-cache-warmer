@@ -49,9 +49,13 @@ describe("GET /api/gpsr", () => {
     expect((await anrop(ID)).status).toBe(404);
   });
 
-  it("404 för en Aosom-produkt som saknas i datan", async () => {
+  it("ger tillverkaren även för en Aosom-produkt som saknas i datan", async () => {
     mappningar[ID] = { wixProductId: ID, supplier: "aosom", supplierProductId: "aosom:NY-123" } as ProductMappingRecord;
-    expect((await anrop(ID)).status).toBe(404);
+    const res = await anrop(ID);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ marke: null, sakerhet: [] });
+    expect(body.ansvarig.namn).toBe("MH Handel GmbH");
   });
 
   it("404 när produkten saknar mappning", async () => {
