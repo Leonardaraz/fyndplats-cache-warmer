@@ -3254,3 +3254,19 @@ beslut — se den samlade frågan om detta.
 - Sammanslagningen föll en gång på en timeout i rutten utan att skriva något
   (sidan hade kvar tre bilder och inga val), och samma körning gick igenom vid andra
   försöket. Läs sidan innan en omkörning, så syns det om något hann skrivas. (B21)
+- AVGJORT 2026-09-27, genomfört i B22: åtta publicerade möbelsidor skrevs om utan färg i
+  namnet och fick 24 färger som val, tre per sida. Matbordet `2177e112` fick ek, grå och
+  rustik brun (`5196962a`, `59e92b8a`, `7fe7127a`). Knästolen `2876122a` fick svart, blå
+  och cremevit (`03d790a9`, `431da897`, `b318a046`). Sittbänken med förvaring `46843188`
+  fick blå, beige och svart (`4342f585`, `9d8374aa`, `a6310071`). Barnbokhyllan
+  `5c176543` fick ljusgrön, rosa och vit (`15db30cb`, `8718ba8d`, `a173de00`). Det
+  utdragbara matbordet `5c65d551` fick brun, rustik brun och grå betong (`46c6166d`,
+  `51419a88`, `87245ccf`). Det runda korsbensbordet `718fb6d0` fick svart, rustik brun och
+  mörkbrun (`b6590bd3`, `e5464d91`, `eb8db828`). Fotpallen `a6a16df2` fick mörkgrå, brun
+  och cremevit (`06375f5f`, `93ea6c3f`, `d9de7e1a`). Pallen `ba454107` fick cremevit, beige
+  och ljusgrå (`b1cd2e69`, `b3e5b7d1`, `be193739`). Givarna är pensionerade. Livekontrollen
+  gav 8 av 8 OK, 36 av 36 alt-texter och noll textavvikelser. (B22)
+- Sittbänkens första plan föll på `sku_upptagen`: `FP-sittbank-sammet-bla` bärs redan av
+  N22:s blå sammetsbänk `d1132894`, som är en annan modell (118 cm, utan förvaring). Givarna
+  fick `FP-sittbank-sammet-forvaring-<färg>`. Sök nya SKU:er mot alla rundors `sku.tsv`
+  innan planen körs. (B22)
