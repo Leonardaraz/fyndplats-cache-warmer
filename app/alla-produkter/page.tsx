@@ -1,10 +1,8 @@
 import { getProducts, getCollections, forListings } from "../../lib/products";
-import { forListClient } from "../../lib/list-payload";
-import { currentDayMs, orderRecommended } from "../../lib/sort-products";
-import { universalCollectionIds } from "../../lib/related-pick";
+import { listaForSidan, ordnaLista, utanKategorisida } from "../../lib/list-pages";
+import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
-import { attachRatings } from "../../lib/review-aggregates";
 import { CategoryDropdown } from "../../components/categorydropdown";
 import { ProductIndex } from "../../components/product-index";
 import { pageMeta } from "../../lib/seo";
@@ -45,8 +43,9 @@ export default async function AllaProdukter() {
   //
   // Ordningen förberäknas här, med EXAKT samma indata som klientens useMemo
   // räknar om den med, annars kastas rutnätet om inför ögonen vid hydrering.
-  // attachRatings MÅSTE därför köra FÖRE orderRecommended: recommendedScore
-  // läser p.rating, och gör den det på en olik lista blir ordningen en annan.
+  // ordnaLista (lib/list-pages) kör därför attachRatings FÖRE orderRecommended:
+  // recommendedScore läser p.rating, och gör den det på en olik lista blir
+  // ordningen en annan. /api/lista räknar samma lista med samma funktion.
   //
   // dagMs skickas vidare till ShopBrowser. Sidan är ISR-cachad (revalidate
   // ovan), så HTML:en kan bära gårdagens dag i upp till en timme efter midnatt.
@@ -54,8 +53,7 @@ export default async function AllaProdukter() {
   // uppmätt över 870 produkter med katalogens signalprofil byter 25,9 % plats,
   // största hopp 60 platser, och de 24 som syns utan att scrolla ändras.
   const dagMs = currentDayMs();
-  const rated = await attachRatings(products);
-  const list = orderRecommended(rated, universalCollectionIds(rated), dagMs);
+  const list = await ordnaLista(products, dagMs);
 
   // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
   // förstår att detta är en produktlistning.
@@ -109,16 +107,18 @@ export default async function AllaProdukter() {
         <div className="container">
           <CategoryDropdown products={products} collections={collections} />
 
-          {/* forClient skär bort de fält klienten aldrig läser — se ListProduct
-              i lib/products.ts. Mätt: 1 005 kB av 2 704 på den här sidan. */}
-          <ShopBrowser products={forListClient(list, dagMs)} dayMs={dagMs} />
+          {/* Sidan bär de första korten och en sammanfattning för filtren;
+              resten hämtar ShopBrowser från /api/lista. Hela listan i HTML:en
+              var 1 300 kB av sidans 2 808 (lib/list-pages.ts). */}
+          <ShopBrowser {...listaForSidan(list, "alla")} dayMs={dagMs} />
 
-          {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
-              (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista
-              saknade ~330 produkter interna ankarlänkar helt. Alltid hela
-              sortimentet: sidans canonical är /alla-produkter, så hubben ska
-              bära alla länkar. */}
-          <ProductIndex products={products} />
+          {/* INGEN A–Ö ÖVER HELA SORTIMENTET LÄNGRE (2026-09-27). Den var 1,2 MB
+              av sidan, och varje produkt har redan sin länk i sin kategoris
+              A–Ö-lista — kategorisidorna är bland sajtens starkaste, den här
+              sidan har 66 interna länkar in. Se utanKategorisida i
+              lib/list-pages.ts för mätningen. Kvar är bara de produkter som
+              saknar kategorisida (normalt ingen), så ingen blir utan länk. */}
+          <ProductIndex products={utanKategorisida(products, collections)} title="Övriga produkter A–Ö" />
         </div>
       </section>
     </div>

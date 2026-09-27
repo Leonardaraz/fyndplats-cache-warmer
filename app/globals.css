@@ -416,6 +416,9 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 .cat:hover .lbl .arr{background:var(--orange)}
 
 .prodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+/* Filter/sortering valt innan hela listan hämtats (/api/lista): korten står
+   kvar, tonade, tills den kommer — oftast några hundra millisekunder. */
+.prodgrid.is-vantar{opacity:.55;transition:opacity .2s}
 /* Kortet är en flex-kolumn så .prow kan skjutas till botten. Det ersätter den
    reserverade tomhöjden på betygsraden: pris och knapp linjerar mellan
    grannkort oavsett hur långt namnet är eller om produkten har omdömen. */
@@ -468,6 +471,7 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 .loadmore-wrap{display:flex;justify-content:center;margin-top:32px}
 .loadmore{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);border-radius:var(--r-md);padding:13px 30px;font:inherit;font-weight:700;font-size:var(--text-sm);color:var(--ink);background:none;cursor:pointer;transition:background .2s,color .2s}
 .loadmore:hover{background:var(--ink);color:#fff}
+.loadmore:disabled{opacity:.6;cursor:progress;background:none;color:var(--ink)}
 .loadmore-rem{font-weight:500;opacity:.7}
 
 .why{background:var(--warm)}

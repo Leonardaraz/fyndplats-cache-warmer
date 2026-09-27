@@ -211,6 +211,14 @@ export function sortColorKeys(keys: readonly string[]): string[] {
   return [...keys].sort((a, z) => rank(a) - rank(z) || a.localeCompare(z, "sv"));
 }
 
+/** Färgnycklarna i en lista, i skenans ordning. Tom under två distinkta färger —
+ *  då finns inget att välja mellan och ingen färgskena ritas. */
+export function fargNycklar(items: readonly { colors?: string[] }[]): string[] {
+  const funna = new Set<string>();
+  for (const p of items) for (const k of p.colors || []) funna.add(k);
+  return funna.size >= 2 ? sortColorKeys([...funna]) : [];
+}
+
 /** CSS-hex för ett färgnamn (böjnings-medvetet via colorKeysOf), annars "". */
 export function colorOf(name: string): string {
   for (const base of colorKeysOf(name)) {

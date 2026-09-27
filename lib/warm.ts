@@ -25,6 +25,7 @@
 // från 60 till 15 minuter, utan att röra IndexNow-kadensen.
 
 import { SITE } from "./site-urls";
+import { listaUrl, type ListNyckel } from "./list-key";
 // Provurvalet bor i en egen, beroendefri fil så node:test kan importera det —
 // den här modulen drar in site-urls, som testköraren inte kan ladda.
 import { fastProv, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
@@ -52,6 +53,21 @@ export const varmProdukt = (slug: string) => varmSida(`/produkt/${slug}`);
 /** Bildkartan listsidornas kort hämtar (app/api/kort-bilder). Kall lambda kostar
  *  35 s uppmätt; den hämtningen ska inte vara en kunds. */
 export const varmBildkartan = () => varmSida("/api/kort-bilder");
+
+/**
+ * Listsidornas produktlistor (app/api/lista). Samma kallstart som bildkartan —
+ * rutten läser hela katalogen — och den som betalar den är en kund som just
+ * tryckt "Visa fler" eller valt ett filter. Parallellt i små omgångar: de
+ * flesta svaren är CDN-träffar som inte kostar något.
+ */
+export async function varmListor(nycklar: readonly ListNyckel[]): Promise<{ ok: number; fel: number }> {
+  let ok = 0, fel = 0;
+  for (let i = 0; i < nycklar.length; i += PARALLELLT) {
+    const res = await Promise.all(nycklar.slice(i, i + PARALLELLT).map((k) => varmSida(listaUrl(k))));
+    for (const r of res) { if (r) ok++; else fel++; }
+  }
+  return { ok, fel };
+}
 
 export async function varmAlla(
   slugs: readonly string[],

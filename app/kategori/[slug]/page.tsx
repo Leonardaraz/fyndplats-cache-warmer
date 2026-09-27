@@ -3,10 +3,10 @@ import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
-import { forListClient } from "../../../lib/list-payload";
+import { kategoriProdukter, listaForSidan, ordnaLista } from "../../../lib/list-pages";
+import { currentDayMs } from "../../../lib/sort-products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
-import { attachRatings } from "../../../lib/review-aggregates";
 import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
@@ -80,36 +80,20 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     if (known && !known.has(slug)) notFound();
     redirect("/butik");
   }
-  // Huvudkategori: visa produkter i kategorin OCH alla dess underkategorier, så
-  // avdelningssidan blir komplett. Subkategori: bara sina egna produkter.
-  const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);
-  const catIds = new Set([active.id, ...childIds]);
-  // Populära & REA är merchandising-sidor utan egna Wix-tilldelade produkter → auto-fyll
-  // dem från produktflaggor: REA = rea-produkter (onSale), Populära = bästsäljare (ribbon).
-  // Övriga kategorier: collectionIds-membership (kategori + underkategorier).
-  const catList =
-    slug === "rea"
-      ? products.filter((p) => p.onSale)
-      : slug === "populara"
-        ? (() => {
-            // Populära = bästsäljare (ribbon === "Bestseller"). Efter Kina-utfasningen
-            // (2026-06) saknas Bestseller-taggade produkter — alla låg på Kina-lagret —
-            // så vi faller tillbaka på de bäst presenterade produkterna (högst bild-
-            // poäng) så sidan aldrig blir tom. Re-taggas EU-produkter som Bestseller
-            // i Wix tar de över igen automatiskt.
-            const tagged = products.filter((p) => p.ribbon === "Bestseller");
-            return tagged.length >= 8
-              ? tagged
-              : [...products].sort((a, b) => b.imageScore - a.imageScore).slice(0, 24);
-          })()
-        : products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
-  // Första raden: de 3 högst bild-poängsatta produkterna (lib/image-scores) först
-  // — bästa bilderna möter besökaren. Resten behåller katalogordningen.
-  const topThree = [...catList].sort((a, b) => b.imageScore - a.imageScore).slice(0, 3);
-  const topIds = new Set(topThree.map((p) => p.id));
+  // Urvalet (huvudkategori = med underkategorier; Populära och REA fylls från
+  // produktflaggor) bor i lib/list-pages, så /api/lista räknar fram samma lista.
+  const catList = kategoriProdukter(active, collections, products);
   // dedupeProducts: defensivt skydd så två kort aldrig visar samma produkt/bild
   // bredvid varandra (Leonards "samma bild två gånger i rad" i Mobiltillbehör).
-  const list = await attachRatings(dedupeProducts([...topThree, ...catList.filter((p) => !topIds.has(p.id))]));
+  //
+  // ORDNINGEN ÄR "REKOMMENDERAT", RÄKNAD HÄR MED SAMMA DAG SOM WEBBLÄSAREN FÅR.
+  // Förr gick listan ut i katalogordning med de tre bästa bilderna först, och
+  // ShopBrowser sorterade om den vid laddning: uppmätt 2026-09-27 stod 0 av 24
+  // kort kvar på /kategori/husdjur och 2 av 24 på möbler och fåtöljer. Rutnätet
+  // blinkade om och sökmotorerna läste andra produkter än kunden såg. Se
+  // lib/list-pages.ts.
+  const dagMs = currentDayMs();
+  const list = await ordnaLista(dedupeProducts(catList), dagMs);
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
@@ -276,9 +260,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           {/* ShopBrowser ger sortering (Rekommenderat/pris/namn), prisfilter,
               lager-/rea-toggles, paginering och delbart filter-tillstånd i URL:en
               — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
-          {/* forClient skär bort de fält klienten aldrig läser — se ListProduct
-              i lib/products.ts. Mätt: 1 005 kB av 2 704 på den här sidan. */}
-          <ShopBrowser products={forListClient(list)} subs={subs} />
+          {/* Sidan bär de första korten och en sammanfattning för filtren;
+              resten hämtar ShopBrowser från /api/lista (lib/list-pages.ts). */}
+          <ShopBrowser {...listaForSidan(list, `kategori/${active.slug}`)} dayMs={dagMs} subs={subs} />
 
           {/* Crawlbart A–Ö-index för kategorin: gridden visar 24 (perf-gräns) och
               på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt

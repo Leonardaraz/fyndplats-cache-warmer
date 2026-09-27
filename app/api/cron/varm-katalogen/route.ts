@@ -26,8 +26,9 @@
 // loggar en varning; exponeringen är att någon renderar VÅRA EGNA sidor, vilket
 // är precis det värmande vi vill ha. Se den längre noten i warm-and-ping.
 import { NextResponse } from "next/server";
-import { getProductSitemapEntries } from "../../../../lib/products";
-import { katalogenArKall, roterad, varmAlla, varmBildkartan } from "../../../../lib/warm";
+import { getCollections, getProductSitemapEntries } from "../../../../lib/products";
+import { katalogenArKall, roterad, varmAlla, varmBildkartan, varmListor } from "../../../../lib/warm";
+import type { ListNyckel } from "../../../../lib/list-key";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,18 +74,29 @@ export async function GET(request: Request) {
   // det åt oss.
   const bildkartan = await varmBildkartan();
 
+  // LISTSIDORNAS PRODUKTLISTOR (app/api/lista), av samma skäl som bildkartan:
+  // en kall lista är en kund som väntar på "Visa fler". Varje körning värms de
+  // listor flest ser — hela sortimentet, rean och huvudavdelningarna. Efter en
+  // deploy, när katalogen är kall, värms alla (nedan).
+  const kategorier = await getCollections();
+  const listnycklar: ListNyckel[] = ["alla", "rea", ...kategorier.map((c) => `kategori/${c.slug}` as const)];
+  const toppnycklar: ListNyckel[] = ["alla", "rea", ...kategorier.filter((c) => c.parentId === null).map((c) => `kategori/${c.slug}` as const)];
+
   const prov = await katalogenArKall(slugs);
   if (!prov.kall) {
-    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan });
+    const listor = await varmListor(toppnycklar);
+    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan, listor });
   }
+
+  const listor = await varmListor(listnycklar);
 
   const varmning = await varmAlla(roterad(slugs), deadline);
 
   console.log(
     `[varm-katalogen] prov ${prov.missar}/${prov.av} MISS → kall. `
       + `Värmde ${varmning.ok}/${slugs.length}${varmning.avbruten ? " (avbruten på deadline — nästa körning roterar vidare)" : ""}. `
-      + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}`,
+      + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}. Listor: ${listor.ok}/${listnycklar.length}`,
   );
 
-  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan });
+  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan, listor });
 }

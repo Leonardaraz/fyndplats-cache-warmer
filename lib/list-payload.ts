@@ -1,6 +1,11 @@
 // lib/list-payload.ts
 // Vilka produkter som ska bära sin bild redan i sidans nyttolast.
 //
+// GÄLLER NUMERA BARA SÖKRESULTATEN (/sok). Listsidorna (/alla-produkter, /rea,
+// /kategori) skickar sedan 2026-09-27 bara sina första kort och hämtar resten,
+// med bilder, från /api/lista — se lib/list-pages.ts. Beskrivningen nedan är
+// skriven för listsidorna men gäller sök på samma sätt.
+//
 // PROBLEMET. Listsidorna ritar 24 kort men skickar HELA katalogen till
 // webbläsaren, för filtren och sorteringen räknas där. Mätt på skarp
 // /alla-produkter 2026-09-04: produktlistan vägde 877 kB, varav 471 kB var
