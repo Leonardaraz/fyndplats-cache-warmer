@@ -479,7 +479,6 @@ function QueueCard({
         <PolishButton
           wixProductId={p.wixProductId}
           title={p.seoTitle}
-          sourceUrl={p.sourceUrl}
         />
       ) : null}
 

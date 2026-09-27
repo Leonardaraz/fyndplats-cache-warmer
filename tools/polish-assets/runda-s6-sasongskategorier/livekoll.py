@@ -8,7 +8,8 @@ SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = tempfile.mkdtemp(prefix="livekoll-")
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 import glob
-SLUGS = sorted(json.load(open(f))["slug"] for f in glob.glob(os.path.join(SRC, "*-text.json")))
+# En fil med "ersatt_av" beskriver en text som en senare runda skrivit om; den kontrolleras där.
+SLUGS = sorted(d["slug"] for d in (json.load(open(f)) for f in glob.glob(os.path.join(SRC, "*-text.json"))) if not d.get("ersatt_av"))
 if len(sys.argv) > 1: SLUGS = sys.argv[1:]
 def norm(s): return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",s))).strip()
 fel = 0

@@ -1,0 +1,66 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "5b3d3c58": {
+  "tyska": "140 x 88 x 60 cm (LxBxH)",
+  "svenska": "M",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 140,
+  "djup": 88
+ },
+ "5cd3d289": {
+  "tyska": "",
+  "svenska": "37 x 31 x 34 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 37L x 31B x 34H cm"
+ },
+ "65057335": {
+  "tyska": "125-201B x 19T x 81,5H cm",
+  "svenska": "201L x 19B x 81,5H cm",
+  "bokstaver": "BTH",
+  "djup": 19,
+  "hojd": 81.5,
+  "bredd": [
+   125,
+   201
+  ]
+ },
+ "6e48f38d": {
+  "tyska": "120L x 46B x 42H cm",
+  "svenska": "120B x 46T x 42H cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 120,
+  "djup": 46
+ },
+ "8a6cd257": {
+  "tyska": "Bett: 188L x 75B x 38H cm, Liege: 75L x 128B x 74H cm, Sofa: 75L x 80B x 74H cm",
+  "svenska": "Mittel",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 38,
+  "bredd": 188,
+  "djup": 75
+ },
+ "8e4a9df0": {
+  "tyska": "100L x 35l x 80H cm",
+  "svenska": "100 x 35 x 80 cm",
+  "bokstaver": "LH",
+  "hojd": 80,
+  "bredd": 100
+ },
+ "8fb25201": {
+  "tyska": "77L x 96B x 12H cm",
+  "svenska": "96L x 77B x 12H cm",
+  "bokstaver": "LBH",
+  "hojd": 12,
+  "bredd": 77,
+  "djup": 96
+ },
+ "b08dc0cb": {
+  "tyska": "100L x 35B x 47H cm",
+  "svenska": "100L x 35B x 47H cm",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 100,
+  "djup": 35
+ }
+}

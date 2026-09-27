@@ -1,0 +1,1591 @@
+{
+ "479e9c2e": {
+  "pid": "479e9c2e-2fbc-448f-8d44-2f31ad5bedbe",
+  "rev": "9",
+  "upd": "2026-09-24T01:55:22.929Z",
+  "namn": "Sparkcykel barn 120 cm med lågt styre, svart och röd – 100 kg",
+  "slug": "sparkcykel-barn-120-cm-lagt-styre-svart",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Sparkcykel barn 120 cm, svart och röd | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart sparkcykel 120 cm med röd framgaffel, Ø12-tumshjul med luftdäck, broms på båda hjulen och styre 75–80 cm. Maxlast 100 kg, väger 8,2 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "sparkcykel barn",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "sparkcykel barn lågt styre",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_81cd071f590c49e1803dac845b245440~mv2.jpg",
+    "Svart sparkcykel med röd framgaffel och pojke i hjälm som visar tummen upp"
+   ],
+   [
+    "b379ce_b7b55318895e4a638dc63f16604e5ef6~mv2.jpg",
+    "Svart sparkcykel med röd framgaffel parkerad på stenplattor"
+   ],
+   [
+    "b379ce_741495d5c1684b6b9bdb23a0d4dae313~mv2.jpg",
+    "Faktakort för svart sparkcykel barn: 120 cm lång, styre från 75 cm och 8,2 kg"
+   ],
+   [
+    "b379ce_a002ce87db5949e0ac2334b93654bfb4~mv2.jpg",
+    "Närbild på det breda styret med bromshandtag på svart sparkcykel"
+   ],
+   [
+    "b379ce_24a83792ff7147879284e21c6bbffcf1~mv2.jpg",
+    "Närbild på röd framgaffel och Ø12-tumshjul med silverfärgad ekerfälg"
+   ],
+   [
+    "b379ce_0de5b21580e04989982744acba43c6bd~mv2.jpg",
+    "Måttritning för sparkcykel: 120 cm lång, 58 cm bred och styre 75–80 cm"
+   ]
+  ],
+  "kat": [
+   "Barn & Familj",
+   "Leksaker & Spel",
+   "Sparkcyklar för barn"
+  ],
+  "sku": "FP-sparkcykel-120-cm-svart",
+  "variantId": "a92d9a34-843b-4e0c-b0c4-0c3e9db64e4d"
+ },
+ "d9239c8e": {
+  "pid": "d9239c8e-dba1-40d4-940f-fb4f9121954f",
+  "rev": "10",
+  "upd": "2026-09-24T01:55:23.829Z",
+  "namn": "Sparkcykel barn 120 cm med lågt styre, turkos – 100 kg",
+  "slug": "sparkcykel-barn-120-cm-lagt-styre-turkos",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Sparkcykel barn 120 cm, turkos | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Turkos sparkcykel 120 cm med Ø12-tumshjul och luftdäck, broms på båda hjulen och styre 75–80 cm. Maxlast 100 kg, väger 8,2 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "sparkcykel barn",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "sparkcykel barn turkos",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_de004627fb9a424f844121f602729ddc~mv2.jpg",
+    "Turkos sparkcykel för barn med lågt styre och pojke i hjälm"
+   ],
+   [
+    "b379ce_1a8aac8ab12941b98989f82a6a57c078~mv2.jpg",
+    "Turkos sparkcykel med lågt styre parkerad på stenplattor"
+   ],
+   [
+    "b379ce_55131b2da67a4a98ac210919f0cc14c1~mv2.jpg",
+    "Faktakort för turkos sparkcykel barn: 120 cm lång, 8,2 kg och maxlast 100 kg"
+   ],
+   [
+    "b379ce_209c8a833d9146ebbefecd9bd701bbbc~mv2.jpg",
+    "Turkos sparkcykel sedd från sidan med utfällt stöd"
+   ],
+   [
+    "b379ce_606f46f1de12457eb73e7ee64e99dd2f~mv2.jpg",
+    "Turkos sparkcykel snett bakifrån med fotplattan i blickfånget"
+   ],
+   [
+    "b379ce_9e2e7427ca644dba9a722a0b011ebf83~mv2.jpg",
+    "Måttritning för turkos sparkcykel: 120 × 58 cm och styre 75–80 cm"
+   ]
+  ],
+  "kat": [
+   "Barn & Familj",
+   "Leksaker & Spel",
+   "Sparkcyklar för barn"
+  ],
+  "sku": "FP-sparkcykel-120-cm-turkos",
+  "variantId": "23467568-f2dd-4be2-9a97-80eaa13d7ea2"
+ },
+ "79186373": {
+  "pid": "79186373-24e1-41cd-84ea-e7908c0a851d",
+  "rev": "9",
+  "upd": "2026-09-24T01:55:23.426Z",
+  "namn": "Sparkcykel barn 143 cm i rosa – 16 tum fram och bak, V-bromsar",
+  "slug": "sparkcykel-barn-143-cm-16-tum-rosa",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Sparkcykel barn 143 cm, rosa | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Rosa sparkcykel 143 cm med 16-tumshjul och luftdäck fram och bak, V-broms på båda hjulen och styre 92–100 cm. Maxlast 100 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "sparkcykel barn",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "sparkcykel barn rosa 16 tum",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_2d8101a150bd400c8cf83975953c81a8~mv2.jpg",
+    "Rosa sparkcykel för barn med 16-tumshjul och flicka i hjälm"
+   ],
+   [
+    "b379ce_666255ee7dd34670951d2bd5abe67ce0~mv2.jpg",
+    "Flicka åker rosa sparkcykel på en asfalterad parkväg"
+   ],
+   [
+    "b379ce_be6f2863117a45598992e52a11d1e4f5~mv2.jpg",
+    "Faktakort för rosa sparkcykel barn: 143 cm lång och två lika stora 16-tumshjul"
+   ],
+   [
+    "b379ce_68ab25e9b750434fba756051d30452d5~mv2.jpg",
+    "Fotplattan på rosa sparkcykel sedd snett uppifrån"
+   ],
+   [
+    "b379ce_4cf83cb7c42747d5a75009e3abb5ab40~mv2.jpg",
+    "Närbild på bromshandtag och handtag på rosa sparkcykel"
+   ],
+   [
+    "b379ce_b3e10877b5ae4c8994b61a9f48f9febd~mv2.jpg",
+    "Måttritning för sparkcykel: 143 cm lång, 58 cm bred och styre 92–100 cm"
+   ]
+  ],
+  "kat": [
+   "Sparkcyklar för barn",
+   "Barn & Familj",
+   "Leksaker & Spel"
+  ],
+  "sku": "FP-sparkcykel-143-cm-rosa",
+  "variantId": "bd3585c8-440a-43f1-a2b2-5155848ea21b"
+ },
+ "c4375606": {
+  "pid": "c4375606-60f2-4d79-b577-232e4521e335",
+  "rev": "8",
+  "upd": "2026-09-24T01:55:23.629Z",
+  "namn": "Sparkcykel barn 143 cm i svart – 16 tum fram och bak, V-bromsar",
+  "slug": "sparkcykel-barn-143-cm-16-tum-svart",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Sparkcykel barn 143 cm, svart | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart sparkcykel 143 cm med 16-tumshjul och luftdäck fram och bak, V-broms på båda hjulen och styre 92–100 cm. Maxlast 100 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "sparkcykel barn",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "sparkcykel barn 16 tum svart",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_147489a33f04410a9126774e001b4925~mv2.jpg",
+    "Svart sparkcykel för barn med 16-tumshjul och flicka i hjälm bredvid"
+   ],
+   [
+    "b379ce_334755e3f0034b9fbebf21a898d193e8~mv2.jpg",
+    "Flicka åker svart sparkcykel på en uppfart framför ett hus"
+   ],
+   [
+    "b379ce_9e96deaf86e043eebabd0f55860c1156~mv2.jpg",
+    "Faktakort för svart sparkcykel barn: 143 cm lång, V-broms och maxlast 100 kg"
+   ],
+   [
+    "b379ce_aa280e984f1743d99a9372807c8970a8~mv2.jpg",
+    "Närbild på bakhjulets V-broms och ekerfälg på svart sparkcykel"
+   ],
+   [
+    "b379ce_3484da4d076046d1b3d0c8db50321a09~mv2.jpg",
+    "Pojke med ryggsäck står på svart sparkcykel med kromad gaffel"
+   ]
+  ],
+  "kat": [
+   "Barn & Familj",
+   "Sparkcyklar för barn",
+   "Leksaker & Spel"
+  ],
+  "sku": "FP-sparkcykel-143-cm-svart",
+  "variantId": "bb18fb6c-4f70-4caf-85d1-6d1ce3d53771"
+ },
+ "0ae3c59a": {
+  "pid": "0ae3c59a-9e46-43dd-b6b9-016248bebdd1",
+  "rev": "7",
+  "upd": "2026-09-24T01:55:24.184Z",
+  "namn": "Stor hundbur 106 cm – 99 cm invändigt och låsbar dörr på 45 × 72 cm",
+  "slug": "stor-hundbur-106-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Stor hundbur 106 cm med låsbar dörr | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Stor hundbur 106 × 60 × 76 cm med 99,4 cm invändig längd och en låsbar dörr på 44,9 × 71,8 cm. Skivan ovanpå är hela burens bredd."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "keywords",
+      "content": "stor hundbur, hundbur, stor hundbur inomhus"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "hundebox transportbox 1 tür",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_b16a95e3a3114871abab5ec621b5a922~mv2.jpg",
+    "Stor hundbur i vitt med ekfärgad skiva och svarta stålrör, sedd snett framifrån"
+   ],
+   [
+    "b379ce_c9a55d04fef349ec8e7cad19e8d469b5~mv2.jpg",
+    "Stor hundbur i ett vardagsrum med dörren öppen och en hund liggande inuti"
+   ],
+   [
+    "b379ce_c1db4d36c52f401daa2d7f1dde006024~mv2.jpg",
+    "Mätkort: längden mäts stående från nosspets till svansspets, höjden sittande från golv till hjässa"
+   ],
+   [
+    "b379ce_e4bebba35d1d426daad263a88a80cd82~mv2.jpg",
+    "Stora hundburen sedd rakt framifrån med stängd dörr och ekfärgat golv inuti"
+   ],
+   [
+    "b379ce_209848ed130a4030aeb815ce3ab9c752~mv2.jpg",
+    "Närbild på gångjärnet mellan burens vita sida och den mörka valnötspanelen"
+   ]
+  ],
+  "kat": [
+   "Husdjur",
+   "Hundburar",
+   "Burar, Kläder & Tillbehör"
+  ],
+  "sku": "FP-stor-hundbur-106-cm",
+  "variantId": "d1d86a32-3325-421e-8529-13ba274a5364"
+ },
+ "2bdd6e15": {
+  "pid": "2bdd6e15-d473-4b9d-ba24-9a0f5bbb30dd",
+  "rev": "19",
+  "upd": "2026-09-26T17:00:24.925Z",
+  "namn": "Supersportbil byggsats 3 719 delar – 1:8 med öppningsbara dörrar",
+  "slug": "supersportbil-byggsats-3719-delar",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Supersportbil byggsats 3 719 delar – 1:8 | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Supersportbil i klossar, 3 719 delar i skala 1:8. Öppningsbara dörrar och motorrum, byggd spiralfjädring och skivbromsar. Från 14 år."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "supersportbil byggsats",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "sportbil i klossar",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "byggsats bil 1:8",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "byggsats vuxen",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_463a196bb03d4364ab50d927f9532552~mv2.jpg",
+    "Supersportbil byggsats i klossar – tvåtonad blå 1:8-modell från sidan med spegling i studiogolvet, mot vit bakgrund"
+   ],
+   [
+    "b379ce_18e94a10f61b4cc0ac5d83f30b6c0814~mv2.jpg",
+    "Händer som bygger supersportbilens motorrum med turboaggregat och rörsystem"
+   ],
+   [
+    "b379ce_d8e702c5e5664929af21147a00215af1~mv2.jpg",
+    "Supersportbilen i klossar med bakluckan öppen och den byggda motorn synlig"
+   ],
+   [
+    "b379ce_e950ea54b9e240929adfac591ef1c585~mv2.jpg",
+    "Fyndplats-kort: närbilder på bromsskivan bakom fälgen, spiralfjädringen och de fyra avgasrören"
+   ],
+   [
+    "b379ce_b126546c34844f15a61bf3c2f76123f1~mv2.jpg",
+    "Fyndplats-kort med specifikationer: 3 719 delar, skala 1:8, öppningsbara dörrar och byggd fjädring"
+   ]
+  ],
+  "kat": [
+   "Barn & Familj",
+   "Leksaker & Spel"
+  ],
+  "sku": "FP-supersportbil-byggsats",
+  "variantId": "87a1cb19-e6c7-4012-8875-9d20a24c244a"
+ },
+ "8f88f072": {
+  "pid": "8f88f072-6e35-44a5-9931-1413fd602aae",
+  "rev": "5",
+  "upd": "2026-09-22T19:47:26.242Z",
+  "namn": "Takvärmare för terrass 2000 W med inbyggd LED-belysning, Ø 42 cm",
+  "slug": "takvarmare-terrass-2000w-led",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Takvärmare terrass 2000 W med LED-ljus | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Takhängd terrassvärmare 2000 W med inbyggd LED på 3,2 W. Två effektlägen, fjärrkontroll på 4 m, 24-timmarstimer och IP65. Värmer 10–15 m²."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "takvärmare terrass",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "hängande terrassvärmare",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "infravärmare tak med belysning",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_5b1e1b3c7a38420c9461e3ed3b1da5fb~mv2.jpg",
+    "Rund svart takvärmare för terrass med LED-ring i mitten, hängande i tre linor mot vit bakgrund"
+   ],
+   [
+    "b379ce_fed0325c66844f5b970585e8fe56a940~mv2.jpg",
+    "Takvärmaren lyser över ett däckat matbord där en familj sitter kvar i skymningen"
+   ],
+   [
+    "b379ce_7ab03490b844435fae2fa2001be121aa~mv2.jpg",
+    "Den hängande terrassvärmaren glöder över en altan med ljusslinga och soffgrupp"
+   ],
+   [
+    "b379ce_7317df0757c94d0f9d9b0b3e3117a416~mv2.jpg",
+    "Samma takvärmare hängd i taket på ett taköverbyggt uterum med hund på golvet"
+   ],
+   [
+    "b379ce_d147ffc82dd644f5a496d9a5d6aba667~mv2.jpg",
+    "Specifikationskort för takvärmaren: Ø 42 cm, 1000 eller 2000 W, LED 3,2 W och IP65"
+   ],
+   [
+    "b379ce_088d0e64d3304473a499c9981b586d5f~mv2.jpg",
+    "Måttritning över takvärmaren med diameter 42 cm, höjd 11,5 cm, kedja 51 cm och kabel 250 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Terrassvärmare & Infravärmare"
+  ],
+  "sku": "FP-takvarmare-terrass-led",
+  "variantId": "4138ae16-4f93-45b7-bc0e-b0c698cd8aee"
+ },
+ "8152449a": {
+  "pid": "8152449a-3e07-4f26-b221-03584dbec188",
+  "rev": "4",
+  "upd": "2026-09-01T12:24:00.220Z",
+  "namn": "Terrassvärmare på stativ 2500 W, höjd 1,13–1,8 m med tippskydd",
+  "slug": "terrassvarmare-stativ-2500w",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Terrassvärmare stativ 2500 W, 1,13–1,8 m | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Terrassvärmare på trebensstativ, 2500 W med tre effektlägen och 24-timmarstimer. Höjden ställs 1,13–1,8 m. Tippskydd, IP65 och fjärrkontroll."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "terrassvärmare stativ",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "flyttbar terrassvärmare",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "infravärmare 2500 w",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_afbd296436014c558ee8dca801a49d48~mv2.jpg",
+    "Svart terrassvärmare monterad på trebensstativ, mot vit bakgrund"
+   ],
+   [
+    "b379ce_7978d4d12fd94b528811efa5e610424a~mv2.jpg",
+    "Terrassvärmaren på stativ glöder bredvid ett däckat trädgårdsbord med gäster i skymningen"
+   ],
+   [
+    "b379ce_1cbc7d3f1b1d48f08889cfd884970a6e~mv2.jpg",
+    "Stativvärmaren står vid en uteplats där tre personer sitter i korgmöbler"
+   ],
+   [
+    "b379ce_1743d2fb31e249bb8777be872fe33b06~mv2.jpg",
+    "Samma terrassvärmare uppställd i ett växthus med blommande krukväxter och snö utanför"
+   ],
+   [
+    "b379ce_a6966e742a2649afa14438470f99928d~mv2.jpg",
+    "Specifikationskort för terrassvärmaren på stativ: 2500 W, tre effektlägen och höjd 1,13–1,8 m"
+   ],
+   [
+    "b379ce_b0af5b15a12342729c678e33bf9e4a43~mv2.jpg",
+    "Måttritning över stativvärmaren med bredd 0,87 m och justerbar höjd 1,13–1,8 m"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Terrassvärmare & Infravärmare"
+  ],
+  "sku": "FP-terrassvarmare-stativ",
+  "variantId": "f9632cc7-3b6d-489b-bb09-72e3b69cadfd"
+ },
+ "506f38f7": {
+  "pid": "506f38f7-bc12-4d81-b6c1-4b8604cd834d",
+  "rev": "5",
+  "upd": "2026-09-25T03:22:27.178Z",
+  "namn": "Torkställ 192 cm med vingar i fyra höjder – färdigmonterat",
+  "slug": "torkstall-192-cm-vingar-fyra-hojder",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Torkställ 192 cm – vingar i fyra höjder",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Torkställ i rostfritt stål, 192 centimeter högt och 156,5 långt — högst av våra torkställ. Vingarna ställs i fyra höjder, så långa plagg får hänga utan att"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_207a9485cf5a4dcea647b96f3de01a46~mv2.jpg",
+    "Högt torkställ i rostfritt med utfällda vingar"
+   ],
+   [
+    "b379ce_577b7c800d474de4a7c43d983d787ff5~mv2.jpg",
+    "Specifikation: 156,5 × 68 × 192 cm, vingar i fyra höjder"
+   ],
+   [
+    "b379ce_2376ef6fed9241ff84258a751adda10c~mv2.jpg",
+    "Torkstället med tvätt i ett ljust rum"
+   ],
+   [
+    "b379ce_cb24e8e9d91347ba9e9f39bd478a4ea1~mv2.jpg",
+    "Vingarna ställs i fyra höjdlägen"
+   ],
+   [
+    "b379ce_4c2b3b7d9f66444b99dd449d3185b1f4~mv2.jpg",
+    "Måttritning: 156,5 × 68 × 192 cm och 8 cm hopfällt"
+   ],
+   [
+    "b379ce_ad952f889ea8416791535767286bc11c~mv2.jpg",
+    "Torkstället med kläder hängande fritt från golvet"
+   ],
+   [
+    "b379ce_acbc536122b44b06b991874f7341c27c~mv2.jpg",
+    "Torkstället uppställt i ett kök"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Förvaring & Organisering"
+  ],
+  "sku": "FP-torkstall-192-vingar",
+  "variantId": "a76f4ef0-53b8-4f62-95ca-19ad34468dfc"
+ },
+ "ee3acaea": {
+  "pid": "ee3acaea-dc7c-4c11-9fac-62c03dd3a26d",
+  "rev": "6",
+  "upd": "2026-09-16T15:10:48.781Z",
+  "namn": "Trädgårdsbänk i aluminium 100 cm – bronsfärgad, 11,5 kg, 240 kg",
+  "slug": "tradgardsbank-i-aluminium-100-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsbänk i aluminium 100 cm, bronsfärgad | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsbänk i gjuten aluminium och gjutjärn, bronsfärgad. Bara 100 × 54 cm i fotavtryck och 11,5 kg, med genombruten rygg i rosmotiv. Bär 240 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsbänk i aluminium",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "trädgårdsbänk brons",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "liten trädgårdsbänk",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "parkbänk gjuten",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_ae5454ffed3b47dda0f891c3b3c5d8df~mv2.jpg",
+    "Trädgårdsbänk i aluminium, bronsfärgad med gjutna rosmotiv i det genombrutna ryggstödet"
+   ],
+   [
+    "b379ce_d4552d12ebbd48549ff7222189a2fe1b~mv2.jpg",
+    "Den bronsfärgade bänken under ett fönster med krukväxter i fönsterbrädan"
+   ],
+   [
+    "b379ce_8d03f33c633149bd9b51bf154a6617dd~mv2.jpg",
+    "Spec-kort med mått, sittyta, sitthöjd och maxlast för trädgårdsbänken i aluminium"
+   ],
+   [
+    "b379ce_e94967cf719543f6b5d117f5678a9a9c~mv2.jpg",
+    "Två personer sitter i bänken framför ett plank i trädgården"
+   ],
+   [
+    "b379ce_a31df5ac18f840a89cb776e5b68a387b~mv2.jpg",
+    "En person läser i bänken bredvid en blommande rabatt"
+   ],
+   [
+    "b379ce_273ff4e073984018aeb3d98f5319bc27~mv2.jpg",
+    "Måttskiss: 100 cm lång, 54 cm djup, 78 cm hög, sittyta 90 × 34 cm och sitthöjd 42 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Utemöbler"
+  ],
+  "sku": "FP-tradgardsbank-i",
+  "variantId": "fac44004-8c60-4780-8d23-ce9242b90598"
+ },
+ "247d6553": {
+  "pid": "247d6553-4790-4b5b-b6d6-a09dfe8bd8fd",
+  "rev": "7",
+  "upd": "2026-09-10T06:20:59.032Z",
+  "namn": "Trädgårdsbänk i gjutjärn 128 cm – 124 cm sittbredd, 240 kg",
+  "slug": "tradgardsbank-i-gjutjarn-128-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsbänk i gjutjärn 128 cm, 240 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsbänk i gjutjärn och stål, 128 cm lång med 124 cm sittbredd. Mattsvart, lameller som släpper igenom regnvatten, bär 240 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsbänk i gjutjärn",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "parkbänk",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "trädgårdsbänk metall",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "utebänk 2-sits",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_166d39e3991d4bf2ae6c30af9b5a65e3~mv2.jpg",
+    "Trädgårdsbänk i gjutjärn, 128 cm, mattsvart med rutmönstrat ryggstöd mot vit bakgrund"
+   ],
+   [
+    "b379ce_bbe17cf70dd345028e8e0bd74f25805e~mv2.jpg",
+    "Den svarta trädgårdsbänken på en stenlagd uteplats med krukväxter runt omkring"
+   ],
+   [
+    "b379ce_041164aa9f1f4ac893d1922d09b1f4d0~mv2.jpg",
+    "Spec-kort med mått, sittyta, sitthöjd och maxlast för trädgårdsbänken i gjutjärn"
+   ],
+   [
+    "b379ce_ecb02401239d463bab4eebf7b24b27f7~mv2.jpg",
+    "Närbild på det gjutna ornamentet i ryggstödets rutmönster"
+   ],
+   [
+    "b379ce_f885972a43e048948f1bc0f3665a1512~mv2.jpg",
+    "Närbild på skruvförbandet där armstödet möter bänkens ram"
+   ],
+   [
+    "b379ce_4b24171a436a4c58bd0916e8c8d557b4~mv2.jpg",
+    "Måttskiss: 128 cm bred, 58,5 cm djup, 89 cm hög, sittyta 124 × 44 cm och sitthöjd 43,5 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Utemöbler"
+  ],
+  "sku": "FP-tradgardsbank-i-gjutjarn",
+  "variantId": "57f48343-7024-4f6b-b768-5fe6c1efa945"
+ },
+ "07ab8b54": {
+  "pid": "07ab8b54-6ed3-4e59-a73f-7caae032aae1",
+  "rev": "9",
+  "upd": "2026-09-22T20:01:19.422Z",
+  "namn": "Trädgårdsbänk i konstrotting 122 cm – 52 cm sittdjup, 320 kg",
+  "slug": "tradgardsbank-i-konstrotting-122-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsbänk i konstrotting 122 cm, 320 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsbänk i grå konstrotting på stålram, 122 cm lång. Sittdjup 52 cm och maxlast 320 kg vid 10,3 kg egenvikt. Går både inne och ute."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsbänk i konstrotting",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "trädgårdsbänk polyrotting",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "utebänk konstrotting",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "bänk uterum",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_e00a2ddc5522430181a0800d8a19a23f~mv2.jpg",
+    "Trädgårdsbänk i konstrotting, grå, 122 cm, med stålram mot vit bakgrund"
+   ],
+   [
+    "b379ce_2cdc550cb8fa4e88adaef6d6c153c66c~mv2.jpg",
+    "Den grå rottingbänken uppställd mot en vit vägg utomhus"
+   ],
+   [
+    "b379ce_648f9c6d70c9446fa899abfa488371f3~mv2.jpg",
+    "Spec-kort med mått, sittdjup, maxlast och vikt för trädgårdsbänken i konstrotting"
+   ],
+   [
+    "b379ce_0471408043594d74ba264436f288bfb0~mv2.jpg",
+    "Närbild på armstödet och den handflätade grå rottingen"
+   ],
+   [
+    "b379ce_1e5938e0bf774d179f5371deb749a2f5~mv2.jpg",
+    "Närbild på flätningen underifrån där den avslutas mot stålramen"
+   ],
+   [
+    "b379ce_006dd08d91a44038890684613c9b592b~mv2.jpg",
+    "Måttskiss: 122 cm bred, 60 cm djup, 85 cm hög, sittyta 115 × 52 cm och sitthöjd 43,5 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Utemöbler"
+  ],
+  "sku": "FP-tradgardsbank-i",
+  "variantId": "56d6f759-68e1-483f-b99e-c052d8cba24b"
+ },
+ "63304d60": {
+  "pid": "63304d60-8ff2-4a42-9e35-357c8682026a",
+  "rev": "8",
+  "upd": "2026-09-22T19:51:24.062Z",
+  "namn": "Trädgårdsbänk med vagnshjul 108 cm i gran – 2,3 cm tjock sits",
+  "slug": "tradgardsbank-med-vagnshjul-108-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsbänk med vagnshjul 108 cm i gran | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsbänk med vagnshjul som armstöd, 108 cm lång i naturfärgad gran. Solfjäderformad rygg, 2,3 cm tjocka sitsbrädor och maxlast 250 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsbänk med vagnshjul",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "rustik trädgårdsbänk",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "trädgårdsbänk gran",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "utebänk lantstil",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_c5b2ceabc8e0478589607af169617e9d~mv2.jpg",
+    "Trädgårdsbänk med vagnshjul som armstöd, i ljus obehandlad gran, mot vit bakgrund"
+   ],
+   [
+    "b379ce_0c420b6bac0649c7a8b5878f6830e932~mv2.jpg",
+    "Vagnshjulsbänken framför en blommande buske i en trädgård"
+   ],
+   [
+    "b379ce_84e0a502a0b5417dbc5121b1fe2e8b0f~mv2.jpg",
+    "Spec-kort med mått, sittyta, sitsbrädornas tjocklek och maxlast för trädgårdsbänken med vagnshjul"
+   ],
+   [
+    "b379ce_441473bde8474c9d80489ab754acff57~mv2.jpg",
+    "Bänken uppställd vid en husvägg med en krukväxt bredvid"
+   ],
+   [
+    "b379ce_b42e4bea79bc446dbe41d5e20bc74790~mv2.jpg",
+    "Närbild på den solfjäderformade ryggen i ljus gran"
+   ],
+   [
+    "b379ce_104573135ddc477daf1da7a8d42e2b87~mv2.jpg",
+    "Måttskiss: 108 cm lång, 66 cm djup, 95 cm hög, sittyta 98 × 48 cm och sitthöjd 43 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Utemöbler"
+  ],
+  "sku": "FP-tradgardsbank-med",
+  "variantId": "5727dd06-4672-4dbe-a788-9d9db370cc02"
+ },
+ "25ed0c55": {
+  "pid": "25ed0c55-153a-4ffd-bfd7-5ed47c8df3a9",
+  "rev": "7",
+  "upd": "2026-09-27T03:22:44.726Z",
+  "namn": "Trädgårdsförråd 147 cm med sex hyllor och fyra akrylfönster",
+  "slug": "tradgardsforrad-147-cm-sex-hyllor",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsförråd 147 cm med sex hyllor | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsförråd i barrträ, 147 × 68 × 198 cm. Sex hyllplan, fyra akrylfönster, lamellventilation, tippskydd och markankare ingår."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsförråd 147 cm",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "redskapsbod trä",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "förråd med hyllor",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_ffaf34b928854548859f7c840da03003~mv2.jpg",
+    "Trädgårdsförråd 147 cm i barrträ med dubbeldörr, akrylfönster och lamellpartier"
+   ],
+   [
+    "b379ce_ba64245333f34d398ca4f6383386ac37~mv2.jpg",
+    "Förrådet med dörrarna öppna och sex hyllplan fyllda med trädgårdsredskap"
+   ],
+   [
+    "b379ce_3027d304f88549c094a01bee10b444e9~mv2.jpg",
+    "Måttritning: 147 cm brett, 68 cm djupt och 198 cm högt, hyllplan 33 × 58 cm"
+   ],
+   [
+    "b379ce_493601b165d64e508fa13b216dce6217~mv2.jpg",
+    "Tippskyddets L-fäste, markankare och justerbara fot i närbild"
+   ],
+   [
+    "b379ce_4d477526a3cf4e1081c8f38aa80688a4~mv2.jpg",
+    "Lamellpartiet i barrträ som ventilerar förrådet hela höjden"
+   ]
+  ],
+  "kat": [
+   "Redskapsbodar & förråd",
+   "Trädgård & Utemöbler",
+   "Förvaring & Organisering"
+  ],
+  "sku": "FP-tradgardsforrad-147-cm",
+  "variantId": "50e313d8-48b1-45a0-90d3-0892f74c1422"
+ },
+ "7d28f235": {
+  "pid": "7d28f235-aeb7-435b-948b-6f1ce4a260ae",
+  "rev": "8",
+  "upd": "2026-09-24T01:27:17.091Z",
+  "namn": "Trädgårdsskåp 74 cm med uppfällbart lock och två fack",
+  "slug": "tradgardsskap-74-cm-uppfallbart-lock",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Trädgårdsskåp 74 cm med uppfällbart lock | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Trädgårdsskåp i massivt barrträ, 74 × 43 × 88 cm. Dubbeldörr fram och lock som fälls upp uppifrån, ett hyllplan och 15 kg per fack."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "trädgårdsskåp 74 cm",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "förvaringsskåp utomhus",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "redskapsskåp trä",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_0d07eebd97014e3ab0dc81df14dc185a~mv2.jpg",
+    "Trädgårdsskåp 74 cm i massivt barrträ med dubbeldörr och uppfällbart lock"
+   ],
+   [
+    "b379ce_1c56414a32d74f9a85532eae9a9bdb5a~mv2.jpg",
+    "Trädgårdsskåpet på en altan med dörrarna öppna och krukor på hyllplanet"
+   ],
+   [
+    "b379ce_404558fac7cf43e1be1179f9b67f5f5b~mv2.jpg",
+    "Måttritning: 74 cm brett, 43 cm djupt och 88 cm högt, hyllplan 65 × 33 cm"
+   ],
+   [
+    "b379ce_a66ae29c95894cada338abf1fe10bc5c~mv2.jpg",
+    "Alla delar till trädgårdsskåpet utlagda i en platt kartong före montering"
+   ],
+   [
+    "b379ce_4c41bc0a35354328a34f37f9f35f5458~mv2.jpg",
+    "Trädgårdsskåpet använt som sopkärlsskåp med locket uppfällt och två kärl inne"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Redskapsbodar & förråd",
+   "Förvaring & Organisering"
+  ],
+  "sku": "FP-tradgardsskap-74-cm",
+  "variantId": "70fd2641-49a2-485c-9573-9f7a5f7943dc"
+ },
+ "780691bb": {
+  "pid": "780691bb-4a06-4af3-9667-bbbc26b2021c",
+  "rev": "25",
+  "upd": "2026-09-13T17:25:53.354Z",
+  "namn": "Tunnelväxthus 3 × 2 m – 6 m², genomskinlig duk och nätfönster",
+  "slug": "tunnelvaxthus-3x2-m-6-kvm-genomskinlig-duk",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Tunnelväxthus 3 × 2 m – 6 m² odlingsyta, vindklass 4",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Tunnelväxthus 300 × 200 × 200 cm med genomskinlig PE-duk, rullbar dörr och två nätfönster. Vindklass nivå 4, 12 markpinnar och fyra spännlinor ingår."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 3 × 2 m – 6 m², genomskinlig duk och nätfönster",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 300 × 200 × 200 cm med genomskinlig PE-duk, rullbar dörr och två nätfönster. Vindklass nivå 4, 12 markpinnar och fyra spännlinor ingår.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_1da2b33648674bf18987767c31cf52b6~mv2.jpg",
+    "Tunnelväxthus 3 × 2 m med genomskinlig duk, rullbar dörr och 12 markpinnar"
+   ],
+   [
+    "b379ce_71143f178d1f42629349f29affb192d5~mv2.jpg",
+    "Tunnelväxthuset uppställt i en trädgård med odlingslådor och tomatplantor inuti"
+   ],
+   [
+    "b379ce_a25a3f443ffe4045a7898eabf2f9b2ac~mv2.png",
+    "Måttkort: 300 × 200 cm yta, 200 cm höjd, dörr 113 × 178 cm, vindklass nivå 4"
+   ],
+   [
+    "b379ce_1953491043084fcda46b1d749c88b7eb~mv2.jpg",
+    "Måttskiss: 300 × 200 cm, 200 cm höjd, dörr 113 × 178 cm och fönster 65 × 55 cm"
+   ],
+   [
+    "b379ce_544c3b045ad1441182b48ecbae8652f8~mv2.png",
+    "Jämförelse av tre tunnelväxthus: 6, 11,9 och 17,9 m² odlingsyta"
+   ],
+   [
+    "b379ce_c3c5d258544f4a3b9917cb864b0e5da3~mv2.jpg",
+    "Nätfönster i tunnelväxthuset som släpper ut varm luft och stänger ute insekter"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Växthus & Odling"
+  ],
+  "sku": "FP-tunnel-greenhouse-3x2x2m",
+  "variantId": "a05e32a9-6c6f-4214-9e92-6e9e3f2906dc"
+ },
+ "d438fc3e": {
+  "pid": "d438fc3e-3a6b-4f24-8c1d-979e8c317b57",
+  "rev": "24",
+  "upd": "2026-09-13T17:41:13.335Z",
+  "namn": "Tunnelväxthus 3,95 × 3 m – 11,9 m² med rullbara sidoväggar",
+  "slug": "tunnelvaxthus-395x300-cm-12-kvm-rullbara-sidor",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Tunnelväxthus 3,95 × 3 m – 11,9 m² rullbara sidor",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Tunnelväxthus 395 × 300 × 200 cm i galvaniserat stål med fyra förstärkningsbågar. Åtta nätfönster och rullbara sidoväggar på 100 cm höjd."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 3,95 × 3 m – 11,9 m² med rullbara sidoväggar",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 395 × 300 × 200 cm i galvaniserat stål med fyra förstärkningsbågar. Åtta nätfönster och rullbara sidoväggar på 100 cm höjd.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_3cc0c654f283420688789d63511eed6a~mv2.jpg",
+    "Tunnelväxthus 3,95 × 3 m med vit PE-duk och rullbara sidoväggar"
+   ],
+   [
+    "b379ce_c782800d05af43e1a1e2be7bf71e99a2~mv2.jpg",
+    "Tunnelväxthuset uppställt på en gräsmatta med sidoväggarna upprullade"
+   ],
+   [
+    "b379ce_c4d64ebd5eb844d4a5e882405b94dff4~mv2.png",
+    "Måttkort: 395 × 300 cm yta, 200 cm höjd, dörr 166 × 163 cm, sidor rullas 100 cm"
+   ],
+   [
+    "b379ce_cc8dabc696434d72be2ae27746cbc154~mv2.jpg",
+    "Måttskiss: 395 × 300 cm, 200 cm höjd, dörr 166 × 163 cm och sidhöjd 100 cm"
+   ],
+   [
+    "b379ce_544c3b045ad1441182b48ecbae8652f8~mv2.png",
+    "Jämförelse av tre tunnelväxthus: 6, 11,9 och 17,9 m² odlingsyta"
+   ],
+   [
+    "b379ce_de032b75df1448f19aa52f9622493dee~mv2.jpg",
+    "Tunnelväxthusets nedgrävda dukkant som förankrar konstruktionen i marken"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Växthus & Odling"
+  ],
+  "sku": "FP-tunnel-greenhouse-4x3x2",
+  "variantId": "5ab8241a-27bf-4854-a11a-325076dea068"
+ },
+ "45d2a5ee": {
+  "pid": "45d2a5ee-a5d9-4d1a-b499-8672bb6d3a64",
+  "rev": "24",
+  "upd": "2026-09-23T17:00:22.665Z",
+  "namn": "Tunnelväxthus 5,95 × 3 m – 17,9 m² med åtta nätfönster",
+  "slug": "tunnelvaxthus-595x300-cm-18-kvm-atta-natfonster",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Tunnelväxthus 5,95 × 3 m – 17,9 m² odlingsyta | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Tunnelväxthus 595 × 300 × 200 cm med laminerad PE-duk på 140 g/m². Åtta rullbara nätfönster, dragkedjedörr 170 × 170 cm och galvaniserad stomme."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 5,95 × 3 m – 17,9 m² med åtta nätfönster",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Tunnelväxthus 595 × 300 × 200 cm med laminerad PE-duk på 140 g/m². Åtta rullbara nätfönster, dragkedjedörr 170 × 170 cm och galvaniserad stomme.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "tunnelväxthus 6x3 m åtta",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_131774ca7c0c408d8acd47af1f789c1a~mv2.jpg",
+    "Tunnelväxthus 5,95 × 3 m med vit PE-duk, fyra markpinnar och fyra spännlinor"
+   ],
+   [
+    "b379ce_1ca1e7e79a2a4748960a3acf74e332ea~mv2.jpg",
+    "Det stora tunnelväxthuset uppställt i en trädgård med odlingar inuti"
+   ],
+   [
+    "b379ce_8bb3eade12e043a099858d5bba09ace6~mv2.png",
+    "Måttkort: 595 × 300 cm yta, 200 cm höjd, dörr 170 × 170 cm, duk 140 g/m²"
+   ],
+   [
+    "b379ce_e2588032123f40449d75c421177df640~mv2.jpg",
+    "Måttskiss över det stora tunnelväxthuset med 300 cm bredd och 200 cm höjd"
+   ],
+   [
+    "b379ce_544c3b045ad1441182b48ecbae8652f8~mv2.png",
+    "Jämförelse av tre tunnelväxthus: 6, 11,9 och 17,9 m² odlingsyta"
+   ],
+   [
+    "b379ce_a2f4a99976a8457bb9132846e4fd6449~mv2.jpg",
+    "Kvinna bär en kruka förbi planthyllor inne i tunnelväxthuset"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Växthus & Odling"
+  ],
+  "sku": "FP-greenhouse-6x3x2-m",
+  "variantId": "34ab4222-8785-4a80-bc65-49cb88bcfe29"
+ },
+ "e76002c1": {
+  "pid": "e76002c1-7407-4f32-a488-74d781be52cf",
+  "rev": "13",
+  "upd": "2026-09-24T03:22:17.661Z",
+  "namn": "Tv-fåtölj med två mugghållare – 135° liggläge och 360° snurrfot",
+  "slug": "tv-fatolj-mugghallare-135",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Tv-fåtölj med mugghållare, 135° | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Tv-fåtölj i gråbeige mikrofiber med två mugghållare i armstöden. Ryggen fälls till 135° med en sidospak. Bär 150 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "tv-fåtölj med mugghållare",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_42c41fc08dae45748387610202bd1d08~mv2.jpg",
+    "Tv-fåtölj i gråbeige mikrofiber med infälld mugghållare i båda armstöden"
+   ],
+   [
+    "b379ce_e2545a694473431d999d7d48c509c62a~mv2.jpg",
+    "Tv-fåtöljen i ett vardagsrum med ryggen fälld och fotstödet uppe"
+   ],
+   [
+    "b379ce_e7573f91c3014f51b5f6ffd985164352~mv2.jpg",
+    "Faktakort: tv-fåtölj 87 × 95 × 102 cm upprätt och 87 × 162 × 80 cm i liggläge, två mugghållare Ø 7,5 cm, bär 150 kg"
+   ],
+   [
+    "b379ce_23cdc622f36e4404b5b4f1c031fe7c73~mv2.jpg",
+    "Närbild på den infällda mugghållaren i armstödet"
+   ],
+   [
+    "b379ce_d7dac6fbbe20410cb4a5ba6b002473b4~mv2.jpg",
+    "Måttskiss över tv-fåtöljen upprätt och i liggläge"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Fåtöljer",
+   "Möbler"
+  ],
+  "sku": "FP-tv-fatolj-mugghallare",
+  "variantId": "be0dd4f4-e2e6-4ee4-9e0e-daaea7bd06e0"
+ },
+ "c6189c09": {
+  "pid": "c6189c09-4308-4af6-949d-a9bb34a2e122",
+  "rev": "4",
+  "upd": "2026-09-24T02:38:38.571Z",
+  "namn": "Uppblåsbar juldekoration 213 cm med tomte som åker upp och ner",
+  "slug": "uppblasbar-juldekoration-med-rorlig-tomte",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Uppblåsbar juldekoration med rörlig tomte | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Uppblåsbar juldekoration där tomten åker upp och ner ur julklappspaketet, 160–213 cm. Fem ljusslingor, två fläktar och förankringssats. IP44."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "uppblåsbar juldekoration",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "juldekoration utomhus",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "uppblåsbar jultomte",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "rörlig juldekoration",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_3eb3f306c52d4b5a9fb1dd49e458e6a1~mv2.jpg",
+    "Uppblåsbar juldekoration med tomte som åker upp ur ett grönt julklappspaket under en pyntad gran"
+   ],
+   [
+    "b379ce_a7e51c872aa24152b74ba9625daf6d95~mv2.jpg",
+    "Juldekorationen lyser i mörkret på en snötäckt uppfart med granen upplyst inifrån"
+   ],
+   [
+    "b379ce_dd8acbcb1fce4d9682f500b8ef4780a0~mv2.jpg",
+    "Den uppblåsbara juldekorationen står bredvid ytterdörren och tar bara 67 cm i bredd"
+   ],
+   [
+    "b379ce_0586d59021204cf3a536a04a3fd18b5e~mv2.jpg",
+    "Närbild på det inbyggda fläktgallret i sockeln som håller juldekorationen uppblåst"
+   ],
+   [
+    "b379ce_814ce25ce5d44c0198b02e99b3e89378~mv2.jpg",
+    "Specifikationskort för uppblåsbar juldekoration: 160–213 cm hög, 67 cm bred, 5 ljusslingor och IP44"
+   ],
+   [
+    "b379ce_a6474c13ffde4d73a450788d43f5d916~mv2.jpg",
+    "Måttskiss där juldekorationen på 213 cm jämförs med en person, bredd 67 cm och djup 80 cm"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Dekoration & Prydnad",
+   "Juldekoration"
+  ],
+  "sku": "FP-uppblasbar-juldekoration",
+  "variantId": "f681506c-ad40-4f5b-a709-e17ed591a27c"
+ }
+}

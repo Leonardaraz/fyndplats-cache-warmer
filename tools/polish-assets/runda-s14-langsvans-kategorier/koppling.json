@@ -1,0 +1,406 @@
+{
+ "kontrollsumma": 4133421885,
+ "formel": "FNV-1a över 'slug:id,id,…|slug:…' i planens ordning, id sorterade",
+ "kategorier": [
+  {
+   "slug": "motorcyklar-for-barn",
+   "namn": "Motorcyklar för barn",
+   "foralder": "barn-familj",
+   "beskrivning": "Elmotorcyklar för barn på 6, 12 och 24 V, sparkfordon och trehjulingar i motorcykelform.",
+   "namnvakt": "motorcykel|elcross",
+   "produkter": [
+    {
+     "id": "005aaee6-4aba-4c8b-bf01-7833f2bf9ab0",
+     "lager": false,
+     "namn": "Elmotorcykel barn 6V – trehjuling 86 cm från 3 år, musik, tuta och lyse"
+    },
+    {
+     "id": "1e27f7e0-e304-4104-a417-8562a2176fd5",
+     "lager": true,
+     "namn": "Aprilia elmotorcykel för barn 12 V – stödhjul, USB och musik, svart"
+    },
+    {
+     "id": "27ffc74b-8ddb-419c-bb27-5c80136dd794",
+     "lager": false,
+     "namn": "Elmotorcykel för barn – 6V med stödhjul, ljus och musik, 1,5–3 år"
+    },
+    {
+     "id": "372ee931-9b2c-416e-9bc3-52976194153a",
+     "lager": true,
+     "namn": "Elmotorcykel för barn, lampor och ljud, röd/svart"
+    },
+    {
+     "id": "382f99ee-e740-4f00-95a7-9d8ac804233b",
+     "lager": true,
+     "namn": "Sparkfordon i motorcykelform utan pedaler – 18–36 månader"
+    },
+    {
+     "id": "408e80e4-b07e-4fc4-9f16-566f662fac21",
+     "lager": true,
+     "namn": "Elmotorcykel barn BMW 6V – trehjuling 66 cm för 1–3 år med ljus & musik"
+    },
+    {
+     "id": "5419c746-2978-4321-83e4-80fba0c86cde",
+     "lager": true,
+     "namn": "Elmotorcykel för barn med strålkastare och tuta, 18–36 månader"
+    },
+    {
+     "id": "5e9cc2d2-f709-44a8-a3e7-7d3824141ba8",
+     "lager": true,
+     "namn": "Aprilia elmotorcykel för barn 12 V – stödhjul, USB och musik, vit"
+    },
+    {
+     "id": "67d2d4f6-65ad-48b3-b10c-dd67be92f7e6",
+     "lager": true,
+     "namn": "Elmotorcykel barn 24 V för 8–12 år – 8 eller 16 km/h, luftdäck och stålram"
+    },
+    {
+     "id": "7a611efb-3fe9-4346-b9db-68f7342d2ce0",
+     "lager": false,
+     "namn": "Elmotorcykel barn 12 V – 2,4–5 km/h, stödhjul och fjädring, från 3 år"
+    },
+    {
+     "id": "7b62aa26-984a-4ab1-ae2c-b0fc057639a0",
+     "lager": true,
+     "namn": "Elmotorcykel för barn med stödhjul, röd"
+    },
+    {
+     "id": "80aac077-d7e4-4d2f-ace1-09d24eb9c284",
+     "lager": true,
+     "namn": "Trehjuling för småbarn i motorcykeldesign – orange, sitthöjd 29 cm, 18–36 mån"
+    },
+    {
+     "id": "816e745c-c459-4359-b3f8-d1031779b68a",
+     "lager": true,
+     "namn": "Elcross barn Honda CRF450RL 6V – trehjulig crossmotorcykel 1–3 år"
+    },
+    {
+     "id": "ad46f9cc-f895-48d8-be45-ad3253b8ed23",
+     "lager": true,
+     "namn": "Elmotorcykel för barn 12 V – stödhjul, musik och 2,4–5 km/h"
+    },
+    {
+     "id": "b2ccab13-f307-4fb0-ac7e-1172708bb8c5",
+     "lager": true,
+     "namn": "Elmotorcykel barn chopper 6V – stödhjul och backfunktion, 3 färger"
+    },
+    {
+     "id": "d771d12f-fa8d-44bb-802e-18d56100575b",
+     "lager": true,
+     "namn": "Trehjuling barn i motorcykelform – med pedaler, musik och ljus, 18–36 mån"
+    },
+    {
+     "id": "dc155f0b-e5f6-4348-9524-8b57aa1cf035",
+     "lager": false,
+     "namn": "Elmotorcykel 6V för barn 3–6 år – 2 km/h, stödhjul och ljud"
+    }
+   ]
+  },
+  {
+   "slug": "valphagar-hundhagar",
+   "namn": "Valphagar & hundhagar",
+   "foralder": "husdjur",
+   "beskrivning": "Valphagar och hundhagar i metall och en hopfällbar hage i tyg, för inne och ute.",
+   "namnvakt": "valphage|hundhage|hundgård",
+   "produkter": [
+    {
+     "id": "19e3d834-46fc-496b-9560-3603703b7e69",
+     "lager": true,
+     "namn": "Hopfällbar hundhage i metall med tak – 8 paneler, 76 cm"
+    },
+    {
+     "id": "3a4d1f6d-69e4-47b9-832c-898143ba82e3",
+     "lager": true,
+     "namn": "Valphage 8 paneler – 61 × 76 cm per panel, oktagon eller avdelare"
+    },
+    {
+     "id": "6b681eb7-60c2-4109-8ba8-511e770eb8a8",
+     "lager": true,
+     "namn": "Hundhage 366 cm med sex paneler och grind"
+    },
+    {
+     "id": "6b8cd35b-6552-42e2-bd27-eca17209dd28",
+     "lager": true,
+     "namn": "Valphage 91 cm hög – paneler 61 cm, dörr med tre reglar"
+    },
+    {
+     "id": "80a53bc3-c95a-4279-b9bc-73122255f5a7",
+     "lager": true,
+     "namn": "Hopfällbar hundhage – 6 paneler i stål, 80 cm hög, med dörr och markpinnar"
+    },
+    {
+     "id": "9af1cfcb-c39e-42db-8b24-1e753d27a0a7",
+     "lager": true,
+     "namn": "Hopfällbar hundgård med soltak – för valp, hund och katt"
+    },
+    {
+     "id": "ad1ae5da-4cf1-4ad7-b2f9-cec994ba12de",
+     "lager": true,
+     "namn": "Hundhage 488 cm med åtta paneler och grind"
+    },
+    {
+     "id": "eb2e20c6-24f6-402b-a7ed-2477085df1c1",
+     "lager": true,
+     "namn": "Valphage Ø120 cm i flerfärgad metall – 6 paneler med dörr, 60 cm hög"
+    }
+   ]
+  },
+  {
+   "slug": "blomstall-vaxthyllor",
+   "namn": "Blomställ & växthyllor",
+   "foralder": "trädgård-utemöbler",
+   "beskrivning": "Blomställ, växthyllor och blompallar för krukväxter inne och ute.",
+   "namnvakt": "blomställ|växtställ|blomhylla|växthylla|blompall",
+   "produkter": [
+    {
+     "id": "132a00c5-2110-468d-a19e-e10fa596be65",
+     "lager": true,
+     "namn": "Växtställ 60 cm i svart metall med tråg och hylla"
+    },
+    {
+     "id": "2487e6bb-4412-4524-86b6-5266b4ec1e48",
+     "lager": true,
+     "namn": "Blomhylla i svart metall med tre plan och tre krokar – 137 cm, för inne och ute"
+    },
+    {
+     "id": "73457d36-b7f7-45ac-892a-c7342ee37f0d",
+     "lager": true,
+     "namn": "Blomställ i vitt med sju nivåer – stål och MDF, 94,5 cm, för inne och ute"
+    },
+    {
+     "id": "8382289b-0e16-463b-a09e-17fa2bd242b5",
+     "lager": true,
+     "namn": "Hopfällbart blomställ med sex runda hyllor – svart metall, 80 cm"
+    },
+    {
+     "id": "b69e5b38-0903-4e32-871d-84df5dd899a1",
+     "lager": true,
+     "namn": "Blomställ i trappform med tre plan – svart metall med gallerhyllor, 75 cm"
+    },
+    {
+     "id": "e03a7e2e-3d5c-40e9-9f5b-f95a4b4fee32",
+     "lager": true,
+     "namn": "Hopfällbar växthylla i metall – tre plan och fjärilsdekor, 96 cm"
+    },
+    {
+     "id": "ed1e585f-0c11-4d52-911c-280994db1aa5",
+     "lager": true,
+     "namn": "Blompallar med mosaikskiva, tre stycken – 51, 61 och 71 cm höga, blå och vit"
+    },
+    {
+     "id": "f75a8a17-f7e8-4a9f-9e38-1bba760252c4",
+     "lager": true,
+     "namn": "Hörnblomställ i tre plan – kvartscirkelformade hyllor, svart metall, bär 30 kg"
+    },
+    {
+     "id": "fa8d498b-2e28-4eb7-8ed5-7922e7ddb718",
+     "lager": true,
+     "namn": "Blomställ i trappform med fyra plan – rustikt brun och svart, 81 cm"
+    }
+   ]
+  },
+  {
+   "slug": "serveringsvagnar-rullvagnar",
+   "namn": "Serveringsvagnar & rullvagnar",
+   "foralder": "kök-matlagning",
+   "beskrivning": "Serveringsvagnar, barvagnar och smala rullvagnar på hjul.",
+   "namnvakt": "serveringsvagn|barvagn|rullvagn",
+   "produkter": [
+    {
+     "id": "03974ef0-f64c-4576-9c1f-2ac67c57066a",
+     "lager": false,
+     "namn": "Smal rullvagn i bambu, tre plan med räcke"
+    },
+    {
+     "id": "0910f983-2d5e-4966-a65d-986e5dbf7f17",
+     "lager": true,
+     "namn": "Rullvagn med 4 avtagbara korgar och hylla – smal köksvagn, vit"
+    },
+    {
+     "id": "2dbea163-dd9e-42c1-9402-266727080771",
+     "lager": true,
+     "namn": "Rullvagn med 3 korgar på hjul – svart, 45 × 26,5 × 63 cm"
+    },
+    {
+     "id": "306a7d49-a447-45c7-850d-5b23480c049d",
+     "lager": true,
+     "namn": "Serveringsvagn 66 × 40 cm – tre plan, tygficka och bromsade hjul"
+    },
+    {
+     "id": "43be9547-315c-4a6c-b7c7-1fb2b080cf10",
+     "lager": true,
+     "namn": "Serveringsvagn med hjul – barvagn i 3 plan för kök och vardagsrum"
+    },
+    {
+     "id": "764a3efc-d4bd-41c9-bf44-2eeba55e7ff9",
+     "lager": true,
+     "namn": "Rullvagn 24 cm djup med fyra utdragslådor – vit med träskiva"
+    },
+    {
+     "id": "820d076b-0b8a-44bc-b498-6922363b9879",
+     "lager": true,
+     "namn": "Hopfällbar barvagn i bambu 66 cm – två brickor och tre flaskplatser"
+    },
+    {
+     "id": "8a73caf4-6a8b-4e5e-84cb-3a2f39c06df2",
+     "lager": true,
+     "namn": "Barvagn utomhus 97,5 cm i gran – fyra flaskhållare och två korgar"
+    },
+    {
+     "id": "b250bfcf-dd33-4d92-8a3b-0b53569cc938",
+     "lager": true,
+     "namn": "Rullvagn bambu 3 hyllplan – smal förvaringsvagn 55x20x75 cm med hjul"
+    },
+    {
+     "id": "cfb722e4-b588-4fd8-b609-56c5fd15d26e",
+     "lager": true,
+     "namn": "Smal rullvagn med fem plan – 47 × 13 × 96,5 cm, nätkorgar och skiva i trälook"
+    },
+    {
+     "id": "fba157f2-b652-4223-9734-beac747fd3ab",
+     "lager": true,
+     "namn": "Rullvagn med 4 korgar – smal förvaringsvagn på hjul, rustik träeffekt"
+    },
+    {
+     "id": "fcb86875-a8cf-4213-87b7-9ea68ee31596",
+     "lager": true,
+     "namn": "Rund barvagn i konstrotting Ø 50 cm – två plan och bromsade hjul"
+    }
+   ]
+  },
+  {
+   "slug": "odlingslador",
+   "namn": "Odlingslådor",
+   "foralder": "trädgård-utemöbler",
+   "beskrivning": "Odlingslådor och planteringslådor i metall, trä, träkomposit och plast, och upphöjda odlingsbord.",
+   "namnvakt": "odlingslåd|odlingsbord|blomlåda",
+   "produkter": [
+    {
+     "id": "0b41a528-de2f-459f-b6c8-4f65dffb1d07",
+     "lager": false,
+     "namn": "Odlingslåda 3 nivåer 117×100 cm – 9 fack i granträ med fiberduk"
+    },
+    {
+     "id": "1490dd12-f060-4bf6-89fa-05ccedd425a4",
+     "lager": true,
+     "namn": "Odlingslåda konstrotting 81 × 28 cm – 58 cm hög, bär 50 kg"
+    },
+    {
+     "id": "1720c27a-696e-400e-88dd-65dd87174bbf",
+     "lager": false,
+     "namn": "Odlingslåda 61 cm djup i metall – 136 × 53 cm med öppen botten"
+    },
+    {
+     "id": "21c98a2d-fc44-4fb2-ac9e-715e3f57ce9c",
+     "lager": true,
+     "namn": "Odlingslåda med fågelnät 230 × 110 cm – solskyddstak och dörr"
+    },
+    {
+     "id": "292c639d-8ae4-4f0d-8250-9bc0b8fa3c95",
+     "lager": true,
+     "namn": "Odlingsbord med avtagbar drivbänk – 108,5 cm och underhylla"
+    },
+    {
+     "id": "2db35e92-6241-4499-802c-ae67c89cd784",
+     "lager": false,
+     "namn": "Odlingslåda i metall 180×90×30 cm – galvaniserat stål, öppen botten"
+    },
+    {
+     "id": "3cadee08-b8c1-444e-b028-a6af76d22ac4",
+     "lager": true,
+     "namn": "Rumsavdelare med sex odlingslådor, 116 cm"
+    },
+    {
+     "id": "3d0f6711-35e8-4043-bbec-691e95f05c03",
+     "lager": true,
+     "namn": "Odlingslåda i metall 241 × 90,5 cm – två storlekar i samma paket"
+    },
+    {
+     "id": "41968c79-1ff3-460c-ba09-fb8cbf98d35b",
+     "lager": true,
+     "namn": "Odlingslåda med foliekåpa 121 cm – upprullbar duk på bågar"
+    },
+    {
+     "id": "4bbd62aa-0a94-4ddf-9ce9-76f53d5f1698",
+     "lager": true,
+     "namn": "Odlingslåda på hjul 109 cm – underhylla och avlopp i botten"
+    },
+    {
+     "id": "5c36adae-27b1-4616-8c9e-9e04ed06563a",
+     "lager": true,
+     "namn": "Stapelbar odlingslåda i tre plan – 120 × 80 cm, verktygsfri"
+    },
+    {
+     "id": "6347f19b-9e93-46c0-a6eb-94a3ee404462",
+     "lager": true,
+     "namn": "Odlingslåda träkomposit 100 × 50 cm – aluminiumstolpar, 55,5 cm hög"
+    },
+    {
+     "id": "6e4bb0a4-cff0-4826-8cda-ba6831d882e8",
+     "lager": false,
+     "namn": "Odlingslådor 2-pack i metall – 120 × 60 cm och 60 cm djupa"
+    },
+    {
+     "id": "949a521d-1417-4df6-b829-d943ac597ddf",
+     "lager": false,
+     "namn": "Rund odlingslåda Ø120 cm i förzinkad plåt – 43 cm djup"
+    },
+    {
+     "id": "99a80150-944a-4fa9-91b1-616205715a43",
+     "lager": true,
+     "namn": "Upphöjda odlingslådor 2-pack – 46,5 cm höga med vattenmagasin"
+    },
+    {
+     "id": "9d4b2bd0-6d62-4b09-a752-1a07c0e99f91",
+     "lager": true,
+     "namn": "Upphöjt odlingsbord i tre nivåer, 120 × 120 cm"
+    },
+    {
+     "id": "a2f4a42b-0199-48cc-b505-d2cc386275fd",
+     "lager": true,
+     "namn": "Odlingslåda i metall, oval, 160 x 80 x 80 cm"
+    },
+    {
+     "id": "a564244b-c585-4b1e-bfd1-b236a543fb9a",
+     "lager": true,
+     "namn": "Odlingslåda med spaljé – 3 plan i granträ för grönsaker, brun"
+    },
+    {
+     "id": "c9003254-69f7-4e86-b7ad-129b7455578e",
+     "lager": true,
+     "namn": "Odlingslåda med fällbar arbetsyta – 74,5 cm hög i gran"
+    },
+    {
+     "id": "dc33b355-56c4-42cb-ba6c-9cada69782bc",
+     "lager": true,
+     "namn": "Odlingslåda med spaljé 122 cm – bränt trä och hängande tak"
+    },
+    {
+     "id": "ed342378-2607-4ff1-9bb6-9712e09f9669",
+     "lager": false,
+     "namn": "Odlingslåda i metall 240 × 60 cm – galvaniserat stål med öppen botten"
+    },
+    {
+     "id": "f4724b04-bd23-464b-9813-b9d61169d013",
+     "lager": true,
+     "namn": "Odlingslåda med skåp och hjul – 95 cm hög, 131 liter"
+    },
+    {
+     "id": "fdea573f-a107-4c21-8f1f-3c6a2e7f8ee7",
+     "lager": true,
+     "namn": "Blomlåda med spaljé, väderbeständig polyrotting, grå"
+    },
+    {
+     "id": "ffe4cdd3-1a9c-4cb4-9073-470f6963e354",
+     "lager": true,
+     "namn": "Odlingslåda plast 197 × 54 cm – monteras utan verktyg, delbar"
+    },
+    {
+     "id": "fffbe044-9c3b-430a-890e-c83b3b0a2673",
+     "lager": true,
+     "namn": "Odlingslåda i metall, 2-pack, 120 x 60 x 60 cm"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0103d4a7": {
+  "tyska": "147,5L x 160B x 107H cm",
+  "svenska": "160cm x 147,5cm x 107cm",
+  "bokstaver": "LBH",
+  "hojd": 107,
+  "bredd": 147.5,
+  "djup": 160
+ },
+ "02b1aec1": {
+  "tyska": "72L x 28B x 80H cm",
+  "svenska": "72cm x 28cm x 80cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 72,
+  "djup": 28
+ },
+ "184e281e": {
+  "tyska": "176L x 150B x 94H cm",
+  "svenska": "176cm x 150cm x 94cm",
+  "bokstaver": "LBH",
+  "hojd": 94,
+  "bredd": 176,
+  "djup": 150
+ },
+ "2e7a68fd": {
+  "tyska": "74L x 34B x 51H cm",
+  "svenska": "74cm x 34cm x 51cm",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 74,
+  "djup": 34
+ },
+ "4daf2de1": {
+  "tyska": "178L x 177B x 99H cm",
+  "svenska": "178L x 177B x 99H cm",
+  "bokstaver": "LBH",
+  "hojd": 99,
+  "bredd": 178,
+  "djup": 177
+ },
+ "88a841f1": {
+  "tyska": "",
+  "svenska": "60L x 36B x 100H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 60B x 36T x 100H cm | ✔ Stuhlabmessungen: 36,5B x 36,5T x 32,5H cm | ✔ Tischplattengröße: 60B x 36T cm | ✔ Sitzgröße: 26B x 26T cm | ✔ Spiegelgröße: 20B x 33,5H cm | ✔ Schubladen-Innenmaß: 25B x 25T x 5H cm"
+ },
+ "9b6aea55": {
+  "tyska": "90L x 52B x 50H cm",
+  "svenska": "90L x 52B x 50H cm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 90,
+  "djup": 52
+ },
+ "de6b2640": {
+  "tyska": "168L x 49,5B x 39,5H cm",
+  "svenska": "168L x 49,5B x 39,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 39.5,
+  "bredd": 168,
+  "djup": 49.5
+ }
+}

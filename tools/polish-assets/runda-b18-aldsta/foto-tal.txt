@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+e4e3dd68 3 bild 1 och 2 visar tre spegeldörrar; produktnamnet säger 3 Spiegeltüren
+06c114f3 10 måttbilden anger 10 cm för benen
+06c114f3 2 bild 1 och 3 visar två skåpdörrar under lådorna
+9dc0f858 2 bild 1 och 3 visar två spegeldörrar

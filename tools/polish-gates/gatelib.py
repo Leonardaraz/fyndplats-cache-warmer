@@ -41,10 +41,10 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 # Skillnaden är mätbar och entydig: ett äkta artikelnummer bär MINST TVÅ
 # alfanumeriska tecken efter den andra siffergruppen (`V00BG`, `CG`, `LG`),
 # spänningen bär exakt ETT (`V`). Kravet gäller BARA den helt numeriska
-# formen — `84B-956` och `83F-023` är äkta artikelnummer utan svans, och
+# formen — två äkta artikelnummer i formen `DDL-DDD` saknar svans, och
 # formen DDL-DDD har ingen legitim annan betydelse.
 #
-# ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `D51-530V00BK` (#230) börjar
+# ⚠️ OCH DEN GAMLA RADEN MISSADE EN HEL FORM: `LDD-DDDLDDLL` (#230) börjar
 # med en BOKSTAV och matchade varken alternativ. Den har ett eget uttryck nu.
 #
 # ☠️ OCH ETT FALSKLARM TILL, uppmätt 2026-09-16 på runda N6:s köksset: en
@@ -58,13 +58,59 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 # ser ut som en läcka av leverantörens artikelnummer lär mottagaren att sluta
 # läsa just den grinden. Mätt åt båda hållen — sex kända artikelnummer fångas
 # fortfarande, sju icke-nummer avvisas.
-ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # 83A-526V00RB, 84B-956
-         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # D51-530V00BK
-         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # 921-672V00BG, INTE 220-240V eller 850-1000W
+ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # DDL-DDDLDDLL, DDL-DDD
+         r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # LDD-DDDLDDLL
+         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # DDD-DDDLDDLL, INTE 220-240V eller 850-1000W
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
-LEV = r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift)\b"
+# ☠️ AKTÖRS- OCH GARDERINGSORDEN ÄR FLER ÄN "LEVERANTÖREN" (2026-09-27).
+# Leonards regel är att VI är leverantören mot kunden. Mönstret fångade bara
+# `leverantör*` och två fraser, och tre publicerade texter gick förbi det:
+# "Tillverkaren rekommenderar 12–36 månader" (två leksaker) och "ungefär 60
+# minuter enligt tillverkaren". Tillägget är mätt över rundornas 1 352
+# kundfiler: tre träffar, alla tre äkta, noll falsklarm.
+#
+# ⚠️ Ordet "tillverkaren" ENSAMT är inte med, med flit: fyra kontorsstolar
+# säger "ett fast nackstöd sitter där tillverkaren gissat" om fasta stöd i
+# allmänhet, vilket inte lägger vårt påstående på någon annan. Verbet är det
+# som gör en uppgift till någon annans.
+# ☠️ OCH GARDERINGEN HAR FLER FORMER ÄN "anges inte" (städrundan 2026-09-27).
+# Äldre publicerade sidor skriver "anges ingen maxvikt", "vi gissar inte fram
+# en", "vi skriver hellre inget mått än ett vi inte kan stå för" och
+# "underlaget för just den här kulören anger två olika höjdspann" — samma sak
+# som runbooken förbjuder, alltså att visa kunden att vi inte vet. Mätt över
+# rundornas 1 021 kundfiler utanför städrundan: noll träffar, alltså inget
+# falsklarm. "med flit" står INTE här: tolv legitima träffar ("kort med flit").
+# ⚠️ "underlaget" bara i källbetydelsen ("i underlaget för den här modellen",
+# "Underlaget för just den här kulören"). Ensamt "i underlaget" gav falsklarm
+# i städrundans våg 2: "ojämnheter i underlaget", "förankra i underlaget" —
+# marken, inte källan.
+LEV = (r"\b([Ll]everant[öo]r\w*|[Tt]illverkaren anger|vi vet inte|enligt uppgift"
+       r"|[Tt]illverkaren (?:uppger|rekommenderar|skriver|lovar|garanterar|påstår|säger)"
+       r"|[Ee]nligt (?:uppgift|tillverkaren|fabrikanten)"
+       r"|framgår inte|anges inte|uppges inte|specificeras inte|kan inte garantera|[Mm]ät själv"
+       r"|gissa[rs]? (?:inte )?fram|[Vv]i gissar|an(?:ges|ger) ingen|[Ii]ngen angiven|[Ii]nga angivna"
+       r"|[Vv]i skriver (?:hellre|inget)|så vi skriver|inte kan stå för"
+       r"|i underlaget för|[Uu]nderlaget för (?:just )?(?:den|det) här"
+       r"|[Mm]askinsatt\w*)\b")
 HOMO = r"[Ѐ-ӿͰ-Ͽ]"
+
+# ☠️ RUNDANS EGNA ORD NÅR KUNDEN (2026-09-27). "Det här är rundans enda
+# gungstol utan trä", "rundans minsta tomte", "den djupaste bakåtlutningen i
+# rundan": tretton publicerade texter i fyra rundor (G1, G2, M2, M3). Ordet
+# är vår arbetsenhet och säger kunden ingenting — och påståendet blir falskt så
+# fort en annan runda publicerar något större.
+#
+# ⚠️ Bara de böjda formerna. "runda" är ett vanligt ADJEKTIV ("runda hörn",
+# "det runda bordet": 105 träffar i samma filer) och "omgång" står i legitim
+# svenska ("klipp i två omgångar").
+INTERNT = r"\b([Rr]undans?|den här omgången|i omgången|[Bb]atch\w*)\b"
+# Runbookens och råimportens tecken hör inte hemma i kundtext. Noll träffar i
+# rundornas kundfiler, så mönstret kostar inget falsklarm.
+SYMBOL = r"[☠⚠✅✔✓❌⛔]|\b(?:TODO|FIXME)\b"
+# Osynliga tecken bryter sökningen på sidan och ordet i Googles index utan att
+# synas. Mjukt bindestreck låg i tre publicerade texter (D2, D3).
+OSYNLIG = "[­​‌‍⁠﻿]"
 
 # ☠️ EN-NORMEN LIGGER INTE I `GRINDAR`, och det är hela poängen med namnet.
 # Mönstret fångar varje `EN 1270`, `EN 71` och `EN 12520` i texten — men om
@@ -102,8 +148,14 @@ TYSKA_ORD = [
     # bindeord och verb — funnits i alla versioner
     "und", "mit", "für", "der", "die", "das", "ist", "sind",
     # runda A/F1
+    # ☠️ "robust" är BORTTAGET 2026-09-27, av samma skäl som `storlek` och
+    # `gult` i STAV_ORD nedan: ordet stavas likadant på svenska och kan aldrig
+    # avslöja tyska. Mätt: 0 träffar i rundornas 1 352 kundfiler (grinden hade
+    # lärt skribenterna att undvika ett korrekt svenskt ord) och 22 på
+    # publicerade sidor, alla korrekt svenska, bland dem en kundrecension som
+    # fällde B4:s livekontroll.
     "Kinder", "Sessel", "Sofa", "Jahre", "Maße", "Farbe", "Gewicht",
-    "Lieferumfang", "Montage", "Rückenlehne", "weich", "robust", "niedlich",
+    "Lieferumfang", "Montage", "Rückenlehne", "weich", "niedlich",
     "gemütlich",
     # runda F2
     "Kratzbaum", "Katzen", "Plüsch",
@@ -201,11 +253,27 @@ SUPERLATIV_ORD = [
     "brantast", "brantaste", "mjukast", "hårdast", "varmast", "kallast",
     "starkast", "svagast", "längst", "kortast", "tjockast", "tunnast",
     "rymligast", "stabilast", "främst", "bäst", "sämst",
+    # ☠️ BESTÄMD FORM, tillagd 2026-09-27. Grinden såg bara "lättast", inte
+    # "den lättaste fåtöljen i sortimentet". Mätt över alla rundors texter:
+    # 19 nya träffar, 17 äkta rankningar av katalogen och 2 som kvitteras.
+    "lägsta", "högsta", "största", "minsta", "bredaste", "smalaste", "djupaste",
+    "grundaste", "tyngsta", "lättaste", "billigaste", "dyraste", "kraftigaste",
+    "tystaste", "snabbaste", "mjukaste", "hårdaste", "varmaste", "kallaste",
+    "starkaste", "svagaste", "längsta", "kortaste", "tjockaste", "tunnaste",
+    "rymligaste", "stabilaste", "främsta", "bästa", "sämsta", "plattaste",
 ]
 OMFANG_ORD = [
     "vårt sortiment", "vår katalog", "vårt utbud", "i serien", "i den här serien",
     "av våra", "bland våra", "hos oss", "vi säljer", "vi har", "vårt massagesortiment",
     "i vårt", "i vår", "på sidan", "andra stolarna", "övriga stolarna",
+    # Tillagda 2026-09-27: sex publicerade texter skrev "i sortimentet".
+    "i sortimentet", "i butiken",
+    # Tillagda 2026-09-27 i städrundan: "familjens minsta", "det enda i
+    # familjen" är samma rankning av våra varor som "rundans bredaste", och
+    # grinden såg dem inte. Mätt över rundornas kundfiler: 13 meningar, alla
+    # äkta rankningar. "i gruppen" står INTE här: en av tre träffar var tre
+    # snögubbar i en och samma produkt ("den minsta sitter främst i gruppen").
+    "i familjen", "familjens",
 ]
 SUPERLATIV = r"(?<![A-Za-zÅÄÖÉÜåäöéü])(" + "|".join(SUPERLATIV_ORD) + r")(?![A-Za-zÅÄÖÉÜåäöéü])"
 OMFANG = r"(" + "|".join(OMFANG_ORD) + r")"
@@ -219,9 +287,17 @@ def meningar(text):
     return [m for m in re.split(r"(?<=[.!?])\s+(?=[A-ZÅÄÖ])|\n", text) if m.strip()]
 
 
-GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
+# ☠️ HUSMÄRKET GRINDAS UTAN HÄNSYN TILL VERSALER i rundans filer (2026-09-27).
+# Aosom skriver själv `AIYAPLAY`, `SPORTNOW` och `kleankin`, och `MARKEN`
+# såg bara den form som står i listan. Mätt över rundornas 1 352 kundfiler:
+# noll träffar i båda formerna, alltså inget falsklarm. livegrind behåller
+# `MARKEN` som den är: produktsidans säkerhetsflik ska visa märket.
+MARKEN_I = "(?i:" + MARKEN + ")"
+
+GRINDAR = [("HUSMÄRKE", MARKEN_I), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
-           ("HOMOGLYF", HOMO)]
+           ("HOMOGLYF", HOMO), ("INTERNT ORD", INTERNT), ("SYMBOL", SYMBOL),
+           ("OSYNLIGT TECKEN", OSYNLIG)]
 
 FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor")
 
@@ -501,3 +577,63 @@ def las_kvittenser(katalog="."):
                 )
             foto_tal.setdefault(delar[0], set()).add(delar[1])
     return rad_tal, foto_tal
+
+
+# ☠️ IMPORTENS "VIKT" ÄR FRAKTVIKTEN (2026-09-27). Spec-blocket som importen
+# skriver sätter `Vikt` ur feedkolumnen `Weight (incl. Package) in kg`, alltså
+# vikten MED förpackning. Rundorna skrev av raden som varans vikt: 142 av 147
+# sidor i B1–B19 och 616 texter i 69 andra rundor, och i 131 av dem stod det
+# dessutom i löptexten att varan väger så mycket. Regeln fanns i runbooken och
+# följdes ändå inte; den blir en grind här. Samma logik som seo-text-repairs
+# sax (lib/seo/fraktvikt.ts), som lagar det som redan är publicerat.
+#
+# Grinden fäller bara när talet är EXAKT importens och den tyska texten inte
+# anger samma tal som produktens vikt (`Gewicht`, `Nettogewicht` …). Ett annat
+# tal kan vara varans verkliga vikt, och en mening om paketet är sann.
+_TAL = r"(\d+(?:[.,]\d+)?)"
+_IMPORTVIKT = re.compile(r"Vikt\s*:?\s*(?:</[^>]+>\s*)*" + _TAL + r"\s*kg")
+_PRODUKTVIKT = re.compile(r"\b(?:Netto|Produkt|Eigen|Artikel)?[Gg]ewicht\b"
+                          r"(?:<[^>]+>|[^0-9<]){0,40}" + _TAL + r"\s*kg")
+_VIKTRAD = re.compile(r"^(?:[✔•·]\s*)?Vikt\s*:\s*" + _TAL + r"\s*kg\.?$")
+_VAGER = re.compile(r"\bväger\s+(?:bara\s+|endast\s+|cirka\s+|ca\.?\s+|ungefär\s+|omkring\s+"
+                    r"|runt\s+|drygt\s+)?" + _TAL + r"\s*kg")
+_PAKET = re.compile(r"paket|förpackning|kartong|fraktvikt", re.I)
+
+
+def _kg(s):
+    return float(s.replace(",", "."))
+
+
+def fraktvikt_fel(html, kalltext):
+    """Rader och meningar i `html` som kallar fraktvikten för varans vikt.
+
+    Returnerar en lista med beskrivningar; tom lista när allt stämmer, när
+    källan saknar importens viktrad eller när den tyska texten anger samma
+    tal som produktens egen vikt."""
+    m = _IMPORTVIKT.search(kalltext or "")
+    if not m:
+        return []
+    frakt = _kg(m.group(1))
+    lika = lambda x: abs(_kg(x) - frakt) < 0.005
+    if any(lika(x) for x in _PRODUKTVIKT.findall(kalltext)):
+        return []
+    fel = []
+    for rad in re.findall(r"<li\b[^>]*>.*?</li>", html, re.S):
+        t = " ".join(re.sub(r"<[^>]+>", " ", rad).split())
+        r = _VIKTRAD.match(t)
+        if r and lika(r.group(1)):
+            fel.append(f"spec-raden '{t}' är fraktvikten — skriv 'Fraktvikt:'")
+    for rad in re.findall(r"<tr\b[^>]*>.*?</tr>", html, re.S):
+        celler = [" ".join(re.sub(r"<[^>]+>", " ", c).split())
+                  for c in re.findall(r"<td\b[^>]*>(.*?)</td>", rad, re.S)]
+        if len(celler) == 2 and re.fullmatch(r"Vikt\s*:?", celler[0]):
+            r = re.fullmatch(_TAL + r"\s*kg\.?", celler[1])
+            if r and lika(r.group(1)):
+                fel.append(f"tabellraden 'Vikt | {celler[1]}' är fraktvikten — skriv 'Fraktvikt'")
+    lop = re.sub(r"<li\b[^>]*>.*?</li>|<tr\b[^>]*>.*?</tr>", " ", html, flags=re.S)
+    lop = " ".join(re.sub(r"<[^>]+>", " ", lop).split())
+    for v in _VAGER.finditer(lop):
+        fore = lop[max(0, v.start() - 40):v.start()]
+        if lika(v.group(1)) and not _PAKET.search(fore):
+            fel.append(f"'…{lop[max(0, v.start() - 30):v.end()]}' — {v.group(1)} kg är fraktvikten")
+    return fel

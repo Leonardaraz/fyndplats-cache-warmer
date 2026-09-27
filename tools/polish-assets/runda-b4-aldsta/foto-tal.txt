@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+88a841f1 2 lådor, räknade på bild 1 och 5; källan skriver Schubladen utan antal
+2e7a68fd 4 hjul; källan skriver Vierrad-Design, och bild 1 och 5 visar fyra
+0103d4a7 4 delar; källan skriver vierteilige Set och räknar upp rutschkana, gunga, klätterdel och basketkorg
+de6b2640 2 sidor på rampen; källan skriver doppelseitige Rutsche och Doppelseitige Rutschrampe

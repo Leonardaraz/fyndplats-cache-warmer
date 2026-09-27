@@ -11,6 +11,8 @@
 //   2. Trasiga syskonlänkar. Wix skriver om en rotrelativ `href="/produkt/x"`
 //      till `https:/produkt/x` — en snedstreck, alltså värdnamnet `produkt`.
 //      Länken pekar på en domän som inte finns.
+//   3. Fraktvikten som "Vikt" (`lib/seo/fraktvikt.ts`). Etiketten blir
+//      "Fraktvikt" där talet är exakt artikelns fraktvikt i Aosom-feeden.
 //
 // Query:
 //   ?dryRun=false        skarpt läge (default: torrkörning, skriver ingenting)
@@ -57,7 +59,7 @@ async function handle(req: NextRequest) {
       await audit(
         "seo-text-repair",
         undefined,
-        `lagade=${sum.lagade} misslyckade=${sum.misslyckade} kod=${sum.medKod} lankar=${sum.medTrasigLank}`,
+        `lagade=${sum.lagade} misslyckade=${sum.misslyckade} kod=${sum.medKod} lankar=${sum.medTrasigLank} fraktvikt=${sum.medFraktvikt}`,
       );
     }
     return NextResponse.json({ ok: true, ...sum });

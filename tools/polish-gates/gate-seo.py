@@ -19,10 +19,12 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-seo.py
 """
 import re, sys, os, io, unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO, tal, TILLATNA_TECKEN
+from gatelib import GRINDAR, MARKEN, tal, TILLATNA_TECKEN
 
-GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
-           ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("HOMOGLYF", HOMO)]
+# ☠️ EN LISTA, INTE TVÅ (2026-09-27). Här låg en egen kopia av GRINDAR, utan
+# stavningsgrinden och utan allt som lagts till i gatelib sedan. Mot rundornas
+# alla seo.tsv ger gatelibs lista en enda ny träff, och den är äkta
+# ("kippsäker" i en publicerad metabeskrivning).
 
 # Googles klipp: titeln kring 60 tecken, beskrivningen kring 160.
 MAX_TITEL, MAX_DESC = 60, 160
@@ -89,7 +91,7 @@ def main(fil):
             print(f"  {i}: [BESKRIVNING FÖR LÅNG] {len(d)} tecken > {MAX_DESC}"); fynd += 1
         if not t.endswith(" | Fyndplats"):
             print(f"  {i}: [SAKNAR SUFFIX] titeln slutar inte på ' | Fyndplats'"); fynd += 1
-    fynd += _grinda_namn()
+    fynd += _grinda_namn() + _grinda_slugs()
     print(f"\nGRIND: {fynd} fynd i {len(rader)} rader")
     return 1 if fynd else 0
 
@@ -125,6 +127,28 @@ def _grinda_namn(fil="namn.tsv"):
             print(f"  {kort}: [NAMN FÖR LÅNGT] {len(namn)} tecken > {MAX_NAMN} "
                   f"— Wix avvisar hela skrivningen")
             fynd += 1
+        # Namnet är sidans H1 och kundtext som allt annat. Mätt över rundornas
+        # 980 namn: noll träffar, alltså inget falsklarm att vänja sig vid.
+        for etikett, m in GRINDAR:
+            for hit in re.finditer(m, namn):
+                print(f"  {kort}: [NAMN {etikett}] {hit.group(0)!r}"); fynd += 1
+        for ch in sorted(set(namn)):
+            if ord(ch) > 127 and ch not in TILLATNA_TECKEN:
+                print(f"  {kort}: [NAMN OVÄNTAT TECKEN] {ch!r} U+{ord(ch):04X}"); fynd += 1
+    return fynd
+
+
+# ☠️ ETT HUSMÄRKE I SLUGGEN ÄR PERMANENT. En publicerad slug byts inte utan
+# redirect, och `MARKEN` är versalt medan sluggen alltid är gemen — så utan
+# re.I hade `homcom-…` aldrig fångats.
+def _grinda_slugs(fil="slugs.txt"):
+    if not os.path.exists(fil):
+        return 0
+    fynd = 0
+    for rad in open(fil, encoding="utf-8"):
+        delar = rad.split()
+        if len(delar) == 2 and re.search(MARKEN, delar[1], re.I):
+            print(f"  {delar[0]}: [SLUG HUSMÄRKE] {delar[1]!r}"); fynd += 1
     return fynd
 
 

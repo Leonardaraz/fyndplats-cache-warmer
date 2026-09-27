@@ -13,6 +13,23 @@ När Leonard fattar ett beslut om en rad: stryk den (med ett kort resultat, t.ex
 bara ta bort den — historiken är billig och nästa runda ska inte behöva undra
 varför något inte längre står här.
 
+## Beslut 2026-09-27
+
+- **Ett husmärke på varan stoppar inte en publicering.** Leonard: *"att märkena är
+  tryckta på varan är inga problem, det får vara så, vi ändrar inget på deras
+  utseende eller bild"*. "Regeln från N36" gäller alltså inte längre. Raderna nedan
+  som hölls bara för den är märkta AVGJORT och är kandidater igen, ett femtiotal
+  utkast. Bilden med märket behålls hel. Andra skäl på samma rad står kvar:
+  färgsyskon, dubblett, säsong, saldo och licens.
+- **Frågan gällde leverantörens egna husmärken** (HOMCOM, Outsunny, PawHut, SPORTNOW,
+  AIYAPLAY med flera). Andras varumärken på varan, som HONDA, BMW, CAT och MINI, är en
+  licensfråga som inte är ställd. De raderna står kvar.
+- **Rött kors:** medicinskåpet `8c4cf7e9` behålls (Leonard: *"skitsamma"*).
+- **Beslutet gäller också raderna från N57–N76** (#648, inslagna från main samma dag). Där
+  hölls 22 utkast för ett husmärke tryckt på varan, och de raderna är inte märkta
+  AVGJORT en och en. Ett utkast som hölls bara för märket är en kandidat igen; andra skäl
+  på samma rad står kvar.
+
 ## Licensierade tredjepartskaraktärer/varumärken
 
 - **`c5fc0b7b`** (Kinder-Autoscooter, ~1 699 kr) — bär Angry Birds/Rovio-dekaler,
@@ -44,6 +61,17 @@ varför något inte längre står här.
   1 759 kr, `819c8151` 1 699 kr) och `ca96df76` med `e25e86d6`/`474efb0a`
   (1 679/1 739 kr) och `cf18cd15`. Källtexterna lästes inte i N33; raderna är
   orörda. (N33)
+
+## Skyddade emblem på varan (lag 1953:771)
+
+- Medicinskåpet `8c4cf7e9` är **publicerat** och är ett vitt skåp med **rött kors
+  på vit botten** på själva varan. Röda korsets emblem får inte användas i handel
+  utan tillstånd. Utkasten `9bf1a5db`, `834b263f`, `a4a24666` och `127d4305`
+  jämfördes mot det i dubblettskärmarna och är inte polerade. Ett grönt kors
+  (`715b4acd`) är tillåtet. (Granskningen 2026-09-27)
+  **AVGJORT 2026-09-27: behålls** (Leonard: *"skitsamma"*).
+- Före 2026-09-27 hade B17:s `LÄS-MIG.md` noterat korset utan att flagga det: den
+  gamla runbooken sa att regeln "i praktiken bara gäller AliExpress".
 
 ## Djurboenden — SJVFS-minimimått oavgörbart eller underskridet
 
@@ -256,6 +284,7 @@ beslut — se den samlade frågan om detta.
   `40d0af10` (469 kr, samma trippel, grå mot mörkgrå, 3,7 mot 4,2 kg) och
   med husmärket
   fastsytt på själva varan. Pröva igen när saldot stigit. (N36)
+  **Märket AVGJORT 2026-09-27:** stoppar inte. Färgsyskonet och saldot står kvar.
 - `7819dd4f` (sittdynor för utomhusbruk, 559 kr, saldo 197) — fel säsong:
   källan säger *Outdoor-Sitzauflage* och *auf der Terrasse*, samma skäl som
   N2 avvisade utomhussittdynor. `las` ren. (N36)
@@ -273,6 +302,8 @@ beslut — se den samlade frågan om detta.
   sida. Inte flaggade för licens — det är leverantörens eget märke — men om
   ett tryckt husmärke på varan ska stoppa en publicering är Leonards fråga;
   tidigare rundor har publicerat sådana och flaggat dem i efterhand. (N37)
+  **AVGJORT 2026-09-27: kandidater igen.** Bilderna med märket behålls, och `b2175a65`:s
+  femte bild stryks för den tyska texten som vanligt.
 - `d60bb2f2` (röd, 559 kr) och `9ac669e4` (blå, 569 kr), 20 L Mopp-Eimer mit
   Auswringer — färgsyskon till N36:s svarta `3bfee58b` (549 kr, den
   billigaste, publicerad i N36). Se `FARGSYSKONEN.md`. Lämnade orörda. (N37)
@@ -339,6 +370,7 @@ beslut — se den samlade frågan om detta.
   Outsunny-etikett på själva stenen och bild 4 bär tysk text ("LEICHT ZU
   SÄUBERN"), så tre rena bilder återstår och frågan om ett tryckt husmärke
   är Leonards (samma som `fd85cf0b`/`b2175a65` i N37). (N38)
+  **AVGJORT 2026-09-27: kandidat igen.** Bild 3 behålls, bild 4 stryks för den tyska texten.
 - N37:s reserver (raden "Reserver från N37" ovan) — N39 publicerade
   `a9360e2a`, `c694dcaa`, `d3655c3e`, `e514191b` och `f75a8a17`, alla fem
   efter färsk jämförelse, `las`, dubblettskärm och bildgranskning.
@@ -356,6 +388,8 @@ beslut — se den samlade frågan om detta.
   och måttbilden visar de fyra bågarna i en uppställning som källtexten inte
   förklarar. Samma fråga som `fd85cf0b`/`b2175a65` i N37: ska ett tryckt
   husmärke på en del av leveransen stoppa en publicering? (N39)
+  **Märket AVGJORT 2026-09-27:** nej. Uppställningen i måttbilden är fortfarande
+  oförklarad.
 - FEL SÄSONG i slutet av september — opolerade utkast i N39:s halva där vi
   är billigare än dealproffsen, att ta upp till våren: **bänkdynorna**
   150 × 98 × 8 cm `c8e3c2d6` (röd, 599 kr, billigast), `91b18246` (ljusgrå,
@@ -383,7 +417,7 @@ beslut — se den samlade frågan om detta.
   `ab47e35d` i N37. (N40)
 - `0bc12c7d` (Joghurtbereiter med sju glas, rostfritt, 469 kr, saldo 37) —
   HUSMÄRKET TRYCKT på produkten i bilderna. Samma fråga som `8ad49cfe` (N39)
-  och `fd85cf0b`/`b2175a65` (N37). (N40)
+  och `fd85cf0b`/`b2175a65` (N37). (N40) **AVGJORT 2026-09-27: kandidat igen.**
 - `85a18e86` (Regenschutz für Hundebuggy, 399 kr, saldo 177) — ett tillbehör
   vars källtext anger vilken hundvagn det passar genom leverantörens
   artikelnummer (‹REDIGERAT›). Utan numren går passformen inte att beskriva,
@@ -436,6 +470,8 @@ beslut — se den samlade frågan om detta.
   bilder. Fronten är dessutom formad som en MINI Cooper S, med "S"-emblem i
   grillen. Samma två frågor som `b2175a65` (N37) och de licensierade
   barnbilarna (N32). Leonards beslut. (N42)
+  **Märket AVGJORT 2026-09-27:** stoppar inte. MINI-formen och S-emblemet är
+  en licensfråga och står kvar.
 - `88a0ab0b` (Wasserkocher 2200W, beige, 499 kr) — färgsyskon-mönster (se
   `FARGSYSKONEN.md`): samma mått 24,2 × 19,5 × 23,4 cm som den PUBLICERADE
   `d8c2dec6` (grå/koppar, 499 kr). (N42)
@@ -462,7 +498,7 @@ beslut — se den samlade frågan om detta.
 - `b3e5b7d1` (Hocker Teddy, beige, 529 kr, saldo 119) — HUSMÄRKET PÅ SJÄLVA
   PRODUKTEN: en vit etikett med HOMCOM-loggan är fastsydd vid dynkanten
   (utsnitt av bild 1). Samma fråga som `5d9e6795` (N36) och
-  `fd85cf0b`/`b2175a65` (N37). Leonards beslut. (N43)
+  `fd85cf0b`/`b2175a65` (N37). Leonards beslut. (N43) **AVGJORT 2026-09-27: kandidat igen.**
 - `b7465ef9` (Joghurtbereiter, åtta glas, silver, 529 kr, saldo 197) — samma
   maskin som den PUBLICERADE `af7bf20d` (yoghurtmaskin med 8 glasburkar,
   799 kr): samma mått 36 × 18,8 × 14 cm, åtta burkar à 180 ml, 25 W och 0,8 m
@@ -630,6 +666,7 @@ beslut — se den samlade frågan om detta.
   `3b4594da` (minimotionscykel för armar och ben, HOMCOM — N47:s reserv),
   `9cf41b84` (tre fladdermusholkar, PawHut) och `aea52237` (kattlåda med två
   ingångar, PawHut). Ersattes av `a6a16df2`, `af9c163f` och `c311e18f`. (N48)
+  **AVGJORT 2026-09-27: kandidater igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   `28a708af` (sparkcykel 5-i-1) mot `ed5d6b85`, `9a1432fc` (hundvippa för
   agility) mot `2b7853e9`, `b08dc0cb` (sittbänk med dyna, saldo 8) mot
@@ -664,6 +701,7 @@ beslut — se den samlade frågan om detta.
   `ee50f5bf` (agilityset för hund med fyra bågar, PawHut på väskan och i
   annonsbilden). `75a94825` är samma agilityset som `ee50f5bf` och
   hoppades med den utan egen granskning. (N49)
+  **AVGJORT 2026-09-27: kandidater igen.** Av `ee50f5bf` och `75a94825` blir bara en sida.
 - `66bc1de2` (uppblåsbar tomte med LED och fläkt, 659 kr) hoppades som
   trolig tvilling till den publicerade `46dd0605` (uppblåsbar tomte 243 cm med
   polkagriskäpp). Skärmen hittade inga mått i källan och var blind för den;
@@ -705,6 +743,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `44d91c2f`
   (armhävningsbräda, SPORTNOW tryckt på brädan). Den ersattes av
   `a6820dd0` (spökbrud till halloween), som publicerades i N50. (N50)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   `43c151c1` (nio trampstenar) mot `60f84a27`, `9a66c056` (soptunna 30 l)
   mot `1c9d8d05`, `b7e5c1ea` (byrå med sju tyglådor) mot `834b263f`,
@@ -748,6 +787,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `a32ac465`
   (spegelskåp för badrummet, HOMCOM-etikett på själva skåpet). Den ersattes
   av `7a70db2c` (fotbollsbord), som publicerades i N51. (N51)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - `c40eb493` (väggdekor i åtta delar) prövades som ersättare men föll på
   kontaktarket: källans färg stämmer inte med bilderna. Hoppad tills färgen
   är utredd. (N51)
@@ -808,6 +848,7 @@ beslut — se den samlade frågan om detta.
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `c661b7de`
   (fågellekplats i fyra nivåer, PawHut-skylt på själva varan). Den ersattes
   av `855bae98` (cd- och dvd-hylla), som publicerades i N52. (N52)
+  **AVGJORT 2026-09-27: kandidat igen.**
 - Träff mot en publicerad sida av samma slag, hoppade utan utredning:
   golvlamporna med hyllor `0ac59601` och `90881ca7` mot `3f539249` och
   `d286370d`, `fd221e07` mot `53e66496` och `d2dfd1fa` och `087000f1` mot
@@ -875,7 +916,7 @@ beslut — se den samlade frågan om detta.
   som publicerades i N53. (N53)
 - Husmärke på varan, alltså hoppad enligt regeln från N36: `d0e14ad8`
   (hundtoalett med konstgräs, PawHut-etikett på brickan i alla fem bilderna).
-  (N53)
+  (N53) **AVGJORT 2026-09-27: kandidat igen.**
 - Färgsyskon till en produkt i N53: `7c50a452` (sittbänken med vita ben,
   759 kr) är samma bänk som `eca2fa1e` med svarta ben, som publicerades. Läs
   `FARGSYSKONEN.md` först. (N53)
@@ -985,7 +1026,7 @@ beslut — se den samlade frågan om detta.
   plyoboxen 3-i-1 `3a5e0e72` (SPORTNOW ingraverat på lådans sidor, samma
   slags vara som N49:s `647fdeb9`) och den hopfällbara magtränaren
   `b9c41f57` (SPORTNOW-bricka på den röda kåpan). Alla fem var `las`-gröna.
-  (N55)
+  (N55) **AVGJORT 2026-09-27: kandidater igen.**
 - Reserv: toaletthyllan i bambu `ed39cd4c` (799 kr, saldo 50). Den är
   `las`-prövad (grön) och kontakt- och högpassarken är granskade utan fynd,
   men den är inte skriven. Nästa runda börjar med den. (N55)
@@ -997,6 +1038,7 @@ beslut — se den samlade frågan om detta.
   `8bc0dd26` (Outsunny tryckt på själva väskan, och bild 3 och 4 bär
   dessutom tysk text) och golvspegeln `ffc507bf` (en HOMCOM-etikett på
   spegelglaset i bild 1, 3 och 5). Båda var `las`-gröna. (N56)
+  **AVGJORT 2026-09-27: kandidater igen.** Takboxens bild 3 och 4 stryks för den tyska texten.
 - Reserv: förvaringspallen i vit manchester `a96f4c7e` (839 kr, saldo 67),
   de två väggspeglarna i kiselform `ac1cc9a5` (839 kr, saldo 43) och de tre
   växtpiedestalerna i vit metall `af2ca910` (839 kr, saldo 55). Alla tre är
@@ -1069,6 +1111,346 @@ beslut — se den samlade frågan om detta.
   fortsätter på 849 kr, där 27 utkast ligger utanför main-serien och inget
   är skärmat. N50:s åtta för en riktad kontroll är fortfarande inte
   kontrollerade. (N56)
+- Runda B1 polerar från den ÄLDSTA änden av kön, parallellt med SEO 2 som
+  tar de nyaste. Av de 18 äldsta opolerade utkasten publicerades åtta, och
+  tio hoppades över av skälen nedan. (B1)
+- Slutsålda (saldo 0): paviljongen `9c78a73a` (390 × 290 cm) och
+  spegelteleskopet `5108bef9` (114 mm). (B1)
+- Samma måtttrippel som en publicerad sida av samma slag, alltså dubblett
+  eller färgsyskon: plåtboden `a4221b8b` (277 × 195 × 192 cm) mot
+  `646720e3` och `4fa6ebd7`, plåtboden `2861bf83` (213 × 130 × 185 cm)
+  mot `cd628af2`, barnsängen `f6da9a00` (70 × 140 cm) mot `77460b11`,
+  trädgårdsbänken `4f265c91` (96 × 47,5 × 14,5 cm) mot `ee3acaea`,
+  bistrosetet `4b0a1fdb` mot `66d781f8` (saldo dessutom 9), pianopallen
+  `bdcfa4db` mot `e0a73975` och `a0386ca3`, och pianopallen `6919217b`
+  mot `69387273` och `981bd035`. Ingen är bildjämförd; kör pixel- eller
+  hashgrinden innan någon av dem poleras som en egen vara. (B1)
+- Barnsoffan med ottoman `d9544fac` är samma vara som publicerade
+  `9adac852`. Källan skriver måtten med bokstaven före talet
+  (L58 x B40,5 x H49), så måttskärmen missade den; den hittades med en
+  riktad sökning på namn och slug. (B1)
+- Barnfåtöljen `a3bd50fa` är färgsyskon till `788a6e39`, som publicerades
+  i B1: samma mått, samma pris och saldo 27. Den väntar till en senare
+  runda, med samma namnform som syskonet. (B1)
+- Feed-utkastet `ec93f9f2` (tyskt barnskrivbord) är samma vara som B1:s
+  `91d7dfd9`: samma mått, samma låda och belastning, och tre bilder med
+  samma pixlar. `91d7dfd9` är ommappad till Aosom och `ec93f9f2`
+  pensionerad (`rejected`). (B1)
+- Runda B2 fortsätter från den ÄLDSTA änden: åtta barnmöbler publicerade,
+  alla tyska feed-utkast från 2026-08-27. (B2)
+- Gunghästen: feed-utkastet `063cbb9e` är samma vara som publicerade
+  `16bdf5d8`. Huvudbilden har samma pixlar, och båda anger 85 × 28 × 60 cm
+  och 60 kg. `16bdf5d8` är ommappad till Aosom och `063cbb9e` pensionerad
+  (`rejected`). Kundpriset 1 499 kr är orört; feed-utkastet stod på
+  1 169 kr. (B2)
+- Rutschkanan: feed-utkastet `0f276512` är samma turkosgula kana som
+  publicerade `7d914d36`, med två bilder som har samma pixlar och samma
+  70 × 177 × 92 cm. `7d914d36` är ommappad till Aosom och `0f276512`
+  pensionerad. Kundpriset 1 579 kr är orört; feed-utkastet stod på
+  1 119 kr. (B2)
+- Färgsyskon till publicerade sidor, bekräftade med ögat på bilderna, som
+  väntar till en senare runda: rutschkanan `9f605da4` i grått och vitt
+  (`7d914d36`), bänkhyllan `acfcc8a3` i ekfärg (`d3b26d84`),
+  förvaringstornet `c61fdbb4` i rosa (`0136e7d9`; bild 5 bär husmärket
+  inbränt och ska strykas), husbokhyllan `889ca93f` i grönt (`76430e8e`),
+  hörnhyllan `2fb66ffd` i vitt med färgade tyglådor (`73409286`),
+  bokhyllan med låda i mintgrönt `15db30cb`, rosa `8718ba8d` och vitt
+  `a173de00` (`5c176543`), och klätterställningen `2780d68b` i trä
+  (`d48f0b07`, saldo dessutom 9). (B2)
+- Slutsåld (saldo 0): klätterställningen `a59650f2` (147 × 64,5 × 63 cm).
+  (B2)
+- Björnskrivbordet finns som två utkast i olika färger: `6588ac81` i trä
+  och vitt, `db663f78` i rosa och vitt, båda 80 × 41 × 74,5 cm. Nästa runda
+  tar det ena, och det andra väntar som färgsyskon. (B2)
+- `65d84215` och `565d0075` delar måtten 60 × 60 × 44 cm men är olika bord:
+  fyrkantigt med tavelskiva och björnstolar mot runt med förvaring och
+  molnstolar. Båda står kvar som kandidater. (B2)
+- ☠️ Belastningen på det rosa sminkbordet `c61c471d` går inte ihop: källan
+  ger skivan 20 kg och stolen 30 kg, måttbilden tvärtom. Björnstolen säljs
+  också med skrivbordet `6588ac81`, vars källa ger den 20 kg, så bilden är
+  troligen rätt. Ingen av de två siffrorna står på sidan. (B3)
+- Björnskrivbordet `6588ac81` i trä och vitt är publicerat. Det rosa
+  `db663f78` väntar som färgsyskon. (B3)
+- Klätterställningen `c75c7b95` i regnbågsfärger är ett färgsyskon till
+  publicerade `7e414be8` i natur (samma mått, samma konstruktion). Den
+  väntar. (B4)
+- Sminkbordet `23e31398` var en äkta dubblett av publicerade `e8f7eaed`:
+  samma färg, samma tre måttripplar och tre byte-identiska bilder. Sidan
+  är ommappad från AliExpress till Aosom och utkastet pensionerat.
+  Kundpriset 1 479 kr är orört; Aosom-synken räknar om det. (B5)
+- Färgsyskon till publicerade sidor, som väntar: förvaringstornet
+  `97a2c2c2` (`0136e7d9`, samma tre måttripplar som `c61fdbb4`),
+  gymnastikställningen `a3dfcd1e` i rosa (`68c9cfe0` i lila) och
+  leksaksköket `6fafe249` i rosa och vitt (`a57587a8` i vitt). (B5)
+- ☠️ Gråskalejämförelsen är FÄRGBLIND. Huvudbilderna på `a3dfcd1e` (rosa)
+  och `68c9cfe0` (lila) gav medelavvikelse 0,3 i 64 × 64 gråskala, alltså
+  "samma bild", men rosa och lila har nästan samma ljushet. Det var ögat
+  på bilderna som avgjorde. Pixelkontrollen behöver färg, eller en titt.
+  (B5)
+- Leksaksköket med rinnande vatten finns i två färger, `962fc483` och
+  `321f878a`, och ingen av dem är publicerad. En av dem kan poleras, den
+  andra väntar då som färgsyskon. (B5)
+- Gokartfamiljen `8691cbc0`, `8ab866bb` och `5f7b579e` delar måttripplar
+  med varandra och med publicerade `71be99af`; `5f7b579e` har saldo 9.
+  Hålls, som gokartklustret i N27–N31. (B5)
+- Balansbalken `24597637` hade saldo 5 och togs inte med. Den prövas igen
+  när saldot är högre. (B5)
+- Barnfordon med licensierat märke i namnet hålls, som i N32 och N33
+  (licensfrågan är Leonards): BMW-motorcyklarna `53095ce4`, `707a329d` och
+  `68ec5e08`, Audi-bilarna `9d9130a0`, `cd497196`, `a2fdc66d`, `fb484bfc`
+  och `e6fd72cd`, Vespa-motorcyklarna `0d3bad5e` och `bb18870d`,
+  Mercedes-rutschbilarna `88140d98` och `d55a25f4`, Lamborghini-bilarna
+  `00570c67` och `7a738998`, Honda-motorcykeln `d6275621`, McLaren-bilen
+  `f73628e3`, BMW M4-bilarna `d15fc03d`, `b23eb400` och `a71deaf5` och
+  Caterpillar-grävaren `fe13c03b`. Elbilen `42a02619` har inget märke i
+  namnet men delar tre måttripplar med Audi e-tron-familjen. (B6)
+- Färgsyskon till publicerade barnfordon, som väntar: elmotorcyklarna
+  `bc9f1cef`, `5fafabd9` och `0a27ed50` (`372ee931`) och SUV-elbilen
+  `989dbf87` (`479f7291`). (B6)
+- Syskon inom B6:s familjer, som väntar: trehjulingarna `3e34331b` i mint
+  och `a5844ce3` i blått (den grå `0bab65e3` poleras i B6), trehjulingen
+  `24c5274b` i marinblått (liknar `3e34331b` men delar bara en måttrippel,
+  oprövad) och leksaksköket `962fc483` i rosa (det turkosa `321f878a` poleras i
+  B6, saldo 15 mot 176). (B6)
+- Slutsålda eller nästan (saldo 0–5), inte polerade: åkhästen `9f0ade76`,
+  bubbelmotorcykeln `1416e4a4`, motorcykeln `bd2f9152`, elbilen
+  `72be1700` (2) och motorcykeln `e0590577` (5). (B6)
+- Rättelse till raden ovan: trehjulingen `24c5274b` är INTE syskon till
+  `3e34331b`/`0bab65e3`. Den är en annan modell (vit ram, korg vid styret,
+  ringklocka, 112 × 50 × 104 cm) och delar bara kartongmåtten. Den poleras
+  i B7. (B7)
+- Märket står på själva fordonet fast namnet inte bär det, och hålls
+  därför som märkesraden ovan: fyrhjulingarna `fcdeca34` och `38e70184`
+  (HONDA på karossen), motorcyklarna `70744919` och `e0590577` (BMW HP4,
+  BMW-emblemet på kåpan) och tippbilen `be3dcfbc` (CAT-loggan på fronten).
+  (B7) Beslutet 2026-09-27 gällde husmärkena. Det här är andras varumärken,
+  alltså en licensfråga, och raden står kvar.
+- Märke i texten, hålls: Mercedes `0fc2119d`, `0acfc30a` och `834cbe61`,
+  McLaren `39d13508`, Land Rover `8ad1e003`, `fa99285f`, `1c0b4b34` och
+  `6e518fc6`, Lamborghini `68fe8e67`, `e47294df`, `ea13272c` och
+  `e85197d2`, Audi `21736548`, `ba2b14ab` och `0125f9e2` och Ford
+  `70703864`. Polisbilen `9308a7dc` hålls för *Polizei*. Tre bär
+  *lizenziert* utan ett namn jag känner igen: `b9ef8ca4` (två måttripplar
+  med publicerade BMW i4 `b0dbfc97`) och motorcyklarna `ef2cbde0` och
+  `f6c56546`, oprövade på bild. (B7)
+- Syskon till publicerade sidor (minst två gemensamma måttripplar):
+  motorcyklarna `dc85a71f` och `0c2e072c` (`7b62aa26`), `617aae41` och
+  `e811836f` (`ad46f9cc`) och `850034ea` (`81a7d7e4`), gokarten `f244bb55`
+  (`0926604b`), traktorn `f90b0993` (`91d28d6f`), elbilarna `6c62a150`,
+  `f373226f` och `9d710fe0` (Mercedes SLC `55b92ab2`) och `12b04b77` (Audi
+  `4d989256`), staffliet `addf1d20`/`dc709681` (`ac160e8e`), trehjulingarna
+  `f2ad437d` (`80aac077`) och `aefd8818`/`5ce744ab` (`7c975a86`) och
+  fyrhjulingarna `5562dc2a` (`3c13da94`) och `7b26df6f`/`8ae5b383`
+  (`7cdc167c`). Rutschfyrhjulingarna `89f8e1e1`, `1a3ac422` och `2b890006`
+  är samma vara som publicerade `a78da864`, vars bilder visar den rosa och
+  den gröna. (B7)
+- Grävskopan `2c280af2` har AIYAPLAY tryckt på fordonet, alltså
+  leverantörens husmärke. Hålls, som SPORTNOW och PawHut i N11. (B7)
+  **AVGJORT 2026-09-27: kandidat igen.**
+- Fyrhjulingen `fa5d1210` i rött och `a0d4a944` i rosa är samma modell som
+  `17c253d6` i grönt, som N11 höll mot #285-klustret. De hålls med den.
+  Den publicerade `9d686a82` är en annan fyrhjuling. (B7)
+- Gokartklustren från N27–N33, hålls: `5fe1d12e`, `cce8d35c` och
+  `e6301e92` (med `8b04789b`, `589058f1`, `fdae2809` och `2c7c7f76`) och
+  `2a6dcd2a` och `fc195950` (med `28b06f78`, `d0ab51e9`, `b4e961b7` och
+  `a23a9d86`). (B7)
+- Färgsyskon inom B7:s familjer, som väntar: jeepen `c80ffdb1` i rött
+  (saldo 5), crossarna `cf098340` i rött (7) och `bd2f9152` i blått (0),
+  traktorerna `8e77ded7` i blått, `329c24b2` i grönt och `fbe710b5` i
+  orange, trehjulingen `0dac99b5` i rosa och radiobilen `70a721cd` i rosa.
+  Den färg med störst saldo poleras i B7. (B7)
+- Slutsålda eller nästan (saldo 0–5), inte polerade: motorcyklarna
+  `e1f50194` (1), `72dd9729` (5) och `51c81c2c` (0), tågbordet `695e72eb`
+  (0), gokarten `f61e3a5b` (0), tvåsitsbilarna `6220378a` och `8b073d5c`
+  (0) och elbilen `57dda9ba` (0). (B7)
+- Utomhus, fel säsong i slutet av september: lerköket `1f3321d8`,
+  hoppborgarna `b0ae40f7`, `35d0756b`, `16319acd` och `08755391`,
+  sandlådorna `aac544b0`, `4e9e1ea5`, `80e48248`, `1c9056a5`, `3bced72a`
+  och `fdd915bc`, vattenbordet `58615473`, gungställningarna `df0a9c0c`,
+  `d9fa791d`, `a75b4e26`, `f8599023` och `b3d60f53` och lekstugorna
+  `6bacbb65`, `8a7e64bc`, `f185f55d`, `99850a5e`, `f6a0b941` och
+  `2a3a93d5`. (B7)
+- Sparkcyklarna `28d7dfd9` i ljusblått och `aef9a8d9` i grönt är samma
+  modell som publicerade `4080448d`, `ea013fde` och `79186373`. Hålls som
+  färgsyskon. (B8)
+- Färgsyskon inom B8:s familjer, som väntar: pedalgokartarna `b2b28cec` i
+  blått (72) och `39260484` i rosa (50), elgokartarna `3c0795b6` i rött
+  (57) och `5a4f53a9` i blått (31), keyboardet `36ac2f68` i svart (52) och
+  skumkuberna `ce0265ee` i pastell (58) och `c867663e` (173). Den färg med
+  störst saldo poleras i B8. (B8)
+- Skumset som delar minst två måttripplar med publicerade skumklossar,
+  hålls: `b50bd167`, `361d09f5`, `99807672`, `638f2110`, `ebb597b4`,
+  `b2ab1b14`, `e27a64ec`, `8cca1ae9`, `a6e01595` och `05007fea`. (B8)
+- Saldo 0–7, inte polerade: lekmattan `1adef24e` (0) och
+  klätterklossarna `29d7e497` (0) och `dbd5252f` (7). (B8)
+- ☠️ Tågbanan `0d8d0d2d` hade vattenstämpeln *AI生成* (”AI-genererad”)
+  inbränd på bild 2. Stämpeln syntes knappt i kontaktarket och hittades
+  först vid inzoomning. Leverantörens livsstilsbilder kan alltså vara
+  AI-genererade och märkta, så zooma in på hörnen när en bild ser
+  renderad ut. (B8)
+- ☠️ Rättelse av B8-raden om skumseten ovan: fyra av måttträffarna var inga
+  skumset. `b2ab1b14` matchade en barstol, `a6e01595` en soptunna,
+  `05007fea` en katthängmatta, ett verktygsskåp och en stepper, och
+  `8cca1ae9` en byrå, en husdjurstrappa och en hundkoja. På bild är
+  `b2ab1b14`, `a6e01595` och `05007fea` egna produkter och fria (de två
+  första poleras i B9). `8cca1ae9` och `e27a64ec` är samma femdelsset som
+  publicerade `19f7c013`/`1d3f6755` i pastell och hålls, liksom `b50bd167`.
+  `638f2110` och `ebb597b4` är fyrdelssetet `bf4298b2` i andra färger,
+  `99807672` är `05646c64` i pastell och `361d09f5` är `05646c64` med samma
+  bilder. Lärdom: mått på 20–60 cm delas av orelaterade produkter, så läs
+  namnet på det publicerade syskonet och avgör på bild. (B9)
+- Färgsyskon inom B9:s familjer, som väntar: sjudelssetet `4b96899f` i
+  marinblått (10), krypbanan `c3959819` i pastell (1) och klätterhuset
+  `d68f6683` i petrol (32). Den färg med störst saldo poleras i B9. (B9)
+- Saldo 0–3, inte polerade: skumseten `0418cc67` (0), `d288fee7` (0) och
+  `92d994d4` (3), sminkspeglarna `34199a4c` och `3a42c047` (0) och
+  cykelvagnarna `8c34a7cd` och `a67a45a2` (0). (B9)
+- ⚠️ `8064c7e2` bild 2 visar en blå skumfåtölj i bakgrunden som inte ingår
+  i setet (den liknar fåtöljen i `92d994d4`). Bilden ströks. En bild där ett annat
+  föremål i samma stil ser ut att ingå är ett returskäl, även utan text. (B9)
+- Syskon till publicerade sidor, hålls: barnfåtöljen `87b86ba8` (samma
+  som `4791575c`, i rosa), rullpallen `013de4a2` (samma mått som
+  `087cb4b8`), snurrpallen `9c6fde71` (färgsyskon till `1ac305ac` och
+  `28532aab`), uppresningsfåtöljen `f6ff9aba` (samma stomme som
+  `ed03b52f`, i konstläder), miniugnen `24747909` (samma ugn och samma
+  bilder som `83cc8ba7`), köksmaskinen `b4d17208` (svart, samma maskin
+  och tillbehör som `6bcbaf32` i gräddvitt) och provdockan `9cff469a`.
+  Provdockan har samma byst, stativ, höjd 130–168 cm och samma butiksbild
+  som `4ccc699a`. Byst 86 mot 84 cm, och den publicerade har knappnålar
+  med. Två sidor för samma docka är den interna dubbletten. (B10)
+- ⚠️ Husmärket tryckt på själva produkten, hålls tills Leonard avgör:
+  cykelvagnarna `3d8e7624`, `d9cd502b`, `4c9db98c`, `7ffc8543` och
+  `d22b83b1` (HOMCOM på vagnen) och `0c5003d8` och `727b850e` (AIYAPLAY
+  på fronten), miniugnarna `ff145fb1`, `d9f30244` och `ab47e35d`
+  (HOMCOM på luckan) och fritösen `69cabbc9` och vattenkokar- och
+  brödrostseten `f5964946`, `40a1f491` och `982262ec` (HOMCOM på
+  panelen). Märket sitter på produkten i varje bild och går inte att
+  stryka. De publicerade miniugnarna `0e2a1cd9` och `83cc8ba7` bär samma
+  märke, så katalogen är redan oenig med sig själv. (B10)
+  **AVGJORT 2026-09-27: kandidater igen.** Dubblettskärmen gäller som vanligt, och `ab47e35d` har
+  dessutom N37:s fråga om ett billigare utkast bakom en publicerad sida.
+- Säsong: campingtoaletten `b66f8c37` väntar till våren. (B10)
+- Husmärket på produkten, hålls tills Leonard avgör (samma regel som B10):
+  sju set med vattenkokare och brödrost (`c0dd9d0c`, `eb19eca6`,
+  `980dd9a1`, `c0463ce2`, `d7fea466`, `4546b12a` och `4add1c3a`, HOMCOM på
+  brödrostens och kokarens panel), brödrosten `13204f68` och frysboxen
+  `da0e9379` (HOMCOM på dörren). (B11)
+  **AVGJORT 2026-09-27: kandidater igen**, utom `13204f68`, som också är
+  färgsyskon (N36).
+- Väntar på en samlad skärm: fem brödrost- och vattenkokarset utan synligt
+  märke, `47587c65`, `217630f1` och `bc2368af` (samma formgivning i tre
+  färger) och `c7c74ab2` och `6147cb18` (samma digitala formgivning i två).
+  Jämför mot de 20 publicerade i *Vattenkokare & brödrostar* och välj en
+  färg per formgivning. (B11)
+- Syskon, hålls: cykelkärran `9429fdc7` (grå, samma kärra som `5b3d3c58` i
+  B11), sängbänken `59567c6b` (samma bänk som `6e48f38d` i B11), gästsängen
+  `07435f1a` (samma säng och samma huvudbild som publicerade `26ae7fb2`) och
+  sittbänken `6fb7b740` (samma bänk som publicerade `9383d686`, i svart).
+  Köksmaskinen `b4d17208`, hållen i B10, har också samma maskin som
+  publicerade `1327c4c6`. (B11)
+- ✅ Sittbänken `b08dc0cb`, som N48 hoppade utan utredning mot `d5919be6`,
+  är utredd och polerad i B11. De är två olika bänkar: `d5919be6` är
+  mörkgrön, 100 × 36 × 45 cm, med 13 cm sits, sneda ben och 120 kg;
+  `b08dc0cb` är grå, 100 × 35 × 47 cm, med 8 cm dyna, rak ram med diagonala
+  stag och 200 kg. Bänken har en insydd märkeslapp på dynans kortsida som
+  bara syns på bild 4, och den bilden ströks. (B11)
+- Saldo 0–6, inte polerade: ryggmassagern `1a48d902` (6), resårmadrassen
+  `8f88e036` (2), fritösen `ba80cee2`, buffévärmaren `5f3ccb1a`,
+  glassmaskinen `4522d871`, rullstolsrampen `730e0746`, städvagnen
+  `832f9eec`, kökshyllorna `3dc2f48d` och `46574b65`, diskstället
+  `ea415e30` och bakhyllan `f599e722` (alla 0). (B11)
+- Samma spegel som en publicerad sida, hålls: fönsterspegeln `98e2b710` i
+  guld 91 × 60 cm (= `fd205e45`) och den tredelade fönsterspegeln `6ca6b338`
+  i svart (= `7f8fd990`). (B12)
+- Färgsyskon till publicerade speglar, hålls: `4d946ee9` (svart, samma
+  valvspegel som `fd205e45`), `9210da17` (guld, samma spegel med nio fält som
+  `a1d3d26c`) och `b12666e7` (guld, samma spröjsade spegel 110 × 50 cm som
+  `719ffb14`). Väggspegeln `f726a1bc` med vit ram är samma spegel som
+  `b6922dc8` i B12 (155 mot 156 i saldo). (B12)
+- Saldo 0, inte polerad: fönsterspegeln `efde9936`. (B12)
+- Samma möbel som en publicerad sida i en annan färg, hålls. Måtten, maxlasten,
+  vikten och paketmåtten är identiska: sittbänken `865acfdf` i grå sammet
+  (= `d1132894`, blå), bänken `d9767b3c` med rullade armstöd i ljusgrått
+  (= `9383d686`, mörkgrå), sittbänken `f7ba4bb8` i grå sammetslook
+  (= `d5919be6`, mörkgrön), de ovala förvaringsbänkarna `419aae73`
+  (gräddvit) och `3352ee8d` (olivgrön) (= `fa500aa8`, grå) och
+  helkroppsspegeln `3570107c` i bågform, svart (= `58f8338d`, guld). (B13)
+- Färgsyskon inom lagret, hålls: byrån `a14b1d61` (ljus, saldo 8) är samma
+  som `b7e5c1ea` i B13, och bänken `63c426d0` (grön) samma som `698fd1bf` i
+  B13. (B13)
+- Husmärket på produkten, väntar på Leonard: Hollywoodspegeln `aeda1c4e` bär
+  HOMCOM-loggan tryckt på glaset i tre av fem bilder. (B13) **AVGJORT 2026-09-27: kandidat igen.**
+- ✅ Tre flaggor ur N51 och N54 är utredda i B13. Bänken `698fd1bf` är en
+  annan modell än `d5919be6`. Ramens mått och vikt är desamma, men klädseln
+  (grå manchester med knappar) och maxlasten (220 kg) skiljer, och den är
+  polerad. Byrån `a14b1d61` är inte `834b263f` (sju lådor mot åtta), men
+  hålls som färgsyskon. Byrån `fcf237ca` är en egen storlek i samma serie som
+  `222f59d6` (58 cm och fyra lådor mot 80 cm och sju) och tas i B14. (B13)
+- Saldo 0–2, inte polerade: bänkarna `50e06edb`, `9b8fefe6` och `55f4c0d9`,
+  golvspeglarna `e629367a`, `cabd168d` och `81c40958`, sängramen `9ed05344`
+  och nattduksbordet `23d31b41` (alla 0), och sminkbordet `b594f90c` (2).
+  (B13)
+- Samma bäddfåtölj som en publicerad sida, hålls: `de486caf` (= `7eee41b6`;
+  65 × 69 × 80 cm, bädd 185,5 × 60 × 25 cm, 120 kg och 19,5 kg identiska).
+  (B14)
+- För få rena bilder, hålls: byrån med hyllor `7b56d280`. Varje bild utom
+  måttbilden bär ett varumärke eller läsbar text: en LUMIX-kamera i
+  huvudbilden, boktiteln WAR STORM, husmärkets vattenstämpel och YESTERDAY
+  TOMORROW på en vas. Den kan poleras om leverantören har renare bilder.
+  (B14)
+- Samma soffa som en publicerad sida i en annan färg, hålls: 2-sitssoffan i
+  13 färger och tyger, `250b29f0`, `e0d2f66f`, `e30d6f33`, `0b6a0cc6`,
+  `13d9a960`, `615e7b54`, `77f94d6c`, `86606498`, `8ff98faa`, `c97a132d`,
+  `4f21c7c1`, `d0191013` och `ff3b6e47`, och utkastet `33825b88` från 04:41
+  (= `95c2008d`; 117 × 56,5 × 77 cm, 150 kg och 22,2 kg identiska, samma
+  foto i en annan färg). `fcb0b18d` bär samma tyska namn men en annan
+  kartong, och har saldo 2. (B15)
+- Samma bäddfåtölj som en publicerad sida, hålls: `7d67adb3`, svart
+  (= `7eee41b6`; 65 × 69 × 80 cm), som `de486caf` i B14. (B15)
+- Färgsyskon inom lagret, hålls: bäddsofforna `5023eba7` (blå) och
+  `9e549ab2` (koksgrå, saldo 0) (= `749372df`), klaffbordet `cd9b4686`
+  (svart och ek) (= `a6bd7d56`) och golvlamporna `05652710` (svart),
+  `77b7367d` (natur) och `8e3dfb51` (vit) (= `318a887e`). (B15)
+- ✅ Två falska träffar på måtten, frikända på bild: klaffbordet `934caba5`
+  är inte `85f1694f` (båda 120 × 80 × 73 cm, men vit skiva i teakfärg mot
+  grå betonglook på stålben), och golvlamporna på 26 × 26 × 160 cm är inte
+  `53e66496` eller `d2dfd1fa`. `934caba5` är polerad. (B15)
+- Att jämföra när lagret kommer upp: golvlampan `fd221e07` (polerad i B15)
+  har samma kartong och vikt som utkastet `cabceb4c` från 16:15. Det är
+  troligen samma lampa i en annan färg. (B15)
+- Samma fåtölj som en publicerad sida i en annan färg, hålls: öronlappsfåtöljen
+  `e16668e2` (= `72f30eb9`, `a29af9b5`, `16f36d37`, `121ce68f`, `7b98c4c1`
+  och `80e4ed24`; 74 × 86 × 102 cm och kartongen identiska), relaxfåtöljen
+  med fotpall `024eb02c`, grå (= `9946e1eb` och `9794b6df`; 79 × 80 × 100
+  cm), golvfåtöljen `339a695e` (= `db645ff8`; tre måttripplar identiska) och
+  den väggnära fåtöljen `60adbe7d` (= `e57125fb`; tre måttripplar
+  identiska). Ur fingeravtrycket i B15: `240ef0c1` (= `121ce68f`,
+  `7b98c4c1`, `80e4ed24`), `6a65351e` (= `27380bf4`) och `22cfc372`
+  (= `33cde470`). (B16)
+- Färgsyskon inom lagret, hålls: sidoborden på hjul `108aab26` (rustik
+  brun) och `63c91386` (saldo 0) (= `e95da565`), och fåtöljen `e93fab42`
+  (saldo 0, samma kartong som `41395340`). (B16)
+- Saldo 0–7, inte polerade: fåtöljerna `659a0370` (0) och `76738f85` (7).
+  (B16)
+- Samma produkt som en publicerad sida eller i en annan färg, hålls:
+  LED-spegeln `af9c9f87` (= `cc52007e`; samma spegel med Bluetooth,
+  90 × 70 cm), medicinskåpen `6858d7ee`, grått (= `54efbdc6`, vitt; även
+  kartongen 22 × 44 × 65 cm stämmer), `54504ce8` (= `715b4acd`) och
+  `9bf1a5db` (måtten = `8eab3ebf`, på bild som `8c4cf7e9`), och högskåpet
+  `e7efc265` (= `4f291ccb`; 182 cm, alla fack stämmer). (B17)
+- Samma spegel inom lagret, hålls: `3a31f4cc` (= `23940121`; samma bilder
+  och 50 × 70 cm, saldo 40 mot 74). (B17)
+- ✅ Falsk träff, frikänd på bild: LED-spegeln `aba9f13e` är inte `e839cf6f`
+  trots samma kartong — rektangulär mot bågformad, båda med svart kant.
+  `aba9f13e` kan poleras. (B17)
+- Saldo 0–7, inte polerade: `7420158c`, `eae19ca7` och `ab765586` (alla 0)
+  och `8057e869` (3). (B17)
+  RÄTTELSE 2026-09-27: saldot i Wix är redan buffrat, så `8057e869` på 3 var
+  köpbar. gate-lager.py drog av bufferten en gång till; den är lagad, och
+  `8057e869` kan poleras i en senare runda.
+- Färgsyskon inom lagret, hålls: högskåpet `d5a629d7`, vitt (= `635e7330`,
+  grått; 30 × 30 × 180 cm och alla fackmått identiska). Tre av det vita
+  skåpets fem bilder bär varumärken (*BYREDO*, *MARVIS*). (B18)
 - Husmärke tryckt på varan, alltså hållna: takväskan `5b2ad18f` (Outsunny på
   väskan i fyra av fem bilder) och projektorduken `926ec7a2` (en
   HOMCOM-bricka på kassetten i bild 5). (N57)

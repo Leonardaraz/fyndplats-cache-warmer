@@ -1,0 +1,1489 @@
+{
+ "3bb5837e": {
+  "pid": "3bb5837e-5ea2-49c6-87d1-2f284f6451a5",
+  "rev": "24",
+  "upd": "2026-09-24T06:25:54.421Z",
+  "namn": "Köksö på hjul med glasdörrar – fällbar bänkskiva, vinställ, vit/ek",
+  "slug": "kokso-pa-hjul-glasdorrar-fallbar-bankskiva",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Köksö på hjul, fällbar bänkskiva & glasdörrar | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Köksö på hjul med fällbar bänkskiva, skåp med glasdörrar, vinställ och kryddhylla. Vit med ekfärgad skiva, 5 hjul varav 2 med broms."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "köksö med glasdörrar",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "köksö på hjul glasdörrar",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "köksvagn med hjul",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "fällbar bänkskiva köksö",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_f3ed1da4aeca48f090d60d18d81c73b9~mv2.jpg",
+    "Köksö på hjul i vitt med ekfärgad bänkskiva, vinställ, kryddhylla och skåp med glasdörrar"
+   ],
+   [
+    "b379ce_de241c9f6cb34a5d86d7a4153f0d4ea2~mv2.jpg",
+    "Köksön på hjul placerad i ett ljust kök med barstol vid den utfällda bänkskivan"
+   ],
+   [
+    "b379ce_2e23cbddac0b413dad1467e9154d5871~mv2.jpeg",
+    "Fällbar bänkskiva utfälld till matbord för två personer, 113 × 72,2 cm"
+   ],
+   [
+    "b379ce_8c0dd2f3075a4d649999aa50c48040b3~mv2.jpeg",
+    "Köksön hopfälld med bänkskivan nedvikt längs sidan, 130 × 44,7 × 90 cm"
+   ],
+   [
+    "b379ce_903f468e79bb45e5aa23c5b72de89567~mv2.png",
+    "Förvaring i köksön: kryddhylla, vinställ, öppet fack, stor låda och skåp med glasdörrar"
+   ],
+   [
+    "b379ce_0edf8869b6284e38af1155702bcaa599~mv2.jpeg",
+    "Skåp med skjutdörrar i härdat glas och justerbar hylla i tre höjdlägen"
+   ],
+   [
+    "b379ce_6691a5d85d934c1aa7063760a06e624d~mv2.jpg",
+    "Måttskiss för köksön med mått i centimeter och maxlast 70 kg totalt"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Vinställ & vinkylar",
+   "Köksöar & köksvagnar"
+  ],
+  "sku": "FP-kokso-pa-hjul-glasdorrar",
+  "variantId": "bfd5cc72-28f9-4682-9b9d-e320ac2e1c64"
+ },
+ "25262ec3": {
+  "pid": "25262ec3-cb9d-4b60-a4dc-851d784d7517",
+  "rev": "15",
+  "upd": "2026-09-13T18:01:13.804Z",
+  "namn": "Lås till elsparkcykel med två låsringar – 90 cm kätting i härdat stål",
+  "slug": "las-elsparkcykel-lasringar-90-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Lås till elsparkcykel – 90 cm kätting med två låsringar",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Lås till elsparkcykel och cykel: 90 cm kätting i härdat stål med två gummiklädda låsringar (7,5–8,5 cm) och tre nycklar. Skickas från EU-lager."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Lås till elsparkcykel med två låsringar – 90 cm kätting i härdat stål",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Lås till elsparkcykel och cykel: 90 cm kätting i härdat stål med två gummiklädda låsringar (7,5–8,5 cm) och tre nycklar. Skickas från EU-lager.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_0944aaa35d6347908597235af3aeb504~mv2.jpg",
+    "Lås till elsparkcykel med två låsringar, kätting och tre nycklar"
+   ],
+   [
+    "b379ce_2cef111e90c94dba9be40e73201e89e9~mv2.jpg",
+    "Låset monterat på cykelhjul, elsparkcykel, dörrhandtag och motorcykelhjul"
+   ],
+   [
+    "b379ce_e98aa0e8f21940edac3aba1ca69c287c~mv2.jpg",
+    "Låsringen med gummiklädd insida ställs i tre lägen: 7,5, 8,0 eller 8,5 cm"
+   ],
+   [
+    "b379ce_4e709a5ce27c4933b3a60fe57d3959cd~mv2.jpg",
+    "Specifikation: 90 cm totalt, 60 cm kätting, 6 mm tjocklek och härdat stål"
+   ],
+   [
+    "b379ce_0f5f7d26c06a49a6acf486f8842cd06a~mv2.jpg",
+    "Styrväskan i hårdplast fastspänd på styrstammen på en elsparkcykel"
+   ]
+  ],
+  "kat": [
+   "Sport & Fritid",
+   "Bil & Cykel"
+  ],
+  "sku": "FP-las-elsparkcykel-lasringar",
+  "variantId": "c7f2717d-c17f-493b-a8b4-3e9fc12a7cbe"
+ },
+ "d7eca2ba": {
+  "pid": "d7eca2ba-9825-4366-a21c-a3756d5d866f",
+  "rev": "8",
+  "upd": "2026-09-24T07:01:21.187Z",
+  "namn": "Massagebänk 2 zoner svart – 186 × 60 cm bädd, 13 kg",
+  "slug": "massagebank-svart-2-zoner",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk 2 zoner svart – 186 × 60 cm, 13 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart hopfällbar massagebänk i två zoner med träställ. Bädd 186 × 60 cm, väger 13 kg och rekommenderad maxlast 150 kg. Rundans lägsta pris."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "mobile massageliege 2 zonen",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_4aef08e76f3d475db211aaaa1957ec84~mv2.jpg",
+    "Svart hopfällbar massagebänk i två delar med träställ (1)"
+   ],
+   [
+    "b379ce_4dfd007366b344c4ab487e3736fa6af6~mv2.jpg",
+    "Svart hopfällbar massagebänk i två delar med träställ (2)"
+   ],
+   [
+    "b379ce_d49d688e46ad4c91ac8df78965d3c03d~mv2.jpg",
+    "Faktakort: massagebänk 2 zoner svart, liggyta, vikt och maxlast"
+   ],
+   [
+    "b379ce_fd576bf586004a9aa4d2a4c86c7e6f8f~mv2.jpg",
+    "Svart hopfällbar massagebänk i två delar med träställ (3)"
+   ],
+   [
+    "b379ce_28ef387b36824511b67105756103573b~mv2.jpg",
+    "Svart hopfällbar massagebänk i två delar med träställ (4)"
+   ],
+   [
+    "b379ce_87d73d72b0004a64b794fba833f6a5fe~mv2.jpg",
+    "Svart hopfällbar massagebänk i två delar med träställ (5)"
+   ]
+  ],
+  "kat": [
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa",
+   "Massagebänkar"
+  ],
+  "sku": "FP-mobile-massageliege-2",
+  "variantId": "20f839a2-56bc-4dae-af2e-8041c2f873a5"
+ },
+ "a353ea02": {
+  "pid": "a353ea02-df1f-42ad-af50-77bcbe0c7bbc",
+  "rev": "7",
+  "upd": "2026-09-24T07:01:21.400Z",
+  "namn": "Massagebänk 3 zoner i aluminium, vit – 185 × 60 cm bädd, 225 kg",
+  "slug": "massagebank-vit-3-zoner-aluminium",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk 3 zoner i aluminium, vit – 225 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Vit hopfällbar massagebänk med tre zoner och aluminiumram. Bädd 185 × 60 cm, höjd 61–84 cm, bär 225 kg och väger 17,5 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "mobile massageliege 3 zonen",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_2700df841aee499195eeeeebe22cfd1a~mv2.jpg",
+    "Vit hopfällbar massagebänk i tre delar med ansiktsöppning och aluminiumram (1)"
+   ],
+   [
+    "b379ce_a4ff1c17e35d41349d222b285645b5ec~mv2.jpg",
+    "Vit hopfällbar massagebänk i tre delar med ansiktsöppning och aluminiumram (2)"
+   ],
+   [
+    "b379ce_fedd16ff292e43398824185edb9cd2d0~mv2.jpg",
+    "Faktakort: massagebänk 3 zoner vit, liggyta, höjd och maxlast"
+   ],
+   [
+    "b379ce_1a256f936f1441499596d80b0c5d5a1f~mv2.jpg",
+    "Vit hopfällbar massagebänk i tre delar med ansiktsöppning och aluminiumram (3)"
+   ],
+   [
+    "b379ce_a0a85b07926940ef8e801e170b920af1~mv2.jpg",
+    "Vit hopfällbar massagebänk i tre delar med ansiktsöppning och aluminiumram (4)"
+   ],
+   [
+    "b379ce_ea3bf48ce718407cadd9bd0d40e7a9de~mv2.jpg",
+    "Vit hopfällbar massagebänk i tre delar med ansiktsöppning och aluminiumram (5)"
+   ]
+  ],
+  "kat": [
+   "Massagebänkar",
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa"
+  ],
+  "sku": "FP-mobile-massageliege-3",
+  "variantId": "c9349662-e385-4ab6-89be-52a570937359"
+ },
+ "251f0429": {
+  "pid": "251f0429-49bc-4520-91ba-d6496fe80136",
+  "rev": "7",
+  "upd": "2026-09-24T07:01:21.365Z",
+  "namn": "Massagebänk 70 cm bred med träställ – 215 cm, bär 225 kg",
+  "slug": "massagebank-70-cm-trastall",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk 70 cm bred med träställ – 225 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart hopfällbar massagebänk med träställ och extra bred liggyta på 70 cm. Totallängd 215 cm, höjd 61–86 cm och 225 kg maxlast."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "höhenverstellbarer massagetisch holzgestell klappbares",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_dba0802361e7487d8367dc337bde4ba8~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och bred liggyta (1)"
+   ],
+   [
+    "b379ce_23efef23645f40f9a31d2b23787f67ad~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och bred liggyta (2)"
+   ],
+   [
+    "b379ce_ff56e98fa7d349ae8a8b7de033443c1c~mv2.jpg",
+    "Faktakort: massagebänk 70 cm bred, liggyta, höjd och maxlast"
+   ],
+   [
+    "b379ce_d261477925ce472c83820db416ac1bb1~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och bred liggyta (3)"
+   ],
+   [
+    "b379ce_6b2161c9701b4cf5a87f534613fc0b64~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och bred liggyta (4)"
+   ],
+   [
+    "b379ce_7a7531df303f44608843e557080aa225~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och bred liggyta (5)"
+   ]
+  ],
+  "kat": [
+   "Massagebänkar",
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa"
+  ],
+  "sku": "FP-hohenverstellbarer",
+  "variantId": "0140ee8e-d3cb-4e30-b370-4075f9430626"
+ },
+ "a9555a7d": {
+  "pid": "a9555a7d-dbd9-4e35-a856-d22db42da79b",
+  "rev": "5",
+  "upd": "2026-09-24T07:01:21.328Z",
+  "namn": "Massagebänk i trä, creme – bär 250 kg, bärväska ingår",
+  "slug": "massagebank-bok-creme-barvaska",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk i trä, creme – 250 kg, bärväska | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Cremefärgad hopfällbar massagebänk med träställ och bärväska. Bädd 185 × 60 cm, höjd 67–92 cm, 4 cm skum och 250 kg maxlast."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "massagetisch klappbare massageliege höhenverstellbare",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_268d7b2e47a249c184939df35bb6f744~mv2.jpg",
+    "Cremefärgad hopfällbar massagebänk med träställ och ansiktsstöd (1)"
+   ],
+   [
+    "b379ce_9c55ed32041b4dc2af864e665e013cac~mv2.jpg",
+    "Cremefärgad hopfällbar massagebänk med träställ och ansiktsstöd (2)"
+   ],
+   [
+    "b379ce_a138712a043949fd861f349aab0196b9~mv2.jpg",
+    "Faktakort: massagebänk i trä creme, liggyta, höjd och maxlast"
+   ],
+   [
+    "b379ce_8c3f287f5d984231b86d8612ef76ab93~mv2.jpg",
+    "Cremefärgad hopfällbar massagebänk med träställ och ansiktsstöd (3)"
+   ],
+   [
+    "b379ce_0dcc3a7889ab46d0979a63db76bc79e3~mv2.jpg",
+    "Cremefärgad hopfällbar massagebänk med träställ och ansiktsstöd (4)"
+   ],
+   [
+    "b379ce_ad7d190e966e4de3ac78705ea23f8050~mv2.jpg",
+    "Cremefärgad hopfällbar massagebänk med träställ och ansiktsstöd (5)"
+   ]
+  ],
+  "kat": [
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa",
+   "Massagebänkar"
+  ],
+  "sku": "FP-massagetisch-klappbare",
+  "variantId": "79ff03fe-9316-40ed-8953-cea4c898ef8f"
+ },
+ "754a4749": {
+  "pid": "754a4749-d67f-4d12-9cb6-0c9d849de350",
+  "rev": "6",
+  "upd": "2026-09-24T07:01:21.257Z",
+  "namn": "Massagebänk i trä, svart – bär 250 kg, bärväska ingår",
+  "slug": "massagebank-bok-svart-barvaska",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk i trä, svart – 250 kg, bärväska | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart hopfällbar massagebänk med träställ och bärväska i kartongen. Bädd 185 × 60 cm, höjd 67–92 cm, 4 cm skum och 250 kg maxlast."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "massagetisch klappbare massageliege höhenverstellbare",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_5ec8a61ab265423cb4e3c7c6f8e5e76c~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och ansiktsstöd (1)"
+   ],
+   [
+    "b379ce_0ea46aac556841fc9077e30aa677d6cf~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och ansiktsstöd (2)"
+   ],
+   [
+    "b379ce_ee93650d1c54453699fdbf6e8659da67~mv2.jpg",
+    "Faktakort: massagebänk i trä svart, liggyta, höjd och maxlast"
+   ],
+   [
+    "b379ce_116fb7c662e248d4a8fe545d347351ec~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och ansiktsstöd (3)"
+   ],
+   [
+    "b379ce_439d493dc9f24b368643d10fed8beac2~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och ansiktsstöd (4)"
+   ],
+   [
+    "b379ce_be999c7480224a46b446a8c3820ed996~mv2.jpg",
+    "Svart hopfällbar massagebänk med träställ och ansiktsstöd (5)"
+   ]
+  ],
+  "kat": [
+   "Massage & Återhämtning",
+   "Massagebänkar",
+   "Skönhet & Hälsa"
+  ],
+  "sku": "FP-massagetisch-klappbare",
+  "variantId": "7f29966b-9d3f-4420-bb0a-f360dff69aa7"
+ },
+ "ed7a86fd": {
+  "pid": "ed7a86fd-84d8-47f0-9d29-5fca2e6cd97d",
+  "rev": "7",
+  "upd": "2026-09-24T07:01:21.438Z",
+  "namn": "Massagebänk med armstöd och handbrädor – 70 cm bred, 130 kg",
+  "slug": "massagebank-armstod-handbrador",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagebänk med armstöd och handbrädor – 130 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Svart hopfällbar massagebänk i aluminium med armstöd, handbrädor och ansiktsöppning. Liggyta 185 × 70 cm, 9 cm dyna och 130 kg maxlast."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "massageliege klappbar inkl gesichtsöffnung",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_399ca9ceebb34a1fbab6aba0d831c439~mv2.jpg",
+    "Svart hopfällbar massagebänk i aluminium med armstöd och handbrädor (1)"
+   ],
+   [
+    "b379ce_6d0ded8ec104462e94e0e14b49287df0~mv2.jpg",
+    "Svart hopfällbar massagebänk i aluminium med armstöd och handbrädor (2)"
+   ],
+   [
+    "b379ce_a36ee9bf72a14edca1507896354dd4d3~mv2.jpg",
+    "Faktakort: massagebänk med armstöd, mått, höjdlägen och maxlast"
+   ],
+   [
+    "b379ce_68ebc5b55dfd4b688e20a879175b3f7b~mv2.jpg",
+    "Svart hopfällbar massagebänk i aluminium med armstöd och handbrädor (3)"
+   ],
+   [
+    "b379ce_374cf3975fe0434d9fe07921cde29b40~mv2.jpg",
+    "Svart hopfällbar massagebänk i aluminium med armstöd och handbrädor (4)"
+   ],
+   [
+    "b379ce_71026cc57f26421fbbe575b05b844de8~mv2.jpg",
+    "Svart hopfällbar massagebänk i aluminium med armstöd och handbrädor (5)"
+   ]
+  ],
+  "kat": [
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa",
+   "Massagebänkar"
+  ],
+  "sku": "FP-massageliege-klappbar",
+  "variantId": "bf037d47-4071-4a15-9cbc-5a3376b5bd67"
+ },
+ "cc3a3dc1": {
+  "pid": "cc3a3dc1-507b-4961-abeb-c47758662963",
+  "rev": "5",
+  "upd": "2026-09-23T22:41:30.782Z",
+  "namn": "Matstol i böjträ med armstöd – linnelook och 47 cm sitthöjd",
+  "slug": "matstol-i-bojtra-75-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Matstol i böjträ med armstöd | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Matstol med skal i böjt trä och klädsel i linnelook. Armstöd och rygg i ett svep, 47 cm sitthöjd, 6 cm stoppning och 120 kg maxlast."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "keywords",
+      "content": "matstol i böjträ, matstol med armstöd, matstol linnelook, designstol matbord"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "esszimmerstuhl stoff in leinenoptik",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_ca6c575e655448829411bda3855c3ffd~mv2.jpg",
+    "Matstol med skal i böjt trä och cremefärgad sits, mot vit bakgrund"
+   ],
+   [
+    "b379ce_84bb6ffa9a3245a684fcc97a99468b8d~mv2.jpg",
+    "Stolen vid ett matbord i mörkt trä"
+   ],
+   [
+    "b379ce_d945b658da7247b485ceea8eda53724d~mv2.jpg",
+    "Spec-kort för matstolen: 1 i förpackningen, sitthöjd 47 cm och 120 kg maxlast"
+   ],
+   [
+    "b379ce_36cafc11c2634f088418b5529dd5deb6~mv2.jpg",
+    "Stolen sedd snett framifrån vid ett bord"
+   ],
+   [
+    "b379ce_636741cfde3e45be92c0aaacd7d1dfc5~mv2.jpg",
+    "Hand som känner på det linneliknande tyget i ryggstödet"
+   ],
+   [
+    "b379ce_e64db280fd2c4b76957a13f429a4c2ec~mv2.jpg",
+    "Måttritning för stolen: 62 × 55 × 75 cm och sitthöjd 47 cm"
+   ]
+  ],
+  "kat": [
+   "Matbord & stolar",
+   "Hem & Inredning",
+   "Möbler"
+  ],
+  "sku": "FP-matstol-i-bojtra-75-cm",
+  "variantId": "d274cdb4-e41a-4863-a8dc-f67da4a70538"
+ },
+ "b2c76518": {
+  "pid": "b2c76518-ea78-4d02-9951-d663a8a20558",
+  "rev": "6",
+  "upd": "2026-09-21T03:24:22.812Z",
+  "namn": "Minifrys 35 liter – 47 × 44,2 × 48,8 cm, svart, vändbar dörr",
+  "slug": "minifrys-35-liter-svart",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Minifrys 35 liter, svart | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Minifrys 35 liter i svart med vändbar dörr, −14 till −24 °C och 5-stegs termostat. 47 × 44,2 × 48,8 cm. Energiklass E (A–G)."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "mini-gefrierschrank 35 l gefrierbox",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_388edd9604864bcba20715861e9238f9~mv2.jpg",
+    "Helsvart minifrys med greppkant längs hela överkanten"
+   ],
+   [
+    "b379ce_0e5c796a260d4121b93487b082cc9226~mv2.jpg",
+    "Svart minifrys som står på golvet bredvid en fåtölj vid ett fönster"
+   ],
+   [
+    "b379ce_c39e04115837423886fb9bd0680f1149~mv2.jpg",
+    "Faktakort för minifrys i svart med mått, volym och energiklass"
+   ],
+   [
+    "b379ce_3c8d3dd08c524e77af16b2520e53d2ff~mv2.jpg",
+    "Måttritning av minifrysen med höjd, bredd och djup utsatta"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Kök & Husgeråd"
+  ],
+  "sku": "FP-minifrys-35-svart",
+  "variantId": "0424d814-c01a-4e4e-af86-18218a53f9f0"
+ },
+ "1d3f6755": {
+  "pid": "1d3f6755-a7bf-4ce4-812f-9ab2cffe512d",
+  "rev": "8",
+  "upd": "2026-09-23T22:41:33.524Z",
+  "namn": "Mjuka byggklossar för barn, 5 delar, blå/grön/grå",
+  "slug": "mjuka-byggklossar-barn-5-delar-bla-gron-gra",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Klätterklossar barn – mjuka byggklossar, 5 delar | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Fem mjuka skumklossar i blått, grönt och grått för klättring och lek, 1–3 år. Kub, block, cylinder, halvcylinder och ramp – klara att använda direkt."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_b15b07b873cc401eab66da9b237aa9e3~mv2.jpg",
+    "Fem mjuka byggklossar i blått, grönt och grått, mot vit bakgrund"
+   ],
+   [
+    "b379ce_83a852b1a4a14a2d93239cc2f717fa96~mv2.jpg",
+    "Ett barn kliver på klossarnas ramp och kub i ett lekrum"
+   ],
+   [
+    "b379ce_0c02348e8feb458893121a40cc39120d~mv2.jpg",
+    "Två barn bygger ett torn av grå block, en blå kub och den gröna rampen"
+   ],
+   [
+    "b379ce_134af823bfaf4f81b78e5c81434ab3aa~mv2.jpg",
+    "Klossarna uppställda på en rund matta i ett barnrum med ett tält i bakgrunden"
+   ],
+   [
+    "b379ce_431f4f89f1574a9aa57f66f16893cd0c~mv2.jpg",
+    "Måttskiss på klossarnas fem former med cm-mått"
+   ],
+   [
+    "b379ce_96ff75317f3847b8840443c0f03a89ff~mv2.png",
+    "Faktakort: 40,6 × 40,6 × 20,3 cm, blå/grön/grå, konstläder och EPE-skum"
+   ]
+  ],
+  "kat": [
+   "Leksaker & Spel"
+  ],
+  "sku": "FP-byggklossar-bla-gron-gra",
+  "variantId": "75f2e0f4-ff70-4741-868c-8c11bce3b854"
+ },
+ "19f7c013": {
+  "pid": "19f7c013-3365-4f5a-877c-6c5babf03b44",
+  "rev": "7",
+  "upd": "2026-09-18T20:56:58.843Z",
+  "namn": "Mjuka byggklossar för barn, 5 delar, flerfärgad",
+  "slug": "mjuka-byggklossar-barn-5-delar",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Mjuka byggklossar för barn, 5 delar | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Mjuka skumklossar i fem former för lek och klättring, 12–36 månader. Kub, block, cylinder, tunnel och ramp i glada färger."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_3b9d5c46d0e1425d9ba4c4f58ac1f0c2~mv2.jpg",
+    "Fem mjuka byggklossar i rött, gult, blått och grönt, mot vit bakgrund"
+   ],
+   [
+    "b379ce_a9ecd2e988a0458692eaedfed4069276~mv2.jpg",
+    "Två barn leker med byggklossarna i ett vardagsrum"
+   ],
+   [
+    "b379ce_dadc008583504028a03af410595ce332~mv2.jpg",
+    "Byggklossarna uppställda som en klätterbana i ett barnrum"
+   ],
+   [
+    "b379ce_d05a9ae114294c5a83e27e16733f7222~mv2.jpg",
+    "Närbild på klossarna staplade ovanpå varandra"
+   ],
+   [
+    "b379ce_aa172118bd474b2db35eb058c5e33d39~mv2.jpg",
+    "Måttskiss på klossarnas fem former med cm-mått"
+   ],
+   [
+    "b379ce_2c3a7a0b2d414ca29b733b22f8f8ea23~mv2.png",
+    "Faktakort: 40,6 × 40,6 × 20,3 cm, konstläder och EPE-skum, 5 kg"
+   ]
+  ],
+  "kat": [
+   "Leksaker & Spel"
+  ],
+  "sku": "FP-byggklossar-barn-5delar",
+  "variantId": "0ab4fbf3-52ee-4a2a-923e-8680692384b0"
+ },
+ "3d0f6711": {
+  "pid": "3d0f6711-35e8-4043-bbec-691e95f05c03",
+  "rev": "25",
+  "upd": "2026-09-24T11:34:03.648Z",
+  "namn": "Odlingslåda i metall 241 × 90,5 cm – två storlekar i samma paket",
+  "slug": "odlingslada-metall-241x90",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Odlingslåda i metall 241 × 90,5 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Odlingslåda i metall 241 × 90,5 cm | Fyndplats",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Odlingslåda i galvaniserat stål som byggs som 241 × 90,5 cm eller 126 × 90,5 cm av samma delar. Öppen botten och 30 cm djup. Skickas från EU-lager."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Odlingslåda i galvaniserat stål som byggs som 241 × 90,5 cm eller 126 × 90,5 cm av samma delar. Öppen botten och 30 cm djup. Skickas från EU-lager.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "odlingslåda 241 cm",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_9d820a311bd544038dfef5b8ea4d360b~mv2.jpg",
+    "Stor odlingslåda i galvaniserat stål med blommor"
+   ],
+   [
+    "b379ce_7e322a694a034a5683e8e38a3a51ed74~mv2.jpg",
+    "Odlingslådan i en trädgård med grönsaker och ett växthus bakom"
+   ],
+   [
+    "b379ce_8e89276b6846499399681371b271f435~mv2.png",
+    "Två storlekar: 241 × 90,5 cm eller 126 × 90,5 cm, 30 cm djup, öppen botten"
+   ],
+   [
+    "b379ce_8f094f01fc014d11a7336cd39bf5a7b5~mv2.jpg",
+    "Mått: 241 cm lång, 90,5 cm bred och 30 cm hög"
+   ],
+   [
+    "b379ce_e144444d2c2140ffae548a089357e21d~mv2.jpg",
+    "Odlingslådan full med rosa blommor vid en husvägg"
+   ]
+  ],
+  "kat": [
+   "Växthus & Odling",
+   "Odlingslådor",
+   "Trädgård & Utemöbler"
+  ],
+  "sku": "FP-odlingslada-241x90",
+  "variantId": "b958a456-e606-416c-87d5-eaa3477530e3"
+ },
+ "f02917da": {
+  "pid": "f02917da-60be-462c-8a30-07cc6edb5137",
+  "rev": "6",
+  "upd": "2026-09-22T19:51:02.311Z",
+  "namn": "Plancha gasol med lock, 3 brännare och 63 × 37,5 cm stekyta",
+  "slug": "plancha-gasol-med-lock",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Plancha gasol med lock, 3 brännare | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Plancha gasol med lock och tre brännare på 2,5 kW. Stekyta 63 × 37,5 cm, utdragbar fettlåda och justerbara fötter. Regulator och slang ingår."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "plancha gasol med lock",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "stekhäll gasol med lock",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "gasolplancha",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_cab8f173a187424a89f5edb429d1a4fc~mv2.jpg",
+    "Plancha gasol med locket uppfällt, tre brännare och antihäftbelagd stekhäll"
+   ],
+   [
+    "b379ce_9cd303431df94520b56f8cd75f23bee1~mv2.jpg",
+    "Plancha gasol med lock i bruk utomhus med mat på hällen"
+   ],
+   [
+    "b379ce_bedbfc5a855544bb879060d0c2a7d86a~mv2.jpg",
+    "Spec-kort: stekyta 63 × 37,5 cm, tre brännare på 2,5 kW och lock med handtag"
+   ],
+   [
+    "b379ce_bd9771e1d8c44b62ab902688f4d6a297~mv2.jpg",
+    "Kort med tre detaljer: utdragbar fettlåda, justerbara fötter och regulatorn märkt 50 mbar"
+   ],
+   [
+    "b379ce_612ce29e31e941238dee28526324a2f8~mv2.jpg",
+    "Närbild på lockets handtag i rostfritt stål"
+   ],
+   [
+    "b379ce_9bb6dfde946e43dc89c916879139c621~mv2.jpg",
+    "Måttritning: plancha med locket nedfällt, 63 × 47 × 25 cm"
+   ]
+  ],
+  "kat": [
+   "Trädgård & Utemöbler",
+   "Grill & Utekök"
+  ],
+  "sku": "FP-plancha-gasol-med-lock",
+  "variantId": "4e330c39-6f6a-473c-bd54-82a3bff0da27"
+ },
+ "4fb24b6f": {
+  "pid": "4fb24b6f-2475-4a35-b2b5-b3521e5e12fc",
+  "rev": "20",
+  "upd": "2026-09-13T17:26:22.277Z",
+  "namn": "Pop-up fotbollsmål 150 × 110 cm med bärväska",
+  "slug": "popup-fotbollsmal-150-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Pop-up fotbollsmål 150 × 110 cm med bärväska | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Hopfällbart pop-up-mål 150 × 110 × 110 cm med glasfiberspröjs, polyesternät och 4 markpinnar. Vecklas ut på sekunder. Skickas från EU-lager."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Pop-up fotbollsmål 150 × 110 cm med bärväska",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Hopfällbart pop-up-mål 150 × 110 × 110 cm med glasfiberspröjs, polyesternät och 4 markpinnar. Vecklas ut på sekunder. Skickas från EU-lager.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "pop-up fotbollsmål",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_9c71c437615f42a2ba9d4f02840e03f9~mv2.jpg",
+    "Gult pop-up fotbollsmål med bärväska och fyra markpinnar på vit bakgrund"
+   ],
+   [
+    "b379ce_ac76660ea7664b94bfda68a4e68b554c~mv2.jpg",
+    "Spelare skjuter mot pop-up-målet på en gräsyta i en park"
+   ],
+   [
+    "b379ce_cd861f003cd4417faf7f1bb0e9f1d93d~mv2.jpg",
+    "Måttskiss: 150 cm brett, 110 cm djupt och 110 cm högt"
+   ],
+   [
+    "b379ce_fe5531e2aa39449fa722e035473abf61~mv2.png",
+    "Instruktionsbild i tre steg som visar hur målet vecklas ut ur väskan"
+   ],
+   [
+    "b379ce_7f38a83e722545128463da591edd282d~mv2.png",
+    "Närbild på U-formad markpinne som håller ner målets bottenrör i gräset"
+   ],
+   [
+    "b379ce_afc79183976a4761a6dccd3b68219bd0~mv2.jpg",
+    "Två personer bär det hopfällda målet i bärväskan över en fotbollsplan"
+   ],
+   [
+    "b379ce_d7b27f586c264a78bc1aa69942349d04~mv2.png",
+    "Specifikationstabell för pop-up-målet: mått, nät, väska och material"
+   ]
+  ],
+  "kat": [
+   "Sport & Fritid"
+  ],
+  "sku": "FP-foldable-pop-up-soccer",
+  "variantId": "d3dc1562-e85d-4f2a-ac9a-27a0202d4cbf"
+ },
+ "83fd57c9": {
+  "pid": "83fd57c9-0f85-45c7-8bad-89ae10250aa3",
+  "rev": "7",
+  "upd": "2026-09-23T22:41:28.356Z",
+  "namn": "Ritstol 95–115 cm med armstöd – sitthöjd 52–72 cm och fotring",
+  "slug": "ritstol-95-115-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Ritstol 95–115 cm med armstöd | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Ritstol som är 95–115 cm hög med armstöd 19 cm över sitsen. Sitthöjd 52–72 cm, fotring Ø45 cm, nätrygg, 120 kg. Fri frakt över 499 kr."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "zeichenstuhl schreibtischstuhl computerstuhl inkl",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_1711f6191b4a44a1b10c6be4f2751902~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv, sedd snett framifrån mot vit bakgrund"
+   ],
+   [
+    "b379ce_984d0b808da24c969e677a7bdaebec64~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv, vid ett vitt skrivbord med hyllor bakom"
+   ],
+   [
+    "b379ce_c60fa00a76914c3693fbcc6c7528ebe7~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv – Faktakort med mått, sits, sitthöjd, ryggstöd, armstöd och maxlast"
+   ],
+   [
+    "b379ce_c7486676fe3b43fda72f9d1e0f66716d~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv, närbild på nätvävens struktur i ryggen"
+   ],
+   [
+    "b379ce_31ebb4da3cf44a82bac8499d36da1568~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv, närbild på sitsens framkant och fotringen underifrån"
+   ],
+   [
+    "b379ce_8839d73b08314033ab49351f8f102e80~mv2.jpg",
+    "Ritstol med armstöd i svart nätväv, måttskiss med mått i centimeter, framifrån och från sidan"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-ritstol-95-115-cm",
+  "variantId": "d7c3d4ef-3ccc-419b-94eb-460d728d538b"
+ },
+ "f1f861ea": {
+  "pid": "f1f861ea-c24c-4b50-bf97-ef49ce1b8c8e",
+  "rev": "7",
+  "upd": "2026-09-23T22:41:19.594Z",
+  "namn": "Ritstol med sitthöjd upp till 87 cm – för höga bänkar och ståbord",
+  "slug": "ritstol-sitthojd-87-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Ritstol med sitthöjd upp till 87 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Ritstol med sitthöjd 65,5–87 cm, rundans högsta. För höga arbetsbänkar och ståbord. Armstöd, fotring, nätrygg, 120 kg. Fri frakt över 499 kr."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "zeichenstuhl mit fußstütze",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_d3641b17cfc14b5281d1ab5ff275287c~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv, sedd snett framifrån mot vit bakgrund"
+   ],
+   [
+    "b379ce_c7068530ed974121aff23d4fb2ab48b9~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv, vid ett skrivbord med krukväxt och skärm"
+   ],
+   [
+    "b379ce_9f35c19e605c4dffbf15f3f44aaed8b0~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv – Faktakort med mått, sits, sitthöjd, ryggstöd, fotring och maxlast"
+   ],
+   [
+    "b379ce_8d1c1585e4ba4eeaa8e199838cd282cc~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv, närbild på nätvävens struktur i ryggen"
+   ],
+   [
+    "b379ce_eac1e90c0fdf4e54aed3876dcb14b149~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv, närbild på ryggens nedre del och sitsens kant"
+   ],
+   [
+    "b379ce_c7edbca5cfdb4fd2b16313008723ed88~mv2.jpg",
+    "Ritstol för höga arbetsbänkar i svart nätväv, måttskiss med mått i centimeter, framifrån och från sidan"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Hem & Inredning",
+   "Kontorsstolar"
+  ],
+  "sku": "FP-ritstol-sitthojd-87-cm",
+  "variantId": "2787955f-2ba7-4f08-9f11-ec18e3215c84"
+ },
+ "3033003c": {
+  "pid": "3033003c-3570-4017-b214-de89c63f596c",
+  "rev": "8",
+  "upd": "2026-09-23T22:41:25.976Z",
+  "namn": "Ritstol med svankstöd – 53 cm bred sits och uppfällbara armstöd",
+  "slug": "ritstol-med-svankstod",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Ritstol med svankstöd och 53 cm sits | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Ritstol med separat svankstöd på 40 × 37 cm och rundans bredaste sits, 53 cm. Sitthöjd 52–72 cm, fotring Ø45 cm. Fri frakt över 499 kr."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "zeichenstuhl höhenverstellbarer bürostuhl mit",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_3985f4be15f649808689ae678b2d04c9~mv2.jpg",
+    "Ritstol med svankstöd i svart nätväv, sedd snett framifrån mot vit bakgrund"
+   ],
+   [
+    "b379ce_20f8640d22cd40fd8dc436d20a2fad93~mv2.jpg",
+    "Ritstol med svankstöd i svart nätväv, vid ett skrivbord med skärm och bokhylla"
+   ],
+   [
+    "b379ce_492686e21cfa4d14b35ae3d4ebdf9191~mv2.jpg",
+    "Ritstol med svankstöd i svart nätväv – Faktakort med mått, sits, sitthöjd, svankstöd, armstöd och maxlast"
+   ],
+   [
+    "b379ce_2f87565a22934cbabc36daf5325d82a4~mv2.jpg",
+    "Ritstol med svankstöd i svart nätväv, måttskiss med mått i centimeter, framifrån och från sidan"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-ritstol-svankstod",
+  "variantId": "abee549a-914b-4b5e-b57c-6a2c2c372717"
+ },
+ "795c5ee2": {
+  "pid": "795c5ee2-1262-42f5-b994-4ba2047b8b74",
+  "rev": "8",
+  "upd": "2026-09-23T22:41:25.303Z",
+  "namn": "Ritstol utan armstöd – 50–70 cm sitthöjd och fotring Ø45 cm",
+  "slug": "ritstol-utan-armstod",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Ritstol utan armstöd – sitthöjd 50–70 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Ritstol utan armstöd som går ända in under bordsskivan. Sitthöjd 50–70 cm, fotring Ø45 cm, nätrygg, 120 kg. Fri frakt över 499 kr."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "zeichenstuhl inkl fußstütze höhenverstellbarer",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_56130982f1804694913e381b7e16fd6d~mv2.jpg",
+    "Ritstol utan armstöd i svart nätväv, sedd snett framifrån mot vit bakgrund"
+   ],
+   [
+    "b379ce_509c5cab21de438ea32cb910ed3410d9~mv2.jpg",
+    "Ritstol utan armstöd i svart nätväv, vid ett vitt skrivbord i ett ljust rum"
+   ],
+   [
+    "b379ce_93c33c7112f34a76a67bfb44b2ffe6d5~mv2.jpg",
+    "Ritstol utan armstöd i svart nätväv – Faktakort med mått, sits, sitthöjd, ryggstöd, fotring och maxlast"
+   ],
+   [
+    "b379ce_8f3f1622bb2941b7ad5ba3e69dae02b7~mv2.jpg",
+    "Ritstol utan armstöd i svart nätväv, närbild på nätryggen och sitsen bakifrån"
+   ],
+   [
+    "b379ce_60330bec23ef4808bc9256a6b428fe2d~mv2.jpg",
+    "Ritstol utan armstöd i svart nätväv, måttskiss med mått i centimeter, framifrån och från sidan"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-ritstol-utan-armstod",
+  "variantId": "d8c0bc3f-9c16-4be9-8619-66dd062c23d7"
+ },
+ "b250bfcf": {
+  "pid": "b250bfcf-dd33-4d92-8a3b-0b53569cc938",
+  "rev": "20",
+  "upd": "2026-09-24T11:34:02.968Z",
+  "namn": "Rullvagn bambu 3 hyllplan – smal förvaringsvagn 55x20x75 cm med hjul",
+  "slug": "rullvagn-bambu-3-hyllplan",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Rullvagn bambu – 3 hyllplan, 55x20x75 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Smal rullvagn i bambu med 3 luftiga hyllplan och 4 hjul (2 med broms). 55x20x75 cm – perfekt för badrum och kök. Klarar 12 kg. Skickas från EU-lager."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "rullvagn bambu",
+      "isMain": true,
+      "origin": "USER"
+     },
+     {
+      "term": "badrumsvagn",
+      "isMain": false,
+      "origin": "USER"
+     },
+     {
+      "term": "rullbord bambu",
+      "isMain": false,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_02faed1f07744d7f97a742b388a330f5~mv2.jpg",
+    "Rullvagn bambu med 3 spjälade hyllplan och svängbara hjul – smal förvaringsvagn mot vit studiobakgrund"
+   ],
+   [
+    "b379ce_efaeae91449945c29e94323e4db53bfc~mv2.jpg",
+    "Rullvagn i bambu som allrumsvagn i vardagsrummet – naturfärgad vagn på hjul med dekor på hyllplanen"
+   ],
+   [
+    "b379ce_c689acd325b24e7c97c0d67605eff977~mv2.jpg",
+    "Måttskiss för rullvagn i bambu – 55 cm bred, 20 cm djup, 75 cm hög, hyllplan 48 x 17,5 cm"
+   ],
+   [
+    "b379ce_849acacb9ff04db7b8fc449236b825c9~mv2.jpeg",
+    "Rullvagn bambu med tre hyllplan fyllda med krukväxter – rymlig förvaring i naturlig bambu"
+   ],
+   [
+    "b379ce_9efe70ca9953461cac4c8a9fbf26ae91~mv2.jpeg",
+    "Närbild på rullvagnens spjälade hyllplan i bambu – god ventilation som motverkar mögel"
+   ],
+   [
+    "b379ce_a8bd85b900d04c4c8c37ae632ccc694e~mv2.jpeg",
+    "Fyra svängbara hjul varav två med broms – rullvagnen i bambu är lätt att flytta och låsa"
+   ],
+   [
+    "b379ce_d2721bd99ee84b6193f661338aa538a5~mv2.jpeg",
+    "Fyndplats produktkort: rullvagn i bambu med 3 hyllplan, 55 x 20 x 75 cm, klarar 12 kg, 4 hjul varav 2 med broms"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Serveringsvagnar & rullvagnar"
+  ],
+  "sku": "FP-rullvagn-bambu-3",
+  "variantId": "62a72d53-3262-49e6-b56c-bc96971abdce"
+ }
+}

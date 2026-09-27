@@ -37,6 +37,7 @@ function deps(produkter: TextProdukt[], over: Partial<TextRepairDeps> = {}): Tex
     hamtaProdukt:
       over.hamtaProdukt
       ?? (async (id) => ({ revision: "4", name: "x", plainDescription: lager.get(id) ?? "" })),
+    laddaFraktvikter: over.laddaFraktvikter,
     nu: over.nu ?? (() => 0),
   };
 }
@@ -191,5 +192,73 @@ describe("runTextRepair", () => {
   it("stada är idempotent", () => {
     const smutsig = `<p><a href="https:/produkt/x">x</a></p>${SMUTSIG}`;
     expect(stada(stada(smutsig))).toBe(stada(smutsig));
+  });
+
+  // Tredje saxen: fraktvikten som "Vikt".
+  const VIKT = "<h2>Tekniska specifikationer</h2><ul><li><p>Färg: vit</p></li>"
+    + "<li><p><span style=\"font-weight: 700\">Vikt:</span> 13,2 kg</p></li></ul>";
+  const FRAKTVIKT = VIKT.replace(">Vikt:", ">Fraktvikt:");
+
+  it("byter Vikt mot Fraktvikt när talet är feedens fraktvikt", async () => {
+    const d = deps([prod({ plainDescription: VIKT })], {
+      laddaFraktvikter: async () => new Map([["p1", 13.2]]),
+    });
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.medFraktvikt).toBe(1);
+    expect(s.lagade).toBe(1);
+    expect(d.skrivna).toEqual([{ id: "p1", html: FRAKTVIKT }]);
+    expect(s.plan[0].fraktviktsrader).toHaveLength(1);
+  });
+
+  it("rör inte Vikt-raden utan fraktvikter", async () => {
+    const d = deps([prod({ plainDescription: VIKT })]);
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.traffar).toBe(0);
+    expect(d.skrivna).toEqual([]);
+  });
+
+  // ☠️ En feed som inte går att läsa får inte se ut som "inget att rätta" —
+  // men den får inte heller stoppa de två andra saxarna.
+  it("rapporterar en feed som inte gick att läsa och kör de andra saxarna ändå", async () => {
+    const d = deps([prod()], {
+      laddaFraktvikter: async () => {
+        throw new Error("Aosom-feeden svarade 503");
+      },
+    });
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.fraktviktFel).toContain("503");
+    expect(s.medKod).toBe(1);
+    expect(s.lagade).toBe(1);
+  });
+
+  it("räknar INTE en fraktviktsrättelse som inte tog", async () => {
+    const d = deps([prod({ plainDescription: VIKT })], {
+      laddaFraktvikter: async () => new Map([["p1", 13.2]]),
+      skrivBeskrivning: async () => ({ revision: "4" }),
+      hamtaProdukt: async () => ({ revision: "3", name: "x", plainDescription: VIKT }),
+    });
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.lagade).toBe(0);
+    expect(s.misslyckade).toBe(1);
+    expect(s.fel[0]).toContain("fraktvikten står kvar");
+  });
+
+  it("massfel-taket bromsar INTE en utbredd fraktviktsrättelse", async () => {
+    const manga = Array.from({ length: 60 }, (_, i) => prod({ id: `p${i}`, slug: `s${i}`, plainDescription: VIKT }));
+    const d = deps(manga, { laddaFraktvikter: async () => new Map(manga.map((p) => [p.id, 13.2])) });
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.medFraktvikt).toBe(60);
+    expect(s.lagade).toBe(60);
+  });
+
+  it("rapporterar vikten i löptexten men skriver inte om den", async () => {
+    const html = `<p>Skåpet väger 13,2 kg.</p>${FRAKTVIKT}`;
+    const d = deps([prod({ plainDescription: html })], {
+      laddaFraktvikter: async () => new Map([["p1", 13.2]]),
+    });
+    const s = await runTextRepair(d, { dryRun: false });
+    expect(s.viktILoptext).toEqual(["skoskap-4-speglade-luckor-17-cm"]);
+    expect(s.traffar).toBe(0);
+    expect(d.skrivna).toEqual([]);
   });
 });

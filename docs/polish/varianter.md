@@ -1,9 +1,18 @@
 # Varianter – mekanik
 
-> **Reglerna** för varianter står i [`seo-polish-runbook.md`](../seo-polish-runbook.md)
-> Steg 6 och 11: vilka varianter som ska bort, att varje variant som ser olika ut
-> behöver en egen bild, att uttags-/spänningsaxeln bara får ha EU-värdet, och att
-> variantetiketten aldrig bär en obekräftad prestandasiffra.
+> **Gäller produkter med flera varianter, i praktiken AliExpress-sidor.** AliExpress
+> importeras inte längre (2026-09-27), och [`seo-polish-runbook.md`](../seo-polish-runbook.md)
+> täcker bara Aosom-utkast, som har en enda variant. Därför står reglerna här:
+>
+> - Ta bort varianter som inte finns eller är slutsålda, både valet och dess bilder.
+> - Uttags- och spänningsaxeln får bara ha EU-värdet.
+> - Varje variant som ser olika ut har en egen bild.
+> - Variantetiketten bär aldrig en obekräftad prestandasiffra.
+> - Den billigaste varianten ligger först i valen *(Leonard 2026-08-26)*.
+> - En PATCH av `media.itemsInfo` nollställer `linkedMedia` på alla val, så
+>   `options` och `variantsInfo` skickas med i samma PATCH.
+>
+> Stegnummer längre ned (Steg 4, 8, 9, 11B, 11C) syftar på runbookens äldre version.
 >
 > Den här filen är **hur** man genomför det i Wix V3 — PATCH-kroppar, låsningar och
 > följdsteg som inte sker av sig själva.

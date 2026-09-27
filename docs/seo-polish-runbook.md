@@ -585,9 +585,15 @@ inte veta, o andra saker som man måste veta kan stå med på ett snyggt sätt."
 - En rättslig upplysning (djurbostäder, hundburar) står kvar, med samma ordalydelse på
   varje sida i gruppen.
 - Skriv aldrig *rundan*, *omgången* eller *batchen*. Det är våra arbetsord, och `gate.py`
-  fäller dem. En jämförelse med våra andra varor kräver en mätning av hela katalogen, och en
-  jämförelse med en annan varugrupp ("samma volym som en inbyggnadsugn") skriver du som måttet
-  i stället.
+  fäller dem. En jämförelse med en annan varugrupp ("samma volym som en inbyggnadsugn")
+  skriver du som måttet i stället.
+- **Jämför inte produkten med andra varor i vårt sortiment**, inte ens med en mätning bakom.
+  Det gäller rankningar ("den enda i sammet", "fem av våra sex"), jämförelser ("högre än de
+  övriga modellerna", "mer än dubbelt så mycket som vår sammetspall") och rangord i en
+  länktext ("– störst"). Påståendet handlar om andra produkter och blir fel när sortimentet
+  ändras. `gate-superlativ.py` ser bara ett superlativ och ett omfång i samma mening, och
+  städrundan 2026-09-27 hittade 63 sidor där det gick förbi. En korshänvisning som inte
+  rankar står kvar: "Vill du ha massage finns …" med länk.
 - Syskonsidor får egna rubriker med det tal som skiljer dem åt. En sida får inte läsas som
   en kopia av syskonets.
 
@@ -955,6 +961,14 @@ som ser friskt ut men har fel innehåll, inte ett felmeddelande.
   fraktvikten, och listar meningarna i löptexten som måste skrivas om för hand.
 - **Info-sektioner:** skapa ingen per produkt, eftersom taket är 400. Innehållet står i
   beskrivningen.
+- **Städrunda på publicerade sidor** (`tools/polish-assets/runda-stadning-*`, 2026-09-27):
+  högst 20 sidor per runda, och `fore/` är ögonblicksbilden som rättelserna görs mot.
+  `python3 ../../polish-gates/diffgrind.py` kör grindkedjan på `fore/` och på filerna och
+  fäller bara på nya fynd och på fynd i målklasserna. Äldre avvikelser som flikrubriker eller
+  fraktvikt stoppar alltså inte en städning som inte rör dem, och `grind-undantag.txt` räknar
+  upp dem. Två slags sidor går inte att skriva med workflowen: produkter med flera varianter,
+  och sidor vars oförändrade slug fälls av skrivplanens formkontroll (`212-manchester`,
+  `med-100`). Båda kräver en ändring i `lib/polish/skrivplan.ts`.
 - **Katalogsvep** (tomma alt-texter, löv utan förälder, leverantörskoder i publicerad text)
   är återkommande underhåll och ingår inte i rundan. Leverantörskoder städas med workflowen
   **"SEO — städa publicerad produkttext"**.

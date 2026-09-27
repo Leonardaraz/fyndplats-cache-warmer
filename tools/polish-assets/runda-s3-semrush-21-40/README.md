@@ -215,6 +215,24 @@ Lagat på den här grenen, och det är numret som inte behöver passera alls:
 Marginalgolvet (5 %) och flervariantsspärren gäller som vanligt — planen säger
 om bytet går.
 
+### ✅ Ommappningen är utförd, och synken har räknat om priserna (2026-09-25)
+
+Båda sidorna pekades om till Aosom 2026-09-24, efter att #642 mergats, med
+`sku` tomt. Lagret kom med synken samma dag: fyrfatet 178 vid 12:20-synken och
+motionscykeln 68 vid en lagerkörning för hand 12:56 UTC. De sextimmarsvisa
+körningarna rör inte priset, så det räknades om först av prisdelen 03:20 UTC
+nästa natt, enligt husets regel.
+
+| sida | pris före | pris efter | lager |
+|---|--:|--:|--:|
+| fyrfatet `032669e3` | 1 099 kr | **1 059 kr** | 178 |
+| liggande motionscykeln `202385ce` | 3 369 kr | **2 379 kr** | 68 |
+
+Talen är exakt de väntade. De är lästa i Wix (`actualPriceRange`, ändrade
+03:22 UTC) och på produktsidorna i produktion (JSON-LD `offers`, `InStock`).
+Motionscykeln blev 990 kr billigare: sidan var prissatt på AliExpress-kostnaden,
+och Aosoms kostnad är lägre. Ändringen ligger under synkens tak på 40 %.
+
 ⚠️ På vägen: `jq-syntax.test.ts` var **röd på main** för
 `aosom-reviews-ingest.yml` (`--argjson` efter programmet; jq tar båda
 ordningarna, testet läser bara den första). Argumenten flyttade, beteendet

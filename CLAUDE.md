@@ -32,6 +32,11 @@ betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
 det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
 OCH snabbare för kunden.
 
+⚠️ **Det gäller butikens egna byggen** (grenen `headless-site`). En merge till `main` i
+det här repot bygger bara motorn: `vercel.json` avbryter butiksprojektets bygge, och
+butikens cache ligger kvar. Mätt 2026-09-27: butikssidor renderade 15:02 UTC hade
+fortfarande sin cache 15:24, efter motorns produktionsbygge 15:08.
+
 ### Särskilt för import- och poleringspass
 
 Ett pass som rör dussintals produkter ska bli **EN PR, mergad sällan** — inte
@@ -175,9 +180,9 @@ onödan.
 
 ✅ **Vad det betyder för poleringen: en runda kostar noll byggen.** Allt en
 poleringsrunda skriver till grenen ligger i `docs/` och `tools/polish-assets/`.
-Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger, och de
-tömmer butikens ISR-cache), men pushar till poleringsgrenen behöver inte längre
-sparas ihop.
+Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger motorn, men
+butikens ISR-cache rör de inte, se ovan), men pushar till poleringsgrenen behöver
+inte längre sparas ihop.
 
 ### ☠️ Filtret FÖRGIFTAR SIG SJÄLVT — och slutade fungera efter sju hoppade byggen (2026-09-05)
 
@@ -283,6 +288,26 @@ priset för att inte fördjupa klonen (`--deepen` sprängde 256-teckengränsen),
 det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skriv
 inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
 göra exakt rätt och ändå bygga.
+
+### ☠️ En merge gav inget bygge — GitHub skickade ingen push-händelse (2026-09-25)
+
+Butiks-PR #647 mergades 01:29:32 UTC via API:t, och refen `headless-site`
+flyttades till merge-commiten. GitHubs händelselogg fick `PullRequestEvent
+merged` och en `DeleteEvent` för grenen, men ingen `PushEvent`, och Vercel
+skapade ingen deployment i något av de två projekten på elva minuter. Både
+GitHub och Vercel rapporterade full drift. #652:s merge en halvtimme tidigare
+fick sin push-händelse efter en sekund.
+
+En merge utan bygge ser ut som en lyckad: PR:en är mergad, grenen raderad och
+produktionen svarar 200. Den kör bara den gamla koden.
+
+**Kontrollera efter varje merge att merge-commiten fått ett bygge**
+(`list_deployments` med `sha`, eller commit-statusen på merge-commiten). Saknas
+det efter några minuter: starta det via Vercels API, `create_deployment` med
+`gitSource` (org, repo, ref och sha) och `target: production`, mot exakt
+merge-commiten. Det är samma bygge som mergen skulle ha gett. Håll sedan utkik
+efter en dubblett från en sen webhook, och avbryt den medan den bygger. För
+#647 kom ingen.
 
 ### Undantaget
 
@@ -873,7 +898,7 @@ ha ett pris som satts av något annat än kostnaden.
 
 Fallet som byggde låset: kontorsstolen `f13cd415` såldes som AliExpress-vara på
 **1 299 kr**. Leonards regel 2026-09-05 (*"alla ska peka om mot Aosom DE oavsett
-om de är billigare eller inte"*) mappade om den till `‹REDIGERAT›`, och därmed
+om de är billigare eller inte"*) mappade om den till sitt Aosom-artikelnummer, och därmed
 gäller Aosom-regeln på raden: nästa synk hade skrivit **1 099 kr**. Sänkningen
 kom av att vi bytte LEVERANTÖR, inte av att marknaden rört sig — och kunderna
 betalar redan 1 299.
@@ -960,7 +985,7 @@ Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` ha
 Orsaken är en förväxling av två helt olika nycklar som båda heter `sku`:
 
 ```ts
-.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "‹REDIGERAT›"
+.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "DDD-DDDLDDLL"
 setStock: async (wixProductId, _sku, antal) => { … }        // IGNORERAR den → fungerade
 setPrice: async (wixProductId, sku, …) => updateV3VariantPrices(…, [{ sku }])  // fel nyckel
 ```
@@ -1225,7 +1250,7 @@ handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
 hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
-via `aliexpress.ds.order.create`. En Aosom-mappning bär "‹REDIGERAT›" i exakt
+via `aliexpress.ds.order.create`. En Aosom-mappning bär ett artikelnummer i formen "DDD-DDDLL" i exakt
 samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
 uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
 Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
@@ -1295,7 +1320,7 @@ letat efter, och den ligger i AliExpress egen produktbeskrivning:
 ● material: pu (60% polyurethane, 40% base fabric), foam, mdf, metal
 ● total measurements: 41x47x92 cm (wxdxh)
 ● maximum load: 130 kg
-● reference: ‹REDIGERAT›          ← Aosoms artikelnummer
+● reference: ‹artikelnumret›          ← Aosoms artikelnummer
 ```
 
 Uppmätt på `1005012777765014` (`ae_item_base_info_dto.detail`, via
@@ -1317,9 +1342,9 @@ dealproffsen.se publicerar som `sku`/`mpn` — se poleringsavsnittet. Det hör
 hemma på `supplierProductId` och ingen annanstans.
 
 ⚠️ **Och en träff i beskrivningen är inte en träff i feeden.** Barstolen
-`‹REDIGERAT›` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
+finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
 har **noll träffar i B2B-feedens 6 067 rader** — varken den färgen eller någon
-annan `‹REDIGERAT›`. Aosoms egen guide säger att artiklar med lågt saldo plockas
+annan färg av samma modell. Aosoms egen guide säger att artiklar med lågt saldo plockas
 bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
 sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
 ggr/dygn) innan slutsatsen dras.
@@ -1762,8 +1787,9 @@ bilder (93 %)** och släpper in 15 tyska (10 % av det som behålls). Att också 
 
 Mönstret är **oberoende av var i feeden produkten ligger** (49/46/45 % tyska i
 början, mitten, slutet) — regeln behöver inte justeras per sortimentsdel.
-Poleringen granskar **3, 8 och 9**; position 1 och 2 kan hoppas över helt, och
-det är de två som blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
+Tysk text sitter alltså i 3, 8 och 9, men poleringen granskar alla fem: varumärken
+på rekvisita sitter i miljöbilden på position 2 (i runda B19 på de flesta), och
+position 1 och 2 blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
 
 Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
 av det som är hela svepets flaskhals.
@@ -2059,9 +2085,8 @@ rader och underlaget kommer från de strukturerade kolumnerna i stället.
 ☠️ **`Artikelnummer` är INTE en av dem, och får aldrig läggas till.** Den här
 raden räknade tidigare upp en sjätte etikett som koden aldrig har skrivit, och
 det stod kvar i månader. Uppmätt 2026-09-03 på live-sajten: **fyra publicerade
-produktsidor bär Aosoms artikelnummer i spec-tabellen** — `Artikelnummer:
-‹REDIGERAT›`, `‹REDIGERAT›`, och en som döpt om etiketten till
-`Modellreferens: ‹REDIGERAT›`. Importen kan inte ha skrivit dem: `to-product.ts`
+produktsidor bär Aosoms artikelnummer i spec-tabellen** — två som `Artikelnummer: …` och en som döpt om etiketten till
+`Modellreferens: …`. Importen kan inte ha skrivit dem: `to-product.ts`
 sätter fem etiketter och `to-product.test.ts` fäller om numret dyker upp. De är
 alltså skrivna vid **poleringen**, av någon som läste den här listan.
 
@@ -2220,7 +2245,7 @@ kontrollerar dess sha256 och skickar den till `/api/admin/polish-write`
 (`lib/polish/skrivplan.ts`). Den skriver text, media, kategorier och SKU i den
 ordningen, verifierar i en separat läsning och stämplar varje verifierad
 produkt. Spärren ovan behövs inte längre, eftersom det inte finns någon avskrift
-kvar som kan bli fel. Arbetsgången står i runbooken under *Rundor om femton*.
+kvar som kan bli fel. Arbetsgången står i runbooken under *Rundan steg för steg*.
 
 ☠️ **Kör workflowen med `ref` satt till poleringsgrenen.** Default är `main`,
 och där finns inte planen. Kontrollen av sha256 fäller en sådan körning innan
@@ -2746,8 +2771,8 @@ workflowen, som skriver ut hela mappningsraden.
 Följden var exakt det par som feed-adressen är hemlig för att skydda:
 
 ```
-"costUsd": 132.33,  "landedCostSek": 1389.47,
-"supplierProductId": "aosom:‹REDIGERAT›",
+"costUsd": …,  "landedCostSek": …,
+"supplierProductId": "aosom:…",
 "sourceUrl": "https://www.aosom.de/item/…"
 ```
 
@@ -2963,7 +2988,7 @@ oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/5
 
 ### Referenspriser är fiktion — båda hållen
 
-Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på ‹REDIGERAT› där idealo
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på en bod där idealo
 listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
 siffran prissätter efter fantasi — avblåst.
 
@@ -3024,7 +3049,7 @@ prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
 
 ### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
 
-Leonard lade samma bod (`‹REDIGERAT›`) i kassan på aosom.de två gånger, utloggad och
+Leonard lade samma bod i kassan på aosom.de två gånger, utloggad och
 inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
 varan dyrare.**
 
@@ -3557,7 +3582,7 @@ Own-Brand-Label-undantaget, och då måste överenskommelsen finnas i skrift.
 **Henriks mejl ÄR den skriften** — spara det.
 
 ⚠️ **Och en mätning som talar EMOT att varorna saknar GTIN:** dealproffsen
-publicerar `gtin13: 4255826873673` för artikel `‹REDIGERAT›`, och koderna är
+publicerar en `gtin13` med prefixet 425 för en av artiklarna, och koderna är
 mätt äkta (187/187 giltig kontrollsiffra, 186/187 TYSKT GS1-prefix 425x — en
 svensk återförsäljare kan inte få ett sådant). Någon tysk part har alltså
 registrerat koder för de här artiklarna. Henriks *"we do not provide or
@@ -3656,7 +3681,7 @@ raderade, och redigeringen täcker nu identifierarkolumner också.
 ⚠️ **Ryggtäckningen är på FORMEN, inte bara på namnet.** Döper Aosom om
 kolumnen imorgon glider namnlistan, och **en spärr man måste komma ihåg glöms
 bort** — samma argument som gjorde `AliExpressProductId` till en typ.
-`serUtSomArtikelnummer` fäller på mönstret `‹REDIGERAT›` oavsett vad kolumnen
+`serUtSomArtikelnummer` fäller på mönstret `DDD-DDDLL` (D = siffra, L = bokstav) oavsett vad kolumnen
 heter. Två tester, ett för namnet och ett för formen.
 
 **Utfallet av första körningen:** feeden har **6 085 rader**, EAN-kolumnen
@@ -4113,6 +4138,59 @@ skapar en kategori behöver alltså inte lägga in en länk någonstans. Men den
 som bygger en länk som bara renderas vid hovring, klick eller efter mount har
 byggt en länk som Google inte ser. Regeln och testet står i butikens
 `CLAUDE.md` (`lib/meganav-ssr.test.ts`).
+
+## Långsvansen bärs av smala kategorier, inte av produktsidor (2026-09-24)
+
+Leonards fråga: ett sämre sökord på sida 1 ger mer trafik än det bästa på
+sida 3. Det stämmer, och det är mätt. Av domänens 30 sökord på sida 1 har 26
+under 200 sökningar i månaden, och av 62 sökord över 500 ligger inget där.
+
+Men sidtypen avgör. dealproffsen.se säljer samma Aosom-varor och ligger topp
+10 på 1 425 sökord, mot våra 30. Deras produktsidor ligger topp 10 på 120
+långsvansord över 200 sökningar. Vi syns i topp 100 på 8 av dem, även där vår
+titel börjar med exakt ordet (*Hundsoffa 98 cm i blått*). Titeln är inte
+bromsen, sidans styrka är.
+
+☠️ **Lägg därför ett mindre sökord på en smal kategori, inte på en
+produktsida.** Efter #647 länkas varje underkategori från varje sida via
+menyn, och produktsidorna har inga sådana länkar. Välj ord där en jämnstor
+konkurrent redan rankar med samma sidtyp. Urvalsregeln och mätningen står i
+`tools/polish-assets/runda-s14-langsvans-kategorier/`.
+
+⚠️ **Omätningen 2026-10-30 är provet.** Om S14-sidorna inte rör sig medan
+dealproffsen ligger på plats 1–5 med samma upplägg, är det domänens styrka som
+bromsar. Då är nästa steg externa länkar, inte fler sidor.
+
+## ☠️ Domänen saknar riktiga länkar — det är bromsen nu (2026-09-24)
+
+Semrush räknar 224 länkande domäner till fyndplats.se. De 40 starkaste är
+alla automatiska spamsajter (`bye.fyi`, `metamagic.top`, `byteshort.xyz` …),
+alltså ingen enda riktig svensk sajt. dealproffsen har 456, varav ett
+tjugotal äkta: Reco.se, Cuponation, forum som ifokus, en affiliatesajt och
+köpta artiklar på Expressen och lokaltidningar. Tekniken är mätt frisk
+(Lighthouse SEO 100, komplett Product-JSON-LD), så varken fler sidor eller
+mer teknik flyttar oss förbi dem. Planen och underlaget står i
+`tools/polish-assets/seo-granskning-2026-09-24/`.
+
+☠️ **Köp inte följbara länkar**, även om konkurrenten gör det. Googles
+spampolicy kräver `rel="sponsored"` på betalda länkar. Prisjämförelse,
+rabattkodssajter, affiliate och digital PR med vår egen prisdata är vägarna,
+och alla kräver Leonard.
+
+⚠️ **Profilerna finns redan. Kolla butikens `sameAs` innan du föreslår en.**
+Google Företagsprofil (4,9), hitta.se, Trustpilot och Reco finns alla.
+`app/layout.tsx` på `headless-site` listar de flesta, och granskningen
+föreslog ändå att skapa dem. Deras länkar är `nofollow`, och Trustpilot och
+Reco har 0 omdömen. Reco är inte ens verifierad, och Trustpilots
+inbjudningscron togs ur schemat 2026-08-17 på Leonards beslut.
+
+☠️ **En adress som rankar får aldrig sluta på `/butik`.** `/basta-i-test/massagepistoler`
+låg 18:e på *massageapparat bäst i test*. Köpguiden blev tunn när vi slutade
+sälja massagepistoler, och koden skickade vidare med 307 till `/butik`, så
+rankningen följde med dit. Den pekar nu på bloggens guide (#647, med test).
+Före en omdirigering: kontrollera vad adressen rankar på
+(`rankande-adresser.tsv` i granskningen) och välj en sida som svarar på
+samma fråga. Finns ingen sådan är en ärlig 404 bättre än en irrelevant sida.
 
 ## Dubblett-spärr vid import
 
@@ -4611,7 +4689,7 @@ kassa.
 
 Det lämnade en tyst lucka i motorn: ingenting kunde få veta att ordern var lagd, och
 när Aosom skickar paketet fanns ingen väg alls att få ut spårningen till kunden.
-Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen `‹REDIGERAT›`): betald
+Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen): betald
 14:57, lagd för hand samma kväll, och tasken hade blivit liggande som `pending`
 medan vakten påminde om en order som redan var gjord.
 

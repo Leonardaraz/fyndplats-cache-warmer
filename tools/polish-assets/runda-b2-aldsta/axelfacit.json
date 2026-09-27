@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1259355d": {
+  "tyska": "80L x 30B x 79,7H cm",
+  "svenska": "80L x 30B x 79,7H cm",
+  "bokstaver": "LBH",
+  "hojd": 79.7,
+  "bredd": 80,
+  "djup": 30
+ },
+ "3df185a4": {
+  "tyska": "",
+  "svenska": "55L x 34B x 82H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 55L x 34B x 82H cm | ✔ Hockermaße: 26L x 26B x 27H cm | ✔ Spiegelmaße: 19B x 26H cm | ✔ Schublade innen: 25L x 19,5B x 4,8H cm"
+ },
+ "5c176543": {
+  "tyska": "60L x 29,9B x 90H cm",
+  "svenska": "60L x 29,9B x 90H cm",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 60,
+  "djup": 29.9
+ },
+ "73409286": {
+  "tyska": "57,4L x 57,4B x 94H cm",
+  "svenska": "57,4L x 57,4B x 94H cm",
+  "bokstaver": "LBH",
+  "hojd": 94,
+  "bredd": 57.4,
+  "djup": 57.4
+ },
+ "91cd635b": {
+  "tyska": "60L x 35B x 100H cm",
+  "svenska": "60L x 35B x 100H cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 60,
+  "djup": 35
+ },
+ "bdb8bbe2": {
+  "tyska": "",
+  "svenska": "60L x 60B x 50H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischgröße: 60L x 60B x 50H cm | ✔ Stuhlgröße: 36B x 30T x 51H cm | ✔ Sitzgröße: 26B x 26T x 29H cm | ✔ Rückenlehnen-Größe: 31,5B x 21,5H cm"
+ },
+ "e9e896b4": {
+  "tyska": "90L x 52B x 105H cm",
+  "svenska": "90L x 52B x 105H cm",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 90,
+  "djup": 52
+ },
+ "ed1094fc": {
+  "tyska": "",
+  "svenska": "56L x 52B x 48H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischgröße: 56L x 52B x 48H cm | ✔ Stuhlgröße: 27B x 27T x 53H cm | ✔ Sitzgröße: 27B x 27T cm"
+ }
+}

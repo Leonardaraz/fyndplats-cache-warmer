@@ -1,0 +1,49 @@
+{
+  "slug": "blomstall-vaxthyllor",
+  "namn": "Blomställ & växthyllor",
+  "seo": {
+    "title": "Växthylla & blomställ – blomhylla och blompall",
+    "description": "Blomställ, växthyllor och blompallar för krukväxter inne och ute: i trappform, för hörnet, hopfällbara eller med krokar för hängande krukor."
+  },
+  "content": {
+    "intro": [
+      "Ett blomställ samlar krukväxterna på liten yta och ger varje växt sitt eget ljus. Här samlar vi blomställ, växthyllor och blompallar för vardagsrummet, balkongen och altanen: i trappform, för hörnet, hopfällbara eller med krokar för hängande krukor.",
+      "De flesta har en stomme av pulverlackerad eller rostskyddad metall och kan stå både inne och ute. Hyllor av galler släpper igenom vatten, och växtstället med tråg har en kant runt det övre planet och två dräneringshål, så att krukorna står kvar och vattnet inte blir stående.",
+      "Titta på bärförmågan per plan. På de flesta ställ i metall bär varje plan 10 till 25 kg, medan blomstället i vitt med sju nivåer bär 2 kg per nivå och passar för mindre krukor. Blompallarna med mosaikskiva är tre stycken, 51, 61 och 71 cm höga, och de ryms i varandra när de ställs undan.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Kan blomstället stå ute?",
+        "a": "De flesta kan det. Stommen är pulverlackerad eller rostskyddad, och i beskrivningen står om stället är gjort för både inne och ute. Står det ute över vintern, ta in det eller ställ det under tak."
+      },
+      {
+        "q": "Hur mycket bär ett blomställ?",
+        "a": "Det skiljer sig mycket. På de flesta ställ i metall bär varje plan 10 till 25 kg, blompallarna bär 30 till 50 kg och blomstället med sju nivåer 2 kg per nivå. Bärförmågan står i varje produktbeskrivning."
+      },
+      {
+        "q": "Vad är skillnaden mellan ett blomställ och en växthylla?",
+        "a": "Ingen egentlig, det är två namn på samma sak: ett ställ med flera plan där krukväxterna står på olika höjd. Blompallar är lösa pallar för en kruka var, som kan ställas bredvid varandra som en trappa."
+      }
+    ]
+  },
+  "facit": {
+    "urval": "9 synliga blomställ, växthyllor och blompallar 2026-09-24, alla i lager.",
+    "trappform": "b69e5b38 'Blomställ i trappform med tre plan'; fa8d498b 'Blomställ i trappform med fyra plan'",
+    "för hörnet": "f75a8a17 'gjort för att stå i ett hörn'; fa8d498b 'gjort för ett hörn'",
+    "hopfällbara": "8382289b 'fälls det ihop', 'Hopfällt 25 × 23 × 80 cm'; e03a7e2e 'Hopfällbar växthylla'",
+    "krokar för hängande krukor": "2487e6bb 'en stång överst med tre krokar för hängande krukor'",
+    "de flesta inne och ute": "2487e6bb, 73457d36, 8382289b, b69e5b38, e03a7e2e, f75a8a17, fa8d498b 'inne och ute'/'inomhus och ute'; ed1e585f 'inomhus eller på balkongen' + 'Står pallarna ute'; 132a00c5 anger det inte (8 av 9)",
+    "pulverlackerad eller rostskyddad metall, de flesta": "132a00c5 'pulverlackerad metall'; 2487e6bb 'pulverlackerad metall som står emot rost'; 8382289b 'pulverlackerad och rostskyddad'; b69e5b38 'pulverlackerad och rostskyddad'; e03a7e2e 'rostskyddande lack'; f75a8a17 'pulverlackerad metall som står emot rost'; ed1e585f 'lackerad metall som tål rost'",
+    "galler släpper igenom vatten": "2487e6bb 'gallret i hyllplanen släpper igenom vatten'; b69e5b38 'Hyllorna är av galler, så att luften cirkulerar och vattnet rinner av'",
+    "tråg med kant, två dräneringshål": "132a00c5 'Övre planet har en uppvikt kant hela vägen runt', 'I trågets botten sitter två dräneringshål'",
+    "10 till 25 kg per plan, de flesta ställ i metall": "132a00c5 20; 2487e6bb 20; 8382289b 20; fa8d498b 20; b69e5b38 25; e03a7e2e 10 (6 av 8 ställ; f75a8a17 anger 'bär 30 kg' utan fördelning)",
+    "sju nivåer, 2 kg per nivå": "73457d36 'Varje nivå bär 2 kg'",
+    "blompallar 51, 61, 71 cm, ryms i varandra": "ed1e585f '51, 61 och 71 cm', 'den minsta ryms i den mellersta som ryms i den största'",
+    "blompallar bär 30 till 50 kg": "ed1e585f 'Bär 30, 40 och 50 kg'",
+    "bärförmågan i varje beskrivning": "alla 9 anger den",
+    "ute över vintern, under tak": "ed1e585f 'Står pallarna ute, ta in dem eller ställ dem under tak under vintern'",
+    "som en trappa": "ed1e585f 'Ställ dem bredvid varandra som en trappa'",
+    "blomställ = växthylla": "allmänt"
+  }
+}

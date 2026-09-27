@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1841a1c2": {
+  "tyska": "141L x 45,7B x 20,3H cm",
+  "svenska": "141L x 45,7B x 20,3H cm",
+  "bokstaver": "LBH",
+  "hojd": 20.3,
+  "bredd": 141,
+  "djup": 45.7
+ },
+ "2443094a": {
+  "tyska": "181L x 39B x 44H cm",
+  "svenska": "181L x 39B x 44H cm",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 181,
+  "djup": 39
+ },
+ "4fc0b3b5": {
+  "tyska": "160L x 40B x 40H cm",
+  "svenska": "160cm x 40cm x 40cm",
+  "bokstaver": "LBH",
+  "hojd": 40,
+  "bredd": 160,
+  "djup": 40
+ },
+ "8064c7e2": {
+  "tyska": "",
+  "svenska": "79 x 39 x 44 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Faltmaß: 79B x 39T x 44H cm | ✔ Aufgeklapptes Maß: 131B x 39T x 44H cm"
+ },
+ "a6e01595": {
+  "tyska": "",
+  "svenska": "51L x 40B x 40H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Zylinderdimensionen: Ø25 x 22H cm | ✔ Bogendimensionen: 51L x 40B x 40H cm | ✔ Rechteckdimensionen: 40L x 26B x 26H cm | ✔ Stufendimensionen: 38L x 40B x 26H cm | ✔ Rampendimensionen: 55L x 40B x 26/3H cm | ✔ Halbrunddimensionen: 51L x 35B x 3H cm | ✔ Anti-Rutsch-Pad: 51L x 40B cm"
+ },
+ "b2ab1b14": {
+  "tyska": "45L x 45B x 25H cm.",
+  "svenska": "45L x 45B x 25H cm",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 45,
+  "djup": 45
+ },
+ "bd0c3133": {
+  "tyska": "107L x 107B x 30H cm",
+  "svenska": "107cm x 107cm x 30cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 107,
+  "djup": 107
+ },
+ "d70e483e": {
+  "tyska": "",
+  "svenska": "50 x 40 x 25 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Faltbare Rampe Abmessung: 50B x 40T x 25H cm | ✔ 3-stufige Rampe Abmessung: 45B x 40T x 25H cm | ✔ Bogen Abmessung: 55B x 20T x 36H cm | ✔ Halbkreis Abmessung: 35B x 20T x 20H cm | ✔ Rillenblock Abmessung: 45B x 20T x 25H cm | ✔ Dreifachmatte: 60L x 40B x 3H cm"
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0d5eaa06": {
+  "tyska": "",
+  "svenska": "150L x 100B x 24H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maximale Plattengröße: 150L x 100B x 24H cm | ✔ Quadrat: 48L x 48B x 24H cm | ✔ Treppe: 48L x 48B x 24H cm | ✔ Rampe: 48L x 48B x (5+24)H cm | ✔ Sektor: 48L x 48B x 3H cm | ✔ Schräge: 48L x 48B x 24H cm"
+ },
+ "0d8d0d2d": {
+  "tyska": "118L x 60B x 27,5H cm",
+  "svenska": "118cm x 60cm x 27,5cm",
+  "bokstaver": "LBH",
+  "hojd": 27.5,
+  "bredd": 118,
+  "djup": 60
+ },
+ "49494b1a": {
+  "tyska": "115L x 77B x 55,5H cm",
+  "svenska": "115L x 77B x 55,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 55.5,
+  "bredd": 115,
+  "djup": 77
+ },
+ "857ff5d0": {
+  "tyska": "105L x 60B x 60H cm",
+  "svenska": "105cm x 60cm x 60cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 105,
+  "djup": 60
+ },
+ "8df88104": {
+  "tyska": "",
+  "svenska": "12 Stück (1er Pack)",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 20L x 20B x 20H cm"
+ },
+ "a8130281": {
+  "tyska": "",
+  "svenska": "L48 x W39 x H69cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔Maße des Klaviers: L48 x B39 x H69 cm | ✔Maße des Hockers: Ø22,5 x H19,5 cm"
+ },
+ "c8db0a3d": {
+  "tyska": "99L x 40,5B x 41H cm",
+  "svenska": "99cm x 40,5cm x 41cm",
+  "bokstaver": "LBH",
+  "hojd": 41,
+  "bredd": 99,
+  "djup": 40.5
+ },
+ "cc56eab4": {
+  "tyska": "110L x 61B x 62H cm",
+  "svenska": "110cm x 61cm x 62cm",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 110,
+  "djup": 61
+ }
+}

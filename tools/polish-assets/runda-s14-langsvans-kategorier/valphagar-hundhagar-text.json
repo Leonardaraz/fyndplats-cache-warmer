@@ -1,0 +1,48 @@
+{
+  "slug": "valphagar-hundhagar",
+  "namn": "Valphagar & hundhagar",
+  "seo": {
+    "title": "Valphage & hundhage – inomhus och utomhus",
+    "description": "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, och en hopfällbar hage i tyg med soltak. Flera har markpinnar för gräsmattan."
+  },
+  "content": {
+    "intro": [
+      "En valphage ger valpen en egen plats att leka och vila på, utan att den kommer åt sladdar, skor och trappor. Här samlar vi valphagar och hundhagar i metall och en hopfällbar hage i tyg, för både inomhus och utomhus. Några passar också för katt, kanin och marsvin.",
+      "Metallhagarna är 60 till 91 cm höga och har en dörr eller en grind. Panelerna går att vinkla efter rummet, till exempel till en åttkant mitt på golvet, en rektangel längs väggen eller en rak avspärrning, och de flesta fälls ihop när hagen inte används. Hagarna på 366 och 488 cm har en grind som svänger 180 grader och stänger sig själv.",
+      "Välj höjd efter hunden, eftersom en hund som når överkanten med framtassarna tar sig över förr eller senare. Valphagen på 91 cm är gjord för hundar med en mankhöjd upp till 46 cm. Hagen med tak har ett tak av Oxfordväv och nät som öppnas med dragkedja, och hagen i tyg har soltak och myggnät runt om.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Hur hög valphage behöver jag?",
+        "a": "Hagen ska vara så hög att hunden inte når överkanten med framtassarna. Hagarna i metall är 60 till 91 cm höga, och i de flesta beskrivningar står vilken mankhöjd hagen är gjord för, till exempel upp till 46 cm för valphagen på 91 cm."
+      },
+      {
+        "q": "Kan hagen stå utomhus?",
+        "a": "Ja, flera är gjorda för både inne och ute. Till dem ingår markpinnar eller markkrokar som förankrar hagen i gräsmattan, så att den varken glider eller lyfter när hunden trycker mot sidan."
+      },
+      {
+        "q": "Passar hagen för andra djur än hund?",
+        "a": "Några gör det. Hagen med tak passar också katt, kanin och marsvin, flera metallhagar fungerar för kanin och marsvin, och hagen i tyg är gjord för både hund, valp och katt."
+      }
+    ]
+  },
+  "facit": {
+    "urval": "8 synliga valphagar och hundhagar 2026-09-24, alla i lager. INTE med: hundgården med tak 26da42b7 (en rastgård i stål), som stannar i Burar, Kläder & Tillbehör.",
+    "katt, kanin och marsvin, några": "19e3d834 'katt, kanin, marsvin'; 3a4d1f6d 'kanin, marsvin och andra små djur'; eb2e20c6 'kanin, marsvin och andra smådjur'; 9af1cfcb 'hund, valp eller katt'",
+    "inomhus och utomhus": "19e3d834 'inomhus och utomhus'; 3a4d1f6d 'inne eller ute'; eb2e20c6 'både inne och ute'; 9af1cfcb 'ute som inne'",
+    "60 till 91 cm höga": "eb2e20c6 60; 6b681eb7, ad1ae5da 75; 3a4d1f6d, 19e3d834 76; 80a53bc3 80; 6b8cd35b 91",
+    "dörr eller grind": "dörr: 19e3d834, 3a4d1f6d, 6b8cd35b, 80a53bc3, eb2e20c6; grind: 6b681eb7, ad1ae5da",
+    "vinkla efter rummet, till exempel": "3a4d1f6d 'oktagon, en kvadrat, en rektangel eller en rak avdelare'; 6b8cd35b 'åttkant, fyrkant eller rektangel'; ad1ae5da 'Panelerna vinklas fritt'; 6b681eb7 'en sexkantig hage … eller en rak avspärrning'; eb2e20c6 'sexkant … eller vinklas efter rummet'",
+    "de flesta fälls ihop": "3a4d1f6d 'packas platt'; eb2e20c6 'Viks ihop platt'; ad1ae5da 'fälls ihop till en bunt'; 6b681eb7 'Hopfälld blir hagen en bunt'; 80a53bc3 'Hopfällt: 82 × 80 × 9,5 cm'; 19e3d834 och 9af1cfcb hopfällbara. 6b8cd35b anger det inte.",
+    "366 och 488 cm, grind 180 grader, stänger sig själv": "6b681eb7 'svänger 180 grader åt båda håll och stänger sig själv efter passage'; ad1ae5da 'svänger 180 grader åt båda håll, stänger sig själv efter passage'",
+    "når överkanten med framtassarna": "6b8cd35b 'En hund som når överkanten med framtassarna tar sig över förr eller senare'",
+    "91 cm, mankhöjd upp till 46 cm": "6b8cd35b 'hundar med mankhöjd upp till 46 cm'",
+    "tak av Oxfordväv och nät, dragkedja": "19e3d834 'Tak: 600D Oxford + förstärkt PVC-nät, öppningsbart med dragkedja'",
+    "tyg: soltak och myggnät runt om": "9af1cfcb 'myggnät runt om, soltak och nätgardiner'",
+    "mankhöjd i de flesta beskrivningar": "3a4d1f6d 39 cm; 6b8cd35b 46 cm; 80a53bc3 50 cm; 6b681eb7, ad1ae5da 15–55 cm (5 av 8)",
+    "markpinnar eller markkrokar": "19e3d834 '8 markpinnar'; 3a4d1f6d 'Markkrokar ingår'; 80a53bc3 'markpinnar'; eb2e20c6 '6 markpinnar ingår'",
+    "varken glider eller lyfter": "6b8cd35b 'så att den varken glider eller lyfter när hunden trycker mot sidan'",
+    "tyg: hund, valp och katt": "9af1cfcb 'för valp, hund och katt'"
+  }
+}

@@ -18,7 +18,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gatelib import (las_facit, GRINDAR, FLIKAR, NORM, tal, kropp, ordtal_i_text,
-                     las_kalltext, tal_ur_kalla_brett, las_kvittenser)
+                     las_kalltext, tal_ur_kalla_brett, las_kvittenser, fraktvikt_fel)
 
 # ☠️ TRE LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — alla smala med flit.
 #
@@ -97,6 +97,12 @@ for f in filer:
               f"…{k[max(0, x.start()-45):x.end()+45].strip()}…")
         fynd += 1
 
+    # Fraktvikten som varans vikt, se gatelib.fraktvikt_fel. Utan källtext
+    # (äldre rundor med bara kallor-tal.json) går det inte att avgöra.
+    if kalltext is not None:
+        for f_ in fraktvikt_fel(txt, kalltext):
+            print(f"  {kort}: [FRAKTVIKT] {f_}"); fynd += 1
+
     op = collections.Counter(re.findall(r"<(\w+)[^>]*>", txt))
     cl = collections.Counter(re.findall(r"</(\w+)>", txt))
     for t in set(op) | set(cl):
@@ -121,6 +127,11 @@ for f in filer:
     # var transkriptionshashen, som inte stämde efteråt.
     # Katalogen mättes samma dag: 1 778 av 1 779 korslänkar på publicerade
     # sidor är absoluta. Formen är alltså husets, inte en smaksak.
+    # Inga länkar i produkttexten: karusellen "Liknande produkter" länkar
+    # mellan produktsidorna och menyn till kategorierna. B1–B19 har noll
+    # länkar; K-rundornas korslänkar gav 404 när en slug byttes.
+    for x in re.finditer(r'href="https://www\.fyndplats\.se/([^"]*)"', txt):
+        print(f"  {kort}: [LÄNK] {x.group(1)!r} — produkttexten ska inte länka"); fynd += 1
     for x in re.finditer(r'href="(?!https://www\.fyndplats\.se/)([^"]*)"', txt):
         print(f"  {kort}: [RELATIV LÄNK] {x.group(1)!r} — Wix gör om den till https:/… (död länk)")
         fynd += 1

@@ -1,7 +1,9 @@
 # Bildmetoder – fördjupning
 
 > Detta är **mekaniken**. Reglerna för vilka bilder som ska finnas och hur de får
-> se ut står i [`seo-polish-runbook.md`](../seo-polish-runbook.md) — den här filen
+> se ut står i [`seo-polish-runbook.md`](../seo-polish-runbook.md), där rundorna väljer
+> bland befintliga bilder utan att bearbeta dem. Stegnummer nedan syftar på runbookens
+> äldre version. Den här filen
 > beskriver bara **hur** man gör det, när standardvägen inte räcker.
 >
 > **Standardvägen för en hjältebild:** `hero_white()` (H-0) → ren leverantörsbild →
@@ -9,6 +11,12 @@
 >
 > **Metodprefix:** `T-` = textborttagning, `H-` = hjältebild, `K-` = kortbygge.
 > Prefixen finns för att A och B tidigare betydde olika saker i två avsnitt.
+>
+> ☠️ **Skrivningen sker inte här (2026-09-27).** PATCH-exemplen och hänvisningarna till
+> "Steg 9" nedan är från tiden före workflowen. En bearbetad bild går in så här: ladda upp
+> den med `UploadImageToWixSite`, sätt dess fil-id på bildens position i rundans
+> `bilder.tsv` och bygg planen som vanligt. Workflowen **"Polering — skriv en runda till
+> Wix"** skriver hela medialistan.
 
 -----
 

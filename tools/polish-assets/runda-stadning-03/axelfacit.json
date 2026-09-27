@@ -1,0 +1,88 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "005aaee6": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0559bbb2": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "286e5a2e": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "329184c4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Yttermått: 300 × 120 × 200 cm (b × d × h)"
+ },
+ "35f345bc": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "45d4cbd7": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Yttermått: 240 × 85 × 160 cm (b × d × h)"
+ },
+ "57ba0224": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "583577bc": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "6e65a235": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "72051417": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7838bc0e": {
+  "tyska": "",
+  "svenska": "79,5 x 24 x 94 cm"
+ },
+ "7bf0bb41": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Yttermått: 112 × 19 × 81 cm (b × d × h)"
+ },
+ "8bdba748": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "95a9d7cc": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a165b178": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a9b71b63": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e0bf2497": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e35454ac": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "eedca823": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Yttermått: 111 × 19 × 95,5 cm (b × d × h)"
+ },
+ "f5f02f8a": {
+  "tyska": "",
+  "svenska": "600L x 300B x 198H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Totalmått: 600L x 300B x 198H cm | ✔ Fönsterstorlek: 60B x 40H cm | ✔ Yttre dörrstorlek: 136B x 182H cm | ✔ Inre nätdörr: 158B x 174H cm | ✔ Upprullningsbar sidovägg: 578B x 113H cm | ✔ Solskyddsnätets storlek: 650L x 350B cm"
+ }
+}

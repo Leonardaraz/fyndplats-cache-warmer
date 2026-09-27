@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+65d84215 26 sitthöjden, avläst på måttbilden (bild 3); källan anger bara stolens totala höjd
+728ded00 2 små fack i hyllan överst; källan anger tre fack med ett litet och ett stort mått, och bild 1 och 5 visar två små och ett stort
+0e43328e 4 platser: två stolar och två pallar, räknade på bild 1 och i leveransinnehållet

@@ -48,8 +48,14 @@ import io, json, os, re, sys
 
 AXEL = {"B": "Breite/bredd", "T": "Tiefe/djup", "H": "Höhe/höjd", "L": "Länge/längd"}
 
+# ☠️ NEUTRUM HETER "brett", och det innehåller inte "bred". Uppmätt i runda B1
+# (2026-09-26): "skrivbordet är 80 cm brett" gav varningen "texten anger aldrig
+# produktens bredd", och ett "50 cm brett" om samma bord hade gått igenom
+# ogrindat. "djupt" och "högt" bär sina stammar, så bara bredden var blind.
+# Breddningen kördes mot alla 62 rundor med facit: 65 texter säger "cm brett",
+# och ingen av dem gav ett nytt fynd.
 MONSTER = [
-    (re.compile(r"(\d{2,3})\s*cm\s+bred", re.I), "bredd"),
+    (re.compile(r"(\d{2,3})\s*cm\s+bre(?:d|tt)", re.I), "bredd"),
     (re.compile(r"(\d{2,3})\s*cm\s+djup", re.I), "djup"),
     (re.compile(r"(\d{2,3})\s*cm\s+hög", re.I), "hojd"),
 ]

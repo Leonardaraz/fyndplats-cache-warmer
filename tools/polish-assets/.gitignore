@@ -168,3 +168,11 @@ runda-135/zoom-*.jpg
 # mätningen får aldrig vara det som ignoreras, bara dess bild.
 */steg4/
 */steg4-*.jpg
+
+# Runda B1:s kontaktark, ett per produkt i `ark/`. Samma mellanled som
+# `*/ark-*.jpg` ovan, bara i en egen mapp: byggda ur `orig/` (ignorerad) på
+# ett kommando, och vad de visade står i LÄS-MIG.md och bilder-bort.tsv.
+*/ark/
+
+# bygg-ghost.py:s högpassark. Mellanled för ögat, återskapbart ur orig/.
+*/ghost/

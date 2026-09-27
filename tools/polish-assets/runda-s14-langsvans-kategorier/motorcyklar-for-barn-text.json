@@ -1,0 +1,46 @@
+{
+  "slug": "motorcyklar-for-barn",
+  "namn": "Motorcyklar för barn",
+  "seo": {
+    "title": "Motorcykel för barn – elmotorcykel 6, 12 & 24 V",
+    "description": "Elmotorcyklar för barn från 18 månader till 12 år: 6 V med stödhjul eller tre hjul, 12 V för 3–8 år och 24 V med 16 km/h, plus sparkfordon och trehjulingar."
+  },
+  "content": {
+    "intro": [
+      "En motorcykel för barn är ofta det första egna fordonet med gas och styre. Här samlar vi elmotorcyklar för barn från 18 månader upp till 12 år, bland dem licensierade modeller av BMW och Honda. För de allra minsta finns också ett sparkfordon och två trehjulingar i motorcykelform, som drivs med fötterna eller med pedaler.",
+      "Välj efter ålder. För barn på 18–36 månader finns elmotorcyklar på 6 V med en toppfart på 2,5–3 km/h, antingen med två avtagbara stödhjul eller med tre hjul som står stadigt utan stödhjul. För 3–8 år finns modeller på 12 V med stödhjul och fjädring bak, som går i upp till 5 eller 6 km/h.",
+      "Elmotorcykeln på 24 V är gjord för 8–12 år och kräver att barnet redan kan cykla: den har två farter, 8 och 16 km/h, luftfyllda bakdäck och en maxlast på 65 kg. En laddning räcker i 30 minuter till en timme beroende på modell, och laddningen tar oftast 8–12 timmar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Från vilken ålder passar en elmotorcykel?",
+        "a": "De minsta modellerna på 6 V är gjorda för barn från 18 månader och går i 2,5–3 km/h. Från tre år passar modellerna på 12 V, och för barn på 8–12 år finns en elmotorcykel på 24 V. Rekommenderad ålder står i varje produktbeskrivning, och på de flesta också maxvikten."
+      },
+      {
+        "q": "Går stödhjulen att ta bort?",
+        "a": "Ja, på de flesta modellerna med stödhjul skruvas de av när barnet håller balansen själv. Elmotorcyklarna med tre hjul har inga stödhjul, eftersom de står stadigt ändå."
+      },
+      {
+        "q": "Hur länge räcker batteriet?",
+        "a": "Mellan 30 minuter och en timme per laddning, beroende på modell, underlag och barnets vikt. Laddningen tar oftast 8–12 timmar, så det enklaste är att ladda över natten."
+      }
+    ]
+  },
+  "facit": {
+    "urval": "17 synliga produkter 2026-09-24, 13 i lager. Slutsålda, och inget påstående vilar på dem: 005aaee6, 27ffc74b, 7a611efb, dc155f0b. INTE med: motorcykellyftarna (e138b637, fe89680b), byggsatserna (e551a621, 5bccd6d8) och leksaksmotorn (24b5079d), som inte är fordon för barn.",
+    "18 månader upp till 12 år": "408e80e4, 5419c746, 816e745c, b2ccab13 '18–36 månader'; 67d2d4f6 '8–12 år'",
+    "licensierade modeller av BMW och Honda": "408e80e4 'licensierad BMW-trehjuling'; 816e745c 'officiellt Honda-licensierad kopia av crossmodellen CRF450RL'. Aprilia-modellerna (1e27f7e0, 5e9cc2d2) nämner ingen licens och står därför inte med.",
+    "ett sparkfordon och två trehjulingar, fötterna eller pedaler": "382f99ee 'Fötterna mot marken, inga pedaler'; d771d12f 'pedaldriven'; 80aac077 'trampandet tränar både benstyrka och koordination'",
+    "6 V, 18–36 månader, 2,5–3 km/h": "408e80e4 6 V, 2,5 km/h; b2ccab13 6 V, 3 km/h; 816e745c 6 V, 3 km/h; 5419c746 6 V (fart anges inte)",
+    "två avtagbara stödhjul": "b2ccab13 'Stödhjul: 2 st, avtagbara'",
+    "tre hjul som står stadigt utan stödhjul": "408e80e4 'Tre hjul med extra breda däck ger stabil gång utan separata stödhjul'; 816e745c 'Tre hjul … ger stabil gång utan stödhjul'",
+    "3–8 år, 12 V, stödhjul, fjädring bak, upp till 5 eller 6 km/h": "1e27f7e0, 5e9cc2d2 '3–8 år', 12 V, två avtagbara stödhjul, 'Stötdämpare vid bakhjulet', 6 km/h; ad46f9cc 12 V, 'certifierad för åldern 3–8 år', avtagbara stödhjul, 'Fjädrat bakhjul', 2,4–5 km/h",
+    "24 V, 8–12 år, kan cykla, 8 och 16 km/h, luftfyllda bakdäck, 65 kg": "67d2d4f6 '24 V, 350 W', 'kräver att barnet redan kan cykla', 'Två farter: 8 och 16 km/h', 'Bakhjulen är luftfyllda gummihjul på 12 tum', 'Maxlasten är 65 kg'",
+    "30 minuter till en timme": "67d2d4f6 30 min; ad46f9cc 30–45 min; 372ee931, b2ccab13, 408e80e4, 5419c746 45 min; 1e27f7e0, 5e9cc2d2, 7b62aa26 upp till 1 timme; 816e745c cirka 1 timme",
+    "laddningen tar oftast 8–12 timmar": "8–12 h: 372ee931, 7b62aa26, 67d2d4f6; 'därefter 8–12': 1e27f7e0, 5e9cc2d2, 408e80e4, 816e745c, b2ccab13; ad46f9cc 10–12 h, alltså 'oftast'",
+    "de flesta med stödhjul skruvas av": "avtagbara: b2ccab13, 1e27f7e0, 5e9cc2d2, ad46f9cc (4 av 6 med stödhjul); 5419c746 och 7b62aa26 anger det inte",
+    "ålder i varje beskrivning, maxvikt på de flesta": "ålder: alla 13 i lager (7b62aa26 'mellan 3 och 8 år'); maxvikt: 12 av 13 (1e27f7e0, 5e9cc2d2, ad46f9cc, 80aac077 30 kg; 372ee931, 5419c746, 816e745c, b2ccab13 25 kg; 382f99ee, 408e80e4, d771d12f 20 kg; 67d2d4f6 65 kg), 7b62aa26 anger ingen. Första utkastet sa 'ålder och maxvikt står i varje produktbeskrivning' och ändrades innan något skrevs.",
+    "7b62aa26 motsäger sig själv": "'två laddningsbara 6V-batterier' och 'de två 12V-motorerna' i samma text. Produkten räknas därför inte in i något voltpåstående."
+  }
+}

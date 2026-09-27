@@ -10,6 +10,8 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chr
 SLUGS = ["elbilar-for-barn","klostrad","kattlador","katthus","hundkojor","redskapsbodar-forrad",
          "sparkcyklar-for-barn","leksakskok","sandlador","gunghastar-gungdjur","hundbaddar-hundsoffor",
          "hundburar","garagetalt","lek-tillbehor-for-husdjur","leksaker-spel","baby-smabarn"]
+# En fil med "ersatt_av" beskriver en text som en senare runda skrivit om; den kontrolleras där.
+SLUGS = [s for s in SLUGS if not json.load(open(os.path.join(SRC, f"{s}-text.json"))).get("ersatt_av")]
 if len(sys.argv) > 1: SLUGS = sys.argv[1:]
 def norm(s): return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",s))).strip()
 fel = 0

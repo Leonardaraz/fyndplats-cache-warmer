@@ -66,9 +66,9 @@ som inte går att skicka till Sverige), **6 087 rader**:
 
 | fråga | träffar | vad de var |
 |---|--:|---|
-| `nachttisch led` | 3 | två lampor + `83D-216V90WT` (golvstående) |
-| `nachttisch rgb` | **1** | `83D-216V90WT`, samma golvstående |
-| `nachttisch wandmontiert` | **1** | `83D-120V90WT`, 2-pack utan LED |
+| `nachttisch led` | 3 | två lampor + `‹REDIGERAT›` (golvstående) |
+| `nachttisch rgb` | **1** | `‹REDIGERAT›`, samma golvstående |
+| `nachttisch wandmontiert` | **1** | `‹REDIGERAT›`, 2-pack utan LED |
 | `schwebend nachttisch` | **0** | — |
 | `nachttisch` (hela familjen) | ~39 | ingen med både vägghängt, 2-pack och LED |
 
@@ -85,7 +85,7 @@ vägghängda 2-packen med app-styrning finns inte i den tyska B2B-listan.
 3. **Priset rörs inte.** Prisgrinden svarar `EJ AVGÖRBAR` (raden är ingen
    Aosom-import, så regeln från 2026-08-27 gäller den inte).
 
-⚠️ **Sidoobservation, inte en åtgärd:** `83D-022V90WT` — *"Nachttisch hängend
+⚠️ **Sidoobservation, inte en åtgärd:** `‹REDIGERAT›` — *"Nachttisch hängend
 Beistelltisch mit Schublade, offenes Fach, 39,8 × 35 × 31,6 cm"*, 584,55 kr
 landat, saldo 9 — finns i feeden men inte i katalogen. Det är en ENKEL
 vägghängd modell utan belysning, alltså inte den här varan. Värd en egen titt

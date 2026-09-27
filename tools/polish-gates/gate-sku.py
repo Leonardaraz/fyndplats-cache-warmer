@@ -44,10 +44,13 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import ARTNR  # noqa: E402
+from gatelib import ARTNR, MARKEN  # noqa: E402
 
 MAX = 40                       # Wix MAX_LENGTH, uppmätt — inte antaget.
 FORM = re.compile(r"^FP-[a-z0-9]+(?:-[a-z0-9]+)*$")
+# ☠️ SKU:n går ut som `g:mpn` i Google-flödet och är alltid gemen, så
+# `MARKEN` (versalt) ser aldrig ett husmärke här utan re.I.
+MARKE = re.compile(MARKEN, re.I)
 
 # Speglar FORM och TILLATEN_FORM i lib/polish/skrivplan.ts.
 BRED_FORM = re.compile(r"\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b")
@@ -85,6 +88,10 @@ for nr, rad in enumerate(rader, 1):
     if not FORM.match(sku):
         print(f"sku.tsv:{nr}  [FORM] {sku!r} — väntade FP- följt av gemener, "
               f"siffror och bindestreck  ({kort})")
+        fynd += 1
+
+    if MARKE.search(sku):
+        print(f"sku.tsv:{nr}  [HUSMÄRKE] {sku!r}  ({kort})")
         fynd += 1
 
     if artikelnummerformer(sku):

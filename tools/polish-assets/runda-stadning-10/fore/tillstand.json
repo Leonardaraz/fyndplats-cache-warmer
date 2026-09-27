@@ -1,0 +1,1311 @@
+{
+ "2caa0197": {
+  "pid": "2caa0197-adc1-4d0e-8ad2-9b04cd933620",
+  "rev": "7",
+  "upd": "2026-09-23T22:41:20.752Z",
+  "namn": "Kontorsstol grå i chenille – rygg i tre delar, 15 cm sits",
+  "slug": "kontorsstol-gra-chenille-rygg-tre-delar",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol grå i chenille | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Segmenterad rygg med tre skumkuddar, 14 cm tjock rygg och 15 cm sits i chenille. Vippfunktion, 360° snurr och sitthöjd 47–55 cm. Inget fotstöd."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_815b816302a649a681cb2080eb1fbd42~mv2.jpg",
+    "Grå kontorsstol i chenille med ryggstöd i tre segment och stoppade armstöd"
+   ],
+   [
+    "b379ce_fbc94594d59a4797952616c17295287e~mv2.jpg",
+    "Stolen står vid ett mörkt skrivbord med hylla och fönster bakom"
+   ],
+   [
+    "b379ce_d8b2e2ec426d4a27af674132d550e7b1~mv2.jpg",
+    "Måttritning med bredd 65 cm, djup 72,5 cm, höjd 110–118 cm och sitthöjd 47–55 cm"
+   ],
+   [
+    "b379ce_f7a0ef6597f84d6ba0b5880190d564d2~mv2.jpg",
+    "Stolen vid ett skrivbord med skärm i ett rum med inbyggd belysning"
+   ],
+   [
+    "b379ce_34730a4333ae4f79af8be8cfb6dc7aec~mv2.jpg",
+    "Stolen vid ett träskrivbord med tavla på väggen bakom"
+   ]
+  ],
+  "kat": [
+   "Kontorsstolar",
+   "Möbler",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-kontorsstol-gra-chenille",
+  "variantId": "e21907a4-16f4-4241-bc0e-8a870e4bb9a9"
+ },
+ "31cbadae": {
+  "pid": "31cbadae-d474-453e-83c7-98c72cb8d7ad",
+  "rev": "5",
+  "upd": "2026-09-27T03:23:01.165Z",
+  "namn": "Kontorsstol grå med massage och värme – 62 cm bred, fälls till 135°",
+  "slug": "kontorsstol-massage-gra-varme-62-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol grå med massage och värme | Fyndplats",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Smal kontorsstol på 62 cm med sex vibrationspunkter i rygg, ländrygg och lår samt värme i midjan. Fälls till 135°, sitthöjd 45–52 cm, bär 120 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_f2634552ff884bccb621377958f33a8b~mv2.jpg",
+    "Grå kontorsstol i mikrofiber med hög rygg, mjuka armstöd och kromad kryssfot"
+   ],
+   [
+    "b379ce_bd71828fa2ab46e896da368b3f0d2db5~mv2.jpg",
+    "Stolen står vid ett vitt skrivbord med skärm framför en mörkblå vägg"
+   ],
+   [
+    "b379ce_35393f18b56745248bd77142671c977b~mv2.jpg",
+    "Måttritning med bredd 62 cm, djup 67 cm, höjd 113–120 cm och fällt läge 143 cm"
+   ],
+   [
+    "b379ce_6cf9b8d0089643ac8fc0658f5e54f334~mv2.jpg",
+    "Närbild på det stoppade armstödet och mikrofibertygets mjuka yta"
+   ],
+   [
+    "b379ce_aaea4b6e18784e558ea17e9624e0e653~mv2.jpg",
+    "Närbild på ryggens stoppade sektioner och den fasta nackkudden"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Möbler",
+   "Massage & Återhämtning",
+   "Kontorsstolar"
+  ],
+  "sku": "FP-kontorsstol-massage-gra-varme",
+  "variantId": "2e45c930-136a-4ed1-ad89-05a6c2a37d09"
+ },
+ "7ef22229": {
+  "pid": "7ef22229-2e99-44a8-8289-2b2de3a0ab47",
+  "rev": "6",
+  "upd": "2026-09-23T22:41:20.949Z",
+  "namn": "Kontorsstol grön med vit stomme – svängt svankstöd, 12,9 kg",
+  "slug": "kontorsstol-gron-vit-svankstod",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol grön med vit stomme | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol i grönt vävt tyg med vit stomme, svängt svankstöd och smala armstöd. Sitthöjd 44–52 cm och 62 cm bred."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_a6512c2500284d9280251a7cdb882c16~mv2.jpg",
+    "Grön kontorsstol med vit stomme, smala armstöd och femarmad fot"
+   ],
+   [
+    "b379ce_b042f52b38214e0f980cd191f387bd40~mv2.jpg",
+    "Stolen står vid ett vitt skrivbord med skärm och byrå bakom"
+   ],
+   [
+    "b379ce_2d86bce0094a416f85210d09debae710~mv2.jpg",
+    "Måttritning med bredd 69 cm, rygg 53 cm, sitthöjd 44–52 cm och armstöd 19,5 cm"
+   ],
+   [
+    "b379ce_7ee3bee2823646e1a63c49ce56831de1~mv2.jpg",
+    "Närbild på ryggens överkant där det gröna tyget möter den vita ramen"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-kontorsstol-gron-vit",
+  "variantId": "e8755c78-697f-4031-bd97-2b9ea3d1629f"
+ },
+ "127b4726": {
+  "pid": "127b4726-6f67-4d9f-837a-8440a55e23a6",
+  "rev": "5",
+  "upd": "2026-09-23T22:41:25.343Z",
+  "namn": "Kontorsstol i mesh 113–132 cm – 4D-armstöd och justerbart svankstöd",
+  "slug": "kontorsstol-mesh-113-132-cm-4d-armstod",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol i mesh, 4D-armstöd | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Ergonomisk kontorsstol i nätväv där nackstöd, ryggens två zoner, svankstöd, sittdjup och 4D-armstöd ställs var för sig. Fälls till 135° med fotstöd."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_c5957f557fd24d9b864cd6e92c35c751~mv2.jpg",
+    "Grå kontorsstol i nätväv med avtagbart nackstöd, 4D-armstöd och utdraget fotstöd"
+   ],
+   [
+    "b379ce_c2f4e9e013b04d159130a0a8f8439ca0~mv2.jpg",
+    "Stolen står vid ett ljust skrivbord med bokhylla och bärbar dator bakom"
+   ],
+   [
+    "b379ce_5681b5d012534b3baf6c3cb034f44ff3~mv2.jpg",
+    "Måttritning med bredd 67 cm, djup 74 cm, höjd 113–132 cm och sits 48 × 46 cm"
+   ],
+   [
+    "b379ce_5d8f763078334024b91f964908b60287~mv2.jpg",
+    "Stolen vid ett höj- och sänkbart skrivbord framför ett fönster"
+   ],
+   [
+    "b379ce_0148afb541954fd6ad337b84b3b787c6~mv2.jpg",
+    "Stolen sedd snett framifrån med fotstödet utdraget och armstöden nedfällda"
+   ]
+  ],
+  "kat": [
+   "Kontorsstolar",
+   "Hem & Inredning",
+   "Möbler"
+  ],
+  "sku": "FP-kontorsstol-mesh-4d-armstod",
+  "variantId": "227baec7-c8ce-48d3-833a-2ec81199aec6"
+ },
+ "820d5370": {
+  "pid": "820d5370-c0d1-4e43-a93d-e360f395a312",
+  "rev": "7",
+  "upd": "2026-09-23T22:41:23.292Z",
+  "namn": "Kontorsstol mörkbrun med massage och justerbar gungfunktion",
+  "slug": "kontorsstol-massage-morkbrun-gungfunktion",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol mörkbrun med massage | Fyndplats",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Mörkbrun kontorsstol i konstläder med ljus kontrastsöm, sex massagepunkter och justerbar gungfunktion. Sitthöjd 48–56 cm, bär 120 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_23f5706d68f8448b8bd14b43bdac6e41~mv2.jpg",
+    "Mörkbrun kontorsstol i konstläder med ljus kontrastsöm och svart kryssfot"
+   ],
+   [
+    "b379ce_c34cb1b37f9c4aa3953b6835e637ee52~mv2.jpg",
+    "Stolen står vid ett vitt skrivbord med skärm och krukväxt"
+   ],
+   [
+    "b379ce_dd6ca63eb5c14b92be1908f42bc1cf08~mv2.jpg",
+    "Måttritning med bredd 64 cm, höjd 112–120 cm, sitsbredd 53,5 cm och sitthöjd 48–56 cm"
+   ],
+   [
+    "b379ce_a8aea9a4dcb741319d5650a637f7c248~mv2.jpg",
+    "En hand trycker ner i sitsen och visar den dubbla stoppningen"
+   ],
+   [
+    "b379ce_95986cbdc5164c209b11710d49631c92~mv2.jpg",
+    "Närbild på armstödets mörkbruna konstläder och den ljusa kontrastsömmen"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning",
+   "Massage & Återhämtning"
+  ],
+  "sku": "FP-kontorsstol-massage-morkbrun",
+  "variantId": "3e8d5e67-35ee-4ada-bf6b-54efbf05def7"
+ },
+ "61dfad38": {
+  "pid": "61dfad38-d7e8-4832-9955-21d488b5b6dd",
+  "rev": "5",
+  "upd": "2026-09-23T22:41:23.380Z",
+  "namn": "Kontorsstol mörkgrå i sammetslook – 56 cm djup, väger 18,5 kg",
+  "slug": "kontorsstol-morkgra-sammetslook-56-cm-djup",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol mörkgrå, 56 cm djup | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Grundaste kontorsstolen i sortimentet på 56 cm djup, med knappad rygg i sammetslook, vippfunktion och fotstöd. Ryggen fälls steglöst till 135°."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_a05c68bc35c144d5b3b173a4020f0e89~mv2.jpg",
+    "Mörkgrå kontorsstol i sammetslook med knappad rygg och utdraget fotstöd"
+   ],
+   [
+    "b379ce_ca68bae9d6044884b25e2fdaf21c67f6~mv2.jpg",
+    "Stolen står tillbakalutad med fotstödet ute vid ett höj- och sänkbart bord"
+   ],
+   [
+    "b379ce_075aa4b615f94791955ff693ad2b4d6b~mv2.jpg",
+    "Måttritning med djup 56 cm, rygg 65 cm, bredd 68,5 cm och sitthöjd 43,5–53,5 cm"
+   ]
+  ],
+  "kat": [
+   "Kontorsstolar",
+   "Möbler",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-kontorsstol-morkgra-sammetslook",
+  "variantId": "64cbdbe1-0a07-4c90-9248-4ab5dc5a0fd2"
+ },
+ "e6236dd0": {
+  "pid": "e6236dd0-dae7-41cd-8f34-7f9b64fead1a",
+  "rev": "5",
+  "upd": "2026-09-27T03:23:08.535Z",
+  "namn": "Kontorsstol rosa i plysch – armlös, 8 kg, sitthöjd 41–51 cm",
+  "slug": "kontorsstol-rosa-teddy-8-kg",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Kontorsstol rosa i plysch, 8 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Armlös kontorsstol i mjukt plyschtyg som väger 8 kg och tar 48 × 53 cm golv. Sitthöjd 41–51 cm och kromad fot med hjul."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_ba37554a227547298493af06002300b2~mv2.jpg",
+    "Rosa armlös kontorsstol i plyschtyg med svängd rygg och kromad fot"
+   ],
+   [
+    "b379ce_ee7af0ba8ac74661af4d19f347a11341~mv2.jpg",
+    "Stolen står vid ett mörkt skrivbord med hylla och surfplatta bakom"
+   ],
+   [
+    "b379ce_7c3084924403414bb7eeea33fb4ec91d~mv2.jpg",
+    "Måttritning med bredd 53 cm, sits 43 cm, höjd 80–90 cm och sitthöjd 41–51 cm"
+   ],
+   [
+    "b379ce_79894f2666e6424383214985c7313d00~mv2.jpg",
+    "Närbild på det rosa plyschtygets lugg i ryggstödet"
+   ],
+   [
+    "b379ce_8f99b7bf9bed4e279f1fac94223b1c6d~mv2.jpg",
+    "Närbild på den kromade femarmade foten med hjul"
+   ]
+  ],
+  "kat": [
+   "Möbler",
+   "Kontorsstolar",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-kontorsstol-rosa-teddy",
+  "variantId": "115bd07e-1d0f-4e12-9705-803afe70825e"
+ },
+ "6fb217e5": {
+  "pid": "6fb217e5-614b-4b48-82d9-a62d6c8fcbf0",
+  "rev": "6",
+  "upd": "2026-09-24T03:46:44.532Z",
+  "namn": "Massagefåtölj med timer och uppresning – fem program, USB-C och 150 kg",
+  "slug": "massagefatolj-timer-fem-program",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagefåtölj med timer och uppresning – fem program",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Massagefåtölj med uppresning i mörkgrå: åtta vibrationspunkter, fem program, två intensiteter och tre timerlägen. Ländvärme, USB-C, fyra fickor, bär 150 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Massagefåtölj med timer och uppresning – fem program, USB-C och 150 kg",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Massagefåtölj med uppresning i mörkgrå: åtta vibrationspunkter, fem program, två intensiteter och tre timerlägen. Ländvärme, USB-C, fyra fickor, bär 150 kg.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_d4d9e1efd77249c6ac3e28acd5a47fb5~mv2.jpg",
+    "Massagefåtölj i mörkgrått tyg med mugghållare och uppresningsfunktion"
+   ],
+   [
+    "b379ce_0e53c911dfda4cb89056ba75b1c3e232~mv2.jpg",
+    "Fåtöljen i ett vardagsrum med sitsen i upplyft läge"
+   ],
+   [
+    "b379ce_ba42932527e94e308796f8f4379390a7~mv2.jpg",
+    "Specifikationer: 93 × 91 × 110 cm, fem program, bär 150 kg"
+   ],
+   [
+    "b379ce_b7776d19b80249e98a80222eabf66dab~mv2.jpg",
+    "Måttritning i tre lägen: 110 cm upprätt, 145 upplyft, 155 tillbakalutad"
+   ],
+   [
+    "b379ce_54d8de301e4449fd9db347c70d24c296~mv2.jpg",
+    "Fåtöljen tillbakalutad med fotstödet uppe"
+   ],
+   [
+    "b379ce_e8b47eea25594afbb34e1fd3ae2e1f36~mv2.jpg",
+    "Fåtöljen sedd från sidan i tillbakalutat läge"
+   ],
+   [
+    "b379ce_a0cf11a8f9744b44bee766fe414f46df~mv2.jpg",
+    "Fåtöljen i vardagsrummet med fotstödet utfällt"
+   ]
+  ],
+  "kat": [
+   "Massagestolar",
+   "Hem & Inredning",
+   "Fåtöljer",
+   "Möbler"
+  ],
+  "sku": "FP-massagefatolj-timer",
+  "variantId": "e96efdb5-dae2-4911-b71f-dd643b70d5dd"
+ },
+ "4439f2a0": {
+  "pid": "4439f2a0-2a5d-47eb-862a-fd966424c514",
+  "rev": "14",
+  "upd": "2026-09-24T03:46:44.943Z",
+  "namn": "Massagefåtölj med uppresning – konstläder svart, mugghållare och 150 kg",
+  "slug": "massagefatolj-uppresning-konstlader-svart",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagefåtölj med uppresning – konstläder svart",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Massagefåtölj med uppresning – konstläder svart, mugghållare och 150 kg",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Elektrisk massagefåtölj i svart konstläder med uppresningshjälp, mugghållare i båda armstöden och fjärrkontroll. Bär 150 kg, fälls till 170 cm."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Elektrisk massagefåtölj i svart konstläder med uppresningshjälp, mugghållare i båda armstöden och fjärrkontroll. Bär 150 kg, fälls till 170 cm.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_561410679ef740ea8bbefb389ff26311~mv2.jpg",
+    "Svart massagefåtölj i konstläder med mugghållare i armstöden och handkontroll"
+   ],
+   [
+    "b379ce_6c1b70d4ae68426bb7e5d09660e3cd7e~mv2.jpg",
+    "Fåtöljen i upplyft läge med stativet utfällt"
+   ],
+   [
+    "b379ce_ca58dd72f55847189c8f7b1339c046eb~mv2.jpg",
+    "Måttritning: 90 × 98 × 102 cm, utfälld 170 cm och sitthöjd 50 cm"
+   ],
+   [
+    "b379ce_b97b539de09d4c1cb465342d76b8edb1~mv2.jpg",
+    "Fyndplats faktakort: mått, sitthöjd, utfälld längd och belastning"
+   ],
+   [
+    "b379ce_f8f8cca49a1b4e7582f5200059e67122~mv2.jpg",
+    "Fyndplats faktakort: mugghållare infällda i båda armstöden"
+   ],
+   [
+    "b379ce_1dd5be903a4748a7ac778a52ff109d95~mv2.jpg",
+    "Fyndplats faktakort: uppresning framåt och liggläge bakåt"
+   ]
+  ],
+  "kat": [
+   "Massagestolar",
+   "Hem & Inredning",
+   "Fåtöljer",
+   "Möbler"
+  ],
+  "sku": "FP-massagefatolj-uppresning",
+  "variantId": "b51da749-f615-4a9d-8fe3-905132940f85"
+ },
+ "2a046f66": {
+  "pid": "2a046f66-9f11-4369-884d-b45e99715c09",
+  "rev": "7",
+  "upd": "2026-09-24T03:46:44.117Z",
+  "namn": "Massagestol beige med gungfunktion – tvåpunktsmassage och USB",
+  "slug": "massagestol-beige-gungfunktion-usb",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol beige med gungfunktion | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol i linnelook med tvåpunktsmassage i ländryggen, USB-drift och gungfunktion med justerbar spänning. Sitthöjd 49–59 cm, bär 115 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_d453e0ea27d14e2baf2492e2762dc51a~mv2.jpg",
+    "Beige massagestol i vävt tyg med svart femarmad fot och två spakar under sitsen"
+   ],
+   [
+    "b379ce_91a139cb162a4a83a010ea69a5cc8b9f~mv2.jpg",
+    "Stolen står vid ett ljust skrivbord med bokhylla bakom"
+   ],
+   [
+    "b379ce_4071d541375646cf9b2a61c380037442~mv2.jpg",
+    "Måttritning med höjd 112–121 cm, sitthöjd 49–59 cm, sits 47 × 50 cm och djup 70 cm"
+   ]
+  ],
+  "kat": [
+   "Fåtöljer",
+   "Möbler",
+   "Massagestolar",
+   "Skönhet & Hälsa",
+   "Massage & Återhämtning",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-massagestol-beige-gungfunktion",
+  "variantId": "2311ff02-0a19-44b7-90da-2d160cc53939"
+ },
+ "1c22b7bd": {
+  "pid": "1c22b7bd-e9e3-4562-b897-3f4067b8404f",
+  "rev": "4",
+  "upd": "2026-09-24T03:46:43.530Z",
+  "namn": "Massagestol cremevit med tre låsbara ryggvinklar – 147 cm utfälld, värme",
+  "slug": "massagestol-cremevit-tre-ryggvinklar",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol cremevit med värme",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Massagestol cremevit med värme från Fyndplats. Fri frakt och 30 dagars öppet köp."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "hochlehner-bürostuhl mit vibrationsmassage und",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_029b393631d54403a1f931855950a9fa~mv2.jpg",
+    null
+   ],
+   [
+    "b379ce_0318d3c3104747a58a7aa7ed651dd383~mv2.png",
+    null
+   ],
+   [
+    "b379ce_ede95de17268438186eeb61e2098d177~mv2.jpg",
+    null
+   ],
+   [
+    "b379ce_75008be3daa3461dab4f3e8fe4fc5724~mv2.jpg",
+    null
+   ],
+   [
+    "b379ce_8170e1dce230415a96b82c186131554e~mv2.png",
+    null
+   ]
+  ],
+  "kat": [
+   "Massagestolar",
+   "Fåtöljer",
+   "Möbler",
+   "Skönhet & Hälsa",
+   "Hem & Inredning",
+   "Massage & Återhämtning"
+  ],
+  "sku": "FP-massagestol-cremevit-tre-vinklar",
+  "variantId": "71224f13-b2b8-451b-8086-683e7f023c94"
+ },
+ "73adb23e": {
+  "pid": "73adb23e-96d6-4672-a264-787994a70dc1",
+  "rev": "8",
+  "upd": "2026-09-24T03:46:43.845Z",
+  "namn": "Massagestol grå med låg sits 41–49 cm – timer och justerbart nackstöd",
+  "slug": "massagestol-gra-lag-sits-41-49-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol grå, sits 41–49 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol i linnelook med sex vibrationspunkter, fem lägen och timer på 15, 30 eller 45 minuter. Sitthöjd 41–49 cm och nackstöd som flyttas 5 cm."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_881872391b77437b8cbd8df32fc23a17~mv2.jpg",
+    "Grå massagestol i linnelook där de sex vibrationspunkterna är markerade"
+   ],
+   [
+    "b379ce_e284d504900a4d42b718e08ff27cb1a7~mv2.jpg",
+    "Stolen står vid ett vitt skrivbord med skärm och fotstödet utdraget"
+   ],
+   [
+    "b379ce_3d42d650e90c42c39dc486da4bf82af3~mv2.jpg",
+    "Måttritning med höjd 105–113 cm, sitthöjd 41–49 cm, bredd 65 cm och djup 61 cm"
+   ]
+  ],
+  "kat": [
+   "Fåtöljer",
+   "Möbler",
+   "Massagestolar",
+   "Massage & Återhämtning",
+   "Skönhet & Hälsa",
+   "Hem & Inredning"
+  ],
+  "sku": "FP-massagestol-gra-lag-sits",
+  "variantId": "de8ec501-a087-473d-a321-f3c3304f9b9d"
+ },
+ "45172748": {
+  "pid": "45172748-f784-4c00-8bd4-256467d1894d",
+  "rev": "6",
+  "upd": "2026-09-24T03:46:43.573Z",
+  "namn": "Massagestol grå med värme och fotstöd – 166 cm utfälld, 16 cm sits",
+  "slug": "massagestol-gra-varme-166-cm-utfalld",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol grå, 166 cm utfälld | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol med sex vibrationspunkter och ländvärme i tre steg. Ryggen låser i valfri vinkel till 135° och fotstödet ger 166 cm liggyta."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_adfdee411b9c4b958fd2432b713133af~mv2.jpg",
+    "Grå massagestol i tryckt sammet med rutsömmad rygg, svarta armstöd och utdraget fotstöd"
+   ],
+   [
+    "b379ce_52ebfb87e5484a548c7186dec6f600b2~mv2.jpg",
+    "Stolen står vid ett ljust skrivbord med bokhylla och bärbar dator bakom"
+   ],
+   [
+    "b379ce_bbb68084c79941998c2e368ac9b662f5~mv2.jpg",
+    "Faktakort: 16 cm stoppning i sitsen och utdragbart fotstöd. 69,5 × 77,5 × 118–126 cm, sitthöjd 51–58 cm, maxlast 120 kg"
+   ],
+   [
+    "b379ce_9d221ddba2014a19b13c6e3be03194e6~mv2.jpg",
+    "Kvinna sitter vid skrivbordet med fötterna på det utdragna fotstödet"
+   ],
+   [
+    "b379ce_9daebcc4ad4148cf8aa6eb16445cd911~mv2.jpg",
+    "Måttritning med bredd 69,5 cm, djup 77,5 cm, höjd 118–126 cm och sitthöjd 51–58 cm"
+   ]
+  ],
+  "kat": [
+   "Massagestolar",
+   "Fåtöljer",
+   "Möbler",
+   "Hem & Inredning",
+   "Skönhet & Hälsa",
+   "Massage & Återhämtning"
+  ],
+  "sku": "FP-massagestol-gra-166-cm-utfalld",
+  "variantId": "c6ede28b-38d8-48ea-88aa-4a58472f8b40"
+ },
+ "c7f46a23": {
+  "pid": "c7f46a23-ac54-4e05-a01a-ed52dc44a828",
+  "rev": "6",
+  "upd": "2026-09-24T03:46:43.447Z",
+  "namn": "Massagestol rosa med fickfjädrar – sex punkter, värme, bär 135 kg",
+  "slug": "massagestol-rosa-fickfjadrar-135-kg",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol rosa, bär 135 kg | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol i sammetslook med sex vibrationspunkter, ländvärme och fickfjädrar i den 14 cm tjocka sitsen. Ryggen fälls till 135° och stolen bär 135 kg."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_07aea0ce45b3439c87f48eee489677ad~mv2.jpg",
+    "Rosa massagestol i sammetslook med rutsömmad rygg och kromad femarmad fot"
+   ],
+   [
+    "b379ce_aedad50b84574eb9b907dd4fcf3480d3~mv2.jpg",
+    "Stolen står vid ett mörkt skrivbord med skärm och persienner bakom"
+   ],
+   [
+    "b379ce_308b0109cd5046e69b0d33f01d43f372~mv2.jpg",
+    "Måttritning med bredd 67 cm, djup 72 cm, höjd 111–119 cm och sits 54 × 53 cm"
+   ],
+   [
+    "b379ce_249e3660437f4e6c9e778a4fc1bdd059~mv2.jpg",
+    "Närbild där en hand trycker ner i den rosa sammetsytan"
+   ]
+  ],
+  "kat": [
+   "Fåtöljer",
+   "Möbler",
+   "Massagestolar",
+   "Hem & Inredning",
+   "Skönhet & Hälsa",
+   "Massage & Återhämtning"
+  ],
+  "sku": "FP-massagestol-rosa-fickfjadrar",
+  "variantId": "bbcb6840-29ab-41b8-bb54-dbd5e86c8b66"
+ },
+ "f81daa29": {
+  "pid": "f81daa29-a001-4aee-a2ab-287fc61d3bc8",
+  "rev": "7",
+  "upd": "2026-09-24T03:46:43.890Z",
+  "namn": "Massagestol svart med hög sits – 58–68 cm, 62 cm djup, sex punkter",
+  "slug": "massagestol-svart-hog-sits-58-68-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Massagestol svart, sits 58–68 cm | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Kontorsstol i linneimitation med sex vibrationspunkter, 135° ryggläge och fotstöd. Sitthöjden går från 58 till 68 cm och stolen är bara 62 cm djup."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": []
+   }
+  },
+  "media": [
+   [
+    "b379ce_475f8b867ad54271ab19717af047b7d6~mv2.jpg",
+    "Svart massagestol i linneimitation med tjock stoppning och utdraget fotstöd"
+   ],
+   [
+    "b379ce_7af06cf00db24277846da9e394d29317~mv2.jpg",
+    "Stolen står vid ett träskrivbord med skärm och fotstödet utdraget"
+   ],
+   [
+    "b379ce_8a3fd9aa057d4e23ad945c776a37fd98~mv2.jpg",
+    "Måttritning med bredd 70 cm, höjd 120–130 cm, sitthöjd 58–68 cm och sits 52 × 44 cm"
+   ],
+   [
+    "b379ce_4591dd0c2f36490ba3f80f580b7ea241~mv2.jpg",
+    "Stolen vid ett skrivbord med skärm och krukväxt mot en grå vägg"
+   ],
+   [
+    "b379ce_5e05c68889474f20b37d751c67cc3744~mv2.jpg",
+    "Stolen vid ett träskrivbord med skärm och en hylla i bakgrunden"
+   ]
+  ],
+  "kat": [
+   "Fåtöljer",
+   "Möbler",
+   "Massagestolar",
+   "Hem & Inredning",
+   "Skönhet & Hälsa",
+   "Massage & Återhämtning"
+  ],
+  "sku": "FP-massagestol-svart-hog-sits",
+  "variantId": "9dbc05e1-ccc4-4072-91c2-aed47e5d22a1"
+ },
+ "88ebb094": {
+  "pid": "88ebb094-4a2e-47ba-89e5-b31559aadf7b",
+  "rev": "7",
+  "upd": "2026-09-24T03:46:43.521Z",
+  "namn": "Minielkamin 34 cm bred – 1200 W och låga utan värme",
+  "slug": "minielkamin-34-cm-1200-w",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Minielkamin 34 cm – 1200 W och låga utan värme",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Den minsta elkaminen vi har: 34 centimeter bred, 17 djup och 25 hög, och 4,4 kilo tung. Bakom glaset ligger formade vedträn som lyses upp av en halogenlamp"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_edb51abfeff64375ba775296f0ca56db~mv2.jpg",
+    "Svart minielkamin 34 cm bred med glöd bakom glaset"
+   ],
+   [
+    "b379ce_0273a157ea2b47889a55a4c921062eae~mv2.jpg",
+    "Specifikation: 34 × 17 × 25 cm, 600/1200 W, 4,4 kg"
+   ],
+   [
+    "b379ce_d34dbc8eee7543a393002dae867b7c02~mv2.jpg",
+    "Minielkaminen står på ett skrivbord bredvid en skärm"
+   ],
+   [
+    "b379ce_2736334f6990427ba2eaab6c58a75f19~mv2.jpg",
+    "Halogenlågan tänds separat från värmen"
+   ],
+   [
+    "b379ce_8805d64827914edba32bcc316fd7b040~mv2.jpg",
+    "Måttritning: 34 cm bred, 17 djup och 25 hög"
+   ],
+   [
+    "b379ce_ddb4cf4decfa43dba60b09da4f3c32d5~mv2.jpg",
+    "Kaminen på ett trägolv med glöden tänd"
+   ],
+   [
+    "b379ce_4152f172a21a4a0f982eaa42c953b541~mv2.jpg",
+    "Baksidan med strömbrytare och märkskylt"
+   ]
+  ],
+  "kat": [
+   "Hem & Inredning",
+   "Dekoration & Prydnad",
+   "Hushållsapparater",
+   "Elkaminer"
+  ],
+  "sku": "FP-minielkamin-34",
+  "variantId": "ea0da4dc-3aca-48cf-b25f-c50d69322b16"
+ },
+ "6297606f": {
+  "pid": "6297606f-24f6-46e1-8859-2c6891e567dd",
+  "rev": "7",
+  "upd": "2026-09-24T01:55:24.542Z",
+  "namn": "Mjuk hundbur 60 cm för liten hund – väger 3,8 kg, dyna ingår",
+  "slug": "mjuk-hundbur-60-cm",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Mjuk hundbur 60 cm för liten hund | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Mjuk hundbur 60 × 42 × 43 cm för hundar upp till 4 kg. Viks till 42 × 20 × 20 cm och väger 3,8 kg. Nät på tre sidor."
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "keywords",
+      "content": "mjuk hundbur 60 cm, hundbur, hundbur liten hund"
+     },
+     "children": "",
+     "custom": false,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "hundebox faltbar hundetransportbox mit",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_1df097c9ff8646c9ba894b944aa1d5ef~mv2.jpg",
+    "Mjuk hundbur 60 cm i grå väv med nät på tre sidor, mot vit bakgrund"
+   ],
+   [
+    "b379ce_4d7b52971e544fb68fee04159207c0b0~mv2.jpg",
+    "Mjuk hundbur 60 cm i en park med en liten hund liggande bredvid"
+   ],
+   [
+    "b379ce_1fa378449dd3492392fa8f96194e1ba9~mv2.jpg",
+    "Mjuk hundbur på gräs med måtten 60 × 42 × 43 cm utsatta och en liten hund bredvid"
+   ],
+   [
+    "b379ce_6250aae47bad48a7a08ec1d3245a345d~mv2.jpg",
+    "Måttkort: 58 × 40 × 42 cm invändigt, hopfälld 42 × 20 × 20 cm och 3,8 kg"
+   ]
+  ],
+  "kat": [
+   "Husdjur",
+   "Burar, Kläder & Tillbehör",
+   "Hundburar"
+  ],
+  "sku": "FP-mjuk-hundbur-60-cm",
+  "variantId": "ac3e02fa-be4e-4ea6-80fa-f9d18ca14c81"
+ },
+ "79ac9a1e": {
+  "pid": "79ac9a1e-486e-4525-b127-f075d8c500bf",
+  "rev": "9",
+  "upd": "2026-09-23T22:41:30.186Z",
+  "namn": "Modulsoffa i U-form 369 cm – byggs om till bäddyta 248 × 187 cm",
+  "slug": "modulsoffa-u-form-369-cm-baddyta",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Modulsoffa i U-form 369 cm – byggs om till bäddyta 248 ×",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Modulsoffa i U-form 369 cm – byggs om till bäddyta 248 × 187 cm",
+      "property": "og:title"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Modulsoffa i U-form, 369 × 152 cm, med två schäslonger i manchesterlook. Modulerna skjuts ihop till en bäddyta på 248 × 187 cm. Bär 440 kg."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "Modulsoffa i U-form, 369 × 152 cm, med två schäslonger i manchesterlook. Modulerna skjuts ihop till en bäddyta på 248 × 187 cm. Bär 440 kg.",
+      "property": "og:description"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "content": "product",
+      "property": "og:type"
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_39703b1534f445d28c41628940a291e7~mv2.jpg",
+    "Mörkgrå modulsoffa i U-form med två schäslonger i manchesterlook"
+   ],
+   [
+    "b379ce_58142ca1ad32475fa86f17643a31ecaf~mv2.jpg",
+    "Modulsoffan i ett vardagsrum med båda schäslongerna utställda"
+   ],
+   [
+    "b379ce_edef2dce5b714fc6865cc353d21adcda~mv2.jpg",
+    "Måttritning: 369 × 152 × 78 cm och bäddyta 248 × 187 cm"
+   ],
+   [
+    "b379ce_42192efb3dbe48f48fd2d5aafa3bdcda~mv2.jpg",
+    "Fyndplats faktakort: yttermått, sittdjup, bäddyta och belastning"
+   ],
+   [
+    "b379ce_301ec5ad94c74a509490f2217613d7bc~mv2.jpg",
+    "Fyndplats faktakort: modulerna skjuts ihop till en bäddyta 248 × 187"
+   ],
+   [
+    "b379ce_917f29f775ec49ed860223084bc05a8c~mv2.jpg",
+    "Fyndplats faktakort: soffan är angiven för 440 kg"
+   ]
+  ],
+  "kat": [
+   "Soffor & bäddsoffor",
+   "Hem & Inredning",
+   "Möbler"
+  ],
+  "sku": "FP-modulsoffa-u-form-369",
+  "variantId": "2beb539c-152b-4e72-9c93-ee5d9e5dba28"
+ },
+ "de64bbc8": {
+  "pid": "de64bbc8-8996-455b-ad06-0e40657c3e0f",
+  "rev": "12",
+  "upd": "2026-09-23T23:48:05.127Z",
+  "namn": "Multigym 250 cm med bänk och dipstation – över tio övningar",
+  "slug": "multigym-250-cm-bank-dipstation",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Multigym 250 cm med bänk och dipstation | Fyndplats",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Multigym på 250 × 183 × 213 cm med latsdrag, butterfly, dipstation och justerbar träningsbänk som ingår. Över tio övningar från ett justerbart viktblock."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ],
+   "settings": {
+    "preventAutoRedirect": false,
+    "keywords": [
+     {
+      "term": "multigym 250 cm",
+      "isMain": true,
+      "origin": "USER"
+     }
+    ]
+   }
+  },
+  "media": [
+   [
+    "b379ce_cfb08c5a4142420aa02949f136666171~mv2.jpg",
+    "Svart multigym med dipstation, viktblock och separat justerbar träningsbänk"
+   ],
+   [
+    "b379ce_5255674a16f14740a3b72308e1f59bee~mv2.png",
+    "Multigymmet i ett vardagsrum med den justerbara bänken utfälld"
+   ],
+   [
+    "b379ce_7512fec705c240e389cc749a0cdc9d3b~mv2.jpg",
+    "Måttritning: 250 × 183 × 213 cm med bänk och dipstation"
+   ],
+   [
+    "b379ce_e984a7ea3d324df1ba93375ab6f45eff~mv2.jpg",
+    "Person som tränar latsdrag sittande på den justerbara bänken"
+   ],
+   [
+    "b379ce_6d96ba7e8688471d821d5663d7602ecc~mv2.png",
+    "Person som tränar benspark i multigymmet med bänken bredvid"
+   ],
+   [
+    "b379ce_9418563cf152435ea4fef761b5bfcb21~mv2.jpg",
+    "Fyndplats faktakort: mått, ingående stationer och träningsbänk"
+   ]
+  ],
+  "kat": [
+   "Träning & Gym",
+   "Sport & Fritid"
+  ],
+  "sku": "FP-multigym-250-cm-bank",
+  "variantId": "59443991-c875-479e-863a-771f6881927d"
+ },
+ "55b2873c": {
+  "pid": "55b2873c-ae15-4efe-9f62-ce8c392abe18",
+  "rev": "9",
+  "upd": "2026-09-13T17:40:48.240Z",
+  "namn": "Naturehike CW400 dunsovsäck – öppnas till filt eller poncho",
+  "slug": "naturehike-cw400-dunsovsack-oppnas-till-filt-eller-poncho",
+  "seo": {
+   "tags": [
+    {
+     "type": "title",
+     "children": "Naturehike CW400 dunsovsäck 885 g, 650 fill power",
+     "custom": false,
+     "disabled": false
+    },
+    {
+     "type": "meta",
+     "props": {
+      "name": "description",
+      "content": "Dunsovsäck med 400 g anddun och 650 fill power. Väger 885 g och packas till Ø 18 × 35 cm. Dragkedjan går runt — öppnas till en 220 × 170 cm filt."
+     },
+     "children": "",
+     "custom": true,
+     "disabled": false
+    }
+   ]
+  },
+  "media": [
+   [
+    "b379ce_d5d6d1130de34b4bb278dc668c001f9b~mv2.jpg",
+    "Naturehike CW400 dunsovsäck i grått med gult foder, mot vit bakgrund"
+   ],
+   [
+    "b379ce_8fa998eeb1564ac19325eccafe038d2f~mv2.jpg",
+    "Man sitter i CW400-sovsäcken med huvan uppe och en mugg kaffe bredvid ett tält"
+   ],
+   [
+    "b379ce_710029de12244473b2661c9ef8c6bac9~mv2.png",
+    "Tre användningssätt: sovsäck med huva, filt i tältet och poncho över axlarna"
+   ],
+   [
+    "b379ce_7f485dd373f34aefb6405f43cde40b53~mv2.jpg",
+    "CW400 helt uppfälld till en 220 × 170 cm filt med det gula fodret uppåt"
+   ],
+   [
+    "b379ce_112517bafb9e4d19bc935eff0bdf9f90~mv2.jpg",
+    "Sovsäcken uppfälld och slängd över axlarna som en filt i solnedgången"
+   ],
+   [
+    "b379ce_50980309eef94f0ca4912ce352691b84~mv2.png",
+    "Specifikation: 400 g anddun, 650 cuin fillpower, 20D ripstop-nylon och 885 g totalvikt"
+   ],
+   [
+    "b379ce_517ca92714324fbdb1f68dfa225378e5~mv2.jpg",
+    "Sovsäcken pressas ihop i förvaringspåsen till Ø 18 × 35 cm"
+   ]
+  ],
+  "kat": [
+   "Sport & Fritid",
+   "Friluftsliv & Resa"
+  ],
+  "sku": "FP-naturehike-cw400-dunsovsack",
+  "variantId": "ca7ba833-3f1f-4861-ab4e-1827272c46db"
+ }
+}
