@@ -93,7 +93,10 @@ export type ListaInfo = {
  * Sidans del av listan: de första korten och sammanfattningen. `ordnad` ska
  * vara listan i visningsordning (ordnaLista).
  */
-export function listaForSidan(ordnad: Product[], nyckel: ListNyckel): { products: ListProduct[]; lista: ListaInfo } {
+export function listaForSidan(ordnad: Product[], nyckel: ListNyckel): { products: ListProduct[]; lista?: ListaInfo } {
+  // Ryms hela listan i sidans kort (rean, de flesta underkategorier) finns
+  // inget att hämta: sidan får hela listan och ShopBrowser räknar allt själv.
+  if (ordnad.length <= FORSTA_KORT) return { products: forClient(ordnad) };
   return {
     products: forClient(ordnad.slice(0, FORSTA_KORT)),
     lista: { url: listaUrl(nyckel), oversikt: listOversikt(ordnad) },

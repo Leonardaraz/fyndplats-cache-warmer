@@ -41,6 +41,9 @@ export async function varmSida(path: string): Promise<boolean> {
       // cache-posten. En vanlig hämtning gör precis det.
       headers: { "user-agent": "fyndplats-warmer" },
       cache: "no-store",
+      // En hängande begäran får inte ta hela cronens tid (maxDuration 300 s).
+      // 60 s rymmer den längsta uppmätta kallstarten (bildkartan, 35,4 s).
+      signal: AbortSignal.timeout(60_000),
     });
     return res.ok;
   } catch {
@@ -60,13 +63,17 @@ export const varmBildkartan = () => varmSida("/api/kort-bilder");
  * tryckt "Visa fler" eller valt ett filter. Parallellt i små omgångar: de
  * flesta svaren är CDN-träffar som inte kostar något.
  */
-export async function varmListor(nycklar: readonly ListNyckel[]): Promise<{ ok: number; fel: number }> {
+export async function varmListor(
+  nycklar: readonly ListNyckel[],
+  deadline = Infinity,
+): Promise<{ ok: number; fel: number; avbruten: boolean }> {
   let ok = 0, fel = 0;
   for (let i = 0; i < nycklar.length; i += PARALLELLT) {
+    if (Date.now() > deadline) return { ok, fel, avbruten: true };
     const res = await Promise.all(nycklar.slice(i, i + PARALLELLT).map((k) => varmSida(listaUrl(k))));
     for (const r of res) { if (r) ok++; else fel++; }
   }
-  return { ok, fel };
+  return { ok, fel, avbruten: false };
 }
 
 export async function varmAlla(

@@ -52,7 +52,9 @@ test("kategorisidan sorterar inte om listan efter ordnaLista", () => {
 test("/api/lista räknar samma lista som sidorna", () => {
   const route = readFileSync("app/api/lista/route.ts", "utf8");
   const lib = readFileSync("lib/list-pages.ts", "utf8");
-  assert.match(route, /listaFor\(nyckel, currentDayMs\(\)\)/);
+  assert.match(route, /const dagMs = currentDayMs\(\);\s*const lista = await listaFor\(nyckel, dagMs\);/);
+  // Bara bilder för det som kan synas direkt — resten ur bildkartan.
+  assert.match(route, /forListClient\(lista, dagMs\)/);
   assert.match(route, /Cache-Control/);
   // Samma urval som kategorisidan: kategoriProdukter + dedupeProducts + ordnaLista.
   assert.match(lib, /ordnaLista\(dedupeProducts\(kategoriProdukter\(active, collections, produkter\)\), dagMs\)/);
@@ -70,6 +72,16 @@ test("ShopBrowser: sidans egna kort flyttas inte när hela listan kommer", () =>
   // Utan filter i URL:en förhämtas listan först när webbläsaren är ledig.
   assert.match(src, /requestIdleCallback\(\(\) => hamtaLista\(\)/);
   assert.match(src, /if \(!arStandard\) \{ hamtaLista\(\); return; \}/);
+  // Allt som kräver listan begär den — även reglagen, som på dator syns utan
+  // att filterknappen rörs.
+  assert.match(src, /useEffect\(\(\) => \{\s*if \(behoverLista && !listaFel\) hamtaLista\(\);/);
+  // Tre misslyckade försök lämnar inte kunden i ett låst läge.
+  assert.match(src, /listaFel && behoverLista && \(/);
+});
+
+test("korta listor skickas hela i sidan, utan hämtning", () => {
+  const lib = readFileSync("lib/list-pages.ts", "utf8");
+  assert.match(lib, /if \(ordnad\.length <= FORSTA_KORT\) return \{ products: forClient\(ordnad\) \};/);
 });
 
 test("ShopBrowser: sammanfattningen, inte de första korten, styr filterpanelen", () => {

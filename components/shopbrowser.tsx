@@ -87,7 +87,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
     <>
       <SubNav subs={subs} />
       <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
-        <ShopBrowserInner products={products} defaultSort={defaultSort} dayMs={dayMs} lista={lista} />
+        <ShopBrowserInner key={lista?.url} products={products} defaultSort={defaultSort} dayMs={dayMs} lista={lista} />
       </Suspense>
     </>
   );
@@ -174,23 +174,26 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
   // (lib/list-pages.ts). `alla` är null tills den kommit. Utan `lista` är
   // `products` redan hela listan och inget hämtas.
   const [hamtad, setHamtad] = useState<ListProduct[] | null>(null);
+  // true när tre försök i rad misslyckats — då visas "Försök igen" i stället
+  // för ett rutnät som väntar på något som inte kommer.
+  const [listaFel, setListaFel] = useState(false);
   const alla = lista ? hamtad : products;
   const listaBegard = useRef(false);
   const listaUrl = lista?.url;
   const hamtaLista = useCallback(() => {
     if (!listaUrl || listaBegard.current) return;
     listaBegard.current = true;
+    setListaFel(false);
     // Tre försök med växande paus. Knappen "Visa fler" är låst medan kunden
     // väntar på listan, så ett enda misslyckat anrop hade annars lämnat den
-    // låst. Går alla tre fel ligger korten kvar som de är, och nästa avsikt
-    // (hovring, fokus, tryck) börjar om.
+    // låst. Går alla tre fel visas "Försök igen" (se listaFel).
     const forsok = (n: number) => {
       fetch(listaUrl)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((d: ListProduct[]) => setHamtad(d))
         .catch(() => {
           if (n < 3) window.setTimeout(() => forsok(n + 1), 1500 * n);
-          else listaBegard.current = false;
+          else { listaBegard.current = false; setListaFel(true); }
         });
     };
     forsok(1);
@@ -403,10 +406,10 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
 
   // ── Bilderna som inte fick plats i sidans HTML ────────────────────────────
   //
-  // Gäller sök, där sidan bär hela träfflistan (filtren räknas här) men ritar
-  // 24 kort. Bilderna för träffar långt ner skickas därför inte med — se
-  // lib/list-payload.ts. (Listsidorna hämtar i stället hela listan, med bilder,
-  // från /api/lista — se hamtaLista ovan.)
+  // Listan — sökträffarna i sidan, eller listsidornas lista från /api/lista —
+  // bär bilder bara för de produkter som kan stå i vyn direkt (de första och
+  // toppen av varje sortering). Bilderna för produkter långt ner skickas inte
+  // med — se lib/list-payload.ts.
   // De hämtas som EN karta från /api/kort-bilder, hårt cachad, och återanvänds
   // sedan för hela besöket och över alla listsidor.
   //
@@ -448,13 +451,22 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
   const remaining = totalt - visible.length;
   // Kunden har bett om något som kräver hela listan och den har inte kommit:
   // ett filter eller en sortering, eller fler kort än sidan bär.
-  const vantar = !!lista && !alla && (!arStandard || shown > products.length);
+  const behoverLista = !!lista && !alla && (!arStandard || shown > products.length);
+  const vantar = behoverLista && !listaFel;
 
-  // Avsikt att se mer än sidans egna kort. Listsidorna hämtar hela listan (den
-  // bär bilderna), sök hämtar bildkartan.
+  // Behövs listan och har den inte begärts, begär den. Täcker allt som inte
+  // går via avsikts-signalerna nedan — framför allt prisreglaget, färgskenan
+  // och kryssrutorna, som på dator alltid syns utan att filterknappen rörs.
+  // (Utan det här fastnade en besökare med datasparläge i väntläget.)
+  useEffect(() => {
+    if (behoverLista && !listaFel) hamtaLista();
+  }, [behoverLista, listaFel, hamtaLista]);
+
+  // Avsikt att se mer än sidans egna kort: listsidorna hämtar hela listan, och
+  // alla hämtar bildkartan för korten långt ner (lib/list-payload.ts).
   const hamta = useCallback(() => {
     if (lista) hamtaLista();
-    else hamtaBilder();
+    hamtaBilder();
   }, [lista, hamtaLista, hamtaBilder]);
 
   // FÖRHÄMTNING NÄR WEBBLÄSAREN ÄR LEDIG. Avsikts-signalerna räcker oftast,
@@ -498,9 +510,8 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
   // annars hade den besökaren fått väntande fotorutor som aldrig fylldes.
   const nagotKortSaknarBild = visible.some(saknarBild);
   useEffect(() => {
-    // Listsidornas lista bär sina bilder; där finns inget att hämta här.
-    if (!lista && nagotKortSaknarBild) hamtaBilder();
-  }, [lista, nagotKortSaknarBild, hamtaBilder]);
+    if (nagotKortSaknarBild) hamtaBilder();
+  }, [nagotKortSaknarBild, hamtaBilder]);
 
   return (
     <>
@@ -531,7 +542,9 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
           </select>
         </label>
 
-        <div className="shopbar-panel">
+        {/* På dator syns panelen alltid, utan att filterknappen rörs — att
+            närma sig den är avsikten. */}
+        <div className="shopbar-panel" onPointerEnter={hamta} onFocusCapture={hamta}>
           {bounds && (
             <div className="filter-group">
               <span className="filter-label">Pris</span>
@@ -702,7 +715,14 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista }: { 
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
           <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => <ProductCard p={medBild(p)} key={p.slug} priority={i < 4} />)}</div>
-          {remaining > 0 && (
+          {listaFel && behoverLista && (
+            <div className="loadmore-wrap">
+              <button type="button" className="loadmore" onClick={hamtaLista}>
+                Kunde inte hämta fler produkter · Försök igen
+              </button>
+            </div>
+          )}
+          {remaining > 0 && !(listaFel && behoverLista) && (
             <div className="loadmore-wrap">
               {/* onPointerEnter/onTouchStart: bildkartan är på väg innan klicket
                   hinner registreras, så nästa 24 kort har sina foton direkt. */}

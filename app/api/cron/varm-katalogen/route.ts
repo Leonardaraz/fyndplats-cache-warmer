@@ -77,20 +77,20 @@ export async function GET(request: Request) {
   // LISTSIDORNAS PRODUKTLISTOR (app/api/lista), av samma skäl som bildkartan:
   // en kall lista är en kund som väntar på "Visa fler". Varje körning värms de
   // listor flest ser — hela sortimentet, rean och huvudavdelningarna. Efter en
-  // deploy, när katalogen är kall, värms alla (nedan).
+  // deploy, när katalogen är kall, värms alla — EFTER produktsidorna och inom
+  // samma deadline, så de aldrig tränger undan dem.
   const kategorier = await getCollections();
   const listnycklar: ListNyckel[] = ["alla", "rea", ...kategorier.map((c) => `kategori/${c.slug}` as const)];
   const toppnycklar: ListNyckel[] = ["alla", "rea", ...kategorier.filter((c) => c.parentId === null).map((c) => `kategori/${c.slug}` as const)];
 
   const prov = await katalogenArKall(slugs);
   if (!prov.kall) {
-    const listor = await varmListor(toppnycklar);
+    const listor = await varmListor(toppnycklar, deadline);
     return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan, listor });
   }
 
-  const listor = await varmListor(listnycklar);
-
   const varmning = await varmAlla(roterad(slugs), deadline);
+  const listor = await varmListor(listnycklar, deadline);
 
   console.log(
     `[varm-katalogen] prov ${prov.missar}/${prov.av} MISS → kall. `
