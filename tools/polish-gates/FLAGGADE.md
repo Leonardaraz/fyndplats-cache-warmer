@@ -3291,3 +3291,30 @@ beslut — se den samlade frågan om detta.
   elektriker står som villkor med egen rubrik och i Produktsäkerhet. (N80)
 - Hoppade över i urvalet för saldo 0: `0b36127f`, `58c60fb4` och `b47f2372`.
   Utkast med syskon lämnades till färgsyskonrundorna. (N80)
+- Skrivbordet `a1f16108` fick det vita syskonet `9b11bec6` som val. Namnet bar
+  färgen och döptes om före sammanslagningen, med oförändrad slug, och texten
+  och SEO skrevs om för svart och vitt. Givaren är pensionerad, och dess pris
+  följer husets regel från nästa synk i stället för konkurrentregeln, som
+  planen varnade för. (N81)
+- Barbordet `dc534033` är bara kopplat till Möbler. Texten på Barbord räknar
+  två höj- och sänkbara runda barbord (70–90 och 67–93 cm), och det här blir
+  ett tredje (Ø61 cm, 76–97 cm). Det kopplas till Barbord när texten är
+  omskriven. (N81)
+- Barbordet `dc534033` säljs utan stolar, men bild 2 visar en barstol.
+  Ingressen, egenskaperna, metan och en fråga säger att stolarna inte ingår.
+  (N81)
+- Papasanfåtöljen `80501518`: källan anger B87 × T97 cm, men sitsen är 92 cm
+  bred och måttritningen visar 97 cm framifrån. Måttraden är skriven
+  97 × 87 × 86 cm, bredd före djup. (N81)
+- Sängramen `f433cc0f`: källan säger både 12 och 2 ribbor med 11 cm
+  mellanrum. Måttritningen stämmer med 12, och texten säger 12. (N81)
+- Bildgranskningen strök 8 av 33 bilder: tysk text på två och läsbar text
+  eller märken på rekvisita på sex (förpackningar, böcker och radio, koppar,
+  burkar, flasketiketter och en märkesfigur, en boktitel och en kamera).
+  Sängramen och köksskåpet har två bilder var. (N81)
+- Tal som bara står i bilderna är kvitterade i `foto-tal.txt`: barstolarnas
+  sitthöjd 60–81,5 cm och fotringen 21–41 cm över golvet. (N81)
+- Köksskåpet `fbcf5899` har saldo 2 i Wix. (N81)
+- Hoppade över i urvalet för saldo 0: `2ca1a259`, `8163e9a0`, `14d6cc9e`,
+  `cc6549e3`, `3da48fb6`, `55f4c0d9` och `d9f4c334`. Utkast med syskon, bland
+  dem `141a4624` med `beb5d127`, lämnades till färgsyskonrundorna. (N81)

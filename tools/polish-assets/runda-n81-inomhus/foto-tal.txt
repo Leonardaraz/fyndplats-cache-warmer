@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+09c10d30 60 sitthöjd 60–81,5 cm, avläst på måttbilden (bild 3)
+09c10d30 81,5 sitthöjd 60–81,5 cm, avläst på måttbilden (bild 3)
+09c10d30 21 fotringen 21–41 cm över golvet, avläst på måttbilden (bild 3)
+09c10d30 41 fotringen 21–41 cm över golvet, avläst på måttbilden (bild 3)
