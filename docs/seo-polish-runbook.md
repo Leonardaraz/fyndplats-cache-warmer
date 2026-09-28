@@ -614,6 +614,32 @@ Raderna i `Tekniska specifikationer`. Formerna nedan är provade mot butikens to
 - **Batterierna till fjärrkontrollen** gör inte lampan batteridriven. Skriv `Fjärrkontroll
   ingår (2 × AAA, ingår inte)` på samma rad, så läses de rätt.
 
+**Måtten** (provade mot tolkningen 2026-09-28):
+
+- **Förpackningens mått** skrivs på en egen rad, `Paketmått: 120 × 60 × 15 cm`. Den läses
+  aldrig som produktens mått, så den kan aldrig ersätta `Mått`-raden. Står bara
+  kartongens mått på sidan har varan inget måttfilter.
+- **Tre tal.** Två tal utan förklaring (`Mått: 60 × 180 cm`) kan vara en spegel, en matta
+  eller ett växthus, och ger därför bara bredden. Skriv alltid bredd × djup × höjd. Står
+  talen i en annan ordning, skriv axlarna efter: `Mått: 180 × 60 × 2 cm (H × B × D)`.
+- **Justerbar höjd** skrivs som intervall, `Mått: 60 × 55 × 73–89 cm` eller `Höjd: 73–89
+  cm`. Varan passar då både den som söker 75 och den som söker 85 cm.
+- **Ett mått i namnet** räknas bara när där står minst två ("Kaninhus 122 × 93,5 cm"). Ett
+  ensamt tal i namnet är för ofta en del av varan ("bred sits på 79 cm"), så skriv
+  måtten i `Tekniska specifikationer` även när namnet bär ett.
+
+**När ett filter syns.** Filtret visas bara när tillräckligt många produkter i kategorin
+har uppgiften:
+
+| Filter | Visas när |
+|---|---|
+| Reglagen (mått, sitthöjd, maxlast, vikt, effekt, volym, ålder) och material | minst 60 % av kategorins produkter har uppgiften, och värdena skiljer sig åt |
+| Knapparna (klädsel, djur, form, placering, bränsle, lådor, sittplatser, våningar, sängbredd) | minst 40 % har uppgiften och det finns minst två val |
+| En egenskap (hjul, LED, timer …) | minst 3 produkter har den, men inte nästan alla (över 90 %) |
+
+En kategori där hälften saknar `Mått`-raden får alltså inget måttfilter alls, inte ens för
+de produkter som har den. Varje ifylld rad i en sådan kategori räknas.
+
 Var det lönar sig att börja står i `docs/polish/filterluckor.md`: kategorier där några få
 produkter till tänder ett nytt filter, och produkter som faller bort ur filter som redan
 syns.
