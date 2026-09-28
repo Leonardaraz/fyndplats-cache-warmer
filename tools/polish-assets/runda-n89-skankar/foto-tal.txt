@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+31732cff 3 dörrar, dubbeldörrar till vänster och en dörr till höger, räknade på produktfotot (bild 1)
+2b58d816 3 hyllor på insidan av vänstra dörren, räknade på produktfotot (bild 1) och på källans tre mått för dörrhyllorna
+2b58d816 2 dörrar på skåpet till höger, räknade på produktfotot (bild 1)
+0051b13b 2 skåp, ett till vänster och ett till höger, räknade på produktfotot (bild 1) och på källans två innermått

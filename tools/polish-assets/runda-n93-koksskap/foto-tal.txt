@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f2a348ff 3 dörrar: bild 1 och 2 visar tre dörrar, två till vänster och en hög till höger
+2945da6c 2 dörrar och lådor: bild 1 och 3 visar två dörrar och två lådor

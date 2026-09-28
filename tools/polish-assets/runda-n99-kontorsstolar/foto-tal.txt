@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3b8a4398 106 lägsta totalhöjd: måttbilden (bild 3) visar 106–126 cm, och källans måttrad är maskerad
+3b8a4398 126 högsta totalhöjd: måttbilden (bild 3) visar 106–126 cm, och källans måttrad är maskerad
+3b8a4398 5 hjul: bild 1 visar en femarmad fot med fem hjul
+972f5195 5 hjul: bild 1 visar en femarmad fot med fem hjul
+3016f35c 114 lägsta totalhöjd: måttbilden (bild 3) visar 114–122 cm, och källans måttrad är maskerad
+3016f35c 122 högsta totalhöjd: måttbilden (bild 3) visar 114–122 cm, och källans måttrad är maskerad
+3016f35c 57 lägsta sitthöjd: måttbilden (bild 3) visar 57–63 cm, och ritningen avgör geometrin
+3016f35c 63 högsta sitthöjd: måttbilden (bild 3) visar 57–63 cm, och ritningen avgör geometrin
+3016f35c 17 armstödets höjd över sitsen: måttbilden (bild 3) visar 17 cm
+3016f35c 5 hjul: bild 1 visar en femarmad fot med fem hjul
+f943140c 64 bredd för den grå stolen: måttbilden (bild 3) hos det grå syskonet 746befb0, som läggs som färgval efter skrivningen, visar 64 cm
+f943140c 86 lägsta höjd för den grå stolen: samma måttbild visar 86–96 cm
+f943140c 96 högsta höjd för den grå stolen: samma måttbild visar 86–96 cm
+f943140c 5 hjul: bild 1 visar en femarmad fot med fem hjul

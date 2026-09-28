@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4d8f63a1 3 delar i skivan: bild 1 och 3 visar skivan i tre delar, och paketet är 92 cm långt mot skivans 140 cm
+4d8f63a1 2 fack per fot: bild 1 och 3 visar två öppna fack i varje fot
+3a27aabe 2 lådor på var sida: bild 1 och 3 visar två lådor på var sida om överdelens mitt
+de87532d 2 dörrar på skåpet: bild 1 och 3 visar ett skåp med två dörrar

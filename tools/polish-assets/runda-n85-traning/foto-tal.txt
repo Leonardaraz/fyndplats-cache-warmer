@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+bc2b4c66 122 längd i kortaste läget, avläst på måttbilden (bild 3); källans tal är redigerat bort
+bc2b4c66 137 längd i längsta läget, avläst på måttbilden (bild 3); källans tal är redigerat bort

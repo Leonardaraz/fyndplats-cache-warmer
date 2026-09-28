@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+77b13bdd 4 stora lådor: bild 1 och 3 visar fyra stora lådor till vänster och en liten låda till höger
+afcddf6b 49,5 höjd med skivan uppe: måttbilden (bild 3) visar 49,5 cm, och källan anger 35,5 cm plus 14 cm lyft
+eec11af3 2 bord i setet: bild 1 visar två bord, och källan listar 2 x Couchtisch

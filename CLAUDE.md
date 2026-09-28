@@ -1456,9 +1456,11 @@ per Wix-produkt och överlever bytet. Det är ofarligt just för att spärren ä
 TYP: `supplier: "aosom"` gör `isAliExpressMapping` falsk, AE-synken hoppar över
 raden och läser aldrig tillståndet igen. Aosom-synken äger raden från nästa varv.
 
-Dubbletten **raderas inte** — den får `draftStatus: "rejected"` och
-`needsAiPolish: false`. Ett osynligt utkast kostar ingenting medan det ligger,
-och en radering går inte att ångra om matchningen visar sig vara fel.
+Dubbletten **raderas inte vid ommappningen** — den får `draftStatus: "rejected"`
+och `needsAiPolish: false`. En radering går inte att ångra om matchningen visar
+sig vara fel, så utkastet ligger kvar i minst fjorton dygn. Därefter raderas det
+med ett eget verktyg, se *Pensionerade utkast raderas efter fjorton dygn*. Det
+osynliga utkastet syns inte för någon kund, men dess bilder tar plats i Wix.
 
 ### Färgsammanslagning: ett utkast blir en FÄRG på en publicerad sida (2026-09-27)
 
@@ -1513,8 +1515,10 @@ Sju egenskaper som inte ska tas bort:
 6. ☠️ **Färgen och dess lager skrivs i SAMMA anrop**
    (`products-with-inventory`), så den nya färgen finns aldrig med ett lager vi
    inte satt. Faller skrivningen rullas bilderna tillbaka.
-7. **Utkastet pensioneras, raderas aldrig** (`pensioneraDubblett`). Artikeln
-   släpps från dess rad och bor sedan som färg på sidan vi behåller.
+7. **Utkastet pensioneras** (`pensioneraDubblett`) och raderas tidigast fjorton
+   dygn senare, se *Pensionerade utkast raderas efter fjorton dygn*. Artikeln
+   släpps från dess rad och bor sedan som färg på sidan vi behåller. Bilden som
+   blev färgens ligger kvar, för sidan använder samma fil.
 8. ☠️ **Varukostnaden tas ur MAPPNINGEN, aldrig ur Wix.** `revenueDetails`
    kommer bara med `fields=MERCHANT_DATA`, som kräver behörigheten
    `SCOPE.STORES.PRODUCT_READ_ADMIN` — saknas den svarar Wix 403 och redan
@@ -1654,6 +1658,81 @@ val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) ha
 **293** val och `Storlek` **203**, och importerna fungerar. Taket på 100 per
 delad option gäller alltså inte i dag. Nya storleksvärden tar ändå en plats var i
 den delade listan, så välj korta, återanvändbara etiketter där det går.
+
+### Pensionerade utkast raderas efter fjorton dygn (2026-09-28)
+
+Leonards fråga: ska de pensionerade sidorna finnas kvar, eller raderas ur Wix
+tillsammans med bilderna som inte används? De ligger kvar i fjorton dygn och
+raderas sedan med ett verktyg. Ingenting raderas för hand, varken produkter eller
+filer i Media Manager.
+
+Skälet att radera är lagringen. Den 2026-09-28 bar 327 publicerade Aosom-sidor
+524 sammanslagna val, och varje givare ligger kvar som ett dolt utkast med sina
+bilder. Så länge produkten finns räknar bildstädningen bilderna som använda.
+Skälet att vänta är det som stod här förut: en felaktig matchning ska gå att
+backa, och fjorton dygn räcker för att den ska synas.
+
+Workflowen **"Dubbletter — radera pensionerade utkast ur Wix"** (`plan` ·
+`stampla` · `radera`) → `/api/admin/pensionerade` → `lib/aosom/pensionerade.ts`.
+Torrt som default.
+
+| en produkt raderas bara om | skäl |
+|---|---|
+| raden är en Aosom-rad med `draftStatus: rejected` och inte redan märkt | pensionerad, inte polerad |
+| den pensionerades för minst fjorton dygn sedan (`reviewedAt`) | en felmatchning hinner synas |
+| produkten är dold, läst färskt ur Wix precis före raderingen | `rejected` betyder inte dold |
+| ingen order bär produktens id eller dess SKU | beställningen läser mappningen |
+| ingen köad eller pågående auktion gäller den | |
+| ingen omdirigering pekar på dess adress | en 301 till en 404 |
+
+Åtta egenskaper som inte ska tas bort:
+
+1. ☠️ **Mappningsraden raderas aldrig.** Den märks (`wixRaderad`), artikeln
+   flyttas till `importSparr` och `supplierProductId` töms. `importSparr` läses
+   bara av Aosom-importens dubblettspärr; utan den hade nattens import skapat
+   samma utkast igen. Synken, bildfixen, prisjämförelsen och konkurrentpriset
+   hoppar över en rad utan artikel, och Google-tilläggsfeeden hoppar över en
+   märkt rad.
+2. ☠️ **Filerna raderas av bildstädningen, inte här.** Kör `bildstadning-torr`
+   och sedan `bildstadning` efter en radering. En färg som slagits ihop delar fil
+   med givaren (samma fil-id i båda gallerierna, uppmätt 2026-09-28), och den
+   filen ligger kvar så länge sidan använder den.
+3. ☠️ **Filerna kontrolleras före och efter varje radering.** Wix dokumentation
+   säger inte vad en produktradering gör med filerna. Ligger en fil som var OK
+   före inte kvar efteråt stoppas körningen (`filkontroll`), även när ingen annan
+   använder filen, för då håller inte antagandet verktyget vilar på. Produkter
+   som inte delar någon fil raderas först, så att mätningen är gjord innan en
+   delad fil står på spel. `get-files` utelämnar ett okänt id utan fel (uppmätt
+   2026-09-28), så bara filer som var OK före räknas.
+4. ☠️ **En radering räknas först när en läsning svarar 404.** En obekräftad
+   radering märker inte raden, och tre i följd stoppar körningen.
+5. ☠️ **Underlaget vägras om svepet kan ha tappat något** (503). Ett svep som
+   inte blev klart, färre än 500 produkter eller fler än fem färre än butikens
+   räknare. En produkt som saknas i svepet hade sett raderad ut, och en fil vars
+   andra användare saknas hade sett ut att bara tillhöra utkastet.
+6. **Utan tidsstämpel raderas ingenting.** Poleringens stämpel satte ingen
+   `reviewedAt` före 2026-09-28. Läget `stampla` startar klockan på de raderna
+   när det körs, och stämpeln sätter tiden sedan dess.
+7. ☠️ **Godkännandet är planens antal.** Första varvet kräver `bekrafta` =
+   planens exakta antal. Följande varv skickar det som återstod som tak (`hogst`)
+   med första varvets klocka (`per`), så planen får krympa men aldrig växa. `per`
+   får bara ligga bakåt i tiden, och `hogst` kräver den.
+8. ☠️ **Svaret bär bara wix-id och räknare.** Utkastens namn och adresser är
+   Aosoms tyska titlar, och loggen är publik.
+
+⚠️ **Bildstädningen läser `WIX_SITE_ID` när den är satt, raderingen läser
+butikens sajt.** Pekar de på olika sajter tar städningen inte de filer
+raderingen frigör. Svaret säger det i `sammaSajtSomBildstadningen`; läs fältet
+vid första körningen.
+
+⚠️ **Planen säger vad som är raderbart i dag** (`raderbara`) och när nästa blir
+det (`nastaRaderbar`). Givarna från de första sammanslagningarna 2026-09-27 blir
+raderbara 2026-10-11, men en rad som avvisades i kön före 2026-09-14 kan redan
+vara det. Ordningen är `plan`, `stampla` om planen har rader utan tidsstämpel,
+`radera` och sist bildstädningen. Kör `stampla` så snart verktyget ligger på
+`main`, för de raderna blir raderbara fjorton dygn efter att klockan startats.
+Både `stampla` och `radera` stannar på en tidsbudget. Säger `stampla` att rader
+är `kvar`, kör planen och `stampla` igen med planens nya antal.
 
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 
@@ -2017,6 +2096,14 @@ TOMMA (`/api/tracking-events`) och om en SKRIVARE i ett annat repo
 (`/api/omdome`). Det här är samma sak en tredje gång, och den dyraste: en
 läsare som bor i en annan tabell syns inte i koden intill, och priset var
 kundernas egna foton.
+
+⚠️ **Två läsare till fattades, och de hittades 2026-09-28 inför raderingen av
+pensionerade utkast.** Kategoribilderna stod inte i listan, och inte heller valens
+kopplade bilder (`linkedMedia`). En kategoribild som är en produkts fil skyddades
+bara av produkten, och raderas produkten hade städningen tagit den. Kategoribilderna
+är nu en obligatorisk dep (`listaKategoribilder`, ett läsfel fäller körningen), och
+vilka filer en produkt använder avgörs på ett ställe, `lib/wix/produkt-media.ts`,
+som både städningen och raderingen läser.
 
 ⚠️ **Bilderna är inte återställda av fixen.** Den stoppar blödningen. Källan
 finns hos AliExpress — recensionerna går att hämta om (`fetchAeReviews`, $0) —

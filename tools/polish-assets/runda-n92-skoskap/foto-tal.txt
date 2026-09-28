@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+03e23634 2 rader med klaffar: bild 1 och 3 visar fyra klaffar i två rader, två och två
+58f0e4f1 2 dörrar: bild 1, 3 och 5 visar två dörrar utan handtag
+cc459bef 2 dörrar: bild 1, 2 och 3 visar två dörrar

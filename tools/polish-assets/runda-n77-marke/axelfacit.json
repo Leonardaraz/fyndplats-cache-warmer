@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "60c4cb71": {
+  "tyska": "73L x 36B x 73-89H cm",
+  "svenska": "73L x 36B x 73-89H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   73,
+   89
+  ],
+  "bredd": 73,
+  "djup": 36
+ },
+ "9a880464": {
+  "tyska": "49L x 19B x 55H cm",
+  "svenska": "49L x 19B x 55H cm",
+  "bokstaver": "LBH",
+  "hojd": 55,
+  "bredd": 49,
+  "djup": 19
+ },
+ "aea52237": {
+  "tyska": "",
+  "svenska": "44L x 55B x 39H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 44L x 55B x 39Hcm. | ✔ Vordertür: 20L x 20B cm. | ✔ Loch in der oberen Tür: 22L x 22B cm. | ✔ Verfügbarer Platz: 31,5L x 41,5B x 33,5H cm. | ✔ Schaufel: 3,5 H x 27 L x 11 B cm"
+ },
+ "c661b7de": {
+  "tyska": "48L x 38B x 95H cm",
+  "svenska": "48cm x 38cm x 95cm",
+  "bokstaver": "LBH",
+  "hojd": 95,
+  "bredd": 48,
+  "djup": 38
+ },
+ "d9fe1f8c": {
+  "tyska": "50L x 54l x 55H cm",
+  "svenska": "50 x 54 x 55 cm",
+  "bokstaver": "LH",
+  "hojd": 55,
+  "bredd": 50
+ },
+ "fb830b35": {
+  "tyska": "",
+  "svenska": "33cm x 30,5cm x 30cm",
+  "axellos": "inget totalmått i källan; bara delmått: Der Katze Futterautomat ist perfekt für Mehrtierhaushalte: Mit 4 L Fassungsvermögen, zwei Edelstahlschüsseln und zuverlässigem Batteriebetrieb sorgt dieser Katzenfutterautomat für stressfreie, pünktliche Mahlzeiten. Dank LCD-Display und Tasten sind Fütterungszeiten einfach programmierbar. Anti-Stau-Design, luftdichter Deckel und leichte Reinigung machen den Katze Futterspender besonders praktisch. | ✔ Abmessungen: 33L x 30,5B x 30H cm | ✔ Edelstahlschüssel: Ø30 x 15H cm"
+ },
+ "ffc507bf": {
+  "tyska": "37B x 43T x 156H cm",
+  "svenska": "37B x 43T x 156H cm",
+  "bokstaver": "BTH",
+  "djup": 43,
+  "hojd": 156,
+  "bredd": 37
+ },
+ "fff1b063": {
+  "tyska": "",
+  "svenska": "Ø42 cm x 54H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hohe Tischgröße: Ø42 cm x 54H cm | ✔ Niedrige Tischgröße: Ø36,5 cm x 48,5H cm"
+ }
+}

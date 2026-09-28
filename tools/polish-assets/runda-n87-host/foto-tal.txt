@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4e79205e 4 antal ben, räknade på produktfotot (bild 1)
+e1ab9dc4 3 rader med skofack, räknade på produktfotot (bild 1)
+e1ab9dc4 4 skofack per rad, räknade på produktfotot (bild 1)
+e1ab9dc4 2 mittersta skofack per rad, avlästa på måttbilden (bild 3), där de två mittersta är 23,8 cm

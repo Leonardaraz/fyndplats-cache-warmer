@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
   console.log(
     `[google-tillagg] ${rader.length} rader, grupp A ${u.perGrupp.A} / B ${u.perGrupp.B} / ingen ${u.perGrupp.ingen}, `
       + `under ${u.perKonkurrenslage.under_dealproffsen ?? 0} / över ${u.perKonkurrenslage.over_dealproffsen ?? 0} / `
-      + `utan jämförelse ${u.perKonkurrenslage.ingen_jamforelse ?? 0}, ${u.utanVariantId} utan variant-id, ${u.utanPris} utan pris`,
+      + `utan jämförelse ${u.perKonkurrenslage.ingen_jamforelse ?? 0}, ${u.utanVariantId} utan variant-id, ${u.utanPris} utan pris, ${u.raderadeIWix} raderade i Wix`,
   );
 
   if (status) return NextResponse.json({ ok: true, rader: rader.length, ...raknare });
