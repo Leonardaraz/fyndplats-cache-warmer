@@ -51,6 +51,8 @@
 // antalet produkter. Samma tanke som `MIN_FEED_RADER` i sync.ts: när en körning
 // kan röra allt på en gång är massfelet det enda som är värt att skydda mot.
 
+import { mediaNyckel, produktensMedianycklar, type ProduktMedia } from "../wix/produkt-media";
+
 const MIN_BILDER_PER_PRODUKT = 0.5;
 
 export interface MediaFil {
@@ -118,11 +120,10 @@ export interface StadningsPlan {
   filerIFonstret: number;
 }
 
-/** Wix media-URL:er kan bära query-parametrar; nyckeln är filens id-del. */
-export function mediaNyckel(url: string): string {
-  const utanQuery = (url || "").split("?")[0];
-  return utanQuery.split("/").pop() ?? utanQuery;
-}
+// `mediaNyckel` bor i lib/wix/produkt-media.ts tillsammans med definitionen av
+// vilka filer en produkt använder. Exporteras vidare härifrån för befintliga
+// importer.
+export { mediaNyckel };
 
 /**
  * Bygger raderingsplanen.
@@ -138,6 +139,7 @@ export function planeraStadning(
   ianvandning: ReadonlyArray<string>,
   antalProdukter: number,
   recensionsbilder: ReadonlyArray<string> = [],
+  kategoribilder: ReadonlyArray<string> = [],
 ): StadningsPlan {
   // ☠️ MASSFEL-SPÄRREN. En halvläst produktlistning gör varje fil föräldralös.
   // Butikens produkter har mätbart flera bilder styck, så en referenslista som
@@ -152,7 +154,12 @@ export function planeraStadning(
   // ☠️ RECENSIONSBILDERNA HÖR TILL REFERENSLISTAN. De sitter inte på någon
   // produkt — de sitter på en recensionsrad — men de är lika mycket i bruk.
   // Se `listaRecensionsbilder` i deps för vad det kostade att glömma dem.
-  const anvandaNycklar = new Set([...ianvandning, ...recensionsbilder].map(mediaNyckel));
+  //
+  // ☠️ OCH KATEGORIBILDERNA. En kategoribild som valts ur en produkts bilder är
+  // SAMMA fil, och i menyn syns en raderad kategoribild direkt. Så länge
+  // produkten finns skyddar dess galleri filen — men när produkten raderas
+  // (lib/aosom/pensionerade.ts) är kategorin filens enda användare.
+  const anvandaNycklar = new Set([...ianvandning, ...recensionsbilder, ...kategoribilder].map(mediaNyckel));
 
   // Första passet: filer som kommer direkt från en leverantörs CDN. Andra passet
   // känner igen Wix kopior på att de pekar tillbaka på dem.
@@ -231,6 +238,12 @@ export interface MediaCleanupDeps {
    * som bor i en annan tabell — eller ett annat repo — syns inte i koden här.
    */
   listaRecensionsbilder: () => Promise<string[]>;
+  /**
+   * Kategoriernas bilder (id eller URL). Obligatorisk av samma skäl som
+   * recensionsbilderna: en valfri dep glöms av nästa anropare, och ett läsfel
+   * FÄLLER körningen i stället för att tolkas som "inga kategoribilder".
+   */
+  listaKategoribilder: () => Promise<string[]>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
@@ -337,12 +350,23 @@ export async function runMediaCleanup(
     );
   }
 
+  let kategoribilder: string[];
+  try {
+    kategoribilder = await deps.listaKategoribilder();
+  } catch (err) {
+    throw new Error(
+      `Kategoribilderna gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan den listan kan en kategoribild se föräldralös ut "
+        + "och raderas permanent.",
+    );
+  }
+
   const { filer, cursor, komplett } = await deps.listaFiler({
     efter: opts.after,
     stoppaVid: start + Math.round(budget * 0.7),
   });
 
-  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder);
+  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
 
   const summary: MediaCleanupSummary = {
@@ -565,6 +589,14 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       return urls;
     },
 
+    // Samma sajt som resten av städningen (WIX_SITE_ID när den är satt) och
+    // samma läsning som bildinventeringen gör — dolda kategorier räknas med.
+    // Kastar vid läsfel; runMediaCleanup gör det till ett avbrott.
+    listaKategoribilder: async () => {
+      const { collectCategoryMediaIds, headlessSiteId } = await import("../wix/media-audit");
+      return [...await collectCategoryMediaIds(process.env.WIX_SITE_ID || headlessSiteId())];
+    },
+
     listaAnvanda: async () => {
       const urls: string[] = [];
       let antalProdukter = 0;
@@ -577,18 +609,14 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
           search: { cursorPaging: { limit: 100, ...(cursor ? { cursor } : {}) } },
           fields: ["MEDIA_ITEMS_INFO"],
         })) as {
-          products?: { media?: { main?: { url?: string; image?: { url?: string } };
-                                itemsInfo?: { items?: { url?: string; image?: { url?: string } }[] } } }[];
+          products?: ProduktMedia[];
           pagingMetadata?: { cursors?: { next?: string } };
         };
+        // Huvudbild, galleri OCH valens kopplade bilder — samma definition som
+        // raderingen av pensionerade utkast använder (lib/wix/produkt-media.ts).
         for (const p of data.products ?? []) {
           antalProdukter++;
-          const huvud = p.media?.main?.image?.url ?? p.media?.main?.url;
-          if (huvud) urls.push(huvud);
-          for (const it of p.media?.itemsInfo?.items ?? []) {
-            const u = it.image?.url ?? it.url;
-            if (u) urls.push(u);
-          }
+          urls.push(...produktensMedianycklar(p));
         }
         cursor = data.pagingMetadata?.cursors?.next ?? null;
         if (!cursor || (data.products ?? []).length === 0) break;

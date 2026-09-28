@@ -1,0 +1,7 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fff1b063 4 brickbordets kant är 4 cm hög, avläst på måttbilden (bild 3)
+60c4cb71 2 två bromsar: handbromsen på styret och fotbromsen på bakskärmen, synliga på bild 1 (källan: Doppeltes Bremssystem)
+c661b7de 4 fyra nivåer, räknade på bild 1 (källan skriver "Vier Ebenen" med bokstäver)
+aea52237 2 två öppningar: dörren framtill och öppningen i locket, synliga på bild 1 och 3
+fff1b063 2 två bord i förpackningen, "2-pack" i namnet: källans Lieferumfang listar "2 x Beistelltisch", och bild 1 visar båda

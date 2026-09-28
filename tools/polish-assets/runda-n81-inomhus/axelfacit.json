@@ -1,0 +1,57 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "09c10d30": {
+  "tyska": "51,5B x 57,5T x 93-114,5H cm",
+  "svenska": "51,5B x 57,5T x 93-114,5H cm",
+  "bokstaver": "BTH",
+  "djup": 57.5,
+  "hojd": [
+   93,
+   114.5
+  ],
+  "bredd": 51.5
+ },
+ "33ccacba": {
+  "tyska": "70B x 64T x 71H cm",
+  "svenska": "70L x 64B x 71H cm",
+  "bokstaver": "BTH",
+  "djup": 64,
+  "hojd": 71,
+  "bredd": 70
+ },
+ "80501518": {
+  "tyska": "B87 x T97 x H86 cm",
+  "svenska": "B87 x T97 x H86 cm",
+  "bokstaver": "BTH",
+  "djup": 97,
+  "hojd": 86,
+  "bredd": 87
+ },
+ "dc534033": {
+  "tyska": "Ø61 x 76-97H cm",
+  "svenska": "Ø61 x 97H cm",
+  "bokstaver": "H",
+  "hojd": [
+   76,
+   97
+  ]
+ },
+ "f433cc0f": {
+  "tyska": "207L x 148B x ‹FORM› cm",
+  "svenska": "Doppel",
+  "axellos": "totalraden har tva tal utan H eller T (207L x 148B x ‹FORM› cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "f9e1bd38": {
+  "tyska": "",
+  "svenska": "270L x 138B x 10H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 138B x 90T x 70H cm | ✔ Bettmaße: 138B x 270T x 10H cm"
+ },
+ "fbcf5899": {
+  "tyska": "60B x 35T x 180H cm",
+  "svenska": "60L x 35B x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 180,
+  "bredd": 60
+ }
+}

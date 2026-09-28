@@ -1,0 +1,50 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "21601f95": {
+  "tyska": "108L x 48B x 55H cm",
+  "svenska": "108L x 48B x 55H cm",
+  "bokstaver": "LBH",
+  "hojd": 55,
+  "bredd": 108,
+  "djup": 48
+ },
+ "3f7fbf5d": {
+  "tyska": "100L x 50B x 45H cm",
+  "svenska": "100L x 50B x 45H cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 100,
+  "djup": 50
+ },
+ "4a91d973": {
+  "tyska": "110L x 52B x 36H cm",
+  "svenska": "110L x 52B x 36H cm",
+  "bokstaver": "LBH",
+  "hojd": 36,
+  "bredd": 110,
+  "djup": 52
+ },
+ "5e9655dd": {
+  "tyska": "",
+  "svenska": "75L x 75B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch Abmessung: 75B x 75T x 75H cm | ✔ Stuhl Abmessun: 41L x 46B x 86H cm | ✔ Sitz Größe: 41B x 41,5T x 45H cm | ✔ Rückenlehne Größe: 35B x 40,5H cm | ✔ Anwendbare Fläche: 1,3L x 2B m =2,6㎡"
+ },
+ "6a5e861d": {
+  "tyska": "75T x 75B x 76H cm",
+  "svenska": "75 x 75 x 76 cm",
+  "bokstaver": "TBH",
+  "djup": 75,
+  "hojd": 76,
+  "bredd": 75
+ },
+ "7a6eff2a": {
+  "tyska": "",
+  "svenska": "75L x 75B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 75L x 75B x 75H cm | ✔ Stuhlabmessungen: 40B x 50,5T x 97H cm | ✔ Sitzgröße: 40B x 40T x 46H cm"
+ },
+ "cc4a9285": {
+  "tyska": "",
+  "svenska": "102 x 48 x 54,5 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (nicht angehoben): 102L x 48B x 40H cm | ✔ Abmessungen (angehoben): 102L x 48B x 54,5H cm | ✔ Verstecktes Fach Größe: 97B x 43T x 10H cm | ✔ Schubladen-Innenmaße: 43B x 28,5T x 10H cm"
+ }
+}

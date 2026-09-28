@@ -122,6 +122,28 @@ export interface ProductMappingRecord {
   createdAt?: string;
   /** ISO-tid när status-ändringen skedde (publish/reject). */
   reviewedAt?: string;
+  /**
+   * Sätts när den pensionerade radens Wix-produkt har raderats och raderingen
+   * är BEKRÄFTAD (en läsning svarar 404). Skrivs bara av
+   * lib/aosom/pensionerade.ts.
+   *
+   * ☠️ RADEN BEHÅLLS. Den är historiken (vilket utkast som blev färg var, och
+   * när), och på en rad som pensionerats med artikelnumret kvar är det raden
+   * som hindrar nattens import från att skapa samma utkast igen — se
+   * `importSparr`.
+   */
+  wixRaderad?: { at: string; slug?: string };
+  /**
+   * `supplierProductId` som raden bar när dess Wix-produkt raderades.
+   *
+   * ☠️ LÄSES AV AOSOM-IMPORTENS DUBBLETTSPÄRR OCH INGEN ANNAN. Raderingen tömmer
+   * `supplierProductId`, precis som pensioneringen av en givare gör, så att
+   * synken, bildfixen, prisjämförelsen och konkurrentpriset hoppar över raden
+   * av sig själva. Utan det här fältet hade spärren slutat se artikeln, och
+   * nattens import hade skapat ett nytt utkast för en vara någon medvetet
+   * pensionerat.
+   */
+  importSparr?: string;
   /** SEO-title som genererats vid import (visas i kön). */
   seoTitle?: string;
   /** Källadress till AliExpress-produkten — visas i kön. */

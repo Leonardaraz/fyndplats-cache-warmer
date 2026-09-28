@@ -4858,6 +4858,631 @@ beslut — se den samlade frågan om detta.
   följer bara huvudbilden med, och alla huvudbilder är rena. (B57)
 - Sidobordet `3e95a07a` har ingen vikt på sidan: källan anger 4 kg netto och 3 kg med
   förpackning, och de två går inte att förena. (B57)
+- N77 tog de utkast som bara hölls för ett husmärke på varan och blev
+  kandidater igen genom beslutet 2026-09-27: de 17 från N76 och tio från
+  äldre rundor, eftersom de 250 nyaste utkasten redan var hanterade. Alla 27
+  dubblettskärmades mot de 3 770 publicerade sidorna, och huvudbilderna
+  jämfördes med de sidor som skärmen och ett namnsvep pekade ut. Åtta
+  publicerades och tre blev färgval. Tretton väntar på nästa runda och står i
+  rundans `LÄS-MIG.md`, inte här. (N77)
+- Färgval i stället för egna sidor: sparkcyklarna i rosa `29852da4`, vitt
+  `3c07a78f` och grönt `9407d3fc` ligger som val på den publicerade
+  `60c4cb71` och är pensionerade som utkast. Källtexterna är identiska utom
+  färgen. Syskonsvepets varning om materialet gällde bara feedens
+  materialkolumn. (N77)
+- Samma vara som en publicerad sida, till Leonards beslut: cykelkärran
+  `d22b83b1` (1 299 kr, saldo 6) har samma namn, färg och mått (140 × 88 ×
+  60 cm) som den publicerade Aosom-sidan `5b3d3c58` (1 459 kr, B11). Båda är
+  Aosom-rader, så en ommappning är ingen väg. Frågan är vilken artikel sidan
+  ska bära. (N77)
+- Leksak utan EN 71 i källan, hoppad: springcykeln `2cf4c918` (729 kr). Bild
+  3 bär dessutom tysk text. Den är inte samma vara som den publicerade
+  `6f101f90`, som har andra mått. (N77)
+- För få användbara bilder, hoppad: den självrengörande kattlådan XL
+  `8b1f4f03` (3 639 kr) har två. (N77)
+- Publicerade trots familjeraden: sidobordet `9a880464` och den
+  självrengörande kattlådan `d9fe1f8c` stod också under täckta familjer.
+  Enligt N64:s regel gäller familjeregeln inte för de nyaste utkasten, och
+  dubblettskärmens träffar för dem var andra varor. (N77)
+- N78 tog de tretton som N77 lämnade. Åtta publicerades och fem blev val på
+  tre av sidorna. Alla tretton hade gått genom N77:s dubblettskärm, och N78
+  jämförde dessutom med de publicerade sidor som namnen pekade på. (N78)
+- Val i stället för egna sidor: agilitybågarna med gula `75a94825` och vita
+  `d6283e97` bågar på `ee50f5bf`, katthjulen i valnöt `1e1f9dcb` och grått
+  `fcb3dd7c` på `4664e423`, och grinden på 91,5 cm `edac20c7` som storlek på
+  `5f84f2c1`. Givarna är pensionerade. Deras priser följde konkurrentregeln och
+  följer husets regel från nästa synk, som planen varnade för. (N78)
+- Kontrollerat och friat: katthjulen mot det publicerade `7253f433`
+  (AliExpress-hjul i massivt trä, ribbor med 6 mm mellanrum, fem storlekar i
+  tum); agilitysetet med två tunnlar `6a6bfd64` mot `08230ec1` och `82fec275`
+  (andra mått på hinder, slalom och ruta); och grinden `5f84f2c1` mot `03207c35`
+  och `c6554568` (vita, utan dörr, andra mått). Inget av de friade är samma
+  vara. (N78)
+- Källtext från ett annat set: `480eefad` räknar i källan upp två tunnlar och
+  två hopphinder, men fotot och förpackningslistan visar hoppring, ett
+  hopphinder, slalom och pausruta. Texten följer fotot och listan. (N78)
+- Bildgranskningen strök 9 av 40 bilder: tysk text på sju, engelsk reklamtext
+  med husmärkets logotyp på agilitybågarnas bild 5, och en ramp och en hundpool
+  som inte ingår på tunnelsetets bild 5. Varningsetiketten på den
+  självrengörande kattlådan `b60b0392` sitter på varan och behölls. Alla åtta
+  behöll minst tre bilder. (N78)
+- Grindens mankhöjd står bara i bilderna: under 45 cm på bild 3 (struken för
+  sin tyska text) och under 60 cm för den höga grinden på syskonets bild 3.
+  Båda är kvitterade i `foto-tal.txt`. (N78)
+- Inga nya sökord mättes (Semrush-enheterna var slut, 403). Alla åtta slugar
+  prövades mot hela katalogen utan krock. (N78)
+- Matbordet `7f304255`: utkastet `04f05fad` ser på bilden ut som sidans egen
+  ljusa träton men kostar 2 279 kr mot 4 469 kr. Det blev inte ett val, eftersom
+  två knappar med samma utseende och olika pris är en prisfråga. (N79)
+- Utkast som inte blev val på sina sidor: köksskåpet `45f84852` (ingen bild som
+  visar den vita färgen), gunghästen `26d6b2ea` (annan design än `8ded5e38`) och
+  konstgräset `eaa37062` (samma storlek som `4362ebd1` men tätare gräs, så varken
+  färg eller storlek). (N79)
+- Tre AliExpress-sidor pekar nu på Aosom: `9521d113` (dubbletten `d42c5b69`
+  pensionerad), `8dd5887b` (`faa0af12` pensionerad) och trimbordet `b1c5fa1d`
+  (`ba0fbcb4` pensionerad). Priserna rördes inte. `184944a0` var redan
+  pensionerad genom ommappningen av `202385ce`. (N80)
+- Cykelkärran `571e37bf` fick det blå syskonet `99cae2fd` som val. Färgraden
+  säger nu röd och svart eller grå och blå, och vikten 15–15,5 kg, eftersom den
+  blå raden anger 15,5 kg. Givaren är pensionerad, och dess pris följer husets
+  regel från nästa synk, som planen varnade för. (N80)
+- `b64241c9` blev inte ett val på cykelkärran `571e37bf`: den anger cykelhjul
+  på 24–29 tum mot sidans 22–28 tum och ligger kvar som utkast. (N80)
+- `4b49e851` är samma vara som AliExpress-sidan `e580e506`, men sidan har två
+  varianter, och ommappningen vägrar en sida med flera varianter. Utkastet
+  ligger kvar. (N80)
+- Kategoritexter som inte stämmer för rundans produkter: Motionscyklar säger
+  att maxvikten är 110 eller 120 kg och att det finns en liggande modell. Den
+  liggande motionscykeln `ece264dc` bär 135 kg och är kopplad till Träning &
+  Gym. Bäddfåtöljer säger bäddar på 180–193 cm, stålstomme och omonterade
+  fåtöljer. Golvfåtöljen `31bb560b` ger 194 cm, är skumblock utan stomme och
+  monteras inte, och den är kopplad till Fåtöljer. Båda kopplas till sina
+  löv när texterna är omskrivna. (N80)
+- Bildgranskningen strök 14 av 35 bilder: tysk eller engelsk text på fyra,
+  läsbar text eller logotyp på rekvisita på åtta (bokryggar, kalender, tidning,
+  viktskiva, hantel och cykelram) och två bord i samma bild på barbordets bild 4
+  och 5. Cykelvagnen, motionscykeln och plåtskåpet har två bilder var. (N80)
+- Tal som bara står i bilderna är kvitterade i `foto-tal.txt`: minsta
+  dörröppning 71 cm (cykelvagnen), kroppslängd 160–195 cm (motionscykeln),
+  fotringen 21–42 cm över golvet (barstolarna) och takfläktens tre blad. (N80)
+- Barbordet `14d95b9a` säljs utan stolar, men bild 2 visar två stolar.
+  Ingressen, metan och en fråga säger att stolarna inte ingår. (N80)
+- Takfläkten `eb8ed6ce` har saldo 1 i Wix. Inkopplingen av en behörig
+  elektriker står som villkor med egen rubrik och i Produktsäkerhet. (N80)
+- Hoppade över i urvalet för saldo 0: `0b36127f`, `58c60fb4` och `b47f2372`.
+  Utkast med syskon lämnades till färgsyskonrundorna. (N80)
+- Skrivbordet `a1f16108` fick det vita syskonet `9b11bec6` som val. Namnet bar
+  färgen och döptes om före sammanslagningen, med oförändrad slug, och texten
+  och SEO skrevs om för svart och vitt. Givaren är pensionerad, och dess pris
+  följer husets regel från nästa synk i stället för konkurrentregeln, som
+  planen varnade för. (N81)
+- Barbordet `dc534033` är bara kopplat till Möbler. Texten på Barbord räknar
+  två höj- och sänkbara runda barbord (70–90 och 67–93 cm), och det här blir
+  ett tredje (Ø61 cm, 76–97 cm). Det kopplas till Barbord när texten är
+  omskriven. (N81)
+- Barbordet `dc534033` säljs utan stolar, men bild 2 visar en barstol.
+  Ingressen, egenskaperna, metan och en fråga säger att stolarna inte ingår.
+  (N81)
+- Papasanfåtöljen `80501518`: källan anger B87 × T97 cm, men sitsen är 92 cm
+  bred och måttritningen visar 97 cm framifrån. Måttraden är skriven
+  97 × 87 × 86 cm, bredd före djup. (N81)
+- Sängramen `f433cc0f`: källan säger både 12 och 2 ribbor med 11 cm
+  mellanrum. Måttritningen stämmer med 12, och texten säger 12. (N81)
+- Bildgranskningen strök 8 av 33 bilder: tysk text på två och läsbar text
+  eller märken på rekvisita på sex (förpackningar, böcker och radio, koppar,
+  burkar, flasketiketter och en märkesfigur, en boktitel och en kamera).
+  Sängramen och köksskåpet har två bilder var. (N81)
+- Tal som bara står i bilderna är kvitterade i `foto-tal.txt`: barstolarnas
+  sitthöjd 60–81,5 cm och fotringen 21–41 cm över golvet. (N81)
+- Köksskåpet `fbcf5899` har saldo 2 i Wix. (N81)
+- Hoppade över i urvalet för saldo 0: `2ca1a259`, `8163e9a0`, `14d6cc9e`,
+  `cc6549e3`, `3da48fb6`, `55f4c0d9` och `d9f4c334`. Utkast med syskon, bland
+  dem `141a4624` med `beb5d127`, lämnades till färgsyskonrundorna. (N81)
+- Skrivbordet `a1f16108` låg samtidigt i familjerundan B31, som skrev sin
+  text för båda färgerna efter N81:s. Texten på sidan är B31:s, och sidan
+  har kvar två synliga varianter med var sin bild. (N81)
+- Sensorsoptunnan `618b1de9` fick det mörkgröna syskonet `294cfb55` som val.
+  Namnet bar färgen och döptes om före sammanslagningen, med oförändrad slug,
+  och texten och SEO skrevs om för båda färgerna. Givaren är pensionerad, och
+  dess pris följer husets regel från nästa synk. (N82)
+- Kategorin Soptunnor säger att tunnorna är av rostfritt stål eller svarta.
+  `618b1de9` finns nu också i mörkgrönt, så meningen gäller inte längre alla.
+  Den rättas när texten skrivs om. (N82)
+- Stegbrädan `681516f3` pekar nu på Aosom, och dubbletten `7c55e53e` är
+  pensionerad. Priset rördes inte. (N82)
+- Pedalhinken `43ea33bd` är samma vara som den publicerade Aosom-sidan
+  `300a9113`: samma mått, vikt och färg. Den bör pensioneras, men runda 85
+  har paret i sina anteckningar, så den lämnades åt den serien. (N82)
+- `562bc411` är samma sissy squat-bänk som AliExpress-sidan `e580e506`, som
+  har två varianter. Ommappningen vägrar en sida med flera varianter, så
+  utkastet ligger kvar, precis som `4b49e851` i N80. (N82)
+- Bildgranskningen strök 3 av 40 bilder: ölflaskor med läsbart varumärke på
+  matbordets bild 2 och tysk text på pälsvårdssetets bild 4 och 5.
+  Pälsvårdssetet har tre bilder kvar. (N82)
+- Projektordukens vita bildyta, 146 × 146 cm, står bara i måttbilden och är
+  kvitterad i `foto-tal.txt`. (N82)
+- Dubbelbollen `fd85cf0b` är inte kopplad till Boxningssäckar. Texten där
+  säger att punchingbollarna och ställen går att höja och sänka mellan 125 och
+  231 cm, och dubbelbollen hänger i ett band och ett gummirep utan något
+  sådant mått. Den ligger i Träning & Gym tills texten är omskriven. (N83)
+- Helkroppstränaren `40600986`: källan säger att ingen montering behövs, men
+  paketet är 102 cm långt och maskinen är 153 cm hög hopfälld. Texten säger
+  därför ingenting om montering. (N83)
+- Bildgranskningen strök 5 av 40 bilder: tysk text på två (boxningsmaskinen
+  och roddmaskinen), leverantörens logotyp på två (helkroppstränaren och
+  roddmaskinen) och läsbara boktitlar och en ljusetikett på bänkens
+  miljöbild. Roddmaskinen har tre bilder kvar. (N83)
+- Racketarna `3ce5861a` väntar till våren. Källan kallar dem pickleballracketar,
+  men bilderna visar strandtennisracketar med hål i bladet, på en strand, så
+  vilken sport varan gäller måste avgöras innan texten skrivs. (N84)
+- Pickleballnätet `42c65748` med ställning väntar till våren, eftersom det
+  ställs upp ute på uppfarter och gräsmattor. Bild 3 och 4 har tysk text.
+  (N84)
+- Sparkbilen `b2175a65` för barn från 18 månader polerades inte: källan
+  nämner ingen EN 71, och regeln för leksaker kräver det. (N84)
+- Laddkabeln för elbil `4a4a896c` (11 kW, CEE 16 A, med adapter för vanligt
+  uttag) polerades inte. Källan lovar ett läge utan jordning för tillfälliga
+  installationer, och laddning utan skyddsjord bör Leonard ta ställning till
+  innan varan säljs. (N84)
+- Plyolådorna var tre modeller och inte en familj. Den svarta i trä `75f7eee3`
+  har nu tre storlekar (`647fdeb9` och `091be9cb` lagda som val), den med
+  avfasade hörn `3a5e0e72` tre (`3e70b606` och `bc2cedf0`) och den i bokträ
+  `967d53e2` två (`9820ab5f`). Givarna är pensionerade. `091be9cb`,
+  `9820ab5f`, `bc2cedf0` och `3e70b606` stod tidigare som täckta av
+  `967d53e2`, men den är en annan modell än de svarta. (N84)
+- Takväskan `8bc0dd26` har nu två varianter: svart på 595 liter och svart och
+  gul på 425 liter (`5b2ad18f`, pensionerad). Två av fyra kombinationer finns
+  inte och visas som ej valbara. (N84)
+- Trälådan `967d53e2` hette "… 40–60 cm" och har bytt namn, med samma slug.
+  Faktakortet med den mindre lådans mått och fraktvikten som vikt är
+  borttaget ur galleriet, och filen ligger kvar i Media Manager. Texterna på
+  alla fyra sammanslagna sidor är omskrivna för varje storlek och färg och
+  ligger i rundans `efter-sammanslagning/`. (N84)
+- Givarnas priser följde konkurrentregeln. Efter sammanslagningen följer de
+  nya varianterna husets regel från nästa synk. Priserna rördes inte här.
+  (N84)
+- Bildgranskningen strök 5 av 30 bilder: tysk text på takväskans bild 3 och
+  4 och högtryckstvättens bild 4 och 5, och en läsbar registreringsskylt på
+  sopmaskinens bild 4. Högtryckstvätten har tre bilder kvar. (N84)
+- Motionscykeln `9159231f` polerades inte: svänghjulet bär en tryckt kod i
+  artikelnummerform på fyra av fem bilder. (N85)
+- X-cykeln `1f276824` har samma färg som den publicerade `2b7ddfc8`, som
+  syskonsvepet inte ser, troligen för att den är mappad mot AliExpress. Paret
+  är alltså en fråga om ommappning. `0927ea10` är samma cykel i en annan färg.
+  Ramen bär en tryckt kod i artikelnummerform på bilderna, så ingen av dem
+  polerades. (N85)
+- Motionscyklarna `b6e44df4`, `192f92e6` och `bc2b4c66` är inte kopplade till
+  Motionscyklar. Texten där säger att två cyklar har Bluetooth, att två
+  hopfällbara har ryggstöd och att det finns en liggande modell, och med de
+  här tre blir alla tre påståendena fel. De ligger i Träning & Gym tills
+  texten är omskriven. (N85)
+- Den justerbara hanteln `49732af4` (6–20 kg) är inte kopplad till Hantlar &
+  hantelset. Texten där säger att den justerbara hanteln går från 2 till 11 kg,
+  i bestämd form, så en andra justerbar hantel gör meningen fel. Den ligger i
+  Träning & Gym tills texten är omskriven. (N85)
+- Motionscykeln `b6e44df4` fick den rosa och vita `21a338f4` som färgval,
+  hantelsetet i tornform `52a5d92b` fick setet med tre par på 1, 3 och 5 kg
+  (`a49a1fe2`) som storlek, och hantelsetet med ställ `c6ff6fe8` från N55 fick
+  setet med 3, 4 och 5 kg (`33dd1d05`). Givarna är pensionerade. `c6ff6fe8`
+  hette "… sex sexkantiga hantlar på 1, 3 och 5 kg" och har bytt namn, med
+  samma slug. Text och SEO på de tre sidorna är omskrivna för båda
+  varianterna och ligger i rundans `efter-sammanslagning/`. (N85)
+- Texten från N55 på `c6ff6fe8` hade fraktvikten 20,5 kg som vikt. Nu står
+  hantlarnas vikt, 18 eller 24 kg, och fraktvikten på en egen rad. (N85)
+- Syskonsvepet parade `33dd1d05` med `4588a393`, men ställen är olika. Det
+  rätta syskonet var `c6ff6fe8`. (N85)
+- `58c60fb4` är motionscykeln `b6e44df4` i en tredje färg men har saldo 0.
+  Den läggs som val på `b6e44df4` när den finns i lager igen. (N85)
+- Priserna rördes inte. De nya varianterna följer husets regel från nästa
+  synk. (N85)
+- Bildgranskningen strök 7 av 30 bilder: tysk text på `b6e44df4`:s och
+  `bc2b4c66`:s bild 4, läsbara boktitlar på `192f92e6`:s bild 2 och 4, text på
+  en gymboll och en kettlebell i bakgrunden på `bc2b4c66`:s och `49732af4`:s
+  bild 2, och engelsk reklamtext med logga och andra vikter på `49732af4`:s
+  bild 5. Tre produkter har tre bilder kvar. (N85)
+- Den liggande cykelns längd, 122 och 137 cm i kortaste och längsta läget,
+  står bara i måttbilden och är kvitterad i `foto-tal.txt`. Källan skriver
+  spannet med bindestreck mellan två tresiffriga tal, samma form som ett
+  artikelnummer, så det redigerades bort ur facit. (N85)
+- Köksskåpet `2e6d120a` är inte kopplat till Sideboards & vitrinskåp. Texten
+  där säger att det finns ett köksskåp i lantstil med glasvitrin, och det här
+  blir ett andra. Det ligger i Möbler tills texten är omskriven. (N86)
+- Sparkcyklarna `cf0052ce` (rosa) och `8b42d5d1` (blå) är samma sparkcykel för
+  barn i två färger, bara bland utkasten. Den är för 3–7 år och bär 50 kg,
+  alltså en leksak, och källan till `cf0052ce` nämner ingen EN 71. Ingen av
+  dem polerades. (N86)
+- Kattunneln `fe33e227` (saldo 1) är gjord för utomhusbruk och väntar till
+  våren. (N86)
+- Pallen `5d9e6795` (grå, saldo 2) är samma pall som den publicerade mörkgrå
+  `40d0af10` från N65, men vikten skiljer (3,7 och 4,2 kg), så syskonsvepet
+  parar dem inte. Sidans namn bär färgen, så en sammanslagning kräver ett nytt
+  namn först, med samma slug. (N86)
+- Tunt saldo vid publiceringen: köksskåpet `2e6d120a` 3, satsborden `c78b886b`
+  2, sänggaveln `932c527a` 2, nattduksbordet `0dfc4423` 1 och fågelstället
+  `3e6e478c` 2. Runbooken räknar 1–4 som köpbart. (N86)
+- Stepperns cylindrar bär en tryckt varning om att de kan bli varma. Den står i
+  skötseltexten men inte under Produktsäkerhet, eftersom den inte finns i
+  källtexten. (N86)
+- Bildgranskningen strök 3 av 35 bilder: stepperns måttbild bär en etikett med
+  en kod i artikelnummerform och importörens adress, sänggavelns måttbild har
+  tysk text om sängbredden, och nattduksbordets huvudbild har ett läsbart
+  varumärke på en bok och en kameramodell. Nattduksbordet har därför en
+  miljöbild som huvudbild. (N86)
+- Vedstället `644f1c32` (svart) är samma vedställ som den publicerade
+  AliExpress-sidan `b1684bee` i antikbrunt, med samma miljöbilder (N73).
+  Sidans mappning är AliExpress, och det finns inget Aosom-utkast i antikbrunt,
+  så vedstället blev en egen sida med färgen i namn, slug och titel. Bild 2
+  och 5 ströks, eftersom `b1684bee` redan bär de två miljöscenerna. (N87)
+- Paraplystället `c4981165` (vitt) är samma smala paraplyställ som den
+  publicerade AliExpress-sidan `7ae083dd` i svart. N68 lämnade paret till
+  Leonards beslut som samma vara; bilderna visar två färger. Det finns inget
+  svart Aosom-utkast, så det vita blev en egen sida med färgen i namnet, enligt
+  runbookens regel för syskon till en AliExpress-sida. (N87)
+- Det vita paraplystället `c4df49ca` är färgsyskon till den publicerade svarta
+  `33c51730` och står som färgfamilj i syskonsvepet. Det lämnas åt
+  familjearbetet i B-serien. (N87)
+- Elkaminen `4e79205e` hoppades i N68 som samma slag som `31245d0d`,
+  `c56fb251` och `8b495a41`. Bilderna visar en annan modell: fönster även på
+  sidorna (23 × 22 och 11 × 21 cm mot 25 × 20 cm) och en annan lucka. Ingen av
+  dem är samma kamin i en annan färg, och den polerades. (N87)
+- Hallmöblerna `788aca8e` och `12976d46` (hoppade i N60) och `8e34da16`,
+  `e1ab9dc4` och `f560a565` (hoppade i N61) hoppades för att familjen redan var
+  täckt. Dubblettskärmen mot hela katalogen gav ingen träff bland de
+  publicerade hallmöblerna, och de polerades. Hallstället `e1ac4d7f` har saldo
+  0. (N87)
+- Hallmöblerna kopplades till Klädhängare & hallmöbler men inte till Skoskåp &
+  skobänkar. Kategoritexten där säger att skobänkarna bär 120–220 kg, och
+  `12976d46` bär 40 kg totalt och bänken på `8e34da16` 110 kg. (N87)
+- Torktumlarna `8fc506c6` (800 W, 4 kg, källan anger energiklass G) och
+  `24d28e2c` (4 kg, 197 kWh per år) polerades inte. En torktumlare säljs med
+  energimärkning, och märkningen finns inte i feeden. Till Leonards beslut.
+  (N87)
+- Skotorken `d8ce6568` har saldo 0. (N87)
+- Bildgranskningen strök 14 av 40 bilder: läsbar text på rekvisitan (boktitlar,
+  en affisch två gånger, en kalender, en väggklocka, en tidning och etiketter på
+  doftljus och en korg), en papperskasse med ett känt modemärkes logotyp på
+  `e1ab9dc4`:s bild 4, samma scen två gånger på `c4981165` och vedställets två
+  miljöscener. `8e34da16` har två bilder kvar, huvudbilden och måttbilden. (N87)
+- Medicinskåpen `271f4bca` (vitt) och `ca4d2e33` (mörkgrått) stod kvar i urvalet som utkast,
+  men de är redan färgval på den svarta sidan `73addc4e` sedan B26. De ströks ur rundan.
+  B-rundornas beslut står i FLAGGADE på deras gren tills den mergas. Läs den före urvalet.
+  (N88)
+- Fem badrumsskåp som N61 hoppade över som täckta familjer polerades: `6ffadd2d`,
+  `0fc17126`, `2666b42e`, `86c26702` och `1e2c6427`. Dessutom `8057e869`, som B17 höll för
+  saldo 3 och som enligt rättelsen är köpbart, och `37a26f7f` (se nedan). Inget av dem
+  är samma vara som en publicerad sida. `8057e869` har samma yttermått, 70 × 30 cm,
+  som det publicerade tvättställsskåpet `5b38973c`, men andra handtag och fötter och ett
+  annat urtag (20 × 23 mot 22 × 19 cm). Därför står de guldfärgade handtagen i namn, slug
+  och titel. `0fc17126` har spårade fronter, till skillnad från de bågformade dörrarna på
+  `8607c452` och `5f7abda8`. `6ffadd2d` (170 cm, ett öppet fack) är ett annat skåp än
+  `635e7330` (180 cm, två öppna fack). (N88)
+- ✅ Frikänd på bild: badrumsskåpet på 174 cm `1e2c6427`, som N65 hoppade över som
+  skärmträff mot högskåpet för kök `fa793821`. Det ena har en tvättkorg bakom en fälldörr
+  och det andra fyra dörrar och två öppna fack. Det är inte heller det publicerade högskåpet
+  med tvättkorg `3c0f58f1`, som är 171 cm högt och har två lådor och fyra öppna fack. (N88)
+- Badrumsskåpet på 140 cm `37a26f7f` hölls i N65 med två bilder kvar. Runbook v2 tar hellre
+  två rena bilder än tre med text på rekvisitan, så det polerades med huvudbilden och
+  måttbilden. (N88)
+- Spegelskåpet `86c26702` kopplades till Badrumsspeglar och inte till Badrumsskåp.
+  Kategoritexten för Badrumsskåp säger att stommarna är av lackerad MDF eller spånskiva,
+  bambu eller rostfritt stål, och spegelskåpet har aluminiumram. Påståendena för
+  Badrumsspeglar håller: antiimma, tre färgtemperaturer, dimbart ljus, IP44 och mått under
+  100 × 80 cm. (N88)
+- Kategoritexten för Badrumsskåp säger att ett av högskåpen har en inbyggd tvättkorg som
+  tippas ut (`3c0f58f1`). Med `1e2c6427` är de två. Texten bör säga två när den skrivs om.
+  (N88)
+- Spegelskåpet `86c26702` kopplas in med fast installation, och ingen stickpropp ingår.
+  Sidan säger att en behörig elektriker gör inkopplingen. Att ljuset också kan styras med en
+  väggbrytare, som inte ingår, står bara i bild 5, som ströks för sin tyska text. Uppgiften
+  står i texten. (N88)
+- Bildgranskningen strök 11 av 35 bilder. Tysk text var inbränd i fem (`2666b42e`,
+  `37a26f7f` och `1e2c6427` bild 4 och `86c26702` bild 4 och 5). Fyra hade läsbar text på
+  rekvisitan: engelska etiketter på flaskor och en burk, två av dem med en webbadress.
+  `2666b42e` och `37a26f7f` hade samma miljöscen med ett känt märke på flaskorna, och den
+  ströks på båda. `2666b42e`, `37a26f7f` och `86c26702` har två bilder kvar, huvudbilden
+  och måttbilden. (N88)
+- Livekontrollen gav 7 av 7 OK, 24 av 24 alt-texter och noll textavvikelser. Priserna
+  är orörda. (N88)
+- Sju utkast som N61 hoppade över som täckta familjer polerades: sideboarden `1ac07434`,
+  `ac5c5255` och `31732cff`, skänken `10626649`, köksskänkarna `0051b13b` och `2b58d816`
+  och nattduksbordet `d61f504b`. Dubblettskärmen mot de publicerade skänkarna och
+  nattduksborden gav ingen träff. `31732cff` (120 × 38 × 79 cm, tre dörrar och två lådor)
+  är inte `e47c35c6` (76 cm hög, tre lådor), `19f566d8` (120 × 35 × 75,2 cm) eller
+  `f41b12b9` (guldben), och `d61f504b` (45 × 40 × 59 cm, eluttag och skiva som glider fram)
+  är inte `b37d426f` (45 × 35 × 52 cm). Skänken `477bcd1f` på 117 cm har tryck-öppning utan
+  handtag och liknar ingen av dem. (N89)
+- Skänkarna kopplades bara till Möbler, och nattduksbordet till Möbler och Sängar & sovrum.
+  Kategoritexten för Sideboards & vitrinskåp säger att sideboardsen är 75 till 81 cm höga,
+  att de finns från 80 cm i bredd och att två har dörrar med soft close. `1ac07434` är 100 cm
+  hög, `ac5c5255` 86, `10626649` 90,3 och `0051b13b` 91 cm, `10626649` är 68,6 cm bred, och
+  `1ac07434`, `ac5c5255`, `31732cff` och `2b58d816` har soft close. Kategoritexten för
+  Nattduksbord säger att två sängbord har eluttag och USB-uttag, och `d61f504b` är det
+  tredje. De kopplas till sina löv när texterna är omskrivna. Då tänds också lådfiltret:
+  Nattduksbord behöver en produkt till med raden `Antal lådor` och Sideboards & vitrinskåp
+  två, och alla sju har den. (N89)
+- Saldo 0, hoppade: nattduksborden `23d31b41` och `83894bad` och köksskåpet `c99d5592`.
+  (N89)
+- Två publicerade sideboards har samma variant-SKU, `FP-sideboard-120-cm` (`e47c35c6` och
+  `19f566d8`). Skänken `f41b12b9` bär en SKU med ordet Soffbord, och sängborden `a5f552e2`
+  en spansk SKU. Sett i SKU-kontrollen och inte rättat, eftersom rundan inte rör andra
+  produkters SKU. (N89)
+- Bildgranskningen strök 10 av 35 bilder: tysk text på fyra (bild 4 på `ac5c5255`,
+  `0051b13b` och `2b58d816`, och bild 5 på `2b58d816`, som också bar husmärket på en
+  lastbil), läsbar text på rekvisitan på fem (bokryggar och boktitlar på `31732cff` och
+  `10626649`, en skärbräda med logotyp och etiketter på flaskor) och två sideboards i samma
+  bild på `ac5c5255` bild 5. `2b58d816` har två bilder kvar, huvudbilden och måttbilden.
+  Högpassarket visade ingen ljus logotyp på de bilder som behölls. (N89)
+- Livekontrollen gav 7 av 7 OK, 25 av 25 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N89)
+- Sju utkast som N61 hoppade över som täckta familjer polerades: matbordet `6a5e861d`,
+  matgrupperna `5e9655dd` och `7a6eff2a` och soffborden `21601f95`, `3f7fbf5d`, `cc4a9285`
+  och `4a91d973`. Dubblettskärmen gav ingen träff för dem. `3f7fbf5d` har samma mått,
+  100 × 50 × 45 cm, som det lyftbara soffbordet `4009d67f`, men skivorna glider isär i stället
+  för att lyftas, och bordet står på en stålram i stället för ben. `21601f95` på 108 cm med
+  pelarfot är inte LED-soffbordet `20ff3b79` på 120 cm i två plan. Stolarna i `7a6eff2a`
+  liknar dem i matgruppen `b07189d2`, men bordet och antalet stolar skiljer. (N90)
+- Tre kandidater är färgsyskon till publicerade, redan sammanslagna sidor och lämnades åt
+  syskonrundorna: det utdragbara matbordet `90060b2d` i vitt (sidan `7f304255` har tre
+  färger), fällbordet `f49f7d80` i vitt (sidan `c23dab52` har två färger) och satsborden
+  `635955ab` i guld och vit marmorlook (sidan `af9378d6` har tre färger). Skärmen hittade
+  fler utkast med samma mått: `04f05fad`, `77579a8b` och `11021efb` som matbordet,
+  `22d4bb3b` som fällbordet och `532e02c2` som satsborden. (N90)
+- Matgruppen `5e9655dd` i vitt har ett färgsyskon i grått, `f93b34cc`, med saldo 0. Sidans
+  namn, slug och titel saknar färg, så att syskonet kan läggas till som ett val när det finns
+  i lager. (N90)
+- Måttbilden för `5e9655dd` anger bordets höjd till 73 cm, men källtexten anger 75 cm. Sidan
+  skriver 75 cm, det större talet för ett yttermått, och måttbilden ligger kvar. (N90)
+- Matgrupperna `5e9655dd` och `7a6eff2a` kopplades till Matbord & stolar men inte till
+  Matgrupper. Kategoritexten där säger att sex grupper är tredelade, att fyra är femdelade
+  och att det finns ett glasbord och ett furubord. De två nya är tredelade, och den ena har
+  ett furubord och den andra ett glasbord. De kopplas dit när texten är omskriven. (N90)
+- Alla tre borden i Matbord & stolar har raden `Sittplatser`, som filtret där behövde tre
+  till av, och `7a6eff2a` har `Klädsel: konstläder`. (N90)
+- Saldo 0, hoppade: matgruppen `f93b34cc`, matbordet `c6631918`, det utdragbara matbordet
+  `6ad885bc`, sittgruppen i trä för trädgården `11a2f6d8` och LED-soffbordet `84a931f4`.
+  (N90)
+- Bildgranskningen strök 9 av 35 bilder: läsbar text på böcker, tidningar eller en tavla på
+  sju (`21601f95` bild 4 och 5, där bild 5 också bar en känd tidskrift, `3f7fbf5d` bild 2,
+  `cc4a9285` bild 2 och `4a91d973` bild 2, 4 och 5), ett känt märke på ett kylskåp på
+  `5e9655dd` bild 4 och tysk text med husmärket på `cc4a9285` bild 4. `4a91d973` har två
+  bilder kvar, huvudbilden och måttbilden. Högpassarket visade ingen ljus logotyp. (N90)
+- Livekontrollen gav 7 av 7 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N90)
+- Sex utkast ur N61:s hopplista för skrivbord och bokhyllor polerades: skrivborden
+  `4d8f63a1`, `3a27aabe`, `de87532d` och `59478f27` och bokhyllorna `8166f30f` och
+  `7dddb439`. Dubblettskärmen mot hela katalogen gav bara brus för dem. (N91)
+- Hörnskrivbordet för gaming `b712d0e0` var samma vara som den publicerade
+  AliExpress-sidan `c342826f`: samma 128 × 128 × 88 cm, samma skivor och skärmställ,
+  samma laster och samma svarta färg. Sidan är ommappad till Aosom och utkastet
+  pensionerat. Kundpriset 2 169 kr rördes inte, och Aosom-synken räknar om det från
+  nästa körning. (N91)
+- Ståbordet på hjul `7859405b` i natur och vitt är tredje färgen till den sammanslagna
+  sidan `ba3e6e04` (svart och vit, samma 65 × 48 × 73–110 cm och 70 kg) och lämnades åt
+  syskonrundorna. Det publicerade ståbordet `38f9bf22` är en annan modell, med höjden
+  68–108 cm och 40 kg. (N91)
+- Saldo 0, hoppat: datorbordet på hjul `82e5c1cf`. (N91)
+- Källan för `de87532d` anger två överskåp, men måttbilden visar ett skåp med två dörrar
+  och ett invändigt mått på 94,2 cm. Sidan beskriver ett skåp med två dörrar. (N91)
+- Källan anger låga laster på skivan: 10 kg för `3a27aabe` och 5 kg per skiva för
+  `59478f27`. Sidorna skriver talen som källan. (N91)
+- Skivan på `4d8f63a1` sätts ihop av tre delar. Det står inte i källan men syns på bild 1
+  och 3, och paketet är 92 cm långt mot skivans 140 cm. Sidan säger det. (N91)
+- Bokhyllorna har raden `Antal hyllplan`, som filtret i Bokhyllor behöver fler av, och tre
+  av skrivborden har `Antal lådor`. Kategoritexten för Bokhyllor säger att de höga
+  bokhyllorna levereras med tippskydd, och båda de nya har det. (N91)
+- Bildgranskningen strök 14 av 30 bilder: läsbar text på böcker eller tidskrifter på nio,
+  en mugg med text och ett märke på en konferenstelefon (`4d8f63a1` bild 5), en kalender
+  (`59478f27` bild 2), en tavla eller affisch med text (`de87532d` bild 5 och `7dddb439`
+  bild 5) och fyra hyllor bredvid varandra (`8166f30f` bild 4). `4d8f63a1`, `3a27aabe`
+  och `7dddb439` har två bilder kvar, huvudbilden och måttbilden. Högpassarket visade
+  ingen ljus logotyp. (N91)
+- Livekontrollen gav 6 av 6 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N91)
+- Åtta utkast ur N61:s hopplista för skoskåp polerades: `f40bae61`, `e7a23c42`,
+  `29f4542a`, `cc459bef`, `58f0e4f1`, `c0405c69`, `091f569d` och `03e23634`.
+  Dubblettskärmen mot hela katalogen gav bara brus för dem. (N92)
+- Skärmen parade `cc459bef` (55 × 36 × 108 cm) med utkasten `680ccaa6` (vit) och
+  `748efdb6` (natur) på 55 × 35 × 108 cm. De är en annan modell: sex hyllplan mot tre,
+  14 par mot 10, 31 kg mot 40 kg i maxlast, ett annat paket och inga byte-identiska
+  foton. De två är färgsyskon till varandra och lämnades orörda. (N92)
+- Källan för `29f4542a` anger 2 kg per klaff och i klaffskåpet, lågt för 10–12 par.
+  Sidan skriver talet som källan. (N92)
+- Källan för `58f0e4f1` anger storlek 44 i beskrivningen och 45 i tekniska data. Sidan
+  skriver 44. (N92)
+- Källan för `e7a23c42` säger dolda handtag, men alla fem bilder visar handtag i
+  guldfärg. Brödtexten nämner inte handtagen, och alt-texten beskriver dem som de syns.
+  (N92)
+- `c0405c69` ska enligt källan skruvas fast i väggen med skruvarna som följer med, och
+  sidan säger det i stället för att lova ett tippskydd. Källan för `03e23634` (80 cm
+  högt) talar om ett tippsäkert utförande men inget tippskydd, och sidan lovar inget.
+  Källan för `091f569d` anger 5 kg per låda utan att skilja lådan från klaffarna, och
+  sidan skriver 5 kg i lådan. (N92)
+- Kategoritexten för Skoskåp & skobänkar säger 8 till 30 par och att de höga
+  skoskåpen levereras med tippskydd. De nya rymmer 8 till 18 par, och de höga har
+  tippskydd eller skruvas fast i väggen. Alla åtta har raden `Maxlast`, som flera
+  skoskåp i kategorin saknar, och `58f0e4f1` har raden `Våningar`. (N92)
+- Bildgranskningen strök 14 av 40 bilder: läsbar text på böcker, ljusetiketter eller
+  doftflaskor på åtta, tysk text inbränd på två (`29f4542a` bild 4 och 5), skor med ett
+  känt märke (`cc459bef` bild 4), en nyckelring med ett bilmärke på två (`c0405c69`
+  bild 4 och `03e23634` bild 2) och samma scen en gång till (`03e23634` bild 4).
+  `03e23634` har två bilder kvar, huvudbilden och måttbilden. (N92)
+- Livekontrollen gav 8 av 8 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N92)
+- Sju utkast ur N61:s hopplista för köksskåp polerades: köksskåpen `138a24b0`,
+  `f2a348ff`, `23c88539`, `edb39a31`, `2945da6c` och `66bde4c1` och skänken `b7dae593`.
+  Dubblettskärmen mot hela katalogen gav bara brus för dem. (N93)
+- Köksskåpet `83f11a66` (svart) lyftes ur rundan: det är redan sammanslaget som färgen
+  svart på den publicerade sidan `8e76d9b8` i B35, och sidan bär utkastets huvudbild.
+  Utkastet ligger kvar orört. (N93)
+- Skärmen parade `edb39a31` (59 × 30 × 170 cm) med det publicerade högskåpet
+  `fa793821` (60 × 30 × 170 cm), `23c88539` med utkastet `1dda8d1b` och `b7dae593` med
+  utkastet `f281972e`. Alla tre är andra modeller, med andra fack, laster och vikter.
+  (N93)
+- De sex köksskåpen fick samma kategorier som B35:s köksskåp `8e76d9b8`, och skänken
+  Möbler + Sideboards & vitrinskåp + Kök & Husgeråd. Kategoritexten för Sideboards &
+  vitrinskåp säger att sideboardsen är 75 till 81 cm höga, och skänken är 81 cm. Fyra
+  av dem har raden `Antal lådor`, som filtret i Sideboards & vitrinskåp behöver fler
+  av. (N93)
+- Källan för `f2a348ff` nämner inget tippskydd, trots att skåpet är 170 cm högt. Sidan
+  lovar inget. (N93)
+- Bildgranskningen strök 19 av 35 bilder: märken eller läsbar text på förpackningar,
+  burkar, flaskor och apparater på elva, boktitlar på tre (`b7dae593` bild 4 och 5 och
+  `f2a348ff` bild 5), tysk text inbränd på fyra (`138a24b0` bild 4, `f2a348ff` bild 4 och
+  `23c88539` bild 4 och 5) och samma scen en gång till (`edb39a31` bild 5). Fem av
+  produkterna har två bilder kvar, huvudbilden och måttbilden. Högpassarket visade ingen
+  ljus logotyp. (N93)
+- Livekontrollen gav 7 av 7 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N93)
+- Åtta utkast ur N61:s hopplista för köksskåp polerades: köksskåpen `d489f371`, `cfa18edc`,
+  `39a9b669`, `1dda8d1b`, `59c46581` och `553ad0d9`, mikrovågsugnsskåpet på hjul `06424d4b`
+  och skänken `f281972e`. Dubblettskärmen mot hela katalogen gav inga dubbletter. (N94)
+- För få rena bilder, hålls: köksbuffén `c4668acc`. Varje bild utom måttbilden bär läsbara
+  märken på förpackningar och burkar, även huvudbilden. Den kan poleras om leverantören har
+  renare bilder. (N94)
+- Skärmen parade `cfa18edc` (100 × 40 × 180 cm) med de publicerade köksskåpen `5de3224e` och
+  `8e76d9b8`, `d489f371` (60 × 35 × 180 cm) med den publicerade `fbcf5899` och `553ad0d9` med
+  den publicerade `2e6d120a`, och namnlistan pekade ut `4be73755` (100 × 40 × 180 cm i
+  lantstil). Alla är andra modeller, med andra fack, laster och vikter. `fbcf5899` har en
+  glasvitrin där `d489f371` har släta dörrar. (N94)
+- Kategoritexten för Sideboards & vitrinskåp säger att sideboardsen är 75 till 81 cm höga.
+  Skänken `f281972e` är 85 cm hög och ligger nu i kategorin, så texten bör säga 75 till 85
+  cm. Sex av rundans sju produkter i kategorin har raden `Antal lådor`. (N94)
+- Källan för `59c46581` anger underskåpets innerhöjd till 775,5 cm. Måttbilden visar 77,5
+  cm, och sidan anger 77,5 cm. (N94)
+- Källan för `d489f371` kallar överskåpet vitrinskåp, men bilderna visar släta dörrar. Sidan
+  beskriver släta dörrar. (N94)
+- Källan för `553ad0d9` nämner inget tippskydd, trots att skåpet är 172 cm högt. Sidan
+  lovar inget tippskydd och råder kunden att fästa skåpet i väggen. (N94)
+- Bildgranskningen strök 21 av 40 bilder: märken eller läsbar text på förpackningar, burkar,
+  flaskor och apparater på arton (två av dem bär även boktitlar) och text på böcker på tre
+  (`d489f371` bild 4 och `f281972e` bild 4 och 5). Fem av produkterna har två bilder kvar,
+  huvudbilden och måttbilden. Högpassarken visade ingen ljus logotyp. (N94)
+- Livekontrollen gav 8 av 8 OK, 19 av 19 alt-texter och noll textavvikelser. Priserna är
+  orörda. Fyra sidor svarade 404 på den första träffen, två minuter efter skrivningen, och
+  200 fem minuter senare. (N94)
+- Fem utkast ur N61:s hopplista polerades: sideboardet `77b13bdd`, satsborden `eec11af3` och
+  soffborden `1b5eb871`, `96ad2ce3` och `afcddf6b`. Färgsyskonen lades in som val efter
+  publiceringen: den svarta skänken `b3a83f02` på `77b13bdd` och de vita satsborden
+  `bf870d91` på `eec11af3`. Båda givarna är pensionerade, och varje färg har sitt eget foto
+  och sitt eget pris. (N95)
+- Båda givarnas pris styrdes av konkurrentregeln. Efter sammanslagningen följer den svarta
+  skänken och de vita satsborden husets regel från nästa synk, så deras pris kan ändras.
+  (N95)
+- Sideboardet `77b13bdd` är inte kopplat till Byråer eller Sideboards & vitrinskåp.
+  Byråers kategoritext säger "En byrå har ett skåp bredvid lådorna" (`9b679006`), och
+  Sideboards & vitrinskåps säger "Två har dörrar med soft close". Sideboardet har både
+  skåp och soft close, så båda påståendena hade blivit fel. Rättas texterna till två
+  byråer respektive tre sideboards kan det kopplas till båda. Tills dess ligger det i
+  Möbler och Förvaring & Organisering. (N95)
+- Skärmen parade sideboardet `77b13bdd` (100 × 40 × 80 cm) med den publicerade byrån
+  med skåp `9b679006` och sideboardet i lantstil `07565140`, satsborden `eec11af3` med
+  de publicerade `c78b886b` (Ø74 och Ø59 cm) och `98891b79` (Ø60 och Ø45 cm), och det
+  lyftbara soffbordet `afcddf6b` med `cc4a9285` (102 cm i vit högglans, två lådor). Alla
+  är andra modeller. (N95)
+- Bildgranskningen strök 4 av 25 bilder: en känd kaffemaskin, tysk text och boktitlar på
+  sideboardet `77b13bdd` (bild 2, 4 och 5) och boktitlar på soffbordet `1b5eb871` (bild 2).
+  Sideboardet har två bilder kvar, huvudbilden och måttbilden. (N95)
+- Skrivningen kopplade 11 av 11 kategorirader, men produktläsningen visade dem först tio
+  minuter senare, så den första verifieringen föll på kategorierna. Kategori-API:t visade
+  kopplingarna direkt, och läget stämpla verifierade och stämplade sedan 5 av 5. (N95)
+- Livekontrollen gav 5 av 5 OK, 21 av 21 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N95)
+- Fyra barset ur N61:s hopplista polerades: `cee1f7e1` (fyra runda pallar), `44c2fc53`
+  (hylla i gaveln och två pallar), `17b611b8` (fyra barstolar med ryggstöd) och `1763826d`
+  (fyra stoppade barstolar). Färgsyskonen lades in som val efter publiceringen: `9794d190`
+  (ek och vit) och `35e9609f` (brun och svart) på `cee1f7e1`, och `c65e64e0` (mörkgrått)
+  och `2b03b3e4` (ljusgrått) på `1763826d`. Alla fyra givarna är pensionerade, och varje
+  färg har sitt eget foto och sitt eget pris. (N96)
+- Alla fyra givarnas pris styrdes av konkurrentregeln. Efter sammanslagningen följer de nya
+  färgerna husets regel från nästa synk, så deras pris kan ändras. (N96)
+- Barbordet med hylla i gaveln `44c2fc53` är inte kopplat till Barbord. Kategoritexten
+  säger "Två av seten har hyllor under skivan" (`394de213` och `c3bda64a`), och gavelhyllan
+  hade gjort dem till tre. Rättas texten kan setet kopplas dit. Tills dess ligger det i
+  Möbler och Matbord & stolar. De tre andra seten håller Barbord-textens bredd, sitthöjd
+  och höjd. (N96)
+- Skärmen gav träffar på utkastet `141a4624` (bord och två stolar, 90 × 50 × 90,5 cm) och
+  de publicerade seten `51c43e67` (100 cm, två stoppade pallar), `63a37524` och `c88b5bbb`
+  (100 cm, fyra fyrkantiga pallar). Alla är andra modeller. (N96)
+- Bildgranskningen strök 5 av 20 bilder: påsar, text i fönstret och en tidning på `44c2fc53`
+  (bild 2 och 4), en tidning och vinflaskor på `17b611b8` (bild 2) och flaskor och
+  bordskort på `1763826d` (bild 2 och 4). (N96)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Livekontrollen gav 4 av 4 OK, 15 av 15 alt-texter och noll textavvikelser, och de två
+  sammanslagna sidorna visar tre färgval var. Priserna är orörda. (N96)
+- Sex barstolar ur N61:s hopplista polerades: `fcb75f42` (grå chenille, fast sitthöjd 72,5
+  cm), `58bcad97` (stol på hjul med gaslyft), `db8ecc32` (skandinavisk stil, ben i bokträ),
+  `a3ddb29a` (gräddvit med skal i trälook), `6830a4ae` (svart konstläder på böjt träskal)
+  och `667f1544` (retrostil med nitar). Det vita syskonet `62b97643` lades in som färgval på
+  `db8ecc32` och är pensionerat. Alla sex ligger i Möbler och Matbord & stolar, där de
+  publicerade barstolarna finns. Barpallarna `4d85ddd5` ur samma lista var redan
+  publicerade. (N97)
+- Syskonsvepet såg ingen relation mellan `db8ecc32` och `62b97643` trots samma klunga, mått,
+  paket och namn, eftersom vikten skiljer 14,8 % (11,5 mot 9,8 kg). Den vita stolens tyska
+  text anger dessutom 42,5 × 38,5 cm vid golvet, mot 43 × 43 cm i feeden för båda. Bilderna
+  visar samma stol, så de slogs ihop, och sidan anger fraktvikten per färg. Givarens pris
+  styrdes av konkurrentregeln och följer husets regel från nästa synk. (N97)
+- Skärmen gav bara andra modeller: matstolarna `6a963a3b` mot `a3ddb29a`, kontorsstolen i
+  retrostil `94115aae` mot `667f1544`, och rullpallarna `ae880fa2` och `be8f28cd` och
+  ritstolen `f1f861ea` mot stolen på hjul `58bcad97`. (N97)
+- Stolen på hjul `58bcad97`: källans totalhöjd maskeras på servern, eftersom intervallet har
+  artikelnummerformen. 104–127 cm är avläst på måttbilden och kvitterat i `foto-tal.txt`.
+  (N97)
+- Bildgranskningen strök 3 av 30 bilder: en tidning med läsbar text (`fcb75f42` bild 2),
+  inbränd tysk monteringstext (`fcb75f42` bild 4) och etiketter på flaskor och bokryggar
+  (`667f1544` bild 2). Tryckta koppar i tre bilder (`a3ddb29a` bild 2, `6830a4ae` bild 4 och
+  `db8ecc32` bild 4) går inte att läsa i 1:1, så de bilderna står kvar. (N97)
+- Skrivningen verifierade och stämplade 6 av 6 i första försöket. Livekontrollen gav 6 av 6
+  OK, 27 av 27 alt-texter och noll textavvikelser, och `db8ecc32` visar två färgval.
+  Priserna är orörda. (N97)
+- Fyra matstolar ur N61:s hopplista polerades: `aadf86df` (köksstolar i furu, 4-pack),
+  `5770aa6f` (svart konstläder på böjt träskal, 2-pack), `fa143813` (snurrbara med armstöd,
+  mörkgrå sammetslook, 2-pack) och `020a028f` (mörkgrå sammet med skalrygg, 4-pack). Alla
+  fyra ligger i Möbler och Matbord & stolar. (N98)
+- Hoppade ur samma lista: `2527be66` har saldo 0. `98245bb2` och `817e1869` hör till en
+  familj med två publicerade sidor (`5efe45d0` och `1876d935`), och svepet ser `817e1869`
+  som samma vara som `1876d935`, så de lämnas åt familjearbetet. Skänken `34d76ecf` är
+  redan det svarta valet på `477bcd1f`. (N98)
+- `aadf86df` är samma stol som den publicerade `2aa6ff77`, som säljs två och två. 4-packet
+  fick en egen sida. `020a028f` har samma stolmått som utkastet `8c42d667` (mörkgrön,
+  2-pack). Förpackningen skiljer, så de slogs inte ihop. (N98)
+- Skärmen gav två andra modeller, `8dd5887b` och `d45299d8`. (N98)
+- Bildgranskningen strök 2 av 20 bilder: en tidning med läsbar titel (`fa143813` bild 4)
+  och en skärbräda med läsbart alfabet (`020a028f` bild 2). (N98)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Livekontrollen gav 4 av 4 OK, 18 av 18 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N98)
+- Kontorsstolar ur N61:s hopplista: ritstolen i nätväv `3b8a4398` (svart) polerades och
+  den ljusgrå `f1d549fd` lades in som färgval och är pensionerad. `3b8a4398` stod i N60:s
+  lista men hade mest saldo (182 mot 11). Skrivbordsstolen i gräddvit sammetslook
+  `972f5195` och kontorsstolen i linnelook med fotstöd `3016f35c` blev egna sidor. Alla
+  ligger i Möbler och Kontorsstolar. Kontorsstolen `c2902bb8` var redan det bruna valet
+  på `19f3239f` (B29). (N99)
+- Den publicerade K1-sidan `f943140c` skrevs om: namn och titel utan färg, texten
+  täcker beige med svart fot och grå med förkromad fot, och SKU:n blev
+  `FP-kontorsstol-flanellook`. Sluggen står kvar. Den grå `746befb0` lades sedan in som
+  färgval och är pensionerad. Den grå stolens egen text och feedrad anger samma
+  60 × 63 × 84–94 cm som den beige, men dess måttbild visar 64 × 63 × 86–96 cm. Sidan
+  anger båda måtten. Bild 5 med en tidning med läsbar titel ströks. (N99)
+- Utkastet `f1b631b8` var samma stol som den publicerade AliExpress-sidan `18afa056`
+  (samma foton). Sidan är ommappad till Aosom och utkastet pensionerat. Kundpriset 1 599
+  kr rördes inte, och Aosom-synken räknar om det från nästa körning. (N99)
+- Gamingstolen med kattöron säljs redan som den publicerade AliExpress-sidan `a60466e7`
+  med tre varianter. De fyra Aosom-utkasten `7986797d` (saldo 58), `3d945c3d` (48),
+  `ce820686` (49) och `eec39dc8` (0) är samma stol i olika färger. Ommappningen vägrar en
+  sida med flera varianter, och en AliExpress-sida kan inte ta emot syskon. Utkasten
+  lämnas åt Leonard. (N99)
+- Källorna säger emot sig själva på två ställen. Ritstolens armstöd sitter 20 cm över
+  sitsen enligt den svarta och 30 cm enligt den ljusgrå, och båda ritningarna följer sin
+  text. Höjden utelämnades på sidan. Kontorsstolen `3016f35c` har sitthöjd 46–54 cm i
+  texten och 57–63 cm på måttbilden, och en mätning på bilden ger ungefär 56 cm i lägsta
+  läget. Sidan anger 57–63 cm efter ritningen. (N99)
+- Skärmen gav bara andra modeller: ritstolarna `cea5a0ce`, `d739872f`, `0064c439` och
+  `3f518008` mot ritstolen, `47bd2db6` (160° i PU-läder), `6d3ae867` och `5302daf2` mot
+  `3016f35c`, och nätstolarna `909b7596` och `29549b48` mot gamingstolarna. (N99)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Båda sammanslagningarna kopplade en bild till varje färg. Livekontrollen gav 4 av 4 OK,
+  19 av 19 alt-texter och noll textavvikelser, och de två sammanslagna sidorna visar båda
+  färgerna i lager. Priserna är orörda. (N99)
 - Det gröna reservtaket (`f03641c1`) är löst, med ommappningens nya `behall_variant` (Leonard
   2026-09-28: *radera aliexpress varianter som inte finns och behåll den som finns hos
   aosom*). AliExpress-sidan `fc5e7fde` kollapsades till sin gröna variant i Wix och i

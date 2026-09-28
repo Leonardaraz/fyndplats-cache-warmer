@@ -61,6 +61,13 @@ export interface TillaggsUtfall {
   utanVariantId: number;
   /** Butikspriset är tvetydigt eller saknas — raden får ingen etikett alls, ingen gissning. */
   utanPris: number;
+  /**
+   * Rader vars Wix-produkt är raderad (`wixRaderad`, lib/aosom/pensionerade.ts).
+   * Räknas för sig i stället för att hamna i `utanPris` — en raderad produkt
+   * saknar inte pris, den finns inte, och ett `utanPris` som plötsligt växer
+   * med sexhundra hade sett ut som ett fel i prislistan.
+   */
+  raderadeIWix: number;
   perGrupp: Record<Prisgrupp | "ingen", number>;
   perKonkurrenslage: Record<string, number>;
 }
@@ -105,12 +112,17 @@ export function byggTillaggsfeed(
     ejAosom: 0,
     utanVariantId: 0,
     utanPris: 0,
+    raderadeIWix: 0,
     perGrupp: { A: 0, B: 0, ingen: 0 },
     perKonkurrenslage: {},
   };
   for (const m of mappningar) {
     if (isAliExpressMapping(m)) {
       ut.ejAosom++;
+      continue;
+    }
+    if (m.wixRaderad) {
+      ut.raderadeIWix++;
       continue;
     }
     const bild = aosomArtikelbild(m);

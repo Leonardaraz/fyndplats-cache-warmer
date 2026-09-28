@@ -5,6 +5,8 @@
 // så det är ok att hardcoda — vi gör det override:bart via HEADLESS_WIX_SITE_ID
 // för flexibility.
 
+import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
 
@@ -400,6 +402,101 @@ export async function v3ProduktFinns(productId: string): Promise<boolean | null>
   } catch {
     return null;
   }
+}
+
+/** Det raderingen av ett pensionerat utkast läser om produkten precis före raderingen. */
+export type ProduktForRadering =
+  | { finns: false }
+  | { finns: true; visible: boolean; slug: string; skus: string[]; nycklar: string[] };
+
+/**
+ * Läser en produkt FÄRSKT precis före raderingen (lib/aosom/pensionerade.ts).
+ *
+ * `null` = läsfel, alltså okänt — anroparen hoppar över produkten. En 404 är
+ * däremot ett svar: produkten finns inte.
+ *
+ * ☠️ `fields=MEDIA_ITEMS_INFO` ÄR OBLIGATORISKT. Utan det är galleriet tomt i
+ * svaret, och då ser produkten ut att inte dela någon fil med någon annan
+ * produkt — just det raderingen kontrollerar efteråt.
+ */
+export async function lasProduktForRadering(productId: string): Promise<ProduktForRadering | null> {
+  for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+    let res: Response;
+    try {
+      res = await fetch(
+        `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=MEDIA_ITEMS_INFO`,
+        { method: "GET", headers: headers() },
+      );
+    } catch {
+      if (forsok === PRIS_PAUS_MS.length) return null;
+      await sov(PRIS_PAUS_MS[forsok]);
+      continue;
+    }
+    if (res.status === 404) return { finns: false };
+    if (res.ok) {
+      const data = (await res.json()) as {
+        product?: ProduktMedia & {
+          visible?: boolean;
+          slug?: string;
+          variantsInfo?: { variants?: Array<{ sku?: string }> };
+        };
+      };
+      const p = data.product;
+      if (!p) return null;
+      return {
+        finns: true,
+        // ☠️ Bara ett uttryckligt `false` är dolt. Ett saknat fält är okänt,
+        // och okänt raderas inte.
+        visible: p.visible !== false,
+        slug: p.slug ?? "",
+        skus: (p.variantsInfo?.variants ?? []).map((v) => (v.sku ?? "").trim()).filter(Boolean),
+        nycklar: produktensMedianycklar(p),
+      };
+    }
+    const text = await res.text().catch(() => "");
+    if (!(arOvergaende(res.status) || text.trimStart().startsWith("<")) || forsok === PRIS_PAUS_MS.length) {
+      return null;
+    }
+    await sov(PRIS_PAUS_MS[forsok]);
+  }
+  return null;
+}
+
+/**
+ * Raderar en produkt. Används BARA av raderingen av pensionerade utkast
+ * (lib/aosom/pensionerade.ts), som före anropet har läst produkten som dold och
+ * efteråt bekräftar med en egen läsning att den är borta.
+ *
+ * En 404 räknas som klart: produkten finns inte, och det var målet. 429, 5xx,
+ * edge-lagrets HTML-sida och nätverksfel återförsöks. Allt annat KASTAR — ett
+ * oväntat fel ska stoppa raderingen, aldrig hoppas förbi.
+ */
+export async function deleteV3Product(productId: string): Promise<"raderad" | "fanns_inte"> {
+  let sistaFel = "";
+  for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+    let res: Response;
+    try {
+      res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+        method: "DELETE",
+        headers: headers(),
+      });
+    } catch (err) {
+      sistaFel = err instanceof Error ? err.message : String(err);
+      if (forsok === PRIS_PAUS_MS.length) break;
+      await sov(PRIS_PAUS_MS[forsok]);
+      continue;
+    }
+    if (res.ok) return "raderad";
+    if (res.status === 404) return "fanns_inte";
+    const text = await res.text().catch(() => "");
+    sistaFel = `${res.status}`;
+    // Kroppen går till Vercels privata logg, inte till svaret — den kan bära
+    // produktens namn, och svaret hamnar i en publik Actions-logg.
+    console.error(`[deleteV3Product] ${productId}: ${res.status} ${text.slice(0, 300)}`);
+    if (!(arOvergaende(res.status) || text.trimStart().startsWith("<")) || forsok === PRIS_PAUS_MS.length) break;
+    await sov(PRIS_PAUS_MS[forsok]);
+  }
+  throw new Error(`Wix raderade inte produkten (${sistaFel})`);
 }
 
 /**

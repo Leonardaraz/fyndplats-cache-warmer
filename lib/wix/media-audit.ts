@@ -22,6 +22,8 @@
 // filen"-API (kontrollerat 2026-08-27), så skillnaden går inte att räkna bort
 // — bara att vara ärlig om.
 
+import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
 
@@ -126,6 +128,92 @@ export async function listAllMediaFiles(
   return { files, total, complete: false };
 }
 
+/** En produkt i katalogsvepet: det raderingen och inventeringen behöver veta. */
+export interface KatalogProdukt {
+  id: string;
+  visible: boolean;
+  slug: string;
+  /** Filernas nycklar — lib/wix/produkt-media.ts är definitionen. */
+  nycklar: string[];
+}
+
+/** Återförsök vid 429/5xx/edge-HTML, samma steg som prislistan (lib/wix/v3-products.ts). */
+const SVEP_PAUS_MS = [1_000, 3_000, 8_000];
+/** Paus mellan sidor — billigare än ett återförsök. */
+const SVEP_SIDPAUS_MS = 120;
+
+/**
+ * Hela katalogen, en post per produkt, med varje fil produkten använder.
+ *
+ * ☠️ `fields` SKICKAS OM PÅ VARJE SIDA. Utan det svarar sida två med
+ * galleriet FRÅNVARANDE (uppmätt 2026-09-16: 0 av 100 med bara markören),
+ * och då ser varje produkt efter sida ett bildlös ut.
+ *
+ * `complete: false` betyder att svepet stannade på tidsbudgeten eller sidtaket.
+ * En anropare som fattar ett beslut om EN produkt utifrån svepet — som
+ * raderingen av pensionerade utkast — måste vägra ett ofullständigt svep.
+ */
+export async function listCatalogProductMedia(
+  siteId: string,
+  budget?: AuditBudget,
+): Promise<{ produkter: KatalogProdukt[]; complete: boolean }> {
+  const produkter: KatalogProdukt[] = [];
+  let cursor: string | undefined;
+
+  for (let page = 0; page < 200; page++) {
+    if (budgetExceeded(budget)) return { produkter, complete: false };
+    if (page > 0) await new Promise((r) => setTimeout(r, SVEP_SIDPAUS_MS));
+
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    let res: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= SVEP_PAUS_MS.length; forsok++) {
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/products/search`, {
+          method: "POST",
+          headers: headers(siteId),
+          body: JSON.stringify({ fields: ["MEDIA_ITEMS_INFO"], search: { cursorPaging } }),
+        });
+      } catch (err) {
+        sistaFel = err instanceof Error ? err.message : String(err);
+        res = null;
+      }
+      if (res?.ok) break;
+      if (res) {
+        const text = await res.text();
+        sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+        const overgaende = res.status === 429 || res.status >= 500 || text.trimStart().startsWith("<");
+        res = null;
+        if (!overgaende) break;
+      }
+      if (forsok < SVEP_PAUS_MS.length) await new Promise((r) => setTimeout(r, SVEP_PAUS_MS[forsok]));
+    }
+    if (!res) throw new Error(`Product search failed on page ${page} (${sistaFel})`);
+
+    const data = (await res.json()) as {
+      products?: Array<ProduktMedia & { id?: string; visible?: boolean; slug?: string }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      produkter.push({
+        id: p.id,
+        visible: p.visible !== false,
+        slug: p.slug ?? "",
+        nycklar: produktensMedianycklar(p),
+      });
+    }
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!data.products?.length || !cursor || data.pagingMetadata?.hasNext === false) {
+      return { produkter, complete: true };
+    }
+  }
+  return { produkter, complete: false };
+}
+
 /**
  * Alla mediaid katalogen refererar.
  *
@@ -133,59 +221,44 @@ export async function listAllMediaFiles(
  * och varje `linkedMedia` finns i galleriet (försöker man ta bort en länkad bild
  * ur galleriet svarar API:t 404 PRODUCT_MEDIA_NOT_EXIST). Vi läser ändå main och
  * linkedMedia explicit — kostar ingenting och gör spärren oberoende av att den
- * invarianten fortsätter gälla.
+ * invarianten fortsätter gälla. Definitionen bor i lib/wix/produkt-media.ts.
  */
 export async function collectCatalogMediaIds(
   siteId: string,
   budget?: AuditBudget,
 ): Promise<{ ids: Set<string>; products: number; complete: boolean }> {
+  const { produkter, complete } = await listCatalogProductMedia(siteId, budget);
   const ids = new Set<string>();
-  let cursor: string | undefined;
-  let products = 0;
+  for (const p of produkter) for (const k of p.nycklar) ids.add(k);
+  return { ids, products: produkter.length, complete };
+}
 
-  for (let page = 0; page < 200; page++) {
-    if (budgetExceeded(budget)) return { ids, products, complete: false };
-
-    const cursorPaging: Record<string, unknown> = { limit: 100 };
-    if (cursor) cursorPaging.cursor = cursor;
-    const res = await fetch(`${WIX_BASE}/stores/v3/products/search`, {
+/**
+ * Filernas tillstånd i Media Manager: `OK`, `DELETED` (i papperskorgen) — och
+ * en fil som inte finns i svaret finns inte alls.
+ *
+ * Läser bara. Finns för raderingen av pensionerade utkast
+ * (lib/aosom/pensionerade.ts), som efter varje raderad produkt kontrollerar att
+ * filerna den delade med en annan produkt finns kvar. Wix dokumentation säger
+ * inte vad som händer med bildfilerna när en produkt raderas; det här är hur
+ * det mäts i stället för antas.
+ *
+ * ☠️ KASTAR VID FEL. Ett misslyckat anrop får aldrig se ut som "alla filer finns".
+ */
+export async function getFileStates(siteId: string, fileIds: string[]): Promise<Map<string, string>> {
+  const ut = new Map<string, string>();
+  const ids = [...new Set(fileIds.filter(Boolean))];
+  for (let i = 0; i < ids.length; i += 50) {
+    const res = await fetch(`${WIX_BASE}/site-media/v1/files/get-files`, {
       method: "POST",
       headers: headers(siteId),
-      body: JSON.stringify({ fields: ["MEDIA_ITEMS_INFO"], search: { cursorPaging } }),
+      body: JSON.stringify({ fileIds: ids.slice(i, i + 50) }),
     });
-    if (!res.ok) {
-      throw new Error(`Product search failed (${res.status}): ${(await res.text()).slice(0, 300)}`);
-    }
-    const data = (await res.json()) as {
-      products?: Array<{
-        media?: {
-          main?: { id?: string };
-          itemsInfo?: { items?: Array<{ id?: string }> };
-        };
-        options?: Array<{
-          choicesSettings?: { choices?: Array<{ linkedMedia?: Array<{ id?: string }> }> };
-        }>;
-      }>;
-      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
-    };
-
-    for (const p of data.products ?? []) {
-      products++;
-      if (p.media?.main?.id) ids.add(p.media.main.id);
-      for (const it of p.media?.itemsInfo?.items ?? []) if (it.id) ids.add(it.id);
-      for (const o of p.options ?? []) {
-        for (const c of o.choicesSettings?.choices ?? []) {
-          for (const m of c.linkedMedia ?? []) if (m.id) ids.add(m.id);
-        }
-      }
-    }
-
-    cursor = data.pagingMetadata?.cursors?.next;
-    if (!data.products?.length || !cursor || data.pagingMetadata?.hasNext === false) {
-      return { ids, products, complete: true };
-    }
+    if (!res.ok) throw new Error(`get-files failed (${res.status})`);
+    const data = (await res.json()) as { files?: Array<{ id?: string; state?: string }> };
+    for (const f of data.files ?? []) if (f.id) ut.set(f.id, f.state ?? "OK");
   }
-  return { ids, products, complete: false };
+  return ut;
 }
 
 /**

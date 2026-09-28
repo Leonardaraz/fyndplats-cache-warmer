@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03e23634": {
+  "tyska": "",
+  "svenska": "4 Klappen",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 105B x 26T x 80H cm | ✔ Schubladeninnenmaß: 44B x 22T x 29,5H cm"
+ },
+ "091f569d": {
+  "tyska": "75B x 26T x 110H cm",
+  "svenska": "75 x 26 x 110 cm",
+  "bokstaver": "BTH",
+  "djup": 26,
+  "hojd": 110,
+  "bredd": 75
+ },
+ "29f4542a": {
+  "tyska": "99,4B x 23,8T x 106,6H cm",
+  "svenska": "99,4L x 23,8B x 106,6H cm",
+  "bokstaver": "BTH",
+  "djup": 23.8,
+  "hojd": 106.6,
+  "bredd": 99.4
+ },
+ "58f0e4f1": {
+  "tyska": "70B x 33,5T x 95H cm",
+  "svenska": "70L x 33,5B x 95H cm",
+  "bokstaver": "BTH",
+  "djup": 33.5,
+  "hojd": 95,
+  "bredd": 70
+ },
+ "c0405c69": {
+  "tyska": "80B x 17T x 108H cm",
+  "svenska": "80L x 17B x 108H cm",
+  "bokstaver": "BTH",
+  "djup": 17,
+  "hojd": 108,
+  "bredd": 80
+ },
+ "cc459bef": {
+  "tyska": "55B x 36T x 108H cm",
+  "svenska": "55x36x108 cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 108,
+  "bredd": 55
+ },
+ "e7a23c42": {
+  "tyska": "80B x 24T x 102,5H cm",
+  "svenska": "80 x 24 x 102.5",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 102.5,
+  "bredd": 80
+ },
+ "f40bae61": {
+  "tyska": "80B x 20T x 84H cm",
+  "svenska": "80 x 20 x 84 cm",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 84,
+  "bredd": 80
+ }
+}

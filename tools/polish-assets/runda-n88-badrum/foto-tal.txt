@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+86c26702 2 spegeldörrar, räknade på produktfotot (bild 1)
+1e2c6427 2 skåp, ett med dubbeldörrar upptill och ett med en dörr nertill, räknade på produktfotot (bild 1)

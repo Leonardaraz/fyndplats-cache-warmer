@@ -1,0 +1,54 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0dfc4423": {
+  "tyska": "39,8L x 35B x 31,6H cm",
+  "svenska": "39,8L x 35B x 31,6H cm",
+  "bokstaver": "LBH",
+  "hojd": 31.6,
+  "bredd": 39.8,
+  "djup": 35
+ },
+ "0ecc0773": {
+  "tyska": "65,5L x 44B x 86,5-104,5H cm",
+  "svenska": "65,5L x 44B x 86,5-104,5H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   86.5,
+   104.5
+  ],
+  "bredd": 65.5,
+  "djup": 44
+ },
+ "2e6d120a": {
+  "tyska": "76L x 38B x 182H cm",
+  "svenska": "76L x 38B x 182H cm",
+  "bokstaver": "LBH",
+  "hojd": 182,
+  "bredd": 76,
+  "djup": 38
+ },
+ "3e6e478c": {
+  "tyska": "Ø60 x 138H cm",
+  "svenska": "Ø60 x 138H cm",
+  "bokstaver": "H",
+  "hojd": 138
+ },
+ "795ab5c6": {
+  "tyska": "",
+  "svenska": "80L x 61B x 134H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktdaten: 80L x 61B x 134H cm | ✔ Produktdaten des Griffs: 59L x 42B cm | ✔ Fußpedale: 35L x 13B cm"
+ },
+ "932c527a": {
+  "tyska": "140B x 10T x ‹FORM› cm",
+  "svenska": "140L x 10B x ‹FORM› cm",
+  "bokstaver": "BT",
+  "djup": 10,
+  "bredd": 140
+ },
+ "c78b886b": {
+  "tyska": "Ø 74 x 46,3H cm (großer Tisch)",
+  "svenska": "74L x 74B x 46,3H cm",
+  "bokstaver": "H",
+  "hojd": 46.3
+ }
+}

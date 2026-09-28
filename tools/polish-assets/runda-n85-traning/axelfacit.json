@@ -1,0 +1,41 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "117a9e5e": {
+  "tyska": "",
+  "svenska": "2 x 12,5kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 14,8B x 14,8T x 9,9H cm"
+ },
+ "192f92e6": {
+  "tyska": "111,5L x 52,5B x 114,5H cm",
+  "svenska": "111,5L x 52,5B x 114,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 114.5,
+  "bredd": 111.5,
+  "djup": 52.5
+ },
+ "49732af4": {
+  "tyska": "",
+  "svenska": "20 kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 37L x 18B x 18H cm | ✔ Griffgröße: Ø3,2 x 13L cm | ✔ Tablettgröße: 37L x 18B cm"
+ },
+ "52a5d92b": {
+  "tyska": "",
+  "svenska": "20 kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelmaße: 13L x 6B x 5,5H cm (1 kg), 16L x 7,5B x 6,5H cm (2 kg), 18L x 8B x 7,5H cm (3 kg), 19L x 9B x 8,5H cm (4 kg) | ✔ Aufbewahrungsregal: 21L x 14B x 42H cm"
+ },
+ "b6e44df4": {
+  "tyska": "105L x 48B x 118H cm",
+  "svenska": "105L x 48B x 118H cm",
+  "bokstaver": "LBH",
+  "hojd": 118,
+  "bredd": 105,
+  "djup": 48
+ },
+ "bc2b4c66": {
+  "tyska": "‹FORM› x 62B x 103H cm",
+  "svenska": "‹FORM› x 62B x 103H cm",
+  "bokstaver": "BH",
+  "hojd": 103,
+  "bredd": 62
+ }
+}

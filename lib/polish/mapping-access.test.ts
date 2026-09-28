@@ -91,6 +91,28 @@ describe("applicera — rör bara det som namngavs", () => {
   it("en tom patch lämnar raden orörd", () => {
     expect(applicera(rad(), {}).ny).toEqual(rad());
   });
+
+  it("☠️ en ändrad draftStatus får reviewedAt — pensioneringen får en ålder", () => {
+    const nu = new Date("2026-09-28T12:00:00.000Z");
+    const { ny } = applicera(rad({ draftStatus: "pending_review" }), { draftStatus: "rejected" }, nu);
+    expect(ny.draftStatus).toBe("rejected");
+    expect(ny.reviewedAt).toBe("2026-09-28T12:00:00.000Z");
+  });
+
+  it("samma draftStatus igen flyttar INTE klockan", () => {
+    const tidig = "2026-09-01T08:00:00.000Z";
+    const { ny } = applicera(
+      rad({ draftStatus: "rejected", reviewedAt: tidig }),
+      { draftStatus: "rejected" },
+      new Date("2026-09-28T12:00:00.000Z"),
+    );
+    expect(ny.reviewedAt).toBe(tidig);
+  });
+
+  it("en patch utan draftStatus rör inte reviewedAt", () => {
+    const { ny } = applicera(rad({ reviewedAt: undefined }), { needsAiPolish: false });
+    expect(ny.reviewedAt).toBeUndefined();
+  });
 });
 
 describe("prisgrind — samma regel som prissättningen", () => {
