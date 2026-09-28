@@ -4584,3 +4584,43 @@ beslut — se den samlade frågan om detta.
   var miljöbilder med läsbar text eller märken på rekvisitan: boktitlar och ljus hos skoskåpet
   (två bilder), böcker, en kalender och en tidning hos kontorsstolen (tre bilder), förpackningar
   och en kartong hos verktygslådan (två bilder) och en bok hos väggvärmaren. (B49)
+- B53: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Det portabla
+  växthuset 180 × 180 cm `601ae5f5` (vitt) fick grönt (`ed4fd2a9`). Drivbänken 90 × 46 cm
+  `6e60b45a` (orange) fick grå (`87485b8a`). Miniväxthuset 100 × 65 cm `83a5fc0e` (brunt) fick
+  grått (`e0b85bb6`). Minifrysen 35 liter med vändbar dörr `b2c76518` (svart) fick silver
+  (`9a33e15f`) och vitt (`d4e79563`). Soptunnan med två fack `a00882ed` (vit) fick grå
+  (`9fa9af24`). Sparkcykeln med korg `b03784dc` (rosa) fick blå (`e4e5a8ef`). Gungstolen i
+  teddytyg `b4441140` (gräddvit) fick ljusgrå (`dd4e1e06`). Foliehuset 200 × 75 cm `be595bfd`
+  (vitt) fick grönt (`cc2add44`). Det blev 9 sammanslagningar, 9 omdirigeringar och 33
+  kopierade recensioner. Skrivningen verifierade 8 av 8 sidor, och livekontrollen gav 8 av 8
+  sidor OK och 38 av 38 alt-texter. Alla 9 gamla adresser svarade 308 till rätt sida 13:14. (B53)
+- Alla nio givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: växthuset 849 och 799 kr, drivbänken 759 och 769 kr, miniväxthuset 919 kr i båda
+  färgerna, minifrysen 1 549 kr i svart och silver och 1 999 kr i vitt, soptunnan 1 159 och
+  1 139 kr, sparkcykeln 1 299 och 1 169 kr, gungstolen 1 699 kr i båda färgerna och foliehuset
+  799 och 719 kr. (B53)
+- Den vita minifrysen `d4e79563` är samma modell som den svarta och den silverfärgade. De
+  låsbara minifrysarna på 35 liter (`8cfe5171` vit, `a33ece7a` grå) är en annan modell, med
+  nyckellås, 161 W och en dörr som öppnas 135° mot 45 W och 180°, och slogs ihop för sig i
+  B54. (B53)
+- Drivbänkens orange sida behölls, eftersom den grå sidans oförändrade slug bär
+  `gra-90x46x40`, som skrivplanens formkontroll fäller. (B53)
+- Tre paviljongtaksfamiljer slogs inte ihop, eftersom sidornas oförändrade sluggar fälls av
+  formkontrollen: dubbeltaket 3 × 3 m (`60eaf40e`, `df5a7190`) och Oxford-taken 3 × 3 m
+  (`d01a6d2b`, `d52c6d1d`) och 3 × 4 m (`dc7d2513`, `ef0a812d`). (B53)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B53)
+- Tre tal är avlästa på bilderna och kvitterade i `foto-tal.txt`: gungstolens armstöd, 20 cm
+  över sitsen på måttritningen, och foliehusets markkant, 10 cm, och två nätfönster. (B53)
+- Växthusets gamla text kallade golvytan knappt fyra kvadratmeter. 1,8 × 1,8 m är 3,2 m², och
+  texten säger nu det. (B53)
+- Jämförelser och hänvisningar är borta: soptunnans texter pekade på modeller på 40 och 56
+  liter, sparkcykelns texter jämförde med andra sparkcyklar och gungstolens pekade på en gungstol
+  med knappad rygg. (B53)
+- Sju familjer angav feedens fraktvikt som varans vikt: växthuset (9,4 kg), drivbänken (4,8 kg),
+  miniväxthuset (6,3 kg), minifrysen (15 kg), soptunnan (10,6 kg), gungstolen (13,8 kg) och
+  foliehuset (6,1 kg). Sparkcykelns texter angav ingen vikt. Vikten står nu som Fraktvikt. (B53)
+- Fyra bilder ströks: två egna faktakort med fraktvikten som vikt (soptunnan 10,6 kg och
+  gungstolen 13,8 kg) och två miljöbilder med läsbar text på rekvisitan: en tidning hos
+  soptunnan och boktitlar på minifrysen. (B53)
