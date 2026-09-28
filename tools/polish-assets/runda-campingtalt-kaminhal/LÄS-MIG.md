@@ -22,7 +22,19 @@ Allt står i `kallor.json`:
 - **Tillverkarens produktsidor för de tre storlekarna** (3–5, 4–6 och 5–8 personer):
   - mått, takhöjd, vikt, dörrar och fönster;
   - kaminhålet på Ø 10 cm och pumpen på 1500 cc;
-  - AC-porten och det fasta golvet, som bara är angivna för 3 × 3 m.
+  - AC-porten, som bara finns i 3 × 3 m.
+- **Golvet i alla tre storlekar** (kontrollerat 2026-09-28, när en kund frågade om golvet
+  sitter fast). Tillverkaren har själv svarat i frågor och svar på sina egna sidor:
+  - 3 × 3 m: "The tent has a fixed floor that cannot be removed."
+    ([vevor.com](https://www.vevor.com/yurt-tent-c_10246/inflatable-tent-for-camping-4-6-person-glamping-tent-with-pump-easy-set-up-p_010642133135))
+  - 4 × 3 m: "The groundsheet is sewn in."
+    ([vevor.co.uk](https://www.vevor.co.uk/yurt-tent-c_10246/vevor-inflatable-tent-for-camping-5-8-person-glamping-tent-with-pump-easy-set-up-p_010324590712)),
+    och "It comes with a floor, but it is not removable" på samma sida hos vevor.com.au.
+  - 3 × 2 m: inget svar från tillverkaren. Huvudbilden visar tröskeln vid dörren, förpackningen
+    har inget löst golv, och en verifierad kundrecension för den storleken skriver att
+    hörnbalkarna sitter fast i tältgolvet med kardborre.
+  - Kunder skriver att golvet är tunt (en fick lite fukt igenom) och rekommenderar en
+    presenning under tältet. Det står inte i texten, eftersom tillverkaren inte säger det.
 - **Bilderna.** Huvudbilden visar storleken 3 × 2 m med skärmtak, 18 pinnar och 6 linor.
   Dörrens tröskel visar att golvet sitter fast.
 
@@ -114,6 +126,9 @@ Namnet är 76 tecken och SEO-titeln 57, och `gate-seo.py` är ren.
     `/api/admin/mapping` tar bara `needsAiPolish`, `draftStatus` och SKU.
 - **Priserna i Wix var 4 129 / 5 459 / 5 969 kr tidigare samma morgon och 3 699 / 4 899 /
   5 339 kr vid skrivningen.** Något annat ändrade dem, och priset rördes inte.
+- **Alla bilder visar 3 × 2 m med skärmtak.** Tillverkaren har två modeller i den storleken,
+  med och utan skärmtak, och vi ser inte vilken leverantören skickar. Texten nämner inget
+  skärmtak, men fotot gör det.
 - **Lagningssatsen står bara för 3 × 3 m,** eftersom bruksanvisningen gäller den storleken.
   Paketet för 3 × 2 m är belagt av huvudbilden. För 4 × 3 m är pumpen och väskan belagda av
   tillverkarens produktsida, men inte pinnarna och linorna.
