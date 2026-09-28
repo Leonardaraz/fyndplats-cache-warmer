@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1bb4678d 6 slagplattor med blå ljusring, räknade på bild 1 och 3
+44d91c2f 2 handtag i trä, räknade på bild 1 och 3

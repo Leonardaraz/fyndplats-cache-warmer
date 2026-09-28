@@ -3341,3 +3341,14 @@ beslut — se den samlade frågan om detta.
   Pälsvårdssetet har tre bilder kvar. (N82)
 - Projektordukens vita bildyta, 146 × 146 cm, står bara i måttbilden och är
   kvitterad i `foto-tal.txt`. (N82)
+- Dubbelbollen `fd85cf0b` är inte kopplad till Boxningssäckar. Texten där
+  säger att punchingbollarna och ställen går att höja och sänka mellan 125 och
+  231 cm, och dubbelbollen hänger i ett band och ett gummirep utan något
+  sådant mått. Den ligger i Träning & Gym tills texten är omskriven. (N83)
+- Helkroppstränaren `40600986`: källan säger att ingen montering behövs, men
+  paketet är 102 cm långt och maskinen är 153 cm hög hopfälld. Texten säger
+  därför ingenting om montering. (N83)
+- Bildgranskningen strök 5 av 40 bilder: tysk text på två (boxningsmaskinen
+  och roddmaskinen), leverantörens logotyp på två (helkroppstränaren och
+  roddmaskinen) och läsbara boktitlar och en ljusetikett på bänkens
+  miljöbild. Roddmaskinen har tre bilder kvar. (N83)
