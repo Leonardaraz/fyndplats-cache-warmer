@@ -4316,3 +4316,41 @@ beslut — se den samlade frågan om detta.
   eller märken på rekvisitan: ett namn på en borrmaskin i trädgårdsskåpet, bokryggar med ett
   tidningsmärke och en tidningstext hos reclinerfåtöljen och en boktitel på hyllan bakom
   kontorsstolen. (B44)
+- AVGJORT 2026-09-28, genomfört i B45: åtta familjer där två färger låg ute som egna sidor blev
+  en sida per vara. En sida i varje familj behölls och fick en text för båda färgerna, och den
+  andra färgen lades in som val. Givarnas adresser omdirigerades med 301 till sidan och givarna
+  pensionerades. Köksvagnen 91 cm `15d6fcef` (ljus stenlook) fick ek (`0fd65541`). Chefsstolen
+  med fotstöd `4fa0ae0a` (grå) fick ljusgrå (`10235819`). Soptunnan med två fack `b10b80ee`
+  (silver) fick svart (`10c47f8e`). Plåtboden 345 × 280 cm `2c3f2a17` (grön) fick grå
+  (`184e9c32`). Tv-fåtöljen i chenille `1b39b14e` (beige) fick grå (`ceae31c1`).
+  Verktygsskåpet 82,5 cm `5447468e` (svart) fick blå (`1b534b0e`). Den hopfällbara fåtöljen i
+  bok `1e6872c7` (gråblå) fick khaki (`45512a52`). Garagetältet 162 × 221,5 cm `20c0942e`
+  (ljusgrå) fick mörkgrå (`5f6592ad`). Det blev 8 sammanslagningar, 8 omdirigeringar och 28
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 37 av 37 alt-texter och noll
+  textavvikelser, och varje sida visar båda sina färger som val. Alla 8 gamla adresser svarade
+  308 till rätt sida mellan 09:14 och 09:15, vid andra eller tredje träffen. (B45)
+- Alla 8 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: köksvagnen 649 och 699 kr, chefsstolen 1 939 och 1 969 kr, soptunnan 879 kr i
+  båda färgerna, plåtboden 7 919 och 7 799 kr, tv-fåtöljen 4 279 och 4 399 kr, verktygsskåpet
+  2 269 och 2 199 kr, den hopfällbara fåtöljen 1 219 och 1 069 kr och garagetältet 1 599 och
+  1 319 kr. Alla nya färger hade saldo, det blå verktygsskåpet bara 1. (B45)
+- Plåtbodens grå sida (`platbod-gra-345x280-cm`) fälls av skrivplanens formkontroll
+  (`gra-345x280`), så den gröna sidan behölls, fast den bara hade 4 i saldo mot den grås 90.
+  Ingen slug behövde ändras i rundan. (B45)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B45)
+- De gamla texterna jämförde med andra varor, och jämförelserna är borta: soptunnan med en smal
+  40-litersmodell och en 30-litersmodell, plåtboden med mindre plåtbodar, tv-fåtöljen med en
+  gräddvit och en svart reclinerfåtölj, verktygsskåpet med en vagn med fem lika djupa lådor och
+  garagetältet med plåtbodens snölast och två andra tält. Plåtbodens text sa dessutom att
+  monteringen tar en hel dag för två personer, och det säger sidan inte längre. (B45)
+- Sju av familjerna angav feedens fraktvikt som varans vikt: köksvagnen (8,8 kg), chefsstolen
+  (23 kg), soptunnan (7,3 kg), plåtboden (112,5 kg), tv-fåtöljen (44,3 kg), verktygsskåpet
+  (25,7 kg) och den hopfällbara fåtöljen (10,9 kg). Garagetältets text kallade sina 17 kg redan
+  vikt med emballage. Vikten står nu som Fraktvikt. (B45)
+- Åtta bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: köksvagnen (8,8 kg),
+  soptunnan (7,3 kg), plåtboden (112,5 kg) och verktygsskåpet (25,7 kg). Fyra var miljöbilder
+  med läsbar text eller märken på rekvisitan: text på böcker i två av tv-fåtöljens bilder, och
+  hos verktygsskåpet en förpackning med text, ett märke på en dammsugare och ett verktygsmärke
+  på lådorna i bakgrunden. (B45)
