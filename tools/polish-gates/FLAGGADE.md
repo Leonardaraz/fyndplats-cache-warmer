@@ -4141,3 +4141,74 @@ beslut — se den samlade frågan om detta.
   EU. Den orange elbilens publicerade sida hade dessutom en bild med tysk text. Sidan är
   avpublicerad, och bara dess huvudbild följde med som färgens bild. Biofåtöljens grå sida hade
   en miljöbild med läsbara bokryggar, så den svarta sidan behölls. (B41)
+- AVGJORT 2026-09-28, genomfört i B42: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. De stapelbara pallarna `17c747cb`
+  (grå) fick cremevit (`39d1df49`), brun (`a17d0773`) och khaki (`d278d127`). Massagekontorsstolen
+  i sammetslook `6870d76a` (grå) fick rosa (`c7f46a23`), svart (`28298786`) och brun
+  (`94650788`). Reclinerfåtöljen med snurrfot `2823c605` (grå) fick svart (`07d52f21`) och
+  cremevit (`4de4f329`). Massagekontorsstolen med sju punkter `09ae62db` (svart) fick blå
+  (`60b827f8`) och rosa (`f50863c6`). Paviljongtaket 3 × 3 m `3f9fda98` (mörkgrå) fick roströd
+  (`271327e1`) och cremevit (`fbfea355`). Redskapsboden i metall `9421c86b` (vit) fick mörkgrå
+  (`5dd1a836`) och ljusgrå (`4e05be02`). Massagestolen i mikrofiber `825c51f5` (brun) fick
+  mörkgrå (`7cf7473e`) och cremevit (`5e092d0c`). Relaxfåtöljen med fotpall `9794b6df` (svart)
+  fick gräddvit (`9946e1eb`) och ljusgrå (`024eb02c`). Det blev 18 sammanslagningar, 10
+  omdirigeringar och 47 kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 33 av 33
+  alt-texter och noll textavvikelser, och varje sida visar alla sina färger som val. Alla 10
+  gamla adresser svarade 308 till rätt sida 07:35, vid andra träffen. Den första gav en
+  inaktuell cachad sida (`x-vercel-cache: STALE`). (B42)
+- 13 av de 18 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Undantagen var paviljongtakets två färger, redskapsbodens ljusgrå, reclinerfåtöljens cremevita
+  och sammetsstolens svarta. Efter sammanslagningen följer de nya varianterna husets regel,
+  alltså golvpriset 1,20 × landad kostnad, från nästa synk, och de 13 färgerna ligger inte
+  längre i annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna,
+  mest för massagekontorsstolen med sju punkter (1 499–1 899 kr), redskapsboden
+  (3 949–4 299 kr), reclinerfåtöljen (3 749–4 039 kr), massagestolen i mikrofiber
+  (2 119–2 399 kr) och relaxfåtöljen (3 859–4 129 kr), och de står kvar per variant. (B42)
+- Reclinerfåtöljens och paviljongtakets sidor hade sluggarna `reclinerfatolj-snurrfot-130-grader`
+  och `paviljongtak-3x3-dubbeltak-morkgra`, och skrivplanens formkontroll fäller formerna
+  `130-grader` och `3x3-dubbeltak`. Sidorna fick sluggarna
+  `reclinerfatolj-snurrfot-fotpall-konstlader` och `paviljongtak-dubbeltak-3-x-3-m` och en 301
+  från de gamla. Workflowen för omdirigeringar föll två gånger på `504
+  FUNCTION_INVOCATION_TIMEOUT`: dess kontroll av krockar läser hela katalogen och hinner inte
+  klart på 60 sekunder. De gamla adresserna kontrollerades därför för hand (ingen produkt bar
+  dem) och de nya (rätt produkt), och workflowen kördes med `force=true`. Kontrollen behöver
+  en snabbare väg innan katalogen växer mer. (B42)
+- Pallarnas sida `17c747cb` delade SKU:n `FP-stapelbara-pallar-4-pack` med `d38db7a0`, ett
+  annat pallset från B28. Sidan fick `FP-stapelbara-pallar-4-pack-gra` och färgerna varsin SKU
+  med samma början. Alla B42:s SKU:er jämfördes mot tidigare rundors `sku.tsv` och
+  sammanslagningsfiler. (B42)
+- Skrivplanens kontroll tar högst sex kategorinamn per produkt. De två massagekontorsstolarna
+  fick sju i första planen, och Hem & Inredning ströks ur listan eftersom sidorna redan låg där.
+  Kategoristeget lägger bara till kopplingar. (B42)
+- De gamla texterna var inte överens på flera punkter. Sammetsstolens svarta utkast angav
+  120 kg i tekniska data och 135 kg i ingressen, och sidan anger 120 kg för den svarta och
+  135 kg för de andra. Massagekontorsstolen med sju punkter angavs med en nätsladd på 1,8 m i
+  en text och 1,2 m i en annan och i den tyska källan, och sidan säger 1,2 m. Den blå sidans
+  text angav 67 × 67 cm, och sidan anger 67 × 79 cm. Massagestolen i mikrofiber angavs som
+  138 och 160 cm djup utfälld, och sidan anger inget utfällt djup. Dess texter nämnde en tredje
+  färg i sammet och linnelook som inte finns, och massagepunkterna är fyra i ryggen och två i
+  sitsen enligt den tyska källan. En av reclinerfåtöljens texter sa att fotpallen snurrar och en
+  annan att den står still, så sidan säger inget om det. Relaxfåtöljens ordning mellan bredd och
+  djup avgjordes med måttritningen: 80 cm bred och 79 cm djup. Paviljongtakets texter nämnde
+  fyra färger, bland dem kaffebrun, och familjen har tre. Den tyska titeln säger
+  "wasserdicht", och sidan säger vattenavvisande. Redskapsbodens texter lovade ett lås, en
+  halv dags montering och plats för en skottkärra och jämförde med plastbodar och byggregler.
+  Inget av det står kvar. (B42)
+- Alla åtta familjernas gamla texter angav feedens fraktvikt som varans vikt: 22 kg för båda
+  massagekontorsstolarna, 9 kg för pallarna, 26 kg för reclinerfåtöljen, 2,5 kg för
+  paviljongtaket, 23 kg för massagestolen i mikrofiber, 60 kg för redskapsboden och 24 kg för
+  relaxfåtöljen. Vikten står nu som Fraktvikt. (B42)
+- Tio bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: pallarna (9 kg),
+  reclinerfåtöljen (26 kg), redskapsboden (60 kg) och massagestolen i mikrofiber (23 kg). Ett
+  eget kort angav massagestolens utfällda djup till 138 cm, vilket källorna inte är överens om.
+  Fem var miljöbilder med läsbara boktitlar, bokryggar eller ett högtalarmärke på hyllan: två
+  hos massagekontorsstolen med sju punkter och en vardera hos sammetsstolen, massagestolen i
+  mikrofiber och relaxfåtöljen. (B42)
+- Sidorna från B37–B41 skrevs före runbookens format för filtren (#674 och #678). Måtten står
+  med axelord, sitthöjden inuti Sits-raden och vikten ibland som Vikt, så filtren läser dem
+  sämre än B42:s sidor. Sidorna är sammanslagna och har flera varianter. Skrivplanens textsteg
+  klarar dem, men mediesteget vägrar en bildlista som tappar en färgs bild, SKU-steget hoppar
+  över en sida med mer än en variant och verifieringen kräver en variant. En omskrivning blir
+  därför röd efter textsteget. De behöver en väg som bara skriver text. (B42)
