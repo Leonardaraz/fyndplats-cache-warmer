@@ -59,7 +59,8 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
       </div>
       <div className="a-hc-info">
         <div className="a-hc-label">
-          {preStart ? "Startar kl 07" : ended ? "Stängt för idag" : "Dagens hetaste fynd"}
+          {/* Före start står "Startar kl 07" redan i tidraden. */}
+          {ended ? "Stängt för idag" : "Dagens hetaste fynd"}
         </div>
         <div className="a-hc-name">{a.name}</div>
         <div className="a-hc-price-row">
@@ -69,10 +70,10 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         </div>
         {phase === "pre" ? (
           <div className="a-hc-timer" suppressHydrationWarning>
-            {msLeft !== null ? <>Startar kl 07 — om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
+            {msLeft !== null ? <>Startar kl 07 – om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
           </div>
         ) : ended ? (
-          <div className="a-hc-timer">Stängt för idag — nya fynd kl 07</div>
+          <div className="a-hc-timer">Nya fynd i morgon kl 07</div>
         ) : phase === "countdown" ? (
           <div className="a-hc-timer" suppressHydrationWarning>
             {msLeft !== null
@@ -80,7 +81,7 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
               : "Priset sjunker varje timme"}
           </div>
         ) : phase === "stale" ? (
-          <div className="a-hc-timer">Priset uppdateras…</div>
+          <div className="a-hc-timer a-stale">Priset uppdateras…</div>
         ) : (
           <div className="a-hc-timer a-floor">
             Lägsta pris – <b>första köparen tar det!</b>
@@ -90,9 +91,9 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
             stängning finns inget att hinna före — då säljer lugnet bättre. */}
         <span className="a-hc-btn">
           {preStart
-            ? "Se fyndet — priset faller från kl 07 →"
+            ? "Se fyndet – priset faller från kl 07 →"
             : ended
-              ? "Nya fynd kl 07 →"
+              ? "Se produkten →"
               : "Köp nu – innan någon annan gör det →"}
         </span>
       </div>

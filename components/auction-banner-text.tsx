@@ -12,7 +12,7 @@
 // mismatch, och crawlern får riktig text.
 
 import type { LiveAuctionView } from "../lib/auction-view";
-import { isActivelyDropping, phaseOf } from "../lib/auction-day";
+import { isActivelyDropping, isFinalHour, phaseOf } from "../lib/auction-day";
 import { useClientNow } from "./use-client-now";
 import { productCountLabel } from "../lib/rating";
 
@@ -22,7 +22,14 @@ type Row = Pick<
 >;
 
 function view(rows: Row[], nowMs: number) {
-  const phases = rows.map((a) => phaseOf(a, nowMs).phase);
+  // Sista timmen sänks inget mer. En sen sänkning (stale) då är golvet som
+  // inte hunnit landa, och startsidan saknar refresh-kedjan som rättar det:
+  // med data från 17:30 sa bannern "pris sjunker just nu" kl 18:30 medan
+  // auktionssidan sa "SISTA TIMMEN" (granskning 2026-09-28).
+  const phases = rows.map((a) => {
+    const p = phaseOf(a, nowMs).phase;
+    return p === "stale" && isFinalHour(a.startAt ? Date.parse(a.startAt) : null, nowMs) ? "floor" : p;
+  });
   const dropping = rows.filter((_, i) => isActivelyDropping(phases[i]));
   return {
     count: dropping.length,

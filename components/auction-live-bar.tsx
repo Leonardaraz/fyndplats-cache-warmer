@@ -11,7 +11,7 @@
 // intill sa "Priset uppdateras…". Nu delar alla samma fasmaskin. Efter
 // stängning (ended) döljs pillen helt — det finns inget att jaga.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { PRESTART_WINDOW_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
@@ -20,12 +20,24 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
   const { phase, msLeft, mounted } = useAuctionClock(a);
   const [scrolled, setScrolled] = useState(false);
 
+  const ref = useRef<HTMLAnchorElement>(null);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 480);
+    // Synlig efter hjältekortet och tills scenen tar slut: vid sidans botten
+    // täckte pillen annars sidfotens sista rad (granskning 2026-09-28).
+    const onScroll = () => {
+      const stage = ref.current?.closest(".a-stage");
+      const stageEnd = stage ? stage.getBoundingClientRect().bottom : Infinity;
+      setScrolled(window.scrollY > 480 && stageEnd > window.innerHeight + 80);
+    };
     onScroll();
     addEventListener("scroll", onScroll, { passive: true });
-    return () => removeEventListener("scroll", onScroll);
-  }, []);
+    addEventListener("resize", onScroll);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+    };
+  }, [mounted]);
 
   // Före mount saknas klientklockan, och utan nedräkning föll rendern igenom
   // till "lägsta pris!" — ett falskt golvpåstående i serverns HTML mitt under
@@ -47,7 +59,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
 
 
   return (
-    <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
+    <a ref={ref} className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
       <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
       <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
@@ -61,7 +73,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
               ? "uppdateras…"
               : "lägsta pris!"}
       </span>
-      <span className="a-lb-cta">Köp →</span>
+      <span className="a-lb-cta">{preStart ? "Se →" : "Köp →"}</span>
     </a>
   );
 }
