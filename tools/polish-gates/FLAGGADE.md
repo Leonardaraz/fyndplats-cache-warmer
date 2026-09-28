@@ -3774,3 +3774,20 @@ beslut — se den samlade frågan om detta.
 - Skrivningen verifierade och stämplade 6 av 6 i första försöket. Livekontrollen gav 6 av 6
   OK, 27 av 27 alt-texter och noll textavvikelser, och `db8ecc32` visar två färgval.
   Priserna är orörda. (N97)
+- Fyra matstolar ur N61:s hopplista polerades: `aadf86df` (köksstolar i furu, 4-pack),
+  `5770aa6f` (svart konstläder på böjt träskal, 2-pack), `fa143813` (snurrbara med armstöd,
+  mörkgrå sammetslook, 2-pack) och `020a028f` (mörkgrå sammet med skalrygg, 4-pack). Alla
+  fyra ligger i Möbler och Matbord & stolar. (N98)
+- Hoppade ur samma lista: `2527be66` har saldo 0. `98245bb2` och `817e1869` hör till en
+  familj med två publicerade sidor (`5efe45d0` och `1876d935`), och svepet ser `817e1869`
+  som samma vara som `1876d935`, så de lämnas åt familjearbetet. Skänken `34d76ecf` är
+  redan det svarta valet på `477bcd1f`. (N98)
+- `aadf86df` är samma stol som den publicerade `2aa6ff77`, som säljs två och två. 4-packet
+  fick en egen sida. `020a028f` har samma stolmått som utkastet `8c42d667` (mörkgrön,
+  2-pack). Förpackningen skiljer, så de slogs inte ihop. (N98)
+- Skärmen gav två andra modeller, `8dd5887b` och `d45299d8`. (N98)
+- Bildgranskningen strök 2 av 20 bilder: en tidning med läsbar titel (`fa143813` bild 4)
+  och en skärbräda med läsbart alfabet (`020a028f` bild 2). (N98)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Livekontrollen gav 4 av 4 OK, 18 av 18 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N98)
