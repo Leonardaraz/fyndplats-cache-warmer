@@ -210,6 +210,12 @@ TYSKA_ORD = [
     "Garderobenständer", "Flurgarderobe", "Garderobenschrank", "Kleiderstange", "Kleiderständer",
     "Mantelständer", "Kleiderhaken", "Doppelhaken", "Schuhbank", "Schuhregal", "Schuhfach",
     "Schuhfächer", "Sitzbank", "Stoffschublade", "Stoffschubladen", "Kippschutz",
+    # runda N88 (badrumsskåp, tvättställsskåp, högskåp med tvättkorg och spegelskåp)
+    "Badezimmerschrank", "Badschrank", "Hochschrank", "Unterschrank", "Waschbeckenunterschrank",
+    "Spiegelschrank", "Badezimmerspiegelschrank", "Wäschekorb", "Kippfach", "Einlegeboden",
+    "Regalboden", "Lamellenoptik", "Entnebelung", "Säulenfuß", "Waschbecken", "Badkommode",
+    "Stoffeinsatz", "Hochglanz", "Kippschutzset", "Doppeltüren", "Einzeltür", "Scharniere",
+    "Montageanleitung", "Naturholz", "Silber", "Griffe",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
