@@ -3364,3 +3364,23 @@ beslut — se den samlade frågan om detta.
   uttag) polerades inte. Källan lovar ett läge utan jordning för tillfälliga
   installationer, och laddning utan skyddsjord bör Leonard ta ställning till
   innan varan säljs. (N84)
+- Plyolådorna var tre modeller och inte en familj. Den svarta i trä `75f7eee3`
+  har nu tre storlekar (`647fdeb9` och `091be9cb` lagda som val), den med
+  avfasade hörn `3a5e0e72` tre (`3e70b606` och `bc2cedf0`) och den i bokträ
+  `967d53e2` två (`9820ab5f`). Givarna är pensionerade. `091be9cb`,
+  `9820ab5f`, `bc2cedf0` och `3e70b606` stod tidigare som täckta av
+  `967d53e2`, men den är en annan modell än de svarta. (N84)
+- Takväskan `8bc0dd26` har nu två varianter: svart på 595 liter och svart och
+  gul på 425 liter (`5b2ad18f`, pensionerad). Två av fyra kombinationer finns
+  inte och visas som ej valbara. (N84)
+- Trälådan `967d53e2` hette "… 40–60 cm" och har bytt namn, med samma slug.
+  Faktakortet med den mindre lådans mått och fraktvikten som vikt är
+  borttaget ur galleriet, och filen ligger kvar i Media Manager. Texterna på
+  alla fyra sammanslagna sidor är omskrivna för varje storlek och färg och
+  ligger i rundans `efter-sammanslagning/`. (N84)
+- Givarnas priser följde konkurrentregeln. Efter sammanslagningen följer de
+  nya varianterna husets regel från nästa synk. Priserna rördes inte här.
+  (N84)
+- Bildgranskningen strök 5 av 30 bilder: tysk text på takväskans bild 3 och
+  4 och högtryckstvättens bild 4 och 5, och en läsbar registreringsskylt på
+  sopmaskinens bild 4. Högtryckstvätten har tre bilder kvar. (N84)
