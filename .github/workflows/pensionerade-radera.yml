@@ -1,0 +1,226 @@
+name: Dubbletter — radera pensionerade utkast ur Wix
+
+# Pensionerade Aosom-utkast (sammanslagna farger, dubbletter, avvisade i kon)
+# ligger kvar dolda i Wix med sina bilder. Den har workflowen raderar dem —
+# tidigast 14 dygn efter pensioneringen, sa att en felaktig matchning hinner
+# upptackas medan utkastet finns kvar. Logiken: lib/aosom/pensionerade.ts.
+#
+#   plan     Vad skulle raderas, och varfor inte resten. Skriver ingenting.
+#   stampla  Pensionerade rader utan tidsstampel far en (klockan startar nu).
+#            TORRT som default; skarp korning kraver planens antal i `bekrafta`.
+#   radera   Raderar. TORRT som default; skarp korning kraver planens antal
+#            raderbara i `bekrafta`, och loopar tills allt ar raderat. Varv
+#            tva och framat skickar det som aterstod som tak (`hogst`) med
+#            forsta varvets klocka (`per`): planen far krympa, aldrig vaxa.
+#
+# ☠️ MAPPNINGSRADEN RADERAS ALDRIG. Den marks, och artikeln flyttas till en
+# sparr som hindrar nattens import fran att skapa utkastet igen.
+#
+# ☠️ BILDFILERNA TAS AV BILDSTADNINGEN, INTE HAR. Kor "Aosom — importera
+# sortimentet som osynliga utkast" i laget bildstadning-torr och sedan
+# bildstadning efterat. En fil som en annan produkt, en kategori eller en
+# recension anvander raderas aldrig.
+#
+# ☠️ KANARIEFAGELN. Fore och efter varje radering laser rutten tillstandet pa
+# produktens filer. Ligger en fil som fanns fore inte kvar efterat stoppar
+# korningen (stoppadAv = filkontroll) — da ska ingen korning goras om forran
+# nagon tittat. Produkter som inte delar nagon fil raderas forst, sa att
+# matningen ar gjord innan en delad fil star pa spel.
+#
+# ☠️ LOGGEN AR PUBLIK. Svaret bar bara wix-id och raknare — aldrig
+# artikelnummer, namn eller sluggar.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan · stampla · radera"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - stampla
+          - radera
+      skarp:
+        description: "ja = skriv (stampla/radera). nej = torrkorning."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      bekrafta:
+        description: "Skarp korning: planens antal (utanTidsstampel for stampla, raderbara for radera). Tomt = vagras."
+        required: false
+        default: ""
+        type: string
+      limit:
+        description: "radera: produkter per anrop (1-50). Default 25."
+        required: false
+        default: "25"
+        type: string
+      varv:
+        description: "radera: max antal anrop i den har korningen. Default 30."
+        required: false
+        default: "30"
+        type: string
+
+jobs:
+  pensionerade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          SKARP: ${{ inputs.skarp }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          LIMIT: ${{ inputs.limit }}
+          VARV: ${{ inputs.varv }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/pensionerade"
+
+          # Fel gar till stderr — en kommandosubstitution slukar stdout.
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod}" >&2
+              printf '%s\n' "$kropp" | jq -r '.error // .' >&2 || printf '%s\n' "$kropp" >&2
+              return 1
+            fi
+            printf '%s' "$kropp"
+          }
+
+          plan_tabell() {
+            printf '%s\n' "$1" | jq -r '
+              "| | |\n|---|---:|",
+              "| pensionerade Aosom-rader | \(.pensionerade) |",
+              "| **raderbara nu** | **\(.raderbara)** |",
+              "| bilder pa de raderbara (varav delade, ligger kvar) | \(.bilder.totalt) (\(.bilder.delade)) |",
+              "| for unga (under \(.minAlderDagar) dygn) | \(.hinder.forUng) |",
+              "| utan tidsstampel (lage stampla) | \(.hinder.utanTidsstampel) |",
+              "| synliga i butiken (rors aldrig) | \(.hinder.synlig) |",
+              "| kopta av en kund | \(.hinder.harOrdrar) |",
+              "| i en auktion | \(.hinder.iAuktion) |",
+              "| mal for en omdirigering | \(.hinder.omdirigeringsmal) |",
+              "| saknas redan i Wix (bara bokforing) | \(.saknasIWix) |",
+              "| nasta blir raderbar | \(.nastaRaderbar // "-") |",
+              "| omdirigeringslistan fullstandig | \(.omdirigeringarFullstandiga) |",
+              "| bildstadningen kor pa samma sajt | \(.sammaSajtSomBildstadningen) |"
+            ' || true
+          }
+
+          dry="nej"
+          [ "${SKARP:-nej}" = "ja" ] && dry="ja"
+
+          # ── plan, eller en torr stampla/radera ────────────────────────────────
+          if [ "${MODE}" = "plan" ] || [ "$dry" = "nej" ]; then
+            kropp="$(anropa "${url}?lage=plan")"
+            {
+              echo "### Pensionerade utkast — plan"
+              echo ""
+              plan_tabell "$kropp"
+              echo ""
+              echo "> Radera: kor igen med mode=radera, skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.raderbara')."
+              echo "> Stampla: mode=stampla, skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.utanTidsstampel')."
+              echo ""
+              echo "Forsta raderbara (utan delade filer forst, sedan aldst pensionering):"
+              printf '%s\n' "$kropp" | jq -r '.forstaRaderbara[]? | "- `\(.)`"' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '
+              "pensionerade \(.pensionerade), raderbara \(.raderbara), forUng \(.hinder.forUng), utanTidsstampel \(.hinder.utanTidsstampel), synlig \(.hinder.synlig), harOrdrar \(.hinder.harOrdrar), iAuktion \(.hinder.iAuktion), omdirigeringsmal \(.hinder.omdirigeringsmal), saknasIWix \(.saknasIWix), bilder \(.bilder.totalt) (delade \(.bilder.delade))"' || true
+            exit 0
+          fi
+
+          if [ -z "${BEKRAFTA:-}" ]; then
+            echo "::error::skarp korning kraver bekrafta = planens antal" >&2
+            exit 1
+          fi
+
+          # ── stampla ─────────────────────────────────────────────────────────
+          if [ "${MODE}" = "stampla" ]; then
+            kropp="$(anropa "${url}?lage=stampla&skarp=ja&bekrafta=${BEKRAFTA}")"
+            {
+              echo "### Pensionerade utkast — klockan startad"
+              echo ""
+              printf '%s\n' "$kropp" | jq -r '
+                "| | |\n|---|---:|",
+                "| **fick tidsstampel** | **\(.stamplade)** |",
+                "| hoppade (fick en tid emellan) | \(.hoppade) |",
+                "| skrivfel | \(.skrivfel) |"
+              ' || true
+            } >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$kropp" | jq -r '"stamplade \(.stamplade), hoppade \(.hoppade), skrivfel \(.skrivfel)"' || true
+            if [ "$(printf '%s' "$kropp" | jq -r '.skrivfel')" != "0" ]; then
+              echo "::error::skrivfel vid stamplingen" >&2
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # ── radera, i varv ──────────────────────────────────────────────────
+          # Forsta varvet godkanns med planens exakta antal. Darefter ar det som
+          # aterstod ett TAK (hogst) och forsta varvets klocka (per) ligger fast:
+          # planen far krympa mellan varven, aldrig vaxa forbi det du godkande.
+          hogst=""
+          per=""
+          totalt=0
+          {
+            echo "### Pensionerade utkast — radering"
+            echo ""
+            echo "| varv | raderade | redan borta | obekraftade | markeringsfel | kvar | stopp |"
+            echo "|---:|---:|---:|---:|---:|---:|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for v in $(seq 1 "${VARV:-30}"); do
+            if [ -z "$per" ]; then
+              q="lage=radera&skarp=ja&bekrafta=${BEKRAFTA}&limit=${LIMIT:-25}"
+            else
+              q="lage=radera&skarp=ja&hogst=${hogst}&per=${per}&limit=${LIMIT:-25}"
+            fi
+            kropp="$(anropa "${url}?${q}")"
+            per="$(printf '%s' "$kropp" | jq -r '.per')"
+            raderade="$(printf '%s' "$kropp" | jq -r '.raderade')"
+            kvar="$(printf '%s' "$kropp" | jq -r '.kvar')"
+            stopp="$(printf '%s' "$kropp" | jq -r '.stoppadAv')"
+            totalt=$((totalt + raderade))
+            printf '%s\n' "$kropp" | jq -r --arg v "$v" '
+              "| \($v) | \(.raderade) | \(.markeradeUtanRadering) | \(.obekraftade | length) | \(.markeringsfel | length) | \(.kvar) | \(.stoppadAv) |"
+            ' >> "$GITHUB_STEP_SUMMARY" || true
+            printf '%s\n' "$kropp" | jq -r --arg v "$v" '
+              "varv \($v): raderade \(.raderade), redan borta \(.markeradeUtanRadering), obekraftade \(.obekraftade | length), markeringsfel \(.markeringsfel | length), kvar \(.kvar), stopp \(.stoppadAv), hoppade \(.hoppadeVidKontroll | to_entries | map("\(.key) \(.value)") | join(", "))"' || true
+            printf '%s\n' "$kropp" | jq -r '.raderadeIds[]? | "  raderad \(.)"' || true
+
+            case "$stopp" in
+              klart|limit|tidsbudget) ;;
+              *)
+                echo "::error::korningen stoppades: ${stopp} — $(printf '%s' "$kropp" | jq -r '.fel // "-"')" >&2
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "**Stoppad: ${stopp}.** Titta innan nagot kors om." >> "$GITHUB_STEP_SUMMARY"
+                exit 1
+                ;;
+            esac
+            if [ "$kvar" = "0" ] || [ "$raderade" = "0" ]; then
+              break
+            fi
+            hogst="$kvar"
+          done
+          {
+            echo ""
+            echo "**${totalt} produkter raderade i den har korningen.**"
+            echo ""
+            echo "> Kor nu bildstadningen: \"Aosom — importera sortimentet som osynliga utkast\", laget bildstadning-torr och sedan bildstadning."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "totalt raderade: ${totalt}"

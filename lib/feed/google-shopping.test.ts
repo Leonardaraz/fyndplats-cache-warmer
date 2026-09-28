@@ -75,6 +75,21 @@ describe("byggTillaggsfeed", () => {
     expect(u.utanPris).toBe(2);
   });
 
+  it("☠️ en raderad produkt räknas som raderad, inte som 'utan pris'", () => {
+    const kvar = mappning("1");
+    const borta = mappning("2", {
+      draftStatus: "rejected",
+      supplierProductId: "",
+      wixRaderad: { at: "2026-10-12T04:00:00.000Z" },
+    });
+    // Butiken har inget pris för den raderade — precis det som annars hade
+    // hamnat i utanPris.
+    const u = byggTillaggsfeed([kvar, borta], priser({ "wix-1": 499 }));
+    expect(u.rader).toHaveLength(1);
+    expect(u.raderadeIWix).toBe(1);
+    expect(u.utanPris).toBe(0);
+  });
+
   it("AliExpress-rader lämnas utanför", () => {
     const u = byggTillaggsfeed([mappning("x", { supplier: "aliexpress", supplierProductId: "123" })], priser({}));
     expect(u.rader).toHaveLength(0);

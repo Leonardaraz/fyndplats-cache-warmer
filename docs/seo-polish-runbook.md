@@ -212,7 +212,9 @@ Gör sedan två kontroller, i den här ordningen:
    Avgör på konstruktion, detaljer och måttritning.
 
 Alla färger publiceras, och olika priser är inget hinder: varje färg behåller sitt pris
-(Leonard 2026-09-27). En träff raderas aldrig:
+(Leonard 2026-09-27). En träff raderas aldrig för hand. Ett pensionerat utkast raderas
+tidigast fjorton dygn senare av ett eget verktyg (CLAUDE.md, *Pensionerade utkast raderas
+efter fjorton dygn*). Så gör du med en träff:
 
 | träffen är | så gör du |
 |---|---|

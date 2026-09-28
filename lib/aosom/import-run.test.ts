@@ -111,6 +111,24 @@ describe("urval", () => {
     expect(d.sparade.map((m) => m.supplierProductId)).toEqual(["aosom:A-2"]);
   });
 
+  it("☠️ en pensionerad rad vars Wix-produkt raderats spärrar fortfarande sin artikel", async () => {
+    // Raderingen tömmer supplierProductId och flyttar värdet till importSparr
+    // (lib/aosom/pensionerade.ts). Utan spärren hade nattens import skapat ett
+    // nytt utkast för en vara någon medvetet pensionerat.
+    const d = deps([rad("A-1"), rad("A-2")], {
+      listMappings: async () => [
+        {
+          supplier: "aosom",
+          supplierProductId: "",
+          importSparr: aosomSupplierProductId("A-1"),
+        },
+      ],
+    });
+    const s = await runAosomImport(d, { dryRun: false });
+    expect(s.alreadyImported).toBe(1);
+    expect(d.sparade.map((m) => m.supplierProductId)).toEqual(["aosom:A-2"]);
+  });
+
   it("☠️ en artikel som sitter som FÄRG på en sammanslagen sida importeras inte igen", async () => {
     // Den andra färgens artikel står på en variant, inte i supplierProductId.
     // Utan varianternas artiklar hade den blivit ett nytt utkast för en vara som

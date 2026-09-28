@@ -101,6 +101,7 @@ export function validera(rå: Record<string, unknown>): PatchFel[] {
 export function applicera(
   rad: ProductMappingRecord,
   patch: Patch,
+  nu: Date = new Date(),
 ): { ny: ProductMappingRecord; okändaVariantIds: string[] } {
   const okändaVariantIds: string[] = [];
 
@@ -124,6 +125,15 @@ export function applicera(
       ...(patch.needsAiPolish !== undefined ? { needsAiPolish: patch.needsAiPolish } : {}),
       ...(patch.draftStatus !== undefined
         ? { draftStatus: patch.draftStatus as ProductMappingRecord["draftStatus"] }
+        : {}),
+      // ☠️ EN STATUSÄNDRING FÅR SIN TIDSSTÄMPEL, som i /admin/queue och i
+      // pensioneringen av en givare. Anroparen kan inte sätta fältet — det
+      // följer av ändringen. Utan det har en pensionering via den här vägen
+      // ingen ålder, och raderingen av pensionerade utkast
+      // (lib/aosom/pensionerade.ts) väntar alltid in ålder innan den rör en
+      // produkt: en rad utan tidsstämpel blir aldrig raderad.
+      ...(patch.draftStatus !== undefined && patch.draftStatus !== rad.draftStatus
+        ? { reviewedAt: nu.toISOString() }
         : {}),
       variants,
     },

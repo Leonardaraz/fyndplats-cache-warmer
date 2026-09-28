@@ -209,6 +209,7 @@ function deps(over: Partial<MediaCleanupDeps> = {}) {
     }),
     listaAnvanda: async () => ({ urls: [url("a1")], antalProdukter: 1 }),
     listaRecensionsbilder: async () => [],
+    listaKategoribilder: async () => [],
     raderaPermanent: async (ids) => { raderade.push(ids); },
     ...over,
   };
@@ -447,5 +448,29 @@ describe("☠️ ett läsfel mot recensionslagret FÄLLER körningen", () => {
     const { d } = deps({ listaRecensionsbilder: async () => [] });
     const s = await runMediaCleanup(d, { dryRun: true });
     expect(s.foraldralosa).toBeGreaterThan(0);
+  });
+});
+
+describe("☠️ kategoribilderna hör till referenslistan", () => {
+  it("en fil som bara en kategori använder raderas inte", () => {
+    // Kategoribilden valdes ur en produkts bilder och är SAMMA fil. När
+    // produkten raderats är kategorin filens enda användare.
+    const plan = planeraStadning([fil("aosom-A-1.jpg", "k1"), fil("aosom-A-2.jpg", "x1")], [], 0, [], [url("k1")]);
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["x1"]);
+  });
+
+  it("ett läsfel mot kategorierna FÄLLER körningen, ingen fil raderas", async () => {
+    const { d, raderade } = deps({
+      listaKategoribilder: async () => { throw new Error("Category search failed (503)"); },
+    });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Kategoribilderna gick inte att läsa/);
+    expect(raderade).toEqual([]);
+  });
+
+  it("kategorins bild skonas i skarpt läge", async () => {
+    const { d, raderade } = deps({ listaKategoribilder: async () => [url("b1")] });
+    const s = await runMediaCleanup(d, { dryRun: false });
+    expect(raderade.flat()).toEqual(["a2"]);
+    expect(s.raderade).toBe(1);
   });
 });

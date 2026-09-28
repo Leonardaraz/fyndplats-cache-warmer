@@ -132,7 +132,8 @@ export interface AosomImportDeps {
    * valfritt för att en rad utan varianter ska se ut exakt som förut.
    */
   listMappings: () => Promise<
-    (Pick<ProductMappingRecord, "supplier" | "supplierProductId"> & Partial<Pick<ProductMappingRecord, "variants">>)[]
+    (Pick<ProductMappingRecord, "supplier" | "supplierProductId">
+      & Partial<Pick<ProductMappingRecord, "variants" | "importSparr">>)[]
   >;
   importOne: (product: AliExpressProduct) => Promise<ImportResult>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
@@ -170,6 +171,12 @@ export async function runAosomImport(
   const existing = new Set<string>();
   for (const m of await deps.listMappings()) {
     if (m.supplierProductId) existing.add(m.supplierProductId);
+    // ☠️ EN RADERAD PRODUKTS ARTIKEL ÄR FORTFARANDE SPÄRRAD. Raderingen av
+    // pensionerade utkast (lib/aosom/pensionerade.ts) tömmer `supplierProductId`
+    // och flyttar värdet hit. Utan den här raden hade nattens import sett
+    // artikeln som ny och skapat ett nytt utkast för en vara någon medvetet
+    // pensionerat — och sedan raderat.
+    if (m.importSparr) existing.add(m.importSparr);
     for (const artikel of aosomArtiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] })) {
       existing.add(aosomSupplierProductId(artikel));
     }

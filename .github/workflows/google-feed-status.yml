@@ -44,7 +44,8 @@ jobs:
               "| over dealproffsen | \(.perKonkurrenslage.over_dealproffsen // 0) |",
               "| utan jamforelse | \(.perKonkurrenslage.ingen_jamforelse // 0) |",
               "| utan variant-id (utelamnade) | \(.utanVariantId) |",
-              "| utan entydigt pris (utelamnade) | \(.utanPris) |"
+              "| utan entydigt pris (utelamnade) | \(.utanPris) |",
+              "| raderade i Wix (utelamnade) | \(.raderadeIWix // 0) |"
             ' || true
           } >> "$GITHUB_STEP_SUMMARY"
           printf '%s\n' "$kropp" | jq -r '
