@@ -3318,3 +3318,6 @@ beslut — se den samlade frågan om detta.
 - Hoppade över i urvalet för saldo 0: `2ca1a259`, `8163e9a0`, `14d6cc9e`,
   `cc6549e3`, `3da48fb6`, `55f4c0d9` och `d9f4c334`. Utkast med syskon, bland
   dem `141a4624` med `beb5d127`, lämnades till färgsyskonrundorna. (N81)
+- Skrivbordet `a1f16108` låg samtidigt i familjerundan B31, som skrev sin
+  text för båda färgerna efter N81:s. Texten på sidan är B31:s, och sidan
+  har kvar två synliga varianter med var sin bild. (N81)
