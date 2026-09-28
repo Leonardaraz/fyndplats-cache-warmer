@@ -141,7 +141,8 @@ jobs:
               printf '%s\n' "$kropp" | jq -r '.forstaRaderbara[]? | "- `\(.)`"' || true
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
-              "pensionerade \(.pensionerade), raderbara \(.raderbara), forUng \(.hinder.forUng), utanTidsstampel \(.hinder.utanTidsstampel), synlig \(.hinder.synlig), harOrdrar \(.hinder.harOrdrar), iAuktion \(.hinder.iAuktion), omdirigeringsmal \(.hinder.omdirigeringsmal), saknasIWix \(.saknasIWix), bilder \(.bilder.totalt) (delade \(.bilder.delade))"' || true
+              "pensionerade \(.pensionerade), raderbara \(.raderbara), forUng \(.hinder.forUng), utanTidsstampel \(.hinder.utanTidsstampel), synlig \(.hinder.synlig), harOrdrar \(.hinder.harOrdrar), iAuktion \(.hinder.iAuktion), omdirigeringsmal \(.hinder.omdirigeringsmal), saknasIWix \(.saknasIWix), bilder \(.bilder.totalt) (delade \(.bilder.delade))",
+              "nasta raderbar \(.nastaRaderbar // "-"), aldsta pensionering \(.aldstaPensionering // "-"), omdirigeringar fullstandiga \(.omdirigeringarFullstandiga), samma sajt som bildstadningen \(.sammaSajtSomBildstadningen)"' || true
             exit 0
           fi
 
