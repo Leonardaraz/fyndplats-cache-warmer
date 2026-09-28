@@ -101,7 +101,11 @@ export function colorKeysOf(text: string): Set<string> {
   return keys;
 }
 
-type ChoiceLike = { name?: string | null; visible?: boolean | null };
+type ChoiceLike = {
+  name?: string | null;
+  visible?: boolean | null;
+  linkedMedia?: { image?: { url?: string | null } | null }[] | null;
+};
 type OptionLike = { choicesSettings?: { choices?: ChoiceLike[] | null } | null };
 
 /**
@@ -133,6 +137,27 @@ export function colorKeysFromOptions(options: OptionLike[] | null | undefined): 
     }
   }
   return keys;
+}
+
+/**
+ * Bilden per färgnyckel ur en produkts V3-options: valets första länkade bild.
+ * För korten på listsidorna — väljer kunden "Blå" i färgfiltret ska kortet
+ * visa den blå varianten, inte produktens huvudbild i en annan färg
+ * (Leonard 2026-09-28, gamingstolen). Första valet per nyckel vinner, samma
+ * ordning som colorKeysFromOptions. Val utan bild ger ingen post.
+ */
+export function colorImagesFromOptions(options: OptionLike[] | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const opt of options || []) {
+    for (const choice of opt?.choicesSettings?.choices || []) {
+      if (choice?.visible === false) continue;
+      const namn = typeof choice?.name === "string" ? choice.name : "";
+      const url = choice?.linkedMedia?.find((m) => m?.image?.url)?.image?.url;
+      if (!namn || !url) continue;
+      for (const key of colorKeysOf(namn)) if (!(key in out)) out[key] = url;
+    }
+  }
+  return out;
 }
 
 // Ord som gör att ett färgord i namnet beskriver en DETALJ, inte varan:

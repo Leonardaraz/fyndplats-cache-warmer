@@ -49,6 +49,8 @@ export async function hamtaFargval<O>(
   post: (kropp: unknown) => Promise<FargvalSvar>,
   tolka: (options: O | undefined) => string[],
   sidtak: number = FARGVAL_SIDTAK,
+  /** Valfri: läser mer ur samma svar (färgbilderna) utan en andra hämtning. */
+  ocksa?: (id: string, options: O | undefined) => void,
 ): Promise<{ farger: Map<string, string[]>; medOptioner: number }> {
   const farger = new Map<string, string[]>();
   let medOptioner = 0;
@@ -69,6 +71,7 @@ export async function hamtaFargval<O>(
       medOptioner++;
       const nycklar = tolka(p.options);
       if (nycklar.length) farger.set(p.id, nycklar);
+      ocksa?.(p.id, p.options);
     }
     cursor = data?.pagingMetadata?.cursors?.next || undefined;
     if (!cursor || !data?.pagingMetadata?.hasNext) break;
