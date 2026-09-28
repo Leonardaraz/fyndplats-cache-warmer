@@ -3749,3 +3749,28 @@ beslut — se den samlade frågan om detta.
 - Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
   Livekontrollen gav 4 av 4 OK, 15 av 15 alt-texter och noll textavvikelser, och de två
   sammanslagna sidorna visar tre färgval var. Priserna är orörda. (N96)
+- Sex barstolar ur N61:s hopplista polerades: `fcb75f42` (grå chenille, fast sitthöjd 72,5
+  cm), `58bcad97` (stol på hjul med gaslyft), `db8ecc32` (skandinavisk stil, ben i bokträ),
+  `a3ddb29a` (gräddvit med skal i trälook), `6830a4ae` (svart konstläder på böjt träskal)
+  och `667f1544` (retrostil med nitar). Det vita syskonet `62b97643` lades in som färgval på
+  `db8ecc32` och är pensionerat. Alla sex ligger i Möbler och Matbord & stolar, där de
+  publicerade barstolarna finns. Barpallarna `4d85ddd5` ur samma lista var redan
+  publicerade. (N97)
+- Syskonsvepet såg ingen relation mellan `db8ecc32` och `62b97643` trots samma klunga, mått,
+  paket och namn, eftersom vikten skiljer 14,8 % (11,5 mot 9,8 kg). Den vita stolens tyska
+  text anger dessutom 42,5 × 38,5 cm vid golvet, mot 43 × 43 cm i feeden för båda. Bilderna
+  visar samma stol, så de slogs ihop, och sidan anger fraktvikten per färg. Givarens pris
+  styrdes av konkurrentregeln och följer husets regel från nästa synk. (N97)
+- Skärmen gav bara andra modeller: matstolarna `6a963a3b` mot `a3ddb29a`, kontorsstolen i
+  retrostil `94115aae` mot `667f1544`, och rullpallarna `ae880fa2` och `be8f28cd` och
+  ritstolen `f1f861ea` mot stolen på hjul `58bcad97`. (N97)
+- Stolen på hjul `58bcad97`: källans totalhöjd maskeras på servern, eftersom intervallet har
+  artikelnummerformen. 104–127 cm är avläst på måttbilden och kvitterat i `foto-tal.txt`.
+  (N97)
+- Bildgranskningen strök 3 av 30 bilder: en tidning med läsbar text (`fcb75f42` bild 2),
+  inbränd tysk monteringstext (`fcb75f42` bild 4) och etiketter på flaskor och bokryggar
+  (`667f1544` bild 2). Tryckta koppar i tre bilder (`a3ddb29a` bild 2, `6830a4ae` bild 4 och
+  `db8ecc32` bild 4) går inte att läsa i 1:1, så de bilderna står kvar. (N97)
+- Skrivningen verifierade och stämplade 6 av 6 i första försöket. Livekontrollen gav 6 av 6
+  OK, 27 av 27 alt-texter och noll textavvikelser, och `db8ecc32` visar två färgval.
+  Priserna är orörda. (N97)
