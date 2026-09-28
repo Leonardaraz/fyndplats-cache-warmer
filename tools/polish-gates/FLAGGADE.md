@@ -3522,3 +3522,48 @@ beslut — se den samlade frågan om detta.
   `667ca8f9` pekade på "vår andra bäddfåtölj" och skrivbordet `a1f16108` på två andra
   skrivbord. Två jämförde med "de flesta" fåtöljer, och sju angav feedens fraktvikt som
   produktens vikt. Jämförelserna och vikterna är borta. (B31)
+- AVGJORT 2026-09-28, genomfört i B32: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Badrumsskåpet `56a61a9a` (vit) fick natur (`2c52a683`).
+  Soptunnan `849082f6` (svart) fick gräddvit (`0a0feeac`). Golvfåtöljen `c46bda54` (grå)
+  fick mörkgrå (`3bad9c45`). Matgruppen `f965f9c7` (natur) fick vit (`b09b79b1`).
+  Odlingsskåpet `25bc6c84` (grå) fick brun (`9932d58b`). Trädgårdsskåpet `616b057f` (grå)
+  fick natur (`95095a9b`). Verktygsvagnen `6c9d7288` (blå) fick röd (`aff28a71`).
+  Vattenkokaren `d8c2dec6` (grå) fick beige (`88a0ab0b`). Givarna är pensionerade. Därmed är
+  den äldre raden om vattenkokaren `88a0ab0b` (N42) avgjord, liksom `2c52a683`, `0a0feeac`
+  och `b09b79b1` i listorna över familjer som hoppades på namnet. Livekontrollen gav 8 av 8
+  OK, 31 av 31 alt-texter och noll textavvikelser, och varje sida visar sina två färger som
+  val. (B32)
+- Sju givares pris styrdes av konkurrentregeln: badrumsskåpet i natur (`2c52a683`),
+  soptunnan i gräddvitt (`0a0feeac`), golvfåtöljen i mörkgrått (`3bad9c45`), matgruppen i
+  vitt (`b09b79b1`), odlingsskåpet i brunt (`9932d58b`), trädgårdsskåpet i natur
+  (`95095a9b`) och verktygsvagnen i rött (`aff28a71`). Efter sammanslagningen följer de nya
+  varianterna husets regel, så deras pris kan ändras vid nästa synk. (B32)
+- Odlingsskåpets adress `odlingsskap-tra-120-cm` och SKU `FP-odlingsskap-tra-120-cm` bar
+  en artikelnummerform (`tra-120`), som skrivrutten vägrar. Sidan heter nu
+  `odlingsskap-120-cm` med SKU `FP-odlingsskap-120-cm`, och den gamla adressen skickar
+  vidare med 308, kontrollerat live. (B32)
+- Soptunnans gamla text och ett eget faktakort sa att luktblocket inte ingår och att hållaren
+  tar en standardkassett. Den gräddvita givarens källa säger att luktfiltret är inbyggt i
+  locket. Texten följer källan och kortet ströks. Stäm av mot en leverans om en kund frågar.
+  (B32)
+- Golvfåtöljens gamla text angav en metallram, men källan anger flerskiktsskiva. Sitthöjden
+  skiljer: källan säger 42 cm och måttbilden 45 cm, så texten anger ingen sitthöjd. (B32)
+- Matgruppens gamla text och eget kort angav att bordet bär 50 kg, men källan säger 30 kg.
+  Sidan anger 30 kg, och kortet ströks. Den vita givaren är lackerad enligt källan, medan
+  ytan på den naturfärgade inte står i någon källa, så texten säger ingenting om
+  ytbehandling. (B32)
+- Badrumsskåpets fraktvikt skiljer mellan färgerna (26 och 27 kg), så specifikationen anger
+  ingen fraktvikt. Verktygsvagnens gamla text angav lådans mått 61 × 30 × 6,5 cm, som inte
+  står i källan, och de är borta. Trädgårdsskåpets fria höjd i facken, 33 och 34 cm, är
+  avläst på måttbilden, och den gamla textens räkning med svenska snözoner är borta. (B32)
+- Fjorton bilder ströks. Åtta visar läsbar text på rekvisitan: flask- och burketiketter på
+  `56a61a9a` (två bilder), ett inramat citat på `849082f6`, bokomslag och en tidning på
+  `c46bda54` (två bilder), en jordsäck, fröpåsar och färgburkar på `616b057f` (två bilder)
+  och limflaskor på `6c9d7288`. Sex egna faktakort ströks: fem angav feedens fraktvikt som
+  Vikt (`56a61a9a`, `849082f6`, `f965f9c7`, `6c9d7288`, `d8c2dec6`), två bar färgen i
+  rubriken (`6c9d7288`, `d8c2dec6`), kortet på `f965f9c7` angav 50 kg för bordet och det
+  andra kortet på `849082f6` sa att luktblocket inte ingår. (B32)
+- Sex av de gamla texterna jämförde med andra produkter i vårt sortiment eller med "de
+  flesta" av något, och sju angav feedens fraktvikt som produktens vikt. Jämförelserna och
+  vikterna är borta. Verktygsvagnens SEO-titel bar färgen och var över 60 tecken, och
+  vattenkokarens bar färgen och saknade `| Fyndplats`. (B32)
