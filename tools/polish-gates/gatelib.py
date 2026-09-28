@@ -235,6 +235,14 @@ TYSKA_ORD = [
     "Beinfreiheit", "Oberschränke", "Schranktür", "Lenkrollen", "Bremsen", "Laptoptisch",
     "Stehpult", "Kniebereich", "Sammlerstücke", "Holzschreibtisch", "Kinderschreibtisch",
     "Tragfähigkeit",
+    # runda N92 (skoskåp med klaffar, dörrar och sidoskåp)
+    "Schuhschrank", "Schuhschranks", "Schuhkipper", "Schuhkippers", "Klappfächer", "Klappfach",
+    "Klappschublade", "Klappschubladen", "Klappschubkasten", "Schuhaufbewahrung",
+    "Schuhkommode", "Schuhständer", "Eingangsbereich", "Eingangsbereiche", "Flur", "Flure",
+    "Lamellentür", "Aussparungsgriff", "Griffmulden", "Fußleiste", "Walnussdekor",
+    "Roboterreiniger", "Lederoptik", "Drehschrank", "Klapptüren", "Klappschrank",
+    "Seitenschrank", "Schuhsammlung", "Hochglanzweiß", "Stiefel", "Turnschuhe", "Schuhgröße",
+    "Oberfläche", "Holzakzenten", "Kippschutzbeschläge", "Schutzpads", "Ablage", "Türpaneel",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
