@@ -4407,3 +4407,41 @@ beslut — se den samlade frågan om detta.
   bänken finns i tre kulörer och redskapsbodens som sa att fönstren sitter i gavlarna. Sju var
   miljöbilder med läsbar text på rekvisitan: böcker i två bilder hos kontorsstolen och två hos
   snurrstolen, tidningar hos ottomanbänken och gungstolen och en kaffeburk hos fritösen. (B46)
+- B47: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Den armlösa
+  kontorsstolen `ac2fb38c` (grå) fick gräddvit (`2c905d9d`). Frukostsetet `375bb3c8`
+  (gräddvit) fick svart (`7805b8bc`). Spegelskåpet med bågformad dörr `cd30a5b8` (vit) fick
+  svart (`3c21572e`). Reclinerfåtöljen med fotpall `b1e98da4` (ljusgrå) fick svart
+  (`3dab61f0`). Sparkcykeln med luftdäck `4080448d` (rosa) fick svart (`ea013fde`).
+  Konsolbordet med låda `e37dd9e2` (natur) fick brun (`409b840a`). Elkaminen 45 cm `e3340092`
+  (svart) fick vit (`40a82757`). Mopphinken 26 liter `731c8bfc` (blå) fick gul (`45bac2cb`).
+  Det blev 8 sammanslagningar, 8 omdirigeringar och 14 kopierade recensioner. Två sidor föll
+  först i skrivningens verifiering på kategorierna, fast bulksvaret visade dem kopplade; en
+  omläsning med läget `stampla` gav 8 av 8. Livekontrollen gav 8 av 8 sidor OK, 39 av 39
+  alt-texter och noll textavvikelser, och varje sida visar båda sina färger som val. Alla 8
+  gamla adresser svarade 308 till rätt sida mellan 10:12 och 10:13, vid andra träffen, och
+  mopphinkens vid tredje efter ett anslutningsfel. (B47)
+- Alla åtta givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: kontorsstolen 1 229 och 1 399 kr, frukostsetet 1 029 och 959 kr, spegelskåpet
+  839 kr i båda färgerna, reclinerfåtöljen 2 079 och 1 999 kr, sparkcykeln 1 299 och 1 149 kr,
+  konsolbordet 799 och 859 kr, elkaminen 959 och 1 099 kr och mopphinken 929 och 979 kr. Alla
+  nya färger hade saldo, det bruna konsolbordet bara 9. (B47)
+- Elkaminens svarta sida behölls fast den vita hade mer i saldo (130 mot 83), eftersom den
+  svartas slug inte bär någon färg. Sparktraktorn (`389ac5ac`, `39d85f18`) togs ur rundan:
+  ratten bär New Hollands blad och nummerplåten en modellbeteckning, alltså ett licensierat
+  märke. Mopphinken tog dess plats. (B47)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B47)
+- Jämförelser med andra varor är borta: kontorsstolens text kallade stoppningen dubbelt så
+  tjock som en vanlig kontorsstols och pekade på en ritstol med fotring, sparkcykelns svarta
+  text på en 143 cm lång modell, konsolbordets två texter på varandra med pris (899 och
+  1 009 kr) och elkaminens två texter jämförde uppvärmningsytor mellan modeller. (B47)
+- Alla åtta familjer angav feedens fraktvikt som varans vikt: kontorsstolen (16 kg),
+  frukostsetet (4,17 och 4,2 kg), spegelskåpet (12 kg), reclinerfåtöljen (18 kg), sparkcykeln
+  (9,8 kg), konsolbordet (14,7 kg), elkaminen (6,3 kg) och mopphinken (10,3 kg). Vikten står nu
+  som Fraktvikt. (B47)
+- Nio bilder ströks. Fyra var egna faktakort: tre med fraktvikten som Vikt (sparkcykeln 9,8 kg,
+  elkaminen 6,3 kg och mopphinken 10,3 kg) och elkaminens som rankade den mot vårt sortiment.
+  Fem var miljöbilder med läsbar text på rekvisitan: en tidning hos frukostsetet, etiketter och
+  märken på flaskor i tre bilder hos spegelskåpet och text på en tavla och på böcker hos
+  konsolbordet. (B47)
