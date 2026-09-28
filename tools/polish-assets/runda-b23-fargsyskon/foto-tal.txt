@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+9d686a82 80 syskonutkastens måttkort (bild 3) visar kroppslängden 80–100 cm bredvid barnet
+9d686a82 100 samma måttkort, övre gränsen
+372ee931 32 måttbilden (bild 5) visar sitsens längd 32 cm
+372ee931 16 samma måttbild, sitsens bredd 16 cm

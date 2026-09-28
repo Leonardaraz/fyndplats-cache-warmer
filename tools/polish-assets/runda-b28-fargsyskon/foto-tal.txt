@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+d38db7a0 40 sitsens diameter, läst i måttritningen
+d38db7a0 5 stoppningens tjocklek, läst i måttritningen
+d197d3e5 2 armstöden, ett i varje ände, räknade på bilden
+098b77f5 2 spisplattorna i lekköket, räknade på bilden

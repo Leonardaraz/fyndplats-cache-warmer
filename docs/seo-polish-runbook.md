@@ -69,7 +69,7 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | 7 | [Grindar och skrivplan](#7-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
 | 8 | [Skriv till Wix](#8-skriv-till-wix) | — |
 | 9 | [Kontrollera live](#9-kontrollera-live) | `live/` |
-| 10 | [Dokumentera](#10-dokumentera) | `LÄS-MIG.md`, rader i `FLAGGADE.md` |
+| 10 | [Dokumentera](#10-dokumentera) | rader i `FLAGGADE.md` |
 
 `kort` är produkt-id:ts första åtta tecken. `ark/`, `orig/` och `live/` är hämtad data och
 committas inte.
@@ -223,6 +223,15 @@ efter fjorton dygn*). Så gör du med en träff:
 | ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
 | syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
 | ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den inte polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
+
+**En AliExpress-sida med flera varianter** vägras av ommappningen (`flera_varianter`), om
+du inte anger `behall_variant`: Wix-variant-id:t för den färg som finns som Aosom-utkast. Då
+tas de andra varianterna bort i Wix och i mappningen före bytet (Leonard 2026-09-28). Sidan
+får inga val kvar, men bilderna och texten om de borttagna färgerna står kvar. Slå därför
+ihop sidan med Aosom-sidan i samma familj (publicerad givare, `omdirigera=ja`), eller skriv
+om den med en runda. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
+först i feeden (**"Aosom — sök i feeden"**) efter de färger som ska bort: finns en av dem hos
+Aosom men inte som utkast, kommer den med importen och läggs då som val.
 
 Skriv en rad i `FLAGGADE.md` för varje utkast som varken blir en egen sida eller ett val, och
 ta nästa.
@@ -441,7 +450,7 @@ leverantören som inte stämmer.
 3. **Två källor som säger olika:** ta talet som skyddar kunden om det är fel, alltså det
    större för yttermått och utrymmesbehov och det mindre för innermått, last och "passar upp
    till". Går de inte att förena utelämnar du uppgiften. Gäller det huvudmåttet, som inte
-   går att utelämna, skriver du det skyddande talet och noterar avvikelsen i `LÄS-MIG.md`.
+   går att utelämna, skriver du det skyddande talet och noterar avvikelsen i commitmeddelandet.
    Skriv aldrig en brasklapp som "leverantören anger X, men …". Rättelsen står i löptexten
    och i tabellen.
 4. **Måttritningen avgör geometrin.** Säger en etikett något annat än ritningen, mät
@@ -569,6 +578,82 @@ startsidan. Rutten vägrar så länge den gamla sluggen fortfarande är synlig.
   rundans filer.
 - **Inga länkar i produkttexten.** Karusellen *Liknande produkter* länkar mellan
   produktsidorna och menyn till kategorierna. `gate.py` fäller en länk.
+
+#### Filtren på kategorisidorna läser texten (2026-09-27)
+
+Kategorisidorna filtrerar på mått, material, klädsel, antal, form, placering och
+egenskaper. Wix har inga fält för det, så butiken läser uppgifterna ur beskrivningen
+(`lib/spec-facets.ts` på headless-site). En uppgift som inte står där den läses finns inte
+för filtret, och varan försvinner när kunden använder det. En fel uppgift är värre: då
+hamnar varan i fel filter. **Skriv bara det som stämmer, och hoppa över det varan inte har.**
+
+Filtren läser **namnet, ingressen, punkterna under `Egenskaper` och raderna i `Tekniska
+specifikationer`**. De läser inte brödtextens avsnitt, `Vanliga frågor`, `Passar inte den
+här?` eller länkar, eftersom där ofta jämförs med andra varor. En egenskap som bara står i
+en fråga räknas alltså inte.
+
+Raderna i `Tekniska specifikationer`. Formerna nedan är provade mot butikens tolkning:
+
+| Filter | Skriv så här |
+|---|---|
+| Bredd, djup, höjd | `Mått: 90 × 60 × 75 cm`, alltid bredd × djup × höjd |
+| Sitthöjd | `Sitthöjd: 45 cm` eller `Sitthöjd: 45–52 cm` |
+| Maxlast | `Maxlast: 120 kg` |
+| Vikt | `Vikt: 14,5 kg` |
+| Effekt | `Effekt: 2000 W` |
+| Volym | `Volym: 1,7 liter` |
+| Ålder | `Rekommenderad ålder: 3–8 år` |
+| Material | `Material: stål och MDF` |
+| Klädsel | `Klädsel: sammet` (manchester, bouclé, chenille, linne, konstläder, nätväv) |
+| Lådor | `Antal lådor: 5` |
+| Sittplatser | `Sittplatser: 3` |
+| Hyllplan, våningar | `Antal hyllplan: 4` eller `Våningar: 3` |
+| Sängbredd | `Madrassmått: 140 × 200 cm` |
+| Djur | `Passar för: katt och kanin` |
+| Placering | `Placering: vägghängd` eller `Placering: fristående` |
+| Bränsle | `Bränsle: gasol` (kol, ved, el, pellets, bioetanol). Läses bara på grillar, eldstäder, kaminer och värmare |
+
+- **Form** läses ur namnet (`Runt matbord`, `Oval spegel`) eller ett `Ø` i måttet. Bord
+  och speglar utan formord får formen ur måtten.
+- **Egenskaperna** skrivs som punkter under `Egenskaper`, så som kunden läser dem:
+  `Fyra hjul, två med broms`, `Höj- och sänkbar 72–116 cm`, `LED-belysning i tre
+  ljusfärger`, `Batteridriven, 3 × AA (ingår inte)`, `Fjärrkontroll ingår`, `Timer
+  1–8 h`, `UV-skyddad duk`, `Vattenavvisande duk`, `Solcellspanel`.
+- **Nekat räknas inte:** "inte hjul", "utan batteri". En del av varan räknas inte heller
+  som varan: "höjdjusterbart styre", "löphjul", "rullbar dörr". Skriv därför egenskapen
+  om varan själv, inte om en del av den.
+- **Batterierna till fjärrkontrollen** gör inte lampan batteridriven. Skriv `Fjärrkontroll
+  ingår (2 × AAA, ingår inte)` på samma rad, så läses de rätt.
+
+**Måtten** (provade mot tolkningen 2026-09-28):
+
+- **Förpackningens mått** skrivs på en egen rad, `Paketmått: 120 × 60 × 15 cm`. Den läses
+  aldrig som produktens mått, så den kan aldrig ersätta `Mått`-raden. Står bara
+  kartongens mått på sidan har varan inget måttfilter.
+- **Tre tal.** Två tal utan förklaring (`Mått: 60 × 180 cm`) kan vara en spegel, en matta
+  eller ett växthus, och ger därför bara bredden. Skriv alltid bredd × djup × höjd. Står
+  talen i en annan ordning, skriv axlarna efter: `Mått: 180 × 60 × 2 cm (H × B × D)`.
+- **Justerbar höjd** skrivs som intervall, `Mått: 60 × 55 × 73–89 cm` eller `Höjd: 73–89
+  cm`. Varan passar då både den som söker 75 och den som söker 85 cm.
+- **Ett mått i namnet** räknas bara när där står minst två ("Kaninhus 122 × 93,5 cm"). Ett
+  ensamt tal i namnet är för ofta en del av varan ("bred sits på 79 cm"), så skriv
+  måtten i `Tekniska specifikationer` även när namnet bär ett.
+
+**När ett filter syns.** Filtret visas bara när tillräckligt många produkter i kategorin
+har uppgiften:
+
+| Filter | Visas när |
+|---|---|
+| Reglagen (mått, sitthöjd, maxlast, vikt, effekt, volym, ålder) och material | minst 60 % av kategorins produkter har uppgiften, och värdena skiljer sig åt |
+| Knapparna (klädsel, djur, form, placering, bränsle, lådor, sittplatser, våningar, sängbredd) | minst 40 % har uppgiften och det finns minst två val |
+| En egenskap (hjul, LED, timer …) | minst 3 produkter har den, men inte nästan alla (över 90 %) |
+
+En kategori där hälften saknar `Mått`-raden får alltså inget måttfilter alls, inte ens för
+de produkter som har den. Varje ifylld rad i en sådan kategori räknas.
+
+Var det lönar sig att börja står i `docs/polish/filterluckor.md`: kategorier där några få
+produkter till tänder ett nytt filter, och produkter som faller bort ur filter som redan
+syns.
 
 ### Tonen
 
@@ -864,9 +949,8 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 
 ## 10. Dokumentera
 
-- **`LÄS-MIG.md`** i rundans katalog, kort: vad som publicerades (id, namn, SKU, pris och
-  saldo), vad som hölls tillbaka och varför, vad som var oväntat och vad nästa runda bör
-  veta. Grindutfallet och läsningen som kund får en rad var, inte en tabell.
+- **Ingen `LÄS-MIG.md`** i rundans katalog *(Leonard 2026-09-27)*. Vad som publicerades och
+  vad som var oväntat står kort i commitmeddelandet.
 - **`tools/polish-gates/FLAGGADE.md`**: en rad per produkt som hoppades över (dubblett,
   slutsåld, laglighet eller fel produkttyp). Filen fylls bara på, inget tas bort.
 - PR-beskrivningen uppdateras inför merge, inte efter varje runda.

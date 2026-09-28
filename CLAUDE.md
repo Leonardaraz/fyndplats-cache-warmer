@@ -1427,6 +1427,16 @@ Sex hinder, och de ska inte tas bort:
 2. ☠️ **En flervariantssida vägras.** En Aosom-rad ÄR en artikel; alla varianter
    hade pekat på samma nummer och kunden som väljer den andra färgen får fel
    vara hem. Sådana sidor kräver en SKU per variant — ett annat jobb.
+
+   Undantaget sedan 2026-09-28 är `behall_variant` (Leonard: *"radera
+   aliexpress varianter som inte finns och behåll den som finns hos aosom"*).
+   Då kollapsas sidan först till den variant som finns hos Aosom
+   (`lib/aosom/remap-kollaps.ts`), och ommappningen gäller den ensam. Wix
+   skrivs först, med varianten ur produktens egen GET, och läses tillbaka.
+   Mappningen skrivs bara om kollapsen tog, och en omkörning ser att Wix redan
+   är klar. En sida med obehandlade ordrar vägras (`oppna_ordrar`): en order
+   på en borttagen färg hade annars beställts som den behållna. Bilderna och
+   texten rörs inte.
 3. ☠️ **Ett artikelnummer som redan sitter på en annan produkt vägras** — annars
    skapar ommappningen exakt den dubblett den finns för att ta bort.
 4. **Rader som inte går att skicka till Sverige vägras** (`isShippableToSe`).

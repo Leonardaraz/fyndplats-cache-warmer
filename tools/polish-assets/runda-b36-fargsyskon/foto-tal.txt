@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+d3b26d84 3 dynorna, räknade på bilden (en sits och en ryggdyna i vinkel på var sida)
+d3b26d84 6 facken, räknade på bilden (fyra nertill och två upptill)
+d3b26d84 4 facken nertill, räknade på bilden

@@ -1,0 +1,7 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+5f627d89 34,5 övre skåpets höjd i måttritningen på position 7
+5f627d89 16,5 lådans höjd i måttritningen på position 7
+5f627d89 49,5 nedre skåpets höjd i måttritningen på position 7
+73addc4e 15 fackhöjden i skåpets högra del i måttritningen på position 7
+5f627d89 2 två skåp med dörr, det övre och det nedre, räknade på bild 1 och 7
+73addc4e 9 sex fack i skåpet och tre i dörren, räknade på bild 1 och 7

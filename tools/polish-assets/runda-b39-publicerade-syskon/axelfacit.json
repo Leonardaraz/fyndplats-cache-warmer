@@ -1,0 +1,42 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0945e4dd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5a31b710": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 80 × 86 × 99 cm (B × D × H)"
+ },
+ "6649471e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått utfälld: 240 × 1,6 × 170 cm (B × D × H)"
+ },
+ "724cc4b5": {
+  "tyska": "60L x 80B x 56H cm (Bodensofa), 180L x 60B x 19H cm(Schlafsofa)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 56,
+  "bredd": 60,
+  "djup": 80
+ },
+ "827314e4": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "9304f8b8": {
+  "tyska": "250L x 255B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (250L x 255B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "b67fdc2b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c1f860c1": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

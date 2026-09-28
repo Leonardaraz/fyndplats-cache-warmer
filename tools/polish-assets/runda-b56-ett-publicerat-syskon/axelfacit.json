@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07ab8b54": {
+  "tyska": "B122 x T60 x H85cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": 85,
+  "bredd": 122
+ },
+ "383570d2": {
+  "tyska": "83B x 89T x 85H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 89,
+  "hojd": 85,
+  "bredd": 83
+ },
+ "3c8fe7db": {
+  "tyska": "52B x 59T x 75,5-84,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 59,
+  "hojd": [
+   75.5,
+   84.5
+  ],
+  "bredd": 52
+ },
+ "4164ef63": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Aufrechte Abmessung: 92B x 92T x 102H cm | ✔ Liegeabmessung: 96B x 160T x 80H cm | ✔ Sitzgröße: 52B x 54T x 50H cm | ✔ Rückengröße: 67L x 77B x 24,9T cm | ✔ Armlehnen Größe: 77L x 23B x 14H cm | ✔ Taschengröße: 33B x 29H cm | Mått: 92L x 92B x 102H cm"
+ },
+ "485cf3e8": {
+  "tyska": "(aufrecht) 83B x 95T x 107H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 95,
+  "hojd": 107,
+  "bredd": 83
+ },
+ "856d1d1d": {
+  "tyska": "50B x 55T x 93H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 55,
+  "hojd": 93,
+  "bredd": 50
+ },
+ "b37a10e1": {
+  "tyska": "71B x 88T x 98-104H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 88,
+  "hojd": [
+   98,
+   104
+  ],
+  "bredd": 71
+ },
+ "b78d4cc6": {
+  "tyska": "62 x 68 x (111 – 121) cm (L x B X H)",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 62L x 68B x 111 – 121H cm"
+ }
+}
