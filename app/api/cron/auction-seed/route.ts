@@ -117,7 +117,10 @@ async function fetchCatalog(): Promise<CatalogRow[]> {
         slug: p.slug,
         name: p.name,
         visible: p.visible !== false,
-        inStock: p.inventory?.availabilityStatus !== "OUT_OF_STOCK",
+        // Bara HELT i lager. Delvis slut (en färg slut) räknades tidigare som
+        // köpbar, men auktionskortets pris kan vara den slutsålda färgens och
+        // kunden landade på "Slutsåld" (Hollywoodgungan, 2026-09-28).
+        inStock: (p.inventory?.availabilityStatus ?? "IN_STOCK") === "IN_STOCK",
         variantCount: p.variantSummary?.variantCount ?? 1,
         hasCompareAt: Number(p.compareAtPriceRange?.maxValue?.amount ?? 0) > 0,
         priceMin: Number(p.actualPriceRange?.minValue?.amount ?? Number.NaN),
