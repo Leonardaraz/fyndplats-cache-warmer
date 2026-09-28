@@ -41,6 +41,7 @@
 
 import type { ProductMappingRecord } from "../store";
 import { isAosomMapping, mappingSupplier } from "../store/supplier";
+import { aosomArtiklarPaRaden } from "./artiklar";
 import { mediaNyckel } from "../wix/produkt-media";
 import type { KatalogProdukt } from "../wix/media-audit";
 import type { ProduktForRadering } from "../wix/v3-products";
@@ -82,7 +83,8 @@ export type Hinder =
   | "synlig"
   | "harOrdrar"
   | "iAuktion"
-  | "omdirigeringsmal";
+  | "omdirigeringsmal"
+  | "egenArtikel";
 
 export interface PlanRad {
   wixProductId: string;
@@ -116,6 +118,11 @@ export interface Plan {
   saknasIWix: string[];
   /** Pensionerade utan tidsstämpel — läget `stampla` startar deras klocka. */
   utanTidsstampel: string[];
+  /**
+   * Utkast vars artikel inte säljs på någon levande sida. De raderas bara med
+   * `medEgnaArtiklar`, efter att en människa granskat listan.
+   */
+  egnaArtiklar: string[];
   hinder: Record<Hinder, number>;
   /** När nästa för unga produkt blir raderbar (ISO), eller null. */
   nastaRaderbar: string | null;
@@ -222,7 +229,25 @@ export function markeradRad(m: ProductMappingRecord, nu: Date, slug?: string): P
 }
 
 function tomtHinder(): Record<Hinder, number> {
-  return { forUng: 0, utanTidsstampel: 0, synlig: 0, harOrdrar: 0, iAuktion: 0, omdirigeringsmal: 0 };
+  return { forUng: 0, utanTidsstampel: 0, synlig: 0, harOrdrar: 0, iAuktion: 0, omdirigeringsmal: 0, egenArtikel: 0 };
+}
+
+/**
+ * Artikel → de LEVANDE rader som bär den. Levande betyder inte pensionerad och
+ * inte raderad: en artikel som bara finns på en annan pensionerad rad säljs
+ * inte heller där.
+ */
+function levandeArtiklar(mappningar: readonly ProductMappingRecord[]): Map<string, Set<string>> {
+  const ut = new Map<string, Set<string>>();
+  for (const m of mappningar) {
+    if (!isAosomMapping(m) || m.draftStatus === "rejected" || m.wixRaderad) continue;
+    for (const a of aosomArtiklarPaRaden(m)) {
+      const s = ut.get(a) ?? new Set<string>();
+      s.add(m.wixProductId);
+      ut.set(a, s);
+    }
+  }
+  return ut;
 }
 
 /** Vilka produkter använder varje fil — för att se vad en produkt delar. */
@@ -252,8 +277,9 @@ export function deladeFiler(
   });
 }
 
-export function planera(u: Underlag): Plan {
+export function planera(u: Underlag, opts: { medEgnaArtiklar?: boolean } = {}): Plan {
   const perProdukt = new Map(u.katalog.map((p) => [p.id, p]));
+  const levande = levandeArtiklar(u.mappningar);
   const anvandare = anvandarePerFil(u.katalog);
   const kategori = new Set(u.kategoribilder.map(mediaNyckel));
   const ordrar = new Set(u.ordrar.map((t) => t.wixCatalogItemId ?? "").filter(Boolean));
@@ -266,6 +292,7 @@ export function planera(u: Underlag): Plan {
     raderbara: [],
     saknasIWix: [],
     utanTidsstampel: [],
+    egnaArtiklar: [],
     hinder: tomtHinder(),
     nastaRaderbar: null,
     bilder: { totalt: 0, delade: 0 },
@@ -314,6 +341,19 @@ export function planera(u: Underlag): Plan {
     // En omdirigering som pekar HIT hade blivit en 301 till en 404.
     if (p.slug && mal.has(p.slug.toLowerCase())) {
       plan.hinder.omdirigeringsmal++;
+      continue;
+    }
+    // ☠️ EN EGEN ARTIKEL RADERAS INTE UTAN ETT EGET BESLUT. Ett utkast som
+    // slagits ihop eller ommappats bär ingen artikel längre — den bor på sidan
+    // vi behåller. Ett utkast som fortfarande bär en artikel ingen levande sida
+    // säljer är något annat: en avvisad vara, en dubblett med ett eget
+    // Aosom-nummer, eller ett färgsyskon som parkerades innan
+    // sammanslagningen fanns (uppmätt 2026-09-28: kontorsstolen i beige, vars
+    // svarta syskon ligger publicerat). Raderas det försvinner varan ur
+    // katalogen, och spärren hindrar att den importeras igen.
+    if (!opts.medEgnaArtiklar && aosomArtiklarPaRaden(m).some((a) => !levande.has(a))) {
+      plan.hinder.egenArtikel++;
+      plan.egnaArtiklar.push(id);
       continue;
     }
 

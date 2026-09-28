@@ -26,11 +26,16 @@ const NU = new Date("2026-10-20T12:00:00.000Z");
 const DAG = 86_400_000;
 const dagarSedan = (d: number) => new Date(NU.getTime() - d * DAG).toISOString();
 
+/**
+ * En pensionerad rad som den ser ut efter en sammanslagning eller ommappning:
+ * artikeln bor på sidan vi behåller, så raden bär ingen. Det är det vanliga
+ * fallet. En rad med egen artikel får `supplierProductId` uttryckligen.
+ */
 function rad(id: string, over: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
   return {
     wixProductId: id,
     supplier: "aosom",
-    supplierProductId: `aosom:SYNT-${id}`,
+    supplierProductId: "",
     draftStatus: "rejected",
     needsAiPolish: false,
     reviewedAt: dagarSedan(30),
@@ -173,10 +178,65 @@ describe("planera — vad får raderas", () => {
   });
 
   it("☠️ planen bär aldrig artikelnummer eller slug — den hamnar i en publik logg", () => {
-    const p = planera(underlag({ mappningar: [rad("a"), rad("b", { reviewedAt: undefined })], katalog: [produkt("a"), produkt("b")] }));
+    const p = planera(underlag({
+      mappningar: [rad("a", { supplierProductId: "aosom:SYNT-a" }), rad("b", { reviewedAt: undefined }), rad("c")],
+      katalog: [produkt("a"), produkt("b"), produkt("c")],
+    }));
+    expect(p.egnaArtiklar).toEqual(["a"]);
     const json = JSON.stringify(p);
     expect(json).not.toContain("SYNT-");
     expect(json).not.toContain("slug-");
+  });
+});
+
+describe("planera — en egen artikel raderas inte utan ett eget beslut", () => {
+  const sida = (id: string, artikel: string, over: Partial<ProductMappingRecord> = {}) =>
+    rad(id, { supplierProductId: `aosom:${artikel}`, draftStatus: "published", reviewedAt: undefined, ...over });
+
+  it("☠️ ett utkast vars artikel ingen levande sida säljer hålls för granskning", () => {
+    const u = underlag({ mappningar: [rad("a", { supplierProductId: "aosom:SYNT-A" })], katalog: [produkt("a")] });
+    const p = planera(u);
+    expect(p.raderbara).toEqual([]);
+    expect(p.hinder.egenArtikel).toBe(1);
+    expect(p.egnaArtiklar).toEqual(["a"]);
+    expect(planera(u, { medEgnaArtiklar: true }).raderbara.map((r) => r.wixProductId)).toEqual(["a"]);
+  });
+
+  it("ett utkast utan egen artikel — sammanslaget eller ommappat — är raderbart", () => {
+    const p = planera(underlag({ mappningar: [rad("a")], katalog: [produkt("a")] }));
+    expect(p.raderbara.map((r) => r.wixProductId)).toEqual(["a"]);
+    expect(p.hinder.egenArtikel).toBe(0);
+  });
+
+  it("en artikel som också säljs på en levande sida räknas som kvar", () => {
+    const p = planera(underlag({
+      mappningar: [rad("a", { supplierProductId: "aosom:SYNT-A" }), sida("sidan", "SYNT-A")],
+      katalog: [produkt("a"), produkt("sidan", { visible: true })],
+    }));
+    expect(p.raderbara.map((r) => r.wixProductId)).toEqual(["a"]);
+  });
+
+  it("en artikel som sitter som färg på en sammanslagen sida räknas som kvar", () => {
+    const sammanslagen = sida("sidan", "SYNT-S", {
+      variants: [
+        { supplierVariantId: "SYNT-S", sku: "FP-s", wixVariantId: "v1", choices: { Färg: "Svart" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
+        { supplierVariantId: "SYNT-A", sku: "FP-a", wixVariantId: "v2", choices: { Färg: "Beige" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
+      ],
+    } as Partial<ProductMappingRecord>);
+    const p = planera(underlag({
+      mappningar: [rad("a", { supplierProductId: "aosom:SYNT-A" }), sammanslagen],
+      katalog: [produkt("a"), produkt("sidan", { visible: true })],
+    }));
+    expect(p.raderbara.map((r) => r.wixProductId)).toEqual(["a"]);
+  });
+
+  it("☠️ en artikel som bara finns på en annan pensionerad rad säljs inte där heller", () => {
+    const p = planera(underlag({
+      mappningar: [rad("a", { supplierProductId: "aosom:SYNT-A" }), rad("b", { supplierProductId: "aosom:SYNT-A" })],
+      katalog: [produkt("a"), produkt("b")],
+    }));
+    expect(p.raderbara).toEqual([]);
+    expect(p.egnaArtiklar.sort()).toEqual(["a", "b"]);
   });
 });
 
@@ -191,7 +251,7 @@ describe("malSlug", () => {
 
 describe("markeradRad", () => {
   it("☠️ tömmer artikeln, flyttar den till importSparr och fryser leverantören", () => {
-    const ny = markeradRad(rad("a", { supplier: undefined }), NU, "slug-a");
+    const ny = markeradRad(rad("a", { supplier: undefined, supplierProductId: "aosom:SYNT-a" }), NU, "slug-a");
     expect(ny.supplierProductId).toBe("");
     expect(ny.importSparr).toBe("aosom:SYNT-a");
     expect(ny.supplier).toBe("aosom");
@@ -315,13 +375,13 @@ function deps(v: Varld, over: Partial<KorDeps> = {}): KorDeps {
   };
 }
 
-function korPlan(v: Varld, over: Partial<Underlag> = {}) {
+function korPlan(v: Varld, over: Partial<Underlag> = {}, opts: { medEgnaArtiklar?: boolean } = {}) {
   const u = underlag({
     mappningar: [...v.rader.values()],
     katalog: [...v.wix.entries()].map(([id, p]) => ({ id, visible: p.visible, slug: p.slug, nycklar: p.nycklar })),
     ...over,
   });
-  return { u, plan: planera(u) };
+  return { u, plan: planera(u, opts) };
 }
 
 describe("radera — skarpt", () => {
@@ -360,10 +420,14 @@ describe("radera — skarpt", () => {
 
   it("raderar, bekräftar, märker raden och läser tillbaka — äldst först, exakt limit", async () => {
     const v = varld(
-      [rad("a", { reviewedAt: dagarSedan(40) }), rad("b", { reviewedAt: dagarSedan(30) }), rad("c", { reviewedAt: dagarSedan(20) })],
+      [
+        rad("a", { reviewedAt: dagarSedan(40), supplierProductId: "aosom:SYNT-a" }),
+        rad("b", { reviewedAt: dagarSedan(30) }),
+        rad("c", { reviewedAt: dagarSedan(20) }),
+      ],
       [produkt("a"), produkt("b"), produkt("c")],
     );
-    const { u, plan } = korPlan(v);
+    const { u, plan } = korPlan(v, {}, { medEgnaArtiklar: true });
     const r = await radera(deps(v), u, plan, { bekrafta: "3", limit: 2 });
     expect(r.raderade).toEqual(["a", "b"]);
     expect(r.stoppadAv).toBe("limit");

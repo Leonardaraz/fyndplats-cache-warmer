@@ -7,6 +7,7 @@
 //   ?lage=radera&skarp=ja&bekrafta=N[&limit=25]   radera — N är planens antal raderbara
 //   ?lage=radera&skarp=ja&hogst=K&per=<ISO>       följande varv — K är det som återstod
 //   &per=<ISO>                                    räkna åldern mot den tiden (se nedan)
+//   &egna=ja                                      ta med utkast vars artikel inte säljs någon annanstans
 //
 // VAD SOM RADERAS. En Wix-produkt vars mappningsrad är en pensionerad Aosom-rad
 // (`draftStatus: rejected`), som pensionerades för minst MIN_ALDER_DAGAR sedan,
@@ -33,6 +34,12 @@
 // synlig eller en radering som syntes först i nästa svep krymper den — men
 // aldrig större. `hogst` kräver `per`: utan en låst klocka kan planen växa av
 // att tiden går, och då är taket inte längre det en människa godkände.
+//
+// `egna=ja` TAR MED UTKAST MED EGEN ARTIKEL. Ett utkast som bär en artikel
+// ingen levande sida säljer hålls annars för granskning (`egnaArtiklar`) —
+// raderas det försvinner varan ur katalogen. Planen listar deras wix-id; läs
+// dem innan du kör med `egna=ja`. Följande varv måste skicka samma värde, så
+// att planen räknas likadant.
 //
 // ☠️ SVARET BÄR ALDRIG ARTIKELNUMMER, NAMN ELLER SLUGGAR. Det hamnar i en publik
 // Actions-logg; utkastens namn och sluggar är Aosoms tyska titlar. Bara wix-id
@@ -125,12 +132,15 @@ function sammanfatta(plan: Plan) {
     raderbara: plan.raderbara.length,
     saknasIWix: plan.saknasIWix.length,
     utanTidsstampel: plan.utanTidsstampel.length,
+    egnaArtiklar: plan.egnaArtiklar.length,
     hinder: plan.hinder,
     nastaRaderbar: plan.nastaRaderbar,
     aldstaPensionering: plan.raderbara.map((r) => r.pensioneradAt).sort()[0] ?? null,
     bilder: plan.bilder,
     omdirigeringarFullstandiga: plan.omdirigeringarFullstandiga,
     forstaRaderbara: plan.raderbara.slice(0, 20).map((r) => r.wixProductId),
+    // Hela listan att granska, upp till 200. Bara wix-id.
+    egnaArtiklarIds: plan.egnaArtiklar.slice(0, 200),
   };
 }
 
@@ -145,6 +155,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "lage ska vara plan, stampla eller radera" }, { status: 400 });
   }
   const skarp = sp.get("skarp") === "ja";
+  const medEgnaArtiklar = sp.get("egna") === "ja";
   const bekrafta = (sp.get("bekrafta") ?? "").trim();
   const perParam = (sp.get("per") ?? "").trim();
   const per = perParam ? Date.parse(perParam) : null;
@@ -187,11 +198,12 @@ export async function GET(req: NextRequest) {
     );
   }
   if (per !== null) u = { ...u, nu: new Date(per) };
-  const plan = planera(u);
+  const plan = planera(u, { medEgnaArtiklar });
   const bas = {
     ok: true,
     lage,
     skarp,
+    egna: medEgnaArtiklar,
     per: u.nu.toISOString(),
     sammaSajtSomBildstadningen,
     ...sammanfatta(plan),
@@ -200,7 +212,8 @@ export async function GET(req: NextRequest) {
   console.log(
     `[pensionerade] ${lage.toUpperCase()} ${skarp ? "SKARP" : "TORR"}: ${plan.pensionerade} pensionerade, `
       + `${plan.raderbara.length} raderbara, ${plan.saknasIWix.length} saknas i Wix, `
-      + `${plan.utanTidsstampel.length} utan tidsstämpel, hinder ${JSON.stringify(plan.hinder)}`,
+      + `${plan.utanTidsstampel.length} utan tidsstämpel, hinder ${JSON.stringify(plan.hinder)}`
+      + `${medEgnaArtiklar ? ", med egna artiklar" : ""}`,
   );
 
   if (lage === "plan" || !skarp) return NextResponse.json(bas);

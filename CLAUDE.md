@@ -1684,8 +1684,9 @@ Torrt som default.
 | ingen order bär produktens id eller dess SKU | beställningen läser mappningen |
 | ingen köad eller pågående auktion gäller den | |
 | ingen omdirigering pekar på dess adress | en 301 till en 404 |
+| utkastet bär ingen egen artikel, eller dess artikel säljs på en levande sida | annars försvinner varan ur katalogen, och det kräver `egna=ja` |
 
-Åtta egenskaper som inte ska tas bort:
+Nio egenskaper som inte ska tas bort:
 
 1. ☠️ **Mappningsraden raderas aldrig.** Den märks (`wixRaderad`), artikeln
    flyttas till `importSparr` och `supplierProductId` töms. `importSparr` läses
@@ -1719,6 +1720,25 @@ Torrt som default.
    får bara ligga bakåt i tiden, och `hogst` kräver den.
 8. ☠️ **Svaret bär bara wix-id och räknare.** Utkastens namn och adresser är
    Aosoms tyska titlar, och loggen är publik.
+9. ☠️ **Ett utkast med egen artikel raderas bara med `egna=ja`.** Sammanslagna
+   givare och ommappade dubbletter bär ingen artikel längre, för den bor på
+   sidan vi behåller. Ett utkast som fortfarande bär en artikel som ingen levande
+   sida säljer är något annat: avvisat i kön, en dubblett med eget
+   Aosom-nummer, eller ett färgsyskon som parkerades innan sammanslagningen
+   fanns. Raderas det försvinner varan ur katalogen, och spärren hindrar att den
+   importeras igen. Planen listar dem (`egnaArtiklarIds`). Granska listan och
+   kör sedan med `egna=ja`.
+
+**Första körningen 2026-09-28.** Planen gav 580 pensionerade: 11 raderbara, 547
+för unga, 20 utan tidsstämpel (de fick den samma dag) och 2 synliga. Svepet tog
+under en minut. De 11 raderades med noll obekräftade och noll märkningsfel, och
+filkontrollen stoppade ingenting. 55 filer lästes före och efter, och alla låg
+kvar. **En produktradering i Wix lämnar filerna i Media Manager**, och det är
+mätt, inte antaget. Nio av de elva var bevisade dubbletter. Den tionde,
+`66cf81fe`, var den beiga kontorsstolen vars svarta syskon `4871d041` är
+publicerat, alltså ett färgsyskon som borde ha blivit ett färgval. Det är fallet
+punkt 9 finns för, och spärren lades till samma kväll. För den elfte
+(`6e7a50cf`, ett bistroset) står inget skäl i rundornas filer.
 
 ⚠️ **Bildstädningen läser `WIX_SITE_ID` när den är satt, raderingen läser
 butikens sajt.** Pekar de på olika sajter tar städningen inte de filer

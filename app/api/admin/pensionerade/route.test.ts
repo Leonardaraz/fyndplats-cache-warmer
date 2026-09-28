@@ -45,11 +45,12 @@ import { GET } from "./route";
 
 const GAMMAL = new Date(Date.now() - 30 * 86_400_000).toISOString();
 
-function rad(id: string): ProductMappingRecord {
+/** Utan egen artikel — som en sammanslagen givare. `egen` ger raden en. */
+function rad(id: string, egen = false): ProductMappingRecord {
   return {
     wixProductId: id,
     supplier: "aosom",
-    supplierProductId: `aosom:SYNT-${id}`,
+    supplierProductId: egen ? `aosom:SYNT-${id}` : "",
     draftStatus: "rejected",
     needsAiPolish: false,
     reviewedAt: GAMMAL,
@@ -70,8 +71,10 @@ beforeEach(async () => {
   katalog = Array.from({ length: 600 }, (_, i) => ({ id: `p${i}`, visible: true, slug: `s${i}`, nycklar: [`p${i}~mv2.jpg`] }));
   katalog.push({ id: "a", visible: false, slug: "tysk-slug-a", nycklar: ["a~mv2.jpg"] });
   katalog.push({ id: "b", visible: false, slug: "tysk-slug-b", nycklar: ["b~mv2.jpg"] });
+  katalog.push({ id: "c", visible: false, slug: "tysk-slug-c", nycklar: ["c~mv2.jpg"] });
   await store.saveMapping(rad("a"));
   await store.saveMapping(rad("b"));
+  await store.saveMapping(rad("c", true));
 });
 
 describe("GET /api/admin/pensionerade", () => {
@@ -97,6 +100,8 @@ describe("GET /api/admin/pensionerade", () => {
     const j = JSON.parse(text);
     expect(j.raderbara).toBe(2);
     expect(j.forstaRaderbara.sort()).toEqual(["a", "b"]);
+    expect(j.egnaArtiklar).toBe(1);
+    expect(j.egnaArtiklarIds).toEqual(["c"]);
     expect(text).not.toContain("SYNT-");
     expect(text).not.toContain("tysk-slug");
     expect(raderade).toEqual([]);
@@ -120,11 +125,21 @@ describe("GET /api/admin/pensionerade", () => {
     expect(j.raderade).toBe(1);
     expect(j.kvar).toBe(1);
     expect(typeof j.per).toBe("string");
-    const id = raderade[0];
-    const m = await store.getMappingByWixProductId(id);
+    const m = await store.getMappingByWixProductId(raderade[0]);
     expect(m?.wixRaderad).toBeTruthy();
-    expect(m?.importSparr).toBe(`aosom:SYNT-${id}`);
-    expect(m?.supplierProductId).toBe("");
+    expect(raderade).not.toContain("c");
+  });
+
+  it("☠️ egna=ja tar med utkastet med egen artikel — och artikeln flyttas till spärren", async () => {
+    const utan = await anrop("lage=radera&skarp=ja&bekrafta=3");
+    expect(utan.status).toBe(400);
+    expect(raderade).toEqual([]);
+    const res = await anrop("lage=radera&skarp=ja&bekrafta=3&egna=ja");
+    expect(res.status).toBe(200);
+    expect(raderade.sort()).toEqual(["a", "b", "c"]);
+    const c = await store.getMappingByWixProductId("c");
+    expect(c?.importSparr).toBe("aosom:SYNT-c");
+    expect(c?.supplierProductId).toBe("");
   });
 
   it("☠️ hogst utan per vägras — utan låst klocka kan planen växa av att tiden går", async () => {

@@ -27,6 +27,12 @@ name: Dubbletter — radera pensionerade utkast ur Wix
 # nagon tittat. Produkter som inte delar nagon fil raderas forst, sa att
 # matningen ar gjord innan en delad fil star pa spel.
 #
+# ☠️ EGEN ARTIKEL KRAVER egna=ja. Ett utkast som annu bar en artikel som ingen
+# levande sida saljer (avvisat i kon, dubblett med eget Aosom-nummer, ett
+# parkerat fargsyskon) raderas inte forran nagon granskat listan i planen och
+# kort igen med egna=ja. Utkast som slagits ihop eller mappats om bar ingen
+# egen artikel och raderas utan det.
+#
 # ☠️ LOGGEN AR PUBLIK. Svaret bar bara wix-id och raknare — aldrig
 # artikelnummer, namn eller sluggar.
 
@@ -55,6 +61,14 @@ on:
         required: false
         default: ""
         type: string
+      egna:
+        description: "ja = ta med utkast vars artikel inte saljs pa nagon annan sida (granska listan i planen forst)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
       limit:
         description: "radera: produkter per anrop (1-50). Default 25."
         required: false
@@ -78,6 +92,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           SKARP: ${{ inputs.skarp }}
           BEKRAFTA: ${{ inputs.bekrafta }}
+          EGNA: ${{ inputs.egna }}
           LIMIT: ${{ inputs.limit }}
           VARV: ${{ inputs.varv }}
         run: |
@@ -89,6 +104,8 @@ jobs:
           fi
 
           url="${BASE%/api/cron/poll-tracking}/api/admin/pensionerade"
+          egna=""
+          [ "${EGNA:-nej}" = "ja" ] && egna="&egna=ja"
 
           # Fel gar till stderr — en kommandosubstitution slukar stdout.
           anropa() {
@@ -112,6 +129,7 @@ jobs:
               "| bilder pa de raderbara (varav delade, ligger kvar) | \(.bilder.totalt) (\(.bilder.delade)) |",
               "| for unga (under \(.minAlderDagar) dygn) | \(.hinder.forUng) |",
               "| utan tidsstampel (lage stampla) | \(.hinder.utanTidsstampel) |",
+              "| egen artikel, saljs ingen annanstans (kraver egna=ja) | \(.hinder.egenArtikel // 0) |",
               "| synliga i butiken (rors aldrig) | \(.hinder.synlig) |",
               "| kopta av en kund | \(.hinder.harOrdrar) |",
               "| i en auktion | \(.hinder.iAuktion) |",
@@ -128,7 +146,7 @@ jobs:
 
           # ── plan, eller en torr stampla/radera ────────────────────────────────
           if [ "${MODE}" = "plan" ] || [ "$dry" = "nej" ]; then
-            kropp="$(anropa "${url}?lage=plan")"
+            kropp="$(anropa "${url}?lage=plan${egna}")"
             {
               echo "### Pensionerade utkast — plan"
               echo ""
@@ -139,10 +157,14 @@ jobs:
               echo ""
               echo "Forsta raderbara (utan delade filer forst, sedan aldst pensionering):"
               printf '%s\n' "$kropp" | jq -r '.forstaRaderbara[]? | "- `\(.)`"' || true
+              echo ""
+              echo "Egen artikel, att granska innan egna=ja:"
+              printf '%s\n' "$kropp" | jq -r '.egnaArtiklarIds[]? | "- `\(.)`"' || true
             } >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$kropp" | jq -r '
               "pensionerade \(.pensionerade), raderbara \(.raderbara), forUng \(.hinder.forUng), utanTidsstampel \(.hinder.utanTidsstampel), synlig \(.hinder.synlig), harOrdrar \(.hinder.harOrdrar), iAuktion \(.hinder.iAuktion), omdirigeringsmal \(.hinder.omdirigeringsmal), saknasIWix \(.saknasIWix), bilder \(.bilder.totalt) (delade \(.bilder.delade))",
-              "nasta raderbar \(.nastaRaderbar // "-"), aldsta pensionering \(.aldstaPensionering // "-"), omdirigeringar fullstandiga \(.omdirigeringarFullstandiga), samma sajt som bildstadningen \(.sammaSajtSomBildstadningen)"' || true
+              "nasta raderbar \(.nastaRaderbar // "-"), aldsta pensionering \(.aldstaPensionering // "-"), omdirigeringar fullstandiga \(.omdirigeringarFullstandiga), samma sajt som bildstadningen \(.sammaSajtSomBildstadningen)",
+              "egen artikel \(.hinder.egenArtikel // 0) (med i planen: \(.egna)): \((.egnaArtiklarIds // []) | join(" "))"' || true
             exit 0
           fi
 
@@ -191,9 +213,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           for v in $(seq 1 "${VARV:-30}"); do
             if [ -z "$per" ]; then
-              q="lage=radera&skarp=ja&bekrafta=${BEKRAFTA}&limit=${LIMIT:-25}"
+              q="lage=radera&skarp=ja&bekrafta=${BEKRAFTA}&limit=${LIMIT:-25}${egna}"
             else
-              q="lage=radera&skarp=ja&hogst=${hogst}&per=${per}&limit=${LIMIT:-25}"
+              q="lage=radera&skarp=ja&hogst=${hogst}&per=${per}&limit=${LIMIT:-25}${egna}"
             fi
             kropp="$(anropa "${url}?${q}")"
             per="$(printf '%s' "$kropp" | jq -r '.per')"
