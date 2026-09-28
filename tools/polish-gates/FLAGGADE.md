@@ -3618,3 +3618,33 @@ beslut — se den samlade frågan om detta.
   ingen ljus logotyp. (N91)
 - Livekontrollen gav 6 av 6 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
   orörda. (N91)
+- Åtta utkast ur N61:s hopplista för skoskåp polerades: `f40bae61`, `e7a23c42`,
+  `29f4542a`, `cc459bef`, `58f0e4f1`, `c0405c69`, `091f569d` och `03e23634`.
+  Dubblettskärmen mot hela katalogen gav bara brus för dem. (N92)
+- Skärmen parade `cc459bef` (55 × 36 × 108 cm) med utkasten `680ccaa6` (vit) och
+  `748efdb6` (natur) på 55 × 35 × 108 cm. De är en annan modell: sex hyllplan mot tre,
+  14 par mot 10, 31 kg mot 40 kg i maxlast, ett annat paket och inga byte-identiska
+  foton. De två är färgsyskon till varandra och lämnades orörda. (N92)
+- Källan för `29f4542a` anger 2 kg per klaff och i klaffskåpet, lågt för 10–12 par.
+  Sidan skriver talet som källan. (N92)
+- Källan för `58f0e4f1` anger storlek 44 i beskrivningen och 45 i tekniska data. Sidan
+  skriver 44. (N92)
+- Källan för `e7a23c42` säger dolda handtag, men alla fem bilder visar handtag i
+  guldfärg. Brödtexten nämner inte handtagen, och alt-texten beskriver dem som de syns.
+  (N92)
+- `c0405c69` ska enligt källan skruvas fast i väggen med skruvarna som följer med, och
+  sidan säger det i stället för att lova ett tippskydd. Källan för `03e23634` (80 cm
+  högt) talar om ett tippsäkert utförande men inget tippskydd, och sidan lovar inget.
+  Källan för `091f569d` anger 5 kg per låda utan att skilja lådan från klaffarna, och
+  sidan skriver 5 kg i lådan. (N92)
+- Kategoritexten för Skoskåp & skobänkar säger 8 till 30 par och att de höga
+  skoskåpen levereras med tippskydd. De nya rymmer 8 till 18 par, och de höga har
+  tippskydd eller skruvas fast i väggen. Alla åtta har raden `Maxlast`, som flera
+  skoskåp i kategorin saknar, och `58f0e4f1` har raden `Våningar`. (N92)
+- Bildgranskningen strök 14 av 40 bilder: läsbar text på böcker, ljusetiketter eller
+  doftflaskor på åtta, tysk text inbränd på två (`29f4542a` bild 4 och 5), skor med ett
+  känt märke (`cc459bef` bild 4), en nyckelring med ett bilmärke på två (`c0405c69`
+  bild 4 och `03e23634` bild 2) och samma scen en gång till (`03e23634` bild 4).
+  `03e23634` har två bilder kvar, huvudbilden och måttbilden. (N92)
+- Livekontrollen gav 8 av 8 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N92)
