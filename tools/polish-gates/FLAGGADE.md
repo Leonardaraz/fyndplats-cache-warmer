@@ -4858,3 +4858,22 @@ beslut — se den samlade frågan om detta.
   följer bara huvudbilden med, och alla huvudbilder är rena. (B57)
 - Sidobordet `3e95a07a` har ingen vikt på sidan: källan anger 4 kg netto och 3 kg med
   förpackning, och de två går inte att förena. (B57)
+- Det gröna reservtaket (`f03641c1`) är löst, med ommappningens nya `behall_variant` (Leonard
+  2026-09-28: *radera aliexpress varianter som inte finns och behåll den som finns hos
+  aosom*). AliExpress-sidan `fc5e7fde` kollapsades till sin gröna variant i Wix och i
+  mappningen: variant-id, SKU, pris och lagerpost stod kvar, och orange och ljusgrå togs
+  bort. Sidan mappades sedan om till Aosom, och utkastet `f03641c1` pensionerades. Därefter
+  lades sidan som publicerad givare på Aosom-sidan `e969501f`, som nu har brun, mörkgrå,
+  beige och grön, med egen bild på alla fyra. Tre recensioner kopierades, och
+  `/produkt/paviljongtak-3x3-m-reservtak-polyester` omdirigeras till
+  `/produkt/reservtak-till-paviljong-3-x-3-m`. `fc5e7fde` är avpublicerad och pensionerad,
+  inte raderad. Texten och metabeskrivningen räknar upp alla fyra färgerna: återläsningen gav
+  LIKA, och livegrinden orddiff 0. Synkens torrkörning efteråt gav 0 okända och 0 tvetydiga
+  varianter. (B57b)
+- Aosoms feed har samma tak i orange också (2,98 × 2,98 m, saldo 200), men artikeln är inte
+  importerad. Importeras den blir den ett val på `e969501f`. Ljusgrått finns inte i familjen,
+  och Aosoms ljusgrå tak på 3 × 3 m är en annan modell, med dubbeltak. (B57b)
+- Det gröna valet kom in med AliExpress-sidans pris, 799 kr. Från nästa synk följer det husets
+  regel, som de andra färgerna (brun 549, mörkgrå 519 och beige 559 kr). (B57b)
+- AliExpress-sidan angav kardborreband på 18 cm. Aosoms gröna duk har band på 30 cm, som den
+  bruna och den beige, och det är vad texten säger. (B57b)
