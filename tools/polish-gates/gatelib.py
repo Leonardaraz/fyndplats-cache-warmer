@@ -271,6 +271,16 @@ TYSKA_ORD = [
     "melaminbeschichtete", "wasserabweisendem", "ineinandergreifende", "griffloses",
     "kratzfest", "ausfahrbare", "verstecktes", "Versteckter", "geräumige", "Schwarzes",
     "weißes", "Industriestil", "Industriedesign",
+    # runda N96 (barbord med pallar och barstolar)
+    "Barhocker", "Bartheke", "Bartisch", "Hocker", "Hockern", "Hochtisch", "Tresenhöhe",
+    "Tresentisch", "Fußstütze", "Fußstützenhöhe", "Hockerabmessungen", "Tischabmessungen",
+    "Holzlehne", "Holzoptikplatten", "Holzwerkstoff", "Knopfheftung", "Kunstledersitze",
+    "Leinenoptik", "Mindestfläche", "Regalgröße", "Rückengröße", "Rückenlehnen", "Sitzgröße",
+    "Sitzgelegenheiten", "Sitzerlebnis", "Stahlrahmen", "Stauraumnutzung", "Frühstücksecken",
+    "Morgenkaffee", "Spieleabende", "Arbeitsstunden", "Mahlzeiten", "Essbereich", "Stühlen",
+    "Schaumstoff", "Robustheit", "Rutschfeste", "Kratzern", "Einrichtungsstile",
+    "pulverbeschichtetem", "platzsparend", "dreiteilige", "gepolsterten", "Geschwungene",
+    "Eingebaute", "zwanglose",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
