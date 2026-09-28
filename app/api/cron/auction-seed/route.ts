@@ -10,7 +10,8 @@
 // lager, ingen befintlig rea, känd kostnad per variant, ≥10 % rabatt på minst
 // en variant) och köordning. Sedan:
 //
-//   • LIVE-auktioner rörs ALDRIG (mitt i sin auktionsdag)
+//   • STARTADE live-auktioner rörs ALDRIG (mitt i sin auktionsdag); live-rader
+//     som väntar på nästa 07:00 får dagens pris och stege (lib/auction/seed planSeed)
 //   • sold/expired behåller status/historik men får färska stegar
 //   • köade + nya får status queued och ny köordning
 //   • köade dokument som inte längre kvalar in TAS BORT (rapporteras)
@@ -23,12 +24,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
-import type { AuctionDoc } from "@/lib/auction/engine";
 import { queryAuctions, removeAuctionsBulk, saveAuctionsBulk } from "@/lib/auction/store";
 import {
   assignQueueOrder,
   evaluateCandidate,
   headlineDiscount,
+  planSeed,
   type SeedCandidate,
   type SeedInput,
   type SeedRejection,
@@ -69,12 +70,23 @@ interface CatalogRow {
   priceMin: number;
 }
 
+/**
+ * Sidtak för katalogläsningen. Det gamla taket (50 sidor = 5 000) slog i tyst
+ * när katalogen passerade 6 000: de äldsta produkterna, bland dem hela kön och
+ * dagens live-fynd, syntes inte, och en apply hade tagit bort ~390 köade fynd
+ * (torrkörning 2026-09-28). Ett tak ska kasta, aldrig kapa (CLAUDE.md).
+ */
+const CATALOG_MAX_PAGES = 300;
+
 /** Lättviktig V3-listning (utan varianter) för hela katalogen. */
 async function fetchCatalog(): Promise<CatalogRow[]> {
   const headers = wixHeaders();
   const all: CatalogRow[] = [];
   let cursor: string | undefined;
-  for (let page = 0; page < 50; page++) {
+  for (let page = 0; ; page++) {
+    if (page >= CATALOG_MAX_PAGES) {
+      throw new Error(`Katalogen har fler än ${CATALOG_MAX_PAGES * 100} produkter: höj CATALOG_MAX_PAGES.`);
+    }
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
     const res = await fetch(`${WIX_BASE}/stores/v3/products/search`, {
@@ -105,7 +117,10 @@ async function fetchCatalog(): Promise<CatalogRow[]> {
         slug: p.slug,
         name: p.name,
         visible: p.visible !== false,
-        inStock: p.inventory?.availabilityStatus !== "OUT_OF_STOCK",
+        // Bara HELT i lager. Delvis slut (en färg slut) räknades tidigare som
+        // köpbar, men auktionskortets pris kan vara den slutsålda färgens och
+        // kunden landade på "Slutsåld" (Hollywoodgungan, 2026-09-28).
+        inStock: (p.inventory?.availabilityStatus ?? "IN_STOCK") === "IN_STOCK",
         variantCount: p.variantSummary?.variantCount ?? 1,
         hasCompareAt: Number(p.compareAtPriceRange?.maxValue?.amount ?? 0) > 0,
         priceMin: Number(p.actualPriceRange?.minValue?.amount ?? Number.NaN),
@@ -247,29 +262,12 @@ export async function GET(req: NextRequest) {
     }
 
     const order = assignQueueOrder(included);
-    const byProductId = new Map(existing.map((e) => [e.productId, e]));
-
-    const toSave: AuctionDoc[] = [];
-    const skippedLive: string[] = [];
-    for (const cand of included) {
-      const prev = byProductId.get(cand.productId);
-      if (prev?.status === "live") {
-        skippedLive.push(cand.slug);
-        continue;
-      }
-      const keepEnded = prev?.status === "sold" || prev?.status === "expired";
-      toSave.push({
-        _id: `auction-${cand.productId}`,
-        ...cand,
-        slot: 0,
-        status: keepEnded ? prev!.status : "queued",
-        queueOrder: order.get(cand.productId) ?? 9999,
-        ...(keepEnded ? { endedAt: prev!.endedAt, soldPrice: prev!.soldPrice } : {}),
-      });
-    }
-
-    const includedIds = new Set(included.map((c) => c.productId));
-    const toRemove = existing.filter((e) => e.status === "queued" && !includedIds.has(e.productId));
+    const { toSave, toRemove, skippedLive, refreshedLive, liveNotRefreshed } = planSeed(
+      included,
+      existing,
+      order,
+      Date.now(),
+    );
 
     const report: Record<string, unknown> = {
       apply,
@@ -280,9 +278,11 @@ export async function GET(req: NextRequest) {
       excluded,
       excludedSamples,
       skippedLive,
+      refreshedLive,
+      liveNotRefreshed,
       removeFromQueue: toRemove.map((r) => r.slug),
       launchLineup: toSave
-        .filter((d) => (d.queueOrder ?? 0) <= 5)
+        .filter((d) => d.status === "queued" && (d.queueOrder ?? 0) <= 5)
         .sort((a, b) => a.queueOrder - b.queueOrder)
         .map((d) => ({
           queueOrder: d.queueOrder,
@@ -291,6 +291,18 @@ export async function GET(req: NextRequest) {
           bestDiscount: `-${Math.round(headlineDiscount(d) * 100)}%`,
         })),
     };
+
+    // Skyddsräcke för den schemalagda körningen: försvinner en stor del av kön
+    // på en gång är det nästan alltid katalogläsningen som brustit, inte
+    // sortimentet. Då skrivs ingenting; ?force=1 kör ändå.
+    const queuedBefore = existing.filter((e) => e.status === "queued").length;
+    const removeLimit = Math.max(50, Math.ceil(queuedBefore * 0.2));
+    const force = req.nextUrl.searchParams.get("force") === "1";
+    if (apply && !force && toRemove.length > removeLimit) {
+      report.ok = false;
+      report.error = `Skulle ta bort ${toRemove.length} av ${queuedBefore} köade (gräns ${removeLimit}); inget skrevs. Granska rapporten och kör med force=1 om det stämmer.`;
+      return NextResponse.json(report);
+    }
 
     if (apply) {
       // Bulk (100/anrop): ~400 enskilda saves sprängde Wix Datas per-minut-kvot
