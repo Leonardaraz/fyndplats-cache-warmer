@@ -69,7 +69,7 @@ interface WixOrderLineItem {
   id?: string;
   quantity?: number;
   productName?: { original?: string; translated?: string };
-  catalogReference?: { catalogItemId?: string; appId?: string };
+  catalogReference?: { catalogItemId?: string; appId?: string; options?: { variantId?: string } };
   physicalProperties?: { sku?: string };
   totalPriceAfterTax?: { amount?: string };
   price?: { amount?: string };
@@ -78,6 +78,8 @@ interface WixOrderLineItem {
 export interface OrderRadForUppslag {
   lineItemId?: string;
   productId?: string;
+  /** catalogReference.options.variantId — avgör färgen på en sammanslagen Aosom-sida. */
+  variantId?: string;
   sku?: string;
   productName?: string;
   quantity: number;
@@ -133,6 +135,7 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
     rader: (order.lineItems ?? []).map((r) => ({
       lineItemId: r.id,
       productId: r.catalogReference?.catalogItemId,
+      variantId: r.catalogReference?.options?.variantId,
       sku: r.physicalProperties?.sku,
       productName: r.productName?.original ?? r.productName?.translated,
       quantity: r.quantity ?? 1,
