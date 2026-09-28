@@ -3554,3 +3554,37 @@ beslut — se den samlade frågan om detta.
   Högpassarket visade ingen ljus logotyp på de bilder som behölls. (N89)
 - Livekontrollen gav 7 av 7 OK, 25 av 25 alt-texter och noll textavvikelser. Priserna är
   orörda. (N89)
+- Sju utkast som N61 hoppade över som täckta familjer polerades: matbordet `6a5e861d`,
+  matgrupperna `5e9655dd` och `7a6eff2a` och soffborden `21601f95`, `3f7fbf5d`, `cc4a9285`
+  och `4a91d973`. Dubblettskärmen gav ingen träff för dem. `3f7fbf5d` har samma mått,
+  100 × 50 × 45 cm, som det lyftbara soffbordet `4009d67f`, men skivorna glider isär i stället
+  för att lyftas, och bordet står på en stålram i stället för ben. `21601f95` på 108 cm med
+  pelarfot är inte LED-soffbordet `20ff3b79` på 120 cm i två plan. Stolarna i `7a6eff2a`
+  liknar dem i matgruppen `b07189d2`, men bordet och antalet stolar skiljer. (N90)
+- Tre kandidater är färgsyskon till publicerade, redan sammanslagna sidor och lämnades åt
+  syskonrundorna: det utdragbara matbordet `90060b2d` i vitt (sidan `7f304255` har tre
+  färger), fällbordet `f49f7d80` i vitt (sidan `c23dab52` har två färger) och satsborden
+  `635955ab` i guld och vit marmorlook (sidan `af9378d6` har tre färger). Skärmen hittade
+  fler utkast med samma mått: `04f05fad`, `77579a8b` och `11021efb` som matbordet,
+  `22d4bb3b` som fällbordet och `532e02c2` som satsborden. (N90)
+- Matgruppen `5e9655dd` i vitt har ett färgsyskon i grått, `f93b34cc`, med saldo 0. Sidans
+  namn, slug och titel saknar färg, så att syskonet kan läggas till som ett val när det finns
+  i lager. (N90)
+- Måttbilden för `5e9655dd` anger bordets höjd till 73 cm, men källtexten anger 75 cm. Sidan
+  skriver 75 cm, det större talet för ett yttermått, och måttbilden ligger kvar. (N90)
+- Matgrupperna `5e9655dd` och `7a6eff2a` kopplades till Matbord & stolar men inte till
+  Matgrupper. Kategoritexten där säger att sex grupper är tredelade, att fyra är femdelade
+  och att det finns ett glasbord och ett furubord. De två nya är tredelade, och den ena har
+  ett furubord och den andra ett glasbord. De kopplas dit när texten är omskriven. (N90)
+- Alla tre borden i Matbord & stolar har raden `Sittplatser`, som filtret där behövde tre
+  till av, och `7a6eff2a` har `Klädsel: konstläder`. (N90)
+- Saldo 0, hoppade: matgruppen `f93b34cc`, matbordet `c6631918`, det utdragbara matbordet
+  `6ad885bc`, sittgruppen i trä för trädgården `11a2f6d8` och LED-soffbordet `84a931f4`.
+  (N90)
+- Bildgranskningen strök 9 av 35 bilder: läsbar text på böcker, tidningar eller en tavla på
+  sju (`21601f95` bild 4 och 5, där bild 5 också bar en känd tidskrift, `3f7fbf5d` bild 2,
+  `cc4a9285` bild 2 och `4a91d973` bild 2, 4 och 5), ett känt märke på ett kylskåp på
+  `5e9655dd` bild 4 och tysk text med husmärket på `cc4a9285` bild 4. `4a91d973` har två
+  bilder kvar, huvudbilden och måttbilden. Högpassarket visade ingen ljus logotyp. (N90)
+- Livekontrollen gav 7 av 7 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N90)
