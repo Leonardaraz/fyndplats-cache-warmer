@@ -1,0 +1,3 @@
+b4441140 20 armstöden ligger 20 cm över sitsen på måttritningen, bild 6
+be595bfd 10 markkanten är 10 cm på måttbilden, bild 3
+be595bfd 2 två nätfönster, ett på var sida om dörren, bild 1

@@ -4546,3 +4546,41 @@ beslut — se den samlade frågan om detta.
   massagebänken 17,5 kg på ett kort som också jämförde med den vita bänken, och sparkcykeln
   139 cm 9,5 kg) och två miljöbilder med läsbar text på rekvisitan: bokryggar hos soffan och
   en tidning hos bäddfåtöljen med 190 cm bädd. (B50)
+- B49: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Elkaminen 45,5 cm
+  `f5c82909` (svart) fick vit (`540c23cd`). Skoskåpet för 12 par `66f1f343` (grå) fick vit
+  (`5b5855b9`). Kontorsstolen med 74 cm hög rygg `ad3aa881` (grå) fick svart (`82d5fa29`).
+  Verktygslådan med sex lådor `94925af2` (svart och röd) fick helsvart (`aae03048`).
+  Väggvärmaren 45 cm `d15b8a6a` (svart) fick vit (`9d484604`). Ritstolen med nätrygg `c131b430`
+  (grå) fick svart (`ad27954b`). Moppvagnen 25 liter `d8ebb279` (blå) fick gul (`da0f30b2`).
+  Verktygsvagnen 113 cm med 16 lådor `b920d526` (röd) fick blå (`d9965552`). Det blev 8
+  sammanslagningar, 8 omdirigeringar och 31 kopierade recensioner. Skrivningen verifierade 8 av
+  8 sidor. Livekontrollen gav 8 av 8 sidor OK, 30 av 30 alt-texter och noll textavvikelser, och
+  varje sida visar båda sina färger som val. Tre gamla adresser svarade 308 inom en halvtimme.
+  Fem serverades som vanliga sidor i över en timme: butikens cache renderade om dem 11:30, efter
+  sammanslagningen, med den gamla produktdatan, och de svarade 308 först när den renderingen gick
+  ut. Alla 8 svarade 308 till rätt sida 12:51. (B49)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: elkaminen 879 och 949 kr, skoskåpet 969 och 999 kr, kontorsstolen 979 och 959 kr,
+  verktygslådan 1 129 och 1 199 kr, väggvärmaren 719 och 669 kr, ritstolen 1 179 och 1 199 kr,
+  moppvagnen 959 kr i båda färgerna och verktygsvagnen 3 279 och 3 299 kr. (B49)
+- Kontorsstolen fick givarens huvudbild och en bild till (`bilder` 1,4). Ritstolen fick
+  givarens huvudbild och dess måttritning (`bilder` 1,3), eftersom den grå sidans måttbild
+  angav 76,5 cm djup och 24–41 cm, i strid med stolens mått, och ströks. (B49)
+- Två tal är avlästa på måttritningarna och kvitterade i `foto-tal.txt`: skoskåpets kant på
+  ovansidan, 9 cm, och ritstolens armstöd, 18 cm över sitsen på båda färgernas ritningar. (B49)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B49)
+- Verktygsvagnens två texter pekade på varandras färg och på ett verktygsskåp på 82 cm. Den
+  hänvisningen är borta. (B49)
+- Sju familjer angav feedens fraktvikt som varans vikt: elkaminen (4,6 kg), skoskåpet (28 kg),
+  kontorsstolen (12,6 kg), verktygslådan (14,9 kg), ritstolen (13,9 kg), moppvagnen (9,5 kg) och
+  verktygsvagnen (41,7 kg). Väggvärmarens texter angav ingen vikt. Vikten står nu som
+  Fraktvikt. (B49)
+- Sjutton bilder ströks. Fem var egna faktakort med fraktvikten som vikt (elkaminen, skoskåpet,
+  verktygslådan, moppvagnen och verktygsvagnen) och två var andra egna kort: elkaminens, som
+  angav bredden till 36 cm fast den är 36,5 cm, och väggvärmarens, som rankade den mot vårt
+  sortiment. En var ritstolens måttbild och en var en kopia av verktygsvagnens huvudbild. Åtta
+  var miljöbilder med läsbar text eller märken på rekvisitan: boktitlar och ljus hos skoskåpet
+  (två bilder), böcker, en kalender och en tidning hos kontorsstolen (tre bilder), förpackningar
+  och en kartong hos verktygslådan (två bilder) och en bok hos väggvärmaren. (B49)
