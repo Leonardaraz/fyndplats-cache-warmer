@@ -1,0 +1,55 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0523532e": {
+  "tyska": "68,5L x 68,5B x 84H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 68.5,
+  "djup": 68.5
+ },
+ "1174c0c4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ max. Liegenmaß (ohne Dach): L187 x B58 x H36 cm | ✔ Klappmaß: 71L x 10,5B x 58H cm | ✔ Dachmaß: 42L x 50B cm | Mått: 187L x 58B x 36H cm | ✔ max. Liegenmaße: 187L x 58B x 36H cm (ohne Dach) | ✔ Klappmaße: 71L x 10,5B x 58H cm | ✔ Dachmaße: 50L x 42B cm (max. Höhe: 105 cm)"
+ },
+ "152a915d": {
+  "tyska": "Ø300 x 230H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 230
+ },
+ "39d10fc4": {
+  "tyska": "L98 x B50 x D8cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (L98 x B50 x D8cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "3e95a07a": {
+  "tyska": "L45 x B45 x H50 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 45,
+  "djup": 45
+ },
+ "91f5c078": {
+  "tyska": "205L x 124B x 164H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 164,
+  "bredd": 205,
+  "djup": 124
+ },
+ "a7aa9370": {
+  "tyska": "100L x 98B x 8T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 8,
+  "bredd": 100
+ },
+ "e969501f": {
+  "tyska": "L298 x B295 cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (L298 x B295 cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ }
+}
