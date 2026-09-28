@@ -199,6 +199,11 @@ TYSKA_ORD = [
     "Heimtrainer", "Hometrainer", "Fahrradtrainer", "Radtrainer", "Kurzhantel",
     "Kurzhanteln", "Hantelständer", "Spannseil", "Spannseile", "Schwungrad", "Widerstand",
     "Liegerad", "Sattel",
+    # runda N86 (vibrationsplatta, stepper, köksskåp, satsbord, sänggavel, nattduksbord, fågelställ)
+    "Vibrationsplatte", "Rüttelplatte", "Küchenschrank", "Buffetschrank", "Küchenbuffet",
+    "Satztisch", "Kopfteil", "Bettkopfteil", "Nachttisch", "Nachtschrank", "Nachtkommode",
+    "Anflugstange", "Freisitz", "Vogeltisch", "Sitzstange", "Schublade", "Schubladen",
+    "Widerstandsbänder", "Liegestützgriffe", "Trittmaschine", "Einlegeböden",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
