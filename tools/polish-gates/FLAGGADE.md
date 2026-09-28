@@ -4445,3 +4445,62 @@ beslut — se den samlade frågan om detta.
   Fem var miljöbilder med läsbar text på rekvisitan: en tidning hos frukostsetet, etiketter och
   märken på flaskor i tre bilder hos spegelskåpet och text på en tavla och på böcker hos
   konsolbordet. (B47)
+- B48: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Hörnskrivbordet
+  med laddstation `2299c521` (vit) fick svart (`9734c1b3`). Tv-bänken i högglans `26f28bf2`
+  (vit) fick vit med skiva i ljus ekton (`e60b4d1a`). Bordsdiskmaskinen `41191212` (vit) fick
+  svart (`a10623cc`). Kosmetikkylen med spegel `d754d015` (vit) fick rosa (`412c9f43`).
+  Boxstället `57986794` (blå) fick svart (`438295ae`). Uppresningsfåtöljen med massage och
+  ländvärme `46cc7e40` (ljusgrå) fick mörkgrå (`462d6355`). Minikylen som kyler och värmer
+  `d5cc9efa` (cremevit) fick rosa (`758f0a80`). Minitorktumlaren `a157be5c` (svart) fick vit
+  (`6b8978ce`). Det blev 8 sammanslagningar, 8 omdirigeringar och 2 kopierade recensioner.
+  Fem sidor föll först i skrivningens verifiering på kategorierna, fast bulksvaret visade dem
+  kopplade. Två hann ikapp vid en omläsning. För uppresningsfåtöljen, minikylen och
+  kosmetikkylen släpade läsningen i över tjugo minuter; Categories-API:t visade dem kopplade,
+  och de stämplades med läget `stampla` i `polish-mapping.yml`. Livekontrollen gav 8 av 8
+  sidor OK, 37 av 37 alt-texter och noll textavvikelser, och varje sida visar båda sina färger
+  som val. Alla 8 gamla adresser svarade 308 till rätt sida vid andra träffen. (B48)
+- Sex givare hade sitt pris satt av konkurrentregeln, och planen varnade för det: hörnskrivbordet,
+  bordsdiskmaskinen, boxstället, uppresningsfåtöljen, minikylen och minitorktumlaren. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: hörnskrivbordet 1 239 och 1 499 kr, tv-bänken 1 559 och 1 799 kr,
+  diskmaskinen 3 019 och 3 169 kr, kosmetikkylen 739 och 959 kr, boxstället 1 269 kr i båda
+  färgerna, uppresningsfåtöljen 6 429 och 6 799 kr, minikylen 699 och 649 kr och
+  torktumlaren 2 739 och 2 749 kr. Den svarta diskmaskinen hade bara 2 i saldo. (B48)
+- Hörnskrivbordets vita sida behölls fast den bara hade 3 i saldo mot den svartas 197. Den
+  svarta sidans bilder, huvudbilden inräknad, bär skärmar med text, skivomslag och figurer på
+  rekvisitan, så givaren bidrog bara med sin måttritning (`bilder` 7), som också är den svarta
+  färgens bild. Tv-bänkens vita sida behölls (146 i saldo mot 174), eftersom ekskivans eget
+  kort talar om leverantören och hade fått strykas. (B48)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B48)
+- Jämförelser och hänvisningar är borta: hörnskrivbordets vita text kallade sig samma bord som
+  den svarta versionen, tv-bänkens två texter pekade på varandra med pris (1 799 och 1 959 kr),
+  diskmaskinens texter hänvisade till varandras färg, uppresningsfåtöljen räknade upp tre
+  andra uppresningsfåtöljer och rekommenderade en annan modell för helt plant läge, och
+  boxstället sa att det också finns i rött och svart. (B48)
+- Sex familjer angav feedens fraktvikt som varans vikt: diskmaskinen (16 kg), kosmetikkylen
+  (2,6 kg), boxstället (13,5 kg), uppresningsfåtöljen (57,3 kg), minikylen (2,2 kg) och
+  torktumlaren (20 kg). Hörnskrivbordets och tv-bänkens texter angav ingen vikt. Vikten står nu
+  som Fraktvikt. (B48)
+- Elva bilder ströks. Fem var egna faktakort: fyra med fraktvikten som vikt (diskmaskinen
+  16 kg, uppresningsfåtöljen 57,3 kg och torktumlaren 20 kg på två kort) och hörnskrivbordets
+  som jämförde med den svarta varianten. Sex var miljöbilder med text eller märken på
+  rekvisitan: skivomslag och en robotfigur i två bilder hos hörnskrivbordet, bokryggar hos
+  tv-bänken, en penna hos kosmetikkylen och flaskor och smink i två bilder hos minikylen. (B48)
+- Uppresningsfåtöljerna i manchester `4635adcb` (brun) och `8151ce59` (ljusgrå) slogs inte ihop
+  i B48. De är två olika modeller: måttritningarna visar 79 × 97 × 103 cm för den bruna och
+  83 × 93 × 110 cm för den ljusgrå, med olika sitsar (54 × 56 mot 51 × 53 cm) och liggmått (153
+  mot 158 cm). Syskonsvepet parade ihop dem för att feeden ger 83 × 93 × 110 cm för båda. Båda
+  sidornas texter säger dessutom emot sina egna måttritningar: den ljusgrå texten anger
+  79 × 97 × 103 cm för sig själv och 83 × 93 × 110 cm för "den bruna systern", och den bruna
+  texten anger 83 × 93 × 110 cm. Texterna ser ut att ha bytt plats. Enligt runbooken avgör
+  måttritningen, men utan de tyska källtexterna går det inte att säga vilken sida som bär fel
+  bilder och vilken som bär fel text, så ingen av dem är ändrad. Båda sidorna behöver ses över
+  mot sina källor. (B48)
+- Öronlappsfåtöljerna `a29af9b5` (blå), `72f30eb9` (cremevit) och utkastet `e16668e2`
+  (mörkgrön) slogs inte ihop i B48. De är samma modell som B40:s sammanslagna sida `7b98c4c1`
+  (74 × 86 × 102 cm, sittyta 48,5 × 53 cm, sitthöjd 47 cm och 160 kg), som redan bär mörkgrått,
+  grått och brunt. De hör hemma som tre val till på den sidan (läget `utoka`), men då måste
+  sidans text räkna upp sex färger och klädslarna per färg, och skrivplanen skriver bara sidor
+  med en variant. Två publicerade sidor för samma vara finns kvar tills det finns en skrivväg
+  för text på flervariantsidor. (B48)
