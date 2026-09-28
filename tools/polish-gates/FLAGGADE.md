@@ -4504,3 +4504,45 @@ beslut — se den samlade frågan om detta.
   sidans text räkna upp sex färger och klädslarna per färg, och skrivplanen skriver bara sidor
   med en variant. Två publicerade sidor för samma vara finns kvar tills det finns en skrivväg
   för text på flervariantsidor. (B48)
+- B50: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Bäddfåtöljen
+  190 × 80 cm `38ca04a9` (blå) fick mörkgrå (`4abad4c4`). Kontorsstolen med utdragbart fotstöd
+  `494da920` (beige) fick brun (`e1a46c56`). Sparkcykeln med stort framhjul `89deaca7` (turkos)
+  fick orange (`4fd26086`). Massagebänken i tre zoner `5078bedf` (svart och röd) fick vit
+  (`a353ea02`). Sparkcykeln 139 cm med luftdäck `5129f6b0` (vit) fick svart (`50b28808`).
+  Tresitssoffan i manchester `5531de28` (mörkgrå) fick krämvit (`59aeb88a`). Bäddfåtöljen med
+  190 cm bädd `57ba0224` (ljusgrå) fick cremevit (`583577bc`). Gungfåtöljen med fotpall
+  `d551aa1d` (beige) fick grå (`59544dc3`). Det blev 8 sammanslagningar, 8 omdirigeringar och
+  34 kopierade recensioner. Skrivningen verifierade 8 av 8 sidor. Livekontrollen gav 8 av 8
+  sidor OK, 38 av 38 alt-texter och noll textavvikelser, och varje sida visar båda sina färger
+  som val. Den mörkgrå bäddfåtöljen visas som slut i lager, eftersom givaren hade 0 i saldo.
+  Alla 8 gamla adresser svarade 308 till rätt sida inom en halvtimme. (B50)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: bäddfåtöljen 190 × 80 cm 2 699 och 2 379 kr, kontorsstolen 1 969 och 1 979 kr,
+  sparkcykeln med stort framhjul 1 059 och 1 019 kr, massagebänken 1 479 och 1 469 kr,
+  sparkcykeln 139 cm 1 099 och 1 039 kr, soffan 5 249 och 4 599 kr, bäddfåtöljen med 190 cm
+  bädd 3 199 och 2 959 kr och gungfåtöljen 2 399 och 2 459 kr. (B50)
+- Soffans mörkgrå sida behölls, eftersom den krämvita sidans oförändrade slug bär
+  `212-manchester`, som skrivplanens formkontroll fäller. Massagebänken fick givarens
+  huvudbild och en bild till (`bilder` 1,4). (B50)
+- Fåtöljerna på 360° vridbar träfot `566c7702` (svart) och `9bd6d1d4` (grå) slogs inte ihop i
+  B50. Båda sidornas oförändrade sluggar bär `135-grader`, som formkontrollen fäller, så ingen
+  av dem går att skriva med workflowen. (B50)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B50)
+- Jämförelser och hänvisningar är borta: bäddfåtöljen 190 × 80 cm ställde sin bredd och sin
+  sits mot två andra bäddfåtöljer, massagebänkens texter pekade på en bänk i trä och en
+  tvåzonsmodell, och sparkcykelns texter pekade på en annan modell och en med packutrymme. (B50)
+- Bäddfåtöljen med 190 cm bädd sa i båda sina gamla texter att den också finns i mörkgrönt och
+  beige. Syskonsvepet parade bara ihop den ljusgrå och den cremevita sidan, så om de andra
+  färgerna finns som sidor ligger de utanför svepets familj och är inte kontrollerade. (B50)
+- Sparkcykeln 139 cm: måttritningen märker hjulet med 41 cm, medan båda texterna anger luftdäck
+  på Ø40 cm. Texten står kvar på Ø40 cm och bör ses över mot källan. (B50)
+- Alla åtta familjer angav feedens fraktvikt som varans vikt: bäddfåtöljen 190 × 80 cm (22 kg),
+  kontorsstolen (19 kg), sparkcykeln med stort framhjul (9,5 kg), massagebänken (17,5 kg),
+  sparkcykeln 139 cm (9,5 kg), soffan (53,4 kg), bäddfåtöljen med 190 cm bädd (20,5–21 kg)
+  och gungfåtöljen (21 kg). Vikten står nu som Fraktvikt. (B50)
+- Fem bilder ströks: tre egna faktakort med fraktvikten som vikt (kontorsstolen 19 kg,
+  massagebänken 17,5 kg på ett kort som också jämförde med den vita bänken, och sparkcykeln
+  139 cm 9,5 kg) och två miljöbilder med läsbar text på rekvisitan: bokryggar hos soffan och
+  en tidning hos bäddfåtöljen med 190 cm bädd. (B50)
