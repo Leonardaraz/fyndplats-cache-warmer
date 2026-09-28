@@ -3448,3 +3448,38 @@ beslut — se den samlade frågan om detta.
   tysk text om sängbredden, och nattduksbordets huvudbild har ett läsbart
   varumärke på en bok och en kameramodell. Nattduksbordet har därför en
   miljöbild som huvudbild. (N86)
+- Vedstället `644f1c32` (svart) är samma vedställ som den publicerade
+  AliExpress-sidan `b1684bee` i antikbrunt, med samma miljöbilder (N73).
+  Sidans mappning är AliExpress, och det finns inget Aosom-utkast i antikbrunt,
+  så vedstället blev en egen sida med färgen i namn, slug och titel. Bild 2
+  och 5 ströks, eftersom `b1684bee` redan bär de två miljöscenerna. (N87)
+- Paraplystället `c4981165` (vitt) är samma smala paraplyställ som den
+  publicerade AliExpress-sidan `7ae083dd` i svart. N68 lämnade paret till
+  Leonards beslut som samma vara; bilderna visar två färger. Det finns inget
+  svart Aosom-utkast, så det vita blev en egen sida med färgen i namnet, enligt
+  runbookens regel för syskon till en AliExpress-sida. (N87)
+- Det vita paraplystället `c4df49ca` är färgsyskon till den publicerade svarta
+  `33c51730` och står som färgfamilj i syskonsvepet. Det lämnas åt
+  familjearbetet i B-serien. (N87)
+- Elkaminen `4e79205e` hoppades i N68 som samma slag som `31245d0d`,
+  `c56fb251` och `8b495a41`. Bilderna visar en annan modell: fönster även på
+  sidorna (23 × 22 och 11 × 21 cm mot 25 × 20 cm) och en annan lucka. Ingen av
+  dem är samma kamin i en annan färg, och den polerades. (N87)
+- Hallmöblerna `788aca8e` och `12976d46` (hoppade i N60) och `8e34da16`,
+  `e1ab9dc4` och `f560a565` (hoppade i N61) hoppades för att familjen redan var
+  täckt. Dubblettskärmen mot hela katalogen gav ingen träff bland de
+  publicerade hallmöblerna, och de polerades. Hallstället `e1ac4d7f` har saldo
+  0. (N87)
+- Hallmöblerna kopplades till Klädhängare & hallmöbler men inte till Skoskåp &
+  skobänkar. Kategoritexten där säger att skobänkarna bär 120–220 kg, och
+  `12976d46` bär 40 kg totalt och bänken på `8e34da16` 110 kg. (N87)
+- Torktumlarna `8fc506c6` (800 W, 4 kg, källan anger energiklass G) och
+  `24d28e2c` (4 kg, 197 kWh per år) polerades inte. En torktumlare säljs med
+  energimärkning, och märkningen finns inte i feeden. Till Leonards beslut.
+  (N87)
+- Skotorken `d8ce6568` har saldo 0. (N87)
+- Bildgranskningen strök 14 av 40 bilder: läsbar text på rekvisitan (boktitlar,
+  en affisch två gånger, en kalender, en väggklocka, en tidning och etiketter på
+  doftljus och en korg), en papperskasse med ett känt modemärkes logotyp på
+  `e1ab9dc4`:s bild 4, samma scen två gånger på `c4981165` och vedställets två
+  miljöscener. `8e34da16` har två bilder kvar, huvudbilden och måttbilden. (N87)
