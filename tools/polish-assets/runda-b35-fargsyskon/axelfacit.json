@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "477bcd1f": {
+  "tyska": "117B x 36T x 74H cm",
+  "svenska": "117 x 36 x 74 cm",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 74,
+  "bredd": 117
+ },
+ "8e76d9b8": {
+  "tyska": "100B x 38T x 180H cm",
+  "svenska": "100L x 38B x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 38,
+  "hojd": 180,
+  "bredd": 100
+ },
+ "949ffbb1": {
+  "tyska": "80L x 35B x 42H cm",
+  "svenska": "80L x 35B x 42H cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 80,
+  "djup": 35
+ },
+ "ba3e6e04": {
+  "tyska": "65L x 48B x 73-110H cm",
+  "svenska": "65L x 48B x 73-110H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   73,
+   110
+  ],
+  "bredd": 65,
+  "djup": 48
+ },
+ "c23dab52": {
+  "tyska": "",
+  "svenska": "90L x 80B x 93H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Ausgeklappte Abmessungen: 78,5B x 91T x 93H cm | ✔ Gefaltete Abmessungen: 78,5B x 20T x 93H cm | ✔ Tischabmessungen: 75B x 75T x 74H cm | ✔ Größe des oberen Regals: 75,5B x 18T x 14H cm | ✔ Größe des unten Regals: 75,5B x 15T x 23,5H cm/75,5B x 18T x 23,5H cm"
+ },
+ "d7e75081": {
+  "tyska": "78,5B x 24T x 175H cm",
+  "svenska": "78,5cm x 24cm x 175cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 175,
+  "bredd": 78.5
+ },
+ "dbedaf4c": {
+  "tyska": "105B x 40T x 76H cm",
+  "svenska": "105L x 40B x 76H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 76,
+  "bredd": 105
+ },
+ "ff10ccf5": {
+  "tyska": "43B x 18T x 62,5H cm",
+  "svenska": "43L x 18B x 62,5H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 62.5,
+  "bredd": 43
+ }
+}
