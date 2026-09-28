@@ -8,7 +8,7 @@ kontrollsumman i samma anrop, som före 2026-09-24.
 
 | id | namn | slug | pris | saldo |
 |---|---|---|---:|---:|
-| `9a911ab5` | Uppblåsbart campingtält – lufttält med pump, 3 × 2, 3 × 3 eller 4 × 3 m | `uppblasbart-campingtalt` (oförändrad) | 3 699 / 4 899 / 5 339 kr | 13 / 4 / 17 |
+| `9a911ab5` | Uppblåsbart campingtält – lufttält med pump och kaminhål, 3 × 2 till 4 × 3 m | `uppblasbart-campingtalt` (oförändrad) | 3 699 / 4 899 / 5 339 kr | 13 / 4 / 17 |
 
 Kategorierna Sport & Fritid och Friluftsliv & Resa ligger kvar. SKU:erna är oförändrade.
 Inget produktsäkerhetsavsnitt, eftersom produkten kommer från AliExpress.
@@ -36,8 +36,8 @@ Allt står i `kallor.json`:
 - **Kaminhålet beskrevs för vintereldning** ("värma tältet vintertid", "camping året runt").
   Bruksanvisningen tillåter ingen öppen eld i eller nära tältet och ingen påfyllning av
   kaminer, värmare eller lyktor inne i tältet. Texten beskriver nu hålet som en genomföring
-  för rökrör och återger reglerna. Kaminhålet står kvar i specen men inte i namnet eller
-  SEO-titeln.
+  för rökrör och återger reglerna. Kaminhålet togs först bort ur namnet och SEO-titeln,
+  men är tillbaka sedan revision 20 (se *Kaminhålet tillbaka i namnet*).
 - **"15 psi" på ett kort.** Tältet ska pumpas till 5–7 psi, och pumpen är märkt 29 psi.
 - **Påståenden utan källa är borta:** "vattentät", "reflekterande linor", "SBS-blixtlås"
   och "lampkrokar".
@@ -85,6 +85,25 @@ Den separata återläsningen stämde på allt:
 - textens hash (`vantat-hash.tsv`);
 - namnet och SEO (två taggar, inga nyckelord);
 - bilderna, alt-texterna och valens kort.
+
+## Kaminhålet tillbaka i namnet (revision 20)
+
+Leonard ville ha tillbaka det som togs bort ur titlarna. Före rundan hette produkten
+"Uppblåsbart campingtält 3–5 personer – lufttält med pump och kaminhål".
+
+- **Kaminhålet är tillbaka** i namnet, SEO-titeln och metabeskrivningen (`namn.tsv`,
+  `seo.tsv`). Det är ett ord som kunder söker på, och det stämmer för alla tre storlekar.
+- **"3–5 personer" är inte tillbaka.** Det gäller bara 3 × 2 m. Tillverkaren anger 4–6
+  personer för 3 × 3 m och 5–8 för 4 × 3 m.
+
+Skrivningen gällde bara `name` och `seoData`, med kontrollsumman i samma anrop. Den
+separata återläsningen visade:
+
+- namnet och SEO-titeln som i filerna;
+- två SEO-taggar och inga nyckelord;
+- texten, bilderna, valens kort och varianterna (SKU, pris, synlighet) oförändrade.
+
+Namnet är 76 tecken och SEO-titeln 57, och `gate-seo.py` är ren.
 
 ## Nästa session bör veta
 
