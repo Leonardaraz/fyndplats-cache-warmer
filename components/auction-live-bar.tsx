@@ -47,7 +47,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
 
 
   return (
-    <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled}>
+    <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
       <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
       <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
