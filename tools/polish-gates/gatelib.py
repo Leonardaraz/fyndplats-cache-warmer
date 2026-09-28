@@ -257,6 +257,20 @@ TYSKA_ORD = [
     "Knöpfe", "Arbeitsplatten", "Mikrowellenschranks", "Kippsicherungen", "Gehärtetes",
     "Cremeweiß", "Beinhöhe", "Ausziehbare", "Oberflächenabmessungen", "Innenmaße",
     "Schrankinnenmaße",
+    # runda N95 (sideboard i högglans, satsbord och soffbord)
+    "Walnuss", "Kautschukbaumholz", "Gummibaumholz", "Mehrschichtplatte", "Schichtpressholz",
+    "Spanplatten", "Glastischplatte", "Tischplattenelement", "Hebefunktion", "Fußstützen",
+    "Couchtische", "Couchtisches", "Satztisches", "Sofatischs", "Wohnzimmertisches",
+    "Wohnzimmerschranks", "Metallbeine", "Metallbeinen", "Metallrahmen", "Stahlbeine",
+    "Schrankboden", "Schrankraum", "Regalhöhe", "Regalabmessungen", "Gesamtabmessungen",
+    "Gewichtskapazität", "Gebrauchsanleitung", "Kuscheldecken", "Fernbedienungen",
+    "Gamecontrollern", "Ablagefächer", "Kleiderstapel", "Türenschlagen", "Kleidungsstücke",
+    "Aufbewahrung", "Einrichtung", "Wohnaccessoires", "Wohnbereich", "Wohnzimmer",
+    "Schlafzimmer", "Zuhause", "Zusammenkünfte", "Geselligkeit", "Langlebigkeit",
+    "Haltbarkeit", "Funktionalität", "Unterseite", "unebenem", "abgeschrägten",
+    "melaminbeschichtete", "wasserabweisendem", "ineinandergreifende", "griffloses",
+    "kratzfest", "ausfahrbare", "verstecktes", "Versteckter", "geräumige", "Schwarzes",
+    "weißes", "Industriestil", "Industriedesign",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
