@@ -4084,3 +4084,60 @@ beslut — se den samlade frågan om detta.
   som bär 200 kg avlastar knäna och att den finns i tre färger. Två visar läsbar text eller
   märken på rekvisitan: en klocka på datorskärmen vid skrivbordsstolen och en högtalare och en
   kopp vid bäddmadrassen. (B40)
+- AVGJORT 2026-09-28: B39:s åtta sista gamla adresser svarar 308 till sina sidor. 05:26
+  serverade de en produktsida som renderats 05:25. När den sidan blivit inaktuell
+  (`x-vercel-cache: STALE`) gav omrenderingen 308. Alla 21 gamla adresser omdirigeras nu. (B39)
+- AVGJORT 2026-09-28, genomfört i B41: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Sparkcykeln för 6–12 år `e9cfa7bf` (röd) fick blå
+  (`2b8297df`) och grön (`9941383e`). Sparkcykeln på 115 cm med stödben `85be4535` (vit) fick
+  rosa (`473084eb`) och blå (`9518db1e`). Elbilen i UTV-stil `2f6ff71c` (blå) fick orange
+  (`3d9dff8a`) och rosa (`f15febb2`). Sängbänken på 126 cm `67eafa8c` (beige) fick grön
+  (`8934f3ce`) och grå (`b95367b2`). Bäddsoffan på 188 cm `9e8992a9` (beige) fick grå
+  (`72739e89`) och olivgrön (`f5b5d0e9`). Biofåtöljen med fjäderkärna `84e3794d` (svart) fick
+  gräddvit (`7702de01`) och grå (`e818cf7e`). Golvfåtöljen med vridfot `87717be0` (mörkgrå) fick
+  beige (`90529d40`) och grön (`db34f7d5`). Torkvagnen med fyra nivåer `cb7cb72a` (grå) fick blå
+  (`c32b066c`) och svart (`df7ed034`). Det blev 16 sammanslagningar, 18 omdirigeringar och 34
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 42 av 42 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. Alla 18 gamla adresser svarade
+  308 till rätt sida 06:47–06:48. Vid första träffen serverade de en inaktuell cachad sida
+  (`x-vercel-cache: STALE`). (B41)
+- 14 av de 16 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Undantagen var bäddsoffans två färger. Efter sammanslagningen följer de nya varianterna husets
+  regel, alltså golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter
+  grupp och konkurrensläge bara för sidans egen artikel, så de 14 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för
+  elbilen (1 899–2 229 kr), biofåtöljen (1 779–2 129 kr) och sängbänken (1 499–1 839 kr), och de
+  står kvar per variant. Bäddsoffan kostar 10 999 kr i alla tre färgerna. (B41)
+- Elbilens och biofåtöljens sidor hade sluggarna `elbil-barn-12v-utv-fjarrkontroll-bla` och
+  `biofatolj-svart-160-grader`, och skrivplanens formkontroll fäller formerna `12v-utv` och
+  `160-grader`. Sidorna fick sluggarna `elbil-barn-utv-fjarrkontroll-12v` och
+  `biofatolj-64-cm-fjaderkarna` och en 301 från de gamla. (B41)
+- Sammanslagningen av golvfåtöljen stoppades av hindret `sku_upptagen`. Den beige färgens SKU
+  `FP-golvfatolj-vridbar-beige` satt redan på en variant från B37, och sidans nya SKU
+  `FP-golvfatolj-vridbar-morkgra`, som skrivplanen redan skrivit, fanns också på en sida från
+  N14. Skrivplanen kontrollerar inte krockar mot katalogen, det gör bara sammanslagningen. En
+  rättelserunda (B41b) gav sidan `FP-golvfatolj-snurrfot-morkgra`, och färgerna fick
+  `FP-golvfatolj-snurrfot-beige` och `FP-golvfatolj-snurrfot-gron`. Alla B41:s SKU:er jämfördes
+  sedan mot tidigare rundors `sku.tsv` och sammanslagningsfiler. (B41)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar. `kallor.json`
+  är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. (B41)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Sängbänkens texter listade
+  de andra färgernas priser, som inte längre stämde. Bäddsoffans texter sa att soffan är märkt
+  Made in EU. Sparkcykeln för 6–12 år jämfördes med en modell med 12-tumshjul och en med korg som
+  bär 100 kg, och texterna sa saker om hjälmlag och trafik. Sparkcykeln på 115 cm angavs för
+  både 5–12 och 6–12 år, och sidan säger 5–12 år. Golvfåtöljens texter hänvisade till en ljusgrå
+  modell med 15 cm stoppning och sa att fåtöljen bärs med en hand. Torkvagnens texter nämnde en
+  vit färg och en version med tre nivåer, och en text sa att priset följer frakten. Familjen har
+  tre färger: grå, blå och svart. Biofåtöljens texter hänvisade till en vilfåtölj. (B41)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: sparkcyklarna (7 och 6,5 kg),
+  elbilen (15,6 kg), sängbänken (20 kg), biofåtöljen (24 kg) och golvfåtöljen (11 kg). Vikten
+  står nu som Fraktvikt. (B41)
+- Fem bilder ströks. Två var egna faktakort med fraktvikten som Vikt, på båda sparkcyklarna
+  (7 och 6,5 kg), och ett eget kort sa att torkvagnen finns i fyra färger. Elbilens måttbild hade
+  tysk text i en infällning om viktgräns och ålder, och bäddsoffans måttbild bar märket Made in
+  EU. Den orange elbilens publicerade sida hade dessutom en bild med tysk text. Sidan är
+  avpublicerad, och bara dess huvudbild följde med som färgens bild. Biofåtöljens grå sida hade
+  en miljöbild med läsbara bokryggar, så den svarta sidan behölls. (B41)
