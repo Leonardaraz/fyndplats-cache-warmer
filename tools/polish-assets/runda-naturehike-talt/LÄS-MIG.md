@@ -31,8 +31,12 @@ de andra Naturehike-tälten. Inget produktsäkerhetsavsnitt, eftersom produkten 
   blivit huvudbild, och i kvadratbeskärningen syns mest granar. Leonard valde en
   rensad studiobild. Tältet togs ut som en egen komponent på ren vit botten, och
   loggan och packpåsen, som ligger fristående, föll bort. Tältets pixlar är
-  kontrollerat oförändrade. Därefter kördes `hero_white` (1600 × 1600). Filen ligger i
-  rundan som `huvudbild-5cc6a174.jpg`, och uppladdningen är md5-kontrollerad mot den.
+  kontrollerat oförändrade. Den första versionen gjordes med `hero_white` (1600 × 1600),
+  med hela tältet inklusive stormlinorna på 90 % av bredden. Leonard tyckte att den var
+  för utzoomad. I den nuvarande fyller duken 96 % av bredden, och bara linornas yttersta
+  spetsar går ut i kanten. Ett tält som är drygt dubbelt så långt som det är högt kan inte
+  bli större i en kvadrat utan att ändarna kapas. Filen ligger i rundan som
+  `huvudbild-5cc6a174.jpg`, och båda uppladdningarna är md5-kontrollerade mot den.
 - **Listningen blandar tre storlekar.** Bilderna har måttritningar för två, tre och
   fyra personer, och ett spec-kort gäller modellen för fyra (40D, 3,8 kg). Siffrorna
   på sidan är tremanstältets: ritningen *Triple* (420 × 210 cm, höjd 120 cm,
