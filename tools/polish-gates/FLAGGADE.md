@@ -3483,3 +3483,43 @@ beslut — se den samlade frågan om detta.
   doftljus och en korg), en papperskasse med ett känt modemärkes logotyp på
   `e1ab9dc4`:s bild 4, samma scen två gånger på `c4981165` och vedställets två
   miljöscener. `8e34da16` har två bilder kvar, huvudbilden och måttbilden. (N87)
+- Medicinskåpen `271f4bca` (vitt) och `ca4d2e33` (mörkgrått) stod kvar i urvalet som utkast,
+  men de är redan färgval på den svarta sidan `73addc4e` sedan B26. De ströks ur rundan.
+  B-rundornas beslut står i FLAGGADE på deras gren tills den mergas. Läs den före urvalet.
+  (N88)
+- Fem badrumsskåp som N61 hoppade över som täckta familjer polerades: `6ffadd2d`,
+  `0fc17126`, `2666b42e`, `86c26702` och `1e2c6427`. Dessutom `8057e869`, som B17 höll för
+  saldo 3 och som enligt rättelsen är köpbart, och `37a26f7f` (se nedan). Inget av dem
+  är samma vara som en publicerad sida. `8057e869` har samma yttermått, 70 × 30 cm,
+  som det publicerade tvättställsskåpet `5b38973c`, men andra handtag och fötter och ett
+  annat urtag (20 × 23 mot 22 × 19 cm). Därför står de guldfärgade handtagen i namn, slug
+  och titel. `0fc17126` har spårade fronter, till skillnad från de bågformade dörrarna på
+  `8607c452` och `5f7abda8`. `6ffadd2d` (170 cm, ett öppet fack) är ett annat skåp än
+  `635e7330` (180 cm, två öppna fack). (N88)
+- ✅ Frikänd på bild: badrumsskåpet på 174 cm `1e2c6427`, som N65 hoppade över som
+  skärmträff mot högskåpet för kök `fa793821`. Det ena har en tvättkorg bakom en fälldörr
+  och det andra fyra dörrar och två öppna fack. Det är inte heller det publicerade högskåpet
+  med tvättkorg `3c0f58f1`, som är 171 cm högt och har två lådor och fyra öppna fack. (N88)
+- Badrumsskåpet på 140 cm `37a26f7f` hölls i N65 med två bilder kvar. Runbook v2 tar hellre
+  två rena bilder än tre med text på rekvisitan, så det polerades med huvudbilden och
+  måttbilden. (N88)
+- Spegelskåpet `86c26702` kopplades till Badrumsspeglar och inte till Badrumsskåp.
+  Kategoritexten för Badrumsskåp säger att stommarna är av lackerad MDF eller spånskiva,
+  bambu eller rostfritt stål, och spegelskåpet har aluminiumram. Påståendena för
+  Badrumsspeglar håller: antiimma, tre färgtemperaturer, dimbart ljus, IP44 och mått under
+  100 × 80 cm. (N88)
+- Kategoritexten för Badrumsskåp säger att ett av högskåpen har en inbyggd tvättkorg som
+  tippas ut (`3c0f58f1`). Med `1e2c6427` är de två. Texten bör säga två när den skrivs om.
+  (N88)
+- Spegelskåpet `86c26702` kopplas in med fast installation, och ingen stickpropp ingår.
+  Sidan säger att en behörig elektriker gör inkopplingen. Att ljuset också kan styras med en
+  väggbrytare, som inte ingår, står bara i bild 5, som ströks för sin tyska text. Uppgiften
+  står i texten. (N88)
+- Bildgranskningen strök 11 av 35 bilder. Tysk text var inbränd i fem (`2666b42e`,
+  `37a26f7f` och `1e2c6427` bild 4 och `86c26702` bild 4 och 5). Fyra hade läsbar text på
+  rekvisitan: engelska etiketter på flaskor och en burk, två av dem med en webbadress.
+  `2666b42e` och `37a26f7f` hade samma miljöscen med ett känt märke på flaskorna, och den
+  ströks på båda. `2666b42e`, `37a26f7f` och `86c26702` har två bilder kvar, huvudbilden
+  och måttbilden. (N88)
+- Livekontrollen gav 7 av 7 OK, 24 av 24 alt-texter och noll textavvikelser. Priserna
+  är orörda. (N88)
