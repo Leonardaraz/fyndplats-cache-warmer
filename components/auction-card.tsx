@@ -72,7 +72,9 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         )}
         {phase === "pre" ? (
           <div className="auction-timer" suppressHydrationWarning>
-            {msLeft !== null ? <>Startar kl 07 – om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
+            {msLeft !== null ? (
+              <><span className="t-lang">Startar kl 07 – om </span><span className="t-kort">Start om </span><b>{fmtLeft(msLeft)}</b></>
+            ) : "Startar kl 07"}
           </div>
         ) : ended ? (
           <div className="auction-timer">Stängt – nya fynd i morgon kl 07</div>
