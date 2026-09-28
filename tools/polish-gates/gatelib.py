@@ -305,6 +305,18 @@ TYSKA_ORD = [
     "Weichheit", "Wohnzimmerstühle", "Zusammensein", "Zuverlässigkeit", "atmungsaktivem",
     "atmungsaktiven", "behaglichem", "isolierenden", "müheloses", "platzsparenden",
     "stützender", "synthetischer", "umhüllende", "wasserabweisend", "lackierte",
+    # runda N99 (kontorsstolar)
+    "Arbeitsmüdigkeit", "Arbeitstag", "Armlehne", "Atmungsaktivität", "Bürosessel",
+    "Bürostuhl", "Bürostuhls", "Computerstuhls", "Drehkreuz", "Drehsessels", "Drehstuhl",
+    "Drehstuhls", "Eleganz", "Entspannung", "Ergonomische", "Fußstützenkissens",
+    "Gemütlichkeit", "Kanalheftung", "Kanalsteppung", "Kippfunktion", "Leinenimitat",
+    "Leinenstoff", "Lendenstütze", "Liegeabmessungen", "Mittelrückenlehne", "Rückendicke",
+    "Rückenkissen", "Rückenlehnengröße", "Rückenspannungen", "Schminkstuhl",
+    "Schminktischstuhl", "Schneeflanelloptik", "Schneeflanellstoff", "Schreibtischsessels",
+    "Schreibtischstuhl", "Sitzgefühl", "Sperrholz", "Stehstuhl", "Stoffbezug",
+    "Unterstützung", "Verspannungen", "Netzstoff", "bodenschonende", "geräuschlose",
+    "hochklappbare", "hochklappbaren", "leichtgängigen", "leinenartigem", "samtweichem",
+    "verschleißfester", "getuftetes", "gepolsterter", "unübertroffenen", "kuscheliges",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
