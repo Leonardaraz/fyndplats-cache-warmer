@@ -3321,3 +3321,23 @@ beslut — se den samlade frågan om detta.
 - Skrivbordet `a1f16108` låg samtidigt i familjerundan B31, som skrev sin
   text för båda färgerna efter N81:s. Texten på sidan är B31:s, och sidan
   har kvar två synliga varianter med var sin bild. (N81)
+- Sensorsoptunnan `618b1de9` fick det mörkgröna syskonet `294cfb55` som val.
+  Namnet bar färgen och döptes om före sammanslagningen, med oförändrad slug,
+  och texten och SEO skrevs om för båda färgerna. Givaren är pensionerad, och
+  dess pris följer husets regel från nästa synk. (N82)
+- Kategorin Soptunnor säger att tunnorna är av rostfritt stål eller svarta.
+  `618b1de9` finns nu också i mörkgrönt, så meningen gäller inte längre alla.
+  Den rättas när texten skrivs om. (N82)
+- Stegbrädan `681516f3` pekar nu på Aosom, och dubbletten `7c55e53e` är
+  pensionerad. Priset rördes inte. (N82)
+- Pedalhinken `43ea33bd` är samma vara som den publicerade Aosom-sidan
+  `300a9113`: samma mått, vikt och färg. Den bör pensioneras, men runda 85
+  har paret i sina anteckningar, så den lämnades åt den serien. (N82)
+- `562bc411` är samma sissy squat-bänk som AliExpress-sidan `e580e506`, som
+  har två varianter. Ommappningen vägrar en sida med flera varianter, så
+  utkastet ligger kvar, precis som `4b49e851` i N80. (N82)
+- Bildgranskningen strök 3 av 40 bilder: ölflaskor med läsbart varumärke på
+  matbordets bild 2 och tysk text på pälsvårdssetets bild 4 och 5.
+  Pälsvårdssetet har tre bilder kvar. (N82)
+- Projektordukens vita bildyta, 146 × 146 cm, står bara i måttbilden och är
+  kvitterad i `foto-tal.txt`. (N82)
