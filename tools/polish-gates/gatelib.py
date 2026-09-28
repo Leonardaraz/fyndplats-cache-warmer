@@ -216,6 +216,12 @@ TYSKA_ORD = [
     "Regalboden", "Lamellenoptik", "Entnebelung", "Säulenfuß", "Waschbecken", "Badkommode",
     "Stoffeinsatz", "Hochglanz", "Kippschutzset", "Doppeltüren", "Einzeltür", "Scharniere",
     "Montageanleitung", "Naturholz", "Silber", "Griffe",
+    # runda N89 (sideboards, köksskänkar och nattduksbord med laddstation)
+    "Ladestation", "Aufbewahrungsschrank", "Anrichte", "Kommode", "Glastüren", "Türablagen",
+    "Türregal", "Kabelmanagement", "Wasserwellen", "Oberplatte", "Tischplatte", "Steckdosen",
+    "Eiche", "Legierung", "Beine", "Bräter", "Kochgeschirr", "Besteck", "Servietten",
+    "Küchenkommode", "Geschirrschrank", "Wohnzimmerschrank", "Flurkommode", "Esszimmerschrank",
+    "Kaffeebar", "Ablagefach", "Fußpads", "Melaminoberfläche",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
