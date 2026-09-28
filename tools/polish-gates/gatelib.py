@@ -228,6 +228,13 @@ TYSKA_ORD = [
     "Filzgleiter", "Schubladenstopper", "Eichenoptik", "Landhausstil", "Zweisitzer",
     "Sitzgruppe", "Esszimmerstühle", "Esszimmer", "Tischbeine", "Fußpolster", "Klappmaß",
     "Ausziehfunktion",
+    # runda N91 (skrivbord med hyllor och lådor, fällbart datorbord och bokhyllor)
+    "Schreibtisch", "Computertisch", "Bürotisch", "Gamingtisch", "Regalböden", "Bücherregal",
+    "Bücherschrank", "Büroregal", "Kippsicherung", "Eckregal", "Standregal", "Rückenschutz",
+    "Rückwände", "Arbeitsfläche", "Arbeitsplatz", "Holzoptik", "Holzmaserung", "Trapezbasis",
+    "Beinfreiheit", "Oberschränke", "Schranktür", "Lenkrollen", "Bremsen", "Laptoptisch",
+    "Stehpult", "Kniebereich", "Sammlerstücke", "Holzschreibtisch", "Kinderschreibtisch",
+    "Tragfähigkeit",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
