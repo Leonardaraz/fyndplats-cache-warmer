@@ -1,0 +1,40 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "601ae5f5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 180L x 180B x 200H cm | Sidofönster: 120B x 45H cm | Dörrstorlek: 123B x 158H cm | Mått: 180L x 180B x 200H cm | Sidofönstermått: 120B x 45H cm | Dörrmått: 123B x 158H cm"
+ },
+ "6e60b45a": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 90L x 46B x 40H cm | Innermått: 86L x 42B cm | ✔ Totalmått: 90L x 46B x 40H cm | ✔ Innermått: 86L x 42B cm | Mått: 90L x 46B x 40H cm"
+ },
+ "83a5fc0e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 100L x 65B x 40H cm | Inre odlingsyta: 96L x 59,5B cm | Mått: 100L x 65B x 40H cm"
+ },
+ "a00882ed": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b03784dc": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b2c76518": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Yttermått: 47 × 44,2 × 48,8 cm (B × D × H)"
+ },
+ "b4441140": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "be595bfd": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 200B x 75D x 188H cm | Dörrstorlek: 163B x 163H cm | Fönsterstorlek: 35B x 35H cm | Totalmått: 200B x 75T x 188H cm | Mått: 200L x 75B x 188H cm"
+ }
+}

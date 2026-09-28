@@ -1,0 +1,68 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "09ae62db": {
+  "tyska": "67L x 79B x 111-121H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   111,
+   121
+  ],
+  "bredd": 67,
+  "djup": 79
+ },
+ "17c747cb": {
+  "tyska": "Ø40 x 45H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 45
+ },
+ "2823c605": {
+  "tyska": "(vollständig zurückgelehnt)76B x 117T x 89H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 117,
+  "hojd": 89,
+  "bredd": 76
+ },
+ "3f9fda98": {
+  "tyska": "3L x 3B m",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (3L x 3B m) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "6870d76a": {
+  "tyska": "67B x 72T x 111-119H cm (liegend: 64B x 147T x 94-102H cm)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 72,
+  "hojd": [
+   111,
+   119
+  ],
+  "bredd": 67
+ },
+ "825c51f5": {
+  "tyska": "65B x 160T x 104H cm (vollständig ausgefahren), 65B x 70T x 111-119H cm (aufrecht)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 160,
+  "hojd": 104,
+  "bredd": 65
+ },
+ "9421c86b": {
+  "tyska": "154B x 206,5T x 160/181H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 206.5,
+  "hojd": [
+   160,
+   181
+  ],
+  "bredd": 154
+ },
+ "9794b6df": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen aufrechter Stuhl: 80B x 79T x 100H cm | ✔ Abmessungen Liegestuhl: 80B x 122T x 85H cm | ✔ Abmessungen Fußhocker: 48B x 42T x 42,5H cm | ✔ Sitzgröße: 50B x 52T x 45H cm | ✔ Rückenlehnen-Größe: 66B x 68H cm | Mått: 80L x 79B x 100H cm"
+ }
+}

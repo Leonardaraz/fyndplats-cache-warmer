@@ -4,7 +4,12 @@
 // Bakgrunden och spärrarnas motiv bor i lib/aosom/remap.ts och är testade där.
 // Rutten är bara transporten: hämta feeden, läs raden, planera, skriv.
 //
-//   POST { wixProductId, sku?, duplicateWixProductId?, apply? }
+//   POST { wixProductId, sku?, duplicateWixProductId?, behallVariant?, apply? }
+//
+// `behallVariant` är Wix-variant-id:t för den variant som finns hos Aosom, på
+// en sida med flera varianter. De andra varianterna tas då bort i Wix och på
+// mappningsraden före bytet (lib/aosom/remap-kollaps.ts). Utelämnat vägras en
+// flervariantssida som förut.
 //
 // `sku` får utelämnas när dubbletten är ett Aosom-utkast: då läses numret ur
 // dubblettens mappningsrad (`väljRemapSku`), och det behöver aldrig passera
@@ -30,7 +35,16 @@ import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { eurToSekFromEnv } from "@/lib/config";
 import { fetchAosomFeed } from "@/lib/aosom/feed";
-import { getV3ProductPris } from "@/lib/wix/v3-products";
+import { getV3ProductPris, getV3VariantPriser } from "@/lib/wix/v3-products";
+import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
+import {
+  KOLLAPS_FALT,
+  kollapsaMappning,
+  kollapsaWix,
+  planeraKollaps,
+  produktAv,
+  type KollapsPlan,
+} from "@/lib/aosom/remap-kollaps";
 import {
   pensioneraDubblett,
   planeraOmmappning,
@@ -39,7 +53,7 @@ import {
 } from "@/lib/aosom/remap";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -57,6 +71,7 @@ export async function POST(req: NextRequest) {
     wixProductId?: string;
     sku?: string;
     duplicateWixProductId?: string;
+    behallVariant?: string;
     apply?: boolean;
     minMarginPct?: number;
   } = {};
@@ -68,6 +83,7 @@ export async function POST(req: NextRequest) {
 
   const wixProductId = body.wixProductId?.trim();
   const dubblett = body.duplicateWixProductId?.trim() || undefined;
+  const behallVariant = body.behallVariant?.trim() || undefined;
   const apply = body.apply === true;
   // ☠️ MARGINALGOLVET GAR ATT SANKA, MEN BARA MEDVETET OCH PER ANROP.
   // Leonards beslut 2026-09-05: alla Aosom-varor kopta via AliExpress ska peka
@@ -102,39 +118,82 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: skuVal.fel }, { status: 400 });
     }
     const sku = skuVal.sku;
+    const wix = skapaWixAnrop();
     // ☠️ BUTIKENS PRIS AR FACIT. Mappningens `grossSek` ar vad vi TROR att
     // kunden ser. Glider de isar raknar marginalgrinden pa fel underlag och
     // faller en lonsam ommappning — uppmatt pa kontorsstolen f13cd415
     // 2026-09-05. Ett LASFEL far dock inte se ut som "inget pris": da faller vi
     // tillbaka pa mappningen och sager det i `prisKalla`, i stallet for att
     // avbryta hela ommappningen for en prisfraga.
-    const [rader, alla, mappning, regler, butikensPrisSek] = await Promise.all([
+    //
+    // Med `behallVariant` är facit den behållna VARIANTENS pris, inte
+    // produktens: en flervariantssida kan ha olika pris per färg, och då har
+    // produkten inget entydigt pris alls.
+    const [rader, alla, mappning, regler, butikensPrisSek, produkt, oppnaOrdrar] = await Promise.all([
       fetchAosomFeed(),
       store.listMappings(),
       store.getMappingByWixProductId(wixProductId),
       getPricingRules(),
-      getV3ProductPris(wixProductId)
-        .then((p) => p.priceSek)
-        .catch(() => null),
+      (behallVariant
+        ? getV3VariantPriser(wixProductId).then((m) => m.get(behallVariant) ?? null)
+        : getV3ProductPris(wixProductId).then((p) => p.priceSek)
+      ).catch(() => null),
+      behallVariant
+        ? wix("GET", `/stores/v3/products/${encodeURIComponent(wixProductId)}?${KOLLAPS_FALT}`).then(produktAv)
+        : Promise.resolve(null),
+      // Samma urval som sammanslagningens `oppnaOrdrar`: ordrar som ännu inte
+      // lagts hos leverantören.
+      behallVariant
+        ? store.listTasks().then((t) => t.filter((x) => x.wixCatalogItemId === wixProductId
+          && (x.status === "pending" || x.status === "pending_payment")).length)
+        : Promise.resolve(0),
     ]);
 
     const rad = rader.find((r) => r.sku === sku);
     const fx = { eurToSek: eurToSekFromEnv(), usdToSek: regler.usdToSek };
-    const plan = planeraOmmappning({ mappning, rad, alla, fx, dubblett, butikensPrisSek, minMarginPct });
+    const plan = planeraOmmappning({
+      mappning, rad, alla, fx, dubblett, butikensPrisSek, minMarginPct, behallVariant,
+    });
+    const kollaps: KollapsPlan | null = behallVariant
+      ? planeraKollaps({ produkt, mappning, behallVariant, oppnaOrdrar })
+      : null;
 
-    if (plan.hinder.length > 0) {
+    if (plan.hinder.length > 0 || (kollaps?.hinder.length ?? 0) > 0) {
       return NextResponse.json(
-        { ok: false, torrkörning: !apply, plan, skuKalla: skuVal.kalla },
+        { ok: false, torrkörning: !apply, plan, kollaps, skuKalla: skuVal.kalla },
         { status: 422 },
       );
     }
     if (!apply) {
-      return NextResponse.json({ ok: true, torrkörning: true, plan, skuKalla: skuVal.kalla });
+      return NextResponse.json({ ok: true, torrkörning: true, plan, kollaps, skuKalla: skuVal.kalla });
+    }
+
+    // ☠️ WIX FÖRST, MAPPNINGEN BARA OM WIX LÄSTE TILLBAKA RÄTT. En mappning med
+    // en variant mot en Wix-produkt med tre hade låtit synken nolla de två
+    // okända varianterna (`okandaVarianter`), och en order på dem hade inte
+    // gått att lägga. En omkörning ser att Wix är klar och gör bara mappningen.
+    if (kollaps && behallVariant) {
+      const k = await kollapsaWix(wix, wixProductId, behallVariant, { kostnadSek: plan.nyLandadSek });
+      if (!k.ok) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Wix läste inte tillbaka som kollapsad — mappningen skrevs INTE. "
+              + "Kör om: en omkörning ser om Wix hunnit bli klar.",
+            skal: k.skal,
+            steg: k.steg,
+            plan,
+            kollaps,
+          },
+          { status: 500 },
+        );
+      }
     }
 
     // Skrivningen. `mappning` och `rad` är garanterat satta här — hinderlistan
     // ovan innehåller "ingen_mappning"/"saknas_i_feeden" annars.
-    await store.saveMapping(tillämpaOmmappning(mappning!, rad!, fx));
+    const utgangsrad = behallVariant ? kollapsaMappning(mappning!, behallVariant) : mappning!;
+    await store.saveMapping(tillämpaOmmappning(utgangsrad, rad!, fx));
 
     let dubblettPensionerad: string | null = null;
     if (dubblett) {
@@ -150,7 +209,9 @@ export async function POST(req: NextRequest) {
     // 214 saknade ändå bilder") och prissynken ("2 priser uppdaterade" mot ett
     // orört Wix) rapporterade framgång på en skrivning som aldrig tog.
     const efter = await store.getMappingByWixProductId(wixProductId);
-    const skrevs = efter?.supplierProductId === `aosom:${sku}` && efter?.supplier === "aosom";
+    const skrevs = efter?.supplierProductId === `aosom:${sku}` && efter?.supplier === "aosom"
+      && (!behallVariant
+        || ((efter?.variants ?? []).length === 1 && efter?.variants[0]?.wixVariantId === behallVariant));
     if (!skrevs) {
       return NextResponse.json(
         {
@@ -161,6 +222,7 @@ export async function POST(req: NextRequest) {
           lästeTillbaka: {
             supplierProductId: efter?.supplierProductId ?? null,
             supplier: efter?.supplier ?? null,
+            varianter: efter?.variants?.length ?? null,
           },
         },
         { status: 500 },
@@ -176,6 +238,10 @@ export async function POST(req: NextRequest) {
         + `marginal ${plan.gammalMarginalPct ?? "?"} → ${plan.nyMarginalPct} % `
         + `(pris ${plan.prisSek} kr ur ${plan.prisKalla}`
         + (minMarginPct == null ? "" : `, golv ${minMarginPct} %`) + ") "
+        + (kollaps
+          ? `kollapsad till ${behallVariant} (${kollaps.behallVal.join("/") || "utan val"}), `
+            + `${kollaps.borttagna.length} varianter bort `
+          : "")
         + (dubblettPensionerad ? `dubblett ${dubblettPensionerad} pensionerad` : "utan dubblett"),
     });
 
@@ -184,6 +250,7 @@ export async function POST(req: NextRequest) {
       torrkörning: false,
       plan,
       skuKalla: skuVal.kalla,
+      kollaps,
       dubblettPensionerad,
     });
   } catch (e) {

@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0bab65e3": {
+  "tyska": "",
+  "svenska": "102cm x 49cm x 102cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 102L x 49B x 102H cm | ✔ Sitzbreite: 26B cm | ✔ Sitz bis Boden: 33H cm | ✔ Sonnendach: 60L x 42B cm | ✔ Gefaltetes Sonnendach: 14L x 42B cm | ✔ Schiebegriff für Eltern: 98-102L cm | ✔ Aufbewahrungskorb: 33L x 26,5B x 15H cm | ✔ Muttertasche: 27,5L x 18B cm"
+ },
+ "358f4559": {
+  "tyska": "106B x 41,5T x 48,5H cm",
+  "svenska": "106L x 41,5B x 48,5H cm",
+  "bokstaver": "BTH",
+  "djup": 41.5,
+  "hojd": 48.5,
+  "bredd": 106
+ },
+ "403dfd8d": {
+  "tyska": "",
+  "svenska": "70L x 41,5B x 48,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 70L x 41,5B x 48,5H cm | ✔ Sitz: 28L x 10B x 30H cm"
+ },
+ "6707c9dd": {
+  "tyska": "37L x 37B x 56,5H cm",
+  "svenska": "37L x 37B x 56,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 56.5,
+  "bredd": 37,
+  "djup": 37
+ },
+ "7cdc167c": {
+  "tyska": "109L x 68,5B x 76H cm",
+  "svenska": "109L x 68,5B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 109,
+  "djup": 68.5
+ },
+ "96451d83": {
+  "tyska": "106L x 51,5B x 52H cm",
+  "svenska": "106cm x 51,5cm x 52cm",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 106,
+  "djup": 51.5
+ },
+ "a9360e2a": {
+  "tyska": "236L x 10/15B x 6,5H cm",
+  "svenska": "236L x 15B x 6,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 6.5,
+  "bredd": 236,
+  "djup": [
+   10,
+   15
+  ]
+ },
+ "ad46f9cc": {
+  "tyska": "109,5L x 60B x 72,5H cm",
+  "svenska": "109,5L x 60B x 72,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 72.5,
+  "bredd": 109.5,
+  "djup": 60
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0058ad50": {
+  "tyska": "",
+  "svenska": "80L x 60B x 74,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischgröße: 80L x 60B x 74,5H cm | ✔ Stuhlgröße: 40,5B x 48T x 85H cm | ✔ Sitzgröße: 40B x 41T x 46,5H cm"
+ },
+ "3612fc5a": {
+  "tyska": "236L x 130B x 181H cm",
+  "svenska": "236L x 130B x 181H cm",
+  "bokstaver": "LBH",
+  "hojd": 181,
+  "bredd": 236,
+  "djup": 130
+ },
+ "3b38e191": {
+  "tyska": "",
+  "svenska": "L89 x B45 x H87 cm, L39 x B45 x H95 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße (Tisch): 89L x 45B x 87H cm | ✔ Maße (Stuhl): 39L x 45B x 95H cm | ✔ Maße (Sitz): 39L x 38B cm"
+ },
+ "54efbdc6": {
+  "tyska": "40B x 18T x 60H cm",
+  "svenska": "40B x 18T x 60H cm",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 60,
+  "bredd": 40
+ },
+ "72d1d195": {
+  "tyska": "65B x 160T x 104H cm (vollständig ausgefahren), 65B x 70T x 111-119H cm (aufrecht)",
+  "svenska": "65B x 70T x 111-119H cm",
+  "bokstaver": "BTHBTH",
+  "djup": 160,
+  "hojd": 104,
+  "bredd": 65
+ },
+ "8475ed8f": {
+  "tyska": "54L x 18,7B x 12,3H cm",
+  "svenska": "54 x 18,7 x 12,3 cm",
+  "bokstaver": "LBH",
+  "hojd": 12.3,
+  "bredd": 54,
+  "djup": 18.7
+ },
+ "d3b26d84": {
+  "tyska": "103L x 30B x 62H cm",
+  "svenska": "103L x 30B x 62H cm",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 103,
+  "djup": 30
+ },
+ "f8a5196f": {
+  "tyska": "80L x 52B x 76H cm (Tisch), 49L x 43B x 75H cm (Stuhl)",
+  "svenska": "80L x 52B x 76H cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 76,
+  "bredd": 80,
+  "djup": 52
+ }
+}

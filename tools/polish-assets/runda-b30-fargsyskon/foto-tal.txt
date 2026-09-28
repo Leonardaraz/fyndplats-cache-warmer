@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+1d0ba82d 8 stoppningens tjocklek, läst i måttritningen
+d348bf64 32 ryggstödets bredd, läst i måttritningen
+d348bf64 23 ryggstödets höjd, läst i måttritningen

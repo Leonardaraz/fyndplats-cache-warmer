@@ -1,0 +1,55 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "25bc6c84": {
+  "tyska": "70L x 50B x 120H cm",
+  "svenska": "70L x 50B x 120H cm",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 70,
+  "djup": 50
+ },
+ "56a61a9a": {
+  "tyska": "40B x 35T x 180H cm",
+  "svenska": "40L x 35B x 180H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 180,
+  "bredd": 40
+ },
+ "616b057f": {
+  "tyska": "83L x 40B x 92H cm",
+  "svenska": "83B x 40T x 92H cm",
+  "bokstaver": "LBH",
+  "hojd": 92,
+  "bredd": 83,
+  "djup": 40
+ },
+ "6c9d7288": {
+  "tyska": "",
+  "svenska": "82L x 35B x 76H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktabmessungen: 82L x 35B x 76H cm | ✔ Jede Ebene Größe: 70L x 35B x 6H cm | ✔ Abmessungen der Kiste: 71,5L x 36B x 20H cm"
+ },
+ "849082f6": {
+  "tyska": "45,1L x 36,5B x 62,6H cm",
+  "svenska": "45,1cm x 36,5cm x 62,2cm",
+  "bokstaver": "LBH",
+  "hojd": 62.6,
+  "bredd": 45.1,
+  "djup": 36.5
+ },
+ "c46bda54": {
+  "tyska": "",
+  "svenska": "80L x 75B x 74H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 80B x 75T x 74H cm | ✔ Bettmaße: 80B x 203T x 74H cm | ✔ Sitzgröße: 78B x 65T cm | ✔ Rückenlehnenmaße: 80B x 33H x 10T cm"
+ },
+ "d8c2dec6": {
+  "tyska": "",
+  "svenska": "24,2L x 19,5B x 23,4H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkochermaße: 24,2L x 19,5B x 23,4H cm (mit Basis) | ✔ Wasserkochermaße: 24,2L x 19,5B x 21,7H cm (ohne Basis) | ✔ Kapazität: 1,7L (max), 500 ml (min)"
+ },
+ "f965f9c7": {
+  "tyska": "",
+  "svenska": "118L x 73B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 118B x 73T x 75H cm | ✔ Stuhlabmessungen: 41,5B x 46T x 90H cm | ✔ Tischplattenmaße: 118L x 73B x 1,7T cm | ✔ Sitzbereichsgröße: 105B x 66H cm | ✔ Sitzgröße: 41,5B x 41,5T x 45H cm | ✔ Rückenlehnenmaße: 34,5B x 46H cm"
+ }
+}

@@ -1,0 +1,1 @@
+gate-lager.py sittbänken 46843188 står på 0 i den gröna färgen, men sidan får blått (60), beige (197) och svart (61) som val i samma runda och blir köpbar igen; övriga sju sidor har 91–197

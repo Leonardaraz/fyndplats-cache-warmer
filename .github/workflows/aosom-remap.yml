@@ -49,6 +49,16 @@ on:
         required: false
         default: ""
         type: string
+      behall_variant:
+        # Leonards beslut 2026-09-28 (reservtaket fc5e7fde): pa en sida med
+        # flera varianter tas de som inte finns hos Aosom bort, och den som
+        # finns behalls. Rutten kollapsar sidan i Wix och i mappningen FORE
+        # bytet (lib/aosom/remap-kollaps.ts) och vagrar om sidan har
+        # obehandlade ordrar. Bilderna rors inte.
+        description: "Wix-variant-id for den variant som finns hos Aosom, pa en sida med flera varianter. De andra tas bort i Wix och i mappningen fore bytet. TOMT = en flervariantssida vagras."
+        required: false
+        default: ""
+        type: string
       min_margin_pct:
         description: "Sank marginalgolvet (default 5). Leonards regel: Aosom vinner aven dyrare. TOMT = golvet gäller."
         required: false
@@ -83,6 +93,7 @@ jobs:
           PRODUCT_ID: ${{ inputs.wix_product_id }}
           SKU: ${{ inputs.sku }}
           DUPLICATE: ${{ inputs.duplicate_wix_product_id }}
+          BEHALL: ${{ inputs.behall_variant }}
           MIN_MARGIN: ${{ inputs.min_margin_pct }}
           VISA_KOSTNAD: ${{ inputs.visa_kostnad }}
         run: |
@@ -114,11 +125,13 @@ jobs:
             --arg id "${PRODUCT_ID}" \
             --arg sku "${SKU}" \
             --arg dup "${DUPLICATE}" \
+            --arg bv "${BEHALL}" \
             --arg mm "${MIN_MARGIN}" \
             --argjson apply "${apply}" \
             '{wixProductId: $id, apply: $apply}
              + (if $sku == "" then {} else {sku: $sku} end)
              + (if $dup == "" then {} else {duplicateWixProductId: $dup} end)
+             + (if $bv == "" then {} else {behallVariant: $bv} end)
              + (if $mm == "" then {} else {minMarginPct: ($mm | tonumber)} end)')
 
           echo "Läge: ${MODE} (apply=${apply})"
@@ -151,6 +164,9 @@ jobs:
           # bakom `visa_kostnad` — och `marginalen haller` sags alltid.
           echo "$svar" | jq -r '"  artikelnummer   (skrivs inte ut, ur \(if .skuKalla == "dubblett" then "dubblettens mappning" else "anropet" end))"'
           echo "$svar" | jq -r '.plan // {} | "  fran            \(.["frånLeverantör"])\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)"'
+          # Kollapsen: valens namn och antal, som redan star pa sidan. Aldrig
+          # nagot ur feeden.
+          echo "$svar" | jq -r 'if .kollaps then .kollaps | "  behalls         \(.behallVal | join("/")) (\(.behallVariant))\n  tas bort        \([.borttagna[] | .val | join("/")] | join(", ")) (\(.borttagna | length) i Wix, \(.mappningsvarianterBort) i mappningen)\n  bilder          \(.bilderMedBorttagnaVal | length) kopplade till borttagna val (rors inte)\n  wix redan klar  \(.wixKlar)\n  oppna ordrar    \(.oppnaOrdrar)" else empty end' || true
           if [ "${VISA_KOSTNAD}" = "true" ]; then
             echo "  ⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_kostnad=true)"
             echo "$svar" | jq -r '.plan // {} | "  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
@@ -167,6 +183,8 @@ jobs:
           if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
             echo "::error::$(echo "$svar" | jq -r '.error // "hinder — se listan nedan"')" >&2
             echo "$svar" | jq -r '.plan.hinder[]? | "    [hinder] \(.)"' >&2
+            echo "$svar" | jq -r '.kollaps.hinder[]? | "    [hinder] \(.)"' >&2
+            echo "$svar" | jq -r '.skal[]? | "    [aterlasning] \(.)"' >&2
             exit 1
           fi
 
@@ -179,6 +197,9 @@ jobs:
           fi
 
           echo "OK: ${PRODUCT_ID} ommappad till Aosom (verifierat vid aterlasning)" || true
+          if [ -n "${BEHALL}" ]; then
+            echo "Kollapsad till varianten ${BEHALL} i Wix och i mappningen (verifierat vid aterlasning)" || true
+          fi
           dup=$(echo "$svar" | jq -r '.dubblettPensionerad // "ingen"') || true
           echo "Dubblett: ${dup}" || true
           exit 0

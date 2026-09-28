@@ -1,0 +1,40 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "081f82f1": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0af14e23": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0cbffcd9": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "0fc3c252": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 198B x 275D x 191H cm | Dörrstorlek: 105B x 166H cm | Fönsterstorlek: 35B x 35H cm | Hyllstorlek: 25B x 273L cm | Totalmått: 198B x 275D x 191H cm"
+ },
+ "2b8b7297": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "6a4e92c4": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "ca9e1fa5": {
+  "tyska": "75L x 56B x115H cm",
+  "svenska": "75L x 56B x 115H cm",
+  "bokstaver": "LBH",
+  "hojd": 115,
+  "bredd": 75,
+  "djup": 56
+ },
+ "fe11166f": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

@@ -3198,3 +3198,1663 @@ beslut — se den samlade frågan om detta.
   huvudsökord är valda på produkttypen. Alla sex slugar prövades mot hela
   katalogen (6 195 produkter): ingen krockar, och där en publicerad slug
   redan bar huvudsökordet valdes en smalare variant. (N76)
+- ⚠️ Frysboxen `da0e9379` (35 l) hålls: kyl- och frysprodukter på 10–1 500 l ska visa
+  energimärkningen och länka produktinformationsbladet på produktsidan (EU 2019/2016),
+  och vi har inget av dem. Bilderna och texten är granskade; sidan kan poleras när
+  etiketten finns. (B20)
+- Vattenkokar- och brödrostseten med räfflat hölje `f5964946` (cremevit) och
+  `40a1f491` (grå) är samma set i två färger, bara bland utkasten. Bara huvudbilden är
+  ren: miljöbilden bär läsbar text på en bok (*STREET FOOD*) och bild 3–5 har tysk text.
+  När egna kort finns blir de en sida med två färgval. (B20)
+- Bikakeseten `eb19eca6` (fyra skivor, svart och grått) och `982262ec` (glaskokare och
+  fyra skivor) är publicerade men inte kopplade till *Vattenkokare & brödrostar*, eftersom
+  kategoritexten säger att två set har bikakemönster. Rätta meningen vid nästa
+  butiksdeploy, till exempel till "flera har bikakemönster", och koppla då båda. (B20)
+- De publicerade frukostseten med bikakemönster för två skivor, `b330de9c` (svart, i
+  koppar och svart) och `0ab3483a` (rosa), är samma set i två färger: samma kokare
+  24,2 × 19,5 × 23,4 cm och samma rost 27,4 × 17,7 × 18,8 cm. Enligt beslutet
+  2026-09-27 ska de bli en sida med två färgval. Båda är publicerade, så givaren kräver
+  `omdirigera=ja`, och sidans namn bär färgen och måste skrivas om först. Nästa runda. (B20)
+- AVGJORT 2026-09-27, genomfört i B20: miniugnarna. Den publicerade AliExpress-sidan
+  `3f6a99f7` är ommappad till Aosom med `ff145fb1` (samma ugn i svart och silver, nu
+  pensionerad), och `ab47e35d` (helsvart) och `d9f30244` (cremevit) läggs in som färger
+  på sidan. Setet `6f79738d` får familj A:s fem färger (`4546b12a`, `4add1c3a`,
+  `980dd9a1`, `c0463ce2`, `d7fea466`), bikakesetet `eb19eca6` får `c0dd9d0c` och
+  brödrosten `2b27c2a4` får `13204f68`. (B20)
+- AVGJORT 2026-09-27, genomfört i B21: åtta publicerade sidor skrevs om utan färg i
+  namnet och fick 30 färger som val. Mopphinken `3bfee58b` fick gul, blå och röd
+  (`5b4aeb72`, `9ac669e4`, `d60bb2f2`). Hundgrinden `12cd40a2` fick honungsgul,
+  mörkbrun, vit och natur (`02c203cd`, `34f51bc7`, `635c990e`, `7aaea8cc`). 2-sitssoffan
+  `95c2008d` fick gul, grön och grå (`250b29f0`, `e0d2f66f`, `e30d6f33`), alltså de tre
+  i manchesterlook ur B15:s rad om soffan i 13 färger och tyger. Bäddfåtöljen `6efbe712`
+  fick beige, grön, blå, mörkgrå och svart (`e43ec4a4`, `1d0fd62b`, `f665ba8f`,
+  `81f1c8b4`, `c2211af6`). Teddygungstolen `bc32d396` fick vit, ljusgrå, mörkgrå, rosa
+  och brun (`e911531e`, `7307ec68`, `1b1a1154`, `5ec44a3b`, `ee9242de`). Gungstolen med
+  fotpall `6c50fee9` fick cremevit, ljusgrå och mörkgrå (`13ce0af4`, `e55deb32`,
+  `c793bf42`). Köksbordet `4a3908ae` fick grå, brun och rustik brun (`1527a0a8`,
+  `534e6f79`, `cf7a01a5`). Klaffbordet `85f1694f` fick rustik brun, vit, ek och svart
+  samt ek och vit (`19c5e09d`, `ca5e4c55`, `7a614247`, `1bca9e41`). Givarna är
+  pensionerade. (B21)
+- Samma stomme som 2-sitssoffan `95c2008d` men en annan modell, hålls: `0b6a0cc6`
+  (cremevit, saldo 5), `33825b88` (gul), `615e7b54` (grå), `86606498` (ljusblå) och
+  `8ff98faa` (mörkgrå). Samma mått 117 × 56,5 × 77 cm, men ryggen är kanalsydd i ett
+  slätt vävt tyg och inte manchester. De blir en egen sida med fem färgval: polera ett av
+  utkasten, publicera det och lägg de andra som färger. (B21)
+- Samma bäddfåtölj som `6efbe712` men i teddytyg med knappade kuddar, hålls: `b58c8340`
+  (beige) och `efaa0c7b` (mörkgrå). Samma mått 102 × 73 × 81 cm. Egen sida med två
+  färgval, samma väg som soffan ovan. (B21)
+- Teddygungstolen `bc32d396`: `15758cbf` (ljusblå) har samma stomme men ett slätt vävt
+  tyg, inte teddy, och hölls utanför sidan. Den kan bli en egen sida. (B21)
+- Gungstolen med fotpall `6c50fee9`: `50233e0f` (mörkgrön) är samma stol men har saldo 0
+  och lades inte in. Den läggs som färg med samma workflow när den finns i lager. `51d0bf3f`
+  (grå) har andra armstöd och en annan rygg och hölls utanför som en annan modell. (B21)
+- Köksbordet `4a3908ae`: `6e10449e` (ek) har ett annat underrede, där benen korsas högre
+  upp, och hölls utanför. N58 parade det redan med den publicerade `4a365ee5` (samma
+  last och vikt). Pröva om det ska läggas som färg där. (B21)
+- Sammanslagningen föll en gång på en timeout i rutten utan att skriva något
+  (sidan hade kvar tre bilder och inga val), och samma körning gick igenom vid andra
+  försöket. Läs sidan innan en omkörning, så syns det om något hann skrivas. (B21)
+- AVGJORT 2026-09-27, genomfört i B22: åtta publicerade möbelsidor skrevs om utan färg i
+  namnet och fick 24 färger som val, tre per sida. Matbordet `2177e112` fick ek, grå och
+  rustik brun (`5196962a`, `59e92b8a`, `7fe7127a`). Knästolen `2876122a` fick svart, blå
+  och cremevit (`03d790a9`, `431da897`, `b318a046`). Sittbänken med förvaring `46843188`
+  fick blå, beige och svart (`4342f585`, `9d8374aa`, `a6310071`). Barnbokhyllan
+  `5c176543` fick ljusgrön, rosa och vit (`15db30cb`, `8718ba8d`, `a173de00`). Det
+  utdragbara matbordet `5c65d551` fick brun, rustik brun och grå betong (`46c6166d`,
+  `51419a88`, `87245ccf`). Det runda korsbensbordet `718fb6d0` fick svart, rustik brun och
+  mörkbrun (`b6590bd3`, `e5464d91`, `eb8db828`). Fotpallen `a6a16df2` fick mörkgrå, brun
+  och cremevit (`06375f5f`, `93ea6c3f`, `d9de7e1a`). Pallen `ba454107` fick cremevit, beige
+  och ljusgrå (`b1cd2e69`, `b3e5b7d1`, `be193739`). Givarna är pensionerade. Livekontrollen
+  gav 8 av 8 OK, 36 av 36 alt-texter och noll textavvikelser. (B22)
+- Sittbänkens första plan föll på `sku_upptagen`: `FP-sittbank-sammet-bla` bärs redan av
+  N22:s blå sammetsbänk `d1132894`, som är en annan modell (118 cm, utan förvaring). Givarna
+  fick `FP-sittbank-sammet-forvaring-<färg>`. Sök nya SKU:er mot alla rundors `sku.tsv`
+  innan planen körs. (B22)
+- AVGJORT 2026-09-27, genomfört i B23: åtta publicerade barnfordon skrevs om med alla färger
+  och fick 21 färger som val. 12 V-fyrhjulingen `883db249` (orange) fick vit, grön, röd och
+  gul (`72c44dc9`, `746785d0`, `ab96f4a3`, `de3f7b68`). 6 V-fyrhjulingen `9d686a82` (rosa)
+  fick röd, vit och blå (`2116f56f`, `4d6922a9`, `96d3f0ed`). Elmotorcykeln `372ee931` (röd)
+  fick svart, blå och rosa (`0a27ed50`, `5fafabd9`, `bc9f1cef`). Eltraktorn med släpvagn
+  `ec2d9402` (röd) fick grön, blå och orange (`329c24b2`, `8e77ded7`, `fbe710b5`). Eltraktorn
+  `91d28d6f` (blå) fick grön och röd (`b1dc7de9`, `f90b0993`). Elgokarten med driftläge
+  `0926604b` (vit) fick grön och röd (`0e88d62a`, `f244bb55`). Elgokarten med bakhjulsdrift
+  `49494b1a` (vit) fick röd och blå (`3c0795b6`, `5a4f53a9`). Pedalgokarten `cc56eab4` (röd)
+  fick rosa och blå (`39260484`, `b2b28cec`). Givarna är pensionerade, och raderna om de här
+  syskonen i B6, B7, B8, N58, N73 och N74 är därmed avklarade. Livekontrollen gav 8 av 8 OK,
+  32 av 32 alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B23)
+- Den svarta 6 V-fyrhjulingen `1f05f7d5` har saldo 0 och lades inte in. Den läggs som färg på
+  `9d686a82` med samma workflow när den finns i lager. (B23)
+- Två publicerade slugar hade tre tecken med en siffra före ett bindestreck (12 V- och
+  24 V-formen), och skrivplanens artikelnummergrind fäller dem nu. `883db249` och `0926604b`
+  fick nya slugar (`elfyrhjuling-barn-12v`, `elgokart-barn-driftlage-24v`) med omdirigering,
+  och de gamla adresserna svarar 308. Samma form i namn och SKU fälls också: skriv `12 V`
+  eller låt talet stå sist (`…-12v`), och skriv MP3-spelare som "musikspelare". (B23)
+- `gate-axel` läser L som bredd och B som djup, efter möbelkonventionen. Källorna för fordon
+  anger längden först, så en mening som "76 cm bred" fälls fast den stämmer. Skriv då måtten
+  utan axelord ("mäter 120 × 76 × 53,5 cm") i stället för att stänga av grinden. (B23)
+- Elmotorcykelns blå givare föll först på `sku_upptagen`: `FP-elmotorcykel-barn-bla` bärs redan
+  av en annan produkt, som inte finns i någon rundas `sku.tsv`. Ingenting skrevs. Den blå och
+  den rosa fick `FP-elmotorcykel-trehjul-<färg>`. Planläget fångar krocken innan något skrivs,
+  så kör alltid plan först. (B23)
+- AVGJORT 2026-09-27, genomfört i B24: åtta publicerade barnsidor skrevs om med alla färger
+  och fick 18 färger som val. Tvåsitsiga elfyrhjulingen `7cdc167c` (lila) fick blå och svart
+  (`7b26df6f`, `8ae5b383`). Elmotorcykeln med stödhjul `ad46f9cc` (blå) fick orange och grön
+  (`617aae41`, `e811836f`). Fyrhjulingen för 18–36 månader `403dfd8d` (blå) fick grön och vit
+  (`b82184a0`, `e248ce9a`). Fyrhjulingen med släpvagn `358f4559` (röd) fick grön och blå
+  (`5dae95cd`, `626e0b05`). Trehjulingen `0bab65e3` (grå) fick mintgrön och ljusblå
+  (`3e34331b`, `a5844ce3`). Giraffrutschkanan `96451d83` (blå) fick grå och rosa (`b5c9069f`,
+  `f1eaa699`). Balansbommen `a9360e2a` (blå) fick lila och rosa, rosa, gammelrosa och
+  flerfärgad (`02f935c8`, `8d3d1de1`, `8f351be4`, `a17cf506`). Förvaringshurtsen `6707c9dd`
+  (blå) fick cremevit och rosa (`0d9da8b5`, `2fb43729`). Givarna är pensionerade, och raderna
+  om de här syskonen i B6, B7, N54 och N73 är därmed avklarade. Livekontrollen gav 8 av 8 OK,
+  34 av 34 alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B24)
+- `7cdc167c` och `ad46f9cc` fick nya slugar (`elfyrhjuling-barn-tvasitsig-24v`,
+  `elmotorcykel-barn-stodhjul-musik`), eftersom de gamla bar 24 V- och 12 V-formen före ett
+  bindestreck. De gamla adresserna svarar 308. (B24)
+- Balansbommens färger är namngivna efter bilden, inte efter feeden: den som feeden kallar
+  ljusröd är rosa, och den som feeden kallar rosa är gammelrosa. (B24)
+- Egna faktakort bär fraktvikten som `Vikt`. `358f4559`:s kort ("Vikt 7,4 kg", feedens
+  fraktvikt) ströks i B24, och `281ed0b1`:s ("Vikt 6,3 kg") stryks i B25. Mätt över alla
+  rundors `kort.tsv`: 155 kort har ett viktfält, och 136 av dem är exakt feedens fraktvikt i
+  en källa som inte anger någon produktvikt, fördelade på 18 rundor. Bilder redigeras inte,
+  så lagningen är att stryka korten eller bygga nya med `Fraktvikt`. Hur många av de 136 som
+  fortfarande ligger publicerade är inte mätt. (B24)
+- AVGJORT 2026-09-27, genomfört i B25: åtta publicerade barnsidor skrevs om med alla färger
+  och fick nio färger som val. Barnförvaringen `281ed0b1` (cremevit) fick blå och rosa
+  (`d40c42ae`, `77a5637e`). Crossmotorcykeln med stödhjul `f4c3b44c` (grön) fick röd
+  (`cf098340`). Radiobilen `3486aa0d` (röd) fick rosa (`70a721cd`). Sparkfordonet `382f99ee`
+  (röd och vit) fick blå och vit (`8eaf3ecc`). Elfyrhjulingen med gaspedal `3c13da94` (gul)
+  fick blå (`5562dc2a`). 24 V-motorcykeln `67d2d4f6` (grön) fick rosa (`cde040a7`).
+  Barnskrivbordet med björnstol `6588ac81` (natur) fick rosa (`db663f78`). Skumklossarna
+  `1841a1c2` (gul) fick ljusgrå (`c3959819`). Givarna är pensionerade. Livekontrollen gav
+  8 av 8 OK, 34 av 34 alt-texter och noll textavvikelser, och varje sida visar sina färger
+  som val. (B25)
+- Den blå crossmotorcykeln `bd2f9152` har saldo 0 och lades inte in. Den läggs som färg på
+  `f4c3b44c` med samma workflow när den finns i lager. (B25)
+- Radiobilens rosa givare föll två gånger i planläget innan något skrevs:
+  `FP-radiobil-barn-rosa` bärs redan av en annan produkt (`sku_upptagen`), och
+  `FP-radiobil-snurr-360-rosa` fälls av artikelnummergrinden (`sku_ogiltig`), eftersom tre
+  siffror före ett bindestreck och ett ord har artikelnumrets form. Den fick
+  `FP-radiobil-snurrande-rosa`. Sätt aldrig ett tresiffrigt tal före ett ord i en SKU. (B25)
+- `3c13da94` fick ny slug (`elfyrhjuling-barn-gaspedal-12v`), eftersom den gamla bar färgen
+  och 12 V-formen. Omdirigeringen är skriven, men den gamla adressen serverade fortfarande
+  sin cachade sida 21:12 (`x-vercel-cache: HIT`). Kontrollera den igen. (B25)
+- `281ed0b1`:s egna faktakort ("Vikt 6,3 kg", feedens fraktvikt) ströks. (B25)
+- AVGJORT 2026-09-27, genomfört i B26: åtta publicerade hemsidor skrevs om utan färg i namnet
+  och fick 15 färger som val. Torktumlaren `2517c54b` (svart) fick grå och vit (`1acfb720`,
+  `f183f420`). Redskapsboden `bb45be9d` (ljusgrå) fick grön och mörkgrå (`828ccd93`,
+  `e071b2a6`). Skrivbordet `f6e74878` (ek och vit) fick valnöt och svart och helt svart
+  (`59b75ffa`, `c6e7e786`). Blomlådan `fdea573f` (grå) fick natur och svart (`9b8c202e`,
+  `b9292e55`). Högskåpet `5f627d89` (svart) fick grå (`0bace9e3`). Medicinskåpet 55 cm
+  `73addc4e` (svart) fick vit och mörkgrå (`271f4bca`, `ca4d2e33`). Medicinskåpet 40 cm
+  `8eab3ebf` (svart) fick vit och mörkgrå (`127d4305`, `a4a24666`). Miniugnen `691ffc27`
+  (silver) fick cremevit och svart (`f981fbc0`, `fde1f334`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 42 av 42 alt-texter och noll textavvikelser. (B26)
+- Högskåpets vita utkast `dc6a703d` hålls: samma skåp ligger redan publicerat i vitt som
+  `44ba2466` (`smalt-badrumsskap-20-cm-hogskap`), och den sidan finns inte i syskonsvepet,
+  alltså har den ingen Aosom-mappning i feeden. Vägen är att mappa om `44ba2466` till det
+  vita utkastets artikel (ommappningen med `dc6a703d` som dubblett) och sedan lägga den som
+  färg på `5f627d89` med `omdirigera=ja`. (B26)
+- Fyra egna faktakort ströks, eftersom de visar feedens fraktvikt som produktens vikt:
+  `fdea573f` ("Vikt 8 kg", som dessutom bara beskrev den grå), `8eab3ebf` två kort ("Fem kilo
+  tungt" och "Egen vikt 5,1 kg") och `691ffc27` ("Vikt 3,2 kg"). (B26)
+- Fraktvikten skiljer mellan färgerna på boden (84 och 86 kg) och miniugnen (3,15 och 3,2 kg).
+  Sidorna anger källans tal. (B26)
+- Skrivbordets färger renderas som kort med pris i stället för färgrutor, eftersom de tre
+  färgerna har olika pris. Livekollens rutsökning (`varswatch-name`) hittar dem därför inte;
+  sök på `varcard-label`. (B26)
+- AVGJORT 2026-09-27, genomfört i B27: åtta publicerade möbelsidor skrevs om utan färg i
+  namnet och fick 17 färger som val. Gungstolen `63f3a60f` (cremevit) fick gul och mörkgrå
+  (`5bc96aac`, `b341d832`). Golvfåtöljen `db645ff8` (blå) fick mörkgrå och ljusgrå
+  (`339a695e`, `69f39dad`). Den ovala bänken `fa500aa8` (grå) fick grön och cremevit
+  (`3352ee8d`, `419aae73`). Massagefåtöljen `505eb413` (beige) fick grå och blå (`4ac48a3f`,
+  `5439026e`). Uppresningsfåtöljen `ed03b52f` (beige) fick ljusgrå och grå (`1af65e68`,
+  `e2dee113`). Massagekontorsstolen `cd3320e8` (mörkgrå) fick ljusgrå och brun (`e4b60035`,
+  `f1c5a026`). Matgruppen `4b1c099a` (grå) fick natur och rustik brun (`422fd52b`,
+  `43bb7c55`). Sadelpallen `20782c24` (rosa) fick svart, grå och vit (`5183003d`, `be072147`,
+  `c850c185`). Givarna är pensionerade. Livekontrollen gav 8 av 8 OK, 37 av 37 alt-texter
+  och noll textavvikelser, och varje sida visar sina färger som val. (B27)
+- Uppresningsfåtöljens maxlast skiljer mellan färgerna: den ljusgrå källan anger 120 kg och
+  den grå 135 kg. Sidan anger den lägsta, 120 kg, och måttritningen som visade 135 kg
+  ströks. (B27)
+- `505eb413` fick ny slug (`massagefatolj-chenille-landvarme`), eftersom den gamla slutade
+  på `145-grader`, som har artikelnumrets form. Den gamla adressen svarar 308. (B27)
+- Tre givares självklara SKU:er bars redan av andra sidor: `FP-uppresningsfatolj-massage-ljusgra`,
+  `FP-kontorsstol-massage-ljusgra` och `FP-sadelpall-hjul-svart`. De fick
+  `FP-uppresningsfatolj-lyft-ljusgra`, `FP-kontorsstol-massage-timer-ljusgra` och
+  `FP-sadelpall-hjul-49-61-svart`. Sök alla rundors `sku.tsv` innan en SKU anges. (B27)
+- Fyra egna faktakort ströks, eftersom de visar feedens fraktvikt som produktens vikt:
+  `63f3a60f` ("Vikt 20,5 kg"), `db645ff8` ("Vikt 7 kg"), `fa500aa8` ("Vikt 14 kg") och
+  `4b1c099a` ("Vikt 19,7 kg"). (B27)
+- AVGJORT 2026-09-27: `3c13da94`:s gamla adress (B25) svarar 308 till
+  `elfyrhjuling-barn-gaspedal-12v`, kontrollerat 22:10. Den cachade sidan låg kvar tills en
+  träff kom efter cachefönstret; den träffen startar omrenderingen, och nästa svar är 308.
+  Kontrollera en gammal adress med två träffar och några minuters mellanrum. (B27)
+- AVGJORT 2026-09-27, genomfört i B28: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 11 färger som val. Piratsandlådan `098b77f5` (natur) fick orange och grå
+  (`1c9056a5`, `80e48248`). Sandlådan med lekstugetak `2606fa30` (brun) fick grå och orange
+  (`3bced72a`, `fdd915bc`). Barstolarna `463b807e` (svart) fick vit (`9d9bb226`). Bäddsoffan
+  `749372df` (ljusgrå) fick blå (`5023eba7`). Bänken `d197d3e5` (beige) fick svart och grön
+  (`14eb4cb4`, `1e75ba03`). Massagefåtöljen `d34f6bab` (gråbrun) fick beige (`698470b4`). De
+  stapelbara pallarna `d38db7a0` (grå) fick svart (`cee5437b`). Matbordet `12889c63` (ekton)
+  fick mörkgrå (`d66937fb`). Givarna är pensionerade. Livekontrollen gav 8 av 8 OK, 33 av 33
+  alt-texter och noll textavvikelser, och varje sida visar sina färger som val. (B28)
+- Fyra givare hålls med saldo 0 och slås ihop när de får lager: barstolarna i grått
+  (`e5dc37c4`, till `463b807e`), bäddsoffan i svart (`9e549ab2`, till `749372df`) och
+  massagefåtöljen i grått (`52921fb2`, till `d34f6bab`). Pallarna i mörkgrått (`4c378bbd`)
+  har samma färg som sidan `d38db7a0` och blir därför inget eget val. (B28)
+- Bäddsoffans blå givare `5023eba7` är klädd i sammetslook, medan sidan `749372df` är
+  ljusgrå mockalook. Sidan beskriver tyget neutralt. Titta på det om en kund frågar. (B28)
+- Sparkbilen `2e12de07` och dess två färgsyskon (`7a595f49`, `efd63441`) är en licensierad
+  Porsche. Leksaksbilen `1e5eac85` är en licensierad Land Rover. Båda lämnades utanför rundan.
+  Leonard avgör om bilmärkena får säljas. (B28)
+- Nio bilder ströks. Sex av dem visar läsbar text på rekvisitan: krukan med ordet sweet på
+  `2606fa30` i två bilder, boktitlar och en tidningsrubrik på `d197d3e5` och en affisch på
+  `12889c63`. Fyra egna faktakort visar feedens fraktvikt som produktens vikt: `463b807e`
+  ("Vikt 13 kg"), `d197d3e5` ("Vikt 14,5 kg"), `d38db7a0` ("Vikt 11 kg") och `12889c63`
+  ("Vikt 29,5 kg"). Kortet på `d197d3e5` räknas i båda grupperna. (B28)
+- Bänkens SKU byttes från `FP-bank-107-armstod`, som har artikelnumrets form, till
+  `FP-bank-armstod-beige`. `FP-sittbank-forvaring-beige` bars redan av `3068a60b`. (B28)
+- Bänken `d197d3e5` hade saldo 2 när rundan skrevs. (B28)
+- AVGJORT 2026-09-27, genomfört i B29: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Köksskåpet `00ba5823` (svart) fick vit (`45f84852`). Datorbordet
+  `0a251021` (svart) fick vit (`89e84531`). Väggskrivbordet `0c27c71d` (svart) fick vit med
+  svart skrivtavla (`21ec71e3`). Elkaminen `0fe72ae2` (vit) fick natur (`2d467737`).
+  Verktygsvagnen `1654dd75` (svart) fick röd (`be4b2385`). Teddyfåtöljen `18593043` (grå)
+  fick beige (`eef453b1`). Kontorsstolen `19f3239f` (mörkgrå) fick brun (`c2902bb8`).
+  Reclinerfåtöljen `27380bf4` (brun) fick svart (`6a65351e`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 30 av 30 alt-texter och noll textavvikelser, och varje sida
+  visar sina färger som val. (B29)
+- Tre givares pris styrdes av konkurrentregeln: datorbordet i vitt (`89e84531`),
+  teddyfåtöljen i beige (`eef453b1`) och reclinerfåtöljen i svart (`6a65351e`). Efter
+  sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras vid
+  nästa synk. (B29)
+- Väggskrivbordets bordshöjd skiljer mellan källorna: sidans gamla text angav 73,5 cm och
+  den vita givarens källa 71 cm. Sidan anger ingen bordshöjd. Paketmåtten skiljer med en
+  centimeter (93 och 92); sidan anger källans 92 × 65 × 10 cm. (B29)
+- Tio bilder ströks. Sju visar läsbar text på rekvisitan: förpackningar och burkar med namn
+  på köksskåpet `00ba5823` (tre bilder), en tidningsrubrik på `0a251021`, skrivtavlan med
+  veckodagarna och en affisch på `0c27c71d`, en flaska märkt glass cleaner på `1654dd75` och
+  boktitlar på `27380bf4`. Tre egna faktakort ströks: elkaminens två (`0fe72ae2`, det ena med
+  fraktvikten 25,5 kg som Vikt och färgen i rubriken, det andra med en rangordning av
+  omramningarna) och verktygsvagnens (`1654dd75`, fraktvikten 29,7 kg som Vikt). (B29)
+- Elkaminens och verktygsvagnens gamla texter länkade till andra produkter och jämförde med
+  sortimentet. Länkarna och jämförelserna är borta. Den röda verktygsvagnen med sju lådor
+  (`verktygsvagn-rod-7-lador`) är en annan modell, 69 cm bred och utan sidoregal, alltså
+  ingen dubblett. (B29)
+- AVGJORT 2026-09-27, genomfört i B30: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Salongspallen `1d0ba82d` (vit) fick svart (`b9d82334`).
+  Rullpallen `d348bf64` (svart) fick vit (`ae880fa2`). Hallbänken `9383d686` (mörkgrå) fick
+  svart (`6fb7b740`). Förvaringsbänken `cb68fb84` (gul) fick grå (`9d47905c`). Matstolen
+  `7aa34c09` (grå) fick beige (`a91ed978`). Fåtöljen `8f6636e4` (ljusgrå) fick svart
+  (`8a3508ec`). Fåtöljen med träram `cc3846b8` (beige) fick ljusbrun (`336fbec6`). Den
+  väggnära fåtöljen `e57125fb` (brun) fick beige (`60adbe7d`). Givarna är pensionerade.
+  Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll textavvikelser, och varje sida
+  visar sina två färger som val. (B30)
+- Fyra givares pris styrdes av konkurrentregeln: den väggnära fåtöljen i beige (`60adbe7d`),
+  matstolen i beige (`a91ed978`), förvaringsbänken i grått (`9d47905c`) och hallbänken i
+  svart (`6fb7b740`). Efter sammanslagningen följer de nya varianterna husets regel, så deras
+  pris kan ändras vid nästa synk. (B30)
+- Samma rullpall finns i beige som en egen publicerad sida, `fa078e03`
+  (`rullpall-beige-rygg-43-55-cm`, slutsåld), och som det grå utkastet `516f7c81`. Ingen av dem
+  kom med i syskonsvepet, så de ligger kvar utanför sidan `d348bf64`. Hallbänken finns också i
+  ljusgrått (`d9767b3c`), som inte heller kom med i svepet. (B30)
+- Rullpallens maxlast skiljer mellan källorna: sidan angav 136 kg och den vita givarens källa
+  135 kg. Sidan anger den lägre, 135 kg, och kortet med 136 kg ströks. (B30)
+- Den väggnära fåtöljens adress `vaggnara-fatolj-brun-150-grader` hade artikelnumrets form
+  (`150-grader`). Sidan heter nu `vaggnara-fatolj-i-linnelook`, och den gamla adressen skickar
+  vidare med 308, kontrollerat live. (B30)
+- Givarvariantens SKU `FP-fatolj-svart-fotpall` var upptagen, så fåtöljen `8f6636e4` fick
+  `FP-fatolj-svart-fotpall-trafot` för den svarta varianten. (B30)
+- Sexton bilder ströks. Åtta visar läsbar text eller ett märke på rekvisitan: en datorskärm
+  med tillverkarens logotyp på `1d0ba82d`, en burk med etikett på `d348bf64`, tidningstitlar på
+  `9383d686` och `cb68fb84` och boktitlar på `cc3846b8` och `e57125fb` (två bilder var). Åtta
+  egna faktakort ströks: fyra med färgen i rubriken (`1d0ba82d`, `d348bf64`, `8f6636e4`,
+  `e57125fb`) och fyra med feedens fraktvikt som Vikt (`9383d686`, `cb68fb84`, `7aa34c09`,
+  `cc3846b8`). Kortet på `d348bf64` angav dessutom maxlasten 136 kg. (B30)
+- Sju av de gamla texterna länkade till andra produkter, och sju angav feedens fraktvikt som
+  produktens vikt, bland annat "seriens lättaste, 4 kg" på salongspallen. Länkarna, vikterna
+  och jämförelserna med sortimentet är borta. (B30)
+- AVGJORT 2026-09-28, genomfört i B31: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Gungstolen `944c3385` (beige) fick grå (`20a30d5a`).
+  Bäddfåtöljen `667ca8f9` (mörkgrön) fick beige (`01088727`). Det elektriska skrivbordet
+  `a1f16108` (svart) fick vit (`9b11bec6`). Kontorsskåpet `f87e8390` (svart) fick vit
+  (`bcac519e`). Skoskåpet `3ec7aac4` (vit) fick svart (`5a18bc0a`). Förvaringspuffen
+  `b9a25f78` (grå) fick vit (`91871b0d`). Fönsterspegeln `fd205e45` (guld) fick svart
+  (`4d946ee9`). Bäddfåtöljen `7eee41b6` (grå) fick svart (`7d67adb3`). Givarna är
+  pensionerade. Därmed är de äldre raderna om `4d946ee9` (B12), `7d67adb3` (B15) och
+  `bcac519e` (N61) avgjorda, liksom `91871b0d`, `4d946ee9`, `20a30d5a` och `01088727` i
+  listorna över familjer som hoppades på namnet. Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll
+  textavvikelser, och varje sida visar sina två färger som val. (B31)
+- Skrivbordet `a1f16108` slogs ihop med sin vita givare av en körning från `main`
+  2026-09-28 00:03 UTC, innan rundan skrev sidan. Rundans bildlista fick därför ta med den
+  vita huvudbilden som färgvalet pekar på. Skrivplanens SKU-steg klarar bara sidor med en
+  variant, så det hoppades över på den sidan, och mappningsraden bar kvar den tyska SKU:n
+  `FP-stehpult` på den svarta varianten medan Wix hade `FP-elektriskt-skrivbord-140x70`.
+  Raden stämplades med Wix-SKU:n i efterhand. Raden var redan publicerad och klar med
+  poleringen. (B31)
+- Sex givares pris styrdes av konkurrentregeln: gungstolen i grått (`20a30d5a`),
+  kontorsskåpet i vitt (`bcac519e`), skoskåpet i svart (`5a18bc0a`), förvaringspuffen i vitt
+  (`91871b0d`), fönsterspegeln i svart (`4d946ee9`) och bäddfåtöljen i svart (`7d67adb3`).
+  Efter sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras
+  vid nästa synk. (B31)
+- Massagekontorsstolen `72d1d195` (svart) och dess grå givare `1a1c8f5d` lades åt sidan.
+  Tre publicerade sidor, `773595bc` (grå), `7cf7473e` (mörkgrå) och `825c51f5` (brun), är
+  enligt tidigare mätning samma stol, så familjen har fyra publicerade sidor. Att slå ihop
+  publicerade sidor kräver omdirigering (`omdirigera=ja`), och det görs som en egen runda.
+  (B31)
+- Fönsterspegelns tyska källa skriver måtten som `91L x 60H`, men måttbilden visar en spegel
+  som är 60 cm bred och 91 cm hög. Texten anger måtten utan axelord ("60 × 91 cm, hängs med
+  valvet uppåt"), så axelgrinden inte bygger fel facit. (B31)
+- Skoskåpets djup skiljer mellan källorna: den gamla texten angav 72 × 34,5 × 103 cm och den
+  svarta givarens källa 34 cm. Sidan anger 34 cm. Dörrarnas antal, två, är avläst på
+  bilderna. (B31)
+- Bäddfåtöljen `7eee41b6` angav maxlasten 120 kg i den gamla texten och i det egna
+  faktakortet, men källan säger 100 kg. Sidan anger 100 kg, och kortet ströks. (B31)
+- Sexton bilder ströks. Sju visar läsbar text eller ett märke på rekvisitan: boktitlar och
+  tidningstitlar på `667ca8f9` (tre bilder), `f87e8390` och `fd205e45`, en kartaffisch och en
+  neonskylt på `a1f16108` och en sneaker med märke på `3ec7aac4`. Nio egna faktakort ströks.
+  Sex av dem angav feedens fraktvikt som Vikt (`944c3385`, `667ca8f9`, `a1f16108`,
+  `f87e8390`, `3ec7aac4`, `b9a25f78`), tre bar färgen i rubriken (`a1f16108`, `fd205e45`,
+  `7eee41b6`), ett rangordnade bädden som bredast (`667ca8f9`), ett angav maxlasten 120 kg
+  (`7eee41b6`) och ett visade miljöfotot med boktiteln (`fd205e45`). (B31)
+- Två av de gamla texterna jämförde med andra produkter i vårt sortiment: bäddfåtöljen
+  `667ca8f9` pekade på "vår andra bäddfåtölj" och skrivbordet `a1f16108` på två andra
+  skrivbord. Två jämförde med "de flesta" fåtöljer, och sju angav feedens fraktvikt som
+  produktens vikt. Jämförelserna och vikterna är borta. (B31)
+- AVGJORT 2026-09-28, genomfört i B32: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Badrumsskåpet `56a61a9a` (vit) fick natur (`2c52a683`).
+  Soptunnan `849082f6` (svart) fick gräddvit (`0a0feeac`). Golvfåtöljen `c46bda54` (grå)
+  fick mörkgrå (`3bad9c45`). Matgruppen `f965f9c7` (natur) fick vit (`b09b79b1`).
+  Odlingsskåpet `25bc6c84` (grå) fick brun (`9932d58b`). Trädgårdsskåpet `616b057f` (grå)
+  fick natur (`95095a9b`). Verktygsvagnen `6c9d7288` (blå) fick röd (`aff28a71`).
+  Vattenkokaren `d8c2dec6` (grå) fick beige (`88a0ab0b`). Givarna är pensionerade. Därmed är
+  den äldre raden om vattenkokaren `88a0ab0b` (N42) avgjord, liksom `2c52a683`, `0a0feeac`
+  och `b09b79b1` i listorna över familjer som hoppades på namnet. Livekontrollen gav 8 av 8
+  OK, 31 av 31 alt-texter och noll textavvikelser, och varje sida visar sina två färger som
+  val. (B32)
+- Sju givares pris styrdes av konkurrentregeln: badrumsskåpet i natur (`2c52a683`),
+  soptunnan i gräddvitt (`0a0feeac`), golvfåtöljen i mörkgrått (`3bad9c45`), matgruppen i
+  vitt (`b09b79b1`), odlingsskåpet i brunt (`9932d58b`), trädgårdsskåpet i natur
+  (`95095a9b`) och verktygsvagnen i rött (`aff28a71`). Efter sammanslagningen följer de nya
+  varianterna husets regel, så deras pris kan ändras vid nästa synk. (B32)
+- Odlingsskåpets adress `odlingsskap-tra-120-cm` och SKU `FP-odlingsskap-tra-120-cm` bar
+  en artikelnummerform (`tra-120`), som skrivrutten vägrar. Sidan heter nu
+  `odlingsskap-120-cm` med SKU `FP-odlingsskap-120-cm`, och den gamla adressen skickar
+  vidare med 308, kontrollerat live. (B32)
+- Soptunnans gamla text och ett eget faktakort sa att luktblocket inte ingår och att hållaren
+  tar en standardkassett. Den gräddvita givarens källa säger att luktfiltret är inbyggt i
+  locket. Texten följer källan och kortet ströks. Stäm av mot en leverans om en kund frågar.
+  (B32)
+- Golvfåtöljens gamla text angav en metallram, men källan anger flerskiktsskiva. Sitthöjden
+  skiljer: källan säger 42 cm och måttbilden 45 cm, så texten anger ingen sitthöjd. (B32)
+- Matgruppens gamla text och eget kort angav att bordet bär 50 kg, men källan säger 30 kg.
+  Sidan anger 30 kg, och kortet ströks. Den vita givaren är lackerad enligt källan, medan
+  ytan på den naturfärgade inte står i någon källa, så texten säger ingenting om
+  ytbehandling. (B32)
+- Badrumsskåpets fraktvikt skiljer mellan färgerna (26 och 27 kg), så specifikationen anger
+  ingen fraktvikt. Verktygsvagnens gamla text angav lådans mått 61 × 30 × 6,5 cm, som inte
+  står i källan, och de är borta. Trädgårdsskåpets fria höjd i facken, 33 och 34 cm, är
+  avläst på måttbilden, och den gamla textens räkning med svenska snözoner är borta. (B32)
+- Fjorton bilder ströks. Åtta visar läsbar text på rekvisitan: flask- och burketiketter på
+  `56a61a9a` (två bilder), ett inramat citat på `849082f6`, bokomslag och en tidning på
+  `c46bda54` (två bilder), en jordsäck, fröpåsar och färgburkar på `616b057f` (två bilder)
+  och limflaskor på `6c9d7288`. Sex egna faktakort ströks: fem angav feedens fraktvikt som
+  Vikt (`56a61a9a`, `849082f6`, `f965f9c7`, `6c9d7288`, `d8c2dec6`), två bar färgen i
+  rubriken (`6c9d7288`, `d8c2dec6`), kortet på `f965f9c7` angav 50 kg för bordet och det
+  andra kortet på `849082f6` sa att luktblocket inte ingår. (B32)
+- Sex av de gamla texterna jämförde med andra produkter i vårt sortiment eller med "de
+  flesta" av något, och sju angav feedens fraktvikt som produktens vikt. Jämförelserna och
+  vikterna är borta. Verktygsvagnens SEO-titel bar färgen och var över 60 tecken, och
+  vattenkokarens bar färgen och saknade `| Fyndplats`. (B32)
+- AVGJORT 2026-09-28, genomfört i B33: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Soptunnan `1c9d8d05` (grå) fick grön (`c852f39e`).
+  Trädgårdsbänken `42afe013` (svart) fick mörkgrön (`6582af2b`). Träningsbänken `66c2a9f8`
+  (blå) fick röd (`105a58ac`). Husbokhyllan `76430e8e` (rosa) fick grön (`889ca93f`).
+  Rutschkanan `7d914d36` (gul) fick grå (`9f605da4`). Leksakshyllan `8832b73a` (rosa) fick
+  vit (`a7e5b918`). Leksakskistan `bc82b8ea` (grön) fick rosa (`73609e3c`). Björnbokhyllan
+  `dbf38846` (natur) fick grön (`164c5ef0`). Givarna är pensionerade. Därmed är de äldre
+  raderna om givarna avgjorda: `a7e5b918` (N33), `73609e3c` (N47 och N66), `164c5ef0`
+  (N51), `c852f39e` (N53), `105a58ac`, `9f605da4` och `889ca93f` (N60) och rutschkanan och
+  husbokhyllan i B2:s lista över färgsyskon. Syskonsvepet visade ingen tredje färg i någon av
+  familjerna. Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll textavvikelser, och
+  varje sida visar sina två färger som val med bild. (B33)
+- Sju givares pris styrdes av konkurrentregeln: soptunnan i grönt (`c852f39e`),
+  trädgårdsbänken i mörkgrönt (`6582af2b`), träningsbänken i rött (`105a58ac`),
+  husbokhyllan i grönt (`889ca93f`), rutschkanan i grått (`9f605da4`), leksakshyllan i vitt
+  (`a7e5b918`) och björnbokhyllan i grönt (`164c5ef0`). Efter sammanslagningen följer de nya
+  varianterna husets regel, så deras pris kan ändras vid nästa synk. (B33)
+- Trädgårdsbänkens SKU `FP-tradgardsbank-med` var avkapad mitt i namnet och heter nu
+  `FP-tradgardsbank-127-cm`. Rutschkanans SKU bär sidans färg
+  (`FP-barnrutschkana-5-i-1-gul`), så den grå fick `FP-barnrutschkana-5-i-1-gra` för hand.
+  Standardformen hade slutat på `-gul-gra`. (B33)
+- Träningsbänkens gamla text angav 300 kg total belastning, viktfästen för upp till 25 kg,
+  ett bicepsstöd på 78–82 cm och hopfällda mått 54 × 42 × 150 cm. Den röda givarens källa
+  anger 120 kg och nämner inget av det andra. Texten anger 120 kg och inga av de övriga
+  talen. Sidans egna faktakort 3 och 4 ligger kvar och anger bicepsstödets höjd och de
+  hopfällda måtten. Talen motsäger inte källan och fanns i sidans gamla text, som
+  sannolikt byggde på den blå artikelns egen källa. Stäm av mot en leverans om en kund
+  frågar. (B33)
+- Rutschkanans gamla text sa att materialet är giftfritt HDPE och PP och att kanan är gjord
+  för inomhusbruk men fungerar även utomhus. Den grå givarens källa anger plast av säkra,
+  barnvänliga material och säger ingenting om inomhus eller utomhus. Texten följer källan.
+  Ordet inomhus är borta ur namnet och SEO-titeln men står kvar i adressen, som inte
+  ändras. (B33)
+- Leksakshyllans gamla specifikation angav färgerna rosa, vit och grå, fast sidan bara
+  fanns i rosa. Nu finns rosa och vit, och syskonsvepet hittade ingen grå. (B33)
+- Soptunnans gamla text sa att tunnan tar drygt en tredjedels kvadratmeter. 36,5 × 31,2 cm
+  är ungefär 0,11 m², alltså en niondel. Texten anger bara måtten. Leksakskistans gamla
+  text och ett eget kort angav knappt 50 liter, uträknat ur innermåtten 57 × 31 × 28 cm.
+  Källan anger bara innermåtten, och texten anger dem utan volym. (B33)
+- Två av de gamla texterna hänvisade till andra produkter i sortimentet: soptunnan till en
+  utdragbar modell för köksskåp och trädgårdsbänken till en bänk i gjutjärn.
+  Trädgårdsbänken jämförde dessutom sitt djup med "de flesta av våra andra bänkar". Fem
+  angav feedens fraktvikt som varans vikt (`1c9d8d05`, `42afe013`, `8832b73a`, `bc82b8ea`
+  och `dbf38846`). Hänvisningarna, jämförelsen och vikterna är borta. Där fraktvikten är
+  densamma för båda färgerna står den som Fraktvikt. Fyra SEO-titlar saknade
+  `| Fyndplats` (`66c2a9f8`, `76430e8e`, `8832b73a` och `dbf38846`), soptunnans bar
+  färgen och rutschkanans ordet inomhus. (B33)
+- Sjutton bilder ströks. Tolv visar läsbar text på rekvisitan: boktitlar på husbokhyllan
+  `76430e8e` (tre bilder), leksakshyllan `8832b73a` (tre) och björnbokhyllan `dbf38846`
+  (tre), en bilderbok med titel och figur på rutschkanan `7d914d36`, och inramade texter,
+  en bilderboksfigur och bokstavsklossar med engelsk text på leksakskistan `bc82b8ea`
+  (två). En bild på rutschkanan var samma som huvudbilden, pixel för pixel. Fyra egna
+  faktakort ströks. Alla angav feedens fraktvikt som Vikt (`1c9d8d05`, `42afe013`,
+  `8832b73a` och `bc82b8ea`), tre bar färgen (`1c9d8d05`, `42afe013` och `bc82b8ea`), och
+  kortet på `bc82b8ea` angav en volym som inte står i källan. (B33)
+- AVGJORT 2026-09-28, genomfört i B34: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Skobänken `3e2c7389` (natur) fick vit (`a087ae3b`).
+  Helkroppsspegeln `58f8338d` (guld) fick svart (`3570107c`). Högskåpet `635e7330` (grå)
+  fick vit (`d5a629d7`). Förrådet `9e157d1d` (ljusgrön) fick mörkgrå (`a3c4bdba`).
+  Klaffbordet `a6bd7d56` (ek och vit) fick ek och svart (`cd9b4686`). Väggspegeln
+  `b6922dc8` (svart) fick vit (`f726a1bc`). Sammetsbänken `d1132894` (blå) fick ljusgrå
+  (`865acfdf`). Bänken `d5919be6` (mörkgrön) fick grå (`f7ba4bb8`). Givarna är
+  pensionerade. Därmed är de äldre raderna om givarna avgjorda: `a087ae3b` (N41, N42 och
+  N65), `cd9b4686` (N31 och B15), `f726a1bc` (N54 och B12), `f7ba4bb8` (N51 och B13),
+  `3570107c` och `865acfdf` (B13 och N60), `d5a629d7` (B18 och N61) och `a3c4bdba` (N75).
+  Förrådet har tre färger till i feeden och väggspegeln en, som inte är importerade.
+  Livekontrollen gav 8 av 8 OK, 29 av 29 alt-texter och noll textavvikelser, och varje
+  sida visar sina två färger som val med bild. (B34)
+- Sex givares pris styrdes av konkurrentregeln: helkroppsspegeln i svart (`3570107c`),
+  högskåpet i vitt (`d5a629d7`), klaffbordet i ek och svart (`cd9b4686`), väggspegeln i
+  vitt (`f726a1bc`), sammetsbänken i ljusgrått (`865acfdf`) och bänken i grått
+  (`f7ba4bb8`). Efter sammanslagningen följer de nya varianterna husets regel, så deras
+  pris kan ändras vid nästa synk. Klaffbordets två färger ligger 34 % isär i pris (1 339
+  och 1 799 kr). (B34)
+- Den gröna bänkens SKU `FP-sittbank-100-morkgron` bar en artikelnummerform
+  (`100-morkgron`), som skrivrutten vägrar. Den heter nu `FP-sittbank-100-cm-morkgron`,
+  och den grå fick `FP-sittbank-100-cm-gra`. Samma form finns på den publicerade
+  förvaringsbänken `46f280f7` (`FP-sittbank-100-forvaring-sammet`), som vägras om sidan
+  skrivs om. Sju av rundans sidor bär sin egen färg i SKU:n, så givarna fick sin färg i
+  SKU:n för hand. (B34)
+- Förrådets gamla text sa att stålet är galvaniserat och pulverlackerat och att dörren går
+  att låsa. Den mörkgrå givarens källa anger stål med väderbeständig lack och en dörr som
+  hålls stängd med en regel. Texten och namnet följer källan ("dörr med regel" i stället
+  för "låsbar dörr"), och galvaniseringen är borta. Stäm av mot en leverans om en kund
+  frågar. (B34)
+- Sammetsbänkens fraktvikt i feeden är 12,8 kg för båda färgerna, men den ljusgrå givarens
+  källa anger nettovikten 14 kg. Talen går inte ihop, så sidan anger ingen vikt. Den blå
+  bänkens sits är knappad på bilderna, vilket källan inte nämner, och texten beskriver den
+  som knappad. (B34)
+- Skobänkens källa anger både 130 och 136 kg för sittytan, och givarens måttbild visar
+  136 kg. Sidan anger 130 kg, som står bland de tekniska uppgifterna. Måttbilderna anger
+  olika avstånd mellan hyllplanen (17 och 17 cm mot 19, 13 och 5 cm), så texten anger bara
+  de 5 cm som källan har till golvet. (B34)
+- Klaffbordets givare beskrivs i källan som mörk träfärg och svart, men bilderna visar samma
+  ljusa ek som sidan, med svart mittparti och svarta ben. Valet heter "Ek och svart". (B34)
+- Fem av de gamla texterna angav feedens fraktvikt som varans vikt (`3e2c7389`,
+  `58f8338d`, `9e157d1d`, `d1132894` och `d5919be6`). Den gröna bänkens gamla text
+  jämförde dessutom med bänkar i allmänhet och med en vanlig matstol och påstod att sömmarna
+  håller skummet på plats och att de vinklade benen hindrar bänken från att vicka, vilket
+  inte står i källan. Vikterna, jämförelserna och påståendena är borta. Sju namn och sju
+  SEO-titlar bar sidans färg. (B34)
+- Sju bilder ströks. Tre visar läsbar text på rekvisitan eller i bakgrunden: en inramad
+  bibelvers på engelska på helkroppsspegeln `58f8338d`, ett företagsnamn på en byggnad
+  utanför fönstret på sammetsbänken `d1132894`, och tidningsomslag och tryck på en korg på
+  bänken `d5919be6`. Tre visar märken på rekvisitan: sneakers med tillverkarens numrerade
+  klacketikett på skobänken `3e2c7389` (två bilder) och sneakers med tillverkarens logotyp
+  på bänken `d5919be6`. Ett eget faktakort på `d5919be6` ströks också, eftersom det angav
+  fraktvikten som Vikt och bar färgen. (B34)
+- AVGJORT 2026-09-28, genomfört i B35: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Skänken `477bcd1f` (vit) fick svart (`34d76ecf`).
+  Köksskåpet `8e76d9b8` (vitt) fick svart (`83f11a66`). Den klädda bänken `949ffbb1` (vit)
+  fick grå (`d3e77879`). Ståbordet `ba3e6e04` (svart) fick vit (`f6cf5ee7`). Fällbordet
+  `c23dab52` (rustik brun) fick ek (`22d4bb3b`). Mediahyllan `d7e75081` (vit) fick natur
+  (`fab903b6`). Sideboarden `dbedaf4c` (vit) fick svart (`66eb7361`). Det smala sidobordet
+  `ff10ccf5` (rustik brun) fick svart (`1db2d56f`). Givarna är pensionerade. Därmed är de
+  äldre raderna om givarna avgjorda: `d3e77879` (N59), `f6cf5ee7` (N60), `34d76ecf` och
+  `83f11a66` (N61), `22d4bb3b` (N61 och N64), `1db2d56f` (N63 och N64) och `fab903b6`
+  (N66). Svepet visar inga fler färger i feeden för de åtta familjerna. Livekontrollen
+  gav 8 av 8 OK, 26 av 26 alt-texter och noll textavvikelser, och varje sida visar sina
+  två färger som val med bild. (B35)
+- Fyra givares pris styrdes av konkurrentregeln: köksskåpet i svart (`83f11a66`), bänken i
+  grått (`d3e77879`), ståbordet i vitt (`f6cf5ee7`) och sideboarden i svart (`66eb7361`).
+  Efter sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras
+  vid nästa synk. Sideboardens två färger ligger 28 % isär i pris (1 899 och 2 439 kr). (B35)
+- Sideboardens SKU `FP-sideboard-vit-105-fyra-lador` bar en artikelnummerform
+  (`105-fyra`), som skrivrutten vägrar. Den heter nu `FP-sideboard-105-cm-vit`, och den
+  svarta fick `FP-sideboard-105-cm-svart`. Skänken och fällbordet bär sidans färg i SKU:n
+  (`FP-vit-skank-lador-117` och `FP-fallbord-hyllor-brun`), så givarna fick
+  `FP-svart-skank-lador-117` och `FP-fallbord-hyllor-ek` för hand. Köksskåpets
+  standard-SKU hade blivit `FP-greppfritt-koksskap-100-svart`, som bär samma form
+  (`100-svart`), så den svarta fick `FP-greppfritt-koksskap-svart-100`. (B35)
+- Fällbordets två källor anger olika mått. Sidans gamla text angav bordet till
+  80 × 90 × 93 cm uppfällt, skivan till 77 × 72 cm på 73,5 cm höjd och hyllorna till
+  77 × 20 × 18 och 77 × 20 × 22 cm. Ekgivarens källa anger bordet till 78,5 × 91 × 93 cm
+  uppfällt och 78,5 × 20 × 93 cm hopfällt, skivan till 75 × 75 cm på 74 cm höjd och
+  hyllorna till 75,5 × 18 × 14 och 75,5 × 15–18 × 23,5 cm. Feeden anger 90 × 80 × 93 cm för
+  båda färgerna. Texten anger feedens yttermått, 20 cm hopfällt och belastningen, som är
+  densamma i båda källorna, och utelämnar skivans och hyllornas mått. Stäm av mot en
+  leverans om en kund frågar. (B35)
+- Alla åtta gamla texter angav feedens fraktvikt som varans vikt. Fraktvikten är densamma
+  för båda färgerna i varje familj och står nu som Fraktvikt. Köksskåpets gamla text
+  räknade till tolv utstickande beslag som skåpet slipper, fast det har sex dörrar och två
+  lådor, och jämförde med en passage och ett litet kök. Mediahyllans gamla text sa att två
+  fack slagna ihop rymmer vinylskivor, men facken är 17 cm djupa och en LP-skiva är drygt
+  31 cm. Bänkens gamla text jämförde sitthöjden med en matstol och påstod att skummet och
+  quiltningen håller locket plant, vilket inte står i källan. Jämförelserna och
+  påståendena är borta. Tre namn bar sidans färg (`477bcd1f`, `dbedaf4c` och `ff10ccf5`),
+  och två SEO-titlar (`477bcd1f` och `dbedaf4c`). (B35)
+- Tolv bilder ströks. Nio visar läsbar text på rekvisitan: etiketter på burkar och
+  kaffepåsar och tryck på förpackningar i köksskåpet `8e76d9b8` (tre bilder),
+  tidningstitlar vid bänken `949ffbb1`, ett skivomslag och ett bokomslag med författare
+  och titel på mediahyllan `d7e75081` (två) och bokryggar och förlagsnamn på sidobordet
+  `ff10ccf5` (tre). En visar märken på vattenkokaren och kaffemaskinen på sideboarden
+  `dbedaf4c`. Två egna faktakort ströks, på köksskåpet `8e76d9b8` och bänken `949ffbb1`.
+  Båda angav fraktvikten som Vikt, och kortet på bänken bar färgen. (B35)
+- AVGJORT 2026-09-28, genomfört i B36: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Hammocken `3612fc5a` (brun) fick mörkgrön
+  (`a88d7003`). Medicinskåpet `54efbdc6` (vitt) fick grått (`6858d7ee`). Massagekontorsstolen
+  `72d1d195` (svart) fick grå (`1a1c8f5d`). Väggvärmaren `8475ed8f` (vit) fick svart
+  (`8383377c`). Barnhyllan med sittbänk `d3b26d84` (grå) fick natur (`acfcc8a3`). Matgruppen
+  med ovalt bord `f8a5196f` (svart) fick rustik brun (`227d4899`). Matgruppen `0058ad50`
+  (vit) fick natur (`e70a8452`). Barbordet `3b38e191` (natur) fick rustik brun
+  (`07e9ceef`). Givarna är pensionerade. Därmed är de äldre raderna om givarna avgjorda:
+  `a88d7003` (N62), `6858d7ee` (N56 och B17), `8383377c` (N75), `acfcc8a3` (B2 och N60),
+  `227d4899` och `07e9ceef` (N60) och `e70a8452` (N61). Svepet visar inga fler färger i
+  feeden för de åtta familjerna. Livekontrollen gav 26 av 26 alt-texter och noll
+  textavvikelser, och varje sida visar sina två färger som val med bild. Sju av åtta sidor
+  var OK. Kontorsstolens brödsmula visar Elektronik & Tillbehör och Dator & Gaming,
+  kategorier den låg i redan före rundan. Rundan kan bara lägga till kategorier, så den
+  ligger kvar där. (B36)
+- Sju givares pris styrdes av konkurrentregeln: medicinskåpet i grått (`6858d7ee`),
+  kontorsstolen i grått (`1a1c8f5d`), värmaren i svart (`8383377c`), barnhyllan i natur
+  (`acfcc8a3`), matgruppen i rustik brun (`227d4899`), matgruppen i natur (`e70a8452`) och
+  barbordet i rustik brun (`07e9ceef`). Efter sammanslagningen följer de nya varianterna
+  husets regel, så deras pris kan ändras vid nästa synk. Hammockens två färger ligger 16 %
+  isär i pris (6 759 och 7 819 kr). Matgruppen i natur och barbordet i rustik brun är
+  slutsålda hos Aosom och syns som slut tills synken ser lager. (B36)
+- Massagekontorsstolen har fler publicerade syskon, som B31 såg: `773595bc` (grå med vita
+  armstöd, sammet- och linnelook), `7cf7473e` (mörkgrå mikrofiber) och `825c51f5` (brun
+  mikrofiber). Bilderna visar samma stol. De slogs inte ihop, av två skäl. De är publicerade
+  och kräver `omdirigera=ja`. Och `72d1d195` har nu två varianter, så dess text kan inte
+  skrivas om i en polerrunda, eftersom skrivplanen bara klarar sidor med en variant. Texten
+  anger svart och grått. Slås de tre ihop behöver texten en väg för sidor med flera
+  varianter först. (B36)
+- Kontorsstolens källor är inte överens om det utfällda måttet. Den svarta sidans gamla text,
+  dess egna kort och de tre publicerade syskonens namn anger 138 cm, medan den grå givarens
+  källa anger 65 × 160 × 104 cm. Texten anger inget utfällt mått, och kortet med 138 cm
+  ströks. Den gamla texten, namnet och SEO-titeln lade värmen i ländryggen. Givarens källa
+  anger bara en värmefunktion och sex massagepunkter med värme, så texten säger värme utan
+  att ange var. Stolens fraktvikt i feeden är bara känd för den grå, så sidan anger ingen
+  vikt. (B36)
+- N75 kallade den publicerade värmaren `589690ac` samma värmare som `8475ed8f`. Det stämmer
+  inte: `589690ac` beskriver en vit värmare med fast utblås utan oscillation och
+  fraktvikten 2,5 kg, alltså en annan modell. Dess text hänvisar dessutom till `8475ed8f`
+  med namn. (B36)
+- Barnhyllans gamla text och eget kort angav två dynor och fyra fack. Bilderna visar tre
+  dynor, en sits och en ryggdyna i vinkel på var sida, och sex fack: fyra nertill och ett
+  snett fack på var sida om sittbänken, 17,4–24 cm brett. Namnet sa "fyra fack och två
+  dynor" och SEO-titeln "två dynor". Båda är rättade. (B36)
+- Medicinskåpets gamla text nämnde ett rött kors tre gånger, som jämförelse och i en fråga
+  om dörren, och hänvisade till en annan modell i sortimentet. Korset, jämförelsen och
+  hänvisningen är borta. (B36)
+- Barbordets källor är inte överens om stolarna. Den gamla texten angav 100 kg per stol och
+  givarens källa 120 kg, och stolens djup är 43 cm på båda måttbilderna men 45 cm i
+  givarens källtext. Texten anger 60 kg för skivan, ingen last för stolarna och stolens
+  bredd och höjd. Givarens källa säger också att setet passar ute. Skivan är MDF, så texten
+  nämner inte utomhusbruk. (B36)
+- Sju av de gamla texterna angav feedens fraktvikt som varans vikt (`3612fc5a`,
+  `54efbdc6`, `8475ed8f`, `d3b26d84`, `f8a5196f`, `0058ad50` och `3b38e191`). Fraktvikten är
+  densamma för båda färgerna och står nu som Fraktvikt. Hammockens gamla text jämförde med
+  hammockar i stålrör, lovade en grå patina och hänvisade till tre andra produkter.
+  Matgruppen med ovalt bord hänvisade till en större matgrupp och kallade hyllan ett fack
+  för flaskor, och matgruppen `0058ad50` jämförde hårda sitsar med stoppade. Jämförelserna,
+  hänvisningarna och påståendena är borta. Två SEO-titlar saknade `| Fyndplats` (`3612fc5a`
+  och `d3b26d84`). (B36)
+- Nitton bilder ströks. Åtta var egna faktakort: sju angav fraktvikten som Vikt (`3612fc5a`,
+  `54efbdc6`, `8475ed8f`, `d3b26d84`, `f8a5196f`, `0058ad50` och `3b38e191`), och
+  kontorsstolens kort angav 138 cm utfälld. Tio visar läsbar text på
+  rekvisitan: text på medicinförpackningar i medicinskåpet `54efbdc6`, bokryggar vid
+  värmaren `8475ed8f`, bokryggar på barnhyllan `d3b26d84` (två bilder), en kaffepåse och
+  boktitlar vid matgruppen `f8a5196f` (två), en boktitel på matgruppen `0058ad50`,
+  boktitlar och en tidningstitel vid barbordet `3b38e191` (två) och ett tryck med bokstäver
+  på en t-tröja på hammocken `3612fc5a`. En visar en pennburk med Disney-figurer på
+  barnhyllan `d3b26d84`. (B36)
+- Driftkarten `0b008ef0` är slutsåld på sidan, medan den röda givaren `181892d3` har saldo 4.
+  Den hölls utanför rundan, eftersom lagergrinden stoppar polering av en slutsåld sida.
+  (B36)
+- AVGJORT 2026-09-28, genomfört i B37: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Knästolen `9e656e81` (ljusgrå) fick svart (`05cc1f9c`),
+  kräm (`6d64de9b`) och mörkgrå (`9d626528`). Miniugnen `89c22404` (grå) fick silver
+  (`0ef7500a`), gräddvit (`772fde20`) och svart (`b5dbf2fd`). Den vridbara fåtöljen
+  `1a1d04f7` (svart) fick gräddvit (`4b2a7407`), grå (`79eaab59`) och beige (`d760fffc`).
+  Sparkcykeln 120 cm `369b4b2c` (svart) fick beige (`1b1d4842`), vit (`c851d101`) och turkos
+  (`feac1d03`). Sparkcykeln 12 tum `82b5a517` (svart) fick vinröd (`41269686`), rosa
+  (`68f8f1a7`) och blå (`b1dcd424`). Golvfåtöljen `64856235` (grå) fick petrolblå
+  (`35872574`), beige (`4f6bef7d`) och ljusgrå (`c458fc66`). Massagefåtöljen `70d0a9ea`
+  (svart) fick brun (`3b61e50c`), cremevit (`54d25930`) och mörkgrå (`c50fa916`). Köksvagnen
+  `37fb1ce1` (grå) fick svart (`4d044b44`) och vit (`63235957`). Det blev 23
+  sammanslagningar, 23 omdirigeringar och 85 kopierade recensioner. Livekontrollen gav 8 av
+  8 sidor OK, 41 av 41 alt-texter och noll textavvikelser, och varje sida visar alla sina
+  färger som val. 22 av 24 gamla adresser svarade 308 till sidan 04:06. Golvfåtöljens
+  `golvfatolj-360-grader-fem-lagen` och köksvagnens `koksvagn-106-cm-utfallbar-skiva-vit`
+  serverade då fortfarande en cachad sida (`x-vercel-cache: HIT`, age 685 s), renderad strax
+  efter sammanslagningen. Sidcachen förnyas inom en timme, så de kontrolleras igen efter
+  05:00. (B37)
+- Alla 23 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på
+  varje körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså
+  golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och
+  konkurrensläge bara för sidans egen artikel, så de 23 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest
+  för knästolen (779–1 039 kr) och fåtöljen (2 359–2 999 kr), och de står kvar per variant.
+  (B37)
+- Alla fyra fåtöljsidor hade sluggar som slutar på `130-grader`, och skrivplanens kontroll
+  av artikelnummerform fäller den formen. Sidan som behölls fick därför en ny slugg utan
+  färg, `vridbar-fatolj-konstlader-fotstod`, och en 301 från `vridfatolj-svart-130-grader`
+  enligt runbookens regel för ändrad publicerad slugg. Golvfåtöljens `c458fc66` hade
+  `360-grader` i sluggen och blev därför givare i stället för sidan som behölls. (B37)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar.
+  `kallor.json` är familjens nuvarande svenska texter, och axelfacit kvitterades i
+  `grind-undantag.txt` eftersom de saknar en tysk totalmåttrad. Siffergrinden gav tio
+  varningar för tal som källan skriver med bokstäver ("tio massagepunkter", "tre bakåt och
+  två framåt"). Talen står i källan. (B37)
+- Golvfåtöljens texter var inte överens om sockeln. Den ljusgrå sidan beskrev en låg, rund
+  stålbas, och de tre andra en tygklädd, fyrsidig sockel som smalnar av mot golvet. Alla
+  bilder visar en tygklädd, fyrsidig sockel som blir bredare mot golvet, och det är vad
+  texten säger nu. Klädseln skiljer mellan färgerna: sammetslook på den petrolblå och
+  linnelook på den grå och den beige. Den ljusgrås klädsel anges inte, så texten säger inget
+  om den. (B37)
+- Sju av de gamla texterna angav feedens fraktvikt som varans vikt: knästolen, miniugnen,
+  fåtöljen, båda sparkcyklarna, golvfåtöljen och köksvagnen. Fem lovade något utifrån den:
+  att knästolen går att lyfta undan med en hand (namnet: "7,7 kg, lätt att flytta undan"),
+  att fåtöljen väger 22 kg, att sparkcyklarna är lätta nog att bäras uppför en trappa och
+  att golvfåtöljen går att bära in ensam. Fraktvikten står nu som Fraktvikt. Sparkcykeln 120
+  cm i vitt har andra paketmått än de tre andra färgerna, så sidan anger inga paketmått.
+  Alla åtta familjerna länkade mellan färgsidorna, och flera texter länkade till andra
+  produkter. Massagefåtöljen hade en lista med tolv länkar och påståendet att vi säljer
+  tretton massagefåtöljer i fyra modeller. Sparkcykeln 12 tum kallade sig "den av de tre
+  färgerna" fast den finns i fyra och uttalade sig om lagkrav på hjälm. Länkarna, listan och
+  påståendena är borta. (B37)
+- Knästolen i svart och i mörkgrått ser nästan likadana ut på bilderna. Namnen kommer från
+  feeden, och det är två olika artiklar. (B37)
+- Sex bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: knästolen (7,7 kg),
+  miniugnen (6,8 kg), sparkcykeln 120 cm (8,2 kg) och köksvagnen (29 kg). Två visar läsbar
+  text på rekvisitan: ett ord på en bordsklocka vid knästolen och en etikett på en burk i
+  köksvagnens skåp. (B37)
+- AVGJORT 2026-09-28, genomfört i B38: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Manchesterfåtöljen `e1c41327` (petrolblå) fick gråbeige
+  (`4a9c33d2`), ljusgrå (`58fb3025`), beige (`62161510`), gul (`66adcdff`), senapsgul
+  (`791e7292`) och orange (`bc220489`). Bäddfåtöljen med armstöd i gummiträ `eb1e475e`
+  (gräddvit) fick taupe (`1df737ee`), mörkgrå (`286f4e14`), beige (`96a6b909`), svart
+  (`c10d0b7e`) och blå (`e4e62a4f`). Redskapsboden `74e737ee` (mörkgrön) fick antracit
+  (`5a30aaa8`), trälook (`7f7aa2a4`), ljusgrå (`ca2f0e47`) och brun (`e74d5f67`).
+  Gungstolen `25405611` (gul) fick ljusgrå (`3b5a67d9`) och beige (`3dbd4f08`) och två tyska
+  utkast, mörkgrön (`2cbc7b83`) och rosa (`5126ad2e`), som inte låg ute och därför inte fick
+  någon omdirigering. Massagefåtöljen `297d8979` (svart) fick cremevit (`7e84e482`),
+  mörkbrun (`a7f029bf`) och ljusgrå (`c396356f`). Gästsängen `f94a964c` (mellangrå) fick
+  beige (`0f6ea98d`), blå (`1663062d`) och mörkgrå (`8800a1b5`). Reclinern `e11ad5cc`
+  (gräddvit) fick mörkgrå (`12e50842`), stålgrå (`74f261ea`) och gråbrun (`824301a4`).
+  Fåtöljen med böjd träfot `37e5dfcf` (mörkgrå) fick brun (`5c0e83d1`), beige (`73112149`)
+  och ljusgrå (`dd5553fa`). Det blev 31 sammanslagningar, 29 omdirigeringar och 242
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 35 av 35 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. 13 av 30 gamla adresser
+  svarade 308 till sidan 04:48. De andra 17 serverade då fortfarande en cachad sida
+  (`x-vercel-cache: HIT`), renderad strax efter sammanslagningen, och kontrolleras igen när
+  sidcachen hunnit förnyas. (B38)
+- Alla 31 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på
+  varje körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså
+  golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och
+  konkurrensläge bara för sidans egen artikel, så de 31 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest
+  för redskapsboden (8 779–9 869 kr), gästsängen (2 599–3 119 kr) och manchesterfåtöljen
+  (2 199–2 639 kr), och de står kvar per variant. (B38)
+- Två sidor i familjerna är en annan modell och slogs inte ihop. Gungstolen `48432e48` är
+  klädd i sammetslook med rutstickad, rak rygg och låga, raka armstöd, medan de andra har
+  manchester i lodräta kanaler och snäckformad rygg. Den står kvar som egen sida.
+  Massagefåtöljens tyska utkast `a0760ed1` har en egen måttbild med 150°, 150 kg och
+  85 × 94 × 104 cm, mot 145°, 135 kg och 82 × 99 × 103 cm för de andra. Det ligger kvar i
+  kön. (B38)
+- Gästsängens färger skiljer i mer än färgen. Den blå och den mörkgrå har ben i
+  silverfärgat stål och en måttbild som anger 150 kg. Den mellangrå och den beige har
+  svarta ben och 120 kg. Alla fyra gamla texterna angav 120 kg, och sidan säger 120 kg för
+  alla färger och anger benen per färg. Den mellangrå och den mörkgrå heter båda
+  "Dunkelgrau" i feeden. På bilderna är den ena mellangrå i linnelook och den andra mörkare
+  i sammetsimitation, och de ligger på sidan som mellangrå och mörkgrå. (B38)
+- Bäddfåtöljens bäddlängd skiljer i källan: 183 cm för fyra färger och 185 cm för den
+  beige och den blå, medan liggytan är 185 × 60 cm för alla. Sidan anger 183–185 cm. (B38)
+- Manchesterfåtöljen `62161510` (beige) låg också i kategorin Dekoration & Prydnad.
+  Skrivplanen kan bara lägga till kategorier, så en annan färg behölls och `62161510` blev
+  givare. Sidan ligger i Hem & Inredning, Möbler och Fåtöljer. (B38)
+- Alla fyra sidorna med böjd träfot hade sluggar som slutar på `145-grader`, och
+  skrivplanens formkontroll fäller den formen. Sidan som behölls fick sluggen
+  `konstladerfatolj-bojd-trafot-fotstod` och en 301 från `konstladerfatolj-morkgra-145-grader`.
+  (B38)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar.
+  `kallor.json` är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. Siffergrinden gav fyra varningar för räkneord utan täckning i källan:
+  "tre lägen", "två fickor", "fem lägen" och "alla sju färgerna". Talen stämmer mot källan
+  och mot antalet färger. (B38)
+- Redskapsbodens gamla texter sa att man går in upprätt eftersom nocken är 2 meter, men
+  dörröppningen är 152 cm hög. De uttalade sig också om bygglov, friggebodsregler och
+  snölast. Massagefåtöljens texter sa att värmen ökar genomblödningen och att blodet står
+  still i vaderna. Påståendena är borta. (B38)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och tre lovade något utifrån
+  den: att bäddfåtöljen är enkel att flytta mellan rum, att gästsängen går att bära av en
+  person och att reclinern går att flytta av en person. Vikten står nu som Fraktvikt. Alla
+  åtta familjerna länkade mellan färgsidorna, och flera texter länkade till andra produkter:
+  en gungstol i bouclé, en annan massagefåtölj, TV-fåtöljer, en mindre bod och ett
+  plastskjul. Bäddfåtöljen jämförde sig med en annan bäddfåtölj och kallade sig den smalaste
+  lösningen. Länkarna och jämförelserna är borta. (B38)
+- Reclinern i mörkgrått (`12e50842`) och i stålgrått (`74f261ea`) ser nästan likadana ut på
+  bilderna. Namnen kommer från feeden, och det är två olika artiklar. (B38)
+- Elva bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: gungstolen (14 kg),
+  bäddfåtöljen (17,5 kg), gästsängen (22,9 kg) och reclinern (22 kg). Ett eget kort på
+  redskapsboden påstod att åkgräsklippare, cyklar och trädgårdsmöbler får plats samtidigt,
+  vilket inte står i källan. Sex visar läsbar text eller varumärken på rekvisitan: en
+  tidning vid manchesterfåtöljen, en tidning och en kopp med skrift vid gungstolen,
+  bokryggar och bokomslag vid massagefåtöljen, förlagets logotyp på böcker vid bäddfåtöljen
+  och bokryggar, en tidning, en vinetikett och ett högtalarmärke vid fåtöljen med böjd
+  träfot. I flera familjer bar varje färgs miljöbild samma sorts rekvisita, så sidan som
+  behölls valdes delvis efter vilka bilder som klarade granskningen: den petrolblå
+  manchesterfåtöljen, den mörkgröna boden och den gräddvita reclinern. (B38)
+- AVGJORT 2026-09-28: B37:s två sista gamla adresser svarar nu 308 till sidan som behölls.
+  `golvfatolj-360-grader-fem-lagen` pekar på `golvfatolj-gra-fem-lagen` och
+  `koksvagn-106-cm-utfallbar-skiva-vit` pekar på `koksvagn-106-cm-utfallbar-skiva-gra`. Kl. 04:59
+  serverade de först sin inaktuella cachade sida (`STALE`, age 3 800 s), vilket startade
+  omrenderingen, och nästa hämtning gav 308. Alla 24 gamla adresser i B37 omdirigerar alltså.
+  (B37)
+- AVGJORT 2026-09-28, genomfört i B39: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Snurrfåtöljen `827314e4` (svart) fick gul (`543fd196`),
+  cremevit (`bb0d9831`) och mörkgrå (`ea30fc2a`). Den gungande tv-fåtöljen `c1f860c1` (grå)
+  fick mörkblå (`5b16fea8`), beige (`77a79db3`) och gråbrun (`b72f093d`). Rumsavdelaren
+  `6649471e` (natur) fick svart (`7bd4f691`), brun (`854371fe`) och vit (`ffb5239f`).
+  Vilfåtöljen med förvaringspall `b67fdc2b` (gråbrun) fick svart (`74f45749`), mörkgrå
+  (`7f437bac`) och gräddvit (`87262869`). Golvsoffan `724cc4b5` (mörkgrå) fick grå
+  (`9c71885a`), himmelsblå (`a8d37d72`) och ett tyskt utkast i beige (`3c935dd8`).
+  Pergolataket `9304f8b8` (mörkbrun) fick beige (`8ea111a2`), brun (`bef14fba`) och ett tyskt
+  utkast i mörkgrått (`6f972315`). De två utkasten låg inte ute och fick därför ingen
+  omdirigering. Massagefåtöljen med fotpall `5a31b710` (cremevit) fick brun (`071cad5d`) och
+  svart (`1932abe1`). Kontorsstolen med fotstöd `0945e4dd` (brun) fick mörkgrå (`501ba88f`)
+  och gräddvit (`cc81673d`). Det blev 22 sammanslagningar, 21 omdirigeringar och 73 kopierade
+  recensioner. Livekontrollen gav 8 av 8 sidor OK, 41 av 41 alt-texter och
+  noll textavvikelser, och varje sida visar alla sina färger som val. 13 av 21 gamla adresser
+  svarade 308 till sidan 05:26. De andra åtta serverade då en sida som renderats om 05:25, sju
+  till tio minuter efter sammanslagningen, fortfarande som en vanlig produktsida
+  (`x-vercel-cache: HIT`). Varför den omrenderingen inte gav 308 är inte utrett. Adresserna
+  kontrolleras igen när sidcachen hunnit förnyas. (B39)
+- Den första sammanslagningen av massagefåtöljen (`071cad5d`) föll på sista steget:
+  `givaren läste inte tillbaka som avpublicerad — kör om`. Färgen, mappningen, recensionerna och
+  omdirigeringen var redan skrivna. Omkörningen såg läget `klar`, gjorde givarens efterarbete och
+  pensionerade den, och en läsning i Wix efteråt gav `visible: false`. (B39)
+- 21 av de 22 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Det
+  enda undantaget var golvsoffans tyska utkast. Efter sammanslagningen följer de nya varianterna
+  husets regel, alltså golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden
+  sätter grupp och konkurrensläge bara för sidans egen artikel, så färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för
+  tv-fåtöljen (4 039–5 079 kr) och golvsoffan, där det beige utkastet kostar 1 869 kr mot
+  1 349–1 369 kr för de andra, och de står kvar per variant. (B39)
+- Rumsavdelarens fyra sidor hade sluggar som slutar på `240-<färg>`, och skrivplanens
+  formkontroll fäller den formen. Sidan som behölls fick sluggen `rumsavdelare-240-cm-sex-paneler`
+  och en 301 från `rumsavdelare-240-natur`. Omdirigeringstabellen lästes efteråt: alla 21 gamla
+  adresser står där, och ingen omdirigering i tabellen pekar på en annan omdirigering. (B39)
+- Alla sidor i familjerna var redan polerade utom två tyska utkast. `kallor.json` är familjens
+  nuvarande texter och namn, och axelfacit kvitterades i `grind-undantag.txt`. Pergolatakets
+  tyska utkast namnger två paviljonger med deras artikelnummer. De är redigerade i `kallor.json`.
+  Siffergrinden gav sju varningar för räkneord utan täckning i källan: "tio punkter", "fem
+  lägen", "två styrkor", "tre per skarv", "två mugghållare", "fyra armar" och "alla fyra
+  färgerna". Talen står i källan med bokstäver eller stämmer mot antalet färger. (B39)
+- De gamla texterna var inte överens på fyra punkter. Vilfåtöljens texter sa både att man kan
+  sitta på fotpallen och att man inte ska göra det, och massagefåtöljens sa att pallen fungerar
+  som extra sittplats. Sidorna säger bara att pallen bär 100 kg. Tv-fåtöljens texter placerade
+  fjäderkärnan i sitsen respektive ryggen och lovade montering utan verktyg på tio minuter
+  respektive skruvar och förmonterade beslag. Sidan säger fjäderkärna och skum utan plats, och
+  att montering krävs. Vilfåtöljens texter nämnde knappdekor i ryggen, men ingen av bilderna i
+  familjen visar knappar, så det står inte på sidan. (B39)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och fyra lovade något utifrån den:
+  att snurrfåtöljen är en stol man orkar flytta själv, att en person bär rumsavdelaren utan
+  problem, att golvsoffan är lätt att flytta själv och att vilfåtöljen är hanterbar ensam. Vikten
+  står nu som Fraktvikt. Sju av familjerna hänvisade till de andra färgerna som egna sidor, och
+  flera texter saknade någon av dem: tv-fåtöljens nämnde tre av fyra färger och vilfåtöljens två
+  av fyra. Flera texter hänvisade dessutom till andra produkter: en snurrfåtölj på rund stålfot
+  och en liten fåtölj på 60 cm, en svart och en gräddvit reclinerfåtölj med fotpall, reservtaket
+  till paviljong, en svart högryggad kontorsstol i konstläder och rumsavdelaren i 160 och
+  320 cm. Massagefåtöljen hade en lista med tolv massagefåtöljer och påståendet att vi säljer
+  tretton i fyra modeller. Hänvisningarna och listan är borta. (B39)
+- Vilfåtöljen i svart (`74f45749`) och i mörkgrått (`7f437bac`) ser nästan likadana ut på
+  bilderna. Namnen kommer från feeden, och det är två olika artiklar. (B39)
+- Golvsoffans källa anger två liggmått, 180 × 60 × 19 cm utfälld och 180 × 60 × 29 cm helt
+  platt, och sidan anger båda. Måttbilden visar 29 cm vid huvudänden och 11 cm tjocklek.
+  Klädseln heter linne i både den svenska och den tyska källan (Leinen). Om det är linne eller
+  linnelook i polyester är inte kontrollerat. (B39)
+- Fyra bilder ströks. En var ett eget faktakort med fraktvikten som Vikt: rumsavdelaren
+  (7,9 kg). Tre visar läsbar text eller varumärken på rekvisitan: en tavla med text och en ask
+  med text bredvid en kamera med märkesnamn vid massagefåtöljen, och en märkeslapp på modellens
+  byxor vid kontorsstolen. Massagefåtöljens miljöbilder hade läsbar text i alla tre färgerna,
+  också bokryggarna i den svarta, så sidan har ingen miljöbild. Sidan som behölls valdes där på
+  lagret: 79 cremevita mot 32 bruna och 0 svarta. (B39)
+- AVGJORT 2026-09-28: B38:s 30 gamla adresser svarar alla 308 till sina sidor. Vid första
+  träffen 05:43 svarade 17 av dem fortfarande med en cachad sida, vid andra träffen 29 av 30
+  med 308, och den sista (`x-vercel-cache: STALE`, age 3 605 s) gav 308 vid tredje träffen.
+  (B38)
+- AVGJORT 2026-09-28, genomfört i B40: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Vilstolen i böjd björk `7e00970f` (grå) fick gråbrun
+  (`84082d41`), svart (`beacff5a`) och cremevit (`ee610afd`). Uppresningsfåtöljen med massage
+  och mugghållare `54a1916b` (mörkgrå) fick ljusgrå (`117aa0fc`) och brun (`a2c01713`).
+  Öronlappsfåtöljen `7b98c4c1` (mörkgrå) fick grå (`121ce68f`) och brun (`80e4ed24`).
+  Skrivbordsstolen med nätrygg `4293c5ce` (ljusgrå) fick turkos (`143f9b2d`) och rosa
+  (`6e05f8b7`). Kontorsstolen som bär 200 kg `184290da` (grå) fick ljusgrå (`434c8f4c`) och
+  svart (`ca3bf74e`). Uppresningsfåtöljen som bär 200 kg `8fe8ffba` (grå) fick mörkgrå
+  (`d23d0ff2`). Den dubbla campingstolen `4401be4f` (blå) fick grön (`65c84a9b`) och khaki
+  (`8b66533f`). Bäddmadrassen `f8c671b3` (mörkgrå) fick ljusgrå (`54584253`) och blå
+  (`79daabe1`). Det blev 16 sammanslagningar, 18 omdirigeringar och 74 kopierade recensioner.
+  Livekontrollen gav 8 av 8 sidor OK, 35 av 35 alt-texter och noll textavvikelser, och varje
+  sida visar alla sina färger som val. Alla 18 gamla adresser svarade 308 till rätt sida 06:00,
+  vid andra träffen. Den första gav en inaktuell cachad sida (`x-vercel-cache: STALE`). (B40)
+- Alla 16 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på varje
+  körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså golvpriset
+  1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och konkurrensläge
+  bara för sidans egen artikel, så de 16 färgerna ligger inte längre i annonsurvalet. Sidornas
+  egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för uppresningsfåtöljen med
+  massage (6 499–7 359 kr), uppresningsfåtöljen som bär 200 kg (6 039–6 679 kr), kontorsstolen
+  (2 849–3 399 kr) och öronlappsfåtöljen (2 159–2 499 kr), och de står kvar per variant. (B40)
+- Uppresningsfåtöljen som bär 200 kg har en tredje publicerad sida, cremevit (`3a9df24e`), som
+  inte slogs ihop. Feeden ger samma mått för alla tre, men måttbilden på den cremevita visar en
+  annan modell: 109 × 72,5 × 94 cm, 170 cm i liggläge och sitsen 46 × 51,5 cm, mot
+  111 × 74 × 94 cm, 163 cm och 47 × 55 cm för den grå och den mörkgrå. Den står kvar som egen
+  sida. Dess namn säger 163 cm i liggläge och bör läsas om mot måttbilden. Syskonsvepet listar
+  den fortfarande som färgsyskon till `8fe8ffba`. (B40)
+- Kontorsstolens och uppresningsfåtöljens sidor hade sluggarna `kontorsstol-gra-200-kg` och
+  `uppresningsfatolj-gra-200-kg`, och skrivplanens formkontroll fäller formen `gra-200`. Sidorna
+  fick sluggarna `kontorsstol-200-kg-tjock-stoppning` och `uppresningsfatolj-200-kg-ligglage`
+  och en 301 från de gamla. (B40)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar. `kallor.json`
+  är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. Siffergrinden gav fem varningar för räkneord utan täckning i källan:
+  "fem armar och fem hjul", "tre lägen", "fyra svarvade träben", "fem lägen" och "ramens två
+  sidor". Talen står i källan med bokstäver. (B40)
+- De gamla texterna var inte överens på flera punkter. Vilstolens cremevita sida sa att ryggen
+  ställs i fem lägen och att klädseln är bomullsblandad, medan de andra sa att ryggen står fast
+  och att klädseln är polyester. Sidan säger fast rygg och polyester. En av
+  uppresningsfåtöljens texter sa att sitsen står 142 cm över golvet i uppresningsläget, men
+  142 cm är hela fåtöljens höjd i det läget, och det är vad sidan säger. En annan nämnde två
+  sidofickor, som inte står i de andra texterna, och sidan nämner dem inte. En av
+  campingstolens texter sa att det sitter armstöd mellan sitsarna, vilket bilderna inte visar, så
+  det står inte på sidan. Bäddmadrassens texter sa både att montering krävs och att den inte
+  krävs, och sidan säger ingenting om montering. (B40)
+- Öronlappsfåtöljens färger skiljer i mer än färgen. Den mörkgrå och den bruna har avtagbar,
+  tvättbar klädsel och den grå fast klädsel. Alla tre texterna nämnde en blå färg som inte finns
+  i familjen, och två nämnde en grå i sammet, medan den grå sidans egen text sa att den saknar
+  sammet. Sidan anger klädseln per färg och nämner varken sammet eller blått. (B40)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och sex lovade något utifrån den:
+  att kontorsstolen ska rullas i stället för att lyftas, att uppresningsfåtöljen med massage
+  flyttas av två personer, att öronlappsfåtöljen går att flytta för en person, att vilstolen går
+  att flytta med en hand, att bäddmadrassen går att bära med en hand och att skrivbordsstolen går
+  att lyfta med en hand. Skrivbordsstolens namn bar dessutom vikten i alla tre färgerna. Vikten
+  står nu som Fraktvikt, för bäddmadrassen 11–11,5 kg eftersom texterna angav båda. Alla åtta
+  familjernas texter hänvisade till de andra färgerna, och tre räknade fel: uppresningsfåtöljen
+  med massage nämnde en grå färg, öronlappsfåtöljen en blå, och uppresningsfåtöljen som bär
+  200 kg räknade den cremevita som samma fåtölj. Uppresningsfåtöljen med massage hänvisade också
+  till tre andra uppresningsfåtöljer. Hänvisningarna är borta. (B40)
+- Bäddmadrassen i mörkgrått visar remmar på sidan som bilderna på de andra färgerna inte tydligt
+  visar. Sidan nämner inga remmar. (B40)
+- Elva bilder ströks. Fem var egna faktakort med fraktvikten som Vikt eller i rubriken:
+  kontorsstolen (26,8 kg), skrivbordsstolen (8,5 kg), campingstolen (6,8 kg),
+  uppresningsfåtöljen med massage (56 kg) och vilstolen (10,3 kg). Fyra var egna kort med
+  påståenden: hur länge kontorsstolens stoppning håller formen, att båda mugghållarna på
+  uppresningsfåtöljen med massage sitter i samma armstöd (texterna säger en i vardera), att den
+  som bär 200 kg avlastar knäna och att den finns i tre färger. Två visar läsbar text eller
+  märken på rekvisitan: en klocka på datorskärmen vid skrivbordsstolen och en högtalare och en
+  kopp vid bäddmadrassen. (B40)
+- AVGJORT 2026-09-28: B39:s åtta sista gamla adresser svarar 308 till sina sidor. 05:26
+  serverade de en produktsida som renderats 05:25. När den sidan blivit inaktuell
+  (`x-vercel-cache: STALE`) gav omrenderingen 308. Alla 21 gamla adresser omdirigeras nu. (B39)
+- AVGJORT 2026-09-28, genomfört i B41: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Sparkcykeln för 6–12 år `e9cfa7bf` (röd) fick blå
+  (`2b8297df`) och grön (`9941383e`). Sparkcykeln på 115 cm med stödben `85be4535` (vit) fick
+  rosa (`473084eb`) och blå (`9518db1e`). Elbilen i UTV-stil `2f6ff71c` (blå) fick orange
+  (`3d9dff8a`) och rosa (`f15febb2`). Sängbänken på 126 cm `67eafa8c` (beige) fick grön
+  (`8934f3ce`) och grå (`b95367b2`). Bäddsoffan på 188 cm `9e8992a9` (beige) fick grå
+  (`72739e89`) och olivgrön (`f5b5d0e9`). Biofåtöljen med fjäderkärna `84e3794d` (svart) fick
+  gräddvit (`7702de01`) och grå (`e818cf7e`). Golvfåtöljen med vridfot `87717be0` (mörkgrå) fick
+  beige (`90529d40`) och grön (`db34f7d5`). Torkvagnen med fyra nivåer `cb7cb72a` (grå) fick blå
+  (`c32b066c`) och svart (`df7ed034`). Det blev 16 sammanslagningar, 18 omdirigeringar och 34
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 42 av 42 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. Alla 18 gamla adresser svarade
+  308 till rätt sida 06:47–06:48. Vid första träffen serverade de en inaktuell cachad sida
+  (`x-vercel-cache: STALE`). (B41)
+- 14 av de 16 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Undantagen var bäddsoffans två färger. Efter sammanslagningen följer de nya varianterna husets
+  regel, alltså golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter
+  grupp och konkurrensläge bara för sidans egen artikel, så de 14 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för
+  elbilen (1 899–2 229 kr), biofåtöljen (1 779–2 129 kr) och sängbänken (1 499–1 839 kr), och de
+  står kvar per variant. Bäddsoffan kostar 10 999 kr i alla tre färgerna. (B41)
+- Elbilens och biofåtöljens sidor hade sluggarna `elbil-barn-12v-utv-fjarrkontroll-bla` och
+  `biofatolj-svart-160-grader`, och skrivplanens formkontroll fäller formerna `12v-utv` och
+  `160-grader`. Sidorna fick sluggarna `elbil-barn-utv-fjarrkontroll-12v` och
+  `biofatolj-64-cm-fjaderkarna` och en 301 från de gamla. (B41)
+- Sammanslagningen av golvfåtöljen stoppades av hindret `sku_upptagen`. Den beige färgens SKU
+  `FP-golvfatolj-vridbar-beige` satt redan på en variant från B37, och sidans nya SKU
+  `FP-golvfatolj-vridbar-morkgra`, som skrivplanen redan skrivit, fanns också på en sida från
+  N14. Skrivplanen kontrollerar inte krockar mot katalogen, det gör bara sammanslagningen. En
+  rättelserunda (B41b) gav sidan `FP-golvfatolj-snurrfot-morkgra`, och färgerna fick
+  `FP-golvfatolj-snurrfot-beige` och `FP-golvfatolj-snurrfot-gron`. Alla B41:s SKU:er jämfördes
+  sedan mot tidigare rundors `sku.tsv` och sammanslagningsfiler. (B41)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar. `kallor.json`
+  är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. (B41)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Sängbänkens texter listade
+  de andra färgernas priser, som inte längre stämde. Bäddsoffans texter sa att soffan är märkt
+  Made in EU. Sparkcykeln för 6–12 år jämfördes med en modell med 12-tumshjul och en med korg som
+  bär 100 kg, och texterna sa saker om hjälmlag och trafik. Sparkcykeln på 115 cm angavs för
+  både 5–12 och 6–12 år, och sidan säger 5–12 år. Golvfåtöljens texter hänvisade till en ljusgrå
+  modell med 15 cm stoppning och sa att fåtöljen bärs med en hand. Torkvagnens texter nämnde en
+  vit färg och en version med tre nivåer, och en text sa att priset följer frakten. Familjen har
+  tre färger: grå, blå och svart. Biofåtöljens texter hänvisade till en vilfåtölj. (B41)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: sparkcyklarna (7 och 6,5 kg),
+  elbilen (15,6 kg), sängbänken (20 kg), biofåtöljen (24 kg) och golvfåtöljen (11 kg). Vikten
+  står nu som Fraktvikt. (B41)
+- Fem bilder ströks. Två var egna faktakort med fraktvikten som Vikt, på båda sparkcyklarna
+  (7 och 6,5 kg), och ett eget kort sa att torkvagnen finns i fyra färger. Elbilens måttbild hade
+  tysk text i en infällning om viktgräns och ålder, och bäddsoffans måttbild bar märket Made in
+  EU. Den orange elbilens publicerade sida hade dessutom en bild med tysk text. Sidan är
+  avpublicerad, och bara dess huvudbild följde med som färgens bild. Biofåtöljens grå sida hade
+  en miljöbild med läsbara bokryggar, så den svarta sidan behölls. (B41)
+- AVGJORT 2026-09-28, genomfört i B42: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. De stapelbara pallarna `17c747cb`
+  (grå) fick cremevit (`39d1df49`), brun (`a17d0773`) och khaki (`d278d127`). Massagekontorsstolen
+  i sammetslook `6870d76a` (grå) fick rosa (`c7f46a23`), svart (`28298786`) och brun
+  (`94650788`). Reclinerfåtöljen med snurrfot `2823c605` (grå) fick svart (`07d52f21`) och
+  cremevit (`4de4f329`). Massagekontorsstolen med sju punkter `09ae62db` (svart) fick blå
+  (`60b827f8`) och rosa (`f50863c6`). Paviljongtaket 3 × 3 m `3f9fda98` (mörkgrå) fick roströd
+  (`271327e1`) och cremevit (`fbfea355`). Redskapsboden i metall `9421c86b` (vit) fick mörkgrå
+  (`5dd1a836`) och ljusgrå (`4e05be02`). Massagestolen i mikrofiber `825c51f5` (brun) fick
+  mörkgrå (`7cf7473e`) och cremevit (`5e092d0c`). Relaxfåtöljen med fotpall `9794b6df` (svart)
+  fick gräddvit (`9946e1eb`) och ljusgrå (`024eb02c`). Det blev 18 sammanslagningar, 10
+  omdirigeringar och 47 kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 33 av 33
+  alt-texter och noll textavvikelser, och varje sida visar alla sina färger som val. Alla 10
+  gamla adresser svarade 308 till rätt sida 07:35, vid andra träffen. Den första gav en
+  inaktuell cachad sida (`x-vercel-cache: STALE`). (B42)
+- 13 av de 18 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Undantagen var paviljongtakets två färger, redskapsbodens ljusgrå, reclinerfåtöljens cremevita
+  och sammetsstolens svarta. Efter sammanslagningen följer de nya varianterna husets regel,
+  alltså golvpriset 1,20 × landad kostnad, från nästa synk, och de 13 färgerna ligger inte
+  längre i annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna,
+  mest för massagekontorsstolen med sju punkter (1 499–1 899 kr), redskapsboden
+  (3 949–4 299 kr), reclinerfåtöljen (3 749–4 039 kr), massagestolen i mikrofiber
+  (2 119–2 399 kr) och relaxfåtöljen (3 859–4 129 kr), och de står kvar per variant. (B42)
+- Reclinerfåtöljens och paviljongtakets sidor hade sluggarna `reclinerfatolj-snurrfot-130-grader`
+  och `paviljongtak-3x3-dubbeltak-morkgra`, och skrivplanens formkontroll fäller formerna
+  `130-grader` och `3x3-dubbeltak`. Sidorna fick sluggarna
+  `reclinerfatolj-snurrfot-fotpall-konstlader` och `paviljongtak-dubbeltak-3-x-3-m` och en 301
+  från de gamla. Workflowen för omdirigeringar föll två gånger på `504
+  FUNCTION_INVOCATION_TIMEOUT`: dess kontroll av krockar läser hela katalogen och hinner inte
+  klart på 60 sekunder. De gamla adresserna kontrollerades därför för hand (ingen produkt bar
+  dem) och de nya (rätt produkt), och workflowen kördes med `force=true`. Kontrollen behöver
+  en snabbare väg innan katalogen växer mer. (B42)
+- Pallarnas sida `17c747cb` delade SKU:n `FP-stapelbara-pallar-4-pack` med `d38db7a0`, ett
+  annat pallset från B28. Sidan fick `FP-stapelbara-pallar-4-pack-gra` och färgerna varsin SKU
+  med samma början. Alla B42:s SKU:er jämfördes mot tidigare rundors `sku.tsv` och
+  sammanslagningsfiler. (B42)
+- Skrivplanens kontroll tar högst sex kategorinamn per produkt. De två massagekontorsstolarna
+  fick sju i första planen, och Hem & Inredning ströks ur listan eftersom sidorna redan låg där.
+  Kategoristeget lägger bara till kopplingar. (B42)
+- De gamla texterna var inte överens på flera punkter. Sammetsstolens svarta utkast angav
+  120 kg i tekniska data och 135 kg i ingressen, och sidan anger 120 kg för den svarta och
+  135 kg för de andra. Massagekontorsstolen med sju punkter angavs med en nätsladd på 1,8 m i
+  en text och 1,2 m i en annan och i den tyska källan, och sidan säger 1,2 m. Den blå sidans
+  text angav 67 × 67 cm, och sidan anger 67 × 79 cm. Massagestolen i mikrofiber angavs som
+  138 och 160 cm djup utfälld, och sidan anger inget utfällt djup. Dess texter nämnde en tredje
+  färg i sammet och linnelook som inte finns, och massagepunkterna är fyra i ryggen och två i
+  sitsen enligt den tyska källan. En av reclinerfåtöljens texter sa att fotpallen snurrar och en
+  annan att den står still, så sidan säger inget om det. Relaxfåtöljens ordning mellan bredd och
+  djup avgjordes med måttritningen: 80 cm bred och 79 cm djup. Paviljongtakets texter nämnde
+  fyra färger, bland dem kaffebrun, och familjen har tre. Den tyska titeln säger
+  "wasserdicht", och sidan säger vattenavvisande. Redskapsbodens texter lovade ett lås, en
+  halv dags montering och plats för en skottkärra och jämförde med plastbodar och byggregler.
+  Inget av det står kvar. (B42)
+- Alla åtta familjernas gamla texter angav feedens fraktvikt som varans vikt: 22 kg för båda
+  massagekontorsstolarna, 9 kg för pallarna, 26 kg för reclinerfåtöljen, 2,5 kg för
+  paviljongtaket, 23 kg för massagestolen i mikrofiber, 60 kg för redskapsboden och 24 kg för
+  relaxfåtöljen. Vikten står nu som Fraktvikt. (B42)
+- Tio bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: pallarna (9 kg),
+  reclinerfåtöljen (26 kg), redskapsboden (60 kg) och massagestolen i mikrofiber (23 kg). Ett
+  eget kort angav massagestolens utfällda djup till 138 cm, vilket källorna inte är överens om.
+  Fem var miljöbilder med läsbara boktitlar, bokryggar eller ett högtalarmärke på hyllan: två
+  hos massagekontorsstolen med sju punkter och en vardera hos sammetsstolen, massagestolen i
+  mikrofiber och relaxfåtöljen. (B42)
+- Sidorna från B37–B41 skrevs före runbookens format för filtren (#674 och #678). Måtten står
+  med axelord, sitthöjden inuti Sits-raden och vikten ibland som Vikt, så filtren läser dem
+  sämre än B42:s sidor. Sidorna är sammanslagna och har flera varianter. Skrivplanens textsteg
+  klarar dem, men mediesteget vägrar en bildlista som tappar en färgs bild, SKU-steget hoppar
+  över en sida med mer än en variant och verifieringen kräver en variant. En omskrivning blir
+  därför röd efter textsteget. De behöver en väg som bara skriver text. (B42)
+- AVGJORT 2026-09-28, genomfört i B43: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. Studsmattan för barn Ø163 cm
+  `39319e6c` (röd) fick svart (`afeec4a3`) och blå (`da7aa54b`). Kontorsstolen i bouclé
+  `75f6c433` (benvit) fick ljusbrun (`60c803f0`) och ljusgrå (`7ab2f8aa`). Den gungande
+  knästolen `b97ac1d8` (grå) fick ljusgrå (`67bd3628`) och kräm (`b5d8eb9c`). Vilfåtöljen med
+  fjäderkärna `75e5fa26` (grå) fick svart (`a9c0fc05`) och beige (`afab8a41`). Väggvärmaren
+  `afa22a5b` (vit) fick grå (`e478cc02`) och svart (`e84dc35e`). Trädgårdsskåpet i gran 179 cm
+  `1e11480e` (natur) fick ljusblå (`275e9b8a`) och grå (`0a2b6d53`, utkast). Basketkorgen för
+  väggmontering `8a9b1da9` (röd) fick vit (`db1118d0`) och blå (`3a1fd501`, utkast).
+  Snurrfåtöljen med lös fotpall `266c5e75` (grå) fick mörkgrå (`d2409a95`), gräddvit
+  (`021a268e`) och svart (`5d150926`). Det blev 17 sammanslagningar, 17 omdirigeringar och 37
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 41 av 41 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. 16 av de 17 gamla adresserna
+  svarade 308 till rätt sida 08:19, vid andra träffen, och den sista vid tredje. Den första gav
+  en inaktuell cachad sida (`x-vercel-cache: STALE`). (B43)
+- Alla 17 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel, alltså golvpriset 1,20 × landad
+  kostnad, från nästa synk, och de 17 färgerna ligger inte längre i annonsurvalet. Sidornas egna
+  färger påverkas inte. Priserna skiljer mellan färgerna, mest för den gungande knästolen
+  (799–1 039 kr), vilfåtöljen (2 859–3 099 kr), snurrfåtöljen (1 869–2 079 kr) och
+  bouclé-stolen (1 779–1 979 kr), och de står kvar per variant. Fyra av de nya färgerna hade
+  saldo 0 hos Aosom vid sammanslagningen och visas som slutsålda tills saldot kommer tillbaka:
+  studsmattan i blått, vilfåtöljen i beige och trädgårdsskåpet i ljusblått och grått. (B43)
+- Studsmattans och vilfåtöljens sidor hade sluggarna `studsmatta-barn-163-rod` och
+  `vilfatolj-gra-155-grader`, och skrivplanens formkontroll fäller formerna `163-rod` och
+  `155-grader`. Sidorna fick sluggarna `studsmatta-barn-163-cm-skyddsnat` och
+  `vilfatolj-fjaderkarna-inbyggt-fotstod` och en 301 från de gamla. De gamla adresserna
+  kontrollerades för hand (ingen produkt bar dem) och de nya (rätt produkt), och workflowen för
+  omdirigeringar kördes direkt med `force=true`, eftersom dess kontroll av krockar hinner inte
+  klart (se B42). Trädgårdsskåpets slug `tradgardsskap-77-cm-fonster-hornhyllor` står kvar,
+  fast sidan nu säger att luckan i gaveln inte är ett fönster. (B43)
+- Alla sidor i familjerna var redan polerade utom de två utkasten, så `kallor.json` är
+  familjens nuvarande svenska texter och namn plus utkastens tyska. Axelfacit kvitterades i
+  `grind-undantag.txt`, och trädgårdsskåpets och basketkorgens tyska totalmått följdes. (B43)
+- Snurrfåtöljen låg som två familjer i syskonsvepet, eftersom klädseln skiljer: grått och
+  mörkgrått är tyg och gräddvitt och svart läderlook, enligt bilderna. De gamla texterna sa
+  sammetslook och mikrofibertyg, och den svarta sidan kallade sig den fjärde färgen av en fåtölj
+  vi redan säljer. Sidan anger klädseln och fotens yta per färg och fraktvikten 20 kg för tyg och
+  22 kg för läderlook. (B43)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Trädgårdsskåpets natur- och
+  gråa texter kallade luckan i gaveln för ett fönster, och den ljusblå sa att dörren stängs med
+  en hasp för hänglås, vilket de andra texterna inte nämner, så sidan säger det inte. Den svarta studsmattans text sa att stolparna går i samma
+  ton som nätet, men bilderna visar gråa stolpar. Studsmattan jämfördes med en 140- och en
+  122-modell, väggvärmaren med en 45 cm hög modell, vilfåtöljen med en biofåtölj och
+  snurrfåtöljen med en fåtölj på träfot. Jämförelserna är borta. (B43)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: studsmattan (12,5 kg),
+  bouclé-stolen (22,6 kg), knästolen (8,5 kg), vilfåtöljen (26 kg), basketkorgen (12 kg) och
+  snurrfåtöljen (20 och 22 kg). Vikten står nu som Fraktvikt. Trädgårdsskåpets 23 kg är
+  produktvikten ur den tyska källan, och fraktvikten 28,7 kg står bredvid. (B43)
+- Tre bilder ströks, alla egna faktakort: knästolens och basketkorgens angav fraktvikten som
+  Vikt (8,5 och 12 kg), och trädgårdsskåpets kallade luckan i gaveln för fönster. (B43)
+- AVGJORT 2026-09-28, genomfört i B44: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. Trädgårdsskåpet i gran 115 cm
+  `ca9e1fa5` (natur) fick grå (`bb112e08`) och mintgrön (`75c0bbf0`, utkast). Projektorduken
+  84 tum `fe11166f` (vit) fick svart (`0370673c`). Reclinerfåtöljen med lös fotpall `6a4e92c4`
+  (gräddvit) fick svart (`04feb176`). Gungstolen i chenille `081f82f1` (brun) fick beige
+  (`30069c15`). Kontorsstolen med fotstöd `2b8b7297` (svart) fick vit (`09167ea9`). Köksvagnen
+  109 cm `0af14e23` (svart) fick vit (`4ab392f7`). Städvagnen 111 cm `0cbffcd9` (grå) fick
+  svart (`740fa6d0`). Foliehuset 198 × 275 cm `0fc3c252` (vit) fick grön (`d99cc578`). Det blev
+  9 sammanslagningar, 8 omdirigeringar och 47 kopierade recensioner. Livekontrollen gav 8 av 8
+  sidor OK, 35 av 35 alt-texter och noll textavvikelser, och varje sida visar alla sina färger
+  som val. 7 av de 8 gamla adresserna svarade 308 till rätt sida 08:53, vid andra träffen, och
+  den sista vid tredje. (B44)
+- De 8 publicerade givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Efter sammanslagningen följer de nya varianterna husets regel från nästa synk och ligger inte
+  längre i annonsurvalet. Priserna skiljer mellan färgerna, mest för köksvagnen
+  (1 429–1 739 kr), gungstolen (1 799–2 079 kr), trädgårdsskåpet (1 439–1 659 kr) och
+  reclinerfåtöljen (3 729–3 919 kr), och de står kvar per variant. Alla nya färger hade saldo.
+  (B44)
+- Kontorsstolens vita sida (`kontorsstol-liggplats-155-grader-vit`) och trädgårdsskåpets grå
+  sida (`tradgardsskap-tra-115-cm-gratt`) fälls av skrivplanens formkontroll (`155-grader` och
+  `tra-115`), så den svarta respektive den naturfärgade sidan behölls och ingen slug behövde
+  ändras. (B44)
+- Alla sidor i familjerna var redan polerade utom trädgårdsskåpets mintgröna utkast, så
+  `kallor.json` är familjens nuvarande svenska texter och namn plus utkastets tyska. Axelfacit
+  kvitterades i `grind-undantag.txt`, och trädgårdsskåpets tyska totalmått följdes. Feeden
+  anger den grå trädgårdsskåpsfärgen som "Grün, Orange, Weiß", men bilderna visar grått med
+  vita lister, och utkastets "Grün" är mintgrönt på bilderna. (B44)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Gungstolen angavs som 98,5 cm
+  bred och 71 cm djup, men måttritningen visar 71 cm i bredd och 98,5 cm längs medarna, och
+  sidan säger det. Trädgårdsskåpets naturfärgade text sa att högra facket har 112 cm fri höjd,
+  medan måttritningen visar 108,5 cm (112 cm är den invändiga höjden), och sidan anger ingen
+  höjd för facket. Den grå sidan kallade dörren låsbar, och sidan säger att den stängs med en
+  skjutregel, som bilderna visar. Kontorsstolens vita text kallade sitthöjden den högsta i vår
+  hylla och sa att den som är kortare än 165 cm inte når golvet, och den svarta jämförde med en
+  modell i snöflanell. Reclinerfåtöljen jämfördes med en relaxfåtölj och en tv-fåtölj,
+  projektorduken med en 120-tumsduk och städvagnen med en vagn med fyra hinkar. Städvagnens
+  text sa också att det femte hjulet sitter mitt under och tar upp lasten, vilket inte står i
+  någon källa. Jämförelserna och påståendet är borta. (B44)
+- Sju av familjerna angav feedens fraktvikt som varans vikt: projektorduken (7,8 kg),
+  reclinerfåtöljen (24 kg), gungstolen (13,5 kg), kontorsstolen (22 kg), köksvagnen (29,5 kg),
+  städvagnen (22,2 kg) och foliehuset (29 kg). Trädgårdsskåpets grå sida kallade sina 19 kg
+  redan vikt med emballage. Vikten står nu som Fraktvikt, och meningar som byggde på vikten är
+  borta. (B44)
+- Nio bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: projektorduken (7,8 kg),
+  gungstolen (13,5 kg), köksvagnen (29,5 kg) och städvagnen (22,2 kg). Ett eget kort på
+  trädgårdsskåpet angav 112 cm fri höjd i högra facket. Fyra var miljöbilder med läsbar text
+  eller märken på rekvisitan: ett namn på en borrmaskin i trädgårdsskåpet, bokryggar med ett
+  tidningsmärke och en tidningstext hos reclinerfåtöljen och en boktitel på hyllan bakom
+  kontorsstolen. (B44)
+- AVGJORT 2026-09-28, genomfört i B45: åtta familjer där två färger låg ute som egna sidor blev
+  en sida per vara. En sida i varje familj behölls och fick en text för båda färgerna, och den
+  andra färgen lades in som val. Givarnas adresser omdirigerades med 301 till sidan och givarna
+  pensionerades. Köksvagnen 91 cm `15d6fcef` (ljus stenlook) fick ek (`0fd65541`). Chefsstolen
+  med fotstöd `4fa0ae0a` (grå) fick ljusgrå (`10235819`). Soptunnan med två fack `b10b80ee`
+  (silver) fick svart (`10c47f8e`). Plåtboden 345 × 280 cm `2c3f2a17` (grön) fick grå
+  (`184e9c32`). Tv-fåtöljen i chenille `1b39b14e` (beige) fick grå (`ceae31c1`).
+  Verktygsskåpet 82,5 cm `5447468e` (svart) fick blå (`1b534b0e`). Den hopfällbara fåtöljen i
+  bok `1e6872c7` (gråblå) fick khaki (`45512a52`). Garagetältet 162 × 221,5 cm `20c0942e`
+  (ljusgrå) fick mörkgrå (`5f6592ad`). Det blev 8 sammanslagningar, 8 omdirigeringar och 28
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 37 av 37 alt-texter och noll
+  textavvikelser, och varje sida visar båda sina färger som val. Alla 8 gamla adresser svarade
+  308 till rätt sida mellan 09:14 och 09:15, vid andra eller tredje träffen. (B45)
+- Alla 8 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: köksvagnen 649 och 699 kr, chefsstolen 1 939 och 1 969 kr, soptunnan 879 kr i
+  båda färgerna, plåtboden 7 919 och 7 799 kr, tv-fåtöljen 4 279 och 4 399 kr, verktygsskåpet
+  2 269 och 2 199 kr, den hopfällbara fåtöljen 1 219 och 1 069 kr och garagetältet 1 599 och
+  1 319 kr. Alla nya färger hade saldo, det blå verktygsskåpet bara 1. (B45)
+- Plåtbodens grå sida (`platbod-gra-345x280-cm`) fälls av skrivplanens formkontroll
+  (`gra-345x280`), så den gröna sidan behölls, fast den bara hade 4 i saldo mot den grås 90.
+  Ingen slug behövde ändras i rundan. (B45)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B45)
+- De gamla texterna jämförde med andra varor, och jämförelserna är borta: soptunnan med en smal
+  40-litersmodell och en 30-litersmodell, plåtboden med mindre plåtbodar, tv-fåtöljen med en
+  gräddvit och en svart reclinerfåtölj, verktygsskåpet med en vagn med fem lika djupa lådor och
+  garagetältet med plåtbodens snölast och två andra tält. Plåtbodens text sa dessutom att
+  monteringen tar en hel dag för två personer, och det säger sidan inte längre. (B45)
+- Sju av familjerna angav feedens fraktvikt som varans vikt: köksvagnen (8,8 kg), chefsstolen
+  (23 kg), soptunnan (7,3 kg), plåtboden (112,5 kg), tv-fåtöljen (44,3 kg), verktygsskåpet
+  (25,7 kg) och den hopfällbara fåtöljen (10,9 kg). Garagetältets text kallade sina 17 kg redan
+  vikt med emballage. Vikten står nu som Fraktvikt. (B45)
+- Åtta bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: köksvagnen (8,8 kg),
+  soptunnan (7,3 kg), plåtboden (112,5 kg) och verktygsskåpet (25,7 kg). Fyra var miljöbilder
+  med läsbar text eller märken på rekvisitan: text på böcker i två av tv-fåtöljens bilder, och
+  hos verktygsskåpet en förpackning med text, ett märke på en dammsugare och ett verktygsmärke
+  på lådorna i bakgrunden. (B45)
+- AVGJORT 2026-09-28, genomfört i B46: åtta familjer där två färger låg ute som egna sidor blev
+  en sida per vara. En sida i varje familj behölls och fick en text för båda färgerna, och den
+  andra färgen lades in som val. Givarnas adresser omdirigerades med 301 till sidan och givarna
+  pensionerades. Kontorsstolen med nätrygg `29549b48` (grå med vit ram) fick svart
+  (`909b7596`). Solsängen i textilen `2a16c507` (svart) fick grå (`f5d857b6`). Ottomanbänken
+  125 cm `2b275f57` (blå) fick grå (`dba3ac1c`). Gungstolen med fotpall i fleece `2c0f466e`
+  (beige) fick mörkgrå (`93144f85`). Massagefåtöljen med förvaringspall `89fead7d` (svart) fick
+  mörkgrå (`2de635c3`). Redskapsboden 240 cm `333b56d0` (ljusgrå) fick mörkgrå (`ee5ea781`).
+  Snurrstolen med fast fyrfot `348ee535` (grå) fick benvit (`4d83eca6`). Varmluftsfritösen
+  10 liter `fc9c6885` (svart) fick gräddvit (`36e555ea`). Det blev 8 sammanslagningar, 8
+  omdirigeringar och 42 kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 31 av 31
+  alt-texter och noll textavvikelser, och varje sida visar båda sina färger som val. Alla 8
+  gamla adresser svarade 308 till rätt sida mellan 09:37 och 09:39, vid andra eller tredje
+  träffen. (B46)
+- Sju av de åtta givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Den mörkgrå massagefåtöljen hade det inte. Efter sammanslagningen följer de nya varianterna
+  husets regel från nästa synk. Priserna står kvar per variant: kontorsstolen 1 039 och 969 kr,
+  solsängen 1 049 och 1 039 kr, ottomanbänken 1 699 och 1 879 kr, gungstolen 3 359 och
+  2 819 kr, massagefåtöljen 2 449 och 2 599 kr, redskapsboden 9 669 och 9 399 kr, snurrstolen
+  2 099 kr i båda färgerna och fritösen 859 och 829 kr. Alla nya färger hade saldo, den benvita
+  snurrstolen bara 4. (B46)
+- Solsängens grå sida (`solsang-gra-180-cm-huvudkudde`) fälls av skrivplanens formkontroll
+  (`gra-180`), så den svarta sidan behölls. Hos ottomanbänken behölls den blå sidan fast den grå
+  hade mer i saldo (64 mot 31), eftersom den grås egna bilder utom huvudbilden och måttbilden
+  hade fått strykas. Massagefåtöljens och fritösens sidor behölls för att deras slug inte bär
+  någon färg. Ingen slug behövde ändras. (B46)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. Två tal hos
+  kontorsstolen är fotoräknade i `foto-tal.txt`: sitthöjden 45–55 cm och armstöden 20 cm över
+  sitsen, båda ur måttritningen. (B46)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Solsängens svarta text
+  förklarade i en fråga att längden i liggläge inte anges, eftersom underlaget har två tal;
+  måttritningen visar 178 cm och den grå textens mått 180 cm, och sidan säger cirka 180 cm.
+  Ottomanbänkens text sa att bänken finns i tre kulörer, men vi har blå och grå, och den nämnde
+  sängbredderna 90, 120, 140 och 160 cm medan måttbilden visar 90, 135 och 150 cm. Redskapsbodens
+  text sa att fönstren sitter i gavlarna, men bilderna visar ett ventilationsgaller i gaveln och
+  ett fönster i sidoväggen. Kontorsstolens text angav ryggen som 75 cm hög, medan måttritningen
+  visar 74 cm, och sidan anger ingen rygghöjd. (B46)
+- Jämförelser med andra varor är borta: solsängen med en solstol i akacia och en modell med
+  sittdyna, massagefåtöljen med en lista över tolv andra massagefåtöljer, redskapsboden med en
+  större bod och ett plastskjul, fritösen med en 24-litersmodell och en 21-litersugn och
+  gungstolens fleece med teddytyg. Redskapsbodens text sa också att nockhöjden är högre än på de
+  flesta bodar i samma storlek och att monteringen tar en halv till en hel dag för två personer.
+  (B46)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: kontorsstolen (12 kg), solsängen
+  (10,4 kg), ottomanbänken (20 kg), gungstolen (21 kg), snurrstolen (15,5 kg) och fritösen
+  (4,7 kg). Massagefåtöljens och redskapsbodens texter angav ingen vikt. Vikten står nu som
+  Fraktvikt. (B46)
+- Tretton bilder ströks. Sex var egna faktakort: fyra med fraktvikten som Vikt (solsängen
+  10,4 kg, gungstolen 21 kg, snurrstolen 15,5 kg och fritösen 4,7 kg), ottomanbänkens som sa att
+  bänken finns i tre kulörer och redskapsbodens som sa att fönstren sitter i gavlarna. Sju var
+  miljöbilder med läsbar text på rekvisitan: böcker i två bilder hos kontorsstolen och två hos
+  snurrstolen, tidningar hos ottomanbänken och gungstolen och en kaffeburk hos fritösen. (B46)
+- B47: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Den armlösa
+  kontorsstolen `ac2fb38c` (grå) fick gräddvit (`2c905d9d`). Frukostsetet `375bb3c8`
+  (gräddvit) fick svart (`7805b8bc`). Spegelskåpet med bågformad dörr `cd30a5b8` (vit) fick
+  svart (`3c21572e`). Reclinerfåtöljen med fotpall `b1e98da4` (ljusgrå) fick svart
+  (`3dab61f0`). Sparkcykeln med luftdäck `4080448d` (rosa) fick svart (`ea013fde`).
+  Konsolbordet med låda `e37dd9e2` (natur) fick brun (`409b840a`). Elkaminen 45 cm `e3340092`
+  (svart) fick vit (`40a82757`). Mopphinken 26 liter `731c8bfc` (blå) fick gul (`45bac2cb`).
+  Det blev 8 sammanslagningar, 8 omdirigeringar och 14 kopierade recensioner. Två sidor föll
+  först i skrivningens verifiering på kategorierna, fast bulksvaret visade dem kopplade; en
+  omläsning med läget `stampla` gav 8 av 8. Livekontrollen gav 8 av 8 sidor OK, 39 av 39
+  alt-texter och noll textavvikelser, och varje sida visar båda sina färger som val. Alla 8
+  gamla adresser svarade 308 till rätt sida mellan 10:12 och 10:13, vid andra träffen, och
+  mopphinkens vid tredje efter ett anslutningsfel. (B47)
+- Alla åtta givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: kontorsstolen 1 229 och 1 399 kr, frukostsetet 1 029 och 959 kr, spegelskåpet
+  839 kr i båda färgerna, reclinerfåtöljen 2 079 och 1 999 kr, sparkcykeln 1 299 och 1 149 kr,
+  konsolbordet 799 och 859 kr, elkaminen 959 och 1 099 kr och mopphinken 929 och 979 kr. Alla
+  nya färger hade saldo, det bruna konsolbordet bara 9. (B47)
+- Elkaminens svarta sida behölls fast den vita hade mer i saldo (130 mot 83), eftersom den
+  svartas slug inte bär någon färg. Sparktraktorn (`389ac5ac`, `39d85f18`) togs ur rundan:
+  ratten bär New Hollands blad och nummerplåten en modellbeteckning, alltså ett licensierat
+  märke. Mopphinken tog dess plats. (B47)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B47)
+- Jämförelser med andra varor är borta: kontorsstolens text kallade stoppningen dubbelt så
+  tjock som en vanlig kontorsstols och pekade på en ritstol med fotring, sparkcykelns svarta
+  text på en 143 cm lång modell, konsolbordets två texter på varandra med pris (899 och
+  1 009 kr) och elkaminens två texter jämförde uppvärmningsytor mellan modeller. (B47)
+- Alla åtta familjer angav feedens fraktvikt som varans vikt: kontorsstolen (16 kg),
+  frukostsetet (4,17 och 4,2 kg), spegelskåpet (12 kg), reclinerfåtöljen (18 kg), sparkcykeln
+  (9,8 kg), konsolbordet (14,7 kg), elkaminen (6,3 kg) och mopphinken (10,3 kg). Vikten står nu
+  som Fraktvikt. (B47)
+- Nio bilder ströks. Fyra var egna faktakort: tre med fraktvikten som Vikt (sparkcykeln 9,8 kg,
+  elkaminen 6,3 kg och mopphinken 10,3 kg) och elkaminens som rankade den mot vårt sortiment.
+  Fem var miljöbilder med läsbar text på rekvisitan: en tidning hos frukostsetet, etiketter och
+  märken på flaskor i tre bilder hos spegelskåpet och text på en tavla och på böcker hos
+  konsolbordet. (B47)
+- B48: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Hörnskrivbordet
+  med laddstation `2299c521` (vit) fick svart (`9734c1b3`). Tv-bänken i högglans `26f28bf2`
+  (vit) fick vit med skiva i ljus ekton (`e60b4d1a`). Bordsdiskmaskinen `41191212` (vit) fick
+  svart (`a10623cc`). Kosmetikkylen med spegel `d754d015` (vit) fick rosa (`412c9f43`).
+  Boxstället `57986794` (blå) fick svart (`438295ae`). Uppresningsfåtöljen med massage och
+  ländvärme `46cc7e40` (ljusgrå) fick mörkgrå (`462d6355`). Minikylen som kyler och värmer
+  `d5cc9efa` (cremevit) fick rosa (`758f0a80`). Minitorktumlaren `a157be5c` (svart) fick vit
+  (`6b8978ce`). Det blev 8 sammanslagningar, 8 omdirigeringar och 2 kopierade recensioner.
+  Fem sidor föll först i skrivningens verifiering på kategorierna, fast bulksvaret visade dem
+  kopplade. Två hann ikapp vid en omläsning. För uppresningsfåtöljen, minikylen och
+  kosmetikkylen släpade läsningen i över tjugo minuter; Categories-API:t visade dem kopplade,
+  och de stämplades med läget `stampla` i `polish-mapping.yml`. Livekontrollen gav 8 av 8
+  sidor OK, 37 av 37 alt-texter och noll textavvikelser, och varje sida visar båda sina färger
+  som val. Alla 8 gamla adresser svarade 308 till rätt sida vid andra träffen. (B48)
+- Sex givare hade sitt pris satt av konkurrentregeln, och planen varnade för det: hörnskrivbordet,
+  bordsdiskmaskinen, boxstället, uppresningsfåtöljen, minikylen och minitorktumlaren. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: hörnskrivbordet 1 239 och 1 499 kr, tv-bänken 1 559 och 1 799 kr,
+  diskmaskinen 3 019 och 3 169 kr, kosmetikkylen 739 och 959 kr, boxstället 1 269 kr i båda
+  färgerna, uppresningsfåtöljen 6 429 och 6 799 kr, minikylen 699 och 649 kr och
+  torktumlaren 2 739 och 2 749 kr. Den svarta diskmaskinen hade bara 2 i saldo. (B48)
+- Hörnskrivbordets vita sida behölls fast den bara hade 3 i saldo mot den svartas 197. Den
+  svarta sidans bilder, huvudbilden inräknad, bär skärmar med text, skivomslag och figurer på
+  rekvisitan, så givaren bidrog bara med sin måttritning (`bilder` 7), som också är den svarta
+  färgens bild. Tv-bänkens vita sida behölls (146 i saldo mot 174), eftersom ekskivans eget
+  kort talar om leverantören och hade fått strykas. (B48)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B48)
+- Jämförelser och hänvisningar är borta: hörnskrivbordets vita text kallade sig samma bord som
+  den svarta versionen, tv-bänkens två texter pekade på varandra med pris (1 799 och 1 959 kr),
+  diskmaskinens texter hänvisade till varandras färg, uppresningsfåtöljen räknade upp tre
+  andra uppresningsfåtöljer och rekommenderade en annan modell för helt plant läge, och
+  boxstället sa att det också finns i rött och svart. (B48)
+- Sex familjer angav feedens fraktvikt som varans vikt: diskmaskinen (16 kg), kosmetikkylen
+  (2,6 kg), boxstället (13,5 kg), uppresningsfåtöljen (57,3 kg), minikylen (2,2 kg) och
+  torktumlaren (20 kg). Hörnskrivbordets och tv-bänkens texter angav ingen vikt. Vikten står nu
+  som Fraktvikt. (B48)
+- Elva bilder ströks. Fem var egna faktakort: fyra med fraktvikten som vikt (diskmaskinen
+  16 kg, uppresningsfåtöljen 57,3 kg och torktumlaren 20 kg på två kort) och hörnskrivbordets
+  som jämförde med den svarta varianten. Sex var miljöbilder med text eller märken på
+  rekvisitan: skivomslag och en robotfigur i två bilder hos hörnskrivbordet, bokryggar hos
+  tv-bänken, en penna hos kosmetikkylen och flaskor och smink i två bilder hos minikylen. (B48)
+- Uppresningsfåtöljerna i manchester `4635adcb` (brun) och `8151ce59` (ljusgrå) slogs inte ihop
+  i B48. De är två olika modeller: måttritningarna visar 79 × 97 × 103 cm för den bruna och
+  83 × 93 × 110 cm för den ljusgrå, med olika sitsar (54 × 56 mot 51 × 53 cm) och liggmått (153
+  mot 158 cm). Syskonsvepet parade ihop dem för att feeden ger 83 × 93 × 110 cm för båda. Båda
+  sidornas texter säger dessutom emot sina egna måttritningar: den ljusgrå texten anger
+  79 × 97 × 103 cm för sig själv och 83 × 93 × 110 cm för "den bruna systern", och den bruna
+  texten anger 83 × 93 × 110 cm. Texterna ser ut att ha bytt plats. Enligt runbooken avgör
+  måttritningen, men utan de tyska källtexterna går det inte att säga vilken sida som bär fel
+  bilder och vilken som bär fel text, så ingen av dem är ändrad. Båda sidorna behöver ses över
+  mot sina källor. (B48)
+- Öronlappsfåtöljerna `a29af9b5` (blå), `72f30eb9` (cremevit) och utkastet `e16668e2`
+  (mörkgrön) slogs inte ihop i B48. De är samma modell som B40:s sammanslagna sida `7b98c4c1`
+  (74 × 86 × 102 cm, sittyta 48,5 × 53 cm, sitthöjd 47 cm och 160 kg), som redan bär mörkgrått,
+  grått och brunt. De hör hemma som tre val till på den sidan (läget `utoka`), men då måste
+  sidans text räkna upp sex färger och klädslarna per färg, och skrivplanen skriver bara sidor
+  med en variant. Två publicerade sidor för samma vara finns kvar tills det finns en skrivväg
+  för text på flervariantsidor. (B48)
+- B50: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Bäddfåtöljen
+  190 × 80 cm `38ca04a9` (blå) fick mörkgrå (`4abad4c4`). Kontorsstolen med utdragbart fotstöd
+  `494da920` (beige) fick brun (`e1a46c56`). Sparkcykeln med stort framhjul `89deaca7` (turkos)
+  fick orange (`4fd26086`). Massagebänken i tre zoner `5078bedf` (svart och röd) fick vit
+  (`a353ea02`). Sparkcykeln 139 cm med luftdäck `5129f6b0` (vit) fick svart (`50b28808`).
+  Tresitssoffan i manchester `5531de28` (mörkgrå) fick krämvit (`59aeb88a`). Bäddfåtöljen med
+  190 cm bädd `57ba0224` (ljusgrå) fick cremevit (`583577bc`). Gungfåtöljen med fotpall
+  `d551aa1d` (beige) fick grå (`59544dc3`). Det blev 8 sammanslagningar, 8 omdirigeringar och
+  34 kopierade recensioner. Skrivningen verifierade 8 av 8 sidor. Livekontrollen gav 8 av 8
+  sidor OK, 38 av 38 alt-texter och noll textavvikelser, och varje sida visar båda sina färger
+  som val. Den mörkgrå bäddfåtöljen visas som slut i lager, eftersom givaren hade 0 i saldo.
+  Alla 8 gamla adresser svarade 308 till rätt sida inom en halvtimme. (B50)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: bäddfåtöljen 190 × 80 cm 2 699 och 2 379 kr, kontorsstolen 1 969 och 1 979 kr,
+  sparkcykeln med stort framhjul 1 059 och 1 019 kr, massagebänken 1 479 och 1 469 kr,
+  sparkcykeln 139 cm 1 099 och 1 039 kr, soffan 5 249 och 4 599 kr, bäddfåtöljen med 190 cm
+  bädd 3 199 och 2 959 kr och gungfåtöljen 2 399 och 2 459 kr. (B50)
+- Soffans mörkgrå sida behölls, eftersom den krämvita sidans oförändrade slug bär
+  `212-manchester`, som skrivplanens formkontroll fäller. Massagebänken fick givarens
+  huvudbild och en bild till (`bilder` 1,4). (B50)
+- Fåtöljerna på 360° vridbar träfot `566c7702` (svart) och `9bd6d1d4` (grå) slogs inte ihop i
+  B50. Båda sidornas oförändrade sluggar bär `135-grader`, som formkontrollen fäller, så ingen
+  av dem går att skriva med workflowen. (B50)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B50)
+- Jämförelser och hänvisningar är borta: bäddfåtöljen 190 × 80 cm ställde sin bredd och sin
+  sits mot två andra bäddfåtöljer, massagebänkens texter pekade på en bänk i trä och en
+  tvåzonsmodell, och sparkcykelns texter pekade på en annan modell och en med packutrymme. (B50)
+- Bäddfåtöljen med 190 cm bädd sa i båda sina gamla texter att den också finns i mörkgrönt och
+  beige. Syskonsvepet parade bara ihop den ljusgrå och den cremevita sidan, så om de andra
+  färgerna finns som sidor ligger de utanför svepets familj och är inte kontrollerade. (B50)
+- Sparkcykeln 139 cm: måttritningen märker hjulet med 41 cm, medan båda texterna anger luftdäck
+  på Ø40 cm. Texten står kvar på Ø40 cm och bör ses över mot källan. (B50)
+- Alla åtta familjer angav feedens fraktvikt som varans vikt: bäddfåtöljen 190 × 80 cm (22 kg),
+  kontorsstolen (19 kg), sparkcykeln med stort framhjul (9,5 kg), massagebänken (17,5 kg),
+  sparkcykeln 139 cm (9,5 kg), soffan (53,4 kg), bäddfåtöljen med 190 cm bädd (20,5–21 kg)
+  och gungfåtöljen (21 kg). Vikten står nu som Fraktvikt. (B50)
+- Fem bilder ströks: tre egna faktakort med fraktvikten som vikt (kontorsstolen 19 kg,
+  massagebänken 17,5 kg på ett kort som också jämförde med den vita bänken, och sparkcykeln
+  139 cm 9,5 kg) och två miljöbilder med läsbar text på rekvisitan: bokryggar hos soffan och
+  en tidning hos bäddfåtöljen med 190 cm bädd. (B50)
+- B49: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Elkaminen 45,5 cm
+  `f5c82909` (svart) fick vit (`540c23cd`). Skoskåpet för 12 par `66f1f343` (grå) fick vit
+  (`5b5855b9`). Kontorsstolen med 74 cm hög rygg `ad3aa881` (grå) fick svart (`82d5fa29`).
+  Verktygslådan med sex lådor `94925af2` (svart och röd) fick helsvart (`aae03048`).
+  Väggvärmaren 45 cm `d15b8a6a` (svart) fick vit (`9d484604`). Ritstolen med nätrygg `c131b430`
+  (grå) fick svart (`ad27954b`). Moppvagnen 25 liter `d8ebb279` (blå) fick gul (`da0f30b2`).
+  Verktygsvagnen 113 cm med 16 lådor `b920d526` (röd) fick blå (`d9965552`). Det blev 8
+  sammanslagningar, 8 omdirigeringar och 31 kopierade recensioner. Skrivningen verifierade 8 av
+  8 sidor. Livekontrollen gav 8 av 8 sidor OK, 30 av 30 alt-texter och noll textavvikelser, och
+  varje sida visar båda sina färger som val. Tre gamla adresser svarade 308 inom en halvtimme.
+  Fem serverades som vanliga sidor i över en timme: butikens cache renderade om dem 11:30, efter
+  sammanslagningen, med den gamla produktdatan, och de svarade 308 först när den renderingen gick
+  ut. Alla 8 svarade 308 till rätt sida 12:51. (B49)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: elkaminen 879 och 949 kr, skoskåpet 969 och 999 kr, kontorsstolen 979 och 959 kr,
+  verktygslådan 1 129 och 1 199 kr, väggvärmaren 719 och 669 kr, ritstolen 1 179 och 1 199 kr,
+  moppvagnen 959 kr i båda färgerna och verktygsvagnen 3 279 och 3 299 kr. (B49)
+- Kontorsstolen fick givarens huvudbild och en bild till (`bilder` 1,4). Ritstolen fick
+  givarens huvudbild och dess måttritning (`bilder` 1,3), eftersom den grå sidans måttbild
+  angav 76,5 cm djup och 24–41 cm, i strid med stolens mått, och ströks. (B49)
+- Två tal är avlästa på måttritningarna och kvitterade i `foto-tal.txt`: skoskåpets kant på
+  ovansidan, 9 cm, och ritstolens armstöd, 18 cm över sitsen på båda färgernas ritningar. (B49)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B49)
+- Verktygsvagnens två texter pekade på varandras färg och på ett verktygsskåp på 82 cm. Den
+  hänvisningen är borta. (B49)
+- Sju familjer angav feedens fraktvikt som varans vikt: elkaminen (4,6 kg), skoskåpet (28 kg),
+  kontorsstolen (12,6 kg), verktygslådan (14,9 kg), ritstolen (13,9 kg), moppvagnen (9,5 kg) och
+  verktygsvagnen (41,7 kg). Väggvärmarens texter angav ingen vikt. Vikten står nu som
+  Fraktvikt. (B49)
+- Sjutton bilder ströks. Fem var egna faktakort med fraktvikten som vikt (elkaminen, skoskåpet,
+  verktygslådan, moppvagnen och verktygsvagnen) och två var andra egna kort: elkaminens, som
+  angav bredden till 36 cm fast den är 36,5 cm, och väggvärmarens, som rankade den mot vårt
+  sortiment. En var ritstolens måttbild och en var en kopia av verktygsvagnens huvudbild. Åtta
+  var miljöbilder med läsbar text eller märken på rekvisitan: boktitlar och ljus hos skoskåpet
+  (två bilder), böcker, en kalender och en tidning hos kontorsstolen (tre bilder), förpackningar
+  och en kartong hos verktygslådan (två bilder) och en bok hos väggvärmaren. (B49)
+- B53: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Det portabla
+  växthuset 180 × 180 cm `601ae5f5` (vitt) fick grönt (`ed4fd2a9`). Drivbänken 90 × 46 cm
+  `6e60b45a` (orange) fick grå (`87485b8a`). Miniväxthuset 100 × 65 cm `83a5fc0e` (brunt) fick
+  grått (`e0b85bb6`). Minifrysen 35 liter med vändbar dörr `b2c76518` (svart) fick silver
+  (`9a33e15f`) och vitt (`d4e79563`). Soptunnan med två fack `a00882ed` (vit) fick grå
+  (`9fa9af24`). Sparkcykeln med korg `b03784dc` (rosa) fick blå (`e4e5a8ef`). Gungstolen i
+  teddytyg `b4441140` (gräddvit) fick ljusgrå (`dd4e1e06`). Foliehuset 200 × 75 cm `be595bfd`
+  (vitt) fick grönt (`cc2add44`). Det blev 9 sammanslagningar, 9 omdirigeringar och 33
+  kopierade recensioner. Skrivningen verifierade 8 av 8 sidor, och livekontrollen gav 8 av 8
+  sidor OK och 38 av 38 alt-texter. Alla 9 gamla adresser svarade 308 till rätt sida 13:14. (B53)
+- Alla nio givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: växthuset 849 och 799 kr, drivbänken 759 och 769 kr, miniväxthuset 919 kr i båda
+  färgerna, minifrysen 1 549 kr i svart och silver och 1 999 kr i vitt, soptunnan 1 159 och
+  1 139 kr, sparkcykeln 1 299 och 1 169 kr, gungstolen 1 699 kr i båda färgerna och foliehuset
+  799 och 719 kr. (B53)
+- Den vita minifrysen `d4e79563` är samma modell som den svarta och den silverfärgade. De
+  låsbara minifrysarna på 35 liter (`8cfe5171` vit, `a33ece7a` grå) är en annan modell, med
+  nyckellås, 161 W och en dörr som öppnas 135° mot 45 W och 180°, och slogs ihop för sig i
+  B54. (B53)
+- Drivbänkens orange sida behölls, eftersom den grå sidans oförändrade slug bär
+  `gra-90x46x40`, som skrivplanens formkontroll fäller. (B53)
+- Tre paviljongtaksfamiljer slogs inte ihop, eftersom sidornas oförändrade sluggar fälls av
+  formkontrollen: dubbeltaket 3 × 3 m (`60eaf40e`, `df5a7190`) och Oxford-taken 3 × 3 m
+  (`d01a6d2b`, `d52c6d1d`) och 3 × 4 m (`dc7d2513`, `ef0a812d`). (B53)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B53)
+- Tre tal är avlästa på bilderna och kvitterade i `foto-tal.txt`: gungstolens armstöd, 20 cm
+  över sitsen på måttritningen, och foliehusets markkant, 10 cm, och två nätfönster. (B53)
+- Växthusets gamla text kallade golvytan knappt fyra kvadratmeter. 1,8 × 1,8 m är 3,2 m², och
+  texten säger nu det. (B53)
+- Jämförelser och hänvisningar är borta: soptunnans texter pekade på modeller på 40 och 56
+  liter, sparkcykelns texter jämförde med andra sparkcyklar och gungstolens pekade på en gungstol
+  med knappad rygg. (B53)
+- Sju familjer angav feedens fraktvikt som varans vikt: växthuset (9,4 kg), drivbänken (4,8 kg),
+  miniväxthuset (6,3 kg), minifrysen (15 kg), soptunnan (10,6 kg), gungstolen (13,8 kg) och
+  foliehuset (6,1 kg). Sparkcykelns texter angav ingen vikt. Vikten står nu som Fraktvikt. (B53)
+- Fyra bilder ströks: två egna faktakort med fraktvikten som vikt (soptunnan 10,6 kg och
+  gungstolen 13,8 kg) och två miljöbilder med läsbar text på rekvisitan: en tidning hos
+  soptunnan och boktitlar på minifrysen. (B53)
+- B51: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Garagetältet 120 ×
+  179 cm `a165b178` (mörkgrått) fick ljusgrått (`72051417`). Bäddfåtöljen i manchester med bädd
+  90 × 190 cm `82798d95` (mörkgrå) fick beige (`dd2f1769`). Reclinerfåtöljen med massage och
+  uppresningshjälp `8a7def5c` (ljusgrå) fick blågrå (`cd59ec1e`). Barnsoffan på 77 cm `8f150623`
+  (rosa) fick grå (`b24ce3da`). Kontorsstolen i linnetyg `91f0f3f8` (grå) fick ljusblå
+  (`bca22a86`). Rullpallen med oval rygg `98c1b3cb` (svart) fick vit (`983fe163`).
+  Massagefåtöljen med vridbar fotpall `7062dc79` (cremevit) fick svart (`9c8a7a80`).
+  Frukostsetet med termometer `e7f69e8a` (svart) fick gräddvitt (`83d2db1a`). Det blev 8
+  sammanslagningar, 8 omdirigeringar och 34 kopierade recensioner. Skrivningen verifierade 8 av
+  8 sidor, och livekontrollen gav 7 av 8 sidor OK och 33 av 33 alt-texter. Alla 8 gamla adresser
+  svarade 308 till rätt sida 14:12. (B51)
+- Sju av åtta givare hade sitt pris satt av konkurrentregeln, alla utom bäddfåtöljens, och
+  planen varnade för det. Efter sammanslagningen följer de nya varianterna husets regel från
+  nästa synk. Priserna står kvar per variant: garagetältet 1 199 och 1 119 kr, bäddfåtöljen 3
+  149 och 3 229 kr, reclinerfåtöljen 7 579 och 7 239 kr, barnsoffan 1 099 och 1 079 kr,
+  kontorsstolen 1 669 och 1 479 kr, rullpallen 639 och 799 kr, massagefåtöljen 2 169 och 2 299
+  kr och frukostsetet 919 kr i båda färgerna. (B51)
+- ÖPPEN: barnsoffans brödsmula visar Soffor & bäddsoffor, inte Barnmöbler, och det är den sidan
+  livekontrollen fällde. Sidan har legat i Soffor & bäddsoffor sedan tidigare, och skrivplanen
+  kan bara lägga till kategorier, inte ta bort dem. Kopplingen behöver tas bort i Wix. (B51)
+- Den cremevita massagefåtöljens måttritning hade bytt plats på liggmåtten 105 och 90 cm och
+  ströks. Den svarta givarens måttritning (bild 6) följde med i stället, tillsammans med dess
+  huvudbild. För reclinerfåtöljen, kontorsstolen och frukostsetet följde givarens bild 1 och 2
+  med. (B51)
+- Två tal är avlästa på måttritningarna och kvitterade i `foto-tal.txt`: barnsoffans armstöd, 33
+  cm över golvet, och kontorsstolens armstöd, 66,5–76,5 cm. (B51)
+- Rumsavdelarna på 160 och 320 cm slogs inte ihop, eftersom sidornas oförändrade sluggar fälls
+  av formkontrollen. (B51)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B51)
+- Jämförelser och hänvisningar är borta: bäddfåtöljens texter pekade på en bäddfåtölj med bädd
+  190 × 72 cm, garagetältets på ett cykelgarage på 245 cm, kontorsstolens på en ljusgrå stol med
+  högre bärighet, rullpallens på en arbetspall med fotring och massagefåtöljens på tretton andra
+  massagefåtöljer i fyra modeller. (B51)
+- Sex familjer angav feedens fraktvikt som varans vikt: bäddfåtöljen (24 kg), reclinerfåtöljen
+  (52 kg), barnsoffan (7 kg), kontorsstolen (16,8 kg), rullpallen (5,1 kg) och frukostsetet (3
+  kg, på kortet 2,98 kg). Garagetältets 14 kg stod bara på ett eget kort, och massagefåtöljens
+  texter angav ingen vikt. Vikten står nu som Fraktvikt. (B51)
+- Nio bilder ströks. Tre var egna faktakort med fraktvikten som vikt (garagetältet 14 kg,
+  reclinerfåtöljen 52 kg och frukostsetet 2,98 kg), och ett var ett eget kort som jämförde
+  reclinerfåtöljen med andra reclinerfåtöljer. Fyra var miljöbilder med läsbar text på
+  rekvisitan: en bokrygg hos bäddfåtöljen, ett bokomslag och en tavla med engelsk text hos
+  barnsoffan och ett varumärke och kinesisk text på skärm och pärmar hos kontorsstolen. Den
+  nionde var massagefåtöljens måttritning med förväxlade liggmått. (B51)
+- B52: åtta familjer med flera publicerade sidor slogs ihop till en sida var. Hörnbäddsoffan på
+  205 cm `620605d5` (mörkgrå) fick beige (`72028ee1`). Projektorduken på 84 tum `623b6504`
+  (svart) fick vit (`77e4a558`). Hurtsen med tre låsbara lådor `66c9f2b5` (svart) fick vit
+  (`9ba9af92`). Minidrivhuset i trä 90 × 52 cm `679e72f9` (natur) fick grått (`760f493a`).
+  Loungefåtöljen med fotpall `79797c9a` (blå) fick ljusgrå (`8ca7b3c3`). Öronlappsfåtöljen med
+  fotpall `c0e67ea5` (grå) fick gul (`92a64ccd`). Matstolarna i 4-pack i sammetslook `e768ff5c`
+  (grå) fick rosa (`fcc34956`). Verktygsvagnen på 69 cm `f4fabca6` (röd) fick svart
+  (`bc698424`). Det blev 8 sammanslagningar, 8 omdirigeringar och 22 kopierade recensioner.
+  Skrivningen verifierade 8 av 8 sidor, och livekontrollen gav 8 av 8 sidor OK och 36 av 36
+  alt-texter. Alla 8 gamla adresser svarade 308 till rätt sida 14:12. (B52)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: hörnbäddsoffan 8 259 och 8 149 kr, projektorduken 1 139 och 1 359 kr, hurtsen 1
+  449 och 1 399 kr, minidrivhuset 799 och 769 kr, loungefåtöljen 3 279 och 3 229 kr,
+  öronlappsfåtöljen 3 369 och 3 119 kr, matstolarna 1 799 kr i båda färgerna och verktygsvagnen
+  2 169 och 2 139 kr. Den vita hurtsen hade bara 2 i saldo vid sammanslagningen. (B52)
+- Minidrivhusets naturfärgade sida behölls, eftersom den grå sidans oförändrade slug bär
+  `tra-90x52`, som formkontrollen fäller. Studsmattan på 140 cm (`5e2b5b77`, `a8f46ff0`) slogs
+  inte ihop av samma skäl. (B52)
+- Hurtsen `66c9f2b5` är en annan modell än hurtsen med infällda handtag (`21a12739`, `9b8c7308`,
+  slogs ihop i B54) och den greppfria `3273d2ee`. Ett femte hjul som tippskydd nämns inte,
+  eftersom den vita hurtsens text bara anger fyra hjul. (B52)
+- Av verktygsvagnens svarta givare följde bild 1 och 6 med. (B52)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. (B52)
+- Jämförelser och hänvisningar är borta: hörnbäddsoffans texter pekade på en U-soffa på 311 cm
+  och en bäddsoffa, minidrivhusets jämförde med en drivbänk, loungefåtöljens med en modell med
+  fällbar rygg, öronlappsfåtöljens med smalare öronlappsfåtöljer och matstolarnas på fyrpacket i
+  rosa och på en 58 cm bred stol vid ett bord på 160 cm. (B52)
+- Alla åtta familjer angav feedens fraktvikt som varans vikt: hörnbäddsoffan (80,5 kg),
+  projektorduken (7,4 kg), hurtsen (21 kg), minidrivhuset (4,9 kg), loungefåtöljen (23,5 kg),
+  öronlappsfåtöljen (28 kg), matstolarna (20,5 kg för alla fyra) och verktygsvagnen (25,7 kg).
+  Vikten står nu som Fraktvikt. (B52)
+- Nio bilder ströks. Fem var egna faktakort med fraktvikten som vikt (hörnbäddsoffan,
+  projektorduken, loungefåtöljen, matstolarna och verktygsvagnen). Fyra var miljöbilder med
+  läsbar text eller märken på rekvisitan: en förstärkares display hos projektorduken och
+  bokryggar, affischrullar, en tavla och ett märke på en hängmapp hos hurtsen. (B52)
+- B54: sju familjer med flera publicerade sidor slogs ihop till en sida var.
+  Massagekontorsstolen med 155° ryggläge `94979299` (mörkgrå) fick brun (`18f0433f`) och grå
+  (`25ae2ad8`). Hurtsen med infällda handtag `21a12739` (svart) fick vit (`9b8c7308`). Den
+  låsbara minifrysen på 35 liter `8cfe5171` (vit) fick grå (`a33ece7a`). Solstolarna i 2-pack
+  `9ed7ad7a` (grå) fick svart (`85ffb47b`). Sminkstolen i teddytyg `a5454821` (rosa) fick
+  gräddvit (`ce10bfe8`). Kontorsstolen i mikrofiber `c0134bdf` (mörkgrå) fick ljusgrå
+  (`ed9f6e73`). Köksvagnen på 80 cm `d4db4bbc` (svart) fick vit (`e16c1515`). Det blev 8
+  sammanslagningar, 8 omdirigeringar och 46 kopierade recensioner. Skrivningen verifierade 7 av
+  7 sidor, och livekontrollen gav 7 av 7 sidor OK och 25 av 25 alt-texter. Alla 8 gamla adresser
+  svarade 308 till rätt sida 13:47. (B54)
+- Alla åtta givare hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel från nästa synk. Priserna står kvar
+  per variant: massagekontorsstolen 1 719 kr i mörkgrått, 1 969 kr i brunt och 1 679 kr i grått,
+  hurtsen 1 539 och 1 529 kr, minifrysen 1 769 kr i båda färgerna, solstolarna 1 099 och 1 059
+  kr, sminkstolen 1 249 och 1 349 kr, kontorsstolen i mikrofiber 1 399 och 1 319 kr och
+  köksvagnen 1 549 och 1 249 kr. (B54)
+- Två nya färger var slutsålda hos Aosom vid sammanslagningen och syns som slut tills synken ser
+  lager: de svarta solstolarna och den gräddvita sminkstolen. (B54)
+- Den vita hurtsen med greppfri front `3273d2ee` hör inte till familjen. Den har släta fronter
+  utan handtag och är en annan modell, trots samma mått i feeden, och ligger kvar som egen sida.
+  (B54)
+- Den grå massagekontorsstolen har kromad kryssfot, de två andra svart. Texten säger det. (B54)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla sju. (B54)
+- Köksvagnens måttritning visar det öppna facket ovanför skåpet som 54,8 × 38 cm, medan de två
+  gamla texterna angav 54,5 × 36,5 cm respektive 52,3 × 35 cm. Ritningens mått står i texten och
+  är kvitterat i `foto-tal.txt`. (B54)
+- Jämförelser och hänvisningar är borta: hurtsens texter pekade på en vit hurts på 60 cm med
+  bromsade hjul och på den greppfria modellen, massagekontorsstolens på en modell med fler
+  massagepunkter och solstolarnas på fällstolar med 37 cm sitthöjd och trädgårdsstolar med hög
+  rygg. (B54)
+- Alla sju familjer angav feedens fraktvikt som varans vikt: massagekontorsstolen (21 kg),
+  hurtsen (22 kg), minifrysen (15 kg), solstolarna (10 kg för båda), sminkstolen (9,5 kg),
+  kontorsstolen i mikrofiber (14,6 kg) och köksvagnen (28 kg). Vikten står nu som Fraktvikt.
+  (B54)
+- Tolv bilder ströks. Tre var egna faktakort med fraktvikten som vikt (hurtsen 22 kg,
+  sminkstolen 9,5 kg och köksvagnen 28 kg). Nio var miljöbilder med läsbar text eller märken på
+  rekvisitan: boktitlar och en datorlogotyp hos massagekontorsstolen (två bilder), märken på
+  matförpackningar och en affisch hos minifrysen, en tidning och ett tangentbord med en boktitel
+  hos sminkstolen, en boktitel hos kontorsstolen i mikrofiber och kryddetiketter och kokböcker
+  hos köksvagnen. (B54)
+- Köksvagnens sida renderades 13:18, två minuter efter sammanslagningen, utan beskrivningen:
+  butiken visade sin korta reservtext i stället, fast Wix hade hela texten. Den renderingen låg
+  kvar i butikens cache en timme. Omrenderingen 14:19 visade hela texten, och livegrind gav diff
+  0 på alla sju sidor. (B54)
+- B55: sju familjer med flera publicerade sidor slogs ihop till en sida var. Matstolarna i
+  2-pack med medaljongrygg `5efe45d0` (grå) fick cremevit (`1876d935`). De mjuka byggklossarna i
+  fem delar `19f7c013` (flerfärgade) fick blå/grön/grå (`1d3f6755`). Öronlappsfåtöljen med
+  knappad rygg `a29af9b5` (blå) fick cremevit (`72f30eb9`) och mörkgrön (`e16668e2`, ett
+  opublicerat utkast). Massagebänken i trä `754a4749` (svart) fick creme (`a9555a7d`).
+  Sparkcykeln på 143 cm `79186373` (rosa) fick svart (`c4375606`). Matstolarna i 2-pack med
+  skalformad rygg `2f251ce3` (grå) fick svart (`0b994092`). Massagefåtöljen med uppresning
+  `6fb217e5` (mörkgrå) fick gråbrun (`536cfd1e`). Det blev 8 sammanslagningar, 7 omdirigeringar
+  (utkastet hade ingen adress) och 59 kopierade recensioner. Skrivningen verifierade 7 av 7
+  sidor, och livekontrollen gav 7 av 7 sidor OK och 36 av 36 alt-texter. Alla 7 gamla adresser
+  svarade 308 till rätt sida 14:12. (B55)
+- Sex av åtta givare hade sitt pris satt av konkurrentregeln, alla utom massagebänkens och
+  massagefåtöljens, och planen varnade för det. Efter sammanslagningen följer de nya varianterna
+  husets regel från nästa synk. Priserna står kvar per variant: matstolarna med medaljongrygg 2
+  129 och 2 179 kr, byggklossarna 1 149 och 1 159 kr, öronlappsfåtöljen 2 299 kr i blått, 2 199
+  kr i cremevitt och 2 329 kr i mörkgrönt, massagebänken 1 439 och 1 529 kr, sparkcykeln 1 229
+  och 1 179 kr, matstolarna med skalformad rygg 1 699 och 1 399 kr och massagefåtöljen 7 599 och
+  7 019 kr. (B55)
+- Öronlappsfåtöljens mörkgröna utkast är klätt i linnelook, de två publicerade färgerna i
+  flanell, och texten säger det. Utkastets tyska totalmått, 74 × 86 × 102 cm, stämmer med
+  texten, så axelfacit gick igenom för den familjen och kvitterades för de sex andra. (B55)
+- Sex familjer togs inte med. Sparktraktorn (`389ac5ac`, `39d85f18`) bär New Hollands blad på
+  ratten, som redan noterats i B47. Gungstolen `25405611` har redan fem varianter sedan B38, och
+  `48432e48` är en annan modell (se B38). Uppresningsfåtöljen som bär 200 kg (`8fe8ffba`) har
+  redan två varianter, och skrivplanen kan inte skriva om en sådan sida, så den cremevita
+  (`3a9df24e`) väntar. Uppresningsfåtöljerna i manchester (`4635adcb`, `8151ce59`) har
+  måttritningar som säger emot texterna, och den bruna sidans slug fälls av formkontrollen.
+  Rumsavdelarnas sluggar på 180 cm (`a999f2b1`, `c35f9d4f`) fälls båda av formkontrollen.
+  Växthusen 190 × 252 cm (`1a46d2af` grönt, `b5ba12b8` premium) hade saldo 1 och 0 och olika
+  namn och pris (4 999 och 6 029 kr), så de ska ses med bilderna innan något slås ihop. (B55)
+- Två utkast av matstolarna med medaljongrygg (`817e1869`, `98245bb2`) och ett av byggklossarna
+  (`b50bd167`) har samma färg som en variant som redan finns och lämnades orörda. (B55)
+- Jämförelser och hänvisningar är borta: öronlappsfåtöljens texter pekade på en gul
+  öronlappsfåtölj med fotpall, matstolarnas med medaljongrygg på den andra färgens sida,
+  matstolarnas med skalformad rygg på samma stol med stålben och sparkcykelns på en modell med
+  styre från 75 cm och en blå på 139 cm. (B55)
+- Alla sju familjer angav feedens fraktvikt som varans vikt: byggklossarna (5 kg), båda
+  matstolsfamiljerna (13,5 kg för båda stolarna), massagefåtöljen (49,9 kg), massagebänken (15,5
+  kg), sparkcykeln (10,6 kg) och öronlappsfåtöljen (21,6 kg). Vikten står nu som Fraktvikt.
+  (B55)
+- Fem bilder ströks: fyra egna faktakort med fraktvikten som vikt (byggklossarna 5 kg,
+  massagefåtöljen 49,9 kg, massagebänken 15,5 kg och sparkcykeln 10,6 kg) och en miljöbild med
+  en läsbar affisch hos byggklossarna. (B55)
+- B56: åtta familjer med en publicerad sida och ett opublicerat utkast slogs ihop till en sida
+  var. Trädgårdsbänken i konstrotting 122 cm `07ab8b54` (grå) fick svart (`53a27505`). Den
+  snurrbara loungefåtöljen i chenille `383570d2` (grå) fick cremevit (`5335ebe1`). Kontorsstolen
+  i teddyfleece `3c8fe7db` (krämvit) fick rosa (`c47838e6`). Reclinerfåtöljen med massage, snurr
+  och gungfunktion `4164ef63` (grå) fick brun (`7b1a4f0e`). Uppresningsfåtöljen i konstläder
+  `485cf3e8` (svart) fick mörkbrun (`0dbef9f5`). Loungefåtöljen med fotpall i chenille
+  `b37a10e1` (krämvit) fick grå (`c9b05838`). Kontorsstolen med massage och vippfunktion
+  `b78d4cc6` (svart) fick cremevit (`534f1b1d`). Barstolarna i 2-pack `856d1d1d` (ljusgrå) fick
+  beige (`5e3b71a7`). Det blev 8 sammanslagningar och varken omdirigeringar eller kopierade
+  recensioner, eftersom givarna var utkast. Skrivningen verifierade 8 av 8 sidor, och
+  livekontrollen gav 8 av 8 sidor OK och 32 av 32 alt-texter, med båda färgerna som val med bild
+  och i lager på alla åtta. (B56)
+- Sex av åtta givare hade sitt pris satt av konkurrentregeln, alla utom loungefåtöljens med
+  fotpall och massagekontorsstolens, och planen varnade för det. Efter sammanslagningen följer
+  de nya varianterna husets regel från nästa synk. Priserna står kvar per variant: bänken 959
+  och 1 019 kr, den snurrbara loungefåtöljen 3 049 och 2 999 kr, kontorsstolen i teddyfleece 839
+  och 869 kr, reclinerfåtöljen 4 279 och 4 169 kr, uppresningsfåtöljen 5 919 och 5 169 kr,
+  loungefåtöljen med fotpall 2 999 och 3 039 kr, massagekontorsstolen 1 939 och 1 929 kr och
+  barstolarna 1 449 och 1 479 kr. (B56)
+- Fyra familjer skiljer sig mellan färgerna, och texterna säger det: bänken bär 320 kg i grått
+  och 240 kg i svart, reclinerfåtöljen bär 120 kg i grått och 135 kg i brunt, där den bruna har
+  sammetsliknande tyg, barstolarna är klädda i linnelook i ljusgrått och i chenille i beige, och
+  massagekontorsstolens fraktvikt är 20,3 kg i svart och 20,5 kg i cremevitt. (B56)
+- Axelfacit gick igenom för alla åtta familjer utan kvittering. (B56)
+- Alla åtta publicerade texter angav feedens fraktvikt som varans vikt: bänken (10,3 kg), den
+  snurrbara loungefåtöljen (21,5 kg), kontorsstolen i teddyfleece (9,7 kg), reclinerfåtöljen
+  (49,5 kg), uppresningsfåtöljen (50 kg), loungefåtöljen med fotpall (20,8 kg),
+  massagekontorsstolen (20,3 och 20,5 kg) och barstolarna (15,5 kg för båda). Vikten står nu som
+  Fraktvikt. (B56)
+- Sex bilder ströks: två egna faktakort med fraktvikten som vikt (bänken 10,3 kg och
+  kontorsstolen i teddyfleece 9,7 kg) och fyra miljöbilder med märken eller läsbar text på
+  rekvisitan: ett kameramärke och en datorlogotyp hos kontorsstolen i teddyfleece och boktitlar
+  och märken på en kamera och en dator hos loungefåtöljen med fotpall. (B56)
+- B57: de 20 senast importerade utkasten (2026-09-28 04:42–04:44) och fem äldre syskon blev åtta
+  sidor. Stolsdynorna med låg rygg `39d10fc4` (mörkblå) fick ljusgrå (`507875a2`), beige
+  (`98b89bc9`) och mörkgrå (`e61a175b`). Hammocköverdraget `91f5c078` (205 cm, mörkgrön) fick
+  ljusgrå (`491c8d4c`), svart (`a2dd5dc8`) och mörkgrå (`b1ad1179`) i 205 cm, och ljusgrå
+  (`2a5d48f1`), mörkgrå (`5b00f7e0`) och mörkgrön (`b76cb511`) i 177 cm, alltså sju varianter
+  på axlarna Färg × Storlek. Solsängen med soltak `1174c0c4` (brun) fick grå (`0f348d94`) och röd
+  (`16d41e97`). Bänkdynan med rygg `a7aa9370` (100 cm, svart) fick mörkgrå (`d7363b90`) i 100 cm
+  och beige (`e5555f93`) och ljusgrå (`91b18246`) i 150 cm. Reservtaket till paviljong 3 × 3 m
+  `e969501f` (brun) fick mörkgrå (`50410801`) och beige (`dd2ee3da`). Myggnätet till parasoll
+  `152a915d`, sidobordet i metall `3e95a07a` och bistrobordet `0523532e` blev egna sidor. Det
+  blev 16 sammanslagningar, alla verifierade vid återläsning, och varje färgval har en egen
+  kopplad bild. Skrivningen verifierade 8 av 8 sidor, och livekontrollen gav diff 0 på alla
+  åtta, 8 av 8 OK och 34 av 34 alt-texter. (B57)
+- **`f03641c1`** (reservtak till paviljong 3 × 3 m, grön, 519 kr, saldo 197) hölls tillbaka. Det
+  är samma tak som den publicerade AliExpress-sidan `fc5e7fde` (*Paviljongtak 3x3 m – reservtak
+  i polyester med ventilerad topp*), som redan säljer grönt: samma väv på 180 g/m², ventilerad
+  topp, åtta dräneringshål och hörnfickor, och hörnfickan ser likadan ut på båda sidornas foton.
+  Mappningen saknar
+  `supplier`, så sidan är AliExpress, och den har tre varianter (orange, ljusgrå, grön).
+  Ommappningen vägrar sidor med flera varianter, så brun, mörkgrå och beige blev den egna
+  Aosom-sidan `e969501f`. Två publicerade sidor säljer alltså samma tak i olika färger tills det
+  finns en väg att mappa om en AliExpress-sida med flera varianter. (B57)
+- Tre familjer skiljer sig inom sidan, och texterna säger det: bänkdynan är tätt tuftad i svart
+  och beige och glesare tuftad i mörkgrått och ljusgrått (samma mått, tyg och stoppning),
+  reservtaket mäter 298 × 298 cm och fästs med kardborreband i brunt och beige men 298 × 295 cm
+  med snören i mörkgrått, och hammocköverdragets 177 cm finns inte i svart. (B57)
+- Sex bilder ströks: tysk text på stolsdynornas, bänkdynans och reservtakets miljöbilder och
+  måttbild, en hängetikett med leverantörens märke och engelsk text på solsängen och en kolsäck
+  med läsbart märke på bistrobordets miljöbild. Samma skäl gäller syskonens bilder, men av dem
+  följer bara huvudbilden med, och alla huvudbilder är rena. (B57)
+- Sidobordet `3e95a07a` har ingen vikt på sidan: källan anger 4 kg netto och 3 kg med
+  förpackning, och de två går inte att förena. (B57)
