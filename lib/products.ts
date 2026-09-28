@@ -591,6 +591,37 @@ export async function getProductImages(slug: string): Promise<Pick<Product, "img
   }
 }
 
+/**
+ * Aktuellt pris och lagerstatus för NÅGRA produkter, direkt från Wix — ett
+ * uppslag per slug, parallellt.
+ *
+ * För Fyndauktionen. getProducts() håller katalogen i modulen så länge
+ * instansen lever, men auktionspriset byts varje timme: en varm instans visade
+ * då förra timmens pris på kortet medan nedräkningen gick vidare.
+ * Saknas en produkt, eller fallerar uppslaget, utelämnas den; anroparen
+ * faller då tillbaka på katalogen.
+ */
+export async function getFreshPrices(
+  slugs: string[],
+): Promise<Map<string, Pick<Product, "priceNum" | "inStock">>> {
+  const out = new Map<string, Pick<Product, "priceNum" | "inStock">>();
+  if (!wix || slugs.length === 0) return out;
+  await Promise.all(
+    slugs.map(async (slug) => {
+      try {
+        const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
+        const item = res.items?.[0];
+        if (!item) return;
+        const p = mapProduct(item);
+        if (p.priceNum > 0) out.set(slug, { priceNum: p.priceNum, inStock: p.inStock });
+      } catch (e) {
+        console.warn(`[products] getFreshPrices(${slug}) föll:`, (e as Error).message);
+      }
+    }),
+  );
+  return out;
+}
+
 // Per-request dedup: if two RSCs on the same product page both call getProduct(slug),
 // React reuses the in-flight Promise instead of round-tripping to Wix twice.
 export const getProduct = cache(async (slug: string): Promise<Product | undefined> => {

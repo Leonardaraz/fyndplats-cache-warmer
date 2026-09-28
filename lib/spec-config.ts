@@ -12,6 +12,13 @@
 // kategorin: sitthöjd på stolar, bredd på hyllor, volym på vattenkokare,
 // ålder på leksaker.
 //
+// NYCKLARNA ÄR BUTIKENS SLUGAR, inte Wix. Sajten bygger kategoriadressen ur
+// namnet med asciiSlug (lib/category-slug.ts): "Köksmaskiner & apparater" blir
+// koksmaskiner-apparater, "Förvaring & organisering" forvaring-organisering.
+// Wix egen slug ("köksmaskiner-apparater", "förvaring-städ") matchar aldrig,
+// och så gick 16 kategorier utan filter första kvällen (2026-09-27).
+// spec-config.test.ts fäller en nyckel med å, ä, ö eller andra tecken.
+//
 // ÄRVS NEDÅT. En underkategori utan egen rad får sin huvudkategoris filter.
 // Ordningen i listan är ordningen i panelen.
 //
@@ -50,10 +57,10 @@ const DJURTILLBEHOR: Rad = ["dj", "b", "h", "m"];
 const KATEGORIER: Record<string, Rad> = {
   // ── Hem & Inredning ──
   "hem-inredning": ["b", "h", "d", "m"],
-  "förvaring-städ": ["b", "h", "d", "ml", "eg:h", "m"],
+  "forvaring-organisering": ["b", "h", "d", "ml", "eg:h", "m"],
   "dekoration-prydnad": PYNT,
   "verktyg-hemmafix": ["w", "b", "h", "m"],
-  "hemtextil-badrum": ["b", "h", "m"],
+  "badrum-hemtextil": ["b", "h", "m"],
   "kalas-fest": PYNT,
   "badrumsskap": ["b", "h", "d", "pl", "eg:l", "m"],
   "julgranar": [["h", "Höjd"], ["b", "Diameter"], "eg:lb", "m"],
@@ -62,7 +69,7 @@ const KATEGORIER: Record<string, Rad> = {
   "belysning": ["h", "w", "eg:bsft", "m"],
   "golvlampor": ["h", "w", "eg:bft", "m"],
   "konstvaxter": ["h", "b", "eg:lu", "m"],
-  "hushållsapparater": APPARATER,
+  "hushallsapparater": APPARATER,
   "speglar": SPEGLAR,
   "badrumsspeglar": SPEGLAR,
   "verktygsvagnar-verktygslador": ["b", "h", "d", "ml", "ld", "eg:h", "m"],
@@ -101,7 +108,7 @@ const KATEGORIER: Record<string, Rad> = {
   "rumsavdelare": ["b", "h", "m"],
 
   // ── Trädgård & Utemöbler ──
-  "trädgård-utemöbler": ["b", "d", "h", "eg:vus", "m"],
+  "tradgard-utemobler": ["b", "d", "h", "eg:vus", "m"],
   "vaxthus-odling": TAKTALT,
   "solskydd-paviljonger": TAKTALT,
   "redskapsbodar-forrad": TAKTALT,
@@ -114,14 +121,14 @@ const KATEGORIER: Record<string, Rad> = {
   "blomstall-vaxthyllor": ["b", "h", "d", ["vn", "Hyllplan"], "m"],
   "vedstall-vedbodar": SKAP,
   "eldkorgar-eldstader": [["b", "Diameter"], "h", "fo", "m"],
-  "terrassvärmare-infravärmare": ["w", "h", "br"],
+  "terrassvarmare-infravarmare": ["w", "h", "br"],
   "utelek-spel": ["a", "b", "m"],
 
   // ── Husdjur ──
   "husdjur": ["dj", ["b", "Längd"], ["d", "Bredd"], "h", "m"],
   "klostrad": [["h", "Höjd"], ["b", "Bredd"], "vn", "ml", "m"],
   "katthus": SMADJURSBURAR,
-  "burar-kläder-tillbehör": ["dj", ["b", "Längd"], ["d", "Bredd"], "h", "m"],
+  "burar-klader-tillbehor": ["dj", ["b", "Längd"], ["d", "Bredd"], "h", "m"],
   "kaninburar-marsvinsburar": SMADJURSBURAR,
   "hamsterburar-gnagarburar": SMADJURSBURAR,
   "hundburar": [...BURAR, "eg:h"],
@@ -132,14 +139,14 @@ const KATEGORIER: Record<string, Rad> = {
   "hundvagnar": ["ml", "kg", "m"],
   "hundbaddar-hundsoffor": [["b", "Längd"], ["d", "Bredd"], "m"],
   "kattlador": ["b", "h", "m"],
-  "mat-vattenskålar": ["dj", "l", "m"],
+  "mat-vattenskalar": ["dj", "l", "m"],
   "selar-koppel-transport": ["dj", "ml", "m"],
-  "lek-bädd-tillbehör": DJURTILLBEHOR,
+  "lek-tillbehor-for-husdjur": DJURTILLBEHOR,
 
   // ── Barn & Familj ──
   "barn-familj": ["a", "ml", "eg:bf", "m"],
   "leksaker-spel": ["a", "eg:bf", "m"],
-  "baby-småbarn": ["a", "ml", "eg:b", "m"],
+  "baby-smabarn": ["a", "ml", "eg:b", "m"],
   "elbilar-for-barn": BARNFORDON,
   "motorcyklar-for-barn": BARNFORDON,
   "sparkcyklar-for-barn": ["a", "ml", "m"],
@@ -150,7 +157,7 @@ const KATEGORIER: Record<string, Rad> = {
 
   // ── Sport & Fritid ──
   "sport-fritid": ["ml", "kg", "m"],
-  "träning-gym": ["ml", "kg", "m"],
+  "traning-gym": ["ml", "kg", "m"],
   "traningsbankar": ["ml", "kg", "m"],
   "motionscyklar": ["ml", "kg", "m"],
   "hantlar-hantelset": ["kg", "m"],
@@ -159,30 +166,30 @@ const KATEGORIER: Record<string, Rad> = {
   "bil-cykel": ["w", "ml", "kg", "eg:bl", "m"],
 
   // ── Kök & Husgeråd ──
-  "kök-matlagning": ["w", "l", "b", "h", "eg:t", "m"],
-  "köksmaskiner-apparater": APPARATER,
+  "kok-husgerad": ["w", "l", "b", "h", "eg:t", "m"],
+  "koksmaskiner-apparater": APPARATER,
   "miniugnar-airfryers": APPARATER,
   "vattenkokare-brodrostar": ["l", "w"],
   "soptunnor": ["l", "b", "h", "eg:h", "m"],
   "koksoar-koksvagnar": VAGNAR,
   "serveringsvagnar-rullvagnar": VAGNAR,
   "vinstall-vinkylar": ["b", "h", "eg:l", "m"],
-  "köksredskap-tillbehör": ["m"],
+  "koksredskap-tillbehor": ["m"],
   "servering-glas": ["m"],
 
   // ── Elektronik ──
-  "elektronik": ["w", "eg:bf", "m"],
+  "elektronik-tillbehor": ["w", "eg:bf", "m"],
   "dator-gaming": ["ml", "b", "eg:l", "m"],
   "projektordukar": ["b", "eg:f"],
 
   // ── Skönhet & Hälsa ──
-  "skönhet-hälsa": ["ml", "w", "eg:bt", "m"],
-  "massage-återhämtning": ["ml", "w", "eg:bft", "m"],
+  "skonhet-halsa": ["ml", "w", "eg:bt", "m"],
+  "massage-aterhamtning": ["ml", "w", "eg:bft", "m"],
   "massagebankar": ["ml", "b", "kg"],
 };
 
 /** Listor över hela sortimentet: inga måttfilter. */
-const UTAN = new Set(["all-products", "rea", "populara", "ovrigt"]);
+const UTAN = new Set(["all-products", "alla-produkter", "rea", "populara", "ovrigt"]);
 
 /**
  * Filtren kategorin erbjuder. `foraldrar` är kategorins förfäder, närmast

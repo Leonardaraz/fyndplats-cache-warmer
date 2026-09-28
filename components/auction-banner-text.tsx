@@ -31,6 +31,9 @@ function view(rows: Row[], nowMs: number) {
     // är köpbara till dagens lägsta. Utan den här grenen föll bannern tillbaka
     // på "startar kl 07" mitt i pågående auktion (granskning 2026-08-14).
     onFloor: phases.some((p) => p === "floor"),
+    // Efter 19 ligger dagens rader kvar i startsidans cache (upp till en
+    // timme) tills rotationen hunnit. "Dagens N fynd startar kl 07" var då fel.
+    allEnded: phases.length > 0 && phases.every((p) => p === "ended"),
   };
 }
 
@@ -39,7 +42,7 @@ export function AuctionBannerText({ rows }: { rows: Row[] }) {
   // Minutupplösning räcker: bannern byter läge vid 07, 18 och 19 — inte per
   // sekund. useClientNow äger hydreringsmönstret och pausar i dold flik.
   const { nowMs } = useClientNow(rows[0]?.serverNowMs ?? 0, 60_000);
-  const { count, maxDiscount, onFloor } = view(rows, nowMs);
+  const { count, maxDiscount, onFloor, allEnded } = view(rows, nowMs);
 
   if (count > 0) {
     return (
@@ -66,7 +69,9 @@ export function AuctionBannerText({ rows }: { rows: Row[] }) {
     <>
       <span className="auction-banner-badge">🔨 Fyndauktionen</span>
       <span className="auction-banner-text">
-        Dagens {rows.length} fynd startar kl 07 – priset faller varje timme till kl 19
+        {allEnded
+          ? "Nya fynd startar kl 07 – priset faller varje timme till kl 19"
+          : <>Dagens {rows.length} fynd startar kl 07 – priset faller varje timme till kl 19</>}
       </span>
     </>
   );
