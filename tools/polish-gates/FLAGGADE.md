@@ -3384,3 +3384,43 @@ beslut — se den samlade frågan om detta.
 - Bildgranskningen strök 5 av 30 bilder: tysk text på takväskans bild 3 och
   4 och högtryckstvättens bild 4 och 5, och en läsbar registreringsskylt på
   sopmaskinens bild 4. Högtryckstvätten har tre bilder kvar. (N84)
+- Motionscykeln `9159231f` polerades inte: svänghjulet bär en tryckt kod i
+  artikelnummerform på fyra av fem bilder. (N85)
+- X-cykeln `1f276824` har samma färg som den publicerade `2b7ddfc8`, som
+  syskonsvepet inte ser, troligen för att den är mappad mot AliExpress. Paret
+  är alltså en fråga om ommappning. `0927ea10` är samma cykel i en annan färg.
+  Ramen bär en tryckt kod i artikelnummerform på bilderna, så ingen av dem
+  polerades. (N85)
+- Motionscyklarna `b6e44df4`, `192f92e6` och `bc2b4c66` är inte kopplade till
+  Motionscyklar. Texten där säger att två cyklar har Bluetooth, att två
+  hopfällbara har ryggstöd och att det finns en liggande modell, och med de
+  här tre blir alla tre påståendena fel. De ligger i Träning & Gym tills
+  texten är omskriven. (N85)
+- Den justerbara hanteln `49732af4` (6–20 kg) är inte kopplad till Hantlar &
+  hantelset. Texten där säger att den justerbara hanteln går från 2 till 11 kg,
+  i bestämd form, så en andra justerbar hantel gör meningen fel. Den ligger i
+  Träning & Gym tills texten är omskriven. (N85)
+- Motionscykeln `b6e44df4` fick den rosa och vita `21a338f4` som färgval,
+  hantelsetet i tornform `52a5d92b` fick setet med tre par på 1, 3 och 5 kg
+  (`a49a1fe2`) som storlek, och hantelsetet med ställ `c6ff6fe8` från N55 fick
+  setet med 3, 4 och 5 kg (`33dd1d05`). Givarna är pensionerade. `c6ff6fe8`
+  hette "… sex sexkantiga hantlar på 1, 3 och 5 kg" och har bytt namn, med
+  samma slug. Text och SEO på de tre sidorna är omskrivna för båda
+  varianterna och ligger i rundans `efter-sammanslagning/`. (N85)
+- Texten från N55 på `c6ff6fe8` hade fraktvikten 20,5 kg som vikt. Nu står
+  hantlarnas vikt, 18 eller 24 kg, och fraktvikten på en egen rad. (N85)
+- Syskonsvepet parade `33dd1d05` med `4588a393`, men ställen är olika. Det
+  rätta syskonet var `c6ff6fe8`. (N85)
+- `58c60fb4` är motionscykeln `b6e44df4` i en tredje färg men har saldo 0.
+  Den läggs som val på `b6e44df4` när den finns i lager igen. (N85)
+- Priserna rördes inte. De nya varianterna följer husets regel från nästa
+  synk. (N85)
+- Bildgranskningen strök 7 av 30 bilder: tysk text på `b6e44df4`:s och
+  `bc2b4c66`:s bild 4, läsbara boktitlar på `192f92e6`:s bild 2 och 4, text på
+  en gymboll och en kettlebell i bakgrunden på `bc2b4c66`:s och `49732af4`:s
+  bild 2, och engelsk reklamtext med logga och andra vikter på `49732af4`:s
+  bild 5. Tre produkter har tre bilder kvar. (N85)
+- Den liggande cykelns längd, 122 och 137 cm i kortaste och längsta läget,
+  står bara i måttbilden och är kvitterad i `foto-tal.txt`. Källan skriver
+  spannet med bindestreck mellan två tresiffriga tal, samma form som ett
+  artikelnummer, så det redigerades bort ur facit. (N85)
