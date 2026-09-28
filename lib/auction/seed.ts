@@ -28,7 +28,7 @@
 // och importmoms på Kina-köp är avdragsgill. Den VERKLIGA kostnaden är därför
 // NETTOPRISET. Golvet räknas ur nettokostnaden — se netSupplierCost().
 
-import { buildVariantTracks, minTrack, type AuctionVariantTrack } from "./engine";
+import { buildVariantTracks, minTrack, type AuctionDoc, type AuctionVariantTrack } from "./engine";
 
 /** Minsta rabatt (bästa variants golv vs. dess lista) för auktionsvärdhet. */
 export const MIN_AUCTION_DISCOUNT = 0.1;
@@ -157,4 +157,76 @@ export function assignQueueOrder(candidates: SeedCandidate[]): Map<string, numbe
   let q = 1;
   for (const c of [...launch, ...rest]) order.set(c.productId, q++);
   return order;
+}
+
+export interface SeedPlan {
+  toSave: AuctionDoc[];
+  toRemove: AuctionDoc[];
+  /** Live och redan startade: rörs aldrig mitt i en auktionsdag. */
+  skippedLive: string[];
+  /** Live men inte startade (schemalagda till nästa 07:00): får dagens pris. */
+  refreshedLive: string[];
+  /** Live, inte startade, men kvalar inte längre: lämnas som de är. */
+  liveNotRefreshed: string[];
+}
+
+/**
+ * Vad seeden skriver, givet de kvalade kandidaterna och poolens dokument.
+ *
+ * En LIVE-rad som inte startat än (startAt i framtiden) uppdateras med
+ * kandidatens färska stege men behåller slot och startAt. Utan det bar
+ * morgondagens fem det pris de hade när de köades. 2026-09-28 låg fyra av
+ * fem ~10 % under butikens pris, och vid 19 hade de återställts dit. En
+ * startad dag rörs aldrig: priset får inte hoppa mitt i nedräkningen.
+ */
+export function planSeed(
+  included: SeedCandidate[],
+  existing: AuctionDoc[],
+  order: Map<string, number>,
+  nowMs: number,
+): SeedPlan {
+  const byProductId = new Map(existing.map((e) => [e.productId, e]));
+  const plan: SeedPlan = { toSave: [], toRemove: [], skippedLive: [], refreshedLive: [], liveNotRefreshed: [] };
+  const includedIds = new Set(included.map((c) => c.productId));
+
+  for (const cand of included) {
+    const prev = byProductId.get(cand.productId);
+    if (prev?.status === "live") {
+      const started = !prev.startAt || Date.parse(prev.startAt) <= nowMs;
+      if (started) {
+        plan.skippedLive.push(cand.slug);
+        continue;
+      }
+      plan.toSave.push({
+        ...prev,
+        ...cand,
+        _id: prev._id ?? `auction-${cand.productId}`,
+        status: "live",
+        slot: prev.slot,
+        startAt: prev.startAt,
+        queueOrder: prev.queueOrder,
+        // Starten är ordinarie pris utan PATCH (tickens främjning gör likadant).
+        lastPatchedPrice: cand.listPrice,
+        lastPatchedStep: 0,
+      });
+      plan.refreshedLive.push(cand.slug);
+      continue;
+    }
+    const keepEnded = prev?.status === "sold" || prev?.status === "expired";
+    plan.toSave.push({
+      _id: `auction-${cand.productId}`,
+      ...cand,
+      slot: 0,
+      status: keepEnded ? prev!.status : "queued",
+      queueOrder: order.get(cand.productId) ?? 9999,
+      ...(keepEnded ? { endedAt: prev!.endedAt, soldPrice: prev!.soldPrice } : {}),
+    });
+  }
+
+  for (const e of existing) {
+    if (includedIds.has(e.productId)) continue;
+    if (e.status === "queued") plan.toRemove.push(e);
+    else if (e.status === "live" && e.startAt && Date.parse(e.startAt) > nowMs) plan.liveNotRefreshed.push(e.slug);
+  }
+  return plan;
 }
