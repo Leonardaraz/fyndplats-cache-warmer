@@ -3588,3 +3588,33 @@ beslut — se den samlade frågan om detta.
   bilder kvar, huvudbilden och måttbilden. Högpassarket visade ingen ljus logotyp. (N90)
 - Livekontrollen gav 7 av 7 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
   orörda. (N90)
+- Sex utkast ur N61:s hopplista för skrivbord och bokhyllor polerades: skrivborden
+  `4d8f63a1`, `3a27aabe`, `de87532d` och `59478f27` och bokhyllorna `8166f30f` och
+  `7dddb439`. Dubblettskärmen mot hela katalogen gav bara brus för dem. (N91)
+- Hörnskrivbordet för gaming `b712d0e0` var samma vara som den publicerade
+  AliExpress-sidan `c342826f`: samma 128 × 128 × 88 cm, samma skivor och skärmställ,
+  samma laster och samma svarta färg. Sidan är ommappad till Aosom och utkastet
+  pensionerat. Kundpriset 2 169 kr rördes inte, och Aosom-synken räknar om det från
+  nästa körning. (N91)
+- Ståbordet på hjul `7859405b` i natur och vitt är tredje färgen till den sammanslagna
+  sidan `ba3e6e04` (svart och vit, samma 65 × 48 × 73–110 cm och 70 kg) och lämnades åt
+  syskonrundorna. Det publicerade ståbordet `38f9bf22` är en annan modell, med höjden
+  68–108 cm och 40 kg. (N91)
+- Saldo 0, hoppat: datorbordet på hjul `82e5c1cf`. (N91)
+- Källan för `de87532d` anger två överskåp, men måttbilden visar ett skåp med två dörrar
+  och ett invändigt mått på 94,2 cm. Sidan beskriver ett skåp med två dörrar. (N91)
+- Källan anger låga laster på skivan: 10 kg för `3a27aabe` och 5 kg per skiva för
+  `59478f27`. Sidorna skriver talen som källan. (N91)
+- Skivan på `4d8f63a1` sätts ihop av tre delar. Det står inte i källan men syns på bild 1
+  och 3, och paketet är 92 cm långt mot skivans 140 cm. Sidan säger det. (N91)
+- Bokhyllorna har raden `Antal hyllplan`, som filtret i Bokhyllor behöver fler av, och tre
+  av skrivborden har `Antal lådor`. Kategoritexten för Bokhyllor säger att de höga
+  bokhyllorna levereras med tippskydd, och båda de nya har det. (N91)
+- Bildgranskningen strök 14 av 30 bilder: läsbar text på böcker eller tidskrifter på nio,
+  en mugg med text och ett märke på en konferenstelefon (`4d8f63a1` bild 5), en kalender
+  (`59478f27` bild 2), en tavla eller affisch med text (`de87532d` bild 5 och `7dddb439`
+  bild 5) och fyra hyllor bredvid varandra (`8166f30f` bild 4). `4d8f63a1`, `3a27aabe`
+  och `7dddb439` har två bilder kvar, huvudbilden och måttbilden. Högpassarket visade
+  ingen ljus logotyp. (N91)
+- Livekontrollen gav 6 av 6 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N91)
