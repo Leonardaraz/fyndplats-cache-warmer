@@ -3648,3 +3648,28 @@ beslut — se den samlade frågan om detta.
   `03e23634` har två bilder kvar, huvudbilden och måttbilden. (N92)
 - Livekontrollen gav 8 av 8 OK, 26 av 26 alt-texter och noll textavvikelser. Priserna är
   orörda. (N92)
+- Sju utkast ur N61:s hopplista för köksskåp polerades: köksskåpen `138a24b0`,
+  `f2a348ff`, `23c88539`, `edb39a31`, `2945da6c` och `66bde4c1` och skänken `b7dae593`.
+  Dubblettskärmen mot hela katalogen gav bara brus för dem. (N93)
+- Köksskåpet `83f11a66` (svart) lyftes ur rundan: det är redan sammanslaget som färgen
+  svart på den publicerade sidan `8e76d9b8` i B35, och sidan bär utkastets huvudbild.
+  Utkastet ligger kvar orört. (N93)
+- Skärmen parade `edb39a31` (59 × 30 × 170 cm) med det publicerade högskåpet
+  `fa793821` (60 × 30 × 170 cm), `23c88539` med utkastet `1dda8d1b` och `b7dae593` med
+  utkastet `f281972e`. Alla tre är andra modeller, med andra fack, laster och vikter.
+  (N93)
+- De sex köksskåpen fick samma kategorier som B35:s köksskåp `8e76d9b8`, och skänken
+  Möbler + Sideboards & vitrinskåp + Kök & Husgeråd. Kategoritexten för Sideboards &
+  vitrinskåp säger att sideboardsen är 75 till 81 cm höga, och skänken är 81 cm. Fyra
+  av dem har raden `Antal lådor`, som filtret i Sideboards & vitrinskåp behöver fler
+  av. (N93)
+- Källan för `f2a348ff` nämner inget tippskydd, trots att skåpet är 170 cm högt. Sidan
+  lovar inget. (N93)
+- Bildgranskningen strök 19 av 35 bilder: märken eller läsbar text på förpackningar,
+  burkar, flaskor och apparater på elva, boktitlar på tre (`b7dae593` bild 4 och 5 och
+  `f2a348ff` bild 5), tysk text inbränd på fyra (`138a24b0` bild 4, `f2a348ff` bild 4 och
+  `23c88539` bild 4 och 5) och samma scen en gång till (`edb39a31` bild 5). Fem av
+  produkterna har två bilder kvar, huvudbilden och måttbilden. Högpassarket visade ingen
+  ljus logotyp. (N93)
+- Livekontrollen gav 7 av 7 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N93)
