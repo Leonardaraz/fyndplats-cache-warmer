@@ -222,6 +222,12 @@ TYSKA_ORD = [
     "Eiche", "Legierung", "Beine", "Bräter", "Kochgeschirr", "Besteck", "Servietten",
     "Küchenkommode", "Geschirrschrank", "Wohnzimmerschrank", "Flurkommode", "Esszimmerschrank",
     "Kaffeebar", "Ablagefach", "Fußpads", "Melaminoberfläche",
+    # runda N90 (matbord, matgrupper för två och soffbord med förvaring)
+    "Esstisch", "Küchentisch", "Essgruppe", "Kaffeetisch", "Sofatisch", "Glasplatte", "Stühle",
+    "Hartglas", "Kiefernholz", "Kunstleder", "Gaslift", "Staufach", "Hebemechanismus",
+    "Filzgleiter", "Schubladenstopper", "Eichenoptik", "Landhausstil", "Zweisitzer",
+    "Sitzgruppe", "Esszimmerstühle", "Esszimmer", "Tischbeine", "Fußpolster", "Klappmaß",
+    "Ausziehfunktion",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
