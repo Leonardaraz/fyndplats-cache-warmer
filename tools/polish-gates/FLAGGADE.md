@@ -3567,3 +3567,58 @@ beslut — se den samlade frågan om detta.
   flesta" av något, och sju angav feedens fraktvikt som produktens vikt. Jämförelserna och
   vikterna är borta. Verktygsvagnens SEO-titel bar färgen och var över 60 tecken, och
   vattenkokarens bar färgen och saknade `| Fyndplats`. (B32)
+- AVGJORT 2026-09-28, genomfört i B33: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Soptunnan `1c9d8d05` (grå) fick grön (`c852f39e`).
+  Trädgårdsbänken `42afe013` (svart) fick mörkgrön (`6582af2b`). Träningsbänken `66c2a9f8`
+  (blå) fick röd (`105a58ac`). Husbokhyllan `76430e8e` (rosa) fick grön (`889ca93f`).
+  Rutschkanan `7d914d36` (gul) fick grå (`9f605da4`). Leksakshyllan `8832b73a` (rosa) fick
+  vit (`a7e5b918`). Leksakskistan `bc82b8ea` (grön) fick rosa (`73609e3c`). Björnbokhyllan
+  `dbf38846` (natur) fick grön (`164c5ef0`). Givarna är pensionerade. Därmed är de äldre
+  raderna om givarna avgjorda: `a7e5b918` (N33), `73609e3c` (N47 och N66), `164c5ef0`
+  (N51), `c852f39e` (N53), `105a58ac`, `9f605da4` och `889ca93f` (N60) och rutschkanan och
+  husbokhyllan i B2:s lista över färgsyskon. Syskonsvepet visade ingen tredje färg i någon av
+  familjerna. Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll textavvikelser, och
+  varje sida visar sina två färger som val med bild. (B33)
+- Sju givares pris styrdes av konkurrentregeln: soptunnan i grönt (`c852f39e`),
+  trädgårdsbänken i mörkgrönt (`6582af2b`), träningsbänken i rött (`105a58ac`),
+  husbokhyllan i grönt (`889ca93f`), rutschkanan i grått (`9f605da4`), leksakshyllan i vitt
+  (`a7e5b918`) och björnbokhyllan i grönt (`164c5ef0`). Efter sammanslagningen följer de nya
+  varianterna husets regel, så deras pris kan ändras vid nästa synk. (B33)
+- Trädgårdsbänkens SKU `FP-tradgardsbank-med` var avkapad mitt i namnet och heter nu
+  `FP-tradgardsbank-127-cm`. Rutschkanans SKU bär sidans färg
+  (`FP-barnrutschkana-5-i-1-gul`), så den grå fick `FP-barnrutschkana-5-i-1-gra` för hand.
+  Standardformen hade slutat på `-gul-gra`. (B33)
+- Träningsbänkens gamla text angav 300 kg total belastning, viktfästen för upp till 25 kg,
+  ett bicepsstöd på 78–82 cm och hopfällda mått 54 × 42 × 150 cm. Den röda givarens källa
+  anger 120 kg och nämner inget av det andra. Texten anger 120 kg och inga av de övriga
+  talen. Sidans egna faktakort 3 och 4 ligger kvar och anger bicepsstödets höjd och de
+  hopfällda måtten. Talen motsäger inte källan och fanns i sidans gamla text, som
+  sannolikt byggde på den blå artikelns egen källa. Stäm av mot en leverans om en kund
+  frågar. (B33)
+- Rutschkanans gamla text sa att materialet är giftfritt HDPE och PP och att kanan är gjord
+  för inomhusbruk men fungerar även utomhus. Den grå givarens källa anger plast av säkra,
+  barnvänliga material och säger ingenting om inomhus eller utomhus. Texten följer källan.
+  Ordet inomhus är borta ur namnet och SEO-titeln men står kvar i adressen, som inte
+  ändras. (B33)
+- Leksakshyllans gamla specifikation angav färgerna rosa, vit och grå, fast sidan bara
+  fanns i rosa. Nu finns rosa och vit, och syskonsvepet hittade ingen grå. (B33)
+- Soptunnans gamla text sa att tunnan tar drygt en tredjedels kvadratmeter. 36,5 × 31,2 cm
+  är ungefär 0,11 m², alltså en niondel. Texten anger bara måtten. Leksakskistans gamla
+  text och ett eget kort angav knappt 50 liter, uträknat ur innermåtten 57 × 31 × 28 cm.
+  Källan anger bara innermåtten, och texten anger dem utan volym. (B33)
+- Två av de gamla texterna hänvisade till andra produkter i sortimentet: soptunnan till en
+  utdragbar modell för köksskåp och trädgårdsbänken till en bänk i gjutjärn.
+  Trädgårdsbänken jämförde dessutom sitt djup med "de flesta av våra andra bänkar". Fem
+  angav feedens fraktvikt som varans vikt (`1c9d8d05`, `42afe013`, `8832b73a`, `bc82b8ea`
+  och `dbf38846`). Hänvisningarna, jämförelsen och vikterna är borta. Där fraktvikten är
+  densamma för båda färgerna står den som Fraktvikt. Fyra SEO-titlar saknade
+  `| Fyndplats` (`66c2a9f8`, `76430e8e`, `8832b73a` och `dbf38846`), soptunnans bar
+  färgen och rutschkanans ordet inomhus. (B33)
+- Sjutton bilder ströks. Tolv visar läsbar text på rekvisitan: boktitlar på husbokhyllan
+  `76430e8e` (tre bilder), leksakshyllan `8832b73a` (tre) och björnbokhyllan `dbf38846`
+  (tre), en bilderbok med titel och figur på rutschkanan `7d914d36`, och inramade texter,
+  en bilderboksfigur och bokstavsklossar med engelsk text på leksakskistan `bc82b8ea`
+  (två). En bild på rutschkanan var samma som huvudbilden, pixel för pixel. Fyra egna
+  faktakort ströks. Alla angav feedens fraktvikt som Vikt (`1c9d8d05`, `42afe013`,
+  `8832b73a` och `bc82b8ea`), tre bar färgen (`1c9d8d05`, `42afe013` och `bc82b8ea`), och
+  kortet på `bc82b8ea` angav en volym som inte står i källan. (B33)
