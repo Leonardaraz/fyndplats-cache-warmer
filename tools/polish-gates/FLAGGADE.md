@@ -4212,3 +4212,56 @@ beslut — se den samlade frågan om detta.
   klarar dem, men mediesteget vägrar en bildlista som tappar en färgs bild, SKU-steget hoppar
   över en sida med mer än en variant och verifieringen kräver en variant. En omskrivning blir
   därför röd efter textsteget. De behöver en väg som bara skriver text. (B42)
+- AVGJORT 2026-09-28, genomfört i B43: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. Studsmattan för barn Ø163 cm
+  `39319e6c` (röd) fick svart (`afeec4a3`) och blå (`da7aa54b`). Kontorsstolen i bouclé
+  `75f6c433` (benvit) fick ljusbrun (`60c803f0`) och ljusgrå (`7ab2f8aa`). Den gungande
+  knästolen `b97ac1d8` (grå) fick ljusgrå (`67bd3628`) och kräm (`b5d8eb9c`). Vilfåtöljen med
+  fjäderkärna `75e5fa26` (grå) fick svart (`a9c0fc05`) och beige (`afab8a41`). Väggvärmaren
+  `afa22a5b` (vit) fick grå (`e478cc02`) och svart (`e84dc35e`). Trädgårdsskåpet i gran 179 cm
+  `1e11480e` (natur) fick ljusblå (`275e9b8a`) och grå (`0a2b6d53`, utkast). Basketkorgen för
+  väggmontering `8a9b1da9` (röd) fick vit (`db1118d0`) och blå (`3a1fd501`, utkast).
+  Snurrfåtöljen med lös fotpall `266c5e75` (grå) fick mörkgrå (`d2409a95`), gräddvit
+  (`021a268e`) och svart (`5d150926`). Det blev 17 sammanslagningar, 17 omdirigeringar och 37
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 41 av 41 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. 16 av de 17 gamla adresserna
+  svarade 308 till rätt sida 08:19, vid andra träffen, och den sista vid tredje. Den första gav
+  en inaktuell cachad sida (`x-vercel-cache: STALE`). (B43)
+- Alla 17 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Efter
+  sammanslagningen följer de nya varianterna husets regel, alltså golvpriset 1,20 × landad
+  kostnad, från nästa synk, och de 17 färgerna ligger inte längre i annonsurvalet. Sidornas egna
+  färger påverkas inte. Priserna skiljer mellan färgerna, mest för den gungande knästolen
+  (799–1 039 kr), vilfåtöljen (2 859–3 099 kr), snurrfåtöljen (1 869–2 079 kr) och
+  bouclé-stolen (1 779–1 979 kr), och de står kvar per variant. Fyra av de nya färgerna hade
+  saldo 0 hos Aosom vid sammanslagningen och visas som slutsålda tills saldot kommer tillbaka:
+  studsmattan i blått, vilfåtöljen i beige och trädgårdsskåpet i ljusblått och grått. (B43)
+- Studsmattans och vilfåtöljens sidor hade sluggarna `studsmatta-barn-163-rod` och
+  `vilfatolj-gra-155-grader`, och skrivplanens formkontroll fäller formerna `163-rod` och
+  `155-grader`. Sidorna fick sluggarna `studsmatta-barn-163-cm-skyddsnat` och
+  `vilfatolj-fjaderkarna-inbyggt-fotstod` och en 301 från de gamla. De gamla adresserna
+  kontrollerades för hand (ingen produkt bar dem) och de nya (rätt produkt), och workflowen för
+  omdirigeringar kördes direkt med `force=true`, eftersom dess kontroll av krockar hinner inte
+  klart (se B42). Trädgårdsskåpets slug `tradgardsskap-77-cm-fonster-hornhyllor` står kvar,
+  fast sidan nu säger att luckan i gaveln inte är ett fönster. (B43)
+- Alla sidor i familjerna var redan polerade utom de två utkasten, så `kallor.json` är
+  familjens nuvarande svenska texter och namn plus utkastens tyska. Axelfacit kvitterades i
+  `grind-undantag.txt`, och trädgårdsskåpets och basketkorgens tyska totalmått följdes. (B43)
+- Snurrfåtöljen låg som två familjer i syskonsvepet, eftersom klädseln skiljer: grått och
+  mörkgrått är tyg och gräddvitt och svart läderlook, enligt bilderna. De gamla texterna sa
+  sammetslook och mikrofibertyg, och den svarta sidan kallade sig den fjärde färgen av en fåtölj
+  vi redan säljer. Sidan anger klädseln och fotens yta per färg och fraktvikten 20 kg för tyg och
+  22 kg för läderlook. (B43)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Trädgårdsskåpets natur- och
+  gråa texter kallade luckan i gaveln för ett fönster, och den ljusblå sa att dörren stängs med
+  en hasp för hänglås, vilket de andra texterna inte nämner, så sidan säger det inte. Den svarta studsmattans text sa att stolparna går i samma
+  ton som nätet, men bilderna visar gråa stolpar. Studsmattan jämfördes med en 140- och en
+  122-modell, väggvärmaren med en 45 cm hög modell, vilfåtöljen med en biofåtölj och
+  snurrfåtöljen med en fåtölj på träfot. Jämförelserna är borta. (B43)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: studsmattan (12,5 kg),
+  bouclé-stolen (22,6 kg), knästolen (8,5 kg), vilfåtöljen (26 kg), basketkorgen (12 kg) och
+  snurrfåtöljen (20 och 22 kg). Vikten står nu som Fraktvikt. Trädgårdsskåpets 23 kg är
+  produktvikten ur den tyska källan, och fraktvikten 28,7 kg står bredvid. (B43)
+- Tre bilder ströks, alla egna faktakort: knästolens och basketkorgens angav fraktvikten som
+  Vikt (8,5 och 12 kg), och trädgårdsskåpets kallade luckan i gaveln för fönster. (B43)
