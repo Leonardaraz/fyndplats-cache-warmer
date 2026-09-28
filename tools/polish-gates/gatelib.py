@@ -295,6 +295,16 @@ TYSKA_ORD = [
     "hochdichten", "luxuriösem", "pflegeleicht", "rustikalen", "rutschfestem", "rutschfesten",
     "rutschfester", "seitlichem", "stilsicheren", "verchromtem", "verchromtes", "Theke",
     "Theken", "Tresen", "Gestell", "Rücken", "Böden",
+    # runda N98 (matstolar)
+    "Akzentstühle", "Armlehnen", "Armlehnenhöhe", "Armloses", "Beschichtung", "Beschädigung",
+    "Drehbasis", "Essecke", "Esserlebnis", "Essstuhls", "Essstühle", "Esszimmerstuhl",
+    "Familienessen", "Fußkappen", "Füllung", "Holzstuhls", "Körperkurve", "Küchenstuhl",
+    "Küchenstuhls", "Küchenstühle", "Mehrschichtenplatte", "Polsterstuhls", "Raumdekoration",
+    "Rautensteppung", "Salonstühlen", "Samtartiger", "Samtgefühl", "Samtoptik",
+    "Schalenrücken", "Schminkstühle", "Selbstmontage", "Sitzdicke", "Sitzmöglichkeiten",
+    "Weichheit", "Wohnzimmerstühle", "Zusammensein", "Zuverlässigkeit", "atmungsaktivem",
+    "atmungsaktiven", "behaglichem", "isolierenden", "müheloses", "platzsparenden",
+    "stützender", "synthetischer", "umhüllende", "wasserabweisend", "lackierte",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
