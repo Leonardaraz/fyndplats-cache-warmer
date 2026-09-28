@@ -3727,3 +3727,25 @@ beslut — se den samlade frågan om detta.
   kopplingarna direkt, och läget stämpla verifierade och stämplade sedan 5 av 5. (N95)
 - Livekontrollen gav 5 av 5 OK, 21 av 21 alt-texter och noll textavvikelser. Priserna är
   orörda. (N95)
+- Fyra barset ur N61:s hopplista polerades: `cee1f7e1` (fyra runda pallar), `44c2fc53`
+  (hylla i gaveln och två pallar), `17b611b8` (fyra barstolar med ryggstöd) och `1763826d`
+  (fyra stoppade barstolar). Färgsyskonen lades in som val efter publiceringen: `9794d190`
+  (ek och vit) och `35e9609f` (brun och svart) på `cee1f7e1`, och `c65e64e0` (mörkgrått)
+  och `2b03b3e4` (ljusgrått) på `1763826d`. Alla fyra givarna är pensionerade, och varje
+  färg har sitt eget foto och sitt eget pris. (N96)
+- Alla fyra givarnas pris styrdes av konkurrentregeln. Efter sammanslagningen följer de nya
+  färgerna husets regel från nästa synk, så deras pris kan ändras. (N96)
+- Barbordet med hylla i gaveln `44c2fc53` är inte kopplat till Barbord. Kategoritexten
+  säger "Två av seten har hyllor under skivan" (`394de213` och `c3bda64a`), och gavelhyllan
+  hade gjort dem till tre. Rättas texten kan setet kopplas dit. Tills dess ligger det i
+  Möbler och Matbord & stolar. De tre andra seten håller Barbord-textens bredd, sitthöjd
+  och höjd. (N96)
+- Skärmen gav träffar på utkastet `141a4624` (bord och två stolar, 90 × 50 × 90,5 cm) och
+  de publicerade seten `51c43e67` (100 cm, två stoppade pallar), `63a37524` och `c88b5bbb`
+  (100 cm, fyra fyrkantiga pallar). Alla är andra modeller. (N96)
+- Bildgranskningen strök 5 av 20 bilder: påsar, text i fönstret och en tidning på `44c2fc53`
+  (bild 2 och 4), en tidning och vinflaskor på `17b611b8` (bild 2) och flaskor och
+  bordskort på `1763826d` (bild 2 och 4). (N96)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Livekontrollen gav 4 av 4 OK, 15 av 15 alt-texter och noll textavvikelser, och de två
+  sammanslagna sidorna visar tre färgval var. Priserna är orörda. (N96)
