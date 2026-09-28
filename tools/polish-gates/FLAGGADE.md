@@ -3791,3 +3791,35 @@ beslut — se den samlade frågan om detta.
 - Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
   Livekontrollen gav 4 av 4 OK, 18 av 18 alt-texter och noll textavvikelser. Priserna är
   orörda. (N98)
+- Kontorsstolar ur N61:s hopplista: ritstolen i nätväv `3b8a4398` (svart) polerades och
+  den ljusgrå `f1d549fd` lades in som färgval och är pensionerad. `3b8a4398` stod i N60:s
+  lista men hade mest saldo (182 mot 11). Skrivbordsstolen i gräddvit sammetslook
+  `972f5195` och kontorsstolen i linnelook med fotstöd `3016f35c` blev egna sidor. Alla
+  ligger i Möbler och Kontorsstolar. Kontorsstolen `c2902bb8` var redan det bruna valet
+  på `19f3239f` (B29). (N99)
+- Den publicerade K1-sidan `f943140c` skrevs om: namn och titel utan färg, texten
+  täcker beige med svart fot och grå med förkromad fot, och SKU:n blev
+  `FP-kontorsstol-flanellook`. Sluggen står kvar. Den grå `746befb0` lades sedan in som
+  färgval och är pensionerad. Den grå stolens egen text och feedrad anger samma
+  60 × 63 × 84–94 cm som den beige, men dess måttbild visar 64 × 63 × 86–96 cm. Sidan
+  anger båda måtten. Bild 5 med en tidning med läsbar titel ströks. (N99)
+- Utkastet `f1b631b8` var samma stol som den publicerade AliExpress-sidan `18afa056`
+  (samma foton). Sidan är ommappad till Aosom och utkastet pensionerat. Kundpriset 1 599
+  kr rördes inte, och Aosom-synken räknar om det från nästa körning. (N99)
+- Gamingstolen med kattöron säljs redan som den publicerade AliExpress-sidan `a60466e7`
+  med tre varianter. De fyra Aosom-utkasten `7986797d` (saldo 58), `3d945c3d` (48),
+  `ce820686` (49) och `eec39dc8` (0) är samma stol i olika färger. Ommappningen vägrar en
+  sida med flera varianter, och en AliExpress-sida kan inte ta emot syskon. Utkasten
+  lämnas åt Leonard. (N99)
+- Källorna säger emot sig själva på två ställen. Ritstolens armstöd sitter 20 cm över
+  sitsen enligt den svarta och 30 cm enligt den ljusgrå, och båda ritningarna följer sin
+  text. Höjden utelämnades på sidan. Kontorsstolen `3016f35c` har sitthöjd 46–54 cm i
+  texten och 57–63 cm på måttbilden, och en mätning på bilden ger ungefär 56 cm i lägsta
+  läget. Sidan anger 57–63 cm efter ritningen. (N99)
+- Skärmen gav bara andra modeller: ritstolarna `cea5a0ce`, `d739872f`, `0064c439` och
+  `3f518008` mot ritstolen, `47bd2db6` (160° i PU-läder), `6d3ae867` och `5302daf2` mot
+  `3016f35c`, och nätstolarna `909b7596` och `29549b48` mot gamingstolarna. (N99)
+- Skrivningen verifierade och stämplade 4 av 4 i första försöket, kategorierna också.
+  Båda sammanslagningarna kopplade en bild till varje färg. Livekontrollen gav 4 av 4 OK,
+  19 av 19 alt-texter och noll textavvikelser, och de två sammanslagna sidorna visar båda
+  färgerna i lager. Priserna är orörda. (N99)
