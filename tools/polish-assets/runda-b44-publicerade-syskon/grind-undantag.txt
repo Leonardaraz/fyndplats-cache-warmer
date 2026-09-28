@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sju av åtta familjer har bara publicerade svenska texter som källa, utan tysk totalmåttrad; trädgårdsskåpets tyska totalmått (75L x 56B x 115H) är avskrivet med sina axlar
+gate-axel.py samma skäl: inget axelfacit att jämföra mot för sju av åtta
