@@ -4354,3 +4354,56 @@ beslut — se den samlade frågan om detta.
   med läsbar text eller märken på rekvisitan: text på böcker i två av tv-fåtöljens bilder, och
   hos verktygsskåpet en förpackning med text, ett märke på en dammsugare och ett verktygsmärke
   på lådorna i bakgrunden. (B45)
+- AVGJORT 2026-09-28, genomfört i B46: åtta familjer där två färger låg ute som egna sidor blev
+  en sida per vara. En sida i varje familj behölls och fick en text för båda färgerna, och den
+  andra färgen lades in som val. Givarnas adresser omdirigerades med 301 till sidan och givarna
+  pensionerades. Kontorsstolen med nätrygg `29549b48` (grå med vit ram) fick svart
+  (`909b7596`). Solsängen i textilen `2a16c507` (svart) fick grå (`f5d857b6`). Ottomanbänken
+  125 cm `2b275f57` (blå) fick grå (`dba3ac1c`). Gungstolen med fotpall i fleece `2c0f466e`
+  (beige) fick mörkgrå (`93144f85`). Massagefåtöljen med förvaringspall `89fead7d` (svart) fick
+  mörkgrå (`2de635c3`). Redskapsboden 240 cm `333b56d0` (ljusgrå) fick mörkgrå (`ee5ea781`).
+  Snurrstolen med fast fyrfot `348ee535` (grå) fick benvit (`4d83eca6`). Varmluftsfritösen
+  10 liter `fc9c6885` (svart) fick gräddvit (`36e555ea`). Det blev 8 sammanslagningar, 8
+  omdirigeringar och 42 kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 31 av 31
+  alt-texter och noll textavvikelser, och varje sida visar båda sina färger som val. Alla 8
+  gamla adresser svarade 308 till rätt sida mellan 09:37 och 09:39, vid andra eller tredje
+  träffen. (B46)
+- Sju av de åtta givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Den mörkgrå massagefåtöljen hade det inte. Efter sammanslagningen följer de nya varianterna
+  husets regel från nästa synk. Priserna står kvar per variant: kontorsstolen 1 039 och 969 kr,
+  solsängen 1 049 och 1 039 kr, ottomanbänken 1 699 och 1 879 kr, gungstolen 3 359 och
+  2 819 kr, massagefåtöljen 2 449 och 2 599 kr, redskapsboden 9 669 och 9 399 kr, snurrstolen
+  2 099 kr i båda färgerna och fritösen 859 och 829 kr. Alla nya färger hade saldo, den benvita
+  snurrstolen bara 4. (B46)
+- Solsängens grå sida (`solsang-gra-180-cm-huvudkudde`) fälls av skrivplanens formkontroll
+  (`gra-180`), så den svarta sidan behölls. Hos ottomanbänken behölls den blå sidan fast den grå
+  hade mer i saldo (64 mot 31), eftersom den grås egna bilder utom huvudbilden och måttbilden
+  hade fått strykas. Massagefåtöljens och fritösens sidor behölls för att deras slug inte bär
+  någon färg. Ingen slug behövde ändras. (B46)
+- Alla sidor i familjerna var redan polerade, så `kallor.json` är familjernas nuvarande svenska
+  texter och namn, och axelfacit kvitterades i `grind-undantag.txt` för alla åtta. Två tal hos
+  kontorsstolen är fotoräknade i `foto-tal.txt`: sitthöjden 45–55 cm och armstöden 20 cm över
+  sitsen, båda ur måttritningen. (B46)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Solsängens svarta text
+  förklarade i en fråga att längden i liggläge inte anges, eftersom underlaget har två tal;
+  måttritningen visar 178 cm och den grå textens mått 180 cm, och sidan säger cirka 180 cm.
+  Ottomanbänkens text sa att bänken finns i tre kulörer, men vi har blå och grå, och den nämnde
+  sängbredderna 90, 120, 140 och 160 cm medan måttbilden visar 90, 135 och 150 cm. Redskapsbodens
+  text sa att fönstren sitter i gavlarna, men bilderna visar ett ventilationsgaller i gaveln och
+  ett fönster i sidoväggen. Kontorsstolens text angav ryggen som 75 cm hög, medan måttritningen
+  visar 74 cm, och sidan anger ingen rygghöjd. (B46)
+- Jämförelser med andra varor är borta: solsängen med en solstol i akacia och en modell med
+  sittdyna, massagefåtöljen med en lista över tolv andra massagefåtöljer, redskapsboden med en
+  större bod och ett plastskjul, fritösen med en 24-litersmodell och en 21-litersugn och
+  gungstolens fleece med teddytyg. Redskapsbodens text sa också att nockhöjden är högre än på de
+  flesta bodar i samma storlek och att monteringen tar en halv till en hel dag för två personer.
+  (B46)
+- Sex av familjerna angav feedens fraktvikt som varans vikt: kontorsstolen (12 kg), solsängen
+  (10,4 kg), ottomanbänken (20 kg), gungstolen (21 kg), snurrstolen (15,5 kg) och fritösen
+  (4,7 kg). Massagefåtöljens och redskapsbodens texter angav ingen vikt. Vikten står nu som
+  Fraktvikt. (B46)
+- Tretton bilder ströks. Sex var egna faktakort: fyra med fraktvikten som Vikt (solsängen
+  10,4 kg, gungstolen 21 kg, snurrstolen 15,5 kg och fritösen 4,7 kg), ottomanbänkens som sa att
+  bänken finns i tre kulörer och redskapsbodens som sa att fönstren sitter i gavlarna. Sju var
+  miljöbilder med läsbar text på rekvisitan: böcker i två bilder hos kontorsstolen och två hos
+  snurrstolen, tidningar hos ottomanbänken och gungstolen och en kaffeburk hos fritösen. (B46)
