@@ -243,6 +243,11 @@ TYSKA_ORD = [
     "Roboterreiniger", "Lederoptik", "Drehschrank", "Klapptüren", "Klappschrank",
     "Seitenschrank", "Schuhsammlung", "Hochglanzweiß", "Stiefel", "Turnschuhe", "Schuhgröße",
     "Oberfläche", "Holzakzenten", "Kippschutzbeschläge", "Schutzpads", "Ablage", "Türpaneel",
+    # runda N93 (köksskåp, skafferiskåp och en skänk)
+    "Vorratsschrank", "Mikrowellenschrank", "Acryltüren", "Türregale", "Kabeldurchführung",
+    "Arbeitsplatte", "Scheunenstil", "Perlenbrett", "Wäscheschrank", "Kleiderschrank",
+    "Mehrzweckschrank", "Deckplatte", "Vitrinenschrank", "Küchenutensilien", "Gewürze",
+    "Schrankfach", "Oberschrank",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
