@@ -3854,3 +3854,81 @@ beslut — se den samlade frågan om detta.
   miniugnen (6,8 kg), sparkcykeln 120 cm (8,2 kg) och köksvagnen (29 kg). Två visar läsbar
   text på rekvisitan: ett ord på en bordsklocka vid knästolen och en etikett på en burk i
   köksvagnens skåp. (B37)
+- AVGJORT 2026-09-28, genomfört i B38: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Manchesterfåtöljen `e1c41327` (petrolblå) fick gråbeige
+  (`4a9c33d2`), ljusgrå (`58fb3025`), beige (`62161510`), gul (`66adcdff`), senapsgul
+  (`791e7292`) och orange (`bc220489`). Bäddfåtöljen med armstöd i gummiträ `eb1e475e`
+  (gräddvit) fick taupe (`1df737ee`), mörkgrå (`286f4e14`), beige (`96a6b909`), svart
+  (`c10d0b7e`) och blå (`e4e62a4f`). Redskapsboden `74e737ee` (mörkgrön) fick antracit
+  (`5a30aaa8`), trälook (`7f7aa2a4`), ljusgrå (`ca2f0e47`) och brun (`e74d5f67`).
+  Gungstolen `25405611` (gul) fick ljusgrå (`3b5a67d9`) och beige (`3dbd4f08`) och två tyska
+  utkast, mörkgrön (`2cbc7b83`) och rosa (`5126ad2e`), som inte låg ute och därför inte fick
+  någon omdirigering. Massagefåtöljen `297d8979` (svart) fick cremevit (`7e84e482`),
+  mörkbrun (`a7f029bf`) och ljusgrå (`c396356f`). Gästsängen `f94a964c` (mellangrå) fick
+  beige (`0f6ea98d`), blå (`1663062d`) och mörkgrå (`8800a1b5`). Reclinern `e11ad5cc`
+  (gräddvit) fick mörkgrå (`12e50842`), stålgrå (`74f261ea`) och gråbrun (`824301a4`).
+  Fåtöljen med böjd träfot `37e5dfcf` (mörkgrå) fick brun (`5c0e83d1`), beige (`73112149`)
+  och ljusgrå (`dd5553fa`). Det blev 31 sammanslagningar, 29 omdirigeringar och 242
+  kopierade recensioner. Livekontrollen gav 8 av 8 sidor OK, 35 av 35 alt-texter och noll
+  textavvikelser, och varje sida visar alla sina färger som val. 13 av 30 gamla adresser
+  svarade 308 till sidan 04:48. De andra 17 serverade då fortfarande en cachad sida
+  (`x-vercel-cache: HIT`), renderad strax efter sammanslagningen, och kontrolleras igen när
+  sidcachen hunnit förnyas. (B38)
+- Alla 31 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på
+  varje körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså
+  golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och
+  konkurrensläge bara för sidans egen artikel, så de 31 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest
+  för redskapsboden (8 779–9 869 kr), gästsängen (2 599–3 119 kr) och manchesterfåtöljen
+  (2 199–2 639 kr), och de står kvar per variant. (B38)
+- Två sidor i familjerna är en annan modell och slogs inte ihop. Gungstolen `48432e48` är
+  klädd i sammetslook med rutstickad, rak rygg och låga, raka armstöd, medan de andra har
+  manchester i lodräta kanaler och snäckformad rygg. Den står kvar som egen sida.
+  Massagefåtöljens tyska utkast `a0760ed1` har en egen måttbild med 150°, 150 kg och
+  85 × 94 × 104 cm, mot 145°, 135 kg och 82 × 99 × 103 cm för de andra. Det ligger kvar i
+  kön. (B38)
+- Gästsängens färger skiljer i mer än färgen. Den blå och den mörkgrå har ben i
+  silverfärgat stål och en måttbild som anger 150 kg. Den mellangrå och den beige har
+  svarta ben och 120 kg. Alla fyra gamla texterna angav 120 kg, och sidan säger 120 kg för
+  alla färger och anger benen per färg. Den mellangrå och den mörkgrå heter båda
+  "Dunkelgrau" i feeden. På bilderna är den ena mellangrå i linnelook och den andra mörkare
+  i sammetsimitation, och de ligger på sidan som mellangrå och mörkgrå. (B38)
+- Bäddfåtöljens bäddlängd skiljer i källan: 183 cm för fyra färger och 185 cm för den
+  beige och den blå, medan liggytan är 185 × 60 cm för alla. Sidan anger 183–185 cm. (B38)
+- Manchesterfåtöljen `62161510` (beige) låg också i kategorin Dekoration & Prydnad.
+  Skrivplanen kan bara lägga till kategorier, så en annan färg behölls och `62161510` blev
+  givare. Sidan ligger i Hem & Inredning, Möbler och Fåtöljer. (B38)
+- Alla fyra sidorna med böjd träfot hade sluggar som slutar på `145-grader`, och
+  skrivplanens formkontroll fäller den formen. Sidan som behölls fick sluggen
+  `konstladerfatolj-bojd-trafot-fotstod` och en 301 från `konstladerfatolj-morkgra-145-grader`.
+  (B38)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar.
+  `kallor.json` är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. Siffergrinden gav fyra varningar för räkneord utan täckning i källan:
+  "tre lägen", "två fickor", "fem lägen" och "alla sju färgerna". Talen stämmer mot källan
+  och mot antalet färger. (B38)
+- Redskapsbodens gamla texter sa att man går in upprätt eftersom nocken är 2 meter, men
+  dörröppningen är 152 cm hög. De uttalade sig också om bygglov, friggebodsregler och
+  snölast. Massagefåtöljens texter sa att värmen ökar genomblödningen och att blodet står
+  still i vaderna. Påståendena är borta. (B38)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och tre lovade något utifrån
+  den: att bäddfåtöljen är enkel att flytta mellan rum, att gästsängen går att bära av en
+  person och att reclinern går att flytta av en person. Vikten står nu som Fraktvikt. Alla
+  åtta familjerna länkade mellan färgsidorna, och flera texter länkade till andra produkter:
+  en gungstol i bouclé, en annan massagefåtölj, TV-fåtöljer, en mindre bod och ett
+  plastskjul. Bäddfåtöljen jämförde sig med en annan bäddfåtölj och kallade sig den smalaste
+  lösningen. Länkarna och jämförelserna är borta. (B38)
+- Reclinern i mörkgrått (`12e50842`) och i stålgrått (`74f261ea`) ser nästan likadana ut på
+  bilderna. Namnen kommer från feeden, och det är två olika artiklar. (B38)
+- Elva bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: gungstolen (14 kg),
+  bäddfåtöljen (17,5 kg), gästsängen (22,9 kg) och reclinern (22 kg). Ett eget kort på
+  redskapsboden påstod att åkgräsklippare, cyklar och trädgårdsmöbler får plats samtidigt,
+  vilket inte står i källan. Sex visar läsbar text eller varumärken på rekvisitan: en
+  tidning vid manchesterfåtöljen, en tidning och en kopp med skrift vid gungstolen,
+  bokryggar och bokomslag vid massagefåtöljen, förlagets logotyp på böcker vid bäddfåtöljen
+  och bokryggar, en tidning, en vinetikett och ett högtalarmärke vid fåtöljen med böjd
+  träfot. I flera familjer bar varje färgs miljöbild samma sorts rekvisita, så sidan som
+  behölls valdes delvis efter vilka bilder som klarade granskningen: den petrolblå
+  manchesterfåtöljen, den mörkgröna boden och den gräddvita reclinern. (B38)
