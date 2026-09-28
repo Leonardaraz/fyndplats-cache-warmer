@@ -72,28 +72,31 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         )}
         {phase === "pre" ? (
           <div className="auction-timer" suppressHydrationWarning>
-            {msLeft !== null ? <>Startar kl 07 — om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
+            {msLeft !== null ? (
+              <><span className="t-lang">Startar kl 07 – om </span><span className="t-kort">Start om </span><b>{fmtLeft(msLeft)}</b></>
+            ) : "Startar kl 07"}
           </div>
         ) : ended ? (
-          <div className="auction-timer">Stängt för idag — nya fynd kl 07</div>
+          <div className="auction-timer">Stängt – nya fynd i morgon kl 07</div>
         ) : phase === "countdown" ? (
           <div className="auction-timer" suppressHydrationWarning>
             {msLeft !== null
-              ? <>Nästa prissänkning om <b>{fmtLeft(msLeft)}</b></>
+              ? <><span className="t-lang">Nästa prissänkning om </span><span className="t-kort">Sänks om </span><b>{fmtLeft(msLeft)}</b></>
               : "Priset sjunker varje timme"}
           </div>
         ) : phase === "stale" ? (
           <div className="auction-timer auction-timer-soon">Priset uppdateras…</div>
         ) : (
-          <div className="auction-timer auction-floor">Lägsta pris — första köparen tar det!</div>
+          <div className="auction-timer auction-floor">
+            Lägsta pris<span className="t-lang"> – först till kvarn</span>!
+          </div>
         )}
-        <span className="auction-cta">
-          {preStart
-            ? "Priset faller varje timme 07–19"
-            : ended
-              ? "Nya fynd kl 07"
-              : "Köp nu — innan någon annan gör det"}
-        </span>
+        {/* Efter stängning finns inget att uppmana till: tidraden säger allt. */}
+        {!ended && (
+          <span className="auction-cta">
+            {preStart ? "Priset faller varje timme 07–19" : "Köp nu – innan någon annan gör det"}
+          </span>
+        )}
       </div>
     </a>
   );

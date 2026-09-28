@@ -40,6 +40,16 @@ export const metadata: Metadata = {
   },
 };
 
+/** Tom lista: före 07 väntar dagens fynd, efter 07 är de sålda eller dagen slut. */
+function tomText(): string {
+  const h = Number(
+    new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm", hour: "numeric", hour12: false }).format(new Date()),
+  );
+  if (h < 7) return "Dagens fynd startar kl 07.";
+  if (h < 19) return "Dagens fynd är sålda – nya fynd i morgon kl 07.";
+  return "Nya fynd startar i morgon kl 07.";
+}
+
 export default async function Fyndauktion() {
   const [live, sold] = await Promise.all([getLiveAuctions(), getSoldAuctions(6)]);
 
@@ -93,8 +103,7 @@ export default async function Fyndauktion() {
               </>
             ) : (
               <p className="auction-empty a-empty">
-                Nästa auktionsdag startar kl 07 — titta tillbaka då, eller prenumerera nedan så
-                missar du inget.
+                {tomText()} Prenumerera nedan så missar du inget.
               </p>
             )}
 
