@@ -281,6 +281,20 @@ TYSKA_ORD = [
     "Schaumstoff", "Robustheit", "Rutschfeste", "Kratzern", "Einrichtungsstile",
     "pulverbeschichtetem", "platzsparend", "dreiteilige", "gepolsterten", "Geschwungene",
     "Eingebaute", "zwanglose",
+    # runda N97 (barstolar)
+    "Barhockern", "Barhockers", "Barstuhls", "Barstühle", "Barstühlen", "Bartischhöhe",
+    "Beindruck", "Bequemlichkeit", "Bewegungsfreiheit", "Buchenholz", "Drehfunktion",
+    "Drehrollen", "Farbmix", "Fußpolstern", "Hausbar", "Hausbars", "Herzstück",
+    "Holzmaserungsstil", "Höhenverstellbar", "Kissenstärke", "Kneipen", "Kunstlederbezug",
+    "Kunststoffpolstern", "Küchenhocker", "Kücheninsel", "Kücheninseln", "Küchentresen",
+    "Massivholz", "Metallgestell", "Mittelhohe", "Nieten", "Pappelholz", "Partykeller",
+    "Polypropylen", "Rückenschmerzen", "Schaumstoffkissen", "Sitzabmessungen", "Sitzform",
+    "Sitzhöhe", "Sitzkomfort", "Sitzmaße", "Sitzmöbeln", "Sitzposition", "Skandinavisches",
+    "Stahlfuß", "Stahlgestell", "Standfußes", "Stehtischen", "Tischhöhen", "Umkippen",
+    "Untergestell", "Verstellbereich", "bebilderten", "goldfarbene", "hochdichtem",
+    "hochdichten", "luxuriösem", "pflegeleicht", "rustikalen", "rutschfestem", "rutschfesten",
+    "rutschfester", "seitlichem", "stilsicheren", "verchromtem", "verchromtes", "Theke",
+    "Theken", "Tresen", "Gestell", "Rücken", "Böden",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
