@@ -195,6 +195,10 @@ TYSKA_ORD = [
     "Sprungreifen", "Sprungring", "Slalomstangen", "Pausenbox", "Trillerpfeife",
     "Tragetasche", "Heringe", "Erdspieß", "Bodenspieß", "Sandsack", "Sandsäcke",
     "Katzenschrank", "Fernsehständer",
+    # runda N85 (motionscyklar och hantlar); "Hantel" och "Ergometer" är också svenska och står inte här
+    "Heimtrainer", "Hometrainer", "Fahrradtrainer", "Radtrainer", "Kurzhantel",
+    "Kurzhanteln", "Hantelständer", "Spannseil", "Spannseile", "Schwungrad", "Widerstand",
+    "Liegerad", "Sattel",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
