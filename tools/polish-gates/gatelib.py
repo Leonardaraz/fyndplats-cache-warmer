@@ -248,6 +248,15 @@ TYSKA_ORD = [
     "Arbeitsplatte", "Scheunenstil", "Perlenbrett", "Wäscheschrank", "Kleiderschrank",
     "Mehrzweckschrank", "Deckplatte", "Vitrinenschrank", "Küchenutensilien", "Gewürze",
     "Schrankfach", "Oberschrank",
+    # runda N94 (köksskåp, mikrovågsugnsskåp på hjul och en skänk)
+    "Weinregal", "Weinregals", "Weinregalgröße", "Weinbar", "Schwenkrädern", "Schwenkräder",
+    "Doppeltürschrank", "Doppeltürschränke", "Unterschranks", "Türablage", "Türablagenmaße",
+    "Tischplattenstärke", "Bodenhöhe", "Hochschranks", "Küchenbuffets", "Bauernhaus",
+    "Kippschutzriemen", "Kabellochgröße", "Unterflurauszug", "Schwarzoptik", "Metallgriffen",
+    "Flurschrank", "Glastürdesign", "Stromkabel", "Küchenschranks", "Küchenvorratsschrank",
+    "Knöpfe", "Arbeitsplatten", "Mikrowellenschranks", "Kippsicherungen", "Gehärtetes",
+    "Cremeweiß", "Beinhöhe", "Ausziehbare", "Oberflächenabmessungen", "Innenmaße",
+    "Schrankinnenmaße",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
