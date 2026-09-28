@@ -3475,3 +3475,50 @@ beslut — se den samlade frågan om detta.
 - Sju av de gamla texterna länkade till andra produkter, och sju angav feedens fraktvikt som
   produktens vikt, bland annat "seriens lättaste, 4 kg" på salongspallen. Länkarna, vikterna
   och jämförelserna med sortimentet är borta. (B30)
+- AVGJORT 2026-09-28, genomfört i B31: åtta publicerade sidor skrevs om utan färg i namnet
+  och fick 8 färger som val. Gungstolen `944c3385` (beige) fick grå (`20a30d5a`).
+  Bäddfåtöljen `667ca8f9` (mörkgrön) fick beige (`01088727`). Det elektriska skrivbordet
+  `a1f16108` (svart) fick vit (`9b11bec6`). Kontorsskåpet `f87e8390` (svart) fick vit
+  (`bcac519e`). Skoskåpet `3ec7aac4` (vit) fick svart (`5a18bc0a`). Förvaringspuffen
+  `b9a25f78` (grå) fick vit (`91871b0d`). Fönsterspegeln `fd205e45` (guld) fick svart
+  (`4d946ee9`). Bäddfåtöljen `7eee41b6` (grå) fick svart (`7d67adb3`). Givarna är
+  pensionerade. Därmed är de äldre raderna om `4d946ee9` (B12), `7d67adb3` (B15) och
+  `bcac519e` (N61) avgjorda, liksom `91871b0d`, `4d946ee9`, `20a30d5a` och `01088727` i
+  listorna över familjer som hoppades på namnet. Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och noll
+  textavvikelser, och varje sida visar sina två färger som val. (B31)
+- Skrivbordet `a1f16108` slogs ihop med sin vita givare av en körning från `main`
+  2026-09-28 00:03 UTC, innan rundan skrev sidan. Rundans bildlista fick därför ta med den
+  vita huvudbilden som färgvalet pekar på. Skrivplanens SKU-steg klarar bara sidor med en
+  variant, så det hoppades över på den sidan, och mappningsraden bar kvar den tyska SKU:n
+  `FP-stehpult` på den svarta varianten medan Wix hade `FP-elektriskt-skrivbord-140x70`.
+  Raden stämplades med Wix-SKU:n i efterhand. Raden var redan publicerad och klar med
+  poleringen. (B31)
+- Sex givares pris styrdes av konkurrentregeln: gungstolen i grått (`20a30d5a`),
+  kontorsskåpet i vitt (`bcac519e`), skoskåpet i svart (`5a18bc0a`), förvaringspuffen i vitt
+  (`91871b0d`), fönsterspegeln i svart (`4d946ee9`) och bäddfåtöljen i svart (`7d67adb3`).
+  Efter sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras
+  vid nästa synk. (B31)
+- Massagekontorsstolen `72d1d195` (svart) och dess grå givare `1a1c8f5d` lades åt sidan.
+  Tre publicerade sidor, `773595bc` (grå), `7cf7473e` (mörkgrå) och `825c51f5` (brun), är
+  enligt tidigare mätning samma stol, så familjen har fyra publicerade sidor. Att slå ihop
+  publicerade sidor kräver omdirigering (`omdirigera=ja`), och det görs som en egen runda.
+  (B31)
+- Fönsterspegelns tyska källa skriver måtten som `91L x 60H`, men måttbilden visar en spegel
+  som är 60 cm bred och 91 cm hög. Texten anger måtten utan axelord ("60 × 91 cm, hängs med
+  valvet uppåt"), så axelgrinden inte bygger fel facit. (B31)
+- Skoskåpets djup skiljer mellan källorna: den gamla texten angav 72 × 34,5 × 103 cm och den
+  svarta givarens källa 34 cm. Sidan anger 34 cm. Dörrarnas antal, två, är avläst på
+  bilderna. (B31)
+- Bäddfåtöljen `7eee41b6` angav maxlasten 120 kg i den gamla texten och i det egna
+  faktakortet, men källan säger 100 kg. Sidan anger 100 kg, och kortet ströks. (B31)
+- Sexton bilder ströks. Sju visar läsbar text eller ett märke på rekvisitan: boktitlar och
+  tidningstitlar på `667ca8f9` (tre bilder), `f87e8390` och `fd205e45`, en kartaffisch och en
+  neonskylt på `a1f16108` och en sneaker med märke på `3ec7aac4`. Nio egna faktakort ströks.
+  Sex av dem angav feedens fraktvikt som Vikt (`944c3385`, `667ca8f9`, `a1f16108`,
+  `f87e8390`, `3ec7aac4`, `b9a25f78`), tre bar färgen i rubriken (`a1f16108`, `fd205e45`,
+  `7eee41b6`), ett rangordnade bädden som bredast (`667ca8f9`), ett angav maxlasten 120 kg
+  (`7eee41b6`) och ett visade miljöfotot med boktiteln (`fd205e45`). (B31)
+- Två av de gamla texterna jämförde med andra produkter i vårt sortiment: bäddfåtöljen
+  `667ca8f9` pekade på "vår andra bäddfåtölj" och skrivbordet `a1f16108` på två andra
+  skrivbord. Två jämförde med "de flesta" fåtöljer, och sju angav feedens fraktvikt som
+  produktens vikt. Jämförelserna och vikterna är borta. (B31)
