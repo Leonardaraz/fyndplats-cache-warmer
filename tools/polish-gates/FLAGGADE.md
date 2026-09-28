@@ -3622,3 +3622,56 @@ beslut — se den samlade frågan om detta.
   faktakort ströks. Alla angav feedens fraktvikt som Vikt (`1c9d8d05`, `42afe013`,
   `8832b73a` och `bc82b8ea`), tre bar färgen (`1c9d8d05`, `42afe013` och `bc82b8ea`), och
   kortet på `bc82b8ea` angav en volym som inte står i källan. (B33)
+- AVGJORT 2026-09-28, genomfört i B34: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Skobänken `3e2c7389` (natur) fick vit (`a087ae3b`).
+  Helkroppsspegeln `58f8338d` (guld) fick svart (`3570107c`). Högskåpet `635e7330` (grå)
+  fick vit (`d5a629d7`). Förrådet `9e157d1d` (ljusgrön) fick mörkgrå (`a3c4bdba`).
+  Klaffbordet `a6bd7d56` (ek och vit) fick ek och svart (`cd9b4686`). Väggspegeln
+  `b6922dc8` (svart) fick vit (`f726a1bc`). Sammetsbänken `d1132894` (blå) fick ljusgrå
+  (`865acfdf`). Bänken `d5919be6` (mörkgrön) fick grå (`f7ba4bb8`). Givarna är
+  pensionerade. Därmed är de äldre raderna om givarna avgjorda: `a087ae3b` (N41, N42 och
+  N65), `cd9b4686` (N31 och B15), `f726a1bc` (N54 och B12), `f7ba4bb8` (N51 och B13),
+  `3570107c` och `865acfdf` (B13 och N60), `d5a629d7` (B18 och N61) och `a3c4bdba` (N75).
+  Förrådet har tre färger till i feeden och väggspegeln en, som inte är importerade.
+  Livekontrollen gav 8 av 8 OK, 29 av 29 alt-texter och noll textavvikelser, och varje
+  sida visar sina två färger som val med bild. (B34)
+- Sex givares pris styrdes av konkurrentregeln: helkroppsspegeln i svart (`3570107c`),
+  högskåpet i vitt (`d5a629d7`), klaffbordet i ek och svart (`cd9b4686`), väggspegeln i
+  vitt (`f726a1bc`), sammetsbänken i ljusgrått (`865acfdf`) och bänken i grått
+  (`f7ba4bb8`). Efter sammanslagningen följer de nya varianterna husets regel, så deras
+  pris kan ändras vid nästa synk. Klaffbordets två färger ligger 34 % isär i pris (1 339
+  och 1 799 kr). (B34)
+- Den gröna bänkens SKU `FP-sittbank-100-morkgron` bar en artikelnummerform
+  (`100-morkgron`), som skrivrutten vägrar. Den heter nu `FP-sittbank-100-cm-morkgron`,
+  och den grå fick `FP-sittbank-100-cm-gra`. Samma form finns på den publicerade
+  förvaringsbänken `46f280f7` (`FP-sittbank-100-forvaring-sammet`), som vägras om sidan
+  skrivs om. Sju av rundans sidor bär sin egen färg i SKU:n, så givarna fick sin färg i
+  SKU:n för hand. (B34)
+- Förrådets gamla text sa att stålet är galvaniserat och pulverlackerat och att dörren går
+  att låsa. Den mörkgrå givarens källa anger stål med väderbeständig lack och en dörr som
+  hålls stängd med en regel. Texten och namnet följer källan ("dörr med regel" i stället
+  för "låsbar dörr"), och galvaniseringen är borta. Stäm av mot en leverans om en kund
+  frågar. (B34)
+- Sammetsbänkens fraktvikt i feeden är 12,8 kg för båda färgerna, men den ljusgrå givarens
+  källa anger nettovikten 14 kg. Talen går inte ihop, så sidan anger ingen vikt. Den blå
+  bänkens sits är knappad på bilderna, vilket källan inte nämner, och texten beskriver den
+  som knappad. (B34)
+- Skobänkens källa anger både 130 och 136 kg för sittytan, och givarens måttbild visar
+  136 kg. Sidan anger 130 kg, som står bland de tekniska uppgifterna. Måttbilderna anger
+  olika avstånd mellan hyllplanen (17 och 17 cm mot 19, 13 och 5 cm), så texten anger bara
+  de 5 cm som källan har till golvet. (B34)
+- Klaffbordets givare beskrivs i källan som mörk träfärg och svart, men bilderna visar samma
+  ljusa ek som sidan, med svart mittparti och svarta ben. Valet heter "Ek och svart". (B34)
+- Fem av de gamla texterna angav feedens fraktvikt som varans vikt (`3e2c7389`,
+  `58f8338d`, `9e157d1d`, `d1132894` och `d5919be6`). Den gröna bänkens gamla text
+  jämförde dessutom med bänkar i allmänhet och med en vanlig matstol och påstod att sömmarna
+  håller skummet på plats och att de vinklade benen hindrar bänken från att vicka, vilket
+  inte står i källan. Vikterna, jämförelserna och påståendena är borta. Sju namn och sju
+  SEO-titlar bar sidans färg. (B34)
+- Sju bilder ströks. Tre visar läsbar text på rekvisitan eller i bakgrunden: en inramad
+  bibelvers på engelska på helkroppsspegeln `58f8338d`, ett företagsnamn på en byggnad
+  utanför fönstret på sammetsbänken `d1132894`, och tidningsomslag och tryck på en korg på
+  bänken `d5919be6`. Tre visar märken på rekvisitan: sneakers med tillverkarens numrerade
+  klacketikett på skobänken `3e2c7389` (två bilder) och sneakers med tillverkarens logotyp
+  på bänken `d5919be6`. Ett eget faktakort på `d5919be6` ströks också, eftersom det angav
+  fraktvikten som Vikt och bar färgen. (B34)
