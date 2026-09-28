@@ -3794,3 +3794,63 @@ beslut — se den samlade frågan om detta.
 - Driftkarten `0b008ef0` är slutsåld på sidan, medan den röda givaren `181892d3` har saldo 4.
   Den hölls utanför rundan, eftersom lagergrinden stoppar polering av en slutsåld sida.
   (B36)
+- AVGJORT 2026-09-28, genomfört i B37: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Knästolen `9e656e81` (ljusgrå) fick svart (`05cc1f9c`),
+  kräm (`6d64de9b`) och mörkgrå (`9d626528`). Miniugnen `89c22404` (grå) fick silver
+  (`0ef7500a`), gräddvit (`772fde20`) och svart (`b5dbf2fd`). Den vridbara fåtöljen
+  `1a1d04f7` (svart) fick gräddvit (`4b2a7407`), grå (`79eaab59`) och beige (`d760fffc`).
+  Sparkcykeln 120 cm `369b4b2c` (svart) fick beige (`1b1d4842`), vit (`c851d101`) och turkos
+  (`feac1d03`). Sparkcykeln 12 tum `82b5a517` (svart) fick vinröd (`41269686`), rosa
+  (`68f8f1a7`) och blå (`b1dcd424`). Golvfåtöljen `64856235` (grå) fick petrolblå
+  (`35872574`), beige (`4f6bef7d`) och ljusgrå (`c458fc66`). Massagefåtöljen `70d0a9ea`
+  (svart) fick brun (`3b61e50c`), cremevit (`54d25930`) och mörkgrå (`c50fa916`). Köksvagnen
+  `37fb1ce1` (grå) fick svart (`4d044b44`) och vit (`63235957`). Det blev 23
+  sammanslagningar, 23 omdirigeringar och 85 kopierade recensioner. Livekontrollen gav 8 av
+  8 sidor OK, 41 av 41 alt-texter och noll textavvikelser, och varje sida visar alla sina
+  färger som val. 22 av 24 gamla adresser svarade 308 till sidan 04:06. Golvfåtöljens
+  `golvfatolj-360-grader-fem-lagen` och köksvagnens `koksvagn-106-cm-utfallbar-skiva-vit`
+  serverade då fortfarande en cachad sida (`x-vercel-cache: HIT`, age 685 s), renderad strax
+  efter sammanslagningen. Sidcachen förnyas inom en timme, så de kontrolleras igen efter
+  05:00. (B37)
+- Alla 23 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på
+  varje körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså
+  golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och
+  konkurrensläge bara för sidans egen artikel, så de 23 färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest
+  för knästolen (779–1 039 kr) och fåtöljen (2 359–2 999 kr), och de står kvar per variant.
+  (B37)
+- Alla fyra fåtöljsidor hade sluggar som slutar på `130-grader`, och skrivplanens kontroll
+  av artikelnummerform fäller den formen. Sidan som behölls fick därför en ny slugg utan
+  färg, `vridbar-fatolj-konstlader-fotstod`, och en 301 från `vridfatolj-svart-130-grader`
+  enligt runbookens regel för ändrad publicerad slugg. Golvfåtöljens `c458fc66` hade
+  `360-grader` i sluggen och blev därför givare i stället för sidan som behölls. (B37)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar.
+  `kallor.json` är familjens nuvarande svenska texter, och axelfacit kvitterades i
+  `grind-undantag.txt` eftersom de saknar en tysk totalmåttrad. Siffergrinden gav tio
+  varningar för tal som källan skriver med bokstäver ("tio massagepunkter", "tre bakåt och
+  två framåt"). Talen står i källan. (B37)
+- Golvfåtöljens texter var inte överens om sockeln. Den ljusgrå sidan beskrev en låg, rund
+  stålbas, och de tre andra en tygklädd, fyrsidig sockel som smalnar av mot golvet. Alla
+  bilder visar en tygklädd, fyrsidig sockel som blir bredare mot golvet, och det är vad
+  texten säger nu. Klädseln skiljer mellan färgerna: sammetslook på den petrolblå och
+  linnelook på den grå och den beige. Den ljusgrås klädsel anges inte, så texten säger inget
+  om den. (B37)
+- Sju av de gamla texterna angav feedens fraktvikt som varans vikt: knästolen, miniugnen,
+  fåtöljen, båda sparkcyklarna, golvfåtöljen och köksvagnen. Fem lovade något utifrån den:
+  att knästolen går att lyfta undan med en hand (namnet: "7,7 kg, lätt att flytta undan"),
+  att fåtöljen väger 22 kg, att sparkcyklarna är lätta nog att bäras uppför en trappa och
+  att golvfåtöljen går att bära in ensam. Fraktvikten står nu som Fraktvikt. Sparkcykeln 120
+  cm i vitt har andra paketmått än de tre andra färgerna, så sidan anger inga paketmått.
+  Alla åtta familjerna länkade mellan färgsidorna, och flera texter länkade till andra
+  produkter. Massagefåtöljen hade en lista med tolv länkar och påståendet att vi säljer
+  tretton massagefåtöljer i fyra modeller. Sparkcykeln 12 tum kallade sig "den av de tre
+  färgerna" fast den finns i fyra och uttalade sig om lagkrav på hjälm. Länkarna, listan och
+  påståendena är borta. (B37)
+- Knästolen i svart och i mörkgrått ser nästan likadana ut på bilderna. Namnen kommer från
+  feeden, och det är två olika artiklar. (B37)
+- Sex bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: knästolen (7,7 kg),
+  miniugnen (6,8 kg), sparkcykeln 120 cm (8,2 kg) och köksvagnen (29 kg). Två visar läsbar
+  text på rekvisitan: ett ord på en bordsklocka vid knästolen och en etikett på en burk i
+  köksvagnens skåp. (B37)
