@@ -4009,3 +4009,78 @@ beslut — se den samlade frågan om detta.
   byxor vid kontorsstolen. Massagefåtöljens miljöbilder hade läsbar text i alla tre färgerna,
   också bokryggarna i den svarta, så sidan har ingen miljöbild. Sidan som behölls valdes där på
   lagret: 79 cremevita mot 32 bruna och 0 svarta. (B39)
+- AVGJORT 2026-09-28: B38:s 30 gamla adresser svarar alla 308 till sina sidor. Vid första
+  träffen 05:43 svarade 17 av dem fortfarande med en cachad sida, vid andra träffen 29 av 30
+  med 308, och den sista (`x-vercel-cache: STALE`, age 3 605 s) gav 308 vid tredje träffen.
+  (B38)
+- AVGJORT 2026-09-28, genomfört i B40: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Vilstolen i böjd björk `7e00970f` (grå) fick gråbrun
+  (`84082d41`), svart (`beacff5a`) och cremevit (`ee610afd`). Uppresningsfåtöljen med massage
+  och mugghållare `54a1916b` (mörkgrå) fick ljusgrå (`117aa0fc`) och brun (`a2c01713`).
+  Öronlappsfåtöljen `7b98c4c1` (mörkgrå) fick grå (`121ce68f`) och brun (`80e4ed24`).
+  Skrivbordsstolen med nätrygg `4293c5ce` (ljusgrå) fick turkos (`143f9b2d`) och rosa
+  (`6e05f8b7`). Kontorsstolen som bär 200 kg `184290da` (grå) fick ljusgrå (`434c8f4c`) och
+  svart (`ca3bf74e`). Uppresningsfåtöljen som bär 200 kg `8fe8ffba` (grå) fick mörkgrå
+  (`d23d0ff2`). Den dubbla campingstolen `4401be4f` (blå) fick grön (`65c84a9b`) och khaki
+  (`8b66533f`). Bäddmadrassen `f8c671b3` (mörkgrå) fick ljusgrå (`54584253`) och blå
+  (`79daabe1`). Det blev 16 sammanslagningar, 18 omdirigeringar och 74 kopierade recensioner.
+  Livekontrollen gav 8 av 8 sidor OK, 35 av 35 alt-texter och noll textavvikelser, och varje
+  sida visar alla sina färger som val. Alla 18 gamla adresser svarade 308 till rätt sida 06:00,
+  vid andra träffen. Den första gav en inaktuell cachad sida (`x-vercel-cache: STALE`). (B40)
+- Alla 16 givare hade sitt pris satt av konkurrentregeln, och planen varnade för det på varje
+  körning. Efter sammanslagningen följer de nya varianterna husets regel, alltså golvpriset
+  1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden sätter grupp och konkurrensläge
+  bara för sidans egen artikel, så de 16 färgerna ligger inte längre i annonsurvalet. Sidornas
+  egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för uppresningsfåtöljen med
+  massage (6 499–7 359 kr), uppresningsfåtöljen som bär 200 kg (6 039–6 679 kr), kontorsstolen
+  (2 849–3 399 kr) och öronlappsfåtöljen (2 159–2 499 kr), och de står kvar per variant. (B40)
+- Uppresningsfåtöljen som bär 200 kg har en tredje publicerad sida, cremevit (`3a9df24e`), som
+  inte slogs ihop. Feeden ger samma mått för alla tre, men måttbilden på den cremevita visar en
+  annan modell: 109 × 72,5 × 94 cm, 170 cm i liggläge och sitsen 46 × 51,5 cm, mot
+  111 × 74 × 94 cm, 163 cm och 47 × 55 cm för den grå och den mörkgrå. Den står kvar som egen
+  sida. Dess namn säger 163 cm i liggläge och bör läsas om mot måttbilden. Syskonsvepet listar
+  den fortfarande som färgsyskon till `8fe8ffba`. (B40)
+- Kontorsstolens och uppresningsfåtöljens sidor hade sluggarna `kontorsstol-gra-200-kg` och
+  `uppresningsfatolj-gra-200-kg`, och skrivplanens formkontroll fäller formen `gra-200`. Sidorna
+  fick sluggarna `kontorsstol-200-kg-tjock-stoppning` och `uppresningsfatolj-200-kg-ligglage`
+  och en 301 från de gamla. (B40)
+- Alla sidor i familjerna var redan polerade, så ingen tysk källtext fanns kvar. `kallor.json`
+  är familjens nuvarande svenska texter och namn, och axelfacit kvitterades i
+  `grind-undantag.txt`. Siffergrinden gav fem varningar för räkneord utan täckning i källan:
+  "fem armar och fem hjul", "tre lägen", "fyra svarvade träben", "fem lägen" och "ramens två
+  sidor". Talen står i källan med bokstäver. (B40)
+- De gamla texterna var inte överens på flera punkter. Vilstolens cremevita sida sa att ryggen
+  ställs i fem lägen och att klädseln är bomullsblandad, medan de andra sa att ryggen står fast
+  och att klädseln är polyester. Sidan säger fast rygg och polyester. En av
+  uppresningsfåtöljens texter sa att sitsen står 142 cm över golvet i uppresningsläget, men
+  142 cm är hela fåtöljens höjd i det läget, och det är vad sidan säger. En annan nämnde två
+  sidofickor, som inte står i de andra texterna, och sidan nämner dem inte. En av
+  campingstolens texter sa att det sitter armstöd mellan sitsarna, vilket bilderna inte visar, så
+  det står inte på sidan. Bäddmadrassens texter sa både att montering krävs och att den inte
+  krävs, och sidan säger ingenting om montering. (B40)
+- Öronlappsfåtöljens färger skiljer i mer än färgen. Den mörkgrå och den bruna har avtagbar,
+  tvättbar klädsel och den grå fast klädsel. Alla tre texterna nämnde en blå färg som inte finns
+  i familjen, och två nämnde en grå i sammet, medan den grå sidans egen text sa att den saknar
+  sammet. Sidan anger klädseln per färg och nämner varken sammet eller blått. (B40)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och sex lovade något utifrån den:
+  att kontorsstolen ska rullas i stället för att lyftas, att uppresningsfåtöljen med massage
+  flyttas av två personer, att öronlappsfåtöljen går att flytta för en person, att vilstolen går
+  att flytta med en hand, att bäddmadrassen går att bära med en hand och att skrivbordsstolen går
+  att lyfta med en hand. Skrivbordsstolens namn bar dessutom vikten i alla tre färgerna. Vikten
+  står nu som Fraktvikt, för bäddmadrassen 11–11,5 kg eftersom texterna angav båda. Alla åtta
+  familjernas texter hänvisade till de andra färgerna, och tre räknade fel: uppresningsfåtöljen
+  med massage nämnde en grå färg, öronlappsfåtöljen en blå, och uppresningsfåtöljen som bär
+  200 kg räknade den cremevita som samma fåtölj. Uppresningsfåtöljen med massage hänvisade också
+  till tre andra uppresningsfåtöljer. Hänvisningarna är borta. (B40)
+- Bäddmadrassen i mörkgrått visar remmar på sidan som bilderna på de andra färgerna inte tydligt
+  visar. Sidan nämner inga remmar. (B40)
+- Elva bilder ströks. Fem var egna faktakort med fraktvikten som Vikt eller i rubriken:
+  kontorsstolen (26,8 kg), skrivbordsstolen (8,5 kg), campingstolen (6,8 kg),
+  uppresningsfåtöljen med massage (56 kg) och vilstolen (10,3 kg). Fyra var egna kort med
+  påståenden: hur länge kontorsstolens stoppning håller formen, att båda mugghållarna på
+  uppresningsfåtöljen med massage sitter i samma armstöd (texterna säger en i vardera), att den
+  som bär 200 kg avlastar knäna och att den finns i tre färger. Två visar läsbar text eller
+  märken på rekvisitan: en klocka på datorskärmen vid skrivbordsstolen och en högtalare och en
+  kopp vid bäddmadrassen. (B40)
