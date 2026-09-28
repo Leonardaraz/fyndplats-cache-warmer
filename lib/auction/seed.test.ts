@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { LADDER_STEPS, MAX_DISCOUNT } from "./engine";
+import { LADDER_STEPS, MAX_DISCOUNT, type AuctionDoc } from "./engine";
 import {
   assignQueueOrder,
   evaluateCandidate,
   fnv1a,
   headlineDiscount,
   MIN_AUCTION_DISCOUNT,
+  planSeed,
   type SeedInput,
   type SeedRejection,
 } from "./seed";
@@ -173,5 +174,63 @@ describe("assignQueueOrder", () => {
     const cands = Array.from({ length: 30 }, (_, i) => mk(`prod-${i}`, 1000, 700 - i));
     expect([...assignQueueOrder(cands).entries()]).toEqual([...assignQueueOrder(cands).entries()]);
     expect(fnv1a("prod-0")).toBe(fnv1a("prod-0"));
+  });
+});
+
+describe("planSeed — vad seeden skriver", () => {
+  const NOW = Date.parse("2026-09-28T02:00:00Z"); // 04:00 i Stockholm
+  const cand = (id: string, list: number) => {
+    const v = evaluateCandidate({ ...single, productId: id, slug: `s-${id}`, variants: [{ wixVariantId: `v-${id}`, listPrice: list, landedCostSek: 400 }] });
+    if (!v.ok) throw new Error(v.reason);
+    return v.doc;
+  };
+  const doc = (id: string, over: Partial<AuctionDoc>): AuctionDoc => ({
+    _id: `auction-${id}`,
+    ...cand(id, 2199),
+    slot: 0,
+    status: "queued",
+    queueOrder: 7,
+    ...over,
+  });
+
+  it("live som väntar på 07:00 får dagens pris men behåller slot och start", () => {
+    const start = "2026-09-28T05:00:00.000Z";
+    const prev = doc("a", { status: "live", slot: 3, startAt: start, lastPatchedPrice: 2199, lastPatchedStep: 0 });
+    const fresh = cand("a", 2419);
+    const plan = planSeed([fresh], [prev], new Map([["a", 1]]), NOW);
+    expect(plan.refreshedLive).toEqual(["s-a"]);
+    const saved = plan.toSave[0];
+    expect(saved.status).toBe("live");
+    expect(saved.slot).toBe(3);
+    expect(saved.startAt).toBe(start);
+    expect(saved.queueOrder).toBe(7);
+    expect(saved.listPrice).toBe(2419);
+    expect(saved.ladder[0]).toBe(2419);
+    expect(saved.lastPatchedPrice).toBe(2419);
+    expect(saved.lastPatchedStep).toBe(0);
+  });
+
+  it("startad live-dag rörs aldrig", () => {
+    const prev = doc("a", { status: "live", slot: 1, startAt: "2026-09-28T01:00:00.000Z" });
+    const plan = planSeed([cand("a", 2419)], [prev], new Map(), NOW);
+    expect(plan.toSave).toHaveLength(0);
+    expect(plan.skippedLive).toEqual(["s-a"]);
+  });
+
+  it("väntande live som inte längre kvalar lämnas, köade tas bort", () => {
+    const live = doc("a", { status: "live", slot: 2, startAt: "2026-09-28T05:00:00.000Z" });
+    const queued = doc("b", {});
+    const plan = planSeed([], [live, queued], new Map(), NOW);
+    expect(plan.liveNotRefreshed).toEqual(["s-a"]);
+    expect(plan.toRemove.map((d) => d.productId)).toEqual(["b"]);
+    expect(plan.toSave).toHaveLength(0);
+  });
+
+  it("köade och nya får status queued och köordning, avslutade behåller historiken", () => {
+    const sold = doc("c", { status: "sold", endedAt: "2026-09-01T10:00:00Z", soldPrice: 1999 });
+    const plan = planSeed([cand("c", 2419), cand("d", 999)], [sold], new Map([["c", 2], ["d", 1]]), NOW);
+    const byId = new Map(plan.toSave.map((d) => [d.productId, d]));
+    expect(byId.get("c")).toMatchObject({ status: "sold", soldPrice: 1999, queueOrder: 2, listPrice: 2419 });
+    expect(byId.get("d")).toMatchObject({ status: "queued", slot: 0, queueOrder: 1, _id: "auction-d" });
   });
 });
