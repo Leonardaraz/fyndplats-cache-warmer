@@ -204,6 +204,12 @@ TYSKA_ORD = [
     "Satztisch", "Kopfteil", "Bettkopfteil", "Nachttisch", "Nachtschrank", "Nachtkommode",
     "Anflugstange", "Freisitz", "Vogeltisch", "Sitzstange", "Schublade", "Schubladen",
     "Widerstandsbänder", "Liegestützgriffe", "Trittmaschine", "Einlegeböden",
+    # runda N87 (vedställ, elkamin, paraplyställ, öppen garderob och hallmöbler)
+    "Kaminholzständer", "Brennholzständer", "Kaminbesteck", "Schürhaken", "Elektrokamin",
+    "Kaminofen", "Flammeneffekt", "Schirmständer", "Regenschirmständer", "Tropfschale",
+    "Garderobenständer", "Flurgarderobe", "Garderobenschrank", "Kleiderstange", "Kleiderständer",
+    "Mantelständer", "Kleiderhaken", "Doppelhaken", "Schuhbank", "Schuhregal", "Schuhfach",
+    "Schuhfächer", "Sitzbank", "Stoffschublade", "Stoffschubladen", "Kippschutz",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
