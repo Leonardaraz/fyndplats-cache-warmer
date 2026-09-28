@@ -367,6 +367,8 @@ export interface StamplaSvar {
   stamplade: number;
   hoppade: number;
   skrivfel: number;
+  /** Rader som inte hanns med innan tidsbudgeten tog slut. Kör planen och stampla igen. */
+  kvar: number;
 }
 
 /**
@@ -376,20 +378,31 @@ export interface StamplaSvar {
  * `reviewedAt`, och utan den vet ingen hur gammal pensioneringen är. Klockan
  * sätts därför till NU — tidigast möjliga radering blir MIN_ALDER_DAGAR
  * härifrån, aldrig tidigare än den verkliga pensioneringen hade gett.
+ *
+ * Tidsbudgeterad som raderingen: tre databasanrop per rad, och en rutt som
+ * dödas mitt i en lång lista svarar ingenting alls. En omkörning är ofarlig —
+ * en rad som redan fått sin tid är inte längre med i planen.
  */
 export async function stampla(
   deps: KorDeps,
   plan: Plan,
-  opts: { bekrafta: string },
+  opts: { bekrafta: string; timeBudgetMs?: number },
 ): Promise<StamplaSvar> {
   if (opts.bekrafta.trim() !== String(plan.utanTidsstampel.length)) {
     throw new BekraftaFel(
       `bekrafta måste vara torrkörningens antal utan tidsstämpel (${plan.utanTidsstampel.length}), fick "${opts.bekrafta}"`,
     );
   }
-  const nu = new Date((deps.now ?? Date.now)());
-  const svar: StamplaSvar = { stamplade: 0, hoppade: 0, skrivfel: 0 };
-  for (const id of plan.utanTidsstampel) {
+  const now = deps.now ?? Date.now;
+  const start = now();
+  const budget = opts.timeBudgetMs ?? 200_000;
+  const nu = new Date(start);
+  const svar: StamplaSvar = { stamplade: 0, hoppade: 0, skrivfel: 0, kvar: 0 };
+  for (const [i, id] of plan.utanTidsstampel.entries()) {
+    if (now() - start >= budget) {
+      svar.kvar = plan.utanTidsstampel.length - i;
+      break;
+    }
     const m = await deps.getMapping(id);
     if (!m || !arPensionerad(m) || m.reviewedAt) {
       svar.hoppade++;

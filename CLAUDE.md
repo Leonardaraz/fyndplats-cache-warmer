@@ -1715,11 +1715,14 @@ butikens sajt.** Pekar de på olika sajter tar städningen inte de filer
 raderingen frigör. Svaret säger det i `sammaSajtSomBildstadningen`; läs fältet
 vid första körningen.
 
-⚠️ **Första körningen tidigast 2026-10-11**, fjorton dygn efter de första
-sammanslagningarna. Ordningen är `plan`, `stampla` om planen har rader utan
-tidsstämpel, `radera` och sist bildstädningen. Kör `stampla` så snart verktyget
-ligger på `main`, för de raderna blir raderbara fjorton dygn efter att klockan
-startats.
+⚠️ **Planen säger vad som är raderbart i dag** (`raderbara`) och när nästa blir
+det (`nastaRaderbar`). Givarna från de första sammanslagningarna 2026-09-27 blir
+raderbara 2026-10-11, men en rad som avvisades i kön före 2026-09-14 kan redan
+vara det. Ordningen är `plan`, `stampla` om planen har rader utan tidsstämpel,
+`radera` och sist bildstädningen. Kör `stampla` så snart verktyget ligger på
+`main`, för de raderna blir raderbara fjorton dygn efter att klockan startats.
+Både `stampla` och `radera` stannar på en tidsbudget. Säger `stampla` att rader
+är `kvar`, kör planen och `stampla` igen med planens nya antal.
 
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 

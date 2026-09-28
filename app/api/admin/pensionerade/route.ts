@@ -69,9 +69,16 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 /** Räknad från requestens början — svep, kontroller och raderingar ska rymmas. */
-const TIDSBUDGET_MS = 240_000;
-/** Svepet får högst så här mycket av budgeten; resten är raderingarnas. */
-const SVEP_BUDGET_MS = 120_000;
+const TIDSBUDGET_MS = 250_000;
+/**
+ * Svepet får högst så här mycket av budgeten; resten är raderingarnas.
+ *
+ * Ett helt svep med galleriet är ~64 sidor om 100 produkter. Ett lika stort
+ * svep med beskrivningen rymdes inom 60 sekunder (dubblettskärmen, 2026-09-16),
+ * så 170 sekunder lämnar plats för Wix återförsök. Raderingen tar det som blir
+ * över och stannar själv på sin budget (`tidsbudget` är ett normalt stopp).
+ */
+const SVEP_BUDGET_MS = 170_000;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -200,11 +207,14 @@ export async function GET(req: NextRequest) {
 
   try {
     if (lage === "stampla") {
-      const r = await stampla(liveDeps(), plan, { bekrafta });
+      const r = await stampla(liveDeps(), plan, {
+        bekrafta,
+        timeBudgetMs: Math.max(0, TIDSBUDGET_MS - (Date.now() - t0)),
+      });
       await audit(
         "pensionerade",
         "stampla",
-        `${r.stamplade} rader fick tidsstämpel, ${r.hoppade} hoppade, ${r.skrivfel} skrivfel`,
+        `${r.stamplade} rader fick tidsstämpel, ${r.hoppade} hoppade, ${r.skrivfel} skrivfel, kvar ${r.kvar}`,
       );
       return NextResponse.json({ ...bas, ...r });
     }

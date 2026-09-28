@@ -571,6 +571,14 @@ describe("radera — skarpt", () => {
 });
 
 describe("stampla", () => {
+  it("tidsbudgeten stoppar före nästa rad och säger hur många som är kvar", async () => {
+    const v = varld([rad("a", { reviewedAt: undefined }), rad("b", { reviewedAt: undefined })], [produkt("a"), produkt("b")]);
+    const { plan } = korPlan(v);
+    const r = await stampla(deps(v), plan, { bekrafta: "2", timeBudgetMs: 0 });
+    expect(r).toEqual({ stamplade: 0, hoppade: 0, skrivfel: 0, kvar: 2 });
+    expect(v.rader.get("a")!.reviewedAt).toBeUndefined();
+  });
+
   it("☠️ fel bekrafta: ingenting skrivs", async () => {
     const v = varld([rad("a", { reviewedAt: undefined })], [produkt("a")]);
     const { plan } = korPlan(v);
@@ -583,7 +591,7 @@ describe("stampla", () => {
     const { plan } = korPlan(v);
     v.rader.set("b", { ...v.rader.get("b")!, reviewedAt: dagarSedan(2) });
     const r = await stampla(deps(v), plan, { bekrafta: "2" });
-    expect(r).toEqual({ stamplade: 1, hoppade: 1, skrivfel: 0 });
+    expect(r).toEqual({ stamplade: 1, hoppade: 1, skrivfel: 0, kvar: 0 });
     expect(v.rader.get("a")!.reviewedAt).toBeTruthy();
     expect(v.rader.get("b")!.reviewedAt).toBe(dagarSedan(2));
   });

@@ -160,13 +160,17 @@ jobs:
                 "| | |\n|---|---:|",
                 "| **fick tidsstampel** | **\(.stamplade)** |",
                 "| hoppade (fick en tid emellan) | \(.hoppade) |",
-                "| skrivfel | \(.skrivfel) |"
+                "| skrivfel | \(.skrivfel) |",
+                "| kvar (tiden tog slut) | \(.kvar) |"
               ' || true
             } >> "$GITHUB_STEP_SUMMARY"
-            printf '%s\n' "$kropp" | jq -r '"stamplade \(.stamplade), hoppade \(.hoppade), skrivfel \(.skrivfel)"' || true
+            printf '%s\n' "$kropp" | jq -r '"stamplade \(.stamplade), hoppade \(.hoppade), skrivfel \(.skrivfel), kvar \(.kvar)"' || true
             if [ "$(printf '%s' "$kropp" | jq -r '.skrivfel')" != "0" ]; then
               echo "::error::skrivfel vid stamplingen" >&2
               exit 1
+            fi
+            if [ "$(printf '%s' "$kropp" | jq -r '.kvar')" != "0" ]; then
+              echo "::warning::tiden tog slut — kor plan och stampla igen med planens nya antal"
             fi
             exit 0
           fi
@@ -193,6 +197,7 @@ jobs:
             kropp="$(anropa "${url}?${q}")"
             per="$(printf '%s' "$kropp" | jq -r '.per')"
             raderade="$(printf '%s' "$kropp" | jq -r '.raderade')"
+            markerade="$(printf '%s' "$kropp" | jq -r '.markeradeUtanRadering')"
             kvar="$(printf '%s' "$kropp" | jq -r '.kvar')"
             stopp="$(printf '%s' "$kropp" | jq -r '.stoppadAv')"
             totalt=$((totalt + raderade))
@@ -212,7 +217,12 @@ jobs:
                 exit 1
                 ;;
             esac
-            if [ "$kvar" = "0" ] || [ "$raderade" = "0" ]; then
+            # Ett varv som bara bokforde redan borttagna produkter ar ocksa ett
+            # framsteg: de far en tidsbudget per anrop, och fler kan vanta.
+            if [ "$raderade" = "0" ] && [ "$markerade" = "0" ]; then
+              break
+            fi
+            if [ "$kvar" = "0" ] && [ "$markerade" = "0" ]; then
               break
             fi
             hogst="$kvar"
