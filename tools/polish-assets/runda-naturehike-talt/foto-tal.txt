@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA I LISTNINGENS BILDER, inte skrivna i källtexten (AliExpress, engelska).
+# Form: <kort> <tal> <vad som lästes av>
+5cc6a174 110 innertältets takhöjd i måttritningen för tremanstältet (bild 6, Triple)
+5cc6a174 120 tältets höjd vid främre bågen i samma måttritning (bild 6, Triple)
+5cc6a174 165 innertältets bredd vid fotändan (bild 6 och 7, tre sovsäckar ritade)
+5cc6a174 190 innertältets bredd vid huvudändan (bild 6 och 7)
+5cc6a174 2,7 vikt utan tillbehör, 2.7kg (without accessories), bild 7 med tremanstältets ritning
+5cc6a174 55 packmått 17.5 x 17.5 x 55cm, bild 7
+5cc6a174 17,5 packmått 17.5 x 17.5 x 55cm, bild 7
