@@ -3424,3 +3424,27 @@ beslut — se den samlade frågan om detta.
   står bara i måttbilden och är kvitterad i `foto-tal.txt`. Källan skriver
   spannet med bindestreck mellan två tresiffriga tal, samma form som ett
   artikelnummer, så det redigerades bort ur facit. (N85)
+- Köksskåpet `2e6d120a` är inte kopplat till Sideboards & vitrinskåp. Texten
+  där säger att det finns ett köksskåp i lantstil med glasvitrin, och det här
+  blir ett andra. Det ligger i Möbler tills texten är omskriven. (N86)
+- Sparkcyklarna `cf0052ce` (rosa) och `8b42d5d1` (blå) är samma sparkcykel för
+  barn i två färger, bara bland utkasten. Den är för 3–7 år och bär 50 kg,
+  alltså en leksak, och källan till `cf0052ce` nämner ingen EN 71. Ingen av
+  dem polerades. (N86)
+- Kattunneln `fe33e227` (saldo 1) är gjord för utomhusbruk och väntar till
+  våren. (N86)
+- Pallen `5d9e6795` (grå, saldo 2) är samma pall som den publicerade mörkgrå
+  `40d0af10` från N65, men vikten skiljer (3,7 och 4,2 kg), så syskonsvepet
+  parar dem inte. Sidans namn bär färgen, så en sammanslagning kräver ett nytt
+  namn först, med samma slug. (N86)
+- Tunt saldo vid publiceringen: köksskåpet `2e6d120a` 3, satsborden `c78b886b`
+  2, sänggaveln `932c527a` 2, nattduksbordet `0dfc4423` 1 och fågelstället
+  `3e6e478c` 2. Runbooken räknar 1–4 som köpbart. (N86)
+- Stepperns cylindrar bär en tryckt varning om att de kan bli varma. Den står i
+  skötseltexten men inte under Produktsäkerhet, eftersom den inte finns i
+  källtexten. (N86)
+- Bildgranskningen strök 3 av 35 bilder: stepperns måttbild bär en etikett med
+  en kod i artikelnummerform och importörens adress, sänggavelns måttbild har
+  tysk text om sängbredden, och nattduksbordets huvudbild har ett läsbart
+  varumärke på en bok och en kameramodell. Nattduksbordet har därför en
+  miljöbild som huvudbild. (N86)
