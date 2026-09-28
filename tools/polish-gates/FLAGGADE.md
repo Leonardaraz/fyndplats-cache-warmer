@@ -3352,3 +3352,15 @@ beslut — se den samlade frågan om detta.
   och roddmaskinen), leverantörens logotyp på två (helkroppstränaren och
   roddmaskinen) och läsbara boktitlar och en ljusetikett på bänkens
   miljöbild. Roddmaskinen har tre bilder kvar. (N83)
+- Racketarna `3ce5861a` väntar till våren. Källan kallar dem pickleballracketar,
+  men bilderna visar strandtennisracketar med hål i bladet, på en strand, så
+  vilken sport varan gäller måste avgöras innan texten skrivs. (N84)
+- Pickleballnätet `42c65748` med ställning väntar till våren, eftersom det
+  ställs upp ute på uppfarter och gräsmattor. Bild 3 och 4 har tysk text.
+  (N84)
+- Sparkbilen `b2175a65` för barn från 18 månader polerades inte: källan
+  nämner ingen EN 71, och regeln för leksaker kräver det. (N84)
+- Laddkabeln för elbil `4a4a896c` (11 kW, CEE 16 A, med adapter för vanligt
+  uttag) polerades inte. Källan lovar ett läge utan jordning för tillfälliga
+  installationer, och laddning utan skyddsjord bör Leonard ta ställning till
+  innan varan säljs. (N84)
