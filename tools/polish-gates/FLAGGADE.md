@@ -3673,3 +3673,30 @@ beslut — se den samlade frågan om detta.
   ljus logotyp. (N93)
 - Livekontrollen gav 7 av 7 OK, 16 av 16 alt-texter och noll textavvikelser. Priserna är
   orörda. (N93)
+- Åtta utkast ur N61:s hopplista för köksskåp polerades: köksskåpen `d489f371`, `cfa18edc`,
+  `39a9b669`, `1dda8d1b`, `59c46581` och `553ad0d9`, mikrovågsugnsskåpet på hjul `06424d4b`
+  och skänken `f281972e`. Dubblettskärmen mot hela katalogen gav inga dubbletter. (N94)
+- För få rena bilder, hålls: köksbuffén `c4668acc`. Varje bild utom måttbilden bär läsbara
+  märken på förpackningar och burkar, även huvudbilden. Den kan poleras om leverantören har
+  renare bilder. (N94)
+- Skärmen parade `cfa18edc` (100 × 40 × 180 cm) med de publicerade köksskåpen `5de3224e` och
+  `8e76d9b8`, `d489f371` (60 × 35 × 180 cm) med den publicerade `fbcf5899` och `553ad0d9` med
+  den publicerade `2e6d120a`, och namnlistan pekade ut `4be73755` (100 × 40 × 180 cm i
+  lantstil). Alla är andra modeller, med andra fack, laster och vikter. `fbcf5899` har en
+  glasvitrin där `d489f371` har släta dörrar. (N94)
+- Kategoritexten för Sideboards & vitrinskåp säger att sideboardsen är 75 till 81 cm höga.
+  Skänken `f281972e` är 85 cm hög och ligger nu i kategorin, så texten bör säga 75 till 85
+  cm. Sex av rundans sju produkter i kategorin har raden `Antal lådor`. (N94)
+- Källan för `59c46581` anger underskåpets innerhöjd till 775,5 cm. Måttbilden visar 77,5
+  cm, och sidan anger 77,5 cm. (N94)
+- Källan för `d489f371` kallar överskåpet vitrinskåp, men bilderna visar släta dörrar. Sidan
+  beskriver släta dörrar. (N94)
+- Källan för `553ad0d9` nämner inget tippskydd, trots att skåpet är 172 cm högt. Sidan
+  lovar inget tippskydd och råder kunden att fästa skåpet i väggen. (N94)
+- Bildgranskningen strök 21 av 40 bilder: märken eller läsbar text på förpackningar, burkar,
+  flaskor och apparater på arton (två av dem bär även boktitlar) och text på böcker på tre
+  (`d489f371` bild 4 och `f281972e` bild 4 och 5). Fem av produkterna har två bilder kvar,
+  huvudbilden och måttbilden. Högpassarken visade ingen ljus logotyp. (N94)
+- Livekontrollen gav 8 av 8 OK, 19 av 19 alt-texter och noll textavvikelser. Priserna är
+  orörda. Fyra sidor svarade 404 på den första träffen, två minuter efter skrivningen, och
+  200 fem minuter senare. (N94)
