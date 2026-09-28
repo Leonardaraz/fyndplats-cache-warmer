@@ -8,7 +8,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { colorKeysOf, linkVariantImagesByAltText, colorOf } from "./variant-color-image.ts";
+import { colorKeysOf, colorImagesFromOptions, linkVariantImagesByAltText, colorOf } from "./variant-color-image.ts";
 
 // Verkliga galleri-alt-texter för hundvagnen (Wix V1, productId 1e1a3869…).
 // De per-färg-bilderna ligger SIST (index 9–11); de generiska saknar färgord.
@@ -146,4 +146,27 @@ test("colorOf — böjningar/sammansättningar rätt, inga falska delsträngstr�
   assert.equal(colorOf("Standard"), ""); // inte "tan"
   assert.equal(colorOf("2 L"), "");
   assert.equal(colorOf(""), "");
+});
+
+test("colorImagesFromOptions: färgnyckel → valets första bild, första valet vinner", () => {
+  const options = [
+    {
+      choicesSettings: {
+        choices: [
+          { name: "Rosa", linkedMedia: [{ image: { url: "https://static.wixstatic.com/media/rosa.jpg" } }] },
+          { name: "Blå", linkedMedia: [{ image: { url: "https://static.wixstatic.com/media/bla.jpg" } }] },
+          { name: "Ljusblå", linkedMedia: [{ image: { url: "https://static.wixstatic.com/media/ljusbla.jpg" } }] },
+          { name: "Svart", linkedMedia: [] },
+          { name: "Grön", visible: false, linkedMedia: [{ image: { url: "https://static.wixstatic.com/media/gron.jpg" } }] },
+        ],
+      },
+    },
+    { choicesSettings: { choices: [{ name: "205 cm", linkedMedia: [] }] } },
+  ];
+  const b = colorImagesFromOptions(options);
+  assert.equal(b.rosa, "https://static.wixstatic.com/media/rosa.jpg");
+  assert.equal(b["blå"], "https://static.wixstatic.com/media/bla.jpg", "Ljusblå efter Blå tar inte över");
+  assert.equal(b.svart, undefined, "val utan bild ger ingen post");
+  assert.equal(b["grön"], undefined, "dolt val räknas inte");
+  assert.deepEqual(colorImagesFromOptions(undefined), {});
 });

@@ -12,7 +12,7 @@ import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { getSoldUnits } from "./popularity";
-import { getProductColors } from "./product-colors";
+import { getProductColorImages, getProductColors } from "./product-colors";
 import { lasSpec, specFor, type Nyckel, type Spec } from "./spec-facets";
 import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
@@ -88,6 +88,9 @@ export type Product = {
    *  som sidovagn (lib/product-colors.ts) eftersom V1-listan plattar bort
    *  optionsnamnen. undefined = ingen färgdata; [] förekommer aldrig. */
   colors?: string[];
+  /** Bild per färgnyckel (V3-valens linkedMedia). Kortet visar den färg
+   *  kunden filtrerat på i stället för huvudbilden (lib/product-colors.ts). */
+  fargBild?: Record<string, string>;
   /** Mått och egenskaper för listsidornas filter, lästa ur beskrivningen
    *  (lib/spec-facets.ts). undefined när inget gick att läsa. */
   spec?: Spec;
@@ -525,10 +528,12 @@ async function fetchProducts(): Promise<Product[]> {
     // Färgval (V3-sidovagn) → färgfiltret på listsidorna. Samma fail-open:
     // uteblir datan renderas facetten helt enkelt inte.
     try {
-      const colors = await getProductColors();
+      const [colors, fargBilder] = await Promise.all([getProductColors(), getProductColorImages()]);
       if (colors.size) for (const p of unique) {
         const keys = colors.get(p.id);
         if (keys?.length) p.colors = keys;
+        const bild = fargBilder.get(p.id);
+        if (bild) p.fargBild = bild;
       }
     } catch { /* färger får aldrig fälla produktlistan */ }
     // Reserv: färgen ur produktnamnet. Bara ~130 produktgrupper har färg som
@@ -863,6 +868,9 @@ export type ListProduct = {
   inStock: boolean;
   stockQuantity?: number;
   colors?: string[];
+  /** Färgnyckel → bildnyckel. Följer med oavsett `medBild`: bara produkter med
+   *  färgval har den, och kortet behöver den så fort ett färgfilter väljs. */
+  fargBild?: Record<string, string>;
   /** Bara på kategorisidorna, och bara kategorins egna filter (specFor i
    *  forClient). Se lib/spec-facets.ts. */
   spec?: Spec;
@@ -999,6 +1007,11 @@ export function forClient(products: Product[], medBild?: ReadonlySet<string>, sp
     // truthiness, avgör här.
     if (typeof p.stockQuantity === "number") lp.stockQuantity = p.stockQuantity;
     if (p.colors?.length) lp.colors = p.colors;
+    if (p.fargBild) {
+      const fb: Record<string, string> = {};
+      for (const [k, url] of Object.entries(p.fargBild)) fb[k] = bildnyckel(url) ?? url;
+      lp.fargBild = fb;
+    }
     // MÅTTEN FÖLJER BARA MED DÄR DE FILTRERAS. Kategorisidan skickar sina
     // egna nycklar (lib/spec-config.ts); alla andra anropare skickar inga, och
     // då följer inget med — ingen extra byte på /alla-produkter eller /sok.

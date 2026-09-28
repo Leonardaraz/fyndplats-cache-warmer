@@ -12,7 +12,9 @@ import { formatPrice } from "../lib/price-range";
  *  produktbild loading="lazy" — mätt på skarp /alla-produkter 2026-09-04: 53
  *  <img>, 48 lazy, 0 eager, 0 fetchpriority=high. Sidans LCP-bild fick alltså
  *  vänta på att layouten skulle räknas ut innan hämtningen ens började. */
-export function ProductCard({ p, priority = false }: { p: ListProduct; priority?: boolean }) {
+/** `href` ersätter produktlänken, t.ex. med den färg kunden filtrerat på
+ *  (?farg=, se components/shopbrowser). */
+export function ProductCard({ p, priority = false, href }: { p: ListProduct; priority?: boolean; href?: string }) {
   // Hover-alt-image. Listsidorna skickar den förberäknad (altImg) — att skicka
   // hela gallery[] för 787 produkter kostade 364 kB i klient-payloaden. Övriga
   // ytor skickar fortfarande hela Product, och då plockas den ut här som förut.
@@ -31,7 +33,7 @@ export function ProductCard({ p, priority = false }: { p: ListProduct; priority?
     // hover: varje klick började från noll. PrefetchLink hämtar i stället vid
     // avsikt (pointerenter/touchstart), vilket ger klientruttningen OCH en
     // rutt som redan är på väg när fingret släpper. Se components/prefetch-link.
-    <PrefetchLink className="prod" href={`/produkt/${p.slug}`}>
+    <PrefetchLink className="prod" href={href ?? `/produkt/${p.slug}`}>
       <div className="pimg">
         {/* Slutsåld-badge: OOS-produkter göms inte från listningarna (default) utan
             visas med badge + dämpad bild så kunden ser dem och kan bevaka. */}

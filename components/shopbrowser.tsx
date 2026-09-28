@@ -598,6 +598,16 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
     const b = bilder?.[p.slug];
     return b ? { ...p, img: b[0], altImg: b[1] ?? undefined } : p;
   };
+  // FÄRGEN KUNDEN FILTRERAT PÅ. Väljs "Blå" visar kortet den blå varianten och
+  // länkar till produktsidan med färgen vald (?farg=), i stället för
+  // huvudbilden i en annan färg (Leonard 2026-09-28). Bilden kommer ur
+  // produktens färgval (fargBild); saknas den för färgen visas huvudbilden.
+  const iFarg = (p: ListProduct): { p: ListProduct; href?: string } => {
+    if (!colors.length || !p.fargBild) return { p };
+    const k = colors.find((c) => p.fargBild![c]);
+    if (!k) return { p };
+    return { p: { ...p, img: p.fargBild[k], altImg: undefined }, href: `/produkt/${p.slug}?farg=${encodeURIComponent(k)}` };
+  };
   useEffect(() => {
     // Hoppa över första körningen så en delad länk inte nollställer en ev.
     // bevarad scroll-position direkt vid mount.
@@ -909,7 +919,7 @@ function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, face
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => <ProductCard p={medBild(p)} key={p.slug} priority={i < 4} />)}</div>
+          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

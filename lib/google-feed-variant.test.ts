@@ -30,3 +30,16 @@ test("produktsidan förväljer varianten ur ?variant=", () => {
   assert.match(pdp, /imageChoices\.findIndex\(\(c\) => c\.variantId === vid\)/);
   assert.match(pdp, /variants\.findIndex\(\(v\) => v\.id === vid\)/);
 });
+
+test("färgfiltret: kortet visar den filtrerade färgen och produktsidan öppnar på den", () => {
+  const browser = readFileSync("components/shopbrowser.tsx", "utf8");
+  const products = readFileSync("lib/products.ts", "utf8");
+  // Kortet byter till färgens bild och länkar med ?farg=.
+  assert.match(browser, /p\.fargBild\[k\]/);
+  assert.match(browser, /\?farg=\$\{encodeURIComponent\(k\)\}/);
+  // fargBild följer med listan oavsett medBild (bara produkter med färgval har den).
+  assert.match(products, /if \(p\.fargBild\) \{/);
+  // Produktsidan läser ?farg= och väljer ett val i lager med den färgen.
+  assert.match(pdp, /get\("farg"\)/);
+  assert.match(pdp, /colorKeysOf\(text\)\.has\(nyckel\)/);
+});

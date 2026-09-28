@@ -6,6 +6,7 @@ import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
+import { colorKeysOf } from "../lib/variant-color-image";
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaOSM } from "./klarna-osm";
@@ -408,9 +409,35 @@ export function ProductView({
   // Valet görs i nästa bildruta, inte direkt i effekten: sidan har redan ritats
   // med första varianten, och ett synkront setState här hade gett en extra
   // renderingsvända (react-hooks/set-state-in-effect).
+  //
+  // ?farg=<färgnyckel> kommer från listsidornas färgfilter: har kunden filtrerat
+  // på "Blå" visar kortet den blå bilden och länkar hit med färgen, så sidan
+  // öppnar på den blå varianten i stället för på första färgen. Ett val i lager
+  // vinner över ett slutsålt med samma färg.
   useEffect(() => {
     let vid: string | null = null;
-    try { vid = new URLSearchParams(window.location.search).get("variant"); } catch { /* ingen adress */ }
+    let farg: string | null = null;
+    try {
+      vid = new URLSearchParams(window.location.search).get("variant");
+      farg = new URLSearchParams(window.location.search).get("farg");
+    } catch { /* ingen adress */ }
+    if (!vid && farg) {
+      const nyckel = farg;
+      const harFarg = (text: string | undefined) => !!text && colorKeysOf(text).has(nyckel);
+      const valjFarg = () => {
+        if (multiAxis) {
+          const med = table.filter((t) => Object.values(t.choices).some(harFarg));
+          const rad = med.find((t) => t.inStock) ?? med[0];
+          if (rad) setPicked({ ...rad.choices });
+          return;
+        }
+        const kandidater = imageChoices.map((c, i) => ({ c, i })).filter(({ c }) => harFarg(c.label));
+        const val = kandidater.find(({ c }) => c.inStock !== false) ?? kandidater[0];
+        if (val && hasImageVariants) pickVariant(val.i);
+      };
+      const id = window.requestAnimationFrame(valjFarg);
+      return () => window.cancelAnimationFrame(id);
+    }
     if (!vid) return;
     const valj = () => {
       if (multiAxis) {
