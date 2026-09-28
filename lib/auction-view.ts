@@ -13,7 +13,7 @@
 // kan man läsa ut slutpriset och snajpa golvet. Klienten får bara aktuellt
 // pris + tidpunkt för NÄSTA sänkning.
 
-import { getProducts, type Product } from "./products";
+import { getFreshPrices, getProducts, type Product } from "./products";
 import { synligaFynd } from "./auction-visible";
 
 const WIX_BASE = "https://www.wixapis.com";
@@ -140,10 +140,15 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
   const now = Date.now();
   // Ett sålt fynd ersätts inte samma dag — regeln och skälen i
   // lib/auction-visible.ts.
-  return synligaFynd(rows, now)
+  const synliga = synligaFynd(rows, now);
+  // Priset färskt ur Wix: katalogen i getProducts() kan vara timmar gammal på
+  // en varm instans, och auktionspriset byts varje timme.
+  const farska = await getFreshPrices(synliga.map((r) => r.slug ?? "").filter(Boolean));
+  return synliga
     .map((r) => {
-      const p = bySlug.get(r.slug ?? "");
-      if (!p || !r.listPrice) return null;
+      const katalog = bySlug.get(r.slug ?? "");
+      if (!katalog || !r.listPrice) return null;
+      const p = { ...katalog, ...farska.get(katalog.slug) };
       const discount = Math.max(0, Math.round((1 - p.priceNum / r.listPrice) * 100));
       return {
         slug: p.slug,
