@@ -252,6 +252,37 @@ export interface MediaCleanupDeps {
   paus?: (ms: number) => Promise<void>;
 }
 
+/**
+ * Tak för recensionsläsningen i städningen. Långt över katalogen; slår det i
+ * är det ett fel, inte en katalog.
+ */
+export const RECENSION_TAK = 500_000;
+
+/**
+ * Varje bild-URL som sitter på en recension, ur HELA recensionslagret.
+ *
+ * ☠️ INGET TYST TAK. `listAll()` utan argument stannar vid MAX_LIST_ALL (5 000
+ * rader), ett tak som finns för admin-sidornas rendering. Städningen använde
+ * det: med fler än 5 000 recensioner föll de äldsta ur skyddslistan, och deras
+ * importerade bilder såg föräldralösa ut och raderades permanent. Butiken
+ * visar 6 582 recensioner (2026-09-28). Här läses allt, och ett svar som når
+ * taket kastar — ett tak ska kasta, aldrig kapa (CLAUDE.md).
+ */
+export async function recensionsbildUrler(
+  store: { listAll(limit?: number): Promise<Array<{ imageUrl?: string; imageUrls?: string[] }>> },
+): Promise<string[]> {
+  const alla = await store.listAll(RECENSION_TAK);
+  if (alla.length >= RECENSION_TAK) {
+    throw new Error(`Recensionslagret har minst ${RECENSION_TAK} rader: höj RECENSION_TAK.`);
+  }
+  const urls: string[] = [];
+  for (const r of alla) {
+    if (r.imageUrl) urls.push(r.imageUrl);
+    for (const u of r.imageUrls ?? []) urls.push(u);
+  }
+  return urls;
+}
+
 export interface MediaCleanupSummary {
   dryRun: boolean;
   /** Filer i FÖNSTRET, inte i hela Media Manager — se `cursor`. */
@@ -580,13 +611,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     // har `imageUrl` har ingen `imageUrls`.
     listaRecensionsbilder: async () => {
       const { getReviewStore } = await import("../store/reviews");
-      const alla = await getReviewStore().listAll();
-      const urls: string[] = [];
-      for (const r of alla) {
-        if (r.imageUrl) urls.push(r.imageUrl);
-        for (const u of r.imageUrls ?? []) urls.push(u);
-      }
-      return urls;
+      return recensionsbildUrler(getReviewStore());
     },
 
     // Samma sajt som resten av städningen (WIX_SITE_ID när den är satt) och

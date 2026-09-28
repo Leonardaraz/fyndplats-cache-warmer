@@ -5,6 +5,8 @@ import {
   planeraStadning,
   runMediaCleanup,
   mediaNyckel,
+  recensionsbildUrler,
+  RECENSION_TAK,
   type MediaFil,
   type MediaCleanupDeps,
 } from "./media-cleanup";
@@ -472,5 +474,21 @@ describe("☠️ kategoribilderna hör till referenslistan", () => {
     const s = await runMediaCleanup(d, { dryRun: false });
     expect(raderade.flat()).toEqual(["a2"]);
     expect(s.raderade).toBe(1);
+  });
+});
+
+describe("recensionsbildUrler — skyddslistan läser hela recensionslagret", () => {
+  it("ber om alla rader, inte admin-sidornas tak på 5 000", async () => {
+    let fragat: number | undefined;
+    const rader = Array.from({ length: 6000 }, (_, i) => ({ imageUrl: `https://static.wixstatic.com/media/r${i}.jpg`, imageUrls: [`https://static.wixstatic.com/media/r${i}.jpg`, `https://static.wixstatic.com/media/r${i}b.jpg`] }));
+    const urls = await recensionsbildUrler({ listAll: async (limit) => { fragat = limit; return rader.slice(0, limit); } });
+    expect(fragat).toBe(RECENSION_TAK);
+    expect(urls).toContain("https://static.wixstatic.com/media/r5999b.jpg");
+  });
+
+  it("kastar när svaret når taket i stället för att kapa", async () => {
+    await expect(
+      recensionsbildUrler({ listAll: async (limit) => Array.from({ length: limit ?? 0 }, () => ({})) }),
+    ).rejects.toThrow(/höj RECENSION_TAK/);
   });
 });
