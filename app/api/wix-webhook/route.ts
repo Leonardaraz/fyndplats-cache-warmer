@@ -1269,6 +1269,10 @@ export async function POST(req: NextRequest) {
             // Actions-only och kan inte användas i en Route Handler.)
             revalidateTag("auctions", { expire: 0 });
             revalidatePath("/fyndauktion");
+            // Produktsidan revaliderades ovan, FÖRE prisåterställningen. Ett
+            // besök däremellan cachade auktionspriset på sidan medan kassan tar
+            // ordinarie pris. En gång till nu när priset är tillbaka.
+            for (const slug of endedSlugs) revalidatePath(`/produkt/${slug}`);
             console.log(`[wix-webhook] Fyndauktionen: direktsåld → ${endedSlugs.join(", ")}`);
           }
         }
