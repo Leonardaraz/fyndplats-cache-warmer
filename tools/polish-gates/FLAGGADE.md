@@ -4826,3 +4826,35 @@ beslut — se den samlade frågan om detta.
   kontorsstolen i teddyfleece 9,7 kg) och fyra miljöbilder med märken eller läsbar text på
   rekvisitan: ett kameramärke och en datorlogotyp hos kontorsstolen i teddyfleece och boktitlar
   och märken på en kamera och en dator hos loungefåtöljen med fotpall. (B56)
+- B57: de 20 senast importerade utkasten (2026-09-28 04:42–04:44) och fem äldre syskon blev åtta
+  sidor. Stolsdynorna med låg rygg `39d10fc4` (mörkblå) fick ljusgrå (`507875a2`), beige
+  (`98b89bc9`) och mörkgrå (`e61a175b`). Hammocköverdraget `91f5c078` (205 cm, mörkgrön) fick
+  ljusgrå (`491c8d4c`), svart (`a2dd5dc8`) och mörkgrå (`b1ad1179`) i 205 cm, och ljusgrå
+  (`2a5d48f1`), mörkgrå (`5b00f7e0`) och mörkgrön (`b76cb511`) i 177 cm, alltså sju varianter
+  på axlarna Färg × Storlek. Solsängen med soltak `1174c0c4` (brun) fick grå (`0f348d94`) och röd
+  (`16d41e97`). Bänkdynan med rygg `a7aa9370` (100 cm, svart) fick mörkgrå (`d7363b90`) i 100 cm
+  och beige (`e5555f93`) och ljusgrå (`91b18246`) i 150 cm. Reservtaket till paviljong 3 × 3 m
+  `e969501f` (brun) fick mörkgrå (`50410801`) och beige (`dd2ee3da`). Myggnätet till parasoll
+  `152a915d`, sidobordet i metall `3e95a07a` och bistrobordet `0523532e` blev egna sidor. Det
+  blev 16 sammanslagningar, alla verifierade vid återläsning, och varje färgval har en egen
+  kopplad bild. Skrivningen verifierade 8 av 8 sidor, och livekontrollen gav diff 0 på alla
+  åtta, 8 av 8 OK och 34 av 34 alt-texter. (B57)
+- **`f03641c1`** (reservtak till paviljong 3 × 3 m, grön, 519 kr, saldo 197) hölls tillbaka. Det
+  är samma tak som den publicerade AliExpress-sidan `fc5e7fde` (*Paviljongtak 3x3 m – reservtak
+  i polyester med ventilerad topp*), som redan säljer grönt: samma väv på 180 g/m², ventilerad
+  topp, åtta dräneringshål och hörnfickor, och hörnfickan ser likadan ut på båda sidornas foton.
+  Mappningen saknar
+  `supplier`, så sidan är AliExpress, och den har tre varianter (orange, ljusgrå, grön).
+  Ommappningen vägrar sidor med flera varianter, så brun, mörkgrå och beige blev den egna
+  Aosom-sidan `e969501f`. Två publicerade sidor säljer alltså samma tak i olika färger tills det
+  finns en väg att mappa om en AliExpress-sida med flera varianter. (B57)
+- Tre familjer skiljer sig inom sidan, och texterna säger det: bänkdynan är tätt tuftad i svart
+  och beige och glesare tuftad i mörkgrått och ljusgrått (samma mått, tyg och stoppning),
+  reservtaket mäter 298 × 298 cm och fästs med kardborreband i brunt och beige men 298 × 295 cm
+  med snören i mörkgrått, och hammocköverdragets 177 cm finns inte i svart. (B57)
+- Sex bilder ströks: tysk text på stolsdynornas, bänkdynans och reservtakets miljöbilder och
+  måttbild, en hängetikett med leverantörens märke och engelsk text på solsängen och en kolsäck
+  med läsbart märke på bistrobordets miljöbild. Samma skäl gäller syskonens bilder, men av dem
+  följer bara huvudbilden med, och alla huvudbilder är rena. (B57)
+- Sidobordet `3e95a07a` har ingen vikt på sidan: källan anger 4 kg netto och 3 kg med
+  förpackning, och de två går inte att förena. (B57)
