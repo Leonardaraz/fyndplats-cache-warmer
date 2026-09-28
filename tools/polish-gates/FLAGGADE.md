@@ -3722,3 +3722,75 @@ beslut — se den samlade frågan om detta.
   `ff10ccf5` (tre). En visar märken på vattenkokaren och kaffemaskinen på sideboarden
   `dbedaf4c`. Två egna faktakort ströks, på köksskåpet `8e76d9b8` och bänken `949ffbb1`.
   Båda angav fraktvikten som Vikt, och kortet på bänken bar färgen. (B35)
+- AVGJORT 2026-09-28, genomfört i B36: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Hammocken `3612fc5a` (brun) fick mörkgrön
+  (`a88d7003`). Medicinskåpet `54efbdc6` (vitt) fick grått (`6858d7ee`). Massagekontorsstolen
+  `72d1d195` (svart) fick grå (`1a1c8f5d`). Väggvärmaren `8475ed8f` (vit) fick svart
+  (`8383377c`). Barnhyllan med sittbänk `d3b26d84` (grå) fick natur (`acfcc8a3`). Matgruppen
+  med ovalt bord `f8a5196f` (svart) fick rustik brun (`227d4899`). Matgruppen `0058ad50`
+  (vit) fick natur (`e70a8452`). Barbordet `3b38e191` (natur) fick rustik brun
+  (`07e9ceef`). Givarna är pensionerade. Därmed är de äldre raderna om givarna avgjorda:
+  `a88d7003` (N62), `6858d7ee` (N56 och B17), `8383377c` (N75), `acfcc8a3` (B2 och N60),
+  `227d4899` och `07e9ceef` (N60) och `e70a8452` (N61). Svepet visar inga fler färger i
+  feeden för de åtta familjerna. Livekontrollen gav 26 av 26 alt-texter och noll
+  textavvikelser, och varje sida visar sina två färger som val med bild. Sju av åtta sidor
+  var OK. Kontorsstolens brödsmula visar Elektronik & Tillbehör och Dator & Gaming,
+  kategorier den låg i redan före rundan. Rundan kan bara lägga till kategorier, så den
+  ligger kvar där. (B36)
+- Sju givares pris styrdes av konkurrentregeln: medicinskåpet i grått (`6858d7ee`),
+  kontorsstolen i grått (`1a1c8f5d`), värmaren i svart (`8383377c`), barnhyllan i natur
+  (`acfcc8a3`), matgruppen i rustik brun (`227d4899`), matgruppen i natur (`e70a8452`) och
+  barbordet i rustik brun (`07e9ceef`). Efter sammanslagningen följer de nya varianterna
+  husets regel, så deras pris kan ändras vid nästa synk. Hammockens två färger ligger 16 %
+  isär i pris (6 759 och 7 819 kr). Matgruppen i natur och barbordet i rustik brun är
+  slutsålda hos Aosom och syns som slut tills synken ser lager. (B36)
+- Massagekontorsstolen har fler publicerade syskon, som B31 såg: `773595bc` (grå med vita
+  armstöd, sammet- och linnelook), `7cf7473e` (mörkgrå mikrofiber) och `825c51f5` (brun
+  mikrofiber). Bilderna visar samma stol. De slogs inte ihop, av två skäl. De är publicerade
+  och kräver `omdirigera=ja`. Och `72d1d195` har nu två varianter, så dess text kan inte
+  skrivas om i en polerrunda, eftersom skrivplanen bara klarar sidor med en variant. Texten
+  anger svart och grått. Slås de tre ihop behöver texten en väg för sidor med flera
+  varianter först. (B36)
+- Kontorsstolens källor är inte överens om det utfällda måttet. Den svarta sidans gamla text,
+  dess egna kort och de tre publicerade syskonens namn anger 138 cm, medan den grå givarens
+  källa anger 65 × 160 × 104 cm. Texten anger inget utfällt mått, och kortet med 138 cm
+  ströks. Den gamla texten, namnet och SEO-titeln lade värmen i ländryggen. Givarens källa
+  anger bara en värmefunktion och sex massagepunkter med värme, så texten säger värme utan
+  att ange var. Stolens fraktvikt i feeden är bara känd för den grå, så sidan anger ingen
+  vikt. (B36)
+- N75 kallade den publicerade värmaren `589690ac` samma värmare som `8475ed8f`. Det stämmer
+  inte: `589690ac` beskriver en vit värmare med fast utblås utan oscillation och
+  fraktvikten 2,5 kg, alltså en annan modell. Dess text hänvisar dessutom till `8475ed8f`
+  med namn. (B36)
+- Barnhyllans gamla text och eget kort angav två dynor och fyra fack. Bilderna visar tre
+  dynor, en sits och en ryggdyna i vinkel på var sida, och sex fack: fyra nertill och ett
+  snett fack på var sida om sittbänken, 17,4–24 cm brett. Namnet sa "fyra fack och två
+  dynor" och SEO-titeln "två dynor". Båda är rättade. (B36)
+- Medicinskåpets gamla text nämnde ett rött kors tre gånger, som jämförelse och i en fråga
+  om dörren, och hänvisade till en annan modell i sortimentet. Korset, jämförelsen och
+  hänvisningen är borta. (B36)
+- Barbordets källor är inte överens om stolarna. Den gamla texten angav 100 kg per stol och
+  givarens källa 120 kg, och stolens djup är 43 cm på båda måttbilderna men 45 cm i
+  givarens källtext. Texten anger 60 kg för skivan, ingen last för stolarna och stolens
+  bredd och höjd. Givarens källa säger också att setet passar ute. Skivan är MDF, så texten
+  nämner inte utomhusbruk. (B36)
+- Sju av de gamla texterna angav feedens fraktvikt som varans vikt (`3612fc5a`,
+  `54efbdc6`, `8475ed8f`, `d3b26d84`, `f8a5196f`, `0058ad50` och `3b38e191`). Fraktvikten är
+  densamma för båda färgerna och står nu som Fraktvikt. Hammockens gamla text jämförde med
+  hammockar i stålrör, lovade en grå patina och hänvisade till tre andra produkter.
+  Matgruppen med ovalt bord hänvisade till en större matgrupp och kallade hyllan ett fack
+  för flaskor, och matgruppen `0058ad50` jämförde hårda sitsar med stoppade. Jämförelserna,
+  hänvisningarna och påståendena är borta. Två SEO-titlar saknade `| Fyndplats` (`3612fc5a`
+  och `d3b26d84`). (B36)
+- Nitton bilder ströks. Åtta var egna faktakort: sju angav fraktvikten som Vikt (`3612fc5a`,
+  `54efbdc6`, `8475ed8f`, `d3b26d84`, `f8a5196f`, `0058ad50` och `3b38e191`), och
+  kontorsstolens kort angav 138 cm utfälld. Tio visar läsbar text på
+  rekvisitan: text på medicinförpackningar i medicinskåpet `54efbdc6`, bokryggar vid
+  värmaren `8475ed8f`, bokryggar på barnhyllan `d3b26d84` (två bilder), en kaffepåse och
+  boktitlar vid matgruppen `f8a5196f` (två), en boktitel på matgruppen `0058ad50`,
+  boktitlar och en tidningstitel vid barbordet `3b38e191` (två) och ett tryck med bokstäver
+  på en t-tröja på hammocken `3612fc5a`. En visar en pennburk med Disney-figurer på
+  barnhyllan `d3b26d84`. (B36)
+- Driftkarten `0b008ef0` är slutsåld på sidan, medan den röda givaren `181892d3` har saldo 4.
+  Den hölls utanför rundan, eftersom lagergrinden stoppar polering av en slutsåld sida.
+  (B36)
