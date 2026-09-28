@@ -7,7 +7,8 @@
 // 13- vs 32-delars destillationssats) auktioneras korrekt: varje variant faller
 // från sitt eget ordinariepris till sitt eget golv. En produkt kvalar in om:
 //
-//   • synlig + i lager (OUT_OF_STOCK exkluderas; PARTIALLY räknas som köpbar)
+//   • synlig + HELT i lager (OUT_OF_STOCK och PARTIALLY_OUT_OF_STOCK exkluderas:
+//     ett fynd med en slutsåld färg kunde visa just den färgens pris)
 //   • ingen befintlig rea (compareAtPrice satt — auktionen skulle skriva över
 //     och sedan RADERA den vid dagens slut)
 //   • VARJE variant har känd landad kostnad (annars kan inget golv räknas)
@@ -166,7 +167,8 @@ export interface SeedPlan {
   skippedLive: string[];
   /** Live men inte startade (schemalagda till nästa 07:00): får dagens pris. */
   refreshedLive: string[];
-  /** Live, inte startade, men kvalar inte längre: lämnas som de är. */
+  /** Live, inte startade, men kvalar inte längre (t.ex. slut i lager): tas
+   *  bort, så ticken fyller platsen med nästa i kön före 07:00. */
   liveNotRefreshed: string[];
 }
 
@@ -226,7 +228,13 @@ export function planSeed(
   for (const e of existing) {
     if (includedIds.has(e.productId)) continue;
     if (e.status === "queued") plan.toRemove.push(e);
-    else if (e.status === "live" && e.startAt && Date.parse(e.startAt) > nowMs) plan.liveNotRefreshed.push(e.slug);
+    else if (e.status === "live" && e.startAt && Date.parse(e.startAt) > nowMs) {
+      // Priset är aldrig sänkt före start (Wix står på listpris), så raden kan
+      // tas bort utan återställning. Ett slutsålt fynd startade annars 07:00
+      // och låg kvar hela dagen (Leonard 2026-09-28).
+      plan.toRemove.push(e);
+      plan.liveNotRefreshed.push(e.slug);
+    }
   }
   return plan;
 }

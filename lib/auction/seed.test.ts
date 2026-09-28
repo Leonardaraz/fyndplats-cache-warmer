@@ -217,13 +217,20 @@ describe("planSeed — vad seeden skriver", () => {
     expect(plan.skippedLive).toEqual(["s-a"]);
   });
 
-  it("väntande live som inte längre kvalar lämnas, köade tas bort", () => {
+  it("väntande live som inte längre kvalar (slut i lager) tas bort, liksom köade", () => {
     const live = doc("a", { status: "live", slot: 2, startAt: "2026-09-28T05:00:00.000Z" });
     const queued = doc("b", {});
     const plan = planSeed([], [live, queued], new Map(), NOW);
     expect(plan.liveNotRefreshed).toEqual(["s-a"]);
-    expect(plan.toRemove.map((d) => d.productId)).toEqual(["b"]);
+    expect(plan.toRemove.map((d) => d.productId).sort()).toEqual(["a", "b"]);
     expect(plan.toSave).toHaveLength(0);
+  });
+
+  it("en startad dag som inte längre kvalar rörs inte av seeden", () => {
+    const live = doc("a", { status: "live", slot: 2, startAt: "2026-09-28T01:00:00.000Z" });
+    const plan = planSeed([], [live], new Map(), NOW);
+    expect(plan.toRemove).toHaveLength(0);
+    expect(plan.liveNotRefreshed).toHaveLength(0);
   });
 
   it("köade och nya får status queued och köordning, avslutade behåller historiken", () => {
