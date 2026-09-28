@@ -3932,3 +3932,80 @@ beslut — se den samlade frågan om detta.
   träfot. I flera familjer bar varje färgs miljöbild samma sorts rekvisita, så sidan som
   behölls valdes delvis efter vilka bilder som klarade granskningen: den petrolblå
   manchesterfåtöljen, den mörkgröna boden och den gräddvita reclinern. (B38)
+- AVGJORT 2026-09-28: B37:s två sista gamla adresser svarar nu 308 till sidan som behölls.
+  `golvfatolj-360-grader-fem-lagen` pekar på `golvfatolj-gra-fem-lagen` och
+  `koksvagn-106-cm-utfallbar-skiva-vit` pekar på `koksvagn-106-cm-utfallbar-skiva-gra`. Kl. 04:59
+  serverade de först sin inaktuella cachade sida (`STALE`, age 3 800 s), vilket startade
+  omrenderingen, och nästa hämtning gav 308. Alla 24 gamla adresser i B37 omdirigerar alltså.
+  (B37)
+- AVGJORT 2026-09-28, genomfört i B39: åtta familjer där varje färg låg ute som en egen
+  publicerad sida blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. Deras adresser omdirigerades med 301
+  till sidan och de pensionerades. Snurrfåtöljen `827314e4` (svart) fick gul (`543fd196`),
+  cremevit (`bb0d9831`) och mörkgrå (`ea30fc2a`). Den gungande tv-fåtöljen `c1f860c1` (grå)
+  fick mörkblå (`5b16fea8`), beige (`77a79db3`) och gråbrun (`b72f093d`). Rumsavdelaren
+  `6649471e` (natur) fick svart (`7bd4f691`), brun (`854371fe`) och vit (`ffb5239f`).
+  Vilfåtöljen med förvaringspall `b67fdc2b` (gråbrun) fick svart (`74f45749`), mörkgrå
+  (`7f437bac`) och gräddvit (`87262869`). Golvsoffan `724cc4b5` (mörkgrå) fick grå
+  (`9c71885a`), himmelsblå (`a8d37d72`) och ett tyskt utkast i beige (`3c935dd8`).
+  Pergolataket `9304f8b8` (mörkbrun) fick beige (`8ea111a2`), brun (`bef14fba`) och ett tyskt
+  utkast i mörkgrått (`6f972315`). De två utkasten låg inte ute och fick därför ingen
+  omdirigering. Massagefåtöljen med fotpall `5a31b710` (cremevit) fick brun (`071cad5d`) och
+  svart (`1932abe1`). Kontorsstolen med fotstöd `0945e4dd` (brun) fick mörkgrå (`501ba88f`)
+  och gräddvit (`cc81673d`). Det blev 22 sammanslagningar, 21 omdirigeringar och 73 kopierade
+  recensioner. Livekontrollen gav 8 av 8 sidor OK, 41 av 41 alt-texter och
+  noll textavvikelser, och varje sida visar alla sina färger som val. 13 av 21 gamla adresser
+  svarade 308 till sidan 05:26. De andra åtta serverade då en sida som renderats om 05:25, sju
+  till tio minuter efter sammanslagningen, fortfarande som en vanlig produktsida
+  (`x-vercel-cache: HIT`). Varför den omrenderingen inte gav 308 är inte utrett. Adresserna
+  kontrolleras igen när sidcachen hunnit förnyas. (B39)
+- Den första sammanslagningen av massagefåtöljen (`071cad5d`) föll på sista steget:
+  `givaren läste inte tillbaka som avpublicerad — kör om`. Färgen, mappningen, recensionerna och
+  omdirigeringen var redan skrivna. Omkörningen såg läget `klar`, gjorde givarens efterarbete och
+  pensionerade den, och en läsning i Wix efteråt gav `visible: false`. (B39)
+- 21 av de 22 givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det. Det
+  enda undantaget var golvsoffans tyska utkast. Efter sammanslagningen följer de nya varianterna
+  husets regel, alltså golvpriset 1,20 × landad kostnad, från nästa synk. Google-tilläggsfeeden
+  sätter grupp och konkurrensläge bara för sidans egen artikel, så färgerna ligger inte längre i
+  annonsurvalet. Sidornas egna färger påverkas inte. Priserna skiljer mellan färgerna, mest för
+  tv-fåtöljen (4 039–5 079 kr) och golvsoffan, där det beige utkastet kostar 1 869 kr mot
+  1 349–1 369 kr för de andra, och de står kvar per variant. (B39)
+- Rumsavdelarens fyra sidor hade sluggar som slutar på `240-<färg>`, och skrivplanens
+  formkontroll fäller den formen. Sidan som behölls fick sluggen `rumsavdelare-240-cm-sex-paneler`
+  och en 301 från `rumsavdelare-240-natur`. Omdirigeringstabellen lästes efteråt: alla 21 gamla
+  adresser står där, och ingen omdirigering i tabellen pekar på en annan omdirigering. (B39)
+- Alla sidor i familjerna var redan polerade utom två tyska utkast. `kallor.json` är familjens
+  nuvarande texter och namn, och axelfacit kvitterades i `grind-undantag.txt`. Pergolatakets
+  tyska utkast namnger två paviljonger med deras artikelnummer. De är redigerade i `kallor.json`.
+  Siffergrinden gav sju varningar för räkneord utan täckning i källan: "tio punkter", "fem
+  lägen", "två styrkor", "tre per skarv", "två mugghållare", "fyra armar" och "alla fyra
+  färgerna". Talen står i källan med bokstäver eller stämmer mot antalet färger. (B39)
+- De gamla texterna var inte överens på fyra punkter. Vilfåtöljens texter sa både att man kan
+  sitta på fotpallen och att man inte ska göra det, och massagefåtöljens sa att pallen fungerar
+  som extra sittplats. Sidorna säger bara att pallen bär 100 kg. Tv-fåtöljens texter placerade
+  fjäderkärnan i sitsen respektive ryggen och lovade montering utan verktyg på tio minuter
+  respektive skruvar och förmonterade beslag. Sidan säger fjäderkärna och skum utan plats, och
+  att montering krävs. Vilfåtöljens texter nämnde knappdekor i ryggen, men ingen av bilderna i
+  familjen visar knappar, så det står inte på sidan. (B39)
+- Sju av familjerna angav feedens fraktvikt som varans vikt, och fyra lovade något utifrån den:
+  att snurrfåtöljen är en stol man orkar flytta själv, att en person bär rumsavdelaren utan
+  problem, att golvsoffan är lätt att flytta själv och att vilfåtöljen är hanterbar ensam. Vikten
+  står nu som Fraktvikt. Sju av familjerna hänvisade till de andra färgerna som egna sidor, och
+  flera texter saknade någon av dem: tv-fåtöljens nämnde tre av fyra färger och vilfåtöljens två
+  av fyra. Flera texter hänvisade dessutom till andra produkter: en snurrfåtölj på rund stålfot
+  och en liten fåtölj på 60 cm, en svart och en gräddvit reclinerfåtölj med fotpall, reservtaket
+  till paviljong, en svart högryggad kontorsstol i konstläder och rumsavdelaren i 160 och
+  320 cm. Massagefåtöljen hade en lista med tolv massagefåtöljer och påståendet att vi säljer
+  tretton i fyra modeller. Hänvisningarna och listan är borta. (B39)
+- Vilfåtöljen i svart (`74f45749`) och i mörkgrått (`7f437bac`) ser nästan likadana ut på
+  bilderna. Namnen kommer från feeden, och det är två olika artiklar. (B39)
+- Golvsoffans källa anger två liggmått, 180 × 60 × 19 cm utfälld och 180 × 60 × 29 cm helt
+  platt, och sidan anger båda. Måttbilden visar 29 cm vid huvudänden och 11 cm tjocklek.
+  Klädseln heter linne i både den svenska och den tyska källan (Leinen). Om det är linne eller
+  linnelook i polyester är inte kontrollerat. (B39)
+- Fyra bilder ströks. En var ett eget faktakort med fraktvikten som Vikt: rumsavdelaren
+  (7,9 kg). Tre visar läsbar text eller varumärken på rekvisitan: en tavla med text och en ask
+  med text bredvid en kamera med märkesnamn vid massagefåtöljen, och en märkeslapp på modellens
+  byxor vid kontorsstolen. Massagefåtöljens miljöbilder hade läsbar text i alla tre färgerna,
+  också bokryggarna i den svarta, så sidan har ingen miljöbild. Sidan som behölls valdes där på
+  lagret: 79 cremevita mot 32 bruna och 0 svarta. (B39)
