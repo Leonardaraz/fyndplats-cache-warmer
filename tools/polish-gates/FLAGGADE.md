@@ -3675,3 +3675,50 @@ beslut — se den samlade frågan om detta.
   klacketikett på skobänken `3e2c7389` (två bilder) och sneakers med tillverkarens logotyp
   på bänken `d5919be6`. Ett eget faktakort på `d5919be6` ströks också, eftersom det angav
   fraktvikten som Vikt och bar färgen. (B34)
+- AVGJORT 2026-09-28, genomfört i B35: åtta publicerade sidor skrevs om för båda färgerna
+  och fick varsin färg till som val. Skänken `477bcd1f` (vit) fick svart (`34d76ecf`).
+  Köksskåpet `8e76d9b8` (vitt) fick svart (`83f11a66`). Den klädda bänken `949ffbb1` (vit)
+  fick grå (`d3e77879`). Ståbordet `ba3e6e04` (svart) fick vit (`f6cf5ee7`). Fällbordet
+  `c23dab52` (rustik brun) fick ek (`22d4bb3b`). Mediahyllan `d7e75081` (vit) fick natur
+  (`fab903b6`). Sideboarden `dbedaf4c` (vit) fick svart (`66eb7361`). Det smala sidobordet
+  `ff10ccf5` (rustik brun) fick svart (`1db2d56f`). Givarna är pensionerade. Därmed är de
+  äldre raderna om givarna avgjorda: `d3e77879` (N59), `f6cf5ee7` (N60), `34d76ecf` och
+  `83f11a66` (N61), `22d4bb3b` (N61 och N64), `1db2d56f` (N63 och N64) och `fab903b6`
+  (N66). Svepet visar inga fler färger i feeden för de åtta familjerna. Livekontrollen
+  gav 8 av 8 OK, 26 av 26 alt-texter och noll textavvikelser, och varje sida visar sina
+  två färger som val med bild. (B35)
+- Fyra givares pris styrdes av konkurrentregeln: köksskåpet i svart (`83f11a66`), bänken i
+  grått (`d3e77879`), ståbordet i vitt (`f6cf5ee7`) och sideboarden i svart (`66eb7361`).
+  Efter sammanslagningen följer de nya varianterna husets regel, så deras pris kan ändras
+  vid nästa synk. Sideboardens två färger ligger 28 % isär i pris (1 899 och 2 439 kr). (B35)
+- Sideboardens SKU `FP-sideboard-vit-105-fyra-lador` bar en artikelnummerform
+  (`105-fyra`), som skrivrutten vägrar. Den heter nu `FP-sideboard-105-cm-vit`, och den
+  svarta fick `FP-sideboard-105-cm-svart`. Skänken och fällbordet bär sidans färg i SKU:n
+  (`FP-vit-skank-lador-117` och `FP-fallbord-hyllor-brun`), så givarna fick
+  `FP-svart-skank-lador-117` och `FP-fallbord-hyllor-ek` för hand. Köksskåpets
+  standard-SKU hade blivit `FP-greppfritt-koksskap-100-svart`, som bär samma form
+  (`100-svart`), så den svarta fick `FP-greppfritt-koksskap-svart-100`. (B35)
+- Fällbordets två källor anger olika mått. Sidans gamla text angav bordet till
+  80 × 90 × 93 cm uppfällt, skivan till 77 × 72 cm på 73,5 cm höjd och hyllorna till
+  77 × 20 × 18 och 77 × 20 × 22 cm. Ekgivarens källa anger bordet till 78,5 × 91 × 93 cm
+  uppfällt och 78,5 × 20 × 93 cm hopfällt, skivan till 75 × 75 cm på 74 cm höjd och
+  hyllorna till 75,5 × 18 × 14 och 75,5 × 15–18 × 23,5 cm. Feeden anger 90 × 80 × 93 cm för
+  båda färgerna. Texten anger feedens yttermått, 20 cm hopfällt och belastningen, som är
+  densamma i båda källorna, och utelämnar skivans och hyllornas mått. Stäm av mot en
+  leverans om en kund frågar. (B35)
+- Alla åtta gamla texter angav feedens fraktvikt som varans vikt. Fraktvikten är densamma
+  för båda färgerna i varje familj och står nu som Fraktvikt. Köksskåpets gamla text
+  räknade till tolv utstickande beslag som skåpet slipper, fast det har sex dörrar och två
+  lådor, och jämförde med en passage och ett litet kök. Mediahyllans gamla text sa att två
+  fack slagna ihop rymmer vinylskivor, men facken är 17 cm djupa och en LP-skiva är drygt
+  31 cm. Bänkens gamla text jämförde sitthöjden med en matstol och påstod att skummet och
+  quiltningen håller locket plant, vilket inte står i källan. Jämförelserna och
+  påståendena är borta. Tre namn bar sidans färg (`477bcd1f`, `dbedaf4c` och `ff10ccf5`),
+  och två SEO-titlar (`477bcd1f` och `dbedaf4c`). (B35)
+- Tolv bilder ströks. Nio visar läsbar text på rekvisitan: etiketter på burkar och
+  kaffepåsar och tryck på förpackningar i köksskåpet `8e76d9b8` (tre bilder),
+  tidningstitlar vid bänken `949ffbb1`, ett skivomslag och ett bokomslag med författare
+  och titel på mediahyllan `d7e75081` (två) och bokryggar och förlagsnamn på sidobordet
+  `ff10ccf5` (tre). En visar märken på vattenkokaren och kaffemaskinen på sideboarden
+  `dbedaf4c`. Två egna faktakort ströks, på köksskåpet `8e76d9b8` och bänken `949ffbb1`.
+  Båda angav fraktvikten som Vikt, och kortet på bänken bar färgen. (B35)
