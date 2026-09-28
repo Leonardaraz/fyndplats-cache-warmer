@@ -9,8 +9,9 @@ import { Newsletter } from "../../components/newsletter";
 import { getLiveAuctions, getSoldAuctions } from "../../lib/auction-view";
 
 // Auktionssidan behöver kort ISR-fönster: priserna stegar (cron på timmen) och
-// nedräkningen på klienten triggar refresh vid steggränsen — 60 s tak räcker.
-export const revalidate = 60;
+// nedräkningen på klienten triggar refresh vid steggränsen. 30 s: vid timslaget
+// ska det nya priset nå en öppen flik inom någon minut (2026-09-28).
+export const revalidate = 30;
 
 export const metadata: Metadata = {
   // Titeln får INTE innehålla "| Fyndplats" — layoutens mall lägger på det, och

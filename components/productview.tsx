@@ -218,6 +218,12 @@ function renderVariantSwatches(items: VariantCardItem[]) {
   );
 }
 
+/** Första valet som går att köpa; finns inget i lager, det första. */
+function forstaILager(choices: ReadonlyArray<{ inStock?: boolean }> | undefined): number {
+  const i = (choices ?? []).findIndex((c) => c.inStock !== false);
+  return i >= 0 ? i : 0;
+}
+
 export function ProductView({
   productId,
   name,
@@ -273,11 +279,14 @@ export function ProductView({
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
-  // Förvälj FÖRSTA varianten (index 0) — samma som galleriets startbild nedan,
+  // Förvälj FÖRSTA varianten I LAGER — samma som galleriets startbild nedan,
   // så vald ruta och visad bild alltid stämmer när sidan öppnas. (Tidigare
   // förvaldes billigaste varianten för att matcha "Från X kr" på korten, men då
   // pekade rutan på en variant medan galleriet visade huvudbilden — o-synkat.)
-  const [sel, setSel] = useState(0);
+  // Index 0 rakt av öppnade sidan på "Slutsåld" när just den färgen var slut,
+  // fast andra fanns (Hollywoodgungan på Fyndauktionen, 2026-09-28).
+  const forstaVal = forstaILager(options?.choices);
+  const [sel, setSel] = useState(forstaVal);
   // Initiera galleriet till förvald variants bild (= variantActive nedan) så det INTE
   // hoppar hjälte→variant efter mount (flash + LCP-preload-miss). Derivaten (galleryImages
   // m.fl.) definieras längre ned, så vi speglar uppslaget här med bara props + modul-
@@ -290,7 +299,7 @@ export function ProductView({
       ax.length >= 2 && tb.length >= 1
         ? findVariant(tb, defaultSelection(tb))?.image
         : ch.length >= 2 && ch.every((c) => c.image)
-          ? ch[0]?.image
+          ? ch[forstaVal]?.image
           : undefined;
     if (!firstImg) return 0;
     const k = mediaKey(firstImg);

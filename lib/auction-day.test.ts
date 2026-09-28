@@ -6,7 +6,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, phaseOf, isActivelyDropping, tickerStepMs, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
+import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, phaseOf, isActivelyDropping, tickerStepMs, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS, nextDropOfLadder } from "./auction-day.ts";
 
 const H = 3_600_000;
 const START = Date.parse("2026-07-12T05:00:00.000Z"); // 07:00 svensk sommartid
@@ -197,4 +197,28 @@ test("en öppen flik når ended strax efter 19:00", () => {
   assert.equal(phase, "ended", "fliken måste nå stängt läge");
   const slack = now - (START + AUCTION_DAY_HOURS * H);
   assert.ok(slack >= 0 && slack <= 20_000, `nådde ended ${slack} ms efter 19:00 (max 20 s)`);
+});
+
+test("nextDropOfLadder: nästa sänkning, dubblettrungor hoppas över", () => {
+  const r = { startAt: new Date(START).toISOString(), stepMinutes: 60, ladder: [1000, 990, 990, 980], lastPatchedStep: 0 };
+  assert.equal(nextDropOfLadder(r, START - H), new Date(START + H).toISOString());
+  assert.equal(nextDropOfLadder({ ...r, lastPatchedStep: 1 }, START + H + 60_000), new Date(START + 3 * H).toISOString());
+  assert.equal(nextDropOfLadder({ ...r, lastPatchedStep: 3 }, START + 3 * H + 60_000), null);
+});
+
+test("nextDropOfLadder: motorn har inte hunnit → den passerade sänkningen (sidan står i 'uppdateras')", () => {
+  const r = { startAt: new Date(START).toISOString(), stepMinutes: 60, ladder: [1000, 990, 980, 970] };
+  // 08:00:05, motorn satte senast steg 0: sänkningen 08:00 är skyldig.
+  assert.equal(nextDropOfLadder({ ...r, lastPatchedStep: 0 }, START + H + 5_000), new Date(START + H).toISOString());
+  // Två timmar efter: den första skyldiga, så klienten fortsätter fråga.
+  assert.equal(nextDropOfLadder({ ...r, lastPatchedStep: 0 }, START + 2 * H + 5_000), new Date(START + H).toISOString());
+  // Motorn har satt steg 1: nästa är 09:00.
+  assert.equal(nextDropOfLadder({ ...r, lastPatchedStep: 1 }, START + H + 5_000), new Date(START + 2 * H).toISOString());
+  // Dubblettrunga: steg 1 kostar lika mycket som steg 0, så inget är skyldigt.
+  assert.equal(nextDropOfLadder({ ...r, ladder: [1000, 1000, 980, 970], lastPatchedStep: 0 }, START + H + 5_000), new Date(START + 2 * H).toISOString());
+  // Utan lastPatchedStep (äldre rader): bara klockan, som förut.
+  assert.equal(nextDropOfLadder(r, START + H + 5_000), new Date(START + 2 * H).toISOString());
+  // Fasen blir "stale" när målet passerat.
+  const p = phaseOf({ startsAt: null, startAt: r.startAt, nextDropAt: nextDropOfLadder({ ...r, lastPatchedStep: 0 }, START + H + 5_000) }, START + H + 5_000);
+  assert.equal(p.phase, "stale");
 });
