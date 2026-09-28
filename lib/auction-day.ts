@@ -68,7 +68,43 @@ export function msToDayEnd(startAtMs: number | null, nowMs: number): number | nu
  * dependency på enbart "har målet passerats?" ändras inte av ett misslyckat
  * refresh-försök, så stege utan kedjning = ETT försök, inte sex.
  */
-export const REFRESH_BACKOFF_MS = [5_000, 30_000, 90_000, 180_000, 420_000, 960_000] as const;
+// Tätare början (2026-09-28): prissänkningen görs nu av Vercel-cronen strax
+// efter hel timme (18:00:19 uppmätt), inte av Actions-cronen med sin drift.
+// Med 5 s → 30 s → 90 s kom det nya priset först efter flera minuter.
+export const REFRESH_BACKOFF_MS = [5_000, 15_000, 30_000, 45_000, 60_000, 90_000, 180_000, 420_000, 960_000] as const;
+
+/**
+ * Nästa FAKTISKA prissänkning ur en auktionsrads stege, eller den sänkning
+ * motorn ännu inte hunnit göra.
+ *
+ * Stegen är timindexerad och kan innehålla dubblettrungor (ingen sänkning den
+ * timmen); de hoppas över så nedräkningen aldrig lovar något som inte kommer.
+ *
+ * `lastPatchedStep` är det steg motorn senast satte i Wix. Ligger klockan
+ * på ett billigare steg än det, har motorn inte hunnit: då returneras den
+ * passerade sänkningen, så sidan står kvar i "Priset uppdateras…" och fortsätter
+ * fråga. Tidigare räknades bara klockan, och en sida byggd 18:00:05 sa "Lägsta
+ * pris" med förra timmens pris och slutade fråga i fem minuter (2026-09-28).
+ */
+export function nextDropOfLadder(
+  r: { startAt?: string; stepMinutes?: number; ladder?: number[]; lastPatchedStep?: number },
+  nowMs: number,
+): string | null {
+  const ladder = r.ladder ?? [];
+  if (!r.startAt || !r.stepMinutes || ladder.length < 2) return null;
+  const start = Date.parse(r.startAt);
+  const step = r.stepMinutes * 60_000;
+  const at = (j: number) => new Date(start + j * step).toISOString();
+  const idx = Math.min(Math.floor(Math.max(0, nowMs - start) / step), ladder.length - 1);
+  const done = r.lastPatchedStep;
+  if (typeof done === "number" && done >= 0 && done < idx && ladder[idx] < ladder[done]) {
+    for (let j = done + 1; j <= idx; j++) if (ladder[j] < ladder[done]) return at(j);
+  }
+  for (let j = idx + 1; j < ladder.length; j++) {
+    if (ladder[j] < ladder[idx]) return at(j);
+  }
+  return null;
+}
 
 /** Auktionsdagens längd i ms + dagens slut för ett givet startAt. Håller
  *  07→19-matten i EN modul — komponenterna hade börjat inline:a 3_600_000. */

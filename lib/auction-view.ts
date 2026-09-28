@@ -15,6 +15,7 @@
 
 import { getFreshPrices, getProducts, type Product } from "./products";
 import { synligaFynd } from "./auction-visible";
+import { nextDropOfLadder } from "./auction-day";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = "FyndplatsAuctions";
@@ -38,6 +39,8 @@ type AuctionRow = {
   startAt?: string;
   endedAt?: string;
   soldPrice?: number;
+  /** Steget motorn senast satte i Wix (se nextDropOfLadder). */
+  lastPatchedStep?: number;
 };
 
 /** Det som klienten får se för en live-auktion (inget golv, ingen stege). */
@@ -97,7 +100,8 @@ async function queryAuctionRows(
         dataCollectionId: COL,
         query: { filter: { status: { $in: statuses } }, ...(sort ? { sort } : {}), paging: { limit: 50 } },
       }),
-      next: { revalidate: 60, tags: ["auctions"] },
+      // 15 s: raden bär lastPatchedStep, som avgör när en ny timmes pris är på plats.
+      next: { revalidate: 15, tags: ["auctions"] },
     });
     if (!res.ok) return [];
     const body = (await res.json()) as { dataItems?: Array<{ data?: AuctionRow }> };
@@ -107,26 +111,6 @@ async function queryAuctionRows(
   }
 }
 
-/**
- * Nästa FAKTISKA prissänkning ur stegen — samma matematik som motorns
- * nextDropAt. Stegen är timindexerad och kan innehålla dubblettrungor
- * (= ingen sänkning den timmen, 9-slutsavrundningen); de hoppas över så
- * nedräkningen aldrig lovar en sänkning som inte kommer.
- */
-function nextDropAtOf(row: AuctionRow, nowMs: number): string | null {
-  const ladder = row.ladder ?? [];
-  if (!row.startAt || !row.stepMinutes || ladder.length < 2) return null;
-  const idx = Math.min(
-    Math.floor(Math.max(0, nowMs - Date.parse(row.startAt)) / (row.stepMinutes * 60_000)),
-    ladder.length - 1,
-  );
-  for (let j = idx + 1; j < ladder.length; j++) {
-    if (ladder[j] < ladder[idx]) {
-      return new Date(Date.parse(row.startAt) + j * row.stepMinutes * 60_000).toISOString();
-    }
-  }
-  return null;
-}
 
 // Auktionspriser är alltid hela 9-kronor → visa "369 kr" (rent/premium), inte
 // "369,00 kr". Vi formaterar alltid ur priceNum (Wix `p.price`-strängen bär med
@@ -159,7 +143,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         priceFormatted: fmtKr(p.priceNum),
         listPrice: r.listPrice,
         discountPercent: discount,
-        nextDropAt: nextDropAtOf(r, now),
+        nextDropAt: nextDropOfLadder(r, now),
         startsAt: r.startAt && Date.parse(r.startAt) > now ? r.startAt : null,
         startAt: r.startAt ?? null,
         serverNowMs: now,
@@ -167,7 +151,9 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         inStock: p.inStock,
       } satisfies LiveAuctionView;
     })
-    .filter((x): x is LiveAuctionView => Boolean(x))
+    // Slutsålt under dagen syns inte: kunden kan inte köpa det, och sidan
+    // lovade ändå "Köp nu". Motorn avslutar raden vid 19 som vanligt.
+    .filter((x): x is LiveAuctionView => Boolean(x) && x!.inStock)
     .sort((a, b) => a.slot - b.slot);
 }
 
