@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades eller lästes på bilden>
+25bc6c84 2 takluckorna, räknade på bilderna
+616b057f 33 fri höjd i det övre facket, avläst på måttbilden
+616b057f 34 fri höjd i det undre facket, avläst på måttbilden
