@@ -3700,3 +3700,30 @@ beslut — se den samlade frågan om detta.
 - Livekontrollen gav 8 av 8 OK, 19 av 19 alt-texter och noll textavvikelser. Priserna är
   orörda. Fyra sidor svarade 404 på den första träffen, två minuter efter skrivningen, och
   200 fem minuter senare. (N94)
+- Fem utkast ur N61:s hopplista polerades: sideboardet `77b13bdd`, satsborden `eec11af3` och
+  soffborden `1b5eb871`, `96ad2ce3` och `afcddf6b`. Färgsyskonen lades in som val efter
+  publiceringen: den svarta skänken `b3a83f02` på `77b13bdd` och de vita satsborden
+  `bf870d91` på `eec11af3`. Båda givarna är pensionerade, och varje färg har sitt eget foto
+  och sitt eget pris. (N95)
+- Båda givarnas pris styrdes av konkurrentregeln. Efter sammanslagningen följer den svarta
+  skänken och de vita satsborden husets regel från nästa synk, så deras pris kan ändras.
+  (N95)
+- Sideboardet `77b13bdd` är inte kopplat till Byråer eller Sideboards & vitrinskåp.
+  Byråers kategoritext säger "En byrå har ett skåp bredvid lådorna" (`9b679006`), och
+  Sideboards & vitrinskåps säger "Två har dörrar med soft close". Sideboardet har både
+  skåp och soft close, så båda påståendena hade blivit fel. Rättas texterna till två
+  byråer respektive tre sideboards kan det kopplas till båda. Tills dess ligger det i
+  Möbler och Förvaring & Organisering. (N95)
+- Skärmen parade sideboardet `77b13bdd` (100 × 40 × 80 cm) med den publicerade byrån
+  med skåp `9b679006` och sideboardet i lantstil `07565140`, satsborden `eec11af3` med
+  de publicerade `c78b886b` (Ø74 och Ø59 cm) och `98891b79` (Ø60 och Ø45 cm), och det
+  lyftbara soffbordet `afcddf6b` med `cc4a9285` (102 cm i vit högglans, två lådor). Alla
+  är andra modeller. (N95)
+- Bildgranskningen strök 4 av 25 bilder: en känd kaffemaskin, tysk text och boktitlar på
+  sideboardet `77b13bdd` (bild 2, 4 och 5) och boktitlar på soffbordet `1b5eb871` (bild 2).
+  Sideboardet har två bilder kvar, huvudbilden och måttbilden. (N95)
+- Skrivningen kopplade 11 av 11 kategorirader, men produktläsningen visade dem först tio
+  minuter senare, så den första verifieringen föll på kategorierna. Kategori-API:t visade
+  kopplingarna direkt, och läget stämpla verifierade och stämplade sedan 5 av 5. (N95)
+- Livekontrollen gav 5 av 5 OK, 21 av 21 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N95)
