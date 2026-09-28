@@ -56,6 +56,7 @@ export type RemapHinder =
   | "redan_aosom"
   | "skun_upptagen"
   | "flera_varianter"
+  | "okand_variant"
   | "pris_okant"
   | "marginal_under_golv";
 
@@ -81,6 +82,8 @@ export interface RemapPlan {
   gammalMarginalPct: number | null;
   /** Wix-produkten som pensioneras som dubblett, om anroparen angav en. */
   dubblett?: string;
+  /** Varianten sidan kollapsas till före bytet, om anroparen angav en. */
+  behallVariant?: string;
   /** Tomt = planen går att köra. Annars står skälen här. */
   hinder: RemapHinder[];
 }
@@ -101,6 +104,13 @@ export interface RemapInput {
   /** Wix-produkten som ska pensioneras som dubblett (valfritt). */
   dubblett?: string;
   minMarginPct?: number;
+  /**
+   * Wix-variant-id:t för den variant som finns hos Aosom, på en sida med flera
+   * varianter. Sidan kollapsas då till den varianten före bytet
+   * (remap-kollaps.ts), och planen räknas på den ensam. Utelämnat = en
+   * flervariantssida vägras som förut.
+   */
+  behallVariant?: string;
 
   /**
    * Vad butiken FAKTISKT tar for produkten, last ur Wix.
@@ -188,7 +198,16 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   // skulle peka varenda variant på samma artikelnummer, och då beställs fel
   // färg hem så fort kunden väljer något annat än den första. Sådana sidor
   // kräver en SKU per variant — ett annat och större jobb.
-  const varianter = mappning?.variants ?? [];
+  //
+  // Med `behallVariant` tas de andra varianterna bort före bytet (Leonards
+  // beslut 2026-09-28: de finns inte hos Aosom), och då gäller planen den
+  // behållna ensam: dess pris, dess landade kostnad. Ett id som inte finns
+  // exakt en gång på raden gissas aldrig — då vägras det.
+  let varianter = mappning?.variants ?? [];
+  if (input.behallVariant) {
+    varianter = varianter.filter((v) => v.wixVariantId === input.behallVariant);
+    if (varianter.length !== 1) hinder.push("okand_variant");
+  }
   if (varianter.length > 1) hinder.push("flera_varianter");
 
   const mappningensPris = varianter[0]?.grossSek ?? null;
@@ -219,6 +238,7 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
     nyMarginalPct: nyMarginalPct == null ? null : round2(nyMarginalPct),
     gammalMarginalPct: gammalMarginalPct == null ? null : round2(gammalMarginalPct),
     ...(input.dubblett ? { dubblett: input.dubblett } : {}),
+    ...(input.behallVariant ? { behallVariant: input.behallVariant } : {}),
     hinder,
   };
 }

@@ -222,6 +222,15 @@ Alla färger publiceras, och olika priser är inget hinder: varje färg behålle
 | syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
 | ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den inte polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
 
+**En AliExpress-sida med flera varianter** vägras av ommappningen (`flera_varianter`), om
+du inte anger `behall_variant`: Wix-variant-id:t för den färg som finns som Aosom-utkast. Då
+tas de andra varianterna bort i Wix och i mappningen före bytet (Leonard 2026-09-28). Sidan
+får inga val kvar, men bilderna och texten om de borttagna färgerna står kvar. Slå därför
+ihop sidan med Aosom-sidan i samma familj (publicerad givare, `omdirigera=ja`), eller skriv
+om den med en runda. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
+först i feeden (**"Aosom — sök i feeden"**) efter de färger som ska bort: finns en av dem hos
+Aosom men inte som utkast, kommer den med importen och läggs då som val.
+
 Skriv en rad i `FLAGGADE.md` för varje utkast som varken blir en egen sida eller ett val, och
 ta nästa.
 

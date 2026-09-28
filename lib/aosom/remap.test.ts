@@ -7,6 +7,7 @@ import {
   tillämpaOmmappning,
   väljRemapSku,
 } from "./remap";
+import { kollapsaMappning } from "./remap-kollaps";
 import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import { mappingSupplier } from "../store/supplier";
@@ -207,6 +208,67 @@ describe("planeraOmmappning", () => {
       fx: FX,
     });
     expect(p.hinder).toContain("flera_varianter");
+  });
+
+  // Leonards beslut 2026-09-28 (reservtaket fc5e7fde): på en flervariantssida
+  // tas de varianter som inte finns hos Aosom bort, och den som finns behålls.
+  describe("med behallVariant", () => {
+    const tre = () => {
+      const m = mappning();
+      const v = m.variants[0];
+      return mappning({
+        variants: [
+          { ...v, wixVariantId: "wv-orange", sku: "FP-tak-orange", grossSek: 899, landedCostSek: 700 },
+          { ...v, wixVariantId: "wv-gron", sku: "FP-tak-gron", grossSek: 1999, landedCostSek: 1200 },
+          { ...v, wixVariantId: "wv-gra", sku: "FP-tak-gra", grossSek: 999, landedCostSek: 800 },
+        ],
+      });
+    };
+
+    it("släpper flervariantssidan och räknar planen på den behållna varianten ensam", () => {
+      const p = planeraOmmappning({
+        mappning: tre(), rad: rad(), alla: INGA_ANDRA, fx: FX, behallVariant: "wv-gron",
+      });
+      expect(p.hinder).toEqual([]);
+      expect(p.behallVariant).toBe("wv-gron");
+      // Den gröna variantens tal, inte den förstas.
+      expect(p.prisSek).toBe(1999);
+      expect(p.gammalLandadSek).toBe(1200);
+    });
+
+    it("☠️ butikens pris för den behållna varianten vinner över mappningens", () => {
+      const p = planeraOmmappning({
+        mappning: tre(), rad: rad(), alla: INGA_ANDRA, fx: FX, behallVariant: "wv-gron",
+        butikensPrisSek: 2499,
+      });
+      expect(p.prisSek).toBe(2499);
+      expect(p.prisKalla).toBe("butik");
+    });
+
+    it("☠️ ett id som inte finns på raden gissas aldrig", () => {
+      const p = planeraOmmappning({
+        mappning: tre(), rad: rad(), alla: INGA_ANDRA, fx: FX, behallVariant: "wv-lila",
+      });
+      expect(p.hinder).toContain("okand_variant");
+    });
+
+    it("utan behallVariant vägras samma sida som förut", () => {
+      const p = planeraOmmappning({ mappning: tre(), rad: rad(), alla: INGA_ANDRA, fx: FX });
+      expect(p.hinder).toContain("flera_varianter");
+      expect(p.hinder).not.toContain("okand_variant");
+    });
+
+    it("den kollapsade raden ommappas till EN Aosom-variant med den behållnas id", () => {
+      const ny = tillämpaOmmappning(kollapsaMappning(tre(), "wv-gron"), rad(), FX);
+      expect(ny.supplier).toBe("aosom");
+      expect(ny.variants).toHaveLength(1);
+      expect(ny.variants[0].wixVariantId).toBe("wv-gron");
+      expect(ny.variants[0].sku).toBe("FP-tak-gron");
+      expect(ny.variants[0].supplierVariantId).toBe("845-030CG");
+      expect(ny.variants[0].choices).toEqual({});
+      // Priset rörs aldrig av ommappningen.
+      expect(ny.variants[0].grossSek).toBe(1999);
+    });
   });
 
   it("vägrar när priset saknas — marginalen går inte att bedöma", () => {
