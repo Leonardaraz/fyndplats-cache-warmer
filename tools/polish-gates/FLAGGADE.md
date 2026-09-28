@@ -4265,3 +4265,54 @@ beslut — se den samlade frågan om detta.
   produktvikten ur den tyska källan, och fraktvikten 28,7 kg står bredvid. (B43)
 - Tre bilder ströks, alla egna faktakort: knästolens och basketkorgens angav fraktvikten som
   Vikt (8,5 och 12 kg), och trädgårdsskåpets kallade luckan i gaveln för fönster. (B43)
+- AVGJORT 2026-09-28, genomfört i B44: åtta familjer där färgerna låg ute som egna sidor eller
+  väntade som utkast blev en sida per vara. En sida i varje familj behölls och fick en text för
+  alla färger, och de andra färgerna lades in som val. De publicerade givarnas adresser
+  omdirigerades med 301 till sidan och givarna pensionerades. Trädgårdsskåpet i gran 115 cm
+  `ca9e1fa5` (natur) fick grå (`bb112e08`) och mintgrön (`75c0bbf0`, utkast). Projektorduken
+  84 tum `fe11166f` (vit) fick svart (`0370673c`). Reclinerfåtöljen med lös fotpall `6a4e92c4`
+  (gräddvit) fick svart (`04feb176`). Gungstolen i chenille `081f82f1` (brun) fick beige
+  (`30069c15`). Kontorsstolen med fotstöd `2b8b7297` (svart) fick vit (`09167ea9`). Köksvagnen
+  109 cm `0af14e23` (svart) fick vit (`4ab392f7`). Städvagnen 111 cm `0cbffcd9` (grå) fick
+  svart (`740fa6d0`). Foliehuset 198 × 275 cm `0fc3c252` (vit) fick grön (`d99cc578`). Det blev
+  9 sammanslagningar, 8 omdirigeringar och 47 kopierade recensioner. Livekontrollen gav 8 av 8
+  sidor OK, 35 av 35 alt-texter och noll textavvikelser, och varje sida visar alla sina färger
+  som val. 7 av de 8 gamla adresserna svarade 308 till rätt sida 08:53, vid andra träffen, och
+  den sista vid tredje. (B44)
+- De 8 publicerade givarna hade sitt pris satt av konkurrentregeln, och planen varnade för det.
+  Efter sammanslagningen följer de nya varianterna husets regel från nästa synk och ligger inte
+  längre i annonsurvalet. Priserna skiljer mellan färgerna, mest för köksvagnen
+  (1 429–1 739 kr), gungstolen (1 799–2 079 kr), trädgårdsskåpet (1 439–1 659 kr) och
+  reclinerfåtöljen (3 729–3 919 kr), och de står kvar per variant. Alla nya färger hade saldo.
+  (B44)
+- Kontorsstolens vita sida (`kontorsstol-liggplats-155-grader-vit`) och trädgårdsskåpets grå
+  sida (`tradgardsskap-tra-115-cm-gratt`) fälls av skrivplanens formkontroll (`155-grader` och
+  `tra-115`), så den svarta respektive den naturfärgade sidan behölls och ingen slug behövde
+  ändras. (B44)
+- Alla sidor i familjerna var redan polerade utom trädgårdsskåpets mintgröna utkast, så
+  `kallor.json` är familjens nuvarande svenska texter och namn plus utkastets tyska. Axelfacit
+  kvitterades i `grind-undantag.txt`, och trädgårdsskåpets tyska totalmått följdes. Feeden
+  anger den grå trädgårdsskåpsfärgen som "Grün, Orange, Weiß", men bilderna visar grått med
+  vita lister, och utkastets "Grün" är mintgrönt på bilderna. (B44)
+- De gamla texterna sa flera saker som sidorna inte längre säger. Gungstolen angavs som 98,5 cm
+  bred och 71 cm djup, men måttritningen visar 71 cm i bredd och 98,5 cm längs medarna, och
+  sidan säger det. Trädgårdsskåpets naturfärgade text sa att högra facket har 112 cm fri höjd,
+  medan måttritningen visar 108,5 cm (112 cm är den invändiga höjden), och sidan anger ingen
+  höjd för facket. Den grå sidan kallade dörren låsbar, och sidan säger att den stängs med en
+  skjutregel, som bilderna visar. Kontorsstolens vita text kallade sitthöjden den högsta i vår
+  hylla och sa att den som är kortare än 165 cm inte når golvet, och den svarta jämförde med en
+  modell i snöflanell. Reclinerfåtöljen jämfördes med en relaxfåtölj och en tv-fåtölj,
+  projektorduken med en 120-tumsduk och städvagnen med en vagn med fyra hinkar. Städvagnens
+  text sa också att det femte hjulet sitter mitt under och tar upp lasten, vilket inte står i
+  någon källa. Jämförelserna och påståendet är borta. (B44)
+- Sju av familjerna angav feedens fraktvikt som varans vikt: projektorduken (7,8 kg),
+  reclinerfåtöljen (24 kg), gungstolen (13,5 kg), kontorsstolen (22 kg), köksvagnen (29,5 kg),
+  städvagnen (22,2 kg) och foliehuset (29 kg). Trädgårdsskåpets grå sida kallade sina 19 kg
+  redan vikt med emballage. Vikten står nu som Fraktvikt, och meningar som byggde på vikten är
+  borta. (B44)
+- Nio bilder ströks. Fyra var egna faktakort med fraktvikten som Vikt: projektorduken (7,8 kg),
+  gungstolen (13,5 kg), köksvagnen (29,5 kg) och städvagnen (22,2 kg). Ett eget kort på
+  trädgårdsskåpet angav 112 cm fri höjd i högra facket. Fyra var miljöbilder med läsbar text
+  eller märken på rekvisitan: ett namn på en borrmaskin i trädgårdsskåpet, bokryggar med ett
+  tidningsmärke och en tidningstext hos reclinerfåtöljen och en boktitel på hyllan bakom
+  kontorsstolen. (B44)
