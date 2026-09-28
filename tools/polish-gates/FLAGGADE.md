@@ -3523,3 +3523,34 @@ beslut — se den samlade frågan om detta.
   och måttbilden. (N88)
 - Livekontrollen gav 7 av 7 OK, 24 av 24 alt-texter och noll textavvikelser. Priserna
   är orörda. (N88)
+- Sju utkast som N61 hoppade över som täckta familjer polerades: sideboarden `1ac07434`,
+  `ac5c5255` och `31732cff`, skänken `10626649`, köksskänkarna `0051b13b` och `2b58d816`
+  och nattduksbordet `d61f504b`. Dubblettskärmen mot de publicerade skänkarna och
+  nattduksborden gav ingen träff. `31732cff` (120 × 38 × 79 cm, tre dörrar och två lådor)
+  är inte `e47c35c6` (76 cm hög, tre lådor), `19f566d8` (120 × 35 × 75,2 cm) eller
+  `f41b12b9` (guldben), och `d61f504b` (45 × 40 × 59 cm, eluttag och skiva som glider fram)
+  är inte `b37d426f` (45 × 35 × 52 cm). Skänken `477bcd1f` på 117 cm har tryck-öppning utan
+  handtag och liknar ingen av dem. (N89)
+- Skänkarna kopplades bara till Möbler, och nattduksbordet till Möbler och Sängar & sovrum.
+  Kategoritexten för Sideboards & vitrinskåp säger att sideboardsen är 75 till 81 cm höga,
+  att de finns från 80 cm i bredd och att två har dörrar med soft close. `1ac07434` är 100 cm
+  hög, `ac5c5255` 86, `10626649` 90,3 och `0051b13b` 91 cm, `10626649` är 68,6 cm bred, och
+  `1ac07434`, `ac5c5255`, `31732cff` och `2b58d816` har soft close. Kategoritexten för
+  Nattduksbord säger att två sängbord har eluttag och USB-uttag, och `d61f504b` är det
+  tredje. De kopplas till sina löv när texterna är omskrivna. Då tänds också lådfiltret:
+  Nattduksbord behöver en produkt till med raden `Antal lådor` och Sideboards & vitrinskåp
+  två, och alla sju har den. (N89)
+- Saldo 0, hoppade: nattduksborden `23d31b41` och `83894bad` och köksskåpet `c99d5592`.
+  (N89)
+- Två publicerade sideboards har samma variant-SKU, `FP-sideboard-120-cm` (`e47c35c6` och
+  `19f566d8`). Skänken `f41b12b9` bär en SKU med ordet Soffbord, och sängborden `a5f552e2`
+  en spansk SKU. Sett i SKU-kontrollen och inte rättat, eftersom rundan inte rör andra
+  produkters SKU. (N89)
+- Bildgranskningen strök 10 av 35 bilder: tysk text på fyra (bild 4 på `ac5c5255`,
+  `0051b13b` och `2b58d816`, och bild 5 på `2b58d816`, som också bar husmärket på en
+  lastbil), läsbar text på rekvisitan på fem (bokryggar och boktitlar på `31732cff` och
+  `10626649`, en skärbräda med logotyp och etiketter på flaskor) och två sideboards i samma
+  bild på `ac5c5255` bild 5. `2b58d816` har två bilder kvar, huvudbilden och måttbilden.
+  Högpassarket visade ingen ljus logotyp på de bilder som behölls. (N89)
+- Livekontrollen gav 7 av 7 OK, 25 av 25 alt-texter och noll textavvikelser. Priserna är
+  orörda. (N89)
