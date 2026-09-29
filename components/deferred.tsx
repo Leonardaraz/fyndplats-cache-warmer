@@ -7,8 +7,8 @@
  * without parsing their JS first. They mount client-side once idle.
  *
  * Drawers (cart, wishlist) stay closed by default — losing their DOM from the
- * SSR'd HTML is invisible. ScrollIndicator/BackToTop don't render meaningful
- * markup until scroll. CookieConsent only renders on first visit (consent
+ * SSR'd HTML is invisible. BackToTop doesn't render meaningful markup until
+ * scroll. CookieConsent only renders on first visit (consent
  * unset) and the small delay before it appears is acceptable.
  *
  * Why ssr:false: in addition to chunk-splitting, this means none of these
@@ -16,11 +16,6 @@
  * render in the streamed HTML. The chunks load after hydration during idle.
  */
 import dynamic from "next/dynamic";
-
-export const ScrollIndicator = dynamic(
-  () => import("./scrollindicator").then((m) => m.ScrollIndicator),
-  { ssr: false, loading: () => null },
-);
 
 export const BackToTop = dynamic(
   () => import("./backtotop").then((m) => m.BackToTop),
