@@ -1,0 +1,74 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "08b40e95": {
+  "tyska": "Ø40 x 133-168H cm",
+  "svenska": "40cm x 40cm x 168cm",
+  "bokstaver": "H",
+  "hojd": [
+   133,
+   168
+  ]
+ },
+ "38f9bf22": {
+  "tyska": "65L x 48B x 68-108H cm",
+  "svenska": "65L x 48B x 68-108H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   68,
+   108
+  ],
+  "bredd": 65,
+  "djup": 48
+ },
+ "4275e300": {
+  "tyska": "57B x 70T x 78-86H cm",
+  "svenska": "57 x 70 x 86 cm",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": [
+   78,
+   86
+  ],
+  "bredd": 57
+ },
+ "58b51373": {
+  "tyska": "L150 x B150 x H76 cm",
+  "svenska": "L150 x B150 x H76 cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 150,
+  "djup": 150
+ },
+ "77e6e472": {
+  "tyska": "33B x 25T x 69H cm",
+  "svenska": "33cm x 25cm x 69cm",
+  "bokstaver": "BTH",
+  "djup": 25,
+  "hojd": 69,
+  "bredd": 33
+ },
+ "7ef22229": {
+  "tyska": "62B x 69T x 92-100H cm",
+  "svenska": "62 × 69 × 92–100 cm (B × D × H)",
+  "bokstaver": "BTH",
+  "djup": 69,
+  "hojd": [
+   92,
+   100
+  ],
+  "bredd": 62
+ },
+ "87888f5f": {
+  "tyska": "",
+  "svenska": "183L x 4,7B x 6,1H cm",
+  "axellos": "inget totalmått i källan; bara en längd: ✔ Schienenlänge: 183 cm | ✔ Schienenlänge: 244 cm"
+ },
+ "9d2c88bd": {
+  "tyska": "L33 x B25 x H84cm",
+  "svenska": "50L",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 33,
+  "djup": 25
+ }
+}
