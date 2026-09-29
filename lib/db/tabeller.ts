@@ -125,6 +125,22 @@ export const RECENSIONER: TabellSpec = {
   },
 };
 
+export const AUKTIONER: TabellSpec = {
+  // Ingen env-override: ägarmodulen (lib/auction/store.ts) läser ingen heller,
+  // och två namn för samma kollektion är just den tvilling listan finns för.
+  kollektion: "FyndplatsAuctions",
+  tabell: "auctions",
+  // `auction-<productId>`, satt av seeden. Samma nyckel i båda lagren.
+  idFält: "_id",
+  kolumner: {
+    _id: "id",
+    productId: "product_id",
+    status: "status",
+    queueOrder: "queue_order",
+    endedAt: "ended_at",
+  },
+};
+
 /** LLM-samlingarna delar EN tabell, nycklad på (collection, key). De hanteras
  *  separat i kopieringen eftersom `collection` är en del av nyckeln. */
 export const LLM_SAMLINGAR = [
@@ -147,4 +163,5 @@ export const ATT_KOPIERA: TabellSpec[] = [
   PRODUCT_HASHES,
   IMPORT_COSTS,
   RECENSIONER,
+  AUKTIONER,
 ];
