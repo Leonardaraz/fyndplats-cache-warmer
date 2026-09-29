@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "135d0f48": {
+  "tyska": "60,4L x 40,4B x 41,8H cm",
+  "svenska": "60,4L x 40,4B x 41,8H cm",
+  "bokstaver": "LBH",
+  "hojd": 41.8,
+  "bredd": 60.4,
+  "djup": 40.4
+ },
+ "5df0b431": {
+  "tyska": "40,5B x 60,5T x 41,5H cm",
+  "svenska": "40,5 × 60,5 × 41,5 cm (bredd × djup × höjd)",
+  "bokstaver": "BTH",
+  "djup": 60.5,
+  "hojd": 41.5,
+  "bredd": 40.5
+ },
+ "7162ea48": {
+  "tyska": "47L x 45B x 42H cm",
+  "svenska": "47 × 45 × 42 cm (längd × bredd × höjd)",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 47,
+  "djup": 45
+ },
+ "7167f9ac": {
+  "tyska": "",
+  "svenska": "99L x 65B x 94Hcm",
+  "axellos": "inget totalmått i källan; bara delmått: Mått per hinder: 99 × 65 × 94 cm (l × b × h) | ✔ Maße pro Set: L99 x B65 x H94cm | ✔ Maße pro Set: L99 x B65 x H94cm | ✔ Maße pro Hürdenelement: L99 x B65 x H94 cm"
+ },
+ "72ac915f": {
+  "tyska": "43L x 44B x 47H cm",
+  "svenska": "43 × 44 × 47 cm (längd × bredd × höjd)",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 43,
+  "djup": 44
+ },
+ "8cf7b1bb": {
+  "tyska": "",
+  "svenska": "100x19.5x95cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße jedes Elements: 100L x 19,5B x 95H cm | ✔ Verstellbare Breite: 95-114B cm | ✔ Basenladung: 1,5L (Sand oder Wasser) | ✔ Jede Größe: 100B x 19,5T x 95H cm | ✔ Breitenverstellung: 95-114B cm | ✔ Basisbelastung: 1,5 L (Sand oder Wasser)"
+ },
+ "d3c91eb3": {
+  "tyska": "",
+  "svenska": "124cm x 19,5cm x 103cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 124L x 19,5B x 103H cm | ✔ Höhenverstellung: 15-95H cm | ✔ Basisbelastung: 1,5 L (Sand oder Wasser) | ✔ Jede Größe: 124L x 19,5B x 103H cm | ✔ Höhenverstellung: 15-95H cm | ✔ Basisbelastung: 1,5 L (Sand oder Wasser)"
+ },
+ "fdefa04b": {
+  "tyska": "173L x 59B x 66H cm (niedrigste Position)",
+  "svenska": "173x59x66cm",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 173,
+  "djup": 59
+ }
+}
