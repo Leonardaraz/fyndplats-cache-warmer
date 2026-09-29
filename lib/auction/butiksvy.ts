@@ -63,7 +63,12 @@ export function butiksrad(d: AuctionDoc): ButiksRad {
  */
 export function butikAuktoriserad(
   authorization: string | null,
-  env: { REVIEW_INGEST_SECRET?: string; CRON_SECRET?: string } = process.env,
+  // Plockade fält, inte hela process.env: Nexts typkontroll godtar inte
+  // ProcessEnv som en typ med bara valfria fält (föll i förhandsbygget).
+  env: { REVIEW_INGEST_SECRET?: string; CRON_SECRET?: string } = {
+    REVIEW_INGEST_SECRET: process.env.REVIEW_INGEST_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
+  },
 ): "ok" | "nej" | "osatt" {
   const giltiga = [env.REVIEW_INGEST_SECRET, env.CRON_SECRET].filter(
     (s): s is string => typeof s === "string" && s.length > 0,
