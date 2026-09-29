@@ -48,7 +48,11 @@ export interface RestoreDeps {
   upsert(review: StoredReview): Promise<void>;
   /** true = svarar, false = borta (403/404/410), null = gick inte att avgöra. */
   lever(url: string): Promise<boolean | null>;
-  /** Wix-adressen när filen är KLAR (READY), annars null. */
+  /**
+   * Lägger källfotot i Wix Media och ger Wix-adressen när filen är KLAR
+   * (READY), annars null. Rutten hämtar bytena själv och laddar upp dem — se
+   * `bildtypUrSignatur` för varför Wix import inte räcker.
+   */
   importeraOchBekrafta(källa: string, namn: string): Promise<string | null>;
   now(): number;
 }
@@ -111,6 +115,45 @@ export function tolkaMål(rå: unknown): RestoreTarget[] {
     ut.push({ productId, reviewIdAE, sourceImageUrls: unika });
   }
   return ut;
+}
+
+/** En bildtyp Wix Media tar emot, bestämd av filens innehåll. */
+export interface Bildtyp {
+  mime: "image/jpeg" | "image/png" | "image/webp";
+  andelse: "jpg" | "png" | "webp";
+}
+
+/**
+ * Vad är filen, enligt dess egna första byte?
+ *
+ * ☠️ LITA INTE PÅ VÄRDEN. Aosoms bild-CDN skickar en del kundfoton med
+ * Content-Type `application/x-www-form-urlencoded`, och några heter .heif fast
+ * innehållet är en vanlig JPEG. Mätt 2026-09-29 på de 95 rader som inte gick
+ * att återställa: 139 källfoton med fel typ, 13 med fel ändelse — och alla 152
+ * var i själva verket JPEG eller PNG. Wix import tror på värdens uppgifter och
+ * ger upp; signaturen i filen ljuger inte.
+ *
+ * Allt annat än JPEG, PNG och WebP → null. En äkta HEIC, en HTML-felsida eller
+ * en tom fil ska inte bli en "kundbild".
+ */
+export function bildtypUrSignatur(b: Uint8Array): Bildtyp | null {
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) {
+    return { mime: "image/jpeg", andelse: "jpg" };
+  }
+  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (b.length >= 8 && PNG.every((v, i) => b[i] === v)) {
+    return { mime: "image/png", andelse: "png" };
+  }
+  const ascii = (från: number, till: number) => String.fromCharCode(...b.subarray(från, till));
+  if (b.length >= 12 && ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") {
+    return { mime: "image/webp", andelse: "webp" };
+  }
+  return null;
+}
+
+/** Filnamnet med bildens riktiga ändelse: `kundbild-x.jpg` → `kundbild-x.png`. */
+export function medAndelse(namn: string, andelse: Bildtyp["andelse"]): string {
+  return `${namn.replace(/\.[a-z0-9]{2,5}$/i, "")}.${andelse}`;
 }
 
 function tomStats(antal: number): RestoreStats {
