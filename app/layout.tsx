@@ -12,7 +12,6 @@ import { WishlistProvider } from "../components/wishlist";
 // Below-fold / interaction-only components — code-split via next/dynamic so
 // they don't bloat the initial JS payload (round-2 perf). See components/deferred.tsx.
 import {
-  ScrollIndicator,
   BackToTop,
   CookieConsent,
   CartDrawer,
@@ -226,7 +225,6 @@ export default async function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
         <CartProvider>
           <WishlistProvider>
-            <ScrollIndicator />
             <SiteHeader />
             <main>{children}</main>
             <SiteFooter />
