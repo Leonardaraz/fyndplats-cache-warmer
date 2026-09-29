@@ -338,7 +338,8 @@ async function verifiera(efterVäxling: boolean): Promise<{
     // avvikande fält dataförlust — inte "drift", som det hade blivit om
     // STORE_BACKEND fick bestämma.
     const tabellEfter = post.spec ? växlad(post.spec.tabell, efterVäxling) : efterVäxling;
-    const verdikt = bedömTabell(wix, postgres, avvikande.length, tabellEfter);
+    const utanRetention = post.spec ? post.spec.tabell in EGEN_VÄXEL : false;
+    const verdikt = bedömTabell(wix, postgres, avvikande.length, tabellEfter, utanRetention);
 
     ut.push({
       tabell: post.namn,
