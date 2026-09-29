@@ -5668,3 +5668,33 @@ beslut — se den samlade frågan om detta.
   `0625d9a7`, som svepet inte parar ihop. Agilitysetet i tre delar finns publicerat två gånger
   (`cc7ab001` och `1746334e`) och har utkastet `5f181a0c`, och minst en av de publicerade sidorna är
   mappad mot AliExpress. (B62)
+- B63: åtta publicerade sidor skrivna om för alla färger eller storlekar och sedan sammanslagna.
+  Golvlampan `08b40e95` (silver och beige) fick guld och krämvit (`f05941f7`), ståbordet `38f9bf22`
+  (natur och vit) rustik brun och svart (`873e1523`), kontorsfåtöljen `4275e300` (grön) rosa
+  (`b2fa51ba`), hörnskrivbordet `58b51373` (svart) natur och vit (`f768f9ff`), sophinken på 48 liter
+  `77e6e472` (silver) svart (`9161b414`), kontorsstolen `7ef22229` (grön) beige (`a2b8af9e`),
+  skjutdörrsskenan `87888f5f` (183 cm) storleken 244 cm (`88cdbba1`) och soptunnan `9d2c88bd` (50
+  liter) storleken 30 liter (`1d29a529`). (B63)
+- Utfall: 8 av 8 sidor skrivna, verifierade och stämplade. Alla 8 sammanslagningar gick in med bild
+  på varje val, sex färger och två storlekar. Livekontrollen gav 8 av 8 OK, 30 av 30 alt-texter och
+  orddiff 0. (B63)
+- Fem miljöbilder hade läsbar text på rekvisitan och är strukna: golvlampans tidning på golvet och
+  bok med ett varumärke i hyllan, hörnskrivbordets anslagstavla, kontorsstolens bokryggar och
+  soptunnans flingpaket. Två egna kort är också strukna: golvlampans kallade fraktvikten 6 kg för
+  vikt, och hörnskrivbordets bar samma miljöfoto som anslagstavlan. Syskonens miljöbilder följde
+  inte med av samma skäl: golvlampans har en radio med varumärke och en bok med läsbar titel,
+  kontorsstolens har samma bokryggar och hörnskrivbordets har affischer med text. (B63)
+- Hörnskrivbordet hette "natur och svart", och texten beskrev skivor i ljus naturton. Bilderna och
+  flödet visar ett helsvart bord. Sidan säger nu svart, och det nya syskonet är natur och vit. Den
+  gamla texten länkade till två andra skrivbord och ställde bordet mot dem. Kontorsstolens gamla
+  text länkade till en annan stol, och dess namn bar fraktvikten 12,9 kg. Allt det är borta. (B63)
+- Kontorsfåtöljens sitthöjd är 43–50,5 cm i den gröna källan och 44–52 cm i den rosa källan och på
+  dess måttbild. Sidan anger ingen sitthöjd, och den rosa måttbilden följer inte med. (B63)
+- Ståbordets egen källa säger "hjul med broms", och syskonets säger att två av dem har broms. Sidan
+  säger två av fyra. Säkerhetsuppgifterna (lås hjulen, kontrollera stabiliteten) står bara i
+  syskonets källa och gäller nu hela sidan. (B63)
+- Skjutdörrsskenans båda källor anger dörrbredd upp till 90 cm, även skenan på 244 cm, och båda
+  måttbilderna visar en dörr på 90 cm. Sidan anger 90 cm för båda längderna. (B63)
+- Soptunnans 30-liter mot den publicerade AliExpress-sidan `3d3ebf08` (30 liter, 33 × 25 × 58 cm,
+  1 299 kr), som N-rundan flaggade: det är en annan modell, med svart lock och svart fot. `1d29a529`
+  har lock i stål som 50-literstunnan. Utkastet `75e1a5b6` i samma flagga är inte undersökt. (B63)
