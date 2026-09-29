@@ -322,6 +322,12 @@ TYSKA_ORD = [
     "Kunsttannenbaum", "Edeltanne", "Glasfaser", "Faseroptik", "Zweigspitzen", "Lichtmodi",
     "Lichtfunktionen", "Beleuchtung", "Heizkörperverkleidung", "Heizungsabdeckung",
     "Überhitzungsschutz", "Taschenfedern", "Kissengröße",
+    # runda B59 (elbil, konsolbord, kista, rullvagn, barstolar, kontorsstol, gamingstol)
+    "Elektroautos", "Suchscheinwerfer", "Konsolentisch", "Flurtisch", "Flurtisches",
+    "Marmoroptik", "Aufbewahrungstruhe", "Truhe", "Holztruhe", "Küchenwagen",
+    "Servierwagen", "Bastelwagen", "Aufbewahrungswagen", "Schubladen", "Rustikales",
+    "Barstuhl", "Barstühlen", "Tresenstuhl", "Cordstoff", "Samtbezug", "Rückenheizung",
+    "Gamerstuhl", "Hasenohren",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
