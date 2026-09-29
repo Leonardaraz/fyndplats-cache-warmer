@@ -5604,3 +5604,38 @@ beslut — se den samlade frågan om detta.
   bokryggar med märken), ett eget faktakort som kallade fraktvikten Vikt och en dubblerad
   hallscen. Pedalhinkarna kopplades till Soptunnor, paraplystället till Klädhängare &
   hallmöbler och bänken till Matbord & stolar. (B60)
+- Rättelse till B60: bänkens SKU `FP-sittbank-furu-102-vit` fälldes på "102-vit" (tre siffror,
+  bindestreck och tre tecken), inte på "uru-102". Spärren har en ordgräns till vänster, så ett
+  tresiffrigt tal följt av en färg med tre bokstäver fäller, medan "furu-102" inte gör det. (B61)
+- B61: sju publicerade hundsidor och en pedalhink, skrivna om för alla färger och sedan
+  sammanslagna. Hundvippan `2b7853e9` (natur) fick vit (`aefcb451`) och grå (`db228f4a`),
+  joggingvagnen `c6928b61` (blå) mörkgrön (`5750308b`), grå (`61acb2dc`) och röd (`d3006426`), 10
+  kg-vagnen `0783b515` (mörkgrön) grön (`28e7dc6e`) och beige (`85aa4691`), 30 kg-vagnen `41fddd87`
+  (grå) röd (`540c231a`) och mörkgrå (`cae106e7`), vagnen med 75 cm liggyta `b158b089` (grå) svart
+  (`2038f2aa`) och blå (`c8ac6065`), bärväskevagnen `3f18c4d3` (röd) gul (`56dc1ed5`), vagnen med
+  vändbart handtag `f0ee6c6a` (brun) röd (`436540ee`) och mörkgrå (`b4de6338`), och den smala
+  pedalhinken `753907f5` (svart) vit (`3d3bd96a`) och krämvit (`6701fa36`). (B61)
+- Utfall: 8 av 8 sidor skrivna, verifierade och stämplade. 16 färgval gick in med bild på varje färg
+  (joggingvagnen 4 av 4). Livekontrollen gav 8 av 8 OK, 37 av 37 alt-texter och orddiff 0. 10
+  kg-vagnens beiga färg fick lagersaldo 2 vid sammanslagningen. (B61)
+- Alla åtta gamla texter angav fraktvikten som varans vikt, och sju egna faktakort gjorde detsamma.
+  Korten är struckna och texterna säger Fraktvikt. Varans vikt står bara där källan anger den: 4,9
+  kg för 10 kg-vagnen (sidans egen källa) och 8,6 kg för vagnen med 75 cm liggyta (det blå syskonets
+  källa). Pedalhinkens vardagsrumsbild är struken, eftersom en bok på soffbordet har läsbar text.
+  (B61)
+- 30 kg-vagnens bredd är 67 cm i flödet och i den röda textens mått, men 65 cm i den mörkgrå textens
+  mått och på sidans måttbild. Sidan anger 67 cm. Hundvippans vita syskon anger både "bär 30 kg" och
+  "rekommenderas under 50 kilo". Sidan anger 30 kg, det lägre värdet. (B61)
+- Bärväskevagnens gula syskon säger att en dyna ingår, men dess leveranslista tar bara upp vagnen
+  och bruksanvisningen, och den gamla sidan sa att ingen dyna ingår. Sidan säger ingenting om en
+  dyna. (B61)
+- Pedalhinkens vita och krämvita syskon delar tre av fem foton, och på vit botten ser de lika ut.
+  Den krämvita färgen fick köksbilden (bild 4) som färgbild, eftersom tonen syns bara där. 10
+  kg-vagnens mörkgröna och gröna nyanser ligger nära varandra på bilderna. (B61)
+- Hundgrindsfamiljen hålls utanför B61 och behöver en egen runda. Den vita grinden i tre paneler
+  `e4367833` har tre utkast i ljusgrått (`6d093e8a`), mörkbrunt (`772a61c9`) och svart (`fb06a304`).
+  Den publicerade svarta grinden `516cf07c` (999 kr) är samma grind som det svarta utkastet: samma
+  mått, bågformade spjälor och huvudbild. Den svarta grinden med fem paneler `78f897e9` har ett
+  syskon med fyra paneler (`8477328f`). `e4367833`:s text länkar dessutom till två publicerade sidor
+  med fyra och fem paneler, `c6554568` (203,5 cm) och `f65c4435` (254,5 cm). Samma grind ligger
+  alltså ute minst fem gånger, och en tidigare runda räknade arton publicerade grindar. (B61)
