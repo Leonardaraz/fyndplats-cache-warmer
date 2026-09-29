@@ -3,8 +3,8 @@
 //
 // Logiken och dess regler bor i lib/reviews/aosom-image-restore.ts. Den här filen
 // kopplar bara in de riktiga beroendena: recensionslagret och Wix Media
-// (import + vänta på READY). AliExpress-raderna har en egen väg:
-// /api/cron/review-image-restore (#686).
+// (hämta källfotot, ladda upp med rätt typ, vänta på READY). AliExpress-raderna
+// har en egen väg: /api/cron/review-image-restore (#686).
 //
 // Anropas av workflowen aosom-review-image-restore.yml i varv. Torrt som default —
 // `dryRun: false` krävs för att skriva. Svaret bär bara räknare, för
@@ -13,6 +13,8 @@
 import { NextResponse } from "next/server";
 import { getReviewStore } from "@/lib/store/reviews";
 import {
+  bildtypUrSignatur,
+  medAndelse,
   restoreReviewImages,
   tolkaMål,
   type RestoreDeps,
@@ -23,8 +25,12 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const WIX_BASE = "https://www.wixapis.com";
-/** Ny rad tas inte efter så här lång tid — marginal till maxDuration. */
-const BUDGET_MS = 230_000;
+/**
+ * Ny rad tas inte efter så här lång tid — marginal till maxDuration. Lägre än
+ * första körningens 230 s: nu går varje foto (upp till ~9 MB) genom funktionen
+ * två gånger, och en rad med tre foton ska hinna bli klar innan Vercel bryter.
+ */
+const BUDGET_MS = 150_000;
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -45,12 +51,10 @@ function wixHeaders(): Record<string, string> {
 
 const sov = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-function gissaMime(url: string): string {
-  const ext = url.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "png") return "image/png";
-  if (ext === "webp") return "image/webp";
-  return "image/jpeg";
-}
+/** Aosoms bild-CDN — den enda värd rutten hämtar ifrån. */
+const AOSOM_VARD = "img.aosomcdn.com";
+/** Wix tar bilder upp till 25 MB; de största källfotona vi mätt är ~9 MB. */
+const MAX_BYTE = 20 * 1024 * 1024;
 
 /** Lever adressen? Wix CDN svarar 403 för en fil som inte finns. */
 async function lever(url: string): Promise<boolean | null> {
@@ -67,43 +71,98 @@ async function lever(url: string): Promise<boolean | null> {
   }
 }
 
-/**
- * Importerar till Wix Media och returnerar adressen FÖRST när filen är klar.
- *
- * ☠️ Import File är asynkron: svaret bär en adress direkt, men Wix hämtar
- * källan efteråt och kan misslyckas. Att spara adressen utan att vänta är
- * precis hur en död länk ser frisk ut i lagret.
- */
-async function importeraOchBekrafta(källa: string, namn: string): Promise<string | null> {
-  let fil: { id?: string; url?: string } | undefined;
-  for (let försök = 0; försök < 3 && !fil; försök++) {
-    const res = await fetch(`${WIX_BASE}/site-media/v1/files/import`, {
-      method: "POST",
-      headers: wixHeaders(),
-      body: JSON.stringify({ url: källa, mimeType: gissaMime(källa), displayName: namn, private: false }),
-    });
-    if (res.status === 429) { await sov(3000 * (försök + 1)); continue; }
-    if (!res.ok) return null;
-    const data = (await res.json().catch(() => ({}))) as { file?: { id?: string; url?: string } };
-    fil = data.file;
+/** Källfotots byte, eller null. Bara Aosoms CDN, högst MAX_BYTE. */
+async function hämtaKälla(källa: string): Promise<Uint8Array<ArrayBuffer> | null> {
+  // tolkaMål släpper bara igenom Aosoms CDN — men den här funktionen hämtar
+  // vad den får, så kontrollen upprepas här och på slutadressen efter omdirigering.
+  const värd = (u: string) => { try { return new URL(u).hostname; } catch { return ""; } };
+  if (värd(källa) !== AOSOM_VARD) return null;
+  try {
+    const res = await fetch(källa, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(30_000) });
+    if (!res.ok || värd(res.url || källa) !== AOSOM_VARD) { await res.body?.cancel(); return null; }
+    if (Number(res.headers.get("content-length") ?? 0) > MAX_BYTE) { await res.body?.cancel(); return null; }
+    const b = new Uint8Array(await res.arrayBuffer());
+    return b.byteLength > 0 && b.byteLength <= MAX_BYTE ? b : null;
+  } catch {
+    return null;
   }
-  if (!fil?.id || !fil.url || !fil.url.startsWith("https://static.wixstatic.com/")) return null;
+}
 
+/** Väntar tills Wix bearbetat filen: true = READY, false = FAILED eller för länge. */
+async function väntaPåKlar(id: string): Promise<boolean> {
   const gräns = Date.now() + 30_000;
   while (Date.now() < gräns) {
     await sov(1500);
     const res = await fetch(
-      `${WIX_BASE}/site-media/v1/files/get-file-by-id?fileId=${encodeURIComponent(fil.id)}`,
+      `${WIX_BASE}/site-media/v1/files/get-file-by-id?fileId=${encodeURIComponent(id)}`,
       { headers: wixHeaders() },
     );
     if (res.status === 429) { await sov(2000); continue; }
     if (!res.ok) continue;
     const data = (await res.json().catch(() => ({}))) as { file?: { operationStatus?: string } };
     const status = data.file?.operationStatus;
-    if (status === "READY") return fil.url;
-    if (status === "FAILED") return null;
+    if (status === "READY") return true;
+    if (status === "FAILED") return false;
   }
-  return null;
+  return false;
+}
+
+/**
+ * Hämtar källfotot, laddar upp det till Wix Media och returnerar adressen
+ * FÖRST när filen är klar.
+ *
+ * VARFÖR INTE Import File (som första körningen använde, 2026-09-28). Wix
+ * import hämtar källan själv och tror på värdens Content-Type. För 95 rader
+ * skickade Aosoms CDN fel typ eller en .heif-ändelse på en JPEG, och varje
+ * import slutade FAILED. Här bestäms typen av filens egna byte
+ * (`bildtypUrSignatur`) och filen laddas upp via Generate File Upload URL med
+ * rätt typ och ändelse.
+ *
+ * En uppladdad fil saknar `sourceUrl`, och mediastädningen rör aldrig en fil
+ * utan källadress (lib/aosom/media-cleanup.ts, `arVarFil`). De här fotona kan
+ * alltså inte städas bort igen.
+ *
+ * ☠️ Uppladdningen är asynkron som importen: ett lyckat svar betyder inte att
+ * filen är klar. Att spara adressen utan att vänta på READY är precis hur en
+ * död länk ser frisk ut i lagret.
+ */
+async function importeraOchBekrafta(källa: string, namn: string): Promise<string | null> {
+  const byte = await hämtaKälla(källa);
+  if (!byte) return null;
+  const typ = bildtypUrSignatur(byte);
+  if (!typ) return null;
+
+  let uppladdning: string | undefined;
+  for (let försök = 0; försök < 3 && !uppladdning; försök++) {
+    const res = await fetch(`${WIX_BASE}/site-media/v1/files/generate-upload-url`, {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({ mimeType: typ.mime, fileName: medAndelse(namn, typ.andelse), private: false }),
+    });
+    if (res.status === 429) { await sov(3000 * (försök + 1)); continue; }
+    if (!res.ok) return null;
+    const data = (await res.json().catch(() => ({}))) as { uploadUrl?: string };
+    uppladdning = data.uploadUrl;
+  }
+  if (!uppladdning?.startsWith("https://")) return null;
+
+  let fil: { id?: string; url?: string; operationStatus?: string } | undefined;
+  try {
+    const res = await fetch(uppladdning, {
+      method: "PUT",
+      headers: { "Content-Type": typ.mime },
+      body: new Blob([byte], { type: typ.mime }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    fil = ((await res.json().catch(() => ({}))) as { file?: typeof fil }).file;
+  } catch {
+    return null;
+  }
+  if (!fil?.id || !fil.url || !fil.url.startsWith("https://static.wixstatic.com/")) return null;
+  if (fil.operationStatus === "READY") return fil.url;
+  if (fil.operationStatus === "FAILED") return null;
+  return (await väntaPåKlar(fil.id)) ? fil.url : null;
 }
 
 export async function POST(req: Request) {

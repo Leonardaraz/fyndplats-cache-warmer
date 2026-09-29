@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { StoredReview } from "../store/reviews";
 import {
+  bildtypUrSignatur,
+  medAndelse,
   restoreReviewImages,
   tolkaMål,
   type RestoreDeps,
@@ -184,5 +186,38 @@ describe("restoreReviewImages", () => {
     const { d } = deps([rad()]);
     const s = await restoreReviewImages(mål, d, skarpt);
     expect(s.kvarFran).toBeNull();
+  });
+});
+
+describe("bildtypUrSignatur", () => {
+  const byte = (...b: number[]) => new Uint8Array(b);
+  const text = (t: string) => new TextEncoder().encode(t);
+
+  it("känner igen JPEG, PNG och WebP på filens egna byte", () => {
+    expect(bildtypUrSignatur(byte(0xff, 0xd8, 0xff, 0xe0, 0, 0x10))).toEqual({ mime: "image/jpeg", andelse: "jpg" });
+    expect(bildtypUrSignatur(byte(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0))).toEqual({ mime: "image/png", andelse: "png" });
+    const webp = new Uint8Array([...text("RIFF"), 0x24, 0, 0, 0, ...text("WEBPVP8 ")]);
+    expect(bildtypUrSignatur(webp)).toEqual({ mime: "image/webp", andelse: "webp" });
+  });
+
+  it("vägrar allt annat: HTML-felsida, äkta HEIC, tom eller avkortad fil", () => {
+    expect(bildtypUrSignatur(text("<!DOCTYPE html><html>"))).toBeNull();
+    expect(bildtypUrSignatur(new Uint8Array([0, 0, 0, 0x18, ...text("ftypheic")]))).toBeNull();
+    expect(bildtypUrSignatur(new Uint8Array())).toBeNull();
+    expect(bildtypUrSignatur(byte(0xff, 0xd8))).toBeNull();
+    expect(bildtypUrSignatur(byte(0x89, 0x50, 0x4e, 0x47))).toBeNull();
+    expect(bildtypUrSignatur(text("RIFF\0\0\0\0WAVE"))).toBeNull();
+  });
+});
+
+describe("medAndelse", () => {
+  it("byter ändelsen till bildens riktiga", () => {
+    expect(medAndelse("kundbild-gen-abc.jpg", "png")).toBe("kundbild-gen-abc.png");
+    expect(medAndelse("kundbild-gen-abc-2.jpg", "jpg")).toBe("kundbild-gen-abc-2.jpg");
+    expect(medAndelse("kundbild-gen-abc.heif", "jpg")).toBe("kundbild-gen-abc.jpg");
+  });
+
+  it("lägger till en ändelse när namnet saknar en", () => {
+    expect(medAndelse("kundbild-gen-abc", "webp")).toBe("kundbild-gen-abc.webp");
   });
 });
