@@ -317,6 +317,11 @@ TYSKA_ORD = [
     "Unterstützung", "Verspannungen", "Netzstoff", "bodenschonende", "geräuschlose",
     "hochklappbare", "hochklappbaren", "leichtgängigen", "leinenartigem", "samtweichem",
     "verschleißfester", "getuftetes", "gepolsterter", "unübertroffenen", "kuscheliges",
+    # runda B58 (julgranar, elkamin, elementskydd, soffa)
+    "Weihnachtsbaum", "Weihnachtsbaums", "Christbaum", "Christbaums", "Tannenbaum",
+    "Kunsttannenbaum", "Edeltanne", "Glasfaser", "Faseroptik", "Zweigspitzen", "Lichtmodi",
+    "Lichtfunktionen", "Beleuchtung", "Heizkörperverkleidung", "Heizungsabdeckung",
+    "Überhitzungsschutz", "Taschenfedern", "Kissengröße",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
