@@ -5554,3 +5554,29 @@ beslut — se den samlade frågan om detta.
   samma modell som den vita, har saldo 2 och väntar. (B58)
 - Sminkborden `94b4242d` och `ac8f9d1b` har samma mått, 80 × 40 × 135 cm, men är olika
   produkter: `ac8f9d1b` har en spegel med lampor runt om. (B58)
+- B59: åtta publicerade sidor med färgsyskon, skrivna om utan färg i namnet och sedan
+  sammanslagna. Elbilen `7a8655f0` fick vit (`ac30792e`) och röd (`c80ffdb1`), konsolbordet
+  `10cd6afb` svart stomme (`6feb6c9d`), förvaringskistan `33566d4a` vit (`7feb6564`),
+  rullvagnen `764a3efc` svart (`cbf2dfe9`), barstolarna i sammetslook `313117c8` mörkgrå
+  (`f81030d2`), kontorsstolen `820d5370` svart (`9deed3c1`), manchesterstolarna `f61517b6` grå
+  (`56da1c05`) och gamingstolen `4439afff` lila (`68db1b39`). Fyra av familjerna stod i B58:s
+  lista över färgsyskon. Sluggarna står kvar. (B59)
+- Skrivningen verifierade och stämplade 8 av 8 i första försöket, med 26 kategorirader. Alla nio
+  sammanslagningar lästes tillbaka med bild på varje färg och en artikel per variant. Givarna är
+  pensionerade, inte raderade. Livekontrollen gav 8 av 8 OK, 36 av 36 alt-texter och orddiff 0
+  på alla åtta sidor. (B59)
+- Fem givare prissattes av konkurrentregeln: de mörkgrå barstolarna, den svarta kontorsstolen,
+  de grå manchesterstolarna, den lila gamingstolen och den röda bilen. Sammanslagningen rörde
+  inget pris, men från nästa synk följer de nya valen husets regel, så priset kan ändras. (B59)
+- Kontorsstolens bredd är 66 cm i den tyska texten, 64 cm i flödet och på sidans måttritning
+  (bild 3), men 70 cm på det svarta syskonets ritning. Sidan anger det skyddande talet, 70 × 78
+  × 112–120 cm. Ritningen med 64 cm ligger kvar, och dess alt-text nämner inte bredden. Syskonets
+  tyska inledning nämner ryggvärme, men punktlistan gör det inte, så sidan påstår ingen värme.
+  (B59)
+- Två av våra egna kort stryks. Rullvagnens (bild 3) anger fraktvikten 4,6 kg som varans vikt,
+  och gamingstolens (bild 3) anger fraktvikten 17,8 kg som vikt och har rubriken "Högst i
+  serien", som rankar mot sortimentet. (B59)
+- Spelstolens mått följer ritningen: 65 cm bred och 63 cm djup. Källan skriver `65L x 63B`, och
+  den gamla texten hade vänt på bredd och djup. (B59)
+- Manchesterstolarna `f61517b6` står på saldo 0 i gräddvitt. Den grå färgen har saldo 156, så
+  sidan går att köpa, och butiken förväljer grått. Den röda bilen kom in med saldo 2. (B59)
