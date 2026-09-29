@@ -332,6 +332,10 @@ TYSKA_ORD = [
     "Tropfwasserschale", "Auffangschale", "Mülleimer", "Küchenmülleimer", "Treteimer",
     "Abfalleimer", "Tretmülleimer", "Inneneimer", "Holzbank", "Rutsche", "Kinderrutsche",
     "Haustiergitter", "Schutztür", "Zeichenstuhl", "Arbeitsstuhl",
+    # runda B61 (hundvagnar, joggingvagn, hundvippa, pedalhink)
+    "Hundewagen", "Hundebuggy", "Hundetrolley", "Haustierbuggy", "Haustierwagen",
+    "Katzenbuggy", "Katzenwagen", "Hundewippe", "Pedaleimer", "Tragtasche",
+    "Regenschutz", "Netzfenster", "Liegematte", "Ablagekorb",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
