@@ -5502,3 +5502,55 @@ beslut — se den samlade frågan om detta.
   regel, som de andra färgerna (brun 549, mörkgrå 519 och beige 559 kr). (B57b)
 - AliExpress-sidan angav kardborreband på 18 cm. Aosoms gröna duk har band på 30 cm, som den
   bruna och den beige, och det är vad texten säger. (B57b)
+- B58: jul och inomhus. Nya sidor: julgranarna `40ddd628` (120 cm i guldfärgad kruka, 110
+  LED), `03a72afd` (120 cm i tunnkruka med kottar och bär, 100 LED) och `148c14bd` (180 cm med
+  550 varmvita LED), minielkaminen `dd78d430`, elementskyddet `79a79917` och den böjda soffan
+  `49bb10a7`. Två publicerade gransidor skrevs om för sina syskon. Ädelgranen `fc68547e` fick
+  150 cm (`8a8d66fc`) som storlek, och den fiberoptiska granen `75a38b7b` fick vit (`f3738f91`)
+  som färg och grön 150 cm (`8763f8d0`) som storlek. Vit i 150 cm finns inte som vara, och
+  butiken visar kombinationen som ej valbar. (B58)
+- Skrivningen verifierade och stämplade 8 av 8 i första försöket, och alla 20
+  kategorikopplingar gick igenom. Sammanslagningarna kopplade en bild till båda storlekarna på
+  ädelgranen och till båda färgerna på den fiberoptiska granen. Givarna är pensionerade, inte
+  raderade. Priserna är orörda: 1 439 och 1 249 kr för ädelgranen, 539, 579 och 849 kr för den
+  fiberoptiska. Livekontrollen gav 8 av 8 OK, 33 av 33 alt-texter och orddiff 0 på alla
+  åtta sidor. (B58)
+- `8763f8d0`, som N57 och N63 hoppade över och N74 pekade ut som samma gran som `75a38b7b`, är
+  nu en storlek på den sidan. (B58)
+- Ädelgranens slug `julgran-180-cm-adelgransform-961-spetsar` fälls av skrivplanens
+  formkontroll (`961-spetsar`). Sidan fick `julgran-adelgransform-tredelad-trafot` och en 301
+  från den gamla. Omdirigeringens workflow föll på `504 FUNCTION_INVOCATION_TIMEOUT` som i B42.
+  Ingen produkt bar den gamla adressen och den nya bar rätt produkt, så workflowen kördes om
+  med `force=true`. (B58)
+- Minielkaminen `dd78d430` (800/1600 W) är inte kopplad till *Elkaminer*. Kategoritexten
+  (`runda-s7-sokordskategorier/elkaminer-text.json`) säger "Effekten är 1800 eller 2000 W" i
+  ingressen och i en fråga. Det stämmer redan inte för de två minielkaminerna `c5feb43e` och
+  `88ebb094` (600/1200 W), som ligger i kategorin. Rätta texten vid nästa butiksdeploy och
+  koppla sedan `dd78d430`. (B58)
+- Elementskyddet `79a79917` är inte kopplat till *Elementskydd*. Kategoritexten
+  (`runda-s13-hem-kok-mobler/elementskydd-text.json`) säger "Fyra är vita", och med det här
+  blir de fem. Koppla det när texten rättas. Källans totalmått ger 79 cm i bredd, medan
+  rubriken och måttritningen säger 78 cm. Sidan anger 79 cm. (B58)
+- Minielkaminerna `c5feb43e` och `88ebb094` har äldre texter. Båda saknar fliken *Användning
+  och skötsel* och slutar med *Fler elkaminer*, tre länkar till andra kaminer. `c5feb43e`
+  jämför dessutom med "vår flata minielkamin", och runbooken tillåter ingen jämförelse med
+  andra varor i sortimentet. De kan skrivas om i samma runda som ett senare elkaminpass. (B58)
+- Ett svep över alla 3 710 publicerade sidor 2026-09-29: 327 saknar fliken *Användning och
+  skötsel*, 61 *Tekniska specifikationer* och 28 *Vanliga frågor* (rubriken ordagrant som
+  `<h2>`). 3 320 saknar *Produktsäkerhet*, vilket är väntat eftersom avsnittet skrivs först
+  vid nästa polering. 867 har minst en länk i texten; runbooken låter korshänvisningar som
+  inte rankar stå kvar. 174 länkar till den gamla formen `/product-page/…`, som svarar 308
+  till rätt `/produkt/`-adress. (B58)
+- Vinkylen `0e28e741` (68 l, 24 flaskor) hålls av samma skäl som frysboxen i B20: kyl- och
+  frysprodukter ska visa energimärkning och länka produktinformationsbladet (EU 2019/2016),
+  och vi har inget av dem. (B58)
+- Sex utkast är färgsyskon till publicerade Aosom-sidor och kan bli val där: den vita
+  barnbilen `ac30792e` (på `7a8655f0`), det svarta konsolbordet `6feb6c9d` (`10cd6afb`), den
+  vita förvaringskistan `7feb6564` (`33566d4a`), det svarta medicinskåpet `0b7567e6`
+  (`54efbdc6`), den svarta rullvagnen `cbf2dfe9` (`764a3efc`) och den beige
+  öronlappsfåtöljen `2ef5e0a2` (`a29af9b5`). Fyra av sidorna bär sin färg i namnet (barnbilen
+  "i blått", konsolbordet "vit stomme", kistan "brun trälook" och vagnen "vit med
+  träskiva"), och de namnen skrivs om först, med samma slug. Den röda barnbilen `c80ffdb1`,
+  samma modell som den vita, har saldo 2 och väntar. (B58)
+- Sminkborden `94b4242d` och `ac8f9d1b` har samma mått, 80 × 40 × 135 cm, men är olika
+  produkter: `ac8f9d1b` har en spegel med lampor runt om. (B58)
