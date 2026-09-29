@@ -5639,3 +5639,32 @@ beslut — se den samlade frågan om detta.
   syskon med fyra paneler (`8477328f`). `e4367833`:s text länkar dessutom till två publicerade sidor
   med fyra och fem paneler, `c6554568` (203,5 cm) och `f65c4435` (254,5 cm). Samma grind ligger
   alltså ute minst fem gånger, och en tidigare runda räknade arton publicerade grindar. (B61)
+- B62: fyra hundsportsidor och fyra kattlådor, skrivna om för alla färger och sedan sammanslagna.
+  Hopphindren `7167f9ac` (vita) fick ljusblå med rosa bommar (`2810f5c7`), grön (`3a33819b`) och blå
+  (`ddb5d205`), agilitybågarna `8cf7b1bb` (orange och gul) orange och blå (`30d7c18d`), hopphindren
+  med fyllbar fot `d3c91eb3` (gul) blå (`48df62b1`), A-hindret `fdefa04b` (orange) grå (`bf3ae611`),
+  kattlådan på 43 cm `72ac915f` (grå) rosa (`0fde20f5`), mintgrön (`948b1e7a`) och vit (`c909254e`),
+  stugan `7162ea48` (grå) ljusblå (`87c69d6c`), lådan med ståltråg och filter `5df0b431` (vit) grå
+  (`5cd447de`) och lådan med utgång upptill `135d0f48` (vit) ljusgrå (`0015497b`). (B62)
+- Utfall: 8 av 8 sidor skrivna, verifierade och stämplade. 12 färgval gick in med bild på varje färg
+  (hopphindren och kattlådan på 43 cm 4 av 4). Livekontrollen gav 8 av 8 OK, 34 av 34 alt-texter och
+  orddiff 0. (B62)
+- Alla åtta gamla texter angav fraktvikten som varans vikt, och A-hindrets eget faktakort gjorde
+  detsamma. Kortet är struket och texterna säger Fraktvikt. Varans vikt står bara på hopphindren,
+  där källan anger nettovikten 4,5 kg. (B62)
+- Kattlådan på 43 cm beskrevs med ett lock som lyfts av i ett stycke. Källan och bilderna visar ett
+  sandtråg som dras ut framtill, och texten säger nu det. Hopphindrens text angav Svenska
+  Kennelklubbens åldersgräns och en bärväska på 95 cm, vilket var paketets längd. Båda är borta,
+  liksom länkarna till åttadelarssetet och balansbommen. Lådan med ståltråg hette "i vitt ... och
+  kolfilter". Källan säger filter, inte kolfilter, och namnet är omskrivet med oförändrad slug.
+  (B62)
+- Källorna skriver axlarna olika: agilitybågen är L100 × B19,5 i den ena källan och B100 × T19,5 i
+  den andra, och A-hindret är L173 × B59. Sidorna anger de måtten utan axelord. Stugans källa anger
+  både att lådan passar katter upp till 5 kg och en maxbelastning på 8 kg. Sidan anger båda. (B62)
+- De fyra kattlådefamiljerna stoppades i H1 som färgsyskon, före färgbeslutet: `948b1e7a` och
+  `0fde20f5` mot `72ac915f`, `87c69d6c` mot `7162ea48` och `5cd447de` mot `5df0b431`. De är nu
+  färgval, liksom N76:s `c909254e` och `0015497b`. (B62)
+- Kvar i hundsporten till en senare runda: balansbommen `4fdd8d3c` (orange) har det grå syskonet
+  `0625d9a7`, som svepet inte parar ihop. Agilitysetet i tre delar finns publicerat två gånger
+  (`cc7ab001` och `1746334e`) och har utkastet `5f181a0c`, och minst en av de publicerade sidorna är
+  mappad mot AliExpress. (B62)
