@@ -5580,3 +5580,27 @@ beslut — se den samlade frågan om detta.
   den gamla texten hade vänt på bredd och djup. (B59)
 - Manchesterstolarna `f61517b6` står på saldo 0 i gräddvitt. Den grå färgen har saldo 156, så
   sidan går att köpa, och butiken förväljer grått. Den röda bilen kom in med saldo 2. (B59)
+- B60: åtta publicerade sidor med färgsyskon, skrivna om utan färg i namnet och sedan
+  sammanslagna. Paraplystället `33c51730` fick vit (`c4df49ca`), den runda pedalhinken på
+  30 liter `285d9ab7` svart (`f39923d1`), pedalhinken på 20 liter `af9c163f` silver
+  (`961df2a7`), sittbänken i furu `eca2fa1e` vit (`7c50a452`), raketrutschkanan `db607b53` grå
+  (`7e9933e5`), hundgrinden 74–147,5 cm `c260245d` vit (`8f3604cf`), ritstolen `d8033343` svart
+  (`19401932`) och retrostolen `da5668cb` vit (`94115aae`). (B60)
+- Skrivningen verifierade och stämplade 8 av 8 i första försöket. Alla åtta sammanslagningar
+  lästes tillbaka med bild på varje färg och en artikel per variant. Givarna är pensionerade,
+  inte raderade. Livekontrollen gav 8 av 8 OK, 31 av 31 alt-texter och orddiff 0 på alla åtta
+  sidor. (B60)
+- Sittbänkens slug `sittbank-furu-svarta-ben-102-cm` bar formen som skrivrutten vägrar, så
+  sidan heter nu `sittbank-massiv-furu-102-cm` och den gamla adressen har fått en 301.
+  Redirect-workflowen föll två gånger på 504, eftersom katalogkontrollen tog över 60 sekunder.
+  Raden skrevs därför med `force`, efter att källan (ingen produkt) och målet (levande sida)
+  kontrollerats för hand. Sammanslagningens SKU `FP-sittbank-furu-102-vit` fälldes av
+  artikelnummerspärren, som läser "uru-102" som ett nummer, så den vita bänken heter
+  `FP-sittbank-furu-vit`. (B60)
+- Retrostolens sitthöjd skiljer mellan färgerna i källorna: 46–61 cm i svart och 50–65 cm i
+  vitt, i både text och måttritning. Sidan anger båda, per färg. Hundgrindens spjälavstånd är
+  5 cm på den svarta skissen och 4–6 cm på den vita, och sidan anger 4–6 cm. (B60)
+- Åtta bilder struckna: text på rekvisita (böcker, en tavla, en pappersbox, en tidning och
+  bokryggar med märken), ett eget faktakort som kallade fraktvikten Vikt och en dubblerad
+  hallscen. Pedalhinkarna kopplades till Soptunnor, paraplystället till Klädhängare &
+  hallmöbler och bänken till Matbord & stolar. (B60)
