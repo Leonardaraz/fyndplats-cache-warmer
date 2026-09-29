@@ -220,7 +220,7 @@ async function handle(req: NextRequest) {
         raderade: 0,
         utgångna: 0,
         klar: false,
-        fel: ["fredad kollektion — spärrad i ALDRIG_RADERA"],
+        fel: ["fredad kollektion — spärrad i ALDRIG_RADERA, eller dess växel (AUCTIONS_BACKEND) har inte slagit om"],
       });
       continue;
     }

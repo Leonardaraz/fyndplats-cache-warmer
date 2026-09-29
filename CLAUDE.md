@@ -5292,8 +5292,12 @@ Sex egenskaper som inte ska tas bort:
 ⚠️ **Radera Wix-raderna direkt efter en verifierad växling, inte ett dygn
 senare.** Auktionerna har inget retention-fönster, och efter växlingen tar
 seeden (03:17 UTC) och ticken bort rader ur Postgres. En sådan rad finns kvar i
-Wix men inte i kopian, och raderingen avbryter då hela sidan. `FyndplatsAuctions`
-står i `ALDRIG_RADERA` tills Leonard sagt ja.
+Wix men inte i kopian, och raderingen avbryter då hela sidan.
+
+✅ **Leonard sa ja till raderingen 2026-09-29.** `FyndplatsAuctions` är släppt ur
+`ALDRIG_RADERA`, men raderingsverktyget tar den bara när `AUCTIONS_BACKEND=postgres`
+i den körande deploymenten (`VÄXELSTYRDA` i `lib/migration/radera-wix.ts`). Före
+växlingen hade en radering tömt den levande auktionen.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
