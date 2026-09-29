@@ -263,3 +263,44 @@ describe("listAllV3Products", () => {
     expect(kroppar[0]).toContain("PLAIN_DESCRIPTION");
   });
 });
+
+describe("getV3ProductBySlug", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+  });
+  afterEach(() => {
+    process.env.WIX_API_TOKEN = origToken;
+  });
+
+  function svar(status: number, body: unknown) {
+    return { ok: status >= 200 && status < 300, status, json: async () => body, text: async () => "" } as unknown as Response;
+  }
+
+  it("slår upp med ETT anrop mot slug-rutten", async () => {
+    const { getV3ProductBySlug } = await import("./v3-products");
+    const f = vi.fn(async () => svar(200, { product: { id: "p1", name: "Lövblås", slug: "lovblas-20v" } }));
+    const r = await getV3ProductBySlug(" Lovblas-20V ", f as unknown as typeof fetch);
+    expect(r).toEqual({ id: "p1", name: "Lövblås", slug: "lovblas-20v" });
+    expect(f).toHaveBeenCalledTimes(1);
+    expect((f.mock.calls[0] as unknown as [string])[0]).toBe("https://www.wixapis.com/stores/v3/products/slug/lovblas-20v");
+  });
+
+  it("404 ger null utan att skanna katalogen", async () => {
+    const { getV3ProductBySlug } = await import("./v3-products");
+    const f = vi.fn(async () => svar(404, {}));
+    expect(await getV3ProductBySlug("finns-inte", f as unknown as typeof fetch)).toBeNull();
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("godtar bara en produkt med exakt den sökta sluggen", async () => {
+    const { getV3ProductBySlug } = await import("./v3-products");
+    const f = vi.fn(async () => svar(200, { product: { id: "p9", name: "Annan", slug: "annan" } }));
+    expect(await getV3ProductBySlug("lovblas-20v", f as unknown as typeof fetch)).toBeNull();
+  });
+
+  it("andra fel kastar i stället för att tolkas som ingen träff", async () => {
+    const { getV3ProductBySlug } = await import("./v3-products");
+    const f = vi.fn(async () => svar(500, {}));
+    await expect(getV3ProductBySlug("lovblas-20v", f as unknown as typeof fetch)).rejects.toThrow(/500/);
+  });
+});
