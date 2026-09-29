@@ -129,6 +129,9 @@ jobs:
           if [ "${MODE}" = "verifiera" ]; then
             svar=$(anropa "${url}?verify=1")
             lage=$(echo "$svar" | jq -r '.verifiering."läge" // "före-växling"')
+            # Vilket lager deploymenten FAKTISKT servar ur — en env-variabel
+            # binds vid deploy, så växlingen läses här, inte i Vercels panel.
+            echo "$svar" | jq -r '.verifiering.lager // empty | "  lager: drift=\(.drift) recensioner=\(.recensioner) auktioner=\(.auktioner)"'
             # Tabeller med egen växel (recensioner, auktioner) verifieras STRIKT
             # tills deras växel slagit om — då är Wix fortfarande facit.
             echo "$svar" | jq -r '.verifiering.tabeller[] | "  \(.tabell)  wix=\(.wix)  pg=\(.postgres)  avvikande=\(.avvikande|length)\(if .["efterVäxling"] == false then "  (strikt: före växling)" else "" end)"'
