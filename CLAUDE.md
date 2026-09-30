@@ -1909,6 +1909,39 @@ position 1 och 2 blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
 Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
 av det som är hela svepets flaskhals.
 
+### De andra positionerna hämtas för granskning (2026-09-30)
+
+Poleringen stryker det som bär tysk text, ett märke eller en logga. Därför stod
+222 publicerade sidor med två eller tre bilder den 2026-09-30, 48 av dem med två.
+Leonards beslut: sådana sidor ska få fler rena bilder ur leverantörens egen
+uppsättning, inte egna kort.
+
+Ingen hade sett position 4–7, och det gick inte att titta. Bildlistan finns bara i
+feeden, och Wix minns inte varifrån bilderna kom: filerna på produkterna är Wix
+egna kopior, och originalen är bortstädade (uppmätt: `get-files` på kopians
+`sourceUrl` svarar med en tom lista).
+
+Workflowen **"Bilder — hämta leverantörens övriga bilder för granskning"** →
+`/api/admin/aosom-bildkandidater` → `lib/aosom/bildkandidater.ts` laddar upp de
+begärda positionerna (default 4–7) till Media Manager utan att röra produkten.
+Svaret ger Wix fil-id och wixstatic-adress per position. En människa tittar på
+bilderna, och de rena skrivs till produkten med poleringens skrivplan.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Svaret bär aldrig artikelnummer eller leverantörens adresser.** Ett
+   uppladdningsfel räknas per position utan felmeddelande, eftersom
+   `importMediaByUrl` skriver källadressen i sitt.
+2. ☠️ **Filnamnet byggs av Wix-id och position** (`kandidat-<id>-<pos>.jpg`),
+   aldrig av källadressen eller titeln.
+3. ☠️ **Positionerna tas exakt.** `valjBilder` släpper igenom hela listan när ingen
+   önskad position finns. Det är rätt vid en import men fel här.
+4. **Torrkörning är default.** Den säger hur många bilder feeden har.
+
+⚠️ **Bilder som ingen väljer städas bort av nattens bildstädning** (03:50 UTC),
+eftersom de bär en leverantörsadress i `sourceUrl`. En vald bild måste alltså
+sitta på sin produkt före nästa städning. En omkörning laddar upp på nytt.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL

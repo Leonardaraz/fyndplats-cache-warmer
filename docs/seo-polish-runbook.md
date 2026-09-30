@@ -429,6 +429,12 @@ den ena.
 Rundan bearbetar inga bilder, den väljer bland dem som finns. Behövs en bearbetad bild står
 metoderna i [`polish/bildmetoder.md`](polish/bildmetoder.md).
 
+**För få bilder kvar?** Importen hämtar bara feedens position 1, 2, 3, 8 och 9. Workflowen
+**"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till
+Media Manager utan att röra produkten. Granska dem med samma strykregler som ovan och lägg de
+rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder går före egna kort
+*(Leonard 2026-09-30)*. Bilder som ingen väljer städas bort nästa natt.
+
 **Alt-texterna** (`alt.tsv`: `kort ⇥ position ⇥ text`) beskriver det som syns på just den
 bilden, på svenska och olika för varje bild, med sökordet där det faller sig naturligt.
 Beskriv varan, inte rekvisitan: djuret, barnet eller kaffekoppen i miljöbilden hör inte till
