@@ -1969,13 +1969,20 @@ Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
 begäran. Det är sedan dess femton, alltså Wix tak för bilder per produkt.
 
 ✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
-24 var rena miljöfoton, och bildplanen för dem ligger i `runda-bilder-1-pos10`. 21
-ströks, och alla för text på rekvisitan: etiketter på burkar, påsar och flaskor i
-kök och badrum, bokryggar, en tavla med ett ord och en klocka på en datorskärm.
-Flera av de strukna bar ett riktigt märke. Textigenkänning i full upplösning och i
-dubbel förstoring pekade ut var texten satt, men varje bild bedömdes med ögat.
-Märken och dekaler som sitter på själva varan fick stå kvar, som runbooken säger.
-Granskningen står per bild i `runda-bilder-1/granskning.tsv`.
+24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på
+burkar, påsar och flaskor i kök och badrum, bokryggar, en tavla med ett ord och en
+klocka på en datorskärm. Flera av de strukna bar ett riktigt märke.
+Textigenkänning i full upplösning och i dubbel förstoring pekade ut var texten satt,
+men varje bild bedömdes med ögat. Märken och dekaler som sitter på själva varan fick
+stå kvar, som runbooken säger. Granskningen står per bild i
+`runda-bilder-1/granskning.tsv`.
+
+De 24 bilderna sitter på sina sidor sedan samma dag (`runda-bilder-1-pos10`). Alla
+24 skrevs och lästes tillbaka ur Wix i en separat läsning, och alla 24 publicerade
+sidor visar bilden med sin alt-text. Av de 48 sidorna med två bilder har alltså 25
+nu tre, men ingen fick två nya. 21 har ingen ren bild kvar i feeden, eftersom alla
+deras bilder är granskade. För två gick det inte att hämta bilder: en sammanslagen
+sida med flera artiklar (`flera_artiklar`) och en artikel som saknades i feeden.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 

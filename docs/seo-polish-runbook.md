@@ -443,7 +443,11 @@ och flaskor i kök och badrum. Läs dem i full upplösning innan bilden väljs.
 Är sidan redan polerad skrivs bara bildlistan: `bygg-bildplan.py` i stället för
 `bygg-skrivplan.py`, och workflowen **"Polering — skriv bara bilderna"**. `bilder.tsv` listar
 då varje bild sidan ska ha efteråt, både de som sitter kvar och de nya, eftersom listan
-ersätter hela galleriet.
+ersätter hela galleriet. Kör läget `verifiera` innan `skriv`. Det skriver ingenting och
+faller på varje rad, eftersom de nya bilderna inte sitter där än, men raden visar hur
+många bilder sidan har i dag. Talet ska vara lika med antalet bilder i `bilder.tsv` som
+sitter kvar. Är det inte det har sidan ändrats sedan listan byggdes, och då byggs listan om
+först.
 
 **Alt-texterna** (`alt.tsv`: `kort ⇥ position ⇥ text`) beskriver det som syns på just den
 bilden, på svenska och olika för varje bild, med sökordet där det faller sig naturligt.
