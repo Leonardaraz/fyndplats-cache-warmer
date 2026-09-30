@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../lib/seo";
-import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE, REFUND_TIME } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE, REFUND_TIME } from "../../lib/retur-policy";
 import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { Ikon, Svg } from "../../components/villkor-ikoner";
 import s from "./returer.module.css";

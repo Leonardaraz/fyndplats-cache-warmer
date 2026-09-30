@@ -92,20 +92,32 @@ test("sammanslagen sida: olänkade foton hör till huvudbildens färg, korten ä
   const a = agareMedAltText({ lankade: MLANK, alts: MALTS, bilder: MB, fargEtiketter: ["Vit", "Grå", "Svart"], huvudbild: u("vit1") });
   assert.equal(a["skalar~mv2.jpg"], "Vit");
   assert.equal(a["horn~mv2.jpg"], "Vit");
-  assert.equal(a["matt~mv2.jpg"], "Vit");
+  assert.equal(a["matt~mv2.jpg"], undefined); // måttskissen gäller alla färger
   assert.equal(a["kort~mv2.jpg"], undefined);
-  assert.deepEqual(synligaBilder(MB, a, ["Svart"], u("svart1")), ["svart1", "kort"].map(u));
+  assert.deepEqual(synligaBilder(MB, a, ["Svart"], u("svart1")), ["svart1", "matt", "kort"].map(u));
   assert.deepEqual(synligaBilder(MB, a, ["Vit"], u("vit1")), ["vit1", "skalar", "horn", "matt", "kort"].map(u));
 });
 
 test("sida där varje färg har flera länkade bilder: olänkade foton förblir gemensamma", () => {
   const lank = { ...MLANK, "skalar~mv2.jpg": "Grå", "horn~mv2.jpg": "Svart" };
-  const a = agareMedAltText({ lankade: lank, alts: MALTS, bilder: MB, fargEtiketter: ["Vit", "Grå", "Svart"], huvudbild: u("vit1") });
+  const alts = { ...MALTS, "matt~mv2.jpg": "Närbild på handtaget" };
+  const a = agareMedAltText({ lankade: lank, alts, bilder: MB, fargEtiketter: ["Vit", "Grå", "Svart"], huvudbild: u("vit1") });
   assert.equal(a["matt~mv2.jpg"], undefined);
 });
 
 test("arKort känner igen Fyndplats egna kort", () => {
   assert.ok(arKort("Fyndplats färgkort som visar bilen i tre färger"));
   assert.ok(arKort("Specifikationskort för elbilen"));
+  assert.ok(arKort("Måttskiss: 60 × 30 × 35,5 cm"));
+  assert.ok(arKort("Måttritning av bänken sedd från sidan"));
+  assert.ok(arKort("Bänken med måttbild i centimeter"));
   assert.ok(!arKort("Två skålar i rostfritt stål"));
+
+test("huvudbild som ägs av ett storleksval flyttar inga bilder", () => {
+  const a = agareMedAltText({
+    lankade: { "vit1~mv2.jpg": "45 liter", "gra1~mv2.jpg": "Grå", "svart1~mv2.jpg": "Svart" },
+    alts: MALTS, bilder: MB, fargEtiketter: ["Grå", "Svart"], huvudbild: u("vit1"),
+  });
+  assert.equal(a["skalar~mv2.jpg"], undefined);
+});
 });

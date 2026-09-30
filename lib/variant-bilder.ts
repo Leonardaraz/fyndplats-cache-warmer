@@ -91,8 +91,9 @@ export function agareMedAltText(opts: {
   // visade Svart och Grå på matskåpet Vit-färgens skålbilder (Leonard,
   // 2026-09-30). Fyndplats egna kort (spec-, mått-, färgkort) och bilder som
   // nämner flera färger förblir gemensamma.
+  // Äger huvudbilden ett storleksval (t.ex. "45 liter") gäller inte steget.
   const huvudFarg = huvudbild ? ut[imgKey(huvudbild)] : undefined;
-  if (huvudFarg) {
+  if (huvudFarg && etiketter.includes(huvudFarg)) {
     const antal: Record<string, number> = {};
     for (const o of Object.values(ut)) antal[o] = (antal[o] || 0) + 1;
     const sammanslagen = etiketter.some((e) => e !== huvudFarg && antal[e] === 1);
@@ -109,9 +110,17 @@ export function agareMedAltText(opts: {
   return ut;
 }
 
-/** Fyndplats egna kort (spec-, mått-, färg-, faktakort) gäller alla färger. */
+/**
+ * Bilder som gäller alla färger: Fyndplats egna kort (spec-, mått-, färg-,
+ * faktakort) och måttbilder ("Måttskiss: 60 × 30 cm", "Måttritning …"). Måtten
+ * är desamma i alla färger.
+ */
 export function arKort(alt: string): boolean {
-  return /^\s*fyndplats\b/i.test(alt) || /(?:spec(?:ifikations)?|mått|färg|fakta|storleks)kort/i.test(alt);
+  return (
+    /^\s*(?:fyndplats|mått|specifikation)/i.test(alt) ||
+    /(?:spec(?:ifikations)?|mått|färg|fakta|storleks)kort/i.test(alt) ||
+    /mått(?:bild|ritning|skiss|skisser|uppgifter)/i.test(alt)
+  );
 }
 
 /**
