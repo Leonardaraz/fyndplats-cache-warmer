@@ -80,6 +80,17 @@ ljusförpackning gick att läsa i full storlek på en bild och bara i dubbel fö
 annan, där förpackningen stod längre bort. Den första ströks och den andra fick stå kvar.
 Ett utsnitt som hade kapat en persons ansikte stryks, även när texten går att skära bort.
 
+☠️ **Kvadraten ur mitten gäller varje bild i galleriet, inte bara huvudbilden** (2026-09-30).
+`.gallery .gmain img` har `aspect-ratio: 1` och `object-fit: cover`, och bildadressen är Wix
+`fill/…,al_c`. Mät därför varans utsträckning mot utsnittets centrala kvadrat innan det laddas
+upp. Ryms varan inte stryks utsnittet, även när texten är borta (`runda-bilder-7`: tre utsnitt
+ströks så). En detaljbild får vara en detalj även i kvadraten.
+
+Kontrollen i efterhand gav nio äldre utsnitt där varan kapas i kvadraten: `4d8f63a1` 4,
+`66bde4c1` 6, `23c88539` 9, `cdc03206` 8, `e13dd23e` 4 (även mannens huvud), `f1944853` 4,
+`80512112` 3, `08dba609` 10 och `bb7853f1` 10. De två sista går att skära om till en kvadrat
+med hela skåpet. De andra sju går inte utan att texten kommer tillbaka.
+
 ## Textborttagning (T) – tvätta loggor och inbränd text
 
 

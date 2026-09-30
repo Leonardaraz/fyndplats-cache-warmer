@@ -2019,11 +2019,18 @@ fick bilder i den andra. Mät var texten slutar innan en bild stryks.
 ✅ **Sidorna med tre bilder granskas i rundor om sju till nio sidor (2026-09-30).** Leonard:
 *"dom som har 3 och 2 bilder måste vi lösa … ta dom i omgångar några i taget o gör noggrant"*.
 Den färska räkningen gav 48 sidor med två bilder och 172 med tre. Varje runda hämtar alla tio
-positioner och granskar dem med samma regler och samma beskärning som ovan. Rundorna 2–5
-(kontorsstolar, fåtöljer, soffor och bord) granskade 34 sidor, och 31 av dem fick sammanlagt
-65 bilder. Alla är skrivna, lästa tillbaka ur Wix och sedda på de publicerade sidorna. Skälet
-per bild står i `runda-bilder-N/granskning.tsv`, och två fällor från runda 5 står i
+positioner och granskar dem med samma regler och samma beskärning som ovan. Rundorna 2–7
+(kontorsstolar, fåtöljer, soffor, bord, badrumsskåp och trädgård) granskade 52 sidor, och 44 av
+dem fick sammanlagt 89 bilder. Alla är skrivna, lästa tillbaka ur Wix och sedda på de publicerade
+sidorna. Skälet per bild står i `runda-bilder-N/granskning.tsv`, och fällorna står i
 `docs/polish/bildmetoder.md` (*Beskärning*).
+
+☠️ **Butikens galleri visar VARJE bild som en kvadrat ur mitten, inte bara huvudbilden**
+(uppmätt 2026-09-30: `.gallery .gmain img` har `aspect-ratio: 1` och `object-fit: cover`, och
+adressen är Wix `fill … al_c`). Ett avlångt utsnitt där varan fyller hela höjden visas alltså
+kapat. Nio av 76 icke-kvadratiska utsnitt från rundorna 1–6 gör det, bland dem en garderob, ett
+TV-stativ och en lyftfåtölj. Listan står i bildmetoderna. De ligger kvar tills Leonard valt
+mellan att ta bort dem och att låta galleriet visa hela bilden.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
