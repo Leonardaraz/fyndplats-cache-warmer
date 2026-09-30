@@ -50,9 +50,9 @@ afterEach(() => {
 });
 
 describe("auktionernas lager", () => {
-  it("☠️ osatt AUCTIONS_BACKEND går till Wix, även med STORE_BACKEND=postgres", async () => {
+  it("☠️ AUCTIONS_BACKEND=wix-data går till Wix och rör aldrig Postgres", async () => {
     vi.stubEnv("STORE_BACKEND", "postgres");
-    vi.stubEnv("AUCTIONS_BACKEND", "");
+    vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
     expect(auktionslager()).toBe("wix-data");
     await queryAuctions(["live", "queued"], { köHuvud: 200 });
     await senastSalda(6);

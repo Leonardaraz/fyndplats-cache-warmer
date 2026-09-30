@@ -22,14 +22,15 @@ describe("fårRaderas — spärrlistan", () => {
     expect(fårRaderas("FyndplatsRedirects")).toBe(false);
   });
 
-  it("☠️ auktionerna får raderas BARA när AUCTIONS_BACKEND=postgres", () => {
-    // Före växlingen läser motorn auktionerna ur Wix, och en radering hade
-    // tömt den levande auktionen. Leonards ja (2026-09-29) gäller raderingen
-    // efter en verifierad växling, inte före.
-    vi.stubEnv("AUCTIONS_BACKEND", "");
-    expect(fårRaderas("FyndplatsAuctions")).toBe(false);
+  it("☠️ auktionerna får raderas BARA när de bor i Postgres", () => {
+    // Läser motorn auktionerna ur Wix hade en radering tömt den levande
+    // auktionen. Leonards ja (2026-09-29) gäller raderingen efter en verifierad
+    // växling, inte före. Växlingen är defaulten sedan 2026-09-30, så en osatt
+    // variabel betyder Postgres — men wix-data (vägen tillbaka) spärrar.
     vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
     expect(fårRaderas("FyndplatsAuctions")).toBe(false);
+    vi.stubEnv("AUCTIONS_BACKEND", "");
+    expect(fårRaderas("FyndplatsAuctions")).toBe(true);
     vi.stubEnv("AUCTIONS_BACKEND", "postgres");
     expect(fårRaderas("FyndplatsAuctions")).toBe(true);
   });

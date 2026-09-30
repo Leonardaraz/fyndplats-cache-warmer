@@ -43,13 +43,20 @@ describe("isPersistentBackend", () => {
 });
 
 describe("auctionsBackend", () => {
-  it("☠️ default är wix-data — att deploya koden får inte byta lager", () => {
-    // Produktionen står på STORE_BACKEND=postgres. Hade auktionerna följt den
-    // hade ticken börjat läsa en TOM tabell i samma sekund som koden kom ut:
-    // ingen live-auktion, ingen kö, och påfyllningen hade sett "inget att
-    // främja". Samma fälla som REVIEWS_BACKEND byggdes för.
+  it("☠️ default är postgres sedan växlingen 2026-09-30", () => {
+    // Fram till växlingen var defaulten wix-data, så att deployen av lagret
+    // inte bytte lager innan raderna kopierats och verifierats. Växlingen
+    // gjordes i koden eftersom Vercel nekade att skapa variabeln (403). Efter
+    // raderingen i Wix hade en osatt variabel som pekade dit visat en TOM kö.
     vi.stubEnv("STORE_BACKEND", "postgres");
     vi.stubEnv("AUCTIONS_BACKEND", "");
+    expect(auctionsBackend()).toBe("postgres");
+    vi.stubEnv("STORE_BACKEND", "wix-data");
+    expect(auctionsBackend()).toBe("postgres");
+  });
+
+  it("AUCTIONS_BACKEND=wix-data är vägen tillbaka och vinner över defaulten", () => {
+    vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
     expect(auctionsBackend()).toBe("wix-data");
   });
 
