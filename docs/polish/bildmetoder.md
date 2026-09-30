@@ -9,7 +9,7 @@
 > **Standardvägen för en hjältebild:** `hero_white()` (H-0) → ren leverantörsbild →
 > Wix generate-image (H-A) sist, och aldrig på position 0 (C2PA-märkning).
 >
-> **Metodprefix:** `T-` = textborttagning, `H-` = hjältebild, `K-` = kortbygge.
+> **Metodprefix:** `B` = beskärning, `T-` = textborttagning, `H-` = hjältebild, `K-` = kortbygge.
 > Prefixen finns för att A och B tidigare betydde olika saker i två avsnitt.
 >
 > ☠️ **Skrivningen sker inte här (2026-09-27).** PATCH-exemplen och hänvisningarna till
@@ -19,6 +19,45 @@
 > Wix"** skriver hela medialistan.
 
 -----
+
+## Beskärning (B) – skär bort text runt varan (2026-09-30)
+
+Leonards undantag från runbookens *Redigera aldrig en bild*: på en sida med bara två bilder
+får en leverantörsbild beskäras så att rubriker, bildtexter, ikoner och rekvisita med text
+hamnar utanför. Varan skärs aldrig i. Ett utsnitt ur en bild som redan är en detalj får vara
+en detalj. Ingenting retuscheras, maskas eller genereras, så bilden får ingen AI-märkning.
+
+**Utsnittet görs av Wix, inte lokalt.** Wix bildadress tar ett utsnitt i originalets pixlar:
+
+```
+https://static.wixstatic.com/media/<fil-id>/v1/crop/x_<x>,y_<y>,w_<bredd>,h_<höjd>,q_95/<namn>.jpg
+```
+
+Uppmätt 2026-09-30: utsnittet är samma pixlar som ett lokalt utsnitt av samma fil (under 1,5
+av 255 i medelavvikelse, alltså JPEG-brus), och `x` är vågrätt. Ladda upp adresserna i ETT
+`UploadImageToWixSite`-anrop (`imageUrls`). Bilden lämnar aldrig Wix, och ingenting läggs i
+det publika repot.
+
+1. Få in källbilden i Media Manager med workflowen **"Bilder — hämta leverantörens övriga
+   bilder för granskning"**. `positioner` kan vara vilka som helst, även 2, 8 och 9 som
+   poleringen strukit.
+2. Välj utsnittet på ett rutnät i procent. Butikens huvudbild är en kvadrat ur bildens mitt
+   (`object-fit: cover`), så varan ska synas i den kvadraten. Välj hellre ett kvadratiskt
+   utsnitt.
+3. Ur ett collage: mät panelens kanter i pixlar, där sidans bakgrundsfärg möter fotot, och
+   skär några pixlar innanför. Annars följer en vit kant med.
+4. Kontrollera varje utsnitt: OCR i 1× och 2×, 100 % zoom på allt som kan bära text
+   (klockor, etiketter, flaskor, dekaler på varan) och ögon på hela bilden.
+5. Hämta varje uppladdad fil och jämför md5 mot adressens svar. Uppladdningens svar säger
+   inte vilket id som hör till vilken adress.
+
+☠️ **Kontrollen fällde två av 25 utsnitt** (`runda-bilder-1-klipp`). En klocka på skåpet bar
+ett ord som gick att läsa i full storlek, och panelen med ett hjul bar en importörsetikett
+med adress. Båda satt för nära varan för att skäras bort.
+
+⚠️ **Text på varans egna hyllor går inte att skära bort.** Nio av 22 sidor fick ingen ny
+bild. Böcker, flaskor och förpackningar med text stod på varans hyllor eller bakom dess
+glasdörrar i varje miljöbild.
 
 ## Textborttagning (T) – tvätta loggor och inbränd text
 
