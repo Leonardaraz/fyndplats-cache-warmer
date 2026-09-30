@@ -15,6 +15,7 @@ import {
   BackToTop,
   CookieConsent,
   CartDrawer,
+  RensaSrsltid,
   WishlistDrawer,
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
@@ -263,6 +264,12 @@ export default async function RootLayout({
             strategy="lazyOnload"
           />
         )}
+        {/*
+          Googles ?srsltid=… från sökresultaten tas bort ur adressfältet först
+          när gtag.js har läst den och besökaren har valt i cookiebannern, så
+          mätningen blir densamma. Se lib/srsltid.ts.
+        */}
+        {IS_PRODUCTION && <RensaSrsltid />}
         {/*
           Vercel Web Analytics (cookie-free, privacy-friendly) — no consent gate
           needed, so it sits outside <CookieConsent />. Beacons to
