@@ -22,7 +22,7 @@
 
 ## Beskärning (B) – skär bort text runt varan (2026-09-30)
 
-Leonards undantag från runbookens *Redigera aldrig en bild*: på en sida med bara två bilder
+Leonards undantag från runbookens *Redigera aldrig en bild*: på en sida med två eller tre bilder
 får en leverantörsbild beskäras så att rubriker, bildtexter, ikoner och rekvisita med text
 hamnar utanför. Varan skärs aldrig i. Ett utsnitt ur en bild som redan är en detalj får vara
 en detalj. Ingenting retuscheras, maskas eller genereras, så bilden får ingen AI-märkning.

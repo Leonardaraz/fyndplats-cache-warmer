@@ -407,7 +407,7 @@ men hellre två rena bilder än tre där en bär ett varumärke på rekvisitan.
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*.
 
-**Undantag: sidor med bara två bilder** *(Leonard 2026-09-30)*. Där får en leverantörsbild
+**Undantag: sidor med två eller tre bilder** *(Leonard 2026-09-30)*. Där får en leverantörsbild
 beskäras så att rubriker, bildtexter, ikoner och rekvisita med text hamnar utanför. Varan
 skärs aldrig i, och ingenting retuscheras eller maskas. Butikens huvudbild visar mitten av
 bilden som en kvadrat, så välj utsnittet så att varan syns där. Hur det görs står i
