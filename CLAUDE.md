@@ -4228,7 +4228,8 @@ leverantörsvärdar i `lib/wix/media-import.ts` kände bara AliExpress —
 med workflowen `review-image-repair.yml` (loopar `repairImages` i
 `/api/cron/review-translate`, 40 rader per anrop, stannar när inget minskar).
 Pending-rader behåller källadressen med flit — flytten sker när raden blir
-synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
+synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard). ☠️ Nya Aosom-foton
+skickas inte längre med i inläsningen — se omgång 5 nedan.
 
 **Nästa omgång: vilka produkter, och deras artikelnummer (2026-09-23).**
 Workflowen `aosom-reviews-kandidater.yml` svarar med SYNLIGA Aosom-produkter
@@ -4268,6 +4269,49 @@ som gäller nästa omgång:
 4. **Den publika recensionsrutten cachas.** Direkt efter inläsning svarade
    `/api/reviews/<id>` tomt för åtta produkter (gammalt CDN-svar); nästa
    anrop var rätt. Produktsidorna cachar i en timme (taggen `reviews`).
+
+**Omgång 5 (2026-09-30): 646 svenska texter på 204 produkter, 334 kundfoton.**
+318 produkter importerade sedan omgång 4, upp till fem texter per produkt.
+Lärdomar som gäller nästa omgång:
+
+1. ☠️ **Kundfotona följer INTE med i inläsningens nyttolast.** `imageUrls` i
+   `aosom-reviews-ingest` går via Wix Import File (`importImageToOwnMedia`),
+   som svarar direkt och hämtar senare. Ungefär var sjätte Aosom-bild slutar
+   FAILED i efterhand (Aosoms CDN anger fel Content-Type, eller `.heif` på en
+   JPEG), och raden pekar då på en död adress. Det var så de 1 358 raderna
+   tappade sina foton (återställda 2026-09-28/29, #687/#688). Gör i stället
+   så här: läs in texterna UTAN `imageUrls`, lägg fotona i en egen fil
+   `{"rader": [{productId, reviewIdAE, sourceImageUrls}]}` i samma tillfälliga
+   gren (högst tre foton per recension, `reviewIdAE` = `ensureReviewId` av
+   texten), och kör `aosom-review-image-restore.yml` på den efter
+   inläsningen, torrt och sedan skarpt. Rutten laddar ner källfotot, bestämmer
+   typen ur filens egna byte och skriver adressen först när Wix svarat READY.
+   En rad utan foto räknas som återställbar och en rad med fungerande foto rörs
+   aldrig, så körningen går att göra om. Utfall: 333 av 334 foton i första
+   körningen och det sista i en omkörning. Filerna saknar `sourceUrl`, så
+   mediastädningen kan aldrig radera dem.
+2. **Artikelnumren lämnar aldrig webbläsaren.** Kandidatlistan dekrypteras i
+   Leonards Chrome (WebCrypto med engångsnyckeln) och hämtningen körs där.
+   Till molnet går bara en indexnycklad export, i delar om 40 000 tecken via
+   sidtexten, och varje del kontrolleras med FNV-1a. JavaScript räknar
+   UTF-16-enheter, så jämför hashen och inte längden i Python. Texter som
+   innehåller ett kandidat-artikelnummer stryks redan i webbläsaren.
+3. **Originaltexten hamnar i en publik gren**, så en recension stryks helt om
+   originalet innehåller recensentens namn, en signatur ("Mit freundlichen
+   Grüßen" följt av ett namn) eller en kundtjänstpersons namn. Namnet går
+   inte att tvätta bort i översättningen. Hämtningen flaggar när recensentens
+   förnamn står i texten, och översättare och granskare fångar resten.
+4. **Nya strykregler i översättningen:** reklamton (produkttext med varumärke
+   och inget eget omdöme), en annan färg än titelns när färgen är poängen, ett
+   yngre barn än titelns åldersgräns och påståenden om tillverkningsland.
+   Hälsouppgifter ("gör som sjukgymnasten sa", "inte ont i ryggen längre")
+   stryks som diagnoser. Texterna kommer från Aosoms alla länder (de, fr, it,
+   es, pt, ro, en), och reglerna täcker dem.
+5. **Titlar som kunderna säger emot** (antiimma, mått, ram, glas eller
+   plexiglas, material, färg) listas för Leonard. Texten stryks, och titeln
+   ändras bara efter hans ja.
+6. **Tider:** inläsningen tog 59 s för 318 rader, och fotona 23 min för 215
+   rader.
 
 ## Recensioner daterade före 2021 visas inte (2026-09-23)
 
