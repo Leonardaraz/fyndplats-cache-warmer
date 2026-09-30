@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
+import { synligaBilder } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
@@ -303,8 +304,13 @@ export function ProductView({
           ? ch[forstaVal]?.image
           : undefined;
     if (!firstImg) return 0;
+    // Samma urval som galleriet nedan: med egna bilder står valets bild först.
+    const etiketter = (
+      ax.length >= 2 && tb.length >= 1 ? Object.values(defaultSelection(tb)) : [ch[forstaVal]?.label]
+    ).filter(Boolean) as string[];
+    const lista = synligaBilder(images, imageOwners, etiketter, firstImg);
     const k = mediaKey(firstImg);
-    const idx = images.findIndex((u) => mediaKey(u) === k);
+    const idx = lista.findIndex((u) => mediaKey(u) === k);
     return idx >= 0 ? idx : 0;
   });
   const [added, setAdded] = useState(false);
@@ -349,7 +355,7 @@ export function ProductView({
     : allHaveImage
       ? imageChoices.map((c) => c.image)
       : [];
-  const galleryImages = (() => {
+  const allaBilder = (() => {
     if (!variantImgList.length) return images;
     const seen = new Set(images.map(mediaKey));
     const missing: string[] = [];
@@ -362,6 +368,23 @@ export function ProductView({
     }
     return missing.length ? [...images, ...missing] : images;
   })();
+  // Den valda variantens/kombinationens bild (huvudbild för valet).
+  const selectedVariantImage = multiAxis
+    ? currentVariant?.image
+    : allHaveImage
+      ? imageChoices[sel]?.image
+      : undefined;
+  // Varje färg visar sina EGNA bilder + de gemensamma (måttkort, färgkort),
+  // med valets huvudbild först — som när varje färg är en egen artikel.
+  // imageOwners (linkedMedia + alt-text, lib/variant-bilder.ts) avgör vilken
+  // färg en bild visar. Äger det valda valet ingen bild visas hela galleriet
+  // som förut.
+  const valdaEtiketter = (
+    multiAxis ? Object.values(picked) : hasImageVariants ? [imageChoices[sel]?.label] : []
+  ).filter(Boolean) as string[];
+  const galleryImages = synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
+  const galleriFiltrerat = galleryImages !== allaBilder;
+  const galleriNyckel = galleriFiltrerat ? valdaEtiketter.join("|") : "alla";
   // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
   // slide hittas även om variantens URL har andra transform-params). Saknas → 0.
   const galleryIndexOf = (img?: string): number => {
@@ -371,11 +394,6 @@ export function ProductView({
     return i >= 0 ? i : 0;
   };
   // Den valda variantens/kombinationens bild → dess galleri-index.
-  const selectedVariantImage = multiAxis
-    ? currentVariant?.image
-    : allHaveImage
-      ? imageChoices[sel]?.image
-      : undefined;
   const variantActive = galleryIndexOf(selectedVariantImage);
 
   // Pickern väljer variant + hoppar galleriet till variantens bild (naturliga plats).
@@ -398,7 +416,7 @@ export function ProductView({
   useEffect(() => {
     setGalleryIdx(variantActive);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variantActive]);
+  }, [variantActive, galleriNyckel]);
   // FÖRVAL UR ADRESSEN: ?variant=<variant-id>. Google-flödet länkar varje färg
   // hit med sin egen variant (app/feed/google.xml), så den som klickar på den
   // grå varianten i Shopping landar på den grå — med dess bild och pris — i
@@ -540,7 +558,7 @@ export function ProductView({
           ? [variants[sel]?.label]
           : []
   ).filter(Boolean) as string[];
-  const variantImageIndices = imageOwners && selectedVariantLabels.length
+  const variantImageIndices = imageOwners && selectedVariantLabels.length && !galleriFiltrerat
     ? galleryImages.reduce<number[]>((acc, u, i) => {
         const owner = imageOwners[mediaKey(u)];
         if (owner && selectedVariantLabels.includes(owner)) acc.push(i);
@@ -621,6 +639,8 @@ export function ProductView({
     <>
     <div className="pdp">
       <Gallery
+        // Ny färg = nytt galleri (andra bilder), så crossfade-lagren börjar om.
+        key={galleriNyckel}
         images={galleryImages}
         alt={name}
         imageAlts={imageAlts}

@@ -1,0 +1,75 @@
+// Run: node --test --experimental-strip-types lib/variant-bilder.test.ts
+import test from "node:test";
+import assert from "node:assert/strict";
+import { agareMedAltText, fargFormer, nammdaFarger, synligaBilder } from "./variant-bilder.ts";
+
+const u = (id: string) => `https://static.wixstatic.com/media/${id}~mv2.jpg`;
+
+// Elbilen Audi Q8 (2026-09-30): tio bilder, men varje färg länkad till en.
+const BILDER = ["svart1", "svart2", "gra1", "rod1", "gra2", "rod2", "rod3", "svart3", "spec", "farger"].map(u);
+const ALTS: Record<string, string> = {
+  "svart1~mv2.jpg": "Svart elbil för barn, Audi Q8 e-tron Sportback, snett framifrån med tända LED-strålkastare mot vit bakgrund",
+  "svart2~mv2.jpg": "Pojke med solglasögon kör den svarta Audi-elbilen på en grusgång framför blommande buskar",
+  "gra1~mv2.jpg": "Grå elbil barn Audi Q8 e-tron Sportback med ett litet barn bakom ratten på en uppfart",
+  "rod1~mv2.jpg": "Flicka i rosa tröja sitter i den röda elbilen för barn med tända strålkastare",
+  "gra2~mv2.jpg": "Måttskiss på den grå elbilen: 98 cm lång, 49,5 cm bred och 43 cm hög",
+  "rod2~mv2.jpg": "Måttskiss på den röda elbilen: 98 × 49,5 × 43 cm",
+  "rod3~mv2.jpg": "Röd elbil för barn rakt framifrån med Audi-ringarna i grillen",
+  "svart3~mv2.jpg": "Leende flicka som håller i ratten i den svarta elbilen för barn, utomhus på gräs.",
+  "spec~mv2.jpg": "Fyndplats specifikationskort för elbil barn Audi Q8 e-tron Sportback: 98 × 49,5 × 43 cm",
+  "farger~mv2.jpg": "Fyndplats färgkort som visar Audi-elbilen för barn i svart, grått och rött – tre olika exemplar.",
+};
+const LANKADE = { "svart1~mv2.jpg": "Svart", "gra1~mv2.jpg": "Grå", "rod1~mv2.jpg": "Röd" };
+const FARGER = ["Svart", "Grå", "Röd"];
+
+test("fargFormer böjer svenska färgord och vägrar flera ord", () => {
+  assert.ok(fargFormer("Röd")!.includes("rött"));
+  assert.ok(fargFormer("Grå")!.includes("grått"));
+  assert.ok(fargFormer("Vit")!.includes("vitt"));
+  assert.ok(fargFormer("Svart")!.includes("svarta"));
+  assert.equal(fargFormer("Svart/vit"), null);
+  assert.equal(fargFormer("110 cm"), null);
+});
+
+test("nammdaFarger: å/ä/ö räknas som bokstäver och bakgrunden räknas inte", () => {
+  assert.deepEqual(nammdaFarger("Grå elbil mot vit bakgrund", ["Grå", "Vit"]), ["Grå"]);
+  assert.deepEqual(nammdaFarger("Mörkgrå soffa", ["Grå", "Svart"]), []);
+  assert.deepEqual(nammdaFarger("den röda bilen", ["Röd", "Vit"]), ["Röd"]);
+});
+
+test("agareMedAltText: varje färg får sina egna bilder, färgkortet är gemensamt", () => {
+  const a = agareMedAltText({ lankade: LANKADE, alts: ALTS, bilder: BILDER, fargEtiketter: FARGER });
+  assert.equal(a["svart2~mv2.jpg"], "Svart");
+  assert.equal(a["svart3~mv2.jpg"], "Svart");
+  assert.equal(a["gra2~mv2.jpg"], "Grå");
+  assert.equal(a["rod2~mv2.jpg"], "Röd");
+  assert.equal(a["rod3~mv2.jpg"], "Röd");
+  assert.equal(a["spec~mv2.jpg"], undefined);
+  assert.equal(a["farger~mv2.jpg"], undefined); // nämner alla tre
+});
+
+test("agareMedAltText: linkedMedia vinner över alt-texten", () => {
+  const a = agareMedAltText({
+    lankade: { "svart2~mv2.jpg": "Grå" }, alts: ALTS, bilder: BILDER, fargEtiketter: FARGER,
+  });
+  assert.equal(a["svart2~mv2.jpg"], "Grå");
+});
+
+test("agareMedAltText: en enda färg eller icke-färger ger inga gissningar", () => {
+  assert.deepEqual(agareMedAltText({ lankade: {}, alts: ALTS, bilder: BILDER, fargEtiketter: ["Svart"] }), {});
+  assert.deepEqual(agareMedAltText({ lankade: {}, alts: ALTS, bilder: BILDER, fargEtiketter: ["120 cm", "140 cm"] }), {});
+});
+
+test("synligaBilder: grått visar grå bilder + gemensamma, huvudbilden först", () => {
+  const a = agareMedAltText({ lankade: LANKADE, alts: ALTS, bilder: BILDER, fargEtiketter: FARGER });
+  const g = synligaBilder(BILDER, a, ["Grå"], u("gra1"));
+  assert.deepEqual(g, ["gra1", "gra2", "spec", "farger"].map(u));
+  const s = synligaBilder(BILDER, a, ["Svart"], u("svart1"));
+  assert.deepEqual(s, ["svart1", "svart2", "svart3", "spec", "farger"].map(u));
+});
+
+test("synligaBilder: utan ägare för valet visas allt oförändrat", () => {
+  assert.deepEqual(synligaBilder(BILDER, undefined, ["Grå"]), BILDER);
+  assert.deepEqual(synligaBilder(BILDER, { "x~mv2.jpg": "Blå" }, ["Grå"]), BILDER);
+  assert.deepEqual(synligaBilder(BILDER, LANKADE, []), BILDER);
+});
