@@ -44,7 +44,7 @@
 // återläsningen efter skrivningen (`kontrolleraEfter`) fäller en sida där Wix
 // inte stämmer.
 //
-// ☠️ OPOLERADE GIVARES BILDER FRÅN POSITION 3 GRANSKAS. 46 % av feedens bilder
+// ☠️ OPOLERADE GIVARES BILDER FRÅN POSITION 2 GRANSKAS. 46 % av feedens bilder
 // bär tysk text inbränd, och en givare med tyskt namn eller tom alt-text har
 // ingen människa tittat på. Sådana bilder skrivs inte utan `taMedGranskade`;
 // de sparas i tabellen som `granskas`, så att filerna inte städas bort innan
@@ -100,15 +100,19 @@ export function arKort(alt: string): boolean {
 /** Wix tak för `media.itemsInfo.items` per produkt. */
 export const WIX_BILDTAK = 15;
 
-/** Från den här positionen (1-baserat) granskas en opolerad givares bilder. */
-export const GRANSKA_FRAN_POSITION = 3;
+/**
+ * Från den här positionen (1-baserat) granskas en opolerad givares bilder.
+ * Position 1 är redan valets bild på sidan. Leonard vill granska varje annan
+ * bild från en opolerad givare själv innan den publiceras (2026-09-30).
+ */
+export const GRANSKA_FRAN_POSITION = 2;
 
 /**
  * Tyska i ett namn eller en alt-text. Svenskan har varken ß eller ü, och
  * orden nedan är inga svenska ord. Gränserna förstår å, ä och ö.
  */
 const TYSKA = new RegExp(
-  `${FORE}(?:für|mit|und|der|die|das|aus|zum|zur|einem|einer|eine|oder|ohne|inkl|stück|farbe|grau|schwarz|weiß|weiss|braun|holz|garten)${EFTER}|[ßü]`,
+  `${FORE}(?:für|mit|und|der|die|das|aus|zum|zur|einem|einer|eine|oder|ohne|stück|farbe|grau|schwarz|weiß|weiss|braun|holz|garten)${EFTER}|[ßü]`,
   "iu",
 );
 
@@ -296,7 +300,7 @@ export function hittaGivare(
  * Givarens bilder som kan följa med: galleriet i ordning, utan dubbletter och
  * utan givarens egna kort (sidans kort gäller alla färger). Position 1 följer
  * alltid med, för den är redan valets bild. En opolerad givares bilder från
- * position 3 flaggas `granskas`.
+ * position 2 (GRANSKA_FRAN_POSITION) flaggas `granskas`.
  */
 export function givarensBilder(g: Givare): { bilder: { id: string; alt: string; pos: number; granskas: boolean }[]; kort: number } {
   const opolerad = arOpolerad(g);
@@ -353,7 +357,26 @@ export function olankadeAgare(
  * Planen för en sida. Deterministisk: samma indata ger samma plan, och
  * `planSha` av den är vad `skriv` kräver i `bekrafta`.
  */
-export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}): SidPlan {
+export interface PlanOpts {
+  /** Skriv även det som flaggats `granskas`. */
+  taMedGranskade?: boolean;
+  /**
+   * Tillåt att sidans egna olänkade foton flyttas ur Wix galleri till
+   * tabellen. Av som standard: butiken läser inte /api/fargbilder än, och
+   * ett foto som bara står i tabellen syns då inte alls (hindret
+   * `ur_galleriet_kraver_butiken`). Givarbilder som aldrig legat i galleriet
+   * får alltid sparas i tabellen — de försvinner inte ur något.
+   */
+  tillatUrGalleriet?: boolean;
+  /**
+   * Kräv minst en givare eller tidigare rader i tabellen (`ingen_givare`).
+   * Rutten sätter den när sidor anges för hand, så att en sida utan något att
+   * flytta inte skrivs om i onödan.
+   */
+  kravGivare?: boolean;
+}
+
+export function planeraSida(s: SidaIn, opts: PlanOpts = {}): SidPlan {
   const taMedGranskade = opts.taMedGranskade === true;
   const hinder: string[] = [...(s.hinder ?? [])];
   const varningar: string[] = [];
@@ -381,6 +404,9 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
   const farg = fargOption(s.optioner);
   if (!farg || farg.val.length < 2) hindra("saknar_fargaxel");
   if (s.flerGivare.length > 0) hindra("flera_givare");
+  if (opts.kravGivare && Object.keys(s.givare).length === 0 && !s.tabell.some((r) => r.choiceId)) {
+    hindra("ingen_givare");
+  }
   if (hinder.length > 0 || !farg) return tom;
 
   const iGalleriet = new Set(galleriFore.map((b) => b.id));
@@ -436,6 +462,9 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
     const g = s.givare[u.v.id];
     if (!g || u.v.lankade.length === 0) continue;
     u.givareId = g.id;
+    // Träffen ska vara givarens bild 1 — den sammanslagningen länkade. Är den
+    // inte det kan filen vara delad med en annan vara; varna, blockera inte.
+    if (g.bilder[0]?.id !== u.v.lankade[0]) varningar.push("givarens_traff_ar_inte_bild_1");
     const gb = givarensBilder(g);
     givarkort += gb.kort;
     for (const b of gb.bilder) {
@@ -443,7 +472,10 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
       tagna.add(b.id);
       // Ett godkännande står i tabellen: en bild som en gång skrivits till
       // galleriet eller overflow granskas inte igen.
-      const godkand = ["galleri", "overflow"].includes(tabellPlats.get(`${u.v.id}\u0000${b.id}`) ?? "");
+      // Och ett foto som redan ligger i sidans galleri är redan publicerat —
+      // att flagga det hade tagit bort det ur galleriet.
+      const godkand = ["galleri", "overflow"].includes(tabellPlats.get(`${u.v.id}\u0000${b.id}`) ?? "")
+        || iGalleriet.has(b.id);
       u.bilder.push({
         id: b.id, kalla: "givare", pos: b.pos, granskas: b.granskas && !godkand, alt: altAv.get(b.id) ?? b.alt, altNy: false,
       });
@@ -457,15 +489,19 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
       u.bilder.push({ id: r.filId, kalla: "tabell", granskas: r.plats === "granskas", alt: altAv.get(r.filId) ?? "", altNy: false });
     }
   }
+  // Foton som hör till en färg utan länkad bild står kvar orörda i galleriet.
+  const orordaIGalleriet = new Set<string>();
   for (const b of galleriFore) {
     const namn = agare.get(b.id);
     if (!namn) continue;
     const u = utkast.find((x) => lika(x.v.namn, namn));
-    // En färg utan länkad bild får inga olänkade: den har ingen huvudbild
-    // att visa dem efter, och en gissning där är värre än dagens läge.
     if (tagna.has(b.id)) continue;
+    // ☠️ En färg utan länkad bild får inga olänkade: den har ingen huvudbild
+    // att visa dem efter. Men fotot får inte heller försvinna ur galleriet —
+    // det står i ingen lista och ingen tabellrad, så det hade varit borta.
     if (!u || u.v.lankade.length === 0) {
       tagna.add(b.id);
+      orordaIGalleriet.add(b.id);
       continue;
     }
     u.bilder.push({ id: b.id, kalla: "sida", granskas: false, alt: b.alt, altNy: false });
@@ -477,7 +513,7 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
   // Kvar i galleriet oavsett: huvudbilden, de gemensamma, andra axlars bilder
   // och varje länkad bild. Resten fördelas en i taget till den färg som har
   // minst i galleriet.
-  const fastaIGalleriet = new Set<string>([...gemensamma, ...fasta, ...allaLankade]);
+  const fastaIGalleriet = new Set<string>([...gemensamma, ...fasta, ...allaLankade, ...orordaIGalleriet]);
   if (huvudbild) fastaIGalleriet.add(huvudbild);
   let rum = WIX_BILDTAK - fastaIGalleriet.size;
   if (rum < 0) {
@@ -545,6 +581,11 @@ export function planeraSida(s: SidaIn, opts: { taMedGranskade?: boolean } = {}):
     for (const id of v.galleri) {
       if (!galleriEfter.some((b) => b.id === id)) galleriEfter.push({ id, alt: altEfter.get(id) ?? "" });
     }
+  }
+
+  const iEfter = new Set(galleriEfter.map((b) => b.id));
+  if (!opts.tillatUrGalleriet && galleriFore.some((b) => !iEfter.has(b.id))) {
+    hindra("ur_galleriet_kraver_butiken");
   }
 
   // ── tabellen ─────────────────────────────────────────────────────────────
@@ -631,9 +672,10 @@ export function kontrolleraPlan(s: SidaIn, p: SidPlan): string[] {
 }
 
 /** sha256 av det som skrivs, i kanonisk form. Samma plan ger samma sha. */
-export function planSha(planer: readonly SidPlan[], taMedGranskade: boolean): string {
+export function planSha(planer: readonly SidPlan[], taMedGranskade: boolean, tillatUrGalleriet = false): string {
   const kanon = {
     taMedGranskade,
+    tillatUrGalleriet,
     sidor: [...planer]
       .sort((a, b) => a.id.localeCompare(b.id))
       .map((p) => ({
@@ -678,10 +720,26 @@ export function raknare(p: SidPlan) {
  * Stämmer Wix med planen efter skrivningen? Tom lista = ja. Läser inget själv.
  * `fore` och `efter` är samma sida läst före och efter.
  */
+/** En variant som återläsningen ser den. Pris, SKU och val jämförs när de finns. */
+export interface VariantLage {
+  id: string;
+  synlig: boolean;
+  sku?: string;
+  pris?: string | null;
+  /** Variantens val, t.ex. "Färg=Grå|Storlek=90 cm". */
+  val?: string;
+}
+
+/**
+ * Avvikelsen som betyder att länkarna ännu inte tagits emot. Bara den får
+ * skrivningen försöka om; allt annat stoppar direkt.
+ */
+export const LANK_AVVIKELSE = "ett färgval pekar inte på de planerade bilderna";
+
 export function kontrolleraEfter(
   plan: SidPlan,
-  fore: { synlig: boolean; optioner: SidOption[]; varianter: { id: string; synlig: boolean }[] },
-  efter: { synlig: boolean; bilder: Bild[]; optioner: SidOption[]; varianter: { id: string; synlig: boolean }[] },
+  fore: { synlig: boolean; optioner: SidOption[]; varianter: VariantLage[] },
+  efter: { synlig: boolean; bilder: Bild[]; optioner: SidOption[]; varianter: VariantLage[] },
 ): string[] {
   const fel: string[] = [];
   if (efter.synlig !== fore.synlig) fel.push("sidans synlighet ändrades");
@@ -703,7 +761,7 @@ export function kontrolleraEfter(
       fel.push("ett färgval saknas efter skrivningen");
       continue;
     }
-    if (e.lankade.join("|") !== v.lankadeEfter.join("|")) fel.push("ett färgval pekar inte på de planerade bilderna");
+    if (e.lankade.join("|") !== v.lankadeEfter.join("|")) fel.push(LANK_AVVIKELSE);
   }
   for (const o of fore.optioner) {
     if (lika(o.namn, "Färg")) continue;
@@ -719,8 +777,17 @@ export function kontrolleraEfter(
   if (efter.varianter.length !== fore.varianter.length) fel.push("antalet varianter ändrades");
   for (const v of fore.varianter) {
     const e = efter.varianter.find((x) => x.id === v.id);
-    if (!e) fel.push("en variant saknas efter skrivningen");
-    else if (v.synlig && !e.synlig) fel.push("en variant är inte längre synlig");
+    if (!e) {
+      fel.push("en variant saknas efter skrivningen");
+      continue;
+    }
+    if (v.synlig && !e.synlig) fel.push("en variant är inte längre synlig");
+    // ☠️ Och åt andra hållet: en dold variant som blivit synlig säljer något
+    // som hölls undan (en variantsInfo-PATCH kan publicera, CLAUDE.md).
+    if (!v.synlig && e.synlig) fel.push("en dold variant har blivit synlig");
+    if ((v.sku ?? "") !== (e.sku ?? "")) fel.push("en variants SKU ändrades");
+    if ((v.pris ?? null) !== (e.pris ?? null)) fel.push("en variants pris ändrades");
+    if ((v.val ?? "") !== (e.val ?? "")) fel.push("en variants val ändrades");
   }
   return [...new Set(fel)];
 }

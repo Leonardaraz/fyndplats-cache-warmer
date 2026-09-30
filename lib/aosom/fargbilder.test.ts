@@ -179,9 +179,9 @@ describe("matskåpet: tre färger, polerade givare", () => {
 describe("pergolataket: fyra färger, en opolerad givare", () => {
   const f = fixtur("pergolatak");
   const utan = planeraSida(sidaAv(f));
-  const med = planeraSida(sidaAv(f), { taMedGranskade: true });
+  const med = planeraSida(sidaAv(f), { taMedGranskade: true, tillatUrGalleriet: true });
 
-  it("den opolerade givarens bilder från position 3 granskas och skrivs inte", () => {
+  it("den opolerade givarens bilder från position 2 granskas och skrivs inte", () => {
     const mg = valPa(utan, "Mörkgrå");
     const g = f.givare.find((x) => x.val === mg.valId)!;
     expect(arOpolerad(g)).toBe(true);
@@ -198,7 +198,7 @@ describe("pergolataket: fyra färger, en opolerad givare", () => {
   });
 
   it("de opolerade bilderna får svensk alt-text, de polerade behåller sin", () => {
-    const mg = valPa(utan, "Mörkgrå");
+    const mg = valPa(med, "Mörkgrå");
     const ny = mg.bilder.find((b) => b.id === mg.galleri[1])!;
     expect(ny.altNy).toBe(true);
     expect(ny.alt).toBe(altFor(f.sida.namn, { Färg: "Mörkgrå" }, 2));
@@ -253,18 +253,25 @@ describe("pergolataket: fyra färger, en opolerad givare", () => {
 describe("sittbänken: fem färger, fyra opolerade givare", () => {
   const f = fixtur("sittbank");
 
-  it("utan de granskade: position 1 och 2 per givare, allt under taket", () => {
+  it("utan de granskade: bara det som redan ligger på sidan, resten väntar på granskning", () => {
     const p = planeraSida(sidaAv(f));
     expect(p.hinder).toEqual([]);
+    expect(raknare(p).urGalleriet).toBe(0);
     expect(p.galleriEfter.length).toBeLessThanOrEqual(WIX_BILDTAK);
     for (const v of p.val.filter((x) => !x.ursprung)) {
-      expect(v.galleri.length).toBeGreaterThanOrEqual(2);
+      expect(v.galleri.length).toBeGreaterThanOrEqual(1);
       expect(v.granskas.length).toBeGreaterThan(0);
     }
   });
 
+  it("☠️ ett foto som redan ligger i galleriet flaggas aldrig granskas, även om det är givarens", () => {
+    const p = planeraSida(sidaAv(f));
+    const iGal = new Set(f.sida.bilder.map((b) => b.id));
+    for (const v of p.val) for (const id of v.granskas) expect(iGal.has(id)).toBe(false);
+  });
+
   it("med de granskade: långt över 15, men varje färg har bilder i galleriet och resten i tabellen", () => {
-    const p = planeraSida(sidaAv(f), { taMedGranskade: true });
+    const p = planeraSida(sidaAv(f), { taMedGranskade: true, tillatUrGalleriet: true });
     expect(p.galleriEfter).toHaveLength(WIX_BILDTAK);
     const antal = p.val.map((v) => v.galleri.length);
     expect(Math.max(...antal) - Math.min(...antal)).toBeLessThanOrEqual(1);
@@ -443,5 +450,110 @@ describe("urvalet och hindren", () => {
     const g = givarensBilder({ id: "g", namn: "Stol", bilder: [{ id: "a", alt: "Faktakort" }, { id: "b", alt: "Måttritning" }, { id: "c", alt: "Stol" }] });
     expect(g.bilder.map((b) => b.id)).toEqual(["a", "c"]);
     expect(g.kort).toBe(1);
+  });
+});
+
+// ── Granskningens fynd (2026-09-30) ─────────────────────────────────────────
+
+function syntetisk(over: Partial<SidaIn> = {}): SidaIn {
+  return {
+    id: "sida", namn: "Stol", synlig: true,
+    bilder: [{ id: "a", alt: "Vit stol framifrån" }, { id: "b", alt: "Svart stol framifrån" }],
+    optioner: [{ namn: "Färg", val: [{ id: "v1", namn: "Vit", lankade: ["a"] }, { id: "v2", namn: "Svart", lankade: ["b"] }] }],
+    givare: {}, flerGivare: [], tabell: [],
+    ...over,
+  };
+}
+
+describe("☠️ ett foto till en färg utan länkad bild stannar i galleriet (B2)", () => {
+  it("fotot finns kvar, och ingenting flyttas ut", () => {
+    const s = syntetisk({
+      bilder: [{ id: "a", alt: "Vit stol framifrån" }, { id: "b", alt: "Svart stol framifrån" }, { id: "x", alt: "Den röda stolen i ett kök" }],
+      optioner: [{ namn: "Färg", val: [
+        { id: "v1", namn: "Vit", lankade: ["a"] },
+        { id: "v2", namn: "Svart", lankade: ["b"] },
+        { id: "v3", namn: "Röd", lankade: [] },
+      ] }],
+      givare: { v2: { id: "g", namn: "Svart stol", bilder: [{ id: "b", alt: "Svart stol" }, { id: "c", alt: "Svart stol från sidan" }] } },
+    });
+    const p = planeraSida(s);
+    expect(p.hinder).toEqual([]);
+    expect(p.galleriEfter.map((b) => b.id)).toContain("x");
+    expect(raknare(p).urGalleriet).toBe(0);
+  });
+});
+
+describe("sidans egna foton flyttas inte ur galleriet utan tillåtelse (S3)", () => {
+  const tolv = Array.from({ length: 12 }, (_, i) => ({ id: `k${i}`, alt: `Faktakort ${i}` }));
+  const givare = {
+    v2: { id: "g", namn: "Svart stol", bilder: Array.from({ length: 5 }, (_, i) => ({ id: i ? `c${i}` : "b", alt: `Svart stol, vy ${i + 1}` })) },
+  };
+
+  it("givarens överskott sparas i tabellen utan hinder när sidans foton står kvar", () => {
+    const p = planeraSida(syntetisk({ bilder: [{ id: "a", alt: "Vit stol" }, { id: "b", alt: "Svart stol" }, ...tolv], givare }));
+    expect(p.hinder).toEqual([]);
+    expect(p.galleriEfter).toHaveLength(15);
+    expect(valPa(p, "Svart").overflow).toEqual(["c2", "c3", "c4"]);
+    expect(p.rader.filter((r) => r.plats === "overflow")).toHaveLength(3);
+  });
+
+  it("ska sidans eget foto ut ur galleriet blir det ett hinder — och tillat_ur_galleriet tar bort det", () => {
+    const egna = Array.from({ length: 12 }, (_, i) => ({ id: `v${i}`, alt: `Stolen, vy ${i}` }));
+    const s = syntetisk({ bilder: [{ id: "a", alt: "Vit stol" }, { id: "b", alt: "Svart stol" }, ...egna], givare });
+    const utan = planeraSida(s);
+    expect(utan.hinder).toContain("ur_galleriet_kraver_butiken");
+    const med = planeraSida(s, { tillatUrGalleriet: true });
+    expect(med.hinder).toEqual([]);
+    expect(raknare(med).urGalleriet).toBeGreaterThan(0);
+    expect(planSha([med], false, true)).not.toBe(planSha([med], false, false));
+  });
+});
+
+describe("återläsningen jämför varianterna (S2)", () => {
+  const s = syntetisk({ givare: { v2: { id: "g", namn: "Svart stol", bilder: [{ id: "b", alt: "Svart" }, { id: "c", alt: "Svart från sidan" }] } } });
+  const p = planeraSida(s);
+  const varianter = [
+    { id: "v1", synlig: true, sku: "FP-a", pris: "699", val: "Färg=Vit" },
+    { id: "v2", synlig: false, sku: "FP-b", pris: "649", val: "Färg=Svart" },
+  ];
+  const fore = { synlig: true, optioner: s.optioner, varianter };
+  const efter = (v: typeof varianter) => ({ ...wixEfter(p, s), varianter: v });
+
+  it("oförändrade varianter går igenom", () => {
+    expect(kontrolleraEfter(p, fore, efter(varianter))).toEqual([]);
+  });
+
+  it.each([
+    ["pris", { pris: "599" }, "en variants pris ändrades"],
+    ["SKU", { sku: "FP-x" }, "en variants SKU ändrades"],
+    ["val", { val: "Färg=Grå" }, "en variants val ändrades"],
+  ])("ett ändrat %s stoppar", (_n, andring, fel) => {
+    expect(kontrolleraEfter(p, fore, efter([{ ...varianter[0], ...andring }, varianter[1]]))).toContain(fel);
+  });
+
+  it("☠️ en dold variant som blivit synlig stoppar", () => {
+    expect(kontrolleraEfter(p, fore, efter([varianter[0], { ...varianter[1], synlig: true }])))
+      .toContain("en dold variant har blivit synlig");
+  });
+});
+
+describe("småsaker", () => {
+  it("med sidor krävs en givare eller tidigare rader (ingen_givare)", () => {
+    expect(planeraSida(syntetisk(), { kravGivare: true }).hinder).toContain("ingen_givare");
+    expect(planeraSida(syntetisk()).hinder).not.toContain("ingen_givare");
+    const rad: TabellRad = { wixProductId: "sida", choiceId: "v2", choiceName: "Svart", ordning: 0, filId: "b", plats: "galleri", givareId: null };
+    expect(planeraSida(syntetisk({ tabell: [rad] }), { kravGivare: true }).hinder).not.toContain("ingen_givare");
+  });
+
+  it("en träff som inte är givarens bild 1 varnar men blockerar inte", () => {
+    const p = planeraSida(syntetisk({
+      givare: { v2: { id: "g", namn: "Svart stol", bilder: [{ id: "z", alt: "Annan vara" }, { id: "b", alt: "Svart stol" }] } },
+    }));
+    expect(p.varningar).toContain("givarens_traff_ar_inte_bild_1");
+    expect(p.hinder).toEqual([]);
+  });
+
+  it("\"inkl\" räknas inte som tyska", () => {
+    expect(harSvenskAlt("Stol inkl. dyna")).toBe(true);
   });
 });

@@ -5,26 +5,33 @@
 // kopplad bild som faller ur galleriet ger 404 PRODUCT_MEDIA_NOT_EXIST, och en
 // koppling till en bild som ännu inte tagits emot faller likadant:
 //
+//   0. TABELLEN FÖRST, och den läses tillbaka. Varje fil planen rör — också
+//      ett olänkat foto som ska ut ur galleriet — står då i tabellen innan
+//      Wix ändras. Faller något senare finns fotot kvar där, bildstädningen
+//      tar det inte, och omkörningen läser in det igen (planen bygger på
+//      tabellens rader). Stämmer inte återläsningen rörs Wix inte alls.
 //   1. Galleriet skrivs ENSAMT (fieldMask media). Planen behåller varje bild
-//      något val pekar på, så det enda som försvinner ur galleriet är olänkade
-//      foton som flyttas till tabellens overflow.
+//      något val pekar på, så det enda som kan falla ur galleriet är olänkade
+//      foton — och de står redan i tabellen.
 //   2. Valens `linkedMedia` skrivs med options + variantsInfo ordagrant ur
 //      GET:en och `visible` med — en variantsInfo-PATCH publicerar annars ett
 //      utkast, och utan options svarar Wix 428 (CLAUDE.md). Försöks om upp
-//      till åtta gånger medan Wix tar emot bilderna.
+//      till åtta gånger, men BARA vid 404 PRODUCT_MEDIA_NOT_EXIST eller 409
+//      och bara när det enda som avviker är länkarna.
 //   3. Återläsning: galleriet, alt-texterna, varje vals lista, synligheten och
-//      varianterna jämförs mot planen. Stämmer något inte stannar körningen.
-//   4. Först därefter skrivs tabellen, och den läses tillbaka.
+//      varje variants synlighet, pris, SKU och val jämförs mot planen.
+//      Stämmer något inte stannar körningen.
 //
-// En sida som föll i steg 2 eller 3 är ofarlig: galleriet bär då fler bilder
-// än förut och valen pekar på det de pekade på. En omkörning ser det och gör
-// bara resten.
+// En sida som föll i steg 1–3 är ofarlig: varje länkad bild sitter kvar,
+// och allt annat står i tabellen. En omkörning ser läget och gör resten.
 
 import { felText, type WixAnrop } from "../polish/skrivplan";
 import type { FargbildLager } from "../store/fargbilder";
 import {
+  LANK_AVVIKELSE,
   hittaGivare,
   kontrolleraEfter,
+  type VariantLage,
   type Bild,
   type Givare,
   type SidaIn,
@@ -47,7 +54,7 @@ export interface ProduktLast {
   revision: unknown;
   bilder: Bild[];
   optioner: SidOption[];
-  varianter: { id: string; synlig: boolean }[];
+  varianter: VariantLage[];
   /** GET-svaret ordagrant — options och variantsInfo skickas tillbaka ur det. */
   ra: Obj;
 }
@@ -70,10 +77,22 @@ export function tolkaProdukt(p: Obj): ProduktLast {
       lankade: ((c.linkedMedia ?? []) as Obj[]).map((m) => str(m.id)).filter(Boolean),
     })),
   }));
-  const varianter = ((((p.variantsInfo as Obj | undefined)?.variants) ?? []) as Obj[]).map((v) => ({
-    id: str(v.id),
-    synlig: v.visible === true,
-  }));
+  const varianter = ((((p.variantsInfo as Obj | undefined)?.variants) ?? []) as Obj[]).map((v) => {
+    const pris = ((v.price as Obj | undefined)?.actualPrice as Obj | undefined)?.amount;
+    const val = ((v.choices ?? []) as Obj[])
+      .map((c) => c.optionChoiceNames as Obj | undefined)
+      .filter((n): n is Obj => !!n)
+      .map((n) => `${str(n.optionName)}=${str(n.choiceName)}`)
+      .sort()
+      .join("|");
+    return {
+      id: str(v.id),
+      synlig: v.visible === true,
+      sku: str(v.sku),
+      pris: pris === undefined || pris === null ? null : String(pris),
+      val,
+    };
+  });
   return {
     id: str(p.id),
     namn: str(p.name),
@@ -191,6 +210,12 @@ function optionerMedLankar(p: ProduktLast, plan: SidPlan): Obj[] {
   });
 }
 
+/** Ett fel som betyder att Wix ännu tar emot bilderna — värt att försöka om. */
+export function arOvergaende(e: unknown): boolean {
+  const m = String((e as Error)?.message ?? e);
+  return /Wix 409/.test(m) || (/Wix 404/.test(m) && /PRODUCT_MEDIA_NOT_EXIST/.test(m));
+}
+
 /**
  * Skriver en sidas plan och läser tillbaka. `ok: false` betyder att körningen
  * ska stanna: något stämmer inte, och ingen fler sida ska röras förrän någon
@@ -207,8 +232,23 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   if (!sammaUtgangslage(plan, fore)) return fall("sidan har ändrats sedan planen — kör planen igen");
   const foreLage = { synlig: fore.synlig, optioner: fore.optioner, varianter: fore.varianter };
 
+  // ── 0: tabellen, före Wix ──────────────────────────────────────────────
+  if (plan.andrarTabell || plan.andrarWix) {
+    try {
+      await deps.lager.ersattForProdukt(plan.id, plan.rader);
+      const tillbaka = await deps.lager.lasForProdukt(plan.id);
+      if (normTabell(tillbaka) !== normTabell(plan.rader)) {
+        return fall("tabellen läste inte tillbaka som planen — Wix rördes INTE, kör om");
+      }
+      steg.push(`tabell: ${plan.rader.length} rader (återläst)`);
+    } catch (e) {
+      return fall(`tabellen föll: ${felText(e)} — Wix rördes INTE, kör om`);
+    }
+  }
+  if (!plan.andrarWix) return { id: plan.id, ok: true, steg };
+
+  // ── 1: galleriet, ensamt ───────────────────────────────────────────────
   try {
-    // ── 1: galleriet, ensamt ───────────────────────────────────────────────
     if (JSON.stringify(plan.galleriEfter) !== JSON.stringify(plan.galleriFore)) {
       await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(plan.id)}`, {
         product: {
@@ -219,13 +259,23 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
       });
       steg.push(`galleri ${plan.galleriFore.length} → ${plan.galleriEfter.length}`);
     }
+  } catch (e) {
+    return fall(`galleriet föll: ${felText(e)} — tabellen är skriven, kör om`);
+  }
 
-    // ── 2 + 3: länkarna, med försök, och återläsningen ────────────────────
-    const behoverLankar = plan.val.some((v) => !sammaLista(v.lankadeEfter, v.lankadeFore));
-    let efter = await lasProdukt(deps.wix, plan.id);
-    let avvikelser = efter ? kontrolleraEfter(plan, foreLage, efter) : ["sidan gick inte att läsa efter skrivningen"];
-    let forsok = 0;
-    while (behoverLankar && avvikelser.length > 0 && forsok < KOPPLING_FORSOK && efter) {
+  // ── 2 + 3: länkarna, med försök, och återläsningen ────────────────────
+  const behoverLankar = plan.val.some((v) => !sammaLista(v.lankadeEfter, v.lankadeFore));
+  const las = async () => {
+    const p = await lasProdukt(deps.wix, plan.id);
+    return { p, avvikelser: p ? kontrolleraEfter(plan, foreLage, p) : ["sidan gick inte att läsa efter skrivningen"] };
+  };
+  let sistaFel = "";
+  let forsok = 0;
+  try {
+    let { p: efter, avvikelser } = await las();
+    // Bara länkarna får vänta på Wix. Allt annat är en avvikelse som stoppar.
+    const baraLankar = () => avvikelser.length > 0 && avvikelser.every((a) => a === LANK_AVVIKELSE);
+    while (behoverLankar && efter && baraLankar() && forsok < KOPPLING_FORSOK) {
       forsok++;
       try {
         await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(plan.id)}`, {
@@ -237,31 +287,24 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
           },
           fieldMask: { paths: ["options", "variantsInfo", "visible"] },
         });
-      } catch {
-        // 404 PRODUCT_MEDIA_NOT_EXIST eller 409 medan bilderna tas emot — försök igen.
+      } catch (e) {
+        sistaFel = felText(e);
+        if (!arOvergaende(e)) {
+          return fall(`länkningen föll: ${sistaFel} — tabellen är skriven, varje länkad bild sitter kvar`);
+        }
       }
       await vanta(KOPPLING_PAUS_MS);
-      efter = await lasProdukt(deps.wix, plan.id);
-      avvikelser = efter ? kontrolleraEfter(plan, foreLage, efter) : ["sidan gick inte att läsa efter skrivningen"];
+      ({ p: efter, avvikelser } = await las());
     }
     if (avvikelser.length > 0) {
-      return fall(`Wix stämmer inte med planen (${avvikelser.join("; ")}) — tabellen skrevs INTE`);
+      return fall(
+        `Wix stämmer inte med planen (${avvikelser.join("; ")})${sistaFel ? ` — sista fel: ${sistaFel}` : ""}`
+          + " — tabellen är skriven, kör om",
+      );
     }
-    if (behoverLankar) steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
   } catch (e) {
-    return fall(`skrivningen föll: ${felText(e)}`);
+    return fall(`återläsningen föll: ${felText(e)} — tabellen är skriven, kör om`);
   }
-
-  // ── 4: tabellen, och den läses tillbaka ────────────────────────────────
-  try {
-    await deps.lager.ersattForProdukt(plan.id, plan.rader);
-    const tillbaka = await deps.lager.lasForProdukt(plan.id);
-    if (normTabell(tillbaka) !== normTabell(plan.rader)) {
-      return fall("tabellen läste inte tillbaka som planen — kör om");
-    }
-    steg.push(`tabell: ${plan.rader.length} rader (återläst)`);
-  } catch (e) {
-    return fall(`tabellen föll: ${felText(e)} — Wix är skrivet, kör om`);
-  }
+  if (behoverLankar) steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
   return { id: plan.id, ok: true, steg };
 }

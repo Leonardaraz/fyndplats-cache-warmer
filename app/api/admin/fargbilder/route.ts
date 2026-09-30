@@ -4,7 +4,9 @@
 //   ?lage=plan                        (default) räkna fram planen, skriv ingenting
 //   &hogst=10                         så många sidor (1–50), de första i wix-id-ordning
 //   &sidor=<wix-id>,<wix-id>          i stället för hogst: just de här sidorna
-//   &ta_med_granskade=ja              ta med opolerade givares bilder från position 3
+//   &ta_med_granskade=ja              ta med opolerade givares bilder från position 2
+//   &tillat_ur_galleriet=ja           låt sidans olänkade foton flyttas ur Wix till tabellen
+//                                     (av som standard: butiken läser inte /api/fargbilder än)
 //   ?lage=skriv&bekrafta=<sha>        skriv — sha är planens, med samma parametrar
 //
 // ☠️ TORRT SOM DEFAULT. `skriv` kräver `bekrafta` = planens sha256. Planen räknas
@@ -72,6 +74,7 @@ export async function GET(req: NextRequest) {
   const lage = sp.get("lage") ?? "plan";
   if (lage !== "plan" && lage !== "skriv") return fel(400, "lage ska vara plan eller skriv");
   const taMedGranskade = sp.get("ta_med_granskade") === "ja";
+  const tillatUrGalleriet = sp.get("tillat_ur_galleriet") === "ja";
   const bekrafta = (sp.get("bekrafta") ?? "").trim().toLowerCase();
   if (lage === "skriv" && !/^[0-9a-f]{64}$/.test(bekrafta)) {
     return fel(400, "skriv kräver bekrafta = planens sha (64 hextecken)");
@@ -141,7 +144,9 @@ export async function GET(req: NextRequest) {
         saknas.push(id);
         continue;
       }
-      const plan = planeraSida(las.in, { taMedGranskade });
+      // Med `sidor` har en människa valt sidan, och då ska den ha något att
+      // flytta — annars skrivs en sida om i onödan (`ingen_givare`).
+      const plan = planeraSida(las.in, { taMedGranskade, tillatUrGalleriet, kravGivare: sidor.length > 0 });
       planer.push(plan);
       if (plan.hinder.length === 0) skrivbara++;
     }
@@ -149,7 +154,7 @@ export async function GET(req: NextRequest) {
     console.error(`[fargbilder] läsningen: ${e instanceof Error ? e.message : String(e)}`);
     return fel(500, "en sida gick inte att läsa — se Vercel-loggen");
   }
-  const sha = planSha(planer, taMedGranskade);
+  const sha = planSha(planer, taMedGranskade, tillatUrGalleriet);
   const sidRaknare = planer.map(raknare);
   const summa = {
     sidor: planer.length,
@@ -166,6 +171,7 @@ export async function GET(req: NextRequest) {
     ok: true,
     lage,
     taMedGranskade,
+    tillatUrGalleriet,
     sha,
     kandidaterTotalt: kandidater.length,
     saknasIWix: saknas,

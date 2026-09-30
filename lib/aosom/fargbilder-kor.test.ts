@@ -80,6 +80,7 @@ function fejkWix(f: Fixtur) {
           throw new Error("Wix 428: MISSING_OPTIONS_ON_UPDATE_VARIANTS");
         }
         kast("koppling", "Wix 404: PRODUCT_MEDIA_NOT_EXIST (tas emot)");
+        kast("koppling500", "Wix 500: internal error");
         const g = new Set(galleri(p));
         const opts = k.product.options as Obj[];
         const nyaLankar = opts.flatMap((o) =>
@@ -108,9 +109,15 @@ function katalogAv(w: ReturnType<typeof fejkWix>) {
   });
 }
 
-async function planFor(w: ReturnType<typeof fejkWix>, lager: MinnesFargbildLager, id: string, taMedGranskade = false): Promise<SidPlan> {
+async function planFor(
+  w: ReturnType<typeof fejkWix>,
+  lager: MinnesFargbildLager,
+  id: string,
+  taMedGranskade = false,
+  tillatUrGalleriet = false,
+): Promise<SidPlan> {
   const las = await lasSidaIn({ wix: w.wix, lager }, id, doldaPerFil(katalogAv(w)), []);
-  return planeraSida(las!.in, { taMedGranskade });
+  return planeraSida(las!.in, { taMedGranskade, tillatUrGalleriet });
 }
 
 const lankarPa = (w: ReturnType<typeof fejkWix>, id: string) => {
@@ -119,14 +126,21 @@ const lankarPa = (w: ReturnType<typeof fejkWix>, id: string) => {
 };
 
 describe("skrivSida", () => {
-  it("skriver galleriet, sedan länkarna, läser tillbaka och sist tabellen", async () => {
+  it("skriver tabellen FÖRST, sedan galleriet, sedan länkarna, och läser tillbaka", async () => {
     const f = fixtur("pergolatak");
     const w = fejkWix(f);
     const lager = new MinnesFargbildLager();
-    const plan = await planFor(w, lager, f.sida.id, true);
+    const plan = await planFor(w, lager, f.sida.id, true, true);
     expect(plan.hinder).toEqual([]);
+    // Tabellen ska stå när Wix rörs första gången.
+    let raderVidForstaPatch = -1;
+    const wix: typeof w.wix = async (m, v, k) => {
+      if (m === "PATCH" && raderVidForstaPatch < 0) raderVidForstaPatch = (await lager.lasForProdukt(f.sida.id)).length;
+      return w.wix(m, v, k);
+    };
 
-    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    const u = await skrivSida(plan, { wix, lager, vanta: async () => {} });
+    expect(raderVidForstaPatch).toBe(plan.rader.length);
     expect(u.ok).toBe(true);
     // Galleriet ENSAMT först, sedan options + variantsInfo + visible.
     expect(w.patchar[0]).toEqual(["media"]);
@@ -152,7 +166,7 @@ describe("skrivSida", () => {
     expect(u.steg.join(" ")).toMatch(/4 försök/);
   });
 
-  it("☠️ en avvikelse i återläsningen stoppar — tabellen skrivs inte", async () => {
+  it("☠️ en avvikelse som inte gäller länkarna stoppar direkt — inga länkförsök", async () => {
     const f = fixtur("matskap");
     const w = fejkWix(f);
     w.sabotage.altText = true;
@@ -161,7 +175,70 @@ describe("skrivSida", () => {
     const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
     expect(u.ok).toBe(false);
     expect(u.fel).toMatch(/alt-text/);
-    expect(await lager.lasForProdukt(f.sida.id)).toEqual([]);
+    expect(w.patchar).toEqual([["media"]]);
+    // Tabellen skrevs före Wix, och står kvar.
+    expect(await lager.lasForProdukt(f.sida.id)).toHaveLength(plan.rader.length);
+  });
+
+  it("☠️ ett fel som inte är 404 PRODUCT_MEDIA_NOT_EXIST eller 409 stoppar efter ett försök, med felet", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    w.fel.koppling500 = 1000;
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/Wix 500/);
+    expect(w.patchar.filter((p) => p.includes("options"))).toHaveLength(1);
+  });
+
+  it("☠️ ett foto som flyttas ut ur galleriet står i tabellen även när länkningen faller — och omkörningen ser det (B1)", async () => {
+    const f = fixtur("pergolatak");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id, true, true);
+    const utflyttade = plan.galleriFore.map((b) => b.id).filter((id) => !plan.galleriEfter.some((b) => b.id === id));
+    expect(utflyttade).toHaveLength(1);
+
+    w.fel.koppling500 = 1000;
+    const forsta = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(forsta.ok).toBe(false);
+    // Fotot är ute ur Wix galleri — men inte borta.
+    expect(tolkaProdukt(w.produkter[f.sida.id]).bilder.map((b) => b.id)).not.toContain(utflyttade[0]);
+    const rader = await lager.lasForProdukt(f.sida.id);
+    expect(rader.find((r) => r.filId === utflyttade[0])?.plats).toBe("overflow");
+
+    w.fel.koppling500 = 0;
+    const igen = await planFor(w, lager, f.sida.id, true, true);
+    const agare = igen.val.find((v) => v.overflow.includes(utflyttade[0]));
+    expect(agare).toBeTruthy();
+    const andra = await skrivSida(igen, { wix: w.wix, lager, vanta: async () => {} });
+    expect(andra.ok).toBe(true);
+    expect((await lager.lasForProdukt(f.sida.id)).some((r) => r.filId === utflyttade[0])).toBe(true);
+  });
+
+  it("faller tabellen rörs Wix inte alls", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    lager.ersattForProdukt = async () => { throw new Error("databasen svarade inte"); };
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/tabellen föll.*Wix rördes INTE/);
+    expect(w.patchar).toEqual([]);
+  });
+
+  it("läser tabellen inte tillbaka som planen rörs Wix inte alls", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    lager.lasForProdukt = async () => [];
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/läste inte tillbaka.*Wix rördes INTE/);
+    expect(w.patchar).toEqual([]);
   });
 
   it("en sida som ändrats sedan planen rörs inte", async () => {
@@ -180,7 +257,7 @@ describe("skrivSida", () => {
     const f = fixtur("pergolatak");
     const w = fejkWix(f);
     const lager = new MinnesFargbildLager();
-    const plan = await planFor(w, lager, f.sida.id);
+    const plan = await planFor(w, lager, f.sida.id, true, true);
     w.fel.koppling = 1000;
     const forsta = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
     expect(forsta.ok).toBe(false);
@@ -189,7 +266,7 @@ describe("skrivSida", () => {
     for (const v of plan.val) expect(lankarPa(w, f.sida.id)[v.namn]).toEqual(v.lankadeFore);
 
     w.fel.koppling = 0;
-    const igen = await planFor(w, lager, f.sida.id);
+    const igen = await planFor(w, lager, f.sida.id, true, true);
     for (const v of plan.val) {
       expect(igen.val.find((x) => x.valId === v.valId)!.lankadeEfter).toEqual(v.lankadeEfter);
     }

@@ -14,7 +14,12 @@ name: Bilder — ge varje farg pa en sammanslagen sida alla sina bilder
 # ☠️ EN LANKAD BILD TAPPAS ALDRIG. Varje bild ett val pekar pa star kvar i
 # galleriet, och varje fargs nya lista borjar med dess nuvarande.
 #
-# ☠️ OPOLERADE GIVARES BILDER FRAN POSITION 3 SKRIVS INTE utan
+# ☠️ SIDANS EGNA FOTON FLYTTAS INTE UR GALLERIET utan tillat_ur_galleriet=ja.
+# Butiken laser inte tabellen an, sa ett foto som bara star dar syns inte. En
+# sida som skulle behova det far hindret ur_galleriet_kraver_butiken. Givarnas
+# overskott sparas i tabellen anda.
+#
+# ☠️ OPOLERADE GIVARES BILDER FRAN POSITION 2 SKRIVS INTE utan
 # ta_med_granskade=ja. De kan bara tysk text inbrand. De sparas i tabellen
 # som "granskas", sa att bildstadningen inte tar dem, men butiken far dem inte.
 #
@@ -42,7 +47,15 @@ on:
         default: ""
         type: string
       ta_med_granskade:
-        description: "ja = skriv aven opolerade givares bilder fran position 3 (granska dem forst)."
+        description: "ja = skriv aven opolerade givares bilder fran position 2 (granska dem forst)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      tillat_ur_galleriet:
+        description: "ja = sidans olankade foton far flyttas ur Wix galleri till tabellen. Kraver att butiken laser /api/fargbilder."
         required: false
         default: "nej"
         type: choice
@@ -68,6 +81,7 @@ jobs:
           HOGST: ${{ inputs.hogst }}
           SIDOR: ${{ inputs.sidor }}
           GRANSKADE: ${{ inputs.ta_med_granskade }}
+          URGALLERIET: ${{ inputs.tillat_ur_galleriet }}
           BEKRAFTA: ${{ inputs.bekrafta }}
         run: |
           set -euo pipefail
@@ -91,6 +105,7 @@ jobs:
             q="${q}&hogst=${HOGST:-10}"
           fi
           [ "${GRANSKADE:-nej}" = "ja" ] && q="${q}&ta_med_granskade=ja"
+          [ "${URGALLERIET:-nej}" = "ja" ] && q="${q}&tillat_ur_galleriet=ja"
           if [ "${MODE}" = "skriv" ]; then
             if ! printf '%s' "${BEKRAFTA:-}" | grep -Eq '^[0-9a-f]{64}$'; then
               echo "::error::skriv kraver bekrafta = planens sha (kor plan forst)" >&2
@@ -122,6 +137,7 @@ jobs:
                 "| att granska (skrivs inte) | \(.summa.granskas) |",
                 "| nya svenska alt-texter | \(.summa.altNya) |",
                 "| med granskade | \(.taMedGranskade) |",
+                "| sidans foton far flyttas ur galleriet | \(.tillatUrGalleriet) |",
                 "",
                 "**sha:** `\(.sha)`"
               else empty end

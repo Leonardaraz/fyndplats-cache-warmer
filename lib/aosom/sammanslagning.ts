@@ -121,7 +121,7 @@ export interface SammanslagningInput {
    * Default (sedan 2026-09-30): ALLA givarens bilder när givaren för in en ny
    * färg (eller en ny storlek på en sida utan färgval), med färgbildsverktygets
    * regler (lib/aosom/fargbilder.ts): givarens egna kort följer inte med, och
-   * en OPOLERAD givares bilder från position 3 skrivs inte utan sparas som
+   * en OPOLERAD givares bilder från position 2 skrivs inte utan sparas som
    * `granskas` i färgbildstabellen — 46 % av feedens bilder bär tysk text
    * inbränd. Det som inte ryms under Wix tak på 15 bilder sparas i tabellen
    * (`overflow`), och butiken visar det därifrån. En ny storlek i en färg sidan
@@ -205,7 +205,7 @@ export interface SammanslagningPlan {
   bilderUtkast: number;
   /** Givarens bilder som inte ryms under Wix 15 — de sparas i färgbildstabellen. */
   bilderOverflow: number;
-  /** Opolerade givarbilder från position 3: sparas som `granskas`, skrivs inte. */
+  /** Opolerade givarbilder från position 2: sparas som `granskas`, skrivs inte. */
   bilderGranskas: number;
   /** Ligger givaren ute? Då krävs `omdirigera`. */
   givarenPublicerad: boolean;
@@ -461,7 +461,7 @@ export interface GivarFordelning {
   nya: { id: string; altText: string }[];
   /** Utöver Wix 15: bara i färgbildstabellen. */
   overflow: string[];
-  /** Opolerad givare, position 3 och senare: sparas men skrivs inte. */
+  /** Opolerad givare, position 2 och senare: sparas men skrivs inte. */
   granskas: string[];
   /** 1-baserade positioner som inte finns (bara med `bilder`). */
   ogiltiga: boolean;

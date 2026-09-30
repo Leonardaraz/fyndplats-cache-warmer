@@ -1558,7 +1558,7 @@ körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans na
 får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
 oförändrad slug). **Sedan 2026-09-30 följer alla givarens bilder med**, med
 färgbildsverktygets regler (se *Färgbilderna* nedan): givarens kort stannar,
-en opolerad givares bilder från position 3 sparas som `granskas` i stället för
+en opolerad givares bilder från position 2 sparas som `granskas` i stället för
 att skrivas, och det som inte ryms under Wix 15 sparas i tabellen. Med
 `bilder` följer exakt de valda med. Befintliga val behåller hela sina
 `linkedMedia`-listor; före det skrev återkopplingen om varje val till sin
@@ -1840,40 +1840,60 @@ raderbara från 2026-10-11, så bilderna ska flyttas innan dess.
 Workflowen **"Bilder — ge varje färg på en sammanslagen sida alla sina bilder"**
 (`plan` · `skriv`) → `/api/admin/fargbilder` → `lib/aosom/fargbilder.ts` (ren
 logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
-(standard 10, högst 50) eller `sidor` (wix-id), och `ta_med_granskade`.
+(standard 10, högst 50, räknar bara sidor utan hinder) eller `sidor` (wix-id),
+`ta_med_granskade` och `tillat_ur_galleriet`.
 
 - **Givaren hittas via filen.** Valets `linkedMedia[0]` ligger i exakt ett dolt
   utkasts galleri. SKU:n går inte att använda, eftersom den nya variantens SKU är
   sidans plus färgen. Två dolda produkter med samma fil ger hindret `flera_givare`.
+  Är träffen inte givarens bild 1 blir det en varning.
 - **Butikens ägarregler** (headless-site `lib/variant-bilder.ts`, kopierade
   ordagrant). Länkade bilder först. Kort och måttbilder (`arKort`) är gemensamma.
   En olänkad bild som nämner exakt en färg hör till den, och övriga olänkade foton
-  hör till huvudbildens färg. En givares egen fil går före alt-texten. Efter
-  skrivningen är varje färgs bilder länkade.
+  hör till huvudbildens färg. En givares egen fil går före alt-texten. Ett foto
+  vars färg saknar länkad bild står kvar orört i galleriet. Efter skrivningen är
+  varje färgs bilder länkade.
 - **Wix 15 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
   axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
   som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
-  butiken läser via `GET /api/fargbilder?pid=`. Den skapas vid första användningen
-  (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen som använd.
-- **Opolerad givare** (tyskt namn eller tom alt-text): bilder från position 3
-  skrivs inte utan `ta_med_granskade=ja`. De sparas som `granskas`, så att
-  städningen inte tar filerna, men butiken får dem inte. En bild som skrivits en
-  gång granskas inte igen.
+  butiken kan läsa via `GET /api/fargbilder?pid=`. Den skapas vid första
+  användningen (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen
+  som använd.
+- ☠️ **Butiken läser inte tabellen än.** Ett foto som bara står i tabellen syns
+  alltså inte. Därför flyttas sidans egna foton aldrig ur galleriet utan
+  `tillat_ur_galleriet=ja` (hindret `ur_galleriet_kraver_butiken`). Givarbilder
+  som aldrig legat i galleriet sparas i tabellen ändå, de försvinner inte ur
+  något.
+- **Opolerad givare** (tyskt namn eller tom alt-text): bilder från position 2
+  skrivs inte utan `ta_med_granskade=ja` (Leonard granskar dem själv). De sparas
+  som `granskas`, så att städningen inte tar filerna, men butiken får dem inte.
+  Ett foto som redan ligger i sidans galleri flaggas aldrig, och en bild som
+  skrivits en gång granskas inte igen. ⚠️ `ta_med_granskade` når en redan skriven
+  sida bara via `sidor`, för urvalet tar bara sidor med givare kvar att flytta.
 - **Alt-text:** en svensk behålls. Annars blir den "<sidans namn> i färgen <färg>",
   med ", bild N" från den andra.
-- **Hinder:** `ej_publicerad`, `saknar_fargaxel`, `flera_givare`, `oppen_auktion`
-  (bara `live`, eftersom kön har en rad per produkt), `givare_publicerad`,
-  `over_tak_redan` och `plan_ogiltig`.
+- **Hinder:** `ej_publicerad`, `saknar_fargaxel`, `flera_givare`, `ingen_givare`
+  (bara med `sidor`), `oppen_auktion` (bara `live`, eftersom kön har en rad per
+  produkt), `givare_publicerad`, `over_tak_redan`, `ur_galleriet_kraver_butiken`
+  och `plan_ogiltig`.
 
-☠️ **En länkad bild tappas aldrig.** Varje bild ett val pekar på står kvar i
-galleriet, och varje färgs nya lista börjar med dess nuvarande
-(`kontrolleraPlan`). `skriv` kräver `bekrafta` = planens sha256. Planen räknas om
-ur färska läsningar och skrivs i steg. Galleriet skrivs först och ensamt, och bara
-olänkade foton kan falla ur det. Sedan skrivs länkarna, med options och
-variantsInfo ur GET:en och `visible`, med upp till åtta försök. Därefter läses
-galleriet, alt-texterna, varje vals lista, synligheten och varianterna tillbaka.
-Sist skrivs tabellen, som också läses tillbaka. Vid första avvikelse stannar
-körningen.
+☠️ **En länkad bild tappas aldrig, och ingen fil försvinner.** Varje bild ett val
+pekar på står kvar i galleriet, och varje färgs nya lista börjar med dess
+nuvarande (`kontrolleraPlan`). `skriv` kräver `bekrafta` = planens sha256, räknad
+om ur färska läsningar. Stegen:
+
+1. **Tabellen skrivs FÖRST** och läses tillbaka. Stämmer den inte rörs Wix inte.
+   Varje fil planen rör står alltså i tabellen innan Wix ändras, och en
+   omkörning läser in tabellens rader.
+2. Galleriet skrivs ensamt. Bara olänkade foton kan falla ur det.
+3. Länkarna skrivs med options och variantsInfo ur GET:en och `visible`. Om
+   försöks bara vid 404 `PRODUCT_MEDIA_NOT_EXIST` eller 409, och bara när det
+   enda som avviker är länkarna (högst åtta gånger). Varje annat fel stoppar
+   direkt, med felet i svaret.
+4. Återläsning: galleriet, alt-texterna, varje vals lista, andra axlar,
+   synligheten, och varje variants synlighet, pris, SKU och val. En dold
+   variant som blivit synlig stoppar också. Vid första avvikelse stannar
+   körningen.
 
 Ordningen före raderingen: kör `plan` för 10 sidor och titta, sedan `skriv`, och
 kör klart alla kandidater (`kandidaterTotalt` ska bli 0) innan

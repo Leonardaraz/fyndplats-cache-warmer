@@ -305,11 +305,11 @@ describe("färgsammanslagning — planen", () => {
       skuBehall: "FP-stol",
       skuUtkast: "FP-stol-gra",
       bilderBehall: 2,
-      // Alla givarens bilder sedan 2026-09-30. Givaren är opolerad (tyskt
-      // namn), men bara position 3 och senare granskas.
-      bilderUtkast: 2,
+      // Alla givarens bilder sedan 2026-09-30 — men givaren är opolerad
+      // (tyskt namn), så position 2 och senare granskas i stället för att skrivas.
+      bilderUtkast: 1,
       bilderOverflow: 0,
-      bilderGranskas: 0,
+      bilderGranskas: 1,
     });
   });
 
@@ -394,19 +394,19 @@ describe("färgsammanslagning — skrivningen", () => {
     // ägarregler), givarens till den nya.
     expect(val.map((c) => [c.name, (c.linkedMedia as Obj[]).map((m) => m.id)])).toEqual([
       ["Svart", ["bild-s1", "bild-s2"]],
-      ["Grå", ["bild-u1", "bild-u2"]],
+      ["Grå", ["bild-u1"]],
     ]);
     const varianter = (p.variantsInfo as { variants: Obj[] }).variants;
     expect(varianter.map((v) => [v.sku, (v.price as { actualPrice: { amount: string } }).actualPrice.amount, v.visible])).toEqual([
       ["FP-stol", "699", true],
       ["FP-stol-gra", "649", true],
     ]);
-    // Givarens bilder följer med, med svensk alt-text (givarens är tysk).
+    // Givarens huvudbild följer med, med svensk alt-text (givarens är tysk).
+    // Bild 2 är från en opolerad givare och väntar på granskning i tabellen.
     expect(((p.media as Obj).itemsInfo as { items: Obj[] }).items.map((b) => [b.id, b.altText])).toEqual([
       ["bild-s1", "Stol framifrån"],
       ["bild-s2", "Stol från sidan"],
       ["bild-u1", "Kontorsstol med nackstöd i färgen grå"],
-      ["bild-u2", "Kontorsstol med nackstöd i färgen grå, bild 2"],
     ]);
     // Lagret sattes i samma skrivning som varianten.
     expect(w.lager.sida.map((x) => x.quantity)).toEqual([40, synligtSaldo(23)]);
@@ -481,7 +481,7 @@ describe("färgsammanslagning — skrivningen", () => {
     const svar = await korSammanslagning(PAR, deps, { apply: true });
     expect(svar.ok).toBe(true);
     const val = ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
-    expect(val.map((c) => (c.linkedMedia as Obj[]).length)).toEqual([2, 2]);
+    expect(val.map((c) => (c.linkedMedia as Obj[]).length)).toEqual([2, 1]);
   });
 
   it("☠️ en bild som aldrig kopplas stoppar mappningen, och omkörningen kopplar den", async () => {
@@ -700,7 +700,7 @@ describe("sammanslagning — storlek", () => {
     const option = (w.produkter.sida.options as Obj[])[0];
     expect(option.name).toBe("Storlek");
     expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "110 × 85 cm"]);
-    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-2)!.altText;
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
     expect(alt).toBe("Kontorsstol med nackstöd i storleken 110 × 85 cm");
     expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
       { Storlek: "90 × 70 cm" },
@@ -923,7 +923,7 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
       varianter: 2,
       saknadeKombinationer: 2,
       skuUtkast: "FP-stol-110-85-cm-gra",
-      bilderUtkast: 2,
+      bilderUtkast: 1,
     });
     expect(plan.varningar.join(" ")).toMatch(/2 av 4 kombinationer/);
 
@@ -936,7 +936,7 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
       ["FP-stol", { Färg: "Svart", Storlek: "90 × 70 cm" }],
       ["FP-stol-110-85-cm-gra", { Färg: "Grå", Storlek: "110 × 85 cm" }],
     ]);
-    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-2)!.altText;
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
     expect(alt).toBe("Kontorsstol med nackstöd i färgen grå och storleken 110 × 85 cm");
 
     const sida = rader.get("sida")!;
@@ -1162,7 +1162,7 @@ describe("sammanslagning — färgbilderna", () => {
     expect(svar.ok).toBe(true);
     expect(listor(w)).toEqual([
       ["Svart", ["bild-s1", "bild-s2", "bild-s3"]],
-      ["Grå", ["bild-u1", "bild-u2"]],
+      ["Grå", ["bild-u1"]],
       ["Blå", ["bild-b1"]],
     ]);
   });
@@ -1174,7 +1174,7 @@ describe("sammanslagning — färgbilderna", () => {
     expect((await korSammanslagning(TREDJE, deps, { apply: true })).ok).toBe(true);
     expect(listor(w)).toEqual([
       ["Svart", ["bild-s1", "bild-s2"]],
-      ["Grå", ["bild-u1", "bild-u2"]],
+      ["Grå", ["bild-u1"]],
       ["Blå", ["bild-b1"]],
     ]);
   });
@@ -1185,7 +1185,7 @@ describe("sammanslagning — färgbilderna", () => {
     const rader = await lager.lasForProdukt("sida");
     expect(rader.map((r) => [r.choiceName, r.ordning, r.filId, r.plats, r.givareId])).toEqual([
       ["Grå", 0, "bild-u1", "galleri", "utkast"],
-      ["Grå", 1, "bild-u2", "galleri", "utkast"],
+      ["Grå", 1, "bild-u2", "granskas", "utkast"],
     ]);
   });
 
@@ -1213,7 +1213,7 @@ describe("sammanslagning — färgbilderna", () => {
     expect(items.find((b) => b.id === "bild-u2")!.altText).toBe("Den grå stolen, vy 2");
   });
 
-  it("☠️ en opolerad givares bilder från position 3 skrivs inte — de sparas som granskas", async () => {
+  it("☠️ en opolerad givares bilder från position 2 skrivs inte — de sparas som granskas", async () => {
     const w = fejkWix({
       utkast: {
         media: { itemsInfo: { items: Array.from({ length: 5 }, (_, i) => ({ id: `bild-u${i + 1}`, altText: "Bürostuhl" })) } },
@@ -1222,10 +1222,10 @@ describe("sammanslagning — färgbilderna", () => {
     const { deps, lager } = miljo({ wix: w });
     const svar = await korSammanslagning(PAR, deps, { apply: true });
     expect(svar.ok).toBe(true);
-    expect(svar.plan).toMatchObject({ bilderUtkast: 2, bilderOverflow: 0, bilderGranskas: 3 });
-    expect(galleri(w)).not.toContain("bild-u3");
+    expect(svar.plan).toMatchObject({ bilderUtkast: 1, bilderOverflow: 0, bilderGranskas: 4 });
+    expect(galleri(w)).not.toContain("bild-u2");
     const rader = await lager.lasForProdukt("sida");
-    expect(rader.filter((r) => r.plats === "granskas").map((r) => r.filId)).toEqual(["bild-u3", "bild-u4", "bild-u5"]);
+    expect(rader.filter((r) => r.plats === "granskas").map((r) => r.filId)).toEqual(["bild-u2", "bild-u3", "bild-u4", "bild-u5"]);
   });
 
   it("givarens egna kort följer inte med — sidans kort gäller alla färger", async () => {
@@ -1276,6 +1276,9 @@ describe("sammanslagning — färgbilderna", () => {
     const andra = await korSammanslagning(PAR, deps, { apply: true });
     expect(andra.plan.tillstand).toBe("wix_klar");
     expect(andra.ok).toBe(true);
-    expect((await lager.lasForProdukt("sida")).map((r) => r.filId)).toEqual(["bild-u1", "bild-u2"]);
+    expect((await lager.lasForProdukt("sida")).map((r) => [r.filId, r.plats])).toEqual([
+      ["bild-u1", "galleri"],
+      ["bild-u2", "granskas"],
+    ]);
   });
 });
