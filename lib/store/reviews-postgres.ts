@@ -118,6 +118,27 @@ export class PostgresReviewStore implements ReviewStoreLike {
       }));
   }
 
+  /**
+   * Produkter vars recensioner skrivits efter `sedan` — ny, godkänd, avvisad,
+   * redigerad eller med nya foton. Varje skrivning går genom `upsert`, som
+   * sätter `updated_at = now()` (även setStatus och editText).
+   *
+   * Butiken läser listan via /api/review-andringar och tömmer just de
+   * produktsidorna (butiken cachar produktsidor i sex timmar sedan 2026-10-01).
+   * Inte en del av ReviewStoreLike: bara Postgres-lagret har tidsstämpeln.
+   */
+  async produkterAndradeSedan(sedan: Date, max = 2000): Promise<string[]> {
+    const q = sql();
+    const rows = await q`
+      select distinct product_id from reviews
+       where updated_at > ${sedan.toISOString()}
+       limit ${max}
+    `;
+    return (rows as { product_id: string | null }[])
+      .map((r) => r.product_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+  }
+
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
     const q = sql();
     const rows = await q`select data from reviews order by date desc nulls last limit ${limit}`;
