@@ -70,6 +70,16 @@ förstoring, som knapparna på en mikrovågsugn, får stå kvar enligt runbooken
 dubbelt så många pixlar på en skärpeskärm, och den visar en kvadrat ur bildens mitt. Panelerna
 i ett collage är ofta runt 480 px höga och duger därför inte.
 
+☠️ **En huvudbild som inte finns i leverantörens flöde får position 0 i `bilder.tsv`**
+(`runda-bilder-5`). `bygg-media.py` sorterar på källposition med måttskissen sist. En befintlig
+bild utan motsvarighet i flödet får annars en position över tio och hamnar efter de nya, så
+sidan byter huvudbild och delningsbild utan att något fel syns.
+
+⚠️ **Samma rekvisita bedöms bild för bild** (`runda-bilder-5`). Ett märkesnamn på en
+ljusförpackning gick att läsa i full storlek på en bild och bara i dubbel förstoring på en
+annan, där förpackningen stod längre bort. Den första ströks och den andra fick stå kvar.
+Ett utsnitt som hade kapat en persons ansikte stryks, även när texten går att skära bort.
+
 ## Textborttagning (T) – tvätta loggor och inbränd text
 
 
