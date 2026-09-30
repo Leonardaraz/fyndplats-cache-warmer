@@ -72,8 +72,10 @@ export function agareMedAltText(opts: {
   alts: Record<string, string>;
   bilder: string[];
   fargEtiketter: string[];
+  /** Sidans huvudbild. Se steg 2 nedan. */
+  huvudbild?: string;
 }): Record<string, string> {
-  const { lankade, alts, bilder, fargEtiketter } = opts;
+  const { lankade, alts, bilder, fargEtiketter, huvudbild } = opts;
   const ut: Record<string, string> = { ...lankade };
   const etiketter = fargEtiketter.filter((e) => fargFormer(e));
   if (etiketter.length < 2) return ut;
@@ -83,7 +85,33 @@ export function agareMedAltText(opts: {
     const traffar = nammdaFarger(alts[k] || "", etiketter);
     if (traffar.length === 1) ut[k] = traffar[0];
   }
+  // Steg 2, bara på sammanslagna sidor: någon färg äger precis EN bild (den
+  // som följde med givaren). Då är sidans övriga olänkade foton den
+  // ursprungliga färgens — huvudbildens färg — och inte gemensamma. Utan det
+  // visade Svart och Grå på matskåpet Vit-färgens skålbilder (Leonard,
+  // 2026-09-30). Fyndplats egna kort (spec-, mått-, färgkort) och bilder som
+  // nämner flera färger förblir gemensamma.
+  const huvudFarg = huvudbild ? ut[imgKey(huvudbild)] : undefined;
+  if (huvudFarg) {
+    const antal: Record<string, number> = {};
+    for (const o of Object.values(ut)) antal[o] = (antal[o] || 0) + 1;
+    const sammanslagen = etiketter.some((e) => e !== huvudFarg && antal[e] === 1);
+    if (sammanslagen) {
+      for (const url of bilder) {
+        const k = imgKey(url);
+        if (!k || k in ut) continue;
+        const alt = alts[k] || "";
+        if (arKort(alt) || nammdaFarger(alt, etiketter).length > 1) continue;
+        ut[k] = huvudFarg;
+      }
+    }
+  }
   return ut;
+}
+
+/** Fyndplats egna kort (spec-, mått-, färg-, faktakort) gäller alla färger. */
+export function arKort(alt: string): boolean {
+  return /^\s*fyndplats\b/i.test(alt) || /(?:spec(?:ifikations)?|mått|färg|fakta|storleks)kort/i.test(alt);
 }
 
 /**

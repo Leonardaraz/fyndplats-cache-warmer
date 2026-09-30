@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types lib/variant-bilder.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { agareMedAltText, fargFormer, nammdaFarger, synligaBilder } from "./variant-bilder.ts";
+import { agareMedAltText, arKort, fargFormer, nammdaFarger, synligaBilder } from "./variant-bilder.ts";
 
 const u = (id: string) => `https://static.wixstatic.com/media/${id}~mv2.jpg`;
 
@@ -72,4 +72,40 @@ test("synligaBilder: utan ägare för valet visas allt oförändrat", () => {
   assert.deepEqual(synligaBilder(BILDER, undefined, ["Grå"]), BILDER);
   assert.deepEqual(synligaBilder(BILDER, { "x~mv2.jpg": "Blå" }, ["Grå"]), BILDER);
   assert.deepEqual(synligaBilder(BILDER, LANKADE, []), BILDER);
+});
+
+// Matskåpet (2026-09-30): Vit är sidans egen färg med fyra foton, Grå och
+// Svart kom från givare med en bild var. Skålbilderna nämner ingen färg.
+const MB = ["vit1", "skalar", "horn", "matt", "gra1", "svart1", "kort"].map(u);
+const MALTS: Record<string, string> = {
+  "vit1~mv2.jpg": "Vitt matskåp för hund med två luckor",
+  "skalar~mv2.jpg": "Två skålar i rostfritt stål med torrfoder",
+  "horn~mv2.jpg": "Närbild på skåpets hörn och sockel mot trägolv",
+  "matt~mv2.jpg": "Måttskiss: 60 × 30 × 35,5 cm",
+  "gra1~mv2.jpg": "Matskåp för hund i färgen grå",
+  "svart1~mv2.jpg": "Matskåp för hund i färgen svart",
+  "kort~mv2.jpg": "Fyndplats specifikationskort för matskåpet",
+};
+const MLANK = { "vit1~mv2.jpg": "Vit", "gra1~mv2.jpg": "Grå", "svart1~mv2.jpg": "Svart" };
+
+test("sammanslagen sida: olänkade foton hör till huvudbildens färg, korten är gemensamma", () => {
+  const a = agareMedAltText({ lankade: MLANK, alts: MALTS, bilder: MB, fargEtiketter: ["Vit", "Grå", "Svart"], huvudbild: u("vit1") });
+  assert.equal(a["skalar~mv2.jpg"], "Vit");
+  assert.equal(a["horn~mv2.jpg"], "Vit");
+  assert.equal(a["matt~mv2.jpg"], "Vit");
+  assert.equal(a["kort~mv2.jpg"], undefined);
+  assert.deepEqual(synligaBilder(MB, a, ["Svart"], u("svart1")), ["svart1", "kort"].map(u));
+  assert.deepEqual(synligaBilder(MB, a, ["Vit"], u("vit1")), ["vit1", "skalar", "horn", "matt", "kort"].map(u));
+});
+
+test("sida där varje färg har flera länkade bilder: olänkade foton förblir gemensamma", () => {
+  const lank = { ...MLANK, "skalar~mv2.jpg": "Grå", "horn~mv2.jpg": "Svart" };
+  const a = agareMedAltText({ lankade: lank, alts: MALTS, bilder: MB, fargEtiketter: ["Vit", "Grå", "Svart"], huvudbild: u("vit1") });
+  assert.equal(a["matt~mv2.jpg"], undefined);
+});
+
+test("arKort känner igen Fyndplats egna kort", () => {
+  assert.ok(arKort("Fyndplats färgkort som visar bilen i tre färger"));
+  assert.ok(arKort("Specifikationskort för elbilen"));
+  assert.ok(!arKort("Två skålar i rostfritt stål"));
 });

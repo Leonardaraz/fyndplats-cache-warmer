@@ -785,6 +785,7 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
             alts: prod.imageAlts || {},
             bilder: [prod.img, ...prod.gallery],
             fargEtiketter,
+            huvudbild: prod.img,
           });
         }
         return prod;
