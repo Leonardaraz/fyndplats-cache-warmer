@@ -56,8 +56,19 @@ ett ord som gick att läsa i full storlek, och panelen med ett hjul bar en impor
 med adress. Båda satt för nära varan för att skäras bort.
 
 ⚠️ **Text på varans egna hyllor går inte att skära bort.** Nio av 22 sidor fick ingen ny
-bild. Böcker, flaskor och förpackningar med text stod på varans hyllor eller bakom dess
-glasdörrar i varje miljöbild.
+bild i första genomgången. Böcker, flaskor och förpackningar med text stod på varans hyllor
+eller bakom dess glasdörrar i varje miljöbild.
+
+✅ **En andra genomgång gav sju bilder till** (`runda-bilder-1-klipp2`), fem av dem på de
+nio sidorna. Tre kom ur detaljbilder av en utdragen låda, där förpackningarna med text låg i
+lådans ena ände och kunde skäras utanför medan handtaget och tallrikarna stod kvar. Mät var
+texten slutar i pixlar innan en bild stryks: en bildtext bredvid varan går att skära bort
+även när den ser ut att ligga över bilden. Text som går att läsa först i flera gångers
+förstoring, som knapparna på en mikrovågsugn, får stå kvar enligt runbooken.
+
+⚠️ **Under 700 px på kortsidan blir utsnittet suddigt.** Butikens huvudbild är 544 px bred,
+dubbelt så många pixlar på en skärpeskärm, och den visar en kvadrat ur bildens mitt. Panelerna
+i ett collage är ofta runt 480 px höga och duger därför inte.
 
 ## Textborttagning (T) – tvätta loggor och inbränd text
 

@@ -2003,6 +2003,19 @@ står texten på varans egna hyllor, i dess fack eller bakom dess glasdörrar, a
 det som inte får skäras bort. Den nionde saknas i feeden. För de nio är leverantörens
 bilder uttömda.
 
+✅ **En andra genomgång samma dag gav sju bilder till.** Leonard frågade om sidorna med två
+eller tre bilder hade fler att ge. Alla tio positioner på de 13 sidorna granskades igen, och
+sju utsnitt höll (`runda-bilder-1-klipp2`). Tre visar en utdragen låda där förpackningarna
+med text skurits utanför, och de andra är ett köksskåp i sitt kök, ett mikrovågsfack,
+insidan av ett badrumsskåp och sparkbilen på ett kalas. Alla sju skrevs och lästes tillbaka
+ur Wix i en separat läsning, och alla sju sidorna visar dem live. Nu har fyra av de 22
+sidorna kvar två bilder: `138a24b0`, `3a27aabe`, `9dc0f858` och `fbcf5899`. Resten
+stoppades av text på varan eller på sakerna i den, och av collagepaneler under 700 px på
+kortsidan, som ger en suddig huvudbild. Metoden står i `docs/polish/bildmetoder.md`.
+
+Den första genomgången kallade leverantörens bilder uttömda för nio sidor, men fem av dem
+fick bilder i den andra. Mät var texten slutar innan en bild stryks.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
