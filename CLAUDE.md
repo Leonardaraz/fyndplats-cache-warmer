@@ -1984,6 +1984,25 @@ nu tre, men ingen fick två nya. 21 har ingen ren bild kvar i feeden, eftersom a
 deras bilder är granskade. För två gick det inte att hämta bilder: en sammanslagen
 sida med flera artiklar (`flera_artiklar`) och en artikel som saknades i feeden.
 
+✅ **Beskärning gav 23 bilder till på 13 av de 22 sidorna (2026-09-30).** Leonard:
+*"fler än bara 2 måste ju gå att använda, eller klippa snyggt på nått sätt"*. För de 22
+sidor som fortfarande hade två bilder granskades alla tio positioner igen, nu för att se
+vad som går att skära fram. Rubriker, bildtexter, ikoner och rekvisita med text skars bort,
+och varan skars aldrig i. Runbooken förbjöd beskärning (Leonard 2026-09-27), och
+undantaget för sidor med två bilder står nu där. Utsnitten görs med Wix egen crop-adress
+och laddas upp som nya filer, så ingen leverantörsbild läggs i det publika repot. Varje fil
+är md5-parad mot sitt utsnitt, eftersom uppladdningens svar inte säger vilket id som hör
+till vilken adress. Metoden står i `docs/polish/bildmetoder.md` (*Beskärning*),
+granskningen per bild i `runda-bilder-1-klipp/granskning.tsv`.
+
+Alla 23 skrevs och lästes tillbaka ur Wix i en separat läsning (`runda-bilder-1-klipp`),
+och alla 13 publicerade sidor visar dem med sina alt-texter. Två utsnitt ströks: en klocka
+med ett ord som gick att läsa i full storlek, och en importörsetikett med adress som inte
+gick att skära bort utan att kapa hjulet den satt vid. Nio sidor fick ingenting. På åtta
+står texten på varans egna hyllor, i dess fack eller bakom dess glasdörrar, alltså inne i
+det som inte får skäras bort. Den nionde saknas i feeden. För de nio är leverantörens
+bilder uttömda.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
