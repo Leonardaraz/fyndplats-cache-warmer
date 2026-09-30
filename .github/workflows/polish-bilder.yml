@@ -1,0 +1,138 @@
+name: Polering — skriv bara bilderna
+
+# Tvilling till "Polering — skriv en runda till Wix", men för en runda som BARA
+# ändrar bildlistan på redan polerade sidor (2026-09-30). Skrivplanen kräver
+# sidans hela text, och en sida som bara ska få fler bilder har ingen ny text
+# att skicka.
+#
+# Läser rundans bildplan.json ur grenen, kontrollerar dess sha256 och skickar
+# den till /api/admin/polish-bilder. Planen byggs med
+# tools/polish-gates/bygg-bildplan.py, som skriver ut sha256:n.
+#
+# Lägen:
+#   torr       läser varje produkt och prövar listan, skriver ingenting
+#   skriv      skriver bildlistan, väntar och verifierar
+#   verifiera  läser bara: jämför Wix mot planen
+#
+# Skrivningen tål omkörning: samma lista skrivs likadant igen. Ingen stämpel
+# sätts, för sidorna är redan polerade.
+#
+# ☠️ KÖR MED `ref` SATT TILL POLERINGSGRENEN. Default är main, och där finns
+# inte planen. Kontrollen av sha256 fäller en sådan körning innan något skrivs.
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara kort-id, ok/fel och antal.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runda:
+        description: "Rundans katalog under tools/polish-assets, t.ex. runda-bilder-1"
+        required: true
+        type: string
+      plan_sha256:
+        description: "sha256 av bildplan.json — bygg-bildplan.py skriver ut den"
+        required: true
+        type: string
+      lage:
+        description: "torr = pröva, skriv inget · skriv = skriv och verifiera · verifiera = bara läs"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skriv
+          - verifiera
+
+concurrency:
+  # Samma grupp som skrivplanen: två rundor som skriver samtidigt mot samma
+  # butik ger revisionskonflikter.
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  bilder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUNDA: ${{ inputs.runda }}
+          PLAN_SHA256: ${{ inputs.plan_sha256 }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! [[ "${RUNDA}" =~ ^runda-[a-z0-9-]+$ ]]; then
+            echo "::error::runda ska ha formen runda-<namn>" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::plan_sha256 ska vara 64 hextecken" >&2
+            exit 1
+          fi
+          fil="tools/polish-assets/${RUNDA}/bildplan.json"
+          if [ ! -f "${fil}" ]; then
+            echo "::error::${fil} finns inte på ${GITHUB_REF_NAME} — kör mot poleringsgrenen, inte main" >&2
+            exit 1
+          fi
+          faktisk=$(sha256sum "${fil}" | cut -d' ' -f1)
+          if [ "${faktisk}" != "${PLAN_SHA256}" ]; then
+            echo "::error::bildplan.json på ${GITHUB_REF_NAME} har sha256 ${faktisk}, inte den angivna. Fel gren, eller en plan som byggts om efter pushen? Ingenting skrivet." >&2
+            exit 1
+          fi
+          echo "Plan: ${fil} ($(jq '.produkter | length' "${fil}") produkter), ${GITHUB_REF_NAME}@${GITHUB_SHA:0:7}, läge ${LAGE}"
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # Ett steg mot rutten. Svaret hamnar i svar.json; returnerar 0 bara
+          # när rutten svarar ok. Skriver bara kort, ok/fel och antal.
+          steg() {
+            jq -c --arg s "$1" --argjson d "$2" '{steg: $s, dryRun: $d, plan: .}' "${fil}" > kropp.json
+            http=$(curl -sS --max-time 310 -o svar.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              --data-binary @kropp.json \
+              "${rot}/api/admin/polish-bilder") || http="000"
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "== $1: HTTP ${http}, svaret är inte JSON" >&2
+              return 1
+            fi
+            echo "== $1 (HTTP ${http}): $(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            jq -r '.fel[]? | "   plan: \(.)"' svar.json
+            jq -r '.rader[]? | "   \(.kort // "-") \(if .ok then "ok" else "FEL: \(.fel // "?")" end)\(if .bilder then " · \(.bilder) bilder" else "" end)\(if .synlig == false then " · DOLD" else "" end)"' svar.json
+            [ "$(jq -r '.ok' svar.json)" = "true" ]
+          }
+
+          # Läser om en gång efter en paus om något faller, för läsprojektionen
+          # släpar ibland efter skrivningen.
+          verifiera() {
+            if ! steg verifiera true; then
+              echo "Något föll — väntar 60 s och läser om (projektionen kan släpa)."
+              sleep 60
+              steg verifiera true || return 1
+            fi
+          }
+
+          case "${LAGE}" in
+            torr)
+              steg media true
+              ;;
+            skriv)
+              if ! steg media false; then
+                echo "::error::Bildsteget föll för minst en produkt. Skrivningen tål omkörning: rätta orsaken och kör läge skriv igen." >&2
+                exit 1
+              fi
+              echo "Skrivet. Väntar 60 s innan den separata återläsningen."
+              sleep 60
+              verifiera
+              ;;
+            verifiera)
+              verifiera
+              ;;
+          esac

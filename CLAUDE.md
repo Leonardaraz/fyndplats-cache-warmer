@@ -1925,7 +1925,11 @@ Workflowen **"Bilder — hämta leverantörens övriga bilder för granskning"**
 `/api/admin/aosom-bildkandidater` → `lib/aosom/bildkandidater.ts` laddar upp de
 begärda positionerna (default 4–7) till Media Manager utan att röra produkten.
 Svaret ger Wix fil-id och wixstatic-adress per position. En människa tittar på
-bilderna, och de rena skrivs till produkten med poleringens skrivplan.
+bilderna, och de rena skrivs med **"Polering — skriv bara bilderna"**
+(`bildplan.json` ur `tools/polish-gates/bygg-bildplan.py` →
+`/api/admin/polish-bilder` → `lib/polish/bildplan.ts`). Den skriver bara
+bildlistan, med skrivplanens eget mediesteg, så en polerad sidas text skickas
+aldrig igen.
 
 Fyra egenskaper som inte ska tas bort:
 
