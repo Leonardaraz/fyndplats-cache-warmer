@@ -987,6 +987,12 @@ export interface WixProductSummary {
   name?: string;
   slug?: string;
   visible?: boolean;
+  /**
+   * Butikens lagerstatus (`inventory.availabilityStatus`): IN_STOCK,
+   * OUT_OF_STOCK eller PARTIALLY_OUT_OF_STOCK. Ligger i sökprojektionen utan
+   * att efterfrågas (uppmätt 2026-09-30). Saknas = okänt, aldrig "i lager".
+   */
+  availabilityStatus?: string;
 }
 
 /**
@@ -1012,10 +1018,23 @@ export async function searchProductSummaries(ids: string[]): Promise<Map<string,
       throw new Error(`Wix product-search misslyckades (${res.status}): ${text.slice(0, 300)}`);
     }
     const data = (await res.json()) as {
-      products?: { id?: string; name?: string; slug?: string; visible?: boolean }[];
+      products?: {
+        id?: string;
+        name?: string;
+        slug?: string;
+        visible?: boolean;
+        inventory?: { availabilityStatus?: string };
+      }[];
     };
     for (const p of data.products ?? []) {
-      if (p.id) map.set(p.id, { id: p.id, name: p.name, slug: p.slug, visible: p.visible });
+      if (!p.id) continue;
+      map.set(p.id, {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        visible: p.visible,
+        availabilityStatus: p.inventory?.availabilityStatus,
+      });
     }
   }
   return map;

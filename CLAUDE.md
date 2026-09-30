@@ -1965,9 +1965,72 @@ Mätningen från 2026-08-27 (4 av 90 rena på position 4–6) stod sig alltså, 
 den gäller även de sidor poleringen redan tömt.
 
 ⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
-Position 10 har ingen granskat. Taket i verktyget var nio fram till samma dag
-och slängde position 10 tyst ur begäran. Det är sedan dess femton, alltså Wix
-tak för bilder per produkt.
+Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
+begäran. Det är sedan dess femton, alltså Wix tak för bilder per produkt.
+
+✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
+24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på
+burkar, påsar och flaskor i kök och badrum, bokryggar, en tavla med ett ord och en
+klocka på en datorskärm. Flera av de strukna bar ett riktigt märke.
+Textigenkänning i full upplösning och i dubbel förstoring pekade ut var texten satt,
+men varje bild bedömdes med ögat. Märken och dekaler som sitter på själva varan fick
+stå kvar, som runbooken säger. Granskningen står per bild i
+`runda-bilder-1/granskning.tsv`.
+
+De 24 bilderna sitter på sina sidor sedan samma dag (`runda-bilder-1-pos10`). Alla
+24 skrevs och lästes tillbaka ur Wix i en separat läsning, och alla 24 publicerade
+sidor visar bilden med sin alt-text. Av de 48 sidorna med två bilder har alltså 25
+nu tre, men ingen fick två nya. 21 har ingen ren bild kvar i feeden, eftersom alla
+deras bilder är granskade. För två gick det inte att hämta bilder: en sammanslagen
+sida med flera artiklar (`flera_artiklar`) och en artikel som saknades i feeden.
+
+✅ **Beskärning gav 23 bilder till på 13 av de 22 sidorna (2026-09-30).** Leonard:
+*"fler än bara 2 måste ju gå att använda, eller klippa snyggt på nått sätt"*. För de 22
+sidor som fortfarande hade två bilder granskades alla tio positioner igen, nu för att se
+vad som går att skära fram. Rubriker, bildtexter, ikoner och rekvisita med text skars bort,
+och varan skars aldrig i. Runbooken förbjöd beskärning (Leonard 2026-09-27), och
+undantaget för sidor med två bilder står nu där. Utsnitten görs med Wix egen crop-adress
+och laddas upp som nya filer, så ingen leverantörsbild läggs i det publika repot. Varje fil
+är md5-parad mot sitt utsnitt, eftersom uppladdningens svar inte säger vilket id som hör
+till vilken adress. Metoden står i `docs/polish/bildmetoder.md` (*Beskärning*),
+granskningen per bild i `runda-bilder-1-klipp/granskning.tsv`.
+
+Alla 23 skrevs och lästes tillbaka ur Wix i en separat läsning (`runda-bilder-1-klipp`),
+och alla 13 publicerade sidor visar dem med sina alt-texter. Två utsnitt ströks: en klocka
+med ett ord som gick att läsa i full storlek, och en importörsetikett med adress som inte
+gick att skära bort utan att kapa hjulet den satt vid. Nio sidor fick ingenting. På åtta
+står texten på varans egna hyllor, i dess fack eller bakom dess glasdörrar, alltså inne i
+det som inte får skäras bort. Den nionde saknas i feeden. För de nio är leverantörens
+bilder uttömda.
+
+✅ **En andra genomgång samma dag gav sju bilder till.** Leonard frågade om sidorna med två
+eller tre bilder hade fler att ge. Alla tio positioner på de 13 sidorna granskades igen, och
+sju utsnitt höll (`runda-bilder-1-klipp2`). Tre visar en utdragen låda där förpackningarna
+med text skurits utanför, och de andra är ett köksskåp i sitt kök, ett mikrovågsfack,
+insidan av ett badrumsskåp och sparkbilen på ett kalas. Alla sju skrevs och lästes tillbaka
+ur Wix i en separat läsning, och alla sju sidorna visar dem live. Nu har fyra av de 22
+sidorna kvar två bilder: `138a24b0`, `3a27aabe`, `9dc0f858` och `fbcf5899`. Resten
+stoppades av text på varan eller på sakerna i den, och av collagepaneler under 700 px på
+kortsidan, som ger en suddig huvudbild. Metoden står i `docs/polish/bildmetoder.md`.
+
+Den första genomgången kallade leverantörens bilder uttömda för nio sidor, men fem av dem
+fick bilder i den andra. Mät var texten slutar innan en bild stryks.
+
+✅ **Sidorna med tre bilder granskas i rundor om sju till nio sidor (2026-09-30).** Leonard:
+*"dom som har 3 och 2 bilder måste vi lösa … ta dom i omgångar några i taget o gör noggrant"*.
+Den färska räkningen gav 48 sidor med två bilder och 172 med tre. Varje runda hämtar alla tio
+positioner och granskar dem med samma regler och samma beskärning som ovan. Rundorna 2–7
+(kontorsstolar, fåtöljer, soffor, bord, badrumsskåp och trädgård) granskade 52 sidor, och 44 av
+dem fick sammanlagt 89 bilder. Alla är skrivna, lästa tillbaka ur Wix och sedda på de publicerade
+sidorna. Skälet per bild står i `runda-bilder-N/granskning.tsv`, och fällorna står i
+`docs/polish/bildmetoder.md` (*Beskärning*).
+
+☠️ **Butikens galleri visar VARJE bild som en kvadrat ur mitten, inte bara huvudbilden**
+(uppmätt 2026-09-30: `.gallery .gmain img` har `aspect-ratio: 1` och `object-fit: cover`, och
+adressen är Wix `fill … al_c`). Ett avlångt utsnitt där varan fyller hela höjden visas alltså
+kapat. Nio av 76 icke-kvadratiska utsnitt från rundorna 1–6 gör det, bland dem en garderob, ett
+TV-stativ och en lyftfåtölj. Listan står i bildmetoderna. De ligger kvar tills Leonard valt
+mellan att ta bort dem och att låta galleriet visa hela bilden.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -4374,6 +4437,77 @@ rankningen följde med dit. Den pekar nu på bloggens guide (#647, med test).
 Före en omdirigering: kontrollera vad adressen rankar på
 (`rankande-adresser.tsv` i granskningen) och välj en sida som svarar på
 samma fråga. Finns ingen sådan är en ärlig 404 bättre än en irrelevant sida.
+
+## Restock-bevakarna (`/admin/restock-list`, 2026-09-30)
+
+Leonards rapport: sidan visade produkterna på engelska. Namnet kom ur
+mappningens `seoTitle`, som är leverantörens sidtitel från importen
+("… - AliExpress") och aldrig skrivs om av poleringen. Sidan läser nu butikens
+namn ur Wix (`searchProductSummaries`, ett anrop per 100 produkter) och visar
+leverantören med länk, lagret hos leverantören och lagret hos oss. Vad som
+visas bestäms i `lib/restock/rader.ts`.
+
+### Restock-mejlet (2026-09-30)
+
+Leonards granskning av mejlet: leverantörens namn och bild, loggan på vit botten
+och en sidfot som sa *"skickades automatiskt av Fyndplats sync-cron. Klicka inte
+på okända länkar"* till kunden. Och Aosom-varor fick inget mejl alls. Mejlet
+hade dessutom aldrig nått någon: 52 restock-händelser sedan 2026-08-16, noll
+notifierade.
+
+Båda synkerna går nu genom `mejlaBevakare` (`lib/restock/notify.ts`). Mejlet
+byggs i `lib/restock/mejl.ts` och får butikens kundomslag
+(`lib/email/kundmejl.ts`, samma form som butikens egna kundmejl): mörk
+rubrikrad med loggan, avsändaren `orders@fyndplats.se`, svar till
+kundservice och en sidfot med mejl och telefon.
+
+| synk | när bevakarna mejlas |
+|---|---|
+| AliExpress | listningen går från slut till aktiv (`justRestocked`), alltså hela produkten |
+| Aosom | en lagerrad går från noll till mer än noll i butiken (`aterkomnaLagerrader`) |
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Allt kunden ser läses färskt ur Wix precis före utskicket**
+   (`getV3ProduktKort`): namn, bild, pris och adress. Mappningens `seoTitle` är
+   leverantörens titel, och en bild som inte ligger hos Wix släpps aldrig in.
+2. ☠️ **En bevakare stämplas bara när Resend tog emot mejlet.** Den gamla vägen
+   stämplade alla, också när `sendEmail` svarade `skipped`. Då var bevakningen
+   förbrukad utan att något mejl gått.
+3. ☠️ **Aosom räknar per lagerrad, inte per produkt.** Butikens formulär visas när
+   den VALDA färgen är slut, också när en annan finns, och bevakningen sparar
+   ingen färg. Den 2026-09-30 väntade två av fyra bevakare så (vitt sängbord,
+   beige klättervägg). Mejlet säger då vilket utförande som kom tillbaka och
+   visar dess bild, ur valets `linkedMedia` — variantens egen `media` bar den
+   andra färgens bild. AliExpress-synken ser bara hela produkten och mejlar
+   alltså först när varan varit helt slut.
+4. ☠️ **Ingen synlig variant, dold produkt eller saknad adress stoppar mejlet.**
+   En sida vars enda variant är dold visar "Slutsåld" med fullt lager.
+5. ☠️ **Ett pris som synken skrev i samma körning visas inte.** Wix läsning
+   släpar efter en skrivning, och mejlet får inte säga ett annat pris än sidan.
+6. **Butikens cache för sidan töms före utskicket** (`uppfriskaProduktsida`).
+   Produktsidorna cachas en timme och bara en order tömmer dem, så länken hade
+   annars kunnat visa "Slutsåld". Kräver `ADMIN_SECRET` i motorns miljö; nyckeln
+   går som kakan `fp_admin`, för proxyns `?key=` bygger på en kaka som fetch inte
+   sparar. Saknas nyckeln går mejlet ändå, och loggen säger `sidans cache:
+   ingen_nyckel`.
+7. **Övergången syns bara en gång.** Faller ett utskick får bevakaren inget nytt
+   försök förrän varan tagit slut och kommit tillbaka. `restockEjSkickade` i
+   Aosom-synkens loggrad ska därför vara noll.
+
+⚠️ **Bevakare vars vara redan finns i lager får inget mejl.** De missade
+återkomsten, till exempel för att den skedde innan det här fanns. Adminsidan
+säger det på raden.
+
+**Provkörningen** (workflowen **"Restock — provkör sidans cache och mejlet"** →
+`/api/admin/restock-prov` → `lib/restock/prov.ts`). `ADMIN_SECRET` finns i två
+Vercel-projekt, butiken och motorn, och värdet går inte att läsa tillbaka i
+något av dem. Läget `sidan` tömmer en produktsidas cache med samma anrop som före
+ett mejl och svarar med butikens statuskod: 200 betyder att värdena är lika, 404
+att butikens proxy avvisade nyckeln, och `ingen_nyckel` att den saknas i motorn.
+Läget `mejl` skickar restock-mejlet med `[Prov]` i ämnesraden till den interna
+larmadressen (samma som vaktens morgonmejl) genom `mejlaBevakare`, utan att röra
+en bevakare. Ingen nyckel och ingen adress når loggen.
 
 ## Dubblett-spärr vid import
 

@@ -9,6 +9,9 @@
 // så vi slipper en ny dependency (paketet är inte i package.json — håll det
 // så för cache-warmer).
 
+import { escapeHtml } from "./html";
+import { KUND_SVARSADRESS, kundAvsandare, wrapInKundShell } from "./kundmejl";
+
 const RESEND_API = "https://api.resend.com/emails";
 
 const BRAND = {
@@ -18,7 +21,10 @@ const BRAND = {
   text: "#1f2937",
   muted: "#6b7280",
   border: "#e5e7eb",
-  logoUrl: "https://fyndplats.se/email-logo",
+  // Loggan är vit text på mörk botten och ritad för en mörk rubrikrad (se
+  // lib/email/kundmejl.ts). På vit botten såg den ut som en svart skylt.
+  headerBg: "#222018",
+  logoUrl: "https://www.fyndplats.se/email-logo",
 } as const;
 
 export interface SendEmailInput {
@@ -28,6 +34,17 @@ export interface SendEmailInput {
   bodyHtml: string;
   /** Plain-text-fallback (för spam-score + accessibility). */
   bodyText: string;
+  /**
+   * Vem mejlet är till. `kund` får butikens omslag, avsändare och svarsadress
+   * (lib/email/kundmejl.ts). Default `intern`: driftmejl till oss själva.
+   *
+   * ☠️ Ett kundmejl får aldrig gå i driftomslaget. Dess sidfot säger "skickades
+   * automatiskt av Fyndplats sync-cron", och så såg restock-mejlet ut för
+   * kunderna fram till 2026-09-30.
+   */
+  mottagare?: "intern" | "kund";
+  /** Raden efter ämnesraden i inkorgen. Används bara för kundmejl. */
+  forhandstext?: string;
 }
 
 export interface SendEmailResult {
@@ -42,7 +59,10 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { skipped: "no_api_key" };
 
-  const from = process.env.RESEND_FROM_ADDRESS ?? "Fyndplats <noreply@fyndplats.se>";
+  const kund = input.mottagare === "kund";
+  const from = kund
+    ? kundAvsandare()
+    : process.env.RESEND_FROM_ADDRESS ?? "Fyndplats <noreply@fyndplats.se>";
 
   const res = await fetch(RESEND_API, {
     method: "POST",
@@ -54,8 +74,12 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       from,
       to: [input.to],
       subject: input.subject,
-      html: wrapInBrandShell(input.bodyHtml),
+      html: kund
+        ? wrapInKundShell(input.bodyHtml, input.forhandstext ?? "")
+        : wrapInBrandShell(input.bodyHtml),
       text: input.bodyText,
+      // Svar på ett kundmejl ska nå kundservice, inte en adress ingen läser.
+      ...(kund ? { reply_to: KUND_SVARSADRESS } : {}),
     }),
   });
   if (!res.ok) {
@@ -84,8 +108,8 @@ export function wrapInBrandShell(bodyHtml: string): string {
       <td align="center" style="padding:24px 12px;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:${BRAND.cardBg};border:1px solid ${BRAND.border};border-radius:12px;overflow:hidden;">
           <tr>
-            <td align="left" style="padding:20px 24px;border-bottom:1px solid ${BRAND.border};">
-              <img src="${BRAND.logoUrl}" alt="Fyndplats" width="120" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:120px;" />
+            <td align="left" style="padding:16px 24px;background:${BRAND.headerBg};">
+              <img src="${BRAND.logoUrl}" alt="Fyndplats" width="150" height="35" style="display:block;border:0;outline:none;text-decoration:none;width:150px;height:35px;" />
             </td>
           </tr>
           <tr>
@@ -221,15 +245,6 @@ function formatDuration(startIso: string, endIso: string): string {
   return `${Math.floor(sec / 60)}m ${sec % 60}s`;
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 function truncate(s: string, max: number): string {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
@@ -340,54 +355,6 @@ export function buildOosAlertEmail(input: OosAlertEmailInput): {
   }
 
   return { subject, html, text: textLines.join("\n") };
-}
-
-// =====================================================================
-// Feature 1 — restock-mejl till kund ("Tillbaka i lager")
-// =====================================================================
-
-export interface RestockEmailInput {
-  productName: string;
-  /** Produktsidans URL på headless-sajten. */
-  productUrl: string;
-  imageUrl?: string;
-}
-
-/**
- * Bygger kund-mejlet som skickas till alla som bevakade en slutsåld produkt
- * när den kommer tillbaka i lager.
- */
-export function buildRestockNotificationEmail(input: RestockEmailInput): {
-  subject: string;
-  html: string;
-  text: string;
-} {
-  const subject = `Tillbaka i lager: ${input.productName}`;
-  const thumb = input.imageUrl
-    ? `<img src="${escapeHtml(input.imageUrl)}" alt="${escapeHtml(input.productName)}" width="120" style="display:block;border-radius:8px;border:1px solid ${BRAND.border};margin:0 0 14px;" />`
-    : "";
-
-  const html = `
-    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px 14px;margin:0 0 16px;">
-      <span style="display:inline-block;background:#059669;color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:999px;">Tillbaka i lager</span>
-    </div>
-    ${thumb}
-    <h2 style="margin:0 0 6px;font-size:18px;">${escapeHtml(input.productName)} är tillbaka!</h2>
-    <p style="margin:0 0 16px;font-size:14px;line-height:1.55;">
-      Goda nyheter — produkten du bevakade finns nu i lager igen. Den säljer ofta slut snabbt, så passa på.
-    </p>
-    <p style="margin:0;">
-      <a href="${escapeHtml(input.productUrl)}" style="display:inline-block;background:${BRAND.primary};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:600;font-size:15px;">Visa produkten →</a>
-    </p>`;
-
-  const text = [
-    `${input.productName} är tillbaka i lager!`,
-    "",
-    "Produkten du bevakade finns nu i lager igen.",
-    `Visa produkten: ${input.productUrl}`,
-  ].join("\n");
-
-  return { subject, html, text };
 }
 
 // =====================================================================

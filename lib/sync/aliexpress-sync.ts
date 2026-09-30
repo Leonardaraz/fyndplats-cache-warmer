@@ -48,13 +48,9 @@ import {
 } from "./sync-log";
 import { fetchOrders, aggregateOrders, isoDaysAgo } from "../wix/orders";
 import { findAlternativeSuppliers, isAlternativesEnabled } from "../aliexpress/alternatives";
-import { getRestockStore } from "../restock/store";
 import { getRestockLogStore } from "../restock/log";
-import {
-  buildOosAlertEmail,
-  buildRestockNotificationEmail,
-  sendEmail,
-} from "../email/resend";
+import { beskrivUtskick, mejlaBevakare } from "../restock/notify";
+import { buildOosAlertEmail, sendEmail } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
 import { aliExpressIdOf, isAliExpressMapping } from "../store/supplier";
 import { mapWithConcurrency } from "../concurrency";
@@ -1448,36 +1444,23 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
 
   // Feature 1 + 8: produkten kom tillbaka i lager → mejla bevakarna och logga
   // restock-händelsen i FyndplatsRestockLog (restock-tidslinje för admin). Endast live.
+  //
+  // Mejlet byggs ur BUTIKEN, inte ur mappningen: namn, bild, pris och adress
+  // läses färskt ur Wix (lib/restock/notify.ts). `productName` ovan är
+  // leverantörens titel och får aldrig nå en kund.
   if (decision.justRestocked && !dryRun) {
     try {
-      const restockStore = getRestockStore();
-      const subs = await restockStore.listPendingForProduct(mapping.wixProductId);
-      if (subs.length > 0) {
-        const productUrl = productPageUrl(wixSnapshot.slug);
-        const email = buildRestockNotificationEmail({
-          productName,
-          productUrl,
-          imageUrl: productImage,
-        });
-        const notifiedIds: string[] = [];
-        for (const sub of subs) {
-          await sendEmail({
-            to: sub.email,
-            subject: email.subject,
-            bodyHtml: email.html,
-            bodyText: email.text,
-          });
-          notifiedIds.push(sub.id);
-        }
-        await restockStore.markNotified(notifiedIds);
-        restockSent = notifiedIds.length;
+      const utskick = await mejlaBevakare(mapping.wixProductId);
+      restockSent = utskick.skickade;
+      if (utskick.stopp || utskick.ejSkickade > 0 || utskick.markeringsfel) {
+        console.warn(`[sync] restock-mejl ${mapping.wixProductId}: ${beskrivUtskick(utskick)}`);
       }
       // Logga restock-händelsen oavsett om någon bevakare fanns (= full tidslinje).
       // Best-effort: en misslyckad loggning får inte fälla syncen.
       try {
         await getRestockLogStore().log({
           productId: mapping.wixProductId,
-          productName,
+          productName: utskick.butiksnamn || wixSnapshot.name || productName,
           restockedAt: checkedAt,
           subscribersNotified: restockSent,
           newStock: aliExpress?.totalStock ?? null,
@@ -1573,16 +1556,6 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   }
 
   return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent, shippabilityCalls, shippabilityUnshippable };
-}
-
-/**
- * Bygger produktsidans publika URL för restock-mejl. Slug kommer från Wix-
- * produkten; bas-URL från STORE_PRODUCT_BASE_URL (default fyndplats.se/produkt).
- */
-function productPageUrl(slug?: string): string {
-  const base = (process.env.STORE_PRODUCT_BASE_URL ?? "https://fyndplats.se/produkt").replace(/\/$/, "");
-  if (slug) return `${base}/${slug}`;
-  return process.env.NEXT_PUBLIC_STORE_URL ?? "https://fyndplats.se";
 }
 
 /**

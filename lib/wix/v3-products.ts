@@ -1042,6 +1042,127 @@ export async function getV3VariantPriser(productId: string): Promise<Map<string,
   return ut;
 }
 
+/** En variant så som ett kundmejl behöver den. */
+export interface V3ProduktVariant {
+  id: string;
+  /** Bara ett uttryckligt `false` är dolt. */
+  visible: boolean;
+  /** Valens namn i optionernas ordning, t.ex. "Vit" eller "Grå / 110 cm". Tom utan val. */
+  namn: string;
+  /** Första kopplade bilden på något av variantens val — färgens bild. */
+  bildUrl?: string;
+  /** Variantens pris i kronor. Saknas när beloppet inte går att läsa. */
+  pris?: number;
+}
+
+/** Det ett kundmejl om en produkt visar: butikens namn, bild, pris och adress. */
+export interface V3ProduktKort {
+  id: string;
+  /** Butikens namn på varan — det kunden ser på sidan. */
+  namn: string;
+  slug: string;
+  /** Bara ett uttryckligt `false` är dolt. */
+  visible: boolean;
+  /** Huvudbilden hos Wix (static.wixstatic.com). */
+  bildUrl?: string;
+  /** Butikens prisspann. Saknas när beloppet inte går att läsa. */
+  pris?: { min: number; max: number };
+  varianter: V3ProduktVariant[];
+  /** Minst en variant som inte är dold. Butiken visar "Slutsåld" utan en. */
+  harSynligVariant: boolean;
+}
+
+type V3Val = { choiceId?: string; name?: string; linkedMedia?: { image?: { url?: string } }[] };
+
+/**
+ * Läser produkten som butiken visar den, för ett kundmejl
+ * (`lib/restock/notify.ts`). `null` = produkten finns inte (404). Andra fel
+ * KASTAR: ett läsfel får aldrig se ut som en produkt som inte finns.
+ *
+ * ☠️ VARIANTERNA HAR ETT EGET `visible`. En publicerad produkt vars enda variant
+ * är dold visar "Slutsåld" i butiken med fullt lager i Wix (31 sidor
+ * 2026-09-06). Ett mejl som säger att varan finns igen får inte gå dit.
+ * `variantsInfo` finns bara i ett GET per produkt, aldrig i sökprojektionen.
+ *
+ * Varianten bär bara val-id (`choices[].optionChoiceIds`). Namnen och färgens
+ * bild ligger i `options[].choicesSettings.choices[]` (uppmätt 2026-09-30 på
+ * ett tvåfärgat sängbord). Variantens egen `media` duger inte: där stod den
+ * andra färgens bild.
+ */
+export async function getV3ProduktKort(productId: string): Promise<V3ProduktKort | null> {
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`,
+    { method: "GET", headers: headers() },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3ProduktKort(${productId}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    product?: {
+      id?: string;
+      name?: string;
+      slug?: string;
+      visible?: boolean;
+      media?: { main?: { image?: { url?: string } } };
+      actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+      options?: { id?: string; choicesSettings?: { choices?: V3Val[] } }[];
+      variantsInfo?: {
+        variants?: {
+          id?: string;
+          visible?: boolean;
+          choices?: { optionChoiceIds?: { optionId?: string; choiceId?: string } }[];
+          price?: { actualPrice?: { amount?: string } };
+        }[];
+      };
+    };
+  };
+  const p = data.product;
+  if (!p) throw new Error(`getV3ProduktKort(${productId}): tom payload`);
+
+  // optionId → choiceId → valet, och optionernas ordning för namnet.
+  const optionOrdning = (p.options ?? []).map((o) => o.id ?? "");
+  const valPerOption = new Map<string, Map<string, V3Val>>();
+  for (const o of p.options ?? []) {
+    valPerOption.set(o.id ?? "", new Map((o.choicesSettings?.choices ?? []).map((c) => [c.choiceId ?? "", c])));
+  }
+  const varianter: V3ProduktVariant[] = (p.variantsInfo?.variants ?? [])
+    .filter((v) => v.id)
+    .map((v) => {
+      const val = (v.choices ?? [])
+        .map((c) => ({
+          ordning: optionOrdning.indexOf(c.optionChoiceIds?.optionId ?? ""),
+          val: valPerOption.get(c.optionChoiceIds?.optionId ?? "")?.get(c.optionChoiceIds?.choiceId ?? ""),
+        }))
+        .sort((a, b) => a.ordning - b.ordning)
+        .map((x) => x.val);
+      const pris = Number(v.price?.actualPrice?.amount);
+      return {
+        id: v.id as string,
+        visible: v.visible !== false,
+        namn: val.map((x) => (x?.name ?? "").trim()).filter(Boolean).join(" / "),
+        bildUrl: val.map((x) => x?.linkedMedia?.[0]?.image?.url).find(Boolean) || undefined,
+        pris: Number.isFinite(pris) && pris > 0 ? pris : undefined,
+      };
+    });
+
+  const min = Number(p.actualPriceRange?.minValue?.amount);
+  const max = Number(p.actualPriceRange?.maxValue?.amount);
+  return {
+    id: p.id ?? productId,
+    namn: (p.name ?? "").trim(),
+    slug: (p.slug ?? "").trim(),
+    visible: p.visible !== false,
+    bildUrl: p.media?.main?.image?.url || undefined,
+    pris: Number.isFinite(min) && min > 0
+      ? { min, max: Number.isFinite(max) && max >= min ? max : min }
+      : undefined,
+    varianter,
+    harSynligVariant: varianter.some((v) => v.visible),
+  };
+}
+
 export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
   const priser = new Map<string, WixProduktPris>();
   let cursor: string | undefined;

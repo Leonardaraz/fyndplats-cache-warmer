@@ -7,8 +7,10 @@ import {
   MIN_FEED_RADER,
   MAX_PRISANDRING_PCT,
   jamforelsePris,
+  aterkomnaLagerrader,
   type AosomSyncDeps,
 } from "./sync";
+import type { RestockUtskick } from "../restock/notify";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
 import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
@@ -1314,5 +1316,223 @@ describe("färgsammanslagna sidor — en artikel per variant", () => {
     expect(s.errors[0].error).toMatch(/tvetydig/);
     // Skälet namnger aldrig ett artikelnummer — felen går till en publik logg.
     expect(s.errors[0].error).not.toMatch(/A-1|G-7/);
+  });
+});
+
+describe("aterkomnaLagerrader — slut i butiken före, i lager efter", () => {
+  const post = (id: string, quantity?: number) => ({ id, revision: "1", productId: "p", variantId: `v-${id}`, quantity });
+  const idn = (x: ReturnType<typeof aterkomnaLagerrader>) => x?.map((r) => r.id) ?? null;
+
+  it("noll före och mer än noll efter", () => {
+    expect(idn(aterkomnaLagerrader([post("a", 0)], new Map([["a", 4]])))).toEqual(["a"]);
+  });
+
+  it("lager före är ingen återkomst", () => {
+    expect(aterkomnaLagerrader([post("a", 2)], new Map([["a", 6]]))).toBeNull();
+  });
+
+  it("☠️ en färg som kommer tillbaka räknas, också när en annan färg fanns hela tiden", () => {
+    // Formuläret visas när den VALDA färgen är slut. Bevakaren av vitt
+    // sängbord väntade medan ekdekor fanns (2026-09-30).
+    expect(idn(aterkomnaLagerrader([post("svart", 5), post("gra", 0)], new Map([["gra", 3]])))).toEqual(["gra"]);
+  });
+
+  it("bara raderna som kom tillbaka räknas", () => {
+    const rader = [post("svart", 0), post("gra", 0), post("rod", 0)];
+    expect(idn(aterkomnaLagerrader(rader, new Map([["gra", 3], ["rod", 0]])))).toEqual(["gra"]);
+  });
+
+  it("☠️ ett saldo som inte gick att läsa är okänt, aldrig noll", () => {
+    expect(aterkomnaLagerrader([post("a", undefined)], new Map([["a", 4]]))).toBeNull();
+    expect(aterkomnaLagerrader([post("a", 0), post("b", undefined)], new Map([["a", 4]]))).toBeNull();
+  });
+
+  it("utan lagerposter finns inget att avgöra", () => {
+    expect(aterkomnaLagerrader([], new Map())).toBeNull();
+  });
+
+  it("noll förblir noll", () => {
+    expect(aterkomnaLagerrader([post("a", 0)], new Map([["a", 0]]))).toBeNull();
+  });
+});
+
+describe("restock-mejl i Aosom-synken (2026-09-30)", () => {
+  function restockDeps(over: Partial<AosomSyncDeps> = {}, bevakade = ["wix-A-1"]) {
+    const utskick: { id: string; visaPris: boolean; varianter: string[] }[] = [];
+    let lasningar = 0;
+    const svar: RestockUtskick = { bevakare: 2, skickade: 2, ejSkickade: 0, sidan: "uppfriskad" };
+    const x = deps({
+      bevakadeProdukter: async () => {
+        lasningar++;
+        return new Set(bevakade);
+      },
+      mejlaBevakare: async (id, opts) => {
+        utskick.push({ id, visaPris: opts.visaPris, varianter: opts.varianter });
+        return svar;
+      },
+      ...over,
+    });
+    return { ...x, utskick, lasningar: () => lasningar };
+  }
+
+  it("☠️ en produkt som går från noll till lager i butiken mejlar sina bevakare", async () => {
+    // Butiken står på noll (fixturens lagerpost) och feeden har 50 → 47 skrivs.
+    const { d, utskick } = restockDeps();
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.aterILager).toBe(2);
+    // Fixturens lagerpost bär inget variant-id: då gäller mejlet hela produkten.
+    expect(utskick).toEqual([{ id: "wix-A-1", visaPris: true, varianter: [] }]);
+    expect(s.restockMejl).toBe(2);
+    expect(s.restockEjSkickade).toBe(0);
+    expect(s.restockUtskick).toEqual([
+      { wixProductId: "wix-A-1", bevakare: 2, skickade: 2, ejSkickade: 0, sidan: "uppfriskad" },
+    ]);
+  });
+
+  it("en produkt som redan hade lager i butiken är ingen återkomst", async () => {
+    const { d, utskick } = restockDeps({
+      lasLagerposter: async (ids) => ids.map((id) => lagerpost(id, 10)),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.aterILager).toBe(0);
+    expect(utskick).toEqual([]);
+  });
+
+  it("torrkörningen räknar återkomsterna men mejlar ingen och läser inga bevakare", async () => {
+    const { d, utskick, lasningar } = restockDeps();
+    const s = await runAosomSync(d);
+    expect(s.aterILager).toBe(2);
+    expect(utskick).toEqual([]);
+    expect(lasningar()).toBe(0);
+  });
+
+  it("☠️ en lagerskrivning som föll mejlar ingen — varan finns inte i butiken", async () => {
+    const { d, utskick } = restockDeps({
+      skrivLager: async (updates) => ({
+        lyckade: updates.filter((u) => u.id !== "inv-wix-A-1").map((u) => u.id),
+        misslyckade: [{ id: "inv-wix-A-1", fel: "INVALID_REVISION" }],
+      }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.aterILager).toBe(1);
+    expect(utskick).toEqual([]);
+  });
+
+  it("bevakningarna läses en gång per körning, och bara när något kommit tillbaka", async () => {
+    const tva = restockDeps({}, ["wix-A-1", "wix-B-2"]);
+    await runAosomSync(tva.d, { dryRun: false });
+    expect(tva.lasningar()).toBe(1);
+    expect(tva.utskick.map((u) => u.id)).toEqual(["wix-A-1", "wix-B-2"]);
+
+    const ingen = restockDeps({ lasLagerposter: async (ids) => ids.map((id) => lagerpost(id, 47)) });
+    await runAosomSync(ingen.d, { dryRun: false });
+    expect(ingen.lasningar()).toBe(0);
+  });
+
+  it("☠️ ett pris som skrevs i samma körning visas inte i mejlet", async () => {
+    // Wix läsning släpar efter en skrivning. Mejlet får inte säga ett annat
+    // pris än sidan.
+    const { d, utskick, priser } = restockDeps({
+      listWixPriser: async () => wixPriser({ "wix-A-1": BASPRIS + 100 }),
+    });
+    await runAosomSync(d, { dryRun: false });
+    expect(priser.map((p) => p.id)).toEqual(["wix-A-1"]);
+    expect(utskick).toEqual([{ id: "wix-A-1", visaPris: false, varianter: [] }]);
+  });
+
+  it("☠️ en sammanslagen sida: färgen som kom tillbaka följer med till mejlet", async () => {
+    const bas = mappning("A-1");
+    const landadGra = landadKostnadSek(rad("G-7"), FX.eurToSek);
+    const stol: ProductMappingRecord = {
+      ...bas,
+      wixProductId: "wix-stol",
+      variants: [
+        { ...bas.variants[0], sku: "FP-stol-svart", wixVariantId: "wixvar-svart", choices: { Färg: "Svart" }, aosomSyncedQty: 0 },
+        {
+          supplierVariantId: "G-7", sku: "FP-stol-gra", wixVariantId: "wixvar-gra", choices: { Färg: "Grå" },
+          costUsd: landadGra / FX.usdToSek, landedCostSek: landadGra, grossSek: BASPRIS, aosomSyncedQty: 0,
+        },
+      ],
+    };
+    const poster = (svart: number, gra: number) => [
+      { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: svart },
+      { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: gra },
+    ];
+    const kor = (svart: number) =>
+      restockDeps(
+        {
+          // Svart har 2 hos Aosom (under bufferten, alltså 0), grå 13 → 10.
+          fetchFeed: async () => feedMed(rad("A-1", { qty: 2 }), rad("G-7", { qty: 13 })),
+          listAosom: async () => [{ ...stol, variants: stol.variants.map((v, i) => (i === 0 ? { ...v, aosomSyncedQty: svart } : v)) }],
+          lasLagerposter: async () => poster(svart, 0),
+          lasVariantPriser: async () =>
+            new Map([["wix-stol", new Map([["wixvar-svart", BASPRIS], ["wixvar-gra", BASPRIS]])]]),
+        },
+        ["wix-stol"],
+      );
+
+    // Båda färgerna var slut, grå kom tillbaka.
+    const bada = kor(0);
+    const s1 = await runAosomSync(bada.d, { dryRun: false });
+    expect(s1.aterILager).toBe(1);
+    expect(bada.utskick).toEqual([{ id: "wix-stol", visaPris: true, varianter: ["wixvar-gra"] }]);
+
+    // Svart stod på 5 hela tiden. Bevakaren väntade på grå, och får sitt mejl.
+    const enFanns = kor(5);
+    const s2 = await runAosomSync(enFanns.d, { dryRun: false });
+    expect(s2.aterILager).toBe(1);
+    expect(enFanns.utskick).toEqual([{ id: "wix-stol", visaPris: true, varianter: ["wixvar-gra"] }]);
+  });
+
+  it("en färg som tar slut är ingen återkomst", async () => {
+    const { d, utskick } = restockDeps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 1 }), rad("B-2", { qty: 1 })),
+      lasLagerposter: async (ids) => ids.map((id) => lagerpost(id, 12)),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.aterILager).toBe(0);
+    expect(utskick).toEqual([]);
+  });
+
+  it("☠️ bevakningar som inte går att läsa fäller inte synken, men syns", async () => {
+    const { d, lager } = restockDeps({
+      bevakadeProdukter: async () => {
+        throw new Error("Wix Data svarade 500");
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(lager).toHaveLength(2);
+    expect(s.misslyckade).toBe(0);
+    expect(s.restockMejl).toBe(0);
+    expect(s.restockFel).toMatch(/500/);
+  });
+
+  it("ett utskick som kastar fäller inte synken, och felet syns", async () => {
+    const { d } = restockDeps({
+      mejlaBevakare: async () => {
+        throw new Error("Wix Data svarade 503");
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.misslyckade).toBe(0);
+    expect(s.restockFel).toMatch(/wix-A-1: .*503/);
+  });
+
+  it("bevakare som inte fick sitt mejl räknas", async () => {
+    const { d } = restockDeps({
+      mejlaBevakare: async () => ({ bevakare: 3, skickade: 0, ejSkickade: 3, stopp: "dold" }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.restockEjSkickade).toBe(3);
+    expect(s.restockUtskick[0]).toMatchObject({ wixProductId: "wix-A-1", stopp: "dold" });
+  });
+
+  it("utan utskicksdeps mejlas ingen — som förut", async () => {
+    const { d } = deps();
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.aterILager).toBe(2);
+    expect(s.restockMejl).toBe(0);
+    expect(s.restockFel).toBeNull();
   });
 });

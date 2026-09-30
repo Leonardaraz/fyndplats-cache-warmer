@@ -1,0 +1,102 @@
+name: Restock — provkör sidans cache och mejlet
+
+# Restock-mejlet har två beroenden som bara syns i drift. Den här workflowen
+# provar båda utan att någon hemlighet visas eller roteras.
+#
+#   sidan  Tömmer en produktsidas cache i butiken, med samma anrop som före ett
+#          restock-mejl. ADMIN_SECRET finns i två Vercel-projekt, butiken och
+#          motorn, med var sitt värde som inte går att läsa tillbaka. Butikens
+#          proxy svarar 404 på fel nyckel och 200 på rätt, så ett försök avgör
+#          om värdena är lika. Svaret bär statuskoden, aldrig nyckeln.
+#   mejl   Skickar restock-mejlet för produkten till den interna larmadressen,
+#          samma som vaktens morgonmejl. Ämnesraden börjar med [Prov]. Ingen
+#          bevakare rörs, och anropet kan inte ange någon annan mottagare.
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har ADMIN_SECRET och
+# RESEND_API_KEY, Actions har CRON_SECRET.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        # Ett `choice` med required:true kan inte bli tomt, så GitHubs
+        # default-substitution har inget att fylla i här.
+        description: "sidan = töm produktsidans cache i butiken · mejl = skicka restock-mejlet till den interna larmadressen"
+        required: true
+        default: "sidan"
+        type: choice
+        options:
+          - sidan
+          - mejl
+      wix_product_id:
+        description: "Wix-produktens id (en publicerad produkt)"
+        required: true
+        type: string
+      variant_ids:
+        description: "Bara mejl: Wix-variant-id som kom tillbaka, kommaseparerade. Tomt = hela produkten"
+        required: false
+        type: string
+
+jobs:
+  prov:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          PRODUCT_ID: ${{ inputs.wix_product_id }}
+          VARIANT_IDS: ${{ inputs.variant_ids }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-larden 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/restock-prov"
+
+          if [ -n "${VARIANT_IDS:-}" ]; then
+            varianter=$(printf '%s' "${VARIANT_IDS}" | jq -Rc 'split(",") | map(gsub("^ +| +$"; "")) | map(select(length > 0))')
+          else
+            varianter='[]'
+          fi
+          kropp=$(jq -nc --arg l "${MODE}" --arg id "${PRODUCT_ID}" --argjson v "${varianter}" \
+            '{lage: $l, wixProductId: $id} + (if ($v | length) > 0 then {varianter: $v} else {} end)')
+
+          svar=$(curl -sS --max-time 90 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${kropp}" \
+            "${url}")
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret fran rutten var inte JSON. Ar den deployad dar workflowen kor?" >&2
+            exit 1
+          fi
+
+          # Bara utfall och statuskoder. Svaret bar aldrig nyckeln eller en adress.
+          echo "Lage:     ${MODE}" || true
+          echo "Produkt:  $(echo "$svar" | jq -r '.produkt // "-"')" || true
+          echo "Butik:    $(echo "$svar" | jq -r '.butik // "-"')" || true
+          echo "Tomning:  $(echo "$svar" | jq -r '.utfall // "-"') (butikens status $(echo "$svar" | jq -r '.status // "-"'))" || true
+          echo "Varmning: $(echo "$svar" | jq -r 'if .varmning then "status \(.varmning.status), x-vercel-cache \(.varmning.cache // "-"), age \(.varmning.age // "-")" else "-" end')" || true
+          if [ "${MODE}" = "mejl" ]; then
+            echo "Mottagare: $(echo "$svar" | jq -r '.mottagare // "-"') (adressen skrivs aldrig ut)" || true
+            echo "Sandning: $(echo "$svar" | jq -r '.sandning // "-"')" || true
+          fi
+          if [ "$(echo "$svar" | jq -r '.stopp // ""')" != "" ]; then
+            echo "Ett riktigt restock-mejl hade stoppats: $(echo "$svar" | jq -r '.stopp')" || true
+          fi
+          echo "Diagnos:  $(echo "$svar" | jq -r '.diagnos // .error // "-"')" || true
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.diagnos // .error // "okant fel"')" >&2
+            exit 1
+          fi
