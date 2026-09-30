@@ -1,0 +1,25 @@
+/* EU-lager & tull (2026-09-30). Bygger på om-*-klasserna i app/globals.css.
+   .sida omsluter hela sidan, så att reglerna här väger tyngre än de globala
+   (.om-sektion p m.fl.) utan !important. */
+
+.sida{display:block}
+
+.heroGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:48px;align-items:center}
+.lofte{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:28px 26px;box-shadow:var(--e2)}
+.sida .lofte h2{font-size:var(--text-xl);font-weight:800;letter-spacing:-.02em;margin:16px 0 8px}
+.sida .lofte p{margin:0;line-height:1.6;color:#3f3a34}
+
+.sida .text p{max-width:68ch}
+.sida .rubrikText{margin:12px 0 0;max-width:62ch}
+.sida .tre{grid-template-columns:repeat(3,1fr)}
+.sida .lasMer{margin-top:4px}
+
+.kalla{padding:28px 0 36px}
+.kalla p{margin:0;max-width:90ch}
+
+@media(max-width:900px){
+  .heroGrid{grid-template-columns:1fr;gap:28px}
+}
+@media(max-width:760px){
+  .sida .tre{grid-template-columns:1fr}
+}
