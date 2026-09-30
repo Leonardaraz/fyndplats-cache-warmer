@@ -681,9 +681,12 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    *"Items with low stock may be temporarily removed to avoid overselling."*
    Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
    kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
-3. **`LAGER_BUFFERT = 3`.** Feeden uppdateras tre gånger per dygn, så mellan två
-   synkar är siffran gammal. Säger Aosom "3 kvar" och vi visar 3 säljer vi den
-   fjärde. Aosom flaggar dessutom själva 276 rader med "Low Stock Alert".
+3. **`LAGER_BUFFERT = 1`**, 3 fram till 2026-10-01. Feeden uppdateras tre gånger
+   per dygn, så mellan två synkar är siffran gammal. Säger Aosom "3 kvar" och vi
+   visar 3 säljer vi den fjärde. Leonards beslut 2026-10-01: *"visa en mindre än
+   aosom, inte 3"*. Golvlampan `65ca6f6d` stod då som slutsåld med 4 kvar hos
+   Aosom. ☠️ **Sänk aldrig bufferten utan `medObestallda`**, som drar av det vi
+   sålt men inte beställt (se *En stämpel som ljuger rättas mot butiken*).
 4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
    cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
    Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
@@ -954,13 +957,32 @@ Fyra egenskaper som inte ska tas bort:
 drar av saldot vid köp, så butiken hamnar under stämpeln, och nästa synk
 skriver tillbaka flödets tal. Förut låg avdraget kvar tills Aosoms tal för
 artikeln ändrades. Nu skrivs det över vid varje körning tills Aosoms flöde
-visar vår order. `LAGER_BUFFERT` är därmed det enda som skyddar enheter vi sålt
-men inte beställt, och på en artikel med lite lager kan samma sista enhet
-säljas en gång per körning: Aosom har 4, butiken visar 1, den säljs, nästa
-körning skriver 1 igen. Regeln skiljer inte en försäljning från en nollning,
-och ett test låser det (`en försäljning räknas som drift`). Den smalare vägen,
-om det ska ändras, är att bara rätta när skillnaden är större än
-`LAGER_BUFFERT` — det tar hundburen (122 mot 0) men lämnar vanliga köp ifred.
+visar vår order. Regeln skiljer inte en försäljning från en nollning, och ett
+test låser det (`en försäljning räknas som drift`).
+
+☠️ **Det som hindrar att samma sista enhet säljs igen är `medObestallda`**
+(sedan 2026-10-01). Varje orderrad som är såld hos oss men inte beställd hos
+Aosom, alltså en task med status `pending`, dras av från flödets saldo innan
+planen jämförs med butiken. Fram till dess var det `LAGER_BUFFERT` på 3 som
+skyddade, och det räckte inte: golvlampan `65ca6f6d` hade 4 hos Aosom, butiken
+visade 1, order 10056 tog den, och nästa körning skrev 1 igen. Med bufferten på
+1 och avdraget blir samma rad 4 − 1 − 1 = 2.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Depen är obligatorisk (`lasObestallda`), och ett läsfel fäller
+   körningen.** En valfri dep glöms av nästa anropare, och en körning utan
+   avdraget lägger tillbaka varje såld enhet.
+2. **Bara `pending` räknas.** När ordern lagts hos Aosom och tasken markerats
+   beställd (workflowen "Order — beställd eller skickad för hand") slutar
+   avdraget, och bufferten tar glappet tills feeden visar ordern. ⚠️ En order
+   på flera enheter är större än bufferten under de timmarna.
+3. ☠️ **På en sammanslagen sida dras varje orderrad från sin egen färg**, avgjord
+   som beställningsfilen avgör den (`aosomArtikelForTask`). En rad som inte går
+   att knyta till en färg dras från ALLA färger.
+4. **Avdraget räknas och syns:** `obestalldaEnheter` och `obestalldaProdukter`
+   (Wix-id) står i svaret, loggraden, audit-raden och workflow-summeringen. Det
+   är ett mått, inget fel, och talet sjunker när ordrarna läggs.
 
 ⚠️ **Racet i B71 lagades på mappningssidan samma kväll** — se nästa avsnitt.
 Kvar är Wix-sidan: en körning som planerat ur en rad från före en

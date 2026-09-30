@@ -50,6 +50,7 @@ const SYNK_TOM = {
   slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], prisLasta: 0, konkurrentMal: 0,
   konkurrentTak: 0, konkurrentGolv: 0, konkurrentFrysta: 0, lagerDrift: 0,
   lagerDriftRattade: 0, lagerDriftProdukter: [], stampelHoppade: 0,
+  obestalldaEnheter: 0, obestalldaProdukter: [],
   flerartikelrader: 0, stoppedBy: "limit", kvar: 5, errors: [],
   aterILager: 0, restockMejl: 0, restockEjSkickade: 0, restockUtskick: [], restockFel: null,
 };

@@ -46,10 +46,11 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-lager.py
 """
 import io, os, sys
 
-# Wix-saldot är redan minskat med synkens LAGER_BUFFERT (3), se rättelsen
-# ovan. Feeden uppdateras tre gånger per dygn, så ett lågt saldo är äkta men
-# tunt: varan går att köpa, men kan sälja slut innan nästa synk. Det är en
-# varning, inte ett stopp.
+# Wix-saldot är redan minskat med synkens LAGER_BUFFERT, se rättelsen ovan.
+# Bufferten är 1 sedan 2026-10-01 (Leonards beslut, 3 före dess), och synken
+# drar dessutom av sålda men ännu inte beställda enheter. Feeden uppdateras tre
+# gånger per dygn, så ett lågt saldo är äkta men tunt: varan går att köpa, men
+# kan sälja slut innan nästa synk. Det är en varning, inte ett stopp.
 TUNT = 5
 
 

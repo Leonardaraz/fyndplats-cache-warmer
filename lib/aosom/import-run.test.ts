@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { runAosomImport, buildMapping, RAW_FLAGS, type AosomImportDeps } from "./import-run";
 import { aosomSupplierProductId } from "./to-product";
 import type { AosomRow } from "./feed";
+import { synligtSaldo } from "./sync";
 import type { ImportResult } from "../import/pipeline";
 import type { AliExpressProduct } from "../import/types";
 import type { ProductMappingRecord } from "../store";
@@ -401,8 +402,8 @@ describe("syskonTill — en sidas familj, utan artikelnummer i svaret", () => {
     expect(s.syskonAnkare).toBe(1);
     expect(s.syskonDubbletter).toBe(1);
     expect(s.syskon).toEqual([
-      { relation: "farg", farg: "Orange", matt: "50 × 40 × 30", saldo: 7, status: "importerad", nattensImportHoppar: true, wixProductId: "wix-ny-1" },
-      { relation: "farg", farg: "Grau", matt: "50 × 40 × 30", saldo: 7, status: "fanns", nattensImportHoppar: false, wixProductId: "wix-gra" },
+      { relation: "farg", farg: "Orange", matt: "50 × 40 × 30", saldo: synligtSaldo(10), status: "importerad", nattensImportHoppar: true, wixProductId: "wix-ny-1" },
+      { relation: "farg", farg: "Grau", matt: "50 × 40 × 30", saldo: synligtSaldo(10), status: "fanns", nattensImportHoppar: false, wixProductId: "wix-gra" },
       { relation: "farg", farg: "Weiß", matt: "50 × 40 × 30", saldo: 0, status: "ej_skeppbar", nattensImportHoppar: false },
     ]);
     // ☠️ Svarets syskonlista bär aldrig ett artikelnummer.
