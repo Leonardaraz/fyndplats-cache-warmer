@@ -1,0 +1,68 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0641bd05": {
+  "tyska": "57,5B x 60T x 91-101H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": [
+   91,
+   101
+  ],
+  "bredd": 57.5
+ },
+ "298492a4": {
+  "tyska": "70B x 87T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 87,
+  "hojd": 84,
+  "bredd": 70
+ },
+ "398fd97e": {
+  "tyska": "112B x 37T x 47H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 37,
+  "hojd": 47,
+  "bredd": 112
+ },
+ "3edfed51": {
+  "tyska": "63B x 75T x 82-90H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 75,
+  "hojd": [
+   82,
+   90
+  ],
+  "bredd": 63
+ },
+ "3efd8a70": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 70B x 72T x 56H cm | ✔ Bettmaße: 70B x 203T x 16H cm | ✔ Sitzmaße: 70B x 41T x 23H cm | Mått: 70L x 72B x 56H cm"
+ },
+ "69716c9d": {
+  "tyska": "114B x 147T x 86H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 147,
+  "hojd": 86,
+  "bredd": 114
+ },
+ "6f1cc782": {
+  "tyska": "118B x 68T x 90H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 68,
+  "hojd": 90,
+  "bredd": 118
+ },
+ "e01410d6": {
+  "tyska": "Ø44 x 47,5Hcm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 47.5
+ }
+}
