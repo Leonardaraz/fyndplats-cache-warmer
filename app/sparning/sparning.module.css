@@ -1,0 +1,56 @@
+/* Spåra paket (2026-09-30). Bygger på om-klasserna i app/globals.css;
+   här står bara det sidan har utöver dem. */
+
+section.hero {
+  padding-bottom: 64px;
+}
+
+.heroText {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+.heroText p {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sok {
+  max-width: 720px;
+  margin: 8px auto 0;
+  padding: 26px 26px 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e3);
+}
+
+ol.steg {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Resultatkortet ligger redan i ett kort; en skugga räcker. */
+.sok :global(.track-result) {
+  box-shadow: none;
+}
+
+.hjalpSek {
+  background: var(--warm);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 1000px) {
+  ol.steg {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) {
+  section.hero {
+    padding-bottom: 40px;
+  }
+}
+@media (max-width: 640px) {
+  .sok {
+    padding: 18px 16px 16px;
+  }
+}
