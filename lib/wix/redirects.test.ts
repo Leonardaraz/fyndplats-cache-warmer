@@ -133,6 +133,12 @@ describe("findRedirectConflicts", () => {
       })) as Awaited<ReturnType<typeof v3.listAllV3Products>>);
   }
 
+  it("☠️ läser katalogen utan beskrivning — med den når rutten sina 60 sekunder", async () => {
+    const spy = catalog("levande-produkt");
+    await findRedirectConflicts([{ fromSlug: "raderad-produkt", toPath: "/produkt/levande-produkt" }]);
+    expect(spy).toHaveBeenCalledWith({ beskrivning: false });
+  });
+
   it("släpper igenom en död källa mot en levande kategori", async () => {
     catalog("levande-produkt");
     const out = await findRedirectConflicts([

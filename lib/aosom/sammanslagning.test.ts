@@ -56,8 +56,12 @@ function mappning(artikel: string, wixProductId: string, over: Partial<ProductMa
   };
 }
 
-/** En låtsas-Wix med två produkter och deras lager, som svarar som V3 gör. */
-function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
+/**
+ * En låtsas-Wix med två produkter och deras lager, som svarar som V3 gör.
+ * `stavning` gör som Wix delade valista: ett val som butiken redan har sparas
+ * med listans stavning ("Svart och röd" blir "Svart och Röd").
+ */
+function fejkWix(over: { sida?: Obj; utkast?: Obj; stavning?: Record<string, string> } = {}) {
   const produkter: Record<string, Obj> = {
     sida: {
       id: "sida",
@@ -98,6 +102,18 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
     }
   };
   const idAv = (sokvag: string) => decodeURIComponent(sokvag.split("?")[0].split("/").pop()!);
+  const stava = (namn: unknown) => (typeof namn === "string" ? over.stavning?.[namn] ?? namn : namn);
+  const stavaOm = (p: Obj) => {
+    for (const o of (p.options ?? []) as Obj[]) {
+      for (const c of ((o.choicesSettings as { choices?: Obj[] } | undefined)?.choices ?? [])) c.name = stava(c.name);
+    }
+    for (const v of ((p.variantsInfo as { variants?: Obj[] } | undefined)?.variants ?? [])) {
+      for (const c of (v.choices ?? []) as Obj[]) {
+        const n = c.optionChoiceNames as Obj | undefined;
+        if (n) n.choiceName = stava(n.choiceName);
+      }
+    }
+  };
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     anrop.push({ metod, sokvag, kropp });
     if (metod === "GET" && sokvag.startsWith("/stores/v3/products/")) {
@@ -131,6 +147,7 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
         return { ...rest, id: vid };
       });
       p.variantsInfo = { variants: varianter };
+      stavaOm(p);
       p.revision = String(Number(p.revision) + 1);
       return { product: structuredClone(p) };
     }
@@ -148,6 +165,7 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj } = {}) {
       } else {
         kast("koppling");
         p.options = structuredClone(k.product.options);
+        stavaOm(p);
       }
       p.revision = String(Number(p.revision) + 1);
       return { product: structuredClone(p) };
@@ -471,6 +489,32 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(val.map((c) => [c.name, bildPa(c)])).toEqual([["Svart", "bild-s1"], ["Grå", "bild-u1"]]);
     expect(rader.get("sida")!.variants).toHaveLength(2);
     expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+  });
+
+  it("☠️ Wix stavar sidans färg som den delade listan — bilden kopplas ändå", async () => {
+    const w = fejkWix({ stavning: { "Svart och röd": "Svart och Röd" } });
+    const { deps, rader } = miljo({ wix: w });
+    const svar = await korSammanslagning({ ...PAR, fargBehall: "Svart och röd" }, deps, { apply: true });
+    expect(svar.fel).toBeUndefined();
+    expect(svar.ok).toBe(true);
+    expect(valPa(w).map((c) => [c.name, bildPa(c)])).toEqual([["Svart och Röd", "bild-s1"], ["Grå", "bild-u1"]]);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
+    expect(rader.get("utkast")!.draftStatus).toBe("rejected");
+  });
+
+  it("☠️ omkörningen efter en fallen koppling räknar valet en gång, fast stavningen skiljer", async () => {
+    const w = fejkWix({ stavning: { "Svart och röd": "Svart och Röd" } });
+    w.fel.koppling = 1000;
+    const { deps, rader } = miljo({ wix: w });
+    const input = { ...PAR, fargBehall: "Svart och röd" };
+    expect((await korSammanslagning(input, deps, { apply: true })).ok).toBe(false);
+
+    w.fel.koppling = 0;
+    const andra = await korSammanslagning(input, deps, { apply: true });
+    expect(andra.plan.tillstand).toBe("wix_klar");
+    expect(andra.fel).toBeUndefined();
+    expect(valPa(w).map((c) => [c.name, bildPa(c)])).toEqual([["Svart och Röd", "bild-s1"], ["Grå", "bild-u1"]]);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
   });
 
   it("☠️ föll mappningen: omkörningen ser att Wix är klart och gör bara resten", async () => {
