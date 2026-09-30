@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "51d0bf3f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhl Abmessungen: 64L x 89B x 90H cm | ✔ Hocker Abmessungen: 45L x 37B x 31H cm | ✔ Sitzkissen Größe: 59L x 47B x 7H cm | ✔ Größe der Rückenlehne: 63B x 60H cm | Mått: 64L x 89B x 90H cm"
+ },
+ "a6b24d45": {
+  "tyska": "83L x 40B x 90H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 83,
+  "djup": 40
+ }
+}

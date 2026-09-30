@@ -339,6 +339,8 @@ TYSKA_ORD = [
     # runda B62 (hopphinder, agilitybågar, A-hinder, kattlådor)
     "Streufangmatte", "Schmutzfangmatte", "Streufach", "Siebvorlage", "Hürdenstangen",
     "Bodenstangen", "Rohrklemmen", "Hundesport", "Filterbeutel", "Klapptür", "Schornstein",
+    # runda B91 (gåbil, gungstol)
+    "Schiebstange", "Schutzbügel", "Schaukelstuhl", "Schaukelsessel",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
