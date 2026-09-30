@@ -102,6 +102,8 @@ describe("GET /api/admin/pensionerade", () => {
     expect(j.forstaRaderbara.sort()).toEqual(["a", "b"]);
     expect(j.egnaArtiklar).toBe(1);
     expect(j.egnaArtiklarIds).toEqual(["c"]);
+    // Planens egen klocka, inte de raderbaras — den finns även när ingen är raderbar.
+    expect(typeof j.aldstaPensionering).toBe("string");
     expect(text).not.toContain("SYNT-");
     expect(text).not.toContain("tysk-slug");
     expect(raderade).toEqual([]);
