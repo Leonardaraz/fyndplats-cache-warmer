@@ -14,12 +14,11 @@ name: Lägg till 301-redirect (manuell trigger)
 #   from_slug + to_path  → en rad (som tidigare)
 #   batch                → flera rader i ETT anrop. JSON-array:
 #                            [{"fromSlug":"gammal","toPath":"/produkt/ny"}, …]
-#                          Ett anrop i stället för N kör katalogkontrollen
-#                          (listAllV3Products) en gång i stället för N gånger,
-#                          vilket är hela poängen: N parallella körningar
-#                          rate-limitar Wix och faller sönder halvvägs.
-#                          Rutten validerar allt-eller-inget, så en trasig rad
-#                          skriver ingenting alls.
+#                          Ett anrop i stället för N: katalogkontrollen frågar
+#                          varje berörd slug en gång (fyra i taget) och
+#                          rutten validerar allt-eller-inget, så en trasig
+#                          rad skriver ingenting alls. N parallella körningar
+#                          hade kunnat skriva hälften.
 #
 # Återanvänder befintliga repository secrets:
 #   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)

@@ -1711,11 +1711,48 @@ efter 8 försök", och omkörningen föll likadant (B69, B87). Kartan slås nu u
 med `bildFor`/`satt`, och två tester låser det: ett där Wix stavar om sidans
 färg, och ett där omkörningen efter en fallen koppling räknar valet en gång.
 
-⚠️ **Omdirigeringsrutten läser katalogen utan beskrivning (2026-09-30).**
-`findRedirectConflicts` behöver bara slug och synlighet, men läste hela
-katalogen med `PLAIN_DESCRIPTION`. Det blev ett sextiotal tunga sidor, och
-rutten nådde sitt tak på 60 sekunder innan skrivningen hann börja (B69, B87).
-Ett test låser `listAllV3Products({ beskrivning: false })`.
+☠️ **Omdirigeringsrutten frågar per adress och läser aldrig hela katalogen
+(2026-09-30).** `findRedirectConflicts` behöver veta om en eller två slugs är
+synliga produkter, men läste hela katalogen för att få veta det. Att stryka
+`PLAIN_DESCRIPTION` (`4a0dd284`) räckte inte: katalogen är 6 311 produkter på
+64 sidor, ~1 s per sida, alltså ~63 s bara för läsningen mot ruttens tak på 60.
+`redirect-add.yml` dog med 504 två gånger samma kväll på EN rad, som fick
+kontrolleras för hand och skrivas med `force`.
+
+Nu ställs en exakt slug-fråga per berörd adress (`slugArSynligProdukt`), med en
+kontrollfråga före (`katalogenHarSynligProdukt`). Kvällens rad tar 0,18–0,25 s
+mot Wix i stället för ~63. Uppmätt mot skarpa V3 samma dag, och det är därför
+frågan ser ut som den gör:
+
+| fråga | svar |
+| :-- | :-- |
+| `filter: { slug }`, levande slug | 1 träff, `visible: true`, ~0,1 s |
+| samma, ett utkasts slug | 1 träff, `visible: false` |
+| samma, borttagen slug | `{"products":[],"pagingMetadata":{"count":0,…}}` |
+| samma slug i VERSALER | **0 träffar** — filtret är skiftlägeskänsligt |
+| okänt filterfält | 400 *"not declared as filterable"* — ignoreras INTE tyst |
+| `$startsWith` på slug | avvisas (fältet är en HashedString) |
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **"Ingen träff" ÄR godkännandet, så ett trasigt svar får aldrig se ut
+   som ett.** Ett svar utan `products`-lista kastar, och en träff med en ANNAN
+   slug kastar (då bet filtret inte). Allt som kastar blir en konflikt på varje
+   rad, och rutten skriver ingenting.
+2. ☠️ **Kontrollfrågan ersätter tom-katalog-spärren.** Med en fråga per adress
+   hade en tom eller felkopplad katalog (fel site-id) godkänt varje källa. Den
+   frågar efter EN synlig produkt: katalogens första produkt utan filter är ett
+   utkast, så en ofiltrerad fråga hade inte bevisat någonting.
+3. **Slugen gemenas före frågan.** Det är förlustfritt bara för att Wix slugs är
+   gemena: 0 av 6 311 bar en versal. Börjar Wix spara versaler måste det mätas om.
+4. **Begränsad samtidighet** (`SAMTIDIGA_SLUGFRAGOR = 4`), och varje adress
+   frågas en gång. En rad kostar tre frågor, femtio rader ett par sekunder.
+
+Allt-eller-inget och `force=1` bor i rutten och är oförändrade; de låses sedan
+samma dag av `app/api/admin/redirects/route.test.ts`. Verifierat genom att
+återinföra buggarna en i taget (obegränsad fan-out, borttagen kontrollfråga,
+saknat `visible` som dött, ingen slug-kontroll, rutten som skriver trots
+konflikt): rätt test fäller, och bara det.
 
 ⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
 det.** Kommentaren där säger att en delad option ("customization") tar högst 100

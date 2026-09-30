@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { findRedirectConflicts, upsertRedirect, validateRedirect } from "./redirects";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { findRedirectConflicts, SAMTIDIGA_SLUGFRAGOR, upsertRedirect, validateRedirect } from "./redirects";
 import * as v3 from "./v3-products";
 
 // Valideringen är sista försvarslinjen innan en rad hamnar i den tabell som
@@ -113,42 +113,111 @@ describe("upsertRedirect auth-headers", () => {
 // Regression för incidenten 2026-07-31: tre 301-rader skrevs mot slugs som
 // "svarade 404" — men två av dem var levande, säljbara produkter vars ISR-cache
 // bara var utgången. HTTP-status duger inte som bevis; katalogen är facit.
+//
+// ☠️ Och sedan 2026-09-30 frågas katalogen per ADRESS, inte i sin helhet. Att
+// läsa alla 6 311 produkter för att kontrollera en rad tog ~63 s mot ruttens
+// tak på 60, och POST /api/admin/redirects dog med 504 innan den hann skriva.
+// Den falska Wix:en nedan svarar som den skarpa gjorde samma dag.
+
+interface FalskProdukt {
+  slug: string;
+  visible?: boolean;
+}
+
+interface Fraga {
+  filter?: { slug?: string; visible?: boolean };
+  cursorPaging?: { limit?: number; cursor?: string };
+}
+
+function wixSvar(products: FalskProdukt[]): Response {
+  return new Response(
+    JSON.stringify({ products, pagingMetadata: { count: products.length, cursors: {}, hasNext: false } }),
+    { status: 200 },
+  );
+}
+
+/**
+ * En falsk `products/query` med de uppmätta egenskaperna: exakt slug-filter,
+ * skiftlägeskänsligt, noll eller en träff; `visible:true` ger en synlig
+ * produkt; en ofiltrerad fråga ger katalogen, precis som den skarpa. Varje
+ * fråga sparas, så att testerna ser vad grinden faktiskt frågade.
+ */
+function falskWix(
+  katalog: FalskProdukt[],
+  opts: { trasigSlug?: string; trasigKontroll?: boolean; fordrojningMs?: number } = {},
+) {
+  const urls: string[] = [];
+  const fragor: Fraga[] = [];
+  let iLuften = 0;
+  let mestILuften = 0;
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
+    urls.push(String(url));
+    const fraga = (JSON.parse(String(init?.body)) as { query: Fraga }).query;
+    fragor.push(fraga);
+    iLuften++;
+    mestILuften = Math.max(mestILuften, iLuften);
+    try {
+      if (opts.fordrojningMs) await new Promise((r) => setTimeout(r, opts.fordrojningMs));
+      const slug = fraga.filter?.slug;
+      if (typeof slug === "string") {
+        if (slug === opts.trasigSlug) return new Response("upstream request timeout", { status: 504 });
+        return wixSvar(katalog.filter((p) => p.slug === slug));
+      }
+      if (fraga.filter?.visible === true) {
+        if (opts.trasigKontroll) return new Response("<html>429 Too Many Requests</html>", { status: 429 });
+        return wixSvar(katalog.filter((p) => p.visible !== false).slice(0, 1));
+      }
+      return wixSvar(katalog.slice(0, fraga.cursorPaging?.limit ?? 100));
+    } finally {
+      iLuften--;
+    }
+  });
+  return {
+    urls,
+    fragor,
+    slugFragor: () => fragor.flatMap((f) => (typeof f.filter?.slug === "string" ? [f.filter.slug] : [])),
+    mestILuften: () => mestILuften,
+  };
+}
+
 describe("findRedirectConflicts", () => {
-  afterEach(() => vi.restoreAllMocks());
+  beforeEach(() => vi.stubEnv("WIX_API_TOKEN", "token-abc"));
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
 
-  function catalog(...slugs: string[]) {
-    return vi
-      .spyOn(v3, "listAllV3Products")
-      .mockResolvedValue(slugs.map((slug, i) => ({
-        id: `id-${i}`,
-        name: slug,
-        slug,
-        variantCount: 1,
-        hasSeoTitle: true,
-        hasSeoDescription: true,
-        hasJsonLd: true,
-        hasOgTags: true,
-        hasImage: true,
-        hasDescription: true,
-      })) as Awaited<ReturnType<typeof v3.listAllV3Products>>);
-  }
-
-  it("☠️ läser katalogen utan beskrivning — med den når rutten sina 60 sekunder", async () => {
-    const spy = catalog("levande-produkt");
-    await findRedirectConflicts([{ fromSlug: "raderad-produkt", toPath: "/produkt/levande-produkt" }]);
-    expect(spy).toHaveBeenCalledWith({ beskrivning: false });
+  it("☠️ en rad kostar en kontrollfråga och två exakta slug-frågor — aldrig hela katalogen", async () => {
+    // Exakt raden som dog på 60 sekunder två gånger 2026-09-30.
+    const skanning = vi.spyOn(v3, "listAllV3Products");
+    const wix = falskWix([{ slug: "skrivbord-hogglans-100x50-cm", visible: true }]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "skrivbord-hogglans-vit-100x50cm", toPath: "/produkt/skrivbord-hogglans-100x50-cm" },
+    ]);
+    expect(out).toEqual([]);
+    expect(skanning).not.toHaveBeenCalled();
+    expect(wix.fragor).toHaveLength(3);
+    expect(wix.slugFragor().sort()).toEqual(["skrivbord-hogglans-100x50-cm", "skrivbord-hogglans-vit-100x50cm"]);
+    // Ingen ofiltrerad fråga och ingen katalogsida om hundra.
+    expect(wix.fragor.every((f) => f.filter && (f.cursorPaging?.limit ?? 100) <= 10)).toBe(true);
+    expect(new Set(wix.urls)).toEqual(new Set(["https://www.wixapis.com/stores/v3/products/query"]));
   });
 
   it("släpper igenom en död källa mot en levande kategori", async () => {
-    catalog("levande-produkt");
+    const wix = falskWix([{ slug: "levande-produkt", visible: true }]);
     const out = await findRedirectConflicts([
       { fromSlug: "raderad-produkt", toPath: "/kategori/leksaker-spel" },
     ]);
     expect(out).toEqual([]);
+    // Kategorin är ingen produkt, så den frågas aldrig.
+    expect(wix.slugFragor()).toEqual(["raderad-produkt"]);
   });
 
   it("stoppar redirect FRÅN en synlig produkt (det som gick fel skarpt)", async () => {
-    catalog("verktygsbank-barn-leksaksset-181-delar");
+    falskWix([
+      { slug: "verktygsbank-barn-leksaksset-181-delar", visible: true },
+      { slug: "leksaksmotor-barn", visible: true },
+    ]);
     const out = await findRedirectConflicts([
       { fromSlug: "verktygsbank-barn-leksaksset-181-delar", toPath: "/produkt/leksaksmotor-barn" },
     ]);
@@ -157,7 +226,7 @@ describe("findRedirectConflicts", () => {
   });
 
   it("stoppar redirect TILL en produkt som inte finns (404 → 404)", async () => {
-    catalog("levande-produkt");
+    falskWix([{ slug: "levande-produkt", visible: true }]);
     const out = await findRedirectConflicts([
       { fromSlug: "raderad", toPath: "/produkt/finns-inte" },
     ]);
@@ -165,39 +234,15 @@ describe("findRedirectConflicts", () => {
     expect(out[0].problem).toMatch(/ingen synlig produkt/);
   });
 
-  it("bryr sig inte om att kategorimål inte står i produktkatalogen", async () => {
-    catalog("levande-produkt");
-    const out = await findRedirectConflicts([
-      { fromSlug: "raderad", toPath: "/kategori/vad-som-helst" },
-    ]);
-    expect(out).toEqual([]);
-  });
-
   // ☠️ SYNLIGHETEN BARS INTE — och felet gick at bada hall.
-  // `listAllV3Products` fragar `products/query` UTAN synlighetsvillkor, och V3
-  // lagger inte pa nagot implicit `visible:true` (uppmatt, CLAUDE.md). Listan
-  // bar inget `visible`-falt alls, sa varje UTKAST rakandes som en levande
-  // sida. Uppmatt skarpt 2026-09-16 pa trappkarran `59c3b5d6`.
-  function katalogMedSynlighet(...rader: Array<[string, boolean]>) {
-    return vi
-      .spyOn(v3, "listAllV3Products")
-      .mockResolvedValue(rader.map(([slug, visible], i) => ({
-        id: `id-${i}`,
-        name: slug,
-        slug,
-        visible,
-        variantCount: 1,
-        hasSeoTitle: true,
-        hasSeoDescription: true,
-        hasJsonLd: true,
-        hasOgTags: true,
-        hasImage: true,
-        hasDescription: true,
-      })) as Awaited<ReturnType<typeof v3.listAllV3Products>>);
-  }
-
+  // `products/query` lagger inte pa nagot implicit `visible:true` (uppmatt,
+  // CLAUDE.md), sa varje UTKAST rakandes som en levande sida sa lange
+  // synligheten inte lastes. Uppmatt skarpt 2026-09-16 pa trappkarran `59c3b5d6`.
   it("släpper igenom en redirect FRÅN ett avpublicerat utkast", async () => {
-    katalogMedSynlighet(["pensionerad-dubblett", false], ["sidan-vi-behaller", true]);
+    falskWix([
+      { slug: "pensionerad-dubblett", visible: false },
+      { slug: "sidan-vi-behaller", visible: true },
+    ]);
     const out = await findRedirectConflicts([
       { fromSlug: "pensionerad-dubblett", toPath: "/produkt/sidan-vi-behaller" },
     ]);
@@ -205,11 +250,12 @@ describe("findRedirectConflicts", () => {
   });
 
   // Den dyra halvan: malkontrollen finns for att stoppa en 301 som leder till
-  // en 404, och den kunde ALDRIG falla — ett osynligt utkast lag i liveSlugs
-  // som vilken sida som helst. En kontroll som inte KAN falla raknas anda som
-  // gjord.
+  // en 404. En kontroll som inte KAN falla raknas anda som gjord.
   it("stoppar redirect TILL ett utkast — målet är en 404 för kunden", async () => {
-    katalogMedSynlighet(["nagot-levande", true], ["opolerat-utkast", false]);
+    falskWix([
+      { slug: "nagot-levande", visible: true },
+      { slug: "opolerat-utkast", visible: false },
+    ]);
     const out = await findRedirectConflicts([
       { fromSlug: "raderad", toPath: "/produkt/opolerat-utkast" },
     ]);
@@ -219,7 +265,7 @@ describe("findRedirectConflicts", () => {
 
   // Riktningen ar vald: ett saknat falt far aldrig tyst doda en sida.
   it("saknat visible-fält räknas som SYNLIGT, aldrig som dött", async () => {
-    catalog("utan-visible-falt");
+    falskWix([{ slug: "utan-visible-falt" }]);
     const out = await findRedirectConflicts([
       { fromSlug: "utan-visible-falt", toPath: "/butik" },
     ]);
@@ -227,26 +273,88 @@ describe("findRedirectConflicts", () => {
     expect(out[0].problem).toMatch(/fortfarande en synlig produkt/);
   });
 
-  it("fail-closed när katalogen inte går att läsa", async () => {
-    vi.spyOn(v3, "listAllV3Products").mockRejectedValue(new Error("Wix nere"));
-    const out = await findRedirectConflicts([{ fromSlug: "raderad", toPath: "/butik" }]);
-    expect(out).toHaveLength(1);
-    expect(out[0].problem).toMatch(/kunde inte verifiera/);
+  it("☠️ ett läsfel skriver inget — VARJE rad får en konflikt", async () => {
+    falskWix([{ slug: "levande-produkt", visible: true }], { trasigSlug: "raderad" });
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/produkt/levande-produkt" },
+      { fromSlug: "annan-raderad", toPath: "/kategori/leksaker-spel" },
+    ]);
+    expect(out.map((c) => c.fromSlug)).toEqual(["raderad", "annan-raderad"]);
+    for (const c of out) expect(c.problem).toMatch(/kunde inte verifiera.*504/);
   });
 
-  it("fail-closed när katalogen kommer tillbaka tom", async () => {
-    catalog();
-    const out = await findRedirectConflicts([{ fromSlug: "raderad", toPath: "/butik" }]);
+  it("☠️ en fallen kontrollfråga skriver inget heller — och då ställs inga slug-frågor", async () => {
+    const wix = falskWix([{ slug: "levande-produkt", visible: true }], { trasigKontroll: true });
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/kategori/leksaker-spel" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/kunde inte verifiera.*429/);
+    expect(wix.slugFragor()).toEqual([]);
+  });
+
+  it("☠️ fail-closed när katalogen saknar synliga produkter — en tom katalog är inget godkännande", async () => {
+    // Med en fråga per adress ÄR "ingen träff" beskedet att källan är ledig. En
+    // tom eller felkopplad katalog (fel site-id) hade alltså godkänt varje källa.
+    falskWix([{ slug: "bara-ett-utkast", visible: false }]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/butik" },
+    ]);
     expect(out).toHaveLength(1);
     expect(out[0].problem).toMatch(/tom/);
   });
 
+  it("☠️ en batch där EN rad faller ger en konflikt för just den raden", async () => {
+    // Att rutten då inte skriver NÅGON av raderna låses i
+    // app/api/admin/redirects/route.test.ts — allt-eller-inget är dess sak.
+    falskWix([
+      { slug: "levande-a", visible: true },
+      { slug: "levande-b", visible: true },
+      { slug: "fortfarande-till-salu", visible: true },
+    ]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad-1", toPath: "/produkt/levande-a" },
+      { fromSlug: "fortfarande-till-salu", toPath: "/produkt/levande-b" },
+      { fromSlug: "raderad-2", toPath: "/kategori/leksaker-spel" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].fromSlug).toBe("fortfarande-till-salu");
+    expect(out[0].problem).toMatch(/fortfarande en synlig produkt/);
+  });
+
+  it("en adress som förekommer flera gånger frågas en gång", async () => {
+    const wix = falskWix([{ slug: "samlingssidan", visible: true }]);
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad-1", toPath: "/produkt/samlingssidan" },
+      { fromSlug: "raderad-2", toPath: "/produkt/samlingssidan" },
+      { fromSlug: "RADERAD-1", toPath: "/produkt/samlingssidan" },
+    ]);
+    expect(out).toEqual([]);
+    expect(wix.slugFragor().sort()).toEqual(["raderad-1", "raderad-2", "samlingssidan"]);
+  });
+
+  it("☠️ begränsad samtidighet — en stor batch avfyrar aldrig alla frågor på en gång", async () => {
+    const wix = falskWix([{ slug: "levande-produkt", visible: true }], { fordrojningMs: 5 });
+    const rader = Array.from({ length: 30 }, (_, i) => ({
+      fromSlug: `raderad-${i}`,
+      toPath: `/produkt/mal-${i}`,
+    }));
+    await findRedirectConflicts(rader);
+    expect(wix.slugFragor()).toHaveLength(60);
+    expect(wix.mestILuften()).toBeLessThanOrEqual(SAMTIDIGA_SLUGFRAGOR);
+    // Men parallellt: en batch ska inte ta sextio rundresor i rad.
+    expect(wix.mestILuften()).toBeGreaterThan(1);
+  });
+
   it("jämför skiftlägesokänsligt och rör inte nätet för en tom lista", async () => {
-    const spy = catalog("Levande-Produkt");
+    // Wix slug-filter är skiftlägeskänsligt och katalogens slugs är gemena
+    // (0 av 6 311 bar en versal, 2026-09-30) — därför gemenas indata.
+    const wix = falskWix([{ slug: "levande-produkt", visible: true }]);
     expect(await findRedirectConflicts([])).toEqual([]);
-    expect(spy).not.toHaveBeenCalled();
+    expect(wix.fragor).toHaveLength(0);
 
     const out = await findRedirectConflicts([{ fromSlug: "LEVANDE-produkt", toPath: "/butik" }]);
     expect(out).toHaveLength(1);
+    expect(wix.slugFragor()).toEqual(["levande-produkt"]);
   });
 });
