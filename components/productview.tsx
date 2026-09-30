@@ -385,6 +385,10 @@ export function ProductView({
   const galleryImages = synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
   const galleriFiltrerat = galleryImages !== allaBilder;
   const galleriNyckel = galleriFiltrerat ? valdaEtiketter.join("|") : "alla";
+  // Blur-förhandsvisningen hör till sidans huvudbild. Byter kunden färg får
+  // det nya galleriet den neutrala skimmern i stället för en suddig bild av
+  // en annan färg.
+  const [forstaGalleriNyckel] = useState(galleriNyckel);
   // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
   // slide hittas även om variantens URL har andra transform-params). Saknas → 0.
   const galleryIndexOf = (img?: string): number => {
@@ -644,7 +648,7 @@ export function ProductView({
         images={galleryImages}
         alt={name}
         imageAlts={imageAlts}
-        mainBlur={mainBlur}
+        mainBlur={galleriNyckel === forstaGalleriNyckel ? mainBlur : undefined}
         active={multiAxis || allHaveImage ? galleryIdx : undefined}
         onActiveChange={multiAxis ? setGalleryIdx : allHaveImage ? onGalleryActive : undefined}
         // Variantbilderna ligger nu utspridda i galleriet (naturlig ordning), så
