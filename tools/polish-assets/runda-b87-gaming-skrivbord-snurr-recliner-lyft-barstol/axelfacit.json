@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "015078dc": {
+  "tyska": "(aufrecht) 76B x 93T x 103H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 103,
+  "bredd": 76
+ },
+ "4e619979": {
+  "tyska": "(Aufrecht) 90B x 93T x 110H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 110,
+  "bredd": 90
+ },
+ "63f10b6f": {
+  "tyska": "57,5L x 52,5B x 93-114H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   93,
+   114
+  ],
+  "bredd": 57.5,
+  "djup": 52.5
+ },
+ "6575766f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Aufrechte Abmessung: 78B x 80T x 111,5H cm | ✔ Vollständig zurückgelehnt: 78B x 140T x 99H cm | ✔ Sitzgröße: 54B x 62T x 50H cm | ✔ Höhe der Armlehne (zum Sitz): 13H cm | ✔ Rückenlehne Größe: 59B x 12T x 73H cm | ✔ Kissen Größe: 29B x 7T x 20H cm | ✔ Lendenstütze Größe: 34B x 5T x 23H cm | Mått: 78L x 80B x 111,5H cm | ✔ Sitzgröße: 50B x 60T x 50H cm | ✔ Sitzgröße: 50B x 60T x 50H cm | ✔ Lendenstütze Größe: 34B x 5T x 25H cm"
+ },
+ "78308d21": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaße des Sessels: 79B x 82T x 101H cm (in Sitzposition), 80B x 112T x 95H cm (in Liegeposition) | ✔ Fußhocker: 48B x 42T x 42,5H cm | ✔ Sitzgröße: 50B x 52T cm | ✔ Maße der Rückenlehne: 66B x 15T x 68H cm | Mått: 79B x 82T x 101H cm"
+ },
+ "93e3e975": {
+  "tyska": "53L x 59,5B x 81-89H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   81,
+   89
+  ],
+  "bredd": 53,
+  "djup": 59.5
+ },
+ "bf16e055": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: (aufrecht) 72B x 83T x 107H cm | ✔ Stuhlmaße: (zurückgelehnt) 72B x 93T x 97H cm | ✔ Hockermaße: 50B x 45T x 41H cm | ✔ Sitzgröße: 40B x 51T x 46H cm | ✔ Rückengröße: 54B x 67H cm | Mått: 85L x 74B x 104H cm | ✔ Maße des Sessels (aufrecht): 72B x 83T x 107H cm | ✔ Maße des Sessels (in liegender Position): 72B x 93T x 97H cm | ✔ Maße des Fußhockers: 50B x 45T x 41H cm | ✔ Sitzmaße: 40B x 51T x 46H cm | ✔ Maße der Rückenlehne: 54B x 67H cm | ✔ Maße der Armlehnen(bis Boden): 44L x 10B cm"
+ },
+ "f8efe733": {
+  "tyska": "92B x 94T x 105H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 94,
+  "hojd": 105,
+  "bredd": 92
+ }
+}
