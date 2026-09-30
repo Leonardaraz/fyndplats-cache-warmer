@@ -60,6 +60,18 @@ import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
  *  recensionerna har INGET retention-fönster, så `beslutaSida` avbryter hela
  *  sidan om en enda Wix-rad saknas i Postgres. En rad kan alltså inte raderas
  *  utan att först vara bevisat kopierad. Torrkörning är dessutom default. */
+/*
+ *  ⚠️ AUKTIONERNA FLYTTAR 2026-09-29 (AUCTIONS_BACKEND) men står kvar här tills
+ *  samma fyra villkor är MÄTTA för dem: butiken läser via /api/auctions/*,
+ *  växlingen är i drift (`lager: postgres` i ruttens svar), kopian är i fas,
+ *  och Leonard har sagt ja till raderingen. Kön är 3 561 av Wix ~4 020 rader,
+ *  så det är raderingen av just den här kollektionen som frigör taket.
+ *
+ *  ☠️ Auktionerna har INGET retention-fönster, och efter växlingen tar ticken
+ *  och seeden bort rader ur Postgres (raderade produkter, diskvalificerad kö).
+ *  En sådan rad finns kvar i Wix men inte i kopian, och `beslutaSida` avbryter
+ *  då hela sidan. Det är rätt håll att fela åt: radera hellre kollektionen
+ *  direkt efter en verifierad kopiering än att vänta ett dygn. */
 export const ALDRIG_RADERA = [
   "FyndplatsAuctions",
   "FyndplatsRedirects",

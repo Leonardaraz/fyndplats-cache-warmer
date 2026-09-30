@@ -41,6 +41,7 @@ import {
   productExists,
   queryAuctions,
   removeAuction,
+  restoreListPrice,
   saveAuction,
 } from "@/lib/auction/store";
 
@@ -54,16 +55,6 @@ function isCronAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
   return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
-}
-
-/** Återställ produkten till ordinariepris (per variant om trackar finns). */
-async function restoreListPrice(a: AuctionDoc): Promise<void> {
-  if (a.variantPrices?.length) {
-    const byVariant = new Map(a.variantPrices.map((t) => [t.wixVariantId, { price: t.listPrice, compareAt: null }]));
-    await patchProductVariants(a.productId, byVariant);
-  } else {
-    await patchProductPrice(a.productId, a.listPrice, null);
-  }
 }
 
 /** Sätt aktuellt auktionspris (per variant om trackar finns). */
@@ -110,7 +101,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const now = Date.now();
-    const all = await queryAuctions(["live", "queued"]);
+    // Kön läses från toppen: påfyllningen främjar högst fem, och en produkt
+    // som raderats ur katalogen hoppas över. 200 räcker med god marginal, och
+    // med hela kön i Postgres hade varje tick läst ~2,4 MB för att använda fem.
+    const all = await queryAuctions(["live", "queued"], { köHuvud: 200 });
     let live = all.filter((a) => a.status === "live");
     const queued = all.filter((a) => a.status === "queued").sort((a, b) => a.queueOrder - b.queueOrder);
 

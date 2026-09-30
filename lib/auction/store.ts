@@ -1,7 +1,13 @@
 // lib/auction/store.ts
 //
-// Fyndauktionens persistens (Wix Data-collectionen FyndplatsAuctions) och
-// pris-PATCH mot Stores V3. Ren logik ligger i ./engine — här bor I/O.
+// Fyndauktionens persistens och pris-PATCH mot Stores V3. Ren logik ligger i
+// ./engine — här bor I/O.
+//
+// ☠️ TVÅ LAGER, EN VÄLJARE. Raderna bor i Wix Data (FyndplatsAuctions) eller i
+// Postgres (./store-postgres), och `auctionsBackend()` i lib/store/backend.ts
+// avgör vilket — aldrig anroparen. Default är Wix: att deploya koden får inte
+// byta lager. Butiken läser och avslutar via motorns rutter (/api/auctions/*),
+// så den följer med i samma växling.
 //
 // Wix Data-mönstren speglar beprövade vägar i repot:
 //   query  = POST /wix-data/v2/items/query   (samma som lib/headless m.fl.)
@@ -13,7 +19,16 @@
 // auktionen (ger överstruket ord.pris i storefronten) och rensas vid slut.
 
 import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
+import { auctionsBackend } from "@/lib/store/backend";
 import type { AuctionDoc } from "./engine";
+import {
+  pgQueryAuctions,
+  pgRemoveAuction,
+  pgRemoveAuctionsBulk,
+  pgSaveAuction,
+  pgSaveAuctionsBulk,
+  pgSenastSalda,
+} from "./store-postgres";
 
 export const AUCTION_COLLECTION = "FyndplatsAuctions";
 
@@ -21,8 +36,73 @@ function headers(): Record<string, string> {
   return wixHeaders();
 }
 
-/** Alla auktioner med status i `statuses` (kö-ordning stigande). */
-export async function queryAuctions(statuses: string[]): Promise<AuctionDoc[]> {
+/** Vilket lager som servar just nu. Står i rutternas svar, så en växling går
+ *  att se utifrån i stället för att antas ur en env-panel. */
+export function auktionslager(): "wix-data" | "postgres" {
+  return auctionsBackend();
+}
+
+const iPostgres = () => auctionsBackend() === "postgres";
+
+/**
+ * Alla auktioner med status i `statuses` (kö-ordning stigande).
+ *
+ * `köHuvud`: läs bara de första N köade (Postgres). Wix-vägen tar redan
+ * högst 1 000 rader totalt och bryr sig inte om gränsen.
+ */
+export async function queryAuctions(
+  statuses: string[],
+  opts: { köHuvud?: number } = {},
+): Promise<AuctionDoc[]> {
+  return iPostgres() ? pgQueryAuctions(statuses, opts.köHuvud) : wixQueryAuctions(statuses);
+}
+
+/**
+ * De senast sålda, nyast först — butikens "Senast sålda fynd".
+ * Wix: sorterad fråga med en sida på högst 50 (samma som butiken gjorde själv).
+ */
+export async function senastSalda(limit: number): Promise<AuctionDoc[]> {
+  if (iPostgres()) return pgSenastSalda(limit);
+  const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      dataCollectionId: AUCTION_COLLECTION,
+      query: {
+        filter: { status: "sold" },
+        sort: [{ fieldName: "endedAt", order: "DESC" }],
+        paging: { limit: Math.min(Math.max(1, limit), 50) },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`senastSalda ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const body = (await res.json()) as { dataItems?: Array<{ id?: string; data?: AuctionDoc & { _id?: string } }> };
+  return (body.dataItems ?? [])
+    .map((it) => ({ ...(it.data as AuctionDoc), _id: it.data?._id ?? it.id }))
+    .filter((d) => d && d.productId);
+}
+
+export async function saveAuction(doc: AuctionDoc): Promise<void> {
+  return iPostgres() ? pgSaveAuction(doc) : wixSaveAuction(doc);
+}
+
+export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
+  return iPostgres() ? pgSaveAuctionsBulk(docs) : wixSaveAuctionsBulk(docs);
+}
+
+export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
+  return iPostgres() ? pgRemoveAuctionsBulk(ids) : wixRemoveAuctionsBulk(ids);
+}
+
+/** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
+export async function removeAuction(id: string): Promise<void> {
+  return iPostgres() ? pgRemoveAuction(id) : wixRemoveAuction(id);
+}
+
+async function wixQueryAuctions(statuses: string[]): Promise<AuctionDoc[]> {
   const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
     method: "POST",
     headers: headers(),
@@ -48,7 +128,7 @@ export async function queryAuctions(statuses: string[]): Promise<AuctionDoc[]> {
 }
 
 /** Full-ersättande save (Wix Data har ingen partial-patch värd namnet här). */
-export async function saveAuction(doc: AuctionDoc): Promise<void> {
+async function wixSaveAuction(doc: AuctionDoc): Promise<void> {
   if (!doc._id) throw new Error("saveAuction: dokumentet saknar _id");
   const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
     method: "POST",
@@ -70,7 +150,7 @@ export async function saveAuction(doc: AuctionDoc): Promise<void> {
  * Bulk-endpointen tar 100 dokument per anrop → hela kön på 4 anrop.
  * Returnerar felbeskrivningar (tom lista = allt sparat).
  */
-export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
+async function wixSaveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
   const errors: string[] = [];
   for (let i = 0; i < docs.length; i += 100) {
     const chunk = docs.slice(i, i + 100);
@@ -98,7 +178,7 @@ export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
  * Bulk-borttagning i chunkar om 100 (samma kvot-skäl som saveAuctionsBulk).
  * Returnerar felbeskrivningar (tom lista = allt borttaget).
  */
-export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
+async function wixRemoveAuctionsBulk(ids: string[]): Promise<string[]> {
   const errors: string[] = [];
   for (let i = 0; i < ids.length; i += 100) {
     const chunk = ids.slice(i, i + 100);
@@ -145,8 +225,7 @@ export async function productExists(productId: string): Promise<boolean> {
   }
 }
 
-/** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
-export async function removeAuction(id: string): Promise<void> {
+async function wixRemoveAuction(id: string): Promise<void> {
   const res = await fetch(
     `${WIX_BASE}/wix-data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${AUCTION_COLLECTION}`,
     { method: "DELETE", headers: headers() },
@@ -266,4 +345,20 @@ export async function patchProductVariants(
   await applyVariantPatch(productId, (v) => byVariantId.get(v.id) ?? null).catch((e) => {
     throw new Error(`patchProductVariants ${(e as Error).message}`);
   });
+}
+
+/**
+ * Återställ produkten till ordinariepris (per variant om trackar finns) och
+ * rensa det överstrukna jämförpriset. EN definition: timcronens sold- och
+ * dagslutssteg och butikens direktavslut (/api/auctions/avsluta) använder den.
+ * Butiken hade tidigare en egen port av samma PATCH; två kopior av en
+ * prisåterställning är två ställen där ett auktionspris kan bli kvar.
+ */
+export async function restoreListPrice(a: AuctionDoc): Promise<void> {
+  if (a.variantPrices?.length) {
+    const byVariant = new Map(a.variantPrices.map((t) => [t.wixVariantId, { price: t.listPrice, compareAt: null }]));
+    await patchProductVariants(a.productId, byVariant);
+  } else {
+    await patchProductPrice(a.productId, a.listPrice, null);
+  }
 }

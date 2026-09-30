@@ -47,6 +47,11 @@ const ÄGARE = [
   // är gjord kan Wix-klassen tas bort helt — och då fäller det här testet om
   // någon lämnat kvar en läsare.
   "lib/store/reviews.ts",
+  // Auktionerna, av samma två skäl som recensionerna: Wix-vägen är
+  // kopieringens källa och lagret fram till AUCTIONS_BACKEND=postgres.
+  // Butiken läser inte längre kollektionen själv — den går via
+  // /api/auctions/* — så ägaren här är den enda som talar med Wix om den.
+  "lib/auction/store.ts",
   // Definitionslistan i sig, plus migreringens egna verktyg: de SKA tala med
   // Wix, det är hela deras uppgift.
   "lib/db/tabeller.ts",

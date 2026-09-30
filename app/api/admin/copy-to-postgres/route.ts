@@ -20,16 +20,32 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { reviewsBackend, storeBackend } from "@/lib/store/backend";
+import { auctionsBackend, reviewsBackend, storeBackend } from "@/lib/store/backend";
 import { ensureSchema } from "@/lib/db/schema";
 import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
-import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec, RECENSIONER } from "@/lib/db/tabeller";
+import { ATT_KOPIERA, AUKTIONER, LLM_SAMLINGAR, type TabellSpec, RECENSIONER } from "@/lib/db/tabeller";
 import { kanonisk } from "@/lib/migration/kanonisk";
 import { bedömTabell } from "@/lib/migration/verdikt";
 import { PostgresStore } from "@/lib/store/postgres";
 
 const TOKENS_KOLLEKTION = process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens";
+
+/**
+ * Tabeller med EGEN växel, ett steg efter drift-datan i sin egen migrering.
+ * Så länge växeln inte slagit om är Wix facit för dem: kopieringen är tillåten
+ * och verifieringen strikt. Resten följer STORE_BACKEND.
+ */
+const EGEN_VÄXEL: Record<string, () => boolean> = {
+  [RECENSIONER.tabell]: () => reviewsBackend() === "postgres",
+  [AUKTIONER.tabell]: () => auctionsBackend() === "postgres",
+};
+
+/** Har produktionen börjat skriva den här tabellen till Postgres? */
+function växlad(tabell: string, driftÄrPostgres: boolean): boolean {
+  const egen = EGEN_VÄXEL[tabell];
+  return egen ? egen() : driftÄrPostgres;
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -259,6 +275,8 @@ async function verifiera(efterVäxling: boolean): Promise<{
     källanTom: boolean;
     stickprov: number;
     avvikande: string[];
+    /** Tabellens EGEN växel. Före den är jämförelsen strikt, efter bara massfel. */
+    efterVäxling: boolean;
   }[];
 }> {
   const q = sql();
@@ -314,7 +332,14 @@ async function verifiera(efterVäxling: boolean): Promise<{
     // Regeln för vad som är drift och vad som är dataförlust bor i
     // lib/migration/verdikt.ts — en definition, med tester som kodar in de
     // verkliga talen ur körningen efter växlingen.
-    const verdikt = bedömTabell(wix, postgres, avvikande.length, efterVäxling);
+    // ☠️ PER TABELL, inte en gång för alla. Auktionerna och recensionerna har
+    // egna växlar och kopieras medan drift-datan redan står på Postgres. Före
+    // sin växling är Wix FACIT för dem, och då är en enda saknad rad eller ett
+    // avvikande fält dataförlust — inte "drift", som det hade blivit om
+    // STORE_BACKEND fick bestämma.
+    const tabellEfter = post.spec ? växlad(post.spec.tabell, efterVäxling) : efterVäxling;
+    const utanRetention = post.spec ? post.spec.tabell in EGEN_VÄXEL : false;
+    const verdikt = bedömTabell(wix, postgres, avvikande.length, tabellEfter, utanRetention);
 
     ut.push({
       tabell: post.namn,
@@ -326,6 +351,7 @@ async function verifiera(efterVäxling: boolean): Promise<{
       källanTom: verdikt.källanTom,
       stickprov: prov.length,
       avvikande,
+      efterVäxling: tabellEfter,
     });
   }
 
@@ -337,7 +363,7 @@ async function verifiera(efterVäxling: boolean): Promise<{
 
   return {
     fullständig: ut.every(
-      (t) => t.stämmer && (efterVäxling || t.avvikande.length === 0),
+      (t) => t.stämmer && (t.efterVäxling || t.avvikande.length === 0),
     ),
     källanTömd,
     läge: efterVäxling ? "efter-växling" : "före-växling",
@@ -395,10 +421,11 @@ async function handle(req: NextRequest) {
   // dåligt råd att följa.
   const backend = storeBackend();
   const bara = new Set(tabeller);
+  // Auktionerna fick samma undantag 2026-09-29, av samma skäl: egen växel
+  // (AUCTIONS_BACKEND, default wix-data), och fram till den är Wix facit.
   const endastEjVäxlade =
     bara.size > 0
-    && [...bara].every((t) => t === RECENSIONER.tabell)
-    && reviewsBackend() !== "postgres";
+    && [...bara].every((t) => t in EGEN_VÄXEL && !växlad(t, true));
 
   if (backend === "postgres" && !endastEjVäxlade && p.get("verify") !== "1" && dryRun === false) {
     return NextResponse.json(
@@ -407,8 +434,8 @@ async function handle(req: NextRequest) {
         error:
           "STORE_BACKEND=postgres — växlingen är redan gjord, och Wix är därmed inaktuellt. "
           + "En kopiering härifrån hade skrivit tillbaka gammal data över levande. "
-          + `Kollektioner som ännu INTE växlat får kopieras: t.ex. ?tabeller=${RECENSIONER.tabell} `
-          + "så länge REVIEWS_BACKEND inte är postgres.",
+          + `Kollektioner som ännu INTE växlat får kopieras: ?tabeller=${AUKTIONER.tabell} `
+          + `så länge AUCTIONS_BACKEND inte är postgres (${RECENSIONER.tabell} likadant med REVIEWS_BACKEND).`,
       },
       { status: 409 },
     );
@@ -425,7 +452,7 @@ async function handle(req: NextRequest) {
         console.error(
           `[copy-to-postgres] VERIFIERING FÄLLDE (${rapport.läge}): `
             + rapport.tabeller
-                .filter((t) => !t.stämmer || (rapport.läge === "före-växling" && t.avvikande.length))
+                .filter((t) => !t.stämmer || (!t.efterVäxling && t.avvikande.length))
                 .map((t) => `${t.tabell} wix=${t.wix} pg=${t.postgres} avvik=${t.avvikande.length}`)
                 .join(" | "),
         );

@@ -38,6 +38,7 @@ describe("☠️ kopieringslistan måste vara KOMPLETT", () => {
     ["lib/store/import-costs.ts", "importkostnaderna"],
     ["lib/llm/storage.ts", "LLM-lagret"],
     ["lib/store/reviews.ts", "recensionslagret"],
+    ["lib/auction/store.ts", "auktionerna"],
   ])("varje kollektion i %s (%s) täcks av kopieringen", (fil) => {
     const saknade = kollektionerI(fil).filter((k) => !täckta.has(k));
     expect(saknade).toEqual([]);
@@ -52,6 +53,7 @@ describe("☠️ kopieringslistan måste vara KOMPLETT", () => {
         "lib/store/import-costs.ts",
         "lib/llm/storage.ts",
         "lib/store/reviews.ts",
+        "lib/auction/store.ts",
       ].flatMap(kollektionerI),
     );
     const föräldralösa = [...täckta].filter((k) => !ägda.has(k));

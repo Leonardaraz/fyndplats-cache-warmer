@@ -52,12 +52,15 @@ export type TabellVerdikt = {
  * @param postgres     radantal i kopian
  * @param avvikande    antal fält i stickprovet som skiljer sig
  * @param efterVäxling om produktionen redan skriver till Postgres
+ * @param utanRetention tabellen har en egen växel och städas aldrig av källan
+ *                      (recensioner, auktioner) — se grenen före växlingen
  */
 export function bedömTabell(
   wix: number,
   postgres: number,
   avvikande: number,
   efterVäxling: boolean,
+  utanRetention = false,
 ): TabellVerdikt {
   const brist = Math.max(0, wix - postgres);
   const överskott = Math.max(0, postgres - wix);
@@ -80,6 +83,17 @@ export function bedömTabell(
   const källanTom = wix === 0 && postgres > 0;
 
   if (!efterVäxling) {
+    // ☠️ EN TABELL UTAN RETENTION MÅSTE STÄMMA EXAKT, OCH KÄLLAN FÅR INTE VARA TOM.
+    //
+    // Recensionerna och auktionerna städas aldrig av källan. Ett överskott i
+    // kopian är då inte Wix som hunnit rensa, utan rader Wix tagit bort efter en
+    // tidigare kopiering (seedens och tickens borttag) — efter växlingen hade de
+    // legat i kön igen och kunnat främjas. Och en tom källa är ett läsfel, inte
+    // en tom tabell: wix=0 mot pg=0 hade annars godkänt en växling till en tom
+    // tabell. Granskningen av auktionsflytten 2026-09-29 fann båda.
+    if (utanRetention) {
+      return { stämmer: wix > 0 && brist === 0 && överskott === 0, överskott, drift: 0, källanTom };
+    }
     // Strikt: färre rader är dataförlust. Fler är källans egen retention som
     // hunnit städa medan kopieringen pågick — det får inte fälla, annars kan
     // en tabell som städas aldrig verifieras.

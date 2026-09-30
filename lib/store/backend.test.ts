@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isPersistentBackend, STORE_BACKENDS, storeBackend } from "./backend";
+import { AUCTION_BACKENDS, auctionsBackend, isPersistentBackend, STORE_BACKENDS, storeBackend } from "./backend";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -42,6 +42,30 @@ describe("isPersistentBackend", () => {
   });
 });
 
+describe("auctionsBackend", () => {
+  it("☠️ default är wix-data — att deploya koden får inte byta lager", () => {
+    // Produktionen står på STORE_BACKEND=postgres. Hade auktionerna följt den
+    // hade ticken börjat läsa en TOM tabell i samma sekund som koden kom ut:
+    // ingen live-auktion, ingen kö, och påfyllningen hade sett "inget att
+    // främja". Samma fälla som REVIEWS_BACKEND byggdes för.
+    vi.stubEnv("STORE_BACKEND", "postgres");
+    vi.stubEnv("AUCTIONS_BACKEND", "");
+    expect(auctionsBackend()).toBe("wix-data");
+  });
+
+  it.each(AUCTION_BACKENDS)("accepterar %s", (b) => {
+    vi.stubEnv("AUCTIONS_BACKEND", b);
+    expect(auctionsBackend()).toBe(b);
+  });
+
+  it("☠️ KASTAR på okänt värde, även memory (motorn har inget minneslager)", () => {
+    vi.stubEnv("AUCTIONS_BACKEND", "postgress");
+    expect(() => auctionsBackend()).toThrow(/Okänt AUCTIONS_BACKEND/);
+    vi.stubEnv("AUCTIONS_BACKEND", "memory");
+    expect(() => auctionsBackend()).toThrow(/Okänt AUCTIONS_BACKEND/);
+  });
+});
+
 describe("invarianten: EN definition, ingen läser miljövariabeln själv", () => {
   it("☠️ ingen fil utanför backend.ts läser process.env.STORE_BACKEND", () => {
     // Variabeln lästes tidigare på sex ställen med tre olika semantiker, och
@@ -58,6 +82,19 @@ describe("invarianten: EN definition, ingen läser miljövariabeln själv", () =
       .filter((f) => !f.endsWith("lib/store/backend.ts"))
       .filter((f) => !f.endsWith(".test.ts"));
 
+    expect(träffar).toEqual([]);
+  });
+
+  it("☠️ ingen fil utanför backend.ts läser process.env.AUCTIONS_BACKEND", () => {
+    const träffar = execSync(
+      "grep -rln 'process\\.env\\.AUCTIONS_BACKEND' --include=*.ts --include=*.tsx app lib || true",
+      { encoding: "utf-8" },
+    )
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean)
+      .filter((f) => !f.endsWith("lib/store/backend.ts"))
+      .filter((f) => !f.endsWith(".test.ts"));
     expect(träffar).toEqual([]);
   });
 });
