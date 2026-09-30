@@ -2393,8 +2393,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    Produktbilder är oftast kvadratiska med motivet centrerat → cover i en 5:4-ruta
    zoomade in på ett hörn (Leonards rapport: "närbild av hörnet"). contain visar
    HELA produkten centrerad med varm padding, precis som .butik-cat-img. */
-.kat-hero-img.is-product{aspect-ratio:4/3}
-.kat-hero-img.is-product img{object-fit:cover;object-position:center}
+/* 2026-09-30: produktbilderna är kvadratiska med vit bakgrund. I 4:3 med
+   cover kapades toppen och botten (konstväxten, spegeln, kaminen). Nu en
+   kvadratisk vit ruta med luft runt, där hela produkten syns, som på korten. */
+.kat-hero-img.is-product{aspect-ratio:1/1;width:100%;max-width:260px;justify-self:end;background:#fff}
+.kat-hero-img.is-product img{object-fit:contain;object-position:center;padding:18px}
 @media(max-width:980px){.kat-hero-grid{grid-template-columns:minmax(0,1fr) 260px;gap:32px}}
 /* Mobil: ingen bild. Den sköt ner produkterna en hel skärm; IKEA, JYSK och
    Mio visar rubriken och går direkt på varorna. */
