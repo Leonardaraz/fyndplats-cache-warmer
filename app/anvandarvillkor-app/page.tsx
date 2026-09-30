@@ -33,7 +33,7 @@ export default function AnvandarvillkorApp() {
       <p>Betalning sker via <strong>Klarna</strong> (faktura, delbetalning, kort, direktbetalning, Apple Pay och Google Pay). Klarnas egna villkor gäller för betalningen och eventuell återbetalning hanteras av Klarna – se <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. Betalningssteget genomförs i en Wix-hostad kassa.</p>
 
       <h2>4. Frakt och leverans</h2>
-      <p>Normal leveranstid är <strong>3–6 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp är frakten 19 kr och visas i kassan. Vid förseningar över 30 dagar har du rätt att häva köpet och få full återbetalning.</p>
+      <p>Normal leveranstid är <strong>3–6 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp är frakten 19 kr och visas i kassan. Levererar vi inte i tid kan du ge oss en skälig extra tid och häva köpet om varan inte kommer inom den; har du inte fått varan inom 30 dagar från beställningen kan du alltid häva. Vid hävning får du tillbaka hela beloppet. Se <a href="/kopvillkor#leverans">köpvillkoren punkt 5</a>.</p>
 
       <h2>5. Returer och ångerrätt</h2>
       <p>{TOTAL_SUMMARY}</p>
@@ -59,7 +59,7 @@ export default function AnvandarvillkorApp() {
       <p>Appen tillhandahålls "i befintligt skick". Fyndplats ansvarar inte för indirekta skador, utebliven vinst eller förluster till följd av avbrott, fel eller otillgänglighet i appen, i den utsträckning lagen tillåter. Inget i dessa villkor inskränker dina tvingande rättigheter som konsument enligt svensk lag. Fyndplats är befriat från ansvar vid force majeure (omständigheter utanför vår rimliga kontroll).</p>
 
       <h2>10. Tillämplig lag och tvistelösning</h2>
-      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig dit för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>, Box 174, 101 23 Stockholm. Kan tvisten inte lösas avgörs den av svensk allmän domstol med <strong>Stockholms tingsrätt</strong> som första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan du vända dig till <strong>Konsument Europa (ECC Sverige)</strong>: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
+      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig dit för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>, Box 174, 101 23 Stockholm. Kan tvisten inte lösas kan du vända dig till ARN eller till allmän domstol i Sverige. Har du handlat gränsöverskridande inom EU, Norge eller Island kan du vända dig till <strong>Konsument Europa (ECC Sverige)</strong>: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
 
       <h2>11. Ändring av villkor</h2>
       <p>Fyndplats förbehåller sig rätten att uppdatera dessa villkor. Den senaste versionen finns alltid publicerad på denna sida. Vid väsentliga ändringar informerar vi i appen.</p>

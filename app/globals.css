@@ -834,7 +834,10 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 /* Desktop: galleriet klistras fast och följer med när högerkolumnens långa
    beskrivning scrollas — annars blir vänsterhalvan ett stort vitt hål.
    align-items:start ovan är förutsättningen; top klarar sticky-headern. */
-@media(min-width:761px){.pdp>.gallery{position:sticky;top:90px}}
+/* Med bildrutorna kan galleriet bli högre än fönstret. top blir då negativt
+   (--gal-h sätts av Gallery), så galleriet rullar tills nederkanten syns och
+   fastnar först där. Annars fastnar det under sidhuvudet. */
+@media(min-width:761px){.pdp>.gallery{position:sticky;top:min(var(--ankare),calc(100vh - var(--gal-h,0px) - 16px))}}
 .gallery .gmain{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2);position:relative;cursor:zoom-in;aspect-ratio:1}
 .gmain-zoom{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:var(--text-base);box-shadow:var(--e2);opacity:0;transition:opacity .2s;pointer-events:none}
 .gallery .gmain:hover .gmain-zoom{opacity:1}
@@ -871,25 +874,20 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    laddas långsamt + hopp). Nu en ren, kort opacity-toning som börjar nästan
    synlig: hero-bilden räknas som målad direkt (snabb LCP) och ingen scale-hop. */
 @keyframes gFade{from{opacity:.55}to{opacity:1}}
-.gthumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-.gthumb{width:72px;height:72px;border-radius:var(--r-md);border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;padding:0;background:var(--surface-2);transition:border-color .2s,box-shadow .2s,transform .2s}
-.gthumb:hover{border-color:var(--orange)}
-.gthumb.active{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);transform:translateY(-1px)}
+/* Bildrutorna under hjälten (components/gallery.tsx): alla produktbilder syns
+   som riktiga bilder, tre i bredd på dator och i en svepbar rad på mobil. */
+.gtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.gtile{position:relative;display:block;aspect-ratio:1;padding:0;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.gtile img{transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.gtile:hover{border-color:#e7c3a7}
+.gtile:hover img{transform:scale(1.04)}
+.gtile.active{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange)}
 /* Den valda variantens egna bilder ramas in (mjuk orange ring) så man ser vilka
-   galleribilder som tillhör varianten. Active-thumben behåller sin starkare ring. */
-.gthumb.variant-owned{border-color:var(--orange);box-shadow:0 0 0 2px #C2410C55}
-.gthumb.variant-owned.active{box-shadow:0 0 0 2px var(--orange)}
-/* Prickindikator — visas i stället för miniatyrgriden på mobil (renare look).
-   Desktop behåller miniatyrerna; mobil-reglerna nedan växlar synligheten. */
-.gdots{display:none;justify-content:center;align-items:center;gap:8px;margin-top:14px}
-.gdot{position:relative;width:8px;height:8px;padding:0;border:none;border-radius:50%;background:#d8cdbf;cursor:pointer;transition:background .2s,transform .2s,width .2s}
-/* Förstora träffytan för de små galleri-prickarna (primär mobilnavigering) till ~44px utan att ändra utseendet. */
-.gdot::after{content:"";position:absolute;inset:-18px -5px}
-.gdot:hover{background:#bba98f}
-.gdot.active{background:var(--brand);transform:scale(1.15);width:20px;border-radius:var(--r-pill)}
-/* Variantens egna bilder: orange prick (vs grå default) så gruppen syns på mobil. */
-.gdot.variant-owned{background:var(--brand)}
-.gdot:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+   bilder som hör till varianten. Den aktiva rutan behåller sin starkare ring. */
+.gtile.variant-owned{border-color:var(--orange);box-shadow:0 0 0 2px #C2410C55}
+.gtile.variant-owned.active{box-shadow:0 0 0 2px var(--orange)}
+.gtile-more{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(28,24,20,.55);color:#fff;font-size:var(--text-xl);font-weight:800;letter-spacing:-.02em}
+@media(prefers-reduced-motion:reduce){.gtile img{transition:none}.gtile:hover img{transform:none}}
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:300;background:rgba(20,18,15,.93);display:flex;align-items:center;justify-content:center;padding:24px;animation:lbIn .2s ease}
 @keyframes lbIn{from{opacity:0}to{opacity:1}}
@@ -1163,9 +1161,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   .pdp-actions{order:4;max-width:none}
   .pdp-detail{order:5}
   .buy{max-width:none}
-  /* Miniatyrgriden ersätts av prickindikatorn på mobil (ingen dubblering) */
-  .gallery .gthumbs{display:none}
-  .gdots{display:flex}
+  /* Bildrutorna blir en svepbar rad; en bit av nästa ruta sticker fram så man
+     ser att det finns fler. */
+  .gtiles{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:4px 4px 6px;margin:6px -4px 0;scroll-padding-inline:4px;-webkit-overflow-scrolling:touch}
+  .gtiles::-webkit-scrollbar{display:none}
+  .gtile{flex:0 0 36%;scroll-snap-align:start}
   /* Swatches radbryter (ingen dold sidled-scroll) — alla val syns även på mobil.
      margin:0 → första pillens vänsterkant i linje med hero-bilden och titeln. */
   .varswatches{flex-wrap:wrap;padding:4px 0;margin:0}
@@ -1210,7 +1210,7 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    next/image placeholder="blur" (blur-up) som tar bort den tomma rutan helt. */
 @media (prefers-reduced-motion: no-preference){
   .herotile::before,.prod .pimg::before,.homecat-thumb::before,.kat-hero-img::before,
-  .gallery .gmain::before,.gthumb::before{
+  .gallery .gmain::before,.gtile::before{
     content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
     background:linear-gradient(100deg,var(--line) 25%,#f8f3ec 50%,var(--line) 75%);
     background-size:200% 100%;
