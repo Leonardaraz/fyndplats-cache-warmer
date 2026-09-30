@@ -1729,6 +1729,13 @@ Nio egenskaper som inte ska tas bort:
    importeras igen. Planen listar dem (`egnaArtiklarIds`). Granska listan och
    kör sedan med `egna=ja`.
 
+   ☠️ **Listan räknas över ALLA pensionerade** (sedan 2026-09-30), även de som
+   är för unga eller stoppas av ett annat hinder. Den räknades först bara bland
+   de annars raderbara, och då syntes ett utkast med egen artikel först samma
+   dag det kunde raderas. `hinder.egenArtikel` räknar fortfarande bara de rader
+   där den egna artikeln är det som stoppar, och `aldstaPensionering` gäller
+   också alla pensionerade med tidsstämpel, inte bara de raderbara.
+
 **Första körningen 2026-09-28.** Planen gav 580 pensionerade: 11 raderbara, 547
 för unga, 20 utan tidsstämpel (de fick den samma dag) och 2 synliga. Svepet tog
 under en minut. De 11 raderades med noll obekräftade och noll märkningsfel, och
@@ -1945,6 +1952,22 @@ Fyra egenskaper som inte ska tas bort:
 ⚠️ **Bilder som ingen väljer städas bort av nattens bildstädning** (03:50 UTC),
 eftersom de bär en leverantörsadress i `sourceUrl`. En vald bild måste alltså
 sitta på sin produkt före nästa städning. En omkörning laddar upp på nytt.
+
+☠️ **Utfallet, uppmätt 2026-09-30: position 4–7 är nästan aldrig rena.** Alla 184
+bilder på de 46 sidorna med två bilder granskades. 181 var tyska säljgrafiker
+med rubrik och bildtexter. Tre var miljöfoton utan grafik, och två av dem bar
+läsbar text eller ett riktigt märke på rekvisitan (burkar, flaskor). En enda
+bild klarade runbookens regler, soffbordets miljöfoto. Den ligger på sidan sedan
+samma dag (`runda-bilder-1-skriv`), läst tillbaka ur Wix och sedd på den
+publicerade sidan. Ingen sida kom upp i två nya rena bilder.
+Granskningen står per bild i `tools/polish-assets/runda-bilder-1/granskning.tsv`.
+Mätningen från 2026-08-27 (4 av 90 rena på position 4–6) stod sig alltså, och
+den gäller även de sidor poleringen redan tömt.
+
+⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
+Position 10 har ingen granskat. Taket i verktyget var nio fram till samma dag
+och slängde position 10 tyst ur begäran. Det är sedan dess femton, alltså Wix
+tak för bilder per produkt.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 

@@ -120,12 +120,16 @@ export interface Plan {
   utanTidsstampel: string[];
   /**
    * Utkast vars artikel inte säljs på någon levande sida. De raderas bara med
-   * `medEgnaArtiklar`, efter att en människa granskat listan.
+   * `medEgnaArtiklar`, efter att en människa granskat listan. Listan gäller ALLA
+   * pensionerade, även de som är för unga eller har andra hinder, så att den
+   * går att granska innan raderna blir raderbara.
    */
   egnaArtiklar: string[];
   hinder: Record<Hinder, number>;
   /** När nästa för unga produkt blir raderbar (ISO), eller null. */
   nastaRaderbar: string | null;
+  /** Den äldsta pensioneringen bland ALLA pensionerade med tidsstämpel (ISO), eller null. */
+  aldstaPensionering: string | null;
   bilder: { totalt: number; delade: number };
   omdirigeringarFullstandiga: boolean;
 }
@@ -295,15 +299,24 @@ export function planera(u: Underlag, opts: { medEgnaArtiklar?: boolean } = {}): 
     egnaArtiklar: [],
     hinder: tomtHinder(),
     nastaRaderbar: null,
+    aldstaPensionering: null,
     bilder: { totalt: 0, delade: 0 },
     omdirigeringarFullstandiga: u.omdirigeringarFullstandiga,
   };
   let nasta: number | null = null;
+  let aldsta: number | null = null;
 
   for (const m of u.mappningar) {
     if (!arPensionerad(m)) continue;
     plan.pensionerade++;
     const id = m.wixProductId;
+
+    // ☠️ LISTAN RÄKNAS FÖRE ALLA ANDRA HINDER. Den är ett underlag för en
+    // människa, och ett utkast som är för ungt i dag blir raderbart om några
+    // dygn. Räknades den bara bland de annars raderbara syntes varje sådant
+    // utkast först samma dag det kunde raderas.
+    const egen = aosomArtiklarPaRaden(m).some((a) => !levande.has(a));
+    if (egen) plan.egnaArtiklar.push(id);
 
     const t = pensioneradTid(m);
     if (t === null) {
@@ -311,6 +324,7 @@ export function planera(u: Underlag, opts: { medEgnaArtiklar?: boolean } = {}): 
       plan.utanTidsstampel.push(id);
       continue;
     }
+    if (aldsta === null || t < aldsta) aldsta = t;
     if (t > grans) {
       plan.hinder.forUng++;
       const blir = t + MIN_ALDER_DAGAR * DAG_MS;
@@ -351,9 +365,8 @@ export function planera(u: Underlag, opts: { medEgnaArtiklar?: boolean } = {}): 
     // sammanslagningen fanns (uppmätt 2026-09-28: kontorsstolen i beige, vars
     // svarta syskon ligger publicerat). Raderas det försvinner varan ur
     // katalogen, och spärren hindrar att den importeras igen.
-    if (!opts.medEgnaArtiklar && aosomArtiklarPaRaden(m).some((a) => !levande.has(a))) {
+    if (!opts.medEgnaArtiklar && egen) {
       plan.hinder.egenArtikel++;
-      plan.egnaArtiklar.push(id);
       continue;
     }
 
@@ -377,6 +390,7 @@ export function planera(u: Underlag, opts: { medEgnaArtiklar?: boolean } = {}): 
       || a.wixProductId.localeCompare(b.wixProductId),
   );
   plan.nastaRaderbar = nasta === null ? null : new Date(nasta).toISOString();
+  plan.aldstaPensionering = aldsta === null ? null : new Date(aldsta).toISOString();
   return plan;
 }
 

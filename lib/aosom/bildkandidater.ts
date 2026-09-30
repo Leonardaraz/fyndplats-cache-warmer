@@ -42,9 +42,14 @@ import type { AosomRow } from "./feed";
 import { isAosomMapping } from "../store/supplier";
 import { aosomArtikelbild } from "./artiklar";
 
-/** Positionerna importen aldrig hämtar. Feeden har högst nio. */
+/** Positionerna importen aldrig hämtar bland de nio den räknar med. */
 export const STANDARD_POSITIONER: readonly number[] = [4, 5, 6, 7];
-export const MAX_POSITION = 9;
+/**
+ * ☠️ Feeden har inte högst nio bilder längre. Den 2026-09-30 bar 45 av 46
+ * granskade artiklar tio, och en gräns på nio slängde position 10 tyst ur
+ * begäran. Taket är Wix eget: en produkt tar högst femton bilder.
+ */
+export const MAX_POSITION = 15;
 export const MAX_PRODUKTER = 50;
 /**
  * Budgeten prövas före varje produkt, och en produkt tar högst nio
@@ -112,7 +117,7 @@ export function arWixProduktId(id: string): boolean {
   return WIX_ID.test(id);
 }
 
-/** Heltal 1–9, sorterade och utan dubbletter. Allt annat ignoreras. */
+/** Heltal 1–15, sorterade och utan dubbletter. Allt annat ignoreras. */
 export function tolkaPositioner(varden: readonly unknown[] | undefined): number[] {
   if (!varden || varden.length === 0) return [...STANDARD_POSITIONER];
   const ut = new Set<number>();

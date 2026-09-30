@@ -64,6 +64,14 @@ function deps(
 }
 
 describe("hamtaBildkandidater", () => {
+  it("hämtar position 10 när feeden har tio bilder", async () => {
+    const tio = rad("845-015AB", { imageUrls: [...NIO("845-015AB"), "https://img.aosomcdn.com/100/845-015AB/10.jpg"] });
+    const { d, uppladdade } = deps([mappning(ID_A, "845-015AB")], [tio]);
+    const svar = await hamtaBildkandidater([ID_A], { dryRun: false, positioner: [7, 10] }, d);
+    expect(svar.produkter[0].positioner).toEqual([7, 10]);
+    expect(uppladdade.map((u) => u.url.split("/").pop())).toEqual(["7.jpg", "10.jpg"]);
+  });
+
   it("laddar upp exakt de begärda positionerna och inget annat", async () => {
     const { d, uppladdade } = deps([mappning(ID_A, "845-001AB")], [rad("845-001AB")]);
     const svar = await hamtaBildkandidater([ID_A], { dryRun: false }, d);
@@ -195,8 +203,12 @@ describe("tolkaPositioner", () => {
     expect(tolkaPositioner([])).toEqual([4, 5, 6, 7]);
   });
 
-  it("tar heltal 1–9, sorterade och utan dubbletter", () => {
-    expect(tolkaPositioner(["7", 4, 4, 0, 10, 2.5, "x", 9])).toEqual([4, 7, 9]);
+  it("tar heltal 1–15, sorterade och utan dubbletter", () => {
+    expect(tolkaPositioner(["7", 4, 4, 0, 16, 2.5, "x", 9])).toEqual([4, 7, 9]);
+  });
+
+  it("☠️ släpper igenom position 10 — feeden har tio bilder på de flesta artiklar", () => {
+    expect(tolkaPositioner([4, 5, 6, 7, 10])).toEqual([4, 5, 6, 7, 10]);
   });
 });
 
