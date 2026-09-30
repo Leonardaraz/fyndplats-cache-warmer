@@ -435,6 +435,11 @@ Media Manager utan att röra produkten. Granska dem med samma strykregler som ov
 rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder går före egna kort
 *(Leonard 2026-09-30)*. Bilder som ingen väljer städas bort nästa natt.
 
+Börja med position 10 (`positioner` = `10`). Den är oftast ett miljöfoto utan grafik: den
+2026-09-30 var 24 av 45 bilder där rena, mot 1 av 184 på position 4–7, som nästan alltid är
+tysk säljgrafik. Det som fäller position 10 är text på rekvisitan, oftast etiketter på burkar
+och flaskor i kök och badrum. Läs dem i full upplösning innan bilden väljs.
+
 Är sidan redan polerad skrivs bara bildlistan: `bygg-bildplan.py` i stället för
 `bygg-skrivplan.py`, och workflowen **"Polering — skriv bara bilderna"**. `bilder.tsv` listar
 då varje bild sidan ska ha efteråt, både de som sitter kvar och de nya, eftersom listan
