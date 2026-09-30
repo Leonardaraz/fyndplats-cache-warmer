@@ -1,0 +1,66 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "285d9ab7": {
+  "tyska": "36L x 30B x 63,5H cm",
+  "svenska": "30 L",
+  "bokstaver": "LBH",
+  "hojd": 63.5,
+  "bredd": 36,
+  "djup": 30
+ },
+ "33c51730": {
+  "tyska": "50B x 24T x 68H cm",
+  "svenska": "50L x 24B x 68H cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 68,
+  "bredd": 50
+ },
+ "af9c163f": {
+  "tyska": "34,2L x 30,6B x 44,2H cm",
+  "svenska": "34,2 x 30,6 x 44,2 cm",
+  "bokstaver": "LBH",
+  "hojd": 44.2,
+  "bredd": 34.2,
+  "djup": 30.6
+ },
+ "c260245d": {
+  "tyska": "136,3B x 76,2H cm(mit keiner Verlängerung)",
+  "svenska": "74-147,5L x 2B x 76,2H cm",
+  "bokstaver": "BH",
+  "hojd": 76.2,
+  "bredd": 136.3
+ },
+ "d8033343": {
+  "tyska": "59B x 59T x 106-126H cm",
+  "svenska": "59L x 59B x 106-126H cm",
+  "bokstaver": "BTH",
+  "djup": 59,
+  "hojd": [
+   106,
+   126
+  ],
+  "bredd": 59
+ },
+ "da5668cb": {
+  "tyska": "",
+  "svenska": "52.5 x 54 x 99 cm",
+  "axellos": "inget totalmått i källan; bara delmått: Gesamtmaß: B52,5 x T54 x H84-99 cm | Sitzgröße: B45 x T39 cm | ✔ Gesamtmaß: B52,5 x T54 x H84-99 cm | ✔ Sitzgröße: B45 x T39 cm"
+ },
+ "db607b53": {
+  "tyska": "157L x 46,5B x 80H cm",
+  "svenska": "157L x 46,5B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 157,
+  "djup": 46.5
+ },
+ "eca2fa1e": {
+  "tyska": "102L x 36B x 45H cm",
+  "svenska": "102L x 36B x 45H cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 102,
+  "djup": 36
+ }
+}

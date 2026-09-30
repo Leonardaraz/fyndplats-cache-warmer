@@ -108,7 +108,11 @@ export async function findRedirectConflicts(rows: RedirectRow[]): Promise<Redire
 
   let liveSlugs: Set<string>;
   try {
-    const products = await listAllV3Products();
+    // ☠️ Utan beskrivning. Kontrollen läser bara slug och synlighet, och med
+    // PLAIN_DESCRIPTION blev hela katalogen ett sextiotal tunga sidor som når
+    // rutten tak på 60 sekunder (B69, B87) — skrivningen dog innan den ens
+    // började, och en omdirigering fick läggas om för hand.
+    const products = await listAllV3Products({ beskrivning: false });
     liveSlugs = new Set(
       products
         // Samma riktning som resten av huset: saknat `visible` räknas som

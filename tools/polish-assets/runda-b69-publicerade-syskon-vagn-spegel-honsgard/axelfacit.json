@@ -1,0 +1,43 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0f83c211": {
+  "tyska": "170L x 77B x 90H cm (als Anhänger), 120L x 77B x 90H cm (als Schiebewagen)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 90,
+  "bredd": 170,
+  "djup": 77
+ },
+ "2e0a7448": {
+  "tyska": "300B x 200T x 195H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 200,
+  "hojd": 195,
+  "bredd": 300
+ },
+ "370918a9": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "422ab1bd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b3e20f91": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b996cd55": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "cc52007e": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e858810e": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

@@ -6,6 +6,9 @@ import { getV3ProductBySlug } from "@/lib/wix/v3-products";
 import { fetchOrderByNumber } from "@/lib/wix/orders";
 import { parseLookupInput, leverantorskallaFor } from "@/lib/import/source-link";
 import { aosomArtikelForTask } from "@/lib/aosom/artiklar";
+import { unstable_cache } from "next/cache";
+import { lankaVarianter, feedLankar } from "@/lib/aosom/variant-lank";
+import { fetchAosomFeed } from "@/lib/aosom/feed";
 
 /** Leverantörskällan för EN produkt (och, vid ordernummer, en orderrad). */
 export interface KallRad {
@@ -23,6 +26,8 @@ export interface KallRad {
   orderrad?: { sku?: string; quantity: number; productName?: string };
   /** Något att kontrollera innan beställning (t.ex. färgen gick inte att avgöra). */
   varning?: string;
+  /** Mappningens egen Aosom-artikel, när raden kom från en orderrad. */
+  huvudartikel?: string;
 }
 
 /** En orderrad som inte gick att slå upp. Visas i listan i stället för att tystas. */
@@ -53,6 +58,7 @@ function kallaFor(
   const kalla = leverantorskallaFor(mapping);
   let artikelnummer = kalla.artikelnummer;
   let varning: string | undefined;
+  const huvudartikel = rad && kalla.leverantor === "aosom" ? kalla.artikelnummer : undefined;
   // En sammanslagen Aosom-sida bär en artikel per färg. Orderradens variant
   // avgör vilken; går den inte att avgöra sägs det, i stället för att gissa.
   if (rad && kalla.leverantor === "aosom") {
@@ -71,8 +77,21 @@ function kallaFor(
     variantCount: mapping.variants?.length ?? 0,
     ...(rad ? { orderrad: { sku: rad.sku, quantity: rad.quantity, productName: rad.productName } } : {}),
     ...(varning ? { varning } : {}),
+    ...(huvudartikel ? { huvudartikel } : {}),
   };
 }
+
+/**
+ * Artikel → adress ur Aosoms flöde, cachad i 6 timmar. Flödet laddas ner högst
+ * en gång per period; efter perioden får nästa uppslag den gamla tabellen
+ * direkt medan en ny byggs i bakgrunden. Nya artiklar saknas som längst så
+ * länge, och då står varningen kvar (se lib/aosom/variant-lank.ts).
+ */
+const cachadeFeedLankar = unstable_cache(
+  async () => feedLankar(await fetchAosomFeed()),
+  ["aosom-feed-lankar-v1"],
+  { revalidate: 6 * 60 * 60, tags: ["aosom-feed-lankar"] },
+);
 
 const SAKNAR_MAPPNING = (id: string) =>
   `Produkten (${id.slice(0, 8)}…) saknar leverantörsmappning i FyndplatsMappings. ` +
@@ -124,7 +143,15 @@ export async function lookupSourceAction(input: string): Promise<LookupResult> {
           return m ? kallaFor(m, r.productId, r) : { fel: SAKNAR_MAPPNING(r.productId), orderrad };
         }),
       );
-      return { ok: true, matchedBy: "order", order: order.number, rader };
+      // Aosom har en egen adress per artikel. Utan den öppnade knappen sidans
+      // förvalda variant, inte den kunden köpte (order 10052, 2026-09-30).
+      const kallor = await lankaVarianter(
+        rader.filter((r): r is KallRad => !("fel" in r)),
+        cachadeFeedLankar,
+      );
+      let i = 0;
+      const lankade = rader.map((r) => ("fel" in r ? r : kallor[i++]));
+      return { ok: true, matchedBy: "order", order: order.number, rader: lankade };
     } else if (target.kind === "sku") {
       // ⚠️ EN SKU KAN SITTA PÅ FLERA PRODUKTER. Importen härleder variant-SKU:n
       // ur den tyska titelns första ord, så syskon får samma sträng — batch 66

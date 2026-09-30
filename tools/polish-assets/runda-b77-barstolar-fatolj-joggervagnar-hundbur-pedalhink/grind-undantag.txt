@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py enda fyndet är joggervagnen 3bc2f3f7: källan skriver 111L x 70B x 97,5H och säger uttryckligen "Nur 70 cm breit - passt bequem durch Standardtüren", men facit läser måtten positionellt och kallar 111 cm bredd. Texten följer källan: vagnen är 70 cm bred och 111 cm lång. Övriga rader är varningar, inga fel.

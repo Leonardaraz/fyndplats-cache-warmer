@@ -1,0 +1,47 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "01fcdf1d": {
+  "tyska": "",
+  "svenska": "98 × 67 × 25 cm (L × B × H)"
+ },
+ "31d6a3df": {
+  "tyska": "",
+  "svenska": "60 × 30 × 36 cm"
+ },
+ "40f46441": {
+  "tyska": "67L x 45B x 96H cm ✔ Innenabmessungen: 52L x 32B x 48H cm (mit Dach), 52L x 32B x 22H cm (ohne Dach) ✔ Maße Netzfenster (vorne/hinten): 26L x 17B cm ✔ Klappmaß: 86L x 45B x 24H cm ✔ Korbgröße: 36L x 25B x 12H cm ✔ Maße Vorderrad: Ø6\" ✔ Maße Hinterrad: Ø6\" Lieferumfang: ✔1 x Haustierwagen ✔1 x Anleitung Tekniska specifikationer Mått: 67L x 45B x 96H cm Färg: Khaki Material: Stahl, Oxford-Gewebe Vikt: 6,1 kg Paketmått: 38 × 18,5 × 84 cm",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBHLBLBHLBHLBH",
+  "hojd": 96,
+  "bredd": 67,
+  "djup": 45
+ },
+ "4b089c02": {
+  "tyska": "91L x 60,5B x 32H cm. Hauptgehäuse: 57L x 29B x 28H cm. Laufkäfig: 57L x 56B x 28H cm. Tür: 20B x 21H cm.",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBHBH",
+  "hojd": 32,
+  "bredd": 91,
+  "djup": 60.5
+ },
+ "9cfc2f50": {
+  "tyska": "",
+  "svenska": "60 × 30 × 35,5 cm"
+ },
+ "c65185c7": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "eb02039b": {
+  "tyska": "77L x 44B x 102H cm ✔ Klappgröße: 87L x 44B x 30H cm ✔ Hauptkörpergröße: 55L x 35B x 50/25H cm ✔ Unterer Korbgröße: 47L x 30B x 20T cm ✔ Rückentürgröße: 33B x 40H cm ✔ Vorderes Netzfenstergröße: 20B x 18H cm ✔ Hinteres Netzfenstergröße: 19B x 26H cm ✔ Radgröße: Ø17 cm ✔ Belastbarkeit: 10 kg Lieferumfang: ✔ 1 x Haustierwagen ✔ 1 x Anleitung Tekniska specifikationer Mått: 77L x 44B x 102H cm Färg: Schwarz Material: Polyester Vikt: 5,9 kg Paketmått: 39 × 17 × 75,5 cm",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBHLBTBHBHBHLBH",
+  "hojd": 102,
+  "djup": 20,
+  "bredd": 77
+ },
+ "f7c9f31c": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

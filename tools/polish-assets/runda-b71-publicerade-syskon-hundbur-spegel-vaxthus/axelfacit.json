@@ -1,0 +1,38 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "308cabee": {
+  "tyska": "Ø 16 x 17H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Topf' (etiketten bar ett bestämningsord)",
+  "bokstaver": "H",
+  "hojd": 17
+ },
+ "4117e161": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5556a448": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 195L x 295B x 195H cm | Dörrstorlek (enkeldörr): 120B x 164H cm | ✔ Totalmått: 195L x 295B x 195H cm | ✔ Dörrstorlek (enkeldörr): 120B x 164H cm | Totalmått: 297B x 395D x 199H cm | Dörrstorlek (per dörr): 200B x 150H cm | Mått: 297L x 395B x 199H cm | ✔ Totalmått: 297B x 395D x 199H cm | ✔ Dörrstorlek (per dörr): 200B x 150H cm | Mått: 297L x 395B x 199H cm"
+ },
+ "6297606f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "935f0ff6": {
+  "tyska": "Ø15,5 x 120H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 120
+ },
+ "aafbf543": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b8496223": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 300L x 200B x 195H cm | Fönsterstorlek: 40B x 40H cm | Dörrstorlek: 113B x 172H cm | Mått: 300L x 200B x 195H cm | ✔ Totalmått: 300L x 200B x 197H cm | ✔ Fönsterstorlek: 40B x 40H cm | ✔ Dörrstorlek: 113B x 172H cm | Mått: 300L x 200B x 195H cm | Totalmått: 600L x 300B x 197H cm | Fönsterstorlek: 40B x 40H cm | Dörrstorlek: 196B x 153H cm | Mått: 600L x 300B x 197H cm | ✔ Totalmått: 600L x 300B x 197H cm | ✔ Fönsterstorlek: 40B x 40H cm | ✔ Dörrstorlek: 196B x 153H cm | Mått: 600L x 300B x 197H cm"
+ }
+}

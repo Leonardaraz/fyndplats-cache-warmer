@@ -1,0 +1,4 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py buxbomen, fikusen och byrån bär två storlekar, och givarnas måttrader i kallor.json hör till den andra storleken (buxbomen på 115 cm, fikusen på 180 cm, byrån på 86 cm), inte till sidans huvudvariant
+gate-axel.py samma skäl: inget axelfacit att grinda mot
+gate-lager.py skärmtaket c88b22ce har saldo 0 med brun skiva, och sammanslagningen lägger till den genomskinliga skivan med 149 i lager, så sidan blir köpbar
