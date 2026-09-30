@@ -1,0 +1,39 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1f7ebf33": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,72 m². Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Hagen räcker alltså till fyra marsvin. Det är löpgårdens yta som räknas: den mäter 92 × 78 cm och är 44,5 cm hög. Huset på 88 × 38,5 cm är 1,5 cm under normens kortaste sida på 40 cm och räknas därför som skyddad sovdel, inte som golvyta. | - Yttermått: 125,5 × 100 × 49 cm (L × B × H) | Golvytan som räknas är 0,72 m². Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Hagen räcker alltså till fyra marsvin. Det är löpgårdens yta som räknas: den mäter 92 × 78 cm och är 44,5 cm hög. Huset på 88 × 38,5 cm är 1,5 cm under normens kortaste sida på 40 cm och räknas därför som skyddad sovdel, inte som golvyta. | - Yttermått: 125,5 × 100 × 49 cm (L × B × H)"
+ },
+ "60eaf40e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: - Stora duken: 300 × 300 cm (L × B) | - Lilla taket: 90 × 90 cm (L × B) | - Stora duken: 300 × 300 cm (L × B) | - Lilla taket: 90 × 90 cm (L × B)"
+ },
+ "9bd6d1d4": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a8f46ff0": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c35f9d4f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: - Mått utfälld: 180 × 1,7 × 180 cm (B × D × H) | - Mått utfälld: 180 × 1,7 × 180 cm (B × D × H)"
+ },
+ "d01a6d2b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: - Mått: 298 × 298 cm (L × B) | - Mått: 298 × 298 cm (L × B)"
+ },
+ "dc7d2513": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "dcd756bd": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

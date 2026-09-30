@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0fda8bfe": {
+  "tyska": "✔ Gesamthöhe: 90 cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 90,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "4fe5959f": {
+  "tyska": "ø48 x H136-154 cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": [
+   136,
+   154
+  ]
+ },
+ "5a3de5da": {
+  "tyska": "80B x 30T x 94,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 94.5,
+  "bredd": 80
+ },
+ "9ee2fa6e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 98,5 × 60,5 × 35,5 cm (L × B × H) | Mått: 98,5 × 60,5 × 35,5 cm (L × B × H)"
+ },
+ "a9c2bfd8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße jedes Panels: 129L x 45B cm | ✔ Maße jedes Panels: 129L x 45B cm | Mått: 129L x 45B cm"
+ },
+ "c88b22ce": {
+  "tyska": "303L x 96B x 27H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 27,
+  "bredd": 303,
+  "djup": 96
+ },
+ "d444fbae": {
+  "tyska": "50L x 50B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 50,
+  "djup": 50
+ }
+}

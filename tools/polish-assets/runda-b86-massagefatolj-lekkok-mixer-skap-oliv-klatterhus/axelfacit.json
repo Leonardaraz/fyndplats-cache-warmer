@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "321f878a": {
+  "tyska": "66L x 24B x 83H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 83,
+  "bredd": 66,
+  "djup": 24
+ },
+ "33cde470": {
+  "tyska": "102L x 73B x 60H cm (Sofa), 102L x 173B x 11H cm (Bett)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 60,
+  "bredd": 102,
+  "djup": 73
+ },
+ "4be73755": {
+  "tyska": "100B x 40T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 180,
+  "bredd": 100
+ },
+ "654d3653": {
+  "tyska": "✔ Gesamthöhe: 180 cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 180,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "66bde4c1": {
+  "tyska": "60B x 40T x 159H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 159,
+  "bredd": 60
+ },
+ "6bcbaf32": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 35L x 22B x 29H cm | ✔ Rührschüsselvolumen: 4,5 L | ✔ Abmessungen: 35L x 22B x 29H cm | ✔ Rührschüsselvolumen: 4,5 L | b4d17208 (svart med detaljer i roséguld): Küchenmaschine Knetmaschine mit 4,5L Edelstahlschüssel 1300W"
+ },
+ "8064c7e2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Faltmaß: 79B x 39T x 44H cm | ✔ Aufgeklapptes Maß: 131B x 39T x 44H cm | ✔ Faltmaß: 79B x 39T x 44H cm | ✔ Aufgeklapptes Maß: 131B x 39T x 44H cm"
+ },
+ "d0fe9214": {
+  "tyska": "68B x 158T x 77H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 158,
+  "hojd": 77,
+  "bredd": 68
+ }
+}

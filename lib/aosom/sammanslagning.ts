@@ -860,8 +860,24 @@ function kostnad(v: { landedCostSek?: number } | undefined): Obj {
 /** Bilden varje val ska bära: axel → valets namn → Wix-mediets id. */
 type BildKarta = Record<string, Record<string, string>>;
 
+// ☠️ Kartan slås upp skiftlägesokänsligt, som allt annat i sammanslagningen
+// (`lika`). Wix sparar ett nytt val med den delade listans stavning: "Svart och
+// röd" blir "Svart och Röd" när butiken redan har det valet. Ett exakt uppslag
+// hittade aldrig valet, och körningen föll på "1 val saknar kopplad bild" även
+// vid omkörning (B69, B87).
+const nyckelFor = (m: Record<string, unknown>, namn: string) =>
+  Object.keys(m).find((k) => lika(k, namn));
+
+function bildFor(karta: BildKarta, axel: string, varde: string): string | undefined {
+  const a = nyckelFor(karta, axel);
+  const v = a === undefined ? undefined : nyckelFor(karta[a], varde);
+  return a === undefined || v === undefined ? undefined : karta[a][v];
+}
+
+/** Sätter ett vals bild. Finns valet redan under en annan stavning skrivs den posten. */
 function satt(karta: BildKarta, axel: string, varde: string, id: string): void {
-  (karta[axel] ??= {})[varde] = id;
+  const m = (karta[nyckelFor(karta, axel) ?? axel] ??= {});
+  m[nyckelFor(m, varde) ?? varde] = id;
 }
 
 const antalIBildkarta = (karta: BildKarta) =>
@@ -906,7 +922,7 @@ function kontrollera(
     if (!sammaMangd(val.map((c) => String(c.name ?? "")), plan.varden[a] ?? [])) {
       skal.push(`optionen ${a} har inte exakt de väntade valen`);
     }
-    lankade += val.filter((c) => bildPerVal[a]?.[String(c.name ?? "")] && lankadBild(c)).length;
+    lankade += val.filter((c) => bildFor(bildPerVal, a, String(c.name ?? "")) && lankadBild(c)).length;
   }
   const varianter = varianterAv(p);
   if (varianter.length !== plan.varianter) skal.push("fel antal varianter");
@@ -958,7 +974,7 @@ async function kopplaValbilder(
     choicesSettings: {
       ...((o.choicesSettings as Obj | undefined) ?? {}),
       choices: valAv(o).map((c) => {
-        const bildId = bildPerVal[String(o.name ?? "")]?.[String(c.name ?? "")];
+        const bildId = bildFor(bildPerVal, String(o.name ?? ""), String(c.name ?? ""));
         return bildId ? { ...c, linkedMedia: [{ id: bildId }] } : c;
       }),
     },
@@ -1037,13 +1053,13 @@ export async function korSammanslagning(
   // Sidans eget värde får sidans huvudbild när bildaxeln är ny på sidan — utom
   // när en annan axel redan bär bilder. En storlekssida som får färg behåller
   // då storlekarnas bilder i butiken (färgen utan bild faller tillbaka på dem).
-  const annanAxelHarBilder = Object.entries(bildPerVal).some(([a, m]) => a !== bAx && Object.keys(m).length > 0);
+  const annanAxelHarBilder = Object.entries(bildPerVal).some(([a, m]) => !lika(a, bAx) && Object.keys(m).length > 0);
   const sidansBildval = plan.sidansVal[bAx];
-  if (plan.nyaAxlar.includes(bAx) && sidansBildval && !annanAxelHarBilder && !bildPerVal[bAx]?.[sidansBildval] && bilderP[0]) {
+  if (plan.nyaAxlar.includes(bAx) && sidansBildval && !annanAxelHarBilder && !bildFor(bildPerVal, bAx, sidansBildval) && bilderP[0]) {
     satt(bildPerVal, bAx, sidansBildval, bilderP[0].id);
   }
   const givarensBildval = plan.nyttVal[bAx];
-  if (givarensBildval && valda[0] && !bildPerVal[bAx]?.[givarensBildval]) {
+  if (givarensBildval && valda[0] && !bildFor(bildPerVal, bAx, givarensBildval)) {
     satt(bildPerVal, bAx, givarensBildval, valda[0].id);
   }
 

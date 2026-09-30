@@ -1,0 +1,38 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2435c4d1": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,76 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. | - Yttermått: 156 × 58 × 68 cm (L × B × H) | Golvytan som räknas är 0,76 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. | - Yttermått: 156 × 58 × 68 cm (L × B × H)"
+ },
+ "525e6acf": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,61 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till tre marsvin. | - Yttermått: 123,5 × 62,6 × 92,5 cm (L × B × H) | Golvytan som räknas är 0,61 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till tre marsvin. | - Yttermått: 123,5 × 62,6 × 92,5 cm (L × B × H)"
+ },
+ "a4d8feca": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "cc31a73b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "d85ade1b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "d9310184": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e7a9abb7": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f489937f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: - Mått: 45 × 45 × 91 cm (B × D × H) | - Mått: 45 × 45 × 91 cm (B × D × H)"
+ }
+}

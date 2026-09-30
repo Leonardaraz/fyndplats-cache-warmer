@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1c983826": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 50L | ✔ Innerer Eimer: Ø28 x 56H cm | 1c983826 (42 liter): 42 L Sensor Mülleimer, Automatischer Abfalleimer, Rostfreier | 129b3a06 (50 liter): 50 L Sensor Mülleimer, Automatischer Abfalleimer, Rostfreier"
+ },
+ "3197b4b5": {
+  "tyska": "Ø102 x 99-123H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": [
+   99,
+   123
+  ]
+ },
+ "3f7ef4a1": {
+  "tyska": "128L x 120B x 98-126H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   98,
+   126
+  ],
+  "bredd": 128,
+  "djup": 120
+ },
+ "42ddf338": {
+  "tyska": "55L x 53B x 118-128H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   118,
+   128
+  ],
+  "bredd": 55,
+  "djup": 53
+ },
+ "897713b8": {
+  "tyska": "Ø102 x 99-123H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": [
+   99,
+   123
+  ]
+ },
+ "8f0a4df1": {
+  "tyska": "60L x 29B x 49H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 60,
+  "djup": 29
+ },
+ "bc2368af": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkocher Abmessungen: 21,2L x 16B x 24,3H cm (mit Basis) | ✔ Wasserkocher Kapazität: 1,7 L | ✔ Toaster Abmessungen: 27,2L x 15,6B x 18,5H cm | ✔ Schlitzmaße: 13,5L x 3,5B x 13,5H cm | Mått: 21,2L x 16B x 24,3H cm | bc2368af (beige): Set aus 1,7 L Wasserkocher und Toaster mit 6 Bräunungsstufen, Beige | 47587c65 (grå): Set aus 1,7 L Wasserkocher und Toaster mit 6 Bräunungsstufen, Grau | 217630f1 (svart): Set aus 1,7 L Wasserkocher und Toaster mit 6 Bräunungsstufen | Bild 3 (stryks, tysk text): måttbild: vattenkokaren 21,2 × 16 × 24,3 cm, brödrosten 27,2 × 15,6 × 18,5 cm, ikoner för 1,7 L och 6–8 koppar."
+ }
+}

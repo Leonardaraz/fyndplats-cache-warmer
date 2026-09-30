@@ -1652,6 +1652,21 @@ foto. Nu returnerar körningen fel innan mappningen skrivs, och omkörningen ser
 på att omkörningen fungerar, och ett test låser det: bilden faller i första
 körningen och kopplas i den andra.
 
+☠️ **Wix stavar ett nytt val som den delade listan, och bildkartan måste tåla
+det (2026-09-30).** Ett val som redan finns i butikens delade lista sparas med
+listans stavning: sidans "Svart och röd" blev "Svart och Röd". Allt annat i
+sammanslagningen jämför skiftlägesokänsligt (`lika`), men bildkartan slogs upp
+exakt. Valet hittades aldrig, körningen föll på "1 val saknar kopplad bild
+efter 8 försök", och omkörningen föll likadant (B69, B87). Kartan slås nu upp
+med `bildFor`/`satt`, och två tester låser det: ett där Wix stavar om sidans
+färg, och ett där omkörningen efter en fallen koppling räknar valet en gång.
+
+⚠️ **Omdirigeringsrutten läser katalogen utan beskrivning (2026-09-30).**
+`findRedirectConflicts` behöver bara slug och synlighet, men läste hela
+katalogen med `PLAIN_DESCRIPTION`. Det blev ett sextiotal tunga sidor, och
+rutten nådde sitt tak på 60 sekunder innan skrivningen hann börja (B69, B87).
+Ett test låser `listAllV3Products({ beskrivning: false })`.
+
 ⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
 det.** Kommentaren där säger att en delad option ("customization") tar högst 100
 val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) har

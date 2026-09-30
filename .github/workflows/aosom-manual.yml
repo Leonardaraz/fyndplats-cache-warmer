@@ -1,0 +1,249 @@
+name: Aosom — sök energimärkning i produktmanualer
+
+# Leonard 2026-09-30: fyra publicerade torktumlare saknar energimärkning,
+# "kolla produkt pdf om du kan hitta där". Feeden har ingen energikolumn, men
+# kolumnen `pdf` bär manualen på 97 % av raderna. En torktumlares manual kan
+# bära etiketten, produktbladet eller EPREL-QR-koden.
+#
+# Körningen slår upp sidans manualer via /api/admin/aosom-manual (där feeden
+# går att läsa), hämtar PDF:erna själv och söker på tre sätt: i texten, med
+# OCR på de renderade sidorna, och efter QR-koder. En EPREL-kod slås upp i
+# EU:s publika databas, och bara produktgrupp, energiklass och status skrivs ut.
+#
+# ☠️ LOGGEN ÄR PUBLIK, OCH MANUALENS ADRESS BÄR ARTIKELNUMRET. Varje adress
+# maskeras innan något annat skrivs, och varje rad ur en PDF går genom
+# `redigera` (artikelnummer, länkar). EPREL-numret skrivs inte ut: EPREL visar
+# leverantörens modellbeteckning, och den kan vara artikelnumret.
+#
+# ☠️ INGENTING LADDAS UPP SOM ARTEFAKT. En renderad sida kan bära numret, och
+# artefakter på ett publikt repo går att hämta.
+#
+# Körningen skriver ingenting, varken till Wix eller till grenen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      wix_ids:
+        description: "Wix-produkt-id (uuid), kommaseparerade. Högst tolv."
+        required: true
+        type: string
+      sidor:
+        description: "Högst så många sidor per manual renderas för QR och OCR. Default 40."
+        required: false
+        default: "40"
+        type: string
+
+jobs:
+  sok:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Installera PDF-, QR- och OCR-verktyg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils zbar-tools tesseract-ocr tesseract-ocr-deu >/dev/null
+
+      - name: Sök
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          WIX_IDS: ${{ inputs.wix_ids }}
+          SIDOR: ${{ inputs.sidor }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad på stdout slukas av en
+            # kommandosubstitution (workflow-lärdomen 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          case "${SIDOR:-40}" in ''|*[!0-9]*) echo "::error::sidor ska vara ett heltal" >&2; exit 1 ;; esac
+          maxsidor="${SIDOR:-40}"
+
+          bas="${BASE%/api/cron/poll-tracking}/api/admin/aosom-manual"
+
+          # Samma form som import- och synkworkflowen, plus tre till: länkar
+          # (en manual trycker ofta Aosoms adress, och den bär numret), ett
+          # EPREL-nummer i texten, och manualens egen kod (IN…), som går att
+          # söka fram varan på.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/gi; s/aosom:\S+/aosom:‹REDIGERAT›/g; s#(?:https?://|www\.)\S+#‹LÄNK›#gi; s/(eprel\D{0,40})\d{4,}/$1‹NR›/gi; s/\bIN\d{6,}\S*/‹KOD›/g'
+          }
+
+          # Svaret bär manualernas adresser. Det skrivs aldrig ut; vid fel
+          # bär kroppen bara rutten felmeddelande.
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 90 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              printf '%s\n' "$kropp" | jq -r '.error // "okänt fel"' 2>/dev/null | redigera >&2 || true
+              echo "HTTP ${kod}" >&2
+              return 1
+            fi
+            printf '%s' "$kropp"
+          }
+
+          # Energiord på tyska, engelska och svenska, förordningarna och
+          # EPREL. `kwh` står nästan bara på etiketten och i produktbladet.
+          MONSTER='energieeffizienz|energy efficiency|energieklasse|energy class|energieverbrauch|energy consumption|energielabel|energy label|energiklass|energimärk|eprel|kwh|produktdatenblatt|datenblatt|product information sheet|product fiche|kondensationseffizienz|condensation efficiency|2023/2534|392/2012|2017/1369'
+
+          IFS=',' read -r -a ids <<< "${WIX_IDS}"
+          if [ "${#ids[@]}" -gt 12 ]; then
+            echo "::error::högst tolv id per körning" >&2
+            exit 1
+          fi
+
+          mkdir -p arbete
+          # ☠️ Manualerna får en BOKSTAV i loggen, aldrig en hash av adressen.
+          # Adressen följer ett mönster med artikelnumret i, och numren är
+          # några tusen: en hashprefix hade gått att matcha mot dem. Samma
+          # skäl att varken storleken i byte eller teckenantalet skrivs ut —
+          # båda är fingeravtryck av filen.
+          declare -A sedda=()
+          etiketter=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
+          unika=0
+          sammanfattning=()
+          fel=0
+
+          for raw in "${ids[@]}"; do
+            id="$(printf '%s' "$raw" | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+            [ -z "$id" ] && continue
+            echo
+            echo "════ ${id}"
+            if ! svar="$(anropa "${bas}?wix=${id}")"; then
+              echo "::warning::${id}: uppslaget föll, se raden ovan"
+              sammanfattning+=("${id} | uppslaget föll")
+              fel=$((fel + 1))
+              continue
+            fi
+
+            # ☠️ MASKERA FÖRST. Hela adressen, och varje artikelnummerformad
+            # bit av den för sig: en adress som skrivs om (ett curl-fel, en
+            # sökväg) hade annars gått förbi masken för den hela strängen.
+            printf '%s' "$svar" | jq -r '.manualer[]?' > arbete/lankar.txt
+            while IFS= read -r lank; do
+              [ -z "$lank" ] && continue
+              echo "::add-mask::${lank}"
+              printf '%s\n' "$lank" | perl -ne 'print "::add-mask::$1\n" while /\b((?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*)\b/gi'
+            done < arbete/lankar.txt
+
+            printf '%s' "$svar" | jq -r '"artiklar \(.artiklar), utan manual \(.utanManual), manualer \(.manualer | length)"'
+            if [ ! -s arbete/lankar.txt ]; then
+              sammanfattning+=("${id} | ingen manual i feeden")
+              continue
+            fi
+
+            nr=0
+            while IFS= read -r lank; do
+              [ -z "$lank" ] && continue
+              nr=$((nr + 1))
+              nyckel="$(printf '%s' "$lank" | sha256sum | cut -c1-64)"
+              if [ -n "${sedda[$nyckel]:-}" ]; then
+                echo "── manual ${nr}: samma fil som manual ${sedda[$nyckel]}"
+                sammanfattning+=("${id} | ${sedda[$nyckel]} | samma fil som ovan")
+                continue
+              fi
+              etikett="${etiketter[$((unika % 26))]}$([ "$unika" -ge 26 ] && echo "$((unika / 26))" || true)"
+              unika=$((unika + 1))
+              sedda[$nyckel]="$etikett"
+              echo "── manual ${nr} = manual ${etikett}"
+
+              rm -rf arbete/m && mkdir -p arbete/m
+              # curl:s fel går till en fil: ett felmeddelande kan bära
+              # sökvägen, och bara slutkoderna skrivs ut.
+              rc=0
+              http="$(curl -sS -L --max-time 240 --max-filesize 120000000 -w '%{http_code}' \
+                -o arbete/m/manual.pdf "$lank" 2>arbete/m/curl.fel)" || rc=$?
+              if [ "$rc" -ne 0 ] || [ "$http" != "200" ]; then
+                echo "::warning::manual ${etikett}: hämtningen föll (curl ${rc}, HTTP ${http:-?})"
+                sammanfattning+=("${id} | ${etikett} | hämtningen föll")
+                fel=$((fel + 1))
+                continue
+              fi
+              sidtal="$(pdfinfo arbete/m/manual.pdf 2>/dev/null | awk '/^Pages:/{print $2}' || true)"
+              sidtal="${sidtal:-0}"
+              echo "   ${sidtal} sidor"
+
+              # 1. Texten, med sidnummer (pdftotext skiljer sidorna med \f).
+              pdftotext -layout arbete/m/manual.pdf arbete/m/text.txt 2>/dev/null || : > arbete/m/text.txt
+              tecken="$(wc -m < arbete/m/text.txt | tr -d ' ')"
+              textlager="nej"; [ "$tecken" -gt 200 ] && textlager="ja"
+              awk -v re="$MONSTER" 'BEGIN{p=1} { n=gsub(/\f/,""); p+=n; if (tolower($0) ~ re) { sub(/^[ \t]+/,""); gsub(/[ \t]+/," "); print "   text s." p ": " substr($0,1,160) } }' \
+                arbete/m/text.txt > arbete/m/text.traff || true
+              textTraffar="$(wc -l < arbete/m/text.traff | tr -d ' ')"
+              echo "   textlager: ${textlager}, ${textTraffar} rader med energiord"
+              head -n 30 arbete/m/text.traff | redigera
+
+              # 2. Rendera sidorna, för QR och OCR. 200 dpi: QR-koden på en
+              # etikett som trycks i en manual är liten.
+              sista="$sidtal"
+              [ "$sista" -gt "$maxsidor" ] && sista="$maxsidor"
+              qrEprel=0; qrOvriga=0; ocrTraffar=0
+              if [ "$sista" -gt 0 ]; then
+                pdftoppm -r 200 -f 1 -l "$sista" -png arbete/m/manual.pdf arbete/m/s 2>/dev/null || true
+
+                # QR: bara EPREL:s kod räknas och slås upp. Andra koder kan
+                # peka på Aosoms produktsida, och räknas bara.
+                for bild in arbete/m/s-*.png; do
+                  [ -e "$bild" ] || continue
+                  sida="$(basename "$bild" .png | sed 's/^s-0*//')"
+                  zbarimg -q --raw "$bild" 2>/dev/null > arbete/m/qr.txt || true
+                  while IFS= read -r kod; do
+                    [ -z "$kod" ] && continue
+                    if printf '%s' "$kod" | grep -qi 'eprel\.ec\.europa\.eu'; then
+                      qrEprel=$((qrEprel + 1))
+                      reg="$(printf '%s' "$kod" | grep -oE '[0-9]{4,}' | tail -n1 || true)"
+                      echo "::add-mask::${kod}"
+                      [ -n "$reg" ] && echo "::add-mask::${reg}"
+                      if [ -n "$reg" ] && curl -sS --max-time 30 -o arbete/m/eprel.json \
+                          "https://eprel.ec.europa.eu/api/product/${reg}" 2>/dev/null; then
+                        besked="$(jq -r 'if .code then "EPREL svarar \(.code)" else "grupp \(.productGroup // "?"), energiklass \(.energyClass // "?"), status \(.status // "?")" end' arbete/m/eprel.json 2>/dev/null || echo "EPREL-svaret gick inte att läsa")"
+                      else
+                        besked="EPREL svarade inte"
+                      fi
+                      echo "   QR s.${sida}: EPREL-kod (numret skrivs inte ut) — ${besked}"
+                    else
+                      qrOvriga=$((qrOvriga + 1))
+                    fi
+                  done < arbete/m/qr.txt
+                done
+
+                # OCR, fyra sidor i taget. Etiketten är nästan alltid en bild
+                # även i en PDF med textlager.
+                export OMP_THREAD_LIMIT=1
+                ls arbete/m/s-*.png 2>/dev/null | xargs -r -P 4 -I{} sh -c 'tesseract "$1" "${1%.png}" -l deu+eng --psm 3 >/dev/null 2>&1 || true' _ {} || true
+                : > arbete/m/ocr.traff
+                for txt in arbete/m/s-*.txt; do
+                  [ -e "$txt" ] || continue
+                  sida="$(basename "$txt" .txt | sed 's/^s-0*//')"
+                  awk -v re="$MONSTER" -v s="$sida" '{ if (tolower($0) ~ re) { sub(/^[ \t]+/,""); gsub(/[ \t]+/," "); print "   ocr s." s ": " substr($0,1,160) } }' "$txt" >> arbete/m/ocr.traff || true
+                done
+                ocrTraffar="$(wc -l < arbete/m/ocr.traff | tr -d ' ')"
+                echo "   ocr: ${sista} sidor lästa, ${ocrTraffar} rader med energiord"
+                head -n 30 arbete/m/ocr.traff | redigera
+              fi
+              echo "   QR: ${qrEprel} EPREL, ${qrOvriga} andra"
+              sammanfattning+=("${id} | ${etikett} | ${sidtal} | ${textTraffar} | ${ocrTraffar} | ${qrEprel}")
+            done < arbete/lankar.txt
+          done
+
+          {
+            echo "### Energimärkning i produktmanualerna"
+            echo ""
+            echo "| wix-id | manual | sidor | text | ocr | EPREL-QR |"
+            echo "|---|---|---:|---:|---:|---:|"
+            for rad in "${sammanfattning[@]}"; do
+              printf '| %s |\n' "$rad"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo
+          echo "════ Sammanfattning"
+          printf '%s\n' "${sammanfattning[@]}"
+          if [ "$fel" -gt 0 ]; then
+            echo "::error::${fel} uppslag eller hämtningar föll" >&2
+            exit 1
+          fi

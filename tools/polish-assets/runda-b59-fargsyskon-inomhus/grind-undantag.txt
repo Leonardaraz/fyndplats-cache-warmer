@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-lager.py f61517b6 står på saldo 0 i sin gräddvita färg; den grå färgen (saldo 156) läggs på sidan i samma runda, så sidan går att köpa

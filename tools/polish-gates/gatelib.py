@@ -317,6 +317,28 @@ TYSKA_ORD = [
     "Unterstützung", "Verspannungen", "Netzstoff", "bodenschonende", "geräuschlose",
     "hochklappbare", "hochklappbaren", "leichtgängigen", "leinenartigem", "samtweichem",
     "verschleißfester", "getuftetes", "gepolsterter", "unübertroffenen", "kuscheliges",
+    # runda B58 (julgranar, elkamin, elementskydd, soffa)
+    "Weihnachtsbaum", "Weihnachtsbaums", "Christbaum", "Christbaums", "Tannenbaum",
+    "Kunsttannenbaum", "Edeltanne", "Glasfaser", "Faseroptik", "Zweigspitzen", "Lichtmodi",
+    "Lichtfunktionen", "Beleuchtung", "Heizkörperverkleidung", "Heizungsabdeckung",
+    "Überhitzungsschutz", "Taschenfedern", "Kissengröße",
+    # runda B59 (elbil, konsolbord, kista, rullvagn, barstolar, kontorsstol, gamingstol)
+    "Elektroautos", "Suchscheinwerfer", "Konsolentisch", "Flurtisch", "Flurtisches",
+    "Marmoroptik", "Aufbewahrungstruhe", "Truhe", "Holztruhe", "Küchenwagen",
+    "Servierwagen", "Bastelwagen", "Aufbewahrungswagen", "Schubladen", "Rustikales",
+    "Barstuhl", "Barstühlen", "Tresenstuhl", "Cordstoff", "Samtbezug", "Rückenheizung",
+    "Gamerstuhl", "Hasenohren",
+    # runda B60 (paraplyställ, pedalhinkar, sittbänk, rutschkana, hundgrind, ritstol, kontorsstol)
+    "Tropfwasserschale", "Auffangschale", "Mülleimer", "Küchenmülleimer", "Treteimer",
+    "Abfalleimer", "Tretmülleimer", "Inneneimer", "Holzbank", "Rutsche", "Kinderrutsche",
+    "Haustiergitter", "Schutztür", "Zeichenstuhl", "Arbeitsstuhl",
+    # runda B61 (hundvagnar, joggingvagn, hundvippa, pedalhink)
+    "Hundewagen", "Hundebuggy", "Hundetrolley", "Haustierbuggy", "Haustierwagen",
+    "Katzenbuggy", "Katzenwagen", "Hundewippe", "Pedaleimer", "Tragtasche",
+    "Regenschutz", "Netzfenster", "Liegematte", "Ablagekorb",
+    # runda B62 (hopphinder, agilitybågar, A-hinder, kattlådor)
+    "Streufangmatte", "Schmutzfangmatte", "Streufach", "Siebvorlage", "Hürdenstangen",
+    "Bodenstangen", "Rohrklemmen", "Hundesport", "Filterbeutel", "Klapptür", "Schornstein",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med

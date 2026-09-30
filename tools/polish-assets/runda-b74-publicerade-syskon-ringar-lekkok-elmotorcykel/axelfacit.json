@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "68c9cfe0": {
+  "tyska": "148L x 105B x 88-128H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   88,
+   128
+  ],
+  "bredd": 148,
+  "djup": 105
+ },
+ "7b62aa26": {
+  "tyska": "105L x 57B x 62H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 105,
+  "djup": 57
+ },
+ "80aac077": {
+  "tyska": "79L x 44B x 50H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 79,
+  "djup": 44
+ },
+ "81a7d7e4": {
+  "tyska": "85,5L x 44,5B x 56H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 85.5,
+  "djup": 44.5
+ },
+ "a57587a8": {
+  "tyska": "83,8L x 26,8B x 81H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 83.8,
+  "djup": 26.8
+ },
+ "a76e97f1": {
+  "tyska": "96,5L x 49B x 101H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 101,
+  "bredd": 96.5,
+  "djup": 49
+ },
+ "a8130281": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔Maße des Klaviers: L48 x B39 x H69 cm | ✔Maße des Hockers: Ø22,5 x H19,5 cm | Mått: L48 x W39 x H69cm | ✔Maße des Klaviers: L48 x B39 x H69 cm | ✔Maße des Hockers: Ø22,5 x H19,5 cm | Mått: L48 x W39 x H69cm"
+ },
+ "ac160e8e": {
+  "tyska": "54L x 46,5B x 93H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 54,
+  "djup": 46.5
+ }
+}
