@@ -13,6 +13,7 @@ import { synligtSaldo } from "./sync";
 import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { WixAnrop } from "../polish/skrivplan";
+import { MinnesFargbildLager } from "../store/fargbilder";
 
 // Syntetiska artikelnummer — riktiga får aldrig stå i en testfil, repot är
 // publikt. A-1 är sidans artikel, G-7 utkastets.
@@ -131,6 +132,12 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj; stavning?: Record<string, str
       const p = produkter[id];
       const k = (kropp as { product: Obj }).product;
       p.options = structuredClone(k.options);
+      // Wix ger varje nytt val ett id; befintliga behåller sitt.
+      for (const o of (p.options ?? []) as Obj[]) {
+        for (const c of ((o.choicesSettings as { choices?: Obj[] } | undefined)?.choices ?? [])) {
+          c.choiceId ??= `val-${String(o.name)}-${String(c.name)}`;
+        }
+      }
       const varianter = ((k.variantsInfo as Obj).variants as Obj[]).map((v, i) => {
         const { inventoryItem, ...rest } = v;
         const vid = (v.id as string) ?? `var-ny-${i}`;
@@ -188,6 +195,7 @@ function miljo(over: {
     rader.set(m.wixProductId, m);
   }
   let sparaFaller = over.sparaFaller ?? 0;
+  const lager = new MinnesFargbildLager();
   const deps: SammanslagningDeps = {
     wix: w.wix,
     getMapping: async (id) => structuredClone(rader.get(id) ?? null),
@@ -200,10 +208,11 @@ function miljo(over: {
       rader.set(m.wixProductId, structuredClone(m));
     },
     fetchFeed: async () => over.feed ?? [rad("A-1", { qty: 43 }), rad("G-7", { qty: 23 })],
+    fargbilder: lager,
     vanta: async () => {},
     ...over.extra,
   };
-  return { deps, rader, w, fall: (n: number) => { sparaFaller = n; } };
+  return { deps, rader, w, lager, fall: (n: number) => { sparaFaller = n; } };
 }
 
 // ── hjälpare för de nya fallen ──────────────────────────────────────────────
@@ -296,7 +305,11 @@ describe("färgsammanslagning — planen", () => {
       skuBehall: "FP-stol",
       skuUtkast: "FP-stol-gra",
       bilderBehall: 2,
-      bilderUtkast: 1,
+      // Alla givarens bilder sedan 2026-09-30. Givaren är opolerad (tyskt
+      // namn), men bara position 3 och senare granskas.
+      bilderUtkast: 2,
+      bilderOverflow: 0,
+      bilderGranskas: 0,
     });
   });
 
@@ -377,20 +390,23 @@ describe("färgsammanslagning — skrivningen", () => {
     const p = w.produkter.sida;
     expect(p.visible).toBe(true);
     const val = ((p.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
-    expect(val.map((c) => [c.name, (c.linkedMedia as Obj[])[0].id])).toEqual([
-      ["Svart", "bild-s1"],
-      ["Grå", "bild-u1"],
+    // Varje färg får HELA sin lista: sidans foton till sidans färg (butikens
+    // ägarregler), givarens till den nya.
+    expect(val.map((c) => [c.name, (c.linkedMedia as Obj[]).map((m) => m.id)])).toEqual([
+      ["Svart", ["bild-s1", "bild-s2"]],
+      ["Grå", ["bild-u1", "bild-u2"]],
     ]);
     const varianter = (p.variantsInfo as { variants: Obj[] }).variants;
     expect(varianter.map((v) => [v.sku, (v.price as { actualPrice: { amount: string } }).actualPrice.amount, v.visible])).toEqual([
       ["FP-stol", "699", true],
       ["FP-stol-gra", "649", true],
     ]);
-    // Bara den valda bilden följer med, med svensk alt-text.
+    // Givarens bilder följer med, med svensk alt-text (givarens är tysk).
     expect(((p.media as Obj).itemsInfo as { items: Obj[] }).items.map((b) => [b.id, b.altText])).toEqual([
       ["bild-s1", "Stol framifrån"],
       ["bild-s2", "Stol från sidan"],
       ["bild-u1", "Kontorsstol med nackstöd i färgen grå"],
+      ["bild-u2", "Kontorsstol med nackstöd i färgen grå, bild 2"],
     ]);
     // Lagret sattes i samma skrivning som varianten.
     expect(w.lager.sida.map((x) => x.quantity)).toEqual([40, synligtSaldo(23)]);
@@ -465,7 +481,7 @@ describe("färgsammanslagning — skrivningen", () => {
     const svar = await korSammanslagning(PAR, deps, { apply: true });
     expect(svar.ok).toBe(true);
     const val = ((w.produkter.sida.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
-    expect(val.every((c) => (c.linkedMedia as Obj[]).length === 1)).toBe(true);
+    expect(val.map((c) => (c.linkedMedia as Obj[]).length)).toEqual([2, 2]);
   });
 
   it("☠️ en bild som aldrig kopplas stoppar mappningen, och omkörningen kopplar den", async () => {
@@ -684,7 +700,7 @@ describe("sammanslagning — storlek", () => {
     const option = (w.produkter.sida.options as Obj[])[0];
     expect(option.name).toBe("Storlek");
     expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "110 × 85 cm"]);
-    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-2)!.altText;
     expect(alt).toBe("Kontorsstol med nackstöd i storleken 110 × 85 cm");
     expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
       { Storlek: "90 × 70 cm" },
@@ -907,7 +923,7 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
       varianter: 2,
       saknadeKombinationer: 2,
       skuUtkast: "FP-stol-110-85-cm-gra",
-      bilderUtkast: 1,
+      bilderUtkast: 2,
     });
     expect(plan.varningar.join(" ")).toMatch(/2 av 4 kombinationer/);
 
@@ -920,7 +936,7 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
       ["FP-stol", { Färg: "Svart", Storlek: "90 × 70 cm" }],
       ["FP-stol-110-85-cm-gra", { Färg: "Grå", Storlek: "110 × 85 cm" }],
     ]);
-    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-1)!.altText;
+    const alt = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.at(-2)!.altText;
     expect(alt).toBe("Kontorsstol med nackstöd i färgen grå och storleken 110 × 85 cm");
 
     const sida = rader.get("sida")!;
@@ -1104,5 +1120,162 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
       expect(text).not.toMatch(/A-1|G-7|H-8|J-9/);
       expect(text).not.toMatch(/525|560|landed|costUsd/);
     }
+  });
+});
+
+// ── Färgbilderna (2026-09-30) ───────────────────────────────────────────────
+// Sammanslagningen tog bara givarens första bild, och återkopplingen skrev om
+// varje befintligt val till sin första bild. Nu får en ny färg ALLA sina
+// bilder under Wix 15, resten i färgbildstabellen, och befintliga val behåller
+// hela sina listor.
+
+describe("sammanslagning — färgbilderna", () => {
+  const listor = (w: ReturnType<typeof fejkWix>) =>
+    valPa(w).map((c) => [c.name, ((c.linkedMedia ?? []) as Obj[]).map((m) => m.id)]);
+  const galleri = (w: ReturnType<typeof fejkWix>) =>
+    ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items.map((b) => b.id);
+
+  function tre() {
+    const w = fejkWix();
+    laggTillUtkast2(w);
+    const m = miljo({
+      wix: w,
+      feed: TRE,
+      mappningar: [
+        mappning("A-1", "sida"),
+        mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true }),
+        mappningUtkast2(),
+      ],
+    });
+    return { ...m, w };
+  }
+
+  it("☠️ utoka: de befintliga valen BEHÅLLER hela sina listor när en färg till läggs på", async () => {
+    const { deps, w } = tre();
+    expect((await korSammanslagning(PAR, deps, { apply: true })).ok).toBe(true);
+    // Färgbildsverktyget har gett Svart en tredje bild.
+    const svart = valPa(w)[0];
+    (w.produkter.sida.media as { itemsInfo: { items: Obj[] } }).itemsInfo.items.push({ id: "bild-s3", altText: "Stolen bakifrån" });
+    svart.linkedMedia = [{ id: "bild-s1" }, { id: "bild-s2" }, { id: "bild-s3" }];
+
+    const svar = await korSammanslagning(TREDJE, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(listor(w)).toEqual([
+      ["Svart", ["bild-s1", "bild-s2", "bild-s3"]],
+      ["Grå", ["bild-u1", "bild-u2"]],
+      ["Blå", ["bild-b1"]],
+    ]);
+  });
+
+  it("☠️ återkopplingen efter ett fel skriver HELA listorna, inte första bilden", async () => {
+    const { deps, w } = tre();
+    expect((await korSammanslagning(PAR, deps, { apply: true })).ok).toBe(true);
+    w.fel.koppling = 2;
+    expect((await korSammanslagning(TREDJE, deps, { apply: true })).ok).toBe(true);
+    expect(listor(w)).toEqual([
+      ["Svart", ["bild-s1", "bild-s2"]],
+      ["Grå", ["bild-u1", "bild-u2"]],
+      ["Blå", ["bild-b1"]],
+    ]);
+  });
+
+  it("den nya färgens lista står i färgbildstabellen, med givaren", async () => {
+    const { deps, lager } = miljo();
+    expect((await korSammanslagning(PAR, deps, { apply: true })).ok).toBe(true);
+    const rader = await lager.lasForProdukt("sida");
+    expect(rader.map((r) => [r.choiceName, r.ordning, r.filId, r.plats, r.givareId])).toEqual([
+      ["Grå", 0, "bild-u1", "galleri", "utkast"],
+      ["Grå", 1, "bild-u2", "galleri", "utkast"],
+    ]);
+  });
+
+  it("☠️ över Wix 15: det som inte ryms hamnar i tabellen som overflow — ingenting skärs bort", async () => {
+    const w = fejkWix({
+      sida: { media: { itemsInfo: { items: Array.from({ length: 13 }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
+      utkast: {
+        name: "Kontorsstol i grått",
+        media: { itemsInfo: { items: Array.from({ length: 5 }, (_, i) => ({ id: `bild-u${i + 1}`, altText: `Den grå stolen, vy ${i + 1}` })) } },
+      },
+    });
+    const { deps, lager } = miljo({ wix: w });
+    const plan = (await korSammanslagning(PAR, deps)).plan;
+    expect(plan).toMatchObject({ bilderUtkast: 2, bilderOverflow: 3, bilderGranskas: 0 });
+    expect(plan.varningar.join(" ")).toMatch(/ryms inte under Wix 15/);
+
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(galleri(w)).toHaveLength(15);
+    expect(listor(w)[1]).toEqual(["Grå", ["bild-u1", "bild-u2"]]);
+    const rader = await lager.lasForProdukt("sida");
+    expect(rader.filter((r) => r.plats === "overflow").map((r) => r.filId)).toEqual(["bild-u3", "bild-u4", "bild-u5"]);
+    // Polerad givare: den svenska alt-texten behålls.
+    const items = ((w.produkter.sida.media as Obj).itemsInfo as { items: Obj[] }).items;
+    expect(items.find((b) => b.id === "bild-u2")!.altText).toBe("Den grå stolen, vy 2");
+  });
+
+  it("☠️ en opolerad givares bilder från position 3 skrivs inte — de sparas som granskas", async () => {
+    const w = fejkWix({
+      utkast: {
+        media: { itemsInfo: { items: Array.from({ length: 5 }, (_, i) => ({ id: `bild-u${i + 1}`, altText: "Bürostuhl" })) } },
+      },
+    });
+    const { deps, lager } = miljo({ wix: w });
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.plan).toMatchObject({ bilderUtkast: 2, bilderOverflow: 0, bilderGranskas: 3 });
+    expect(galleri(w)).not.toContain("bild-u3");
+    const rader = await lager.lasForProdukt("sida");
+    expect(rader.filter((r) => r.plats === "granskas").map((r) => r.filId)).toEqual(["bild-u3", "bild-u4", "bild-u5"]);
+  });
+
+  it("givarens egna kort följer inte med — sidans kort gäller alla färger", async () => {
+    const w = fejkWix({
+      utkast: {
+        name: "Kontorsstol i grått",
+        media: { itemsInfo: { items: [
+          { id: "bild-u1", altText: "Den grå stolen" },
+          { id: "bild-u2", altText: "Faktakort: stolen i grått" },
+          { id: "bild-u3", altText: "Den grå stolen från sidan" },
+        ] } },
+      },
+    });
+    const { deps } = miljo({ wix: w });
+    expect((await korSammanslagning(PAR, deps, { apply: true })).ok).toBe(true);
+    expect(listor(w)[1]).toEqual(["Grå", ["bild-u1", "bild-u3"]]);
+    expect(galleri(w)).not.toContain("bild-u2");
+  });
+
+  it("med `bilder` följer exakt de valda med, och inga fler", async () => {
+    const { deps, w, lager } = miljo();
+    expect((await korSammanslagning({ ...PAR, bilder: [1] }, deps, { apply: true })).ok).toBe(true);
+    expect(listor(w)[1]).toEqual(["Grå", ["bild-u1"]]);
+    expect((await lager.lasForProdukt("sida")).map((r) => r.filId)).toEqual(["bild-u1"]);
+  });
+
+  it("ett fullt galleri stoppar planen i stället för att Wix får sexton", async () => {
+    const w = fejkWix({
+      sida: { media: { itemsInfo: { items: Array.from({ length: 15 }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
+    });
+    const { deps } = miljo({ wix: w });
+    expect((await korSammanslagning(PAR, deps)).plan.hinder).toContain("galleriet_fullt");
+  });
+
+  it("faller tabellen skrivs ingen mappning, och omkörningen (wix_klar) skriver den", async () => {
+    const { deps, rader, lager } = miljo();
+    let faller = 1;
+    const ersatt = lager.ersattForVal.bind(lager);
+    lager.ersattForVal = async (...a: Parameters<typeof ersatt>) => {
+      if (faller-- > 0) throw new Error("databasen svarade inte");
+      return ersatt(...a);
+    };
+    const forsta = await korSammanslagning(PAR, deps, { apply: true });
+    expect(forsta.ok).toBe(false);
+    expect(forsta.fel).toMatch(/färgbildstabellen föll/);
+    expect(rader.get("sida")!.variants).toHaveLength(1);
+
+    const andra = await korSammanslagning(PAR, deps, { apply: true });
+    expect(andra.plan.tillstand).toBe("wix_klar");
+    expect(andra.ok).toBe(true);
+    expect((await lager.lasForProdukt("sida")).map((r) => r.filId)).toEqual(["bild-u1", "bild-u2"]);
   });
 });

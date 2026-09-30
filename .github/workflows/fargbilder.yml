@@ -1,0 +1,160 @@
+name: Bilder — ge varje farg pa en sammanslagen sida alla sina bilder
+
+# Sammanslagningen lade bara givarens FORSTA bild pa sidan. Givaren ligger
+# kvar dold med resten, och kan raderas fran ungefar 2026-10-11. Den har
+# workflowen flyttar alla bilderna: varje farg far sina egna, lankade, och det
+# som inte ryms under Wix tak pa 15 bilder sparas i motorns fargbildstabell,
+# som butiken laser. Logiken: lib/aosom/fargbilder.ts.
+#
+#   plan   Raknar fram planen. Skriver ingenting. Skriver ut planens sha.
+#   skriv  Skriver. Kraver bekrafta = planens sha, med SAMMA hogst/sidor/
+#          ta_med_granskade som planen kordes med. Stannar vid forsta sida
+#          som inte laser tillbaka som planen.
+#
+# ☠️ EN LANKAD BILD TAPPAS ALDRIG. Varje bild ett val pekar pa star kvar i
+# galleriet, och varje fargs nya lista borjar med dess nuvarande.
+#
+# ☠️ OPOLERADE GIVARES BILDER FRAN POSITION 3 SKRIVS INTE utan
+# ta_med_granskade=ja. De kan bara tysk text inbrand. De sparas i tabellen
+# som "granskas", sa att bildstadningen inte tar dem, men butiken far dem inte.
+#
+# ☠️ LOGGEN AR PUBLIK. Svaret bar bara wix-id, raknare och hinder.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan · skriv"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - skriv
+      hogst:
+        description: "Antal sidor (1-50). Default 10. Ignoreras nar sidor anges."
+        required: false
+        default: "10"
+        type: string
+      sidor:
+        description: "Valfritt: wix-id, kommaseparerade, i stallet for hogst."
+        required: false
+        default: ""
+        type: string
+      ta_med_granskade:
+        description: "ja = skriv aven opolerade givares bilder fran position 3 (granska dem forst)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      bekrafta:
+        description: "skriv: planens sha (64 hextecken) fran en plan med samma installningar."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  fargbilder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          HOGST: ${{ inputs.hogst }}
+          SIDOR: ${{ inputs.sidor }}
+          GRANSKADE: ${{ inputs.ta_med_granskade }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/admin/fargbilder"
+
+          # Parametrarna byggs har och skrivs aldrig ut.
+          q="lage=${MODE}"
+          sidor="$(printf '%s' "${SIDOR:-}" | tr -d ' ')"
+          if [ -n "$sidor" ]; then
+            if ! printf '%s' "$sidor" | grep -Eq '^[0-9a-fA-F-]{36}(,[0-9a-fA-F-]{36})*$'; then
+              echo "::error::sidor ska vara wix-id, kommaseparerade" >&2
+              exit 1
+            fi
+            q="${q}&sidor=${sidor}"
+          else
+            q="${q}&hogst=${HOGST:-10}"
+          fi
+          [ "${GRANSKADE:-nej}" = "ja" ] && q="${q}&ta_med_granskade=ja"
+          if [ "${MODE}" = "skriv" ]; then
+            if ! printf '%s' "${BEKRAFTA:-}" | grep -Eq '^[0-9a-f]{64}$'; then
+              echo "::error::skriv kraver bekrafta = planens sha (kor plan forst)" >&2
+              exit 1
+            fi
+            q="${q}&bekrafta=${BEKRAFTA}"
+          fi
+
+          # Fel gar till stderr — en kommandosubstitution slukar stdout.
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${url}?${q}")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          kropp="$(printf '%s' "$svar" | sed '$d')"
+
+          {
+            echo "### Fargbilder — ${MODE}"
+            echo ""
+            printf '%s\n' "$kropp" | jq -r '
+              if .summa then
+                "| | |\n|---|---:|",
+                "| kandidater totalt (sidor med givare kvar att flytta) | \(.kandidaterTotalt) |",
+                "| sidor i planen | \(.summa.sidor) |",
+                "| **andras i Wix** | **\(.summa.andrasIWix)** |",
+                "| bara tabellen | \(.summa.baraTabell) |",
+                "| hindrade | \(.summa.hindrade) |",
+                "| nya bilder i gallerierna | \(.summa.nyaIGalleriet) |",
+                "| olankade foton som flyttas till tabellen | \(.summa.urGalleriet) |",
+                "| utover Wix 15 (i tabellen) | \(.summa.overflow) |",
+                "| att granska (skrivs inte) | \(.summa.granskas) |",
+                "| nya svenska alt-texter | \(.summa.altNya) |",
+                "| med granskade | \(.taMedGranskade) |",
+                "",
+                "**sha:** `\(.sha)`"
+              else empty end
+            ' || true
+            echo ""
+            echo "| wix-id | farger | givare | galleri fore → efter | overflow | granskas | hinder |"
+            echo "|---|---:|---:|---|---:|---:|---|"
+            printf '%s\n' "$kropp" | jq -r '
+              .sidor[]? | "| `\(.id)` | \(.val) | \(.givare) | \(.bilderFore) → \(.bilderEfter) | \(.overflow) | \(.granskas) | \(.hinder | join(", ")) |"
+            ' || true
+            printf '%s\n' "$kropp" | jq -r '
+              if .utfall then
+                "",
+                "**Skrivna: \(.skrivna), stopp: \(.stoppadAv)**",
+                "",
+                (.utfall[] | "- `\(.id)` \(if .ok then "ok" else "FEL" end): \(.steg | join(" · "))\(if .fel then " — \(.fel)" else "" end)")
+              else empty end
+            ' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          printf '%s\n' "$kropp" | jq -r '
+            if .summa then
+              "sidor \(.summa.sidor) av \(.kandidaterTotalt) kandidater: andras \(.summa.andrasIWix), bara tabell \(.summa.baraTabell), hindrade \(.summa.hindrade), nya \(.summa.nyaIGalleriet), overflow \(.summa.overflow), granskas \(.summa.granskas)",
+              "sha \(.sha)"
+            else empty end
+          ' || true
+          printf '%s\n' "$kropp" | jq -r '.sidor[]? | "  \(.id): farger \(.val), givare \(.givare), galleri \(.bilderFore) -> \(.bilderEfter), overflow \(.overflow), granskas \(.granskas)\(if (.hinder | length) > 0 then ", hinder \(.hinder | join(","))" else "" end)"' || true
+          printf '%s\n' "$kropp" | jq -r '.utfall[]? | "  skriv \(.id): \(if .ok then "ok" else "FEL" end) \(.steg | join(" | ")) \(.fel // "")"' || true
+
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}: $(printf '%s' "$kropp" | jq -r '.error // "se Vercel-loggen"' 2>/dev/null || echo "se Vercel-loggen")" >&2
+            exit 1
+          fi
+          if [ "${MODE}" = "plan" ]; then
+            echo "> Skriv: kor igen med mode=skriv, samma installningar och bekrafta=$(printf '%s' "$kropp" | jq -r '.sha')" >> "$GITHUB_STEP_SUMMARY"
+          fi

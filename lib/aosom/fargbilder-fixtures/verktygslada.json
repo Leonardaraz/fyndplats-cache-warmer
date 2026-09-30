@@ -1,0 +1,144 @@
+{
+ "kalla": "torrkorningen 2026-09-30; alt-texterna ar kapade vid ~55 tecken; givarens position 1 ar valets lankade fil",
+ "sida": {
+  "id": "aafbf543-b467-4891-a7e1-b70ecea973cb",
+  "namn": "Verktygslåda 51 cm i stål med hänglåsöglor – tre eller fyra lådor",
+  "synlig": true,
+  "bilder": [
+   {
+    "id": "b379ce_0499f3d8fe2740419d67aa90a204d316~mv2.jpg",
+    "alt": "Verktygslåda i stål med svart kropp, tre röda lådfronter, fö"
+   },
+   {
+    "id": "b379ce_44ca0015997f4005b717e94898028b1d~mv2.jpg",
+    "alt": "Närbild på de röda lådfronterna med silverfärgade greppslist"
+   },
+   {
+    "id": "b379ce_ff00bb0780a0428697bfd7aa5c5072bc~mv2.jpg",
+    "alt": "Utdragen låda på kullagerskena med skruvmejslar på den röda "
+   },
+   {
+    "id": "b379ce_ad14adcb94f44c98a34c5cde67d8e08a~mv2.jpg",
+    "alt": "Måttritning: verktygslådan med tre lådor är 51 × 22 × 32 cm"
+   },
+   {
+    "id": "b379ce_2618a0108cd9467baa9731db0d7975f4~mv2.jpg",
+    "alt": "Verktygslåda … i storleken 4 lådor"
+   },
+   {
+    "id": "b379ce_69019165fc0e4ce3bbf8790b243f2f62~mv2.jpg",
+    "alt": "Verktygslåda … i storleken 4 lådor, bild 2"
+   },
+   {
+    "id": "b379ce_044949a895544fe6bdf87b1e452a5c71~mv2.jpg",
+    "alt": "Verktygslåda … i färgen röd och storleken 3 lådor"
+   },
+   {
+    "id": "b379ce_ba3e01b6946b485182e48091b4eb2ed3~mv2.jpg",
+    "alt": "Verktygslåda … i färgen röd och storleken 3 lådor, bild 2"
+   },
+   {
+    "id": "b379ce_7aaa20d607ec40c2baba2bf616e8fc15~mv2.jpg",
+    "alt": "Verktygslåda … i färgen röd och storleken 4 lådor"
+   },
+   {
+    "id": "b379ce_53e262b828cb4a67bce0558953b926b2~mv2.jpg",
+    "alt": "Verktygslåda … i färgen röd och storleken 4 lådor, bild 2"
+   }
+  ],
+  "optioner": [
+   {
+    "namn": "Färg",
+    "val": [
+     {
+      "id": "7f54c3e4-a214-48c3-90aa-dce2e7f38e77",
+      "namn": "Svart och Röd",
+      "lankade": []
+     },
+     {
+      "id": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+      "namn": "Röd",
+      "lankade": [
+       "b379ce_044949a895544fe6bdf87b1e452a5c71~mv2.jpg"
+      ]
+     }
+    ]
+   },
+   {
+    "namn": "Storlek",
+    "val": [
+     {
+      "id": "storlek-1",
+      "namn": "val 1",
+      "lankade": [
+       "b379ce_0499f3d8fe2740419d67aa90a204d316~mv2.jpg"
+      ]
+     },
+     {
+      "id": "storlek-2",
+      "namn": "val 2",
+      "lankade": [
+       "b379ce_2618a0108cd9467baa9731db0d7975f4~mv2.jpg"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "givare": [
+  {
+   "id": "5541fbb0-d43f-49c9-af4b-f8cc153d3019",
+   "namn": "Verktygslåda 51 cm med tre lådor och hänglåsöglor – helröd",
+   "val": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+   "bilder": [
+    {
+     "id": "b379ce_044949a895544fe6bdf87b1e452a5c71~mv2.jpg",
+     "alt": "Verktygslåda … i färgen röd och storleken 3 lådor"
+    },
+    {
+     "id": "b379ce_c0442098c34b44298220c77cf7a7c4f2~mv2.jpg",
+     "alt": "Helröd verktygslåda står stängd på en vit arbetsbänk framför"
+    },
+    {
+     "id": "b379ce_8f6224dd1d58450fab182ce618f5d6fe~mv2.jpg",
+     "alt": "Faktakort: röd verktygslåda 51 × 22 × 32 cm med tre lådor på"
+    },
+    {
+     "id": "b379ce_2cd6b6cfc190478eaa202008299e2b90~mv2.jpg",
+     "alt": "Röd verktygslåda med locket uppfällt och alla tre lådorna ut"
+    },
+    {
+     "id": "b379ce_435f394ae8544862b821326760f11e77~mv2.jpg",
+     "alt": "Närbild på förkromat spännlås med hänglåsögla på den röda ve"
+    },
+    {
+     "id": "b379ce_ba3e01b6946b485182e48091b4eb2ed3~mv2.jpg",
+     "alt": "Verktygslåda … i färgen röd och storleken 3 lådor, bild 2"
+    }
+   ]
+  }
+ ],
+ "torrkorningensForslag": {
+  "7f54c3e4-a214-48c3-90aa-dce2e7f38e77": [
+   "b379ce_0499f3d8fe2740419d67aa90a204d316~mv2.jpg",
+   "b379ce_44ca0015997f4005b717e94898028b1d~mv2.jpg",
+   "b379ce_ff00bb0780a0428697bfd7aa5c5072bc~mv2.jpg",
+   "b379ce_2618a0108cd9467baa9731db0d7975f4~mv2.jpg",
+   "b379ce_69019165fc0e4ce3bbf8790b243f2f62~mv2.jpg",
+   "b379ce_db96256c9d7b42c8a2437fb69a09d53d~mv2.jpg",
+   "b379ce_125b8c6c1d38442b93134a8305cf0336~mv2.jpg",
+   "b379ce_1070b74a0edd46f79b494b89f6a4d4d4~mv2.jpg"
+  ],
+  "5aca9cb3-aeb5-4d3d-893a-743058f1aab3": [
+   "b379ce_044949a895544fe6bdf87b1e452a5c71~mv2.jpg",
+   "b379ce_ba3e01b6946b485182e48091b4eb2ed3~mv2.jpg",
+   "b379ce_7aaa20d607ec40c2baba2bf616e8fc15~mv2.jpg",
+   "b379ce_53e262b828cb4a67bce0558953b926b2~mv2.jpg",
+   "b379ce_c0442098c34b44298220c77cf7a7c4f2~mv2.jpg",
+   "b379ce_2cd6b6cfc190478eaa202008299e2b90~mv2.jpg",
+   "b379ce_435f394ae8544862b821326760f11e77~mv2.jpg",
+   "b379ce_acf8688d3e114c9195e41fca46c62823~mv2.jpg",
+   "b379ce_2b936cc3781a4daea9d478e3704cf3d9~mv2.jpg"
+  ]
+ }
+}

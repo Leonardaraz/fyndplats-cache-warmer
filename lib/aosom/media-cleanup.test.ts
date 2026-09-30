@@ -212,6 +212,7 @@ function deps(over: Partial<MediaCleanupDeps> = {}) {
     listaAnvanda: async () => ({ urls: [url("a1")], antalProdukter: 1 }),
     listaRecensionsbilder: async () => [],
     listaKategoribilder: async () => [],
+    listaFargbilder: async () => [],
     raderaPermanent: async (ids) => { raderade.push(ids); },
     ...over,
   };
@@ -490,5 +491,33 @@ describe("recensionsbildUrler — skyddslistan läser hela recensionslagret", ()
     await expect(
       recensionsbildUrler({ listAll: async (limit) => Array.from({ length: limit ?? 0 }, () => ({})) }),
     ).rejects.toThrow(/höj RECENSION_TAK/);
+  });
+});
+
+describe("☠️ färgbildstabellen hör till referenslistan", () => {
+  // Wix tar 15 bilder per produkt, och resten av en färgs bilder står bara i
+  // motorns tabell (lib/aosom/fargbilder.ts) — ofta som filer på en givare som
+  // ska raderas. När givaren är borta är tabellen filens enda användare.
+  it("en fil som bara tabellen använder raderas inte — tabellen bär Wix fil-id", () => {
+    const plan = planeraStadning([fil("aosom-A-1.jpg", "f1"), fil("aosom-A-2.jpg", "x1")], [], 0, [], [], ["f1~mv2.jpg"]);
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["x1"]);
+  });
+
+  it("en hel URL i tabellen skyddar också", () => {
+    const plan = planeraStadning([fil("aosom-A-1.jpg", "f1")], [], 0, [], [], [url("f1")]);
+    expect(plan.attRadera).toEqual([]);
+  });
+
+  it("ett läsfel mot tabellen FÄLLER körningen, ingen fil raderas", async () => {
+    const { d, raderade } = deps({ listaFargbilder: async () => { throw new Error("DATABASE_URL saknas"); } });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Färgbildstabellen gick inte att läsa/);
+    expect(raderade).toEqual([]);
+  });
+
+  it("tabellens fil skonas i skarpt läge", async () => {
+    const { d, raderade } = deps({ listaFargbilder: async () => [url("b1")] });
+    const s = await runMediaCleanup(d, { dryRun: false });
+    expect(raderade.flat()).toEqual(["a2"]);
+    expect(s.raderade).toBe(1);
   });
 });

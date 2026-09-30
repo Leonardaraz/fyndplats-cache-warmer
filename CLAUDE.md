@@ -1556,10 +1556,14 @@ storlek på en publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sa
 logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
 körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
 får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
-oförändrad slug), och **bara utkastets huvudbild följer med** om du inte anger
-fler (`bilder`) — utkastet är opolerat och ingen har granskat dess bilder för
-tysk text eller husmärkets logotyp. Faller en körning halvvägs ser nästa att
-Wix redan är klart (`wix_klar`) och gör bara resten.
+oförändrad slug). **Sedan 2026-09-30 följer alla givarens bilder med**, med
+färgbildsverktygets regler (se *Färgbilderna* nedan): givarens kort stannar,
+en opolerad givares bilder från position 3 sparas som `granskas` i stället för
+att skrivas, och det som inte ryms under Wix 15 sparas i tabellen. Med
+`bilder` följer exakt de valda med. Befintliga val behåller hela sina
+`linkedMedia`-listor; före det skrev återkopplingen om varje val till sin
+första bild. Faller en körning halvvägs ser nästa att Wix redan är klart
+(`wix_klar`) och gör bara resten.
 
 ⚠️ **Efter första deployen: kör synken i torrläge och läs `okandaVarianter`.**
 Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
@@ -1825,6 +1829,56 @@ vara det. Ordningen är `plan`, `stampla` om planen har rader utan tidsstämpel,
 `main`, för de raderna blir raderbara fjorton dygn efter att klockan startats.
 Både `stampla` och `radera` stannar på en tidsbudget. Säger `stampla` att rader
 är `kvar`, kör planen och `stampla` igen med planens nya antal.
+
+### Färgbilderna: varje färg får alla sina bilder (2026-09-30)
+
+Sammanslagningen tog bara givarens första bild. Givaren pensionerades och ligger
+kvar dold med sina ~5 bilder, och en tillagd färg visade en bild i butiken.
+Torrkörningen 2026-09-30: 516 sidor med givare för 796 tillagda val. Givarna blir
+raderbara från 2026-10-11, så bilderna ska flyttas innan dess.
+
+Workflowen **"Bilder — ge varje färg på en sammanslagen sida alla sina bilder"**
+(`plan` · `skriv`) → `/api/admin/fargbilder` → `lib/aosom/fargbilder.ts` (ren
+logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
+(standard 10, högst 50) eller `sidor` (wix-id), och `ta_med_granskade`.
+
+- **Givaren hittas via filen.** Valets `linkedMedia[0]` ligger i exakt ett dolt
+  utkasts galleri. SKU:n går inte att använda, eftersom den nya variantens SKU är
+  sidans plus färgen. Två dolda produkter med samma fil ger hindret `flera_givare`.
+- **Butikens ägarregler** (headless-site `lib/variant-bilder.ts`, kopierade
+  ordagrant). Länkade bilder först. Kort och måttbilder (`arKort`) är gemensamma.
+  En olänkad bild som nämner exakt en färg hör till den, och övriga olänkade foton
+  hör till huvudbildens färg. En givares egen fil går före alt-texten. Efter
+  skrivningen är varje färgs bilder länkade.
+- **Wix 15 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
+  axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
+  som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
+  butiken läser via `GET /api/fargbilder?pid=`. Den skapas vid första användningen
+  (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen som använd.
+- **Opolerad givare** (tyskt namn eller tom alt-text): bilder från position 3
+  skrivs inte utan `ta_med_granskade=ja`. De sparas som `granskas`, så att
+  städningen inte tar filerna, men butiken får dem inte. En bild som skrivits en
+  gång granskas inte igen.
+- **Alt-text:** en svensk behålls. Annars blir den "<sidans namn> i färgen <färg>",
+  med ", bild N" från den andra.
+- **Hinder:** `ej_publicerad`, `saknar_fargaxel`, `flera_givare`, `oppen_auktion`
+  (bara `live`, eftersom kön har en rad per produkt), `givare_publicerad`,
+  `over_tak_redan` och `plan_ogiltig`.
+
+☠️ **En länkad bild tappas aldrig.** Varje bild ett val pekar på står kvar i
+galleriet, och varje färgs nya lista börjar med dess nuvarande
+(`kontrolleraPlan`). `skriv` kräver `bekrafta` = planens sha256. Planen räknas om
+ur färska läsningar och skrivs i steg. Galleriet skrivs först och ensamt, och bara
+olänkade foton kan falla ur det. Sedan skrivs länkarna, med options och
+variantsInfo ur GET:en och `visible`, med upp till åtta försök. Därefter läses
+galleriet, alt-texterna, varje vals lista, synligheten och varianterna tillbaka.
+Sist skrivs tabellen, som också läses tillbaka. Vid första avvikelse stannar
+körningen.
+
+Ordningen före raderingen: kör `plan` för 10 sidor och titta, sedan `skriv`, och
+kör klart alla kandidater (`kandidaterTotalt` ska bli 0) innan
+`pensionerade-radera` körs. Det finns ingen spärr i raderingen (Leonards beslut
+2026-09-30), men tabellen skyddar filerna mot bildstädningen.
 
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 

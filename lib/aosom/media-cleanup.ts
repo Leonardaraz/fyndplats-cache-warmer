@@ -140,6 +140,7 @@ export function planeraStadning(
   antalProdukter: number,
   recensionsbilder: ReadonlyArray<string> = [],
   kategoribilder: ReadonlyArray<string> = [],
+  fargbilder: ReadonlyArray<string> = [],
 ): StadningsPlan {
   // ☠️ MASSFEL-SPÄRREN. En halvläst produktlistning gör varje fil föräldralös.
   // Butikens produkter har mätbart flera bilder styck, så en referenslista som
@@ -159,7 +160,14 @@ export function planeraStadning(
   // SAMMA fil, och i menyn syns en raderad kategoribild direkt. Så länge
   // produkten finns skyddar dess galleri filen — men när produkten raderas
   // (lib/aosom/pensionerade.ts) är kategorin filens enda användare.
-  const anvandaNycklar = new Set([...ianvandning, ...recensionsbilder, ...kategoribilder].map(mediaNyckel));
+  //
+  // ☠️ OCH FÄRGBILDSTABELLEN (lib/aosom/fargbilder.ts). Wix tar 15 bilder per
+  // produkt, och det som inte rymdes står bara i motorns tabell — ofta som
+  // filer på en givare som ska raderas. Utan tabellen i listan tar städningen
+  // dem natten efter att givaren raderats, och butiken visar döda bilder.
+  const anvandaNycklar = new Set(
+    [...ianvandning, ...recensionsbilder, ...kategoribilder, ...fargbilder].map(mediaNyckel),
+  );
 
   // Första passet: filer som kommer direkt från en leverantörs CDN. Andra passet
   // känner igen Wix kopior på att de pekar tillbaka på dem.
@@ -244,6 +252,12 @@ export interface MediaCleanupDeps {
    * FÄLLER körningen i stället för att tolkas som "inga kategoribilder".
    */
   listaKategoribilder: () => Promise<string[]>;
+  /**
+   * Varje fil-id i färgbildstabellen (lib/store/fargbilder.ts): färgernas
+   * bilder utöver Wix 15, och de som väntar på granskning. Obligatorisk och
+   * ett läsfel fäller körningen, av samma skäl som kategoribilderna.
+   */
+  listaFargbilder: () => Promise<string[]>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
@@ -392,12 +406,23 @@ export async function runMediaCleanup(
     );
   }
 
+  let fargbilder: string[];
+  try {
+    fargbilder = await deps.listaFargbilder();
+  } catch (err) {
+    throw new Error(
+      `Färgbildstabellen gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan den listan ser färgernas bilder utöver Wix 15 föräldralösa ut "
+        + "och raderas permanent.",
+    );
+  }
+
   const { filer, cursor, komplett } = await deps.listaFiler({
     efter: opts.after,
     stoppaVid: start + Math.round(budget * 0.7),
   });
 
-  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder);
+  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder, fargbilder);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
 
   const summary: MediaCleanupSummary = {
@@ -620,6 +645,13 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     listaKategoribilder: async () => {
       const { collectCategoryMediaIds, headlessSiteId } = await import("../wix/media-audit");
       return [...await collectCategoryMediaIds(process.env.WIX_SITE_ID || headlessSiteId())];
+    },
+
+    // Färgernas bilder utöver Wix 15 (lib/aosom/fargbilder.ts). Kastar vid
+    // läsfel; runMediaCleanup gör det till ett avbrott.
+    listaFargbilder: async () => {
+      const { getFargbildLager } = await import("../store/fargbilder");
+      return getFargbildLager().lasAllaFilIdn();
     },
 
     listaAnvanda: async () => {
