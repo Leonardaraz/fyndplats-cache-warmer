@@ -362,3 +362,23 @@ local `node_modules` carries pnpm's `.modules.yaml`). When adding deps: run
 `pnpm add <pkg>`, then `npm install --package-lock-only` to keep
 `package-lock.json` in sync. Don't `npm install` packages directly — it leaves
 `pnpm-lock.yaml` stale and the dep won't install on deploy.
+
+## Fyndauktionen läses och avslutas via motorn (2026-09-29)
+
+Wix CMS har ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)
+var 3 561 av dem. Raderna flyttar till Postgres i motorn (`AUCTIONS_BACKEND`, se
+motorns `CLAUDE.md`). Butiken läser inte längre Wix Data för auktionerna:
+
+- `/fyndauktion` och startsidans banner läser `GET /api/auctions/rader` hos motorn.
+- Webhookens direktavslut (`order_created`) postar till `POST /api/auctions/avsluta`.
+  Motorn återställer priset först och sparar sedan sold.
+
+Båda går genom `lib/auction-motor.ts`, med `REVIEW_INGEST_SECRET` som
+hemlighet (samma värde i båda projekten). Motorn svarar ur det lager växeln
+pekar på, så butiken byter lager samtidigt med motorn och behöver ingen egen
+deploy vid växlingen.
+
+☠️ **Läs aldrig auktionerna ur Wix Data igen.** Efter raderingen är kollektionen
+tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
+`lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
+tillsammans med ett Wix Data-anrop.

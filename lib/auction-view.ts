@@ -4,7 +4,8 @@
 // PATCH:ar) bor i cache-warmer-appen på main-grenen (lib/auction/engine.ts +
 // /api/cron/auction-tick); här LÄSER vi bara:
 //
-//   1. FyndplatsAuctions (Wix Data) — vilka auktioner är live/sålda + stegen.
+//   1. Auktionsraderna — via motorns /api/auctions/rader (lib/auction-motor.ts),
+//      inte ur Wix Data direkt sedan 2026-09-29: raderna flyttar till Postgres.
 //   2. Produktkatalogen — priset som VISAS är alltid Wix-priset (källan till
 //      sanning = det som debiteras i kassan). Skulle cron-ticken faila visas
 //      alltså aldrig ett lägre pris än det kunden betalar.
@@ -16,32 +17,9 @@
 import { getFreshPrices, getProducts, type Product } from "./products";
 import { synligaFynd } from "./auction-visible";
 import { nextDropOfLadder } from "./auction-day";
+import { hämtaAuktionsrader, type MotorRad } from "./auction-motor";
 
-const WIX_BASE = "https://www.wixapis.com";
-const COL = "FyndplatsAuctions";
-
-function wixDataHeaders(): Record<string, string> | null {
-  const token = process.env.WIX_API_KEY;
-  const siteId = process.env.WIX_SITE_ID;
-  if (!token || !siteId) return null;
-  return { "Content-Type": "application/json", Authorization: token, "wix-site-id": siteId };
-}
-
-type AuctionRow = {
-  productId?: string;
-  slug?: string;
-  name?: string;
-  listPrice?: number;
-  ladder?: number[];
-  stepMinutes?: number;
-  slot?: number;
-  status?: string;
-  startAt?: string;
-  endedAt?: string;
-  soldPrice?: number;
-  /** Steget motorn senast satte i Wix (se nextDropOfLadder). */
-  lastPatchedStep?: number;
-};
+type AuctionRow = MotorRad;
 
 /** Det som klienten får se för en live-auktion (inget golv, ingen stege). */
 export type LiveAuctionView = {
@@ -86,30 +64,6 @@ export type SoldAuctionView = {
   endedAt: string;
 };
 
-async function queryAuctionRows(
-  statuses: string[],
-  sort?: Array<{ fieldName: string; order: "ASC" | "DESC" }>,
-): Promise<AuctionRow[]> {
-  const h = wixDataHeaders();
-  if (!h) return [];
-  try {
-    const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
-      method: "POST",
-      headers: h,
-      body: JSON.stringify({
-        dataCollectionId: COL,
-        query: { filter: { status: { $in: statuses } }, ...(sort ? { sort } : {}), paging: { limit: 50 } },
-      }),
-      // 15 s: raden bär lastPatchedStep, som avgör när en ny timmes pris är på plats.
-      next: { revalidate: 15, tags: ["auctions"] },
-    });
-    if (!res.ok) return [];
-    const body = (await res.json()) as { dataItems?: Array<{ data?: AuctionRow }> };
-    return (body.dataItems ?? []).map((d) => d.data ?? {}).filter((d) => d.slug);
-  } catch {
-    return [];
-  }
-}
 
 
 // Auktionspriser är alltid hela 9-kronor → visa "369 kr" (rent/premium), inte
@@ -119,7 +73,7 @@ const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 /** Live-auktioner (max 5), joinade mot katalogen. Fail-open: tom lista. */
 export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
-  const [rows, products] = await Promise.all([queryAuctionRows(["live"]), getProducts()]);
+  const [rows, products] = await Promise.all([hämtaAuktionsrader("live"), getProducts()]);
   const bySlug = new Map<string, Product>(products.map((p) => [p.slug, p]));
   const now = Date.now();
   // Ett sålt fynd ersätts inte samma dag — regeln och skälen i
@@ -159,12 +113,9 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
 
 /** Senast sålda fynd (för social proof-listan). */
 export async function getSoldAuctions(limit = 6): Promise<SoldAuctionView[]> {
-  // Sortera i queryn: med hela katalogen i collectionen räcker det inte att
-  // klient-sortera 50 rader hämtade i godtycklig ordning.
-  const [rows, products] = await Promise.all([
-    queryAuctionRows(["sold"], [{ fieldName: "endedAt", order: "DESC" }]),
-    getProducts(),
-  ]);
+  // Motorn sorterar (nyast först) och skickar högst 50: med hela katalogen i
+  // lagret räcker det inte att sortera 50 rader hämtade i godtycklig ordning.
+  const [rows, products] = await Promise.all([hämtaAuktionsrader("sold"), getProducts()]);
   const bySlug = new Map<string, Product>(products.map((p) => [p.slug, p]));
   return rows
     .filter((r) => r.soldPrice && r.listPrice && r.endedAt)
