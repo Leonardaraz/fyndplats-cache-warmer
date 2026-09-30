@@ -233,6 +233,26 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   // Mode
   "mode-accessoarer": 166,           // Apparel & Accessories
   "vaskor-necessarer": 5181,         // Luggage & Bags
+  // Kategoriflytten 2026-09-30. Elektronik, Dator & Gaming och Mode döljs i
+  // Wix, och deras produkter har fått riktiga hem. Förut gick 20 kontorsstolar,
+  // gamingstolar och skrivbord ut som 222 Electronics, eftersom Dator & Gaming
+  // var deras första underkategori. Varje ID nedan är kontrollerat mot
+  // taxonomy-with-ids.en-US.txt samma dag.
+  gamingstolar: 6800,                // Furniture > Chairs > Gaming Chairs
+  "garderober-kladstall": 4063,      // Furniture > Cabinets & Storage > Armoires & Wardrobes
+  "smart-hem-sakerhet": 359,         // Home & Garden > Business & Home Security
+  "tvatt-stad": 604,                 // Home & Garden > Household Appliances
+  "kyl-frys": 686,                   // … > Kitchen Appliances > Refrigerators
+  hundgrindar: 542,                  // Baby & Toddler > Baby Safety > Baby & Pet Gates
+  "spel-bordsspel": 1001,            // Sporting Goods > Indoor Games
+  bollsport: 499713,                 // Sporting Goods > Athletics
+  traningsklader: 5322,              // Apparel & Accessories > Clothing > Activewear
+  "hobby-musik": 5710,               // Arts & Entertainment > Hobbies & Creative Arts
+  "bil-slap": 5613,                  // Vehicles & Parts > Vehicle Parts & Accessories
+  "elbilsladdning-solenergi": 4714,  // Hardware > Power & Electrical Supplies > Solar Panels
+  // Nya avdelningar. Underkategorierna har egna rader eller ärver härifrån.
+  "jul-hogtider": 596,               // Home & Garden > Decor > Seasonal & Holiday Decorations
+  "verktyg-fordon": 632,             // Hardware
 };
 
 /** Produktens taxonomi för feeden: g:product_type = kategoristigen ("Husdjur >

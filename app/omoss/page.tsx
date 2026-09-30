@@ -39,6 +39,13 @@ function avrundatAntal(n: number): string {
   return `${(Math.floor(n / 100) * 100).toLocaleString("sv-SE")}+`;
 }
 
+/** "3 800+ produkter". Under hundra räknas exakt och böjs (productCountLabel). */
+function avrundatProductCountLabel(n: number): string {
+  // Över hundra är det alltid plural. Strängen delas så att plural-provet
+  // (lib/plural-global.test.ts) inte tar den för en obojd räknare.
+  return n < 100 ? productCountLabel(n) : avrundatAntal(n) + " produkter";
+}
+
 const HERO_BILD = categoryHero("Hem & Inredning");
 
 const Ikon = {
@@ -238,7 +245,7 @@ export default async function OmOss() {
             </li>
             <li>
               <span className="om-tid-nar">Nu</span>
-              <h3>{avrundatAntal(products.length)} produkter i {kategorier.length} avdelningar</h3>
+              <h3>{avrundatProductCountLabel(products.length)} i {kategorier.length} avdelningar</h3>
               <p>Från möbler och trädgård till kök, husdjur och barn, och {proof.rating} av 5 i betyg på Google.</p>
             </li>
             <li>

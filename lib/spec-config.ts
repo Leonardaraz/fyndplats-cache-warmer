@@ -177,10 +177,26 @@ const KATEGORIER: Record<string, Rad> = {
   "koksredskap-tillbehor": ["m"],
   "servering-glas": ["m"],
 
-  // ── Elektronik ──
+  // ── Elektronik (dold i Wix sedan 2026-09-30; raderna står kvar för gamla länkar) ──
   "elektronik-tillbehor": ["w", "eg:bf", "m"],
   "dator-gaming": ["ml", "b", "eg:l", "m"],
   "projektordukar": ["b", "eg:f"],
+
+  // ── Kategoriflytten 2026-09-30 ──
+  // Nya underkategorier med egen fråga, och de två nya avdelningarna. De nya
+  // under Möbler, Hem och Husdjur som saknas här ärver sin förälder.
+  "gamingstolar": STOLAR,
+  "garderober-kladstall": SKAP,
+  "smart-hem-sakerhet": ["w", "eg:bsf", "m"],
+  "tvatt-stad": ["w", "l", "b", "h", "eg:h", "m"],
+  "kyl-frys": ["l", "b", "h", "m"],
+  "spel-bordsspel": ["b", "h", "m"],
+  "bollsport": ["b", "h", "m"],
+  "hobby-musik": ["b", "h", "m"],
+  "jul-hogtider": PYNT,
+  "verktyg-fordon": ["kg", "b", "h", "ml", "m"],
+  "bil-slap": ["kg", "w", "b", "m"],
+  "elbilsladdning-solenergi": ["w", "m"],
 
   // ── Skönhet & Hälsa ──
   "skonhet-halsa": ["ml", "w", "eg:bt", "m"],

@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { SearchBox } from "./searchbox";
 import { AuctionDot } from "./auction-dot";
 import type { CategoryNode } from "../lib/category-groups";
+import { grupperaUnderkategorier } from "../lib/meny-grupper";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -87,11 +88,16 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
                     </div>
                     {hasSubs && isOpen && (
                       <div className="mm-subs">
-                        {m.subs.map((s) => (
-                          <a key={s.id} className="mm-sub" href={`/kategori/${s.slug}`} onClick={closeMenu}>
-                            <span>{s.name}</span>
-                            <span className="mm-sub-count">{s.count}</span>
-                          </a>
+                        {grupperaUnderkategorier(m.slug, m.subs).map((g) => (
+                          <div key={g.rubrik ?? "alla"} className="mm-grupp">
+                            {g.rubrik && <p className="mm-grupp-rubrik">{g.rubrik}</p>}
+                            {g.subs.map((s) => (
+                              <a key={s.id} className="mm-sub" href={`/kategori/${s.slug}`} onClick={closeMenu}>
+                                <span>{s.name}</span>
+                                <span className="mm-sub-count">{s.count}</span>
+                              </a>
+                            ))}
+                          </div>
                         ))}
                       </div>
                     )}

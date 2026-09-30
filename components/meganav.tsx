@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
+import { grupperaUnderkategorier } from "../lib/meny-grupper";
 
 // Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
@@ -115,11 +116,19 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
             </div>
             {m.subs.length > 0 ? (
               <div className="meganav-grid">
-                {m.subs.map((s) => (
-                  <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
-                    <span className="meganav-sub-name">{s.name}</span>
-                    <span className="meganav-sub-count">{s.count}</span>
-                  </a>
+                {grupperaUnderkategorier(m.slug, m.subs).map((g) => (
+                  <div
+                    key={g.rubrik ?? "alla"}
+                    className={!g.rubrik ? "meganav-grupp utan-rubrik" : g.subs.length > 7 ? "meganav-grupp bred" : "meganav-grupp"}
+                  >
+                    {g.rubrik && <p className="meganav-grupp-rubrik">{g.rubrik}</p>}
+                    {g.subs.map((s) => (
+                      <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
+                        <span className="meganav-sub-name">{s.name}</span>
+                        <span className="meganav-sub-count">{s.count}</span>
+                      </a>
+                    ))}
+                  </div>
                 ))}
               </div>
             ) : (

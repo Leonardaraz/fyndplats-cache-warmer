@@ -1286,8 +1286,8 @@ export type Collection = { id: string; name: string; slug: string; parentId: str
 // Wix V3 restructure (2026-05-31) made the 8 mains exactly the parentless
 // categories, ordered here by catalog size (largest first).
 const MAIN_ORDER = [
-  "Elektronik & Tillbehör", "Hem & Inredning", "Kök & Husgeråd", "Barn & Familj",
-  "Skönhet & Hälsa", "Husdjur", "Sport & Fritid", "Mode & Accessoarer",
+  "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider",
+  "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Fordon",
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;

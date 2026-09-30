@@ -206,6 +206,38 @@ tre produkter har dem men inte nästan alla (90 %). Kategorin kan begränsa
 egenskaperna ("eg:hj" i `lib/spec-config.ts`). Rumsstorlek för värmare
 byggdes inte: texterna anger medvetet inte tillverkarnas m²-siffror.
 
+## Kategoriträdet: tio avdelningar, rubriker i menyn (2026-09-30)
+
+Granskningen hittade 519 felplaceringar. Den största: Elektronik & Tillbehör
+bestod till mer än hälften av kontorsstolar och skrivbord. Dator & Gaming var
+deras första underkategori, så 20 av dem gick ut i Google Shopping som 222
+Electronics. Andra fel:
+- Hem & Inredning bar 759 möbler som också låg under Möbler.
+- Julgranar och kaminer låg under Dekoration.
+- Kalas & Fest var till 70 % jul och halloween.
+
+Trädet jämfördes med 25 butiker, bland dem IKEA, JYSK, vidaXL, Aosom, Rusta,
+Jula och Zooplus, och byggdes om efter det:
+
+- **Avdelningar:** Möbler, Hem & Inredning, Kök & Husgeråd, Trädgård &
+  Utemöbler, Jul & Högtider, Barn & Familj, Husdjur, Sport & Fritid, Skönhet &
+  Hälsa, Verktyg & Fordon. Elektronik och Mode är dolda i Wix och har
+  301-omdirigeringar i `next.config.ts`.
+- **Jul & Högtider** står i menyn och på /butik bara september–januari
+  (`avdelningIHuvudmenyn` i `lib/meny-grupper.ts`). Sidan finns kvar året runt.
+- **Rubrikerna i menyn** (Vardagsrum, Hund, Kontor & gaming …) ligger i
+  `MENY_GRUPPER` i `lib/meny-grupper.ts`, inte i Wix. Wix har kvar två nivåer,
+  så ingen adress flyttas. En ny kategori som saknas där hamnar under "Mer".
+- **En produkt hör hemma i en avdelning.** Möbler ligger inte också direkt i
+  Hem & Inredning. Förvaring får innehålla byråer och garderober, som hos alla
+  möbelkedjor, men inte redskapsbodar eller sängramar.
+- **Döljs en kategori i Wix** (hellre än att den raderas), då försvinner den
+  för butiken och för importens kategoriförslag. Sidan svarar då 404 tills
+  den har en omdirigering. Lägg därför omdirigeringen i samma deploy.
+
+Flytten gjordes med namnregler över alla synliga produkter, med torrkörning
+först: 330 tillägg och 1 261 borttag. Ingen produkt blev utan underkategori.
+
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
   (`@vercel/speed-insights/next`) are mounted in `app/layout.tsx`. Both are
