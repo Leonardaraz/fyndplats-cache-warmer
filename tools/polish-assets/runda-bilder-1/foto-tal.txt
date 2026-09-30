@@ -1,0 +1,18 @@
+03e23634 2 rader med klaffar: bild 1 och 3 visar fyra klaffar i två rader, två och två
+3a27aabe 2 lådor på var sida: bild 1 och 3 visar två lådor på var sida om överdelens mitt
+4d8f63a1 3 delar i skivan: bild 1 och 3 visar skivan i tre delar, och paketet är 92 cm långt mot skivans 140 cm
+4d8f63a1 2 fack per fot: bild 1 och 3 visar två öppna fack i varje fot
+2b58d816 3 hyllor på insidan av vänstra dörren, räknade på produktfotot (bild 1) och på källans tre mått för dörrhyllorna
+2b58d816 2 dörrar på skåpet till höger, räknade på produktfotot (bild 1)
+86c26702 2 spegeldörrar, räknade på produktfotot (bild 1)
+ece264dc 160 kroppslängd 160–195 cm, avläst på bild 3 (stryks för sin tyska text)
+ece264dc 195 kroppslängd 160–195 cm, avläst på bild 3 (stryks för sin tyska text)
+f9fb33f0 71 minsta dörröppning 71 cm, avläst på bild 3 (stryks för sin tyska text)
+9dc0f858 2 bild 1 och 3 visar två spegeldörrar
+06c114f3 10 måttbilden anger 10 cm för benen
+06c114f3 2 bild 1 och 3 visar två skåpdörrar under lådorna
+4f421b2e 3 källan räknar upp tre ljusfärger: warmweiß, weiß och kaltweiß (3000K, 4500K, 6500K)
+a04185b6 3 bild 1 och 3 visar tre speglade dörrar; produktnamnet anger mit 3 Türen
+68e64f5e 4 bild 1 och 3 visar tre mindre och fyra större lådor; källans lådmått 46 × 28 × 21,5 cm gäller de större
+223b9ca7 3 bild 1 och 3 visar tre lådor på vardera sidan om den breda mittlådan
+9a63e0fd 2 hjul fram och ett bak, syns på bild 1; källan skriver umgekehrtes Dreirad-Design
