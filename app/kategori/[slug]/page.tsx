@@ -9,7 +9,7 @@ import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
 import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
-import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
+import { MOSAIC_DENYLIST, categoryHero, KATEGORI_HERO_PRODUKT } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
 import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
@@ -141,8 +141,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
   const curatedHero = categoryHero(active.name);
+  const valdHeroSlug = KATEGORI_HERO_PRODUKT[active.slug];
   const heroImg =
     curatedHero ||
+    (valdHeroSlug ? catList.find((p) => p.slug === valdHeroSlug && p.img)?.img : "") ||
     [...catList]
       .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
       .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||

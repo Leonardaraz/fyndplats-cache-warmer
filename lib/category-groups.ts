@@ -234,7 +234,9 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Lek & Tillbehör för husdjur": UNSPLASH("1545249390-6bdfa286032f"), // kattunge som leker
 
   // Sport & Fritid
-  "Träning & Gym": UNSPLASH("1705909237050-7a7625b47fac"), // träning med vikter
+  // "Träning & Gym" har ingen bild här längre: 1705909237050 visade en svart
+  // handväska mot gul bakgrund (granskning 2026-09-30). Sidan visar i stället
+  // en hantel ur sortimentet (KATEGORI_HERO_PRODUKT nedan).
   "Friluftsliv & Resa": UNSPLASH("1501555088652-021faa106b9b"), // vandrare med ryggsäck, berg
   "Bil & Cykel": UNSPLASH("1541625602330-2277a4c46182"), // cyklister på väg
 
@@ -253,8 +255,9 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Solskydd & Paviljonger": UNSPLASH("1786654026603-54c654c05c18"), // stort parasoll över sittgrupp
   "Grill & Utekök": UNSPLASH("1782010657321-d33cf96afe57"), // eldkorg med lågor, stolar runt
   "Trädgårdsskötsel & Bevattning": UNSPLASH("1780328868286-9650af900bd5"), // slangvagn mot tegelvägg
-  "Trädgårdsdekor & Belysning": UNSPLASH("1776524582404-852271a6551d"), // utomhuslampa bland blommor
-  "Utelek & Spel": UNSPLASH("1536557925410-b8df780eb58a"), // repgunga under träd, kvällssol
+  // Trädgårdsdekor & Belysning och Utelek & Spel togs bort 2026-09-30: en
+  // nattbild som var nästan helt svart och en mörk gunga i skymning. De visar
+  // nu en vald produkt (KATEGORI_HERO_PRODUKT nedan).
 
   // Möbler
   // Grenen skapades i Wix 2026-09-23. Samma granskning som trädgårdsgrenen:
@@ -271,6 +274,25 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Skrivbord": UNSPLASH("1623177623442-979c1e42c255"), // höj- och sänkbart skrivbord i trä
   "Soffbord & småbord": UNSPLASH("1581428982868-e410dd047a90"), // soffbord i trä framför soffa
   "Sängar & sovrum": UNSPLASH("1560185128-e173042f79dd"), // stoppad säng med sängbord
+};
+
+// Vald produkt som kategorisidans hero, per kategori-SLUG, där den högst
+// poängsatta produktbilden inte duger. Granskat 2026-09-30 över alla 131
+// kategorier: vit produkt mot vit bakgrund (hundhagen, värmaren), en tunn
+// lampa som knappt syntes, en mopphink med "CAUTION WET FLOOR", en rosa
+// gamingstol med kaninöron och leverantörens varumärke på gymstationen.
+// Finns produkten inte längre i kategorin faller sidan tillbaka som förut.
+export const KATEGORI_HERO_PRODUKT: Record<string, string> = {
+  "traning-gym": "hantel-20-kg-sexkantig-gummi",
+  "tradgardsdekor-belysning": "ljusslinga-18-m-50-led-lampor-ip44",
+  "utelek-spel": "sandlada-med-lekstugetak-124-cm",
+  "sandlador": "sandlada-piratskepp-180-cm",
+  "gamingstolar": "gamingstol-170-grader",
+  "valphagar-hundhagar": "hopfallbar-hundhage",
+  "golvlampor": "baglampa-marmorfot-guld-golvlampa",
+  "tvatt-stad": "kompakt-torktumlare-franluft-vagg-golv",
+  "varmeflaktar": "keramikvarmare-2000-w-termostat-oscillation",
+  "elbilsladdning-solenergi": "portabel-elbilsladdare-typ-2-schuko",
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
