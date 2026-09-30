@@ -189,7 +189,7 @@ export default function Returer() {
               <h3>Gäller under hela perioden</h3>
               <ul>
                 {COMMON.map((p) => <li key={p}>{p}</li>)}
-                <li>Spårbar leverans rekommenderas — Fyndplats ansvarar inte för förlorade returpaket.</li>
+                <li>Skicka med spårning och spara inlämningskvittot. Kan du visa att paketet lämnats in står Fyndplats för risken om det försvinner på vägen.</li>
               </ul>
             </div>
 

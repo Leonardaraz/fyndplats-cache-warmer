@@ -540,7 +540,7 @@ export function Gallery({
           prickraden. Merchant Center (Butikskvalitet → "Bilder per produkt")
           räknar bilderna som syns på produktsidan, inte flödets; med en synlig
           hjältebild och frimärksstora miniatyrer landade vi på 1,4 per produkt
-          (2026-09-30). Rutorna laddas lazy, så LCP-bilden är oförändrad. Ett
+          (2026-09-30). Rutorna laddas lazy och med låg prioritet, så hjältebilden (LCP) går först. Ett
           klick visar bilden stort ovanför, som miniatyrerna gjorde. Över
           MAX_TILES bilder visar sista rutan "+N" och öppnar helskärmen. */}
       {imgs.length > 1 && (
@@ -554,8 +554,10 @@ export function Gallery({
                 data-idx={i}
                 className={`gtile ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
                 onClick={() => {
+                  // "+N" öppnar helskärmen på bilden som redan visas. setActive
+                  // hade kunnat byta vald variant (productview styr active).
+                  if (more) { resetView(); setLightbox(true); return; }
                   setActive(i);
-                  if (more) { resetView(); setLightbox(true); }
                 }}
                 role="tab"
                 aria-selected={i === active}
@@ -569,6 +571,9 @@ export function Gallery({
                   placeholder="blur"
                   blurDataURL={SHIMMER_BLUR}
                   sizes={TILE_SIZES}
+                  // Rutorna syns i första skärmen på mobil; låg prioritet så
+                  // de inte konkurrerar med hjältebilden (LCP).
+                  fetchPriority="low"
                   style={{ objectFit: "cover" }}
                   draggable={false}
                 />

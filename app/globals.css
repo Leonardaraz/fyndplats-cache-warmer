@@ -879,15 +879,14 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .gtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
 .gtile{position:relative;display:block;aspect-ratio:1;padding:0;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);cursor:pointer;transition:border-color .2s,box-shadow .2s}
 .gtile img{transition:transform .4s cubic-bezier(.2,.7,.2,1)}
-.gtile:hover{border-color:#e7c3a7}
-.gtile:hover img{transform:scale(1.04)}
+@media(hover:hover){.gtile:hover{border-color:#e7c3a7}.gtile:hover img{transform:scale(1.04)}}
 .gtile.active{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange)}
 /* Den valda variantens egna bilder ramas in (mjuk orange ring) så man ser vilka
    bilder som hör till varianten. Den aktiva rutan behåller sin starkare ring. */
 .gtile.variant-owned{border-color:var(--orange);box-shadow:0 0 0 2px #C2410C55}
 .gtile.variant-owned.active{box-shadow:0 0 0 2px var(--orange)}
 .gtile-more{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(28,24,20,.55);color:#fff;font-size:var(--text-xl);font-weight:800;letter-spacing:-.02em}
-@media(prefers-reduced-motion:reduce){.gtile img{transition:none}.gtile:hover img{transform:none}}
+@media(prefers-reduced-motion:reduce){.gtile img{transition:none}.gtile:hover img{transform:none!important}}
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:300;background:rgba(20,18,15,.93);display:flex;align-items:center;justify-content:center;padding:24px;animation:lbIn .2s ease}
 @keyframes lbIn{from{opacity:0}to{opacity:1}}
