@@ -371,23 +371,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   barnmobler: {
     intro: [
-      "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, stapelbara barnpallar, stegpallar, en barnsäng, sminkbord för barn och låga barngarderober med klädstång och spegel.",
-      "Barnfåtöljerna finns i teddyfleece, manchester, linnelook och konstläder, och den med kronrygg och den med rutmönstrad rygg har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsofforna på 77 cm har plats för två barn och bär 80 kg.",
-      "Sminkborden för barn har spegel och pall eller stol, och tre av dem har speglar i akryl, som inte splittras. Ett blir skrivbord när spegeln tas av. Ett barnbord och två sminkbord är testade enligt leksaksstandarden EN 71.",
+      "Här hittar du barnmöbler: barnfåtöljer och barnsoffor, barnbord med stolar, barnskrivbord, stapelbara barnpallar, stegpallar, två barnsängar för en madrass på 140 × 70 cm, sminkbord för barn, bokhyllor och leksakshyllor med tygboxar och låga barngarderober med klädstång och spegel.",
+      "Barnfåtöljerna finns i teddyfleece, manchester, linnelook och konstläder, och den med kronrygg och den med rutmönstrad rygg har en fotpall eller pall till. En har ett fällbart ryggstöd och blir 90 cm lång. Barnsoffan på 77 cm har plats för två barn och bär 80 kg.",
+      "Sminkborden för barn har spegel och pall eller stol, och på flera är spegeln av akryl, som inte splittras. Tre blir skrivbord när spegeln tas av, och ett barnbord och tre sminkbord är testade enligt leksaksstandarden EN 71. Två av barnskrivborden är höj- och sänkbara och har en skiva som lutar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Från vilken ålder passar barnfåtöljerna?",
-        a: "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och fåtöljen med kronrygg och fotpall från 3 år. Barnsofforna för två barn bär 80 kg.",
+        a: "Det står i varje beskrivning. Fåtöljen i teddyfleece passar från 18 månader, och fåtöljerna i linnelook är gjorda för 3–5 år. Barnsoffan för två barn bär 80 kg.",
       },
       {
         q: "Vad är en utklädningsgarderob?",
-        a: "En låg garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Garderoberna här är drygt en meter höga, och två är gjorda i massivt trä efter Montessoriidén.",
+        a: "En låg, öppen garderob med klädstång, hyllor och spegel i barnets höjd, så att barnet själv når kläderna. Två av dem är gjorda i trä efter Montessoriidén, och den rosa har två tyglådor.",
       },
       {
         q: "Behöver barnmöblerna monteras?",
-        a: "Borden, garderoberna och flera av sminkborden monteras, och till garderoberna följer skruvar och anvisning med. Barnfåtöljen med kronrygg levereras färdig att använda.",
+        a: "De flesta monteras hemma, och till dem följer en anvisning. Barnsoffan i jordgubbsdesign kräver ingen montering.",
       },
     ],
   },
@@ -559,7 +559,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   "elbilar-for-barn": {
     intro: [
       "En elbil ger barnet egen fart på gården, i parken och på uppfarten. Här samlar vi alla våra eldrivna åkfordon för barn: elbilar och terrängbilar, elfyrhjulingar, elmotorcyklar, Vespa-scootrar, eltraktorer med släp och elgokarts. Det finns modeller för barn från 18 månader upp till 12 år, och flera är licensierade modeller av riktiga bilar från Mercedes-Benz, Audi, BMW, Lamborghini och Toyota.",
-      "Välj efter ålder och volt. 6 V passar de minsta: farten ligger oftast på 2,5–3 km/h, och de flesta motorcyklarna i klassen har stödhjul. 12 V är det vanligaste valet från tre år, med en toppfart på upp till 8 km/h, och nästan hälften av modellerna har en fjärrkontroll så att du kan styra tills barnet kör själv. 24 V ger mer kraft för äldre barn, upp till 16 km/h, och här finns också en tvåsitsig elfyrhjuling.",
+      "Välj efter ålder och volt. 6 V passar de minsta: farten ligger oftast på 2,5–3 km/h, och de flesta motorcyklarna i klassen har stödhjul. 12 V är det vanligaste valet från tre år, med en toppfart på upp till 8 km/h, och nästan hälften av modellerna har en fjärrkontroll så att du kan styra tills barnet kör själv. 24 V ger mer kraft för äldre barn, upp till 18 km/h, och här finns också en tvåsitsig elfyrhjuling.",
       "En full laddning räcker till 30–70 minuters körning beroende på modell, underlag och barnets vikt, och laddningen tar oftast 8–12 timmar. Maxvikten går från 20 kg på de minsta fordonen till 65 kg på de största, och flera modeller har bälte, fjädring och mjukstart.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -697,23 +697,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   garagetalt: {
     intro: [
-      "Ett garagetält ger motorcykeln, cyklarna och trädgårdsredskapen tak över huvudet utan att du behöver bygga något. Här samlar vi våra garagetält, från 120 × 179 cm för två cyklar eller en motorcykel till ett tält på 300 × 300 cm med 9 m² golvyta.",
-      "De flesta har stomme i galvaniserat stål och duk i PE eller polyester, och dörren rullas upp eller öppnas med dragkedja. Markankare och spännlinor följer med så att tältet står stadigt. Titta på snölasten – den anges per modell, till exempel 5 eller 10 kg per kvadratmeter – och borsta av taket efter snöfall.",
+      "Ett garagetält ger motorcykeln, cyklarna och trädgårdsredskapen tak över huvudet utan att du behöver bygga något. Här samlar vi våra garagetält, från 120 × 179 cm för två cyklar eller en motorcykel till ett tält på 300 × 300 cm med 9 m² golvyta, och ett förrådstält på 300 × 447 cm med 13,4 m², där du går upprätt över hela golvet. För motorcykeln finns också ett motorcykelgarage i Oxfordtyg på 345 × 135 cm med en front som skjuts bakåt över taket.",
+      "De flesta har stomme i galvaniserat stål och duk i PE eller polyester, och dörren rullas upp eller öppnas med dragkedja. Förankring följer med, oftast markankare eller jordspett och spännlinor, så att tältet står stadigt. Titta på snölasten – den står för varje modell, till exempel 5 eller 10 kg per kvadratmeter – och borsta av taket efter snöfall.",
       "Ett tält på 162 × 221,5 cm är djupt nog för en motorcykel eller ett par cyklar efter varandra.",
-      "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Klarar garagetältet snö?",
-        a: "Snölasten anges per modell, till exempel 5 eller 10 kg per kvadratmeter. Det räcker för ett lätt snölager, så borsta av taket efter snöfall.",
+        a: "Snölasten står för varje modell, till exempel 5 eller 10 kg per kvadratmeter. Det räcker för ett lätt snölager, så borsta av taket efter snöfall.",
       },
       {
         q: "Vad får plats i ett garagetält?",
-        a: "Tälten på 120 × 179 cm rymmer två cyklar, en motorcykel eller trädgårdsredskap. Tälten på 162 × 221,5 cm är djupa nog för en motorcykel eller ett par cyklar efter varandra, och det stora tältet på 300 × 300 cm har 9 m² golvyta.",
+        a: "Tältet på 120 × 179 cm rymmer två cyklar, en motorcykel eller trädgårdsredskap. Tältet på 162 × 221,5 cm är djupt nog för en motorcykel eller ett par cyklar efter varandra, och det stora tältet på 300 × 300 cm har 9 m² golvyta. I förrådstältet på 13,4 m² får en motorcykel och ett hyllställ plats samtidigt.",
       },
       {
         q: "Hur förankras tältet?",
-        a: "Markankare och spännlinor följer med, och ett av tälten har dessutom expanderskruvar för hårt underlag.",
+        a: "Förankring följer med, oftast markankare eller jordspett och spännlinor. Garagetältet på 190 × 230 cm har dessutom expanderskruvar och motorcykelgaraget expanderpluggar för betong och annat hårt underlag.",
       },
     ],
   },
@@ -789,23 +789,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "gunghastar-gungdjur": {
     intro: [
-      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år.",
+      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år. Här finns också två åkhästar i plysch, en på hjul och en elektrisk med fotpedal.",
       "För de minsta är ryggstöd och bälte viktigast. En klassisk gunghäst kräver att barnet kan hålla balansen sittande själv, medan gungdjur med ryggstöd och bälte passar redan från 18 månader. Många av plyschdjuren har ljud, som gnäggande eller melodier, och maxvikten går från 25 upp till 60 kg.",
-      "Plyschhästar med ljud tål inte maskintvätt eftersom elektroniken sitter inuti – torka av dem med en lätt fuktad trasa. Låt alltid en vuxen ha uppsikt när barnet gungar.",
+      "Låt alltid en vuxen ha uppsikt när barnet gungar. På hästarna med ljud drivs ljudet av batterier, och den elektriska åkhästen har en plyschklädsel som går att ta av och tvätta i maskin.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Från vilken ålder passar en gunghäst?",
-        a: "Gungdjur med ryggstöd och bälte passar från 18 månader, och ett av gungdjuren redan från 12 månader. En klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv, och flera är gjorda för barn från två eller tre år.",
+        a: "Gungdjur med ryggstöd och bälte passar från 18 månader, och flera gungdjur redan från 12 månader. En klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv, och flera är gjorda för barn från två eller tre år.",
       },
       {
         q: "Trä eller plysch?",
-        a: "En gunghäst i trä är lätt att torka av med en fuktad trasa. En plyschhäst är mjukare och har ofta ljud, men tål inte maskintvätt eftersom elektroniken sitter inuti.",
+        a: "En gunghäst i trä är lätt att torka av med en fuktad trasa. En plyschhäst är mjukare och har ofta ljud eller melodier, och på den elektriska åkhästen går klädseln att ta av och tvätta i maskin.",
       },
       {
         q: "Hur mycket får barnet väga?",
-        a: "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den – kontrollera den i beskrivningen innan du köper.",
+        a: "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den. Kontrollera den i beskrivningen innan du köper.",
       },
     ],
   },
@@ -835,23 +835,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "hamsterburar-gnagarburar": {
     intro: [
-      "Här finns hamsterburar i trä, en dvärghamsterbur, hamsterburar med rörsystem och tunnlar och större gnagarburar för råtta, degu och chinchilla. En stor hamsterbur i trä på ben mäter 110 cm, och hamsterburen på stativ är 120 cm hög och står på hjul.",
-      "Hamstrar gräver, så bäddens djup spelar roll. Två träburar har 31 cm fri höjd i bottenplanet, nog för en bädd där djuret kan gräva riktiga gångar, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. I dvärghamsterburen ger bottenvåningen plats för ett ordentligt lager strö.",
+      "Här finns hamsterburar i trä, en dvärghamsterbur, hamsterburar med rörsystem och tunnlar och större gnagarburar för råtta, degu och chinchilla. En stor hamsterbur i trä på ben mäter 110 cm och har ett enda öppet plan, och gnagarburen på 128 cm med fyra plan står på hjul.",
+      "Hamstrar gräver, så bäddens djup spelar roll. Hamsterburen i trä med djup bädd har 31 cm fri höjd i bottenplanet, nog för en bädd där djuret kan gräva riktiga gångar, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. I dvärghamsterburen ger bottenvåningen plats för ett ordentligt lager strö.",
       "Gnagarburen i akryl och aluminium ger 0,50 m² bottenyta i ett enda plan. Flera burar kommer med hus, löphjul, matskål och vattenflaska, och i dvärghamsterburen sitter löphjulet och vattenflaskan redan på plats.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vilka burar har djup bädd för grävning?",
-        a: "Två hamsterburar i trä har 31 cm fri höjd i bottenplanet, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. Djupet står redan i produktnamnet.",
+        a: "Hamsterburen i trä med djup bädd har 31 cm fri höjd i bottenplanet, och gnagarburen på hjul har en 26 cm djup underdel i härdat glas. Gnagarburen i akryl har ett djupt bottenkar i ett enda plan på 0,50 m².",
       },
       {
         q: "Finns det burar för råtta, degu och chinchilla?",
-        a: "Ja. Smådjursburen på 150 cm med fem plan är gjord för djur som klättrar, som råtta, chinchilla, degu och iller. Gnagarburen på 128 cm har fyra plan, ramper och en hängmatta och står på fyra hjul.",
+        a: "Ja. Gnagarburen på 128 cm har fyra plan, ramper och en hängmatta, är byggd för chinchillor, råttor och degus och står på fyra hjul. Maskavståndet är 2,5 cm.",
       },
       {
         q: "Vad följer med buren?",
-        a: "Det varierar. Flera levereras med hus, löphjul, matskål och vattenflaska, och vad som ingår står i beskrivningen.",
+        a: "Det varierar. Flera levereras med hus, löphjul, matskål och vattenflaska, och vad som ingår står i beskrivningen. Löphjulet på 13 cm som följer med några av burarna är för litet: en dvärghamster behöver minst 20 cm och en guldhamster minst 28 cm.",
       },
     ],
   },
@@ -904,15 +904,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "honshus-honsgardar": {
     intro: [
-      "Här hittar du hönshus i trä, hönsgårdar att gå in i, värpreden och en automatisk hönslucka. Flera anger hur många höns de är gjorda för, från hönshus för två höns till hönsgården på 24 m² för 24–30 höns.",
+      "Här hittar du hönshus i trä, hönsgårdar att gå in i, ett hönsrede och en automatisk hönslucka. Flera anger hur många höns de är gjorda för, från hönshus för två höns till hönsgården på 10 m² för 10–15 höns. Här finns också ett ankhus för tre ankor, en aktivitetsställning med sittpinnar för höns och en lekplats och ett ställ för små fåglar och papegojor.",
       "De flesta hönshus har både värprede och sittpinnar, och flera har en rastgård i samma stycke. Städningen går fortare med en utdragbar bricka eller bottenlåda, och på ett av husen fälls både taket och värpredet upp.",
-      "Hönsgårdarna ger hönsen yta att röra sig på under dagen, från 3,07 m² med ståhöjd upp till 24 m². De stora är byggda av galvaniserat stålrör med tak av duk mot sol och regn. Den automatiska hönsluckan öppnar på morgonen och stänger på kvällen, och i hönsredet i galvat stål rullar ägget ner i en uppsamlingslåda.",
+      "Hönsgårdarna ger hönsen yta att röra sig på under dagen, från 3,07 m² med ståhöjd upp till 24 m². De stora är byggda av galvaniserat stålrör med tak av duk mot sol och regn. Den automatiska hönsluckan öppnar på morgonen och stänger på kvällen, och hönsredet i trä har sex fack på två plan.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur många höns får plats?",
-        a: "Det beror på modellen. Hönshusen är gjorda för två till tio höns, och hönsgårdarna i stål rymmer från 4–6 höns upp till 24–30 höns på 24 m². De flesta beskrivningar anger antalet.",
+        a: "Det beror på modellen. Hönshusen är gjorda för två till tio höns, och hönsgårdarna i stål rymmer från 4–6 höns på 4 m² upp till 10–15 höns på 10 m². De flesta beskrivningar anger antalet.",
       },
       {
         q: "Vad är skillnaden mellan hönshus och hönsgård?",
@@ -973,10 +973,10 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "hundbaddar-hundsoffor": {
     intro: [
-      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne och hopfällbara bäddar med bärväska.",
+      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne och hopfällbara bäddar med bärväska. För katten finns en korg med kattöron och en kattsäng på ben.",
       "En upphöjd bädd lyfter hunden från golvet. På hundsofforna lyfter furubenen bädden så att luften kommer åt underifrån, och på nätbäddarna cirkulerar luften under hunden så att den håller sig sval. En av nätbäddarna har dessutom tak som ger skugga och skydd mot regn.",
-      "Välj storlek efter hunden: bäddarna finns från små sängar på Ø40 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm som bär 50 kg.",
-      "Du betalar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Välj storlek efter hunden: bäddarna finns från små sängar på Ø40,5 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm, och de största sofforna och bäddarna är gjorda för hundar upp till 30 kg.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -989,7 +989,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Vilken storlek behöver min hund?",
-        a: "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. De minsta sofforna är gjorda för katter och små hundar som tax och chihuahua, medan de största bäddarna bär upp till 50 kg.",
+        a: "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. De minsta sofforna är gjorda för katter och små hundar upp till 4,5 kg, medan de största bäddarna och sofforna tar hundar upp till 30 kg.",
       },
     ],
   },
@@ -997,9 +997,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   hundburar: {
     intro: [
       "En hundbur ger hunden en egen plats hemma, i bilen och på resan. Här samlar vi våra hundburar: möbelburar i valnöt, ek och vitt som också fungerar som sidobord, en bur i metall med hjul och topplucka och mjuka burar i väv som viks ihop när de inte används.",
-      "Mät hunden på längden, inte bara vikten: de flesta burarna anger både maxvikt och kroppslängd, oftast upp till 30 kg och 60 cm. Hunden ska kunna stå, vända sig och ligga utsträckt. En skjutdörr tar ingen plats framför buren, och möbelburarnas skiva ovanpå bär mellan 20 och 50 kg – plats för lampan och böckerna.",
-      "Möbelburarna väger mellan 25 och 47 kg och monteras där de ska stå, medan de mjuka burarna väger från 3,8 kg och följer med i bagageutrymmet. För två hundar finns en bur på 120 cm med mellanvägg och två skjutdörrar.",
-      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Mät hunden på längden, inte bara vikten: de flesta burarna anger både maxvikt och kroppslängd, oftast upp till 30 kg och 60 cm. Hunden ska kunna stå, vända sig och ligga utsträckt. En skjutdörr tar ingen plats framför buren, och möbelburarnas skiva ovanpå bär mellan 20 och 60 kg – plats för lampan och böckerna.",
+      "Möbelburarna väger mellan 25,5 och 34,5 kg och monteras där de ska stå, medan den mjuka buren i väv viks ihop och följer med i bagageutrymmet. För två hundar finns en bur på 120 cm med mellanvägg och två skjutdörrar.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1008,11 +1008,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Vad är en möbelbur?",
-        a: "En hundbur byggd som en möbel, med en hel skiva ovanpå som fungerar som sidobord. Den smälter in i rummet, och skivan bär mellan 20 och 50 kg.",
+        a: "En hundbur byggd som en möbel, med en hel skiva ovanpå som fungerar som sidobord. Den smälter in i rummet, och skivan bär mellan 20 och 60 kg.",
       },
       {
         q: "Vilken bur passar på resan?",
-        a: "De mjuka burarna i väv väger från 3,8 kg och viks ihop, så de är lätta att ta med i bilen. Metallburen med hjul och bricka går också att fälla ihop.",
+        a: "Den mjuka buren i väv finns 60, 76 och 90 cm lång och viks ihop till 42 × 20 × 20 cm i den minsta storleken, så den är lätt att ta med i bilen. Den hopfällbara buren i stål för små hundar viks ihop till 6,5 cm, och metallburen med hjul och bricka går också att fälla ihop.",
       },
     ],
   },
@@ -1042,7 +1042,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   hundvagnar: {
     intro: [
-      "Här finns hundvagnar för allt från små hundar på upp till 4 kg till stora hundar på upp till 30 kg, och cykelvagnar för hund som bär upp till 45 kg. Maxvikten står oftast redan i namnet, och flera anger också liggytan och hur lång hunden får vara.",
+      "Här finns hundvagnar för allt från små hundar på upp till 4 kg till stora hundar på upp till 30 kg, och cykelvagnar för hund som bär upp till cirka 40 kg. Maxvikten står oftast redan i namnet, och flera anger också liggytan och hur lång hunden får vara.",
       "Flera är hopfällbara. En fälls i ett enda drag och lägger sig platt, och en annan blir bärväska: kabinen lossas från chassit och packas ned till 61 × 40 × 10 cm.",
       "Cykelvagnarna för hund dras efter cykeln, och modellerna 2-i-1 blir hundvagn när ni kommit fram: dragstaget hakas av och handtaget fälls upp. Joggingvagnen har ett låsbart framhjul, och på en vagn med tre hjul kan framhjulet svänga fritt eller låsas rakt fram.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -1050,11 +1050,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     faq: [
       {
         q: "Hur stor hund får plats i vagnen?",
-        a: "Titta på maxvikten och liggytan. Vagnen med fyra hjul och sufflett för hundar upp till 4 kg tar högst 32 cm kroppslängd, vagnarna för mellanstora hundar har 93 × 52 cm liggyta och bär 25 kg, och de största hundvagnarna tar upp till 30 kg.",
+        a: "Titta på maxvikten och liggytan. Vagnen med fyra hjul och sufflett för hundar upp till 4 kg har en liggyta på 52 × 32 cm, vagnen för mellanstora hundar har 93 × 52 cm liggyta och bär 25 kg, och de största hundvagnarna tar upp till 30 kg.",
       },
       {
         q: "Kan jag cykla med hundvagnen?",
-        a: "Med cykelvagnarna för hund, ja. De dras efter cykeln, och på modellerna 2-i-1 hakas dragstaget av så att vagnen blir en hundvagn med handtag. En av dem bär upp till 45 kg.",
+        a: "Med cykelvagnarna för hund, ja. De dras efter cykeln, och på modellerna 2-i-1 hakas dragstaget av så att vagnen blir en hundvagn med handtag. Den hopfällbara cykelvagnen finns i en storlek för hundar upp till cirka 40 kg.",
       },
       {
         q: "Går vagnen att fälla ihop?",
@@ -1088,9 +1088,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   juldekoration: {
     intro: [
-      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar och en pingvin, ljusfigurer som renfamiljer och isbjörnar, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
+      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar och pingviner, ljusfigurer som renfamiljer och isbjörnar, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
       "De uppblåsbara figurerna är upp till 250 cm höga och reser sig när du kopplar in fläkten. De lyser inifrån med LED, och de flesta är IP44-klassade, alltså skyddade mot stänk. Till de flesta följer markspett och linor med för att förankra figuren i gräsmattan, och vid kraftigt regn, snö eller hård vind tar du in den.",
-      "Ljusfigurerna lyser med lysdioder – renfamiljen har 283 stycken – och de flesta är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, girlanger och två adventskalendrar med 24 lådor att fylla.",
+      "Ljusfigurerna lyser med lysdioder – renfamiljen har 283 stycken – och de flesta är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, girlanger och fyra adventskalendrar med 24 lådor att fylla.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1176,15 +1176,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur ser jag hur stor buren är?",
-        a: "Längd, djup och höjd står i beskrivningen, och flera anger bottenytan i kvadratmeter. Kaninhyddan i två plan har 0,81 m² bottenplan, och kaninhuset på 122 cm har en rastgård på 1,02 m².",
+        a: "Längd, djup och höjd står i beskrivningen, och flera anger bottenytan i kvadratmeter. Kaninhuset på 122 cm har en rastgård på 1,02 m², och modulhagen på 175 × 105 cm ger 1,84 m² på bottenplanet.",
       },
     ],
   },
 
   katthus: {
     intro: [
-      "Ett katthus ger utekatten ett torrt och skyddat ställe att vila på, på balkongen, altanen eller i trädgården. Här samlar vi våra katthus i trä – från små hus på 62 cm till hus i två och tre plan med balkong och fönster – och några katthus för inomhusbruk.",
-      "Titta på tak, golv och öppning. Ett tak med asfalt eller takpapp leder bort regnet, och ett hus på ben med golvet några centimeter över marken slipper suga upp markfukt. Ett tak eller en lucka som fälls upp gör det lätt att göra rent, och ett hus med två plan ger katten både en skyddad sovplats och en utsiktsplats. Har du två katter finns också ett hus byggt för två.",
+      "Ett katthus ger utekatten ett torrt och skyddat ställe att vila på, på balkongen, altanen eller i trädgården. Här samlar vi våra katthus i trä – från en kattstuga på 77 cm till hus i två och tre plan med balkong och fönster – ett upphöjt katthus i vattenavvisande väv, en kattgård med hus och rastgård och några katthus för inomhusbruk.",
+      "Titta på tak, golv och öppning. Ett tak med asfalt eller takpapp leder bort regnet, och ett hus på ben med golvet några centimeter över marken slipper suga upp markfukt. Ett tak eller en lucka som fälls upp gör det lätt att göra rent, och ett hus med två plan ger katten både en skyddad sovplats och en utsiktsplats. Har du två katter finns också ett hus byggt för två, och kattgården på 191 cm är gjord för tre till fyra katter.",
       "I flera av utomhushusen ingår ingen bädd – lägg i halm, en filt eller en värmematta avsedd för djur.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1199,7 +1199,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Finns det katthus för inomhusbruk?",
-        a: "Ja, till exempel ett katthus i tv-design med kudde och en hopfällbar kattkoja med klöspelare i sisal.",
+        a: "Ja, till exempel ett katthus i tv-design med kudde, en hopfällbar kattkoja med klöspelare i sisal, en katthåla i flätat rep och ett tipitält. Flera av trähusen kan också stå inne.",
       },
     ],
   },
@@ -1487,22 +1487,22 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   massagebankar: {
     intro: [
       "Här hittar du hopfällbara massagebänkar, som också kallas massagebord, massagesäng eller behandlingsbänk. De fälls ihop till ett platt paket och passar både för behandling hemma och för hembesök hos kunden.",
-      "Stommen är av trä eller aluminium. Två bänkar i trä bär 250 kg och har en bärväska med i kartongen. På bänkarna med tre zoner fälls rygg, mitt och ben var för sig, och två av dem kan ställas i halvsittande läge.",
+      "Stommen är av trä, aluminium eller stål. Träbänken med bärväska bär 250 kg, och väskan följer med i kartongen. På bänkarna med tre zoner fälls rygg, mitt och ben var för sig, och två av dem kan ställas i halvsittande läge.",
       "Liggytan är 60 cm bred, och två bänkar har en liggyta på 70 cm som ger mer plats för armarna. Med ansiktsstödet på är de flesta 210 till 215 cm långa, och höjden går att ställa på alla. Den 70 cm breda med armstöd och handbrädor har en 9 cm tjock dyna.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vilken höjd ska en massagebänk ha?",
-        a: "En tumregel är att bänken ska nå ungefär till knogarna när du står bredvid den med armarna rakt ner. Höjden går att ställa på alla bänkarna här. Är du lång, titta efter en bänk som går högt: de två träbänkarna med bärväska går upp till 92 cm.",
+        a: "En tumregel är att bänken ska nå ungefär till knogarna när du står bredvid den med armarna rakt ner. Höjden går att ställa på alla bänkarna här. Är du lång, titta efter en bänk som går högt: träbänken med bärväska går upp till 92 cm.",
       },
       {
         q: "Trä eller aluminium?",
-        a: "Titta hellre på vikt, maxlast och bredd än på material. Vikten står på de flesta bänkarna och ligger mellan 13 och 17,5 kg. Den på 13 kg har träställ, och aluminiumbänkarna med tre zoner väger 17,5 kg.",
+        a: "Titta hellre på maxlast, bredd och höjd än på material. Aluminiumramen är lätt att bära och stabil att arbeta på, och tvåzonsbänken med träställ väger 13 kg.",
       },
       {
         q: "Hur mycket bär en massagebänk?",
-        a: "Det skiljer mellan modellerna. Där maxlasten anges ligger den mellan 130 och 250 kg: den 70 cm breda bänken med armstöd och handbrädor bär 130 kg, och de två träbänkarna med bärväska bär 250 kg.",
+        a: "Det skiljer mellan modellerna. Där maxlasten står ligger den mellan 130 och 250 kg: den 70 cm breda bänken med armstöd och handbrädor bär 130 kg, flera bänkar bär 225 kg och träbänken med bärväska 250 kg.",
       },
     ],
   },
@@ -1602,23 +1602,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   motionscyklar: {
     intro: [
-      "Här hittar du motionscyklar för träning hemma, bland dem en liggande modell och hopfällbara modeller med ryggstöd, en spinningcykel och pedaltränare som ställs på golvet framför en stol eller soffa.",
-      "De flesta motionscyklarna har magnetiskt motstånd i 8 steg och en LCD-display, och två av dem har Bluetooth. Maxvikten är 110 eller 120 kg. Spinningcykeln har filtbroms och steglöst motstånd, och sadeln ställs mellan 78 och 93 cm över golvet.",
-      "Pedaltränarna används sittande och tränar benen, flera också armarna. Den eldrivna pedaltränaren har en motor som håller benen i rörelse, med 12 hastigheter och fjärrkontroll.",
+      "Här hittar du motionscyklar för träning hemma, bland dem en liggande modell och en hopfällbar modell med ryggstöd, en spinningcykel och pedaltränare som ställs på golvet framför en stol eller soffa.",
+      "Motionscyklarna har magnetiskt motstånd i 8 steg och en LCD-display, och två av dem har Bluetooth. Maxvikten är 120 kg på de två som anger den. Spinningcykeln har filtbroms och steglöst motstånd, och sadeln ställs mellan 78 och 93 cm över golvet.",
+      "Pedaltränarna används sittande och tränar både armar och ben, med steglöst motstånd och en display som visar bland annat tid och kalorier. En av dem har handvevar upptill som ställs i 6 höjdlägen, och pedaltränaren i silver ställs på golvet för benen eller på ett bord för armarna.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur tung får jag vara?",
-        a: "Maxvikten står i beskrivningen: 110 eller 120 kg för motionscyklarna och 100 kg för spinningcykeln.",
+        a: "Maxvikten står i beskrivningen: 120 kg för den hopfällbara motionscykeln och motionscykeln med Bluetooth och sadel på 65–91 cm, och 100 kg för spinningcykeln. Pedaltränaren i silver bär 120 kg, precis som motionscyklarna.",
       },
       {
         q: "Finns det motionscykel med ryggstöd?",
-        a: "Ja. På den liggande motionscykeln sitter du tillbakalutat med stöd för ryggen, och två hopfällbara modeller har ryggstöd och fälls ihop mellan passen.",
+        a: "Ja. På den liggande motionscykeln sitter du tillbakalutat med stöd för ryggen, och den hopfällbara modellen har ett ryggstöd som fälls undan när du vill sitta upprätt.",
       },
       {
         q: "Vad är en pedaltränare?",
-        a: "En liten trampmaskin som ställs på golvet framför en stol eller soffa. Den tränar benen, flera också armarna, och den eldrivna håller benen i rörelse med en motor.",
+        a: "En liten trampmaskin som du använder sittande, framför en stol eller soffa. Den tränar både ben och armar, och motståndet ställs steglöst med en ratt.",
       },
     ],
   },
@@ -1626,14 +1626,14 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   "motorcyklar-for-barn": {
     intro: [
       "En motorcykel för barn är ofta det första egna fordonet med gas och styre. Här samlar vi elmotorcyklar för barn från 18 månader upp till 12 år, bland dem licensierade modeller av BMW och Honda. För de allra minsta finns också ett sparkfordon och två trehjulingar i motorcykelform, som drivs med fötterna eller med pedaler.",
-      "Välj efter ålder. För barn på 18–36 månader finns elmotorcyklar på 6 V med en toppfart på 2,5–3 km/h, antingen med två avtagbara stödhjul eller med tre hjul som står stadigt utan stödhjul. För 3–8 år finns modeller på 12 V med stödhjul och fjädring bak, som går i upp till 5 eller 6 km/h.",
+      "Välj efter ålder. För barn på 18–36 månader finns elmotorcyklar på 6 V med en toppfart på 2,4–3 km/h, antingen med två avtagbara stödhjul eller med tre hjul som står stadigt utan stödhjul. För 3–8 år finns modeller på 12 V med stödhjul, flera med fjädring, som går i upp till 5 till 8 km/h.",
       "Elmotorcykeln på 24 V är gjord för 8–12 år och kräver att barnet redan kan cykla: den har två farter, 8 och 16 km/h, luftfyllda bakdäck och en maxlast på 65 kg. En laddning räcker i 30 minuter till en timme beroende på modell, och laddningen tar oftast 8–12 timmar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Från vilken ålder passar en elmotorcykel?",
-        a: "De minsta modellerna på 6 V är gjorda för barn från 18 månader och går i 2,5–3 km/h. Från tre år passar modellerna på 12 V, och för barn på 8–12 år finns en elmotorcykel på 24 V. Rekommenderad ålder står i varje produktbeskrivning, och på de flesta också maxvikten.",
+        a: "De minsta modellerna på 6 V är gjorda för barn från 18 månader och går i 2,4–3 km/h. Från tre år passar modellerna på 12 V, och för barn på 8–12 år finns en elmotorcykel på 24 V. Rekommenderad ålder står i varje produktbeskrivning, och på de flesta också maxvikten.",
       },
       {
         q: "Går stödhjulen att ta bort?",
@@ -1672,7 +1672,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   odlingslador: {
     intro: [
       "En odlingslåda gör det enkelt att odla grönsaker, kryddor och blommor även utan trädgårdsland, på gräsmattan, uteplatsen eller balkongen. Här samlar vi odlingslådor och planteringslådor i galvaniserad metall, trä, träkomposit, plast och konstrotting, från lådor som står direkt på marken till upphöjda odlingsbord.",
-      "Flera lådor i metall och plast har öppen botten och ställs direkt på marken, så att rötterna når jorden under. Metallådan på 241 × 90,5 cm levereras tillsammans med en mindre låda på 126 cm i samma paket. Flera av lådorna i trä har en fiberduk på insidan.",
+      "Flera lådor i metall och plast har öppen botten och ställs direkt på marken, så att rötterna når jorden under. Metallådan på 241 × 90,5 cm kan också byggas som en kortare låda på 126 cm av samma delar, och du väljer formen när du monterar. Flera av lådorna i trä har en fiberduk på insidan.",
       "Vill du slippa böja dig finns upphöjda lådor och odlingsbord, några på hjul eller med skåp eller hylla under. Andra har spaljé för klätterväxter, en foliekåpa som rullas upp eller ett nät som håller fåglarna borta.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1763,8 +1763,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "redskapsbodar-forrad": {
     intro: [
-      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
-      "Börja med yta och höjd. Vill du kunna gå in, titta på nockhöjden: bodarna på 4,1 m² har 2,28 meter i nock och de på 12,4 m² har två meter, och skjutdörrar behöver ingen plats framför boden. De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke – läs i beskrivningen vad som ingår.",
+      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m², cykelförråd och cykeltält och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
+      "Börja med yta och höjd. Vill du kunna gå in, titta på nockhöjden: bodarna på 4,1 m² har 2,28 meter i nock och de på 12,4 m² har två meter, och skjutdörrar behöver ingen plats framför boden. Plåtbodarna levereras oftast utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke, medan de flesta plastbodarna har golv eller bottenplatta – läs i beskrivningen vad som ingår.",
       "Välj material efter hur mycket underhåll du vill ha. Galvaniserad plåt har ett zinkskikt som skyddar stålet, plastbodarna är genomfärgade och ska inte målas, och trä behöver målas eller laseras innan det tas i bruk.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1775,7 +1775,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Ingår golv i redskapsboden?",
-        a: "De flesta bodarna levereras utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. En av plastbodarna levereras med golv. Läs i beskrivningen vad som ingår.",
+        a: "Det beror på modellen. Plåtbodarna levereras oftast utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. Plastbodarna har golv eller bottenplatta, utom boden på 1,1 m² som finns både med och utan golv, och två av metallbodarna levereras med golvfundament. Läs i beskrivningen vad som ingår.",
       },
       {
         q: "Redskapsbod, förrådstält eller trädgårdsskåp?",
@@ -1786,10 +1786,10 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   sandlador: {
     intro: [
-      "En sandlåda med tak ger skugga under leken och kan skydda sanden mellan gångerna. Här samlar vi våra sandlådor i barrträ för barn från tre år: låga sandlådor med lekkök och diskho, sandlådor med soltak eller lekstugetak och sandlådor formade som ett piratskepp och en bil.",
-      "Titta på tak och botten. På flera modeller täcker duken hela sandytan, och på en kan taket sänkas ända ner till 18 cm så att det fungerar som lock – det håller regn, löv och katter borta. Flera har fiberduk i botten, och en av lådorna rymmer 200 kilo sand.",
-      "Måla eller olja träet en gång om året.",
-      "Du handlar tryggt med Klarna, med fri frakt över 499 kr och 30 dagars öppet köp.",
+      "En sandlåda med tak ger skugga under leken och kan skydda sanden mellan gångerna. Här samlar vi våra sandlådor i barrträ för barn från tre år: låga sandlådor med lekkök och diskho, sandlådor med soltak, justerbart tak eller lekstugetak och sandlådor formade som ett piratskepp och en bil.",
+      "Titta på tak och botten. På flera modeller täcker duken hela sandytan, och på en kan taket sänkas ända ner till 18 cm så att det fungerar som lock – det håller regn, löv och katter borta. Sandlådan med soltak har fiberduk i botten och sandlådan med lekstugetak en duk som släpper igenom vatten, medan piratskeppet saknar botten så att regnvattnet rinner undan.",
+      "Sandytan och djupet avgör hur mycket sand som går åt: sandlådan med höjdjusterbart tak tar ungefär fyra säckar om 30 kg, och sandlådan med soltak omkring 300 kg. Sand ingår inte. Måla eller olja träet en gång om året.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -1798,11 +1798,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur mycket sand behövs?",
-        a: "Det beror på sandytan och djupet. En av lådorna har en sandyta på 77,5 × 77,5 cm som är 20 cm djup och rymmer 200 kilo sand. Sandytans mått står i beskrivningen.",
+        a: "Det beror på sandytan och djupet. Sandlådan med soltak har en sandyta på 104 × 96 cm som är 20 cm djup och rymmer omkring 300 kg sand, och lådan med lekstugetak rymmer upp till 113 kg. Sandytans mått står i beskrivningen.",
       },
       {
         q: "Vilken ålder passar sandlådorna för?",
-        a: "De är gjorda för barn från tre år, och de flesta upp till sju eller åtta år.",
+        a: "De är gjorda för barn från tre år, och sandlådan med lekstugetak och piratskeppet för 3–7 år. Den låga sandlådan med lekkök och två sandfack är så låg att ett treårigt barn kliver i själv.",
       },
     ],
   },
@@ -1925,9 +1925,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "skarmtak-entretak": {
     intro: [
-      "Här hittar du skärmtak och entrétak som monteras på väggen ovanför ytterdörren eller ett fönster och skyddar mot regn. Takskivan är av polykarbonat, en slagtålig plast, och på de flesta är den genomskinlig så att entrén inte blir mörk.",
-      "De minsta är 100 till 122 cm breda och passar över en enkeldörr eller ett fönster. Entrétaket på 195 cm räcker över en dubbeldörr, och de två längsta är 295 och 303 cm.",
-      "Entrétaken på 122 och 195 cm har en takskiva av hålkammarplast på 5 mm och levereras med expanderbultar och täckproppar. Skärmtaket på 110 × 60 cm hänger på två väggkonsoler utan stolpe, anges för en snölast på 5 cm och ska sitta minst 30 cm ovanför öppningen.",
+      "Här hittar du skärmtak och entrétak som monteras på väggen ovanför ytterdörren eller ett fönster och skyddar mot regn. Takskivan är av polykarbonat, en slagtålig plast, eller på ett av entrétaken av härdat glas, och på de flesta är den genomskinlig så att entrén inte blir mörk.",
+      "De minsta är 100 till 122 cm breda och passar över en enkeldörr eller ett fönster. Entrétaket på 195 cm räcker över en dubbeldörr, och de två längsta är 295 och 303 cm. Entrétaket i glas finns 150 och 200 cm brett och hålls uppe av dragstag i rostfritt stål.",
+      "Entrétaken på 122 och 195 cm har en takskiva av hålkammarplast på 5 mm och levereras med expanderbultar och täckproppar. Skärmtaket på 110 × 60 cm hänger på två väggkonsoler utan stolpe, klarar en snölast på 5 cm och ska sitta minst 30 cm ovanför öppningen.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1937,7 +1937,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur monteras ett skärmtak?",
-        a: "Det skruvas fast i väggen med konsoler. Till entrétaken följer expanderbultar med, och monteringen kräver att du borrar i fasaden. Skärmtaket på 110 × 60 cm ska sitta minst 30 cm ovanför dörr- eller fönsteröppningen.",
+        a: "Det skruvas fast i väggen med konsoler eller fästen. Till entrétaken i polykarbonat följer expanderbultar med, till glastaket skruvar och pluggar för betongvägg, och monteringen kräver att du borrar i fasaden. Skärmtaket på 110 × 60 cm ska sitta minst 30 cm ovanför dörr- eller fönsteröppningen.",
       },
       {
         q: "Vad är polykarbonat?",
@@ -2086,28 +2086,33 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   terrarier: {
     intro: [
-      "Här finns terrarier i glas från 24 till 140 liter: små kuber på 30 × 30 × 30 cm, ett lågt terrarium på 50 × 30 × 25 cm och ett högt på 45 × 45 × 60 cm. Terrariet på 140 liter står på egna träben i stället för på ett bord.",
-      "Välj efter hur djuret lever. Det höga terrariet har 60 cm från botten till gallerlocket, och det låga har samma golvyta som 48-litersmodellen men lägre höjd. Mellanstorleken på 50 × 30 × 35 cm är lång nog för en marklevande art och hög nog för en klättrare.",
+      "Här finns terrarier i glas från 24 till 140 liter: kuber på 30 × 30 × 30 cm, ett lågt och ett högre terrarium på 50 × 30 cm och ett terrarium på 86 liter med skjutdörrar. Terrariet på 140 liter står på egna träben i stället för på ett bord. För sköldpaddan finns sköldpaddshus i trä, och här finns också ett akvarium på 41 liter och en reptilinkubator.",
+      "Välj efter hur djuret lever. Det låga terrariet på 50 × 30 × 25 cm har samma golvyta som 48-litersmodellen på 50 × 30 × 35 cm men lägre höjd och passar en art som lever på marken, medan det högre ger plats för klättring. Terrariet på 86 liter har 60 × 45 cm golvyta och glas på alla fyra sidor.",
       "Flera öppnas framifrån, med skjutdörrar eller en frontlucka med knapplås som ett djur inte kan trycka upp, och de har lock av galler eller nät. Två modeller har en strukturerad bakvägg som djuret kan klättra på.",
+      "Sköldpaddshusen är 81 till 120 cm långa, med ett skyddat rum och en del under nät eller helt öppen ovansida, och flera har en hållare för värme- eller UV-lampa. Reptilinkubatorn på 25 liter både kyler och värmer, mellan 5 och 42 °C.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vilka djur passar terrarierna för?",
-        a: "Beskrivningarna nämner ödlor och ormar, och terrariet på 86 liter anges passa små ödlor, grodor, ormar och spindlar, till exempel leopardgecko och dvärggecko. Välj höjd efter om djuret klättrar eller lever på marken och golvyta efter hur stort det är.",
+        a: "Terrarierna i glas är gjorda för ödlor, ormar, spindlar och grodor, och terrariet på 86 liter räcker för mindre arter som leopardgecko och dvärggecko. Sköldpaddor hör hemma i sköldpaddshusen. Välj höjd efter om djuret klättrar eller lever på marken och golvyta efter hur stort det är.",
       },
       {
         q: "Går terrarierna att låsa?",
         a: "Flera gör det. Terrariet på 86 liter har två lås, ett på dörren och ett på ovansidan, och flera av de mindre har en frontlucka med knapplås.",
+      },
+      {
+        q: "Hur stor sköldpadda räcker sköldpaddshuset till?",
+        a: "Det beror på golvytan. Husen på 81, 91 och 104 cm räcker till en landsköldpadda med en skallängd upp till 15 cm, och huset på 120 cm med 0,53 m² till en på upp till 20 cm. Skallängden mäts rakt från främre till bakre skalkant.",
       },
     ],
   },
 
   "terrassvarmare-infravarmare": {
     intro: [
-      "En terrassvärmare gör altanen och balkongen användbar även en sval kväll. Här samlar vi fem elektriska värmare: en terrassvärmare på stativ på 2500 W, en terrassvärmare med oscillering, en takvärmare för terrassen och två infravärmare för vägg.",
-      "Karbonfiberröret på stativvärmaren värmer 10–15 m², och infravärmaren för vägg eller stativ 15–20 m². Effekten ställs i steg, upp till nio, med vred, touchpanel, fjärrkontroll eller app, och takvärmaren har timer på upp till 24 timmar.",
-      "Två av värmarna är IP65-klassade, och till en av dem följer ett skyddshölje för vintern. Infravärmaren med app bygger bara 8 cm ut från väggen och passar därför också på en smal balkong.",
+      "En terrassvärmare gör altanen och balkongen användbar även en sval kväll. Här samlar vi elektriska värmare: en terrassvärmare på stativ på 2500 W, en terrassvärmare med oscillering och infravärmare för vägg, en av dem med stativ som alternativ.",
+      "Karbonfiberröret på stativvärmaren värmer 10–15 m², och infravärmaren för vägg eller stativ 15–20 m². Effekten ställs i steg, upp till nio, med vred, touchpanel, fjärrkontroll eller app, och stativvärmaren och infravärmaren med app har timer på upp till 24 timmar.",
+      "Tre av värmarna är IP65-klassade, och till båda infravärmarna följer ett skyddshölje för vintern. Infravärmaren med app bygger bara 8 cm ut från väggen och passar därför också på en smal balkong.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -2117,11 +2122,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Tål värmarna väder?",
-        a: "Två av dem är IP65-klassade, och till infravärmaren för vägg eller stativ följer ett skyddshölje för vintern.",
+        a: "Tre av dem är IP65-klassade, och till båda infravärmarna följer ett skyddshölje för vintern. Terrassvärmaren med oscillering är IP45-klassad och tål vattenstrålar men är inte dammtät.",
       },
       {
         q: "Hur styr jag värmen?",
-        a: "Med vred, touchpanel, fjärrkontroll eller app beroende på modell. Infravärmaren för vägg ställs i nio steg från telefonen, och takvärmaren har timer på upp till 24 timmar.",
+        a: "Med vred, touchpanel, fjärrkontroll eller app beroende på modell. Infravärmaren för vägg med app ställs i nio steg från telefonen, och den och stativvärmaren har timer på upp till 24 timmar.",
       },
     ],
   },
@@ -2151,7 +2156,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "tradgardsskotsel-bevattning": {
     intro: [
-      "Här samlar vi det som håller trädgården i ordning: slangvagnar, en väggmonterad slangvinda och droppslang för bevattningen, en elektrisk kompostkvarn och en kompostbehållare på 240 liter, gödselspridare och gräsmattsluftare, batteridriven lövblås, häcksax och gräsklippare, en transportvagn, en hopfällbar vattentank och trädgårdsskåp för redskapen.",
+      "Här samlar vi det som håller trädgården i ordning: slangvagnar och en väggmonterad slangvinda för bevattningen, en kompostbehållare på 240 liter, gödselspridare och gräsmattsluftare, batteridriven lövblås, häcksax och gräsklippare, en högtryckstvätt, en sopmaskin, en hopfällbar vattentank och trädgårdsskåp för redskapen. Inför vintern finns snöskyfflar och snökäppar för infarten.",
       "De batteridrivna maskinerna slipper sladd. Lövblåsen levereras med två batterier, medan gräsklipparen är gjord för ett 36 V-batteri, så kontrollera vad som ingår innan du beställer.",
       "Trädgårdsskåpen finns också under Redskapsbodar & förråd, där bodarna och förrådstälten ligger.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -2162,12 +2167,12 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
         a: "En av slangvagnarna levereras med 45 m slang och munstycke, och den väggmonterade slangvindan rymmer 10 m. Kontrollera i produktbeskrivningen om slang ingår i den modell du väljer.",
       },
       {
-        q: "Vad gör en kompostkvarn?",
-        a: "Den maler ner grenar och trädgårdsavfall till mindre bitar. Vår elektriska kompostkvarn har en motor på 2500 W.",
+        q: "Hur luftar jag gräsmattan?",
+        a: "Med en gräsmattsluftare som du rullar över gräsmattan, så att piggarna gör hål som släpper ner luft, vatten och näring till rötterna. Luftaren med spikvals har trettio piggar och 45 cm arbetsbredd, och den med spikvält är 42,5 cm bred. Hösten är en bra tid att lufta.",
       },
       {
-        q: "Vad är en droppslang?",
-        a: "En slang som släpper ut vatten längs hela sin längd och vattnar jorden runt häcken eller rabatten.",
+        q: "Ingår batteri till maskinerna?",
+        a: "Till lövblåsen följer två batterier på 20 V och en laddare, och häcksaxen levereras med ett 20 V-batteri och laddare. Gräsklipparen levereras utan batteri och laddare och tar ett 36 V-batteri.",
       },
     ],
   },
@@ -2197,9 +2202,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   traningsbankar: {
     intro: [
-      "Här hittar du träningsbänkar för hemmagymmet: hopfällbara bänkar med justerbart ryggstöd, bänkar med benrullar och bensträckare, bänkar med skivstångsställ och specialbänkar som scottbänk, sit-up-bänk och sissy squat-bänk.",
+      "Här hittar du träningsbänkar för hemmagymmet: hopfällbara bänkar med justerbart ryggstöd, bänkar med benrullar och bensträckare, bänkar med skivstångsställ och specialbänkar som scottbänk och sit-up-bänkar, och en bänk i trä med hantelfack.",
       "Ryggstödet ställs i tre till sju lägen på de flesta. En bänk har i stället en plan, fast dyna och ett fristående ställ, och många fälls ihop mellan passen så att de går att ställa undan.",
-      "Bänken med skivstångsställ har ställ i sex höjder mellan 107,5 och 130 cm och ett armstöd för bicepscurl. På scottbänken vilar armarna mot en lutande dyna, och du curlar uppåt för biceps eller pressar nedåt för triceps. Maxvikten för användaren är oftast 120 kg.",
+      "Den vita bänken med skivstångsställ, bröstpress och benpress har ställ i sex höjder mellan 107,5 och 130 cm och ett armstöd för bicepscurl. På scottbänken vilar armarna mot en lutande dyna, och du curlar uppåt för biceps eller pressar nedåt för triceps. Maxvikten för användaren är oftast 120 kg.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -2289,7 +2294,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   utemobler: {
     intro: [
-      "Utemöbler gör altanen, balkongen och trädgården till ett rum till. Här samlar vi loungeset och matgrupper, trädgårdsbord och trädgårdsstolar, trädgårdsbänkar i trä, metall och gjutjärn, hängstolar och gungbänkar, solsängar och solstolar, hammockar och dynboxar för dynorna.",
+      "Utemöbler gör altanen, balkongen och trädgården till ett rum till. Här samlar vi loungeset och matgrupper, trädgårdsbord och trädgårdsstolar, trädgårdsbänkar i trä, metall och konstrotting, hängstolar och gungbänkar, solsängar och solstolar, hammockar och dynboxar för dynorna.",
       "De flesta möblerna tål att stå ute, men de får längre livslängd om du skyddar dem vid hårt väder och förvarar dem skyddat vintertid. Det finns skyddsöverdrag både för utemöbler och för hammock.",
       "Hängstolarna har eget stativ, och flera rymmer två personer. Kontrollera maxvikten i produktbeskrivningen, och läs också vad som följer med: till en del loungeset och solsängar ingår dynor, medan andra möbler är gjorda för att användas utan.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -2312,15 +2317,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "valphagar-hundhagar": {
     intro: [
-      "En valphage ger valpen en egen plats att leka och vila på, utan att den kommer åt sladdar, skor och trappor. Här samlar vi valphagar och hundhagar i metall och en hopfällbar hage i tyg, för både inomhus och utomhus. Några passar också för katt, kanin och marsvin.",
-      "Metallhagarna är 60 till 91 cm höga och har en dörr eller en grind. Panelerna går att vinkla efter rummet, till exempel till en åttkant mitt på golvet, en rektangel längs väggen eller en rak avspärrning, och de flesta fälls ihop när hagen inte används. Hagarna på 366 och 488 cm har en grind som svänger 180 grader och stänger sig själv.",
-      "Välj höjd efter hunden, eftersom en hund som når överkanten med framtassarna tar sig över förr eller senare. Valphagen på 91 cm är gjord för hundar med en mankhöjd upp till 46 cm. Hagen med tak har ett tak av Oxfordväv och nät som öppnas med dragkedja, och hagen i tyg har soltak och myggnät runt om.",
+      "En valphage ger valpen en egen plats att leka och vila på, utan att den kommer åt sladdar, skor och trappor. Här samlar vi valphagar och hundhagar i metall, en hundgård med tak för utomhusbruk och hopfällbara hagar, för både inomhus och utomhus. Några passar också för katt, kanin och marsvin.",
+      "Valphagarna och hundhagarna i metall är 60 till 91 cm höga och har en dörr eller en grind. Panelerna går att vinkla efter rummet, till exempel till en åttkant mitt på golvet, en rektangel längs väggen eller en rak avspärrning, och de flesta fälls ihop när hagen inte används. Hagarna på 366 och 488 cm har en grind som svänger 180 grader och stänger sig själv. Hundgården på 141 × 141 cm är 151 cm hög och har en vridbar hållare med två matskålar som fylls på utifrån.",
+      "Välj höjd efter hunden, eftersom en hund som når överkanten med framtassarna tar sig över förr eller senare. Valphagen på 91 cm är gjord för hundar med en mankhöjd upp till 46 cm. Hundhagen i metall med tak har ett tak av Oxfordväv och nät som öppnas med dragkedja, och av de hopfällbara hagarna har den ena, i väv, soltak och myggnät runt om och den andra nätfönster, två dörrar och en topplucka.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur hög valphage behöver jag?",
-        a: "Hagen ska vara så hög att hunden inte når överkanten med framtassarna. Hagarna i metall är 60 till 91 cm höga, och i de flesta beskrivningar står vilken mankhöjd hagen är gjord för, till exempel upp till 46 cm för valphagen på 91 cm.",
+        a: "Hagen ska vara så hög att hunden inte når överkanten med framtassarna. Valphagarna och hundhagarna i metall är 60 till 91 cm höga och hundgården med tak 151 cm, och i de flesta beskrivningar står vilken mankhöjd hagen är gjord för, till exempel upp till 46 cm för valphagen på 91 cm.",
       },
       {
         q: "Kan hagen stå utomhus?",
@@ -2328,7 +2333,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Passar hagen för andra djur än hund?",
-        a: "Några gör det. Hagen med tak passar också katt, kanin och marsvin, flera metallhagar fungerar för kanin och marsvin, och hagen i tyg är gjord för både hund, valp och katt.",
+        a: "Några gör det. Hundhagen i metall med tak passar också katt, kanin och marsvin, flera metallhagar fungerar för kanin och marsvin, och de hopfällbara hagarna är gjorda för både hund och katt.",
       },
     ],
   },
@@ -2405,19 +2410,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "vedstall-vedbodar": {
     intro: [
-      "Här hittar du vedställ för brasveden vid kaminen, större vedställ med vattentätt överdrag och vedbodar för trädgården. I ett vedställ ligger veden på en ram i stället för direkt på golvet eller marken, vilket skyddar den mot fukt underifrån, och flera är gjorda för både inne och ute.",
+      "Här hittar du vedställ för brasveden vid kaminen, större vedställ med vattentätt överdrag och vedförråd för trädgården. I ett vedställ ligger veden på en ram i stället för direkt på golvet eller marken, vilket skyddar den mot fukt underifrån, och flera är gjorda för både inne och ute.",
       "De flesta vedställ i svart stål bär 100 kg. De stora ställen med överdrag rymmer 0,33 eller 0,6 m³ ved och håller den torr, och det mindre av dem har en bärväska i canvas. Flera vedställ levereras med eldstadsverktyg, till exempel skyffel, eldgaffel, tång och borste på krokar längs sidan.",
-      "Vedbodarna är av stålplåt med lutande tak, och bodarna på 150 och 213 cm har upphöjd botten för luftcirkulation och 0,77 respektive 1,12 m² golvyta. Vedboden på 235 cm har ett öppet vedfack och ett stängt fack för redskap.",
+      "Vedboden är av galvaniserat stål med lutande tak och upphöjd botten för luftcirkulation, och den finns 150 och 213 cm bred med 0,77 respektive 1,12 m² golvyta. Redskapsskåpet i trä med vedförråd har ett skåp för redskapen och ett vedförråd som är öppet framtill och bär 50 kg ved.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Kan vedstället stå ute?",
-        a: "Flera kan det. Vedstället på 60 × 100 cm och det smala på 40 × 100 cm är gjorda för både inne och ute, och de stora ställen har ett vattentätt överdrag. Vedbodarna har lutande tak.",
+        a: "Flera kan det. Vedstället på 60 × 100 cm och det smala på 40 × 100 cm är gjorda för både inne och ute, och de stora ställen har ett vattentätt överdrag. Vedboden och redskapsskåpet med vedförråd har lutande tak.",
       },
       {
         q: "Hur mycket ved rymmer ett vedställ?",
-        a: "De stora ställen med överdrag rymmer 0,33 och 0,6 m³ ved. För de andra anges måtten och hur mycket de bär, oftast 100 kg.",
+        a: "De stora ställen med överdrag rymmer 0,33 och 0,6 m³ ved. För de andra står måtten och hur mycket de bär, oftast 100 kg.",
       },
       {
         q: "Ingår eldstadsverktyg?",

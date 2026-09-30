@@ -79,7 +79,7 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // Kategoriträdet 2026-09-30 gav nya sidor egna ord (gamingstol, hundgrind,
 // garderob, torktumlare, minikyl, hemlarm …). Kontorsstolarna med massage flyttade
 // till Kontorsstolar, och duschpallen gick från Pallar till Kropp & välbefinnande,
-// som släppte sittdynan ur titeln.
+// som släppte sittdynan ur titeln. Kompostkvarnen finns inte längre i sortimentet.
 // "elbil" gäller barnbilarna; elbilsladdare är ett eget ord.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
@@ -87,7 +87,7 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /hundkoj/i, /gunghäst/i, /leksakskök/i, /sandlåd/i, /garagetält/i, /redskapsbod/i,
     /halloween/i, /juldekoration/i, /eldkorg/i, /konstgjorda växter/i,
     /tunnelväxthus/i, /loungeset/i, /paviljongtak/i, /plancha/i, /solcellslamp/i,
-    /studsmatta/i, /basketkorg/i, /kompostkvarn/i, /terrassvärmare/i,
+    /studsmatta/i, /basketkorg/i, /terrassvärmare/i,
     /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
     /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
     /kaninbur/i, /hamsterbur/i, /terrari/i, /hönshus/i, /hundvagn/i, /vedställ/i,

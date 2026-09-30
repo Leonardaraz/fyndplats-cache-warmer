@@ -153,7 +153,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   barnmobler: {
     title: "Barnfåtölj, barnsoffa, sminkbord & barngarderob",
     description:
-      "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, sminkbord för barn, låga barngarderober med spegel och stegpallar från 2 år.",
+      "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, barnskrivbord, sminkbord för barn, leksakshyllor och låga barngarderober.",
   },
   belysning: {
     title: "Taklampor, bordslampor & LED-belysning",
@@ -223,7 +223,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   garagetalt: {
     title: "Garagetält för motorcykel, cyklar och redskap",
     description:
-      "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
+      "Garagetält från 120 × 179 till 300 × 300 cm, ett förrådstält på 13,4 m² och ett motorcykelgarage – för motorcykel, cyklar och trädgårdsredskap.",
   },
   gnistskydd: {
     title: "Gnistskydd för öppen spis – svart eller guld",
@@ -266,9 +266,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Arbetsstolar och sadelpall för salongen, torkhuv på stativ med timer, frisörväska och sminkväska med lås, och IPL för hårborttagning hemma.",
   },
   "honshus-honsgardar": {
-    title: "Hönshus & hönsgård – för 2 till 30 höns",
+    title: "Hönshus & hönsgård – för 2 till 15 höns",
     description:
-      "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², hönsreden och en automatisk hönslucka. För 2 till 30 höns.",
+      "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², ett hönsrede i trä och en automatisk hönslucka. För 2 till 15 höns.",
   },
   hornskrivbord: {
     title: "Hörnskrivbord med laddstation, hyllor & lådor",
@@ -296,9 +296,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Hundkojor i gran och plast för hundar upp till 30 kg – upphöjda, med veranda, asfalttak eller tak som fälls upp – och en inomhuskoja i MDF.",
   },
   hundvagnar: {
-    title: "Hundvagn & cykelvagn för hund – upp till 45 kg",
+    title: "Hundvagn & cykelvagn för hund – upp till 40 kg",
     description:
-      "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till 45 kg och en vagn som blir bärväska. Flera är hopfällbara.",
+      "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till cirka 40 kg och vagnar som blir bärväska. Flera är hopfällbara.",
   },
   hushallsapparater: {
     title: "Klädångare, ångstation & ultraljudstvätt",
@@ -328,7 +328,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   katthus: {
     title: "Katthus utomhus i trä – för balkong och trädgård",
     description:
-      "Katthus i trä för balkong och trädgård – från små hus på 62 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp.",
+      "Katthus i trä för balkong och trädgård – från en kattstuga på 77 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp.",
   },
   kattlador: {
     title: "Kattlåda med tak, rostfri & kattlådsmöbel",
@@ -458,7 +458,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   sandlador: {
     title: "Sandlåda med tak – sandlådor i trä för barn",
     description:
-      "Sandlådor i barrträ för barn från 3 år – med soltak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med fiberduk i botten på flera.",
+      "Sandlådor i trä för barn från 3 år – med soltak, justerbart tak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med duk i botten på några.",
   },
   "selar-koppel-transport": {
     title: "Hundgaller till bil & hundtransport",
@@ -488,7 +488,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "skarmtak-entretak": {
     title: "Skärmtak & entrétak för ytterdörr och fönster",
     description:
-      "Skärmtak och entrétak i polykarbonat för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen med konsoler.",
+      "Skärmtak och entrétak i polykarbonat eller härdat glas för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen.",
   },
   "skoskap-skobankar": {
     title: "Skoskåp, skobänk & skohylla till hallen",
@@ -523,12 +523,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   terrarier: {
     title: "Terrarium i glas – för ödla, orm och spindel",
     description:
-      "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, med gallerlock och frontlucka eller skjutdörrar. Flera kan låsas.",
+      "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, sköldpaddshus i trä, ett akvarium och en reptilinkubator.",
   },
   "terrassvarmare-infravarmare": {
     title: "Terrassvärmare & infravärmare – 2000 och 2500 W",
     description:
-      "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg, tak och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg.",
+      "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg.",
   },
   "tradgardsdekor-belysning": {
     title: "Solcellslampor, trädgårdsfontäner & dekor",
@@ -536,9 +536,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Solcellslampor och lyktstolpar upp till 195 cm, pollarlampa och ljusslinga, trädgårdsfontäner, konstgjorda klot och häckar, spaljéer, rosenbåge och fågelmatare.",
   },
   "tradgardsskotsel-bevattning": {
-    title: "Slangvagn, kompostkvarn & trädgårdsredskap",
+    title: "Slangvagn, lövblås & trädgårdsredskap",
     description:
-      "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, droppslang, kompostkvarn på 2500 W, gödselspridare, lövblås, häcksax och gräsklippare.",
+      "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, lövblås, häcksax, gräsklippare, gödselspridare, gräsmattsluftare och trädgårdsskåp.",
   },
   "traning-gym": {
     title: "Hemmagym – chinsstång, stepbräda & pilates",
@@ -548,7 +548,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   traningsbankar: {
     title: "Träningsbänk – hopfällbar, justerbar & scottbänk",
     description:
-      "Träningsbänkar som fälls ihop, med ryggstöd i flera lägen, benrullar eller skivstångsställ, plus scottbänk, sit-up-bänk och sissy squat-bänk.",
+      "Träningsbänkar som fälls ihop, med ryggstöd i flera lägen, benrullar eller skivstångsställ, plus scottbänk, sit-up-bänkar och en bänk i trä med hantelfack.",
   },
   "tv-bankar": {
     title: "TV-bänk – 80 till 200 cm, med lådor och LED",
@@ -573,7 +573,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "valphagar-hundhagar": {
     title: "Valphage & hundhage – inomhus och utomhus",
     description:
-      "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, och en hopfällbar hage i tyg med soltak. Flera har markpinnar för gräsmattan.",
+      "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, en hundgård med tak och hopfällbara hagar för hund och katt. Flera har markpinnar.",
   },
   varmeflaktar: {
     title: "Värmefläkt för vägg eller som torn, 2000–2200 W",
