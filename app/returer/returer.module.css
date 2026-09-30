@@ -1,0 +1,65 @@
+/* /returer (2026-09-30). Bygger på om-*-klasserna i globals.css; här står bara
+   det som sidan behöver utöver dem. Texten i villkoren kommer ordagrant ur
+   lib/retur-policy.ts och lib/retur-frakt.ts, så här finns bara presentation. */
+
+.hero { max-width: 760px }
+.hero :global(.om-lede) { max-width: 60ch }
+
+/* Det viktigaste i korthet: en bocklista i två spalter. */
+.korthet {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px;
+}
+.korthet li {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff;
+}
+.korthet li > div { min-width: 0 }
+.korthet li h3 { font-size: var(--text-base); margin: 2px 0 4px }
+.korthet li p { font-size: var(--text-sm); margin: 0 }
+.korthet a, .villkor a, .steg a, .notis a { color: var(--brand); font-weight: 650 }
+.bock {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--warm); color: var(--brand); border: 1px solid var(--line);
+}
+.bock svg { width: 16px; height: 16px }
+
+/* Notisen om ångerfunktionen: samma varma ruta som .callout, bredare. */
+.notis {
+  background: var(--warm); border: 1px solid var(--line); border-left: 4px solid var(--orange);
+  border-radius: var(--r-md); padding: 18px 22px; margin: 0 0 28px;
+}
+div.notis p { margin: 0 }
+
+/* Stegen: om-tid, men fem kort i stället för tre. ol.steg slår .om-tid. */
+ol.steg { grid-template-columns: repeat(3, 1fr); counter-reset: none }
+.steg p + p { margin-top: 10px }
+.steg .liten { font-size: var(--text-xs); color: var(--soft) }
+
+/* Villkoren: två perioder sida vid sida, sedan det som gäller båda. */
+.villkor { display: grid; gap: 18px }
+.perioder { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px }
+.kort {
+  padding: 26px 24px; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff;
+}
+.period { border-top: 3px solid var(--orange) }
+.range {
+  display: inline-block; font-size: var(--text-xs); font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--brand); margin-bottom: 8px;
+}
+div.kort h3 { margin: 0 0 10px }
+.kort ul { margin: 12px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px }
+.kort li { font-size: var(--text-sm); line-height: 1.6; color: #3f3a34 }
+.villkor p.utlosare { font-size: var(--text-base); margin: 0 0 4px; max-width: 70ch }
+
+.anker { scroll-margin-top: 90px }
+.slut a { color: #fff; font-weight: 650 }
+
+@media (max-width: 900px) {
+  ol.steg { grid-template-columns: 1fr }
+  .perioder { grid-template-columns: 1fr }
+}
+@media (max-width: 640px) {
+  .korthet { grid-template-columns: 1fr }
+  .kort { padding: 22px 18px }
+}
