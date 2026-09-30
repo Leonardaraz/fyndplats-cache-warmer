@@ -507,6 +507,31 @@ produkter kommer ska de automatiskt importeras så sköter jag poleringen") — 
 Dubblettspärren gör cronen till en no-op när feeden inte har något nytt: den går
 gratis förbi allt som redan har en mappning och importerar bara det som saknas.
 
+### Syskonimporten: en sidas familj, utan artikelnummer (2026-09-30)
+
+Leonards fråga: varför är det orange reservtaket inte importerat? Nattens import
+kör med `skipFreightHeavy=1` och hoppar över rader där frakten kostar mer än
+varan, och ett lätt och billigt syskon som ett reservtak faller ofta där. Att
+hämta just den raden krävde artikelnumret i en workflow-input, alltså i en
+publik logg.
+
+`/api/cron/aosom-import?syskonTill=<wix-id>` tar i stället en SIDA. Rutten läser
+sidans artiklar, hittar feedens färg- och storlekssyskon med syskonsvepets
+`jamfor` (`lib/aosom/syskon-import.ts`) och importerar dem som osynliga utkast,
+även de frakttunga, eftersom en människa har valt familjen. Workflowen heter
+**"Aosom — importera en sidas färg- och storlekssyskon"** (`plan` · `importera`).
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Samma vara som EN av sidans artiklar importeras aldrig**, även när den
+   är ett färgsyskon till en annan. En sida i brunt och orange ska inte få en
+   brun rad till som "ny färg". Två kandidater som är samma vara blir en, den
+   med störst saldo. Ett test fällde den första versionen på just det.
+2. ☠️ **Svaret bär aldrig artikelnumret.** Ett syskon beskrivs med feedens
+   färg, måtten, saldot, status, wix-id och `nattensImportHoppar`, som svarar
+   på frågan "varför är den inte importerad?".
+3. **`syskonAnkare: 0` är inte "inga syskon".** Då fanns ingen av sidans
+   artiklar i feeden (lågt saldo tas bort tillfälligt), och jobbet fäller.
+
 ### Så körs den: GitHub Actions, inte en terminal
 
 Workflowen **"Aosom — importera sortimentet som osynliga utkast"** (`workflow_dispatch`,
@@ -1586,9 +1611,34 @@ Sex egenskaper som inte ska tas bort:
    missar en kedja.
 
 ⚠️ **Utkast som bara har varandra slås ihop EFTER poleringen, inte före.**
-Poleringens skrivsteg (`skrivplan.ts`) klarar bara sidor med en variant. Polera
-därför ett av syskonen, publicera det, och lägg sedan de andra som val med den
-här workflowen — samma väg som balansbommen.
+Poleringens skrivsteg (`skrivplan.ts`) skriver SKU:n på en sida med en variant.
+Polera därför ett av syskonen, publicera det, och lägg sedan de andra som val med
+den här workflowen — samma väg som balansbommen.
+
+#### En sammanslagen sida får ny text med `varianter` i planen (2026-09-30)
+
+Leonards fråga: varför läggs lyftfåtöljens grå färg inte på? Sidan var redan
+sammanslagen och texten räknade upp två färger. En tredje färg kräver ny text,
+och skrivworkflowen vägrade allt utom en variant, eftersom SKU-steget skriver en
+SKU på alla varianter och återläsningen jämför en. Den enda andra vägen var en
+PATCH för hand, och all skrivning går via workflowerna.
+
+En produkt i skrivplanen kan nu bära `varianter` (två eller fler) i stället för
+`sku` och `variantId`. Rundan anger den i `sammanslagna.tsv`. Tre egenskaper som
+inte ska tas bort:
+
+1. ☠️ **SKU-steget rör inte sidan.** Varje färg bär sin egen SKU från
+   sammanslagningen. Steget lägger en SKU på alla varianter, så på en
+   sammanslagen sida hade alla färger fått samma SKU. Planen vägrar en sådan
+   produkt med sku eller variantId.
+2. ☠️ **Återläsningen kräver att alla varianter finns kvar och syns.**
+   Antalet ska stämma med planen och varenda variant ska vara `visible`. En
+   osynlig variant visar färgen som slutsåld (2026-09-06).
+3. **Stämpeln skriver inga variantSkus**, bara `needsAiPolish` och
+   `draftStatus`.
+
+Bildsteget var redan byggt för det här: det vägrar en lista som tappar en bild
+ett färgval pekar på.
 
 #### Färg och storlek på samma sida (2026-09-27)
 
@@ -4039,6 +4089,28 @@ text ligger kvar. Hoppade strömmar RÄKNAS (`forStora`) — de tigs inte ihjäl
 ⚠️ Tills dess: **`identifier_exists: no` i Merchant Center.** Det fungerar för
 varor utan tillverkarkod, och en GTIN hämtad från en konkurrents sajt är fel
 källa för ett fält som ska vara sant.
+
+#### ☠️ Energimärkningen finns inte heller i manualerna (2026-09-30)
+
+Leonards fråga: fyra publicerade torktumlare saknar energimärkning, "kolla
+produkt pdf om du kan hitta där". Workflowen **"Aosom — sök energimärkning i
+produktmanualer"** (`/api/admin/aosom-manual` → `lib/aosom/manual.ts`) slår upp
+sidans manualer i feeden, läser PDF:erna med text, OCR och QR-avläsning, och
+slår upp en EPREL-kod i EU:s publika databas.
+
+Uppmätt på alla sidor i fem manualer, som hör till tre av de publicerade
+torktumlarna och till de tre utkasten (utkasten delar en manual): **ingen
+energietikett, inget produktblad, ingen energiklass och ingen QR-kod alls.** Två av manualerna säger att
+ECO-programmet är det energietiketten avser, alltså finns en etikett, men den
+står inte i manualen. EPREL:s sökning kräver en API-nyckel (403), så varan går
+inte att hitta där på märket. Kvar är att fråga Aosom om EPREL-numren. Den
+fjärde publicerade torktumlaren är en AliExpress-sida och har ingen manual i
+feeden.
+
+☠️ **Manualens adress bär artikelnumret.** Den maskeras innan något skrivs ut,
+varje PDF-rad går genom `redigera`, och manualerna heter A, B, C i loggen, i
+stället för en hash eller en storlek i byte som hade gått att matcha mot
+Aosoms filer. Inget laddas upp som artefakt.
 
 ⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
 upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de

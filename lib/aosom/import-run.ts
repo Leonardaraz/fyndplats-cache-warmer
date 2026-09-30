@@ -42,6 +42,8 @@ import {
 } from "./feed";
 import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
 import { aosomArtiklarPaRaden } from "./artiklar";
+import { hittaSyskonRader, syskonSvar, type SyskonSvar } from "./syskon-import";
+import { synligtSaldo } from "./sync";
 
 /** Rått läge, alltid. Se modulhuvudet — det är det som håller produkterna osynliga. */
 export const RAW_FLAGS: FeatureFlags = { qualityMode: "raw", enableAI: false };
@@ -67,6 +69,12 @@ export interface AosomImportOptions {
   skipFreightHeavy?: boolean;
   /** Bara dessa artikelnummer. För enstaka omkörningar och rökprov. */
   onlySkus?: string[];
+  /**
+   * Bara feedens färg- och storlekssyskon till de här artiklarna — en sidas
+   * artiklar, se lib/aosom/syskon-import.ts. Rutten tar sidans wix-id
+   * (`?syskonTill=`), så inget artikelnummer passerar en logg (2026-09-30).
+   */
+  syskonTill?: string[];
   /** Fortsätt EFTER det här artikelnumret (markören ur föregående svar). */
   after?: string;
   /** Paus mellan produkter i ms. 0 = ingen. Wix-429 hanteras redan med backoff. */
@@ -122,6 +130,15 @@ export interface AosomImportSummary {
   remainingImages: number;
   /** Bildpositioner körningen använde. */
   bildpositioner: number[];
+  /**
+   * Bara med `syskonTill`: sidans syskon i feeden, utan artikelnummer.
+   * `syskonAnkare` är hur många av sidans artiklar som fanns i feeden — noll
+   * betyder att det inte gick att jämföra, inte att sidan saknar syskon.
+   */
+  syskon?: SyskonSvar[];
+  syskonAnkare?: number;
+  /** Rader som är samma vara som en av sidans artiklar, eller som en annan kandidat. */
+  syskonDubbletter?: number;
 }
 
 export interface AosomImportDeps {
@@ -133,7 +150,7 @@ export interface AosomImportDeps {
    */
   listMappings: () => Promise<
     (Pick<ProductMappingRecord, "supplier" | "supplierProductId">
-      & Partial<Pick<ProductMappingRecord, "variants" | "importSparr">>)[]
+      & Partial<Pick<ProductMappingRecord, "variants" | "importSparr" | "wixProductId">>)[]
   >;
   importOne: (product: AliExpressProduct) => Promise<ImportResult>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
@@ -169,7 +186,15 @@ export async function runAosomImport(
   // som redan ligger ute. Det pensionerade utkastets egen rad fångar det också,
   // men en spärr ska inte hänga på att en annan rad råkar finnas kvar.
   const existing = new Set<string>();
+  // Artikel → sidan den sitter på. Bara för syskonsvaret: en rad som redan
+  // finns ska peka på sin sida, inte bara säga "fanns".
+  const artikelTillSida = new Map<string, string>();
   for (const m of await deps.listMappings()) {
+    if (m.wixProductId) {
+      for (const artikel of aosomArtiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] })) {
+        artikelTillSida.set(aosomSupplierProductId(artikel), m.wixProductId);
+      }
+    }
     if (m.supplierProductId) existing.add(m.supplierProductId);
     // ☠️ EN RADERAD PRODUKTS ARTIKEL ÄR FORTFARANDE SPÄRRAD. Raderingen av
     // pensionerade utkast (lib/aosom/pensionerade.ts) tömmer `supplierProductId`
@@ -186,9 +211,29 @@ export async function runAosomImport(
   let alreadyImported = 0;
   let skippedFreightHeavy = 0;
 
+  // Syskonläget: jämförelsen görs mot HELA feeden, så ett syskon som inte går
+  // att skicka hit syns i svaret i stället för att bara saknas.
+  let syskonInfo: Map<string, SyskonSvar> | null = null;
+  let syskonAnkare: number | undefined;
+  let syskonDubbletter: number | undefined;
+  if (opts.syskonTill?.length) {
+    const { ankare, syskon, dubbletter } = hittaSyskonRader(feed, opts.syskonTill);
+    syskonAnkare = ankare;
+    syskonDubbletter = dubbletter;
+    syskonInfo = new Map(syskon.map((s) => {
+      const nyckel = aosomSupplierProductId(s.rad.sku);
+      return [s.rad.sku, syskonSvar(s, {
+        fanns: existing.has(nyckel),
+        wixProductId: artikelTillSida.get(nyckel),
+        synligtSaldo,
+      })];
+    }));
+  }
+
   const queue: AosomRow[] = [];
   for (const row of shippable) {
     if (onlySkus && !onlySkus.has(row.sku)) continue;
+    if (syskonInfo && !syskonInfo.has(row.sku)) continue;
     if (existing.has(aosomSupplierProductId(row.sku))) {
       alreadyImported++;
       continue;
@@ -222,6 +267,11 @@ export async function runAosomImport(
     ),
     bildpositioner: [...bildpositioner],
   };
+  if (syskonInfo) {
+    summary.syskon = [...syskonInfo.values()];
+    summary.syskonAnkare = syskonAnkare;
+    summary.syskonDubbletter = syskonDubbletter;
+  }
 
   for (const row of queue) {
     if (summary.attempted >= limit) {
@@ -250,13 +300,19 @@ export async function runAosomImport(
     // mappningen som föll. De två felen ser identiska ut i ett felmeddelande
     // men kräver helt olika åtgärd — omkörning respektive städning.
     let result: ImportResult | null = null;
+    const syskon = syskonInfo?.get(row.sku);
     try {
       result = await deps.importOne(product);
       await deps.saveMapping(buildMapping(row, result));
       summary.imported++;
       summary.remaining--;
       summary.cursor = row.sku;
+      if (syskon) {
+        syskon.status = "importerad";
+        syskon.wixProductId = result.wixProductId;
+      }
     } catch (err) {
+      if (syskon) syskon.status = "fel";
       summary.failed++;
       summary.errors.push({ sku: row.sku, error: err instanceof Error ? err.message : String(err) });
       // ☠️ Produkten skapades men fick ingen mappningsrad. Ordningen går inte
