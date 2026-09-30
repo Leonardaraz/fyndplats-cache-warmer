@@ -509,10 +509,15 @@ gratis förbi allt som redan har en mappning och importerar bara det som saknas.
 
 ### Syskonimporten: en sidas familj, utan artikelnummer (2026-09-30)
 
-Leonards fråga: varför är det orange reservtaket inte importerat? Nattens import
-kör med `skipFreightHeavy=1` och hoppar över rader där frakten kostar mer än
-varan, och ett lätt och billigt syskon som ett reservtak faller ofta där. Att
-hämta just den raden krävde artikelnumret i en workflow-input, alltså i en
+Leonards fråga: varför är det orange reservtaket inte importerat? Det var det.
+Nattens import tog det 2026-09-29 som ett osynligt utkast (`eabb104a`), och det
+som saknades var sammanslagningen. Första svaret gissade att `skipFreightHeavy=1`
+hade hoppat över raden, utan att någon sökt bland utkasten. **Sök bland utkasten
+innan du förklarar varför en färg saknas.**
+
+Verktyget behövs ändå. Nattens import hoppar över rader där frakten kostar mer än
+varan (`skipFreightHeavy=1`), och ett lätt och billigt syskon faller ofta där. Att
+hämta just en sådan rad krävde artikelnumret i en workflow-input, alltså i en
 publik logg.
 
 `/api/cron/aosom-import?syskonTill=<wix-id>` tar i stället en SIDA. Rutten läser
