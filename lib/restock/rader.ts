@@ -81,13 +81,6 @@ export interface RestockLeverantor {
   slutSedan: string | null;
   /** När statusen senast lästes: AE-synkens kontroll eller Aosom-synkens skrivning. */
   kontrollerad: string | null;
-  /**
-   * ☠️ BARA ALIEXPRESS-SYNKEN MEJLAR BEVAKARNA. `justRestocked` i
-   * `lib/sync/aliexpress-sync.ts` är den enda vägen till ett restock-mejl, och
-   * Aosom-synken har ingen motsvarighet. En Aosom-vara som kommer tillbaka
-   * lämnar alltså sina bevakare väntande — sidan ska säga det, inte lova mejlet.
-   */
-  mejlasAutomatiskt: boolean;
 }
 
 export interface RestockRad extends RestockProductCount {
@@ -212,7 +205,6 @@ function leverantorFor(
     url: kalla.url,
     lager,
     ...status,
-    mejlasAutomatiskt: kalla.leverantor === "aliexpress",
   };
 }
 

@@ -113,12 +113,11 @@ describe("lagret hos oss", () => {
 });
 
 describe("AliExpress", () => {
-  it("länkar till listningen, visar lagerlandet på svenska och mejlar automatiskt", () => {
+  it("länkar till listningen och visar lagerlandet på svenska", () => {
     const [rad] = bygg({ mappningar: { p1: aeMappning } });
     expect(rad.leverantor?.namn).toBe("AliExpress");
     expect(rad.leverantor?.url).toBe(`https://www.aliexpress.com/item/${AE_ID}.html`);
     expect(rad.leverantor?.lager).toEqual(["Spanien"]);
-    expect(rad.leverantor?.mejlasAutomatiskt).toBe(true);
   });
 
   // AliExpress bakar in lagerlandet i SKU:n, så varianterna kan bära fler länder än raden.
@@ -169,13 +168,12 @@ describe("AliExpress", () => {
 });
 
 describe("Aosom", () => {
-  it("länkar till leverantörens sida och mejlar INTE automatiskt", () => {
+  it("länkar till leverantörens sida", () => {
     const [rad] = bygg({ mappningar: { p1: { ...aosomMappning, aosomSyncedQty: 0, aosomSyncedAt: "2026-09-28T12:00:00.000Z" } } });
     expect(rad.leverantor?.namn).toBe("Aosom");
     expect(rad.leverantor?.url).toBe("https://leverantor.example/vara-1");
     expect(rad.leverantor?.status).toBe("slut");
     expect(rad.leverantor?.kontrollerad).toBe("2026-09-28T12:00:00.000Z");
-    expect(rad.leverantor?.mejlasAutomatiskt).toBe(false);
   });
 
   it("saldo över noll är i lager", () => {
@@ -202,7 +200,6 @@ describe("Aosom", () => {
   it("känns igen på prefixet när supplier-fältet saknas", () => {
     const [rad] = bygg({ mappningar: { p1: { supplierProductId: "aosom:x", sourceUrl: "https://leverantor.example/vara-2" } } });
     expect(rad.leverantor?.namn).toBe("Aosom");
-    expect(rad.leverantor?.mejlasAutomatiskt).toBe(false);
   });
 });
 

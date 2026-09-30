@@ -170,6 +170,15 @@ export class RestockStore {
     return out;
   }
 
+  /**
+   * Produkter med minst en väntande bevakare. Aosom-synken läser den en gång
+   * per körning i stället för att fråga per produkt som kommit tillbaka.
+   */
+  async listPendingProductIds(): Promise<Set<string>> {
+    const rows = await this.listAll();
+    return new Set(rows.filter((r) => r.notifiedAt == null).map((r) => r.productId));
+  }
+
   /** Stämplar notifiedAt på en lista av prenumeranter (efter skickat mejl). */
   async markNotified(ids: string[], at = new Date().toISOString()): Promise<void> {
     for (const id of ids) {

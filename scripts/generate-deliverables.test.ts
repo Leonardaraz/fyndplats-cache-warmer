@@ -16,11 +16,9 @@
 import { describe, expect, it } from "vitest";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  buildOosAlertEmail,
-  buildRestockNotificationEmail,
-  wrapInBrandShell,
-} from "../lib/email/resend";
+import { buildOosAlertEmail, wrapInBrandShell } from "../lib/email/resend";
+import { wrapInKundShell } from "../lib/email/kundmejl";
+import { byggRestockMejl } from "../lib/restock/mejl";
 import {
   genericizeQuery,
   filterAndRank,
@@ -168,12 +166,18 @@ describe("generate-deliverables", () => {
     writeFileSync(resolve(OUT, "oos-alert-email.txt"), oos.text, "utf8");
 
     // --- Restock-mejl (Feature 1) ----------------------------------------
-    const restock = buildRestockNotificationEmail({
-      productName: "Smart Kroppsfettsvåg Bluetooth",
-      productUrl: "https://fyndplats.se/produkt/smart-kroppsfettsvag-bluetooth",
-      imageUrl: "https://ae01.alicdn.com/kf/orig.jpg",
+    // Kundmejl: butikens namn, bild och adress, i kundomslaget.
+    const restock = byggRestockMejl({
+      produktnamn: "Smart kroppsfettsvåg med Bluetooth",
+      produktUrl: "https://www.fyndplats.se/produkt/smart-kroppsfettsvag-bluetooth",
+      bildUrl: "https://static.wixstatic.com/media/b379ce_exempel~mv2.jpg",
+      pris: { min: 349, max: 349 },
     });
-    writeFileSync(resolve(OUT, "restock-email.html"), wrapInBrandShell(restock.html), "utf8");
+    writeFileSync(
+      resolve(OUT, "restock-email.html"),
+      wrapInKundShell(restock.html, restock.forhandstext),
+      "utf8",
+    );
 
     expect(alternatives.length).toBe(3);
     expect(alternatives[0].score).toBeGreaterThan(alternatives[2].score);

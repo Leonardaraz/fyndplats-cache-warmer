@@ -23,6 +23,12 @@
 // 2026-08-28 skickar tillbaka `visible` oförändrad — utan det publicerar en
 // variantsInfo-PATCH utkastet den rör.
 //
+// RESTOCK-MEJL (sedan 2026-09-30)
+//
+// En produkt som går från noll till lager i butiken mejlar sina bevakare, i
+// skarpt läge (lib/restock/notify.ts). Innan mejlet går töms butikens cache för
+// produktsidan, så att länken inte visar en gammal "Slutsåld".
+//
 // ☠️ FACIT FÖR PRISET ÄR BUTIKEN, INTE MAPPNINGEN (sedan 2026-09-02).
 // Butikens priser läses i bulk före loopen (~54 anrop för hela katalogen).
 // Jämfördes de mot mappningens `grossSek` kunde en rad som drivit isär aldrig
@@ -42,6 +48,7 @@ import { isAuthorized } from "@/lib/auth";
 import { forseglaMarkor, MarkorFel, oppnaMarkor } from "@/lib/aosom/markor";
 import { audit } from "@/lib/audit";
 import { runAosomSync, liveDeps } from "@/lib/aosom/sync";
+import { beskrivUtskick } from "@/lib/restock/notify";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -107,6 +114,7 @@ async function handle(req: NextRequest) {
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
       || summary.utanWixPris > 0 || summary.utanLagerrader > 0 || summary.misslyckade > 0
       || summary.okandaVarianter > 0 || summary.tvetydiga > 0
+      || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
       || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
@@ -122,7 +130,10 @@ async function handle(req: NextRequest) {
           + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
+          + `${summary.aterILager} tillbaka i lager, ${summary.restockMejl} restock-mejl, `
+          + `${summary.restockEjSkickade} RESTOCK-MEJL EJ SKICKADE, `
           + `${summary.kvar} kvar`
+          + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : "")
           + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
           + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
       );
@@ -148,6 +159,11 @@ async function handle(req: NextRequest) {
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.
         + `${summary.flerartikelrader} sammanslagna, ${summary.okandaVarianter} okända varianter, `
         + `${summary.tvetydiga} tvetydiga, `
+        // Restock-mejlen (2026-09-30): en produkt som går från noll till lager
+        // i butiken mejlar sina bevakare. "ej skickade" ska vara noll — de
+        // får inget nytt försök, se `restockEjSkickade`.
+        + `${summary.aterILager} tillbaka i lager, ${summary.restockMejl} restock-mejl, `
+        + `${summary.restockEjSkickade} restock-mejl ej skickade, `
         // ☠️ `stoppedBy` SKA STÅ I LOGGEN (2026-09-10). Fältet har funnits i
         // summaryn sedan loopen byggdes om, men skrevs varken här eller i
         // workflowen — så en körning som slog i `limit` och en som blev klar
@@ -157,8 +173,15 @@ async function handle(req: NextRequest) {
         // och lämnade 2 607 rader ogranskade, utan att någon kunde se det.
         + `stoppade på ${summary.stoppedBy}, `
         + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
-        + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
+        + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : "")
+        + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
+    // En rad per produkt vars bevakare inte fick allt: bara Wix-id och räknare.
+    for (const u of summary.restockUtskick) {
+      if (u.stopp || u.ejSkickade > 0 || u.markeringsfel || (u.sidan && u.sidan !== "uppfriskad")) {
+        console.warn(`[aosom-sync] restock ${u.wixProductId}: ${beskrivUtskick(u)}`);
+      }
+    }
 
     const cursor = forseglaMarkor(summary.cursor, hemlighet);
 

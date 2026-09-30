@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildOosAlertEmail,
-  buildRestockNotificationEmail,
   buildDailySummaryEmail,
   buildStuckOrdersEmail,
+  sendEmail,
 } from "./resend";
 import type { AlternativeSupplier } from "../aliexpress/alternatives";
 import type { SyncSummary } from "../sync/aliexpress-sync";
@@ -54,16 +54,79 @@ describe("buildOosAlertEmail", () => {
   });
 });
 
-describe("buildRestockNotificationEmail", () => {
-  it("bygger kund-mejl med produktlänk", () => {
-    const email = buildRestockNotificationEmail({
-      productName: "Smart Kroppsvåg",
-      productUrl: "https://fyndplats.se/produkt/smart-kroppsvag",
-      imageUrl: "https://img/x.jpg",
+describe("sendEmail", () => {
+  const miljo = { ...process.env };
+  afterEach(() => {
+    process.env = { ...miljo };
+    vi.unstubAllGlobals();
+  });
+
+  function fangaAnrop(): { kropp: () => Record<string, unknown> } {
+    let kropp: Record<string, unknown> = {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        kropp = JSON.parse(String(init.body));
+        return new Response(JSON.stringify({ id: "mejl-1" }), { status: 200 });
+      }),
+    );
+    return { kropp: () => kropp };
+  }
+
+  it("☠️ ett kundmejl går i butikens omslag, från butikens avsändare, med svar till kundservice", async () => {
+    process.env.RESEND_API_KEY = "nyckel";
+    delete process.env.SYNC_EMAIL_DRY_RUN;
+    delete process.env.RESEND_KUND_FROM;
+    const anrop = fangaAnrop();
+    const svar = await sendEmail({
+      to: "kund@example.com",
+      subject: "Tillbaka i lager: Stol",
+      bodyHtml: "<p>innehåll</p>",
+      bodyText: "innehåll",
+      mottagare: "kund",
+      forhandstext: "Nu kan du beställa den.",
     });
-    expect(email.subject).toBe("Tillbaka i lager: Smart Kroppsvåg");
-    expect(email.html).toContain("Visa produkten");
-    expect(email.html).toContain("https://fyndplats.se/produkt/smart-kroppsvag");
+    expect(svar.id).toBe("mejl-1");
+    const k = anrop.kropp();
+    expect(k.from).toBe("Fyndplats <orders@fyndplats.se>");
+    expect(k.reply_to).toBe("info@fyndplats.com");
+    expect(String(k.html)).toContain("Behöver du hjälp?");
+    expect(String(k.html)).toContain("Nu kan du beställa den.");
+    // Driftmejlens sidfot får aldrig nå en kund.
+    expect(String(k.html)).not.toContain("sync-cron");
+  });
+
+  it("ett driftmejl behåller driftomslaget och har ingen svarsadress", async () => {
+    process.env.RESEND_API_KEY = "nyckel";
+    delete process.env.SYNC_EMAIL_DRY_RUN;
+    const anrop = fangaAnrop();
+    await sendEmail({ to: "ops@example.com", subject: "Rapport", bodyHtml: "<p>x</p>", bodyText: "x" });
+    const k = anrop.kropp();
+    expect(String(k.html)).toContain("sync-cron");
+    expect(k.reply_to).toBeUndefined();
+  });
+
+  it("loggan ligger på den mörka rubrikraden i båda omslagen", async () => {
+    process.env.RESEND_API_KEY = "nyckel";
+    delete process.env.SYNC_EMAIL_DRY_RUN;
+    for (const mottagare of ["kund", "intern"] as const) {
+      const anrop = fangaAnrop();
+      await sendEmail({ to: "a@example.com", subject: "s", bodyHtml: "<p>x</p>", bodyText: "x", mottagare });
+      const html = String(anrop.kropp().html);
+      const logga = html.indexOf("https://www.fyndplats.se/email-logo");
+      expect(logga).toBeGreaterThan(-1);
+      expect(html.lastIndexOf("#222018", logga)).toBeGreaterThan(-1);
+    }
+  });
+
+  it("torrläge skickar ingenting", async () => {
+    process.env.RESEND_API_KEY = "nyckel";
+    process.env.SYNC_EMAIL_DRY_RUN = "true";
+    const f = vi.fn();
+    vi.stubGlobal("fetch", f);
+    const svar = await sendEmail({ to: "a@example.com", subject: "s", bodyHtml: "x", bodyText: "x", mottagare: "kund" });
+    expect(svar.skipped).toBe("dry_run");
+    expect(f).not.toHaveBeenCalled();
   });
 });
 

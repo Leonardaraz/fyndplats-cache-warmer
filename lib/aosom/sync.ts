@@ -23,7 +23,8 @@
 // VAD DEN INTE RÖR
 //
 // Synlighet, texter, bilder, kategorier. Bara lagersaldo, pris och de tre
-// kostnadsfälten på mappningen.
+// kostnadsfälten på mappningen. Kommer en produkt tillbaka i lager mejlas dess
+// bevakare (`aterkomnaLagerrader`, sedan 2026-09-30) — det enda den skickar ut.
 
 import { fetchAosomFeed, harVerkligSeFrakt, landedCostEur, type AosomRow } from "./feed";
 import { aosomSupplierProductId, type AosomFx } from "./to-product";
@@ -34,6 +35,7 @@ import type { PricingRules } from "../import/types";
 import { tillampaKonkurrentregel, type KonkurrentUtfall } from "../pricing/konkurrentregel";
 import type { ProductMappingRecord } from "../store";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
+import type { RestockUtskick } from "../restock/notify";
 
 const DEFAULT_LIMIT = 400;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
@@ -250,6 +252,27 @@ export interface AosomSyncSummary {
    * tills någon rättat mappningen.
    */
   tvetydiga: number;
+  /**
+   * Produkter där minst en variant kom tillbaka i lager i butiken: saldot var
+   * noll före skrivningen och större än noll efter (`aterkomnaLagerrader`). I
+   * torrläge: produkter där det SKULLE hända.
+   */
+  aterILager: number;
+  /** Restock-mejl till bevakare som Resend tog emot (lib/restock/notify.ts). */
+  restockMejl: number;
+  /**
+   * Bevakare av en produkt som kom tillbaka men som inte fick sitt mejl:
+   * sidan var dold eller saknade en synlig variant, eller utskicket föll.
+   *
+   * ☠️ De ligger kvar som väntande, men nästa körning ser ingen övergång, så
+   * de får inget mejl förrän varan tar slut och kommer tillbaka igen. Talet
+   * ska därför vara noll.
+   */
+  restockEjSkickade: number;
+  /** Per produkt vars bevakare mejlades eller skulle ha mejlats. Bara Wix-id och räknare. */
+  restockUtskick: ({ wixProductId: string } & RestockUtskick)[];
+  /** Varför bevakarna inte gick att läsa, eller null. Då mejlades ingen i körningen. */
+  restockFel: string | null;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -372,6 +395,17 @@ export interface AosomSyncDeps {
     landedCostSek: number,
   ) => Promise<void>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
+  /**
+   * Produkter med väntande restock-bevakare. Läses högst en gång per körning,
+   * och bara när en produkt kommit tillbaka i lager. Saknas depen (testerna,
+   * en körning för hand utan utskick) mejlas ingen.
+   */
+  bevakadeProdukter?: () => Promise<Set<string>>;
+  /** Mejlar en produkts bevakare (lib/restock/notify.ts). */
+  mejlaBevakare?: (
+    wixProductId: string,
+    opts: { visaPris: boolean; varianter: string[] },
+  ) => Promise<RestockUtskick>;
   fx: AosomFx;
   rules: PricingRules;
   now?: () => number;
@@ -835,6 +869,37 @@ function flerartikelStampel(
  * Ordningen är artikelnummer stigande, samma som svepet och bildfixen, så
  * markören betyder samma sak i alla tre.
  */
+/**
+ * Lagerraderna som kom tillbaka i lager i butiken i den här körningen: saldot
+ * var noll före skrivningen och är större än noll efter. `skrivna` är
+ * lagerpost-id → saldot som skrevs och bekräftades av Wix. En rad som inte
+ * skrevs behåller sitt saldo. Null när ingen rad kom tillbaka.
+ *
+ * ☠️ FACIT ÄR BUTIKEN, INTE MAPPNINGEN. Mappningens `aosomSyncedQty` är vad vi
+ * tror att vi skrev. Frågan här är om kunden såg "Slutsåld", och det avgörs
+ * av butikens saldo — samma skäl som `jamforelsePris`.
+ *
+ * ☠️ PER RAD, INTE PER PRODUKT. Butikens formulär visas när den VALDA färgen
+ * är slut, också när en annan färg finns, och bevakningen sparar ingen färg.
+ * Den 2026-09-30 väntade två av fyra bevakare på en färg medan en annan fanns
+ * (vitt sängbord, beige klättervägg). En regel som krävde att hela produkten
+ * var slut hade aldrig mejlat dem. Mejlet namnger i stället färgen som kom
+ * tillbaka (lib/restock/notify.ts).
+ *
+ * ☠️ Ett saldo som inte gick att läsa är okänt, aldrig noll. Då räknas ingen
+ * rad på produkten.
+ */
+export function aterkomnaLagerrader(
+  poster: AosomLagerpost[],
+  skrivna: Map<string, number>,
+): AosomLagerpost[] | null {
+  if (poster.some((x) => typeof x.quantity !== "number")) return null;
+  const tillbaka = poster.filter(
+    (x) => (x.quantity as number) <= 0 && (skrivna.get(x.id) ?? (x.quantity as number)) > 0,
+  );
+  return tillbaka.length > 0 ? tillbaka : null;
+}
+
 export async function runAosomSync(
   deps: AosomSyncDeps,
   opts: AosomSyncOptions = {},
@@ -950,6 +1015,11 @@ export async function runAosomSync(
     flerartikelrader: 0,
     okandaVarianter: 0,
     tvetydiga: 0,
+    aterILager: 0,
+    restockMejl: 0,
+    restockEjSkickade: 0,
+    restockUtskick: [],
+    restockFel: null,
     misslyckade: 0,
     kvar: mappningar.length,
     cursor: null,
@@ -960,6 +1030,9 @@ export async function runAosomSync(
 
   /** Antal produkter vi FAKTISKT skrivit. Det är den här `limit` gäller. */
   let skrivna = 0;
+
+  /** Produkter med väntande restock-bevakare. Läses första gången en produkt kommer tillbaka. */
+  let bevakade: Set<string> | null = null;
 
   // ── LOOPEN GÅR I TUGGOR, INTE EN PRODUKT I TAGET ────────────────────────
   // Ordningen inom tuggan är oförändrad artikelnummerordning, och HELA tuggan
@@ -1161,6 +1234,30 @@ export async function runAosomSync(
       }
     }
 
+    // ── TILLBAKA I LAGER ─────────────────────────────────────────────────
+    // Butikens saldo före skrivningen står i lagerposterna, och det som skrevs
+    // står i `rader`. Bara en bekräftad skrivning räknas. I torrläge räknas
+    // det som SKULLE skrivas, så torrkörningen visar vad en skarp gör.
+    /** Produkt → Wix-varianterna som kom tillbaka (tom när posten saknar variant-id). */
+    const aterITuggan: { pid: string; varianter: string[] }[] = [];
+    if (!lasfel) {
+      const skrivet = new Map<string, number>();
+      for (const r of rader) if (lagerOk.get(r.produkt) === true) skrivet.set(r.id, r.quantity);
+      for (const p of planer) {
+        if (p.tvetydig || lagerOk.get(p.m.wixProductId) !== true) continue;
+        const tillbaka = aterkomnaLagerrader(posterPerProdukt.get(p.m.wixProductId) ?? [], skrivet);
+        if (tillbaka) {
+          aterITuggan.push({
+            pid: p.m.wixProductId,
+            varianter: tillbaka.map((x) => x.variantId ?? "").filter(Boolean),
+          });
+        }
+      }
+    }
+    summary.aterILager += aterITuggan.length;
+    /** Produkter vars pris skrevs i tuggan. Deras mejl visar inget pris, se nedan. */
+    const prisSkrivet = new Set<string>();
+
     // ── FAS 4 + 5: PRISET, SEDAN MAPPNINGEN — PER PRODUKT ────────────────
     // Priset är per produkt hos Wix (`updateV3VariantPrices` tar ett
     // produkt-id), så den delen kan inte batchas. Den är också den lilla
@@ -1224,6 +1321,7 @@ export async function runAosomSync(
           skrevPris = true;
         }
 
+        if (skrevPris) prisSkrivet.add(p.m.wixProductId);
         if (!skrevLager && !skrevPris) {
           summary.oforandrade++;
           continue;
@@ -1268,6 +1366,39 @@ export async function runAosomSync(
           wixProductId: p.m.wixProductId,
           error: err instanceof Error ? err.message : String(err),
         });
+      }
+    }
+
+    // ── RESTOCK-MEJLEN ───────────────────────────────────────────────────
+    // Efter prisdelen, så att mejlet läser butikens namn, bild och pris när
+    // tuggan är klar. Bara skarpt, och bara för produkter någon bevakar.
+    //
+    // ☠️ DEN HÄR KÖRNINGEN ÄR ENDA CHANSEN. Övergången syns bara en gång: nästa
+    // körning ser ett saldo över noll och inget att mejla om. Därför räknas
+    // varje bevakare som inte fick sitt mejl (`restockEjSkickade`).
+    if (!dryRun && aterITuggan.length > 0 && deps.bevakadeProdukter && deps.mejlaBevakare) {
+      if (bevakade === null && summary.restockFel === null) {
+        try {
+          bevakade = await deps.bevakadeProdukter();
+        } catch (err) {
+          summary.restockFel = err instanceof Error ? err.message.slice(0, 200) : String(err);
+        }
+      }
+      for (const { pid, varianter } of aterITuggan) {
+        if (!bevakade?.has(pid)) continue;
+        try {
+          // Ett pris som skrevs nyss visas inte: Wix läsning släpar efter en
+          // skrivning, och mejlet får inte säga ett annat pris än sidan.
+          const utskick = await deps.mejlaBevakare(pid, { visaPris: !prisSkrivet.has(pid), varianter });
+          summary.restockMejl += utskick.skickade;
+          summary.restockEjSkickade += utskick.ejSkickade;
+          summary.restockUtskick.push({ wixProductId: pid, ...utskick });
+        } catch (err) {
+          // Bevakarna gick inte att läsa för produkten. Hur många de är vet vi
+          // inte, så felet står i `restockFel` i stället för i räknaren.
+          const fel = err instanceof Error ? err.message.slice(0, 200) : String(err);
+          summary.restockFel = summary.restockFel ?? `${pid}: ${fel}`;
+        }
       }
     }
   }
@@ -1368,6 +1499,14 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
       }
     },
     saveMapping: (m) => store.saveMapping(m),
+    bevakadeProdukter: async () => {
+      const { getRestockStore } = await import("../restock/store");
+      return getRestockStore().listPendingProductIds();
+    },
+    mejlaBevakare: async (wixProductId, opts) => {
+      const { mejlaBevakare } = await import("../restock/notify");
+      return mejlaBevakare(wixProductId, opts);
+    },
     fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
     rules,
   };

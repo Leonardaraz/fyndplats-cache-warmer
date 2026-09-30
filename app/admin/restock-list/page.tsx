@@ -140,11 +140,6 @@ function Leverantorscell({ rad }: { rad: RestockRad }) {
           ))}
         </div>
       ) : null}
-      {!lev.mejlasAutomatiskt && rad.pending > 0 ? (
-        <div style={{ color: "#b45309", fontSize: 12, marginTop: 3 }}>
-          Får inget automatiskt mejl — Aosom-synken skickar inga.
-        </div>
-      ) : null}
     </td>
   );
 }
@@ -152,7 +147,19 @@ function Leverantorscell({ rad }: { rad: RestockRad }) {
 function HosOss({ rad }: { rad: RestockRad }) {
   switch (rad.hosOss) {
     case "i_lager":
-      return <Etikett farg="#15803d">I lager</Etikett>;
+      // Mejlet går när varan KOMMER TILLBAKA. Finns den redan och någon ändå
+      // väntar, missade de återkomsten — säg det i stället för att låta
+      // raden se ut som att mejlet är på väg.
+      return (
+        <>
+          <Etikett farg="#15803d">I lager</Etikett>
+          {rad.pending > 0 ? (
+            <div style={{ color: "#b45309", fontSize: 12, marginTop: 3 }}>
+              Väntande får inget mejl förrän varan tagit slut och kommit tillbaka.
+            </div>
+          ) : null}
+        </>
+      );
     case "slut":
       return <Etikett farg="#b91c1c">Slut</Etikett>;
     case "delvis":
@@ -220,10 +227,11 @@ export default async function RestockListPage() {
       <h1>Restock-bevakare</h1>
       <p style={{ color: "#555", fontSize: 14, maxWidth: 720 }}>
         Kunder som klickat "Meddela mig när varan är tillbaka i lager" på en slutsåld
-        produktsida. När AliExpress-synken ser en vara tillbaka i lager mejlas de
-        väntande (<b>pending</b>) automatiskt och markeras som notifierade.{" "}
-        <b>Aosom-synken skickar inga sådana mejl</b>, så bevakare av Aosom-varor får
-        inget besked när varan kommer tillbaka.
+        produktsida. När synken ser varan tillbaka i butikens lager mejlas de
+        väntande (<b>pending</b>) och markeras som notifierade. Aosom-synken ser
+        varje färg för sig och säger i mejlet vilken som kom tillbaka;
+        AliExpress-synken ser bara hela produkten, så den mejlar först när varan
+        varit helt slut.
       </p>
 
       {loadError ? (
