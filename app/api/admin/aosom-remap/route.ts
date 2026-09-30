@@ -1,6 +1,11 @@
 // POST /api/admin/aosom-remap — pekar om EN Wix-produkt från AliExpress till
 // Aosoms feed, och pensionerar valfritt dubblettsidan.
 //
+// En sida som redan är Aosom kan byta till ett opolerat Aosom-utkast som är
+// samma vara (Leonard 2026-09-30). Utkastet måste anges som dubblett och bära
+// artikeln, och sidans gamla artikel spärras då för importen. Se
+// planeraOmmappning i lib/aosom/remap.ts.
+//
 // Bakgrunden och spärrarnas motiv bor i lib/aosom/remap.ts och är testade där.
 // Rutten är bara transporten: hämta feeden, läs raden, planera, skriv.
 //
@@ -211,7 +216,10 @@ export async function POST(req: NextRequest) {
     const efter = await store.getMappingByWixProductId(wixProductId);
     const skrevs = efter?.supplierProductId === `aosom:${sku}` && efter?.supplier === "aosom"
       && (!behallVariant
-        || ((efter?.variants ?? []).length === 1 && efter?.variants[0]?.wixVariantId === behallVariant));
+        || ((efter?.variants ?? []).length === 1 && efter?.variants[0]?.wixVariantId === behallVariant))
+      // Ett byte inom Aosom är inte klart förrän den gamla artikeln är spärrad.
+      // Utan spärren skapar nattens import samma vara igen.
+      && (!plan.aosomByte || (!!efter?.importSparr && efter.importSparr === mappning!.supplierProductId));
     if (!skrevs) {
       return NextResponse.json(
         {
@@ -223,6 +231,7 @@ export async function POST(req: NextRequest) {
             supplierProductId: efter?.supplierProductId ?? null,
             supplier: efter?.supplier ?? null,
             varianter: efter?.variants?.length ?? null,
+            ...(plan.aosomByte ? { importSparrSatt: !!efter?.importSparr } : {}),
           },
         },
         { status: 500 },
@@ -242,6 +251,7 @@ export async function POST(req: NextRequest) {
           ? `kollapsad till ${behallVariant} (${kollaps.behallVal.join("/") || "utan val"}), `
             + `${kollaps.borttagna.length} varianter bort `
           : "")
+        + (plan.aosomByte ? "byte inom Aosom, gamla artikeln spärrad för importen, " : "")
         + (dubblettPensionerad ? `dubblett ${dubblettPensionerad} pensionerad` : "utan dubblett"),
     });
 

@@ -489,3 +489,118 @@ describe("väljRemapSku", () => {
     expect(väljRemapSku(undefined, { supplier: "aosom", supplierProductId: "" }).ok).toBe(false);
   });
 });
+
+describe("byte inom Aosom — sidan tar över utkastets artikel (2026-09-30)", () => {
+  // Soptunnan 300a9113: sidans artikel står på 0, utkastet 43ea33bd är samma
+  // vara under ett annat nummer och har saldo. Numren här är påhittade.
+  const GAMMAL = "aosom:000-001XX";
+  const NY = "000-002XX";
+  const sida = (over: Partial<ProductMappingRecord> = {}) =>
+    mappning({
+      supplier: "aosom",
+      supplierProductId: GAMMAL,
+      shipsFromCountries: undefined,
+      hasEuWarehouse: undefined,
+      aosomSyncedQty: 0,
+      ...over,
+    });
+  const nyRad = rad({ sku: NY, url: `https://example.invalid/${NY}` });
+  const utkast = (over: Partial<ProductMappingRecord> = {}) => ({
+    supplier: "aosom" as const,
+    supplierProductId: `aosom:${NY}`,
+    wixProductId: "wix-utkast",
+    needsAiPolish: true,
+    ...over,
+  });
+
+  it("släpper bytet när utkastet är opolerat och bär artikeln", () => {
+    const p = planeraOmmappning({
+      mappning: sida(), rad: nyRad, alla: [utkast()], fx: FX, dubblett: "wix-utkast",
+    });
+    expect(p.hinder).toEqual([]);
+    expect(p.aosomByte).toBe(true);
+    expect(p.frånLeverantör).toBe("aosom");
+  });
+
+  it("☠️ utan utkast som dubblett vägras det som förut", () => {
+    const p = planeraOmmappning({ mappning: sida(), rad: nyRad, alla: [utkast()], fx: FX });
+    expect(p.hinder).toContain("redan_aosom");
+  });
+
+  it("☠️ ett utkast med en ANNAN artikel släpper inte bytet", () => {
+    const p = planeraOmmappning({
+      mappning: sida(),
+      rad: nyRad,
+      alla: [utkast({ supplierProductId: "aosom:000-003XX" })],
+      fx: FX,
+      dubblett: "wix-utkast",
+    });
+    expect(p.hinder).toContain("redan_aosom");
+  });
+
+  it("☠️ en polerad sida är ingen dubblett att pensionera", () => {
+    const p = planeraOmmappning({
+      mappning: sida(),
+      rad: nyRad,
+      alla: [utkast({ needsAiPolish: false })],
+      fx: FX,
+      dubblett: "wix-utkast",
+    });
+    expect(p.hinder).toContain("dubbletten_inte_utkast");
+  });
+
+  it("vägrar när sidan redan bär artikeln", () => {
+    const p = planeraOmmappning({
+      mappning: sida({ supplierProductId: `aosom:${NY}` }),
+      rad: nyRad,
+      alla: [utkast()],
+      fx: FX,
+      dubblett: "wix-utkast",
+    });
+    expect(p.hinder).toContain("samma_artikel");
+  });
+
+  it("☠️ vägrar när sidan redan spärrar en annan artikel — fältet rymmer en", () => {
+    const p = planeraOmmappning({
+      mappning: sida({ importSparr: "aosom:000-009XX" }),
+      rad: nyRad,
+      alla: [utkast()],
+      fx: FX,
+      dubblett: "wix-utkast",
+    });
+    expect(p.hinder).toContain("importsparr_upptagen");
+  });
+
+  it("☠️ en sammanslagen Aosom-sida kollapsas aldrig, inte heller med behallVariant", () => {
+    const tva = sida({
+      variants: [
+        { ...mappning().variants[0], wixVariantId: "wv1" },
+        { ...mappning().variants[0], wixVariantId: "wv2", supplierVariantId: "000-004XX" },
+      ],
+    });
+    const p = planeraOmmappning({
+      mappning: tva, rad: nyRad, alla: [utkast()], fx: FX, dubblett: "wix-utkast", behallVariant: "wv1",
+    });
+    expect(p.hinder).toContain("flera_varianter");
+  });
+
+  it("☠️ spärrar sidans gamla artikel för importen", () => {
+    const ny = tillämpaOmmappning(sida(), nyRad, FX);
+    expect(ny.supplierProductId).toBe(`aosom:${NY}`);
+    expect(ny.importSparr).toBe(GAMMAL);
+    // Synken skriver saldot för den nya artikeln på nästa varv.
+    expect(ny.aosomSyncedQty).toBeUndefined();
+    // Priset rörs inte här; synken räknar om det efter husets regel.
+    expect(ny.variants[0].grossSek).toBe(1999);
+  });
+
+  it("en ommappning från AliExpress sätter ingen spärr", () => {
+    const ny = tillämpaOmmappning(mappning(), rad(), FX);
+    expect(ny.importSparr).toBeUndefined();
+  });
+
+  it("de vanliga planerna säger att det inte är ett byte inom Aosom", () => {
+    const p = planeraOmmappning({ mappning: mappning(), rad: rad(), alla: INGA_ANDRA, fx: FX });
+    expect(p.aosomByte).toBe(false);
+  });
+});

@@ -692,6 +692,14 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
    en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
    kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+
+   **Ett känt hopp kan godkännas för en körning** (`godkannPrisandring`, sedan
+   2026-09-30). Workflowens input `godkann_pris` tar Wix-produkt-id, och för
+   dem släpps bara taket: regelpriset, golvet, prislåset och skrivordningen
+   gäller som vanligt. Godkännandet sparas ingenstans, så nästa trasiga
+   feed-rad på samma produkt stoppas igen. Hoppen står i `godkandaHopp` med
+   wix-id och belopp, aldrig artikelnummer. Byggt för gunghästens rosa, som
+   taket stoppade vid varje körning (1 199 → 699 kr, Leonards beslut).
 6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
    sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
    Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida
@@ -1411,12 +1419,20 @@ miljöbild  1 068 103 byte   c527549810410717   BÅDA
 Två av två delade positioner identiska på bitnivå. Detaljbilderna skiljer (olika
 positioner hämtades hem), men konstruktionen är densamma på varje foto.
 
-⚠️ **`aosom-remap` KAN INTE laga den här klassen, och det är inte ett fel i den.**
-Hindret `redan_aosom` fäller en rad som redan är Aosom — workflowen finns för
-AE→Aosom. Här finns ingen AE-rad att peka om: ommappningen är en no-op och det
-enda som gäller är pensioneringen (`draftStatus: "rejected"`,
-`needsAiPolish: false`). Husets regel *"äkta dubbletter mappas om till Aosom"*
-antar tyst att sidan vi behåller är en AE-rad. Ibland är den inte det.
+⚠️ **Har sidan vi behåller saldo räcker pensioneringen** (`draftStatus:
+"rejected"`, `needsAiPolish: false`), som för hörnsoffan. Husets regel *"äkta
+dubbletter mappas om till Aosom"* antog tyst att sidan vi behåller är en AE-rad.
+
+✅ **Är sidans artikel slut medan utkastets finns i lager byter sidan artikel**
+(sedan 2026-09-30, Leonards beslut om soptunnan `300a9113`, vars utkast
+`43ea33bd` hade 48 i lager). `aosom-remap` tar då en sida som redan är Aosom,
+men bara mot ett opolerat Aosom-utkast som bär artikeln: ange utkastet som
+dubblett och lämna `sku` tomt. Sidan behåller adress, text, bilder och
+recensioner, och utkastet pensioneras. Sidans gamla artikel sparas i
+`importSparr`, annars skapar nattens import samma vara igen. Priset rörs inte
+av bytet, men synken räknar om det efter den nya artikelns kostnad. Hindren:
+`redan_aosom` (ingen sådan dubblett), `dubbletten_inte_utkast` (dubbletten är
+polerad), `samma_artikel` och `importsparr_upptagen`.
 
 ⚠️ **Klassens STORLEK är omätt — en rad är inte en mätning.** Den billiga vägen
 är namngiven här så den inte behöver återupptäckas: Wix filbeskrivare bär ett

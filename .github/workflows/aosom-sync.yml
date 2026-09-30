@@ -73,6 +73,15 @@ on:
         required: false
         default: ""
         type: string
+      godkann_pris:
+        # En människas godkännande av ett känt prishopp över 40 %-taket, för
+        # den här körningen (Leonard 2026-09-30, gunghästens rosa). Bara taket
+        # släpps; regelpriset och resten av spärrarna gäller. Wix-id är
+        # publika, så inputen behöver ingen maskering.
+        description: "Wix-produkt-id, kommaseparerat, vars prisändring får gå förbi 40 %-taket i den här körningen. Tomt = taket gäller alla."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   synka:
@@ -104,6 +113,7 @@ jobs:
           LIMIT: ${{ inputs.limit }}
           MAX_ROUNDS: ${{ inputs.max_rounds }}
           SKU: ${{ inputs.sku }}
+          GODKANN: ${{ inputs.godkann_pris }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
         run: |
@@ -190,6 +200,9 @@ jobs:
             if [ -n "${SKU:-}" ]; then
               url="${url}&sku=$(printf '%s' "$SKU" | jq -sRr @uri)"
             fi
+            if [ -n "${GODKANN:-}" ]; then
+              url="${url}&godkannPris=$(printf '%s' "$GODKANN" | tr -d '[:space:]' | jq -sRr @uri)"
+            fi
             if [ -n "$after" ]; then
               url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
             fi
@@ -259,6 +272,7 @@ jobs:
             # ☠️ Med produktens Wix-id, ALDRIG `.sku`: det är Aosoms artikelnummer,
             # och 113 av dem stod i den här raden i loggarna fram till 2026-09-27.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+            printf '%s' "$svar" | jq -r '.godkandaHopp[]? | "  ✅ godkänt hopp \(.wixProductId): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
 
             # ☠️ FELEN SKA SYNAS, INTE BARA RÄKNAS. En räknare som säger "1190
             # misslyckade" utan att säga VARFÖR är samma tysta fel som huset

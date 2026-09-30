@@ -42,6 +42,9 @@
 //                        lib/aosom/markor.ts (klartext tas emot vid en körning för hand)
 //   ?sku=<artikel>,…   kör bara dessa (riktad omkörning)
 //   ?skipPrices=1        synka bara lager
+//   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
+//                        här körningen (en människas godkännande, se
+//                        `godkannPrisandring` i lib/aosom/sync.ts)
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -55,6 +58,9 @@ export const maxDuration = 300;
 
 /** Under maxDuration med marginal — feeden tar ~5 s att hämta och tolka. */
 const TIME_BUDGET_MS = 240_000;
+
+/** Wix-produkt-id: en uuid. */
+const WIX_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -94,6 +100,20 @@ async function handle(req: NextRequest) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+  // ☠️ ETT ID SOM INTE SER UT SOM ETT WIX-ID VÄGRAS. Ett skrivfel hade annars
+  // tyst betytt "ingenting godkänt", och körningen hade sett lyckad ut medan
+  // priset stod kvar.
+  const godkannPris = (req.nextUrl.searchParams.get("godkannPris") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const ogiltiga = godkannPris.filter((id) => !WIX_ID.test(id));
+  if (ogiltiga.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: `godkannPris tar Wix-produkt-id: ${ogiltiga.join(", ")}` },
+      { status: 400 },
+    );
+  }
 
   try {
     const summary = await runAosomSync(await liveDeps(), {
@@ -102,6 +122,7 @@ async function handle(req: NextRequest) {
       after,
       skipPrices,
       onlySkus: onlySkus.length ? onlySkus : undefined,
+      godkannPrisandring: godkannPris.length ? new Set(godkannPris) : undefined,
       timeBudgetMs: TIME_BUDGET_MS,
     });
 
@@ -123,6 +144,10 @@ async function handle(req: NextRequest) {
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.ejSkeppbara} EJ SKEPPBARA, `
           + `${summary.varningar.length} blockerade prishopp, `
+          + (summary.godkandaHopp.length
+            ? `${summary.godkandaHopp.length} godkända prishopp (`
+              + summary.godkandaHopp.map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ") + "), "
+            : "")
           + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
           + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
@@ -153,7 +178,8 @@ async function handle(req: NextRequest) {
         + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} frysta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.ejSkeppbara} ej skeppbara, `
-        + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `
+        + `${summary.varningar.length} varningar, ${summary.godkandaHopp.length} godkända prishopp, `
+        + `${summary.utanLagerrader} utan lagerrader, `
         + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `
         // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.

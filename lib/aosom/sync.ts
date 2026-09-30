@@ -133,6 +133,17 @@ export interface AosomSyncOptions {
   onlySkus?: string[];
   /** Hoppa över prisdelen och synka bara lager. */
   skipPrices?: boolean;
+  /**
+   * Wix-produkter vars prisändring får gå förbi MAX_PRISANDRING_PCT i den här
+   * körningen. En människa har tittat på hoppet och godkänt det (Leonards beslut
+   * 2026-09-30: gunghästens rosa, 1 199 → 699 kr).
+   *
+   * ☠️ BARA TAKET SLÄPPS. Regelpriset, golvet, prislåset, facit i butiken och
+   * skrivordningen är desamma. Godkännandet gäller exakt de angivna id:na och
+   * sparas ingenstans, så nästa trasiga feed-rad på samma produkt fångas av
+   * taket igen.
+   */
+  godkannPrisandring?: ReadonlySet<string>;
 }
 
 export interface AosomSyncSummary {
@@ -285,6 +296,12 @@ export interface AosomSyncSummary {
   errors: { sku: string; wixProductId?: string; error: string }[];
   /** Prisändringar som blockerades av taket. Kräver mänskligt öga. */
   varningar: { sku: string; wixProductId?: string; fran: number; till: number; andringPct: number }[];
+  /**
+   * Prishopp över taket som skrevs för att de var godkända
+   * (`godkannPrisandring`). Bara wix-id och belopp, aldrig artikelnumret: raden
+   * skrivs ut i en publik Actions-logg.
+   */
+  godkandaHopp: { wixProductId: string; fran: number; till: number; andringPct: number }[];
 }
 
 /**
@@ -444,6 +461,15 @@ export interface Produktplan {
   tvetydig?: string;
   /** Fler blockerade prishopp än ett — bara på en sammanslagen sida. */
   fleraVarningar?: NonNullable<Produktplan["varning"]>[];
+  /** Hopp över taket som skrivs för att produkten är godkänd, per variant. */
+  godkandaHopp?: GodkantHopp[];
+}
+
+/** Ett prishopp över taket som en människa godkänt för den här körningen. */
+export interface GodkantHopp {
+  fran: number;
+  till: number;
+  andringPct: number;
 }
 
 /** En variants del av planen på en färgsammanslagen sida. */
@@ -467,6 +493,7 @@ interface Prisutfall {
   konkurrent: KonkurrentUtfall;
   utanWixPris: boolean;
   varning: Produktplan["varning"];
+  godkantHopp: GodkantHopp | null;
 }
 
 /**
@@ -486,6 +513,7 @@ function planeraPris(
   facit: { pris: number } | "saknas" | "flera",
   sku: string,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+  tillatHopp = false,
 ): Prisutfall {
   const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
   const costUsd = nyLandad / deps.fx.usdToSek;
@@ -511,7 +539,14 @@ function planeraPris(
     nu: (deps.now ?? Date.now)(),
     rounding: deps.rules.rounding,
   });
-  const ut: Prisutfall = { nyttPris: null, nyLandad: null, konkurrent: regel, utanWixPris: false, varning: null };
+  const ut: Prisutfall = {
+    nyttPris: null,
+    nyLandad: null,
+    konkurrent: regel,
+    utanWixPris: false,
+    varning: null,
+    godkantHopp: null,
+  };
   if (regel.typ === "fryst") return ut;
   const pris = regel.pris;
 
@@ -534,8 +569,13 @@ function planeraPris(
     if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
       // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
       // storleken är oftare en trasig feed-rad än en verklig prisändring.
-      ut.varning = { sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
-      return ut;
+      if (!tillatHopp) {
+        ut.varning = { sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
+        return ut;
+      }
+      // Godkänt av en människa för den här körningen: skrivs som vilket pris
+      // som helst, men räknas för sig så att det syns i loggen.
+      ut.godkantHopp = { fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
     }
     if (pris !== gammalt) {
       ut.nyttPris = pris;
@@ -567,7 +607,7 @@ export function planeraProdukt(
   row: AosomRow | undefined,
   wixPris: WixProduktPris | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
-  opts: Pick<AosomSyncOptions, "skipPrices">,
+  opts: Pick<AosomSyncOptions, "skipPrices" | "godkannPrisandring">,
 ): Produktplan {
   const variant = m.variants?.[0];
 
@@ -634,12 +674,21 @@ export function planeraProdukt(
     return plan;
   }
 
-  const pr = planeraPris(row, m.konkurrent, m.prisgrupp, jamforelsePris(wixPris), sku, deps);
+  const pr = planeraPris(
+    row,
+    m.konkurrent,
+    m.prisgrupp,
+    jamforelsePris(wixPris),
+    sku,
+    deps,
+    opts.godkannPrisandring?.has(m.wixProductId) ?? false,
+  );
   plan.konkurrent = pr.konkurrent;
   plan.utanWixPris = pr.utanWixPris;
   plan.varning = pr.varning;
   plan.nyttPris = pr.nyttPris;
   plan.nyLandad = pr.nyLandad;
+  if (pr.godkantHopp) plan.godkandaHopp = [pr.godkantHopp];
   return plan;
 }
 
@@ -665,9 +714,11 @@ export function planeraFlerartikel(
   perSku: ReadonlyMap<string, AosomRow>,
   variantPriser: ReadonlyMap<string, number> | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
-  opts: Pick<AosomSyncOptions, "skipPrices">,
+  opts: Pick<AosomSyncOptions, "skipPrices" | "godkannPrisandring">,
 ): Produktplan {
   const varianter: VariantPlan[] = [];
+  const godkanda: GodkantHopp[] = [];
+  const tillatHopp = opts.godkannPrisandring?.has(m.wixProductId) ?? false;
   const varningar: NonNullable<Produktplan["varning"]>[] = [];
   const plan: Produktplan = {
     sku: bild.artikel,
@@ -722,10 +773,12 @@ export function planeraFlerartikel(
       typeof pris === "number" ? { pris } : "saknas",
       va.artikel,
       deps,
+      tillatHopp,
     );
     if (egen) plan.konkurrent = pr.konkurrent;
     if (pr.utanWixPris) plan.utanWixPris = true;
     if (pr.varning) varningar.push(pr.varning);
+    if (pr.godkantHopp) godkanda.push(pr.godkantHopp);
     vp.nyttPris = pr.nyttPris;
     vp.nyLandad = pr.nyLandad;
   }
@@ -734,6 +787,7 @@ export function planeraFlerartikel(
   plan.nyttSaldo = varianter.some((v) => v.nyttSaldo !== null) ? plan.onskatSaldo : null;
   plan.varning = varningar[0] ?? null;
   if (varningar.length > 1) plan.fleraVarningar = varningar.slice(1);
+  if (godkanda.length > 0) plan.godkandaHopp = godkanda;
   return plan;
 }
 
@@ -1026,6 +1080,7 @@ export async function runAosomSync(
     stoppedBy: "klart",
     errors: [],
     varningar: [],
+    godkandaHopp: [],
   };
 
   /** Antal produkter vi FAKTISKT skrivit. Det är den här `limit` gäller. */
@@ -1091,6 +1146,7 @@ export async function runAosomSync(
       if (p.tvetydig) summary.tvetydiga++;
       if (p.varning) summary.varningar.push({ ...p.varning, wixProductId: p.m.wixProductId });
       for (const v of p.fleraVarningar ?? []) summary.varningar.push({ ...v, wixProductId: p.m.wixProductId });
+      for (const h of p.godkandaHopp ?? []) summary.godkandaHopp.push({ ...h, wixProductId: p.m.wixProductId });
     }
 
     // ── FAS 2: LÄS LAGERPOSTERNA FÖR HELA TUGGAN, I ETT ANROP ────────────

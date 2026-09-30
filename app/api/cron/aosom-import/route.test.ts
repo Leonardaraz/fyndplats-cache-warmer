@@ -47,7 +47,7 @@ function req(fraga: string, hemlighet = "hemlig") {
 const SYNK_TOM = {
   granskade: 0, lagerUppdaterade: 0, prisUppdaterade: 0, utanWixPris: 0, utanLagerrader: 0,
   misslyckade: 0, okandaVarianter: 0, tvetydiga: 0, prislistaFel: null, urFeeden: 0,
-  slutsalda: 0, ejSkeppbara: 0, varningar: [], prisLasta: 0, konkurrentMal: 0,
+  slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], prisLasta: 0, konkurrentMal: 0,
   konkurrentTak: 0, konkurrentGolv: 0, konkurrentFrysta: 0, lagerDrift: 0,
   flerartikelrader: 0, stoppedBy: "limit", kvar: 5, errors: [],
   aterILager: 0, restockMejl: 0, restockEjSkickade: 0, restockUtskick: [], restockFel: null,
