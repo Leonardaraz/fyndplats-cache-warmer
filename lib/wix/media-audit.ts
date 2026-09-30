@@ -22,7 +22,7 @@
 // filen"-API (kontrollerat 2026-08-27), så skillnaden går inte att räkna bort
 // — bara att vara ärlig om.
 
-import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+import { mediaNyckel, produktensMedianycklar, type ProduktMedia } from "./produkt-media";
 
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
@@ -135,6 +135,26 @@ export interface KatalogProdukt {
   slug: string;
   /** Filernas nycklar — lib/wix/produkt-media.ts är definitionen. */
   nycklar: string[];
+  /**
+   * Varje val: axelns namn, valets id och dess FÖRSTA kopplade bild (nyckel).
+   * Färgbildsverktyget (lib/aosom/fargbilder.ts) hittar givarna med den.
+   */
+  val?: { axel: string; id: string; forsta: string | null }[];
+}
+
+/** Valen ur en produkt i sökprojektionen. */
+function valAv(p: {
+  options?: Array<{ name?: string; choicesSettings?: { choices?: Array<{ choiceId?: string; linkedMedia?: Array<{ id?: string; url?: string }> }> } }>;
+}): NonNullable<KatalogProdukt["val"]> {
+  const ut: NonNullable<KatalogProdukt["val"]> = [];
+  for (const o of p.options ?? []) {
+    for (const c of o.choicesSettings?.choices ?? []) {
+      const m = c.linkedMedia?.[0];
+      const forsta = m?.id ?? m?.url;
+      ut.push({ axel: o.name ?? "", id: c.choiceId ?? "", forsta: forsta ? mediaNyckel(forsta) : null });
+    }
+  }
+  return ut;
 }
 
 /** Återförsök vid 429/5xx/edge-HTML, samma steg som prislistan (lib/wix/v3-products.ts). */
@@ -192,7 +212,7 @@ export async function listCatalogProductMedia(
     if (!res) throw new Error(`Product search failed on page ${page} (${sistaFel})`);
 
     const data = (await res.json()) as {
-      products?: Array<ProduktMedia & { id?: string; visible?: boolean; slug?: string }>;
+      products?: Array<ProduktMedia & { id?: string; visible?: boolean; slug?: string } & Parameters<typeof valAv>[0]>;
       pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
     };
 
@@ -203,6 +223,7 @@ export async function listCatalogProductMedia(
         visible: p.visible !== false,
         slug: p.slug ?? "",
         nycklar: produktensMedianycklar(p),
+        val: valAv(p),
       });
     }
 

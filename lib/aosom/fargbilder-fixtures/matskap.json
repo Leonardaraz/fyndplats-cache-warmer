@@ -1,0 +1,149 @@
+{
+ "kalla": "torrkorningen 2026-09-30; alt-texterna ar kapade vid ~55 tecken; givarens position 1 ar valets lankade fil",
+ "sida": {
+  "id": "9cfc2f50-241c-4d04-b604-4d366febc9a4",
+  "namn": "Matskåp för hund 60 × 30 × 35,5 cm – 44 liter bakom två luckor",
+  "synlig": true,
+  "bilder": [
+   {
+    "id": "b379ce_db75db9f4f954ca8bca64ce939351a14~mv2.jpg",
+    "alt": "Vitt matskåp för hund med två luckor och två skålar i rostfritt stål infällda i "
+   },
+   {
+    "id": "b379ce_b23e1b3a692543538ed1d7ce2afae432~mv2.jpg",
+    "alt": "Hund som äter ur det vita matskåpets skål i ett vardagsrum"
+   },
+   {
+    "id": "b379ce_387e6e3cf7634104b9f7672c502a4621~mv2.jpg",
+    "alt": "Faktakort för det vita matskåpet med mått, förvaring på 44 liter och två skålar"
+   },
+   {
+    "id": "b379ce_d07dbb654438470fa986e2b9caf9f2ea~mv2.jpg",
+    "alt": "De två rostfria skålarna sedda uppifrån, den ena med torrfoder"
+   },
+   {
+    "id": "b379ce_e541741761a0471fba80db2752b90fa1~mv2.jpg",
+    "alt": "Närbild på skåpets nedre hörn och sockel mot ett trägolv"
+   },
+   {
+    "id": "b379ce_8b284d90f1c6457fa925720a2a7c6702~mv2.jpg",
+    "alt": "Måttbild på matskåpet: 60 × 30 × 35,5 cm, luckor 28 × 27 cm och skål Ø 24 × 7 cm"
+   },
+   {
+    "id": "b379ce_647c06324ad94976aab66530a42c0bb4~mv2.jpg",
+    "alt": "Matskåp för hund 60 × 30 × 35,5 cm – 44 liter bakom två luckor i färgen grå"
+   },
+   {
+    "id": "b379ce_6f81849ffebb4c3dbaf52e227624c5c5~mv2.jpg",
+    "alt": "Matskåp för hund 60 × 30 × 35,5 cm – 44 liter bakom två luckor i färgen svart"
+   }
+  ],
+  "optioner": [
+   {
+    "namn": "Färg",
+    "val": [
+     {
+      "id": "a2f396b7-2677-42b3-870a-5b426b2add4c",
+      "namn": "Vit",
+      "lankade": [
+       "b379ce_db75db9f4f954ca8bca64ce939351a14~mv2.jpg"
+      ]
+     },
+     {
+      "id": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+      "namn": "Grå",
+      "lankade": [
+       "b379ce_647c06324ad94976aab66530a42c0bb4~mv2.jpg"
+      ]
+     },
+     {
+      "id": "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb",
+      "namn": "Svart",
+      "lankade": [
+       "b379ce_6f81849ffebb4c3dbaf52e227624c5c5~mv2.jpg"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "givare": [
+  {
+   "id": "18b9ec99-957a-4e3d-ad94-eec0b9a15550",
+   "namn": "Matskåp för hund 60 × 30 × 35,5 cm i grått – 44 liter bakom två luckor",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "id": "b379ce_647c06324ad94976aab66530a42c0bb4~mv2.jpg",
+     "alt": "Matskåp för hund 60 × 30 × 35,5 cm – 44 liter bakom två luckor i färgen grå"
+    },
+    {
+     "id": "b379ce_da403d9f9d5c46b495265a2fe26d5875~mv2.jpg",
+     "alt": "Golden retriever äter ur det gråa matskåpet framför en soffa"
+    },
+    {
+     "id": "b379ce_ec956c28a35b490b98e2f86f5c8ee644~mv2.jpg",
+     "alt": "Faktakort: matskåp 60 × 30 × 35,5 cm med 44 liter förvaring och två skålar på 2 "
+    },
+    {
+     "id": "b379ce_ff0f638f99a944b48c3c18ea404861de~mv2.jpg",
+     "alt": "Luckan uppfälld på gångjärn, med det tomma förvaringsutrymmet innanför"
+    },
+    {
+     "id": "b379ce_e162b1a5054e45028459e971171fd7c0~mv2.jpg",
+     "alt": "Måttritning: 60 cm brett, 30 cm djupt och 35,5 cm högt, lucka 28 × 27 cm, skål Ø"
+    }
+   ]
+  },
+  {
+   "id": "f8594223-5b2b-4431-b80f-58d17b63f603",
+   "namn": "Matskåp för hund 60 × 30 × 35,5 cm i svart – 44 liter bakom två luckor",
+   "val": "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb",
+   "bilder": [
+    {
+     "id": "b379ce_6f81849ffebb4c3dbaf52e227624c5c5~mv2.jpg",
+     "alt": "Matskåp för hund 60 × 30 × 35,5 cm – 44 liter bakom två luckor i färgen svart"
+    },
+    {
+     "id": "b379ce_4e17556b4575403da35c74ec8f828566~mv2.jpg",
+     "alt": "Golden retriever äter ur det svarta matskåpet i ett vardagsrum"
+    },
+    {
+     "id": "b379ce_9d733d03cb7941cb831603d4c8fb8d49~mv2.jpg",
+     "alt": "Faktakort: matskåp 60 × 30 × 35,5 cm med 44 liter förvaring och två skålar på 2 "
+    },
+    {
+     "id": "b379ce_c426e4240c044112bf81ebc44b1561a4~mv2.jpg",
+     "alt": "Skålarna uppifrån och luckorna öppna med leksaker och tillbehör inuti"
+    },
+    {
+     "id": "b379ce_dfddf0a177b04a659165a2a4bf36a28d~mv2.jpg",
+     "alt": "Närbild på det svarta skåpets nedre hörn och sockel mot ett trägolv"
+    },
+    {
+     "id": "b379ce_baebbbcee75641e8b00d4128afaa1752~mv2.jpg",
+     "alt": "Måttritning: 60 cm brett, 30 cm djupt och 35,5 cm högt, lucka 28 × 27 cm, skål Ø"
+    }
+   ]
+  }
+ ],
+ "torrkorningensForslag": {
+  "a2f396b7-2677-42b3-870a-5b426b2add4c": [
+   "b379ce_db75db9f4f954ca8bca64ce939351a14~mv2.jpg",
+   "b379ce_b23e1b3a692543538ed1d7ce2afae432~mv2.jpg",
+   "b379ce_d07dbb654438470fa986e2b9caf9f2ea~mv2.jpg",
+   "b379ce_e541741761a0471fba80db2752b90fa1~mv2.jpg"
+  ],
+  "14b99ed4-adaa-4d5d-8368-b31ab532a328": [
+   "b379ce_647c06324ad94976aab66530a42c0bb4~mv2.jpg",
+   "b379ce_da403d9f9d5c46b495265a2fe26d5875~mv2.jpg",
+   "b379ce_ff0f638f99a944b48c3c18ea404861de~mv2.jpg"
+  ],
+  "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb": [
+   "b379ce_6f81849ffebb4c3dbaf52e227624c5c5~mv2.jpg",
+   "b379ce_4e17556b4575403da35c74ec8f828566~mv2.jpg",
+   "b379ce_c426e4240c044112bf81ebc44b1561a4~mv2.jpg",
+   "b379ce_dfddf0a177b04a659165a2a4bf36a28d~mv2.jpg"
+  ]
+ }
+}

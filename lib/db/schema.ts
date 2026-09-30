@@ -42,6 +42,37 @@ export async function ensureSchema(): Promise<void> {
   for (const ddl of DDL) await q.query(ddl);
 }
 
+/**
+ * Färgbildstabellen: varje färgvals HELA bildlista på en sammanslagen sida,
+ * också det som inte ryms under Wix tak på 15 bilder (lib/aosom/fargbilder.ts).
+ * Ingen Wix-kollektion bakom — den finns bara här, och därför står den inte i
+ * TABELLER (kopieringen och verifieringen gäller det som flyttats från Wix).
+ * Exporterad så att lib/store/fargbilder.ts kan skapa den vid första
+ * användningen, utan att vänta på nästa kopiering.
+ *
+ * En rad per (sida, val, fil). `choice_id` är tom för sidans gemensamma kort.
+ * `plats`: galleri | overflow | granskas | gemensam.
+ */
+export const FARGBILD_DDL: string[] = [
+  `create table if not exists fargbilder (
+     wix_product_id text not null,
+     choice_id      text not null,
+     choice_name    text not null,
+     ordning        integer not null,
+     fil_id         text not null,
+     plats          text not null,
+     givare_id      text,
+     skriven_at     timestamptz not null default now(),
+     primary key (wix_product_id, choice_id, fil_id)
+   )`,
+  // Bildstädningen läser alla fil-id varje natt.
+  `create index if not exists fargbilder_fil_id_idx on fargbilder (fil_id)`,
+  // När Wix läst tillbaka som raderna säger. Null = raderna skrevs före Wix
+  // (steg 0) och skrivningen föll därefter — sidan är halvskriven och ska
+  // väljas igen.
+  `alter table fargbilder add column if not exists wix_bekraftad_at timestamptz`,
+];
+
 const DDL: string[] = [
   // --- Mappningar: 5 470 rader, den största posten -------------------------
   `create table if not exists mappings (
@@ -251,4 +282,7 @@ const DDL: string[] = [
   `create index if not exists auctions_status_queue_idx on auctions (status, queue_order)`,
   // Butikens webhook avslutar på produkt-id.
   `create index if not exists auctions_product_id_idx on auctions (product_id)`,
+
+  // --- Färgbilderna (2026-09-30) --------------------------------------------
+  ...FARGBILD_DDL,
 ];
