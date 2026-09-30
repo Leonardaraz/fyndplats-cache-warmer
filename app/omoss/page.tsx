@@ -47,6 +47,7 @@ const Ikon = {
   frakt: <path d="M3 7h11v8H3z M14 10h4l3 3v2h-7z M7 18.7a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z M17.5 18.7a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z" />,
   service: <path d="M4 13v-1a8 8 0 0 1 16 0v1 M4 13h3v6H5a1 1 0 0 1-1-1v-5Z M20 13h-3v6h2a1 1 0 0 0 1-1v-5Z M17 19c0 1.5-2 2.5-5 2.5" />,
   text: <path d="M5 4h14v16H5z M8.5 8.5h7 M8.5 12h7 M8.5 15.5h4" />,
+  pris: <path d="M3 12V4h8l10 10-8 8L3 12Z M7.5 8.5h.01" />,
   eu: <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M3.5 9h17 M3.5 15h17 M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9 M12 3c-2.5 2.6-3.7 5.6-3.7 9s1.2 6.4 3.7 9" />,
 };
 
@@ -84,6 +85,28 @@ const LOFTEN = [
     lank: { href: "/kontaktaoss", text: "Kontakta oss" },
   },
 ];
+
+/** Svaren säger samma sak som /vanliga-fragor, med färre ord. */
+function FRAGOR(betyg: string): { q: string; a: string }[] {
+  return [
+    {
+      q: "Är Fyndplats en seriös butik?",
+      a: `Ja. Fyndplats är ett svenskt företag i Södertälje som har sålt på nätet sedan 2021. Du betalar via Klarna, har 30 dagars öppet köp och kan se vad andra kunder tycker: vi har ${betyg} av 5 i betyg på Google.`,
+    },
+    {
+      q: "Varifrån skickas varorna?",
+      a: "Från våra leverantörers och logistikpartners lager inom EU, aldrig direkt från länder utanför EU. Därför tillkommer ingen importtull. Leveranstiden är normalt 3–6 arbetsdagar.",
+    },
+    {
+      q: "Har ni en fysisk butik?",
+      a: "Nej, Fyndplats är en ren webbutik. Företagsadressen i Södertälje är inget lager, och vi erbjuder inte besök eller upphämtning där.",
+    },
+    {
+      q: "Skickar ni utanför Sverige?",
+      a: "För närvarande skickar vi bara inom Sverige.",
+    },
+  ];
+}
 
 export default async function OmOss() {
   const [allProducts, tree, proof] = await Promise.all([getProducts(), getCategoryTree(), getSocialProof()]);
@@ -189,14 +212,49 @@ export default async function OmOss() {
                 </div>
               </div>
               <div>
+                <span className="om-ikon"><Svg d={Ikon.pris} /></span>
+                <div>
+                  <h3>Därför är priserna låga</h3>
+                  <p>Vi har ingen fysisk butik och inget eget lager att betala för. Varorna skickas direkt från våra leverantörers och logistikpartners lager, och det vi sparar syns i priset.</p>
+                </div>
+              </div>
+              <div>
                 <span className="om-ikon"><Svg d={Ikon.eu} /></span>
                 <div>
                   <h3>Skickas från lager inom EU</h3>
-                  <p>Vi har inget eget lager. Varorna skickas från våra leverantörers och logistikpartners lager inom EU, så ingen importtull eller förtullningsavgift tillkommer.</p>
+                  <p>Alla varor skickas från lager inom EU, aldrig direkt från länder utanför. Därför tillkommer ingen importtull eller förtullningsavgift.</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="om-sektion om-tid-sek">
+        <div className="container">
+          <div className="om-rubrikrad">
+            <div>
+              <div className="eyebrow">Vår resa</div>
+              <h2>Från 2021 till i dag</h2>
+            </div>
+          </div>
+          <ol className="om-tid">
+            <li>
+              <span className="om-tid-nar">Då · 2021</span>
+              <h3>Fyndplats startar i Södertälje</h3>
+              <p>En svensk webbutik för prisvärda fynd, med trygg betalning och tydliga villkor från första beställningen.</p>
+            </li>
+            <li>
+              <span className="om-tid-nar">Nu</span>
+              <h3>{avrundatAntal(products.length)} produkter i {kategorier.length} avdelningar</h3>
+              <p>Från möbler och trädgård till kök, husdjur och barn, och {proof.rating} av 5 i betyg på Google.</p>
+            </li>
+            <li>
+              <span className="om-tid-nar">Varje dag</span>
+              <h3>Fyndauktionen</h3>
+              <p>Nya fynd varje dag, där priset sjunker varje timme tills någon köper. <a href="/fyndauktion">Se dagens fynd</a></p>
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -241,6 +299,24 @@ export default async function OmOss() {
                 <p>{l.text}</p>
                 <a className="btn-quiet" href={l.lank.href}>{l.lank.text}</a>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="om-sektion om-fragor-sek">
+        <div className="container om-fragor-grid">
+          <div>
+            <div className="eyebrow">Frågor</div>
+            <h2>Vanliga frågor om Fyndplats</h2>
+            <p>Hittar du inte svaret här finns fler på sidan <a href="/vanliga-fragor">Vanliga frågor</a>.</p>
+          </div>
+          <div className="om-fragor">
+            {FRAGOR(proof.rating).map((f) => (
+              <details key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
             ))}
           </div>
         </div>

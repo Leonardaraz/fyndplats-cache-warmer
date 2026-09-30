@@ -2990,3 +2990,25 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
   .om-fakta-kort{padding:20px 12px}
 }
 @media(prefers-reduced-motion:reduce){.om-kat{transition:none}.om-kat:hover{transform:none}}
+
+/* Om oss: tidslinje och frågor */
+.om-tid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:tid}
+.om-tid li{position:relative;padding:26px 24px 24px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
+.om-tid li::before{content:"";position:absolute;left:24px;right:24px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--brand);opacity:.85}
+.om-tid-nar{display:inline-block;font-size:var(--text-xs);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+.om-tid p{font-size:var(--text-sm);margin:6px 0 0}
+.om-tid a{color:var(--brand);font-weight:650}
+.om-fragor-sek{background:var(--warm);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.om-fragor-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px;align-items:start}
+.om-fragor-grid>div>p{margin-top:14px}
+.om-fragor-grid a{color:var(--brand);font-weight:650}
+.om-fragor{display:grid;gap:10px}
+.om-fragor details{background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:0 20px}
+.om-fragor summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:750;font-size:var(--text-base)}
+.om-fragor summary::-webkit-details-marker{display:none}
+.om-fragor summary::after{content:"+";font-size:22px;font-weight:500;color:var(--brand);line-height:1;transition:transform .2s}
+.om-fragor details[open] summary::after{transform:rotate(45deg)}
+.om-fragor details p{margin:0 0 18px;font-size:var(--text-sm)}
+@media(max-width:900px){.om-tid{grid-template-columns:1fr}.om-fragor-grid{grid-template-columns:1fr;gap:20px}}
+@media(prefers-reduced-motion:reduce){.om-fragor summary::after{transition:none}}
+.om-tid-sek{border-top:1px solid var(--line);padding-top:64px}
