@@ -152,7 +152,8 @@ async function handle(req: NextRequest) {
           + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
-          + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
+          + `${summary.lagerDrift} lagerdrift (${summary.lagerDriftRattade} rättade bara för driften), `
+          + `${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
           + `${summary.aterILager} tillbaka i lager, ${summary.restockMejl} restock-mejl, `
@@ -180,7 +181,10 @@ async function handle(req: NextRequest) {
         + `${summary.ejSkeppbara} ej skeppbara, `
         + `${summary.varningar.length} varningar, ${summary.godkandaHopp.length} godkända prishopp, `
         + `${summary.utanLagerrader} utan lagerrader, `
-        + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `
+        // Lagerdrift (2026-09-30): butikens saldo mot stämpeln. "rättade" är
+        // skrivningar som kom till BARA för driften — se motButikensSaldo.
+        + `${summary.lagerDrift} lagerdrift, ${summary.lagerDriftRattade} rättade, `
+        + `${summary.misslyckade} misslyckade, `
         // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.
         + `${summary.flerartikelrader} sammanslagna, ${summary.okandaVarianter} okända varianter, `
@@ -202,6 +206,15 @@ async function handle(req: NextRequest) {
         + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
+    // Produkterna som skrevs bara för att butiken drivit från stämpeln. Wix-id
+    // är publika, så de får stå i loggen — artikelnumren gör det aldrig.
+    if (summary.lagerDriftProdukter.length > 0) {
+      const idn = summary.lagerDriftProdukter;
+      console.log(
+        `[aosom-sync] lagerdrift rättad${dryRun ? " (torrkörning)" : ""}: ${idn.slice(0, 20).join(", ")}`
+          + (idn.length > 20 ? ` … ${idn.length} st totalt` : ""),
+      );
+    }
     // En rad per produkt vars bevakare inte fick allt: bara Wix-id och räknare.
     for (const u of summary.restockUtskick) {
       if (u.stopp || u.ejSkickade > 0 || u.markeringsfel || (u.sidan && u.sidan !== "uppfriskad")) {

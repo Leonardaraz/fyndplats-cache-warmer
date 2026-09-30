@@ -911,7 +911,66 @@ tal i tre körningar i rad). Lagret har alltså INTE det hål priserna hade — 
 var svaret tjugo rader. Att göra butiken till facit även för lagret är därmed
 inte akut, och den enda drivande raden rättas av nästa körning som rör den.
 Talet står i loggraden och i workflow-summeringen; går det upp är det ett
-besked, inte brus.
+besked, inte brus. **Det höll i fyra veckor — se nästa avsnitt.**
+
+### ✅ En stämpel som ljuger rättas mot butiken (2026-09-30)
+
+Hundburen `6297606f` gjorde driften akut. Sammanslagningen (B71 i
+`tools/polish-gates/FLAGGADE.md`) stämplade 90 cm (`22f4cf42`) med givarens
+saldo, alltså flödets tal. Synken 03:20 hade läst mappningarna innan dess, såg
+90 cm som en okänd variant och nollade den i butiken 03:24. Sedan sa stämpeln
+"redan skrivet" och butiken 0 — och synken skrev bara när FLÖDET skilde sig
+från stämpeln. Varianten hade stått som slutsåld tills Aosoms saldo på
+artikeln ändrades. `lagerDrift` räknade den hela tiden: 5 av 4 486 i
+torrkörningen 19:5x UTC samma dag.
+
+`motButikensSaldo` (`lib/aosom/sync.ts`) jämför butikens saldo, som körningen
+redan läste, med stämpeln. Skiljer de sig åt är stämpeln opålitlig, och
+flödets saldo planeras för skrivning även när stämpeln redan säger det. Per
+variant på en sammanslagen sida, på radens egna poster på en vanlig rad. Allt
+annat står kvar: `LAGER_BUFFERT`, exakt `limit` (rättelserna ryms i tuggan),
+alla-eller-ingen per produkt, bekräftelsen per rad (`tolkaBulkUtfall`),
+massfelsspärrarna och att torrkörningen läser lagret.
+
+Två nya fält, i svaret, loggraden, audit-raden och workflow-summeringen:
+`lagerDriftRattade` — produkter där driften lade till minst en lagerrad, alltså
+de extra skrivningarna — och `lagerDriftProdukter`, deras Wix-id. `lagerDrift`
+räknar som förut driften när körningen kom, och ska vara noll efter en skarp
+körning.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Ett okänt saldo är ingen drift.** En post utan `quantity` gick inte att
+   läsa, och då gäller stämpeln — samma hållning som `aterkomnaLagerrader`.
+2. ☠️ **Bara radens EGNA poster räknas på en vanlig rad** (`delaPoster`, samma
+   uppdelning som skrivningen). Mätningen läste tidigare `poster[0]`, som kan
+   vara en okänd färgs post. En okänd variant nollas ändå och är ingen drift.
+3. **En rättelse som föll stämplas inte**, som alla andra skrivningar. Nästa
+   körning ser driften igen och försöker på nytt.
+4. **En rättelse från 0 är en återkomst.** Bevakarna mejlas som vid varje
+   annan återkomst (`aterkomnaLagerrader`), och torrkörningen räknar den.
+
+☠️ **En försäljning räknas också som drift — det är en beteendeändring.** Wix
+drar av saldot vid köp, så butiken hamnar under stämpeln, och nästa synk
+skriver tillbaka flödets tal. Förut låg avdraget kvar tills Aosoms tal för
+artikeln ändrades. Nu skrivs det över vid varje körning tills Aosoms flöde
+visar vår order. `LAGER_BUFFERT` är därmed det enda som skyddar enheter vi sålt
+men inte beställt, och på en artikel med lite lager kan samma sista enhet
+säljas en gång per körning: Aosom har 4, butiken visar 1, den säljs, nästa
+körning skriver 1 igen. Regeln skiljer inte en försäljning från en nollning,
+och ett test låser det (`en försäljning räknas som drift`). Den smalare vägen,
+om det ska ändras, är att bara rätta när skillnaden är större än
+`LAGER_BUFFERT` — det tar hundburen (122 mot 0) men lämnar vanliga köp ifred.
+
+⚠️ **Racet i B71 är inte lagat.** Synken läser alla mappningar när den startar
+och sparar tillbaka hela raden som den såg ut då. Ett saldo som nollats medan
+raden var aktuell, som hundburens, rättas nu av nästa körning. Men en rad som
+skrivits över tappar sin nya variant, och då nollas varianten som okänd vid
+varje körning tills sammanslagningen körs om (`wix_klar`). Rättelsen gör
+dessutom att synken sparar raden oftare än förut, också efter en försäljning,
+så en sammanslagning mitt i en körning skrivs över lättare. Kör ingen
+sammanslagning mellan xx:18 och xx:27 vid synktimmarna (00, 03, 06, 12 och 18
+UTC).
 
 ### Så körs den för hand
 
