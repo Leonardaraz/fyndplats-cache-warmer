@@ -252,18 +252,18 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   baddfatoljer: {
     intro: [
       "En bäddfåtölj är en fåtölj till vardags och en säng när någon sover över. Du fäller ut den, lägger ryggen plant och har en bädd som är lika lång som en vanlig säng, utan att gästrummet behöver en säng som står tom resten av året.",
-      "Bäddarna är 180 till 193 cm långa och 60 till 98 cm breda. De smala fåtöljerna tar liten plats i ett litet rum, och de med 90 cm bred bädd ger gästen mer utrymme. Ryggen går att ställa i tre till sex lägen, så att du kan luta dig bakåt även när fåtöljen inte är bäddad.",
-      "Klädseln är sammet, manchester, chenille eller tyg i linnelook, och flera har armstöd i gummiträ. Stommen är av stål, och de flesta bär 120 kg. Till de flesta följer en kudde, och fåtöljerna levereras omonterade med anvisning.",
+      "De flesta bäddar är 180 till 193 cm långa, och tre låga fåtöljer som viks ut blir 203 eller 210 cm. Bredden är 57 till 102 cm. De smala fåtöljerna tar liten plats i ett litet rum, och de med 90 cm bred bädd ger gästen mer utrymme. Ryggen går att ställa i tre till sex lägen, så att du kan luta dig bakåt även när fåtöljen inte är bäddad.",
+      "Klädseln är sammet, manchester, chenille eller tyg i linnelook, och flera har armstöd i gummiträ. Stommen är oftast av stål, och de flesta bär 120 kg. Till de flesta följer en kudde, och de flesta levereras omonterade med anvisning, medan fåtöljerna som viks i tre delar kommer färdiga.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur lång blir bädden?",
-        a: "Mellan 180 och 193 cm, beroende på modell. De flesta ger 183 till 190 cm, alltså en vanlig sänglängd.",
+        a: "De flesta ger 183 till 190 cm, alltså en vanlig sänglängd. Tre låga fåtöljer som viks ut blir 203 eller 210 cm långa.",
       },
       {
         q: "Hur mycket bär en bäddfåtölj?",
-        a: "De flesta bär 120 kg. En modell i manchester utan armstöd är byggd för 200 kg.",
+        a: "De flesta bär 120 kg. En modell i manchester utan armstöd är byggd för 200 kg, och den trefaldiga golvmadrassen bär 240 kg.",
       },
       {
         q: "Går klädseln att tvätta?",
@@ -303,14 +303,14 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   badrumsskap: {
     intro: [
       "Ett badrumsskåp ska rymma mycket på liten yta och klara badrummets fukt. Här samlar vi smala skåp som får plats bredvid tvättstället, högskåp för handdukar och flaskor, tvättställsskåp, spegelskåp och medicinskåp som går att låsa.",
-      "De smala skåpen börjar på 18 cm i bredd och högskåpen går upp till 185 cm, så de flesta badrum har en plats för ett. Stommarna är av lackerad MDF eller spånskiva, bambu eller rostfritt stål, och flera har justerbara hyllplan. Ett av högskåpen har en inbyggd tvättkorg som tippas ut, och på några skåp stängs dörrarna mjukt.",
+      "De smala skåpen börjar på 16 cm i bredd och högskåpen går upp till 185 cm, så de flesta badrum har en plats för ett. Stommarna är av lackerad MDF eller spånskiva, bambu eller rostfritt stål, och flera har justerbara hyllplan. Två av högskåpen har en inbyggd tvättkorg bakom en lucka, och på några skåp stängs dörrarna mjukt.",
       "Nästan alla medicinskåp låses med kod eller nyckel, så att mediciner hålls utom räckhåll för barn, och de flesta hängs på väggen. Till de höga skåpen följer tippskydd som ska fästas i väggen. Torka av skåpen med en lätt fuktad trasa och vädra badrummet efter duschen.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Passar ett badrumsskåp i ett litet badrum?",
-        a: "Ja, välj efter bredden. De smala skåpen är från 18 cm breda och flera högskåp är bara 20 cm. Mät platsen bredvid tvättstället och räkna med utrymme för att öppna dörren.",
+        a: "Ja, välj efter bredden. De smala skåpen är från 16 cm breda och flera högskåp är bara 20 cm. Mät platsen bredvid tvättstället och räkna med utrymme för att öppna dörren.",
       },
       {
         q: "Går medicinskåpen att låsa?",
@@ -325,15 +325,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   badrumsspeglar: {
     intro: [
-      "Här hittar du badrumsspeglar med och utan belysning: rektangulära och bågformade LED-speglar, en rund LED-spegel, en spegel med inbyggd förstoringsspegel och enkla speglar med hylla.",
-      "LED-speglarna har antiimma som håller en del av glaset fritt från imma efter duschen. Ljuset dimras och ställs i tre färgtemperaturer, 3 000, 4 500 och 6 500 K, och sju av speglarna har också Bluetooth och klocka.",
+      "Här hittar du badrumsspeglar med och utan belysning: rektangulära och bågformade LED-speglar, runda LED-speglar, en spegel med inbyggd förstoringsspegel, enkla speglar med hylla och spegelskåp, ett av dem med LED-belysning och antiimma.",
+      "LED-speglarna har antiimma som håller en del av glaset fritt från imma efter duschen. Ljuset dimras och ställs i tre färgtemperaturer, 3 000, 4 500 och 6 500 K, och fyra av speglarna har också Bluetooth och klocka.",
       "Storlekarna går upp till 100 × 80 cm, och de flesta LED-speglarna har IP44, som tål vattenstänk. Placera ändå spegeln så att duschen inte sprutar direkt på den.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vad är antiimma?",
-        a: "En platta eller folie bakom glaset som håller en del av spegeln fri från imma när badrummet är fullt av ånga. Storleken står i beskrivningen, till exempel 50 × 40 cm, och på den runda spegeln stänger den av sig själv.",
+        a: "En platta eller folie bakom glaset som håller en del av spegeln fri från imma när badrummet är fullt av ånga. Storleken står i beskrivningen, till exempel 50 × 40 cm, och på den runda spegeln på 60 cm stänger den av sig själv.",
       },
       {
         q: "Vilken färgtemperatur ska jag välja?",
@@ -341,22 +341,22 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Har speglarna högtalare?",
-        a: "Sju av LED-speglarna har Bluetooth och klocka, och flera anger en högtalare på 6 W. Det står i beskrivningen vilka.",
+        a: "Fyra av LED-speglarna har Bluetooth och klocka, och flera anger en högtalare på 6 W. Det står i beskrivningen vilka.",
       },
     ],
   },
 
   barbord: {
     intro: [
-      "Här hittar du barbord för köket och vardagsrummet: set med två eller fyra pallar, ett set med två stolar med ryggstöd, två höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk som packas i en väska.",
-      "Borden i seten är 80 till 121,5 cm breda, och sitthöjden är 57 till 68 cm, alltså högre än vid ett matbord. Två av seten har hyllor under skivan, och på det ena bär skivan 170 kg. Ett annat har vinställ och glashållare.",
-      "De höj- och sänkbara barborden är runda, drygt 60 cm i diameter, och ställs mellan 70 och 90 cm respektive 67 och 93 cm. Det vridbara barbordet på 150 cm har skåp med dörrar i räfflat glas och en sidomodul, och bardelen vrids ut i vinkel eller läggs rakt.",
+      "Här hittar du barbord för köket och vardagsrummet: set med två eller fyra pallar, set med två eller fyra stolar med ryggstöd, tre höj- och sänkbara barbord, ett vridbart barbord med glasskåp och en hopfällbar bardisk som packas i en väska. Här finns också barbord som säljs utan stolar och snurrbara barpallar med gaslyft.",
+      "Borden i seten är 80 till 121,5 cm breda, och sitthöjden är 57 till 68 cm, alltså högre än vid ett matbord. Flera av seten har hyllor, och på ett av dem bär skivan 170 kg. Ett annat har vinställ och glashållare.",
+      "De höj- och sänkbara barborden är runda, drygt 60 cm i diameter, och ställs mellan 70 och 90 cm, 67 och 93 cm eller 76 och 97 cm. Det vridbara barbordet på 150 cm har skåp med dörrar i räfflat glas och en sidomodul, och bardelen vrids ut i vinkel eller läggs rakt.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur högt är ett barbord?",
-        a: "De flesta barbord i seten här är 87 till 95 cm höga, och sitthöjden är 57 till 68 cm. Ett vanligt matbord är runt 75 cm högt, så barbordet passar med pallar eller barstolar och inte med vanliga stolar.",
+        a: "De flesta barbord i seten här är 87 till 95 cm höga, och sitthöjden är 57 till 68 cm. Ett vanligt matbord är lägre, så barbordet passar med pallar eller barstolar och inte med vanliga stolar.",
       },
       {
         q: "Hur mycket plats behöver ett barbord med pallar?",
@@ -394,9 +394,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   belysning: {
     intro: [
-      "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor för utomhusbruk, dekorativa LED-björkar och kraftiga LED-armaturer för garage och verkstad. Golvlamporna ligger också här, och de har dessutom en egen sida.",
+      "Rätt ljus förändrar ett rum mer än de flesta möbler. I Belysning hittar du taklampor, bordslampor, vägglampor, takfläktar med belysning, dekorativa LED-björkar och ljusslingor och en bärbar LED-strålkastare för arbete ute och i verkstaden. Golvlamporna ligger också här, och de har dessutom en egen sida.",
       "Tre saker avgör valet. Sockeln måste matcha lampan du tänkt använda (E27 är vanligast). IP-klassen talar om hur mycket väta armaturen tål — utomhus och i garage vill du ha minst IP44. Ljusmängden mäts i lumen, inte watt: en LED-armatur drar en bråkdel av en gammal glödlampas effekt vid samma ljus. Allt detta anges i produktbeskrivningen.",
-      "Taklamporna finns med glaskulor, i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
+      "Taklamporna finns i kristall, med skärm i linne eller hampsnöre och som LED-lampor med fjärrkontroll. Bordslamporna är i keramik, trä och glas, flera har USB-uttag i foten och ett par är sladdlösa och laddbara, så att de kan stå där det saknas eluttag.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -405,12 +405,12 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
         a: "Sockeltypen anges för varje armatur, och E27 är den vanligaste i svenska hem. Har du redan lampor hemma, kontrollera att sockeln stämmer innan du beställer.",
       },
       {
-        q: "Kan vägglamporna sitta utomhus?",
-        a: "De modeller som är avsedda för utomhusbruk har en IP-klass angiven, till exempel IP45. Är ingen IP-klass angiven är armaturen tänkt för inomhusbruk.",
+        q: "Vilken belysning tål att stå ute?",
+        a: "Det som är gjort för utomhusbruk har en IP-klass angiven, som IP44 på ljusslingan och flera LED-björkar och IP65 på LED-strålkastaren. Är ingen IP-klass angiven är armaturen tänkt för inomhusbruk.",
       },
       {
-        q: "Passar en hexagonlampa i ett vanligt garage?",
-        a: "Måtten anges i beskrivningen, och modulerna monteras i mönster efter takytan. Mät takhöjd och yta först, och räkna med god marginal till portens rörelseområde.",
+        q: "Passar en takfläkt med belysning i ett rum med lågt tak?",
+        a: "Takfläkten med infällbara blad är 40 cm i diameter när den står still, och bladen fälls ut till 95 cm när den startar. Den med tre träblad är 117 cm i diameter och gjord för en takhöjd på 2,8–3 m, så mät takhöjd och yta först.",
       },
     ],
   },
@@ -471,7 +471,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     faq: [
       {
         q: "Hur mycket tål hyllplanen?",
-        a: "Det skiljer sig mycket och står i beskrivningen: från 3 kg per plan i en barnbokhylla till 10 kg per plan i en metallhylla.",
+        a: "Det skiljer sig mycket och står i beskrivningen: från 2 kg per plan i mediahyllan och 3 kg per plan i en barnbokhylla till 20 kg per plan i den öppna bokhyllan med stålram.",
       },
       {
         q: "Måste bokhyllan fästas i väggen?",
@@ -511,8 +511,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   byraer: {
     intro: [
       "Här hittar du byråer till sovrummet, hallen och barnrummet: smala byråer från 20 cm bredd, breda byråer upp till 130 cm, en låg modell på 51,5 cm och höga byråer med fem lådor.",
-      "Nästan hälften har tyglådor på en stomme av stål, MDF eller bambu. Flera levereras med tippskydd som fäster byrån i väggen, och det står i beskrivningen vilka.",
-      "Två byråer har eluttag ovanpå, den ena också USB, så att mobilen laddas på byrån. En byrå har ett skåp bredvid lådorna.",
+      "Ungefär hälften har tyglådor på en stomme av stål, MDF eller bambu. Flera levereras med tippskydd som fäster byrån i väggen, och det står i beskrivningen vilka.",
+      "Två byråer har eluttag och USB ovanpå, så att mobilen laddas på byrån. En byrå har ett skåp bredvid lådorna.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -605,7 +605,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   elementskydd: {
     intro: [
       "Här hittar du elementskydd, också kallade radiatorskydd, som döljer elementet bakom en spjälad front. Fronten släpper igenom den varma luften, och ovansidan blir en hylla där du kan ställa lätta saker.",
-      "Skydden är 60 till 172 cm breda, 18 till 19 cm djupa och 81 till 95,5 cm höga. Det vita på 60 eller 90 cm finns i två bredder, och det längsta på 172 cm täcker ett långt element under ett fönster.",
+      "Skydden är 60 till 201 cm breda, 18 till 19 cm djupa och 81 till 95,5 cm höga. Det vita på 60 eller 90 cm finns i två bredder, ett vitt skydd dras ut från 125 till 201 cm, och det på 172 cm täcker ett långt element under ett fönster.",
       "Elementskyddet i ekton har vågräta spjälor och två lådor i överkant, och gavlarna har ett förskuret urtag för golvlisten. Flera förankras i väggen med beslag, vältskydd eller väggclips som följer med.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -628,7 +628,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   elkaminer: {
     intro: [
       "En elkamin ger känslan av en brasa utan skorsten, ved eller aska. Lågorna är LED-ljus, och kaminen värmer rummet när du vill. Här samlar vi väggkaminer att hänga på väggen eller bygga in, fristående kaminer och konsolmodeller, en cylindrisk kamin och små elkaminer på ben.",
-      "Effekten är 1800 eller 2000 W, och de flesta har två värmelägen, så att du kan välja 1000 W en sval kväll och full effekt när det är kallt. De flesta går också att köra som ren flameffekt utan värme, och flera har fjärrkontroll, termostat, timer och överhettningsskydd.",
+      "Effekten är 1200 till 2000 W, och de flesta har två värmelägen, så att du kan välja till exempel 1000 W en sval kväll och full effekt när det är kallt. De flesta går också att köra som ren flameffekt utan värme, och flera har fjärrkontroll, termostat, timer och överhettningsskydd.",
       "Väggkaminerna finns upp till 152 cm breda, och några är gjorda för att byggas in i en vägg eller nisch. Andra ska sitta utanpå väggen, och det står i beskrivningen. Ljudnivån ligger under 50 till 55 dB, alltså hörbar i ett tyst rum men inte påträngande.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -639,7 +639,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur mycket värmer en elkamin?",
-        a: "Effekten är 1800 eller 2000 W, och de flesta har ett lägre läge. En av konsolmodellerna anges värma ett rum på upp till 30 kvadratmeter.",
+        a: "Effekten är 1200 till 2000 W, och de flesta har ett lägre läge. En av konsolmodellerna anges värma ett rum på upp till 30 kvadratmeter.",
       },
       {
         q: "Kan man bygga in en elkamin i väggen?",
@@ -721,7 +721,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   gnistskydd: {
     intro: [
       "Här hittar du gnistskydd, också kallade brasskärmar, som ställs framför den öppna spisen och fångar gnistor och glöd som flyger ut ur elden. De står fritt och flyttas undan när du lägger in ved.",
-      "De flesta har tre paneler, där sidopanelerna vinklas bakåt så att skyddet står stadigt och täcker även åt sidorna. Bredden är 96 till 141 cm och höjden 50 till 81 cm, så mät spisens öppning innan du väljer.",
+      "De flesta har tre paneler, där sidopanelerna vinklas bakåt så att skyddet står stadigt och täcker även åt sidorna. Bredden är 96 till 141 cm och höjden 50 till 85 cm, så mät spisens öppning innan du väljer.",
       "Ett gnistskydd är guldfärgat och har dubbeldörrar i mitten, och ett har handtag och en välvd mittpanel. Gnistskyddet i smidesdesign på 128 cm levereras färdigmonterat, och flera går att fälla ihop när de inte används.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -743,8 +743,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   golvlampor: {
     intro: [
-      "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, trebenta lampor med tygskärm, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
-      "Lamporna är från 129 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Ungefär hälften går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
+      "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, lampor med skärm i tyg eller linnelook, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
+      "Lamporna är från 129 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Flera går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
       "Titta på ljuskällan innan du beställer. I lamporna med inbyggd LED sitter ljuset fast, till några lampor med E27-sockel ingår lamporna och till andra köper du dem separat. Flera LED-lampor går att ställa om mellan varmt och kallt ljus, från 3000 till 6500 kelvin.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -759,7 +759,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Kan jag ladda mobilen i lampan?",
-        a: "Ja, i två av golvlamporna med hyllor. Den ena har USB-uttag och den andra både USB-A, USB-C och ett vanligt eluttag.",
+        a: "Ja, i tre av golvlamporna med hyllor. Den med bambuhylla har USB-uttag, och två har både USB-A, USB-C och ett vanligt eluttag.",
       },
     ],
   },
@@ -928,7 +928,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   hornskrivbord: {
     intro: [
       "Här hittar du hörnskrivbord som tar vara på ett hörn i rummet. De flesta är L-formade med en stor och en mindre skiva, så att du har datorn på den ena och papper eller en andra skärm på den andra.",
-      "Fyra har eluttag och USB i bordet, så att datorn och telefonen laddas vid skrivbordet. Två av dem har ett hylltorn med fem plan, ett har tre lådor, och gamingbordet har ett skärmställ för två skärmar upp till 42 tum. Flera har ett skärmställ som höjer skärmen.",
+      "Tre har eluttag och USB i bordet, så att datorn och telefonen laddas vid skrivbordet. Ett av dem har ett hylltorn med fem plan, ett har tre lådor, och gamingbordet har ett skärmställ för två skärmar upp till 42 tum. Flera har ett skärmställ som höjer skärmen.",
       "Två kan byggas om till raka skrivbord. Det ena blir 240 cm långt, och det andra blir 150 cm och vrids på stället mellan hörnläge och rakt läge. Hörnskrivbordet på 150 × 150 cm har två lika stora arbetsytor på 90 × 55 cm.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -939,11 +939,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur mycket tål skrivbordet?",
-        a: "Det skiljer mellan modellerna. Gamingbordet tål 45 kg totalt, och borden med hylltorn tål 135 kg totalt och 50 kg per bordsskiva.",
+        a: "Det skiljer mellan modellerna. Gamingbordet tål 45 kg totalt, och bordet med hylltorn tål 135 kg totalt och 50 kg per bordsskiva.",
       },
       {
         q: "Har hörnskrivborden förvaring?",
-        a: "De flesta har det. Två har ett hylltorn med fem plan, ett har tre lådor och fyra hyllor, ett har hyllor och ett datorställ, och det vridbara skrivbordet har också förvaring. Hörnskrivbordet på 150 × 150 cm har bara arbetsytor.",
+        a: "De flesta har det. Ett har ett hylltorn med fem plan, ett har tre lådor och fyra hyllor, ett har hyllor och ett datorställ, och det vridbara skrivbordet har också förvaring. Hörnskrivbordet på 150 × 150 cm har bara arbetsytor.",
       },
     ],
   },
@@ -1230,9 +1230,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "kladhangare-hallmobler": {
     intro: [
-      "Här hittar du klädhängare, klädställningar och hallmöbler: fristående klädhängare med krokar, klädställ på hjul, en öppen klädställning med tre stänger och hallmöbler som samlar krokar, bänk och skoförvaring i en och samma möbel.",
+      "Här hittar du klädhängare, klädställningar och hallmöbler: fristående klädhängare med krokar, klädställ på hjul, en öppen klädställning med tre stänger och hallmöbler som samlar krokar, bänk och skoförvaring i en och samma möbel. Här finns också öppna garderober, ett paraplyställ med droppskål, skoskåp och skobänkar till hallen.",
       "Klädhängaren i furu har åtta krokar på olika höjder. Klädstället med paraplyställ tar bara 30,5 × 30,5 cm golv och har tolv krokar på tre höjder. Klädställningen på hjul ställs i höjd mellan 95 och 170 cm och i bredd mellan 86 och 160 cm.",
-      "Hallmöblerna har bänk, skobänk eller en tygkommod med sju lådor under krokarna. Hallmöbeln 3-i-1 har en bänk som bär 110 kg och levereras med tippskydd. Till den som vill sitta ner och ta på skorna finns också hallbänkar, varav en med rullade armstöd.",
+      "Hallmöblerna har bänk, skobänk eller en tygkommod med sju lådor under krokarna. Hallmöbeln 3-i-1 har en bänk som bär 110 kg och levereras med tippskydd. Till den som vill sitta ner och ta på skorna finns också hallbänkar och sittbänkar, en med rullade armstöd och flera med förvaring under sitsen. Bänkarna bär mellan 120 och 330 kg.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1299,8 +1299,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "koksoar-koksvagnar": {
     intro: [
-      "En köksö eller köksvagn ger köket mer arbetsyta och förvaring utan att du behöver bygga om. Här samlar vi köksöar med skåp och utfällbar skiva, köksvagnar med lådor och hyllor, smala vagnar med utdragskorgar och vagnar med kryddhylla eller vinställ.",
-      "Alla står på hjul, och på nästan alla har två av hjulen broms, så att vagnen står stilla när du arbetar och rullar undan när du städar. Köksöarna är från 113 till 129 cm breda, och de har en skiva som fälls ut eller brickor som dras ut när du behöver mer yta.",
+      "En köksö eller köksvagn ger köket mer arbetsyta och förvaring utan att du behöver bygga om. Här samlar vi köksöar med skåp och utfällbar skiva, köksvagnar med lådor och hyllor, smala vagnar med utdragskorgar och vagnar med kryddhylla eller vinställ. Här finns också ett mikrovågsugnsskåp och ett klaffbord med skåp, båda på hjul.",
+      "Nästan alla står på hjul, och på de flesta har två av hjulen broms, så att vagnen står stilla när du arbetar och rullar undan när du städar. Köksöarna är från 113 till 129 cm breda, och de har en skiva som fälls ut eller brickor som dras ut när du behöver mer yta.",
       "Skivorna är av massivt gummiträ, furu eller i trälook och stenlook, och flera vagnar har kryddhylla, handdukshängare och plats för flaskor. Bärigheten står per modell och går upp till 112 kg på den största köksön. Vagnarna levereras omonterade med anvisning.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1311,7 +1311,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Går hjulen att låsa?",
-        a: "Ja, på nästan alla köksöar och köksvagnar har två av hjulen broms.",
+        a: "Ja, på de flesta köksöar och köksvagnar har två av hjulen broms. Lås dem när du skär eller kavlar på skivan, så att vagnen står still.",
       },
       {
         q: "Hur mycket tål skivan?",
@@ -1345,7 +1345,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   konstvaxter: {
     intro: [
-      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter för inne och ute, från buxbomsklot, cypresser och lavendelträd till olivträd, monstera, bambu och palmer upp till 190 cm, och häck på rulle.",
+      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter för inne och ute, från buxbomsklot, cypresser och lavendelträd till olivträd, monstera, bambu och palmer, de högsta 180 cm, och häck på rulle.",
       "Många står färdiga i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett för rabatten. Växterna behöver varken vattnas eller beskäras, och de klarar sig där det är mörkt.",
       "Ska växten stå ute, välj en som är UV-beständig, så att färgen inte bleks i solen. Många av växterna passar både inne och ute, men några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -1525,7 +1525,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur mycket bär en massagefåtölj?",
-        a: "Det står per modell. De flesta bär 120 kg, flera 135 eller 150 kg, och fyra modeller är byggda för 160 kg.",
+        a: "Det står per modell. De flesta bär 120 kg, flera 135 eller 150 kg, och en modell, som finns i fyra färger, är byggd för 160 kg.",
       },
     ],
   },
@@ -1555,9 +1555,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   matgrupper: {
     intro: [
-      "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. Sex är tredelade med ett bord och två stolar, och fyra är femdelade med ett bord och fyra stolar.",
+      "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. Sex är tredelade med ett bord och två stolar, och fem är femdelade med ett bord och fyra stolar.",
       "De små grupperna passar i köket eller i en liten lägenhet: ett kvadratiskt bord på 60 cm, ett på 70 × 70 cm, ett smalt bord på 90 × 47 cm och ett ovalt bord på 80 cm med en hylla under skivan. Klaffbordet fälls ut från 70 till 110 cm, och i en av grupperna har stolarna stoppad klädsel.",
-      "Grupperna för fyra har bord på 100 till 120 cm: två i MDF och metall, ett glasbord med stolar i konstläder och ett bord med stolar i furu.",
+      "Grupperna för fyra har bord på 100 till 120 cm: två i MDF och metall, ett glasbord med stolar i konstläder och två grupper där både bord och stolar är av furu.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1567,7 +1567,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur höga är bordet och stolarna?",
-        a: "Borden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 47,5 cm där den anges. Det är vanlig höjd för ett matbord. Ett barbord är runt 90 cm.",
+        a: "Borden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 47,5 cm där den anges. Det är vanlig höjd för ett matbord, och ett barbord är högre.",
       },
       {
         q: "Hur mycket bär stolarna?",
@@ -1578,9 +1578,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "miniugnar-airfryers": {
     intro: [
-      "Här hittar du miniugnar och bänkugnar för köksbänken, och miniugnar med frityrkorg som fungerar som airfryer. De rymmer från 9 till 36 liter och tar mindre plats än en vanlig ugn, så de passar i ett litet kök eller som en extra ugn.",
+      "Här hittar du miniugnar och bänkugnar för köksbänken, och miniugnar med frityrkorg som fungerar som airfryer. De rymmer från 9 till 46 liter och tar mindre plats än en vanlig ugn, så de passar i ett litet kök eller som en extra ugn.",
       "Sju av ugnarna har frityrkorg och varmluft. Maten ligger i korgen och den varma luften cirkulerar runt den, så att den blir krispig med betydligt mindre olja än i en vanlig fritös. Ugnarna med frityrkorg rymmer från 10 till 36 liter.",
-      "De vanliga miniugnarna har timer och flera har tre värmelägen: övervärme, undervärme eller båda. Två bänkugnar har två kokplattor ovanpå, så att du kan koka och baka samtidigt, och tre ugnar har grillspett.",
+      "De vanliga miniugnarna har timer och flera har tre värmelägen: övervärme, undervärme eller båda. Två bänkugnar har två kokplattor ovanpå, så att du kan koka och baka samtidigt, och fyra ugnar har grillspett.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1694,19 +1694,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   oronlappsfatoljer: {
     intro: [
-      "Här hittar du öronlappsfåtöljer, fåtöljer med hög rygg och sidostycken i huvudhöjd som ger stöd när du lutar dig åt sidan. Här finns också två gungstolar och en uppresningsfåtölj med samma rygg.",
-      "Sex av fåtöljerna har samma form: 102 cm höga, 74 cm breda, med knappad rygg och en maxlast på 160 kg. De finns i grått, grå sammet, cremevit flanell, blått, mörkgrått och brunt. På den mörkgrå och den bruna går klädseln att ta av och tvätta, och på den blå går sitsdynans överdrag att tvätta.",
-      "Två fåtöljer har ländkudde: den gula med fotpall och den beige i linnelook, som är 110 cm hög och står på ben i gummiträ. Gungstolarna i fleece har fotpall, nackkudde och ryggkudde, och uppresningsfåtöljen har två motorer och fälls till 155 grader.",
+      "Här hittar du öronlappsfåtöljer, fåtöljer med hög rygg och sidostycken i huvudhöjd som ger stöd när du lutar dig åt sidan. Här finns också en gungstol och en uppresningsfåtölj med samma rygg.",
+      "Tre av fåtöljerna har samma form: 102 cm höga, 74 cm breda, med knappad rygg och en maxlast på 160 kg. Tillsammans finns de i grått, grå sammet, cremevit flanell, blått, mörkgrönt, mörkgrått och brunt. På den mörkgrå och den bruna går klädseln att ta av och tvätta, och på den blå går sitsdynans överdrag att tvätta.",
+      "Tre fåtöljer har ländkudde: den med fotpall i grått eller gult, den beige i linnelook, som är 110 cm hög och står på ben i gummiträ, och den i manchester med 18 cm tjock sits. Gungstolen i fleece har fotpall, nackkudde och ryggkudde, och uppresningsfåtöljen har två motorer och fälls till 155 grader.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vad är en öronlappsfåtölj?",
-        a: "En fåtölj med hög rygg och sidostycken i överkant, öronlapparna, som ger stöd åt huvudet när du lutar dig åt sidan. Öronlappsfåtöljerna här är 102 till 110 cm höga.",
+        a: "En fåtölj med hög rygg och sidostycken i överkant, öronlapparna, som ger stöd åt huvudet när du lutar dig åt sidan. Öronlappsfåtöljerna här är 78 till 110 cm höga.",
       },
       {
         q: "Hur mycket bär en öronlappsfåtölj?",
-        a: "Sex av dem bär 160 kg. De andra fåtöljerna, gungstolarna och uppresningsfåtöljen bär 120 kg.",
+        a: "De med knappad rygg bär 160 kg. De andra fåtöljerna, gungstolen och uppresningsfåtöljen bär 120 kg.",
       },
       {
         q: "Går klädseln att tvätta?",
@@ -1742,7 +1742,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Här hittar du projektordukar på 84 till 120 tum: motoriserade dukar som körs upp och ner med fjärrkontroll, manuella dukar som dras ner för hand och låser sig där du släpper dem, och dukar på stativ som ställs upp utan att något skruvas i väggen.",
       "Dukarna finns i tre bildformat. 16:9 är formatet för film, tv och spel, 4:3 passar presentationer och äldre material, och en kvadratisk duk i 1:1 kan visa båda, eftersom bilden då bara fyller en del av höjden.",
-      "De motoriserade dukarna går på 230 V och drar 25 W, och fjärrkontrollen är trådlös. Både de motoriserade och de manuella skruvas i vägg eller tak och är gjorda för inomhusbruk. De två stativdukarna på 84 tum står på ett trebent stativ och kan användas ute i uppehållsväder, och 120-tumsduken förankras med markankare och stormlinor i gräsmattan.",
+      "De motoriserade dukarna går på 230 V och drar 25 W, och fjärrkontrollen är trådlös. Både de motoriserade och de manuella skruvas i vägg eller tak och är gjorda för inomhusbruk. Stativduken på 84 tum står på ett trebent stativ och flyttas mellan rummen, och 120-tumsduken förankras med markankare och stormlinor i gräsmattan.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1756,7 +1756,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Kan duken användas utomhus?",
-        a: "Stativdukarna kan det. Duken på 120 tum ställs upp på gräsmattan och är gjord för att stå ute en kväll, och de två på trebent stativ används inne och ute i uppehållsväder. De motoriserade och de manuella dukarna skruvas i vägg eller tak och är gjorda för inomhusbruk.",
+        a: "Duken på 120 tum kan det. Den ställs upp på gräsmattan och förankras med markankare och stormlinor, medan duken på trebent stativ är gjord för att flyttas mellan rummen. De motoriserade och de manuella dukarna skruvas i vägg eller tak och är gjorda för inomhusbruk.",
       },
     ],
   },
@@ -1856,19 +1856,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "sideboards-vitrinskap": {
     intro: [
-      "Här hittar du sideboards, skänkar och vitrinskåp: sideboards i vitt, högglans, metall och flätad rotting, en skänk med guldfärgade ben, ett köksskåp i lantstil med glasvitrin och vitrinskåp för väggen och golvet.",
-      "Sideboardsen finns från 80 cm i bredd, och de flesta har både lådor och skåp. Två har dörrar med soft close, och ett har eluttag, USB-portar och en LED-list som lyser i sju färger. Flera levereras med tippskydd eller tippband.",
+      "Här hittar du sideboards, skänkar och vitrinskåp: sideboards i vitt, högglans, metall och flätad rotting, en skänk med guldfärgade ben, köksskänkar och höga köksskåp med arbetsyta, flera i lantstil och med glasdörrar, och vitrinskåp för väggen och golvet.",
+      "Sideboardsen och skänkarna är 68,6 till 140 cm breda, och de flesta har både lådor och skåp. Flera har dörrar med soft close, och ett har eluttag, USB-portar och en LED-list som lyser i sju färger. Flera levereras med tippskydd eller tippband.",
       "Vitrinskåpen för väggen är 9,5 cm djupa, har glasdörrar och hyllplan som kan flyttas och passar samlarfigurer och modeller. Det fristående vitrinskåpet är 139 cm högt med fyra fack och luckor i akryl som fälls upp och glider in ovanför facket.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vad är skillnaden på ett sideboard och en skänk?",
-        a: "Orden betyder i stort sett samma sak: en låg förvaringsmöbel med lådor och skåp. Skänk är det svenska ordet och sideboard det engelska. Sideboardsen här är 75 till 81 cm höga.",
+        a: "Orden betyder i stort sett samma sak: en låg förvaringsmöbel med lådor och skåp. Skänk är det svenska ordet och sideboard det engelska. De flesta sideboards och skänkar här är 74 till 86 cm höga, medan köksskåpen är 159 till 182,5 cm.",
       },
       {
         q: "Hur mycket tål skivan?",
-        a: "Det står i beskrivningen. Skänken med guldben tål 94 kg ovanpå, och sideboardet på 120 cm med soft close tål 30 kg på skivan och 65 kg totalt. Hyllplanen i vitrinskåpen för väggen tål 2 kg vardera.",
+        a: "Det står i beskrivningen. Skänken med guldben tål 94 kg ovanpå, och sideboardet på 120 cm med tre lådor och tippskydd tål 30 kg på skivan och 65 kg totalt. Hyllplanen i vitrinskåpen för väggen tål 2 kg vardera.",
       },
       {
         q: "Hur sätter jag upp ett vitrinskåp på väggen?",
@@ -1880,14 +1880,14 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   sidobord: {
     intro: [
       "Ett sidobord håller lampan, koppen och mobilen nära där du sitter. Här hittar du runda sidobord i metall, rotting, stenlook och marmorlook, sidobord i industristil med hylla eller skåp och C-formade bord som ställs tätt intill soffan.",
-      "Av de C-formade borden står två på hjul och ett skjuts in under soffan. Det ena på hjul går att höja mellan 68 och 78 cm och fungerar också som sängbord eller litet rullbord.",
-      "Två sidobord har eluttag och USB, så att mobilen laddas där den ligger, och flera runda bord av metall och rotting klarar både inne och ute. De runda borden är 32 till 50 cm i diameter.",
+      "Av de C-formade borden står fyra på hjul, och flera skjuts in under soffan eller sängen, så att skivan hamnar där du sitter. Två av dem på hjul går att höja, mellan 68 och 78 cm respektive 72 och 82 cm, och fungerar också som sängbord eller litet rullbord.",
+      "Fyra sidobord har eluttag och USB, så att mobilen laddas där den ligger, och flera runda bord av metall och rotting klarar både inne och ute. De runda borden är 32 till 50 cm i diameter.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur högt ska ett sidobord vara?",
-        a: "Ungefär i höjd med soffans armstöd, så att du når koppen utan att luta dig fram. Sidoborden här är 35 till 80 cm höga, och höjden står i beskrivningen.",
+        a: "Ungefär i höjd med soffans armstöd, så att du når koppen utan att luta dig fram. Sidoborden här är 35 till 82 cm höga, och höjden står i beskrivningen.",
       },
       {
         q: "Är sidobord och avlastningsbord samma sak?",
@@ -1902,23 +1902,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "sittpuffar-fotpallar": {
     intro: [
-      "Här hittar du sittpuffar, fotpallar och puffar med förvaring. De är klädda i sammet, manchester, chenille, teddyfleece eller sherpa, och en sittpuff är flätad i vattenhyacint.",
-      "De flesta har ett förvaringsfack under locket, från 19 liter i den minsta förvaringspallen till 97 liter i den största förvaringspuffen. På flera är locket vändbart, med en mjuk sida att sitta på och en hård sida som fungerar som bricka eller avlastningsbord.",
-      "Fotpallarna är 45 till 70 cm breda, och tre av de fem bär 120 kg, så de går också att sitta på. En fotpall och en sittpuff har plats för katten inuti, och till setet med två sittpallar hör förvaring i den stora.",
+      "Här hittar du sittpuffar, fotpallar och puffar med förvaring. De är klädda i sammet, manchester, chenille, teddyfleece eller sherpa, och en sittpuff är flätad i vattenhyacint. Här finns också sittbänkar med förvaring under sitsen, 100 till 120 cm långa.",
+      "De flesta har ett förvaringsfack under locket, från 13,5 liter i den minsta förvaringspallen till 97 liter i den största förvaringspuffen. På flera är locket vändbart, med en mjuk sida att sitta på och en hård sida som fungerar som bricka eller avlastningsbord.",
+      "Fotpallarna är 45 till 70 cm breda, och fyra av de fem bär 120 kg, så de går också att sitta på. En fotpall och en sittpuff har plats för katten inuti, och till setet med två sittpallar hör förvaring i den stora.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vad är skillnaden på en sittpuff och en fotpall?",
-        a: "En fotpall är oftast avlång och gjord för att vila benen på, medan en sittpuff oftast är rund eller oval. Tre av fotpallarna här bär ändå 120 kg, så de går lika bra att sitta på.",
+        a: "En fotpall är oftast avlång och gjord för att vila benen på, medan en sittpuff oftast är rund eller oval. Fyra av fotpallarna här bär ändå 120 kg, så de går lika bra att sitta på.",
       },
       {
         q: "Hur mycket får plats i en förvaringspuff?",
-        a: "Från 19 liter i den minsta förvaringspallen till 97 liter i förvaringspuffen på 60 cm i diameter. Det räcker till filtar, leksaker eller ett par kuddar.",
+        a: "Från 13,5 liter i den minsta förvaringspallen till 97 liter i förvaringspuffen på 60 cm i diameter. Det räcker till filtar, leksaker eller ett par kuddar.",
       },
       {
         q: "Går det att sitta på puffen?",
-        a: "Tolv av puffarna och pallarna bär 120 kg. Fotpallen med kattbädd är gjord för benen och bär 30 kg ovanpå, och sittpuffen i vattenhyacint bär 80 kg.",
+        a: "De flesta puffar och pallar bär 120 kg, och förvaringspallen i sammetslook med lock som blir bricka bär 150 kg. Fotpallen med kattbädd är gjord för benen och bär 30 kg ovanpå, och sittpuffen i vattenhyacint bär 80 kg.",
       },
     ],
   },
@@ -1971,23 +1971,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   snurrfatoljer: {
     intro: [
-      "Här hittar du snurrfåtöljer som vrids 360 grader, på ben eller på en fot i mitten. Sju av dem har en fotpall, och två är reclinerfåtöljer vars rygg fälls bakåt.",
-      "Tre snurrfåtöljer i linnelook har gaslyft, så att sitsen ställs mellan 45 och 57 cm, och de står på en rund kromad fot utan hjul. Fåtöljerna med lös fotpall på rund stålfot bär 150 kg, och på dem snurrar sitsen ovanpå foten. Fyra snurrfåtöljer med knappad rygg är 60 cm breda och passar där det är ont om plats.",
-      "Den armlösa snurrfåtöljen i chenille har en 35 cm tjock sittdyna, och på fåtöljen med höjdjusterbar fotpall snurrar både stolen och pallen. Fåtöljen i konstläder har en rygg som låses i önskad vinkel med ett vred.",
+      "Här hittar du snurrfåtöljer som vrids 360 grader, på ben eller på en fot i mitten. Många har en fotpall, och flera är reclinerfåtöljer vars rygg fälls bakåt, några också med gungfunktion.",
+      "Tre snurrfåtöljer i linnelook har gaslyft, så att sitsen ställs mellan 45 och 57 cm, och de står på en rund kromad fot utan hjul. Fåtöljen med lös fotpall på rund stålfot bär 150 kg, och på den snurrar sitsen ovanpå foten. Snurrfåtöljen med knappad rygg är 60 cm bred och passar där det är ont om plats.",
+      "En armlös snurrfåtölj i chenille har en 35 cm tjock sittdyna, och på fåtöljen med höjdjusterbar fotpall snurrar både stolen och pallen. En reclinerfåtölj i konstläder har en rygg som låses i önskad vinkel med ett vred.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur mycket plats behöver en snurrfåtölj?",
-        a: "Eftersom stolen vrids behövs utrymme runt om, inte bara framför. Fåtöljerna med lös fotpall tar 71 × 69 cm i golvyta men blir 93 cm djupa när ryggen fälls, och reclinerfåtöljen med snurrfot behöver 80 cm fritt bakom sig.",
+        a: "Eftersom stolen vrids behövs utrymme runt om, inte bara framför. Fåtöljen med lös fotpall på stålfot tar 71 × 69 cm i golvyta men blir 93 cm djup när ryggen fälls, och en reclinerfåtölj med snurrfot behöver 80 cm fritt bakom sig.",
       },
       {
         q: "Hur mycket bär en snurrfåtölj?",
-        a: "Nio av dem bär 120 kg. Snurrfåtöljerna med gaslyft bär 136 kg, och fåtöljerna med lös fotpall och reclinerfåtöljen med snurrfot bär 150 kg.",
+        a: "De flesta bär 120 kg. Snurrfåtöljerna i linnelook med gaslyft bär 136 kg, flera reclinerfåtöljer och fåtöljen med lös fotpall på stålfot 150 kg, och en reclinerfåtölj i konstläder och papasanfåtöljen i konstrotting 160 kg.",
       },
       {
         q: "Kan fåtöljen fällas bakåt?",
-        a: "Flera kan det. Reclinerfåtöljen med snurrfot fälls till 130 grader, fåtöljen i konstläder låses med ett vred i den vinkel du vill ha, och fåtöljerna med lös fotpall har ett bakåtlutat läge.",
+        a: "Flera kan det. Reclinerfåtöljerna fälls till mellan 130 och 150 grader, en av dem låses med ett vred i den vinkel du vill ha, och fåtöljen med lös fotpall på stålfot har ett bakåtlutat läge.",
       },
     ],
   },
@@ -2064,14 +2064,14 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   speglar: {
     intro: [
       "Här hittar du speglar till hela hemmet: helkroppsspeglar och golvspeglar, väggspeglar med ram i svart metall, guld eller furufaner, fönsterspeglar med spröjs och badrumsspeglar med LED-belysning.",
-      "Helkroppsspeglarna och golvspeglarna är 148 till 180 cm höga. Tre av dem har ett stöd som fälls ut, så att spegeln står på golvet, och en har dimbar LED-belysning.",
+      "Helkroppsspeglarna och golvspeglarna är 120 till 180 cm höga. Fyra av dem har ett stöd som fälls ut, så att spegeln står på golvet, och två har dimbar LED-belysning.",
       "Väggspeglarna finns i flera storlekar och former, och flera hängs stående eller liggande. Till badrummet finns speglar med LED-belysning och antiimma, samlade på sidan Badrumsspeglar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur stor spegel behöver jag för att se hela mig?",
-        a: "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Helkropps- och golvspeglarna här är 148 till 180 cm höga.",
+        a: "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Helkropps- och golvspeglarna här är 120 till 180 cm höga.",
       },
       {
         q: "Hur hänger jag upp en tung spegel?",
@@ -2079,7 +2079,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Kan spegeln hänga liggande?",
-        a: "Flera väggspeglar kan hängas både stående och liggande. Speglarna med nio fält har fyra krokar på baksidan för just det.",
+        a: "Flera väggspeglar kan hängas både stående och liggande. Spegeln med nio fält har fyra krokar på baksidan för just det.",
       },
     ],
   },
@@ -2220,15 +2220,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "tv-bankar": {
     intro: [
-      "En tv-bänk ska bära tv:n, gömma sladdarna och ge plats för spelkonsol, router och fjärrkontroller. Här samlar vi tv-bänkar från 80 till 200 cm, en väggmonterad bänk som svävar över golvet, små bänkar på hjul och bänkar med lådor, luckor och öppna fack.",
-      "Titta på tv:ns storlek och vikt. Flera bänkar anger vilken tv som får plats, upp till 75 tum, och bärigheten står per modell, upp till 100 kg för hela bänken. Bänkarna på hjul har kabelhål i bakstycket, och under bänkar med ben kan sladdarna dras i stället för bakom.",
+      "En tv-bänk ska bära tv:n, gömma sladdarna och ge plats för spelkonsol, router och fjärrkontroller. Här samlar vi tv-bänkar från 80 till 200 cm, en väggmonterad bänk som svävar över golvet, en liten bänk på hjul och bänkar med lådor, luckor och öppna fack. Här finns också två tv-stativ på hjul för tv från 32 till 75 tum, där tv:n hängs på en stolpe som höjs och sänks.",
+      "Titta på tv:ns storlek och vikt. Flera bänkar anger vilken tv som får plats, upp till 82 tum, och bärigheten står per modell, upp till 100 kg för hela bänken. Bänken på hjul har kabelhål i bakstycket, och under bänkar med ben kan sladdarna dras i stället för bakom.",
       "Stommarna är av spånskiva eller MDF, i vitt, svart, högglans eller ektoner, och några har ben i metall. Tre bänkar har luckor som stängs mjukt, och en har RGB-LED och glashylla. De flesta levereras omonterade med anvisning.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur stor tv passar på bänken?",
-        a: "Det står i produktbeskrivningen. De största bänkarna är gjorda för en tv på upp till 75 tum, och bärigheten för skivan anges för sig.",
+        a: "Det står i produktbeskrivningen. Den väggmonterade bänken på 180 cm tar en tv på upp till 82 tum och flera andra upp till 75 tum, och bärigheten för skivan anges för sig.",
       },
       {
         q: "Finns det tv-bänk att hänga på väggen?",
@@ -2335,9 +2335,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   varmeflaktar: {
     intro: [
-      "En värmefläkt ger snabb värme där elementen inte räcker: i hallen, i ett kallt sovrum eller i hemmakontoret. Här samlar vi värmefläktar som sitter på väggen och tornmodeller som står på golvet, alla med termostat, timer och överhettningsskydd.",
-      "Effekten är 2000 W, och tornfläkten på 73 cm ger 2200 W. Du väljer mellan flera effektlägen, till exempel 1000 eller 2000 W, och fläkten sveper fram och tillbaka så att värmen sprids i rummet. De flesta har ett värmeelement av keramik och styrs med fjärrkontroll.",
-      "Flera väggmodeller har veckotimer, så att värmen går på när du behöver den, och fönstervakt som stänger av när du vädrar. En av tornmodellerna har vältskydd som bryter strömmen om den välter. Kapslingsklassen står i varje produktbeskrivning, och den avgör var värmefläkten får sitta.",
+      "En värmefläkt ger snabb värme där elementen inte räcker: i hallen, i ett kallt sovrum eller i hemmakontoret. Här samlar vi värmefläktar som sitter på väggen och tornmodeller som står på golvet, alla med termostat och överhettningsskydd och de flesta med timer. Här finns också ett elelement på 1500 W för vägg eller golv, som styrs med en app via wifi.",
+      "Värmefläktarna ger 2000 W, och de två tornen på 73 cm ger 2200 W. Du väljer mellan flera effektlägen, till exempel 1000 eller 2000 W, och fläkten sveper fram och tillbaka så att värmen sprids i rummet. De flesta har ett värmeelement av keramik och styrs med fjärrkontroll.",
+      "Flera väggmodeller har veckotimer, så att värmen går på när du behöver den, och fönstervakt som stänger av när du vädrar. Flera av tornmodellerna har vältskydd som bryter strömmen om de välter. Kapslingsklassen står i varje produktbeskrivning, och den avgör var värmefläkten får sitta.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [

@@ -128,7 +128,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   baddfatoljer: {
     title: "Bäddfåtölj – fåtölj som blir gästsäng",
     description:
-      "Bäddfåtöljer som fälls ut till en bädd på 180–193 cm och 60–98 cm bredd, i sammet, manchester och linnelook, med ryggen i tre till sex lägen.",
+      "Bäddfåtöljer som fälls ut till en bädd på upp till 210 cm och 57–102 cm bredd, i sammet, manchester och linnelook, med ryggen i tre till sex lägen.",
   },
   "badrum-hemtextil": {
     title: "Badrumstillbehör, tvättskåp & hemtextil",
@@ -138,12 +138,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   badrumsskap: {
     title: "Badrumsskåp – högskåp, medicinskåp & spegelskåp",
     description:
-      "Badrumsskåp i bambu, vitt och grått: smala skåp från 18 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
+      "Badrumsskåp i bambu, vitt och grått: smala skåp från 16 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
   },
   badrumsspeglar: {
     title: "Badrumsspegel med belysning – LED och antiimma",
     description:
-      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm.",
+      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla och spegelskåp. Upp till 100 × 80 cm.",
   },
   barbord: {
     title: "Barbord med pallar, bardisk & höj- och sänkbart",
@@ -158,7 +158,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   belysning: {
     title: "Taklampor, bordslampor & LED-belysning",
     description:
-      "Taklampor i glas, kristall och linne, bordslampor i keramik och trä, LED-björkar, vägglampor för utomhus och LED-armatur till garaget. Sockel och IP-klass anges.",
+      "Taklampor i kristall, linne och hampsnöre, bordslampor i keramik och trä, golvlampor, takfläktar med lampa, LED-björkar och en LED-strålkastare för arbete.",
   },
   "bil-cykel": {
     title: "Cykeltillbehör – cykelkärra, cykellås och pump",
@@ -203,12 +203,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   elementskydd: {
     title: "Elementskydd – spjälat radiatorskydd i MDF",
     description:
-      "Elementskydd i MDF med spjälad front, 60 till 172 cm breda och 81 till 95,5 cm höga. Fyra är vita, och ett i ekton har två lådor i överkant.",
+      "Elementskydd i MDF med spjälad front, 60 till 201 cm breda och 81 till 95,5 cm höga. Sex är vita, och ett i ekton har två lådor i överkant.",
   },
   elkaminer: {
     title: "Elkamin – elektrisk kamin för vägg eller golv",
     description:
-      "Elkaminer med LED-lågor och 1800–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
+      "Elkaminer med LED-lågor och 1200–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
   },
   "forvaring-organisering": {
     title: "Förvaring – förvaringsbänk, skåp & hurts på hjul",
@@ -228,12 +228,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   gnistskydd: {
     title: "Gnistskydd för öppen spis – svart eller guld",
     description:
-      "Gnistskydd och brasskärmar för öppen spis i svart metall eller guldfärg, med två eller tre paneler, från 96 till 141 cm breda och 50 till 81 cm höga.",
+      "Gnistskydd och brasskärmar för öppen spis i svart metall eller guldfärg, med två eller tre paneler, från 96 till 141 cm breda och 50 till 85 cm höga.",
   },
   golvlampor: {
     title: "Golvlampor – båglampor, LED och dimbara",
     description:
-      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och trebenta lampor med tygskärm.",
+      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och lampset med två bordslampor.",
   },
   "grill-utekok": {
     title: "Gasolgrill, kolgrill, plancha & kylbox",
@@ -338,7 +338,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "kladhangare-hallmobler": {
     title: "Klädhängare, klädställning, hallmöbel & hallbänk",
     description:
-      "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar som bär upp till 130 kg.",
+      "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar och sittbänkar med förvaring.",
   },
   klostrad: {
     title: "Klösträd & kattträd – takhöga och klöspelare",
@@ -408,12 +408,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   matgrupper: {
     title: "Matgrupp – matbord med stolar för två eller fyra",
     description:
-      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och ett furubord från 60 till 120 cm.",
+      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och två furubord, från 60 till 120 cm.",
   },
   "miniugnar-airfryers": {
     title: "Miniugn & airfryer – varmluftsfritös och bänkugn",
     description:
-      "Miniugnar från 9 till 36 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering.",
+      "Miniugnar från 9 till 46 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering.",
   },
   motionscyklar: {
     title: "Motionscykel, spinningcykel & pedaltränare",
@@ -438,7 +438,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   oronlappsfatoljer: {
     title: "Öronlappsfåtölj – knappad rygg, sammet & linne",
     description:
-      "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, gungstolar med öronlappsrygg och en uppresningsfåtölj.",
+      "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, en gungstol med öronlappsrygg och en uppresningsfåtölj.",
   },
   pallar: {
     title: "Pall – stegpall, pianopall, rullpall & sadelpall",
@@ -473,7 +473,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "sideboards-vitrinskap": {
     title: "Sideboard, skänk & vitrinskåp för vägg och golv",
     description:
-      "Sideboards och skänkar i vitt, högglans, metall och rotting, de flesta med lådor och skåp, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
+      "Sideboards, skänkar och höga köksskåp i vitt, högglans, metall och rotting, med lådor och skåp, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
   },
   sidobord: {
     title: "Sidobord & avlastningsbord – runda och C-formade",
@@ -498,7 +498,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   snurrfatoljer: {
     title: "Snurrfåtölj – vrids 360°, på ben eller fast fot",
     description:
-      "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och två reclinerfåtöljer.",
+      "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och flera reclinerfåtöljer.",
   },
   "solskydd-paviljonger": {
     title: "Paviljong 3x3, paviljongtak & pop up-tält",
@@ -518,7 +518,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   speglar: {
     title: "Spegel – helkroppsspegel, väggspegel, golvspegel",
     description:
-      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 148 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
+      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 120 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
   },
   terrarier: {
     title: "Terrarium i glas – för ödla, orm och spindel",
@@ -553,7 +553,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "tv-bankar": {
     title: "TV-bänk – 80 till 200 cm, med lådor och LED",
     description:
-      "TV-bänkar från 80 till 200 cm för tv upp till 75 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
+      "TV-bänkar från 80 till 200 cm för tv upp till 82 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
   },
   tvattkorgar: {
     title: "Tvättkorg med lock – i bambu, vide och med fack",
@@ -576,9 +576,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, och en hopfällbar hage i tyg med soltak. Flera har markpinnar för gräsmattan.",
   },
   varmeflaktar: {
-    title: "Värmefläkt – för vägg eller som torn, 2000 W",
+    title: "Värmefläkt för vägg eller som torn, 2000–2200 W",
     description:
-      "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, timer, oscillation och överhettningsskydd. Flera har veckotimer och fönstervakt.",
+      "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, oscillation och överhettningsskydd, och ett elelement med wifi. Flera har veckotimer.",
   },
   "vattenkokare-brodrostar": {
     title: "Vattenkokare, brödrost & frukostset",
