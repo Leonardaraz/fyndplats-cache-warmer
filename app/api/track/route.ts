@@ -267,6 +267,7 @@ function carrierFallbackLinks(tn: string): Array<{ name: string; url: string }> 
     { name: "PostNord", url: `https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=${encodeURIComponent(tn)}` },
     { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${encodeURIComponent(tn)}` },
     { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${encodeURIComponent(tn)}` },
+    { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${encodeURIComponent(tn)}` },
   ];
 }
 

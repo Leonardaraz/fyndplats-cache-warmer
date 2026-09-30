@@ -9,6 +9,10 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "path": "/api/cron/fraktmejl",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/cron/warm-and-ping",
       "schedule": "0 * * * *"
     },
