@@ -685,8 +685,9 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    per dygn, så mellan två synkar är siffran gammal. Säger Aosom "3 kvar" och vi
    visar 3 säljer vi den fjärde. Leonards beslut 2026-10-01: *"visa en mindre än
    aosom, inte 3"*. Golvlampan `65ca6f6d` stod då som slutsåld med 4 kvar hos
-   Aosom. ☠️ **Sänk aldrig bufferten utan `medObestallda`**, som drar av det vi
-   sålt men inte beställt (se *En stämpel som ljuger rättas mot butiken*).
+   Aosom. ☠️ **Sänk aldrig bufferten utan `medSaldaAvdragna`**, som drar av det
+   vi sålt tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
+   butiken*).
 4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
    cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
    Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
@@ -960,29 +961,43 @@ artikeln ändrades. Nu skrivs det över vid varje körning tills Aosoms flöde
 visar vår order. Regeln skiljer inte en försäljning från en nollning, och ett
 test låser det (`en försäljning räknas som drift`).
 
-☠️ **Det som hindrar att samma sista enhet säljs igen är `medObestallda`**
-(sedan 2026-10-01). Varje orderrad som är såld hos oss men inte beställd hos
-Aosom, alltså en task med status `pending`, dras av från flödets saldo innan
-planen jämförs med butiken. Fram till dess var det `LAGER_BUFFERT` på 3 som
-skyddade, och det räckte inte: golvlampan `65ca6f6d` hade 4 hos Aosom, butiken
-visade 1, order 10056 tog den, och nästa körning skrev 1 igen. Med bufferten på
-1 och avdraget blir samma rad 4 − 1 − 1 = 2.
+☠️ **Det som hindrar att samma sista enhet säljs igen är `medSaldaAvdragna`**
+(sedan 2026-10-01). Varje orderrad som är såld hos oss men som Aosoms flöde
+inte visar än dras av från flödets saldo innan planen jämförs med butiken. Fram
+till dess var det `LAGER_BUFFERT` på 3 som skyddade, och det räckte inte:
+golvlampan `65ca6f6d` hade 4 hos Aosom, butiken visade 1, order 10056 tog den,
+och nästa körning skrev 1 igen. Med bufferten på 1 och avdraget blir samma rad
+4 − 1 − 1 = 2.
 
-Fyra egenskaper som inte ska tas bort:
+Fem egenskaper som inte ska tas bort:
 
-1. ☠️ **Depen är obligatorisk (`lasObestallda`), och ett läsfel fäller
-   körningen.** En valfri dep glöms av nästa anropare, och en körning utan
-   avdraget lägger tillbaka varje såld enhet.
-2. **Bara `pending` räknas.** När ordern lagts hos Aosom och tasken markerats
-   beställd (workflowen "Order — beställd eller skickad för hand") slutar
-   avdraget, och bufferten tar glappet tills feeden visar ordern. ⚠️ En order
-   på flera enheter är större än bufferten under de timmarna.
-3. ☠️ **På en sammanslagen sida dras varje orderrad från sin egen färg**, avgjord
+1. ☠️ **Två slags orderrader räknas** (`vantarPaFlodet`): tasks med status
+   `pending`, och tasks med status `ordered` i tolv timmar efter att de
+   markerats beställda (`orderedAt`, som workflowen "Order — beställd eller
+   skickad för hand" sätter). Flödet exporteras tre gånger per dygn, så en nyss
+   lagd order syns inte där direkt, och bufferten på 1 räcker inte för två
+   beställda enheter. Visar flödet redan ordern dras den av två gånger under
+   resten av fönstret, och det är åt det säkra hållet. En `ordered`-rad utan
+   `orderedAt` räknas inte.
+2. ☠️ **Raderna läses för varje tugga, direkt EFTER butikens lager.** Lästes de
+   en gång när körningen startade kunde en försäljning mitt i körningen synas i
+   butiken men inte i avdraget, och driften hade lagt tillbaka den. Kvar är
+   webhookens sekunder mellan köpet och orderraden.
+3. ☠️ **Depen är obligatorisk (`lasSaldaOrderrader`), och ett läsfel stoppar
+   tuggans lagerskrivningar**, som när lagret inte går att läsa. Produkterna
+   som ville skrivas räknas som misslyckade. En körning utan avdraget hade lagt
+   tillbaka varje såld enhet.
+4. ☠️ **På en sammanslagen sida dras varje orderrad från sin egen färg**, avgjord
    som beställningsfilen avgör den (`aosomArtikelForTask`). En rad som inte går
    att knyta till en färg dras från ALLA färger.
-4. **Avdraget räknas och syns:** `obestalldaEnheter` och `obestalldaProdukter`
+5. **Avdraget räknas och syns:** `saldaAvdragna` och `saldaAvdragnaProdukter`
    (Wix-id) står i svaret, loggraden, audit-raden och workflow-summeringen. Det
-   är ett mått, inget fel, och talet sjunker när ordrarna läggs.
+   är ett mått, inget fel, och talet sjunker när ordrarna lagts och syns i
+   flödet.
+
+⚠️ **Markera Aosom-ordern beställd när den läggs.** En task som står kvar som
+`pending` efter att ordern lagts dras av en gång till när flödet visar ordern.
+Sidan visar då en enhet för lite tills tasken markerats beställd eller skickad.
 
 ⚠️ **Racet i B71 lagades på mappningssidan samma kväll** — se nästa avsnitt.
 Kvar är Wix-sidan: en körning som planerat ur en rad från före en

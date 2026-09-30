@@ -54,6 +54,14 @@ export interface FulfillmentTask {
    * och av claim/cancel-CAS:en i alla tre backends.
    */
   supplierOrderRef?: string;
+  /**
+   * När tasken markerades beställd hos en leverantör utan API (Aosom), via
+   * `markOrderedManually`. Aosom-synken drar av en nyss beställd enhet från
+   * flödets saldo tills flödet hunnit visa ordern (`vantarPaFlodet` i
+   * lib/aosom/sync.ts). Saknas på tasks beställda före 2026-10-01 och på
+   * AliExpress-ordrar.
+   */
+  orderedAt?: string;
   /** AliExpress betal-URL när ordern kräver betalning (status pending_payment). */
   paymentUrl?: string;
   /**

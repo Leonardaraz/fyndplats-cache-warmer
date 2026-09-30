@@ -99,16 +99,27 @@ export async function markOrderedManually(
   }
 
   const ref = (input.supplierOrderRef ?? "").trim();
+  // Klockan för Aosom-synken: en nyss beställd enhet dras av från flödets saldo
+  // tills flödet hunnit visa ordern (`vantarPaFlodet` i lib/aosom/sync.ts). En
+  // task som redan var beställd behåller sin tid, så en ny referens startar inte
+  // om fönstret.
+  const orderedAt = task.status === "ordered" ? task.orderedAt : new Date().toISOString();
   await store.updateTask(task.taskId, {
     status: "ordered",
     ...(ref ? { supplierOrderRef: ref } : {}),
+    ...(orderedAt && orderedAt !== task.orderedAt ? { orderedAt } : {}),
   });
 
   // ☠️ Räkna efter. updateTask är en tyst no-op på en saknad rad i alla tre
   // backends — ett OK som inte skrivit något är samma klass av fel som lät
   // prissynken "uppdatera" priser i en månad utan att röra butiken.
   const efter = (await store.listTasks()).find((t) => t.taskId === task.taskId);
-  if (!efter || efter.status !== "ordered" || (ref && efter.supplierOrderRef !== ref)) {
+  if (
+    !efter
+    || efter.status !== "ordered"
+    || (ref && efter.supplierOrderRef !== ref)
+    || (orderedAt && efter.orderedAt !== orderedAt)
+  ) {
     return {
       ok: false,
       error:

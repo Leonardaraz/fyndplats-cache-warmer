@@ -188,7 +188,7 @@ jobs:
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
           utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; ejskeppbara=0
-          obestallda=0
+          salda=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
           flera=0; okanda=0; tvetydiga=0
           after=""; varv=0; prislistefel=
@@ -222,7 +222,7 @@ jobs:
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             rt=$(printf '%s' "$svar" | jq -r '.lagerDriftRattade // 0')
             sv=$(printf '%s' "$svar" | jq -r '.stampelHoppade // 0')
-            ob=$(printf '%s' "$svar" | jq -r '.obestalldaEnheter // 0')
+            sa=$(printf '%s' "$svar" | jq -r '.saldaAvdragna // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
             ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
             km=$(printf '%s' "$svar" | jq -r '.konkurrentMal // 0')
@@ -241,7 +241,7 @@ jobs:
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr )); rattade=$(( rattade + rt ))
             vantar=$(( vantar + sv ))
-            obestallda=$(( obestallda + ob ))
+            salda=$(( salda + sa ))
             prislasta=$(( prislasta + pl ))
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
@@ -264,7 +264,7 @@ jobs:
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
                  "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
                  "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift (${rt} rättade)," \
-                 "${sv} stämplar väntar, ${ob} sålda men obeställda enheter avdragna," \
+                 "${sv} stämplar väntar, ${sa} sålda avdragna (flödet visar dem inte än)," \
                  "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
                  "stoppade på ${stopp}, ${kvar} kvar"
 
@@ -279,9 +279,9 @@ jobs:
             # (motButikensSaldo i lib/aosom/sync.ts). Wix-id är publika.
             printf '%s' "$svar" | jq -r '(.lagerDriftProdukter // []) as $p | if ($p | length) > 0 then "  ── lagerdrift rättad (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
 
-            # Produkterna vars saldo drogs ned för sålda men ännu inte beställda
-            # enheter (medObestallda i lib/aosom/sync.ts). Wix-id är publika.
-            printf '%s' "$svar" | jq -r '(.obestalldaProdukter // []) as $p | if ($p | length) > 0 then "  ── sålda men obeställda avdragna (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
+            # Produkterna vars saldo drogs ned för sålda enheter som Aosoms flöde
+            # inte visar än (medSaldaAvdragna i lib/aosom/sync.ts). Wix-id är publika.
+            printf '%s' "$svar" | jq -r '(.saldaAvdragnaProdukter // []) as $p | if ($p | length) > 0 then "  ── sålda avdragna (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             # ☠️ Med produktens Wix-id, ALDRIG `.sku`: det är Aosoms artikelnummer,
@@ -337,7 +337,7 @@ jobs:
             echo "| Lagerdrift (butiken ≠ stämpeln när körningen kom) | ${drift} |"
             echo "| **Lagerdrift rättad — extra lagerskrivningar** | **${rattade}** |"
             echo "| Stämplar som väntar (raden ändrades under körningen) | ${vantar} |"
-            echo "| Sålda men obeställda enheter avdragna | ${obestallda} |"
+            echo "| Sålda enheter avdragna (Aosoms flöde visar dem inte än) | ${salda} |"
             echo "| Färgsammanslagna sidor | ${flera} |"
             echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
             echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
@@ -369,7 +369,7 @@ jobs:
 
           echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser," \
                "${utanrader} utan lagerrader, ${drift} lagerdrift (${rattade} rättade)," \
-               "${obestallda} obeställda avdragna, ${misslyckade} misslyckade."
+               "${salda} sålda avdragna, ${misslyckade} misslyckade."
 
           # ☠️ MASSFEL fäller jobbet — inte en enstaka miss.
           #
