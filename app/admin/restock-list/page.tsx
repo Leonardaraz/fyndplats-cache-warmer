@@ -109,6 +109,8 @@ function Leverantorscell({ rad }: { rad: RestockRad }) {
             Slut hos {lev.namn}
             {lev.slutSedan ? ` sedan ${datum(lev.slutSedan)}` : ""}
           </Etikett>
+        ) : lev.status === "delvis" ? (
+          <Etikett farg="#b45309">Delvis slut hos {lev.namn}</Etikett>
         ) : lev.status === "borttagen" ? (
           <Etikett farg="#b91c1c">Borttagen hos {lev.namn}</Etikett>
         ) : lev.status === "i_lager" ? (
@@ -121,6 +123,23 @@ function Leverantorscell({ rad }: { rad: RestockRad }) {
         )}
         {kollad ? <span style={{ color: "#9ca3af", fontSize: 11 }}> kollat {kollad}</span> : null}
       </div>
+      {lev.varianter.length ? (
+        <div style={{ color: "#6b7280", fontSize: 12, marginTop: 3 }}>
+          {lev.varianter.map((v, i) => (
+            <span key={`${v.namn}-${i}`}>
+              {i > 0 ? " · " : ""}
+              {v.namn}:{" "}
+              {v.antal === null ? (
+                "okänt"
+              ) : v.antal === 0 ? (
+                <b style={{ color: "#b91c1c" }}>slut</b>
+              ) : (
+                `${v.antal} st`
+              )}
+            </span>
+          ))}
+        </div>
+      ) : null}
       {!lev.mejlasAutomatiskt && rad.pending > 0 ? (
         <div style={{ color: "#b45309", fontSize: 12, marginTop: 3 }}>
           Får inget automatiskt mejl — Aosom-synken skickar inga.

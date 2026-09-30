@@ -34,6 +34,13 @@ export interface RestockMappning {
   shipsFromCountries?: string[];
   aosomSyncedQty?: number;
   aosomSyncedAt?: string;
+  variants?: Array<{
+    choices?: Record<string, string>;
+    /** AOSOM: saldot synken senast skrev för just den här varianten. */
+    aosomSyncedQty?: number;
+    /** ALIEXPRESS: lagerlandet för variantens SKU, t.ex. "ES". */
+    shipFrom?: string;
+  }>;
 }
 
 /** Det sidan läser ur AliExpress-synkens tillstånd för produkten. */
@@ -45,7 +52,13 @@ export interface RestockSynkstatus {
 }
 
 export type LagerHosOss = "i_lager" | "slut" | "delvis" | "okant";
-export type LagerHosLeverantor = "i_lager" | "slut" | "borttagen" | "okant";
+export type LagerHosLeverantor = "i_lager" | "slut" | "delvis" | "borttagen" | "okant";
+
+/** Saldot per variant på en sammanslagen Aosom-sida, t.ex. `{ namn: "Beige", antal: 0 }`. */
+export interface RestockVariantlager {
+  namn: string;
+  antal: number | null;
+}
 
 export interface RestockLeverantor {
   leverantor: MappingSupplier;
@@ -58,6 +71,12 @@ export interface RestockLeverantor {
   status: LagerHosLeverantor;
   /** Senast kända saldo hos leverantören, eller null. */
   antal: number | null;
+  /**
+   * Saldot per variant när sidan bär flera. ☠️ Radens `aosomSyncedQty` är
+   * SUMMAN av varianternas på en sammanslagen sida, så "i lager" på raden kan
+   * dölja att just den färg kunden väntar på är slut. Tom för en vanlig rad.
+   */
+  varianter: RestockVariantlager[];
   /** AliExpress: när listningen gick slut. Aosom har inget sådant fält. */
   slutSedan: string | null;
   /** När statusen senast lästes: AE-synkens kontroll eller Aosom-synkens skrivning. */
@@ -128,40 +147,54 @@ export function landSv(kod: string): string {
   }
 }
 
-function aliExpressStatus(s: RestockSynkstatus | null | undefined): {
-  status: LagerHosLeverantor;
-  antal: number | null;
-  slutSedan: string | null;
-  kontrollerad: string | null;
-} {
-  if (!s) return { status: "okant", antal: null, slutSedan: null, kontrollerad: null };
+type Leverantorsstatus = Pick<RestockLeverantor, "status" | "antal" | "varianter" | "slutSedan" | "kontrollerad">;
+
+function aliExpressStatus(s: RestockSynkstatus | null | undefined): Leverantorsstatus {
+  const tom = { varianter: [] as RestockVariantlager[] };
+  if (!s) return { status: "okant", antal: null, slutSedan: null, kontrollerad: null, ...tom };
   const antal = typeof s.currentStock === "number" ? s.currentStock : null;
   const kontrollerad = s.lastCheckedAt ?? null;
   const slutSedan = s.outOfStockSince ?? null;
-  if (s.listingStatus === "removed") return { status: "borttagen", antal, slutSedan, kontrollerad };
-  if (s.listingStatus === "out_of_stock") return { status: "slut", antal, slutSedan, kontrollerad };
+  const med = (status: LagerHosLeverantor): Leverantorsstatus => ({ status, antal, slutSedan, kontrollerad, ...tom });
+  if (s.listingStatus === "removed") return med("borttagen");
+  if (s.listingStatus === "out_of_stock") return med("slut");
   if (s.listingStatus === "active") {
     // En levande listning med noll i lager är slut hos leverantören, även om
     // synken ännu inte hunnit samla sina strikes och nolla butiken.
-    if (antal === 0) return { status: "slut", antal, slutSedan, kontrollerad };
-    if (antal !== null && antal > 0) return { status: "i_lager", antal, slutSedan, kontrollerad };
+    if (antal === 0) return med("slut");
+    if (antal !== null && antal > 0) return med("i_lager");
   }
-  return { status: "okant", antal, slutSedan, kontrollerad };
+  return med("okant");
 }
 
-function aosomStatus(m: RestockMappning): {
-  status: LagerHosLeverantor;
-  antal: number | null;
-  slutSedan: string | null;
-  kontrollerad: string | null;
-} {
+function variantnamn(choices: Record<string, string> | undefined, index: number): string {
+  const namn = Object.values(choices ?? {}).map((v) => String(v).trim()).filter(Boolean).join(" / ");
+  return namn || `Variant ${index + 1}`;
+}
+
+function aosomStatus(m: RestockMappning): Leverantorsstatus {
+  const kontrollerad = m.aosomSyncedAt ?? null;
   // ☠️ Bara ett uttryckligt tal räknas. Fältet saknas på en rad som aldrig
   // synkats, och det är ingen bevisning om saldot — samma regel som
   // `Prisgrind.slutsald`.
-  const antal = typeof m.aosomSyncedQty === "number" ? m.aosomSyncedQty : null;
-  const kontrollerad = m.aosomSyncedAt ?? null;
-  if (antal === null) return { status: "okant", antal, slutSedan: null, kontrollerad };
-  return { status: antal > 0 ? "i_lager" : "slut", antal, slutSedan: null, kontrollerad };
+  const tal = (q: unknown): number | null => (typeof q === "number" ? q : null);
+
+  const varianter = m.variants ?? [];
+  if (varianter.length >= 2 && varianter.some((v) => tal(v.aosomSyncedQty) !== null)) {
+    const lista = varianter.map((v, i) => ({ namn: variantnamn(v.choices, i), antal: tal(v.aosomSyncedQty) }));
+    const kanda = lista.filter((v) => v.antal !== null);
+    const slut = kanda.filter((v) => v.antal === 0).length;
+    const status: LagerHosLeverantor =
+      kanda.length < lista.length
+        ? slut > 0 ? "delvis" : "okant"
+        : slut === lista.length ? "slut" : slut > 0 ? "delvis" : "i_lager";
+    const antal = kanda.length === lista.length ? kanda.reduce((s, v) => s + (v.antal ?? 0), 0) : null;
+    return { status, antal, varianter: lista, slutSedan: null, kontrollerad };
+  }
+
+  const antal = tal(m.aosomSyncedQty);
+  if (antal === null) return { status: "okant", antal, varianter: [], slutSedan: null, kontrollerad };
+  return { status: antal > 0 ? "i_lager" : "slut", antal, varianter: [], slutSedan: null, kontrollerad };
 }
 
 function leverantorFor(
@@ -170,7 +203,9 @@ function leverantorFor(
 ): RestockLeverantor {
   const kalla = leverantorskallaFor(m);
   const status = kalla.leverantor === "aosom" ? aosomStatus(m) : aliExpressStatus(synk);
-  const lager = [...new Set((m.shipsFromCountries ?? []).map(landSv).filter(Boolean))];
+  // Varianternas egna lagerländer räknas med: AliExpress bakar in landet i SKU:n.
+  const koder = [...(m.shipsFromCountries ?? []), ...(m.variants ?? []).map((v) => v.shipFrom ?? "")];
+  const lager = [...new Set(koder.map(landSv).filter(Boolean))];
   return {
     leverantor: kalla.leverantor,
     namn: kalla.namn,

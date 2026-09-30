@@ -121,6 +121,14 @@ describe("AliExpress", () => {
     expect(rad.leverantor?.mejlasAutomatiskt).toBe(true);
   });
 
+  // AliExpress bakar in lagerlandet i SKU:n, så varianterna kan bära fler länder än raden.
+  it("tar med varianternas lagerländer, en gång per land", () => {
+    const [rad] = bygg({
+      mappningar: { p1: { ...aeMappning, variants: [{ shipFrom: "PL" }, { shipFrom: "ES" }, {}] } },
+    });
+    expect(rad.leverantor?.lager).toEqual(["Spanien", "Polen"]);
+  });
+
   it("föredrar den fångade källadressen", () => {
     const [rad] = bygg({ mappningar: { p1: { ...aeMappning, sourceUrl: "https://www.aliexpress.com/item/x.html?a=1" } } });
     expect(rad.leverantor?.url).toBe("https://www.aliexpress.com/item/x.html?a=1");
@@ -195,6 +203,68 @@ describe("Aosom", () => {
     const [rad] = bygg({ mappningar: { p1: { supplierProductId: "aosom:x", sourceUrl: "https://leverantor.example/vara-2" } } });
     expect(rad.leverantor?.namn).toBe("Aosom");
     expect(rad.leverantor?.mejlasAutomatiskt).toBe(false);
+  });
+});
+
+describe("Aosom, sammanslagen sida", () => {
+  const sammanslagen = (a: number | undefined, b: number | undefined): RestockMappning => ({
+    ...aosomMappning,
+    aosomSyncedQty: (a ?? 0) + (b ?? 0),
+    variants: [
+      { choices: { Färg: "Beige" }, aosomSyncedQty: a },
+      { choices: { Färg: "Grå" }, aosomSyncedQty: b },
+    ],
+  });
+
+  // Radens saldo är SUMMAN av varianternas. Summan säger "i lager" fast den
+  // färg kunden väntar på är slut.
+  it("visar saldot per färg och kallar sidan delvis slut", () => {
+    const [rad] = bygg({ mappningar: { p1: sammanslagen(0, 5) } });
+    expect(rad.leverantor?.status).toBe("delvis");
+    expect(rad.leverantor?.varianter).toEqual([
+      { namn: "Beige", antal: 0 },
+      { namn: "Grå", antal: 5 },
+    ]);
+    expect(rad.leverantor?.antal).toBe(5);
+  });
+
+  it("alla färger slut är slut", () => {
+    const [rad] = bygg({ mappningar: { p1: sammanslagen(0, 0) } });
+    expect(rad.leverantor?.status).toBe("slut");
+  });
+
+  it("alla färger i lager är i lager", () => {
+    const [rad] = bygg({ mappningar: { p1: sammanslagen(2, 5) } });
+    expect(rad.leverantor?.status).toBe("i_lager");
+  });
+
+  it("en okänd färg bredvid en slutsåld är delvis, och summan är okänd", () => {
+    const [rad] = bygg({ mappningar: { p1: sammanslagen(0, undefined) } });
+    expect(rad.leverantor?.status).toBe("delvis");
+    expect(rad.leverantor?.antal).toBeNull();
+  });
+
+  it("namnger båda axlarna, och en variant utan val får ett nummer", () => {
+    const [rad] = bygg({
+      mappningar: {
+        p1: {
+          ...aosomMappning,
+          variants: [
+            { choices: { Färg: "Grå", Storlek: "110 cm" }, aosomSyncedQty: 1 },
+            { choices: {}, aosomSyncedQty: 0 },
+          ],
+        },
+      },
+    });
+    expect(rad.leverantor?.varianter.map((v) => v.namn)).toEqual(["Grå / 110 cm", "Variant 2"]);
+  });
+
+  it("en vanlig rad med en variant läser radens saldo", () => {
+    const [rad] = bygg({
+      mappningar: { p1: { ...aosomMappning, aosomSyncedQty: 0, variants: [{ choices: {}, aosomSyncedQty: 0 }] } },
+    });
+    expect(rad.leverantor?.status).toBe("slut");
+    expect(rad.leverantor?.varianter).toEqual([]);
   });
 });
 
