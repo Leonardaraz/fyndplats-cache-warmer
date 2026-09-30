@@ -6,7 +6,8 @@ import { getV3ProductBySlug } from "@/lib/wix/v3-products";
 import { fetchOrderByNumber } from "@/lib/wix/orders";
 import { parseLookupInput, leverantorskallaFor } from "@/lib/import/source-link";
 import { aosomArtikelForTask } from "@/lib/aosom/artiklar";
-import { lankaVarianter } from "@/lib/aosom/variant-lank";
+import { unstable_cache } from "next/cache";
+import { lankaVarianter, feedLankar } from "@/lib/aosom/variant-lank";
 import { fetchAosomFeed } from "@/lib/aosom/feed";
 
 /** Leverantörskällan för EN produkt (och, vid ordernummer, en orderrad). */
@@ -80,6 +81,18 @@ function kallaFor(
   };
 }
 
+/**
+ * Artikel → adress ur Aosoms flöde, cachad i 6 timmar. Flödet laddas ner högst
+ * en gång per period; efter perioden får nästa uppslag den gamla tabellen
+ * direkt medan en ny byggs i bakgrunden. Nya artiklar saknas som längst så
+ * länge, och då står varningen kvar (se lib/aosom/variant-lank.ts).
+ */
+const cachadeFeedLankar = unstable_cache(
+  async () => feedLankar(await fetchAosomFeed()),
+  ["aosom-feed-lankar-v1"],
+  { revalidate: 6 * 60 * 60, tags: ["aosom-feed-lankar"] },
+);
+
 const SAKNAR_MAPPNING = (id: string) =>
   `Produkten (${id.slice(0, 8)}…) saknar leverantörsmappning i FyndplatsMappings. ` +
   "Importerades den inte via verktyget? Mappa den i så fall via /admin/mappning.";
@@ -134,7 +147,7 @@ export async function lookupSourceAction(input: string): Promise<LookupResult> {
       // förvalda variant, inte den kunden köpte (order 10052, 2026-09-30).
       const kallor = await lankaVarianter(
         rader.filter((r): r is KallRad => !("fel" in r)),
-        () => fetchAosomFeed(),
+        cachadeFeedLankar,
       );
       let i = 0;
       const lankade = rader.map((r) => ("fel" in r ? r : kallor[i++]));
