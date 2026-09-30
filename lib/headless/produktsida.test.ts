@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { uppfriskaProduktsida } from "./produktsida";
+import { diagnosUppfriskning, uppfriskaProduktsida, uppfriskaProduktsidaDetalj } from "./produktsida";
 
 const forut = { ADMIN_SECRET: process.env.ADMIN_SECRET, HEADLESS_BASE_URL: process.env.HEADLESS_BASE_URL };
 afterEach(() => {
@@ -78,5 +78,57 @@ describe("uppfriskaProduktsida", () => {
     await uppfriskaProduktsida("stol", f);
     expect(anrop[0].url.startsWith("https://preview.example.com/api/admin/revalidate?")).toBe(true);
     expect(anrop[1].url).toBe("https://preview.example.com/produkt/stol");
+  });
+});
+
+describe("uppfriskaProduktsidaDetalj", () => {
+  it("bär butikens statuskod och värmningens cachebesked", async () => {
+    process.env.ADMIN_SECRET = "hemlig";
+    delete process.env.HEADLESS_BASE_URL;
+    const { f } = fejkFetch((url) =>
+      url.includes("/api/admin/")
+        ? new Response("{}", { status: 200 })
+        : new Response("<html>", { status: 200, headers: { "x-vercel-cache": "MISS", age: "0" } }),
+    );
+    expect(await uppfriskaProduktsidaDetalj("stol", f)).toEqual({
+      utfall: "uppfriskad",
+      status: 200,
+      varmning: { status: 200, cache: "MISS", age: "0" },
+    });
+  });
+
+  it("☠️ en avvisad nyckel bär butikens 404, så provet kan säga vilken sida som sa nej", async () => {
+    process.env.ADMIN_SECRET = "hemlig";
+    const { f } = fejkFetch(() => new Response("Not found", { status: 404 }));
+    expect(await uppfriskaProduktsidaDetalj("stol", f)).toEqual({ utfall: "misslyckades", status: 404 });
+  });
+
+  it("ett nätverksfel har ingen statuskod", async () => {
+    process.env.ADMIN_SECRET = "hemlig";
+    const { f } = fejkFetch(() => {
+      throw new Error("ECONNRESET");
+    });
+    expect(await uppfriskaProduktsidaDetalj("stol", f)).toEqual({ utfall: "misslyckades" });
+  });
+});
+
+describe("diagnosUppfriskning", () => {
+  it("skiljer på motorn, proxyn, rutten, adressen och nätet", () => {
+    expect(diagnosUppfriskning({ utfall: "uppfriskad", status: 200 })).toMatch(/tog emot nyckeln/);
+    expect(diagnosUppfriskning({ utfall: "ingen_nyckel" })).toMatch(/saknas i motorns miljö/);
+    expect(diagnosUppfriskning({ utfall: "misslyckades", status: 404 })).toMatch(/proxy avvisade nyckeln/);
+    expect(diagnosUppfriskning({ utfall: "misslyckades", status: 401 })).toMatch(/rutt avvisade nyckeln/);
+    expect(diagnosUppfriskning({ utfall: "misslyckades", status: 308 })).toMatch(/HEADLESS_BASE_URL/);
+    expect(diagnosUppfriskning({ utfall: "misslyckades" })).toMatch(/svarade inte/);
+    expect(diagnosUppfriskning({ utfall: "misslyckades", status: 500 })).toBe("Butiken svarade 500.");
+  });
+
+  it("☠️ nämner aldrig nyckelns värde", () => {
+    process.env.ADMIN_SECRET = "hemlig";
+    for (const status of [undefined, 200, 301, 401, 404, 500]) {
+      for (const utfall of ["uppfriskad", "ingen_nyckel", "misslyckades"] as const) {
+        expect(diagnosUppfriskning({ utfall, status })).not.toContain("hemlig");
+      }
+    }
   });
 });

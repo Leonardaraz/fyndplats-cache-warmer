@@ -4499,6 +4499,16 @@ Sju egenskaper som inte ska tas bort:
 återkomsten, till exempel för att den skedde innan det här fanns. Adminsidan
 säger det på raden.
 
+**Provkörningen** (workflowen **"Restock — provkör sidans cache och mejlet"** →
+`/api/admin/restock-prov` → `lib/restock/prov.ts`). `ADMIN_SECRET` finns i två
+Vercel-projekt, butiken och motorn, och värdet går inte att läsa tillbaka i
+något av dem. Läget `sidan` tömmer en produktsidas cache med samma anrop som före
+ett mejl och svarar med butikens statuskod: 200 betyder att värdena är lika, 404
+att butikens proxy avvisade nyckeln, och `ingen_nyckel` att den saknas i motorn.
+Läget `mejl` skickar restock-mejlet med `[Prov]` i ämnesraden till den interna
+larmadressen (samma som vaktens morgonmejl) genom `mejlaBevakare`, utan att röra
+en bevakare. Ingen nyckel och ingen adress når loggen.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
