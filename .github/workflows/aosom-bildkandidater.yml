@@ -1,0 +1,124 @@
+name: Bilder — hämta leverantörens övriga bilder för granskning
+
+# Leonards beslut 2026-09-30: en publicerad sida med två bilder ska få fler RENA
+# bilder ur leverantörens egen uppsättning, inte egna kort. Importen hämtar bara
+# feedens position 1, 2, 3, 8 och 9 (RENA_BILDPOSITIONER), så de andra har ingen
+# sett.
+#
+# Rutten laddar upp de begärda positionerna till Media Manager utan att röra
+# produkten, och svarar med Wix fil-id och wixstatic-adresser. En människa
+# tittar på bilderna, och de rena skrivs till produkten med poleringens
+# skrivplan ("Polering — skriv en runda till Wix"). Logiken står i
+# lib/aosom/bildkandidater.ts.
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har feeden och
+# Wix-nycklarna, Actions har CRON_SECRET, och de möts här.
+#
+# ☠️ Loggen är PUBLIK. Svaret bär aldrig artikelnummer eller leverantörens
+#    adresser, bara Wix egna.
+# ☠️ Bilder som ingen väljer tas av nattens bildstädning (03:50 UTC), eftersom
+#    de bär en leverantörsadress i `sourceUrl`. En vald bild måste sitta på sin
+#    produkt före dess.
+# ⚠️ Torrkörning är default. Den säger hur många bilder feeden har och vilka av
+#    de begärda positionerna som finns, utan att ladda upp något.
+
+on:
+  workflow_dispatch:
+    inputs:
+      wix_ids:
+        description: "Wix-produkt-id, åtskilda med komma eller mellanslag (högst 50)"
+        required: true
+        type: string
+      positioner:
+        description: "Feedens bildpositioner 1–9, t.ex. 4,5,6,7. TOMT = 4,5,6,7."
+        required: false
+        default: ""
+        type: string
+      skarp:
+        description: "Ladda upp på riktigt (annars torrkörning)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  kandidater:
+    runs-on: ubuntu-latest
+    steps:
+      # Ett Wix-id är publikt, men ett artikelnummer som klistrats i fel fält
+      # hade stått i nästa stegs env-block. Maskeras i ett EGET steg, och värdet
+      # läses ur händelsen, inte via ett uttryck.
+      - name: Maskera
+        run: |
+          jq -r '.inputs.wix_ids // ""' "$GITHUB_EVENT_PATH" \
+            | perl -ne 'print "::add-mask::$1\n" while /\b((?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*)\b/gi'
+          exit 0
+
+      - name: Hämta
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          IDS: ${{ inputs.wix_ids }}
+          POS: ${{ inputs.positioner }}
+          SKARP: ${{ inputs.skarp }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR — en ::error::-rad på stdout slukas av en
+            # kommandosubstitution.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-bildkandidater"
+          ids=$(printf '%s' "${IDS}" | tr ',;\t\r\n' '     ' | tr -s ' ' '\n' | sed '/^$/d' | jq -R . | jq -sc .)
+          pos=$(printf '%s' "${POS:-}" | tr ',; ' '\n\n\n' | sed '/^$/d' | jq -R 'tonumber? // empty' | jq -sc .)
+          torr=true
+          if [ "${SKARP}" = "true" ]; then torr=false; fi
+
+          if [ "$(echo "$ids" | jq 'length')" = "0" ]; then
+            echo "::error::Inga Wix-produkt-id angivna" >&2
+            exit 1
+          fi
+
+          kvar="$ids"
+          uppladdade=0
+          missar=0
+          for varv in 1 2 3 4 5 6 7 8; do
+            kropp=$(jq -nc --argjson ids "$kvar" --argjson pos "$pos" --argjson torr "$torr" \
+              '{wixProductIds: $ids, positioner: $pos, dryRun: $torr}')
+            svar=$(curl -sS --max-time 295 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              -d "$kropp" \
+              "${url}")
+
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+              exit 1
+            fi
+
+            echo "=== Varv ${varv}$(if [ "$torr" = "true" ]; then echo " (torrkörning)"; fi) ==="
+            # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
+            # blocket avslutar YAML:ens `run: |`.
+            echo "$svar" | jq -r '
+              .produkter[] |
+              "\(.wixProductId)  feed \(.feedBilder) bilder  positioner \(.positioner | map(tostring) | join(","))\(if .hinder then "  HINDER \(.hinder)" else "" end)",
+              (.kandidater[] as $k | "KANDIDAT \(.wixProductId) \($k.pos) \($k.fileId) \($k.url)"),
+              (.missar[] as $m | "MISS \(.wixProductId) \($m)")
+            '
+            uppladdade=$((uppladdade + $(echo "$svar" | jq '.uppladdade')))
+            missar=$((missar + $(echo "$svar" | jq '.missar')))
+            kvar=$(echo "$svar" | jq -c '.kvar')
+            if [ "$(echo "$kvar" | jq 'length')" = "0" ]; then break; fi
+          done
+
+          echo "=== Summering ==="
+          echo "Uppladdade: ${uppladdade} · missar: ${missar} · kvar: $(echo "$kvar" | jq 'length')"
+          if [ "$(echo "$kvar" | jq 'length')" != "0" ]; then
+            echo "::error::Varven tog slut med produkter kvar — kör om med dem" >&2
+            exit 1
+          fi
+          if [ "$missar" != "0" ]; then
+            echo "::warning::${missar} bilder gick inte att ladda upp"
+          fi

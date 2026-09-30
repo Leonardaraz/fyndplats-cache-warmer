@@ -75,12 +75,12 @@ export interface StegUtfall {
 
 // ── validering ──────────────────────────────────────────────────────────────
 
-const HEX8 = /^[0-9a-f]{8}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export const HEX8 = /^[0-9a-f]{8}$/;
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SKU = /^FP-[a-z0-9]+(-[a-z0-9]+)*$/;
-const MEDIA_ID = /^[0-9a-z]+_[0-9a-f]{32}~mv2\.[a-z]{3,4}$/;
-const RUNDA = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export const MEDIA_ID = /^[0-9a-z]+_[0-9a-f]{32}~mv2\.[a-z]{3,4}$/;
+export const RUNDA = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // Två former, och en träff i någon av dem fäller:
 //
@@ -132,7 +132,7 @@ export function redigera(s: string): string {
   return ut;
 }
 
-function strang(x: unknown, max: number): x is string {
+export function strang(x: unknown, max: number): x is string {
   return typeof x === "string" && x.length > 0 && x.length <= max;
 }
 
@@ -212,11 +212,11 @@ export function fnv1a64(s: string): string {
   return h.toString(16).padStart(16, "0");
 }
 
-type Obj = Record<string, unknown>;
+export type Obj = Record<string, unknown>;
 
 // ☠️ Svarets form läses tolerant (#280): produkten ligger antingen direkt i
 // svaret eller under `.data`. Att välja en av dem är ett antagande om miljön.
-function produktAv(svar: unknown): Obj {
+export function produktAv(svar: unknown): Obj {
   const s = (svar ?? {}) as Obj;
   const p = ((s.data as Obj | undefined)?.product ?? s.product) as Obj | undefined;
   if (!p || typeof p !== "object") throw new Error("svaret saknar product");
@@ -240,7 +240,7 @@ async function kategoriIdn(wix: WixAnrop): Promise<Map<string, string>> {
   return ut;
 }
 
-function summera(rader: StegRad[], ord: string): StegUtfall {
+export function summera(rader: StegRad[], ord: string): StegUtfall {
   const ok = rader.filter((r) => r.ok).length;
   return { ok: ok === rader.length, rader, sammanfattning: `${ok} av ${rader.length} ${ord}` };
 }
@@ -298,7 +298,12 @@ function kopplandeBildIdn(produkt: Obj): string[] {
   return [...idn];
 }
 
-export async function stegMedia(plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
+/** Planen behöver bara kort, pid och bildlistan — bildplanen (bildplan.ts) delar steget. */
+export async function stegMedia(
+  plan: { produkter: Pick<SkrivProdukt, "kort" | "pid" | "media">[] },
+  wix: WixAnrop,
+  torr: boolean,
+): Promise<StegUtfall> {
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
     try {
