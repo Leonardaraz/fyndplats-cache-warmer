@@ -47,7 +47,6 @@ const Ikon = {
   frakt: <path d="M3 7h11v8H3z M14 10h4l3 3v2h-7z M7 18.7a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z M17.5 18.7a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z" />,
   service: <path d="M4 13v-1a8 8 0 0 1 16 0v1 M4 13h3v6H5a1 1 0 0 1-1-1v-5Z M20 13h-3v6h2a1 1 0 0 0 1-1v-5Z M17 19c0 1.5-2 2.5-5 2.5" />,
   text: <path d="M5 4h14v16H5z M8.5 8.5h7 M8.5 12h7 M8.5 15.5h4" />,
-  pris: <path d="M3 12V4h8l10 10-8 8L3 12Z M7.5 8.5h.01" />,
   eu: <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M3.5 9h17 M3.5 15h17 M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9 M12 3c-2.5 2.6-3.7 5.6-3.7 9s1.2 6.4 3.7 9" />,
 };
 
@@ -196,12 +195,12 @@ export default async function OmOss() {
         <div className="container om-ide">
           <div>
             <div className="eyebrow">Vår idé</div>
-            <h2>Prisvärt ska inte betyda osäkert</h2>
+            <h2>Fynd du kan känna dig trygg med</h2>
           </div>
           <div className="om-ide-text">
             <p>
-              Vi startade Fyndplats för att det ska gå att handla billigt på nätet utan att undra vad som dyker upp
-              i paketet. Priset är halva fyndet. Den andra halvan är att varan är det du trodde att du köpte.
+              Vi startade Fyndplats för att det ska vara enkelt och tryggt att hitta bra produkter på nätet.
+              Ett riktigt fynd är en vara som är precis det du trodde att du köpte.
             </p>
             <div className="om-ide-punkter">
               <div>
@@ -209,13 +208,6 @@ export default async function OmOss() {
                 <div>
                   <h3>Tydliga produktsidor</h3>
                   <p>Våra produkttexter är skrivna på svenska med mått, material och vad som ingår, så att du vet vad du får innan du beställer.</p>
-                </div>
-              </div>
-              <div>
-                <span className="om-ikon"><Svg d={Ikon.pris} /></span>
-                <div>
-                  <h3>Därför är priserna låga</h3>
-                  <p>Vi har ingen fysisk butik och inget eget lager att betala för. Varorna skickas direkt från våra leverantörers och logistikpartners lager, och det vi sparar syns i priset.</p>
                 </div>
               </div>
               <div>
