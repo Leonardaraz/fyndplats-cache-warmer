@@ -5254,7 +5254,7 @@ Samma ordning som recensionerna, och samma skäl för varje steg:
 | 1 | `auctions`-tabell, Postgres-lager, `AUCTIONS_BACKEND` (default `wix-data`) | nej |
 | 2 | butiken läser och avslutar via `/api/auctions/*`, inte Wix Data direkt | nej |
 | 3 | kopiera (`?tabeller=auctions`), verifiera strikt | nej |
-| 4 | `AUCTIONS_BACKEND=postgres` i Vercel + omdeploy | nej |
+| 4 | växlingen: defaulten blir `postgres` i koden (2026-09-30) | nej |
 | 5 | radera Wix-raderna, med Leonards ja | **ja** |
 
 Två rutter för butiken, båda med `Bearer REVIEW_INGEST_SECRET` (den hemlighet
@@ -5266,9 +5266,13 @@ de två projekten redan delar, så ingen ny behöver föras in för hand):
 
 Sex egenskaper som inte ska tas bort:
 
-1. ☠️ **Default är `wix-data`, även när `STORE_BACKEND=postgres`.** Hade
-   auktionerna följt drift-datans växel hade ticken läst en tom tabell i samma
-   sekund som koden deployades.
+1. ☠️ **Defaulten var `wix-data` fram till växlingen, även när
+   `STORE_BACKEND=postgres`.** Hade auktionerna följt drift-datans växel hade
+   ticken läst en tom tabell i samma sekund som lagret deployades. Sedan
+   2026-09-30 är defaulten `postgres`. Växlingen gjordes i koden, för Vercel
+   svarade 403 på att skapa `AUCTIONS_BACKEND` för produktion. Samma
+   produktionsbygge som hade burit variabeln bär nu defaulten.
+   `AUCTIONS_BACKEND=wix-data` är vägen tillbaka så länge Wix-raderna finns.
 2. ☠️ **Butiken går via motorn.** Läste den Wix direkt hade den efter växlingen
    visat gårdagens fynd, och webhooken hade avslutat auktioner i ett lager
    ingen läser. Nu byter butiken lager i samma ögonblick som motorn.
@@ -5292,8 +5296,13 @@ Sex egenskaper som inte ska tas bort:
 ⚠️ **Radera Wix-raderna direkt efter en verifierad växling, inte ett dygn
 senare.** Auktionerna har inget retention-fönster, och efter växlingen tar
 seeden (03:17 UTC) och ticken bort rader ur Postgres. En sådan rad finns kvar i
-Wix men inte i kopian, och raderingen avbryter då hela sidan. `FyndplatsAuctions`
-står i `ALDRIG_RADERA` tills Leonard sagt ja.
+Wix men inte i kopian, och raderingen avbryter då hela sidan.
+
+✅ **Leonard sa ja till raderingen 2026-09-29.** `FyndplatsAuctions` är släppt ur
+`ALDRIG_RADERA`, men raderingsverktyget tar den bara när auktionerna bor i
+Postgres i den körande deploymenten (`VÄXELSTYRDA` i `lib/migration/radera-wix.ts`,
+`auctionsBackend() === "postgres"`). Före växlingen hade en radering tömt den
+levande auktionen.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 

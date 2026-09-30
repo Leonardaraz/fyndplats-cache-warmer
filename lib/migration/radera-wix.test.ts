@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ALDRIG_RADERA,
   beslutaSida,
@@ -14,11 +14,25 @@ const NU = Date.parse("2026-09-01T19:00:00.000Z");
 const dygn = (n: number) => n * 24 * 60 * 60 * 1000;
 
 describe("fårRaderas — spärrlistan", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it("☠️ de kollektioner butiken läser DIREKT ur Wix är fredade", () => {
-    // Auktioner och redirects läses fortfarande rakt ur Wix Data av butiken;
-    // flyttas de måste butiksrepot byggas om.
-    expect(fårRaderas("FyndplatsAuctions")).toBe(false);
+    // Redirects läses fortfarande rakt ur Wix Data av butiken; flyttas de
+    // måste butiksrepot byggas om.
     expect(fårRaderas("FyndplatsRedirects")).toBe(false);
+  });
+
+  it("☠️ auktionerna får raderas BARA när de bor i Postgres", () => {
+    // Läser motorn auktionerna ur Wix hade en radering tömt den levande
+    // auktionen. Leonards ja (2026-09-29) gäller raderingen efter en verifierad
+    // växling, inte före. Växlingen är defaulten sedan 2026-09-30, så en osatt
+    // variabel betyder Postgres — men wix-data (vägen tillbaka) spärrar.
+    vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
+    expect(fårRaderas("FyndplatsAuctions")).toBe(false);
+    vi.stubEnv("AUCTIONS_BACKEND", "");
+    expect(fårRaderas("FyndplatsAuctions")).toBe(true);
+    vi.stubEnv("AUCTIONS_BACKEND", "postgres");
+    expect(fårRaderas("FyndplatsAuctions")).toBe(true);
   });
 
   it("recensionerna är SLÄPPTA — butiken läser dem via API:t sedan 2026-09-02", () => {
@@ -50,6 +64,9 @@ describe("fårRaderas — spärrlistan", () => {
   });
 
   it("de flyttade kollektionerna får raderas", () => {
+    // Växelstyrda kollektioner (auktionerna) räknas som flyttade först efter
+    // växlingen — testet ovan låser den andra riktningen.
+    vi.stubEnv("AUCTIONS_BACKEND", "postgres");
     for (const spec of ATT_KOPIERA) {
       if ((ALDRIG_RADERA as readonly string[]).includes(spec.kollektion)) continue;
       expect(fårRaderas(spec.kollektion)).toBe(true);

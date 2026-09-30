@@ -256,6 +256,12 @@ async function wixAntal(kollektion: string): Promise<number> {
  */
 async function verifiera(efterVäxling: boolean): Promise<{
   fullständig: boolean;
+  /**
+   * Vilket lager varje del FAKTISKT servar ur i den här deploymenten. En
+   * env-variabel binds vid deploy, inte när den sparas, så en växling ska
+   * läsas här och inte antas ur Vercels panel.
+   */
+  lager: { drift: string; recensioner: string; auktioner: string };
   /** Vilken fråga svaret faktiskt besvarar. Se lib/migration/verdikt.ts. */
   läge: "före-växling" | "efter-växling";
   /** ☠️ Sant när källan är tömd. Då är `fullständig` INTE ett godkännande —
@@ -362,6 +368,7 @@ async function verifiera(efterVäxling: boolean): Promise<{
   const källanTömd = medInnehåll.length > 0 && medInnehåll.every((t) => t.källanTom);
 
   return {
+    lager: { drift: storeBackend(), recensioner: reviewsBackend(), auktioner: auctionsBackend() },
     fullständig: ut.every(
       (t) => t.stämmer && (t.efterVäxling || t.avvikande.length === 0),
     ),
