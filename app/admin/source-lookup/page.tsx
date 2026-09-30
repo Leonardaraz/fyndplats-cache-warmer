@@ -27,8 +27,8 @@ export default function SourceLookupPage() {
       </p>
       <p style={{ fontSize: 13, color: "#666" }}>
         Ordernumret och SKU:n är de två som står på Wix ordersida — börja där när en vara ska
-        beställas in. Har ordern flera rader listas de i stället för att gissas; slå då upp en i
-        taget på dess SKU.
+        beställas in. Har ordern flera rader visas varje rad för sig, med sin leverantör, sitt
+        artikelnummer och den variant kunden köpte.
       </p>
 
       <LookupClient />

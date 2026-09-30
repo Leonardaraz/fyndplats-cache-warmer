@@ -325,22 +325,40 @@ export async function listAllV3Products(
  * Slår upp EN produkt på exakt slug i V3-katalogen (headless-sajten). Används av
  * admin-källuppslaget för att gå från en storefront-slug till wixProductId.
  *
- * Skannar katalogen (samma källa + pagineringskod som /admin/mappings) och
- * matchar slug:en exakt, case-insensitivt. Vi använder MEDVETET inte ett
- * `filter: { slug }` i V3-query:t: att fältet är filtrerbart kunde inte
- * verifieras, och om Wix tyst ignorerar ett okänt filter skulle limit:1 ge
- * FEL produkt (första i katalogen) i stället för "ingen träff". Skanningen är
- * lite tyngre men alltid korrekt — acceptabelt för ett sällan-använt admin-
- * uppslag. Returnerar null om ingen produkt matchar.
+ * ETT ANROP, INTE HELA KATALOGEN (2026-09-29). Uppslaget skannade tidigare
+ * varje sida i katalogen, 6 000+ produkter med PLAIN_DESCRIPTION, sida för
+ * sida, för att hitta en enda slug. Leonard märkte väntan i /admin/source-lookup.
+ * Nu frågas Wix egen `GET /stores/v3/products/slug/{slug}`.
+ *
+ * Varför inte ett `filter: { slug }` i query (det gamla skälet att skanna):
+ * ett okänt filter kan ignoreras tyst och ge första produkten i katalogen.
+ * Slug-rutten har ingen sådan fallgrop, och svaret kontrolleras ändå: bara en
+ * produkt vars slug är exakt den sökta godtas.
+ *
+ * Butikens /produkt/<slug> ÄR Wix slug (lib/products.ts i headless-site), så
+ * 404 betyder "finns inte" och ger null direkt. En reservskanning hade gjort
+ * varje felstavning lika långsam som förut. Andra fel kastar.
  */
 export async function getV3ProductBySlug(
   slug: string,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<{ id: string; name: string; slug: string } | null> {
   const wanted = (slug || "").trim().toLowerCase();
   if (!wanted) return null;
-  const all = await listAllV3Products();
-  const hit = all.find((p) => (p.slug || "").toLowerCase() === wanted);
-  return hit ? { id: hit.id, name: hit.name, slug: hit.slug } : null;
+
+  const res = await fetchImpl(`${WIX_BASE}/stores/v3/products/slug/${encodeURIComponent(wanted)}`, {
+    method: "GET",
+    headers: headers(),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix products/slug misslyckades (${res.status}): ${text.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as { product?: { id?: string; name?: string; slug?: string } };
+  const p = data.product;
+  if (!p?.id || (p.slug || "").toLowerCase() !== wanted) return null;
+  return { id: p.id, name: p.name ?? "", slug: p.slug ?? wanted };
 }
 
 /**

@@ -98,3 +98,31 @@ describe("källanTom — en tömd källa är inte ett godkännande", () => {
     expect(bedömTabell(0, 5494, 0, false).källanTom).toBe(true);
   });
 });
+
+describe("bedömTabell — tabell utan retention (egen växel), före växlingen", () => {
+  const exakt = (w: number, p: number) => bedömTabell(w, p, 0, false, true);
+
+  it("stämmer när kopian är exakt lika stor som källan", () => {
+    expect(exakt(3561, 3561).stämmer).toBe(true);
+  });
+
+  it("☠️ ett ÖVERSKOTT fäller — källan städas aldrig, raderna hade kommit tillbaka i kön", () => {
+    expect(exakt(3561, 3562).stämmer).toBe(false);
+    // Samma tal passerar en tabell MED retention, där överskottet är källans städning.
+    expect(bedömTabell(3561, 3562, 0, false).stämmer).toBe(true);
+  });
+
+  it("☠️ en tom källa fäller — ett läsfel får inte godkänna en växling till en tom tabell", () => {
+    expect(exakt(0, 0).stämmer).toBe(false);
+    expect(bedömTabell(0, 0, 0, false).stämmer).toBe(true);
+  });
+
+  it("en brist fäller som förut", () => {
+    expect(exakt(3561, 3560).stämmer).toBe(false);
+  });
+
+  it("efter växlingen gäller massfel-regeln oförändrat", () => {
+    expect(bedömTabell(3561, 3530, 0, true, true).stämmer).toBe(true);
+    expect(bedömTabell(0, 3561, 0, true, true).källanTom).toBe(true);
+  });
+});

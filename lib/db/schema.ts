@@ -26,6 +26,7 @@ export const TABELLER = [
   "import_costs",
   "llm_kv",
   "reviews",
+  "auctions",
 ] as const;
 
 export type Tabell = (typeof TABELLER)[number];
@@ -226,4 +227,28 @@ const DDL: string[] = [
   // inte. Det stod redan som en kommentar i Wix-versionen och gäller här med.
   `create index if not exists reviews_status_date_idx on reviews (status, date desc nulls last)`,
 
+  // --- Fyndauktionen: 3 561 rader 2026-09-29 --------------------------------
+  //
+  // En rad per produkt i katalogen (`_id` = `auction-<productId>`), och kön
+  // växer med varje import. I Wix var den 89 % av det globala taket på 4 000
+  // rader, och taket stoppade både nya kö-rader och omdirigeringarna efter en
+  // sammanslagning. Samma ordning som recensionerna: kopiera, växla med
+  // AUCTIONS_BACKEND, radera Wix-raderna sist.
+  //
+  // `id` är Wix-radens `_id`, ordagrant. Motorn sparar med den och
+  // återvinner samma dokument år efter år, så en ny nyckel hade gett en andra
+  // rad för samma produkt.
+  `create table if not exists auctions (
+     id          text primary key,
+     product_id  text not null,
+     status      text not null,
+     queue_order double precision,
+     ended_at    timestamptz,
+     data        jsonb not null,
+     updated_at  timestamptz not null default now()
+   )`,
+  // Ticken läser live + kö i köordning varje timme.
+  `create index if not exists auctions_status_queue_idx on auctions (status, queue_order)`,
+  // Butikens webhook avslutar på produkt-id.
+  `create index if not exists auctions_product_id_idx on auctions (product_id)`,
 ];

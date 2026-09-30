@@ -1,0 +1,111 @@
+name: Recensioner — återställ raderade AliExpress-kundfoton
+
+# Kör /api/cron/review-image-restore i varv tills hela listan är genomgången.
+# Varje varv tar högst `limit` produkter och svarar med `nasta`, som nästa varv
+# skickar som `after`. Bakgrund: lib/reviews/image-restore.ts.
+#
+# Kör först med skarp=nej: då räknas döda bilder och träffar hos AE utan att
+# något skrivs. Loggen bär bara räknare.
+#
+# Återanvänder repository secrets: POLL_TRACKING_URL (bas-URL) och CRON_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      skarp:
+        description: "ja = importera bilderna och skriv raderna. nej = torrkörning."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      limit:
+        description: "Produkter per anrop"
+        required: false
+        default: "25"
+        type: string
+      max_varv:
+        description: "Högsta antal anrop"
+        required: false
+        default: "40"
+        type: string
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Återställ
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+          LIMIT: ${{ inputs.limit }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/cron/review-image-restore"
+          dry="true"; [ "${SKARP:-nej}" = "ja" ] && dry="false"
+          limit="${LIMIT:-25}"; max="${MAX_VARV:-40}"
+
+          varv=0; after=""; stopp=""; totalt=0
+          sum_gen=0; sum_dprod=0; sum_drad=0; sum_hitt=0; sum_rad=0; sum_bild=0
+          sum_saknas=0; sum_utan=0; sum_strypt=0; sum_imp=0; sum_skriv=0
+          while [ "$varv" -lt "$max" ]; do
+            varv=$((varv + 1))
+            svar="$(curl -sS -G -w '\n%{http_code}' --max-time 320 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              --data-urlencode "dryRun=${dry}" --data-urlencode "limit=${limit}" \
+              --data-urlencode "after=${after}" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} i varv ${varv}: $(printf '%s' "$json" | jq -r '.message // .error // ""')" >&2
+              exit 1
+            fi
+            g() { printf '%s' "$json" | jq -r ".$1"; }
+            totalt="$(g produkterTotalt)"
+            sum_gen=$((sum_gen + $(g produkterGenomgangna)))
+            sum_dprod=$((sum_dprod + $(g produkterMedDoda)))
+            sum_drad=$((sum_drad + $(g raderMedDoda)))
+            sum_hitt=$((sum_hitt + $(g hittadeHosAE)))
+            sum_rad=$((sum_rad + $(g aterstallda)))
+            sum_bild=$((sum_bild + $(g bilderAterstallda)))
+            sum_saknas=$((sum_saknas + $(g saknasHosAE)))
+            sum_utan=$((sum_utan + $(g utanAEMappning)))
+            sum_strypt=$((sum_strypt + $(g strypta)))
+            sum_imp=$((sum_imp + $(g importfel)))
+            sum_skriv=$((sum_skriv + $(g skrivfel)))
+            stopp="$(g stoppadAv)"
+            echo "varv ${varv}: $(g produkterGenomgangna) produkter, $(g raderMedDoda) rader med döda bilder, $(g hittadeHosAE) hittade hos AE, $(g aterstallda) återställda, stopp: ${stopp}"
+            if [ "$stopp" = "klar" ]; then break; fi
+            # Ett varv som tog slut innan första produkten blev klar har ingen
+            # `nasta` — då börjar nästa varv på samma ställe.
+            n="$(g nasta)"; [ "$n" != "null" ] && after="$n"
+          done
+
+          {
+            echo "### Kundfoton — återställning ($([ "$dry" = "true" ] && echo torrkörning || echo skarp))"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| varv | ${varv} |"
+            echo "| AE-produkter med bilder | ${totalt} |"
+            echo "| genomgångna | ${sum_gen} |"
+            echo "| produkter med döda bilder | ${sum_dprod} |"
+            echo "| rader med döda bilder | ${sum_drad} |"
+            echo "| hittade hos AE | ${sum_hitt} |"
+            echo "| **rader återställda** | **${sum_rad}** |"
+            echo "| bilder återställda | ${sum_bild} |"
+            echo "| saknas hos AE | ${sum_saknas} |"
+            echo "| utan AE-mappning | ${sum_utan} |"
+            echo "| strypta | ${sum_strypt} |"
+            echo "| importfel | ${sum_imp} |"
+            echo "| skrivfel | ${sum_skriv} |"
+            echo "| klar | $([ "$stopp" = "klar" ] && echo ja || echo "nej, fortsätt efter ${after}") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${sum_rad} rader, ${sum_bild} bilder återställda i ${varv} varv"

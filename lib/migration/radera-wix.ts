@@ -31,12 +31,13 @@
 // 5. Torrkörning är default. Utan dryRun=false läses och verifieras allt, men
 //    ingenting raderas — samma hållning som resten av husets rutter.
 
-import { ATT_KOPIERA, AUDIT, LLM_SAMLINGAR, SYNC_LOG } from "@/lib/db/tabeller";
+import { ATT_KOPIERA, AUDIT, AUKTIONER, LLM_SAMLINGAR, SYNC_LOG } from "@/lib/db/tabeller";
 import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
+import { auctionsBackend } from "@/lib/store/backend";
 
 /** Kollektioner som ALDRIG får röras, oavsett vad kopielistan säger.
- *  De tre första läses direkt av butiksrepot; flyttas de måste butiken byggas
- *  om. Tokenraden står här för att en raderad token inte går att läsa tillbaka
+ *  `FyndplatsRedirects` läses direkt av butiksrepot; flyttas den måste butiken
+ *  byggas om (auktionerna gjorde det 2026-09-29, se VÄXELSTYRDA). Tokenraden står här för att en raderad token inte går att läsa tillbaka
  *  — vägen tillbaka är ny OAuth för hand, samma återvändsgränd som de 30
  *  dygnen utan förnyelse 2026-08-29.
  *
@@ -61,15 +62,39 @@ import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
  *  sidan om en enda Wix-rad saknas i Postgres. En rad kan alltså inte raderas
  *  utan att först vara bevisat kopierad. Torrkörning är dessutom default. */
 export const ALDRIG_RADERA = [
-  "FyndplatsAuctions",
   "FyndplatsRedirects",
   "FyndplatsAliExpressTokens",
   "FyndplatsAppConfig",
   "FyndplatsPricingConfig",
 ] as const;
 
+/**
+ * Kollektioner som får raderas FÖRST när deras egen växel slagit om.
+ *
+ * ✅ AUKTIONERNA SLÄPPTA 2026-09-29, med Leonards ja ("Ja det går bra"). Kön är
+ * 3 561 av Wix ~4 020 rader, så det är just den här raderingen som frigör
+ * taket. Butiken läser och avslutar via /api/auctions/* sedan samma natt.
+ *
+ * ☠️ MEN BARA NÄR AUCTIONS_BACKEND=postgres I DEN KÖRANDE DEPLOYMENTEN. Före
+ * växlingen läser motorn auktionerna ur Wix, och en radering hade tömt den
+ * levande auktionen: ingen live-rad, ingen kö, och butikens /fyndauktion tom.
+ * Villkoret läses i samma process som raderar, så en växel som inte slagit
+ * igenom (en env-variabel binds vid deploy) kan inte se ut som en som gjort det.
+ *
+ * ☠️ Auktionerna har INGET retention-fönster, och efter växlingen tar ticken
+ * och seeden bort rader ur Postgres (raderade produkter, diskvalificerad kö).
+ * En sådan rad finns kvar i Wix men inte i kopian, och `beslutaSida` avbryter
+ * då hela sidan. Radera därför direkt efter en verifierad växling, före nästa
+ * seed (03:17 UTC), inte ett dygn senare.
+ */
+const VÄXELSTYRDA: Record<string, () => boolean> = {
+  [AUKTIONER.kollektion]: () => auctionsBackend() === "postgres",
+};
+
 export function fårRaderas(kollektion: string): boolean {
   if ((ALDRIG_RADERA as readonly string[]).includes(kollektion)) return false;
+  const växel = VÄXELSTYRDA[kollektion];
+  if (växel && !växel()) return false;
   const tillåtna = [
     ...ATT_KOPIERA.map((s) => s.kollektion),
     ...LLM_SAMLINGAR,

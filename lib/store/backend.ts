@@ -93,3 +93,44 @@ export function reviewsBackend(): StoreBackend {
     `Okänt REVIEWS_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
   );
 }
+
+/** Lagren auktionerna kan bo i. Inget minneslager: motorn har aldrig haft ett,
+ *  och en tick mot en tom minneskö hade sett ut som "inget att främja". */
+export const AUCTION_BACKENDS = ["wix-data", "postgres"] as const;
+export type AuctionBackend = (typeof AUCTION_BACKENDS)[number];
+
+/**
+ * Var FYNDAUKTIONEN bor. Egen switch, `AUCTIONS_BACKEND`, default `"postgres"`
+ * sedan växlingen 2026-09-30.
+ *
+ * Samma skäl som `reviewsBackend` ovan, och samma ordning:
+ *
+ *   1. tabell + lager + rutter för butiken finns (default wix-data, inget händer)
+ *   2. butiken läser och avslutar via motorns rutter, inte Wix Data direkt
+ *   3. kopiera raderna, verifiera strikt (wix = pg, avvikande 0)
+ *   4. växlingen: default postgres                 ← den här raden
+ *   5. radera Wix-raderna                          ← FÖRST här frigörs taket
+ *
+ * ☠️ Växlingen gjordes i KODEN, inte i Vercel. Att skapa AUCTIONS_BACKEND för
+ * produktion avvisades med 403 ("Additional permissions are required"), och
+ * en env-variabel binds ändå först vid bygget. Defaulten följer därför med
+ * samma produktionsbygge som hade burit variabeln. `AUCTIONS_BACKEND=wix-data`
+ * är vägen tillbaka, men bara så länge Wix-raderna finns: efter steg 5 hade den
+ * pekat på en tom kollektion, och då är ingen väg tillbaka bättre än den.
+ *
+ * ☠️ Kön är en rad per produkt i katalogen (3 561 rader 2026-09-29, 89 % av
+ * Wix-taket på 4 000). Den växer med katalogen, så taket slår i igen för varje
+ * import så länge raderna bor i Wix.
+ *
+ * ☠️ Butiken går via motorn och växlar därför SAMTIDIGT som motorn. Läste den
+ * Wix direkt hade den efter växlingen visat gårdagens fynd, och webhooken hade
+ * avslutat auktioner i ett lager ingen läser.
+ */
+export function auctionsBackend(): AuctionBackend {
+  const raw = (process.env.AUCTIONS_BACKEND ?? "").trim();
+  if (!raw) return "postgres";
+  if ((AUCTION_BACKENDS as readonly string[]).includes(raw)) return raw as AuctionBackend;
+  throw new Error(
+    `Okänt AUCTIONS_BACKEND="${raw}". Tillåtna värden: ${AUCTION_BACKENDS.join(", ")}.`,
+  );
+}

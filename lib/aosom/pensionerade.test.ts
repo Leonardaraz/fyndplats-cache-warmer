@@ -240,6 +240,53 @@ describe("planera — en egen artikel raderas inte utan ett eget beslut", () => 
   });
 });
 
+describe("planera — listan och klockan gäller alla pensionerade", () => {
+  it("☠️ ett utkast med egen artikel syns i listan även när ett annat hinder stoppar det", () => {
+    const p = planera(underlag({
+      mappningar: [
+        rad("ung", { supplierProductId: "aosom:SYNT-U", reviewedAt: dagarSedan(3) }),
+        rad("utan", { supplierProductId: "aosom:SYNT-X", reviewedAt: undefined }),
+        rad("synlig", { supplierProductId: "aosom:SYNT-V" }),
+        rad("fri"),
+      ],
+      katalog: [produkt("ung"), produkt("utan"), produkt("synlig", { visible: true }), produkt("fri")],
+    }));
+    expect(p.egnaArtiklar.sort()).toEqual(["synlig", "ung", "utan"]);
+    // Hindren räknas som förut: det första som stoppar raden.
+    expect(p.hinder.forUng).toBe(1);
+    expect(p.hinder.utanTidsstampel).toBe(1);
+    expect(p.hinder.synlig).toBe(1);
+    expect(p.hinder.egenArtikel).toBe(0);
+    expect(p.raderbara.map((r) => r.wixProductId)).toEqual(["fri"]);
+  });
+
+  it("listan räknas även när egna artiklar får raderas, men stoppar då ingenting", () => {
+    const u = underlag({ mappningar: [rad("a", { supplierProductId: "aosom:SYNT-A" })], katalog: [produkt("a")] });
+    const p = planera(u, { medEgnaArtiklar: true });
+    expect(p.egnaArtiklar).toEqual(["a"]);
+    expect(p.hinder.egenArtikel).toBe(0);
+    expect(p.raderbara.map((r) => r.wixProductId)).toEqual(["a"]);
+  });
+
+  it("☠️ äldsta pensionering räknas över alla, även när ingen rad är raderbar", () => {
+    const p = planera(underlag({
+      mappningar: [
+        rad("ung", { reviewedAt: dagarSedan(3) }),
+        rad("synlig", { reviewedAt: dagarSedan(40) }),
+        rad("utan", { reviewedAt: undefined }),
+      ],
+      katalog: [produkt("ung"), produkt("synlig", { visible: true }), produkt("utan")],
+    }));
+    expect(p.raderbara).toEqual([]);
+    expect(p.aldstaPensionering).toBe(dagarSedan(40));
+  });
+
+  it("utan någon tidsstämpel finns ingen äldsta pensionering", () => {
+    const p = planera(underlag({ mappningar: [rad("a", { reviewedAt: undefined })], katalog: [produkt("a")] }));
+    expect(p.aldstaPensionering).toBeNull();
+  });
+});
+
 describe("malSlug", () => {
   it("läser produktslugen ur en intern sökväg, annars null", () => {
     expect(malSlug("/produkt/En-Sida/")).toBe("en-sida");

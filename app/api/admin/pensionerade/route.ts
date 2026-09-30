@@ -135,7 +135,7 @@ function sammanfatta(plan: Plan) {
     egnaArtiklar: plan.egnaArtiklar.length,
     hinder: plan.hinder,
     nastaRaderbar: plan.nastaRaderbar,
-    aldstaPensionering: plan.raderbara.map((r) => r.pensioneradAt).sort()[0] ?? null,
+    aldstaPensionering: plan.aldstaPensionering,
     bilder: plan.bilder,
     omdirigeringarFullstandiga: plan.omdirigeringarFullstandiga,
     forstaRaderbara: plan.raderbara.slice(0, 20).map((r) => r.wixProductId),

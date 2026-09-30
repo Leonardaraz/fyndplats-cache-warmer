@@ -1729,6 +1729,13 @@ Nio egenskaper som inte ska tas bort:
    importeras igen. Planen listar dem (`egnaArtiklarIds`). Granska listan och
    kör sedan med `egna=ja`.
 
+   ☠️ **Listan räknas över ALLA pensionerade** (sedan 2026-09-30), även de som
+   är för unga eller stoppas av ett annat hinder. Den räknades först bara bland
+   de annars raderbara, och då syntes ett utkast med egen artikel först samma
+   dag det kunde raderas. `hinder.egenArtikel` räknar fortfarande bara de rader
+   där den egna artikeln är det som stoppar, och `aldstaPensionering` gäller
+   också alla pensionerade med tidsstämpel, inte bara de raderbara.
+
 **Första körningen 2026-09-28.** Planen gav 580 pensionerade: 11 raderbara, 547
 för unga, 20 utan tidsstämpel (de fick den samma dag) och 2 synliga. Svepet tog
 under en minut. De 11 raderades med noll obekräftade och noll märkningsfel, och
@@ -1908,6 +1915,59 @@ position 1 och 2 blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
 
 Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
 av det som är hela svepets flaskhals.
+
+### De andra positionerna hämtas för granskning (2026-09-30)
+
+Poleringen stryker det som bär tysk text, ett märke eller en logga. Därför stod
+222 publicerade sidor med två eller tre bilder den 2026-09-30, 48 av dem med två.
+Leonards beslut: sådana sidor ska få fler rena bilder ur leverantörens egen
+uppsättning, inte egna kort.
+
+Ingen hade sett position 4–7, och det gick inte att titta. Bildlistan finns bara i
+feeden, och Wix minns inte varifrån bilderna kom: filerna på produkterna är Wix
+egna kopior, och originalen är bortstädade (uppmätt: `get-files` på kopians
+`sourceUrl` svarar med en tom lista).
+
+Workflowen **"Bilder — hämta leverantörens övriga bilder för granskning"** →
+`/api/admin/aosom-bildkandidater` → `lib/aosom/bildkandidater.ts` laddar upp de
+begärda positionerna (default 4–7) till Media Manager utan att röra produkten.
+Svaret ger Wix fil-id och wixstatic-adress per position. En människa tittar på
+bilderna, och de rena skrivs med **"Polering — skriv bara bilderna"**
+(`bildplan.json` ur `tools/polish-gates/bygg-bildplan.py` →
+`/api/admin/polish-bilder` → `lib/polish/bildplan.ts`). Den skriver bara
+bildlistan, med skrivplanens eget mediesteg, så en polerad sidas text skickas
+aldrig igen.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Svaret bär aldrig artikelnummer eller leverantörens adresser.** Ett
+   uppladdningsfel räknas per position utan felmeddelande, eftersom
+   `importMediaByUrl` skriver källadressen i sitt.
+2. ☠️ **Filnamnet byggs av Wix-id och position** (`kandidat-<id>-<pos>.jpg`),
+   aldrig av källadressen eller titeln.
+3. ☠️ **Positionerna tas exakt.** `valjBilder` släpper igenom hela listan när ingen
+   önskad position finns. Det är rätt vid en import men fel här.
+4. **Torrkörning är default.** Den säger hur många bilder feeden har.
+
+⚠️ **Bilder som ingen väljer städas bort av nattens bildstädning** (03:50 UTC),
+eftersom de bär en leverantörsadress i `sourceUrl`. En vald bild måste alltså
+sitta på sin produkt före nästa städning. En omkörning laddar upp på nytt.
+
+☠️ **Utfallet, uppmätt 2026-09-30: position 4–7 är nästan aldrig rena.** Alla 184
+bilder på de 46 sidorna med två bilder granskades. 181 var tyska säljgrafiker
+med rubrik och bildtexter. Tre var miljöfoton utan grafik, och två av dem bar
+läsbar text eller ett riktigt märke på rekvisitan (burkar, flaskor). En enda
+bild klarade runbookens regler, soffbordets miljöfoto. Den ligger på sidan sedan
+samma dag (`runda-bilder-1-skriv`), läst tillbaka ur Wix och sedd på den
+publicerade sidan. Ingen sida kom upp i två nya rena bilder.
+Granskningen står per bild i `tools/polish-assets/runda-bilder-1/granskning.tsv`.
+Mätningen från 2026-08-27 (4 av 90 rena på position 4–6) stod sig alltså, och
+den gäller även de sidor poleringen redan tömt.
+
+⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
+Position 10 har ingen granskat. Taket i verktyget var nio fram till samma dag
+och slängde position 10 tyst ur begäran. Det är sedan dess femton, alltså Wix
+tak för bilder per produkt.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -5238,6 +5298,71 @@ Resend därifrån — leta i butiksrepot, inte i det här.
 **Regeln, som nu gäller två gånger:** en migrering är klar först när alla läsare
 följt med — och en läsare som blir TOM syns varken i en kodaudit eller i en
 felräknare. Det som hittar den är ett källkodstest.
+
+## Fyndauktionen flyttar till Postgres (`AUCTIONS_BACKEND`, 2026-09-29)
+
+Wix CMS var fullt igen: **4 020 rader mot taket 4 000**, och
+`FyndplatsAuctions` var **3 561** av dem (3 308 i kön, 5 live, 248
+avslutade). Kön är en rad per produkt i katalogen och växer med varje import.
+Taket stoppade två sammanslagningars omdirigeringar i runda B64, och
+auktionsseeden kan inte lägga nya produkter i kön. Leonard bad om flytten.
+
+Samma ordning som recensionerna, och samma skäl för varje steg:
+
+| steg | vad | frigör taket? |
+|---|---|:---:|
+| 1 | `auctions`-tabell, Postgres-lager, `AUCTIONS_BACKEND` (default `wix-data`) | nej |
+| 2 | butiken läser och avslutar via `/api/auctions/*`, inte Wix Data direkt | nej |
+| 3 | kopiera (`?tabeller=auctions`), verifiera strikt | nej |
+| 4 | växlingen: defaulten blir `postgres` i koden (2026-09-30) | nej |
+| 5 | radera Wix-raderna, med Leonards ja | **ja** |
+
+Två rutter för butiken, båda med `Bearer REVIEW_INGEST_SECRET` (den hemlighet
+de två projekten redan delar, så ingen ny behöver föras in för hand):
+
+- `GET /api/auctions/rader?status=live|sold` — raderna butiken visar.
+- `POST /api/auctions/avsluta` — butikens webhook avslutar ett sålt live-fynd
+  direkt. Priset återställs först, sedan sold, samma ordning som timcronen.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Defaulten var `wix-data` fram till växlingen, även när
+   `STORE_BACKEND=postgres`.** Hade auktionerna följt drift-datans växel hade
+   ticken läst en tom tabell i samma sekund som lagret deployades. Sedan
+   2026-09-30 är defaulten `postgres`. Växlingen gjordes i koden, för Vercel
+   svarade 403 på att skapa `AUCTIONS_BACKEND` för produktion. Samma
+   produktionsbygge som hade burit variabeln bär nu defaulten.
+   `AUCTIONS_BACKEND=wix-data` är vägen tillbaka så länge Wix-raderna finns.
+2. ☠️ **Butiken går via motorn.** Läste den Wix direkt hade den efter växlingen
+   visat gårdagens fynd, och webhooken hade avslutat auktioner i ett lager
+   ingen läser. Nu byter butiken lager i samma ögonblick som motorn.
+3. ☠️ **Rutternas svar är en allowlist** (`lib/auction/butiksvy.ts`). Golvet
+   (`floorPrice`, `variantPrices`) lämnar aldrig motorn. Stegen följer med för
+   live-rader, eftersom butikens server räknar nästa sänkning ur den, och det
+   är därför rutterna kräver en hemlighet.
+4. ☠️ **Svaret bär `lager`**, alltså vilket lager som faktiskt svarade. En
+   env-variabel binds vid deploy, så en växling ska läsas ur svaret och inte
+   antas ur Vercels panel.
+5. **Ticken läser bara köns första 200** (`köHuvud`). Den främjar högst fem åt
+   gången och går var tionde minut. Hela kön är ~2,4 MB, och att läsa den 144
+   gånger per dygn hade kostat ~10 GB i månaden ur databasen. Seeden,
+   pensioneringens spärr och morgonmejlet läser hela kön, och i Postgres utan
+   Wix-frågans tak på 1 000 rader.
+6. ☠️ **Kopieringen är tillåten och verifieringen strikt tills växeln slagit
+   om** (`EGEN_VÄXEL` i kopieringsrutten, samma undantag som recensionerna
+   hade). Efter växlingen vägrar kopieringen, för då hade den skrivit tillbaka
+   gamla Wix-rader över levande data.
+
+⚠️ **Radera Wix-raderna direkt efter en verifierad växling, inte ett dygn
+senare.** Auktionerna har inget retention-fönster, och efter växlingen tar
+seeden (03:17 UTC) och ticken bort rader ur Postgres. En sådan rad finns kvar i
+Wix men inte i kopian, och raderingen avbryter då hela sidan.
+
+✅ **Leonard sa ja till raderingen 2026-09-29.** `FyndplatsAuctions` är släppt ur
+`ALDRIG_RADERA`, men raderingsverktyget tar den bara när auktionerna bor i
+Postgres i den körande deploymenten (`VÄXELSTYRDA` i `lib/migration/radera-wix.ts`,
+`auctionsBackend() === "postgres"`). Före växlingen hade en radering tömt den
+levande auktionen.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
