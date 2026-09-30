@@ -1,0 +1,601 @@
+/* Fyndauktionens topp (2026-09-30): rubrik, tomt läge och "Så fungerar det".
+   Scenens färger kommer från --a-*-variablerna som components/auction-stage
+   sätter (grädde på dagen, mörkt ember-läge sista timmen). Allt här går via
+   dem, så panelerna följer med i båda lägena.
+
+   .hero.hero dubblar klassen med flit: den globala CSS:en i app/globals.css
+   har selektorer som .a-stage .a-sechead, och modulens regler ska vinna
+   oavsett i vilken ordning filerna laddas. */
+
+/* ── Rubrikblocket ─────────────────────────────────────────────── */
+.hero.hero {
+  padding: 64px 0 72px;
+}
+.hero.hero :global(.a-sechead) {
+  margin-bottom: 0;
+}
+.hero.hero :global(.a-title) {
+  font-size: clamp(34px, 4.3vw, 54px);
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  max-width: 15em;
+  margin: 0 auto;
+  text-wrap: balance;
+}
+/* "varje timme" hålls ihop: bruten mellan raderna tappade accenten sin poäng. */
+.hero.hero :global(.a-hot) {
+  white-space: nowrap;
+}
+.hero.hero :global(.a-lede) {
+  max-width: 600px;
+  margin: 18px auto 0;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* ── Tomt läge: kortet ─────────────────────────────────────────── */
+.empty {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  max-width: 1000px;
+  margin: 44px auto 0;
+  background: var(--a-card, #fff);
+  color: var(--a-cardink, #241c16);
+  border: 1px solid var(--a-line, #EFE7DE);
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(60, 30, 10, 0.05), 0 18px 40px -24px rgba(60, 30, 10, 0.32);
+  overflow: hidden;
+}
+.emptyMain {
+  padding: 40px 44px 42px;
+  min-width: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--a-cardink, #241c16);
+  background: color-mix(in srgb, var(--a-accent, #C2410C) 9%, var(--a-card, #fff));
+  border: 1px solid color-mix(in srgb, var(--a-accent, #C2410C) 22%, var(--a-card, #fff));
+}
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--a-accent, #C2410C);
+  flex: 0 0 auto;
+}
+.chipDotLive {
+  animation: prick 1.6s ease-out infinite;
+}
+@keyframes prick {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--a-accent, #C2410C) 45%, transparent); }
+  100% { box-shadow: 0 0 0 8px transparent; }
+}
+.emptyTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(26px, 2.6vw, 34px);
+  line-height: 1.12;
+  letter-spacing: -0.018em;
+  color: var(--a-cardink, #241c16);
+  margin: 18px 0 12px;
+  text-wrap: balance;
+}
+.emptyText {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--a-soft, #6b6157);
+  max-width: 46ch;
+  margin: 0;
+  text-wrap: pretty;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 28px;
+}
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 12px;
+  background: var(--brand, #C2410C);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(60, 20, 0, 0.12), 0 8px 18px -10px rgba(194, 65, 12, 0.7);
+  transition: background 0.2s, transform 0.15s;
+}
+.btnPrimary:hover {
+  background: #A8380A;
+  transform: translateY(-1px);
+}
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--a-cardink, #241c16);
+  text-decoration: none;
+}
+.btnSecondaryText {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s;
+}
+.btnSecondary:hover .btnSecondaryText {
+  text-decoration-color: currentColor;
+}
+.btnSecondaryArrow {
+  transition: transform 0.18s;
+}
+.btnSecondary:hover .btnSecondaryArrow {
+  transform: translateX(3px);
+}
+.btnPrimary:focus-visible,
+.btnSecondary:focus-visible,
+.soldItem:focus-visible,
+.soldAll:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand, #C2410C) 55%, transparent);
+  outline-offset: 3px;
+}
+
+/* Klockan: nästa start + nedräkning */
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 32px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--a-accent, #C2410C) 7%, transparent), transparent 70%),
+    color-mix(in srgb, var(--a-accent, #C2410C) 3%, var(--a-card, #fff));
+  border-left: 1px solid var(--a-line, #EFE7DE);
+  min-width: 0;
+}
+.clockLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--a-soft, #6b6157);
+}
+.clockTime {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(52px, 5.4vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--a-cardink, #241c16);
+  margin-top: 10px;
+}
+.clockDay {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--a-cardink, #241c16);
+}
+.clockNote {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--a-soft, #6b6157);
+}
+.countdown {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+  visibility: hidden;
+}
+.countdown[data-ready] {
+  visibility: visible;
+}
+.cdCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 62px;
+  padding: 9px 8px 7px;
+  border-radius: 12px;
+  background: var(--a-card, #fff);
+  border: 1px solid var(--a-line, #EFE7DE);
+}
+.cdNum {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-cardink, #241c16);
+}
+.cdUnit {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--a-soft, #6b6157);
+}
+
+/* Senast sålda: kortets fot */
+.soldRow {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--a-line, #EFE7DE);
+  padding: 20px 44px 22px;
+}
+.soldHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.soldTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--a-soft, #6b6157);
+  margin: 0;
+}
+.soldAll {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--a-cardink, #241c16);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 3px;
+}
+.soldAll:hover {
+  text-decoration-color: currentColor;
+}
+.soldItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.soldItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+.soldItem:hover {
+  background: color-mix(in srgb, var(--a-accent, #C2410C) 6%, var(--a-card, #fff));
+}
+.soldImg {
+  position: relative;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--a-line, #EFE7DE);
+}
+.soldInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.soldName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--a-cardink, #241c16);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.soldPrice {
+  font-size: 13px;
+  color: var(--a-soft, #6b6157);
+}
+.soldPrice b {
+  color: var(--a-cardink, #241c16);
+  font-weight: 700;
+}
+.soldPrice em {
+  font-style: normal;
+  font-weight: 700;
+  color: #1B7A3D;
+}
+
+/* ── Så fungerar det ───────────────────────────────────────────── */
+.how {
+  max-width: 1000px;
+  margin: 56px auto 0;
+  padding: 32px 36px 28px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--a-card, #fff) 82%, transparent);
+  border: 1px solid var(--a-line, #EFE7DE);
+  color: var(--a-cardink, #241c16);
+}
+.howTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  color: var(--a-cardink, #241c16);
+  margin: 0 0 24px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+/* Tidslinjen: en streckad linje från varje ikon till nästa. */
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 58px;
+  right: -14px;
+  border-top: 2px dashed color-mix(in srgb, var(--a-accent, #C2410C) 32%, var(--a-line, #EFE7DE));
+}
+.stepIcon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--a-accent, #C2410C);
+  background: color-mix(in srgb, var(--a-accent, #C2410C) 11%, var(--a-card, #fff));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-accent, #C2410C) 22%, transparent);
+  flex: 0 0 auto;
+}
+.stepBody {
+  min-width: 0;
+}
+.stepWhen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--a-soft, #6b6157);
+}
+.stepNo {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--a-card, #fff);
+  background: var(--a-cardink, #241c16);
+}
+.stepTitle {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 6px 0 4px;
+  color: var(--a-cardink, #241c16);
+}
+.stepText {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--a-soft, #6b6157);
+  margin: 0;
+  text-wrap: pretty;
+}
+.terms {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--a-line, #EFE7DE);
+}
+.termsTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--a-soft, #6b6157);
+  margin: 0 0 12px;
+}
+.termsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 32px;
+}
+.termsList li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--a-soft, #6b6157);
+}
+.termsList svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--a-accent, #C2410C);
+}
+
+/* Sålda-listan längre ned och nyhetsbrevet: landningsplatser för länkar. */
+.soldSec,
+.nlAnchor {
+  scroll-margin-top: 200px;
+}
+
+/* ── Surfplatta ────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .empty {
+    grid-template-columns: 1fr;
+  }
+  .clock {
+    border-left: 0;
+    border-top: 1px solid var(--a-line, #EFE7DE);
+  }
+  .soldItems {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .step {
+    flex-direction: row;
+    gap: 16px;
+    padding-bottom: 22px;
+  }
+  .step:last-child {
+    padding-bottom: 0;
+  }
+  .step:not(:last-child)::after {
+    top: 52px;
+    bottom: 6px;
+    left: 21px;
+    right: auto;
+    border-top: 0;
+    border-left: 2px dashed color-mix(in srgb, var(--a-accent, #C2410C) 32%, var(--a-line, #EFE7DE));
+  }
+  .stepTitle {
+    margin-top: 4px;
+  }
+  .termsList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Mobil ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .hero.hero {
+    padding: 28px 0 40px;
+  }
+  .hero.hero :global(.a-title) {
+    font-size: 32px;
+    line-height: 1.08;
+  }
+  /* Den globala mobilregeln lägger ingressen sist, klipper den till två
+     rader och gör den 12 px. Här står den hel och läsbar. Live: efter
+     produkterna (produkten först, som förut). Tomt läge: direkt under
+     rubriken, eftersom det inte finns någon produkt att visa. */
+  .hero.hero :global(.a-lede) {
+    order: 6;
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 22px auto 0;
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .isEmpty.isEmpty :global(.a-lede) {
+    order: 1;
+    margin-top: 14px;
+  }
+  .empty {
+    order: 4;
+    margin-top: 24px;
+    border-radius: 18px;
+  }
+  .emptyMain {
+    padding: 24px 20px 24px;
+  }
+  .emptyTitle {
+    font-size: 26px;
+    margin: 14px 0 10px;
+  }
+  .emptyText {
+    font-size: 15px;
+    max-width: none;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 22px;
+  }
+  .btnPrimary {
+    justify-content: center;
+    padding: 15px 18px;
+  }
+  .btnSecondary {
+    justify-content: center;
+    padding: 10px 0;
+  }
+  .clock {
+    padding: 22px 20px 24px;
+  }
+  .clockTime {
+    font-size: 48px;
+    margin-top: 8px;
+  }
+  .countdown {
+    margin-top: 18px;
+  }
+  .cdCell {
+    min-width: 58px;
+  }
+  .soldRow {
+    padding: 18px 20px 20px;
+  }
+  .how {
+    order: 7;
+    margin-top: 28px;
+    padding: 24px 20px 22px;
+    border-radius: 18px;
+  }
+  .howTitle {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .stepText {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipDotLive {
+    animation: none;
+  }
+  .btnPrimary,
+  .btnSecondaryArrow {
+    transition: none;
+  }
+  .btnPrimary:hover {
+    transform: none;
+  }
+}

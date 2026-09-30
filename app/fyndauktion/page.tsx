@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { AuctionCard } from "../../components/auction-card";
 import { AuctionHeroCard } from "../../components/auction-hero-card";
 import { AuctionStage } from "../../components/auction-stage";
 import { AuctionFuse } from "../../components/auction-fuse";
 import { AuctionClimax } from "../../components/auction-climax";
 import { AuctionLiveBar } from "../../components/auction-live-bar";
+import { AuctionEmpty } from "../../components/auction-empty";
+import { AuctionSteps } from "../../components/auction-steps";
+import { nastaStartMs, startDagText, tomtLage } from "../../components/auction-next-start";
 import { Newsletter } from "../../components/newsletter";
-import { getLiveAuctions, getSoldAuctions } from "../../lib/auction-view";
+import { getLiveAuctions, getSoldAuctions, type SoldAuctionView } from "../../lib/auction-view";
+import { tightFillUrl } from "../../lib/wix-image";
+import styles from "./fyndauktion.module.css";
 
 // Auktionssidan behöver kort ISR-fönster: priserna stegar (cron på timmen) och
 // nedräkningen på klienten triggar refresh vid steggränsen. 30 s: vid timslaget
@@ -41,14 +47,45 @@ export const metadata: Metadata = {
   },
 };
 
-/** Tom lista: före 07 väntar dagens fynd, efter 07 är de sålda eller dagen slut. */
-function tomText(): string {
-  const h = Number(
-    new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm", hour: "numeric", hour12: false }).format(new Date()),
+/** Foten i det tomma kortet: de tre senast sålda fynden, som bevis på att
+ *  auktionen lever även när dagens lista är tom. Hela listan ligger längre ned. */
+function SenastSalda({ sold }: { sold: SoldAuctionView[] }) {
+  return (
+    <div className={styles.soldRow}>
+      <div className={styles.soldHead}>
+        <h3 className={styles.soldTitle}>Senast sålda</h3>
+        <a className={styles.soldAll} href="#salda">
+          Alla sålda fynd <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <ul className={styles.soldItems}>
+        {sold.slice(0, 3).map((s) => (
+          <li key={s.slug + s.endedAt}>
+            <a className={styles.soldItem} href={`/produkt/${s.slug}`}>
+              <span className={styles.soldImg}>
+                {s.img && (
+                  <Image src={tightFillUrl(s.img, 120, 120)} alt="" fill sizes="56px" style={{ objectFit: "contain" }} />
+                )}
+              </span>
+              <span className={styles.soldInfo}>
+                <span className={styles.soldName}>{s.name}</span>
+                <span className={styles.soldPrice}>
+                  Såld för <b>{s.soldPrice.toLocaleString("sv-SE")} kr</b>
+                  {s.discountPercent > 0 && <em> −{s.discountPercent}%</em>}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
-  if (h < 7) return "Dagens fynd startar kl 07.";
-  if (h < 19) return "Dagens fynd är sålda – nya fynd i morgon kl 07.";
-  return "Nya fynd startar i morgon kl 07.";
+}
+
+/** Det tomma läget och startdagen enligt serverns klocka vid renderingen. */
+function tomtLageNu() {
+  const nu = Date.now();
+  return { lage: tomtLage(nu), dagText: startDagText(nastaStartMs(nu), nu) };
 }
 
 export default async function Fyndauktion() {
@@ -62,10 +99,14 @@ export default async function Fyndauktion() {
   // Dagsdramaturgins klocka: dagens startAt (alla live delar samma auktionsdag).
   const startAt = hero?.startAt ?? null;
 
+  // Det tomma läget enligt serverns klocka. Kortet tar över med klientens
+  // klocka efter mount (components/auction-empty.tsx).
+  const { lage, dagText } = tomtLageNu();
+
   return (
     <>
       <AuctionStage startAt={startAt}>
-        <section className="sec auction-hero">
+        <section className={`sec auction-hero ${styles.hero}${hero ? "" : " " + styles.isEmpty}`}>
           <div className="container">
             {/* Lede-texten ligger som SYSKON till sechead så mobilen kan
                 komponera om ordningen med flex-order (produkten först). */}
@@ -77,15 +118,9 @@ export default async function Fyndauktion() {
             </div>
             <p className="a-lede">
               Varje dag kl 07 startar dagens fynd på ordinarie pris. Sedan sänks priset varje
-              timme fram till kl 19 – tills någon slår till. Väntar du får du det billigare.
-              Väntar du för länge hinner någon annan före.
+              timme fram till kl 19. Väntar du blir det billigare – väntar du för länge hinner
+              någon annan före.
             </p>
-
-            <div className="auction-how a-how">
-              <div><b>1.</b> Kl 07 – ordinarie pris</div>
-              <div><b>2.</b> Sänks varje timme</div>
-              <div><b>3.</b> Köpt = borta direkt</div>
-            </div>
 
             <AuctionClimax startAt={startAt} />
             <AuctionFuse startAt={startAt} />
@@ -103,23 +138,17 @@ export default async function Fyndauktion() {
                 )}
               </>
             ) : (
-              <p className="auction-empty a-empty">
-                {tomText()} Prenumerera nedan så missar du inget.
-              </p>
+              <AuctionEmpty lage={lage} dagText={dagText}>
+                {sold.length > 0 && <SenastSalda sold={sold} />}
+              </AuctionEmpty>
             )}
 
-            <p className="auction-fineprint a-fineprint">
-              Startpriset är produktens ordinarie pris hos oss. Auktionsdagen pågår kl 07–19; säljs
-              inget återgår priset till ordinarie och nya fynd startar nästa morgon. Varje fynd
-              säljs bara en gång – i samma stund som någon köper det försvinner det från auktionen.
-              Vanlig ångerrätt och 30 dagars öppet köp gäller precis som på allt annat hos
-              Fyndplats.
-            </p>
+            <AuctionSteps />
           </div>
         </section>
 
         {sold.length > 0 && (
-          <section className="sec" style={{ paddingTop: 0 }}>
+          <section id="salda" className={`sec ${styles.soldSec}`} style={{ paddingTop: 0 }}>
             <div className="container">
               <div className="sechead">
                 <div className="eyebrow a-eyebrow">Nyss avgjorda</div>
@@ -141,7 +170,10 @@ export default async function Fyndauktion() {
         )}
       </AuctionStage>
 
-      <Newsletter />
+      {/* Ankaret för det tomma kortets "Prenumerera"-länk. */}
+      <div id="nyhetsbrev" className={styles.nlAnchor}>
+        <Newsletter />
+      </div>
     </>
   );
 }
