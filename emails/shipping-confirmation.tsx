@@ -16,6 +16,8 @@ export interface ShippingItemSummary {
 export interface ShipmentRef {
   trackingNumber: string;
   carrier?: string;
+  /** Produkterna i just det här paketet (bild, namn, antal). */
+  items?: ShippingItemSummary[];
 }
 
 export interface ShippingConfirmationProps {
@@ -27,6 +29,31 @@ export interface ShippingConfirmationProps {
   shipments?: ShipmentRef[];
   expectedArrival?: string;
   items: ShippingItemSummary[];
+}
+
+function ProduktRad({ it, bild = 48 }: { it: ShippingItemSummary; bild?: number }) {
+  return (
+    <Row>
+      {it.imageUrl ? (
+        <Column style={{ width: `${bild + 8}px`, verticalAlign: "top" }}>
+          <Img
+            src={it.imageUrl}
+            alt={it.name}
+            width={String(bild)}
+            height={String(bild)}
+            style={{ borderRadius: "8px", border: `1px solid ${BRAND.line}`, objectFit: "cover" }}
+          />
+        </Column>
+      ) : null}
+      <Column>
+        <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>{it.name}</Text>
+        {it.variant ? (
+          <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>{it.variant}</Text>
+        ) : null}
+        <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>Antal: {it.qty}</Text>
+      </Column>
+    </Row>
+  );
 }
 
 export default function ShippingConfirmationEmail({
@@ -41,6 +68,8 @@ export default function ShippingConfirmationEmail({
   const sparUrl = (tn: string) => `${BRAND.siteUrl}/sparning?tn=${encodeURIComponent(tn)}`;
   const trackingUrl = trackingNumber ? sparUrl(trackingNumber) : null;
   const flera = shipments && shipments.length > 1 ? shipments : null;
+  // Har varje paket sina egna produkter visas de i paketet, inte i en lista under.
+  const produkterPerPaket = Boolean(flera && flera.every((s) => s.items && s.items.length > 0));
 
   return (
     <EmailShell
@@ -77,6 +106,13 @@ export default function ShippingConfirmationEmail({
               <Text style={{ fontSize: "18px", fontWeight: 800, margin: "4px 0 10px 0", color: BRAND.ink, letterSpacing: "0.04em" }}>
                 {s.trackingNumber}
               </Text>
+              {produkterPerPaket
+                ? s.items!.map((it, j) => (
+                    <Section key={j} style={{ margin: "0 0 10px 0" }}>
+                      <ProduktRad it={it} bild={56} />
+                    </Section>
+                  ))
+                : null}
               <Link href={sparUrl(s.trackingNumber)} style={block.ctaButton}>
                 Spåra paket {i + 1}
               </Link>
@@ -106,40 +142,12 @@ export default function ShippingConfirmationEmail({
         </Section>
       )}
 
-      {items.length > 0 ? (
+      {items.length > 0 && !produkterPerPaket ? (
         <>
           <Text style={text.h2}>Innehåll i sändningen</Text>
           {items.map((it, i) => (
-            <Section
-              key={i}
-              style={{ borderBottom: `1px solid ${BRAND.line}`, padding: "10px 0" }}
-            >
-              <Row>
-                {it.imageUrl ? (
-                  <Column style={{ width: "56px", verticalAlign: "top" }}>
-                    <Img
-                      src={it.imageUrl}
-                      alt={it.name}
-                      width="48"
-                      height="48"
-                      style={{ borderRadius: "8px", border: `1px solid ${BRAND.line}`, objectFit: "cover" }}
-                    />
-                  </Column>
-                ) : null}
-                <Column>
-                  <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
-                    {it.name}
-                  </Text>
-                  {it.variant ? (
-                    <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
-                      {it.variant}
-                    </Text>
-                  ) : null}
-                  <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
-                    Antal: {it.qty}
-                  </Text>
-                </Column>
-              </Row>
+            <Section key={i} style={{ borderBottom: `1px solid ${BRAND.line}`, padding: "10px 0" }}>
+              <ProduktRad it={it} />
             </Section>
           ))}
         </>

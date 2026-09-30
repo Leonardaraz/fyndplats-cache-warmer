@@ -1055,7 +1055,12 @@ export async function skickaSamlatFraktmejl(
     ...built.props,
     trackingNumber: nummer[0],
     carrier: vantande[0].carrier ?? built.props.carrier,
-    shipments: vantande.map((s) => ({ trackingNumber: s.trackingNumber, carrier: s.carrier ?? undefined })),
+    // Varje paket får sina egna produkter (bild, namn, antal) under sitt nummer.
+    shipments: vantande.map((s) => ({
+      trackingNumber: s.trackingNumber,
+      carrier: s.carrier ?? undefined,
+      items: s.lineItems.length > 0 ? buildShippingProps({ order, fulfillment: s })?.props.items : undefined,
+    })),
   };
   const id = await sendShippingEmail(built.email, props, nummer);
   if (id === null) {
