@@ -89,7 +89,11 @@ export interface AosomLagerpost {
    * sida (lib/aosom/artiklar.ts). Saknas det behandlas posten som förut.
    */
   variantId?: string;
-  /** Saldot som FAKTISKT står i butiken. Används bara för drift-mätningen. */
+  /**
+   * Saldot som FAKTISKT står i butiken. Avgör drift mot stämpeln
+   * (`motButikensSaldo`) och återkomster (`aterkomnaLagerrader`). Saknas det
+   * är saldot okänt, aldrig noll.
+   */
   quantity?: number;
 }
 
@@ -225,21 +229,31 @@ export interface AosomSyncSummary {
    */
   utanLagerrader: number;
   /**
-   * OBSERVATION, ingen åtgärd: produkter där butikens FAKTISKA saldo skiljer
-   * sig från det mappningen tror att den skrev.
+   * Produkter där butikens FAKTISKA saldo skiljer sig från stämpeln, alltså
+   * från det mappningen tror att den skrev. Räknas före skrivningen: talet
+   * säger hur butiken såg ut när körningen kom.
    *
    * ⚠️ Exakt samma frågeställning som `jamforelsePris` byggdes för på PRISET —
-   * mappningen är vad vi TROR att kunden ser, Wix är vad kunden faktiskt ser,
-   * och en trasig skrivning får de två att glida isär permanent. På priset
-   * kostade den förväxlingen en månad och tjugo rader. Lagret triggas
-   * fortfarande på mappningens tal, alltså har det samma teoretiska hål.
-   *
-   * Talet är MEDVETET bara mätt, inte åtgärdat: att byta facit vore en
-   * beteendeändring med hela katalogen som blast-radie, samma dag som loopen
-   * byggs om. Mät först, som huset gjorde med priserna. Är talet noll finns
-   * inget hål; är det stort är nästa PR skriven åt oss.
+   * mappningen är vad vi TROR att kunden ser, Wix är vad kunden faktiskt ser.
+   * Talet mättes utan åtgärd från 2026-09-04 (1 av 4 542). Sedan 2026-09-30
+   * rättas driften: se `motButikensSaldo` och `lagerDriftRattade`. Efter en
+   * skarp körning ska talet vara noll.
    */
   lagerDrift: number;
+  /**
+   * Produkter där driften lade till minst en lagerrad: stämpeln sa redan
+   * flödets tal för den raden, så utan driften hade synken gått förbi den. I
+   * torrläge: där det SKULLE skrivas. Räknas när skrivningen är bekräftad,
+   * precis som `lagerUppdaterade`, och ingår i den.
+   *
+   * En drivande rad som ändå skulle skrivas, för att flödets tal ändrats,
+   * lägger inte till något och räknas inte. Därför kan talet vara lägre än
+   * `lagerDrift`. På en sammanslagen sida räknas produkten även när en annan
+   * variant skrevs för att flödet ändrats.
+   */
+  lagerDriftRattade: number;
+  /** Wix-id för produkterna i `lagerDriftRattade`. Publika id, aldrig artikelnummer. */
+  lagerDriftProdukter: string[];
   /**
    * Färgsammanslagna sidor som granskades — en Aosom-artikel per variant, var
    * och en med sitt eget saldo och pris (lib/aosom/artiklar.ts). Ett mått,
@@ -433,7 +447,10 @@ export interface Produktplan {
   sku: string;
   m: ProductMappingRecord;
   variant: ProductMappingRecord["variants"][number] | undefined;
-  /** Saldot som ska SKRIVAS, eller null när butiken redan har rätt tal. */
+  /**
+   * Saldot som ska SKRIVAS, eller null när stämpeln redan säger flödets tal
+   * och, efter lagerläsningen, butiken gör det också (`motButikensSaldo`).
+   */
   nyttSaldo: number | null;
   /** Saldot vi vill att produkten ska ha, skrivet eller ej. */
   onskatSaldo: number;
@@ -463,6 +480,14 @@ export interface Produktplan {
   fleraVarningar?: NonNullable<Produktplan["varning"]>[];
   /** Hopp över taket som skrivs för att produkten är godkänd, per variant. */
   godkandaHopp?: GodkantHopp[];
+  /**
+   * Butikens saldo skiljer sig från stämpeln, för produkten eller för minst en
+   * variant på en sammanslagen sida. Sätts av `motButikensSaldo` efter
+   * lagerläsningen. `planeraProdukt` ser aldrig butiken.
+   */
+  drift?: boolean;
+  /** Driften lade till minst en lagerrad som annars inte skrivits (`lagerDriftRattade`). */
+  driftRattas?: boolean;
 }
 
 /** Ett prishopp över taket som en människa godkänt för den här körningen. */
@@ -693,6 +718,14 @@ export function planeraProdukt(
 }
 
 /**
+ * En sammanslagen sida skrivs när NÅGON variant ska skrivas, och radens tal är
+ * sidans summa. En definition för både planen och rättelsen mot butiken.
+ */
+function sidansNyttSaldo(varianter: ReadonlyArray<VariantPlan>, onskatSaldo: number): number | null {
+  return varianter.some((v) => v.nyttSaldo !== null) ? onskatSaldo : null;
+}
+
+/**
  * Planen för en FÄRGSAMMANSLAGEN sida — en Aosom-artikel per variant.
  *
  * Varje variant planeras som en egen vanlig rad: sitt eget feedsaldo, sin egen
@@ -784,7 +817,7 @@ export function planeraFlerartikel(
   }
 
   plan.onskatSaldo = varianter.reduce((sum, v) => sum + v.onskatSaldo, 0);
-  plan.nyttSaldo = varianter.some((v) => v.nyttSaldo !== null) ? plan.onskatSaldo : null;
+  plan.nyttSaldo = sidansNyttSaldo(varianter, plan.onskatSaldo);
   plan.varning = varningar[0] ?? null;
   if (varningar.length > 1) plan.fleraVarningar = varningar.slice(1);
   if (godkanda.length > 0) plan.godkandaHopp = godkanda;
@@ -865,17 +898,87 @@ export function lagerraderForProdukt(
     return { rader, saknas, okanda };
   }
 
+  const { egna, okanda } = delaPoster(p, poster);
+  const rader: { id: string; revision: string; quantity: number }[] = [];
+  if (p.nyttSaldo !== null) for (const x of egna) rader.push(rad(x, p.nyttSaldo));
+  for (const x of okanda) if (x.quantity !== 0) rader.push(rad(x, 0));
+  return { rader, saknas: p.nyttSaldo !== null && egna.length === 0, okanda: okanda.length };
+}
+
+/**
+ * En vanlig rads lagerposter, delade i radens egna och de okända: poster med
+ * ett variant-id som mappningen inte känner till. Okända finns bara när
+ * produkten har mer än en post — en ensam post är radens, vad dess id än är.
+ * En definition för skrivningen och för drift-jämförelsen.
+ */
+function delaPoster(
+  p: Produktplan,
+  poster: ReadonlyArray<AosomLagerpost>,
+): { egna: AosomLagerpost[]; okanda: AosomLagerpost[] } {
   const kanda = new Set(
     (p.m.variants ?? []).map((v) => (v.wixVariantId ?? "").trim()).filter(Boolean),
   );
   const okanda = poster.length > 1 && kanda.size > 0
     ? poster.filter((x) => !!x.variantId && !kanda.has(x.variantId))
     : [];
-  const egna = poster.filter((x) => !okanda.includes(x));
-  const rader: { id: string; revision: string; quantity: number }[] = [];
-  if (p.nyttSaldo !== null) for (const x of egna) rader.push(rad(x, p.nyttSaldo));
-  for (const x of okanda) if (x.quantity !== 0) rader.push(rad(x, 0));
-  return { rader, saknas: p.nyttSaldo !== null && egna.length === 0, okanda: okanda.length };
+  return { egna: poster.filter((x) => !okanda.includes(x)), okanda };
+}
+
+/**
+ * Planen efter att butikens FAKTISKA saldo lästs. Ren, utan I/O.
+ *
+ * ☠️ STÄMPELN ÄR VAD VI TROR ATT VI SKREV, BUTIKEN ÄR VAD KUNDEN SER.
+ * `planeraProdukt` jämför flödets saldo mot stämpeln (`aosomSyncedQty`),
+ * eftersom planen räknas innan lagret läses. Det räcker bara så länge ingen
+ * annan skriver i butiken. Hundburen `6297606f` (2026-09-30): sammanslagningen
+ * stämplade 90 cm med flödets tal, och synken 03:20 nollade sedan varianten i
+ * butiken som okänd, eftersom den hade läst mappningen före sammanslagningen.
+ * Stämpeln sa "redan skrivet", butiken sa 0, och varianten stod som slutsåld
+ * tills Aosoms saldo på artikeln ändrades. Samma förväxling som
+ * `jamforelsePris` byggdes för på priset.
+ *
+ * Skiljer sig butikens saldo från stämpeln är stämpeln opålitlig, och
+ * flödets saldo planeras för skrivning även när stämpeln redan säger det.
+ * Jämförelsen görs per variant på en sammanslagen sida. På en vanlig rad
+ * räknas bara radens egna poster: en okänd variant nollas ändå
+ * (`lagerraderForProdukt`) och är ingen drift.
+ *
+ * ☠️ ETT OKÄNT SALDO ÄR INGEN DRIFT. En post utan `quantity` gick inte att
+ * läsa, och då är stämpeln enda underlaget, samma hållning som
+ * `aterkomnaLagerrader`. En tvetydig rad nollas redan och rörs inte här.
+ */
+export function motButikensSaldo(
+  p: Produktplan,
+  poster: ReadonlyArray<AosomLagerpost>,
+): Produktplan {
+  if (p.tvetydig) return p;
+  const skiljer = (x: AosomLagerpost, synkat: number | undefined) =>
+    typeof synkat === "number" && typeof x.quantity === "number" && x.quantity !== synkat;
+
+  if (p.varianter) {
+    let drift = false;
+    let rattas = false;
+    const varianter = p.varianter.map((v) => {
+      const synkat = p.m.variants[v.index]?.aosomSyncedQty;
+      if (!poster.some((x) => x.variantId === v.wixVariantId && skiljer(x, synkat))) return v;
+      drift = true;
+      if (v.nyttSaldo !== null) return v;
+      rattas = true;
+      return { ...v, nyttSaldo: v.onskatSaldo };
+    });
+    if (!drift) return p;
+    return {
+      ...p,
+      varianter,
+      nyttSaldo: sidansNyttSaldo(varianter, p.onskatSaldo),
+      drift: true,
+      driftRattas: rattas,
+    };
+  }
+
+  if (!delaPoster(p, poster).egna.some((x) => skiljer(x, p.m.aosomSyncedQty))) return p;
+  if (p.nyttSaldo !== null) return { ...p, drift: true, driftRattas: false };
+  return { ...p, drift: true, driftRattas: true, nyttSaldo: p.onskatSaldo };
 }
 
 /**
@@ -1066,6 +1169,8 @@ export async function runAosomSync(
     prislistaFel,
     utanLagerrader: 0,
     lagerDrift: 0,
+    lagerDriftRattade: 0,
+    lagerDriftProdukter: [],
     flerartikelrader: 0,
     okandaVarianter: 0,
     tvetydiga: 0,
@@ -1167,30 +1272,16 @@ export async function runAosomSync(
       posterPerProdukt = new Map();
     }
 
-    // ⚠️ OBSERVATION, ingen åtgärd. Se `lagerDrift` i summeringen: butikens
-    // faktiska saldo mot det mappningen tror att den skrev.
+    // ── BUTIKENS SALDO MOT STÄMPELN ──────────────────────────────────────
+    // En stämpel som skiljer sig från butiken är opålitlig: flödets saldo
+    // planeras för skrivning även när stämpeln redan säger det. Se
+    // `motButikensSaldo`. Faller läsningen finns inget att jämföra med, och då
+    // gäller stämpeln som förut. Rättelserna ryms i tuggan, som redan är
+    // kapad mot `limit`, så `limit` förblir exakt.
     if (!lasfel) {
-      for (const p of planer) {
-        const poster = posterPerProdukt.get(p.m.wixProductId) ?? [];
-        if (p.tvetydig) continue;
-        if (p.varianter) {
-          // Per variant: variantens post mot variantens stämpel.
-          const driver = p.varianter.some((v) => {
-            const iButiken = poster.find((x) => x.variantId === v.wixVariantId)?.quantity;
-            const synkat = p.m.variants[v.index]?.aosomSyncedQty;
-            return typeof iButiken === "number" && typeof synkat === "number" && iButiken !== synkat;
-          });
-          if (driver) summary.lagerDrift++;
-          continue;
-        }
-        const iButiken = poster[0]?.quantity;
-        if (
-          typeof iButiken === "number"
-          && typeof p.m.aosomSyncedQty === "number"
-          && iButiken !== p.m.aosomSyncedQty
-        ) {
-          summary.lagerDrift++;
-        }
+      for (let k = 0; k < planer.length; k++) {
+        planer[k] = motButikensSaldo(planer[k], posterPerProdukt.get(planer[k].m.wixProductId) ?? []);
+        if (planer[k].drift) summary.lagerDrift++;
       }
     }
 
@@ -1331,7 +1422,13 @@ export async function runAosomSync(
       if (skrevLager && lagerOk.get(p.m.wixProductId) !== true) continue;
 
       try {
-        if (skrevLager) summary.lagerUppdaterade++;
+        if (skrevLager) {
+          summary.lagerUppdaterade++;
+          if (p.driftRattas) {
+            summary.lagerDriftRattade++;
+            summary.lagerDriftProdukter.push(p.m.wixProductId);
+          }
+        }
 
         let skrevPris = false;
         /** Sammanslagen sida: de varianter vars pris faktiskt skrevs. */

@@ -187,7 +187,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0; prislasta=0; ejskeppbara=0
+          utanrader=0; drift=0; rattade=0; prislasta=0; ejskeppbara=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
           flera=0; okanda=0; tvetydiga=0
           after=""; varv=0; prislistefel=
@@ -219,6 +219,7 @@ jobs:
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
+            rt=$(printf '%s' "$svar" | jq -r '.lagerDriftRattade // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
             ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
             km=$(printf '%s' "$svar" | jq -r '.konkurrentMal // 0')
@@ -235,7 +236,7 @@ jobs:
             priser=$(( priser + p ));       utan=$(( utan + u ))
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
-            utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
+            utanrader=$(( utanrader + ul )); drift=$(( drift + dr )); rattade=$(( rattade + rt ))
             prislasta=$(( prislasta + pl ))
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
@@ -257,7 +258,7 @@ jobs:
             # fyra nätter i rad och lämnade 2 607 rader ogranskade utan att någon såg det.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
                  "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
-                 "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
+                 "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift (${rt} rättade)," \
                  "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
                  "stoppade på ${stopp}, ${kvar} kvar"
 
@@ -267,6 +268,10 @@ jobs:
             if [ "${ejs}" -gt 0 ]; then
               echo "::warning::${ejs} rader kan inte skickas till Sverige (fraktsentinel) — saldot nollat, sidorna ligger kvar. Kontrollera att ingen av dem är publicerad."
             fi
+
+            # Produkterna som skrevs BARA för att butiken drivit från stämpeln
+            # (motButikensSaldo i lib/aosom/sync.ts). Wix-id är publika.
+            printf '%s' "$svar" | jq -r '(.lagerDriftProdukter // []) as $p | if ($p | length) > 0 then "  ── lagerdrift rättad (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             # ☠️ Med produktens Wix-id, ALDRIG `.sku`: det är Aosoms artikelnummer,
@@ -319,7 +324,8 @@ jobs:
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"
             echo "| Utan lagerrader i Wix | ${utanrader} |"
-            echo "| Lagerdrift (bara mätt) | ${drift} |"
+            echo "| Lagerdrift (butiken ≠ stämpeln när körningen kom) | ${drift} |"
+            echo "| **Lagerdrift rättad — extra lagerskrivningar** | **${rattade}** |"
             echo "| Färgsammanslagna sidor | ${flera} |"
             echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
             echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
@@ -350,7 +356,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser," \
-               "${utanrader} utan lagerrader, ${drift} lagerdrift, ${misslyckade} misslyckade."
+               "${utanrader} utan lagerrader, ${drift} lagerdrift (${rattade} rättade), ${misslyckade} misslyckade."
 
           # ☠️ MASSFEL fäller jobbet — inte en enstaka miss.
           #
