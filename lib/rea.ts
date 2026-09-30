@@ -40,7 +40,7 @@ export const REA_TITLE = "REA – aktuella fynd & erbjudanden";
 export const REA_H1 = "REA & aktuella fynd";
 
 export const REA_META_DESC =
-  "Alla nedsatta varor hos Fyndplats samlade på ett ställe – hem, kök, elektronik och fritid. Fri frakt över 499 kr, 30 dagars öppet köp och trygg betalning med Klarna.";
+  "Alla nedsatta varor hos Fyndplats samlade på ett ställe – hem, kök, trädgård och fritid. Fri frakt över 499 kr, 30 dagars öppet köp och trygg betalning med Klarna.";
 
 /**
  * Sidans egen brödtext. Två stycken, medvetet korta.
@@ -64,5 +64,5 @@ export function reaLede(antal: number): string {
   if (antal === 1) {
     return "En vara är nedsatt just nu – samlad här tillsammans med allt annat som går ned i pris.";
   }
-  return `${antal} varor är nedsatta just nu – hem, kök, elektronik och fritid, samlade på ett ställe.`;
+  return `${antal} varor är nedsatta just nu – hem, kök, trädgård och fritid, samlade på ett ställe.`;
 }

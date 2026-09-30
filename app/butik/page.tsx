@@ -11,7 +11,7 @@ import { productCountLabel, categoryCountLabel } from "../../lib/rating";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
-  "Köp prisvärda fynd online hos Fyndplats – elektronik, hem, skönhet, leksaker, husdjur & mer. Fri frakt över 499 kr, Klarna & 30 dagars öppet köp.",
+  "Köp prisvärda fynd online hos Fyndplats – möbler, hem, kök, trädgård, leksaker, husdjur & mer. Fri frakt över 499 kr, Klarna & 30 dagars öppet köp.",
   "/butik",
   "c3bea817cdcb3351"
 );
@@ -94,7 +94,7 @@ export default async function Butik() {
     "@type": "CollectionPage",
     name: "Butik – hela sortimentet",
     url: "https://www.fyndplats.se/butik",
-    description: "Bläddra Fyndplats butiksavdelningar – hem & inredning, elektronik, hudvård, mode och mer.",
+    description: "Bläddra Fyndplats butiksavdelningar – möbler, hem & inredning, kök, trädgård, husdjur och mer.",
     hasPart: groups.map((g) => ({
       "@type": "CollectionPage",
       name: g.main.name,
@@ -115,11 +115,12 @@ export default async function Butik() {
             <span aria-hidden="true">/</span>
             <em>Butik</em>
           </nav>
+          <div className="butik-hero-grid">
           <div className="butik-hero-inner">
             <span className="butik-hero-eyebrow">Hela vårt sortiment</span>
             <h1 className="butik-hero-title">Hitta dina nästa fynd.</h1>
             <p className="butik-hero-lede">
-              Noga utvalda favoriter inom hem, kök, elektronik, hudvård och mer – allt på ett ställe.
+              Möbler, heminredning, kök, trädgård, leksaker och husdjur – noga utvalda fynd, samlade på ett ställe.
               <span className="butik-hero-meta"> {productCountLabel(products.length)} · {categoryCountLabel(collections.length)}</span>
             </p>
             <div className="butik-hero-ctas">
@@ -130,6 +131,25 @@ export default async function Butik() {
                 Bläddra kategorier
               </a>
             </div>
+          </div>
+          {/* Avdelningarna direkt i heron: högerspalten stod tom på dator, och
+              kunden ska kunna gå rakt till rätt avdelning utan att scrolla.
+              Samma lista och antal som korten nedan (buildGroupCards). Dold
+              med CSS på mobil, där korten följer direkt — länkarna finns kvar
+              i HTML:en. */}
+          <nav className="butik-hero-avd" aria-label="Avdelningar">
+            <span className="butik-hero-avd-rubrik">Avdelningar</span>
+            <ul>
+              {groups.map((g) => (
+                <li key={g.main.id}>
+                  <a href={`/kategori/${g.main.slug}`}>
+                    <span className="butik-hero-avd-namn">{g.main.name}</span>
+                    <span className="butik-hero-avd-antal">{productCountLabel(g.count)}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           </div>
         </div>
       </section>

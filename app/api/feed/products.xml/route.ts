@@ -134,7 +134,7 @@ export async function GET(): Promise<Response> {
 <channel>
   <title>Fyndplats produktflöde</title>
   <link>${SITE_BASE}</link>
-  <description>Alla in-stock-produkter från Fyndplats — smarta priser på hem, kök, sport, elektronik och mer.</description>
+  <description>Alla in-stock-produkter från Fyndplats — smarta priser på möbler, hem, kök, trädgård och mer.</description>
   <language>sv-SE</language>
 ${items}
 </channel>

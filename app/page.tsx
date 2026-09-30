@@ -251,7 +251,7 @@ export default async function Home() {
               {/* Kort ingress. Den långa versionen upprepade frakt och kundtjänst,
                   som står i USP-remsan strax under — hjälten sa alltså samma sak
                   två gånger innan besökaren sett en enda produkt. */}
-              <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem.</p>
+              <p>Handplockade fynd inom möbler, hem, kök och trädgård – noga utvalda för svenska hem.</p>
               {/* EN primärknapp. Två lika tunga knappar bredvid varandra tvingar
                   fram ett val innan man vet något; kategorierna får i stället en
                   tyst textlänk för den som hellre bläddrar. */}

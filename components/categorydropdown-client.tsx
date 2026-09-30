@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
+import { tusental } from "../lib/rating";
 
 // Premium "Kategorier ▾"-dropdown:
 //   • Stängd: en enda knapp som visar aktiv kategori eller "Alla kategorier" + antal.
@@ -68,7 +69,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
           <span className="catdrop-btn-pre">Kategori:</span>
           <span className="catdrop-btn-name">{activeLabel}</span>
         </span>
-        {activeCount !== null && <span className="catdrop-btn-count">{activeCount}</span>}
+        {activeCount !== null && <span className="catdrop-btn-count">{tusental(activeCount)}</span>}
         <span className="catdrop-btn-caret" aria-hidden="true">⌄</span>
       </button>
 
@@ -87,7 +88,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                 onClick={() => setOpen(false)}
               >
                 <span>Alla produkter</span>
-                <span className="catdrop-count">{totalProducts}</span>
+                <span className="catdrop-count">{tusental(totalProducts)}</span>
               </a>
 
               <div className="catdrop-tree">
@@ -99,7 +100,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                       onClick={() => setOpen(false)}
                     >
                       <span className="catdrop-main-name">{root.name}</span>
-                      <span className="catdrop-count">{root.count}</span>
+                      <span className="catdrop-count">{tusental(root.count)}</span>
                     </a>
                     {root.subs.length > 0 && (
                       <ul className="catdrop-subs">
@@ -111,7 +112,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                               onClick={() => setOpen(false)}
                             >
                               <span className="catdrop-sub-name">{s.name}</span>
-                              <span className="catdrop-count">{s.count}</span>
+                              <span className="catdrop-count">{tusental(s.count)}</span>
                             </a>
                           </li>
                         ))}
