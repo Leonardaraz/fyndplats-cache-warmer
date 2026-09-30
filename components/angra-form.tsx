@@ -9,7 +9,7 @@
 // hittar sitt ordernummer ändå kan utöva sin rätt. Reklamation (trasig/fel vara)
 // pekas vidare till rätt väg eftersom Fyndplats då står för returfrakten.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type FetchedItem = { name: string; qty: number; lineMinor?: number; image?: string };
 
@@ -46,16 +46,25 @@ export default function AngraForm() {
   const [error, setError] = useState<string | null>(null);
   const [caseId, setCaseId] = useState("");
   const [doneEmail, setDoneEmail] = useState("");
+  // Vilket fält felet gäller: markeras med aria-invalid och får fokus.
+  const [felFalt, setFelFalt] = useState<"email" | "order" | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const orderRef = useRef<HTMLInputElement>(null);
 
   async function onLookup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setFelFalt(null);
     if (!EMAIL_RE.test(email.trim())) {
       setError("Ange en giltig e-postadress.");
+      setFelFalt("email");
+      emailRef.current?.focus();
       return;
     }
     if (!orderNumber.trim()) {
       setError("Ange ditt ordernummer (står i din orderbekräftelse).");
+      setFelFalt("order");
+      orderRef.current?.focus();
       return;
     }
     setLookup("loading");
@@ -194,6 +203,8 @@ export default function AngraForm() {
           <label className="angra-field">
             <span>E-postadress</span>
             <input
+              ref={emailRef}
+              aria-invalid={felFalt === "email" || undefined}
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -206,6 +217,8 @@ export default function AngraForm() {
           <label className="angra-field">
             <span>Ordernummer</span>
             <input
+              ref={orderRef}
+              aria-invalid={felFalt === "order" || undefined}
               type="text"
               inputMode="numeric"
               placeholder="t.ex. 10042"

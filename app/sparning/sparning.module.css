@@ -39,6 +39,17 @@ ol.steg {
   border-top: 1px solid var(--line);
 }
 
+/* Här är rubrikerna frågor, inte etiketter: vanlig skrift i stället för
+   versala ögonbrynsrubriker. */
+.fragor :global(.om-kontakt) h3 {
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
 @media (max-width: 1000px) {
   ol.steg {
     grid-template-columns: 1fr;

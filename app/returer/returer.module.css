@@ -2,7 +2,7 @@
    det som sidan behöver utöver dem. Texten i villkoren kommer ordagrant ur
    lib/retur-policy.ts och lib/retur-frakt.ts, så här finns bara presentation. */
 
-.hero { max-width: 760px }
+.hero > * { max-width: 760px }
 .hero :global(.om-lede) { max-width: 60ch }
 
 /* Det viktigaste i korthet: en bocklista i två spalter. */
@@ -52,7 +52,7 @@ div.kort h3 { margin: 0 0 10px }
 .kort li { font-size: var(--text-sm); line-height: 1.6; color: #3f3a34 }
 .villkor p.utlosare { font-size: var(--text-base); margin: 0 0 4px; max-width: 70ch }
 
-.anker { scroll-margin-top: 90px }
+.anker { scroll-margin-top: var(--ankare) }
 .slut a { color: #fff; font-weight: 650 }
 
 @media (max-width: 900px) {

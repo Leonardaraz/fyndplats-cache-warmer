@@ -337,7 +337,7 @@ export default async function OmOss() {
             </div>
             <div className="om-kontakt">
               <h3>Kundservice</h3>
-              <p><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br /><a href="tel:+46736630990">073-663 09 90</a></p>
+              <p><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br /><a href="tel:+46736630990" style={{ whiteSpace: "nowrap" }}>+46 73 663 09 90</a></p>
               <p className="om-not">Telefon vardagar 09–17. Vi svarar normalt inom 24 timmar.</p>
             </div>
             <div className="om-kontakt">

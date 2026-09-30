@@ -69,7 +69,7 @@ export default function Kontakta() {
           <div className="om-lofte">
             <span className="om-ikon"><Svg d={Ikon.telefon} /></span>
             <h3>Telefon</h3>
-            <a className={s.kanal} href="tel:+46736630990">073-663 09 90</a>
+            <a className={s.kanal} href="tel:+46736630990">+46 73 663 09 90</a>
             <p>Måndag–fredag kl. 09–17.</p>
           </div>
           <div className="om-lofte">

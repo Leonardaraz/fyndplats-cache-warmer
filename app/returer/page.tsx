@@ -52,12 +52,13 @@ export default function Returer() {
           </div>
           {TIMELINE.map((t) => (
             <div className="om-fakta-kort" key={t.range}>
-              <b>{t.range}</b>
+              <b style={{ whiteSpace: "nowrap" }}>{t.range}</b>
               <span>{t.label}</span>
             </div>
           ))}
           <div className="om-fakta-kort">
-            <b>{REFUND_TIME}</b>
+            {/* "2–3 arbetsdagar": talet stort, enheten liten, som på kundtjänst. */}
+            <b>{REFUND_TIME.split(" ")[0]}<small> {REFUND_TIME.split(" ").slice(1).join(" ")}</small></b>
             <span>Till återbetalning, från att returen tagits emot och kontrollerats</span>
           </div>
         </div>

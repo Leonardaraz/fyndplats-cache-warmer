@@ -13,7 +13,7 @@
 .sida .tre{grid-template-columns:repeat(3,1fr)}
 
 /* Ankaret i heron hoppar till omdömesrubriken; håll den fri från sidhuvudet. */
-.sida :global(#google-omdomen){scroll-margin-top:90px}
+.sida :global(#google-omdomen){scroll-margin-top:var(--ankare)}
 
 @media(max-width:900px){
   .heroGrid{grid-template-columns:1fr;gap:28px}

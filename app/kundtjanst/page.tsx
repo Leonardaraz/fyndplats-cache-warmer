@@ -110,7 +110,7 @@ export default function Kundtjanst() {
             <p>
               <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>
               <br />
-              <a href="tel:+46736630990">073-663 09 90</a>
+              <a href="tel:+46736630990" style={{ whiteSpace: "nowrap" }}>+46 73 663 09 90</a>
             </p>
             <p className={s.heroNot}>Telefon vardagar 09–17. Vi svarar normalt inom 24 timmar.</p>
           </aside>
@@ -189,7 +189,7 @@ export default function Kundtjanst() {
           <h2>Hittar du inte svaret?</h2>
           <p>
             Mejla <a className={s.ljusLank} href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller ring{" "}
-            <a className={s.ljusLank} href="tel:+46736630990">073-663 09 90</a> (vardagar 09–17). Vi svarar normalt inom 24 timmar.
+            <a className={s.ljusLank} href="tel:+46736630990" style={{ whiteSpace: "nowrap" }}>+46 73 663 09 90</a> (vardagar 09–17). Vi svarar normalt inom 24 timmar.
           </p>
           <div className="om-cta">
             <a className="btn btn-primary" href="/kontaktaoss">Kontakta oss</a>

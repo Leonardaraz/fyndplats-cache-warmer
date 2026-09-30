@@ -2,9 +2,9 @@
    (components/angra-form.tsx) har sina egna angra-*-regler och ligger kvar i en
    .prose-ruta, så det ser ut och beter sig exakt som förut. */
 
-.hero { max-width: 760px }
+.hero > * { max-width: 760px }
 .hero :global(.om-lede) { max-width: 60ch }
-.anker { scroll-margin-top: 90px }
+.anker { scroll-margin-top: var(--ankare) }
 
 /* Formuläret till vänster, det viktigaste i korthet till höger. Sektionen är
    medvetet INTE .om-sektion: ".om-sektion p" står senare i globals.css än
@@ -46,7 +46,8 @@ div.kort h3 { margin: 0 0 10px }
 .kort li { font-size: var(--text-sm); line-height: 1.6; color: #3f3a34 }
 .villkor p.lankar { margin: 0 }
 
-.kvitto { display: flex; gap: 18px; align-items: flex-start; max-width: 820px }
+.kvitto { display: flex; gap: 18px; align-items: flex-start }
+.kvitto > div { max-width: 760px }
 div.kvitto p { max-width: 70ch; margin-top: 14px }
 
 .slut a { color: #fff; font-weight: 650 }
