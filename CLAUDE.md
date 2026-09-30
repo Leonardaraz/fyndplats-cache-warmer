@@ -1965,9 +1965,17 @@ Mätningen från 2026-08-27 (4 av 90 rena på position 4–6) stod sig alltså, 
 den gäller även de sidor poleringen redan tömt.
 
 ⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
-Position 10 har ingen granskat. Taket i verktyget var nio fram till samma dag
-och slängde position 10 tyst ur begäran. Det är sedan dess femton, alltså Wix
-tak för bilder per produkt.
+Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
+begäran. Det är sedan dess femton, alltså Wix tak för bilder per produkt.
+
+✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
+24 var rena miljöfoton, och bildplanen för dem ligger i `runda-bilder-1-pos10`. 21
+ströks, och alla för text på rekvisitan: etiketter på burkar, påsar och flaskor i
+kök och badrum, bokryggar, en tavla med ett ord och en klocka på en datorskärm.
+Flera av de strukna bar ett riktigt märke. Textigenkänning i full upplösning och i
+dubbel förstoring pekade ut var texten satt, men varje bild bedömdes med ögat.
+Märken och dekaler som sitter på själva varan fick stå kvar, som runbooken säger.
+Granskningen står per bild i `runda-bilder-1/granskning.tsv`.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
