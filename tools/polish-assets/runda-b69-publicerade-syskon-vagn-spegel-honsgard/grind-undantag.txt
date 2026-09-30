@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidorna bär flera storlekar eller färger, och de tyska totalmåttraderna i kallor.json hör till givarna (hönsgårdarna på 300 × 200 och 300 × 400 cm, den gröna cykelvagnen), inte till sidans huvudvariant
+gate-axel.py samma skäl: inget axelfacit att grinda mot
