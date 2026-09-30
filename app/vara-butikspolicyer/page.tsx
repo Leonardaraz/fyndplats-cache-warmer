@@ -23,7 +23,7 @@ export default function Butikspolicyer() {
           <strong>Fyndplats</strong><br />
           Bergviksgatan 10<br />
           152 44 Södertälje, Sverige<br />
-          Telefon: +46 (0) 73 663 09 90<br />
+          Telefon: +46 73 663 09 90<br />
           E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br />
           Webbplats: www.fyndplats.se
         </p>

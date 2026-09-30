@@ -73,7 +73,7 @@ const ARENDEN: Arende[] = [
 const MER = [
   { rubrik: "Villkor", href: "/kopvillkor", text: "Köpvillkor", not: "Fullständiga villkor för köp hos Fyndplats." },
   { rubrik: "Personuppgifter", href: "/sekretesspolicy", text: "Sekretesspolicy", not: "Så hanterar vi dina personuppgifter." },
-  { rubrik: "Företaget", href: "/vara-butikspolicyer", text: "Våra butikspolicyer", not: "Företagsuppgifter och impressum." },
+  { rubrik: "Företaget", href: "/vara-butikspolicyer", text: "Våra butikspolicyer", not: "Företagsuppgifter och kontaktuppgifter." },
 ];
 
 export default function Kundtjanst() {

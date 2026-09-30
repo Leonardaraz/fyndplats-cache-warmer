@@ -81,7 +81,7 @@ const orgJsonLd = {
   email: "info@fyndplats.com",
   telephone: "+46736630990",
   description:
-    "Svensk webbutik med noga utvalda fynd inom hem, mode, teknik och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
+    "Svensk webbutik med noga utvalda fynd inom hem, trädgård, kök och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Bergviksgatan 10",
@@ -92,7 +92,7 @@ const orgJsonLd = {
   },
   areaServed: { "@type": "Country", name: "Sweden" },
   currenciesAccepted: "SEK",
-  paymentAccepted: ["Klarna", "Visa", "Mastercard", "American Express", "Apple Pay", "Google Pay"],
+  paymentAccepted: ["Klarna", "Faktura", "Delbetalning", "Visa", "Mastercard", "American Express", "Direktbetalning via bank", "Apple Pay", "Google Pay"],
   vatID: "SE950914403701",  // enskild firma — SE + org.nr (utan bindestreck) + 01
   sameAs: [
     // Google Business Profile — kritisk bidirektionell länk för Knowledge Graph
@@ -148,7 +148,7 @@ export const metadata: Metadata = {
     template: "%s | Fyndplats",
   },
   description:
-    "Fyndplats – svensk webbutik med noga utvalda fynd inom hem, mode, teknik och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
+    "Fyndplats – svensk webbutik med noga utvalda fynd inom hem, trädgård, kök och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
   keywords: ["fyndplats", "webbutik", "fynd", "smarta priser", "svensk e-handel"],
   openGraph: {
     type: "website",

@@ -72,7 +72,7 @@ export default function AnvandarvillkorApp() {
           152 44 Södertälje, Sverige<br />
           Organisationsnummer: 950914-4037<br />
           E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br />
-          Telefon: +46 (0) 73 663 09 90
+          Telefon: +46 73 663 09 90
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export default function AnvandarvillkorApp() {
         <li><a href="/kontaktaoss">Kontakta oss</a></li>
       </ul>
 
-      <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 2 juni 2026</p>
+      <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 30 september 2026</p>
     </ContentPage>
   );
 }

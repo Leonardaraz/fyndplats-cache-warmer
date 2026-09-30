@@ -97,15 +97,8 @@ const jsonLd = {
       description: DESC,
       datePublished: "2026-06-30",
       dateModified: "2026-09-30",
-      author: { "@type": "Organization", name: "Fyndplats" },
-      publisher: {
-        "@type": "Organization",
-        name: "Fyndplats",
-        logo: {
-          "@type": "ImageObject",
-          url: "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg",
-        },
-      },
+      author: { "@id": "https://www.fyndplats.se/#organization" },
+      publisher: { "@id": "https://www.fyndplats.se/#organization" },
       mainEntityOfPage: { "@type": "WebPage", "@id": URL },
       image: [OG_IMAGE],
     },
@@ -172,8 +165,8 @@ export default function EuLagerGaranti() {
               <span>Moms ingår alltid i priset</span>
             </div>
             <div className="om-fakta-kort">
-              <b>{FREE_SHIPPING_OVER_KR} kr</b>
-              <span>Fri frakt vid köp över</span>
+              <b>0 kr</b>
+              <span>Frakt vid köp över {FREE_SHIPPING_OVER_KR} kr</span>
             </div>
           </div>
         </section>

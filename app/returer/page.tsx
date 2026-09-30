@@ -13,9 +13,9 @@ import s from "./returer.module.css";
 
 export const metadata: Metadata = {
   title: "Returer & ångerrätt",
-  description: `${TOTAL_SHORT} Anmäl din retur, packa säkert och skicka tillbaka — så här går det till, steg för steg.`,
+  description: "Totalt 30 dagar att ångra eller returnera hos Fyndplats: 14 dagars ångerrätt, sedan öppet köp. Så anmäler, packar och skickar du din retur.",
   alternates: { canonical: "https://www.fyndplats.se/returer" },
-  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/returer", title: "Returer & ångerrätt", description: `${TOTAL_SHORT} Anmäl din retur, packa säkert och skicka tillbaka — så här går det till, steg för steg.`, images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg"] },
+  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/returer", title: "Returer & ångerrätt", description: "Totalt 30 dagar att ångra eller returnera hos Fyndplats: 14 dagars ångerrätt, sedan öppet köp. Så anmäler, packar och skickar du din retur.", images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg"] },
 };
 
 const breadcrumbLd = {
@@ -122,8 +122,8 @@ export default function Returer() {
         <div className="container">
           <div className="om-rubrikrad">
             <div>
-              <div className="eyebrow">Steg för steg</div>
-              <h2>Så gör du en retur</h2>
+              <div className="eyebrow">Returen</div>
+              <h2>Steg för steg</h2>
             </div>
           </div>
 
@@ -156,7 +156,7 @@ export default function Returer() {
             <li>
               <span className="om-tid-nar">Steg 5</span>
               <h3>Återbetalning</h3>
-              <p>{REFUND_SENTENCE} Pengarna går tillbaka via Klarna till samma betalsätt som du använde vid köpet.</p>
+              <p>{REFUND_SENTENCE}</p>
             </li>
           </ol>
         </div>
@@ -188,7 +188,7 @@ export default function Returer() {
               <h3>Gäller under hela perioden</h3>
               <ul>
                 {COMMON.map((p) => <li key={p}>{p}</li>)}
-                <li>Spårbar leverans rekommenderas — Fyndplats ansvarar inte för förlorade returpaket</li>
+                <li>Spårbar leverans rekommenderas — Fyndplats ansvarar inte för förlorade returpaket.</li>
               </ul>
             </div>
 
@@ -204,7 +204,7 @@ export default function Returer() {
       <section className="om-slut">
         <div className={`container om-slut-inner ${s.slut}`}>
           <h2>Frågor om en retur?</h2>
-          <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> — vi svarar inom 24 timmar.</p>
+          <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> — vi svarar normalt inom 24 timmar på vardagar.</p>
           <div className="om-cta">
             <a className="btn btn-primary" href="/angra-kop">Ångra köp</a>
             <a className="btn om-btn-ljus" href="/kopvillkor">Köpvillkor</a>

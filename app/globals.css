@@ -520,6 +520,9 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 .nl-done p{font-size:var(--text-base);font-weight:600;color:var(--ink)}
 @media (max-width:560px){.nl{padding:36px 22px}.nl-btn{width:100%}}
 
+/* Text bara för skärmläsare (t.ex. en rubrik som håller ordningen h1→h2→h3). */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
 footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .fgrid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.4fr;gap:30px;padding:48px 0 30px}
 .fbrand{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff;font-size:var(--text-lg);margin-bottom:12px}

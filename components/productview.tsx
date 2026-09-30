@@ -39,7 +39,7 @@ const CONTACT_FLIK_HTML =
   '<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>' +
   '<ul>' +
   '<li>E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a></li>' +
-  '<li>Telefon: <a href="tel:+46736630990">+46 (0) 736 630 990</a></li>' +
+  '<li>Telefon: <a href="tel:+46736630990">+46 73 663 09 90</a></li>' +
   '<li>Mer hjälp: <a href="/kontaktaoss">Kontakta oss</a> · <a href="/vanliga-fragor">Vanliga frågor</a></li>' +
   '</ul>';
 

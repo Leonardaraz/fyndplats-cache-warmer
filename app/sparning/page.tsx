@@ -10,7 +10,7 @@ import s from "./sparning.module.css";
 // och den tidigare rutan om skanningar.
 
 export const metadata: Metadata = {
-  title: "Spåra din beställning",
+  title: "Spåra paket",
   description: "Följ ditt paket hela vägen hem. Ange ditt spårningsnummer så visar vi var det är.",
   alternates: { canonical: "https://www.fyndplats.se/sparning" },
   robots: { index: false, follow: true },

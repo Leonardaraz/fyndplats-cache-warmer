@@ -24,7 +24,7 @@ import { getSocialProof } from "../../lib/social-proof-live";
 export const revalidate = 3600;
 
 const BESKRIVNING =
-  "Fyndplats är en svensk webbutik från Södertälje. Sedan 2021 säljer vi noga utvalda produkter för hem, trädgård och vardag, med Klarna, 30 dagars öppet köp och kundservice på svenska.";
+  "Fyndplats är en svensk webbutik från Södertälje. Sedan 2021 säljer vi utvalda produkter för hem, trädgård och vardag, med Klarna och kundservice på svenska.";
 
 export const metadata: Metadata = {
   title: "Om oss",
@@ -75,7 +75,7 @@ const LOFTEN = [
   {
     ikon: Ikon.retur,
     rubrik: "30 dagars öppet köp",
-    text: "Lagen ger 14 dagars ångerrätt. Vi ger 30 dagar på alla produkter. Returfrakten står du för och du väljer själv fraktsätt.",
+    text: "Lagen ger 14 dagars ångerrätt, och vi förlänger till 30 dagar med öppet köp. Dag 15–30 gäller egna villkor och en avgift på 10 %. Returfrakten står du för.",
     lank: { href: "/returer", text: "Returer & ångerrätt" },
   },
   {
@@ -193,7 +193,7 @@ export default async function OmOss() {
           </a>
           <div className="om-fakta-kort">
             <b>30 dagar</b>
-            <span>Öppet köp på allt</span>
+            <span>Att ångra eller returnera</span>
           </div>
         </div>
       </section>

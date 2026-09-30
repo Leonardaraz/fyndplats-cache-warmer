@@ -112,8 +112,8 @@ export default function Kopvillkor() {
             <span>Arbetsdagar i normal leveranstid</span>
           </a>
           <a className="om-fakta-kort" href="#leverans">
-            <b>499 kr</b>
-            <span>Fri frakt vid köp över</span>
+            <b>0 kr</b>
+            <span>Frakt vid köp över 499 kr</span>
           </a>
           <a className="om-fakta-kort" href="#angerratt">
             <b>30 dagar</b>
@@ -172,7 +172,7 @@ export default function Kopvillkor() {
                 Organisationsnummer: 950914-4037<br />
                 Momsregistreringsnummer: SE950914403701<br />
                 E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br />
-                Telefon: +46 (0) 73 663 09 90
+                Telefon: +46 73 663 09 90
               </p>
             </div>
 
@@ -198,7 +198,7 @@ export default function Kopvillkor() {
             <h2 id="leverans" className={s.anker}>5. Leverans och leveranstid</h2>
             <p>Normal leveranstid är <strong>3–6 arbetsdagar</strong> från det att beställningen bekräftats. Leveranstiden kan variera beroende på produkt, lager och säsong. Aktuell leveranstid visas i kassan och uppdaterad status skickas via e-post.</p>
             <p>Fri frakt erbjuds vid köp över <strong>499 kr</strong>. Vid mindre köp är frakten <strong>19 kr</strong>, och den visas alltid i kassan innan du betalar.</p>
-            <p><strong>EU-lager:</strong> samtliga produkter vi säljer skickas från lager <strong>inom EU</strong>. Din beställning omfattas därför inte av EU:s nya importtull eller förtullningsavgift för paket som skickas in i EU utifrån (gäller från och med 1 juli 2026). Detta avser import-/förtullningsavgifter – moms (25 %) ingår alltid i priset och frakt redovisas enligt ovan. Mer information finns på sidan <a href="/eu-lager-garanti">EU-lager-garanti</a>.</p>
+            <p><strong>EU-lager:</strong> samtliga produkter vi säljer skickas från lager <strong>inom EU</strong>. Din beställning omfattas därför inte av EU:s nya importtull eller förtullningsavgift för paket som skickas in i EU utifrån (gäller från och med 1 juli 2026). Detta avser import-/förtullningsavgifter – moms (25 %) ingår alltid i priset och frakt redovisas enligt ovan. Mer information finns på sidan <a href="/eu-lager-garanti">EU-lager &amp; tull</a>.</p>
             <p>Vid kraftiga förseningar (mer än 30 dagar) har du alltid rätt att häva köpet och få full återbetalning. Kontakta då <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.</p>
 
             <h2 id="ej-uthamtade" className={s.anker}>6. Ej uthämtade paket</h2>
@@ -259,7 +259,7 @@ export default function Kopvillkor() {
               <li><a href="/kontaktaoss">Kontakta oss</a></li>
             </ul>
 
-            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 30 maj 2026</p>
+            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 30 september 2026</p>
           </article>
         </div>
       </section>

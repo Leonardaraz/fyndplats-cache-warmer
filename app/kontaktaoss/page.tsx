@@ -57,7 +57,8 @@ export default function Kontakta() {
         </div>
       </section>
 
-      <section className="om-sektion" aria-label="Kontaktvägar">
+      <section className="om-sektion" aria-labelledby="kontaktvagar">
+        <h2 id="kontaktvagar" className="sr-only">Kontaktvägar</h2>
         <div className={`container ${s.kanalGrid}`}>
           <div className="om-lofte">
             <span className="om-ikon"><Svg d={Ikon.mejl} /></span>
@@ -69,7 +70,7 @@ export default function Kontakta() {
             <span className="om-ikon"><Svg d={Ikon.telefon} /></span>
             <h3>Telefon</h3>
             <a className={s.kanal} href="tel:+46736630990">073-663 09 90</a>
-            <p>Måndag–fredag kl. 09:00–17:00.</p>
+            <p>Måndag–fredag kl. 09–17.</p>
           </div>
           <div className="om-lofte">
             <span className="om-ikon"><Svg d={Ikon.adress} /></span>
@@ -96,15 +97,15 @@ export default function Kontakta() {
               <ul className={s.tider}>
                 <li>
                   <span className={s.tidIkon}><Svg d={Ikon.klocka} /></span>
-                  <span>Vi besvarar mejl och samtal måndag–fredag kl. 09:00–17:00.</span>
+                  <span>Vi besvarar mejl och samtal måndag–fredag kl. 09–17.</span>
                 </li>
                 <li>
                   <span className={s.tidIkon}><Svg d={Ikon.mejl} /></span>
-                  <span>Mejl som kommer in efter 16:00 besvaras normalt nästa arbetsdag.</span>
+                  <span>Mejl som kommer in efter kl. 17 besvaras normalt nästa arbetsdag.</span>
                 </li>
                 <li>
                   <span className={s.tidIkon}><Svg d={Ikon.service} /></span>
-                  <span>Vi strävar efter att svara inom 24 timmar på alla förfrågningar.</span>
+                  <span>Vi svarar normalt inom 24 timmar på vardagar.</span>
                 </li>
               </ul>
             </div>

@@ -13,7 +13,7 @@ import s from "./angra-kop.module.css";
 export const metadata: Metadata = {
   title: "Ångra köp",
   description:
-    `Ångra ditt köp hos Fyndplats direkt på sajten. ${TOTAL_SHORT} Välj order och artiklar, så får du mottagningskvitto med returadress.`,
+    "Ångra ditt köp hos Fyndplats direkt på sajten. Välj order och artiklar, så får du ett mottagningskvitto med returadress och nästa steg.",
   alternates: { canonical: "https://www.fyndplats.se/angra-kop" },
   openGraph: {
     type: "website",

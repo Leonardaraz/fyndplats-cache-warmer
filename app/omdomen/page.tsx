@@ -106,7 +106,7 @@ export default async function Omdomen() {
             </div>
             <div className="om-fakta-kort">
               <b>30 dagar</b>
-              <span>Öppet köp på allt</span>
+              <span>Att ångra eller returnera</span>
             </div>
             <div className="om-fakta-kort">
               <b>Klarna</b>

@@ -286,7 +286,7 @@ export default function AngraForm() {
                   </span>
                 </label>
                 {r.orderedQty > 1 && (
-                  <span className="angra-qty" aria-label="Antal att ångra">
+                  <span className="angra-qty" role="group" aria-label="Antal att ångra">
                     <button type="button" onClick={() => setRowQty(i, r.qty - 1)} disabled={!r.selected || r.qty <= 1} aria-label="Minska">−</button>
                     <b>{r.qty}</b>
                     <button type="button" onClick={() => setRowQty(i, r.qty + 1)} disabled={!r.selected || r.qty >= r.orderedQty} aria-label="Öka">+</button>
