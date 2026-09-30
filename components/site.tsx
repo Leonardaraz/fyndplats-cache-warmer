@@ -5,6 +5,7 @@ import { CookieSettingsLink } from "./cookie-settings-link";
 import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
 import { getCategoryTree } from "../lib/category-groups";
+import { utanAntal } from "../lib/meny-antal";
 import { getPosts } from "../lib/blog";
 import { getProducts } from "../lib/products";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
@@ -75,10 +76,12 @@ export async function SiteHeader() {
         <div className="container hrow">
           <a className="brand" href="/"><Mark />Fyndplats</a>
           <SearchBox />
-          <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
+              sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
+          <MegaNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
           <WishlistButton />
           <CartButton />
-          <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          <MobileNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">

@@ -20,6 +20,8 @@ import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf, colorKeysFromName, valbilder, type ValBild, type V3Option } from "./variant-color-image";
 import { fargvalKropp, FARGVAL_SIDTAK } from "./product-colors-paging";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
+import { PRODUKTSIDA_SEKUNDER, produktTagg } from "./produkt-cache";
+import { kortLivslangd } from "./kort-livslangd";
 
 export type Product = {
   id: string;
@@ -129,16 +131,22 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1
  * { [optionName]: { [choiceName]: bild-URL } }. Detta är den ENDA källan som täcker
  * nyimporterade produkter (variant-images.json exporteras från V1-sajten och innehåller
  * dem inte). Fail-open: saknad nyckel / fel / ingen länkad media → {} (statiska filen +
- * colorOf-swatchen tar då över). Cachas 5 min (matchar sidans `revalidate = 300`)
- * så nyimporterade produkters variantbilder syns snabbt i stället för efter 1 h.
+ * colorOf-swatchen tar då över). Samma cachepost som fetchV3ProductRaw nedan.
  */
 // Hämtar HELA V3-produkten autentiserat (admin-nyckel) EN gång per request. React
 // cache() dedupar så att bild- OCH pris-hydreringen nedan delar samma nätverksanrop.
-// Fail-open: ingen nyckel / fel → null. Edge-cachas 5 min (revalidate 300) —
-// matchar sidans egen `revalidate = 300`, så en NYIMPORTERAD produkts länkade
-// variantbilder (linkedMedia kopplas async, sekunder–minuter efter att produkten
-// skapats) syns inom ~5 min i stället för upp till 1 h. Fortfarande ETT V3-anrop
-// per produkt per fönster (delas av pris+bild-hydreringen via cache()).
+//
+// ☠️ CACHETIDEN STYR HELA SIDAN. Den här hämtningen hade `revalidate: 300`, och
+// Next sänker rutten till den lägsta fetch-tiden: produktsidorna byggdes därför om
+// var femte minut, fast sidan sade en timme (mätt 2026-09-30, ~24 000 ombyggnader
+// per dygn). Nu gäller sidans säkerhetsnät, och posten töms direkt när produkten
+// ändras (taggen produkt-<id>, se lib/produkt-cache.ts). En nyimporterad produkts
+// linkedMedia (som kopplas sekunder–minuter efter att produkten skapats) syns
+// därför när produkten publiceras: publiceringen ändrar updatedDate, och då
+// tömmer /api/cron/uppdatera-andrade posten.
+//
+// Fail-open: ingen nyckel / fel → null. Då får alla varianter baspriset, så
+// sidan byggs om efter fem minuter i stället för sex timmar (kortLivslangd).
 const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> => {
   if (!WIX_API_KEY || !productId) return null;
   try {
@@ -146,12 +154,16 @@ const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> =
       `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
       {
         headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID },
-        next: { revalidate: 300 },
+        next: { revalidate: PRODUKTSIDA_SEKUNDER, tags: [produktTagg(productId)] },
       },
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      await kortLivslangd();
+      return null;
+    }
     return (await res.json())?.product ?? null;
   } catch {
+    await kortLivslangd();
     return null;
   }
 });
@@ -464,6 +476,11 @@ const FALLBACK_PRODUCTS: Product[] = (local as Array<Record<string, unknown>>)
   }))
   .filter((p) => p.slug && p.img);
 
+// Kataloger som inte är hela sanningen: reservlistan och en kapad hämtning.
+// En sida som byggs på en sådan (tom meny, inga liknande produkter) får bara
+// leva fem minuter, inte produktsidans sex timmar — se getProducts.
+const DEGRADERADE = new WeakSet<Product[]>([FALLBACK_PRODUCTS]);
+
 async function fetchProducts(): Promise<Product[]> {
   if (!wix) return FALLBACK_PRODUCTS;
   try {
@@ -558,6 +575,7 @@ async function fetchProducts(): Promise<Product[]> {
           + "— cachar INTE, nästa request försöker igen.",
       );
       productsPromise = null;
+      DEGRADERADE.add(unique);
     }
     return unique.length ? unique : FALLBACK_PRODUCTS;
   } catch (e) {
@@ -570,9 +588,17 @@ async function fetchProducts(): Promise<Product[]> {
 // Promise-cached so concurrent callers (page + header) share ONE request, not parallel ones.
 // React cache() adds per-request memoisation on top of the module-level promise — harmless
 // here (the module cache short-circuits the body) but makes the dedupe semantics explicit.
-export const getProducts = cache((): Promise<Product[]> => {
+//
+// ☠️ EN DEGRADERAD KATALOG FÅR INTE LEVA SEX TIMMAR PÅ EN SIDA. Hämtningen sker
+// en gång per instans, så felet syns bara i den request som gjorde den — men
+// varje sida som byggs på reservlistan eller en kapad lista (tom meny, inga
+// liknande produkter, fel brödsmulor) hade annars cachats i produktsidans sex
+// timmar. Kollen görs därför på VÄRDET, i varje anropares rendering.
+export const getProducts = cache(async (): Promise<Product[]> => {
   if (!productsPromise) productsPromise = fetchProducts();
-  return productsPromise;
+  const lista = await productsPromise;
+  if (DEGRADERADE.has(lista)) await kortLivslangd();
+  return lista;
 });
 
 /**
@@ -792,6 +818,10 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }
   }
+  // RESERVVÄGEN: Wix-uppslaget föll eller hittade inget, och instansens
+  // katalogkopia får svara. Den kan vara timmar gammal och saknar variantpriserna
+  // från V3, så en sida byggd på den ska inte ligga i sex timmar.
+  await kortLivslangd();
   const list = await getProducts();
   return list.find((p) => p.slug === slug);
 });
@@ -1404,9 +1434,12 @@ async function fetchCollections(): Promise<Collection[]> {
   }
 }
 
-export const getCollections = cache((): Promise<Collection[]> => {
+export const getCollections = cache(async (): Promise<Collection[]> => {
   if (!collectionsPromise) collectionsPromise = fetchCollections();
-  return collectionsPromise;
+  const lista = await collectionsPromise;
+  // Tomt betyder fel (se ovan). Sidan byggs då om efter fem minuter, inte sex timmar.
+  if (lista.length === 0) await kortLivslangd();
+  return lista;
 });
 
 // Alla KÄNDA kategorislugs — även tomma kategorier (getCollections filtrerar

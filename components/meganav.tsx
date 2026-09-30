@@ -4,11 +4,12 @@ import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
+import { useMenyAntal } from "./use-meny-antal";
 
 // Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
 // Panelen visar den hovrade kategorins underkategorier i ett luftigt 3–4-koll-
-// rutnät med produktantal. Stänger på mouseleave (med kort fördröjning så man
+// rutnät med produktantal (hämtade i webbläsaren, se useMenyAntal). Stänger på mouseleave (med kort fördröjning så man
 // hinner flytta musen ner i panelen), Escape eller efter navigering.
 //
 // Positionering: panelen är position:absolute med left/right:0 → den ankras mot
@@ -39,6 +40,9 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
   // spelades bara när menyn öppnades.
   const [byte, setByte] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Antalen kommer från /api/meny-antal, inte ur trädet: trädet skickas utan
+  // siffror så att en ny siffra inte gör varje sida "ny" (lib/meny-antal.ts).
+  const antal = useMenyAntal();
 
   const cancelClose = () => {
     if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
@@ -111,7 +115,7 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                 {m.name}
               </a>
               <a className="meganav-panel-all" href={`/kategori/${m.slug}`} onClick={close}>
-                Se alla {productCountLabel(m.count)} <span aria-hidden="true">→</span>
+                Se alla {antal?.[m.slug] !== undefined ? productCountLabel(antal[m.slug]) : "produkter"} <span aria-hidden="true">→</span>
               </a>
             </div>
             {m.subs.length > 0 ? (
@@ -125,7 +129,7 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                     {g.subs.map((s) => (
                       <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
                         <span className="meganav-sub-name">{s.name}</span>
-                        <span className="meganav-sub-count">{s.count}</span>
+                        {antal?.[s.slug] !== undefined && <span className="meganav-sub-count">{antal[s.slug]}</span>}
                       </a>
                     ))}
                   </div>

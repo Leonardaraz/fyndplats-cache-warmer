@@ -22,6 +22,8 @@
 
 import { reviewImages } from "./review-images";
 import { härkomst, normaliseraSource } from "./review-source";
+import { PRODUKTSIDA_SEKUNDER, recensionsTagg } from "./produkt-cache";
+import { kortLivslangd } from "./kort-livslangd";
 
 /** Cache-warmern äger recensionslagret. Samma mönster som lib/ae-source.ts. */
 const API_BAS =
@@ -93,16 +95,30 @@ const EMPTY: ProductReviews = {
 
 /**
  * Godkända recensioner för en produkt, sorterade med foto + senaste först.
- * ISR-cachat 1 h. Returnerar tomt om anropet failar — produktsidan fungerar då
- * precis som innan (ingen sektion), aldrig trasig.
+ *
+ * Cachat lika länge som produktsidan (sex timmar, lib/produkt-cache.ts) och
+ * tömt per produkt: när motorn ändrar en recension listar den produkten i
+ * motorns /api/review-andringar, och /api/cron/uppdatera-andrade tömmer taggen
+ * recensioner-<id>. Den gamla timmen här räckte för att sänka hela sidan till en
+ * timme — och femminutershämtningen i lib/products.ts sänkte den ännu mer.
+ *
+ * Returnerar tomt om anropet failar — produktsidan fungerar då precis som innan
+ * (ingen sektion), aldrig trasig. Men en sådan sida byggs om efter fem minuter
+ * (kortLivslangd), annars hade en hicka hos motorn gömt omdömena i sex timmar.
+ * Tidsgränsen finns av samma skäl: utan den kunde en hängande motor hålla uppe
+ * hela ombyggnaden.
  */
 export async function getProductReviews(productId: string): Promise<ProductReviews> {
   if (!productId) return EMPTY;
   try {
     const res = await fetch(`${API_BAS}/${encodeURIComponent(productId)}`, {
-      next: { revalidate: 3600, tags: ["reviews"] },
+      next: { revalidate: PRODUKTSIDA_SEKUNDER, tags: ["reviews", recensionsTagg(productId)] },
+      signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) return EMPTY;
+    if (!res.ok) {
+      await kortLivslangd();
+      return EMPTY;
+    }
     const body = (await res.json()) as { reviews?: ApiReview[] };
 
     const reviews: ProductReview[] = (body.reviews || [])
@@ -159,6 +175,7 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
       firstPartyAverage,
     };
   } catch {
+    await kortLivslangd();
     return EMPTY;
   }
 }

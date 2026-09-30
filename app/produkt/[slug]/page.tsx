@@ -23,33 +23,39 @@ import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
 import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, FREE_SHIPPING_FROM_KR, STANDARD_SHIPPING_KR } from "../../../lib/shipping";
+import { prisGiltigTill } from "../../../lib/pris-giltig";
 
-// ISR: PDPs cachas på Vercel edge i 1h. Bakgrundsregenerering på stale (SWR) —
-// besökaren får ALLTID en cachad sida direkt, regenereringen sker i bakgrunden.
-// Lager/pris pushas omgående via revalidatePath i app/api/wix-webhook/route.ts
-// vid order_created — så 1h är bara ett tak för ÖVRIGA (manuella) ändringar, inte
-// en fördröjning vid köp. Höjt 300→3600 (2026-06): den gamla 5-min-ISR:en lät
-// cache-warmern tvinga fram ~en ISR-write per produkt var 10:e minut (dyrt) utan
-// reell färskhetsvinst, eftersom köp ändå revalidateras direkt av webhooken.
-export const revalidate = 3600;
+// ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
+// färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
+// recensioner) tömmer sidan direkt: /api/cron/uppdatera-andrade läser Wix
+// updatedDate och motorns recensionsändringar var femte minut, motorn säger
+// till vid fyndauktionens prissteg (/api/admin/uppdatera-produkter), och
+// ordrar tömmer sidan i app/api/wix-webhook/route.ts. Allt i lib/produkt-cache.ts.
+//
+// ☠️ TALET MÅSTE STÅ SOM LITERAL (Next läser det statiskt) och vara samma som
+// PRODUKTSIDA_SEKUNDER — lib/produkt-cache.test.ts håller ihop dem. Och ingen
+// hämtning på sidans väg får ha kortare revalidate, för då gäller den för hela
+// sidan: V3-hämtningens 300 s gjorde att sidan i praktiken byggdes om var femte
+// minut (mätt 2026-09-30, ~24 000 ombyggnader per dygn). Reservdata förkortar
+// livslängden till fem minuter via lib/kort-livslangd.ts, med flit.
+export const revalidate = 21600;
 // dynamicParams=true: produkter utanför generateStaticParams (long-tail + nya
 // efter deploy) renderas on-demand vid första träffen och cachas sen.
 export const dynamicParams = true;
 
-// Kostnadsoptimering: pre-bygg bara topp-N produktsidor vid build (Bestseller →
-// högst bild-poäng). Resten renderas on-demand vid första träffen och cachas —
-// kapar Build CPU rejält utan 404-risk (dynamicParams=true). SEO opåverkat:
-// sitemap.xml listar fortfarande ALLA produkter.
-const SSG_PREBUILD = 40;
+// INGA PRODUKTSIDOR FÖRBYGGS VID BUILD (2026-10-01; var 40).
+//
+// De förbyggda sidorna hamnar som egna funktioner hos Vercel, och de startar
+// kalla gång på gång. Varje kallstart hämtar hela Wix-katalogen (getProducts,
+// ~60 anrop i rad, runt en minut) innan sidan kan byggas. Mätt 2026-09-30: loggen
+// "[wix] live products loaded" kom på 40 olika sökvägar under tre timmar, nästan
+// bara de förbyggda, och julgranen/bäddsoffan tog 57 s–1 min att bygga (P75).
+// Utan förbygge renderas de i den vanliga /produkt/[slug]-funktionen, som redan
+// är varm, som alla andra ~3 700 produkter. dynamicParams=true ovan gör att ingen
+// sida blir 404, och /api/cron/varm-katalogen värmer katalogen efter en deploy.
+// SEO opåverkat: sitemap.xml listar fortfarande alla produkter.
 export async function generateStaticParams() {
-  const all = await getProducts();
-  const ranked = [...all].sort((a, b) => {
-    const ba = a.ribbon === "Bestseller" ? 1 : 0;
-    const bb = b.ribbon === "Bestseller" ? 1 : 0;
-    if (ba !== bb) return bb - ba;
-    return (b.imageScore ?? 60) - (a.imageScore ?? 60);
-  });
-  return ranked.slice(0, SSG_PREBUILD).map((p) => ({ slug: p.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -139,8 +145,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       priceCurrency: p.currency,
       price: p.priceNum,
       // Merchant-listing-rekommenderade fält (Search Console varnar annars).
-      // priceValidUntil rullar 30 dagar framåt vid varje ISR-regenerering.
-      priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+      // Sista dagen i nästa månad: samma värde hela månaden, så sidan blir inte
+      // "ny" för Vercel varje dygn (lib/pris-giltig.ts).
+      priceValidUntil: prisGiltigTill(new Date()),
       availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
