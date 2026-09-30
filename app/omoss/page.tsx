@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { jsonLdString } from "../../lib/seo";
-import { getProducts, getCollections, forListings } from "../../lib/products";
-import { buildGroupCards, categoryHero } from "../../lib/category-groups";
+import { getProducts, forListings } from "../../lib/products";
+import { getCategoryTree, categoryHero } from "../../lib/category-groups";
 import { tightFillUrl } from "../../lib/wix-image";
 import { productCountLabel } from "../../lib/rating";
 import { getSocialProof } from "../../lib/social-proof-live";
@@ -15,7 +15,8 @@ import { EU_STOCK_NOTE } from "../../lib/shipping";
 //
 // Varje siffra på sidan läses ur samma källa som resten av butiken, så den
 // kan inte glida isär:
-//   · kategorierna och antalen: buildGroupCards, samma som /butik
+//   · kategorierna och antalen: getCategoryTree, samma som menyn (ordning efter
+//     storlek, samma tröskel, Trädgård med; /butik-listan saknar Trädgård)
 //   · produktantalet: forListings(getProducts()), avrundat NEDÅT till hundratal
 //   · Google-betyget: getSocialProof, samma som sidfoten
 //   · frakt, öppet köp, svarstider: samma ord som köpvillkoren och Vanliga frågor
@@ -86,9 +87,17 @@ const LOFTEN = [
 ];
 
 export default async function OmOss() {
-  const [allProducts, collections, proof] = await Promise.all([getProducts(), getCollections(), getSocialProof()]);
+  const [allProducts, tree, proof] = await Promise.all([getProducts(), getCategoryTree(), getSocialProof()]);
   const products = forListings(allProducts);
-  const grupper = buildGroupCards(products, collections);
+  // Bild per huvudkategori: den kuraterade heron, annars första produktbilden
+  // i kategorin eller någon av dess underkategorier.
+  const kategorier = tree.map((k) => {
+    const ids = new Set([k.id, ...k.subs.map((s) => s.id)]);
+    const bild = categoryHero(k.name)
+      || products.find((p) => p.img && (p.collectionIds || []).some((c) => ids.has(c)))?.img
+      || "";
+    return { ...k, bild };
+  });
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -189,7 +198,7 @@ export default async function OmOss() {
         </div>
       </section>
 
-      {grupper.length > 0 && (
+      {kategorier.length > 0 && (
         <section className="om-sektion om-sortiment">
           <div className="container">
             <div className="om-rubrikrad">
@@ -200,18 +209,15 @@ export default async function OmOss() {
               <a className="btn-quiet" href="/butik">Se hela butiken</a>
             </div>
             <div className="om-kat-grid">
-              {grupper.map((g) => {
-                const bild = categoryHero(g.main.name) || g.heroImg;
-                return (
-                  <a className="om-kat" key={g.main.id} href={`/kategori/${g.main.slug}`}>
-                    <span className="om-kat-bild">
-                      {bild && <Image src={tightFillUrl(bild, 640, 480)} alt="" fill sizes="(max-width:640px) 50vw, (max-width:1100px) 33vw, 280px" />}
-                    </span>
-                    <span className="om-kat-namn">{g.main.name}</span>
-                    <span className="om-kat-antal">{productCountLabel(g.count)}</span>
-                  </a>
-                );
-              })}
+              {kategorier.map((k) => (
+                <a className="om-kat" key={k.id} href={`/kategori/${k.slug}`}>
+                  <span className="om-kat-bild">
+                    {k.bild && <Image src={tightFillUrl(k.bild, 640, 480)} alt="" fill sizes="(max-width:640px) 50vw, (max-width:1100px) 33vw, 280px" />}
+                  </span>
+                  <span className="om-kat-namn">{k.name}</span>
+                  <span className="om-kat-antal">{productCountLabel(k.count)}</span>
+                </a>
+              ))}
             </div>
           </div>
         </section>
