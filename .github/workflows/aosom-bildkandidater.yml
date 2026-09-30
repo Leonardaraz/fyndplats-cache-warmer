@@ -30,7 +30,7 @@ on:
         required: true
         type: string
       positioner:
-        description: "Feedens bildpositioner 1–9, t.ex. 4,5,6,7. TOMT = 4,5,6,7."
+        description: "Feedens bildpositioner 1–15, t.ex. 4,5,6,7,10. TOMT = 4,5,6,7."
         required: false
         default: ""
         type: string
