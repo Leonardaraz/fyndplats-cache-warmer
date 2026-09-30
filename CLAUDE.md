@@ -4438,6 +4438,21 @@ Före en omdirigering: kontrollera vad adressen rankar på
 (`rankande-adresser.tsv` i granskningen) och välj en sida som svarar på
 samma fråga. Finns ingen sådan är en ärlig 404 bättre än en irrelevant sida.
 
+## Restock-bevakarna (`/admin/restock-list`, 2026-09-30)
+
+Leonards rapport: sidan visade produkterna på engelska. Namnet kom ur
+mappningens `seoTitle`, som är leverantörens sidtitel från importen
+("… - AliExpress") och aldrig skrivs om av poleringen. Sidan läser nu butikens
+namn ur Wix (`searchProductSummaries`, ett anrop per 100 produkter) och visar
+leverantören med länk, lagret hos leverantören och lagret hos oss. Vad som
+visas bestäms i `lib/restock/rader.ts`.
+
+☠️ **Bara AliExpress-synken mejlar bevakarna.** `justRestocked` i
+`lib/sync/aliexpress-sync.ts` är den enda vägen till ett restock-mejl, och
+Aosom-synken har ingen motsvarighet. En Aosom-vara som kommer tillbaka lämnar
+alltså sina bevakare väntande. Sidan säger det på varje sådan rad. Det är inte
+lagat.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
