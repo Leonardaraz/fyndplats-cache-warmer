@@ -294,6 +294,55 @@ describe("runAosomSync", () => {
     expect(Math.abs(s.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
   });
 
+  describe("godkannPrisandring — en människa släpper taket för en produkt (2026-09-30)", () => {
+    // Gunghästens rosa: 1 199 kr i butiken, 699 kr enligt husets regel. Hoppet
+    // är −42 %, taket stoppar det, och Leonard godkände sänkningen.
+    const hopp = () =>
+      deps({
+        fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 400 })),
+        listAosom: async () => [mappning("A-1")],
+      });
+
+    it("ett godkänt hopp skrivs och räknas för sig", async () => {
+      const { d, priser, sparade } = hopp();
+      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-A-1"]) });
+      expect(priser).toHaveLength(1);
+      expect(s.varningar).toHaveLength(0);
+      expect(s.godkandaHopp).toEqual([
+        expect.objectContaining({ wixProductId: "wix-A-1", fran: BASPRIS, till: priser[0].pris }),
+      ]);
+      expect(Math.abs(s.godkandaHopp[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
+      // Samma skrivväg som ett vanligt pris: mappningen följer butiken.
+      expect(sparade[0].variants[0].grossSek).toBe(priser[0].pris);
+    });
+
+    it("☠️ KONTROLL: ett godkännande för en ANNAN produkt släpper inte taket", async () => {
+      const { d, priser } = hopp();
+      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-B-2"]) });
+      expect(priser).toHaveLength(0);
+      expect(s.varningar).toHaveLength(1);
+      expect(s.godkandaHopp).toEqual([]);
+    });
+
+    it("☠️ ett godkänt hopp bär aldrig artikelnumret — raden skrivs i en publik logg", async () => {
+      const { d } = hopp();
+      const s = await runAosomSync(d, { dryRun: true, godkannPrisandring: new Set(["wix-A-1"]) });
+      expect(s.godkandaHopp).toHaveLength(1);
+      expect(Object.values(s.godkandaHopp[0])).not.toContain("A-1");
+      expect(Object.keys(s.godkandaHopp[0]).sort()).toEqual(["andringPct", "fran", "till", "wixProductId"]);
+    });
+
+    it("ett hopp under taket räknas inte som godkänt, även när produkten är godkänd", async () => {
+      const { d, priser } = deps({
+        fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 45 })),
+        listAosom: async () => [mappning("A-1")],
+      });
+      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-A-1"]) });
+      expect(priser).toHaveLength(1);
+      expect(s.godkandaHopp).toEqual([]);
+    });
+  });
+
   it("skriver alla tre kostnadsfälten på mappningen, aldrig bara priset", async () => {
     // Lönsamhetsöversikten och auktionens golvbud läser landedCostSek. Rättas bara
     // priset ser marginalen fantastisk ut och auktionen kan sälja under inköp.
@@ -1167,6 +1216,26 @@ describe("färgsammanslagna sidor — en artikel per variant", () => {
     expect(sparade[0].variants[1].landedCostSek).toBe(landadKostnadSek(dyrare, FX.eurToSek));
     // Den svarta färgens pris och kostnad är orörda.
     expect(sparade[0].variants[0].grossSek).toBe(BASPRIS);
+  });
+
+  it("☠️ ett godkänt hopp sänker den ENA färgen — och utan godkännande står taket kvar", async () => {
+    // Samma form som gunghästen: en färg ligger långt över husets regel.
+    const billig = rad("G-7", { qty: 13, wholesaleEur: 5, seFreightEur: 5 });
+    const utan = stolDeps({}, [rad("A-1"), billig]);
+    const s1 = await runAosomSync(utan.d, { dryRun: false });
+    expect(utan.priser).toHaveLength(0);
+    expect(s1.varningar).toEqual([expect.objectContaining({ wixProductId: "wix-stol" })]);
+    expect(s1.varningar[0].andringPct).toBeLessThan(-MAX_PRISANDRING_PCT);
+
+    const med = stolDeps({}, [rad("A-1"), billig]);
+    const s2 = await runAosomSync(med.d, { dryRun: false, godkannPrisandring: new Set(["wix-stol"]) });
+    expect(med.priser).toEqual([
+      expect.objectContaining({ id: "wix-stol", variant: { wixVariantId: "wixvar-gra", sku: "FP-stol-gra" } }),
+    ]);
+    expect(s2.varningar).toEqual([]);
+    expect(s2.godkandaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-stol", fran: BASPRIS })]);
+    // Den svarta färgen rörs inte.
+    expect(med.sparade[0].variants[0].grossSek).toBe(BASPRIS);
   });
 
   it("☠️ konkurrentpriset gäller bara radens EGEN artikel — den andra färgen får husets regel", async () => {

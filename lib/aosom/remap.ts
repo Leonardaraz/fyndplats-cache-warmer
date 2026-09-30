@@ -58,7 +58,10 @@ export type RemapHinder =
   | "flera_varianter"
   | "okand_variant"
   | "pris_okant"
-  | "marginal_under_golv";
+  | "marginal_under_golv"
+  | "samma_artikel"
+  | "dubbletten_inte_utkast"
+  | "importsparr_upptagen";
 
 export interface RemapPlan {
   wixProductId: string;
@@ -84,6 +87,11 @@ export interface RemapPlan {
   dubblett?: string;
   /** Varianten sidan kollapsas till före bytet, om anroparen angav en. */
   behallVariant?: string;
+  /**
+   * Sidan är redan en Aosom-rad och byter till dubblettens artikel. Den gamla
+   * artikeln spärras då för importen (`importSparr`). Se planeraOmmappning.
+   */
+  aosomByte: boolean;
   /** Tomt = planen går att köra. Annars står skälen här. */
   hinder: RemapHinder[];
 }
@@ -99,7 +107,7 @@ export interface RemapInput {
    * räknas som upptagen (lib/aosom/artiklar.ts).
    */
   alla: (Pick<ProductMappingRecord, "supplier" | "supplierProductId" | "wixProductId">
-    & Partial<Pick<ProductMappingRecord, "variants">>)[];
+    & Partial<Pick<ProductMappingRecord, "variants" | "needsAiPolish">>)[];
   fx: AosomFx;
   /** Wix-produkten som ska pensioneras som dubblett (valfritt). */
   dubblett?: string;
@@ -163,7 +171,35 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   if (!mappning) hinder.push("ingen_mappning");
   if (!rad) hinder.push("saknas_i_feeden");
   if (rad && !isShippableToSe(rad)) hinder.push("ej_skeppbar_till_se");
-  if (mappning && mappingSupplier(mappning) === "aosom") hinder.push("redan_aosom");
+  // ☠️ EN SIDA SOM REDAN ÄR AOSOM BYTER BARA TILL ETT UTKAST SOM ÄR SAMMA VARA
+  // (Leonards beslut 2026-09-30, soptunnan 300a9113). Aosoms feed kan bära samma
+  // vara under två artikelnummer, och sidans artikel kan ta slut medan
+  // utkastets finns i lager. Då gäller samma regel som för AE: sidan vi behåller
+  // pekar om, och utkastet pensioneras. Utan ett opolerat Aosom-utkast som bär
+  // just den artikeln vägras bytet som förut. Ett byte till en artikel som ingen
+  // jämfört med sidan är en gissning, och då beställs fel vara hem.
+  const aosomByte = !!mappning && mappingSupplier(mappning) === "aosom";
+  if (aosomByte) {
+    const d = input.dubblett ? alla.find((m) => m.wixProductId === input.dubblett) : undefined;
+    if (!d || !rad || aosomSkuOf(d) !== rad.sku) {
+      hinder.push("redan_aosom");
+    } else if (d.needsAiPolish !== true) {
+      // En polerad sida är ingen dubblett att pensionera. Den kan ligga ute, och
+      // pensioneringen tömmer dess artikel, så synken slutar se den.
+      hinder.push("dubbletten_inte_utkast");
+    }
+    if (rad && mappning!.supplierProductId === aosomSupplierProductId(rad.sku)) {
+      hinder.push("samma_artikel");
+    }
+    // Fältet rymmer en artikel. En sida som redan spärrar en annan skulle
+    // tappa den spärren, och nattens import skapade då den varan igen.
+    if (mappning!.importSparr) hinder.push("importsparr_upptagen");
+  }
+  // ☠️ ETT BYTE INOM AOSOM KOLLAPSAR ALDRIG EN SIDA. `behallVariant` finns för
+  // AE-varianter som inte finns hos Aosom. På en sammanslagen Aosom-sida är
+  // varje färg en egen Aosom-artikel, och en kollaps hade tagit bort färger
+  // som går att köpa.
+  const aosomFlera = aosomByte && (mappning!.variants ?? []).length > 1;
 
   // En SKU som redan sitter på en ANNAN produkt betyder att vi håller på att
   // skapa exakt den dubblett ommappningen finns för att ta bort.
@@ -208,7 +244,9 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
     varianter = varianter.filter((v) => v.wixVariantId === input.behallVariant);
     if (varianter.length !== 1) hinder.push("okand_variant");
   }
-  if (varianter.length > 1) hinder.push("flera_varianter");
+  if (varianter.length > 1 || (aosomFlera && !hinder.includes("flera_varianter"))) {
+    hinder.push("flera_varianter");
+  }
 
   const mappningensPris = varianter[0]?.grossSek ?? null;
   const butikensPris = input.butikensPrisSek ?? null;
@@ -239,6 +277,7 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
     gammalMarginalPct: gammalMarginalPct == null ? null : round2(gammalMarginalPct),
     ...(input.dubblett ? { dubblett: input.dubblett } : {}),
     ...(input.behallVariant ? { behallVariant: input.behallVariant } : {}),
+    aosomByte,
     hinder,
   };
 }
@@ -318,7 +357,20 @@ export function tillämpaOmmappning(
     // få den att tro att produkten redan är synkad och hoppa över den.
     aosomSyncedQty: undefined,
     aosomSyncedAt: undefined,
+
+    // ☠️ BYTE INOM AOSOM: DEN GAMLA ARTIKELN SPÄRRAS FÖR IMPORTEN. Efter bytet
+    // bär ingen rad den längre, och nattens import hade då skapat ett nytt utkast
+    // för samma vara så fort artikeln fick saldo igen. Samma fält som raderingen
+    // av pensionerade utkast använder, och det läses bara av importens spärr.
+    ...(gammalAosomArtikel(befintlig, rad) ? { importSparr: gammalAosomArtikel(befintlig, rad)! } : {}),
   } as ProductMappingRecord;
+}
+
+/** Sidans gamla Aosom-artikel vid ett byte inom Aosom, annars null. */
+function gammalAosomArtikel(befintlig: ProductMappingRecord, rad: AosomRow): string | null {
+  if (mappingSupplier(befintlig) !== "aosom") return null;
+  const gammal = befintlig.supplierProductId ?? "";
+  return gammal && gammal !== aosomSupplierProductId(rad.sku) ? gammal : null;
 }
 
 /**

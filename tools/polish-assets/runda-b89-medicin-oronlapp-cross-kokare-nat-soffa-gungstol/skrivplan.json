@@ -1,0 +1,380 @@
+{
+ "runda": "runda-b89-medicin-oronlapp-cross-kokare-nat-soffa-gungstol",
+ "produkter": [
+  {
+   "kort": "54efbdc6",
+   "pid": "54efbdc6-5026-4a94-9739-188081a06746",
+   "namn": "Medicinskåp 40 × 60 cm med lås och tre hyllplan",
+   "slug": "medicinskap-40x60-tre-plan",
+   "html": "<p>Ett medicinskåp i lackerad metall som hängs på väggen, 40 × 18 × 60 cm med tre hyllplan. Dörren låses med nyckel, och två nycklar ingår. Skåpet finns i vitt, grått och svart.</p><h2>Lås med två nycklar</h2><p>Dörren har ett lås, så att mediciner och förband kan förvaras utom räckhåll för barn. Två nycklar följer med.</p><h2>Tre hyllplan</h2><p>Skåpet har tre fack på 18 cm, och hyllplanen är 15,8 cm djupa. Dörren mäter 35,4 × 55,4 cm.</p><h2>För badrummet</h2><p>Metallen är lackerad och tål vatten, så skåpet passar i badrummet. Det hängs på väggen och tar ingen golvyta, och det har förborrade hål och monteringsmaterial.</p><h2>Egenskaper</h2><ul><li><p>40 × 18 × 60 cm</p></li><li><p>Lås med två nycklar</p></li><li><p>Tre hyllplan</p></li><li><p>Lackerad metall</p></li><li><p>Hängs på väggen</p></li><li><p>Monteringsmaterial ingår</p></li><li><p>Bär 5 kg</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 40 × 18 × 60 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Dörr:</span> 35,4 × 55,4 cm</p></li><li><p><span style=\"font-weight: 700\">Hyllplan:</span> 3 st, 40 × 15,8 cm, med 18 cm mellan planen</p></li><li><p><span style=\"font-weight: 700\">Maxbelastning:</span> 5 kg</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Metall</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Vit, grå eller svart</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 5 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 44 × 22 × 65 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Medicinskåp, 2 nycklar och anvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> På vägg, monteringsmaterial ingår</p></li></ul><h2>Användning och skötsel</h2><p>Skåpet skruvas upp på väggen med det medföljande monteringsmaterialet. Kontrollera att skruvar och pluggar passar din vägg innan du borrar. Lås dörren och förvara nycklarna utom räckhåll för barn. Torka av lacken med en fuktig trasa och torka torrt.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Går skåpet att låsa?</span></p><p>Ja, dörren har lås och två nycklar ingår.</p><p><span style=\"font-weight: 700\">Hur djupa är hyllplanen?</span></p><p>15,8 cm, i ett skåp som är 18 cm djupt.</p><p><span style=\"font-weight: 700\">Passar det i badrummet?</span></p><p>Ja, metallen är lackerad och tål vatten.</p><p><span style=\"font-weight: 700\">Ingår monteringsmaterial?</span></p><p>Ja, och skåpet har förborrade hål.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Vit, grå och svart.</p><h2>Produktsäkerhet</h2><ul><li><p>Maxbelastning: 5 kg.</p></li><li><p>Förvara nycklarna utom räckhåll för barn.</p></li></ul>",
+   "seoTitel": "Medicinskåp 40 × 60 cm med lås och tre plan | Fyndplats",
+   "seoBesk": "Medicinskåp i lackerad metall för väggen, 40 × 18 × 60 cm, med lås, två nycklar och tre hyllplan. Monteringsmaterial ingår. Vitt, grått eller svart.",
+   "media": [
+    {
+     "id": "b379ce_84da25f3acb641fab2dadec87b9fe92f~mv2.jpg",
+     "altText": "Vitt medicinskåp i metall med öppen dörr, tre hyllplan och nyckel i låset, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d95b49fdce4b492ba760a5de33a4d45b~mv2.jpg",
+     "altText": "Närbild på låset i den vita dörren"
+    },
+    {
+     "id": "b379ce_1953913ca36d413baeab808a9ee29ef7~mv2.jpg",
+     "altText": "Närbild på skåpets nedre hörn och den släta dörren"
+    },
+    {
+     "id": "b379ce_85e791e181e94fe1ad47b469a5f50631~mv2.jpg",
+     "altText": "Grått medicinskåp med öppen dörr, tre hyllplan och nycklar i låset, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_503667f7e8f74e619dce69ea13ce338a~mv2.jpg",
+     "altText": "Svart medicinskåp med öppen dörr, tre hyllplan och två nycklar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0ae477cfb03244efaec48f5633025ba4~mv2.jpg",
+     "altText": "Det svarta medicinskåpet på badrumsväggen med dörren öppen och mediciner på hyllplanen"
+    },
+    {
+     "id": "b379ce_e0534ef6260e49019c0e30f78a9fa30a~mv2.jpg",
+     "altText": "Måttbild: skåpet är 40 × 18 × 60 cm med tre fack på 18 cm"
+    }
+   ],
+   "kat": [
+    "Hem & Inredning",
+    "Badrum & Hemtextil",
+    "Badrumsskåp",
+    "Förvaring & Organisering"
+   ],
+   "varianter": 2,
+   "textHash": "84d9fc1d74ba4dab",
+   "textTecken": 2758
+  },
+  {
+   "kort": "a29af9b5",
+   "pid": "a29af9b5-20de-400a-aaa8-639335c8c88f",
+   "namn": "Öronlappsfåtölj med knappad rygg och ben i eukalyptus – bär 160 kg",
+   "slug": "oronlappsfatolj-blatt-knappad-rygg",
+   "html": "<p>En öronlappsfåtölj med knappad rygg, öron i huvudhöjd och armstöd som rullar utåt. Den är 74 × 86 × 102 cm, står på svarvade ben i eukalyptus och bär 160 kg. Klädseln finns i blått, cremevitt, mörkgrönt och beige.</p><h2>Knappad rygg och öron</h2><p>Ryggen är knappad, så tyget bildar rutor som följer ryggens rundning upp i öronen. Öronen sitter i huvudhöjd och vinklar inåt, så du kan luta huvudet åt sidan och ändå ha stöd.</p><h2>Sits på 47 cm</h2><p>Sittytan är 48,5 × 53 cm och ligger 47 cm över golvet, vanlig stolshöjd som gör det lätt att resa sig. Ryggstödet är 67 × 68 cm och 15 cm tjockt.</p><h2>Stomme och ben</h2><p>Stommen är trä med skumstoppning och bär 160 kg. De fyra benen är svarvade och lackade, och under varje ben sitter ett golvskydd.</p><h2>Fyra klädslar</h2><p>Den cremevita och den beige är klädda i flanell, den blå i polyester med flanellkaraktär och den mörkgröna i tyg i linnelook, alla av polyester. Den blå och den mörkgröna har avtagbart överdrag på sitsdynan. Måtten och stommen är desamma i alla fyra.</p><h2>Egenskaper</h2><ul><li><p>74 × 86 × 102 cm</p></li><li><p>Knappad rygg med öron i huvudhöjd</p></li><li><p>Sits 48,5 × 53 cm, sitthöjd 47 cm</p></li><li><p>Stomme i trä med skumstoppning</p></li><li><p>Svarvade ben med golvskydd</p></li><li><p>Bär 160 kg</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 74 × 86 × 102 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Sittyta:</span> 48,5 × 53 cm</p></li><li><p><span style=\"font-weight: 700\">Sitthöjd:</span> 47 cm</p></li><li><p><span style=\"font-weight: 700\">Ryggstöd:</span> 67 × 68 cm, 15 cm tjockt</p></li><li><p><span style=\"font-weight: 700\">Maxlast:</span> 160 kg</p></li><li><p><span style=\"font-weight: 700\">Klädsel:</span> polyester, som flanell på den cremevita och den beige, med flanellkaraktär på den blå och i linnelook på den mörkgröna</p></li><li><p><span style=\"font-weight: 700\">Stomme:</span> trä med skumstoppning</p></li><li><p><span style=\"font-weight: 700\">Ben:</span> fyra svarvade, lackade ben i eukalyptus med golvskydd</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> blå, cremevit, mörkgrön eller beige</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 21,6 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 73,5 × 70 × 41 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> fåtölj och monteringsanvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> krävs, benen skruvas fast</p></li></ul><h2>Användning och skötsel</h2><p>Skruva i alla fyra benen löst först och dra åt när fåtöljen står på golvet, annars hamnar den snett. Dammsug tyget med möbelmunstycke och lågt sug, särskilt i knapparnas fördjupningar där dammet samlas. Ta fläckar direkt med en nästan torr trasa och lite mild tvål, utifrån och in, och blötlägg aldrig stoppningen. Har fåtöljen avtagbart överdrag på sitsdynan följer du tvättrådet i etiketten. Lyft i stommen när fåtöljen flyttas, inte i ryggen, och efterdra benens skruvar efter första månaden. Ställ den inte i direkt solljus, eftersom tyget bleks.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur mycket bär fåtöljen?</span></p><p>160 kg.</p><p><span style=\"font-weight: 700\">Hur stor är sittytan?</span></p><p>48,5 × 53 cm, och sitsen ligger 47 cm över golvet.</p><p><span style=\"font-weight: 700\">Hur mycket golvyta tar den?</span></p><p>74 cm i bredd och 86 cm i djup.</p><p><span style=\"font-weight: 700\">Vad behöver monteras?</span></p><p>Benen skruvas fast. Resten kommer färdigmonterat.</p><p><span style=\"font-weight: 700\">Ingår det någon kudde?</span></p><p>Nej, i kartongen ligger fåtöljen och monteringsanvisningen.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Blå, cremevit, mörkgrön och beige.</p><h2>Produktsäkerhet</h2><ul><li><p>Maxbelastning: 160 kg.</p></li></ul>",
+   "seoTitel": "Öronlappsfåtölj med knappad rygg | Fyndplats",
+   "seoBesk": "Öronlappsfåtölj med knappad rygg, rullade armstöd och ben i eukalyptus. 74 × 86 × 102 cm, sitthöjd 47 cm, bär 160 kg. Finns i fyra färger.",
+   "media": [
+    {
+     "id": "b379ce_58db06da1f4f4d3caef4074d7387f77a~mv2.jpg",
+     "altText": "Blå öronlappsfåtölj med knappad rygg och svarvade svarta ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_3ef23397368d48d9a58387307e3abf26~mv2.jpg",
+     "altText": "Den blå öronlappsfåtöljen i ett rum med mörk vägg, gardin och en hylla"
+    },
+    {
+     "id": "b379ce_0bbc01af3a6e4793901a4a7eacadb521~mv2.jpg",
+     "altText": "Närbild på den knappade ryggen och det rullade armstödet i blått tyg"
+    },
+    {
+     "id": "b379ce_24344e63f2d44a5a9d15290f79343039~mv2.jpg",
+     "altText": "Närbild på den blå sitsdynan och ett av benen"
+    },
+    {
+     "id": "b379ce_24ab867f2a42417bb5d7a91e206f3fbe~mv2.jpg",
+     "altText": "Faktakort: den blå fåtöljen är 74 × 86 × 102 cm, med sittyta 48,5 × 53 cm, 47 cm hög sits och maxlast 160 kg"
+    },
+    {
+     "id": "b379ce_2e5502978b074705891ac4ce99f11888~mv2.jpg",
+     "altText": "Cremevit öronlappsfåtölj med knappad rygg och svarvade ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_6233f765830b4b1090aabc5b8632a5c1~mv2.jpg",
+     "altText": "Mörkgrön öronlappsfåtölj med knappad rygg och svarvade ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_7892f848f9044b8b81c7f480295596b9~mv2.jpg",
+     "altText": "Beige öronlappsfåtölj med knappad rygg, rullade armstöd och svarta svarvade ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_3f2d53bcb86e4c97858d096b3c2a7367~mv2.jpg",
+     "altText": "En kvinna med en kopp sitter i den beige öronlappsfåtöljen i ett vardagsrum"
+    },
+    {
+     "id": "b379ce_4931918537fb455982a93705ae6eb635~mv2.jpg",
+     "altText": "Måttbild: fåtöljen är 74 × 86 cm och 102 cm hög, med sits 48,5 × 53 cm och sitthöjd 47 cm"
+    }
+   ],
+   "kat": [
+    "Hem & Inredning",
+    "Möbler",
+    "Fåtöljer",
+    "Öronlappsfåtöljer"
+   ],
+   "varianter": 3,
+   "textHash": "d1aa02f9b7ecd08e",
+   "textTecken": 3932
+  },
+  {
+   "kort": "f4c3b44c",
+   "pid": "f4c3b44c-63cb-45f1-832c-ed11cf11ba30",
+   "namn": "Elmotorcykel för barn 12 V – cross med stödhjul och gasknapp, 3–8 km/h",
+   "slug": "elmotorcykel-barn-cross-stodhjul-gron",
+   "html": "<p>En elmotorcykel för barn från 3 år, byggd som en crossmotorcykel med två avtagbara stödhjul. Barnet kör genom att hålla in en knapp på handtaget, och motorcykeln går i 3–8 km/h i upp till 45 minuter per laddning. Den finns i grönt, rött och blått, alla med vitt.</p><h2>Kör när knappen hålls in</h2><p>Motorcykeln startar när barnet trycker på knappen på handtaget och stannar när knappen släpps.</p><h2>Stödhjul och dubbel fjädring</h2><p>Två stödhjul håller motorcykeln upprätt och tas av när barnet har fått balansen. Dubbel fjädring tar upp ojämnheter, och hjulen är 34 cm i diameter.</p><h2>Asfalt, betong och kullersten</h2><p>Hjulen passar för asfalt, betong och kullersten. Sitsen är 35 × 15 cm och ligger 49 cm över marken.</p><h2>Egenskaper</h2><ul><li><p>Crossmotorcykel för barn med två avtagbara stödhjul</p></li><li><p>3–8 km/h</p></li><li><p>Upp till 45 minuters körtid</p></li><li><p>Batteri på 12 V och 4,5 Ah</p></li><li><p>Dubbel fjädring</p></li><li><p>Hjul på 34 cm</p></li><li><p>Bär 30 kg, från 3 år</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 106,5 × 51,5 × 68 cm</p></li><li><p><span style=\"font-weight: 700\">Sits:</span> 35 × 15 cm</p></li><li><p><span style=\"font-weight: 700\">Sitthöjd:</span> 49 cm</p></li><li><p><span style=\"font-weight: 700\">Hjul:</span> Ø34 cm</p></li><li><p><span style=\"font-weight: 700\">Batteri:</span> 12 V, 4,5 Ah</p></li><li><p><span style=\"font-weight: 700\">Hastighet:</span> 3–8 km/h</p></li><li><p><span style=\"font-weight: 700\">Körtid:</span> Upp till 45 minuter</p></li><li><p><span style=\"font-weight: 700\">Laddtid:</span> 8–12 timmar</p></li><li><p><span style=\"font-weight: 700\">Maxbelastning:</span> 30 kg</p></li><li><p><span style=\"font-weight: 700\">Ålder:</span> Från 3 år</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Grön, röd eller blå, med vitt</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Plast och metall</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 11,8 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 77 × 46 × 35 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Elmotorcykel och bruksanvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> Krävs</p></li></ul><h2>Användning och skötsel</h2><p>Motorcykeln sätts ihop före första körningen. Ladda batteriet i 8–12 timmar, gärna över natten. Låt stödhjulen sitta kvar tills barnet håller balansen och kör på asfalt, betong eller kullersten. Torka av motorcykeln med en fuktig trasa, kör inte i regn och förvara den under tak.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur fort går den?</span></p><p>Mellan 3 och 8 km/h.</p><p><span style=\"font-weight: 700\">Hur startar barnet?</span></p><p>Genom att hålla in knappen på handtaget. Släpps knappen stannar motorcykeln.</p><p><span style=\"font-weight: 700\">Går stödhjulen att ta av?</span></p><p>Ja, båda stödhjulen tas av när barnet håller balansen själv.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Grön, röd och blå, alla med vitt.</p><p><span style=\"font-weight: 700\">Krävs montering?</span></p><p>Ja, motorcykeln sätts ihop före första körningen.</p><h2>Produktsäkerhet</h2><ul><li><p>Rekommenderad ålder: från 3 år.</p></li><li><p>Maxbelastning: 30 kg.</p></li></ul>",
+   "seoTitel": "Elmotorcykel för barn, cross med stödhjul | Fyndplats",
+   "seoBesk": "Elmotorcykel för barn från 3 år i crossmodell, 12 V, 3–8 km/h och upp till 45 minuters körtid. Två avtagbara stödhjul. Grön, röd eller blå.",
+   "media": [
+    {
+     "id": "b379ce_c966c9763fb9497a95353bd422764d1e~mv2.jpg",
+     "altText": "Grön och vit elmotorcykel för barn i crosstil med två stödhjul"
+    },
+    {
+     "id": "b379ce_6fa677477db744c289042a241ba742a5~mv2.jpg",
+     "altText": "Pojke i hängselbyxor går bredvid den gröna elmotorcykeln på en gång i en park"
+    },
+    {
+     "id": "b379ce_36845a98903c40409437f1542def2241~mv2.jpg",
+     "altText": "Närbild på framhjulets grovmönstrade däck och gröna fälg"
+    },
+    {
+     "id": "b379ce_c3318932d08d4e8090adcda13b5c5499~mv2.jpg",
+     "altText": "Fyra vyer av elmotorcykeln: framifrån, från sidan, snett framifrån och bakifrån"
+    },
+    {
+     "id": "b379ce_84807fdab435472a99edaaadfd4b708e~mv2.jpg",
+     "altText": "Röd och vit elmotorcykel för barn i crosstil med två stödhjul"
+    },
+    {
+     "id": "b379ce_588e3895df7942bdbbbc65a18a7617e6~mv2.jpg",
+     "altText": "Blå och vit elmotorcykel för barn i crosstil med två stödhjul, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_cc1bb31c87864662b68099b0f9c02114~mv2.jpg",
+     "altText": "Måttbild: motorcykeln är 106,5 × 51,5 × 68 cm, sitsen 35 × 15 cm och sitthöjden 49 cm"
+    }
+   ],
+   "kat": [
+    "Barn & Familj",
+    "Leksaker & Spel",
+    "Elbilar för barn",
+    "Motorcyklar för barn"
+   ],
+   "varianter": 2,
+   "textHash": "8fb6c08b66bc946a",
+   "textTecken": 3357
+  },
+  {
+   "kort": "d8c2dec6",
+   "pid": "d8c2dec6-8645-4fc5-a80c-9882f661d432",
+   "namn": "Vattenkokare 1,7 liter och 2200 W med vattenmätare",
+   "slug": "vattenkokare-1-7-liter-gra-koppar",
+   "html": "<p>En vattenkokare på 1,7 liter och 2200 W som kokar upp en kopp vatten på 50 sekunder. Vattenmätaren på kannans sida visar hur mycket du har fyllt i, och ett torrkokningsskydd stänger av den om den står tom. Den finns i grått, svart och beige, alla med detaljer i kopparton.</p><h2>2200 W och 1,7 liter</h2><p>Med 2200 W kokar en kopp vatten upp på 50 sekunder. Kannan tar från 500 ml upp till 1,7 liter, och vattenmätaren gör det lätt att fylla precis så mycket du behöver.</p><h2>Torrkokningsskydd och 360°-bas</h2><p>Torrkokningsskyddet stänger av vattenkokaren om den sätts på tom, och en kontrollampa visar när den är igång. Basen tar emot kannan från alla håll, så den passar både höger- och vänsterhänta, och halkfria fötter håller basen stilla på bänken.</p><h2>Filter och sladdförvaring</h2><p>Pipfiltret går att ta av och tvätta, och det hjälper till att hålla kalkflagor borta från koppen. Sladden är 0,7 m och går att förvara prydligt, så att bänken hålls fri.</p><h2>Egenskaper</h2><ul><li><p>2200 W, en kopp på 50 sekunder</p></li><li><p>Rymmer 500 ml till 1,7 liter</p></li><li><p>Vattenmätare på kannans sida</p></li><li><p>Torrkokningsskydd med kontrollampa</p></li><li><p>360°-bas för höger- och vänsterhänta</p></li><li><p>Halkfria fötter</p></li><li><p>Avtagbart pipfilter som går att tvätta</p></li><li><p>Sladdförvaring</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått med bas:</span> 24,2 × 19,5 × 23,4 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Höjd utan bas:</span> 21,7 cm</p></li><li><p><span style=\"font-weight: 700\">Volym:</span> 500 ml till 1,7 liter</p></li><li><p><span style=\"font-weight: 700\">Effekt:</span> 2200 W</p></li><li><p><span style=\"font-weight: 700\">Spänning:</span> 220–240 V, 50–60 Hz</p></li><li><p><span style=\"font-weight: 700\">Strömstyrka:</span> 9,1 A</p></li><li><p><span style=\"font-weight: 700\">Sladdlängd:</span> 0,7 m</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Plast och rostfritt stål</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Grå, svart eller beige, med detaljer i kopparton</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 1,3 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 21,5 × 20 × 23,1 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Vattenkokare med bas och bruksanvisning</p></li></ul><h2>Användning och skötsel</h2><p>Fyll mellan 500 ml och maxmarkeringen på 1,7 liter. Pipfiltret tas av och sköljs under kranen. Kalkar kannan kan du koka upp vatten med lite ättika, låta det stå en stund och skölja noga efteråt. Torka av basen med en torr trasa och låt den aldrig bli blöt.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur snabbt kokar den?</span></p><p>En kopp vatten kokar upp på 50 sekunder.</p><p><span style=\"font-weight: 700\">Hur mycket rymmer den?</span></p><p>Från 500 ml upp till 1,7 liter.</p><p><span style=\"font-weight: 700\">Stänger den av sig själv om den är tom?</span></p><p>Ja, torrkokningsskyddet stänger av den.</p><p><span style=\"font-weight: 700\">Går filtret att rengöra?</span></p><p>Ja, pipfiltret går att ta av och tvätta.</p><p><span style=\"font-weight: 700\">Passar den vänsterhänta?</span></p><p>Ja, 360°-basen tar emot kannan från alla håll.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Grå, svart och beige, alla med detaljer i kopparton.</p><h2>Produktsäkerhet</h2><ul><li><p>Spänning: 220–240 V, 50–60 Hz.</p></li><li><p>Torrkokningsskyddet stänger av vattenkokaren om den sätts på tom.</p></li></ul>",
+   "seoTitel": "Vattenkokare 1,7 liter, 2200 W | Fyndplats",
+   "seoBesk": "Vattenkokare på 1,7 liter och 2200 W som kokar en kopp på 50 sekunder. Vattenmätare, torrkokningsskydd, 360°-bas och pipfilter. Finns i tre färger.",
+   "media": [
+    {
+     "id": "b379ce_76216b8c022343158b2acd58d5bc5db4~mv2.jpg",
+     "altText": "Grå vattenkokare med bikakemönster och handtag, lock och sockel i kopparton, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_8277a36a099e4316a86c6e2ada47601f~mv2.jpg",
+     "altText": "Den grå vattenkokaren på en köksbänk bredvid croissanter och bär"
+    },
+    {
+     "id": "b379ce_bb420d20a0c246f0918e07a669abb621~mv2.jpg",
+     "altText": "Den grå vattenkokaren på en skänk bredvid en tekanna och bakelser under en glaskupa"
+    },
+    {
+     "id": "b379ce_2de7c3f3a2ca4acc84179663a685f6dc~mv2.jpg",
+     "altText": "En kvinna häller vatten ur den grå vattenkokaren i en mugg"
+    },
+    {
+     "id": "b379ce_5d2c74b285cd445f9f4b0f8ccc42d040~mv2.jpg",
+     "altText": "Beige vattenkokare med bikakemönster och handtag, lock och sockel i kopparton, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_347396bb224847f28dcbe94788b08f23~mv2.jpg",
+     "altText": "Svart vattenkokare med bikakemönster och handtag, lock och sockel i kopparton, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_2813a63a6688453c8c568d9e45d700e0~mv2.jpg",
+     "altText": "Måttbild: vattenkokaren rymmer 1,7 liter och är 24,2 × 19,5 × 23,4 cm"
+    }
+   ],
+   "kat": [
+    "Kök & Husgeråd",
+    "Köksmaskiner & Apparater",
+    "Vattenkokare & brödrostar"
+   ],
+   "varianter": 2,
+   "textHash": "573edbadd2d4ccf8",
+   "textTecken": 3609
+  },
+  {
+   "kort": "7f1a45a6",
+   "pid": "7f1a45a6-af6f-4ad4-a4ff-fba809f259c6",
+   "namn": "Returnät för fotboll 128 cm med ställbar vinkel",
+   "slug": "returnat-fotboll-128-cm-stallbar",
+   "html": "<p>Ett returnät för fotboll som skickar tillbaka bollen när du skjuter eller passar mot det. Ramen är i pulverlackerat stål med en stoppad kant i oxfordväv, nätet är 105 × 105 cm och vinkeln går att ställa. Returnätet finns i rött och svart.</p><h2>Ställbar vinkel</h2><p>Vinkeln ställs in med stöden på baksidan, och höjden blir 108–120 cm beroende på läget. Med olika vinklar studsar bollen tillbaka på olika sätt, så du kan anpassa träningen efter det du vill öva på.</p><h2>Nät i PE och kant i oxfordväv</h2><p>Nätet är av PE och tål väder, och maskorna är 4,5 × 4,5 cm. Ramen är klädd med en stoppad kant i oxfordväv.</p><h2>Fälls ihop till 6,4 cm</h2><p>Hopfällt mäter returnätet 128 × 128 × 6,4 cm, så det är lätt att bära med sig och att förvara mellan träningarna.</p><h2>Jordpinnar ingår</h2><p>Jordpinnarna förankrar ramen i marken, så att returnätet inte välter när du skjuter.</p><h2>För flera bollsporter</h2><p>Returnätet passar för träning i fotboll, basket, volleyboll och baseboll.</p><h2>Egenskaper</h2><ul><li><p>Returnät för fotboll, basket, volleyboll och baseboll</p></li><li><p>Ställbar vinkel, höjd 108–120 cm</p></li><li><p>Nät i PE, 105 × 105 cm, maskor på 4,5 cm</p></li><li><p>Ram i pulverlackerat stål med stoppad kant</p></li><li><p>Fälls ihop till 6,4 cm</p></li><li><p>Jordpinnar ingår</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 128 × 118 × 108–120 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Mått hopfällt:</span> 128 × 128 × 6,4 cm</p></li><li><p><span style=\"font-weight: 700\">Nät:</span> 105 × 105 cm</p></li><li><p><span style=\"font-weight: 700\">Maskvidd:</span> 4,5 × 4,5 cm</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Pulverlackerat stål, PE-nät och oxfordväv</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Röd eller svart</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 13 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 100 × 33,5 × 11 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Returnät, jordpinnar och anvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> Krävs</p></li></ul><h2>Användning och skötsel</h2><p>Returnätet monteras före första användningen. Förankra ramen med jordpinnarna innan du börjar skjuta, och ställ in vinkeln efter det du vill träna. Torka av ramen med en fuktig trasa, och låt nätet torka innan returnätet fälls ihop och ställs undan.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur stort är returnätet?</span></p><p>128 × 118 cm och 108–120 cm högt, med ett nät på 105 × 105 cm.</p><p><span style=\"font-weight: 700\">Går vinkeln att ställa?</span></p><p>Ja, och höjden blir 108–120 cm beroende på läget.</p><p><span style=\"font-weight: 700\">Hur tunt blir det hopfällt?</span></p><p>6,4 cm.</p><p><span style=\"font-weight: 700\">Ingår jordpinnar?</span></p><p>Ja, de förankrar ramen så att den inte välter.</p><p><span style=\"font-weight: 700\">Går det att använda till andra sporter?</span></p><p>Ja, till basket, volleyboll och baseboll.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Röd och svart.</p><h2>Produktsäkerhet</h2><ul><li><p>Förankra returnätet med jordpinnarna, så att det inte välter under användning.</p></li></ul>",
+   "seoTitel": "Returnät för fotboll 128 cm | Fyndplats",
+   "seoBesk": "Returnät med ställbar vinkel och ram i pulverlackerat stål. 128 × 118 cm, höjd 108–120 cm, maskvidd 4,5 cm. Fälls till 6,4 cm. Rött eller svart.",
+   "media": [
+    {
+     "id": "b379ce_de9fe54dcb524107837e633c4831d31f~mv2.jpg",
+     "altText": "Rött returnät med svart nät sett rakt framifrån"
+    },
+    {
+     "id": "b379ce_982fbf42ca014b5797b375ab9db2dd66~mv2.jpg",
+     "altText": "Person som skjuter en fotboll mot returnätet på en gräsmatta"
+    },
+    {
+     "id": "b379ce_2c6477870fab4542bb4874f1575a468b~mv2.jpg",
+     "altText": "Närbild på stödbenets hålrad för att ställa vinkeln"
+    },
+    {
+     "id": "b379ce_be8430a452e041fabe625fa6a77cfc63~mv2.jpg",
+     "altText": "Returnätet sett snett bakifrån med stödbenet utfällt"
+    },
+    {
+     "id": "b379ce_d13011696ad449c89a0e07d741158691~mv2.jpg",
+     "altText": "Svart returnät med stoppad kant i oxfordväv, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_688b296f3a224f198b7dba6a1d55945a~mv2.jpg",
+     "altText": "Det svarta returnätet på en gräsmatta i en park, med en man och en boll"
+    },
+    {
+     "id": "b379ce_90e681ebc7a34143a06971fe876b9a01~mv2.jpg",
+     "altText": "Måttskiss för returnätet med höjden 108–120 cm och djupet 118 cm"
+    }
+   ],
+   "kat": [
+    "Sport & Fritid",
+    "Bollsport",
+    "Trädgård & Utemöbler",
+    "Utelek & Spel"
+   ],
+   "sku": "FP-returnat-fotboll-128-cm",
+   "variantId": "ecb8d33c-efe9-4c81-92ed-49449bf8387c",
+   "textHash": "18ac1c305dd0ec91",
+   "textTecken": 3337
+  },
+  {
+   "kort": "615e7b54",
+   "pid": "615e7b54-9a7b-4f42-b955-70d42a655127",
+   "namn": "Tvåsitssoffa 117 cm med kanalsydd rygg – linnelook och ben i trä",
+   "slug": "tvasitssoffa-117-cm-kanalsydd-rygg",
+   "html": "<p>En tvåsitssoffa på 117 cm med kanalsydd rygg, klädsel i linnelook och ben i trä. Den är 56,5 cm djup och 77 cm hög, sitsen ligger 46,7 cm över golvet och soffan bär 220 kg. Den finns i grått, mörkgrått, cremevitt, gult och ljusblått.</p><h2>Plats för två på 117 cm</h2><p>Sittytan är 117 × 42 cm och rymmer två personer. Soffan är kompakt och passar i olika rum.</p><h2>Kanalsydd rygg och tjock stoppning</h2><p>Ryggen är kanalsydd och stoppad, och ryggstödet når 33 cm över sitsen. Stoppningen är av skum och 20 cm tjock.</p><h2>Stomme i massivt trä</h2><p>Stommen är av massivt trä och benen är förstärkta, så soffan står stadigt och bär 220 kg. Benen är 25 cm höga.</p><h2>Tyg i linnelook</h2><p>Klädseln är ett tyg i linnelook av 100 % polyester, som är lätt att sköta och slitstarkt.</p><h2>Egenskaper</h2><ul><li><p>Tvåsitssoffa, 117 × 56,5 × 77 cm</p></li><li><p>Kanalsydd, stoppad rygg</p></li><li><p>Sittyta 117 × 42 cm, sitthöjd 46,7 cm</p></li><li><p>Stomme i massivt trä och förstärkta ben</p></li><li><p>Tyg i linnelook, 100 % polyester</p></li><li><p>Bär 220 kg</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 117 × 56,5 × 77 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Sittyta:</span> 117 × 42 cm</p></li><li><p><span style=\"font-weight: 700\">Sitthöjd:</span> 46,7 cm</p></li><li><p><span style=\"font-weight: 700\">Ryggstöd:</span> 33 cm högt över sitsen</p></li><li><p><span style=\"font-weight: 700\">Stoppning:</span> Skum, 20 cm tjock</p></li><li><p><span style=\"font-weight: 700\">Benhöjd:</span> 25 cm</p></li><li><p><span style=\"font-weight: 700\">Maxbelastning:</span> 220 kg</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Massivt trä, skum och tyg i linnelook</p></li><li><p><span style=\"font-weight: 700\">Klädsel:</span> 100 % polyester</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Grå, mörkgrå, cremevit, gul eller ljusblå</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 22,2 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 119 × 36 × 54 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Soffa och monteringsanvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> Krävs</p></li></ul><h2>Användning och skötsel</h2><p>Soffan monteras enligt anvisningen före användning. Dammsug tyget med möbelmunstycke och lågt sug, och gå längs kanalerna i ryggen där dammet samlas. Ta fläckar direkt med en fuktig trasa och lite mild tvål, och gnid inte. Ställ inte soffan i starkt solljus, eftersom tyget kan blekas.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur många får plats?</span></p><p>Två personer. Sittytan är 117 × 42 cm.</p><p><span style=\"font-weight: 700\">Hur hög är sitsen?</span></p><p>46,7 cm över golvet.</p><p><span style=\"font-weight: 700\">Hur mycket bär soffan?</span></p><p>220 kg.</p><p><span style=\"font-weight: 700\">Vad är klädseln gjord av?</span></p><p>Tyg i linnelook av 100 % polyester.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Grå, mörkgrå, cremevit, gul och ljusblå.</p><p><span style=\"font-weight: 700\">Krävs montering?</span></p><p>Ja, soffan monteras före användning.</p><h2>Produktsäkerhet</h2><ul><li><p>Maxbelastning: 220 kg.</p></li></ul>",
+   "seoTitel": "Tvåsitssoffa 117 cm med kanalsydd rygg | Fyndplats",
+   "seoBesk": "Tvåsitssoffa 117 × 56,5 × 77 cm med kanalsydd rygg, tyg i linnelook och stomme i massivt trä. Sitthöjd 46,7 cm, bär 220 kg. Finns i fem färger.",
+   "media": [
+    {
+     "id": "b379ce_d773bf2353824204b469883eb74c957f~mv2.jpg",
+     "altText": "Grå tvåsitssoffa med kanalsydd rygg och ben i ljust trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_1d2bc71b432345ab99004be19fc0b3ee~mv2.jpg",
+     "altText": "En kvinna läser en bok i den grå tvåsitssoffan i ett vardagsrum med bokhylla"
+    },
+    {
+     "id": "b379ce_77f5e74422a54351a4f827f2820bbebd~mv2.jpg",
+     "altText": "En kvinna och en valp i den grå tvåsitssoffan på en matta"
+    },
+    {
+     "id": "b379ce_fe5fdf6e04394d2db233a230cff35728~mv2.jpg",
+     "altText": "Närbild på det grå tyget i linnelook och de sydda kanalerna i ryggen"
+    },
+    {
+     "id": "b379ce_c04d025f9a7a423bb5bf1e62e57c96e5~mv2.jpg",
+     "altText": "Cremevit tvåsitssoffa med kanalsydd rygg och ben i trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_7eb03257be1247a6ad623d5b95c6c398~mv2.jpg",
+     "altText": "Gul tvåsitssoffa med kanalsydd rygg och ben i trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_3419c9121b4f431686236fd09dc9d114~mv2.jpg",
+     "altText": "Ljusblå tvåsitssoffa med kanalsydd rygg och ben i trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_32cc00e1e89644f2991512b95017e7df~mv2.jpg",
+     "altText": "Mörkgrå tvåsitssoffa med kanalsydd rygg och ben i trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_e7a4b1692995473b88c62fbe8ed1e8a7~mv2.jpg",
+     "altText": "Måttbild: soffan är 117 × 56,5 × 77 cm, med sits 117 × 42 cm, sitthöjd 46,7 cm, ben 25 cm och maxlast 220 kg"
+    }
+   ],
+   "kat": [
+    "Hem & Inredning",
+    "Möbler",
+    "Soffor & bäddsoffor"
+   ],
+   "sku": "FP-tvasitssoffa-117-cm",
+   "variantId": "118c1277-d930-49ea-8f44-7ae173c16b1a",
+   "textHash": "012a6dba293a4db5",
+   "textTecken": 3318
+  },
+  {
+   "kort": "bc32d396",
+   "pid": "bc32d396-5436-4dd5-8275-44b8cfa4c71f",
+   "namn": "Gungstol i teddyfleece med bokmedar – bär 120 kg, rygg 66 cm",
+   "slug": "gungstol-beige-boucle-bokmedar",
+   "html": "<p>En gungstol i teddyfleece med böjda medar i bokträ, stativ i stål och tjock stoppning i sits och rygg. Stolen är 98 cm djup, 71 cm bred och 101 cm hög, sitthöjden är 47 cm och den bär upp till 120 kg. Den finns i beige, vitt, ljusgrått, mörkgrått, rosa, brunt och blått.</p><h2>Hög, böjd rygg och svängda armstöd</h2><p>Ryggen är 73 cm bred och 66 cm hög och böjd så att den följer kroppen, och de svängda armstöden ger stöd åt armarna. Sitsen mäter 49 × 54 cm och är 9 cm tjock, ryggen 8 cm. Stolen passar i en läshörna, i vardagsrummet framför tv:n eller i sovrummet.</p><h2>Medar i bokträ och stativ i stål</h2><p>Medarna är böjda och gjorda av bokträ, så stolen gungar mjukt fram och tillbaka. Stativet är i stål, och tillsammans ger bok och stål ett stadigt stöd när du gungar.</p><h2>Klädsel i teddyfleece</h2><p>Klädseln är teddyfleece av 100 % polyester, ett mjukt tyg med lockig yta. Under den sitter skumstoppning i både sits och rygg.</p><h2>Egenskaper</h2><ul><li><p>Böjda medar i bokträ</p></li><li><p>Stativ i stål</p></li><li><p>Klädsel i teddyfleece, 100 % polyester</p></li><li><p>Tjock stoppning i sits och rygg</p></li><li><p>Svängda armstöd</p></li><li><p>Bär upp till 120 kg</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 98 × 71 × 101 cm</p></li><li><p><span style=\"font-weight: 700\">Sits:</span> 49 × 54 cm, 9 cm tjock</p></li><li><p><span style=\"font-weight: 700\">Sitthöjd:</span> 47 cm</p></li><li><p><span style=\"font-weight: 700\">Rygg:</span> 73 × 66 cm, 8 cm tjock</p></li><li><p><span style=\"font-weight: 700\">Maxbelastning:</span> 120 kg</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> Beige, vit, ljusgrå, mörkgrå, rosa, brun eller blå</p></li><li><p><span style=\"font-weight: 700\">Material:</span> Bokträ, stål, skum och teddyfleece</p></li><li><p><span style=\"font-weight: 700\">Klädsel:</span> Teddyfleece, 100 % polyester</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 14 kg</p></li><li><p><span style=\"font-weight: 700\">Paketmått:</span> 69 × 36 × 71 cm</p></li><li><p><span style=\"font-weight: 700\">I förpackningen:</span> Gungstol och bruksanvisning</p></li><li><p><span style=\"font-weight: 700\">Montering:</span> Krävs</p></li></ul><h2>Användning och skötsel</h2><p>Montera stolen enligt bruksanvisningen och ställ den på ett plant golv med minst 20 cm fritt bakom ryggstödet, eftersom medarna rullar bakåt när du gungar. Borsta teddyfleecen lätt med en mjuk borste eller dammsug den med lågt sug, så behåller den sin lockiga yta. Fläckar tas bort med en fuktig trasa och lite mild tvållösning. Torka av medarna med en lätt fuktad trasa och torka efter. Kontrollera skruvarna efter den första månaden.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Vad är teddyfleece?</span></p><p>Ett mjukt tyg med lockig yta, här av 100 % polyester.</p><p><span style=\"font-weight: 700\">Hur mycket plats behöver stolen?</span></p><p>Stolen är 98 cm djup, och bakom ryggstödet behövs minst 20 cm fritt så att medarna kan rulla bakåt.</p><p><span style=\"font-weight: 700\">Vad är medarna gjorda av?</span></p><p>Medarna är av böjt bokträ och sitter på ett stativ i stål.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span></p><p>Beige, vit, ljusgrå, mörkgrå, rosa, brun och blå, alla med samma mått och medar i bokträ.</p><p><span style=\"font-weight: 700\">Måste stolen monteras?</span></p><p>Ja, den sätts ihop enligt bruksanvisningen.</p><h2>Produktsäkerhet</h2><ul><li><p>Maxbelastning: 120 kg.</p></li></ul>",
+   "seoTitel": "Gungstol i teddyfleece med bokmedar | Fyndplats",
+   "seoBesk": "Gungstol i teddyfleece med böjda medar i bokträ och stativ i stål. Rygg på 66 cm, sitthöjd 47 cm och bär 120 kg. Finns i sju färger.",
+   "media": [
+    {
+     "id": "b379ce_a386fa93f28d4916aaf8f3dd438e74b4~mv2.jpg",
+     "altText": "Gungstol i beige teddyfleece med rutstickad rygg, böjda bokmedar och svart stålstativ"
+    },
+    {
+     "id": "b379ce_4f97342e8334426eac8168232f94aa5a~mv2.jpg",
+     "altText": "Gungstolen i beige teddyfleece i ett läsrum framför en bokhylla i trä"
+    },
+    {
+     "id": "b379ce_795dd7d1b39b47e2852d0c13b7eed818~mv2.jpg",
+     "altText": "Gungstolen i ett ljust rum med sidobord och krukväxt bredvid"
+    },
+    {
+     "id": "b379ce_94edad7e6fe44531a79a064e8bcdbed2~mv2.jpg",
+     "altText": "Gungstolen med en stickad pläd över armstödet framför bokhyllan"
+    },
+    {
+     "id": "b379ce_82f54a980c2541549f6f39917262a0a1~mv2.jpg",
+     "altText": "Gungstol i vit teddyfleece med bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_cc92530e3dd8495e8a66e3a0d9e19a57~mv2.jpg",
+     "altText": "Gungstol i ljusgrå teddyfleece med bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_2ab5988888e54ebe9a315e23d01567d6~mv2.jpg",
+     "altText": "Gungstol i mörkgrå teddyfleece med bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_f79f54ab15294fbda076362754c34ba5~mv2.jpg",
+     "altText": "Gungstol i rosa teddyfleece med bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_f7ea2c33c1214a6197868ec6d569bff0~mv2.jpg",
+     "altText": "Gungstol i brun teddyfleece med bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_b962f31474a747d4b434063b2b566a5c~mv2.jpg",
+     "altText": "Gungstol i blå teddyfleece med rutstickad rygg och bokmedar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_cdb7c4f5fb364b37938a1658d3321abd~mv2.jpg",
+     "altText": "En kvinna med en kopp i den blå gungstolen i ett vardagsrum"
+    },
+    {
+     "id": "b379ce_2359eac28b704afeafa42deb04e364b1~mv2.jpg",
+     "altText": "Måttritning för gungstolen: 98 cm djup, 71 cm bred, 101 cm hög och sitthöjd 47 cm"
+    }
+   ],
+   "kat": [
+    "Hem & Inredning",
+    "Möbler",
+    "Fåtöljer"
+   ],
+   "varianter": 6,
+   "textHash": "871bc5c70b44d578",
+   "textTecken": 3541
+  }
+ ]
+}
