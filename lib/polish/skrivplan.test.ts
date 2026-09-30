@@ -143,6 +143,31 @@ describe("valideraPlan", () => {
     expect(artikelnummerformer("höjd 150-190 cm, 230-240V, 12-24V och USB-C")).toBe(0);
     expect(artikelnummerformer("ref 999-000Z00ZZ")).toBe(1);
   });
+
+  it("godtar en sammanslagen sida utan sku och variantId", () => {
+    const v = valideraPlan(plan([produkt({ sku: undefined, variantId: undefined, varianter: 3 })]));
+    expect("plan" in v).toBe(true);
+  });
+
+  it("☠️ en sammanslagen sida med sku eller variantId vägras — den hade lagts på alla färger", () => {
+    for (const over of [
+      { varianter: 2 },
+      { variantId: undefined, varianter: 2 },
+      { sku: undefined, varianter: 2 },
+    ]) {
+      const v = valideraPlan(plan([produkt(over)]));
+      expect("fel" in v && v.fel.join(" ")).toMatch(/bär ingen sku eller variantId/);
+    }
+  });
+
+  it("vägrar ett antal varianter som inte är två eller fler, och en vanlig sida utan sku", () => {
+    for (const varianter of [1, 0, 2.5]) {
+      const v = valideraPlan(plan([produkt({ sku: undefined, variantId: undefined, varianter })]));
+      expect("fel" in v && v.fel.join(" ")).toMatch(/varianter ska vara ett heltal/);
+    }
+    const utan = valideraPlan(plan([produkt({ sku: undefined, variantId: undefined })]));
+    expect("fel" in utan && utan.fel.join(" ")).toMatch(/sku har fel form/);
+  });
 });
 
 describe("stegText", () => {
@@ -366,6 +391,16 @@ describe("stegSku", () => {
     expect(u.ok).toBe(true);
     expect(anrop.some((a) => a.metod === "PATCH")).toBe(false);
   });
+
+  it("☠️ en sammanslagen sida rörs inte alls — varje färg har redan sin SKU", async () => {
+    const { wix, anrop } = fakeWix(() => {
+      throw new Error("inget anrop väntat");
+    });
+    const u = await stegSku(plan([produkt({ sku: undefined, variantId: undefined, varianter: 2 })]), wix, false);
+    expect(u.ok).toBe(true);
+    expect(u.rader[0]).toMatchObject({ ok: true, hoppad: expect.stringContaining("sammanslagen") });
+    expect(anrop).toEqual([]);
+  });
 });
 
 describe("stegVerifiera", () => {
@@ -419,5 +454,36 @@ describe("stegVerifiera", () => {
     const u = await stegVerifiera(plan(), wix);
     expect(u.ok).toBe(false);
     expect(u.rader[0].fel).toBe("seo, media");
+  });
+
+  describe("sammanslagen sida", () => {
+    const sammanslagen = produkt({ sku: undefined, variantId: undefined, varianter: 2 });
+    const varianter = [
+      { id: "v-1", sku: "FP-bord-ek", visible: true, price: { actualPrice: { amount: "819" } } },
+      { id: "v-2", sku: "FP-bord-ek-vit", visible: true, price: { actualPrice: { amount: "859" } } },
+    ];
+
+    it("godkänner text och bilder utan att jämföra någon SKU", async () => {
+      const { wix } = fakeWix((a) =>
+        a.sokvag.endsWith("/query") ? KATEGORIER : lagrad({ variantsInfo: { variants: varianter } }),
+      );
+      const u = await stegVerifiera(plan([sammanslagen]), wix);
+      expect(u.ok).toBe(true);
+      expect(u.rader[0]).toMatchObject({ ok: true, varianter: 2, pris: null });
+    });
+
+    it("☠️ en variant som försvunnit eller blivit osynlig fäller", async () => {
+      for (const [vs, vantat] of [
+        [[varianter[0]], "varianter"],
+        [[varianter[0], { ...varianter[1], visible: false }], "variantSynlig"],
+      ] as const) {
+        const { wix } = fakeWix((a) =>
+          a.sokvag.endsWith("/query") ? KATEGORIER : lagrad({ variantsInfo: { variants: vs } }),
+        );
+        const u = await stegVerifiera(plan([sammanslagen]), wix);
+        expect(u.ok).toBe(false);
+        expect(u.rader[0].fel).toBe(vantat);
+      }
+    });
   });
 });

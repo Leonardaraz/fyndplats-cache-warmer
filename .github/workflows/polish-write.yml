@@ -128,13 +128,15 @@ jobs:
             fi
             jq -c '[.rader[]? | select(.ok) | .kort]' svar.json > verifierade.json
             jq -c --slurpfile ok verifierade.json \
-              '.produkter[] | select(.kort as $k | $ok[0] | index($k)) | {kort, pid, variantId, sku}' \
+              '.produkter[] | select(.kort as $k | $ok[0] | index($k)) | {kort, pid, variantId, sku, varianter}' \
               "${fil}" > att-stampla.jsonl
 
             stamplade=0; stampelfel=0
             while IFS= read -r rad; do
               kort=$(echo "${rad}" | jq -r '.kort')
-              kropp=$(echo "${rad}" | jq -c '{wixProductId: .pid, patch: {needsAiPolish: false, draftStatus: "published", variantSkus: {(.variantId): .sku}}}')
+              # En sammanslagen sida (`varianter`) stämplas utan SKU:er — varje
+              # färg har redan sin egen från sammanslagningen.
+              kropp=$(echo "${rad}" | jq -c '{wixProductId: .pid, patch: ({needsAiPolish: false, draftStatus: "published"} + (if .varianter then {} else {variantSkus: {(.variantId): .sku}} end))}')
               svar=$(curl -sS --max-time 60 -X POST \
                 -H "Authorization: Bearer ${CRON_SECRET}" \
                 -H "Content-Type: application/json" \

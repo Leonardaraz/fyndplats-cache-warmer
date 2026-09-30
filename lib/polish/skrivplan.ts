@@ -18,6 +18,11 @@
 //   sku         variantens SKU SIST och ENSAM, round-trip ur en färsk GET
 //   verifiera   separat återläsning av allt ovan mot planen
 //
+// En SAMMANSLAGEN sida (`varianter` i planen, 2026-09-30) skrivs med samma
+// steg utom SKU-steget, som hoppas över: varje färg har redan sin SKU. Text,
+// bilder och kategorier rör aldrig varianterna, och bildsteget vägrar redan
+// en lista som tappar en bild ett färgval pekar på.
+//
 // ☠️ INGET ARTIKELNUMMER OCH INGEN KOSTNAD LÄMNAR RUTTEN. Svaret går till en
 // PUBLIK Actions-logg. Planen innehåller inga sådana fält, valideringen vägrar
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
@@ -45,8 +50,18 @@ export interface SkrivProdukt {
   seoBesk: string;
   media: SkrivMedia[];
   kat: string[];
-  sku: string;
-  variantId: string;
+  /** Variantens nya SKU. Saknas på en sammanslagen sida (`varianter`). */
+  sku?: string;
+  /** Variantens id. Saknas på en sammanslagen sida. */
+  variantId?: string;
+  /**
+   * Antal varianter på en SAMMANSLAGEN sida, två eller fler (2026-09-30).
+   * Skrivningen rör då text, bilder och kategorier men aldrig varianterna:
+   * varje färg bär sin egen artikel och SKU från sammanslagningen. Utan det här
+   * läget fanns ingen skrivväg för en sammanslagen sidas text, så en färg till
+   * kunde inte läggas på en sida vars text räknar upp färgerna.
+   */
+  varianter?: number;
   /** FNV-1a 64 av texten så som Wix lagrar den (wixnorm), ur vantat-hash.tsv. */
   textHash: string;
   textTecken: number;
@@ -159,8 +174,19 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     else if (d.html.endsWith("\n")) f("html slutar på radbrytning (skickas utan)");
     if (!strang(d.seoTitel, 100)) f("seoTitel saknas");
     if (!strang(d.seoBesk, 300)) f("seoBesk saknas");
-    if (!strang(d.sku, 40) || !SKU.test(d.sku)) f("sku har fel form");
-    if (!strang(d.variantId, 36) || !UUID.test(d.variantId)) f("variantId ska vara ett uuid");
+    if (d.varianter !== undefined) {
+      // ☠️ En sammanslagen sida bär ingen SKU i planen. Varje variant har sin
+      // egen från sammanslagningen, och en SKU i planen hade lagts på alla.
+      if (!Number.isInteger(d.varianter) || (d.varianter as number) < 2 || (d.varianter as number) > 100) {
+        f("varianter ska vara ett heltal 2–100 (en sammanslagen sida)");
+      }
+      if (d.sku !== undefined || d.variantId !== undefined) {
+        f("en sammanslagen sida bär ingen sku eller variantId — varianternas SKU:er rörs inte");
+      }
+    } else {
+      if (!strang(d.sku, 40) || !SKU.test(d.sku)) f("sku har fel form");
+      if (!strang(d.variantId, 36) || !UUID.test(d.variantId)) f("variantId ska vara ett uuid");
+    }
     if (!strang(d.textHash, 16) || !/^[0-9a-f]{16}$/.test(d.textHash)) f("textHash ska vara 16 hextecken");
     if (!Number.isInteger(d.textTecken) || (d.textTecken as number) <= 0) f("textTecken ska vara ett positivt heltal");
 
@@ -401,6 +427,13 @@ export async function stegKategorier(plan: Skrivplan, wix: WixAnrop, torr: boole
 export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
+    if (p.varianter !== undefined) {
+      // ☠️ En sammanslagen sida: varje färg bär sin egen artikel och SKU från
+      // sammanslagningen. Steget skriver en SKU på alla varianter, så här hade
+      // det gett alla färger samma SKU. Det rör dem aldrig.
+      rader.push({ kort: p.kort, ok: true, hoppad: "sammanslagen sida — varianternas SKU:er rörs inte" });
+      continue;
+    }
     try {
       // Färsk GET med valens namn — variantobjektet byggs ALDRIG från grunden.
       const prod = produktAv(await wix("GET", `/stores/v3/products/${p.pid}?fields=VARIANT_OPTION_CHOICE_NAMES`));
@@ -483,6 +516,7 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
       const bilder = items as Obj[];
       const katIdn = (kat as Obj[]).map((c) => c.id);
       const varianter = vs as Obj[];
+      const sammanslagen = p.varianter !== undefined;
 
       const kontroller: Record<string, boolean> = {
         text: fnv1a64(text) === p.textHash && text.length === p.textTecken,
@@ -496,9 +530,20 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
           bilder.length === p.media.length
           && bilder.every((b, i) => b.id === p.media[i].id && (b.altText ?? "") === p.media[i].altText),
         kategorier: p.kat.every((n) => idn.has(n) && katIdn.includes(idn.get(n))),
-        sku: varianter.length === 1 && varianter[0].sku === p.sku,
-        variantSynlig: varianter.length === 1 && varianter[0].visible === true,
-        variantId: varianter.length === 1 && varianter[0].id === p.variantId,
+        // ☠️ En sammanslagen sida: varianterna ska vara lika många som när
+        // planen byggdes, och varenda en synlig. En variant utan `visible`
+        // visar färgen som slutsåld (2026-09-06), och det är vad en textskrivning
+        // aldrig får lämna efter sig.
+        ...(sammanslagen
+          ? {
+            varianter: varianter.length === p.varianter,
+            variantSynlig: varianter.length > 0 && varianter.every((v) => v.visible === true),
+          }
+          : {
+            sku: varianter.length === 1 && varianter[0].sku === p.sku,
+            variantSynlig: varianter.length === 1 && varianter[0].visible === true,
+            variantId: varianter.length === 1 && varianter[0].id === p.variantId,
+          }),
       };
       const fel = Object.entries(kontroller).filter(([, v]) => !v).map(([k]) => k);
       rader.push({
@@ -508,6 +553,7 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
         rev: prod.revision,
         bilder: bilder.length,
         kategorier: katIdn.length,
+        ...(sammanslagen ? { varianter: varianter.length } : {}),
         pris: varianter.length === 1 ? ((varianter[0].price as Obj | undefined)?.actualPrice as Obj | undefined)?.amount ?? null : null,
         lager: (prod.inventory as Obj | undefined)?.availabilityStatus ?? null,
       });

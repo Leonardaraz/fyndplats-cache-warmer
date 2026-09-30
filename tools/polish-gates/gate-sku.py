@@ -117,12 +117,19 @@ if os.path.exists("slugs.txt"):
 # En produkt utan SKU-rad blir tyst kvar med sin TYSKA SKU. Steget räknas som
 # gjort och ingenting säger emot — samma klass som alt-steget som saknades helt
 # i runda J2.
+#
+# En sammanslagen sida (sammanslagna.tsv) har ingen rad med flit: varje färg
+# bär redan sin SKU, och skrivningen rör den inte. Står den ändå i sku.tsv
+# fäller bygg-skrivplan.py.
 if os.path.exists("ids.tsv"):
     har = {r.split("\t")[0] for r in rader if "\t" in r}
+    samman = set()
+    if os.path.exists("sammanslagna.tsv"):
+        samman = {r.split("\t")[0] for r in open("sammanslagna.tsv", encoding="utf-8") if r.strip()}
     for r in open("ids.tsv", encoding="utf-8"):
         if r.strip():
             kort = r.split("\t")[0]
-            if kort not in har:
+            if kort not in har and kort not in samman:
                 print(f"  [SAKNAS] {kort} finns i ids.tsv men har ingen rad i sku.tsv")
                 fynd += 1
 
