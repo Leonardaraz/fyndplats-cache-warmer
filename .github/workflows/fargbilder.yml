@@ -127,6 +127,7 @@ jobs:
               if .summa then
                 "| | |\n|---|---:|",
                 "| kandidater totalt (sidor med givare kvar att flytta) | \(.kandidaterTotalt) |",
+                "| halvskrivna (tabell skriven, Wix inte bekraftad) | \(.summa.halvskrivna) |",
                 "| sidor i planen | \(.summa.sidor) |",
                 "| **andras i Wix** | **\(.summa.andrasIWix)** |",
                 "| bara tabellen | \(.summa.baraTabell) |",
@@ -160,7 +161,7 @@ jobs:
 
           printf '%s\n' "$kropp" | jq -r '
             if .summa then
-              "sidor \(.summa.sidor) av \(.kandidaterTotalt) kandidater: andras \(.summa.andrasIWix), bara tabell \(.summa.baraTabell), hindrade \(.summa.hindrade), nya \(.summa.nyaIGalleriet), overflow \(.summa.overflow), granskas \(.summa.granskas)",
+              "sidor \(.summa.sidor) av \(.kandidaterTotalt) kandidater (halvskrivna \(.summa.halvskrivna)): andras \(.summa.andrasIWix), bara tabell \(.summa.baraTabell), hindrade \(.summa.hindrade), nya \(.summa.nyaIGalleriet), overflow \(.summa.overflow), granskas \(.summa.granskas)",
               "sha \(.sha)"
             else empty end
           ' || true

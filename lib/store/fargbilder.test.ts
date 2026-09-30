@@ -38,6 +38,18 @@ describe("MinnesFargbildLager", () => {
     expect(await l.lasSkrivnaVal()).toHaveLength(3);
   });
 
+  it("rader är obekräftade tills bekraftaWix, och en ersättning nollställer bekräftelsen", async () => {
+    const l = new MinnesFargbildLager();
+    await l.ersattForProdukt("p1", [rad(), rad({ choiceId: "v2", filId: "f2" })]);
+    expect((await l.lasSkrivnaVal()).every((v) => !v.bekraftad)).toBe(true);
+    await l.bekraftaWix("p1");
+    expect((await l.lasSkrivnaVal()).every((v) => v.bekraftad)).toBe(true);
+    await l.ersattForVal("p1", "v1", [rad({ filId: "f3" })]);
+    const val = await l.lasSkrivnaVal();
+    expect(val.find((v) => v.choiceId === "v1")!.bekraftad).toBe(false);
+    expect(val.find((v) => v.choiceId === "v2")!.bekraftad).toBe(true);
+  });
+
   it("vägrar en rad som hör till en annan produkt eller samma fil två gånger", async () => {
     const l = new MinnesFargbildLager();
     await expect(l.ersattForProdukt("p1", [rad({ wixProductId: "p2" })])).rejects.toThrow(/annan produkt/);
@@ -63,6 +75,23 @@ describe("PostgresFargbildLager", () => {
     expect(anrop[0].text).toMatch(/on conflict \(wix_product_id, choice_id, fil_id\) do update/);
     expect(JSON.parse(anrop[0].varden[0] as string)).toHaveLength(2);
     expect(anrop[0].varden[1]).toBe("p1");
+  });
+
+  it("☠️ en ersättning nollställer wix_bekraftad_at, och bekräftelsen läses per val", async () => {
+    const l = new PostgresFargbildLager();
+    await l.lasForProdukt("p0");
+    anrop.length = 0;
+    await l.ersattForProdukt("p1", [rad()]);
+    expect(anrop[0].text).toMatch(/wix_bekraftad_at = null/);
+    await l.bekraftaWix("p1");
+    expect(anrop[1].text).toMatch(/update fargbilder set wix_bekraftad_at = now\(\) where wix_product_id = \$1$/);
+    await l.lasSkrivnaVal();
+    expect(anrop[2].text).toMatch(/bool_and\(wix_bekraftad_at is not null\)/);
+  });
+
+  it("tabellen får kolumnen för bekräftelsen", async () => {
+    const { FARGBILD_DDL } = await import("@/lib/db/schema");
+    expect(FARGBILD_DDL.join("\n")).toMatch(/add column if not exists wix_bekraftad_at timestamptz/);
   });
 
   it("ett val ersätts bara inom valet", async () => {

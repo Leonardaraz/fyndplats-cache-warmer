@@ -803,10 +803,20 @@ export function valjSidor(
   katalog: readonly { id: string; visible: boolean; val?: { axel: string; id: string; forsta: string | null }[] }[],
   dolda: ReadonlyMap<string, readonly string[]>,
   skrivnaVal: ReadonlySet<string>,
+  /**
+   * Sidor med rader som Wix ännu inte bekräftat: skrivningen föll efter
+   * tabellen (steg 0). De väljs igen oavsett givare, annars hade en halvskriven
+   * sida räknats som klar och `kandidaterTotalt` nått noll för tidigt.
+   */
+  halvskrivna: ReadonlySet<string> = new Set(),
 ): string[] {
   const ut: string[] = [];
   for (const p of katalog) {
     if (!p.visible) continue;
+    if (halvskrivna.has(p.id)) {
+      ut.push(p.id);
+      continue;
+    }
     const farg = (p.val ?? []).filter((v) => lika(v.axel, "Färg"));
     if (farg.length < 2) continue;
     const behover = farg.some((v) => {
@@ -824,7 +834,7 @@ export function valjSidor(
 
 /**
  * Nyckeln `valjSidor` slår upp skrivna val med. `valNyckel(sida, "*")` betyder
- * att sidan har rader alls.
+ * att sidan har bekräftade rader alls. Bara rader Wix bekräftat räknas.
  */
 export function valNyckel(wixProductId: string, choiceId: string): string {
   return `${wixProductId}\u0000${choiceId}`;

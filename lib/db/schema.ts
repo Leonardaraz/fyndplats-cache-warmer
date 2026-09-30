@@ -67,6 +67,10 @@ export const FARGBILD_DDL: string[] = [
    )`,
   // Bildstädningen läser alla fil-id varje natt.
   `create index if not exists fargbilder_fil_id_idx on fargbilder (fil_id)`,
+  // När Wix läst tillbaka som raderna säger. Null = raderna skrevs före Wix
+  // (steg 0) och skrivningen föll därefter — sidan är halvskriven och ska
+  // väljas igen.
+  `alter table fargbilder add column if not exists wix_bekraftad_at timestamptz`,
 ];
 
 const DDL: string[] = [

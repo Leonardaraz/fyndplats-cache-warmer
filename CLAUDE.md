@@ -1882,7 +1882,7 @@ pekar på står kvar i galleriet, och varje färgs nya lista börjar med dess
 nuvarande (`kontrolleraPlan`). `skriv` kräver `bekrafta` = planens sha256, räknad
 om ur färska läsningar. Stegen:
 
-1. **Tabellen skrivs FÖRST** och läses tillbaka. Stämmer den inte rörs Wix inte.
+1. **Tabellen skrivs FÖRST**, obekräftad, och läses tillbaka. Stämmer den inte rörs Wix inte.
    Varje fil planen rör står alltså i tabellen innan Wix ändras, och en
    omkörning läser in tabellens rader.
 2. Galleriet skrivs ensamt. Bara olänkade foton kan falla ur det.
@@ -1894,6 +1894,15 @@ om ur färska läsningar. Stegen:
    synligheten, och varje variants synlighet, pris, SKU och val. En dold
    variant som blivit synlig stoppar också. Vid första avvikelse stannar
    körningen.
+5. Först nu sätts `wix_bekraftad_at` på sidans rader.
+
+☠️ **Rader utan `wix_bekraftad_at` betyder en halvskriven sida.** Tabellen
+skrevs i steg 1 men Wix föll därefter. Urvalet räknar bara bekräftade rader som
+skrivna, så en halvskriven sida väljs igen av `hogst` även när den inte har
+någon givare kvar. Planen räknar dem i `summa.halvskrivna`, och talet ska vara
+0 när `kandidaterTotalt` är 0. En ersättning av raderna nollställer
+bekräftelsen, och sammanslagningen bekräftar den nya färgens rader först efter
+sin egen återläsning.
 
 Ordningen före raderingen: kör `plan` för 10 sidor och titta, sedan `skriv`, och
 kör klart alla kandidater (`kandidaterTotalt` ska bli 0) innan

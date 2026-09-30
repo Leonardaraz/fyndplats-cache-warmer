@@ -1371,6 +1371,8 @@ export async function korSammanslagning(
       if (tillbaka.map(nyckel).sort().join(",") !== rader.map(nyckel).sort().join(",")) {
         return svar(false, "färgbildstabellen läste inte tillbaka — mappningen skrevs INTE. Kör om.");
       }
+      // Wix är redan återläst ovan, så valets rader är bekräftade.
+      await deps.fargbilder.bekraftaWix(input.behall, choiceId);
     } catch (e) {
       return svar(false, `färgbildstabellen föll: ${felText(e)} — mappningen skrevs INTE. Kör om.`);
     }

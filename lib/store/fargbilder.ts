@@ -25,14 +25,29 @@ import type { Plats, TabellRad } from "@/lib/aosom/fargbilder";
 export interface FargbildLager {
   /** Sidans rader, i (val, ordning). */
   lasForProdukt(wixProductId: string): Promise<TabellRad[]>;
-  /** Alla (sida, val) som har rader — verktygets urval läser dem. */
-  lasSkrivnaVal(): Promise<{ wixProductId: string; choiceId: string }[]>;
+  /**
+   * Alla (sida, val) som har rader, och om Wix är bekräftat för dem.
+   * `bekraftad: false` = raderna skrevs före Wix och skrivningen föll
+   * därefter. Verktygets urval räknar bara bekräftade som skrivna.
+   */
+  lasSkrivnaVal(): Promise<SkrivetVal[]>;
   /** Varje fil-id i tabellen, utan dubbletter. Bildstädningen läser dem. */
   lasAllaFilIdn(): Promise<string[]>;
   /** Ersätter sidans rader med `rader`, i en sats. */
   ersattForProdukt(wixProductId: string, rader: TabellRad[]): Promise<void>;
   /** Ersätter ETT vals rader (sammanslagningen rör bara den nya färgen). */
   ersattForVal(wixProductId: string, choiceId: string, rader: TabellRad[]): Promise<void>;
+  /**
+   * Markerar sidans rader (eller ett vals) som bekräftade i Wix. Anropas först
+   * efter en lyckad återläsning. En ersättning nollställer markeringen.
+   */
+  bekraftaWix(wixProductId: string, choiceId?: string): Promise<void>;
+}
+
+export interface SkrivetVal {
+  wixProductId: string;
+  choiceId: string;
+  bekraftad: boolean;
 }
 
 const PLATSER: readonly Plats[] = ["galleri", "overflow", "granskas", "gemensam"];
@@ -52,6 +67,9 @@ function kontrollera(wixProductId: string, rader: TabellRad[], choiceId?: string
 
 export class MinnesFargbildLager implements FargbildLager {
   rader: TabellRad[] = [];
+  /** Nycklar (sida, val, fil) vars rad är bekräftad i Wix. */
+  bekraftade = new Set<string>();
+  private nyckel = (r: TabellRad) => `${r.wixProductId}\u0000${r.choiceId}\u0000${r.filId}`;
 
   async lasForProdukt(wixProductId: string): Promise<TabellRad[]> {
     return this.rader
@@ -60,12 +78,24 @@ export class MinnesFargbildLager implements FargbildLager {
       .map((r) => ({ ...r }));
   }
 
-  async lasSkrivnaVal(): Promise<{ wixProductId: string; choiceId: string }[]> {
-    const sedda = new Map<string, { wixProductId: string; choiceId: string }>();
+  async lasSkrivnaVal(): Promise<SkrivetVal[]> {
+    const sedda = new Map<string, SkrivetVal>();
     for (const r of this.rader) {
-      if (r.choiceId) sedda.set(`${r.wixProductId}\u0000${r.choiceId}`, { wixProductId: r.wixProductId, choiceId: r.choiceId });
+      if (!r.choiceId) continue;
+      const k = `${r.wixProductId}\u0000${r.choiceId}`;
+      const bek = this.bekraftade.has(this.nyckel(r));
+      const f = sedda.get(k);
+      sedda.set(k, { wixProductId: r.wixProductId, choiceId: r.choiceId, bekraftad: f ? f.bekraftad && bek : bek });
     }
     return [...sedda.values()];
+  }
+
+  async bekraftaWix(wixProductId: string, choiceId?: string): Promise<void> {
+    for (const r of this.rader) {
+      if (r.wixProductId === wixProductId && (choiceId === undefined || r.choiceId === choiceId)) {
+        this.bekraftade.add(this.nyckel(r));
+      }
+    }
   }
 
   async lasAllaFilIdn(): Promise<string[]> {
@@ -74,11 +104,15 @@ export class MinnesFargbildLager implements FargbildLager {
 
   async ersattForProdukt(wixProductId: string, rader: TabellRad[]): Promise<void> {
     kontrollera(wixProductId, rader);
+    for (const r of this.rader) if (r.wixProductId === wixProductId) this.bekraftade.delete(this.nyckel(r));
     this.rader = [...this.rader.filter((r) => r.wixProductId !== wixProductId), ...rader.map((r) => ({ ...r }))];
   }
 
   async ersattForVal(wixProductId: string, choiceId: string, rader: TabellRad[]): Promise<void> {
     kontrollera(wixProductId, rader, choiceId);
+    for (const r of this.rader) {
+      if (r.wixProductId === wixProductId && r.choiceId === choiceId) this.bekraftade.delete(this.nyckel(r));
+    }
     this.rader = [
       ...this.rader.filter((r) => !(r.wixProductId === wixProductId && r.choiceId === choiceId)),
       ...rader.map((r) => ({ ...r })),
@@ -150,7 +184,9 @@ function ersattSats(villkor: string): string {
     ordning     = excluded.ordning,
     plats       = excluded.plats,
     givare_id   = excluded.givare_id,
-    skriven_at  = now()`;
+    skriven_at  = now(),
+    -- En ersättning är obekräftad tills Wix läst tillbaka som raderna.
+    wix_bekraftad_at = null`;
 }
 
 export class PostgresFargbildLager implements FargbildLager {
@@ -165,13 +201,27 @@ export class PostgresFargbildLager implements FargbildLager {
     return rows.map(tillRad);
   }
 
-  async lasSkrivnaVal(): Promise<{ wixProductId: string; choiceId: string }[]> {
+  async lasSkrivnaVal(): Promise<SkrivetVal[]> {
     await sakerstall();
     const rows = (await sql().query(
-      `select distinct wix_product_id, choice_id from fargbilder where choice_id <> ''`,
+      `select wix_product_id, choice_id, bool_and(wix_bekraftad_at is not null) as bekraftad
+         from fargbilder where choice_id <> ''
+        group by wix_product_id, choice_id`,
       [],
-    )) as { wix_product_id: string; choice_id: string }[];
-    return rows.map((r) => ({ wixProductId: r.wix_product_id, choiceId: r.choice_id }));
+    )) as { wix_product_id: string; choice_id: string; bekraftad: boolean }[];
+    return rows.map((r) => ({ wixProductId: r.wix_product_id, choiceId: r.choice_id, bekraftad: r.bekraftad === true }));
+  }
+
+  async bekraftaWix(wixProductId: string, choiceId?: string): Promise<void> {
+    await sakerstall();
+    if (choiceId === undefined) {
+      await sql().query(`update fargbilder set wix_bekraftad_at = now() where wix_product_id = $1`, [wixProductId]);
+    } else {
+      await sql().query(
+        `update fargbilder set wix_bekraftad_at = now() where wix_product_id = $1 and choice_id = $2`,
+        [wixProductId, choiceId],
+      );
+    }
   }
 
   async lasAllaFilIdn(): Promise<string[]> {

@@ -111,18 +111,23 @@ export async function GET(req: NextRequest) {
   }
   const dolda = doldaPerFil(katalog);
   let skrivna: Set<string>;
+  let halvskrivna: Set<string>;
   let auktioner: Set<string>;
   try {
+    // ☠️ Bara rader Wix bekräftat räknas som skrivna. Rader utan bekräftelse
+    // kommer från en skrivning som föll efter tabellen — sidan är halvskriven.
+    const val = await lager.lasSkrivnaVal();
     skrivna = new Set(
-      (await lager.lasSkrivnaVal()).flatMap((r) => [valNyckel(r.wixProductId, r.choiceId), valNyckel(r.wixProductId, "*")]),
+      val.filter((r) => r.bekraftad).flatMap((r) => [valNyckel(r.wixProductId, r.choiceId), valNyckel(r.wixProductId, "*")]),
     );
+    halvskrivna = new Set(val.filter((r) => !r.bekraftad).map((r) => r.wixProductId));
     // Bara LIVE: kön har en rad per produkt i katalogen, så "queued" är varje sida.
     auktioner = new Set((await queryAuctions(["live"])).map((a) => a.productId));
   } catch (e) {
     console.error(`[fargbilder] tabellen/auktionerna: ${e instanceof Error ? e.message : String(e)}`);
     return fel(500, "tabellen eller auktionerna gick inte att läsa");
   }
-  const kandidater = valjSidor(katalog, dolda, skrivna);
+  const kandidater = valjSidor(katalog, dolda, skrivna, halvskrivna);
 
   // ── Planen, ur färska läsningar ──────────────────────────────────────────
   // `hogst` räknar sidor som GÅR att skriva. En sida med ett hinder står kvar
@@ -158,6 +163,8 @@ export async function GET(req: NextRequest) {
   const sidRaknare = planer.map(raknare);
   const summa = {
     sidor: planer.length,
+    /** Sidor med rader som Wix inte bekräftat — en skrivning föll halvvägs. */
+    halvskrivna: halvskrivna.size,
     hindrade: planer.filter((p) => p.hinder.length > 0).length,
     andrasIWix: planer.filter((p) => p.hinder.length === 0 && p.andrarWix).length,
     baraTabell: planer.filter((p) => p.hinder.length === 0 && !p.andrarWix && p.andrarTabell).length,

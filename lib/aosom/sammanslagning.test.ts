@@ -1187,6 +1187,8 @@ describe("sammanslagning — färgbilderna", () => {
       ["Grå", 0, "bild-u1", "galleri", "utkast"],
       ["Grå", 1, "bild-u2", "granskas", "utkast"],
     ]);
+    // Wix är återläst före tabellen, så valets rader är bekräftade.
+    expect((await lager.lasSkrivnaVal()).every((v) => v.bekraftad)).toBe(true);
   });
 
   it("☠️ över Wix 15: det som inte ryms hamnar i tabellen som overflow — ingenting skärs bort", async () => {

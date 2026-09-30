@@ -232,6 +232,19 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   if (!sammaUtgangslage(plan, fore)) return fall("sidan har ändrats sedan planen — kör planen igen");
   const foreLage = { synlig: fore.synlig, optioner: fore.optioner, varianter: fore.varianter };
 
+  // ── 4: först när Wix läst tillbaka som planen räknas sidan som skriven ──
+  // Raderna från steg 0 är obekräftade tills hit. Faller något däremellan
+  // står sidan som halvskriven, och urvalet väljer den igen.
+  async function bekrafta(): Promise<SkrivUtfall> {
+    try {
+      await deps.lager.bekraftaWix(plan.id);
+      steg.push("wix bekräftad");
+      return { id: plan.id, ok: true, steg };
+    } catch (e) {
+      return fall(`bekräftelsen föll: ${felText(e)} — Wix är skrivet, sidan väljs igen`);
+    }
+  }
+
   // ── 0: tabellen, före Wix ──────────────────────────────────────────────
   if (plan.andrarTabell || plan.andrarWix) {
     try {
@@ -245,7 +258,7 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
       return fall(`tabellen föll: ${felText(e)} — Wix rördes INTE, kör om`);
     }
   }
-  if (!plan.andrarWix) return { id: plan.id, ok: true, steg };
+  if (!plan.andrarWix) return bekrafta();
 
   // ── 1: galleriet, ensamt ───────────────────────────────────────────────
   try {
@@ -306,5 +319,5 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
     return fall(`återläsningen föll: ${felText(e)} — tabellen är skriven, kör om`);
   }
   if (behoverLankar) steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
-  return { id: plan.id, ok: true, steg };
+  return bekrafta();
 }

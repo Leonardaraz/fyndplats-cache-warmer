@@ -21,6 +21,8 @@ const varld = vi.hoisted(() => ({
   produkter: {} as Record<string, Record<string, unknown>>,
   patchar: [] as string[][],
   lager: null as unknown,
+  /** Så många länkskrivningar till svarar 500. */
+  fel500: 0,
 }));
 
 function v3(id: string, namn: string, synlig: boolean, bilder: Bild[], optioner: SidOption[]): Obj {
@@ -45,6 +47,10 @@ vi.mock("@/lib/polish/skrivplan-wix", () => ({
     varld.patchar.push(k.fieldMask.paths);
     if (k.fieldMask.paths.join() === "media") p.media = structuredClone(k.product.media);
     else {
+      if (varld.fel500 > 0) {
+        varld.fel500--;
+        throw new Error("Wix 500: internal error");
+      }
       p.options = structuredClone(k.product.options);
       p.variantsInfo = structuredClone(k.product.variantsInfo);
     }
@@ -99,6 +105,7 @@ beforeEach(() => {
   process.env.CRON_SECRET = HEMLIGT;
   varld.patchar = [];
   varld.lager = null;
+  varld.fel500 = 0;
 });
 
 describe("/api/admin/fargbilder", () => {
@@ -137,6 +144,32 @@ describe("/api/admin/fargbilder", () => {
     expect(body.skrivna).toBe(1);
     expect(body.stoppadAv).toBe("klart");
     expect(varld.patchar[0]).toEqual(["media"]);
+  });
+
+  it("☠️ en sida som faller efter tabellen är halvskriven och väljs igen av hogst — bekräftas först efter lyckad omkörning (N1)", async () => {
+    const f = laddaVarld("matskap");
+    const plan = await (await anrop("lage=plan")).json();
+    varld.fel500 = 1;
+    const forsta = await anrop(`lage=skriv&bekrafta=${plan.sha}`);
+    expect(forsta.status).toBe(500);
+    expect((await forsta.json()).stoppadAv).toBe("avvikelse");
+
+    // Tabellen står, men Wix är obekräftat: sidan räknas inte som skriven.
+    const igen = await (await anrop("lage=plan")).json();
+    expect(igen.summa.halvskrivna).toBe(1);
+    expect(igen.kandidaterTotalt).toBe(1);
+    expect(igen.sidor.map((s: { id: string }) => s.id)).toEqual([f.sida.id]);
+
+    const andra = await anrop(`lage=skriv&bekrafta=${igen.sha}`);
+    expect(andra.status).toBe(200);
+    const lager = varld.lager as { lasSkrivnaVal(): Promise<{ bekraftad: boolean }[]> };
+    const val = await lager.lasSkrivnaVal();
+    expect(val.length).toBeGreaterThan(0);
+    expect(val.every((v) => v.bekraftad)).toBe(true);
+
+    const sist = await (await anrop("lage=plan")).json();
+    expect(sist.summa.halvskrivna).toBe(0);
+    expect(sist.kandidaterTotalt).toBe(0);
   });
 
   it("skriv utan bekrafta, fel hogst och sidor ihop med hogst svarar 400", async () => {

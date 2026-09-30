@@ -148,6 +148,8 @@ describe("skrivSida", () => {
 
     const efter = tolkaProdukt(w.produkter[f.sida.id]);
     expect(efter.bilder).toEqual(plan.galleriEfter);
+    // Först efter återläsningen är sidan bekräftad.
+    expect((await lager.lasSkrivnaVal()).every((v) => v.bekraftad)).toBe(true);
     expect(efter.bilder).toHaveLength(15);
     for (const v of plan.val) expect(lankarPa(w, f.sida.id)[v.namn]).toEqual(v.lankadeEfter);
     expect(efter.synlig).toBe(true);
@@ -207,6 +209,8 @@ describe("skrivSida", () => {
     expect(tolkaProdukt(w.produkter[f.sida.id]).bilder.map((b) => b.id)).not.toContain(utflyttade[0]);
     const rader = await lager.lasForProdukt(f.sida.id);
     expect(rader.find((r) => r.filId === utflyttade[0])?.plats).toBe("overflow");
+    // ☠️ Halvskriven: raderna finns men är inte bekräftade.
+    expect((await lager.lasSkrivnaVal()).some((v) => !v.bekraftad)).toBe(true);
 
     w.fel.koppling500 = 0;
     const igen = await planFor(w, lager, f.sida.id, true, true);

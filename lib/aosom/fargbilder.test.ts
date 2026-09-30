@@ -411,6 +411,15 @@ describe("urvalet och hindren", () => {
     expect(valjSidor(katalog, dolda, new Set([valNyckel("a", "v2")]))).toEqual(["b"]);
   });
 
+  it("☠️ en halvskriven sida väljs igen, även utan givare kvar (N1)", () => {
+    const katalog = [
+      { id: "a", visible: true, nycklar: [], val: [{ axel: "Färg", id: "v1", forsta: "y1" }, { axel: "Färg", id: "v2", forsta: "y2" }] },
+    ];
+    const dolda = doldaPerFil(katalog);
+    expect(valjSidor(katalog, dolda, new Set())).toEqual([]);
+    expect(valjSidor(katalog, dolda, new Set(), new Set(["a"]))).toEqual(["a"]);
+  });
+
   it("ett val utan id i svepet räknas som skrivet när sidan har rader — annars väljs samma sida om och om igen", () => {
     const katalog = [
       { id: "a", visible: true, nycklar: [], val: [{ axel: "Färg", id: "", forsta: "y1" }, { axel: "Färg", id: "", forsta: "y2" }] },
