@@ -6,7 +6,6 @@ import { getCategoryTree, categoryHero } from "../../lib/category-groups";
 import { tightFillUrl } from "../../lib/wix-image";
 import { productCountLabel } from "../../lib/rating";
 import { getSocialProof } from "../../lib/social-proof-live";
-import { EU_STOCK_NOTE } from "../../lib/shipping";
 
 // Om oss (2026-09-30). Sidan var löptext och punktlistor i samma mall som
 // villkorssidorna, med en kategorilista som inte längre stämde med menyn
@@ -90,10 +89,13 @@ export default async function OmOss() {
   const [allProducts, tree, proof] = await Promise.all([getProducts(), getCategoryTree(), getSocialProof()]);
   const products = forListings(allProducts);
   // Bild per huvudkategori: den kuraterade heron, annars första produktbilden
-  // i kategorin eller någon av dess underkategorier.
+  // i kategorin eller någon av dess underkategorier. Hem & Inredning delar
+  // bild med sidans hero, så kortet tar en av sina underkategoriers bilder.
   const kategorier = tree.map((k) => {
     const ids = new Set([k.id, ...k.subs.map((s) => s.id)]);
-    const bild = categoryHero(k.name)
+    const kurerad = categoryHero(k.name);
+    const bild = (kurerad && kurerad !== HERO_BILD ? kurerad : "")
+      || (kurerad === HERO_BILD ? categoryHero("Dekoration & Prydnad") : "")
       || products.find((p) => p.img && (p.collectionIds || []).some((c) => ids.has(c)))?.img
       || "";
     return { ...k, bild };
@@ -190,7 +192,7 @@ export default async function OmOss() {
                 <span className="om-ikon"><Svg d={Ikon.eu} /></span>
                 <div>
                   <h3>Skickas från lager inom EU</h3>
-                  <p>Vi har inget eget lager. Varorna skickas från våra leverantörers och logistikpartners lager inom EU. {EU_STOCK_NOTE}</p>
+                  <p>Vi har inget eget lager. Varorna skickas från våra leverantörers och logistikpartners lager inom EU, så ingen importtull eller förtullningsavgift tillkommer.</p>
                 </div>
               </div>
             </div>
