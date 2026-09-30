@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "54efbdc6": {
+  "tyska": "40B x 18T x 60H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 18,
+  "hojd": 60,
+  "bredd": 40
+ },
+ "615e7b54": {
+  "tyska": "117B x 56,5T x 77H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56.5,
+  "hojd": 77,
+  "bredd": 117
+ },
+ "7f1a45a6": {
+  "tyska": "128L x 118B x ‹FORM› cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (128L x 118B x ‹FORM› cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "a29af9b5": {
+  "tyska": "74B x 86T x 102H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 86,
+  "hojd": 102,
+  "bredd": 74
+ },
+ "bc32d396": {
+  "tyska": "98T x 71B x 101H cm",
+  "svenska": "",
+  "bokstaver": "TBH",
+  "djup": 98,
+  "hojd": 101,
+  "bredd": 71
+ },
+ "d8c2dec6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkochermaße: 24,2L x 19,5B x 23,4H cm (mit Basis) | ✔ Wasserkochermaße: 24,2L x 19,5B x 21,7H cm (ohne Basis) | ✔ Kapazität: 1,7L (max), 500 ml (min)"
+ },
+ "f4c3b44c": {
+  "tyska": "106,5L x 51,5B x 68H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 68,
+  "bredd": 106.5,
+  "djup": 51.5
+ }
+}
