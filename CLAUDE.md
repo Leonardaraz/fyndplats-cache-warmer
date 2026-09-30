@@ -962,15 +962,76 @@ och ett test låser det (`en försäljning räknas som drift`). Den smalare väg
 om det ska ändras, är att bara rätta när skillnaden är större än
 `LAGER_BUFFERT` — det tar hundburen (122 mot 0) men lämnar vanliga köp ifred.
 
-⚠️ **Racet i B71 är inte lagat.** Synken läser alla mappningar när den startar
-och sparar tillbaka hela raden som den såg ut då. Ett saldo som nollats medan
-raden var aktuell, som hundburens, rättas nu av nästa körning. Men en rad som
-skrivits över tappar sin nya variant, och då nollas varianten som okänd vid
-varje körning tills sammanslagningen körs om (`wix_klar`). Rättelsen gör
-dessutom att synken sparar raden oftare än förut, också efter en försäljning,
-så en sammanslagning mitt i en körning skrivs över lättare. Kör ingen
-sammanslagning mellan xx:18 och xx:27 vid synktimmarna (00, 03, 06, 12 och 18
-UTC).
+⚠️ **Racet i B71 lagades på mappningssidan samma kväll** — se nästa avsnitt.
+Kvar är Wix-sidan: en körning som planerat ur en rad från före en
+sammanslagning kan fortfarande nolla den nya varianten som okänd. Mappningen
+behåller nu varianten och dess stämpel, så nästa körning ser driften och
+rättar saldot. Kör ändå ingen sammanslagning mellan xx:18 och xx:27 vid
+synktimmarna (00, 03, 06, 12 och 18 UTC).
+
+**Verifierat i drift 2026-09-30**, i den ordning körningarna gick:
+
+| körning | kod | lager | lagerdrift | rättade | fel |
+|---|---|---:|---:|---:|---:|
+| torr 19:43 | före | 936 (skulle) | 5 | — | 0 |
+| skarp 20:43 | ny från varv 2 | **939** | 6 | **5** | **0** |
+| torr 20:54 | ny | **0** | **0** | 0 | 0 |
+
+Den skarpa körningen startades av en annan session (ett godkänt prishopp) och
+rättade hundburen, `6297606f`, bland de fem. En läsning direkt i Wix efteråt
+gav 90 cm (`22f4cf42`) **122**, `IN_STOCK`, skrivet 20:51:22. Varianten hade
+stått på 0 sedan 03:24.
+
+☠️ **En torrkörning som går SAMTIDIGT som en skarp mäter ingenting.** En
+torrkörning startad 20:44, en minut efter den skarpa, gav 923 "lagerdrift".
+Den hade läst mappningarna innan den skarpa körningen hann stämpla dem, men
+butiken efter att den hunnit skrivas. Kolla att ingen annan körning av
+workflowen pågår innan du startar en mätning.
+
+### ✅ Stämpeln läggs på den färska raden — synken skriver inte över (2026-09-30)
+
+Synken läser alla mappningar när den startar och sparade tillbaka hela raden
+som den såg ut då: `{ ...p.m, … }`. En körning tar minuter, och allt som
+skrevs på raden under tiden försvann tyst. Spegeln `4117e161` tappade sin
+sammanslagning så 03:20 (B71 i `tools/polish-gates/FLAGGADE.md`), och nästa
+sammanslagning vägrades (`behall_har_redan_optioner`). Samma väg kunde ta
+tillbaka poleringens SKU och status, ångra en ommappning och återskapa en
+raderad rad.
+
+Nu läses raden om strax före stämpeln (`lasMappning` →
+`getMappingByWixProductId`), och `stampelPaFarskRad` lägger bara synkens egna
+fält på den färska raden: `aosomSyncedQty` och `aosomSyncedAt`, och per variant
+`aosomSyncedQty`, `grossSek`, `landedCostSek` och `costUsd`. Varianterna
+matchas på Wix-id och artikel, aldrig på plats i listan, så en färg som lagts
+till under körningen lämnas orörd.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Hellre ingen stämpel än en som ljuger.** Har raden raderats, bytt
+   artikel, bytt form (vanlig ↔ sammanslagen) eller tappat en variant som
+   skulle stämplas, skrivs ingenting. Wix är redan skrivet. Nästa körning läser
+   den färska raden och stämplar då, eller rättar driften.
+2. ☠️ **Det räknas.** `stampelHoppade` står i svaret, loggraden, audit-raden
+   och workflow-summeringen, med skälet i `errors`. Talet ska vara noll utanför
+   en sammanslagning eller ommappning.
+3. **Depen är obligatorisk**, av samma skäl som `listaRecensionsbilder` i
+   media-städningen: en valfri dep glöms av nästa anropare.
+4. **Torrkörningen läser inte om raden.** Den stämplar ingenting, så det finns
+   inget att skydda.
+
+⚠️ `saveMapping` är fortfarande en villkorslös upsert, så ett fönster på några
+millisekunder mellan omläsningen och skrivningen finns kvar. Förut var
+fönstret hela körningen.
+
+⚠️ **En överhoppad stämpel efter en PRISskrivning läker inte av sig själv.**
+Wix har det nya priset, men mappningens `grossSek`, `landedCostSek` och
+`costUsd` står kvar på det gamla. Nästa körning jämför mot butiken, ser samma
+pris och skriver inget. Det är samma klass som de tjugo drivande raderna, men
+bara för en rad som ändrats mitt i en prisskrivning, och priser skrivs bara
+03:20 och vid skarpa körningar för hand. En omkörning hjälper inte, av samma
+skäl. Står `stampelHoppade` över noll efter en körning med priser, titta på
+produkten i `errors`: mappningens pris kan vara det gamla tills kostnaden
+ändras nästa gång.
 
 ### Så körs den för hand
 

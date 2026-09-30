@@ -187,7 +187,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0; rattade=0; prislasta=0; ejskeppbara=0
+          utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; ejskeppbara=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
           flera=0; okanda=0; tvetydiga=0
           after=""; varv=0; prislistefel=
@@ -220,6 +220,7 @@ jobs:
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             rt=$(printf '%s' "$svar" | jq -r '.lagerDriftRattade // 0')
+            sv=$(printf '%s' "$svar" | jq -r '.stampelHoppade // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
             ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
             km=$(printf '%s' "$svar" | jq -r '.konkurrentMal // 0')
@@ -237,6 +238,7 @@ jobs:
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr )); rattade=$(( rattade + rt ))
+            vantar=$(( vantar + sv ))
             prislasta=$(( prislasta + pl ))
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
@@ -259,6 +261,7 @@ jobs:
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
                  "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
                  "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift (${rt} rättade)," \
+                 "${sv} stämplar väntar," \
                  "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
                  "stoppade på ${stopp}, ${kvar} kvar"
 
@@ -326,6 +329,7 @@ jobs:
             echo "| Utan lagerrader i Wix | ${utanrader} |"
             echo "| Lagerdrift (butiken ≠ stämpeln när körningen kom) | ${drift} |"
             echo "| **Lagerdrift rättad — extra lagerskrivningar** | **${rattade}** |"
+            echo "| Stämplar som väntar (raden ändrades under körningen) | ${vantar} |"
             echo "| Färgsammanslagna sidor | ${flera} |"
             echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
             echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"

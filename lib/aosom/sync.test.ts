@@ -142,6 +142,9 @@ function deps(over: Partial<AosomSyncDeps> = {}) {
       priser.push({ id, pris, kostnad, variant });
     },
     saveMapping: async (m) => { sparade.push(m); },
+    // Raden så som den står i lagret när synken ska stämpla. Standard: samma
+    // rad som körningen läste, alltså ingenting har hänt under körningen.
+    lasMappning: async (id) => (await bas.listAosom()).find((m) => m.wixProductId === id) ?? null,
     fx: FX,
     rules: REGLER,
     ...over,
@@ -1652,6 +1655,189 @@ describe("☠️ lagerdrift — en stämpel som ljuger rättas mot butiken", () 
 
     expect(s.aterILager).toBe(1);
     expect(utskick).toEqual([{ id: "wix-bur", varianter: ["wixvar-90"] }]);
+  });
+});
+
+// ── EN RAD SOM ÄNDRATS UNDER KÖRNINGEN SKRIVS INTE ÖVER (2026-09-30) ───────
+// Synken läser alla mappningar när den startar och sparade tillbaka hela raden
+// som den såg ut då. En körning tar minuter, och allt som skrevs på raden under
+// tiden försvann tyst. Spegeln 4117e161 tappade sin sammanslagning så 03:20
+// den 2026-09-30 (B71 i tools/polish-gates/FLAGGADE.md), och nästa
+// sammanslagning vägrades. Nu läses raden om strax före stämpeln.
+
+describe("☠️ en rad som ändrats under körningen skrivs inte över", () => {
+  /** Stolen: svart (A-1, radens artikel) och grå (G-7). */
+  function stol(): ProductMappingRecord {
+    const bas = mappning("A-1");
+    const landadGra = landadKostnadSek(rad("G-7"), FX.eurToSek);
+    return {
+      ...bas,
+      wixProductId: "wix-stol",
+      variants: [
+        { ...bas.variants[0], sku: "FP-stol-svart", wixVariantId: "wixvar-svart", choices: { Färg: "Svart" }, aosomSyncedQty: 47 },
+        {
+          supplierVariantId: "G-7", sku: "FP-stol-gra", wixVariantId: "wixvar-gra", choices: { Färg: "Grå" },
+          costUsd: landadGra / FX.usdToSek, landedCostSek: landadGra, grossSek: BASPRIS, aosomSyncedQty: 47,
+        },
+      ],
+    };
+  }
+
+  it("☠️ en sammanslagning under körningen skrivs inte över — stämpeln väntar", async () => {
+    const fore = mappning("A-1");
+    const efter: ProductMappingRecord = {
+      ...fore,
+      variants: [
+        { ...fore.variants[0], choices: { Färg: "Svart" } },
+        {
+          supplierVariantId: "G-7", sku: "FP-gra", wixVariantId: "wixvar-gra", choices: { Färg: "Grå" },
+          costUsd: fore.variants[0].costUsd, landedCostSek: fore.variants[0].landedCostSek,
+          grossSek: BASPRIS, aosomSyncedQty: 10,
+        },
+      ],
+    };
+    const { d, lager, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1"), rad("G-7", { qty: 13 })),
+      listAosom: async () => [fore],
+      lasMappning: async () => efter,
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    // Wix skrevs på det synken såg när körningen läste.
+    expect(lager).toEqual([{ id: "wix-A-1", antal: 47 }]);
+    expect(s.lagerUppdaterade).toBe(1);
+    // Men raden skrivs inte tillbaka med ögonblicksbilden från körningens start.
+    expect(sparade).toEqual([]);
+    expect(s.stampelHoppade).toBe(1);
+    expect(s.misslyckade).toBe(0);
+    expect(s.errors.map((e) => e.error)).toEqual([expect.stringMatching(/ändrades under körningen/)]);
+  });
+
+  it("☠️ fält som synken inte äger står kvar — poleringens status och SKU", async () => {
+    const fore = mappning("A-1", { needsAiPolish: true, draftStatus: "pending_review" });
+    const efter: ProductMappingRecord = {
+      ...fore,
+      needsAiPolish: false,
+      draftStatus: "published",
+      variants: [{ ...fore.variants[0], sku: "FP-polerad-sku" }],
+    };
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1")),
+      listAosom: async () => [fore],
+      lasMappning: async () => efter,
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.stampelHoppade).toBe(0);
+    expect(sparade).toHaveLength(1);
+    expect(sparade[0]).toMatchObject({ needsAiPolish: false, draftStatus: "published", aosomSyncedQty: 47 });
+    expect(sparade[0].variants[0].sku).toBe("FP-polerad-sku");
+  });
+
+  it("en ommappning under körningen stämplas inte — stämpeln hör till den gamla artikeln", async () => {
+    const fore = mappning("A-1");
+    const efter: ProductMappingRecord = {
+      ...fore,
+      supplierProductId: "aosom:Z-9",
+      variants: [{ ...fore.variants[0], supplierVariantId: "Z-9" }],
+    };
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1")),
+      listAosom: async () => [fore],
+      lasMappning: async () => efter,
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(sparade).toEqual([]);
+    expect(s.stampelHoppade).toBe(1);
+  });
+
+  it("☠️ en rad som raderats under körningen återuppstår inte", async () => {
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1")),
+      listAosom: async () => [mappning("A-1")],
+      lasMappning: async () => null,
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(sparade).toEqual([]);
+    expect(s.stampelHoppade).toBe(1);
+  });
+
+  it("en sammanslagen sida som fått en färg till: de kända stämplas, den nya står kvar", async () => {
+    const fore = stol();
+    // Den nya färgen ligger FÖRST: en stämpel som matchade på plats i listan
+    // hade lagt svarts och gråts tal på fel varianter.
+    const efter: ProductMappingRecord = {
+      ...fore,
+      variants: [
+        {
+          supplierVariantId: "R-5", sku: "FP-stol-rod", wixVariantId: "wixvar-rod", choices: { Färg: "Röd" },
+          costUsd: fore.variants[1].costUsd, landedCostSek: fore.variants[1].landedCostSek,
+          grossSek: BASPRIS, aosomSyncedQty: 8,
+        },
+        ...fore.variants,
+      ],
+    };
+    const { d, lager, sparade } = deps({
+      // Svart 50 → 47 (oförändrad), grå 13 → 10 (ska skrivas).
+      fetchFeed: async () => feedMed(rad("A-1"), rad("G-7", { qty: 13 })),
+      listAosom: async () => [fore],
+      lasMappning: async () => efter,
+      // Den röda fanns inte när synken läste lagret.
+      lasLagerposter: async () => [
+        { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: 47 },
+        { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: 47 },
+      ],
+      lasVariantPriser: async () =>
+        new Map([["wix-stol", new Map([["wixvar-svart", BASPRIS], ["wixvar-gra", BASPRIS]])]]),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(lager).toEqual([{ id: "gra", antal: 10 }]);
+    expect(s.stampelHoppade).toBe(0);
+    expect(sparade).toHaveLength(1);
+    expect(sparade[0].variants.map((v) => [v.wixVariantId, v.aosomSyncedQty])).toEqual([
+      ["wixvar-rod", 8],
+      ["wixvar-svart", 47],
+      ["wixvar-gra", 10],
+    ]);
+    // Radens tal är summan över den färska radens varianter.
+    expect(sparade[0].aosomSyncedQty).toBe(65);
+  });
+
+  it("torrkörningen läser inte om raden — den stämplar ingenting", async () => {
+    let lasningar = 0;
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1")),
+      listAosom: async () => [mappning("A-1")],
+      lasMappning: async () => {
+        lasningar++;
+        return mappning("A-1");
+      },
+    });
+    const s = await runAosomSync(d);
+
+    expect(s.lagerUppdaterade).toBe(1);
+    expect(lasningar).toBe(0);
+    expect(sparade).toEqual([]);
+  });
+
+  it("ett läsfel vid omläsningen fäller bara sin produkt", async () => {
+    const { d, sparade } = deps({
+      lasMappning: async (id) => {
+        if (id === "wix-A-1") throw new Error("Postgres svarade inte");
+        return mappning("B-2");
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.lagerUppdaterade).toBe(2);
+    expect(s.misslyckade).toBe(1);
+    expect(s.errors).toEqual([
+      { sku: "A-1", wixProductId: "wix-A-1", error: expect.stringMatching(/Postgres/) },
+    ]);
+    expect(sparade.map((m) => m.wixProductId)).toEqual(["wix-B-2"]);
   });
 });
 

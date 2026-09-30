@@ -134,7 +134,7 @@ async function handle(req: NextRequest) {
     // skriva någonting såg då ut exakt som en körning där allt redan stämde.
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
       || summary.utanWixPris > 0 || summary.utanLagerrader > 0 || summary.misslyckade > 0
-      || summary.okandaVarianter > 0 || summary.tvetydiga > 0
+      || summary.okandaVarianter > 0 || summary.tvetydiga > 0 || summary.stampelHoppade > 0
       || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
       || summary.prislistaFel)) {
       await audit(
@@ -153,6 +153,7 @@ async function handle(req: NextRequest) {
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift (${summary.lagerDriftRattade} rättade bara för driften), `
+          + `${summary.stampelHoppade} stämplar väntar (raden ändrades under körningen), `
           + `${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
@@ -184,6 +185,9 @@ async function handle(req: NextRequest) {
         // Lagerdrift (2026-09-30): butikens saldo mot stämpeln. "rättade" är
         // skrivningar som kom till BARA för driften — se motButikensSaldo.
         + `${summary.lagerDrift} lagerdrift, ${summary.lagerDriftRattade} rättade, `
+        // Raden ändrades under körningen (sammanslagning, ommappning,
+        // radering): Wix skrevs, stämpeln väntar — se stampelPaFarskRad.
+        + `${summary.stampelHoppade} stämplar väntar, `
         + `${summary.misslyckade} misslyckade, `
         // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.

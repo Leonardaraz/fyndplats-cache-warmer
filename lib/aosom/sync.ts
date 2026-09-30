@@ -255,6 +255,14 @@ export interface AosomSyncSummary {
   /** Wix-id för produkterna i `lagerDriftRattade`. Publika id, aldrig artikelnummer. */
   lagerDriftProdukter: string[];
   /**
+   * Produkter där Wix skrevs men mappningen INTE stämplades, eftersom raden
+   * ändrats under körningen: raderats, bytt artikel, bytt form eller tappat en
+   * variant som skulle stämplas (`stampelPaFarskRad`). Skälet står i `errors`.
+   * Nästa körning läser den färska raden och stämplar då. Inget fel — talet
+   * ska ändå vara noll utanför en sammanslagning eller ommappning.
+   */
+  stampelHoppade: number;
+  /**
    * Färgsammanslagna sidor som granskades — en Aosom-artikel per variant, var
    * och en med sitt eget saldo och pris (lib/aosom/artiklar.ts). Ett mått,
    * inget fel.
@@ -426,6 +434,16 @@ export interface AosomSyncDeps {
     landedCostSek: number,
   ) => Promise<void>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
+  /**
+   * Mappningsraden så som den står i lagret NU, eller null när den är borta.
+   *
+   * ☠️ LÄSES OM STRAX FÖRE VARJE STÄMPEL. `listAosom` läses en gång när
+   * körningen startar, och en körning tar minuter. Sparades raden som den såg
+   * ut då skrev synken tyst över allt som skrivits på den under tiden: spegeln
+   * 4117e161 tappade sin sammanslagning så 03:20 den 2026-09-30 (B71 i
+   * tools/polish-gates/FLAGGADE.md). Se `stampelPaFarskRad`.
+   */
+  lasMappning: (wixProductId: string) => Promise<ProductMappingRecord | null>;
   /**
    * Produkter med väntande restock-bevakare. Läses högst en gång per körning,
    * och bara när en produkt kommit tillbaka i lager. Saknas depen (testerna,
@@ -981,41 +999,105 @@ export function motButikensSaldo(
   return { ...p, drift: true, driftRattas: true, nyttSaldo: p.onskatSaldo };
 }
 
+type MappningsVariant = ProductMappingRecord["variants"][number];
+
+/** Samma variant före och efter: samma Wix-variant-id och samma artikel. */
+function sammaVariant(a: MappningsVariant, b: MappningsVariant): boolean {
+  return (a.wixVariantId ?? "").trim() === (b.wixVariantId ?? "").trim()
+    && (a.supplierVariantId ?? "").trim() === (b.supplierVariantId ?? "").trim();
+}
+
 /**
- * Mappningsraden efter en skrivning på en sammanslagen sida. Stämplar BARA det
- * som faktiskt skrevs: saldot per variant (när lagret gick igenom) och priset
- * per variant (bara de varianter vars prisskrivning lyckades).
+ * Mappningsraden att spara efter en skrivning, byggd på den FÄRSKA raden — eller
+ * skälet att inte stämpla alls. Ren.
  *
- * Radens `aosomSyncedQty` blir summan av varianternas — sidans totala saldo,
- * vilket är vad de få läsarna av radens fält frågar efter.
+ * ☠️ STÄMPELN LÄGGS PÅ RADEN SOM DEN STÅR NU, INTE SOM DEN STOD NÄR KÖRNINGEN
+ * STARTADE. Den gamla vägen sparade `{ ...p.m, … }`, alltså ögonblicksbilden
+ * från `listAosom`, och skrev därmed tyst över allt som hänt på raden under
+ * körningens minuter: en sammanslagnings nya variant, poleringens SKU och
+ * status, en ommappning — och återskapade en raderad rad. Spegeln 4117e161
+ * tappade sin sammanslagning så (B71, 2026-09-30).
+ *
+ * Bara synkens egna fält skrivs: `aosomSyncedQty` och `aosomSyncedAt` på
+ * raden, och per variant `aosomSyncedQty`, `grossSek`, `landedCostSek` och
+ * `costUsd` — bara det som faktiskt skrevs till Wix. Varianterna matchas på
+ * Wix-id och artikel, aldrig på plats i listan, så en färg som lagts till under
+ * körningen lämnas orörd.
+ *
+ * ☠️ HELLRE INGEN STÄMPEL ÄN EN SOM LJUGER. Har raden raderats, bytt artikel,
+ * bytt form (vanlig ↔ sammanslagen) eller tappat en variant som skulle
+ * stämplas, skrivs ingenting. Wix är redan skrivet; nästa körning läser den
+ * färska raden, och stämpeln kommer då — eller driften rättas
+ * (`motButikensSaldo`).
+ *
+ * Radens `aosomSyncedQty` på en sammanslagen sida är summan av varianternas,
+ * räknad på den färska raden.
  */
-function flerartikelStampel(
+export function stampelPaFarskRad(
   p: Produktplan,
-  skrevLager: boolean,
-  prisSkrivna: ReadonlyArray<VariantPlan>,
+  farsk: ProductMappingRecord | null,
+  skrivet: {
+    lager: boolean;
+    /** Vanlig rad: priset skrevs på radens variant. */
+    pris: boolean;
+    /** Sammanslagen sida: de varianter vars pris faktiskt skrevs. */
+    prisSkrivna: ReadonlyArray<VariantPlan>;
+  },
   usdToSek: number,
   nu: number,
-): ProductMappingRecord {
-  const lager = new Map((p.varianter ?? []).filter((v) => v.nyttSaldo !== null).map((v) => [v.index, v]));
-  const priser = new Map(prisSkrivna.map((v) => [v.index, v]));
-  const variants = (p.m.variants ?? []).map((v, idx) => {
-    let ut = v;
-    const l = skrevLager ? lager.get(idx) : undefined;
-    if (l) ut = { ...ut, aosomSyncedQty: l.onskatSaldo };
-    const pr = priser.get(idx);
-    if (pr && pr.nyttPris !== null && pr.nyLandad !== null) {
-      ut = { ...ut, grossSek: pr.nyttPris, landedCostSek: pr.nyLandad, costUsd: pr.nyLandad / usdToSek };
-    }
-    return ut;
+): ProductMappingRecord | { skal: string } {
+  if (!farsk) return { skal: "raden finns inte längre" };
+  if ((farsk.supplierProductId ?? "").trim() !== (p.m.supplierProductId ?? "").trim()) {
+    return { skal: "raden har bytt artikel" };
+  }
+  if (aosomArtikelbild(farsk).typ !== aosomArtikelbild(p.m).typ) return { skal: "raden har bytt form" };
+
+  const fore = p.m.variants ?? [];
+  const variants = [...(farsk.variants ?? [])];
+  /** Var en variant ur ögonblicksbilden står i den färska raden, eller -1. */
+  const iFarsk = (index: number) => {
+    const v = fore[index];
+    return v ? variants.findIndex((x) => sammaVariant(v, x)) : -1;
+  };
+  const priset = (pris: number, landad: number) => ({
+    grossSek: pris,
+    landedCostSek: landad,
+    costUsd: landad / usdToSek,
   });
+  const iso = new Date(nu).toISOString();
+
+  if (!p.varianter) {
+    if (skrivet.pris && p.nyttPris !== null && p.nyLandad !== null) {
+      const j = iFarsk(0);
+      if (j < 0) return { skal: "radens variant finns inte kvar" };
+      variants[j] = { ...variants[j], ...priset(p.nyttPris, p.nyLandad) };
+    }
+    return {
+      ...farsk,
+      ...(skrivet.lager ? { aosomSyncedQty: p.onskatSaldo, aosomSyncedAt: iso } : {}),
+      variants,
+    };
+  }
+
+  const prisSkrivna = new Set(skrivet.prisSkrivna.map((v) => v.index));
+  for (const vp of p.varianter) {
+    const stamplaSaldo = skrivet.lager && vp.nyttSaldo !== null;
+    const stamplaPris = prisSkrivna.has(vp.index) && vp.nyttPris !== null && vp.nyLandad !== null;
+    if (!stamplaSaldo && !stamplaPris) continue;
+    const j = iFarsk(vp.index);
+    if (j < 0) return { skal: "en variant som skulle stämplas finns inte kvar" };
+    variants[j] = {
+      ...variants[j],
+      ...(stamplaSaldo ? { aosomSyncedQty: vp.onskatSaldo } : {}),
+      ...(stamplaPris ? priset(vp.nyttPris as number, vp.nyLandad as number) : {}),
+    };
+  }
   const synkade = variants
     .map((v) => v.aosomSyncedQty)
     .filter((q): q is number => typeof q === "number");
   return {
-    ...p.m,
-    ...(skrevLager
-      ? { aosomSyncedQty: synkade.reduce((a, b) => a + b, 0), aosomSyncedAt: new Date(nu).toISOString() }
-      : {}),
+    ...farsk,
+    ...(skrivet.lager ? { aosomSyncedQty: synkade.reduce((a, b) => a + b, 0), aosomSyncedAt: iso } : {}),
     variants,
   };
 }
@@ -1171,6 +1253,7 @@ export async function runAosomSync(
     lagerDrift: 0,
     lagerDriftRattade: 0,
     lagerDriftProdukter: [],
+    stampelHoppade: 0,
     flerartikelrader: 0,
     okandaVarianter: 0,
     tvetydiga: 0,
@@ -1491,26 +1574,29 @@ export async function runAosomSync(
         // ☠️ `aosomSyncedQty` stämplas BARA när saldot faktiskt skrevs. Skrevs
         // bara priset behåller fältet sitt gamla värde, så nästa körning
         // fortfarande ser att saldot vill skrivas.
+        //
+        // ☠️ OCH RADEN LÄSES OM FÖRST. Stämpeln läggs på raden som den står
+        // nu, inte på ögonblicksbilden från körningens start — se
+        // `stampelPaFarskRad`. Har raden ändrats så att stämpeln inte går att
+        // lägga säkert väntar den till nästa körning, och det syns.
         if (!dryRun) {
-          const uppdaterad: ProductMappingRecord = p.varianter
-            ? flerartikelStampel(p, skrevLager, prisSkrivna, deps.fx.usdToSek, now())
-            : {
-                ...p.m,
-                ...(skrevLager
-                  ? { aosomSyncedQty: p.onskatSaldo, aosomSyncedAt: new Date(now()).toISOString() }
-                  : {}),
-                variants: (p.m.variants ?? []).map((v, idx) =>
-                  idx === 0 && p.nyttPris !== null && p.nyLandad !== null
-                    ? {
-                        ...v,
-                        grossSek: p.nyttPris,
-                        landedCostSek: p.nyLandad,
-                        costUsd: p.nyLandad / deps.fx.usdToSek,
-                      }
-                    : v,
-                ),
-              };
-          await deps.saveMapping(uppdaterad);
+          const stampel = stampelPaFarskRad(
+            p,
+            await deps.lasMappning(p.m.wixProductId),
+            { lager: skrevLager, pris: skrevPris, prisSkrivna },
+            deps.fx.usdToSek,
+            now(),
+          );
+          if ("skal" in stampel) {
+            summary.stampelHoppade++;
+            summary.errors.push({
+              sku: p.sku,
+              wixProductId: p.m.wixProductId,
+              error: `mappningen ändrades under körningen (${stampel.skal}) — Wix är skrivet, stämpeln väntar till nästa körning`,
+            });
+          } else {
+            await deps.saveMapping(stampel);
+          }
         }
       } catch (err) {
         summary.misslyckade++;
@@ -1652,6 +1738,7 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
       }
     },
     saveMapping: (m) => store.saveMapping(m),
+    lasMappning: (wixProductId) => store.getMappingByWixProductId(wixProductId),
     bevakadeProdukter: async () => {
       const { getRestockStore } = await import("../restock/store");
       return getRestockStore().listPendingProductIds();
