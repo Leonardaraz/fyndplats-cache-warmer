@@ -220,6 +220,11 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // eller figurer med upphovsrätt i bild.
   "Julgranar": UNSPLASH("1642335911245-238e13dcabf2"), // snöad, pyntad gran vid öppen spis
   "Juldekoration": UNSPLASH("1767471662293-55cae5cbea6f"), // snöig trädgård med lysande snögubbar
+  // De nya avdelningarna 2026-09-30 lånar sin mest typiska underkategoris bild,
+  // granskad samma dag i UNSPLASH()-beskärningen: julgranen vid den öppna spisen
+  // och verktygsväggen. Alla andra avdelningar har en egen bild.
+  "Jul & Högtider": UNSPLASH("1642335911245-238e13dcabf2"), // pyntad gran och krans vid öppen spis
+  "Verktyg & Fordon": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
 
   // Husdjur
   "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas
