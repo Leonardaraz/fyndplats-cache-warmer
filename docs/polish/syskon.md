@@ -191,9 +191,13 @@ Varningar du ska läsa:
 - ☠️ **Priset rörs inte.** Den nya varianten får givarens pris som det står i butiken, och
   de gamla varianterna behåller sina.
 - ☠️ **Svaret har aldrig ett artikelnummer eller en kostnad.** Actions-loggen är publik.
-- **En sammanslagen sida tas aldrig med i en polerrunda igen.** Skrivworkflowen klarar bara
-  sidor med en variant, och rundans gamla filer skulle skriva tillbaka en enda färg.
-  Textändringar görs utanför rundan.
+- **En sammanslagen sida skrivs om med `sammanslagna.tsv`** (2026-09-30), aldrig med
+  rundans gamla filer, som skulle skriva tillbaka en enda färg. Skrivworkflowen hoppar då
+  över SKU-steget och kräver vid återläsningen att alla varianter finns kvar och syns.
+- **En färg som finns i feeden men inte som utkast** hämtas med **"Aosom — importera en
+  sidas färg- och storlekssyskon"** (`plan`, sedan `importera`). Den tar sidans wix-id,
+  inte ett artikelnummer, och tar med rader som nattens import hoppar över för att frakten
+  kostar mer än varan. Samma vara som en av sidans färger importeras aldrig.
 - **Wix delar valen över hela butiken.** `Färg` hade 293 val och `Storlek` 203 den
   2026-09-27. Välj korta etiketter som kan återanvändas.
 

@@ -222,7 +222,7 @@ efter fjorton dygn*). Så gör du med en träff:
 | samma vara i samma färg och mått som en publicerad **Aosom-sida** | Pensionera utkastet (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**. |
 | ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
 | syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
-| ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den inte polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
+| ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den i feeden men inte som utkast hämtar du den först med **"Aosom — importera en sidas färg- och storlekssyskon"** (sida = syskonutkastet). Finns den inte alls polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
 
 **En AliExpress-sida med flera varianter** vägras av ommappningen (`flera_varianter`), om
 du inte anger `behall_variant`: Wix-variant-id:t för den färg som finns som Aosom-utkast. Då
@@ -265,11 +265,17 @@ sida"**, ett syskon per körning. Hela arbetsgången och alla hinder står i
    det nya valet husets regel.
 5. **Rätta texten.** Sidan beskriver fortfarande en färg eller ett mått, och planen varnar
    när beskrivningen nämner sidans värde. `Färg:`-raden ska räkna upp alla färger och
-   `Mått:`-raden alla mått. Stryk meningar som påstår en enda färg. Ändringen görs utanför
-   rundan, se [Utanför poleringen](#utanför-poleringen).
+   `Mått:`-raden alla mått. Stryk meningar som påstår en enda färg. Skriv hellre texten för
+   alla färger innan sammanslagningen, medan sidan har en variant.
 
-En sammanslagen sida tas aldrig med i en runda igen. Skrivworkflowen klarar bara sidor med
-en variant, och rundans gamla filer skulle skriva tillbaka en enda färg.
+**En sammanslagen sida skrivs om med `sammanslagna.tsv` (2026-09-30).** Ska en sida som
+redan bär flera färger få en färg till, och texten räknar upp färgerna, tar du med den i en
+runda som vanligt men ger den en rad i `sammanslagna.tsv` (`kort`, tab, antal varianter)
+och ingen rad i `sku.tsv` eller `variant.tsv`. Skrivworkflowen skriver då text, bilder och
+kategorier men hoppar över SKU-steget, och återläsningen kräver att alla varianter finns
+kvar och syns. Bildlistan måste bära varje bild ett färgval pekar på, annars skrivs den
+inte. Skriv texten för den nya färgen också, och lägg sedan på den med sammanslagningen.
+Läs sidans nuvarande text och varianter färskt: rundans gamla filer är inaktuella.
 
 #### Varje färg har sin egen bild
 
@@ -1063,13 +1069,10 @@ som ser friskt ut men har fel innehåll, inte ett felmeddelande.
 ## Utanför poleringen
 
 - **Sidor med flera varianter:** äldre AliExpress-sidor och Aosom-sidor där syskon lagts
-  in som val. Skrivworkflowen klarar bara sidor med en variant, eftersom SKU-steget och
-  återläsningen kräver det. Sådana sidor tas därför aldrig med i en runda. En textändring,
-  som färgraden efter en sammanslagning, görs med en PATCH av bara de fält som ändras
-  (`plainDescription`, och `seoData` om titeln ändras), med fältmask och med texten ur en
-  fil. Läs sedan tillbaka texten och jämför den med filen. Variantobjekt och optioner byggs
-  aldrig för hand. Mekaniken står i [`polish/varianter.md`](polish/varianter.md) för
-  AliExpress-sidorna och i [`polish/syskon.md`](polish/syskon.md) för sammanslagna sidor.
+  in som val. En sammanslagen Aosom-sida skrivs sedan 2026-09-30 med skrivworkflowen och
+  `sammanslagna.tsv` (se [Syskon blir val på sidan](#syskon-blir-val-på-sidan)). För de
+  äldre AliExpress-sidorna gäller [`polish/varianter.md`](polish/varianter.md).
+  Variantobjekt och optioner byggs aldrig för hand.
   Den delade optionen "Färg" finns i två upplagor (`0b32a475-…` och `719645a9-…`), används
   av över hundra produkter och får aldrig döpas om.
 - **Fraktvikten på äldre sidor:** 616 texter i 69 rundor före B1 bär fraktvikten som `Vikt`.

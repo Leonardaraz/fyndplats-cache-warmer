@@ -11,6 +11,10 @@ eller i chatten, så det finns inget avskriftsfel att fånga.
 Läser (alla från rundans katalog):
   ids.tsv  namn.tsv  slugs.txt  seo.tsv  <kort>.html  nyttolast-media.json
   kategori.tsv  sku.tsv  variant.tsv  vantat-hash.tsv
+  sammanslagna.tsv  VALFRI: "kort  antal varianter" för en redan sammanslagen
+                    sida. Den får ingen rad i sku.tsv eller variant.tsv, och
+                    planen bär `varianter` i stället för sku och variantId —
+                    skrivningen rör då aldrig varianterna (2026-09-30).
 
 ☠️ FACIT RÄKNAS OM HÄR. vantat-hash.tsv jämförs mot <kort>.html genom
 wixnorm, och är den inaktuell faller bygget. Ett inaktuellt facit hade fått
@@ -106,18 +110,26 @@ def main():
     vh = tsv("vantat-hash.tsv", 3)
     slug = {r.split()[0]: r.split()[1] for r in io.open("slugs.txt", encoding="utf-8") if r.strip()}
     media = json.load(io.open("nyttolast-media.json", encoding="utf-8"))
+    samman = tsv("sammanslagna.tsv", 2) if os.path.exists("sammanslagna.tsv") else {}
 
     fel = []
+    for k, (antal,) in samman.items():
+        if k not in ids:
+            fel.append(f"{k}: står i sammanslagna.tsv men inte i ids.tsv")
+        if not antal.strip().isdigit() or int(antal) < 2:
+            fel.append(f"{k}: sammanslagna.tsv ska ange antal varianter, två eller fler")
+        if k in sku or k in var:
+            fel.append(f"{k}: en sammanslagen sida får ingen rad i sku.tsv eller variant.tsv")
     if len(ids) > MAX_PRODUKTER:
         fel.append(f"{len(ids)} produkter i ids.tsv — högst {MAX_PRODUKTER} per plan")
 
     produkter = []
     for k, (pid, _etikett) in ids.items():
-        saknas = [nm for kalla, nm in ((namn, "namn.tsv"), (seo, "seo.tsv"), (sku, "sku.tsv"),
-                                       (var, "variant.tsv"), (kat, "kategori.tsv"),
-                                       (vh, "vantat-hash.tsv"), (slug, "slugs.txt"),
-                                       (media, "nyttolast-media.json"))
-                  if k not in kalla]
+        kallor = [(namn, "namn.tsv"), (seo, "seo.tsv"), (kat, "kategori.tsv"),
+                  (vh, "vantat-hash.tsv"), (slug, "slugs.txt"), (media, "nyttolast-media.json")]
+        if k not in samman:
+            kallor += [(sku, "sku.tsv"), (var, "variant.tsv")]
+        saknas = [nm for kalla, nm in kallor if k not in kalla]
         if not os.path.isfile(f"{k}.html"):
             saknas.append(f"{k}.html")
         if saknas:
@@ -140,8 +152,8 @@ def main():
             "seoBesk": seo[k][1],
             "media": [{"id": m["id"], "altText": m["altText"]} for m in media[k]],
             "kat": [x.strip() for x in kat[k][0].split(" + ")],
-            "sku": sku[k][0],
-            "variantId": var[k][0],
+            **({"varianter": int(samman[k][0])} if k in samman
+               else {"sku": sku[k][0], "variantId": var[k][0]}),
             "textHash": vh[k][0],
             "textTecken": int(vh[k][1]),
         })
