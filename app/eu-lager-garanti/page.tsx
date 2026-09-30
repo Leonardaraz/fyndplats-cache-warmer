@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { jsonLdString } from "../../lib/seo";
-import { EU_STOCK_NOTE, FREE_SHIPPING_FROM_KR } from "../../lib/shipping";
+import { EU_STOCK_NOTE, FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
 import s from "./eu-lager-garanti.module.css";
 
 // EU-lager & tull (2026-09-30). Samma innehåll som förut, i Om oss-sidans
@@ -67,7 +67,7 @@ const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Tillkommer det någon fraktavgift?",
-    a: "Fri frakt gäller vid köp över 499 kr. Vid mindre köp tillkommer en fraktavgift som alltid visas tydligt i kassan innan du betalar. EU-lager-garantin handlar om tull och förtullning, inte om frakt.",
+    a: "Fri frakt gäller vid köp över 499 kr. Vid mindre köp är frakten 19 kr, och den visas alltid i kassan innan du betalar. EU-lager-garantin handlar om tull och förtullning, inte om frakt.",
   },
   {
     q: "När börjar de nya tullreglerna gälla?",
@@ -96,7 +96,7 @@ const jsonLd = {
       headline: "EU-lager-garanti – inga nya tullavgifter på din beställning",
       description: DESC,
       datePublished: "2026-06-30",
-      dateModified: "2026-06-30",
+      dateModified: "2026-09-30",
       author: { "@type": "Organization", name: "Fyndplats" },
       publisher: {
         "@type": "Organization",
@@ -172,7 +172,7 @@ export default function EuLagerGaranti() {
               <span>Moms ingår alltid i priset</span>
             </div>
             <div className="om-fakta-kort">
-              <b>{FREE_SHIPPING_FROM_KR} kr</b>
+              <b>{FREE_SHIPPING_OVER_KR} kr</b>
               <span>Fri frakt vid köp över</span>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function EuLagerGaranti() {
 
         <section className={s.kalla}>
           <div className="container">
-            <p className="om-not">Källa: Europeiska kommissionen, Taxation and Customs Union. Den här sidan är allmän information, inte juridisk rådgivning – kontrollera med Tullverket eller din transportör för detaljer i ditt enskilda fall. Senast uppdaterad: 30 juni 2026.</p>
+            <p className="om-not">Källa: Europeiska kommissionen, Taxation and Customs Union. Den här sidan är allmän information, inte juridisk rådgivning – kontrollera med Tullverket eller din transportör för detaljer i ditt enskilda fall. Publicerad 30 juni 2026, senast uppdaterad 30 september 2026.</p>
           </div>
         </section>
 

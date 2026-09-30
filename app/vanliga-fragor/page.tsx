@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { TOTAL_SUMMARY, TOTAL_SHORT, COMPLAINT, AVGIFT_SENTENCE } from "../../lib/retur-policy";
 import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
-import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, STANDARD_SHIPPING_KR, FREE_SHIPPING_FROM_KR } from "../../lib/shipping";
+import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, STANDARD_SHIPPING_KR, FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
 import { jsonLdString } from "../../lib/seo";
 import s from "./vanliga-fragor.module.css";
 
@@ -55,7 +55,7 @@ const AMNEN: Amne[] = [
     intro: "Alla betalningar går via Klarna: direkt, mot faktura eller uppdelat.",
     lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }],
     fragor: [
-      { q: "Vilka betalningsmetoder accepterar ni?", a: "Vi använder Klarna för alla betalningar – betala direkt (kort, Swish, autogiro, banköverföring), faktura 14 dagar eller dela upp betalningen." },
+      { q: "Vilka betalningsmetoder accepterar ni?", a: "Vi använder Klarna för alla betalningar. Du väljer mellan faktura (14 eller 30 dagar), delbetalning, kort (Visa, Mastercard, American Express), direktbetalning via bank samt Apple Pay och Google Pay." },
       { q: "Erbjuder ni faktura?", a: "Ja, via Klarna kan du välja faktura med 14 dagars betalningstid. Du får först varan och betalar sen – ingen extra avgift för faktura." },
     ],
   },
@@ -64,12 +64,12 @@ const AMNEN: Amne[] = [
     kort: "Leverans",
     rubrik: "Frakt & leverans",
     ikon: Ikon.frakt,
-    intro: `Frakt ${STANDARD_SHIPPING_KR} kr, fri frakt över ${FREE_SHIPPING_FROM_KR} kr. Normal leveranstid är ${DELIVERY_TIME}.`,
+    intro: `Frakt ${STANDARD_SHIPPING_KR} kr, fri frakt över ${FREE_SHIPPING_OVER_KR} kr. Normal leveranstid är ${DELIVERY_TIME}.`,
     lankar: [{ href: "/sparning", text: "Spåra paket" }],
     fragor: [
       { q: "Vad kostar frakten?", a: "Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri. Vi skickar med spårbar leverans hela vägen hem." },
       { q: "Hur lång är leveranstiden?", a: "Vanlig leveranstid är 3–6 arbetsdagar från beställning. Du får en spårningskod via mejl så snart paketet lämnar lagret. Under storhelger kan det ta något längre." },
-      { q: "Hur spårar jag min beställning?", a: "När ditt paket lämnar lagret skickar vi en mejlbekräftelse med en spårningskod. Klicka på länken i mejlet eller gå till transportörens webbplats och ange koden." },
+      { q: "Hur spårar jag min beställning?", a: "När ditt paket lämnar lagret skickar vi en mejlbekräftelse med en spårningskod. Klicka på länken i mejlet, eller ange spårningskoden på fyndplats.se/sparning så ser du var paketet är." },
       { q: "Vad händer om jag inte hämtar mitt paket?", a: "Paket som inte hämtas inom utlämningstiden returneras till oss. Vi kan då ta ut en administrativ avgift på upp till 160 kr för leverantörens hanterings- och fraktkostnad. Avgiften gäller dock inte om du har ångrat köpet – då är det en retur enligt din ångerrätt. Hör av dig direkt om du fått förhinder." },
       { q: "Skickar ni utanför Sverige?", a: "För närvarande skickar vi bara inom Sverige. Vi tittar på att utöka till resten av Norden – håll utkik på vår Facebook- och Instagramsida." },
     ],
@@ -98,7 +98,7 @@ const AMNEN: Amne[] = [
     ],
     fragor: [
       { q: "Kan jag ångra mitt köp / returnera?", a: `${TOTAL_SUMMARY} Under de första 14 dagarna har du rätt att undersöka produkten som du skulle ha gjort i en butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. För det frivilliga öppna köpet dag 15–30 ska produkten vara oanvänd, komplett och i säljbart skick, anmälas skriftligt med ordernummer innan den skickas och skickas spårbart. Under dag 15–30 återbetalas produktens pris, men inte vad du betalat för frakten till dig — det gör vi bara under den lagstadgade ångerfristen. Det är dagen du anmäler returen som avgör vilken period som gäller, inte dagen paketet är tillbaka hos oss. Enklast ångrar du direkt på sidan Ångra köp (fyndplats.se/angra-kop): fyll i din order, välj vilka artiklar du vill ångra och skicka, så får du ett automatiskt mottagningskvitto med returadressen. Ångerrätten gäller även innan paketet hunnit fram. Returfrakten betalas av kunden — du bokar själv hos valfri transportör som tar emot varans storlek och vikt, gärna spårbart. ${SKRYMMANDE_RETURKOSTNAD} ${AVGIFT_SENTENCE} Vi betalar tillbaka inom 2–3 arbetsdagar efter mottagen och kontrollerad retur; hur snabbt pengarna syns på kontot beror sedan på din bank. Är varan trasig eller fel är det istället en reklamation – en egen rättighet som inte har med 30-dagarsfristen att göra; då står Fyndplats för returfrakten.` },
-      { q: "Vad gör jag om produkten är skadad vid leverans?", a: "Kontakta oss inom 7 dagar på info@fyndplats.com med ditt ordernummer och en bild på skadan. Vi löser det snabbt – antingen genom ny produkt eller återbetalning via Klarna." },
+      { q: "Vad gör jag om produkten är skadad vid leverans?", a: "Kontakta oss inom 7 dagar på info@fyndplats.com med ditt ordernummer och en bild på skadan. Vi löser det snabbt – antingen genom ny produkt eller återbetalning via Klarna. Din reklamationsrätt enligt konsumentköplagen gäller oavsett." },
       { q: "Produkten gick sönder efter ett tag – är jag för sen?", a: `${COMPLAINT.lead} ${COMPLAINT.points.join(" ")}` },
     ],
   },
@@ -209,7 +209,7 @@ export default function VanligaFragor() {
         <div className="container om-fakta-grid">
           <div className="om-fakta-kort">
             <b>{STANDARD_SHIPPING_KR} kr</b>
-            <span>Frakt, fri över {FREE_SHIPPING_FROM_KR} kr</span>
+            <span>Frakt, fri över {FREE_SHIPPING_OVER_KR} kr</span>
           </div>
           <div className="om-fakta-kort">
             <b>{DELIVERY_MIN_DAYS}–{DELIVERY_MAX_DAYS}</b>

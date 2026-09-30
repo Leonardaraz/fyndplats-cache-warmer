@@ -82,7 +82,7 @@ export default function Image() {
             <span style={{ width: 12, height: 12, background: ORANGE_DARK, borderRadius: 6, display: "flex" }} /> Svensk e-handel
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ width: 12, height: 12, background: ORANGE_DARK, borderRadius: 6, display: "flex" }} /> Klarna & Swish
+            <span style={{ width: 12, height: 12, background: ORANGE_DARK, borderRadius: 6, display: "flex" }} /> Klarna, kort & Apple Pay
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ width: 12, height: 12, background: ORANGE_DARK, borderRadius: 6, display: "flex" }} /> Fri frakt över 499 kr

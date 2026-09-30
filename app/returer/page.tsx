@@ -156,7 +156,7 @@ export default function Returer() {
             <li>
               <span className="om-tid-nar">Steg 5</span>
               <h3>Återbetalning</h3>
-              <p>{REFUND_SENTENCE} Betalmedlet är detsamma som vid köpet (kort, Klarna, Swish).</p>
+              <p>{REFUND_SENTENCE} Pengarna går tillbaka via Klarna till samma betalsätt som du använde vid köpet.</p>
             </li>
           </ol>
         </div>

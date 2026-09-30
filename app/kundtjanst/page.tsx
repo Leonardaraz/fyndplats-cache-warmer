@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../lib/seo";
-import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, STANDARD_SHIPPING_KR, FREE_SHIPPING_FROM_KR } from "../../lib/shipping";
+import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, STANDARD_SHIPPING_KR, FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
 import { TOTAL_SHORT } from "../../lib/retur-policy";
 import { Ikon, Svg } from "../../components/kundservice-ikoner";
 import s from "./kundtjanst.module.css";
@@ -50,7 +50,7 @@ const ARENDEN: Arende[] = [
   {
     ikon: Ikon.frakt,
     rubrik: "Frakt & leverans",
-    text: `Frakt ${STANDARD_SHIPPING_KR} kr inom Sverige, fri frakt över ${FREE_SHIPPING_FROM_KR} kr. Leveranstid normalt ${DELIVERY_TIME}, med spårning via mejl. ${EU_STOCK_NOTE_SHORT}`,
+    text: `Frakt ${STANDARD_SHIPPING_KR} kr inom Sverige, fri frakt över ${FREE_SHIPPING_OVER_KR} kr. Leveranstid normalt ${DELIVERY_TIME}, med spårning via mejl. ${EU_STOCK_NOTE_SHORT}`,
     lankar: [
       { href: "/vanliga-fragor", text: "Vanliga frågor" },
       { href: "/eu-lager-garanti", text: "EU-lager & tull" },
@@ -121,7 +121,7 @@ export default function Kundtjanst() {
         <div className="container om-fakta-grid">
           <div className="om-fakta-kort">
             <b>{STANDARD_SHIPPING_KR} kr</b>
-            <span>Frakt, fri över {FREE_SHIPPING_FROM_KR} kr</span>
+            <span>Frakt, fri över {FREE_SHIPPING_OVER_KR} kr</span>
           </div>
           <div className="om-fakta-kort">
             <b>{DELIVERY_MIN_DAYS}–{DELIVERY_MAX_DAYS}<small> arbetsdagar</small></b>

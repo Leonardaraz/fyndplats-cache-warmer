@@ -32,10 +32,13 @@ export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbets
 export const EU_STOCK_NOTE = "Skickas från EU-lager – ingen importtull eller förtullningsavgift.";
 export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull tillkommer.";
 
-// Fraktpris — samma regel som kassan (components/cart.tsx FREE_SHIP) och
-// produktsidans JSON-LD: fri frakt när varans pris är minst 499 kr, annars 19 kr.
-// Används av prisjämförelse-feeden (/feed/pricerunner.xml), som måste ange
-// fraktkostnaden per produkt.
+// Fraktpris — samma regel som kassan (components/cart.tsx), produktsidans
+// JSON-LD och prisjämförelse-feeden (/feed/pricerunner.xml): fri frakt från
+// 500 kr, annars 19 kr. Texterna säger "fri frakt över 499 kr", vilket är samma
+// gräns; FREE_SHIPPING_OVER_KR är talet i den formuleringen.
+// Wix-kassan har en egen regel (Frakt & leverans → Sverige) som ska stå på
+// samma gräns. Ändras den ena ska den andra ändras samtidigt.
 export const STANDARD_SHIPPING_KR = 19;
-export const FREE_SHIPPING_FROM_KR = 499;
+export const FREE_SHIPPING_FROM_KR = 500;
+export const FREE_SHIPPING_OVER_KR = FREE_SHIPPING_FROM_KR - 1;
 export const SHIPPING_SERVICE = "Spårbar frakt";
