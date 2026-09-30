@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidorna bär två eller tre storlekar, och givarnas måttrader i kallor.json hör till de andra storlekarna (sensortunnorna på 30 och 42 liter, speglarna på 60 × 90 och 50 × 110 cm, förvaringsmöbeln med nio lådor, bokhyllan på 136 cm, skrivbordet på 80 cm, trefackstunnan på 60 liter, terrarierna på 50 × 30 × 25 och 50 × 30 × 35 cm, projektorduken på 99 tum), inte till sidans huvudvariant
+gate-axel.py samma skäl: inget axelfacit att grinda mot
