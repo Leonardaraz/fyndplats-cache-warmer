@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidorna bär två eller tre storlekar, och givarnas totalmåttrader i kallor.json hör till de andra storlekarna (hundburarna på 76 och 90 cm, speglarna på 60 × 80 och 70 × 90 cm, tunnelväxthusen på 600 × 300 och 395 × 297 cm, palmen på 160 cm, lådorna med fyra lådor, bambun på 150 cm), inte till sidans huvudvariant. Det genomskinliga växthusets källa anger dessutom bokstäverna L och B omvänt mot måttskissen, som visar en gavel på 1,95 m och en längd på 2,95 m
+gate-axel.py samma skäl: inget axelfacit att grinda mot
