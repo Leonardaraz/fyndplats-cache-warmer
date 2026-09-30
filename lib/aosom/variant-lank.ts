@@ -10,8 +10,12 @@
 // förvalda storlek och fick bytas för hand innan beställningen.
 //
 // Varje rad i Aosoms flöde bär artikelns egen adress. Flödet hämtas bara när en
-// rad faktiskt behöver det (varianten är en annan än huvudartikeln), och högst
-// en gång per uppslag.
+// rad faktiskt behöver det (varianten är en annan än huvudartikeln).
+//
+// ☠️ FLÖDET ÄR TUNGT. Att ladda ner det vid varje uppslag gjorde sökningen seg
+// igen (Leonard 2026-09-30). Anroparen cachar därför bara tabellen artikel →
+// adress (`feedLankar`), komprimerad så den ryms i Vercels datacache (2 MB per
+// post): det gemensamma prefixet skalas bort och läggs på igen i `lankFran`.
 //
 // ☠️ HELLRE VARNING ÄN FEL SIDA. Finns artikeln inte i flödet, eller går flödet
 // inte att hämta, står huvudsidans länk kvar med en varning som säger vilken
@@ -29,31 +33,45 @@ export interface LankbarRad {
 
 const nyckel = (s: string) => s.trim().toUpperCase();
 
+const PREFIX = "https://www.aosom.de/item/";
+
+/** Artikel → adress ur flödet, komprimerad. Rader utan giltig adress hoppas över. */
+export function feedLankar(rader: Array<Pick<AosomRow, "sku" | "url">>): Record<string, string> {
+  const ut: Record<string, string> = {};
+  for (const r of rader) {
+    const url = (r.url ?? "").trim();
+    if (!r.sku || !/^https?:\/\//i.test(url)) continue;
+    const kort = url.startsWith(PREFIX) ? url.slice(PREFIX.length) : url;
+    ut[nyckel(r.sku)] = kort;
+  }
+  return ut;
+}
+
+/** Tillbaka till en hel adress. */
+export function lankFran(kort: string): string {
+  return /^https?:\/\//i.test(kort) ? kort : `${PREFIX}${kort}`;
+}
+
 export async function lankaVarianter<T extends LankbarRad>(
   rader: T[],
-  hamtaFeed: () => Promise<Array<Pick<AosomRow, "sku" | "url">>>,
+  hamtaLankar: () => Promise<Record<string, string>>,
 ): Promise<T[]> {
   const behover = (r: T) =>
     !!r.huvudartikel && !!r.artikelnummer && nyckel(r.artikelnummer) !== nyckel(r.huvudartikel);
   if (!rader.some(behover)) return rader;
 
-  let karta: Map<string, string> | null = null;
+  let karta: Record<string, string> | null = null;
   let fel: string | null = null;
   try {
-    karta = new Map();
-    for (const f of await hamtaFeed()) {
-      const url = (f.url ?? "").trim();
-      if (f.sku && /^https?:\/\//i.test(url)) karta.set(nyckel(f.sku), url);
-    }
+    karta = await hamtaLankar();
   } catch (e) {
     fel = e instanceof Error ? e.message : String(e);
-    karta = null;
   }
 
   return rader.map((r) => {
     if (!behover(r)) return r;
-    const url = karta?.get(nyckel(r.artikelnummer));
-    if (url) return { ...r, kallUrl: url };
+    const kort = karta?.[nyckel(r.artikelnummer)];
+    if (kort) return { ...r, kallUrl: lankFran(kort) };
     const skal = fel ? "Aosoms flöde gick inte att hämta" : "artikeln finns inte i Aosoms flöde just nu";
     const varning =
       `Länken öppnar produktens huvudsida (${skal}). Välj varianten med artikelnummer ${r.artikelnummer} där.`;
