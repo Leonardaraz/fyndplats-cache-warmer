@@ -361,6 +361,100 @@ export async function getV3ProductBySlug(
   return { id: p.id, name: p.name ?? "", slug: p.slug ?? wanted };
 }
 
+type ProduktRad = { slug?: string; visible?: boolean };
+
+/** En `products/query` vars svar MÅSTE bära en produktlista — annars kastar den. */
+async function fragaProdukter(
+  query: Record<string, unknown>,
+  vad: string,
+  fetchImpl: typeof fetch,
+): Promise<ProduktRad[]> {
+  const res = await fetchImpl(`${WIX_BASE}/stores/v3/products/query`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`V3 products/query (${vad}) misslyckades (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { products?: unknown };
+  if (!Array.isArray(data.products)) {
+    throw new Error(`V3 products/query (${vad}) svarade utan products-lista`);
+  }
+  return data.products as ProduktRad[];
+}
+
+/**
+ * Finns en SYNLIG produkt med exakt den här slugen? Omdirigeringsgrinden
+ * (`lib/wix/redirects.ts`) ställer frågan om varje källa och varje produktmål.
+ *
+ * ETT ANROP PER ADRESS, INTE HELA KATALOGEN (2026-09-30). Grinden läste
+ * tidigare hela katalogen för att kontrollera en eller två adresser: 6 311
+ * produkter på 64 sidor, ~1 s per sida även utan PLAIN_DESCRIPTION. Bara
+ * läsningen tog ~63 s mot ruttens tak på 60, så POST /api/admin/redirects dog
+ * med 504 innan den hann skriva, även för en enda rad. En exakt slug-fråga
+ * svarar på ~0,1 s.
+ *
+ * `products/query` med `filter: { slug }` och inte slug-rutten i
+ * `getV3ProductBySlug`, eftersom frågan är mätt att bära `visible`. Uppmätt
+ * mot skarpa V3 samma dag:
+ *
+ *   levande slug        → 1 träff, visible: true
+ *   ett utkasts slug    → 1 träff, visible: false (inget implicit synlighetsfilter)
+ *   borttagen slug      → {"products":[],"pagingMetadata":{"count":0,…}}
+ *   okänt filterfält    → 400 "not declared as filterable", ignoreras INTE tyst
+ *   samma slug i VERSALER → 0 träffar: filtret är skiftlägeskänsligt
+ *
+ * ☠️ Slugen gemenas före frågan. Grinden jämförde tidigare skiftlägesokänsligt,
+ * och det är förlustfritt bara för att Wix slugs är gemena: 0 av 6 311 bar en
+ * versal (mätt samma dag).
+ *
+ * ☠️ I den här frågan ÄR en tom lista beskedet "sidan är ledig", så ett trasigt
+ * svar får aldrig kunna se ut som en. Allt utom ett begripligt svar KASTAR:
+ * HTTP-fel, ett svar utan produktlista, och en träff med en ANNAN slug (då har
+ * filtret inte bitit, och "ingen träff" vore en gissning).
+ *
+ * Saknat `visible` räknas som synligt, samma riktning som resten av huset.
+ */
+export async function slugArSynligProdukt(slug: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  const wanted = (slug || "").trim().toLowerCase();
+  if (!wanted) throw new Error("slugArSynligProdukt: tom slug — det finns ingenting att fråga om");
+  const produkter = await fragaProdukter(
+    { filter: { slug: wanted }, cursorPaging: { limit: 10 } },
+    `slug "${wanted}"`,
+    fetchImpl,
+  );
+  const andra = produkter.filter((p) => (p.slug || "").trim().toLowerCase() !== wanted);
+  if (andra.length) {
+    throw new Error(
+      `V3 products/query (slug "${wanted}") gav ${andra.length} produkt(er) med annan slug — filtret bet inte`,
+    );
+  }
+  return produkter.some((p) => p.visible !== false);
+}
+
+/**
+ * Har katalogen minst en synlig produkt? Kontrollfrågan före slug-frågorna.
+ *
+ * Med en fråga per adress är "ingen träff" beskedet att en källa är ledig, så
+ * en tom eller felkopplad katalog (fel site-id) hade godkänt varje källa. Den
+ * gamla helkatalogsläsningen stoppade det med en spärr mot noll synliga
+ * produkter; det här är samma spärr för en fråga.
+ *
+ * ☠️ Filtret på `visible` är inte kosmetiskt. Uppmätt 2026-09-30 är katalogens
+ * FÖRSTA produkt utan filter ett utkast, så en ofiltrerad fråga hade inte
+ * bevisat någonting. Ett utkast i svaret räknas därför inte.
+ */
+export async function katalogenHarSynligProdukt(fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  const produkter = await fragaProdukter(
+    { filter: { visible: true }, cursorPaging: { limit: 1 } },
+    "kontrollfrågan",
+    fetchImpl,
+  );
+  return produkter.some((p) => p.visible !== false);
+}
+
 /**
  * Hämtar fullständig V3-produkt med seoData, brand, media, price, inventory —
  * allt som SEO-enrichment behöver för att generera taggar.

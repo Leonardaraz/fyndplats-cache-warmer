@@ -304,3 +304,131 @@ describe("getV3ProductBySlug", () => {
     await expect(getV3ProductBySlug("lovblas-20v", f as unknown as typeof fetch)).rejects.toThrow(/500/);
   });
 });
+
+// ☠️ Omdirigeringsgrinden läste hela katalogen för att kontrollera en eller två
+// adresser: 6 311 produkter på 64 sidor, ~1 s per sida, alltså ~63 s mot
+// ruttens tak på 60 (mätt 2026-09-30). De här två frågorna är vad den ställer i
+// stället. Svaren nedan är formade efter de skarpa svaren samma dag.
+describe("slugArSynligProdukt", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+  });
+  afterEach(() => {
+    if (origToken === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = origToken;
+  });
+
+  function wix(status: number, body: unknown) {
+    return vi.fn(async (_url: string, _init?: RequestInit) => ({
+      ok: status >= 200 && status < 300,
+      status,
+      json: async () => body,
+      text: async () => "",
+    }) as unknown as Response);
+  }
+
+  const traff = (...products: unknown[]) => ({
+    products,
+    pagingMetadata: { count: products.length, cursors: {}, hasNext: false },
+  });
+
+  it("ETT anrop: exakt slug-filter mot products/query, i gemener", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, traff({ slug: "lovblas-20v", visible: true }));
+    expect(await slugArSynligProdukt(" Lovblas-20V ", f as unknown as typeof fetch)).toBe(true);
+    expect(f).toHaveBeenCalledTimes(1);
+    const [url, init] = f.mock.calls[0];
+    expect(url).toBe("https://www.wixapis.com/stores/v3/products/query");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(String(init?.body))).toEqual({
+      query: { filter: { slug: "lovblas-20v" }, cursorPaging: { limit: 10 } },
+    });
+  });
+
+  it("ingen träff är false — det uppmätta nollsvaret bär en tom lista", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, traff());
+    expect(await slugArSynligProdukt("raderad-produkt", f as unknown as typeof fetch)).toBe(false);
+  });
+
+  it("ett UTKAST med sluggen är ingen synlig produkt", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, traff({ slug: "opolerat-utkast", visible: false }));
+    expect(await slugArSynligProdukt("opolerat-utkast", f as unknown as typeof fetch)).toBe(false);
+  });
+
+  it("saknat visible räknas som synligt, aldrig som dött", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, traff({ slug: "utan-visible-falt" }));
+    expect(await slugArSynligProdukt("utan-visible-falt", f as unknown as typeof fetch)).toBe(true);
+  });
+
+  it("☠️ en träff med en ANNAN slug kastar — då bet filtret inte", async () => {
+    // Ett filter som inte tillämpats ger katalogens första produkter. Att läsa
+    // det som "ingen träff" vore att godkänna en källa utan att ha frågat.
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, traff({ slug: "nagot-helt-annat", visible: true }));
+    await expect(slugArSynligProdukt("raderad-produkt", f as unknown as typeof fetch)).rejects.toThrow(/annan slug/);
+  });
+
+  it("☠️ ett 200-svar utan products-lista kastar — en tom lista ÄR beskedet att sidan är ledig", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(200, {});
+    await expect(slugArSynligProdukt("raderad-produkt", f as unknown as typeof fetch)).rejects.toThrow(/products-lista/);
+  });
+
+  it("HTTP-fel kastar i stället för att tolkas som ingen träff", async () => {
+    const { slugArSynligProdukt } = await import("./v3-products");
+    const f = wix(429, {});
+    await expect(slugArSynligProdukt("raderad-produkt", f as unknown as typeof fetch)).rejects.toThrow(/429/);
+  });
+});
+
+describe("katalogenHarSynligProdukt", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+  });
+  afterEach(() => {
+    if (origToken === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = origToken;
+  });
+
+  function wix(status: number, body: unknown) {
+    return vi.fn(async (_url: string, _init?: RequestInit) => ({
+      ok: status >= 200 && status < 300,
+      status,
+      json: async () => body,
+      text: async () => "",
+    }) as unknown as Response);
+  }
+
+  it("frågar efter EN synlig produkt", async () => {
+    const { katalogenHarSynligProdukt } = await import("./v3-products");
+    const f = wix(200, { products: [{ slug: "julgran", visible: true }] });
+    expect(await katalogenHarSynligProdukt(f as unknown as typeof fetch)).toBe(true);
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(f.mock.calls[0][1]?.body))).toEqual({
+      query: { filter: { visible: true }, cursorPaging: { limit: 1 } },
+    });
+  });
+
+  it("ingen synlig produkt är false", async () => {
+    const { katalogenHarSynligProdukt } = await import("./v3-products");
+    const f = wix(200, { products: [] });
+    expect(await katalogenHarSynligProdukt(f as unknown as typeof fetch)).toBe(false);
+  });
+
+  it("☠️ ett UTKAST räknas inte — den ofiltrerade katalogen börjar med ett", async () => {
+    // Uppmätt 2026-09-30: katalogens första produkt utan filter är ett tyskt
+    // utkast. Ett filter som inte bet får alltså inte räcka som bevis.
+    const { katalogenHarSynligProdukt } = await import("./v3-products");
+    const f = wix(200, { products: [{ slug: "beleuchtetes-rentier", visible: false }] });
+    expect(await katalogenHarSynligProdukt(f as unknown as typeof fetch)).toBe(false);
+  });
+
+  it("fel kastar", async () => {
+    const { katalogenHarSynligProdukt } = await import("./v3-products");
+    const f = wix(503, {});
+    await expect(katalogenHarSynligProdukt(f as unknown as typeof fetch)).rejects.toThrow(/503/);
+  });
+});
