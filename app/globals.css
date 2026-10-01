@@ -1210,23 +1210,19 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .cart-empty-cta{margin-top:20px;display:inline-block;background:var(--brand);color:#fff;font-weight:700;font-size:var(--text-sm);padding:12px 24px;border-radius:var(--r-md);box-shadow:var(--e2);transition:transform .2s,box-shadow .2s}
 .cart-empty-cta:hover{transform:translateY(-2px);box-shadow:var(--e3)}
 
-/* ── Loading skeleton (pulsande shimmer bakom bilder tills de laddat) ──
-   Bild-containrarna har redan en solid varm bakgrund; ::before lägger en
-   shimmer ovanpå den men UNDER bilden. Animationen är ändlig (~5.5 s) och
-   tonar ut, så den blir aldrig en evigt-körande animation (batteri/CPU) och
-   stör inte transparenta produktbilder efter att de laddat. Kombineras med
-   next/image placeholder="blur" (blur-up) som tar bort den tomma rutan helt. */
-@media (prefers-reduced-motion: no-preference){
-  .herotile::before,.prod .pimg::before,.homecat-thumb::before,.kat-hero-img::before,
-  .gallery .gmain::before,.gtile::before{
-    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-    background:linear-gradient(100deg,var(--line) 25%,#f8f3ec 50%,var(--line) 75%);
-    background-size:200% 100%;
-    animation:skelShimmer 1.4s linear 4, skelFade .5s ease 5s forwards;
-  }
-}
-@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-@keyframes skelFade{to{opacity:0}}
+/* ── Laddningsskelett bakom bilder ──
+   Bild-containrarna har en solid varm bakgrund, och next/image ritar en
+   suddig förhandsbild (placeholder="blur") tills bilden laddat. Mer behövs inte.
+
+   ☠️ Inget skimmer här (det låg som ::before på .prod .pimg, .herotile,
+   .homecat-thumb, .kat-hero-img, .gallery .gmain och .gtile). Det animerade
+   background-position i 5,6 s på varje bild, och det går inte på
+   grafikkortet. Allt målades därför om varje bildruta, också under bilder som
+   redan laddat. Uppmätt på /kategori/mobler (mobil, CPU 4×, 2026-10-01):
+   - med skimmer: ~2 400 målningar och ~0,9 s huvudtråd (Paint 500 ms,
+     Layerize 140, stil 270)
+   - utan: ~160 målningar och Paint 45 ms
+   Lighthouse räknar det arbetet in i LCP. */
 .li{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .li-img{width:56px;height:56px;border-radius:var(--r-sm);background:var(--surface-2) center/cover no-repeat;flex:0 0 auto;object-fit:cover;display:block}
 .li-info{flex:1;min-width:0}
@@ -1821,8 +1817,10 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 /* Fotorutan medan bild-URL:en är på väg (se lib/list-payload.ts). Ett lugnt
    svep i samma varmgrå som rutan själv — inte ett hål, och inte en spinner som
    drar blicken från namnet och priset, som redan står där. */
-.pimg-vantar{position:absolute;inset:0;background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);background-size:220% 100%;animation:pimg-svep 1.4s ease-in-out infinite}
-@keyframes pimg-svep{from{background-position:180% 0}to{background-position:-20% 0}}
+/* Pulsar med opacitet, som grafikkortet sköter. Ett svep med
+   background-position målade om kortet varje bildruta, utan slut. */
+.pimg-vantar{position:absolute;inset:0;background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);animation:pimg-puls 1.4s ease-in-out infinite alternate}
+@keyframes pimg-puls{from{opacity:1}to{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.pimg-vantar{animation:none}}
 /* PRODUKTKORTETS BILDER: SVEP PÅ PEKSKÄRM, HOVER PÅ DATOR (2026-09-24).
  *
