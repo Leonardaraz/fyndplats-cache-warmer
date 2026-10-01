@@ -1244,7 +1244,13 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .qstep button:disabled{opacity:.4;cursor:default}
 .qstep-num{min-width:46px;height:44px;display:flex;align-items:center;justify-content:center;font-size:var(--text-base);font-weight:800;color:var(--ink);border-left:1px solid var(--line);border-right:1px solid var(--line)}
 /* cookie consent */
-.cookiebar{position:fixed;left:16px;right:16px;bottom:16px;z-index:200;max-width:560px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--e4);padding:18px 20px;display:flex;flex-direction:column;gap:12px;animation:ckIn .3s ease}
+.cookiebar{position:fixed;left:16px;right:16px;bottom:16px;z-index:200;max-width:560px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--e4);padding:18px 20px;display:flex;flex-direction:column;gap:12px;animation:ckIn .3s ease .6s both}
+/* Fördröjningen: Brave döljer rutan med regeln .cookiebar[aria-live="polite"]
+   (uBlocks annoyances-cookies, påslagen som standard i Brave), men först
+   ~0,2 s efter att den dykt upp. Utan väntan tonades den in och försvann
+   igen (Leonards inspelning 2026-10-01). Nu hinner Brave före. Rutan ska
+   inte döpas om för att slippa listan: det är besökarens val, och utan svar
+   gäller "bara nödvändiga". */
 @keyframes ckIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .cookietext{font-size:var(--text-sm);line-height:1.55;color:var(--ink)}
 .cookietext a{color:var(--brand);font-weight:700;text-decoration:underline}
