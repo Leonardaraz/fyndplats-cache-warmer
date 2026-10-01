@@ -142,14 +142,19 @@ const websiteJsonLd = {
 };
 
 const SIDBYTE_SKRIPT =
-  "(function(){var h=document.documentElement,t;" +
-  "function av(){h.classList.remove('navigerar');clearTimeout(t)}" +
+  // Tillståndet ligger på linjen själv, inte på <html>: vid en mjuk navigering
+  // skriver React om <html>-klassen och linjen släcktes innan den syntes.
+  // Den släcks när adressen bytts (mjuk navigering) eller sidan visats (hel).
+  "(function(){var t,i,u0;function el(){return document.querySelector('.sidbyte')}" +
+  "function av(){var b=el();if(b)b.removeAttribute('data-pa');clearTimeout(t);clearInterval(i)}" +
   "document.addEventListener('click',function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;" +
   "var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;" +
   "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
   "if(u.pathname===location.pathname&&u.search===location.search)return;" +
-  "h.classList.add('navigerar');clearTimeout(t);t=setTimeout(av,8000)});" +
-  "addEventListener('pageshow',av);addEventListener('pagehide',av)})()";
+  "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
+  "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
+  "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +
+  "addEventListener('pageshow',av);addEventListener('popstate',av)})()";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),

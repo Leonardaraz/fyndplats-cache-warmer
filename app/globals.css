@@ -3134,6 +3134,6 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
 /* Laddningslinjen vid sidbyte (app/layout.tsx). Växer snabbt till 70 % och
    kryper sedan, så den aldrig står still och aldrig "blir klar" före sidan. */
 .sidbyte{position:fixed;top:0;left:0;right:0;height:3px;z-index:2000;pointer-events:none;transform-origin:0 50%;transform:scaleX(0);opacity:0;background:linear-gradient(90deg,var(--brand),#FB923C);box-shadow:0 0 8px rgba(194,65,12,.45)}
-.navigerar .sidbyte{opacity:1;animation:sidbyte 6s cubic-bezier(.1,.7,.2,1) forwards}
+.sidbyte[data-pa]{opacity:1;animation:sidbyte 6s cubic-bezier(.1,.7,.2,1) forwards}
 @keyframes sidbyte{0%{transform:scaleX(0)}12%{transform:scaleX(.55)}40%{transform:scaleX(.8)}100%{transform:scaleX(.95)}}
-@media(prefers-reduced-motion:reduce){.navigerar .sidbyte{animation:none;transform:scaleX(.6)}}
+@media(prefers-reduced-motion:reduce){.sidbyte[data-pa]{animation:none;transform:scaleX(.6)}}
