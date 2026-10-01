@@ -28,6 +28,7 @@
 import { felText, type WixAnrop } from "../polish/skrivplan";
 import type { FargbildLager } from "../store/fargbilder";
 import {
+  GALLERI_AVVIKELSE,
   LANK_AVVIKELSE,
   hittaGivare,
   kontrolleraEfter,
@@ -45,6 +46,13 @@ type Obj = Record<string, unknown>;
 const FALT = "fields=VARIANT_OPTION_CHOICE_NAMES&fields=MEDIA_ITEMS_INFO";
 export const KOPPLING_FORSOK = 8;
 export const KOPPLING_PAUS_MS = 2500;
+/**
+ * Wix GET kan svara med galleriet från FÖRE PATCH:en en kort stund efteråt
+ * (sidan 369b4b2c 2026-10-01: galleriet stod rätt en minut senare, men
+ * återläsningen såg det gamla och stoppade körningen före länkarna). Läs om
+ * så här många gånger innan avvikelsen räknas.
+ */
+export const GALLERI_OMLASNINGAR = 4;
 
 /** En produkt som verktyget ser den. */
 export interface ProduktLast {
@@ -261,6 +269,7 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   if (!plan.andrarWix) return bekrafta();
 
   // ── 1: galleriet, ensamt ───────────────────────────────────────────────
+  let galleriPatchat = false;
   try {
     if (JSON.stringify(plan.galleriEfter) !== JSON.stringify(plan.galleriFore)) {
       await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(plan.id)}`, {
@@ -270,6 +279,7 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
         },
         fieldMask: { paths: ["media"] },
       });
+      galleriPatchat = true;
       steg.push(`galleri ${plan.galleriFore.length} → ${plan.galleriEfter.length}`);
     }
   } catch (e) {
@@ -286,6 +296,15 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   let forsok = 0;
   try {
     let { p: efter, avvikelser } = await las();
+    // Ett galleri som inte stämmer direkt efter vår egen PATCH kan vara en
+    // gammal läsning. Läs om, men skriv ingenting; står det kvar stoppar det.
+    let omlasningar = 0;
+    while (galleriPatchat && efter && avvikelser.includes(GALLERI_AVVIKELSE) && omlasningar < GALLERI_OMLASNINGAR) {
+      omlasningar++;
+      await vanta(KOPPLING_PAUS_MS);
+      ({ p: efter, avvikelser } = await las());
+    }
+    if (omlasningar > 0) steg.push(`galleriet omläst ${omlasningar} ${omlasningar === 1 ? "gång" : "gånger"}`);
     // Bara länkarna får vänta på Wix. Allt annat är en avvikelse som stoppar.
     const baraLankar = () => avvikelser.length > 0 && avvikelser.every((a) => a === LANK_AVVIKELSE);
     while (behoverLankar && efter && baraLankar() && forsok < KOPPLING_FORSOK) {

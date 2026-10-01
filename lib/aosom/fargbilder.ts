@@ -750,6 +750,7 @@ export interface VariantLage {
  * skrivningen försöka om; allt annat stoppar direkt.
  */
 export const LANK_AVVIKELSE = "ett färgval pekar inte på de planerade bilderna";
+export const GALLERI_AVVIKELSE = "galleriet är inte det planerade";
 
 export function kontrolleraEfter(
   plan: SidPlan,
@@ -760,7 +761,7 @@ export function kontrolleraEfter(
   if (efter.synlig !== fore.synlig) fel.push("sidans synlighet ändrades");
   const galleri = efter.bilder.map((b) => b.id);
   const vantat = plan.galleriEfter.map((b) => b.id);
-  if (galleri.join("|") !== vantat.join("|")) fel.push("galleriet är inte det planerade");
+  if (galleri.join("|") !== vantat.join("|")) fel.push(GALLERI_AVVIKELSE);
   for (const b of plan.galleriEfter) {
     const e = efter.bilder.find((x) => x.id === b.id);
     if (e && e.alt !== b.alt) {
