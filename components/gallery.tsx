@@ -112,7 +112,11 @@ export function Gallery({
   const variantSet = new Set(variantImageIndices || []);
   const [activeInternal, setActiveInternal] = useState(0);
   const controlled = activeProp !== undefined;
-  const active = controlled ? activeProp! : activeInternal;
+  // Inom listan. Byter kunden färg monteras ett nytt galleri (key) med färre
+  // bilder, och föräldern skickar i första renderingen index ur det gamla. Ett
+  // index utanför listan gav inget baslager (det ger .gmain sin höjd), och
+  // hjälten föll ihop till 72 px (Mongar-tältet, Grå 20D, 2026-10-01).
+  const active = clamp(controlled ? activeProp! : activeInternal, 0, Math.max(0, imgs.length - 1));
 
   const setActive = useCallback(
     (v: number | ((a: number) => number)) => {
