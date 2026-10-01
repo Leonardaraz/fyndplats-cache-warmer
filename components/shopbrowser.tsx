@@ -96,16 +96,19 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
   // på /kategori/mobler (mobil, 2026-10-01): bilden var nedladdad efter 1,6 s
   // men syntes först efter 6,9 s (LCP "render delay" 5,3 s).
   //
-  // Det vanliga fallet är en adress utan parametrar, och då händer ingenting
-  // mer. Med parametrar (en delad filterlänk, bakåt till ett filtrerat läge)
+  // Det vanliga fallet är en adress utan filterparametrar, och då händer
+  // ingenting mer. Med dem (en delad filterlänk, bakåt till ett filtrerat läge)
   // monteras vyn om före första målningen; dess URL-effekt hinner då tömma
   // adressen, men den är redan läst och skrivs tillbaka av den nya vyn.
   const props = { products, defaultSort, dayMs, lista, facetter };
   const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
   useLayoutEffect(() => {
     const q = new URLSearchParams(window.location.search);
+    // Bara parametrar som vyn läser. Annonsernas gclid/utm och sökordet på
+    // /sok (q) ändrar inget i vyn och ska inte rita om korten.
+    const lases = ["sortera", "pris", "farg", "lager", "rea", ...Object.values(FACETTER).map((f) => f.param)];
     // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns först i webbläsaren; servern och första renderingen måste vara lika
-    if (q.size > 0) setAdress({ sp: q, n: 1 });
+    if (lases.some((namn) => q.has(namn))) setAdress({ sp: q, n: 1 });
   }, []);
   return (
     <>
