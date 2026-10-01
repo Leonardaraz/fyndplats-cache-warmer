@@ -186,7 +186,7 @@ export interface SkrivUtfall {
 const sammaLista = (a: readonly string[], b: readonly string[]) => a.join("|") === b.join("|");
 
 /** Planens utgångsläge mot en färsk läsning: har sidan ändrats sedan planen? */
-function sammaUtgangslage(plan: SidPlan, p: ProduktLast): boolean {
+export function sammaUtgangslage(plan: SidPlan, p: ProduktLast): boolean {
   if (JSON.stringify(p.bilder) !== JSON.stringify(plan.galleriFore)) return false;
   const farg = p.optioner.find((o) => o.namn.trim().toLowerCase() === "färg");
   return plan.val.every((v) => sammaLista(farg?.val.find((x) => x.id === v.valId)?.lankade ?? [], v.lankadeFore));
@@ -201,7 +201,7 @@ function normTabell(rader: readonly TabellRad[]): string {
 }
 
 /** Valens nya `linkedMedia` i GET:ens options, allt annat ordagrant. */
-function optionerMedLankar(p: ProduktLast, plan: SidPlan): Obj[] {
+export function optionerMedLankar(p: ProduktLast, plan: SidPlan): Obj[] {
   return ((p.ra.options ?? []) as Obj[]).map((o) => {
     if (str(o.name).trim().toLowerCase() !== "färg") return o;
     return {
