@@ -1,0 +1,5 @@
+# id	typ	foto	kicker	titel	fotnot	innehåll (foto: bildtext · spec: etikett=värde|…)
+kort-miljo	foto	kortkalla/miljo.jpg	På plats	Ståhöjd och plats att sitta inne	Takhöjd 2–2,3 m	Tältet står på 10–15 minuter med handpumpen som följer med. Två dörrar och fönster med myggnät ger genomdrag när det är varmt.
+kort-3x2	spec	kortkalla/talt-bred.jpg	Storlek	Golvyta 3 × 2 m	Pump och tältpinnar ingår	Takhöjd=2 m|Vikt=12,3 kg|Dörrar=2 st|Fönster=2 st|Tältduk=300D Oxford|Vattentäthet=PU3000|Kaminhål=Ø 10 cm|Tid att resa=10–15 min
+kort-3x3	spec	kortkalla/talt-bred.jpg	Storlek	Golvyta 3 × 3 m	Pump och tältpinnar ingår	Takhöjd=2,3 m|Vikt=17,3 kg|Dörrar=2 st|Fönster=4 st|Tältduk=300D Oxford|Vattentäthet=PU3000|Kaminhål=Ø 10 cm|Tid att resa=10–15 min
+kort-4x3	spec	kortkalla/talt-bred.jpg	Storlek	Golvyta 4 × 3 m	Pump och tältpinnar ingår	Takhöjd=2 m|Vikt=18,5 kg|Dörrar=2 st|Fönster=4 st|Tältduk=300D Oxford|Vattentäthet=PU3000|Kaminhål=Ø 10 cm|Tid att resa=10–15 min

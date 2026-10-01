@@ -1,0 +1,3 @@
+# grind	skäl
+gate.py	12,3, 17,3 och 18,5 kg är tillverkarens 12.30, 17.30 och 18.47 kg avrundade till en decimal (avrundat.tsv); siffergrinden jämför strängar och ser inte att 12,30 och 12,3 är samma tal
+gate-alt.py	samma tre vikter i storlekskortens alt-texter
