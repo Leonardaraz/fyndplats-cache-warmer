@@ -80,6 +80,7 @@ export function Gallery({
   onActiveChange,
   eagerCount,
   variantImageIndices,
+  behallRutor,
 }: {
   images: string[];
   alt: string;
@@ -100,6 +101,11 @@ export function Gallery({
   // — grann-fönstret runt aktiv bild (Fas 1) värms alltid, även vid eagerCount=1,
   // så svep 3, 4, … är varma också på produkter utan bildvarianter.
   eagerCount?: number;
+  // Rita bildraden även när just den här listan bara har en bild. Produktsidan
+  // sätter den när en färg med en enda bild valts på en sida med fler: annars
+  // försvann raden, och väljaren hoppade ~90 px upp under fingret på mobil
+  // (hammocköverdraget, 2026-10-01).
+  behallRutor?: boolean;
 }) {
   const imgs = images.filter(Boolean);
   // Index (i `images`) som tillhör den valda varianten → ram-markeras i thumb-raden.
@@ -543,7 +549,7 @@ export function Gallery({
           (2026-09-30). Rutorna laddas lazy och med låg prioritet, så hjältebilden (LCP) går först. Ett
           klick visar bilden stort ovanför, som miniatyrerna gjorde. Över
           MAX_TILES bilder visar sista rutan "+N" och öppnar helskärmen. */}
-      {imgs.length > 1 && (
+      {(imgs.length > 1 || (behallRutor && imgs.length === 1)) && (
         <div className="gtiles" ref={tilesRef} role="tablist" aria-label="Alla produktbilder">
           {imgs.slice(0, MAX_TILES).map((g, i) => {
             const more = i === MAX_TILES - 1 && imgs.length > MAX_TILES ? imgs.length - i : 0;
