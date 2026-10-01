@@ -2046,6 +2046,14 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 @view-transition{ navigation: auto }
 ::view-transition-old(root){animation:fadeOut .18s ease both}
 ::view-transition-new(root){animation:fadeIn .25s ease both}
+/* Sidhuvudet och fraktraden får egna lager i övergången. Annars tonades
+   sidans två sidhuvuden över varandra med fraktradens höjd emellan — kom man
+   från en nedrullad sida syntes rubriken dubbelt ett ögonblick (2026-10-01).
+   Nu glider de på plats i stället. */
+.promo{view-transition-name:fp-promo}
+header.sidhuvud{view-transition-name:fp-sidhuvud}
+::view-transition-group(fp-promo),::view-transition-group(fp-sidhuvud){animation-duration:.25s;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 @keyframes fadeOut{to{opacity:0}}
 @keyframes fadeIn{from{opacity:0}}
 
