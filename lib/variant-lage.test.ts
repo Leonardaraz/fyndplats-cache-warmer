@@ -79,7 +79,8 @@ test("visaValnamn rättar tekniska namn och stavfel", () => {
 });
 
 test("visaValnamn: hyllplan, tum som cm och stor första bokstav", () => {
-  assert.equal(visaValnamn("16x36x72 tum 5 Tire (≈41 × 91 × 183 cm)"), "41 × 91 × 183 cm · 5 hyllplan");
+  assert.equal(visaValnamn("16x36x72 tum 5 Tire (≈41 × 91 × 183 cm)"), "91 × 41 × 183 cm · 5 hyllplan");
+  assert.equal(visaValnamn("24x36x72 tum 6 Tire (≈61 × 91 × 183 cm)"), "61 × 91 × 183 cm · 6 hyllplan");
   assert.equal(visaValnamn("endast låda"), "Endast låda");
   assert.equal(visaValnamn("med dörr"), "Med dörr");
 });

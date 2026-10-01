@@ -89,6 +89,12 @@ const VALNAMN: Record<string, string> = {
   "Druva Lila": "Druvlila", "Korall Rosa": "Korallrosa", "Elektrisk Blå": "Elektriskt blå", "Blå Grå": "Blågrå",
   "Grå Grön": "Grågrön", "Plomonfärgad": "Plommonlila", "Djuphavblå": "Djuphavsblå", "Grafitgrå Grå": "Grafitgrå",
   "Grå Lila": "Grålila", "Pistacijegrön": "Pistaschgrön", "Fjäder beige": "Fjäderbeige", "Rosé Lila": "Rosélila",
+  // Garagehyllan: bredden först, som på produktkortet ("91 × 41 × 183 cm").
+  "16x36x72 tum 5 Tire (≈41 × 91 × 183 cm)": "91 × 41 × 183 cm · 5 hyllplan",
+  "18x48x72 tum 5 Tire (≈46 × 122 × 183 cm)": "122 × 46 × 183 cm · 5 hyllplan",
+  "20x40x57 tum 4 Tire (≈51 × 102 × 145 cm)": "102 × 51 × 145 cm · 4 hyllplan",
+  "20x48x72 tum 5 Tire (≈51 × 122 × 183 cm)": "122 × 51 × 183 cm · 5 hyllplan",
+  "20x59x72 tum 5 Tire (≈51 × 150 × 183 cm)": "150 × 51 × 183 cm · 5 hyllplan",
   // Enheter som inte hör hemma i en svensk butik.
   "4500-5500sq.in.": "2,9–3,5 m²", "5500sq.in.": "3,5 m²", "1,8 x 1,8 x 1,8 m TypeA": "1,8 × 1,8 × 1,8 m",
 };
