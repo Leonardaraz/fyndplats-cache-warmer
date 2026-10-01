@@ -2048,8 +2048,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 
 /* #9 View Transitions */
 @view-transition{ navigation: auto }
-::view-transition-old(root){animation:fadeOut .18s ease both}
-::view-transition-new(root){animation:fadeIn .25s ease both}
+/* Den gamla sidan står kvar under den nya, som tonas in ovanpå. När båda
+   tonades samtidigt syntes bakgrunden igenom: en vit blinkning på ~0,15 s
+   mellan varje sida (2026-10-01). */
+::view-transition-old(root){animation:none}
+::view-transition-new(root){animation:fadeIn .2s ease both}
 /* Sidhuvudet och fraktraden får egna lager i övergången. Annars tonades
    sidans två sidhuvuden över varandra med fraktradens höjd emellan — kom man
    från en nedrullad sida syntes rubriken dubbelt ett ögonblick (2026-10-01).

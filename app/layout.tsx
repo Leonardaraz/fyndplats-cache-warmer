@@ -212,8 +212,12 @@ export default async function RootLayout({
   // Bästsäljar-rekommendationer till cart-drawerns "Andra köpte också"-block.
   // getProducts() är cache:ad så detta delar fetch med övriga server-renders.
   const cartRecos = cartRecommendations(forListings(await getProducts()), await getCollections());
+  // data-scroll-behavior: Next 16 rör inte längre scroll-behavior vid
+  // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
+  // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
+  // Next direkt, och mjuk scroll gäller fortfarande inom sidan.
   return (
-    <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
+    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`}>
       <head>
         {/* Hint browsers to open the TLS connection to Wix's image CDN early —
             every product image (hero, mosaic, PDP) is hosted at static.wixstatic.com,
