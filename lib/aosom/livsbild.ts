@@ -109,6 +109,7 @@ import {
   lasProdukt,
   optionerMedLankar,
   sammaUtgangslage,
+  mediaPost,
   tolkaProdukt,
   type ProduktLast,
 } from "./fargbilder-kor";
@@ -1091,7 +1092,7 @@ export async function skrivSida(p: ProduktPlan, deps: LivsbildDeps): Promise<Par
       await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(p.id)}`, {
         product: {
           revision: fore.revision,
-          media: { itemsInfo: { items: plan.galleriEfter.map((b) => ({ id: b.id, altText: b.alt })) } },
+          media: { itemsInfo: { items: plan.galleriEfter.map(mediaPost) } },
         },
         fieldMask: { paths: ["media"] },
       });

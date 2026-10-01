@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { doldaPerFil, planeraSida, type Bild, type SidOption, type SidPlan } from "./fargbilder";
-import { lasSidaIn, skrivSida, tolkaProdukt } from "./fargbilder-kor";
+import { lasSidaIn, mediaPost, skrivSida, tolkaProdukt } from "./fargbilder-kor";
 import { MinnesFargbildLager } from "../store/fargbilder";
 import type { WixAnrop } from "../polish/skrivplan";
 
@@ -343,5 +343,12 @@ describe("skrivSida", () => {
     // Den publicerade finns inte i indexet över dolda, så den hittas inte som givare.
     const plan = await planFor(w, lager, f.sida.id);
     expect(plan.val.filter((v) => v.givareId)).toHaveLength(1);
+  });
+});
+
+describe("mediaPost", () => {
+  it("skickar inte en tom alt-text (Wix 400 altText has size 0)", () => {
+    expect(mediaPost({ id: "a", alt: "" })).toEqual({ id: "a" });
+    expect(mediaPost({ id: "b", alt: "Soffa i grått" })).toEqual({ id: "b", altText: "Soffa i grått" });
   });
 });
