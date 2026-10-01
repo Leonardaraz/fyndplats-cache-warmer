@@ -58,6 +58,40 @@ const QUERY_PAGE_SIZE = 500;
  */
 export const MAX_LIST_ALL = 5000;
 
+/**
+ * Tak för `listVisibleAll` — ögonblicksbildens läsning.
+ *
+ * ☠️ EGET TAK, INTE `MAX_LIST_ALL`. Det taket är 5 000 och skyddar en
+ * ADMIN-SIDA från att rendera obegränsat. Ögonblicksbilden har motsatt krav:
+ * den måste få med VARENDA synlig rad, för det den missar försvinner från
+ * produktsidan. Uppmätt 2026-09-17 fanns 4 932 synliga recensioner — 68 rader
+ * under det gamla taket. Hade bilden ärvt 5 000 hade den tystnat kring
+ * månadsskiftet, och felet sett ut som "vissa produkter tappade sina omdömen".
+ */
+export const MAX_SNAPSHOT_ROWS = 100_000;
+
+/**
+ * En rad som bara bär det produktsidan faktiskt visar.
+ *
+ * ☠️ TYPEN ÄR SKYDDET, INTE EN BESKRIVNING. `listVisibleAll` hämtar inte hela
+ * `data`-blobben längre: originaltexten, rånamnet, landet och ursprungsspråket
+ * lämnas kvar i databasen. En anropare som vill ha dem ska få ett TYPFEL här,
+ * inte ett `undefined` vid körning — det är samma tysta fälla som gjorde att en
+ * läsare blev tom 2026-09-01 och att aggregatet svarade 200 med fel form
+ * 2026-09-02.
+ *
+ * Varför den stympas: bilden byggs ur den här läsningen, och Neon debiterar
+ * nätverkstrafik. Uppmätt 2026-09-18 var gratispottens 5 GB redan passerad.
+ * Originaltexten är för en importerad recension i praktiken en dubblett av den
+ * svenska, så den ensam är nära halva överföringen — för data vi kastar bort
+ * i samma andetag.
+ */
+export type PublikKallrad = Pick<
+  StoredReview,
+  "productId" | "reviewIdAE" | "status" | "rating" | "date"
+  | "textSwedish" | "initials" | "source" | "hasImage" | "imageUrl" | "imageUrls"
+>;
+
 /** Status som visas publikt på produktsidan. */
 export const VISIBLE_STATUSES: ReviewStatus[] = ["approved", "edited"];
 export function isVisibleStatus(s: ReviewStatus | undefined): boolean {
@@ -225,6 +259,15 @@ export interface ReviewStoreLike {
   upsert(review: StoredReview): Promise<void>;
   listByProduct(productId: string, limit?: number): Promise<StoredReview[]>;
   listAll(limit?: number): Promise<StoredReview[]>;
+  /**
+   * Alla PUBLIKT SYNLIGA rader, hela katalogen, i ETT anrop.
+   *
+   * Underlaget till lib/reviews/snapshot.ts. Skiljer sig från `listAll` på tre
+   * punkter som alla spelar roll: statusfiltret körs i lagret (inte hos oss),
+   * taket är `MAX_SNAPSHOT_ROWS` (en rad som faller bort här försvinner från en
+   * produktsida), och raden är AVSIKTLIGT STYMPAD — se returtypen.
+   */
+  listVisibleAll(limit?: number): Promise<PublikKallrad[]>;
   listByStatus(status: ReviewStatus, limit?: number): Promise<StoredReview[]>;
   setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void>;
   editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void>;
@@ -312,6 +355,17 @@ export class ReviewStore implements ReviewStoreLike {
 
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
     return this.query({}, limit);
+  }
+
+  /**
+   * Filtret körs hos Wix, samma `VISIBLE_STATUSES` som aggregeringen.
+   *
+   * Wix Data kan inte projicera kolumner, så här kommer hela raden tillbaka och
+   * stympas först i typen. Det är i sin ordning: nätverksbesparingen gäller
+   * Neon, och Wix-lagret är inte i drift.
+   */
+  async listVisibleAll(limit = MAX_SNAPSHOT_ROWS): Promise<PublikKallrad[]> {
+    return this.query({ status: { $in: VISIBLE_STATUSES } }, limit);
   }
 
   /**

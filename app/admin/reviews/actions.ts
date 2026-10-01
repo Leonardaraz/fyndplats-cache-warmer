@@ -1,12 +1,33 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { audit } from "@/lib/audit";
 import { getReviewStore, type ReviewStatus } from "@/lib/store/reviews";
 import { buildReviewBackfillDeps } from "@/lib/reviews/backfill-deps";
 import { runReviewBackfill } from "@/lib/reviews/backfill";
 import { applyTranslations, parseTranslations } from "@/lib/reviews/translate";
+import { SNAPSHOT_TAG } from "@/lib/reviews/snapshot";
+
+/**
+ * Släpper recensionsbilden efter en ändring som påverkar vad KUNDEN ser.
+ *
+ * ☠️ UTAN DEN HÄR KÄNNS MODERERINGEN TRASIG. Produktsidorna läser inte längre
+ * lagret direkt utan en ögonblicksbild som byggs om en gång i timmen (se
+ * lib/reviews/snapshot.ts — det är den som får Neon-computen att sova). Ett
+ * godkänt omdöme hade alltså inte synts förrän nästa hel timme, och den som
+ * tryckte "Godkänn" och kollade sidan hade dragit slutsatsen att knappen inte
+ * fungerar.
+ *
+ * `"max"` markerar bilden inaktuell utan att blockera: nästa besökare får den
+ * gamla direkt och en färsk hämtas i bakgrunden.
+ *
+ * Anropas bara från statusbyten och textändringar. En backfill som bara skapar
+ * `pending`-rader ändrar ingenting publikt och ska inte väcka databasen.
+ */
+function slappRecensionsbilden(): void {
+  revalidateTag(SNAPSHOT_TAG, "max");
+}
 
 /** Moderering: godkänn / avvisa en recension. */
 export async function setReviewStatus(
@@ -16,6 +37,7 @@ export async function setReviewStatus(
 ): Promise<void> {
   await getReviewStore().setStatus(productId, reviewIdAE, status);
   await audit("review-moderate", productId, `${reviewIdAE} → ${status}`);
+  slappRecensionsbilden();
   revalidatePath("/admin/reviews");
 }
 
@@ -74,6 +96,8 @@ export async function editReviewText(formData: FormData): Promise<void> {
   if (!productId || !reviewIdAE || !text) return;
   await getReviewStore().editText(productId, reviewIdAE, text);
   await audit("review-edit", productId, `${reviewIdAE} redigerad`);
+  // Texten som visas ändrades — bilden bär den, alltså måste den släppas.
+  slappRecensionsbilden();
   revalidatePath("/admin/reviews");
 }
 
@@ -104,6 +128,8 @@ export async function applyReviewTranslations(formData: FormData): Promise<void>
 
   if (r.saved > 0) {
     await audit("review-translate", "", `${r.saved} recensioner översatta via chatten`);
+    // En översättning som sparats byter den svenska texten på publicerade rader.
+    slappRecensionsbilden();
   }
   revalidatePath("/admin/reviews");
 
