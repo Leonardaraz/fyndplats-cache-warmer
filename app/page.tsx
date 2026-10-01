@@ -395,10 +395,9 @@ export default async function Home() {
                         <span className="homecat-thumb homecat-thumb-pad" key={i} aria-hidden="true" />
                       )
                     )}
-                    <span className="homecat-cta">Utforska →</span>
                   </div>
                   <div className="homecat-body">
-                    <span className="homecat-name">{c.main.name}</span>
+                    <span className="homecat-name">{c.main.name}<span className="homecat-arrow" aria-hidden="true">→</span></span>
                     <span className="homecat-count">{c.count} st</span>
                   </div>
                 </a>

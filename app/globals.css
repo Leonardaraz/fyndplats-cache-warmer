@@ -2365,11 +2365,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .homecat-thumb img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
 .homecat:hover .homecat-thumb img{transform:scale(1.05)}
 .homecat-thumb-pad{background:linear-gradient(135deg,#efe7df,#e3d8cc)}
-.homecat-mosaic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.42) 100%);opacity:0;transition:opacity .3s;pointer-events:none}
-.homecat:hover .homecat-mosaic::after{opacity:1}
-.homecat-cta{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);opacity:0;transition:opacity .25s,transform .25s;color:#fff;font-size:var(--text-xs);font-weight:700;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:8px 14px;border-radius:var(--r-pill);white-space:nowrap;pointer-events:none}
-.homecat:hover .homecat-cta{opacity:1;transform:translate(-50%,0)}
-@media(hover:none){.homecat-cta{display:none}}
+/* Hovring: kortet lyfts och bilderna zoomar lite, namnet blir brand och en pil
+   glider in. Ingen mörk toning eller glasknapp över mosaiken: produktbilderna
+   har vit bakgrund, så tonen blev grå smuts och den vita texten syntes inte
+   (Leonard 2026-10-01: "inte premium"). */
+.homecat-name{transition:color .2s}
+.homecat-arrow{display:inline-block;margin-left:6px;opacity:0;transform:translateX(-6px);transition:opacity .2s,transform .25s cubic-bezier(.2,.7,.2,1)}
+.homecat:hover .homecat-name{color:var(--brand)}
+.homecat:hover .homecat-arrow{opacity:1;transform:none}
+@media(hover:none){.homecat-arrow{display:none}}
 .homecat-body{padding:16px 18px 18px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .homecat-name{font-family:var(--font-display),Georgia,serif;font-size:var(--text-lg);font-weight:600;color:var(--ink);letter-spacing:-.012em;line-height:1.2}
 .homecat-count{font-size:var(--text-xs);font-weight:600;color:var(--soft);white-space:nowrap}
