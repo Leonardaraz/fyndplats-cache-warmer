@@ -50,6 +50,15 @@ export const MAIN_GROUPS: MainGroup[] = [
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
+    // Saknades här sedan avdelningen skapades i Wix 2026-06-22, så /butik och
+    // startsidans kategorikort visade aldrig trädgården (bara menyn gjorde
+    // det). Upptäckt i kontrollen efter kategoriflytten 2026-10-01.
+    main: "Trädgård & Utemöbler",
+    tag: "Utemöbler, växthus, grill och trädgård",
+    subs: ["Utemöbler", "Växthus & Odling", "Solskydd & Paviljonger", "Grill & Utekök", "Eldkorgar & eldstäder", "Terrassvärmare & Infravärmare", "Trädgårdsskötsel & Bevattning", "Trädgårdsdekor & Belysning", "Odlingslådor", "Blomställ & växthyllor", "Redskapsbodar & förråd", "Vedställ & vedbodar", "Garagetält", "Skärmtak & entrétak"],
+    heroPicks: [],
+  },
+  {
     main: "Barn & Familj",
     tag: "Genomtänkta favoriter för familjen",
     // Sökordskategorierna 2026-09-24 står här för att /butik ska länka till dem;

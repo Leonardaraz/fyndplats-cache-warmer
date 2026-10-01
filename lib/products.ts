@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { categorySignalIsUsable, keepCategory } from "./category-filter";
+import { categorySignalIsUsable, keepCategory, medForaldrar } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { agareMedAltText } from "./variant-bilder";
 import { formatPrice } from "./price-range";
@@ -1359,15 +1359,18 @@ async function fetchCollections(): Promise<Collection[]> {
     }
 
     const seen = new Set<string>();
-    const list: Collection[] = kategorier
-      .map((c: any) => ({
-        id: c._id || c.id,
-        name: c.name,
-        parentId: (c.parentCategory && c.parentCategory._id) || null,
-        index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
-      }))
+    const raa = kategorier.map((c: any) => ({
+      id: c._id || c.id,
+      name: c.name,
+      parentId: (c.parentCategory && c.parentCategory._id) || null,
+      index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
+    }));
+    // En avdelning med bara underkategorier (Jul & Högtider, Verktyg & Fordon)
+    // har inga egna produkter i Wix. Den räknas som använd när en underkategori är det.
+    const anvanda = medForaldrar(used, raa);
+    const list: Collection[] = raa
       .filter((c: { id: string; name: string }) =>
-        c.id && c.name && !/all products/i.test(c.name) && keepCategory(c.id, used))
+        c.id && c.name && !/all products/i.test(c.name) && keepCategory(c.id, anvanda))
       .map((c: { id: string; name: string; parentId: string | null; index: number }) => {
         let slug = asciiSlug(c.name);
         while (!slug || seen.has(slug)) slug = (slug || "kategori") + "-" + c.id.slice(-4);
