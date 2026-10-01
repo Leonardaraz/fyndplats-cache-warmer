@@ -1,0 +1,190 @@
+{
+ "kalla": "torrkorningen 2026-09-30; alt-texterna ar kapade vid ~55 tecken; givarens position 1 ar valets lankade fil",
+ "sida": {
+  "id": "9304f8b8-afdd-4b6d-af65-7844247fa55a",
+  "namn": "Pergolatak 250 × 255 cm till indragbart tak – tio dräneringshål",
+  "synlig": true,
+  "bilder": [
+   {
+    "id": "b379ce_426ac47168654d218b505ff7c8861026~mv2.jpg",
+    "alt": "Mörkbrun pergoladuk i veck, på vit bakgrund"
+   },
+   {
+    "id": "b379ce_7a829ab95db24387bc264f9d824a6c22~mv2.jpg",
+    "alt": "Den mörkbruna duken på en pergola över ett trädäck där "
+   },
+   {
+    "id": "b379ce_49268eaa57bc4766a192fa3a8ec647d1~mv2.jpg",
+    "alt": "Duken sedd ovanifrån på gräs, 250 × 255 cm"
+   },
+   {
+    "id": "b379ce_e77a804c82fe4193a9c6b9116bb3456c~mv2.jpg",
+    "alt": "Den mörkbruna duken över ett matbord på ett trädäck fra"
+   },
+   {
+    "id": "b379ce_c8ede1a3e16a4d3dbc73171d021729c0~mv2.jpg",
+    "alt": "Den mörkbruna duken på en pergola över en uteplats med "
+   },
+   {
+    "id": "b379ce_7d63f041ddfb420ebfcc13728f988ab3~mv2.jpg",
+    "alt": "Kort: mörkbrun duk till indragbart tak, 250 × 255 cm, p"
+   },
+   {
+    "id": "b379ce_5b90059ab4d2482499da60078c17d498~mv2.jpg",
+    "alt": "Pergolatak 250 × 255 cm till indragbart tak – tio dräneringshål i färgen beige"
+   },
+   {
+    "id": "b379ce_558f97dc18a347bd96b313d124cd54ed~mv2.jpg",
+    "alt": "Pergolatak 250 × 255 cm till indragbart tak – tio dräneringshål i färgen brun"
+   },
+   {
+    "id": "b379ce_50596fb099d04caf82420fe65d907794~mv2.jpg",
+    "alt": "Pergolatak 250 × 255 cm till indragbart tak – tio dräneringshål i färgen mörkgrå"
+   }
+  ],
+  "optioner": [
+   {
+    "namn": "Färg",
+    "val": [
+     {
+      "id": "5dd6f36d-0adb-4137-87b8-e84491a2a74f",
+      "namn": "Mörkbrun",
+      "lankade": [
+       "b379ce_426ac47168654d218b505ff7c8861026~mv2.jpg"
+      ]
+     },
+     {
+      "id": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+      "namn": "Beige",
+      "lankade": [
+       "b379ce_5b90059ab4d2482499da60078c17d498~mv2.jpg"
+      ]
+     },
+     {
+      "id": "44ccec77-b49d-4180-90ef-711b369f63cd",
+      "namn": "Brun",
+      "lankade": [
+       "b379ce_558f97dc18a347bd96b313d124cd54ed~mv2.jpg"
+      ]
+     },
+     {
+      "id": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+      "namn": "Mörkgrå",
+      "lankade": [
+       "b379ce_50596fb099d04caf82420fe65d907794~mv2.jpg"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "givare": [
+  {
+   "id": "8ea111a2-2fc7-4b0f-9116-bf6aa6bf947a",
+   "namn": "Pergolatak till indragbart tak 250 × 255 cm, beige",
+   "val": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+   "bilder": [
+    {
+     "id": "b379ce_5b90059ab4d2482499da60078c17d498~mv2.jpg",
+     "alt": "Pergolatak 250 × 255 cm till indragbart tak – tio dräne"
+    },
+    {
+     "id": "b379ce_45bcb6d01010490e8cb1a96e798ba536~mv2.jpg",
+     "alt": "Beige pergoladuk monterad på en pergola över ett trädäc"
+    },
+    {
+     "id": "b379ce_dc9edd2e1aaf41819e8b387ed908242e~mv2.jpg",
+     "alt": "Faktakort för pergolataket i beige med mått, material, "
+    },
+    {
+     "id": "b379ce_69b8f84d9eb344e28a15362131bd0b6b~mv2.jpg",
+     "alt": "Måttritning av pergolataket sett uppifrån, 2,5 m brett "
+    },
+    {
+     "id": "b379ce_443c9f77ea1347a8bab066c40cb59f4e~mv2.jpg",
+     "alt": "Beige pergoladuk över en uteplats med matbord och stola"
+    },
+    {
+     "id": "b379ce_2848d3aefbe04858bad684b70034fdf3~mv2.jpg",
+     "alt": "Beige pergoladuk över en loungegrupp på en stenlagd ute"
+    }
+   ]
+  },
+  {
+   "id": "bef14fba-186e-415b-b9ac-ebf20b9e42ce",
+   "namn": "Pergolatak till indragbart tak 250 × 255 cm, brun",
+   "val": "44ccec77-b49d-4180-90ef-711b369f63cd",
+   "bilder": [
+    {
+     "id": "b379ce_558f97dc18a347bd96b313d124cd54ed~mv2.jpg",
+     "alt": "Pergolatak 250 × 255 cm till indragbart tak – tio dräne"
+    },
+    {
+     "id": "b379ce_7b3de13a729245878ff6e2000daa5fae~mv2.jpg",
+     "alt": "Brun pergoladuk monterad på en pergola över ett trädäck"
+    },
+    {
+     "id": "b379ce_124fed6ebbdf402fada7f6126d59ed9d~mv2.jpg",
+     "alt": "Faktakort för pergolataket i brun med mått, material, d"
+    },
+    {
+     "id": "b379ce_93ea189c04e64b8b995c0cc680e59c9b~mv2.jpg",
+     "alt": "Måttritning av pergolataket sett uppifrån, 2,5 m brett "
+    }
+   ]
+  },
+  {
+   "id": "6f972315-2b5d-4ca7-89dc-63024a5b1ffb",
+   "namn": "Ersatzplane für 3x3m Pavillons, mit Wasserablauflöchern, 2,50 x 2,55",
+   "val": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+   "bilder": [
+    {
+     "id": "b379ce_50596fb099d04caf82420fe65d907794~mv2.jpg",
+     "alt": "Ersatzplane für 3x3m Pavillons, mit Wasserablauflöchern"
+    },
+    {
+     "id": "b379ce_5ce2db7ae73c46dea4a379eca97d379c~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_f3e93953e4d34d46bb62435230a2183b~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_ab133ba28a8d426980c8303d152a23b3~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_7c07c69db4c14e668646427f8a7bdb20~mv2.jpg",
+     "alt": ""
+    }
+   ]
+  }
+ ],
+ "torrkorningensForslag": {
+  "5dd6f36d-0adb-4137-87b8-e84491a2a74f": [
+   "b379ce_426ac47168654d218b505ff7c8861026~mv2.jpg",
+   "b379ce_7a829ab95db24387bc264f9d824a6c22~mv2.jpg",
+   "b379ce_49268eaa57bc4766a192fa3a8ec647d1~mv2.jpg",
+   "b379ce_e77a804c82fe4193a9c6b9116bb3456c~mv2.jpg",
+   "b379ce_c8ede1a3e16a4d3dbc73171d021729c0~mv2.jpg"
+  ],
+  "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf": [
+   "b379ce_5b90059ab4d2482499da60078c17d498~mv2.jpg",
+   "b379ce_45bcb6d01010490e8cb1a96e798ba536~mv2.jpg",
+   "b379ce_443c9f77ea1347a8bab066c40cb59f4e~mv2.jpg",
+   "b379ce_2848d3aefbe04858bad684b70034fdf3~mv2.jpg"
+  ],
+  "44ccec77-b49d-4180-90ef-711b369f63cd": [
+   "b379ce_558f97dc18a347bd96b313d124cd54ed~mv2.jpg",
+   "b379ce_7b3de13a729245878ff6e2000daa5fae~mv2.jpg"
+  ],
+  "7909f4e8-9ca7-4f3c-91cf-8627290e363d": [
+   "b379ce_50596fb099d04caf82420fe65d907794~mv2.jpg",
+   "b379ce_5ce2db7ae73c46dea4a379eca97d379c~mv2.jpg",
+   "b379ce_f3e93953e4d34d46bb62435230a2183b~mv2.jpg",
+   "b379ce_ab133ba28a8d426980c8303d152a23b3~mv2.jpg",
+   "b379ce_7c07c69db4c14e668646427f8a7bdb20~mv2.jpg"
+  ]
+ }
+}

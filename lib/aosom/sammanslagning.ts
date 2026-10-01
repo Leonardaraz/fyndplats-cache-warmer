@@ -68,6 +68,8 @@ import { harVerkligSeFrakt, type AosomRow } from "./feed";
 import { synligtSaldo } from "./sync";
 import { aosomArtikelbild, aosomArtiklarPaRaden, radensArtikel } from "./artiklar";
 import { pensioneraDubblett } from "./remap";
+import { WIX_BILDTAK, altFor, givarensBilder, harSvenskAlt, olankadeAgare, type TabellRad } from "./fargbilder";
+import type { FargbildLager } from "../store/fargbilder";
 
 type Obj = Record<string, unknown>;
 type MappningsVariant = ProductMappingRecord["variants"][number];
@@ -114,12 +116,16 @@ export interface SammanslagningInput {
   sku?: string;
   /**
    * Vilka av givarens bilder som följer med, 1-baserat i givarens ordning.
-   * Default: huvudbilden när givaren för in en ny färg (eller en ny storlek på
-   * en sida utan färgval) — annars ingen, för då finns bilden redan på sidan.
+   * Anges de följer exakt de med, och inga fler.
    *
-   * ☠️ BARA GRANSKADE BILDER. 46 % av feedens bilder bär tysk text inbränd, och
-   * en del bär husmärkets logotyp. Ett utkast är opolerat — ingen har tittat på
-   * dess bilder. Lägg bara till en bild du SETT.
+   * Default (sedan 2026-09-30): ALLA givarens bilder när givaren för in en ny
+   * färg (eller en ny storlek på en sida utan färgval), med färgbildsverktygets
+   * regler (lib/aosom/fargbilder.ts): givarens egna kort följer inte med, och
+   * en OPOLERAD givares bilder från position 2 skrivs inte utan sparas som
+   * `granskas` i färgbildstabellen — 46 % av feedens bilder bär tysk text
+   * inbränd. Det som inte ryms under Wix tak på 15 bilder sparas i tabellen
+   * (`overflow`), och butiken visar det därifrån. En ny storlek i en färg sidan
+   * redan har tar inga bilder, för den visar samma vara.
    */
   bilder?: number[];
   /**
@@ -152,6 +158,11 @@ export interface SammanslagningDeps {
   omdirigeringar?: Omdirigeringar;
   /** Givarens obehandlade ordrar (väntar på att läggas hos Aosom). */
   oppnaOrdrar?: (wixProductId: string) => Promise<number>;
+  /**
+   * Färgbildstabellen. Obligatorisk: den nya färgens bilder utöver Wix 15 bor
+   * bara där, och en valfri dep glöms av nästa anropare (media-cleanup.ts).
+   */
+  fargbilder: FargbildLager;
   now?: () => number;
   vanta?: (ms: number) => Promise<void>;
 }
@@ -190,7 +201,12 @@ export interface SammanslagningPlan {
   saldoBehall: number | null;
   saldoUtkast: number | null;
   bilderBehall: number;
+  /** Givarens bilder som hamnar i sidans galleri. */
   bilderUtkast: number;
+  /** Givarens bilder som inte ryms under Wix 15 — de sparas i färgbildstabellen. */
+  bilderOverflow: number;
+  /** Opolerade givarbilder från position 2: sparas som `granskas`, skrivs inte. */
+  bilderGranskas: number;
   /** Ligger givaren ute? Då krävs `omdirigera`. */
   givarenPublicerad: boolean;
   /** Givarens recensioner som kopieras till sidan (utan dem som redan finns där). */
@@ -329,10 +345,9 @@ function valFor(v: MappningsVariant | undefined, axel: Axel): string {
   return String((v?.choices ?? {})[axel] ?? "").trim();
 }
 
-/** Valets kopplade bild, om det har en. */
-function lankadBild(c: Obj): string | null {
-  const m = ((c.linkedMedia ?? []) as Obj[])[0];
-  return m && typeof m.id === "string" ? m.id : null;
+/** Valets kopplade bilder, i Wix ordning. */
+function lankadeBilder(c: Obj): string[] {
+  return ((c.linkedMedia ?? []) as Obj[]).map((m) => (typeof m.id === "string" ? m.id : "")).filter(Boolean);
 }
 
 const arAxel = (s: string): s is Axel => (AXLAR as readonly string[]).includes(s);
@@ -392,14 +407,6 @@ function giltigtVarde(axel: Axel, v: string): boolean {
   return /^[0-9A-Za-zÅÄÖåäöÉéØø][0-9A-Za-zÅÄÖåäöÉéØø ×x,./–-]*$/.test(v) && redigera(v) === v;
 }
 
-function altFor(namn: string, val: Koordinat, n: number): string {
-  const delar: string[] = [];
-  if (val.Färg) delar.push(`färgen ${val.Färg.toLowerCase()}`);
-  if (val.Storlek) delar.push(`storleken ${val.Storlek}`);
-  const bas = delar.length ? `${namn} i ${delar.join(" och ")}` : namn;
-  return n === 1 ? bas : `${bas}, bild ${n}`;
-}
-
 const lika = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 function sammaMangd(a: string[], b: string[]): boolean {
@@ -441,15 +448,87 @@ function omdirigeringsrad(wp: Obj, wd: Obj): RedirectRow {
   };
 }
 
+/** Tar givaren med bilder alls? Bara när den för in ett nytt värde på bildaxeln. */
+function givarenGerBilder(input: SammanslagningInput, plan: SammanslagningPlan): boolean {
+  return !!input.bilder?.length || plan.nyaVarden.includes(bildAxel(plan.axlar));
+}
+
+/** Givarens bilder fördelade: vad som går till galleriet, tabellen och granskningen. */
+export interface GivarFordelning {
+  /** Valets bilder i galleriet, i ordning — huvudbilden först. Blir valets `linkedMedia`. */
+  lista: string[];
+  /** Bilder som läggs till i galleriet, med alt-text. */
+  nya: { id: string; altText: string }[];
+  /** Utöver Wix 15: bara i färgbildstabellen. */
+  overflow: string[];
+  /** Opolerad givare, position 2 och senare: sparas men skrivs inte. */
+  granskas: string[];
+  /** 1-baserade positioner som inte finns (bara med `bilder`). */
+  ogiltiga: boolean;
+}
+
 /**
- * Givarens bilder som följer med (1-baserat). Default är huvudbilden när
- * givaren för in ett nytt värde på bildaxeln — en ny färg, eller en ny storlek
- * på en sida utan färgval. Annars ingen: en ny storlek i en färg sidan redan
- * har visar samma vara som sidans bild, och en extra bild är bara brus.
+ * Fördelar givarens bilder under Wix tak. Ren. Med `bilder` följer exakt de
+ * med; annars alla enligt färgbildsverktygets regler (se `bilder` i input).
+ * Bilder som redan ligger på sidan (en omkörning efter `wix_klar`) räknas som
+ * tillagda och tar ingen ny plats.
  */
-function valdaBilder(input: SammanslagningInput, plan: SammanslagningPlan): number[] {
-  if (input.bilder?.length) return input.bilder;
-  return plan.nyaVarden.includes(bildAxel(plan.axlar)) ? [1] : [];
+export function fordelaGivarensBilder(
+  bilderP: readonly { id: string; altText: string }[],
+  bilderD: readonly { id: string; altText: string }[],
+  givarNamn: string,
+  sidNamn: string,
+  nyttVal: Koordinat,
+  valda?: number[],
+): GivarFordelning {
+  const pa = new Set(bilderP.map((b) => b.id));
+  let rum = WIX_BILDTAK - bilderP.length;
+  const kandidater: { id: string; alt: string; granskas: boolean }[] = [];
+  let ogiltiga = false;
+  if (valda?.length) {
+    ogiltiga = valda.some((n) => !Number.isInteger(n) || n < 1 || n > bilderD.length) || new Set(valda).size !== valda.length;
+    if (!ogiltiga) for (const n of valda) kandidater.push({ id: bilderD[n - 1].id, alt: bilderD[n - 1].altText, granskas: false });
+  } else {
+    const gb = givarensBilder({ id: "", namn: givarNamn, bilder: bilderD.map((b) => ({ id: b.id, alt: b.altText })) });
+    for (const b of gb.bilder) kandidater.push({ id: b.id, alt: b.alt, granskas: b.granskas });
+  }
+  const ut: GivarFordelning = { lista: [], nya: [], overflow: [], granskas: [], ogiltiga };
+  for (const b of kandidater) {
+    if (b.granskas) {
+      ut.granskas.push(b.id);
+      continue;
+    }
+    if (pa.has(b.id)) {
+      ut.lista.push(b.id);
+      continue;
+    }
+    if (rum > 0) {
+      rum--;
+      ut.lista.push(b.id);
+      const n = ut.lista.length;
+      ut.nya.push({ id: b.id, altText: harSvenskAlt(b.alt) ? b.alt : altFor(sidNamn, nyttVal, n) });
+      continue;
+    }
+    ut.overflow.push(b.id);
+  }
+  return ut;
+}
+
+/** Tabellraderna för den nya färgen: galleriet, overflow och det som granskas. */
+export function givarRader(
+  wixProductId: string,
+  choiceId: string,
+  choiceName: string,
+  givareId: string,
+  f: GivarFordelning,
+): TabellRad[] {
+  const rad = (filId: string, ordning: number, plats: TabellRad["plats"]): TabellRad =>
+    ({ wixProductId, choiceId, choiceName, ordning, filId, plats, givareId });
+  return [
+    ...f.lista.map((id, i) => rad(id, i, "galleri")),
+    ...f.overflow.map((id, i) => rad(id, f.lista.length + i, "overflow")),
+    ...f.granskas.map((id, i) => rad(id, f.lista.length + f.overflow.length + i, "granskas")),
+  ];
 }
 
 // ── planen ──────────────────────────────────────────────────────────────────
@@ -605,6 +684,8 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     saldoUtkast: l.rad && harVerkligSeFrakt(l.rad) ? synligtSaldo(l.rad.qty) : null,
     bilderBehall: bilderAv(l.wp).length,
     bilderUtkast: 0,
+    bilderOverflow: 0,
+    bilderGranskas: 0,
     givarenPublicerad: false,
     recensionerAttKopiera: null,
     omdirigering: null,
@@ -720,11 +801,19 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
   if (varianterAv(wd).length !== 1) hindra("utkast_flera_varianter_i_wix");
 
   const bilderUtkast = bilderAv(wd);
-  const valda = valdaBilder(input, plan);
-  if (valda.some((n) => !Number.isInteger(n) || n < 1 || n > bilderUtkast.length) || new Set(valda).size !== valda.length) {
-    hindra("bilder_ogiltiga");
+  if (givarenGerBilder(input, plan)) {
+    const f = fordelaGivarensBilder(bilderAv(wp), bilderUtkast, String(wd.name ?? ""), namn, plan.nyttVal, input.bilder);
+    if (f.ogiltiga) hindra("bilder_ogiltiga");
+    plan.bilderUtkast = f.lista.length;
+    plan.bilderOverflow = f.overflow.length;
+    plan.bilderGranskas = f.granskas.length;
+    // Huvudbilden måste rymmas i galleriet — den blir valets bild.
+    const huvud = input.bilder?.length ? bilderUtkast[(input.bilder[0] ?? 0) - 1]?.id : bilderUtkast[0]?.id;
+    if (!f.ogiltiga && huvud && !f.lista.includes(huvud)) hindra("galleriet_fullt");
+    if (f.overflow.length > 0) {
+      varningar.push(`${f.overflow.length} av givarens bilder ryms inte under Wix 15 — de sparas i färgbildstabellen`);
+    }
   }
-  plan.bilderUtkast = valda.length;
   if (bilderAv(wp).length === 0) hindra("behall_saknar_bilder");
   if (nyaVarden.includes(bildAxel(axlar)) && bilderUtkast.length === 0) hindra("utkast_saknar_bilder");
 
@@ -857,8 +946,16 @@ function kostnad(v: { landedCostSek?: number } | undefined): Obj {
     : {};
 }
 
-/** Bilden varje val ska bära: axel → valets namn → Wix-mediets id. */
-type BildKarta = Record<string, Record<string, string>>;
+/**
+ * Bilderna varje val ska bära: axel → valets namn → Wix-mediernas id, huvud-
+ * bilden först.
+ *
+ * ☠️ HELA LISTAN, INTE FÖRSTA BILDEN (2026-09-30). Kartan bar tidigare bara
+ * valets första bild, och återkopplingen skrev `linkedMedia: [första]` på
+ * varje val i kartan. En sida vars färger fått alla sina bilder
+ * (lib/aosom/fargbilder.ts) hade alltså tappat dem vid nästa sammanslagning.
+ */
+type BildKarta = Record<string, Record<string, string[]>>;
 
 // ☠️ Kartan slås upp skiftlägesokänsligt, som allt annat i sammanslagningen
 // (`lika`). Wix sparar ett nytt val med den delade listans stavning: "Svart och
@@ -868,16 +965,16 @@ type BildKarta = Record<string, Record<string, string>>;
 const nyckelFor = (m: Record<string, unknown>, namn: string) =>
   Object.keys(m).find((k) => lika(k, namn));
 
-function bildFor(karta: BildKarta, axel: string, varde: string): string | undefined {
+function bildFor(karta: BildKarta, axel: string, varde: string): string[] | undefined {
   const a = nyckelFor(karta, axel);
   const v = a === undefined ? undefined : nyckelFor(karta[a], varde);
   return a === undefined || v === undefined ? undefined : karta[a][v];
 }
 
 /** Sätter ett vals bild. Finns valet redan under en annan stavning skrivs den posten. */
-function satt(karta: BildKarta, axel: string, varde: string, id: string): void {
+function satt(karta: BildKarta, axel: string, varde: string, idn: string[]): void {
   const m = (karta[nyckelFor(karta, axel) ?? axel] ??= {});
-  m[nyckelFor(m, varde) ?? varde] = id;
+  m[nyckelFor(m, varde) ?? varde] = [...idn];
 }
 
 const antalIBildkarta = (karta: BildKarta) =>
@@ -899,7 +996,7 @@ interface Kontroll {
   /** Gamla variant-id → det id varianten har efter skrivningen. */
   idFor: Record<string, string>;
   nyId?: string;
-  /** Hur många av valen som ska ha en bild som faktiskt har en. */
+  /** Hur många av valen som ska ha bilder som faktiskt har exakt dem. */
   lankade: number;
 }
 
@@ -922,7 +1019,10 @@ function kontrollera(
     if (!sammaMangd(val.map((c) => String(c.name ?? "")), plan.varden[a] ?? [])) {
       skal.push(`optionen ${a} har inte exakt de väntade valen`);
     }
-    lankade += val.filter((c) => bildFor(bildPerVal, a, String(c.name ?? "")) && lankadBild(c)).length;
+    lankade += val.filter((c) => {
+      const onskat = bildFor(bildPerVal, a, String(c.name ?? ""));
+      return !!onskat?.length && lankadeBilder(c).join("|") === onskat.join("|");
+    }).length;
   }
   const varianter = varianterAv(p);
   if (varianter.length !== plan.varianter) skal.push("fel antal varianter");
@@ -960,7 +1060,8 @@ function kontrollera(
  * Kopplar valens bilder på en produkt som redan har optionerna. Samma metod
  * som `linkChoiceMedia`: options med `linkedMedia` + variantsInfo ordagrant,
  * och `visible` med — en variantsInfo-PATCH publicerar annars ett utkast. Val
- * som inte står i kartan lämnas som de är.
+ * som inte står i kartan lämnas som de är, och ett val i kartan får HELA sin
+ * lista (se BildKarta).
  */
 async function kopplaValbilder(
   wix: WixAnrop,
@@ -974,8 +1075,8 @@ async function kopplaValbilder(
     choicesSettings: {
       ...((o.choicesSettings as Obj | undefined) ?? {}),
       choices: valAv(o).map((c) => {
-        const bildId = bildFor(bildPerVal, String(o.name ?? ""), String(c.name ?? ""));
-        return bildId ? { ...c, linkedMedia: [{ id: bildId }] } : c;
+        const idn = bildFor(bildPerVal, String(o.name ?? ""), String(c.name ?? ""));
+        return idn?.length ? { ...c, linkedMedia: idn.map((id) => ({ id })) } : c;
       }),
     },
   }));
@@ -1033,20 +1134,20 @@ export async function korSammanslagning(
   const pNamn = String(wp.name ?? "");
   const bilderP = bilderAv(wp);
   const bilderD = bilderAv(wd);
-  const valda = valdaBilder(input, plan).map((n, i) => ({
-    id: bilderD[n - 1].id,
-    altText: altFor(pNamn, plan.nyttVal, i + 1),
-  }));
+  const fordelning = givarenGerBilder(input, plan)
+    ? fordelaGivarensBilder(bilderP, bilderD, String(wd.name ?? ""), pNamn, plan.nyttVal, input.bilder)
+    : { lista: [], nya: [], overflow: [], granskas: [], ogiltiga: false };
+  const valda = fordelning.nya;
   const forvantadeBilder = [...bilderP.map((b) => b.id), ...valda.map((b) => b.id)];
 
-  // Bilderna valen ska bära efteråt. Ett val som redan har en kopplad bild
-  // behåller den — och står med i kartan, så en skrivning som tappat den
-  // kopplas om i återläsningen i stället för att tyst lämnas bildlös.
+  // Bilderna valen ska bära efteråt. Ett val som redan har kopplade bilder
+  // behåller HELA listan — och står med i kartan, så en skrivning som tappat
+  // dem kopplas om i återläsningen i stället för att tyst lämnas bildlös.
   const bildPerVal: BildKarta = {};
   for (const o of optionerAv(wp)) {
     for (const c of valAv(o)) {
-      const b = lankadBild(c);
-      if (b) satt(bildPerVal, String(o.name ?? ""), String(c.name ?? ""), b);
+      const b = lankadeBilder(c);
+      if (b.length) satt(bildPerVal, String(o.name ?? ""), String(c.name ?? ""), b);
     }
   }
   const bAx = bildAxel(plan.axlar);
@@ -1056,11 +1157,23 @@ export async function korSammanslagning(
   const annanAxelHarBilder = Object.entries(bildPerVal).some(([a, m]) => !lika(a, bAx) && Object.keys(m).length > 0);
   const sidansBildval = plan.sidansVal[bAx];
   if (plan.nyaAxlar.includes(bAx) && sidansBildval && !annanAxelHarBilder && !bildFor(bildPerVal, bAx, sidansBildval) && bilderP[0]) {
-    satt(bildPerVal, bAx, sidansBildval, bilderP[0].id);
+    // Sidans färg får sina egna foton, inte bara huvudbilden, med butikens
+    // ägarregler (lib/aosom/fargbilder.ts): kort och bilder som nämner båda
+    // färgerna är gemensamma. Annars hade butiken visat sidans foton också
+    // för givarens färg, när den har fler än en bild.
+    const egna = bAx === "Färg" && plan.nyttVal[bAx]
+      ? [...olankadeAgare(
+        bilderP.slice(1).map((b) => ({ id: b.id, alt: b.altText })),
+        new Set(),
+        [sidansBildval, plan.nyttVal[bAx]!],
+        sidansBildval,
+      )].filter(([, agare]) => agare === sidansBildval).map(([id]) => id)
+      : [];
+    satt(bildPerVal, bAx, sidansBildval, [bilderP[0].id, ...egna]);
   }
   const givarensBildval = plan.nyttVal[bAx];
-  if (givarensBildval && valda[0] && !bildFor(bildPerVal, bAx, givarensBildval)) {
-    satt(bildPerVal, bAx, givarensBildval, valda[0].id);
+  if (givarensBildval && fordelning.lista.length && !bildFor(bildPerVal, bAx, givarensBildval)) {
+    satt(bildPerVal, bAx, givarensBildval, fordelning.lista);
   }
 
   // Varianterna före skrivningen — återläsningen jämför mot dem. Varje variant
@@ -1237,6 +1350,38 @@ export async function korSammanslagning(
         + "Synken nollar den nya variantens lager tills den är mappad. Kör om, så kopplas bilderna igen.",
     );
   }
+  // ── 3b: den nya färgens hela bildlista i färgbildstabellen ─────────────
+  // Före mappningen, med flit: faller tabellen hamnar omkörningen i
+  // `wix_klar` och skriver den igen. Efter mappningen och pensioneringen
+  // hade ingen omkörning sett att bilderna utöver Wix 15 aldrig sparades.
+  const nyttBildval = plan.nyttVal[bAx];
+  if (nyttBildval && fordelning.lista.length > 0) {
+    const efterP = await lasProdukt(deps.wix, input.behall);
+    const option = optionerAv(efterP).find((o) => lika(String(o.name ?? ""), bAx));
+    const val = option ? valAv(option).find((c) => lika(String(c.name ?? ""), nyttBildval)) : undefined;
+    const choiceId = typeof val?.choiceId === "string" ? val.choiceId : "";
+    if (!choiceId) {
+      return svar(false, "den nya färgens val-id gick inte att läsa — färgbildstabellen skrevs INTE, mappningen skrevs INTE. Kör om.");
+    }
+    const rader = givarRader(input.behall, choiceId, String(val!.name ?? nyttBildval), input.utkast, fordelning);
+    try {
+      await deps.fargbilder.ersattForVal(input.behall, choiceId, rader);
+      const tillbaka = (await deps.fargbilder.lasForProdukt(input.behall)).filter((r) => r.choiceId === choiceId);
+      const nyckel = (r: TabellRad) => `${r.ordning}|${r.filId}|${r.plats}`;
+      if (tillbaka.map(nyckel).sort().join(",") !== rader.map(nyckel).sort().join(",")) {
+        return svar(false, "färgbildstabellen läste inte tillbaka — mappningen skrevs INTE. Kör om.");
+      }
+      // Wix är redan återläst ovan, så valets rader är bekräftade.
+      await deps.fargbilder.bekraftaWix(input.behall, choiceId);
+    } catch (e) {
+      return svar(false, `färgbildstabellen föll: ${felText(e)} — mappningen skrevs INTE. Kör om.`);
+    }
+    steg.push(
+      `färgbilder: ${fordelning.lista.length} i galleriet, ${fordelning.overflow.length} utöver Wix 15, `
+        + `${fordelning.granskas.length} att granska (i tabellen)`,
+    );
+  }
+
   const lager = await lasLager(deps.wix, input.behall);
   const antal = (id: string | undefined) => lager.find((x) => x.variantId === id)?.quantity;
   const qNy = antal(k.nyId);

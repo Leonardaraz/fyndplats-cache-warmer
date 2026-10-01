@@ -8,7 +8,8 @@
 // Läsvägen bor i headless-appen; HÄR ligger skrivvägen, eftersom motorn har
 // Wix-admin-nyckeln och är den som upptäcker borttagna produkter.
 
-import { listAllV3Products } from "./v3-products";
+import { mapWithConcurrency } from "../concurrency";
+import { katalogenHarSynligProdukt, slugArSynligProdukt } from "./v3-products";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COLLECTION = process.env.WIX_DATA_COL_REDIRECTS ?? "FyndplatsRedirects";
@@ -59,6 +60,20 @@ export interface RedirectConflict {
 }
 
 /**
+ * Hur många slug-frågor en batch har i luften samtidigt. En rad kostar som mest
+ * två frågor à ~0,1 s, så femtio rader tar ett par sekunder med fyra i taget.
+ * En obegränsad `Promise.all` hade avfyrat alla på en gång mot en Wix som
+ * stryper på tempo (se `lib/concurrency.ts` för vad en obegränsad fan-out kostat).
+ */
+export const SAMTIDIGA_SLUGFRAGOR = 4;
+
+/** Produktmålets slug i gemener, eller "" när målet inte är en produktsida. */
+function produktmalSlug(toPath: string): string {
+  const to = (toPath || "").trim();
+  return to.startsWith("/produkt/") ? to.slice("/produkt/".length).split(/[?#]/)[0].toLowerCase() : "";
+}
+
+/**
  * Andra försvarslinjen: stoppar redirects som pekar BORT från levande sidor.
  *
  * validateRedirect() ser bara på strängarna. Den kan inte veta om slugen
@@ -98,7 +113,16 @@ export interface RedirectConflict {
  *   2. toPath som pekar på /produkt/<slug> måste vara en levande produkt
  *      (annars omdirigerar vi från en död sida till en annan död sida).
  *
- * Fail-CLOSED med flit: går katalogen inte att läsa vet vi inget och skriver
+ * ☠️ FRÅGA PER ADRESS, LÄS ALDRIG HELA KATALOGEN (2026-09-30). Kontrollen läste
+ * hela katalogen för att svara på en fråga om en eller två adresser: 6 311
+ * produkter på 64 sidor, ~1 s per sida. Att stryka PLAIN_DESCRIPTION
+ * (`4a0dd284`) räckte inte, för bara sidorna tog ~63 s mot ruttens tak på 60.
+ * Rutten dog med 504 två gånger samma kväll på EN rad, och raden fick
+ * kontrolleras för hand och skrivas med `force`. Nu ställs en exakt slug-fråga
+ * per berörd adress (`slugArSynligProdukt`), och en rad kostar tre frågor på
+ * ~0,1 s var.
+ *
+ * Fail-CLOSED med flit: går en fråga inte att ställa vet vi inget och skriver
  * inget. Motsatsen — skriva i blindo — är just det som orsakade incidenten.
  * Läsvägen i storefronten är fortfarande fail-open; att INTE kunna lägga till
  * en redirect är ofarligt, att lägga till fel redirect är det inte.
@@ -106,22 +130,27 @@ export interface RedirectConflict {
 export async function findRedirectConflicts(rows: RedirectRow[]): Promise<RedirectConflict[]> {
   if (!rows.length) return [];
 
-  let liveSlugs: Set<string>;
+  const kallor = rows.map((r) => (r.fromSlug || "").trim().toLowerCase());
+  const mal = rows.map((r) => produktmalSlug(r.toPath));
+  // Varje adress frågas en gång, även när flera rader pekar på samma mål.
+  const slugs = [...new Set([...kallor, ...mal].filter(Boolean))];
+
+  const synlig = new Map<string, boolean>();
   try {
-    // ☠️ Utan beskrivning. Kontrollen läser bara slug och synlighet, och med
-    // PLAIN_DESCRIPTION blev hela katalogen ett sextiotal tunga sidor som når
-    // rutten tak på 60 sekunder (B69, B87) — skrivningen dog innan den ens
-    // började, och en omdirigering fick läggas om för hand.
-    const products = await listAllV3Products({ beskrivning: false });
-    liveSlugs = new Set(
-      products
-        // Samma riktning som resten av huset: saknat `visible` räknas som
-        // synligt. Att tyst klassa en produkt som död för att ett fält inte
-        // kom med vore fel åt det håll som kapar en säljande sida.
-        .filter((p) => p.visible !== false)
-        .map((p) => (p.slug || "").trim().toLowerCase())
-        .filter(Boolean),
-    );
+    // Med en fråga per adress ÄR "ingen träff" beskedet att en källa är
+    // ledig, så en tom eller felkopplad katalog hade godkänt varje rad. Samma
+    // spärr som helkatalogsläsningen hade mot noll synliga produkter. Den går
+    // först, så att en fallen kontroll inte hinner starta några slug-frågor.
+    if (!(await katalogenHarSynligProdukt())) {
+      return rows.map((r) => ({
+        fromSlug: r.fromSlug,
+        problem: "produktkatalogen kom tillbaka tom — vägrar skriva utan facit",
+      }));
+    }
+    // En lambda, inte funktionen rakt av: mapWithConcurrency skickar index som
+    // andra argument, och där tar slugArSynligProdukt emot sin fetch.
+    const svar = await mapWithConcurrency(slugs, SAMTIDIGA_SLUGFRAGOR, (slug) => slugArSynligProdukt(slug));
+    slugs.forEach((slug, i) => synlig.set(slug, svar[i]));
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 200) : String(err);
     return rows.map((r) => ({
@@ -129,22 +158,10 @@ export async function findRedirectConflicts(rows: RedirectRow[]): Promise<Redire
       problem: `kunde inte verifiera mot produktkatalogen, skriver inget: ${detail}`,
     }));
   }
-  // Tom katalog = misslyckat uppslag som såg ut att lyckas. Vore den sann
-  // skulle varenda rad godkännas, vilket är exakt fel utfall.
-  // Tom lista av SYNLIGA produkter är samma sak som ett misslyckat uppslag:
-  // vore den sann skulle varje rad godkännas, och målkontrollen skulle vägra
-  // varenda redirect. Fail-closed, oförändrat.
-  if (liveSlugs.size === 0) {
-    return rows.map((r) => ({
-      fromSlug: r.fromSlug,
-      problem: "produktkatalogen kom tillbaka tom — vägrar skriva utan facit",
-    }));
-  }
 
   const conflicts: RedirectConflict[] = [];
-  for (const row of rows) {
-    const from = (row.fromSlug || "").trim().toLowerCase();
-    if (liveSlugs.has(from)) {
+  for (const [i, row] of rows.entries()) {
+    if (synlig.get(kallor[i]) === true) {
       conflicts.push({
         fromSlug: row.fromSlug,
         problem: `"${row.fromSlug}" är fortfarande en synlig produkt — en 301 hade kapat en säljande sida`,
@@ -152,10 +169,7 @@ export async function findRedirectConflicts(rows: RedirectRow[]): Promise<Redire
       continue;
     }
     const to = (row.toPath || "").trim();
-    const targetSlug = to.startsWith("/produkt/")
-      ? to.slice("/produkt/".length).split(/[?#]/)[0].toLowerCase()
-      : "";
-    if (targetSlug && !liveSlugs.has(targetSlug)) {
+    if (mal[i] && synlig.get(mal[i]) !== true) {
       conflicts.push({
         fromSlug: row.fromSlug,
         problem: `målet ${to} är ingen synlig produkt — redirecten hade lett till en 404`,
