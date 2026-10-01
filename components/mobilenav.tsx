@@ -5,6 +5,7 @@ import { SearchBox } from "./searchbox";
 import { AuctionDot } from "./auction-dot";
 import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
+import { useMenyAntal } from "./use-meny-antal";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -23,6 +24,8 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   // Vilka huvudkategorier som är utfällda (accordion). Set → flera kan vara
   // öppna samtidigt; tapp på namnet navigerar, tapp på chevron fäller ut.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Antalen hämtas i webbläsaren; trädet kommer utan siffror (lib/meny-antal.ts).
+  const antal = useMenyAntal();
 
   // Render the overlay + drawer via a portal on <body>. The <header> uses
   // backdrop-filter, which makes it a containing block for fixed-position
@@ -94,7 +97,7 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
                             {g.subs.map((s) => (
                               <a key={s.id} className="mm-sub" href={`/kategori/${s.slug}`} onClick={closeMenu}>
                                 <span>{s.name}</span>
-                                <span className="mm-sub-count">{s.count}</span>
+                                {antal?.[s.slug] !== undefined && <span className="mm-sub-count">{antal[s.slug]}</span>}
                               </a>
                             ))}
                           </div>

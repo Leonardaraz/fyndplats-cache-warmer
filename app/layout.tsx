@@ -6,7 +6,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "../components/cart";
-import { getProducts, getCollections, forListings, cartRecommendations } from "../lib/products";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { WishlistProvider } from "../components/wishlist";
 // Below-fold / interaction-only components — code-split via next/dynamic so
@@ -212,9 +211,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Bästsäljar-rekommendationer till cart-drawerns "Andra köpte också"-block.
-  // getProducts() är cache:ad så detta delar fetch med övriga server-renders.
-  const cartRecos = cartRecommendations(forListings(await getProducts()), await getCollections());
+  // Varukorgens "Andra köpte också" hämtas av varukorgen själv från
+  // /api/kundvagn-forslag. Förslagen (åtta produkter med pris) låg förut här och
+  // därmed i varje sidas data, så ett ändrat pris gjorde alla sidor "nya".
   // data-scroll-behavior: Next 16 rör inte längre scroll-behavior vid
   // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
   // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
@@ -258,7 +257,7 @@ export default async function RootLayout({
             <SiteHeader />
             <main>{children}</main>
             <SiteFooter />
-            <CartDrawer recommendations={cartRecos} />
+            <CartDrawer />
             <WishlistDrawer />
             <BackToTop />
           </WishlistProvider>

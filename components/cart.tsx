@@ -298,8 +298,43 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
   );
 }
 
-export function CartDrawer({ recommendations = [] }: { recommendations?: RecoProduct[] }) {
+// "Andra köpte också" hämtas här, inte i layouten: åtta produkter med pris i
+// varje sidas data gjorde alla sidor "nya" så fort ett pris ändrades
+// (app/api/kundvagn-forslag). Hämtas när webbläsaren är ledig efter laddning —
+// varukorgen är stängd tills man öppnar den, och då ligger förslagen redan där.
+let forslagLofte: Promise<RecoProduct[]> | null = null;
+function hamtaForslag(): Promise<RecoProduct[]> {
+  if (!forslagLofte) {
+    forslagLofte = fetch("/api/kundvagn-forslag")
+      .then((r) => (r.ok ? r.json() : { forslag: [] }))
+      .then((b: { forslag?: RecoProduct[] }) => (Array.isArray(b.forslag) ? b.forslag : []))
+      .catch(() => []);
+  }
+  return forslagLofte;
+}
+
+export function CartDrawer() {
   const { cart, open, setOpen, remove, updateQty, checkout, busy, count } = useCart();
+  const [recommendations, setRecommendations] = useState<RecoProduct[]>([]);
+  useEffect(() => {
+    let aktiv = true;
+    const hamta = () => hamtaForslag().then((f) => { if (aktiv) setRecommendations(f); });
+    // Ledig tid efter laddningen; äldre Safari saknar requestIdleCallback.
+    const ledig = "requestIdleCallback" in window;
+    const id = ledig ? window.requestIdleCallback(hamta) : window.setTimeout(hamta, 1500);
+    return () => {
+      aktiv = false;
+      if (ledig) window.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+  // Öppnas varukorgen innan den lediga tiden kom: hämta direkt.
+  useEffect(() => {
+    if (!open) return;
+    let aktiv = true;
+    hamtaForslag().then((f) => { if (aktiv) setRecommendations(f); });
+    return () => { aktiv = false; };
+  }, [open]);
   const items: any[] = cart?.lineItems || [];
   // "Andra köpte också": visa upp till 3 rekommendationer som inte redan ligger
   // i varukorgen (matchas på Wix-katalog-id). Hjälper att fylla fri-frakt-gapet.
