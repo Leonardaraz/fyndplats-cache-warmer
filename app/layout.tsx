@@ -149,6 +149,9 @@ const SIDBYTE_SKRIPT =
   "function av(){var b=el();if(b)b.removeAttribute('data-pa');clearTimeout(t);clearInterval(i)}" +
   "document.addEventListener('click',function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;" +
   "var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;" +
+  // Hjärtat på produktkortet är en knapp inne i kortets länk. React stoppar
+  // navigeringen först efter den här lyssnaren, så linjen lyste i 8 s.
+  "var k=e.target.closest('button,[role=button],input,select,textarea');if(k&&a.contains(k))return;" +
   "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
   "if(u.pathname===location.pathname&&u.search===location.search)return;" +
   "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +

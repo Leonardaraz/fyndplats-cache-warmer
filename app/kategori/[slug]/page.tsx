@@ -233,7 +233,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       <section className="kat-hero">
         <div className="container">
           <nav className="crumbs" aria-label="Brödsmulor">
-            <PrefetchLink href="/">Hem</PrefetchLink> <span>/</span> <PrefetchLink href="/butik">Butik</PrefetchLink> <span>/</span>
+            {/* Vanlig länk: skyddet mot att introt spelas om (INTRO_EN_GANG i
+                components/site.tsx) körs bara vid en hel sidladdning. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/">Hem</a> <span>/</span> <PrefetchLink href="/butik">Butik</PrefetchLink> <span>/</span>
             {parent && (<><PrefetchLink href={`/kategori/${parent.slug}`}>{parent.name}</PrefetchLink> <span>/</span> </>)}
             <em>{active.name}</em>
           </nav>

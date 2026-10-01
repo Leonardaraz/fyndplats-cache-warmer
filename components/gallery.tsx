@@ -220,6 +220,9 @@ export function Gallery({
     setShown("");
     setGlomt(true);
   }
+  // När den nya bilden visas gäller vanlig övertoning igen; annars blinkade
+  // varje senare bildbyte för den som kom via en annonslänk.
+  if (glomt && shown) setGlomt(false);
 
   // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
   // tillkommer (mounted är dep i complete-scan-effekten nedan — en ny array per

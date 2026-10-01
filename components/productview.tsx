@@ -457,13 +457,18 @@ export function ProductView({
     } catch { /* ingen adress */ }
     const valjFarg = (nyckel: string): boolean => {
       const harFarg = (text: string | undefined) => !!text && colorKeysOf(text).has(nyckel);
+      // Har förvalet redan färgen står det kvar. Servern döljer ingenting i
+      // det läget (page.tsx), så ett byte här hade synts som ett hopp i pris
+      // eller nyans efter hydreringen.
       if (multiAxis) {
+        if (Object.values(picked).some(harFarg)) return false;
         const med = table.filter((t) => Object.values(t.choices).some(harFarg));
         const rad = med.find((t) => t.inStock) ?? med[0];
         if (!rad || findVariant(table, picked) === rad) return false;
         setPicked({ ...rad.choices });
         return true;
       }
+      if (harFarg(imageChoices[sel]?.label)) return false;
       const kandidater = imageChoices.map((c, i) => ({ c, i })).filter(({ c }) => harFarg(c.label));
       const val = kandidater.find(({ c }) => c.inStock !== false) ?? kandidater[0];
       if (!val || !hasImageVariants || val.i === sel) return false;
