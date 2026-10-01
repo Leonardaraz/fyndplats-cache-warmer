@@ -20,7 +20,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { PHRASE_SV, svLocation, dedupeEvents } from "@/lib/track-i18n";
-import { maskCarrier } from "@/lib/carrier-mask";
+import { maskCarrier, transportorForNummer } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
 import { registerWith17Track } from "@/lib/track17";
@@ -254,7 +254,7 @@ function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetch
     status: ae.status,
     delivered: ae.status === "Delivered",
     eta: ae.eta,
-    carrier: ae.carrier,
+    ...transportorForNummer(tn, ae.carrier || ""),
     trackingNumber: tn,
     updatedAt: ae.events[0]?.time || new Date().toISOString(),
   };
@@ -310,7 +310,7 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
       status,
       delivered: status === "Delivered",
       eta,
-      carrier,
+      ...transportorForNummer(accepted.number || tn, carrier),
       trackingNumber: accepted.number || tn,
       updatedAt: latestTime || new Date().toISOString(),
     },

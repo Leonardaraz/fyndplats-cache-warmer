@@ -63,6 +63,8 @@ type TrackResp = {
   delivered?: boolean;
   eta?: string | null;
   carrier?: string;
+  /** Vem som delar ut i Sverige, när det inte är samma som `carrier`. */
+  sistaLed?: string;
   trackingNumber?: string;
   orderId?: string;
   updatedAt?: string;
@@ -220,6 +222,7 @@ export function TrackingWidget() {
           <h3 className="track-h">Spårningshistorik</h3>
           <div className="track-sub">
             Levereras med {carrier}
+            {data.sistaLed && <>, delas ut av {data.sistaLed} i Sverige</>}
             {/* Senast uppdaterad = nyaste händelsens tid — visar kunden att
                 spårningen lever även när stegen står stilla en dag. */}
             {(data.updatedAt || events[0]?.time) && (

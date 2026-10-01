@@ -8,7 +8,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { maskCarrier, maskCarrierOrUndefined, MASKED_CARRIER } from "./carrier-mask.ts";
+import { maskCarrier, maskCarrierOrUndefined, MASKED_CARRIER, transportorForNummer } from "./carrier-mask.ts";
 
 test("AliExpress/Cainiao identity is ALWAYS masked", () => {
   for (const name of [
@@ -56,4 +56,13 @@ test("Empty/unknown carrier never leaks", () => {
   assert.equal(maskCarrierOrUndefined("Some Random Courier AB"), undefined);
   assert.equal(maskCarrier(null), "");
   assert.equal(maskCarrier(undefined), "");
+});
+
+test("DHL-nummer från Tyskland visas som DHL, med PostNord som sista led", () => {
+  assert.deepEqual(transportorForNummer("CC145357991DE", "PostNord"), { carrier: "DHL", sistaLed: "PostNord" });
+  assert.deepEqual(transportorForNummer("cc145357991de", ""), { carrier: "DHL" });
+  assert.deepEqual(transportorForNummer("CC145357991DE", MASKED_CARRIER), { carrier: "DHL" });
+  // Svenska S10 och övriga nummer lämnas som 17TRACK sa.
+  assert.deepEqual(transportorForNummer("RR123456789SE", "PostNord"), { carrier: "PostNord" });
+  assert.deepEqual(transportorForNummer("01234567890123", "DPD"), { carrier: "DPD" });
 });
