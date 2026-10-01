@@ -999,6 +999,27 @@ Fem egenskaper som inte ska tas bort:
 `pending` efter att ordern lagts dras av en gång till när flödet visar ordern.
 Sidan visar då en enhet för lite tills tasken markerats beställd eller skickad.
 
+**Verifierat i drift 2026-10-01**, i den ordning körningarna gick:
+
+| körning | tid (UTC) | granskade | lager | sålda avdragna | fel |
+|---|---|---:|---:|---:|---:|
+| torr, gammal kod (buffert 3) | 01:10–01:13 | 4 484 | 0 | — | 0 |
+| torr, ny kod | 01:31–01:53 | 4 484 | 4 076 (skulle) | 0 | 0 |
+| skarpt lagersvep (`lager`) | 01:56–01:58 | 4 484 | **4 076** | 0 | **0** |
+| torr direkt efteråt | 02:03–02:06 | 4 484 | **0** | 0 | 0 |
+
+Sista raden är kvittot: ett skarpt svep, och sedan vill ingenting skrivas om.
+Noll okända varianter, noll tvetydiga och noll lagerdrift i alla tre körningarna
+med ny kod. 59 produkter gick från slutsåld till köpbar. Inga restock-mejl gick
+och inga föll.
+
+Avdraget blev noll för att ingen Aosom-order väntade (bulkorderns plan: 0 rader).
+Golvlampan `65ca6f6d` står därför på **3**, inte på de 2 som räknades fram ovan.
+Order 10056 hade markerats beställd innan `orderedAt` fanns, och en sådan rad
+räknas inte (punkt 1). Hade flödet ännu inte visat den ordern saknade sidan
+buffert fram till nästa export. Luckan försvinner av sig själv: varje order som
+markeras beställd från och med nu får sin tidsstämpel.
+
 ⚠️ **Racet i B71 lagades på mappningssidan samma kväll** — se nästa avsnitt.
 Kvar är Wix-sidan: en körning som planerat ur en rad från före en
 sammanslagning kan fortfarande nolla den nya varianten som okänd. Mappningen
