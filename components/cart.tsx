@@ -10,7 +10,8 @@ import {
 import type { RecoProduct } from "../lib/products";
 import { tightFillUrl } from "../lib/wix-image";
 import { EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR } from "../lib/shipping";
-import { normaliseraKundvagn } from "../lib/cart-shape";
+import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
+import { visaValnamn } from "../lib/variant-lage";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -357,6 +358,12 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
                   {img ? <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" /> : <div className="li-img" />}
                   <div className="li-info">
                     <div className="li-name">{name}</div>
+                    {/* Valt alternativ med samma namn som på produktsidan
+                        (visaValnamn): "Svart · 177 cm". */}
+                    {(() => {
+                      const val = valdaAlternativ(li).map((v) => visaValnamn(v.varde)).filter(Boolean);
+                      return val.length ? <div className="li-val">{val.join(" · ")}</div> : null;
+                    })()}
                     <div className="li-meta">{li.price?.formattedAmount || ""}</div>
                     <div className="li-qty">
                       <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy} aria-label="Minska antal">−</button>

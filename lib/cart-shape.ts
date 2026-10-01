@@ -39,6 +39,8 @@ export interface NormaliseradRad {
   catalogReference?: { catalogItemId?: string; appId?: string; options?: unknown };
   /** Sträng ELLER Wix bildobjekt — luckans liImageUrl() klarar båda. */
   image?: unknown;
+  /** Wix beskrivningsrader (valt alternativ, t.ex. Färg: Svart). Orörda. */
+  descriptionLines?: unknown;
 }
 
 export interface NormaliseradKundvagn {
@@ -140,6 +142,30 @@ function normaliseraRad(rad: Obj, valuta: string): NormaliseradRad {
   // varenda miniatyr ur kundvagnen.
   if (attr?.image !== undefined && attr.image !== null) ut.image = attr.image;
 
+  const rader = rad.descriptionLines ?? attr?.descriptionLines;
+  if (Array.isArray(rader) && rader.length) ut.descriptionLines = rader;
+
+  return ut;
+}
+
+/**
+ * Raden valda alternativ som namn + värde ("Färg", "Svart"), ur Wix
+ * beskrivningsrader. Varukorgen visade inte alls vilken färg eller storlek som
+ * låg i den (2026-10-01). Tål v1- och v2-formen och skräp.
+ */
+export function valdaAlternativ(rad: unknown): { namn: string; varde: string }[] {
+  const r = obj(rad);
+  const lista = r?.descriptionLines ?? obj(r?.attributes)?.descriptionLines;
+  if (!Array.isArray(lista)) return [];
+  const ut: { namn: string; varde: string }[] = [];
+  for (const d of lista) {
+    const o = obj(d);
+    if (!o) continue;
+    const text = (x: unknown) => str(obj(x)?.original) ?? str(obj(x)?.translated);
+    const namn = text(o.name) ?? "";
+    const varde = text(o.plainText) ?? text(o.colorInfo) ?? "";
+    if (varde) ut.push({ namn, varde });
+  }
   return ut;
 }
 

@@ -66,7 +66,8 @@ test("ingen kommentar i butikens CSS bär en regelkropp", () => {
 /** Reglerna variantväljaren i components/productview.tsx bygger på. */
 const VARIANTREGLER: [string, RegExp][] = [
   ["vald variant markeras", /\.varswatch\.active\{[^}]*border-color:/],
-  ["vald textvariant fylls", /\.varswatch\.text\.active\{[^}]*background:/],
+  // Sedan 2026-10-01 har alla grupper samma vald-stil (ram + ljus ton), även textvalen.
+  ["vald variant tonas", /\.varswatch\.active\{[^}]*background:/],
   ["tangentbordsfokus syns", /\.varswatch:focus-visible\{[^}]*outline:/],
   ["miniatyren har storlek", /\.varswatch-thumb\{[^}]*width:/],
   ["färgpricken har storlek", /\.varswatch-dot\{[^}]*width:/],

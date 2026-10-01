@@ -1222,6 +1222,7 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .li-img{width:56px;height:56px;border-radius:var(--r-sm);background:var(--surface-2) center/cover no-repeat;flex:0 0 auto;object-fit:cover;display:block}
 .li-info{flex:1;min-width:0}
 .li-name{font-size:var(--text-sm);font-weight:600;line-height:1.3}
+.li-val{font-size:var(--text-xs);color:var(--soft);margin-top:2px;line-height:1.35}
 .li-meta{font-size:var(--text-xs);color:var(--soft);margin-top:3px}
 .li-qty{display:inline-flex;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
 .qbtn{width:25px;height:25px;border:none;background:var(--surface-2);color:var(--ink);font-size:var(--text-base);line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
@@ -1315,7 +1316,7 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .varcards{display:flex;flex-direction:column;gap:10px}
 .varcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px 15px;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent}
 .varcard:hover{border-color:#C2410C66}
-.varcard.active{border-color:var(--brand);background:#C2410C0a;box-shadow:inset 0 0 0 1px var(--brand),0 10px 22px -16px rgba(194,65,12,.5)}
+.varcard.active{border-color:var(--brand);background:#C2410C0a;box-shadow:inset 0 0 0 1.5px var(--brand),0 10px 22px -16px rgba(194,65,12,.5)}
 .varcard:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .varcard-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto;display:grid;place-items:center;transition:border-color .16s}
 .varcard.active .varcard-radio{border-color:var(--brand)}
@@ -1337,9 +1338,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .varcard.active .varcard-check{background:var(--brand)}
 .varcard.active .varcard-check::after{opacity:1}
 .varcard:not(.has-media) .varcard-check{display:none}
-.varswatch{display:inline-flex;align-items:center;gap:10px;font:inherit;font-size:var(--text-sm);font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:var(--r-pill);padding:6px 15px 6px 6px;cursor:pointer;opacity:.62;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;-webkit-tap-highlight-color:transparent}
+.varswatch{display:inline-flex;align-items:center;gap:10px;min-height:44px;font:inherit;font-size:var(--text-sm);font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:var(--r-pill);padding:6px 15px 6px 6px;cursor:pointer;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s,background .2s;-webkit-tap-highlight-color:transparent}
 .varswatch.text{padding:9px 18px}
-.varswatch:hover{opacity:.85;border-color:#C2410C66}
+/* Ovalda val i full färg (2026-10-01): de låg på 62 % och såg slutsålda ut, så
+   det enda som skilde ett val från ett slut-val var genomstrykningen. */
+.varswatch:hover{border-color:#C2410C66}
 /* Vald variant: emfas helt INNANFÖR pillens egen box. Tidigare låg här en yttre
    ring (box-shadow:0 0 0 3px) + transform:scale(1.05) som båda växte UTÅT — på
    den första pillen sköt det vänsterkanten ~5–6 px till vänster om hjältebilden
@@ -1349,8 +1352,10 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    ☠️ Designsystemets token-byte (#491) åt 2026-08-22 upp slutet på den här
    kommentaren och selektorn nedan, så sju regler var bortkommenterade i fem
    veckor. lib/css-kommentarer.test.ts fäller om det händer igen. */
-.varswatch.active{opacity:1;border-color:var(--brand);box-shadow:inset 0 0 0 1.5px var(--brand),0 8px 18px -12px rgba(194,65,12,.45);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
-.varswatch.text.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.varswatch.active{opacity:1;border-color:var(--brand);background:#C2410C0a;box-shadow:inset 0 0 0 1.5px var(--brand),0 8px 18px -12px rgba(194,65,12,.45);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
+/* Samma vald-stil i alla grupper: textvalen var orangefyllda medan färg- och
+   bildvalen fick en ram, så två grupper på samma sida såg olika ut. */
+.varswatch.text.active{color:var(--ink)}
 .varswatch:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .varswatch-thumb{width:44px;height:44px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:var(--surface-2);display:block}
 .varswatch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1358,7 +1363,24 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .varswatch-name{white-space:nowrap}
 /* Slut-i-lager-variant: dämpad + genomstruken + liten "Slut"-tag (köp blockeras i JS) */
 .varswatch.oos{opacity:.5}
-.varswatch.oos:hover{opacity:.6}
+.varswatch.oos:hover{opacity:.65}
+/* Kombinationen finns inte (Svart görs inte i 177 cm): streckad ram, inget
+   "Slut" och ingen genomstrykning — färgen finns, bara inte i den storleken.
+   Klick väljer färgen och byter storlek, och det står då under väljaren. */
+.varswatch.na{opacity:.55;border-style:dashed}
+.varswatch.na:hover{opacity:.8}
+.varcard.na{opacity:.6;border-style:dashed}
+.varcard.na:hover{opacity:.85}
+/* Fler än åtta färger: kompakt rutnät med bara bilder och "+N fler". */
+.varswatches.kompakt{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;max-width:420px}
+.varswatch.kompakt{justify-content:center;width:100%;aspect-ratio:1;min-height:0;padding:3px;border-radius:var(--r-md)}
+.varswatch.kompakt .varswatch-thumb{width:100%;height:100%;border-radius:calc(var(--r-md) - 3px)}
+.varswatch.kompakt .varswatch-dot{width:70%;height:70%;margin:0}
+.varswatch-fler{font-size:var(--text-xs);font-weight:700;color:var(--brand);padding:0;line-height:1.15;text-align:center}
+.varswatch-fler:hover{background:#C2410C0a}
+/* Raden som säger till när ett annat val fick bytas, och att ett val är slut. */
+.varnote{margin:12px 0 0;font-size:var(--text-sm);line-height:1.45;color:var(--ink);background:#FFF7ED;border:1px solid #FED7AA;border-radius:var(--r-md);padding:10px 14px}
+.buybox .varnote-slut{margin:0 0 12px;background:#FEF2F2;border-color:#FECACA;color:#7F1D1D}
 .varswatch.oos .varswatch-name{text-decoration:line-through;text-decoration-color:#9ca3af}
 .varswatch.oos.active{opacity:.8}
 .varswatch-oos{font-size:var(--text-xs);font-weight:700;color:#b91c1c;background:#fef2f2;border-radius:var(--r-pill);padding:1px 7px;margin-left:2px;letter-spacing:.02em}

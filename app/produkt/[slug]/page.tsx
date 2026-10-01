@@ -4,6 +4,8 @@ import { faqPageJsonLd } from "../../../lib/faq-jsonld";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
+import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
+import { colorKeysOf } from "../../../lib/variant-color-image";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
 import { getProduct, getProducts, getCollections, dedupeProducts, forListings, type Product } from "../../../lib/products";
@@ -304,6 +306,41 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // ingen script-tagg alls (tom FAQPage flaggas av Google som strukturfel).
   const faqLd = faqPageJsonLd(p.descriptionHtml || "");
 
+  // Annonslänkar (?variant=, ?farg=) pekar ofta på ett annat val än förvalet.
+  // Sidan är ISR-cachad och ritas med förvalet; väljaren byter först när JS
+  // hydrerat, och på en vanlig mobil syntes förvalets bild och pris i nästan
+  // en sekund (2026-10-01). Skriptet nedan körs innan produkten ritas och döljer
+  // bild, pris och väljare (platsen behålls) när adressen avser ett annat val.
+  // ProductView tar bort döljningen när valet gjorts; senast efter 4 s gör
+  // skriptet det själv.
+  const valVantar = (() => {
+    const tabell = p.variantTable ?? [];
+    let id: string | undefined;
+    let etiketter: string[] = [];
+    if ((p.variantAxes?.length ?? 0) >= 2 && tabell.length >= 1) {
+      const kombo = forvalKombination(tabell, images[0]);
+      id = tabell.find((t) => Object.entries(kombo).every(([a, l]) => t.choices[a] === l))?.variantId;
+      etiketter = Object.values(kombo);
+    } else if ((p.options?.choices.length ?? 0) >= 2) {
+      const val = p.options!.choices[forvalIndex(p.options!.choices, images[0])];
+      id = val?.variantId;
+      etiketter = val ? [val.label] : [];
+    } else if (p.variants.length > 1) {
+      id = p.variants[0]?.id;
+      etiketter = [p.variants[0]?.label || ""];
+    }
+    if (!id) return null;
+    const farger = Array.from(new Set(etiketter.flatMap((e) => Array.from(colorKeysOf(e)))));
+    const css =
+      ".pdp .gmain img,.pdp .gtiles,.pdp-price,.klarna-osm-wrap,.pdp-variants,.sticky-buy-mobile{visibility:hidden}";
+    return (
+      "(function(){try{var q=new URLSearchParams(location.search),v=q.get('variant'),f=q.get('farg');" +
+      `if(v?v!==${JSON.stringify(id)}:f?${JSON.stringify(farger)}.indexOf(f)<0:false){` +
+      `var s=document.createElement('style');s.id='pdp-val-vantar';s.textContent=${JSON.stringify(css)};` +
+      "document.head.appendChild(s);setTimeout(function(){s.remove()},4000)}}catch(e){}})()"
+    );
+  })();
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
@@ -327,6 +364,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </nav>
 
         <ProductBrowse grannar={grannar} />
+
+        {valVantar && <script dangerouslySetInnerHTML={{ __html: valVantar }} />}
 
         <ProductView
           key={p.id}

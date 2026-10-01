@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normaliseraKundvagn } from "./cart-shape.ts";
+import { normaliseraKundvagn, valdaAlternativ } from "./cart-shape.ts";
 
 // Formen nedan ar KOPIERAD UR ETT SKARPT SVAR fran Wix Cart v2 (butikens egen
 // katalog, 2026-09-04), inte gissad ur typerna. Det spelade roll: typerna sager
@@ -206,4 +206,23 @@ describe("normaliseraKundvagn — skrap far aldrig kasta", () => {
     assert.equal(r.quantity, undefined);
     assert.equal(r.price, undefined);
   });
+});
+
+it("valdaAlternativ läser valet ur beskrivningsraderna (v1, v2 och skräp)", () => {
+  const v2 = {
+    attributes: { image: "x" },
+    descriptionLines: [
+      { name: { original: "Färg" }, colorInfo: { original: "Svart", code: "#000" }, lineType: "COLOR" },
+      { name: { original: "Storlek" }, plainText: { original: "177 cm" }, lineType: "PLAIN_TEXT" },
+    ],
+  };
+  assert.deepEqual(valdaAlternativ(v2), [
+    { namn: "Färg", varde: "Svart" },
+    { namn: "Storlek", varde: "177 cm" },
+  ]);
+  const norm = normaliseraKundvagn({ lineItems: [{ ...v2, name: { original: "Överdrag" } }] });
+  assert.deepEqual(valdaAlternativ(norm!.lineItems[0]), valdaAlternativ(v2));
+  assert.deepEqual(valdaAlternativ({}), []);
+  assert.deepEqual(valdaAlternativ(null), []);
+  assert.deepEqual(valdaAlternativ({ descriptionLines: [null, { name: { original: "Färg" } }] }), []);
 });

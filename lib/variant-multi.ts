@@ -47,8 +47,52 @@ export function reconcileSelection(
   const desired = { ...prev, [axisName]: choiceLabel };
   if (findVariant(table, desired)) return desired;
   const candidates = table.filter((v) => v.choices[axisName] === choiceLabel);
-  const best = candidates.find((v) => v.inStock) ?? candidates[0];
+  // Behåll så många av kundens andra val som möjligt (tre axlar: byt bara den
+  // som måste bytas), helst en variant i lager.
+  const lika = (v: ComboVariant) =>
+    Object.entries(v.choices).filter(([a, l]) => a !== axisName && prev[a] === l).length;
+  const rang = (v: ComboVariant) => lika(v) * 2 + (v.inStock ? 1 : 0);
+  const best = candidates.reduce<ComboVariant | undefined>((b, v) => (!b || rang(v) > rang(b) ? v : b), undefined);
   return best ? { ...best.choices } : desired;
+}
+
+/**
+ * De ANDRA axlar som reconcileSelection fick byta när kunden klickade på
+ * `axisName`. Tom lista = inget byttes tyst. Väljaren säger då till, så att
+ * kunden inte går från 177 till 205 cm (och från 549 till 629 kr) utan att
+ * märka det (hammocköverdraget, 2026-10-01).
+ */
+export function andradeAxlar(
+  prev: Record<string, string>,
+  next: Record<string, string>,
+  axisName: string,
+): { axel: string; fran: string; till: string }[] {
+  return Object.keys(next)
+    .filter((a) => a !== axisName && prev[a] !== undefined && prev[a] !== next[a])
+    .map((a) => ({ axel: a, fran: prev[a], till: next[a] }));
+}
+
+/**
+ * Valets läge givet de andra valda axlarna:
+ *  "ok"     — kombinationen finns och går att köpa
+ *  "slut"   — kombinationen finns men är slut
+ *  "saknas" — kombinationen finns inte alls (Svart görs inte i 177 cm)
+ * "saknas" är INTE slut: färgen kan finnas i en annan storlek. Väljaren visar
+ * därför de två olika, och bara "slut" får ordet Slut.
+ */
+export function choiceStatus(
+  table: ReadonlyArray<ComboVariant>,
+  axisName: string,
+  choiceLabel: string,
+  selected: Record<string, string>,
+): "ok" | "slut" | "saknas" {
+  const rader = table.filter(
+    (v) =>
+      v.choices[axisName] === choiceLabel &&
+      Object.entries(v.choices).every(([a, l]) => a === axisName || selected[a] === undefined || selected[a] === l),
+  );
+  if (!rader.length) return "saknas";
+  return rader.some((v) => v.inStock) ? "ok" : "slut";
 }
 
 /**
