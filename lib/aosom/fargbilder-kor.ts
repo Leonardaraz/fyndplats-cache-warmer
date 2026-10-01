@@ -44,6 +44,16 @@ import {
 type Obj = Record<string, unknown>;
 
 const FALT = "fields=VARIANT_OPTION_CHOICE_NAMES&fields=MEDIA_ITEMS_INFO";
+/**
+ * En galleribild som PATCH:en skickar den. ☠️ En TOM alt-text skickas inte:
+ * Wix svarar då 400 "altText has size 0, expected 1 or more" och vägrar hela
+ * galleriet (sidan 6341b51a 2026-10-01, där en äldre bild saknade alt-text).
+ * Utan fältet behåller bilden sin tomma alt-text, så återläsningen stämmer.
+ */
+export function mediaPost(b: { id: string; alt: string }): { id: string; altText?: string } {
+  return b.alt ? { id: b.id, altText: b.alt } : { id: b.id };
+}
+
 export const KOPPLING_FORSOK = 8;
 export const KOPPLING_PAUS_MS = 2500;
 /**
@@ -275,7 +285,7 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
       await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(plan.id)}`, {
         product: {
           revision: fore.revision,
-          media: { itemsInfo: { items: plan.galleriEfter.map((b) => ({ id: b.id, altText: b.alt })) } },
+          media: { itemsInfo: { items: plan.galleriEfter.map(mediaPost) } },
         },
         fieldMask: { paths: ["media"] },
       });
