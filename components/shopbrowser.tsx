@@ -21,7 +21,7 @@ import {
   type IntervallNyckel, type SpecFacett,
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
-import { productCountLabel } from "../lib/rating";
+import { productCountLabel, tusental } from "../lib/rating";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -124,7 +124,7 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
       <div className="subchips">
         {subs.map((sub, i) => (
           <a key={sub.slug} className={`subchip ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
-            {sub.name} <span className="subchip-n">{sub.count}</span>
+            {sub.name} <span className="subchip-n">{tusental(sub.count)}</span>
           </a>
         ))}
         {subs.length > SUB_SYNLIGA && (

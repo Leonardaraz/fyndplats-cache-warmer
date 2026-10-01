@@ -35,100 +35,90 @@ export type CategorySeo = { title: string; description: string };
 
 export const CATEGORY_SEO: Record<string, CategorySeo> = {
   // ── Huvudkategorier ────────────────────────────────────────────────────────
-  "elektronik-tillbehor": {
-    title: "Elektroniktillbehör – gaming, mobil & ljud",
-    description:
-      "Prisvärda elektroniktillbehör: gamingstolar, laddare, kablar och mobiltillbehör. Skickas från EU-lager på 3–6 dagar. Fri frakt över 499 kr.",
-  },
   "hem-inredning": {
-    title: "Heminredning – förvaring, belysning & textil",
+    title: "Heminredning – belysning, förvaring & badrum",
     description:
-      "Heminredning till bra pris: förvaringsmöbler, golvlampor, hemtextil, hushållsapparater och verktyg. Leverans 3–6 dagar från EU-lager, 30 dagars öppet köp.",
+      "Heminredning utöver möblerna: dekoration, konstväxter och speglar, lampor, förvaring, badrum och tvätt, elkaminer och värmefläktar, hemlarm och projektordukar.",
   },
   "kok-husgerad": {
-    title: "Köksredskap & köksmaskiner till hemmet",
+    title: "Husgeråd & köksutrustning till hemmet",
     description:
-      "Köksredskap, köksmaskiner och serveringsdetaljer till vardag och fest. Noga utvalda fynd med fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Köksmaskiner, vattenkokare, miniugnar, kyl och frys, köksredskap, köksvagnar, serveringsvagnar, vinställ och soptunnor, samlat i Kök & husgeråd.",
   },
   "barn-familj": {
-    title: "Leksaker & babyprylar till barn",
+    title: "Leksaker & babyprylar till barn och familj",
     description:
-      "Leksaker, elbilar, bilbanor och babyprylar för hela familjen. Åldersmärkning i varje beskrivning. Leverans 3–6 dagar, 30 dagars öppet köp.",
+      "Leksaker, lekkök, gunghästar och babyprylar, elbilar och sparkcyklar för barn, barnmöbler samt sandlådor, studsmattor och gungor för trädgården.",
   },
   "skonhet-halsa": {
-    title: "Hudvård, massage & frisörtillbehör",
+    title: "Skönhetsprodukter & hälsa – salong och välmående",
     description:
-      "Skönhet och hälsa till bra pris: ansiktsmasker, massagebänkar, frisörtillbehör och redskap för återhämtning. Fri frakt över 499 kr, Klarna.",
+      "Hudvårdsset, kosmetikkyl, IPL, salongsstolar och torkhuv, massagefåtöljer, massagebänkar, rollatorer, duschpallar och en ljusterapilampa.",
   },
   husdjur: {
-    title: "Hundtillbehör & kattillbehör – allt för djuret",
+    title: "Hundtillbehör, kattillbehör & smådjur",
     description:
-      "Klösträd, hundgårdar, selar, hundvagnar och skålar till hund, katt och smådjur. Mått i varje beskrivning. Leverans 3–6 dagar från EU-lager.",
+      "Hundbäddar, hundburar, hundgrindar, klösträd, kattlådor, burar för kanin och hamster, hönshus, terrarier, matskåp och trimbord, ordnat efter djuret.",
   },
   "sport-fritid": {
-    title: "Träning, camping & cykeltillbehör",
+    title: "Träningsutrustning, sport & fritid",
     description:
-      "Träningsutrustning för hemmagymmet, campingprylar och tillbehör till bil och cykel. Prisvärt och noga utvalt. Fri frakt över 499 kr.",
+      "Hantlar, träningsbänkar, motionscyklar, boxningssäckar och träningskläder, pingisbord och dart, bollsport, camping, cykeltillbehör och hobby som teleskop.",
   },
   "tradgard-utemobler": {
-    title: "Trädgård & utemöbler – odling och uteplats",
+    title: "Trädgård & uteplats – odling, förråd och dekor",
     description:
-      "Odlingslådor, spaljéer och praktiska lösningar för balkong, altan och trädgård. Mått och material i varje beskrivning. 30 dagars öppet köp.",
-  },
-  "mode-accessoarer": {
-    title: "Väskor, kepsar & accessoarer",
-    description:
-      "Väskor, necessärer, kepsar och accessoarer som håller säsong efter säsong. Skickas från EU-lager på 3–6 dagar med fri frakt över 499 kr.",
+      "Utemöbler, paviljonger, grillar, eldkorgar, terrassvärmare, växthus, odlingslådor, blomställ, redskapsbodar, garagetält, vedställ och trädgårdsdekor.",
   },
 
   // Möbler skapades i Wix 2026-09-23 (se MAIN_GROUPS i category-groups.ts).
   mobler: {
-    title: "Möbler – fåtöljer, kontorsstolar & soffor",
+    title: "Möbler till vardagsrum, sovrum, hall & kontor",
     description:
-      "Möbler till vardagsrum, kontor, kök och sovrum: fåtöljer, kontorsstolar, soffor, matbord och sängramar. Mått i varje beskrivning. Fri frakt över 499 kr.",
+      "Möbler ordnade efter rum: soffor och fåtöljer, matbord och barstolar, sängramar och byråer, skoskåp för hallen, kontorsstolar och skrivbord.",
   },
 
   // ── Underkategorier ───────────────────────────────────────────────────────
   // ── Möbler (2026-09-23) ──────────────────────────────────────────────────
   kontorsstolar: {
-    title: "Kontorsstolar – ergonomiska stolar & knästolar",
+    title: "Kontorsstol – ergonomisk stol, ritstol & knästol",
     description:
-      "Ergonomiska kontorsstolar med nackstöd, fotstöd eller massage, samt knästolar, ritstolar och sadelpallar. Sitthöjd och maxvikt anges. Leverans 3–6 dagar.",
+      "Kontorsstolar med nätrygg, nackstöd, fotstöd eller massage, stolar som bär upp till 220 kg, knästolar, ritstolar med fotring och sadelpallar.",
   },
   fatoljer: {
-    title: "Fåtöljer – reclinerfåtöljer, gungstolar & mer",
+    title: "Fåtölj – reclinerfåtölj, gungstol & tv-fåtölj",
     description:
-      "Reclinerfåtöljer, TV-fåtöljer med fotpall, gungstolar, massagefåtöljer och uppresningsfåtöljer. Ryggvinkel och maxvikt anges. 30 dagars öppet köp.",
+      "Reclinerfåtöljer och tv-fåtöljer med fotstöd, gungstolar på bokmedar, vilstolar i böjd björk, golvfåtöljer och fåtöljer med motor som hjälper dig upp.",
   },
   "soffor-baddsoffor": {
-    title: "Soffor & bäddsoffor – hörnsoffa och modulsoffa",
+    title: "Soffa & bäddsoffa – hörnsoffa och modulsoffa",
     description:
-      "Bäddsoffor med förvaring, hörnsoffor med schäslong, modulsoffor och U-soffor i manchester, linnelook och konstläder. Bäddmått anges. Fri frakt över 499 kr.",
+      "Tvåsitssoffor från 110 cm, tresitssoffor, hörnsoffor med vändbar schäslong, modulsoffor i U-form, bäddsoffor och reclinersoffor i manchester och chenille.",
   },
   "matbord-stolar": {
-    title: "Matbord, matstolar & barstolar",
+    title: "Matbord & matstolar – klaffbord och barstolar",
     description:
-      "Matbord, klaffbord, matstolar i flerpack, barstolar och barbord. Sitthöjd, bordsmått och maxvikt i varje beskrivning. Leverans 3–6 dagar från EU-lager.",
+      "Matbord i trä och glas, runda köksbord, klaffbord och utdragbara bord från 120 till 200 cm, matstolar i 2- och 4-pack, matbänkar och barstolar.",
   },
   skrivbord: {
-    title: "Skrivbord – höj- och sänkbara & fällbara",
+    title: "Skrivbord – höj- och sänkbart, fällbart & gaming",
     description:
-      "Elektriska höj- och sänkbara skrivbord med minnesfunktion, fällbara väggskrivbord och ståbord på hjul. Skivmått och höjdspann anges. 30 dagars öppet köp.",
+      "Elektriska höj- och sänkbara skrivbord med minnesfunktion, ståbord på hjul, fällbara skrivbord och väggskrivbord, gamingbord med LED och barnskrivbord.",
   },
   "soffbord-smabord": {
     title: "Soffbord, satsbord, sängbord & konsolbord",
     description:
-      "Soffbord med förvaring och lyftbar skiva, satsbord i glas och stål, sängbord och smala konsolbord för hallen. Mått anges alltid. Fri frakt över 499 kr.",
+      "Lyftbara soffbord med dolda fack, soffbord med LED, satsbord i glas och marmorlook, bord i C-form på hjul, smala konsolbord och vägghängda sängbord.",
   },
   "sangar-sovrum": {
-    title: "Sängramar & sängbänkar i furu och metall",
+    title: "Sängram & sängbänk i furu, metall och tyg",
     description:
-      "Sängramar i furu, metall och stoppat tyg från 90 till 160 cm, sängbänkar med förvaring och madrass i gelmemoryskum. Maxvikt anges. Leverans 3–6 dagar.",
+      "Sängramar i furu, metall och stoppat tyg från 90 × 190 till 160 × 200 cm, sänggavel, madrasser, sängbänkar med förvaring och extrasängar på hjul.",
   },
   rumsavdelare: {
-    title: "Rumsavdelare – skärmväggar med 3 till 8 paneler",
+    title: "Rumsavdelare – vikbar skärmvägg med 3–8 paneler",
     description:
-      "Fristående rumsavdelare med tre till åtta paneler i flätad bambu, polypropenväv, tyg eller pappersrep, 120–320 cm breda. Mått anges. 30 dagars öppet köp.",
+      "Vikbara rumsavdelare med tre till åtta paneler i bambu, polypropenväv, pappersrep och tyg, 120 till 320 cm breda och 170 till 182 cm höga.",
   },
   "baby-smabarn": {
     title: "Lekmatta, gåvagn & babygunga – för de minsta",
@@ -138,22 +128,22 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   baddfatoljer: {
     title: "Bäddfåtölj – fåtölj som blir gästsäng",
     description:
-      "Bäddfåtöljer som fälls ut till en bädd på 180–193 cm och 60–98 cm bredd, i sammet, manchester och linnelook, med ryggen i tre till sex lägen.",
+      "Bäddfåtöljer som fälls ut till en bädd på upp till 210 cm och 57–102 cm bredd, i sammet, manchester och linnelook, med ryggen i tre till sex lägen.",
   },
   "badrum-hemtextil": {
-    title: "Badrumstillbehör & hemtextil",
+    title: "Badrumstillbehör, tvättskåp & hemtextil",
     description:
-      "Badrumstillbehör, handdukar och hemtextil som lyfter känslan i badrum och sovrum. Mått och material anges. Fri frakt över 499 kr, 30 dagars öppet köp.",
+      "Medicinskåp med lås, duschpallar och duschstol, tvättskåp och tvättkorgar i bambu, LED-speglar, mattor och en elektrisk värmefilt.",
   },
   badrumsskap: {
     title: "Badrumsskåp – högskåp, medicinskåp & spegelskåp",
     description:
-      "Badrumsskåp i bambu, vitt och grått: smala skåp från 18 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
+      "Badrumsskåp i bambu, vitt och grått: smala skåp från 16 cm, högskåp upp till 185 cm, medicinskåp med kod- eller nyckellås och spegelskåp för väggen.",
   },
   badrumsspeglar: {
     title: "Badrumsspegel med belysning – LED och antiimma",
     description:
-      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla. Upp till 100 × 80 cm.",
+      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla och spegelskåp. Upp till 100 × 80 cm.",
   },
   barbord: {
     title: "Barbord med pallar, bardisk & höj- och sänkbart",
@@ -163,17 +153,17 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   barnmobler: {
     title: "Barnfåtölj, barnsoffa, sminkbord & barngarderob",
     description:
-      "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, sminkbord för barn, låga barngarderober med spegel och stegpallar från 2 år.",
+      "Barnmöbler till barnrummet: barnfåtöljer och barnsoffor, barnbord med stolar, barnskrivbord, sminkbord för barn, leksakshyllor och låga barngarderober.",
   },
   belysning: {
     title: "Taklampor, bordslampor & LED-belysning",
     description:
-      "Taklampor i glas, kristall och linne, bordslampor i keramik och trä, LED-björkar, vägglampor för utomhus och LED-armatur till garaget. Sockel och IP-klass anges.",
+      "Taklampor i kristall, linne och hampsnöre, bordslampor i keramik och trä, golvlampor, takfläktar med lampa, LED-björkar och en LED-strålkastare för arbete.",
   },
   "bil-cykel": {
-    title: "Cykeltillbehör & biltillbehör",
+    title: "Cykeltillbehör – cykelkärra, cykellås och pump",
     description:
-      "Cykelpumpar, sadlar, cykelryggsäckar, barncyklar och garagedomkrafter. Specifikationer i varje beskrivning. Fri frakt över 499 kr, öppet köp 30 dagar.",
+      "Cykelkärror för last, pakethållarväskor, cykellås, cykelpumpar, sadlar, pedaler, mekställ och cykelställ, barncyklar och displayer till elcykeln.",
   },
   "blomstall-vaxthyllor": {
     title: "Växthylla & blomställ – blomhylla och blompall",
@@ -190,25 +180,15 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Fristående boxningssäckar med fot som fylls med vatten eller sand, boxsäcksställ med säck, punchingbollar och boxställ med speedball, 125–231 cm höga.",
   },
-  "burar-klader-tillbehor": {
-    title: "Hundgård, hundgrind & burar för smådjur",
-    description:
-      "Hopfällbara hundgårdar, hundgrindar, hundtrappor, kaninhagar och hamsterburar. Mått i varje beskrivning så du väljer rätt. Leverans 3–6 dagar.",
-  },
   byraer: {
     title: "Byrå – smal eller bred, vit eller med tyglådor",
     description:
       "Byråer från smala modeller på 20 cm till breda på 130 cm, med vanliga lådor eller tyglådor. Flera har tippskydd, och två har eluttag ovanpå.",
   },
-  "dator-gaming": {
-    title: "Gamingstolar & datortillbehör",
-    description:
-      "Gamingstolar med fotstöd och tillbehör till datorn. Maxvikt och justermöjligheter anges i beskrivningen. Klarna, fri frakt över 499 kr.",
-  },
   "dekoration-prydnad": {
-    title: "Dekoration & prydnad till hemmet",
+    title: "Dekoration till hemmet – väggdekor & växtställ",
     description:
-      "Konstgjorda växter, prydnadsdetaljer och dekoration som gör hemmet personligt. Mått och material anges. Leverans 3–6 dagar från EU-lager.",
+      "Väggdekor i metall, 3D-tavlor, konstgjorda träd och buxbomar i kruka, LED-björkar, växtpiedestaler och väggkrukor för inne och ute.",
   },
   "elbilar-for-barn": {
     title: "Elbil för barn – fyrhjuling, traktor & gokart",
@@ -223,37 +203,37 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   elementskydd: {
     title: "Elementskydd – spjälat radiatorskydd i MDF",
     description:
-      "Elementskydd i MDF med spjälad front, 60 till 172 cm breda och 81 till 95,5 cm höga. Fyra är vita, och ett i ekton har två lådor i överkant.",
+      "Elementskydd i MDF med spjälad front, 60 till 201 cm breda och 81 till 95,5 cm höga. Sex är vita, och ett i ekton har två lådor i överkant.",
   },
   elkaminer: {
     title: "Elkamin – elektrisk kamin för vägg eller golv",
     description:
-      "Elkaminer med LED-lågor och 1800–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
+      "Elkaminer med LED-lågor och 1200–2000 W värme: väggkaminer för inbyggnad, fristående modeller och små elkaminer på ben. De flesta går utan värme.",
   },
   "forvaring-organisering": {
     title: "Förvaring – förvaringsbänk, skåp & hurts på hjul",
     description:
-      "Förvaringsbänkar, skåp, kubhyllor, hurtsar på hjul och klädställ till hall, sovrum och kontor. Byråer, bokhyllor och tvättkorgar har egna sidor.",
+      "Förvaringsbänkar och puffar med plats under locket, förvaringsskåp, låsbara hurtsar, smala köksskåp, torkvagnar, klädställningar och leksaksförvaring.",
   },
   "friluftsliv-resa": {
-    title: "Campingutrustning & friluftsprylar",
+    title: "Campingutrustning – tält, sovsäckar, resväskor",
     description:
-      "Campingstolar, liggunderlag, campingvaskar, bryggstegar och solel till husvagnen. Vikt och mått i varje beskrivning. Fri frakt över 499 kr.",
+      "Tält för en till åtta personer, sovsäckar och liggunderlag, campingstolar och bord, kylboxar, vandringsryggsäckar, resväskor och tillbehör till husvagnen.",
   },
   garagetalt: {
     title: "Garagetält för motorcykel, cyklar och redskap",
     description:
-      "Garagetält från 120 × 179 cm till 300 × 300 cm – de flesta med stomme i galvaniserat stål och dörr som rullas upp, för motorcykel, cyklar och redskap.",
+      "Garagetält från 120 × 179 till 300 × 300 cm, ett förrådstält på 13,4 m² och ett motorcykelgarage – för motorcykel, cyklar och trädgårdsredskap.",
   },
   gnistskydd: {
     title: "Gnistskydd för öppen spis – svart eller guld",
     description:
-      "Gnistskydd och brasskärmar för öppen spis i svart metall eller guldfärg, med två eller tre paneler, från 96 till 141 cm breda och 50 till 81 cm höga.",
+      "Gnistskydd och brasskärmar för öppen spis i svart metall eller guldfärg, med två eller tre paneler, från 96 till 141 cm breda och 50 till 85 cm höga.",
   },
   golvlampor: {
     title: "Golvlampor – båglampor, LED och dimbara",
     description:
-      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och trebenta lampor med tygskärm.",
+      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och lampset med två bordslampor.",
   },
   "grill-utekok": {
     title: "Gasolgrill, kolgrill, plancha & kylbox",
@@ -281,14 +261,14 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Hantelset med ställ, justerbara hantlar, gummerade hexhantlar, kettlebell och skivstång med viktskivor för hemmagymmet. Vikterna står i beskrivningen.",
   },
   "har-rakning": {
-    title: "Frisörtillbehör & salongsutrustning",
+    title: "Frisörtillbehör, torkhuv & IPL hårborttagning",
     description:
-      "Arbetsstolar för salong, torkhuvar, frisörväskor och redskap för hår och rakning. Höjdmått och effekt anges. Leverans 3–6 dagar, öppet köp.",
+      "Arbetsstolar och sadelpall för salongen, torkhuv på stativ med timer, frisörväska och sminkväska med lås, och IPL för hårborttagning hemma.",
   },
   "honshus-honsgardar": {
-    title: "Hönshus & hönsgård – för 2 till 30 höns",
+    title: "Hönshus & hönsgård – för 2 till 15 höns",
     description:
-      "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², hönsreden och en automatisk hönslucka. För 2 till 30 höns.",
+      "Hönshus i trä med värprede, hönsgårdar i trä eller galvat stål upp till 24 m², ett hönsrede i trä och en automatisk hönslucka. För 2 till 15 höns.",
   },
   hornskrivbord: {
     title: "Hörnskrivbord med laddstation, hyllor & lådor",
@@ -296,9 +276,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Hörnskrivbord i L-form med eluttag och USB, hylltorn, lådor eller skärmställ, ett gamingbord för två skärmar och två som också kan ställas raka.",
   },
   "hudvard-ansikte": {
-    title: "Ansiktsmasker & hudvård",
+    title: "Kosmetikkyl & hudvårdsset – hudvård för ansiktet",
     description:
-      "Sheetmasks och hudvård för ansiktet till vardagsrutinen. Innehåll och användning anges i beskrivningen. Fri frakt över 499 kr, Klarna.",
+      "Kosmetikkyl med spegeldörr och LED, minikyl som kyler och värmer, återfuktande hudvårdsset i 5 delar och en hopfällbar LED-lampa för ansiktet.",
   },
   "hundbaddar-hundsoffor": {
     title: "Hundbädd & hundsoffa – upphöjda och tvättbara",
@@ -316,14 +296,14 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Hundkojor i gran och plast för hundar upp till 30 kg – upphöjda, med veranda, asfalttak eller tak som fälls upp – och en inomhuskoja i MDF.",
   },
   hundvagnar: {
-    title: "Hundvagn & cykelvagn för hund – upp till 45 kg",
+    title: "Hundvagn & cykelvagn för hund – upp till 40 kg",
     description:
-      "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till 45 kg och en vagn som blir bärväska. Flera är hopfällbara.",
+      "Hundvagnar för hundar upp till 4, 10, 20, 25 eller 30 kg, cykelvagnar för hund upp till cirka 40 kg och vagnar som blir bärväska. Flera är hopfällbara.",
   },
   hushallsapparater: {
-    title: "Hushållsapparater & smarta maskiner",
+    title: "Klädångare, ångstation & ultraljudstvätt",
     description:
-      "Ultraljudstvättar och praktiska hushållsapparater som sparar tid. Kapacitet, effekt och mått anges. Leverans 3–6 dagar från EU-lager.",
+      "Små torktumlare för väggen eller bänken, uppvärmt torkställ, klädångare och ångstation, ultraljudstvättar, fönsterputsrobot och sladdlös handdammsugare.",
   },
   juldekoration: {
     title: "Juldekoration utomhus – uppblåsbar tomte och ren",
@@ -336,9 +316,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Konstgjorda julgranar från 57 till 225 cm: smala pelargranar, täta granar med över 2 000 grenspetsar, snötäckta modeller och granar med LED-belysning.",
   },
   "kalas-fest": {
-    title: "Kalas & fest – sockervadd och partyprylar",
+    title: "Partytält, sockervaddsmaskin & festdukning",
     description:
-      "Sockervaddsmaskiner och partyprylar som gör kalaset minnesvärt. Effekt och användning anges i beskrivningen. Fri frakt över 499 kr.",
+      "Partytält och pop-up-tält från 3 × 3 till 6 × 3 m, kylvagn på hjul, sockervaddsmaskin, runda bordsdukar, stolsöverdrag och stolband för fest och bröllop.",
   },
   "kaninburar-marsvinsburar": {
     title: "Kaninbur, kaninhus & marsvinsbur – inne och ute",
@@ -348,22 +328,17 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   katthus: {
     title: "Katthus utomhus i trä – för balkong och trädgård",
     description:
-      "Katthus i trä för balkong och trädgård – från små hus på 62 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp.",
+      "Katthus i trä för balkong och trädgård – från en kattstuga på 77 cm till hus i tre våningar på 140 cm, med asfalttak, fönster och tak som fälls upp.",
   },
   kattlador: {
     title: "Kattlåda med tak, rostfri & kattlådsmöbel",
     description:
       "Kattlådor med lock, tak och toppingång, rostfria kattlådor upp till 130 liter och kattlådsskåp som döljer lådan i en möbel – flera med kolfilter mot lukt.",
   },
-  keps: {
-    title: "Keps herr & dam – baseballkepsar",
-    description:
-      "Baseballkepsar med lång skärm för sol och sommar. Storlek och material anges i beskrivningen. Leverans 3–6 dagar, 30 dagars öppet köp.",
-  },
   "kladhangare-hallmobler": {
     title: "Klädhängare, klädställning, hallmöbel & hallbänk",
     description:
-      "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar som bär upp till 130 kg.",
+      "Klädhängare och klädställningar på hjul, med skohylla eller paraplyställ, hallmöbler med krokar och bänk samt hallbänkar och sittbänkar med förvaring.",
   },
   klostrad: {
     title: "Klösträd & kattträd – takhöga och klöspelare",
@@ -371,9 +346,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Klösträd och kattträd från 46 cm till takhöga modeller på 275 cm, klöspelare och klöstunnor i sisal, jute och naturfiber – med grottor och hängmattor.",
   },
   "koksmaskiner-apparater": {
-    title: "Köksmaskiner & köksapparater",
+    title: "Köksmaskin, espressomaskin & köksapparater",
     description:
-      "Köksmaskiner och apparater som sparar tid i vardagen. Effekt, kapacitet och skötselråd anges i varje beskrivning. Fri frakt över 499 kr.",
+      "Espressomaskiner och kapselmaskiner, köksmaskiner på 1300–1400 W, bordsdiskmaskiner med egen vattentank, ismaskiner, yoghurtmaskiner och en pizzaugn.",
   },
   "koksoar-koksvagnar": {
     title: "Köksö & köksvagn på hjul – med förvaring",
@@ -381,9 +356,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Köksöar och köksvagnar på hjul från 53 till 129 cm, med utfällbar skiva, lådor, kryddhylla, vinställ eller handdukshängare och skiva i trä eller stenlook.",
   },
   "koksredskap-tillbehor": {
-    title: "Köksredskap & kökstillbehör",
+    title: "Köksredskap, kastrullset & chafing dish",
     description:
-      "Köksredskap och tillbehör i hållbara material för vardagsmatlagningen. Material och skötselråd anges. Leverans 3–6 dagar, öppet köp 30 dagar.",
+      "Kastrullset med 17 delar för induktion, chafing dish-set för buffén, lufttäta behållare för torrvaror, mikrovågsugnshylla och vikbar köksvagn.",
   },
   konstvaxter: {
     title: "Konstgjorda växter – buxbom, olivträd, monstera",
@@ -391,19 +366,19 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Konstväxter för inne och ute: buxbom och cypresser på jordspett, olivträd upp till 180 cm, monstera och bambu i kruka med cementfylld botten – utan vattning.",
   },
   "kropp-valbefinnande": {
-    title: "Rollator, ljusterapilampa & sittdyna",
+    title: "Rollator & duschpall – duschstol och ljusterapi",
     description:
-      "Hopfällbara rollatorer med sits som bär 136 kg, en ljusterapilampa på 10 000 lux, en sittdyna i memoryskum och en duschpall med stödhandtag.",
+      "Hopfällbara rollatorer som bär 136 kg, duschpallar och en duschstol som bär upp till 158 kg, toalettförhöjning, ljusterapilampa på 10 000 lux och sittdyna.",
   },
   "lek-tillbehor-for-husdjur": {
     title: "Hundtrappa, hundramp, agility & kattbädd",
     description:
-      "Hundtrappor och hundramper till soffa och säng, agilityset för trädgården, kattbäddar och kattrappor samt aktiveringsleksaker för hund och katt.",
+      "Hundtrappor och hundramper till soffa, säng och bil, agilityset och agilityhinder i trä, kattkojor, kattrappor, katthjul och en automatisk kattleksak.",
   },
   "leksaker-spel": {
     title: "Gåbil, balanscykel & klätterställning för barn",
     description:
-      "Gåbilar och sparkbilar för de minsta, balanscyklar, klätterställningar för inomhusbruk, byggsatser, lasertag och spelbord för hela familjen.",
+      "Gåbilar och sparkbilar för de minsta, springcyklar, klätterställningar och skumklossar för inomhus, tågbanor i trä, byggsatser och lasertag för större barn.",
   },
   leksakskok: {
     title: "Leksakskök & barnkök i trä, MDF och plast",
@@ -411,9 +386,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Leksakskök och barnkök för barn från 3 år – i trä, MDF och plast, med ugn, diskho och ljud, flera med rinnande vatten och upp till 92 delar.",
   },
   "massage-aterhamtning": {
-    title: "Uppresningsfåtölj & kontorsstol med massage",
+    title: "Uppresningsfåtölj med massage – värme och lyft",
     description:
-      "Uppresningsfåtöljer med lyft, massage och värme, kontorsstolar med massage och fotstöd, reclinerfåtöljer och en fot- och vadmassage för hemmet.",
+      "Uppresningsfåtöljer med lyft, massage och ländvärme, massagefåtöljer med fotpall, reclinerfåtöljer, massagestolar på hjul, massagebänkar och benmassage.",
   },
   massagebankar: {
     title: "Massagebänk & behandlingsbänk – hopfällbar",
@@ -426,24 +401,19 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Massagefåtöljer med vibration, värme och fotstöd, några med uppresningshjälp, och massagestolar med vibration eller knådning i ryggen. Bär upp till 160 kg.",
   },
   "mat-vattenskalar": {
-    title: "Hundskålar & kattskålar",
+    title: "Matskåp för hund, hundskålar & foderautomat",
     description:
-      "Mat- och vattenskålar till hund och katt i praktiska material. Volym och mått anges i beskrivningen. Leverans 3–6 dagar från EU-lager.",
+      "Matskåp för hund med infällda rostfria skålar och förvaring, upphöjda matställ, foderautomater med app eller timer och vattenfontäner för katt.",
   },
   matgrupper: {
     title: "Matgrupp – matbord med stolar för två eller fyra",
     description:
-      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och ett furubord från 60 till 120 cm.",
+      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och två furubord, från 60 till 120 cm.",
   },
   "miniugnar-airfryers": {
     title: "Miniugn & airfryer – varmluftsfritös och bänkugn",
     description:
-      "Miniugnar från 9 till 36 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering.",
-  },
-  mobiltillbehor: {
-    title: "Mobiltillbehör – laddare, kablar & skal",
-    description:
-      "Mobiltillbehör till vardagen: laddare, kablar och skydd. Kolla anslutningstyp i beskrivningen så tillbehöret passar din telefon. Öppet köp 30 dagar.",
+      "Miniugnar från 9 till 46 liter, miniugnar med frityrkorg som fungerar som airfryer och bänkugnar med två kokplattor, för bakning, grill och fritering.",
   },
   motionscyklar: {
     title: "Motionscykel, spinningcykel & pedaltränare",
@@ -468,12 +438,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   oronlappsfatoljer: {
     title: "Öronlappsfåtölj – knappad rygg, sammet & linne",
     description:
-      "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, gungstolar med öronlappsrygg och en uppresningsfåtölj.",
+      "Öronlappsfåtöljer med knappad rygg som bär 160 kg, fåtöljer med ländkudde och fotpall, en gungstol med öronlappsrygg och en uppresningsfåtölj.",
   },
   pallar: {
-    title: "Pall – stegpall, duschpall, pianopall & rullpall",
+    title: "Pall – stegpall, pianopall, rullpall & sadelpall",
     description:
-      "Pallar till hem och verkstad: stegpallar, duschpallar som bär upp till 150 kg, pianopallar på 45–58 cm, rullpallar och sadelpallar på hjul och sittpallar i fyrpack.",
+      "Stegpallar, pianopallar på 45–58 cm, rullpallar och sadelpallar på hjul, salongspallar, barpallar, verkstadspallar och stapelbara sittpallar i fyrpack.",
   },
   projektordukar: {
     title: "Projektorduk – motoriserad, manuell & på stativ",
@@ -488,17 +458,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   sandlador: {
     title: "Sandlåda med tak – sandlådor i trä för barn",
     description:
-      "Sandlådor i barrträ för barn från 3 år – med soltak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med fiberduk i botten på flera.",
+      "Sandlådor i trä för barn från 3 år – med soltak, justerbart tak eller lekstugetak, lekkök och diskho, som piratskepp eller bil och med duk i botten på några.",
   },
   "selar-koppel-transport": {
-    title: "Hundsele, koppel & hundtransport",
+    title: "Hundgaller till bil & hundtransport",
     description:
-      "Hundselar, koppel, hundramper till bilen och cykelvagnar för hund. Bröstomfång och maxvikt anges så du väljer rätt storlek. Fri frakt över 499 kr.",
-  },
-  "servering-glas": {
-    title: "Servering & glas till dukningen",
-    description:
-      "Serveringsdetaljer och glas som lyfter dukningen till vardag och fest. Material och skötselråd anges. Leverans 3–6 dagar, 30 dagars öppet köp.",
+      "Hundgaller och bagagerumsgaller för bilen, hundtrappa och hundramp till bakluckan, cykelkärror och cykelvagnar för hund, hundvagnar och en hundryggsäck.",
   },
   "serveringsvagnar-rullvagnar": {
     title: "Serveringsvagn, barvagn & rullvagn på hjul",
@@ -508,7 +473,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "sideboards-vitrinskap": {
     title: "Sideboard, skänk & vitrinskåp för vägg och golv",
     description:
-      "Sideboards och skänkar i vitt, högglans, metall och rotting, de flesta med lådor och skåp, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
+      "Sideboards, skänkar och höga köksskåp i vitt, högglans, metall och rotting, med lådor och skåp, och vitrinskåp med glas- eller akryldörrar för vägg och golv.",
   },
   sidobord: {
     title: "Sidobord & avlastningsbord – runda och C-formade",
@@ -523,7 +488,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "skarmtak-entretak": {
     title: "Skärmtak & entrétak för ytterdörr och fönster",
     description:
-      "Skärmtak och entrétak i polykarbonat för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen med konsoler.",
+      "Skärmtak och entrétak i polykarbonat eller härdat glas för ytterdörr, dubbeldörr och fönster, från 100 till 303 cm breda, som skruvas fast i väggen.",
   },
   "skoskap-skobankar": {
     title: "Skoskåp, skobänk & skohylla till hallen",
@@ -533,7 +498,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   snurrfatoljer: {
     title: "Snurrfåtölj – vrids 360°, på ben eller fast fot",
     description:
-      "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och två reclinerfåtöljer.",
+      "Snurrfåtöljer som vrids 360 grader: på ben eller på fot, med fotpall, med gaslyft eller med ryggstöd som fälls bakåt, och flera reclinerfåtöljer.",
   },
   "solskydd-paviljonger": {
     title: "Paviljong 3x3, paviljongtak & pop up-tält",
@@ -553,42 +518,42 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   speglar: {
     title: "Spegel – helkroppsspegel, väggspegel, golvspegel",
     description:
-      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 148 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
+      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 120 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
   },
   terrarier: {
     title: "Terrarium i glas – för ödla, orm och spindel",
     description:
-      "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, med gallerlock och frontlucka eller skjutdörrar. Flera kan låsas.",
+      "Terrarier i glas från 24 till 140 liter för ödlor, ormar, spindlar och grodor, sköldpaddshus i trä, ett akvarium och en reptilinkubator.",
   },
   "terrassvarmare-infravarmare": {
     title: "Terrassvärmare & infravärmare – 2000 och 2500 W",
     description:
-      "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg, tak och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg.",
+      "Terrassvärmare och infravärmare på 2000 och 2500 W för vägg och stativ – med fjärrkontroll, app eller timer och effekt i upp till nio steg.",
   },
   "tradgardsdekor-belysning": {
     title: "Solcellslampor, trädgårdsfontäner & dekor",
     description:
-      "Solcellslampor och solcellslyktor för trädgården, trädgårdsfontäner med pump, fågelmatare med kamera, spaljéer och blomställ – och säsongsdekor.",
+      "Solcellslampor och lyktstolpar upp till 195 cm, pollarlampa och ljusslinga, trädgårdsfontäner, konstgjorda klot och häckar, spaljéer, rosenbåge och fågelmatare.",
   },
   "tradgardsskotsel-bevattning": {
-    title: "Slangvagn, kompostkvarn & trädgårdsredskap",
+    title: "Slangvagn, lövblås & trädgårdsredskap",
     description:
-      "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, droppslang, kompostkvarn på 2500 W, gödselspridare, lövblås, häcksax och gräsklippare.",
+      "Trädgårdsredskap och bevattning: slangvagnar och slangvinda, lövblås, häcksax, gräsklippare, gödselspridare, gräsmattsluftare och trädgårdsskåp.",
   },
   "traning-gym": {
     title: "Hemmagym – chinsstång, stepbräda & pilates",
     description:
-      "Träningsredskap för hemmagymmet: chinsstänger för vägg eller fristående, stepbrädor, pilatesbrädor, gymstationer med viktblock och vibrationsplattor.",
+      "Gymstationer med viktblock, chinsstänger och dipsställningar, stepbrädor, plyoboxar, pilatesbrädor, roddmaskiner, steppers och vibrationsplattor för hemmet.",
   },
   traningsbankar: {
     title: "Träningsbänk – hopfällbar, justerbar & scottbänk",
     description:
-      "Träningsbänkar som fälls ihop, med ryggstöd i flera lägen, benrullar eller skivstångsställ, plus scottbänk, sit-up-bänk och sissy squat-bänk.",
+      "Träningsbänkar som fälls ihop, med ryggstöd i flera lägen, benrullar eller skivstångsställ, plus scottbänk, sit-up-bänkar och en bänk i trä med hantelfack.",
   },
   "tv-bankar": {
     title: "TV-bänk – 80 till 200 cm, med lådor och LED",
     description:
-      "TV-bänkar från 80 till 200 cm för tv upp till 75 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
+      "TV-bänkar från 80 till 200 cm för tv upp till 82 tum: väggmonterade, på hjul, i högglans eller ektoner, med lådor, luckor, glashylla eller RGB-LED.",
   },
   tvattkorgar: {
     title: "Tvättkorg med lock – i bambu, vide och med fack",
@@ -598,7 +563,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "utelek-spel": {
     title: "Studsmatta för barn, basketkorg & gungor",
     description:
-      "Utelek för trädgården: studsmattor för barn med skyddsnät, basketkorgar och basketställ, gungställning och gungor, sandlådor, hoppborg och bollnät.",
+      "Studsmattor för barn med skyddsnät, basketkorgar för väggen, flyttbart basketställ, gungställning, fågelbogunga, hoppborg med pool och sandlådor.",
   },
   utemobler: {
     title: "Utemöbler – loungeset, trädgårdsbänk & hängstol",
@@ -608,17 +573,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "valphagar-hundhagar": {
     title: "Valphage & hundhage – inomhus och utomhus",
     description:
-      "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, och en hopfällbar hage i tyg med soltak. Flera har markpinnar för gräsmattan.",
+      "Valphagar och hundhagar i metall, 60 till 91 cm höga med dörr eller grind, en hundgård med tak och hopfällbara hagar för hund och katt. Flera har markpinnar.",
   },
   varmeflaktar: {
-    title: "Värmefläkt – för vägg eller som torn, 2000 W",
+    title: "Värmefläkt för vägg eller som torn, 2000–2200 W",
     description:
-      "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, timer, oscillation och överhettningsskydd. Flera har veckotimer och fönstervakt.",
-  },
-  "vaskor-necessarer": {
-    title: "Väskor & necessärer",
-    description:
-      "Väskor och necessärer med smart förvaring för resan och vardagen. Mått och material anges i beskrivningen. Leverans 3–6 dagar, öppet köp.",
+      "Värmefläktar på 2000–2200 W för väggen eller som torn, med termostat, oscillation och överhettningsskydd, och ett elelement med wifi. Flera har veckotimer.",
   },
   "vattenkokare-brodrostar": {
     title: "Vattenkokare, brödrost & frukostset",
@@ -636,9 +596,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Vedställ i svart stål för brasveden inne och ute, stora vedställ med vattentätt överdrag och vedbodar med lutande tak. Flera med eldstadsverktyg.",
   },
   "verktyg-hemmafix": {
-    title: "Verktyg & hemmafix – vinschar och fräsar",
+    title: "Verktyg & hemmafix – sågbockar, svets och fräs",
     description:
-      "Handvinschar för båt och trailer, CNC-fräsar, laserstativ och garagehyllor för hemmafixaren. Kapacitet och mått anges. Fri frakt över 499 kr.",
+      "Sågbockar och verkstadsbänkar, väggfräsar, MIG-svets, skjutdörrsbeslag, säckkärror, garagehyllor och verktygsskåp för garaget, verkstaden och projekten hemma.",
   },
   "verktygsvagnar-verktygslador": {
     title: "Verktygsvagn & verktygslåda – med lås och lådor",
@@ -649,6 +609,81 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Vinställ, vinhylla & vinkyl – 6 till 72 flaskor",
     description:
       "Vinställ för golv och vägg, vinhyllor med glashållare, köksmöbler med vinställ och vinkylar för 12 till 20 flaskor som ställs mellan 5 och 18 °C.",
+  },
+  "bil-slap": {
+    title: "Domkraft, takräcke & handvinsch – bil och släp",
+    description:
+      "Garagedomkrafter och luftdomkrafter, takräcke, takkorg och takväska, handvinschar för båt och trailer, mc-lyftar, dieselvärmare, spännband och lastramper.",
+  },
+  bollsport: {
+    title: "Fotbollsmål & basketställ – volleyboll, tennis",
+    description:
+      "Fotbollsmål från 150 × 110 till 300 × 200 cm, basketställ och korgar för vägg, volleybollnät med stolpar, tennisbollsvagnar och träningsnät för baseboll.",
+  },
+  "elbilsladdning-solenergi": {
+    title: "Elbilsladdare & solpanel – laddkabel och solel",
+    description:
+      "Portabla elbilsladdare med Typ 2 för vanligt vägguttag, laddkabel till laddbox, solpaneler från 20 till 260 W och en hybridväxelriktare för eget elsystem.",
+  },
+  gamingstolar: {
+    title: "Gamingstol med fotstöd – upp till 170° lutning",
+    description:
+      "Gamingstolar med fotstöd under sitsen, rygg som fälls 135 till 170 grader och sitthöjd 44–55 cm. Racingform eller kattöron och kaninöron, alla bär 120 kg.",
+  },
+  "garderober-kladstall": {
+    title: "Garderob & tyggarderob – modulgarderob, klädskåp",
+    description:
+      "Tyggarderober med dragkedja och hjul, modulgarderober i plast, ett låsbart klädskåp i metall, en garderob med spegel och klädställ i bambu och metall.",
+  },
+  "hobby-musik": {
+    title: "Staffli, handpan & metalldetektor – hobby",
+    description:
+      "Staffli i bokträ, handpan och tungtrumma, metalldetektorer med vattentät spole, teleskop för nybörjare, drönare, provdocka, tuftningstyg och ljudkort.",
+  },
+  hundgrindar: {
+    title: "Hundgrind – för dörr, trappa eller fristående",
+    description:
+      "Hundgrindar som kläms fast eller skruvas i karmen, fristående grindar i trä och metall upp till 432 cm breda och grindar med kattlucka för katten.",
+  },
+  "jul-hogtider": {
+    title: "Jul & högtider – granar, pynt och fest",
+    description:
+      "Konstgjorda julgranar, uppblåsbara tomtar och snögubbar, adventskalendrar, animerade skräckfigurer, partytält och det som behövs till kalaset.",
+  },
+  "kyl-frys": {
+    title: "Minikyl, kylskåp & minifrys – kompakta modeller",
+    description:
+      "Ett kylskåp på 91 liter med frysfack, minifrysar på 35 liter, en dryckeskyl, en minikyl som också värmer och kylar med glasdörr för 12 till 20 flaskor.",
+  },
+  "palsvard-skotsel": {
+    title: "Trimbord för hund – hopfällbart med galge",
+    description:
+      "Hopfällbara trimbord för hund med gummiskiva, galge och remmar, en trimningsarm med bordsklämma och ett pälsvårdsset som klipper, suger och torkar.",
+  },
+  "smart-hem-sakerhet": {
+    title: "Hemlarm & övervakningskamera – trådlöst med app",
+    description:
+      "Trådlösa hemlarm med WiFi och 4G, övervakningskameror för inne och ute med nattseende, en kamera med solpanel och en väderstation med 7 tums skärm.",
+  },
+  "spel-bordsspel": {
+    title: "Darttavla & pingisbord – biljard och poker",
+    description:
+      "Elektroniska darttavlor och darttavla i sisal, hopfällbara pingisbord, biljardbord, fotbollsbord, spelbord 3 i 1 och pokerset med 300 till 500 marker.",
+  },
+  traningsklader: {
+    title: "Träningskläder & yogabyxor – sömlösa set",
+    description:
+      "Yogabyxor med raka eller utsvängda ben, sömlösa träningsset, sport-bh, träningslinnen med inbyggd bh, halterneck-toppar och cykelshorts i storlek XS till XL.",
+  },
+  "tvatt-stad": {
+    title: "Torktumlare & städvagn – mopphink, torkställ",
+    description:
+      "Kompakta torktumlare för 2,5 till 5 kg, torkställ och torktorn, städvagnar och mopphinkar med press, ångstation, klädångare och en fönsterputsrobot.",
+  },
+  "verktyg-fordon": {
+    title: "Verkstad & fordon – maskiner, bil och solel",
+    description:
+      "Verktygslådor och verktygsskåp, sågbockar och fräsar, domkrafter och takräcken, handvinschar, elbilsladdare och solpaneler samlade under en avdelning.",
   },
 };
 

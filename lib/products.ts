@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
+import { agareMedAltText } from "./variant-bilder";
 import { formatPrice } from "./price-range";
 import { clipText } from "./clip-text";
 import { hamtaAllaKategorier } from "./category-paging";
@@ -771,6 +772,22 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // anropet. Fail-open: {} om nyckel/data saknas → ingen markering, allt annat
         // oförändrat.
         prod.imageOwners = await fetchV3ImageOwners(prod.id);
+        // Sammanslagna färger har oftast bara EN länkad bild per val. Olänkade
+        // bilder vars alt-text nämner exakt en av färgerna tillskrivs den, så
+        // galleriet kan visa varje färgs egna bilder (lib/variant-bilder.ts).
+        const fargAxel =
+          prod.options?.choices ??
+          prod.variantAxes?.find((ax) => ax.choices.filter((c) => c.color).length >= Math.ceil(ax.choices.length / 2))?.choices;
+        const fargEtiketter = (fargAxel || []).filter((c) => c.color).map((c) => c.label);
+        if (fargEtiketter.length >= 2) {
+          prod.imageOwners = agareMedAltText({
+            lankade: prod.imageOwners,
+            alts: prod.imageAlts || {},
+            bilder: [prod.img, ...prod.gallery],
+            fargEtiketter,
+            huvudbild: prod.img,
+          });
+        }
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }
@@ -1286,8 +1303,8 @@ export type Collection = { id: string; name: string; slug: string; parentId: str
 // Wix V3 restructure (2026-05-31) made the 8 mains exactly the parentless
 // categories, ordered here by catalog size (largest first).
 const MAIN_ORDER = [
-  "Elektronik & Tillbehör", "Hem & Inredning", "Kök & Husgeråd", "Barn & Familj",
-  "Skönhet & Hälsa", "Husdjur", "Sport & Fritid", "Mode & Accessoarer",
+  "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider",
+  "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Fordon",
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;

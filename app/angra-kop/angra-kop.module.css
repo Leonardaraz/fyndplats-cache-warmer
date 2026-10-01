@@ -1,0 +1,63 @@
+/* /angra-kop (2026-09-30). Bygger på om-*-klasserna i globals.css. Formuläret
+   (components/angra-form.tsx) har sina egna angra-*-regler och ligger kvar i en
+   .prose-ruta, så det ser ut och beter sig exakt som förut. */
+
+.hero > * { max-width: 760px }
+.hero :global(.om-lede) { max-width: 60ch }
+.anker { scroll-margin-top: var(--ankare) }
+
+/* Formuläret till vänster, det viktigaste i korthet till höger. Sektionen är
+   medvetet INTE .om-sektion: ".om-sektion p" står senare i globals.css än
+   angra-*-reglerna och skulle vinna över dem (samma specificitet), så
+   formulärets texter hade bytt storlek och marginaler. */
+.formsek { padding: 48px 0 64px }
+.formgrid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr); gap: 40px; align-items: start }
+.formkol:global(.prose) { padding: 0 }
+
+.korthet {
+  padding: 26px 24px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--warm);
+}
+.korthet ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 16px }
+.korthet li { display: flex; gap: 12px; align-items: flex-start }
+.korthet li > div { min-width: 0 }
+.korthet li h3 { font-size: var(--text-base); margin: 2px 0 4px }
+.korthet li p { font-size: var(--text-sm); margin: 0 }
+.korthet a, .villkor a, .kvitto a { color: var(--brand); font-weight: 650 }
+.korthet .rubrik { margin: 0; font-size: var(--text-xs); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--brand) }
+.bock {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; background: #fff; color: var(--brand); border: 1px solid var(--line);
+}
+.bock svg { width: 16px; height: 16px }
+
+/* Villkoren: två perioder sida vid sida, sedan det som gäller båda. */
+.villkor { display: grid; gap: 18px }
+.villkor p.ingress { font-size: var(--text-lg); margin: 0; max-width: 70ch }
+.villkor p.utlosare { margin: 0; max-width: 70ch }
+.perioder { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px }
+.kort { padding: 26px 24px; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff }
+.period { border-top: 3px solid var(--orange) }
+.range {
+  display: inline-block; font-size: var(--text-xs); font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--brand); margin-bottom: 8px;
+}
+div.kort h3 { margin: 0 0 10px }
+.kort ul { margin: 12px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px }
+.kort li { font-size: var(--text-sm); line-height: 1.6; color: #3f3a34 }
+.villkor p.lankar { margin: 0 }
+
+.kvitto { display: flex; gap: 18px; align-items: flex-start }
+.kvitto > div { max-width: 760px }
+div.kvitto p { max-width: 70ch; margin-top: 14px }
+
+.slut a { color: #fff; font-weight: 650 }
+
+@media (max-width: 900px) {
+  .formgrid { grid-template-columns: 1fr; gap: 28px }
+  .formsek { padding: 32px 0 48px }
+  .perioder { grid-template-columns: 1fr }
+}
+@media (max-width: 640px) {
+  .kort, .korthet { padding: 22px 18px }
+  .kvitto { flex-direction: column; gap: 12px }
+}

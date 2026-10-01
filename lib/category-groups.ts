@@ -8,6 +8,7 @@ import { cache } from "react";
 import { getProducts, getCollections, forListings } from "./products";
 import type { Product, Collection } from "./products";
 import { categoryInMainNav } from "./category-threshold";
+import { avdelningIHuvudmenyn } from "./meny-grupper";
 
 export type MainGroup = {
   main: string;          // Wix-katalogens kategorinamn
@@ -23,15 +24,11 @@ export type MainGroup = {
 // (non-denylisted) produktbilden, så listan behöver inte vara komplett.
 export const MAIN_GROUPS: MainGroup[] = [
   {
-    main: "Elektronik & Tillbehör",
-    tag: "Smart teknik för vardagen",
-    subs: ["Mobiltillbehör", "Laddare & Kablar", "Dator & Gaming", "Hörlurar & Ljud", "Projektordukar"],
-    heroPicks: ["mini-luftfuktare"],
-  },
-  {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad", "Julgranar", "Juldekoration", "Halloweendekoration", "Konstväxter", "Badrumsskåp", "Golvlampor", "Elkaminer", "Värmefläktar", "Verktygsvagnar & verktygslådor", "Speglar", "Badrumsspeglar", "Tvättkorgar", "Gnistskydd", "Elementskydd"],
+    // Kategoriflytten 2026-09-30: jul, halloween och fest har egen avdelning
+    // (Jul & Högtider), verktygen likaså (Verktyg & Fordon).
+    subs: ["Dekoration & Prydnad", "Konstväxter", "Speglar", "Belysning", "Golvlampor", "Förvaring & Organisering", "Badrumsskåp", "Badrumsspeglar", "Badrum & Hemtextil", "Tvättkorgar", "Tvätt & städ", "Elkaminer", "Värmefläktar", "Gnistskydd", "Elementskydd", "Smart hem & säkerhet", "Projektordukar", "Hushållsapparater"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
@@ -43,13 +40,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
+    subs: ["Kontorsstolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
     heroPicks: [],
   },
   {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
-    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar", "Soptunnor", "Miniugnar & airfryers", "Serveringsvagnar & rullvagnar"],
+    subs: ["Köksmaskiner & Apparater", "Kyl & frys", "Köksredskap & Tillbehör", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar", "Soptunnor", "Miniugnar & airfryers", "Serveringsvagnar & rullvagnar"],
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
@@ -57,7 +54,7 @@ export const MAIN_GROUPS: MainGroup[] = [
     tag: "Genomtänkta favoriter för familjen",
     // Sökordskategorierna 2026-09-24 står här för att /butik ska länka till dem;
     // mega-menyn hämtar dem ur Wix på egen hand.
-    subs: ["Baby & Småbarn", "Leksaker & Spel", "Elbilar för barn", "Sparkcyklar för barn", "Gunghästar & gungdjur", "Leksakskök", "Sandlådor", "Barnmöbler", "Motorcyklar för barn"],
+    subs: ["Baby & Småbarn", "Leksaker & Spel", "Elbilar för barn", "Sparkcyklar för barn", "Gunghästar & gungdjur", "Leksakskök", "Utelek & Spel", "Sandlådor", "Barnmöbler", "Motorcyklar för barn"],
     heroPicks: ["montessori-musikset-i-tra-5-delars", "babygym-i-tra-stabil-aktivitetsstallning"],
   },
   {
@@ -69,20 +66,31 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Husdjur",
     tag: "Det bästa för dina fyrbenta vänner",
-    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar", "Klösträd", "Kattlådor", "Katthus", "Hundbäddar & hundsoffor", "Hundburar", "Hundkojor", "Kaninburar & marsvinsburar", "Hamsterburar & gnagarburar", "Terrarier", "Hönshus & hönsgårdar", "Hundvagnar", "Valphagar & hundhagar"],
+    subs: ["Hundbäddar & hundsoffor", "Hundburar", "Hundkojor", "Hundgrindar", "Valphagar & hundhagar", "Hundvagnar", "Selar, Koppel & Transport", "Klösträd", "Kattlådor", "Katthus", "Kaninburar & marsvinsburar", "Hamsterburar & gnagarburar", "Hönshus & hönsgårdar", "Terrarier", "Mat & Vattenskålar", "Lek & Tillbehör för husdjur", "Pälsvård & Skötsel"],
     heroPicks: [],
   },
   {
     main: "Sport & Fritid",
     tag: "Smart utrustning för träning, resa och uteliv",
-    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym", "Boxningssäckar", "Hantlar & hantelset", "Träningsbänkar", "Motionscyklar"],
+    subs: ["Träning & Gym", "Hantlar & hantelset", "Träningsbänkar", "Motionscyklar", "Boxningssäckar", "Träningskläder", "Spel & bordsspel", "Bollsport", "Friluftsliv & Resa", "Bil & Cykel", "Hobby & musik"],
     heroPicks: ["digital-bagagevag"],
   },
   {
-    main: "Mode & Accessoarer",
-    tag: "Tidlösa stilval och accessoarer",
-    subs: ["Smycken", "Klockor & Solglasögon", "Väskor & Necessärer", "Skor"],
-    heroPicks: ["trendigt-snake-chain-kedjehalsband-slat"],
+    // Kategoriflytten 2026-09-30. Säsongsavdelning: står i huvudmenyn och på
+    // /butik bara september–januari (lib/meny-grupper.ts).
+    main: "Jul & Högtider",
+    tag: "Julgranar, juldekor, halloween och fest",
+    subs: ["Julgranar", "Juldekoration", "Halloweendekoration", "Kalas & Fest"],
+    heroPicks: [],
+  },
+  {
+    // Kategoriflytten 2026-09-30. Verktygen låg under Hem & Inredning och
+    // bilprodukterna under Sport & Fritid; Aosom, Jula och Biltema har båda i
+    // en egen avdelning.
+    main: "Verktyg & Fordon",
+    tag: "Verktygsvagnar, verkstad, bil och släp",
+    subs: ["Verktygsvagnar & verktygslådor", "Verktyg & Hemmafix", "Bil & släp", "Elbilsladdning & solenergi"],
+    heroPicks: [],
   },
 ];
 
@@ -212,6 +220,11 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // eller figurer med upphovsrätt i bild.
   "Julgranar": UNSPLASH("1642335911245-238e13dcabf2"), // snöad, pyntad gran vid öppen spis
   "Juldekoration": UNSPLASH("1767471662293-55cae5cbea6f"), // snöig trädgård med lysande snögubbar
+  // De nya avdelningarna 2026-09-30 lånar sin mest typiska underkategoris bild,
+  // granskad samma dag i UNSPLASH()-beskärningen: julgranen vid den öppna spisen
+  // och verktygsväggen. Alla andra avdelningar har en egen bild.
+  "Jul & Högtider": UNSPLASH("1642335911245-238e13dcabf2"), // pyntad gran och krans vid öppen spis
+  "Verktyg & Fordon": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
 
   // Husdjur
   "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas
@@ -221,7 +234,9 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Lek & Tillbehör för husdjur": UNSPLASH("1545249390-6bdfa286032f"), // kattunge som leker
 
   // Sport & Fritid
-  "Träning & Gym": UNSPLASH("1705909237050-7a7625b47fac"), // träning med vikter
+  // "Träning & Gym" har ingen bild här längre: 1705909237050 visade en svart
+  // handväska mot gul bakgrund (granskning 2026-09-30). Sidan visar i stället
+  // en hantel ur sortimentet (KATEGORI_HERO_PRODUKT nedan).
   "Friluftsliv & Resa": UNSPLASH("1501555088652-021faa106b9b"), // vandrare med ryggsäck, berg
   "Bil & Cykel": UNSPLASH("1541625602330-2277a4c46182"), // cyklister på väg
 
@@ -240,8 +255,9 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Solskydd & Paviljonger": UNSPLASH("1786654026603-54c654c05c18"), // stort parasoll över sittgrupp
   "Grill & Utekök": UNSPLASH("1782010657321-d33cf96afe57"), // eldkorg med lågor, stolar runt
   "Trädgårdsskötsel & Bevattning": UNSPLASH("1780328868286-9650af900bd5"), // slangvagn mot tegelvägg
-  "Trädgårdsdekor & Belysning": UNSPLASH("1776524582404-852271a6551d"), // utomhuslampa bland blommor
-  "Utelek & Spel": UNSPLASH("1536557925410-b8df780eb58a"), // repgunga under träd, kvällssol
+  // Trädgårdsdekor & Belysning och Utelek & Spel togs bort 2026-09-30: en
+  // nattbild som var nästan helt svart och en mörk gunga i skymning. De visar
+  // nu en vald produkt (KATEGORI_HERO_PRODUKT nedan).
 
   // Möbler
   // Grenen skapades i Wix 2026-09-23. Samma granskning som trädgårdsgrenen:
@@ -258,6 +274,25 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Skrivbord": UNSPLASH("1623177623442-979c1e42c255"), // höj- och sänkbart skrivbord i trä
   "Soffbord & småbord": UNSPLASH("1581428982868-e410dd047a90"), // soffbord i trä framför soffa
   "Sängar & sovrum": UNSPLASH("1560185128-e173042f79dd"), // stoppad säng med sängbord
+};
+
+// Vald produkt som kategorisidans hero, per kategori-SLUG, där den högst
+// poängsatta produktbilden inte duger. Granskat 2026-09-30 över alla 131
+// kategorier: vit produkt mot vit bakgrund (hundhagen, värmaren), en tunn
+// lampa som knappt syntes, en mopphink med "CAUTION WET FLOOR", en rosa
+// gamingstol med kaninöron och leverantörens varumärke på gymstationen.
+// Finns produkten inte längre i kategorin faller sidan tillbaka som förut.
+export const KATEGORI_HERO_PRODUKT: Record<string, string> = {
+  "traning-gym": "hantel-20-kg-sexkantig-gummi",
+  "tradgardsdekor-belysning": "ljusslinga-18-m-50-led-lampor-ip44",
+  "utelek-spel": "sandlada-med-lekstugetak-124-cm",
+  "sandlador": "sandlada-piratskepp-180-cm",
+  "gamingstolar": "gamingstol-170-grader",
+  "valphagar-hundhagar": "hopfallbar-hundhage",
+  "golvlampor": "baglampa-marmorfot-guld-golvlampa",
+  "tvatt-stad": "kompakt-torktumlare-franluft-vagg-golv",
+  "varmeflaktar": "keramikvarmare-2000-w-termostat-oscillation",
+  "elbilsladdning-solenergi": "portabel-elbilsladdare-typ-2-schuko",
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
@@ -344,7 +379,7 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
     // > 0 räckte förr. Punkt 17: en huvudkategori med 1–4 produkter ska inte
     // stå i navigationen. Underkategorierna filtreras fortsatt bara på > 0; de
     // är inte huvudkategorier och kravet gäller uttryckligen huvudnavigationen.
-    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && categoryInMainNav(totalt(c.id)))
+    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && avdelningIHuvudmenyn(c.name) && categoryInMainNav(totalt(c.id)))
     .map((mainCol) => {
       const children = childrenByParent.get(mainCol.id) || [];
       const subs = children
@@ -413,8 +448,15 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
   for (const g of MAIN_GROUPS) {
     const mainCol = collByName.get(g.main);
     if (!mainCol) continue;
-    const inCat = products.filter((p) => p.img && (p.collectionIds || []).includes(mainCol.id));
+    // De nya avdelningarna (Jul & Högtider, Verktyg & Fordon) har inga produkter
+    // direkt i huvudkategorin, bara i underkategorierna. Då väljs bilden bland dem.
+    let inCat = products.filter((p) => p.img && (p.collectionIds || []).includes(mainCol.id));
+    if (inCat.length === 0) {
+      const ids = new Set((childrenByParent.get(mainCol.id) || []).map((c) => c.id));
+      inCat = products.filter((p) => p.img && (p.collectionIds || []).some((cid) => ids.has(cid)));
+    }
     if (inCat.length === 0) continue;
+    if (!avdelningIHuvudmenyn(g.main)) continue;
     // Punkt 17 gäller ALL huvudnavigation, inte bara mega-menyn. /butik-rutnätet
     // och startsidans kategorirad byggs härifrån, och "Mode & Accessoarer" stod
     // kvar som huvudkort med tre produkter bakom sig tills den här raden kom —

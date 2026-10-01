@@ -1,0 +1,86 @@
+/* Kundtjänst (2026-09-30). Bygger på om-klasserna i app/globals.css;
+   här står bara det sidan har utöver dem. */
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1.3fr .7fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.heroKort {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 28px 26px;
+  box-shadow: var(--e3);
+}
+.heroKort h2 {
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -.01em;
+  margin: 16px 0 10px;
+}
+.heroKort p {
+  margin: 0 0 10px;
+  line-height: 1.7;
+}
+.heroKort a {
+  color: var(--ink);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.heroKort a:hover,
+.heroKort a:focus-visible {
+  color: var(--brand);
+}
+.heroKort .heroNot {
+  font-size: var(--text-sm);
+  color: var(--soft);
+  margin: 0;
+}
+
+.arendeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.lankar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+
+.merSek {
+  background: var(--warm);
+  border-top: 1px solid var(--line);
+}
+
+.ljusLank {
+  color: #fff;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ljusLank:hover,
+.ljusLank:focus-visible {
+  color: var(--peach);
+}
+
+@media (max-width: 1000px) {
+  .arendeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+@media (max-width: 640px) {
+  .arendeGrid {
+    grid-template-columns: 1fr;
+  }
+}

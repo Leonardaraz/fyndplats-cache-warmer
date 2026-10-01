@@ -26,7 +26,11 @@ test("en panel per avdelning renderas alltid, dold tills den hovras", () => {
     /\{tree\.map\(\(m, i\) => \(\s*<div\s+key=\{m\.id\}\s+className="meganav-panel"[\s\S]{0,120}?hidden=\{active !== i\}/,
     "panelerna ska renderas för varje avdelning med hidden={active !== i}",
   );
-  assert.match(src, /\{m\.subs\.map\(\(s\) => \(\s*<a key=\{s\.id\} className="meganav-sub" href=\{`\/kategori\/\$\{s\.slug\}`\}/);
+  // Sedan 2026-09-30 står underkategorierna under rubriker. Grupperingen tar med
+  // varje underkategori exakt en gång (lib/meny-grupper.test.ts), och länken
+  // renderas för varje underkategori i varje grupp, utan villkor.
+  assert.match(src, /\{grupperaUnderkategorier\(m\.slug, m\.subs\)\.map\(\(g\) => \(/);
+  assert.match(src, /\{g\.subs\.map\(\(s\) => \(\s*<a key=\{s\.id\} className="meganav-sub" href=\{`\/kategori\/\$\{s\.slug\}`\}/);
 });
 
 test("panelen är inte villkorligt renderad", () => {

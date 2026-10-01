@@ -41,7 +41,8 @@ test("varje titel och beskrivning är unik", () => {
 test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
   assert.match(categorySeo("friluftsliv-resa")!.title, /[Cc]amping/);
   assert.match(categorySeo("mat-vattenskalar")!.title, /skålar/i);
-  assert.match(categorySeo("burar-klader-tillbehor")!.title, /[Hh]undgård|bur/);
+  assert.match(categorySeo("hundgrindar")!.title, /[Hh]undgrind/);
+  assert.match(categorySeo("gamingstolar")!.title, /[Gg]amingstol/);
   assert.match(categorySeo("lek-tillbehor-for-husdjur")!.title, /[Hh]undtrappa/);
   assert.match(categorySeo("klostrad")!.title, /[Kk]lösträd/);
   assert.match(categorySeo("elbilar-for-barn")!.title, /[Ee]lbil/);
@@ -75,13 +76,18 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // Runda S14 lade till motorcyklar för barn, valphagar, blomställ, serveringsvagnar
 // och odlingslådor. Elbil för barn tappade "motorcykel" och Växthus & odling
 // "odlingslådor" ur titeln, så att ingen gammal sida delar ord med en ny.
+// Kategoriträdet 2026-09-30 gav nya sidor egna ord (gamingstol, hundgrind,
+// garderob, torktumlare, minikyl, hemlarm …). Kontorsstolarna med massage flyttade
+// till Kontorsstolar, och duschpallen gick från Pallar till Kropp & välbefinnande,
+// som släppte sittdynan ur titeln. Kompostkvarnen finns inte längre i sortimentet.
+// "elbil" gäller barnbilarna; elbilsladdare är ett eget ord.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
-    /klösträd/i, /elbil/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
+    /klösträd/i, /elbil(?!sladd)/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
     /hundkoj/i, /gunghäst/i, /leksakskök/i, /sandlåd/i, /garagetält/i, /redskapsbod/i,
     /halloween/i, /juldekoration/i, /eldkorg/i, /konstgjorda växter/i,
     /tunnelväxthus/i, /loungeset/i, /paviljongtak/i, /plancha/i, /solcellslamp/i,
-    /studsmatta/i, /basketkorg/i, /kompostkvarn/i, /terrassvärmare/i,
+    /studsmatta/i, /basketkorg/i, /terrassvärmare/i,
     /badrumsskåp/i, /golvlamp/i, /elkamin/i, /värmefläkt/i, /verktygsvagn/i, /bäddfåtölj/i,
     /massagestol/i, /tv-bänk/i, /skoskåp/i, /köksö/i, /boxningssäck/i,
     /kaninbur/i, /hamsterbur/i, /terrari/i, /hönshus/i, /hundvagn/i, /vedställ/i,
@@ -92,14 +98,17 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /klädhängare/i, /klädställning/i, /hallmöbel/i, /hallbänk/i, /sideboard/i, /skänk/i,
     /vitrinskåp/i, /vinställ/i, /vinkyl/i, /vinhylla/i, /barnfåtölj/i, /barnsoffa/i,
     /sminkbord/i, /barngarderob/i, /projektorduk/i,
-    /massagebänk/i, /behandlingsbänk/i, /uppresningsfåtölj/i, /kontorsstol med massage/i,
-    /rollator/i, /ljusterapi/i, /sittdyna/i,
+    /massagebänk/i, /behandlingsbänk/i, /uppresningsfåtölj/i,
+    /rollator/i, /ljusterapi/i,
     /soptunn/i, /sopsortering/i, /miniugn/i, /airfryer/i, /varmluftsfritös/i, /barbord/i,
     /bardisk/i, /snurrfåtölj/i, /öronlappsfåtölj/i, /matgrupp/i, /hörnskrivbord/i,
     /skärmtak/i, /entrétak/i, /gnistskydd/i, /elementskydd/i, /radiatorskydd/i,
     /elmotorcykel/i, /motorcykel för barn/i, /valphag/i, /hundhag/i, /växthyll/i, /blomställ/i,
     /blomhyll/i, /blompall/i, /serveringsvagn/i, /barvagn/i, /rullvagn/i, /odlingslåd/i,
     /planteringslåd/i,
+    /gamingstol/i, /hundgrind/i, /(?<![a-zåäö])garderob/i, /torktumlare/i, /minikyl/i,
+    /hemlarm/i, /trimbord/i, /darttavla/i, /fotbollsmål/i, /träningskläder/i, /staffli/i,
+    /domkraft/i, /elbilsladd/i, /cykeltillbehör/i, /klädångare/i, /medicinskåp/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

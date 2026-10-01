@@ -42,11 +42,11 @@ export function ContactForm() {
   return (
     <form className="cform" onSubmit={submit}>
       <div className="row">
-        <label>Förnamn<input required value={f.fornamn} onChange={set("fornamn")} /></label>
-        <label>Efternamn<input required value={f.efternamn} onChange={set("efternamn")} /></label>
+        <label>Förnamn<input name="fornamn" autoComplete="given-name" required value={f.fornamn} onChange={set("fornamn")} /></label>
+        <label>Efternamn<input name="efternamn" autoComplete="family-name" required value={f.efternamn} onChange={set("efternamn")} /></label>
       </div>
-      <label>E-post<input type="email" required value={f.epost} onChange={set("epost")} /></label>
-      <label>Meddelande<textarea rows={5} required value={f.meddelande} onChange={set("meddelande")} /></label>
+      <label>E-post<input type="email" name="epost" autoComplete="email" required value={f.epost} onChange={set("epost")} /></label>
+      <label>Meddelande<textarea name="meddelande" rows={5} required value={f.meddelande} onChange={set("meddelande")} /></label>
 
       {/* Honeypot — dolt för människor, fylls av bottar. Icke-semantiskt namn +
           autoComplete="off" så att webbläsar-/lösenordshanterar-autofyll inte

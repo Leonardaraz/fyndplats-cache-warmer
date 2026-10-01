@@ -157,7 +157,7 @@ export default function WithdrawalReceiptEmail({
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
         Vi betalar tillbaka inom <strong>{REFUND_TIME}</strong> efter att vi tagit emot och
-        kontrollerat returen, till ditt ursprungliga betalmedel (kort, Klarna, Swish). Hur
+        kontrollerat returen, till ditt ursprungliga betalmedel via Klarna. Hur
         snabbt pengarna syns på kontot beror sedan på din bank.
       </Text>
       <Text style={text.body}>{SHIPPING_REFUND}</Text>

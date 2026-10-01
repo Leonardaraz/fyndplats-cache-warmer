@@ -43,12 +43,21 @@ export function reviewCountLabel(count: number): string {
  * villkor skrivet två gånger. Det är regeln som flyttat hit.
  */
 export function productCountLabel(count: number): string {
-  return `${count} ${count === 1 ? "produkt" : "produkter"}`;
+  return `${tusental(count)} ${count === 1 ? "produkt" : "produkter"}`;
+}
+
+/**
+ * "1 173", "3 400": tusental med hårt mellanslag, som svensk text skriver dem
+ * ("1173 produkter" såg ut som ett artikelnummer). Skrivet för hand i stället
+ * för toLocaleString, så servern och webbläsaren alltid ger samma tecken.
+ */
+export function tusental(n: number): string {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0");
 }
 
 /** "1 kategori", "2 kategorier". Samma sak för kategoriräknarna. */
 export function categoryCountLabel(count: number): string {
-  return `${count} ${count === 1 ? "kategori" : "kategorier"}`;
+  return `${tusental(count)} ${count === 1 ? "kategori" : "kategorier"}`;
 }
 
 /**

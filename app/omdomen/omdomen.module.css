@@ -1,0 +1,24 @@
+/* Omdömen (2026-09-30). Bygger på om-*-klasserna i app/globals.css och på
+   de befintliga .ratinghero- och .greviews-reglerna. .sida omsluter hela
+   sidan, så att reglerna här väger tyngre än de globala utan !important. */
+
+.sida{display:block}
+
+.heroGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
+.betygKort{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 24px 26px;box-shadow:var(--e3)}
+
+.omdomen{background:var(--warm);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sida .tack{max-width:60ch;margin:0 auto;text-align:center;font-size:var(--text-lg);line-height:1.6}
+
+.sida .tre{grid-template-columns:repeat(3,1fr)}
+
+/* Ankaret i heron hoppar till omdömesrubriken; håll den fri från sidhuvudet. */
+.sida :global(#google-omdomen){scroll-margin-top:var(--ankare)}
+
+@media(max-width:900px){
+  .heroGrid{grid-template-columns:1fr;gap:28px}
+}
+@media(max-width:760px){
+  .sida .tre{grid-template-columns:1fr}
+  .sida .tack{font-size:var(--text-base)}
+}

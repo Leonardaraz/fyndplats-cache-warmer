@@ -1,0 +1,28 @@
+/* Vanliga frågor (2026-09-30). Bygger på om-*-klasserna i app/globals.css;
+   här står bara det sidan behöver utöver dem: ämnesraden i heron, ankarlänkar
+   som inte hamnar under det klistrade sidhuvudet, och styckena i långa svar. */
+
+.heroInner>*{max-width:880px}
+
+.amnen{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.amnen a{display:inline-flex;align-items:center;gap:9px;padding:10px 16px 10px 13px;border-radius:var(--r-pill);background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:650;font-size:var(--text-sm);text-decoration:none;box-shadow:var(--e1);transition:border-color .15s,color .15s}
+.amnen a:hover,.amnen a:focus-visible{border-color:var(--brand);color:var(--brand)}
+.amnen svg{flex:none;width:18px;height:18px;color:var(--brand)}
+
+.amne{scroll-margin-top:var(--ankare)}
+/* Ikonen på egen rad ovanför eyebrow-raden (om-ikon är inline-flex). */
+.amneHuvud .ikon{display:flex;margin-bottom:18px}
+.lankar{display:flex;flex-wrap:wrap;gap:0 22px}
+
+.svar{padding-bottom:18px}
+/* .svar .stycke väger tyngre än .om-fragor details p i globals.css. */
+.svar .stycke{margin:0 0 12px;font-size:var(--text-sm);line-height:1.65}
+.svar .stycke:last-child{margin-bottom:0}
+.svar a{color:var(--brand);font-weight:650}
+
+@media(max-width:640px){
+  .amnen{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .amnen a{padding:10px 12px;font-size:var(--text-xs)}
+  .amnen a:last-child:nth-child(odd){grid-column:1 / -1}
+}
+@media(prefers-reduced-motion:reduce){.amnen a{transition:none}}

@@ -196,7 +196,7 @@ export function TrackingWidget() {
 
           <div className="track-eta">
             {delivered ? (
-              <>Ditt paket är <b>levererat</b>. 🎉 Tack för att du handlar hos Fyndplats!</>
+              <>Ditt paket är <b>levererat</b>. Tack för att du handlar hos Fyndplats.</>
             ) : isException ? (
               <>Spårningen är pausad. Vi följer paketet – hör av dig till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> om du undrar.</>
             ) : (
@@ -219,7 +219,7 @@ export function TrackingWidget() {
 
           <h3 className="track-h">Spårningshistorik</h3>
           <div className="track-sub">
-            🚚 Levereras med {carrier}
+            Levereras med {carrier}
             {/* Senast uppdaterad = nyaste händelsens tid — visar kunden att
                 spårningen lever även när stegen står stilla en dag. */}
             {(data.updatedAt || events[0]?.time) && (
@@ -235,7 +235,7 @@ export function TrackingWidget() {
                   {ev.time && <div className="et">{ev.time}</div>}
                   {ev.status && <div className="es">{ev.status}</div>}
                   {ev.desc && <div className="ed">{ev.desc}</div>}
-                  {ev.place && <div className="ep">📍 {ev.place}</div>}
+                  {ev.place && <div className="ep">{ev.place}</div>}
                 </div>
               ))}
             </div>

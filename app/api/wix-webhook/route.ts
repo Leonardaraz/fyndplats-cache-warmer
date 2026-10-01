@@ -43,6 +43,7 @@ import { recordOrder } from "@/lib/order-record";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
+import { heltSkickad, koaSandning, sandningsRader, slaIhopRader, slappVantande, taVantande } from "@/lib/shipping-email-batch";
 import { resolveOrderId } from "@/lib/wix-order-lookup";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
@@ -991,6 +992,87 @@ async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
   }
 }
 
+/** Skickar ett fraktmejl + push. Returnerar Resend-id, eller undefined om det
+ *  inte gick (loggas; anroparen avgör om anspråket ska släppas). */
+async function sendShippingEmail(
+  to: string,
+  props: ShippingConfirmationProps,
+  trackingNumbers: string[],
+): Promise<string | undefined | null> {
+  const flera = trackingNumbers.length > 1;
+  const resendKey = process.env.RESEND_API_KEY;
+  const resend = resendKey ? new Resend(resendKey) : null;
+  if (!resend) {
+    console.warn(`[wix-webhook] fraktmejl SKIPPED (RESEND_API_KEY saknas) — order ${props.orderNumber}`);
+    return undefined;
+  }
+  const html = await render(ShippingConfirmationEmail(props));
+  const sent = await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: REPLY_TO,
+    subject: flera
+      ? `Dina ${trackingNumbers.length} paket är på väg – order ${props.orderNumber}`
+      : `Ditt paket är på väg – order ${props.orderNumber}`,
+    html,
+  });
+  if (sent.error) {
+    console.error(`[wix-webhook] Resend fraktmejl fel (order ${props.orderNumber}, tracking=${trackingNumbers.join(",")})`, sent.error);
+    return null;
+  }
+  firePush({
+    userEmail: to,
+    channel: "order",
+    title: flera ? "Dina paket är på väg ✈️" : "Ditt paket är på väg ✈️",
+    body: `Order ${props.orderNumber} är skickad. Spårningsnr: ${trackingNumbers.join(", ")}`,
+    data: { type: "order_shipped", orderNumber: props.orderNumber, trackingNumber: trackingNumbers[0] },
+  });
+  return sent.data?.id;
+}
+
+/**
+ * Skickar ETT fraktmejl med alla väntande spårningsnummer för ordern
+ * (lib/shipping-email-batch). Anropas av webhooken när ordern är helt skickad
+ * och av cronen /api/cron/fraktmejl för delleveranser som väntat för länge.
+ */
+export async function skickaSamlatFraktmejl(
+  orderGuid: string,
+  orderIn?: Record<string, unknown> | null,
+): Promise<{ sent: number; resendId?: string; reason?: string }> {
+  const vantande = await taVantande(orderGuid);
+  if (vantande.length === 0) return { sent: 0, reason: "inget väntande" };
+  const nummer = vantande.map((s) => s.trackingNumber);
+  const order = orderIn ?? (await fetchWixOrder(orderGuid));
+  const built = order
+    ? buildShippingProps({ order, fulfillment: { lineItems: slaIhopRader(vantande) } })
+    : null;
+  if (!built) {
+    await slappVantande(nummer);
+    console.warn(`[wix-webhook] samlat fraktmejl ${orderGuid}: kunde inte bygga mejlet — försöker igen senare`);
+    return { sent: 0, reason: "build failed" };
+  }
+  const props: ShippingConfirmationProps = {
+    ...built.props,
+    trackingNumber: nummer[0],
+    carrier: vantande[0].carrier ?? built.props.carrier,
+    // Varje paket får sina egna produkter (bild, namn, antal) under sitt nummer.
+    shipments: vantande.map((s) => ({
+      trackingNumber: s.trackingNumber,
+      carrier: s.carrier ?? undefined,
+      items: s.lineItems.length > 0 ? buildShippingProps({ order, fulfillment: s })?.props.items : undefined,
+    })),
+  };
+  const id = await sendShippingEmail(built.email, props, nummer);
+  if (id === null) {
+    await slappVantande(nummer);
+    return { sent: 0, reason: "send failed" };
+  }
+  console.log(
+    `[wix-webhook] samlat fraktmejl ${orderGuid}: ${nummer.length} paket i ett mejl (tracking=${nummer.join(",")}, items=${props.items.length}, resendId=${id})`,
+  );
+  return { sent: nummer.length, resendId: id };
+}
+
 export async function POST(req: NextRequest) {
   let rawBody: string;
   try {
@@ -1386,7 +1468,9 @@ export async function POST(req: NextRequest) {
       const customerPhone = extractCustomerPhone(order) ?? null;
       const sentIds: string[] = [];
       let skippedDup = 0;
-      // ETT mejl PER sändning: rätt spårnr + BARA den sändningens rader.
+      let queued = 0;
+      // Nya spårningsnummer köas per order (lib/shipping-email-batch) och går i
+      // ETT mejl när hela ordern är skickad. Två paket = ett mejl med två nummer.
       for (const f of trackedFulfillments) {
         const tracking = firstStr(
           (f.trackingInfo as { trackingNumber?: string } | undefined)?.trackingNumber,
@@ -1395,7 +1479,7 @@ export async function POST(req: NextRequest) {
         const built = buildShippingProps({ order, fulfillment: f });
         if (!built) continue;
         // Dedup per sändning (tracking_mapping unik på tracking_number): "new" =
-        // första gången → mejla; "duplicate" = Wix-omfyrning → hoppa; "error" =
+        // första gången → köa; "duplicate" = Wix-omfyrning → hoppa; "error" =
         // fail-open (hellre ett mejl än tyst tappat).
         const map = await upsertTrackingMapping({
           trackingNumber: tracking,
@@ -1408,44 +1492,29 @@ export async function POST(req: NextRequest) {
           skippedDup++;
           continue;
         }
-        if (resend) {
-          // Override trackingNumber defensivt så mejlet ALLTID visar denna sändnings spårnr.
-          const html = await render(ShippingConfirmationEmail({ ...built.props, trackingNumber: tracking }));
-          const sent = await resend.emails.send({
-            from: FROM,
-            to: built.email,
-            replyTo: REPLY_TO,
-            subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
-            html,
-          });
-          if (sent.error) {
-            // Logga men returnera INTE 500: en 500 → Wix retry:ar HELA eventet, och
-            // redan skickade sändningar dedupas bort → den misslyckade skulle ändå
-            // hoppas över. Hellre logga för manuell omsändning.
-            //
-            // OBS: vi RÖR INTE tracking_mapping-raden här. Att radera den för att
-            // möjliggöra omsändning skulle förlora kund-mappningen som BÅDE SMS-
-            // flödet OCH 17TRACK-pushen behöver för leveransnotiser — och den här
-            // grenen ack:ar 200 (ingen Wix-retry), så raden skulle inte återskapas
-            // automatiskt. Frakt-mejlet hanteras manuellt vid transient Resend-fel;
-            // mappningen (och därmed leveransnotiserna) bevaras.
-            console.error(`[wix-webhook] Resend order_fulfillments_updated fel (tracking=${tracking})`, sent.error);
-            continue;
-          }
-          if (sent.data?.id) sentIds.push(sent.data.id);
-          console.log(
-            `[wix-webhook] order_fulfillments_updated ${orderId}: shipping-mejl skickat (tracking=${tracking}, items=${built.props.items.length}, resendId=${sent.data?.id}, map=${map})`,
-          );
-        } else {
-          console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: SKIPPED email (RESEND_API_KEY saknas) — kund ${built.email} (tracking=${tracking})`);
-        }
-        firePush({
-          userEmail: built.email,
-          channel: "order",
-          title: "Ditt paket är på väg ✈️",
-          body: `Order ${built.props.orderNumber} är skickad. Spårningsnr: ${tracking}`,
-          data: { type: "order_shipped", orderNumber: built.props.orderNumber, trackingNumber: tracking },
+        const koad = await koaSandning(orderId, {
+          trackingNumber: tracking,
+          carrier: built.props.carrier ?? null,
+          lineItems: sandningsRader(f),
         });
+        if (koad) {
+          queued++;
+          continue;
+        }
+        // Kön gick inte att nå (DB-fel): skicka den här sändningen direkt, som förr.
+        const id = await sendShippingEmail(built.email, { ...built.props, trackingNumber: tracking }, [tracking]);
+        if (id) sentIds.push(id);
+        console.log(`[wix-webhook] order_fulfillments_updated ${orderId}: kö otillgänglig, mejl direkt (tracking=${tracking}, map=${map})`);
+      }
+      if (queued > 0 || skippedDup > 0) {
+        if (heltSkickad(order, fulfillmentsArr)) {
+          const res = await skickaSamlatFraktmejl(orderId, order);
+          if (res.resendId) sentIds.push(res.resendId);
+        } else if (queued > 0) {
+          console.log(
+            `[wix-webhook] order_fulfillments_updated ${orderId}: ${queued} nummer köat, ordern inte helt skickad — väntar på resten (cronen /api/cron/fraktmejl skickar annars)`,
+          );
+        }
       }
       return NextResponse.json({ received: true, sent: sentIds, skippedDuplicates: skippedDup, verified }, { status: 200 });
     }

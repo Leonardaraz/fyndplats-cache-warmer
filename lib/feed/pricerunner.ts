@@ -9,7 +9,7 @@
 //     vill ha ordinarie pris i g:price och reapriset i g:sale_price; här slås de
 //     ihop så att g:price ÄR det pris kunden betalar och g:sale_price försvinner.
 //  2. Frakten. En prisjämförelse visar pris + frakt, så varje rad får en
-//     g:shipping med samma regel som kassan: fri frakt från 499 kr, annars 19 kr.
+//     g:shipping med samma regel som kassan: fri frakt från 500 kr, annars 19 kr.
 //     Leveranstiden (transit) hämtas ur lib/shipping.ts via routen.
 //  3. Bara varor i lager. PriceRunner tar betalt per klick; ett klick till en
 //     slutsåld vara kostar pengar och ger ingen försäljning.

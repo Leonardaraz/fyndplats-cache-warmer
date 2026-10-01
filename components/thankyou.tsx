@@ -122,7 +122,7 @@ export function ThankYou({ orderNumber }: { orderNumber?: string | null }) {
         <p>
           Frågor om din order? Hör av dig till{" "}
           <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller{" "}
-          <a href="tel:+46736630990">+46 (0) 736 630 990</a>. Vi svarar normalt
+          <a href="tel:+46736630990">+46 73 663 09 90</a>. Vi svarar normalt
           inom 24 timmar.
         </p>
       </div>

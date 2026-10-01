@@ -42,6 +42,11 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 // kandidatlistan om 100vw göms i en calc().
 const HERO_SIZES = "(max-width:760px) 100vw, (max-width:1180px) 45vw, 544px";
 
+// Bildrutorna under hjälten: tre i bredd på dator (≈176 px i 544-kolumnen),
+// ≈36 % av skärmbredden i mobilens svepbara rad.
+const TILE_SIZES = "(max-width:760px) 38vw, (max-width:1180px) 15vw, 180px";
+const MAX_TILES = 12;
+
 // Spekulativ förladdning avstängd? (Data Saver / 2g — se lib/gallery-preload.)
 const skipSpeculative = (): boolean =>
   prefersDataSaving((navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection);
@@ -178,6 +183,8 @@ export function Gallery({
   // i stället för useRef().current → inget ref-läs under render (react-hooks/refs).
   const [initialActive] = useState(active);
   const gmainRef = useRef<HTMLButtonElement>(null);
+  const tilesRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState<number[]>([active]);
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const [shown, setShown] = useState(active);
@@ -282,6 +289,35 @@ export function Gallery({
   // feedback upplevdes det som att "inget händer". Efter förladdningen ovan är
   // detta normalt aldrig sant (träffen är direkt); annars syns en mjuk spinner.
   const waiting = active !== shown && !loaded[active];
+
+  // Mobilens bildrad: följ med när hjälten sveps, så den aktiva rutan syns.
+  // Bara radens egen scroll (scrollTo på behållaren) — scrollIntoView hade
+  // kunnat rulla hela sidan i höjdled.
+  useEffect(() => {
+    const row = tilesRef.current;
+    if (!row || row.scrollWidth <= row.clientWidth + 1) return; // rutnät på dator
+    const tile = row.querySelector<HTMLElement>(`.gtile[data-idx="${active}"]`);
+    if (!tile) return;
+    const left = tile.offsetLeft - row.offsetLeft;
+    const right = left + tile.offsetWidth;
+    if (left < row.scrollLeft || right > row.scrollLeft + row.clientWidth) {
+      row.scrollTo({ left: Math.max(0, left - 16), behavior: "smooth" });
+    }
+  }, [active]);
+
+  // Galleriets höjd som CSS-variabel. Desktop-galleriet är sticky, och med
+  // bildrutorna kan det bli högre än fönstret; då räknar CSS:en fram ett
+  // negativt top så galleriet rullar tills dess nederkant syns och först
+  // därefter fastnar (se .pdp>.gallery i globals.css).
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const set = () => el.style.setProperty("--gal-h", `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const go = useCallback((dir: number) => {
     setView({ s: 1, x: 0, y: 0 }); // nollställ zoom vid bildbyte (inlinat → stabil dep-lista)
@@ -442,7 +478,7 @@ export function Gallery({
   const near = nearWindow(active, imgs.length);
 
   return (
-    <div className="gallery">
+    <div className="gallery" ref={galleryRef}>
       <button
         type="button"
         className="gmain"
@@ -499,41 +535,52 @@ export function Gallery({
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 
+      {/* Alla produktbilder som riktiga bilder i sidan från början: ett rutnät
+          på dator och en svepbar rad på mobil. Ersätter 76-px-miniatyrerna och
+          prickraden. Merchant Center (Butikskvalitet → "Bilder per produkt")
+          räknar bilderna som syns på produktsidan, inte flödets; med en synlig
+          hjältebild och frimärksstora miniatyrer landade vi på 1,4 per produkt
+          (2026-09-30). Rutorna laddas lazy och med låg prioritet, så hjältebilden (LCP) går först. Ett
+          klick visar bilden stort ovanför, som miniatyrerna gjorde. Över
+          MAX_TILES bilder visar sista rutan "+N" och öppnar helskärmen. */}
       {imgs.length > 1 && (
-        <div className="gthumbs" role="tablist" aria-label="Fler produktbilder">
-          {imgs.slice(0, 12).map((g, i) => (
-            <button
-              type="button"
-              key={g + i}
-              className={`gthumb ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
-              onClick={() => setActive(i)}
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}${variantSet.has(i) ? " (vald variant)" : ""}`}
-            >
-              {/* Miniatyren bar tidigare alt="" → 5–10 osynliga bilder per PDP för
-                  Google Bilder. Knappen har redan aria-label ("Visa bild N av M"),
-                  så bilden får den beskrivande Wix-alten (eller produktnamn + nr). */}
-              <Image src={tightFillUrl(g, 152, 152)} alt={altForImage(g, i, alt, imageAlts)} fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Prickindikator — ersätter miniatyrgriden på mobil (renare look), klickbar */}
-      {imgs.length > 1 && (
-        <div className="gdots" role="tablist" aria-label="Bläddra bland produktbilder">
-          {imgs.slice(0, 12).map((g, i) => (
-            <button
-              type="button"
-              key={"dot" + i}
-              className={`gdot ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
-              onClick={() => setActive(i)}
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}`}
-            />
-          ))}
+        <div className="gtiles" ref={tilesRef} role="tablist" aria-label="Alla produktbilder">
+          {imgs.slice(0, MAX_TILES).map((g, i) => {
+            const more = i === MAX_TILES - 1 && imgs.length > MAX_TILES ? imgs.length - i : 0;
+            return (
+              <button
+                type="button"
+                key={g + i}
+                data-idx={i}
+                className={`gtile ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
+                onClick={() => {
+                  // "+N" öppnar helskärmen på bilden som redan visas. setActive
+                  // hade kunnat byta vald variant (productview styr active).
+                  if (more) { resetView(); setLightbox(true); return; }
+                  setActive(i);
+                }}
+                role="tab"
+                aria-selected={i === active}
+                aria-label={more ? `Visa alla ${imgs.length} bilder` : `Visa bild ${i + 1} av ${imgs.length}${variantSet.has(i) ? " (vald variant)" : ""}`}
+              >
+                <Image
+                  src={g}
+                  loader={g.includes("static.wixstatic.com") ? wixMainLoader : undefined}
+                  alt={altForImage(g, i, alt, imageAlts)}
+                  fill
+                  placeholder="blur"
+                  blurDataURL={SHIMMER_BLUR}
+                  sizes={TILE_SIZES}
+                  // Rutorna syns i första skärmen på mobil; låg prioritet så
+                  // de inte konkurrerar med hjältebilden (LCP).
+                  fetchPriority="low"
+                  style={{ objectFit: "cover" }}
+                  draggable={false}
+                />
+                {more > 0 && <span className="gtile-more" aria-hidden>+{more}</span>}
+              </button>
+            );
+          })}
         </div>
       )}
 

@@ -133,7 +133,9 @@ describe("productCountLabel", () => {
   it("plural i övrigt, även vid noll", () => {
     assert.equal(productCountLabel(0), "0 produkter");
     assert.equal(productCountLabel(2), "2 produkter");
-    assert.equal(productCountLabel(2326), "2326 produkter");
+    // Tusental med hårt mellanslag, så "2 326" aldrig bryts över två rader.
+    assert.equal(productCountLabel(2326), "2\u00a0326 produkter");
+    assert.equal(productCountLabel(999), "999 produkter");
   });
 });
 

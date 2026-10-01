@@ -96,7 +96,7 @@ export default async function AllaProdukter() {
             <span className="butik-hero-eyebrow">Hela sortimentet</span>
             <h1 className="butik-hero-title">Alla produkter</h1>
             <p className="butik-hero-lede">
-              {`${products.length} noga utvalda fynd inom hem, elektronik, kök och mer – varje produkt handplockad för svenska hem.`}
+              Noga utvalda fynd inom möbler, hem, kök, trädgård och mer – varje produkt handplockad för svenska hem.
               <span className="butik-hero-meta"> {productCountLabel(products.length)} · {categoryCountLabel(collections.length)} · Fri frakt över 499 kr</span>
             </p>
           </div>

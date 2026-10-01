@@ -9,7 +9,7 @@ import {
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
 import { tightFillUrl } from "../lib/wix-image";
-import { EU_STOCK_NOTE_SHORT } from "../lib/shipping";
+import { EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR } from "../lib/shipping";
 import { normaliseraKundvagn } from "../lib/cart-shape";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -305,8 +305,8 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
   const cartIds = new Set(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
   const recos = recommendations.filter((r) => !cartIds.has(r.id)).slice(0, 3);
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
-  const FREE_SHIP = 499;
-  // OBS INFÖR FLERA VALUTOR. Tröskeln är 499 KRONOR, så mätaren måste jämföra
+  const FREE_SHIP = FREE_SHIPPING_FROM_KR;
+  // OBS INFÖR FLERA VALUTOR. Tröskeln är 500 KRONOR, så mätaren måste jämföra
   // mot butikens valuta — därför `amount` och inte det formaterade beloppet,
   // som visar KUNDENS valuta (v2 skiljer på de två; v1 gjorde det inte).
   // Så länge butiken bara säljer i SEK är de identiska. Slås flera valutor på

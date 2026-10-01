@@ -45,6 +45,7 @@ export interface CarrierHint {
 }
 
 const POSTNORD_SE: CarrierHint = { key: 19241, name: "PostNord Sweden" };
+const DPD: CarrierHint = { key: 100007, name: "DPD" };
 
 /** Mönster → carrier. FÖRSTA träff vinner — specifika mönster först. */
 const CARRIER_PATTERNS: Array<[RegExp, CarrierHint]> = [
@@ -56,6 +57,10 @@ const CARRIER_PATTERNS: Array<[RegExp, CarrierHint]> = [
   // egen sök och parcelsapp identifierade den som PostNord). Medvetet smalt
   // (^07, inte ^0) för att inte kollidera med DPD:s 14-siffriga format.
   [/^07\d{12}$/, POSTNORD_SE],
+  // DPD: 14 siffror som börjar på 01 — verifierat mot två riktiga paket
+  // (DPD Standardpaket, order #10051 september 2026). Smalt (^01) av samma
+  // skäl som PostNord ovan. Används bara när 17TRACK inte själv känner igen numret.
+  [/^01\d{12}$/, DPD],
 ];
 
 /**

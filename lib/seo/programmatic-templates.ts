@@ -87,9 +87,9 @@ function deliveryAnswer(singular: string, seed: number, salt: number): string {
   const noun = singular ? `din ${singular}` : "ditt paket";
   const v = [
     `Normal leveranstid är 3–6 arbetsdagar, och du får alltid en spårningskod via mejl när ${noun} skickas. Frakten är 19 kr inom Sverige — eller helt fri vid köp över 499 kr.`,
-    `Räkna med 3–6 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller från 499 kr, annars en symbolisk peng på 19 kr.`,
+    `Räkna med 3–6 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller över 499 kr, annars en symbolisk peng på 19 kr.`,
     `De flesta paket är hos dig inom 3–6 arbetsdagar. Du följer leveransen hela vägen via spårningskoden vi skickar på mejl. Under 499 kr kostar frakten 19 kr; över den gränsen bjuder vi på den.`,
-    `Leveransen tar vanligtvis 3–6 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för minst 499 kr.`,
+    `Leveransen tar vanligtvis 3–6 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för över 499 kr.`,
     `Förvänta dig ${noun} inom 3–6 arbetsdagar. Vi skickar en spårningskod via e-post så du vet exakt var paketet är. Fraktavgiften är 19 kr och försvinner helt vid köp över 499 kr.`,
     `Vanlig leveranstid ligger på 3–6 arbetsdagar och varje order spåras — länken kommer på mejl vid avsändning. Handlar du för över 499 kr är frakten gratis, annars tillkommer 19 kr.`,
   ];
@@ -301,7 +301,7 @@ export function kopguideFaq(p: {
   const priceVariants = [
     `Priserna på ${label} i vårt urval ligger på ${priceRange}. Du behöver sällan betala mest för att få något riktigt bra — flera favoriter är prisvärda fynd. Fri frakt gäller över 499 kr.`,
     `I vårt urval rör sig ${label} mellan ${priceRange}. Dyrast är inte alltid bäst; flera av våra tips kostar förvånansvärt lite. Och över 499 kr bjuder vi på frakten.`,
-    `Räkna med ${priceRange} för ${label} hos oss. Det går utmärkt att fynda i den nedre delen av spannet — kvalitet behöver inte kosta skjortan. Frakten är fri från 499 kr.`,
+    `Räkna med ${priceRange} för ${label} hos oss. Det går utmärkt att fynda i den nedre delen av spannet — kvalitet behöver inte kosta skjortan. Frakten är fri över 499 kr.`,
     `Spannet för ${label} landar på ${priceRange}. Vår erfarenhet: priset säger inte allt, och budgetvalet håller ofta längre än man tror. Köp för över 499 kr så är frakten gratis.`,
     `${priceRange} — så ser prisbilden ut för ${label} i listan. Du hittar bra alternativ i hela spannet, inte bara i toppen. Fri frakt ingår vid köp över 499 kr.`,
   ];
@@ -493,7 +493,7 @@ export function interestIntro(p: {
     `Allt levereras med ${usp}, fri frakt över 499 kr och 30 dagars öppet köp. Längre ner svarar vi också på några vanliga frågor.`,
     `Bakom urvalet ligger samma löfte: ${usp}. Bläddra bland fynden nedan och se våra svar på vanliga frågor.`,
     `Med ${usp} som ledstjärna har vi valt ut allt nedan. Scrolla vidare för produkter och frågor & svar.`,
-    `Varje fynd kommer med ${usp}, fri frakt från 499 kr och 30 dagars öppet köp. Vanliga frågor besvaras längst ner.`,
+    `Varje fynd kommer med ${usp}, fri frakt över 499 kr och 30 dagars öppet köp. Vanliga frågor besvaras längst ner.`,
     `Löftet är detsamma för allt här: ${usp}. Kika på produkterna nedan och rulla vidare till frågor & svar.`,
     `Allt vilar på ${usp}, och du handlar tryggt med fri frakt över 499 kr. Längre ner reder vi ut de vanligaste frågorna.`,
   ];

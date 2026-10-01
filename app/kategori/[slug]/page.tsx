@@ -9,13 +9,12 @@ import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
 import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
-import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
+import { MOSAIC_DENYLIST, categoryHero, KATEGORI_HERO_PRODUKT } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
 import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
-import { productCountLabel } from "../../../lib/rating";
 import { categoryIndexable } from "../../../lib/category-threshold";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
@@ -142,8 +141,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
   const curatedHero = categoryHero(active.name);
+  const valdHeroSlug = KATEGORI_HERO_PRODUKT[active.slug];
   const heroImg =
     curatedHero ||
+    (valdHeroSlug ? catList.find((p) => p.slug === valdHeroSlug && p.img)?.img : "") ||
     [...catList]
       .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
       .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
@@ -222,14 +223,17 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           </nav>
           <div className="kat-hero-grid">
             <div className="kat-hero-text">
-              <div className="eyebrow">Kategori</div>
               <h1>{active.name}</h1>
+              {/* Ingressen är kategorins egen beskrivning (lib/category-seo.ts,
+                  skriven per sida), inte en mall med namnet utbytt. Antalet står
+                  redan ovanför rutnätet och följer filtren; här blev det dubbelt. */}
               <p>
                 {active.slug === "rea"
-                  ? `${list.length} fynd till nedsatt pris just nu.`
+                  ? "Fynd till nedsatt pris just nu."
                   : active.slug === "populara"
-                    ? `${list.length} av våra mest populära fynd just nu.`
-                    : `${productCountLabel(list.length)} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
+                    ? "Våra mest populära fynd just nu."
+                    : categorySeo(active.slug)?.description ||
+                      `Noga utvalda fynd inom ${active.name.toLowerCase()}.`}
               </p>
             </div>
             {heroImg && (
@@ -245,7 +249,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   fetchPriority="high"
                   placeholder="blur"
                   blurDataURL={heroBlur}
-                  sizes="(max-width:760px) 100vw, 480px"
+                  // Bilden är dold på mobil (produkterna ska synas direkt). 1px
+                  // gör att telefonen hämtar den minsta varianten i stället för
+                  // en helbreddsbild ingen ser.
+                  sizes="(max-width:760px) 1px, 360px"
                 />
               </div>
             )}
@@ -253,7 +260,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="sec" style={{ paddingTop: 36 }}>
+      <section className="sec" style={{ paddingTop: 24 }}>
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active.slug} />
 

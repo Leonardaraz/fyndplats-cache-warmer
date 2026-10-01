@@ -136,12 +136,12 @@ const nextConfig: NextConfig = {
       // (elektronik / kok-matlagning finns inte — rätt är elektronik-tillbehor /
       // kok-husgerad), och Sport/Skönhet pekade på underkategorier trots att
       // huvudkategorierna numera finns (sport-fritid / skonhet-halsa).
-      { source: "/elektronik", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/elektronik", destination: "/kategori/smart-hem-sakerhet", permanent: true },
       { source: "/hem-och-inredning", destination: "/kategori/hem-inredning", permanent: true },
       { source: "/kok-och-matlagning", destination: "/kategori/kok-husgerad", permanent: true },
       { source: "/sport-och-fritid", destination: "/kategori/sport-fritid", permanent: true },
       { source: "/skonhet-och-halsa", destination: "/kategori/skonhet-halsa", permanent: true },
-      { source: "/mode-och-accessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/mode-och-accessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
       { source: "/smycken", destination: "/kategori/smycken", permanent: true },
       { source: "/husdjur", destination: "/kategori/husdjur", permanent: true },
 
@@ -166,21 +166,37 @@ const nextConfig: NextConfig = {
       // flyttat. musmatta/tangentbord slogs ihop till dator-gaming, ljud-horlurar
       // till elektronik-tillbehor. "ovrigt" har inget tematiskt mål → /alla-produkter.
       { source: "/kategori/hem-och-inredning", destination: "/kategori/hem-inredning", permanent: true },
-      { source: "/kategori/mode-och-accessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/kategori/mode-och-accessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
       { source: "/kategori/skonhet-och-halsa", destination: "/kategori/skonhet-halsa", permanent: true },
-      { source: "/kategori/ljud-horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
-      { source: "/kategori/musmatta", destination: "/kategori/dator-gaming", permanent: true },
-      { source: "/kategori/tangentbord", destination: "/kategori/dator-gaming", permanent: true },
+      { source: "/kategori/ljud-horlurar", destination: "/kategori/smart-hem-sakerhet", permanent: true },
+      { source: "/kategori/musmatta", destination: "/kategori/skrivbord", permanent: true },
+      { source: "/kategori/tangentbord", destination: "/kategori/skrivbord", permanent: true },
       // Rankade på "mus till dator" (590/mån, plats 56) och svarade 404 (Semrush 2026-09-24).
-      { source: "/kategori/datormus", destination: "/kategori/dator-gaming", permanent: true },
+      { source: "/kategori/datormus", destination: "/kategori/skrivbord", permanent: true },
       { source: "/kategori/ovrigt", destination: "/alla-produkter", permanent: true },
+
+      // Kategoriflytten 2026-09-30: de här kategorierna döljs i Wix, och deras
+      // produkter har fått riktiga hem. Elektronik & Tillbehör bestod till mer än
+      // hälften av kontorsstolar och skrivbord, och Mode av fem produkter.
+      // Adresserna är indexerade, så de ska inte börja svara 404. Raderna ovan
+      // som pekade hit är omskrivna till samma mål, så ingen kedja uppstår.
+      { source: "/kategori/elektronik-tillbehor", destination: "/kategori/smart-hem-sakerhet", permanent: true },
+      { source: "/kategori/dator-gaming", destination: "/kategori/gamingstolar", permanent: true },
+      { source: "/kategori/laddare-kablar", destination: "/kategori/elbilsladdning-solenergi", permanent: true },
+      { source: "/kategori/mobiltillbehor", destination: "/kategori/bil-slap", permanent: true },
+      { source: "/kategori/horlurar-ljud", destination: "/kategori/smart-hem-sakerhet", permanent: true },
+      { source: "/kategori/mode-accessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
+      { source: "/kategori/keps", destination: "/kategori/friluftsliv-resa", permanent: true },
+      { source: "/kategori/vaskor-necessarer", destination: "/kategori/friluftsliv-resa", permanent: true },
+      { source: "/kategori/servering-glas", destination: "/kategori/vinstall-vinkylar", permanent: true },
+      { source: "/kategori/burar-klader-tillbehor", destination: "/kategori/husdjur", permanent: true },
 
       // Gamla Wix-sajtens rot-adresser (ihopskrivna slugs, ofta med åäö).
       { source: "/barn-och-familj", destination: "/kategori/barn-familj", permanent: true },
-      { source: "/hem-elektronik", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/hem-elektronik", destination: "/kategori/smart-hem-sakerhet", permanent: true },
       { source: "/heminredning", destination: "/kategori/hem-inredning", permanent: true },
-      { source: "/horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
-      { source: "/h%C3%B6rlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/horlurar", destination: "/kategori/smart-hem-sakerhet", permanent: true },
+      { source: "/h%C3%B6rlurar", destination: "/kategori/smart-hem-sakerhet", permanent: true },
       // Konstväxter har egen kategori sedan runda S6 (2026-09-24), och den tar
       // konstgjorda blommor och växter. Adressen rankar på "blommor dekoration".
       { source: "/konstgjordablommor", destination: "/kategori/konstvaxter", permanent: true },
@@ -188,8 +204,8 @@ const nextConfig: NextConfig = {
       // GSC listar även /mobiltillbehör?page=2. Query-strängar ingår inte i source-
       // matchningen och följer automatiskt med till destination, så raden nedan
       // fångar båda (page=2 är ofarlig på kategorisidan — verifierad 200).
-      { source: "/mobiltillbeh%C3%B6r", destination: "/kategori/mobiltillbehor", permanent: true },
-      { source: "/modeochaccessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/mobiltillbeh%C3%B6r", destination: "/kategori/bil-slap", permanent: true },
+      { source: "/modeochaccessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
       { source: "/sk%C3%B6nhetochh%C3%A4lsa", destination: "/kategori/skonhet-halsa", permanent: true },
       { source: "/shop", destination: "/butik", permanent: true },
       { source: "/kundtj%C3%A4nst", destination: "/kundtjanst", permanent: true },

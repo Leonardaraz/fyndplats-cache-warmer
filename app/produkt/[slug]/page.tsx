@@ -22,7 +22,7 @@ import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
-import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../../../lib/shipping";
+import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, FREE_SHIPPING_FROM_KR, STANDARD_SHIPPING_KR } from "../../../lib/shipping";
 
 // ISR: PDPs cachas på Vercel edge i 1h. Bakgrundsregenerering på stale (SWR) —
 // besökaren får ALLTID en cachad sida direkt, regenereringen sker i bakgrunden.
@@ -144,13 +144,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
-      // Fraktvillkoren speglar kassan exakt: fri frakt ≥ 499 kr, annars 19 kr,
+      // Fraktvillkoren speglar kassan exakt: fri frakt från 500 kr, annars 19 kr,
       // leverans 3–6 arbetsdagar (samma sanningskälla som resten av sajten).
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: p.priceNum >= 499 ? 0 : 19,
+          value: p.priceNum >= FREE_SHIPPING_FROM_KR ? 0 : STANDARD_SHIPPING_KR,
           currency: p.currency,
         },
         shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
