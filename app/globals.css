@@ -1155,7 +1155,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   .pdp{display:flex;flex-direction:column;gap:0}
   .pinfo{display:contents}
   .pdp>.gallery,.pdp-variants,.pdp-head,.pdp-actions,.pdp-detail{min-width:0}
-  .pdp>.gallery{order:1;margin-bottom:16px}
+  /* align-self: .pdp har align-items:start från datorlayouten. I kolumnen
+     blev galleriet då lika brett som bilden, alltså 72 px tills den laddat,
+     och sprang sedan ut till full bredd efter ett tryck på ett kort
+     (CLS 0,13 var tredje gång, 2026-10-01). */
+  .pdp>.gallery{order:1;margin-bottom:16px;align-self:stretch}
   .pdp-variants{order:2;margin-bottom:16px;max-width:none}
   .pdp-head{order:3;margin-bottom:4px}
   .pdp-actions{order:4;max-width:none}
