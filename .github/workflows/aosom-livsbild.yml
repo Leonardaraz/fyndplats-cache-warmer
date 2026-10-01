@@ -45,7 +45,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "rapport · kandidater · plan · skriv"
+        description: "rapport · kandidater · plan · skriv · plan_och_skriv"
         required: true
         default: "rapport"
         type: choice
@@ -54,6 +54,7 @@ on:
           - kandidater
           - plan
           - skriv
+          - plan_och_skriv
       efter:
         description: "rapport: markoren ur en tidigare korning (tomt = borja fran borjan)."
         required: false
@@ -206,14 +207,17 @@ jobs:
 
           # -- kandidater: varv tills alla mal ar tagna --
           if [ "${MODE}" = "kandidater" ]; then
-            kvar="$(printf '%s' "$par" | tr ',' '\n' | sed '/^$/d' | jq -R . | jq -sc .)"
+            alla="$(printf '%s' "$par" | tr ',' '\n' | sed '/^$/d' | jq -R . | jq -sc .)"
+            # Rutten tar hogst 50 mal per anrop; resten vantar i en ko.
+            ko="$(printf '%s' "$alla" | jq -c '.[50:]')"
+            kvar="$(printf '%s' "$alla" | jq -c '.[:50]')"
             torr=true
             if [ "${SKARP}" = "true" ]; then torr=false; fi
             uppladdade=0
             missar=0
             echo "### Miljobilden — kandidater$(if [ "$torr" = "true" ]; then echo " (torrkorning)"; fi)" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            for varv in 1 2 3 4 5 6 7 8; do
+            for varv in $(seq 1 40); do
               kropp="$(jq -nc --argjson mal "$kvar" --argjson torr "$torr" '{lage: "kandidater", mal: $mal, dryRun: $torr}')"
               svar="$(posta "$kropp")"
               kod="$(printf '%s' "$svar" | tail -n1)"
@@ -230,7 +234,11 @@ jobs:
               uppladdade=$((uppladdade + $(printf '%s' "$body" | jq '.uppladdade')))
               missar=$((missar + $(printf '%s' "$body" | jq '.missar')))
               kvar="$(printf '%s' "$body" | jq -c '.kvar')"
-              if [ "$(printf '%s' "$kvar" | jq 'length')" = "0" ]; then break; fi
+              if [ "$(printf '%s' "$kvar" | jq 'length')" = "0" ]; then
+                if [ "$(printf '%s' "$ko" | jq 'length')" = "0" ]; then break; fi
+                kvar="$(printf '%s' "$ko" | jq -c '.[:50]')"
+                ko="$(printf '%s' "$ko" | jq -c '.[50:]')"
+              fi
             done
             echo "Uppladdade: ${uppladdade} · missar: ${missar} · kvar: $(printf '%s' "$kvar" | jq 'length')" | tee -a "$GITHUB_STEP_SUMMARY"
             if [ "$(printf '%s' "$kvar" | jq 'length')" != "0" ]; then
@@ -238,6 +246,56 @@ jobs:
               exit 1
             fi
             if [ "$missar" != "0" ]; then echo "::warning::${missar} bilder gick inte att ladda upp"; fi
+            exit 0
+          fi
+
+          # -- plan_och_skriv: planen och skrivningen i samma korning --
+          # Listan delas i omgangar om hogst 25 par, utan att en sidas par
+          # delas. For varje omgang: plan, sedan skriv med planens sha. Rutten
+          # raknar om planen ur farska lasningar och vagrar om sidan andrats,
+          # sa sha-sparren galler som vid tva separata korningar. Forsta fel
+          # stoppar allt.
+          if [ "${MODE}" = "plan_och_skriv" ]; then
+            printf '%s' "$par" | tr ',' '\n' | sed '/^$/d' | jq -R . | jq -sc '
+              reduce .[] as $p ({g: [], idx: {}};
+                ($p | split(":")[0]) as $id |
+                if .idx[$id] == null then .idx[$id] = (.g | length) | .g += [[$p]]
+                else .g[.idx[$id]] += [$p] end)
+              | .g
+              | reduce .[] as $grupp ([];
+                  if length > 0 and ((.[-1] | length) + ($grupp | length)) <= 25
+                  then .[-1] += $grupp else . + [$grupp] end)
+            ' > "$RUNNER_TEMP/omgangar.json"
+            antal="$(jq 'length' "$RUNNER_TEMP/omgangar.json")"
+            echo "### Miljobilden — plan_och_skriv (${antal} omgangar)" >> "$GITHUB_STEP_SUMMARY"
+            skrivna=0
+            for i in $(seq 0 $((antal - 1))); do
+              omg="$(jq -r --argjson i "$i" '.[$i] | join(",")' "$RUNNER_TEMP/omgangar.json")"
+              svar="$(posta "$(jq -nc --arg par "$omg" '{lage: "plan", par: $par}')")"
+              kod="$(printf '%s' "$svar" | tail -n1)"; body="$(printf '%s' "$svar" | sed '$d')"
+              if [ "$kod" != "200" ]; then echo "omgang $((i + 1)): planen foll"; avbryt "$kod" "$body"; fi
+              sha="$(printf '%s' "$body" | jq -r '.sha')"
+              printf '%s\n' "$body" | jq -r --arg o "$((i + 1))" '
+                "omgang \($o): plan \(.produkter | length) sidor, andras \(.skrivbara)",
+                (.produkter[] | select(.hinder) | "  HINDER \(.id) \(.hinder)"),
+                (.produkter[] | .id as $id | .atgarder[] | select(.hinder) | "  HINDER \($id):\(.val // "sida") \(.hinder)")'
+              if [ "$(printf '%s' "$body" | jq '.skrivbara')" = "0" ]; then continue; fi
+              svar="$(posta "$(jq -nc --arg par "$omg" --arg sha "$sha" '{lage: "skriv", par: $par, bekrafta: $sha}')")"
+              kod="$(printf '%s' "$svar" | tail -n1)"; body="$(printf '%s' "$svar" | sed '$d')"
+              printf '%s\n' "$body" | jq -r '
+                (.utfall[]? | select(.ok | not) | "  FEL \(.id): \(.fel // "")"),
+                "  skrivna \(.skrivna // 0), stopp \(.stoppadAv // "-")\(if ((.kvar // []) | length) > 0 then ", KVAR \(.kvar | join(","))" else "" end)"' || true
+              if [ "$kod" != "200" ]; then avbryt "$kod" "$body"; fi
+              n="$(printf '%s' "$body" | jq '.skrivna // 0')"
+              skrivna=$((skrivna + n))
+              if [ "$(printf '%s' "$body" | jq '(.utfall // []) | map(select(.ok | not)) | length')" != "0" ] \
+                || [ "$(printf '%s' "$body" | jq '(.kvar // []) | length')" != "0" ]; then
+                echo "::error::Omgang $((i + 1)) stannade — kor om resten" >&2
+                echo "Skrivna sidor totalt: ${skrivna}" | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            done
+            echo "Skrivna sidor totalt: ${skrivna}" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
