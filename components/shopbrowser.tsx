@@ -1,6 +1,6 @@
 "use client";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
 import { PrefetchLink } from "./prefetch-link";
@@ -86,21 +86,31 @@ export type SubCategory = { name: string; slug: string; count: number; bild?: st
  * (se lib/list-pages.ts). Listsidorna använder det senare; /sok det förra.
  */
 export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
-  // useSearchParams() kräver en Suspense-gräns för att statiska sidor
-  // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
-  // helsides-CSR. Reservvyn i gränsen är SAMMA vy, ritad på servern med en tom
-  // adress. Tidigare var den bara produktrutnätet: när JS hydrerat kom
-  // filterknappen, antalet och sorteringen (på dator hela filterpanelen) och
-  // sköt ner korten ~75 px på mobil, vid varje sidbyte (Leonard 2026-10-01:
-  // "mycket hoppar när man trycker på ny sida"). Utan parametrar i adressen —
-  // det vanliga — ritar webbläsaren nu exakt det servern redan visat.
+  // Vyn ritas med en TOM adress både på servern och i webbläsarens första
+  // rendering, så att sidan hydreras som den är. Adressen läses först efter
+  // monteringen, och bara om den har parametrar ritas vyn om med dem.
+  //
+  // Tidigare låg vyn bakom useSearchParams i en Suspense-gräns. På de statiska
+  // kategorisidorna fick gränsen då BAILOUT_TO_CLIENT_SIDE_RENDERING: React
+  // kastade serverns 24 kort vid hydreringen och ritade nya <img>. Lighthouse
+  // på /kategori/mobler (mobil, 2026-10-01): bilden var nedladdad efter 1,6 s
+  // men syntes först efter 6,9 s (LCP "render delay" 5,3 s).
+  //
+  // Det vanliga fallet är en adress utan parametrar, och då händer ingenting
+  // mer. Med parametrar (en delad filterlänk, bakåt till ett filtrerat läge)
+  // monteras vyn om före första målningen; dess URL-effekt hinner då tömma
+  // adressen, men den är redan läst och skrivs tillbaka av den nya vyn.
   const props = { products, defaultSort, dayMs, lista, facetter };
+  const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
+  useLayoutEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns först i webbläsaren; servern och första renderingen måste vara lika
+    if (q.size > 0) setAdress({ sp: q, n: 1 });
+  }, []);
   return (
     <>
       <SubNav subs={subs} />
-      <Suspense fallback={<ShopBrowserVy key={lista?.url} {...props} sp={TOM_ADRESS} />}>
-        <ShopBrowserInner key={lista?.url} {...props} />
-      </Suspense>
+      <ShopBrowserVy key={`${lista?.url ?? ""}#${adress.n}`} {...props} sp={adress.sp} />
     </>
   );
 }
@@ -108,15 +118,8 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
 type Adress = { get(namn: string): string | null };
 const TOM_ADRESS: Adress = { get: () => null };
 
-function ShopBrowserInner(props: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
-  const sp = useSearchParams();
-  return <ShopBrowserVy {...props} sp={sp} />;
-}
-
-// UTANFÖR Suspense-gränsen: resten av ShopBrowser läser useSearchParams och
-// renderas därför först i webbläsaren på de statiska kategorisidorna. Chipsen
-// behöver ingen URL-state, och en länk som ska räknas ska finnas i HTML:en
-// från början (CLAUDE.md, "Länkar som bara renderas vid hovring…").
+// Chipsen behöver ingen URL-state, och en länk som ska räknas ska finnas i
+// HTML:en från början (CLAUDE.md, "Länkar som bara renderas vid hovring…").
 function SubNav({ subs }: { subs: SubCategory[] }) {
   const [allaSubs, setAllaSubs] = useState(false);
   if (!subs.length) return null;

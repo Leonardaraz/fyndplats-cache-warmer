@@ -96,3 +96,13 @@ test("ShopBrowser: sammanfattningen, inte de första korten, styr filterpanelen"
   assert.match(src, /ov \? ov\.farger\.map\(\(\[k\]\) => k\) : fargNycklar\(products\)/);
   assert.match(src, /ov \? ov\.harSlutsalda : products\.some/);
 });
+
+test("ShopBrowser hydreras med serverns kort (ingen useSearchParams)", () => {
+  // useSearchParams på en statisk sida ger BAILOUT_TO_CLIENT_SIDE_RENDERING:
+  // React kastar serverns kort och ritar nya, och LCP-bilden syntes först
+  // efter 6,9 s i Lighthouse (mobil, /kategori/mobler, 2026-10-01). Adressen
+  // läses i stället efter monteringen.
+  const src = readFileSync("components/shopbrowser.tsx", "utf8").replace(/\/\/.*$/gm, "");
+  assert.doesNotMatch(src, /\buseSearchParams\s*\(/);
+  assert.match(src, /window\.location\.search/);
+});
