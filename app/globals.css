@@ -2353,23 +2353,39 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 @media(max-width:880px){.homecat-grid{grid-template-columns:repeat(2,1fr);gap:14px}.homecat-sec{padding:56px 0}}
 
 .homecat{position:relative;display:flex;flex-direction:column;border-radius:var(--r-lg);overflow:hidden;background:#fff;border:1px solid var(--line);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s}
-.homecat:hover{transform:translateY(-5px);box-shadow:var(--e4);border-color:#C2410C44}
+@media(hover:hover){.homecat:hover{transform:translateY(-5px);box-shadow:var(--e4);border-color:#C2410C44}}
 .homecat-img{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--surface-2)}
 .homecat-img img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
-.homecat:hover .homecat-img img{transform:scale(1.06)}
+@media(hover:hover){.homecat:hover .homecat-img img{transform:scale(1.06)}}
 .homecat-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.4) 100%);opacity:0;transition:opacity .3s}
-.homecat:hover .homecat-img::after{opacity:1}
+@media(hover:hover){.homecat:hover .homecat-img::after{opacity:1}}
 /* 2×2 produktmosaik (quad) — 4 riktiga produkt-thumbs per kort */
 .homecat-mosaic{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;aspect-ratio:1/1;background:#efe7df;overflow:hidden}
 .homecat-thumb{position:relative;overflow:hidden;background:var(--surface-2)}
 .homecat-thumb img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
-.homecat:hover .homecat-thumb img{transform:scale(1.05)}
+@media(hover:hover){.homecat:hover .homecat-thumb img{transform:scale(1.05)}}
 .homecat-thumb-pad{background:linear-gradient(135deg,#efe7df,#e3d8cc)}
-.homecat-mosaic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.42) 100%);opacity:0;transition:opacity .3s;pointer-events:none}
-.homecat:hover .homecat-mosaic::after{opacity:1}
-.homecat-cta{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);opacity:0;transition:opacity .25s,transform .25s;color:#fff;font-size:var(--text-xs);font-weight:700;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:8px 14px;border-radius:var(--r-pill);white-space:nowrap;pointer-events:none}
-.homecat:hover .homecat-cta{opacity:1;transform:translate(-50%,0)}
-@media(hover:none){.homecat-cta{display:none}}
+/* Hovring: kortet lyfts och bilderna zoomar lite, namnet blir brand och en pil
+   glider in. Ingen mörk toning eller glasknapp över mosaiken: produktbilderna
+   har vit bakgrund, så tonen blev grå smuts och den vita texten syntes inte
+   (Leonard 2026-10-01: "inte premium"). */
+.homecat-name{transition:color .2s}
+.homecat-arrow{display:inline-block;margin-left:6px;opacity:0;transform:translateX(-6px);transition:opacity .2s,transform .25s cubic-bezier(.2,.7,.2,1)}
+@media(hover:hover){
+  .homecat:hover .homecat-name{color:var(--brand)}
+  .homecat:hover .homecat-arrow{opacity:1;transform:none}
+}
+@media(hover:none){.homecat-arrow{display:none}}
+/* Tangentbordet får samma besked som musen. */
+.homecat:focus-visible .homecat-name{color:var(--brand)}
+.homecat:focus-visible .homecat-arrow{display:inline-block;opacity:1;transform:none}
+/* Inget orange täcke vid långt tryck på mobil. iOS tolkade trycket som en
+   markering av bildytan och lade sajtens ::selection-färg (peach) över hela
+   mosaiken; Safaris egen tryckfärg kom ovanpå. Samma lagning som .prod
+   (2026-09-25), nu för alla kort som är en länk runt bilder (Leonard 2026-10-01). */
+.homecat,.butik-cat-imgwrap,.herotile,.subchip-med-bild{-webkit-tap-highlight-color:transparent}
+.homecat-mosaic,.butik-cat-imgwrap,.herotile,.subchip-med-bild{-webkit-user-select:none;user-select:none}
+.homecat-mosaic img,.butik-cat-imgwrap img,.herotile img,.subchip-bild{-webkit-user-drag:none}
 .homecat-body{padding:16px 18px 18px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .homecat-name{font-family:var(--font-display),Georgia,serif;font-size:var(--text-lg);font-weight:600;color:var(--ink);letter-spacing:-.012em;line-height:1.2}
 .homecat-count{font-size:var(--text-xs);font-weight:600;color:var(--soft);white-space:nowrap}
