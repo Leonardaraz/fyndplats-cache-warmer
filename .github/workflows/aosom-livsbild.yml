@@ -137,7 +137,11 @@ jobs:
               fi
               # HELA jq-PROGRAMMET INDENTERAT -- en rad med mindre indrag an
               # blocket avslutar YAML:ens run.
-              summa="$(jq -nc --argjson a "$summa" --argjson b "$body" '
+              # Via filer, inte --argjson: summan vaxer med varje varv, och
+              # 2026-10-01 dog forsta skarpa rapporten pa "Argument list too long".
+              printf '%s' "$summa" > "$RUNNER_TEMP/summa.json"
+              printf '%s' "$body" > "$RUNNER_TEMP/body.json"
+              summa="$(jq -nc --slurpfile A "$RUNNER_TEMP/summa.json" --slurpfile B "$RUNNER_TEMP/body.json" '$A[0] as $a | $B[0] as $b |
                 {
                   granskade: ($a.granskade + $b.granskade),
                   rader: ($a.rader + $b.rader),
