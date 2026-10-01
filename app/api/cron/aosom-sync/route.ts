@@ -154,6 +154,7 @@ async function handle(req: NextRequest) {
           + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift (${summary.lagerDriftRattade} rättade bara för driften), `
           + `${summary.stampelHoppade} stämplar väntar (raden ändrades under körningen), `
+          + `${summary.saldaAvdragna} sålda enheter avdragna (flödet visar dem inte än), `
           + `${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
@@ -188,6 +189,10 @@ async function handle(req: NextRequest) {
         // Raden ändrades under körningen (sammanslagning, ommappning,
         // radering): Wix skrevs, stämpeln väntar — se stampelPaFarskRad.
         + `${summary.stampelHoppade} stämplar väntar, `
+        // Sålt men inte synligt i Aosoms flöde än (2026-10-01): dras av från
+        // flödets saldo så att ett sålt exemplar inte säljs igen — se
+        // medSaldaAvdragna och vantarPaFlodet.
+        + `${summary.saldaAvdragna} sålda avdragna, `
         + `${summary.misslyckade} misslyckade, `
         // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.
@@ -216,6 +221,14 @@ async function handle(req: NextRequest) {
       const idn = summary.lagerDriftProdukter;
       console.log(
         `[aosom-sync] lagerdrift rättad${dryRun ? " (torrkörning)" : ""}: ${idn.slice(0, 20).join(", ")}`
+          + (idn.length > 20 ? ` … ${idn.length} st totalt` : ""),
+      );
+    }
+    // Produkterna där sålda enheter drogs av. Samma form.
+    if (summary.saldaAvdragnaProdukter.length > 0) {
+      const idn = summary.saldaAvdragnaProdukter;
+      console.log(
+        `[aosom-sync] sålda avdragna: ${idn.slice(0, 20).join(", ")}`
           + (idn.length > 20 ? ` … ${idn.length} st totalt` : ""),
       );
     }

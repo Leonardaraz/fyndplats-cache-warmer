@@ -51,6 +51,24 @@ describe("markOrderedManually", () => {
     expect((await store.listTasks())[0].aliexpressOrderId).toBeUndefined();
   });
 
+  it("☠️ stämplar orderedAt — Aosom-synken drar av ordern tills flödet visar den", async () => {
+    const store = await medTasks(task());
+    const fore = Date.now();
+    await markOrderedManually(store, { orderNumber: "10026", source: "test" });
+    const t = Date.parse((await store.listTasks())[0].orderedAt ?? "");
+    expect(t).toBeGreaterThanOrEqual(fore);
+    expect(t).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("en redan beställd task behåller sin tid — en ny referens startar inte om fönstret", async () => {
+    const store = await medTasks(task({ status: "ordered", orderedAt: "2026-09-30T20:00:00.000Z" }));
+    const r = await markOrderedManually(store, { orderNumber: "10026", supplierOrderRef: "ORDER-7", source: "test" });
+    expect(r.ok).toBe(true);
+    const efter = (await store.listTasks())[0];
+    expect(efter.orderedAt).toBe("2026-09-30T20:00:00.000Z");
+    expect(efter.supplierOrderRef).toBe("ORDER-7");
+  });
+
   it("referensen är frivillig — Aosoms bulkfil ger inget nummer direkt", async () => {
     const store = await medTasks(task());
     const r = await markOrderedManually(store, { orderNumber: "10026", source: "test" });
