@@ -62,6 +62,11 @@ on:
         options:
           - "nej"
           - "ja"
+      godkanda:
+        description: "Granskade och godkanda fil-id (32 hex eller b379ce_<hex>~mv2.jpg), kommaseparerade. Skrivs fast de flaggats granskas."
+        required: false
+        default: ""
+        type: string
       bekrafta:
         description: "skriv: planens sha (64 hextecken) fran en plan med samma installningar."
         required: false
@@ -83,6 +88,7 @@ jobs:
           GRANSKADE: ${{ inputs.ta_med_granskade }}
           URGALLERIET: ${{ inputs.tillat_ur_galleriet }}
           BEKRAFTA: ${{ inputs.bekrafta }}
+          GODKANDA: ${{ inputs.godkanda }}
         run: |
           set -euo pipefail
 
@@ -106,6 +112,14 @@ jobs:
           fi
           [ "${GRANSKADE:-nej}" = "ja" ] && q="${q}&ta_med_granskade=ja"
           [ "${URGALLERIET:-nej}" = "ja" ] && q="${q}&tillat_ur_galleriet=ja"
+          godk="$(printf '%s' "${GODKANDA:-}" | tr -d ' \n')"
+          if [ -n "$godk" ]; then
+            if ! printf '%s' "$godk" | grep -Eq '^[A-Za-z0-9_.~]+(,[A-Za-z0-9_.~]+)*$'; then
+              echo "::error::godkanda ska vara fil-id, kommaseparerade" >&2
+              exit 1
+            fi
+            q="${q}&godkanda=${godk}"
+          fi
           if [ "${MODE}" = "skriv" ]; then
             if ! printf '%s' "${BEKRAFTA:-}" | grep -Eq '^[0-9a-f]{64}$'; then
               echo "::error::skriv kraver bekrafta = planens sha (kor plan forst)" >&2

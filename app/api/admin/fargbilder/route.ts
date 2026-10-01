@@ -29,6 +29,7 @@ import { audit } from "@/lib/audit";
 import { MIN_KATALOG, KATALOG_TOLERANS } from "@/lib/aosom/pensionerade";
 import {
   doldaPerFil,
+  lasGodkanda,
   planSha,
   planeraSida,
   raknare,
@@ -75,6 +76,8 @@ export async function GET(req: NextRequest) {
   if (lage !== "plan" && lage !== "skriv") return fel(400, "lage ska vara plan eller skriv");
   const taMedGranskade = sp.get("ta_med_granskade") === "ja";
   const tillatUrGalleriet = sp.get("tillat_ur_galleriet") === "ja";
+  const godkanda = lasGodkanda(sp.get("godkanda") ?? "");
+  if (!godkanda) return fel(400, "godkanda ska vara fil-id, kommaseparerade");
   const bekrafta = (sp.get("bekrafta") ?? "").trim().toLowerCase();
   if (lage === "skriv" && !/^[0-9a-f]{64}$/.test(bekrafta)) {
     return fel(400, "skriv kräver bekrafta = planens sha (64 hextecken)");
@@ -151,7 +154,7 @@ export async function GET(req: NextRequest) {
       }
       // Med `sidor` har en människa valt sidan, och då ska den ha något att
       // flytta — annars skrivs en sida om i onödan (`ingen_givare`).
-      const plan = planeraSida(las.in, { taMedGranskade, tillatUrGalleriet, kravGivare: sidor.length > 0 });
+      const plan = planeraSida(las.in, { taMedGranskade, tillatUrGalleriet, godkanda, kravGivare: sidor.length > 0 });
       planer.push(plan);
       if (plan.hinder.length === 0) skrivbara++;
     }
@@ -159,7 +162,7 @@ export async function GET(req: NextRequest) {
     console.error(`[fargbilder] läsningen: ${e instanceof Error ? e.message : String(e)}`);
     return fel(500, "en sida gick inte att läsa — se Vercel-loggen");
   }
-  const sha = planSha(planer, taMedGranskade, tillatUrGalleriet);
+  const sha = planSha(planer, taMedGranskade, tillatUrGalleriet, godkanda);
   const sidRaknare = planer.map(raknare);
   const summa = {
     sidor: planer.length,
