@@ -69,3 +69,22 @@ export function maskCarrierOrUndefined(name: string | null | undefined): string 
   const masked = maskCarrier(name);
   return masked && masked !== MASKED_CARRIER ? masked : undefined;
 }
+
+/**
+ * Transportören som numret hör till, och vem som delar ut i Sverige när det är
+ * en annan. 17TRACK anger SISTA ledet: ett DHL-paket från Tyskland med nummer
+ * på formen "CC145357991DE" (UPU S10, utfärdat av Deutsche Post DHL) står som
+ * PostNord, eftersom PostNord delar ut det här. Kunden har fått veta att
+ * paketet skickas med DHL, så sidan sa emot fraktmejlet (Leonard 2026-10-01).
+ */
+export function transportorForNummer(
+  trackingNumber: string,
+  carrier: string,
+): { carrier: string; sistaLed?: string } {
+  if (/^[A-Z]{2}\d{9}DE$/.test(trackingNumber.trim().toUpperCase())) {
+    return carrier && carrier !== "DHL" && carrier !== MASKED_CARRIER
+      ? { carrier: "DHL", sistaLed: carrier }
+      : { carrier: "DHL" };
+  }
+  return { carrier };
+}

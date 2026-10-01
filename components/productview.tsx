@@ -8,6 +8,7 @@ import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
 import { colorKeysOf } from "../lib/variant-color-image";
+import { flestaHarBild, variantLage, visaValnamn } from "../lib/variant-lage";
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaOSM } from "./klarna-osm";
@@ -124,7 +125,9 @@ function thumbUrl(url: string): string {
 function fmtDim(s: string): string {
   // Lookahead på nästa siffra så mellansiffran INTE konsumeras — annars blir
   // kedjor med ensiffriga segment halvkonverterade ("3x3x3" → "3 × 3x3").
-  return (s || "").replace(/(\d)\s*[xX]\s*(?=\d)/g, "$1 × ");
+  // Valnamnet som kunden ska se: rättade namn, tum som cm, stor bokstav
+  // (lib/variant-lage).
+  return visaValnamn(s || "").replace(/(\d)\s*[xX]\s*(?=\d)/g, "$1 × ");
 }
 
 type VariantCardItem = {
@@ -334,15 +337,12 @@ export function ProductView({
 
   const imageChoices = options?.choices || [];
   const hasImageVariants = imageChoices.length >= 2;
-  // Rendering-läge för variant-pickern: bild > färg-swatch > text-pill.
-  // Färg-swatch är fallback när per-choice-bild saknas (colorOf på namnet).
-  const allHaveImage = hasImageVariants && imageChoices.every((c) => c.image);
-  // Färg-läge bara när MAJORITETEN av valen faktiskt är färger (speglar importens
-  // värde-baserade isColorAxis) — inte vid en enda (ev. falsk) färgträff. Annars
-  // skulle en pseudo-färgaxel (storlekar/kontakttyper) ritas med gråa prickar.
-  const someHaveColor =
-    hasImageVariants && imageChoices.filter((c) => c.color).length >= Math.ceil(imageChoices.length / 2);
-  const variantMode: "image" | "color" | "text" = allHaveImage ? "image" : someHaveColor ? "color" : "text";
+  // Galleriet hoppar till valets bild när (nästan) varje val har en — oavsett
+  // hur väljaren ritas (lib/variant-lage, flestaHarBild).
+  const allHaveImage = hasImageVariants && flestaHarBild(imageChoices);
+  // Rendering-läge för variant-pickern: bild > färg-swatch > text-pill, och
+  // måttaxlar (volym, storlek …) alltid som text (lib/variant-lage).
+  const variantMode = hasImageVariants ? variantLage(options?.name || "", imageChoices) : "text";
 
   // Galleriet behåller sin NATURLIGA ordning (huvudbild → detaljbilder, så som Wix
   // lagrar dem). Variantbilderna hoistas INTE längre först — det skramlade ordningen
@@ -576,16 +576,14 @@ export function ProductView({
   const multiVariantPicker = multiAxis ? (
     <div className="pdp-variants">
       {axes.map((axis) => {
-        const allImg = axis.choices.every((c) => c.image);
-        const someColor = axis.choices.filter((c) => c.color).length >= Math.ceil(axis.choices.length / 2);
-        const mode: "image" | "color" | "text" = allImg ? "image" : someColor ? "color" : "text";
+        const mode = variantLage(axis.name, axis.choices);
         const axisItems: VariantCardItem[] = axis.choices.map((c) => ({
           key: c.label,
           label: c.label,
           active: picked[axis.name] === c.label,
           avail: isChoiceAvailable(table, axis.name, c.label, picked),
-          thumb: mode === "image" ? c.image : undefined,
-          dot: mode === "color" ? c.color || "#e5e7eb" : undefined,
+          thumb: mode === "image" ? c.image || undefined : undefined,
+          dot: mode === "color" || (mode === "image" && !c.image) ? c.color || "#e5e7eb" : undefined,
           onPick: () => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev)),
         }));
         return (
@@ -613,9 +611,10 @@ export function ProductView({
         label: c.label,
         active: sel === i,
         avail: c.inStock !== false,
-        price: c.price,
-        thumb: variantMode === "image" ? c.image : undefined,
-        dot: variantMode === "color" ? c.color || "#e5e7eb" : undefined,
+        // Hela kronor som priset ovanför ("2 119 kr", inte Wix "2 119,00 kr").
+        price: c.priceNum > 0 ? formatPrice(c.priceNum) : c.price,
+        thumb: variantMode === "image" ? c.image || undefined : undefined,
+        dot: variantMode === "color" || (variantMode === "image" && !c.image) ? c.color || "#e5e7eb" : undefined,
         onPick: () => pickVariant(i),
       }))
     : variants.map((v, i) => ({
@@ -656,6 +655,7 @@ export function ProductView({
         // en direkt cache-träff oavsett var bilden ligger. Capad så payloaden hålls nere.
         eagerCount={multiAxis || allHaveImage ? Math.min(galleryImages.length, 12) : 1}
         variantImageIndices={variantImageIndices}
+        behallRutor={allaBilder.length > 1}
       />
 
       <div className="pinfo">

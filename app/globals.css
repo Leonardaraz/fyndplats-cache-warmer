@@ -1490,6 +1490,10 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   padding:7px 14px;text-decoration:none;white-space:nowrap;transition:border-color .2s,color .2s}
 .subchip:hover{border-color:var(--brand);color:var(--ink)}
 .subchip-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
+/* Liten rund produktbild först i chipet (IKEA, Chilli). Bilden är dekor —
+   namnet bär länken, så alt är tomt. */
+.subchip-med-bild{padding-left:4px}
+.subchip-bild{width:32px;height:32px;flex:0 0 32px;border-radius:50%;object-fit:cover;background:var(--surface-1)}
 .subnav:not(.alla) .subchip-mer{display:none}
 .subchip-fler{font:inherit;font-size:var(--text-xs);font-weight:700;color:var(--brand);background:none;
   border-style:dashed;cursor:pointer}
