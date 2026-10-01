@@ -18,8 +18,9 @@
 //      w_/h_ proportionellt till begärd bredd. Detta BEVARAR varje bilds form
 //      (kvadratiska produktkort vs breda blogg-/hero-banners), op (fill/fit),
 //      gravity (al_c), kvalitet (q_*) och format som anroparen redan valt — vi
-//      ändrar bara pixelstorleken för srcset:en. Crop-URL:er (/v1/crop/x,y,w,h)
-//      lämnas ORÖRDA (deras w_/h_ är en beskärningsregion, inte utdatastorlek).
+//      ändrar bara pixelstorleken för srcset:en. I crop-URL:er (/v1/crop/x,y,w,h)
+//      är w_/h_ en beskärningsregion, inte utdatastorlek: bara en efterföljande
+//      /fill/-del skalas (lib/wix-crop.ts).
 //      Saknas en transform (rå media-URL, t.ex. blogg-cover) använder vi `fit`
 //      som bevarar bildens naturliga aspect — aldrig kvadratisk fill.
 //   2. Unsplash (images.unsplash.com) → använd Unsplashs egen resizing/format-
@@ -32,35 +33,20 @@
 
 import type { ImageLoaderProps } from "next/image";
 import { wixMediaKey } from "./wix-image";
+import { skalaWixSvans } from "./wix-crop";
 
 export default function fyndImageLoader({ src, width, quality }: ImageLoaderProps): string {
   // ── Wix CDN ────────────────────────────────────────────────────────────────
   if (src.includes("static.wixstatic.com")) {
     const i = src.indexOf("/v1/");
     if (i !== -1) {
-      const base = src.slice(0, i);
-      const tail = src.slice(i);
-      // Crop-URL:er (/v1/crop/x_,y_,w_,h_) definierar en beskärningsREGION i
-      // originalpixlar — w_/h_ är INTE utdatastorlek. Skala dem inte; <Image>
-      // sköter visningsskalningen i browsern (samma som galleriets wixMainLoader,
-      // som returnerar crop-URL:en orörd). Annars manglas beskärningsgeometrin.
-      if (tail.startsWith("/v1/crop/")) return src;
-      // Skala den befintliga fill/fit-transformens w_/h_ proportionellt till
-      // `width`. Scopar replace till svansen (efter /v1/) så media-nyckeln
-      // (b379ce_<hex>~mv2.ext) aldrig råkar matchas.
-      const wm = tail.match(/w_(\d+)/);
-      const hm = tail.match(/h_(\d+)/);
-      if (wm && hm) {
-        const ow = Number(wm[1]);
-        const oh = Number(hm[1]);
-        const newH = ow > 0 ? Math.round((width * oh) / ow) : width;
-        const newTail = tail
-          .replace(/w_\d+/, `w_${width}`)
-          .replace(/h_\d+/, `h_${newH}`);
-        return base + newTail;
-      }
-      // Transform utan w_/h_ (ovanligt) → lämna orörd.
-      return src;
+      // Skala transformens utdatastorlek till `width` (lib/wix-crop). Scopat
+      // till svansen efter /v1/, så media-nyckeln (b379ce_<hex>~mv2.ext) aldrig
+      // råkar matchas. En crop-rektangel (/v1/crop/x_,y_,w_,h_) är
+      // originalpixlar, inte utdatastorlek: följs den av /fill/ skalas bara
+      // fill-delen, annars lämnas adressen orörd.
+      const svans = skalaWixSvans(src.slice(i), width);
+      return svans === null ? src : src.slice(0, i) + svans;
     }
     // Rå Wix media-URL utan transform (t.ex. blogg-cover via wixImageToUrl i
     // lib/blog.ts) → använd `fit` (bevarar bildens naturliga aspect inom en

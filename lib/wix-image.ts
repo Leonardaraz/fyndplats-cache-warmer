@@ -37,8 +37,20 @@
 //
 // Konsumeras av: components/gallery.tsx, components/productview.tsx,
 // components/productcard.tsx, components/cart.tsx, components/shopbrowser.tsx.
+//
+// Läget 2026-10-01
+// ----------------
+// Den allmänna tight-cropen är avstängd sedan 2026-06-03 (Leonard). Cachen
+// används nu bara för produktkorten med det vita bandet: 435 av butikens
+// egna 1600×1600-kort renderades med Chromium-viewporten ~87 px lägre än
+// fönstret, så bakgrunden slutar på rad 1513 och resten är vitt (samma fel
+// som scripts/cardkit.py i motorn beskriver och rättar). Korten står i
+// `vittBand`, och cropen klipper bort bandet och 44 px på var sida, inom
+// kortets ljusa marginal: x_44,y_0,w_1512,h_1512 (VITT_BAND). Kort med vit
+// bakgrund ända ned är rätt som de är och står inte i listan.
 
 import cropsData from "../data/image-crops.json";
+import { cropFillUrl } from "./wix-crop";
 
 export type CropEntry = {
   // Original-bildens dimensioner (pixlar).
@@ -60,9 +72,17 @@ type CropsData = {
   version?: number;
   generatedAt?: string;
   entries: Record<string, CropEntry>;
+  // Kort med vitt band i botten: de 16 första hextecknen i fil-id:t. Alla
+  // delar samma rektangel (VITT_BAND), så listan räcker — 8 KB i stället för
+  // 61 KB med en post per kort, och filen följer med till webbläsaren.
+  vittBand?: string[];
 };
 
 const data = cropsData as CropsData;
+
+/** Bandet klipps bort, och 44 px på var sida så att rutan förblir kvadratisk. */
+export const VITT_BAND: CropEntry = { ow: 1600, oh: 1600, x: 44, y: 0, w: 1512, h: 1512 };
+const vittBand = new Set(data.vittBand ?? []);
 
 // Fallback-inset i procent när vi inte har detection-data för en bild.
 // 0 = ingen ändring (behåll dagens beteende, säkrast).
@@ -85,8 +105,10 @@ export function getCropEntry(url: string): CropEntry | null {
   const key = wixMediaKey(url);
   if (!key) return null;
   const entry = data.entries?.[key];
-  if (!entry || entry.skip) return null;
-  return entry;
+  if (entry && !entry.skip) return entry;
+  const hex = key.match(/_([0-9a-f]{32})~/)?.[1];
+  if (hex && vittBand.has(hex.slice(0, 16))) return VITT_BAND;
+  return null;
 }
 
 /**
@@ -107,9 +129,9 @@ export function tightFillUrl(url: string, width: number, height: number, quality
 
   const entry = getCropEntry(url);
   if (entry) {
-    // Använd crop-transformen. Output-dimensionerna styrs av crop-rektangeln
-    // i originalbildens pixlar; browsern skalar till container.
-    return `https://static.wixstatic.com/media/${key}/v1/crop/x_${entry.x},y_${entry.y},w_${entry.w},h_${entry.h}/file.webp`;
+    // Klipp rektangeln ur originalet och skala den till begärd storlek i samma
+    // adress (lib/wix-crop). Utan skalningen fick en miniatyr hela rektangeln.
+    return cropFillUrl(key, entry, width, height, quality);
   }
 
   // Ingen detection-data → behåll dagens fill-beteende (säkrast).
@@ -133,5 +155,5 @@ export function makeTightWixLoader(quality = 72) {
 
 /** Antal entries i cachen — för debug/diagnostik. */
 export function cropCacheSize(): number {
-  return Object.keys(data.entries || {}).length;
+  return Object.keys(data.entries || {}).length + vittBand.size;
 }
