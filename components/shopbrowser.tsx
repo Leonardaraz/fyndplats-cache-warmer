@@ -87,16 +87,29 @@ export type SubCategory = { name: string; slug: string; count: number; bild?: st
 export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
-  // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
-  // rutnätet som fallback så inget hoppar.
+  // helsides-CSR. Reservvyn i gränsen är SAMMA vy, ritad på servern med en tom
+  // adress. Tidigare var den bara produktrutnätet: när JS hydrerat kom
+  // filterknappen, antalet och sorteringen (på dator hela filterpanelen) och
+  // sköt ner korten ~75 px på mobil, vid varje sidbyte (Leonard 2026-10-01:
+  // "mycket hoppar när man trycker på ny sida"). Utan parametrar i adressen —
+  // det vanliga — ritar webbläsaren nu exakt det servern redan visat.
+  const props = { products, defaultSort, dayMs, lista, facetter };
   return (
     <>
       <SubNav subs={subs} />
-      <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
-        <ShopBrowserInner key={lista?.url} products={products} defaultSort={defaultSort} dayMs={dayMs} lista={lista} facetter={facetter} />
+      <Suspense fallback={<ShopBrowserVy key={lista?.url} {...props} sp={TOM_ADRESS} />}>
+        <ShopBrowserInner key={lista?.url} {...props} />
       </Suspense>
     </>
   );
+}
+
+type Adress = { get(namn: string): string | null };
+const TOM_ADRESS: Adress = { get: () => null };
+
+function ShopBrowserInner(props: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
+  const sp = useSearchParams();
+  return <ShopBrowserVy {...props} sp={sp} />;
 }
 
 // UTANFÖR Suspense-gränsen: resten av ShopBrowser läser useSearchParams och
@@ -140,9 +153,8 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, facetter }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
+function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, sp }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; sp: Adress }) {
   const pathname = usePathname();
-  const sp = useSearchParams();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
   const [sort, setSort] = useState(() => {

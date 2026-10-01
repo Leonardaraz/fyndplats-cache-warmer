@@ -141,6 +141,16 @@ const websiteJsonLd = {
   },
 };
 
+const SIDBYTE_SKRIPT =
+  "(function(){var h=document.documentElement,t;" +
+  "function av(){h.classList.remove('navigerar');clearTimeout(t)}" +
+  "document.addEventListener('click',function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;" +
+  "var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;" +
+  "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
+  "if(u.pathname===location.pathname&&u.search===location.search)return;" +
+  "h.classList.add('navigerar');clearTimeout(t);t=setTimeout(av,8000)});" +
+  "addEventListener('pageshow',av);addEventListener('pagehide',av)})()";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
   title: {
@@ -223,6 +233,14 @@ export default async function RootLayout({
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
+        {/* Laddningslinjen överst vid sidbyte. Ett tryck på en länk lät den
+            gamla sidan stå orörd i 1–2 s på mobil innan nästa ritades, så
+            det såg ut som att inget hänt (uppmätt på 4G 2026-10-01). Linjen
+            syns direkt vid trycket och försvinner med sidan. Bara vanliga
+            vänsterklick på länkar inom butiken, inte nya flikar, nedladdningar
+            eller länkar som redan hanterats (loggan på startsidan). */}
+        <div className="sidbyte" aria-hidden="true" />
+        <script dangerouslySetInnerHTML={{ __html: SIDBYTE_SKRIPT }} />
         <CartProvider>
           <WishlistProvider>
             <SiteHeader />
