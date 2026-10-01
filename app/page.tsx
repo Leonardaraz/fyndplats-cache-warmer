@@ -110,6 +110,9 @@ export default async function Home() {
     // Startsidans första bricka (Leonard 2026-10-01): mörk maskin med röda
     // siffror på panelen, sticker ut bland de ljusa möbel- och trädgårdsbilderna.
     "digital-ultraljudstvatt-2-15l",
+    // Tog ultraljudstvättens plats på preview: ett larmpaket med display-text
+    // och ett tjugotal småsaker — plottrigt bredvid möblerna.
+    "tradlost-hemlarm-pgst-smart-larmsystem-wifi-4g",
   ]);
 
   // Kvalitetsgrind för start-ytorna: har bild, inte denylistad, inte gömd, och
