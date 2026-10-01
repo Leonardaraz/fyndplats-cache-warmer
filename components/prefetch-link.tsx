@@ -1,6 +1,7 @@
 "use client";
 
-// Länken på produktkortet — med förhämtning vid AVSIKT i stället för vid syn.
+// Länken på produktkortet, underkategorichipsen, kategorisidans brödsmulor
+// och startsidans avdelningskort — med förhämtning vid AVSIKT i stället för vid syn.
 //
 // ☠️ VARFÖR INTE BARA prefetch={null}. Nexts förval hämtar rutten så fort
 // länken syns i vyn. En listsida renderar 24 kort direkt och fler medan man
@@ -35,10 +36,12 @@ export function PrefetchLink({
   href,
   className,
   children,
+  "aria-label": ariaLabel,
 }: {
   href: string;
   className?: string;
   children: ReactNode;
+  "aria-label"?: string;
 }) {
   const router = useRouter();
   const hamtat = useRef(false);
@@ -59,6 +62,7 @@ export function PrefetchLink({
     <Link
       className={className}
       href={href}
+      aria-label={ariaLabel}
       prefetch={false}
       onPointerEnter={forhamta}
       onTouchStart={forhamta}

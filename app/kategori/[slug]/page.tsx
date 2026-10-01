@@ -15,6 +15,7 @@ import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
+import { PrefetchLink } from "../../../components/prefetch-link";
 import { categoryIndexable } from "../../../lib/category-threshold";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
@@ -232,8 +233,8 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       <section className="kat-hero">
         <div className="container">
           <nav className="crumbs" aria-label="Brödsmulor">
-            <a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span>
-            {parent && (<><a href={`/kategori/${parent.slug}`}>{parent.name}</a> <span>/</span> </>)}
+            <PrefetchLink href="/">Hem</PrefetchLink> <span>/</span> <PrefetchLink href="/butik">Butik</PrefetchLink> <span>/</span>
+            {parent && (<><PrefetchLink href={`/kategori/${parent.slug}`}>{parent.name}</PrefetchLink> <span>/</span> </>)}
             <em>{active.name}</em>
           </nav>
           <div className="kat-hero-grid">

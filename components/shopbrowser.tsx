@@ -3,6 +3,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
+import { PrefetchLink } from "./prefetch-link";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
@@ -137,10 +138,12 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
       <span className="filter-label subnav-label">Förfina</span>
       <div className="subchips">
         {subs.map((sub, i) => (
-          <a key={sub.slug} className={`subchip ${sub.bild ? "subchip-med-bild" : ""} ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+          // PrefetchLink: sidan byts inom dokumentet, så sidhuvudet står still
+          // och inget blankt mellanläge syns (en vanlig <a> laddade om allt).
+          <PrefetchLink key={sub.slug} className={`subchip ${sub.bild ? "subchip-med-bild" : ""} ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
             {sub.bild && <Image src={sub.bild} alt="" width={32} height={32} className="subchip-bild" />}
             {sub.name} <span className="subchip-n">{tusental(sub.count)}</span>
-          </a>
+          </PrefetchLink>
         ))}
         {subs.length > SUB_SYNLIGA && (
           <button type="button" className="subchip subchip-fler" aria-expanded={allaSubs}

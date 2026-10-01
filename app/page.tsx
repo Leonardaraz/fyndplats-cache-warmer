@@ -15,6 +15,7 @@ import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
+import { PrefetchLink } from "../components/prefetch-link";
 
 // ISR: startsidan renderas statiskt men regenereras i bakgrunden var timme, så
 // nyimporterade produkter och kategori-ändringar dyker upp utan en ny deploy.
@@ -381,7 +382,7 @@ export default async function Home() {
             </div>
             <div className="homecat-grid">
               {homeCats.map((c) => (
-                <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${productCountLabel(c.count)}`}>
+                <PrefetchLink className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${productCountLabel(c.count)}`}>
                   {/* 2×2-mosaik av 4 riktiga produktbilder ur kategorin. Under-fold →
                       ingen priority, lazy default; sized thumbs håller LCP på hjälten. */}
                   <div className="homecat-mosaic">
@@ -406,7 +407,7 @@ export default async function Home() {
                     <span className="homecat-name">{c.main.name}<span className="homecat-arrow" aria-hidden="true">→</span></span>
                     <span className="homecat-count">{c.count} st</span>
                   </div>
-                </a>
+                </PrefetchLink>
               ))}
             </div>
             <div className="homecat-allwrap">
