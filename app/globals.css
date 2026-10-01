@@ -2833,9 +2833,13 @@ header.sidhuvud{view-transition-name:fp-sidhuvud}
 .meganav-auktion{position:relative;display:inline-flex;align-items:center;gap:6px;padding:6px 2px;white-space:nowrap;font-weight:700;color:var(--brand);cursor:pointer;transition:color .15s}
 .meganav-auktion:hover{color:#E5560F}
 .mm-auktion{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--brand) !important}
-.nav-adot{width:7px;height:7px;border-radius:50%;background:#F84848;box-shadow:var(--e1);animation:navDot 1.6s ease-in-out infinite;flex:0 0 auto}
-@keyframes navDot{0%,100%{box-shadow:var(--e1)}50%{box-shadow:0 0 0 5px rgba(248,72,72,0)}}
-@media (prefers-reduced-motion:reduce){.nav-adot{animation:none}}
+/* Pulsen är en ring som skalas och tonas (transform + opacity, sköts av
+   grafikkortet). Förut animerades box-shadow utan slut, och sidhuvudet
+   målades om varje bildruta 07–19 på varje sida. */
+.nav-adot{position:relative;width:7px;height:7px;border-radius:50%;background:#F84848;box-shadow:var(--e1);flex:0 0 auto}
+.nav-adot::after{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(248,72,72,.5);animation:navDot 1.6s ease-out infinite}
+@keyframes navDot{from{transform:scale(1);opacity:.7}to{transform:scale(2.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.nav-adot::after{animation:none;opacity:0}}
 
 /* ── Fyndauktionen: flytande live-pill (endast mobil) ─────────────── */
 .a-live-bar{display:none}
