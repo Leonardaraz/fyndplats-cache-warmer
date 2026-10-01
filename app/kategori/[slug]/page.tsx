@@ -62,6 +62,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { ...base, ...(robots ? { robots } : {}) };
 }
 
+/**
+ * Kategorins bästa produktbild: den valda produkten i KATEGORI_HERO_PRODUKT,
+ * annars den högst poängsatta bilden som inte är bortvald. Används för heron
+ * och för underkategoriernas chips.
+ */
+function produktBild(slug: string, lista: { slug: string; img: string; imageScore: number }[]): string {
+  const vald = KATEGORI_HERO_PRODUKT[slug];
+  return (
+    (vald ? lista.find((p) => p.slug === vald && p.img)?.img : "") ||
+    [...lista]
+      .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
+      .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
+    lista.find((p) => p.img)?.img ||
+    ""
+  );
+}
+
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
@@ -120,6 +137,12 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       name: c.name,
       slug: c.slug,
       count: products.filter((p) => (p.collectionIds || []).includes(c.id)).length,
+      // En produkt ur underkategorin som liten rund bild i chipet, som IKEA
+      // och Chilli gör på mobil (jämförelsen 2026-10-01). Ingen av de stora
+      // butikerna har en stor bild överst i kategorin på telefonen; bilderna
+      // sitter i underkategorierna i stället. Produktbild, inte Unsplash-
+      // fotot: i 32 px syns en soffa, inte ett vardagsrum.
+      bild: produktBild(c.slug, kategoriProdukter(c, collections, products)),
     }))
     .filter((sub) => sub.count > 0);
 
@@ -141,15 +164,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
   const curatedHero = categoryHero(active.name);
-  const valdHeroSlug = KATEGORI_HERO_PRODUKT[active.slug];
-  const heroImg =
-    curatedHero ||
-    (valdHeroSlug ? catList.find((p) => p.slug === valdHeroSlug && p.img)?.img : "") ||
-    [...catList]
-      .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
-      .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
-    catList.find((p) => p.img)?.img ||
-    "";
+  const heroImg = curatedHero || produktBild(active.slug, catList);
   // Föll vi tillbaka på en produktbild (subkategori)? Då renderas heron i en
   // 4:3-ram med object-fit:cover (is-product) så den kvadratiska produktbilden
   // centreras balanserat — varken inzoomad eller hopkrympt med bakgrund runtom.

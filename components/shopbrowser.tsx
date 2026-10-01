@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
@@ -75,7 +76,7 @@ const REL_SORT = { v: "rel", label: "Bäst match" };
 const SORT_VALUES = new Set([...SORTS, REL_SORT].map((s) => s.v));
 
 /** Underkategori till den kategori sidan visar — chips i filterpanelen. */
-export type SubCategory = { name: string; slug: string; count: number };
+export type SubCategory = { name: string; slug: string; count: number; bild?: string };
 
 /**
  * `products` är HELA listan — utom när `lista` är satt. Då är `products` bara
@@ -123,7 +124,8 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
       <span className="filter-label subnav-label">Förfina</span>
       <div className="subchips">
         {subs.map((sub, i) => (
-          <a key={sub.slug} className={`subchip ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+          <a key={sub.slug} className={`subchip ${sub.bild ? "subchip-med-bild" : ""} ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+            {sub.bild && <Image src={sub.bild} alt="" width={32} height={32} className="subchip-bild" />}
             {sub.name} <span className="subchip-n">{tusental(sub.count)}</span>
           </a>
         ))}
