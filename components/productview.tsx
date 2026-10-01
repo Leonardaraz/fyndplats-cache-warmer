@@ -232,8 +232,8 @@ function swatchKnapp(it: VariantCardItem, visaSlut: boolean, kompakt = false) {
   );
 }
 
-// Fler än åtta färger: ett kompakt rutnät med bara bilderna, sju synliga plus
-// "+N fler". Linnets 29 färger tog annars över en skärmhöjd på mobil. Namnet på
+// Fler än åtta färger: ett kompakt rutnät med bara bilderna, sex synliga plus
+// "+N fler" (sju rutor = en rad på dator, två på mobil). Linnets 29 färger tog annars över en skärmhöjd på mobil. Namnet på
 // den valda står i rubriken ovanför, och varje ruta har namnet i title.
 const KOMPAKT_FRAN = 8;
 function VariantSwatches({ items, visaSlut = true }: { items: VariantCardItem[]; visaSlut?: boolean }) {
@@ -242,7 +242,7 @@ function VariantSwatches({ items, visaSlut = true }: { items: VariantCardItem[];
   if (!kompakt) return <div className="varswatches">{items.map((it) => swatchKnapp(it, visaSlut))}</div>;
   const synliga = (() => {
     if (alla) return items;
-    const forsta = items.slice(0, KOMPAKT_FRAN - 1);
+    const forsta = items.slice(0, KOMPAKT_FRAN - 2);
     const vald = items.find((it) => it.active);
     // Den valda färgen syns alltid, även om den ligger längre ner i listan.
     if (vald && !forsta.includes(vald)) return [...forsta.slice(0, -1), vald];

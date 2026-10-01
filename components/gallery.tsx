@@ -212,9 +212,13 @@ export function Gallery({
   const [loaded, setLoaded] = useState<Record<string, boolean>>({});
   const [shown, setShown] = useState(main);
   const [glomSedd, setGlomSedd] = useState(glomVisad);
+  // Förvalets bild ska försvinna direkt, inte tonas ut: den hör till en annan
+  // färg än den kunden klickade på i annonsen.
+  const [glomt, setGlomt] = useState(false);
   if (glomVisad !== glomSedd) {
     setGlomSedd(glomVisad);
     setShown("");
+    setGlomt(true);
   }
 
   // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
@@ -513,7 +517,7 @@ export function Gallery({
     <div className="gallery" ref={galleryRef}>
       <button
         type="button"
-        className="gmain"
+        className={`gmain ${glomt ? "ghero-glomt" : ""}`}
         ref={gmainRef}
         onClick={onHeroClick}
         onTouchStart={onHeroTouchStart}
