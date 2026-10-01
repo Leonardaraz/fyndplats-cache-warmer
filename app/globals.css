@@ -677,7 +677,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   .promo-social{display:inline-flex;flex:0 0 auto;gap:8px}
   .promo-social a{width:28px;height:28px}
   .promotext{flex:1;text-align:left;line-height:1.35}
-  .promorow{gap:10px;justify-content:space-between}
+  /* Höjd för två rader alltid. Vid ~400–430 px får texten plats på en rad
+     med reservfonten men bryts på två när webbfonten laddat; raden växte
+     42 → 46 px och flyttade hela sidan (CLS 0,239 i PageSpeed, mobil,
+     /kategori/mobler, 2026-10-01). En rad centreras nu i samma höjd. */
+  .promorow{gap:10px;justify-content:space-between;min-height:2.7em}
 }
 
 @media(max-width:900px){
