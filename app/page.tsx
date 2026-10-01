@@ -107,6 +107,9 @@ export default async function Home() {
     "svart-multifunktionell-makeupborste",  // "19.0cm/7.4in" mått
     "uppvarmd-ogonmask",                     // "28cm/11.02inch" mått
     "roterande-sminkforvaring-360",          // "360° rotating" text
+    // Startsidans första bricka (Leonard 2026-10-01): mörk maskin med röda
+    // siffror på panelen, sticker ut bland de ljusa möbel- och trädgårdsbilderna.
+    "digital-ultraljudstvatt-2-15l",
   ]);
 
   // Kvalitetsgrind för start-ytorna: har bild, inte denylistad, inte gömd, och
