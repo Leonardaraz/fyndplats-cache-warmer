@@ -2395,6 +2395,34 @@ kapat. Nio av 76 icke-kvadratiska utsnitt från rundorna 1–6 gör det, bland d
 TV-stativ och en lyftfåtölj. Listan står i bildmetoderna. De ligger kvar tills Leonard valt
 mellan att ta bort dem och att låta galleriet visa hela bilden.
 
+### Miljöbilden ska vara andra bilden (2026-10-01)
+
+Leonard: feedens position 2 är (nästan) alltid ett rent miljöfoto, och den ska vara
+andra bilden på varje publicerad Aosom-sida. På en sammanslagen sida ska varje färg ha
+sin egen artikels miljöbild, länkad till färgen och som andra bild i det butiken visar
+för färgen (galleriets ordning, filtrerad som `synligaBilder` i butikens
+`lib/variant-bilder.ts`, med valets första bild först).
+
+Workflowen **"Bilder — miljöbilden (feedens position 2) som andra bild på varje
+Aosom-sida"** → `/api/admin/aosom-livsbild` → `lib/aosom/livsbild.ts` har fyra lägen:
+`rapport` (status per sida eller färg), `kandidater` (laddar upp position 2 för
+granskning), `plan` och `skriv`. En flytt (`<wix-id>[:<val-id>]:flytta`) behöver ingen
+granskning; en infogning (`<wix-id>[:<val-id>]:<fil-id>`) tar bara en kandidat som en
+människa godkänt.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **`saknas` betyder att varje galleribild är spårad** till sin källa
+   (`aosomBildFiler`, annars Wix `sourceUrl`). Går någon inte att spåra blir det
+   `okand`, så att miljöbilden inte läggs dit två gånger.
+2. ☠️ **Huvudbilden och färgens första bild rörs aldrig**, och ingen bild faller ur
+   galleriet. En sida där miljöbilden är huvudbild (`ar_huvudbild`) lämnas.
+3. ☠️ **Skrivningen går stegvis som färgbilderna** (galleriet ensamt, sedan länkarna
+   med options + variantsInfo ordagrant och `visible`, sedan återläsning), kräver
+   planens sha och stannar vid första sida som inte läser tillbaka.
+4. ☠️ **Svaret bär bara Wix egna id och adresser.** Godkända kandidater måste skrivas
+   före bildstädningen 03:50 UTC.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
