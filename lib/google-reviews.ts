@@ -12,6 +12,8 @@
 // entiteten (self-serving rating → Googles riktlinjer, manuell åtgärd-risk; se
 // noten i lib/social-proof.ts). Detta är ENBART visuell visning.
 
+import { unstable_cache } from "next/cache";
+
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const REVIEWS_BASE = "https://mybusiness.googleapis.com/v4";
 
@@ -104,62 +106,88 @@ interface RawReview {
 }
 
 /**
- * Alla omdömen (med text) från Google-företagsprofilen, senaste först. ISR-cachat
+ * Alla omdömen (med text) från Google-företagsprofilen, senaste först. Cachat
  * 6 h. Returnerar tomt om env saknas eller anropet failar → /omdomen fungerar då
  * precis som innan (ingen omdömes-sektion renderas).
+ *
+ * ☠️ VARFÖR unstable_cache OCH INTE BARA FETCH-CACHEN (2026-10-01). Sidfoten
+ * läser betyget på VARJE sida (lib/social-proof-live.ts). Access-token-hämtningen
+ * nedan har `revalidate: 3000` eftersom en token lever en timme, och Next sänker
+ * hela sidans livslängd till den lägsta fetch-tiden under renderingen — så varje
+ * produktsida hade byggts om var 50:e minut, oavsett sidans egen tid. Inne i
+ * unstable_cache räknas hämtningarna inte in i sidans tid (node_modules/next/dist/
+ * server/lib/patch-fetch.js, 'unstable-cache'); bara cachens egna sex timmar gör det.
+ *
+ * Ett misslyckat anrop KASTAR inne i cachen, så att ett tomt svar aldrig sparas
+ * i sex timmar. Felet fångas här ute och blir EMPTY, precis som förut.
  */
+const hamtaGoogleReviewsCachat = unstable_cache(hamtaGoogleReviews, ["google-reviews-v1"], {
+  revalidate: 21600,
+  tags: ["google-reviews"],
+});
+
 export async function getGoogleReviews(): Promise<GoogleReviewsResult> {
-  const c = cfg();
-  if (!c) return EMPTY;
-  const token = await getAccessToken(c);
-  if (!token) return EMPTY;
-
+  if (!cfg()) return EMPTY;
   try {
-    const all: RawReview[] = [];
-    let pageToken: string | undefined;
-    let average: number | null = null;
-    let total = 0;
-
-    // Paginera 50/sida; tak på 6 sidor (300) som rimlighetsskydd.
-    for (let page = 0; page < 6; page++) {
-      const url = new URL(
-        `${REVIEWS_BASE}/accounts/${c.account}/locations/${c.location}/reviews`,
-      );
-      url.searchParams.set("pageSize", "50");
-      url.searchParams.set("orderBy", "updateTime desc");
-      if (pageToken) url.searchParams.set("pageToken", pageToken);
-
-      const res = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
-        next: { revalidate: 21600, tags: ["google-reviews"] },
-      });
-      if (!res.ok) break;
-      const body = (await res.json()) as {
-        reviews?: RawReview[];
-        averageRating?: number;
-        totalReviewCount?: number;
-        nextPageToken?: string;
-      };
-      if (Array.isArray(body.reviews)) all.push(...body.reviews);
-      if (typeof body.averageRating === "number") average = Math.round(body.averageRating * 10) / 10;
-      if (typeof body.totalReviewCount === "number") total = body.totalReviewCount;
-      pageToken = body.nextPageToken;
-      if (!pageToken) break;
-    }
-
-    const reviews: GoogleReview[] = all
-      .map((r) => ({
-        id: String(r.reviewId || ""),
-        rating: STAR[String(r.starRating || "")] || 0,
-        text: preferOriginal(String(r.comment || "")),
-        author: String(r.reviewer?.displayName || "").trim() || "Google-användare",
-        date: r.createTime ? String(r.createTime) : undefined,
-      }))
-      .filter((r) => r.rating > 0 && r.text.length > 0)
-      .sort((a, b) => (Date.parse(b.date || "") || 0) - (Date.parse(a.date || "") || 0));
-
-    return { count: total || all.length, average, reviews };
+    return await hamtaGoogleReviewsCachat();
   } catch {
     return EMPTY;
   }
+}
+
+async function hamtaGoogleReviews(): Promise<GoogleReviewsResult> {
+  const c = cfg();
+  if (!c) return EMPTY;
+  const token = await getAccessToken(c);
+  if (!token) throw new Error("google-reviews: ingen access-token");
+
+  const all: RawReview[] = [];
+  let pageToken: string | undefined;
+  let average: number | null = null;
+  let total = 0;
+
+  // Paginera 50/sida; tak på 6 sidor (300) som rimlighetsskydd.
+  for (let page = 0; page < 6; page++) {
+    const url = new URL(
+      `${REVIEWS_BASE}/accounts/${c.account}/locations/${c.location}/reviews`,
+    );
+    url.searchParams.set("pageSize", "50");
+    url.searchParams.set("orderBy", "updateTime desc");
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 21600, tags: ["google-reviews"] },
+    });
+    // Första sidan faller: kasta, så att inget tomt svar cachas i sex timmar.
+    // En senare sida som faller ger det vi hunnit hämta.
+    if (!res.ok) {
+      if (page === 0) throw new Error(`google-reviews: HTTP ${res.status}`);
+      break;
+    }
+    const body = (await res.json()) as {
+      reviews?: RawReview[];
+      averageRating?: number;
+      totalReviewCount?: number;
+      nextPageToken?: string;
+    };
+    if (Array.isArray(body.reviews)) all.push(...body.reviews);
+    if (typeof body.averageRating === "number") average = Math.round(body.averageRating * 10) / 10;
+    if (typeof body.totalReviewCount === "number") total = body.totalReviewCount;
+    pageToken = body.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  const reviews: GoogleReview[] = all
+    .map((r) => ({
+      id: String(r.reviewId || ""),
+      rating: STAR[String(r.starRating || "")] || 0,
+      text: preferOriginal(String(r.comment || "")),
+      author: String(r.reviewer?.displayName || "").trim() || "Google-användare",
+      date: r.createTime ? String(r.createTime) : undefined,
+    }))
+    .filter((r) => r.rating > 0 && r.text.length > 0)
+    .sort((a, b) => (Date.parse(b.date || "") || 0) - (Date.parse(a.date || "") || 0));
+
+  return { count: total || all.length, average, reviews };
 }

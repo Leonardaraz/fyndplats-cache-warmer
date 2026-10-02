@@ -6,7 +6,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "../components/cart";
-import { getProducts, getCollections, forListings, cartRecommendations } from "../lib/products";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { WishlistProvider } from "../components/wishlist";
 // Below-fold / interaction-only components — code-split via next/dynamic so
@@ -141,6 +140,24 @@ const websiteJsonLd = {
   },
 };
 
+const SIDBYTE_SKRIPT =
+  // Tillståndet ligger på linjen själv, inte på <html>: vid en mjuk navigering
+  // skriver React om <html>-klassen och linjen släcktes innan den syntes.
+  // Den släcks när adressen bytts (mjuk navigering) eller sidan visats (hel).
+  "(function(){var t,i,u0;function el(){return document.querySelector('.sidbyte')}" +
+  "function av(){var b=el();if(b)b.removeAttribute('data-pa');clearTimeout(t);clearInterval(i)}" +
+  "document.addEventListener('click',function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;" +
+  "var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;" +
+  // Hjärtat på produktkortet är en knapp inne i kortets länk. React stoppar
+  // navigeringen först efter den här lyssnaren, så linjen lyste i 8 s.
+  "var k=e.target.closest('button,[role=button],input,select,textarea');if(k&&a.contains(k))return;" +
+  "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
+  "if(u.pathname===location.pathname&&u.search===location.search)return;" +
+  "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
+  "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
+  "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +
+  "addEventListener('pageshow',av);addEventListener('popstate',av)})()";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
   title: {
@@ -194,11 +211,15 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Bästsäljar-rekommendationer till cart-drawerns "Andra köpte också"-block.
-  // getProducts() är cache:ad så detta delar fetch med övriga server-renders.
-  const cartRecos = cartRecommendations(forListings(await getProducts()), await getCollections());
+  // Varukorgens "Andra köpte också" hämtas av varukorgen själv från
+  // /api/kundvagn-forslag. Förslagen (åtta produkter med pris) låg förut här och
+  // därmed i varje sidas data, så ett ändrat pris gjorde alla sidor "nya".
+  // data-scroll-behavior: Next 16 rör inte längre scroll-behavior vid
+  // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
+  // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
+  // Next direkt, och mjuk scroll gäller fortfarande inom sidan.
   return (
-    <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
+    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`}>
       <head>
         {/* Hint browsers to open the TLS connection to Wix's image CDN early —
             every product image (hero, mosaic, PDP) is hosted at static.wixstatic.com,
@@ -223,12 +244,20 @@ export default async function RootLayout({
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
+        {/* Laddningslinjen överst vid sidbyte. Ett tryck på en länk lät den
+            gamla sidan stå orörd i 1–2 s på mobil innan nästa ritades, så
+            det såg ut som att inget hänt (uppmätt på 4G 2026-10-01). Linjen
+            syns direkt vid trycket och försvinner med sidan. Bara vanliga
+            vänsterklick på länkar inom butiken, inte nya flikar, nedladdningar
+            eller länkar som redan hanterats (loggan på startsidan). */}
+        <div className="sidbyte" aria-hidden="true" />
+        <script dangerouslySetInnerHTML={{ __html: SIDBYTE_SKRIPT }} />
         <CartProvider>
           <WishlistProvider>
             <SiteHeader />
             <main>{children}</main>
             <SiteFooter />
-            <CartDrawer recommendations={cartRecos} />
+            <CartDrawer />
             <WishlistDrawer />
             <BackToTop />
           </WishlistProvider>

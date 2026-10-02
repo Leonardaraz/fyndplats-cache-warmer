@@ -1,10 +1,12 @@
 import { CartButton } from "./cart";
+import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
 import { CookieSettingsLink } from "./cookie-settings-link";
 import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
 import { getCategoryTree } from "../lib/category-groups";
+import { utanAntal } from "../lib/meny-antal";
 import { getPosts } from "../lib/blog";
 import { getProducts } from "../lib/products";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
@@ -55,6 +57,11 @@ export const Mark = ({ size = 34 }: { size?: number }) => (
   </svg>
 );
 
+const INTRO_EN_GANG =
+  "try{if(sessionStorage.getItem('fp-intro')){var s=document.createElement('style');" +
+  "s.textContent='.heroinner>*,.hero h1,.heromosaic{animation:none!important}';document.head.appendChild(s)}" +
+  "sessionStorage.setItem('fp-intro','1')}catch(e){}";
+
 export async function SiteHeader() {
   const tree = await getCategoryTree();
   const hasBlog = (await getPosts()).length > 0; // dölj blogg-länk tills det finns inlägg
@@ -65,20 +72,27 @@ export async function SiteHeader() {
   const hasSale = (await getProducts()).some((p) => p.onSale && p.inStock);
   return (
     <>
+      {/* Startsidans inledningsanimation bara första sidan i besöket. Kom
+          kunden tillbaka till startsidan spelades den igen, och rubriken och
+          knapparna tonades in en gång till (2026-10-01). Skriptet står före
+          sidhuvudet och körs alltså innan startsidan ritas. */}
+      <script dangerouslySetInnerHTML={{ __html: INTRO_EN_GANG }} />
       <div className="promo">
         <div className="container promorow">
           <span className="promotext">🚚 Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
           <Social className="promo-social" />
         </div>
       </div>
-      <header>
+      <header className="sidhuvud">
         <div className="container hrow">
-          <a className="brand" href="/"><Mark />Fyndplats</a>
+          <HemLank className="brand"><Mark />Fyndplats</HemLank>
           <SearchBox />
-          <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
+              sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
+          <MegaNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
           <WishlistButton />
           <CartButton />
-          <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          <MobileNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">

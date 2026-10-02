@@ -81,6 +81,7 @@ export function Gallery({
   eagerCount,
   variantImageIndices,
   behallRutor,
+  glomVisad,
 }: {
   images: string[];
   alt: string;
@@ -106,6 +107,10 @@ export function Gallery({
   // försvann raden, och väljaren hoppade ~90 px upp under fingret på mobil
   // (hammocköverdraget, 2026-10-01).
   behallRutor?: boolean;
+  // Räknas upp av produktsidan när valet kom ur adressen (annonslänk). Då ska
+  // den förvalda färgens bild INTE ligga kvar tills den rätta laddat; rutan
+  // står hellre tom (med skimmer) en stund än visar fel färg.
+  glomVisad?: number;
 }) {
   const imgs = images.filter(Boolean);
   // Index (i `images`) som tillhör den valda varianten → ram-markeras i thumb-raden.
@@ -191,13 +196,33 @@ export function Gallery({
   // det nya är redo — äkta crossfade utan blink, hopp eller refetch.
   // Fångar `active` vid första render (det initiala/LCP-lagret) en gång. useState
   // i stället för useRef().current → inget ref-läs under render (react-hooks/refs).
-  const [initialActive] = useState(active);
+  //
+  // Lagren nycklas på BILDENS ADRESS, inte på dess plats i listan. Byter kunden
+  // färg får galleriet en ny lista (färgens egna bilder), men komponenten
+  // monteras inte om: den gamla bilden ligger kvar och tonas över först när den
+  // nya har laddat, och det initiala lagret ger .gmain sin höjd hela tiden.
+  // Tidigare monterades hela galleriet om vid varje val (key i productview):
+  // bildrutan blev tom i upp till en halv sekund på dator, och på mobil föll
+  // galleriet ihop så att sidan hoppade ~400 px (2026-10-01).
+  const [initialSrc] = useState(main);
   const gmainRef = useRef<HTMLButtonElement>(null);
   const tilesRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState<number[]>([active]);
-  const [loaded, setLoaded] = useState<Record<number, boolean>>({});
-  const [shown, setShown] = useState(active);
+  const [mounted, setMounted] = useState<string[]>(main ? [main] : []);
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [shown, setShown] = useState(main);
+  const [glomSedd, setGlomSedd] = useState(glomVisad);
+  // Förvalets bild ska försvinna direkt, inte tonas ut: den hör till en annan
+  // färg än den kunden klickade på i annonsen.
+  const [glomt, setGlomt] = useState(false);
+  if (glomVisad !== glomSedd) {
+    setGlomSedd(glomVisad);
+    setShown("");
+    setGlomt(true);
+  }
+  // När den nya bilden visas gäller vanlig övertoning igen; annars blinkade
+  // varje senare bildbyte för den som kom via en annonslänk.
+  if (glomt && shown) setGlomt(false);
 
   // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
   // tillkommer (mounted är dep i complete-scan-effekten nedan — en ny array per
@@ -205,17 +230,17 @@ export function Gallery({
   // och sortera ALDRIG: det initiala lagret (.ghero-base, position:relative) ger
   // .gmain sin höjd (regressionen i d53c186: hero kollapsade 321→130 px).
   // ENDA vägen in i `mounted` — håll invarianterna på ett ställe.
-  const addMounted = useCallback((targets: number[]) => {
+  const addMounted = useCallback((targets: string[]) => {
     setMounted((m) => {
-      const add = targets.filter((t) => !m.includes(t));
+      const add = targets.filter((t) => t && !m.includes(t));
       return add.length ? [...m, ...add] : m;
     });
   }, []);
 
   useEffect(() => {
-    addMounted([active]);
-    if (loaded[active]) setShown(active); // byt först när målbilden är dekodad
-  }, [active, loaded, addMounted]);
+    addMounted([main]);
+    if (loaded[main]) setShown(main); // byt först när målbilden är dekodad
+  }, [main, loaded, addMounted]);
 
   // Pålitlig "dekodad"-detektering. next/image:s onLoad fyrar INTE för en bild
   // som redan låg i webbläsarcachen när lagret mountas (klassisk next/image-fälla,
@@ -227,9 +252,9 @@ export function Gallery({
     const root = gmainRef.current;
     if (!root) return;
     const scan = () => {
-      const nodes = root.querySelectorAll<HTMLImageElement>("img.ghero-layer[data-idx]");
-      const done: number[] = [];
-      nodes.forEach((im) => { if (im.complete && im.naturalWidth > 0) done.push(Number(im.dataset.idx)); });
+      const nodes = root.querySelectorAll<HTMLImageElement>("img.ghero-layer[data-src]");
+      const done: string[] = [];
+      nodes.forEach((im) => { if (im.complete && im.naturalWidth > 0 && im.dataset.src) done.push(im.dataset.src); });
       if (done.length) setLoaded((l) => {
         let next = l;
         for (const i of done) if (!next[i]) { if (next === l) next = { ...l }; next[i] = true; }
@@ -257,7 +282,7 @@ export function Gallery({
   //    Grinden läses som BOOLEAN (inte hela `loaded` som dep) — annars
   //    omschemaläggs idle-callbacken varje gång NÅGON bild laddar, vilket kan
   //    skjuta grannarna på obestämd tid medan galleriet strömmar.
-  const lcpDone = !!loaded[initialActive];
+  const lcpDone = !!loaded[initialSrc];
 
   // Fas 1 — GRANNARNA, retriggas vid varje bildbyte. Fönster: 2 framåt, 1 bakåt
   // (nearWindow). Ignorerar eagerCount helt: även produkter utan bildvarianter
@@ -268,8 +293,9 @@ export function Gallery({
   // grannarna får aldrig starta strypta.
   useEffect(() => {
     if (!lcpDone || imgs.length <= 1 || skipSpeculative()) return;
-    return onIdle(() => addMounted(nearWindow(active, imgs.length)), 600);
-  }, [active, lcpDone, imgs.length, addMounted]);
+    return onIdle(() => addMounted(nearWindow(active, imgs.length).map((i) => imgs[i])), 600);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, lcpDone, imgs.join("\n"), addMounted]);
 
   // Fas 2 — BULK-WARM av variantserien (bevarad från variantfixen). Behövs
   // fortfarande: ett variantklick kan hoppa VAR SOM HELST i galleriet
@@ -278,13 +304,16 @@ export function Gallery({
   // grannarna hinner först. Lagren hämtas+dekodas på exakt den srcset-kandidat
   // ett kommande byte visar → bytet blir en direkt cache-träff (mätt: 0 nya
   // fetchar, <100 ms). eagerCount ≤ 1 gör fasen till en naturlig no-op.
-  const preloadedAll = useRef(false);
+  // Spärren gäller per lista: en ny färg (nya bilder) får sin egen bulk-värmning.
+  const listNyckel = imgs.join("\n");
+  const preloadedFor = useRef<string | null>(null);
   const doPreload = useCallback(() => {
-    if (preloadedAll.current || imgs.length <= 1) return;
-    preloadedAll.current = true;
+    if (preloadedFor.current === listNyckel || imgs.length <= 1) return;
+    preloadedFor.current = listNyckel;
     const n = eagerCount && eagerCount > 0 ? Math.min(eagerCount, imgs.length) : imgs.length;
-    addMounted(Array.from({ length: n }, (_, i) => i));
-  }, [imgs.length, eagerCount, addMounted]);
+    addMounted(imgs.slice(0, n));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listNyckel, eagerCount, addMounted]);
   // `active` som dep är avsiktligt: skipSpeculative() läses vid körning, så en
   // TILLFÄLLIG 2g-/sparläges-avläsning vid sidladdning får inte stänga av bulk-
   // värmningen för hela sidvisningen — nästa bildbyte omprövar vakten (samma
@@ -298,7 +327,7 @@ export function Gallery({
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
   // feedback upplevdes det som att "inget händer". Efter förladdningen ovan är
   // detta normalt aldrig sant (träffen är direkt); annars syns en mjuk spinner.
-  const waiting = active !== shown && !loaded[active];
+  const waiting = main !== shown && !loaded[main];
 
   // Mobilens bildrad: följ med när hjälten sveps, så den aktiva rutan syns.
   // Bara radens egen scroll (scrollTo på behållaren) — scrollIntoView hade
@@ -491,7 +520,7 @@ export function Gallery({
     <div className="gallery" ref={galleryRef}>
       <button
         type="button"
-        className="gmain"
+        className={`gmain ${glomt ? "ghero-glomt" : ""}`}
         ref={gmainRef}
         onClick={onHeroClick}
         onTouchStart={onHeroTouchStart}
@@ -507,27 +536,27 @@ export function Gallery({
             (normal heuristik, svälts inte), övriga low. Prioritetsbyte på ett
             redan monterat lager är bara en attribut-uppdatering (samma key) —
             ingen refetch. */}
-        {mounted.map((i) => {
-          const src = imgs[i];
-          if (!src) return null;
+        {mounted.map((src) => {
           const isWix = src.includes("static.wixstatic.com");
-          const isInitial = i === initialActive;
+          const isInitial = src === initialSrc;
+          const i = imgs.indexOf(src);
+          const isActive = src === main;
           return (
             <Image
-              key={i}
+              key={src}
               src={src}
               // Endast det AKTIVA lagret bär alt-text — de andra ligger kvar
               // osynliga (opacity 0) och skulle annars läsas upp som dubbletter.
-              alt={i === active ? altForImage(src, i, alt, imageAlts) : ""}
+              alt={isActive ? altForImage(src, active, alt, imageAlts) : ""}
               width={800}
               height={800}
-              data-idx={i}
+              data-src={src}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
                 ? { preload: true as const, fetchPriority: "high" as const }
                 : {
                     loading: "eager" as const,
-                    fetchPriority: (i === active ? "high" : near.includes(i) ? "auto" : "low") as
+                    fetchPriority: (isActive ? "high" : i >= 0 && near.includes(i) ? "auto" : "low") as
                       | "high"
                       | "auto"
                       | "low",
@@ -535,9 +564,9 @@ export function Gallery({
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
               sizes={HERO_SIZES}
-              className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${i === shown ? "is-shown" : ""}`}
+              className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${src === shown ? "is-shown" : ""}`}
               draggable={false}
-              onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
+              onLoad={() => setLoaded((l) => (l[src] ? l : { ...l, [src]: true }))}
             />
           );
         })}

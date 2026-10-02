@@ -1304,11 +1304,14 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
       }
-      // ISR on-demand revalidation: PDPs är cachade i 5 min (revalidate=300 i
-      // app/produkt/[slug]/page.tsx). När ett köp sker måste vi PUSHA en ny
-      // version omgående så lager-display ("X kvar i lager" / "Slutsåld") inte
-      // ligger 0-5 min efter. catalogItemId från orden → slug via cachad
-      // getProducts() → revalidatePath('/produkt/<slug>'). Best-effort: får
+      // ISR on-demand revalidation: PDPs cachas i sex timmar sedan 2026-10-01
+      // (lib/produkt-cache.ts). När ett köp sker måste vi PUSHA en ny version
+      // omgående så lager-display ("X kvar i lager" / "Slutsåld") stämmer.
+      // catalogItemId från orden → slug via cachad getProducts() →
+      // revalidatePath('/produkt/<slug>'). revalidatePath räcker: den tömmer
+      // också sidans egna datahämtningar (Nexts sökvägstagg). Wix läsning kan
+      // släpa efter köpet, så /api/cron/uppdatera-andrade tömmer samma produkter
+      // igen några minuter senare (den läser nya ordrar). Best-effort: får
       // aldrig blockera bekräftelsemejlet.
       try {
         const ids = extractContentIds(entity);

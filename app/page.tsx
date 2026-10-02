@@ -15,6 +15,7 @@ import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
+import { PrefetchLink } from "../components/prefetch-link";
 
 // ISR: startsidan renderas statiskt men regenereras i bakgrunden var timme, så
 // nyimporterade produkter och kategori-ändringar dyker upp utan en ny deploy.
@@ -107,6 +108,12 @@ export default async function Home() {
     "svart-multifunktionell-makeupborste",  // "19.0cm/7.4in" mått
     "uppvarmd-ogonmask",                     // "28cm/11.02inch" mått
     "roterande-sminkforvaring-360",          // "360° rotating" text
+    // Startsidans första bricka (Leonard 2026-10-01): mörk maskin med röda
+    // siffror på panelen, sticker ut bland de ljusa möbel- och trädgårdsbilderna.
+    "digital-ultraljudstvatt-2-15l",
+    // Tog ultraljudstvättens plats på preview: ett larmpaket med display-text
+    // och ett tjugotal småsaker — plottrigt bredvid möblerna.
+    "tradlost-hemlarm-pgst-smart-larmsystem-wifi-4g",
   ]);
 
   // Kvalitetsgrind för start-ytorna: har bild, inte denylistad, inte gömd, och
@@ -375,7 +382,7 @@ export default async function Home() {
             </div>
             <div className="homecat-grid">
               {homeCats.map((c) => (
-                <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${productCountLabel(c.count)}`}>
+                <PrefetchLink className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${productCountLabel(c.count)}`}>
                   {/* 2×2-mosaik av 4 riktiga produktbilder ur kategorin. Under-fold →
                       ingen priority, lazy default; sized thumbs håller LCP på hjälten. */}
                   <div className="homecat-mosaic">
@@ -400,7 +407,7 @@ export default async function Home() {
                     <span className="homecat-name">{c.main.name}<span className="homecat-arrow" aria-hidden="true">→</span></span>
                     <span className="homecat-count">{c.count} st</span>
                   </div>
-                </a>
+                </PrefetchLink>
               ))}
             </div>
             <div className="homecat-allwrap">

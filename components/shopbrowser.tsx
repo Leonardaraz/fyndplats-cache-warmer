@@ -1,8 +1,9 @@
 "use client";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
+import { PrefetchLink } from "./prefetch-link";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
@@ -85,24 +86,43 @@ export type SubCategory = { name: string; slug: string; count: number; bild?: st
  * (se lib/list-pages.ts). Listsidorna använder det senare; /sok det förra.
  */
 export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
-  // useSearchParams() kräver en Suspense-gräns för att statiska sidor
-  // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
-  // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
-  // rutnätet som fallback så inget hoppar.
+  // Vyn ritas med en TOM adress både på servern och i webbläsarens första
+  // rendering, så att sidan hydreras som den är. Adressen läses först efter
+  // monteringen, och bara om den har parametrar ritas vyn om med dem.
+  //
+  // Tidigare låg vyn bakom useSearchParams i en Suspense-gräns. På de statiska
+  // kategorisidorna fick gränsen då BAILOUT_TO_CLIENT_SIDE_RENDERING: React
+  // kastade serverns 24 kort vid hydreringen och ritade nya <img>. Lighthouse
+  // på /kategori/mobler (mobil, 2026-10-01): bilden var nedladdad efter 1,6 s
+  // men syntes först efter 6,9 s (LCP "render delay" 5,3 s).
+  //
+  // Det vanliga fallet är en adress utan filterparametrar, och då händer
+  // ingenting mer. Med dem (en delad filterlänk, bakåt till ett filtrerat läge)
+  // monteras vyn om före första målningen; dess URL-effekt hinner då tömma
+  // adressen, men den är redan läst och skrivs tillbaka av den nya vyn.
+  const props = { products, defaultSort, dayMs, lista, facetter };
+  const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
+  useLayoutEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    // Bara parametrar som vyn läser. Annonsernas gclid/utm och sökordet på
+    // /sok (q) ändrar inget i vyn och ska inte rita om korten.
+    const lases = ["sortera", "pris", "farg", "lager", "rea", ...Object.values(FACETTER).map((f) => f.param)];
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns först i webbläsaren; servern och första renderingen måste vara lika
+    if (lases.some((namn) => q.has(namn))) setAdress({ sp: q, n: 1 });
+  }, []);
   return (
     <>
       <SubNav subs={subs} />
-      <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
-        <ShopBrowserInner key={lista?.url} products={products} defaultSort={defaultSort} dayMs={dayMs} lista={lista} facetter={facetter} />
-      </Suspense>
+      <ShopBrowserVy key={`${lista?.url ?? ""}#${adress.n}`} {...props} sp={adress.sp} />
     </>
   );
 }
 
-// UTANFÖR Suspense-gränsen: resten av ShopBrowser läser useSearchParams och
-// renderas därför först i webbläsaren på de statiska kategorisidorna. Chipsen
-// behöver ingen URL-state, och en länk som ska räknas ska finnas i HTML:en
-// från början (CLAUDE.md, "Länkar som bara renderas vid hovring…").
+type Adress = { get(namn: string): string | null };
+const TOM_ADRESS: Adress = { get: () => null };
+
+// Chipsen behöver ingen URL-state, och en länk som ska räknas ska finnas i
+// HTML:en från början (CLAUDE.md, "Länkar som bara renderas vid hovring…").
 function SubNav({ subs }: { subs: SubCategory[] }) {
   const [allaSubs, setAllaSubs] = useState(false);
   if (!subs.length) return null;
@@ -124,10 +144,12 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
       <span className="filter-label subnav-label">Förfina</span>
       <div className="subchips">
         {subs.map((sub, i) => (
-          <a key={sub.slug} className={`subchip ${sub.bild ? "subchip-med-bild" : ""} ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
+          // PrefetchLink: sidan byts inom dokumentet, så sidhuvudet står still
+          // och inget blankt mellanläge syns (en vanlig <a> laddade om allt).
+          <PrefetchLink key={sub.slug} className={`subchip ${sub.bild ? "subchip-med-bild" : ""} ${i >= SUB_SYNLIGA ? "subchip-mer" : ""}`} href={`/kategori/${sub.slug}`}>
             {sub.bild && <Image src={sub.bild} alt="" width={32} height={32} className="subchip-bild" />}
             {sub.name} <span className="subchip-n">{tusental(sub.count)}</span>
-          </a>
+          </PrefetchLink>
         ))}
         {subs.length > SUB_SYNLIGA && (
           <button type="button" className="subchip subchip-fler" aria-expanded={allaSubs}
@@ -140,9 +162,8 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, dayMs: dayMsProp, lista, facetter }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
+function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, sp }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; sp: Adress }) {
   const pathname = usePathname();
-  const sp = useSearchParams();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
   const [sort, setSort] = useState(() => {

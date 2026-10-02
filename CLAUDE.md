@@ -2,11 +2,64 @@
 
 # Så här jobbar vi: bunta ihop deploys
 
-**En arbetsdag ska bli en eller två deploys, inte fem.** Samla dagens
-ändringar på grenen och merga när de hänger ihop — merga inte varje fix för
-sig så fort den är grön.
+**Högst en deploy till produktion per dag** (Leonards beslut 2026-09-30; förut
+"en eller två"). Samla dagens ändringar på grenen och merga när de hänger
+ihop — merga inte varje fix för sig så fort den är grön. **Pusha också sällan:**
+varje push bygger en testversion, i båda Vercel-projekten. `[skip ci]` fungerar
+inte här.
 
-## Varför — mätt, inte antaget
+## Mätt 2026-09-30: vad som kostade, och vad som ändrades
+
+Fakturan låg 2,4 dygn in i cykeln i en takt nästan tre gånger förra periodens.
+Fyra rader stod för det mesta:
+
+| Rad | Mängd | Orsak (mätt) |
+| :-- | --: | :-- |
+| Build CPU | 17 h 36 min | "On-Demand Concurrent Builds" stod på *Run all builds immediately* i båda projekten, så varje bygge debiterades per påbörjad minut — även de som avbryts efter en halv minut. **Avstängt 2026-09-30** (Leonards ja): på Standard-maskinen är byggen i den inkluderade platsen gratis. Byggen köar nu; produktion går först. |
+| Fluid CPU + minne | 12 h 30 min, 130 GB-h | Produktsidor som byggdes om (nedan) och de 40 förbyggda sidorna: de körs som egna funktioner som kallstartar, och varje kallstart hämtade hela Wix-katalogen (~60 anrop i rad, ~1 min). Loggen `[wix] live products loaded` kom på 40 sökvägar på tre timmar, nästan bara de förbyggda. |
+| ISR Writes | 692K enheter | `/produkt/[slug]` stod för 126K av 163K skrivenheter på 12 h: ~12 000 ombyggnader, och varje gav en skrivning eftersom menysiffror, datum och varukorgsförslag ändrats. |
+| Observability Plus | 1,58 M händelser | Tillägget är på. Får vara kvar en vecka för att mäta effekten, sedan av (med Leonards ok). |
+
+**Varför produktsidorna byggdes om hela tiden:** sidan sade `revalidate = 3600`,
+men V3-hämtningen i `lib/products.ts` hade `revalidate: 300`, och Next sänker hela
+rutten till den lägsta fetch-tiden. Sidorna byggdes alltså om var femte minut så
+fort någon tittade (kund, sökmotor, länkförladdning).
+
+**Så fungerar det nu** (`lib/produkt-cache.ts` har detaljerna):
+
+- Produktsidan och varje hämtning på dess väg lever **sex timmar** — ett
+  säkerhetsnät, inte färskheten. `lib/produkt-cache.test.ts` fäller en ny modul
+  i `lib/` eller `components/` med kortare `revalidate` som inte står på den
+  granskade listan.
+- **En ändring tömmer bara sin egen produkt.** `/api/cron/uppdatera-andrade`
+  (var femte minut, fönster elva minuter) läser Wix `updatedDate`, nya ordrar
+  och motorns `/api/review-andringar`, tömmer `produkt-<id>` eller
+  `recensioner-<id>` och sidan, och värmer sidan. Motorn säger dessutom till
+  direkt vid fyndauktionens prissteg via `/api/admin/uppdatera-produkter`
+  (nyckeln som kakan `fp_admin` eller Bearer — aldrig i adressen).
+- ☠️ **Cronen kräver `CRON_SECRET`.** Saknas den svarar
+  `/api/cron/uppdatera-andrade` 503 och ingenting töms — då gäller bara
+  säkerhetsnätet på sex timmar.
+- ☠️ **Töm aldrig med en global tagg** (`reviews`, `gpsr`): den sitter på varje
+  produktsida och tömmer alla ~3 700 på en gång.
+- ☠️ **Aldrig `cache: "no-store"` i en sidrendering** — det gör ISR-sidan
+  dynamisk och Next svarar 500 (se `lib/popularity.ts`).
+- En sida byggd på reservdata (Wix eller motorn svarade inte, en kapad katalog,
+  tomma kategorier) lever fem minuter, inte sex timmar: `kortLivslangd()` i
+  `lib/kort-livslangd.ts`.
+- En produkt som raderas i Wix utan att döljas först syns inte i `updatedDate`
+  och töms inte — dess sida ligger kvar tills säkerhetsnätet går ut. Dölj först.
+- **Inga produktsidor förbyggs.** Efter en deploy värmer
+  `/api/cron/varm-katalogen` katalogen.
+- Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
+  `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
+- `priceValidUntil` är sista dagen i nästa månad (`lib/pris-giltig.ts`), inte
+  i dag + 30 dagar.
+
+**En deploy kostar fortfarande två gånger:** den tömmer ISR-cachen, så alla
+~3 700 produktsidor byggs om. Därav en deploy per dag.
+
+## Varför — mätt, inte antaget (2026-09-04)
 
 Vercel-fakturan 2026-09-04, sju dagar in i cykeln, 11,84 av 20 dollars
 inkluderad kredit förbrukad:
@@ -24,11 +77,10 @@ Byggen är alltså halva notan. Den veckan innehöll en dag med **fem merges**
 rymts i ett eller två.
 
 **Och en deploy kostar två gånger.** Den tömmer ISR-cachen, så ~1 580 av
-1 622 produktsidor blir kalla; första besökaren på varje sida betalar då en
-rendering på 0,86–1,52 s i stället för 0,15. Timcronen
-(`app/api/cron/warm-and-ping`) värmer upp dem igen, men det är ytterligare
-1 622 renderingar per deploy. Färre deploys är alltså både billigare OCH
-snabbare för kunden.
+1 622 produktsidor (då) blev kalla; första besökaren på varje sida betalade en
+rendering på 0,86–1,52 s i stället för 0,15. `/api/cron/varm-katalogen` värmer
+upp dem igen, men det är ytterligare en rendering per produkt och deploy. Färre
+deploys är alltså både billigare OCH snabbare för kunden.
 
 ## Undantaget
 

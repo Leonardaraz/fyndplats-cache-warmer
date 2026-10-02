@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { synligaBilder } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
-import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
+import { findVariant, reconcileSelection, choiceStatus, andradeAxlar } from "../lib/variant-multi";
+import { forvalIndex, forvalKombination } from "../lib/pdp-forval";
 import { colorKeysOf } from "../lib/variant-color-image";
 import { flestaHarBild, variantLage, visaValnamn } from "../lib/variant-lage";
 import { DeliveryEstimate } from "./delivery-estimate";
@@ -138,8 +139,18 @@ type VariantCardItem = {
   price?: string;
   thumb?: string; // variantbild (image-läge) — visas som miniatyr i kortet
   dot?: string; // färgkod (color-läge) — visas som färgprick i kortet
+  // Kombinationen finns inte alls (Svart görs inte i 177 cm). Inte samma sak
+  // som slut: valet dämpas men får aldrig ordet "Slut".
+  saknas?: boolean;
+  saknasI?: string; // "177 cm" — för title/aria
   onPick: () => void;
 };
+
+// Skärmläsar- och hovringstext för ett val.
+function valTitel(it: VariantCardItem, shown: string): string {
+  if (it.saknas) return it.saknasI ? `${shown} – finns inte i ${it.saknasI}` : `${shown} – finns inte i den kombinationen`;
+  return it.avail ? shown : `${shown} – slut i lager`;
+}
 
 // Hybrid-beslut: långa etiketter (mått, flerordsvärden som "590x790x40 mm-1 st")
 // blir svårlästa som pillar och döljer lätt att det finns fler val → staplade
@@ -165,7 +176,11 @@ function variantMediaLeft(it: VariantCardItem, cls: "varcard" | "varswatch") {
 // Staplade valkort: en rad per val, allt synligt på en gång, valt kort inramat.
 // Miniatyr/färgprick visas när varianten har en (annars en radio-ring). Pris per
 // rad bara när varianterna faktiskt skiljer sig i pris (annars upprepat brus).
-function renderVariantCards(items: VariantCardItem[]) {
+// visaSlut: ordet "Slut" i knappen. Bara när läget är fast (en axel). Med flera
+// axlar beror det på de andra valen, och då dök ordet upp och försvann inne i
+// knapparna så att raderna bröts om vid varje byte (2026-10-01). Läget syns ändå
+// på stilen och i title/aria-label.
+function renderVariantCards(items: VariantCardItem[], visaSlut = true) {
   const priceVaries = new Set(items.map((it) => it.price).filter(Boolean)).size > 1;
   return (
     <div className="varcards">
@@ -176,16 +191,16 @@ function renderVariantCards(items: VariantCardItem[]) {
           <button
             key={it.key}
             type="button"
-            className={`varcard ${media ? "has-media" : ""} ${it.active ? "active" : ""} ${it.avail ? "" : "oos"}`}
+            className={`varcard ${media ? "has-media" : ""} ${it.active ? "active" : ""} ${it.saknas ? "na" : it.avail ? "" : "oos"}`}
             onClick={it.onPick}
             aria-pressed={it.active}
-            aria-label={it.avail ? shown : `${shown} – slut i lager`}
-            title={it.avail ? shown : `${shown} – slut i lager`}
+            aria-label={valTitel(it, shown)}
+            title={valTitel(it, shown)}
           >
             {media || <span className="varcard-radio" aria-hidden="true" />}
             <span className="varcard-main">
               <span className="varcard-label">{shown}</span>
-              {!it.avail && <span className="varcard-oos">Slut i lager</span>}
+              {visaSlut && !it.avail && !it.saknas && <span className="varcard-oos">Slut i lager</span>}
             </span>
             {priceVaries && it.price ? <span className="varcard-price">{it.price}</span> : null}
             <span className="varcard-check" aria-hidden="true" />
@@ -197,36 +212,53 @@ function renderVariantCards(items: VariantCardItem[]) {
 }
 
 // Kompakta swatch-pillar (korta etiketter): miniatyr/färgprick + namn, radbryter.
-function renderVariantSwatches(items: VariantCardItem[]) {
+function swatchKnapp(it: VariantCardItem, visaSlut: boolean, kompakt = false) {
+  const media = variantMediaLeft(it, "varswatch");
+  const shown = fmtDim(it.label);
   return (
-    <div className="varswatches">
-      {items.map((it) => {
-        const media = variantMediaLeft(it, "varswatch");
-        const shown = fmtDim(it.label);
-        return (
-          <button
-            key={it.key}
-            type="button"
-            className={`varswatch ${it.thumb ? "image" : it.dot ? "color" : "text"} ${it.active ? "active" : ""} ${it.avail ? "" : "oos"}`}
-            onClick={it.onPick}
-            aria-pressed={it.active}
-            aria-label={it.avail ? shown : `${shown} – slut i lager`}
-            title={it.avail ? shown : `${shown} – slut i lager`}
-          >
-            {media}
-            <span className="varswatch-name">{shown}</span>
-            {!it.avail && <span className="varswatch-oos">Slut</span>}
-          </button>
-        );
-      })}
-    </div>
+    <button
+      key={it.key}
+      type="button"
+      className={`varswatch ${it.thumb ? "image" : it.dot ? "color" : "text"} ${kompakt ? "kompakt" : ""} ${it.active ? "active" : ""} ${it.saknas ? "na" : it.avail ? "" : "oos"}`}
+      onClick={it.onPick}
+      aria-pressed={it.active}
+      aria-label={valTitel(it, shown)}
+      title={valTitel(it, shown)}
+    >
+      {media}
+      {!kompakt && <span className="varswatch-name">{shown}</span>}
+      {!kompakt && visaSlut && !it.avail && !it.saknas && <span className="varswatch-oos">Slut</span>}
+    </button>
   );
 }
 
-/** Första valet som går att köpa; finns inget i lager, det första. */
-function forstaILager(choices: ReadonlyArray<{ inStock?: boolean }> | undefined): number {
-  const i = (choices ?? []).findIndex((c) => c.inStock !== false);
-  return i >= 0 ? i : 0;
+// Fler än åtta färger: ett kompakt rutnät med bara bilderna, sex synliga plus
+// "+N fler" (sju rutor = en rad på dator, två på mobil). Linnets 29 färger tog annars över en skärmhöjd på mobil. Namnet på
+// den valda står i rubriken ovanför, och varje ruta har namnet i title.
+const KOMPAKT_FRAN = 8;
+function VariantSwatches({ items, visaSlut = true }: { items: VariantCardItem[]; visaSlut?: boolean }) {
+  const [alla, setAlla] = useState(false);
+  const kompakt = items.length > KOMPAKT_FRAN && items.every((it) => it.thumb || it.dot);
+  if (!kompakt) return <div className="varswatches">{items.map((it) => swatchKnapp(it, visaSlut))}</div>;
+  const synliga = (() => {
+    if (alla) return items;
+    const forsta = items.slice(0, KOMPAKT_FRAN - 2);
+    const vald = items.find((it) => it.active);
+    // Den valda färgen syns alltid, även om den ligger längre ner i listan.
+    if (vald && !forsta.includes(vald)) return [...forsta.slice(0, -1), vald];
+    return forsta;
+  })();
+  const dolda = items.length - synliga.length;
+  return (
+    <div className="varswatches kompakt">
+      {synliga.map((it) => swatchKnapp(it, visaSlut, true))}
+      {dolda > 0 && (
+        <button type="button" className="varswatch kompakt varswatch-fler" onClick={() => setAlla(true)} aria-label={`Visa alla ${items.length} färger`}>
+          +{dolda} fler
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function ProductView({
@@ -284,38 +316,13 @@ export function ProductView({
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
-  // Förvälj FÖRSTA varianten I LAGER — samma som galleriets startbild nedan,
-  // så vald ruta och visad bild alltid stämmer när sidan öppnas. (Tidigare
-  // förvaldes billigaste varianten för att matcha "Från X kr" på korten, men då
-  // pekade rutan på en variant medan galleriet visade huvudbilden — o-synkat.)
-  // Index 0 rakt av öppnade sidan på "Slutsåld" när just den färgen var slut,
-  // fast andra fanns (Hollywoodgungan på Fyndauktionen, 2026-09-28).
-  const forstaVal = forstaILager(options?.choices);
+  // Förvalet: valet med produktens huvudbild (den kortet visar), annars första
+  // valet i lager (lib/pdp-forval). Index 0 rakt av öppnade sidan på
+  // "Slutsåld" när just den färgen var slut, fast andra fanns
+  // (Hollywoodgungan, 2026-09-28), och första i lager öppnade linnet i brunt
+  // fast kortet visade svart (2026-10-01).
+  const forstaVal = forvalIndex(options?.choices, images[0]);
   const [sel, setSel] = useState(forstaVal);
-  // Initiera galleriet till förvald variants bild (= variantActive nedan) så det INTE
-  // hoppar hjälte→variant efter mount (flash + LCP-preload-miss). Derivaten (galleryImages
-  // m.fl.) definieras längre ned, så vi speglar uppslaget här med bara props + modul-
-  // helpers (mediaKey/findVariant/defaultSelection). Saknas bild → 0 (huvudbilden).
-  const [galleryIdx, setGalleryIdx] = useState(() => {
-    const ch = options?.choices || [];
-    const ax = variantAxes ?? [];
-    const tb = variantTable ?? [];
-    const firstImg =
-      ax.length >= 2 && tb.length >= 1
-        ? findVariant(tb, defaultSelection(tb))?.image
-        : ch.length >= 2 && ch.every((c) => c.image)
-          ? ch[forstaVal]?.image
-          : undefined;
-    if (!firstImg) return 0;
-    // Samma urval som galleriet nedan: med egna bilder står valets bild först.
-    const etiketter = (
-      ax.length >= 2 && tb.length >= 1 ? Object.values(defaultSelection(tb)) : [ch[forstaVal]?.label]
-    ).filter(Boolean) as string[];
-    const lista = synligaBilder(images, imageOwners, etiketter, firstImg);
-    const k = mediaKey(firstImg);
-    const idx = lista.findIndex((u) => mediaKey(u) === k);
-    return idx >= 0 ? idx : 0;
-  });
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1); // antal-väljare vid köp
 
@@ -325,7 +332,10 @@ export function ProductView({
   const axes = variantAxes ?? [];
   const table = variantTable ?? [];
   const multiAxis = axes.length >= 2 && table.length >= 1;
-  const [picked, setPicked] = useState<Record<string, string>>(() => (multiAxis ? defaultSelection(table) : {}));
+  const [picked, setPicked] = useState<Record<string, string>>(() => (multiAxis ? forvalKombination(table, images[0]) : {}));
+  // Andra val som fick bytas när kunden klickade (se andradeAxlar). Visas som en
+  // rad under väljaren tills nästa klick.
+  const [andring, setAndring] = useState<{ axel: string; fran: string; till: string; klick: string; pris?: number } | null>(null);
   const currentVariant = multiAxis ? findVariant(table, picked) : undefined;
 
   // GA4 view_item — fires once per produkt-sidvisning. productId i dep-arrayen
@@ -384,11 +394,6 @@ export function ProductView({
   ).filter(Boolean) as string[];
   const galleryImages = synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
   const galleriFiltrerat = galleryImages !== allaBilder;
-  const galleriNyckel = galleriFiltrerat ? valdaEtiketter.join("|") : "alla";
-  // Blur-förhandsvisningen hör till sidans huvudbild. Byter kunden färg får
-  // det nya galleriet den neutrala skimmern i stället för en suddig bild av
-  // en annan färg.
-  const [forstaGalleriNyckel] = useState(galleriNyckel);
   // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
   // slide hittas även om variantens URL har andra transform-params). Saknas → 0.
   const galleryIndexOf = (img?: string): number => {
@@ -397,30 +402,34 @@ export function ProductView({
     const i = galleryImages.findIndex((u) => mediaKey(u) === k);
     return i >= 0 ? i : 0;
   };
-  // Den valda variantens/kombinationens bild → dess galleri-index.
-  const variantActive = galleryIndexOf(selectedVariantImage);
+  // Vilken bild som visas stort HÄRLEDS ur valet, i samma rendering som valet
+  // ändras. Tidigare låg den i ett eget tillstånd som en effekt synkade efteråt,
+  // så första renderingen efter ett färgbyte visade bilden på det GAMLA indexet
+  // i den NYA listan. Bläddrar kunden själv gäller den bilden tills valet eller
+  // listan ändras.
+  const visningsNyckel = mediaKey(selectedVariantImage || "") + "|" + galleryImages.map(mediaKey).join(",");
+  const [bladdrad, setBladdrad] = useState<{ nyckel: string; bild: string } | null>(null);
+  const aktivBild = bladdrad && bladdrad.nyckel === visningsNyckel ? bladdrad.bild : selectedVariantImage;
+  const galleryIdx = galleryIndexOf(aktivBild);
+  // Räknas upp när valet kommer ur adressen (annonslänk): galleriet släpper då
+  // den förvalda färgens bild i stället för att visa den tills den rätta laddat.
+  const [glomVisad, setGlomVisad] = useState(0);
 
-  // Pickern väljer variant + hoppar galleriet till variantens bild (naturliga plats).
-  const pickVariant = (i: number) => { setSel(i); setGalleryIdx(galleryIndexOf(imageChoices[i]?.image)); };
+  // Pickern väljer variant; galleriet följer med via aktivBild ovan.
+  const pickVariant = (i: number) => { setSel(i); setBladdrad(null); };
   // Manuell bläddring speglar tillbaka till pickern BARA om bilden tillhör EXAKT EN
   // variant. Delar flera val samma bild (vanligt: 14 val men 6 galleribilder) går det
   // inte att härleda vilket val som avses → då lämnas valet orört (man tittar bara på
   // bilden). Annars kunde en delad/detaljbild tyst byta vald variant → fel variantId/
   // pris/lager i kundvagnen.
   const onGalleryActive = (j: number) => {
-    setGalleryIdx(j);
-    const k = mediaKey(galleryImages[j] || "");
+    const bild = galleryImages[j] || "";
+    const k = mediaKey(bild);
     const matches = imageChoices.filter((c) => c.image && mediaKey(c.image) === k);
-    if (matches.length === 1) setSel(imageChoices.indexOf(matches[0]));
+    if (matches.length === 1) { setSel(imageChoices.indexOf(matches[0])); setBladdrad(null); return; }
+    setBladdrad({ nyckel: visningsNyckel, bild });
   };
-  // Synka galleriet till den valda varianten/kombinationen — även på första render,
-  // så vald ruta och visad bild stämmer. Manuell bläddring (onActiveChange) skriver
-  // tillbaka galleryIdx och hålls kvar: variantActive ändras bara vid ett faktiskt
-  // variantbyte, så effekten fyrar inte vid vanlig bläddring bland detaljbilderna.
-  useEffect(() => {
-    setGalleryIdx(variantActive);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variantActive, galleriNyckel]);
+  const onMultiGalleryActive = (j: number) => setBladdrad({ nyckel: visningsNyckel, bild: galleryImages[j] || "" });
   // FÖRVAL UR ADRESSEN: ?variant=<variant-id>. Google-flödet länkar varje färg
   // hit med sin egen variant (app/feed/google.xml), så den som klickar på den
   // grå varianten i Shopping landar på den grå — med dess bild och pris — i
@@ -428,52 +437,68 @@ export function ProductView({
   // ISR-cachad och får inte bli dynamisk för en parameter, och canonical är
   // fortfarande /produkt/<slug>. Okänt id → inget händer.
   //
-  // Valet görs i nästa bildruta, inte direkt i effekten: sidan har redan ritats
-  // med första varianten, och ett synkront setState här hade gett en extra
-  // renderingsvända (react-hooks/set-state-in-effect).
-  //
   // ?farg=<färgnyckel> kommer från listsidornas färgfilter: har kunden filtrerat
   // på "Blå" visar kortet den blå bilden och länkar hit med färgen, så sidan
   // öppnar på den blå varianten i stället för på första färgen. Ett val i lager
   // vinner över ett slutsålt med samma färg.
-  useEffect(() => {
+  //
+  // Valet görs i en layout-effekt, alltså innan webbläsaren ritar den hydrerade
+  // sidan. Sidan (page.tsx) döljer dessutom pris, väljare och huvudbild redan
+  // före hydreringen när adressen pekar på ett annat val än förvalet, så att en
+  // annonsklickare inte ser Mörkgrön för 599 kr i en sekund innan Mörkgrå för
+  // 549 kr (2026-10-01). Den döljningen tas bort här, oavsett utfall.
+  useLayoutEffect(() => {
+    const visa = () => document.getElementById("pdp-val-vantar")?.remove();
     let vid: string | null = null;
     let farg: string | null = null;
     try {
       vid = new URLSearchParams(window.location.search).get("variant");
       farg = new URLSearchParams(window.location.search).get("farg");
     } catch { /* ingen adress */ }
-    if (!vid && farg) {
-      const nyckel = farg;
+    const valjFarg = (nyckel: string): boolean => {
       const harFarg = (text: string | undefined) => !!text && colorKeysOf(text).has(nyckel);
-      const valjFarg = () => {
-        if (multiAxis) {
-          const med = table.filter((t) => Object.values(t.choices).some(harFarg));
-          const rad = med.find((t) => t.inStock) ?? med[0];
-          if (rad) setPicked({ ...rad.choices });
-          return;
-        }
-        const kandidater = imageChoices.map((c, i) => ({ c, i })).filter(({ c }) => harFarg(c.label));
-        const val = kandidater.find(({ c }) => c.inStock !== false) ?? kandidater[0];
-        if (val && hasImageVariants) pickVariant(val.i);
-      };
-      const id = window.requestAnimationFrame(valjFarg);
-      return () => window.cancelAnimationFrame(id);
-    }
-    if (!vid) return;
-    const valj = () => {
+      // Har förvalet redan färgen står det kvar. Servern döljer ingenting i
+      // det läget (page.tsx), så ett byte här hade synts som ett hopp i pris
+      // eller nyans efter hydreringen.
+      if (multiAxis) {
+        if (Object.values(picked).some(harFarg)) return false;
+        const med = table.filter((t) => Object.values(t.choices).some(harFarg));
+        const rad = med.find((t) => t.inStock) ?? med[0];
+        if (!rad || findVariant(table, picked) === rad) return false;
+        setPicked({ ...rad.choices });
+        return true;
+      }
+      if (harFarg(imageChoices[sel]?.label)) return false;
+      const kandidater = imageChoices.map((c, i) => ({ c, i })).filter(({ c }) => harFarg(c.label));
+      const val = kandidater.find(({ c }) => c.inStock !== false) ?? kandidater[0];
+      if (!val || !hasImageVariants || val.i === sel) return false;
+      pickVariant(val.i);
+      return true;
+    };
+    const valjId = (vid: string): boolean => {
       if (multiAxis) {
         const rad = table.find((t) => t.variantId === vid);
-        if (rad) setPicked({ ...rad.choices });
-        return;
+        if (!rad || findVariant(table, picked) === rad) return false;
+        setPicked({ ...rad.choices });
+        return true;
       }
       const i = imageChoices.findIndex((c) => c.variantId === vid);
-      if (hasImageVariants && i >= 0) { pickVariant(i); return; }
+      if (hasImageVariants && i >= 0) {
+        if (i === sel) return false;
+        pickVariant(i);
+        return true;
+      }
       const j = variants.findIndex((v) => v.id === vid);
-      if (j >= 0) setSel(j);
+      if (j >= 0 && j !== sel) { setSel(j); return true; }
+      return false;
     };
-    const id = window.requestAnimationFrame(valj);
-    return () => window.cancelAnimationFrame(id);
+    const bytt = vid ? valjId(vid) : farg ? valjFarg(farg) : false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- engångsval ur adressen, före första målningen
+    if (bytt) setGlomVisad((n) => n + 1);
+    // Ett setState i en layout-effekt renderas om synkront, före målningen;
+    // nästa bildruta är alltså efter det nya valet.
+    const id = window.requestAnimationFrame(visa);
+    return () => { window.cancelAnimationFrame(id); visa(); };
     // Bara vid mount — ett senare val i väljaren ska inte skrivas över.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -577,15 +602,37 @@ export function ProductView({
     <div className="pdp-variants">
       {axes.map((axis) => {
         const mode = variantLage(axis.name, axis.choices);
-        const axisItems: VariantCardItem[] = axis.choices.map((c) => ({
-          key: c.label,
-          label: c.label,
-          active: picked[axis.name] === c.label,
-          avail: isChoiceAvailable(table, axis.name, c.label, picked),
-          thumb: mode === "image" ? c.image || undefined : undefined,
-          dot: mode === "color" || (mode === "image" && !c.image) ? c.color || "#e5e7eb" : undefined,
-          onPick: () => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev)),
-        }));
+        const ovriga = axes
+          .filter((a) => a.name !== axis.name)
+          .map((a) => fmtDim(picked[a.name] || ""))
+          .filter(Boolean)
+          .join(" / ");
+        const axisItems: VariantCardItem[] = axis.choices.map((c) => {
+          const status = choiceStatus(table, axis.name, c.label, picked);
+          return {
+            key: c.label,
+            label: c.label,
+            active: picked[axis.name] === c.label,
+            avail: status === "ok",
+            saknas: status === "saknas",
+            saknasI: ovriga,
+            thumb: mode === "image" ? c.image || undefined : undefined,
+            dot: mode === "color" || (mode === "image" && !c.image) ? c.color || "#e5e7eb" : undefined,
+            onPick: () => {
+              const next = reconcileSelection(table, axis.name, c.label, picked);
+              const byten = andradeAxlar(picked, next, axis.name);
+              const fore = findVariant(table, picked)?.priceNum;
+              const efter = findVariant(table, next)?.priceNum;
+              setAndring(
+                byten.length
+                  ? { ...byten[0], klick: c.label, pris: efter && fore && efter !== fore ? efter : undefined }
+                  : null,
+              );
+              setPicked(next);
+              setBladdrad(null);
+            },
+          };
+        });
         return (
           <div className="pdp-axis" key={axis.name}>
             <div className="varhead">
@@ -594,11 +641,20 @@ export function ProductView({
               {axis.choices.length >= 3 && <span className="varcount">{axis.choices.length} val</span>}
             </div>
             {shouldUseCards(axis.choices.map((c) => c.label))
-              ? renderVariantCards(axisItems)
-              : renderVariantSwatches(axisItems)}
+              ? renderVariantCards(axisItems, false)
+              : <VariantSwatches items={axisItems} visaSlut={false} />}
           </div>
         );
       })}
+      {/* Inget byts tyst: fick ett annat val bytas för att kombinationen inte
+          finns, står det här tills nästa klick. */}
+      {andring && (
+        <p className="varnote" role="status">
+          {fmtDim(andring.fran)} finns inte i {fmtDim(andring.klick)}, så {andring.axel.toLowerCase()} blev{" "}
+          <strong>{fmtDim(andring.till)}</strong>
+          {andring.pris ? <>. Priset är nu <strong>{formatPrice(andring.pris)}</strong></> : null}.
+        </p>
+      )}
     </div>
   ) : null;
 
@@ -634,7 +690,7 @@ export function ProductView({
         <strong className="varhead-val">{fmtDim(variantLabel)}</strong>
         {singleCount >= 3 && <span className="varcount">{singleCount} val</span>}
       </div>
-      {singleCards ? renderVariantCards(singleItems) : renderVariantSwatches(singleItems)}
+      {singleCards ? renderVariantCards(singleItems) : <VariantSwatches items={singleItems} />}
     </div>
   ) : null;
 
@@ -642,14 +698,16 @@ export function ProductView({
     <>
     <div className="pdp">
       <Gallery
-        // Ny färg = nytt galleri (andra bilder), så crossfade-lagren börjar om.
-        key={galleriNyckel}
+        // Ingen key: galleriet byter bilder på plats och tonar över (gallery.tsx).
+        // Blur-förhandsvisningen gäller bara sidans första bild; galleriet
+        // använder den bara för det initiala lagret.
         images={galleryImages}
         alt={name}
         imageAlts={imageAlts}
-        mainBlur={galleriNyckel === forstaGalleriNyckel ? mainBlur : undefined}
+        mainBlur={mainBlur}
+        glomVisad={glomVisad}
         active={multiAxis || allHaveImage ? galleryIdx : undefined}
-        onActiveChange={multiAxis ? setGalleryIdx : allHaveImage ? onGalleryActive : undefined}
+        onActiveChange={multiAxis ? onMultiGalleryActive : allHaveImage ? onGalleryActive : undefined}
         // Variantbilderna ligger nu utspridda i galleriet (naturlig ordning), så
         // förladda hela serien (efter LCP, gated i Gallery) → varje variantbyte blir
         // en direkt cache-träff oavsett var bilden ligger. Capad så payloaden hålls nere.
@@ -678,14 +736,15 @@ export function ProductView({
               <span className="pdp-rating-arrow" aria-hidden="true">→</span>
             </a>
           )}
-          {!buyable && (
+          {/* Rutan står bara när HELA varan är slut; det ändras inte av ett
+              klick. Är bara det valda alternativet slut står det under valen
+              (vid köpknappen): en röd ruta här ovanför sköt annars ner valen
+              ~120 px under musen vid varje byte, och den sa "ovan" fast valen
+              ligger nedanför (2026-10-01). */}
+          {!inStock && (
             <div className="oos-banner" role="status">
               <span className="oos-banner-chip">Slutsåld</span>
-              <span className="oos-banner-text">
-                {variantOnlyOOS
-                  ? `${variantLabel} är tillfälligt slut – välj en annan variant ovan, eller bevaka nedan så hör vi av oss.`
-                  : "Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss."}
-              </span>
+              <span className="oos-banner-text">Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss.</span>
             </div>
           )}
           <div className="pdp-price">
@@ -705,6 +764,11 @@ export function ProductView({
         {multiAxis ? multiVariantPicker : variantPicker}
 
         <div className="buybox pdp-actions">
+          {variantOnlyOOS && (
+            <p className="varnote varnote-slut" role="status">
+              <strong>{fmtDim(variantLabel)}</strong> är slut just nu. Välj ett annat alternativ, eller bevaka varan nedan så hör vi av oss.
+            </p>
+          )}
           {buyable && (
             <div className="pdp-qty">
               <span className="pdp-qty-label">Antal</span>
@@ -727,7 +791,8 @@ export function ProductView({
 
           {/* Premium leverans-callout — högst upp, direkt under köpknappen, egen
               ruta så den sticker ut (bara i lager). */}
-          {inStock && <DeliveryEstimate showStock={buyable} />}
+          {/* Leveranstid bara för det som går att köpa. */}
+          {buyable && <DeliveryEstimate showStock />}
 
           <div className="pdp-trust">
             <span>

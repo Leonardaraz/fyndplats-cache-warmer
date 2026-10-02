@@ -18,14 +18,23 @@
 // stjärnor, tyst. Se lib/reviews.ts för samma resonemang och för fallet som
 // gjorde huset försiktigt: /api/tracking-events 2026-09-01.
 //
-// Cachas 1 h med samma "reviews"-tagg som getProductReviews, så den befintliga
-// revalideringen (`?tag=reviews`) tömmer produktsidan och korten på en gång.
+// Cachas lika länge som produktsidan (sex timmar sedan 2026-10-01) med samma
+// "reviews"-tagg som getProductReviews, så den befintliga revalideringen
+// (`?tag=reviews`) tömmer produktsidan och korten på en gång — men se
+// lib/produkt-cache.ts om vad en global tömning kostar.
+//
+// ⚠️ POSTEN DELAS AV ALLA SIDOR. Next nycklar en fetch på adressen, inte på
+// sidan, så även listsidorna (som byggs om varje timme) läser samma sextimmarspost:
+// stjärnorna på korten kan alltså vara upp till sex timmar gamla. Produktsidans
+// egna recensioner töms däremot per produkt inom minuter (/api/cron/uppdatera-andrade).
 //
 // Den rena logiken (mapAggregateRows/applyRatings/ownReviewsHidden) ligger i
 // lib/rating.ts — se kommentaren där om varför den behöver vara en löv-modul.
 
 import { mapAggregateRows, applyRatings, ownReviewsHidden, type AggregateRow, type RatingMap } from "./rating";
 import type { Product } from "./products";
+import { PRODUKTSIDA_SEKUNDER } from "./produkt-cache";
+import { kortLivslangd } from "./kort-livslangd";
 
 /** Cache-warmern äger recensionslagret. Samma mönster som lib/reviews.ts.
  *
@@ -47,8 +56,16 @@ const API =
 export async function getReviewAggregates(): Promise<RatingMap> {
   if (ownReviewsHidden()) return {};
   try {
-    const res = await fetch(API, { next: { revalidate: 3600, tags: ["reviews"] } });
-    if (!res.ok) return {};
+    // Samma livslängd som produktsidan (lib/produkt-cache.ts). Siffrorna är
+    // stjärnorna på "Liknande produkter"-korten; en timme här hade sänkt varje
+    // produktsida till en timme. Se ⚠️ ovan om vad det betyder för listsidorna.
+    // Faller hämtningen blir korten stjärnlösa — och sidan lever då bara fem
+    // minuter (kortLivslangd), inte sex timmar. Ett felsvar cachas aldrig.
+    const res = await fetch(API, { next: { revalidate: PRODUKTSIDA_SEKUNDER, tags: ["reviews"] } });
+    if (!res.ok) {
+      await kortLivslangd();
+      return {};
+    }
     // Svaret är en KARTA productId → {antal, snitt}. mapAggregateRows tar en
     // lista, så den formen behålls här i stället för att skriva om den rena
     // logiken i lib/rating.ts — den är testad och delas med korten.
@@ -60,6 +77,7 @@ export async function getReviewAggregates(): Promise<RatingMap> {
     // exakt ut som "ingen produkt har omdömen". Loggas hellre än gissas.
     if (!body || typeof body.betyg !== "object" || body.betyg === null) {
       console.warn("[review-aggregates] svar utan betyg-fält — fel rutt?", API);
+      await kortLivslangd();
       return {};
     }
     const rader: AggregateRow[] = Object.entries(body.betyg).map(([productId, v]) => ({
@@ -69,6 +87,7 @@ export async function getReviewAggregates(): Promise<RatingMap> {
     }));
     return mapAggregateRows(rader);
   } catch {
+    await kortLivslangd();
     return {};
   }
 }
