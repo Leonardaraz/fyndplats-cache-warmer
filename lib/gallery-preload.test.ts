@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types lib/gallery-preload.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { nearWindow, prefersDataSaving } from "./gallery-preload.ts";
+import { kandidatBredd, nearWindow, prefersDataSaving } from "./gallery-preload.ts";
 
 test("nearWindow – mitt i galleriet: 2 framåt, 1 bakåt", () => {
   assert.deepEqual(nearWindow(2, 6), [3, 4, 1]);
@@ -48,4 +48,20 @@ test("prefersDataSaving – saveData och 2g-lägen stänger av, annars på", () 
   assert.equal(prefersDataSaving({ effectiveType: "slow-2g" }), true);
   assert.equal(prefersDataSaving({ effectiveType: "4g" }), false);
   assert.equal(prefersDataSaving({ saveData: false, effectiveType: "3g" }), false);
+});
+
+// Förstoringen avgör med kandidatBredd om hjältens bild räcker för scenen.
+// Wix-adresserna har kommatecken i sig, så en delning på "," hade gett fel bredd.
+const wix = (w: number) => `https://static.wixstatic.com/media/b379ce_x~mv2.jpg/v1/fill/w_${w},h_${w},al_c,q_72/file.webp`;
+const srcset = [640, 750, 828, 1080, 1200].map((w) => `${wix(w)} ${w}w`).join(", ");
+
+test("kandidatBredd – bredden på kandidaten webbläsaren valde", () => {
+  assert.equal(kandidatBredd({ currentSrc: wix(640), srcset }), 640);
+  assert.equal(kandidatBredd({ currentSrc: wix(1200), srcset }), 1200);
+});
+
+test("kandidatBredd – 0 innan något valts eller när adressen saknas i srcset", () => {
+  assert.equal(kandidatBredd({ currentSrc: "", srcset }), 0);
+  assert.equal(kandidatBredd({ currentSrc: wix(1600), srcset }), 0);
+  assert.equal(kandidatBredd({ currentSrc: wix(640), srcset: "" }), 0);
 });
