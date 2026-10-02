@@ -127,7 +127,7 @@ export default function Sparning() {
         </div>
       </section>
 
-      <section className="om-sektion">
+      <section className={`om-sektion ${s.faqSek}`}>
         <div className="container">
           <div className="om-rubrikrad">
             <div>
@@ -143,7 +143,7 @@ export default function Sparning() {
               </details>
             ))}
           </div>
-          <p className="om-not">Fler svar om frakt, returer och betalning finns i <a href="/vanliga-fragor">Vanliga frågor</a>.</p>
+          <p className={s.faqNot}>Fler svar om frakt, returer och betalning finns i <a href="/vanliga-fragor">Vanliga frågor</a>.</p>
         </div>
       </section>
 

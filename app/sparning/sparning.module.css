@@ -66,6 +66,12 @@ ol.steg {
   }
 }
 
+/* Frågorna följer direkt på leveransstegen, i samma vita yta: utan detta
+   staplas två sektioners luft (144 px) mellan dem. */
+section.faqSek {
+  padding-top: 0;
+}
+
 /* Frågorna om spårning: hopfällbara rader. Svaren ligger i HTML:en från
    början (details), så de räknas av sökmotorerna även när raden är stängd. */
 .faq {
@@ -106,4 +112,15 @@ ol.steg {
   max-width: 68ch;
   color: var(--soft);
   line-height: 1.6;
+}
+.faqNot {
+  margin: 20px 0 0;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.faqNot a {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
