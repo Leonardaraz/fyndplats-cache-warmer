@@ -107,18 +107,20 @@ section.faqSek {
 .faqRad[open] summary::after {
   transform: rotate(45deg);
 }
-.faqRad p {
+.faq .faqRad p {
   margin: 0 0 16px;
   max-width: 68ch;
   color: var(--soft);
   line-height: 1.6;
 }
-.faqNot {
+/* Två klasser: .om-sektion p (klass + element) vinner annars över en ensam
+   klass, och raden hamnar tätt mot strecket i brödtextens storlek. */
+.faqSek .faqNot {
   margin: 20px 0 0;
   font-size: var(--text-sm);
   color: var(--soft);
 }
-.faqNot a {
+.faqSek .faqNot a {
   color: var(--brand);
   font-weight: 600;
   text-decoration: underline;
