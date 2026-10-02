@@ -6,7 +6,7 @@ meta_description: "Hittar du inte produkten? Krånglar frakten? Vill du hellre r
 category: Guider
 publish_date: 2026-09-09
 cover: /blog-sa-hjalper-vi-dig.jpg
-alt: "Leende kundtjänstmedarbetare med headset vid ett fönster"
+alt: "Kvinna som ler och pratar i telefon vid skrivbordet hemma"
 ---
 
 # Fråga oss – vi hjälper till med allt
@@ -76,3 +76,5 @@ Vi svarar oftast på mejl inom några timmar, inte sällan på kvällen efter st
 Fler svar finns på [Vanliga frågor](/vanliga-fragor) och [Kundtjänst](/kundtjanst).
 
 Men är du osäker på något — hör bara av dig. Det är därför vi finns.
+
+*Omslagsfoto: [Shixart1985](https://commons.wikimedia.org/wiki/File:Elderly_woman_sitting_at_her_office_table_and_laughing_while_talking_on_the_phone.jpg), Wikimedia Commons, [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/). Beskuren.*
