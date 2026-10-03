@@ -620,7 +620,6 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
       refundAmount: amount,
       currency,
       refundReason: reason,
-      expectedDays: 10,
     },
     email: customer.email,
   };
