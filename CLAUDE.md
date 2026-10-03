@@ -1468,13 +1468,15 @@ och lager om, och minsta avvikelse stoppar.
   färgbilderna (`fargbilder-kor.ts`), miljöbilden (`livsbild.ts`) och
   sammanslagningen. Kollapsen (`remap-kollaps.ts`) kopplar inga bilder och
   lämnar en variant utan val, så den har inget att räkna på.
-- **Den dagliga kollen** `/api/cron/variantbild` (05:35 UTC) sveper hela
-  katalogen, utkast med, och listar produkter med fel bild. **Den är torr.**
-  `?dryRun=false` rättar, och slås på först efter Leonards ja.
-- ☠️ **Utkast skrivs bara med `utkast: true` / `?utkast=1`.** Alla 566 var
-  publicerade, och en variantsInfo-PATCH har publicerat ett utkast förut.
-  Prova på ett enda utkast (`?ids=<id>&dryRun=false&utkast=1`) efter Leonards
-  ja, och läs sedan av att det fortfarande är ett utkast.
+- **Den dagliga kollen** `/api/cron/variantbild?dryRun=false` (05:35 UTC)
+  sveper hela katalogen, utkast med. Först läses alla flervariantsprodukter
+  (fyra i taget, inget skrivs), sedan rättas de med fel bild en i taget.
+  Leonards ja 2026-10-03: "kör den så det fungerar fullt ut". Ett handanrop
+  utan `dryRun=false` bara listar.
+- ✅ **Utkast är prövade och rättas också** (2026-10-03, utkastet d4118d39):
+  efter skrivningen fortfarande `visible: false`, rätt bild, SKU och pris lika,
+  lagret orört (antal och revision). Kontrollen fäller en ändrad synlighet.
+  `utkast: false` / `?utkast=0` hoppar dem.
 - ☠️ **Skrivningen kräver `fields=MERCHANT_DATA`**, annars saknas kostnaden.
   Motorns nyckel fick 403 på den 2026-09-27 (se sammanslagningen). Då skriver
   rättningen ingenting och säger `nyckeln får inte läsa varukostnaden`. Kollen

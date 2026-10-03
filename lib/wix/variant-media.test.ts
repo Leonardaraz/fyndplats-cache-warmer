@@ -336,15 +336,30 @@ describe("refreshVariantMedia", () => {
     expect(w.anrop.every((a) => a.metod === "GET")).toBe(true);
   });
 
-  it("☠️ ett utkast skrivs inte utan `utkast: true`", async () => {
+  it("☠️ ett utkast rättas och förblir utkast; `utkast: false` hoppar det", async () => {
     const w = fejkWix(stol({ visible: false }));
-    const u = await refreshVariantMedia(w.wix, "stol", { vanta });
-    expect(u.status).toBe("utkast_hoppat");
+    const utan = await refreshVariantMedia(w.wix, "stol", { utkast: false, vanta });
+    expect(utan.status).toBe("utkast_hoppat");
     expect(w.anrop.every((a) => a.metod === "GET")).toBe(true);
 
-    const med = await refreshVariantMedia(w.wix, "stol", { utkast: true, vanta });
+    const med = await refreshVariantMedia(w.wix, "stol", { vanta });
     expect(med.status).toBe("rattad");
     expect(w.p.visible).toBe(false);
+    const kropp = w.anrop.find((a) => a.metod === "PATCH")!.kropp as { product: Obj };
+    expect(kropp.product.visible).toBe(false);
+  });
+
+  it("☠️ publicerade skrivningen ett utkast: avvikelse och stopp", async () => {
+    const w = fejkWix(stol({ visible: false }));
+    const inner = w.wix;
+    const wix: WixAnrop = async (m, v, k) => {
+      const svar = await inner(m, v, k);
+      if (m === "PATCH") w.p.visible = true;
+      return svar;
+    };
+    const u = await refreshVariantMedia(wix, "stol", { vanta });
+    expect(u.status).toBe("avvikelse");
+    expect((u.avvikelser ?? []).join("; ")).toMatch(/produktens visible/);
   });
 
   it("☠️ får nyckeln inte läsa varukostnaden skrivs ingenting", async () => {

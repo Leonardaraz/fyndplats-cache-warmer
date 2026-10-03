@@ -113,13 +113,21 @@ describe("den dagliga kollen", () => {
     expect(w.anrop.some((a) => a.sokvag.includes("/products/d"))).toBe(false);
   });
 
-  it("skarpt: rättar publicerade, hoppar utkast", async () => {
-    const w = fejkWix([produkt("b", false, true), produkt("c", true, true)]);
+  it("skarpt: rättar publicerade och utkast, och rör inte dem som redan är rätt", async () => {
+    const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)]);
     const r = await korVariantbildKoll(w.wix, { torr: false, deadline: langt(), vanta });
-    expect(r.summa).toEqual({ utkast_hoppat: 1, rattad: 1 });
+    expect(r.summa).toEqual({ ratt: 1, rattad: 2 });
+    expect(r.fullstandig).toBe(true);
     expect(w.anrop.filter((a) => a.metod === "PATCH").map((a) => a.sokvag)).toEqual([
+      "/stores/v3/products-with-inventory/b",
       "/stores/v3/products-with-inventory/c",
     ]);
+  });
+
+  it("skarpt med `utkast: false`: utkasten listas men skrivs inte", async () => {
+    const w = fejkWix([produkt("b", false, true), produkt("c", true, true)]);
+    const r = await korVariantbildKoll(w.wix, { torr: false, utkast: false, deadline: langt(), vanta });
+    expect(r.summa).toEqual({ utkast_hoppat: 1, rattad: 1 });
   });
 
   it("☠️ skarpt: en avvikelse stoppar körningen, och nästa produkt rörs inte", async () => {
@@ -127,9 +135,9 @@ describe("den dagliga kollen", () => {
     const r = await korVariantbildKoll(w.wix, { torr: false, deadline: langt(), vanta });
     expect(r.stoppad).toBe(true);
     expect(r.fullstandig).toBe(false);
-    expect(r.summa).toEqual({ avvikelse: 1 });
+    expect(r.summa).toEqual({ avvikelse: 1, torr: 1 });
     expect(w.anrop.filter((a) => a.metod === "PATCH")).toHaveLength(1);
-    expect(r.nasta).toBe(1);
+    expect(r.produkter.find((p) => p.id === "e")!.status).toBe("torr");
   });
 
   it("tidsbudgeten: ofullständig, med var nästa körning ska börja", async () => {

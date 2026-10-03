@@ -7,10 +7,11 @@
 // inte att filtrera på (400 "not declared as filterable", uppmätt 2026-10-03).
 // Urvalet görs därför här, ur katalogsvepet.
 //
-// Första läget är torrkörning: bara en lista. Skarp rättning (`torr: false`)
-// slås på först efter Leonards ja, och utkast (`utkast: true`) först efter ett
-// prov på ett enda utkast. I skarpt läge går produkterna en i taget, och
-// minsta avvikelse efter en skrivning stoppar körningen.
+// Nattens cron kör skarpt (Leonards ja 2026-10-03: "kör den så det fungerar
+// fullt ut"), utkast med. Två steg: först läses alla flervariantsprodukter,
+// fyra i taget, utan att något skrivs. Sedan rättas de med fel bild EN I
+// TAGET, och minsta avvikelse efter en skrivning stoppar körningen. En
+// produkt som redan är rätt kostar alltså bara en läsning.
 
 import type { WixAnrop } from "../polish/skrivplan";
 import { mapWithConcurrency } from "../concurrency";
@@ -27,7 +28,7 @@ const SVEP_PAUS_MS = [1_000, 3_000, 8_000];
 /**
  * Samtidiga produktläsningar i torrt läge. Fyra GET i taget är ungefär tio
  * anrop i sekunden, under Wix gränser; ett 429 tas av skapaWixAnrop:s
- * återförsök. Skarpt läge går en i taget.
+ * återförsök. Rättningen i steg 2 går en i taget.
  */
 const SAMTIDIGA_TORRT = 4;
 
@@ -83,9 +84,9 @@ export async function listaKatalogen(
 }
 
 export interface KollOpts {
-  /** Default: torrt. Skarpt kräver Leonards ja. */
+  /** Default: torrt. Nattens cron kör `torr: false`. */
   torr?: boolean;
-  /** Skriv även utkast. Kräver Leonards ja efter ett prov på ett utkast. */
+  /** `false` hoppar utkast. Default: utkast rättas också. */
   utkast?: boolean;
   /** Tidpunkt (ms) då inga nya produkter påbörjas. */
   deadline: number;
@@ -131,7 +132,7 @@ export interface KollRapport {
 
 export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise<KollRapport> {
   const torr = opts.torr !== false;
-  const utkast = opts.utkast === true;
+  const utkast = opts.utkast !== false;
   const vanta = opts.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
 
   let katalogen = 0;
@@ -147,17 +148,32 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
   const slut = opts.limit && opts.limit > 0 ? Math.min(lista.length, start + opts.limit) : lista.length;
   const urval = lista.slice(start, slut);
 
-  let stoppad = false;
+  // Steg 1: läs alla, fyra i taget. Skriver ingenting.
   const utfall: (VariantbildUtfall | null)[] = await mapWithConcurrency(
     urval,
-    torr ? SAMTIDIGA_TORRT : 1,
+    SAMTIDIGA_TORRT,
     async (p) => {
-      if (stoppad || Date.now() > opts.deadline) return null;
-      const u = await refreshVariantMedia(wix, p.id, { torr, utkast, vanta });
-      if (u.status === "avvikelse") stoppad = true;
-      return u;
+      if (Date.now() > opts.deadline) return null;
+      return refreshVariantMedia(wix, p.id, { torr: true, utkast, vanta });
     },
   );
+
+  // Steg 2: rätta dem med fel bild, en i taget. En avvikelse stoppar.
+  let stoppad = false;
+  if (!torr) {
+    for (let i = 0; i < utfall.length; i++) {
+      const u = utfall[i];
+      if (!u || u.status !== "torr") continue;
+      if (u.visible === false && !utkast) {
+        utfall[i] = { ...u, status: "utkast_hoppat" };
+        continue;
+      }
+      if (stoppad || Date.now() > opts.deadline) break;
+      const ny = await refreshVariantMedia(wix, u.productId, { utkast, vanta });
+      utfall[i] = ny;
+      if (ny.status === "avvikelse") stoppad = true;
+    }
+  }
 
   // Positionen efter den sista som hann kontrolleras i följd.
   let kontrollerade = 0;
@@ -198,7 +214,8 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
     start,
     kontrollerade: utfall.filter(Boolean).length,
     nasta,
-    fullstandig: nasta === null && !stoppad,
+    // Skarpt: också varje produkt med fel bild ska ha hunnit rättas.
+    fullstandig: nasta === null && !stoppad && (torr || !utfall.some((u) => u?.status === "torr")),
     stoppad,
     summa,
     medFelBild,

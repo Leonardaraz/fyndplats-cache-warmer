@@ -15,10 +15,12 @@
 // kontrollerades id, SKU, pris, lager, synlighet, bildordning och kostnad, och
 // allt var oförändrat. Den kontrollen bor här, i `jamforForeEfter`.
 //
-// ☠️ UTKAST ÄR OPRÖVADE. Alla 566 var publicerade, och en variantsInfo-PATCH
-// har publicerat ett utkast förut (CLAUDE.md). `visible` skickas därför med på
-// produkten, men utkast skrivs bara med `utkast: true`, som kräver Leonards ja
-// efter ett prov på ett enda utkast.
+// ✅ UTKAST ÄR PRÖVADE (2026-10-03, Leonards ja). En variantsInfo-PATCH har
+// publicerat ett utkast förut (CLAUDE.md), så `visible` skickas med på
+// produkten. Provat på utkastet d4118d39 (rumsavdelaren): efter skrivningen
+// `visible: false`, den vita varianten på sin vita bild, SKU och pris lika och
+// lagret orört (antal 60/5, revision 93 före och efter). Kontrollen efter
+// skrivningen fäller dessutom en ändrad synlighet. `utkast: false` hoppar dem.
 //
 // ☠️ Skicka aldrig `inventoryItem` (då blir svarets `inventoryResults` tomt och
 // lagret orört) och aldrig variantens `media` (Wix ignorerar det).
@@ -309,7 +311,7 @@ export function jamforForeEfter(
 export type VariantbildStatus =
   | "ratt" // alla varianter visar redan sin bild
   | "en_variant" // inget att räkna på
-  | "utkast_hoppat" // utkast skrivs bara med `utkast: true`
+  | "utkast_hoppat" // hoppat med `utkast: false`
   | "torr" // avvikande, men inget skrevs
   | "rattad" // skriven, läst om, allt utom bilden oförändrat
   | "avvikelse" // skrivningen ändrade något annat än bilden — STOPP
@@ -330,7 +332,7 @@ export interface VariantbildUtfall {
 export interface VariantbildOpts {
   /** Läs och jämför, men skriv ingenting. */
   torr?: boolean;
-  /** Skriv även utkast. Kräver Leonards ja efter ett prov på ett enda utkast. */
+  /** `false` hoppar utkast. Default: utkast rättas också (provat 2026-10-03). */
   utkast?: boolean;
   vanta?: (ms: number) => Promise<void>;
   /** Omläsningar medan Wix läsning släpar efter skrivningen. */
@@ -369,7 +371,7 @@ async function lasLager(wix: WixAnrop, id: string): Promise<LagerPost[]> {
 /**
  * Läser produkten färskt och rättar variantbilderna om någon avviker.
  *
- * Skriver bara när en variant avviker, aldrig ett utkast utan `utkast: true`.
+ * Skriver bara när en variant avviker. Utkast rättas också, utom med `utkast: false`.
  * Efter skrivningen läses produkten och lagret om och jämförs med läget före:
  * namn, slug, synlighet, val (id, namn, bildordning), variant-id, SKU, pris,
  * jämförpris, synlighet, fysiska egenskaper, kostnad, och lagrets antal,
@@ -405,7 +407,7 @@ export async function refreshVariantMedia(
     const bas = { avvikande: lage.avvikande, okanda: lage.okanda, visible };
     if (lage.avvikande.length === 0) return utfall("ratt", bas);
     if (opts.torr) return utfall("torr", bas);
-    if (!visible && !opts.utkast) return utfall("utkast_hoppat", bas);
+    if (!visible && opts.utkast === false) return utfall("utkast_hoppat", bas);
 
     let fore: Obj | null;
     try {
@@ -425,7 +427,7 @@ export async function refreshVariantMedia(
     if (fore.revision !== forst.revision && variantbildLage(fore).avvikande.length === 0) {
       return utfall("ratt", { ...bas, avvikande: [] });
     }
-    if (fore.visible === false && !opts.utkast) return utfall("utkast_hoppat", bas);
+    if (fore.visible === false && opts.utkast === false) return utfall("utkast_hoppat", bas);
 
     const kropp = byggVariantbildKropp(fore);
     const lagerFore = await lasLager(wix, productId);
@@ -486,7 +488,7 @@ export function variantbildSteg(u: VariantbildUtfall): { rad: string; stopp: boo
     case "rattad":
       return { rad: `variantbilder: ${n} rättade`, stopp: false };
     case "utkast_hoppat":
-      return { rad: `variantbilder: ${n} fel, utkast rättas inte ännu`, stopp: false };
+      return { rad: `variantbilder: ${n} fel, utkast hoppade`, stopp: false };
     case "torr":
       return { rad: `variantbilder: ${n} fel (torrt)`, stopp: false };
     case "ej_rattad":

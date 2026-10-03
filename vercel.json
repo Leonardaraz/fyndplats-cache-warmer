@@ -38,7 +38,7 @@
       "schedule": "50 3 * * *"
     },
     {
-      "path": "/api/cron/variantbild",
+      "path": "/api/cron/variantbild?dryRun=false",
       "schedule": "35 5 * * *"
     }
   ],

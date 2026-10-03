@@ -4,12 +4,14 @@
 // första kopplade bild i varukorgen, kassan och ordern. Logiken och bakgrunden
 // står i lib/wix/variant-media.ts och lib/wix/variantbild-koll.ts.
 //
-// TORRKÖRNING ÄR DEFAULT, och den nattliga cronen i vercel.json kör torrt.
-// Den läser och listar, den skriver aldrig. Listan går till svaret och loggen.
+// TORRKÖRNING ÄR DEFAULT för ett handanrop. Den nattliga cronen i vercel.json
+// kör skarpt (`?dryRun=false`, Leonards ja 2026-10-03), utkast med: först
+// läses alla, sedan rättas de med fel bild en i taget, och en avvikelse
+// stoppar körningen.
 //
 // Query:
-//   ?dryRun=false    skarp rättning — först efter Leonards ja
-//   ?utkast=1        skriv även utkast — först efter ett prov på ett utkast
+//   ?dryRun=false    skarp rättning
+//   ?utkast=0        hoppa utkasten (default: de rättas också)
 //   ?ids=a,b         bara de här produkterna (provet), utan katalogsvep
 //   ?start=N         fortsätt listan där förra körningen slutade (`nasta`)
 //   ?limit=N         högst N produkter den här körningen
@@ -42,7 +44,7 @@ async function handle(req: NextRequest) {
   }
   const q = req.nextUrl.searchParams;
   const torr = q.get("dryRun") !== "false";
-  const utkast = q.get("utkast") === "1";
+  const utkast = q.get("utkast") !== "0";
   const ids = (q.get("ids") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const maxSeconds = Math.min(heltal(q.get("maxSeconds")) || 240, 270);
 
