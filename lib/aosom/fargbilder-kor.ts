@@ -26,6 +26,7 @@
 // och allt annat står i tabellen. En omkörning ser läget och gör resten.
 
 import { felText, type WixAnrop } from "../polish/skrivplan";
+import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import type { FargbildLager } from "../store/fargbilder";
 import {
   GALLERI_AVVIKELSE,
@@ -347,6 +348,13 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   } catch (e) {
     return fall(`återläsningen föll: ${felText(e)} — tabellen är skriven, kör om`);
   }
-  if (behoverLankar) steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
+  if (behoverLankar) {
+    steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
+    // Länkarna skrevs med val-id, och då räknar Wix inte om variantens bild
+    // (lib/wix/variant-media.ts). En avvikelse stoppar körningen.
+    const vb = variantbildSteg(await refreshVariantMedia(deps.wix, plan.id, { vanta }));
+    steg.push(vb.rad);
+    if (vb.stopp) return fall(`${vb.rad} — tabellen och länkarna är skrivna, kontrollera sidan`);
+  }
   return bekrafta();
 }

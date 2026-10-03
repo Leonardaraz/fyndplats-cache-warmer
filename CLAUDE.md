@@ -1441,6 +1441,49 @@ oförändrad ur produktens EGEN GET, som redan går med
 bära valens namn. Det är samma round-trip-princip som `visible`, inte ett
 handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
 
+### ☠️ Variantens bild följer bara valet om valen skickas med NAMN (2026-10-03)
+
+Wix räknar själv fram `variantsInfo.variants[].media` ur valets `linkedMedia`,
+och fältet är skrivskyddat. Men Wix räknar bara om det när varianterna skickas
+med valen angivna **enbart med namn** (`optionChoiceNames`), som Wix egen
+redigerare gör. Motorns skrivningar skickar `variantsInfo` ordagrant ur GET:en,
+alltså med `optionChoiceIds`, och då står den gamla bilden kvar. Bilderna
+kopplas efter att produkten skapats, när variantbilden redan är huvudbilden, så
+den fastnade där. **Varukorgen (Cart v2 `lineItems[].image`), kassan och ordern
+visade första färgens bild oavsett vald färg.** 566 publicerade produkter
+rättades för hand samma dag, med id, SKU, pris, lager, synlighet, bildordning
+och kostnad kontrollerade före och efter.
+
+Receptet bor i `lib/wix/variant-media.ts` (`refreshVariantMedia`):
+`PATCH /stores/v3/products-with-inventory/{id}` utan fältmask, med `options`
+ordagrant, produktens `visible`, och ALLA varianter med `id`, valen bara med
+namn, `price` (med `compareAtPrice`), `sku`, `barcode`, `visible`,
+`physicalProperties` och `revenueDetails.cost`. Aldrig `inventoryItem` (då rörs
+lagret inte) och aldrig variantens `media` (Wix ignorerar den). Förväntad bild =
+första bilden i valets `linkedMedia`; flera optioner med bilder → första bilden
+i snittet; inga kopplade bilder → huvudbilden. Efter skrivningen läses produkt
+och lager om, och minsta avvikelse stoppar.
+
+- **Den anropas efter varje bildkoppling:** `linkChoiceMedia` (importen),
+  färgbilderna (`fargbilder-kor.ts`), miljöbilden (`livsbild.ts`) och
+  sammanslagningen. Kollapsen (`remap-kollaps.ts`) kopplar inga bilder och
+  lämnar en variant utan val, så den har inget att räkna på.
+- **Den dagliga kollen** `/api/cron/variantbild?dryRun=false` (05:35 UTC)
+  sveper hela katalogen, utkast med. Först läses alla flervariantsprodukter
+  (fyra i taget, inget skrivs), sedan rättas de med fel bild en i taget.
+  Leonards ja 2026-10-03: "kör den så det fungerar fullt ut". Ett handanrop
+  utan `dryRun=false` bara listar.
+- ✅ **Utkast är prövade och rättas också** (2026-10-03, utkastet d4118d39):
+  efter skrivningen fortfarande `visible: false`, rätt bild, SKU och pris lika,
+  lagret orört (antal och revision). Kontrollen fäller en ändrad synlighet.
+  `utkast: false` / `?utkast=0` hoppar dem.
+- ☠️ **Skrivningen kräver `fields=MERCHANT_DATA`**, annars saknas kostnaden.
+  Motorns nyckel fick 403 på den 2026-09-27 (se sammanslagningen). Då skriver
+  rättningen ingenting och säger `nyckeln får inte läsa varukostnaden`. Kollen
+  behöver inte fältet.
+- Skrivningar med `optionChoiceIds` (prissynken, auktionerna, SKU-steget)
+  behåller variantbilden, så de bör inte förstöra en rättning.
+
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den

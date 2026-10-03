@@ -164,6 +164,25 @@ describe("skrivSida", () => {
     expect(await lager.lasForProdukt(f.sida.id)).toHaveLength(plan.rader.length);
   });
 
+  it("efter länkarna följs variantens bild upp (lib/wix/variant-media.ts)", async () => {
+    // Länkarna skrivs med val-id, och då räknar Wix inte om variantens bild.
+    // Uppföljningen läser sidan med valens namn efter länkskrivningen.
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    const anrop: string[] = [];
+    const wix: typeof w.wix = async (m, v, k) => {
+      anrop.push(`${m} ${v}`);
+      return w.wix(m, v, k);
+    };
+    const u = await skrivSida(plan, { wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    const sistaLank = anrop.map((a) => a.startsWith("PATCH")).lastIndexOf(true);
+    expect(anrop.slice(sistaLank).some((a) => a.startsWith("GET") && a.includes("VARIANT_OPTION_CHOICE_NAMES"))).toBe(true);
+    expect(u.steg).toContain("variantbilder: rätt");
+  });
+
   it("en koppling som faller medan Wix tar emot bilderna försöks om", async () => {
     const f = fixtur("matskap");
     const w = fejkWix(f);

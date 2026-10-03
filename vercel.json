@@ -36,6 +36,10 @@
     {
       "path": "/api/cron/aosom-media-cleanup?dryRun=false&limit=2000",
       "schedule": "50 3 * * *"
+    },
+    {
+      "path": "/api/cron/variantbild?dryRun=false",
+      "schedule": "35 5 * * *"
     }
   ],
   "ignoreCommand": "P=$VERCEL_GIT_PREVIOUS_SHA; [ \"$VERCEL_PROJECT_ID\" = \"prj_CEca1mZt6bjVcL4FqUWxCshYUvNL\" ] && exit 0; git cat-file -e \"$P^{commit}\" 2>/dev/null || exit 1; git diff --quiet \"$P\" HEAD -- . ':!docs' ':!tools' ':!*.md'"
