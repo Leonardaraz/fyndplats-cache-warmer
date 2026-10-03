@@ -44,7 +44,7 @@ export function Newsletter() {
         <div className="nl">
           <div className="nl-eyebrow">─ Nyhetsbrev</div>
           <h2>Bli först att fynda nyheterna</h2>
-          <p className="nl-sub">Få våra bästa fynd och erbjudanden direkt i inkorgen – varje vecka. Ingen spam, avregistrera när du vill.</p>
+          <p className="nl-sub">Få våra bästa fynd och erbjudanden direkt i inkorgen – varje vecka. Ingen skräppost, avregistrera när du vill.</p>
 
           {state === "done" ? (
             <div className="nl-done" role="status">

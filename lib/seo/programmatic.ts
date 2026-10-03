@@ -714,7 +714,11 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
   for (const cfg of TYPES.filter((c) => c.category === cat.name && typeSlugs.includes(c.slug)).slice(0, 3)) {
     links.push({ href: `/kopguider/${cfg.slug}`, label: `Köpguide: ${cfg.label}` });
   }
-  for (const cfg of (interestsByTop.get(cat.parentId ?? cat.id) || []).slice(0, 2)) {
+  // Intressesidorna är knutna till en hel avdelning, inte till en underkategori.
+  // På underkategorierna gav det svaga par: tvättkorgarna länkade till "mysig
+  // belysning" (språkgranskningen 2026-10-03). De visas därför bara på
+  // avdelningssidan.
+  for (const cfg of (cat.parentId ? [] : interestsByTop.get(cat.id) || []).slice(0, 2)) {
     links.push({ href: `/for-dig-som/${cfg.slug}`, label: `För dig som ${cfg.verb}` });
   }
   return links;

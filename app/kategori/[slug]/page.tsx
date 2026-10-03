@@ -1,3 +1,4 @@
+import { kategoriIMening } from "../../../lib/kategori-i-mening";
 import Image from "next/image";
 import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
@@ -192,7 +193,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     "@type": "CollectionPage",
     name: active.name,
     url: `https://www.fyndplats.se/kategori/${active.slug}`,
-    description: `Handla ${active.name} hos Fyndplats – noga utvalda fynd till smarta priser.`,
+    description: `Handla ${kategoriIMening(active.name)} hos Fyndplats – noga utvalda fynd till smarta priser.`,
     isPartOf: { "@type": "WebSite", name: "Fyndplats", url: "https://www.fyndplats.se/" },
     numberOfItems: list.length,
     mainEntity: {
@@ -252,7 +253,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   : active.slug === "populara"
                     ? "Våra mest populära fynd just nu."
                     : categorySeo(active.slug)?.description ||
-                      `Noga utvalda fynd inom ${active.name.toLowerCase()}.`}
+                      `Noga utvalda fynd inom ${kategoriIMening(active.name)}.`}
               </p>
             </div>
             {heroImg && (
@@ -294,7 +295,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt
               i server-HTML (Suspense-fallback) → utan denna lista fick svans-
               produkterna inga kategori-ankarlänkar alls. Ren text = noll perf. */}
-          <ProductIndex products={list} title={`Alla inom ${active.name} A–Ö`} />
+          <ProductIndex products={list} title={`Alla inom ${kategoriIMening(active.name)} A–Ö`} />
         </div>
       </section>
 
@@ -306,14 +307,14 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
         <section className="sec kat-editorial">
           <div className="container">
             <div className="kat-intro">
-              <h2>Om {active.name}</h2>
+              <h2>Om {kategoriIMening(active.name)}</h2>
               {editorial.intro.map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
             </div>
             {editorial.faq.length > 0 && (
               <div className="kat-faq">
-                <h2>Vanliga frågor om {active.name}</h2>
+                <h2>Vanliga frågor om {kategoriIMening(active.name)}</h2>
                 <dl>
                   {editorial.faq.map((f, i) => (
                     <div className="kat-faq-item" key={i}>
@@ -329,7 +330,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       )}
 
       {progLinks.length > 0 && (
-        <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} blogLinks={blogLinks} />
+        <ProgCrossLinks title={`Fler sätt att handla ${kategoriIMening(active.name)}`} links={progLinks} blogLinks={blogLinks} />
       )}
 
       {deptLinks.length > 0 && (
