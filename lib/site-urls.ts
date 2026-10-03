@@ -12,7 +12,9 @@
 // "submitted URL marked noindex").
 //
 // What's OUT (deliberately): /sok (search results — thin/duplicate, noindex),
-// /tack and /sparning (transient/private order pages), /admin/* (proxy-gated).
+// /tack (transient/private order page), /admin/* (proxy-gated). /sparning is
+// IN since 2026-10-02: the page itself shows no order data until the customer
+// enters a number, and customers search for "fyndplats spåra paket".
 import { getProductSitemapEntries, getCollections, getProducts, forListings } from "./products";
 import { saleProducts } from "./rea";
 import { getPosts } from "./blog";
@@ -50,6 +52,7 @@ const STATIC_INFO_PATHS = [
   "/kontaktaoss",
   "/vanliga-fragor",
   "/returer",
+  "/sparning",
   "/angra-kop",
   "/eu-lager-garanti",
   "/kopvillkor",

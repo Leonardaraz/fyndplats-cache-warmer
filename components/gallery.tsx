@@ -5,7 +5,7 @@ import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { altForImage } from "../lib/image-alt";
-import { nearWindow, prefersDataSaving } from "../lib/gallery-preload";
+import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -33,6 +33,10 @@ function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+// Förstoringens hi-res-lager: fast bredd, delas av zoomen och öppningen så att
+// båda träffar samma adress i cachen.
+const LB_HI = 1600;
 
 // Hjältelagrens sizes — desktopkolumnen är FAST 544 px (.container 1180 − padding
 // 52 − gap 40, ÷2; box-sizing:border-box), så w_1200 räcker även på breda skärmar
@@ -149,11 +153,14 @@ export function Gallery({
   //   Bas   — SAMMA URL som hjältelagret (loader + HERO_SIZES → samma srcset-
   //           kandidat) → öppning och pilnavigering är rena cache-träffar,
   //           bilden syns direkt (grannarna är redan varma via förladdningen).
-  //   Hi-res — fast w_1600 (unoptimized → ingen loader-uppskalning) monteras
-  //           FÖRST NÄR man zoomar (s > 1.05) och tonas in när den dekodats.
-  //           Ozoomad fullskärm på w_1200 är samma skärpa som PDP-hjälten;
-  //           det är zoomen som behöver mer pixlar. Sparläge behöver ingen
-  //           egen vakt — utan zoom hämtas aldrig något nytt.
+  //   Hi-res — fast w_1600 (unoptimized → ingen loader-uppskalning), tonas in
+  //           när den dekodats. Monteras när man zoomar (s > 1.05) OCH direkt
+  //           vid öppning om scenen behöver fler pixlar än baslagret har (se
+  //           effekten nedan). Baslagret är valt för hjältens 544 px-kolumn,
+  //           scenen är upp till 880 px: på dator och surfplatta sträcktes
+  //           bilden ut 1,15–2 gånger och såg suddig ut tills man zoomat
+  //           (Leonard 2026-10-02). På mobil räcker baslagret och inget nytt
+  //           hämtas. Sparläge får hi-res bara vid zoom, som förut.
   // Hi-res spåras per BILD-URL (inte som boolean): en boolean överlever bildbytet
   // en render för länge — pilnavigering efter en zoom monterade då ett hi-res-
   // lager för den NYA bilden och sköt iväg en bortkastad w_1600-fetch innan
@@ -169,6 +176,30 @@ export function Gallery({
   useEffect(() => {
     if (lightbox && view.s > 1.05) setLbHiFor(main); // no-op-render när oförändrad
   }, [lightbox, view.s, main]);
+  // Räcker baslagret för den ozoomade scenen? Mätt på preview (pixlar som
+  // behövs / baslagrets kandidat): dator 738/640, 125 % skalning 885/750,
+  // retina 1476/1200, surfplatta 1508/750, mobil 1026/1200. Bara mobilen
+  // räckte. Avgörs när baslagret valt kandidat (currentSrc satt); vid en
+  // cache-träff direkt, annars vid de sena sveparna.
+  useEffect(() => {
+    if (!lightbox) return;
+    const avgor = () => {
+      const wrap = lbWrapRef.current;
+      const im = wrap?.querySelector<HTMLImageElement>("img.lb-base");
+      const har = im ? kandidatBredd(im) : 0;
+      if (!wrap || !har) return;
+      // offsetWidth/-Height ignorerar zoomens transform. Bilden är kvadratisk
+      // och visas med object-fit:contain, alltså i scenens kortaste sida.
+      const behov = Math.min(wrap.offsetWidth, wrap.offsetHeight) * (window.devicePixelRatio || 1);
+      // har < LB_HI: på en skärm med mycket hög pixeltäthet kan baslagret redan
+      // vara större än hi-res, och då vore bytet en försämring.
+      if (behov > har * 1.05 && har < LB_HI && !skipSpeculative()) setLbHiFor(main);
+    };
+    avgor();
+    const t1 = setTimeout(avgor, 60);
+    const t2 = setTimeout(avgor, 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [lightbox, main]);
   // Cache-träffs-detektering för hi-res-lagret: onLoad fyrar inte för en bild som
   // redan låg i cachen vid mount (samma next/image-fälla som hjältelagren, samma
   // botemedel: synk-scan + sena svep med setTimeout — inte rAF, som pausas i dold
@@ -663,18 +694,20 @@ export function Gallery({
                 alt={altForImage(main, active, alt, imageAlts)}
                 fill
                 sizes={HERO_SIZES}
+                className="lb-base"
                 style={{ objectFit: "contain" }}
                 loading="eager"
                 draggable={false}
               />
-              {/* Hi-res: monteras först vid zoom, tonas in när den dekodats.
+              {/* Hi-res: monteras vid zoom, eller direkt när scenen behöver fler
+                  pixlar än baslagret har. Tonas in när den dekodats.
                   unoptimized → src:en används ordagrant (w_1600), den globala
                   loadern får inte skala upp den till w_3840 igen. Tom alt —
                   baslagret bär bildens alt-text. */}
               {lbHiFor === main && (
                 <Image
                   key={"h" + main}
-                  src={tightFillUrl(main, 1600, 1600)}
+                  src={tightFillUrl(main, LB_HI, LB_HI)}
                   unoptimized
                   alt=""
                   fill

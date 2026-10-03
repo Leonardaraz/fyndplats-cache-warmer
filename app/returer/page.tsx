@@ -129,7 +129,7 @@ export default function Returer() {
           </div>
 
           <div className={s.notis}>
-            <p><strong>Vill du ångra ditt köp?</strong> Enklast gör du det via vår <a href="/angra-kop">ångerfunktion</a> – fyll i din order, välj vilka artiklar du vill ångra och skicka. Du får direkt ett automatiskt mottagningskvitto med returadress och nästa steg. Ångerrätten gäller <strong>även innan paketet hunnit fram</strong>.</p>
+            <p><strong>Vill du ångra ditt köp?</strong> Enklast gör du det via vår <a href="/angra-kop">ångerfunktion</a> – ange din e-postadress och ditt ordernummer, välj vilka artiklar du vill ångra och skicka. Du får direkt ett automatiskt mottagningskvitto med returadress och nästa steg. Ångerrätten gäller <strong>även innan paketet hunnit fram</strong>.</p>
           </div>
 
           <ol className={`om-tid ${s.steg}`}>

@@ -27,3 +27,17 @@ export function prefersDataSaving(conn?: { saveData?: boolean; effectiveType?: s
   const t = conn.effectiveType || "";
   return t === "2g" || t === "slow-2g";
 }
+
+// Bredden på srcset-kandidaten webbläsaren valde ("640w"), 0 om okänd. Används
+// av förstoringen för att avgöra om hjältens bild räcker för scenen.
+// naturalWidth duger inte: med w-deskriptorer är den densitetskorrigerad och
+// blir sizes-bredden (544 på dator) oavsett hur många pixlar bilden har. Wix-
+// adresserna innehåller kommatecken (w_640,h_640), så kandidaterna delas på
+// "URL bredd w", inte på komma.
+export function kandidatBredd(im: { currentSrc: string; srcset: string }): number {
+  if (!im.currentSrc) return 0;
+  for (const [, url, w] of (im.srcset || "").matchAll(/(\S+)\s+(\d+)w/g)) {
+    if (url === im.currentSrc) return Number(w);
+  }
+  return 0;
+}

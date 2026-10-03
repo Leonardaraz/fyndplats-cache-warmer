@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { jsonLdString } from "../lib/seo";
-import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
+import { getProducts, getProduct, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
+import { forvaltPris } from "../lib/pdp-forval";
 import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
@@ -202,7 +203,31 @@ export default async function Home() {
   // Brickorna bär redan sina betyg från urvalet ovan. De är MEDVETET nästan
   // tomma — bild och pris, inget namn — så betyget renderas bara när det finns,
   // aldrig som en tom reserverad rad à la ProductCard.
-  const hero = heroProducts;
+  //
+  // Priset under brickan är priset för varianten på bilden. Brickan visar
+  // huvudbilden, och produktsidan öppnar på samma variant (lib/pdp-forval),
+  // men listdatans pris är produktens lägsta: fåtöljen stod petrolblå för
+  // 2 199 kr fast den petrolblå kostar 2 499 kr (Leonard 2026-10-03). Bara
+  // produkter med olika pris per variant slås upp, och uppslaget delar cache
+  // med produktsidan. Svarar det inte i tid står "Från X" som på korten.
+  const hero = await Promise.all(
+    heroProducts.map(async (p) => {
+      if (!p.hasRange) return p;
+      const full = await Promise.race([
+        getProduct(p.slug).catch(() => undefined),
+        new Promise<undefined>((r) => setTimeout(() => r(undefined), 4000)),
+      ]);
+      const pris = full ? forvaltPris(full) : null;
+      if (!pris) return { ...p, visaFran: true };
+      return {
+        ...p,
+        priceNum: pris.priceNum,
+        onSale: pris.originalPriceNum != null,
+        originalPriceNum: pris.originalPriceNum,
+        originalPrice: "",
+      };
+    }),
+  );
   // Veckans fynd får aldrig upprepa en produkt som redan ligger i hjälten.
   const usedHero = new Set(heroProducts.map((p) => p.slug));
 
@@ -316,7 +341,9 @@ export default async function Home() {
                     )}
                     {p.price && (
                       <span className="htag">
-                        {p.priceNum ? formatPrice(p.priceNum) : p.price}
+                        {"visaFran" in p && p.visaFran && p.priceFromNum
+                          ? `Från ${formatPrice(p.priceFromNum)}`
+                          : p.priceNum ? formatPrice(p.priceNum) : p.price}
                         {p.onSale && (p.originalPriceNum || p.originalPrice) && (
                           <span className="htag-old">
                             {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
@@ -341,7 +368,9 @@ export default async function Home() {
                     )}
                     {p.price && (
                       <span className="htag">
-                        {p.priceNum ? formatPrice(p.priceNum) : p.price}
+                        {"visaFran" in p && p.visaFran && p.priceFromNum
+                          ? `Från ${formatPrice(p.priceFromNum)}`
+                          : p.priceNum ? formatPrice(p.priceNum) : p.price}
                         {p.onSale && (p.originalPriceNum || p.originalPrice) && (
                           <span className="htag-old">
                             {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}

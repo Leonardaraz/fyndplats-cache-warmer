@@ -2260,7 +2260,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Kan påsen tvättas?",
-        a: "På flera av korgarna ja, påsen tas ur och kan tvättas. Det står i beskrivningen vilka.",
+        a: "Ja, på flera modeller kan innerpåsen tas ur och tvättas. Se respektive produktbeskrivning.",
       },
       {
         q: "Hur sköter jag en tvättkorg i bambu?",

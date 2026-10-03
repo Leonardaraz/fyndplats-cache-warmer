@@ -314,7 +314,7 @@ export function kopguideFaq(p: {
   ];
   const moreVariants = [
     `Absolut. Den här guiden visar våra favoriter, men i kategorin ${category} hittar du hela vårt utbud. Klicka dig vidare via länkarna på sidan.`,
-    `Ja då. Vi har lyft fram höjdpunkterna här — vill du se allt finns hela ${category}-sortimentet bakom länkarna längre ner.`,
+    `Ja då. Vi har lyft fram höjdpunkterna här — vill du se allt finns hela sortimentet i kategorin ${category} bakom länkarna längre ner.`,
     `Det finns mer att botanisera bland. Sidan visar urvalet vi gillar bäst, medan hela kategorin ${category} nås via länkarna här intill.`,
     `Visst. Det här är ett curerat smakprov; för fullständiga ${category} följer du länkarna på sidan till hela utbudet.`,
     `Mer än gärna. Utöver favoriterna ovan rymmer ${category} betydligt fler produkter — länkarna på sidan tar dig dit.`,
@@ -339,11 +339,11 @@ export function kopguideFaq(p: {
 export function priceTierH1(categoryName: string, price: number, seed: number): string {
   const v = [
     `${categoryName} under ${price} kr — smarta fynd för dig som vill spara`,
-    `Billig ${categoryName.toLowerCase()}? ${categoryName} under ${price} kr`,
+    `Letar du fynd? ${categoryName} under ${price} kr`,
     `${categoryName} under ${price} kr — prisvärda favoriter ${YEAR}`,
     `Fynda ${categoryName.toLowerCase()} under ${price} kr`,
     `${categoryName} under ${price} kr — mest för pengarna ${YEAR}`,
-    `Prisvärd ${categoryName.toLowerCase()}: allt under ${price} kr`,
+    `${categoryName} till bra pris: allt under ${price} kr`,
   ];
   return pick(v, seed);
 }
@@ -351,7 +351,7 @@ export function priceTierH1(categoryName: string, price: number, seed: number): 
 export function priceTierMetaTitle(categoryName: string, price: number, seed: number): string {
   const v = [
     `${categoryName} under ${price} kr`,
-    `Billig ${categoryName.toLowerCase()} under ${price} kr`,
+    `Köp ${categoryName.toLowerCase()} under ${price} kr`,
     `${categoryName} under ${price} kr – smarta fynd`,
     `Fynda ${categoryName.toLowerCase()} under ${price} kr`,
   ];
@@ -362,8 +362,8 @@ export function priceTierMetaDesc(categoryName: string, price: number, count: nu
   const v = [
     `${count} fynd inom ${categoryName.toLowerCase()} för under ${price} kr. Noga utvalda produkter till smarta priser — fri frakt över 499 kr. Handla hos Fyndplats.`,
     `Spara pengar på ${categoryName.toLowerCase()}: ${count} produkter under ${price} kr, alla handplockade. Leverans 3–6 arbetsdagar och 30 dagars öppet köp hos Fyndplats.`,
-    `Letar du efter prisvärd ${categoryName.toLowerCase()}? Vi har samlat ${count} fynd under ${price} kr. Smarta köp, fri frakt över 499 kr — Fyndplats.`,
-    `${count} prisvärda ${categoryName.toLowerCase()}-fynd under ${price} kr, handplockade ur sortimentet. Fri frakt över 499 kr och trygga köp hos Fyndplats.`,
+    `Letar du efter ${categoryName.toLowerCase()} till bra pris? Vi har samlat ${count} fynd under ${price} kr. Smarta köp, fri frakt över 499 kr — Fyndplats.`,
+    `${count} prisvärda fynd inom ${categoryName.toLowerCase()} under ${price} kr, handplockade ur sortimentet. Fri frakt över 499 kr och trygga köp hos Fyndplats.`,
     `Fynda ${categoryName.toLowerCase()} under ${price} kr — ${count} smarta köp samlade på ett ställe. Leverans 3–6 arbetsdagar, fri frakt över 499 kr. Fyndplats.`,
   ];
   return pick(v, seed, 11);
@@ -388,10 +388,10 @@ export function priceTierIntro(p: {
   const mid = [
     `Den här sidan samlar ${count} produkter inom ${categoryName.toLowerCase()} som alla kostar under ${price} kr, med priser från ${minPrice}.`,
     `Vi har plockat fram ${count} fynd inom ${categoryName.toLowerCase()} för under ${price} kr — prisspannet börjar på ${minPrice}.`,
-    `Nedan hittar du ${count} noga utvalda ${categoryName.toLowerCase()}-produkter, samtliga under ${price} kr (från ${minPrice}).`,
-    `Här listar vi ${count} ${categoryName.toLowerCase()}-fynd som alla håller sig under ${price} kr, billigast från ${minPrice}.`,
+    `Nedan hittar du ${count} noga utvalda produkter inom ${categoryName.toLowerCase()}, samtliga under ${price} kr (från ${minPrice}).`,
+    `Här listar vi ${count} fynd inom ${categoryName.toLowerCase()} som alla håller sig under ${price} kr, billigast från ${minPrice}.`,
     `Vårt urval rymmer ${count} produkter inom ${categoryName.toLowerCase()} med prislapp under ${price} kr — start på ${minPrice}.`,
-    `Totalt ${count} ${categoryName.toLowerCase()}-produkter under ${price} kr väntar nedan, med priser som börjar vid ${minPrice}.`,
+    `Totalt ${count} produkter inom ${categoryName.toLowerCase()} under ${price} kr väntar nedan, med priser som börjar vid ${minPrice}.`,
   ];
   const close = [
     `Allt är handplockat ur vårt sortiment, och vid köp över 499 kr är frakten dessutom fri. Hitta ditt nästa fynd nedan.`,
@@ -405,12 +405,12 @@ export function priceTierIntro(p: {
   // Ger sidan tillräckligt med unik brödtext för att klara 250-ords-guarden även
   // när produktlistan är kort (3–5 produkter).
   const why = [
-    `Att en produkt kostar mindre betyder inte att den är sämre. Vi väljer ut prisvärda ${categoryName.toLowerCase()}-fynd med samma omsorg som resten av sortimentet — funktion, hållbarhet och hur väl de gör nytta i vardagen väger alltid tyngst.`,
-    `Vi tror på att bra ${categoryName.toLowerCase()} ska vara tillgängligt för alla. Därför letar vi ständigt efter smarta köp som ger mer än de kostar, och plockar bort sådant som inte håller måttet.`,
+    `Att en produkt kostar mindre betyder inte att den är sämre. Vi väljer ut prisvärda fynd inom ${categoryName.toLowerCase()} med samma omsorg som resten av sortimentet — funktion, hållbarhet och hur väl de gör nytta i vardagen väger alltid tyngst.`,
+    `Vi tror på att bra ${categoryName.toLowerCase()} ska finnas för alla plånböcker. Därför letar vi ständigt efter smarta köp som ger mer än de kostar, och plockar bort sådant som inte håller måttet.`,
     `Det smarta köpet handlar om att få mest värde per krona. Varje produkt i listan nedan är vald för att leverera just det — utan onödiga prislappar och utan att tumma på kvaliteten.`,
     `Lågt pris och hög kvalitet utesluter inte varandra. Vi jagar ${categoryName.toLowerCase()} där prislappen är liten men nyttan stor, och rensar konsekvent bort resten innan något hamnar i listan.`,
     `För oss är ett fynd något som överträffar sitt pris. Allt nedan är utvalt för att kännas dyrare än det är — funktionen och hållbarheten har vi aldrig tummat på för att pressa kronorna.`,
-    `Billigt ska aldrig betyda dåligt. Därför nagelfar vi varje ${categoryName.toLowerCase()}-produkt på funktion och hållbarhet innan den får en plats här, oavsett hur låg prislappen är.`,
+    `Billigt ska aldrig betyda dåligt. Därför nagelfar vi varje produkt inom ${categoryName.toLowerCase()} på funktion och hållbarhet innan den får en plats här, oavsett hur låg prislappen är.`,
   ];
   const reassure = [
     `Och skulle något ändå inte passa har du alltid 30 dagars öppet köp att luta dig mot.`,

@@ -44,3 +44,38 @@ export function forvalKombination(
   const forsta = tabell.find((t) => t.inStock) ?? tabell[0];
   return forsta ? { ...forsta.choices } : {};
 }
+
+/** "2 999,00 kr" → 2999. 0 om strängen saknar ett pris. */
+function prisTal(s: string | undefined): number {
+  const t = (s || "").replace(/[^\d,.]/g, "").replace(/\.(?=\d{3}\b)/g, "").replace(",", ".");
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : 0;
+}
+
+type PrisVal = EnkeltVal & { priceNum: number; originalPrice?: string };
+type PrisRad = Rad & { priceNum: number; originalPrice?: string };
+
+/**
+ * Priset för förvalet, alltså varianten på produktens huvudbild. Startsidans
+ * mosaik visar huvudbilden, och utan detta stod produktens lägsta pris under
+ * den: fåtöljen syntes petrolblå för 2 199 kr men kostar 2 499 kr i petrolblått
+ * (2026-10-03). null när produkten saknar val eller valet saknar pris.
+ */
+export function forvaltPris(p: {
+  img?: string;
+  variantAxes?: ReadonlyArray<unknown>;
+  variantTable?: ReadonlyArray<PrisRad>;
+  options?: { choices: ReadonlyArray<PrisVal> } | null;
+}): { priceNum: number; originalPriceNum?: number } | null {
+  let val: { priceNum: number; originalPrice?: string } | undefined;
+  const tabell = p.variantTable ?? [];
+  if ((p.variantAxes?.length ?? 0) >= 2 && tabell.length >= 1) {
+    const kombo = forvalKombination(tabell, p.img);
+    val = tabell.find((t) => Object.entries(kombo).every(([a, l]) => t.choices[a] === l));
+  } else if ((p.options?.choices.length ?? 0) >= 2) {
+    val = p.options!.choices[forvalIndex(p.options!.choices, p.img)];
+  }
+  if (!val || !(val.priceNum > 0)) return null;
+  const ord = prisTal(val.originalPrice);
+  return ord > val.priceNum ? { priceNum: val.priceNum, originalPriceNum: ord } : { priceNum: val.priceNum };
+}
