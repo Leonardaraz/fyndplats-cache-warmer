@@ -2,6 +2,8 @@
 // Endpoint verifierad mot docs: POST https://www.wixapis.com/stores/v3/products
 // https://dev.wix.com/docs/api-reference/business-solutions/stores/catalog-v3/products-v3/create-product
 import { isDryRun } from "../audit";
+import { skapaWixAnrop } from "../polish/skrivplan-wix";
+import { refreshVariantMedia } from "./variant-media";
 
 // Exporterad så read-only-moduler (t.ex. lib/wix/prune-customizations.ts) kan
 // återanvända bas-URL + auth-headers utan att duplicera dem.
@@ -916,7 +918,10 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
           // Verifiera att linkedMedia faktiskt persisterades (kan tappas medan media
           // fortfarande ingest:as trots 200-svar).
           best = countLinked(await getProductRaw());
-          if (best >= target) return best;
+          if (best >= target) {
+            await foljUppVariantbild(productId);
+            return best;
+          }
         } else if (res.status !== 404 && res.status !== 409 && res.status !== 428) {
           // 404 (media ej klar) / 409 (revision) / 428 → försök om; annat = ge upp.
           console.warn(`[wix.linkChoiceMedia] PATCH misslyckades (${res.status}): ${(await res.text()).slice(0, 200)}`);
@@ -928,12 +933,28 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
     if (best < target) {
       console.warn(`[wix.linkChoiceMedia] kopplade ${best}/${target} val för ${productId} (media ingest:ades långsamt).`);
     }
+    if (best > 0) await foljUppVariantbild(productId);
     return best;
   } catch (err) {
     console.warn("[wix.linkChoiceMedia] fel (icke-fatalt):", err instanceof Error ? err.message : String(err));
     return 0;
   }
   /* eslint-enable @typescript-eslint/no-explicit-any */
+}
+
+/**
+ * Variantens bild efter en bildkoppling. Kopplingen ovan skickar variantsInfo
+ * med val-id, och då räknar Wix inte om variantens `media` — den står kvar på
+ * huvudbilden, och varukorgen, kassan och ordern visar fel färg
+ * (lib/wix/variant-media.ts). Fail-open som kopplingen: loggar och går vidare.
+ */
+async function foljUppVariantbild(productId: string): Promise<void> {
+  const u = await refreshVariantMedia(skapaWixAnrop(undefined, wixHeaders), productId);
+  if (u.status === "utkast_hoppat") {
+    console.log(`[wix.linkChoiceMedia] variantbild: ${productId} är ett utkast, ${u.avvikande.length} varianter rättas när utkast är godkända`);
+  } else if (u.status !== "ratt" && u.status !== "rattad" && u.status !== "en_variant") {
+    console.warn(`[wix.linkChoiceMedia] variantbild: ${u.status} för ${productId}${u.fel ? ` (${u.fel})` : ""}`);
+  }
 }
 
 export interface WixProductSnapshot {

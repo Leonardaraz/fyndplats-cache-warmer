@@ -63,6 +63,7 @@ import type { ProductMappingRecord } from "../store";
 import type { StoredReview } from "../store/reviews";
 import { validateRedirect, type RedirectRow } from "../wix/redirects";
 import { redigera, felText, type WixAnrop } from "../polish/skrivplan";
+import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import { SKU_MAX } from "../import/sku";
 import { harVerkligSeFrakt, type AosomRow } from "./feed";
 import { synligtSaldo } from "./sync";
@@ -1350,6 +1351,14 @@ export async function korSammanslagning(
         + "Synken nollar den nya variantens lager tills den är mappad. Kör om, så kopplas bilderna igen.",
     );
   }
+  // ── 3a: variantens bild ────────────────────────────────────────────────
+  // Bilderna kopplades med val-id, och då räknar Wix inte om variantens bild:
+  // den nya färgen står på huvudbilden i varukorgen och kassan
+  // (lib/wix/variant-media.ts). En avvikelse stoppar före mappningen.
+  const vb = variantbildSteg(await refreshVariantMedia(deps.wix, input.behall, { vanta }));
+  steg.push(vb.rad);
+  if (vb.stopp) return svar(false, `${vb.rad} — mappningen skrevs INTE. Kontrollera sidan innan du kör om.`);
+
   // ── 3b: den nya färgens hela bildlista i färgbildstabellen ─────────────
   // Före mappningen, med flit: faller tabellen hamnar omkörningen i
   // `wix_klar` och skriver den igen. Efter mappningen och pensioneringen

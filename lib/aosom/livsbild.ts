@@ -87,6 +87,7 @@ import type { ProductMappingRecord } from "../store";
 import type { AosomRow } from "./feed";
 import type { WixAnrop } from "../polish/skrivplan";
 import { felText } from "../polish/skrivplan";
+import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import { isAosomMapping } from "../store/supplier";
 import { aosomArtikelbild, type AosomVariantArtikel } from "./artiklar";
 import { kandidatNamn } from "./bildkandidater";
@@ -1151,6 +1152,14 @@ export async function skrivSida(p: ProduktPlan, deps: LivsbildDeps): Promise<Par
   }
   if (behoverLankar) steg.push(`länkar: ${plan.val.filter((v) => !sammaLista(v.lankadeEfter, v.lankadeFore)).length} val (${forsok} försök)`);
   steg.push("återläst");
+  if (behoverLankar) {
+    // Länkarna skrevs med val-id, och då räknar Wix inte om variantens bild
+    // (lib/wix/variant-media.ts). Valets första bild rörs inte här, men en
+    // variant som redan stod på fel bild rättas på köpet.
+    const vb = variantbildSteg(await refreshVariantMedia(deps.wix, p.id, { vanta }));
+    steg.push(vb.rad);
+    if (vb.stopp) return fall(`${vb.rad} — galleriet och länkarna är skrivna, kontrollera sidan`);
+  }
 
   // ── 4: kopplingen, sist och bara efter en verifierad skrivning ─────────
   // Raden läses om precis före sparandet, så att en synk som skrivit under
