@@ -49,6 +49,7 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
   // Runda S9: hantlarna fick en egen sida, och Träning & Gym tog hemmagym i stället.
   assert.match(categorySeo("traning-gym")!.title, /[Hh]emmagym/);
   assert.match(categorySeo("hantlar-hantelset")!.title, /[Hh]antlar/);
+  assert.match(categorySeo("knastolar")!.title, /[Kk]nästol/);
 });
 
 // Två kategorisidor som siktar på samma huvudord delar på rankingen i stället
@@ -81,6 +82,8 @@ test("titlarna använder kundspråk, inte den interna hyllskylten", () => {
 // till Kontorsstolar, och duschpallen gick från Pallar till Kropp & välbefinnande,
 // som släppte sittdynan ur titeln. Kompostkvarnen finns inte längre i sortimentet.
 // "elbil" gäller barnbilarna; elbilsladdare är ett eget ord.
+// Runda S15 (2026-10-03) gav knästolarna en egen sida, och Kontorsstolar
+// släppte knästol ur titeln.
 test("ett huvudsökord finns i exakt en kategorititel", () => {
   const ord = [
     /klösträd/i, /elbil(?!sladd)/i, /sparkcykel/i, /hundbädd/i, /hundbur/i, /kattlåd/i, /katthus/i,
@@ -109,6 +112,7 @@ test("ett huvudsökord finns i exakt en kategorititel", () => {
     /gamingstol/i, /hundgrind/i, /(?<![a-zåäö])garderob/i, /torktumlare/i, /minikyl/i,
     /hemlarm/i, /trimbord/i, /darttavla/i, /fotbollsmål/i, /träningskläder/i, /staffli/i,
     /domkraft/i, /elbilsladd/i, /cykeltillbehör/i, /klädångare/i, /medicinskåp/i,
+    /knästol/i,
   ];
   for (const re of ord) {
     const traffar = Object.entries(CATEGORY_SEO).filter(([, s]) => re.test(s.title)).map(([slug]) => slug);

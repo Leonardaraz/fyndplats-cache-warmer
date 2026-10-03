@@ -201,7 +201,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Här samlar vi möblerna till hela hemmet, ordnade efter rum: Vardagsrum, Matplats, Sovrum, Hall och Kontor & gaming. Varje typ av möbel har sin egen sida, där du kan filtrera på mått, material, färg och pris och jämföra modellerna sida vid sida.",
       "Under Vardagsrum finns Soffor & bäddsoffor, Fåtöljer, Snurrfåtöljer, Öronlappsfåtöljer, Bäddfåtöljer och Massagestolar. Till dem hör Soffbord & småbord, Sidobord, TV-bänkar, Bokhyllor, Sideboards & vitrinskåp och Sittpuffar & fotpallar, och Rumsavdelare som skärmar av en del av rummet utan att du behöver bygga en vägg.",
-      "Matplats samlar Matbord & stolar med klaffbord och utdragbara bord, färdiga Matgrupper, Barbord och Pallar. I Sovrum hittar du Sängar & sovrum med sängramar och sängbänkar, Nattduksbord, Byråer och Garderober & klädställ. Hallen har Skoskåp & skobänkar och Klädhängare & hallmöbler, och under Kontor & gaming finns Kontorsstolar, Gamingstolar, Skrivbord och Hörnskrivbord, bland annat elektriska höj- och sänkbara skrivbord.",
+      "Matplats samlar Matbord & stolar med klaffbord och utdragbara bord, färdiga Matgrupper, Barbord och Pallar. I Sovrum hittar du Sängar & sovrum med sängramar och sängbänkar, Nattduksbord, Byråer och Garderober & klädställ. Hallen har Skoskåp & skobänkar och Klädhängare & hallmöbler, och under Kontor & gaming finns Kontorsstolar, Knästolar, Gamingstolar, Skrivbord och Hörnskrivbord, bland annat elektriska höj- och sänkbara skrivbord.",
       "Mät innan du beställer. Bredd och djup avgör om möbeln ryms, men mät också dörrar och trapphus som den ska bäras igenom. För stolar och fåtöljer är sitthöjd och maxvikt lika viktiga, och en fåtölj med fällbar rygg behöver fritt utrymme bakom sig. Måtten står i varje produktbeskrivning.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -1270,6 +1270,34 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad är skillnaden mellan klösträd, klöspelare och klöstunna?",
         a: "Ett klösträd har flera plan, ofta med grotta, hängmatta och bädd. En klöspelare är en ensam stam att klösa och sträcka sig mot, och den tar liten plats. En klöstunna är en sluten tunna med hålor där katten kan gömma sig, med klösytor av sisal eller naturfiber.",
+      },
+    ],
+  },
+
+  knastolar: {
+    intro: [
+      "En knästol, som också kallas balansstol, har en sits som lutar framåt och en knädyna där smalbenen vilar. Tyngden delas mellan sittbenen och smalbenen, och vinkeln mellan lår och rygg blir öppnare än på en vanlig stol. Här finns knästolar för skrivbordet i hemmakontoret, för den som pluggar och för meditation.",
+      "De flesta gungar på böjda medar och följer med när du flyttar tyngden. Två har ryggstöd: en i böjd björk med två knästöd och en klädd i manchester med en knädyna på 48 × 25 cm. En gungande modell har sits och knädyna som ställs i sex lägen, och en knästol står på fyra hjul, varav två går att låsa.",
+      "Knästolarna i björkplywood med två separata knädynor har 10 cm tjocka dynor och en sitthöjd på 51–58 cm. De är 51 cm breda och saknar hjulkryss, så de tar mindre golvyta än en kontorsstol. Klädseln är tyg, konstläder eller manchester, i grått, svart, blått och kräm.",
+      "Alla knästolar här bär 120 kg, och flera är gjorda för skrivbord på 75–90 cm. En knästol använder andra muskler än en vanlig stol, så börja med korta pass och res dig var 15:e till 30:e minut i början. Alla levereras omonterade.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är skillnaden mellan en knästol och en kontorsstol?",
+        a: "På en knästol lutar sitsen framåt och smalbenen vilar mot en knädyna, så att tyngden delas mellan sittbenen och smalbenen. Det ger en mer upprätt hållning, och många använder den omväxlande med en vanlig kontorsstol.",
+      },
+      {
+        q: "Vilken knästol ska jag välja?",
+        a: "Vill du sitta i rörelse väljer du en knästol som gungar på medar. Behöver du stöd för ryggen finns två med ryggstöd, och vill du kunna rulla undan stolen finns en på hjul. Knästolarna med två separata knädynor har 10 cm tjocka dynor och låter benen stå i sin naturliga bredd.",
+      },
+      {
+        q: "Kan jag sitta på en knästol hela arbetsdagen?",
+        a: "Börja med pass på 15–30 minuter och växla med en vanlig stol, eftersom knästolen använder andra muskler än du är van vid. En knästol utan ryggstöd passar bäst som omväxling, inte som enda stol under en hel arbetsdag.",
+      },
+      {
+        q: "Hur mycket bär en knästol?",
+        a: "Alla knästolar här bär 120 kg. Sits- och knädynorna är 6–10 cm tjocka, och knästolen på hjul har en ram i gummiträ medan de andra har stomme i björk eller plywood.",
       },
     ],
   },
@@ -2502,10 +2530,10 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   kontorsstolar: {
     intro: [
-      "Här finns kontorsstolar för hemmakontoret och arbetsplatsen: stolar med nätrygg och nackstöd, stoppade stolar i linnelook, bouclé och konstläder, chefsstolar med utdragbart fotstöd och kontorsstolar med massage och värme. För den som vill variera sittställningen finns knästolar, ritstolar med fotring för höga bänkar, rullpallar och sadelpallar.",
+      "Här finns kontorsstolar för hemmakontoret och arbetsplatsen: stolar med nätrygg och nackstöd, stoppade stolar i linnelook, bouclé och konstläder, chefsstolar med utdragbart fotstöd och kontorsstolar med massage och värme. För den som vill variera sittställningen finns ritstolar med fotring för höga bänkar, rullpallar och sadelpallar. Knästolar har en egen kategori.",
       "Börja med sitthöjden. Kontorsstolarna ställs med gaslyft, och spannet börjar på 40 cm på de lägre modellerna, så jämför med bordshöjden och med att fötterna når golvet. Ritstolarna går upp till 87 cm och har en fotring som flyttas i höjd, till exempel mellan 18 och 46 cm, så att fötterna har stöd vid ett ståbord.",
       "De flesta stolar bär 120 kg, och flera är byggda för 135 till 220 kg. Titta då också på sitsen: stolen som bär 220 kg har en sits på 62 × 56 cm, medan de flesta kontorsstolar ligger runt 50 × 46 cm. För den som är kortare finns en liten skrivbordsstol med nätrygg, gjord för upp till 170 cm.",
-      "På stolarna med fotstöd fälls ryggen till mellan 135 och 160°, och en av dem blir då 173 cm lång. Massagestolarna har upp till sju vibrationspunkter med fjärrkontroll, och flera har värme i ländryggen. Knästolarna har framåtlutande sits och delar tyngden mellan sittbenen och smalbenen, och en av dem gungar på böjda medar.",
+      "På stolarna med fotstöd fälls ryggen till mellan 135 och 160°, och en av dem blir då 173 cm lång. Massagestolarna har upp till sju vibrationspunkter med fjärrkontroll, och flera har värme i ländryggen.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -2516,10 +2544,6 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       {
         q: "Vad är skillnaden mellan vippfunktion och fällbar rygg?",
         a: "Vippfunktionen är ett fjädrande bakåtläge som du gungar i medan du sitter. En fällbar rygg låses i en vinkel, antingen steglöst eller i fasta lägen som 105°, 120° och 135°. På en del stolar går vippfunktionen och liggläget inte att använda samtidigt.",
-      },
-      {
-        q: "Vad är skillnaden mellan en knästol och en kontorsstol?",
-        a: "På en knästol lutar sitsen framåt och smalbenen vilar mot en knädyna, så att tyngden delas mellan sittbenen och smalbenen. Det ger en mer upprätt hållning, och många använder den omväxlande med en vanlig kontorsstol.",
       },
     ],
   },
