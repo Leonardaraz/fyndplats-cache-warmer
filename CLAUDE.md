@@ -681,13 +681,14 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    *"Items with low stock may be temporarily removed to avoid overselling."*
    Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
    kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
-3. **`LAGER_BUFFERT = 1`**, 3 fram till 2026-10-01. Feeden uppdateras tre gånger
-   per dygn, så mellan två synkar är siffran gammal. Säger Aosom "3 kvar" och vi
-   visar 3 säljer vi den fjärde. Leonards beslut 2026-10-01: *"visa en mindre än
-   aosom, inte 3"*. Golvlampan `65ca6f6d` stod då som slutsåld med 4 kvar hos
-   Aosom. ☠️ **Sänk aldrig bufferten utan `medSaldaAvdragna`**, som drar av det
-   vi sålt tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
-   butiken*).
+3. **`LAGER_BUFFERT = 0`** sedan 2026-10-06 (Leonard: *"ta bort den där 1 kvar
+   bufferten"*); 1 från 2026-10-01, 3 dessförinnan. Har Aosom 1 kvar visar vi 1.
+   ⚠️ Accepterad risk: feeden uppdateras tre gånger per dygn, så Aosom kan ha
+   sålt sin sista enhet till någon annan innan nästa synk. Då får ordern
+   avbokas. ☠️ **Ta aldrig bort `medSaldaAvdragna`**, som drar av det vi sålt
+   tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
+   butiken*). Det är den, inte bufferten, som hindrar att samma enhet säljs två
+   gånger.
 4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
    cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
    Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
@@ -966,8 +967,8 @@ test låser det (`en försäljning räknas som drift`).
 inte visar än dras av från flödets saldo innan planen jämförs med butiken. Fram
 till dess var det `LAGER_BUFFERT` på 3 som skyddade, och det räckte inte:
 golvlampan `65ca6f6d` hade 4 hos Aosom, butiken visade 1, order 10056 tog den,
-och nästa körning skrev 1 igen. Med bufferten på 1 och avdraget blir samma rad
-4 − 1 − 1 = 2.
+och nästa körning skrev 1 igen. Med avdraget blir samma rad 4 − 1 = 3 (med
+bufferten på 1, som gällde fram till 2026-10-06, blev den 2).
 
 Fem egenskaper som inte ska tas bort:
 
@@ -975,8 +976,8 @@ Fem egenskaper som inte ska tas bort:
    `pending`, och tasks med status `ordered` i tolv timmar efter att de
    markerats beställda (`orderedAt`, som workflowen "Order — beställd eller
    skickad för hand" sätter). Flödet exporteras tre gånger per dygn, så en nyss
-   lagd order syns inte där direkt, och bufferten på 1 räcker inte för två
-   beställda enheter. Visar flödet redan ordern dras den av två gånger under
+   lagd order syns inte där direkt, och bufferten (0 sedan 2026-10-06) skyddar
+   inga beställda enheter. Visar flödet redan ordern dras den av två gånger under
    resten av fönstret, och det är åt det säkra hållet. En `ordered`-rad utan
    `orderedAt` räknas inte.
 2. ☠️ **Raderna läses för varje tugga, direkt EFTER butikens lager.** Lästes de
