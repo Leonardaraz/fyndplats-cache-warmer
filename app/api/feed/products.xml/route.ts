@@ -12,7 +12,8 @@
 // Innehåll: alla `forListings`-produkter (dvs visible + in-stock). Ur-katalogen —
 // inte kuraterat urval — så prisjämförelse-tjänsterna ser hela sortimentet.
 
-import { getProducts, forListings } from "../../../../lib/products";
+import { getProducts, forListings, fetchVarumarken } from "../../../../lib/products";
+import { varumarke } from "../../../../lib/varumarke";
 import type { Product } from "../../../../lib/products";
 import { FREE_SHIPPING_FROM_KR, STANDARD_SHIPPING_KR } from "../../../../lib/shipping";
 
@@ -71,7 +72,7 @@ function xmlEscape(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function buildItem(p: Product): string {
+function buildItem(p: Product, marke: string): string {
   const salePrice = priceField(p); // aktuellt (rea-)pris
   if (!salePrice) return ""; // hoppa över produkter utan giltigt pris
 
@@ -81,7 +82,8 @@ function buildItem(p: Product): string {
   const desc = xmlEscape(rawDesc.slice(0, 5000));
   const link = xmlEscape(productLink(p));
   const image = xmlEscape(p.img || "");
-  const brand = "Fyndplats"; // vi är dropship-återförsäljare, säljs som Fyndplats-produkter
+  // Märket ur Wix, annars Fyndplats; Aosoms märken blir Fyndplats (lib/varumarke.ts).
+  const brand = marke;
 
   // Google-spec: <g:price> = ordinariepris, <g:sale_price> = temporärt rea-pris.
   // Vid rea: skicka BÅDA (med olika värden). Utan rea: skicka bara <g:price>.
@@ -122,10 +124,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600; // 1 tim cache — flödet läses högst 1×/dag av prisjakt
 
 export async function GET(): Promise<Response> {
-  const all = await getProducts();
+  const [all, marken] = await Promise.all([getProducts(), fetchVarumarken()]);
   const listable = forListings(all);
   const items = listable
-    .map(buildItem)
+    .map((p) => buildItem(p, varumarke(marken.get(p.id))))
     .filter((s) => s.length > 0)
     .join("\n");
 

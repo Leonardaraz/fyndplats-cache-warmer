@@ -44,6 +44,8 @@ export interface FlodesProdukt {
   skus: string[];
   name: string;
   url: string;
+  /** Märket i Google-flödet (g:brand). Saknas det gäller flödets standardmärke. */
+  brand?: string;
 }
 
 const ITEM_RE = /<item>[\s\S]*?<\/item>/g;
@@ -77,7 +79,13 @@ export function produkterUrGoogleflodet(xml: string): Map<string, FlodesProdukt>
       if (!finns.skus.includes(id)) finns.skus.push(id);
       continue;
     }
-    ut.set(grupp, { skus: [id], name: avkoda(tagg(item, "title")), url: avkoda(tagg(item, "link")) });
+    const brand = avkoda(tagg(item, "brand"));
+    ut.set(grupp, {
+      skus: [id],
+      name: avkoda(tagg(item, "title")),
+      url: avkoda(tagg(item, "link")),
+      ...(brand ? { brand } : {}),
+    });
   }
   return ut;
 }
@@ -153,7 +161,7 @@ export function byggRecensionsflode(
 ${p.skus.map((s) => `              <sku>${esc(s)}</sku>`).join("\n")}
             </skus>
             <brands>
-              <brand>${esc(opts.varumarke)}</brand>
+              <brand>${esc(p.brand || opts.varumarke)}</brand>
             </brands>
           </product_ids>
           <product_name>${esc(p.name)}</product_name>

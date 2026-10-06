@@ -1181,6 +1181,50 @@ export async function fetchAllVariantsRaw(): Promise<any[]> {
   return out;
 }
 
+/**
+ * Produkt-id → märket som står i Wix fält "brand", för de produkter som har ett.
+ *
+ * ETT svep för hela katalogen: frågan filtrerar på `brand.id` (uppmätt
+ * 2026-10-06: sju produkter, en sida). `products/query` vägrar filtret
+ * ("not declared as filterable"), `products/search` tar det. Filtret går bara
+ * med på första sidan; markören bär frågan (CLAUDE.md, Wix-hämtningar).
+ *
+ * Vad märket blir i strukturerad data och flöden avgör lib/varumarke.ts —
+ * Aosoms märken blir Fyndplats. Fail-open: ett fel ger en tom karta, alltså
+ * Fyndplats överallt som förut, och produktsidan byggs om efter fem minuter.
+ */
+export async function fetchVarumarken(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!WIX_API_KEY) return out;
+  try {
+    let cursor: string | undefined;
+    for (let page = 0; page < 20; page++) {
+      const search: Record<string, unknown> = { cursorPaging: cursor ? { limit: 100, cursor } : { limit: 100 } };
+      if (!cursor) search.filter = { "brand.id": { $exists: true } };
+      const res = await fetch("https://www.wixapis.com/stores/v3/products/search", {
+        method: "POST",
+        headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+        body: JSON.stringify({ search }),
+        next: { revalidate: PRODUKTSIDA_SEKUNDER, tags: ["varumarken"] },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      for (const p of data?.products || []) {
+        const namn = p?.brand?.name;
+        if (p?.id && typeof namn === "string" && namn.trim()) out.set(p.id, namn.trim());
+      }
+      cursor = data?.pagingMetadata?.cursors?.next || undefined;
+      if (!cursor || !data?.pagingMetadata?.hasNext) return out;
+    }
+    // ☠️ Ett tak ska logga ett fel, aldrig kapa tyst (CLAUDE.md).
+    console.error("[wix] fetchVarumarken nådde sidtaket med markören kvar");
+  } catch (e) {
+    console.error("[wix] fetchVarumarken failed:", (e as Error).message);
+    await kortLivslangd();
+  }
+  return out;
+}
+
 export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
   const out = new Map<string, string[]>();
   if (!WIX_API_KEY) return out;

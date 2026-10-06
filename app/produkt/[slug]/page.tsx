@@ -8,7 +8,8 @@ import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
 import { colorKeysOf } from "../../../lib/variant-color-image";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
-import { getProduct, getProducts, getCollections, dedupeProducts, forListings, type Product } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, dedupeProducts, forListings, fetchVarumarken, type Product } from "../../../lib/products";
+import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
 import { categoryIndexable, countPerCategory } from "../../../lib/category-threshold";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
@@ -118,7 +119,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   // Produktsäkerheten (GPSR, lib/gpsr-flik.ts) hämtas parallellt — null för
   // produkter utan uppgifter, och då visas ingen flik.
-  const [reviewData, gpsr] = await Promise.all([getProductReviews(p.id), getGpsr(p.id)]);
+  // Märket ur Wix (ett svep för hela katalogen, cachat i sex timmar);
+  // lib/varumarke.ts avgör vad det blir.
+  const [reviewData, gpsr, marken] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken()]);
   // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
   const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
   const gpsrHtml = gpsr
@@ -141,9 +144,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // Samma preferens som meta-descriptionen ovan: kuraterad Wix-SEO när den
     // finns, annars blurb — så strukturerad data och snippet matchar.
     description: p.seoDescription || p.blurb,
-    brand: { "@type": "Brand", name: "Fyndplats" },
+    // Riktiga märkesvaror sitt eget märke, Aosoms white label Fyndplats.
+    brand: { "@type": "Brand", name: varumarke(marken.get(p.id)) },
     offers: {
       "@type": "Offer",
+      // Säljaren är alltid butiken, också när märket är någon annans.
+      seller: { "@type": "Organization", name: BUTIKENS_MARKE, url: "https://www.fyndplats.se" },
       priceCurrency: p.currency,
       price: p.priceNum,
       // Merchant-listing-rekommenderade fält (Search Console varnar annars).

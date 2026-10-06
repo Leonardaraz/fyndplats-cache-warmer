@@ -20,6 +20,7 @@ import {
   getCollections,
   fetchAllVariantsRaw,
   fetchFeedGalleries,
+  fetchVarumarken,
   fetchVariantImageMaps,
   imgKey,
   type Collection,
@@ -31,17 +32,12 @@ export const runtime = "nodejs";
 export const revalidate = 3600;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
+import { varumarke } from "../../../lib/varumarke";
 
 const SITE = "https://www.fyndplats.se";
-// Hårdkodat med flit, inte av lättja: 452 av 454 produkter har INGET varumärke
-// satt i Wix (räknat 2026-07-31). Det är omärkta dropship-varor, och för dem är
-// säljaren det närmaste ett varumärke som finns — g:identifier_exists=no säger
-// redan åt Google att GTIN/MPN saknas.
-// Bara 2 produkter (HOMCOM, IMILAB) har ett riktigt märke, och varken
-// lib/products.ts Product eller productData i query-variants bär fältet, så att
-// plumba igenom det vore ny hämtningslogik för två rader. Börjar Leonard fylla
-// i varumärken i Wix är det värt att ta då — inte förrän.
-const BRAND = "Fyndplats";
+// Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
+// blir Fyndplats — varorna säljs som white label (lib/varumarke.ts har beslutet
+// från 2026-10-06). g:identifier_exists=no står kvar för alla: vi har inga GTIN.
 
 function xmlEscape(s: string): string {
   return String(s)
@@ -306,6 +302,7 @@ function feedItem(
   taxonomy: { productType?: string; googleCategory?: number },
   valbilder: ReadonlyMap<string, ValBild> | undefined,
   flerVarianter: boolean,
+  marke: string,
 ): string | null {
   const pd = v?.productData || {};
   const slug: string = pd.slug || product?.slug || "";
@@ -434,7 +431,7 @@ function feedItem(
       <g:image_link>${xmlEscape(image)}</g:image_link>${additional}
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
       <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
-      <g:brand>${BRAND}</g:brand>
+      <g:brand>${xmlEscape(marke)}</g:brand>
       <g:condition>new</g:condition>${labelLines}
       <g:identifier_exists>no</g:identifier_exists>${attrLines}${taxonomy.productType ? `\n      <g:product_type>${xmlEscape(taxonomy.productType)}</g:product_type>` : ""}${taxonomy.googleCategory ? `\n      <g:google_product_category>${taxonomy.googleCategory}</g:google_product_category>` : ""}
     </item>`;
@@ -457,6 +454,8 @@ export async function GET() {
     byColId = new Map(collections.map((c: Collection) => [c.id, c]));
   } catch { /* taxonomin är berikning — får aldrig fälla feeden */ }
   const galleries = await fetchFeedGalleries();
+  // Fail-open: en tom karta ger Fyndplats på varje rad, som förut.
+  const marken = await fetchVarumarken();
   const variants = await fetchAllVariantsRaw();
   // Valens bilder (produkt-id → choiceId → bild), för produkter med optioner.
   // Fail-open: en tom karta ger huvudbilden på varje variant, som förut.
@@ -483,7 +482,7 @@ export async function GET() {
     // 2 836 av 3 393 produkter NOLL extrabilder (2026-09-24): svepet läser bara
     // de 1 200 nyaste produkterna, och drygt hälften av dem är dolda utkast.
     const gallery = galleries.get(pid) || byId.get(pid)?.gallery || [];
-    const line = feedItem(v, byId.get(pid), gallery, taxonomy, valbilderPerProdukt.get(pid), (antalVarianter.get(pid) ?? 0) > 1);
+    const line = feedItem(v, byId.get(pid), gallery, taxonomy, valbilderPerProdukt.get(pid), (antalVarianter.get(pid) ?? 0) > 1, varumarke(marken.get(pid)));
     if (line) items.push(line);
   }
 

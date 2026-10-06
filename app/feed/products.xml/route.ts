@@ -13,13 +13,13 @@
 // Återanvänder getProducts() (cachad, visible-filtrerad) + getCollections()
 // (för product_type = huvudkategori). Cache:as 1h (matchar katalog-revalidate).
 
-import { getProducts, getCollections, fetchFeedGalleries, imgKey, type Product, type Collection } from "@/lib/products";
+import { getProducts, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
+import { varumarke } from "@/lib/varumarke";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
 
 const SITE = "https://www.fyndplats.se";
-const BRAND = "Fyndplats";
 
 function xmlEscape(s: string): string {
   return String(s)
@@ -59,7 +59,7 @@ function parsePriceSv(s?: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function feedItem(p: Product, mainCategory?: string, fullGallery?: string[]): string {
+function feedItem(p: Product, marke: string, mainCategory?: string, fullGallery?: string[]): string {
   const url = `${SITE}/produkt/${p.slug}`;
   const description =
     stripHtml(p.descriptionHtml || "") || p.seoDescription || p.blurb || p.name;
@@ -108,7 +108,7 @@ function feedItem(p: Product, mainCategory?: string, fullGallery?: string[]): st
       <g:availability>${availability}</g:availability>
       <g:price>${priceLine}</g:price>${saleLine}
       <g:condition>new</g:condition>
-      <g:brand>${BRAND}</g:brand>
+      <g:brand>${xmlEscape(marke)}</g:brand>
       <g:identifier_exists>no</g:identifier_exists>${productType}
     </item>`;
 }
@@ -137,11 +137,13 @@ export async function GET() {
   // Fulla gallerier i en batchad V3-svep (id → URL:er). Fail-open: tom Map →
   // varje item faller tillbaka på p.gallery precis som före ändringen.
   const galleries = await fetchFeedGalleries();
+  // Märket ur Wix, annars Fyndplats (lib/varumarke.ts). Fail-open som galleriet.
+  const marken = await fetchVarumarken();
 
   // Bara produkter med ett giltigt positivt pris (Meta avvisar pris 0).
   const items = products
     .filter((p) => p.priceNum > 0 && p.img && p.slug)
-    .map((p) => feedItem(p, mainCategoryOf(p), galleries.get(p.id)));
+    .map((p) => feedItem(p, varumarke(marken.get(p.id)), mainCategoryOf(p), galleries.get(p.id)));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">

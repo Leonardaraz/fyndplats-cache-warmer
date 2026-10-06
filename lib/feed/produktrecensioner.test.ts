@@ -22,6 +22,7 @@ const GOOGLE = `<?xml version="1.0" encoding="UTF-8"?>
       <g:item_group_id>p2</g:item_group_id>
       <g:title>Lampa</g:title>
       <g:link>https://www.fyndplats.se/produkt/lampa</g:link>
+      <g:brand>Naturehike</g:brand>
     </item>
   </channel>
 </rss>`;
@@ -37,6 +38,7 @@ describe("produkterUrGoogleflodet", () => {
     const m = produkterUrGoogleflodet(GOOGLE);
     assert.deepEqual(m.get("p1"), { skus: ["v1", "v2"], name: "Soffa & fåtölj i beige", url: "https://www.fyndplats.se/produkt/soffa" });
     assert.deepEqual(m.get("p2")?.skus, ["v3"]);
+    assert.equal(m.get("p2")?.brand, "Naturehike");
   });
 });
 
@@ -59,6 +61,17 @@ describe("byggRecensionsflode", () => {
     assert.match(xml, /<brand>Fyndplats<\/brand>/);
     assert.match(xml, /<collection_method>post_fulfillment<\/collection_method>/);
     assert.match(xml, /<product_name>Soffa &amp; fåtölj i beige<\/product_name>/);
+  });
+
+  it("produktens eget märke ur Google-flödet, annars standardmärket", () => {
+    const { xml } = byggRecensionsflode(
+      [omdome({ reviewIdAE: "a" }), omdome({ reviewIdAE: "b", productId: "p2" })],
+      produkter,
+      OPTS,
+    );
+    const [soffa, lampa] = xml.split("<review>").slice(1);
+    assert.match(soffa, /<brand>Fyndplats<\/brand>/);
+    assert.match(lampa, /<brand>Naturehike<\/brand>/);
   });
 
   it("☠️ alla betyg följer med — även de dåliga", () => {
