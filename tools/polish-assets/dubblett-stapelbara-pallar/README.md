@@ -68,3 +68,32 @@ Inget pris rörs. Sidan på `stapelbara-pallar` kostar efteråt 1 039 kr, allts�
 - `/produkt/stapelbara-pallar-4-pack-gra-sits` svarar 308 till den.
 - Google-flödet har `17c747cb`:s fyra varianter och inte `4c97bd93`.
 - Omätning av *stapelbara pallar* i Semrush, när kontot har API-enheter igen.
+
+## Utfört 2026-10-06, kl. 21.41–21.48 svensk tid
+
+Leonard loggade in Wix-kopplingen igen, och flytten gjordes samma kväll i
+stället för precis före nattens deploy. Ordningen spelar bara roll mot
+deployen, och den kommer efteråt.
+
+| steg | utfall |
+|---|---|
+| omdirigeringarna | `redirect-add`, HTTP 200, båda raderna skrivna |
+| `4c97bd93` | slug `stapelbara-pallar-brun-ae`, `visible: false` (revision 23 → 24) |
+| `17c747cb` | slug `stapelbara-pallar`, synlig, fyra synliga varianter, priserna oförändrade 1 039–1 119 kr (revision 20 → 21) |
+| mappningen för `4c97bd93` | `needsAiPolish: false`, `draftStatus: rejected` (`polish-mapping`, `stampla`) |
+| butikens cache | tömd två gånger med `restock-prov`, läget `sidan`, status 200 |
+
+**Live efteråt:**
+
+- `/produkt/stapelbara-pallar` visar fyra färger, 1 039 kr och i lager. Den
+  kanoniska adressen är `/produkt/stapelbara-pallar`.
+- `/produkt/stapelbara-pallar-brun-ae` svarar 308 till `/produkt/stapelbara-pallar`.
+- `/produkt/stapelbara-pallar-4-pack-gra-sits` visar fortfarande sidan ur
+  butikens minne. Den ska svara 308 efter nattens deploy, när servrarna startar
+  om. Trädgårdsskåpet betedde sig likadant.
+
+**Också rättat:** två alt-texter på khakifärgens bilder var tyska, rester från
+B42. De är nu svenska (revision 21 → 22), och den publicerade sidan bär noll
+tyska alt-texter. Anropet läste galleriet och bytte bara de två texterna. Alla
+15 bilder och de andra 13 texterna är orörda, och färgvalen har kvar sina
+bilder (4, 4, 3 och 3).
