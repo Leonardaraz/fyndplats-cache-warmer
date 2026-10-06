@@ -4,7 +4,7 @@ Leonards beslut: knästolarna passar inte i Kontorsstolar och ska ha en egen
 kategori, och den ska vara 10/10 SEO. Butiksändringen (PR #726 mot
 `headless-site`) skulle mergas kl. 03:00 svensk tid 2026-10-04, på hans uppdrag.
 Det blev inte av, eftersom sessionen stoppades av användningsgränsen 3 oktober
-kl. 15:28 och inte kom igång igen förrän 6 oktober. Mergen flyttades till
+kl. 17:28 svensk tid och inte kom igång igen förrän 6 oktober. Mergen flyttades till
 kl. 03:00 natten mot 7 oktober och tar #704 (srsltid) med sig i samma bygge.
 
 ## 1. Wix (gjort 2026-10-03, live direkt)
