@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ProductMappingRecord } from "../store";
 import type { AosomRow } from "./feed";
+import { synligtSaldo } from "./sync";
 import {
   MAX_GRUPP,
   diagnosPar,
@@ -183,7 +184,8 @@ describe("hittaFamiljer", () => {
       ["utkast", "utkast", "Blau"],
     ]);
     expect(f.medlemmar[0].matt).toBe("90 × 70 × 20");
-    expect(f.medlemmar[0].saldo).toBe(20);
+    // Radens saldo 23, som butiken visar det (synkens buffert dragen).
+    expect(f.medlemmar[0].saldo).toBe(synligtSaldo(23));
     expect(svar.summering).toMatchObject({ familjer: 1, verktygetIdag: 1, publiceradeIFamiljer: 1, utkastIFamiljer: 1 });
   });
 

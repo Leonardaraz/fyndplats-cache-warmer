@@ -1,0 +1,238 @@
+{
+ "kalla": "torrkorningen 2026-09-30; alt-texterna ar kapade vid ~55 tecken; givarens position 1 ar valets lankade fil",
+ "sida": {
+  "id": "b75edaf7-b358-48da-8791-22cd3ab707b3",
+  "namn": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg",
+  "synlig": true,
+  "bilder": [
+   {
+    "id": "b379ce_7939a251950e4d9887d74303117294bb~mv2.jpg",
+    "alt": "Grå sittbänk med förvaring, klädd i linnelook med "
+   },
+   {
+    "id": "b379ce_fe226cd5e5cc4b8eb1c421a6bf5a24b2~mv2.jpg",
+    "alt": "Den grå sittbänken vid fotänden av en säng"
+   },
+   {
+    "id": "b379ce_73f858351060473993f79887743177c4~mv2.jpg",
+    "alt": "En man sitter på den grå sittbänken och läser"
+   },
+   {
+    "id": "b379ce_21f4b7aed0ab4e29a65b994e5f7e2318~mv2.jpg",
+    "alt": "Närbild på det grå tyget i linnelook och lockets k"
+   },
+   {
+    "id": "b379ce_8ebac9d085c24c5eafecbce1daa255d9~mv2.jpg",
+    "alt": "Måttbild: sittbänken är 110 × 39 cm och 45 cm hög,"
+   },
+   {
+    "id": "b379ce_16740443ac274fa592f929c186b3b840~mv2.jpg",
+    "alt": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg i färgen mörkgrå"
+   },
+   {
+    "id": "b379ce_473edb29035649a9a4f2a39b28407401~mv2.jpg",
+    "alt": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg i färgen mörkgrå, bild 2"
+   },
+   {
+    "id": "b379ce_200755bf08fc4278b96ebdc513b0305e~mv2.jpg",
+    "alt": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg i färgen beige"
+   },
+   {
+    "id": "b379ce_d0523e739c604837a56e19c42b908855~mv2.jpg",
+    "alt": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg i färgen ljusgrön"
+   },
+   {
+    "id": "b379ce_cc9ac9501f164eaf98b0994b3a07294b~mv2.jpg",
+    "alt": "Sittbänk med förvaring 110 cm i linnelook – ben i gummiträ, bär 220 kg i färgen blå"
+   }
+  ],
+  "optioner": [
+   {
+    "namn": "Färg",
+    "val": [
+     {
+      "id": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+      "namn": "Grå",
+      "lankade": [
+       "b379ce_7939a251950e4d9887d74303117294bb~mv2.jpg"
+      ]
+     },
+     {
+      "id": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+      "namn": "Mörkgrå",
+      "lankade": [
+       "b379ce_16740443ac274fa592f929c186b3b840~mv2.jpg"
+      ]
+     },
+     {
+      "id": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+      "namn": "Beige",
+      "lankade": [
+       "b379ce_200755bf08fc4278b96ebdc513b0305e~mv2.jpg"
+      ]
+     },
+     {
+      "id": "f9363c28-6e7e-4ce3-b1e5-56fd338a8b2f",
+      "namn": "Ljusgrön",
+      "lankade": [
+       "b379ce_d0523e739c604837a56e19c42b908855~mv2.jpg"
+      ]
+     },
+     {
+      "id": "369894e9-ff96-40eb-9cc6-dc3d526d19eb",
+      "namn": "Blå",
+      "lankade": [
+       "b379ce_cc9ac9501f164eaf98b0994b3a07294b~mv2.jpg"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "givare": [
+  {
+   "id": "7c86fe87-5007-4d8c-8ea4-e5eead571b3c",
+   "namn": "Polsterbank mit Stauraum, Bettbank in Leinenoptik, Kautschukholz, 110",
+   "val": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+   "bilder": [
+    {
+     "id": "b379ce_16740443ac274fa592f929c186b3b840~mv2.jpg",
+     "alt": "Polsterbank mit Stauraum, Bettbank in Leinenoptik, Kaut"
+    },
+    {
+     "id": "b379ce_c94cc8c9b49a4c8eb44064dc8f4ba9f2~mv2.jpg",
+     "alt": "Polsterbank mit Stauraum, Bettbank in Leinenoptik,"
+    },
+    {
+     "id": "b379ce_c89eaba3794741dfa2cf5366b5c65dde~mv2.jpg",
+     "alt": "Polsterbank mit Stauraum, Bettbank in Leinenoptik,"
+    },
+    {
+     "id": "b379ce_dc14898a392a41d2869bdf41869e65bd~mv2.jpg",
+     "alt": "Polsterbank mit Stauraum, Bettbank in Leinenoptik,"
+    },
+    {
+     "id": "b379ce_473edb29035649a9a4f2a39b28407401~mv2.jpg",
+     "alt": "Polsterbank mit Stauraum, Bettbank in Leinenoptik, Kaut"
+    }
+   ]
+  },
+  {
+   "id": "7d89c4e4-e785-4748-8b6c-300775839996",
+   "namn": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 110x39x45cm, Beige",
+   "val": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+   "bilder": [
+    {
+     "id": "b379ce_200755bf08fc4278b96ebdc513b0305e~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 110x39x"
+    },
+    {
+     "id": "b379ce_57545baf395c42b1b36e9dbe2c90a839~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_f26239079651456991b8d87cf2ac097f~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_7f14e3458fac42f3be79762ba52b9f1d~mv2.jpg",
+     "alt": ""
+    },
+    {
+     "id": "b379ce_66a56237e8ee4ce99a44265857b11fa1~mv2.jpg",
+     "alt": ""
+    }
+   ]
+  },
+  {
+   "id": "dd96a885-6591-442b-b522-921718622126",
+   "namn": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik, Sitztruhe mit",
+   "val": "f9363c28-6e7e-4ce3-b1e5-56fd338a8b2f",
+   "bilder": [
+    {
+     "id": "b379ce_d0523e739c604837a56e19c42b908855~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik, Sitz"
+    },
+    {
+     "id": "b379ce_55a4b6d4b0c245e88cf3be2d06907aa7~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik,"
+    },
+    {
+     "id": "b379ce_e5bf0bd726b74a08a2139487b4475cc2~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik,"
+    },
+    {
+     "id": "b379ce_0cacd0aaf1fd445286f8901a7363eaf2~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik,"
+    },
+    {
+     "id": "b379ce_0281789a2e2f425aa0211bcd481da077~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum Polsterbank mit Leinenoptik,"
+    }
+   ]
+  },
+  {
+   "id": "e352bc3e-8f13-4266-aa2e-f61dfcca1cb8",
+   "namn": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 110x39x45cm, Blau",
+   "val": "369894e9-ff96-40eb-9cc6-dc3d526d19eb",
+   "bilder": [
+    {
+     "id": "b379ce_cc9ac9501f164eaf98b0994b3a07294b~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 110x39x"
+    },
+    {
+     "id": "b379ce_ea51826dbd804253a2941c551bf68b04~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 11"
+    },
+    {
+     "id": "b379ce_53b56bb6f88e446a97daea01756f4d37~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 11"
+    },
+    {
+     "id": "b379ce_d6eb7605c5e64341b683cd8f308cad89~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 11"
+    },
+    {
+     "id": "b379ce_f9a7e49326f748e38dcbee682a5b0da3~mv2.jpg",
+     "alt": "Sitzbank mit Stauraum, bis 220 kg, Leinenoptik, 11"
+    }
+   ]
+  }
+ ],
+ "torrkorningensForslag": {
+  "14b99ed4-adaa-4d5d-8368-b31ab532a328": [
+   "b379ce_7939a251950e4d9887d74303117294bb~mv2.jpg",
+   "b379ce_fe226cd5e5cc4b8eb1c421a6bf5a24b2~mv2.jpg",
+   "b379ce_73f858351060473993f79887743177c4~mv2.jpg",
+   "b379ce_21f4b7aed0ab4e29a65b994e5f7e2318~mv2.jpg"
+  ],
+  "7909f4e8-9ca7-4f3c-91cf-8627290e363d": [
+   "b379ce_16740443ac274fa592f929c186b3b840~mv2.jpg",
+   "b379ce_473edb29035649a9a4f2a39b28407401~mv2.jpg",
+   "b379ce_c94cc8c9b49a4c8eb44064dc8f4ba9f2~mv2.jpg",
+   "b379ce_c89eaba3794741dfa2cf5366b5c65dde~mv2.jpg",
+   "b379ce_dc14898a392a41d2869bdf41869e65bd~mv2.jpg"
+  ],
+  "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf": [
+   "b379ce_200755bf08fc4278b96ebdc513b0305e~mv2.jpg",
+   "b379ce_57545baf395c42b1b36e9dbe2c90a839~mv2.jpg",
+   "b379ce_f26239079651456991b8d87cf2ac097f~mv2.jpg",
+   "b379ce_7f14e3458fac42f3be79762ba52b9f1d~mv2.jpg",
+   "b379ce_66a56237e8ee4ce99a44265857b11fa1~mv2.jpg"
+  ],
+  "f9363c28-6e7e-4ce3-b1e5-56fd338a8b2f": [
+   "b379ce_d0523e739c604837a56e19c42b908855~mv2.jpg",
+   "b379ce_55a4b6d4b0c245e88cf3be2d06907aa7~mv2.jpg",
+   "b379ce_e5bf0bd726b74a08a2139487b4475cc2~mv2.jpg",
+   "b379ce_0cacd0aaf1fd445286f8901a7363eaf2~mv2.jpg",
+   "b379ce_0281789a2e2f425aa0211bcd481da077~mv2.jpg"
+  ],
+  "369894e9-ff96-40eb-9cc6-dc3d526d19eb": [
+   "b379ce_cc9ac9501f164eaf98b0994b3a07294b~mv2.jpg",
+   "b379ce_ea51826dbd804253a2941c551bf68b04~mv2.jpg",
+   "b379ce_53b56bb6f88e446a97daea01756f4d37~mv2.jpg",
+   "b379ce_d6eb7605c5e64341b683cd8f308cad89~mv2.jpg",
+   "b379ce_f9a7e49326f748e38dcbee682a5b0da3~mv2.jpg"
+  ]
+ }
+}

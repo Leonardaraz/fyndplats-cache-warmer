@@ -42,6 +42,9 @@
 //                        lib/aosom/markor.ts (klartext tas emot vid en körning för hand)
 //   ?sku=<artikel>,…   kör bara dessa (riktad omkörning)
 //   ?skipPrices=1        synka bara lager
+//   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
+//                        här körningen (en människas godkännande, se
+//                        `godkannPrisandring` i lib/aosom/sync.ts)
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -55,6 +58,9 @@ export const maxDuration = 300;
 
 /** Under maxDuration med marginal — feeden tar ~5 s att hämta och tolka. */
 const TIME_BUDGET_MS = 240_000;
+
+/** Wix-produkt-id: en uuid. */
+const WIX_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -94,6 +100,20 @@ async function handle(req: NextRequest) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+  // ☠️ ETT ID SOM INTE SER UT SOM ETT WIX-ID VÄGRAS. Ett skrivfel hade annars
+  // tyst betytt "ingenting godkänt", och körningen hade sett lyckad ut medan
+  // priset stod kvar.
+  const godkannPris = (req.nextUrl.searchParams.get("godkannPris") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const ogiltiga = godkannPris.filter((id) => !WIX_ID.test(id));
+  if (ogiltiga.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: `godkannPris tar Wix-produkt-id: ${ogiltiga.join(", ")}` },
+      { status: 400 },
+    );
+  }
 
   try {
     const summary = await runAosomSync(await liveDeps(), {
@@ -102,6 +122,7 @@ async function handle(req: NextRequest) {
       after,
       skipPrices,
       onlySkus: onlySkus.length ? onlySkus : undefined,
+      godkannPrisandring: godkannPris.length ? new Set(godkannPris) : undefined,
       timeBudgetMs: TIME_BUDGET_MS,
     });
 
@@ -113,7 +134,7 @@ async function handle(req: NextRequest) {
     // skriva någonting såg då ut exakt som en körning där allt redan stämde.
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
       || summary.utanWixPris > 0 || summary.utanLagerrader > 0 || summary.misslyckade > 0
-      || summary.okandaVarianter > 0 || summary.tvetydiga > 0
+      || summary.okandaVarianter > 0 || summary.tvetydiga > 0 || summary.stampelHoppade > 0
       || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
       || summary.prislistaFel)) {
       await audit(
@@ -123,11 +144,18 @@ async function handle(req: NextRequest) {
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.ejSkeppbara} EJ SKEPPBARA, `
           + `${summary.varningar.length} blockerade prishopp, `
+          + (summary.godkandaHopp.length
+            ? `${summary.godkandaHopp.length} godkända prishopp (`
+              + summary.godkandaHopp.map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ") + "), "
+            : "")
           + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
           + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
-          + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
+          + `${summary.lagerDrift} lagerdrift (${summary.lagerDriftRattade} rättade bara för driften), `
+          + `${summary.stampelHoppade} stämplar väntar (raden ändrades under körningen), `
+          + `${summary.saldaAvdragna} sålda enheter avdragna (flödet visar dem inte än), `
+          + `${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
           + `${summary.aterILager} tillbaka i lager, ${summary.restockMejl} restock-mejl, `
@@ -153,8 +181,19 @@ async function handle(req: NextRequest) {
         + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} frysta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.ejSkeppbara} ej skeppbara, `
-        + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `
-        + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `
+        + `${summary.varningar.length} varningar, ${summary.godkandaHopp.length} godkända prishopp, `
+        + `${summary.utanLagerrader} utan lagerrader, `
+        // Lagerdrift (2026-09-30): butikens saldo mot stämpeln. "rättade" är
+        // skrivningar som kom till BARA för driften — se motButikensSaldo.
+        + `${summary.lagerDrift} lagerdrift, ${summary.lagerDriftRattade} rättade, `
+        // Raden ändrades under körningen (sammanslagning, ommappning,
+        // radering): Wix skrevs, stämpeln väntar — se stampelPaFarskRad.
+        + `${summary.stampelHoppade} stämplar väntar, `
+        // Sålt men inte synligt i Aosoms flöde än (2026-10-01): dras av från
+        // flödets saldo så att ett sålt exemplar inte säljs igen — se
+        // medSaldaAvdragna och vantarPaFlodet.
+        + `${summary.saldaAvdragna} sålda avdragna, `
+        + `${summary.misslyckade} misslyckade, `
         // Färgsammanslagna sidor (2026-09-27): okända varianter och tvetydiga
         // rader nollar lagret — talen ska vara noll, se lib/aosom/artiklar.ts.
         + `${summary.flerartikelrader} sammanslagna, ${summary.okandaVarianter} okända varianter, `
@@ -176,6 +215,23 @@ async function handle(req: NextRequest) {
         + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
+    // Produkterna som skrevs bara för att butiken drivit från stämpeln. Wix-id
+    // är publika, så de får stå i loggen — artikelnumren gör det aldrig.
+    if (summary.lagerDriftProdukter.length > 0) {
+      const idn = summary.lagerDriftProdukter;
+      console.log(
+        `[aosom-sync] lagerdrift rättad${dryRun ? " (torrkörning)" : ""}: ${idn.slice(0, 20).join(", ")}`
+          + (idn.length > 20 ? ` … ${idn.length} st totalt` : ""),
+      );
+    }
+    // Produkterna där sålda enheter drogs av. Samma form.
+    if (summary.saldaAvdragnaProdukter.length > 0) {
+      const idn = summary.saldaAvdragnaProdukter;
+      console.log(
+        `[aosom-sync] sålda avdragna: ${idn.slice(0, 20).join(", ")}`
+          + (idn.length > 20 ? ` … ${idn.length} st totalt` : ""),
+      );
+    }
     // En rad per produkt vars bevakare inte fick allt: bara Wix-id och räknare.
     for (const u of summary.restockUtskick) {
       if (u.stopp || u.ejSkickade > 0 || u.markeringsfel || (u.sidan && u.sidan !== "uppfriskad")) {

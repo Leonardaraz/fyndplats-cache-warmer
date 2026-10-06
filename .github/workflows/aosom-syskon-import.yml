@@ -1,0 +1,106 @@
+name: Aosom — importera en sidas färg- och storlekssyskon
+
+# Leonard 2026-09-30: "det orange reservtaket är inte importerat. varför?"
+#
+# Nattens import kör med `skipFreightHeavy=1` och hoppar över rader där frakten
+# kostar mer än varan. Ett lätt och billigt syskon faller ofta där, och att
+# hämta just den raden krävde artikelnumret i en input, alltså i en publik
+# logg. Här anges i stället SIDAN: rutten hittar feedens färg- och
+# storlekssyskon med syskonsvepets jämförelse (lib/aosom/syskon-import.ts) och
+# importerar dem som osynliga utkast, även de frakttunga, eftersom en människa
+# har valt familjen. Samma vara som en av sidans artiklar importeras aldrig.
+#
+#   plan       visar syskonen och vad som skulle hämtas. Skriver ingenting.
+#   importera  hämtar dem som osynliga utkast (rått läge, $0, visible:false).
+#
+# Utkasten poleras och läggs sedan som val med "Dubbletter — lägg ett utkast
+# som färg eller storlek på en publicerad sida".
+#
+# ☠️ LOGGEN ÄR PUBLIK. Svaret bär feedens färg, måtten, saldot och wix-id —
+# aldrig artikelnummer, pris eller kostnad. Felmeddelanden går genom `redigera`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sida:
+        description: "Wix-id (uuid) för en Aosom-sida, eller ett Aosom-utkast i samma familj"
+        required: true
+        type: string
+      lage:
+        description: "plan = visa syskonen, skriv inget · importera = hämta dem som osynliga utkast"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - importera
+
+jobs:
+  syskon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SIDA: ${{ inputs.sida }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad på stdout slukas av en
+            # kommandosubstitution (workflow-lärdomen 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          sida="$(printf '%s' "${SIDA}" | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+          if ! printf '%s' "$sida" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "::error::sida ska vara ett produkt-id (uuid)" >&2
+            exit 1
+          fi
+
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/gi; s/aosom:\S+/aosom:‹REDIGERAT›/g; s#(?:https?://|www\.)\S+#‹LÄNK›#gi'
+          }
+
+          torr=true
+          [ "${LAGE}" = "importera" ] && torr=false
+          rutt="${BASE%/api/cron/poll-tracking}/api/cron/aosom-import"
+
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${rutt}?syskonTill=${sida}&dryRun=${torr}&limit=12")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          kropp="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            printf '%s\n' "$kropp" | jq -r '.error // .message // "okänt fel"' 2>/dev/null | redigera >&2 || true
+            echo "::error::HTTP ${kod}" >&2
+            exit 1
+          fi
+
+          echo "Sida: ${sida} (läge ${LAGE})"
+          printf '%s' "$kropp" | jq -r '"Sidans artiklar i feeden: \(.syskonAnkare // 0) · dubbletter som inte tas med: \(.syskonDubbletter // 0)"'
+          echo
+          echo "relation | färg (feeden) | mått | saldo | status | nattens import hoppar | wix-id"
+          printf '%s' "$kropp" | jq -r '.syskon[]? | "\(.relation) | \(.farg) | \(.matt) | \(.saldo) | \(.status) | \(if .nattensImportHoppar then "ja" else "nej" end) | \(.wixProductId // "-")"'
+          echo
+          printf '%s' "$kropp" | jq -r '"Importerade \(.imported) · fel \(.failed)\(if .dryRun then " (torrt, ingenting skrivet)" else "" end)"'
+          printf '%s' "$kropp" | jq -r '.errors[]? | "  fel: \(.error)"' | redigera
+
+          {
+            echo "### Syskon till ${sida}"
+            echo ""
+            echo "| relation | färg | mått | saldo | status | natten hoppar | wix-id |"
+            echo "|---|---|---|---:|---|---|---|"
+            printf '%s' "$kropp" | jq -r '.syskon[]? | "| \(.relation) | \(.farg) | \(.matt) | \(.saldo) | \(.status) | \(if .nattensImportHoppar then "ja" else "nej" end) | \(.wixProductId // "-") |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$(printf '%s' "$kropp" | jq -r '.syskonAnkare // 0')" = "0" ]; then
+            echo "::error::Sidans artiklar finns inte i feeden just nu — det gick inte att jämföra (en rad med lågt saldo tas bort tillfälligt)" >&2
+            exit 1
+          fi
+          if [ "$(printf '%s' "$kropp" | jq -r '.failed // 0')" != "0" ]; then
+            echo "::error::en eller flera importer föll" >&2
+            exit 1
+          fi

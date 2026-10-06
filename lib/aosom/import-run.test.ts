@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { runAosomImport, buildMapping, RAW_FLAGS, type AosomImportDeps } from "./import-run";
 import { aosomSupplierProductId } from "./to-product";
 import type { AosomRow } from "./feed";
+import { synligtSaldo } from "./sync";
 import type { ImportResult } from "../import/pipeline";
 import type { AliExpressProduct } from "../import/types";
 import type { ProductMappingRecord } from "../store";
@@ -367,5 +368,52 @@ describe("föräldralösa produkter", () => {
     const s = await runAosomImport(deps([rad("A-1"), rad("A-2")]), { dryRun: false });
     expect(s.imported).toBe(2);
     expect(s.orphans).toEqual([]);
+  });
+});
+
+describe("syskonTill — en sidas familj, utan artikelnummer i svaret", () => {
+  // A-1 sitter på sidan. A-2 är orange och frakttung, A-3 samma vara som A-1,
+  // A-4 grå och redan importerad, A-5 vit utan saldo, C-9 en annan vara.
+  const feed = [
+    rad("A-1", { psin: "K1" }),
+    rad("A-2", { psin: "K1", color: "Orange", wholesaleEur: 10, seFreightEur: 20 }),
+    rad("A-3", { psin: "K1" }),
+    rad("A-4", { psin: "K1", color: "Grau" }),
+    rad("A-5", { psin: "K1", color: "Weiß", qty: 0 }),
+    rad("C-9", { psin: "K2", name: "Gartenstuhl", size: "60L x 55B x 90H cm", color: "Grau" }),
+  ];
+  const mappningar = [
+    { supplier: "aosom", supplierProductId: aosomSupplierProductId("A-1"), wixProductId: "wix-sida" },
+    { supplier: "aosom", supplierProductId: aosomSupplierProductId("A-4"), wixProductId: "wix-gra" },
+  ] as Awaited<ReturnType<AosomImportDeps["listMappings"]>>;
+
+  it("importerar bara familjen, även den frakttunga, och säger varför natten hoppade över den", async () => {
+    const importerade: string[] = [];
+    const d = deps(feed, {
+      listMappings: async () => mappningar,
+      importOne: async (p) => {
+        importerade.push(p.supplierProductId);
+        return { ...resultatFor(p), wixProductId: "wix-ny-1" };
+      },
+    });
+    const s = await runAosomImport(d, { dryRun: false, syskonTill: ["A-1"], skipFreightHeavy: false });
+    expect(importerade).toEqual([aosomSupplierProductId("A-2")]);
+    expect(s.imported).toBe(1);
+    expect(s.syskonAnkare).toBe(1);
+    expect(s.syskonDubbletter).toBe(1);
+    expect(s.syskon).toEqual([
+      { relation: "farg", farg: "Orange", matt: "50 × 40 × 30", saldo: synligtSaldo(10), status: "importerad", nattensImportHoppar: true, wixProductId: "wix-ny-1" },
+      { relation: "farg", farg: "Grau", matt: "50 × 40 × 30", saldo: synligtSaldo(10), status: "fanns", nattensImportHoppar: false, wixProductId: "wix-gra" },
+      { relation: "farg", farg: "Weiß", matt: "50 × 40 × 30", saldo: 0, status: "ej_skeppbar", nattensImportHoppar: false },
+    ]);
+    // ☠️ Svarets syskonlista bär aldrig ett artikelnummer.
+    expect(JSON.stringify(s.syskon)).not.toMatch(/[AC]-\d/);
+  });
+
+  it("torrkörningen importerar ingenting och visar vad som skulle hämtas", async () => {
+    const d = deps(feed, { listMappings: async () => mappningar });
+    const s = await runAosomImport(d, { syskonTill: ["A-1"] });
+    expect(d.importerade).toHaveLength(0);
+    expect(s.syskon?.find((x) => x.farg === "Orange")?.status).toBe("importeras");
   });
 });

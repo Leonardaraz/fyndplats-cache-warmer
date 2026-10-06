@@ -1,0 +1,46 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "39a21e71": {
+  "tyska": "65L x 65B x ‹FORM› cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (65L x 65B x ‹FORM› cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "6e810d9c": {
+  "tyska": "52L x 50B x 46-56H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Sitz' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": [
+   46,
+   56
+  ],
+  "bredd": 52,
+  "djup": 50
+ },
+ "d34f6bab": {
+  "tyska": "(Aufrecht) 93B x 104T x 100H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 104,
+  "hojd": 100,
+  "bredd": 93
+ },
+ "e72638dd": {
+  "tyska": "65L x 32,5B x 61H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 61,
+  "bredd": 65,
+  "djup": 32.5
+ },
+ "e969501f": {
+  "tyska": "298L x 298B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (298L x 298B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "f2d7353f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Bartisch Größe: 90L x 47L x 76H cm | ✔ Barstuhl Größe: 40L x 40B x 73H cm | ✔ Sitzgröße: 40B x 38T cm | Mått: 90L x 47B x 76H cm | ✔ Bartisch Größe: 90L x 47L x 76H cm | ✔ Barstuhl Größe: 40L x 40B x 73H cm | ✔ Sitzgröße: 40B x 38T cm | Mått: 90L x 47B x 76H cm | ✔ Bartisch Größe: 90L x 47L x 76H cm | ✔ Barstuhl Größe: 40L x 40B x 73H cm | ✔ Sitzgröße: 40B x 38T cm | Mått: 90L x 47B x 76H cm"
+ }
+}

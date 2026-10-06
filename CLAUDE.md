@@ -507,6 +507,36 @@ produkter kommer ska de automatiskt importeras så sköter jag poleringen") — 
 Dubblettspärren gör cronen till en no-op när feeden inte har något nytt: den går
 gratis förbi allt som redan har en mappning och importerar bara det som saknas.
 
+### Syskonimporten: en sidas familj, utan artikelnummer (2026-09-30)
+
+Leonards fråga: varför är det orange reservtaket inte importerat? Det var det.
+Nattens import tog det 2026-09-29 som ett osynligt utkast (`eabb104a`), och det
+som saknades var sammanslagningen. Första svaret gissade att `skipFreightHeavy=1`
+hade hoppat över raden, utan att någon sökt bland utkasten. **Sök bland utkasten
+innan du förklarar varför en färg saknas.**
+
+Verktyget behövs ändå. Nattens import hoppar över rader där frakten kostar mer än
+varan (`skipFreightHeavy=1`), och ett lätt och billigt syskon faller ofta där. Att
+hämta just en sådan rad krävde artikelnumret i en workflow-input, alltså i en
+publik logg.
+
+`/api/cron/aosom-import?syskonTill=<wix-id>` tar i stället en SIDA. Rutten läser
+sidans artiklar, hittar feedens färg- och storlekssyskon med syskonsvepets
+`jamfor` (`lib/aosom/syskon-import.ts`) och importerar dem som osynliga utkast,
+även de frakttunga, eftersom en människa har valt familjen. Workflowen heter
+**"Aosom — importera en sidas färg- och storlekssyskon"** (`plan` · `importera`).
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Samma vara som EN av sidans artiklar importeras aldrig**, även när den
+   är ett färgsyskon till en annan. En sida i brunt och orange ska inte få en
+   brun rad till som "ny färg". Två kandidater som är samma vara blir en, den
+   med störst saldo. Ett test fällde den första versionen på just det.
+2. ☠️ **Svaret bär aldrig artikelnumret.** Ett syskon beskrivs med feedens
+   färg, måtten, saldot, status, wix-id och `nattensImportHoppar`, som svarar
+   på frågan "varför är den inte importerad?".
+3. **`syskonAnkare: 0` är inte "inga syskon".** Då fanns ingen av sidans
+   artiklar i feeden (lågt saldo tas bort tillfälligt), och jobbet fäller.
+
 ### Så körs den: GitHub Actions, inte en terminal
 
 Workflowen **"Aosom — importera sortimentet som osynliga utkast"** (`workflow_dispatch`,
@@ -651,9 +681,13 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    *"Items with low stock may be temporarily removed to avoid overselling."*
    Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
    kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
-3. **`LAGER_BUFFERT = 3`.** Feeden uppdateras tre gånger per dygn, så mellan två
-   synkar är siffran gammal. Säger Aosom "3 kvar" och vi visar 3 säljer vi den
-   fjärde. Aosom flaggar dessutom själva 276 rader med "Low Stock Alert".
+3. **`LAGER_BUFFERT = 1`**, 3 fram till 2026-10-01. Feeden uppdateras tre gånger
+   per dygn, så mellan två synkar är siffran gammal. Säger Aosom "3 kvar" och vi
+   visar 3 säljer vi den fjärde. Leonards beslut 2026-10-01: *"visa en mindre än
+   aosom, inte 3"*. Golvlampan `65ca6f6d` stod då som slutsåld med 4 kvar hos
+   Aosom. ☠️ **Sänk aldrig bufferten utan `medSaldaAvdragna`**, som drar av det
+   vi sålt tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
+   butiken*).
 4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
    cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
    Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
@@ -662,6 +696,14 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
    en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
    kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+
+   **Ett känt hopp kan godkännas för en körning** (`godkannPrisandring`, sedan
+   2026-09-30). Workflowens input `godkann_pris` tar Wix-produkt-id, och för
+   dem släpps bara taket: regelpriset, golvet, prislåset och skrivordningen
+   gäller som vanligt. Godkännandet sparas ingenstans, så nästa trasiga
+   feed-rad på samma produkt stoppas igen. Hoppen står i `godkandaHopp` med
+   wix-id och belopp, aldrig artikelnummer. Byggt för gunghästens rosa, som
+   taket stoppade vid varje körning (1 199 → 699 kr, Leonards beslut).
 6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
    sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
    Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida
@@ -873,7 +915,160 @@ tal i tre körningar i rad). Lagret har alltså INTE det hål priserna hade — 
 var svaret tjugo rader. Att göra butiken till facit även för lagret är därmed
 inte akut, och den enda drivande raden rättas av nästa körning som rör den.
 Talet står i loggraden och i workflow-summeringen; går det upp är det ett
-besked, inte brus.
+besked, inte brus. **Det höll i fyra veckor — se nästa avsnitt.**
+
+### ✅ En stämpel som ljuger rättas mot butiken (2026-09-30)
+
+Hundburen `6297606f` gjorde driften akut. Sammanslagningen (B71 i
+`tools/polish-gates/FLAGGADE.md`) stämplade 90 cm (`22f4cf42`) med givarens
+saldo, alltså flödets tal. Synken 03:20 hade läst mappningarna innan dess, såg
+90 cm som en okänd variant och nollade den i butiken 03:24. Sedan sa stämpeln
+"redan skrivet" och butiken 0 — och synken skrev bara när FLÖDET skilde sig
+från stämpeln. Varianten hade stått som slutsåld tills Aosoms saldo på
+artikeln ändrades. `lagerDrift` räknade den hela tiden: 5 av 4 486 i
+torrkörningen 19:5x UTC samma dag.
+
+`motButikensSaldo` (`lib/aosom/sync.ts`) jämför butikens saldo, som körningen
+redan läste, med stämpeln. Skiljer de sig åt är stämpeln opålitlig, och
+flödets saldo planeras för skrivning även när stämpeln redan säger det. Per
+variant på en sammanslagen sida, på radens egna poster på en vanlig rad. Allt
+annat står kvar: `LAGER_BUFFERT`, exakt `limit` (rättelserna ryms i tuggan),
+alla-eller-ingen per produkt, bekräftelsen per rad (`tolkaBulkUtfall`),
+massfelsspärrarna och att torrkörningen läser lagret.
+
+Två nya fält, i svaret, loggraden, audit-raden och workflow-summeringen:
+`lagerDriftRattade` — produkter där driften lade till minst en lagerrad, alltså
+de extra skrivningarna — och `lagerDriftProdukter`, deras Wix-id. `lagerDrift`
+räknar som förut driften när körningen kom, och ska vara noll efter en skarp
+körning.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Ett okänt saldo är ingen drift.** En post utan `quantity` gick inte att
+   läsa, och då gäller stämpeln — samma hållning som `aterkomnaLagerrader`.
+2. ☠️ **Bara radens EGNA poster räknas på en vanlig rad** (`delaPoster`, samma
+   uppdelning som skrivningen). Mätningen läste tidigare `poster[0]`, som kan
+   vara en okänd färgs post. En okänd variant nollas ändå och är ingen drift.
+3. **En rättelse som föll stämplas inte**, som alla andra skrivningar. Nästa
+   körning ser driften igen och försöker på nytt.
+4. **En rättelse från 0 är en återkomst.** Bevakarna mejlas som vid varje
+   annan återkomst (`aterkomnaLagerrader`), och torrkörningen räknar den.
+
+☠️ **En försäljning räknas också som drift — det är en beteendeändring.** Wix
+drar av saldot vid köp, så butiken hamnar under stämpeln, och nästa synk
+skriver tillbaka flödets tal. Förut låg avdraget kvar tills Aosoms tal för
+artikeln ändrades. Nu skrivs det över vid varje körning tills Aosoms flöde
+visar vår order. Regeln skiljer inte en försäljning från en nollning, och ett
+test låser det (`en försäljning räknas som drift`).
+
+☠️ **Det som hindrar att samma sista enhet säljs igen är `medSaldaAvdragna`**
+(sedan 2026-10-01). Varje orderrad som är såld hos oss men som Aosoms flöde
+inte visar än dras av från flödets saldo innan planen jämförs med butiken. Fram
+till dess var det `LAGER_BUFFERT` på 3 som skyddade, och det räckte inte:
+golvlampan `65ca6f6d` hade 4 hos Aosom, butiken visade 1, order 10056 tog den,
+och nästa körning skrev 1 igen. Med bufferten på 1 och avdraget blir samma rad
+4 − 1 − 1 = 2.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Två slags orderrader räknas** (`vantarPaFlodet`): tasks med status
+   `pending`, och tasks med status `ordered` i tolv timmar efter att de
+   markerats beställda (`orderedAt`, som workflowen "Order — beställd eller
+   skickad för hand" sätter). Flödet exporteras tre gånger per dygn, så en nyss
+   lagd order syns inte där direkt, och bufferten på 1 räcker inte för två
+   beställda enheter. Visar flödet redan ordern dras den av två gånger under
+   resten av fönstret, och det är åt det säkra hållet. En `ordered`-rad utan
+   `orderedAt` räknas inte.
+2. ☠️ **Raderna läses för varje tugga, direkt EFTER butikens lager.** Lästes de
+   en gång när körningen startade kunde en försäljning mitt i körningen synas i
+   butiken men inte i avdraget, och driften hade lagt tillbaka den. Kvar är
+   webhookens sekunder mellan köpet och orderraden.
+3. ☠️ **Depen är obligatorisk (`lasSaldaOrderrader`), och ett läsfel stoppar
+   tuggans lagerskrivningar**, som när lagret inte går att läsa. Produkterna
+   som ville skrivas räknas som misslyckade. En körning utan avdraget hade lagt
+   tillbaka varje såld enhet.
+4. ☠️ **På en sammanslagen sida dras varje orderrad från sin egen färg**, avgjord
+   som beställningsfilen avgör den (`aosomArtikelForTask`). En rad som inte går
+   att knyta till en färg dras från ALLA färger.
+5. **Avdraget räknas och syns:** `saldaAvdragna` och `saldaAvdragnaProdukter`
+   (Wix-id) står i svaret, loggraden, audit-raden och workflow-summeringen. Det
+   är ett mått, inget fel, och talet sjunker när ordrarna lagts och syns i
+   flödet.
+
+⚠️ **Markera Aosom-ordern beställd när den läggs.** En task som står kvar som
+`pending` efter att ordern lagts dras av en gång till när flödet visar ordern.
+Sidan visar då en enhet för lite tills tasken markerats beställd eller skickad.
+
+⚠️ **Racet i B71 lagades på mappningssidan samma kväll** — se nästa avsnitt.
+Kvar är Wix-sidan: en körning som planerat ur en rad från före en
+sammanslagning kan fortfarande nolla den nya varianten som okänd. Mappningen
+behåller nu varianten och dess stämpel, så nästa körning ser driften och
+rättar saldot. Kör ändå ingen sammanslagning mellan xx:18 och xx:27 vid
+synktimmarna (00, 03, 06, 12 och 18 UTC).
+
+**Verifierat i drift 2026-09-30**, i den ordning körningarna gick:
+
+| körning | kod | lager | lagerdrift | rättade | fel |
+|---|---|---:|---:|---:|---:|
+| torr 19:43 | före | 936 (skulle) | 5 | — | 0 |
+| skarp 20:43 | ny från varv 2 | **939** | 6 | **5** | **0** |
+| torr 20:54 | ny | **0** | **0** | 0 | 0 |
+
+Den skarpa körningen startades av en annan session (ett godkänt prishopp) och
+rättade hundburen, `6297606f`, bland de fem. En läsning direkt i Wix efteråt
+gav 90 cm (`22f4cf42`) **122**, `IN_STOCK`, skrivet 20:51:22. Varianten hade
+stått på 0 sedan 03:24.
+
+☠️ **En torrkörning som går SAMTIDIGT som en skarp mäter ingenting.** En
+torrkörning startad 20:44, en minut efter den skarpa, gav 923 "lagerdrift".
+Den hade läst mappningarna innan den skarpa körningen hann stämpla dem, men
+butiken efter att den hunnit skrivas. Kolla att ingen annan körning av
+workflowen pågår innan du startar en mätning.
+
+### ✅ Stämpeln läggs på den färska raden — synken skriver inte över (2026-09-30)
+
+Synken läser alla mappningar när den startar och sparade tillbaka hela raden
+som den såg ut då: `{ ...p.m, … }`. En körning tar minuter, och allt som
+skrevs på raden under tiden försvann tyst. Spegeln `4117e161` tappade sin
+sammanslagning så 03:20 (B71 i `tools/polish-gates/FLAGGADE.md`), och nästa
+sammanslagning vägrades (`behall_har_redan_optioner`). Samma väg kunde ta
+tillbaka poleringens SKU och status, ångra en ommappning och återskapa en
+raderad rad.
+
+Nu läses raden om strax före stämpeln (`lasMappning` →
+`getMappingByWixProductId`), och `stampelPaFarskRad` lägger bara synkens egna
+fält på den färska raden: `aosomSyncedQty` och `aosomSyncedAt`, och per variant
+`aosomSyncedQty`, `grossSek`, `landedCostSek` och `costUsd`. Varianterna
+matchas på Wix-id och artikel, aldrig på plats i listan, så en färg som lagts
+till under körningen lämnas orörd.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Hellre ingen stämpel än en som ljuger.** Har raden raderats, bytt
+   artikel, bytt form (vanlig ↔ sammanslagen) eller tappat en variant som
+   skulle stämplas, skrivs ingenting. Wix är redan skrivet. Nästa körning läser
+   den färska raden och stämplar då, eller rättar driften.
+2. ☠️ **Det räknas.** `stampelHoppade` står i svaret, loggraden, audit-raden
+   och workflow-summeringen, med skälet i `errors`. Talet ska vara noll utanför
+   en sammanslagning eller ommappning.
+3. **Depen är obligatorisk**, av samma skäl som `listaRecensionsbilder` i
+   media-städningen: en valfri dep glöms av nästa anropare.
+4. **Torrkörningen läser inte om raden.** Den stämplar ingenting, så det finns
+   inget att skydda.
+
+⚠️ `saveMapping` är fortfarande en villkorslös upsert, så ett fönster på några
+millisekunder mellan omläsningen och skrivningen finns kvar. Förut var
+fönstret hela körningen.
+
+⚠️ **En överhoppad stämpel efter en PRISskrivning läker inte av sig själv.**
+Wix har det nya priset, men mappningens `grossSek`, `landedCostSek` och
+`costUsd` står kvar på det gamla. Nästa körning jämför mot butiken, ser samma
+pris och skriver inget. Det är samma klass som de tjugo drivande raderna, men
+bara för en rad som ändrats mitt i en prisskrivning, och priser skrivs bara
+03:20 och vid skarpa körningar för hand. En omkörning hjälper inte, av samma
+skäl. Står `stampelHoppade` över noll efter en körning med priser, titta på
+produkten i `errors`: mappningens pris kan vara det gamla tills kostnaden
+ändras nästa gång.
 
 ### Så körs den för hand
 
@@ -1381,12 +1576,20 @@ miljöbild  1 068 103 byte   c527549810410717   BÅDA
 Två av två delade positioner identiska på bitnivå. Detaljbilderna skiljer (olika
 positioner hämtades hem), men konstruktionen är densamma på varje foto.
 
-⚠️ **`aosom-remap` KAN INTE laga den här klassen, och det är inte ett fel i den.**
-Hindret `redan_aosom` fäller en rad som redan är Aosom — workflowen finns för
-AE→Aosom. Här finns ingen AE-rad att peka om: ommappningen är en no-op och det
-enda som gäller är pensioneringen (`draftStatus: "rejected"`,
-`needsAiPolish: false`). Husets regel *"äkta dubbletter mappas om till Aosom"*
-antar tyst att sidan vi behåller är en AE-rad. Ibland är den inte det.
+⚠️ **Har sidan vi behåller saldo räcker pensioneringen** (`draftStatus:
+"rejected"`, `needsAiPolish: false`), som för hörnsoffan. Husets regel *"äkta
+dubbletter mappas om till Aosom"* antog tyst att sidan vi behåller är en AE-rad.
+
+✅ **Är sidans artikel slut medan utkastets finns i lager byter sidan artikel**
+(sedan 2026-09-30, Leonards beslut om soptunnan `300a9113`, vars utkast
+`43ea33bd` hade 48 i lager). `aosom-remap` tar då en sida som redan är Aosom,
+men bara mot ett opolerat Aosom-utkast som bär artikeln: ange utkastet som
+dubblett och lämna `sku` tomt. Sidan behåller adress, text, bilder och
+recensioner, och utkastet pensioneras. Sidans gamla artikel sparas i
+`importSparr`, annars skapar nattens import samma vara igen. Priset rörs inte
+av bytet, men synken räknar om det efter den nya artikelns kostnad. Hindren:
+`redan_aosom` (ingen sådan dubblett), `dubbletten_inte_utkast` (dubbletten är
+polerad), `samma_artikel` och `importsparr_upptagen`.
 
 ⚠️ **Klassens STORLEK är omätt — en rad är inte en mätning.** Den billiga vägen
 är namngiven här så den inte behöver återupptäckas: Wix filbeskrivare bär ett
@@ -1531,10 +1734,14 @@ storlek på en publicerad sida"** (`plan` · `byt`), rutten `/api/admin/aosom-sa
 logiken i `lib/aosom/sammanslagning.ts`. Torrt som default, en sida per
 körning, ingen kör-allt-flagga. Två hinder att känna till innan: **sidans namn
 får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, med
-oförändrad slug), och **bara utkastets huvudbild följer med** om du inte anger
-fler (`bilder`) — utkastet är opolerat och ingen har granskat dess bilder för
-tysk text eller husmärkets logotyp. Faller en körning halvvägs ser nästa att
-Wix redan är klart (`wix_klar`) och gör bara resten.
+oförändrad slug). **Sedan 2026-09-30 följer alla givarens bilder med**, med
+färgbildsverktygets regler (se *Färgbilderna* nedan): givarens kort stannar,
+en opolerad givares bilder från position 2 sparas som `granskas` i stället för
+att skrivas, och det som inte ryms under Wix 15 sparas i tabellen. Med
+`bilder` följer exakt de valda med. Befintliga val behåller hela sina
+`linkedMedia`-listor; före det skrev återkopplingen om varje val till sin
+första bild. Faller en körning halvvägs ser nästa att Wix redan är klart
+(`wix_klar`) och gör bara resten.
 
 ⚠️ **Efter första deployen: kör synken i torrläge och läs `okandaVarianter`.**
 Talet ska vara noll. Är det inte det finns Aosom-sidor i Wix med varianter
@@ -1586,9 +1793,34 @@ Sex egenskaper som inte ska tas bort:
    missar en kedja.
 
 ⚠️ **Utkast som bara har varandra slås ihop EFTER poleringen, inte före.**
-Poleringens skrivsteg (`skrivplan.ts`) klarar bara sidor med en variant. Polera
-därför ett av syskonen, publicera det, och lägg sedan de andra som val med den
-här workflowen — samma väg som balansbommen.
+Poleringens skrivsteg (`skrivplan.ts`) skriver SKU:n på en sida med en variant.
+Polera därför ett av syskonen, publicera det, och lägg sedan de andra som val med
+den här workflowen — samma väg som balansbommen.
+
+#### En sammanslagen sida får ny text med `varianter` i planen (2026-09-30)
+
+Leonards fråga: varför läggs lyftfåtöljens grå färg inte på? Sidan var redan
+sammanslagen och texten räknade upp två färger. En tredje färg kräver ny text,
+och skrivworkflowen vägrade allt utom en variant, eftersom SKU-steget skriver en
+SKU på alla varianter och återläsningen jämför en. Den enda andra vägen var en
+PATCH för hand, och all skrivning går via workflowerna.
+
+En produkt i skrivplanen kan nu bära `varianter` (två eller fler) i stället för
+`sku` och `variantId`. Rundan anger den i `sammanslagna.tsv`. Tre egenskaper som
+inte ska tas bort:
+
+1. ☠️ **SKU-steget rör inte sidan.** Varje färg bär sin egen SKU från
+   sammanslagningen. Steget lägger en SKU på alla varianter, så på en
+   sammanslagen sida hade alla färger fått samma SKU. Planen vägrar en sådan
+   produkt med sku eller variantId.
+2. ☠️ **Återläsningen kräver att alla varianter finns kvar och syns.**
+   Antalet ska stämma med planen och varenda variant ska vara `visible`. En
+   osynlig variant visar färgen som slutsåld (2026-09-06).
+3. **Stämpeln skriver inga variantSkus**, bara `needsAiPolish` och
+   `draftStatus`.
+
+Bildsteget var redan byggt för det här: det vägrar en lista som tappar en bild
+ett färgval pekar på.
 
 #### Färg och storlek på samma sida (2026-09-27)
 
@@ -1661,11 +1893,48 @@ efter 8 försök", och omkörningen föll likadant (B69, B87). Kartan slås nu u
 med `bildFor`/`satt`, och två tester låser det: ett där Wix stavar om sidans
 färg, och ett där omkörningen efter en fallen koppling räknar valet en gång.
 
-⚠️ **Omdirigeringsrutten läser katalogen utan beskrivning (2026-09-30).**
-`findRedirectConflicts` behöver bara slug och synlighet, men läste hela
-katalogen med `PLAIN_DESCRIPTION`. Det blev ett sextiotal tunga sidor, och
-rutten nådde sitt tak på 60 sekunder innan skrivningen hann börja (B69, B87).
-Ett test låser `listAllV3Products({ beskrivning: false })`.
+☠️ **Omdirigeringsrutten frågar per adress och läser aldrig hela katalogen
+(2026-09-30).** `findRedirectConflicts` behöver veta om en eller två slugs är
+synliga produkter, men läste hela katalogen för att få veta det. Att stryka
+`PLAIN_DESCRIPTION` (`4a0dd284`) räckte inte: katalogen är 6 311 produkter på
+64 sidor, ~1 s per sida, alltså ~63 s bara för läsningen mot ruttens tak på 60.
+`redirect-add.yml` dog med 504 två gånger samma kväll på EN rad, som fick
+kontrolleras för hand och skrivas med `force`.
+
+Nu ställs en exakt slug-fråga per berörd adress (`slugArSynligProdukt`), med en
+kontrollfråga före (`katalogenHarSynligProdukt`). Kvällens rad tar 0,18–0,25 s
+mot Wix i stället för ~63. Uppmätt mot skarpa V3 samma dag, och det är därför
+frågan ser ut som den gör:
+
+| fråga | svar |
+| :-- | :-- |
+| `filter: { slug }`, levande slug | 1 träff, `visible: true`, ~0,1 s |
+| samma, ett utkasts slug | 1 träff, `visible: false` |
+| samma, borttagen slug | `{"products":[],"pagingMetadata":{"count":0,…}}` |
+| samma slug i VERSALER | **0 träffar** — filtret är skiftlägeskänsligt |
+| okänt filterfält | 400 *"not declared as filterable"* — ignoreras INTE tyst |
+| `$startsWith` på slug | avvisas (fältet är en HashedString) |
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **"Ingen träff" ÄR godkännandet, så ett trasigt svar får aldrig se ut
+   som ett.** Ett svar utan `products`-lista kastar, och en träff med en ANNAN
+   slug kastar (då bet filtret inte). Allt som kastar blir en konflikt på varje
+   rad, och rutten skriver ingenting.
+2. ☠️ **Kontrollfrågan ersätter tom-katalog-spärren.** Med en fråga per adress
+   hade en tom eller felkopplad katalog (fel site-id) godkänt varje källa. Den
+   frågar efter EN synlig produkt: katalogens första produkt utan filter är ett
+   utkast, så en ofiltrerad fråga hade inte bevisat någonting.
+3. **Slugen gemenas före frågan.** Det är förlustfritt bara för att Wix slugs är
+   gemena: 0 av 6 311 bar en versal. Börjar Wix spara versaler måste det mätas om.
+4. **Begränsad samtidighet** (`SAMTIDIGA_SLUGFRAGOR = 4`), och varje adress
+   frågas en gång. En rad kostar tre frågor, femtio rader ett par sekunder.
+
+Allt-eller-inget och `force=1` bor i rutten och är oförändrade; de låses sedan
+samma dag av `app/api/admin/redirects/route.test.ts`. Verifierat genom att
+återinföra buggarna en i taget (obegränsad fan-out, borttagen kontrollfråga,
+saknat `visible` som dött, ingen slug-kontroll, rutten som skriver trots
+konflikt): rätt test fäller, och bara det.
 
 ⚠️ **Wix delar valen över hela butiken, och `lib/wix/limits.ts` är inaktuell om
 det.** Kommentaren där säger att en delad option ("customization") tar högst 100
@@ -1775,6 +2044,85 @@ vara det. Ordningen är `plan`, `stampla` om planen har rader utan tidsstämpel,
 `main`, för de raderna blir raderbara fjorton dygn efter att klockan startats.
 Både `stampla` och `radera` stannar på en tidsbudget. Säger `stampla` att rader
 är `kvar`, kör planen och `stampla` igen med planens nya antal.
+
+### Färgbilderna: varje färg får alla sina bilder (2026-09-30)
+
+Sammanslagningen tog bara givarens första bild. Givaren pensionerades och ligger
+kvar dold med sina ~5 bilder, och en tillagd färg visade en bild i butiken.
+Torrkörningen 2026-09-30: 516 sidor med givare för 796 tillagda val. Givarna blir
+raderbara från 2026-10-11, så bilderna ska flyttas innan dess.
+
+Workflowen **"Bilder — ge varje färg på en sammanslagen sida alla sina bilder"**
+(`plan` · `skriv`) → `/api/admin/fargbilder` → `lib/aosom/fargbilder.ts` (ren
+logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
+(standard 10, högst 50, räknar bara sidor utan hinder) eller `sidor` (wix-id),
+`ta_med_granskade` och `tillat_ur_galleriet`.
+
+- **Givaren hittas via filen.** Valets `linkedMedia[0]` ligger i exakt ett dolt
+  utkasts galleri. SKU:n går inte att använda, eftersom den nya variantens SKU är
+  sidans plus färgen. Två dolda produkter med samma fil ger hindret `flera_givare`.
+  Är träffen inte givarens bild 1 blir det en varning.
+- **Butikens ägarregler** (headless-site `lib/variant-bilder.ts`, kopierade
+  ordagrant). Länkade bilder först. Kort och måttbilder (`arKort`) är gemensamma.
+  En olänkad bild som nämner exakt en färg hör till den, och övriga olänkade foton
+  hör till huvudbildens färg. En givares egen fil går före alt-texten. Ett foto
+  vars färg saknar länkad bild står kvar orört i galleriet. Efter skrivningen är
+  varje färgs bilder länkade.
+- **Wix 15 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
+  axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
+  som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
+  butiken kan läsa via `GET /api/fargbilder?pid=`. Den skapas vid första
+  användningen (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen
+  som använd.
+- ☠️ **Butiken läser inte tabellen än.** Ett foto som bara står i tabellen syns
+  alltså inte. Därför flyttas sidans egna foton aldrig ur galleriet utan
+  `tillat_ur_galleriet=ja` (hindret `ur_galleriet_kraver_butiken`). Givarbilder
+  som aldrig legat i galleriet sparas i tabellen ändå, de försvinner inte ur
+  något.
+- **Opolerad givare** (tyskt namn eller tom alt-text): bilder från position 2
+  skrivs inte utan `ta_med_granskade=ja` (Leonard granskar dem själv). De sparas
+  som `granskas`, så att städningen inte tar filerna, men butiken får dem inte.
+  Ett foto som redan ligger i sidans galleri flaggas aldrig, och en bild som
+  skrivits en gång granskas inte igen. ⚠️ `ta_med_granskade` når en redan skriven
+  sida bara via `sidor`, för urvalet tar bara sidor med givare kvar att flytta.
+- **Alt-text:** en svensk behålls. Annars blir den "<sidans namn> i färgen <färg>",
+  med ", bild N" från den andra.
+- **Hinder:** `ej_publicerad`, `saknar_fargaxel`, `flera_givare`, `ingen_givare`
+  (bara med `sidor`), `oppen_auktion` (bara `live`, eftersom kön har en rad per
+  produkt), `givare_publicerad`, `over_tak_redan`, `ur_galleriet_kraver_butiken`
+  och `plan_ogiltig`.
+
+☠️ **En länkad bild tappas aldrig, och ingen fil försvinner.** Varje bild ett val
+pekar på står kvar i galleriet, och varje färgs nya lista börjar med dess
+nuvarande (`kontrolleraPlan`). `skriv` kräver `bekrafta` = planens sha256, räknad
+om ur färska läsningar. Stegen:
+
+1. **Tabellen skrivs FÖRST**, obekräftad, och läses tillbaka. Stämmer den inte rörs Wix inte.
+   Varje fil planen rör står alltså i tabellen innan Wix ändras, och en
+   omkörning läser in tabellens rader.
+2. Galleriet skrivs ensamt. Bara olänkade foton kan falla ur det.
+3. Länkarna skrivs med options och variantsInfo ur GET:en och `visible`. Om
+   försöks bara vid 404 `PRODUCT_MEDIA_NOT_EXIST` eller 409, och bara när det
+   enda som avviker är länkarna (högst åtta gånger). Varje annat fel stoppar
+   direkt, med felet i svaret.
+4. Återläsning: galleriet, alt-texterna, varje vals lista, andra axlar,
+   synligheten, och varje variants synlighet, pris, SKU och val. En dold
+   variant som blivit synlig stoppar också. Vid första avvikelse stannar
+   körningen.
+5. Först nu sätts `wix_bekraftad_at` på sidans rader.
+
+☠️ **Rader utan `wix_bekraftad_at` betyder en halvskriven sida.** Tabellen
+skrevs i steg 1 men Wix föll därefter. Urvalet räknar bara bekräftade rader som
+skrivna, så en halvskriven sida väljs igen av `hogst` även när den inte har
+någon givare kvar. Planen räknar dem i `summa.halvskrivna`, och talet ska vara
+0 när `kandidaterTotalt` är 0. En ersättning av raderna nollställer
+bekräftelsen, och sammanslagningen bekräftar den nya färgens rader först efter
+sin egen återläsning.
+
+Ordningen före raderingen: kör `plan` för 10 sidor och titta, sedan `skriv`, och
+kör klart alla kandidater (`kandidaterTotalt` ska bli 0) innan
+`pensionerade-radera` körs. Det finns ingen spärr i raderingen (Leonards beslut
+2026-09-30), men tabellen skyddar filerna mot bildstädningen.
 
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 
@@ -2053,6 +2401,34 @@ miljöbild stryks inte längre, även när ett märke går att läsa i full stor
 leverantörens logotyp och fel färg stryks som förut. Bilder som ströks bara av det gamla skälet
 får läggas tillbaka, och skälet står per bild i rundornas `bilder-bort.tsv` och
 `granskning.tsv`. Regeln står i runbooken under *Behåll*.
+
+### Miljöbilden ska vara andra bilden (2026-10-01)
+
+Leonard: feedens position 2 är (nästan) alltid ett rent miljöfoto, och den ska vara
+andra bilden på varje publicerad Aosom-sida. På en sammanslagen sida ska varje färg ha
+sin egen artikels miljöbild, länkad till färgen och som andra bild i det butiken visar
+för färgen (galleriets ordning, filtrerad som `synligaBilder` i butikens
+`lib/variant-bilder.ts`, med valets första bild först).
+
+Workflowen **"Bilder — miljöbilden (feedens position 2) som andra bild på varje
+Aosom-sida"** → `/api/admin/aosom-livsbild` → `lib/aosom/livsbild.ts` har fyra lägen:
+`rapport` (status per sida eller färg), `kandidater` (laddar upp position 2 för
+granskning), `plan` och `skriv`. En flytt (`<wix-id>[:<val-id>]:flytta`) behöver ingen
+granskning; en infogning (`<wix-id>[:<val-id>]:<fil-id>`) tar bara en kandidat som en
+människa godkänt.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **`saknas` betyder att varje galleribild är spårad** till sin källa
+   (`aosomBildFiler`, annars Wix `sourceUrl`). Går någon inte att spåra blir det
+   `okand`, så att miljöbilden inte läggs dit två gånger.
+2. ☠️ **Huvudbilden och färgens första bild rörs aldrig**, och ingen bild faller ur
+   galleriet. En sida där miljöbilden är huvudbild (`ar_huvudbild`) lämnas.
+3. ☠️ **Skrivningen går stegvis som färgbilderna** (galleriet ensamt, sedan länkarna
+   med options + variantsInfo ordagrant och `visible`, sedan återläsning), kräver
+   planens sha och stannar vid första sida som inte läser tillbaka.
+4. ☠️ **Svaret bär bara Wix egna id och adresser.** Godkända kandidater måste skrivas
+   före bildstädningen 03:50 UTC.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -4047,6 +4423,28 @@ text ligger kvar. Hoppade strömmar RÄKNAS (`forStora`) — de tigs inte ihjäl
 varor utan tillverkarkod, och en GTIN hämtad från en konkurrents sajt är fel
 källa för ett fält som ska vara sant.
 
+#### ☠️ Energimärkningen finns inte heller i manualerna (2026-09-30)
+
+Leonards fråga: fyra publicerade torktumlare saknar energimärkning, "kolla
+produkt pdf om du kan hitta där". Workflowen **"Aosom — sök energimärkning i
+produktmanualer"** (`/api/admin/aosom-manual` → `lib/aosom/manual.ts`) slår upp
+sidans manualer i feeden, läser PDF:erna med text, OCR och QR-avläsning, och
+slår upp en EPREL-kod i EU:s publika databas.
+
+Uppmätt på alla sidor i fem manualer, som hör till tre av de publicerade
+torktumlarna och till de tre utkasten (utkasten delar en manual): **ingen
+energietikett, inget produktblad, ingen energiklass och ingen QR-kod alls.** Två av manualerna säger att
+ECO-programmet är det energietiketten avser, alltså finns en etikett, men den
+står inte i manualen. EPREL:s sökning kräver en API-nyckel (403), så varan går
+inte att hitta där på märket. Kvar är att fråga Aosom om EPREL-numren. Den
+fjärde publicerade torktumlaren är en AliExpress-sida och har ingen manual i
+feeden.
+
+☠️ **Manualens adress bär artikelnumret.** Den maskeras innan något skrivs ut,
+varje PDF-rad går genom `redigera`, och manualerna heter A, B, C i loggen, i
+stället för en hash eller en storlek i byte som hade gått att matcha mot
+Aosoms filer. Inget laddas upp som artefakt.
+
 ⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
 upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
 möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
@@ -4235,7 +4633,8 @@ leverantörsvärdar i `lib/wix/media-import.ts` kände bara AliExpress —
 med workflowen `review-image-repair.yml` (loopar `repairImages` i
 `/api/cron/review-translate`, 40 rader per anrop, stannar när inget minskar).
 Pending-rader behåller källadressen med flit — flytten sker när raden blir
-synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard).
+synlig. Wix Media hade 12 GB ledigt 2026-09-16 (Leonard). ☠️ Nya Aosom-foton
+skickas inte längre med i inläsningen — se omgång 5 nedan.
 
 **Nästa omgång: vilka produkter, och deras artikelnummer (2026-09-23).**
 Workflowen `aosom-reviews-kandidater.yml` svarar med SYNLIGA Aosom-produkter
@@ -4275,6 +4674,49 @@ som gäller nästa omgång:
 4. **Den publika recensionsrutten cachas.** Direkt efter inläsning svarade
    `/api/reviews/<id>` tomt för åtta produkter (gammalt CDN-svar); nästa
    anrop var rätt. Produktsidorna cachar i en timme (taggen `reviews`).
+
+**Omgång 5 (2026-09-30): 646 svenska texter på 204 produkter, 334 kundfoton.**
+318 produkter importerade sedan omgång 4, upp till fem texter per produkt.
+Lärdomar som gäller nästa omgång:
+
+1. ☠️ **Kundfotona följer INTE med i inläsningens nyttolast.** `imageUrls` i
+   `aosom-reviews-ingest` går via Wix Import File (`importImageToOwnMedia`),
+   som svarar direkt och hämtar senare. Ungefär var sjätte Aosom-bild slutar
+   FAILED i efterhand (Aosoms CDN anger fel Content-Type, eller `.heif` på en
+   JPEG), och raden pekar då på en död adress. Det var så de 1 358 raderna
+   tappade sina foton (återställda 2026-09-28/29, #687/#688). Gör i stället
+   så här: läs in texterna UTAN `imageUrls`, lägg fotona i en egen fil
+   `{"rader": [{productId, reviewIdAE, sourceImageUrls}]}` i samma tillfälliga
+   gren (högst tre foton per recension, `reviewIdAE` = `ensureReviewId` av
+   texten), och kör `aosom-review-image-restore.yml` på den efter
+   inläsningen, torrt och sedan skarpt. Rutten laddar ner källfotot, bestämmer
+   typen ur filens egna byte och skriver adressen först när Wix svarat READY.
+   En rad utan foto räknas som återställbar och en rad med fungerande foto rörs
+   aldrig, så körningen går att göra om. Utfall: 333 av 334 foton i första
+   körningen och det sista i en omkörning. Filerna saknar `sourceUrl`, så
+   mediastädningen kan aldrig radera dem.
+2. **Artikelnumren lämnar aldrig webbläsaren.** Kandidatlistan dekrypteras i
+   Leonards Chrome (WebCrypto med engångsnyckeln) och hämtningen körs där.
+   Till molnet går bara en indexnycklad export, i delar om 40 000 tecken via
+   sidtexten, och varje del kontrolleras med FNV-1a. JavaScript räknar
+   UTF-16-enheter, så jämför hashen och inte längden i Python. Texter som
+   innehåller ett kandidat-artikelnummer stryks redan i webbläsaren.
+3. **Originaltexten hamnar i en publik gren**, så en recension stryks helt om
+   originalet innehåller recensentens namn, en signatur ("Mit freundlichen
+   Grüßen" följt av ett namn) eller en kundtjänstpersons namn. Namnet går
+   inte att tvätta bort i översättningen. Hämtningen flaggar när recensentens
+   förnamn står i texten, och översättare och granskare fångar resten.
+4. **Nya strykregler i översättningen:** reklamton (produkttext med varumärke
+   och inget eget omdöme), en annan färg än titelns när färgen är poängen, ett
+   yngre barn än titelns åldersgräns och påståenden om tillverkningsland.
+   Hälsouppgifter ("gör som sjukgymnasten sa", "inte ont i ryggen längre")
+   stryks som diagnoser. Texterna kommer från Aosoms alla länder (de, fr, it,
+   es, pt, ro, en), och reglerna täcker dem.
+5. **Titlar som kunderna säger emot** (antiimma, mått, ram, glas eller
+   plexiglas, material, färg) listas för Leonard. Texten stryks, och titeln
+   ändras bara efter hans ja.
+6. **Tider:** inläsningen tog 59 s för 318 rader, och fotona 23 min för 215
+   rader.
 
 ## Recensioner daterade före 2021 visas inte (2026-09-23)
 

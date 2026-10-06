@@ -164,6 +164,7 @@ jobs:
           # bakom `visa_kostnad` — och `marginalen haller` sags alltid.
           echo "$svar" | jq -r '"  artikelnummer   (skrivs inte ut, ur \(if .skuKalla == "dubblett" then "dubblettens mappning" else "anropet" end))"'
           echo "$svar" | jq -r '.plan // {} | "  fran            \(.["frånLeverantör"])\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)"'
+          echo "$svar" | jq -r 'if .plan.aosomByte then "  byte inom Aosom ja: sidans gamla artikel sparras for importen" else empty end' || true
           # Kollapsen: valens namn och antal, som redan star pa sidan. Aldrig
           # nagot ur feeden.
           echo "$svar" | jq -r 'if .kollaps then .kollaps | "  behalls         \(.behallVal | join("/")) (\(.behallVariant))\n  tas bort        \([.borttagna[] | .val | join("/")] | join(", ")) (\(.borttagna | length) i Wix, \(.mappningsvarianterBort) i mappningen)\n  bilder          \(.bilderMedBorttagnaVal | length) kopplade till borttagna val (rors inte)\n  wix redan klar  \(.wixKlar)\n  oppna ordrar    \(.oppnaOrdrar)" else empty end' || true

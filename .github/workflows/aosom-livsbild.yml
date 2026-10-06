@@ -1,0 +1,349 @@
+name: Bilder — miljobilden (feedens position 2) som andra bild pa varje Aosom-sida
+
+# Leonard 2026-10-01: bilden pa feedens position 2 ar (nastan) alltid ett rent
+# miljofoto, och den ska vara ANDRA bilden pa varje publicerad Aosom-sida. Pa
+# en sammanslagen sida ska varje farg ha sin egen artikels miljobild som andra
+# bild i det butiken visar for fargen, och den ska vara lankad till fargen.
+# Logiken: lib/aosom/livsbild.ts.
+#
+#   rapport     (default) Laser katalogen. Skriver ingenting. Raknar per status
+#               och listar nycklar (wix-id, eller wix-id:val-id for en farg).
+#               Kor flera varv sjalv; tar varven slut star markoren i loggen,
+#               och nasta korning tar den i "efter".
+#   kandidater  Laddar upp position 2 till Media Manager for granskning, utan
+#               att rora produkten. par = nycklar ur rapporten. Torrkorning
+#               utan skarp.
+#   plan        par = atgarder (se nedan). Skriver ingenting. Ger planens sha.
+#   skriv       Kraver bekrafta = planens sha. Planen raknas om ur farska
+#               lasningar; har nagot andrats skrivs ingenting. Stannar vid
+#               forsta sida som inte laser tillbaka.
+#
+# Atgarderna i par (kommaseparerade, hogst 25):
+#   <wix-id>:flytta              har_annan_plats -> flytta bilden till plats tva
+#   <wix-id>:<val-id>:flytta     farg: har_annan_plats / i_galleriet_olankad
+#                                -> lanka den och flytta den till tva
+#   <wix-id>:<fil-id>            saknas -> infoga en GODKAND kandidat som tva
+#   <wix-id>:<val-id>:<fil-id>   farg: saknas -> infoga och lanka
+# En flytt behover ingen granskning (bilden sitter redan pa sidan). En
+# infogning behover en manniska som tittat: ingen inbrand tysk text, inget
+# marke, ingen logga.
+#
+# ☠️ GODKANDA KANDIDATER MASTE SKRIVAS FORE 03:50 UTC. Nattens bildstadning
+#    (/api/cron/aosom-media-cleanup) tar varje Aosom-fil som inte sitter pa
+#    nagon produkt. Det ar meningen for de underkanda; en godkand som inte
+#    hann skrivas laddas upp igen med mode=kandidater.
+# ☠️ "saknas" betyder att varje galleribild ar sparad till sin kalla. "okand"
+#    betyder att nagon bild inte gick att spara -- titta pa sidan innan en
+#    kandidat laggs dit, annars kan miljobilden hamna dar tva ganger.
+# ☠️ Huvudbilden rors aldrig, inte heller en fargs forsta bild. ar_huvudbild
+#    lamnas som den ar.
+# ☠️ Loggen ar PUBLIK. Svaret bar bara wix-id, val-id, Wix egna fil-id och
+#    adresser, raknare och hinderkoder -- aldrig artikelnummer eller
+#    leverantorens adresser.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "rapport · kandidater · plan · skriv · plan_och_skriv"
+        required: true
+        default: "rapport"
+        type: choice
+        options:
+          - rapport
+          - kandidater
+          - plan
+          - skriv
+          - plan_och_skriv
+      efter:
+        description: "rapport: markoren ur en tidigare korning (tomt = borja fran borjan)."
+        required: false
+        default: ""
+        type: string
+      par:
+        description: "kandidater: nycklar ur rapporten. plan/skriv: atgarder (se filhuvudet), kommaseparerade."
+        required: false
+        default: ""
+        type: string
+      skarp:
+        description: "kandidater: ladda upp pa riktigt (annars torrkorning)."
+        required: false
+        default: false
+        type: boolean
+      bekrafta:
+        description: "skriv: planens sha (64 hextecken) fran en plan med EXAKT samma par."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  livsbild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      # Ett wix-id ar publikt, men ett artikelnummer som klistrats i fel falt
+      # hade statt i nasta stegs env-block. Maskeras i ett EGET steg, och
+      # vardet lases ur handelsen, inte via ett uttryck.
+      - name: Maskera
+        run: |
+          jq -r '.inputs.par // ""' "$GITHUB_EVENT_PATH" \
+            | perl -ne 'print "::add-mask::$1\n" while /\b((?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*)\b/gi'
+          exit 0
+
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          EFTER: ${{ inputs.efter }}
+          PAR: ${{ inputs.par }}
+          SKARP: ${{ inputs.skarp }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # TILL STDERR -- en ::error::-rad pa stdout slukas av en
+            # kommandosubstitution.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-livsbild"
+
+          posta() {
+            curl -sS -w '\n%{http_code}' --max-time 295 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              -d "$1" "${url}"
+          }
+          avbryt() {
+            echo "::error::HTTP ${1}: $(printf '%s' "$2" | jq -r '.error // "se Vercel-loggen"' 2>/dev/null || echo "se Vercel-loggen")" >&2
+            exit 1
+          }
+          par="$(printf '%s' "${PAR:-}" | tr ';\t\r\n' ',,,,' | tr -d ' ')"
+
+          # -- rapport: varv tills katalogen ar slut --
+          if [ "${MODE}" = "rapport" ]; then
+            efter="$(printf '%s' "${EFTER:-}" | tr -d ' \n\r')"
+            summa='{"granskade":0,"rader":0,"sidor":0,"raknare":{},"ids":{"har_annan_plats":[],"ar_huvudbild":[],"i_galleriet_olankad":[],"saknas":[],"okand":[]},"oharleddaBilder":0}'
+            nasta=""
+            for varv in $(seq 1 12); do
+              kropp="$(jq -nc --arg efter "$efter" '{lage: "rapport"} + (if $efter == "" then {} else {efter: $efter} end)')"
+              svar="$(posta "$kropp")"
+              kod="$(printf '%s' "$svar" | tail -n1)"
+              body="$(printf '%s' "$svar" | sed '$d')"
+              if [ "$kod" != "200" ] || [ "$(printf '%s' "$body" | jq -r '.ok' 2>/dev/null)" != "true" ]; then
+                if [ -n "$efter" ]; then echo "Kor om med efter=${efter}" >&2; fi
+                avbryt "$kod" "$body"
+              fi
+              # HELA jq-PROGRAMMET INDENTERAT -- en rad med mindre indrag an
+              # blocket avslutar YAML:ens run.
+              # Via filer, inte --argjson: summan vaxer med varje varv, och
+              # 2026-10-01 dog forsta skarpa rapporten pa "Argument list too long".
+              printf '%s' "$summa" > "$RUNNER_TEMP/summa.json"
+              printf '%s' "$body" > "$RUNNER_TEMP/body.json"
+              summa="$(jq -nc --slurpfile A "$RUNNER_TEMP/summa.json" --slurpfile B "$RUNNER_TEMP/body.json" '$A[0] as $a | $B[0] as $b |
+                {
+                  granskade: ($a.granskade + $b.granskade),
+                  rader: ($a.rader + $b.rader),
+                  sidor: ($a.sidor + $b.sidor),
+                  raknare: (reduce ($b.raknare | to_entries[]) as $e ($a.raknare; .[$e.key] = ((.[$e.key] // 0) + $e.value))),
+                  ids: (reduce ($b.ids | to_entries[]) as $e ($a.ids; .[$e.key] = ((.[$e.key] // []) + $e.value))),
+                  oharleddaBilder: ($a.oharleddaBilder + $b.oharleddaBilder)
+                }')"
+              nasta="$(printf '%s' "$body" | jq -r '.nasta // ""')"
+              echo "varv ${varv}: $(printf '%s' "$body" | jq -r '"\(.granskade) synliga, \(.rader) rader pa \(.sidor) sidor, stopp \(.stoppadAv)"')"
+              if [ -z "$nasta" ]; then break; fi
+              efter="$nasta"
+            done
+
+            {
+              echo "### Miljobilden (feedens position 2) — rapport"
+              echo ""
+              printf '%s\n' "$summa" | jq -r '
+                def lista($k): (.ids[$k] // []) as $l | "**\($k) (\($l | length)):** \($l | map("`\(.)`") | join(" "))";
+                "| | |\n|---|---:|",
+                "| synliga produkter | \(.granskade) |",
+                "| rader (sida, eller farg pa en sammanslagen) | \(.rader) |",
+                "| **har den som andra bild** | **\(.raknare.har_som_tva // 0)** |",
+                "| har den pa annan plats (flytta) | \(.raknare.har_annan_plats // 0) |",
+                "| ar huvudbilden (lamnas) | \(.raknare.ar_huvudbild // 0) |",
+                "| i galleriet men inte lankad till fargen (flytta) | \(.raknare.i_galleriet_olankad // 0) |",
+                "| **saknas** (varje bild sparad) | **\(.raknare.saknas // 0)** |",
+                "| okand (nagon bild gick inte att spara) | \(.raknare.okand // 0) |",
+                (.raknare | to_entries[] | select(.key | test("^(har_|ar_|i_galleriet|saknas$|okand$)") | not) | "| hinder: \(.key) | \(.value) |"),
+                "| galleribilder utan kand kalla | \(.oharleddaBilder) |",
+                "",
+                lista("har_annan_plats"), "", lista("i_galleriet_olankad"), "", lista("saknas"), "",
+                lista("okand"), "", lista("ar_huvudbild"),
+                "",
+                "> Flytta: mode=plan, par = nyckel:flytta. Saknas: mode=kandidater med nycklarna, granska, sedan plan med nyckel:fil-id."
+              ' || true
+              if [ -n "$nasta" ]; then
+                echo ""
+                echo "> Varven tog slut. Fortsatt med mode=rapport och efter=\`${nasta}\`"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            printf '%s\n' "$summa" | jq -r '
+              "synliga \(.granskade), rader \(.rader): som_tva \(.raknare.har_som_tva // 0), annan_plats \(.raknare.har_annan_plats // 0), huvudbild \(.raknare.ar_huvudbild // 0), olankad \(.raknare.i_galleriet_olankad // 0), saknas \(.raknare.saknas // 0), okand \(.raknare.okand // 0), oharledda bilder \(.oharleddaBilder)",
+              "hinder: \([.raknare | to_entries[] | select(.key | test("^(har_|ar_|i_galleriet|saknas$|okand$)") | not) | "\(.key) \(.value)"] | join(", "))",
+              "ANNAN_PLATS \(.ids.har_annan_plats | join(","))",
+              "OLANKAD \(.ids.i_galleriet_olankad | join(","))",
+              "SAKNAS \(.ids.saknas | join(","))",
+              "OKAND \(.ids.okand | join(","))",
+              "HUVUDBILD \(.ids.ar_huvudbild | join(","))"
+            '
+            if [ -n "$nasta" ]; then
+              echo "::warning::Varven tog slut med katalogen kvar. Fortsatt med efter=${nasta}"
+            fi
+            exit 0
+          fi
+
+          if [ -z "$par" ]; then
+            echo "::error::par saknas" >&2
+            exit 1
+          fi
+
+          # -- kandidater: varv tills alla mal ar tagna --
+          if [ "${MODE}" = "kandidater" ]; then
+            alla="$(printf '%s' "$par" | tr ',' '\n' | sed '/^$/d' | jq -R . | jq -sc .)"
+            # Rutten tar hogst 50 mal per anrop; resten vantar i en ko.
+            ko="$(printf '%s' "$alla" | jq -c '.[50:]')"
+            kvar="$(printf '%s' "$alla" | jq -c '.[:50]')"
+            torr=true
+            if [ "${SKARP}" = "true" ]; then torr=false; fi
+            uppladdade=0
+            missar=0
+            echo "### Miljobilden — kandidater$(if [ "$torr" = "true" ]; then echo " (torrkorning)"; fi)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            for varv in $(seq 1 40); do
+              kropp="$(jq -nc --argjson mal "$kvar" --argjson torr "$torr" '{lage: "kandidater", mal: $mal, dryRun: $torr}')"
+              svar="$(posta "$kropp")"
+              kod="$(printf '%s' "$svar" | tail -n1)"
+              body="$(printf '%s' "$svar" | sed '$d')"
+              if [ "$kod" != "200" ]; then avbryt "$kod" "$body"; fi
+              printf '%s\n' "$body" | jq -r '
+                .rader[] |
+                (if .val then "\(.id):\(.val)" else .id end) as $n |
+                if .hinder then "HINDER \($n) \(.hinder)"
+                elif .kandidat then "KANDIDAT \($n) \(.kandidat.fileId) \(.kandidat.url)"
+                elif .miss then "MISS \($n)"
+                else "MAL \($n)" end
+              ' | tee -a "$GITHUB_STEP_SUMMARY"
+              uppladdade=$((uppladdade + $(printf '%s' "$body" | jq '.uppladdade')))
+              missar=$((missar + $(printf '%s' "$body" | jq '.missar')))
+              kvar="$(printf '%s' "$body" | jq -c '.kvar')"
+              if [ "$(printf '%s' "$kvar" | jq 'length')" = "0" ]; then
+                if [ "$(printf '%s' "$ko" | jq 'length')" = "0" ]; then break; fi
+                kvar="$(printf '%s' "$ko" | jq -c '.[:50]')"
+                ko="$(printf '%s' "$ko" | jq -c '.[50:]')"
+              fi
+            done
+            echo "Uppladdade: ${uppladdade} · missar: ${missar} · kvar: $(printf '%s' "$kvar" | jq 'length')" | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$(printf '%s' "$kvar" | jq 'length')" != "0" ]; then
+              echo "::error::Varven tog slut med mal kvar — kor om med dem" >&2
+              exit 1
+            fi
+            if [ "$missar" != "0" ]; then echo "::warning::${missar} bilder gick inte att ladda upp"; fi
+            exit 0
+          fi
+
+          # -- plan_och_skriv: planen och skrivningen i samma korning --
+          # Listan delas i omgangar om hogst 25 par, utan att en sidas par
+          # delas. For varje omgang: plan, sedan skriv med planens sha. Rutten
+          # raknar om planen ur farska lasningar och vagrar om sidan andrats,
+          # sa sha-sparren galler som vid tva separata korningar. Forsta fel
+          # stoppar allt.
+          if [ "${MODE}" = "plan_och_skriv" ]; then
+            printf '%s' "$par" | tr ',' '\n' | sed '/^$/d' | jq -R . | jq -sc '
+              reduce .[] as $p ({g: [], idx: {}};
+                ($p | split(":")[0]) as $id |
+                if .idx[$id] == null then .idx[$id] = (.g | length) | .g += [[$p]]
+                else .g[.idx[$id]] += [$p] end)
+              | .g
+              | reduce .[] as $grupp ([];
+                  if length > 0 and ((.[-1] | length) + ($grupp | length)) <= 25
+                  then .[-1] += $grupp else . + [$grupp] end)
+            ' > "$RUNNER_TEMP/omgangar.json"
+            antal="$(jq 'length' "$RUNNER_TEMP/omgangar.json")"
+            echo "### Miljobilden — plan_och_skriv (${antal} omgangar)" >> "$GITHUB_STEP_SUMMARY"
+            skrivna=0
+            for i in $(seq 0 $((antal - 1))); do
+              omg="$(jq -r --argjson i "$i" '.[$i] | join(",")' "$RUNNER_TEMP/omgangar.json")"
+              svar="$(posta "$(jq -nc --arg par "$omg" '{lage: "plan", par: $par}')")"
+              kod="$(printf '%s' "$svar" | tail -n1)"; body="$(printf '%s' "$svar" | sed '$d')"
+              if [ "$kod" != "200" ]; then echo "omgang $((i + 1)): planen foll"; avbryt "$kod" "$body"; fi
+              sha="$(printf '%s' "$body" | jq -r '.sha')"
+              printf '%s\n' "$body" | jq -r --arg o "$((i + 1))" '
+                "omgang \($o): plan \(.produkter | length) sidor, andras \(.skrivbara)",
+                (.produkter[] | select(.hinder) | "  HINDER \(.id) \(.hinder)"),
+                (.produkter[] | .id as $id | .atgarder[] | select(.hinder) | "  HINDER \($id):\(.val // "sida") \(.hinder)")'
+              if [ "$(printf '%s' "$body" | jq '.skrivbara')" = "0" ]; then continue; fi
+              svar="$(posta "$(jq -nc --arg par "$omg" --arg sha "$sha" '{lage: "skriv", par: $par, bekrafta: $sha}')")"
+              kod="$(printf '%s' "$svar" | tail -n1)"; body="$(printf '%s' "$svar" | sed '$d')"
+              printf '%s\n' "$body" | jq -r '
+                (.utfall[]? | select(.ok | not) | "  FEL \(.id): \(.fel // "")"),
+                "  skrivna \(.skrivna // 0), stopp \(.stoppadAv // "-")\(if ((.kvar // []) | length) > 0 then ", KVAR \(.kvar | join(","))" else "" end)"' || true
+              if [ "$kod" != "200" ]; then avbryt "$kod" "$body"; fi
+              n="$(printf '%s' "$body" | jq '.skrivna // 0')"
+              skrivna=$((skrivna + n))
+              if [ "$(printf '%s' "$body" | jq '(.utfall // []) | map(select(.ok | not)) | length')" != "0" ] \
+                || [ "$(printf '%s' "$body" | jq '(.kvar // []) | length')" != "0" ]; then
+                echo "::error::Omgang $((i + 1)) stannade — kor om resten" >&2
+                echo "Skrivna sidor totalt: ${skrivna}" | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            done
+            echo "Skrivna sidor totalt: ${skrivna}" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # -- plan och skriv --
+          if [ "${MODE}" = "skriv" ] && ! printf '%s' "${BEKRAFTA:-}" | grep -Eq '^[0-9a-f]{64}$'; then
+            echo "::error::skriv kraver bekrafta = planens sha (kor plan forst)" >&2
+            exit 1
+          fi
+          kropp="$(jq -nc --arg lage "$MODE" --arg par "$par" --arg sha "${BEKRAFTA:-}" \
+            '{lage: $lage, par: $par} + (if $lage == "skriv" then {bekrafta: $sha} else {} end)')"
+          svar="$(posta "$kropp")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          body="$(printf '%s' "$svar" | sed '$d')"
+
+          {
+            echo "### Miljobilden — ${MODE}"
+            echo ""
+            printf '%s\n' "$body" | jq -r '
+              if .produkter then
+                "**sha:** `\(.sha)` · sidor \(.produkter | length) · andras \(.skrivbara)",
+                "",
+                "| wix-id | galleri fore → efter | lankar | atgarder | hinder |",
+                "|---|---|---:|---|---|",
+                (.produkter[] | "| `\(.id)` | \(.bilderFore) → \(.bilderEfter) | \(.lankarAndras) | \([.atgarder[] | "\(.val // "sida") \(.typ) \(.kalla)\(if .hinder then " HINDER \(.hinder)" else "" end)"] | join("; ")) | \(.hinder // "") |")
+              else empty end
+            ' || true
+            printf '%s\n' "$body" | jq -r '
+              if .lage == "skriv" and .utfall then
+                "",
+                "**Skrivna: \(.skrivna), stopp: \(.stoppadAv)\(if (.kvar | length) > 0 then ", kvar: \(.kvar | join(" "))" else "" end)**",
+                "",
+                (.utfall[] | "- `\(.id)` \(if .ok then "ok" else "FEL" end): \(.steg | join(" · "))\(if .fel then " — \(.fel)" else "" end)")
+              else empty end
+            ' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          printf '%s\n' "$body" | jq -r '
+            if .produkter then
+              "sidor \(.produkter | length), andras \(.skrivbara)\(if .lage == "skriv" then ", skrivna \(.skrivna), stopp \(.stoppadAv)" else "" end)",
+              "sha \(.sha)",
+              (.produkter[] | "  \(.id): galleri \(.bilderFore) -> \(.bilderEfter), lankar \(.lankarAndras)\(if .hinder then ", HINDER \(.hinder)" else "" end)",
+                (.atgarder[] | "    \(.val // "sida") \(.typ) kalla \(.kalla)\(if .hinder then " HINDER \(.hinder)" else "" end)")),
+              (.utfall[]? | "  skriv \(.id): \(if .ok then "ok" else "FEL" end) \(.steg | join(" | ")) \(.fel // "")"),
+              (if (.kvar | length) > 0 then "KVAR (tidsbudgeten) \(.kvar | join(","))" else empty end)
+            else empty end
+          ' || true
+
+          if [ "$kod" != "200" ]; then avbryt "$kod" "$body"; fi
+          if [ "${MODE}" = "plan" ]; then
+            echo "> Skriv: kor igen med mode=skriv, samma par och bekrafta=$(printf '%s' "$body" | jq -r '.sha')" >> "$GITHUB_STEP_SUMMARY"
+          fi

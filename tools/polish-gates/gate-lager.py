@@ -20,8 +20,9 @@ Talet är därmed också en daterad anteckning om vad som gällde vid urvalet.
 
 ☠️ ETT SALDO PÅ ELLER UNDER LAGER_BUFFERT ÄR SLUTSÅLT FÖR KUNDEN, INTE BARA
 "TUNT". `lib/aosom/sync.ts`s `synligtSaldo()` drar av `LAGER_BUFFERT` innan
-saldot visas i butiken — ett Aosom-saldo på 1, 2 eller 3 renderas alltså som
-0 och sidan säger "Slutsåld" från sekunden den publiceras. Uppmätt i runda
+saldot visas i butiken — med bufferten 3, som gällde till 2026-10-01,
+renderades ett Aosom-saldo på 1, 2 eller 3 alltså som 0 och sidan sa
+"Slutsåld" från sekunden den publicerades. Uppmätt i runda
 N28 (2026-09-19): två kandidater med saldo 1 (en takfläkt, en sideboard)
 skulle ha passerat den GAMLA gränsen (`saldo[kort] < TUNT`, fail bara vid
 <= 0) som en ofarlig varning — "tunt, men köpbart" — trots att ingen kund
@@ -29,7 +30,8 @@ någonsin hade kunnat lägga varan i kundvagnen. Den gamla varningstexten var
 alltså sakligt fel för just det spannet. `LAGER_BUFFERT` speglas här som ett
 tal, inte importeras (Python når inte in i `lib/`) — ändras konstanten i
 `sync.ts` måste den här följa med, samma disciplin som `SHIP_AXIS_RE` och
-`EU_TULL_CODES`.
+`EU_TULL_CODES`. (Sedan rättelsen nedan speglas talet inte längre: grinden
+läser Wix-saldot, som redan är buffrat.)
 
 ☠️ RÄTTELSE 2026-09-27: SALDOT I WIX ÄR REDAN BUFFRAT. Stycket ovan gäller
 LEVERANTÖRENS siffra, men runbooken läser saldot ur Wix
@@ -46,10 +48,11 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-lager.py
 """
 import io, os, sys
 
-# Wix-saldot är redan minskat med synkens LAGER_BUFFERT (3), se rättelsen
-# ovan. Feeden uppdateras tre gånger per dygn, så ett lågt saldo är äkta men
-# tunt: varan går att köpa, men kan sälja slut innan nästa synk. Det är en
-# varning, inte ett stopp.
+# Wix-saldot är redan minskat med synkens LAGER_BUFFERT, se rättelsen ovan.
+# Bufferten är 1 sedan 2026-10-01 (Leonards beslut, 3 före dess), och synken
+# drar dessutom av sålda men ännu inte beställda enheter. Feeden uppdateras tre
+# gånger per dygn, så ett lågt saldo är äkta men tunt: varan går att köpa, men
+# kan sälja slut innan nästa synk. Det är en varning, inte ett stopp.
 TUNT = 5
 
 

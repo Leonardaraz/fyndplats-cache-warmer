@@ -129,7 +129,7 @@ describe("bygg-skrivplan.py kör grindarna först", () => {
   const B19 = resolve(__dirname, "../../tools/polish-assets/runda-b19-aldsta");
   const SHA = "f6914bc0cc858b035ba7b9712d98cefd53051eb82aa774503beaf94a794d793a";
 
-  function bygg(andra: (dir: string) => void): { ut: string; kod: number; sha: string } {
+  function bygg(andra: (dir: string) => void): { ut: string; kod: number; sha: string; dir: string } {
     katalog = mkdtempSync(join(tmpdir(), "runda-b19-kopia-"));
     // Katalognamnet blir plannamnet, så kopian måste heta som originalet.
     const dir = join(katalog, "runda-b19-aldsta");
@@ -144,7 +144,7 @@ describe("bygg-skrivplan.py kör grindarna först", () => {
       ut = (e.stdout ?? "") + (e.stderr ?? ""); kod = e.status ?? 1;
     }
     const sha = /plan_sha256: ([0-9a-f]{64})/.exec(ut)?.[1] ?? "";
-    return { ut, kod, sha };
+    return { ut, kod, sha, dir };
   }
 
   it("bygger B19:s kända plan när alla grindar är rena", () => {
@@ -162,6 +162,38 @@ describe("bygg-skrivplan.py kör grindarna först", () => {
     expect(r.kod).toBe(1);
     expect(r.ut).toMatch(/gate-lager\.py: FÖLL/);
     expect(r.sha).toBe("");
+  });
+
+  // En sammanslagen sida (2026-09-30): ingen rad i sku.tsv eller variant.tsv,
+  // och planen bär `varianter` i stället för sku och variantId.
+  function somSammanslagen(dir: string, behallSku = false) {
+    const forsta = readFileSync(join(dir, "ids.tsv"), "utf-8").split("\t")[0];
+    writeFileSync(join(dir, "sammanslagna.tsv"), `${forsta}\t2\n`);
+    const filer = behallSku ? ["variant.tsv"] : ["sku.tsv", "variant.tsv"];
+    for (const fil of filer) {
+      const rader = readFileSync(join(dir, fil), "utf-8").split("\n").filter((r) => !r.startsWith(`${forsta}\t`));
+      writeFileSync(join(dir, fil), rader.join("\n"));
+    }
+    return forsta;
+  }
+
+  it("bygger en sammanslagen sida med antal varianter och utan SKU", () => {
+    let kort = "";
+    const r = bygg((dir) => { kort = somSammanslagen(dir); });
+    expect(r.kod).toBe(0);
+    const plan = JSON.parse(readFileSync(join(r.dir, "skrivplan.json"), "utf-8"));
+    const p = plan.produkter.find((x: { kort: string }) => x.kort === kort);
+    expect(p.varianter).toBe(2);
+    expect(p.sku).toBeUndefined();
+    expect(p.variantId).toBeUndefined();
+    // De andra produkterna är oförändrade.
+    expect(plan.produkter.filter((x: { sku?: string }) => x.sku).length).toBe(plan.produkter.length - 1);
+  });
+
+  it("☠️ vägrar en sammanslagen sida som ändå har en SKU-rad", () => {
+    const r = bygg((dir) => { somSammanslagen(dir, true); });
+    expect(r.kod).toBe(1);
+    expect(r.ut).toMatch(/får ingen rad i sku\.tsv/);
   });
 
   it("bygger samma plan när fyndet är kvitterat med ett skäl", () => {

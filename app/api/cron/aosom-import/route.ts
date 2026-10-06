@@ -39,12 +39,22 @@
 //                        RENA_BILDPOSITIONER; 46 % av feedens bilder bär tysk
 //                        text inbränd, och den sitter mätbart på 4-7)
 //   ?bilder=1,2,9        egna positioner
+//   ?syskonTill=<wix-id> bara feedens färg- och storlekssyskon till den sidan
+//                        (lib/aosom/syskon-import.ts). Frakttunga rader tas med,
+//                        för en människa har valt familjen. Svaret bär
+//                        `syskon` utan artikelnummer. Går inte ihop med
+//                        `after` eller `sku`.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { forseglaMarkor, MarkorFel, oppnaMarkor } from "@/lib/aosom/markor";
 import { audit } from "@/lib/audit";
 import { runAosomImport, liveDeps } from "@/lib/aosom/import-run";
+import { aosomArtiklarPaRaden } from "@/lib/aosom/artiklar";
+import { getStore } from "@/lib/store/factory";
+import { isAosomMapping } from "@/lib/store/supplier";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -103,14 +113,43 @@ async function handle(req: NextRequest) {
     .map((s) => s.trim())
     .filter(Boolean);
 
+  // Syskonläget tar en SIDA, inte ett artikelnummer — numret passerar då
+  // aldrig en workflow-input eller en logg.
+  const syskonTillId = (req.nextUrl.searchParams.get("syskonTill") ?? "").trim().toLowerCase();
+  let syskonTill: string[] | undefined;
+  if (syskonTillId) {
+    if (!UUID.test(syskonTillId)) {
+      return NextResponse.json({ ok: false, error: "syskonTill ska vara ett produkt-id (uuid)" }, { status: 400 });
+    }
+    if (after || onlySkus.length) {
+      return NextResponse.json({ ok: false, error: "syskonTill går inte ihop med after eller sku" }, { status: 400 });
+    }
+    const m = await getStore().getMappingByWixProductId(syskonTillId);
+    if (!m) {
+      return NextResponse.json({ ok: false, error: "ingen mappning för sidan" }, { status: 404 });
+    }
+    if (!isAosomMapping(m)) {
+      return NextResponse.json(
+        { ok: false, error: "inte en Aosom-sida — ange en Aosom-sida eller ett Aosom-utkast i samma familj" },
+        { status: 400 },
+      );
+    }
+    syskonTill = aosomArtiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] });
+    if (syskonTill.length === 0) {
+      return NextResponse.json({ ok: false, error: "sidan bär ingen artikel" }, { status: 404 });
+    }
+  }
+
   try {
     const summary = await runAosomImport(await liveDeps(), {
       dryRun,
       limit,
       after,
-      skipFreightHeavy,
+      // En familj är en människas val: den frakttunga raden tas med.
+      skipFreightHeavy: syskonTill ? false : skipFreightHeavy,
       delayMs,
       onlySkus: onlySkus.length ? onlySkus : undefined,
+      syskonTill,
       bildpositioner: bildpositioner?.length ? bildpositioner : undefined,
       timeBudgetMs: TIME_BUDGET_MS,
     });
@@ -120,11 +159,13 @@ async function handle(req: NextRequest) {
         "aosom-import",
         "batch",
         `${summary.imported} produkter importerade som utkast, ${summary.failed} fel, `
-          + `${summary.remaining} kvar (stopp: ${summary.stoppedBy})`,
+          + `${summary.remaining} kvar (stopp: ${summary.stoppedBy})`
+          + (syskonTill ? ` — syskon till ${syskonTillId}` : ""),
       );
     }
 
-    const cursor = forseglaMarkor(summary.cursor, hemlighet);
+    // Syskonläget har ingen markör att fortsätta från: en familj ryms i ett anrop.
+    const cursor = syskonTill ? null : forseglaMarkor(summary.cursor, hemlighet);
 
     return NextResponse.json(
       {

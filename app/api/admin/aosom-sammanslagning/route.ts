@@ -35,6 +35,7 @@ import {
   type SammanslagningInput,
 } from "@/lib/aosom/sammanslagning";
 import { getReviewStore } from "@/lib/store/reviews";
+import { getFargbildLager } from "@/lib/store/fargbilder";
 import { listRedirects, upsertRedirect } from "@/lib/wix/redirects";
 import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
 import { felText } from "@/lib/polish/skrivplan";
@@ -111,6 +112,8 @@ export async function POST(req: NextRequest) {
         },
         // En order som ännu inte lagts hos Aosom läser artikeln ur givarens
         // mappning. Pensioneras givaren innan den lagts går den inte att lägga.
+        // Den nya färgens bilder utöver Wix 15 (lib/aosom/fargbilder.ts).
+        fargbilder: getFargbildLager(),
         oppnaOrdrar: async (id) => (await store.listTasks())
           .filter((t) => t.wixCatalogItemId === id && (t.status === "pending" || t.status === "pending_payment"))
           .length,
