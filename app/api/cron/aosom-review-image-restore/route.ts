@@ -12,9 +12,8 @@
 
 import { NextResponse } from "next/server";
 import { getReviewStore } from "@/lib/store/reviews";
+import { arAosomCdn, importeraOchBekrafta } from "@/lib/wix/bekraftad-bild";
 import {
-  bildtypUrSignatur,
-  medAndelse,
   restoreReviewImages,
   tolkaMål,
   type RestoreDeps,
@@ -24,7 +23,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const WIX_BASE = "https://www.wixapis.com";
 /**
  * Ny rad tas inte efter så här lång tid — marginal till maxDuration. Lägre än
  * första körningens 230 s: nu går varje foto (upp till ~9 MB) genom funktionen
@@ -40,22 +38,6 @@ function authorized(req: Request): boolean {
   return req.headers.get("authorization") === `Bearer ${secret}`;
 }
 
-function wixHeaders(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const h: Record<string, string> = { "Content-Type": "application/json", Authorization: token };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
-}
-
-const sov = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-
-/** Aosoms bild-CDN — den enda värd rutten hämtar ifrån. */
-const AOSOM_VARD = "img.aosomcdn.com";
-/** Wix tar bilder upp till 25 MB; de största källfotona vi mätt är ~9 MB. */
-const MAX_BYTE = 20 * 1024 * 1024;
-
 /** Lever adressen? Wix CDN svarar 403 för en fil som inte finns. */
 async function lever(url: string): Promise<boolean | null> {
   try {
@@ -69,100 +51,6 @@ async function lever(url: string): Promise<boolean | null> {
   } catch {
     return null;
   }
-}
-
-/** Källfotots byte, eller null. Bara Aosoms CDN, högst MAX_BYTE. */
-async function hämtaKälla(källa: string): Promise<Uint8Array<ArrayBuffer> | null> {
-  // tolkaMål släpper bara igenom Aosoms CDN — men den här funktionen hämtar
-  // vad den får, så kontrollen upprepas här och på slutadressen efter omdirigering.
-  const värd = (u: string) => { try { return new URL(u).hostname; } catch { return ""; } };
-  if (värd(källa) !== AOSOM_VARD) return null;
-  try {
-    const res = await fetch(källa, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(30_000) });
-    if (!res.ok || värd(res.url || källa) !== AOSOM_VARD) { await res.body?.cancel(); return null; }
-    if (Number(res.headers.get("content-length") ?? 0) > MAX_BYTE) { await res.body?.cancel(); return null; }
-    const b = new Uint8Array(await res.arrayBuffer());
-    return b.byteLength > 0 && b.byteLength <= MAX_BYTE ? b : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Väntar tills Wix bearbetat filen: true = READY, false = FAILED eller för länge. */
-async function väntaPåKlar(id: string): Promise<boolean> {
-  const gräns = Date.now() + 30_000;
-  while (Date.now() < gräns) {
-    await sov(1500);
-    const res = await fetch(
-      `${WIX_BASE}/site-media/v1/files/get-file-by-id?fileId=${encodeURIComponent(id)}`,
-      { headers: wixHeaders() },
-    );
-    if (res.status === 429) { await sov(2000); continue; }
-    if (!res.ok) continue;
-    const data = (await res.json().catch(() => ({}))) as { file?: { operationStatus?: string } };
-    const status = data.file?.operationStatus;
-    if (status === "READY") return true;
-    if (status === "FAILED") return false;
-  }
-  return false;
-}
-
-/**
- * Hämtar källfotot, laddar upp det till Wix Media och returnerar adressen
- * FÖRST när filen är klar.
- *
- * VARFÖR INTE Import File (som första körningen använde, 2026-09-28). Wix
- * import hämtar källan själv och tror på värdens Content-Type. För 95 rader
- * skickade Aosoms CDN fel typ eller en .heif-ändelse på en JPEG, och varje
- * import slutade FAILED. Här bestäms typen av filens egna byte
- * (`bildtypUrSignatur`) och filen laddas upp via Generate File Upload URL med
- * rätt typ och ändelse.
- *
- * En uppladdad fil saknar `sourceUrl`, och mediastädningen rör aldrig en fil
- * utan källadress (lib/aosom/media-cleanup.ts, `arVarFil`). De här fotona kan
- * alltså inte städas bort igen.
- *
- * ☠️ Uppladdningen är asynkron som importen: ett lyckat svar betyder inte att
- * filen är klar. Att spara adressen utan att vänta på READY är precis hur en
- * död länk ser frisk ut i lagret.
- */
-async function importeraOchBekrafta(källa: string, namn: string): Promise<string | null> {
-  const byte = await hämtaKälla(källa);
-  if (!byte) return null;
-  const typ = bildtypUrSignatur(byte);
-  if (!typ) return null;
-
-  let uppladdning: string | undefined;
-  for (let försök = 0; försök < 3 && !uppladdning; försök++) {
-    const res = await fetch(`${WIX_BASE}/site-media/v1/files/generate-upload-url`, {
-      method: "POST",
-      headers: wixHeaders(),
-      body: JSON.stringify({ mimeType: typ.mime, fileName: medAndelse(namn, typ.andelse), private: false }),
-    });
-    if (res.status === 429) { await sov(3000 * (försök + 1)); continue; }
-    if (!res.ok) return null;
-    const data = (await res.json().catch(() => ({}))) as { uploadUrl?: string };
-    uppladdning = data.uploadUrl;
-  }
-  if (!uppladdning?.startsWith("https://")) return null;
-
-  let fil: { id?: string; url?: string; operationStatus?: string } | undefined;
-  try {
-    const res = await fetch(uppladdning, {
-      method: "PUT",
-      headers: { "Content-Type": typ.mime },
-      body: new Blob([byte], { type: typ.mime }),
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!res.ok) { await res.body?.cancel(); return null; }
-    fil = ((await res.json().catch(() => ({}))) as { file?: typeof fil }).file;
-  } catch {
-    return null;
-  }
-  if (!fil?.id || !fil.url || !fil.url.startsWith("https://static.wixstatic.com/")) return null;
-  if (fil.operationStatus === "READY") return fil.url;
-  if (fil.operationStatus === "FAILED") return null;
-  return (await väntaPåKlar(fil.id)) ? fil.url : null;
 }
 
 export async function POST(req: Request) {
@@ -186,7 +74,9 @@ export async function POST(req: Request) {
     listByProduct: (productId) => store.listByProduct(productId, 1000),
     upsert: (r) => store.upsert(r),
     lever,
-    importeraOchBekrafta,
+    // Samma väg som AliExpress-återställningen (lib/wix/bekraftad-bild.ts):
+    // hämta bytena, ladda upp med rätt typ, adressen först vid READY.
+    importeraOchBekrafta: (källa, namn) => importeraOchBekrafta(källa, namn, arAosomCdn),
     now: () => Date.now(),
   };
 

@@ -36,6 +36,11 @@ export interface ImageRestoreDeps {
   listAll: () => Promise<StoredReview[]>;
   /** AE:s produkt-id för en Wix-produkt, eller null om den inte är en AE-mappning. */
   aeProductId: (wixProductId: string) => Promise<string | null>;
+  /**
+   * AE-id:t ur AE-synkens minne, för en produkt som inte längre är en
+   * AE-mappning. Se `aeIdUrSynken`.
+   */
+  aeProductIdFranSynken?: (wixProductId: string) => Promise<string | null>;
   fetchReviews: (aeProductId: string) => Promise<{ reviews: AERReview[]; throttled: boolean }>;
   /** true = filen finns inte längre (403/404). Kastar aldrig; osäkert → false. */
   isDead: (url: string) => Promise<boolean>;
@@ -72,6 +77,11 @@ export interface ImageRestoreSummary {
   saknasHosAE: number;
   /** Produkten har ingen AE-mappning (borttagen eller annan leverantör). */
   utanAEMappning: number;
+  /**
+   * Rader på produkter som bytt till Aosom, där AE-id:t hittades i
+   * AE-synkens minne i stället för på mappningen.
+   */
+  viaSynkensMinne: number;
   /** AE strypte hämtningen; produkten får tas om. */
   strypta: number;
   importfel: number;
@@ -79,6 +89,24 @@ export interface ImageRestoreSummary {
   /** Nästa `after`, eller null när hela listan är genomgången. */
   nasta: string | null;
   stoppadAv: "klar" | "limit" | "tid";
+}
+
+/**
+ * AE-id:t ur AE-synkens minne (`SyncStateEntry.aliexpressId`), eller null.
+ *
+ * VARFÖR (2026-10-06). Ommappningen till Aosom (lib/aosom/remap.ts) byter
+ * `supplierProductId` och tar bort allt som beskriver den gamla AE-listningen.
+ * Recensionerna från AliExpress ligger kvar på sidan — men återställningen
+ * hittade inte längre någon AE-produkt att hämta dem från, och deras döda
+ * foton räknades som `utanAEMappning`. Hörnskrivbordet c342826f var ett av dem.
+ * AE-synkens tillstånd sparas per Wix-produkt och överlever bytet, så id:t
+ * finns kvar där.
+ *
+ * Bara ett rent AE-id (siffror) släpps igenom; allt annat är okänt.
+ */
+export function aeIdUrSynken(state: { aliexpressId?: string | null } | null | undefined): string | null {
+  const id = (state?.aliexpressId ?? "").trim();
+  return /^\d{6,}$/.test(id) ? id : null;
 }
 
 /** Importerad AE-rad: ingen källa satt (äldre) eller uttryckligen AliExpress. */
@@ -114,6 +142,7 @@ export async function runImageRestore(
     bilderAterstallda: 0,
     saknasHosAE: 0,
     utanAEMappning: 0,
+    viaSynkensMinne: 0,
     strypta: 0,
     importfel: 0,
     skrivfel: 0,
@@ -147,7 +176,11 @@ export async function runImageRestore(
     s.produkterMedDoda++;
     s.raderMedDoda += doda.length;
 
-    const aeId = await deps.aeProductId(pid);
+    let aeId = await deps.aeProductId(pid);
+    if (!aeId && deps.aeProductIdFranSynken) {
+      aeId = await deps.aeProductIdFranSynken(pid);
+      if (aeId) s.viaSynkensMinne += doda.length;
+    }
     if (!aeId) {
       s.utanAEMappning += doda.length;
       continue;

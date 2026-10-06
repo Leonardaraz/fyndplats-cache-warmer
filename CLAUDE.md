@@ -2689,6 +2689,34 @@ men `repairImages` letar bara efter rader som FORTFARANDE bär en
 leverantörs-URL, och de här bär en död wixstatic-adress. Återställning är ett
 eget jobb.
 
+#### ☠️ 260 recensioner hade döda foton igen (2026-10-06)
+
+Leonards rapport: hörnskrivbordets recension hade en bild som inte syntes.
+Uppmätt på alla publicerade rader via `/api/reviews/<id>`: **2 418 recensioner
+med foto, 315 av 3 592 adresser svarade 403**, fördelade på 260 recensioner och
+165 produkter (127 AliExpress, 133 Aosom). Butiken döljer en trasig bild
+(`onError` i `ProductReviews.tsx`), så kunden såg ingen tom ruta, bara inget foto.
+
+Två orsaker i AliExpress-återställningen (`/api/cron/review-image-restore`):
+
+1. ☠️ **Ommappningen tar bort AE-id:t.** `tillämpaOmmappning` byter
+   `supplierProductId` till Aosom, och återställningen räknade produktens
+   AE-recensioner som `utanAEMappning`. Hörnskrivbordet `c342826f` var ett av
+   dem. AE-synkens tillstånd sparas per Wix-produkt och överlever bytet, så
+   id:t läses nu därifrån (`aeIdUrSynken`, räknaren `viaSynkensMinne`).
+2. ☠️ **Import File skrev adressen innan Wix hämtat filen.** Slutade hämtningen
+   FAILED stod en död adress kvar. Återställningen går nu samma väg som
+   Aosom-återställningen: hämta bytena, ladda upp med rätt typ, skriv adressen
+   först vid READY (`lib/wix/bekraftad-bild.ts`, delad mellan båda rutterna).
+
+⚠️ Den vanliga publiceringsvägen (`withOwnImage` → `importImageToOwnMedia`)
+använder fortfarande Import File utan att vänta. Nya AE-foton kan alltså dö på
+samma sätt; en körning av `review-image-restore.yml` fångar dem.
+
+Aosom-raderna kräver källfotona från Aosoms recensionsdata, som bara går att
+hämta i Leonards webbläsare (se *Omgång 5*), och körs med
+`aosom-review-image-restore.yml`.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
