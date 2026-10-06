@@ -1,0 +1,97 @@
+name: Omdirigeringar — sammanslagna färgsidor landar på sin färg
+
+# Skriver `?variant=<id>` på sammanslagningarnas 301:or, så att en gammal
+# färgsida landar på sin färg på den sammanslagna sidan och inte på sidans
+# förval. Leonard 2026-10-06. Logiken: lib/aosom/omdirigering-variant.ts.
+# Rader som inte går att avgöra exakt lämnas orörda (de pekar redan på rätt
+# sida) och räknas per skäl.
+#
+# Torrt som default: räknar och visar exempel. skarp = ja skriver, i omgångar
+# om ~240 s tills `kvar` är 0, och läser tillbaka varje rad.
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE OCH ADRESSER, aldrig artikelnummer.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      skarp:
+        description: "ja = skriv. nej = torrkörning (räknar och visar exempel)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  rensa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Peka omdirigeringarna på färgen
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/omdirigeringar-variant"
+          [ "${SKARP:-nej}" = "ja" ] && url="${url}?skarp=ja"
+
+          tot_skrivna=0; tot_fel=0; forsta=""; json=""
+          for varv in 1 2 3 4 5 6 7 8 9 10; do
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            json="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} i varv ${varv}" >&2
+              printf '%s\n' "$json" | jq -c '{ok, error, trunkerad}' >&2 || true
+              exit 1
+            fi
+            if [ "$(printf '%s' "$json" | jq -r '.trunkerad // false')" = "true" ]; then
+              echo "::error::Fler omdirigeringar än rutten läser — inget skrivet" >&2
+              exit 1
+            fi
+            [ -z "$forsta" ] && forsta="$json"
+            tot_skrivna=$((tot_skrivna + $(printf '%s' "$json" | jq -r '.aterlasta')))
+            tot_fel=$((tot_fel + $(printf '%s' "$json" | jq -r '.avvikande + .fel')))
+            printf '%s' "$json" | jq -r --arg v "$varv" '"varv \($v): \(.kandidater) kvar att rätta, \(.nyttMal) med exakt variant, \(.aterlasta) skrivna och återlästa, \(.avvikande) avvikande, \(.fel) fel, \(.kvar) kvar"'
+            [ "${SKARP:-nej}" = "ja" ] || break
+            [ "$(printf '%s' "$json" | jq -r '.kvar')" = "0" ] && break
+          done
+
+          {
+            echo "### Omdirigeringar till färgen — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| omdirigeringar totalt | $(printf '%s' "$forsta" | jq -r '.rader') |"
+            echo "| sammanslagna utan färg | $(printf '%s' "$forsta" | jq -r '.kandidater') |"
+            echo "| **med exakt variant** | **$(printf '%s' "$forsta" | jq -r '.nyttMal')** |"
+            echo "| lämnas orörda, per skäl | $(printf '%s' "$forsta" | jq -c '.perSkal') |"
+            echo "| fel vid läsning | $(printf '%s' "$forsta" | jq -r '.fel') |"
+            echo "| **skrivna och återlästa nu** | **${tot_skrivna}** |"
+            echo "| avvikande eller fel | ${tot_fel} |"
+            echo "| kvar | $(printf '%s' "$json" | jq -r '.kvar') |"
+            echo ""
+            echo "Exempel:"
+            printf '%s' "$forsta" | jq -r '.exempel[] | "- \(.)"'
+            echo ""
+            echo "Orörda, exempel:"
+            printf '%s' "$forsta" | jq -r '.orordaExempel[] | "- \(.)"'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "KLART: ${tot_skrivna} skrivna och återlästa, ${tot_fel} avvikande eller fel"
+          if [ "$tot_fel" -gt 0 ]; then
+            echo "::error::${tot_fel} rader läste inte tillbaka eller gick inte att läsa — se loggen" >&2
+            exit 1
+          fi

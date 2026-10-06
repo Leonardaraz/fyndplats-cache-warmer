@@ -1797,6 +1797,24 @@ Poleringens skrivsteg (`skrivplan.ts`) skriver SKU:n på en sida med en variant.
 Polera därför ett av syskonen, publicera det, och lägg sedan de andra som val med
 den här workflowen — samma väg som balansbommen.
 
+#### Givarens 301 landar på givarens färg (2026-10-06)
+
+Leonard 2026-10-06: en gammal färgsida ska landa på sin färg på den
+sammanslagna sidan, inte på sidans förval. Steg 5b läser sidan efter
+Wix-skrivningen och skriver `/produkt/<sida>?variant=<givarens variant>`;
+butiken förväljer varianten ur `?variant=`, samma väg som Shopping-flödets
+länkar. Äldre rader som pekade på givaren pekas om till samma mål. Planen
+visar adressen utan fråga, eftersom variant-id:t finns först efter
+skrivningen, och krockkontrollen jämför sökvägen utan fråga (`malUtanFraga`).
+
+De 325 rader som fanns före ändringen rättas med `POST
+/api/admin/omdirigeringar-variant` (workflow `omdirigeringar-variant.yml`,
+torrt som default). Givarens artikel på den pensionerade mappningen
+(`variants[0].supplierVariantId`) matchas mot sidans mappningsvariant och
+dess `wixVariantId`, som måste finnas i Wix. ☠️ Allt som inte går att avgöra
+exakt lämnas orört och räknas per skäl: raden pekar redan på rätt sida.
+Logiken: `lib/aosom/omdirigering-variant.ts`.
+
 #### En sammanslagen sida får ny text med `varianter` i planen (2026-09-30)
 
 Leonards fråga: varför läggs lyftfåtöljens grå färg inte på? Sidan var redan

@@ -440,10 +440,23 @@ export function recensionerAttKopiera(g: GivarLast): StoredReview[] {
     && !texter.has(normText(r.textSwedish || r.textOriginal)));
 }
 
-function omdirigeringsrad(wp: Obj, wd: Obj): RedirectRow {
+/** Målets sökväg utan fråga: `/produkt/x?variant=y` → `/produkt/x`. */
+export const malUtanFraga = (toPath: string): string => String(toPath ?? "").split(/[?#]/)[0];
+
+/**
+ * 301:an från givarens adress. Med `variantId` landar den på GIVARENS färg
+ * (`?variant=`), inte på sidans förval (Leonard 2026-10-06): den som kommer
+ * via en gammal länk till den krämvita knästolen ska se den krämvita, inte
+ * den grå. Butiken förväljer varianten ur `?variant=` (headless-site
+ * components/productview.tsx), samma väg som Shopping-flödets länkar.
+ * Variant-id:t finns först efter Wix-skrivningen, så planen visar adressen
+ * utan fråga.
+ */
+function omdirigeringsrad(wp: Obj, wd: Obj, variantId?: string | null): RedirectRow {
+  const sida = `/produkt/${String(wp.slug ?? "").trim()}`;
   return {
     fromSlug: String(wd.slug ?? "").trim(),
-    toPath: `/produkt/${String(wp.slug ?? "").trim()}`,
+    toPath: variantId ? `${sida}?variant=${encodeURIComponent(variantId)}` : sida,
     reason: "Sammanslagen: sidan är nu ett val på en annan sida",
   };
 }
@@ -559,10 +572,11 @@ function planeraGivaren(
   const rad = omdirigeringsrad(wp, wd);
   if (!rad.fromSlug || !wp.slug || validateRedirect(rad)) plan.hinder.push("omdirigering_ogiltig");
   const finns = g.omdirigeringar.find((r) => r.fromSlug === rad.fromSlug);
-  if (finns && finns.toPath !== rad.toPath) plan.hinder.push("omdirigering_krockar");
+  // Frågan räknas inte: en omkörning ser sin egen rad med `?variant=`.
+  if (finns && malUtanFraga(finns.toPath) !== rad.toPath) plan.hinder.push("omdirigering_krockar");
   plan.omdirigering = `/produkt/${rad.fromSlug} → ${rad.toPath}`;
   plan.omdirigeringarAttPekaOm = g.omdirigeringar
-    .filter((r) => r.toPath === `/produkt/${rad.fromSlug}` && r.fromSlug !== rad.fromSlug).length;
+    .filter((r) => malUtanFraga(r.toPath) === `/produkt/${rad.fromSlug}` && r.fromSlug !== rad.fromSlug).length;
   plan.recensionerAttKopiera = recensionerAttKopiera(g).length;
   plan.varningar.push(
     "givaren ligger ute: dess adress omdirigeras hit och sidan avpubliceras — "
@@ -1486,17 +1500,23 @@ async function efterarbete(
     if (saknas > 0) return svar(false, `${saknas} recensioner läste inte tillbaka på sidan — givaren ligger kvar ute, kör om`);
     steg.push(`recensioner: ${kopior.length} kopierade till sidan (${g.recensioner.length - kopior.length} fanns redan eller var dolda)`);
 
-    // 5b. Omdirigeringen, och de som pekade på givaren pekas om.
-    const rad = omdirigeringsrad(wp, wd);
+    // 5b. Omdirigeringen, och de som pekade på givaren pekas om. Den landar
+    // på givarens variant, som läses ur sidan efter Wix-skrivningen. Saknas
+    // den (ska inte hända — steg 4 har just verifierat den) blir det sidan.
+    const sidan = await lasProdukt(deps.wix, input.behall);
+    const givarensVariant = varianterAv(sidan).find((v) => v.sku === plan.skuUtkast);
+    const rad = omdirigeringsrad(wp, wd, typeof givarensVariant?.id === "string" ? givarensVariant.id : null);
     await deps.omdirigeringar!.skriv(rad);
-    const kedjor = g.omdirigeringar.filter((r) => r.toPath === `/produkt/${rad.fromSlug}` && r.fromSlug !== rad.fromSlug);
+    const kedjor = g.omdirigeringar.filter(
+      (r) => malUtanFraga(r.toPath) === `/produkt/${rad.fromSlug}` && r.fromSlug !== rad.fromSlug,
+    );
     for (const r of kedjor) await deps.omdirigeringar!.skriv({ ...r, toPath: rad.toPath });
     const lista = await deps.omdirigeringar!.lista();
     const skriven = lista.find((r) => r.fromSlug === rad.fromSlug);
     if (!skriven || skriven.toPath !== rad.toPath) {
       return svar(false, "omdirigeringen läste inte tillbaka — givaren ligger kvar ute, kör om");
     }
-    steg.push(`omdirigering: ${plan.omdirigering}${kedjor.length ? ` (${kedjor.length} äldre pekade om)` : ""}`);
+    steg.push(`omdirigering: /produkt/${rad.fromSlug} → ${rad.toPath}${kedjor.length ? ` (${kedjor.length} äldre pekade om)` : ""}`);
 
     // 5c. Givaren avpubliceras och läses tillbaka.
     const nu = await lasProdukt(deps.wix, input.utkast);
