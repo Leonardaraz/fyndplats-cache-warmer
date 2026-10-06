@@ -19,6 +19,7 @@ import {
 import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript } from "../lib/consent";
+import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -252,6 +253,9 @@ export default async function RootLayout({
             eller länkar som redan hanterats (loggan på startsidan). */}
         <div className="sidbyte" aria-hidden="true" />
         <script dangerouslySetInnerHTML={{ __html: SIDBYTE_SKRIPT }} />
+        {/* Filterknapparna syns innan de fungerar; trycken sparas och görs
+            om när sidan är redo (lib/tidiga-klick.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: TIDIGA_KLICK_SKRIPT }} />
         <CartProvider>
           <WishlistProvider>
             <SiteHeader />

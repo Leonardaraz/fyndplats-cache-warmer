@@ -24,6 +24,7 @@ import {
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel, tusental } from "../lib/rating";
+import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -566,6 +567,8 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // Vrids telefonen till en bredd där lagret inte längre gäller stängs det,
   // annars hade sidan stått kvar utan att gå att rulla.
   const stangRef = useRef<HTMLButtonElement>(null);
+  // Tryck som kom innan sidan var redo (lib/tidiga-klick.ts) görs om nu.
+  useEffect(() => { spelaUppTidigaKlick(); }, []);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 700px)");
     if (!open || !mq.matches) return;
@@ -714,7 +717,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
       <div className={`shopbar ${open ? "open" : ""}`}>
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
             landa på produkter långt ner i katalogen. */}
-        <button type="button" className="shopbar-toggle"
+        <button type="button" className="shopbar-toggle" data-tidigt="filter"
           onPointerEnter={hamta} onTouchStart={hamta}
           onClick={() => { hamta(); setOpen((b) => !b); }} aria-expanded={open}>
           <svg className="shopbar-ikon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -746,7 +749,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Mobil: rubrik och stängknapp överst i lagret. Döljs på dator. */}
           <div className="panel-huvud">
             <span className="panel-titel">Filter</span>
-            <button type="button" ref={stangRef} className="panel-stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
+            <button type="button" ref={stangRef} className="panel-stang" data-tidigt="stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
@@ -834,7 +837,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                   return (
                     <button
                       key={k} type="button" className={`farg-ruta${pa ? " on" : ""}${tom ? " is-tom" : ""}`}
-                      aria-pressed={pa} disabled={tom} onClick={() => vaxlaFarg(k)}
+                      aria-pressed={pa} disabled={tom} data-tidigt={`farg:${k}`} onClick={() => vaxlaFarg(k)}
                     >
                       <span className="farg-prick" style={{ background: colorOf(k) || "#ddd" }} aria-hidden="true" />
                       <span className="farg-namn">{colorLabel(k)}</span>
@@ -844,7 +847,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                 })}
               </div>
               {colorKeys.length > FARGER_SYNS && (
-                <button type="button" className="farg-fler" onClick={() => setAllaFarger((v) => !v)} aria-expanded={allaFarger}>
+                <button type="button" className="farg-fler" data-tidigt="fler" onClick={() => setAllaFarger((v) => !v)} aria-expanded={allaFarger}>
                   {allaFarger ? "Visa färre" : `Visa alla ${colorKeys.length} färger`}
                 </button>
               )}
@@ -860,12 +863,12 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                   är brus som får kunden att tvivla på det den ser. I sök (där
                   slutsålda träffar behålls) dyker den upp av sig själv igen. */}
               {hasOos && (
-                <label className={`toggle ${onlyInStock ? "on" : ""}`}>
+                <label className={`toggle ${onlyInStock ? "on" : ""}`} data-tidigt="lager">
                   <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
                   <span>I lager</span>
                 </label>
               )}
-              <label className={`toggle ${onlyOnSale ? "on" : ""}`}>
+              <label className={`toggle ${onlyOnSale ? "on" : ""}`} data-tidigt="rea">
                 <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
                 <span>Rea</span>
               </label>
@@ -897,7 +900,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                       const n = valAntal?.get(f.nyckel)?.get(v.kod) ?? (valAntal ? 0 : undefined);
                       const tom = n === 0 && !pa;
                       return (
-                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}${tom ? " is-tom" : ""}`}>
+                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}${tom ? " is-tom" : ""}`} data-tidigt={`val:${f.nyckel}:${v.kod}`}>
                           <input type="checkbox" checked={pa} disabled={tom} onChange={() => vaxla(f.nyckel, v.kod)} />
                           <span>{v.namn}</span>
                           {n !== undefined && <span className="toggle-n">{n}</span>}
@@ -914,7 +917,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
               följer filtren live. Döljs på dator. */}
           <div className="panel-fot">
             <button type="button" className="panel-rensa" onClick={reset} disabled={activeFilters === 0}>Rensa alla</button>
-            <button type="button" className="panel-visa" onClick={() => setOpen(false)}>
+            <button type="button" className="panel-visa" data-tidigt="stang" onClick={() => setOpen(false)}>
               {liveCount === null ? "Visa produkter" : `Visa ${productCountLabel(liveCount)}`}
             </button>
           </div>
