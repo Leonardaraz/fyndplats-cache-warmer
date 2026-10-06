@@ -41,7 +41,7 @@ flyttar i stället till adressen som rankar.
 
 ## Planen
 
-Steg 2–4 kräver Wix-kopplingen, som behövde ny inloggning 2026-10-06.
+Steg 2 och 3 kräver Wix-kopplingen, som behövde ny inloggning 2026-10-06.
 
 1. **Omdirigeringar först** (`redirect-add`, batch, `force`):
    `stapelbara-pallar-4-pack-gra-sits` och `stapelbara-pallar-brun-ae` →
@@ -51,7 +51,8 @@ Steg 2–4 kräver Wix-kopplingen, som behövde ny inloggning 2026-10-06.
 2. `4c97bd93` får slugen `stapelbara-pallar-brun-ae` och döljs
    (`visible: false`), så att adressen blir ledig.
 3. `17c747cb` får slugen `stapelbara-pallar`.
-4. `17c747cb` läggs i de kategorier som `4c97bd93` har och den saknar.
+4. Kategorierna behöver inte röras. Båda sidorna ligger i samma fyra
+   (läst med butikens besökarnyckel 2026-10-06).
 5. Mappningsraden för `4c97bd93` pensioneras (`polish-mapping`, `stampla`:
    `draftStatus: rejected`, `needsAiPolish: false`). Beställningen läser inte
    `draftStatus`, så en eventuell öppen order på den går som förut.
