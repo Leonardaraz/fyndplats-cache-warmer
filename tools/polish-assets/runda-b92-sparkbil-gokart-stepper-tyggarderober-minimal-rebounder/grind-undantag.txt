@@ -1,0 +1,1 @@
+gate-lager.py 41be5a7a ar slutsald i sin egen farg (vit) sedan 2026-09-18; roda och svarta syskonen (199 + 199 i lager) laggs pa som val direkt efter skrivningen
