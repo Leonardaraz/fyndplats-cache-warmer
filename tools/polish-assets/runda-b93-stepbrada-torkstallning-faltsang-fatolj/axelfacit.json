@@ -1,0 +1,41 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0df30c97": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa Abmessungen: 125L x 100B x 87H cm | ✔ Fußhocker Abmessungen: Ø56 x 27H cm | ✔ Lagerung Abmessungen: 35L x 9,5B x 25H cm | ✔ Getränkehalter Größe: Ø7,5 x 4,5H cm | Mått: 125L x 100B x 87H cm | ✔ Sofa Abmessungen: 125L x 100B x 87H cm | ✔ Fußhocker Abmessungen: Ø56 x 27H cm | ✔ Lagerung Abmessungen: 35L x 9,5B x 25H cm | ✔ Getränkehalter Größe: Ø7,5 x 4,5H cm | Mått: 125L x 100B x 87H cm"
+ },
+ "3277d20a": {
+  "tyska": "190L x 68B x 52H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 52,
+  "bredd": 190,
+  "djup": 68
+ },
+ "63b9f1f7": {
+  "tyska": "77L x 36B x 10,5/15,5/20,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   10.5,
+   15.5,
+   20.5
+  ],
+  "bredd": 77,
+  "djup": 36
+ },
+ "68f7892f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 142L × 55B × 152H cm | ✔ Klappbare Abmessungen: 80L x 13B x 152H cm | Mått: 142L x 55B x 152H cm | ✔ Abmessungen: 142L × 55B × 152H cm | ✔ Klappbare Abmessungen: 80L x 13B x 152H cm | Mått: 142L x 55B x 152H cm"
+ },
+ "8f4f4599": {
+  "tyska": "66L x 28B x 16H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 16,
+  "bredd": 66,
+  "djup": 28
+ }
+}
