@@ -18,6 +18,19 @@
 
 import type { StoredReview } from "../store/reviews";
 
+/**
+ * AliExpress-recensioner hämtas inte längre (Leonard 2026-10-06: "jag vill
+ * inte att vi hämtar aliexpress recensioner längre"). Stoppet sitter på tre
+ * ställen: `importReviewsForProduct` (lib/import/review-import.ts) sparar
+ * ingen rad utan källa, översättningskön /api/cron/review-queue svarar utan
+ * att hämta, och produktimporten /api/import köar inga recensioner.
+ */
+export function aeRecensionerStoppade(): boolean {
+  // Slås på igen bara med AE_RECENSIONER=pa. Läses vid anropet, inte vid
+  // modulladdning, så att testerna kan pröva svepets logik.
+  return process.env.AE_RECENSIONER !== "pa";
+}
+
 /** Sant för en importerad AliExpress-recension. */
 export function arAliExpress(r: Pick<StoredReview, "source">): boolean {
   const s = String(r.source ?? "").trim();

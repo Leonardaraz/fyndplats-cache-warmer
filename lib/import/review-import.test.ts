@@ -152,7 +152,7 @@ describe("importReviewsForProduct", () => {
         review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here.", customerName: "Maria Karlsson", customerCountry: "DE" }),
         review({ reviewIdAE: "b", text: "Very happy with this purchase, works perfectly and looks premium too." }),
       ],
-      { now: NOW, reviewStore: store as never },
+      { now: NOW, reviewStore: store as never, source: "aosom" },
     );
     expect(res.imported).toBe(2);
     // KALLTEXTEN sparas som svensk text tills nagon skrivit om den i
@@ -174,7 +174,7 @@ describe("importReviewsForProduct", () => {
     const res = await importReviewsForProduct(
       "prod1",
       [review({ reviewIdAE: "a", text: "Bra produkt med fin kvalitet och snabb leverans verkligen toppen." })],
-      { now: NOW, reviewStore: store as never },
+      { now: NOW, reviewStore: store as never, source: "aosom" },
     );
     expect(res.imported).toBe(0);
     expect(res.skippedExisting).toBe(1);
@@ -183,7 +183,7 @@ describe("importReviewsForProduct", () => {
   it("returnerar tomt utan recensioner som passerar filtret", async () => {
     const res = await importReviewsForProduct("prod1", [review({ rating: 1 })], {
       now: NOW,
-      reviewStore: new FakeReviewStore() as never,
+      reviewStore: new FakeReviewStore() as never, source: "aosom",
     });
     expect(res.imported).toBe(0);
     expect(res.reviews).toHaveLength(0);
@@ -195,6 +195,29 @@ describe("importReviewsForProduct", () => {
 // tappade bilder tyst: misslyckades uppladdningen slängdes bilden utan logg,
 // raden sparades med hasImage:false, och källadressen bevarades ingenstans —
 // alltså omöjlig att både upptäcka och reparera i efterhand.
+describe("importReviewsForProduct — inga nya AliExpress-recensioner (2026-10-06)", () => {
+  it("☠️ utan källa (AliExpress) sparas ingenting", async () => {
+    const store = new FakeReviewStore();
+    const res = await importReviewsForProduct(
+      "prod1",
+      [review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here." })],
+      { now: NOW, reviewStore: store as never },
+    );
+    expect(res.imported).toBe(0);
+    expect(store.saved).toEqual([]);
+  });
+
+  it("☠️ inte heller med källan uttryckligen satt till aliexpress", async () => {
+    const store = new FakeReviewStore();
+    const res = await importReviewsForProduct(
+      "prod1",
+      [review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here." })],
+      { now: NOW, reviewStore: store as never, source: "aliexpress" },
+    );
+    expect(res.imported).toBe(0);
+  });
+});
+
 describe("importReviewsForProduct — kundbilder", () => {
   const medBild = (id: string, urls: string[]) =>
     review({
@@ -214,7 +237,7 @@ describe("importReviewsForProduct — kundbilder", () => {
     const store = new FakeReviewStore();
     const res = await importReviewsForProduct("prod1", [medBild("a", [AE])], {
       now: NOW,
-      reviewStore: store as never,
+      reviewStore: store as never, source: "aosom",
       importImage: async () => EGEN,
     });
     expect(res.bildmissar).toBe(0);
@@ -227,7 +250,7 @@ describe("importReviewsForProduct — kundbilder", () => {
     const store = new FakeReviewStore();
     const res = await importReviewsForProduct("prod1", [medBild("a", [AE])], {
       now: NOW,
-      reviewStore: store as never,
+      reviewStore: store as never, source: "aosom",
       importImage: async () => undefined,
     });
     expect(res.bildmissar).toBe(1);
@@ -241,7 +264,7 @@ describe("importReviewsForProduct — kundbilder", () => {
     const store = new FakeReviewStore();
     const res = await importReviewsForProduct("prod1", [medBild("a", [AE, AE2])], {
       now: NOW,
-      reviewStore: store as never,
+      reviewStore: store as never, source: "aosom",
       importImage: async (kalla: string | undefined) => (kalla === AE ? EGEN : undefined),
     });
     expect(res.bildmissar).toBe(1);
@@ -253,7 +276,7 @@ describe("importReviewsForProduct — kundbilder", () => {
     const namn: string[] = [];
     await importReviewsForProduct("prod1", [medBild("a", [AE, AE2])], {
       now: NOW,
-      reviewStore: store as never,
+      reviewStore: store as never, source: "aosom",
       importImage: async (_k: string | undefined, n: string) => {
         namn.push(n);
         return EGEN;
@@ -270,7 +293,7 @@ describe("importReviewsForProduct — kundbilder", () => {
       [review({ reviewIdAE: "a", text: "Bra produkt med fin kvalitet och snabb leverans verkligen toppen." })],
       {
         now: NOW,
-        reviewStore: store as never,
+        reviewStore: store as never, source: "aosom",
         importImage: async () => {
           anrop++;
           return EGEN;

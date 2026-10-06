@@ -38,6 +38,8 @@ function req(qs = "") {
 }
 
 beforeEach(() => {
+  // Svepets logik prövas med stoppet avslaget; stoppet har ett eget test nedan.
+  vi.stubEnv("AE_RECENSIONER", "pa");
   store = new MemoryStore();
   process.env.CRON_SECRET = TESTNYCKEL;
   vi.mocked(fetchAeReviews).mockReset().mockResolvedValue({
@@ -163,6 +165,17 @@ describe("review-queue: synliga produkter styr urvalet", () => {
 
     const body = (await (await GET(req())).json()) as { kandidater: number };
     expect(body.kandidater).toBe(0);
+  });
+});
+
+describe("review-queue: AliExpress-recensioner hämtas inte längre (2026-10-06)", () => {
+  it("☠️ svarar med ett tomt svep utan att hämta något", async () => {
+    vi.stubEnv("AE_RECENSIONER", "");
+    vi.mocked(fetchAeReviews).mockClear();
+    const res = await GET(req());
+    const body = await res.json();
+    expect(body).toMatchObject({ ok: true, stoppad: true, kandidater: 0, köade: 0 });
+    expect(fetchAeReviews).not.toHaveBeenCalled();
   });
 });
 

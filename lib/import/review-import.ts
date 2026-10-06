@@ -24,6 +24,7 @@ import { mentionsForeignDelivery } from "./review-locale-filter";
 import { ownImageUrlForReview } from "../wix/media-import";
 import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "../reviews/images";
 import { arForeDatumgransen } from "../reviews/datumgrans";
+import { arAliExpress } from "../reviews/ae-ko-rensning";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -354,6 +355,15 @@ export async function importReviewsForProduct(
   rawReviews: AERReview[],
   deps: ReviewImportDeps = {},
 ): Promise<ReviewImportResult> {
+  // ☠️ INGA NYA ALIEXPRESS-RECENSIONER (Leonard 2026-10-06: "jag vill inte
+  // att vi hämtar aliexpress recensioner längre"). Utan `source` är raden en
+  // AliExpress-recension, så varje AliExpress-väg — produktimporten,
+  // tillägget, backfillen — stannar här. Aosom-inläsningen skickar
+  // `source: "aosom"` och går igenom. Se lib/reviews/ae-ko-rensning.ts.
+  if (arAliExpress({ source: deps.source })) {
+    return { imported: 0, skippedExisting: 0, reviews: [], bildmissar: 0 };
+  }
+
   const now = deps.now ?? new Date();
   const reviewStore = deps.reviewStore ?? getReviewStore();
   const importImage = deps.importImage ?? ownImageUrlForReview;
