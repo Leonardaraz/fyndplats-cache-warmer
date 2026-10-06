@@ -4731,6 +4731,21 @@ läser HELA lagret: `listAll` sorterar nyast först och kapar vid 5 000 som
 standard, så de äldsta raderna — just de som söks — hade fallit bort tyst.
 Svaret säger `trunkerad: true` om läsgränsen ändå nås, och workflowen stannar.
 
+## AliExpress-kön töms: väntande AliExpress-recensioner döljs (2026-10-06)
+
+Leonards beslut: de AliExpress-recensioner som ligger i /admin/reviews och
+väntar på översättning och godkännande behövs inte. `POST
+/api/admin/recensioner-ae-ko` (workflow `recensioner-ae-ko.yml`, torrt som
+default) sätter status `rejected` på varje `pending`-rad vars källa är
+AliExpress (`source` saknas eller är `"aliexpress"`). Logiken:
+`lib/reviews/ae-ko-rensning.ts`.
+
+☠️ Dölj, radera aldrig: den dolda raden är också dubblettspärren, så en
+raderad rad hade köats igen nästa gång produktens AliExpress-recensioner
+hämtas. ☠️ Publicerade AliExpress-recensioner, Aosom-rader och kundomdömen
+rörs inte. Inget schemalagt fyller på kön: nya AliExpress-rader kommer bara
+med en AliExpress-import eller en handstartad `review-queue.yml`.
+
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 
 Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
