@@ -82,15 +82,6 @@ export default async function Rea() {
         <div className="container">
           {list.length > 0 ? (
             <>
-              {/* Unik brödtext — sidan är permanent medan innehållet roterar, och
-                  utan egen text är den bara ett filtrerat rutnät i Googles ögon.
-                  prog-intro är köpguidernas befintliga stil; ingen ny CSS behövs. */}
-              <div className="prog-intro">
-                {REA_INTRO.map((stycke) => (
-                  <p key={stycke.slice(0, 24)}>{stycke}</p>
-                ))}
-              </div>
-
               {/* De första korten och en sammanfattning för filtren; resten
                   hämtar ShopBrowser från /api/lista (lib/list-pages.ts). */}
               <ShopBrowser {...listaForSidan(list, "rea")} dayMs={dagMs} />
@@ -111,6 +102,24 @@ export default async function Rea() {
           )}
         </div>
       </section>
+
+      {/* Unik brödtext — sidan är permanent medan innehållet roterar, och utan
+          egen text är den bara ett filtrerat rutnät i Googles ögon. Den stod
+          förut ovanför produkterna och tog en hel mobilskärm innan första
+          kortet (Leonard 2026-10-07). Nu under rutnätet, i samma block som
+          kategorisidornas "Om …"-text. Google läser den lika väl där. */}
+      {list.length > 0 && (
+        <section className="sec kat-editorial">
+          <div className="container">
+            <div className="kat-intro">
+              <h2>Om rean</h2>
+              {REA_INTRO.map((stycke) => (
+                <p key={stycke.slice(0, 24)}>{stycke}</p>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
