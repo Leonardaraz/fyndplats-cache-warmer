@@ -23,6 +23,10 @@
 //      fastnar raden som evig live-zombie — varken expire eller prissteg kan
 //      genomföras — och dagens lineup krymper (så /fyndauktion hamnade på 2
 //      produkter i aug 2026: tre raderade produkter höll slot 1, 2 och 5).
+//   6. BUTIKEN: produkter vars pris ändrades i ticket (steg, såld, dagslut)
+//      skickas till butikens /api/admin/uppdatera-produkter, som tömmer och
+//      värmer deras sidor (butiken cachar produktsidor i sex timmar sedan
+//      2026-10-01). Best-effort: butikens femminuterscron tar det annars.
 //
 // Designval: butiken (headless) visar WIX-priset som källa till sanning och
 // använder stegen bara för "nästa sänkning om…"-nedräkningen. Failar en tick
@@ -44,6 +48,7 @@ import {
   restoreListPrice,
   saveAuction,
 } from "@/lib/auction/store";
+import { uppdateraProduktsidor, type AndradProdukt } from "@/lib/headless/produktsidor";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -81,6 +86,12 @@ export async function GET(req: NextRequest) {
 
   const report: Record<string, unknown> = { sold: [], expired: [], priced: [], promoted: [], removedDead: [], errors: [] };
   const push = (k: string, v: unknown) => (report[k] as unknown[]).push(v);
+  // Produkter vars Wix-pris ändrades i det här ticket. Butiken töms för dem
+  // i slutet (lib/headless/produktsidor.ts), så att produktsidans pris stämmer
+  // med kassan från första besöket — butikens egen femminuterscron tar det
+  // annars, men då kan ett gammalt pris stå kvar i upp till fem minuter.
+  const prisAndrade: AndradProdukt[] = [];
+  const noteraPris = (a: AuctionDoc) => prisAndrade.push({ id: a.productId, ...(a.slug ? { slug: a.slug } : {}) });
 
   /**
    * Produkten är raderad ur katalogen → auktionsdokumentet är meningslöst och
@@ -129,6 +140,7 @@ export async function GET(req: NextRequest) {
             }
             await saveAuction({ ...a, status: "sold", endedAt: new Date(now).toISOString(), soldPrice: a.lastPatchedPrice ?? a.listPrice });
             push("sold", { slug: a.slug, soldPrice: a.lastPatchedPrice ?? a.listPrice });
+            noteraPris(a);
             a.status = "sold";
           } catch (e) {
             push("errors", `sold ${a.slug}: ${(e as Error).message}`);
@@ -145,6 +157,7 @@ export async function GET(req: NextRequest) {
           await restoreListPrice(a);
           await saveAuction({ ...a, status: "expired", endedAt: new Date(now).toISOString() });
           push("expired", a.slug);
+          noteraPris(a);
           a.status = "expired";
         } catch (e) {
           if (isProductGone(e)) await retireDead(a);
@@ -167,6 +180,7 @@ export async function GET(req: NextRequest) {
           await applyStepPrice(a, now);
           await saveAuction({ ...a, lastPatchedStep: idx, lastPatchedPrice: displayTarget });
           push("priced", { slug: a.slug, price: displayTarget });
+          noteraPris(a);
         } catch (e) {
           if (isProductGone(e)) await retireDead(a);
           else push("errors", `price ${a.slug}: ${(e as Error).message}`);
@@ -218,6 +232,12 @@ export async function GET(req: NextRequest) {
       } catch (e) {
         push("errors", `promote ${next.slug}: ${(e as Error).message}`);
       }
+    }
+
+    // 5) Butiken: töm och värm sidorna vars pris ändrades. Best-effort — ett
+    //    nej här fäller inte ticket (butikens cron tar det inom fem minuter).
+    if (prisAndrade.length > 0) {
+      report.butiken = await uppdateraProduktsidor(prisAndrade, "auktion");
     }
 
     report.ok = (report.errors as unknown[]).length === 0;

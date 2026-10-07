@@ -20,6 +20,7 @@ import {
   kontrolleraEfter,
   nammdaFarger,
   olankadeAgare,
+  lasGodkanda,
   planSha,
   planeraSida,
   raknare,
@@ -188,6 +189,24 @@ describe("pergolataket: fyra färger, en opolerad givare", () => {
     expect(mg.granskas).toEqual(g.bilder.slice(GRANSKA_FRAN_POSITION - 1).map((b) => b.id));
     expect(mg.galleri).toEqual(g.bilder.slice(0, GRANSKA_FRAN_POSITION - 1).map((b) => b.id));
     expect(utan.galleriEfter.map((b) => b.id)).not.toContain(g.bilder[2].id);
+  });
+
+  it("en godkänd flaggad bild skrivs, de andra flaggade står kvar", () => {
+    const mg = valPa(utan, "Mörkgrå");
+    const [ja, ...nej] = mg.granskas;
+    const plan = planeraSida(sidaAv(f), { godkanda: new Set([ja]) });
+    const v = valPa(plan, "Mörkgrå");
+    expect([...v.galleri, ...v.overflow]).toContain(ja);
+    expect(v.granskas).toEqual(nej);
+    for (const id of nej) expect(plan.galleriEfter.map((b) => b.id)).not.toContain(id);
+    expect(plan.rader.find((r) => r.filId === ja)?.plats).not.toBe("granskas");
+  });
+
+  it("godkännandet binder planens sha, en tom lista ändrar den inte", () => {
+    const ja = valPa(utan, "Mörkgrå").granskas[0];
+    const plan = planeraSida(sidaAv(f), { godkanda: new Set([ja]) });
+    expect(planSha([plan], false, false, new Set([ja]))).not.toBe(planSha([utan], false));
+    expect(planSha([utan], false, false, new Set())).toBe(planSha([utan], false));
   });
 
   it("granskade bilder hamnar i tabellen som `granskas` — och når aldrig butiken", () => {
@@ -564,5 +583,20 @@ describe("småsaker", () => {
 
   it("\"inkl\" räknas inte som tyska", () => {
     expect(harSvenskAlt("Stol inkl. dyna")).toBe(true);
+  });
+});
+
+describe("lasGodkanda", () => {
+  it("tar både 32 hex och Wix form, och normaliserar", () => {
+    const h = "0123456789abcdef0123456789ABCDEF";
+    expect([...lasGodkanda(`${h}, b379ce_${h.toLowerCase()}~mv2.png`)!]).toEqual([
+      `b379ce_${h.toLowerCase()}~mv2.jpg`,
+      `b379ce_${h.toLowerCase()}~mv2.png`,
+    ]);
+    expect(lasGodkanda("")!.size).toBe(0);
+  });
+  it("vägrar annat än fil-id", () => {
+    expect(lasGodkanda("abc")).toBeNull();
+    expect(lasGodkanda("0123456789abcdef0123456789abcdef&x=1")).toBeNull();
   });
 });

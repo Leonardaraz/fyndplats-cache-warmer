@@ -86,7 +86,14 @@ export async function GET(
     reviews = await getReviewStore().listByProduct(productId);
   } catch (err) {
     console.warn("[api/reviews] kunde inte läsa recensioner:", err instanceof Error ? err.message : err);
-    return NextResponse.json({ productId, count: 0, average: null, reviews: [] }, { status: 200 });
+    // 503, inte ett tomt 200: butiken cachar produktsidan i sex timmar sedan
+    // 2026-10-01, och ett tomt 200 hade gömt omdömena så länge. Ett fel gör att
+    // butiken visar sidan utan omdömen men bygger om den efter fem minuter
+    // (kortLivslangd i butikens lib/reviews.ts). Kunden ser samma sak som förut.
+    return NextResponse.json(
+      { productId, count: 0, average: null, reviews: [] },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   const visible = reviews.filter((r) => isVisibleStatus(r.status));
@@ -104,7 +111,11 @@ export async function GET(
     },
     {
       status: 200,
-      headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" },
+      // Kort CDN-tid: butiken har sin egen cache (sex timmar, töms per produkt
+      // när en recension ändras — se /api/review-andringar). En timmes CDN-kopia
+      // här, med ett dygns stale-while-revalidate, hade gett butiken det GAMLA
+      // svaret precis när den hämtar om efter en ändring.
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60" },
     },
   );
 }

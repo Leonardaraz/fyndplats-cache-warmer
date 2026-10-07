@@ -361,6 +361,13 @@ export interface PlanOpts {
   /** Skriv även det som flaggats `granskas`. */
   taMedGranskade?: boolean;
   /**
+   * Fil-id som en människa granskat och godkänt (Leonard 2026-10-01: "bilder
+   * som kan ha tysk text får du kolla"). De skrivs fast de flaggats
+   * `granskas`; alla andra flaggade står kvar. Ett godkännande står sedan i
+   * tabellen som galleri/overflow och behöver inte ges igen.
+   */
+  godkanda?: ReadonlySet<string>;
+  /**
    * Tillåt att sidans egna olänkade foton flyttas ur Wix galleri till
    * tabellen. Av som standard: butiken läser inte /api/fargbilder än, och
    * ett foto som bara står i tabellen syns då inte alls (hindret
@@ -520,7 +527,8 @@ export function planeraSida(s: SidaIn, opts: PlanOpts = {}): SidPlan {
     hindra("over_tak_redan");
     return { ...tom, hinder };
   }
-  const vald = (b: PlanBild) => !b.granskas || taMedGranskade;
+  const godkanda = opts.godkanda ?? new Set<string>();
+  const vald = (b: PlanBild) => !b.granskas || taMedGranskade || godkanda.has(b.id);
   const galleriPer = new Map<string, string[]>(
     utkast.map((u) => [u.v.id, u.bilder.filter((b) => fastaIGalleriet.has(b.id)).map((b) => b.id)]),
   );
@@ -672,10 +680,17 @@ export function kontrolleraPlan(s: SidaIn, p: SidPlan): string[] {
 }
 
 /** sha256 av det som skrivs, i kanonisk form. Samma plan ger samma sha. */
-export function planSha(planer: readonly SidPlan[], taMedGranskade: boolean, tillatUrGalleriet = false): string {
+export function planSha(
+  planer: readonly SidPlan[],
+  taMedGranskade: boolean,
+  tillatUrGalleriet = false,
+  godkanda: ReadonlySet<string> = new Set(),
+): string {
   const kanon = {
     taMedGranskade,
     tillatUrGalleriet,
+    // Med i sha:n bara när listan används, så äldre planers sha står sig.
+    ...(godkanda.size ? { godkanda: [...godkanda].sort() } : {}),
     sidor: [...planer]
       .sort((a, b) => a.id.localeCompare(b.id))
       .map((p) => ({
@@ -735,6 +750,7 @@ export interface VariantLage {
  * skrivningen försöka om; allt annat stoppar direkt.
  */
 export const LANK_AVVIKELSE = "ett färgval pekar inte på de planerade bilderna";
+export const GALLERI_AVVIKELSE = "galleriet är inte det planerade";
 
 export function kontrolleraEfter(
   plan: SidPlan,
@@ -745,7 +761,7 @@ export function kontrolleraEfter(
   if (efter.synlig !== fore.synlig) fel.push("sidans synlighet ändrades");
   const galleri = efter.bilder.map((b) => b.id);
   const vantat = plan.galleriEfter.map((b) => b.id);
-  if (galleri.join("|") !== vantat.join("|")) fel.push("galleriet är inte det planerade");
+  if (galleri.join("|") !== vantat.join("|")) fel.push(GALLERI_AVVIKELSE);
   for (const b of plan.galleriEfter) {
     const e = efter.bilder.find((x) => x.id === b.id);
     if (e && e.alt !== b.alt) {
@@ -852,4 +868,19 @@ export function forButiken(rader: readonly TabellRad[]): { val: Record<string, s
     else if (r.plats === "galleri" || r.plats === "overflow") (val[r.choiceName] ??= []).push(r.filId);
   }
   return { val, gemensamma };
+}
+
+/**
+ * `godkanda` som fil-id i Wix form (`b379ce_<32 hex>~mv2.jpg`). Tar emot både
+ * den formen och de 32 hextecknen. Null när något inte är ett fil-id.
+ */
+export function lasGodkanda(param: string): Set<string> | null {
+  const ut = new Set<string>();
+  for (const del of param.split(",").map((x) => x.trim()).filter(Boolean)) {
+    const m = /^(?:b379ce_)?([0-9a-f]{32})(?:~mv2\.(?:jpg|jpeg|png|webp))?$/i.exec(del);
+    if (!m) return null;
+    const ext = /~mv2\.(jpg|jpeg|png|webp)$/i.exec(del)?.[1]?.toLowerCase() ?? "jpg";
+    ut.add(`b379ce_${m[1].toLowerCase()}~mv2.${ext}`);
+  }
+  return ut;
 }

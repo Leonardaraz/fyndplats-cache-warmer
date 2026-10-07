@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { doldaPerFil, planeraSida, type Bild, type SidOption, type SidPlan } from "./fargbilder";
-import { lasSidaIn, skrivSida, tolkaProdukt } from "./fargbilder-kor";
+import { lasSidaIn, mediaPost, skrivSida, tolkaProdukt } from "./fargbilder-kor";
 import { MinnesFargbildLager } from "../store/fargbilder";
 import type { WixAnrop } from "../polish/skrivplan";
 
@@ -46,7 +46,9 @@ function fejkWix(f: Fixtur) {
   const fel: Record<string, number> = {};
   const patchar: string[][] = [];
   /** Låter Wix "tappa" något i en skrivning, för att se att återläsningen märker det. */
-  const sabotage: { altText?: boolean } = {};
+  const sabotage: { altText?: boolean; gamlaLasningar?: number } = {};
+  /** Produkten före senaste galleri-PATCH, som en gammal läsning svarar med. */
+  const fore: Record<string, Obj> = {};
   const kast = (k: string, msg: string) => {
     if ((fel[k] ?? 0) > 0) {
       fel[k]--;
@@ -63,6 +65,10 @@ function fejkWix(f: Fixtur) {
     const p = produkter[id];
     if (metod === "GET") {
       if (!p) throw new Error("Wix 404: finns inte");
+      if (fore[id] && (sabotage.gamlaLasningar ?? 0) > 0) {
+        sabotage.gamlaLasningar!--;
+        return { product: structuredClone(fore[id]) };
+      }
       return { product: structuredClone(p) };
     }
     if (metod === "PATCH") {
@@ -74,6 +80,7 @@ function fejkWix(f: Fixtur) {
         if (items.length > 15) throw new Error("Wix 400: för många bilder");
         const nya = new Set(items.map((b) => String(b.id)));
         if (lankade(p).some((m) => !nya.has(m))) throw new Error("Wix 404: PRODUCT_MEDIA_NOT_EXIST");
+        fore[id] = structuredClone(p);
         p.media = { itemsInfo: { items: structuredClone(items).map((b) => (sabotage.altText ? { ...b, altText: "" } : b)) } };
       } else {
         if (!k.fieldMask.paths.includes("variantsInfo") || !k.fieldMask.paths.includes("options")) {
@@ -180,6 +187,45 @@ describe("skrivSida", () => {
     expect(w.patchar).toEqual([["media"]]);
     // Tabellen skrevs före Wix, och står kvar.
     expect(await lager.lasForProdukt(f.sida.id)).toHaveLength(plan.rader.length);
+  });
+
+  it("en gammal läsning av galleriet direkt efter PATCH:en läses om, och sidan skrivs klart", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    w.sabotage.gamlaLasningar = 2;
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    expect(u.steg.join(" ")).toMatch(/galleriet omläst 2 gånger/);
+    expect(w.patchar).toEqual([["media"], ["options", "variantsInfo", "visible"]]);
+    expect(tolkaProdukt(w.produkter[f.sida.id]).bilder.map((b) => b.id)).toEqual(plan.galleriEfter.map((b) => b.id));
+  });
+
+  it("☠️ ett galleri som står kvar fel efter omläsningarna stoppar — inga länkförsök", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    w.sabotage.gamlaLasningar = 1000;
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/galleriet är inte det planerade/);
+    expect(w.patchar).toEqual([["media"]]);
+  });
+
+  it("utan galleri-PATCH läses ett avvikande galleri inte om", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f);
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    // Planen säger att galleriet står still, men det avviker: ingen PATCH av
+    // galleriet, alltså ingen gammal läsning att vänta ut.
+    const utanGalleri = { ...plan, galleriEfter: plan.galleriFore };
+    const u = await skrivSida(utanGalleri, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.steg.join(" ")).not.toMatch(/omläst/);
+    expect(w.patchar).not.toContainEqual(["media"]);
   });
 
   it("☠️ ett fel som inte är 404 PRODUCT_MEDIA_NOT_EXIST eller 409 stoppar efter ett försök, med felet", async () => {
@@ -297,5 +343,12 @@ describe("skrivSida", () => {
     // Den publicerade finns inte i indexet över dolda, så den hittas inte som givare.
     const plan = await planFor(w, lager, f.sida.id);
     expect(plan.val.filter((v) => v.givareId)).toHaveLength(1);
+  });
+});
+
+describe("mediaPost", () => {
+  it("skickar inte en tom alt-text (Wix 400 altText has size 0)", () => {
+    expect(mediaPost({ id: "a", alt: "" })).toEqual({ id: "a" });
+    expect(mediaPost({ id: "b", alt: "Soffa i grått" })).toEqual({ id: "b", altText: "Soffa i grått" });
   });
 });
