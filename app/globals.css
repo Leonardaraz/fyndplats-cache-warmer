@@ -2062,21 +2062,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .nf-cats-row a{display:inline-block;padding:9px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--r-pill);font-size:var(--text-sm);font-weight:600;color:var(--ink);transition:border-color .15s,background .15s,color .15s}
 .nf-cats-row a:hover{border-color:var(--brand);background:#fff;color:var(--brand)}
 
-/* #9 View Transitions */
-@view-transition{ navigation: auto }
-/* Den gamla sidan står kvar under den nya, som tonas in ovanpå. När båda
-   tonades samtidigt syntes bakgrunden igenom: en vit blinkning på ~0,15 s
-   mellan varje sida (2026-10-01). */
-::view-transition-old(root){animation:none}
-::view-transition-new(root){animation:fadeIn .2s ease both}
-/* Sidhuvudet och fraktraden får egna lager i övergången. Annars tonades
-   sidans två sidhuvuden över varandra med fraktradens höjd emellan — kom man
-   från en nedrullad sida syntes rubriken dubbelt ett ögonblick (2026-10-01).
-   Nu glider de på plats i stället. */
-.promo{view-transition-name:fp-promo}
-header.sidhuvud{view-transition-name:fp-sidhuvud}
-::view-transition-group(fp-promo),::view-transition-group(fp-sidhuvud){animation-duration:.25s;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
-@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+/* #9 Sidbyten: ingen övergång mellan dokument (borttagen 2026-10-07).
+   Här låg @view-transition med navigation auto. Kategoribyten, produktklick
+   och bakåt-knappen är hela sidladdningar, och vid varje sådan tonade den nya
+   sidan in över den gamla. På mobil syntes båda sidorna ovanpå varandra en
+   stund, och efter bakåt på iPhone fastnade en suddig skärmbild av startsidans
+   topp (Leonard, skärmbilder 2026-10-07). Utan övergången behåller
+   webbläsaren den gamla sidan tills den nya är ritad, så inget blinkar, och
+   laddningslinjen överst (SIDBYTE_SKRIPT i app/layout.tsx) visar att något
+   händer. lib/sidbyte-css.test.ts fäller om övergången kommer tillbaka. */
 @keyframes fadeOut{to{opacity:0}}
 @keyframes fadeIn{from{opacity:0}}
 
