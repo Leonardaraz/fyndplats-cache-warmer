@@ -1,0 +1,23 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "117a9e5e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 14,8B x 14,8T x 9,9H cm"
+ },
+ "1c883b87": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 16,6B x 16,6T x 11,4H cm"
+ },
+ "43b0de34": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 16,2B x 16,2T x 11H cm"
+ },
+ "8dbc327b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 12,7B x 12,7T x 8,6H cm"
+ }
+}
