@@ -85,7 +85,7 @@ En klöstunna är en klösmöbel och en koja i ett. Hela utsidan går att klösa
 - [Klöstunnan på 96 cm](/produkt/klostunna-96-cm-cremevit) har sisal runt hela utsidan och en bädd som går att tvätta. Den levereras färdigmonterad och är gjord för katter upp till 6 kg.
 - [Klösmöbeln i tunnform](/produkt/klosmobel-tunnform-99-cm-tre-vaningar) bär 30 kg tack vare den runda formen, med tre våningar inuti och bädd på taket.
 
-Vill du ha en mjukare stil finns [tunnor i flätat sjögräs](/produkt/klostunna-79-cm-sjogras) och vattenhyacint.
+Vill du ha en mjukare stil finns tunnor i flätat sjögräs och vattenhyacint i [Klösträd](/kategori/klostrad).
 
 ## Klätterväggar och väggmonterade träd
 
