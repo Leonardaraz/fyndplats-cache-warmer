@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SearchBox } from "./searchbox";
 import { AuctionDot } from "./auction-dot";
 import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { useMenyAntal } from "./use-meny-antal";
+import { usePanelFokus } from "./use-panel-fokus";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -39,6 +40,8 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   }, [open]);
 
   const closeMenu = () => setOpen(false);
+  const panelRef = useRef<HTMLElement>(null);
+  usePanelFokus(open, panelRef, closeMenu);
   const toggle = (id: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -49,7 +52,7 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   const menu = (
     <>
       <div className={`mobileov ${open ? "show" : ""}`} onClick={closeMenu} />
-      <aside className={`mobilemenu ${open ? "open" : ""}`} aria-hidden={!open} inert={!open}>
+      <aside ref={panelRef} className={`mobilemenu ${open ? "open" : ""}`} role="dialog" aria-modal="true" aria-label="Meny" aria-hidden={!open} inert={!open}>
         <div className="mm-head">
           <strong>Meny</strong>
           <button onClick={closeMenu} aria-label="Stäng">✕</button>

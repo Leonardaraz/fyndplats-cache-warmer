@@ -12,6 +12,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR } from "../lib/shipping";
 import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
+import { usePanelFokus } from "./use-panel-fokus";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -315,6 +316,8 @@ function hamtaForslag(): Promise<RecoProduct[]> {
 
 export function CartDrawer() {
   const { cart, open, setOpen, remove, updateQty, checkout, busy, count } = useCart();
+  const panelRef = useRef<HTMLElement>(null);
+  usePanelFokus(open, panelRef, () => setOpen(false));
   const [recommendations, setRecommendations] = useState<RecoProduct[]>([]);
   useEffect(() => {
     let aktiv = true;
@@ -354,7 +357,7 @@ export function CartDrawer() {
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`drawer ${open ? "show" : ""}`} aria-hidden={!open} inert={!open}>
+      <aside ref={panelRef} className={`drawer ${open ? "show" : ""}`} role="dialog" aria-modal="true" aria-label="Varukorg" aria-hidden={!open} inert={!open}>
         <div className="drawer-head">
           <strong>Varukorg{count > 0 ? ` (${count})` : ""}</strong>
           <button className="drawer-x" onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
