@@ -3,6 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
+import { forladdaKortbild } from "./card-gallery";
 import { PrefetchLink } from "./prefetch-link";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
@@ -60,6 +61,18 @@ function handlesFromSlug(bounds: PriceBounds | null, slug: string | null): [numb
   const lo = snap(r.min);
   const hi = Number.isFinite(r.max) ? snap(r.max) : bounds.max;
   return lo < hi ? [lo, hi] : [bounds.min, bounds.max];
+}
+
+/** Listans ordning för ett sorteringsval. Delas av rutnätet och förladdningen
+ *  av bilderna, så att förladdningen hämtar de kort som faktiskt kommer först. */
+function sortera(out: ListProduct[], sort: string, universal: Set<string>, dayMs: number): ListProduct[] {
+  if (sort === "img") return orderRecommended(out, universal, dayMs);
+  if (sort === "pop") return orderPopular(out, universal);
+  if (sort === "new") return [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
+  if (sort === "price-asc") return [...out].sort((a, z) => a.priceNum - z.priceNum);
+  if (sort === "price-desc") return [...out].sort((a, z) => z.priceNum - a.priceNum);
+  if (sort === "name") return [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+  return out;
 }
 
 const SORTS = [
@@ -496,13 +509,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // saknas den är signalen 0 och ordningen faller tillbaka på kategori-
     // blandning + nyhet. Ordningarna är rena funktioner i lib/sort-products —
     // där ligger också mätningarna, vikterna och testerna.
-    const universal = universalCollectionIds(alla);
-    if (sort === "img") out = orderRecommended(out, universal, dayMs);
-    else if (sort === "pop") out = orderPopular(out, universal);
-    else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
-    else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
-    else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
-    else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+    out = sortera(out, sort, universalCollectionIds(alla), dayMs);
     // KORTEN SOM REDAN STÅR FLYTTAS INTE. Sidan och /api/lista räknar samma
     // lista med samma dag, men de cachas var för sig och kan vara byggda från
     // olika ögonblick av katalogen. I standardläget står därför sidans egna kort
@@ -721,6 +728,27 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     hamtaBilder();
   }, [lista, hamtaLista, hamtaBilder]);
 
+  // SORTERINGEN ÖPPNAS: förladda de första korten i varje annan ordning.
+  // Uppmätt 2026-10-07 (mobil, 4× långsammare processor): ett byte till
+  // "Nyast" tog ~0,9 s, varav de nya bilderna en dryg tredjedel, och på en
+  // riktig mobil är nedladdningen den största delen. Väljaren på iPhone står
+  // öppen en stund medan kunden väljer, så bilderna hinner hem. Första raden
+  // (två kort på mobil, fyra annars) i varje ordning, en gång per bild.
+  const avsiktSortera = () => {
+    hamta();
+    if (!alla) return;
+    const antal = window.matchMedia("(max-width:540px)").matches ? 2 : 4;
+    const universal = universalCollectionIds(alla);
+    const dagMs = dayMsProp ?? currentDayMs();
+    for (const s of SORTS) {
+      if (s.v === sort) continue;
+      for (const p of sortera(list, s.v, universal, dagMs).slice(0, antal)) {
+        const bild = medBild(p).img;
+        if (bild) forladdaKortbild(bild, true);
+      }
+    }
+  };
+
   // FÖRHÄMTNING NÄR WEBBLÄSAREN ÄR LEDIG. Avsikts-signalerna räcker oftast,
   // men en snabb tumme hinner före. Listan låg förr i sidans HTML och laddades
   // av alla, så att hämta den efter sidladdningen kostar ingen besökare mer än
@@ -734,19 +762,21 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (!arStandard) { hamtaLista(); return; }
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (conn?.saveData || /2g$/.test(conn?.effectiveType ?? "")) return;
+    // Efter hydreringen, inte efter `load`. `load` väntar på varje bild på
+    // sidan, och på en mobil kunde det ta sekunder: den som valde sortering
+    // direkt fick vänta på listan först (2,6 s på "Nyast" i produktion, mätt
+    // 2026-10-07 med 4× långsammare processor). Listan är ~35 kB komprimerad.
     let avbruten = false;
     let idle: number | undefined;
     const start = () => {
       if (avbruten) return;
       idle = typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(() => hamtaLista(), { timeout: 4000 })
-        : window.setTimeout(hamtaLista, 1500);
+        ? window.requestIdleCallback(() => hamtaLista(), { timeout: 1500 })
+        : window.setTimeout(hamtaLista, 300);
     };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
+    start();
     return () => {
       avbruten = true;
-      window.removeEventListener("load", start);
       if (idle !== undefined) {
         if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idle);
         else window.clearTimeout(idle);
@@ -792,7 +822,8 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
               men ett filter ovanpå kan nå längre ner — så vi hämtar när man
               rör reglaget, inte när man släpper det. */}
           <select value={sort} onChange={(e) => setSort(e.target.value)}
-            onPointerEnter={hamta} onFocus={hamta} aria-label="Sortera produkter">
+            onPointerEnter={hamta} onFocus={avsiktSortera} onPointerDown={avsiktSortera} onTouchStart={avsiktSortera}
+            aria-label="Sortera produkter">
             {(defaultSort === "rel" ? [REL_SORT, ...SORTS] : SORTS).map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
           </select>
         </label>

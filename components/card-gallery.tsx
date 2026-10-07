@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
@@ -165,6 +165,27 @@ function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number
 const arPekskarm = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none)").matches;
 
+/** Kortets `sizes`, delad med förladdningen nedan så att båda väljer samma bild. */
+function kortSizes(tvaKolumner: boolean): string {
+  return `(max-width:540px) ${tvaKolumner ? "50vw" : "100vw"}, (max-width:900px) 50vw, 25vw`;
+}
+
+const forladdade = new Set<string>();
+/** Hämtar kortets huvudbild till webbläsarens cache innan kortet visas: samma
+ *  srcset och sizes som <Image> nedan, så webbläsaren väljer samma fil. Används
+ *  när kunden öppnar sorteringen (components/shopbrowser.tsx). */
+export function forladdaKortbild(img: string, tvaKolumner = false): void {
+  const src = tightFillUrl(img, 600, 600);
+  if (forladdade.has(src)) return;
+  forladdade.add(src);
+  const { props } = getImageProps({ src, alt: "", fill: true, sizes: kortSizes(tvaKolumner) });
+  const bild = new window.Image();
+  // sizes före srcset, annars hinner webbläsaren välja med fel bredd.
+  if (props.sizes) bild.sizes = props.sizes;
+  if (props.srcSet) bild.srcset = props.srcSet;
+  bild.src = props.src;
+}
+
 export function CardGallery({
   slug,
   img,
@@ -229,7 +250,7 @@ export function CardGallery({
     };
   }, [slug, altImg, createdAt]);
 
-  const sizes = `(max-width:540px) ${tvaKolumner ? "50vw" : "100vw"}, (max-width:900px) 50vw, 25vw`;
+  const sizes = kortSizes(tvaKolumner);
 
   // rAF-strypt: scroll fyrar per bildruta, men prickarna behöver bara det
   // senaste värdet en gång per ritning.
