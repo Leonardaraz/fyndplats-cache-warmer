@@ -4661,6 +4661,25 @@ svar, aldrig vid fel, så urvalet är exakt. Förra vägen — jämförelsefilen
 täckte bara annonsurvalet, och `/admin/mappings` laddade inte vid ~5 500
 produkter (se nedan).
 
+**Leverantörslänkar för en hel lista (2026-10-07).** Leonard ville ha
+Aosom-länken bredvid varje produkt i två listor, 505 produkter. Workflowen
+**"Leverantörslänkar — Aosom- och AliExpress-länk för en lista produkter
+(krypterat)"** tar Wix-produkt-id, slugs eller butiksadresser och svarar med
+samma länk som "Öppna hos Aosom" i `/admin/source-lookup`
+(`leverantorskallaFor`). En AliExpress-rad får sin AliExpress-länk, och en
+sammanslagen sida får en länk per färg ur flödet. Rutten är
+`POST /api/admin/leverantorslankar`, logiken `lib/import/leverantorslankar.ts`.
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Kuvertet är obligatoriskt**, som för kandidaterna. Länken bär
+   artikelnumret.
+2. ☠️ **Svaret bär inga kostnader**, och ett fel från flödet blir en flagga
+   (`flodetFel`) utan meddelande, eftersom flödets adress är hemlig.
+3. **Slugs slås upp hundra åt gången** med `$in` på slug
+   (`getV3ProductIdsBySlugs`, mätt mot skarpa V3 samma dag). Okända slugs,
+   produkter utan mappning och ordernummer listas i svaret i stället för att
+   tystas.
+
 **`/admin/mappings` laddade inte (2026-09-23).** Sidan skickade hela
 `WixV3ProductSummary` för varje produkt till webbläsaren — beskrivning och
 JSON-LD-taggar gånger ~5 500 — och ritade ett kort med bild per produkt. Nu går
