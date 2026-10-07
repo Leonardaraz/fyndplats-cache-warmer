@@ -525,6 +525,9 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 @media (max-width:560px){.nl{padding:36px 22px}.nl-btn{width:100%}}
 
 /* Text bara för skärmläsare (t.ex. en rubrik som håller ordningen h1→h2→h3). */
+.hoppa{position:fixed;top:8px;left:8px;z-index:2000;padding:10px 16px;background:var(--ink);color:#fff;border-radius:var(--r-sm);font-weight:600;transform:translateY(-200%)}
+.hoppa:focus{transform:none}
+main:focus{outline:none}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 footer{background:var(--char);color:#cfcac3;margin-top:64px}

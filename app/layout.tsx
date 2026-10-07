@@ -252,6 +252,8 @@ export default async function RootLayout({
             vänsterklick på länkar inom butiken, inte nya flikar, nedladdningar
             eller länkar som redan hanterats (loggan på startsidan). */}
         <div className="sidbyte" aria-hidden="true" />
+        {/* Första tabbstoppet: förbi sidhuvudet och menyn (extern audit 2026-10-07). */}
+        <a className="hoppa" href="#innehall">Hoppa till innehållet</a>
         <script dangerouslySetInnerHTML={{ __html: SIDBYTE_SKRIPT }} />
         {/* Filterknapparna syns innan de fungerar; trycken sparas och görs
             om när sidan är redo (lib/tidiga-klick.ts). */}
@@ -259,7 +261,7 @@ export default async function RootLayout({
         <CartProvider>
           <WishlistProvider>
             <SiteHeader />
-            <main>{children}</main>
+            <main id="innehall" tabIndex={-1}>{children}</main>
             <SiteFooter />
             <CartDrawer />
             <WishlistDrawer />
