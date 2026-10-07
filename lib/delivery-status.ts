@@ -98,7 +98,55 @@ export const POLL_PAUS_MS = 250;
  * återförsökare — lämnas raden på 'in_transit' vid Resend-fel prövas den igen
  * nästa körning. Skrevs statusen ändå hade ett enda Resend-hicka gjort paketet
  * osynligt för pollen för alltid, och kunden hade aldrig fått mejlet.
+ *
+ * Levererat med order är undantaget: sändaren (lib/delivery-notify) markerar
+ * själv paketet levererat innan den avgör om orderns mejl ska gå, och pollens
+ * ordersvep prövar ordrar utan mejl igen. "Väntar på övriga paket" skrivs
+ * därför också: paketet är framme och ska inte pollas mer.
  */
 export function skaSkrivaStatus(utfall: { sent: boolean; reason?: string }): boolean {
-  return utfall.sent || utfall.reason === "duplicate_suppressed";
+  return utfall.sent || utfall.reason === "duplicate_suppressed" || utfall.reason === "vantar_pa_ovriga_paket";
+}
+
+// ---------------------------------------------------------------------------
+// "Levererat" per ORDER, inte per paket (Leonard 2026-10-07).
+//
+// Order 10056 gick i två paket, och kunden fick två "Ditt paket har
+// levererats!" med samma två varor i båda. Mejlet går nu när ordern är helt
+// skickad och alla dess paket är framme, och då bara en gång. "Ute för
+// leverans" går fortfarande per paket: paketen kan komma olika dagar.
+// ---------------------------------------------------------------------------
+
+/** Dagar efter första levererade paketet som mejlet väntar på resten. Ett
+ *  paket utan spårning (17TRACK känner inte bolaget och AliExpress saknar
+ *  källan) eller med en avvikelse hade annars stoppat mejlet för alltid. */
+export const VÄNTA_PÅ_ÖVRIGA_DAGAR = 4;
+
+/** Dedup-nyckeln för orderns levererat-mejl i delivery_notifications. */
+export function orderNyckel(orderId: string): string {
+  return `order:${orderId}`;
+}
+
+export type LevereratBeslut = "skicka" | "vänta";
+
+/**
+ * Ska orderns levererat-mejl gå nu?
+ *
+ * `statusar` är tracking_mapping-status för orderns alla paket (utom
+ * 'ambiguous'). `orderStatus` är Wix fulfillmentStatus, eller null när
+ * ordern inte gick att läsa. Då avgör paketen ensamma, hellre än att ett
+ * Wix-fel stoppar mejlet.
+ */
+export function levereratBeslut(args: {
+  statusar: string[];
+  orderStatus: string | null;
+  förstaLevererad: number | null;
+  nu: number;
+}): LevereratBeslut {
+  const { statusar, orderStatus, förstaLevererad, nu } = args;
+  const allaFramme = statusar.length > 0 && statusar.every((s) => s === "delivered");
+  const heltSkickad = orderStatus === null || orderStatus.toUpperCase() === "FULFILLED";
+  if (allaFramme && heltSkickad) return "skicka";
+  if (förstaLevererad !== null && nu - förstaLevererad >= VÄNTA_PÅ_ÖVRIGA_DAGAR * 86_400_000) return "skicka";
+  return "vänta";
 }

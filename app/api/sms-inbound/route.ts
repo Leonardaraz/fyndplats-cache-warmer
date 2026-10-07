@@ -25,6 +25,7 @@ import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
+import { sendDeliveryNotification } from "@/lib/delivery-notify";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 import type { OrderLineItem } from "@/emails/order-confirmation";
@@ -401,6 +402,33 @@ export async function POST(req: NextRequest) {
     console.error("[sms-inbound] RESEND_API_KEY saknas — kan inte skicka mejl");
     await logAudit(parsed, true, { emailSent: false, error: "resend_key_missing", matchStrategy, trackingNumberOverride: effectiveTracking });
     return NextResponse.json({ received: true, matched: true, sent: false, error: "resend_not_configured" }, { status: 200 });
+  }
+
+  // Levererat går per order, via samma sändare som 17TRACK och AliExpress-
+  // pollen (lib/delivery-notify): mejlet väntar tills orderns alla paket är
+  // framme. Hämtställe och hämtkod hör inte till levererat-mejlet.
+  if (deliveryStatus === "delivered" && effectiveTracking) {
+    const utfall = await sendDeliveryNotification({
+      trackingNumber: effectiveTracking,
+      mottagare: mapping,
+      status: "delivered",
+      rawCarrier: parsed.carrier,
+      channel: "sms",
+      logg: "[sms-inbound]",
+    });
+    await logAudit(parsed, true, {
+      emailSent: utfall.sent,
+      resendId: utfall.sent ? utfall.resendId : undefined,
+      error: utfall.sent ? undefined : utfall.reason,
+      matchStrategy,
+      trackingNumberOverride: effectiveTracking,
+    });
+    return NextResponse.json(
+      utfall.sent
+        ? { received: true, matched: true, sent: true, resendId: utfall.resendId, status: deliveryStatus, matchStrategy }
+        : { received: true, matched: true, sent: false, reason: utfall.reason, matchStrategy },
+      { status: 200 },
+    );
   }
 
   // Dedup (delad med 17TRACK-push): atomiskt anspråk på (spårnummer, status).
