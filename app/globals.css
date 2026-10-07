@@ -1156,7 +1156,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .specbox ul{list-style:none;display:flex;flex-direction:column;gap:6px}
 .specbox li{font-size:var(--text-sm);color:#4a443d;padding-left:16px;position:relative}
 .specbox li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--orange)}
-.relsec{border-top:1px solid var(--line);margin-top:10px}
+.relsec{border-top:1px solid var(--line);padding-top:56px}
+/* Liknande produkter: .pdp:s 64 px luft under, 10 px marginal och .sec:s 80 px
+   ovanför gav 162 px mellan sista fliken och rubriken (Leonard 2026-10-07:
+   "lite för stor"). Nu 120 px på dator och 88 px på mobil. */
+@media(max-width:760px){.pdp{padding-bottom:40px}.relsec{padding-top:40px}}
 @media(max-width:760px){
   /* Mobil PDP-omstrukturering: flex-kolumn + display:contents på .pinfo gör att
      pickern/blocken blir direkta barn till .pdp, så CSS-order kan lyfta
