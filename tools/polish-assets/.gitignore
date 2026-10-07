@@ -176,3 +176,12 @@ runda-135/zoom-*.jpg
 
 # bygg-ghost.py:s högpassark. Mellanled för ögat, återskapbart ur orig/.
 */ghost/
+
+# Skribent-workflowens arbetskataloger, en per sida (`skriv/<id8>/`): skribentens
+# filer, granskarnas och rättarens ändringar, givarens alt-texter och
+# familj.json med orkestratorns anteckningar. De är MELLANLED: det som levereras
+# är rundkatalogens rotfiler, som `samla.py` bygger ur dem när sidan är granskad
+# (och givarrundans, som `bygg_givarrunda.py` bygger ur `givare/`). Samma skäl som
+# `*/ark/` och `*/orig/`. Utan raden ser varje körande skribent ut som ocommittade
+# ändringar, och stoppkroken kräver en commit vid varje turslut.
+*/skriv/
