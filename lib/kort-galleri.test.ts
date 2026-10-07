@@ -63,3 +63,16 @@ test("lasNyaSlugs: giltiga, unika, sorterade och kapade", () => {
   const många = Array.from({ length: 40 }, (_, i) => `p${String(i).padStart(3, "0")}`).join(",");
   assert.equal(lasNyaSlugs(många).length, NYA_MAX_SLUGS);
 });
+
+import { readFileSync } from "node:fs";
+
+test("ändrade produkter vinner över delen och /nya (bilder som läggs till i efterhand)", () => {
+  const src = readFileSync(new URL("../components/card-gallery.tsx", import.meta.url), "utf8");
+  const i = src.indexOf("function resultat(");
+  const a = src.indexOf("andrade?.get(slug)", i);
+  const n = src.indexOf("nya.get(slug)", i);
+  assert.ok(i > 0 && a > i && n > a, "resultat() läser andrade före nya och delen");
+  assert.match(src, /hamta\("\/api\/kort-galleri\/andrade"\)/);
+  const rutt = readFileSync(new URL("../app/api/kort-galleri/andrade/route.ts", import.meta.url), "utf8");
+  assert.match(rutt, /fetchAndradeKortbilder/);
+});

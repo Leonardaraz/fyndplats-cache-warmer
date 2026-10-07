@@ -58,6 +58,14 @@ const nya = new Map<string, string[]>();
 const nyaKo = new Set<string>();
 const nyaPagaende = new Set<string>();
 let nyaTimer: ReturnType<typeof setTimeout> | null = null;
+// Produkter som ändrats i Wix de senaste dygnen (/api/kort-galleri/andrade),
+// lästa direkt från Wix. Vinner över delen, som kan vara timmar gammal: bilder
+// som läggs till på en befintlig produkt syns då på kortet inom några minuter
+// (Leonard 2026-10-07). Hämtas en gång per sidbesök och igen efter tio minuter.
+let andrade: Map<string, string[]> | null = null;
+let andradeHamtad = 0;
+let andradePagaende = false;
+const ANDRADE_TTL_MS = 10 * 60_000;
 const TIDSGRANS_MS = 20000;
 const OMFORSOK_MS = 3000;
 const NYA_PER_ANROP = 12;
@@ -74,6 +82,8 @@ function arOkandForDelen(slug: string, del: Del): boolean {
 
 /** Extrabilderna om de är kända, annars undefined (och hämtningen startas). */
 function resultat(slug: string): string[] | undefined {
+  const a = andrade?.get(slug);
+  if (a) return a;
   const n = nya.get(slug);
   if (n) return n;
   const del = delar.get(kortDel(slug));
@@ -147,7 +157,21 @@ function skickaNya() {
     .finally(() => slugs.forEach((s) => nyaPagaende.delete(s)));
 }
 
-const begar = (slug: string) => hamtaDel(kortDel(slug));
+function hamtaAndrade() {
+  if (andradePagaende || (andrade && Date.now() - andradeHamtad < ANDRADE_TTL_MS)) return;
+  andradePagaende = true;
+  hamta("/api/kort-galleri/andrade")
+    .then((d) => {
+      andrade = new Map(Object.entries(d).map(([s, v]) => [s, nycklar(v)]));
+      andradeHamtad = Date.now();
+      for (const slug of andrade.keys()) if (lyssnare.has(slug)) meddela(slug);
+    })
+    // Faller det står korten på delens bilder, som förut.
+    .catch(() => { andradeHamtad = Date.now(); andrade ??= new Map(); })
+    .finally(() => { andradePagaende = false; });
+}
+
+const begar = (slug: string) => { hamtaAndrade(); hamtaDel(kortDel(slug)); };
 
 function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number): () => void {
   if (createdAt) skapad.set(slug, createdAt);

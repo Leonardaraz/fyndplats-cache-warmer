@@ -1225,6 +1225,54 @@ export async function fetchVarumarken(): Promise<Map<string, string>> {
   return out;
 }
 
+/**
+ * Huvudbild och galleri för produkter som ändrats i Wix efter `sedan`, nyast
+ * först, högst `maxSidor` × 100. Läses direkt från Wix V3, inte ur katalogen i
+ * minnet: den kan vara flera timmar gammal (den hämtas en gång per instans).
+ * För produktkortens extrabilder (/api/kort-galleri/andrade). Dolda produkter
+ * tas inte med. Kastar vid fel, så att rutten inte cachar ett tomt svar länge.
+ */
+export async function fetchAndradeKortbilder(sedan: string, maxSidor = 2): Promise<Map<string, { img: string; gallery: string[] }>> {
+  const out = new Map<string, { img: string; gallery: string[] }>();
+  if (!WIX_API_KEY) return out;
+  let cursor: string | undefined;
+  for (let sida = 0; sida < maxSidor; sida++) {
+    const res = await fetch("https://www.wixapis.com/stores/v3/products/query", {
+      method: "POST",
+      headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+      // Filtret och sorteringen bara på första sidan: markören bär frågan
+      // (CLAUDE.md, "Filtret går bara med på första sidan").
+      body: JSON.stringify({
+        fields: ["MEDIA_ITEMS_INFO"],
+        query: cursor
+          ? { cursorPaging: { limit: 100, cursor } }
+          : { filter: { updatedDate: { $gt: sedan } }, sort: [{ fieldName: "updatedDate", order: "DESC" }], cursorPaging: { limit: 100 } },
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`Wix V3 query ${res.status}`);
+    const data = await res.json();
+    for (const p of data?.products || []) {
+      if (!p?.slug || p.visible === false) continue;
+      const seen = new Set<string>();
+      const urls: string[] = [];
+      for (const it of p?.media?.itemsInfo?.items || []) {
+        const url = it?.image?.url;
+        if (typeof url !== "string" || !url) continue;
+        const k = imgKey(url);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        urls.push(url);
+      }
+      const main = typeof p?.media?.main?.image?.url === "string" ? p.media.main.image.url : urls[0];
+      if (main) out.set(p.slug, { img: main, gallery: urls });
+    }
+    cursor = data?.pagingMetadata?.cursors?.next || undefined;
+    if (!cursor || !data?.pagingMetadata?.hasNext) break;
+  }
+  return out;
+}
+
 export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
   const out = new Map<string, string[]>();
   if (!WIX_API_KEY) return out;
