@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { synligaBilder } from "../lib/variant-bilder";
@@ -510,6 +510,20 @@ export function ProductView({
       : variants.length > 1
         ? variants[sel]?.id
         : variants[0]?.id;
+  // Valet står i adressen (?variant=), så en kopierad länk öppnar samma val
+  // (extern audit 2026-10-07). Förvalet skrivs inte dit, bara ett val ur
+  // adressen eller av kunden. replaceState, inte router.replace: sidan är
+  // ISR-cachad och canonical är fortfarande /produkt/<slug>.
+  const forstaVariantId = useRef(variantId);
+  useEffect(() => {
+    if (!variantId) return;
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("variant") === variantId) return;
+    if (variantId === forstaVariantId.current && !u.searchParams.has("variant")) return;
+    u.searchParams.set("variant", variantId);
+    u.searchParams.delete("farg");
+    window.history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }, [variantId]);
   // Wix färdiga sträng, kvar som reserv. Product.price rörs inte — feed-parsern
   // i app/api/feed/products.xml läser den.
   const wixPrisStrang = multiAxis
