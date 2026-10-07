@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py 9be54e65 är en hopfällbar träningsmatta vars källa anger måtten som 'Ausgeklappte Größe: 180 x 60 x 5 cm' och 'Maße: 180 x 60 cm' utan axelbokstäver (B, T, H), med spec-raden 'Mått: 180cm x 60cm x 5cm' på samma rad som etiketten; inget axelfacit kan byggas mekaniskt, och texten skriver måtten som 180 × 60 × 5 cm utan att binda dem till bredd, djup eller höjd med ord

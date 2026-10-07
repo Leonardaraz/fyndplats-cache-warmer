@@ -1,0 +1,14 @@
+kort	position	källa	utsnitt	utfall
+1f0bb147	10	feedens position 10	hel bild	ren miljöbild utan text, behålls
+1f0bb147	11	feedens position 4	x 330, y 0, 1470 × 1470	rubriken och ikonraden ligger under y 1470; framifrån med skopa och strålkastare, ingen text kvar
+1f0bb147	12	feedens position 6	x 0, y 333, 1200 × 1200	rubriken ligger över y 333, fjärrkontrollen och bildtexten utanför x 1200 och y 1533; tecknad bild av barn och traktor, ingen text kvar
+1f0bb147	5, 7	feedens position 5 och 7	förkastade	varan fyller hela bredden i en liggande bild, så ett kvadratiskt utsnitt skär i den, och bildtexter och ikoner sitter på bilden
+9c2f53ab	10	feedens position 10	hel bild	ren miljöbild utan text, behålls
+9c2f53ab	11	feedens position 5	x 333, y 433, 1500 × 1500	rubriken och bilsymbolen ligger över y 360; hopfälld toalett i ett bagageutrymme, bara måttet 16,5 cm kvar
+9c2f53ab	12	feedens position 4	x 250, y 262, 1700 × 1700	rubriken ligger över y 255 och mannens huvud är med; toalett i ett tält, ingen text kvar
+9c2f53ab	6, 7	feedens position 6 och 7	förkastade	etiketter och rubriker ligger över själva toaletten
+d1d32cef	7	feedens position 7	hel bild	ren närbild utan text, behålls
+d1d32cef	10	feedens position 10	hel bild	ren miljöbild utan text, behålls
+d1d32cef	4, 5, 6	feedens position 4, 5 och 6	förkastade	rubriker, etiketter och pilar sitter på eller bredvid stolen; behövdes inte, sidan har sex bilder
+8999421b	10	feedens position 10	hel bild	ren miljöbild utan text, behålls
+8999421b	4, 6, 7	feedens position 4, 6 och 7	förkastade	rubriker, etiketter och infografik; position 5 är ett tygutsnitt med rubrik och ikonruta och behövdes inte

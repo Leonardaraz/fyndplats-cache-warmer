@@ -416,7 +416,8 @@ vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*.
 
-**Undantag: sidor med två eller tre bilder** *(Leonard 2026-09-30)*. Där får en leverantörsbild
+**Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
+2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
 beskäras så att rubriker, bildtexter och ikoner hamnar utanför. Varan skärs aldrig i, och
 ingenting retuscheras eller maskas. Butikens huvudbild visar mitten av
 bilden som en kvadrat, så välj utsnittet så att varan syns där. Hur det görs står i
@@ -443,6 +444,12 @@ den ena.
 
 Rundan bearbetar inga bilder, den väljer bland dem som finns. Behövs en bearbetad bild står
 metoderna i [`polish/bildmetoder.md`](polish/bildmetoder.md).
+
+**Minst fem bilder per produkt** *(Leonard 2026-10-07)*. Räcker de rena bilderna inte efter
+strykningen hämtar du fler enligt nästa stycke, och finns det text som går att skära bort beskär
+du en bild enligt undantaget ovan. Utsnitt får positionerna 11 och uppåt, hela bilder behåller
+feedens position, och `granskning.tsv` i rundan skriver varje använt och förkastat kandidatskäl.
+Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 
 **För få bilder kvar?** Importen hämtar bara feedens position 1, 2, 3, 8 och 9. Workflowen
 **"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till

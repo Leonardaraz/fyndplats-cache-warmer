@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f5a39919 45 måttbilden (bild 3): basplattans båda sidor är märkta 45 cm
+9be54e65 2 handtag räknade i bilderna: ett svart handtag på varje kortsida (position 1, 3 och 5)
+9be54e65 4 delar räknade i bilderna: tre veck ger fyra delar i mattan (position 1, 2 och 3)
+9c2f53ab 12 bild 5 anger 12 förpackningar geleringsmedel bredvid 12 avfallspåsar, samma tal som i titeln
+3c940b77 3 antal sektioner, räknade i bild 1, 2 och 3: tre tygpaneler mellan stängerna
+3c940b77 4 antal stänger, räknade i bild 1 och 3: en vid varje ände och en mellan varje sektion
