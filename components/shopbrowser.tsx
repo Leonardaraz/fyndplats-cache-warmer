@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
@@ -25,6 +25,8 @@ import {
 import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel, tusental } from "../lib/rating";
 import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
+import { rullaDirekt } from "./use-landa-vid-bilder";
+import { komMedHistoriken, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -34,6 +36,12 @@ const PAGE_SIZE = 24;
 // Underkategori-chips som syns på dator innan "Visa alla" — två rader på
 // 1200 px. Mobilen visar alla i en rad man sveper i sidled.
 const SUB_SYNLIGA = 10;
+
+// Hela listan och bildkartan, sparade för resten av besöket. Bakåt från en
+// produkt monterar om vyn i samma dokument, och med listan redan här står
+// korten från "Visa fler" på plats i första renderingen. Se lib/sidminne.ts.
+const LISTOR = new Map<string, ListProduct[]>();
+let BILDKARTA: Record<string, [string, string | null]> | null = null;
 
 /**
  * Handtagens startläge, ur URL:ens ?pris. Skalan (lib/price-range) räknas ur de
@@ -295,7 +303,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     const forsok = (n: number) => {
       fetch(listaUrl)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((d: ListProduct[]) => setHamtad(d))
+        .then((d: ListProduct[]) => { LISTOR.set(listaUrl, d); setHamtad(d); })
         .catch(() => {
           if (n < 3) window.setTimeout(() => forsok(n + 1), 1500 * n);
           else { listaBegard.current = false; setListaFel(true); }
@@ -611,7 +619,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     bilderBegarda.current = true;
     fetch("/api/kort-bilder")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d) setBilder(d); })
+      .then((d) => { if (d) { BILDKARTA = d; setBilder(d); } })
       // Misslyckas den står korten kvar med sin väntande fotoruta — fult, men
       // inte trasigt. Att nolla flaggan låter nästa avsikt försöka igen.
       .catch(() => { bilderBegarda.current = false; });
@@ -641,6 +649,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     setShown(PAGE_SIZE);
   }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
   const visible = list.slice(0, shown);
+
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
   // valt vet vi inte, och då visas ingen "Visa fler" förrän listan kommit
@@ -651,6 +660,51 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // ett filter eller en sortering, eller fler kort än sidan bär.
   const behoverLista = !!lista && !alla && (!arStandard || shown > products.length);
   const vantar = behoverLista && !listaFel;
+
+  // ── Bakåt från en produkt: samma kort, på samma plats ─────────────────────
+  //
+  // Trycket sparar hur många kort som visades och var kortet stod i fönstret.
+  // Kommer kunden tillbaka med bakåt visas lika många kort igen, och sidan
+  // rullas så att kortet står där det stod. Allt före första målningen när
+  // listan redan är hämtad; annars när den kommit.
+  const aterstall = useRef<Listlage | null>(null);
+  useLayoutEffect(() => {
+    let l: Listlage | null = null;
+    try {
+      const nav = performance.getEntriesByType?.("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (!komMedHistoriken(window as unknown as Fonster, Date.now(), nav?.type)) return;
+      l = lasListlage(window.sessionStorage, location.pathname + location.search, Date.now());
+    } catch { return; }
+    if (!l) return;
+    aterstall.current = l;
+    const sparad = listaUrl ? LISTOR.get(listaUrl) : undefined;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tillståndet finns bara i webbläsaren; före första målningen
+    if (sparad) { listaBegard.current = true; setHamtad(sparad); }
+    if (BILDKARTA) { bilderBegarda.current = true; setBilder(BILDKARTA); }
+    if (l.shown > PAGE_SIZE) setShown(l.shown);
+    // Bara vid montering.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useLayoutEffect(() => {
+    const l = aterstall.current;
+    // Vänta tills korten står där: lika många som sist, och hela listan om
+    // de inte ryms i sidans egna.
+    if (!l || shown < l.shown) return;
+    if (behoverLista && !listaFel) return;
+    aterstall.current = null;
+    const a = document.querySelector<HTMLElement>(`.prodgrid a.prod[href="${CSS.escape(l.href)}"]`);
+    if (!a) return;
+    rullaDirekt(scrollY + a.getBoundingClientRect().top - l.top);
+  });
+  const sparaLage = (e: MouseEvent) => {
+    const a = (e.target as HTMLElement).closest?.("a.prod");
+    if (!a) return;
+    try {
+      sparaListlage(window.sessionStorage, location.pathname + location.search, {
+        shown, href: a.getAttribute("href") ?? "", top: Math.round(a.getBoundingClientRect().top), t: Date.now(),
+      });
+    } catch { /* ingen lagring: bakåt beter sig som förut */ }
+  };
 
   // Behövs listan och har den inte begärts, begär den. Täcker allt som inte
   // går via avsikts-signalerna nedan — framför allt prisreglaget, färgskenan
@@ -945,7 +999,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} />; })}</div>
+          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

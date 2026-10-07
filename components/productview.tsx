@@ -17,6 +17,7 @@ import { formatPrice } from "../lib/price-range";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
 import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
+import { useLandaVidBilder } from "./use-landa-vid-bilder";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -447,6 +448,8 @@ export function ProductView({
   // före hydreringen när adressen pekar på ett annat val än förvalet, så att en
   // annonsklickare inte ser Mörkgrön för 599 kr i en sekund innan Mörkgrå för
   // 549 kr (2026-10-01). Den döljningen tas bort här, oavsett utfall.
+  useLandaVidBilder();
+
   useLayoutEffect(() => {
     const visa = () => document.getElementById("pdp-val-vantar")?.remove();
     let vid: string | null = null;

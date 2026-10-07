@@ -154,10 +154,12 @@ const SIDBYTE_SKRIPT =
   "var k=e.target.closest('button,[role=button],input,select,textarea');if(k&&a.contains(k))return;" +
   "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
   "if(u.pathname===location.pathname&&u.search===location.search)return;" +
+  // Signalerna till lib/sidminne.ts: ett tryck mot en sökväg, och bakåt/framåt.
+  "window.__fpKlick={p:u.pathname,t:Date.now()};" +
   "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
   "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
   "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +
-  "addEventListener('pageshow',av);addEventListener('popstate',av)})()";
+  "addEventListener('pageshow',av);addEventListener('popstate',function(){window.__fpTrav=Date.now();av()})})()";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
