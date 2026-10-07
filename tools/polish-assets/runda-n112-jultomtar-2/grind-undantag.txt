@@ -1,0 +1,2 @@
+# Kvittens per skript: <skript> <skäl>
+gate-axel.py e88dbbf4: måttritningen (bild 3) visar 30 cm som frontbredd (vågrät linje över figuren med stavarna) och 31 cm längs skidorna (djup); källans 31L x 30B läses positionellt som 31 bred, men ritningen avgör geometrin (runbook avsnitt 4, punkt 4). Övriga sex produkter är rena i samma körning.
