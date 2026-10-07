@@ -85,8 +85,8 @@ function sakraBesokare(client: any): Promise<void> {
 /** Laddar kassans kod och, med `nyckel`, besökarnyckeln innan kunden trycker.
  *  Mätt i butiken 2026-10-07 (mobil): första "Lägg i kundvagn" tog 2,4 s,
  *  varav 0,7 s kod och 0,9 s nyckel; senare tryck 0,7–0,8 s (Wix svar).
- *  Koden hämtas när produktsidan är ledig, nyckeln först vid avsikt (fingret
- *  på knappen), så att en ren titt inte skapar en besökare hos Wix. */
+ *  Anropas vid avsikt (fingret på knappen), så att en ren titt varken laddar
+ *  koden eller skapar en besökare hos Wix. */
 export function forvarmKundvagn(nyckel = false): void {
   getClient().then(({ client }) => (nyckel ? sakraBesokare(client) : undefined)).catch(() => {});
 }

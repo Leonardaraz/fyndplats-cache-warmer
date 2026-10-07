@@ -385,7 +385,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .heroinner>*:nth-child(4){animation-delay:.17s}
 .heroinner>*:nth-child(5){animation-delay:.23s}
 .hero h1{animation:heroLift .62s cubic-bezier(.2,.7,.2,1) both}
-.heromosaic{animation:heroRise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:.14s}
+.heromosaic{animation:heroLift .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:.14s}
+/* heroLift, inte heroRise: mosaiken bär startsidans LCP-bild, och en bild som
+   börjar på opacity 0 räknas inte som ritad förrän toningen är klar (+0,84 s
+   LCP, Lighthouse mobil 2026-10-07). Samma skäl som h1:an ovan. */
 .mcol{animation:heroFloat 6s ease-in-out infinite}
 .mcol-offset{animation-duration:7.6s;animation-delay:-2.6s}
 

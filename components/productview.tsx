@@ -599,13 +599,10 @@ export function ProductView({
     setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1
     setTimeout(() => setAdded(false), 1500);
   };
-  // Kassans kod hämtas när sidan är ledig, besökarnyckeln när fingret når
-  // knappen (forvarmKundvagn i components/cart.tsx).
-  useEffect(() => {
-    const ledig = "requestIdleCallback" in window;
-    const id = ledig ? window.requestIdleCallback(() => forvarmKundvagn(), { timeout: 5000 }) : window.setTimeout(() => forvarmKundvagn(), 2500);
-    return () => { if (ledig) window.cancelIdleCallback(id); else window.clearTimeout(id); };
-  }, []);
+  // Kassans kod och besökarnyckeln hämtas när fingret når knappen
+  // (forvarmKundvagn i components/cart.tsx). Inte när sidan är ledig: koden är
+  // ~100 kB och gav en lång uppgift på 0,3 s på varje produktsida (Lighthouse,
+  // mobil, 2026-10-07), också för den som aldrig köper. Lådan öppnas ändå direkt.
   const avsiktAttKopa = () => forvarmKundvagn(true);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
