@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useCart } from "./cart";
+import { forvarmKundvagn, useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { synligaBilder } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
@@ -585,11 +585,24 @@ export function ProductView({
         ? imageChoices[sel].priceNum
         : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
-    await add(productId, variantId || undefined, qty);
+    // Lådan öppnas direkt med varan som väntande rad (components/cart.tsx).
+    const val = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
     setAdded(true);
+    const ok = await add(productId, variantId || undefined, qty, {
+      namn: name, bild: galleryImages[0], val: val || undefined, prisNum: itemPrice || undefined,
+    });
+    if (!ok) { setAdded(false); return; }
     setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1
     setTimeout(() => setAdded(false), 1500);
   };
+  // Kassans kod hämtas när sidan är ledig, besökarnyckeln när fingret når
+  // knappen (forvarmKundvagn i components/cart.tsx).
+  useEffect(() => {
+    const ledig = "requestIdleCallback" in window;
+    const id = ledig ? window.requestIdleCallback(() => forvarmKundvagn(), { timeout: 5000 }) : window.setTimeout(() => forvarmKundvagn(), 2500);
+    return () => { if (ledig) window.cancelIdleCallback(id); else window.clearTimeout(id); };
+  }, []);
+  const avsiktAttKopa = () => forvarmKundvagn(true);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
   // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
@@ -800,8 +813,10 @@ export function ProductView({
             className="buy"
             disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
             onClick={onAdd}
+            onPointerDown={avsiktAttKopa}
+            onTouchStart={avsiktAttKopa}
           >
-            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
+            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
           </button>
 
           {!buyable && productId && <RestockForm productId={productId} />}
@@ -899,8 +914,10 @@ export function ProductView({
           className="buy sticky-buy-btn"
           disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
           onClick={onAdd}
+          onPointerDown={avsiktAttKopa}
+          onTouchStart={avsiktAttKopa}
         >
-          {!buyable ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
+          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i kundvagn"}
         </button>
       </div>
     </div>
