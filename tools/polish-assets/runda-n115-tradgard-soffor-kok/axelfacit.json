@@ -1,0 +1,51 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "061d3b2a": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 120B x 75T x 87H cm | ✔ Bettabmessungen: 190L x 120B x 28H cm | ✔ Sitzgröße: 120B x 60T cm | ✔ Rückengröße: 120B x 46H cm | ✔ Kissenmaße: 58L x 32B x 10T cm | Mått: 120L x 75B x 87H cm"
+ },
+ "45f64283": {
+  "tyska": "147L x 86B x 134H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 134,
+  "bredd": 147,
+  "djup": 86
+ },
+ "46c2e15c": {
+  "tyska": "220B x 86T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 86,
+  "hojd": 84,
+  "bredd": 220
+ },
+ "80fb6867": {
+  "tyska": "25,5L x 27,5B x 32H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 32,
+  "bredd": 25.5,
+  "djup": 27.5
+ },
+ "cdba5c48": {
+  "tyska": "L43 x B43 x H25cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 43,
+  "djup": 43
+ },
+ "cef0efd2": {
+  "tyska": "B63 x D20,5 x H118 cm",
+  "svenska": "",
+  "bokstaver": "BH",
+  "hojd": 118,
+  "bredd": 63
+ },
+ "e1ece3e0": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
