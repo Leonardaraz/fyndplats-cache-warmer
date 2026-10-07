@@ -48,7 +48,10 @@ import { kortDel } from "../lib/kort-galleri";
 // från /api/kort-galleri/nya, som läser produkten direkt från Wix. Ett kort
 // som bara saknas i delen utan att vara nyare har helt enkelt inga
 // extrabilder — delen utelämnar sådana för att hålla nere storleken.
-type Del = { rader: Record<string, unknown>; senast: number };
+type Del = { rader: Record<string, unknown>; senast: number; hamtad: number };
+// En del hålls högst så länge i fliken. Förut hölls den så länge fliken levde,
+// så en flik som stått öppen sedan morgonen visade morgonens bilder på kvällen.
+const DEL_TTL_MS = 30 * 60_000;
 const delar = new Map<number, Del>();
 const pagaende = new Set<number>();
 const forsok = new Map<number, number>();
@@ -100,12 +103,14 @@ function meddela(slug: string) {
   if (k) lyssnare.get(slug)?.forEach((cb) => cb(k));
 }
 
-function hamta(url: string): Promise<Record<string, unknown>> {
+function hamta(url: string, omvalidera = false): Promise<Record<string, unknown>> {
   // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
   // Safari före iOS 16 och kastar då synkront.
   const ctl = typeof AbortController === "function" ? new AbortController() : null;
   const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
-  return fetch(url, ctl ? { signal: ctl.signal } : undefined)
+  // omvalidera: fråga CDN:en i stället för att ta webbläsarens sparade kopia.
+  const init: RequestInit = { ...(ctl ? { signal: ctl.signal } : {}), ...(omvalidera ? { cache: "no-cache" as RequestCache } : {}) };
+  return fetch(url, init)
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
@@ -115,11 +120,12 @@ function hamta(url: string): Promise<Record<string, unknown>> {
 }
 
 function hamtaDel(del: number) {
-  if (delar.has(del) || pagaende.has(del)) return;
+  const gammal = delar.get(del);
+  if (pagaende.has(del) || (gammal && Date.now() - gammal.hamtad < DEL_TTL_MS)) return;
   pagaende.add(del);
-  hamta(`/api/kort-galleri/${del}`)
+  hamta(`/api/kort-galleri/${del}`, !!gammal)
     .then((d) => {
-      delar.set(del, { rader: d, senast: Number(d._senast) || 0 });
+      delar.set(del, { rader: d, senast: Number(d._senast) || 0, hamtad: Date.now() });
       for (const slug of lyssnare.keys()) if (kortDel(slug) === del) meddela(slug);
     })
     .catch(() => {
