@@ -1,0 +1,102 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "05c01fd1": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Zweisitzer-Abmessungen: 112,5L x 68B x 74H cm | Sessel-Abmessungen: 68L x 61B x 74H cm | Tisch-Abmessungen: Ø54 x 42H cm | Sitzgröße: 105B x 44T cm (Zweisitzer), 53,5B x 44T cm (Sessel) | Mått: 112,5L x 68B x 74H cm"
+ },
+ "102c080c": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen des Sessels: 76B x 77T x 78H cm | Tischabmessungen: Ø46 x 43H cm | Sitzgröße: 47B x 47T cm | Mått: 76L x 77B x 78H cm"
+ },
+ "1674a1a9": {
+  "tyska": "210L x 210B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 210,
+  "djup": 210
+ },
+ "1936c1f4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Stuhl Größe: 69B x 76T x 70H cm | Sitzgröße: 65B x 50T cm | Größe des Fußhockers: 55B x 45T x 35H cm | Mått: 69L x 76B x 70H cm"
+ },
+ "19c880ca": {
+  "tyska": "Ø50 x 46H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Tisch' (etiketten bar ett bestämningsord)",
+  "bokstaver": "H",
+  "hojd": 46
+ },
+ "1ecdb437": {
+  "tyska": "128,5L x 52B x 53,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 53.5,
+  "bredd": 128.5,
+  "djup": 52
+ },
+ "237667bb": {
+  "tyska": "220L x 220B x 200H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 220,
+  "djup": 220
+ },
+ "271811f3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Stuhlabmessungen: 55B x 58T x 82H cm | Tischabmessungen: 50L x 50B x 50H cm | Sitzgröße: 51B x 42,5T x 43H cm | Rückenlehne: 46B x 42H cm | Mått: 55L x 58B x 82H cm"
+ },
+ "357e5acb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Stuhl Abmessungen: 70L x 63B x 73H cm | Tisch Abmessungen: Ø40 x 45H cm | Sitzgröße: 43B x 45T cm | Mått: 70L x 63B x 73H cm"
+ },
+ "4be084cc": {
+  "tyska": "185L x 36B x71H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 71,
+  "bredd": 185,
+  "djup": 36
+ },
+ "a98acbab": {
+  "tyska": "Ø50 x 47,5H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 47.5
+ },
+ "bcb45a1f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Zweisitzer-Abmessungen: 111B x 71T x 75H cm | Stuhl-Abmessungen: 60B x 71T x 75H cm | Tisch-Abmessungen: Ø46 x 45H cm | Sitzgröße: 53B x 46T cm (Stuhl), 105B x 46T cm (Zweisitzer) | Rückengröße: 53B x 39H cm (Stuhl), 105B x 39H cm (Zweisitzer) | Mått: 111L x 71B x 75H cm"
+ },
+ "c9422654": {
+  "tyska": "54L x 54B x 52,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 52.5,
+  "bredd": 54,
+  "djup": 54
+ },
+ "d06918ec": {
+  "tyska": "350L x 350B x 205H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 205,
+  "bredd": 350,
+  "djup": 350
+ },
+ "fb8766b6": {
+  "tyska": "129L x 63B x 67Hcm (Sitzposition), 167L x 63B x 66H cm",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 67,
+  "bredd": 129,
+  "djup": 63
+ }
+}
