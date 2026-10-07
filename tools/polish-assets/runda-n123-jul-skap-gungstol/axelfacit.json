@@ -1,0 +1,99 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0775367b": {
+  "tyska": "78B x 22T x 105H cm (großes Rentier), 68B x 17T x 90H cm (kleines Rentier), 46B x 28T x 48H cm (Schlitten)",
+  "svenska": "",
+  "bokstaver": "BTHBTHBTH",
+  "djup": 22,
+  "hojd": 105,
+  "bredd": 78
+ },
+ "0f68262a": {
+  "tyska": "90L x 30B x 145H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 145,
+  "bredd": 90,
+  "djup": 30
+ },
+ "319eeac1": {
+  "tyska": "118L x 49B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 118,
+  "djup": 49
+ },
+ "477cba23": {
+  "tyska": "134T x 60B x 70H cm",
+  "svenska": "",
+  "bokstaver": "TBH",
+  "djup": 134,
+  "hojd": 70,
+  "bredd": 60
+ },
+ "68d9703e": {
+  "tyska": "82B x 32T x 120H cm (Rentier), 45B x 28T x 41H cm (Schlitten)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 32,
+  "hojd": 120,
+  "bredd": 82
+ },
+ "94e97a5b": {
+  "tyska": "68,5L x 42B x 87-145H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   87,
+   145
+  ],
+  "bredd": 68.5,
+  "djup": 42
+ },
+ "98b402dd": {
+  "tyska": "80L x 24B x 117,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 117.5,
+  "bredd": 80,
+  "djup": 24
+ },
+ "bae73e08": {
+  "tyska": "120B x 50T x 187,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 187.5,
+  "bredd": 120
+ },
+ "d321cf95": {
+  "tyska": "180B x 90T x 275H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 275,
+  "bredd": 180
+ },
+ "e39df2a7": {
+  "tyska": "100B x 24T x 100H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 100,
+  "bredd": 100
+ },
+ "e475de69": {
+  "tyska": "240B x 75T x 100H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 75,
+  "hojd": 100,
+  "bredd": 240
+ },
+ "ef7d96b6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen Hirsch: 75B x 25T x 120H cm | ✔ Abmessungen Hirschkuh: 88B x 22T x 93H cm | ✔ Abmessungen Kitz: 42B x 17T x 47H cm"
+ }
+}
