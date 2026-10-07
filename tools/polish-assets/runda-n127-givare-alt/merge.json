@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "696f9659",
+  "huvud_fullid": "696f9659-e3d9-4686-9958-18cef66cfbea",
+  "givare": "c641c10a",
+  "givare_fullid": "c641c10a-042e-4dca-bfc9-ddb94b4557ba",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "6",
+   "7"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "696f9659": "Gräddvit",
+   "c641c10a": "Ljusgrå"
+  }
+ }
+]
