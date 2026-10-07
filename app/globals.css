@@ -1594,6 +1594,18 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    knapp och inte som en textlänk. */
 .prose figure.blog-product-img figcaption a{display:block;padding:11px 14px;color:var(--brand);font-weight:600;text-decoration:none}
 .prose figure.blog-product-img figcaption a:hover{text-decoration:underline;background:#ffefe3}
+.prose .blog-produktrad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+.prose .blog-produktrad figure.blog-product-img{margin:0;display:flex;flex-direction:column}
+.prose .blog-produktrad figure.blog-product-img figcaption{flex:1;display:flex}
+.prose .blog-produktrad figure.blog-product-img figcaption a{display:flex;align-items:center;justify-content:center;width:100%;padding:10px 10px;font-size:13px;line-height:1.35}
+@media (max-width:640px){.prose .blog-produktrad{grid-template-columns:repeat(2,1fr);gap:10px}}
+.prose .blog-tabell{margin:24px 0;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
+.prose .blog-tabell table{width:100%;border-collapse:collapse;font-size:var(--text-sm);line-height:1.45}
+.prose .blog-tabell th{text-align:left;background:var(--warm);font-weight:700;color:var(--ink);padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.prose .blog-tabell td{padding:11px 14px;border-top:1px solid var(--line);color:#3f3a34;vertical-align:top}
+.prose .blog-tabell tbody tr:first-child td{border-top:0}
+.prose .blog-tabell td:first-child{font-weight:600;color:var(--ink)}
+@media (max-width:640px){.prose .blog-tabell table{font-size:13px}.prose .blog-tabell th,.prose .blog-tabell td{padding:9px 10px}}
 .callout{background:var(--warm);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:var(--r-md);padding:18px 20px;margin:22px 0}
 .callout p:last-child{margin:0}
 
