@@ -81,9 +81,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   // ── Underkategorier ───────────────────────────────────────────────────────
   // ── Möbler (2026-09-23) ──────────────────────────────────────────────────
   kontorsstolar: {
-    title: "Kontorsstol – ergonomisk stol, ritstol & knästol",
+    title: "Kontorsstol – ergonomisk stol & ritstol",
     description:
-      "Kontorsstolar med nätrygg, nackstöd, fotstöd eller massage, stolar som bär upp till 220 kg, knästolar, ritstolar med fotring och sadelpallar.",
+      "Kontorsstolar med nätrygg, nackstöd, fotstöd eller massage, stolar som bär upp till 220 kg, ritstolar med fotring och sadelpallar.",
   },
   fatoljer: {
     title: "Fåtölj – reclinerfåtölj, gungstol & tv-fåtölj",
@@ -344,6 +344,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Klösträd & kattträd – takhöga och klöspelare",
     description:
       "Klösträd och kattträd från 46 cm till takhöga modeller på 275 cm, klöspelare och klöstunnor i sisal, jute och naturfiber – med grottor och hängmattor.",
+  },
+  knastolar: {
+    title: "Knästol – gungande, på hjul eller med ryggstöd",
+    description:
+      "Ergonomiska knästolar, även kallade balansstolar: gungande på medar, på hjul eller med ryggstöd. Alla bär 120 kg, och flera passar skrivbord på 75–90 cm.",
   },
   "koksmaskiner-apparater": {
     title: "Köksmaskin, espressomaskin & köksapparater",

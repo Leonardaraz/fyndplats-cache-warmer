@@ -40,7 +40,7 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
+    subs: ["Kontorsstolar", "Knästolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
     heroPicks: [],
   },
   {
@@ -302,6 +302,8 @@ export const KATEGORI_HERO_PRODUKT: Record<string, string> = {
   "tvatt-stad": "kompakt-torktumlare-franluft-vagg-golv",
   "varmeflaktar": "keramikvarmare-2000-w-termostat-oscillation",
   "elbilsladdning-solenergi": "portabel-elbilsladdare-typ-2-schuko",
+  // Runda S15 2026-10-03: den klassiska formen, sits och knädyna på medar.
+  "knastolar": "gungande-knastol-gra",
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan

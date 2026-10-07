@@ -466,3 +466,31 @@ deploy vid växlingen.
 tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
 `lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
 tillsammans med ett Wix Data-anrop.
+
+## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
+
+Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
+Googles sökresultat. Leonard ville ha bort den ("det ser fult ut"), utan att
+något annat påverkas. `components/rensa-srsltid.tsx` tar bort den ur
+adressfältet, logiken bor i `lib/srsltid.ts` och är testad där.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Koden står kvar tills Googles tagg är klar med den.** Städningen väntar
+   på att gtag.js laddats (den laddas med `lazyOnload`) OCH att besökaren valt
+   i cookiebannern, och sedan tre sekunder till. Uppmätt mot den skarpa sidan:
+   när besökaren klickar "Godkänn alla" skickar Ads-taggen sin
+   `consent_update` med koden i adressen. Städas den före valet går den
+   kopplingen förlorad. Väljer besökaren aldrig står koden kvar, som förut.
+2. ☠️ **`History.prototype.replaceState`, inte `window.history.replaceState`.**
+   Både Next och Googles tagg lägger sig runt metoden på `window.history`.
+   Uppmätt: via `window.history` skickade Ads-taggen två extra `page_view`
+   för varje städning, via prototypen ingen. Next:s `state` följer med, så
+   bakåtknappen fungerar (provat: nästa produkt och tillbaka gav rätt sida med
+   ren adress).
+3. **Next vet inte om bytet**, så en `router.refresh()` (auktionsklockan) skriver
+   tillbaka den gamla adressen. Loopen tar då bort koden igen inom en sekund.
+4. **Andra parametrar lämnas tecken för tecken** (`?variant=` och filtren).
+   Strängen delas för hand, eftersom `URLSearchParams` kodar om `,` och `+`.
+
+Sidans canonical pekar redan på den rena adressen, så för Google är inget nytt.

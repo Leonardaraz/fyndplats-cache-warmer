@@ -25,7 +25,7 @@ export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
     { rubrik: "Matplats", slugs: ["matbord-stolar", "matgrupper", "barbord", "pallar"] },
     { rubrik: "Sovrum", slugs: ["sangar-sovrum", "nattduksbord", "byraer", "garderober-kladstall"] },
     { rubrik: "Hall", slugs: ["skoskap-skobankar", "kladhangare-hallmobler"] },
-    { rubrik: "Kontor & gaming", slugs: ["kontorsstolar", "gamingstolar", "skrivbord", "hornskrivbord"] },
+    { rubrik: "Kontor & gaming", slugs: ["kontorsstolar", "knastolar", "gamingstolar", "skrivbord", "hornskrivbord"] },
   ],
   "hem-inredning": [
     { rubrik: "Inredning", slugs: ["dekoration-prydnad", "konstvaxter", "speglar"] },

@@ -200,6 +200,9 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   oronlappsfatoljer: 6499,          // samma nod
   matgrupper: 6347,                 // Furniture > Furniture Sets > Kitchen & Dining Furniture Sets
   hornskrivbord: 4191,              // Furniture > Office Furniture > Desks
+  // Runda S15 (2026-10-03). Taxonomin har ingen nod för knästolar; närmast är
+  // kontorsstolarnas egen, kontrollerad i taxonomifilen (sv-SE och en-US).
+  knastolar: 2045,                  // Furniture > Office Furniture > Office Chairs
   "skarmtak-entretak": 499907,      // … > Lawn & Garden > Outdoor Living > Awnings
   gnistskydd: 2365,                 // … > Fireplace & Wood Stove Accessories > Fireplace Screens
   elementskydd: 7110,               // … > Household Appliance Accessories > Heating Radiator Accessories

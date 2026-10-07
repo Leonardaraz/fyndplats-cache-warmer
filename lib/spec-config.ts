@@ -186,6 +186,8 @@ const KATEGORIER: Record<string, Rad> = {
   // Nya underkategorier med egen fråga, och de två nya avdelningarna. De nya
   // under Möbler, Hem och Husdjur som saknas här ärver sin förälder.
   "gamingstolar": STOLAR,
+  // Runda S15 2026-10-03.
+  "knastolar": STOLAR,
   "garderober-kladstall": SKAP,
   "smart-hem-sakerhet": ["w", "eg:bsf", "m"],
   "tvatt-stad": ["w", "l", "b", "h", "eg:h", "m"],
