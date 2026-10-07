@@ -138,20 +138,39 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj; stavning?: Record<string, str
           c.choiceId ??= `val-${String(o.name)}-${String(c.name)}`;
         }
       }
+      const foreVarianter = ((p.variantsInfo as { variants?: Obj[] } | undefined)?.variants ?? []);
       const varianter = ((k.variantsInfo as Obj).variants as Obj[]).map((v, i) => {
         const { inventoryItem, ...rest } = v;
         const vid = (v.id as string) ?? `var-ny-${i}`;
-        const post = inventoryItem as { quantity: number };
-        // Strikt som schemat: `quantity` ELLER `inStock` (plus `preorderInfo`),
-        // och lagret följer varianten — inget id.
-        const falt = Object.keys(post);
-        if (falt.some((f) => !["quantity", "inStock", "preorderInfo"].includes(f))) {
-          throw new Error(`Wix 400: okänt fält i inventoryItem: ${falt.join(",")}`);
+        // Utan `inventoryItem` rörs lagret inte (variantbildens rättning).
+        if (inventoryItem !== undefined) {
+          const post = inventoryItem as { quantity: number };
+          // Strikt som schemat: `quantity` ELLER `inStock` (plus `preorderInfo`),
+          // och lagret följer varianten — inget id.
+          const falt = Object.keys(post);
+          if (falt.some((f) => !["quantity", "inStock", "preorderInfo"].includes(f))) {
+            throw new Error(`Wix 400: okänt fält i inventoryItem: ${falt.join(",")}`);
+          }
+          const befintlig = lager[id].find((x) => x.variantId === vid);
+          if (befintlig) befintlig.quantity = post.quantity;
+          else lager[id].push({ id: `inv-${vid}`, variantId: vid, quantity: post.quantity });
         }
-        const befintlig = lager[id].find((x) => x.variantId === vid);
-        if (befintlig) befintlig.quantity = post.quantity;
-        else lager[id].push({ id: `inv-${vid}`, variantId: vid, quantity: post.quantity });
-        return { ...rest, id: vid };
+        // Som Wix: variantens bild räknas om ur valets första kopplade bild bara
+        // när valen står enbart med namn. Med val-id står den gamla kvar.
+        const baraNamn = ((rest.choices ?? []) as Obj[]).every((c) => !c.optionChoiceIds);
+        const gammal = foreVarianter.find((x) => x.id === vid)?.media;
+        let media: unknown = gammal;
+        if (baraNamn) {
+          media = undefined;
+          for (const c of (rest.choices ?? []) as Obj[]) {
+            const n = c.optionChoiceNames as Obj;
+            const o = ((k.options ?? []) as Obj[]).find((x) => x.name === n.optionName);
+            const val = ((o?.choicesSettings as { choices?: Obj[] } | undefined)?.choices ?? []).find((x) => x.name === n.choiceName);
+            const forsta = (val?.linkedMedia as Obj[] | undefined)?.[0];
+            if (forsta) { media = { id: forsta.id }; break; }
+          }
+        }
+        return { ...rest, id: vid, ...(media ? { media } : {}) };
       });
       p.variantsInfo = { variants: varianter };
       stavaOm(p);
@@ -286,6 +305,15 @@ const recension = (productId: string, id: string, text: string, status: StoredRe
 
 const PAR: SammanslagningInput = { behall: "sida", utkast: "utkast", fargBehall: "Svart", fargUtkast: "Grå" };
 const patchar = (w: ReturnType<typeof fejkWix>) => w.anrop.filter((a) => a.metod === "PATCH");
+/**
+ * Sammanslagningens egen variantskrivning: den bär lagret. Variantbildens
+ * rättning går till samma adress men utan `inventoryItem`.
+ */
+const arVariantskrivning = (a: { metod: string; sokvag: string; kropp?: unknown }) =>
+  a.metod === "PATCH"
+  && a.sokvag.startsWith("/stores/v3/products-with-inventory/")
+  && (((a.kropp as { product?: Obj })?.product?.variantsInfo as { variants?: Obj[] } | undefined)?.variants ?? [])
+    .some((v) => v.inventoryItem !== undefined);
 
 describe("färgsammanslagning — planen", () => {
   it("torrkörning är default och skriver ingenting", async () => {
@@ -445,13 +473,50 @@ describe("färgsammanslagning — skrivningen", () => {
     const svar = await korSammanslagning(PAR, deps, { apply: true });
 
     expect(svar.ok).toBe(true);
-    const lasningar = w.anrop.filter((a) => a.metod === "GET");
+    // Planen och sammanslagningens egen skrivning läser aldrig handelsdata.
+    // Variantbildens rättning efteråt gör det, men den får falla utan att
+    // sammanslagningen gör det (se testet om 403 nedan).
+    const forsta = w.anrop.findIndex((a) => arVariantskrivning(a));
+    const lasningar = w.anrop.slice(0, forsta).filter((a) => a.metod === "GET");
     expect(lasningar.length).toBeGreaterThan(0);
     expect(lasningar.some((a) => a.sokvag.includes("MERCHANT_DATA"))).toBe(false);
-    const skriv = w.anrop.find((a) => a.metod === "PATCH" && a.sokvag.startsWith("/stores/v3/products-with-inventory/"))!;
+    const skriv = w.anrop[forsta];
     const varianter = ((skriv.kropp as { product: Obj }).product.variantsInfo as Obj).variants as Obj[];
     expect(varianter[0].revenueDetails).toEqual({ cost: { amount: "525.00" } });
     expect(varianter[1].revenueDetails).toEqual({ cost: { amount: "612.50" } });
+  });
+
+  it("☠️ varje färg får sin egen bild i varukorgen: variantens bild rättas efter kopplingen", async () => {
+    // Bilderna kopplas med val-id, och då räknar Wix inte om variantens bild
+    // (lib/wix/variant-media.ts). Utan rättningen hade den nya grå färgen
+    // stått på sidans svarta bild i varukorgen, kassan och ordern.
+    const { deps, w } = miljo();
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(varianterPa(w).map((v) => (v.media as Obj | undefined)?.id)).toEqual(["bild-s1", "bild-u1"]);
+    expect(svar.steg).toContain("variantbilder: 2 rättade");
+    // Rättningen rör inte lagret: ingen `inventoryItem` i dess skrivning.
+    const rattning = w.anrop.filter((a) => a.metod === "PATCH" && a.sokvag.includes("products-with-inventory") && !arVariantskrivning(a));
+    expect(rattning).toHaveLength(1);
+    expect(w.lager.sida.map((x) => x.quantity)).toEqual([40, synligtSaldo(23)]);
+  });
+
+  it("☠️ får nyckeln inte läsa varukostnaden fortsätter sammanslagningen, och ingen rättning skrivs", async () => {
+    const w = fejkWix();
+    const inner = w.wix;
+    const wix: WixAnrop = async (metod, sokvag, kropp) => {
+      if (metod === "GET" && sokvag.includes("MERCHANT_DATA")) {
+        w.anrop.push({ metod, sokvag, kropp });
+        throw new Error("Wix 403: NO_PERMISSION_TO_READ_MERCHANT_DATA");
+      }
+      return inner(metod, sokvag, kropp);
+    };
+    const { deps, rader } = miljo({ wix: { ...w, wix } });
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(svar.steg.some((r) => /variantbilder: kunde inte kontrolleras.*MERCHANT_DATA/.test(r))).toBe(true);
+    expect(w.anrop.filter((a) => a.metod === "PATCH" && a.sokvag.includes("products-with-inventory") && !arVariantskrivning(a))).toHaveLength(0);
+    expect(rader.get("sida")!.variants).toHaveLength(2);
   });
 
   it("en order på den nya färgen beställer utkastets artikel efteråt", async () => {
@@ -539,7 +604,7 @@ describe("färgsammanslagning — skrivningen", () => {
     // Wix bär färgen, mappningen gör det inte — synken nollar den nya färgen
     // och beställningsfilen håller en order på den tills raden är mappad.
     expect(rader.get("sida")!.variants).toHaveLength(1);
-    const variantskrivningar = () => w.anrop.filter((a) => a.sokvag.includes("products-with-inventory")).length;
+    const variantskrivningar = () => w.anrop.filter(arVariantskrivning).length;
     expect(variantskrivningar()).toBe(1);
 
     const svar = await korSammanslagning(PAR, deps, { apply: true });
@@ -651,7 +716,7 @@ describe("sammanslagning — ett val till på en sammanslagen sida", () => {
     const { deps, w } = tre();
     await korSammanslagning(PAR, deps, { apply: true });
     await korSammanslagning(TREDJE, deps, { apply: true });
-    const skriv = w.anrop.filter((a) => a.sokvag.startsWith("/stores/v3/products-with-inventory/")).at(-1)!;
+    const skriv = w.anrop.filter(arVariantskrivning).at(-1)!;
     const produkt = (skriv.kropp as { product: Obj }).product;
     const val = ((produkt.options as Obj[])[0].choicesSettings as { choices: Obj[] }).choices;
     expect(val.slice(0, 2).map(bildPa)).toEqual(["bild-s1", "bild-u1"]);
@@ -675,7 +740,7 @@ describe("sammanslagning — ett val till på en sammanslagen sida", () => {
     fall(1);
     await expect(korSammanslagning(TREDJE, deps, { apply: true })).rejects.toThrow(/databasen/);
     expect(rader.get("sida")!.variants).toHaveLength(2);
-    const skrivningar = () => w.anrop.filter((a) => a.sokvag.includes("products-with-inventory")).length;
+    const skrivningar = () => w.anrop.filter(arVariantskrivning).length;
     expect(skrivningar()).toBe(2);
 
     const svar = await korSammanslagning(TREDJE, deps, { apply: true });
@@ -1077,7 +1142,7 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
     await korSammanslagning(PAR, deps, { apply: true });
     fall(1);
     await expect(korSammanslagning(NY_STORLEK, deps, { apply: true })).rejects.toThrow(/databasen/);
-    const skrivningar = () => w.anrop.filter((a) => a.sokvag.includes("products-with-inventory")).length;
+    const skrivningar = () => w.anrop.filter(arVariantskrivning).length;
     expect(skrivningar()).toBe(2);
     expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([{ Färg: "Svart" }, { Färg: "Grå" }]);
 

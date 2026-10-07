@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runImageRestore, type ImageRestoreDeps } from "./image-restore";
+import { aeIdUrSynken, runImageRestore, type ImageRestoreDeps } from "./image-restore";
 import type { StoredReview } from "../store/reviews";
 import type { AERReview } from "../import/review-import";
 
@@ -144,5 +144,50 @@ describe("runImageRestore", () => {
     const s = await runImageRestore(d, OPTS);
     expect(s.strypta).toBe(1);
     expect(skrivna).toEqual([]);
+  });
+});
+
+
+describe("produkter som bytt till Aosom (2026-10-06)", () => {
+  it("☠️ AE-id:t hämtas ur AE-synkens minne när mappningen inte längre är AE", async () => {
+    // Hörnskrivbordet c342826f: AE-recensionen med foto låg kvar, men
+    // ommappningen hade tagit bort AE-id:t från mappningen.
+    const hamtadeId: string[] = [];
+    const { d, skrivna } = deps({
+      rader: [rad({ productId: "p1", reviewIdAE: "111", imageUrl: W("a") })],
+      doda: [W("a")],
+      ae: {},
+      aeProductId: async () => null,
+      aeProductIdFranSynken: async (pid) => (pid === "p1" ? "1005001234567" : null),
+      fetchReviews: async (id) => {
+        hamtadeId.push(id);
+        return { reviews: [{ reviewIdAE: "111", rating: 5, text: "t", imageUrl: AE("x") }], throttled: false };
+      },
+    });
+    const s = await runImageRestore(d, OPTS);
+    expect(hamtadeId).toEqual(["1005001234567"]);
+    expect(s).toMatchObject({ viaSynkensMinne: 1, utanAEMappning: 0, aterstallda: 1 });
+    expect(skrivna[0].imageUrl).toBe(W("ny-x"));
+  });
+
+  it("utan minne räknas raden som utanAEMappning, och inget hämtas", async () => {
+    const { d, hamtningar } = deps({
+      rader: [rad({ productId: "p1", reviewIdAE: "111", imageUrl: W("a") })],
+      doda: [W("a")],
+      aeProductId: async () => null,
+      aeProductIdFranSynken: async () => null,
+    });
+    const s = await runImageRestore(d, OPTS);
+    expect(s).toMatchObject({ utanAEMappning: 1, viaSynkensMinne: 0 });
+    expect(hamtningar).toEqual([]);
+  });
+
+  it("aeIdUrSynken släpper bara igenom ett rent AE-id", () => {
+    expect(aeIdUrSynken({ aliexpressId: "1005006123456789" })).toBe("1005006123456789");
+    expect(aeIdUrSynken({ aliexpressId: " 1005006123456789 " })).toBe("1005006123456789");
+    expect(aeIdUrSynken({ aliexpressId: "" })).toBeNull();
+    expect(aeIdUrSynken({ aliexpressId: "aosom-845-292" })).toBeNull();
+    expect(aeIdUrSynken({})).toBeNull();
+    expect(aeIdUrSynken(null)).toBeNull();
   });
 });

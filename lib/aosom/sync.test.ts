@@ -171,15 +171,24 @@ function deps(over: Partial<AosomSyncDeps> = {}) {
 }
 
 describe("synligtSaldo", () => {
-  it("drar av bufferten så svansen aldrig säljs", () => {
+  it("☠️ ingen buffert: Aosoms saldo visas som det är (Leonard 2026-10-06)", () => {
+    // "Ta bort den där 1 kvar bufferten." Har Aosom 1 kvar visar vi 1, inte
+    // "Slutsåld". Det som hindrar att samma enhet säljs två gånger är
+    // `medSaldaAvdragna`, inte bufferten.
+    expect(LAGER_BUFFERT).toBe(0);
+    expect(synligtSaldo(1)).toBe(1);
+    expect(synligtSaldo(2)).toBe(2);
+    expect(synligtSaldo(50)).toBe(50);
+  });
+
+  it("drar av bufferten", () => {
     expect(synligtSaldo(50)).toBe(50 - LAGER_BUFFERT);
     expect(synligtSaldo(100)).toBe(100 - LAGER_BUFFERT);
   });
 
   it("saldon på eller under bufferten visas som slutsålt", () => {
-    // Feeden uppdateras 3 ggr/dygn. Säger Aosom "3 kvar" och vi visar 3 säljer vi
-    // den fjärde i fönstret mellan två synkar.
     for (let q = 0; q <= LAGER_BUFFERT; q++) expect(synligtSaldo(q)).toBe(0);
+    expect(synligtSaldo(0)).toBe(0);
   });
 
   it("skräpvärden blir 0, aldrig NaN eller negativt", () => {

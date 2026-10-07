@@ -10,11 +10,18 @@ import type { WixAnrop } from "./skrivplan";
 
 const WIX_BASE = "https://www.wixapis.com";
 
-export function skapaWixAnrop(vanta: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms))): WixAnrop {
+/**
+ * `rubriker` byts bara av den som redan pratar med Wix via en annan rubrik,
+ * som `linkChoiceMedia` (`wixHeaders`), så att uppföljningen går mot samma sajt.
+ */
+export function skapaWixAnrop(
+  vanta: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+  rubrikerFor: () => Record<string, string> = headlessWixHeaders,
+): WixAnrop {
   return async (metod, sokvag, kropp) => {
     // ☠️ Rubrikerna ligger UTANFÖR loopen: ett saknat token är inte övergående,
     // och inuti försöken hade det rapporterats som "nätverksfel" tre gånger.
-    const rubriker = headlessWixHeaders();
+    const rubriker = rubrikerFor();
     const pauser = metod === "GET" ? [0, 1000, 3000] : [0];
     let senaste = "";
     for (const paus of pauser) {

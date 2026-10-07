@@ -20,16 +20,22 @@ import { getStore } from "@/lib/store/factory";
 import { getReviewStore } from "@/lib/store/reviews";
 import { isAliExpressMapping } from "@/lib/store/supplier";
 import { fetchAeReviews } from "@/lib/aliexpress/reviews";
-import { importImageToOwnMedia } from "@/lib/wix/media-import";
+import { arAliExpressCdn, importeraOchBekrafta } from "@/lib/wix/bekraftad-bild";
 import { RECENSION_TAK } from "@/lib/aosom/media-cleanup";
-import { runImageRestore } from "@/lib/reviews/image-restore";
+import { aeIdUrSynken, runImageRestore } from "@/lib/reviews/image-restore";
+import { getSyncStore } from "@/lib/sync/sync-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-/** Marginal till maxDuration: en pågående produkt hinner bli klar. */
-const TIDSBUDGET_MS = 230_000;
+/**
+ * Ingen ny produkt tas efter så här lång tid — marginal till maxDuration (300 s).
+ * 150 s och inte 230 s sedan 2026-10-06: varje foto hämtas nu av oss, laddas
+ * upp och väntas in till READY (upp till 30 s), och den sista produkten ska
+ * hinna bli klar innan Vercel bryter. Samma marginal som Aosom-rutten.
+ */
+const TIDSBUDGET_MS = 150_000;
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -80,12 +86,18 @@ async function handle(req: NextRequest) {
           const m = await store.getMappingByWixProductId(wixProductId);
           return m?.supplierProductId && isAliExpressMapping(m) ? m.supplierProductId : null;
         },
+        // Produkter som bytt till Aosom: AE-id:t ur AE-synkens minne (se aeIdUrSynken).
+        aeProductIdFranSynken: async (wixProductId) => aeIdUrSynken(await getSyncStore().getState(wixProductId)),
         fetchReviews: async (aeId) => {
           const r = await fetchAeReviews(aeId, { pages });
           return { reviews: r.reviews, throttled: r.throttled };
         },
         isDead: arDod,
-        importImage: (url, namn) => importImageToOwnMedia(url, namn),
+        // ☠️ Adressen först när Wix svarat READY (lib/wix/bekraftad-bild.ts).
+        // Import File svarade direkt och hämtade senare; slutade hämtningen
+        // FAILED skrevs en död adress, och 127 AE-recensioner bar döda foton
+        // 2026-10-06.
+        importImage: (url, namn) => importeraOchBekrafta(url, namn, arAliExpressCdn),
         upsert: (r) => reviews.upsert(r),
       },
       { dryRun, limit, after, timeBudgetMs: TIDSBUDGET_MS },

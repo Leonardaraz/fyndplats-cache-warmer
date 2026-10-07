@@ -681,13 +681,14 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    *"Items with low stock may be temporarily removed to avoid overselling."*
    Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
    kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
-3. **`LAGER_BUFFERT = 1`**, 3 fram till 2026-10-01. Feeden uppdateras tre gånger
-   per dygn, så mellan två synkar är siffran gammal. Säger Aosom "3 kvar" och vi
-   visar 3 säljer vi den fjärde. Leonards beslut 2026-10-01: *"visa en mindre än
-   aosom, inte 3"*. Golvlampan `65ca6f6d` stod då som slutsåld med 4 kvar hos
-   Aosom. ☠️ **Sänk aldrig bufferten utan `medSaldaAvdragna`**, som drar av det
-   vi sålt tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
-   butiken*).
+3. **`LAGER_BUFFERT = 0`** sedan 2026-10-06 (Leonard: *"ta bort den där 1 kvar
+   bufferten"*); 1 från 2026-10-01, 3 dessförinnan. Har Aosom 1 kvar visar vi 1.
+   ⚠️ Accepterad risk: feeden uppdateras tre gånger per dygn, så Aosom kan ha
+   sålt sin sista enhet till någon annan innan nästa synk. Då får ordern
+   avbokas. ☠️ **Ta aldrig bort `medSaldaAvdragna`**, som drar av det vi sålt
+   tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
+   butiken*). Det är den, inte bufferten, som hindrar att samma enhet säljs två
+   gånger.
 4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
    cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
    Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
@@ -966,8 +967,8 @@ test låser det (`en försäljning räknas som drift`).
 inte visar än dras av från flödets saldo innan planen jämförs med butiken. Fram
 till dess var det `LAGER_BUFFERT` på 3 som skyddade, och det räckte inte:
 golvlampan `65ca6f6d` hade 4 hos Aosom, butiken visade 1, order 10056 tog den,
-och nästa körning skrev 1 igen. Med bufferten på 1 och avdraget blir samma rad
-4 − 1 − 1 = 2.
+och nästa körning skrev 1 igen. Med avdraget blir samma rad 4 − 1 = 3 (med
+bufferten på 1, som gällde fram till 2026-10-06, blev den 2).
 
 Fem egenskaper som inte ska tas bort:
 
@@ -975,8 +976,8 @@ Fem egenskaper som inte ska tas bort:
    `pending`, och tasks med status `ordered` i tolv timmar efter att de
    markerats beställda (`orderedAt`, som workflowen "Order — beställd eller
    skickad för hand" sätter). Flödet exporteras tre gånger per dygn, så en nyss
-   lagd order syns inte där direkt, och bufferten på 1 räcker inte för två
-   beställda enheter. Visar flödet redan ordern dras den av två gånger under
+   lagd order syns inte där direkt, och bufferten (0 sedan 2026-10-06) skyddar
+   inga beställda enheter. Visar flödet redan ordern dras den av två gånger under
    resten av fönstret, och det är åt det säkra hållet. En `ordered`-rad utan
    `orderedAt` räknas inte.
 2. ☠️ **Raderna läses för varje tugga, direkt EFTER butikens lager.** Lästes de
@@ -1461,6 +1462,49 @@ oförändrad ur produktens EGEN GET, som redan går med
 `?fields=VARIANT_OPTION_CHOICE_NAMES` — projektionen vars hela syfte är att
 bära valens namn. Det är samma round-trip-princip som `visible`, inte ett
 handbyggt objekt, och det är skillnaden mot fällan i poleringens SKU-steg.
+
+### ☠️ Variantens bild följer bara valet om valen skickas med NAMN (2026-10-03)
+
+Wix räknar själv fram `variantsInfo.variants[].media` ur valets `linkedMedia`,
+och fältet är skrivskyddat. Men Wix räknar bara om det när varianterna skickas
+med valen angivna **enbart med namn** (`optionChoiceNames`), som Wix egen
+redigerare gör. Motorns skrivningar skickar `variantsInfo` ordagrant ur GET:en,
+alltså med `optionChoiceIds`, och då står den gamla bilden kvar. Bilderna
+kopplas efter att produkten skapats, när variantbilden redan är huvudbilden, så
+den fastnade där. **Varukorgen (Cart v2 `lineItems[].image`), kassan och ordern
+visade första färgens bild oavsett vald färg.** 566 publicerade produkter
+rättades för hand samma dag, med id, SKU, pris, lager, synlighet, bildordning
+och kostnad kontrollerade före och efter.
+
+Receptet bor i `lib/wix/variant-media.ts` (`refreshVariantMedia`):
+`PATCH /stores/v3/products-with-inventory/{id}` utan fältmask, med `options`
+ordagrant, produktens `visible`, och ALLA varianter med `id`, valen bara med
+namn, `price` (med `compareAtPrice`), `sku`, `barcode`, `visible`,
+`physicalProperties` och `revenueDetails.cost`. Aldrig `inventoryItem` (då rörs
+lagret inte) och aldrig variantens `media` (Wix ignorerar den). Förväntad bild =
+första bilden i valets `linkedMedia`; flera optioner med bilder → första bilden
+i snittet; inga kopplade bilder → huvudbilden. Efter skrivningen läses produkt
+och lager om, och minsta avvikelse stoppar.
+
+- **Den anropas efter varje bildkoppling:** `linkChoiceMedia` (importen),
+  färgbilderna (`fargbilder-kor.ts`), miljöbilden (`livsbild.ts`) och
+  sammanslagningen. Kollapsen (`remap-kollaps.ts`) kopplar inga bilder och
+  lämnar en variant utan val, så den har inget att räkna på.
+- **Den dagliga kollen** `/api/cron/variantbild?dryRun=false` (05:35 UTC)
+  sveper hela katalogen, utkast med. Först läses alla flervariantsprodukter
+  (fyra i taget, inget skrivs), sedan rättas de med fel bild en i taget.
+  Leonards ja 2026-10-03: "kör den så det fungerar fullt ut". Ett handanrop
+  utan `dryRun=false` bara listar.
+- ✅ **Utkast är prövade och rättas också** (2026-10-03, utkastet d4118d39):
+  efter skrivningen fortfarande `visible: false`, rätt bild, SKU och pris lika,
+  lagret orört (antal och revision). Kontrollen fäller en ändrad synlighet.
+  `utkast: false` / `?utkast=0` hoppar dem.
+- ☠️ **Skrivningen kräver `fields=MERCHANT_DATA`**, annars saknas kostnaden.
+  Motorns nyckel fick 403 på den 2026-09-27 (se sammanslagningen). Då skriver
+  rättningen ingenting och säger `nyckeln får inte läsa varukostnaden`. Kollen
+  behöver inte fältet.
+- Skrivningar med `optionChoiceIds` (prissynken, auktionerna, SKU-steget)
+  behåller variantbilden, så de bör inte förstöra en rättning.
 
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
@@ -2665,6 +2709,34 @@ finns hos AliExpress — recensionerna går att hämta om (`fetchAeReviews`, $0)
 men `repairImages` letar bara efter rader som FORTFARANDE bär en
 leverantörs-URL, och de här bär en död wixstatic-adress. Återställning är ett
 eget jobb.
+
+#### ☠️ 260 recensioner hade döda foton igen (2026-10-06)
+
+Leonards rapport: hörnskrivbordets recension hade en bild som inte syntes.
+Uppmätt på alla publicerade rader via `/api/reviews/<id>`: **2 418 recensioner
+med foto, 315 av 3 592 adresser svarade 403**, fördelade på 260 recensioner och
+165 produkter (127 AliExpress, 133 Aosom). Butiken döljer en trasig bild
+(`onError` i `ProductReviews.tsx`), så kunden såg ingen tom ruta, bara inget foto.
+
+Två orsaker i AliExpress-återställningen (`/api/cron/review-image-restore`):
+
+1. ☠️ **Ommappningen tar bort AE-id:t.** `tillämpaOmmappning` byter
+   `supplierProductId` till Aosom, och återställningen räknade produktens
+   AE-recensioner som `utanAEMappning`. Hörnskrivbordet `c342826f` var ett av
+   dem. AE-synkens tillstånd sparas per Wix-produkt och överlever bytet, så
+   id:t läses nu därifrån (`aeIdUrSynken`, räknaren `viaSynkensMinne`).
+2. ☠️ **Import File skrev adressen innan Wix hämtat filen.** Slutade hämtningen
+   FAILED stod en död adress kvar. Återställningen går nu samma väg som
+   Aosom-återställningen: hämta bytena, ladda upp med rätt typ, skriv adressen
+   först vid READY (`lib/wix/bekraftad-bild.ts`, delad mellan båda rutterna).
+
+⚠️ Den vanliga publiceringsvägen (`withOwnImage` → `importImageToOwnMedia`)
+använder fortfarande Import File utan att vänta. Nya AE-foton kan alltså dö på
+samma sätt; en körning av `review-image-restore.yml` fångar dem.
+
+Aosom-raderna kräver källfotona från Aosoms recensionsdata, som bara går att
+hämta i Leonards webbläsare (se *Omgång 5*), och körs med
+`aosom-review-image-restore.yml`.
 
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 

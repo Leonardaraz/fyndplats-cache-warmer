@@ -61,23 +61,25 @@ export const MIN_FEED_RADER = 2000;
  * Vi visar Aosoms saldo MINUS det här, och saldon på eller under det som
  * SLUTSÅLT.
  *
- * Feeden uppdateras tre gånger per dygn, så mellan två synkar finns ett fönster
- * där Aosoms siffra är gammal. Säger de "3 kvar" och vi visar 3, säljer vi den
- * fjärde.
+ * NOLL sedan 2026-10-06. Leonards beslut: "ta bort den där 1 kvar bufferten".
+ * Har Aosom 1 kvar visar vi 1, inte "Slutsåld". Talet var 3 fram till
+ * 2026-10-01 och 1 därefter ("visa en mindre än Aosom, inte 3"); golvlampan
+ * 65ca6f6d stod då som slutsåld med 4 kvar hos Aosom.
  *
- * Talet var 3 fram till 2026-10-01. Leonards beslut samma natt: "visa en mindre
- * än Aosom, inte 3". Golvlampan 65ca6f6d stod då som slutsåld med 4 kvar hos
- * Aosom, eftersom en kund köpt den enda vi visade.
+ * ⚠️ RISKEN SOM ÄR ACCEPTERAD: feeden uppdateras tre gånger per dygn, så
+ * mellan två synkar kan Aosom ha sålt sin sista enhet till någon annan. Då tar
+ * vi emot en order vi inte kan expediera, och den får avbokas. Aosom plockar
+ * själva bort rader med lågt lager ("Items with low stock may be temporarily
+ * removed to avoid overselling"), vilket krymper fönstret men inte stänger det.
  *
- * ☠️ BUFFERTEN SKYDDAR INTE LÄNGRE SÅLDA ENHETER — DET GÖR `medSaldaAvdragna`.
- * Sedan 2026-09-30 lägger synken tillbaka flödets tal efter en försäljning
- * (`motButikensSaldo`), och med 3 i buffert var det bufferten som hindrade att
- * samma sista exemplar såldes två gånger innan Aosoms lista hunnit visa vår
- * beställning. Med 1 räcker den inte till det. Därför dras det vi sålt av
- * separat tills Aosoms flöde visar det (`vantarPaFlodet`) — sänk aldrig
- * bufferten utan det avdraget.
+ * ☠️ BUFFERTEN SKYDDAR INTE SÅLDA ENHETER — DET GÖR `medSaldaAvdragna`. Sedan
+ * 2026-09-30 lägger synken tillbaka flödets tal efter en försäljning
+ * (`motButikensSaldo`), och utan avdraget hade samma sista exemplar kunnat
+ * säljas två gånger innan Aosoms lista hunnit visa vår beställning. Det vi
+ * sålt dras därför av separat tills Aosoms flöde visar det (`vantarPaFlodet`)
+ * — ta aldrig bort det avdraget.
  */
-export const LAGER_BUFFERT = 1;
+export const LAGER_BUFFERT = 0;
 
 /**
  * Produkter per tugga i loopen — och därmed per Wix-anrop.
@@ -964,7 +966,7 @@ export function planeraTvetydig(m: ProductMappingRecord, sku: string, skal: stri
  * försäljning (`motButikensSaldo`). Utan avdraget hade golvlampan 65ca6f6d, med
  * 4 hos Aosom och en såld men obeställd, fått 3 tillbaka på sidan — och en ny
  * kund hade kunnat köpa samma exemplar. Med 3 i buffert räckte bufferten som
- * skydd; med 1 gör den inte det (`LAGER_BUFFERT`).
+ * skydd; med 1, och sedan 2026-10-06 med 0, gör den inte det (`LAGER_BUFFERT`).
  *
  * Vanlig rad: allt produktens sålda dras av, vilken variant orderraden än
  * bär. Sammanslagen sida: varje orderrad dras från sin egen färg, avgjord på
