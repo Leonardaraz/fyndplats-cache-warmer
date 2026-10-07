@@ -589,7 +589,10 @@ export function ProductView({
     const val = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
     setAdded(true);
     const ok = await add(productId, variantId || undefined, qty, {
-      namn: name, bild: galleryImages[0], val: val || undefined, prisNum: itemPrice || undefined,
+      // Bilden som redan står i galleriet, ur webbläsarens cache.
+      namn: name, val: val || undefined, prisNum: itemPrice || undefined,
+      bild: [...document.querySelectorAll<HTMLImageElement>(".pdp .gmain img.is-shown")].pop()?.currentSrc
+        || (galleryImages[0] ? tightFillUrl(galleryImages[0], 160, 160) : undefined),
     });
     if (!ok) { setAdded(false); return; }
     setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1

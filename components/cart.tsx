@@ -99,6 +99,8 @@ function persistTokens(client: any) {
 }
 
 /** Det kunden ser i lådan medan Wix bekräftar tillägget. */
+/** `bild` visas som den är: helst adressen sidan redan visar, så att den
+ *  ligger i webbläsarens cache och syns direkt. */
 export type Forhandsrad = { namn: string; bild?: string; val?: string; prisNum?: number };
 type Vantande = Forhandsrad & { nyckel: number; antal: number };
 
@@ -481,7 +483,7 @@ export function CartDrawer() {
           {vantande.map((v) => (
             <div className="li li-vantar" key={v.nyckel} aria-busy="true">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {v.bild ? <img className="li-img" src={tightFillUrl(v.bild, 160, 160)} alt={v.namn} /> : <div className="li-img" />}
+              {v.bild ? <img className="li-img" src={v.bild} alt={v.namn} /> : <div className="li-img" />}
               <div className="li-info">
                 <div className="li-name">{v.namn}</div>
                 {v.val && <div className="li-val">{v.val}</div>}
