@@ -229,6 +229,8 @@ export type NameMatch = {
   score: number;
   /** Sant när VARJE sökterm hittades (exakt, synonym eller stavfel). */
   full: boolean;
+  /** Sant när minst en term bara hittades via stavfelstoleransen. */
+  stavfel?: boolean;
 };
 
 // Hur väl matchar `query` ett produktNAMN?
@@ -251,15 +253,17 @@ export function nameMatch(name: string, query: string): NameMatch {
   if (units.length === 0) return none;
   let sum = 0;
   let hit = 0;
+  let stavfel = false;
   for (const u of units) {
     const qual = tokenQuality(u, nameNorm);
     sum += qual;
     if (qual > 0) hit++;
+    if (qual > 0 && qual < 0.85) stavfel = true;
   }
   if (sum === 0) return none;
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
-  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length };
+  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel };
 }
 
 export function nameScore(name: string, query: string): number {
@@ -277,6 +281,11 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
   const scored = items
     .map((item) => ({ item, ...nameMatch(nameOf(item), query) }))
     .filter((r) => r.score > 0);
-  const kept = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
+  const hela = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
+  // STAVFEL BARA SOM RESERV, av samma skäl. Två fel tillåts i långa ord, så
+  // "hundvagn" matchade "handtag" och "hundtand": 17 hundvagnar och sedan
+  // nattduksbord, skänkar och gunghästar (extern audit 2026-10-07). Finns det
+  // träffar utan stavfel visas bara de; "cyckel" hittar fortfarande cyklar.
+  const kept = hela.some((r) => !r.stavfel) ? hela.filter((r) => !r.stavfel) : hela;
   return kept.sort((a, b) => b.score - a.score).map((r) => r.item);
 }

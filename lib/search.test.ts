@@ -203,3 +203,16 @@ test("rankByName: sorterar på relevans", () => {
     "Klösträd 200 cm med sex nivåer – tre grottor och hängmatta",
   ]);
 });
+
+test("rankByName: stavfelsträffar bara när inget matchar utan stavfel", () => {
+  // Extern audit 2026-10-07: "hundvagn" → "handtag" och "hundtand" med två fel.
+  const namn = [
+    "Vitt nattduksbord med tre lådor – silverhandtag och tippskydd",
+    "Hundvagn för mellanstor hund upp till 25 kg",
+    "Retro fåtölj med hundtandsmönster – armstöd i trä",
+    "Cykelvagn för hund 2-i-1 – blir hundvagn",
+  ];
+  assert.deepEqual(rankByName(namn, (n) => n, "hundvagn"), [namn[1], namn[3]]);
+  // Utan någon träff utan stavfel används stavfelstoleransen som förut.
+  assert.deepEqual(rankByName(["Cykel för barn", "Bord"], (n) => n, "cyckel"), ["Cykel för barn"]);
+});
