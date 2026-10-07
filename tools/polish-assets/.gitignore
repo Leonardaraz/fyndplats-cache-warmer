@@ -185,3 +185,12 @@ runda-135/zoom-*.jpg
 # `*/ark/` och `*/orig/`. Utan raden ser varje körande skribent ut som ocommittade
 # ändringar, och stoppkroken kräver en commit vid varje turslut.
 */skriv/
+
+# Leverantörens bildkandidater för granskning (`kand/`, 2026-10-07): bilderna som
+# workflowen "Bilder — hämta leverantörens övriga bilder för granskning" laddar
+# upp till Media Manager, hämtade hem för att ses i kontaktark. De är råa
+# leverantörsbilder och härledbara (kör workflowen igen), och det publika repot
+# bär inga sådana. Samma skäl som `*/orig/` och `*/ark/`; utan raden ser varje
+# granskad runda ut som ocommittade ändringar, och stoppkroken kräver en commit
+# vid varje turslut.
+*/kand/
