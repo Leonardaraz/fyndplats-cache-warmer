@@ -172,6 +172,7 @@ export function CardGallery({
   name,
   priority,
   createdAt,
+  tvaKolumner = false,
 }: {
   slug: string;
   img: string;
@@ -180,6 +181,9 @@ export function CardGallery({
   priority: boolean;
   /** Produktens createdAt (Wix numericId) — avgör om delen kan känna till den. */
   createdAt?: number;
+  /** Rutnätet har två kolumner på mobil (listsidorna), så bilden är halva
+   *  skärmen bred. Annars hämtade mobilen en bild för hela bredden. */
+  tvaKolumner?: boolean;
 }) {
   const [aktiv, setAktiv] = useState(0);
   const [extra, setExtra] = useState<string[]>([]);
@@ -225,7 +229,7 @@ export function CardGallery({
     };
   }, [slug, altImg, createdAt]);
 
-  const sizes = "(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw";
+  const sizes = `(max-width:540px) ${tvaKolumner ? "50vw" : "100vw"}, (max-width:900px) 50vw, 25vw`;
 
   // rAF-strypt: scroll fyrar per bildruta, men prickarna behöver bara det
   // senaste värdet en gång per ritning.

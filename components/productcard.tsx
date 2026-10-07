@@ -14,7 +14,7 @@ import { formatPrice } from "../lib/price-range";
  *  vänta på att layouten skulle räknas ut innan hämtningen ens började. */
 /** `href` ersätter produktlänken, t.ex. med den färg kunden filtrerat på
  *  (?farg=, se components/shopbrowser). */
-export function ProductCard({ p, priority = false, href }: { p: ListProduct; priority?: boolean; href?: string }) {
+export function ProductCard({ p, priority = false, href, tvaKolumner = false }: { p: ListProduct; priority?: boolean; href?: string; tvaKolumner?: boolean }) {
   // Hover-alt-image. Listsidorna skickar den förberäknad (altImg) — att skicka
   // hela gallery[] för 787 produkter kostade 364 kB i klient-payloaden. Övriga
   // ytor skickar fortfarande hela Product, och då plockas den ut här som förut.
@@ -52,7 +52,7 @@ export function ProductCard({ p, priority = false, href }: { p: ListProduct; pri
         {!p.img && <span className="pimg-vantar" aria-hidden="true" />}
         {/* Bilderna: svep på pekskärm, hover-växling på dator. Se
             components/card-gallery.tsx. */}
-        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} />}
+        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} tvaKolumner={tvaKolumner} />}
       </div>
       <div className="pbody">
         <div className="pname">{p.name}</div>

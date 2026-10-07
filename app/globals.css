@@ -2176,14 +2176,17 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .alla-prod .prod:hover{box-shadow:var(--e3)}
 @media(max-width:900px){.alla-prod .prodgrid{grid-template-columns:repeat(3,1fr);gap:24px 20px}}
 @media(max-width:760px){.alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:22px 16px}}
-/* Mobil: rutnätet går ut till 12 px från kanten i stället för containerns
-   26, och mellanrummet är 10 px. Korten (och bilderna) blir ~10 % bredare,
-   180 i stället för 164 px på en iPhone (Leonard 2026-10-07). Knappen fick
-   inte plats med pilen på 164 px; den har mindre sidoluft här. */
+/* Mobil: listsidornas rutnät (ShopBrowser: kategorier, sök, Alla produkter,
+   Rea) har två kort i bredd, som hos de stora möbelkedjorna (Leonard
+   2026-10-07). Förut hade kategorisidorna och sökningen ett kort per rad.
+   Rutnätet går ut till 12 px från kanten i stället för containerns 26, och
+   mellanrummet är 10 px: korten blir 180 px på en iPhone i stället för 164.
+   Knappen har mindre sidoluft här, så pilen får plats. Bildernas `sizes`
+   följer med (ProductCard tvaKolumner). */
 @media(max-width:540px){
-  .alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:18px 10px;margin-inline:-14px}
-  .alla-prod .prod .pbody{padding:12px}
-  .alla-prod .prod .pbtn{padding:8px 8px}
+  .prodgrid.listgrid{grid-template-columns:repeat(2,1fr);gap:18px 10px;margin-inline:-14px}
+  .listgrid .prod .pbody{padding:12px}
+  .listgrid .prod .pbtn{padding:8px 8px}
 }
 
 /* Mobil-toolbar: filter-rad blir egen, sort + count på samma rad */

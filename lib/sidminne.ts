@@ -46,6 +46,30 @@ export function komMedHistoriken(w: Fonster, nu: number, navigeringstyp: string 
   return !w.__fpKlick && !trav && navigeringstyp === "back_forward";
 }
 
+// ── Produktsidan efter en hel sidladdning ────────────────────────────────────
+//
+// Några länkar till produkter är vanliga <a> (förslagen i varukorgen,
+// auktionskorten, köpguidernas produkter) och laddar om hela sidan. Då finns
+// window.__fpKlick inte kvar, så sidhuvudets skript sparar trycket även i
+// sessionStorage. Skriptet nedan ligger sist i produktvyn och körs bara vid en
+// hel sidladdning (React kör inte skript den lägger in själv), innan sidan
+// ritats färdigt. Det ligger sist och inte direkt efter galleriet: först då
+// är sidan lång nog att rullas ner till bilderna utan att stanna för tidigt.
+
+export const KLICK_NYCKEL = "fp-klick";
+
+export const LANDA_SKRIPT =
+  "(function(){try{var r=sessionStorage.getItem('" + KLICK_NYCKEL + "');if(!r)return;" +
+  "sessionStorage.removeItem('" + KLICK_NYCKEL + "');var k=JSON.parse(r),nu=Date.now()," +
+  "n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];" +
+  "if(!k||k.p!==location.pathname||nu<k.t||nu-k.t>" + SIGNAL_MS + "||location.hash||" +
+  "n&&n.type!=='navigate'||!matchMedia('(max-width: 760px)').matches)return;" +
+  "var g=document.querySelector('.pdp > .gallery');if(!g)return;" +
+  "var h=document.documentElement,b=h.style.scrollBehavior;h.style.scrollBehavior='auto';" +
+  "var till=function(){var e=document.querySelector('header'),u=e?Math.max(0,e.getBoundingClientRect().bottom):0;" +
+  "return Math.max(0,Math.round(scrollY+g.getBoundingClientRect().top-u-12))};" +
+  "scrollTo(0,till());var y=till();if(Math.abs(y-scrollY)>1)scrollTo(0,y);h.style.scrollBehavior=b}catch(e){}})()";
+
 // ── Listsidan ────────────────────────────────────────────────────────────────
 
 export type Listlage = {

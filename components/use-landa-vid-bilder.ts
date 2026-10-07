@@ -6,7 +6,7 @@
 // Bakgrund och signaler: lib/sidminne.ts.
 
 import { useLayoutEffect } from "react";
-import { klickadeHit, type Fonster } from "../lib/sidminne";
+import { KLICK_NYCKEL, klickadeHit, type Fonster } from "../lib/sidminne";
 
 /** Rullar direkt till y. html har scroll-behavior:smooth, och en glidande
  *  färd är just det kunden inte ska se. Glidet stängs av för det här anropet
@@ -30,6 +30,8 @@ export function useLandaVidBilder(): void {
     // Signalen förbrukas, så ett senare byte av färg på samma sida inte flyttar
     // något. Tidsstämpeln står kvar: komMedHistoriken läser den.
     w.__fpKlick = { p: "", t: w.__fpKlick!.t };
+    // Reservkopian för en hel sidladdning behövs inte heller (LANDA_SKRIPT).
+    try { sessionStorage.removeItem(KLICK_NYCKEL); } catch { /* ingen lagring */ }
     if (location.hash || !matchMedia("(max-width: 760px)").matches) return;
     // Mikrouppgiften körs när hela renderingen är klar men före nästa bild.
     // Nexts egen scroll till sidans topp görs i samma rendering, efter den här

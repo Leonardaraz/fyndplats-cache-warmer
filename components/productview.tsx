@@ -18,6 +18,7 @@ import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
 import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
 import { useLandaVidBilder } from "./use-landa-vid-bilder";
+import { LANDA_SKRIPT } from "../lib/sidminne";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -924,6 +925,8 @@ export function ProductView({
         </button>
       </div>
     </div>
+    {/* Bara vid en hel sidladdning, se lib/sidminne.ts. */}
+    <script dangerouslySetInnerHTML={{ __html: LANDA_SKRIPT }} />
     </>
   );
 }

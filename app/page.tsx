@@ -316,10 +316,13 @@ export default async function Home() {
                 </a>
               </div>
             </div>
+            {/* PrefetchLink, inte <a>: ett vanligt <a> laddade om hela sidan, och
+                produktsidan öppnades då inte vid bilderna som från korten
+                (Leonard 2026-10-07, components/use-landa-vid-bilder.ts). */}
             <div className="heromosaic">
               <div className="mcol">
                 {hero.slice(0, 2).map((p, i) => (
-                  <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
+                  <PrefetchLink className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image
                       src={tightFillUrl(p.img, 800, 800)}
                       alt={p.name}
@@ -351,12 +354,12 @@ export default async function Home() {
                         )}
                       </span>
                     )}
-                  </a>
+                  </PrefetchLink>
                 ))}
               </div>
               <div className="mcol mcol-offset">
                 {hero.slice(2, 4).map((p, i) => (
-                  <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
+                  <PrefetchLink className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
                     {p.rating && (
@@ -378,7 +381,7 @@ export default async function Home() {
                         )}
                       </span>
                     )}
-                  </a>
+                  </PrefetchLink>
                 ))}
               </div>
             </div>

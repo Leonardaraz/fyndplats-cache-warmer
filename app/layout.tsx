@@ -156,6 +156,8 @@ const SIDBYTE_SKRIPT =
   "if(u.pathname===location.pathname&&u.search===location.search)return;" +
   // Signalerna till lib/sidminne.ts: ett tryck mot en sökväg, och bakåt/framåt.
   "window.__fpKlick={p:u.pathname,t:Date.now()};" +
+  // Samma signal för en länk som laddar om hela sidan (LANDA_SKRIPT).
+  "try{sessionStorage.setItem('fp-klick',JSON.stringify(window.__fpKlick))}catch(f){}" +
   "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
   "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
   "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +

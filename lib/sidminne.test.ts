@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { klickadeHit, komMedHistoriken, lasListlage, sparaListlage, LISTLAGE_MAX_MS, SIGNAL_MS, type Fonster } from "./sidminne.ts";
+import { klickadeHit, komMedHistoriken, lasListlage, sparaListlage, LANDA_SKRIPT, LISTLAGE_MAX_MS, SIGNAL_MS, type Fonster } from "./sidminne.ts";
 
 const T = 1_800_000_000_000;
 
@@ -55,4 +55,40 @@ test("sidhuvudets skript sätter båda signalerna", () => {
   const src = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
   assert.match(src, /window\.__fpKlick=\{p:u\.pathname,t:Date\.now\(\)\}/);
   assert.match(src, /addEventListener\('popstate',function\(\)\{window\.__fpTrav=Date\.now\(\)/);
+});
+
+function korLanda(o: { lagrat: unknown; sokvag: string; typ: string; smal?: boolean; hash?: string; nu?: number }) {
+  const m = new Map<string, string>();
+  if (o.lagrat !== undefined) m.set("fp-klick", JSON.stringify(o.lagrat));
+  const rullat: number[] = [];
+  let y = 0;
+  const galleri = { getBoundingClientRect: () => ({ top: 435 - y }) };
+  const huvud = { getBoundingClientRect: () => ({ bottom: y > 46 ? 133 : 179 - y }) };
+  const sessionStorage = { getItem: (k: string) => m.get(k) ?? null, removeItem: (k: string) => void m.delete(k) };
+  const doc = { documentElement: { style: { scrollBehavior: "" } }, querySelector: (s: string) => (s === "header" ? huvud : galleri) };
+  // scrollY följer rullningen: byt den mot en funktion.
+  const run = new Function("sessionStorage", "performance", "location", "matchMedia", "document", "scrollTo", "Date", "__Y",
+    LANDA_SKRIPT.replace(/scrollY/g, "__Y()"));
+  run(sessionStorage, { getEntriesByType: () => [{ type: o.typ }] }, { pathname: o.sokvag, hash: o.hash ?? "" },
+    () => ({ matches: o.smal !== false }), doc, (_x: number, v: number) => { y = v; rullat.push(v); },
+    { now: () => o.nu ?? T + 500 }, () => y);
+  return { rullat, kvar: m.has("fp-klick") };
+}
+
+test("hel sidladdning efter ett tryck: sidan rullas till bilderna, signalen förbrukas", () => {
+  const r = korLanda({ lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "navigate" });
+  assert.equal(r.rullat.at(-1), 435 - 133 - 12, "bilderna 12 px under sidhuvudet");
+  assert.equal(r.kvar, false);
+});
+
+test("hel sidladdning utan tryck, vid omladdning, bakåt, annan sida eller på dator: ingen rullning", () => {
+  for (const o of [
+    { lagrat: undefined, sokvag: "/produkt/stol", typ: "navigate" },
+    { lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "reload" },
+    { lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "back_forward" },
+    { lagrat: { p: "/produkt/bord", t: T }, sokvag: "/produkt/stol", typ: "navigate" },
+    { lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "navigate", smal: false },
+    { lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "navigate", hash: "#recensioner" },
+    { lagrat: { p: "/produkt/stol", t: T }, sokvag: "/produkt/stol", typ: "navigate", nu: T + SIGNAL_MS + 1 },
+  ]) assert.deepEqual(korLanda(o).rullat, [], JSON.stringify(o));
 });
