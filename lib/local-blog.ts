@@ -65,8 +65,9 @@ function stripQuotes(s: string): string {
 }
 
 // Minimal markdown → HTML. Stödjer: H2/H3, blockquotes, ul/ol, paragrafer,
-// **bold**, *italic*, [text](url), --- som separator. Vi droppar H1 eftersom
-// titeln redan renderas via ContentPage.
+// **bold**, *italic*, [text](url), --- som separator, enkla tabeller och
+// produktbilder (en ensam, eller flera på rad utan tomrad emellan → ett
+// rutnät). Vi droppar H1 eftersom titeln redan renderas via ContentPage.
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -109,7 +110,20 @@ function renderProductImage(line: string): string | null {
   return `<figure class="blog-product-img"><a href="${safeHref}"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" decoding="async" /></a>${cap}</figure>`;
 }
 
-function renderMarkdown(md: string): string {
+// Tabell: rader som börjar med "|", andra raden är avgränsaren (|---|---|).
+// Första raden blir rubrik. Cellerna renderas inline (länkar, fetstil).
+function tabellCeller(rad: string): string[] {
+  return rad.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+}
+
+function renderTabell(rader: string[]): string {
+  const [huvud, , ...kropp] = rader;
+  const th = tabellCeller(huvud).map((c) => `<th scope="col">${renderInline(c)}</th>`).join("");
+  const tr = kropp.map((r) => `<tr>${tabellCeller(r).map((c) => `<td>${renderInline(c)}</td>`).join("")}</tr>`).join("");
+  return `<div class="blog-tabell"><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></div>`;
+}
+
+export function renderMarkdown(md: string): string {
   const lines = md.split(/\r?\n/);
   const out: string[] = [];
   let i = 0;
@@ -167,12 +181,33 @@ function renderMarkdown(md: string): string {
       break;
     }
 
-    // Produktbild på egen rad: [![alt](img)](href "caption")
+    // Produktbild på egen rad: [![alt](img)](href "caption"). Flera direkt
+    // efter varandra (utan tomrad) blir en rad med kort, så en jämförelse av
+    // tre modeller inte blir tre helsidesbilder i följd.
     const prodImg = renderProductImage(trimmed);
     if (prodImg) {
       flushAll();
-      out.push(prodImg);
+      const rad = [prodImg];
+      while (i + 1 < lines.length) {
+        const nasta = renderProductImage(lines[i + 1].trim());
+        if (!nasta) break;
+        rad.push(nasta);
+        i++;
+      }
+      out.push(rad.length > 1 ? `<div class="blog-produktrad">${rad.join("")}</div>` : prodImg);
       i++;
+      continue;
+    }
+
+    // Tabell: minst rubrikrad + avgränsare.
+    if (trimmed.startsWith("|") && i + 1 < lines.length && /^\|?\s*:?-{3,}/.test(lines[i + 1].trim())) {
+      flushAll();
+      const rader: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        rader.push(lines[i]);
+        i++;
+      }
+      out.push(renderTabell(rader));
       continue;
     }
 

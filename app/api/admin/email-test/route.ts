@@ -117,7 +117,6 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           currency: "SEK",
           refundMethod: "Kort (Visa ••42)",
           refundReason: "Ångrat köp",
-          expectedDays: 10,
         }),
       ),
   },

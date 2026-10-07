@@ -174,15 +174,23 @@ export const SHIPPING_REFUND =
  * VIKTIG GRÄNS: det här är tiden från att returen är mottagen och kontrollerad
  * till att vi skickar pengarna. Sedan tillkommer kundens banks clearing, som vi
  * inte råder över (emails/refund-confirmation.tsx och order-cancellation.tsx
- * talar om DEN tiden och ska fortsätta säga 3–10 bankdagar "beroende på din
- * bank"). Slår man ihop dem till ett enda löfte om 2–3 dagar ljuger man för var
- * och en vars kortutgivare tar en vecka.
+ * talar om DEN tiden, se REFUND_BANK_TIME). Slår man ihop dem till ett enda
+ * löfte om 2–3 dagar ljuger man för var och en vars kortutgivare tar en vecka.
  *
  * Lagens tak ligger kvar oavsett: 2 kap. 14 § distansavtalslagen ger senast 14
  * dagar från vårt mottagande av meddelandet. Vi lovar alltså snabbare än lagen
  * kräver, vilket är tillåtet — men löftet är bindande när det väl står där.
  */
 export const REFUND_TIME = "2–3 arbetsdagar";
+
+/**
+ * Hur länge det brukar dröja innan en återbetalning SYNS på kundens konto,
+ * efter att vi skickat pengarna. Mejlen sa "10 bankdagar" (återbetalning) och
+ * "3–10 bankdagar" (avbokning). Leonard 2026-10-03: i praktiken 2–3 dagar.
+ * Mejlen säger därför 2–3 bankdagar men behåller förbehållet om bank och
+ * betalmetod, och ber kunden höra av sig först efter en vecka.
+ */
+export const REFUND_BANK_TIME = "2–3 bankdagar";
 
 /** Hel mening, för de ytor som skriver ut den. */
 export const REFUND_SENTENCE =

@@ -4,6 +4,7 @@
 
 import { Column, Link, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
+import { REFUND_BANK_TIME } from "../lib/retur-policy";
 
 export interface OrderCancellationProps {
   firstName: string;
@@ -95,8 +96,8 @@ export default function OrderCancellationEmail({
       ) : refundInitiated ? (
         <Text style={text.body}>
           Vi har påbörjat en återbetalning till din ursprungliga betalmetod.
-          Pengarna brukar synas på ditt konto inom 3–10 bankdagar beroende på
-          din bank.
+          Pengarna brukar synas på ditt konto inom {REFUND_BANK_TIME}, beroende
+          på din bank.
         </Text>
       ) : (
         <Text style={text.body}>

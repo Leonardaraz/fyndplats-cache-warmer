@@ -3,6 +3,7 @@
 
 import { Column, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
+import { REFUND_BANK_TIME } from "../lib/retur-policy";
 
 export interface RefundConfirmationProps {
   firstName: string;
@@ -11,7 +12,6 @@ export interface RefundConfirmationProps {
   currency: string;
   refundMethod?: string;
   refundReason?: string;
-  expectedDays?: number; // typiskt 3–10 bankdagar
 }
 
 export default function RefundConfirmationEmail({
@@ -21,7 +21,6 @@ export default function RefundConfirmationEmail({
   currency,
   refundMethod,
   refundReason,
-  expectedDays = 10,
 }: RefundConfirmationProps) {
   return (
     <EmailShell preview={`Din återbetalning för order ${orderNumber} är genomförd`}>
@@ -65,13 +64,12 @@ export default function RefundConfirmationEmail({
       </Section>
 
       <Text style={text.body}>
-        Pengarna brukar synas på ditt konto inom <strong>{expectedDays} bankdagar</strong>,
-        beroende på din bank och betalmetod. Det kan ibland ta lite längre tid om återbetalningen
-        går via en utländsk bank.
+        Pengarna brukar synas på ditt konto inom <strong>{REFUND_BANK_TIME}</strong>. Beroende
+        på din bank och betalmetod kan det ibland ta några dagar till.
       </Text>
 
       <Text style={{ ...text.muted, marginTop: "16px" }}>
-        Om du inte ser beloppet efter {expectedDays} bankdagar – hör av dig till oss på{" "}
+        Om du inte ser beloppet inom en vecka – hör av dig till oss på{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
           {BRAND.supportEmail}
         </a>{" "}
