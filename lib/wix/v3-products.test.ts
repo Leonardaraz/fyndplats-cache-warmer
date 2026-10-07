@@ -432,3 +432,77 @@ describe("katalogenHarSynligProdukt", () => {
     await expect(katalogenHarSynligProdukt(f as unknown as typeof fetch)).rejects.toThrow(/503/);
   });
 });
+
+// Leverantörslänkarna tar Leonards listor med butiksadresser (2026-10-07).
+// `$in` på slug är mätt mot skarpa V3 samma dag: tre levande slugs och en
+// påhittad gav tre träffar med id och visible.
+describe("getV3ProductIdsBySlugs", () => {
+  beforeEach(() => {
+    process.env.WIX_API_TOKEN = "t";
+  });
+  afterEach(() => {
+    if (origToken === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = origToken;
+  });
+
+  /** Svarar på varje fråga med de produkter vars slug frågades efter. */
+  function katalog(produkter: Array<{ id?: string; slug: string; visible?: boolean }>) {
+    return vi.fn(async (_url: string, init?: RequestInit) => {
+      const fragade: string[] = JSON.parse(String(init?.body)).query.filter.slug.$in;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ products: produkter.filter((p) => fragade.includes(p.slug)) }),
+        text: async () => "",
+      } as unknown as Response;
+    });
+  }
+
+  it("hundra slugs per fråga, i gemener, och en okänd slug saknas i svaret", async () => {
+    const { getV3ProductIdsBySlugs } = await import("./v3-products");
+    const slugs = Array.from({ length: 150 }, (_, i) => `sida-${i}`);
+    const f = katalog([
+      { id: "p0", slug: "sida-0", visible: true },
+      { id: "p149", slug: "sida-149", visible: false },
+    ]);
+    const svar = await getV3ProductIdsBySlugs([...slugs, " SIDA-0 ", "finns-inte"], f as unknown as typeof fetch);
+    expect(f).toHaveBeenCalledTimes(2);
+    const forsta = JSON.parse(String(f.mock.calls[0][1]?.body));
+    expect(forsta.query.filter.slug.$in).toHaveLength(100);
+    expect(forsta.query.cursorPaging).toEqual({ limit: 100 });
+    expect([...svar.entries()]).toEqual([
+      ["sida-0", { id: "p0", visible: true }],
+      ["sida-149", { id: "p149", visible: false }],
+    ]);
+  });
+
+  it("en tom lista frågar ingenting", async () => {
+    const { getV3ProductIdsBySlugs } = await import("./v3-products");
+    const f = katalog([]);
+    expect((await getV3ProductIdsBySlugs(["", "  "], f as unknown as typeof fetch)).size).toBe(0);
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it("☠️ en träff som inte frågades efter kastar — då bet filtret inte", async () => {
+    const { getV3ProductIdsBySlugs } = await import("./v3-products");
+    const f = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ products: [{ id: "x", slug: "katalogens-forsta", visible: true }] }),
+      text: async () => "",
+    }) as unknown as Response);
+    await expect(getV3ProductIdsBySlugs(["en-annan"], f as unknown as typeof fetch)).rejects.toThrow(/bet inte/);
+  });
+
+  it("☠️ en träff utan id kastar i stället för att tappa produkten tyst", async () => {
+    const { getV3ProductIdsBySlugs } = await import("./v3-products");
+    const f = katalog([{ slug: "utan-id", visible: true }]);
+    await expect(getV3ProductIdsBySlugs(["utan-id"], f as unknown as typeof fetch)).rejects.toThrow(/utan id/);
+  });
+
+  it("☠️ ett svar utan produktlista kastar — en tom lista betyder att ingen slug finns", async () => {
+    const { getV3ProductIdsBySlugs } = await import("./v3-products");
+    const f = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}), text: async () => "" }) as unknown as Response);
+    await expect(getV3ProductIdsBySlugs(["en-sida"], f as unknown as typeof fetch)).rejects.toThrow(/products-lista/);
+  });
+});

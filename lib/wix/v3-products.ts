@@ -361,7 +361,7 @@ export async function getV3ProductBySlug(
   return { id: p.id, name: p.name ?? "", slug: p.slug ?? wanted };
 }
 
-type ProduktRad = { slug?: string; visible?: boolean };
+type ProduktRad = { id?: string; slug?: string; visible?: boolean };
 
 /** En `products/query` vars svar MÅSTE bära en produktlista — annars kastar den. */
 async function fragaProdukter(
@@ -453,6 +453,48 @@ export async function katalogenHarSynligProdukt(fetchImpl: typeof fetch = fetch)
     fetchImpl,
   );
   return produkter.some((p) => p.visible !== false);
+}
+
+/** Slugs per `$in`-fråga. En slug ger högst en produkt, så en sida räcker. */
+export const SLUGS_PER_FRAGA = 100;
+
+/**
+ * Slug → produkt-id för en hel lista, hundra slugs per fråga.
+ *
+ * För leverantörslänkarna (`/api/admin/leverantorslankar`), som tar listor med
+ * butiksadresser. Uppmätt mot skarpa V3 2026-10-07: `$in` på slug gav tre
+ * träffar för tre levande slugs och en påhittad, med id och `visible`. Filtret
+ * är skiftlägeskänsligt (se `slugArSynligProdukt`), så slugsen gemenas.
+ *
+ * En slug som saknas i svaret finns inte som produkt. Allt annat som avviker
+ * KASTAR: ett svar utan produktlista, en träff utan id, och en träff med en
+ * slug som inte frågades efter (då har filtret inte bitit, och svaret är
+ * katalogens första produkter).
+ */
+export async function getV3ProductIdsBySlugs(
+  slugs: readonly string[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<Map<string, { id: string; visible: boolean }>> {
+  const unika = [...new Set(slugs.map((s) => (s || "").trim().toLowerCase()).filter(Boolean))];
+  const ut = new Map<string, { id: string; visible: boolean }>();
+  for (let i = 0; i < unika.length; i += SLUGS_PER_FRAGA) {
+    const del = unika.slice(i, i + SLUGS_PER_FRAGA);
+    const fragade = new Set(del);
+    const produkter = await fragaProdukter(
+      { filter: { slug: { $in: del } }, cursorPaging: { limit: SLUGS_PER_FRAGA } },
+      `$in på ${del.length} slugs`,
+      fetchImpl,
+    );
+    for (const p of produkter) {
+      const slug = (p.slug || "").trim().toLowerCase();
+      if (!fragade.has(slug)) {
+        throw new Error("V3 products/query ($in på slug) gav en produkt som inte frågades efter — filtret bet inte");
+      }
+      if (!p.id) throw new Error(`V3 products/query ($in på slug) gav "${slug}" utan id`);
+      ut.set(slug, { id: p.id, visible: p.visible !== false });
+    }
+  }
+  return ut;
 }
 
 /**
