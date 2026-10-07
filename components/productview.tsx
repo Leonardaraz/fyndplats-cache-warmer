@@ -599,10 +599,28 @@ export function ProductView({
     setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1
     setTimeout(() => setAdded(false), 1500);
   };
-  // Kassans kod och besökarnyckeln hämtas när fingret når knappen
-  // (forvarmKundvagn i components/cart.tsx). Inte när sidan är ledig: koden är
-  // ~100 kB och gav en lång uppgift på 0,3 s på varje produktsida (Lighthouse,
-  // mobil, 2026-10-07), också för den som aldrig köper. Lådan öppnas ändå direkt.
+  // Kassans kod (forvarmKundvagn i components/cart.tsx) hämtas när sidan är
+  // ledig EFTER kundens första rörelse på sidan: ett finger, en mus som rör sig,
+  // ett hjul eller en tangent. Inte direkt vid laddningen: koden är ~100 kB och
+  // gav en lång uppgift på 0,3 s på varje produktsida (Lighthouse, mobil,
+  // 2026-10-07). Inte heller först vid köpknappen: då bekräftades första
+  // "Lägg i kundvagn" 0,3–0,6 s senare (mätt samma dag). Den som scrollar
+  // eller rör musen innan köpet får koden i förväg som förut.
+  // Besökarnyckeln hämtas fortfarande först när fingret når knappen.
+  useEffect(() => {
+    const handelser = ["pointerdown", "pointermove", "touchstart", "wheel", "keydown"] as const;
+    let id: number | undefined;
+    const ledig = "requestIdleCallback" in window;
+    const forsta = () => {
+      for (const h of handelser) window.removeEventListener(h, forsta);
+      id = ledig ? window.requestIdleCallback(() => forvarmKundvagn(), { timeout: 3000 }) : window.setTimeout(() => forvarmKundvagn(), 200);
+    };
+    for (const h of handelser) window.addEventListener(h, forsta, { passive: true });
+    return () => {
+      for (const h of handelser) window.removeEventListener(h, forsta);
+      if (id !== undefined) { if (ledig) window.cancelIdleCallback(id); else window.clearTimeout(id); }
+    };
+  }, []);
   const avsiktAttKopa = () => forvarmKundvagn(true);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
