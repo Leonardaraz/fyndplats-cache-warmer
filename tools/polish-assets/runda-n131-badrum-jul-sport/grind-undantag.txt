@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) och miljöbilderna visar 25 cm som skåpets frontbredd och 47 cm som djup, medan källans L x B-ordning (47L x 25B) ger motsatsen
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) visar 62 cm som bilens längd och 29,5 cm som bredd, medan källans L x B-ordning (62L x 29,5B) läses positionellt som bredd och djup

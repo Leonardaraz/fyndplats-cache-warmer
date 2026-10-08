@@ -1,0 +1,111 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "136c78ac": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Schneemann Abmessungen: 67L x 34B x 93H cm (Vater), 51L x 30B x 81H cm (Mutter), 22L x 30B x 49H cm (Baby) | Mått: 67L x 34B x 93H cm"
+ },
+ "22cf012e": {
+  "tyska": "66L x 25B x 135H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 135,
+  "bredd": 66,
+  "djup": 25
+ },
+ "339a0896": {
+  "tyska": "40B x 10T x 60H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 10,
+  "hojd": 60,
+  "bredd": 40
+ },
+ "4f8af17e": {
+  "tyska": "106L x 35B x 174H cm (aufgeklappt), 35L x 18B x 174H cm (zusammengeklappt)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 174,
+  "bredd": 106,
+  "djup": 35
+ },
+ "50ae719d": {
+  "tyska": "62,5B x 14T x 52H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 14,
+  "hojd": 52,
+  "bredd": 62.5
+ },
+ "53353a12": {
+  "tyska": "58,5B x 75,5T x 136-176H cm (jedes Stück)",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 75.5,
+  "hojd": [
+   136,
+   176
+  ],
+  "bredd": 58.5
+ },
+ "57e1cc22": {
+  "tyska": "50L x 40B x 3T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 3,
+  "bredd": 50
+ },
+ "658caf6c": {
+  "tyska": "43L x 43B x 126-144H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   126,
+   144
+  ],
+  "bredd": 43,
+  "djup": 43
+ },
+ "7fb8d7a6": {
+  "tyska": "62L x 29,5B x 48,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 48.5,
+  "bredd": 62,
+  "djup": 29.5
+ },
+ "82c00356": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen der Geschenkboxen: 25,5L x 25,5B x 35H cm (groß), 20L x 20B x 30H cm (mittel), 15L x 15B x 25H cm (klein) | Mått: 25,5L x 25,5B x 35H cm"
+ },
+ "9f7e971d": {
+  "tyska": "47L x 25B x 66,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 66.5,
+  "bredd": 47,
+  "djup": 25
+ },
+ "a1178234": {
+  "tyska": "50B x 2T x 70H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 2,
+  "hojd": 70,
+  "bredd": 50
+ },
+ "a8f1b71f": {
+  "tyska": "50L x 2,7B x 70Hcm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 50,
+  "djup": 2.7
+ },
+ "bdefe269": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 140L x 63B x 75H cm | Zusammengeklappte Abmessungen: 140L x 63B x 8H cm"
+ }
+}
