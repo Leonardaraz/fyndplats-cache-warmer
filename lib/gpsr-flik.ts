@@ -130,7 +130,9 @@ export function gpsrFlikHtml(g: GpsrData, produktnamn: string): string {
     .map(esc)
     .join("<br />");
   const delar: string[] = [];
-  if (g.marke) delar.push(`<p><strong>Varumärke:</strong> ${esc(g.marke)}</p>`);
+  // Ingen rad "Varumärke" (Leonard 2026-10-06): Aosoms märke på fliken sade
+  // emot märket i strukturerad data och flöden (lib/varumarke.ts). GPSR kräver
+  // tillverkarens namn ELLER varumärke, och namnet står på raden nedan.
   delar.push(`<p><strong>Tillverkare och ansvarig i EU:</strong><br />${adress}</p>`);
   delar.push(`<p><strong>Produkt:</strong> ${esc(produktnamn)} (se bilderna ovan)</p>`);
   delar.push("<p><strong>Säkerhetsinformation</strong></p>");

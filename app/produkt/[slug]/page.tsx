@@ -8,7 +8,8 @@ import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
 import { colorKeysOf } from "../../../lib/variant-color-image";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
-import { getProduct, getProducts, getCollections, dedupeProducts, forListings, type Product } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, dedupeProducts, forListings, fetchVarumarken, type Product } from "../../../lib/products";
+import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
 import { categoryIndexable, countPerCategory } from "../../../lib/category-threshold";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
@@ -118,7 +119,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   // Produktsäkerheten (GPSR, lib/gpsr-flik.ts) hämtas parallellt — null för
   // produkter utan uppgifter, och då visas ingen flik.
-  const [reviewData, gpsr] = await Promise.all([getProductReviews(p.id), getGpsr(p.id)]);
+  // Märket ur Wix (ett svep för hela katalogen, cachat i sex timmar);
+  // lib/varumarke.ts avgör vad det blir.
+  const [reviewData, gpsr, marken] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken()]);
   // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
   const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
   const gpsrHtml = gpsr
@@ -129,6 +132,30 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // (= Wix-produkt-ID). När business unit-ID:t är ifyllt visar vi Trustpilot;
   // annars faller vi tillbaka på de egna importerade recensionerna nedan.
   const trustpilotBU = (process.env.TRUSTPILOT_BUSINESS_UNIT_ID || "").trim();
+
+  // Förvalet: valet sidan öppnar på (lib/pdp-forval), samma som ProductView
+  // och döljningsskriptet längre ned räknar fram. Erbjudandet i strukturerad
+  // data har förvalets pris och lager, inte produktens lägsta: hundvagnen
+  // visade 1 899 kr medan datan sade 1 739 kr (extern audit 2026-10-07).
+  const forval = (() => {
+    const huvudbild = [p.img, ...p.gallery].find(Boolean);
+    const tabell = p.variantTable ?? [];
+    if ((p.variantAxes?.length ?? 0) >= 2 && tabell.length >= 1) {
+      const kombo = forvalKombination(tabell, huvudbild);
+      const rad = tabell.find((t) => Object.entries(kombo).every(([a, l]) => t.choices[a] === l));
+      return { id: rad?.variantId, etiketter: Object.values(kombo), priceNum: rad?.priceNum, inStock: rad?.inStock };
+    }
+    if ((p.options?.choices.length ?? 0) >= 2) {
+      const val = p.options!.choices[forvalIndex(p.options!.choices, huvudbild)];
+      return { id: val?.variantId, etiketter: val ? [val.label] : [], priceNum: val?.priceNum, inStock: val?.inStock };
+    }
+    if (p.variants.length > 1) {
+      return { id: p.variants[0]?.id, etiketter: [p.variants[0]?.label || ""], priceNum: undefined, inStock: undefined };
+    }
+    return { id: undefined, etiketter: [] as string[], priceNum: undefined, inStock: undefined };
+  })();
+  const erbjudandePris = forval.priceNum && forval.priceNum > 0 ? forval.priceNum : p.priceNum;
+  const erbjudandeILager = forval.inStock ?? p.inStock;
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -141,16 +168,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // Samma preferens som meta-descriptionen ovan: kuraterad Wix-SEO när den
     // finns, annars blurb — så strukturerad data och snippet matchar.
     description: p.seoDescription || p.blurb,
-    brand: { "@type": "Brand", name: "Fyndplats" },
+    // Riktiga märkesvaror sitt eget märke, Aosoms white label Fyndplats.
+    brand: { "@type": "Brand", name: varumarke(marken.get(p.id)) },
     offers: {
       "@type": "Offer",
+      // Säljaren är alltid butiken, också när märket är någon annans.
+      seller: { "@type": "Organization", name: BUTIKENS_MARKE, url: "https://www.fyndplats.se" },
       priceCurrency: p.currency,
-      price: p.priceNum,
+      price: erbjudandePris,
       // Merchant-listing-rekommenderade fält (Search Console varnar annars).
       // Sista dagen i nästa månad: samma värde hela månaden, så sidan blir inte
       // "ny" för Vercel varje dygn (lib/pris-giltig.ts).
       priceValidUntil: prisGiltigTill(new Date()),
-      availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability: erbjudandeILager ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
       // Fraktvillkoren speglar kassan exakt: fri frakt från 500 kr, annars 19 kr,
@@ -159,7 +189,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: p.priceNum >= FREE_SHIPPING_FROM_KR ? 0 : STANDARD_SHIPPING_KR,
+          value: erbjudandePris >= FREE_SHIPPING_FROM_KR ? 0 : STANDARD_SHIPPING_KR,
           currency: p.currency,
         },
         shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
@@ -321,21 +351,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // ProductView tar bort döljningen när valet gjorts; senast efter 4 s gör
   // skriptet det själv.
   const valVantar = (() => {
-    const tabell = p.variantTable ?? [];
-    let id: string | undefined;
-    let etiketter: string[] = [];
-    if ((p.variantAxes?.length ?? 0) >= 2 && tabell.length >= 1) {
-      const kombo = forvalKombination(tabell, images[0]);
-      id = tabell.find((t) => Object.entries(kombo).every(([a, l]) => t.choices[a] === l))?.variantId;
-      etiketter = Object.values(kombo);
-    } else if ((p.options?.choices.length ?? 0) >= 2) {
-      const val = p.options!.choices[forvalIndex(p.options!.choices, images[0])];
-      id = val?.variantId;
-      etiketter = val ? [val.label] : [];
-    } else if (p.variants.length > 1) {
-      id = p.variants[0]?.id;
-      etiketter = [p.variants[0]?.label || ""];
-    }
+    const { id, etiketter } = forval;
     if (!id) return null;
     const farger = Array.from(new Set(etiketter.flatMap((e) => Array.from(colorKeysOf(e)))));
     const css =

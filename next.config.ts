@@ -96,6 +96,23 @@ const nextConfig: NextConfig = {
       { source: "/_functions/track_webhook", destination: "/api/track17-webhook" },
     ];
   },
+  // Säkerhetsheaders på alla svar. Förut skickades bara HSTS (extern audit
+  // 2026-10-07). Ingen Content-Security-Policy ännu: den måste provas mot
+  // Klarna, Wix bilder, GA4, Meta och Vercels skript innan den slås på.
+  // Ingen sida ramar in butiken, så inramning tillåts bara från samma källa.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       // --- SEO-migration: gamla Wix-sajtens produkt-URL:er → headless ---

@@ -63,3 +63,54 @@ test("☠️ skaSkrivaStatus – skickat eller redan skickat, ALDRIG vid Resend-
   assert.equal(skaSkrivaStatus({ sent: false, reason: "resend_not_configured" }), false);
   assert.equal(skaSkrivaStatus({ sent: false, reason: "internal_error" }), false);
 });
+
+// ── Levererat per order (2026-10-07) ────────────────────────────────────────
+
+import { VÄNTA_PÅ_ÖVRIGA_DAGAR, levereratBeslut, orderNyckel } from "./delivery-status.ts";
+
+const DAG = 86_400_000;
+const NU = Date.UTC(2026, 9, 7, 12);
+
+test("levereratBeslut – ett av två paket framme: vänta", () => {
+  assert.equal(levereratBeslut({ statusar: ["delivered", "in_transit"], orderStatus: "FULFILLED", förstaLevererad: NU - 3_600_000, nu: NU }), "vänta");
+});
+
+test("levereratBeslut – båda paketen framme och ordern helt skickad: skicka", () => {
+  assert.equal(levereratBeslut({ statusar: ["delivered", "delivered"], orderStatus: "FULFILLED", förstaLevererad: NU - DAG, nu: NU }), "skicka");
+});
+
+test("levereratBeslut – ett paket: skicka direkt, som förut", () => {
+  assert.equal(levereratBeslut({ statusar: ["delivered"], orderStatus: "FULFILLED", förstaLevererad: NU, nu: NU }), "skicka");
+});
+
+test("☠️ levereratBeslut – alla kända paket framme men ordern inte helt skickad: vänta", () => {
+  // Resten av ordern har inget spårningsnummer än. Mejlet hade sagt
+  // "levererat" om varor som inte ens lämnat lagret.
+  assert.equal(levereratBeslut({ statusar: ["delivered"], orderStatus: "PARTIALLY_FULFILLED", förstaLevererad: NU, nu: NU }), "vänta");
+});
+
+test("levereratBeslut – ordern gick inte att läsa: paketen avgör", () => {
+  assert.equal(levereratBeslut({ statusar: ["delivered", "delivered"], orderStatus: null, förstaLevererad: NU, nu: NU }), "skicka");
+});
+
+test("☠️ levereratBeslut – ett paket som aldrig rapporteras stoppar inte mejlet för alltid", () => {
+  const nyss = NU - (VÄNTA_PÅ_ÖVRIGA_DAGAR * DAG - 60_000);
+  const förr = NU - VÄNTA_PÅ_ÖVRIGA_DAGAR * DAG;
+  assert.equal(levereratBeslut({ statusar: ["delivered", "exception"], orderStatus: "FULFILLED", förstaLevererad: nyss, nu: NU }), "vänta");
+  assert.equal(levereratBeslut({ statusar: ["delivered", "exception"], orderStatus: "FULFILLED", förstaLevererad: förr, nu: NU }), "skicka");
+  assert.equal(levereratBeslut({ statusar: ["delivered", "in_transit"], orderStatus: "PARTIALLY_FULFILLED", förstaLevererad: förr, nu: NU }), "skicka");
+});
+
+test("levereratBeslut – inget paket levererat: vänta", () => {
+  assert.equal(levereratBeslut({ statusar: ["in_transit"], orderStatus: "FULFILLED", förstaLevererad: null, nu: NU }), "vänta");
+  assert.equal(levereratBeslut({ statusar: [], orderStatus: null, förstaLevererad: null, nu: NU }), "vänta");
+});
+
+test("orderNyckel – kan inte krocka med ett spårningsnummer", () => {
+  assert.equal(orderNyckel("10056"), "order:10056");
+});
+
+test("skaSkrivaStatus – ett paket som väntar på resten av ordern är framme", () => {
+  assert.equal(skaSkrivaStatus({ sent: false, reason: "vantar_pa_ovriga_paket" }), true);
+  assert.equal(skaSkrivaStatus({ sent: false, reason: "resend_failed" }), false);
+});

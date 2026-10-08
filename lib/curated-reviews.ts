@@ -9,6 +9,15 @@
 // expanderar resten. Datum är ungefärliga (Google visar bara "för X sedan");
 // de ersätts av exakta datum när API:t är på.
 //
+// NAMNEN VISAS SOM INITIALER (Leonard 2026-10-07): "George Galush" blir
+// "G. G." Listan bär det publika namnet från Google så att den går att stämma
+// mot profilen, men app/omdomen/page.tsx byter det mot initialer (och id:t mot
+// ett löpnummer) innan något når sidan (lib/initialer.ts). Det fullständiga
+// namnet finns alltså varken i HTML:en eller i React-datan.
+//
+// 2026-10-07: två nya (George Galush, David Erdinc) överst; Stefan Gajics
+// äldre omdöme utan bild (musikboxen) borttaget på Leonards begäran.
+//
 // STÄMD MOT PROFILEN 2026-09-27, mot Leonards skärmdumpar av hela listan. Ett
 // omdöme som inte längre finns på Google ska inte stå kvar här — kortet säger
 // "Recension från Google" och länkar dit. Sex var borta (Google rensar i svep,
@@ -17,7 +26,7 @@
 //
 // Snittbetyget kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles eget när API:t svarar, annars reserven i
-// lib/social-proof.ts. Korten nedan (22 st med text) är ett urval — "Se alla på
+// lib/social-proof.ts. Korten nedan (23 st med text, 2026-10-07) är ett urval — "Se alla på
 // Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
 // text och har inget att visa här. Något TOTALANTAL visas inte längre någonstans;
 // se noten överst i lib/social-proof.ts för varför.
@@ -57,6 +66,23 @@ import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "george-galush",
+    rating: 5,
+    author: "George Galush",
+    // Google visade "för 4 dagar sedan" 2026-10-07. Avhugget efter "fina
+    // fynd." ("Smidig och trevlig uppl… Mer"), trimmat till sista hela mening.
+    date: "2026-10-03",
+    text: "Riktigt bra sida med ett stort och varierat utbud av produkter! Det finns mycket att välja mellan och man kan verkligen göra fina fynd.",
+  },
+  {
+    id: "david-erdinc",
+    rating: 5,
+    author: "David Erdinc",
+    // Google visade "för 5 dagar sedan" 2026-10-07.
+    date: "2026-10-02",
+    text: "Snabb och smidig service med riktigt bra kvalitet. Väldigt nöjd och rekommenderar starkt!",
+  },
   {
     id: "mattias-mentes",
     rating: 5,
@@ -130,14 +156,6 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Andrew Herranen",
     date: "2023-06-15",
     text: "Beställde hem Astronaut lampan, den var väldigt fin i mörkret. Snabb leverans också",
-  },
-  {
-    id: "stefan-gajic-musikbox",
-    rating: 4,
-    author: "Stefan Gajic",
-    // Samma kund som drönaromdömet, ett eget äldre omdöme ("för 3 år sedan").
-    date: "2023-06-15",
-    text: "Det var längre leveranstid än jag förväntade mig. Men den musikaliska boxen jag köpte hade mycket fler ljud och funktioner än jag trodde:)",
   },
   {
     id: "jonathan-hawsho",

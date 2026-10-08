@@ -32,9 +32,10 @@ test("tolkaGpsr tål fel typer i säkerhetslistan och ett saknat märke", () => 
   assert.deepEqual(g.sakerhet, ["Ok."]);
 });
 
-test("fliken visar märke, tillverkare med post- och e-postadress, produkten och säkerheten", () => {
+test("fliken visar tillverkare med post- och e-postadress, produkten och säkerheten — men inget märke", () => {
   const html = gpsrFlikHtml(tolkaGpsr(SVAR)!, "Soffa 3-sits");
-  assert.match(html, /Varumärke:<\/strong> HOMCOM/);
+  // Aosoms märke får inte säga emot Fyndplats i strukturerad data (lib/varumarke.ts).
+  assert.doesNotMatch(html, /Varumärke|HOMCOM/);
   assert.match(html, /Tillverkare och ansvarig i EU:/);
   assert.match(html, /Bolag GmbH<br \/>Gatan 1<br \/>12345 Hamburg, Tyskland<br \/>E-post: info@example.com/);
   assert.match(html, /Soffa 3-sits/);

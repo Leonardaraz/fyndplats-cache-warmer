@@ -20,6 +20,7 @@ import {
 import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript } from "../lib/consent";
+import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -154,10 +155,14 @@ const SIDBYTE_SKRIPT =
   "var k=e.target.closest('button,[role=button],input,select,textarea');if(k&&a.contains(k))return;" +
   "var u=new URL(a.href,location.href);if(u.origin!==location.origin)return;" +
   "if(u.pathname===location.pathname&&u.search===location.search)return;" +
+  // Signalerna till lib/sidminne.ts: ett tryck mot en sökväg, och bakåt/framåt.
+  "window.__fpKlick={p:u.pathname,t:Date.now()};" +
+  // Samma signal för en länk som laddar om hela sidan (LANDA_SKRIPT).
+  "try{sessionStorage.setItem('fp-klick',JSON.stringify(window.__fpKlick))}catch(f){}" +
   "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
   "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
   "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +
-  "addEventListener('pageshow',av);addEventListener('popstate',av)})()";
+  "addEventListener('pageshow',av);addEventListener('popstate',function(){window.__fpTrav=Date.now();av()})})()";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
@@ -252,11 +257,16 @@ export default async function RootLayout({
             vänsterklick på länkar inom butiken, inte nya flikar, nedladdningar
             eller länkar som redan hanterats (loggan på startsidan). */}
         <div className="sidbyte" aria-hidden="true" />
+        {/* Första tabbstoppet: förbi sidhuvudet och menyn (extern audit 2026-10-07). */}
+        <a className="hoppa" href="#innehall">Hoppa till innehållet</a>
         <script dangerouslySetInnerHTML={{ __html: SIDBYTE_SKRIPT }} />
+        {/* Filterknapparna syns innan de fungerar; trycken sparas och görs
+            om när sidan är redo (lib/tidiga-klick.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: TIDIGA_KLICK_SKRIPT }} />
         <CartProvider>
           <WishlistProvider>
             <SiteHeader />
-            <main>{children}</main>
+            <main id="innehall" tabIndex={-1}>{children}</main>
             <SiteFooter />
             <CartDrawer />
             <WishlistDrawer />

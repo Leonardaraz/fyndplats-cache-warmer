@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { useCart } from "./cart";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { forvarmKundvagn, useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { synligaBilder } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
@@ -17,6 +17,8 @@ import { formatPrice } from "../lib/price-range";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
 import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
+import { useLandaVidBilder } from "./use-landa-vid-bilder";
+import { LANDA_SKRIPT } from "../lib/sidminne";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -447,6 +449,8 @@ export function ProductView({
   // före hydreringen när adressen pekar på ett annat val än förvalet, så att en
   // annonsklickare inte ser Mörkgrön för 599 kr i en sekund innan Mörkgrå för
   // 549 kr (2026-10-01). Den döljningen tas bort här, oavsett utfall.
+  useLandaVidBilder();
+
   useLayoutEffect(() => {
     const visa = () => document.getElementById("pdp-val-vantar")?.remove();
     let vid: string | null = null;
@@ -510,6 +514,20 @@ export function ProductView({
       : variants.length > 1
         ? variants[sel]?.id
         : variants[0]?.id;
+  // Valet står i adressen (?variant=), så en kopierad länk öppnar samma val
+  // (extern audit 2026-10-07). Förvalet skrivs inte dit, bara ett val ur
+  // adressen eller av kunden. replaceState, inte router.replace: sidan är
+  // ISR-cachad och canonical är fortfarande /produkt/<slug>.
+  const forstaVariantId = useRef(variantId);
+  useEffect(() => {
+    if (!variantId) return;
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("variant") === variantId) return;
+    if (variantId === forstaVariantId.current && !u.searchParams.has("variant")) return;
+    u.searchParams.set("variant", variantId);
+    u.searchParams.delete("farg");
+    window.history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }, [variantId]);
   // Wix färdiga sträng, kvar som reserv. Product.price rörs inte — feed-parsern
   // i app/api/feed/products.xml läser den.
   const wixPrisStrang = multiAxis
@@ -568,11 +586,42 @@ export function ProductView({
         ? imageChoices[sel].priceNum
         : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
-    await add(productId, variantId || undefined, qty);
+    // Lådan öppnas direkt med varan som väntande rad (components/cart.tsx).
+    const val = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
     setAdded(true);
+    const ok = await add(productId, variantId || undefined, qty, {
+      // Bilden som redan står i galleriet, ur webbläsarens cache.
+      namn: name, val: val || undefined, prisNum: itemPrice || undefined,
+      bild: [...document.querySelectorAll<HTMLImageElement>(".pdp .gmain img.is-shown")].pop()?.currentSrc
+        || (galleryImages[0] ? tightFillUrl(galleryImages[0], 160, 160) : undefined),
+    });
+    if (!ok) { setAdded(false); return; }
     setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1
     setTimeout(() => setAdded(false), 1500);
   };
+  // Kassans kod (forvarmKundvagn i components/cart.tsx) hämtas när sidan är
+  // ledig EFTER kundens första rörelse på sidan: ett finger, en mus som rör sig,
+  // ett hjul eller en tangent. Inte direkt vid laddningen: koden är ~100 kB och
+  // gav en lång uppgift på 0,3 s på varje produktsida (Lighthouse, mobil,
+  // 2026-10-07). Inte heller först vid köpknappen: då bekräftades första
+  // "Lägg i kundvagn" 0,3–0,6 s senare (mätt samma dag). Den som scrollar
+  // eller rör musen innan köpet får koden i förväg som förut.
+  // Besökarnyckeln hämtas fortfarande först när fingret når knappen.
+  useEffect(() => {
+    const handelser = ["pointerdown", "pointermove", "touchstart", "wheel", "keydown"] as const;
+    let id: number | undefined;
+    const ledig = "requestIdleCallback" in window;
+    const forsta = () => {
+      for (const h of handelser) window.removeEventListener(h, forsta);
+      id = ledig ? window.requestIdleCallback(() => forvarmKundvagn(), { timeout: 3000 }) : window.setTimeout(() => forvarmKundvagn(), 200);
+    };
+    for (const h of handelser) window.addEventListener(h, forsta, { passive: true });
+    return () => {
+      for (const h of handelser) window.removeEventListener(h, forsta);
+      if (id !== undefined) { if (ledig) window.cancelIdleCallback(id); else window.clearTimeout(id); }
+    };
+  }, []);
+  const avsiktAttKopa = () => forvarmKundvagn(true);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
   // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
@@ -783,8 +832,10 @@ export function ProductView({
             className="buy"
             disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
             onClick={onAdd}
+            onPointerDown={avsiktAttKopa}
+            onTouchStart={avsiktAttKopa}
           >
-            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
+            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
           </button>
 
           {!buyable && productId && <RestockForm productId={productId} />}
@@ -882,11 +933,15 @@ export function ProductView({
           className="buy sticky-buy-btn"
           disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
           onClick={onAdd}
+          onPointerDown={avsiktAttKopa}
+          onTouchStart={avsiktAttKopa}
         >
-          {!buyable ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
+          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i kundvagn"}
         </button>
       </div>
     </div>
+    {/* Bara vid en hel sidladdning, se lib/sidminne.ts. */}
+    <script dangerouslySetInnerHTML={{ __html: LANDA_SKRIPT }} />
     </>
   );
 }

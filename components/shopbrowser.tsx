@@ -1,8 +1,9 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ProductCard } from "./productcard";
+import { forladdaKortbild } from "./card-gallery";
 import { PrefetchLink } from "./prefetch-link";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
@@ -24,6 +25,9 @@ import {
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel, tusental } from "../lib/rating";
+import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
+import { rullaDirekt } from "./use-landa-vid-bilder";
+import { komMedHistoriken, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -33,6 +37,12 @@ const PAGE_SIZE = 24;
 // Underkategori-chips som syns på dator innan "Visa alla" — två rader på
 // 1200 px. Mobilen visar alla i en rad man sveper i sidled.
 const SUB_SYNLIGA = 10;
+
+// Hela listan och bildkartan, sparade för resten av besöket. Bakåt från en
+// produkt monterar om vyn i samma dokument, och med listan redan här står
+// korten från "Visa fler" på plats i första renderingen. Se lib/sidminne.ts.
+const LISTOR = new Map<string, ListProduct[]>();
+let BILDKARTA: Record<string, [string, string | null]> | null = null;
 
 /**
  * Handtagens startläge, ur URL:ens ?pris. Skalan (lib/price-range) räknas ur de
@@ -51,6 +61,18 @@ function handlesFromSlug(bounds: PriceBounds | null, slug: string | null): [numb
   const lo = snap(r.min);
   const hi = Number.isFinite(r.max) ? snap(r.max) : bounds.max;
   return lo < hi ? [lo, hi] : [bounds.min, bounds.max];
+}
+
+/** Listans ordning för ett sorteringsval. Delas av rutnätet och förladdningen
+ *  av bilderna, så att förladdningen hämtar de kort som faktiskt kommer först. */
+function sortera(out: ListProduct[], sort: string, universal: Set<string>, dayMs: number): ListProduct[] {
+  if (sort === "img") return orderRecommended(out, universal, dayMs);
+  if (sort === "pop") return orderPopular(out, universal);
+  if (sort === "new") return [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
+  if (sort === "price-asc") return [...out].sort((a, z) => a.priceNum - z.priceNum);
+  if (sort === "price-desc") return [...out].sort((a, z) => z.priceNum - a.priceNum);
+  if (sort === "name") return [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+  return out;
 }
 
 const SORTS = [
@@ -294,7 +316,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     const forsok = (n: number) => {
       fetch(listaUrl)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((d: ListProduct[]) => setHamtad(d))
+        .then((d: ListProduct[]) => { LISTOR.set(listaUrl, d); setHamtad(d); })
         .catch(() => {
           if (n < 3) window.setTimeout(() => forsok(n + 1), 1500 * n);
           else { listaBegard.current = false; setListaFel(true); }
@@ -487,13 +509,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // saknas den är signalen 0 och ordningen faller tillbaka på kategori-
     // blandning + nyhet. Ordningarna är rena funktioner i lib/sort-products —
     // där ligger också mätningarna, vikterna och testerna.
-    const universal = universalCollectionIds(alla);
-    if (sort === "img") out = orderRecommended(out, universal, dayMs);
-    else if (sort === "pop") out = orderPopular(out, universal);
-    else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
-    else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
-    else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
-    else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+    out = sortera(out, sort, universalCollectionIds(alla), dayMs);
     // KORTEN SOM REDAN STÅR FLYTTAS INTE. Sidan och /api/lista räknar samma
     // lista med samma dag, men de cachas var för sig och kan vara byggda från
     // olika ögonblick av katalogen. I standardläget står därför sidans egna kort
@@ -566,6 +582,8 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // Vrids telefonen till en bredd där lagret inte längre gäller stängs det,
   // annars hade sidan stått kvar utan att gå att rulla.
   const stangRef = useRef<HTMLButtonElement>(null);
+  // Tryck som kom innan sidan var redo (lib/tidiga-klick.ts) görs om nu.
+  useEffect(() => { spelaUppTidigaKlick(); }, []);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 700px)");
     if (!open || !mq.matches) return;
@@ -608,7 +626,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     bilderBegarda.current = true;
     fetch("/api/kort-bilder")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d) setBilder(d); })
+      .then((d) => { if (d) { BILDKARTA = d; setBilder(d); } })
       // Misslyckas den står korten kvar med sin väntande fotoruta — fult, men
       // inte trasigt. Att nolla flaggan låter nästa avsikt försöka igen.
       .catch(() => { bilderBegarda.current = false; });
@@ -638,6 +656,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     setShown(PAGE_SIZE);
   }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
   const visible = list.slice(0, shown);
+
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
   // valt vet vi inte, och då visas ingen "Visa fler" förrän listan kommit
@@ -648,6 +667,51 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // ett filter eller en sortering, eller fler kort än sidan bär.
   const behoverLista = !!lista && !alla && (!arStandard || shown > products.length);
   const vantar = behoverLista && !listaFel;
+
+  // ── Bakåt från en produkt: samma kort, på samma plats ─────────────────────
+  //
+  // Trycket sparar hur många kort som visades och var kortet stod i fönstret.
+  // Kommer kunden tillbaka med bakåt visas lika många kort igen, och sidan
+  // rullas så att kortet står där det stod. Allt före första målningen när
+  // listan redan är hämtad; annars när den kommit.
+  const aterstall = useRef<Listlage | null>(null);
+  useLayoutEffect(() => {
+    let l: Listlage | null = null;
+    try {
+      const nav = performance.getEntriesByType?.("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (!komMedHistoriken(window as unknown as Fonster, Date.now(), nav?.type)) return;
+      l = lasListlage(window.sessionStorage, location.pathname + location.search, Date.now());
+    } catch { return; }
+    if (!l) return;
+    aterstall.current = l;
+    const sparad = listaUrl ? LISTOR.get(listaUrl) : undefined;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tillståndet finns bara i webbläsaren; före första målningen
+    if (sparad) { listaBegard.current = true; setHamtad(sparad); }
+    if (BILDKARTA) { bilderBegarda.current = true; setBilder(BILDKARTA); }
+    if (l.shown > PAGE_SIZE) setShown(l.shown);
+    // Bara vid montering.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useLayoutEffect(() => {
+    const l = aterstall.current;
+    // Vänta tills korten står där: lika många som sist, och hela listan om
+    // de inte ryms i sidans egna.
+    if (!l || shown < l.shown) return;
+    if (behoverLista && !listaFel) return;
+    aterstall.current = null;
+    const a = document.querySelector<HTMLElement>(`.prodgrid a.prod[href="${CSS.escape(l.href)}"]`);
+    if (!a) return;
+    rullaDirekt(scrollY + a.getBoundingClientRect().top - l.top);
+  });
+  const sparaLage = (e: MouseEvent) => {
+    const a = (e.target as HTMLElement).closest?.("a.prod");
+    if (!a) return;
+    try {
+      sparaListlage(window.sessionStorage, location.pathname + location.search, {
+        shown, href: a.getAttribute("href") ?? "", top: Math.round(a.getBoundingClientRect().top), t: Date.now(),
+      });
+    } catch { /* ingen lagring: bakåt beter sig som förut */ }
+  };
 
   // Behövs listan och har den inte begärts, begär den. Täcker allt som inte
   // går via avsikts-signalerna nedan — framför allt prisreglaget, färgskenan
@@ -664,6 +728,27 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     hamtaBilder();
   }, [lista, hamtaLista, hamtaBilder]);
 
+  // SORTERINGEN ÖPPNAS: förladda de första korten i varje annan ordning.
+  // Uppmätt 2026-10-07 (mobil, 4× långsammare processor): ett byte till
+  // "Nyast" tog ~0,9 s, varav de nya bilderna en dryg tredjedel, och på en
+  // riktig mobil är nedladdningen den största delen. Väljaren på iPhone står
+  // öppen en stund medan kunden väljer, så bilderna hinner hem. Första raden
+  // (två kort på mobil, fyra annars) i varje ordning, en gång per bild.
+  const avsiktSortera = () => {
+    hamta();
+    if (!alla) return;
+    const antal = window.matchMedia("(max-width:540px)").matches ? 2 : 4;
+    const universal = universalCollectionIds(alla);
+    const dagMs = dayMsProp ?? currentDayMs();
+    for (const s of SORTS) {
+      if (s.v === sort) continue;
+      for (const p of sortera(list, s.v, universal, dagMs).slice(0, antal)) {
+        const bild = medBild(p).img;
+        if (bild) forladdaKortbild(bild, true);
+      }
+    }
+  };
+
   // FÖRHÄMTNING NÄR WEBBLÄSAREN ÄR LEDIG. Avsikts-signalerna räcker oftast,
   // men en snabb tumme hinner före. Listan låg förr i sidans HTML och laddades
   // av alla, så att hämta den efter sidladdningen kostar ingen besökare mer än
@@ -677,19 +762,21 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (!arStandard) { hamtaLista(); return; }
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (conn?.saveData || /2g$/.test(conn?.effectiveType ?? "")) return;
+    // Efter hydreringen, inte efter `load`. `load` väntar på varje bild på
+    // sidan, och på en mobil kunde det ta sekunder: den som valde sortering
+    // direkt fick vänta på listan först (2,6 s på "Nyast" i produktion, mätt
+    // 2026-10-07 med 4× långsammare processor). Listan är ~35 kB komprimerad.
     let avbruten = false;
     let idle: number | undefined;
     const start = () => {
       if (avbruten) return;
       idle = typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(() => hamtaLista(), { timeout: 4000 })
-        : window.setTimeout(hamtaLista, 1500);
+        ? window.requestIdleCallback(() => hamtaLista(), { timeout: 1500 })
+        : window.setTimeout(hamtaLista, 300);
     };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
+    start();
     return () => {
       avbruten = true;
-      window.removeEventListener("load", start);
       if (idle !== undefined) {
         if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idle);
         else window.clearTimeout(idle);
@@ -714,7 +801,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
       <div className={`shopbar ${open ? "open" : ""}`}>
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
             landa på produkter långt ner i katalogen. */}
-        <button type="button" className="shopbar-toggle"
+        <button type="button" className="shopbar-toggle" data-tidigt="filter"
           onPointerEnter={hamta} onTouchStart={hamta}
           onClick={() => { hamta(); setOpen((b) => !b); }} aria-expanded={open}>
           <svg className="shopbar-ikon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -735,7 +822,8 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
               men ett filter ovanpå kan nå längre ner — så vi hämtar när man
               rör reglaget, inte när man släpper det. */}
           <select value={sort} onChange={(e) => setSort(e.target.value)}
-            onPointerEnter={hamta} onFocus={hamta} aria-label="Sortera produkter">
+            onPointerEnter={hamta} onFocus={avsiktSortera} onPointerDown={avsiktSortera} onTouchStart={avsiktSortera}
+            aria-label="Sortera produkter">
             {(defaultSort === "rel" ? [REL_SORT, ...SORTS] : SORTS).map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
           </select>
         </label>
@@ -746,7 +834,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Mobil: rubrik och stängknapp överst i lagret. Döljs på dator. */}
           <div className="panel-huvud">
             <span className="panel-titel">Filter</span>
-            <button type="button" ref={stangRef} className="panel-stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
+            <button type="button" ref={stangRef} className="panel-stang" data-tidigt="stang" onClick={() => setOpen(false)} aria-label="Stäng filter">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
@@ -834,7 +922,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                   return (
                     <button
                       key={k} type="button" className={`farg-ruta${pa ? " on" : ""}${tom ? " is-tom" : ""}`}
-                      aria-pressed={pa} disabled={tom} onClick={() => vaxlaFarg(k)}
+                      aria-pressed={pa} disabled={tom} data-tidigt={`farg:${k}`} onClick={() => vaxlaFarg(k)}
                     >
                       <span className="farg-prick" style={{ background: colorOf(k) || "#ddd" }} aria-hidden="true" />
                       <span className="farg-namn">{colorLabel(k)}</span>
@@ -844,7 +932,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                 })}
               </div>
               {colorKeys.length > FARGER_SYNS && (
-                <button type="button" className="farg-fler" onClick={() => setAllaFarger((v) => !v)} aria-expanded={allaFarger}>
+                <button type="button" className="farg-fler" data-tidigt="fler" onClick={() => setAllaFarger((v) => !v)} aria-expanded={allaFarger}>
                   {allaFarger ? "Visa färre" : `Visa alla ${colorKeys.length} färger`}
                 </button>
               )}
@@ -860,12 +948,12 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                   är brus som får kunden att tvivla på det den ser. I sök (där
                   slutsålda träffar behålls) dyker den upp av sig själv igen. */}
               {hasOos && (
-                <label className={`toggle ${onlyInStock ? "on" : ""}`}>
+                <label className={`toggle ${onlyInStock ? "on" : ""}`} data-tidigt="lager">
                   <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
                   <span>I lager</span>
                 </label>
               )}
-              <label className={`toggle ${onlyOnSale ? "on" : ""}`}>
+              <label className={`toggle ${onlyOnSale ? "on" : ""}`} data-tidigt="rea">
                 <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
                 <span>Rea</span>
               </label>
@@ -897,7 +985,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                       const n = valAntal?.get(f.nyckel)?.get(v.kod) ?? (valAntal ? 0 : undefined);
                       const tom = n === 0 && !pa;
                       return (
-                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}${tom ? " is-tom" : ""}`}>
+                        <label key={v.kod} className={`toggle toggle-sm ${pa ? "on" : ""}${tom ? " is-tom" : ""}`} data-tidigt={`val:${f.nyckel}:${v.kod}`}>
                           <input type="checkbox" checked={pa} disabled={tom} onChange={() => vaxla(f.nyckel, v.kod)} />
                           <span>{v.namn}</span>
                           {n !== undefined && <span className="toggle-n">{n}</span>}
@@ -914,7 +1002,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
               följer filtren live. Döljs på dator. */}
           <div className="panel-fot">
             <button type="button" className="panel-rensa" onClick={reset} disabled={activeFilters === 0}>Rensa alla</button>
-            <button type="button" className="panel-visa" onClick={() => setOpen(false)}>
+            <button type="button" className="panel-visa" data-tidigt="stang" onClick={() => setOpen(false)}>
               {liveCount === null ? "Visa produkter" : `Visa ${productCountLabel(liveCount)}`}
             </button>
           </div>
@@ -942,7 +1030,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} />; })}</div>
+          <div className={`prodgrid listgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} tvaKolumner />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

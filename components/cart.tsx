@@ -12,6 +12,8 @@ import { tightFillUrl } from "../lib/wix-image";
 import { EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR } from "../lib/shipping";
 import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
+import { usePanelFokus } from "./use-panel-fokus";
+import { formatPrice } from "../lib/price-range";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -64,6 +66,32 @@ function getClient() {
   return clientPromise;
 }
 
+// Besökarnyckeln hämtas en gång, även om förvärmningen och ett tryck kommer
+// samtidigt. Utan nyckel i kakan skapar Wix en ny besökare per anrop.
+let besokareLofte: Promise<void> | null = null;
+function sakraBesokare(client: any): Promise<void> {
+  if (Cookies.get("session")) return Promise.resolve();
+  if (!besokareLofte) {
+    besokareLofte = (async () => {
+      try {
+        const t = await client.auth.generateVisitorTokens();
+        Cookies.set("session", JSON.stringify(t), { expires: 30 });
+      } catch { /* som förut: tillägget försöker ändå */ }
+    })().finally(() => { besokareLofte = null; });
+  }
+  return besokareLofte;
+}
+
+/** Laddar kassans kod och, med `nyckel`, besökarnyckeln innan kunden trycker.
+ *  Mätt i butiken 2026-10-07 (mobil): första "Lägg i kundvagn" tog 2,4 s,
+ *  varav 0,7 s kod och 0,9 s nyckel; senare tryck 0,7–0,8 s (Wix svar).
+ *  Koden hämtas efter kundens första rörelse på produktsidan, nyckeln först
+ *  vid avsikt (fingret på knappen), så att en ren titt varken laddar koden
+ *  eller skapar en besökare hos Wix. */
+export function forvarmKundvagn(nyckel = false): void {
+  getClient().then(({ client }) => (nyckel ? sakraBesokare(client) : undefined)).catch(() => {});
+}
+
 function persistTokens(client: any) {
   try {
     const t = client?.auth?.getTokens?.();
@@ -71,12 +99,22 @@ function persistTokens(client: any) {
   } catch {}
 }
 
+/** Det kunden ser i lådan medan Wix bekräftar tillägget. */
+/** `bild` visas som den är: helst adressen sidan redan visar, så att den
+ *  ligger i webbläsarens cache och syns direkt. */
+export type Forhandsrad = { namn: string; bild?: string; val?: string; prisNum?: number };
+type Vantande = Forhandsrad & { nyckel: number; antal: number };
+
 type Ctx = {
   cart: any;
   count: number;
   open: boolean;
   setOpen: (b: boolean) => void;
-  add: (id: string, variantId?: string, quantity?: number) => Promise<void>;
+  /** true när Wix tagit emot varan. Med `forhand` öppnas lådan direkt, med
+   *  raden som väntande, i stället för när Wix svarat. */
+  add: (id: string, variantId?: string, quantity?: number, forhand?: Forhandsrad) => Promise<boolean>;
+  vantande: Vantande[];
+  fel: string | null;
   remove: (lineId: string) => Promise<void>;
   updateQty: (lineId: string, quantity: number) => Promise<void>;
   checkout: () => Promise<void>;
@@ -93,6 +131,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [vantande, setVantande] = useState<Vantande[]>([]);
+  const [fel, setFel] = useState<string | null>(null);
 
   // GA4 view_cart — fires varje gång drawern går från stängd till öppen.
   // Cart-state läses via ref (inte i deps) så vi inte spam:ar view_cart vid
@@ -119,25 +159,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (Cookies.get("fp_cart")) refresh();
   }, [refresh]);
 
-  const add = useCallback(async (id: string, variantId?: string, quantity: number = 1) => {
+  const add = useCallback(async (id: string, variantId?: string, quantity: number = 1, forhand?: Forhandsrad) => {
+    const antal = Math.max(1, Math.floor(quantity));
+    const nyckel = Date.now() + Math.random();
     setBusy(true);
+    setFel(null);
+    // Lådan öppnas i samma bild som trycket, med varan som väntande rad.
+    // Wix svar ersätter raden i samma rendering (React batchar setCart och
+    // borttagningen nedan), så den blinkar inte.
+    if (forhand) { setVantande((v) => [...v, { ...forhand, nyckel, antal }]); setOpen(true); }
     try {
       const { client } = await getClient();
-      if (!Cookies.get("session")) {
-        try {
-          const t = await client.auth.generateVisitorTokens();
-          Cookies.set("session", JSON.stringify(t), { expires: 30 });
-        } catch {}
-      }
+      await sakraBesokare(client);
       const ref: any = { appId: STORES_APP_ID, catalogItemId: id };
       if (variantId) ref.options = { variantId };
       // v2: fältet heter catalogItems (v1 kallade det lineItems).
       const res: any = await client.currentCart.addLineItemsToCurrentCart({
-        catalogItems: [{ catalogReference: ref, quantity: Math.max(1, Math.floor(quantity)) }],
+        catalogItems: [{ catalogReference: ref, quantity: antal }],
       });
       setCart(normaliseraKundvagn(res)); persistTokens(client); setOpen(true);
       Cookies.set("fp_cart", "1", { expires: 30 });
-    } finally { setBusy(false); }
+      return true;
+    } catch {
+      // Förut kastades felet vidare utan att kunden såg något. Nu står det i
+      // lådan, och den väntande raden försvinner.
+      setFel("Varan kunde inte läggas i varukorgen. Försök igen.");
+      setOpen(true);
+      return false;
+    } finally {
+      setVantande((v) => v.filter((x) => x.nyckel !== nyckel));
+      setBusy(false);
+    }
   }, []);
 
   const remove = useCallback(async (lineId: string) => {
@@ -252,9 +304,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally { setBusy(false); }
   }, [cart]);
 
-  const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0);
+  const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0)
+    + vantande.reduce((n, v) => n + v.antal, 0);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen, add, remove, updateQty, checkout, busy }}>{children}</CartCtx.Provider>;
+  // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
+  const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
+
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
@@ -290,7 +346,7 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
       <button
         className="buy"
         disabled={busy || !id || (needsVariant && !vid)}
-        onClick={async () => { await add(id, vid || undefined); setAdded(true); setTimeout(() => setAdded(false), 1500); }}
+        onClick={async () => { if (await add(id, vid || undefined)) { setAdded(true); setTimeout(() => setAdded(false), 1500); } }}
       >
         {busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
       </button>
@@ -314,7 +370,16 @@ function hamtaForslag(): Promise<RecoProduct[]> {
 }
 
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, updateQty, checkout, busy, count } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel } = useCart();
+  const panelRef = useRef<HTMLElement>(null);
+  // En ny vara läggs sist. Rulla dit, så att kunden ser den hamna i lådan.
+  const kroppRef = useRef<HTMLDivElement>(null);
+  const antalVantande = vantande.length;
+  useEffect(() => {
+    const k = kroppRef.current;
+    if (antalVantande && k) k.scrollTop = k.scrollHeight;
+  }, [antalVantande]);
+  usePanelFokus(open, panelRef, () => setOpen(false));
   const [recommendations, setRecommendations] = useState<RecoProduct[]>([]);
   useEffect(() => {
     let aktiv = true;
@@ -348,18 +413,23 @@ export function CartDrawer() {
   // Så länge butiken bara säljer i SEK är de identiska. Slås flera valutor på
   // för merchen blir raden "Du är 200 kr från fri frakt" stående under en
   // summa i euro. Då ska tröskeln räknas om, inte beloppet bytas ut.
-  const subNum = parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0;
+  // De väntande raderna räknas med, så att fri frakt-mätaren och delsumman
+  // stämmer redan innan Wix svarat.
+  const vantandeSumma = vantande.reduce((n, v) => n + (v.prisNum ?? 0) * v.antal, 0);
+  const harRader = items.length > 0 || vantande.length > 0;
+  const subNum = (parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0) + vantandeSumma;
   const remaining = Math.max(0, FREE_SHIP - subNum);
   const shipPct = Math.min(100, Math.round((subNum / FREE_SHIP) * 100));
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`drawer ${open ? "show" : ""}`} aria-hidden={!open} inert={!open}>
+      <aside ref={panelRef} className={`drawer ${open ? "show" : ""}`} role="dialog" aria-modal="true" aria-label="Varukorg" aria-hidden={!open} inert={!open}>
         <div className="drawer-head">
           <strong>Varukorg{count > 0 ? ` (${count})` : ""}</strong>
           <button className="drawer-x" onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
         </div>
-        {items.length > 0 && (
+        {fel && <p className="drawer-fel" role="alert">{fel}</p>}
+        {harRader && (
           <div className="freeship">
             {remaining > 0 ? (
               <p>Du är <b>{Math.round(remaining)} kr</b> från fri frakt!</p>
@@ -369,8 +439,8 @@ export function CartDrawer() {
             <div className={`fsbar ${remaining === 0 ? "done" : ""}`}><span style={{ width: `${shipPct}%` }} /></div>
           </div>
         )}
-        <div className="drawer-body">
-          {items.length === 0 ? (
+        <div className="drawer-body" ref={kroppRef}>
+          {!harRader ? (
             <div className="cart-empty">
               <span className="cart-empty-ic" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -411,7 +481,19 @@ export function CartDrawer() {
               );
             })
           )}
-          {items.length > 0 && recos.length > 0 && (
+          {vantande.map((v) => (
+            <div className="li li-vantar" key={v.nyckel} aria-busy="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {v.bild ? <img className="li-img" src={v.bild} alt={v.namn} /> : <div className="li-img" />}
+              <div className="li-info">
+                <div className="li-name">{v.namn}</div>
+                {v.val && <div className="li-val">{v.val}</div>}
+                {v.prisNum ? <div className="li-meta">{formatPrice(v.prisNum)}</div> : null}
+                <div className="li-vantar-text">{v.antal > 1 ? `${v.antal} st · ` : ""}Läggs i varukorgen …</div>
+              </div>
+            </div>
+          ))}
+          {harRader && recos.length > 0 && (
             <div className="cart-recos">
               <div className="cart-recos-head">Andra köpte också</div>
               {recos.map((r) => (
@@ -428,9 +510,9 @@ export function CartDrawer() {
             </div>
           )}
         </div>
-        {items.length > 0 && (
+        {harRader && (
           <div className="drawer-foot">
-            <div className="sub"><span>Delsumma</span><b>{subtotal}</b></div>
+            <div className="sub"><span>Delsumma</span><b>{vantande.length ? formatPrice(subNum) : subtotal}</b></div>
             <button className="buy" disabled={busy} onClick={checkout}>{busy ? "…" : "Till kassan →"}</button>
             <p className="drawer-note">Frakt och rabatter beräknas i kassan.</p>
             {/* Sista mikro-trygghet före extern Wix-kassa: ingen ny EU-importtull

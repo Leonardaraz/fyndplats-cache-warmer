@@ -15,7 +15,8 @@
 // den har tills nästa hämtning.
 
 import { GET as googleFeed } from "../google.xml/route";
-import { getProducts } from "@/lib/products";
+import { getProducts, fetchVarumarken } from "@/lib/products";
+import { varumarke } from "@/lib/varumarke";
 import { SITE } from "@/lib/site-urls";
 import {
   byggRecensionsflode,
@@ -90,9 +91,15 @@ export async function GET() {
   // får ändå sitt omdöme med, kopplat på produktens eget id och sida.
   const saknas = omdomen.some((o) => !produkter.has(o.productId));
   if (saknas) {
-    for (const p of await getProducts()) {
+    const [alla, marken] = await Promise.all([getProducts(), fetchVarumarken()]);
+    for (const p of alla) {
       if (!p.id || produkter.has(p.id)) continue;
-      const rad: FlodesProdukt = { skus: [p.id], name: p.name, url: `${SITE}/produkt/${p.slug}` };
+      const rad: FlodesProdukt = {
+        skus: [p.id],
+        name: p.name,
+        url: `${SITE}/produkt/${p.slug}`,
+        brand: varumarke(marken.get(p.id)),
+      };
       produkter.set(p.id, rad);
     }
   }

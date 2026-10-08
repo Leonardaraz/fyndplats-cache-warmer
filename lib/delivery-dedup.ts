@@ -109,3 +109,23 @@ export async function releaseDeliveryNotification(trackingNumber: string, status
     console.error("[delivery-dedup] release misslyckades", err instanceof Error ? err.message : err);
   }
 }
+
+/** Har en notis för (tracking, status) redan skickats? Läser bara, gör inget
+ *  anspråk. Används för levererat-mejl som gick per paket före 2026-10-08:
+ *  pushar 17TRACK samma Delivered igen ska kunden inte få orderns mejl ovanpå.
+ *  Ett läsfel svarar false (samma fail-open som anspråket). */
+export async function redanSkickad(trackingNumber: string, status: string): Promise<boolean> {
+  if (!trackingNumber || !status) return false;
+  try {
+    await ensureTable();
+    const { rows } = await sql/*sql*/`
+      SELECT 1 FROM delivery_notifications
+       WHERE tracking_number = ${trackingNumber} AND status = ${status}
+       LIMIT 1
+    `;
+    return rows.length > 0;
+  } catch (err) {
+    console.error("[delivery-dedup] redanSkickad misslyckades", err instanceof Error ? err.message : err);
+    return false;
+  }
+}

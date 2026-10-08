@@ -19,12 +19,13 @@
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
-import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
+import { claimDeliveryNotification, redanSkickad, releaseDeliveryNotification } from "@/lib/delivery-dedup";
+import { läsOrderPaket, markeraLevererad } from "@/lib/delivery-order";
 import { reviewFormUrl } from "@/lib/review-token";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 import type { OrderLineItem } from "@/emails/order-confirmation";
 import DeliveryNotificationEmail, { deliverySubject } from "@/emails/delivery-notification";
-import type { NotisStatus } from "@/lib/delivery-status";
+import { levereratBeslut, orderNyckel, type NotisStatus } from "@/lib/delivery-status";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
 const REPLY_TO = "info@fyndplats.com";
@@ -40,7 +41,12 @@ export type NotisUtfall =
   | { sent: true; resendId?: string }
   | {
       sent: false;
-      reason: "resend_not_configured" | "duplicate_suppressed" | "resend_failed" | "internal_error";
+      reason:
+        | "resend_not_configured"
+        | "duplicate_suppressed"
+        | "vantar_pa_ovriga_paket"
+        | "resend_failed"
+        | "internal_error";
     };
 
 function firstName(fullName: string | null): string {
@@ -72,6 +78,21 @@ export async function sendDeliveryNotification(args: {
     return { sent: false, reason: "resend_not_configured" };
   }
 
+  // Levererat går per ORDER (Leonard 2026-10-07): när ordern är helt skickad
+  // och alla dess paket är framme, en gång. Beslutet: levereratBeslut i
+  // lib/delivery-status. Utan order_id gäller paketet ensamt, som förut.
+  const perOrder = status === "delivered" && Boolean(mottagare.order_id);
+  if (perOrder) {
+    // Paketet fick ett eget levererat-mejl före ändringen: en ny push för samma
+    // paket ska inte ge orderns mejl ovanpå.
+    if (await redanSkickad(trackingNumber, "delivered")) return { sent: false, reason: "duplicate_suppressed" };
+    try {
+      await markeraLevererad(trackingNumber);
+    } catch (err) {
+      console.error(`${logg} kunde inte markera ${trackingNumber} levererat`, err instanceof Error ? err.message : err);
+    }
+  }
+
   // Ordersammanfattning + omdömeslänk — SAMMA innehåll som SMS-vägen bygger.
   // Best-effort: misslyckas Wix-uppslaget skickas mejlet ändå, bara utan
   // sammanfattningen.
@@ -82,13 +103,33 @@ export async function sendDeliveryNotification(args: {
   // och hade förlängt just det fönstret. Här kostar det på sin höjd ett
   // bortkastat Wix-anrop när en dubblett ändå skulle förlora anspråket.
   let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
+  let orderStatus: string | null = null;
   if (mottagare.order_id) {
     try {
       const order = await fetchWixOrder(mottagare.order_id);
+      const fs = order?.fulfillmentStatus;
+      if (typeof fs === "string" && fs) orderStatus = fs;
       const built = order ? buildOrderConfirmationProps(order) : null;
       if (built) orderSummary = { orderNumber: built.orderNumber, items: built.items };
     } catch (err) {
       console.warn(`${logg} kunde inte hämta order för mejlet:`, err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Väntar orderns levererat-mejl på fler paket? Ett läsfel mot tabellen
+  // skickar hellre mejlet för paketet än låter det utebli.
+  let flera = false;
+  if (perOrder) {
+    try {
+      const paket = await läsOrderPaket(mottagare.order_id!);
+      const beslut = levereratBeslut({ ...paket, orderStatus, nu: Date.now() });
+      if (beslut === "vänta") {
+        console.log(`${logg} ${trackingNumber} levererat, order ${mottagare.order_id} väntar på ${paket.statusar.filter((x) => x !== "delivered").length} paket till`);
+        return { sent: false, reason: "vantar_pa_ovriga_paket" };
+      }
+      flera = paket.statusar.length > 1 && paket.statusar.every((x) => x === "delivered");
+    } catch (err) {
+      console.error(`${logg} kunde inte läsa orderns paket, skickar för paketet`, err instanceof Error ? err.message : err);
     }
   }
 
@@ -98,9 +139,12 @@ export async function sendDeliveryNotification(args: {
     ? reviewFormUrl(mottagare.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
     : undefined;
 
-  // Dedup mot SMS-flödet OCH mellan push och poll: först till (number, status)
-  // vinner. Allt tungt är gjort — härifrån till send() är det bara rendering.
-  const won = await claimDeliveryNotification(trackingNumber, status, channel, mottagare.customer_email);
+  // Dedup mot SMS-flödet OCH mellan push och poll: först till nyckeln vinner.
+  // Levererat med order: nyckeln är ordern, alltså ett mejl per order oavsett
+  // vilket paket eller vilken kanal som kom sist. Allt tungt är gjort —
+  // härifrån till send() är det bara rendering.
+  const nyckel = perOrder ? orderNyckel(mottagare.order_id!) : trackingNumber;
+  const won = await claimDeliveryNotification(nyckel, status, channel, mottagare.customer_email);
   if (!won) return { sent: false, reason: "duplicate_suppressed" };
 
   const props = {
@@ -110,12 +154,14 @@ export async function sendDeliveryNotification(args: {
     status,
     // Spåra-knapp bara för "på väg" (meningslös efter levererat).
     trackingNumber: status === "delivered" ? undefined : trackingNumber,
-    carrier: maskCarrierOrUndefined(args.rawCarrier),
+    // Flera paket kan ha gått med olika bud; då står inget bud i mejlet.
+    carrier: flera ? undefined : maskCarrierOrUndefined(args.rawCarrier),
+    flera,
   };
 
   try {
     const html = await render(DeliveryNotificationEmail(props));
-    const subject = deliverySubject({ status });
+    const subject = deliverySubject({ status, flera });
     const sent = await new Resend(resendKey).emails.send({
       from: FROM,
       to: mottagare.customer_email,
@@ -125,14 +171,14 @@ export async function sendDeliveryNotification(args: {
     });
     if (sent.error) {
       // Släpp anspråket så en retry (eller den andra kanalen) kan ta över.
-      await releaseDeliveryNotification(trackingNumber, status);
+      await releaseDeliveryNotification(nyckel, status);
       console.error(`${logg} Resend-fel`, sent.error);
       return { sent: false, reason: "resend_failed" };
     }
     console.log(`${logg} notis skickad: ${trackingNumber} → ${mottagare.customer_email} (${status}, via ${channel}, resendId=${sent.data?.id})`);
     return { sent: true, resendId: sent.data?.id };
   } catch (err) {
-    await releaseDeliveryNotification(trackingNumber, status);
+    await releaseDeliveryNotification(nyckel, status);
     console.error(`${logg} oväntat fel under email-send`, err);
     return { sent: false, reason: "internal_error" };
   }

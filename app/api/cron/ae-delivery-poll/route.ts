@@ -29,6 +29,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { fetchAliExpressEvents } from "@/lib/ae-source";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
+import { ordrarAttSvepa } from "@/lib/delivery-order";
 import {
   POLL_MAX_PER_KÖRNING,
   POLL_MAX_ÅLDER_DAGAR,
@@ -105,6 +106,8 @@ export async function GET(request: Request) {
     skickade: [] as Array<{ tn: string; status: string }>,
     dubbletter: 0,
     misslyckade: [] as Array<{ tn: string; reason: string }>,
+    väntarPåÖvrigaPaket: 0,
+    ordrar: { granskade: 0, skickade: [] as string[], väntar: 0, misslyckade: [] as Array<{ order: string; reason: string }> },
     avbrutenAvTid: false,
   };
 
@@ -148,6 +151,7 @@ export async function GET(request: Request) {
 
     if (utfall.sent) summering.skickade.push({ tn: rad.tracking_number, status });
     else if (utfall.reason === "duplicate_suppressed") summering.dubbletter++;
+    else if (utfall.reason === "vantar_pa_ovriga_paket") summering.väntarPåÖvrigaPaket++;
     else summering.misslyckade.push({ tn: rad.tracking_number, reason: utfall.reason });
 
     // ☠️ Statusen skrivs bara när mejlet är skickat (av oss eller pushen).
@@ -167,10 +171,43 @@ export async function GET(request: Request) {
     await paus(POLL_PAUS_MS);
   }
 
+  // Orderns levererat-mejl (ett per order, se levereratBeslut). Svepet tar
+  // ordrar med ett levererat paket och inget mejl: det sista paketet kom fram
+  // men mejlet gick inte (Resend-fel, eller två paket samtidigt där båda såg
+  // det andra som ej framme), eller väntetiden mot ett paket som aldrig
+  // rapporteras har gått ut. Sändaren avgör själv om det ska gå nu.
+  if (!dryRun && !summering.avbrutenAvTid) {
+    let ordrar: Awaited<ReturnType<typeof ordrarAttSvepa>> = [];
+    try {
+      ordrar = await ordrarAttSvepa();
+    } catch (err) {
+      console.error("[ae-delivery-poll] ordersvepet kunde inte läsa", err);
+    }
+    for (const o of ordrar) {
+      if (Date.now() - start > TIDSBUDGET_MS) {
+        summering.avbrutenAvTid = true;
+        break;
+      }
+      summering.ordrar.granskade++;
+      const utfall = await sendDeliveryNotification({
+        trackingNumber: o.tracking_number,
+        mottagare: o,
+        status: "delivered",
+        channel: "order-svep",
+        logg: "[ae-delivery-poll]",
+      });
+      if (utfall.sent) summering.ordrar.skickade.push(o.order_id);
+      else if (utfall.reason === "vantar_pa_ovriga_paket") summering.ordrar.väntar++;
+      else if (utfall.reason !== "duplicate_suppressed") summering.ordrar.misslyckade.push({ order: o.order_id, reason: utfall.reason });
+    }
+  }
+
   console.log(
     `[ae-delivery-poll] ${summering.granskade} granskade, ${summering.skickade.length} skickade, `
       + `${summering.dubbletter} dubbletter, ${summering.misslyckade.length} misslyckade, `
-      + `${summering.utanKälla} utan källa${dryRun ? " (torr)" : ""}${summering.avbrutenAvTid ? " — AVBRUTEN AV TID" : ""}`,
+      + `${summering.utanKälla} utan källa, ${summering.väntarPåÖvrigaPaket} väntar på övriga paket; `
+      + `ordrar: ${summering.ordrar.granskade} granskade, ${summering.ordrar.skickade.length} skickade, `
+      + `${summering.ordrar.väntar} väntar, ${summering.ordrar.misslyckade.length} misslyckade${dryRun ? " (torr)" : ""}${summering.avbrutenAvTid ? " — AVBRUTEN AV TID" : ""}`,
   );
   return NextResponse.json(summering);
 }

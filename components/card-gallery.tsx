@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
@@ -48,7 +48,10 @@ import { kortDel } from "../lib/kort-galleri";
 // från /api/kort-galleri/nya, som läser produkten direkt från Wix. Ett kort
 // som bara saknas i delen utan att vara nyare har helt enkelt inga
 // extrabilder — delen utelämnar sådana för att hålla nere storleken.
-type Del = { rader: Record<string, unknown>; senast: number };
+type Del = { rader: Record<string, unknown>; senast: number; hamtad: number };
+// En del hålls högst så länge i fliken. Förut hölls den så länge fliken levde,
+// så en flik som stått öppen sedan morgonen visade morgonens bilder på kvällen.
+const DEL_TTL_MS = 30 * 60_000;
 const delar = new Map<number, Del>();
 const pagaende = new Set<number>();
 const forsok = new Map<number, number>();
@@ -58,6 +61,14 @@ const nya = new Map<string, string[]>();
 const nyaKo = new Set<string>();
 const nyaPagaende = new Set<string>();
 let nyaTimer: ReturnType<typeof setTimeout> | null = null;
+// Produkter som ändrats i Wix de senaste dygnen (/api/kort-galleri/andrade),
+// lästa direkt från Wix. Vinner över delen, som kan vara timmar gammal: bilder
+// som läggs till på en befintlig produkt syns då på kortet inom några minuter
+// (Leonard 2026-10-07). Hämtas en gång per sidbesök och igen efter tio minuter.
+let andrade: Map<string, string[]> | null = null;
+let andradeHamtad = 0;
+let andradePagaende = false;
+const ANDRADE_TTL_MS = 10 * 60_000;
 const TIDSGRANS_MS = 20000;
 const OMFORSOK_MS = 3000;
 const NYA_PER_ANROP = 12;
@@ -74,6 +85,8 @@ function arOkandForDelen(slug: string, del: Del): boolean {
 
 /** Extrabilderna om de är kända, annars undefined (och hämtningen startas). */
 function resultat(slug: string): string[] | undefined {
+  const a = andrade?.get(slug);
+  if (a) return a;
   const n = nya.get(slug);
   if (n) return n;
   const del = delar.get(kortDel(slug));
@@ -90,12 +103,14 @@ function meddela(slug: string) {
   if (k) lyssnare.get(slug)?.forEach((cb) => cb(k));
 }
 
-function hamta(url: string): Promise<Record<string, unknown>> {
+function hamta(url: string, omvalidera = false): Promise<Record<string, unknown>> {
   // AbortController + setTimeout, inte AbortSignal.timeout: den senare saknas i
   // Safari före iOS 16 och kastar då synkront.
   const ctl = typeof AbortController === "function" ? new AbortController() : null;
   const t = ctl ? setTimeout(() => ctl.abort(), TIDSGRANS_MS) : null;
-  return fetch(url, ctl ? { signal: ctl.signal } : undefined)
+  // omvalidera: fråga CDN:en i stället för att ta webbläsarens sparade kopia.
+  const init: RequestInit = { ...(ctl ? { signal: ctl.signal } : {}), ...(omvalidera ? { cache: "no-cache" as RequestCache } : {}) };
+  return fetch(url, init)
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
@@ -105,11 +120,12 @@ function hamta(url: string): Promise<Record<string, unknown>> {
 }
 
 function hamtaDel(del: number) {
-  if (delar.has(del) || pagaende.has(del)) return;
+  const gammal = delar.get(del);
+  if (pagaende.has(del) || (gammal && Date.now() - gammal.hamtad < DEL_TTL_MS)) return;
   pagaende.add(del);
-  hamta(`/api/kort-galleri/${del}`)
+  hamta(`/api/kort-galleri/${del}`, !!gammal)
     .then((d) => {
-      delar.set(del, { rader: d, senast: Number(d._senast) || 0 });
+      delar.set(del, { rader: d, senast: Number(d._senast) || 0, hamtad: Date.now() });
       for (const slug of lyssnare.keys()) if (kortDel(slug) === del) meddela(slug);
     })
     .catch(() => {
@@ -147,7 +163,21 @@ function skickaNya() {
     .finally(() => slugs.forEach((s) => nyaPagaende.delete(s)));
 }
 
-const begar = (slug: string) => hamtaDel(kortDel(slug));
+function hamtaAndrade() {
+  if (andradePagaende || (andrade && Date.now() - andradeHamtad < ANDRADE_TTL_MS)) return;
+  andradePagaende = true;
+  hamta("/api/kort-galleri/andrade")
+    .then((d) => {
+      andrade = new Map(Object.entries(d).map(([s, v]) => [s, nycklar(v)]));
+      andradeHamtad = Date.now();
+      for (const slug of andrade.keys()) if (lyssnare.has(slug)) meddela(slug);
+    })
+    // Faller det står korten på delens bilder, som förut.
+    .catch(() => { andradeHamtad = Date.now(); andrade ??= new Map(); })
+    .finally(() => { andradePagaende = false; });
+}
+
+const begar = (slug: string) => { hamtaAndrade(); hamtaDel(kortDel(slug)); };
 
 function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number): () => void {
   if (createdAt) skapad.set(slug, createdAt);
@@ -165,6 +195,27 @@ function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number
 const arPekskarm = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none)").matches;
 
+/** Kortets `sizes`, delad med förladdningen nedan så att båda väljer samma bild. */
+function kortSizes(tvaKolumner: boolean): string {
+  return `(max-width:540px) ${tvaKolumner ? "50vw" : "100vw"}, (max-width:900px) 50vw, 25vw`;
+}
+
+const forladdade = new Set<string>();
+/** Hämtar kortets huvudbild till webbläsarens cache innan kortet visas: samma
+ *  srcset och sizes som <Image> nedan, så webbläsaren väljer samma fil. Används
+ *  när kunden öppnar sorteringen (components/shopbrowser.tsx). */
+export function forladdaKortbild(img: string, tvaKolumner = false): void {
+  const src = tightFillUrl(img, 600, 600);
+  if (forladdade.has(src)) return;
+  forladdade.add(src);
+  const { props } = getImageProps({ src, alt: "", fill: true, sizes: kortSizes(tvaKolumner) });
+  const bild = new window.Image();
+  // sizes före srcset, annars hinner webbläsaren välja med fel bredd.
+  if (props.sizes) bild.sizes = props.sizes;
+  if (props.srcSet) bild.srcset = props.srcSet;
+  bild.src = props.src;
+}
+
 export function CardGallery({
   slug,
   img,
@@ -172,6 +223,7 @@ export function CardGallery({
   name,
   priority,
   createdAt,
+  tvaKolumner = false,
 }: {
   slug: string;
   img: string;
@@ -180,6 +232,9 @@ export function CardGallery({
   priority: boolean;
   /** Produktens createdAt (Wix numericId) — avgör om delen kan känna till den. */
   createdAt?: number;
+  /** Rutnätet har två kolumner på mobil (listsidorna), så bilden är halva
+   *  skärmen bred. Annars hämtade mobilen en bild för hela bredden. */
+  tvaKolumner?: boolean;
 }) {
   const [aktiv, setAktiv] = useState(0);
   const [extra, setExtra] = useState<string[]>([]);
@@ -225,7 +280,7 @@ export function CardGallery({
     };
   }, [slug, altImg, createdAt]);
 
-  const sizes = "(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw";
+  const sizes = kortSizes(tvaKolumner);
 
   // rAF-strypt: scroll fyrar per bildruta, men prickarna behöver bara det
   // senaste värdet en gång per ritning.

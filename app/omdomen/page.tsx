@@ -3,6 +3,7 @@ import { jsonLdString } from "../../lib/seo";
 import { getSocialProof } from "../../lib/social-proof-live";
 import { getGoogleReviews } from "../../lib/google-reviews";
 import { CURATED_RESULT } from "../../lib/curated-reviews";
+import { initialer } from "../../lib/initialer";
 import { GoogleReviews } from "../../components/GoogleReviews";
 import { AnimatedRating } from "../../components/AnimatedRating";
 import s from "./omdomen.module.css";
@@ -63,6 +64,10 @@ export default async function Omdomen() {
   // (handinlagda, äkta) omdömena så sidan alltid har riktiga omdömen att läsa.
   const google = await getGoogleReviews();
   const data = google.reviews.length > 0 ? google : CURATED_RESULT;
+  // Bara initialer och ett löpnummer går vidare till sidan, aldrig hela
+  // namnet (lib/initialer.ts, Leonard 2026-10-07). GoogleReviews är en
+  // klientkomponent, så allt den får hamnar i sidans React-data.
+  const omdomen = data.reviews.map((r, i) => ({ ...r, id: `omdome-${i}`, author: initialer(r.author) }));
   const profileUrl = process.env.GOOGLE_REVIEW_URL || GOOGLE_PROFILE_FALLBACK;
   // Rubriken och korten ska visa SAMMA betyg. proof är den enda källan:
   // Googles eget när API:t svarar, annars det handavlästa.
@@ -121,7 +126,7 @@ export default async function Omdomen() {
               Tack till alla som handlat hos oss och lämnat ett omdöme. Din feedback hjälper oss att bli bättre – och andra att handla tryggt.
             </p>
             <GoogleReviews
-              reviews={data.reviews}
+              reviews={omdomen}
               average={proof.ratingValue}
               profileUrl={profileUrl}
             />

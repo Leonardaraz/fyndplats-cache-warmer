@@ -39,16 +39,19 @@ export interface DeliveryNotificationProps {
   /** Signerad länk till omdömesformuläret. Utelämnas → ingen knapp (funktionen
    *  är avstängd utan REVIEW_TOKEN_SECRET). Visas bara vid levererat. */
   reviewUrl?: string;
+  /** Ordern gick i flera paket och alla är framme: rubriken och ämnesraden
+   *  säger "Dina paket". Levererat-mejlet går en gång per order. */
+  flera?: boolean;
 }
 
-function statusHeadline(status: DeliveryStatus, pickupLocation?: string): string {
+function statusHeadline(status: DeliveryStatus, pickupLocation?: string, flera?: boolean): string {
   switch (status) {
     case "available_for_pickup":
       return pickupLocation
         ? `Ditt paket är nu vid ${pickupLocation}!`
         : "Ditt paket är nu redo att hämtas!";
     case "delivered":
-      return "Ditt paket har levererats!";
+      return flera ? "Dina paket har levererats!" : "Ditt paket har levererats!";
     case "out_for_delivery":
       return "Ditt paket är på väg till dig idag!";
     case "in_transit":
@@ -75,10 +78,10 @@ function statusBody(status: DeliveryStatus, pickupLocation?: string): string {
   }
 }
 
-export function deliverySubject(props: Pick<DeliveryNotificationProps, "status" | "pickupLocation" | "pickupCode">): string {
+export function deliverySubject(props: Pick<DeliveryNotificationProps, "status" | "pickupLocation" | "pickupCode" | "flera">): string {
   // Email subject for Resend. Keep it short — Swedish phones truncate at ~40
   // chars on lock-screen previews.
-  const { status, pickupLocation, pickupCode } = props;
+  const { status, pickupLocation, pickupCode, flera } = props;
   switch (status) {
     case "available_for_pickup": {
       const loc = pickupLocation ?? "ombudet";
@@ -86,7 +89,7 @@ export function deliverySubject(props: Pick<DeliveryNotificationProps, "status" 
       return `Ditt paket är nu vid ${loc}${codeFragment}`;
     }
     case "delivered":
-      return "Ditt paket har levererats!";
+      return flera ? "Dina paket har levererats!" : "Ditt paket har levererats!";
     case "out_for_delivery":
       return "Ditt paket är på väg!";
     case "in_transit":
@@ -107,8 +110,9 @@ export default function DeliveryNotificationEmail({
   orderNumber,
   items,
   reviewUrl,
+  flera,
 }: DeliveryNotificationProps) {
-  const headline = statusHeadline(status, pickupLocation);
+  const headline = statusHeadline(status, pickupLocation, flera);
   const body = statusBody(status, pickupLocation);
   const trackingUrl = trackingNumber
     ? `${BRAND.siteUrl}/sparning?tn=${encodeURIComponent(trackingNumber)}`

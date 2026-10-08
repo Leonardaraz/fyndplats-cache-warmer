@@ -1,6 +1,7 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { productCountLabel } from "../lib/rating";
+import { usePanelFokus } from "./use-panel-fokus";
 
 type Ctx = {
   ids: Set<string>;
@@ -82,11 +83,13 @@ export function WishlistButton() {
 
 export function WishlistDrawer() {
   const { ids, count, open, setOpen, toggle } = useWishlist();
+  const panelRef = useRef<HTMLElement>(null);
+  usePanelFokus(open, panelRef, () => setOpen(false));
   const list = [...ids];
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`drawer wl-drawer ${open ? "show" : ""}`} aria-hidden={!open} inert={!open}>
+      <aside ref={panelRef} className={`drawer wl-drawer ${open ? "show" : ""}`} role="dialog" aria-modal="true" aria-label="Mina favoriter" aria-hidden={!open} inert={!open}>
         <div className="drawer-head">
           <strong>Mina favoriter ({count})</strong>
           <button className="drawer-x" onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
