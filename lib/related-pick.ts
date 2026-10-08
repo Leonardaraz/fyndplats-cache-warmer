@@ -159,20 +159,24 @@ function cosinus(a: Map<string, number>, b: Map<string, number>): number {
 }
 
 // ── Djurslag ─────────────────────────────────────────────────────────────────
-// "Lek & Tillbehör för husdjur" och flera andra husdjurskategorier blandar hund
-// och katt. Mätt 2026-10-08: 105 produktsidor föreslog ett annat djurslag, till
-// exempel kattsängar under en hundsäng. Ett förslag som nämner ett annat djur,
-// och inte produktens, tas bort. Neutrala varor ("husdjurstrappa") står kvar.
-// "hundtandsmönster" är ett tygmönster, inte en hund.
+// "Lek & Tillbehör för husdjur" och flera andra husdjurskategorier blandar
+// djurslagen. Mätt 2026-10-08: 117 produktsidor föreslog ett annat djurslag,
+// till exempel kattsängar under en hundsäng eller ett akvarium under en
+// kattlåda. Ett förslag som nämner ett annat djur, och inte produktens, tas
+// bort. Neutrala varor ("husdjurstrappa") står kvar.
 //
-// Terrarier, sköldpaddshus och akvarier räknas också: utan dem fick kattlådor
-// och hundburar ett akvarium. Där matchas bara ordstammar som katalogen
-// använder för själva djurvarorna ("Glasterrarium", "Nanoakvarium"). "fisk"
-// hade också tagit ett fiskespö, ett fiskrensbord och en fiskformad leksak.
+// Hund och katt räknas bara i ordets början, så att "skattkista" inte blir en
+// katt, och "hundtandsmönster" är ett tygmönster. Klösträd och andra
+// klösmöbler är kattvaror även när namnet inte säger katt (76 av 92 gör det
+// inte). Smådjuren räknas också inne i ett sammansatt ord
+// ("Dvärghamsterbur"). För reptiler och fiskar matchas bara
+// ordstammar som katalogen använder för själva djurvarorna ("Glasterrarium",
+// "Nanoakvarium"): "fisk" hade också tagit ett fiskespö, ett fiskrensbord och
+// en fiskformad leksak.
 const DJURSLAG: Array<[string, RegExp]> = [
   ["hund", /(^|[^\p{L}])(hund(?!tand)\p{L}*|valp\p{L}*)/iu],
-  ["katt", /(^|[^\p{L}])katt\p{L}*/iu],
-  ["smådjur", /(^|[^\p{L}])(kanin|hamster|marsvin|gnagar|chinchilla|smådjur)\p{L}*/iu],
+  ["katt", /(^|[^\p{L}])katt\p{L}*|klös/iu],
+  ["smådjur", /kanin|hamster|marsvin|gnagar|chinchilla|smådjur/iu],
   ["fågel", /(^|[^\p{L}])(fågel|fåglar|undulat|papeg)\p{L}*/iu],
   ["höns", /(^|[^\p{L}])(höns|hönor|kyckling)\p{L}*/iu],
   ["reptil", /terrari|reptil|sköldpaddshus/iu],

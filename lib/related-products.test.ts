@@ -322,7 +322,10 @@ test("djurslag – läser djuret ur namnet, och bara djuret", () => {
   assert.deepEqual([...djurslag("Hundsäng ortopedisk")], ["hund"]);
   assert.deepEqual([...djurslag("Valpgrind 3 delar")], ["hund"]);
   assert.deepEqual([...djurslag("Kattträd 150 cm")], ["katt"]);
+  assert.deepEqual([...djurslag("Klösträd 90 cm i beige – dubbel koja")], ["katt"]);
+  assert.deepEqual([...djurslag("Väggklösträd 4 delar")], ["katt"]);
   assert.deepEqual([...djurslag("Kaninbur med ramp")], ["smådjur"]);
+  assert.deepEqual([...djurslag("Dvärghamsterbur 47x30x27 cm – 2 våningar")], ["smådjur"]);
   assert.deepEqual([...djurslag("Hundtrappa för hundar och katter")].sort(), ["hund", "katt"]);
   assert.deepEqual([...djurslag("Glasterrarium med frontlucka och gallerlock")], ["reptil"]);
   assert.deepEqual([...djurslag("Sköldpaddshus 81 cm med två rum")], ["reptil"]);
