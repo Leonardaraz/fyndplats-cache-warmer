@@ -1,0 +1,84 @@
+{
+ "runda": "runda-u1-dolda-utkast",
+ "produkter": [
+  {
+   "kort": "d618473f",
+   "pid": "d618473f-783a-48e1-8f1b-b7843d01e9fb",
+   "namn": "Elkamin vit 54,8 cm – 1850 W och dämpbar låga",
+   "slug": "elkamin-vit-54-cm-1850-w",
+   "html": "<p>En fristående elkamin i vitt, 41,5 cm bred och 54,8 cm hög, med härdat glas i luckan och ett handtag för att öppna den. Värmen har två lägen, 950 och 1850 W, och lågans ljusstyrka regleras för sig.</p><h2>Ljusstyrkan går att dämpa</h2><p>Full glöd i ett mörkt rum lyser mer än man väntar sig. Här skruvas lågan ner utan att slockna, så kaminen kan vara tänd en hel kväll utan att lysa upp hela rummet.</p><h2>Två värmelägen</h2><p>Det högre läget ger 1850 W. Det lägre steget på 950 W räcker för att ta udden av ett svalt rum.</p><h2>Lågan går utan värmen</h2><p>Flammeffekten har en egen strömbrytare och fungerar utan att värmen är på. Därför går kaminen att ha tänd året om, även när det är varmt ute.</p><h2>Watt är talet att jämföra på</h2><p>Varje modell har en angiven uppvärmningsyta i kvadratmeter, men siffrorna går inte ihop mellan modellerna. Två kaminer med samma effekt kan få olika ytangivelse, så effekten i watt är det som går att jämföra. Ytan i specifikationen är ett riktvärde, inte ett mätt värde.</p><h2>Tekniska specifikationer</h2><ul><li><p><span style=\"font-weight: 700\">Mått:</span> 41,5 × 28 × 54,8 cm (bredd × djup × höjd)</p></li><li><p><span style=\"font-weight: 700\">Effekt:</span> 950 eller 1850 W</p></li><li><p><span style=\"font-weight: 700\">Spänning:</span> 220–240 V, 50 Hz</p></li><li><p><span style=\"font-weight: 700\">Uppvärmningsyta:</span> 15–20 m², riktvärde</p></li><li><p><span style=\"font-weight: 700\">Material:</span> stål, härdat glas och plast</p></li><li><p><span style=\"font-weight: 700\">Säkerhet:</span> överhettningsskydd</p></li><li><p><span style=\"font-weight: 700\">Lucka:</span> med handtag</p></li><li><p><span style=\"font-weight: 700\">Färg:</span> vit</p></li><li><p><span style=\"font-weight: 700\">Fraktvikt:</span> 6,3 kg</p></li></ul><h2>Användning och skötsel</h2><p>Stäng av kaminen, dra ur kontakten och låt den svalna innan du torkar av den. Öppna luckan och torka glaset från båda sidor med en lätt fuktad trasa, och damma av höljet med en torr. Täck aldrig över kaminen, och håll gardiner, möbler och textilier på avstånd från värmeutblåset. Ställ den på ett stabilt och plant golv, och dra sladden så att ingen snubblar på den.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Går lågan att dämpa?</span></p><p>Ja, ljusstyrkan regleras för sig, utan att värmen påverkas.</p><p><span style=\"font-weight: 700\">Hur mycket värmer den?</span></p><p>Den har två lägen, 950 och 1850 W. Som riktvärde räcker det till ett rum på 15–20 m².</p><p><span style=\"font-weight: 700\">Kan lågan vara tänd utan värme?</span></p><p>Ja, flammeffekten har en egen strömbrytare.</p><p><span style=\"font-weight: 700\">Går luckan att öppna?</span></p><p>Ja, luckan har ett handtag.</p><p><span style=\"font-weight: 700\">Har den överhettningsskydd?</span></p><p>Ja.</p>",
+   "seoTitel": "Elkamin vit 54,8 cm – 1850 W | Fyndplats",
+   "seoBesk": "Fristående elkamin i vitt, 41,5 × 28 × 54,8 cm, med lucka i härdat glas. Två värmelägen, 950 och 1850 W, och lågan går att dämpa och ha tänd utan värme.",
+   "media": [
+    {
+     "id": "b379ce_b37a9d7412274f74b8d9121649b80903~mv2.jpg",
+     "altText": "Vit elkamin 54,8 cm med lucka i härdat glas och tänd låga, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0b713aab48a74e1684f1f1490906b2ac~mv2.jpg",
+     "altText": "Den vita elkaminen tänd bland julklappar och tomtefigurer"
+    },
+    {
+     "id": "b379ce_c756b59084cf4ce2b733d7c6aec33655~mv2.jpg",
+     "altText": "Faktakort: lågan dämpas utan att slockna, 950 eller 1850 W"
+    },
+    {
+     "id": "b379ce_b560833e13404fa5a9e04aa59ff5535b~mv2.jpg",
+     "altText": "Närbild på vedbädden bakom glaset"
+    },
+    {
+     "id": "b379ce_b419d675c6ef469ca83f8f2f8a878ea5~mv2.jpg",
+     "altText": "Måttbild: elkaminen är 41,5 cm bred, 28 cm djup och 54,8 cm hög"
+    }
+   ],
+   "kat": [
+    "Hem & Inredning",
+    "Elkaminer"
+   ],
+   "sku": "FP-elkamin-vit-54-1850",
+   "variantId": "ce6300d7-6f64-47f4-8de9-9608d8c5c5c6",
+   "textHash": "9928c1b230f39316",
+   "textTecken": 2820
+  },
+  {
+   "kort": "2cfd373a",
+   "pid": "2cfd373a-4b73-4646-8a35-9124402b16f4",
+   "namn": "Massagebänk 2 zoner cremevit – 186 × 60 cm bädd, höjd 61–87 cm",
+   "slug": "massagebank-cremevit-2-zoner",
+   "html": "<p>En hopfällbar massagebänk i cremevitt, med två zoner, träställ och en liggyta på 186 × 60 cm. Höjden ställs mellan 61 och 87 cm.</p><p>Ansiktsöppning i bäddens ena ände, 4 cm skum under klädseln och rekommenderad maxlast 150 kg.</p><p><span style=\"font-weight: 700\">Egenskaper</span></p><ul><li><p>Två zoner, träställ</p></li><li><p>Höjden ställs mellan 61 och 87 cm</p></li><li><p>Liggyta 186 × 60 cm</p></li><li><p>4 cm skum under klädseln</p></li><li><p>Ansiktsöppning i bäddens ena ände</p></li><li><p>Fälls ihop till 93 × 60 × 17 cm</p></li></ul><h2>Tekniska specifikationer</h2><ul><li><p>Liggyta (L × B): 186 × 60 cm</p></li><li><p>Höjd: 61–87 cm</p></li><li><p>Hopfälld (L × B × H): 93 × 60 × 17 cm</p></li><li><p>Skummets tjocklek: 4 cm</p></li><li><p>Rekommenderad maxlast: 150 kg</p></li><li><p>Fraktvikt: 13 kg</p></li><li><p>Paketmått: 95 × 19 × 62,5 cm</p></li><li><p>Stomme: trä</p></li><li><p>Klädsel: PVC över skum</p></li><li><p>Färg: cremevit</p></li><li><p>Antal zoner: 2</p></li><li><p>Montering: krävs inte</p></li><li><p>Ingår: massagebänk och bruksanvisning</p></li></ul><h2>Rekommenderad maxlast 150 kg</h2><p>Bänken anges tåla 150 kg som rekommenderad maxlast. Talet gäller den utfällda bänken på plant golv. Läs det som en konstruktionsuppgift och inte som ett provningsresultat, eftersom ingen provningsnorm anges för bänken.</p><p>Kontrollera att båda benparen är låsta i samma hål innan någon lägger sig. En hopfällbar bänk med ett ben ett steg fel står snett och tar hela lasten på tre punkter, och det är den verkliga risken, inte överlast.</p><p>Ansiktsöppningen ska vara fri. Lägg inget under den och ställ inte bänken så att öppningen hamnar över en kant eller ett bordsben. Den som ligger på mage ska kunna andas obehindrat och komma upp själv.</p><h2>Användning och skötsel</h2><p>Klädseln torkas av med en fuktig trasa och mild såpa, och eftertorkas. Använd inte sprit, aceton eller slipande medel, eftersom ytan är ett tunt skikt som krackelerar när det torkar ut. En ljus klädsel visar fläckar tydligare, så torka bort olja direkt efter användning.</p><p>Fäll ihop bänken med klädseln inåt så skyddas ytan av sig själv under transport. Dra åt spännvajrarna under bädden om de börjat ge efter, eftersom det är de som håller benen i vinkel.</p><p>Förvara den stående på högkant, inte liggande under något. En hopfälld bänk med tryck ovanpå får märken i skummet som inte går ur.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Hur högt går den att ställa?</span></p><p>Mellan 61 och 87 cm. Höjden ställs med sprintar i benen.</p><p><span style=\"font-weight: 700\">Vad skiljer två zoner från tre?</span></p><p>En tvåzonsbänk viks på mitten och ligger plant. En trezonsbänk har en ryggdel som går att fälla upp, så den kan användas halvsittande.</p><p><span style=\"font-weight: 700\">Behöver den monteras?</span></p><p>Nej. Bänken kommer hopfälld och viks ut på plats.</p>",
+   "seoTitel": "Massagebänk 2 zoner cremevit – 186 × 60 cm | Fyndplats",
+   "seoBesk": "Cremevit hopfällbar massagebänk i två zoner med träställ. Bädd 186 × 60 cm, höjd 61–87 cm och rekommenderad maxlast 150 kg.",
+   "media": [
+    {
+     "id": "b379ce_06130282b1e840e4906c34ed39142780~mv2.jpg",
+     "altText": "Cremevit hopfällbar massagebänk i två zoner med träställ, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_ec21c9cd5b784556804c8ecf22c6848f~mv2.jpg",
+     "altText": "Den cremevita massagebänken utfälld i ett ljust rum med en krukväxt"
+    },
+    {
+     "id": "b379ce_c99494c684fe4b389ed2eddf9ac86150~mv2.jpg",
+     "altText": "Närbild på bärhandtaget på bänkens sida"
+    },
+    {
+     "id": "b379ce_8271e5b3af774295a1bef2b9862c8332~mv2.jpg",
+     "altText": "Närbild på ett ben i trä med hål för höjdinställningen"
+    },
+    {
+     "id": "b379ce_62acdf69855e400d9cd333380d1643ea~mv2.jpg",
+     "altText": "Måttbild: liggyta 186 × 60 cm, höjd 61–87 cm, hopfälld 93 × 60 × 17 cm"
+    }
+   ],
+   "kat": [
+    "Skönhet & Hälsa",
+    "Massage & Återhämtning",
+    "Massagebänkar"
+   ],
+   "sku": "FP-massagebank-2-zoner-cremevit",
+   "variantId": "5773cf25-a65c-43a3-ae8d-b19aae464cb1",
+   "textHash": "fba608f48fc8afd4",
+   "textTecken": 2920
+  }
+ ]
+}
