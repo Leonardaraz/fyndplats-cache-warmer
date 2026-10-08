@@ -92,3 +92,7 @@ test("deriveAeStatus – transit och tom lista → InTransit", () => {
   assert.equal(deriveAeStatus(["Shipping update", "The seller has shipped your package."]), "InTransit");
   assert.equal(deriveAeStatus([]), "InTransit");
 });
+
+test("translateAeDescription – upphämtningsställe med bindestreck (DHL, 2026-10-08)", () => {
+  assert.equal(translateAeDescription("Package arrived at pick-up point"), "Paketet finns för upphämtning hos ditt ombud");
+});

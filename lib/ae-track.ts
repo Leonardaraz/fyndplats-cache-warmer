@@ -58,7 +58,9 @@ export const AE_PHRASE_SV: Array<[RegExp, string]> = [
   // — Sista milen (misslyckat försök FÖRE "ute för leverans"/"levererat") —
   [/delivery (attempt )?(failed|unsuccessful)|unable to deliver|no.?one (was )?(home|available)/i,
     "Leveransförsök misslyckades – ny leverans planeras"],
-  [/available for pick ?up|ready for pick ?up|awaiting (your )?collection|at (the )?(pickup|service) point/i,
+  // "Package arrived at pick-up point" (DHL, uppmätt 2026-10-08) stod annars
+  // kvar på engelska: bindestrecket föll utanför både "pick ?up" och "pickup".
+  [/available for pick[- ]?up|ready for pick[- ]?up|awaiting (your )?collection|at (the )?(pick[- ]?up|service) point/i,
     "Paketet finns för upphämtning hos ditt ombud"],
   [/out for delivery|delivery in progress/i, "Paketet är ute för leverans"],
   [/delivered|delivery (completed|successful)/i, "Paketet är levererat"],

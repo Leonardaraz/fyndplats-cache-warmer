@@ -19,7 +19,10 @@
 //   TRACK17_API_KEY  — API-key från https://api.17track.net/
 
 import { NextResponse, type NextRequest } from "next/server";
-import { PHRASE_SV, svLocation, dedupeEvents } from "@/lib/track-i18n";
+import {
+  PHRASE_SV, svLocation, dedupeEvents, landForHandelse, svenskVaggklocka, rimligTid,
+  rattaPlatser, orderEventsNewestFirst,
+} from "@/lib/track-i18n";
 import { maskCarrier, transportorForNummer } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
@@ -204,11 +207,20 @@ function mapEvent(ev: Track17Event): {
     .replace(/\s{2,}/g, " ")
     .trim() || label;
   return {
-    time: ev.time_iso || ev.time_utc || "",
+    time: handelseTid(ev),
     description,
     location: LEAKY_PATTERN.test(loc) ? "" : loc,
     status: label,
   };
+}
+
+/** Händelsens tid i UTC. time_iso läses som svensk väggklocka när händelsen
+ *  skedde i ett land med svensk tid (se svenskVaggklocka). time_utc, som bara
+ *  används när time_iso saknas, är redan UTC och lämnas som den är. */
+function handelseTid(ev: Track17Event | undefined): string {
+  if (!ev) return "";
+  if (ev.time_iso) return svenskVaggklocka(ev.time_iso, landForHandelse(ev.location, ev.address));
+  return ev.time_utc || "";
 }
 
 function mapStatus(status: string | undefined): string {
@@ -287,11 +299,14 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
   const ti = accepted.track_info;
   // Events ligger i tracking.providers[].events[] (17TRACK v2.2). Filtrera bort
   // asiatiska transit-events, kronologisk ordning (nyast först som 17TRACK ger).
-  const visibleEvents = dedupeEvents(
+  // Händelser med orimlig tid försvinner och land som inte kan stämma blankas
+  // (lib/track-i18n), innan dubbletterna tas bort.
+  const visibleEvents = dedupeEvents(rattaPlatser(
     allEventsOf(ti)
       .filter((ev) => !isHiddenLocation(ev))
-      .map(mapEvent),
-  );
+      .map(mapEvent)
+      .filter((ev) => rimligTid(ev.time)),
+  ));
 
   const rawStatus = ti.latest_status?.status;
   const status = mapStatus(rawStatus);
@@ -302,7 +317,9 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
     || ti.time_metrics?.estimated_delivery_date?.from
     || null,
   );
-  const latestTime = ti.latest_event?.time_iso || ti.latest_event?.time_utc;
+  const senaste = handelseTid(ti.latest_event);
+  const latestTime = (rimligTid(senaste) && senaste)
+    || orderEventsNewestFirst(visibleEvents).find((ev) => ev.time)?.time;
 
   return {
     body: {

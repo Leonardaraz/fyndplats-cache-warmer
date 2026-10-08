@@ -78,7 +78,8 @@ function fmtTime(s?: string): string {
   if (/[a-zåäö]/i.test(s) && !/T\d/.test(s)) return s;
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
-  return d.toLocaleString("sv-SE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  // Svensk tid oavsett var kunden befinner sig, som transportörernas egna sidor.
+  return d.toLocaleString("sv-SE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Stockholm" });
 }
 
 function pick<T = string>(o: Record<string, unknown>, ...keys: string[]): T | undefined {

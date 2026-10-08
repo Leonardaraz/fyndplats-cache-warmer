@@ -49,7 +49,9 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
   // — Sista milen —
   [/out for delivery|with (the )?courier for delivery|delivery in progress|on vehicle for delivery/i,
     "Paketet är ute för leverans."],
-  [/available for pickup|ready for pickup|collect[^.]*pickup point|at (the )?(pickup|service) point|awaiting collection/i,
+  // "pick-up" med bindestreck förekommer också ("Package arrived at pick-up
+  // point", uppmätt 2026-10-08) och stod annars kvar på engelska.
+  [/available for pick[- ]?up|ready for pick[- ]?up|collect[^.]*pick[- ]?up point|at (the )?(pick[- ]?up|service) point|awaiting collection/i,
     "Paketet finns för upphämtning hos ditt ombud."],
   // — Levererat (SPECIFIK brevlåda/mottagare FÖRE generisk "delivered") —
   [/delivered to[^.]*(mailbox|recipient|address)|recipient'?s mailbox|left (in|at)[^.]*mailbox|delivered to (the )?door/i,
@@ -128,11 +130,126 @@ export function svLocation(
   return raw.split(",").map((seg) => svCountry(seg)).filter(Boolean).join(", ");
 }
 
+/** Händelsens land på svenska, ur den strukturerade adressen eller sista ledet
+ *  i fri-text-platsen. Tomt när inget land framgår. */
+export function landForHandelse(
+  rawLocation: string | undefined | null,
+  address?: { country?: string } | null,
+): string {
+  const fran = svCountry(address?.country);
+  if (fran) return fran;
+  const delar = (rawLocation ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return delar.length ? svCountry(delar[delar.length - 1]) : "";
+}
+
+// ── Tid ──────────────────────────────────────────────────────────────────────
+// 17TRACK:s time_iso bär transportörens klockslag, men offseten går inte att
+// lita på. Uppmätt 2026-10-08 på riktiga paket:
+//   • DPD, serien 0120610…: svensk tid märkt +00:00. PostNord säger levererat
+//     19:46, 17TRACK 19:46+00:00, och /sparning visade 21:46.
+//   • PostNord: fast +01:00 även på sommartid. Samma leverans står som
+//     18:44+02:00 hos DHL och 18:44:08+01:00 hos PostNord.
+//   • DHL och DPD, serien 0149…: rätt offset.
+// Klockslaget stämmer i alla tre. En händelse i ett land med svensk tid, eller
+// utan land, läses därför som svensk väggklocka och offseten kastas.
+const SVENSK_TID_LAND = new Set([
+  "Sverige", "Danmark", "Norge", "Tyskland", "Nederländerna", "Belgien",
+  "Luxemburg", "Frankrike", "Spanien", "Italien", "Österrike", "Schweiz",
+  "Polen", "Tjeckien", "Slovakien", "Ungern", "Slovenien", "Kroatien",
+]);
+
+const STOCKHOLM = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Stockholm",
+  hourCycle: "h23",
+  year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit",
+});
+
+/** Hur långt före UTC svensk tid ligger vid ögonblicket `utcMs`, i ms. */
+function stockholmOffsetMs(utcMs: number): number {
+  const delar = STOCKHOLM.formatToParts(new Date(utcMs));
+  const v = (typ: string) => Number(delar.find((d) => d.type === typ)?.value);
+  const somUtc = Date.UTC(v("year"), v("month") - 1, v("day"), v("hour") % 24, v("minute"), v("second"));
+  return somUtc - Math.floor(utcMs / 1000) * 1000;
+}
+
 /**
- * Tar bort exakta dubbletter (samma tid + beskrivning + plats) ur en
- * händelselista och bevarar ordningen. 17TRACK dubblerar ibland samma scan
- * (t.ex. två identiska "10 juli 08:00 · Spanien"-rader) vilket ser oproffsigt
- * ut i tidslinjen.
+ * Läser klockslaget i en ISO-tid som svensk tid och ger tillbaka UTC ("…Z").
+ * Gäller händelser i ett land med svensk tid och händelser utan land. Annars,
+ * och när tiden inte går att läsa, kommer indata tillbaka oförändrad.
+ */
+export function svenskVaggklocka(timeIso: string, land: string): string {
+  if (!timeIso || (land && !SVENSK_TID_LAND.has(land))) return timeIso;
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3})\d*)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
+    .exec(timeIso.trim());
+  if (!m) return timeIso;
+  const [, y, mo, d, h, mi, s = "0", ms = "0"] = m;
+  const vagg = Date.UTC(+y, +mo - 1, +d, +h, +mi, +s, +ms.padEnd(3, "0"));
+  // Två varv, så att dygnen när sommartiden börjar och slutar blir rätt.
+  let utc = vagg - stockholmOffsetMs(vagg);
+  utc = vagg - stockholmOffsetMs(utc);
+  return new Date(utc).toISOString();
+}
+
+/**
+ * En händelse vars tid inte går att läsa, eller ligger före 2020, är ingen
+ * händelse. DPD-paketen bar 2026-10-08 en rad med "01.01.2000, 00:00",
+ * transportörens tomma standardvärde, och den hamnade sist i tidslinjen. En
+ * tom tid räknas inte hit. Den visas som förut, utan klockslag.
+ */
+export function rimligTid(time: string | undefined | null): boolean {
+  const s = (time ?? "").trim();
+  if (!s) return true;
+  const t = Date.parse(s);
+  return !Number.isNaN(t) && new Date(t).getUTCFullYear() >= 2020;
+}
+
+// ── Plats ────────────────────────────────────────────────────────────────────
+const LANDNAMN = new Set(Object.values(COUNTRY_SV));
+const SISTA_LEDET = new Set(["Ute för leverans", "Levererad", "Finns för upphämtning", "Leveransförsök misslyckades"]);
+const RETUR = new Set(["Returneras", "Returnerad"]);
+
+/**
+ * Tar bort ett land som inte kan stämma. DPD fyller i "Tyskland" på händelser
+ * utan plats, även när PostNord delar ut paketet i Sverige: "Levererad,
+ * Tyskland" efter "På väg, Göteborg, Sverige" (uppmätt 2026-10-08 på tre
+ * paket). Ett land utan ort, som inte är Sverige, blankas därför
+ *   • på sista ledet (ute för leverans, levererad, ombud, misslyckat försök),
+ *     som alltid sker i Sverige, och
+ *   • efter den första händelsen med en ort i Sverige.
+ * Retur till avsändaren rörs inte, och inte heller en plats med ort. Ett
+ * Sverige-land utan ort före den första riktiga skanningen (PostNords förhands-
+ * avisering) startar ingenting.
+ */
+export function rattaPlatser<T extends { time?: string; location?: string; status?: string }>(events: T[]): T[] {
+  let iSverige = Infinity;
+  for (const e of events) {
+    if (!/, Sverige$/.test((e.location ?? "").trim())) continue;
+    const t = Date.parse(e.time ?? "");
+    if (!Number.isNaN(t) && t < iSverige) iSverige = t;
+  }
+  return events.map((e) => {
+    const plats = (e.location ?? "").trim();
+    if (!LANDNAMN.has(plats) || plats === "Sverige" || RETUR.has(e.status ?? "")) return e;
+    const t = Date.parse(e.time ?? "");
+    const efterSverige = !Number.isNaN(t) && t > iSverige;
+    return SISTA_LEDET.has(e.status ?? "") || efterSverige ? { ...e, location: "" } : e;
+  });
+}
+
+/** Minuten som nyckel, eftersom sidan visar tiden på minuten. Oläsbar tid → texten. */
+function minutnyckel(time: string | undefined): string {
+  const t = Date.parse(time ?? "");
+  return Number.isNaN(t) ? (time ?? "") : String(Math.floor(t / 60_000));
+}
+
+/**
+ * Tar bort dubbletter (samma minut + beskrivning + plats) ur en händelselista
+ * och bevarar ordningen. 17TRACK dubblerar ibland samma scan (t.ex. två
+ * identiska "10 juli 08:00 · Spanien"-rader), och när två transportörer följer
+ * samma paket står leveransen hos båda, med olika sekunder (18:44:00 hos DHL,
+ * 18:44:08 hos PostNord). Sidan visar minuter, så två sådana rader ser ut som
+ * samma rad två gånger.
  */
 export function dedupeEvents<
   T extends { time?: string; description?: string; location?: string },
@@ -140,7 +257,7 @@ export function dedupeEvents<
   const seen = new Set<string>();
   const out: T[] = [];
   for (const e of events) {
-    const key = `${e.time ?? ""}|${e.description ?? ""}|${e.location ?? ""}`;
+    const key = `${minutnyckel(e.time)}|${e.description ?? ""}|${e.location ?? ""}`;
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(e);

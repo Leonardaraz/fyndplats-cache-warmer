@@ -1,7 +1,10 @@
 // Run: node --test --experimental-strip-types lib/track-i18n.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents } from "./track-i18n.ts";
+import {
+  matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
+  landForHandelse, svenskVaggklocka, rimligTid, rattaPlatser,
+} from "./track-i18n.ts";
 
 test("svCountry – ISO-2 och engelskt namn → svenska; okänt passerar", () => {
   assert.equal(svCountry("Germany"), "Tyskland");
@@ -158,4 +161,113 @@ test("lagerstadiet läses INTE som en upphämtningsskanning", () => {
 test("okänd text → null (anroparen faller tillbaka på stage-text)", () => {
   assert.equal(matchPhrase("Some totally unknown carrier blurb 12345"), null);
   assert.equal(matchPhrase(""), null);
+});
+
+// ── Tid, plats och dubbletter (uppmätt på riktiga paket 2026-10-08) ─────────
+
+test("landForHandelse – strukturerat land först, annars sista ledet i fri text", () => {
+  assert.equal(landForHandelse("", { country: "DE" }), "Tyskland");
+  assert.equal(landForHandelse("Göteborg, Sweden"), "Sverige");
+  assert.equal(landForHandelse("Germany"), "Tyskland");
+  assert.equal(landForHandelse(""), "");
+});
+
+test("svenskVaggklocka – DPD:s svenska tid märkt +00:00 blir rätt", () => {
+  // PostNord: levererat 19:46. 17TRACK: 19:46+00:00. Sidan visade 21:46.
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", "Tyskland"), "2026-10-07T17:46:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", "Sverige"), "2026-10-07T17:46:00.000Z");
+});
+
+test("svenskVaggklocka – PostNords fasta +01:00 på sommartid blir rätt", () => {
+  // Samma leverans: DHL 18:44+02:00 (rätt), PostNord 18:44:08+01:00 (en timme fel).
+  assert.equal(svenskVaggklocka("2026-09-18T18:44:08+01:00", "Sverige"), "2026-09-18T16:44:08.000Z");
+  assert.equal(svenskVaggklocka("2026-09-18T18:44:00+02:00", "Sverige"), "2026-09-18T16:44:00.000Z");
+});
+
+test("svenskVaggklocka – rätt offset ändras inte, varken sommar eller vinter", () => {
+  assert.equal(
+    Date.parse(svenskVaggklocka("2026-10-08T06:03:00+02:00", "Sverige")),
+    Date.parse("2026-10-08T06:03:00+02:00"),
+  );
+  assert.equal(svenskVaggklocka("2026-01-15T10:00:00+01:00", "Danmark"), "2026-01-15T09:00:00.000Z");
+  assert.equal(svenskVaggklocka("2026-01-15T10:00:00+00:00", "Danmark"), "2026-01-15T09:00:00.000Z");
+});
+
+test("svenskVaggklocka – dygnet när sommartiden börjar", () => {
+  // 29 mars 2026 kl 02:00 svensk tid ställs klockan fram till 03:00.
+  assert.equal(svenskVaggklocka("2026-03-29T01:30:00+00:00", "Sverige"), "2026-03-29T00:30:00.000Z");
+  assert.equal(svenskVaggklocka("2026-03-29T03:30:00+00:00", "Sverige"), "2026-03-29T01:30:00.000Z");
+});
+
+test("svenskVaggklocka – utan land läses tiden som svensk", () => {
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", ""), "2026-10-07T17:46:00.000Z");
+});
+
+test("svenskVaggklocka – land med annan tid och oläsbar tid lämnas orörda", () => {
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", "Storbritannien"), "2026-10-07T19:46:00+00:00");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+03:00", "Grekland"), "2026-10-07T19:46:00+03:00");
+  assert.equal(svenskVaggklocka("01.01.2000, 00:00", "Tyskland"), "01.01.2000, 00:00");
+  assert.equal(svenskVaggklocka("", "Sverige"), "");
+});
+
+test("rimligTid – transportörens tomma standardvärde räknas inte som en tid", () => {
+  assert.equal(rimligTid("01.01.2000, 00:00"), false);
+  assert.equal(rimligTid("2000-01-01T00:00:00Z"), false);
+  assert.equal(rimligTid("inte en tid"), false);
+  assert.equal(rimligTid("2026-10-07T17:46:00.000Z"), true);
+  // Tom tid behålls som förut (visas utan klockslag).
+  assert.equal(rimligTid(""), true);
+  assert.equal(rimligTid(undefined), true);
+});
+
+test("rattaPlatser – DPD:s Tyskland på sista ledet efter Göteborg blankas", () => {
+  const ut = rattaPlatser([
+    { time: "2026-10-07T17:46:00.000Z", status: "Levererad", location: "Tyskland" },
+    { time: "2026-10-07T15:39:00.000Z", status: "Ute för leverans", location: "Tyskland" },
+    { time: "2026-10-07T01:14:00.000Z", status: "På väg", location: "Göteborg, Sverige" },
+    { time: "2026-10-01T21:35:00.000Z", status: "Registrerad", location: "Aschaffenburg, Tyskland" },
+  ]);
+  assert.deepEqual(ut.map((e) => e.location), ["", "", "Göteborg, Sverige", "Aschaffenburg, Tyskland"]);
+});
+
+test("rattaPlatser – ett land utan ort efter en ort i Sverige blankas, före den inte", () => {
+  const ut = rattaPlatser([
+    { time: "2026-09-24T05:38:00.000Z", status: "På väg", location: "Tyskland" },
+    { time: "2026-09-23T21:06:00.000Z", status: "På väg", location: "Örebro, Sverige" },
+    { time: "2026-09-15T12:29:00.000Z", status: "På väg", location: "Tyskland" },
+  ]);
+  assert.deepEqual(ut.map((e) => e.location), ["", "Örebro, Sverige", "Tyskland"]);
+});
+
+test("rattaPlatser – sista ledet i annat land blankas även utan skanning i Sverige", () => {
+  const ut = rattaPlatser([{ time: "2026-09-29T15:45:00.000Z", status: "Levererad", location: "Tyskland" }]);
+  assert.equal(ut[0].location, "");
+});
+
+test("rattaPlatser – rör inte ort, Sverige, retur eller PostNords förhandsavisering", () => {
+  const in_ = [
+    { time: "2026-09-29T12:00:00.000Z", status: "Returneras", location: "Tyskland" },
+    { time: "2026-09-28T12:00:00.000Z", status: "På väg", location: "Køge, Danmark" },
+    { time: "2026-09-27T12:00:00.000Z", status: "Levererad", location: "Sverige" },
+    { time: "2026-09-26T12:00:00.000Z", status: "På väg", location: "Växjö, Sverige" },
+    { time: "2026-09-23T12:00:00.000Z", status: "På väg", location: "Tyskland" },
+    { time: "2026-09-21T12:00:00.000Z", status: "På väg", location: "Sverige" },
+  ];
+  assert.deepEqual(rattaPlatser(in_), in_);
+});
+
+test("dedupeEvents – samma leverans från två transportörer blir en rad", () => {
+  const ut = dedupeEvents([
+    { time: "2026-09-18T16:44:08.000Z", description: "Paketet är levererat.", location: "Sverige" },
+    { time: "2026-09-18T16:44:00.000Z", description: "Paketet är levererat.", location: "Sverige" },
+    { time: "2026-09-18T16:29:15.000Z", description: "Paketet är ute för leverans.", location: "Sverige" },
+    { time: "2026-09-18T16:29:14.000Z", description: "Paketet har anlänt till en terminal.", location: "Sverige" },
+  ]);
+  assert.equal(ut.length, 3);
+  assert.equal(ut[0].time, "2026-09-18T16:44:08.000Z");
+});
+
+test("upphämtningsställe med bindestreck översätts", () => {
+  assert.equal(matchPhrase("Package arrived at pick-up point"), "Paketet finns för upphämtning hos ditt ombud.");
+  assert.equal(matchPhrase("Available for pick-up"), "Paketet finns för upphämtning hos ditt ombud.");
 });
