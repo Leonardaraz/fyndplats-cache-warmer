@@ -1,0 +1,80 @@
+[
+ {
+  "huvud": "3627023e",
+  "huvud_fullid": "3627023e-5fb0-4d29-952c-f83935f88080",
+  "givare": "136b52a7",
+  "givare_fullid": "136b52a7-c633-4977-90d0-a209b1828e4a",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "3627023e": "300 × 300 cm",
+   "b6eb44de": "450 × 300 cm",
+   "136b52a7": "600 × 300 cm"
+  }
+ },
+ {
+  "huvud": "3627023e",
+  "huvud_fullid": "3627023e-5fb0-4d29-952c-f83935f88080",
+  "givare": "b6eb44de",
+  "givare_fullid": "b6eb44de-806b-4426-ba7a-8cb30a0577c5",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "3627023e": "300 × 300 cm",
+   "b6eb44de": "450 × 300 cm",
+   "136b52a7": "600 × 300 cm"
+  }
+ },
+ {
+  "huvud": "5466fe81",
+  "huvud_fullid": "5466fe81-fb5a-449b-8973-a79629e730fc",
+  "givare": "3410a911",
+  "givare_fullid": "3410a911-cf00-4524-a338-b25103613666",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg och storlek",
+  "varden": {
+   "5466fe81": "vit, 397 × 300 cm",
+   "3410a911": "grön, 397 × 300 cm",
+   "7103fe01": "grön, 597 × 300 cm"
+  }
+ },
+ {
+  "huvud": "5466fe81",
+  "huvud_fullid": "5466fe81-fb5a-449b-8973-a79629e730fc",
+  "givare": "7103fe01",
+  "givare_fullid": "7103fe01-8592-4e03-a0e9-3a4693d92b1f",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg och storlek",
+  "varden": {
+   "5466fe81": "vit, 397 × 300 cm",
+   "3410a911": "grön, 397 × 300 cm",
+   "7103fe01": "grön, 597 × 300 cm"
+  }
+ }
+]
