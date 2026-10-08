@@ -286,10 +286,15 @@ const VARIATION = 0.6;
  *   • inget förslag som nämner ett annat djurslag än produkten,
  *   • samma vara i en annan färg eller storlek får en plats, fler bara om
  *     inget annat finns,
- *   • två nästan likadana förslag trängs inte, och är de första förslagen
- *     alla samma sorts vara går sista platsen till något annat ur samma
- *     kategorier, till exempel ett tillbehör.
+ *   • två nästan likadana förslag trängs inte.
  * Kan returnera färre än `limit` (anroparen visar blocket först vid två).
+ *
+ * Alla platser går till liknande varor, som rubriken lovar. En tvingad sista
+ * plats för "något annat ur samma kategorier" prövades och togs bort
+ * 2026-10-08 (Leonards beslut). Den valde utan att veta vad som hör ihop, så
+ * två knästolar fick en rumsavdelare. I ett stickprov på 40 sidor gjorde den
+ * förslagen sämre på tre och bättre på en. Varor som hör ihop, som stolar
+ * till ett bord, hör hemma i en egen rad med egen rubrik.
  */
 export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
   const d = likhetsdata(all);
@@ -301,7 +306,7 @@ export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
   let maxPop = 1;
   for (const x of all) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
 
-  type Kandidat = { x: Product; v: Map<string, number>; typ: number; bas: number; poang: number };
+  type Kandidat = { x: Product; v: Map<string, number>; typ: number; poang: number };
   const kandidater: Kandidat[] = [];
   const sedda = new Set<string>([p.slug]);
   for (const x of all) {
@@ -319,29 +324,27 @@ export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
     // likvärdiga kandidater, inte köra över relevansen.
     const boost = 1 + 0.2 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
     const bas = affinitet * priceFit(p.priceNum, x.priceNum) * boost;
-    kandidater.push({ x, v, typ, bas, poang: bas * (1 + TYPVIKT * typ) });
+    kandidater.push({ x, v, typ, poang: bas * (1 + TYPVIKT * typ) });
   }
 
   const valda: Kandidat[] = [];
   let dubbletter = 0;
-  const basta = (blanda: boolean, tillatDubblett: boolean): Kandidat | null => {
+  const basta = (tillatDubblett: boolean): Kandidat | null => {
     let best: Kandidat | null = null;
     let bastaPoang = 0;
     for (const k of kandidater) {
       if (valda.includes(k)) continue;
       if (k.typ >= NARA_DUBBLETT && dubbletter >= 1 && !tillatDubblett) continue;
-      if (blanda && (k.typ >= SAMMA_TYP || valda.some((o) => cosinus(k.v, o.v) >= SAMMA_TYP))) continue;
       let damp = 1;
       for (const o of valda) if (cosinus(k.v, o.v) >= VARIATION) damp *= 0.4;
-      const poang = (blanda ? k.bas : k.poang) * damp;
+      const poang = k.poang * damp;
       if (!best || poang > bastaPoang) { best = k; bastaPoang = poang; }
     }
     return best;
   };
   while (valda.length < limit) {
-    const blanda = valda.length === limit - 1 && valda.length >= 2 && valda.every((o) => o.typ >= SAMMA_TYP);
     // Hellre en färgvariant till än ett tomt förslag: de släpps in sist.
-    const k = (blanda ? basta(true, false) : null) ?? basta(false, false) ?? basta(false, true);
+    const k = basta(false) ?? basta(true);
     if (!k) break;
     if (k.typ >= NARA_DUBBLETT) dubbletter++;
     valda.push(k);

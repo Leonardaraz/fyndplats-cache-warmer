@@ -422,22 +422,21 @@ test("två nästan likadana förslag trängs inte", () => {
   assert.deepEqual(pickRelated(all[0], all, 2).map((r) => r.slug), ["stol-m", "skrivbord"]);
 });
 
-test("är de tre första samma sorts vara går sista platsen till något annat", () => {
+test("finns fyra av samma sort får de alla fyra platserna", () => {
+  // En tvingad sista plats för "något annat" togs bort 2026-10-08: den valde
+  // utan att veta vad som hör ihop (en rumsavdelare under en knästol).
   const all = [
     mkFull("jag", ["ALL", "jul"], { name: "Plastgran 180 cm", priceNum: 799 }),
     mkFull("gran-1", ["ALL", "jul"], { name: "Plastgran snöad 150 cm", priceNum: 799 }),
     mkFull("gran-2", ["ALL", "jul"], { name: "Plastgran smal 210 cm", priceNum: 899 }),
     mkFull("gran-3", ["ALL", "jul"], { name: "Plastgran med kottar 120 cm", priceNum: 699 }),
     mkFull("gran-4", ["ALL", "jul"], { name: "Plastgran med belysning 180 cm", priceNum: 999 }),
-    // Ett tillbehör i en helt annan prisklass: det hade aldrig tagit en plats
-    // på egen hand.
+    // Ett tillbehör i en helt annan prisklass, ur samma kategori.
     mkFull("krage", ["ALL", "jul"], { name: "Julgranskrage flätad", priceNum: 79 }),
     ...fyllnad(),
   ];
   const rel = pickRelated(all[0], all, 4).map((r) => r.slug);
-  assert.equal(rel.length, 4);
-  assert.equal(rel.filter((s) => s.startsWith("gran-")).length, 3);
-  assert.equal(rel[3], "krage", "sista platsen går till tillbehöret");
+  assert.deepEqual([...rel].sort(), ["gran-1", "gran-2", "gran-3", "gran-4"]);
 });
 
 // ── Likhetsdatan byggs en gång per katalog ───────────────────────────────────
