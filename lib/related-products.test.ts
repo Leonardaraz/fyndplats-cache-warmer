@@ -324,9 +324,16 @@ test("djurslag – läser djuret ur namnet, och bara djuret", () => {
   assert.deepEqual([...djurslag("Kattträd 150 cm")], ["katt"]);
   assert.deepEqual([...djurslag("Kaninbur med ramp")], ["smådjur"]);
   assert.deepEqual([...djurslag("Hundtrappa för hundar och katter")].sort(), ["hund", "katt"]);
-  // Ett tygmönster och en skattkista är inga djur.
+  assert.deepEqual([...djurslag("Glasterrarium med frontlucka och gallerlock")], ["reptil"]);
+  assert.deepEqual([...djurslag("Sköldpaddshus 81 cm med två rum")], ["reptil"]);
+  assert.deepEqual([...djurslag("Nanoakvarium 36 liter med LED")], ["fisk"]);
+  // Ett tygmönster och en skattkista är inga djur, och inte heller fiskeprylar
+  // eller en leksak formad som en fisk.
   assert.equal(djurslag("Kudde med hundtandsmönster").size, 0);
   assert.equal(djurslag("Skattkista i trä").size, 0);
+  assert.equal(djurslag("Eldskydd med fiskbensmönster").size, 0);
+  assert.equal(djurslag("Fiskespö med rulle 2,13 m").size, 0);
+  assert.equal(djurslag("Basketställ för barn – fiskformad platta").size, 0);
   assert.equal(djurslag("Husdjurstrappa 3 steg").size, 0);
   assert.equal(djurslag("").size, 0);
 });
@@ -345,6 +352,19 @@ test("inget förslag med ett annat djurslag, men neutrala husdjursvaror står kv
   assert.ok(slugs.includes("trappa"), "en neutral husdjursvara ska stå kvar");
   assert.ok(slugs.includes("hundbadd"));
   assert.ok(slugs.includes("hund-och-katt"), "en vara för både hund och katt passar en hundsäng");
+});
+
+test("inget akvarium eller terrarium under en hundvara", () => {
+  const all = [
+    mkFull("jag", ["ALL", "husdjur"], { name: "Hundgrind utan borrning 76–107 cm", priceNum: 499 }),
+    mkFull("grind", ["ALL", "husdjur"], { name: "Hundgrind 72–107 cm, klämmontage", priceNum: 449 }),
+    mkFull("terrarium", ["ALL", "husdjur"], { name: "Glasterrarium med frontlucka", priceNum: 499, pop: 999 }),
+    mkFull("akvarium", ["ALL", "husdjur"], { name: "Nanoakvarium 36 liter med LED", priceNum: 499, pop: 999 }),
+    mkFull("trappa", ["ALL", "husdjur"], { name: "Husdjurstrappa 3 steg", priceNum: 449 }),
+    ...fyllnad(),
+  ];
+  const slugs = pickRelated(all[0], all, 4).map((r) => r.slug);
+  assert.deepEqual(slugs.sort(), ["grind", "trappa"]);
 });
 
 test("samma vara i en annan färg: en plats, inte fyra", () => {

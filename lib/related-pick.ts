@@ -164,12 +164,19 @@ function cosinus(a: Map<string, number>, b: Map<string, number>): number {
 // exempel kattsängar under en hundsäng. Ett förslag som nämner ett annat djur,
 // och inte produktens, tas bort. Neutrala varor ("husdjurstrappa") står kvar.
 // "hundtandsmönster" är ett tygmönster, inte en hund.
+//
+// Terrarier, sköldpaddshus och akvarier räknas också: utan dem fick kattlådor
+// och hundburar ett akvarium. Där matchas bara ordstammar som katalogen
+// använder för själva djurvarorna ("Glasterrarium", "Nanoakvarium"). "fisk"
+// hade också tagit ett fiskespö, ett fiskrensbord och en fiskformad leksak.
 const DJURSLAG: Array<[string, RegExp]> = [
   ["hund", /(^|[^\p{L}])(hund(?!tand)\p{L}*|valp\p{L}*)/iu],
   ["katt", /(^|[^\p{L}])katt\p{L}*/iu],
   ["smådjur", /(^|[^\p{L}])(kanin|hamster|marsvin|gnagar|chinchilla|smådjur)\p{L}*/iu],
   ["fågel", /(^|[^\p{L}])(fågel|fåglar|undulat|papeg)\p{L}*/iu],
   ["höns", /(^|[^\p{L}])(höns|hönor|kyckling)\p{L}*/iu],
+  ["reptil", /terrari|reptil|sköldpaddshus/iu],
+  ["fisk", /akvari/iu],
 ];
 
 /** Vilka djurslag ett produktnamn nämner. Tomt för de flesta varor. */
