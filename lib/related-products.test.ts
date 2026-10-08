@@ -291,7 +291,7 @@ test("popularitet skiljer likvärdiga kandidater, kör inte över relevans", () 
 
 // ── Produkttyp, djurslag och färgvarianter (2026-10-08) ──────────────────────
 // Mätt på hela katalogen: 60 % av produktsidorna visade inget förslag av samma
-// sorts vara, och 105 föreslog ett annat djurslag än produkten.
+// sorts vara, och 118 föreslog ett annat djurslag än produkten.
 
 test("samma sorts vara först, även i en bred kategori (kompost)", () => {
   const all = [
@@ -321,6 +321,8 @@ test("barstolar får barstolar, inte ett matbord först", () => {
 test("djurslag – läser djuret ur namnet, och bara djuret", () => {
   assert.deepEqual([...djurslag("Hundsäng ortopedisk")], ["hund"]);
   assert.deepEqual([...djurslag("Valpgrind 3 delar")], ["hund"]);
+  // Agilityset säger sällan hund i namnet, men alla 14 i katalogen är hundvaror.
+  assert.deepEqual([...djurslag("Agilityset med hoppring, hinder och slalom")], ["hund"]);
   assert.deepEqual([...djurslag("Kattträd 150 cm")], ["katt"]);
   assert.deepEqual([...djurslag("Klösträd 90 cm i beige – dubbel koja")], ["katt"]);
   assert.deepEqual([...djurslag("Väggklösträd 4 delar")], ["katt"]);

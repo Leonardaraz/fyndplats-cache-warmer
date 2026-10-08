@@ -13,7 +13,7 @@
 //   li.image                 →  li.attributes.image
 //
 // Den formen läses på ett dussin ställen: varukorgsluckans rader, miniatyrer,
-// antalsräknaren, "andra köpte också"-filtret, fri-frakt-mätaren, och hela
+// antalsräknaren, filtret för varukorgens förslag, fri-frakt-mätaren, och hela
 // lib/analytics.ts (view_cart, begin_checkout, purchase). Att skriva om alla
 // vore ett dussin tillfällen att missa ett fält — och ett missat fält i
 // analytics syns inte som ett fel, det syns som att intäkten försvinner ur GA4.

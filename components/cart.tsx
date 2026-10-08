@@ -354,19 +354,22 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
   );
 }
 
-// "Andra köpte också" hämtas här, inte i layouten: åtta produkter med pris i
+// Varukorgens förslag hämtas här, inte i layouten: åtta produkter med pris i
 // varje sidas data gjorde alla sidor "nya" så fort ett pris ändrades
-// (app/api/kundvagn-forslag). Hämtas när webbläsaren är ledig efter laddning —
-// varukorgen är stängd tills man öppnar den, och då ligger förslagen redan där.
-let forslagLofte: Promise<RecoProduct[]> | null = null;
-function hamtaForslag(): Promise<RecoProduct[]> {
-  if (!forslagLofte) {
-    forslagLofte = fetch("/api/kundvagn-forslag")
+// (app/api/kundvagn-forslag). De utgår från varorna i varukorgen och hämtas
+// därför per varukorg: när webbläsaren är ledig efter en ändring, eller direkt
+// när varukorgen öppnas. Svaret sparas per varukorg så länge sidan är öppen.
+const forslagLoften = new Map<string, Promise<RecoProduct[]>>();
+function hamtaForslag(nyckel: string): Promise<RecoProduct[]> {
+  let lofte = forslagLoften.get(nyckel);
+  if (!lofte) {
+    lofte = fetch(`/api/kundvagn-forslag?ids=${encodeURIComponent(nyckel)}`)
       .then((r) => (r.ok ? r.json() : { forslag: [] }))
       .then((b: { forslag?: RecoProduct[] }) => (Array.isArray(b.forslag) ? b.forslag : []))
       .catch(() => []);
+    forslagLoften.set(nyckel, lofte);
   }
-  return forslagLofte;
+  return lofte;
 }
 
 export function CartDrawer() {
@@ -380,11 +383,21 @@ export function CartDrawer() {
     if (antalVantande && k) k.scrollTop = k.scrollHeight;
   }, [antalVantande]);
   usePanelFokus(open, panelRef, () => setOpen(false));
-  const [recommendations, setRecommendations] = useState<RecoProduct[]>([]);
+  const items: any[] = cart?.lineItems || [];
+  const cartIds = new Set<string>(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
+  // Samma varor ger samma nyckel, i vilken ordning de än lades i.
+  const forslagNyckel = [...cartIds].sort().join(",");
+  const [forslag, setForslag] = useState<{ nyckel: string; lista: RecoProduct[] }>({ nyckel: "", lista: [] });
   useEffect(() => {
+    if (!forslagNyckel) return;
     let aktiv = true;
-    const hamta = () => hamtaForslag().then((f) => { if (aktiv) setRecommendations(f); });
-    // Ledig tid efter laddningen; äldre Safari saknar requestIdleCallback.
+    const hamta = () => hamtaForslag(forslagNyckel).then((lista) => { if (aktiv) setForslag({ nyckel: forslagNyckel, lista }); });
+    // Öppen varukorg: hämta direkt. Annars när webbläsaren är ledig; äldre
+    // Safari saknar requestIdleCallback.
+    if (open) {
+      hamta();
+      return () => { aktiv = false; };
+    }
     const ledig = "requestIdleCallback" in window;
     const id = ledig ? window.requestIdleCallback(hamta) : window.setTimeout(hamta, 1500);
     return () => {
@@ -392,19 +405,10 @@ export function CartDrawer() {
       if (ledig) window.cancelIdleCallback(id);
       else window.clearTimeout(id);
     };
-  }, []);
-  // Öppnas varukorgen innan den lediga tiden kom: hämta direkt.
-  useEffect(() => {
-    if (!open) return;
-    let aktiv = true;
-    hamtaForslag().then((f) => { if (aktiv) setRecommendations(f); });
-    return () => { aktiv = false; };
-  }, [open]);
-  const items: any[] = cart?.lineItems || [];
-  // "Andra köpte också": visa upp till 3 rekommendationer som inte redan ligger
-  // i varukorgen (matchas på Wix-katalog-id). Hjälper att fylla fri-frakt-gapet.
-  const cartIds = new Set(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
-  const recos = recommendations.filter((r) => !cartIds.has(r.id)).slice(0, 3);
+  }, [forslagNyckel, open]);
+  // Högst tre förslag, bara för varukorgen som den ser ut nu och aldrig något
+  // som redan ligger i den (matchas på Wix-katalog-id).
+  const recos = forslag.nyckel === forslagNyckel ? forslag.lista.filter((r) => !cartIds.has(r.id)).slice(0, 3) : [];
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
   const FREE_SHIP = FREE_SHIPPING_FROM_KR;
   // OBS INFÖR FLERA VALUTOR. Tröskeln är 500 KRONOR, så mätaren måste jämföra
@@ -495,7 +499,7 @@ export function CartDrawer() {
           ))}
           {harRader && recos.length > 0 && (
             <div className="cart-recos">
-              <div className="cart-recos-head">Andra köpte också</div>
+              <div className="cart-recos-head">Komplettera ditt köp</div>
               {recos.map((r) => (
                 <a className="cart-reco" key={r.slug} href={`/produkt/${r.slug}`} onClick={() => setOpen(false)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

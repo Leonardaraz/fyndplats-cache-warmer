@@ -1,7 +1,8 @@
 // lib/related-pick.ts
 //
-// Ren urvalslogik för "Liknande produkter" — inga sidoeffekter, ingen JSON/IO-import,
-// så den är enhetstestbar direkt (lib/related-products.test.ts).
+// Ren urvalslogik för "Liknande produkter" och varukorgens förslag — ingen
+// JSON/IO-import, så den är enhetstestbar direkt (lib/related-products.test.ts
+// och lib/kundvagn-forslag.test.ts).
 //
 // Den AI-kuraterade kartan (data/related-products.json, 9 juli 2026) är borttagen
 // 2026-10-08. Den täckte 386 av 3 883 produktsidor och valdes ur en katalog på
@@ -160,21 +161,21 @@ function cosinus(a: Map<string, number>, b: Map<string, number>): number {
 
 // ── Djurslag ─────────────────────────────────────────────────────────────────
 // "Lek & Tillbehör för husdjur" och flera andra husdjurskategorier blandar
-// djurslagen. Mätt 2026-10-08: 117 produktsidor föreslog ett annat djurslag,
+// djurslagen. Mätt 2026-10-08: 118 produktsidor föreslog ett annat djurslag,
 // till exempel kattsängar under en hundsäng eller ett akvarium under en
 // kattlåda. Ett förslag som nämner ett annat djur, och inte produktens, tas
 // bort. Neutrala varor ("husdjurstrappa") står kvar.
 //
 // Hund och katt räknas bara i ordets början, så att "skattkista" inte blir en
-// katt, och "hundtandsmönster" är ett tygmönster. Klösträd och andra
-// klösmöbler är kattvaror även när namnet inte säger katt (76 av 92 gör det
-// inte). Smådjuren räknas också inne i ett sammansatt ord
-// ("Dvärghamsterbur"). För reptiler och fiskar matchas bara
-// ordstammar som katalogen använder för själva djurvarorna ("Glasterrarium",
-// "Nanoakvarium"): "fisk" hade också tagit ett fiskespö, ett fiskrensbord och
-// en fiskformad leksak.
+// katt, och "hundtandsmönster" är ett tygmönster. Agilityset är hundvaror
+// (alla 14 i katalogen 2026-10-08). Klösträd och andra klösmöbler är
+// kattvaror även när namnet inte säger katt (76 av 92 gör det inte).
+// Smådjuren räknas också inne i ett sammansatt ord ("Dvärghamsterbur"). För
+// reptiler och fiskar matchas bara ordstammar som katalogen använder för
+// själva djurvarorna ("Glasterrarium", "Nanoakvarium"): "fisk" hade också
+// tagit ett fiskespö, ett fiskrensbord och en fiskformad leksak.
 const DJURSLAG: Array<[string, RegExp]> = [
-  ["hund", /(^|[^\p{L}])(hund(?!tand)\p{L}*|valp\p{L}*)/iu],
+  ["hund", /(^|[^\p{L}])(hund(?!tand)\p{L}*|valp\p{L}*)|agility/iu],
   ["katt", /(^|[^\p{L}])katt\p{L}*|klös/iu],
   ["smådjur", /kanin|hamster|marsvin|gnagar|chinchilla|smådjur/iu],
   ["fågel", /(^|[^\p{L}])(fågel|fåglar|undulat|papeg)\p{L}*/iu],
@@ -269,6 +270,16 @@ export function typLikhet(a: string, b: string, d: Likhetsdata): number {
   return cosinus(vektor(a, d.idf), vektor(b, d.idf));
 }
 
+// Produktens sparade vektor, eller en uträknad för en produkt som saknas i katalogen.
+function vektorFor(x: Product, d: Likhetsdata): Map<string, number> {
+  return d.vektorer.get(x.slug) ?? vektor(x.name, d.idf);
+}
+
+// Som typLikhet, men för två produkter och med katalogens sparade vektorer.
+function produktLikhet(a: Product, b: Product, d: Likhetsdata): number {
+  return cosinus(vektorFor(a, d), vektorFor(b, d));
+}
+
 // Under TYP_GOLV är likheten slump (ett gemensamt "vatt" i "vattentät" och
 // "vattenavskiljare") och räknas som noll. SAMMA_TYP är samma sorts vara.
 // NARA_DUBBLETT är samma vara i en annan färg eller storlek.
@@ -298,7 +309,7 @@ const VARIATION = 0.6;
  */
 export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
   const d = likhetsdata(all);
-  const vek = (x: Product) => d.vektorer.get(x.slug) ?? vektor(x.name, d.idf);
+  const vek = (x: Product) => vektorFor(x, d);
   const djurFor = (x: Product) => d.djur.get(x.slug) ?? djurslag(x.name);
   const pv = vek(p);
   const pd = djurFor(p);
@@ -350,4 +361,195 @@ export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
     valda.push(k);
   }
   return valda.map((k) => k.x);
+}
+
+// ── Varukorgens förslag ─────────────────────────────────────────────────────
+//
+// Varor som kompletterar det som ligger i varukorgen.
+//
+// Förut visades samma åtta varor för alla, oavsett varukorg: Wix-etiketten
+// "Bestseller" först, sedan bildbetyget, spritt över avdelningarna. Rubriken
+// var "Andra köpte också", men vi har ingen data om vad som köps tillsammans,
+// så rubriken påstod något urvalet inte byggde på. Förslagen kunde dessutom
+// kosta mer än hela varukorgen (en soffa för 7 359 kr i en varukorg på
+// 4 876 kr, Leonards skärmdump 2026-10-08).
+//
+// Nu utgår förslagen från varorna i varukorgen. Reglerna nedan säger vilka
+// sorters varor som kompletterar en viss sorts vara, till exempel kontorsstolar
+// till ett skrivbord och nattduksbord till en säng. De läser namnets huvud,
+// där produkttypen står. Kategorierna räckte inte: "Matbord & stolar" blandar
+// bord, matstolar och barstolar, så matstolar fick barstolar, och en
+// massagestol fick en barnpall ur "Sittpuffar & fotpallar" (stickprov på 30
+// varukorgar 2026-10-08). En vara utan regel ger inga förslag. Hellre inga
+// förslag än slumpade.
+
+// Ett ord som börjar på något av alternativen: "matstol" träffar "matstolar"
+// men inte "barstolar".
+const ordborjan = (alt: string) => new RegExp(`(?:^|[^\\p{L}])(?:${alt})`, "iu");
+// Ett helt ord: "grill" träffar inte "grilltält".
+const helaOrd = (alt: string) => new RegExp(`(?:^|[^\\p{L}])(?:${alt})(?![\\p{L}])`, "iu");
+
+export type Komplement = { vara: RegExp; passar: RegExp[] };
+
+/**
+ * Vilka sorters varor som kompletterar en viss sorts vara, bäst först. `vara`
+ * prövas mot huvudet i namnet på varan i varukorgen, `passar` mot förslagets.
+ * Mönstren är smala med flit, för de gäller i hela katalogen: en golvlampa
+ * till en fåtölj ligger i en annan avdelning än fåtöljen. Ett mönster utan
+ * träffar ger inga förslag, inget fel.
+ */
+export const KOMPLEMENT: Komplement[] = [
+  // Möbler
+  { vara: ordborjan("matbord|köksbord|klaffbord"), passar: [ordborjan("matstol|köksstol|stolar"), ordborjan("sideboard|skänk|vitrinskåp")] },
+  { vara: ordborjan("matstol|köksstol"), passar: [ordborjan("matbord|köksbord|klaffbord")] },
+  { vara: ordborjan("matgrupp"), passar: [ordborjan("sideboard|skänk|vitrinskåp")] },
+  { vara: ordborjan("sideboard|skänk|vitrinskåp"), passar: [ordborjan("väggspegel")] },
+  { vara: ordborjan("barbord|bardisk|köksö"), passar: [ordborjan("barstol|barpall")] },
+  { vara: ordborjan("barstol|barpall"), passar: [ordborjan("barbord|bardisk")] },
+  { vara: helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord"), passar: [ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol"), ordborjan("hurts|skrivarställ")] },
+  { vara: ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol"), passar: [helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord"), ordborjan("hurts")] },
+  { vara: helaOrd("säng|sängram|dubbelsäng|enkelsäng|kontinentalsäng|våningssäng"), passar: [ordborjan("nattduksbord"), ordborjan("madrass"), ordborjan("sänggavel|sängbänk")] },
+  { vara: ordborjan("nattduksbord"), passar: [ordborjan("byrå")] },
+  { vara: ordborjan("byrå"), passar: [ordborjan("nattduksbord"), ordborjan("väggspegel|helkroppsspegel|golvspegel")] },
+  { vara: ordborjan("garderob|tyggarderob|klädskåp|klädställ"), passar: [ordborjan("skohylla|skoställ|skoskåp|skobänk"), ordborjan("helkroppsspegel|golvspegel|väggspegel")] },
+  { vara: ordborjan("skoskåp|skobänk|skohylla|skoställ"), passar: [ordborjan("väggspegel|helkroppsspegel"), ordborjan("klädhängare|hallmöbel|paraplyställ")] },
+  { vara: ordborjan("hallmöbel|klädhängare"), passar: [ordborjan("skoskåp|skobänk|skohylla|skoställ"), ordborjan("väggspegel")] },
+  { vara: ordborjan("soffa|bäddsoffa|hörnsoffa|modulsoffa|\\p{L}*sitssoffa"), passar: [ordborjan("soffbord|satsbord"), ordborjan("sidobord"), ordborjan("fotpall|sittpuff"), ordborjan("golvlampa")] },
+  { vara: ordborjan("\\p{L}*fåtölj|gungstol|massagestol"), passar: [ordborjan("fotpall|sittpuff"), ordborjan("sidobord|satsbord"), ordborjan("golvlampa")] },
+  { vara: ordborjan("soffbord|satsbord"), passar: [ordborjan("sidobord"), ordborjan("fotpall|sittpuff")] },
+  { vara: ordborjan("sidobord"), passar: [ordborjan("golvlampa"), ordborjan("fotpall|sittpuff")] },
+  { vara: ordborjan("tv-bänk|tvbänk"), passar: [ordborjan("soffbord|satsbord")] },
+  { vara: ordborjan("bokhylla|barnbokhylla|kubhylla"), passar: [ordborjan("golvlampa")] },
+  // Hem & Inredning, Kök
+  { vara: ordborjan("badrumsskåp|tvättställsskåp|spegelskåp|medicinskåp"), passar: [ordborjan("badrumsspegel"), ordborjan("tvättkorg|tvättsorterare"), ordborjan("badrumshylla|duschpall")] },
+  { vara: ordborjan("badrumsspegel"), passar: [ordborjan("badrumsskåp|tvättställsskåp"), ordborjan("badrumshylla")] },
+  { vara: ordborjan("tvättkorg|tvättsorterare"), passar: [ordborjan("torkställ|torkvagn")] },
+  { vara: ordborjan("golvlampa"), passar: [ordborjan("sidobord")] },
+  { vara: ordborjan("vattenkokare"), passar: [ordborjan("brödrost")] },
+  { vara: ordborjan("brödrost"), passar: [ordborjan("vattenkokare")] },
+  // Trädgård
+  { vara: ordborjan("\\p{L}*växthus|foliehus|drivbänk|odlingstunnel"), passar: [ordborjan("odlingslåda|odlingsbord|pallkrage"), ordborjan("blomställ|växthylla"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")] },
+  { vara: ordborjan("odlingslåda|odlingsbord|pallkrage"), passar: [ordborjan("miniväxthus|drivbänk|odlingstunnel"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")] },
+  { vara: helaOrd("kolgrill|gasolgrill|klotgrill|pelletsgrill|elgrill|grill"), passar: [ordborjan("grilltält|grillskydd|grillöverdrag|grillverktyg|grillbestick")] },
+  { vara: ordborjan("trädgårdsbord|bistroset|trädgårdsgrupp|loungegrupp|utemöbel|soffgrupp"), passar: [ordborjan("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("bänkdyna|dyna")] },
+  { vara: ordborjan("trädgårdsbänk"), passar: [ordborjan("bänkdyna|dyna"), ordborjan("skyddsöverdrag")] },
+  { vara: ordborjan("solsäng|solstol|vilstol"), passar: [ordborjan("parasoll"), ordborjan("dyna")] },
+  { vara: ordborjan("eldkorg|eldskål|eldstad|utomhuseldstad"), passar: [ordborjan("vedställ|vedkorg|vedbod"), ordborjan("eldstadsverktyg")] },
+  { vara: ordborjan("vedställ|vedkorg|vedbod"), passar: [ordborjan("eldkorg|eldskål|eldstad"), ordborjan("eldstadsverktyg")] },
+  // Husdjur. Djurslaget avgör sedan: en hundkoja får aldrig en kattvara.
+  { vara: ordborjan("hundkoja|hundbur|hundhage|valphage|hundgrind"), passar: [ordborjan("hundbädd|hundsäng|hundsoffa|hundmadrass"), ordborjan("matskål|vattenskål|foderskål|matstation|foderautomat|vattenfontän")] },
+  { vara: ordborjan("hundbädd|hundsäng|hundsoffa"), passar: [ordborjan("matskål|vattenskål|foderskål|matstation|foderautomat|vattenfontän"), ordborjan("hundtrappa|husdjurstrappa")] },
+  { vara: ordborjan("klösträd|klöstorn|klöstunna|klöspelare|katthus|kattorn|väggklösträd|takspänt"), passar: [ordborjan("kattlåda"), ordborjan("kattleksak|kattunnel|kattsäng|kattbädd"), ordborjan("vattenfontän|foderautomat|matskål")] },
+  { vara: ordborjan("kattlåda"), passar: [ordborjan("vattenfontän|foderautomat|matskål|matstation"), ordborjan("kattleksak|kattunnel|klösbräda")] },
+  { vara: ordborjan("hönshus|hönsgård|hönsrastgård"), passar: [ordborjan("hönsrede|värpholk")] },
+  // Barn
+  { vara: ordborjan("barnbord|barnskrivbord"), passar: [ordborjan("barnstol|barnpall")] },
+  // Sport & Fritid
+  { vara: ordborjan("träningsbänk"), passar: [ordborjan("hantel|hantlar|hexhantel|skivstång|viktskiva")] },
+  { vara: ordborjan("hantel|hantlar|hexhantel"), passar: [ordborjan("träningsbänk"), ordborjan("träningsmatta|gymmatta")] },
+  { vara: ordborjan("motionscykel|crosstrainer|löpband|roddmaskin|stepper"), passar: [ordborjan("träningsmatta|gymmatta")] },
+  { vara: ordborjan("boxningssäck|punchingboll"), passar: [ordborjan("boxsäcksställ")] },
+  { vara: helaOrd("tält|familjetält|tunneltält|kupoltält|campingtält|lufttält"), passar: [ordborjan("sovsäck|liggunderlag|luftmadrass"), ordborjan("campingstol|campingbord|fältsäng")] },
+  { vara: ordborjan("campingstol"), passar: [ordborjan("campingbord"), ordborjan("fältsäng|sovsäck|liggunderlag")] },
+  { vara: ordborjan("campingbord"), passar: [ordborjan("campingstol"), ordborjan("fältsäng|sovsäck|liggunderlag")] },
+  { vara: ordborjan("fältsäng"), passar: [ordborjan("sovsäck|liggunderlag"), ordborjan("campingstol|campingbord")] },
+  // Jul
+  { vara: helaOrd("julgran|snögran|plastgran|konstgran|gran|granar"), passar: [ordborjan("julgransfot|julgransstativ|julgranskrage|julgransmatta"), ordborjan("ljusslinga|julbelysning")] },
+  { vara: ordborjan("jultomte|tomte|snögubbe|pepparkaksgubbe|julby|adventskalender"), passar: [ordborjan("ljusslinga|julbelysning")] },
+  // Verktyg
+  { vara: ordborjan("verktygsvagn|verktygslåda|verktygsskåp|verkstadsvagn|verkstadsbänk|arbetsbänk"), passar: [ordborjan("verktygssats|verktygsset|hylsnyckel|bitsats"), ordborjan("arbetsbock")] },
+];
+
+// Ett förslag får kosta högst 1,5 gånger varan det kompletterar. Upp till
+// 60 % av dess pris räknas fullt, sedan sjunker poängen, så tillbehör och
+// billigare kompletteringar kommer först.
+const MAX_PRISKVOT = 1.5;
+const FULLT_UPP_TILL = 0.6;
+// Mönstrets plats i regeln: det första är det självklara.
+const PLATSVIKT = [1, 0.85, 0.7, 0.55];
+
+function prisfaktor(forslag: number, vara: number): number {
+  if (!forslag || !vara || forslag <= 0 || vara <= 0) return 1;
+  const kvot = forslag / vara;
+  if (kvot > MAX_PRISKVOT) return 0;
+  return kvot <= FULLT_UPP_TILL ? 1 : 1 / (1 + (kvot - FULLT_UPP_TILL) * 1.5);
+}
+
+/**
+ * Upp till `limit` varor som kompletterar varukorgen, bäst först.
+ *   • bara varor i lager med bild, aldrig något som redan ligger i varukorgen,
+ *   • bara sorters varor som KOMPLEMENT kopplar till en vara i varukorgen, och
+ *     inget den varan redan har med sig ("med fotpall", "med två stolar"),
+ *   • aldrig samma sorts vara som varan själv (det vore ett alternativ, inte en
+ *     komplettering),
+ *   • aldrig ett annat djurslag än varan det kompletterar,
+ *   • högst 1,5 gånger varans pris, billigare först, försäljningen som
+ *     skiljelinje.
+ * Första varvet tar en vara per sort och delar platserna mellan varorna i
+ * varukorgen. Blir platser över fylls de i ett andra varv. Två förslag som
+ * liknar varandra för mycket (tre klaffbord) visas aldrig samtidigt.
+ */
+export function kundvagnsForslag(varukorgensId: string[], all: Product[], limit = 3): Product[] {
+  const ids = new Set(varukorgensId);
+  const ankare = all.filter((p) => ids.has(p.id));
+  if (!ankare.length || limit <= 0) return [];
+  const d = likhetsdata(all);
+  // Per vara i varukorgen: vilka sorter som passar (med vikt), och vilka
+  // mönster som beskriver varan själv.
+  const regler = ankare.map((a) => {
+    const h = huvud(a.name);
+    const passar: Array<{ re: RegExp; vikt: number }> = [];
+    const egen: RegExp[] = [];
+    for (const r of KOMPLEMENT) {
+      if (!r.vara.test(h)) continue;
+      egen.push(r.vara);
+      r.passar.forEach((re, i) => {
+        if (!re.test(a.name)) passar.push({ re, vikt: PLATSVIKT[Math.min(i, PLATSVIKT.length - 1)] });
+      });
+    }
+    return { passar, egen, djur: djurslag(a.name) };
+  });
+
+  let maxPop = 1;
+  for (const x of all) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
+
+  type Kandidat = { x: Product; ankare: number; sort: RegExp; poang: number };
+  const kandidater: Kandidat[] = [];
+  const sedda = new Set<string>();
+  for (const x of all) {
+    if (!x.inStock || !x.img || ids.has(x.id) || sedda.has(x.slug)) continue;
+    sedda.add(x.slug);
+    const h = huvud(x.name);
+    const xDjur = djurslag(x.name);
+    const boost = 1 + 0.5 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
+    let bast: Kandidat | null = null;
+    for (let i = 0; i < ankare.length; i++) {
+      const r = regler[i];
+      if (r.egen.some((re) => re.test(h)) || djurslagKrockar(r.djur, xDjur)) continue;
+      for (const { re, vikt } of r.passar) {
+        if (!re.test(h)) continue;
+        const poang = vikt * prisfaktor(x.priceNum, ankare[i].priceNum) * boost;
+        if (poang > 0 && (!bast || poang > bast.poang)) bast = { x, ankare: i, sort: re, poang };
+      }
+    }
+    if (bast) kandidater.push(bast);
+  }
+  kandidater.sort((a, b) => b.poang - a.poang || a.x.slug.localeCompare(b.x.slug));
+
+  const perAnkare = Math.max(1, Math.ceil(limit / ankare.length));
+  const antal = new Map<number, number>();
+  const sorter = new Set<RegExp>();
+  const valda: Product[] = [];
+  for (const forsta of [true, false]) {
+    for (const k of kandidater) {
+      if (valda.length >= limit) break;
+      if (valda.includes(k.x)) continue;
+      if (forsta && ((antal.get(k.ankare) ?? 0) >= perAnkare || sorter.has(k.sort))) continue;
+      if (valda.some((v) => produktLikhet(v, k.x, d) >= VARIATION)) continue;
+      valda.push(k.x);
+      antal.set(k.ankare, (antal.get(k.ankare) ?? 0) + 1);
+      sorter.add(k.sort);
+    }
+  }
+  return valda;
 }
