@@ -1,0 +1,4 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) visar 83 cm som vagnens längd och 55 cm som bredd, medan källans L x B-ordning (83L x 55B) läses positionellt som bredd och djup
