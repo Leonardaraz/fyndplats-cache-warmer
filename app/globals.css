@@ -1308,6 +1308,9 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .drawer-trygg li b{color:#157a43;font-weight:700}
 .drawer-trygg svg{width:16px;height:16px;flex:none;color:#1B8A52}
 .drawer-foot .paymarks{justify-content:center;margin-top:10px;gap:5px}
+/* Mindre brickor så att raden ryms på en rad i lådan på mobil; Klarnas märke
+   behåller sin storlek (.pay-klarna har egen bredd). */
+.drawer-foot .pay:not(.pay-klarna){width:40px;height:28px}
 .drawer-foot .buy{width:100%;max-width:none;justify-content:center;display:flex}
 .drawer-eu{font-size:var(--text-xs);color:var(--soft);text-align:center;margin-top:8px;display:flex;align-items:flex-start;justify-content:center;gap:6px}
 .drawer-eu a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
