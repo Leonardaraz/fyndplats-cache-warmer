@@ -12,7 +12,7 @@ import { getProduct, getProducts, getCollections, dedupeProducts, forListings, f
 import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
 import { categoryIndexable, countPerCategory } from "../../../lib/category-threshold";
-import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
+import { pickRelated } from "../../../lib/related-pick";
 import { produktGrannar } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
 import { getBlurDataURL } from "../../../lib/lqip";
@@ -284,12 +284,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // En riktig blur av produktbilden visar en igenkännbar förhandsbild direkt.
   const mainBlur = await getBlurDataURL(images[0] || "");
 
-  // "Liknande produkter" – kuraterade LLM-val (data/related-products.json,
-  // scripts/score-related.mjs: Opus 4.8 butiks-merchandiser — komplement +
-  // prispassning) med meningsfullt kategori-överlapp som fallback/påfyllning.
-  // All logik (universell-kategori-exkludering, i-lager, dedup, aldrig tomt) i den
-  // testade rena pickRelated(). Se lib/related-products.test.ts.
-  const related: Product[] = await attachRatings(pickRelated(p, all, curatedRelatedSlugs(p.slug), 4));
+  // "Liknande produkter": samma sorts vara först, sedan kategori, pris och
+  // variation, bara varor i lager och aldrig ett annat djurslag. All logik i den
+  // testade rena pickRelated(), se lib/related-pick.ts och
+  // lib/related-products.test.ts.
+  const related: Product[] = await attachRatings(pickRelated(p, all, 4));
 
   // Föregående/nästa, så man slipper backa till kategorisidan för varje produkt.
   //

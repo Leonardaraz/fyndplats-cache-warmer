@@ -1,8 +1,11 @@
 // lib/related-pick.ts
 //
 // Ren urvalslogik för "Liknande produkter" — inga sidoeffekter, ingen JSON/IO-import,
-// så den är enhetstestbar direkt (lib/related-products.test.ts). lib/related-products.ts
-// re-exporterar dessa jämte kartläsaren (curatedRelatedSlugs).
+// så den är enhetstestbar direkt (lib/related-products.test.ts).
+//
+// Den AI-kuraterade kartan (data/related-products.json, 9 juli 2026) är borttagen
+// 2026-10-08. Den täckte 386 av 3 883 produktsidor och valdes ur en katalog på
+// ~420 produkter, så den kände inte till 90 % av dagens sortiment.
 
 import type { Product } from "./products";
 
@@ -36,14 +39,12 @@ export function sharedCategoryCount(a: Product, b: Product, universal: Set<strin
 
 // ── Merchandiser-signaler (gratis: allt kommer ur Wix-produktdatan) ──────────
 //
-// Fallbacken rankade förr på ENBART antal delade kategorier. Det gör att en
+// Urvalet rankade förr på ENBART antal delade kategorier. Det gör att en
 // produkt i "Hem & Inredning" (hundratals varor) ser exakt likadan ut som en i
 // "Badrum & Hemtextil" (ett fåtal) — och att en skruvmejsel för 79 kr kan
-// föreslås under en möbel för 3 000 kr. Den betalda merchandiser-modellen fick
-// fyra instruktioner (scripts/score-related.mjs): komplement före dubbletter,
-// PRISPASSNING, samma användningsområde, variation. Tre av dem går att räkna
-// fram deterministiskt ur data vi redan har — gratis, för varje produkt, utan
-// att en genererad ögonblicksbild kan bli inaktuell.
+// föreslås under en möbel för 3 000 kr. Kategorins sällsynthet, prispassning,
+// produkttyp och variation räknas fram ur data vi redan har — gratis, för
+// varje produkt, utan att en genererad ögonblicksbild kan bli inaktuell.
 
 /**
  * Kategorisärskiljning som vikt: en kategori som få produkter delar bär mycket
@@ -74,119 +75,265 @@ export function priceFit(a: number | undefined, b: number | undefined): number {
   return 1 / (1 + Math.max(0, ratio - 1.5) / 2);
 }
 
-/**
- * Namnets ord, gemener, bara bokstäver. Siffror och mått försvinner av sig
- * själva (tokeniseringen delar på icke-bokstäver), och ord under tre tecken
- * släpps — de bär ingen produktbetydelse.
- */
-export function nameTokens(name: string): string[] {
+// ── Produkttyp ───────────────────────────────────────────────────────────────
+//
+// Mätt 2026-10-08 på hela katalogen (3 985 produkter): 60 % av produktsidorna
+// visade inget förslag av samma sorts vara. Namnlikheten användes bara för att
+// TRYCKA NER det som liknade produkten, så i en bred kategori som
+// "Trädgårdsskötsel & Bevattning" fick en kompostbehållare en knäpall, en
+// slangvinda och snökäppar, medan katalogens andra kompostbehållare hamnade
+// längre ner. Nu är produkttypen en relevanssignal.
+//
+// Likheten räknas på bokstavsfyrgram, inte på hela ord. Svenskan sätter ihop
+// och böjer: "barstol" och "barstolar", "kattlåda" och "kattlådsskåp" är olika
+// ord men nästan samma fyrgram. Namnets början (före "–", komma eller
+// med/i/för …) väger tre gånger så mycket, för det är där produkttypen står.
+// Fyrgrammen viktas på sällsynthet (IDF), så "hopfällbar", som finns överallt,
+// gör inte en arbetsbänk och en bardisk lika (granskningen 2026-08-15).
+
+// Färgord stryks som hela ord efter uppdelningen. Ett reguljärt uttryck med \b
+// hade missat "grå" och "blå": \b räknar inte å, ä och ö som bokstäver.
+const FARGORD = new Set([
+  "svart", "svarta", "vit", "vitt", "vita", "grå", "grått", "gråa", "ljusgrå", "mörkgrå",
+  "beige", "brun", "brunt", "bruna", "blå", "blått", "blåa", "grön", "grönt", "gröna",
+  "röd", "rött", "röda", "rosa", "gul", "gult", "gula", "orange", "lila", "cremevit",
+  "gräddvit", "krämvit", "naturfärgad", "ekfärg", "valnöt", "antracit", "silver", "guld",
+  "guldfärgad", "turkos", "marinblå", "mörkblå", "ljusblå", "kaffebrun", "senapsgul", "taupe",
+]);
+const STOPPORD = new Set(["med", "och", "för", "till", "som", "utan", "eller", "två", "tre", "fyra", "fem", "sex", "pack", "set", "bär", "från", "inne", "ute", "hög", "bred", "lång"]);
+
+/** Namnets ord utan färger, siffror och mått. Det som är kvar beskriver varan. */
+export function typord(name: string): string[] {
   return (name || "")
     .toLowerCase()
+    .replace(/[0-9]+([,.][0-9]+)?/g, " ")
     .split(/[^a-zà-öø-ÿ]+/i)
-    .filter((t) => t.length >= 3);
+    .filter((t) => t.length >= 3 && !STOPPORD.has(t) && !FARGORD.has(t));
 }
 
-/** IDF över produktnamnens ord — samma sällsynthetsidé som categoryWeights. */
-export function tokenWeights(all: Product[]): Map<string, number> {
-  const freq = new Map<string, number>();
-  for (const p of all) for (const t of new Set(nameTokens(p.name))) freq.set(t, (freq.get(t) || 0) + 1);
-  const w = new Map<string, number>();
-  for (const [t, n] of freq) w.set(t, Math.log((all.length + 1) / (n + 1)) + 1);
-  return w;
+/** Namnets huvuddel: det som står före första tankstreck, komma eller
+ *  "med/i/för/till/som/utan/på". Där står produkttypen ("Barstolar 2-pack",
+ *  "Takväska vattentät"); resten är egenskaper. */
+export function huvud(name: string): string {
+  const s = name || "";
+  const m = /\s[–—-]\s|,|\s(med|i|för|till|som|utan|på)\s/i.exec(s);
+  return m ? s.slice(0, m.index) : s;
 }
 
-/**
- * Hur lika två produktnamn är, 0–1, viktat på ordens sällsynthet (cosinus).
- *
- * ERSÄTTER en förstaords-"typ" som granskningen 2026-08-15 fällde. Att ta
- * första ordet antog att katalogens namn börjar med substantivet. Uppmätt gör
- * de inte det: 91 av 756 produkter börjar med ett ADJEKTIV, och det vanligaste
- * "typ"-ordet var `hopfällbar` — 22 produkter, däribland en arbetsbänk, en
- * bardisk och en dragvagn i SAMMA kategori, som därmed trycktes ner mot
- * varandra fast de inte har något med varandra att göra. Samtidigt missades
- * fallet regeln fanns för: "Cykelpump 160 PSI" och "Elektrisk cykelpump
- * 150PSI" fick olika förstaord och dämpades inte alls.
- *
- * Sällsyntheten löser båda: `hopfällbar` finns överallt → nästan ingen vikt,
- * medan `cykelpump` är ovanligt → hög vikt. Ordets PLATS i namnet spelar
- * ingen roll längre.
- */
-export function nameSimilarity(a: string, b: string, w: Map<string, number>): number {
-  const ta = new Set(nameTokens(a));
-  const tb = new Set(nameTokens(b));
-  if (!ta.size || !tb.size) return 0;
-  const wt = (t: string) => w.get(t) ?? 1;
-  let shared = 0;
-  for (const t of ta) if (tb.has(t)) shared += wt(t);
-  let na = 0;
-  for (const t of ta) na += wt(t);
-  let nb = 0;
-  for (const t of tb) nb += wt(t);
-  return shared / Math.sqrt(na * nb);
-}
+const HUVUDVIKT = 3;
 
-/**
- * Slutgiltig "Liknande produkter"-lista för PDP:n. Två lager:
- *   1. Kuraterade LLM-val (bäst först) — bara i lager + fortfarande existerande.
- *   2. Fallback/påfyllning: merchandiser-rankat kategori-överlapp (se ovan).
- *      Täcker HELT när kuraterad lista saknas — vilket den gör för 45 % av
- *      katalogen, eftersom den kuraterade kartan är en ögonblicksbild.
- * Aldrig produkten själv, aldrig dubbletter, max `limit`. Ren funktion → testbar.
- */
-export function pickRelated(p: Product, all: Product[], curatedSlugs: string[], limit = 4): Product[] {
-  const bySlug = new Map(all.map((x) => [x.slug, x]));
-  const universal = universalCollectionIds(all);
-  const out: Product[] = [];
-  const seen = new Set<string>([p.slug]); // aldrig produkten själv
-  const add = (x?: Product) => { if (x && !seen.has(x.slug)) { out.push(x); seen.add(x.slug); } };
-
-  // 1) Kuraterade val (bäst först) — bara i lager + fortfarande i katalogen.
-  for (const s of curatedSlugs) {
-    if (out.length >= limit) break;
-    const x = bySlug.get(s);
-    if (x && x.inStock) add(x);
-  }
-  // 2) Merchandiser-rankad fallback/påfyllning. Bara varor i lager: ett förslag
-  //    är ett aktivt tips från butiken, och att tipsa om något man inte kan köpa
-  //    är sämre än att visa tre förslag i stället för fyra. (Tidigare sorterades
-  //    slutsålda bara sist — de kom ändå med när överlappet var tunt.)
-  if (out.length < limit) {
-    const w = categoryWeights(all);
-    const maxPop = Math.max(1, ...all.map((x) => x.popularity || 0));
-    const cands = all
-      .map((x) => {
-        const bs = new Set((x.collectionIds || []).filter((c) => !universal.has(c)));
-        let affinity = 0;
-        for (const c of p.collectionIds || []) if (!universal.has(c) && bs.has(c)) affinity += w.get(c) || 1;
-        // Popularitet är verklig försäljning (90 dagar) — den signalen hade den
-        // betalda modellen aldrig ens tillgång till. Den viktas lätt: den ska
-        // skilja mellan likvärdiga kandidater, inte köra över relevansen.
-        const boost = 1 + 0.2 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
-        return { x, score: affinity * priceFit(p.priceNum, x.priceNum) * boost, affinity };
-      })
-      .filter((s) => s.affinity > 0 && s.x.inStock && !seen.has(s.x.slug))
-      .sort((a, b) => b.score - a.score);
-
-    // Greedy med variationsdämpning: merchandisern skulle ta "en eller två
-    // äkta alternativ, inte fem av samma sak". Varje redan vald produkt (och
-    // produkten man tittar på) drar ner kandidater som LIKNAR den, viktat på
-    // namnlikhet. Dämpning, aldrig uteslutning — en produkt vars enda grannar
-    // är syskonmodeller ska inte få tom lista.
-    const tw = tokenWeights(all);
-    const against: string[] = [p.name]; // syskonmodeller dämpas direkt mot produkten själv
-    while (out.length < limit) {
-      let best: { x: Product; adj: number } | null = null;
-      for (const s of cands) {
-        if (seen.has(s.x.slug)) continue;
-        let damp = 1;
-        for (const other of against) damp *= 1 - 0.6 * nameSimilarity(s.x.name, other, tw);
-        const adj = s.score * damp;
-        if (!best || adj > best.adj) best = { x: s.x, adj };
+function fyrgram(name: string): Map<string, number> {
+  const m = new Map<string, number>();
+  const lagg = (text: string, vikt: number) => {
+    for (const w of typord(text)) {
+      const s = ` ${w} `;
+      for (let i = 0; i + 4 <= s.length; i++) {
+        const g = s.slice(i, i + 4);
+        m.set(g, (m.get(g) || 0) + vikt);
       }
-      if (!best) break;
-      against.push(best.x.name);
-      add(best.x);
     }
+  };
+  lagg(name, 1);
+  lagg(huvud(name), HUVUDVIKT - 1);
+  return m;
+}
+
+function vektor(name: string, idf: Map<string, number>): Map<string, number> {
+  const v = new Map<string, number>();
+  for (const [g, tf] of fyrgram(name)) {
+    const x = tf * (idf.get(g) ?? 0);
+    if (x > 0) v.set(g, x);
   }
-  return out;
+  return v;
+}
+
+function cosinus(a: Map<string, number>, b: Map<string, number>): number {
+  let d = 0, na = 0, nb = 0;
+  for (const [g, x] of a) {
+    na += x * x;
+    const y = b.get(g);
+    if (y) d += x * y;
+  }
+  for (const y of b.values()) nb += y * y;
+  return na && nb ? d / Math.sqrt(na * nb) : 0;
+}
+
+// ── Djurslag ─────────────────────────────────────────────────────────────────
+// "Lek & Tillbehör för husdjur" och flera andra husdjurskategorier blandar hund
+// och katt. Mätt 2026-10-08: 105 produktsidor föreslog ett annat djurslag, till
+// exempel kattsängar under en hundsäng. Ett förslag som nämner ett annat djur,
+// och inte produktens, tas bort. Neutrala varor ("husdjurstrappa") står kvar.
+// "hundtandsmönster" är ett tygmönster, inte en hund.
+const DJURSLAG: Array<[string, RegExp]> = [
+  ["hund", /(^|[^\p{L}])(hund(?!tand)\p{L}*|valp\p{L}*)/iu],
+  ["katt", /(^|[^\p{L}])katt\p{L}*/iu],
+  ["smådjur", /(^|[^\p{L}])(kanin|hamster|marsvin|gnagar|chinchilla|smådjur)\p{L}*/iu],
+  ["fågel", /(^|[^\p{L}])(fågel|fåglar|undulat|papeg)\p{L}*/iu],
+  ["höns", /(^|[^\p{L}])(höns|hönor|kyckling)\p{L}*/iu],
+];
+
+/** Vilka djurslag ett produktnamn nämner. Tomt för de flesta varor. */
+export function djurslag(name: string): Set<string> {
+  const s = new Set<string>();
+  for (const [slag, re] of DJURSLAG) if (re.test(name || "")) s.add(slag);
+  return s;
+}
+
+function djurslagKrockar(a: Set<string>, b: Set<string>): boolean {
+  if (!a.size || !b.size) return false;
+  for (const x of a) if (b.has(x)) return false;
+  return true;
+}
+
+// ── Katalogens likhetsdata, byggd en gång per katalog ────────────────────────
+// Fyrgrammens IDF och varje produkts vektor tar ~0,4 s för 4 000 produkter.
+// Byggs de vid varje produktsida blir varje rendering så mycket dyrare, så de
+// sparas mellan anropen så länge katalogen är densamma.
+//
+// getProducts() håller katalogen i modulen så länge instansen lever, så samma
+// lista kommer tillbaka vid varje rendering och känns igen direkt. Listan får
+// därför inte ändras på plats. En ny lista, till exempel efter en omhämtning,
+// jämförs på ett fingeravtryck (~2 ms) som ändras när en produkt läggs till,
+// tas bort, byter adress, namn eller kategorier. Det räknas på tecknen, inte på
+// längderna: Wix kategori-id är alla 36 tecken, så en produkt som flyttats till
+// en annan kategori hade annars sett likadan ut. En produkt som ändå saknas
+// räknas fram när den behövs. Pris, lager och försäljning läses vid varje
+// anrop och ingår inte här.
+export type Likhetsdata = {
+  idf: Map<string, number>;
+  vektorer: Map<string, Map<string, number>>;
+  djur: Map<string, Set<string>>;
+  universal: Set<string>;
+  kategorivikt: Map<string, number>;
+};
+
+function hasha(h: number, s: string): number {
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
+  return (Math.imul(h, 31) + 1) | 0; // avgränsare, så "ab"+"c" ≠ "a"+"bc"
+}
+
+function fingeravtryck(all: Product[]): string {
+  let h = 0;
+  for (const p of all) {
+    h = hasha(h, p.slug || "");
+    h = hasha(h, p.name || "");
+    for (const c of p.collectionIds || []) h = hasha(h, c);
+    h = (Math.imul(h, 31) + 2) | 0;
+  }
+  return `${all.length}:${h}`;
+}
+
+let minne: { lista: Product[]; nyckel: string; data: Likhetsdata } | null = null;
+
+export function likhetsdata(all: Product[]): Likhetsdata {
+  if (minne && minne.lista === all) return minne.data;
+  const nyckel = fingeravtryck(all);
+  if (minne && minne.nyckel === nyckel) {
+    minne.lista = all;
+    return minne.data;
+  }
+  const df = new Map<string, number>();
+  for (const p of all) for (const g of fyrgram(p.name).keys()) df.set(g, (df.get(g) || 0) + 1);
+  const idf = new Map<string, number>();
+  for (const [g, n] of df) idf.set(g, Math.log((all.length + 1) / (n + 1)));
+  const vektorer = new Map<string, Map<string, number>>();
+  const djur = new Map<string, Set<string>>();
+  for (const p of all) {
+    vektorer.set(p.slug, vektor(p.name, idf));
+    djur.set(p.slug, djurslag(p.name));
+  }
+  const data: Likhetsdata = {
+    idf,
+    vektorer,
+    djur,
+    universal: universalCollectionIds(all),
+    kategorivikt: categoryWeights(all),
+  };
+  minne = { lista: all, nyckel, data };
+  return data;
+}
+
+/** Hur lika två produktnamn är som varor, 0–1. */
+export function typLikhet(a: string, b: string, d: Likhetsdata): number {
+  return cosinus(vektor(a, d.idf), vektor(b, d.idf));
+}
+
+// Under TYP_GOLV är likheten slump (ett gemensamt "vatt" i "vattentät" och
+// "vattenavskiljare") och räknas som noll. SAMMA_TYP är samma sorts vara.
+// NARA_DUBBLETT är samma vara i en annan färg eller storlek.
+const TYPVIKT = 2.5;
+const TYP_GOLV = 0.15;
+export const SAMMA_TYP = 0.35;
+export const NARA_DUBBLETT = 0.9;
+const VARIATION = 0.6;
+
+/**
+ * "Liknande produkter" för produktsidan, bäst först:
+ *   • bara varor i lager, aldrig produkten själv, aldrig samma vara två gånger,
+ *   • rankat på delade kategorier (viktade på sällsynthet), prispassning och
+ *     produkttyp, med försäljningen som lätt skiljelinje,
+ *   • inget förslag som nämner ett annat djurslag än produkten,
+ *   • samma vara i en annan färg eller storlek får en plats, fler bara om
+ *     inget annat finns,
+ *   • två nästan likadana förslag trängs inte, och är de första förslagen
+ *     alla samma sorts vara går sista platsen till något annat ur samma
+ *     kategorier, till exempel ett tillbehör.
+ * Kan returnera färre än `limit` (anroparen visar blocket först vid två).
+ */
+export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
+  const d = likhetsdata(all);
+  const vek = (x: Product) => d.vektorer.get(x.slug) ?? vektor(x.name, d.idf);
+  const djurFor = (x: Product) => d.djur.get(x.slug) ?? djurslag(x.name);
+  const pv = vek(p);
+  const pd = djurFor(p);
+  // Försäljningen ändras varje dag, så den läses här och inte ur minnet.
+  let maxPop = 1;
+  for (const x of all) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
+
+  type Kandidat = { x: Product; v: Map<string, number>; typ: number; bas: number; poang: number };
+  const kandidater: Kandidat[] = [];
+  const sedda = new Set<string>([p.slug]);
+  for (const x of all) {
+    if (!x.inStock || sedda.has(x.slug)) continue;
+    sedda.add(x.slug);
+    const xs = new Set((x.collectionIds || []).filter((c) => !d.universal.has(c)));
+    let affinitet = 0;
+    for (const c of p.collectionIds || []) if (!d.universal.has(c) && xs.has(c)) affinitet += d.kategorivikt.get(c) || 1;
+    if (affinitet <= 0) continue;
+    if (djurslagKrockar(pd, djurFor(x))) continue;
+    const v = vek(x);
+    const r = cosinus(pv, v);
+    const typ = r >= TYP_GOLV ? r : 0;
+    // Popularitet är verklig försäljning (90 dagar). Den ska skilja mellan
+    // likvärdiga kandidater, inte köra över relevansen.
+    const boost = 1 + 0.2 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
+    const bas = affinitet * priceFit(p.priceNum, x.priceNum) * boost;
+    kandidater.push({ x, v, typ, bas, poang: bas * (1 + TYPVIKT * typ) });
+  }
+
+  const valda: Kandidat[] = [];
+  let dubbletter = 0;
+  const basta = (blanda: boolean, tillatDubblett: boolean): Kandidat | null => {
+    let best: Kandidat | null = null;
+    let bastaPoang = 0;
+    for (const k of kandidater) {
+      if (valda.includes(k)) continue;
+      if (k.typ >= NARA_DUBBLETT && dubbletter >= 1 && !tillatDubblett) continue;
+      if (blanda && (k.typ >= SAMMA_TYP || valda.some((o) => cosinus(k.v, o.v) >= SAMMA_TYP))) continue;
+      let damp = 1;
+      for (const o of valda) if (cosinus(k.v, o.v) >= VARIATION) damp *= 0.4;
+      const poang = (blanda ? k.bas : k.poang) * damp;
+      if (!best || poang > bastaPoang) { best = k; bastaPoang = poang; }
+    }
+    return best;
+  };
+  while (valda.length < limit) {
+    const blanda = valda.length === limit - 1 && valda.length >= 2 && valda.every((o) => o.typ >= SAMMA_TYP);
+    // Hellre en färgvariant till än ett tomt förslag: de släpps in sist.
+    const k = (blanda ? basta(true, false) : null) ?? basta(false, false) ?? basta(false, true);
+    if (!k) break;
+    if (k.typ >= NARA_DUBBLETT) dubbletter++;
+    valda.push(k);
+  }
+  return valda.map((k) => k.x);
 }
