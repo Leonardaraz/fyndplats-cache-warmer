@@ -40,5 +40,14 @@ export async function GET(request: Request) {
     const result = await processDueCart(cart);
     results.push(result);
   }
+  // En rad med antal när något faktiskt skickades eller hoppades över, så att
+  // det går att se i loggen att påminnelserna går ut (2026-10-09: inga rader
+  // alls gick inte att skilja från att inget skickats). Tyst när kön är tom,
+  // och aldrig adresser.
+  if (results.length) {
+    const skickade = results.filter((r) => r.action === 'sent' || r.action === 'sent_no_code').length;
+    const fel = results.filter((r) => r.action === 'error').length;
+    console.info(`[abandoned-cart] ${skickade} skickade, ${results.length - skickade - fel} utan mejl, ${fel} fel`);
+  }
   return NextResponse.json({ ok: true, processed: results.length, results });
 }
