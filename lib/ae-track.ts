@@ -100,6 +100,8 @@ export function deriveAeStatus(rawDescriptionsNewestFirst: string[]): AeStatus {
   }
   const newest = rawDescriptionsNewestFirst[0] ?? "";
   if (/out for delivery|delivery in progress/i.test(newest) && !FAILED.test(newest)) return "OutForDelivery";
-  if (/available for pick ?up|ready for pick ?up|awaiting (your )?collection/i.test(newest)) return "AvailableForPickup";
+  // Samma fraser som översättningen ovan, så att "Package arrived at pick-up
+  // point" ger både rätt text och rätt steg.
+  if (/available for pick[- ]?up|ready for pick[- ]?up|awaiting (your )?collection|at (the )?(pick[- ]?up|service) point/i.test(newest)) return "AvailableForPickup";
   return "InTransit";
 }

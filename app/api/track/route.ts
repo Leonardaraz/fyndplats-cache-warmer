@@ -20,7 +20,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  PHRASE_SV, svLocation, dedupeEvents, landForHandelse, svenskVaggklocka, rimligTid,
+  PHRASE_SV, svLocation, dedupeEvents, tidForHandelse, rimligTid,
   rattaPlatser, orderEventsNewestFirst,
 } from "@/lib/track-i18n";
 import { maskCarrier, transportorForNummer } from "@/lib/carrier-mask";
@@ -207,20 +207,11 @@ function mapEvent(ev: Track17Event): {
     .replace(/\s{2,}/g, " ")
     .trim() || label;
   return {
-    time: handelseTid(ev),
+    time: tidForHandelse(ev),
     description,
     location: LEAKY_PATTERN.test(loc) ? "" : loc,
     status: label,
   };
-}
-
-/** Händelsens tid i UTC. time_iso läses som svensk väggklocka när händelsen
- *  skedde i ett land med svensk tid (se svenskVaggklocka). time_utc, som bara
- *  används när time_iso saknas, är redan UTC och lämnas som den är. */
-function handelseTid(ev: Track17Event | undefined): string {
-  if (!ev) return "";
-  if (ev.time_iso) return svenskVaggklocka(ev.time_iso, landForHandelse(ev.location, ev.address));
-  return ev.time_utc || "";
 }
 
 function mapStatus(status: string | undefined): string {
@@ -317,7 +308,7 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
     || ti.time_metrics?.estimated_delivery_date?.from
     || null,
   );
-  const senaste = handelseTid(ti.latest_event);
+  const senaste = tidForHandelse(ti.latest_event);
   const latestTime = (rimligTid(senaste) && senaste)
     || orderEventsNewestFirst(visibleEvents).find((ev) => ev.time)?.time;
 

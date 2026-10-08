@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
-  landForHandelse, svenskVaggklocka, rimligTid, rattaPlatser,
+  landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser,
 } from "./track-i18n.ts";
 
 test("svCountry – ISO-2 och engelskt namn → svenska; okänt passerar", () => {
@@ -170,6 +170,22 @@ test("landForHandelse – strukturerat land först, annars sista ledet i fri tex
   assert.equal(landForHandelse("Göteborg, Sweden"), "Sverige");
   assert.equal(landForHandelse("Germany"), "Tyskland");
   assert.equal(landForHandelse(""), "");
+  // En ort utan land är inget land: tiden läses då som svensk, inte som ortens.
+  assert.equal(landForHandelse("Göteborg"), "");
+  assert.equal(landForHandelse("Koege"), "");
+});
+
+test("harOrt – en ort, eller bara ett land", () => {
+  assert.equal(harOrt("Göteborg, Sverige"), true);
+  assert.equal(harOrt("Göteborg"), true);
+  assert.equal(harOrt("", { city: "Koege", country: "DK" }), true);
+  assert.equal(harOrt("", { state: "Hovedstaden" }), true);
+  assert.equal(harOrt("Tyskland"), false);
+  assert.equal(harOrt("Germany"), false);
+  assert.equal(harOrt("DE"), false);
+  assert.equal(harOrt("", { country: "DE" }), false);
+  assert.equal(harOrt(""), false);
+  assert.equal(harOrt(undefined), false);
 });
 
 test("svenskVaggklocka – DPD:s svenska tid märkt +00:00 blir rätt", () => {
@@ -203,6 +219,40 @@ test("svenskVaggklocka – utan land läses tiden som svensk", () => {
   assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", ""), "2026-10-07T17:46:00.000Z");
 });
 
+test("svenskVaggklocka – DPD:s egna skanningar med ort är riktig UTC", () => {
+  // DPD 0120610… i Køge 16:25+00:00, DPD 0149… i samma terminal 18:39+02:00:
+  // samma kväll först när 16:25 läses som UTC (18:25 svensk tid).
+  assert.equal(svenskVaggklocka("2026-10-07T16:25:00+00:00", "Danmark", true), "2026-10-07T16:25:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-07T03:14:00+00:00", "Sverige", true), "2026-10-07T03:14:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-07T03:14:00Z", "", true), "2026-10-07T03:14:00.000Z");
+  // Samma tid utan ort är PostNords svenska tid märkt +00:00.
+  assert.equal(svenskVaggklocka("2026-10-07T16:25:00+00:00", "Danmark"), "2026-10-07T14:25:00.000Z");
+  // +01:00 som inte stämmer är PostNord även med ort.
+  assert.equal(svenskVaggklocka("2026-09-28T13:50:00+01:00", "Sverige", true), "2026-09-28T11:50:00.000Z");
+});
+
+test("svenskVaggklocka – offsets utanför Europa står kvar, även utan land", () => {
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+08:00", ""), "2026-10-07T19:46:00+08:00");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00-04:00", "Tyskland"), "2026-10-07T19:46:00-04:00");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00-05:00", "Sverige", true), "2026-10-07T19:46:00-05:00");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00+0530", ""), "2026-10-07T19:46:00+0530");
+});
+
+test("svenskVaggklocka – timmen som går två gånger när sommartiden slutar", () => {
+  // 25 okt 2026 går klockan 02:00–03:00 två gånger. En rätt offset avgör vilken.
+  assert.equal(svenskVaggklocka("2026-10-25T02:30:00+02:00", "Sverige"), "2026-10-25T00:30:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-25T02:30:00+01:00", "Sverige"), "2026-10-25T01:30:00.000Z");
+  // Utan offset finns inget att gå på: vintertid.
+  assert.equal(svenskVaggklocka("2026-10-25T02:30:00", "Sverige"), "2026-10-25T01:30:00.000Z");
+});
+
+test("svenskVaggklocka – tid utan offset och med decimaler", () => {
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:00", "Sverige"), "2026-10-07T17:46:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46", "Tyskland"), "2026-10-07T17:46:00.000Z");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:12.5+00:00", "Tyskland"), "2026-10-07T17:46:12.500Z");
+  assert.equal(svenskVaggklocka("2026-10-07T19:46:12.123456Z", "", true), "2026-10-07T19:46:12.123Z");
+});
+
 test("svenskVaggklocka – land med annan tid och oläsbar tid lämnas orörda", () => {
   assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", "Storbritannien"), "2026-10-07T19:46:00+00:00");
   assert.equal(svenskVaggklocka("2026-10-07T19:46:00+03:00", "Grekland"), "2026-10-07T19:46:00+03:00");
@@ -210,11 +260,43 @@ test("svenskVaggklocka – land med annan tid och oläsbar tid lämnas orörda",
   assert.equal(svenskVaggklocka("", "Sverige"), "");
 });
 
+test("tidForHandelse – det anmälda DPD-paketet som 17TRACK gav det", () => {
+  // Levererat enligt PostNord 19:46 svensk tid; /sparning visade 21:46.
+  assert.equal(
+    tidForHandelse({ time_iso: "2026-10-07T19:46:00+00:00", location: "Germany", address: { country: "DE" } }),
+    "2026-10-07T17:46:00.000Z",
+  );
+  // DPD:s egen skanning i Göteborg är riktig UTC och står kvar.
+  assert.equal(
+    tidForHandelse({ time_iso: "2026-10-07T03:14:00+00:00", location: "Göteborg, Sweden", address: { city: "Göteborg", country: "SE" } }),
+    "2026-10-07T03:14:00.000Z",
+  );
+  assert.equal(
+    tidForHandelse({ time_iso: "2026-10-07T16:25:00+00:00", location: "Koege, Denmark" }),
+    "2026-10-07T16:25:00.000Z",
+  );
+  // Ett land med annan tid står kvar, även utan ort.
+  assert.equal(
+    tidForHandelse({ time_iso: "2026-10-07T19:46:00+00:00", location: "United Kingdom", address: { country: "GB" } }),
+    "2026-10-07T19:46:00+00:00",
+  );
+});
+
+test("tidForHandelse – time_utc när time_iso saknas, tomt utan händelse", () => {
+  assert.equal(tidForHandelse({ time_utc: "2026-10-07T17:46:00Z", location: "Germany" }), "2026-10-07T17:46:00Z");
+  assert.equal(tidForHandelse({}), "");
+  assert.equal(tidForHandelse(undefined), "");
+  assert.equal(tidForHandelse(null), "");
+});
+
 test("rimligTid – transportörens tomma standardvärde räknas inte som en tid", () => {
   assert.equal(rimligTid("01.01.2000, 00:00"), false);
   assert.equal(rimligTid("2000-01-01T00:00:00Z"), false);
-  assert.equal(rimligTid("inte en tid"), false);
+  assert.equal(rimligTid("1999-12-31"), false);
   assert.equal(rimligTid("2026-10-07T17:46:00.000Z"), true);
+  // En tid som inte går att tolka står kvar, om inget år före 2020 syns i den.
+  assert.equal(rimligTid("25.09.2026, 09:34"), true);
+  assert.equal(rimligTid("inte en tid"), true);
   // Tom tid behålls som förut (visas utan klockslag).
   assert.equal(rimligTid(""), true);
   assert.equal(rimligTid(undefined), true);

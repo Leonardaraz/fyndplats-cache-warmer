@@ -130,78 +130,139 @@ export function svLocation(
   return raw.split(",").map((seg) => svCountry(seg)).filter(Boolean).join(", ");
 }
 
-/** Händelsens land på svenska, ur den strukturerade adressen eller sista ledet
- *  i fri-text-platsen. Tomt när inget land framgår. */
+function platsDelar(rawLocation: string | undefined | null): string[] {
+  return (rawLocation ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+/** Händelsens land på svenska: adressens land i första hand, annars sista
+ *  ledet i fri-text-platsen om det är ett land vi känner. Annars tomt. */
 export function landForHandelse(
   rawLocation: string | undefined | null,
   address?: { country?: string } | null,
 ): string {
   const fran = svCountry(address?.country);
   if (fran) return fran;
-  const delar = (rawLocation ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  return delar.length ? svCountry(delar[delar.length - 1]) : "";
+  const delar = platsDelar(rawLocation);
+  const sista = delar.length ? svCountry(delar[delar.length - 1]) : "";
+  return LANDNAMN.has(sista) ? sista : "";
+}
+
+/** Har händelsen en ort, alltså mer än bara ett land? */
+export function harOrt(
+  rawLocation: string | undefined | null,
+  address?: { city?: string; state?: string; country?: string } | null,
+): boolean {
+  if ((address?.city ?? "").trim() || (address?.state ?? "").trim()) return true;
+  const delar = platsDelar(rawLocation);
+  return delar.length >= 2 || (delar.length === 1 && !LANDNAMN.has(svCountry(delar[0])));
 }
 
 // ── Tid ──────────────────────────────────────────────────────────────────────
-// 17TRACK:s time_iso bär transportörens klockslag, men offseten går inte att
-// lita på. Uppmätt 2026-10-08 på riktiga paket:
-//   • DPD, serien 0120610…: svensk tid märkt +00:00. PostNord säger levererat
-//     19:46, 17TRACK 19:46+00:00, och /sparning visade 21:46.
-//   • PostNord: fast +01:00 även på sommartid. Samma leverans står som
-//     18:44+02:00 hos DHL och 18:44:08+01:00 hos PostNord.
+// 17TRACK:s time_iso bär transportörens klockslag, men offseten stämmer inte
+// alltid. Uppmätt 2026-10-08 på riktiga paket:
+//   • PostNord: fast +01:00 även på sommartid, alltså en timme fel. Samma
+//     leverans står som 18:44+02:00 hos DHL och 18:44:08+01:00 hos PostNord,
+//     och AliExpress egna UTC-tider för ett PostNord-paket stämmer på minuten
+//     först när klockslaget läses som svensk tid.
+//   • DPD, serien 0120610…: händelserna som PostNord rapporterar in saknar ort,
+//     bär DPD:s land "Tyskland" och är svensk tid märkt +00:00. PostNord säger
+//     levererat 19:46, 17TRACK 19:46+00:00, och /sparning visade 21:46. DPD:s
+//     egna skanningar med ort är däremot riktig UTC. Lästa så ligger de inom
+//     några minuter från DPD-serien 0149 i samma terminaler (Køge, Stockholm),
+//     och lästa som svensk tid exakt två timmar före.
 //   • DHL och DPD, serien 0149…: rätt offset.
-// Klockslaget stämmer i alla tre. En händelse i ett land med svensk tid, eller
-// utan land, läses därför som svensk väggklocka och offseten kastas.
+// Därför, för en händelse i ett land med svensk tid eller utan land:
+//   • en offset som redan är svensk tid vid det ögonblicket står kvar,
+//   • +00:00/Z med ort är riktig UTC och står kvar,
+//   • +00:00/Z utan ort, +01:00 och +02:00 som inte stämmer, och en tid utan
+//     offset läses som svensk väggklocka,
+//   • andra offsets (Kina, USA …) är avsiktliga och står kvar.
 const SVENSK_TID_LAND = new Set([
   "Sverige", "Danmark", "Norge", "Tyskland", "Nederländerna", "Belgien",
   "Luxemburg", "Frankrike", "Spanien", "Italien", "Österrike", "Schweiz",
   "Polen", "Tjeckien", "Slovakien", "Ungern", "Slovenien", "Kroatien",
 ]);
 
-const STOCKHOLM = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Europe/Stockholm",
-  hourCycle: "h23",
-  year: "numeric", month: "2-digit", day: "2-digit",
-  hour: "2-digit", minute: "2-digit", second: "2-digit",
-});
+// Skapas vid första användningen: modulen laddas också i webbläsaren.
+let stockholmFmt: Intl.DateTimeFormat | null = null;
 
 /** Hur långt före UTC svensk tid ligger vid ögonblicket `utcMs`, i ms. */
 function stockholmOffsetMs(utcMs: number): number {
-  const delar = STOCKHOLM.formatToParts(new Date(utcMs));
+  stockholmFmt ??= new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Stockholm",
+    hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const delar = stockholmFmt.formatToParts(new Date(utcMs));
   const v = (typ: string) => Number(delar.find((d) => d.type === typ)?.value);
   const somUtc = Date.UTC(v("year"), v("month") - 1, v("day"), v("hour") % 24, v("minute"), v("second"));
   return somUtc - Math.floor(utcMs / 1000) * 1000;
 }
 
 /**
- * Läser klockslaget i en ISO-tid som svensk tid och ger tillbaka UTC ("…Z").
- * Gäller händelser i ett land med svensk tid och händelser utan land. Annars,
- * och när tiden inte går att läsa, kommer indata tillbaka oförändrad.
+ * Ger händelsens tid i UTC ("…Z") enligt reglerna ovan. `medOrt` är om
+ * händelsen har en ort (se harOrt). En tid som inte går att läsa, och en tid i
+ * ett land med annan tid, kommer tillbaka oförändrad. Körs en gång per tid:
+ * en andra körning på en "…Z"-tid utan ort flyttar den igen.
  */
-export function svenskVaggklocka(timeIso: string, land: string): string {
+export function svenskVaggklocka(timeIso: string, land: string, medOrt = false): string {
   if (!timeIso || (land && !SVENSK_TID_LAND.has(land))) return timeIso;
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3})\d*)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3})\d*)?)?(Z|[+-]\d{2}:?\d{2})?$/i
     .exec(timeIso.trim());
   if (!m) return timeIso;
-  const [, y, mo, d, h, mi, s = "0", ms = "0"] = m;
+  const [, y, mo, d, h, mi, s = "0", ms = "0", offset = ""] = m;
   const vagg = Date.UTC(+y, +mo - 1, +d, +h, +mi, +s, +ms.padEnd(3, "0"));
+  if (offset) {
+    const offsetMs = /^z$/i.test(offset)
+      ? 0
+      : (offset[0] === "-" ? -1 : 1) * (Number(offset.slice(1, 3)) * 60 + Number(offset.slice(-2))) * 60_000;
+    const ogonblick = vagg - offsetMs;
+    if (stockholmOffsetMs(ogonblick) === offsetMs) return new Date(ogonblick).toISOString();
+    if (!/^(z|[+-]00:?00|\+0[12]:?00)$/i.test(offset)) return timeIso;
+    if (offsetMs === 0 && medOrt) return new Date(ogonblick).toISOString();
+  }
   // Två varv, så att dygnen när sommartiden börjar och slutar blir rätt.
   let utc = vagg - stockholmOffsetMs(vagg);
   utc = vagg - stockholmOffsetMs(utc);
   return new Date(utc).toISOString();
 }
 
+/** Händelsens tid i UTC ur 17TRACK:s fält. time_iso rättas enligt
+ *  svenskVaggklocka, med händelsens land och om den har en ort. time_utc, som
+ *  bara används när time_iso saknas, är redan UTC och lämnas som den är. */
+export function tidForHandelse(
+  ev: {
+    time_iso?: string;
+    time_utc?: string;
+    location?: string;
+    address?: { city?: string; state?: string; country?: string } | null;
+  } | undefined | null,
+): string {
+  if (!ev) return "";
+  if (ev.time_iso) {
+    return svenskVaggklocka(
+      ev.time_iso,
+      landForHandelse(ev.location, ev.address),
+      harOrt(ev.location, ev.address),
+    );
+  }
+  return ev.time_utc || "";
+}
+
 /**
- * En händelse vars tid inte går att läsa, eller ligger före 2020, är ingen
- * händelse. DPD-paketen bar 2026-10-08 en rad med "01.01.2000, 00:00",
- * transportörens tomma standardvärde, och den hamnade sist i tidslinjen. En
- * tom tid räknas inte hit. Den visas som förut, utan klockslag.
+ * En händelse från före 2020 är ingen händelse. DPD-paketen bar 2026-10-08 en
+ * rad med "01.01.2000, 00:00", transportörens tomma standardvärde, och den
+ * hamnade sist i tidslinjen. En tid som inte går att tolka står kvar som förut,
+ * om inte ett år före 2020 går att läsa ur den. Tom tid står också kvar.
  */
 export function rimligTid(time: string | undefined | null): boolean {
   const s = (time ?? "").trim();
   if (!s) return true;
   const t = Date.parse(s);
-  return !Number.isNaN(t) && new Date(t).getUTCFullYear() >= 2020;
+  if (!Number.isNaN(t)) return new Date(t).getUTCFullYear() >= 2020;
+  const ar = /\b(1[89]\d{2}|20\d{2})\b/.exec(s);
+  return !ar || Number(ar[1]) >= 2020;
 }
 
 // ── Plats ────────────────────────────────────────────────────────────────────
