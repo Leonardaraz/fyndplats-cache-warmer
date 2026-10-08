@@ -42,3 +42,18 @@ export function formatRange(a: Date, b: Date): string {
 export function leveransIntervall(nu: Date, minDagar: number, maxDagar: number): string {
   return formatRange(addBusinessDays(nu, minDagar), addBusinessDays(nu, maxDagar));
 }
+
+/**
+ * Samma intervall för en given dag ("2026-10-09"), till servern. Där är klockan
+ * UTC, och butikens dygn börjar en eller två timmar tidigare, så anroparen
+ * skickar in den svenska dagen (idagISO i lib/price-history.ts). Dagen läses
+ * som lokal middag, så att veckodag och datum blir samma i alla tidszoner.
+ * Null när dagen inte går att läsa.
+ */
+export function leveransIntervallForDag(isoDag: string, minDagar: number, maxDagar: number): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDag);
+  if (!m) return null;
+  const dag = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12);
+  if (dag.getDate() !== Number(m[3])) return null; // 2026-02-31 o.d.
+  return leveransIntervall(dag, minDagar, maxDagar);
+}

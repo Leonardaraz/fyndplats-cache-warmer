@@ -17,6 +17,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/leveransdatum-kassan",
+      "schedule": "5 * * * *"
+    },
+    {
       "path": "/api/cron/uppdatera-andrade",
       "schedule": "*/5 * * * *"
     },
