@@ -1,0 +1,80 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "021a72a4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Tischabmessungen: 140B x 40T x 116H cm (ausgeklappt), 110B x 40T x 116H cm (zusammengeklappt) | Hockerabmessungen: 40B x 46T x 97H cm | Sitzgröße: 40B x 41T x 59H cm | Rückengröße: 40B x 38,5L cm | Regalgröße: 40B x 40T cm (oben), 30B x 39T x 30/26,5H cm (zweistufig unter der Tischplatte) | Geeigneter Mindestbereich: 3L x 2B m | Mått: 140L x 40B x 116H cm"
+ },
+ "05fc296e": {
+  "tyska": "595L × 300B × 200H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 595,
+  "djup": 300
+ },
+ "3627023e": {
+  "tyska": "300L x 300B x 200H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 300,
+  "djup": 300
+ },
+ "40403336": {
+  "tyska": "63B x 69T x 78H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 69,
+  "hojd": 78,
+  "bredd": 63
+ },
+ "485a3bca": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Gesamtabmessungen (Sessel): 91B x 79T x 89H cm | Gesamtabmessungen (Hocker): 59B x 53T x 40H cm | Sitzgröße: 64B x 58T x 43H cm | Rückenlehnenmaße: 70L x 64B cm | Armlehnenmaße: 42L x 21B x 20H cm (bis Sitz) | Mått: 91L x 79B x 89H cm"
+ },
+ "5466fe81": {
+  "tyska": "3,97L x 3B x 2H m",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 2,
+  "bredd": 3.97,
+  "djup": 3
+ },
+ "98b6d1d5": {
+  "tyska": "500L x 200B x 205H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 205,
+  "bredd": 500,
+  "djup": 200
+ },
+ "aa5720a4": {
+  "tyska": "57L x 58B x 97-117H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   97,
+   117
+  ],
+  "bredd": 57,
+  "djup": 58
+ },
+ "bfeda955": {
+  "tyska": "595L x 300B x 200H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 595,
+  "djup": 300
+ },
+ "f5b60acd": {
+  "tyska": "81B x 82T x 73,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 82,
+  "hojd": 73.5,
+  "bredd": 81
+ }
+}
