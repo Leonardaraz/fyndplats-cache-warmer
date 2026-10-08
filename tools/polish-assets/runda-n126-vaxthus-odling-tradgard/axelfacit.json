@@ -1,0 +1,108 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0092411f": {
+  "tyska": "116,5L x 57B x 159/167H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   159,
+   167
+  ],
+  "bredd": 116.5,
+  "djup": 57
+ },
+ "0949823b": {
+  "tyska": "143L x 46B x 141/151H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   141,
+   151
+  ],
+  "bredd": 143,
+  "djup": 46
+ },
+ "1054d6a2": {
+  "tyska": "100B x 40T x 150H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 150,
+  "bredd": 100
+ },
+ "4a989230": {
+  "tyska": "196L x 77B x 197/178H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   197,
+   178
+  ],
+  "bredd": 196,
+  "djup": 77
+ },
+ "4f765899": {
+  "tyska": "144L x 167B x 206H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 206,
+  "bredd": 144,
+  "djup": 167
+ },
+ "56ea0574": {
+  "tyska": "220L x 150B x 195H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 195,
+  "bredd": 220,
+  "djup": 150
+ },
+ "8d9e5964": {
+  "tyska": "61L x 61B x 140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 61,
+  "djup": 61
+ },
+ "95f2b082": {
+  "tyska": "80L x 24B x 61,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 61.5,
+  "bredd": 80,
+  "djup": 24
+ },
+ "c03b2bd3": {
+  "tyska": "125L x 373B x 62,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 62.5,
+  "bredd": 125,
+  "djup": 373
+ },
+ "cba70f59": {
+  "tyska": "128L x 70B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 128,
+  "djup": 70
+ },
+ "d0f79df0": {
+  "tyska": "144L x 48B x 152/142H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   152,
+   142
+  ],
+  "bredd": 144,
+  "djup": 48
+ },
+ "de3c4441": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Radabmessungen: Ø25,5 x 7,5B cm | Mått: Ø25,5 x 7,5B cm"
+ }
+}

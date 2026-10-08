@@ -1,0 +1,79 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1f97b9b4": {
+  "tyska": "L100 x H106 cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": 106,
+  "bredd": 100
+ },
+ "22877126": {
+  "tyska": "62L x 60B x 85,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 85.5,
+  "bredd": 62,
+  "djup": 60
+ },
+ "5411cbe2": {
+  "tyska": "78L x 78B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 78,
+  "djup": 78
+ },
+ "696f9659": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Sitzkissen Abmessung: 120L x 80B x 12H cm | Abmessung Rückenkissen: 120L x 40B x 12H cm | Geeignete Größe der Sitzfläche: 120B x 80H cm | Mått: 120L x 80B x 12H cm | Sitzkissen Abmessung: 120L x 80B x 12H cm | Abmessung Rückenkissen: 120L x 40B x 12H cm | Geeignete Größe der Sitzfläche: 120B x 80H cm | Mått: 120L x 80B x 12H cm"
+ },
+ "6c0c8e5d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 62B x 110T x 88H cm | Sitzfläche: 58B x 70T cm | Größe der Rückenlehne: 58B x 55L cm | Mått: 62L x 110B x 88H cm"
+ },
+ "733863df": {
+  "tyska": "150L x 90B x 73H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 73,
+  "bredd": 150,
+  "djup": 90
+ },
+ "7d13294f": {
+  "tyska": "Ø45 x 36H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 36
+ },
+ "aeba7d05": {
+  "tyska": "180L x 75,5B x 73H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 73,
+  "bredd": 180,
+  "djup": 75.5
+ },
+ "e541f693": {
+  "tyska": "80L x 80B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 80,
+  "djup": 80
+ },
+ "e6608012": {
+  "tyska": "89L x 89B x 10,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 10.5,
+  "bredd": 89,
+  "djup": 89
+ },
+ "e8b0de29": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Schirmgröße: Ø265 x 235H cm"
+ }
+}

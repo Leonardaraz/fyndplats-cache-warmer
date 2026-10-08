@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "26736041": {
+  "tyska": "41,4L x 34,8B x 64,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 64.5,
+  "bredd": 41.4,
+  "djup": 34.8
+ },
+ "45d6091a": {
+  "tyska": "Ø33 x 135H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 135
+ },
+ "9b0e0831": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch: 140L x 80B x 74H cm | ✔ Stuhl: 56B x 57T x 75H cm | ✔ Sitzgröße: 41B x 51T x 38H cm | ✔ Rückenlehne: 53B x 36H cm | ✔ Kissen: 52L x 46B x 5T cm | Mått: 140L x 80B x 74H cm"
+ },
+ "a09f8804": {
+  "tyska": "16L x 16B x 21H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 21,
+  "bredd": 16,
+  "djup": 16
+ },
+ "ceea2fef": {
+  "tyska": "33,5L x 34,5B x 64,2H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 64.2,
+  "bredd": 33.5,
+  "djup": 34.5
+ },
+ "d87ccfca": {
+  "tyska": "B42 x T36 x H12,5 cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 36,
+  "hojd": 12.5,
+  "bredd": 42
+ },
+ "da386508": {
+  "tyska": "163B x 90T x 179H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 179,
+  "bredd": 163
+ },
+ "fbd70dae": {
+  "tyska": "15,5L x 15,5B x 46H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 46,
+  "bredd": 15.5,
+  "djup": 15.5
+ },
+ "ff61c600": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Entfaltete Abmessungen: 75,8B x 51,4T x 51H cm | ✔ Zeichenbrettgröße: 75,8L x 51B cm | ✔ Leinwandhaltergröße: 75,8B x 1,5T cm"
+ }
+}

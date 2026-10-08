@@ -2478,6 +2478,13 @@ kapat. Nio av 76 icke-kvadratiska utsnitt från rundorna 1–6 gör det, bland d
 TV-stativ och en lyftfåtölj. Listan står i bildmetoderna. De ligger kvar tills Leonard valt
 mellan att ta bort dem och att låta galleriet visa hela bilden.
 
+✅ **Text på rekvisitan är okej sedan 2026-09-30.** Leonard, om köksskåpet `fbcf5899`: *"text
+som är på produkter på det viset är okej"*. Förpackningar, burkar och böcker med text i en
+miljöbild stryks inte längre, även när ett märke går att läsa i full storlek. Tysk säljgrafik,
+leverantörens logotyp och fel färg stryks som förut. Bilder som ströks bara av det gamla skälet
+får läggas tillbaka, och skälet står per bild i rundornas `bilder-bort.tsv` och
+`granskning.tsv`. Regeln står i runbooken under *Behåll*.
+
 ### Miljöbilden ska vara andra bilden (2026-10-01)
 
 Leonard: feedens position 2 är (nästan) alltid ett rent miljöfoto, och den ska vara

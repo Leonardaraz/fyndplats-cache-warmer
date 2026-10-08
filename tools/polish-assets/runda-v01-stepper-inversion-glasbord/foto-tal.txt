@@ -1,0 +1,5 @@
+4ca761bb 4 fotelement: två block under varje ände i 20 cm-läget, räknade i bild 1 och 5
+4ca761bb 2 fotelement under varje ände i 20 cm-läget, räknade i bild 1, 3 och 5
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källan.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7bf76ced 155 lägsta markeringen på skalan på stången under ryggstödet, 5 ft 1 in = 155 cm, avläst på bild 1, 2 och 3 (källan anger 140, men skalan börjar på 155, och bilden vinner)

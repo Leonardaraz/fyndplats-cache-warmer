@@ -1,0 +1,132 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "13c2499f": {
+  "tyska": "34T x 68B x 80H cm",
+  "svenska": "",
+  "bokstaver": "TBH",
+  "djup": 34,
+  "hojd": 80,
+  "bredd": 68
+ },
+ "2055b01f": {
+  "tyska": "42B x 58T x 95H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 58,
+  "hojd": 95,
+  "bredd": 42
+ },
+ "2071f140": {
+  "tyska": "400L x 120B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 400,
+  "djup": 120
+ },
+ "50aa6e77": {
+  "tyska": "41L x 50B x 91H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 91,
+  "bredd": 41,
+  "djup": 50
+ },
+ "555c249d": {
+  "tyska": "32L x 32B x 108H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 108,
+  "bredd": 32,
+  "djup": 32
+ },
+ "5b0b8ff2": {
+  "tyska": "Ø45 cm",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen: Ø45 cm | Mått: 45L x 45B x 45H cm"
+ },
+ "61452da7": {
+  "tyska": "42L x 47B x 105H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 42,
+  "djup": 47
+ },
+ "6f99842c": {
+  "tyska": "50B x 56T x 98H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56,
+  "hojd": 98,
+  "bredd": 50
+ },
+ "6ffe2b4f": {
+  "tyska": "25L x 25B x 58,5H cm, 31L x 31B x 65H cm",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 58.5,
+  "bredd": 25,
+  "djup": 25
+ },
+ "9f8ccc45": {
+  "tyska": "72L x 30B x 82,7H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 82.7,
+  "bredd": 72,
+  "djup": 30
+ },
+ "a4fd23db": {
+  "tyska": "38B x 98H cm",
+  "svenska": "",
+  "bokstaver": "BH",
+  "hojd": 98,
+  "bredd": 38
+ },
+ "affdd40e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkocher-Abmessungen: 21,4L x 15,6B x 23,3H cm | ✔ Wasserkocher-Kapazität: 1,7L"
+ },
+ "b8949553": {
+  "tyska": "30B x 30T x 170H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 170,
+  "bredd": 30
+ },
+ "daacfb69": {
+  "tyska": "53L x 53B x 90H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 53,
+  "djup": 53
+ },
+ "e038d565": {
+  "tyska": "160B x 1,6T x 170H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 1.6,
+  "hojd": 170,
+  "bredd": 160
+ },
+ "e2b58c9a": {
+  "tyska": "80B x 30T x 181,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 181.5,
+  "bredd": 80
+ },
+ "f74f8a9c": {
+  "tyska": "60L x 49B x 77H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 77,
+  "bredd": 60,
+  "djup": 49
+ }
+}

@@ -23,8 +23,9 @@
 ## Beskärning (B) – skär bort text runt varan (2026-09-30)
 
 Leonards undantag från runbookens *Redigera aldrig en bild*: på en sida med två eller tre bilder
-får en leverantörsbild beskäras så att rubriker, bildtexter, ikoner och rekvisita med text
-hamnar utanför. Varan skärs aldrig i. Ett utsnitt ur en bild som redan är en detalj får vara
+får en leverantörsbild beskäras så att rubriker, bildtexter och ikoner hamnar utanför. Text
+på rekvisitan behöver inte skäras bort, den är okej sedan 2026-09-30 (runbooken, *Behåll*).
+Varan skärs aldrig i. Ett utsnitt ur en bild som redan är en detalj får vara
 en detalj. Ingenting retuscheras, maskas eller genereras, så bilden får ingen AI-märkning.
 
 **Utsnittet görs av Wix, inte lokalt.** Wix bildadress tar ett utsnitt i originalets pixlar:
@@ -78,6 +79,7 @@ sidan byter huvudbild och delningsbild utan att något fel syns.
 ⚠️ **Samma rekvisita bedöms bild för bild** (`runda-bilder-5`). Ett märkesnamn på en
 ljusförpackning gick att läsa i full storlek på en bild och bara i dubbel förstoring på en
 annan, där förpackningen stod längre bort. Den första ströks och den andra fick stå kvar.
+Upphävt 2026-09-30: text och märken på rekvisitan är okej, så båda hade fått stå kvar.
 Ett utsnitt som hade kapat en persons ansikte stryks, även när texten går att skära bort.
 
 ☠️ **Kvadraten ur mitten gäller varje bild i galleriet, inte bara huvudbilden** (2026-09-30).

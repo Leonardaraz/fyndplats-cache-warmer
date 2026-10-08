@@ -1,0 +1,155 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "031beb34": {
+  "tyska": "20L x 20B x 65H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 20,
+  "djup": 20
+ },
+ "0cce2986": {
+  "tyska": "80B x 14T x 62H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 14,
+  "hojd": 62,
+  "bredd": 80
+ },
+ "127325d0": {
+  "tyska": "80B x 25T x 123,8H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 25,
+  "hojd": 123.8,
+  "bredd": 80
+ },
+ "32b480f8": {
+  "tyska": "45L x 35B x 58H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 58,
+  "bredd": 45,
+  "djup": 35
+ },
+ "397140ff": {
+  "tyska": "Ø45 x 42H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 42
+ },
+ "5c29be87": {
+  "tyska": "105L x 27B x 97H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 97,
+  "bredd": 105,
+  "djup": 27
+ },
+ "77ed219b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 80L x 60B x 75H cm | ✔ Stuhlmaße: 40B x 49,2T x 85H cm | ✔ Sitzmaße: 40B x 38T cm | ✔ Rückenlehnenmaße: 39B x 40,5H cm"
+ },
+ "7ddf5ba3": {
+  "tyska": "120B x 32T x 151H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": 151,
+  "bredd": 120
+ },
+ "817acc53": {
+  "tyska": "76B x 33T x 51H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 33,
+  "hojd": 51,
+  "bredd": 76
+ },
+ "8578e562": {
+  "tyska": "79B x 43T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 43,
+  "hojd": 180,
+  "bredd": 79
+ },
+ "8865f9f7": {
+  "tyska": "49L x 35B x 23H cm (20 Zoll), 60L x 42B x 26H cm (24 Zoll), 69L x 49B x 29H cm (28 Zoll)",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 23,
+  "bredd": 49,
+  "djup": 35
+ },
+ "8e267ac3": {
+  "tyska": "26B x 35T x 174H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 174,
+  "bredd": 26
+ },
+ "9933f638": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischgröße: 120L x 40B x 105H cm | ✔ Lagerregal: 35 x 20L x 30H cm | ✔ Mindestnutzfläche: 120L x 200B cm | Mått: 120L x 40B x 105H cm"
+ },
+ "b11953b3": {
+  "tyska": "80B x 14T x 62H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 14,
+  "hojd": 62,
+  "bredd": 80
+ },
+ "c2366ab2": {
+  "tyska": "40L x 30B x 62H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 40,
+  "djup": 30
+ },
+ "de1723f3": {
+  "tyska": "20L x 20B x 71H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 71,
+  "bredd": 20,
+  "djup": 20
+ },
+ "e83a008c": {
+  "tyska": "45L x 30B x 118H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 118,
+  "bredd": 45,
+  "djup": 30
+ },
+ "f03ce9ef": {
+  "tyska": "53L x 33B x 43H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 43,
+  "bredd": 53,
+  "djup": 33
+ },
+ "f2dadb49": {
+  "tyska": "145L x 211B x 108H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 108,
+  "bredd": 145,
+  "djup": 211
+ },
+ "fb11cc40": {
+  "tyska": "(Aufrecht) 99B x 97T x 102H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 97,
+  "hojd": 102,
+  "bredd": 99
+ }
+}

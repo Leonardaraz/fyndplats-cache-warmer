@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "86127572",
+  "huvud_fullid": "86127572-52c1-40e6-a7ec-172b34e2061d",
+  "givare": "c2bb00a0",
+  "givare_fullid": "c2bb00a0-0997-4291-9a4a-ae3ea32af273",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "farg+storlek",
+  "varden": {
+   "86127572": "Natur, 6 paneler, 240 cm",
+   "c2bb00a0": "Vit, 4 paneler, 160 cm"
+  }
+ }
+]

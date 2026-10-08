@@ -1,0 +1,73 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1eef3578": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kofferabmessungen: 29,5L x 22,5B x 6,5H cm | ✔ Mattenabmessungen: 90L x 60B cm | ✔ Chipabmessungen: Ø40 x 3,3 mm, 14 Gramm"
+ },
+ "215d04b3": {
+  "tyska": "69L x 36,5B x 22H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 22,
+  "bredd": 69,
+  "djup": 36.5
+ },
+ "3b593f93": {
+  "tyska": "35,6L x 35,6B x 75,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 75.5,
+  "bredd": 35.6,
+  "djup": 35.6
+ },
+ "3c410574": {
+  "tyska": "140L x 63B x 60-80Hcm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   60,
+   80
+  ],
+  "bredd": 140,
+  "djup": 63
+ },
+ "c0b428b3": {
+  "tyska": "96L x 80B x 96H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 96,
+  "bredd": 96,
+  "djup": 80
+ },
+ "c88057cc": {
+  "tyska": "44L x 39,5B x 2,2H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 2.2,
+  "bredd": 44,
+  "djup": 39.5
+ },
+ "c8c35333": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gehäuse Abmessung: 38,5L x 23B x 6,5H cm | ✔ Abmessung der Matte: 60L x 90B cm | ✔ Chip: Ø40 x 0,31H cm, 11,5 Gramm | ✔ Dealer-Taste: Ø49 x 0,5H cm, 13 Gramm | ✔ Großes/kleines Blind: Ø48 x 0,4H cm, 6,5 Gramm | ✔ Würfel: 1,8L x 1,8B x 1,8H cm | Mått: 38,5L x 23B x 6,5H cm | ✔ Gehäuse Abmessung: 56L x 23,5B x 6,5H cm | ✔ Abmessung der Matte: 60L x 90B cm | ✔ Chip: Ø40 x 0,31H cm, 11,5 Gramm | ✔ Dealer-Taste: Ø49 x 0,5H cm, 13 Gramm | ✔ Großes/kleines Blind: Ø48 x 0,4H cm, 6,5 Gramm | ✔ Würfel: 1,8L x 1,8B x 1,8H cm | Mått: 56L x 23,5B x 6,5H cm"
+ },
+ "e39c4b08": {
+  "tyska": "40L x 20B x 3T cm, 0,25 kg",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Schläger' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBT",
+  "djup": 3,
+  "bredd": 40
+ },
+ "f5724d92": {
+  "tyska": "Ø122 x 109-129H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": [
+   109,
+   129
+  ]
+ }
+}

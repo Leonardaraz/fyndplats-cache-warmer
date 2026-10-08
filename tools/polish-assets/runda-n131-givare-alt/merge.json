@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "658caf6c",
+  "huvud_fullid": "658caf6c-e5af-44d2-a5e8-ed8df91cbe3b",
+  "givare": "c5a5b9fb",
+  "givare_fullid": "c5a5b9fb-7341-4959-8f36-94671a5a8020",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "658caf6c": "svart",
+   "c5a5b9fb": "röd"
+  }
+ }
+]

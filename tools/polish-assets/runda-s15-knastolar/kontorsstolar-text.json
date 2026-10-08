@@ -1,0 +1,30 @@
+{
+  "slug": "kontorsstolar",
+  "namn": "Kontorsstolar",
+  "seo": {
+    "title": "Kontorsstol – ergonomisk stol & ritstol",
+    "description": "Kontorsstolar med nätrygg, nackstöd, fotstöd eller massage, stolar som bär upp till 220 kg, ritstolar med fotring och sadelpallar."
+  },
+  "content": {
+    "intro": [
+      "Här finns kontorsstolar för hemmakontoret och arbetsplatsen: stolar med nätrygg och nackstöd, stoppade stolar i linnelook, bouclé och konstläder, chefsstolar med utdragbart fotstöd och kontorsstolar med massage och värme. För den som vill variera sittställningen finns ritstolar med fotring för höga bänkar, rullpallar och sadelpallar. Knästolar har en egen kategori.",
+      "Börja med sitthöjden. Kontorsstolarna ställs med gaslyft, och spannet börjar på 40 cm på de lägre modellerna, så jämför med bordshöjden och med att fötterna når golvet. Ritstolarna går upp till 87 cm och har en fotring som flyttas i höjd, till exempel mellan 18 och 46 cm, så att fötterna har stöd vid ett ståbord.",
+      "De flesta stolar bär 120 kg, och flera är byggda för 135 till 220 kg. Titta då också på sitsen: stolen som bär 220 kg har en sits på 62 × 56 cm, medan de flesta kontorsstolar ligger runt 50 × 46 cm. För den som är kortare finns en liten skrivbordsstol med nätrygg, gjord för upp till 170 cm.",
+      "På stolarna med fotstöd fälls ryggen till mellan 135 och 160°, och en av dem blir då 173 cm lång. Massagestolarna har upp till sju vibrationspunkter med fjärrkontroll, och flera har värme i ländryggen.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Vilken sitthöjd behöver jag?",
+        "a": "Sitt med fötterna i golvet och knäna i ungefär rät vinkel, med armbågarna i höjd med skrivbordsskivan. Jämför sitthöjdens spann med ditt bord: vid ett vanligt skrivbord räcker en kontorsstol, vid ett ståbord eller en hög bänk behövs en ritstol med fotring. Ritstolarna går upp till 87 cm."
+      },
+      {
+        "q": "Vad är skillnaden mellan vippfunktion och fällbar rygg?",
+        "a": "Vippfunktionen är ett fjädrande bakåtläge som du gungar i medan du sitter. En fällbar rygg låses i en vinkel, antingen steglöst eller i fasta lägen som 105°, 120° och 135°. På en del stolar går vippfunktionen och liggläget inte att använda samtidigt."
+      }
+    ]
+  },
+  "facit": {
+    "andring": "Texten från 2026-09-23 med knästolarna borttagna 2026-10-03, när de fick egen kategori. Titeln tappar '& knästol', beskrivningen 'knästolar,', första stycket nämner den nya kategorin, fjärde stycket tappar meningen om knästolar, och frågan om skillnaden mellan knästol och kontorsstol flyttar ordagrant till Knästolar. Övriga påståenden är oförändrade."
+  }
+}

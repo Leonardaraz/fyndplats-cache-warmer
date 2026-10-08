@@ -1,0 +1,58 @@
+[
+ {
+  "huvud": "3e6fe711",
+  "huvud_fullid": "3e6fe711-f81b-4801-aa21-0d9ba4f99e52",
+  "givare": "740c7d47",
+  "givare_fullid": "740c7d47-15fc-4cdc-9d6e-ddc0e44790fd",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "6",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "3e6fe711": "300 × 200 cm",
+   "740c7d47": "400 × 300 cm"
+  }
+ },
+ {
+  "huvud": "cc8f89f8",
+  "huvud_fullid": "cc8f89f8-1681-4d4a-be9d-b316d417db62",
+  "givare": "e88de43e",
+  "givare_fullid": "e88de43e-1ac0-4651-b63b-17e752a9a844",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "cc8f89f8": "beige",
+   "e88de43e": "svart"
+  }
+ },
+ {
+  "huvud": "9722e1ae",
+  "huvud_fullid": "9722e1ae-8927-4eac-a4b4-8171c78daaa1",
+  "givare": "4f2e0c41",
+  "givare_fullid": "4f2e0c41-75b6-44a8-9f79-9799a8b883af",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "9722e1ae": "svart",
+   "4f2e0c41": "svart och silver"
+  }
+ }
+]

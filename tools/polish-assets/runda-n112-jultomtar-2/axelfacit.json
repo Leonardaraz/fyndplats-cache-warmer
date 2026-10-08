@@ -1,0 +1,59 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "02be1742": {
+  "tyska": "50L x 25B x 120H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 50,
+  "djup": 25
+ },
+ "324ad1ab": {
+  "tyska": "55L x 21B x 140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 55,
+  "djup": 21
+ },
+ "ab11eb57": {
+  "tyska": "20L x 18B x 60H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 20,
+  "djup": 18
+ },
+ "cb9d0323": {
+  "tyska": "50L x 25B x 120H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 50,
+  "djup": 25
+ },
+ "cfb5673c": {
+  "tyska": "48L x 32B x 120H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 48,
+  "djup": 32
+ },
+ "e88dbbf4": {
+  "tyska": "31L x 30B x 66H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 31,
+  "djup": 30
+ },
+ "fea0613b": {
+  "tyska": "45L x 30B x 115H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 115,
+  "bredd": 45,
+  "djup": 30
+ }
+}

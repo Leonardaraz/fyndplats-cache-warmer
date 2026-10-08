@@ -1,0 +1,15 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilderna visar 300 cm som bredd vid dörren och 450 respektive 600 cm som djup, medan källans L x B-ordning (450L x 300B, 600L x 300B) läses positionellt som bredd x djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilderna visar 300 cm som bredd vid dörren och 397 respektive 597 cm som djup, medan källans L x B-ordning (3,97L x 3B, 5,97L x 3B) läses positionellt som bredd x djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden visar 200 cm som bredd vid dörren och 500 cm som djup, medan källans L x B-ordning (500L x 200B) läses positionellt som bredd x djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden visar 300 cm som bredd vid dörren och 595 cm som djup, medan källans L x B-ordning (595L x 300B) läses positionellt som bredd x djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden visar 300 cm som bredd vid dörren och 595 cm som djup, medan källans L x B-ordning (595L x 300B) läses positionellt som bredd x djup
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

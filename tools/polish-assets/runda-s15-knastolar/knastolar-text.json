@@ -1,0 +1,60 @@
+{
+  "slug": "knastolar",
+  "namn": "Knästolar",
+  "seo": {
+    "title": "Knästol – gungande, på hjul eller med ryggstöd",
+    "description": "Ergonomiska knästolar, även kallade balansstolar: gungande på medar, på hjul eller med ryggstöd. Alla bär 120 kg, och flera passar skrivbord på 75–90 cm."
+  },
+  "content": {
+    "intro": [
+      "En knästol, som också kallas balansstol, har en sits som lutar framåt och en knädyna där smalbenen vilar. Tyngden delas mellan sittbenen och smalbenen, och vinkeln mellan lår och rygg blir öppnare än på en vanlig stol. Här finns knästolar för skrivbordet i hemmakontoret, för den som pluggar och för meditation.",
+      "De flesta gungar på böjda medar och följer med när du flyttar tyngden. Två har ryggstöd: en i böjd björk med två knästöd och en klädd i manchester med en knädyna på 48 × 25 cm. En gungande modell har sits och knädyna som ställs i sex lägen, och en knästol står på fyra hjul, varav två går att låsa.",
+      "Knästolarna i björkplywood med två separata knädynor har 10 cm tjocka dynor och en sitthöjd på 51–58 cm. De är 51 cm breda och saknar hjulkryss, så de tar mindre golvyta än en kontorsstol. Klädseln är tyg, konstläder eller manchester, i grått, svart, blått och kräm.",
+      "Alla knästolar här bär 120 kg, och flera är gjorda för skrivbord på 75–90 cm. En knästol använder andra muskler än en vanlig stol, så börja med korta pass och res dig var 15:e till 30:e minut i början. Alla levereras omonterade.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp."
+    ],
+    "faq": [
+      {
+        "q": "Vad är skillnaden mellan en knästol och en kontorsstol?",
+        "a": "På en knästol lutar sitsen framåt och smalbenen vilar mot en knädyna, så att tyngden delas mellan sittbenen och smalbenen. Det ger en mer upprätt hållning, och många använder den omväxlande med en vanlig kontorsstol."
+      },
+      {
+        "q": "Vilken knästol ska jag välja?",
+        "a": "Vill du sitta i rörelse väljer du en knästol som gungar på medar. Behöver du stöd för ryggen finns två med ryggstöd, och vill du kunna rulla undan stolen finns en på hjul. Knästolarna med två separata knädynor har 10 cm tjocka dynor och låter benen stå i sin naturliga bredd."
+      },
+      {
+        "q": "Kan jag sitta på en knästol hela arbetsdagen?",
+        "a": "Börja med pass på 15–30 minuter och växla med en vanlig stol, eftersom knästolen använder andra muskler än du är van vid. En knästol utan ryggstöd passar bäst som omväxling, inte som enda stol under en hel arbetsdag."
+      },
+      {
+        "q": "Hur mycket bär en knästol?",
+        "a": "Alla knästolar här bär 120 kg. Sits- och knädynorna är 6–10 cm tjocka, och knästolen på hjul har en ram i gummiträ medan de andra har stomme i björk eller plywood."
+      }
+    ]
+  },
+  "facit": {
+    "urval": "8 synliga knästolar 2026-10-03, alla i lager: d2fb42b1, 3ee7a87a, b97ac1d8, 2876122a, 231202df, c3e0af3f, 9e656e81, 2326c742. INTE med: den hopfällbara knäpallen 0d09a845, som är en trädgårdspall.",
+    "balansstol": "Allmänt namn på stoltypen (den norska Balans-stolen 1979 var den första knästolen). Inget produktpåstående.",
+    "sitsen lutar framåt, tyngden delas mellan sittbenen och smalbenen": "b97ac1d8 'Sitsen lutar framåt … Vikten delas mellan sitsen och smalbenen'; c3e0af3f och 9e656e81 'Framåtlutande sits som delar tyngden mellan sittben och smalben'; 2876122a 'vikten fördelas jämnt på höfter och ben'; 3ee7a87a 'fördelar tyngden mellan sits och knädyna'; 231202df 'fördelar tyngden mellan sits och knäutrymme'",
+    "vinkeln mellan lår och rygg blir öppnare": "b97ac1d8 'vinkeln mellan lår och rygg öppnas'",
+    "för den som pluggar och för meditation": "2326c742 'oavsett om du arbetar, pluggar eller läser' och 'som meditationsstol'; d2fb42b1 'vid meditation'; 2876122a 'fungerar också som meditationsstol'",
+    "de flesta gungar på böjda medar": "5 av 8: d2fb42b1 'Ramen av björk är formad som medar, så att stolen gungar'; b97ac1d8 'två böjda medar'; 2876122a 'medarna gör att stolen gungar'; 231202df 'gungrörelse på böjda medar'; 2326c742 'två böjda medar, så stolen gungar'",
+    "följer med när du flyttar tyngden": "b97ac1d8 'stolen följer med när du flyttar tyngdpunkten'; 2326c742 'gungar med när du flyttar tyngden'",
+    "två har ryggstöd: böjd björk med två knästöd": "2876122a 'Ram i böjd björk med gungande medar', 'Stoppad sits, två knästöd och ryggstöd'",
+    "manchester med knädyna 48 × 25 cm": "2326c742 'Klädsel i manchester', 'den breda knädynan på 48 × 25 cm'",
+    "sits och knädyna i sex lägen": "231202df 'Både sitsen och knädynan går att justera i sex positioner'",
+    "fyra hjul, två går att låsa": "3ee7a87a 'Ramen står på fyra hjul, två låsbara och två fritt löpande'",
+    "björkplywood, två separata knädynor, 10 cm, 51–58 cm, 51 cm breda, inget hjulkryss": "c3e0af3f och 9e656e81: 'Stomme av björkplywood', 'Två separata knädynor, 13 × 25,5 cm', '10 cm dynor', 'Sitthöjd: 51–58 cm', 'Mått: 51 × 69 × 58 cm', 'saknar hjulkryss, så den tar mindre golvyta'",
+    "låter benen stå i sin naturliga bredd": "9e656e81 'två separata kuddar … så att benen står i sin naturliga bredd'",
+    "tyg, konstläder eller manchester": "tyg i linnelook: d2fb42b1, b97ac1d8, 2876122a; polyester: 231202df, c3e0af3f, 9e656e81; konstläder: 3ee7a87a; manchester: 2326c742",
+    "grått, svart, blått och kräm": "grå: d2fb42b1, b97ac1d8, 2876122a, 9e656e81 (ljusgrå, mörkgrå), 2326c742; svart: 3ee7a87a, 2876122a, 9e656e81; blå: 2876122a, c3e0af3f; kräm: b97ac1d8, 9e656e81, 2326c742, 231202df och 2876122a (cremevit)",
+    "alla bär 120 kg": "8 av 8: d2fb42b1, 3ee7a87a, b97ac1d8, 2876122a, 231202df, c3e0af3f, 9e656e81, 2326c742",
+    "flera för skrivbord på 75–90 cm": "d2fb42b1, b97ac1d8, 2876122a, 231202df",
+    "andra muskler, korta pass, 15–30 minuter": "8 av 8 nämner det, till exempel b97ac1d8 'börja med korta pass och res dig var 15–30:e minut i början'",
+    "en knästol utan ryggstöd som omväxling, inte hela arbetsdagen": "b97ac1d8 'tänkt för pass om 15–30 minuter, omväxlande med en vanlig stol'; c3e0af3f 'inte som enda stol vid ett heldagsarbete'; 9e656e81 'inte som enda stol under en hel arbetsdag'",
+    "alla levereras omonterade": "8 av 8: d2fb42b1 'snabb och enkel att montera'; övriga 'Montering: krävs' eller 'Behöver den monteras? Ja'",
+    "sits- och knädynor 6–10 cm": "2876122a 6; d2fb42b1 6,5; 3ee7a87a 7; b97ac1d8 och 231202df 7,5; 2326c742 8 i sitsen och 9 i knädynan; c3e0af3f och 9e656e81 10",
+    "ram i gummiträ, övriga björk eller plywood": "3ee7a87a 'Z-ramen är gummiträ'; d2fb42b1 björk; 2876122a böjd björk; 231202df björkträ; c3e0af3f, 9e656e81 och 2326c742 björkplywood; b97ac1d8 formpressad plywood",
+    "skillnaden mot en kontorsstol, mer upprätt hållning": "Svaret flyttat ordagrant från Kontorsstolars FAQ (live sedan 2026-09-23). d2fb42b1 'uppmuntrar en mer upprätt hållning'; 2326c742 'hjälper dig att sitta upprätt'"
+  }
+}

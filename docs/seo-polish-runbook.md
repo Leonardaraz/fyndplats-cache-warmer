@@ -40,8 +40,11 @@
   etikett) hör till varan. Bilden behålls hel och produkten hålls inte tillbaka för det
   *(Leonard 2026-08-06, bekräftat 2026-09-27: "vi ändrar inget på deras utseende eller
   bild")*. Testet: skulle märket synas om du fotade varan själv efter uppackning?
-  Skriv det aldrig i texten. Beslutet gäller leverantörens husmärken. Andras varumärken på
-  varan (bilmärken, licensfigurer) är en licensfråga: flagga till Leonard.
+  Skriv det aldrig i texten. Beslutet gäller leverantörens husmärken. Märkena på Aosoms
+  barnfordon och andra fordon (Mercedes-Benz, Lamborghini m.fl.) är licensierade av Aosom
+  *(Leonard 2026-10-08)*: sådana varor hålls inte kvar, och märket får stå i namn, text och
+  alt-text när det är en del av varan. Andra varumärken och licensfigurer utanför fordonen
+  är fortfarande en licensfråga: flagga till Leonard.
 - **Skriv aldrig avsändarland eller lagerland** *(Leonard 2026-08-15)*. Bara
   EU-lager-ribbonen får visa det. Sök på `skickas från` utan hänsyn till versaler i
   slutkollen, eftersom `gate.py` bara ser den gemena formen.
@@ -148,8 +151,12 @@ den andra.
 
 **Övriga klasser:**
 
-- **Leksaker:** EN 71-märkningen och åldersgränsen ska stå i texten. Saknas certifieringen
-  i källan flaggar du produkten i stället för att gissa.
+- **Leksaker och barnfordon:** åldersgränsen ska stå i texten, och EN 71 skrivs som
+  `Uppfyller EN 71.` Leonard har beslutat att allt från Aosom uppfyller EN 71 *(2026-10-08:
+  Aosom är ett stort europeiskt företag)*, så en leksak eller ett barnfordon från Aosom hålls
+  inte kvar för att källtexten saknar certifieringen. Skriv ingen provningsstandard utöver
+  EN 71, inget certifikatnummer och inget leverantörsnamn. Beslutet gäller varor från Aosom;
+  en leksak från en annan leverantör flaggas som förut när certifieringen saknas.
 - **Grindar som marknadsförs för barn** kräver EN 1930. Skillnaden mellan en hundgrind och
   en barngrind ligger i provningen och syns inte på ett foto.
 
@@ -388,17 +395,15 @@ varan är, hur många delar den har och hur den sitter ihop. Golvlampan `13a53d5
 till exempel med två skärmar utifrån källans två mått, men fotot visar en.
 
 Position 1 är en vit studiobild och har aldrig behövt strykas (0 av 687 produkter i B- och
-N-rundorna), så arket räcker för den. Granska 2–5 i full upplösning i `orig/`. Varumärken på
-rekvisita sitter oftast i miljöbilden på plats 2, och i runda B19 bar de flesta miljöbilder
-ett. Siffror i en ritning och hur varan är byggd läser du också i `orig/`, aldrig på arket
-(600 px per bild): en etikett lästes en gång som 36 cm på arket men var 35.
+N-rundorna), så arket räcker för den. Granska 2–5 i full upplösning i `orig/`. Siffror i en
+ritning och hur varan är byggd läser du också i `orig/`, aldrig på arket (600 px per bild):
+en etikett lästes en gång som 36 cm på arket men var 35.
 
 **Stryk** en bild genom att skriva en rad i `bilder-bort.tsv` (`kort ⇥ position ⇥ skäl`)
 när den bär:
 
-- inbränd text på ett annat språk än svenska, oftast tyska eller engelska (`Family-size`, `7 Cups`)
-- ett riktigt varumärke, en webbadress eller text på rekvisita (flaskor, böcker, ljus) som
-  går att läsa i full upplösning
+- inbränd text i grafiken, alltså rubriker, bildtexter eller en webbadress, oftast på tyska
+  eller engelska (`Family-size`, `7 Cups`)
 - leverantörens logotyp, oftast i ett övre hörn (`HOMCOM by Aosom`). Misstänker du en ljus
   logotyp på ljus vägg eller himmel kör du `bygg-ghost.py`, som gör den synlig.
 - en annan färgvariant, modell, storlek eller konfiguration än den som säljs
@@ -406,16 +411,22 @@ när den bär:
   publicerat syskon redan bär
 
 **Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
-bara har siffror och enheter, och text som går att läsa först i flerfaldig förstoring. Stryk
-bara det listan ovan tar upp: så många användbara bilder som möjligt *(Leonard 2026-07-10)*,
-men hellre två rena bilder än tre där en bär ett varumärke på rekvisitan.
+bara har siffror och enheter, och text och märken på rekvisitan i en miljöbild: förpackningar,
+burkar, böcker och liknande i eller runt varan. Stryk bara det listan ovan tar upp: så många
+användbara bilder som möjligt *(Leonard 2026-07-10)*.
+
+⚠️ **Text på rekvisitan är okej sedan 2026-09-30** *(Leonard, om köksskåpet `fbcf5899`: "text
+som är på produkter på det viset är okej")*. Fram till dess ströks en miljöbild när text på
+rekvisitan gick att läsa i full upplösning, till exempel "dorset cereals" på ett flingpaket i
+vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
 
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*.
 
-**Undantag: sidor med två eller tre bilder** *(Leonard 2026-09-30)*. Där får en leverantörsbild
-beskäras så att rubriker, bildtexter, ikoner och rekvisita med text hamnar utanför. Varan
-skärs aldrig i, och ingenting retuscheras eller maskas. Butikens huvudbild visar mitten av
+**Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
+2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
+beskäras så att rubriker, bildtexter och ikoner hamnar utanför. Varan skärs aldrig i, och
+ingenting retuscheras eller maskas. Butikens huvudbild visar mitten av
 bilden som en kvadrat, så välj utsnittet så att varan syns där. Hur det görs står i
 [`polish/bildmetoder.md`](polish/bildmetoder.md) under *Beskärning*.
 
@@ -441,6 +452,12 @@ den ena.
 Rundan bearbetar inga bilder, den väljer bland dem som finns. Behövs en bearbetad bild står
 metoderna i [`polish/bildmetoder.md`](polish/bildmetoder.md).
 
+**Minst fem bilder per produkt** *(Leonard 2026-10-07)*. Räcker de rena bilderna inte efter
+strykningen hämtar du fler enligt nästa stycke, och finns det text som går att skära bort beskär
+du en bild enligt undantaget ovan. Utsnitt får positionerna 11 och uppåt, hela bilder behåller
+feedens position, och `granskning.tsv` i rundan skriver varje använt och förkastat kandidatskäl.
+Ett utsnitt som bara går att göra genom att skära i varan förkastas.
+
 **För få bilder kvar?** Importen hämtar bara feedens position 1, 2, 3, 8 och 9. Workflowen
 **"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till
 Media Manager utan att röra produkten. Granska dem med samma strykregler som ovan och lägg de
@@ -449,8 +466,9 @@ rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder går före egna 
 
 Börja med position 10 (`positioner` = `10`). Den är oftast ett miljöfoto utan grafik: den
 2026-09-30 var 24 av 45 bilder där rena, mot 1 av 184 på position 4–7, som nästan alltid är
-tysk säljgrafik. Det som fäller position 10 är text på rekvisitan, oftast etiketter på burkar
-och flaskor i kök och badrum. Läs dem i full upplösning innan bilden väljs.
+tysk säljgrafik. Förut föll position 10 oftast på text på rekvisitan, alltså etiketter på
+burkar och flaskor i kök och badrum. Sedan 2026-09-30 får den texten stå kvar (se *Behåll*
+ovan), så position 10 är nästan alltid användbar.
 
 Är sidan redan polerad skrivs bara bildlistan: `bygg-bildplan.py` i stället för
 `bygg-skrivplan.py`, och workflowen **"Polering — skriv bara bilderna"**. `bilder.tsv` listar
@@ -775,6 +793,7 @@ och brödtexten** — och ta med **bara** det som står där:
 | Uttrycklig varning | `Achtung: …` · `Warnung: …` | `Varning: …` (översätt meningen) |
 | Standard, certifierad | `Sicherheitsstandard: EN71-1-2-3` | `Uppfyller EN 71-1, EN 71-2 och EN 71-3.` |
 | Standard, provad | `Geprüft nach EN71` | `Testad enligt EN 71.` |
+| Standard, antagen (Aosom) | *(källan nämner ingen standard)* | `Uppfyller EN 71.` — bara leksaker och barnfordon från Aosom, Leonards beslut 2026-10-08 |
 
 Även el-, brand-, värme-, kläm- och kvävningsrisk (smådelar) och batterisäkerhet —
 när källan säger det. Håll dig till formuleringarna ovan, så att katalogen läser
@@ -1012,8 +1031,9 @@ Grindarna och live-kontrollen täcker det mesta. Gå igenom listan innan du kör
 
 **Bilder**
 
-- Plats 1 visar hela varan tydligt. Ingen bild bär text på ett annat språk, ett riktigt
-  varumärke, läsbar text på rekvisita eller fel färg. Måttritningen ligger sist.
+- Plats 1 visar hela varan tydligt. Ingen bild bär inbränd text på ett annat språk,
+  leverantörens logotyp eller fel färg. Text på rekvisitan i en miljöbild är okej.
+  Måttritningen ligger sist.
 - Varje alt-text är på svenska, unik och beskriver det som syns.
 
 **Data**

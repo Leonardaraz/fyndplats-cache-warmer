@@ -1,0 +1,56 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0da17d0c": {
+  "tyska": "39,5L x 28,5B x 23H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 23,
+  "bredd": 39.5,
+  "djup": 28.5
+ },
+ "67827ff8": {
+  "tyska": "50L x 15B x 97H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 97,
+  "bredd": 50,
+  "djup": 15
+ },
+ "86127572": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (ausgeklappt): 240L x 1,5T x 170H cm | ✔ Gesamtabmessungen (gefaltet): 39,5B x 12T x 170H cm | ✔ Größe jedes Panels: 39,5B x 170H cm | ✔ Gesamtabmessungen (ausgeklappt): 160L x 1,5T x 170H cm | ✔ Gesamtabmessungen (gefaltet): 39,5B x 6T x 170H cm | ✔ Größe jedes Panels: 39,5B x 170H cm | Mått: 160L x 1,5B x 170H cm"
+ },
+ "b8042e7d": {
+  "tyska": "50L x 30B x 33,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 33.5,
+  "bredd": 50,
+  "djup": 30
+ },
+ "e43624ac": {
+  "tyska": "86,1L x 76,1B x 25H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 86.1,
+  "djup": 76.1
+ },
+ "e90d1996": {
+  "tyska": "60L x 15B x 73H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 73,
+  "bredd": 60,
+  "djup": 15
+ },
+ "f9449c6f": {
+  "tyska": "L133 x B42 x H51cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 133,
+  "djup": 42
+ }
+}

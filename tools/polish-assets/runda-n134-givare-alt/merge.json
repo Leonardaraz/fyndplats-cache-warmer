@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "44d4907b",
+  "huvud_fullid": "44d4907b-e19b-43a1-b054-222f647588e3",
+  "givare": "686f0869",
+  "givare_fullid": "686f0869-b4e0-42a1-82be-92d98a1e7a1b",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg och storlek",
+  "varden": {
+   "44d4907b": "rosa, Ø244 cm",
+   "e6f512c2": "rosa, Ø305 cm",
+   "686f0869": "flerfärgad, Ø244 cm"
+  }
+ }
+]

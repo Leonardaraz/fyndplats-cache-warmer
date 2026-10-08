@@ -1,0 +1,10 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5466fe81 172 dörrens bredd, 1,72 m i källan och 172 cm på måttbilden
+5466fe81 170 dörrens höjd, 1,7 m i källan och 170 cm på måttbilden
+5466fe81 150 sidans uppvikbara del, 1,5 m i källan
+5466fe81 140 sidans uppvikbara del, 1,4 m i källan
+3410a911 172 dörrens bredd, 1,72 m i källan och 172 cm på måttbilden
+3410a911 170 dörrens höjd, 1,7 m i källan och 170 cm på måttbilden
+7103fe01 172 dörrens bredd, 1,72 m i källan och 172 cm på måttbilden
+7103fe01 170 dörrens höjd, 1,7 m i källan och 170 cm på måttbilden

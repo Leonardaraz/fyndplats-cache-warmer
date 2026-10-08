@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "fbd70dae",
+  "huvud_fullid": "fbd70dae-8fd3-4fee-8da7-618c83a24471",
+  "givare": "ee998711",
+  "givare_fullid": "ee998711-0a4b-4ba9-8ef1-9195af0183d9",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "farg",
+  "varden": {
+   "fbd70dae": "Sand",
+   "ee998711": "Svart"
+  }
+ }
+]

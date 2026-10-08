@@ -341,6 +341,14 @@ TYSKA_ORD = [
     "Bodenstangen", "Rohrklemmen", "Hundesport", "Filterbeutel", "Klapptür", "Schornstein",
     # runda B91 (gåbil, gungstol)
     "Schiebstange", "Schutzbügel", "Schaukelstuhl", "Schaukelsessel",
+    # runda N110 (smal förvaringsvagn)
+    "Beistellwagen", "Nischenwagen", "Küchenwagen", "Servierwagen", "Nischenregal",
+    "Einlegeböden", "Multifunktionsregal", "Feststellfunktion", "Küchenkühlschränke",
+    # runda N111 (sjungande jultomtar)
+    "Weihnachtsmann", "Weihnachtsfigur", "Weihnachtsdeko", "Weihnachtskranz",
+    "Geschenkesack", "Geschenksack", "Geschenkbox", "Handglocke", "Glöckchen", "Nikolaus",
+    "Musikfigur", "Stützbeine", "Berührungssensoren", "Geräuschsensor", "Weihnachtslieder",
+    "Weihnachtsmusik", "Goldbestickter", "Samthaptik",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
