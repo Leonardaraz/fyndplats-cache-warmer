@@ -22,6 +22,7 @@ import {
   looksLikeStoreCopy,
 } from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
+import { aeRecensionerStoppade } from "@/lib/reviews/ae-ko-rensning";
 import { describeRouting } from "@/lib/import/trigger-routing";
 import { triggerCropDetection } from "@/lib/headless/trigger-crop-detection";
 
@@ -607,7 +608,8 @@ export async function POST(req: Request) {
     // översättningskön (status pending, osynliga för kund). Gratis anrop.
     // Skrapade recensioner (när de faktiskt finns) går kvar den gamla vägen
     // nedan.
-    if (!reviewsToImport || reviewsToImport.length === 0) {
+    // ☠️ Inte längre: AliExpress-recensioner hämtas inte (Leonard 2026-10-06).
+    if (!aeRecensionerStoppade() && (!reviewsToImport || reviewsToImport.length === 0)) {
       try {
         // Tidsbegränsad — en människa väntar på svaret. Missas den tar
         // veckocronet produkten i stället (den saknar reviewsCheckedAt).

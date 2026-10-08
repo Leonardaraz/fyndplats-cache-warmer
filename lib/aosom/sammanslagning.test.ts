@@ -835,9 +835,13 @@ describe("sammanslagning — en publicerad givare", () => {
     // Givarens rader rörs inte.
     expect(r.rader.filter((x) => x.productId === "utkast")).toHaveLength(4);
 
+    // Båda landar på givarens färg på sidan, inte på sidans förval.
+    const nyVariant = (w.produkter.sida.variantsInfo as { variants: { id: string; sku: string }[] }).variants
+      .find((v) => v.sku === svar.plan.skuUtkast)!;
+    const mal = `/produkt/kontorsstol-nackstod?variant=${nyVariant.id}`;
     expect(o.rader).toEqual(expect.arrayContaining([
-      expect.objectContaining({ fromSlug: "burostuhl-grau", toPath: "/produkt/kontorsstol-nackstod" }),
-      expect.objectContaining({ fromSlug: "gammal-stol", toPath: "/produkt/kontorsstol-nackstod" }),
+      expect.objectContaining({ fromSlug: "burostuhl-grau", toPath: mal }),
+      expect.objectContaining({ fromSlug: "gammal-stol", toPath: mal }),
     ]));
     const iOmd = w.logg.findIndex((x) => x.startsWith("omdirigering burostuhl-grau"));
     const iAvp = w.logg.indexOf("synlighet utkast false");
@@ -863,7 +867,15 @@ describe("sammanslagning — en publicerad givare", () => {
     expect(svar.plan.hinder).toContain(hinder);
     expect(patchar(w)).toEqual([]);
     expect(r.rader).toHaveLength(6);
-    expect(o.rader.some((x) => x.fromSlug === "burostuhl-grau" && x.toPath === "/produkt/kontorsstol-nackstod")).toBe(false);
+    expect(o.rader.some((x) => x.fromSlug === "burostuhl-grau" && x.toPath.startsWith("/produkt/kontorsstol-nackstod"))).toBe(false);
+  });
+
+  it("en egen rad med ?variant= från en tidigare körning är ingen krock", async () => {
+    const { deps } = publicerad({
+      omdirigeringar: [{ fromSlug: "burostuhl-grau", toPath: "/produkt/kontorsstol-nackstod?variant=var-ny-1" }],
+    });
+    const svar = await korSammanslagning(PUBLICERAD, deps, { apply: false });
+    expect(svar.plan.hinder).not.toContain("omdirigering_krockar");
   });
 
   it("utan verktygen för en publicerad givare vägras den", async () => {

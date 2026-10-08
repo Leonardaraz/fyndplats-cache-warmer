@@ -35,6 +35,7 @@ import { listVisibleV3ProductIds } from "@/lib/wix/v3-products";
 import type { ProductMappingRecord } from "@/lib/store";
 import { audit } from "@/lib/audit";
 import { isAliExpressMapping } from "@/lib/store/supplier";
+import { aeRecensionerStoppade } from "@/lib/reviews/ae-ko-rensning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,6 +59,12 @@ function authorized(req: Request): boolean {
 export async function GET(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // ☠️ AliExpress-recensioner hämtas inte längre (Leonard 2026-10-06). Svaret
+  // har samma räknare som ett tomt svep, så review-queue.yml stannar direkt.
+  if (aeRecensionerStoppade()) {
+    return NextResponse.json({ ok: true, stoppad: true, kandidater: 0, kontrollerade: 0, strypta: 0, köade: 0 });
   }
 
   const url = new URL(req.url);

@@ -1862,6 +1862,24 @@ Poleringens skrivsteg (`skrivplan.ts`) skriver SKU:n på en sida med en variant.
 Polera därför ett av syskonen, publicera det, och lägg sedan de andra som val med
 den här workflowen — samma väg som balansbommen.
 
+#### Givarens 301 landar på givarens färg (2026-10-06)
+
+Leonard 2026-10-06: en gammal färgsida ska landa på sin färg på den
+sammanslagna sidan, inte på sidans förval. Steg 5b läser sidan efter
+Wix-skrivningen och skriver `/produkt/<sida>?variant=<givarens variant>`;
+butiken förväljer varianten ur `?variant=`, samma väg som Shopping-flödets
+länkar. Äldre rader som pekade på givaren pekas om till samma mål. Planen
+visar adressen utan fråga, eftersom variant-id:t finns först efter
+skrivningen, och krockkontrollen jämför sökvägen utan fråga (`malUtanFraga`).
+
+De 325 rader som fanns före ändringen rättas med `POST
+/api/admin/omdirigeringar-variant` (workflow `omdirigeringar-variant.yml`,
+torrt som default). Givarens artikel på den pensionerade mappningen
+(`variants[0].supplierVariantId`) matchas mot sidans mappningsvariant och
+dess `wixVariantId`, som måste finnas i Wix. ☠️ Allt som inte går att avgöra
+exakt lämnas orört och räknas per skäl: raden pekar redan på rätt sida.
+Logiken: `lib/aosom/omdirigering-variant.ts`.
+
 #### En sammanslagen sida får ny text med `varianter` i planen (2026-09-30)
 
 Leonards fråga: varför läggs lyftfåtöljens grå färg inte på? Sidan var redan
@@ -4842,6 +4860,35 @@ och används på två ställen:
 läser HELA lagret: `listAll` sorterar nyast först och kapar vid 5 000 som
 standard, så de äldsta raderna — just de som söks — hade fallit bort tyst.
 Svaret säger `trunkerad: true` om läsgränsen ändå nås, och workflowen stannar.
+
+## AliExpress-kön töms: väntande AliExpress-recensioner döljs (2026-10-06)
+
+Leonards beslut: de AliExpress-recensioner som ligger i /admin/reviews och
+väntar på översättning och godkännande behövs inte. `POST
+/api/admin/recensioner-ae-ko` (workflow `recensioner-ae-ko.yml`, torrt som
+default) sätter status `rejected` på varje `pending`-rad vars källa är
+AliExpress (`source` saknas eller är `"aliexpress"`). Logiken:
+`lib/reviews/ae-ko-rensning.ts`.
+
+☠️ Dölj, radera aldrig: den dolda raden är också dubblettspärren, så en
+raderad rad hade köats igen nästa gång produktens AliExpress-recensioner
+hämtas. ☠️ Publicerade AliExpress-recensioner, Aosom-rader och kundomdömen
+rörs inte.
+
+**Inga nya AliExpress-recensioner hämtas** (Leonard 2026-10-06: "jag vill inte
+att vi hämtar aliexpress recensioner längre"). Stoppet sitter på tre ställen:
+
+1. `importReviewsForProduct` sparar ingen rad utan källa (= AliExpress). Det
+   täcker produktimporten, tillägget (`/api/reviews/import`) och backfillen.
+   Aosom-inläsningen skickar `source: "aosom"` och går igenom.
+2. `/api/cron/review-queue` svarar med ett tomt svep (`stoppad: true`) utan
+   att hämta något.
+3. `/api/import` köar inga recensioner efter en produktimport.
+
+`aeRecensionerStoppade()` i `lib/reviews/ae-ko-rensning.ts` styr 2 och 3.
+`AE_RECENSIONER=pa` slår på dem igen, men steg 1 gäller ändå. AliExpress-
+fotoåterställningen (`review-image-restore`) hämtar bara foton till rader som
+redan finns och rörs inte.
 
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 
