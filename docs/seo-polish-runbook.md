@@ -40,8 +40,11 @@
   etikett) hör till varan. Bilden behålls hel och produkten hålls inte tillbaka för det
   *(Leonard 2026-08-06, bekräftat 2026-09-27: "vi ändrar inget på deras utseende eller
   bild")*. Testet: skulle märket synas om du fotade varan själv efter uppackning?
-  Skriv det aldrig i texten. Beslutet gäller leverantörens husmärken. Andras varumärken på
-  varan (bilmärken, licensfigurer) är en licensfråga: flagga till Leonard.
+  Skriv det aldrig i texten. Beslutet gäller leverantörens husmärken. Märkena på Aosoms
+  barnfordon och andra fordon (Mercedes-Benz, Lamborghini m.fl.) är licensierade av Aosom
+  *(Leonard 2026-10-08)*: sådana varor hålls inte kvar, och märket får stå i namn, text och
+  alt-text när det är en del av varan. Andra varumärken och licensfigurer utanför fordonen
+  är fortfarande en licensfråga: flagga till Leonard.
 - **Skriv aldrig avsändarland eller lagerland** *(Leonard 2026-08-15)*. Bara
   EU-lager-ribbonen får visa det. Sök på `skickas från` utan hänsyn till versaler i
   slutkollen, eftersom `gate.py` bara ser den gemena formen.
@@ -148,8 +151,12 @@ den andra.
 
 **Övriga klasser:**
 
-- **Leksaker:** EN 71-märkningen och åldersgränsen ska stå i texten. Saknas certifieringen
-  i källan flaggar du produkten i stället för att gissa.
+- **Leksaker och barnfordon:** åldersgränsen ska stå i texten, och EN 71 skrivs som
+  `Uppfyller EN 71.` Leonard har beslutat att allt från Aosom uppfyller EN 71 *(2026-10-08:
+  Aosom är ett stort europeiskt företag)*, så en leksak eller ett barnfordon från Aosom hålls
+  inte kvar för att källtexten saknar certifieringen. Skriv ingen provningsstandard utöver
+  EN 71, inget certifikatnummer och inget leverantörsnamn. Beslutet gäller varor från Aosom;
+  en leksak från en annan leverantör flaggas som förut när certifieringen saknas.
 - **Grindar som marknadsförs för barn** kräver EN 1930. Skillnaden mellan en hundgrind och
   en barngrind ligger i provningen och syns inte på ett foto.
 
@@ -786,6 +793,7 @@ och brödtexten** — och ta med **bara** det som står där:
 | Uttrycklig varning | `Achtung: …` · `Warnung: …` | `Varning: …` (översätt meningen) |
 | Standard, certifierad | `Sicherheitsstandard: EN71-1-2-3` | `Uppfyller EN 71-1, EN 71-2 och EN 71-3.` |
 | Standard, provad | `Geprüft nach EN71` | `Testad enligt EN 71.` |
+| Standard, antagen (Aosom) | *(källan nämner ingen standard)* | `Uppfyller EN 71.` — bara leksaker och barnfordon från Aosom, Leonards beslut 2026-10-08 |
 
 Även el-, brand-, värme-, kläm- och kvävningsrisk (smådelar) och batterisäkerhet —
 när källan säger det. Håll dig till formuleringarna ovan, så att katalogen läser

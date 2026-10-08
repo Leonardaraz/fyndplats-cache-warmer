@@ -1,0 +1,160 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "204b66ce": {
+  "tyska": "160B x 218T x 172H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 218,
+  "hojd": 172,
+  "bredd": 160
+ },
+ "2a3d2495": {
+  "tyska": "62L x 61B x 57H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 62,
+  "djup": 61
+ },
+ "2a91754d": {
+  "tyska": "(in aufrechter Position) 67B x 91T x 100H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 91,
+  "hojd": 100,
+  "bredd": 67
+ },
+ "2d361836": {
+  "tyska": "49L x 34B x 44H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 49,
+  "djup": 34
+ },
+ "35ca2ded": {
+  "tyska": "113B x 26,6T x 87,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 26.6,
+  "hojd": 87.5,
+  "bredd": 113
+ },
+ "39fc74e3": {
+  "tyska": "73L x 50B x 96H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 96,
+  "bredd": 73,
+  "djup": 50
+ },
+ "3d5db606": {
+  "tyska": "61B x 56T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56,
+  "hojd": 84,
+  "bredd": 61
+ },
+ "4b6b5f7d": {
+  "tyska": "40B x 40T x 48H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 48,
+  "bredd": 40
+ },
+ "4cc8a7d3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 60B x 40T x 129,8H cm | ✔ Hockermaße: 49B x 30T x 40H cm | ✔ Maße der Beinfreiheit: 56,7B x 37,8T x 60H cm | ✔ Spiegelgröße: 35B x 31,5H cm | ✔ Maße des offenen Fachs: 19,6B x 14,6T cm"
+ },
+ "574cf80d": {
+  "tyska": "65B x 58T x 86-94H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 58,
+  "hojd": [
+   86,
+   94
+  ],
+  "bredd": 65
+ },
+ "6972a328": {
+  "tyska": "L198 x B53 x D5 cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (L198 x B53 x D5 cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "7460a0af": {
+  "tyska": "82L x 47B x 97H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 97,
+  "bredd": 82,
+  "djup": 47
+ },
+ "81d13a39": {
+  "tyska": "207B x 107T x 62H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 107,
+  "hojd": 62,
+  "bredd": 207
+ },
+ "9e376599": {
+  "tyska": "60B x 40T x 85H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 85,
+  "bredd": 60
+ },
+ "acaaa862": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 45L x 48,5B x 82H cm | ✔ Sitzgröße: 40B x 40T x 46H cm | ✔ Rückenlehnenmaße: 42B x 39H cm | ✔ Gefaltete Größe: 45L x 97B x 7,5H cm | Mått: 48,5L x 45B x 82H cm"
+ },
+ "b62925ef": {
+  "tyska": "90B x 29,8T x 67,8H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 29.8,
+  "hojd": 67.8,
+  "bredd": 90
+ },
+ "bd28eeea": {
+  "tyska": "52,5B x 14T x 90H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 14,
+  "hojd": 90,
+  "bredd": 52.5
+ },
+ "f16131e3": {
+  "tyska": "81L x 48B x 99H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 99,
+  "bredd": 81,
+  "djup": 48
+ },
+ "f1acf38f": {
+  "tyska": "300B x 300T x 235H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 300,
+  "hojd": 235,
+  "bredd": 300
+ },
+ "feef53f5": {
+  "tyska": "60B x 60T x 69-92H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": [
+   69,
+   92
+  ],
+  "bredd": 60
+ }
+}

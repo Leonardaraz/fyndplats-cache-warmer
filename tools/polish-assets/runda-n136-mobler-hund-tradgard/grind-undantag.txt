@@ -1,0 +1,23 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) visar 73 cm som vagnens längd framifrån och bak och 50 cm som bredd, medan källans L x B-ordning (73L x 50B) läses positionellt som bredd och djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källans L x B-ordning (81L x 48B) läses som längd och bredd, eftersom vagnen är längre än den är bred; måttbilden (bild 3, struken) anger 181 cm som längd medan källan anger 81 cm, och sidan följer källan
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) visar 82 cm som vagnens längd och 47 cm som bredd, medan källans L x B-ordning (82L x 47B) läses positionellt som bredd och djup
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
