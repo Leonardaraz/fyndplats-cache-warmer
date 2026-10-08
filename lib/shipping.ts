@@ -41,4 +41,11 @@ export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull 
 export const STANDARD_SHIPPING_KR = 19;
 export const FREE_SHIPPING_FROM_KR = 500;
 export const FREE_SHIPPING_OVER_KR = FREE_SHIPPING_FROM_KR - 1;
+
+/** Frakten i kronor för en order på `beloppKr`: 0 från gränsen, annars
+ *  standardfrakten. Varukorgens fraktrad, produktsidans JSON-LD och
+ *  produktflödet räknar alla här, så att de aldrig visar olika frakt. */
+export function fraktKr(beloppKr: number): number {
+  return beloppKr >= FREE_SHIPPING_FROM_KR ? 0 : STANDARD_SHIPPING_KR;
+}
 export const SHIPPING_SERVICE = "Spårbar frakt";

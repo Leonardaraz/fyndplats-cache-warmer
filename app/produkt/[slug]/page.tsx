@@ -25,7 +25,7 @@ import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
-import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, FREE_SHIPPING_FROM_KR, STANDARD_SHIPPING_KR } from "../../../lib/shipping";
+import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, fraktKr } from "../../../lib/shipping";
 import { prisGiltigTill } from "../../../lib/pris-giltig";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
@@ -189,7 +189,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: erbjudandePris >= FREE_SHIPPING_FROM_KR ? 0 : STANDARD_SHIPPING_KR,
+          value: fraktKr(erbjudandePris),
           currency: p.currency,
         },
         shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },

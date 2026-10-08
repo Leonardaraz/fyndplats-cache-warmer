@@ -9,11 +9,14 @@ import {
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
 import { tightFillUrl } from "../lib/wix-image";
-import { EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR } from "../lib/shipping";
+import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
+import { leveransIntervall } from "../lib/leveransdatum";
+import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
 import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
 import { formatPrice } from "../lib/price-range";
+import { PaymentMarks } from "./payment-marks";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -127,6 +130,108 @@ export const useCart = () => {
   return c;
 };
 
+// Kassans adress förbereds när lådan visar en vagn med varor och hämtas
+// härifrån vid trycket på "Till kassan" (lib/kassalank.ts).
+const kassalankMinne = skapaKassalankMinne();
+
+// Förbindelsen till kassans värd öppnas medan kunden tittar i lådan, så att
+// kassan börjar laddas direkt efter trycket: uppslag, anslutning och
+// kryptering är redan gjorda. En gång per värd och sida.
+const forbundna = new Set<string>();
+function forbindTill(adress: string): void {
+  try {
+    const origin = new URL(adress).origin;
+    if (forbundna.has(origin)) return;
+    forbundna.add(origin);
+    const l = document.createElement("link");
+    l.rel = "preconnect";
+    l.href = origin;
+    document.head.appendChild(l);
+  } catch { /* oparsbar adress: ingen förbindelse, inget fel */ }
+}
+
+/** Kassans adress för den aktuella vagnen. `forvantatId` är vagnen lådan
+ *  visar när adressen förbereds: har vagnen bytts under tiden byggs ingen
+ *  adress, så att en förberedd adress aldrig pekar på fel vagn. */
+async function byggKassalank(client: any, forvantatId?: string): Promise<Kassalank> {
+  // v2 slog ihop kundvagn och kassa till EN entitet: det finns ingen
+  // createCheckoutFromCurrentCart längre. Vagnens id ÄR kassans id, så
+  // det som förut krävde ett extra anrop är nu bara en uppslagning.
+  const aktuell: any = await client.currentCart.getCurrentCart();
+  const cartId: string = aktuell?.cart?._id || aktuell?._id || "";
+  if (!cartId) throw new Error("ingen kundvagn att gå till kassan med");
+  if (forvantatId && cartId !== forvantatId) throw new Error("vagnen byttes medan kassan förbereddes");
+
+  const origin = window.location.origin;
+  const thankYouUrl = `${origin}/tack`;
+  const shopUrl = `${origin}/butik`;
+
+  // KASSA-ADRESSEN, i två steg med olika roller.
+  //
+  // FÖRST redirect-sessionen — exakt samma anrop som produktionen kör
+  // idag. Wix migreringsguide säger rakt ut att "the checkout ID is the
+  // cart ID in V2", så vagnens id går rakt in där checkoutId ska stå.
+  // Callbacks är hela poängen: thankYouPageUrl är det som gör att kunden
+  // kommer tillbaka till /tack MED ?orderId, och det är den mekanism som
+  // bevisligen fungerar i skarp drift.
+  //
+  // Den returnerade fullUrl pekar på en IAM-endpoint som 404:ar på
+  // primärdomänen, så vi plockar ut den inre riktiga checkout-länken —
+  // samma utplock som produktionen gör.
+  let target = "";
+  let vag = "redirect-session";
+  try {
+    const redirect: any = await client.redirects.createRedirectSession({
+      ecomCheckout: { checkoutId: cartId },
+      callbacks: { thankYouPageUrl: thankYouUrl, postFlowUrl: origin, cartPageUrl: shopUrl },
+    });
+    const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
+    const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
+    if (inner && inner.includes("/__ecom/checkout")) target = inner;
+  } catch (e: any) {
+    // Aldrig tyst: faller sessionen ska det gå att se VARFÖR, annars
+    // används reservvägen i månader utan att någon märker det.
+    console.warn("[kassa] redirect-sessionen föll:", e?.message || e);
+  }
+
+  // SEDAN v2-adressen som reserv. getCheckoutUrl tar även ett
+  // `currencyCode` — hooken för flera valutor, oanvänd här.
+  //
+  // Den ger en naken ?checkoutId=-adress utan callbacks, så ?origin läggs
+  // på för hand. Den vägen är OPROVAD mot ett riktigt köp; den finns för
+  // att kassan ska öppnas även om redirect-sessionen strular, inte för att
+  // den är likvärdig.
+  if (!target) {
+    vag = "getCheckoutUrl (reserv)";
+    const svar: any = await client.cart.getCheckoutUrl(cartId);
+    target = svar?.checkoutUrl || "";
+    if (!target) throw new Error("kassan gav ingen adress");
+    try {
+      const u = new URL(target);
+      if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
+      target = u.toString();
+    } catch { /* oparsbar adress → navigera ändå */ }
+  }
+
+  // hideLoginLogoutBar döljer inloggningsraden på den Wix-hostade kassan så
+  // kunden alltid checkar ut som GÄST. Wix-supportens egen headless-
+  // workaround (ärende juni 2026); utan den gav login/logout-bytet en bugg.
+  // headlessClientId säger vilken headless-klient kassan öppnas för — v1
+  // hade den alltid med. Båda sätts bara om de saknas.
+  //
+  // Fail-safe: går adressen inte att parsa navigerar vi oförändrat.
+  try {
+    const u = new URL(target);
+    u.searchParams.set("hideLoginLogoutBar", "true");
+    if (!u.searchParams.has("headlessClientId")) {
+      u.searchParams.set("headlessClientId", HEADLESS_CLIENT_ID);
+    }
+    target = u.toString();
+  } catch { /* oparsbar adress → navigera ändå */ }
+
+  return { target, vag };
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
@@ -218,91 +323,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
-      const { client } = await getClient();
-
-      // v2 slog ihop kundvagn och kassa till EN entitet: det finns ingen
-      // createCheckoutFromCurrentCart längre. Vagnens id ÄR kassans id, så
-      // det som förut krävde ett extra anrop är nu bara en uppslagning.
-      const aktuell: any = await client.currentCart.getCurrentCart();
-      const cartId: string = aktuell?.cart?._id || aktuell?._id || "";
-      if (!cartId) throw new Error("ingen kundvagn att gå till kassan med");
-
-      const origin = window.location.origin;
-      const thankYouUrl = `${origin}/tack`;
-      const shopUrl = `${origin}/butik`;
-
-      // KASSA-ADRESSEN, i två steg med olika roller.
-      //
-      // FÖRST redirect-sessionen — exakt samma anrop som produktionen kör
-      // idag. Wix migreringsguide säger rakt ut att "the checkout ID is the
-      // cart ID in V2", så vagnens id går rakt in där checkoutId ska stå.
-      // Callbacks är hela poängen: thankYouPageUrl är det som gör att kunden
-      // kommer tillbaka till /tack MED ?orderId, och det är den mekanism som
-      // bevisligen fungerar i skarp drift.
-      //
-      // Den returnerade fullUrl pekar på en IAM-endpoint som 404:ar på
-      // primärdomänen, så vi plockar ut den inre riktiga checkout-länken —
-      // samma utplock som produktionen gör.
-      let target = "";
-      let vag = "redirect-session";
-      try {
-        const redirect: any = await client.redirects.createRedirectSession({
-          ecomCheckout: { checkoutId: cartId },
-          callbacks: { thankYouPageUrl: thankYouUrl, postFlowUrl: origin, cartPageUrl: shopUrl },
-        });
-        const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
-        const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
-        if (inner && inner.includes("/__ecom/checkout")) target = inner;
-      } catch (e: any) {
-        // Aldrig tyst: faller sessionen ska det gå att se VARFÖR, annars
-        // används reservvägen i månader utan att någon märker det.
-        console.warn("[kassa] redirect-sessionen föll:", e?.message || e);
+      // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
+      // just den här vagnen används den, annars byggs den nu, som förut.
+      const kassaId: string = cart?._id || "";
+      const forberedd = kassaId ? kassalankMinne.hamta(kassaId) : null;
+      let lank: Kassalank | null = forberedd ? await forberedd.catch(() => null) : null;
+      if (lank) {
+        lank = { ...lank, vag: `${lank.vag}, förberedd` };
+      } else {
+        const { client } = await getClient();
+        lank = await byggKassalank(client);
       }
-
-      // SEDAN v2-adressen som reserv. getCheckoutUrl tar även ett
-      // `currencyCode` — hooken för flera valutor, oanvänd här.
-      //
-      // Den ger en naken ?checkoutId=-adress utan callbacks, så ?origin läggs
-      // på för hand. Den vägen är OPROVAD mot ett riktigt köp; den finns för
-      // att kassan ska öppnas även om redirect-sessionen strular, inte för att
-      // den är likvärdig.
-      if (!target) {
-        vag = "getCheckoutUrl (reserv)";
-        const svar: any = await client.cart.getCheckoutUrl(cartId);
-        target = svar?.checkoutUrl || "";
-        if (!target) throw new Error("kassan gav ingen adress");
-        try {
-          const u = new URL(target);
-          if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
-          target = u.toString();
-        } catch { /* oparsbar adress → navigera ändå */ }
-      }
-
-      // hideLoginLogoutBar döljer inloggningsraden på den Wix-hostade kassan så
-      // kunden alltid checkar ut som GÄST. Wix-supportens egen headless-
-      // workaround (ärende juni 2026); utan den gav login/logout-bytet en bugg.
-      // headlessClientId säger vilken headless-klient kassan öppnas för — v1
-      // hade den alltid med. Båda sätts bara om de saknas.
-      //
-      // Fail-safe: går adressen inte att parsa navigerar vi oförändrat.
-      try {
-        const u = new URL(target);
-        u.searchParams.set("hideLoginLogoutBar", "true");
-        if (!u.searchParams.has("headlessClientId")) {
-          u.searchParams.set("headlessClientId", HEADLESS_CLIENT_ID);
-        }
-        target = u.toString();
-      } catch { /* oparsbar adress → navigera ändå */ }
 
       // Vilken väg som användes går annars bara att se genom att slutföra ett
       // köp. Raden gör det synligt i konsolen utan att någon betalar något.
-      console.info(`[kassa] adress via ${vag}`);
+      console.info(`[kassa] adress via ${lank.vag}`);
 
-      window.location.href = target;
+      window.location.href = lank.target;
     } catch (e: any) {
       alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
     } finally { setBusy(false); }
   }, [cart]);
+
+  // Förbered kassans adress så fort lådan visar en vagn med varor. Faller
+  // det bygger trycket själv, så ett fel här märks aldrig av kunden.
+  const kassaId: string = cart?._id || "";
+  const harVaror = (cart?.lineItems?.length ?? 0) > 0;
+  useEffect(() => {
+    if (!open || !kassaId || !harVaror) return;
+    kassalankMinne
+      .forbered(kassaId, () => getClient().then(({ client }) => byggKassalank(client, kassaId)))
+      .then((l) => forbindTill(l.target))
+      .catch(() => {});
+  }, [open, kassaId, harVaror]);
 
   const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0)
     + vantande.reduce((n, v) => n + v.antal, 0);
@@ -388,6 +441,10 @@ export function CartDrawer() {
     if (antalVantande && k) k.scrollTop = k.scrollHeight;
   }, [antalVantande]);
   usePanelFokus(open, panelRef, () => setOpen(false));
+  // Samma datum som produktsidan (lib/leveransdatum.ts), räknat när lådan
+  // är öppen och aldrig på servern: lådan är stängd när sidan renderas där,
+  // och då visas "3–6 arbetsdagar".
+  const levIntervall = open ? leveransIntervall(new Date(), DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS) : DELIVERY_TIME;
   const items: any[] = cart?.lineItems || [];
   const cartIds = new Set<string>(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
   // Samma varor ger samma nyckel, i vilken ordning de än lades i.
@@ -429,6 +486,11 @@ export function CartDrawer() {
   const subNum = (parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0) + vantandeSumma;
   const remaining = Math.max(0, FREE_SHIP - subNum);
   const shipPct = Math.min(100, Math.round((subNum / FREE_SHIP) * 100));
+  // Frakten är butikens enda regel (fraktKr, samma gräns som Wix-kassan), så
+  // den och totalen kan stå här i stället för "beräknas i kassan". Rabattkoder
+  // anges i kassan och dras där. Samma valutaförbehåll som mätaren ovan.
+  const frakt = fraktKr(subNum);
+  const totalt = subNum + frakt;
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
@@ -521,9 +583,35 @@ export function CartDrawer() {
         </div>
         {harRader && (
           <div className="drawer-foot">
-            <div className="sub"><span>Delsumma</span><b>{vantande.length ? formatPrice(subNum) : subtotal}</b></div>
+            {/* Som premiumbutikernas kassor (granskningen 2026-10-09): frakten och
+                det kunden betalar står före knappen. Delsumman visas bara när
+                den skiljer sig från totalen. */}
+            <dl className="drawer-sum">
+              {frakt > 0 && (
+                <div><dt>Delsumma</dt><dd>{vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
+              )}
+              <div><dt>Frakt</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : formatPrice(frakt)}</dd></div>
+              <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{formatPrice(totalt)}</dd></div>
+            </dl>
             <button className="buy" disabled={busy} onClick={checkout}>{busy ? "…" : "Till kassan →"}</button>
-            <p className="drawer-note">Frakt och rabatter beräknas i kassan.</p>
+            <ul className="drawer-trygg">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+                  <circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" />
+                  <circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" />
+                </svg>
+                <span>Beräknad leverans <b>{levIntervall}</b></span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 14 4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>30 dagars öppet köp</span>
+              </li>
+            </ul>
+            <PaymentMarks />
             {/* Sista mikro-trygghet före extern Wix-kassa: ingen ny EU-importtull
                 (1 juli 2026) eftersom allt skickas inom EU. Text = single source
                 of truth (lib/shipping.ts); länkar till garanti-sidan. */}
