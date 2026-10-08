@@ -468,6 +468,25 @@ test("likhetsdata – samma lista läses inte om", () => {
   assert.equal(lasningar, 0, "samma lista ska kännas igen utan att läsas");
 });
 
+// Produktsidan räknar på hela katalogen och varukorgens förslag på de varor som
+// kan föreslås. Hamnar båda på samma instans ska ingen av dem byggas om bara för
+// att den andra användes emellan.
+test("likhetsdata – två kataloger turas om utan att byggas om", () => {
+  const hela = [mkFull("a", ["ALL", "k"], { name: "Kompostbehållare 300 liter" }), ...fyllnad()];
+  const smal = [mkFull("b", [], { name: "Soffbord i ek" }), mkFull("c", [], { name: "Sidobord i rotting" })];
+  const d1 = likhetsdata(hela);
+  const d2 = likhetsdata(smal);
+  assert.notEqual(d2, d1);
+  assert.equal(likhetsdata(hela), d1, "hela katalogen ska finnas kvar");
+  assert.equal(likhetsdata(smal), d2, "underlaget ska finnas kvar");
+  // En tredje lista tränger undan den som använts minst nyligen, inte den som
+  // lades in först.
+  assert.equal(likhetsdata(hela), d1);
+  likhetsdata([mkFull("d", [], { name: "Golvlampa 157 cm" })]);
+  assert.equal(likhetsdata(hela), d1, "hela katalogen användes senast och ska finnas kvar");
+  assert.notEqual(likhetsdata(smal), d2, "underlaget användes minst nyligen och fick ge plats");
+});
+
 // Wix kategori-id är alla 36 tecken långa. Ett fingeravtryck på längden hade
 // inte märkt att en produkt flyttats från en kategori till en annan.
 test("likhetsdata – en produkt som byter kategori bygger om", () => {

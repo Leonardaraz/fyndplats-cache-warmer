@@ -6,11 +6,13 @@
 // som kompletterar det som ligger i varukorgen, aldrig ett alternativ till
 // det, aldrig ett annat djurslag och aldrig något som kostar mer än 1,5 gånger
 // varan. Förut var det samma åtta varor för alla (Leonards skärmdump
-// 2026-10-08: en soffa för 7 359 kr i en varukorg på 4 876 kr).
+// 2026-10-08: en soffa för 7 359 kr i en varukorg på 4 876 kr). Svaret ska
+// också bli detsamma ur underlaget som förslagsrutten cachar
+// (forslagsUnderlag) som ur hela katalogen.
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kundvagnsForslag, KOMPLEMENT } from "./related-pick.ts";
+import { forslagsUnderlag, kundvagnsForslag, KOMPLEMENT } from "./related-pick.ts";
 import type { Product } from "./products.ts";
 
 function vara(id: string, name: string, priceNum: number, opts: { inStock?: boolean; img?: string; pop?: number } = {}): Product {
@@ -27,7 +29,7 @@ function vara(id: string, name: string, priceNum: number, opts: { inStock?: bool
   } as unknown as Product;
 }
 
-// Fyllnad så att fyrgrammens sällsynthet liknar en riktig katalog.
+// Varor som ingen regel gäller för. De ska aldrig föreslås och aldrig påverka svaret.
 const FYLLNAD = ["Paraply", "Termos", "Ryggsäck", "Doftljus", "Vinställ", "Brödkorg", "Väckarklocka", "Gardinstång"];
 const fyllnad = () => FYLLNAD.map((n, i) => vara(`fyllnad-${i}`, `${n} ${i}`, 299));
 const ids = (l: Product[]) => l.map((p) => p.id);
@@ -183,6 +185,75 @@ test("limit gäller, och samma varukorg ger samma svar", () => {
   assert.equal(kundvagnsForslag(["soffa"], all, 2).length, 2);
   assert.deepEqual(kundvagnsForslag(["soffa"], all, 0), []);
   assert.deepEqual(ids(kundvagnsForslag(["soffa"], all)), ids(kundvagnsForslag(["soffa"], [...all])));
+});
+
+test("en vara utan regel i varukorgen tar ingen plats", () => {
+  // Hade projektorduken räknats hade soffan fått två av tre platser i första
+  // varvet, och satsbordet tagit den tredje fast fotpallen är en annan sort.
+  const all = [
+    vara("soffa", "3-sitssoffa 213 cm", 5000),
+    vara("duk", "Projektorduk 100 tum", 900),
+    vara("a-soffbord", "Soffbord i ek", 900),
+    vara("b-satsbord", "Satsbord 2-pack i rotting", 900),
+    vara("sidobord", "Sidobord i metall", 700),
+    vara("fotpall", "Fotpall i sammet", 600),
+    ...fyllnad(),
+  ];
+  const ensam = ids(kundvagnsForslag(["soffa"], all));
+  assert.deepEqual(ensam, ["a-soffbord", "sidobord", "fotpall"]);
+  assert.deepEqual(ids(kundvagnsForslag(["soffa", "duk"], all)), ensam);
+});
+
+test("underlaget: varor som en regel gäller för och varor som kan föreslås, och samma svar som hela katalogen", () => {
+  const all = [
+    vara("soffa", "3-sitssoffa 213 cm", 5000),
+    vara("bord", "Skrivbord 120 cm i ek", 1499, { inStock: false }),
+    vara("duk", "Projektorduk 100 tum", 900),
+    vara("soffbord", "Soffbord i ek", 900, { pop: 3 }),
+    vara("sidobord", "Sidobord i metall", 700),
+    vara("stol", "Kontorsstol med nätrygg", 999, { pop: 5 }),
+    vara("hurts", "Hurts på hjul", 699),
+    vara("fotpall", "Fotpall i sammet", 600, { inStock: false }),
+    ...fyllnad(),
+  ];
+  const underlag = forslagsUnderlag(all);
+  // Det slutsålda skrivbordet kan ligga i en varukorg, den slutsålda fotpallen
+  // kan varken det eller föreslås.
+  assert.deepEqual(ids(underlag), ["soffa", "bord", "soffbord", "sidobord", "stol", "hurts"]);
+  for (const korg of [["soffa"], ["bord"], ["stol"], ["soffa", "bord"], ["soffa", "duk"], ["duk"]]) {
+    assert.deepEqual(ids(kundvagnsForslag(korg, underlag)), ids(kundvagnsForslag(korg, all)), korg.join(" + "));
+  }
+});
+
+test("likheten mellan förslagen räknas bland varorna som kan föreslås", () => {
+  // Räknat på hela katalogen ser de två Lunaria-borden ut som samma vara
+  // (likhet över 0,6), och sidobordet hade fallit bort. Bland varorna som kan
+  // föreslås är de två sorters bord, och svaret blir detsamma ur underlaget.
+  const all = [
+    vara("soffa", "3-sitssoffa 213 cm", 5000),
+    vara("a-sidobord", "Sidobord Lunaria Deluxe", 700),
+    vara("b-soffbord", "Soffbord Lunaria Deluxe", 900),
+    vara("fotpall", "Fotpall i sammet", 600),
+    vara("golvlampa", "Golvlampa 157 cm", 669),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(ids(kundvagnsForslag(["soffa"], all)), ["b-soffbord", "a-sidobord", "fotpall"]);
+  assert.deepEqual(ids(kundvagnsForslag(["soffa"], forslagsUnderlag(all))), ["b-soffbord", "a-sidobord", "fotpall"]);
+});
+
+test("försäljningens skala räknas bland varorna som kan föreslås", () => {
+  // Projektorduken säljer mest men kan aldrig föreslås. Räknad mot den hade
+  // fotpallens tre sålda knappt märkts.
+  const all = [
+    vara("soffa", "3-sitssoffa 213 cm", 2000),
+    vara("duk", "Projektorduk 100 tum", 900, { pop: 50 }),
+    vara("soffbord", "Soffbord i ek", 1800),
+    vara("sidobord", "Sidobord i metall", 700),
+    vara("fotpall", "Fotpall i sammet", 600, { pop: 3 }),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(ids(kundvagnsForslag(["soffa"], all)), ["fotpall", "sidobord", "soffbord"]);
+  assert.deepEqual(ids(kundvagnsForslag(["soffa"], forslagsUnderlag(all))), ["fotpall", "sidobord", "soffbord"]);
 });
 
 test("reglerna: hela ord där ordbörjan hade tagit fel vara", () => {

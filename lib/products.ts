@@ -481,6 +481,12 @@ const FALLBACK_PRODUCTS: Product[] = (local as Array<Record<string, unknown>>)
 // leva fem minuter, inte produktsidans sex timmar — se getProducts.
 const DEGRADERADE = new WeakSet<Product[]>([FALLBACK_PRODUCTS]);
 
+/** Sant för reservlistan och en kapad hämtning. Varukorgens förslag sparar
+ *  inget underlag byggt på en sådan katalog (lib/kundvagn-underlag.ts). */
+export function katalogenArDegraderad(lista: Product[]): boolean {
+  return DEGRADERADE.has(lista);
+}
+
 async function fetchProducts(): Promise<Product[]> {
   if (!wix) return FALLBACK_PRODUCTS;
   try {
@@ -866,9 +872,7 @@ export function forListings(products: Product[]): Product[] {
 
 // Nyast skapade först. Används av /alla-produkter så senast importerade produkter
 // hamnar överst (Leonards önskemål 2026-06-14). Stabil tie-break på id så
-// produkter med okänt createdAt (0) inte hoppar mellan renderingar. (mixByCategory
-// nedan var alla-produkters enda anropare och är nu oanvänd — lämnad orörd; kan
-// städas i en separat cleanup.)
+// produkter med okänt createdAt (0) inte hoppar mellan renderingar.
 export function sortByNewest(products: Product[]): Product[] {
   return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(b.id ?? "")));
 }

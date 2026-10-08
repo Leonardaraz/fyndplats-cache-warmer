@@ -354,19 +354,24 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
   );
 }
 
-// Varukorgens förslag hämtas här, inte i layouten: åtta produkter med pris i
-// varje sidas data gjorde alla sidor "nya" så fort ett pris ändrades
+// Varukorgens förslag hämtas här, inte i layouten: förslag med pris i varje
+// sidas data gjorde alla sidor "nya" så fort ett pris ändrades
 // (app/api/kundvagn-forslag). De utgår från varorna i varukorgen och hämtas
 // därför per varukorg: när webbläsaren är ledig efter en ändring, eller direkt
 // när varukorgen öppnas. Svaret sparas per varukorg så länge sidan är öppen.
+// Ett misslyckat anrop sparas inte, så nästa gång varukorgen öppnas försöker
+// den igen.
 const forslagLoften = new Map<string, Promise<RecoProduct[]>>();
 function hamtaForslag(nyckel: string): Promise<RecoProduct[]> {
   let lofte = forslagLoften.get(nyckel);
   if (!lofte) {
     lofte = fetch(`/api/kundvagn-forslag?ids=${encodeURIComponent(nyckel)}`)
-      .then((r) => (r.ok ? r.json() : { forslag: [] }))
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((b: { forslag?: RecoProduct[] }) => (Array.isArray(b.forslag) ? b.forslag : []))
-      .catch(() => []);
+      .catch(() => {
+        forslagLoften.delete(nyckel);
+        return [];
+      });
     forslagLoften.set(nyckel, lofte);
   }
   return lofte;

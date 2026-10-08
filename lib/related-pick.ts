@@ -55,7 +55,7 @@ export function sharedCategoryCount(a: Product, b: Product, universal: Set<strin
  * Behöver INTE kategoriträdet — sällsyntheten mäts direkt i katalogen, så en
  * underkategori får automatiskt högre vikt än sin förälder.
  */
-export function categoryWeights(all: Product[]): Map<string, number> {
+export function categoryWeights(all: { collectionIds?: string[] }[]): Map<string, number> {
   const freq = new Map<string, number>();
   for (const p of all) for (const c of p.collectionIds || []) freq.set(c, (freq.get(c) || 0) + 1);
   const w = new Map<string, number>();
@@ -211,6 +211,10 @@ function djurslagKrockar(a: Set<string>, b: Set<string>): boolean {
 // en annan kategori hade annars sett likadan ut. En produkt som ändå saknas
 // räknas fram när den behövs. Pris, lager och försäljning läses vid varje
 // anrop och ingår inte här.
+//
+// Minnet har två platser: produktsidan räknar på hela katalogen och
+// varukorgens förslag på de varor som kan föreslås (kundvagnsForslag). Hamnar
+// båda på samma instans hade en enda plats byggts om varje gång de turades om.
 export type Likhetsdata = {
   idf: Map<string, number>;
   vektorer: Map<string, Map<string, number>>;
@@ -224,7 +228,10 @@ function hasha(h: number, s: string): number {
   return (Math.imul(h, 31) + 1) | 0; // avgränsare, så "ab"+"c" ≠ "a"+"bc"
 }
 
-function fingeravtryck(all: Product[]): string {
+/** Det likhetsdatan läser ur en vara. */
+type LikhetsVara = { slug: string; name: string; collectionIds?: string[] };
+
+function fingeravtryck(all: LikhetsVara[]): string {
   let h = 0;
   for (const p of all) {
     h = hasha(h, p.slug || "");
@@ -235,15 +242,28 @@ function fingeravtryck(all: Product[]): string {
   return `${all.length}:${h}`;
 }
 
-let minne: { lista: Product[]; nyckel: string; data: Likhetsdata } | null = null;
+const MINNESPLATSER = 2;
+const minnen: Array<{ lista: LikhetsVara[]; nyckel: string; data: Likhetsdata }> = [];
 
-export function likhetsdata(all: Product[]): Likhetsdata {
-  if (minne && minne.lista === all) return minne.data;
-  const nyckel = fingeravtryck(all);
-  if (minne && minne.nyckel === nyckel) {
-    minne.lista = all;
-    return minne.data;
+export function likhetsdata(all: LikhetsVara[]): Likhetsdata {
+  let i = minnen.findIndex((m) => m.lista === all);
+  if (i < 0) {
+    const nyckel = fingeravtryck(all);
+    i = minnen.findIndex((m) => m.nyckel === nyckel);
+    if (i < 0) {
+      minnen.unshift({ lista: all, nyckel, data: byggLikhetsdata(all) });
+      minnen.length = Math.min(minnen.length, MINNESPLATSER);
+      return minnen[0].data;
+    }
+    minnen[i].lista = all;
   }
+  // Senast använd först, så den som använts minst nyligen får ge plats.
+  const [m] = minnen.splice(i, 1);
+  minnen.unshift(m);
+  return m.data;
+}
+
+function byggLikhetsdata(all: LikhetsVara[]): Likhetsdata {
   const df = new Map<string, number>();
   for (const p of all) for (const g of fyrgram(p.name).keys()) df.set(g, (df.get(g) || 0) + 1);
   const idf = new Map<string, number>();
@@ -254,15 +274,13 @@ export function likhetsdata(all: Product[]): Likhetsdata {
     vektorer.set(p.slug, vektor(p.name, idf));
     djur.set(p.slug, djurslag(p.name));
   }
-  const data: Likhetsdata = {
+  return {
     idf,
     vektorer,
     djur,
     universal: universalCollectionIds(all),
     kategorivikt: categoryWeights(all),
   };
-  minne = { lista: all, nyckel, data };
-  return data;
 }
 
 /** Hur lika två produktnamn är som varor, 0–1. */
@@ -271,18 +289,20 @@ export function typLikhet(a: string, b: string, d: Likhetsdata): number {
 }
 
 // Produktens sparade vektor, eller en uträknad för en produkt som saknas i katalogen.
-function vektorFor(x: Product, d: Likhetsdata): Map<string, number> {
+function vektorFor(x: LikhetsVara, d: Likhetsdata): Map<string, number> {
   return d.vektorer.get(x.slug) ?? vektor(x.name, d.idf);
 }
 
 // Som typLikhet, men för två produkter och med katalogens sparade vektorer.
-function produktLikhet(a: Product, b: Product, d: Likhetsdata): number {
+function produktLikhet(a: LikhetsVara, b: LikhetsVara, d: Likhetsdata): number {
   return cosinus(vektorFor(a, d), vektorFor(b, d));
 }
 
 // Under TYP_GOLV är likheten slump (ett gemensamt "vatt" i "vattentät" och
-// "vattenavskiljare") och räknas som noll. SAMMA_TYP är samma sorts vara.
-// NARA_DUBBLETT är samma vara i en annan färg eller storlek.
+// "vattenavskiljare") och räknas som noll. SAMMA_TYP är gränsen för samma
+// sorts vara, som testerna och mätningarna räknar med. NARA_DUBBLETT är samma
+// vara i en annan färg eller storlek. Över VARIATION liknar två förslag
+// varandra för mycket för att stå bredvid varandra.
 const TYPVIKT = 2.5;
 const TYP_GOLV = 0.15;
 export const SAMMA_TYP = 0.35;
@@ -475,6 +495,33 @@ function prisfaktor(forslag: number, vara: number): number {
   return kvot <= FULLT_UPP_TILL ? 1 : 1 / (1 + (kvot - FULLT_UPP_TILL) * 1.5);
 }
 
+/** Det varukorgens förslag läser ur en vara. En hel Product passar, och så gör
+ *  det smala underlaget som förslagsrutten cachar (lib/kundvagn-underlag.ts). */
+export type ForslagsVara = Pick<Product, "id" | "slug" | "name" | "priceNum" | "inStock" | "img"> & {
+  popularity?: number;
+  imageScore?: number;
+};
+
+// Alla regler i två uttryck: en vara som någon regel gäller för, och en sort
+// som någon regel föreslår.
+const NAGON_VARA = new RegExp(KOMPLEMENT.map((r) => `(?:${r.vara.source})`).join("|"), "iu");
+const NAGOT_FORSLAG = new RegExp(KOMPLEMENT.flatMap((r) => r.passar).map((re) => `(?:${re.source})`).join("|"), "iu");
+
+/** En vara som kan föreslås: i lager, med bild och av en sort som någon regel föreslår. */
+function kanForeslas(x: ForslagsVara): boolean {
+  return x.inStock && !!x.img && NAGOT_FORSLAG.test(huvud(x.name));
+}
+
+/**
+ * Det förslagen behöver ur katalogen: varorna som en regel gäller för och
+ * varorna som kan föreslås, ungefär hälften av katalogen. Förslagsrutten
+ * cachar den här listan (lib/kundvagn-underlag.ts), och kundvagnsForslag ger
+ * samma svar ur den som ur hela katalogen.
+ */
+export function forslagsUnderlag<T extends ForslagsVara>(all: T[]): T[] {
+  return all.filter((x) => NAGON_VARA.test(huvud(x.name)) || kanForeslas(x));
+}
+
 /**
  * Upp till `limit` varor som kompletterar varukorgen, bäst först.
  *   • bara varor i lager med bild, aldrig något som redan ligger i varukorgen,
@@ -485,50 +532,59 @@ function prisfaktor(forslag: number, vara: number): number {
  *   • aldrig ett annat djurslag än varan det kompletterar,
  *   • högst 1,5 gånger varans pris, billigare först, försäljningen som
  *     skiljelinje.
- * Första varvet tar en vara per sort och delar platserna mellan varorna i
- * varukorgen. Blir platser över fylls de i ett andra varv. Två förslag som
- * liknar varandra för mycket (tre klaffbord) visas aldrig samtidigt.
+ * Första varvet tar en vara per sort och delar platserna mellan de varor i
+ * varukorgen som har en regel. Blir platser över fylls de i ett andra varv.
+ * Två förslag som liknar varandra för mycket (tre klaffbord) visas aldrig
+ * samtidigt.
+ *
+ * Svaret blir detsamma ur hela katalogen och ur forslagsUnderlag. Likheten
+ * mellan förslagen och försäljningens skala räknas bland varorna som kan
+ * föreslås, och en vara utan regel tar ingen plats.
  */
-export function kundvagnsForslag(varukorgensId: string[], all: Product[], limit = 3): Product[] {
+export function kundvagnsForslag<T extends ForslagsVara>(varukorgensId: string[], all: T[], limit = 3): T[] {
+  if (limit <= 0) return [];
   const ids = new Set(varukorgensId);
-  const ankare = all.filter((p) => ids.has(p.id));
-  if (!ankare.length || limit <= 0) return [];
-  const d = likhetsdata(all);
   // Per vara i varukorgen: vilka sorter som passar (med vikt), och vilka
   // mönster som beskriver varan själv.
-  const regler = ankare.map((a) => {
-    const h = huvud(a.name);
-    const passar: Array<{ re: RegExp; vikt: number }> = [];
-    const egen: RegExp[] = [];
-    for (const r of KOMPLEMENT) {
-      if (!r.vara.test(h)) continue;
-      egen.push(r.vara);
-      r.passar.forEach((re, i) => {
-        if (!re.test(a.name)) passar.push({ re, vikt: PLATSVIKT[Math.min(i, PLATSVIKT.length - 1)] });
-      });
-    }
-    return { passar, egen, djur: djurslag(a.name) };
-  });
+  const regler = all
+    .filter((p) => ids.has(p.id))
+    .map((a) => {
+      const h = huvud(a.name);
+      const passar: Array<{ re: RegExp; vikt: number }> = [];
+      const egen: RegExp[] = [];
+      for (const r of KOMPLEMENT) {
+        if (!r.vara.test(h)) continue;
+        egen.push(r.vara);
+        r.passar.forEach((re, i) => {
+          if (!re.test(a.name)) passar.push({ re, vikt: PLATSVIKT[Math.min(i, PLATSVIKT.length - 1)] });
+        });
+      }
+      return { a, passar, egen, djur: djurslag(a.name) };
+    })
+    .filter((r) => r.passar.length > 0);
+  if (!regler.length) return [];
 
+  const korpus = all.filter(kanForeslas);
+  const d = likhetsdata(korpus);
   let maxPop = 1;
-  for (const x of all) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
+  for (const x of korpus) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
 
-  type Kandidat = { x: Product; ankare: number; sort: RegExp; poang: number };
+  type Kandidat = { x: T; ankare: number; sort: RegExp; poang: number };
   const kandidater: Kandidat[] = [];
   const sedda = new Set<string>();
-  for (const x of all) {
-    if (!x.inStock || !x.img || ids.has(x.id) || sedda.has(x.slug)) continue;
+  for (const x of korpus) {
+    if (ids.has(x.id) || sedda.has(x.slug)) continue;
     sedda.add(x.slug);
     const h = huvud(x.name);
     const xDjur = djurslag(x.name);
     const boost = 1 + 0.5 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
     let bast: Kandidat | null = null;
-    for (let i = 0; i < ankare.length; i++) {
+    for (let i = 0; i < regler.length; i++) {
       const r = regler[i];
       if (r.egen.some((re) => re.test(h)) || djurslagKrockar(r.djur, xDjur)) continue;
       for (const { re, vikt } of r.passar) {
         if (!re.test(h)) continue;
-        const poang = vikt * prisfaktor(x.priceNum, ankare[i].priceNum) * boost;
+        const poang = vikt * prisfaktor(x.priceNum, r.a.priceNum) * boost;
         if (poang > 0 && (!bast || poang > bast.poang)) bast = { x, ankare: i, sort: re, poang };
       }
     }
@@ -536,10 +592,10 @@ export function kundvagnsForslag(varukorgensId: string[], all: Product[], limit 
   }
   kandidater.sort((a, b) => b.poang - a.poang || a.x.slug.localeCompare(b.x.slug));
 
-  const perAnkare = Math.max(1, Math.ceil(limit / ankare.length));
+  const perAnkare = Math.max(1, Math.ceil(limit / regler.length));
   const antal = new Map<number, number>();
   const sorter = new Set<RegExp>();
-  const valda: Product[] = [];
+  const valda: T[] = [];
   for (const forsta of [true, false]) {
     for (const k of kandidater) {
       if (valda.length >= limit) break;

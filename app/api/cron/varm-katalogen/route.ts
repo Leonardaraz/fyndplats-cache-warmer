@@ -27,6 +27,7 @@
 // är precis det värmande vi vill ha. Se den längre noten i warm-and-ping.
 import { NextResponse } from "next/server";
 import { getCollections, getProductSitemapEntries } from "../../../../lib/products";
+import { hamtaKundvagnsUnderlag } from "../../../../lib/kundvagn-underlag";
 import { katalogenArKall, roterad, varmAlla, varmBildkartan, varmListor } from "../../../../lib/warm";
 import type { ListNyckel } from "../../../../lib/list-key";
 
@@ -74,6 +75,13 @@ export async function GET(request: Request) {
   // det åt oss.
   const bildkartan = await varmBildkartan();
 
+  // VARUKORGENS FÖRSLAG läses ur ett underlag i datacachen
+  // (lib/kundvagn-underlag.ts). Saknas det, som efter en deploy, väntar nästa
+  // varukorg på hela katalogen. Här byggs det av en instans som redan har
+  // katalogen i minnet (getProductSitemapEntries ovan), och ett utgånget
+  // underlag byggs om i bakgrunden. Svaret är antalet varor, null vid fel.
+  const kundvagnsUnderlag = await hamtaKundvagnsUnderlag().then((u) => u.length, () => null);
+
   // LISTSIDORNAS PRODUKTLISTOR (app/api/lista), av samma skäl som bildkartan:
   // en kall lista är en kund som väntar på "Visa fler". Varje körning värms de
   // listor flest ser — hela sortimentet, rean och huvudavdelningarna. Efter en
@@ -86,7 +94,7 @@ export async function GET(request: Request) {
   const prov = await katalogenArKall(slugs);
   if (!prov.kall) {
     const listor = await varmListor(toppnycklar, deadline);
-    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan, listor });
+    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan, kundvagnsUnderlag, listor });
   }
 
   const varmning = await varmAlla(roterad(slugs), deadline);
@@ -95,8 +103,10 @@ export async function GET(request: Request) {
   console.log(
     `[varm-katalogen] prov ${prov.missar}/${prov.av} MISS → kall. `
       + `Värmde ${varmning.ok}/${slugs.length}${varmning.avbruten ? " (avbruten på deadline — nästa körning roterar vidare)" : ""}. `
-      + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}. Listor: ${listor.ok}/${listnycklar.length}`,
+      + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}. `
+      + `Varukorgens underlag: ${kundvagnsUnderlag === null ? "misslyckades" : `${kundvagnsUnderlag} varor`}. `
+      + `Listor: ${listor.ok}/${listnycklar.length}`,
   );
 
-  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan, listor });
+  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, bildkartan, kundvagnsUnderlag, listor });
 }
