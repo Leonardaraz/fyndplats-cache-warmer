@@ -96,3 +96,69 @@ export function orderCreatedDate(order: Loose): string | undefined {
 export function orderNumber(order: Loose): string | undefined {
   return firstStr(order?.number);
 }
+
+/** En rad på tacksidan. Beloppet är radens summa inklusive moms. */
+export interface OrderRad {
+  readonly namn: string;
+  /** "Färg: Svart", flera val med " · " emellan. */
+  readonly variant?: string;
+  readonly antal: number;
+  readonly bild?: string;
+  readonly belopp?: number;
+}
+
+/** Ett Wix-belopp ({ amount: "769.00" }, "769.00" eller 769) som tal. */
+function belopp(v: unknown): number | undefined {
+  const s = typeof v === "number" || typeof v === "string" ? v : obj(v)?.amount;
+  const n = typeof s === "number" ? s : typeof s === "string" ? Number.parseFloat(s) : NaN;
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function text(v: unknown): string | undefined {
+  return firstStr(v, obj(v)?.translated, obj(v)?.original);
+}
+
+/**
+ * Orderns rader. Namnet, bilden och valen läses på samma vägar som webhookens
+ * extractItems (app/api/wix-webhook/route.ts). Beloppet är `totalPriceAfterTax`,
+ * radens summa INKLUSIVE moms: Wix lägger `priceSummary.subtotal` exklusive moms
+ * (uppmätt 2026-10-09: 615,20 kr på en order där kunden betalade 769 kr).
+ */
+export function orderRader(order: Loose): OrderRad[] {
+  const rader = order?.lineItems ?? order?.items;
+  if (!Array.isArray(rader)) return [];
+  return rader.map((r) => {
+    const li = obj(r) ?? {};
+    const val = Array.isArray(li.descriptionLines)
+      ? li.descriptionLines
+          .map((d) => {
+            const namn = text(obj(d)?.name);
+            const varde = text(obj(d)?.plainText) ?? text(obj(d)?.plainTextValue);
+            return varde ? (namn ? `${namn}: ${varde}` : varde) : undefined;
+          })
+          .filter((s): s is string => Boolean(s))
+      : [];
+    const antal = Number(li.quantity ?? 1);
+    return {
+      namn: text(li.productName) ?? firstStr(li.name) ?? "Produkt",
+      variant: val.length > 0 ? val.join(" · ") : undefined,
+      antal: Number.isFinite(antal) && antal > 0 ? antal : 1,
+      bild: firstStr(obj(li.image)?.url, li.image, obj(li.productMedia)?.url),
+      belopp: belopp(li.totalPriceAfterTax) ?? belopp(li.totalPrice) ?? belopp(li.lineItemPrice),
+    };
+  });
+}
+
+/**
+ * Frakten och totalen inklusive moms, och momsen i totalen. Frakten tas ur
+ * `shippingInfo.cost`, eftersom `priceSummary.shipping` står exklusive moms.
+ */
+export function orderSumma(order: Loose): { frakt?: number; totalt?: number; moms?: number } {
+  const summa = obj(order?.priceSummary) ?? obj(order?.totals);
+  const kostnad = obj(obj(order?.shippingInfo)?.cost);
+  return {
+    frakt: belopp(kostnad?.totalPriceAfterTax) ?? belopp(kostnad?.price),
+    totalt: belopp(summa?.total) ?? belopp(summa?.totalPrice),
+    moms: belopp(summa?.tax) ?? belopp(obj(order?.taxInfo)?.totalTax),
+  };
+}

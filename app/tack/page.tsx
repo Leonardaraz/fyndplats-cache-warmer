@@ -6,6 +6,10 @@ import { cookies } from "next/headers";
 import { buildGcrConfig } from "../../lib/gcr";
 import { CONSENT_COOKIE, marketingConsentFromCookie } from "../../lib/consent";
 import { GoogleCustomerReviewsOptIn } from "../../components/google-customer-reviews-optin";
+import { TackOrder } from "../../components/tack-order";
+import { leveransIntervallForDag } from "../../lib/leveransdatum";
+import { idagISO } from "../../lib/price-history";
+import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS } from "../../lib/shipping";
 
 export const metadata: Metadata = {
   title: "Tack för din beställning",
@@ -64,11 +68,22 @@ export default async function Tack({
       )
     : null;
 
+  // Samma intervall som kassan visade när ordern lades (lib/kassans-leveranstid),
+  // räknat från orderns svenska dag. Utan datum på ordern gäller dagens.
+  const lagd = info.createdDate ? new Date(info.createdDate) : new Date();
+  const leverans = leveransIntervallForDag(
+    idagISO(Number.isNaN(lagd.getTime()) ? new Date() : lagd),
+    DELIVERY_MIN_DAYS,
+    DELIVERY_MAX_DAYS,
+  );
+
   return (
     <section className="sec tack-sec">
       <div className="container-narrow">
         <Suspense fallback={<div className="tack-loading">Laddar…</div>}>
-          <ThankYou orderNumber={info.number} />
+          <ThankYou orderNumber={info.number}>
+            <TackOrder rader={info.rader} frakt={info.frakt} totalt={info.totalt} leverans={leverans} />
+          </ThankYou>
         </Suspense>
       </div>
       <GoogleCustomerReviewsOptIn config={gcr} />

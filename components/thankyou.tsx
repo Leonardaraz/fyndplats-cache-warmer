@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 import { trackPurchase } from "../lib/analytics";
@@ -8,10 +8,10 @@ import { trackPurchase } from "../lib/analytics";
 // (via postFlowUrl satt i cart.tsx). Wix kan appenda ?orderId= eller liknande
 // query-param med order-ID — vi läser flera vanliga fält defensivt.
 //
-// Anonymiseringsboundary: vi visar bara ordernumret + generisk leverans-info,
-// INTE några sourcing-detaljer. Wix Ecom skickar order-bekräftelse-mejl med
-// fullständiga detaljer separat.
-export function ThankYou({ orderNumber }: { orderNumber?: string | null }) {
+// Anonymiseringsboundary: vi visar ordernumret, varorna och beloppen
+// (components/tack-order.tsx, som `children`), INTE några sourcing-detaljer.
+// Orderbekräftelsen med alla detaljer mejlas av webhooken (app/api/wix-webhook).
+export function ThankYou({ orderNumber, children }: { orderNumber?: string | null; children?: ReactNode }) {
   const params = useSearchParams();
   // Wix Headless redirect-params variera över versioner — prova flera. OBS:
   // detta är orderns interna _id (GUID) — används för GA4/Meta-dedup nedan.
@@ -82,6 +82,8 @@ export function ThankYou({ orderNumber }: { orderNumber?: string | null }) {
         Vi har skickat en orderbekräftelse till din e-post med alla detaljer.
         Vi mejlar dig så snart paketet är på väg.
       </p>
+
+      {children}
 
       <div className="tack-next">
         <div className="tack-step done">
