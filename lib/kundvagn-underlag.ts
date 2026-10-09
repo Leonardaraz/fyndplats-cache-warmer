@@ -11,8 +11,9 @@
 //
 // Här ligger bara det förslagen behöver (forslagsUnderlag i
 // lib/related-pick.ts): varorna som en regel gäller för och varorna som kan
-// föreslås. Det var 1 952 av 3 985 varor och 0,7 MB, och Vercels datacache tar
-// högst 2 MB per post. Ett utgånget underlag skickas direkt och byggs om i
+// föreslås. Det var 3 000 av 3 985 varor och 1,1 MB efter reglerna från
+// 2026-10-09 (1 952 och 0,7 MB förut), och Vercels datacache tar högst 2 MB
+// per post. Ett utgånget underlag skickas direkt och byggs om i
 // bakgrunden. Bara när det saknas helt, till exempel efter en deploy, väntar
 // förfrågan på katalogen. Därför hämtar värmningscronen
 // (app/api/cron/varm-katalogen) underlaget var 15:e minut, på en instans som
@@ -41,6 +42,8 @@ async function byggKundvagnsUnderlag(): Promise<UnderlagsVara[]> {
 }
 
 /** Underlaget, högst en timme gammalt. Kastar när katalogen inte gick att läsa. */
-export const hamtaKundvagnsUnderlag = unstable_cache(byggKundvagnsUnderlag, ["kundvagn-underlag-v1"], {
+// Nyckeln byts när reglerna ändrar vilka varor underlaget ska ha, så att ett
+// underlag byggt med de gamla reglerna aldrig läses.
+export const hamtaKundvagnsUnderlag = unstable_cache(byggKundvagnsUnderlag, ["kundvagn-underlag-v2"], {
   revalidate: 3600,
 });

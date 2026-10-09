@@ -4,15 +4,16 @@
 //
 // Vaktar varukorgens förslag (kundvagnsForslag i lib/related-pick.ts): varor
 // som kompletterar det som ligger i varukorgen, aldrig ett alternativ till
-// det, aldrig ett annat djurslag och aldrig något som kostar mer än 1,5 gånger
-// varan. Förut var det samma åtta varor för alla (Leonards skärmdump
+// det, aldrig ett annat djurslag, ingen barnvara eller utomhusvara till en
+// vara för vuxna eller för inomhus, och aldrig något som kostar mer än 1,5
+// gånger varan. Förut var det samma åtta varor för alla (Leonards skärmdump
 // 2026-10-08: en soffa för 7 359 kr i en varukorg på 4 876 kr). Svaret ska
 // också bli detsamma ur underlaget som förslagsrutten cachar
 // (forslagsUnderlag) som ur hela katalogen.
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { forslagsUnderlag, kundvagnsForslag, KOMPLEMENT } from "./related-pick.ts";
+import { arBarnvara, forslagsUnderlag, kundvagnsForslag, KOMPLEMENT } from "./related-pick.ts";
 import type { Product } from "./products.ts";
 
 function vara(id: string, name: string, priceNum: number, opts: { inStock?: boolean; img?: string; pop?: number } = {}): Product {
@@ -30,7 +31,7 @@ function vara(id: string, name: string, priceNum: number, opts: { inStock?: bool
 }
 
 // Varor som ingen regel gäller för. De ska aldrig föreslås och aldrig påverka svaret.
-const FYLLNAD = ["Paraply", "Termos", "Ryggsäck", "Doftljus", "Vinställ", "Brödkorg", "Väckarklocka", "Gardinstång"];
+const FYLLNAD = ["Paraply", "Termos", "Ryggsäck", "Doftljus", "Ljusstake", "Brödkorg", "Väckarklocka", "Gardinstång"];
 const fyllnad = () => FYLLNAD.map((n, i) => vara(`fyllnad-${i}`, `${n} ${i}`, 299));
 const ids = (l: Product[]) => l.map((p) => p.id);
 
@@ -213,12 +214,12 @@ test("underlaget: varor som en regel gäller för och varor som kan föreslås, 
     vara("sidobord", "Sidobord i metall", 700),
     vara("stol", "Kontorsstol med nätrygg", 999, { pop: 5 }),
     vara("hurts", "Hurts på hjul", 699),
-    vara("fotpall", "Fotpall i sammet", 600, { inStock: false }),
+    vara("madrass", "Madrass 90 × 200 cm", 600, { inStock: false }),
     ...fyllnad(),
   ];
   const underlag = forslagsUnderlag(all);
-  // Det slutsålda skrivbordet kan ligga i en varukorg, den slutsålda fotpallen
-  // kan varken det eller föreslås.
+  // Det slutsålda skrivbordet kan ligga i en varukorg, den slutsålda madrassen
+  // kan varken det eller föreslås (ingen regel gäller för en madrass).
   assert.deepEqual(ids(underlag), ["soffa", "bord", "soffbord", "sidobord", "stol", "hurts"]);
   for (const korg of [["soffa"], ["bord"], ["stol"], ["soffa", "bord"], ["soffa", "duk"], ["duk"]]) {
     assert.deepEqual(ids(kundvagnsForslag(korg, underlag)), ids(kundvagnsForslag(korg, all)), korg.join(" + "));
@@ -264,3 +265,84 @@ test("reglerna: hela ord där ordbörjan hade tagit fel vara", () => {
   assert.equal(regelFor("Kontorsstol med nätrygg").some((r) => r.passar.some((p) => p.test("Skrivbordsstol vit"))), false, "en skrivbordsstol är inget skrivbord");
   assert.equal(regelFor("Hundsoffa 98 cm").some((r) => r.passar.some((p) => p.test("Soffbord i ek"))), false, "en hundsoffa är ingen soffa");
 });
+
+test("en väggspegel får konsolbord, byrå och skoskåp, en badrumsspegel badrumsvaror", () => {
+  // Leonards skärmdump 2026-10-09: en väggspegel i varukorgen gav inga förslag.
+  const all = [
+    vara("spegel", "Väggspegel 50 × 40 cm med svart metallram", 959),
+    vara("badspegel", "LED-spegel för badrum 70 × 90 cm – antiimma och IP44", 1479),
+    vara("konsol", "Konsolbord 100 cm i marmorlook", 799),
+    vara("byra", "Byrå med fyra lådor", 1299),
+    vara("skoskap", "Skoskåp med tre fällbara luckor", 1379),
+    vara("badskap", "Badrumsskåp i bambu med lamelldörr", 599),
+    vara("badhylla", "Badrumshylla i bambu, fyra plan", 479),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(new Set(ids(kundvagnsForslag(["spegel"], all))), new Set(["konsol", "byra", "skoskap"]));
+  const bad = ids(kundvagnsForslag(["badspegel"], all));
+  assert.deepEqual(new Set(bad), new Set(["badskap", "badhylla"]));
+});
+
+test("ingen barnvara till en vara för vuxna, men till en barnvara och i en barnregel", () => {
+  const all = [
+    vara("byra", "Byrå med fyra lådor i vitt", 1299),
+    vara("barnbyra", "Byrå för barnrummet i rosa – tre lådor, för barn 3–8 år", 759),
+    vara("nattbarn", "Nattduksbord för barn med molnlåda, 3–8 år", 499),
+    vara("tagbana", "Tågbana i trä med 91 delar och kran", 939),
+    vara("hylla", "Leksakshylla med sex tygboxar, för barn 3–8 år", 559),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(ids(kundvagnsForslag(["byra"], all)), []);
+  assert.deepEqual(ids(kundvagnsForslag(["barnbyra"], all)), ["nattbarn"]);
+  // En tågbana säger inte att den är för barn, men regeln gäller barnvaror.
+  assert.deepEqual(ids(kundvagnsForslag(["tagbana"], all)), ["hylla"]);
+  assert.equal(arBarnvara("Barnsäker förvaringskista med lock"), false);
+  assert.equal(arBarnvara("Skumklossar för 6–36 månader"), true);
+});
+
+test("ingen utomhusvara till en vara för inomhus, och utemöbler får utomhusvaror", () => {
+  const all = [
+    vara("tvbank", "TV-bänk 160 cm med två skåp", 1699),
+    vara("ute-soffbord", "Soffbord utomhus med hylla, rotting", 999),
+    vara("soffbord", "Soffbord i ek med hylla", 1199),
+    vara("utegrupp", "Bistroset med två stolar och runt bord för balkong", 1899),
+    vara("parasoll", "Parasoll Ø 265 cm med vev", 749),
+    vara("dynor", "Stolsdynor 2-pack för utomhus", 499),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(ids(kundvagnsForslag(["tvbank"], all)), ["soffbord"]);
+  assert.deepEqual(new Set(ids(kundvagnsForslag(["utegrupp"], all))), new Set(["parasoll", "dynor"]));
+});
+
+test("halloween: en figur får en hängande och en uppblåsbar dekoration, aldrig en figur till", () => {
+  const all = [
+    vara("clown", "Halloweenclown 173 cm – rör huvud och armar", 1059),
+    vara("haxa", "Animerad halloweenhäxa 183 cm", 899),
+    vara("hangande", "Hängande halloweenmumie 142 cm", 569),
+    vara("uppblast", "Uppblåsbart halloweenspöke 180 cm", 649),
+    vara("sovsack", "Naturehike Mujin mumiesovsäck – +4 °C", 669),
+    ...fyllnad(),
+  ];
+  assert.deepEqual(new Set(ids(kundvagnsForslag(["clown"], all))), new Set(["hangande", "uppblast"]));
+  assert.deepEqual(ids(kundvagnsForslag(["sovsack"], all)), [], "en mumiesovsäck är ingen halloweenfigur");
+});
+
+test("reglerna: ordets form avgör, inte bara början", () => {
+  const regelFor = (namn: string) => KOMPLEMENT.filter((r) => r.vara.test(namn));
+  assert.equal(regelFor("Eldstadsverktyg i fem delar").some((r) => r.passar.some((p) => p.test("Vedställ 70 cm"))), false, "eldstadsverktyg är ingen eldstad");
+  assert.equal(regelFor("Pop-up-tält 6 × 3 m").length, 0, "ett partytält är inget campingtält");
+  assert.equal(regelFor("TV-bänk 160 cm").some((r) => r.passar.some((p) => p.test("Skoskåp med tre luckor"))), false, "en tv-bänk är ingen hallbänk");
+  assert.equal(regelFor("Hammocköverdrag i oxfordtyg").some((r) => r.passar.some((p) => p.test("Hammocköverdrag i oxfordtyg"))), false, "överdraget är ingen hammock");
+});
+
+test("reglernas mönster saknar Unicode-flaggan, som gör dem flera gånger långsammare", () => {
+  // Utan flaggan går alla regler mot underlaget på ~40 ms i stället för ~250
+  // (mätt 2026-10-09). En regel skriver \p{L}, som byts mot en teckenklass.
+  for (const r of KOMPLEMENT) {
+    for (const re of [r.vara, ...r.passar]) {
+      assert.equal(re.flags, "i", re.source);
+      assert.ok(!re.source.includes("\\p{"), re.source);
+    }
+  }
+});
+

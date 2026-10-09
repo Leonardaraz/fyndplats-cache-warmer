@@ -403,81 +403,272 @@ export function pickRelated(p: Product, all: Product[], limit = 4): Product[] {
 // varukorgar 2026-10-08). En vara utan regel ger inga förslag. Hellre inga
 // förslag än slumpade.
 
+// Bokstäverna i katalogens namn. Mönstren använder den här klassen och inte
+// \p{L}: utan Unicode-flaggan går reglerna ungefär sex gånger fortare mot
+// underlaget (mätt 2026-10-09). I en regel står \p{L} för en bokstav och
+// byts här mot klassen.
+const B = "a-zà-öø-ÿ";
+const latin = (alt: string) => alt.replaceAll("\\p{L}", `[${B}]`);
 // Ett ord som börjar på något av alternativen: "matstol" träffar "matstolar"
 // men inte "barstolar".
-const ordborjan = (alt: string) => new RegExp(`(?:^|[^\\p{L}])(?:${alt})`, "iu");
+const ordborjan = (alt: string) => new RegExp(`(?:^|[^${B}])(?:${latin(alt)})`, "i");
 // Ett helt ord: "grill" träffar inte "grilltält".
-const helaOrd = (alt: string) => new RegExp(`(?:^|[^\\p{L}])(?:${alt})(?![\\p{L}])`, "iu");
+const helaOrd = (alt: string) => new RegExp(`(?:^|[^${B}])(?:${latin(alt)})(?![${B}])`, "i");
+// Ett helt ord som inte heller är sista delen av ett ord med bindestreck:
+// "bänk" träffar inte "TV-bänk", "spegel" inte "LED-spegel".
+const egetOrd = (alt: string) => new RegExp(`(?:^|[^${B}-])(?:${latin(alt)})(?![${B}])`, "i");
+// Något av mönstren.
+const endera = (...m: RegExp[]) => new RegExp(m.map((re) => `(?:${re.source})`).join("|"), "i");
 
-export type Komplement = { vara: RegExp; passar: RegExp[] };
+export type Komplement = {
+  /** Sorten regeln gäller för, prövad mot huvudet i namnet på varan i varukorgen. */
+  vara: RegExp;
+  /** Sorterna som kompletterar den, bäst först, prövade mot förslagens huvud. */
+  passar: RegExp[];
+  /** Regeln gäller bara när varans hela namn matchar ("Högskåp för badrum"). */
+  bara?: RegExp;
+  /** Regeln gäller inte när varans hela namn matchar ("Förvaringsbänk för trädgården"). */
+  utom?: RegExp;
+  /** Förslag vars hela namn matchar föreslås aldrig av regeln. */
+  inteForslag?: RegExp;
+  /** En regel för barnvaror: förslagen får vara barnvaror även när varan inte säger det. */
+  barn?: true;
+  /** En regel för trädgården: förslagen får vara utomhusvaror även när varan inte säger det. */
+  ute?: true;
+};
+
+// Sorter som flera regler föreslår.
+// Speglar för hallen, vardagsrummet och sovrummet. "LED-spegel" är i
+// katalogen en badrumsspegel och räknas inte hit.
+const SPEGEL = endera(ordborjan("väggspegel|väggspeglar|helkroppsspegel|golvspegel|hallspegel|fönsterspegel"), egetOrd("spegel|speglar"));
+const BADRUM = /badrum|ip44|antiimma/iu;
+// Barnvaror: "för barn", "barnbord", "lekmatta baby", "3–8 år", "6–36
+// månader". Till en vara för vuxna föreslås ingen barnvara, så en byrå får
+// inget nattduksbord för barnrummet och ett sminkbord ingen trappall för barn.
+// "Barnsäker" och "barnlås" säger inget om vem varan är till för.
+const BARNVARA = /(?:^|[^\p{L}])(?!barnsäk|barnlås|barnspärr)(?:barn|baby|bebis|småbarn|junior)\p{L}*|\d+\s*[–-]\s*\d+\s*(?:år|mån)|från\s+\d+\s*(?:år|mån)/iu;
+
+/** Är varan till för barn, enligt namnet? */
+export function arBarnvara(name: string): boolean {
+  return BARNVARA.test(name || "");
+}
+
+// Varor för utomhus ("Soffbord utomhus", "Matgrupp för trädgården"), men inte
+// de som är för både inne och ute.
+const UTE = /^(?!.*(?:(?:inne|inomhus)\s*(?:och|&|eller|som|\/)\s*(?:ute|utomhus)|(?:ute|utomhus)\s*(?:och|&|eller|som|\/)\s*(?:inne|inomhus))).*(?:utomhus|trädgård|balkong|uteplats|altan)/iu;
+const NATTDUKSBORD = ordborjan("nattduksbord|sängbord");
+// "Sängbord för laptop" är ett bord att ha i knät, inget nattduksbord.
+const LAPTOP = /laptop|bärbar dator/iu;
+const SKOFORVARING = ordborjan("skoskåp|skobänk|skohylla|skoställ|skoförvaring");
+const HALLMOBEL = ordborjan("klädhängare|hallmöbel|hatthylla|hattställ|kapphylla|paraplyställ");
+const BYRA = ordborjan("\\p{L}*byrå");
+const FOTPALL = ordborjan("fotpall|sittpuff|förvaringspall|förvaringspuff|puff");
+const SIDOBORD = ordborjan("sidobord|brickbord|avlastningsbord");
+const GOLVLAMPA = ordborjan("golvlampa|båglampa");
+const BORDSLAMPA = ordborjan("bordslampa|bordslampor");
+const MATBORD = ordborjan("\\p{L}*matbord|köksbord|klaffbord|matsalsbord");
+const TRANINGSMATTA = ordborjan("träningsmatta|gymmatta|yogamatta|gymnastikmatta");
+const VIKTER = ordborjan("hantel|hantlar|hexhant|kettlebell|skivstång|viktskiv");
+const MATSKAL = ordborjan("matskål|vattenskål|foderskål|matstation|matskålsställ");
+const HUNDBADD = ordborjan("hundbädd|hundsäng|hundsoffa|hundmadrass|husdjurssäng|husdjurssoffa|husdjursbädd");
+const LEKMATTA = ordborjan("lekmatta|krypmatta");
+const LEKSAKSFORVARING = ordborjan("leksakshylla|leksakslåda|leksakskista|leksaksförvaring|barnhylla|barnförvaring");
+const JULBELYSNING = ordborjan("ljusslinga|julbelysning");
+// Halloween: en figur får en dekoration av en annan form, hängande eller
+// uppblåsbar, och tvärtom. "Mumie" men inte "mumiesovsäck".
+const HALLOWEEN = "halloween|häx|zombie|lieman|clown|skräckdock|spökdock|spök|skelett|mumie(?!s)|dödskall|pumpa|pumpor|pumpträd|motorsågsmördare|fågelskrämma";
+const HALLOWEEN_FIGUR = new RegExp(`^(?!.*(?:uppblås|hängande))(?=.*(?:${HALLOWEEN}))`, "i");
+const HALLOWEEN_HANGANDE = new RegExp(`^(?=.*hängande)(?=.*(?:${HALLOWEEN}))`, "i");
+const HALLOWEEN_UPPBLAST = new RegExp(`^(?=.*uppblås)(?=.*(?:${HALLOWEEN}))`, "i");
 
 /**
  * Vilka sorters varor som kompletterar en viss sorts vara, bäst först. `vara`
- * prövas mot huvudet i namnet på varan i varukorgen, `passar` mot förslagets.
+ * prövas mot huvudet i namnet på varan i varukorgen, `passar` mot förslagens.
  * Mönstren är smala med flit, för de gäller i hela katalogen: en golvlampa
  * till en fåtölj ligger i en annan avdelning än fåtöljen. Ett mönster utan
  * träffar ger inga förslag, inget fel.
+ *
+ * Reglerna täcker de sorter där något i katalogen verkligen hör ihop med
+ * varan. Sorter utan en sådan vara (elbilar för barn, soptunnor) har ingen
+ * regel: katalogen har inga hjälmar och inga soppåsar.
  */
 export const KOMPLEMENT: Komplement[] = [
-  // Möbler
-  { vara: ordborjan("matbord|köksbord|klaffbord"), passar: [ordborjan("matstol|köksstol|stolar"), ordborjan("sideboard|skänk|vitrinskåp")] },
-  { vara: ordborjan("matstol|köksstol"), passar: [ordborjan("matbord|köksbord|klaffbord")] },
-  { vara: ordborjan("matgrupp"), passar: [ordborjan("sideboard|skänk|vitrinskåp")] },
-  { vara: ordborjan("sideboard|skänk|vitrinskåp"), passar: [ordborjan("väggspegel")] },
-  { vara: ordborjan("barbord|bardisk|köksö"), passar: [ordborjan("barstol|barpall")] },
+  // Möbler: matplatsen
+  { vara: MATBORD, passar: [ordborjan("matstol|köksstol|stolar|matsalsstol|friswingstol"), ordborjan("matbänk|matsalsbänk"), ordborjan("sideboard|rottingsideboard|skänk|vitrinskåp")] },
+  { vara: helaOrd("bord"), bara: /köksbord|matbord/iu, passar: [ordborjan("matstol|köksstol|stolar|matsalsstol|friswingstol"), ordborjan("matbänk|matsalsbänk")] },
+  { vara: ordborjan("matstol|köksstol|matsalsstol|friswingstol"), passar: [MATBORD] },
+  { vara: ordborjan("matbänk|matsalsbänk"), passar: [MATBORD, ordborjan("matstol|köksstol|stolar")] },
+  { vara: ordborjan("fällstol"), passar: [ordborjan("fällbord")] },
+  { vara: ordborjan("fällbord"), passar: [ordborjan("fällstol")] },
+  { vara: ordborjan("matgrupp"), utom: UTE, passar: [ordborjan("sideboard|rottingsideboard|skänk|vitrinskåp")] },
+  { vara: ordborjan("sideboard|rottingsideboard|skänk|vitrinskåp"), passar: [SPEGEL, BORDSLAMPA] },
+  { vara: ordborjan("barbord|bardisk|köksö"), passar: [ordborjan("barstol|barpall"), ordborjan("vinställ|vinhylla"), ordborjan("barvagn")] },
   { vara: ordborjan("barstol|barpall"), passar: [ordborjan("barbord|bardisk")] },
-  { vara: helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord"), passar: [ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol"), ordborjan("hurts|skrivarställ")] },
-  { vara: ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol"), passar: [helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord"), ordborjan("hurts")] },
-  { vara: helaOrd("säng|sängram|dubbelsäng|enkelsäng|kontinentalsäng|våningssäng"), passar: [ordborjan("nattduksbord"), ordborjan("madrass"), ordborjan("sänggavel|sängbänk")] },
-  { vara: ordborjan("nattduksbord"), passar: [ordborjan("byrå")] },
-  { vara: ordborjan("byrå"), passar: [ordborjan("nattduksbord"), ordborjan("väggspegel|helkroppsspegel|golvspegel")] },
-  { vara: ordborjan("garderob|tyggarderob|klädskåp|klädställ"), passar: [ordborjan("skohylla|skoställ|skoskåp|skobänk"), ordborjan("helkroppsspegel|golvspegel|väggspegel")] },
-  { vara: ordborjan("skoskåp|skobänk|skohylla|skoställ"), passar: [ordborjan("väggspegel|helkroppsspegel"), ordborjan("klädhängare|hallmöbel|paraplyställ")] },
-  { vara: ordborjan("hallmöbel|klädhängare"), passar: [ordborjan("skoskåp|skobänk|skohylla|skoställ"), ordborjan("väggspegel")] },
-  { vara: ordborjan("soffa|bäddsoffa|hörnsoffa|modulsoffa|\\p{L}*sitssoffa"), passar: [ordborjan("soffbord|satsbord"), ordborjan("sidobord"), ordborjan("fotpall|sittpuff"), ordborjan("golvlampa")] },
-  { vara: ordborjan("\\p{L}*fåtölj|gungstol|massagestol"), passar: [ordborjan("fotpall|sittpuff"), ordborjan("sidobord|satsbord"), ordborjan("golvlampa")] },
-  { vara: ordborjan("soffbord|satsbord"), passar: [ordborjan("sidobord"), ordborjan("fotpall|sittpuff")] },
-  { vara: ordborjan("sidobord"), passar: [ordborjan("golvlampa"), ordborjan("fotpall|sittpuff")] },
-  { vara: ordborjan("tv-bänk|tvbänk"), passar: [ordborjan("soffbord|satsbord")] },
-  { vara: ordborjan("bokhylla|barnbokhylla|kubhylla"), passar: [ordborjan("golvlampa")] },
-  // Hem & Inredning, Kök
-  { vara: ordborjan("badrumsskåp|tvättställsskåp|spegelskåp|medicinskåp"), passar: [ordborjan("badrumsspegel"), ordborjan("tvättkorg|tvättsorterare"), ordborjan("badrumshylla|duschpall")] },
+  // Möbler: arbetsplatsen
+  { vara: helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord|väggskrivbord"), passar: [ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol"), ordborjan("hurts|skrivarställ"), ordborjan("monitorställ|skärmhöjare|fotstöd")] },
+  { vara: ordborjan("kontorsstol|skrivbordsstol|gamingstol|knästol|chefsstol|ritstol|arbetsstol|massagekontorsstol"), passar: [helaOrd("skrivbord|hörnskrivbord|datorbord|gamingbord"), ordborjan("hurts"), ordborjan("fotstöd|sittdyna")] },
+  { vara: ordborjan("ståbord"), passar: [ordborjan("pendelpall|ståpall|sadelpall|ritstol")] },
+  { vara: ordborjan("hurts|förvaringshurts|skrivarställ|skrivarvagn|skrivarskåp|skrivarbord"), passar: [ordborjan("monitorställ|skärmhöjare"), ordborjan("fotstöd")] },
+  { vara: ordborjan("monitorställ|skärmhöjare"), passar: [ordborjan("fotstöd"), ordborjan("hurts|skrivarställ")] },
+  { vara: ordborjan("fotstöd"), passar: [ordborjan("monitorställ|skärmhöjare"), ordborjan("sittdyna")] },
+  // Möbler: sovrummet
+  { vara: helaOrd("säng|sängram|dubbelsäng|enkelsäng|kontinentalsäng|våningssäng|järnsäng|metallsäng|loftsäng"), passar: [NATTDUKSBORD, ordborjan("madrass"), ordborjan("sänggavel|sängbänk")], inteForslag: LAPTOP },
+  { vara: ordborjan("juniorsäng|barnsäng|spjälsäng"), passar: [LEKSAKSFORVARING, NATTDUKSBORD], inteForslag: LAPTOP, barn: true },
+  { vara: NATTDUKSBORD, utom: LAPTOP, passar: [BYRA, BORDSLAMPA] },
+  { vara: BYRA, passar: [NATTDUKSBORD, SPEGEL], inteForslag: LAPTOP },
+  { vara: ordborjan("sängbänk|bäddbänk"), passar: [NATTDUKSBORD, BYRA], inteForslag: LAPTOP },
+  { vara: ordborjan("sänggavel"), passar: [NATTDUKSBORD, ordborjan("sängbänk")], inteForslag: LAPTOP },
+  { vara: ordborjan("garderob|tyggarderob|modulgarderob|väggarderob|hörngarderob|klädskåp|klädställ"), passar: [SKOFORVARING, SPEGEL] },
+  { vara: ordborjan("sminkbord"), utom: BARNVARA, passar: [endera(ordborjan("sminkpall|sminkstol"), helaOrd("pall")), ordborjan("smyckeskrin|smyckesskåp")], inteForslag: /fotpall|steg/iu },
+  { vara: ordborjan("sminkspegel|hollywoodspegel"), passar: [ordborjan("sminkbord"), endera(ordborjan("sminkpall|sminkstol"), helaOrd("pall")), ordborjan("smyckeskrin")], inteForslag: /fotpall|steg/iu },
+  // Möbler: hallen
+  { vara: SPEGEL, utom: BADRUM, passar: [ordborjan("konsolbord|hallbord"), BYRA, endera(SKOFORVARING, ordborjan("hallmöbel"))] },
+  { vara: ordborjan("konsolbord|hallbord"), passar: [SPEGEL, BORDSLAMPA] },
+  { vara: endera(ordborjan("sittbänk|hallbänk|förvaringsbänk|ottomanbänk|manchesterbänk|träbänk|entréset"), egetOrd("bänk")), utom: /trädgård|utomhus|balkong|altan/iu, passar: [SPEGEL, SKOFORVARING, HALLMOBEL] },
+  { vara: SKOFORVARING, passar: [SPEGEL, HALLMOBEL, ordborjan("sittbänk|hallbänk")] },
+  { vara: HALLMOBEL, passar: [SKOFORVARING, SPEGEL] },
+  // Möbler: vardagsrummet
+  { vara: ordborjan("soffa|bäddsoffa|hörnsoffa|modulsoffa|\\p{L}*sitssoffa|reclinersoffa|schäslong|sofabädd|golvsoffa"), utom: UTE, passar: [ordborjan("soffbord|satsbord"), SIDOBORD, FOTPALL, GOLVLAMPA] },
+  { vara: ordborjan("(?!barn)\\p{L}*fåtölj|gungstol|massagestol|snurrstol"), utom: UTE, passar: [FOTPALL, endera(SIDOBORD, ordborjan("satsbord")), GOLVLAMPA] },
+  { vara: ordborjan("soffbord|satsbord"), utom: UTE, passar: [SIDOBORD, FOTPALL] },
+  { vara: SIDOBORD, utom: UTE, passar: [BORDSLAMPA, GOLVLAMPA, FOTPALL] },
+  { vara: FOTPALL, utom: UTE, passar: [SIDOBORD, GOLVLAMPA] },
+  { vara: ordborjan("tv-bänk|tvbänk|tv-ställ"), passar: [ordborjan("soffbord|satsbord")] },
+  { vara: ordborjan("bokhylla|kubhylla|hörnbokhylla|mediahylla"), utom: BARNVARA, passar: [GOLVLAMPA] },
+  { vara: GOLVLAMPA, utom: UTE, passar: [SIDOBORD] },
+  { vara: BORDSLAMPA, utom: UTE, passar: [NATTDUKSBORD, SIDOBORD], inteForslag: LAPTOP },
+  { vara: ordborjan("elkamin|minielkamin|väggkamin|etanolbrasa|elektrisk kamin|elektrisk väggkamin"), passar: [FOTPALL, ordborjan("\\p{L}*fåtölj|gungstol")] },
+  { vara: ordborjan("gnistskydd|gnistgaller|eldskydd"), passar: [ordborjan("vedställ|vedkorg"), ordborjan("eldstadsverktyg")], inteForslag: /utomhus/iu },
+  // Hem & Inredning: badrummet och tvätten
+  { vara: ordborjan("badrumsskåp|tvättställsskåp|spegelskåp|medicinskåp|handfatsskåp|badrumskommod|förbandsskåp"), passar: [ordborjan("badrumsspegel|led-spegel"), ordborjan("tvättkorg|tvättsorterare"), ordborjan("badrumshylla|handdukshållare|handduksställ|toaletthylla")] },
+  { vara: ordborjan("högskåp|väggskåp|hängskåp|skåp|toalettskåp|förvaringsskåp"), bara: /badrum|toalett|handfat/iu, passar: [ordborjan("badrumsspegel|led-spegel"), ordborjan("tvättkorg|tvättsorterare"), ordborjan("badrumshylla|handdukshållare|handduksställ")] },
+  { vara: endera(ordborjan("badrumsspegel|led-spegel"), egetOrd("spegel")), bara: BADRUM, passar: [ordborjan("badrumsskåp|tvättställsskåp|handfatsskåp"), ordborjan("badrumshylla|handdukshållare|handduksställ|toaletthylla")] },
   { vara: ordborjan("badrumsspegel"), passar: [ordborjan("badrumsskåp|tvättställsskåp"), ordborjan("badrumshylla")] },
-  { vara: ordborjan("tvättkorg|tvättsorterare"), passar: [ordborjan("torkställ|torkvagn")] },
-  { vara: ordborjan("golvlampa"), passar: [ordborjan("sidobord")] },
-  { vara: ordborjan("vattenkokare"), passar: [ordborjan("brödrost")] },
-  { vara: ordborjan("brödrost"), passar: [ordborjan("vattenkokare")] },
+  { vara: ordborjan("badrumshylla|handdukshållare|handduksställ|toaletthylla|badrumspelare|nischvagn"), passar: [ordborjan("tvättkorg|tvättsorterare"), ordborjan("duschpall")] },
+  { vara: ordborjan("duschpall|duschstol"), passar: [ordborjan("badrumshylla|handdukshållare|handduksställ")] },
+  { vara: ordborjan("tvättkorg|tvättsorterare|tvättskåp"), passar: [ordborjan("torkställ|torkvagn|torkställning")] },
+  { vara: ordborjan("torkställ|torkställning|torkvagn|torktorn|uppvärmt torkställ"), passar: [ordborjan("tvättkorg|tvättsorterare"), ordborjan("strykbräd")] },
+  { vara: ordborjan("torktumlare|minitorktumlare"), passar: [ordborjan("tvättkorg|tvättsorterare")] },
+  // Hem & Inredning: köket
+  { vara: ordborjan("köksskåp|köksskänk|köksbuffé|skafferiskåp|mikrovågsugnsskåp|mikrovågsskåp"), passar: [ordborjan("köksvagn|serveringsvagn"), ordborjan("vinställ|vinhylla"), ordborjan("kökshylla|mikrovågsugnshylla")] },
+  { vara: ordborjan("köksvagn|rullvagn|förvaringsvagn|grönsaksvagn"), passar: [ordborjan("kökshylla|mikrovågsugnshylla")] },
+  { vara: ordborjan("barvagn|serveringsvagn"), passar: [ordborjan("vinställ|vinhylla")] },
+  { vara: ordborjan("vinställ|vinhylla"), passar: [ordborjan("barvagn|serveringsvagn"), ordborjan("vinkyl")] },
+  { vara: ordborjan("vinkyl"), passar: [ordborjan("vinställ|vinhylla"), ordborjan("barvagn")] },
+  { vara: ordborjan("vattenkokare"), passar: [ordborjan("brödrost"), ordborjan("espressomaskin|kapselmaskin")] },
+  { vara: ordborjan("brödrost"), passar: [ordborjan("vattenkokare"), ordborjan("espressomaskin|kapselmaskin")] },
+  { vara: ordborjan("frukostset|frukostmaskin"), passar: [ordborjan("espressomaskin|kapselmaskin|kaffekvarn")] },
+  { vara: ordborjan("espressomaskin|kapselmaskin"), passar: [ordborjan("kaffekvarn"), ordborjan("vattenkokare|frukostset")] },
+  { vara: ordborjan("kaffekvarn"), passar: [ordborjan("espressomaskin|kapselmaskin")] },
+  { vara: ordborjan("miniugn|bänkugn|airfryer|varmluftsfritös|pizzaugn"), passar: [ordborjan("mikrovågsugnshylla|kökshylla"), ordborjan("köksvagn|rullvagn")] },
+  // Hem & Inredning: dekoration
+  { vara: ordborjan("konstgjor[dt]\\p{L}*|konstväxt"), utom: /(?:^|[^\p{L}])(?:gran|granar|tall)(?![\p{L}])|jul|häck|jordspett|markspett/iu, passar: [ordborjan("blomställ|växtställ|växtpiedestal|piedestal|blomhylla|växthylla|hörnblomställ|plantetagerie|blompall")] },
+  { vara: ordborjan("konstgjor[dt]\\p{L}*|konstväxt"), bara: /buxbom|cypress|klot|ceder|tuja|uv-|utomhus|inne och ute/iu, utom: /(?:^|[^\p{L}])(?:gran|granar|tall)(?![\p{L}])|jul/iu, passar: [ordborjan("solcellslamp|solcellslykt")], ute: true },
+  { vara: ordborjan("blomställ|växtställ|växtpiedestal|piedestal|blomhylla|växthylla|hörnblomställ|plantetagerie|blomtrappa|växttrappa|blomsterhylla"), passar: [ordborjan("konstgjor[dt]\\p{L}*|konstväxt")], inteForslag: /jul|(?:^|[^\p{L}])(?:gran|granar|tall)(?![\p{L}])|häck/iu },
+  { vara: ordborjan("övervakningskamera"), passar: [ordborjan("hemlarm")] },
+  { vara: ordborjan("hemlarm"), passar: [ordborjan("övervakningskamera")] },
   // Trädgård
-  { vara: ordborjan("\\p{L}*växthus|foliehus|drivbänk|odlingstunnel"), passar: [ordborjan("odlingslåda|odlingsbord|pallkrage"), ordborjan("blomställ|växthylla"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")] },
-  { vara: ordborjan("odlingslåda|odlingsbord|pallkrage"), passar: [ordborjan("miniväxthus|drivbänk|odlingstunnel"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")] },
-  { vara: helaOrd("kolgrill|gasolgrill|klotgrill|pelletsgrill|elgrill|grill"), passar: [ordborjan("grilltält|grillskydd|grillöverdrag|grillverktyg|grillbestick")] },
-  { vara: ordborjan("trädgårdsbord|bistroset|trädgårdsgrupp|loungegrupp|utemöbel|soffgrupp"), passar: [ordborjan("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("bänkdyna|dyna")] },
-  { vara: ordborjan("trädgårdsbänk"), passar: [ordborjan("bänkdyna|dyna"), ordborjan("skyddsöverdrag")] },
-  { vara: ordborjan("solsäng|solstol|vilstol"), passar: [ordborjan("parasoll"), ordborjan("dyna")] },
-  { vara: ordborjan("eldkorg|eldskål|eldstad|utomhuseldstad"), passar: [ordborjan("vedställ|vedkorg|vedbod"), ordborjan("eldstadsverktyg")] },
-  { vara: ordborjan("vedställ|vedkorg|vedbod"), passar: [ordborjan("eldkorg|eldskål|eldstad"), ordborjan("eldstadsverktyg")] },
+  { vara: ordborjan("\\p{L}*växthus|foliehus|drivbänk|odlingstunnel|\\p{L}*drivhus"), passar: [ordborjan("odlingslåd|odlingsbord|pallkrage"), ordborjan("blomställ|växthylla"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")], ute: true },
+  { vara: ordborjan("odlingslåd|odlingsbord|pallkrage|blomlåda|planteringsbord"), passar: [ordborjan("miniväxthus|drivbänk|odlingstunnel|minidrivhus"), ordborjan("spaljé|rankbåge|tomatstöd"), ordborjan("slangvinda|bevattning|vattentunna|vattenkanna")], ute: true },
+  { vara: ordborjan("spaljé|rankbåge|rosenbåge|tomatstöd"), passar: [ordborjan("odlingslåd|pallkrage|blomlåda")], ute: true },
+  { vara: helaOrd("kolgrill|gasolgrill|klotgrill|pelletsgrill|elgrill|grill"), passar: [ordborjan("grilltält|grillskydd|grillöverdrag|grillverktyg|grillbestick")], ute: true },
+  { vara: ordborjan("trädgårdsbord|bistroset|bistrobord|trädgårdsgrupp|loungebord|utemöbel|utemöbler|utegrupp|sittgrupp|balkongbord|balkongset|utebord|trädgårdsstol|utomhusstol"), passar: [helaOrd("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("stolsdyn|pallkudd|dynor")], inteForslag: /hammock|solsäng|hörnsoffa|l-formad/iu, ute: true },
+  { vara: ordborjan("loungegrupp|loungeset|soffgrupp"), passar: [helaOrd("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("stolsdyn|pallkudd|dynor")], inteForslag: /hammock|solsäng/iu, ute: true },
+  { vara: ordborjan("soffa|hörnsoffa|soffbord|sidobord|\\p{L}*fåtölj|gungstol"), bara: UTE, passar: [helaOrd("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("stolsdyn|pallkudd|dynor")], inteForslag: /hammock|solsäng/iu, ute: true },
+  { vara: ordborjan("matgrupp"), bara: UTE, passar: [helaOrd("parasoll"), ordborjan("skyddsöverdrag|möbelskydd"), ordborjan("stolsdyn|pallkudd|dynor")], inteForslag: /hammock|solsäng/iu, ute: true },
+  { vara: ordborjan("trädgårdsbänk|parkbänk"), passar: [ordborjan("bänkdyna")], ute: true },
+  { vara: ordborjan("solsäng|solstol|vilstol|däckstol|adirondackstol|utedagbädd"), passar: [helaOrd("parasoll"), ordborjan("dyna")], ute: true },
+  { vara: helaOrd("parasoll|hängparasoll"), passar: [ordborjan("parasollfot|parasollvikt|viktplatt")], ute: true },
+  { vara: ordborjan("parasollfot|parasollvikt|viktplatt"), passar: [helaOrd("parasoll")], ute: true },
+  { vara: ordborjan("dynbox|dynlåda|förvaringsbox"), passar: [ordborjan("pallkudd|stolsdyn|bänkdyna|dyna|dynor")], ute: true },
+  { vara: ordborjan("pallkudd|stolsdyn|bänkdyna|dynor"), passar: [ordborjan("dynbox|förvaringsbox")], ute: true },
+  { vara: ordborjan("hängmattestativ"), passar: [ordborjan("hängmatta")], ute: true },
+  { vara: ordborjan("hängmatta"), passar: [ordborjan("hängmattestativ")], ute: true },
+  { vara: helaOrd("hammock"), passar: [ordborjan("hammocköverdrag")], ute: true },
+  { vara: endera(ordborjan("eldkorg|eldskål|utomhuseldstad|eldbord|fyrfat"), helaOrd("eldstad")), passar: [ordborjan("vedställ|vedkorg|vedbod|vedhylla|vedförvaring"), ordborjan("eldstadsverktyg")], ute: true },
+  { vara: ordborjan("vedställ|vedkorg|vedbod|vedhylla|vedförvaring"), passar: [endera(ordborjan("eldkorg|eldskål"), helaOrd("eldstad")), ordborjan("eldstadsverktyg"), ordborjan("gnistskydd|gnistgaller")], ute: true },
+  { vara: ordborjan("redskapsbod|plåtbod|plastbod|trädgårdsförråd|förråd|plastskjul|redskapsskåp|trädgårdsskåp"), passar: [ordborjan("garagehylla|förvaringshylla|lagerhylla"), ordborjan("väggställ")], ute: true },
+  { vara: ordborjan("cykeltält|cykelförråd|cykelgarage"), passar: [ordborjan("cykelställ|golvställ"), ordborjan("kättinglås|cykellås")], ute: true },
+  { vara: ordborjan("solcellslamp|solcellslykt"), passar: [ordborjan("konstgjor[dt]\\p{L}* \\p{L}*(?:buxbom|cypress|klot|ceder|tuja|lavendel)")], ute: true },
+  { vara: ordborjan("gräsklippare|grästrimmer|lövblås|häcksax"), passar: [ordborjan("trädgårdssäck"), ordborjan("gräsmatteluftare|gräsmattsluftare|gödselspridare")], ute: true },
+  { vara: ordborjan("gräsmatteluftare|gräsmattsluftare|gödselspridare"), passar: [ordborjan("trädgårdssäck")], ute: true },
+  { vara: ordborjan("snöskyffel|snöskyfflar|snöskrapa"), passar: [ordborjan("snökäpp")], ute: true },
+  { vara: ordborjan("snökäpp"), passar: [ordborjan("snöskyffel")], ute: true },
   // Husdjur. Djurslaget avgör sedan: en hundkoja får aldrig en kattvara.
-  { vara: ordborjan("hundkoja|hundbur|hundhage|valphage|hundgrind"), passar: [ordborjan("hundbädd|hundsäng|hundsoffa|hundmadrass"), ordborjan("matskål|vattenskål|foderskål|matstation|foderautomat|vattenfontän")] },
-  { vara: ordborjan("hundbädd|hundsäng|hundsoffa"), passar: [ordborjan("matskål|vattenskål|foderskål|matstation|foderautomat|vattenfontän"), ordborjan("hundtrappa|husdjurstrappa")] },
-  { vara: ordborjan("klösträd|klöstorn|klöstunna|klöspelare|katthus|kattorn|väggklösträd|takspänt"), passar: [ordborjan("kattlåda"), ordborjan("kattleksak|kattunnel|kattsäng|kattbädd"), ordborjan("vattenfontän|foderautomat|matskål")] },
-  { vara: ordborjan("kattlåda"), passar: [ordborjan("vattenfontän|foderautomat|matskål|matstation"), ordborjan("kattleksak|kattunnel|klösbräda")] },
+  { vara: ordborjan("hundkoja|hundbur|hundhage|valphage|hundgrind"), passar: [HUNDBADD, endera(MATSKAL, ordborjan("foderautomat|vattenfontän"))] },
+  { vara: HUNDBADD, passar: [endera(MATSKAL, ordborjan("foderautomat|vattenfontän")), ordborjan("hundtrappa|husdjurstrappa|hundramp")] },
+  { vara: ordborjan("hundtrappa|husdjurstrappa|hundramp|kattrappa"), passar: [endera(HUNDBADD, ordborjan("kattbädd|kattsäng|kattkorg"))] },
+  { vara: ordborjan("hundvagn|joggingvagn|cykelvagn"), bara: /hund|husdjur|katt/iu, passar: [HUNDBADD, ordborjan("hundtrappa|husdjurstrappa")] },
+  { vara: ordborjan("vattenfontän"), passar: [ordborjan("foderautomat"), MATSKAL] },
+  { vara: ordborjan("foderautomat"), passar: [ordborjan("vattenfontän"), MATSKAL] },
+  { vara: MATSKAL, passar: [ordborjan("matskåp"), ordborjan("vattenfontän|foderautomat")] },
+  { vara: ordborjan("matskåp"), passar: [MATSKAL, ordborjan("foderautomat")] },
+  { vara: ordborjan("klösträd|klöstorn|klöstunna|klöspelare|klösmöbel|klättervägg|katthus|kattorn|väggklösträd|takspänt"), passar: [ordborjan("kattlåda"), ordborjan("kattleksak|kattunnel|kattsäng|kattbädd"), ordborjan("vattenfontän|foderautomat|matskål")] },
+  { vara: ordborjan("kattlåd"), passar: [ordborjan("vattenfontän|foderautomat|matskål|matstation"), ordborjan("kattleksak|kattunnel|klösbräda")] },
+  { vara: ordborjan("kattbädd|kattsäng|kattkorg|kattkoja|kattgrotta|kattigloo|katthåla|katthängmatta|katthyllor|kattstuga|kattgård|tipitält"), passar: [ordborjan("vattenfontän|foderautomat"), ordborjan("kattleksak|kattunnel|katthjul")] },
+  { vara: ordborjan("kattleksak|kattunnel|katthjul"), passar: [ordborjan("kattbädd|kattsäng|kattkorg|kattgrotta|katthängmatta"), ordborjan("vattenfontän|foderautomat")] },
+  { vara: ordborjan("kaninbur|kaninhydda|kaninhus|marsvinsbur|marsvinshydda|smådjursstall|smådjursbur"), passar: [ordborjan("rasthage|smådjurshage|kaninhage")] },
+  { vara: ordborjan("rasthage|smådjurshage|kaninhage"), passar: [ordborjan("kaninhydda|kaninhus|marsvinshydda|smådjurshus")] },
+  { vara: ordborjan("trimbord"), passar: [ordborjan("pälsvård"), ordborjan("trimningsarm")] },
+  { vara: ordborjan("trimningsarm|pälsvård"), passar: [ordborjan("trimbord")] },
   { vara: ordborjan("hönshus|hönsgård|hönsrastgård"), passar: [ordborjan("hönsrede|värpholk")] },
   // Barn
-  { vara: ordborjan("barnbord|barnskrivbord"), passar: [ordborjan("barnstol|barnpall")] },
+  { vara: ordborjan("barnbord|barnskrivbord"), passar: [ordborjan("barnstol|barnpall"), LEKSAKSFORVARING], barn: true },
+  { vara: LEKSAKSFORVARING, passar: [LEKMATTA, ordborjan("barnbord")], barn: true },
+  { vara: ordborjan("barnsoffa|barnfåtölj"), passar: [LEKSAKSFORVARING, LEKMATTA], barn: true },
+  { vara: ordborjan("barngarderob|utklädningsgarderob"), passar: [LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("barnbokhylla|bokhylla"), bara: BARNVARA, passar: [LEKMATTA, ordborjan("barnbord")], barn: true },
+  { vara: ordborjan("sminkbord"), bara: BARNVARA, passar: [LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("leksakskök|barnkök|lekkök"), passar: [ordborjan("leksaksdiskmaskin"), ordborjan("leksaksbutik|leksaksaffär"), ordborjan("barnbord")], barn: true },
+  { vara: ordborjan("leksaksdiskmaskin"), passar: [ordborjan("leksakskök|barnkök|lekkök")], barn: true },
+  { vara: ordborjan("leksaksbutik|leksaksaffär"), passar: [ordborjan("leksakskök|barnkök|lekkök")], barn: true },
+  { vara: ordborjan("skumklossar|mjuka byggklossar"), passar: [LEKMATTA, ordborjan("balansstenar|klättertriangel|piklerset")], barn: true },
+  { vara: LEKMATTA, passar: [ordborjan("skumklossar|mjuka byggklossar"), LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("piklerset|klättertriangel|klätterbåge|balansstenar|krypunnel|motorikbräda"), passar: [LEKMATTA, ordborjan("skumklossar")], barn: true },
+  { vara: ordborjan("lekhage"), passar: [LEKMATTA], barn: true },
+  { vara: ordborjan("gunghäst|gungdjur|gungren|gungelefant|åkhäst|åkdjur|käpphäst"), passar: [LEKMATTA, LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("tågbana|bilbana|biltransport"), passar: [LEKMATTA, LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("staffli|barnstaffli|rittavla|krittavla"), passar: [ordborjan("barnbord"), LEKSAKSFORVARING], barn: true },
+  { vara: ordborjan("gungställning|klätterställning"), utom: /inomhus/iu, passar: [ordborjan("babygunga|barngunga|fågelbogunga|gungsits")], barn: true, ute: true },
+  { vara: ordborjan("\\p{L}*babybadkar|badbalja"), passar: [ordborjan("skötbord")], barn: true },
+  { vara: ordborjan("skötbord"), passar: [ordborjan("\\p{L}*babybadkar")], barn: true },
+  { vara: ordborjan("byggsats"), passar: [ordborjan("samlarvitrin|vitrinskåp")] },
   // Sport & Fritid
-  { vara: ordborjan("träningsbänk"), passar: [ordborjan("hantel|hantlar|hexhantel|skivstång|viktskiva")] },
-  { vara: ordborjan("hantel|hantlar|hexhantel"), passar: [ordborjan("träningsbänk"), ordborjan("träningsmatta|gymmatta")] },
-  { vara: ordborjan("motionscykel|crosstrainer|löpband|roddmaskin|stepper"), passar: [ordborjan("träningsmatta|gymmatta")] },
-  { vara: ordborjan("boxningssäck|punchingboll"), passar: [ordborjan("boxsäcksställ")] },
-  { vara: helaOrd("tält|familjetält|tunneltält|kupoltält|campingtält|lufttält"), passar: [ordborjan("sovsäck|liggunderlag|luftmadrass"), ordborjan("campingstol|campingbord|fältsäng")] },
+  { vara: ordborjan("träningsbänk|situpbänk|sit-up-bänk|scottbänk|magbänk"), passar: [VIKTER, TRANINGSMATTA] },
+  { vara: VIKTER, passar: [ordborjan("träningsbänk"), TRANINGSMATTA] },
+  { vara: ordborjan("gymstation|multigym|kraftstation|smithmaskin|skivstångsställ|dipsställning|chinsstång"), passar: [VIKTER, ordborjan("träningsbänk"), TRANINGSMATTA] },
+  { vara: ordborjan("motionscykel|spinningcykel|crosstrainer|minicrosstrainer|löpband|roddmaskin|stepper|ministepper|pedaltränare|helkroppstränare|magtränare|inversionsbänk"), passar: [TRANINGSMATTA] },
+  { vara: ordborjan("stepbräda|stegbräda|plyo|balansbräda|pilatesbräda|armhävningsbräda|vibrationsplatta|träningsbräda"), passar: [TRANINGSMATTA] },
+  { vara: ordborjan("balansbom|gymnastikbarr|gymnastikstång|gymnastikringar"), utom: /hund|agility/iu, passar: [ordborjan("gymnastikmatta|träningsmatta")] },
+  { vara: endera(egetOrd("tält"), ordborjan("familjetält|tunneltält|kupoltält|campingtält|lufttält")), passar: [ordborjan("sovsäck|liggunderlag|luftmadrass"), ordborjan("campingstol|campingbord|fältsäng")] },
+  { vara: ordborjan("\\p{L}*sovsäck"), passar: [ordborjan("liggunderlag|luftmadrass|campingsäng|fältsäng")] },
+  { vara: ordborjan("liggunderlag|campingsäng"), passar: [ordborjan("\\p{L}*sovsäck")] },
   { vara: ordborjan("campingstol"), passar: [ordborjan("campingbord"), ordborjan("fältsäng|sovsäck|liggunderlag")] },
   { vara: ordborjan("campingbord"), passar: [ordborjan("campingstol"), ordborjan("fältsäng|sovsäck|liggunderlag")] },
-  { vara: ordborjan("fältsäng"), passar: [ordborjan("sovsäck|liggunderlag"), ordborjan("campingstol|campingbord")] },
-  // Jul
-  { vara: helaOrd("julgran|snögran|plastgran|konstgran|gran|granar"), passar: [ordborjan("julgransfot|julgransstativ|julgranskrage|julgransmatta"), ordborjan("ljusslinga|julbelysning")] },
-  { vara: ordborjan("jultomte|tomte|snögubbe|pepparkaksgubbe|julby|adventskalender"), passar: [ordborjan("ljusslinga|julbelysning")] },
-  // Verktyg
+  { vara: ordborjan("fältsäng"), passar: [ordborjan("\\p{L}*sovsäck|liggunderlag"), ordborjan("campingstol|campingbord")] },
+  { vara: ordborjan("kylbox|kylväska|kylvagn"), passar: [ordborjan("campingstol"), ordborjan("campingbord|picknickbord")] },
+  { vara: ordborjan("cykellås|kättinglås"), passar: [ordborjan("cykelpump"), ordborjan("ramväska|sadelväska|pakethållarväska")] },
+  { vara: ordborjan("cykelpump|elektrisk cykelpump"), passar: [ordborjan("cykellås|kättinglås"), ordborjan("ramväska|sadelväska")] },
+  { vara: ordborjan("ramväska|sadelväska|pakethållarväska|cykelväska|cykelryggsäck"), passar: [ordborjan("cykellås|kättinglås"), ordborjan("cykelpump")] },
+  { vara: ordborjan("cykelställ|golvställ|cykellyft|reparationsställ|cykelmekställ"), passar: [ordborjan("cykelpump"), ordborjan("cykellås|kättinglås")] },
+  // Jul och halloween
+  { vara: endera(helaOrd("\\p{L}*julgran|snögran|plastgran|konstgran|gran|granar"), ordborjan("konstgjord tall")), utom: /uppblås|2-pack|markspett|jordspjut|kruka/iu, passar: [ordborjan("julgransfot|julgransstativ|julgranskrage|julgransmatta"), JULBELYSNING] },
+  { vara: endera(ordborjan("jultomte|tomte|snögubb|pepparkaksgubbe|pepparkakshus|julby|adventskalender|julren|julfigur|renfamilj|presentask|isbjörn|julpingvin|uppblåsbar jul|uppblåsbara jul"), helaOrd("ren|renar|pingvin")), passar: [JULBELYSNING, ordborjan("julgirlang|julkrans"), ordborjan("julyktstolpe|gatlykta|snögranar|julgranar")] },
+  { vara: ordborjan("julgirlang|julkrans|ljusträd"), passar: [JULBELYSNING, ordborjan("julyktstolpe|gatlykta|snögranar|julgranar")] },
+  { vara: endera(ordborjan("julyktstolpe|gatlykta|snögranar"), helaOrd("julgranar|granar")), passar: [ordborjan("julgirlang|julkrans"), JULBELYSNING] },
+  { vara: HALLOWEEN_FIGUR, utom: /byggsats/iu, passar: [HALLOWEEN_HANGANDE, HALLOWEEN_UPPBLAST] },
+  { vara: HALLOWEEN_HANGANDE, passar: [HALLOWEEN_FIGUR, HALLOWEEN_UPPBLAST], inteForslag: /byggsats/iu },
+  { vara: HALLOWEEN_UPPBLAST, passar: [HALLOWEEN_FIGUR, HALLOWEEN_HANGANDE], inteForslag: /byggsats/iu },
+  // Verktyg & Fordon
   { vara: ordborjan("verktygsvagn|verktygslåda|verktygsskåp|verkstadsvagn|verkstadsbänk|arbetsbänk"), passar: [ordborjan("verktygssats|verktygsset|hylsnyckel|bitsats"), ordborjan("arbetsbock")] },
+  { vara: ordborjan("sågbock|arbetsbock|kapsågstativ"), passar: [ordborjan("verkstadsbänk|arbetsbänk")] },
+  { vara: ordborjan("verkstadspall"), passar: [ordborjan("verkstadsbänk|arbetsbänk"), ordborjan("verktygsvagn")] },
+  { vara: ordborjan("garagedomkraft|luftdomkraft|domkraft"), passar: [ordborjan("stödbock|pallbock")] },
+  { vara: ordborjan("bilramper|lastramper"), passar: [ordborjan("stödbock|pallbock")] },
+  { vara: ordborjan("takräcke"), passar: [ordborjan("takväska|takbox|takkorg"), ordborjan("spännband")] },
+  { vara: ordborjan("takväska|takbox|takkorg"), passar: [ordborjan("takräcke"), ordborjan("spännband")] },
+  // Skönhet & Hälsa
+  { vara: ordborjan("massagebänk|behandlingsbänk"), passar: [ordborjan("sadelpall|rullpall|arbetspall|frisörpall")] },
 ];
 
 // Ett förslag får kosta högst 1,5 gånger varan det kompletterar. Upp till
@@ -504,12 +695,33 @@ export type ForslagsVara = Pick<Product, "id" | "slug" | "name" | "priceNum" | "
 
 // Alla regler i två uttryck: en vara som någon regel gäller för, och en sort
 // som någon regel föreslår.
-const NAGON_VARA = new RegExp(KOMPLEMENT.map((r) => `(?:${r.vara.source})`).join("|"), "iu");
-const NAGOT_FORSLAG = new RegExp(KOMPLEMENT.flatMap((r) => r.passar).map((re) => `(?:${re.source})`).join("|"), "iu");
+const NAGON_VARA = new RegExp(KOMPLEMENT.map((r) => `(?:${r.vara.source})`).join("|"), "i");
+const NAGOT_FORSLAG = new RegExp(KOMPLEMENT.flatMap((r) => r.passar).map((re) => `(?:${re.source})`).join("|"), "i");
+
+// Det förslagen läser ur en varas namn: huvudet, om varan är av en sort som
+// någon regel föreslår, djurslaget och om den är en barnvara eller en
+// utomhusvara. Det beror bara
+// på namnet och sparas per namn, så att ett anrop inte prövar alla regler mot
+// hela underlaget igen (det tog ~250 ms, mätt 2026-10-09). Lager och bild
+// läses vid varje anrop.
+type NamnData = { huvud: string; foreslagbar: boolean; djur: Set<string>; barn: boolean; ute: boolean };
+const namnMinne = new Map<string, NamnData>();
+const MAX_NAMN = 20_000;
+
+function namnData(name: string): NamnData {
+  let n = namnMinne.get(name);
+  if (!n) {
+    const h = huvud(name);
+    n = { huvud: h, foreslagbar: NAGOT_FORSLAG.test(h), djur: djurslag(name), barn: arBarnvara(name), ute: UTE.test(name) };
+    if (namnMinne.size >= MAX_NAMN) namnMinne.clear();
+    namnMinne.set(name, n);
+  }
+  return n;
+}
 
 /** En vara som kan föreslås: i lager, med bild och av en sort som någon regel föreslår. */
 function kanForeslas(x: ForslagsVara): boolean {
-  return x.inStock && !!x.img && NAGOT_FORSLAG.test(huvud(x.name));
+  return x.inStock && !!x.img && namnData(x.name).foreslagbar;
 }
 
 /**
@@ -530,6 +742,10 @@ export function forslagsUnderlag<T extends ForslagsVara>(all: T[]): T[] {
  *   • aldrig samma sorts vara som varan själv (det vore ett alternativ, inte en
  *     komplettering),
  *   • aldrig ett annat djurslag än varan det kompletterar,
+ *   • ingen barnvara till en vara för vuxna, utom när regeln gäller barnvaror
+ *     (en tågbana säger sällan att den är för barn), och ingen utomhusvara
+ *     till en vara för inomhus, utom när regeln gäller trädgården (en tv-bänk
+ *     får inget soffbord för utomhus),
  *   • högst 1,5 gånger varans pris, billigare först, försäljningen som
  *     skiljelinje.
  * Första varvet tar en vara per sort och delar platserna mellan de varor i
@@ -546,17 +762,28 @@ export function kundvagnsForslag<T extends ForslagsVara>(varukorgensId: string[]
   const ids = new Set(varukorgensId);
   // Per vara i varukorgen: vilka sorter som passar (med vikt), och vilka
   // mönster som beskriver varan själv.
+  type Sort = { re: RegExp; vikt: number; inte?: RegExp; barnOk: boolean; uteOk: boolean };
   const regler = all
     .filter((p) => ids.has(p.id))
     .map((a) => {
       const h = huvud(a.name);
-      const passar: Array<{ re: RegExp; vikt: number }> = [];
+      const barn = arBarnvara(a.name);
+      const ute = UTE.test(a.name);
+      const passar: Sort[] = [];
       const egen: RegExp[] = [];
       for (const r of KOMPLEMENT) {
-        if (!r.vara.test(h)) continue;
+        if (!r.vara.test(h) || (r.bara && !r.bara.test(a.name)) || r.utom?.test(a.name)) continue;
         egen.push(r.vara);
         r.passar.forEach((re, i) => {
-          if (!re.test(a.name)) passar.push({ re, vikt: PLATSVIKT[Math.min(i, PLATSVIKT.length - 1)] });
+          if (!re.test(a.name)) {
+            passar.push({
+              re,
+              vikt: PLATSVIKT[Math.min(i, PLATSVIKT.length - 1)],
+              inte: r.inteForslag,
+              barnOk: barn || r.barn === true,
+              uteOk: ute || r.ute === true,
+            });
+          }
         });
       }
       return { a, passar, egen, djur: djurslag(a.name) };
@@ -569,23 +796,23 @@ export function kundvagnsForslag<T extends ForslagsVara>(varukorgensId: string[]
   let maxPop = 1;
   for (const x of korpus) if ((x.popularity || 0) > maxPop) maxPop = x.popularity || 0;
 
-  type Kandidat = { x: T; ankare: number; sort: RegExp; poang: number };
+  // Sorten känns igen på mönstrets text, så samma sort ur två regler räknas en gång.
+  type Kandidat = { x: T; ankare: number; sort: string; poang: number };
   const kandidater: Kandidat[] = [];
   const sedda = new Set<string>();
   for (const x of korpus) {
     if (ids.has(x.id) || sedda.has(x.slug)) continue;
     sedda.add(x.slug);
-    const h = huvud(x.name);
-    const xDjur = djurslag(x.name);
+    const { huvud: h, djur: xDjur, barn: xBarn, ute: xUte } = namnData(x.name);
     const boost = 1 + 0.5 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
     let bast: Kandidat | null = null;
     for (let i = 0; i < regler.length; i++) {
       const r = regler[i];
       if (r.egen.some((re) => re.test(h)) || djurslagKrockar(r.djur, xDjur)) continue;
-      for (const { re, vikt } of r.passar) {
-        if (!re.test(h)) continue;
+      for (const { re, vikt, inte, barnOk, uteOk } of r.passar) {
+        if (!re.test(h) || inte?.test(x.name) || (xBarn && !barnOk) || (xUte && !uteOk)) continue;
         const poang = vikt * prisfaktor(x.priceNum, r.a.priceNum) * boost;
-        if (poang > 0 && (!bast || poang > bast.poang)) bast = { x, ankare: i, sort: re, poang };
+        if (poang > 0 && (!bast || poang > bast.poang)) bast = { x, ankare: i, sort: re.source, poang };
       }
     }
     if (bast) kandidater.push(bast);
@@ -594,7 +821,7 @@ export function kundvagnsForslag<T extends ForslagsVara>(varukorgensId: string[]
 
   const perAnkare = Math.max(1, Math.ceil(limit / regler.length));
   const antal = new Map<number, number>();
-  const sorter = new Set<RegExp>();
+  const sorter = new Set<string>();
   const valda: T[] = [];
   for (const forsta of [true, false]) {
     for (const k of kandidater) {
