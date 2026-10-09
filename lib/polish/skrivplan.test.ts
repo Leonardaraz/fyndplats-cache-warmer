@@ -376,6 +376,27 @@ describe("stegSku", () => {
     expect(JSON.stringify(u)).not.toContain("FP-gammal-tysk-sku");
   });
 
+  it("☠️ en dold enda variant blir synlig, annars visar den publicerade sidan Slutsåld", async () => {
+    const dold = { ...variant, visible: false };
+    const { wix, anrop } = fakeWix((a) =>
+      a.metod === "GET"
+        ? { product: { revision: "4", visible: true, variantsInfo: { variants: [dold] } } }
+        : { product: { revision: "5" } },
+    );
+    const u = await stegSku(plan(), wix, false);
+    expect(u.ok).toBe(true);
+    expect(u.rader[0]).toMatchObject({ variantSynligFore: false });
+    const patch = anrop.find((a) => a.metod === "PATCH");
+    expect(patch?.kropp).toEqual({
+      product: {
+        revision: "4",
+        visible: true,
+        variantsInfo: { variants: [{ ...variant, sku: "FP-testbord-ek", visible: true }] },
+      },
+      fieldMask: { paths: ["variantsInfo", "visible"] },
+    });
+  });
+
   it("vägrar flera varianter och ett variant-id som inte stämmer med planen", async () => {
     for (const variants of [[variant, { ...variant, id: "x" }], [{ ...variant, id: "3c4d5e6f-0000-4000-8000-000000000003" }]]) {
       const { wix, anrop } = fakeWix(() => ({ product: { revision: "1", visible: true, variantsInfo: { variants } } }));

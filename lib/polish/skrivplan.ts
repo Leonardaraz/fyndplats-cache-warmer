@@ -463,10 +463,15 @@ export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Pr
       // Ändra BARA sku; allt annat följer med ur GET:en. `visible` skickas med
       // explicit (en variantsInfo-PATCH publicerar annars ett utkast), och
       // `options` måste stå i fältmasken på en flervariantsprodukt.
+      //
+      // ☠️ Den enda varianten blir synlig. Textsteget har redan publicerat
+      // produkten, och en publicerad sida vars enda variant är dold visar
+      // "Slutsåld" med fullt lager (2026-09-06). Två utkast i lager hade just
+      // det felet 2026-10-08, och skrivningen hade publicerat dem så.
       const produkt: Obj = {
         revision: prod.revision,
         visible: prod.visible,
-        variantsInfo: { variants: vs.map((v) => ({ ...v, sku: p.sku })) },
+        variantsInfo: { variants: vs.map((v) => ({ ...v, sku: p.sku, visible: true })) },
       };
       const vagar = ["variantsInfo", "visible"];
       if (Array.isArray(prod.options)) {
