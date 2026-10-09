@@ -136,6 +136,8 @@ describe("texterna", () => {
     expect(m.subject).toBe("Faktura 10079 från Fyndplats");
     expect(m.text).toContain("Bankgiro 999-0000");
     expect(m.text).toContain("2026-11-08");
+    expect(m.text).toContain("Meddelande till mottagaren: 10079");
+    expect(m.html).toContain("i meddelandet till mottagaren");
     const k = kvittoMejl(r.faktura, "2026-10-20");
     expect(k.subject).toContain("betald");
     expect(k.text).toContain("2026-10-20");

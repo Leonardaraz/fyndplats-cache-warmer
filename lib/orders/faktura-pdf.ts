@@ -254,7 +254,7 @@ export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
     skriv(sida, `Betala till: ${f.betalning.betalaTill}`, MARG + 6, y - 4, { font: fet, storlek: 12 });
     skriv(
       sida,
-      `Ange fakturanummer ${f.nummer} som referens. Förfallodatum ${f.forfallodatum}.`,
+      `Skriv ${f.nummer} i meddelandet till mottagaren när du betalar. Förfallodatum ${f.forfallodatum}.`,
       MARG + 6,
       y - 24,
       { storlek: 10 },

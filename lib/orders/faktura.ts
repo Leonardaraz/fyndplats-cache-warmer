@@ -393,10 +393,11 @@ ${sammanfattning([
   ["Att betala", att],
   ["Förfallodatum", f.forfallodatum],
   ["Betala till", f.betalning.betalaTill],
-  ["Ange som referens", f.nummer],
+  ["Meddelande till mottagaren", f.nummer],
 ])}
 ${varulista(f)}
-<p style="${P}margin-top:18px;">Varan skickas inom kort, och du får ett mejl med spårningsnumret när den är på väg.</p>
+<p style="${P}margin-top:18px;">Skriv <strong>${escapeHtml(f.nummer)}</strong> i meddelandet till mottagaren när du betalar, så ser vi direkt vilken faktura betalningen gäller.</p>
+<p style="${P}">Varan skickas inom kort, och du får ett mejl med spårningsnumret när den är på väg.</p>
 <p style="${P}">Har du frågor om fakturan? Svara på det här mejlet, så hjälper vi dig.</p>
 <p style="${P}${LITEN}">${escapeHtml(SALJARE.namn)} · org.nr ${SALJARE.orgnr} · momsreg.nr ${SALJARE.momsnr}${f.betalning.fSkatt ? " · Godkänd för F-skatt" : ""}</p>`;
   const text = [
@@ -407,7 +408,7 @@ ${varulista(f)}
     `Att betala: ${att}`,
     `Förfallodatum: ${f.forfallodatum}`,
     `Betala till: ${f.betalning.betalaTill}`,
-    `Ange som referens: ${f.nummer}`,
+    `Meddelande till mottagaren: ${f.nummer}`,
     "",
     ...f.rader.map((r) => `${r.antal} × ${r.benamning}  ${kronor(r.beloppOre)}`),
     "",
