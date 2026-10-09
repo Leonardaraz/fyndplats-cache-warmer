@@ -415,16 +415,22 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
 // när varukorgen öppnas. Svaret sparas per varukorg så länge sidan är öppen.
 // Ett misslyckat anrop sparas inte, så nästa gång varukorgen öppnas försöker
 // den igen.
-const forslagLoften = new Map<string, Promise<RecoProduct[]>>();
-function hamtaForslag(nyckel: string): Promise<RecoProduct[]> {
+// `lankar` är produktsidans slug för varorna i varukorgen (id → slug), som
+// reserv när Wix inte skickat någon adress på raden (lib/kundvagn-lank.ts).
+type Forslagssvar = { lista: RecoProduct[]; lankar: Record<string, string> };
+const forslagLoften = new Map<string, Promise<Forslagssvar>>();
+function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
   let lofte = forslagLoften.get(nyckel);
   if (!lofte) {
     lofte = fetch(`/api/kundvagn-forslag?ids=${encodeURIComponent(nyckel)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((b: { forslag?: RecoProduct[] }) => (Array.isArray(b.forslag) ? b.forslag : []))
+      .then((b: { forslag?: RecoProduct[]; lankar?: Record<string, string> }) => ({
+        lista: Array.isArray(b.forslag) ? b.forslag : [],
+        lankar: b.lankar && typeof b.lankar === "object" ? b.lankar : {},
+      }))
       .catch(() => {
         forslagLoften.delete(nyckel);
-        return [];
+        return { lista: [], lankar: {} };
       });
     forslagLoften.set(nyckel, lofte);
   }
@@ -450,11 +456,11 @@ export function CartDrawer() {
   const cartIds = new Set<string>(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
   // Samma varor ger samma nyckel, i vilken ordning de än lades i.
   const forslagNyckel = [...cartIds].sort().join(",");
-  const [forslag, setForslag] = useState<{ nyckel: string; lista: RecoProduct[] }>({ nyckel: "", lista: [] });
+  const [forslag, setForslag] = useState<{ nyckel: string } & Forslagssvar>({ nyckel: "", lista: [], lankar: {} });
   useEffect(() => {
     if (!forslagNyckel) return;
     let aktiv = true;
-    const hamta = () => hamtaForslag(forslagNyckel).then((lista) => { if (aktiv) setForslag({ nyckel: forslagNyckel, lista }); });
+    const hamta = () => hamtaForslag(forslagNyckel).then((svar) => { if (aktiv) setForslag({ nyckel: forslagNyckel, ...svar }); });
     // Öppen varukorg: hämta direkt. Annars när webbläsaren är ledig; äldre
     // Safari saknar requestIdleCallback.
     if (open) {
@@ -531,7 +537,8 @@ export function CartDrawer() {
               const name = li.productName?.original || li.productName || "Produkt";
               // Namnet och bilden leder till produktsidan. Utan känd adress
               // visas de som förut, utan länk.
-              const lank = produktLankForRad(li);
+              // En slug hör till sitt produkt-id, så en äldre karta är ofarlig.
+              const lank = produktLankForRad(li, forslag.lankar);
               const bild = img ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" />

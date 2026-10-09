@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hamtaKundvagnsUnderlag } from "../../../lib/kundvagn-underlag";
 import { kundvagnsForslag } from "../../../lib/related-pick";
 
-// GET /api/kundvagn-forslag?ids=<Wix-produkt-id,…> — varukorgens förslag.
+// GET /api/kundvagn-forslag?ids=<Wix-produkt-id,…> — varukorgens förslag,
+// och produktsidans slug för varorna i varukorgen (`lankar`).
 //
 // Varor som kompletterar det som ligger i varukorgen, valda i
 // kundvagnsForslag (lib/related-pick.ts). Förut var det samma åtta varor för
@@ -31,5 +32,11 @@ export async function GET(req: NextRequest) {
   });
   if (!underlag) return NextResponse.json({ forslag: [] }, { headers: { "Cache-Control": KORT_CACHE } });
   const forslag = kundvagnsForslag(ids, underlag, 3).map(({ id, slug, name, img, price }) => ({ id, slug, name, img, price }));
-  return NextResponse.json({ forslag }, { headers: { "Cache-Control": CACHE } });
+  // Produktsidans slug för varorna i varukorgen, så att raderna kan länka dit
+  // när Wix inte skickat någon adress (lib/kundvagn-lank.ts). Bara de varor
+  // som finns i underlaget får en.
+  const efterfragade = new Set(ids);
+  const lankar: Record<string, string> = {};
+  for (const v of underlag) if (efterfragade.has(v.id) && v.slug) lankar[v.id] = v.slug;
+  return NextResponse.json({ forslag, lankar }, { headers: { "Cache-Control": CACHE } });
 }

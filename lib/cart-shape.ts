@@ -41,6 +41,8 @@ export interface NormaliseradRad {
   image?: unknown;
   /** Wix beskrivningsrader (valt alternativ, t.ex. Färg: Svart). Orörda. */
   descriptionLines?: unknown;
+  /** Produktsidans adress enligt Wix (v2: `attributes.url`), t.ex. `/product-page/<slug>`. */
+  url?: { relativePath?: string; url?: string | null };
 }
 
 export interface NormaliseradKundvagn {
@@ -144,6 +146,11 @@ function normaliseraRad(rad: Obj, valuta: string): NormaliseradRad {
 
   const rader = rad.descriptionLines ?? attr?.descriptionLines;
   if (Array.isArray(rader) && rader.length) ut.descriptionLines = rader;
+
+  // Produktsidans adress, för länken från raden (lib/kundvagn-lank.ts).
+  // v2 bär den under attributes, v1 på raden; v1-rader skickas orörda ovan.
+  const url = obj(attr?.url) ?? obj(rad.url);
+  if (url) ut.url = url as NormaliseradRad["url"];
 
   return ut;
 }
