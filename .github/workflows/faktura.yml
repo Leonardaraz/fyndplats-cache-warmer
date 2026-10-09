@@ -55,6 +55,20 @@ jobs:
   faktura:
     runs-on: ubuntu-latest
     steps:
+      # Kontonumret står på varje faktura till kunden, men Actions-loggen är
+      # publik. Ett stegs env-block skrivs ut innan skriptet kör, så masken
+      # läggs i ett EGET steg, och värdet läses ur händelsen, aldrig via env.
+      - name: Maskera
+        run: |
+          v=$(jq -r '.inputs.betala_till // ""' "$GITHUB_EVENT_PATH")
+          if [ -n "$v" ]; then
+            echo "::add-mask::$v"
+            printf '%s\n' "$v" | grep -oE '[0-9][0-9 -]{3,}[0-9]' | while read -r tal; do
+              echo "::add-mask::$tal"
+            done
+          fi
+          exit 0
+
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
@@ -95,7 +109,8 @@ jobs:
           fi
 
           echo "Lage:                 ${MODE}" || true
-          echo "Betalning:            $(echo "$svar" | jq -r 'if .betalning then "\(.betalning.betalaTill), F-skatt \(.betalning.fSkatt), \(.betalning.dagar) dagar" else "INTE SATT" end')" || true
+          # Bara att uppgiften finns, aldrig själva kontonumret.
+          echo "Betalning:            $(echo "$svar" | jq -r 'if .betalning then "satt (\(.betalning.betalaTill | length) tecken), F-skatt \(.betalning.fSkatt), \(.betalning.dagar) dagar" else "INTE SATT" end')" || true
           if [ "${MODE}" != "installningar" ]; then
             echo "Fakturaordrar:        $(echo "$svar" | jq -r '.fakturaordrar // 0') av $(echo "$svar" | jq -r '.granskade // 0') granskade" || true
             echo "Fakturor skickade:    $(echo "$svar" | jq -r '(.fakturor // []) | join(", ") | if . == "" then "-" else . end')" || true
