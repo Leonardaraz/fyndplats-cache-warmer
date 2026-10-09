@@ -1237,6 +1237,8 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .li-img{width:56px;height:56px;border-radius:var(--r-sm);background:var(--surface-2) center/cover no-repeat;flex:0 0 auto;object-fit:cover;display:block}
 .li-info{flex:1;min-width:0}
 .li-name{font-size:var(--text-sm);font-weight:600;line-height:1.3}
+.li-lank{color:inherit;text-decoration:none;display:block}
+.li-name.li-lank:hover,.li-name.li-lank:focus-visible{text-decoration:underline}
 .li-val{font-size:var(--text-xs);color:var(--soft);margin-top:2px;line-height:1.35}
 .li-meta{font-size:var(--text-xs);color:var(--soft);margin-top:3px}
 .li-qty{display:inline-flex;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}

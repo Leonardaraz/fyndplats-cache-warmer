@@ -16,6 +16,7 @@ import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
 import { formatPrice } from "../lib/price-range";
+import { produktLankForRad } from "../lib/kundvagn-lank";
 import { PaymentMarks } from "./payment-marks";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -528,12 +529,26 @@ export function CartDrawer() {
             items.map((li) => {
               const img = liImageUrl(li.image);
               const name = li.productName?.original || li.productName || "Produkt";
+              // Namnet och bilden leder till produktsidan. Utan känd adress
+              // visas de som förut, utan länk.
+              const lank = produktLankForRad(li);
+              const bild = img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" />
+              ) : (
+                <div className="li-img" />
+              );
               return (
                 <div className="li" key={li._id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {img ? <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" /> : <div className="li-img" />}
+                  {lank ? (
+                    <a className="li-lank" href={lank} onClick={() => setOpen(false)} tabIndex={-1} aria-hidden="true">{bild}</a>
+                  ) : bild}
                   <div className="li-info">
-                    <div className="li-name">{name}</div>
+                    {lank ? (
+                      <a className="li-name li-lank" href={lank} onClick={() => setOpen(false)}>{name}</a>
+                    ) : (
+                      <div className="li-name">{name}</div>
+                    )}
                     {/* Valt alternativ med samma namn som på produktsidan
                         (visaValnamn): "Svart · 177 cm". */}
                     {(() => {
