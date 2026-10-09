@@ -217,9 +217,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Varukorgens "Andra köpte också" hämtas av varukorgen själv från
-  // /api/kundvagn-forslag. Förslagen (åtta produkter med pris) låg förut här och
-  // därmed i varje sidas data, så ett ändrat pris gjorde alla sidor "nya".
+  // Varukorgens förslag hämtas av varukorgen själv från /api/kundvagn-forslag.
+  // De låg förut här och därmed i varje sidas data, så ett ändrat pris gjorde
+  // alla sidor "nya".
   // data-scroll-behavior: Next 16 rör inte längre scroll-behavior vid
   // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
   // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter

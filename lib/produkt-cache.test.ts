@@ -59,6 +59,7 @@ test("ingen annan modul har en kort revalidate utan att stå på listan", () => 
     "redirects.ts": "300 s — bara när produkten inte finns (404/omdirigering)",
     "google-reviews.ts": "3000 s token — inne i unstable_cache",
     "kort-livslangd.ts": "300 s — med flit, bara i reservgrenar (sidor byggda på reservdata)",
+    "kundvagn-underlag.ts": "3600 s — varukorgens förslag och värmningscronen, aldrig en sidrendering",
   };
   // Hela lib/ och components/, också undermappar. Sidfiler i app/ har egna
   // `export const revalidate` för sina egna rutter och räknas inte här.

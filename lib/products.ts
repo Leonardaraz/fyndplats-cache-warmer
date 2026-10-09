@@ -481,6 +481,12 @@ const FALLBACK_PRODUCTS: Product[] = (local as Array<Record<string, unknown>>)
 // leva fem minuter, inte produktsidans sex timmar — se getProducts.
 const DEGRADERADE = new WeakSet<Product[]>([FALLBACK_PRODUCTS]);
 
+/** Sant för reservlistan och en kapad hämtning. Varukorgens förslag sparar
+ *  inget underlag byggt på en sådan katalog (lib/kundvagn-underlag.ts). */
+export function katalogenArDegraderad(lista: Product[]): boolean {
+  return DEGRADERADE.has(lista);
+}
+
 async function fetchProducts(): Promise<Product[]> {
   if (!wix) return FALLBACK_PRODUCTS;
   try {
@@ -866,9 +872,7 @@ export function forListings(products: Product[]): Product[] {
 
 // Nyast skapade först. Används av /alla-produkter så senast importerade produkter
 // hamnar överst (Leonards önskemål 2026-06-14). Stabil tie-break på id så
-// produkter med okänt createdAt (0) inte hoppar mellan renderingar. (mixByCategory
-// nedan var alla-produkters enda anropare och är nu oanvänd — lämnad orörd; kan
-// städas i en separat cleanup.)
+// produkter med okänt createdAt (0) inte hoppar mellan renderingar.
 export function sortByNewest(products: Product[]): Product[] {
   return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(b.id ?? "")));
 }
@@ -927,7 +931,7 @@ export type ListProduct = {
    * och "Bestseller" på NOLL — brickan kunde alltså inte visas för någon, men
    * strängen kostade 38 860 B per listsida. Brickan och dess CSS är borttagna
    * (Leonard 2026-09-04). Bestseller lever kvar SERVER-SIDE som utslagsgivare
-   * i cartRecommendations, generateStaticParams och /kategori/populara — de
+   * i generateStaticParams och /kategori/populara — de
    * har redan dokumenterade reservregler för att taggen saknas, och kostar
    * klienten ingenting. */
   rating?: { stars: number; exact: number; value: string; count: number };
@@ -1074,27 +1078,14 @@ export function forClient(products: Product[], medBild?: ReadonlySet<string>, sp
   });
 }
 
-// Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
-// klienten behöver, så vi inte serialiserar hela Product[] in i klient-payloaden.
+// Slim produktform för varukorgens förslag — bara de fält klienten behöver, så
+// vi inte serialiserar hela Product[] in i klient-payloaden.
 export type RecoProduct = { id: string; slug: string; name: string; img: string; price: string };
 
-// Rekommendationer till cart-drawern. Vi saknar riktig "frequently bought
-// together"-orderdata, så vi approximerar med bästsäljare / bäst presenterade
-// produkter i lager (ribbon=Bestseller först, därefter högst bild-poäng).
-// dedupeProducts ser till att inga dubbletter eller samma bild listas.
-export function cartRecommendations(products: Product[], collections: Collection[], limit = 8): RecoProduct[] {
-  const inStock = products.filter((p) => p.inStock && p.img);
-  const ranked = [...inStock].sort((a, b) => {
-    const ba = a.ribbon === "Bestseller" ? 1 : 0;
-    const bb = b.ribbon === "Bestseller" ? 1 : 0;
-    if (ba !== bb) return bb - ba;
-    return (b.imageScore ?? 60) - (a.imageScore ?? 60);
-  });
-  // Sprid rekommendationerna ÖVER avdelningar (round-robin per huvudkategori) i stället
-  // för 8 ur samma kategori → bättre cross-sell. mixByCategory behåller kvalitetsordningen
-  // inom varje bucket, så round-robin plockar "bästa från varje avdelning".
-  const mixed = mixByCategory(ranked, collections);
-  return dedupeProducts(mixed).slice(0, limit).map((p) => ({
+// Varukorgens förslag väljs i lib/related-pick.ts (kundvagnsForslag), utifrån
+// varorna i varukorgen. Här görs de om till det varukorgen visar.
+export function tillRecoProdukt(p: Product): RecoProduct {
+  return {
     id: p.id,
     slug: p.slug,
     name: p.name,
@@ -1107,7 +1098,7 @@ export function cartRecommendations(products: Product[], collections: Collection
       : p.priceNum
         ? formatPrice(p.priceNum)
         : p.price,
-  }));
+  };
 }
 
 // Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params,

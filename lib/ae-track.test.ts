@@ -82,6 +82,9 @@ test("deriveAeStatus – levererat är terminalt oavsett senare uppdateringar", 
 test("deriveAeStatus – nyaste raden styr sista milen", () => {
   assert.equal(deriveAeStatus(["Out for delivery", "Shipping update"]), "OutForDelivery");
   assert.equal(deriveAeStatus(["Ready for pickup at service point", "Shipping update"]), "AvailableForPickup");
+  // DHL:s lydelse (2026-10-08): samma steg som översättningen.
+  assert.equal(deriveAeStatus(["Package arrived at pick-up point", "Shipping update"]), "AvailableForPickup");
+  assert.equal(deriveAeStatus(["Parcel is at the service point"]), "AvailableForPickup");
 });
 
 test("deriveAeStatus – misslyckat leveransförsök är inte levererat/ute", () => {
@@ -91,4 +94,8 @@ test("deriveAeStatus – misslyckat leveransförsök är inte levererat/ute", ()
 test("deriveAeStatus – transit och tom lista → InTransit", () => {
   assert.equal(deriveAeStatus(["Shipping update", "The seller has shipped your package."]), "InTransit");
   assert.equal(deriveAeStatus([]), "InTransit");
+});
+
+test("translateAeDescription – upphämtningsställe med bindestreck (DHL, 2026-10-08)", () => {
+  assert.equal(translateAeDescription("Package arrived at pick-up point"), "Paketet finns för upphämtning hos ditt ombud");
 });

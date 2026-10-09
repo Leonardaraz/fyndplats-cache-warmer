@@ -61,9 +61,13 @@ const RETIRED_REDIRECT_OVERRIDES: Record<string, string> = {
   "sladdlos-handdammsugare-bil": "/produkt/sladdlos-handdammsugare-30000pa-borstlos-bil",
   "uppvarmd-ogonmask": "/kategori/kropp-valbefinnande",
 };
+// Målet för en utfasad produkts adress. De tre /product-page/-raderna med ny
+// slug läser samma mål, så att de inte pekar på en adress som själv
+// omdirigeras: en kedja kostar Google två genomsökningar per adress.
+const retiredDestination = (slug: string) => RETIRED_REDIRECT_OVERRIDES[slug] ?? "/alla-produkter";
 const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map((slug) => ({
   source: `/produkt/${slug}`,
-  destination: RETIRED_REDIRECT_OVERRIDES[slug] ?? "/alla-produkter",
+  destination: retiredDestination(slug),
   permanent: true,
 }));
 
@@ -129,9 +133,12 @@ const nextConfig: NextConfig = {
       // Om vi skriver "ä" rakt här matchar inte — wildcarden vinner istället
       // och pekar mot /produkt/[V1-slug-med-åäö] som inte finns → 404.
       // Därför är "ä" här %C3%A4, "ö" %C3%B6. Tredje slug:en har inga åäö.
-      { source: "/product-page/%C3%A4ppelskalare-3-i-1-skalar-k%C3%A4rnar-ur-och-skivar", destination: "/produkt/appelskalare-3-i-1-skalar-karnar-skivar", permanent: true },
-      { source: "/product-page/mini-soptunna-f%C3%B6r-bilen-550-ml-med-smart-trycklock", destination: "/produkt/mini-soptunna-bil-550-ml-trycklock", permanent: true },
-      { source: "/product-page/vaggmonterad-solcellsdriven-uv-tandborststerilisator-automatisk-tankramspress", destination: "/produkt/vaggmonterad-uv-tandborststerilisator-solcell", permanent: true },
+      //
+      // Alla tre är utfasade sedan dess, så de pekar direkt dit deras
+      // /produkt/-adress pekar (retiredDestination överst).
+      { source: "/product-page/%C3%A4ppelskalare-3-i-1-skalar-k%C3%A4rnar-ur-och-skivar", destination: retiredDestination("appelskalare-3-i-1-skalar-karnar-skivar"), permanent: true },
+      { source: "/product-page/mini-soptunna-f%C3%B6r-bilen-550-ml-med-smart-trycklock", destination: retiredDestination("mini-soptunna-bil-550-ml-trycklock"), permanent: true },
+      { source: "/product-page/vaggmonterad-solcellsdriven-uv-tandborststerilisator-automatisk-tankramspress", destination: retiredDestination("vaggmonterad-uv-tandborststerilisator-solcell"), permanent: true },
 
       // Gamla Wix-produkter som inte finns kvar — MÅSTE ligga före wildcarden,
       // annars skickar den dem till en /produkt/-sida som 404:ar. Se
@@ -159,7 +166,9 @@ const nextConfig: NextConfig = {
       { source: "/sport-och-fritid", destination: "/kategori/sport-fritid", permanent: true },
       { source: "/skonhet-och-halsa", destination: "/kategori/skonhet-halsa", permanent: true },
       { source: "/mode-och-accessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
-      { source: "/smycken", destination: "/kategori/smycken", permanent: true },
+      // /smycken har ingen regel längre. Kategorin Smycken finns inte, så regeln
+      // gav en 308 rakt in i en 404 (mätt 2026-10-08). Vi säljer inga smycken,
+      // och granskningen 2026-09-24 valde en ärlig 404 för den sortens adress.
       { source: "/husdjur", destination: "/kategori/husdjur", permanent: true },
 
       // Wix-sajtens "blank-7"-sida var omdömessidan.
@@ -208,6 +217,21 @@ const nextConfig: NextConfig = {
       { source: "/kategori/servering-glas", destination: "/kategori/vinstall-vinkylar", permanent: true },
       { source: "/kategori/burar-klader-tillbehor", destination: "/kategori/husdjur", permanent: true },
 
+      // Search Console 2026-10-08: sex äldre kategoriadresser svarade 404. Fem
+      // är samma kategori under ett nytt namn, och Mode följer mode-raderna ovan.
+      // Kategorier för varor vi inte säljer (högtalare, mobilladdare, iPhoneskal,
+      // armband, halsband, datorväska, mobil & surfplatta) får fortsätta svara
+      // 404, som granskningen 2026-09-24 bestämde: en sida utan varan är ingen
+      // bättre träff än en ärlig 404.
+      { source: "/kategori/barn-och-familj", destination: "/kategori/barn-familj", permanent: true },
+      { source: "/kategori/hemtextil-badrum", destination: "/kategori/badrum-hemtextil", permanent: true },
+      { source: "/kategori/kok-matlagning", destination: "/kategori/kok-husgerad", permanent: true },
+      { source: "/kategori/forvaring-stad", destination: "/kategori/forvaring-organisering", permanent: true },
+      // Leksaker & Aktivering var barnens kategori, inte husdjurens: adressen
+      // rankade på "aktiv lek" och "sportleksaker barn" (Semrush 2026-09-24).
+      { source: "/kategori/leksaker-aktivering", destination: "/kategori/leksaker-spel", permanent: true },
+      { source: "/kategori/mode", destination: "/kategori/friluftsliv-resa", permanent: true },
+
       // Gamla Wix-sajtens rot-adresser (ihopskrivna slugs, ofta med åäö).
       { source: "/barn-och-familj", destination: "/kategori/barn-familj", permanent: true },
       { source: "/hem-elektronik", destination: "/kategori/smart-hem-sakerhet", permanent: true },
@@ -222,6 +246,9 @@ const nextConfig: NextConfig = {
       // matchningen och följer automatiskt med till destination, så raden nedan
       // fångar båda (page=2 är ofarlig på kategorisidan — verifierad 200).
       { source: "/mobiltillbeh%C3%B6r", destination: "/kategori/bil-slap", permanent: true },
+      // Samma adress utan ö. Den rankade på "mobil tillbehör" (480/mån, plats 55)
+      // och svarade 404 (Semrush 2026-09-24, Search Console 2026-10-08).
+      { source: "/mobiltillbehor", destination: "/kategori/bil-slap", permanent: true },
       { source: "/modeochaccessoarer", destination: "/kategori/friluftsliv-resa", permanent: true },
       { source: "/sk%C3%B6nhetochh%C3%A4lsa", destination: "/kategori/skonhet-halsa", permanent: true },
       { source: "/shop", destination: "/butik", permanent: true },
@@ -278,6 +305,12 @@ const nextConfig: NextConfig = {
       { source: "/post/bladlos-nackflakt-kopguide-2026", destination: "/blogg/bladlos-nackflakt-kopguide-2026", permanent: true },
       { source: "/post/b%C3%A4rbar-projektor-till-hemmabio-s%C3%A5-v%C3%A4ljer-du-r%C3%A4tt-k%C3%B6pguide-2026", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
       { source: "/post/v%C3%A4lkommen-till-fyndplats-smarta-fynd-f%C3%B6r-hela-familjen", destination: "/blogg/valkommen-till-fyndplats", permanent: true },
+      // Search Console 2026-10-08: fyra till. Tre har samma slug i /blogg, och
+      // nackfläktens långa Wix-adress har fått en kortare.
+      { source: "/post/massagepistol-kopguide-2026", destination: "/blogg/massagepistol-kopguide-2026", permanent: true },
+      { source: "/post/stjarnprojektor-kopguide-2026", destination: "/blogg/stjarnprojektor-kopguide-2026", permanent: true },
+      { source: "/post/valkommen-till-fyndplats", destination: "/blogg/valkommen-till-fyndplats", permanent: true },
+      { source: "/post/bladl%C3%B6s-nackfl%C3%A4kt-2026-k%C3%B6pguide-test-och-3-saker-att-kolla", destination: "/blogg/bladlos-nackflakt-kopguide-2026", permanent: true },
       // Tre av Wix-taggarna har ett entydigt ämnesmatchande inlägg kvar. De pekas
       // dit i stället för till bloggindexet: Google behandlar ofta "många döda
       // URL:er → en generisk samlingssida" som soft-404 och släpper värdet ändå
@@ -301,6 +334,13 @@ const nextConfig: NextConfig = {
       // Båda raderna behövs: :path* garanterar inte bara-/blog utan efterföljande segment.
       { source: "/blog", destination: "/blogg", permanent: true },
       { source: "/blog/:path*", destination: "/blogg", permanent: true },
+
+      // Två syskonlänkar i produkttexterna pekar på adresser som aldrig funnits.
+      // Ordet klappbart byttes mot fällbart i texterna 2026-09-07 och slugen
+      // behölls, men i de här två länkarna byttes ordet även i adressen.
+      // Hittade när hela sajtens interna länkar kontrollerades 2026-10-08.
+      { source: "/produkt/f%C3%A4llbart-skrivbord-70-cm-skarmhylla", destination: "/produkt/klappbart-skrivbord-70-cm-skarmhylla", permanent: true },
+      { source: "/produkt/f%C3%A4llbart-skrivbord-80-cm-hjul", destination: "/produkt/klappbart-skrivbord-80-cm-hjul", permanent: true },
 
       // Utfasade Kina-produkter → /alla-produkter (se RETIRED_CHINA_SLUGS överst).
       // Specifika /produkt/<slug>-paths; matchar före ev. framtida wildcard.
