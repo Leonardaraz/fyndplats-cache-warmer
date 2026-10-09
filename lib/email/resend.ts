@@ -45,6 +45,8 @@ export interface SendEmailInput {
   mottagare?: "intern" | "kund";
   /** Raden efter ämnesraden i inkorgen. Används bara för kundmejl. */
   forhandstext?: string;
+  /** Bilagor, t.ex. fakturans PDF. Innehållet som base64. */
+  bilagor?: { filnamn: string; base64: string }[];
 }
 
 export interface SendEmailResult {
@@ -80,6 +82,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       text: input.bodyText,
       // Svar på ett kundmejl ska nå kundservice, inte en adress ingen läser.
       ...(kund ? { reply_to: KUND_SVARSADRESS } : {}),
+      ...(input.bilagor?.length
+        ? { attachments: input.bilagor.map((b) => ({ filename: b.filnamn, content: b.base64 })) }
+        : {}),
     }),
   });
   if (!res.ok) {

@@ -33,6 +33,16 @@ const CONFIG_ID = "default";
 export interface AppConfig {
   /** Aosoms B2B-feed. Hemlig: bär våra inköpspriser. */
   aosomFeedUrl?: string;
+  /**
+   * Vart en faktura ska betalas, ordagrant som det står på fakturan, t.ex.
+   * "Bankgiro 123-4567" (lib/orders/faktura.ts). Inte hemligt, men inte
+   * heller något som ska kräva en deploy att ändra.
+   */
+  fakturaBetalaTill?: string;
+  /** "ja" om fakturan ska bära "Godkänd för F-skatt". */
+  fakturaFSkatt?: string;
+  /** Dagar till förfallodagen, som text. Standard 30. */
+  fakturaDagar?: string;
 }
 
 function headers(): Record<string, string> {
@@ -76,7 +86,12 @@ export async function getAppConfig(): Promise<AppConfig> {
 
   const body = (await res.json()) as { dataItem?: { data?: Record<string, unknown> } };
   const data = body.dataItem?.data ?? {};
-  return { aosomFeedUrl: clean(data.aosomFeedUrl) };
+  return {
+    aosomFeedUrl: clean(data.aosomFeedUrl),
+    fakturaBetalaTill: clean(data.fakturaBetalaTill),
+    fakturaFSkatt: clean(data.fakturaFSkatt),
+    fakturaDagar: clean(data.fakturaDagar),
+  };
 }
 
 /**

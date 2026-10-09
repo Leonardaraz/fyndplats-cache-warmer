@@ -1,0 +1,131 @@
+name: Faktura — skicka, prova och ställ in
+
+# Fakturan och kvittot för ordrar som läggs upp för hand i Wix och betalas mot
+# faktura (lib/orders/faktura.ts). Wix egna faktura- och kvittomejl är
+# avstängda sedan 2026-10-09. De här är våra.
+#
+#   plan           vad som skulle skickas nu. Skickar ingenting.
+#   skicka         skickar det som väntar, som timcronen gör
+#   prov           fakturan och kvittot för en order till den interna
+#                  larmadressen, med [Prov] i ämnesraden. Kunden får inget.
+#   installningar  sparar vart fakturan ska betalas (t.ex. "Bankgiro 123-4567"),
+#                  om den bär "Godkänd för F-skatt", och antal dagar
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har Resend och Wix,
+# Actions har CRON_SECRET. Svaret bär bara ordernummer, aldrig kundens uppgifter.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan · skicka · prov · installningar"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - skicka
+          - prov
+          - installningar
+      order:
+        description: "Ordernummer, t.ex. 10079. Krävs för prov, valfritt annars"
+        required: false
+        type: string
+      betala_till:
+        description: "Bara installningar: vart pengarna ska, ordagrant som det står på fakturan"
+        required: false
+        type: string
+      f_skatt:
+        description: "Bara installningar: Godkänd för F-skatt på fakturan?"
+        required: false
+        default: "oforandrat"
+        type: choice
+        options:
+          - oforandrat
+          - ja
+          - nej
+      dagar:
+        description: "Bara installningar: dagar till förfallodagen (tomt = oförändrat, standard 30)"
+        required: false
+        type: string
+
+jobs:
+  faktura:
+    runs-on: ubuntu-latest
+    steps:
+      # Kontonumret står på varje faktura till kunden, men Actions-loggen är
+      # publik. Ett stegs env-block skrivs ut innan skriptet kör, så masken
+      # läggs i ett EGET steg, och värdet läses ur händelsen, aldrig via env.
+      - name: Maskera
+        run: |
+          v=$(jq -r '.inputs.betala_till // ""' "$GITHUB_EVENT_PATH")
+          if [ -n "$v" ]; then
+            echo "::add-mask::$v"
+            printf '%s\n' "$v" | grep -oE '[0-9][0-9 -]{3,}[0-9]' | while read -r tal; do
+              echo "::add-mask::$tal"
+            done
+          fi
+          exit 0
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          ORDER: ${{ inputs.order }}
+          BETALA_TILL: ${{ inputs.betala_till }}
+          F_SKATT: ${{ inputs.f_skatt }}
+          DAGAR: ${{ inputs.dagar }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          url="${BASE%/api/cron/poll-tracking}/api/admin/faktura"
+
+          if [ "${MODE}" = "installningar" ]; then
+            kropp=$(jq -nc --arg b "${BETALA_TILL:-}" --arg f "${F_SKATT:-oforandrat}" --arg d "${DAGAR:-}" \
+              '{lage: "installningar", betalaTill: $b}
+               + (if $f == "oforandrat" then {} else {fSkatt: $f} end)
+               + (if $d == "" then {} else {dagar: $d} end)')
+          else
+            kropp=$(jq -nc --arg l "${MODE}" --arg o "${ORDER:-}" \
+              '{lage: $l} + (if $o == "" then {} else {order: $o} end)')
+          fi
+
+          svar=$(curl -sS --max-time 150 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${kropp}" \
+            "${url}")
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret fran rutten var inte JSON. Ar den deployad dar workflowen kor?" >&2
+            exit 1
+          fi
+
+          echo "Lage:                 ${MODE}" || true
+          # Bara att uppgiften finns, aldrig själva kontonumret.
+          echo "Betalning:            $(echo "$svar" | jq -r 'if .betalning then "satt (\(.betalning.betalaTill | length) tecken), F-skatt \(.betalning.fSkatt), \(.betalning.dagar) dagar" else "INTE SATT" end')" || true
+          if [ "${MODE}" != "installningar" ]; then
+            echo "Fakturaordrar:        $(echo "$svar" | jq -r '.fakturaordrar // 0') av $(echo "$svar" | jq -r '.granskade // 0') granskade" || true
+            echo "Fakturor skickade:    $(echo "$svar" | jq -r '(.fakturor // []) | join(", ") | if . == "" then "-" else . end')" || true
+            echo "Kvitton skickade:     $(echo "$svar" | jq -r '(.kvitton // []) | join(", ") | if . == "" then "-" else . end')" || true
+            echo "Skulle faktureras:    $(echo "$svar" | jq -r '(.skulleFakturor // []) | join(", ") | if . == "" then "-" else . end')" || true
+            echo "Skulle kvitteras:     $(echo "$svar" | jq -r '(.skulleKvitton // []) | join(", ") | if . == "" then "-" else . end')" || true
+            echo "Väntar på betalning:  $(echo "$svar" | jq -r '(.vantarPaBetalning // []) | join(", ") | if . == "" then "-" else . end')" || true
+            echo "Väntar på bankgiro:   $(echo "$svar" | jq -r '(.vantarPaBetalningsuppgifter // []) | join(", ") | if . == "" then "-" else . end')" || true
+            if [ "${MODE}" = "prov" ]; then
+              echo "Mottagare:            $(echo "$svar" | jq -r '.mottagare // "-"') (adressen skrivs aldrig ut)" || true
+            fi
+            echo "$svar" | jq -r '(.fel // [])[] | "Fel: \(.order) \(.typ): \(.fel)"' || true
+          fi
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // ((.fel // [])[0].fel) // "okant fel"')" >&2
+            exit 1
+          fi

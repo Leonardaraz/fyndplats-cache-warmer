@@ -5619,6 +5619,54 @@ Två egenskaper som inte ska tas bort:
    rad i alla tre backends. Ett test simulerar en backend vars `updateTask` inte
    gör något: rutten svarar fel, och ingen audit-rad skrivs.
 
+### Faktura och kvitto: våra egna, inte Wix (2026-10-09)
+
+Leonard: *"när vi godkänner skickas vår egen mall ut och inget från wix"* och
+*"allt ska vårt eget"*. Första fallet var order 10079, en företagsorder som lades
+upp för hand i Wix och betalas mot faktura.
+
+Wix automationer **"Send invoice to customer"** och **"Send a receipt email"**
+är avstängda (INACTIVE, kontrollerat med en fråga efteråt). Wix egen
+orderbekräftelse till köparen var redan avstängd, och butikens egen
+bekräftelse gick ut för 10079. Skicka alltså aldrig en faktura från Wix
+fakturaverktyg: kunden får ingenting.
+
+Motorn skickar i stället (`lib/orders/faktura.ts`, `faktura-pdf.ts`,
+`faktura-kor.ts`):
+
+| när | vad |
+|---|---|
+| en handlagd order (`BACKOFFICE_MERCHANT`) godkänns obetald | fakturan, mejl i kundomslaget med PDF |
+| ordern markeras betald i Wix | kvittot, mejl med PDF, inom en timme |
+
+Webhooken skickar fakturan direkt. Timcronen `/api/cron/faktura` (`10 * * * *`)
+tar det webhooken missade och kvittot, eftersom Wix inte skickar någon
+betalningshändelse till motorn. Workflowen **"Faktura — skicka, prova och
+ställ in"**: `plan` · `skicka` · `prov` (till den interna larmadressen, med
+[Prov]) · `installningar`.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Ingen faktura utan betalningsuppgift.** Vart pengarna ska står i
+   `FyndplatsAppConfig` (`fakturaBetalaTill`, `fakturaFSkatt`, `fakturaDagar`),
+   satt med `installningar`. Saknas den väntar ordern
+   (`vantarPaBetalningsuppgifter`) och nästa körning skickar.
+2. ☠️ **Beloppen stäms av mot Wix.** Raderna och momsen räknas i öre och
+   jämförs med orderns `priceSummary`. Mer än en krona fel ger ingen faktura.
+   Bara SEK och priser inklusive moms.
+3. ☠️ **Raden i `faktura_utskick` tas FÖRE utskicket** och släpps om det
+   faller. Wix skickar `approved` två gånger (10079: en minut isär), och
+   webhooken och cronen kan se samma order. Ett utskick utan Resend-id räknas
+   som fallet.
+4. **Kvittot kräver att fakturan gick härifrån.** Fakturadatumet läses ur
+   loggen, så kvittot visar samma datum som fakturan.
+5. **`FAKTURA_FRAN` (2026-10-09).** Äldre handlagda ordrar rörs inte.
+6. ☠️ **Svaret bär bara ordernummer**, aldrig kundens namn, e-post eller adress.
+
+Fakturanumret är ordernumret. Kundens org.nr och referens läses ur
+ordernoteringen ("org.nr 556000-0000. Referens: Anna Andersson"), så skriv dem
+där när ordern läggs upp.
+
 ### Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
 
 AliExpress sköter sig självt: `place-order` lägger ordern, `poll-tracking` hämtar

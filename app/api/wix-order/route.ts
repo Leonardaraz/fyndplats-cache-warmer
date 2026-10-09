@@ -6,6 +6,9 @@ import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 import { enqueuePriorityCheck } from "@/lib/sync/bestsellers";
 import { recordOrder } from "@/lib/import/supplier-tracking";
+import { arFakturaorder, type FakturaOrder } from "@/lib/orders/faktura";
+import { korFakturor } from "@/lib/orders/faktura-kor";
+import { fakturaDeps } from "@/lib/orders/faktura-deps";
 
 // Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
 // avduplicerar på event-id (idempotens) och skapar en fulfillment-task per
@@ -138,5 +141,34 @@ export async function POST(req: Request) {
   }
 
   await audit("order", event.orderId, `${created} tasks skapade, ${enqueued} prioriterade`);
-  return NextResponse.json({ ok: true, orderId: event.orderId, tasksCreated: created, prioritized: enqueued });
+
+  // En order lagd för hand på faktura får sin faktura direkt (lib/orders/faktura.ts).
+  // Best-effort: missar den här tar timcronen `/api/cron/faktura` den, och
+  // loggen gör att den aldrig skickas två gånger.
+  let faktura: string | undefined;
+  const fakturaorder = { ...(event.order as unknown as FakturaOrder), id: event.orderId };
+  if (arFakturaorder(fakturaorder)) {
+    try {
+      const svar = await korFakturor({ ordrar: [fakturaorder] }, fakturaDeps());
+      faktura = svar.fakturor.length
+        ? "skickad"
+        : svar.vantarPaBetalningsuppgifter.length
+          ? "väntar på betalningsuppgifter"
+          : svar.fel.length
+            ? `fel: ${svar.fel[0].fel}`
+            : "redan skickad";
+      console.log(`[wix-order] faktura ${fakturaorder.number ?? event.orderId}: ${faktura}`);
+    } catch (e) {
+      faktura = `fel: ${e instanceof Error ? e.message : String(e)}`;
+      console.error(`[wix-order] faktura ${fakturaorder.number ?? event.orderId}: ${faktura}`);
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    orderId: event.orderId,
+    tasksCreated: created,
+    prioritized: enqueued,
+    ...(faktura ? { faktura } : {}),
+  });
 }
