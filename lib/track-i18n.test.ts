@@ -188,6 +188,16 @@ test("harOrt – en ort, eller bara ett land", () => {
   assert.equal(harOrt(undefined), false);
 });
 
+test("harOrt – avgörs på platsen som sidan visar, inte på fri-texten", () => {
+  // Adressen har bara ett land: sidan visar bara landet, och fri-texten räknas
+  // inte som ort (produktion 2026-10-09, se tidForHandelse nedan).
+  assert.equal(harOrt("Sweden, SE", { country: "DE" }), false);
+  assert.equal(harOrt("Postnord", { country: "DE" }), false);
+  // Utan land i adressen visar sidan fri-texten, och då räknas dess ort.
+  assert.equal(harOrt("Koege, Denmark"), true);
+  assert.equal(harOrt("Koege", { city: "", country: "" }), true);
+});
+
 test("svenskVaggklocka – DPD:s svenska tid märkt +00:00 blir rätt", () => {
   // PostNord: levererat 19:46. 17TRACK: 19:46+00:00. Sidan visade 21:46.
   assert.equal(svenskVaggklocka("2026-10-07T19:46:00+00:00", "Tyskland"), "2026-10-07T17:46:00.000Z");
@@ -264,6 +274,13 @@ test("tidForHandelse – det anmälda DPD-paketet som 17TRACK gav det", () => {
   // Levererat enligt PostNord 19:46 svensk tid; /sparning visade 21:46.
   assert.equal(
     tidForHandelse({ time_iso: "2026-10-07T19:46:00+00:00", location: "Germany", address: { country: "DE" } }),
+    "2026-10-07T17:46:00.000Z",
+  );
+  // I produktion stod den kvar på 21:46 fast sidan bara visade landet: fri-texten
+  // bar något som räknades som ort. Sidan visar då inte fri-texten, och tiden ska
+  // rättas ändå.
+  assert.equal(
+    tidForHandelse({ time_iso: "2026-10-07T19:46:00+00:00", location: "Sweden, SE", address: { country: "DE" } }),
     "2026-10-07T17:46:00.000Z",
   );
   // DPD:s egen skanning i Göteborg är riktig UTC och står kvar.
