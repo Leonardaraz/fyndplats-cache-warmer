@@ -580,7 +580,8 @@ export function CartDrawer() {
               // Står kunden redan på sidan och alternativet räcker det att
               // stänga lådan. Annars laddas samma sida om och inget syns hända.
               const tillProdukt = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-                if (lank && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0 && arSammaSida(lank, window.location)) {
+                const valtPaSidan = document.querySelector(".pdp[data-vald-variant]")?.getAttribute("data-vald-variant");
+                if (lank && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0 && arSammaSida(lank, window.location, valtPaSidan)) {
                   e.preventDefault();
                 }
                 setOpen(false);

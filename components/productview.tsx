@@ -745,7 +745,9 @@ export function ProductView({
 
   return (
     <>
-    <div className="pdp">
+    {/* Alternativet som visas, för varukorgens länk (lib/kundvagn-lank.ts,
+        arSammaSida): förvalet står inte i adressen. */}
+    <div className="pdp" data-vald-variant={variantId || undefined}>
       <Gallery
         // Ingen key: galleriet byter bilder på plats och tonar över (gallery.tsx).
         // Blur-förhandsvisningen gäller bara sidans första bild; galleriet

@@ -103,6 +103,25 @@ test("samma sida och samma alternativ känns igen", () => {
   assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/stol", search: "" }), true);
   assert.equal(arSammaSida(`/produkt/stol?variant=${V2}`, { pathname: "/produkt/stol", search: `?variant=${V2}` }), true);
   assert.equal(arSammaSida(`/produkt/stol?variant=${V2}`, { pathname: "/produkt/stol", search: "" }), false);
-  assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/stol", search: `?variant=${V2}` }), false);
   assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/bord", search: "" }), false);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V2}`, { pathname: "/produkt/bord", search: `?variant=${V2}` }), false);
+});
+
+test("en vara utan alternativ är samma sida oavsett adressens ?variant=", () => {
+  assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/stol", search: `?variant=${V2}` }), true);
+});
+
+const V1 = "11111111-2222-4333-8444-555555555555";
+
+test("förvalet: adressen saknar ?variant= men sidan visar alternativet", () => {
+  // Produktsidan skriver inte förvalet i adressen. Utan sidans värde hade
+  // samma sida laddats om, och det såg ut som att ingenting hände.
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V1}`, { pathname: "/produkt/stol", search: "" }, V1), true);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V1}`, { pathname: "/produkt/stol", search: "" }, V2), false);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V1}`, { pathname: "/produkt/stol", search: `?variant=${V1}` }, null), true);
+});
+
+test("sidans värde gäller före adressen", () => {
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V1}`, { pathname: "/produkt/stol", search: `?variant=${V2}` }, V1), true);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V1}`, { pathname: "/produkt/stol", search: `?variant=${V1}` }, V2), false);
 });

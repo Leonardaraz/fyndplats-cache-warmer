@@ -66,10 +66,22 @@ export function produktLankForRad(
  * Sant när länken leder till sidan och alternativet kunden redan står på.
  * Då ska trycket bara stänga varukorgen: en omladdning av samma sida såg ut
  * som att ingenting hände.
+ *
+ * `valtPaSidan` är alternativet produktsidan visar (`data-vald-variant` på
+ * `.pdp`). Det behövs för förvalet: produktsidan skriver inte ?variant= för
+ * första alternativet, så adressen ensam kan inte säga att kunden redan står
+ * på det. Utan värdet läses adressen.
  */
-export function arSammaSida(lank: string, nu: { pathname: string; search: string }): boolean {
+export function arSammaSida(
+  lank: string,
+  nu: { pathname: string; search: string },
+  valtPaSidan?: string | null,
+): boolean {
   const u = new URL(lank, "https://x.invalid");
   if (u.pathname !== nu.pathname) return false;
-  const valt = new URLSearchParams(nu.search).get("variant");
-  return (u.searchParams.get("variant") ?? null) === valt;
+  const lankens = u.searchParams.get("variant");
+  // En vara utan alternativ har bara en sida att visa.
+  if (!lankens) return true;
+  const valt = valtPaSidan || new URLSearchParams(nu.search).get("variant");
+  return lankens === valt;
 }
