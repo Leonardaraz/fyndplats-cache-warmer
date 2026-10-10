@@ -33,8 +33,10 @@ const jsonLd = {
   email: "info@fyndplats.com",
   telephone: "+46736630990",
   areaServed: "SE",
-  currenciesAccepted: "SEK",
-  paymentAccepted: "Credit Card, Klarna",
+  // Inga currenciesAccepted eller paymentAccepted här: i schema.org hör de till
+  // LocalBusiness, inte OnlineStore, och Semrush flaggade startsidan för dem
+  // som ogiltig strukturerad data (2026-10-10). Layoutens Organization-data
+  // (app/layout.tsx) bär båda, med LocalBusiness som en av sina typer.
   sameAs: [
     // Google Business Profile — bidirektionell länk för entity-koppling
     "https://maps.google.com/?cid=13527624431203349873",
