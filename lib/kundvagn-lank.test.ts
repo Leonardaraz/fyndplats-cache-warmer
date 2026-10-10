@@ -6,7 +6,7 @@
 // normaliseraKundvagn bär v2:s adress hela vägen dit.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { produktLankForRad } from "./kundvagn-lank.ts";
+import { arSammaSida, produktLankForRad, variantForRad } from "./kundvagn-lank.ts";
 import { normaliseraKundvagn } from "./cart-shape.ts";
 
 test("Wix produktsida blir butikens /produkt/<slug>", () => {
@@ -58,4 +58,51 @@ test("okänd form eller saknad adress ger ingen länk", () => {
   assert.equal(produktLankForRad({ url: {} }), null);
   assert.equal(produktLankForRad({}), null);
   assert.equal(produktLankForRad(null), null);
+});
+
+const V2 = "3f2a9c1e-1111-4a2b-9c3d-123456789abc";
+
+test("valt alternativ följer med som ?variant=", () => {
+  const rad = {
+    url: { relativePath: "/product-page/stol" },
+    catalogReference: { catalogItemId: "prod-1", options: { variantId: V2 } },
+  };
+  assert.equal(produktLankForRad(rad), `/produkt/stol?variant=${V2}`);
+  assert.equal(
+    produktLankForRad({ catalogReference: { catalogItemId: "prod-1", options: { variantId: V2 } } }, { "prod-1": "stol" }),
+    `/produkt/stol?variant=${V2}`,
+  );
+});
+
+test("vara utan alternativ (nollornas id) får ingen parameter", () => {
+  const rad = {
+    url: { relativePath: "/product-page/stol" },
+    catalogReference: { catalogItemId: "prod-1", options: { variantId: "00000000-0000-0000-0000-000000000000" } },
+  };
+  assert.equal(produktLankForRad(rad), "/produkt/stol");
+  assert.equal(variantForRad({ catalogReference: { options: { variantId: "inte-ett-id" } } }), null);
+  assert.equal(variantForRad({ catalogReference: { options: "x" } }), null);
+});
+
+test("v2-raden bär alternativet genom normaliseraKundvagn", () => {
+  const k = normaliseraKundvagn({
+    cart: {
+      lineItems: [
+        {
+          _id: "rad-1",
+          source: { catalogReference: { catalogItemId: "prod-1", appId: "stores", options: { variantId: V2 } } },
+          attributes: { url: { relativePath: "/product-page/stol" } },
+        },
+      ],
+    },
+  })!;
+  assert.equal(produktLankForRad(k.lineItems[0]), `/produkt/stol?variant=${V2}`);
+});
+
+test("samma sida och samma alternativ känns igen", () => {
+  assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/stol", search: "" }), true);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V2}`, { pathname: "/produkt/stol", search: `?variant=${V2}` }), true);
+  assert.equal(arSammaSida(`/produkt/stol?variant=${V2}`, { pathname: "/produkt/stol", search: "" }), false);
+  assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/stol", search: `?variant=${V2}` }), false);
+  assert.equal(arSammaSida("/produkt/stol", { pathname: "/produkt/bord", search: "" }), false);
 });

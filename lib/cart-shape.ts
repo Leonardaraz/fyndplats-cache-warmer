@@ -218,3 +218,23 @@ export function normaliseraKundvagn(indata: unknown): NormaliseradKundvagn | nul
 
   return ut;
 }
+
+/**
+ * Sant när Wix uttryckligen svarar att besökarens varukorg inte går att läsa:
+ * HTTP 4xx, till exempel 404 när varukorgen redan blivit en order. Då ska
+ * kakan `fp_cart` bort, annars laddas kassans kod i onödan på varje sida.
+ *
+ * Allt annat är tillfälligt och lämnar kakan kvar: ett nätfel eller en kod som
+ * inte gick att ladda (ingen status), 5xx, 408 och 429. Förut togs kakan bort
+ * vid varje fel, och då såg varukorgen tom ut på alla följande sidor efter ett
+ * enda hack i mobilnätet, fast varorna låg kvar hos Wix.
+ *
+ * Wix SDK lägger HTTP-statusen på felet (`status`, se @wix/sdk-runtime
+ * transform-error). `response.status` läses som reserv.
+ */
+export function vagnenArBorta(fel: unknown): boolean {
+  const f = obj(fel);
+  const status = num(f?.status) ?? num(obj(f?.response)?.status);
+  if (status === undefined) return false;
+  return status >= 400 && status < 500 && status !== 408 && status !== 429;
+}
