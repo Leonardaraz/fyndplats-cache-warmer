@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import Cookies from "js-cookie";
 import {
   stashPurchaseSnapshot,
@@ -16,7 +16,7 @@ import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
 import { formatPrice } from "../lib/price-range";
-import { produktLankForRad } from "../lib/kundvagn-lank";
+import { arSammaSida, produktLankForRad } from "../lib/kundvagn-lank";
 import { PaymentMarks } from "./payment-marks";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -539,6 +539,14 @@ export function CartDrawer() {
               // visas de som förut, utan länk.
               // En slug hör till sitt produkt-id, så en äldre karta är ofarlig.
               const lank = produktLankForRad(li, forslag.lankar);
+              // Står kunden redan på sidan och alternativet räcker det att
+              // stänga lådan. Annars laddas samma sida om och inget syns hända.
+              const tillProdukt = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+                if (lank && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0 && arSammaSida(lank, window.location)) {
+                  e.preventDefault();
+                }
+                setOpen(false);
+              };
               const bild = img ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" />
@@ -548,11 +556,11 @@ export function CartDrawer() {
               return (
                 <div className="li" key={li._id}>
                   {lank ? (
-                    <a className="li-lank" href={lank} onClick={() => setOpen(false)} tabIndex={-1} aria-hidden="true">{bild}</a>
+                    <a className="li-lank" href={lank} onClick={tillProdukt} tabIndex={-1} aria-hidden="true">{bild}</a>
                   ) : bild}
                   <div className="li-info">
                     {lank ? (
-                      <a className="li-name li-lank" href={lank} onClick={() => setOpen(false)}>{name}</a>
+                      <a className="li-name li-lank" href={lank} onClick={tillProdukt}>{name}</a>
                     ) : (
                       <div className="li-name">{name}</div>
                     )}
