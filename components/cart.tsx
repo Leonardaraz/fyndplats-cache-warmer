@@ -12,7 +12,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
 import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
-import { normaliseraKundvagn, valdaAlternativ } from "../lib/cart-shape";
+import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
 import { formatPrice } from "../lib/price-range";
@@ -35,10 +35,20 @@ function liImageUrl(x: any): string {
 // Round-3 perf: lazy-import @wix/sdk + @wix/ecom so the ~600 KB SDK doesn't
 // ship in the main bundle. Module-level imports made every page (incl. blog)
 // pay the SDK weight up front. Now it's fetched only on first cart interaction.
-let clientPromise: Promise<{ client: any; currentCart: any }> | null = null;
-function getClient() {
+let clientPromise: Promise<{ client: any }> | null = null;
+
+/** Besökarens nycklar ur kakan. En trasig kaka ger tomma nycklar, inte ett kast. */
+function sparadeNycklar(): any {
+  try {
+    const t = JSON.parse(Cookies.get("session") || "null");
+    if (t && typeof t === "object") return t;
+  } catch { /* trasig kaka: börja om som ny besökare */ }
+  return { accessToken: {}, refreshToken: {} };
+}
+
+function getClient(): Promise<{ client: any }> {
   if (!clientPromise) {
-    clientPromise = (async () => {
+    const lofte = (async () => {
       // Cart API v2 för vagnen, @wix/redirects kvar för kassa-adressen.
       //
       // Jag tog först bort redirects helt och byggde tacksides-returen på en
@@ -61,11 +71,16 @@ function getClient() {
         modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects: redir.redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
-          tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
+          tokens: sparadeNycklar(),
         }),
       });
-      return { client, currentCart: ecom.currentCartV2 };
+      return { client };
     })();
+    // Ett misslyckat försök sparas inte. Annars hade en kod som inte gick att
+    // hämta (ett hack i mobilnätet) gjort varukorgen oanvändbar tills sidan
+    // laddades om; nu försöker nästa tryck igen.
+    lofte.catch(() => { if (clientPromise === lofte) clientPromise = null; });
+    clientPromise = lofte;
   }
   return clientPromise;
 }
@@ -103,9 +118,9 @@ function persistTokens(client: any) {
   } catch {}
 }
 
-/** Det kunden ser i lådan medan Wix bekräftar tillägget. */
-/** `bild` visas som den är: helst adressen sidan redan visar, så att den
- *  ligger i webbläsarens cache och syns direkt. */
+/** Det kunden ser i lådan medan Wix bekräftar tillägget. `bild` visas som
+ *  den är: helst adressen sidan redan visar, så att den ligger i
+ *  webbläsarens cache och syns direkt. */
 export type Forhandsrad = { namn: string; bild?: string; val?: string; prisNum?: number };
 type Vantande = Forhandsrad & { nyckel: number; antal: number };
 
@@ -269,11 +284,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (open) trackViewCart(cartRef.current);
   }, [open]);
 
-  const refresh = useCallback(async () => {
-    try {
-      const { client } = await getClient();
-      setCart(normaliseraKundvagn(await client.currentCart.getCurrentCart()));
-    } catch { setCart(null); Cookies.remove("fp_cart"); }
+  // Vagnen från Wix in i lådan. Kakan fp_cart följer med: den säger att det
+  // finns varor att hämta vid nästa sidladdning, så en tom vagn tar bort den
+  // och nästa sida slipper ladda kassans kod.
+  const visaVagn = useCallback((svar: unknown) => {
+    const k = normaliseraKundvagn(svar);
+    setCart(k);
+    if (k && k.lineItems.length > 0) Cookies.set("fp_cart", "1", { expires: 30 });
+    else Cookies.remove("fp_cart");
   }, []);
 
   useEffect(() => {
@@ -281,8 +299,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // Nya besökare betalar 0 SDK-bytes tills de klickar "Lägg i kundvagn".
     // generateVisitorTokens flyttat till första add() — annars skulle vi
     // tvinga SDK-load även för rena katalogbesök.
-    if (Cookies.get("fp_cart")) refresh();
-  }, [refresh]);
+    if (!Cookies.get("fp_cart")) return;
+    let aktiv = true;
+    getClient()
+      .then(({ client }) => client.currentCart.getCurrentCart())
+      .then((svar) => { if (aktiv) visaVagn(svar); })
+      .catch((e) => {
+        if (!aktiv) return;
+        // Bara när Wix säger att vagnen inte finns tas kakan bort
+        // (vagnenArBorta). Ett tillfälligt fel lämnar den, så att nästa sida
+        // försöker igen i stället för att visa en tom varukorg.
+        if (vagnenArBorta(e)) Cookies.remove("fp_cart");
+      });
+    return () => { aktiv = false; };
+  }, [visaVagn]);
 
   const add = useCallback(async (id: string, variantId?: string, quantity: number = 1, forhand?: Forhandsrad) => {
     const antal = Math.max(1, Math.floor(quantity));
@@ -302,8 +332,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const res: any = await client.currentCart.addLineItemsToCurrentCart({
         catalogItems: [{ catalogReference: ref, quantity: antal }],
       });
-      setCart(normaliseraKundvagn(res)); persistTokens(client); setOpen(true);
-      Cookies.set("fp_cart", "1", { expires: 30 });
+      visaVagn(res); persistTokens(client); setOpen(true);
       return true;
     } catch {
       // Förut kastades felet vidare utan att kunden såg något. Nu står det i
@@ -315,26 +344,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setVantande((v) => v.filter((x) => x.nyckel !== nyckel));
       setBusy(false);
     }
-  }, []);
+  }, [visaVagn]);
 
+  // Ett fel står i lådan, som när en vara inte gick att lägga i. Förut
+  // försvann det i konsolen och knappen såg ut att inte göra någonting.
   const remove = useCallback(async (lineId: string) => {
-    const { client } = await getClient();
-    const res: any = await client.currentCart.removeLineItemsFromCurrentCart([lineId]);
-    setCart(normaliseraKundvagn(res));
-  }, []);
+    setBusy(true);
+    setFel(null);
+    try {
+      const { client } = await getClient();
+      const res: any = await client.currentCart.removeLineItemsFromCurrentCart([lineId]);
+      visaVagn(res);
+    } catch {
+      setFel("Varan kunde inte tas bort. Försök igen.");
+    } finally { setBusy(false); }
+  }, [visaVagn]);
 
   const updateQty = useCallback(async (lineId: string, quantity: number) => {
     if (quantity < 1) { await remove(lineId); return; }
     setBusy(true);
+    setFel(null);
     try {
       const { client } = await getClient();
       // v2: lineItemId (inte _id), och antalet ligger i { newQuantity }.
       const res: any = await client.currentCart.updateLineItemsInCurrentCart({
         lineItems: [{ lineItemId: lineId, quantity: { newQuantity: quantity } }],
       });
-      setCart(normaliseraKundvagn(res));
+      visaVagn(res);
+    } catch {
+      setFel("Antalet kunde inte ändras. Försök igen.");
     } finally { setBusy(false); }
-  }, [remove]);
+  }, [remove, visaVagn]);
 
   const checkout = useCallback(async () => {
     if (tillKassan) return;
@@ -403,33 +443,6 @@ export function CartButton() {
       </svg>
       {count > 0 && <span className="cartcount">{count}</span>}
     </button>
-  );
-}
-
-export function BuyBox({ id, variants }: { id: string; variants?: { id: string; label: string }[] }) {
-  const { add, busy } = useCart();
-  const vs = variants || [];
-  const [vid, setVid] = useState(vs[0]?.id || "");
-  const [added, setAdded] = useState(false);
-  const needsVariant = vs.length > 0;
-  return (
-    <div className="buybox">
-      {vs.length > 1 && (
-        <label className="varpick">
-          <span>Variant</span>
-          <select value={vid} onChange={(e) => setVid(e.target.value)}>
-            {vs.map((v) => <option key={v.id} value={v.id}>{v.label}</option>)}
-          </select>
-        </label>
-      )}
-      <button
-        className="buy"
-        disabled={busy || !id || (needsVariant && !vid)}
-        onClick={async () => { if (await add(id, vid || undefined)) { setAdded(true); setTimeout(() => setAdded(false), 1500); } }}
-      >
-        {busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
-      </button>
-    </div>
   );
 }
 
@@ -597,12 +610,12 @@ export function CartDrawer() {
                     })()}
                     <div className="li-meta">{li.price?.formattedAmount || ""}</div>
                     <div className="li-qty">
-                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy} aria-label="Minska antal">−</button>
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy || tillKassan} aria-label="Minska antal">−</button>
                       <span className="qnum">{li.quantity}</span>
-                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity + 1)} disabled={busy} aria-label="Öka antal">+</button>
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity + 1)} disabled={busy || tillKassan} aria-label="Öka antal">+</button>
                     </div>
                   </div>
-                  <button className="li-x" onClick={() => remove(li._id)} aria-label="Ta bort">Ta bort</button>
+                  <button className="li-x" onClick={() => remove(li._id)} disabled={busy || tillKassan} aria-label="Ta bort">Ta bort</button>
                 </div>
               );
             })
