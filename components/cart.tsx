@@ -123,6 +123,8 @@ type Ctx = {
   updateQty: (lineId: string, quantity: number) => Promise<void>;
   checkout: () => Promise<void>;
   busy: boolean;
+  /** Kassan håller på att öppnas (trycket är gjort, sidan inte bytt än). */
+  tillKassan: boolean;
 };
 const CartCtx = createContext<Ctx | null>(null);
 export const useCart = () => {
@@ -239,6 +241,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [vantande, setVantande] = useState<Vantande[]>([]);
   const [fel, setFel] = useState<string | null>(null);
+  // Sant från trycket på "Till kassan" tills kassan har tagit över sidan.
+  // Wix kassa tar 2–9 s innan den syns, och under den tiden ska knappen säga
+  // att den är på väg, inte bli "Till kassan" igen.
+  const [tillKassan, setTillKassan] = useState(false);
+  // Bakåt från kassan visar sidan ur webbläsarens minne (bfcache), med
+  // knappen kvar i "Öppnar kassan". Då återställs den.
+  useEffect(() => {
+    const tillbaka = (e: PageTransitionEvent) => { if (e.persisted) setTillKassan(false); };
+    window.addEventListener("pageshow", tillbaka);
+    return () => window.removeEventListener("pageshow", tillbaka);
+  }, []);
+  // Står sidan kvar efter 20 s (laddningen avbröts) blir knappen tryckbar igen.
+  useEffect(() => {
+    if (!tillKassan) return;
+    const t = window.setTimeout(() => setTillKassan(false), 20_000);
+    return () => window.clearTimeout(t);
+  }, [tillKassan]);
 
   // GA4 view_cart — fires varje gång drawern går från stängd till öppen.
   // Cart-state läses via ref (inte i deps) så vi inte spam:ar view_cart vid
@@ -318,7 +337,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [remove]);
 
   const checkout = useCallback(async () => {
-    setBusy(true);
+    if (tillKassan) return;
+    setTillKassan(true);
+    setFel(null);
     try {
       // Stasha cart-snapshot + fyra GA4 begin_checkout INNAN redirect. Wix
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
@@ -340,11 +361,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // köp. Raden gör det synligt i konsolen utan att någon betalar något.
       console.info(`[kassa] adress via ${lank.vag}`);
 
+      // Knappen står kvar i "Öppnar kassan" tills sidan byts. Den återställs
+      // bara vid fel och när kunden kommer tillbaka (pageshow ovan).
       window.location.href = lank.target;
     } catch (e: any) {
-      alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
-    } finally { setBusy(false); }
-  }, [cart]);
+      console.warn("[kassa] kunde inte öppnas:", e?.message || e);
+      setFel("Kassan kunde inte öppnas. Försök igen om en stund.");
+      setTillKassan(false);
+    }
+  }, [cart, tillKassan]);
 
   // Förbered kassans adress så fort lådan visar en vagn med varor. Faller
   // det bygger trycket själv, så ett fel här märks aldrig av kunden.
@@ -364,7 +389,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
   const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy, tillKassan }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
@@ -438,7 +463,7 @@ function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
 }
 
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan } = useCart();
   const panelRef = useRef<HTMLElement>(null);
   // En ny vara läggs sist. Rulla dit, så att kunden ser den hamna i lådan.
   const kroppRef = useRef<HTMLDivElement>(null);
@@ -623,7 +648,7 @@ export function CartDrawer() {
               <div><dt>Frakt</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : formatPrice(frakt)}</dd></div>
               <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{formatPrice(totalt)}</dd></div>
             </dl>
-            <button className="buy" disabled={busy} onClick={checkout}>{busy ? "…" : "Till kassan →"}</button>
+            <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "…" : "Till kassan →"}</button>
             <ul className="drawer-trygg">
               <li>
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
