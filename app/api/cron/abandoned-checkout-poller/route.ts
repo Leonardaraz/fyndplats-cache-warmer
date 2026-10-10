@@ -33,6 +33,10 @@ export async function GET(request: Request) {
 
   try {
     const result = await pollAbandonedCheckouts({ lookbackHours });
+    // Bara när en ny övergiven kassa köades: tyst annars, och aldrig adresser.
+    if (result.enqueued) {
+      console.info(`[abandoned-checkout-poller] ${result.enqueued} nya i kön av ${result.considered} övergivna`);
+    }
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

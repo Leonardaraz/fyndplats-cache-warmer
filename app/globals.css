@@ -1237,6 +1237,8 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .li-img{width:56px;height:56px;border-radius:var(--r-sm);background:var(--surface-2) center/cover no-repeat;flex:0 0 auto;object-fit:cover;display:block}
 .li-info{flex:1;min-width:0}
 .li-name{font-size:var(--text-sm);font-weight:600;line-height:1.3}
+.li-lank{color:inherit;text-decoration:none;display:block}
+.li-name.li-lank:hover,.li-name.li-lank:focus-visible{text-decoration:underline}
 .li-val{font-size:var(--text-xs);color:var(--soft);margin-top:2px;line-height:1.35}
 .li-meta{font-size:var(--text-xs);color:var(--soft);margin-top:3px}
 .li-qty{display:inline-flex;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
@@ -1293,9 +1295,25 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 @media(hover:none){.cart-reco-arr{opacity:1;transform:none}}
 
 .drawer-foot{border-top:1px solid var(--line);padding:18px 22px}
-.drawer-foot .sub{display:flex;justify-content:space-between;font-size:var(--text-base);margin-bottom:14px}
+/* Summering och trygghetsrad, som premiumbutikernas kassor (granskningen 2026-10-09) */
+.drawer-sum{margin:0 0 14px;display:flex;flex-direction:column;gap:5px}
+.drawer-sum div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.drawer-sum dt{font-size:var(--text-sm);color:var(--soft)}
+.drawer-sum dd{margin:0;font-size:var(--text-sm);color:var(--ink);font-variant-numeric:tabular-nums}
+.drawer-sum dd.fri{color:#0B6B3A;font-weight:700}
+.drawer-sum .tot{margin-top:3px;padding-top:9px;border-top:1px solid var(--line)}
+.drawer-sum .tot dt{font-size:var(--text-base);font-weight:700;color:var(--ink)}
+.drawer-sum .tot dt small{font-size:var(--text-xs);font-weight:500;color:var(--soft);margin-left:4px}
+.drawer-sum .tot dd{font-size:var(--text-lg);font-weight:800}
+.drawer-trygg{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:5px 16px}
+.drawer-trygg li{display:flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--soft);line-height:1.35}
+.drawer-trygg li b{color:#157a43;font-weight:700}
+.drawer-trygg svg{width:16px;height:16px;flex:none;color:#1B8A52}
+.drawer-foot .paymarks{justify-content:center;margin-top:10px;gap:5px}
+/* Mindre brickor så att raden ryms på en rad i lådan på mobil; Klarnas märke
+   behåller sin storlek (.pay-klarna har egen bredd). */
+.drawer-foot .pay:not(.pay-klarna){width:40px;height:28px}
 .drawer-foot .buy{width:100%;max-width:none;justify-content:center;display:flex}
-.drawer-note{font-size:var(--text-xs);color:var(--soft);text-align:center;margin-top:10px}
 .drawer-eu{font-size:var(--text-xs);color:var(--soft);text-align:center;margin-top:8px;display:flex;align-items:flex-start;justify-content:center;gap:6px}
 .drawer-eu a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
 .drawer-eu a:hover{text-decoration-color:currentColor}
@@ -2129,6 +2147,26 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .tack-orderno-label{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.1em;color:var(--soft);font-weight:700}
 .tack-orderno-val{font-size:var(--text-lg);font-weight:800;letter-spacing:.04em;color:var(--ink)}
 .tack-lede{font-size:var(--text-base);line-height:1.6;color:#5c544c;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto}
+/* Tacksidans "Din beställning" (components/tack-order.tsx): samma gröna toner som varukorgens fri frakt och leveransrad */
+.tack-order{max-width:520px;margin:-14px auto 34px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px}
+.tack-order-title{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--soft);margin:0 0 12px}
+.tack-rader{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.tack-rad{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center}
+.tack-rad-img{width:56px;height:56px;border-radius:var(--r-sm);object-fit:cover;background:var(--warm);border:1px solid var(--line);display:block}
+.tack-rad-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tack-rad-text strong{font-size:var(--text-sm);font-weight:700;color:var(--ink);line-height:1.35}
+.tack-rad-text span{font-size:var(--text-xs);color:var(--soft)}
+.tack-rad-belopp{font-size:var(--text-sm);font-weight:700;color:var(--ink);white-space:nowrap}
+.tack-summa{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.tack-summa>div{display:flex;justify-content:space-between;gap:12px;font-size:var(--text-sm);color:var(--ink)}
+.tack-summa dt,.tack-summa dd{margin:0}
+.tack-summa dd.fri{color:#0B6B3A;font-weight:700}
+.tack-summa .tot{padding-top:8px;margin-top:2px;border-top:1px solid var(--line);font-weight:800;align-items:baseline}
+.tack-summa .tot dd{font-size:var(--text-lg)}
+.tack-summa .tot small{font-weight:500;color:var(--soft);font-size:var(--text-xs)}
+.tack-leverans{display:flex;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;background:#F5FAF7;border:1px solid #16804a33;border-radius:var(--r-md);font-size:var(--text-sm);color:var(--ink)}
+.tack-leverans svg{width:20px;height:20px;color:#1B8A52;flex:none}
+.tack-leverans b{color:#157a43}
 .tack-next{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:34px}
 .tack-step{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);transition:border-color .2s,box-shadow .2s}
 .tack-step.done{border-color:#16804a55;background:#F5FAF7}

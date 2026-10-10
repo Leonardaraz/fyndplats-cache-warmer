@@ -147,14 +147,18 @@ export function landForHandelse(
   return LANDNAMN.has(sista) ? sista : "";
 }
 
-/** Har händelsen en ort, alltså mer än bara ett land? */
+/**
+ * Har händelsen en ort, alltså mer än bara ett land? Avgörs på platsen som
+ * sidan visar (svLocation), inte på 17TRACK:s fri-text. Uppmätt i produktion
+ * 2026-10-09: DPD-leveransen som sidan visade utan ort stod kvar på 21:46 i
+ * stället för 19:46. Regeln räknade alltså en ort ur fri-texten, som sidan
+ * inte visar när adressen har ett land.
+ */
 export function harOrt(
   rawLocation: string | undefined | null,
   address?: { city?: string; state?: string; country?: string } | null,
 ): boolean {
-  if ((address?.city ?? "").trim() || (address?.state ?? "").trim()) return true;
-  const delar = platsDelar(rawLocation);
-  return delar.length >= 2 || (delar.length === 1 && !LANDNAMN.has(svCountry(delar[0])));
+  return platsDelar(svLocation(rawLocation, address)).some((del) => !LANDNAMN.has(del));
 }
 
 // ── Tid ──────────────────────────────────────────────────────────────────────

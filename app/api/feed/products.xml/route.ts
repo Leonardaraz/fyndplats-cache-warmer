@@ -15,7 +15,7 @@
 import { getProducts, forListings, fetchVarumarken } from "../../../../lib/products";
 import { varumarke } from "../../../../lib/varumarke";
 import type { Product } from "../../../../lib/products";
-import { FREE_SHIPPING_FROM_KR, STANDARD_SHIPPING_KR } from "../../../../lib/shipping";
+import { fraktKr } from "../../../../lib/shipping";
 
 const SITE_BASE = "https://www.fyndplats.se";
 
@@ -115,7 +115,7 @@ function buildItem(p: Product, marke: string): string {
     <g:shipping>
       <g:country>SE</g:country>
       <g:service>Standard</g:service>
-      <g:price>${priceNum >= FREE_SHIPPING_FROM_KR ? "0.00 SEK" : `${STANDARD_SHIPPING_KR}.00 SEK`}</g:price>
+      <g:price>${fraktKr(priceNum)}.00 SEK</g:price>
     </g:shipping>
   </item>`;
 }

@@ -4,8 +4,8 @@
 // ordernumret — det ligger på orderns `number`-fält och kräver ett API-anrop.
 // Samma auth/endpoint som webhookens fetchWixOrder + lib/order-sync.
 //
-// Ett anrop ger allt sidan behöver: numret till kunden, och e-post + land +
-// orderdatum till Googles recensionsenkät (lib/gcr.ts).
+// Ett anrop ger allt sidan behöver: numret, varorna och beloppen till kunden,
+// och e-post + land + orderdatum till Googles recensionsenkät (lib/gcr.ts).
 //
 // Fältvägarna bor i lib/wix-order-fields.ts — se kommentaren där om varför de
 // inte får gissas.
@@ -16,6 +16,9 @@ import {
   orderCreatedDate,
   orderEmail,
   orderNumber,
+  orderRader,
+  orderSumma,
+  type OrderRad,
 } from "./wix-order-fields";
 
 /** Det /tack behöver ur ordern. */
@@ -28,13 +31,19 @@ export interface WixOrderInfo {
   readonly deliveryCountry: string | null;
   /** Orderns skapandedatum (ISO). Ankare för estimerat leveransdatum. */
   readonly createdDate: string | null;
+  /** Varorna, med radens summa inklusive moms. Tom när uppslaget föll. */
+  readonly rader: readonly OrderRad[];
+  /** Frakt, total och moms i kronor, inklusive moms. Saknas när Wix inte gav dem. */
+  readonly frakt?: number;
+  readonly totalt?: number;
+  readonly moms?: number;
 }
 
 // Ny literal per anrop, aldrig en delad konstant: WixOrderInfo returneras från
 // fyra vägar och en modulnivå-singleton hade kunnat muteras av en framtida
 // anropare och därmed läcka mellan requests i samma varma lambda.
 function tomt(): WixOrderInfo {
-  return { number: null, email: null, deliveryCountry: null, createdDate: null };
+  return { number: null, email: null, deliveryCountry: null, createdDate: null, rader: [] };
 }
 
 /**
@@ -96,6 +105,8 @@ export async function fetchWixOrderInfo(orderId: string): Promise<WixOrderInfo> 
       email: orderEmail(order) ?? null,
       deliveryCountry: orderCountry(order) ?? null,
       createdDate: orderCreatedDate(order) ?? null,
+      rader: orderRader(order),
+      ...orderSumma(order),
     };
   } catch (err) {
     console.warn(`[tack] fetchWixOrderInfo(${orderId}) fel`, err);

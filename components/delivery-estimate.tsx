@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../lib/shipping";
+import { leveransIntervall } from "../lib/leveransdatum";
 
 // "Beräknad leverans 30 juni – 4 juli" på produktsidan — det proffsiga konkreta
 // datumintervallet som de stora butikerna visar, i stället för bara "3–6
@@ -17,33 +18,8 @@ import { DELIVERY_TIME, DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../lib/ship
 // betyder också att crawlers/utan-JS ser den ärliga "3–6 arbetsdagar" (röd tråd +
 // SEO bevaras). Rutan har stabil höjd → inget layout-hopp vid bytet.
 
-// Lägg n arbetsdagar (mån–fre) till ett datum. Helger hoppas över; helgdagar
-// hanteras inte (medvetet enkelt — intervallet är ett estimat, inte ett löfte).
-function addBusinessDays(from: Date, n: number): Date {
-  const d = new Date(from);
-  let added = 0;
-  while (added < n) {
-    d.setDate(d.getDate() + 1);
-    const wd = d.getDay();
-    if (wd !== 0 && wd !== 6) added++; // 0 = söndag, 6 = lördag
-  }
-  return d;
-}
-
-function formatRange(a: Date, b: Date): string {
-  // Kort veckodag ("tis", "fre") för konkretion. Vissa ICU-versioner lägger en
-  // punkt ("tis.") — strippa den defensivt så det alltid blir rent.
-  const wd = (d: Date) => d.toLocaleDateString("sv-SE", { weekday: "short" }).replace(".", "");
-  const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
-  if (sameMonth) {
-    // "tis 6 – fre 10 juli"
-    const month = b.toLocaleDateString("sv-SE", { month: "long" });
-    return `${wd(a)} ${a.getDate()} – ${wd(b)} ${b.getDate()} ${month}`;
-  }
-  // "tis 29 juni – fre 3 juli"
-  const f = (d: Date) => `${wd(d)} ${d.toLocaleDateString("sv-SE", { day: "numeric", month: "long" })}`;
-  return `${f(a)} – ${f(b)}`;
-}
+// Datumen räknas i lib/leveransdatum.ts, som varukorgen (components/cart.tsx)
+// också använder — samma intervall på båda ställena.
 
 /**
  * `showStock`: prefixar etikettraden med "✓ I lager · " (grönt, fetstilt).
@@ -56,8 +32,7 @@ function formatRange(a: Date, b: Date): string {
 export function DeliveryEstimate({ showStock = false }: { showStock?: boolean }) {
   const [range, setRange] = useState<string | null>(null);
   useEffect(() => {
-    const now = new Date();
-    setRange(formatRange(addBusinessDays(now, DELIVERY_MIN_DAYS), addBusinessDays(now, DELIVERY_MAX_DAYS)));
+    setRange(leveransIntervall(new Date(), DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS));
   }, []);
   return (
     <div className="delivery-callout" role="status">
