@@ -379,7 +379,7 @@ async function kollaCookierutan(browser, bas, vara) {
   await page.waitForTimeout(800);
   const oppen = await lage();
   await page.screenshot({ path: path.join(UT, `cookie-${bas.includes("vercel") ? "forhand" : "sajten"}.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
-  await page.locator("aside.drawer .drawer-x").click();
+  await page.locator("aside.drawer.show .drawer-x").click();
   await page.waitForTimeout(800);
   const stangd = await lage();
   skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} före: ${JSON.stringify(fore)}  varukorgen öppen: ${JSON.stringify(oppen)}  stängd: ${JSON.stringify(stangd)}`);
