@@ -20,17 +20,5 @@ Sitemapen, bara i förhandsversionen:
 Sitemapen, bara på sajten:
 
 ================ COOKIERUTAN OCH TILL KASSAN ================
-https://www.fyndplats.se: gick inte: locator.click: Error: strict mode violation: locator('aside.drawer .drawer-x') resolved to 2 elements:
-    1) <button class="drawer-x" aria-label="Stäng">✕</button> aka getByRole('button', { name: 'Stäng' })
-    2) <button class="drawer-x" aria-label="Stäng">✕</button> aka getByLabel('Mina favoriter').getByLabel('Stäng')
-
-Call log:
-  - waiting for locator('aside.drawer .drawer-x')
-
-https://fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app: gick inte: locator.click: Error: strict mode violation: locator('aside.drawer .drawer-x') resolved to 2 elements:
-    1) <button class="drawer-x" aria-label="Stäng">✕</button> aka getByRole('button', { name: 'Stäng' })
-    2) <button class="drawer-x" aria-label="Stäng">✕</button> aka getByLabel('Mina favoriter').getByLabel('Stäng')
-
-Call log:
-  - waiting for locator('aside.drawer .drawer-x')
-
+www.fyndplats.se                         före: {"ruta":"visible"}  varukorgen öppen: {"ruta":"visible","tillKassan":"TÄCKT av p.cookietext"}  stängd: {"ruta":"visible"}
+fyndplats-headless-git-claude-kass-4edc4 före: {"ruta":"visible"}  varukorgen öppen: {"ruta":"hidden","tillKassan":"synlig och tryckbar"}  stängd: {"ruta":"visible"}
