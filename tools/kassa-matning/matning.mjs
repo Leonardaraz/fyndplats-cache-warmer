@@ -287,7 +287,7 @@ async function granskaKassakoden(browser, adress) {
   const html = await page.content();
   await ctx.close();
 
-  const sammanhang = (text, i, fore = 220, efter = 280) => text.slice(Math.max(0, i - fore), i + efter).replace(/\s+/g, " ");
+  const sammanhang = (text, i, fore = 650, efter = 750) => text.slice(Math.max(0, i - fore), i + efter).replace(/\s+/g, " ");
   const visa = (text, nyckel, max = 3) => {
     let i = 0;
     let antal = 0;
@@ -309,7 +309,7 @@ async function granskaKassakoden(browser, adress) {
     const exp = new Map();
     for (const m of b.text.matchAll(/[A-Za-z_$][A-Za-z0-9_$]*[Ee]xpress[A-Za-z0-9_$]*/g)) exp.set(m[0], (exp.get(m[0]) || 0) + 1);
     skriv(`  namn med express: ${[...exp.entries()].sort((a, c) => c[1] - a[1]).slice(0, 90).map(([k, v]) => `${k}(${v})`).join(", ")}`);
-    for (const nyckel of ["hideExpress", "showExpress", "shouldShowExpress", "isExpressCheckoutEnabled", "expressCheckoutEnabled", "ExpressCheckoutVisible", "isExpressCheckoutVisible", "shouldRenderExpress", "expressCheckoutButtons"]) visa(b.text, nyckel, 2);
+    for (const nyckel of ["shouldDisplayExpressCheckout", "isExpressSupported", "isExpressEmpty", "checkout_showExpressCheckout", "showExpressCheckout", "checkout_showCoupon", "CashierExpressCheckoutWidget", "fetchExpressPaymentMethods", "settingsParams", "useGenericWixPages", "isGeneric", "generic"]) visa(b.text, nyckel, 4);
   }
   skriv("\n-- sidans html");
   for (const nyckel of ["xpress", "hideLoginLogoutBar", "useGenericWixPages", "genericPages"]) visa(html, nyckel, 4);
