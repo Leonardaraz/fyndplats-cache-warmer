@@ -1264,11 +1264,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    inte döpas om för att slippa listan: det är besökarens val, och utan svar
    gäller "bara nödvändiga". */
 @keyframes ckIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-/* Medan varukorgen är öppen väntar rutan. Den låg ovanpå lådan och täckte
-   summan och "Till kassan" för den som inte svarat än, så ett tryck på
-   knappen blev "Godkänn alla" (uppmätt på fyndplats.se 2026-10-11, mobil).
-   Rutan kommer tillbaka när lådan stängs, och utan svar gäller "bara
-   nödvändiga" som förut. */
+/* Medan en sidopanel är öppen (varukorgen eller favoriterna, båda .drawer)
+   väntar rutan. Den låg ovanpå varukorgen och täckte summan och "Till kassan"
+   för den som inte svarat än, så ett tryck på knappen blev "Godkänn alla"
+   (uppmätt på fyndplats.se 2026-10-11, mobil). Rutan kommer tillbaka när
+   panelen stängs, och utan svar gäller "bara nödvändiga" som förut. */
 body:has(.drawer.show) .cookiebar{visibility:hidden}
 .cookietext{font-size:var(--text-sm);line-height:1.55;color:var(--ink)}
 .cookietext a{color:var(--brand);font-weight:700;text-decoration:underline}

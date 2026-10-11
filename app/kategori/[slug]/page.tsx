@@ -53,8 +53,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // länkkraften rinner vidare till produkterna. Regeln bor i
   // lib/category-threshold.ts, samma källa som sitemapen läser, och räknar på
   // forListings — alltså exakt de produkter sidan visar, underkategorierna
-  // inräknade. Jul & Högtider har inga egna produkter i Wix, bara i sina
-  // underkategorier, och fick noindex så länge bara de egna räknades.
+  // inräknade. Verktyg & Fordon har inga egna produkter i Wix, bara i sina
+  // underkategorier, och hade noindex så länge bara de egna räknades
+  // (uppmätt på sajten 2026-10-11).
   const antal = countPerCategoryPage(forListings(products), cols).get(c.id) || 0;
   const robots = categoryIndexable(antal) ? undefined : { index: false, follow: true };
 
