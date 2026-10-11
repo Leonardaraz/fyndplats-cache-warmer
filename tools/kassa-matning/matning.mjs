@@ -317,6 +317,29 @@ async function granskaKassakoden(browser, adress) {
   for (const nyckel of ["xpress", "hideLoginLogoutBar", "useGenericWixPages", "genericPages"]) visa(html, nyckel, 4);
 }
 
+// Efter deployen: indexeras avdelningarna, och ligger de i sitemapen?
+async function kollaAvdelningar() {
+  for (const bas of [BUTIK, process.env.FORHANDS || "https://fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app"]) {
+    skriv(`\n================ AVDELNINGARNA på ${bas.replace(/^https:\/\//, "")} ================`);
+    try { await kollaAvdelningarPa(bas); } catch (e) { skriv(`gick inte: ${e.message}`); }
+  }
+}
+
+async function kollaAvdelningarPa(bas) {
+  const smSvar = await fetch(`${bas}/sitemap.xml`, { headers: { "cache-control": "no-cache" } });
+  const sm = await smSvar.text();
+  skriv(`sitemap.xml: HTTP ${smSvar.status}, ${(sm.match(/<loc>/g) || []).length} adresser, ${(sm.match(/\/kategori\//g) || []).length} kategorier`);
+  for (const slug of ["jul-hogtider", "verktyg-fordon", "mobler", "hem-inredning"]) {
+    const adress = `${bas}/kategori/${slug}`;
+    const r = await fetch(adress, { redirect: "manual" });
+    const html = r.status === 200 ? await r.text() : "";
+    const robots = (html.match(/<meta name="robots" content="([^"]*)"/) || [])[1] || "(ingen robots-tagg)";
+    const ogBild = /<meta property="og:image" content="https:\/\/static\.wixstatic\.com/.test(html) ? "egen bild" : "standardbild";
+    const iSitemap = sm.includes(`<loc>${BUTIK}/kategori/${slug}</loc>`) ? "i sitemapen" : "SAKNAS i sitemapen";
+    skriv(`${slug.padEnd(16)} HTTP ${r.status}  robots: ${robots}  ${iSitemap}  delningsbild: ${ogBild}  cache: ${r.headers.get("x-vercel-cache") || "-"}`);
+  }
+}
+
 const LAGEN = [
   {
     namn: "mobil",
@@ -333,8 +356,10 @@ try {
   const vara = await hittaVara();
   skriv(`Vara: ${vara.namn} (${vara.pris} kr)`);
   // KOR=mat mäter laddningen, KOR=bunt granskar kassans kod.
-  const kor = process.env.KOR || "egen";
-  if (kor === "egen") {
+  const kor = process.env.KOR || "avdelningar";
+  if (kor === "avdelningar") {
+    await kollaAvdelningar();
+  } else if (kor === "egen") {
     // Sajtens egen kassasida i stället för Wix standardmall.
     for (const pref of [{ useGenericWixPages: false }, { checkIfPublish: true }]) {
       skriv(`\n######## preferences ${JSON.stringify(pref)} ########`);
@@ -359,7 +384,7 @@ try {
   }
 } finally {
   await browser.close();
-  const k = process.env.KOR || "egen";
-  const fil = k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : "sammanfattning.txt";
+  const k = process.env.KOR || "avdelningar";
+  const fil = k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
