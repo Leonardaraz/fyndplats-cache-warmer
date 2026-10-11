@@ -1,0 +1,118 @@
+Vara: Skivstångsställ i par – justerbara 136–176 cm, bär 200 kg (1269 kr)
+Kassans värd: checkout.fyndplats.se
+
+================ MOBIL ================
+dokumentet började komma efter 3299 ms
+  3299 ms  loading     text     0  höjd   664  fält 0  laddar 0  ramar []
+           rubriker: 
+           knappar:  
+  4516 ms  complete    text     0  höjd   664  fält 0  laddar 0  ramar []
+           rubriker: 
+           knappar:  
+ 10401 ms  complete    text   356  höjd  1517  fält 9  laddar 0  ramar []
+           rubriker: Kunduppgifter | Leveransinformation | Leveransmetod | Betalning
+           knappar:  Visa sammanfattning 1 269,00 kr | Fortsätt | Visa artiklar (1) | Ange en rabattkod | Allmänna villkor | Sekretesspolicy | Returpolicy | Kontakta oss
+ 14131 ms  complete    text   379  höjd  1649  fält 9  laddar 0  ramar []
+           rubriker: Kunduppgifter | Leveransinformation | Leveransmetod | Betalning
+           knappar:  Visa sammanfattning 1 269,00 kr | Fortsätt | Visa artiklar (1) | Ange en rabattkod | Allmänna villkor | Sekretesspolicy | Returpolicy | Kontakta oss
+
+Layoutskift (det som hoppar), summa CLS 0.141:
+   10898 ms  0.0005  svg[FoldableSummarySectionDataHook.chevronDown] "" y 99→99, h 20→20  ||  div[FoldableSummarySectionDataHook.totalWrapper].slgd4fX "1 269,00 kr" y 97→97, h 24→24  ||  span.sqQsHut "*" y 228→228, h 20→20
+   13332 ms  0.1237  div[FullFlow.root] "ExpressbetalningellerKunduppgifterE-" y 178→168, h 486→496  ||  div.lksfUF "Land/region*Adress*Ort*Stat*Postnumm" y 631→0, h 33→0
+   13556 ms  0.0171  div[StepsManager.root] "KunduppgifterE-post*Förnamn*Efternam" y 288→308, h 376→356  ||  div.sKzIBwc "" y 647→0, h 16→0
+Största innehållet (LCP): 10912 ms h2.Y5s1UQ
+Långa uppgifter: 29 st, 3862 ms totalt, längsta 503 ms
+
+Anrop: 294 st, 3855 kB. Per värd:
+  static.parastorage.com                      139 st   2494 kB  3466–16370 ms
+  pay.google.com                                3 st    489 kB  13194–14852 ms
+  cashier-pci.wixapps.net                      11 st    287 kB  13393–15185 ms
+  checkout.fyndplats.se                        24 st    275 kB  7–13314 ms
+  www.gstatic.com                               6 st    123 kB  13705–14518 ms
+  applepay.cdn-apple.com                        3 st     45 kB  12844–13137 ms
+  browser.sentry-cdn.com                        2 st     42 kB  3564–5440 ms
+  siteassets.parastorage.com                    9 st     37 kB  3564–5304 ms
+  www.fyndplats.se                              1 st     32 kB  10820–10948 ms
+  frog.wix.com                                 43 st     10 kB  3468–15423 ms  (4 misslyckade)
+  wixmp-6613fa290e8c1ac70a0297b6.wixmp.com      7 st      9 kB  13040–13450 ms
+  panorama.wixapps.net                         33 st      8 kB  3466–15505 ms  (8 misslyckade)
+  static.wixstatic.com                          2 st      2 kB  5205–11446 ms
+  play.google.com                              10 st      2 kB  14326–14514 ms
+  bundler-velo.parastorage.com                  1 st      2 kB  6465–8366 ms
+Största skript, stilmallar och typsnitt:
+    370 kB  script     9392–9746 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+    243 kB  script     11286–11812 ms  https://static.parastorage.com/services/cashier-payments-widget/1.4962.0/cashier-widget-component.tpa.bundle.min.js
+    159 kB  script     13886–14537 ms  https://cashier-pci.wixapps.net/card-form/resources/app.bundle.min.js
+    119 kB  script     11349–11567 ms  https://static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.
+     77 kB  script     3603–3858 ms  https://static.parastorage.com/services/ecom-platform-checkout/1.7371.0/CheckoutViewerWidgetNoCss.bundle.min.js
+     67 kB  script     13194–13579 ms  https://pay.google.com/gp/p/js/pay.js
+     57 kB  script     13863–13982 ms  https://www.gstatic.com/_/mss/boq-payments-consumer/_/js/k=boq-payments-consumer.InstantbuyFrontendBuyflowPayframeUi.sv.
+     57 kB  script     3602–3852 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/main.0e1ea6dc.bundle.min.js
+     56 kB  script     4043–4382 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/group_6.b6d40f0f.chunk.min.js
+     54 kB  stylesheet 9391–9547 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     48 kB  script     10872–11064 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     48 kB  script     9395–9575 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     47 kB  script     13886–14260 ms  https://cashier-pci.wixapps.net/card-form/resources/vendors-scripts/react-dom-18.1.0.production.min.js
+     44 kB  script     3602–3847 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/thunderbolt-commons.f0b041c2.bundle.min.js
+     42 kB  script     3602–3733 ms  https://static.parastorage.com/unpkg/react-dom@18.3.1/umd/react-dom.production.min.js
+Kassans värd: checkout.fyndplats.se
+
+================ DATOR ================
+dokumentet började komma efter 1479 ms
+  1479 ms  loading     text     0  höjd   900  fält 0  laddar 0  ramar []
+           rubriker: 
+           knappar:  
+  2028 ms  complete    text     0  höjd   900  fält 0  laddar 0  ramar []
+           rubriker: 
+           knappar:  
+  3281 ms  complete    text   465  höjd   900  fält 9  laddar 0  ramar []
+           rubriker: Kunduppgifter | Leveransinformation | Leveransmetod | Bekräfta beställning | Beställningsöversikt
+           knappar:  Fortsätt | Ange en rabattkod | Allmänna villkor | Sekretesspolicy | Returpolicy | Kontakta oss
+  3456 ms  complete    text   500  höjd   900  fält 9  laddar 0  ramar []
+           rubriker: Kunduppgifter | Leveransinformation | Leveransmetod | Betalning | Beställningsöversikt
+           knappar:  Fortsätt | Ange en rabattkod | Allmänna villkor | Sekretesspolicy | Returpolicy | Kontakta oss
+
+Layoutskift (det som hoppar), summa CLS 0.043:
+    3269 ms  0.0020  section[TotalsSectionDataHooks.Section].s__4kwSld "Delsumma1 269,00 kr" y 371→394, h 157→157  ||  div.sptQDgF "Ange en rabattkod" y 277→300, h 66→66  ||  #text "" y 131→132, h 11→11
+    4399 ms  0.0413  div[FullFlow.root] "ExpressbetalningellerKunduppgifterE-" y 141→131, h 759→769  ||  div.scQ5B_s.saal0N_ "" y 712→0, h 42→0  ||  div.sfha3pF.spxll3S "" y 801→0, h 42→0
+Största innehållet (LCP): 3248 ms div.soi1iuk
+Långa uppgifter: 3 st, 291 ms totalt, längsta 105 ms
+
+Anrop: 287 st, 3749 kB. Per värd:
+  static.parastorage.com                      147 st   2428 kB  1486–3885 ms
+  pay.google.com                                3 st    487 kB  4369–5107 ms
+  cashier-pci.wixapps.net                      11 st    287 kB  4550–5867 ms
+  checkout.fyndplats.se                        24 st    251 kB  2–4538 ms
+  www.gstatic.com                               6 st    123 kB  4632–4853 ms
+  siteassets.parastorage.com                   12 st     47 kB  1489–2239 ms
+  applepay.cdn-apple.com                        3 st     45 kB  4154–4178 ms
+  www.fyndplats.se                              1 st     32 kB  3335–3533 ms
+  browser.sentry-cdn.com                        1 st     20 kB  2259–2274 ms
+  wixmp-6613fa290e8c1ac70a0297b6.wixmp.com      8 st     11 kB  4323–4561 ms
+  frog.wix.com                                 36 st      9 kB  1664–6099 ms  (2 misslyckade)
+  static.wixstatic.com                          2 st      3 kB  3301–3580 ms
+  bundler-velo.parastorage.com                  1 st      2 kB  2550–2670 ms
+  play.google.com                              10 st      2 kB  4833–4931 ms
+  panorama.wixapps.net                         21 st      1 kB  1664–6288 ms  (5 misslyckade)
+  smp-paymentservices.apple.com                 1 st      1 kB  4180–4306 ms
+Största skript, stilmallar och typsnitt:
+    369 kB  script     2924–2999 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+    243 kB  script     3677–3718 ms  https://static.parastorage.com/services/cashier-payments-widget/1.4962.0/cashier-widget-component.tpa.bundle.min.js
+    159 kB  script     5189–5649 ms  https://cashier-pci.wixapps.net/card-form/resources/app.bundle.min.js
+    119 kB  script     3434–3461 ms  https://static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.
+     77 kB  script     1514–1549 ms  https://static.parastorage.com/services/ecom-platform-checkout/1.7371.0/CheckoutViewerWidgetNoCss.bundle.min.js
+     67 kB  script     4369–4606 ms  https://pay.google.com/gp/p/js/pay.js
+     57 kB  script     4763–4775 ms  https://www.gstatic.com/_/mss/boq-payments-consumer/_/js/k=boq-payments-consumer.InstantbuyFrontendBuyflowPayframeUi.sv.
+     57 kB  script     1514–1563 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/main.0e1ea6dc.bundle.min.js
+     56 kB  script     1761–1874 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/group_6.b6d40f0f.chunk.min.js
+     53 kB  stylesheet 2924–2959 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     48 kB  script     2925–2962 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     48 kB  script     3263–3306 ms  https://static.parastorage.com/services/ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/
+     47 kB  script     5189–5458 ms  https://cashier-pci.wixapps.net/card-form/resources/vendors-scripts/react-dom-18.1.0.production.min.js
+     44 kB  script     1514–1559 ms  https://static.parastorage.com/services/wix-thunderbolt/dist/thunderbolt-commons.f0b041c2.bundle.min.js
+     42 kB  script     1513–1550 ms  https://static.parastorage.com/unpkg/react-dom@18.3.1/umd/react-dom.production.min.js
+
+================ HELA VÄGEN, MOBIL ================
+Lägg i kundvagn → raden bekräftad av Wix: 1801 ms
+Knappen Till kassan: TÄCKT av p.cookietext "Vi använder cookies för varuko"
+Till kassan → kassans adress börjar laddas: 233 ms
