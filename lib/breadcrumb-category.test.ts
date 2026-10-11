@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { valjBrodsmula, type BrodsmuleKategori } from "./breadcrumb-category.ts";
-import { categoryIndexable, countPerCategory } from "./category-threshold.ts";
+import { categoryIndexable, countPerCategoryPage } from "./category-threshold.ts";
 
 const kat = (id: string, parentId: string | null = null): BrodsmuleKategori => ({ id, name: id, slug: id, parentId });
 
@@ -68,19 +68,23 @@ test("en underkategori vars förälder inte är en avdelning hoppas över", () =
   assert.deepEqual(b, { avdelning: mobler });
 });
 
-test("countPerCategory räknar varje produkt en gång per kategori", () => {
-  const n = countPerCategory([{ collectionIds: ["a", "b"] }, { collectionIds: ["a"] }, {}]);
+test("countPerCategoryPage räknar varje produkt en gång per kategori", () => {
+  const n = countPerCategoryPage([{ collectionIds: ["a", "b"] }, { collectionIds: ["a"] }, {}], []);
   assert.equal(n.get("a"), 2);
   assert.equal(n.get("b"), 1);
   assert.equal(n.size, 2);
 });
 
-test("produktsidan och sitemapen räknar på samma sätt", () => {
+test("produktsidan, kategorisidan och sitemapen räknar på samma sätt", () => {
   // Brödsmulan får bara länka till en sida som indexeras, och det avgör
   // sitemapens räkning. Två egna räkneloopar hade kunnat glida isär.
+  // Kategorisidans robots-tagg räknade själv, bara på produkter direkt i
+  // kategorin, och gav Jul & Högtider noindex (2026-10-11).
   const sida = readFileSync("app/produkt/[slug]/page.tsx", "utf8");
-  assert.match(sida, /valjBrodsmula\(ownCats, navCols, countPerCategory\(forListings\(all\)\), categoryIndexable\)/);
+  assert.match(sida, /valjBrodsmula\(ownCats, navCols, countPerCategoryPage\(forListings\(all\), cols\), categoryIndexable\)/);
   const karta = readFileSync("lib/site-urls.ts", "utf8");
-  assert.match(karta, /countPerCategory\(forListings\(await getProducts\(\)\)\)/);
+  assert.match(karta, /countPerCategoryPage\(forListings\(await getProducts\(\)\), collections\)/);
   assert.doesNotMatch(karta, /catCounts\.set\(/, "sitemapen ska inte räkna i en egen loop");
+  const kategori = readFileSync("app/kategori/[slug]/page.tsx", "utf8");
+  assert.match(kategori, /countPerCategoryPage\(forListings\(products\), cols\)\.get\(c\.id\)/);
 });

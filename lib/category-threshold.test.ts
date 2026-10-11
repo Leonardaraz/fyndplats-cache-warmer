@@ -6,6 +6,7 @@ import {
   categoryIndexable,
   categoryInSitemap,
   categoryInMainNav,
+  countPerCategoryPage,
 } from "./category-threshold.ts";
 
 test("banden följer åtgärdslistans gränser", () => {
@@ -134,4 +135,57 @@ test("tröskeln gäller all huvudnavigation, inte bara mega-menyn", () => {
   const cards = src.slice(src.indexOf("export function buildGroupCards"));
   assert.ok(/categoryInMainNav\(/.test(tree), "buildCategoryTree (mega-nav) saknar tröskeln");
   assert.ok(/categoryInMainNav\(/.test(cards), "buildGroupCards (/butik + startsida) saknar tröskeln");
+});
+
+test("en avdelning räknar sina underkategoriers produkter, varje produkt en gång", () => {
+  // Jul & Högtider (2026-10-11): Wix lägger produkterna bara i underkategorierna.
+  // Räknades bara avdelningens egna blev det noll, och sidan fick noindex fast
+  // den visade hela avdelningen.
+  const kategorier = [
+    { id: "jul", parentId: null },
+    { id: "julgranar", parentId: "jul" },
+    { id: "julbelysning", parentId: "jul" },
+    { id: "mobler", parentId: null },
+  ];
+  const produkter = [
+    ...Array.from({ length: 7 }, () => ({ collectionIds: ["julgranar"] })),
+    ...Array.from({ length: 5 }, () => ({ collectionIds: ["julbelysning"] })),
+    { collectionIds: ["julgranar", "julbelysning"] },
+    { collectionIds: ["mobler"] },
+  ];
+  const n = countPerCategoryPage(produkter, kategorier);
+  assert.equal(n.get("jul"), 13);
+  assert.equal(n.get("julgranar"), 8);
+  assert.equal(n.get("julbelysning"), 6);
+  assert.equal(n.get("mobler"), 1);
+  assert.equal(categoryIndexable(n.get("jul") || 0), true);
+  assert.equal(categoryInSitemap(n.get("jul") || 0), true);
+});
+
+test("en produkt i både avdelningen och en underkategori räknas en gång", () => {
+  const kategorier = [
+    { id: "mobler", parentId: null },
+    { id: "fatoljer", parentId: "mobler" },
+  ];
+  const n = countPerCategoryPage(
+    [{ collectionIds: ["mobler", "fatoljer"] }, { collectionIds: ["fatoljer"] }, {}],
+    kategorier,
+  );
+  assert.equal(n.get("mobler"), 2);
+  assert.equal(n.get("fatoljer"), 2);
+  assert.equal(n.size, 2);
+});
+
+test("bara den närmaste föräldern får produkten, som på kategorisidan", () => {
+  // kategoriProdukter listar kategorin och dess DIREKTA underkategorier. En
+  // produkt två nivåer ner hör inte till den översta sidan.
+  const kategorier = [
+    { id: "a", parentId: null },
+    { id: "b", parentId: "a" },
+    { id: "c", parentId: "b" },
+  ];
+  const n = countPerCategoryPage([{ collectionIds: ["c"] }], kategorier);
+  assert.equal(n.get("c"), 1);
+  assert.equal(n.get("b"), 1);
+  assert.equal(n.has("a"), false);
 });

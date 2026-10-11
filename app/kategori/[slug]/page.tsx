@@ -17,7 +17,7 @@ import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { PrefetchLink } from "../../../components/prefetch-link";
-import { categoryIndexable } from "../../../lib/category-threshold";
+import { categoryIndexable, countPerCategoryPage } from "../../../lib/category-threshold";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
 // bakgrunden var timme, så nya/ändrade produkter i en kategori syns utan en ny
@@ -52,12 +52,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // i index — den konkurrerar med produktsidan den nästan är. follow: true, så
   // länkkraften rinner vidare till produkterna. Regeln bor i
   // lib/category-threshold.ts, samma källa som sitemapen läser, och räknar på
-  // forListings — alltså exakt de produkter sidan visar.
-  const antal = forListings(products).filter((p) => (p.collectionIds || []).includes(c.id)).length;
+  // forListings — alltså exakt de produkter sidan visar, underkategorierna
+  // inräknade. Jul & Högtider har inga egna produkter i Wix, bara i sina
+  // underkategorier, och fick noindex så länge bara de egna räknades.
+  const antal = countPerCategoryPage(forListings(products), cols).get(c.id) || 0;
   const robots = categoryIndexable(antal) ? undefined : { index: false, follow: true };
 
-  // Per-kategori Open Graph-bild: första produktens bild i kategorin
-  const firstImg = products.find((p) => (p.collectionIds || []).includes(c.id))?.img;
+  // Per-kategori Open Graph-bild: första produktens bild i kategorin. En
+  // avdelning utan egna produkter tar första bilden i sina underkategorier.
+  const underkategorier = new Set(cols.filter((x) => x.parentId === c.id).map((x) => x.id));
+  const firstImg =
+    products.find((p) => (p.collectionIds || []).includes(c.id))?.img ||
+    products.find((p) => p.img && (p.collectionIds || []).some((id) => underkategorier.has(id)))?.img;
   if (firstImg) {
     return { ...base, ...(robots ? { robots } : {}), openGraph: { ...(base.openGraph as object), images: [firstImg] } };
   }

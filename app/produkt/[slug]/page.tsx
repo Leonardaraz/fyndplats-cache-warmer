@@ -11,7 +11,7 @@ import { attachRatings } from "../../../lib/review-aggregates";
 import { getProduct, getProducts, getCollections, dedupeProducts, forListings, fetchVarumarken, type Product } from "../../../lib/products";
 import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
-import { categoryIndexable, countPerCategory } from "../../../lib/category-threshold";
+import { categoryIndexable, countPerCategoryPage } from "../../../lib/category-threshold";
 import { pickRelated } from "../../../lib/related-pick";
 import { produktGrannar } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
@@ -112,7 +112,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Hela katalogen behövs ändå längre ner (relaterade, bläddring). Den är
   // modulcachad, så att hämta den redan här kostar inget extra anrop.
   const all = await getProducts();
-  const brodsmula = valjBrodsmula(ownCats, navCols, countPerCategory(forListings(all)), categoryIndexable);
+  const brodsmula = valjBrodsmula(ownCats, navCols, countPerCategoryPage(forListings(all), cols), categoryIndexable);
   const primaryCol = brodsmula.avdelning;
   const subCol = brodsmula.underkategori;
 
