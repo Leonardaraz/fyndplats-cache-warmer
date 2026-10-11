@@ -13,6 +13,9 @@
 // sidhuvudet på VARJE sida (fem stycken, uppmätt 2026-10-07), som konkurrerade
 // med sidans LCP-bild och typsnitt om de första anslutningarna. Loggorna står i
 // sidfoten och under köpknappen.
+// <img> och inte next/image, med flit: loggorna är små SVG-filer som
+// next/image inte optimerar, och måtten står redan på varje logga.
+/* eslint-disable @next/next/no-img-element */
 import { GoogleG } from "./google-g";
 
 export function PaymentMarks() {

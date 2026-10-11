@@ -1274,7 +1274,8 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .ck-primary:hover{background:#A8380A;border-color:#A8380A}
 @media(max-width:540px){.cookiebar{left:10px;right:10px;bottom:10px;padding:16px}.cookiebtns{justify-content:stretch}.ck-ghost,.ck-primary{flex:1;text-align:center}}
 .li-x{background:none;border:none;color:var(--soft);font-size:var(--text-xs);cursor:pointer;text-decoration:underline;flex:0 0 auto}
-.li-x:hover{color:#F84848}
+.li-x:hover:not(:disabled){color:#F84848}
+.li-x:disabled{opacity:.5;cursor:default}
 /* Raden som väntar på Wix: lådan öppnas vid trycket, och raden byts mot
    den riktiga när Wix svarat (components/cart.tsx). */
 .li-vantar .li-img,.li-vantar .li-name{opacity:.75}

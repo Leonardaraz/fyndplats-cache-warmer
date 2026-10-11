@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normaliseraKundvagn, valdaAlternativ } from "./cart-shape.ts";
+import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "./cart-shape.ts";
 
 // Formen nedan ar KOPIERAD UR ETT SKARPT SVAR fran Wix Cart v2 (butikens egen
 // katalog, 2026-09-04), inte gissad ur typerna. Det spelade roll: typerna sager
@@ -225,4 +225,24 @@ it("valdaAlternativ läser valet ur beskrivningsraderna (v1, v2 och skräp)", ()
   assert.deepEqual(valdaAlternativ({}), []);
   assert.deepEqual(valdaAlternativ(null), []);
   assert.deepEqual(valdaAlternativ({ descriptionLines: [null, { name: { original: "Färg" } }] }), []);
+});
+
+describe("vagnenArBorta — när kakan fp_cart får tas bort", () => {
+  it("404 från Wix: varukorgen finns inte längre", () => {
+    assert.equal(vagnenArBorta({ status: 404, message: "OWNED_CART_NOT_FOUND" }), true);
+    assert.equal(vagnenArBorta({ response: { status: 404 } }), true);
+    assert.equal(vagnenArBorta({ status: 401 }), true);
+  });
+  it("ett nätfel eller en kod som inte laddades tömmer inte varukorgen", () => {
+    assert.equal(vagnenArBorta(new TypeError("Failed to fetch")), false);
+    assert.equal(vagnenArBorta(new Error("Loading chunk 123 failed")), false);
+    assert.equal(vagnenArBorta(undefined), false);
+    assert.equal(vagnenArBorta("fel"), false);
+  });
+  it("serverfel och strypning är tillfälliga", () => {
+    assert.equal(vagnenArBorta({ status: 500 }), false);
+    assert.equal(vagnenArBorta({ status: 503 }), false);
+    assert.equal(vagnenArBorta({ status: 429 }), false);
+    assert.equal(vagnenArBorta({ status: 408 }), false);
+  });
 });
