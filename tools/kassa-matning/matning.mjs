@@ -268,6 +268,53 @@ async function matVagen(browser, lage) {
   await ctx.close();
 }
 
+// Wix kassakod: vilka adressparametrar läser den, och vad styr expressrutan?
+// hideLoginLogoutBar är en sådan parameter (Wix supports egen lösning), så
+// syskonen bör läsas på samma sätt i samma kod.
+async function granskaKassakoden(browser, adress) {
+  skriv("\n================ KASSANS KOD ================");
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const page = await ctx.newPage();
+  const bunter = [];
+  page.on("response", async (r) => {
+    const u = r.url();
+    if (r.request().resourceType() !== "script") return;
+    if (!/parastorage\.com\/services\/(ecom-platform-checkout|cashier-express-checkout-widget|cashier-payments-widget)\//.test(u)) return;
+    try { bunter.push({ url: u, text: await r.text() }); } catch {}
+  });
+  await page.goto(adress, { waitUntil: "load", timeout: 60000 });
+  await page.waitForTimeout(9000);
+  const html = await page.content();
+  await ctx.close();
+
+  const sammanhang = (text, i, fore = 220, efter = 280) => text.slice(Math.max(0, i - fore), i + efter).replace(/\s+/g, " ");
+  const visa = (text, nyckel, max = 3) => {
+    let i = 0;
+    let antal = 0;
+    while ((i = text.indexOf(nyckel, i)) !== -1 && antal < max) {
+      skriv(`  [${nyckel}] …${sammanhang(text, i)}…`);
+      i += nyckel.length;
+      antal += 1;
+    }
+  };
+  skriv(`Hämtade kassaskript: ${bunter.length}`);
+  for (const b of bunter) {
+    const namn = b.url.replace(/^https:\/\/static\.parastorage\.com\/services\//, "").replace(/\?.*$/, "");
+    skriv(`\n-- ${namn.slice(0, 120)} (${Math.round(b.text.length / 1024)} kB)`);
+    visa(b.text, "hideLoginLogoutBar", 4);
+    const params = new Set();
+    for (const m of b.text.matchAll(/(?:searchParams|query|urlParams|queryParams|URLSearchParams\([^)]*\))\??\.(?:get\(\s*)?["']?([A-Za-z_][A-Za-z0-9_]{2,40})/g)) params.add(m[1]);
+    for (const m of b.text.matchAll(/\.get\(\s*["']([A-Za-z_][A-Za-z0-9_]{2,40})["']\s*\)/g)) params.add(m[1]);
+    skriv(`  läses ur adressen: ${[...params].sort().join(", ").slice(0, 2500)}`);
+    const exp = new Map();
+    for (const m of b.text.matchAll(/[A-Za-z_$][A-Za-z0-9_$]*[Ee]xpress[A-Za-z0-9_$]*/g)) exp.set(m[0], (exp.get(m[0]) || 0) + 1);
+    skriv(`  namn med express: ${[...exp.entries()].sort((a, c) => c[1] - a[1]).slice(0, 90).map(([k, v]) => `${k}(${v})`).join(", ")}`);
+    for (const nyckel of ["hideExpress", "showExpress", "shouldShowExpress", "isExpressCheckoutEnabled", "expressCheckoutEnabled", "ExpressCheckoutVisible", "isExpressCheckoutVisible", "shouldRenderExpress", "expressCheckoutButtons"]) visa(b.text, nyckel, 2);
+  }
+  skriv("\n-- sidans html");
+  for (const nyckel of ["xpress", "hideLoginLogoutBar", "useGenericWixPages", "genericPages"]) visa(html, nyckel, 4);
+}
+
 const LAGEN = [
   {
     namn: "mobil",
@@ -283,13 +330,20 @@ const browser = await chromium.launch();
 try {
   const vara = await hittaVara();
   skriv(`Vara: ${vara.namn} (${vara.pris} kr)`);
-  for (const lage of LAGEN) {
-    const adress = await kassaAdress(vara);
-    skriv(`Kassans värd: ${new URL(adress).host}`);
-    await matKassan(browser, lage, adress);
+  // KOR=mat mäter laddningen, KOR=bunt granskar kassans kod.
+  const kor = process.env.KOR || "bunt";
+  if (kor === "bunt") {
+    await granskaKassakoden(browser, await kassaAdress(vara));
+  } else {
+    for (const lage of LAGEN) {
+      const adress = await kassaAdress(vara);
+      skriv(`Kassans värd: ${new URL(adress).host}`);
+      await matKassan(browser, lage, adress);
+    }
+    try { await matVagen(browser, LAGEN[0]); } catch (e) { skriv(`Hela vägen föll: ${e.message}`); }
   }
-  try { await matVagen(browser, LAGEN[0]); } catch (e) { skriv(`Hela vägen föll: ${e.message}`); }
 } finally {
   await browser.close();
-  fs.writeFileSync(path.join(UT, "sammanfattning.txt"), rader.join("\n") + "\n");
+  const fil = (process.env.KOR || "bunt") === "bunt" ? "kassakod.txt" : "sammanfattning.txt";
+  fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
