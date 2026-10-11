@@ -319,10 +319,21 @@ async function granskaKassakoden(browser, adress) {
 
 // Efter deployen: indexeras avdelningarna, och ligger de i sitemapen?
 async function kollaAvdelningar() {
-  for (const bas of [BUTIK, process.env.FORHANDS || "https://fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app"]) {
+  const forhands = process.env.FORHANDS || "https://fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app";
+  for (const bas of [BUTIK, forhands]) {
     skriv(`\n================ AVDELNINGARNA på ${bas.replace(/^https:\/\//, "")} ================`);
     try { await kollaAvdelningarPa(bas); } catch (e) { skriv(`gick inte: ${e.message}`); }
   }
+  // Vilka adresser skiljer sitemapen åt mellan sajten och förhandsversionen?
+  const locs = async (bas) => new Set([...(await (await fetch(`${bas}/sitemap.xml`, { headers: { "cache-control": "no-cache" } })).text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+  try {
+    const [a, b] = await Promise.all([locs(BUTIK), locs(forhands)]);
+    const bara = (x, y) => [...x].filter((u) => !y.has(u)).sort();
+    skriv("\nSitemapen, bara i förhandsversionen:");
+    for (const u of bara(b, a)) skriv(`  + ${u}`);
+    skriv("Sitemapen, bara på sajten:");
+    for (const u of bara(a, b)) skriv(`  - ${u}`);
+  } catch (e) { skriv(`sitemapjämförelsen gick inte: ${e.message}`); }
 }
 
 async function kollaAvdelningarPa(bas) {
