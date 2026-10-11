@@ -1,0 +1,15 @@
+Vara: Skivstångsställ i par – justerbara 136–176 cm, bär 200 kg (1269 kr)
+
+================ AVDELNINGARNA på www.fyndplats.se ================
+sitemap.xml: HTTP 200, 4250 adresser, 127 kategorier
+jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: STALE
+verktyg-fordon   HTTP 200  robots: noindex, follow  SAKNAS i sitemapen  delningsbild: standardbild  cache: STALE
+mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: STALE
+hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: STALE
+
+================ AVDELNINGARNA på fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app ================
+sitemap.xml: HTTP 200, 4252 adresser, 128 kategorier
+jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+verktyg-fordon   HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
