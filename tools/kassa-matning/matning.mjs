@@ -55,7 +55,7 @@ async function hittaVara() {
 }
 
 /** Kassans adress byggd som butiken bygger den (components/cart.tsx). */
-async function kassaAdress(vara) {
+async function kassaAdress(vara, preferences) {
   const tok = await wix("/oauth2/token", { body: { clientId: CLIENT_ID, grantType: "anonymous" } });
   const token = tok.access_token;
   const vagn = await wix("/ecom/v2/carts/current/add-line-items", {
@@ -69,11 +69,13 @@ async function kassaAdress(vara) {
     body: {
       ecomCheckout: { checkoutId: cartId },
       callbacks: { thankYouPageUrl: `${BUTIK}/tack`, postFlowUrl: BUTIK, cartPageUrl: `${BUTIK}/butik` },
+      ...(preferences ? { preferences } : {}),
     },
   });
   const full = rs?.redirectSession?.fullUrl || "";
+  skriv(`fullUrl-värd: ${full ? new URL(full).host + new URL(full).pathname.slice(0, 40) : "–"}`);
   const inre = full ? new URL(full).searchParams.get("redirectUrl") : null;
-  if (!inre) throw new Error("redirect-sessionen gav ingen kassaadress");
+  if (!inre) throw new Error(`redirect-sessionen gav ingen inre kassaadress (fullUrl ${full.replace(/[?#].*$/, "")})`);
   const u = new URL(inre);
   u.searchParams.set("hideLoginLogoutBar", "true");
   if (!u.searchParams.has("headlessClientId")) u.searchParams.set("headlessClientId", CLIENT_ID);
@@ -331,8 +333,21 @@ try {
   const vara = await hittaVara();
   skriv(`Vara: ${vara.namn} (${vara.pris} kr)`);
   // KOR=mat mäter laddningen, KOR=bunt granskar kassans kod.
-  const kor = process.env.KOR || "bunt";
-  if (kor === "bunt") {
+  const kor = process.env.KOR || "egen";
+  if (kor === "egen") {
+    // Sajtens egen kassasida i stället för Wix standardmall.
+    for (const pref of [{ useGenericWixPages: false }, { checkIfPublish: true }]) {
+      skriv(`\n######## preferences ${JSON.stringify(pref)} ########`);
+      let adress;
+      try { adress = await kassaAdress(vara, pref); } catch (e) { skriv(`gick inte: ${e.message}`); continue; }
+      const u = new URL(adress);
+      skriv(`Kassans adress: ${u.host}${u.pathname}  parametrar: ${[...u.searchParams.keys()].join(", ")}`);
+      for (const lage of LAGEN) {
+        const kopia = { ...lage, namn: `${pref.useGenericWixPages === false ? "egen" : "publicerad"}-${lage.namn}` };
+        await matKassan(browser, kopia, adress);
+      }
+    }
+  } else if (kor === "bunt") {
     await granskaKassakoden(browser, await kassaAdress(vara));
   } else {
     for (const lage of LAGEN) {
@@ -344,6 +359,7 @@ try {
   }
 } finally {
   await browser.close();
-  const fil = (process.env.KOR || "bunt") === "bunt" ? "kassakod.txt" : "sammanfattning.txt";
+  const k = process.env.KOR || "egen";
+  const fil = k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
