@@ -351,6 +351,41 @@ async function kollaAvdelningarPa(bas) {
   }
 }
 
+// Täcker cookierutan Till kassan? Mot sajten och förhandsversionen.
+async function kollaCookierutan(browser, bas, vara) {
+  const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const page = await ctx.newPage();
+  const adress = vara.adress.replace(BUTIK, bas);
+  await page.goto(adress, { waitUntil: "load", timeout: 90000 });
+  await page.waitForSelector(".cookiebar", { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(1500);
+  const lage = () => page.evaluate(() => {
+    const ut = {};
+    const c = document.querySelector(".cookiebar");
+    ut.ruta = c ? getComputedStyle(c).visibility : "saknas";
+    const b = document.querySelector("aside.drawer.show .buy");
+    if (b) {
+      const r = b.getBoundingClientRect();
+      const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      ut.tillKassan = e && b.contains(e) ? "synlig och tryckbar" : `TÄCKT av ${e ? `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 30)}` : "?"}`;
+    }
+    return ut;
+  });
+  const fore = await lage();
+  const knapp = page.locator(".pdp button:has-text('Lägg i kundvagn')").first();
+  await knapp.click({ timeout: 20000 });
+  await page.waitForSelector("aside.drawer.show .buy", { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector("aside.drawer .li-vantar"), null, { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(800);
+  const oppen = await lage();
+  await page.screenshot({ path: path.join(UT, `cookie-${bas.includes("vercel") ? "forhand" : "sajten"}.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
+  await page.locator("aside.drawer .drawer-x").click();
+  await page.waitForTimeout(800);
+  const stangd = await lage();
+  skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} före: ${JSON.stringify(fore)}  varukorgen öppen: ${JSON.stringify(oppen)}  stängd: ${JSON.stringify(stangd)}`);
+  await ctx.close();
+}
+
 const LAGEN = [
   {
     namn: "mobil",
@@ -370,6 +405,10 @@ try {
   const kor = process.env.KOR || "avdelningar";
   if (kor === "avdelningar") {
     await kollaAvdelningar();
+    skriv("\n================ COOKIERUTAN OCH TILL KASSAN ================");
+    for (const bas of [BUTIK, process.env.FORHANDS || "https://fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app"]) {
+      try { await kollaCookierutan(browser, bas, vara); } catch (e) { skriv(`${bas}: gick inte: ${e.message}`); }
+    }
   } else if (kor === "egen") {
     // Sajtens egen kassasida i stället för Wix standardmall.
     for (const pref of [{ useGenericWixPages: false }, { checkIfPublish: true }]) {
