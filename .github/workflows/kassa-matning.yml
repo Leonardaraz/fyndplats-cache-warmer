@@ -1,0 +1,46 @@
+name: Kassan — mät hur Wix kassasida laddar (tillfällig)
+
+# Tillfällig mätning (2026-10-11): öppnar Wix kassa för en testvarukorg i en
+# mobil- och en datorwebbläsare och sparar tider, layoutskift och skärmbilder i
+# den här grenen. Fyller inte i något på kassan. Körs bara på mätgrenen.
+on:
+  push:
+    branches: [claude/kassa-matning-2026-10-11]
+    paths:
+      - tools/kassa-matning/matning.mjs
+      - .github/workflows/kassa-matning.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kassa-matning
+  cancel-in-progress: false
+
+jobs:
+  mat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Installera Playwright
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm i -s playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Mät kassan
+        run: |
+          cp tools/kassa-matning/matning.mjs /tmp/pw/
+          UT="$GITHUB_WORKSPACE/tools/kassa-matning/ut" node /tmp/pw/matning.mjs
+      - name: Spara resultatet i grenen
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/kassa-matning/ut
+          git commit -m "Kassamätning: resultat från körning $GITHUB_RUN_NUMBER" || exit 0
+          git push origin "HEAD:$GITHUB_REF_NAME"

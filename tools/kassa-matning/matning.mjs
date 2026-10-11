@@ -1,0 +1,295 @@
+// tools/kassa-matning/matning.mjs
+//
+// Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
+// och vad som hämtas. Körs av .github/workflows/kassa-matning.yml.
+//
+// Ingenting fylls i på kassasidan. Mätningen skapar en anonym besökare, lägger
+// en vara i en ny varukorg och öppnar kassan för den, alltså samma sak som en
+// kund som tittar på kassan och går därifrån. Utan e-postadress blir det inget
+// mejl om övergiven kassa.
+//
+// Loggen är publik: den skriver inga nycklar, bara tider, värdar och storlekar.
+
+import { chromium, devices } from "playwright";
+import fs from "node:fs";
+import path from "node:path";
+
+const CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
+const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
+const BUTIK = "https://www.fyndplats.se";
+const UT = process.env.UT || "tools/kassa-matning/ut";
+const MAT_MS = 16000;
+fs.mkdirSync(UT, { recursive: true });
+
+const rader = [];
+const skriv = (s = "") => { console.log(s); rader.push(s); };
+
+async function wix(vag, { token, body } = {}) {
+  const r = await fetch(`https://www.wixapis.com${vag}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(token ? { authorization: token } : {}) },
+    body: JSON.stringify(body ?? {}),
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(`POST ${vag} → ${r.status} ${text.slice(0, 300)}`);
+  return JSON.parse(text);
+}
+
+/** En vara i lager utan alternativ, ur butikens sitemap och produktsidans JSON-LD. */
+async function hittaVara() {
+  const sm = await (await fetch(`${BUTIK}/sitemap.xml`)).text();
+  const adresser = [...sm.matchAll(/<loc>(https:\/\/www\.fyndplats\.se\/produkt\/[^<]+)<\/loc>/g)].map((m) => m[1]);
+  for (const adress of adresser.slice(0, 60)) {
+    const html = await (await fetch(adress)).text();
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+      .map((m) => { try { return JSON.parse(m[1]); } catch { return null; } })
+      .filter(Boolean)
+      .flatMap((x) => (Array.isArray(x) ? x : [x]));
+    const p = ld.find((x) => x["@type"] === "Product");
+    if (!p || p.hasVariant || !p.sku) continue;
+    const erbj = Array.isArray(p.offers) ? p.offers[0] : p.offers;
+    if (!erbj || erbj["@type"] !== "Offer" || !/InStock/.test(erbj.availability || "")) continue;
+    return { id: p.sku, namn: p.name, adress, pris: erbj.price };
+  }
+  throw new Error("ingen vara i lager utan alternativ bland de 60 första i sitemapen");
+}
+
+/** Kassans adress byggd som butiken bygger den (components/cart.tsx). */
+async function kassaAdress(vara) {
+  const tok = await wix("/oauth2/token", { body: { clientId: CLIENT_ID, grantType: "anonymous" } });
+  const token = tok.access_token;
+  const vagn = await wix("/ecom/v2/carts/current/add-line-items", {
+    token,
+    body: { catalogItems: [{ catalogReference: { appId: STORES_APP_ID, catalogItemId: vara.id }, quantity: 1 }] },
+  });
+  const cartId = vagn?.cart?._id || vagn?.cart?.id;
+  if (!cartId) throw new Error("varukorgen fick inget id");
+  const rs = await wix("/headless/v1/redirect-session", {
+    token,
+    body: {
+      ecomCheckout: { checkoutId: cartId },
+      callbacks: { thankYouPageUrl: `${BUTIK}/tack`, postFlowUrl: BUTIK, cartPageUrl: `${BUTIK}/butik` },
+    },
+  });
+  const full = rs?.redirectSession?.fullUrl || "";
+  const inre = full ? new URL(full).searchParams.get("redirectUrl") : null;
+  if (!inre) throw new Error("redirect-sessionen gav ingen kassaadress");
+  const u = new URL(inre);
+  u.searchParams.set("hideLoginLogoutBar", "true");
+  if (!u.searchParams.has("headlessClientId")) u.searchParams.set("headlessClientId", CLIENT_ID);
+  return u.toString();
+}
+
+const INSTRUMENT = () => {
+  const m = (window.__m = { skift: [], lcp: [], langa: [] });
+  const beskriv = (n) => {
+    if (!n) return "?";
+    if (n.nodeType !== 1) return "#text";
+    const kl = typeof n.className === "string" ? n.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
+    const dt = n.getAttribute("data-hook") || n.getAttribute("data-testid") || "";
+    return `${n.tagName.toLowerCase()}${dt ? `[${dt}]` : ""}${kl ? `.${kl}` : ""}`;
+  };
+  try {
+    new PerformanceObserver((l) => {
+      for (const e of l.getEntries()) {
+        if (e.hadRecentInput) continue;
+        m.skift.push({
+          t: Math.round(e.startTime),
+          v: Number(e.value.toFixed(4)),
+          kallor: (e.sources || []).slice(0, 3).map((s) => `${beskriv(s.node)} "${(s.node?.textContent || "").trim().replace(/\s+/g, " ").slice(0, 36)}" y ${Math.round(s.previousRect.y)}→${Math.round(s.currentRect.y)}, h ${Math.round(s.previousRect.height)}→${Math.round(s.currentRect.height)}`),
+        });
+      }
+    }).observe({ type: "layout-shift", buffered: true });
+  } catch {}
+  try {
+    new PerformanceObserver((l) => {
+      for (const e of l.getEntries()) m.lcp.push({ t: Math.round(e.startTime), el: beskriv(e.element), storlek: e.size });
+    }).observe({ type: "largest-contentful-paint", buffered: true });
+  } catch {}
+  try {
+    new PerformanceObserver((l) => {
+      for (const e of l.getEntries()) m.langa.push({ t: Math.round(e.startTime), ms: Math.round(e.duration) });
+    }).observe({ type: "longtask", buffered: true });
+  } catch {}
+};
+
+// Vad kunden ser just nu: rubriker, knappar, fält och inbäddade rutor.
+const LAGE = () => {
+  const syns = (el) => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return false;
+    const s = getComputedStyle(el);
+    return s.visibility !== "hidden" && s.display !== "none" && Number(s.opacity) > 0.05;
+  };
+  const text = (el) => (el.innerText || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 34);
+  const rubriker = [...document.querySelectorAll("h1,h2,h3,h4,legend,[role=heading]")].filter(syns).map(text).filter(Boolean);
+  const knappar = [...document.querySelectorAll("button,[role=button],a[role=link]")].filter(syns).map(text).filter(Boolean);
+  const falt = [...document.querySelectorAll("input,select,textarea")].filter((e) => e.type !== "hidden" && syns(e)).length;
+  const ramar = [...document.querySelectorAll("iframe")].filter(syns).map((f) => { try { return new URL(f.src).host; } catch { return f.name || "inline"; } });
+  const spinnare = [...document.querySelectorAll("[class*=spinner],[class*=Spinner],[class*=loader],[class*=Loader],[class*=skeleton],[class*=Skeleton],[aria-busy=true]")].filter(syns).length;
+  return {
+    klar: document.readyState,
+    textlangd: document.body ? document.body.innerText.length : 0,
+    hojd: document.documentElement.scrollHeight,
+    falt,
+    spinnare,
+    ramar: [...new Set(ramar)].sort(),
+    rubriker: [...new Set(rubriker)].slice(0, 14),
+    knappar: [...new Set(knappar)].slice(0, 14),
+  };
+};
+
+async function matKassan(browser, lage, adress) {
+  skriv(`\n================ ${lage.namn.toUpperCase()} ================`);
+  const ctx = await browser.newContext({ ...lage.enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  if (lage.cpu > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: lage.cpu });
+  if (lage.natt) {
+    await cdp.send("Network.enable");
+    await cdp.send("Network.emulateNetworkConditions", { offline: false, ...lage.natt });
+  }
+  await page.addInitScript(INSTRUMENT);
+
+  const t0 = Date.now();
+  const anrop = new Map();
+  const fel = [];
+  page.on("request", (r) => anrop.set(r, { url: r.url(), typ: r.resourceType(), start: Date.now() - t0 }));
+  const klar = async (r, ok) => {
+    const a = anrop.get(r);
+    if (!a) return;
+    a.slut = Date.now() - t0;
+    a.ok = ok;
+    try { const s = await r.sizes(); a.byte = s.responseBodySize + s.responseHeadersSize; } catch { a.byte = 0; }
+  };
+  page.on("requestfinished", (r) => klar(r, true));
+  page.on("requestfailed", (r) => klar(r, false));
+  page.on("console", (m) => { if (m.type() === "error") fel.push(`${Date.now() - t0} ms ${m.text().slice(0, 160)}`); });
+  page.on("pageerror", (e) => fel.push(`${Date.now() - t0} ms SIDFEL ${e.message.slice(0, 160)}`));
+
+  await page.goto(adress, { waitUntil: "commit", timeout: 60000 });
+  const svar = Date.now() - t0;
+  skriv(`dokumentet började komma efter ${svar} ms`);
+
+  let forra = "";
+  const bilder = new Set([800, 1500, 2500, 3500, 5000, 6500, 8000, 10000, 13000, 16000]);
+  const tagna = new Set();
+  while (Date.now() - t0 < MAT_MS) {
+    const t = Date.now() - t0;
+    let lageNu = null;
+    try { lageNu = await page.evaluate(LAGE); } catch { /* sidan byts */ }
+    if (lageNu) {
+      const nyckel = JSON.stringify({ ...lageNu, textlangd: Math.round(lageNu.textlangd / 40), hojd: Math.round(lageNu.hojd / 20) });
+      if (nyckel !== forra) {
+        forra = nyckel;
+        skriv(`${String(t).padStart(6)} ms  ${lageNu.klar.padEnd(11)} text ${String(lageNu.textlangd).padStart(5)}  höjd ${String(lageNu.hojd).padStart(5)}  fält ${lageNu.falt}  laddar ${lageNu.spinnare}  ramar [${lageNu.ramar.join(", ")}]`);
+        skriv(`           rubriker: ${lageNu.rubriker.join(" | ")}`);
+        skriv(`           knappar:  ${lageNu.knappar.join(" | ")}`);
+      }
+    }
+    for (const b of bilder) {
+      if (!tagna.has(b) && t >= b) {
+        tagna.add(b);
+        await page.screenshot({ path: path.join(UT, `${lage.namn}-${String(b).padStart(5, "0")}ms.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
+      }
+    }
+    await page.waitForTimeout(150);
+  }
+  await page.screenshot({ path: path.join(UT, `${lage.namn}-hela-sidan.jpg`), type: "jpeg", quality: 55, fullPage: true }).catch(() => {});
+
+  const m = await page.evaluate(() => window.__m).catch(() => null);
+  if (m) {
+    const cls = m.skift.reduce((s, x) => s + x.v, 0);
+    skriv(`\nLayoutskift (det som hoppar), summa CLS ${cls.toFixed(3)}:`);
+    for (const s of m.skift) skriv(`  ${String(s.t).padStart(6)} ms  ${s.v.toFixed(4)}  ${s.kallor.join("  ||  ")}`);
+    skriv(`Största innehållet (LCP): ${m.lcp.map((x) => `${x.t} ms ${x.el}`).join(", ")}`);
+    const lang = m.langa.reduce((s, x) => s + x.ms, 0);
+    skriv(`Långa uppgifter: ${m.langa.length} st, ${lang} ms totalt, längsta ${Math.max(0, ...m.langa.map((x) => x.ms))} ms`);
+  }
+
+  const lista = [...anrop.values()];
+  const perVard = new Map();
+  for (const a of lista) {
+    let v = "?";
+    try { v = new URL(a.url).host; } catch {}
+    const p = perVard.get(v) || { st: 0, byte: 0, forst: Infinity, sist: 0, fel: 0 };
+    p.st += 1; p.byte += a.byte || 0; p.forst = Math.min(p.forst, a.start); p.sist = Math.max(p.sist, a.slut ?? a.start); if (a.ok === false) p.fel += 1;
+    perVard.set(v, p);
+  }
+  skriv(`\nAnrop: ${lista.length} st, ${Math.round(lista.reduce((s, a) => s + (a.byte || 0), 0) / 1024)} kB. Per värd:`);
+  for (const [v, p] of [...perVard.entries()].sort((a, b) => b[1].byte - a[1].byte)) {
+    skriv(`  ${v.padEnd(42)} ${String(p.st).padStart(4)} st ${String(Math.round(p.byte / 1024)).padStart(6)} kB  ${p.forst}–${p.sist} ms${p.fel ? `  (${p.fel} misslyckade)` : ""}`);
+  }
+  const stora = lista.filter((a) => (a.typ === "script" || a.typ === "stylesheet" || a.typ === "font") && (a.byte || 0) > 40 * 1024)
+    .sort((a, b) => b.byte - a.byte).slice(0, 15);
+  skriv("Största skript, stilmallar och typsnitt:");
+  for (const a of stora) skriv(`  ${String(Math.round(a.byte / 1024)).padStart(5)} kB  ${a.typ.padEnd(10)} ${a.start}–${a.slut} ms  ${a.url.replace(/\?.*$/, "").slice(0, 120)}`);
+  if (fel.length) { skriv("Fel i konsolen:"); for (const f of fel.slice(0, 15)) skriv(`  ${f}`); }
+  await ctx.close();
+}
+
+// Hela vägen som en kund: produktsidan, Lägg i kundvagn, Till kassan.
+async function matVagen(browser, lage) {
+  skriv(`\n================ HELA VÄGEN, ${lage.namn.toUpperCase()} ================`);
+  const ctx = await browser.newContext({ ...lage.enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  if (lage.cpu > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: lage.cpu });
+  if (lage.natt) { await cdp.send("Network.enable"); await cdp.send("Network.emulateNetworkConditions", { offline: false, ...lage.natt }); }
+  const vara = await hittaVara();
+  await page.goto(vara.adress, { waitUntil: "load", timeout: 90000 });
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: path.join(UT, `vagen-${lage.namn}-1-produktsidan.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
+  const knapp = page.locator(".pdp button:has-text('Lägg i kundvagn')").first();
+  await knapp.scrollIntoViewIfNeeded().catch(() => {});
+  const t0 = Date.now();
+  await knapp.click({ timeout: 20000 });
+  await page.waitForSelector("aside.drawer.show .buy", { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector("aside.drawer .li-vantar"), null, { timeout: 30000 }).catch(() => {});
+  skriv(`Lägg i kundvagn → raden bekräftad av Wix: ${Date.now() - t0} ms`);
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(UT, `vagen-${lage.namn}-2-varukorgen.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
+  const tackt = await page.evaluate(() => {
+    const b = document.querySelector("aside.drawer .buy");
+    if (!b) return "ingen knapp";
+    const r = b.getBoundingClientRect();
+    const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return e && !b.contains(e) ? `TÄCKT av ${e.tagName.toLowerCase()}.${String(e.className).slice(0, 40)} "${(e.textContent || "").trim().slice(0, 30)}"` : "synlig";
+  });
+  skriv(`Knappen Till kassan: ${tackt}`);
+  const cookie = page.locator(".cookiebar .ck-ghost");
+  if (await cookie.isVisible().catch(() => false)) await cookie.click();
+  const t1 = Date.now();
+  await page.locator("aside.drawer .buy").click({ timeout: 10000 });
+  await page.waitForURL((u) => !u.toString().startsWith(BUTIK), { timeout: 30000, waitUntil: "commit" }).catch(() => {});
+  skriv(`Till kassan → kassans adress börjar laddas: ${Date.now() - t1} ms`);
+  await page.waitForTimeout(8000);
+  await page.screenshot({ path: path.join(UT, `vagen-${lage.namn}-3-kassan-efter-8s.jpg`), type: "jpeg", quality: 55 }).catch(() => {});
+  await ctx.close();
+}
+
+const LAGEN = [
+  {
+    namn: "mobil",
+    enhet: devices["iPhone 13"],
+    cpu: 4,
+    // Vanlig 4G: 70 ms fördröjning, 12 Mbit/s ner, 4 Mbit/s upp.
+    natt: { latency: 70, downloadThroughput: (12 * 1024 * 1024) / 8, uploadThroughput: (4 * 1024 * 1024) / 8 },
+  },
+  { namn: "dator", enhet: { viewport: { width: 1366, height: 900 } }, cpu: 1, natt: null },
+];
+
+const browser = await chromium.launch();
+try {
+  const vara = await hittaVara();
+  skriv(`Vara: ${vara.namn} (${vara.pris} kr)`);
+  for (const lage of LAGEN) {
+    const adress = await kassaAdress(vara);
+    skriv(`Kassans värd: ${new URL(adress).host}`);
+    await matKassan(browser, lage, adress);
+  }
+  try { await matVagen(browser, LAGEN[0]); } catch (e) { skriv(`Hela vägen föll: ${e.message}`); }
+} finally {
+  await browser.close();
+  fs.writeFileSync(path.join(UT, "sammanfattning.txt"), rader.join("\n") + "\n");
+}
