@@ -1,0 +1,65 @@
+Vara: Skivstångsställ i par – justerbara 136–176 cm, bär 200 kg (1269 kr)
+
+================ KASSANS KOD ================
+Hämtade kassaskript: 12
+
+-- ecom-platform-checkout/1.7371.0/CheckoutViewerWidgetNoCss.bundle.min.js (304 kB)
+  läses ur adressen: commonConfig, origCompId
+  namn med express: _expressCheckoutButtonsData(2), checkout_showExpressCheckout(1), CashierExpressCheckoutWidget(1)
+  [showExpress] …,Zr=function(e,t,n){if("EDITOR3"===n)return!0;if(!e)return!1;var r=t.isWixStudio,o=t.isEditorX;return r||o?e.enabled(Br):e.enabled(Ur)};const Wr=(Vr={checkout_showCoupon:{type:ne.Boolean,getDefaultValue:()=>!0},checkout_showExpressCheckout:{type:ne.Boolean,getDefaultValue:()=>!0}},Object.keys(Vr).reduce(function(e,t){return e[t]=(0,y.__assign)((0,y.__assign)({},Vr[t]),{key:Vr[t].key||t}),e},{}));var Vr,zr=n(619);e=n.hmd(e);var Gr={I18nextProvider:function(e){var t=e.i18n,n=e.defaultNS,r=e.childr…
+  [expressCheckoutButtons] …jt.p.runningText,className:Ut},i().createElement(Zt.K,{innerHtml:e.content},i().createElement("div",null))))))))))};var $t=n(16211),qt=n(82087);var Xt=n(28244),Jt=n(61927),Yt=n(85388),Qt=n(31472),en=n(25796);const tn=["_expressCheckoutButtonsData"];var nn=n(61045),rn=n(79243);let on=function(e){return e.Composer="checkout-composer",e.Viewer="checkout-viewer",e}({}),an=function(e){return e.DesignChange="designChange",e.Ready="ready",e}({});const sn=e=>{var t,n;const r=(null==e||null==(t=e.navigat…
+  [expressCheckoutButtons] …ts.length,o=new Array(r>2?r-2:0),i=2;i<r;i++)o[i-2]=arguments[i];return t(e,{...n,interpolation:{escapeValue:!1},...o})}},i().createElement(Kt,null)))},fn=(0,Qt.g)((0,nn.os)(function(e){return(0,Qt.g)(t=>{const n=t,r=n._expressCheckoutButtonsData,o=(0,Jt.A)(n,tn);return i().createElement(Yt.N.Provider,{value:r},i().createElement(e,o))},{resultPropName:en.eJ})}(function(e){return t=>{const{slots:n,compPreviewState:r,id:a,...s}=t,l=(0,o.useMemo)(()=>(0,qt.X)(r),[r]);return i().createElement($t.P1.…
+
+-- ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/client-viewer/CheckoutLoadedLayout.chunk (197 kB)
+  läses ur adressen: 
+  namn med express: CashierExpressCheckoutWidget(2), isExpressSupported(1), shouldDisplayExpressCheckout(1), isExpressEmpty(1)
+
+-- ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/client-viewer/8531.chunk.min.js (2281 kB)
+  läses ur adressen: get, sanitizerPOC, set, toString
+  namn med express: 
+
+-- ecom-platform-checkout/a8dea4202e9b74b71f3ee16300cf6f6651bfbe0838f5f1e02b270f3c/client-viewer/CashierExpressCheckoutWidg (193 kB)
+  läses ur adressen: get, sanitizerPOC, set
+  namn med express: CashierExpressCheckoutWidget(2)
+
+-- cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js (460 kB)
+  läses ur adressen: append, get, sanitizerPOC, set
+  namn med express: PassConfirmedInExpressCheckout(5), PassBillingAddressInPayPalExpressCheckout(3), fetchExpressPaymentMethods(2), webpackJsonp__wix_cashier_express_checkout_widget(2), PaymentExpress(1), paymentexpress(1), _wix_cashier_express_checkout_widget(1)
+
+-- cashier-express-checkout-widget/e760d88298ad55a3e0df51d27fbeeebbc14060ee16344c96df4274e3/messages_sv-json.chunk.min.js (2 kB)
+  läses ur adressen: 
+  namn med express: webpackJsonp__wix_cashier_express_checkout_widget(2)
+
+-- cashier-express-checkout-widget/e760d88298ad55a3e0df51d27fbeeebbc14060ee16344c96df4274e3/messages_en-json.chunk.min.js (1 kB)
+  läses ur adressen: 
+  namn med express: webpackJsonp__wix_cashier_express_checkout_widget(2)
+
+-- cashier-payments-widget/1.4962.0/cashier-widget-lazy-component.bundle.min.js (97 kB)
+  läses ur adressen: 
+  namn med express: 
+
+-- cashier-payments-widget/1.4962.0/cashier-widget-component.tpa.bundle.min.js (994 kB)
+  läses ur adressen: append, get, sanitizerPOC, set
+  namn med express: PaymentExpress(1), paymentexpress(1), fetchExpressPaymentMethods(1)
+
+-- cashier-payments-widget/fcd41e704c4135ac475f846515156008531908b8f42fd53e6417aaa3/sentry.chunk.min.js (79 kB)
+  läses ur adressen: 
+  namn med express: 
+
+-- cashier-payments-widget/1.4962.0/messages_en-json.chunk.min.js (35 kB)
+  läses ur adressen: 
+  namn med express: 
+
+-- cashier-payments-widget/1.4962.0/messages_sv-json.chunk.min.js (38 kB)
+  läses ur adressen: 
+  namn med express: 
+
+-- sidans html
+  [xpress] …screen and (max-width:480px){.Y7MzM{display:block}}}@container (width < 480px){.Y7MzM{display:block}}.yZwrz{margin-top:14px}</style><link rel="stylesheet" type="text/css" href="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.min.css"><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.…
+  [xpress] …ay:block}}}@container (width < 480px){.Y7MzM{display:block}}.yZwrz{margin-top:14px}</style><link rel="stylesheet" type="text/css" href="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.min.css"><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js" src="//static.parastorage.…
+  [xpress] …er-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.min.css"><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js" src="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js"></script><style st_id="oaKskMY" st_depth="1" st_runtime="0">.sZaO_YF{displ…
+  [xpress] …er-express-checkout-widget.min.css"><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js" src="//static.parastorage.com/services/cashier-express-checkout-widget/1.2796.0/cashier-express-checkout-widget.bundle.min.js"></script><style st_id="oaKskMY" st_depth="1" st_runtime="0">.sZaO_YF{display:flex;justify-content:space-around}.szC…
+  [hideLoginLogoutBar] …ic.wixstatic.com\/media","mediaRootUrl":"https:\/\/static.wixstatic.com\/","staticVideoUrl":"https:\/\/video.wixstatic.com\/","userDomainMediaPrefixes":[]},"requestUrl":"https:\/\/checkout.fyndplats.se\/__ecom\/checkout?hideLoginLogoutBar=true&origin=https%3A%2F%2Fwww.fyndplats.se&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153&headlessExternalUrls=%7E%28ecom-typ%7E%27https*3a*2f*2fwww.fyndplats.se*2ftack%7Ehome%7E%27https*3a*2f*2fwww.fyndplats.se%7Eecom-cart%7E%27https*3a*2f*2fwww.fyndpla…
+  [hideLoginLogoutBar] …AssetsVersionsRollout":false,"isDACRollout":0,"isTBRollout":true},"fleetConfig":{"fleetName":"thunderbolt-seo-isolated-renderer","type":"Rollout","code":1},"requestUrl":"https:\/\/checkout.fyndplats.se\/__ecom\/checkout?hideLoginLogoutBar=true&origin=https%3A%2F%2Fwww.fyndplats.se&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153&headlessExternalUrls=%7E%28ecom-typ%7E%27https*3a*2f*2fwww.fyndplats.se*2ftack%7Ehome%7E%27https*3a*2f*2fwww.fyndplats.se%7Eecom-cart%7E%27https*3a*2f*2fwww.fyndpla…
+  [hideLoginLogoutBar] …n.js.map</script> <!-- Add the rest of the ViewerModel --> <script type="application/json" id="wix-viewer-model">{"siteAssetsTestModuleVersion":"1.334.0","requestUrl":"https:\/\/checkout.fyndplats.se\/__ecom\/checkout?hideLoginLogoutBar=true&origin=https%3A%2F%2Fwww.fyndplats.se&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153&headlessExternalUrls=%7E%28ecom-typ%7E%27https*3a*2f*2fwww.fyndplats.se*2ftack%7Ehome%7E%27https*3a*2f*2fwww.fyndplats.se%7Eecom-cart%7E%27https*3a*2f*2fwww.fyndpla…
+  [hideLoginLogoutBar] …wic3MiOmZhbHNlfQ"]}},"seo":{"context":{"siteName":"Fyndplats","siteUrl":"https:\/\/checkout.fyndplats.se\/__ecom","domain":"fyndplats.se","indexSite":false,"defaultUrl":"https:\/\/checkout.fyndplats.se\/__ecom\/checkout?hideLoginLogoutBar=true&origin=https%3A%2F%2Fwww.fyndplats.se&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153&headlessExternalUrls=%7E%28ecom-typ%7E%27https*3a*2f*2fwww.fyndplats.se*2ftack%7Ehome%7E%27https*3a*2f*2fwww.fyndplats.se%7Eecom-cart%7E%27https*3a*2f*2fwww.fyndpla…
