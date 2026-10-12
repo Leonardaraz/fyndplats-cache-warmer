@@ -11,6 +11,9 @@
 // 3. Auto-register görs BARA om 17TRACK svarar "not registered" — inte vid
 //    andra fel (ogiltigt nummer, system-error, quota-limit etc)
 //
+// GLS-paket hämtas från GLS egen spårning med postnumret ur ordern
+// (lib/gls-source, sedan 2026-10-12): utan postnummer får 17TRACK bara statusen.
+//
 // Anonymisering bevarad från Velo: events i CN/HK/TW/SG/MY-transit skippas
 // så kunden inte ser ursprungslandet. Carrier-namn maskas mot generiskt
 // "Transportör" på origin-events.
@@ -20,12 +23,14 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  PHRASE_SV, svLocation, dedupeEvents, tidForHandelse, rimligTid,
-  rattaPlatser, orderEventsNewestFirst,
+  PHRASE_SV, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
+  rimligTid, rattaPlatser, orderEventsNewestFirst,
 } from "@/lib/track-i18n";
 import { maskCarrier, transportorForNummer } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
+import { fetchGlsSparning } from "@/lib/gls-source";
+import { liknarGlsNummer, type GlsSparning } from "@/lib/gls-track";
 import { registerWith17Track } from "@/lib/track17";
 
 export const runtime = "nodejs";
@@ -263,6 +268,44 @@ function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetch
   };
 }
 
+/**
+ * Bygger /api/track-svaret ur GLS egen spårning (lib/gls-source), i samma
+ * JSON-format som 17TRACK-vägen.
+ *
+ * GLS tider är lokal tid utan offset, och läses som svensk väggklocka för
+ * länder med svensk tid (svenskVaggklocka). En text som GLS-tabellen inte
+ * känner går genom PHRASE_SV, och står annars kvar som GLS skrev den.
+ */
+function buildGlsBody(tn: string, gls: GlsSparning, eta: string | null) {
+  const events = dedupeEvents(rattaPlatser(
+    gls.handelser
+      .map((h) => {
+        const location = svLocation(undefined, { city: h.stad, country: h.land });
+        const description = (h.beskrivning ?? toSwedish(h.original))
+          .replace(LEAKY_PATTERN, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        return {
+          time: svenskVaggklocka(h.tid, svCountry(h.land), Boolean(h.stad)),
+          description,
+          location: LEAKY_PATTERN.test(location) ? "" : location,
+          status: h.etikett ?? STAGE_LABEL_SV.InTransit,
+        };
+      })
+      .filter((ev) => ev.description && rimligTid(ev.time)),
+  ));
+  return {
+    events,
+    status: gls.status,
+    delivered: gls.status === "Delivered",
+    eta,
+    carrier: "GLS",
+    ...(gls.sistaLed ? { sistaLed: gls.sistaLed } : {}),
+    trackingNumber: tn,
+    updatedAt: orderEventsNewestFirst(events).find((ev) => ev.time)?.time || new Date().toISOString(),
+  };
+}
+
 /** Direktlänkar till de transportörer våra EU-leverantörer använder sist i
  *  kedjan — visas när ingen källa har händelser än, så kunden aldrig är fast. */
 function carrierFallbackLinks(tn: string): Array<{ name: string; url: string }> {
@@ -351,6 +394,15 @@ export async function GET(req: NextRequest) {
       cacheSet(tn, body, 200);
       return NextResponse.json(body, { status: 200 });
     }
+    // GLS egen spårning behöver ingen 17TRACK-nyckel heller.
+    if (liknarGlsNummer(tn)) {
+      const gls = await fetchGlsSparning(tn);
+      const body = gls ? buildGlsBody(tn, gls, null) : null;
+      if (body && body.events.length > 0) {
+        cacheSet(tn, body, 200);
+        return NextResponse.json(body, { status: 200 });
+      }
+    }
     return NextResponse.json(
       { error: "Spårning är inte konfigurerad", details: "TRACK17_API_KEY saknas i miljön" },
       { status: 503 },
@@ -392,6 +444,29 @@ export async function GET(req: NextRequest) {
       json = await gettrackinfo(tn, apiKey);
     } catch {
       // Tystna — fallback till pending-meddelande nedan.
+    }
+  }
+
+  // ☠️ GLS lämnar ut resan först med mottagarens postnummer, och det har
+  // 17TRACK inte. För ett GLS-paket ger 17TRACK därför bara statusen: en rad,
+  // "Paketet är på väg genom transportnätet", utan tid och plats, medan GLS
+  // egen sida visar hela resan (Leonards rapport 2026-10-12, order 10075).
+  // Är paketet GLS hämtas resan från GLS med postnumret ur ordern
+  // (lib/gls-source). Den används när den har minst lika många händelser som
+  // 17TRACK. Annars, och när GLS inte svarar, visas 17TRACK som förut.
+  const ti17 = json.data?.accepted?.[0]?.track_info;
+  const leverantor17 = ti17?.tracking?.providers?.[0]?.provider?.name;
+  if (maskCarrier(leverantor17) === "GLS" || (!hasRealEvents(json) && liknarGlsNummer(tn))) {
+    const gls = await fetchGlsSparning(tn);
+    const eta = fmtEtaSv(
+      ti17?.time_metrics?.estimated_delivery_date?.to
+      || ti17?.time_metrics?.estimated_delivery_date?.from
+      || null,
+    );
+    const body = gls ? buildGlsBody(tn, gls, eta) : null;
+    if (body && body.events.length > 0 && body.events.length >= (ti17 ? allEventsOf(ti17).length : 0)) {
+      cacheSet(tn, body, 200);
+      return NextResponse.json(body, { status: 200 });
     }
   }
 

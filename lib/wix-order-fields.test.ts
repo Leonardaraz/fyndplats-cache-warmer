@@ -6,6 +6,7 @@ import {
   orderCreatedDate,
   orderEmail,
   orderNumber,
+  orderPostnummer,
   orderRader,
   orderSumma,
 } from "./wix-order-fields.ts";
@@ -74,6 +75,37 @@ describe("orderCountry", () => {
     assert.equal(orderCountry({}), undefined);
     assert.equal(orderCountry(undefined), undefined);
     assert.equal(orderCountry({ recipientInfo: { address: {} } }), undefined);
+  });
+});
+
+describe("orderPostnummer", () => {
+  // GLS lämnar ut paketets resa först med mottagarens postnummer, och butiken
+  // läser det ur ordern (lib/gls-source.ts). Samma platser som landet.
+  it("läser ecom-orderns recipientInfo.address, som Wix sparat det", () => {
+    const order = { recipientInfo: { address: { city: "Malmö", postalCode: "211 22", country: "SE" } } };
+    assert.equal(orderPostnummer(order), "211 22");
+  });
+
+  it("klarar shippingDestination och logistics-varianten", () => {
+    assert.equal(orderPostnummer({ shippingInfo: { shippingDestination: { address: { postalCode: "41101" } } } }), "41101");
+    assert.equal(
+      orderPostnummer({ shippingInfo: { logistics: { shippingDestination: { address: { postalCode: "90325" } } } } }),
+      "90325",
+    );
+  });
+
+  it("hittar postnumret när recipientInfo saknar adress", () => {
+    const order = {
+      recipientInfo: { contactDetails: { firstName: "Anna" } },
+      shippingInfo: { shippingDestination: { address: { postalCode: "11122" } } },
+    };
+    assert.equal(orderPostnummer(order), "11122");
+  });
+
+  it("undefined när postnumret saknas, aldrig en gissning", () => {
+    assert.equal(orderPostnummer({}), undefined);
+    assert.equal(orderPostnummer(undefined), undefined);
+    assert.equal(orderPostnummer({ recipientInfo: { address: { country: "SE" } } }), undefined);
   });
 });
 

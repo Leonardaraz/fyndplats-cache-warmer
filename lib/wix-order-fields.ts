@@ -60,18 +60,19 @@ export function orderEmail(order: Loose): string | undefined {
 }
 
 /**
- * Leveranslandet, orört från Wix (normaliseras i lib/gcr.ts). Samma
- * adressupplösning som extractShippingAddress: recipientInfo först, sedan
- * shippingDestination, sist logistics-varianten.
+ * Leveransadressens möjliga platser, i den ordning de provas: recipientInfo
+ * först, sedan shippingDestination, sist logistics-varianten. Samma
+ * adressupplösning som extractShippingAddress.
+ *
+ * VARJE källa provas för sig. Ett första försök valde container först
+ * (`recipientInfo ?? recipient ?? shippingInfo`) och letade adress bara i den
+ * — så en gästorder med `recipientInfo: { contactDetails }` men adressen under
+ * `shippingInfo.shippingDestination` gav undefined, trots att landet låg i
+ * svaret. Samma tysta nollresultat som buggen filen skapades för (granskning
+ * 2026-08-19, andra vändan).
  */
-export function orderCountry(order: Loose): string | undefined {
-  // VARJE källa provas för sig. Ett första försök valde container först
-  // (`recipientInfo ?? recipient ?? shippingInfo`) och letade adress bara i
-  // den — så en gästorder med `recipientInfo: { contactDetails }` men adressen
-  // under `shippingInfo.shippingDestination` gav undefined, trots att landet
-  // låg i svaret. Samma tysta nollresultat som buggen filen skapades för
-  // (granskning 2026-08-19, andra vändan).
-  const kallor: Loose[] = [
+function leveransAdresser(order: Loose): Loose[] {
+  return [
     obj(obj(order?.recipientInfo)?.address),
     obj(obj(order?.recipient)?.address),
     obj(obj(order?.shippingInfo)?.address),
@@ -79,10 +80,26 @@ export function orderCountry(order: Loose): string | undefined {
     obj(obj(order?.shippingInfo)?.shippingDestination),
     obj(obj(obj(obj(order?.shippingInfo)?.logistics)?.shippingDestination)?.address),
   ];
-  for (const k of kallor) {
+}
+
+/** Leveranslandet, orört från Wix (normaliseras i lib/gcr.ts). */
+export function orderCountry(order: Loose): string | undefined {
+  for (const k of leveransAdresser(order)) {
     // shippingDestination kan i sin tur bära adressen ett steg ner.
     const land = firstStr(k?.country, obj(k?.address)?.country);
     if (land) return land;
+  }
+  return undefined;
+}
+
+/**
+ * Leveransadressens postnummer, som Wix sparat det ("123 45"). GLS lämnar ut
+ * paketets resa först med det (lib/gls-track.ts). Det lämnar aldrig servern.
+ */
+export function orderPostnummer(order: Loose): string | undefined {
+  for (const k of leveransAdresser(order)) {
+    const pn = firstStr(k?.postalCode, obj(k?.address)?.postalCode);
+    if (pn) return pn;
   }
   return undefined;
 }
