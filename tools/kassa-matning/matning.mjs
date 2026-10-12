@@ -1,4 +1,4 @@
-// Manuell uppvärmning av butikens cache (KOR=varm): 2026-10-12 06:40 svensk tid.
+// Kontroll av Visa mer på recensioner, sajten mot förhandsbygget (#737): 2026-10-12 10:05 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -557,10 +557,87 @@ async function varmButiken(browser) {
   }
 }
 
-const KOR = process.env.KOR || "varm";
+// ================ RECENSIONERNA (KOR=recensioner) ================
+// Står "Visa mer" där det inte finns mer att visa? Hittar produktsidor med
+// långa recensioner i sitemapen och mäter varje avkortad text i en dator- och
+// en mobilbredd, på sajten och på förhandsbygget (PR #737).
+const RECENSION_FORHANDS = process.env.FORHANDS_RECENSION
+  || "https://fyndplats-headless-git-claude-rece-0d51fc-leonardarazs-projects.vercel.app";
+
+async function hittaRecensionssidor(max = 12, tak = 900) {
+  const sm = await (await fetch(`${BUTIK}/sitemap.xml`, { headers: { "cache-control": "no-cache" } })).text();
+  const produkter = [...sm.matchAll(/<loc>\s*([^<\s]+\/produkt\/[^<\s]+)\s*<\/loc>/g)].map((m) => m[1]).slice(0, tak);
+  const traffar = [];
+  let nasta = 0;
+  await Promise.all(Array.from({ length: 8 }, async () => {
+    while (nasta < produkter.length && traffar.length < max) {
+      const u = produkter[nasta++];
+      try {
+        const html = await (await fetch(u, { signal: AbortSignal.timeout(30_000) })).text();
+        if (html.includes("rev-text-klamp")) traffar.push(u);
+      } catch { /* en sida som inte svarar hoppas över */ }
+    }
+  }));
+  return { sidor: traffar.slice(0, max), lasta: Math.min(nasta, produkter.length) };
+}
+
+async function matRecensioner(browser, bas, enhet, sidor) {
+  const ctx = await browser.newContext({ ...enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  await ctx.addInitScript(() => {
+    window.__cls = 0;
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; })
+      .observe({ type: "layout-shift", buffered: true });
+  });
+  const page = await ctx.newPage();
+  const summa = { sidor: 0, avkortade: 0, knappar: 0, falska: 0, saknade: 0, fel: 0, skriptfel: 0, clsMax: 0 };
+  page.on("pageerror", () => { summa.skriptfel++; });
+  const falskaPa = new Set();
+  for (const u of sidor) {
+    try {
+      await page.goto(u.replace(BUTIK, bas), { waitUntil: "load", timeout: 60_000 });
+      await page.waitForSelector(".rev-item", { timeout: 15_000 });
+      await page.waitForTimeout(1500);
+      const rader = await page.$$eval(".rev-item", (lis) => lis.map((li) => {
+        const p = li.querySelector(".rev-text");
+        const klamp = !!p && p.classList.contains("rev-text-klamp");
+        return { klamp, doljer: klamp && p.scrollHeight > p.clientHeight + 1, knapp: !!li.querySelector(".rev-expand") };
+      }));
+      summa.sidor++;
+      summa.clsMax = Math.max(summa.clsMax, await page.evaluate(() => window.__cls || 0));
+      for (const x of rader) {
+        if (x.klamp) summa.avkortade++;
+        if (x.knapp) summa.knappar++;
+        if (x.knapp && x.klamp && !x.doljer) { summa.falska++; falskaPa.add(u.replace(BUTIK, "")); }
+        if (x.doljer && !x.knapp) summa.saknade++;
+      }
+    } catch {
+      summa.fel++;
+    }
+  }
+  await ctx.close();
+  return { summa, falskaPa: [...falskaPa].slice(0, 4) };
+}
+
+async function kollaRecensioner(browser) {
+  const { sidor, lasta } = await hittaRecensionssidor();
+  skriv(`Produktsidor med långa recensioner: ${sidor.length} (letade bland ${lasta} produktsidor)`);
+  skriv("knappar = antal Visa mer, falska = knapp utan dold text, saknade = dold text utan knapp\n");
+  const enheter = [["dator 1366", { viewport: { width: 1366, height: 900 } }], ["mobil 390", devices["iPhone 13"]]];
+  for (const bas of [BUTIK, RECENSION_FORHANDS]) {
+    for (const [namn, enhet] of enheter) {
+      const { summa, falskaPa } = await matRecensioner(browser, bas, enhet, sidor);
+      skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} ${namn.padEnd(10)} sidor ${summa.sidor}  klampade texter ${summa.avkortade}  knappar ${summa.knappar}  falska ${summa.falska}  saknade ${summa.saknade}  fel ${summa.fel}  skriptfel ${summa.skriptfel}  största layoutskift ${summa.clsMax.toFixed(3)}`);
+      for (const s of falskaPa) skriv(`    falsk knapp på ${s}`);
+    }
+  }
+}
+
+const KOR = process.env.KOR || "recensioner";
 const browser = await chromium.launch();
 try {
-  if (KOR === "varm") {
+  if (KOR === "recensioner") {
+    await kollaRecensioner(browser);
+  } else if (KOR === "varm") {
     await varmButiken(browser);
   } else {
   const vara = await hittaVara();
@@ -600,6 +677,6 @@ try {
 } finally {
   await browser.close();
   const k = KOR;
-  const fil = k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const fil = k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
