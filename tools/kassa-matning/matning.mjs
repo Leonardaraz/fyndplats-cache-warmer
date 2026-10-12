@@ -1,3 +1,4 @@
+// Kontroll av sajten efter nattens deploy (#736): 2026-10-12 03:07 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
