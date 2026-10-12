@@ -37,7 +37,11 @@ export function visaUtfallningsknapp(o: { lang: boolean; utfalld: boolean; dolje
   return o.doljer !== false;
 }
 
-/** Döljer klampen något? En pixel tål avrundning i webbläsarens mått. */
-export function klampenDoljer(mått: { scrollHeight: number; clientHeight: number }): boolean {
-  return mått.scrollHeight > mått.clientHeight + 1;
+/**
+ * Döljer klampen något? `hel` är textens höjd utan klamp, `klampad` höjden i
+ * klampen (helOchKlampad i components/ProductReviews.tsx mäter båda). En pixel
+ * tål avrundning i webbläsarens mått, och en dold rad är runt 20 px.
+ */
+export function klampenDoljer(mått: { hel: number; klampad: number }): boolean {
+  return mått.hel > mått.klampad + 1;
 }

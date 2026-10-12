@@ -49,23 +49,48 @@ test("en utfälld text behåller Visa mindre, vad mätningen än sa", () => {
   }
 });
 
-test("klampen döljer något först när innehållet är högre än rutan", () => {
-  assert.equal(klampenDoljer({ scrollHeight: 66, clientHeight: 66 }), false);
+test("klampen döljer något först när texten är högre än klampen", () => {
+  assert.equal(klampenDoljer({ hel: 66, klampad: 66 }), false);
   // En pixel är avrundning, inte en dold rad.
-  assert.equal(klampenDoljer({ scrollHeight: 67, clientHeight: 66 }), false);
-  assert.equal(klampenDoljer({ scrollHeight: 132, clientHeight: 110 }), true);
+  assert.equal(klampenDoljer({ hel: 67, klampad: 66 }), false);
+  assert.equal(klampenDoljer({ hel: 132, klampad: 110 }), true);
 });
 
+// Källkodsprovet. Varje påstående är prövat genom att återinföra felet det
+// gäller: den gamla filen, en knapp som räknar tecken igen (`|| text.length >
+// 320`), mätningen som ignoreras (`doljer: null`) eller aldrig sparas,
+// useEffect i stället för useLayoutEffect, mätning med scrollHeight i klampen
+// och ett borttaget fokusskydd. Var och en fäller.
 test("☠️ ProductReviews mäter stycket och låter regeln avgöra knappen", () => {
   const kod = readFileSync(join(process.cwd(), "components/ProductReviews.tsx"), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^[ \t]*\/\/.*$/gm, "");
-  assert.match(kod, /visaUtfallningsknapp\(/, "knappen avgörs inte av visaUtfallningsknapp");
-  assert.match(kod, /klampenDoljer\(/, "stycket mäts inte (klampenDoljer)");
+  assert.match(
+    kod,
+    /visaUtfallningsknapp\(\{\s*lang,\s*utfalld,\s*doljer\s*\}\)/,
+    "knappen avgörs inte av visaUtfallningsknapp med det uppmätta värdet",
+  );
+  assert.match(
+    kod,
+    /const (\w+) = klampenDoljer\(helOchKlampad\(p\)\)[\s\S]*?setDoljer\(\1\)/,
+    "mätningen sparas inte (klampenDoljer → setDoljer)",
+  );
+  assert.match(kod, /useLayoutEffect\(/, "mätningen görs inte innan webbläsaren ritar");
   assert.match(kod, /new ResizeObserver\(/, "ingen ny mätning när bredden ändras");
+  assert.match(
+    kod,
+    /classList\.remove\("rev-text-klamp"\)[\s\S]*?scrollHeight[\s\S]*?classList\.add\("rev-text-klamp"\)/,
+    "textens hela höjd mäts inte utan klamp. scrollHeight i klampen beror på hur webbläsaren räknar dolda rader",
+  );
+  assert.match(
+    kod,
+    /document\.activeElement === knappRef\.current\) p\.focus\(/,
+    "fokus flyttas inte till stycket när en fokuserad knapp tas bort",
+  );
+  assert.match(kod, /tabIndex=\{-1\}/, "stycket kan inte ta emot fokus");
   assert.doesNotMatch(
     kod,
-    /\.text\.length\s*>\s*\d+/,
+    /\btext\.length\s*>/,
     "komponenten räknar tecken själv igen. Teckenantalet avgör bara klampen, i lib/review-utfallning.ts",
   );
 });

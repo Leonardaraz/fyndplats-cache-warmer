@@ -191,6 +191,28 @@ export function ProductReviews({
 }
 
 /**
+ * Textens hela höjd och höjden i klampen.
+ *
+ * ☠️ MÄT INTE MED scrollHeight I KLAMPEN. I dag räknar Chromium, WebKit och
+ * Gecko de dolda raderna i scrollHeight, men CSS Overflow 4 säger att de inte
+ * ska göra det, och Chromium har aviserat att -webkit-line-clamp ska följa
+ * specen. Då hade scrollHeight blivit lika med clientHeight, och knappen hade
+ * försvunnit från varje lång recension utan ett fel någonstans. Därför tas
+ * klampen bort och läggs tillbaka i samma synkrona steg. Webbläsaren hinner
+ * aldrig rita stycket utan klamp, och storleken är densamma igen innan
+ * ResizeObserver tittar.
+ */
+function helOchKlampad(p: HTMLElement): { hel: number; klampad: number } {
+  // Lägg aldrig på en klamp som inte fanns: en text utan klamp döljer ingenting.
+  if (!p.classList.contains("rev-text-klamp")) return { hel: p.scrollHeight, klampad: p.scrollHeight };
+  const klampad = p.clientHeight;
+  p.classList.remove("rev-text-klamp");
+  const hel = p.scrollHeight;
+  p.classList.add("rev-text-klamp");
+  return { hel, klampad };
+}
+
+/**
  * En recensions text med "Visa mer" bara där klampen faktiskt döljer något.
  * Regeln och varför den mäter står i lib/review-utfallning.ts.
  *
@@ -201,6 +223,11 @@ export function ProductReviews({
  * exempel när mobilen vrids, så knappen kan komma tillbaka. Typsnittet kan
  * byta radbrytningar efter laddningen utan att stycket byter höjd, därför mäts
  * det också då.
+ *
+ * Tas knappen bort medan den har fokus, till exempel när en utfälld text fälls
+ * ihop i en bredd där den ryms, hamnar fokus annars på <body> och en
+ * skärmläsare tappar platsen. Stycket tar då emot fokus (tabIndex -1, alltså
+ * inte i tabbordningen).
  */
 function RecensionsText({
   text,
@@ -213,6 +240,7 @@ function RecensionsText({
 }) {
   const lang = klamppas(text);
   const ref = useRef<HTMLParagraphElement>(null);
+  const knappRef = useRef<HTMLButtonElement>(null);
   const [doljer, setDoljer] = useState<boolean | null>(null);
 
   useLayoutEffect(() => {
@@ -220,7 +248,10 @@ function RecensionsText({
     if (!lang || utfalld || !p) return;
     let aktiv = true;
     const mat = () => {
-      if (aktiv) setDoljer(klampenDoljer(p));
+      if (!aktiv) return;
+      const doljerNu = klampenDoljer(helOchKlampad(p));
+      if (!doljerNu && document.activeElement === knappRef.current) p.focus({ preventScroll: true });
+      setDoljer(doljerNu);
     };
     mat();
     // En webbläsare utan ResizeObserver mäts en gång, i stället för att
@@ -232,13 +263,15 @@ function RecensionsText({
       aktiv = false;
       ro?.disconnect();
     };
-  }, [lang, utfalld]);
+  }, [lang, utfalld, text]);
 
   return (
     <>
-      <p ref={ref} className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{text}</p>
+      <p ref={ref} tabIndex={-1} className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>
+        {text}
+      </p>
       {visaUtfallningsknapp({ lang, utfalld, doljer }) ? (
-        <button type="button" className="rev-expand" aria-expanded={utfalld} onClick={onVaxla}>
+        <button ref={knappRef} type="button" className="rev-expand" aria-expanded={utfalld} onClick={onVaxla}>
           {utfalld ? "Visa mindre" : "Visa mer"}
         </button>
       ) : null}
