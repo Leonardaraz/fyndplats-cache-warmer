@@ -79,18 +79,25 @@ jobs:
             -in "$D/losen.enc" -out "$D/losen"
           openssl enc -d -aes-256-cbc -pbkdf2 -pass "file:$D/losen" -in "$D/data" -out "$D/nummer.json"
           rm -f "$D/privat.pem" "$D/losen" "$D/losen.enc" "$D/data" "$D/indata.txt"
-          if ! jq -e 'type == "array" and length >= 1 and length <= 6
-                      and all(.[]; type == "string" and test("^[A-Z0-9]{8,40}$"))' "$D/nummer.json" > /dev/null 2>&1; then
+          # Antingen en lista med nummer, eller {nummer: [...], postnummer: "..."}.
+          if ! jq -e 'def nr: type == "array" and length >= 1 and length <= 6
+                        and all(.[]; type == "string" and test("^[A-Z0-9]{8,40}$"));
+                      (nr) or (type == "object" and (.nummer | nr)
+                        and ((.postnummer // "") | type == "string" and test("^[0-9 ]{0,10}$")))' \
+               "$D/nummer.json" > /dev/null 2>&1; then
             rm -f "$D/nummer.json"
-            echo "::error::numren har fel form" >&2
+            echo "::error::indata har fel form" >&2
             exit 1
           fi
-          echo "Nummer att prova: $(jq length "$D/nummer.json")"
+          echo "Nummer att prova: $(jq 'if type == "array" then length else (.nummer | length) end' "$D/nummer.json")"
       - name: Maskera
         run: |
-          jq -r '.[]' "$RUNNER_TEMP/prov/nummer.json" | while read -r n; do
+          jq -r 'if type == "array" then .[] else (.nummer[], (.postnummer // empty)) end' \
+            "$RUNNER_TEMP/prov/nummer.json" | while read -r n; do
+            [ -n "$n" ] || continue
             echo "::add-mask::$n"
             echo "::add-mask::${n,,}"
+            echo "::add-mask::${n// /}"
           done
       - name: Prova
         run: |
