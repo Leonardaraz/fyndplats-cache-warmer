@@ -64,10 +64,32 @@ export function categoryInMainNav(count: number): boolean {
   return t === "bedom" || t === "full";
 }
 
-/** Antal produkter per kategori-id. Ge den forListings(produkter), samma mängd
- *  som kategorisidan visar, annars säger räkningen något annat än sidan. */
-export function countPerCategory(products: ReadonlyArray<{ collectionIds?: string[] }>): Map<string, number> {
+/** Antal produkter per kategori-id, räknat som kategorisidan listar dem
+ *  (kategoriProdukter i lib/list-pages.ts): kategorin och dess direkta
+ *  underkategorier, varje produkt en gång. Ge den forListings(produkter), samma
+ *  mängd som sidan visar, och hela kategorilistan, så att föräldrarna syns.
+ *
+ *  Förut räknades bara produkter som låg direkt i kategorin. Wix lägger inte en
+ *  produkt i avdelningen bara för att den ligger i en underkategori, så en
+ *  avdelning med produkter bara i underkategorierna fick noll: noindex och
+ *  ingen plats i sitemapen, fast sidan visade hela avdelningen. Uppmätt på
+ *  sajten 2026-10-11: Verktyg & Fordon. Navigationen hade redan samma lagning
+ *  (medForaldrar, totalt/mainCount). */
+export function countPerCategoryPage(
+  products: ReadonlyArray<{ collectionIds?: string[] }>,
+  categories: ReadonlyArray<{ id: string; parentId: string | null }>,
+): Map<string, number> {
+  const foralder = new Map<string, string>();
+  for (const c of categories) if (c.parentId) foralder.set(c.id, c.parentId);
   const antal = new Map<string, number>();
-  for (const p of products) for (const cid of p.collectionIds || []) antal.set(cid, (antal.get(cid) || 0) + 1);
+  for (const p of products) {
+    const sidor = new Set<string>();
+    for (const cid of p.collectionIds || []) {
+      sidor.add(cid);
+      const f = foralder.get(cid);
+      if (f) sidor.add(f);
+    }
+    for (const id of sidor) antal.set(id, (antal.get(id) || 0) + 1);
+  }
   return antal;
 }
