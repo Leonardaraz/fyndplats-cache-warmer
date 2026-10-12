@@ -1,24 +1,22 @@
 Vara: Skivstångsställ i par – justerbara 136–176 cm, bär 200 kg (1269 kr)
 
 ================ AVDELNINGARNA på www.fyndplats.se ================
-sitemap.xml: HTTP 200, 4250 adresser, 127 kategorier
-jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
-verktyg-fordon   HTTP 200  robots: noindex, follow  SAKNAS i sitemapen  delningsbild: standardbild  cache: HIT
-mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
-hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
+sitemap.xml: HTTP 200, 4252 adresser, 128 kategorier
+jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+verktyg-fordon   HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
 
 ================ AVDELNINGARNA på fyndplats-headless-git-claude-kass-4edc42-leonardarazs-projects.vercel.app ================
 sitemap.xml: HTTP 200, 4252 adresser, 128 kategorier
-jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
-verktyg-fordon   HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
-mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
-hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: HIT
+jul-hogtider     HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+verktyg-fordon   HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+mobler           HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
+hem-inredning    HTTP 200  robots: (ingen robots-tagg)  i sitemapen  delningsbild: egen bild  cache: PRERENDER
 
 Sitemapen, bara i förhandsversionen:
-  + https://www.fyndplats.se/kategori/verktyg-fordon
-  + https://www.fyndplats.se/under-1000-kr/utelek-spel
 Sitemapen, bara på sajten:
 
 ================ COOKIERUTAN OCH TILL KASSAN ================
-www.fyndplats.se                         före: {"ruta":"visible"}  varukorgen öppen: {"ruta":"visible","tillKassan":"TÄCKT av p.cookietext"}  stängd: {"ruta":"visible"}
+www.fyndplats.se                         före: {"ruta":"visible"}  varukorgen öppen: {"ruta":"hidden","tillKassan":"synlig och tryckbar"}  stängd: {"ruta":"visible"}
 fyndplats-headless-git-claude-kass-4edc4 före: {"ruta":"visible"}  varukorgen öppen: {"ruta":"hidden","tillKassan":"synlig och tryckbar"}  stängd: {"ruta":"visible"}
