@@ -1,0 +1,12 @@
+Sidor med långa recensioner: 12. Mobilbredd, fyra klick per sida (ut, in, ut, in).
+
+================ Blink (Chrome) ================
+www.fyndplats.se                         sidor 5  alla klick rätt 5/5  knappen inte inkopplad vid 1,5 s: 0
+fyndplats-headless-git-claude-rece-0d51f sidor 5  alla klick rätt 5/5  knappen inte inkopplad vid 1,5 s: 0
+================ WebKit (Safari) ================
+www.fyndplats.se                         sidor 5  alla klick rätt 5/5  knappen inte inkopplad vid 1,5 s: 0
+    FEL på /produkt/solsang-med-soltak-hopfallbar: 105px/Visa mer → 294px/Visa mindre → 105px/Visa mer → 294px/Visa mindre → 294px/Visa mindre
+fyndplats-headless-git-claude-rece-0d51f sidor 5  alla klick rätt 4/5  knappen inte inkopplad vid 1,5 s: 0
+================ Gecko (Firefox) ================
+www.fyndplats.se                         sidor 5  alla klick rätt 5/5  knappen inte inkopplad vid 1,5 s: 0
+fyndplats-headless-git-claude-rece-0d51f sidor 5  alla klick rätt 5/5  knappen inte inkopplad vid 1,5 s: 0
