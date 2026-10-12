@@ -18,6 +18,17 @@ const nummer = JSON.parse(fs.readFileSync(inFil, "utf8"));
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
 const MAX_KROPP = 120_000;
+const MAX_ANNAN = 2_000;
+
+/** JSON sparas hel (upp till taket), allt annat bara i början. */
+function kort(text) {
+  try {
+    JSON.parse(text);
+    return text.slice(0, MAX_KROPP);
+  } catch {
+    return text.slice(0, MAX_ANNAN);
+  }
+}
 
 const DIREKT = [
   "https://gls-group.com/app/service/open/rest/SE/sv/rstt001?match={N}",
@@ -72,7 +83,7 @@ async function hamta(url, medUa) {
     } catch {}
     return {
       status: r.status, ct: r.headers.get("content-type") || "", langd: text.length,
-      ms: Date.now() - t0, slut: vag(r.url), nycklar, kropp: text.slice(0, MAX_KROPP),
+      ms: Date.now() - t0, slut: vag(r.url), nycklar, kropp: kort(text),
     };
   } catch (e) {
     return { fel: String(e?.name || "fel"), ms: Date.now() - t0, felText: String(e?.message || e).slice(0, 300) };
@@ -120,7 +131,7 @@ async function sidor(browser) {
         if (!intressant) return;
         const post = { typ, url, metod: req.method(), status: resp.status(), ct };
         try {
-          if (/json|text\/plain|text\/html/.test(ct) || /rstt|track/i.test(url)) post.kropp = (await resp.text()).slice(0, MAX_KROPP);
+          if (/json|text\/plain|text\/html/.test(ct) || /rstt|track/i.test(url)) post.kropp = kort(await resp.text());
         } catch {}
         try { post.postData = req.postData()?.slice(0, 4000) ?? null; } catch {}
         try { post.reqHeaders = await req.allHeaders(); } catch {}
@@ -141,7 +152,7 @@ async function sidor(browser) {
         fel = String(e?.message || e).slice(0, 400);
       }
       const text = await page.evaluate(() => document.body?.innerText || "").catch(() => "");
-      ut.sidor.push({ i, mall, dok, fel, text: text.slice(0, 30000), svar, skript: [...skript] });
+      ut.sidor.push({ i, mall, dok, fel, text: text.slice(0, 20000), svar, skript: [...skript] });
       console.log(`#${i + 1} sida ${mall} → dok ${dok?.status ?? "-"} slut=${tvatta(vag(dok?.slut || ""))} samtycke=${dok?.samtycke ?? "-"} fel=${fel ? "ja" : "nej"} text=${text.length} tecken, ${svar.length} svar`);
       for (const s of svar) {
         console.log(`    ${s.typ} ${s.metod} ${s.status} ${tvatta(vag(s.url))} ${s.ct.split(";")[0]} ${s.kropp?.length ?? "-"} B`);

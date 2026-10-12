@@ -13,7 +13,7 @@ name: GLS — prova GLS egen spårning för ett paket (tillfällig, krypterad)
 # 3. Numren maskeras i ett eget steg innan något läser dem, och de står aldrig
 #    i ett env-block.
 # 4. Svaren krypteras med kuvertnyckeln i start.json (RSA-OAEP/SHA-256 +
-#    AES-256-CBC/PBKDF2, samma som orderlank.yml). I klartext står bara mallar,
+#    AES-256-CBC/PBKDF2, samma som orderlank.yml) och läggs i grenen. I klartext står bara mallar,
 #    statuskoder, storlekar och fältnamn, och adresserna tvättas från siffror.
 on:
   push:
@@ -114,9 +114,13 @@ jobs:
             -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
             -in "$D/kuvert.losen" -out "$D/kuvert.losen.enc"
           rm -f "$D/ut.json.gz" "$D/kuvert.losen" "$D/kuvert.pub"
-          echo "=== Kuvert (gzip) ==="
-          echo "losen: $(base64 -w0 "$D/kuvert.losen.enc")"
-          echo "data-borjan"
-          base64 -w 4000 "$D/kuvert.data"
-          echo "data-slut"
+          # Kuvertet läggs i grenen i stället för i loggen: det kan vara stort,
+          # och loggen går bara att läsa från slutet. Det är lika krypterat där.
+          UT="tools/gls-prov/ut-${GITHUB_RUN_ID}.txt"
+          { echo "losen: $(base64 -w0 "$D/kuvert.losen.enc")"; echo "data: $(base64 -w0 "$D/kuvert.data")"; } > "$UT"
           rm -f "$D/kuvert.losen.enc" "$D/kuvert.data"
+          git add "$UT"
+          git commit -q -m "GLS-prov: krypterade svar från körning ${GITHUB_RUN_ID}"
+          git pull -q --rebase origin "$GITHUB_REF_NAME"
+          git push -q origin "HEAD:${GITHUB_REF_NAME}"
+          echo "Kuvertet ligger i grenen: ${UT} ($(wc -c < "$UT") B)"
