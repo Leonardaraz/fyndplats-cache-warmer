@@ -1,0 +1,26 @@
+Produktsidor med långa recensioner: 12 (letade bland 516 produktsidor)
+knappar = antal Visa mer, falska = knapp utan dold text, saknade = dold text utan knapp
+Layoutskift mäts bara i Chromium (körning 12), så här står de på 0.
+
+================ WebKit (Safari) ================
+www.fyndplats.se                         dator 1366 sidor 12  klampade texter 13  knappar 13  falska 13  saknade 0  fel 0  skriptfel 0
+    falsk knapp på /produkt/reservtak-till-paviljong-3-x-3-m
+    falsk knapp på /produkt/solsang-med-soltak-hopfallbar
+    falsk knapp på /produkt/konstgjord-bambu-120-cm-i-kruka
+    falsk knapp på /produkt/fallbord-med-hyllor-matbord-sma-utrymmen
+fyndplats-headless-git-claude-rece-0d51f dator 1366 sidor 12  klampade texter 13  knappar 0  falska 0  saknade 0  fel 0  skriptfel 0
+  fäll ut och in på förhandsbygget, dator 1366: ingen sida hade en knapp i den här bredden
+www.fyndplats.se                         iPhone 13  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0
+fyndplats-headless-git-claude-rece-0d51f iPhone 13  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0
+  fäll ut och in på förhandsbygget, iPhone 13: OK: 105 px → Visa mer → 189 px (Visa mindre) → Visa mindre → 105 px (Visa mer) på /produkt/reservtak-till-paviljong-3-x-3-m
+================ Gecko (Firefox) ================
+www.fyndplats.se                         dator 1366 sidor 12  klampade texter 13  knappar 13  falska 13  saknade 0  fel 0  skriptfel 0
+    falsk knapp på /produkt/reservtak-till-paviljong-3-x-3-m
+    falsk knapp på /produkt/solsang-med-soltak-hopfallbar
+    falsk knapp på /produkt/konstgjord-bambu-120-cm-i-kruka
+    falsk knapp på /produkt/fallbord-med-hyllor-matbord-sma-utrymmen
+fyndplats-headless-git-claude-rece-0d51f dator 1366 sidor 12  klampade texter 13  knappar 0  falska 0  saknade 0  fel 0  skriptfel 0
+  fäll ut och in på förhandsbygget, dator 1366: ingen sida hade en knapp i den här bredden
+www.fyndplats.se                         mobil 390  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0
+fyndplats-headless-git-claude-rece-0d51f mobil 390  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0
+  fäll ut och in på förhandsbygget, mobil 390: OK: 109 px → Visa mer → 195 px (Visa mindre) → Visa mindre → 109 px (Visa mer) på /produkt/reservtak-till-paviljong-3-x-3-m
