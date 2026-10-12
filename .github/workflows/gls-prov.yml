@@ -102,7 +102,9 @@ jobs:
       - name: Prova
         run: |
           cp tools/gls-prov/prov.mjs /tmp/pw/
-          node /tmp/pw/prov.mjs "$RUNNER_TEMP/prov/nummer.json" "$RUNNER_TEMP/prov/ut.json"
+          # Omgång 5: förhandsbyggets adress står i start.json (publik, inga nummer).
+          FORHAND="$(jq -r '.forhand // empty' tools/gls-prov/start.json)" \
+            node /tmp/pw/prov.mjs "$RUNNER_TEMP/prov/nummer.json" "$RUNNER_TEMP/prov/ut.json"
       - name: Kryptera svaren
         if: always()
         run: |

@@ -155,7 +155,30 @@ async function sidaMedPostnummer(browser) {
   await ctx.close();
 }
 
+/**
+ * Omgång 5: butikens /api/track på förhandsbygget med GLS-fixen (#738), och i
+ * produktionen som jämförelse. Svaren krypteras som allt annat. I loggen står
+ * bara statuskod, antal händelser, transportör och status.
+ */
+async function forhandsKoll(forhand) {
+  ut.forhand = [];
+  for (const [i, n] of nummer.entries()) {
+    for (const [namn, bas] of [["förhand", forhand], ["produktion", "https://www.fyndplats.se"]]) {
+      for (const varv of [1, 2]) {
+        const r = await hamtaText(`${bas}/api/track?tn=${encodeURIComponent(n)}`);
+        const j = json(r.text);
+        ut.forhand.push({ i, namn, varv, status: r.status ?? r.fel, ms: r.ms, kropp: r.text?.slice(0, MAX_KROPP) ?? null });
+        console.log(`#${i + 1} ${namn} varv ${varv} → ${r.status ?? r.fel} ${r.ms} ms, händelser=${j?.events?.length ?? "-"}, transportör=${j?.carrier ?? "-"}, sista led=${j?.sistaLed ?? "-"}, status=${j?.status ?? (j?.pending ? "pending" : "-")}`);
+      }
+    }
+  }
+}
+
 try {
+  if (process.env.FORHAND) {
+    await forhandsKoll(process.env.FORHAND);
+    throw Object.assign(new Error("klart"), { name: "klart" });
+  }
   await glsKod();
   await sjuttonTrack();
   if (postnummer) {
@@ -166,8 +189,10 @@ try {
     console.log("Inget postnummer i indata, GLS provas inte med postnummer.");
   }
 } catch (e) {
-  console.log(`provet föll: ${String(e?.name || "fel")}`);
-  ut.fel = String(e?.stack || e).slice(0, 2000);
+  if (e?.name !== "klart") {
+    console.log(`provet föll: ${String(e?.name || "fel")}`);
+    ut.fel = String(e?.stack || e).slice(0, 2000);
+  }
 } finally {
   fs.writeFileSync(utFil, JSON.stringify(ut));
   console.log(`Sparat: ${fs.statSync(utFil).size} B`);
