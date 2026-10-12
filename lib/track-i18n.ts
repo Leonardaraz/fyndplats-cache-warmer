@@ -11,7 +11,11 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
   // — Förberedelse / registrering —
   [/we have received a notification from your shipper.*preparing an item/i,
     "Vi har fått besked från avsändaren om att din vara förbereds. Spårningen uppdateras när paketet lämnats till transportören."],
-  [/shipment information received|info(rmation)? received|electronic.*info|label (has been )?created|shipping label/i,
+  // ☠️ GLS registrering säger "the parcel was NOT YET handed over to GLS" och
+  // innehåller alltså "handed over to". Utan den här regeln läste upphämtningen
+  // nedan den som "Paketet har lämnats till transportören", ett senare steg än
+  // sanningen (uppmätt på order 10079, 2026-10-12).
+  [/shipment information received|info(rmation)? received|electronic.*info|label (has been )?created|shipping label|data was entered|not yet (been )?handed over/i,
     "Fraktinformation mottagen – paketet är registrerat."],
   // — Lagerhantering hos avsändaren (AliExpress/Cainiao-feeden) —
   // ☠️ MÅSTE ligga FÖRE upphämtningen. Alla fyra stegen sker innan
