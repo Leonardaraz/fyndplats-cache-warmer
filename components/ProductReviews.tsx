@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ProductReview } from "../lib/reviews";
 import { ratingSummary } from "../lib/rating";
@@ -195,9 +195,12 @@ export function ProductReviews({
  * Regeln och varför den mäter står i lib/review-utfallning.ts.
  *
  * Mätningen görs bara när texten är hopfälld: en utfälld text klipps aldrig.
- * En ResizeObserver mäter om när bredden ändras, till exempel när mobilen
- * vrids, så knappen kan komma tillbaka. Typsnittet kan byta radbrytningar
- * efter laddningen utan att stycket byter höjd, därför mäts det också då.
+ * Den görs innan webbläsaren ritar (useLayoutEffect), så en recension som
+ * renderas i webbläsaren, till exempel vid byte av produktsida, aldrig hinner
+ * visa knappen först. En ResizeObserver mäter om när bredden ändras, till
+ * exempel när mobilen vrids, så knappen kan komma tillbaka. Typsnittet kan
+ * byta radbrytningar efter laddningen utan att stycket byter höjd, därför mäts
+ * det också då.
  */
 function RecensionsText({
   text,
@@ -212,7 +215,7 @@ function RecensionsText({
   const ref = useRef<HTMLParagraphElement>(null);
   const [doljer, setDoljer] = useState<boolean | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const p = ref.current;
     if (!lang || utfalld || !p) return;
     let aktiv = true;
