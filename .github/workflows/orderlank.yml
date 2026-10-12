@@ -1,0 +1,131 @@
+name: Orderlänk — Aosom-länken för en orders artiklar (tillfällig, krypterad)
+
+# Tillfällig (2026-10-12): Leonard bad om länken till Aosoms produktsida för
+# order 10084. Uppslaget i /admin/source-lookup kräver inloggning, och
+# leverantorslankar.yml tar produkter, inte ordernummer.
+#
+# Den här läser bulkorderplanen, hämtar filen för den batch där ordern ligger,
+# plockar ut BARA ordernumrets artiklar och antal och slår upp varje artikels
+# sida i Aosoms flöde. Samma artikel som bulkordern skulle beställa
+# (aosomArtikelForTask), alltså rätt färg även på en sammanslagen sida.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Filen bär kundernas namn och adresser och raderas direkt
+# efter att ordern plockats ut; ingen av dess rader skrivs ut. Artikelnummer och
+# länkar finns bara i kuvertet (RSA-OAEP/SHA-256 + AES-256-CBC/PBKDF2, samma
+# som leverantorslankar.yml). I klartext står bara räknare.
+on:
+  push:
+    branches: [claude/kassa-matning-2026-10-11]
+    paths:
+      - tools/orderlank/indata.json
+
+permissions:
+  contents: read
+
+jobs:
+  lank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hämta och kryptera
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          ORDER=$(jq -r '.order' tools/orderlank/indata.json)
+          if ! printf '%s' "$ORDER" | grep -Eq '^[0-9]{4,7}$'; then
+            echo "::error::order: inte ett ordernummer" >&2
+            exit 1
+          fi
+          jq -r '.kuvert' tools/orderlank/indata.json | base64 -d > kuvert.pub
+          openssl pkey -pubin -in kuvert.pub -noout
+
+          rot="${BASE%/api/cron/poll-tracking}/api/admin"
+
+          # 1) Vilken batch? Väntande först, sedan även beställda.
+          batch=""; status=""
+          for st in pending pending,ordered; do
+            kod=$(curl -sS --max-time 120 -o plan.json -w '%{http_code}' \
+              -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/aosom-order?status=${st}")
+            if [ "$kod" != "200" ]; then echo "::error::planen svarade HTTP ${kod}" >&2; exit 1; fi
+            batch=$(jq -r --arg o "$ORDER" '[.batchar[] | select(any(.ordernummer[]; . == $o)) | .nummer][0] // empty' plan.json)
+            if [ -n "$batch" ]; then status="$st"; break; fi
+          done
+          # Skälet om ordern inte fick plats i någon batch följer med i kuvertet.
+          jq -c --arg o "$ORDER" '{omojlig: [.omojliga[] | select(.orderNumber == $o) | .skal], hoppadeOver: (.hoppadeOver | length)}' plan.json > plan-utdrag.json
+          rm -f plan.json
+
+          echo "[]" > artiklar.json
+          if [ -n "$batch" ]; then
+            echo "Ordern finns i batch ${batch} (status ${status})."
+            kod=$(curl -sS --max-time 120 -o batch.csv -w '%{http_code}' \
+              -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/aosom-order?format=csv&batch=${batch}&status=${status}")
+            if [ "$kod" != "200" ]; then rm -f batch.csv; echo "::error::filen svarade HTTP ${kod}" >&2; exit 1; fi
+            # ☠️ Bara ordernumrets artiklar och antal lämnar filen. Ingen rad skrivs ut.
+            python3 - "$ORDER" > /dev/null <<'PY'
+          import csv, json, sys
+          order = sys.argv[1]
+          with open("batch.csv", newline="", encoding="utf-8") as f:
+              rader = [r for r in csv.DictReader(f) if (r.get("Reference") or "").strip() == order]
+          ut = []
+          for r in rader:
+              skus = [s.strip() for s in (r.get("SKUs") or "").split(",") if s.strip()]
+              antal = [a.strip() for a in (r.get("Quantities") or "").split(",")]
+              for i, s in enumerate(skus):
+                  ut.append({"artikel": s, "antal": antal[i] if i < len(antal) else ""})
+          with open("artiklar.json", "w", encoding="utf-8") as f:
+              json.dump(ut, f)
+          PY
+            rm -f batch.csv
+          else
+            echo "Ordern finns inte i någon batch (väntande eller beställd)."
+          fi
+          echo "Artiklar på ordern: $(jq 'length' artiklar.json)"
+
+          # 2) Varje artikels sida i Aosoms flöde. Frågan bär artikelnumret, så
+          #    curl:s fel skrivs bara som en kod.
+          echo "[]" > lankar.json
+          for i in $(seq 0 $(( $(jq 'length' artiklar.json) - 1 ))); do
+            [ "$(jq 'length' artiklar.json)" = "0" ] && break
+            artikel=$(jq -r ".[$i].artikel" artiklar.json)
+            antal=$(jq -r ".[$i].antal" artiklar.json)
+            if curl -sS --get --max-time 120 -o sok.json \
+                 -H "Authorization: Bearer ${CRON_SECRET}" \
+                 --data-urlencode "q=${artikel}" "${rot}/aosom-feed-search?allaRader=1&max=20" 2>/dev/null; then
+              jq -c --arg a "$artikel" --arg n "$antal" '
+                ([.visade[]? | select((.sku | ascii_upcase) == ($a | ascii_upcase))][0]) as $r
+                | {artikel: $a, antal: $n, namn: ($r.namn // null), url: ($r.url // null), saldo: ($r.saldo // null)}
+              ' sok.json > rad.json
+            else
+              jq -nc --arg a "$artikel" --arg n "$antal" '{artikel: $a, antal: $n, namn: null, url: null, saldo: null, fel: "flödessökningen svarade inte"}' > rad.json
+            fi
+            jq -c --slurpfile r rad.json '. + $r' lankar.json > tmp.json && mv tmp.json lankar.json
+            rm -f sok.json rad.json
+          done
+          echo "Med länk ur flödet: $(jq '[.[] | select(.url != null)] | length' lankar.json)"
+
+          jq -c --arg o "$ORDER" --arg b "$batch" --arg s "$status" --slurpfile p plan-utdrag.json \
+            '{order: $o, batch: $b, status: $s, plan: $p[0], artiklar: .}' lankar.json > kuvert.klartext
+          rm -f artiklar.json lankar.json plan-utdrag.json
+
+          openssl rand -base64 32 > kuvert.losen
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen -in kuvert.klartext -out kuvert.data
+          openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+            -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+            -in kuvert.losen -out kuvert.losen.enc
+          rm -f kuvert.klartext kuvert.losen kuvert.pub
+
+          echo "=== Kuvert ==="
+          echo "losen: $(base64 -w0 kuvert.losen.enc)"
+          echo "data-borjan"
+          base64 -w 4000 kuvert.data
+          echo "data-slut"
+          rm -f kuvert.losen.enc kuvert.data
