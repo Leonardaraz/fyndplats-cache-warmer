@@ -219,3 +219,44 @@ Den pollar **alla** paket i luften (yngre än 45 dagar, max 60 per körning), in
 bara de 17TRACK avvisade — registreringsutfallet sparas inte, och ett
 registrerat nummer kan ändå aldrig pushas (carrier-datalucka). Priset är ett
 AliExpress-anrop per paket och körning; cache-warmern cachar fem minuter.
+
+## GLS-källan — hela resan kräver mottagarens postnummer (2026-10-12)
+
+GLS lämnar ut ett pakets resa först när man anger mottagarens postnummer.
+17TRACK har inte postnumret och får därför bara statusen. /sparning visade en
+enda rad för GLS-paket, "Paketet är på väg genom transportnätet", utan tid och
+plats, medan GLS egen sida visade hela resan (Leonards rapport, order 10075).
+
+Uppmätt mot GLS egen spårningssida och dess kod, med krypterade prov på
+mätgrenen. Spårningsnummer och postnummer stod aldrig i klartext:
+
+| fråga | svar |
+|---|---|
+| `rstt029`, bara numret | bara statusen |
+| `rstt027`, numret och postnumret | hela historiken, samma rader som GLS sida |
+| `rstt027`, fel postnummer | 404, `E609` |
+| `rstt001`, gamla öppna adressen | skickar vidare till "Register API Access" |
+
+`/api/track` hämtar därför resan från GLS (`rstt027`) när 17TRACK säger att
+paketet är GLS, eller när ett GLS-nummer saknas hos 17TRACK. Postnumret läses
+ur ordern: `tracking_mapping` → ordern i Wix → leveransadressen
+(`lib/gls-source.ts`). Tolkningen, den svenska texten och orterna med å, ä
+och ö bor i `lib/gls-track.ts`.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Postnumret lämnar aldrig servern.** Det skickas bara till GLS, som redan
+   har det, och skrivs aldrig i loggen eller i svaret. Loggen får felets namn,
+   aldrig dess text, eftersom texten kan bära adressen till GLS.
+2. ☠️ **Bara händelserna och statusen följer med.** GLS svar bär också
+   avsändarens referenser, vikt och postnummer. Av referenserna läses bara
+   namnet, för att se om DB Schenker delar ut paketet i Sverige.
+3. **Allt som inte går faller tillbaka på 17TRACK**: inget paket i
+   `tracking_mapping`, en order utan postnummer, fel postnummer, eller att GLS
+   eller Wix inte svarar. Sidan visar då samma vy som förut.
+
+17TRACK tar också emot ett postnummer för GLS (fältet `param`, transportör
+100005, valfritt), men bara vid registreringen. `changeinfo` ändrar bara
+`tag`, så redan registrerade nummer går inte att rätta den vägen. Att skicka
+postnumret vid registreringen (`registerWith17Track`) skulle ge push-mejlen
+hela GLS-resan, men det är inte gjort.
