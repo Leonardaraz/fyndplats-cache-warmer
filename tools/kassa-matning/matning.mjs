@@ -1,4 +1,4 @@
-// Kontroll av sajten efter nattens deploy (#736): 2026-10-12 03:07 svensk tid.
+// Manuell uppvärmning av butikens cache (KOR=varm): 2026-10-12 06:40 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -398,12 +398,175 @@ const LAGEN = [
   { namn: "dator", enhet: { viewport: { width: 1366, height: 900 } }, cpu: 1, natt: null },
 ];
 
+// ================ VÄRMNING (KOR=varm) ================
+// Manuell uppvärmning av butikens cache (Leonard 2026-10-12: "sidan känns
+// långsam"). Hämtar varje adress i sitemapen en gång, så att nästa besökare får
+// en färdig sida ur cachen i stället för att vänta på renderingen. Samma takt
+// som butikens egen värmare (lib/warm.ts: åtta parallellt, 60 s tak per sida).
+// Loggen bär bara adresser, statuskoder, cachelägen och tider.
+const VARM_PARALLELLT = 8;
+const VARM_BUDGET_MS = 13 * 60_000;
+const sov = (ms) => new Promise((res) => setTimeout(res, ms));
+
+/** Hämtar en sida helt. Strypning och tillfälliga fel får ett nytt försök.
+ *  forstaCache är läget vid FÖRSTA hämtningen, alltså före värmningen. */
+async function hamtaEn(url) {
+  let forsta = null;
+  for (let forsok = 1; ; forsok++) {
+    const t0 = performance.now();
+    let ut;
+    try {
+      const r = await fetch(url, {
+        headers: { "user-agent": "fyndplats-warmer (manuell)" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(60_000),
+      });
+      const ttfb = performance.now() - t0;
+      await r.arrayBuffer();
+      ut = { status: r.status, cache: (r.headers.get("x-vercel-cache") || "-").toUpperCase(), ttfb, tid: performance.now() - t0 };
+    } catch (e) {
+      const tid = performance.now() - t0;
+      ut = { status: e?.name === "TimeoutError" ? "TIMEOUT" : "NÄTFEL", cache: "-", ttfb: tid, tid };
+    }
+    if (!forsta) forsta = ut;
+    const tillfalligt = ut.status === 429 || ut.status === 503 || ut.status === "TIMEOUT" || ut.status === "NÄTFEL";
+    if (!tillfalligt || forsok >= 2) return { url, ...ut, forsok, forstaCache: forsta.cache };
+    await sov(5000);
+  }
+}
+
+/** Kör fn över listan med n samtidiga, och startar inget nytt efter deadline. */
+async function iParallell(lista, n, fn, deadline) {
+  const ut = new Array(lista.length);
+  let nasta = 0;
+  await Promise.all(Array.from({ length: n }, async () => {
+    while (nasta < lista.length && Date.now() < deadline) {
+      const j = nasta++;
+      ut[j] = await fn(lista[j]);
+    }
+  }));
+  return ut.filter(Boolean);
+}
+
+function sidtyp(url) {
+  const p = new URL(url).pathname;
+  if (p.startsWith("/produkt/")) return "produkt";
+  if (p.startsWith("/kategori/")) return "kategori";
+  return "övrigt";
+}
+const rakna = (xs) => xs.reduce((m, x) => ((m[x] = (m[x] || 0) + 1), m), {});
+const visa = (m) => Object.entries(m).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(", ");
+const kvantil = (xs, q) => {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.floor(q * s.length))];
+};
+const sek = (ms) => (ms == null ? "-" : `${(ms / 1000).toFixed(2)} s`);
+
+/** Upplevd laddning i en riktig webbläsare: första byte, första innehåll,
+ *  största innehåll (LCP) och när sidan är klar. */
+async function upplevdTid(browser, lage, url) {
+  const ctx = await browser.newContext({ ...lage.enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  try {
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    if (lage.cpu > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: lage.cpu });
+    if (lage.natt) {
+      await cdp.send("Network.enable");
+      await cdp.send("Network.emulateNetworkConditions", { offline: false, ...lage.natt });
+    }
+    await page.addInitScript(() => {
+      window.__lcp = 0;
+      new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__lcp = e.startTime; })
+        .observe({ type: "largest-contentful-paint", buffered: true });
+    });
+    const svar = await page.goto(url, { waitUntil: "load", timeout: 90_000 });
+    await page.waitForTimeout(1500);
+    const m = await page.evaluate(() => {
+      const n = performance.getEntriesByType("navigation")[0];
+      const fcp = performance.getEntriesByName("first-contentful-paint")[0];
+      return { ttfb: n?.responseStart ?? null, fcp: fcp ? fcp.startTime : null, lcp: window.__lcp || null, load: n?.loadEventEnd || null };
+    });
+    return { ...m, cache: (svar?.headers()["x-vercel-cache"] || "-").toUpperCase() };
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function varmButiken(browser) {
+  const start = Date.now();
+  const deadline = start + VARM_BUDGET_MS;
+  const sm = await (await fetch(`${BUTIK}/sitemap.xml`, { headers: { "cache-control": "no-cache" } })).text();
+  const alla = [...new Set([...sm.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]))];
+  const antal = rakna(alla.map(sidtyp));
+  if (alla.length < 500) throw new Error(`sitemapen gav bara ${alla.length} adresser — avbryter hellre än värmer en bråkdel`);
+  // Startsidan och de stora listorna först, sedan produkterna (dit de flesta
+  // kommer från Google), sedan kategorierna och resten.
+  const nyckel = [`${BUTIK}/`, `${BUTIK}/butik`, `${BUTIK}/alla-produkter`];
+  const lista = [...new Set([
+    ...nyckel,
+    ...alla.filter((u) => sidtyp(u) === "produkt"),
+    ...alla.filter((u) => sidtyp(u) === "kategori"),
+    ...alla.filter((u) => sidtyp(u) === "övrigt"),
+  ])];
+  skriv(`Värmning av ${BUTIK.replace("https://", "")}, start ${new Date(start).toISOString()}`);
+  skriv(`Sitemapen: ${alla.length} adresser (${visa(antal)}). ${VARM_PARALLELLT} hämtningar åt gången.`);
+
+  const res = await iParallell(lista, VARM_PARALLELLT, hamtaEn, deadline);
+  const sekunder = Math.round((Date.now() - start) / 1000);
+  skriv(`Hämtade ${res.length} av ${lista.length} på ${sekunder} s${res.length < lista.length ? `. Tidsbudgeten tog slut med ${lista.length - res.length} kvar.` : "."}`);
+
+  skriv("\nLäget FÖRE värmningen (x-vercel-cache vid första hämtningen):");
+  for (const typ of ["produkt", "kategori", "övrigt"]) {
+    const r = res.filter((x) => sidtyp(x.url) === typ);
+    if (r.length) skriv(`  ${typ.padEnd(9)} ${String(r.length).padStart(5)} st   ${visa(rakna(r.map((x) => x.forstaCache)))}   | status: ${visa(rakna(r.map((x) => String(x.status))))}`);
+  }
+  const kalla = res.filter((x) => x.forstaCache === "MISS" && x.status === 200);
+  const varma = res.filter((x) => ["HIT", "STALE", "PRERENDER"].includes(x.forstaCache) && x.status === 200);
+  skriv(`\nFörsta byte: kalla sidor (MISS, ${kalla.length} st) median ${sek(kvantil(kalla.map((x) => x.ttfb), 0.5))}, p90 ${sek(kvantil(kalla.map((x) => x.ttfb), 0.9))}`);
+  skriv(`             varma sidor (HIT/STALE/PRERENDER, ${varma.length} st) median ${sek(kvantil(varma.map((x) => x.ttfb), 0.5))}, p90 ${sek(kvantil(varma.map((x) => x.ttfb), 0.9))}`);
+
+  skriv("\nLångsammast (första byte):");
+  for (const x of [...res].sort((a, b) => b.ttfb - a.ttfb).slice(0, 15)) {
+    skriv(`  ${sek(x.ttfb).padStart(8)}  ${x.forstaCache.padEnd(9)} ${String(x.status).padEnd(7)} ${x.url.replace(BUTIK, "")}`);
+  }
+  const fel = res.filter((x) => x.status !== 200);
+  skriv(`\nSvarade inte 200: ${fel.length}`);
+  for (const x of fel.slice(0, 40)) skriv(`  ${String(x.status).padEnd(7)} ${x.url.replace(BUTIK, "")}${x.forsok > 1 ? "  (två försök)" : ""}`);
+
+  // Kontroll: ett spritt urval av sidorna som var kalla, hämtade en gång till.
+  // De ska nu svara ur cachen.
+  const bas = kalla.length ? kalla : res.filter((x) => x.status === 200);
+  const steg = Math.max(1, Math.floor(bas.length / 40));
+  const urval = bas.filter((_, i) => i % steg === 0).slice(0, 40);
+  const kontroll = await iParallell(urval.map((x) => x.url), 4, hamtaEn, Infinity);
+  skriv(`\nKontroll efteråt: ${kontroll.length} av sidorna som var kalla, hämtade igen: ${visa(rakna(kontroll.map((x) => x.cache)))}`);
+  skriv(`  första byte median ${sek(kvantil(kontroll.map((x) => x.ttfb), 0.5))}, p90 ${sek(kvantil(kontroll.map((x) => x.ttfb), 0.9))}`);
+
+  skriv("\nUpplevd laddning efter värmningen (mobil = iPhone på 4G med fyra gånger långsammare processor, dator = utan strypning):");
+  const prov = [...new Set([`${BUTIK}/`, `${BUTIK}/kategori/mobler`, ...urval.filter((x) => sidtyp(x.url) === "produkt").slice(0, 2).map((x) => x.url)])];
+  for (const lage of LAGEN) {
+    for (const u of prov) {
+      try {
+        const m = await upplevdTid(browser, lage, u);
+        skriv(`  ${lage.namn.padEnd(5)} ${u.replace(BUTIK, "").slice(0, 48).padEnd(48)} ${m.cache.padEnd(9)} första byte ${sek(m.ttfb)}  första innehåll ${sek(m.fcp)}  största innehåll ${sek(m.lcp)}  klar ${sek(m.load)}`);
+      } catch (e) {
+        skriv(`  ${lage.namn.padEnd(5)} ${u.replace(BUTIK, "")}: gick inte: ${String(e.message).split("\n")[0]}`);
+      }
+    }
+  }
+}
+
+const KOR = process.env.KOR || "varm";
 const browser = await chromium.launch();
 try {
+  if (KOR === "varm") {
+    await varmButiken(browser);
+  } else {
   const vara = await hittaVara();
   skriv(`Vara: ${vara.namn} (${vara.pris} kr)`);
   // KOR=mat mäter laddningen, KOR=bunt granskar kassans kod.
-  const kor = process.env.KOR || "avdelningar";
+  const kor = KOR;
   if (kor === "avdelningar") {
     await kollaAvdelningar();
     skriv("\n================ COOKIERUTAN OCH TILL KASSAN ================");
@@ -433,9 +596,10 @@ try {
     }
     try { await matVagen(browser, LAGEN[0]); } catch (e) { skriv(`Hela vägen föll: ${e.message}`); }
   }
+  }
 } finally {
   await browser.close();
-  const k = process.env.KOR || "avdelningar";
-  const fil = k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const k = KOR;
+  const fil = k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
