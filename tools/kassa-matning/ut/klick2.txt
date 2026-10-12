@@ -1,0 +1,29 @@
+Sidor med långa recensioner: 12. Mobilbredd, 8 musklick och 8 direkta klick per sida.
+
+================ WebKit (Safari) ================
+www.fyndplats.se                         sidor 6  musklick 38/45 rätt  direkta klick 40/40 rätt  sidan rullade av sig själv 21 gånger
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: Visa mer låg kvar. Knappens överkant 4234 → 4234 → 4234 px, under pekaren: inget
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 2: sidan rullade 0 → 3911 px vid klicket (knappen 4234 → 520 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 2: Visa mer låg kvar. Knappens överkant 4234 → 4234 → 475 px, under pekaren: inget
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 3: Visa mer låg kvar. Knappens överkant 475 → 475 → 475 px, under pekaren: div.cookiebar
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 4: sidan rullade 3911 → 4063 px vid klicket (knappen 475 → 323 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 4: Visa mer låg kvar. Knappens överkant 475 → 475 → 323 px, under pekaren: div.cookiebar
+fyndplats-headless-git-claude-rece-0d51f sidor 6  musklick 44/48 rätt  direkta klick 48/48 rätt  sidan rullade av sig själv 16 gånger
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: sidan rullade 1256 → 3911 px vid klicket (knappen 2978 → 475 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: Visa mer låg kvar. Knappens överkant 2978 → 2978 → 475 px, under pekaren: inget
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 2: sidan rullade 3990 → 4063 px vid klicket (knappen 396 → 323 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 2: Visa mer låg kvar. Knappens överkant 396 → 396 → 323 px, under pekaren: strong.
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 4: sidan rullade 4145 → 4147 px vid klicket (knappen 325 → 239 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 5: sidan rullade 4077 → 4063 px vid klicket (knappen 309 → 407 px)
+================ Gecko (Firefox) ================
+www.fyndplats.se                         sidor 6  musklick 47/48 rätt  direkta klick 48/48 rätt  sidan rullade av sig själv 1 gånger
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: Visa mer låg kvar. Knappens överkant 565 → 565 → 565 px, under pekaren: strong.
+    /produkt/medicinskap-rostfritt-stal-glasdorr-las: mus 4: sidan rullade 2894 → 2895 px vid klicket (knappen 414 → 326 px)
+fyndplats-headless-git-claude-rece-0d51f sidor 6  musklick 47/48 rätt  direkta klick 48/48 rätt  sidan rullade av sig själv 3 gånger
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: sidan rullade 3842 → 3843 px vid klicket (knappen 566 → 565 px)
+    /produkt/reservtak-till-paviljong-3-x-3-m: mus 1: Visa mer låg kvar. Knappens överkant 566 → 566 → 565 px, under pekaren: strong.
+    /produkt/medicinskap-rostfritt-stal-glasdorr-las: mus 2: sidan rullade 2894 → 2895 px vid klicket (knappen 414 → 326 px)
+    /produkt/medicinskap-rostfritt-stal-glasdorr-las: mus 6: sidan rullade 2894 → 2895 px vid klicket (knappen 414 → 326 px)
+================ Blink (Chrome) ================
+www.fyndplats.se                         sidor 6  musklick 48/48 rätt  direkta klick 48/48 rätt  sidan rullade av sig själv 0 gånger
+fyndplats-headless-git-claude-rece-0d51f sidor 6  musklick 48/48 rätt  direkta klick 48/48 rätt  sidan rullade av sig själv 0 gånger
