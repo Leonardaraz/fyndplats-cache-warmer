@@ -1,4 +1,4 @@
-// Kontroll av Visa mer på recensioner, sajten mot förhandsbygget (#737), omkörning med varmt förhandsbygge: 2026-10-12 10:20 svensk tid.
+// Kontroll av Visa mer på recensioner i Safaris och Firefox motorer (#737): 2026-10-12 10:40 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -11,7 +11,7 @@
 //
 // Loggen är publik: den skriver inga nycklar, bara tider, värdar och storlekar.
 
-import { chromium, devices } from "playwright";
+import { chromium, devices, firefox, webkit } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -585,8 +585,10 @@ async function matRecensioner(browser, bas, enhet, sidor) {
   const ctx = await browser.newContext({ ...enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
   await ctx.addInitScript(() => {
     window.__cls = 0;
-    new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; })
-      .observe({ type: "layout-shift", buffered: true });
+    try {
+      new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; })
+        .observe({ type: "layout-shift", buffered: true });
+    } catch { /* layout-shift finns bara i Chromium */ }
   });
   const page = await ctx.newPage();
   const summa = { sidor: 0, avkortade: 0, knappar: 0, falska: 0, saknade: 0, fel: 0, skriptfel: 0, clsMax: 0 };
@@ -632,10 +634,80 @@ async function kollaRecensioner(browser) {
   }
 }
 
-const KOR = process.env.KOR || "recensioner";
+// ================ WEBBLÄSARNA (KOR=webblasare) ================
+// Samma recensionskontroll i Safaris och Firefox motorer (WebKit och Gecko).
+// Lagningen i #737 mäter scrollHeight mot clientHeight i en ruta med
+// -webkit-line-clamp. En motor som räknar annorlunda hade tagit bort knappen
+// där den behövs, och de flesta mobilkunder har Safari.
+async function provaKnappen(browser, enhet, sidor) {
+  for (const url of sidor) {
+    const ctx = await browser.newContext({ ...enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+    try {
+      const page = await ctx.newPage();
+      await page.goto(url, { waitUntil: "load", timeout: 60_000 });
+      await page.waitForSelector(".rev-item", { timeout: 15_000 });
+      await page.waitForTimeout(1500);
+      const knapp = page.locator(".rev-expand").first();
+      if (!(await knapp.count())) continue;
+      const li = knapp.locator("xpath=..");
+      const las = () => li.evaluate((el) => {
+        const p = el.querySelector(".rev-text");
+        return { h: p.clientHeight, klamp: p.classList.contains("rev-text-klamp"), knapp: el.querySelector(".rev-expand")?.textContent ?? null };
+      });
+      const fore = await las();
+      await li.locator(".rev-expand").click();
+      await page.waitForTimeout(400);
+      const ut = await las();
+      await li.locator(".rev-expand").click();
+      await page.waitForTimeout(400);
+      const in_ = await las();
+      const ok = fore.klamp && !ut.klamp && ut.h > fore.h && ut.knapp === "Visa mindre" && in_.klamp && in_.h === fore.h && in_.knapp === "Visa mer";
+      return `${ok ? "OK" : "FEL"}: ${fore.h} px → Visa mer → ${ut.h} px (${ut.knapp}) → Visa mindre → ${in_.h} px (${in_.knapp}) på ${url.replace(/^https:\/\/[^/]+/, "")}`;
+    } catch (e) {
+      return `gick inte: ${String(e.message).split("\n")[0]}`;
+    } finally {
+      await ctx.close();
+    }
+  }
+  return "ingen sida hade en knapp i den här bredden";
+}
+
+async function kollaWebblasare() {
+  const { execSync } = await import("node:child_process");
+  execSync("npx playwright install --with-deps webkit firefox", { cwd: "/tmp/pw", stdio: "inherit" });
+  const { sidor, lasta } = await hittaRecensionssidor();
+  skriv(`Produktsidor med långa recensioner: ${sidor.length} (letade bland ${lasta} produktsidor)`);
+  skriv("knappar = antal Visa mer, falska = knapp utan dold text, saknade = dold text utan knapp");
+  skriv("Layoutskift mäts bara i Chromium (körning 12), så här står de på 0.\n");
+  const dator = { viewport: { width: 1366, height: 900 } };
+  const motorer = [
+    ["WebKit (Safari)", webkit, [["dator 1366", dator], ["iPhone 13", devices["iPhone 13"]]]],
+    ["Gecko (Firefox)", firefox, [["dator 1366", dator], ["mobil 390", { viewport: { width: 390, height: 844 } }]]],
+  ];
+  for (const [namn, typ, enheter] of motorer) {
+    skriv(`================ ${namn} ================`);
+    const b = await typ.launch();
+    try {
+      for (const [enhetNamn, enhet] of enheter) {
+        for (const bas of [BUTIK, RECENSION_FORHANDS]) {
+          const { summa, falskaPa } = await matRecensioner(b, bas, enhet, sidor);
+          skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} ${enhetNamn.padEnd(10)} sidor ${summa.sidor}  klampade texter ${summa.avkortade}  knappar ${summa.knappar}  falska ${summa.falska}  saknade ${summa.saknade}  fel ${summa.fel}  skriptfel ${summa.skriptfel}`);
+          for (const s of falskaPa) skriv(`    falsk knapp på ${s}`);
+        }
+        skriv(`  fäll ut och in på förhandsbygget, ${enhetNamn}: ${await provaKnappen(b, enhet, sidor.map((u) => u.replace(BUTIK, RECENSION_FORHANDS)))}`);
+      }
+    } finally {
+      await b.close();
+    }
+  }
+}
+
+const KOR = process.env.KOR || "webblasare";
 const browser = await chromium.launch();
 try {
-  if (KOR === "recensioner") {
+  if (KOR === "webblasare") {
+    await kollaWebblasare();
+  } else if (KOR === "recensioner") {
     await kollaRecensioner(browser);
   } else if (KOR === "varm") {
     await varmButiken(browser);
@@ -677,6 +749,6 @@ try {
 } finally {
   await browser.close();
   const k = KOR;
-  const fil = k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const fil = k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
