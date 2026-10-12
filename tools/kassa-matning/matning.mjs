@@ -1,4 +1,4 @@
-// Klickprov för Visa mer i Chrome-, Safari- och Firefox-motorerna (#737, 8f17169e): 2026-10-12 12:50 svensk tid.
+// Klickprov med facit för Visa mer, med väntan på mjuk rullning, sajten mot förhandsbygget (#737): 2026-10-12 13:20 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -782,10 +782,126 @@ async function kollaKlick() {
   }
 }
 
-const KOR = process.env.KOR || "klick";
+// ================ KLICKEN, MED FACIT (KOR=klick2) ================
+// Körning 14 och 15 såg enstaka klick som inte bytte läge, bara på
+// förhandsbygget och i olika motorer. Två sorters klick skiljer orsakerna åt:
+//  - musklick (som en kund): kan missa om något flyttar sig när klicket landar
+//  - direkt klick på knappen från sidan (button.click()): kan inte missa målet
+// Missar de direkta klicken på förhandsbygget är det ett fel i lagningen. För
+// varje missat musklick skrivs ut vad som låg under pekaren och om knappen flyttat sig.
+async function klickaMedFacit(browser, enhet, url) {
+  const ctx = await browser.newContext({ ...enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const ut = { mus: 0, musMiss: 0, js: 0, jsMiss: 0, rullade: 0, detaljer: [] };
+  try {
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load", timeout: 60_000 });
+    await page.waitForSelector(".rev-item", { timeout: 15_000 });
+    if (!(await page.locator(".rev-expand").count())) return null;
+    await page.waitForFunction(() => {
+      const b = document.querySelector(".rev-expand");
+      return !!b && Object.keys(b).some((k) => k.startsWith("__reactProps$"));
+    }, null, { timeout: 30_000 });
+    await page.waitForTimeout(800);
+    // Märk recensionen så att den går att hitta igen efter varje rendering.
+    await page.evaluate(() => { document.querySelector(".rev-expand").closest(".rev-item").setAttribute("data-prov", "1"); });
+    const lage = () => page.evaluate(() => document.querySelector('[data-prov="1"] .rev-expand')?.textContent ?? "-");
+    // Musklick.
+    for (let i = 0; i < 8; i++) {
+      const fore = await lage();
+      // Butiken rullar mjukt (scroll-behavior: smooth). Läs knappens läge först
+      // när den stått still i tre avläsningar i rad, annars landar klicket där
+      // knappen var en bit in i rullningen.
+      const info = await page.evaluate(async () => {
+        const b = document.querySelector('[data-prov="1"] .rev-expand');
+        b.scrollIntoView({ block: "center" });
+        let forra = null, lika = 0;
+        for (let i = 0; i < 80 && lika < 3; i++) {
+          await new Promise((r) => setTimeout(r, 50));
+          const top = Math.round(b.getBoundingClientRect().top);
+          lika = top === forra ? lika + 1 : 0;
+          forra = top;
+        }
+        const r = b.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, top: Math.round(r.top), scrollY: Math.round(scrollY) };
+      });
+      const info2 = await page.evaluate(({ x, y }) => {
+        const b = document.querySelector('[data-prov="1"] .rev-expand');
+        const r = b.getBoundingClientRect();
+        const e = document.elementFromPoint(x, y);
+        return { top: Math.round(r.top), traff: e ? `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]}` : "inget", ar: e === b };
+      }, info);
+      await page.mouse.click(info.x, info.y);
+      await page.waitForTimeout(350);
+      const efter = await lage();
+      ut.mus++;
+      const knappEfter = await page.evaluate(() => Math.round(document.querySelector('[data-prov="1"] .rev-expand').getBoundingClientRect().top));
+      // Utfällning skjuter knappen nedåt och ihopfällning uppåt, så det som räknas
+      // är om sidan rullat av sig själv: scrollY ska stå still vid själva klicket.
+      const scrollEfter = await page.evaluate(() => Math.round(scrollY));
+      if (scrollEfter !== info.scrollY) { ut.rullade = (ut.rullade || 0) + 1; ut.detaljer.push(`mus ${i + 1}: sidan rullade ${info.scrollY} → ${scrollEfter} px vid klicket (knappen ${info.top} → ${knappEfter} px)`); }
+      if (efter === fore) {
+        ut.musMiss++;
+        const info3 = await page.evaluate(() => Math.round(document.querySelector('[data-prov="1"] .rev-expand').getBoundingClientRect().top));
+        ut.detaljer.push(`mus ${i + 1}: ${fore} låg kvar. Knappens överkant ${info.top} → ${info2.top} → ${info3} px, under pekaren: ${info2.traff}${info2.ar ? " (knappen)" : ""}`);
+      }
+    }
+    // Direkta klick på knappen.
+    for (let i = 0; i < 8; i++) {
+      const fore = await lage();
+      await page.evaluate(() => document.querySelector('[data-prov="1"] .rev-expand').click());
+      await page.waitForTimeout(300);
+      const efter = await lage();
+      ut.js++;
+      if (efter === fore) { ut.jsMiss++; ut.detaljer.push(`direkt ${i + 1}: ${fore} låg kvar`); }
+    }
+    return ut;
+  } catch (e) {
+    ut.detaljer.push(`gick inte: ${String(e.message).split("\n")[0]}`);
+    return ut;
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function kollaKlick2() {
+  const { execSync } = await import("node:child_process");
+  execSync("npx playwright install --with-deps webkit firefox", { cwd: "/tmp/pw", stdio: "inherit" });
+  const { sidor } = await hittaRecensionssidor();
+  skriv(`Sidor med långa recensioner: ${sidor.length}. Mobilbredd, 8 musklick och 8 direkta klick per sida.\n`);
+  const motorer = [
+    ["WebKit (Safari)", webkit, devices["iPhone 13"]],
+    ["Gecko (Firefox)", firefox, { viewport: { width: 390, height: 844 } }],
+    ["Blink (Chrome)", chromium, devices["Pixel 7"]],
+  ];
+  for (const [namn, typ, enhet] of motorer) {
+    skriv(`================ ${namn} ================`);
+    const b = await typ.launch();
+    try {
+      for (const bas of [BUTIK, RECENSION_FORHANDS]) {
+        const s = { sidor: 0, mus: 0, musMiss: 0, js: 0, jsMiss: 0, rullade: 0 };
+        const detaljer = [];
+        for (const u of sidor) {
+          if (s.sidor >= 6) break;
+          const r = await klickaMedFacit(b, enhet, u.replace(BUTIK, bas));
+          if (!r) continue;
+          s.sidor++; s.mus += r.mus; s.musMiss += r.musMiss; s.js += r.js; s.jsMiss += r.jsMiss; s.rullade += r.rullade || 0;
+          for (const d of r.detaljer) detaljer.push(`${u.replace(BUTIK, "")}: ${d}`);
+        }
+        skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} sidor ${s.sidor}  musklick ${s.mus - s.musMiss}/${s.mus} rätt  direkta klick ${s.js - s.jsMiss}/${s.js} rätt  sidan rullade av sig själv ${s.rullade} gånger`);
+        for (const d of detaljer.slice(0, 6)) skriv(`    ${d}`);
+      }
+    } finally {
+      await b.close();
+    }
+  }
+}
+
+const KOR = process.env.KOR || "klick2";
 const browser = await chromium.launch();
 try {
-  if (KOR === "klick") {
+  if (KOR === "klick2") {
+    await kollaKlick2();
+  } else if (KOR === "klick") {
     await kollaKlick();
   } else if (KOR === "webblasare") {
     await kollaWebblasare();
@@ -831,6 +947,6 @@ try {
 } finally {
   await browser.close();
   const k = KOR;
-  const fil = k === "klick" ? "klick.txt" : k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const fil = k === "klick2" ? "klick2.txt" : k === "klick" ? "klick.txt" : k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
