@@ -1,4 +1,4 @@
-// Kontroll av Visa mer på recensioner i Safaris och Firefox motorer (#737): 2026-10-12 10:40 svensk tid.
+// Slutkontroll av Visa mer på recensioner i Chrome-, Safari- och Firefox-motorerna (#737, 8f17169e): 2026-10-12 12:30 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -678,9 +678,10 @@ async function kollaWebblasare() {
   const { sidor, lasta } = await hittaRecensionssidor();
   skriv(`Produktsidor med långa recensioner: ${sidor.length} (letade bland ${lasta} produktsidor)`);
   skriv("knappar = antal Visa mer, falska = knapp utan dold text, saknade = dold text utan knapp");
-  skriv("Layoutskift mäts bara i Chromium (körning 12), så här står de på 0.\n");
+  skriv("Layoutskift (CLS) mäts bara i Chrome-motorn; i de andra står de på 0.\n");
   const dator = { viewport: { width: 1366, height: 900 } };
   const motorer = [
+    ["Blink (Chrome)", chromium, [["dator 1366", dator], ["mobil 390", devices["Pixel 7"]]]],
     ["WebKit (Safari)", webkit, [["dator 1366", dator], ["iPhone 13", devices["iPhone 13"]]]],
     ["Gecko (Firefox)", firefox, [["dator 1366", dator], ["mobil 390", { viewport: { width: 390, height: 844 } }]]],
   ];
@@ -691,7 +692,7 @@ async function kollaWebblasare() {
       for (const [enhetNamn, enhet] of enheter) {
         for (const bas of [BUTIK, RECENSION_FORHANDS]) {
           const { summa, falskaPa } = await matRecensioner(b, bas, enhet, sidor);
-          skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} ${enhetNamn.padEnd(10)} sidor ${summa.sidor}  klampade texter ${summa.avkortade}  knappar ${summa.knappar}  falska ${summa.falska}  saknade ${summa.saknade}  fel ${summa.fel}  skriptfel ${summa.skriptfel}`);
+          skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} ${enhetNamn.padEnd(10)} sidor ${summa.sidor}  klampade texter ${summa.avkortade}  knappar ${summa.knappar}  falska ${summa.falska}  saknade ${summa.saknade}  fel ${summa.fel}  skriptfel ${summa.skriptfel}  CLS ${summa.clsMax.toFixed(3)}`);
           for (const s of falskaPa) skriv(`    falsk knapp på ${s}`);
         }
         skriv(`  fäll ut och in på förhandsbygget, ${enhetNamn}: ${await provaKnappen(b, enhet, sidor.map((u) => u.replace(BUTIK, RECENSION_FORHANDS)))}`);
