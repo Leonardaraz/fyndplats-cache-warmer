@@ -1,4 +1,4 @@
-// Kontroll av Visa mer på recensioner, sajten mot förhandsbygget (#737): 2026-10-12 10:05 svensk tid.
+// Kontroll av Visa mer på recensioner, sajten mot förhandsbygget (#737), omkörning med varmt förhandsbygge: 2026-10-12 10:20 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
