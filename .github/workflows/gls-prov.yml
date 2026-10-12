@@ -1,0 +1,122 @@
+name: GLS — prova GLS egen spårning för ett paket (tillfällig, krypterad)
+
+# Tillfällig (2026-10-12): butikens /sparning visar en enda händelse för
+# GLS-paket, medan GLS egen sida visar hela resan (Leonards rapport). Provet
+# tar reda på vilken adress GLS sida frågar och vad den svarar, så att butiken
+# kan läsa samma källa.
+#
+# ☠️ LOGGEN ÄR PUBLIK, och ett spårningsnummer får inte stå i den:
+# 1. Löparen skapar ett nyckelpar som bara finns under körningen och lägger den
+#    publika nyckeln i grenen.
+# 2. Numren läggs i grenen krypterade med den nyckeln. Den privata nyckeln
+#    raderas så fort numren är öppnade, så filen går aldrig att öppna efteråt.
+# 3. Numren maskeras i ett eget steg innan något läser dem, och de står aldrig
+#    i ett env-block.
+# 4. Svaren krypteras med kuvertnyckeln i start.json (RSA-OAEP/SHA-256 +
+#    AES-256-CBC/PBKDF2, samma som orderlank.yml). I klartext står bara mallar,
+#    statuskoder, storlekar och fältnamn, och adresserna tvättas från siffror.
+on:
+  push:
+    branches: [claude/kassa-matning-2026-10-11]
+    paths:
+      - tools/gls-prov/start.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gls-prov
+  cancel-in-progress: false
+
+jobs:
+  prov:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Engångsnyckel
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/prov"
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$RUNNER_TEMP/prov/privat.pem" 2>/dev/null
+          openssl pkey -in "$RUNNER_TEMP/prov/privat.pem" -pubout -out "tools/gls-prov/runner-${GITHUB_RUN_ID}.pem"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "tools/gls-prov/runner-${GITHUB_RUN_ID}.pem"
+          git commit -q -m "GLS-prov: engångsnyckel för körning ${GITHUB_RUN_ID}"
+          git push -q origin "HEAD:${GITHUB_REF_NAME}"
+          echo "Publik nyckel: tools/gls-prov/runner-${GITHUB_RUN_ID}.pem"
+      - name: Installera Playwright medan numren väntas
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm i -s playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Vänta på numren och öppna dem
+        run: |
+          set -euo pipefail
+          umask 077
+          FIL="tools/gls-prov/indata-${GITHUB_RUN_ID}.txt"
+          for i in $(seq 1 90); do
+            git fetch -q origin "$GITHUB_REF_NAME"
+            if git cat-file -e "origin/${GITHUB_REF_NAME}:${FIL}" 2>/dev/null; then break; fi
+            sleep 10
+          done
+          if ! git cat-file -e "origin/${GITHUB_REF_NAME}:${FIL}" 2>/dev/null; then
+            rm -f "$RUNNER_TEMP/prov/privat.pem"
+            echo "::error::inga nummer kom på 15 minuter" >&2
+            exit 1
+          fi
+          D="$RUNNER_TEMP/prov"
+          git show "origin/${GITHUB_REF_NAME}:${FIL}" > "$D/indata.txt"
+          grep -m1 '^losen: ' "$D/indata.txt" | sed 's/^losen: //' | base64 -d > "$D/losen.enc"
+          grep -m1 '^data: ' "$D/indata.txt" | sed 's/^data: //' | base64 -d > "$D/data"
+          openssl pkeyutl -decrypt -inkey "$D/privat.pem" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+            -in "$D/losen.enc" -out "$D/losen"
+          openssl enc -d -aes-256-cbc -pbkdf2 -pass "file:$D/losen" -in "$D/data" -out "$D/nummer.json"
+          rm -f "$D/privat.pem" "$D/losen" "$D/losen.enc" "$D/data" "$D/indata.txt"
+          if ! jq -e 'type == "array" and length >= 1 and length <= 6
+                      and all(.[]; type == "string" and test("^[A-Z0-9]{8,40}$"))' "$D/nummer.json" > /dev/null 2>&1; then
+            rm -f "$D/nummer.json"
+            echo "::error::numren har fel form" >&2
+            exit 1
+          fi
+          echo "Nummer att prova: $(jq length "$D/nummer.json")"
+      - name: Maskera
+        run: |
+          jq -r '.[]' "$RUNNER_TEMP/prov/nummer.json" | while read -r n; do
+            echo "::add-mask::$n"
+            echo "::add-mask::${n,,}"
+          done
+      - name: Prova
+        run: |
+          cp tools/gls-prov/prov.mjs /tmp/pw/
+          node /tmp/pw/prov.mjs "$RUNNER_TEMP/prov/nummer.json" "$RUNNER_TEMP/prov/ut.json"
+      - name: Kryptera svaren
+        if: always()
+        run: |
+          set -euo pipefail
+          umask 077
+          D="$RUNNER_TEMP/prov"
+          rm -f "$D/nummer.json"
+          if [ ! -f "$D/ut.json" ]; then echo "Inga svar att kryptera."; exit 0; fi
+          jq -r '.kuvert' tools/gls-prov/start.json | base64 -d > "$D/kuvert.pub"
+          openssl pkey -pubin -in "$D/kuvert.pub" -noout
+          gzip -9 -c "$D/ut.json" > "$D/ut.json.gz"
+          rm -f "$D/ut.json"
+          openssl rand -base64 32 > "$D/kuvert.losen"
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass "file:$D/kuvert.losen" -in "$D/ut.json.gz" -out "$D/kuvert.data"
+          openssl pkeyutl -encrypt -pubin -inkey "$D/kuvert.pub" \
+            -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+            -in "$D/kuvert.losen" -out "$D/kuvert.losen.enc"
+          rm -f "$D/ut.json.gz" "$D/kuvert.losen" "$D/kuvert.pub"
+          echo "=== Kuvert (gzip) ==="
+          echo "losen: $(base64 -w0 "$D/kuvert.losen.enc")"
+          echo "data-borjan"
+          base64 -w 4000 "$D/kuvert.data"
+          echo "data-slut"
+          rm -f "$D/kuvert.losen.enc" "$D/kuvert.data"
