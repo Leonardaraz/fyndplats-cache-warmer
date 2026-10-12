@@ -1,4 +1,4 @@
-// Slutkontroll av Visa mer på recensioner i Chrome-, Safari- och Firefox-motorerna (#737, 8f17169e): 2026-10-12 12:30 svensk tid.
+// Klickprov för Visa mer i Chrome-, Safari- och Firefox-motorerna (#737, 8f17169e): 2026-10-12 12:50 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -703,10 +703,91 @@ async function kollaWebblasare() {
   }
 }
 
-const KOR = process.env.KOR || "webblasare";
+// ================ KLICKEN (KOR=klick) ================
+// Fäller "Visa mer" ut texten vid FÖRSTA klicket, i alla tre motorerna?
+// Körning 14 såg i Firefox ett första klick som inte gjorde något och ett andra
+// som fällde ut. Det här provet skiljer på två förklaringar: att knappen ännu
+// inte var inkopplad (React hade inte hydrerat sidan) eller att lagningen
+// stör klicket. Det väntar tills knappen bevisligen är inkopplad (React sätter
+// __reactProps$… på elementet), noterar om den var det vid 1,5 s, och klickar
+// sedan ut och in på flera sidor, på sajten och på förhandsbygget.
+const hydrerad = () => {
+  const b = document.querySelector(".rev-expand");
+  return !!b && Object.keys(b).some((k) => k.startsWith("__reactProps$"));
+};
+
+async function klickaPa(browser, enhet, url) {
+  const ctx = await browser.newContext({ ...enhet, locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  try {
+    const page = await ctx.newPage();
+    const t0 = Date.now();
+    await page.goto(url, { waitUntil: "load", timeout: 60_000 });
+    await page.waitForSelector(".rev-item", { timeout: 15_000 });
+    await page.waitForTimeout(1500);
+    if (!(await page.locator(".rev-expand").count())) return null;
+    const vid15 = await page.evaluate(hydrerad);
+    await page.waitForFunction(hydrerad, null, { timeout: 30_000 });
+    const hydrMs = Date.now() - t0;
+    const li = page.locator(".rev-expand").first().locator("xpath=..");
+    const las = () => li.evaluate((el) => {
+      const p = el.querySelector(".rev-text");
+      return `${p.clientHeight}px/${el.querySelector(".rev-expand")?.textContent ?? "-"}`;
+    });
+    const steg = [await las()];
+    for (let i = 0; i < 4; i++) {
+      await li.locator(".rev-expand").click();
+      await page.waitForTimeout(350);
+      steg.push(await las());
+    }
+    // Väntat mönster: ut, in, ut, in. Varje klick ska byta läge.
+    const vaxlar = steg.slice(1).every((s, i) => s.endsWith(i % 2 === 0 ? "/Visa mindre" : "/Visa mer"));
+    return { ok: vaxlar, vid15, hydrMs, steg: steg.join(" → ") };
+  } catch (e) {
+    return { ok: false, fel: String(e.message).split("\n")[0] };
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function kollaKlick() {
+  const { execSync } = await import("node:child_process");
+  execSync("npx playwright install --with-deps webkit firefox", { cwd: "/tmp/pw", stdio: "inherit" });
+  const { sidor } = await hittaRecensionssidor();
+  skriv(`Sidor med långa recensioner: ${sidor.length}. Mobilbredd, fyra klick per sida (ut, in, ut, in).\n`);
+  const motorer = [
+    ["Blink (Chrome)", chromium, devices["Pixel 7"]],
+    ["WebKit (Safari)", webkit, devices["iPhone 13"]],
+    ["Gecko (Firefox)", firefox, { viewport: { width: 390, height: 844 } }],
+  ];
+  for (const [namn, typ, enhet] of motorer) {
+    skriv(`================ ${namn} ================`);
+    const b = await typ.launch();
+    try {
+      for (const bas of [BUTIK, RECENSION_FORHANDS]) {
+        let provade = 0, ok = 0, inteInkoppladeVid15 = 0;
+        for (const u of sidor) {
+          if (provade >= 5) break;
+          const r = await klickaPa(b, enhet, u.replace(BUTIK, bas));
+          if (!r) continue;
+          provade++;
+          if (r.ok) ok++;
+          if (r.vid15 === false) inteInkoppladeVid15++;
+          if (!r.ok) skriv(`    FEL på ${u.replace(BUTIK, "")}: ${r.fel ?? r.steg}`);
+        }
+        skriv(`${bas.replace(/^https:\/\//, "").slice(0, 40).padEnd(40)} sidor ${provade}  alla klick rätt ${ok}/${provade}  knappen inte inkopplad vid 1,5 s: ${inteInkoppladeVid15}`);
+      }
+    } finally {
+      await b.close();
+    }
+  }
+}
+
+const KOR = process.env.KOR || "klick";
 const browser = await chromium.launch();
 try {
-  if (KOR === "webblasare") {
+  if (KOR === "klick") {
+    await kollaKlick();
+  } else if (KOR === "webblasare") {
     await kollaWebblasare();
   } else if (KOR === "recensioner") {
     await kollaRecensioner(browser);
@@ -750,6 +831,6 @@ try {
 } finally {
   await browser.close();
   const k = KOR;
-  const fil = k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const fil = k === "klick" ? "klick.txt" : k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
