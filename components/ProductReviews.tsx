@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ProductReview } from "../lib/reviews";
 import { ratingSummary } from "../lib/rating";
+import { klamppas, klampenDoljer, visaUtfallningsknapp } from "../lib/review-utfallning";
 import { Stars } from "./stars";
 
 export function ProductReviews({
@@ -72,11 +73,6 @@ export function ProductReviews({
         <ul className="rev-list">
           {shown.map((r) => {
             const alt = `Kundbild från ${r.displayName || "kund"}`;
-            // Tröskeln är på TECKEN, inte på uppmätt höjd: en mätning kräver
-            // layout och skulle ge hopp vid första renderingen. 320 tecken är
-            // ungefär fem rader i kortets bredd — precis över klampen, så
-            // knappen dyker bara upp när den faktiskt döljer något.
-            const lang = r.text.length > 320;
             const utfalld = utfallda.has(r.reviewIdAE);
             return (
               <li key={r.reviewIdAE} className="rev-item">
@@ -95,24 +91,18 @@ export function ProductReviews({
                       lib/review-source.ts, som fortfarande håller den regeln. */}
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
-                <p className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{r.text}</p>
-                {lang ? (
-                  <button
-                    type="button"
-                    className="rev-expand"
-                    aria-expanded={utfalld}
-                    onClick={() =>
-                      setUtfallda((f) => {
-                        const n = new Set(f);
-                        if (n.has(r.reviewIdAE)) n.delete(r.reviewIdAE);
-                        else n.add(r.reviewIdAE);
-                        return n;
-                      })
-                    }
-                  >
-                    {utfalld ? "Visa mindre" : "Visa mer"}
-                  </button>
-                ) : null}
+                <RecensionsText
+                  text={r.text}
+                  utfalld={utfalld}
+                  onVaxla={() =>
+                    setUtfallda((f) => {
+                      const n = new Set(f);
+                      if (n.has(r.reviewIdAE)) n.delete(r.reviewIdAE);
+                      else n.add(r.reviewIdAE);
+                      return n;
+                    })
+                  }
+                />
                 {r.imageUrls.some((u) => !trasigaBilder.has(u)) ? (
                   // En remsa, inte en enda bild. AliExpress-recensenter postar
                   // ofta flera foton och importen slängde alla utom den första
@@ -197,5 +187,58 @@ export function ProductReviews({
           )
         : null}
     </section>
+  );
+}
+
+/**
+ * En recensions text med "Visa mer" bara där klampen faktiskt döljer något.
+ * Regeln och varför den mäter står i lib/review-utfallning.ts.
+ *
+ * Mätningen görs bara när texten är hopfälld: en utfälld text klipps aldrig.
+ * En ResizeObserver mäter om när bredden ändras, till exempel när mobilen
+ * vrids, så knappen kan komma tillbaka. Typsnittet kan byta radbrytningar
+ * efter laddningen utan att stycket byter höjd, därför mäts det också då.
+ */
+function RecensionsText({
+  text,
+  utfalld,
+  onVaxla,
+}: {
+  text: string;
+  utfalld: boolean;
+  onVaxla: () => void;
+}) {
+  const lang = klamppas(text);
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [doljer, setDoljer] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const p = ref.current;
+    if (!lang || utfalld || !p) return;
+    let aktiv = true;
+    const mat = () => {
+      if (aktiv) setDoljer(klampenDoljer(p));
+    };
+    mat();
+    // En webbläsare utan ResizeObserver mäts en gång, i stället för att
+    // komponenten kastar och tar sidan med sig.
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(mat);
+    ro?.observe(p);
+    document.fonts?.ready.then(mat, () => {});
+    return () => {
+      aktiv = false;
+      ro?.disconnect();
+    };
+  }, [lang, utfalld]);
+
+  return (
+    <>
+      <p ref={ref} className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{text}</p>
+      {visaUtfallningsknapp({ lang, utfalld, doljer }) ? (
+        <button type="button" className="rev-expand" aria-expanded={utfalld} onClick={onVaxla}>
+          {utfalld ? "Visa mindre" : "Visa mer"}
+        </button>
+      ) : null}
+    </>
   );
 }
