@@ -1,0 +1,43 @@
+Värmning av www.fyndplats.se, start 2026-10-12T04:34:50.512Z
+Sitemapen: 4252 adresser (produkt 3987, övrigt 137, kategori 128). 8 hämtningar åt gången.
+Hämtade 4253 av 4253 på 313 s.
+
+Läget FÖRE värmningen (x-vercel-cache vid första hämtningen):
+  produkt    3987 st   MISS 2279, HIT 1704, - 3, STALE 1   | status: 200 3987
+  kategori    128 st   PRERENDER 74, STALE 29, HIT 25   | status: 200 128
+  övrigt      138 st   PRERENDER 110, HIT 17, STALE 11   | status: 200 138
+
+Första byte: kalla sidor (MISS, 2279 st) median 0.74 s, p90 0.91 s
+             varma sidor (HIT/STALE/PRERENDER, 1971 st) median 0.13 s, p90 0.20 s
+
+Långsammast (första byte):
+   59.86 s  MISS      200     /produkt/led-badrumsspegel-glashylla-dimbar-antiimma
+   59.50 s  MISS      200     /produkt/spegelskap-rundade-horn-svart-mjukstangande
+   59.39 s  MISS      200     /produkt/lysande-ren-guld-rod-rosett
+   59.25 s  MISS      200     /produkt/smalt-badrumsskap-utdragbar-forvaring-vitt
+   58.97 s  MISS      200     /produkt/garagetalt-200-x-238-cm-rullbar-dorr-galvaniserad-ram
+    2.38 s  MISS      200     /produkt/skena-skjutdorr-183-cm
+    2.33 s  MISS      200     /produkt/skjutdorrsbeslag-svart-skena-200-cm
+    1.84 s  MISS      200     /produkt/kontorsstol-cremevit-fickfjadrar-155-grader
+    1.64 s  MISS      200     /produkt/hopfallbar-massagebank-tra-186cm
+    1.63 s  MISS      200     /produkt/sangram-140x200-graddvit-linnelook
+    1.59 s  MISS      200     /produkt/kontorsstol-svart-natvav-3-zons-svankstod
+    1.45 s  MISS      200     /produkt/vaggvaxthus-200-cm
+    1.39 s  MISS      200     /produkt/hopfallbar-studsmatta-102-cm-bla
+    1.35 s  MISS      200     /produkt/sminkbord-uppfallbar-spegel-pall-vitt
+    1.34 s  MISS      200     /produkt/redskapsbod-galvaniserat-stal-147-x-86-x-134-cm-dubbeldorrar
+
+Svarade inte 200: 0
+
+Kontroll efteråt: 40 av sidorna som var kalla, hämtade igen: HIT 40
+  första byte median 0.04 s, p90 0.09 s
+
+Upplevd laddning efter värmningen (mobil = iPhone på 4G med fyra gånger långsammare processor, dator = utan strypning):
+  mobil /                                                STALE     första byte 0.37 s  första innehåll 1.07 s  största innehåll 1.07 s  klar 1.32 s
+  mobil /kategori/mobler                                 HIT       första byte 0.06 s  första innehåll 0.63 s  största innehåll 0.63 s  klar 1.20 s
+  mobil /produkt/biljardbord-bla-duk-hopfallbara-ben     HIT       första byte 0.05 s  första innehåll 0.68 s  största innehåll 0.68 s  klar 0.94 s
+  mobil /produkt/hangande-solcellslyktor-2-pack-konstrot HIT       första byte 0.07 s  första innehåll 0.72 s  största innehåll 0.96 s  klar 1.00 s
+  dator /                                                STALE     första byte 0.06 s  första innehåll 0.39 s  största innehåll 0.39 s  klar 0.30 s
+  dator /kategori/mobler                                 HIT       första byte 0.07 s  första innehåll 0.32 s  största innehåll 0.40 s  klar 0.39 s
+  dator /produkt/biljardbord-bla-duk-hopfallbara-ben     HIT       första byte 0.05 s  första innehåll 0.29 s  största innehåll 0.29 s  klar 0.28 s
+  dator /produkt/hangande-solcellslyktor-2-pack-konstrot HIT       första byte 0.06 s  första innehåll 0.41 s  största innehåll 0.41 s  klar 0.43 s
