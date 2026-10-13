@@ -175,6 +175,19 @@ test("okänd text → null (anroparen faller tillbaka på stage-text)", () => {
   assert.equal(matchPhrase(""), null);
 });
 
+test("☠️ 'to be delivered' och 'could not be delivered' går till 17TRACK:s stage, inte till levererat", () => {
+  // GLS text för order 10075 (2026-10-13). /sparning sa "Paketet är
+  // levererat." om ett paket som låg kvar på terminalen. Utan frasträff
+  // visar /api/track stage-texten, och den vet vad händelsen är.
+  assert.equal(matchPhrase("The parcel is stored in the parcel center to be delivered at a new delivery date."), null);
+  assert.equal(matchPhrase("The shipment could not be delivered"), null);
+  // Ett riktigt leveransförsök som misslyckats har fortfarande sin text.
+  assert.equal(
+    matchPhrase("Delivery attempt failed, package not delivered"),
+    "Leveransförsök misslyckades – ny leverans planeras.",
+  );
+});
+
 // ── Tid, plats och dubbletter (uppmätt på riktiga paket 2026-10-08) ─────────
 
 test("landForHandelse – strukturerat land först, annars sista ledet i fri text", () => {
