@@ -163,6 +163,8 @@ function deps(over: Partial<AosomSyncDeps> = {}) {
     lasMappning: async (id) => (await bas.listAosom()).find((m) => m.wixProductId === id) ?? null,
     // Inga sålda orderrader, om testet inte säger annat.
     lasSaldaOrderrader: async () => [],
+    // Ingen levande fyndauktion, om testet inte säger annat.
+    lasAuktionsprodukter: async () => new Set<string>(),
     fx: FX,
     rules: REGLER,
     ...over,
@@ -942,6 +944,171 @@ describe("prisLast — låst pris", () => {
     expect(priser).toHaveLength(1);
     expect(priser[0].id).toBe("wix-B-2");
     expect(s.prisLasta).toBe(1);
+  });
+});
+
+describe("☠️ en levande fyndauktion äger priset (2026-10-13)", () => {
+  // Sedan 2026-10-13 går priskörningar 09:20 och 15:20 UTC, mitt i
+  // auktionstimmarna (07–19 svensk tid). Auktionens steg ligger under
+  // regelpriset, så synken hade skrivit regelpriset över steget, och det hade
+  // stått kvar tills tick-cronen bytte steg.
+
+  /** Auktionens steg: 200 kr under regelpriset. Utan auktion SKA synken skriva. */
+  const STEG = BASPRIS - 200;
+
+  it("skriver INTE priset på en produkt i auktion", async () => {
+    const { d, priser } = deps({
+      lasAuktionsprodukter: async () => new Set(["wix-A-1"]),
+      listWixPriser: async () => wixPriser({ "wix-A-1": STEG, "wix-B-2": STEG }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser.map((p) => p.id)).toEqual(["wix-B-2"]);
+    expect(s.prisUppdaterade).toBe(1);
+    expect(s.iAuktion).toBe(1);
+    expect(s.iAuktionProdukter).toEqual(["wix-A-1"]);
+  });
+
+  it("KONTROLL: samma fixtur utan auktion skriver båda priserna", async () => {
+    const { d, priser } = deps({
+      listWixPriser: async () => wixPriser({ "wix-A-1": STEG, "wix-B-2": STEG }),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser.map((p) => p.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+    expect(s.iAuktion).toBe(0);
+  });
+
+  it("☠️ lagret synkas ÄNDÅ — auktionen äger bara priset", async () => {
+    const { d, lager } = deps({
+      lasAuktionsprodukter: async () => new Set(["wix-A-1"]),
+      listAosom: async () => [mappning("A-1")],
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+      listWixPriser: async () => wixPriser({ "wix-A-1": STEG }),
+    });
+    await runAosomSync(d, { dryRun: false });
+
+    expect(lager).toEqual([{ id: "wix-A-1", antal: S50 }]);
+  });
+
+  it("☠️ en produkt i auktion hamnar ALDRIG i varningar", async () => {
+    const LÅNGT_BORT = BASPRIS * 3;
+    const iAuktion = deps({
+      lasAuktionsprodukter: async () => new Set(["wix-A-1"]),
+      listAosom: async () => [mappning("A-1")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
+    });
+    const s = await runAosomSync(iAuktion.d, { dryRun: false });
+    expect(s.varningar).toEqual([]);
+    expect(s.iAuktion).toBe(1);
+
+    // KONTROLL: utan auktion ÄR det en varning.
+    const utan = deps({
+      listAosom: async () => [mappning("A-1")],
+      listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
+    });
+    const s2 = await runAosomSync(utan.d, { dryRun: false });
+    expect(s2.varningar).toHaveLength(1);
+  });
+
+  it("☠️ en sammanslagen sida i auktion får inget pris på NÅGON färg", async () => {
+    const bas = mappning("A-1");
+    const sida: ProductMappingRecord = {
+      ...bas,
+      wixProductId: "wix-stol",
+      variants: [
+        { ...bas.variants[0], sku: "FP-stol-svart", wixVariantId: "wixvar-svart", choices: { Färg: "Svart" }, aosomSyncedQty: S50 },
+        {
+          ...mappning("G-7").variants[0],
+          sku: "FP-stol-gra",
+          wixVariantId: "wixvar-gra",
+          choices: { Färg: "Grå" },
+          aosomSyncedQty: S50,
+        },
+      ],
+    };
+    const sidDeps = (auktion: Set<string>) =>
+      deps({
+        lasAuktionsprodukter: async () => auktion,
+        fetchFeed: async () => feedMed(rad("A-1"), rad("G-7")),
+        listAosom: async () => [sida],
+        lasMappning: async () => sida,
+        lasLagerposter: async () => [
+          { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: S50 },
+          { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: S50 },
+        ],
+        lasVariantPriser: async () =>
+          new Map([["wix-stol", new Map([["wixvar-svart", STEG], ["wixvar-gra", STEG]])]]),
+      });
+
+    const i = sidDeps(new Set(["wix-stol"]));
+    const s = await runAosomSync(i.d, { dryRun: false });
+    expect(i.priser).toEqual([]);
+    expect(s.iAuktion).toBe(1);
+
+    // KONTROLL: utan auktion skrivs båda färgerna.
+    const u = sidDeps(new Set());
+    const s2 = await runAosomSync(u.d, { dryRun: false });
+    expect(u.priser.map((p) => p.variant.wixVariantId).sort()).toEqual(["wixvar-gra", "wixvar-svart"]);
+    expect(s2.iAuktion).toBe(0);
+  });
+
+  it("☠️ går auktionerna inte att läsa skrivs INGA priser — lagret synkas och felet syns", async () => {
+    let variantlasningar = 0;
+    const { d, priser, lager } = deps({
+      lasAuktionsprodukter: async () => {
+        throw new Error("Postgres svarar inte");
+      },
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 }), rad("B-2")),
+      listWixPriser: async () => wixPriser({ "wix-A-1": STEG, "wix-B-2": STEG }),
+      lasVariantPriser: async () => {
+        variantlasningar++;
+        return new Map();
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toEqual([]);
+    expect(s.prisUppdaterade).toBe(0);
+    // Båda raderna saknar stämpel, så båda saldona skrivs.
+    expect(lager.map((l) => l.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+    expect(s.lagerUppdaterade).toBe(2);
+    expect(s.prislistaFel).toMatch(/fyndauktionerna gick inte att läsa/);
+    expect(s.prislistaFel).toMatch(/Postgres svarar inte/);
+    expect(variantlasningar).toBe(0);
+  });
+
+  it("läser auktionerna EN gång per körning, och inte alls utan prisdel", async () => {
+    let lasningar = 0;
+    const lasAuktionsprodukter = async () => {
+      lasningar++;
+      return new Set<string>();
+    };
+    // Två tuggor: CHUNK_PRODUKTER är 50, och feeden har 70 mappade rader.
+    const skus = Array.from({ length: 70 }, (_, i) => `C-${String(i).padStart(2, "0")}`);
+    const { d } = deps({
+      lasAuktionsprodukter,
+      fetchFeed: async () => feedMed(...skus.map((k) => rad(k))),
+      listAosom: async () => skus.map((k) => mappning(k)),
+    });
+    const s = await runAosomSync(d, { dryRun: true });
+    expect(s.granskade).toBe(70);
+    expect(lasningar).toBe(1);
+
+    lasningar = 0;
+    await runAosomSync(d, { dryRun: true, skipPrices: true });
+    expect(lasningar).toBe(0);
+  });
+
+  it("torrkörningen räknar dem också", async () => {
+    const { d, priser } = deps({
+      lasAuktionsprodukter: async () => new Set(["wix-A-1", "wix-B-2"]),
+      listWixPriser: async () => wixPriser({ "wix-A-1": STEG, "wix-B-2": STEG }),
+    });
+    const s = await runAosomSync(d, { dryRun: true });
+    expect(priser).toEqual([]);
+    expect(s.iAuktion).toBe(2);
+    expect(s.iAuktionProdukter.sort()).toEqual(["wix-A-1", "wix-B-2"]);
   });
 });
 

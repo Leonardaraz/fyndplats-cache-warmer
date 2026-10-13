@@ -209,6 +209,14 @@ export interface AosomSyncSummary {
   /** Rader vars pris är låst (`prisLast`) och därför medvetet inte rörs. */
   prisLasta: number;
   /**
+   * Produkter med en fyndauktion i status `live`, vars pris därför inte rörs
+   * (`lasAuktionsprodukter`). Lagret synkas som vanligt. Räknas bara bland de
+   * granskade, och bara när prisdelen kör.
+   */
+  iAuktion: number;
+  /** Wix-id för produkterna i `iAuktion`. Publika id, aldrig artikelnummer. */
+  iAuktionProdukter: string[];
+  /**
    * Konkurrentregeln (lib/pricing/konkurrentregel.ts), per utfall. Rader utan
    * `prisgrupp` räknas ingenstans här — de följer husets regel som förut.
    *
@@ -489,6 +497,25 @@ export interface AosomSyncDeps {
    */
   lasSaldaOrderrader: () => Promise<SaldOrderrad[]>;
   /**
+   * Wix-id för produkter med en fyndauktion i status `live`, även de som
+   * främjats och startar nästa morgon. Läses en gång per körning, före loopen,
+   * och bara när prisdelen kör.
+   *
+   * ☠️ EN LEVANDE AUKTION ÄGER PRISET. Auktionen sätter ett steg i timmen från
+   * listpriset ner mot golvet, och tick-cronen skriver bara när steget byts.
+   * Skrev synken regelpriset mitt i en auktion stod det kvar till nästa steg,
+   * och auktionen återställer sitt eget listpris när den slutar. Sedan
+   * 2026-10-13 går priskörningar 09:20 och 15:20 UTC, mitt i auktionstimmarna
+   * (07–19 svensk tid). En främjad auktion som inte startat räknas också: dess
+   * listpris lästes när den främjades, och ett nytt pris före starten hade
+   * gjort startpriset till ett annat än det kunden såg dagen före.
+   *
+   * ☠️ OBLIGATORISK, av samma skäl som `lasMappning`. Ett läsfel stoppar alla
+   * prisskrivningar i körningen men inte lagret, och felet bärs i
+   * `prislistaFel`, som fäller workflow-jobbet.
+   */
+  lasAuktionsprodukter: () => Promise<Set<string>>;
+  /**
    * Produkter med väntande restock-bevakare. Läses högst en gång per körning,
    * och bara när en produkt kommit tillbaka i lager. Saknas depen (testerna,
    * en körning för hand utan utskick) mejlas ingen.
@@ -503,6 +530,15 @@ export interface AosomSyncDeps {
   rules: PricingRules;
   now?: () => number;
 }
+
+/**
+ * Det planeringen behöver ur körningen. `iAuktion` kommer ur
+ * `lasAuktionsprodukter`, inte från anroparen.
+ */
+export type Planval = Pick<AosomSyncOptions, "skipPrices" | "godkannPrisandring"> & {
+  /** Wix-id med en levande fyndauktion. Deras pris planeras inte. */
+  iAuktion?: ReadonlySet<string>;
+};
 
 /** Vad som ska hända med EN produkt. Räknas fram utan ett enda API-anrop. */
 export interface Produktplan {
@@ -524,6 +560,8 @@ export interface Produktplan {
   ejSkeppbar: boolean;
   utanWixPris: boolean;
   prisLast: boolean;
+  /** Produkten har en levande fyndauktion: priset rörs inte (`lasAuktionsprodukter`). */
+  iAuktion: boolean;
   /** Konkurrentregelns utfall, eller null när raden aldrig nådde prisdelen. */
   konkurrent: KonkurrentUtfall | null;
   varning: { sku: string; fran: number; till: number; andringPct: number } | null;
@@ -739,7 +777,7 @@ export function planeraProdukt(
   row: AosomRow | undefined,
   wixPris: WixProduktPris | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
-  opts: Pick<AosomSyncOptions, "skipPrices" | "godkannPrisandring">,
+  opts: Planval,
 ): Produktplan {
   const variant = m.variants?.[0];
 
@@ -781,6 +819,7 @@ export function planeraProdukt(
     ejSkeppbar,
     utanWixPris: false,
     prisLast: false,
+    iAuktion: false,
     konkurrent: null,
     varning: null,
   };
@@ -803,6 +842,14 @@ export function planeraProdukt(
   // tänkte göra. Lagret ovan är redan planerat och berörs inte.
   if (m.prisLast) {
     plan.prisLast = true;
+    return plan;
+  }
+
+  // ☠️ EN LEVANDE FYNDAUKTION ÄGER PRISET — se `lasAuktionsprodukter`. Ligger
+  // också FÖRE uträkningen: auktionens steg ligger under regelpriset, och en
+  // rad vi inte tänker skriva ska inte hamna i `varningar`.
+  if (opts.iAuktion?.has(m.wixProductId)) {
+    plan.iAuktion = true;
     return plan;
   }
 
@@ -854,7 +901,7 @@ export function planeraFlerartikel(
   perSku: ReadonlyMap<string, AosomRow>,
   variantPriser: ReadonlyMap<string, number> | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
-  opts: Pick<AosomSyncOptions, "skipPrices" | "godkannPrisandring">,
+  opts: Planval,
 ): Produktplan {
   const varianter: VariantPlan[] = [];
   const godkanda: GodkantHopp[] = [];
@@ -873,6 +920,7 @@ export function planeraFlerartikel(
     ejSkeppbar: false,
     utanWixPris: false,
     prisLast: false,
+    iAuktion: false,
     konkurrent: null,
     varning: null,
     varianter,
@@ -902,6 +950,11 @@ export function planeraFlerartikel(
     if (!row || ejSkeppbar || opts.skipPrices) continue;
     if (m.prisLast) {
       plan.prisLast = true;
+      continue;
+    }
+    // Auktionen gäller hela sidan, alltså varje färg (se `lasAuktionsprodukter`).
+    if (opts.iAuktion?.has(m.wixProductId)) {
+      plan.iAuktion = true;
       continue;
     }
     const egen = va.artikel === bild.artikel;
@@ -953,6 +1006,7 @@ export function planeraTvetydig(m: ProductMappingRecord, sku: string, skal: stri
     ejSkeppbar: false,
     utanWixPris: false,
     prisLast: false,
+    iAuktion: false,
     konkurrent: null,
     varning: null,
     tvetydig: skal,
@@ -1349,6 +1403,28 @@ export async function runAosomSync(
     }
   }
 
+  // ── LEVANDE FYNDAUKTIONER, EN GÅNG ────────────────────────────────────
+  // Deras pris ägs av auktionen (se `lasAuktionsprodukter`). ☠️ Går listan
+  // inte att läsa vet vi inte vilka produkter som är i auktion, och då skrivs
+  // INGET pris i körningen, på någon produkt. Lagret synkas som vanligt, och
+  // felet går ut i `prislistaFel`, samma hållning som för prislistan ovan.
+  let iAuktion = new Set<string>();
+  let auktionsFel: string | null = null;
+  if (!opts.skipPrices) {
+    try {
+      iAuktion = await deps.lasAuktionsprodukter();
+    } catch (err) {
+      const fel = err instanceof Error ? err.message : String(err);
+      auktionsFel = `fyndauktionerna gick inte att läsa, så inga priser skrevs: ${fel}`;
+      prislistaFel = prislistaFel ? `${prislistaFel}; ${auktionsFel}` : auktionsFel;
+    }
+  }
+  const planval: Planval = {
+    skipPrices: opts.skipPrices || auktionsFel !== null,
+    godkannPrisandring: opts.godkannPrisandring,
+    iAuktion,
+  };
+
   const perSku = new Map(feed.map((r) => [r.sku, r]));
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
 
@@ -1382,7 +1458,7 @@ export async function runAosomSync(
     tugga: readonly { m: ProductMappingRecord; bild: AosomArtikelbild }[],
   ): Promise<Map<string, Map<string, number>>> => {
     const idn = tugga.filter((x) => x.bild.typ === "flera").map((x) => x.m.wixProductId);
-    if (opts.skipPrices || idn.length === 0) return new Map();
+    if (planval.skipPrices || idn.length === 0) return new Map();
     if (!deps.lasVariantPriser) {
       variantPrisFel ??= "priser per variant går inte att läsa i den här körningen";
       return new Map();
@@ -1408,6 +1484,8 @@ export async function runAosomSync(
     oforandrade: 0,
     utanWixPris: 0,
     prisLasta: 0,
+    iAuktion: 0,
+    iAuktionProdukter: [],
     konkurrentMal: 0,
     konkurrentTak: 0,
     konkurrentGolv: 0,
@@ -1479,10 +1557,10 @@ export async function runAosomSync(
     const variantPriser = await lasVariantPriserFor(tugga);
     const planer = tugga.map(({ m, sku, bild }) =>
       bild.typ === "flera"
-        ? planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, opts)
+        ? planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, planval)
         : bild.typ === "tvetydig"
           ? planeraTvetydig(m, sku, bild.skal)
-          : planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, opts),
+          : planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, planval),
     );
 
     summary.granskade += tugga.length;
@@ -1494,6 +1572,10 @@ export async function runAosomSync(
       if (p.ejSkeppbar) summary.ejSkeppbara++;
       if (p.utanWixPris) summary.utanWixPris++;
       if (p.prisLast) summary.prisLasta++;
+      if (p.iAuktion) {
+        summary.iAuktion++;
+        summary.iAuktionProdukter.push(p.m.wixProductId);
+      }
       if (p.konkurrent?.typ === "mal") summary.konkurrentMal++;
       if (p.konkurrent?.typ === "tak") summary.konkurrentTak++;
       if (p.konkurrent?.typ === "golv") summary.konkurrentGolv++;
@@ -1965,6 +2047,12 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
         store.listTasks("ordered"),
       ]);
       return [...vantande, ...bestallda];
+    },
+    // Fem rader i normalfallet: dagens fynd, eller morgondagens när de
+    // främjats. Samma lager som tick-cronen läser (lib/auction/store.ts).
+    lasAuktionsprodukter: async () => {
+      const { queryAuctions } = await import("../auction/store");
+      return new Set((await queryAuctions(["live"])).map((a) => a.productId));
     },
     bevakadeProdukter: async () => {
       const { getRestockStore } = await import("../restock/store");
