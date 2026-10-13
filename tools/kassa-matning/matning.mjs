@@ -1,4 +1,4 @@
-// Klickprov med facit för Visa mer, med väntan på mjuk rullning, sajten mot förhandsbygget (#737): 2026-10-12 13:20 svensk tid.
+// Värmning efter nattens deploy (#737 och #738): 2026-10-13 03:10 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -896,7 +896,7 @@ async function kollaKlick2() {
   }
 }
 
-const KOR = process.env.KOR || "klick2";
+const KOR = process.env.KOR || "varm";
 const browser = await chromium.launch();
 try {
   if (KOR === "klick2") {
