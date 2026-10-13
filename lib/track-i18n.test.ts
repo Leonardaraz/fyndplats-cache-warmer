@@ -158,6 +158,18 @@ test("lagerstadiet läses INTE som en upphämtningsskanning", () => {
   );
 });
 
+test("☠️ GLS registrering läses INTE som en överlämning till transportören", () => {
+  // Texten innehåller "handed over to GLS" men säger att det INTE har skett.
+  // /sparning visade "Paketet har lämnats till transportören" för ett paket
+  // som bara var registrerat (order 10079, 2026-10-12).
+  assert.equal(
+    matchPhrase("The parcel data was entered into the GLS IT system; the parcel was not yet handed over to GLS."),
+    "Fraktinformation mottagen – paketet är registrerat.",
+  );
+  // En riktig överlämning matchar som förut.
+  assert.equal(matchPhrase("The parcel was handed over to GLS."), "Paketet har lämnats till transportören.");
+});
+
 test("okänd text → null (anroparen faller tillbaka på stage-text)", () => {
   assert.equal(matchPhrase("Some totally unknown carrier blurb 12345"), null);
   assert.equal(matchPhrase(""), null);
