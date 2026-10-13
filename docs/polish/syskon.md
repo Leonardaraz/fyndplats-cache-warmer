@@ -160,7 +160,7 @@ Hindren stoppar körningen. Varningarna stoppar ingenting men ska läsas.
 | `sku_for_lang` | SKU:n har fler än 40 tecken, som är Wix tak. Standard-SKU:n blir lätt för lång. | Ange en kortare `sku`. |
 | `sku_upptagen`, `sku_lika` | SKU:n finns redan, på en annan sida eller på den här. | Ange en annan `sku`. |
 | `behall_ej_publicerad` | Sidan ligger inte ute. | Publicera sidan först, eller byt håll. |
-| `namnet_bar_farg`, `namnet_bar_storlek` | Sidans namn har sidans färg eller storlek. | Skriv om namnet först. Sluggen står kvar. |
+| `namnet_bar_farg`, `namnet_bar_storlek` | Sidans namn har sidans färg eller storlek som hela ord. "Set på 25 eller 30 kg" bär "30 kg" när sidans egen storlek är 30 kg, medan "15, 20, 25 eller 30 kg" inte bär "15 kg". Det räcker att siffran och enheten står bredvid varandra (N140, `834c9648`). | Skriv om namnet först, till exempel "25 eller 30 kilo", och läs sidans namn i Wix efteråt. Sluggen står kvar. |
 | `utkast_saknar_pris` | Givaren saknar pris i Wix. | Flagga. Priset sätts inte här. |
 | `bilder_ogiltiga` | `bilder` pekar utanför givarens bilder eller upprepar en bild. | Rätta numren. |
 | `behall_saknar_bilder`, `utkast_saknar_bilder` | Sidan saknar bilder, eller givaren saknar bild när den ska föra in en ny bild. | Lägg till bilder först. |
