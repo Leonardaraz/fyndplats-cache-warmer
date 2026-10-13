@@ -1296,6 +1296,49 @@ describe("färgsammanslagna sidor — en artikel per variant", () => {
     expect(s.konkurrentMal).toBe(1);
   });
 
+  it("☠️ priserna per variant läses per tugga — inte för hela katalogen före första produkten", async () => {
+    // 2026-10-13: läsningen låg före loopen och tog alla ~360 sammanslagna
+    // sidor, en i taget. Den åt tidsbudgeten innan en enda produkt granskats,
+    // och nattens priskörning nådde aldrig svansen av katalogen.
+    const andra: ProductMappingRecord = {
+      ...sammanslagen(),
+      wixProductId: "wix-stol2",
+      supplierProductId: "aosom:Y-1",
+      variants: sammanslagen().variants.map((v, i) => ({
+        ...v,
+        supplierVariantId: i === 0 ? "Y-1" : "Y-2",
+        wixVariantId: i === 0 ? "w2-a" : "w2-b",
+        sku: i === 0 ? "FP-stol2-a" : "FP-stol2-b",
+      })),
+    };
+    const lasta: string[][] = [];
+    let forbi = false;
+    // Första sidan står redan rätt (grå synkad på S13), så tuggan skriver
+    // ingenting och det är tidsbudgeten, inte `limit`, som stoppar.
+    const forsta = sammanslagen();
+    forsta.variants = forsta.variants.map((v, i) => (i === 1 ? { ...v, aosomSyncedQty: S13 } : v));
+    const { d } = stolDeps(
+      {
+        listAosom: async () => [forsta, andra],
+        lasLagerposter: async () => posterStol(S50, S13),
+        lasVariantPriser: async (idn) => {
+          lasta.push([...idn]);
+          forbi = true;
+          return new Map([["wix-stol", new Map([["wixvar-svart", BASPRIS], ["wixvar-gra", BASPRIS]])]]);
+        },
+        // Tidsbudgeten tar slut efter första tuggan.
+        now: () => (forbi ? 10_000_000 : 0),
+      },
+      [rad("A-1"), rad("G-7", { qty: 13 }), rad("Y-1"), rad("Y-2")],
+    );
+    const s = await runAosomSync(d, { dryRun: true, limit: 1, timeBudgetMs: 1_000 });
+
+    expect(lasta).toEqual([["wix-stol"]]);
+    expect(s.granskade).toBe(1);
+    expect(s.stoppedBy).toBe("tidsbudget");
+    expect(s.prislistaFel).toBeNull();
+  });
+
   it("☠️ utan priser per variant skrivs inget pris på sidan — och det syns", async () => {
     const { d, priser, lager } = stolDeps(
       { lasVariantPriser: undefined },

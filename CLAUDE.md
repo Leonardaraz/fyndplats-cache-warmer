@@ -660,7 +660,9 @@ bär fortfarande de gamla numren; den skrivs inte om utan Leonards uttryckliga j
 
 ## Aosom-synken: ett anrop ger hela sanningen (`lib/aosom/sync.ts`)
 
-Lager och pris speglas av `/api/cron/aosom-sync`, schemalagd `20 */6 * * *`.
+Lager och pris speglas av `/api/cron/aosom-sync`. Lagret körs `20 */6 * * *`
+(`skipPrices=1`, rotation `lager`) och priserna `20 3,9,15,21 * * *` (rotation
+`pris`) sedan 2026-10-13 — se *Synken nådde aldrig svansen* nedan.
 
 Den är byggd tvärtemot AliExpress-synken, och skälet är strukturellt. AE måste
 ringa DS-API:t **en gång per produkt**, lever under `maxApiCalls` och roterar
@@ -689,10 +691,11 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    tills Aosoms flöde visar det (se *En stämpel som ljuger rättas mot
    butiken*). Det är den, inte bufferten, som hindrar att samma enhet säljs två
    gånger.
-4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
-   cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
-   Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
-   Efter några varv skriver varje körning noll.
+4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** En redan synkad
+   produkt kostar noll Wix-anrop. ☠️ Att cronen därmed skulle konvergera UTAN
+   sparad markör höll inte (2026-10-13): Aosoms saldon rör sig hela tiden, så
+   huvudet av katalogen blev aldrig klart och svansen nåddes aldrig. De
+   schemalagda körningarna sparar sedan dess var de slutade (`?rotation=`).
 5. **`MAX_PRISANDRING_PCT = 40`.** Prissynken är tvåvägs och helautomatisk
    (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
    en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
@@ -1026,7 +1029,7 @@ Kvar är Wix-sidan: en körning som planerat ur en rad från före en
 sammanslagning kan fortfarande nolla den nya varianten som okänd. Mappningen
 behåller nu varianten och dess stämpel, så nästa körning ser driften och
 rättar saldot. Kör ändå ingen sammanslagning mellan xx:18 och xx:27 vid
-synktimmarna (00, 03, 06, 12 och 18 UTC).
+synktimmarna (var tredje timme: 00, 03, 06, 09, 12, 15, 18 och 21 UTC).
 
 **Verifierat i drift 2026-09-30**, i den ordning körningarna gick:
 
@@ -1094,7 +1097,7 @@ produkten i `errors`: mappningens pris kan vara det gamla tills kostnaden
 
 ### Så körs den för hand
 
-Schemalagd i Vercel (`20 */6 * * *`), men workflowen **"Aosom — synka lager och
+Schemalagd i Vercel (se avsnittets början), men workflowen **"Aosom — synka lager och
 priser"** (`workflow_dispatch`, lägena `torr` · `skarp` · `lager`) kör den på
 begäran — samma nyckel-lösa upplägg som importen och prisreparationen.
 
@@ -1104,8 +1107,58 @@ att verifiera en ändring i synken krävde att man väntade på nästa schemalag
 körning och sedan gissade av en 200:a vad den gjort. Rutten loggar dessutom en
 summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
 
-Svepet loopar markören som importen gör, men sparar den INTE i grenen: synken
-konvergerar utan sparad markör (punkt 4 ovan). `misslyckade > 0` fäller jobbet.
+Svepet loopar markören som importen gör, men sparar den INTE i grenen. Det
+startar från början och går hela katalogen; de schemalagda körningarnas
+sparade markör rörs inte (den följer bara `?rotation=` i skarpt läge).
+`misslyckade > 0` fäller jobbet.
+
+### ☠️ Synken nådde aldrig svansen av katalogen (2026-10-13)
+
+Leonards rapport: order 10088, en smal bokhylla (`bd664764`), såldes för
+**749 kr**. Inköpet var exakt feedens tal, och husets regel på det ger
+**819 kr**. Marginalen blev ungefär hälften av husets 17 %. Priset stod orört
+sedan 2026-09-24.
+
+Två fel, och båda var synliga i loggraden:
+
+1. ☠️ **Priskörningen åt upp sin tidsbudget innan den började.** Priserna per
+   variant för de sammanslagna sidorna lästes före loopen, ett GET per sida,
+   för HELA katalogen. Kommentaren sa "de är få"; den 2026-10-13 var de ~360.
+   Nattens priskörning granskade 550 av 4 938 och stannade på tidsbudget, och
+   en torrkörning samma kväll granskade **noll**. Läsningen görs nu per tugga
+   (`lasVariantPriserFor`), bara för de sidor som granskas. Ett test fäller den
+   gamla vägen.
+2. ☠️ **Ingen körning nådde svansen.** Utan sparad markör började varje körning
+   om från början. Lagerkörningen skrev 400 saldon i de första ~2 500
+   artiklarna och stannade på `limit` fyra gånger om dagen (`2378 kvar`), och
+   priskörningen nådde aldrig förbi de första 550.
+
+Lagningen:
+
+- **`?rotation=lager|pris`** (`lib/aosom/sync-markor.ts`, tabellen
+  `sync_markor`). En schemalagd körning fortsätter efter förra körningens
+  markör och sparar sin egen. Går den hela vägen börjar nästa om.
+- **Priserna körs fyra gånger per dygn** (03, 09, 15 och 21 UTC), lagret som
+  förut fyra, och båda har `limit=1200`. Tidsbudgeten är det som stoppar.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Bara skarpa körningar flyttar markören.** En torrkörning för hand hade
+   annars fått nattens körning att hoppa över det torrkörningen tittade på.
+2. ☠️ **En körning som stannar innan första tuggan behåller den gamla markören.**
+   Att nollställa den hade skickat nästa körning till början igen, alltså
+   samma fel som markören lagar.
+3. ☠️ **Ett okänt rotationsnamn är 400.** En felstavning i `vercel.json` hade
+   annars tyst gett en körning utan markör.
+4. **En markör som inte går att läsa stoppar inte synken.** Lagret är det
+   brådskande; körningen börjar från början och loggraden säger det.
+5. ☠️ **Markören är ett artikelnummer och skrivs aldrig ut.** Loggraden säger
+   bara `fortsatte från sparad markör` eller `började från början`.
+
+⚠️ **Läs `stoppade på` och `kvar` i loggraden.** Båda felen stod där varje
+körning (`stoppade på tidsbudget, 4346 kvar`) utan att något larmade. En
+priskörning som stannar på tidsbudget med noll granskade är ett fel, inte en
+lugn natt.
 
 ### `prisLast`: en rad där synken räknar om men INTE skriver (2026-09-05)
 

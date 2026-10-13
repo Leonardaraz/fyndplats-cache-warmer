@@ -26,12 +26,12 @@
       "schedule": "10 * * * *"
     },
     {
-      "path": "/api/cron/aosom-sync?dryRun=false&skipPrices=1",
+      "path": "/api/cron/aosom-sync?dryRun=false&skipPrices=1&limit=1200&rotation=lager",
       "schedule": "20 */6 * * *"
     },
     {
-      "path": "/api/cron/aosom-sync?dryRun=false&limit=1200",
-      "schedule": "20 3 * * *"
+      "path": "/api/cron/aosom-sync?dryRun=false&limit=1200&rotation=pris",
+      "schedule": "20 3,9,15,21 * * *"
     },
     {
       "path": "/api/cron/aosom-import?dryRun=false&limit=60&skipFreightHeavy=1",
