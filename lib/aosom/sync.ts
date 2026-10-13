@@ -1365,20 +1365,33 @@ export async function runAosomSync(
   // `jamforelsePris` svarar "flera". Facit läses därför per variant, ett GET
   // per sammanslagen sida. Faller läsningen bär `prislistaFel` det, och de
   // sidorna får inget pris skrivet: samma hållning som för hela prislistan.
-  let variantPriser = new Map<string, Map<string, number>>();
-  const flerartikelIdn = mappningar.filter((x) => x.bild.typ === "flera").map((x) => x.m.wixProductId);
-  if (!opts.skipPrices && flerartikelIdn.length > 0) {
+  //
+  // ☠️ LÄSES PER TUGGA, INTE FÖRE LOOPEN (2026-10-13). Läsningen låg tidigare
+  // här och tog ALLA sammanslagna sidor i katalogen, en i taget, innan en enda
+  // produkt granskats. Kommentaren sa "de är få"; den 2026-10-13 var de ~360,
+  // och läsningen åt nästan hela tidsbudgeten. Nattens priskörning granskade
+  // 550 av 4 938 produkter och stannade på tidsbudget, en torrkörning samma
+  // kväll granskade NOLL. Bokhyllan bd664764 såldes för 749 kr mot regelpriset
+  // 819. Nu läses bara sidorna i den tugga som granskas, så budgeten går till
+  // granskningen och en körning som stannar har läst exakt det den hann pröva.
+  let variantPrisFel: string | null = null;
+  const lasVariantPriserFor = async (
+    tugga: readonly { m: ProductMappingRecord; bild: AosomArtikelbild }[],
+  ): Promise<Map<string, Map<string, number>>> => {
+    const idn = tugga.filter((x) => x.bild.typ === "flera").map((x) => x.m.wixProductId);
+    if (opts.skipPrices || idn.length === 0) return new Map();
     if (!deps.lasVariantPriser) {
-      prislistaFel = `${prislistaFel ? `${prislistaFel}; ` : ""}priser per variant går inte att läsa i den här körningen`;
-    } else {
-      try {
-        variantPriser = await deps.lasVariantPriser(flerartikelIdn);
-      } catch (err) {
-        const fel = err instanceof Error ? err.message : String(err);
-        prislistaFel = `${prislistaFel ? `${prislistaFel}; ` : ""}priserna per variant gick inte att läsa: ${fel}`;
-      }
+      variantPrisFel ??= "priser per variant går inte att läsa i den här körningen";
+      return new Map();
     }
-  }
+    try {
+      return await deps.lasVariantPriser(idn);
+    } catch (err) {
+      const fel = err instanceof Error ? err.message : String(err);
+      variantPrisFel ??= `priserna per variant gick inte att läsa: ${fel}`;
+      return new Map();
+    }
+  };
 
   const summary: AosomSyncSummary = {
     dryRun,
@@ -1455,10 +1468,12 @@ export async function runAosomSync(
     i += tugga.length;
 
     // ── FAS 1: PLANERA (ren, ingen I/O) ──────────────────────────────────
-    // Allt underlag ligger redan i minnet — feeden och butikens prislista
-    // hämtades före loopen. Att räkna först och skriva sedan är vad som gör
+    // Feeden och butikens prislista hämtades före loopen; de sammanslagna
+    // sidornas priser per variant läses här, bara för tuggans sidor (se
+    // `lasVariantPriserFor`). Att räkna först och skriva sedan är vad som gör
     // batchningen möjlig: vi vet vilka rader som ska med i anropet innan vi
     // gör det.
+    const variantPriser = await lasVariantPriserFor(tugga);
     const planer = tugga.map(({ m, sku, bild }) =>
       bild.typ === "flera"
         ? planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, opts)
@@ -1835,6 +1850,9 @@ export async function runAosomSync(
     }
   }
 
+  if (variantPrisFel) {
+    summary.prislistaFel = summary.prislistaFel ? `${summary.prislistaFel}; ${variantPrisFel}` : variantPrisFel;
+  }
   if (summary.kvar <= 0) summary.cursor = null;
   return summary;
 }
@@ -1888,8 +1906,10 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
         (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
       ),
     lasLagerposter: (ids) => wix.queryInventoryItemsByProductIds(ids),
-    // Ett GET per färgsammanslagen sida, en i taget — de är få, och ett fel
-    // ska fälla prisdelen synligt (`prislistaFel`), inte gissas förbi.
+    // Ett GET per färgsammanslagen sida, en i taget, och bara för tuggans
+    // sidor (`lasVariantPriserFor`). De var ~360 den 2026-10-13 — lästa alla
+    // på en gång åt de hela tidsbudgeten. Ett fel ska fälla prisdelen synligt
+    // (`prislistaFel`), inte gissas förbi.
     lasVariantPriser: async (ids) => {
       const ut = new Map<string, Map<string, number>>();
       for (const id of ids) ut.set(id, await v3.getV3VariantPriser(id));

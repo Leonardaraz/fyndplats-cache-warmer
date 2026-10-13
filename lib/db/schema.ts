@@ -73,6 +73,19 @@ export const FARGBILD_DDL: string[] = [
   `alter table fargbilder add column if not exists wix_bekraftad_at timestamptz`,
 ];
 
+/**
+ * Var Aosom-synkens schemalagda körningar slutade (lib/aosom/sync-markor.ts).
+ * En rad per rotation (`lager`, `pris`). `markor` är ett artikelnummer, null =
+ * nästa körning börjar från början. Skapas vid första användningen.
+ */
+export const SYNC_MARKOR_DDL: string[] = [
+  `create table if not exists sync_markor (
+     namn   text primary key,
+     markor text,
+     at     timestamptz not null default now()
+   )`,
+];
+
 const DDL: string[] = [
   // --- Mappningar: 5 470 rader, den största posten -------------------------
   `create table if not exists mappings (
@@ -285,4 +298,7 @@ const DDL: string[] = [
 
   // --- Färgbilderna (2026-09-30) --------------------------------------------
   ...FARGBILD_DDL,
+
+  // --- Aosom-synkens markörer (2026-10-13) ---------------------------------
+  ...SYNC_MARKOR_DDL,
 ];

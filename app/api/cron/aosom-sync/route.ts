@@ -45,12 +45,17 @@
 //   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
 //                        här körningen (en människas godkännande, se
 //                        `godkannPrisandring` i lib/aosom/sync.ts)
+//   ?rotation=lager|pris  fortsätt där förra schemalagda körningen med samma
+//                        namn slutade, och spara var den här slutar
+//                        (lib/aosom/sync-markor.ts). Bara skarpa körningar
+//                        flyttar markören. `after` och `sku` vinner över den.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { forseglaMarkor, MarkorFel, oppnaMarkor } from "@/lib/aosom/markor";
 import { audit } from "@/lib/audit";
 import { runAosomSync, liveDeps } from "@/lib/aosom/sync";
+import { arRotation, getSyncMarkorLager, nastaMarkor } from "@/lib/aosom/sync-markor";
 import { beskrivUtskick } from "@/lib/restock/notify";
 
 export const runtime = "nodejs";
@@ -115,16 +120,58 @@ async function handle(req: NextRequest) {
     );
   }
 
+  // ☠️ ETT OKÄNT ROTATIONSNAMN VÄGRAS. En felstavning i vercel.json hade annars
+  // tyst gett en körning utan markör — alltså exakt felet markören lagar.
+  const rotationParam = req.nextUrl.searchParams.get("rotation");
+  if (rotationParam !== null && !arRotation(rotationParam)) {
+    return NextResponse.json({ ok: false, error: `okänd rotation: ${rotationParam}` }, { status: 400 });
+  }
+  // En körning för hand med `after` eller `sku` rör inte den schemalagda
+  // markören — den vet redan var den ska börja.
+  const rotation = rotationParam !== null && !after && onlySkus.length === 0 ? rotationParam : null;
+  const markorLager = rotation ? getSyncMarkorLager() : null;
+  // ☠️ En markör som inte går att läsa stoppar inte synken — lagret är det
+  // brådskande. Körningen börjar då från början, och loggraden säger det.
+  let sparadMarkor: string | null = null;
+  let markorLasFel: string | null = null;
+  if (rotation && markorLager) {
+    try {
+      sparadMarkor = await markorLager.las(rotation);
+    } catch (err) {
+      markorLasFel = err instanceof Error ? err.message.slice(0, 160) : String(err);
+    }
+  }
+
   try {
     const summary = await runAosomSync(await liveDeps(), {
       dryRun,
       limit,
-      after,
+      after: after ?? sparadMarkor ?? undefined,
       skipPrices,
       onlySkus: onlySkus.length ? onlySkus : undefined,
       godkannPrisandring: godkannPris.length ? new Set(godkannPris) : undefined,
       timeBudgetMs: TIME_BUDGET_MS,
     });
+
+    // Markören för nästa schemalagda körning. Ett fel här stoppar ingenting:
+    // nästa körning börjar då från den gamla markören och gör om en bit.
+    let rotationRad = "";
+    if (rotation && markorLager) {
+      const nasta = nastaMarkor(summary, sparadMarkor);
+      rotationRad = `, rotation ${rotation}: ${sparadMarkor ? "fortsatte från sparad markör" : "började från början"}`
+        + (markorLasFel ? ` (MARKÖREN GICK INTE ATT LÄSA: ${markorLasFel})` : "")
+        + `, nästa ${nasta ? "fortsätter" : "börjar om"}`;
+      if (!dryRun) {
+        try {
+          await markorLager.spara(rotation, nasta);
+        } catch (err) {
+          const fel = err instanceof Error ? err.message.slice(0, 160) : String(err);
+          rotationRad += ` (MARKÖREN GICK INTE ATT SPARA: ${fel})`;
+        }
+      } else {
+        rotationRad += " (torrkörning, markören flyttades inte)";
+      }
+    }
 
     // `utanWixPris` fäller också raden: produkter vars pris vi inte kunde
     // jämföra är tyst överhoppade, och tyst överhoppat är precis hur de tjugo
@@ -212,6 +259,7 @@ async function handle(req: NextRequest) {
         // och lämnade 2 607 rader ogranskade, utan att någon kunde se det.
         + `stoppade på ${summary.stoppedBy}, `
         + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
+        + rotationRad
         + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
