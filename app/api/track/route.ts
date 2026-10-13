@@ -273,15 +273,20 @@ function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetch
  * JSON-format som 17TRACK-vägen.
  *
  * GLS tider är lokal tid utan offset, och läses som svensk väggklocka för
- * länder med svensk tid (svenskVaggklocka). En text som GLS-tabellen inte
- * känner går genom PHRASE_SV, och står annars kvar som GLS skrev den.
+ * länder med svensk tid (svenskVaggklocka).
+ *
+ * ☠️ En text som GLS-tabellen inte känner står kvar som GLS skrev den. Den
+ * gick först genom PHRASE_SV, vars allmänna regel läser varje "delivered" som
+ * levererat: "stored in the parcel center to be delivered at a new delivery
+ * date" blev "Paketet är levererat." om ett paket som låg kvar på terminalen
+ * (order 10075, 2026-10-13). Hellre GLS engelska än ett påstående som inte är sant.
  */
 function buildGlsBody(tn: string, gls: GlsSparning, eta: string | null) {
   const events = dedupeEvents(rattaPlatser(
     gls.handelser
       .map((h) => {
         const location = svLocation(undefined, { city: h.stad, country: h.land });
-        const description = (h.beskrivning ?? toSwedish(h.original))
+        const description = (h.beskrivning ?? h.original)
           .replace(LEAKY_PATTERN, "")
           .replace(/\s{2,}/g, " ")
           .trim();
