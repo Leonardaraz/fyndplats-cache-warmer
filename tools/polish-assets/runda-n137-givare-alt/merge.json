@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "fe7aa8ea",
+  "huvud_fullid": "fe7aa8ea-9e6f-42fb-9c10-cc85ccc6104b",
+  "givare": "a8e8dd46",
+  "givare_fullid": "a8e8dd46-7d9a-4980-9a1f-eed5dee93678",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "fe7aa8ea": "Ø30 cm",
+   "a8e8dd46": "Ø40 cm"
+  }
+ }
+]
