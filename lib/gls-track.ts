@@ -89,6 +89,10 @@ export interface GlsSparning {
 //   • "delivered at the ParcelShop" innehåller "delivered". Paketet ligger hos
 //     ombudet och är inte utlämnat.
 //   • "expected to be delivered during the day" är ute för leverans, inte levererat.
+//   • "stored in the parcel center to be delivered at a new delivery date"
+//     innehåller "delivered". Paketet ligger kvar på terminalen. Utan regeln
+//     sa /sparning "Paketet är levererat." om ett paket som låg på terminalen
+//     klockan ett på natten (order 10075, 2026-10-13).
 const GLS_SV: Array<[RegExp, string, string]> = [
   [/data was entered|not yet (been )?handed over/i,
     "Fraktinformation mottagen – paketet är registrerat hos GLS.", "Registrerad"],
@@ -98,6 +102,12 @@ const GLS_SV: Array<[RegExp, string, string]> = [
     "Paketet finns att hämta hos ett GLS-ombud.", "Finns för upphämtning"],
   [/(picked up|collected) (by the consignee )?(from|at) the parcel ?shop/i,
     "Paketet är hämtat hos GLS-ombudet.", "Levererad"],
+  [/new delivery date|rescheduled/i,
+    "Paketet ligger kvar på terminalen och delas ut en annan dag.", "Ny leveransdag"],
+  [/stored in the (gls )?parcel cent(er|re)/i,
+    "Paketet ligger på terminalen.", "På terminalen"],
+  [/on its way to the (final )?parcel cent(er|re)/i,
+    "Paketet är på väg till en GLS-terminal.", "På väg"],
   [/could not be delivered|not be delivered|consignee was (absent|not present)/i,
     "Leveransförsök misslyckades – ny leverans planeras.", "Leveransförsök misslyckades"],
   [/expected to be delivered|out for delivery/i,

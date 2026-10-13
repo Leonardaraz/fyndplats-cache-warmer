@@ -93,6 +93,17 @@ test("☠️ ombud och 'väntas levereras' är inte levererat", () => {
   assert.equal(oversattGls("The parcel has been delivered.")?.etikett, "Levererad");
 });
 
+test("☠️ ett paket som ligger kvar på terminalen är inte levererat", () => {
+  // Ordagrant GLS text kl 01:10 på natten för order 10075 (2026-10-13).
+  // /sparning sa "Paketet är levererat." innan regeln fanns.
+  assert.deepEqual(
+    oversattGls("The parcel is stored in the parcel center to be delivered at a new delivery date."),
+    { text: "Paketet ligger kvar på terminalen och delas ut en annan dag.", etikett: "Ny leveransdag" },
+  );
+  assert.equal(oversattGls("The parcel is stored in the parcel center.")?.etikett, "På terminalen");
+  assert.equal(oversattGls("The parcel is on its way to the final parcel center.")?.etikett, "På väg");
+});
+
 test("en okänd text ger null, och anroparen faller tillbaka", () => {
   assert.equal(oversattGls("Something GLS has not said before."), null);
   const s = tolkaGlsSvar({ tuStatus: [{ history: [{ date: "2026-10-12", time: "08:00:00", address: {}, evtDscr: "Something new." }] }] });
@@ -189,4 +200,15 @@ test("☠️ postnumret når aldrig loggen, och /api/track frågar GLS för GLS-
   const route = readFileSync(join(process.cwd(), "app/api/track/route.ts"), "utf8");
   assert.match(route, /maskCarrier\(leverantor17\) === "GLS"/, "/api/track frågar inte GLS när 17TRACK säger GLS");
   assert.match(route, /fetchGlsSparning\(tn\)/, "/api/track hämtar inte GLS-resan");
+});
+
+test("☠️ en GLS-text som tabellen inte känner går aldrig genom den allmänna översättningen", () => {
+  // PHRASE_SV läser varje "delivered" som levererat, även "to be delivered".
+  // /sparning sa därför "Paketet är levererat." om ett paket som låg kvar på
+  // terminalen (order 10075, 2026-10-13). Prövat genom att återinföra felet.
+  const route = readFileSync(join(process.cwd(), "app/api/track/route.ts"), "utf8");
+  const bygg = route.slice(route.indexOf("function buildGlsBody"), route.indexOf("function carrierFallbackLinks"));
+  assert.ok(bygg.length > 0, "buildGlsBody hittades inte");
+  assert.match(bygg, /h\.beskrivning \?\? h\.original/, "en okänd GLS-text visas inte som GLS skrev den");
+  assert.doesNotMatch(bygg, /toSwedish\(|PHRASE_SV|matchPhrase\(/, "GLS-texten går genom den allmänna översättningen igen");
 });
