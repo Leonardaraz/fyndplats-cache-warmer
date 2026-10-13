@@ -1,4 +1,4 @@
-// Värmning efter nattens deploy (#737 och #738): 2026-10-13 03:10 svensk tid.
+// Recensionskontroll i produktion efter nattens deploy (#737): 2026-10-13 03:25 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -896,7 +896,7 @@ async function kollaKlick2() {
   }
 }
 
-const KOR = process.env.KOR || "varm";
+const KOR = process.env.KOR || "recensioner";
 const browser = await chromium.launch();
 try {
   if (KOR === "klick2") {
