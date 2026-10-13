@@ -143,11 +143,14 @@ export interface AosomSyncOptions {
   /**
    * Tak på antal produkter som SKRIVS, inte på antal som granskas.
    *
-   * Skillnaden är vad som gör att cronen konvergerar utan sparad markör. En
-   * oförändrad produkt kostar noll Wix-anrop — bara en jämförelse i minnet — så
-   * den får inte äta av budgeten. Nästa körning börjar om från början, går
-   * gratis förbi allt som redan är synkat och skriver de nästa `limit` styckena.
-   * Efter några varv är hela sortimentet i fas och varje körning skriver noll.
+   * En oförändrad produkt kostar noll Wix-anrop — bara en jämförelse i minnet —
+   * så den får inte äta av budgeten.
+   *
+   * ☠️ Det räcker INTE för att nå hela katalogen utan sparad markör (uppmätt
+   * 2026-10-13). Aosoms saldon rör sig hela tiden, så en körning som börjar om
+   * från början förbrukar `limit` i huvudet varje gång och når aldrig svansen.
+   * De schemalagda körningarna fortsätter därför där förra slutade
+   * (`?rotation=`, lib/aosom/sync-markor.ts).
    */
   limit?: number;
   timeBudgetMs?: number;

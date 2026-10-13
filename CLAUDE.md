@@ -1110,7 +1110,8 @@ summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
 Svepet loopar markören som importen gör, men sparar den INTE i grenen. Det
 startar från början och går hela katalogen; de schemalagda körningarnas
 sparade markör rörs inte (den följer bara `?rotation=` i skarpt läge).
-`misslyckade > 0` fäller jobbet.
+Massfel fäller jobbet (minst 10 misslyckade och 2 % av skrivningarna), en
+enstaka miss varnar — se *Massfel fäller svepet* ovan.
 
 ### ☠️ Synken nådde aldrig svansen av katalogen (2026-10-13)
 
