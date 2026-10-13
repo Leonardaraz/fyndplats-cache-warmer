@@ -1,11 +1,7 @@
-Produktsidor med långa recensioner: 12 (letade bland 522 produktsidor)
+Produktsidor med långa recensioner: 12 (letade bland 517 produktsidor)
 knappar = antal Visa mer, falska = knapp utan dold text, saknade = dold text utan knapp
 
-www.fyndplats.se                         dator 1366 sidor 12  klampade texter 13  knappar 13  falska 13  saknade 0  fel 0  skriptfel 0  största layoutskift 0.000
-    falsk knapp på /produkt/reservtak-till-paviljong-3-x-3-m
-    falsk knapp på /produkt/solsang-med-soltak-hopfallbar
-    falsk knapp på /produkt/konstgjord-bambu-120-cm-i-kruka
-    falsk knapp på /produkt/fallbord-med-hyllor-matbord-sma-utrymmen
+www.fyndplats.se                         dator 1366 sidor 12  klampade texter 13  knappar 0  falska 0  saknade 0  fel 0  skriptfel 0  största layoutskift 0.000
 www.fyndplats.se                         mobil 390  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0  största layoutskift 0.000
 fyndplats-headless-git-claude-rece-0d51f dator 1366 sidor 12  klampade texter 13  knappar 0  falska 0  saknade 0  fel 0  skriptfel 0  största layoutskift 0.000
 fyndplats-headless-git-claude-rece-0d51f mobil 390  sidor 12  klampade texter 13  knappar 13  falska 0  saknade 0  fel 0  skriptfel 0  största layoutskift 0.000
