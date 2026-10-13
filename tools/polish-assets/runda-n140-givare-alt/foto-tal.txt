@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cad08bfe 120 den raka skivstångens längd, avläst på måttbilden (bild 3)
+7d063eb3 120 den raka skivstångens längd, avläst på måttbilden (bild 3)
+15cfeb96 120 den raka skivstångens längd, avläst på måttbilden (bild 3)

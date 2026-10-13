@@ -1,0 +1,123 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "002acd16": {
+  "tyska": "100L x 150B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (100L x 150B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "2a70f07e": {
+  "tyska": "Ø25 x 120Lcm. 5-kg-Platte: Ø25 x 5Dcm. 2,5-kg-Platte: Ø21 x 4Dcm",
+  "svenska": "",
+  "bokstaver": "L",
+  "bredd": 120
+ },
+ "2f3041df": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 45-65L x 12B x 20H cm"
+ },
+ "731be4a8": {
+  "tyska": "22L x 10B x 10H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 10,
+  "bredd": 22,
+  "djup": 10
+ },
+ "834c9648": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: Ø34 x 6T cm, Ø27 x 4,5T cm | Griffgröße: 13L cm (10 kg), 10L cm (5 kg) | Mått: 34L x 34B x 6H cm | Abmessungen: Ø30 x 5,5T cm, Ø27 x 4,5T cm | Griffgröße: 11L cm (7,5 kg), 10L cm (5 kg) | Mått: 30L x 30B x 5,5H cm"
+ },
+ "8431495d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: Ø20 x 4H cm | Größe des Griffs: Ø3 x 12L cm | Mått: Ø20 x 4H cm"
+ },
+ "8b4337bf": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Gewichtsscheibe Größe: (2kg) Ø20 x 3,5T cm, (1,5kg) Ø18 x 3,2T cm, (1,25kg) Ø18 x 3T cm | Hantelstange: Ø2,5 x 45L cm | Verbindungsstange: 20L cm | Langhantel Größe: 105L x 20B x 20H cm | Gewichtsscheibe Größe: (2,5kg) Ø22 x 3,8T cm, (2kg) Ø20 x 3,5T cm, (1,5kg) Ø18 x 3,2T cm | Hantelstange: Ø2,5 x 45L cm | Verbindungsstange: 20L cm | Langhantel Größe: 105L x 20B x 20H cm"
+ },
+ "a7caab48": {
+  "tyska": "92L x 40B x 17H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 17,
+  "bredd": 92,
+  "djup": 40
+ },
+ "b6122d31": {
+  "tyska": "123L x 80B x 80T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 80,
+  "bredd": 123
+ },
+ "bc58d428": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Dicke Eisenrohr: T1,6 cm"
+ },
+ "cad08bfe": {
+  "tyska": "140L x 20B x 20H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 140,
+  "djup": 20
+ },
+ "d1d86a49": {
+  "tyska": "38L x 20B x 18H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 18,
+  "bredd": 38,
+  "djup": 20
+ },
+ "de3f65ff": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Hantelabmessungen: 13L x 6B x 6H cm (1kg), 16L x 7,5B x 7,5H cm (2kg), 18L x 8B x 8H cm (3kg) | Abmessungen des Tragekoffers: 41L x 30B x 8H cm"
+ },
+ "e56ffa99": {
+  "tyska": "43L x 16B x 5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 5,
+  "bredd": 43,
+  "djup": 16
+ },
+ "e5dc93ac": {
+  "tyska": "110L x 110B x 305H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 305,
+  "bredd": 110,
+  "djup": 110
+ },
+ "ee8c45cb": {
+  "tyska": "72-109L x 10B x 7H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 7,
+  "bredd": [
+   72,
+   109
+  ],
+  "djup": 10
+ },
+ "f258d141": {
+  "tyska": "100L x 18B x 18H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 18,
+  "bredd": 100,
+  "djup": 18
+ },
+ "f5d191f4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 50L x 12B x 33H cm | Griff: Ø2,5 x 18L cm | Einsatz: 5L x 5B cm | Mått: 50L x 12B x 33H cm"
+ }
+}
