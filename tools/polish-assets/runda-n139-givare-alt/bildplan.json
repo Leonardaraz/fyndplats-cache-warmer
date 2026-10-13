@@ -1,0 +1,49 @@
+{
+ "runda": "runda-n139-givare-alt",
+ "produkter": [
+  {
+   "kort": "aed4a62f",
+   "pid": "aed4a62f-ca07-41b6-ac61-bffe89c4958d",
+   "media": [
+    {
+     "id": "b379ce_c3a0bf9dc2944897a1f4f58f49c1a65f~mv2.jpg",
+     "altText": "Svart cykelställ i stål för sex cyklar med rader av hållarbågar, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_fcfe5d39357a447d98447620863f4369~mv2.jpg",
+     "altText": "En blå damcykel står i ett cykelställ för sex cyklar på en stenlagd yta framför en gräsbacke"
+    },
+    {
+     "id": "b379ce_a6032dbcf2e14d8db689b02be20cc736~mv2.jpg",
+     "altText": "Måttbild: cykelstället är 179 cm långt, 33 cm brett och 27 cm högt, med 25,5 cm mellan hållarna"
+    }
+   ]
+  },
+  {
+   "kort": "c8409da9",
+   "pid": "c8409da9-08f5-469f-ad4e-105c2e187126",
+   "media": [
+    {
+     "id": "b379ce_4ea7ce0362f0468593f49107816780c8~mv2.jpg",
+     "altText": "Svart viktväst med röda kanter och två breda bälten med kardborrband, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_9c2fcbe41b8e44128daf2e065e9a5204~mv2.jpg",
+     "altText": "En man springer med viktvästen med röda kanter på en gångbro i solljus"
+    },
+    {
+     "id": "b379ce_7b4b24282a58491982595a6831a3eeb4~mv2.jpg",
+     "altText": "Närbild på västens axelrem med röd kant och kardborrband"
+    },
+    {
+     "id": "b379ce_9283fc4f7104432db00309a52862dd2d~mv2.jpg",
+     "altText": "Närbild på västens vadderade fickor för viktpåsar"
+    },
+    {
+     "id": "b379ce_01af0f3410fe4504b02e67c587695eae~mv2.jpg",
+     "altText": "Måttbild: västen med röda kanter med måtten 60, 50, 44 och 25 cm markerade"
+    }
+   ]
+  }
+ ]
+}

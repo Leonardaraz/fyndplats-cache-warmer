@@ -1,0 +1,133 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1527729f": {
+  "tyska": "122L x 100B x 201-217H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   201,
+   217
+  ],
+  "bredd": 122,
+  "djup": 100
+ },
+ "1551f2f5": {
+  "tyska": "60L x 55B x 43H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 43,
+  "bredd": 60,
+  "djup": 55
+ },
+ "15ac79a7": {
+  "tyska": "21L x 21B x 27H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 27,
+  "bredd": 21,
+  "djup": 21
+ },
+ "3aee339d": {
+  "tyska": "60L x 40B x 165H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 165,
+  "bredd": 60,
+  "djup": 40
+ },
+ "42714ee1": {
+  "tyska": "25,5L x 10,5B x 4H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 4,
+  "bredd": 25.5,
+  "djup": 10.5
+ },
+ "4e58a5de": {
+  "tyska": "36L x 52B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (36L x 52B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "5198c3f3": {
+  "tyska": "L400 x H103 cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": 103,
+  "bredd": 400
+ },
+ "538458eb": {
+  "tyska": "110L x 33B x 27H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 27,
+  "bredd": 110,
+  "djup": 33
+ },
+ "676cde92": {
+  "tyska": "43L x 33B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (43L x 33B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "70fa671c": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: Ø24,5 x 4,3H cm"
+ },
+ "7be87267": {
+  "tyska": "60L x 50B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (60L x 50B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "8627d5a4": {
+  "tyska": "90L x 80B x 58H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 58,
+  "bredd": 90,
+  "djup": 80
+ },
+ "8901f76d": {
+  "tyska": "60B x 50H cm",
+  "svenska": "",
+  "bokstaver": "BH",
+  "hojd": 50,
+  "bredd": 60
+ },
+ "a376310f": {
+  "tyska": "180L x 60B x 5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 5,
+  "bredd": 180,
+  "djup": 60
+ },
+ "ae080384": {
+  "tyska": "83L x 44B x 78H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 78,
+  "bredd": 83,
+  "djup": 44
+ },
+ "e9570365": {
+  "tyska": "44,5L x 44,5B x 30,5H cm, 51,3L x 51,3B x 45,8H cm, 57,5L x 57,5B x 61H cm",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 30.5,
+  "bredd": 44.5,
+  "djup": 44.5
+ },
+ "eafdf824": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 26,6L x 7,5B x 7,5H cm"
+ },
+ "ef4d6150": {
+  "tyska": "96L x 36B x 96H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 96,
+  "bredd": 96,
+  "djup": 36
+ }
+}

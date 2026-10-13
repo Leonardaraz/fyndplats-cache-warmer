@@ -1,0 +1,39 @@
+[
+ {
+  "huvud": "538458eb",
+  "huvud_fullid": "538458eb-ab41-4a36-9d06-3b5082745585",
+  "givare": "aed4a62f",
+  "givare_fullid": "aed4a62f-ca07-41b6-ac61-bffe89c4958d",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "538458eb": "4 cyklar",
+   "aed4a62f": "6 cyklar"
+  }
+ },
+ {
+  "huvud": "8901f76d",
+  "huvud_fullid": "8901f76d-6728-4e15-8bb8-0f5aa811c33c",
+  "givare": "c8409da9",
+  "givare_fullid": "c8409da9-08f5-469f-ad4e-105c2e187126",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg och storlek",
+  "varden": {
+   "8901f76d": "svart, 20 kg",
+   "c8409da9": "svart och röd, 20 kg",
+   "bd61c238": "svart, 10 kg"
+  }
+ }
+]
