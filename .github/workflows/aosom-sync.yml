@@ -20,10 +20,11 @@ name: Aosom — synka lager och priser
 #             För när man vill ha saldona färska utan att röra ett enda pris.
 #
 # MARKÖR. Svepet loopar `cursor` → `?after=` tills katalogen är slut, precis som
-# importen — en serverless-rutt har 300 sekunder. Markören sparas däremot INTE i
-# grenen, till skillnad från importsvepet: synken konvergerar utan sparad markör
-# (en redan synkad produkt kostar noll Wix-anrop, så nästa körning går gratis
-# förbi den). Se punkt 4 i CLAUDE.md.
+# importen — en serverless-rutt har 300 sekunder. Markören sparas INTE i grenen:
+# en körning härifrån går igenom hela katalogen i ett svep (`max_rounds`), och
+# nästa körning härifrån börjar från början. De schemalagda körningarna i Vercel
+# sparar däremot sin markör i databasen (`?rotation=`, sedan 2026-10-13), och
+# den här workflowen rör den inte. Se punkt 4 i CLAUDE.md.
 #
 # Återanvänder befintliga repository secrets:
 #   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
@@ -362,8 +363,8 @@ jobs:
               echo "skälet är borta (workflowen \"Pris — lås eller lås upp ett pris\")."
             fi
             if [ -n "${after}" ]; then
-              echo "⚠️ Katalogen tog inte slut inom ${MAX_ROUNDS} varv. Kör igen — synken"
-              echo "konvergerar utan sparad markör, redan synkade produkter kostar noll skrivningar."
+              echo "⚠️ Katalogen tog inte slut inom ${MAX_ROUNDS} varv. Kör igen med fler varv"
+              echo "(max_rounds): en ny körning härifrån börjar från början av katalogen."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -381,8 +382,8 @@ jobs:
           # Varför inte "fäller på minsta fel": uppmätt 2026-09-02 föll 1 av
           # 1 111 skrivningar på en övergående 429 trots pacing och återförsök.
           # Ett rött jobb vid varje svep lär mottagaren att sluta läsa — och då
-          # är även det äkta larmet borta. Synken konvergerar dessutom: en miss
-          # skrivs av nästa körning. Missen är ändå ALDRIG tyst, den står
+          # är även det äkta larmet borta. En miss stämplas dessutom inte, så den
+          # skrivs om nästa gång en körning når produkten. Missen är ändå ALDRIG tyst, den står
           # grupperad på orsak ovan och i ruttens audit-rad.
           forsokta=$(( lager + priser + misslyckade ))
           golv=10
@@ -392,7 +393,7 @@ jobs:
             exit 1
           fi
           if [ "$misslyckade" -gt 0 ]; then
-            echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — nästa körning skriver om dem."
+            echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — de skrivs om nästa gång en körning når produkterna."
           fi
 
           # ☠️ OKÄNDA VARIANTER OCH TVETYDIGA RADER FÄLLER JOBBET, även i torrläge.

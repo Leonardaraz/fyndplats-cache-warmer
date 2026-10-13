@@ -434,10 +434,11 @@ describe("runAosomSync", () => {
     expect(andra.granskade).toBe(1);
   });
 
-  it("`limit` tar av SKRIVNINGAR, inte av granskningar — därför konvergerar cronen", async () => {
-    // En redan synkad produkt kostar noll Wix-anrop. Åt den av budgeten skulle
-    // varje körning fastna på samma första hundra och aldrig nå slutet, eftersom
-    // Vercel-cronen inte kan skicka med en markör.
+  it("`limit` tar av SKRIVNINGAR, inte av granskningar", async () => {
+    // En redan synkad produkt kostar noll Wix-anrop och får inte äta av
+    // budgeten. Att det ensamt skulle räcka för att nå slutet av katalogen höll
+    // inte (2026-10-13), så de schemalagda körningarna sparar sin markör
+    // (?rotation=, app/api/cron/aosom-sync/rotation.test.ts).
     const synkad = mappning("A-1", { aosomSyncedQty: 50 - LAGER_BUFFERT });
     const osynkad = mappning("B-2");
     const { d, lager } = deps({
