@@ -1,43 +1,43 @@
-Värmning av www.fyndplats.se, start 2026-10-13T01:11:28.329Z
+Värmning av www.fyndplats.se, start 2026-10-13T01:50:13.527Z
 Sitemapen: 4252 adresser (produkt 3987, övrigt 137, kategori 128). 8 hämtningar åt gången.
-Hämtade 4253 av 4253 på 661 s.
+Hämtade 4253 av 4253 på 327 s.
 
 Läget FÖRE värmningen (x-vercel-cache vid första hämtningen):
-  produkt    3987 st   MISS 3941, HIT 46   | status: 200 3987
-  kategori    128 st   PRERENDER 127, HIT 1   | status: 200 128
-  övrigt      138 st   PRERENDER 135, HIT 2, STALE 1   | status: 200 138
+  produkt    3987 st   MISS 3962, HIT 25   | status: 200 3987
+  kategori    128 st   PRERENDER 126, HIT 2   | status: 200 128
+  övrigt      138 st   PRERENDER 134, STALE 2, HIT 2   | status: 200 138
 
-Första byte: kalla sidor (MISS, 3941 st) median 0.74 s, p90 1.03 s
-             varma sidor (HIT/STALE/PRERENDER, 312 st) median 0.21 s, p90 0.29 s
+Första byte: kalla sidor (MISS, 3962 st) median 0.51 s, p90 0.71 s
+             varma sidor (HIT/STALE/PRERENDER, 291 st) median 0.14 s, p90 0.19 s
 
 Långsammast (första byte):
-   55.34 s  MISS      200     /produkt/vinstall-svart-metall-60-flaskor-vaggfaste
-   54.76 s  MISS      200     /produkt/boxningsset-punchingboll-pa-stang-handskar
-   53.52 s  MISS      200     /produkt/medicinskap-40-cm-las-svart
-   52.95 s  MISS      200     /produkt/baddsoffa-120-cm-click-clack-fem-lagen-morkgra
-   52.85 s  MISS      200     /produkt/elbil-barn-utv-tva-sitsar-fjarrkontroll-fjadring-24v
-   52.26 s  MISS      200     /produkt/sjungande-jultomte-120-cm-klocka-sack
-   52.25 s  MISS      200     /produkt/rumsavdelare-pappersrep-fururam-vikbara-paneler-170-cm
-   52.12 s  MISS      200     /produkt/smalt-badrumsskap-vitt-oppen-hylla
-   52.02 s  MISS      200     /produkt/smalt-badrumsskap-104-cm-ljus-ek-rafflad-dorr
-   51.96 s  MISS      200     /produkt/smalt-badrumsskap-bambu-120-cm
-   51.70 s  MISS      200     /produkt/smalt-badrumsskap-bambu-70-cm
-   51.70 s  MISS      200     /produkt/hogskap-bambu-173-cm-lamelldorr
-   51.67 s  MISS      200     /produkt/hogskap-bambu-170-cm-oppna-hyllor-lamelldorr
-   51.66 s  MISS      200     /produkt/spegelskap-90x60-gratt-tre-dorrar
-   51.62 s  MISS      200     /produkt/badrumsskap-pa-hjul-vitt-tre-lador-fem-fack
+   56.54 s  MISS      200     /produkt/biljardbord-bla-duk-hopfallbara-ben
+   55.62 s  MISS      200     /produkt/skivstangsstall-i-par-justerbara
+   55.54 s  MISS      200     /produkt/strykbradsskap-med-spegeldorr-fallbart
+   55.28 s  MISS      200     /produkt/boxningsset-punchingboll-pa-stang-handskar
+   54.17 s  MISS      200     /produkt/vaggspegel-svart-metallram-staende-eller-liggande
+   54.14 s  MISS      200     /produkt/snogubbefamilj-lysande-tre-figurer
+   53.78 s  MISS      200     /produkt/lysande-ren-guld-rod-rosett
+   53.68 s  MISS      200     /produkt/lysande-presentaskar-guld-roda-rosetter
+    2.80 s  MISS      200     /produkt/smalt-badrumsskap-utdragbar-forvaring-vitt
+    1.73 s  MISS      200     /produkt/sparkbil-rosa-barn-musik-tuta-ljus
+    1.61 s  MISS      200     /produkt/bagformad-vaggspegel-beige-stenlook
+    1.51 s  MISS      200     /produkt/spegelskap-rundade-horn-svart-mjukstangande
+    1.30 s  MISS      200     /produkt/sminkspegel-led-lampor-mobilhallare-usb
+    1.28 s  MISS      200     /produkt/led-badrumsspegel-glashylla-dimbar-antiimma
+    1.26 s  MISS      200     /produkt/uppblasbar-tomte-120-cm-med-sack
 
 Svarade inte 200: 0
 
 Kontroll efteråt: 40 av sidorna som var kalla, hämtade igen: HIT 40
-  första byte median 0.04 s, p90 0.15 s
+  första byte median 0.02 s, p90 0.08 s
 
 Upplevd laddning efter värmningen (mobil = iPhone på 4G med fyra gånger långsammare processor, dator = utan strypning):
-  mobil /                                                HIT       första byte 0.08 s  första innehåll 0.73 s  största innehåll 0.73 s  klar 1.13 s
-  mobil /kategori/mobler                                 HIT       första byte 0.06 s  första innehåll 0.60 s  största innehåll 0.60 s  klar 1.14 s
-  mobil /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.07 s  första innehåll 0.98 s  största innehåll 0.98 s  klar 0.97 s
-  mobil /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.07 s  första innehåll 0.66 s  största innehåll 0.93 s  klar 1.44 s
-  dator /                                                STALE     första byte 0.06 s  första innehåll 0.32 s  största innehåll 0.32 s  klar 0.34 s
-  dator /kategori/mobler                                 HIT       första byte 0.06 s  första innehåll 0.28 s  största innehåll 0.35 s  klar 0.39 s
-  dator /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.07 s  första innehåll 0.27 s  största innehåll 0.27 s  klar 0.35 s
-  dator /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.07 s  första innehåll 0.36 s  största innehåll 0.36 s  klar 0.31 s
+  mobil /                                                HIT       första byte 0.05 s  första innehåll 0.72 s  största innehåll 0.72 s  klar 1.05 s
+  mobil /kategori/mobler                                 HIT       första byte 0.03 s  första innehåll 0.65 s  största innehåll 0.65 s  klar 1.18 s
+  mobil /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.03 s  första innehåll 0.67 s  största innehåll 0.67 s  klar 0.93 s
+  mobil /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.03 s  första innehåll 0.72 s  största innehåll 0.78 s  klar 0.98 s
+  dator /                                                HIT       första byte 0.03 s  första innehåll 0.28 s  största innehåll 0.28 s  klar 0.30 s
+  dator /kategori/mobler                                 HIT       första byte 0.03 s  första innehåll 0.27 s  största innehåll 0.27 s  klar 0.47 s
+  dator /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.03 s  första innehåll 0.28 s  största innehåll 0.28 s  klar 0.23 s
+  dator /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.03 s  första innehåll 0.27 s  största innehåll 0.27 s  klar 0.22 s
