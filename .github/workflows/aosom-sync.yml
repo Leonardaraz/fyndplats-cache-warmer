@@ -188,7 +188,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; ejskeppbara=0
+          utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; iauktion=0; ejskeppbara=0
           salda=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
           flera=0; okanda=0; tvetydiga=0
@@ -225,6 +225,7 @@ jobs:
             sv=$(printf '%s' "$svar" | jq -r '.stampelHoppade // 0')
             sa=$(printf '%s' "$svar" | jq -r '.saldaAvdragna // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
+            ia=$(printf '%s' "$svar" | jq -r '.iAuktion // 0')
             ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
             km=$(printf '%s' "$svar" | jq -r '.konkurrentMal // 0')
             kt=$(printf '%s' "$svar" | jq -r '.konkurrentTak // 0')
@@ -244,6 +245,7 @@ jobs:
             vantar=$(( vantar + sv ))
             salda=$(( salda + sa ))
             prislasta=$(( prislasta + pl ))
+            iauktion=$(( iauktion + ia ))
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
             flera=$(( flera + fl )); okanda=$(( okanda + ok )); tvetydiga=$(( tvetydiga + tv ))
@@ -251,7 +253,7 @@ jobs:
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
               prislistefel="$pf"
-              echo "::warning::Butikens prislista gick inte att läsa: ${pf}"
+              echo "::warning::Prisdelen föll: ${pf}"
             fi
 
             # ☠️ Talen ska stå i LOGGEN, inte bara i jobbsummeringen. Summeringen
@@ -263,7 +265,7 @@ jobs:
             # eller om prisskrivningarna måste batchas. Priscronen stannade på `limit`
             # fyra nätter i rad och lämnade 2 607 rader ogranskade utan att någon såg det.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
-                 "${pl} prislåsta, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
+                 "${pl} prislåsta, ${ia} i fyndauktion, konkurrentregel ${km} mål/${kt} tak/${kg} golv/${kf} frysta," \
                  "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift (${rt} rättade)," \
                  "${sv} stämplar väntar, ${sa} sålda avdragna (flödet visar dem inte än)," \
                  "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
@@ -329,6 +331,7 @@ jobs:
             echo "| Priser | **${priser}** |"
             echo "| Utan butikspris | ${utan} |"
             echo "| Prislåsta (rörs aldrig) | ${prislasta} |"
+            echo "| I fyndauktion (pris orört, lager synkat) | ${iauktion} |"
             echo "| Konkurrentregel: mål / tak / golv | ${kmal} / ${ktak} / ${kgolv} |"
             echo "| **Konkurrentregel: FRYSTA (gammalt dealproffsen-pris)** | **${kfrysta}** |"
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
@@ -345,10 +348,11 @@ jobs:
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
             if [ -n "$prislistefel" ]; then
-              echo "🔴 **Butikens prislista gick inte att läsa:** \`${prislistefel}\`"
+              echo "🔴 **Prisdelen föll:** \`${prislistefel}\`"
               echo ""
               echo "Lagersaldona synkades ändå — ett läsfel i prisdelen får inte stoppa dem."
-              echo "Inga priser skrevs. Kör om när Wix svarar igen."
+              echo "Priser skrevs bara där butikens pris gick att läsa, och inga alls om"
+              echo "fyndauktionerna inte gick att läsa. Kör om när felet är borta."
               echo ""
             fi
             if [ "$utan" -gt 0 ]; then
@@ -411,6 +415,6 @@ jobs:
           # — men noll priser skrevs. Precis den sortens tysta halvkörning som
           # lät tjugo rader driva isär i en månad.
           if [ -n "$prislistefel" ]; then
-            echo "::error::Butikens prislista gick inte att läsa: ${prislistefel}" >&2
+            echo "::error::Prisdelen föll: ${prislistefel}" >&2
             exit 1
           fi

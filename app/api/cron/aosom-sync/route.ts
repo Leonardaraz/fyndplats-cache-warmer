@@ -196,6 +196,7 @@ async function handle(req: NextRequest) {
               + summary.godkandaHopp.map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ") + "), "
             : "")
           + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
+          + `${summary.iAuktion} i fyndauktion (pris orört), `
           + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
           + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} FRYSTA, `
           + `${summary.utanLagerrader} utan lagerrader, `
@@ -210,7 +211,7 @@ async function handle(req: NextRequest) {
           + `${summary.kvar} kvar`
           + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : "")
           + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
-          + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
+          + (summary.prislistaFel ? ` — PRISDELEN FÖLL: ${summary.prislistaFel}` : ""),
       );
     }
 
@@ -222,6 +223,8 @@ async function handle(req: NextRequest) {
       `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
         + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
         + `${summary.prisLasta} prislåsta, `
+        // En levande fyndauktion äger priset (2026-10-13) — se lasAuktionsprodukter.
+        + `${summary.iAuktion} i fyndauktion, `
         // Konkurrentregeln (2026-09-15): FRYSTA är larmet — går det upp har
         // dealproffsen-jämförelsen slutat köras och testraderna står still.
         + `konkurrentregel ${summary.konkurrentMal} mål/${summary.konkurrentTak} tak/`
@@ -260,7 +263,7 @@ async function handle(req: NextRequest) {
         + `stoppade på ${summary.stoppedBy}, `
         + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
         + rotationRad
-        + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : "")
+        + (summary.prislistaFel ? ` — PRISDELEN FÖLL: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
     // Produkterna som skrevs bara för att butiken drivit från stämpeln. Wix-id
