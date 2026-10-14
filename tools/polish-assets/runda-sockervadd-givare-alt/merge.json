@@ -1,0 +1,22 @@
+[
+ {
+  "huvud": "e4211f71",
+  "huvud_fullid": "e4211f71-7432-4bec-bfaa-f8e925611836",
+  "givare": "1103d67e",
+  "givare_fullid": "1103d67e-b2ef-445e-82f5-20203b8b849a",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "e4211f71": "Vit, rosa (AliExpress-listning)",
+   "6f58e516": "Rosa",
+   "1103d67e": "Blå"
+  }
+ }
+]
