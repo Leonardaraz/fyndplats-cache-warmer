@@ -216,3 +216,85 @@ test("rankByName: stavfelsträffar bara när inget matchar utan stavfel", () => 
   // Utan någon träff utan stavfel används stavfelstoleransen som förut.
   assert.deepEqual(rankByName(["Cykel för barn", "Bord"], (n) => n, "cyckel"), ["Cykel för barn"]);
 });
+
+// ── Sökrutan hängde på "uppresningsfåtölj" (Leonard 2026-10-14) ─────────────
+const LYFTSTOLAR = [
+  "Uppresningsfåtölj med massage i mörkgrått tyg – lutar till 135°, bär 180 kg",
+  "Uppresningsfåtölj i grå frotté – elektrisk lyft 60° och åtta massagepunkter",
+  "Elektrisk massagefåtölj med uppresning – värme, fotstöd och liggläge 150°",
+  "Massagefåtölj med uppresning, värme och timer – bär 150 kg",
+  "Reclinerfåtölj med massage och uppresningshjälp – 28 cm ryggdyna",
+  "Uppresningsfåtölj i grått konstläder – 160° liggläge, utan massage",
+];
+const ANNAT = [
+  "MC-lyft med sax i stål, bär 500 kg – höjd 13,5–39 cm, på fyra hjul",
+  "Brödrost för fyra skivor med vågmönster – sju lägen och högt lyft",
+  "Uppblåsbar snögubbe 240 cm med lyktstolpe – färgade ljus och hög hatt",
+  "Öronlappsfåtölj i beige manchester med ländkudde – bär 120 kg",
+];
+
+test("uppresningsfåtölj hittar alla uppresningsfåtöljer, de med ordet i namnet först", () => {
+  const r = rankByName([...ANNAT, ...LYFTSTOLAR], (n) => n, "uppresningsfåtölj");
+  assert.deepEqual(new Set(r), new Set(LYFTSTOLAR));
+  // De tre som heter "Uppresningsfåtölj …" kommer före synonymträffarna.
+  assert.deepEqual(r.slice(0, 3).every((n) => n.startsWith("Uppresningsfåtölj")), true);
+});
+
+test("lyftfåtölj, lyftstol och uppresningsstol hittar uppresningsfåtöljerna, men inte MC-lyften", () => {
+  for (const q of ["lyftfåtölj", "lyftstol", "uppresningsstol"]) {
+    assert.deepEqual(new Set(rankByName([...ANNAT, ...LYFTSTOLAR], (n) => n, q)), new Set(LYFTSTOLAR), q);
+  }
+  // "lyft" är ingen nål: MC-lyften och brödrosten matchar bara sitt eget ord.
+  assert.equal(nameScore("MC-lyft med sax i stål", "lyftfåtölj"), 0);
+});
+
+test("småord krävs inte i namnet, men 'utan' gör det", () => {
+  // "med" saknas i namnet, men "fåtölj" och "uppresning" finns.
+  assert.equal(nameMatch(LYFTSTOLAR[1], "fåtölj med uppresning").full, true);
+  assert.equal(nameMatch(ANNAT[3], "fåtölj med uppresning").full, false);
+  // "utan" är inget småord: fåtöljen med massage ska inte bli en hel träff.
+  assert.equal(nameMatch(LYFTSTOLAR[0], "fåtölj utan massage").full, false);
+  assert.equal(nameMatch(LYFTSTOLAR[5], "fåtölj utan massage").full, true);
+  // En sökning som BARA är småord letar som förut.
+  assert.equal(nameMatch("Bord med stolar", "med").full, true);
+  assert.equal(nameMatch("Matbord i ek", "med").score, 0);
+});
+
+test("ordgränsen ordnar likvärdiga träffar: ordets huvud, sedan ordets början", () => {
+  const tv = ["Viktväst 30 kg med 35 avtagbara viktpåsar", "Två viktskivor på 5 kg", "TV-bänk 160 cm med RGB-LED"];
+  assert.deepEqual(rankByName(tv, (n) => n, "tv"), [tv[2], tv[1], tv[0]]);
+  const bord = ["Bordslampa med keramikfot", "Matbord 110 × 70 cm för fyra"];
+  assert.deepEqual(rankByName(bord, (n) => n, "bord"), [bord[1], bord[0]]);
+  // Ett kort sökord är huvud bara som eget ord: "grupp" slutar på "upp".
+  const upp = ["Loungegrupp i konstrotting", "Hundvagn upp till 4 kg", "Uppblåsbar jultomte 120 cm"];
+  assert.deepEqual(rankByName(upp, (n) => n, "upp"), [upp[1], upp[2], upp[0]]);
+  // Mängden ändras aldrig, bara ordningen.
+  assert.equal(rankByName(tv, (n) => n, "tv").length, 3);
+});
+
+// Den gamla definitionen, ett varv med stavfelstolerans. rankByName räknar i
+// två varv och ska ge exakt samma lista.
+function ettVarv(namn: string[], q: string): string[] {
+  const scored = namn.map((n) => ({ n, ...nameMatch(n, q) })).filter((r) => r.score > 0);
+  const hela = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
+  const kept = hela.some((r) => !r.stavfel) ? hela.filter((r) => !r.stavfel) : hela;
+  return kept.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0)).map((r) => r.n);
+}
+
+test("rankByName i två varv ger samma lista som ett varv med stavfel", () => {
+  const namn = [
+    ...LYFTSTOLAR, ...ANNAT,
+    "Cykel för barn 16 tum", "Elektrisk cykelpump 150 PSI", "Komfortsadel för touringcykel",
+    "Hundvagn för mellanstor hund upp till 25 kg", "Vitt nattduksbord med tre lådor – silverhandtag",
+    "Retro fåtölj med hundtandsmönster", "Solcellslampa 177 cm – trädgårdslykta", "Golvlampa med två glaskulor",
+    "Förvaringsbox med lock", "Kontorsstol med massage och värme", "TV-bänk 160 cm", "Två viktskivor på 5 kg",
+  ];
+  const fragor = ["uppresningsfåtölj", "uppresningsfatolj", "lyftfåtölj", "cyckel", "sdael", "hundvagn",
+    "solcell lampa", "förvaering", "kontorsstol med massage", "fåtölj med uppresning", "tv", "bord", "xyz", "upp"];
+  for (const q of fragor) {
+    for (let k = 2; k <= q.length; k++) {
+      const p = q.slice(0, k);
+      assert.deepEqual(rankByName(namn, (n) => n, p), ettVarv(namn, p), p);
+    }
+  }
+});

@@ -19,7 +19,7 @@ type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
 // FÖRE focus — så indexet oftast ligger i `cache` när fokus väl kommer och
 // listan kan öppnas direkt. Kostar ingenting för den som aldrig går nära rutan.
 let cache: Hit[] | null = null;
-let inflight: Promise<Hit[]> | null = null;
+let inflight: Promise<Hit[] | null> | null = null;
 
 // ETT MISSLYCKANDE FICK INTE BLI PERMANENT. Förr satte .catch() inflight till
 // ett löst löfte om [] — och eftersom `cache` bara sätts i lyckade fallet var
@@ -32,10 +32,18 @@ let inflight: Promise<Hit[]> | null = null;
 //
 // TIMEOUT, av samma skäl. fetch utan gräns kan hänga i minuter på ett dåligt
 // mobilnät, och await:et i onType/onFocus hänger med — panelen förblir tom
-// utan att någonsin ge upp. 6 s är rundligt för 66 kB över 4G och kort nog att
-// hinna göra om innan man tröttnar.
-const TIMEOUT_MS = 6000;
-function loadIndex(): Promise<Hit[]> {
+// utan att någonsin ge upp.
+//
+// ☠️ 6 s RÄCKTE INTE, OCH ETT FEL SÅG UT SOM "INGA TRÄFFAR" (2026-10-14).
+// Indexet har vuxit till 4 184 produkter, 1,08 MB JSON och 270 kB över nätet.
+// Uppmätt på en långsam mobilanslutning: 5,9 s. Med gränsen på 6 s avbröts det
+// mitt i, löftet löstes med en tom lista, och panelen sa "Inga produkter
+// matchade 'uppresningsfåtölj'" om en vara vi har 33 av (Leonards "det
+// buggade"). Nu är gränsen 20 s, ett fel svarar null i stället för [], och
+// panelen erbjuder sökningen på /sok, som inte behöver indexet, både medan vi
+// väntar och när hämtningen fallit.
+const TIMEOUT_MS = 20_000;
+function loadIndex(): Promise<Hit[] | null> {
   if (cache) return Promise.resolve(cache);
   if (!inflight) {
     inflight = fetch("/api/search-index", { signal: AbortSignal.timeout(TIMEOUT_MS) })
@@ -46,7 +54,7 @@ function loadIndex(): Promise<Hit[]> {
       .then((d: Hit[]) => { cache = d; return d; })
       .catch(() => {
         inflight = null; // låt nästa anrop försöka igen
-        return [] as Hit[];
+        return null; // ett fel, inte en tom katalog
       });
   }
   return inflight;
@@ -74,9 +82,19 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // hinna visa "Inga produkter matchade" innan vi ens har något att matcha mot.
   // Att ljuga om noll träffar är sämre än att säga att vi letar.
   const [laddar, setLaddar] = useState(false);
+  // Sant när senaste hämtningen av indexet föll (nät, timeout, felkod). Då vet
+  // vi inte om något matchar, och panelen får inte påstå att inget gör det.
+  const [indexFel, setIndexFel] = useState(false);
   const [soker, startaSok] = useTransition();
+  // Sant när en sökning skickats till /sok. Panelen visar "Söker…" medan sidan
+  // byts och stängs när den bytts (se `visas`). Förr stängdes panelen direkt,
+  // och under de 0,5–0,8 s /sok tar att svara syntes ingenting alls.
+  const [skickad, setSkickad] = useState(false);
   const router = useRouter();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Värdet från den SENASTE tangenten. Se onType.
+  const senaste = useRef("");
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -97,23 +115,36 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // stängd medan man skrev — inga förslag alls, och ingen förklaring. Det är
   // skärmdumparna Leonard skickade 2026-08-29 ("Jkkk" och "Kontorsstol", tom
   // sida under sökrutan).
+  //
+  // ☠️ BARA SENASTE TANGENTEN RANKAS (2026-10-14). Varje tangent som trycks
+  // medan indexet hämtas väntar på samma löfte. När det kom rankade förr varje
+  // väntande tangent sitt eget, för länge sedan inaktuella prefix, alla i samma
+  // uppgift: "uppresningsfåtölj" skrivet på en telefon under hämtningen gav
+  // 14 rankningar i rad och en frusen skärm i 2,3–2,6 s (uppmätt med
+  // fyrdubbelt strypt processor, Leonards "det buggade"). Nu returnerar en
+  // väntande tangent direkt om en nyare har tryckts.
   const onType = async (val: string) => {
+    senaste.current = val;
     setQ(val);
     setActive(-1);
     setOpen(true);
+    setSkickad(false);
     const term = val.trim();
+    if (!cache) setLaddar(true);
+    const idx = await loadIndex();
+    if (senaste.current !== val) return; // en nyare tangent tar över
+    setLaddar(false);
+    setIndexFel(!idx);
+    if (!idx) {
+      setHits([]);
+      return;
+    }
     if (term.length < 2) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       setHits([]);
-      if (!cache) setLaddar(true);
-      const idx = await loadIndex();
-      setLaddar(false);
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
-    if (!cache) setLaddar(true);
-    const idx = await loadIndex();
-    setLaddar(false);
     // ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
     // Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
     // slut tryckas ut ur listan av sju svaga träffar som råkar finnas i lager —
@@ -134,12 +165,29 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // förhämtningen nedan) fylls den i samma andetag, annars när svaret kommer.
   const onFocus = async () => {
     setOpen(true);
+    setSkickad(false);
     if (!cache) setLaddar(true);
     const idx = await loadIndex();
     setLaddar(false);
-    if (q.trim().length >= 2) return;
-    setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+    setIndexFel(!idx);
+    // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
+    if (idx) setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
   };
+
+  // ☠️ TEXT SOM SKREVS FÖRE HYDRERINGEN (2026-10-14). React skriver inte över
+  // rutans värde när sidan hydreras (initInput med isHydrating), men q är tomt.
+  // Skrev man på en långsam telefon innan sidan blivit interaktiv stod ordet
+  // kvar i rutan utan att React kände till det: Enter gjorde ingenting, för
+  // goSearch såg en tom sökning, och nästa rendering (fokus öppnar panelen)
+  // tömde rutan. Nu tas värdet in när komponenten monteras.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el || !el.value) return;
+    if (document.activeElement === el) void onType(el.value);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- värdet finns bara i webbläsaren, skrivet innan React tog över rutan
+    else setQ(el.value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bara när rutan monteras
+  }, []);
 
   // Avsikt att söka → börja hämta indexet. pointerenter fyrar när muspekaren
   // når rutan (desktop, ofta hundratals ms före klicket) och touchstart när
@@ -159,25 +207,61 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // x-vercel-cache MISS varje gång, TTFB 0,50–0,78 s. Under den halvsekunden
   // hände ingenting synligt: panelen stängdes och sidan stod kvar. Med
   // useTransition vet vi att navigeringen pågår och kan säga det.
+  //
+  // Panelen stängdes förr först av allt, och med den knappen som sa "Söker…".
+  // Nu står den kvar och säger "Söker…" tills /sok har bytt sida (se `visas`).
+  // Sökordet läses ur rutan, inte ur q: text skriven före hydreringen kan
+  // finnas där innan q fått den.
   const goSearch = () => {
-    const t = q.trim();
+    const t = (inputRef.current?.value ?? q).trim();
     if (!t) return;
-    setOpen(false);
+    setSkickad(true);
     onNavigate?.();
     startaSok(() => router.push(`/sok?q=${encodeURIComponent(t)}`));
   };
 
+  // Panelen syns när den är öppen, utom när en skickad sökning har landat.
+  // Härlett i stället för en effekt som stänger: skickad och soker sätts i
+  // samma rendering, så panelen blinkar inte.
+  const visas = open && !(skickad && !soker);
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (open && active >= 0 && showing[active]) goProduct(showing[active].s);
+    if (visas && active >= 0 && showing[active]) goProduct(showing[active].s);
     else goSearch();
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") { setOpen(false); return; }
-    if (!open || showing.length === 0) return;
+    if (!visas || showing.length === 0) return;
     if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, showing.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
+  };
+
+  // Panelens fot. ORDNINGEN ÄR VIKTIG. Panelen öppnas innan indexet finns, så
+  // "Inga produkter matchade" får BARA visas när vi faktiskt har letat: står
+  // laddar kvar är svaret ännu inte känt, och har hämtningen fallit vet vi
+  // ingenting. I båda fallen går det att söka på /sok, som inte behöver indexet.
+  const fot = () => {
+    const term = q.trim();
+    const alla = (text: React.ReactNode) => (
+      <button type="button" className="sugg-all" onClick={goSearch} disabled={soker}>
+        {soker ? "Söker…" : text}
+      </button>
+    );
+    if (isPopular) {
+      if (showing.length > 0) return null;
+      if (laddar) return <div className="sugg-empty">Söker…</div>;
+      if (indexFel) return <div className="sugg-empty">Förslagen kunde inte laddas just nu.</div>;
+      return null;
+    }
+    if (showing.length > 0) return alla(<>Visa alla resultat för “{term}” →</>);
+    if (soker) return <div className="sugg-empty">Söker…</div>;
+    if (laddar) return <><div className="sugg-empty">Söker…</div>{alla(<>Visa alla resultat för “{term}” →</>)}</>;
+    if (indexFel) {
+      return <><div className="sugg-empty">Förslagen kunde inte laddas just nu.</div>{alla(<>Sök efter “{term}” i hela butiken →</>)}</>;
+    }
+    return <div className="sugg-empty">Inga produkter matchade “{term}”.</div>;
   };
 
   // Bold the matched substring in a suggestion's name.
@@ -199,6 +283,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           <path d="M21 21l-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
         <input
+          ref={inputRef}
           name="q"
           value={q}
           onChange={(e) => onType(e.target.value)}
@@ -210,12 +295,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           aria-label="Sök efter produkter"
           autoComplete="off"
           role="combobox"
-          aria-expanded={open}
+          aria-expanded={visas}
           aria-controls="search-suggestions"
         />
       </form>
 
-      {open && (showing.length > 0 || laddar || q.trim().length >= 2) && (
+      {visas && (showing.length > 0 || laddar || soker || indexFel || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
           {isPopular && showing.length > 0 && (
             <div className="sugg-head">Populära produkter</div>
@@ -241,18 +326,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ))}
-          {/* ORDNINGEN ÄR VIKTIG. Panelen öppnas numera innan indexet finns, så
-              "Inga produkter matchade" får BARA visas när vi faktiskt har letat.
-              Står laddar kvar är svaret ännu inte känt — då säger vi det. */}
-          {laddar && showing.length === 0 ? (
-            <div className="sugg-empty">Söker…</div>
-          ) : !isPopular && (showing.length > 0 ? (
-            <button type="button" className="sugg-all" onClick={goSearch} disabled={soker}>
-              {soker ? "Söker…" : <>Visa alla resultat för “{q.trim()}” →</>}
-            </button>
-          ) : (
-            <div className="sugg-empty">Inga produkter matchade “{q.trim()}”.</div>
-          ))}
+          {fot()}
         </div>
       )}
     </div>
