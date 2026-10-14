@@ -1,0 +1,113 @@
+[
+ {
+  "huvud": "07799b0d",
+  "huvud_fullid": "07799b0d-4d58-4301-94bd-54ce96e6d9f1",
+  "givare": "b00ff1ac",
+  "givare_fullid": "b00ff1ac-f73a-4ab7-bad6-9bd4fb4909c2",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "07799b0d": "Ljusgrå, gräddvit",
+   "b00ff1ac": "Mörkgrå"
+  }
+ },
+ {
+  "huvud": "5bd95c2c",
+  "huvud_fullid": "5bd95c2c-eae0-48fb-96d0-91228125a5af",
+  "givare": "6a8d81de",
+  "givare_fullid": "6a8d81de-c24c-40f7-ac27-c80b3bcc2441",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5bd95c2c": "Svart, ljust trä",
+   "6a8d81de": "Vit"
+  }
+ },
+ {
+  "huvud": "08feb111",
+  "huvud_fullid": "08feb111-968d-4503-894f-89076e725709",
+  "givare": "211ec849",
+  "givare_fullid": "211ec849-588b-4ffb-a8d7-9732aa8e7c3e",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "08feb111": "Silver",
+   "211ec849": "Guld"
+  }
+ },
+ {
+  "huvud": "ddca577d",
+  "huvud_fullid": "ddca577d-d0c0-4112-87d8-31fa9a2530a1",
+  "givare": "b8ccc4eb",
+  "givare_fullid": "b8ccc4eb-428d-450d-9429-5d33be43a9fb",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "ddca577d": "Svart",
+   "b8ccc4eb": "Vit"
+  }
+ },
+ {
+  "huvud": "926ec7a2",
+  "huvud_fullid": "926ec7a2-bed0-4c07-a128-28c0104fd320",
+  "givare": "59843f1d",
+  "givare_fullid": "59843f1d-f9b0-4953-a475-94fa45180486",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg + Storlek",
+  "varden": {
+   "926ec7a2": "Vit 85 tum, svart 99 tum",
+   "59843f1d": "Vit, 99 tum"
+  }
+ },
+ {
+  "huvud": "808ea6b4",
+  "huvud_fullid": "808ea6b4-c068-4223-b37a-e88630c7b7ee",
+  "givare": "7f10d1cf",
+  "givare_fullid": "7f10d1cf-6ae9-4f4f-875d-cc3c68d70dca",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "808ea6b4": "2-sits",
+   "7f10d1cf": "3-sits"
+  }
+ }
+]
