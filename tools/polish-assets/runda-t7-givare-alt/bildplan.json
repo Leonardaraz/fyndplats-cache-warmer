@@ -1,0 +1,99 @@
+{
+ "runda": "runda-t7-givare-alt",
+ "produkter": [
+  {
+   "kort": "664d5f30",
+   "pid": "664d5f30-be41-492f-be83-97798e37c884",
+   "media": [
+    {
+     "id": "b379ce_30c1a633a4bf4cc39889a7ea55784585~mv2.jpg",
+     "altText": "Svart shoppingvagn med låda, teleskophandtag och hjulstjärnor bak, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_72c470dfc7214a968f11c18a7467ddc1~mv2.jpg",
+     "altText": "En kvinna i grå tröja och beige förkläde böjer sig mot en hylla i en butik, med den svarta shoppingvagnen bredvid sig"
+    },
+    {
+     "id": "b379ce_351c487bdcec4367873a8d0029b104ee~mv2.jpg",
+     "altText": "Den svarta shoppingvagnen hopfälld, sedd snett uppifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_e99777419f9d43b28f0ec2786ba19978~mv2.jpg",
+     "altText": "Närbild på ett svängbart hjul med broms på den svarta vagnen"
+    }
+   ]
+  },
+  {
+   "kort": "f96dfa75",
+   "pid": "f96dfa75-2c59-41b8-9041-a018e250f9d7",
+   "media": [
+    {
+     "id": "b379ce_dec898b738084e0da0320fd15768d07e~mv2.jpg",
+     "altText": "Grå kontorsstol i nättyg med nackstöd, 3D-armstöd och utdragbart fotstöd, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_87ed6f7b3036464293d14c12effe4677~mv2.jpg",
+     "altText": "Den grå stolen står vid ett höj- och sänkbart skrivbord i ett rum med bokhylla"
+    }
+   ]
+  },
+  {
+   "kort": "caecc56b",
+   "pid": "caecc56b-df55-41fb-a6d3-0055b783f340",
+   "media": [
+    {
+     "id": "b379ce_5106aeb459d8422ebd04dffc7ed28b83~mv2.jpg",
+     "altText": "En flicka med hjälm åker den orange sparkcykeln med svart korg, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_f502252da8d9493f8aa6e0d61dbea1ae~mv2.jpg",
+     "altText": "Den orange sparkcykeln med svart korg och svarta stänkskärmar parkerad på en stenlagd gång framför en häck"
+    },
+    {
+     "id": "b379ce_1a252e8a6d6b47c9afad4a6a9eda4001~mv2.jpg",
+     "altText": "Närbild på ett däck med kraftigt mönstrad slitbana framför en orange gaffel"
+    },
+    {
+     "id": "b379ce_adb806b28ef94c10b4b7bcf220af8ef6~mv2.jpg",
+     "altText": "Måttbild: sparkcykeln är 139 cm lång och 58 cm bred, med styrhöjd 90–96 cm och fotplattan 12,5 cm över marken"
+    }
+   ]
+  },
+  {
+   "kort": "6a1a5540",
+   "pid": "6a1a5540-933b-4150-9b4d-af768084f34e",
+   "media": [
+    {
+     "id": "b379ce_aa0c8fb50cd7421d87e4acad3410dd40~mv2.jpg",
+     "altText": "Grå kontorsstol med nätrygg, avtagbart nackstöd och uppfällbara armstöd på vit stjärnfot, sedd snett framifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_ebeaa22f4f724836b7dae528c5890e46~mv2.jpg",
+     "altText": "Den grå kontorsstolen med vit ram vid ett vitt hörnskrivbord med laptop och böcker i ett ljust rum"
+    },
+    {
+     "id": "b379ce_02eaedceab624717b87cc6479f6ac26e~mv2.jpg",
+     "altText": "Den grå kontorsstolen vid ett mörkt skrivbord med skärm och tangentbord på en grå matta"
+    }
+   ]
+  },
+  {
+   "kort": "f13cd415",
+   "pid": "f13cd415-7fb7-439e-91ef-a1dd85c5a4e8",
+   "media": [
+    {
+     "id": "b379ce_d8d72a3a82a94e068fb7b3ca501bc626~mv2.jpg",
+     "altText": "Beige kontorsstol i mesh med högt nackstöd och vit stjärnfot på hjul, sedd snett framifrån"
+    },
+    {
+     "id": "b379ce_66a0cacf30a949cdb28cd86c93a5dd22~mv2.jpg",
+     "altText": "Beige meshkontorsstol vid ett skrivbord i ett ljust hemmakontor med bokhylla och skärm"
+    },
+    {
+     "id": "b379ce_b4fe9592d23449f2a699ca53891c72fb~mv2.jpg",
+     "altText": "Måttskiss av kontorsstolen i fram- och sidvy med höjd 104,5–121,5 cm och sitthöjd 42–50 cm"
+    }
+   ]
+  }
+ ]
+}
