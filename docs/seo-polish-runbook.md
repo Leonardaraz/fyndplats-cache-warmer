@@ -32,6 +32,12 @@
   `Referens` och `Artikelnr` läcker lika mycket. Skrivplanen vägrar en plan som bär ett
   artikelnummer i vilken form som helst, men `gate.py` och CI:s läcktest ser bara versala
   koder. Redigera därför på formen, utan hänsyn till versaler och oavsett etikett.
+  ☠️ **Rutten läser formen bredare än grindarna:** tre tecken, bindestreck och minst tre
+  tecken till, med minst en siffra, i namn, slug, SKU, brödtext, SEO och alt-texter (utom
+  mått som `18-36` och `12-24V`). Den fäller alltså vanliga ord: `MP3-format` (N151 fälldes
+  på det, 2026-10-14), `12V-motor`, `HP4-design`, och i en slug `bmw-s1000rr` eller
+  `amg-glc63s`. Skriv om ordet (`formatet MP3`, `motor på 12 V`) i stället för att leta
+  efter en kvittens: en vägrad plan skriver ingenting, men rundan måste byggas om.
 - **Husmärken ska bort.** HOMCOM, Outsunny, PawHut, Aiyaplay, SportNow, Vinsetto, Kleankin,
   Zonekiz, Durhand och Aosom (`gatelib.MARKEN`, `lib/import/sku.ts`) stryks ur namn,
   SEO-titel, meta, slug, sökord och alt-texter. Etablerade märken med eget sökvärde behålls.
