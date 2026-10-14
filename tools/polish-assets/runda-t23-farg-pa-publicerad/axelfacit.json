@@ -1,0 +1,87 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0c9f870d": {
+  "tyska": "50L x 1,5B x 161,5H cm (mit gefalteter Halterung)",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 161.5,
+  "bredd": 50,
+  "djup": 1.5
+ },
+ "1e5eac85": {
+  "tyska": "65,5L x 28B x 42H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 65.5,
+  "djup": 28
+ },
+ "2e12de07": {
+  "tyska": "63L x 28,5B x 38H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 38,
+  "bredd": 63,
+  "djup": 28.5
+ },
+ "5684651e": {
+  "tyska": "75L x 75B x 75H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 75,
+  "djup": 75
+ },
+ "5f627d89": {
+  "tyska": "20B x 20T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 180,
+  "bredd": 20
+ },
+ "749372df": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße von Sofa: 111L x 80B x 78H cm | ✔ Maße von Bett: 185L x 105B x 27H cm | ✔ Maße von Sitz: 105L x 60B x 37H cm | Mått: 111B x 80T x 78H cm"
+ },
+ "a5f894bb": {
+  "tyska": "108L x 69,5B x 51H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 108,
+  "djup": 69.5
+ },
+ "c9c98333": {
+  "tyska": "555L x 225B x 190H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 190,
+  "bredd": 555,
+  "djup": 225
+ },
+ "cc974ed4": {
+  "tyska": "70L x 50H cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": 50,
+  "bredd": 70
+ },
+ "f87c0ccb": {
+  "tyska": "91L x 40B x 83H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 83,
+  "bredd": 91,
+  "djup": 40
+ },
+ "fd221e07": {
+  "tyska": "L26 x B26 x H160 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 26,
+  "djup": 26
+ }
+}
