@@ -1,0 +1,110 @@
+[
+ {
+  "huvud": "ec23e766",
+  "huvud_fullid": "ec23e766-9afe-477d-9dbe-c9a0afd0622c",
+  "givare": "2a50b48b",
+  "givare_fullid": "2a50b48b-858c-4cf8-9f91-94c846e52879",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "ec23e766": "15 kg",
+   "2a50b48b": "20 kg",
+   "3fde27a0": "25 kg"
+  }
+ },
+ {
+  "huvud": "ec23e766",
+  "huvud_fullid": "ec23e766-9afe-477d-9dbe-c9a0afd0622c",
+  "givare": "3fde27a0",
+  "givare_fullid": "3fde27a0-ca00-4d19-940e-86cc9cdc9fc6",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "ec23e766": "15 kg",
+   "2a50b48b": "20 kg",
+   "3fde27a0": "25 kg"
+  }
+ },
+ {
+  "huvud": "96e16a4e",
+  "huvud_fullid": "96e16a4e-78a0-496f-8391-5d9f12d534f8",
+  "givare": "62217bb1",
+  "givare_fullid": "62217bb1-b4ca-47a3-8dd2-15d326f7fa40",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "96e16a4e": "25 kg",
+   "62217bb1": "30 kg"
+  }
+ },
+ {
+  "huvud": "943181ba",
+  "huvud_fullid": "943181ba-2aee-492d-9333-d3359df97df2",
+  "givare": "943ac814",
+  "givare_fullid": "943ac814-d40f-4c1a-b5c0-810ca608df4b",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "943181ba": "12 kg",
+   "943ac814": "14 kg"
+  }
+ },
+ {
+  "huvud": "1436cd95",
+  "huvud_fullid": "1436cd95-a6db-4925-94e9-724d310288f5",
+  "givare": "292ae740",
+  "givare_fullid": "292ae740-7156-481e-b931-ef5ef52457f1",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "1436cd95": "2 × 5 kg",
+   "292ae740": "2 × 10 kg"
+  }
+ },
+ {
+  "huvud": "cd848ed6",
+  "huvud_fullid": "cd848ed6-fe16-469b-af25-96cc93ad8255",
+  "givare": "4e2fe721",
+  "givare_fullid": "4e2fe721-656b-4c6d-8ff7-f16d46fceccf",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "cd848ed6": "30 kg",
+   "4e2fe721": "20 kg"
+  }
+ }
+]

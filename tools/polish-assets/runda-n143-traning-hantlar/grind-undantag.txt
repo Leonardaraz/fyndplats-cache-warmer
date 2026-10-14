@@ -1,0 +1,23 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen totalmåttrad (Gesamtmaße), bara delmått: hantelns längd, skivornas diameter och stängernas längd. Sidans mått är de delmåtten och längderna i måttbilderna (foto-tal.txt)
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3, struken) visar 110 cm som bredd framifrån och 150 cm som djup längs golvet, medan källans L x B-ordning (150L x 110B) läses positionellt som bredd och djup
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py måttbilden (bild 3) visar 100 cm som cykelns längd och 50 cm som bredd, medan källans L x B-ordning (100L x 50B) läses positionellt som bredd och djup
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
