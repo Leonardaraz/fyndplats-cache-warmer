@@ -33,6 +33,13 @@ name: Dubbletter — radera pensionerade utkast ur Wix
 # kort igen med egna=ja. Utkast som slagits ihop eller mappats om bar ingen
 # egen artikel och raderas utan det.
 #
+# ☠️ `per` GER EN MINDRE PLAN, ALDRIG EN STORRE (2026-10-14). Utan den raknas
+# aldern mot nu, och planen vaxer med tiden: planen som godkandes 2026-10-13
+# 20:09 UTC hade 16 raderbara, och nasta morgon hade 191 till passerat
+# fjorton dygn. Ett ja galler den plan en manniska last. Skicka tiden for den
+# planen i `per` sa tas bara de produkter som da var raderbara, och resten
+# vantar pa ett eget ja. Ruttens `per` far bara ligga bakat i tiden.
+#
 # ☠️ LOGGEN AR PUBLIK. Svaret bar bara wix-id och raknare — aldrig
 # artikelnummer, namn eller sluggar.
 
@@ -69,6 +76,11 @@ on:
         options:
           - "nej"
           - "ja"
+      per:
+        description: "Rakna alderskravet mot en tidigare tid (ISO, t.ex. 2026-10-13T20:09:16Z) i stallet for nu: bara det som da var raderbart tas med. Tomt = nu."
+        required: false
+        default: ""
+        type: string
       limit:
         description: "radera: produkter per anrop (1-50). Default 25."
         required: false
@@ -93,6 +105,7 @@ jobs:
           SKARP: ${{ inputs.skarp }}
           BEKRAFTA: ${{ inputs.bekrafta }}
           EGNA: ${{ inputs.egna }}
+          PER: ${{ inputs.per }}
           LIMIT: ${{ inputs.limit }}
           VARV: ${{ inputs.varv }}
         run: |
@@ -106,6 +119,16 @@ jobs:
           url="${BASE%/api/cron/poll-tracking}/api/admin/pensionerade"
           egna=""
           [ "${EGNA:-nej}" = "ja" ] && egna="&egna=ja"
+
+          # En tidigare klocka: bara tider som slutar pa Z (ISO), sa att inputen
+          # inte kan bryta ut ur query-strangen.
+          per_q=""
+          if [ -n "${PER:-}" ]; then
+            case "$PER" in
+              [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]*Z) per_q="&per=${PER}" ;;
+              *) echo "::error::per ska vara en ISO-tid som slutar pa Z, t.ex. 2026-10-13T20:09:16Z" >&2; exit 1 ;;
+            esac
+          fi
 
           # Fel gar till stderr — en kommandosubstitution slukar stdout.
           anropa() {
@@ -146,13 +169,13 @@ jobs:
 
           # ── plan, eller en torr stampla/radera ────────────────────────────────
           if [ "${MODE}" = "plan" ] || [ "$dry" = "nej" ]; then
-            kropp="$(anropa "${url}?lage=plan${egna}")"
+            kropp="$(anropa "${url}?lage=plan${egna}${per_q}")"
             {
               echo "### Pensionerade utkast — plan"
               echo ""
               plan_tabell "$kropp"
               echo ""
-              echo "> Radera: kor igen med mode=radera, skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.raderbara')."
+              echo "> Radera: kor igen med mode=radera, skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.raderbara')${PER:+ och per=${PER}}."
               echo "> Stampla: mode=stampla, skarp=ja och bekrafta=$(printf '%s' "$kropp" | jq -r '.utanTidsstampel')."
               echo ""
               echo "Forsta raderbara (utan delade filer forst, sedan aldst pensionering):"
@@ -213,7 +236,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           for v in $(seq 1 "${VARV:-30}"); do
             if [ -z "$per" ]; then
-              q="lage=radera&skarp=ja&bekrafta=${BEKRAFTA}&limit=${LIMIT:-25}${egna}"
+              q="lage=radera&skarp=ja&bekrafta=${BEKRAFTA}&limit=${LIMIT:-25}${egna}${per_q}"
             else
               q="lage=radera&skarp=ja&hogst=${hogst}&per=${per}&limit=${LIMIT:-25}${egna}"
             fi

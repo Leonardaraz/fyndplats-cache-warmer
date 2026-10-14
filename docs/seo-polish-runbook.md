@@ -287,7 +287,10 @@ runda som vanligt men ger den en rad i `sammanslagna.tsv` (`kort`, tab, antal va
 och ingen rad i `sku.tsv` eller `variant.tsv`. Skrivworkflowen skriver då text, bilder och
 kategorier men hoppar över SKU-steget, och återläsningen kräver att alla varianter finns
 kvar och syns. Bildlistan måste bära varje bild ett färgval pekar på, annars skrivs den
-inte. Skriv texten för den nya färgen också, och lägg sedan på den med sammanslagningen.
+inte. En länkad bild som ändå ska bort (text inbränd i en annan språkversion) tas bort med
+workflowen **"Bilder — ta bort bilder ur en publicerad sida (också länkade)"**: torrt först,
+sedan `skarp=ja` med planens sha (CLAUDE.md, *Bilder bort*). Skriv texten för den nya färgen
+också, och lägg sedan på den med sammanslagningen.
 Läs sidans nuvarande text och varianter färskt: rundans gamla filer är inaktuella.
 
 #### Varje färg har sin egen bild
