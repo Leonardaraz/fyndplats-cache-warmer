@@ -22,6 +22,7 @@
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
 import { getProducts, getCollections, dedupeProducts, type Product, type Collection } from "../products";
+import { produkterIKategorin } from "../bara-i-underkategorin";
 import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
 import { getLocalPosts } from "../local-blog";
@@ -106,10 +107,9 @@ function collByName(collections: Collection[], name: string): Collection | undef
 }
 
 // Produkter i en kategori (huvudkategori → inkl. underkategorier), bara i lager.
+// Samma urval som kategorisidan (lib/bara-i-underkategorin.ts).
 function productsInCategory(products: Product[], collections: Collection[], cat: Collection): Product[] {
-  const childIds = collections.filter((c) => c.parentId === cat.id).map((c) => c.id);
-  const ids = new Set([cat.id, ...childIds]);
-  return products.filter((p) => p.inStock && (p.collectionIds || []).some((cid) => ids.has(cid)));
+  return produkterIKategorin(products, cat, collections).filter((p) => p.inStock);
 }
 
 function relatedPosts(posts: Post[], keywords: string[], limit = 3): { title: string; slug: string }[] {

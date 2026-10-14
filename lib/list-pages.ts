@@ -22,6 +22,7 @@ import { dedupeProducts, forClient, forListings, getCollections, getProducts } f
 import { attachRatings } from "./review-aggregates";
 import { orderRecommended } from "./sort-products";
 import { universalCollectionIds } from "./related-pick";
+import { produkterIKategorin } from "./bara-i-underkategorin";
 import { saleProducts } from "./rea";
 import { listOversikt, type ListOversikt } from "./list-overview";
 import { listaUrl, type ListNyckel } from "./list-key";
@@ -38,7 +39,8 @@ export const FORSTA_KORT = 48;
  * Produkterna en kategorisida visar, i katalogordning.
  *
  * Huvudkategori: kategorin OCH alla dess underkategorier, så avdelningssidan
- * blir komplett. Underkategori: bara sina egna. Populära & REA är
+ * blir komplett, utom produkterna i lib/bara-i-underkategorin.ts.
+ * Underkategori: bara sina egna. Populära & REA är
  * merchandising-sidor utan egna Wix-tilldelade produkter och fylls från
  * produktflaggorna i stället.
  */
@@ -53,9 +55,8 @@ export function kategoriProdukter(active: Collection, collections: Collection[],
     const tagged = products.filter((p) => p.ribbon === "Bestseller");
     return tagged.length >= 8 ? tagged : [...products].sort((a, b) => b.imageScore - a.imageScore).slice(0, 24);
   }
-  const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);
-  const catIds = new Set([active.id, ...childIds]);
-  return products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
+  // Avdelningen hoppar över produkter som bara ska synas i sin underkategori.
+  return produkterIKategorin(products, active, collections);
 }
 
 /**
