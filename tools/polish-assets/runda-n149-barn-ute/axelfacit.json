@@ -1,0 +1,129 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2082c9a5": {
+  "tyska": "110L x 40B x 82-97,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   82,
+   97.5
+  ],
+  "bredd": 110,
+  "djup": 40
+ },
+ "58615473": {
+  "tyska": "75L x 34,5B x 105H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 75,
+  "djup": 34.5
+ },
+ "6bacbb65": {
+  "tyska": "122L x 108B x 135,5H cm (mit Dach)",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 135.5,
+  "bredd": 122,
+  "djup": 108
+ },
+ "7c3d438a": {
+  "tyska": "23L x 23B x 4H cm (klein), 33L x 33B x 7,5H cm (mittel), 36,5L x 36,5B x 16H cm (groß), 40,5L x 40,5B x 20H cm (sehr groß)",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBHLBH",
+  "hojd": 4,
+  "bredd": 23,
+  "djup": 23
+ },
+ "8691cbc0": {
+  "tyska": "L99 x B65 x H56cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 99,
+  "djup": 65
+ },
+ "88b9c863": {
+  "tyska": "283B x 180T x 182H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 180,
+  "hojd": 182,
+  "bredd": 283
+ },
+ "8ab866bb": {
+  "tyska": "97L x 66B x 59H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 59,
+  "bredd": 97,
+  "djup": 66
+ },
+ "99850a5e": {
+  "tyska": "114B x 126,4T x 135H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 126.4,
+  "hojd": 135,
+  "bredd": 114
+ },
+ "aac544b0": {
+  "tyska": "106L x 106B x 115H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 115,
+  "bredd": 106,
+  "djup": 106
+ },
+ "b0ae40f7": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße(aufgeblast): 300L x 180B x 160H cm | ✔ Trampolin Abmessungen: 158L x 138B cm | ✔ Rutsche Abmessungen: 138L x 85B cm | Mått: 300L x 180B x 160H cm"
+ },
+ "b3d60f53": {
+  "tyska": "382L x 196B x 203H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 203,
+  "bredd": 382,
+  "djup": 196
+ },
+ "ca0a9ae8": {
+  "tyska": "Ø98 x 190H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 190
+ },
+ "d17e275d": {
+  "tyska": "148L x 77B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 148,
+  "djup": 77
+ },
+ "d9fa791d": {
+  "tyska": "260B x 185T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 185,
+  "hojd": 180,
+  "bredd": 260
+ },
+ "f6a0b941": {
+  "tyska": "134,5L x 97B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 134.5,
+  "djup": 97
+ },
+ "f8599023": {
+  "tyska": "285L x 160B x 181H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 181,
+  "bredd": 285,
+  "djup": 160
+ }
+}
