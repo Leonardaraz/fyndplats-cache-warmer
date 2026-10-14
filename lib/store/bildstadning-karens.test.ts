@@ -42,6 +42,13 @@ describe("lagret i minnet", () => {
     await l.glom(["a"]);
     expect((await l.registrera(["a"], 300)).get("a")).toBe(300);
   });
+
+  it("läser alla antecknade filer", async () => {
+    const l = nyttMinnesKarens();
+    await l.registrera(["a", "b"], 100);
+    await l.glom(["a"]);
+    expect(await l.lasAlla()).toEqual(["b"]);
+  });
 });
 
 describe("lagret i Postgres", () => {

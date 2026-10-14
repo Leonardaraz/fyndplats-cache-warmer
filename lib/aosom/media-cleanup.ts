@@ -236,8 +236,12 @@ export interface StadningsPlan {
   forUnga: number;
   /** Oanvända filer i en raderbar klass vars id inte har den vanliga formen. */
   ovanligtId: number;
-  /** Id för fönstrets filer som någon läsare använder. Karenstiden glömmer dem. */
-  anvandaIdn: string[];
+  /**
+   * Används filen med den här karensnyckeln av någon läsare? Gäller vilken fil
+   * som helst, inte bara fönstrets: karenstiden glömmer varje antecknad fil som
+   * används, var i biblioteket den än ligger.
+   */
+  anvands: (nyckel: string) => boolean;
 }
 
 function tommaKlasser(): Record<Filklass, KlassSiffror> {
@@ -257,6 +261,15 @@ function senastRord(f: MediaFil): number {
 /** Jämförelsenyckel: filens id-del, gemener. */
 function jamfor(s: string): string {
   return mediaNyckel(s).toLowerCase();
+}
+
+/**
+ * Filens nyckel i karenstabellen: samma nyckel som jämförelsen med läsarna
+ * använder (adressens id-del, gemener), så att "används den?" och "när sågs
+ * den oanvänd?" alltid frågar om samma sak.
+ */
+export function karensNyckel(f: Pick<MediaFil, "id" | "url">): string {
+  return jamfor(f.url) || jamfor(f.id);
 }
 
 // `mediaNyckel` bor i lib/wix/produkt-media.ts tillsammans med definitionen av
@@ -347,7 +360,6 @@ export function planeraStadning(
   }
 
   const attRadera: MediaFil[] = [];
-  const anvandaIdn: string[] = [];
   const perKlass = tommaKlasser();
   let anvanda = 0;
   let forUnga = 0;
@@ -360,7 +372,6 @@ export function planeraStadning(
     if (anvandaNycklar.has(jamfor(f.url)) || anvandaNycklar.has(jamfor(f.id))) {
       s.anvanda++;
       if (varaNycklar.has(mediaNyckel(f.url))) anvanda++;
-      anvandaIdn.push(f.id);
       continue;
     }
     s.oanvanda++;
@@ -395,7 +406,7 @@ export function planeraStadning(
     perKlass,
     forUnga,
     ovanligtId,
-    anvandaIdn,
+    anvands: (nyckel: string) => anvandaNycklar.has(nyckel),
   };
 }
 
@@ -775,11 +786,18 @@ export async function runMediaCleanup(
   //
   // Bokföringen görs FÖRE raderingen. Faller den avbryts körningen, och
   // ingenting raderas utan en känd tid.
+  //
+  // ☠️ HELA TABELLEN jämförs med läsarna, inte bara fönstrets filer. En gammal
+  // fil ligger utanför nattens fönster och ses annars bara vid en full
+  // genomgång; en fil som tagits i bruk och släppts igen däremellan hade då
+  // behållit sin gamla tid och kunnat raderas dagen efter att den släpptes.
+  // Läsarna läser hela katalogen varje körning, så varje natt glöms det som
+  // används någonstans.
   const nuMs = now();
-  const forstSedd = await deps.karens.registrera(plan.attRadera.map((f) => f.id), nuMs);
-  await deps.karens.glom(plan.anvandaIdn);
+  const forstSedd = await deps.karens.registrera(plan.attRadera.map(karensNyckel), nuMs);
+  await deps.karens.glom((await deps.karens.lasAlla()).filter((n) => plan.anvands(n)));
   const mogna = plan.attRadera.filter((f) => {
-    const t = forstSedd.get(f.id);
+    const t = forstSedd.get(karensNyckel(f));
     return t !== undefined && Number.isFinite(t) && nuMs - t >= KARENS_MS;
   });
   const attRadera = opts.limit ? mogna.slice(0, opts.limit) : mogna;
@@ -828,7 +846,7 @@ export async function runMediaCleanup(
       await deps.raderaPermanent(skopa.map((f) => f.id));
       summary.raderade += skopa.length;
       frigjort += skopa.reduce((s, f) => s + (f.sizeInBytes || 0), 0);
-      raderadeIdn.push(...skopa.map((f) => f.id));
+      raderadeIdn.push(...skopa.map(karensNyckel));
     } catch (err) {
       summary.misslyckade += skopa.length;
       summary.errors.push(err instanceof Error ? err.message : String(err));
@@ -886,14 +904,15 @@ export function sammanfattaFelkropp(kropp: string): string {
 }
 
 /**
- * Sidor per körning. 60 × 100 = 6 000 filer.
+ * Sidor per körning. 50 × 100 = 5 000 filer.
  *
  * Taket är satt av edge-spärren, inte av tiden: en körning dog efter ~150 sidor
- * i rad. Referenslistan kostar ~37 sidor mot samma värd innan fillistningen ens
- * börjar, så 60 håller hela körningen kring 97 anrop — med marginal under den
- * gräns där spärren slog till, och långt under ruttens 300 sekunder.
+ * i rad. Läsarna kostar ~80 anrop mot samma värd innan fillistningen ens börjar
+ * (2026-10-14: ~64 produktsidor, räknaren, två kategorisidor, ~7 variantsidor,
+ * ordrarna), så 50 håller hela körningen kring 130 anrop. Var 60 när
+ * produktsökningen var ~37 sidor och varianterna inte lästes.
  */
-const SIDOR_PER_FONSTER = 60;
+const SIDOR_PER_FONSTER = 50;
 
 /** Sidor om 100 ordrar. Butiken hade 90 ordrar 2026-10-14. */
 const ORDER_SIDTAK = 100;
@@ -934,7 +953,37 @@ const VARIANT_SIDTAK = 100;
  */
 const KATALOG_TOLERANS = 5;
 
+/**
+ * ☠️ ALLA LÄSARE OCH RADERINGEN MÅSTE GÄLLA SAMMA SAJT (granskningen
+ * 2026-10-14). Filerna, produkterna, varianterna och kategorierna läses med
+ * `WIX_SITE_ID`, ordrarna med butikens sajt (`HEADLESS_WIX_SITE_ID`). Pekar
+ * de isär läser ordrarna en annan butik, och deras bilder ser oanvända ut.
+ * Uppmätt lika 2026-09-28 (`sammaSajtSomBildstadningen`).
+ */
+export function kontrolleraSammaSajt(wixSiteId: string | undefined, butikensSajt: string): void {
+  if (wixSiteId && wixSiteId !== butikensSajt) {
+    throw new Error(
+      "WIX_SITE_ID och butikens sajt (HEADLESS_WIX_SITE_ID) pekar på olika sajter. "
+        + "Bildstädningen läser då ordrarna i en annan butik än filerna, och ingenting raderas.",
+    );
+  }
+}
+
+/**
+ * ☠️ Ett produktsvep som inte blev klart, eller som såg färre produkter än
+ * katalogens räknare, är ett läsfel. Halvbildsspärren i planeraStadning ser
+ * inte ett svep som kapats jämnt (granskningen 2026-10-14).
+ */
+export function kontrolleraProduktsvep(sedda: number, klar: boolean, katalogensRaknare: number): void {
+  if (!klar) throw new Error("Produktsvepet nådde sidtaket utan att bli klart.");
+  if (sedda < katalogensRaknare - KATALOG_TOLERANS) {
+    throw new Error(`Produktsvepet såg ${sedda} av ${katalogensRaknare} produkter — det har tappat sidor.`);
+  }
+}
+
 export async function liveDeps(): Promise<MediaCleanupDeps> {
+  const { headlessSiteId: butikensSajt } = await import("../wix/media-audit");
+  kontrolleraSammaSajt(process.env.WIX_SITE_ID, butikensSajt());
   const WIX_BASE = "https://www.wixapis.com";
   const paus = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -1192,12 +1241,8 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       // om katalogen tagit slut, och halvbildsspärren i planeraStadning ser inte
       // ett svep som kapats jämnt. Samma kontroll som raderingen av
       // pensionerade utkast gör.
-      if (!klar) throw new Error("Produktsvepet nådde sidtaket utan att bli klart.");
       const { countProducts, headlessSiteId } = await import("../wix/media-audit");
-      const totalt = await countProducts(process.env.WIX_SITE_ID || headlessSiteId());
-      if (antalProdukter < totalt - KATALOG_TOLERANS) {
-        throw new Error(`Produktsvepet såg ${antalProdukter} av ${totalt} produkter — det har tappat sidor.`);
-      }
+      kontrolleraProduktsvep(antalProdukter, klar, klar ? await countProducts(process.env.WIX_SITE_ID || headlessSiteId()) : 0);
       return { urls, antalProdukter };
     },
 

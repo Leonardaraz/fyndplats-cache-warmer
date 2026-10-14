@@ -14,8 +14,12 @@
 // glapp i nattens läge: en import laddar upp bilderna sekunder innan
 // produkten skapas.
 //
-// En rad tas bort så fort filen ses i bruk igen, och när den raderats. Postgres
-// i drift, en lista i minnet när STORE_BACKEND=memory (dev och test).
+// En rad tas bort så fort filen ses i bruk igen, och när den raderats. Varje
+// körning jämför HELA tabellen med det läsarna använder, inte bara fönstrets
+// filer: en gammal fil ligger utanför nattens fönster och ses annars bara vid
+// en full genomgång, så en fil som tagits i bruk och släppts igen däremellan
+// hade behållit sin gamla tid. Postgres i drift, en lista i minnet när
+// STORE_BACKEND=memory (dev och test).
 
 import { sql } from "@/lib/db/client";
 import { KARENS_DDL } from "@/lib/db/schema";
@@ -31,6 +35,8 @@ export interface KarensLager {
    * sågs oanvänd (ms sedan epoken). En fil som redan står där behåller sin tid.
    */
   registrera(filIdn: ReadonlyArray<string>, nu: number): Promise<Map<string, number>>;
+  /** Varje antecknad fil. Körningen glömmer dem som någon läsare använder. */
+  lasAlla(): Promise<string[]>;
   /** Glömmer filerna: de används igen, eller är raderade. */
   glom(filIdn: ReadonlyArray<string>): Promise<void>;
 }
@@ -45,6 +51,10 @@ class MinnesKarens implements KarensLager {
       ut.set(id, this.forst.get(id)!);
     }
     return ut;
+  }
+
+  async lasAlla(): Promise<string[]> {
+    return [...this.forst.keys()];
   }
 
   async glom(filIdn: ReadonlyArray<string>): Promise<void> {
@@ -86,6 +96,12 @@ export class PostgresKarens implements KarensLager {
       if (!Number.isFinite(ut.get(id))) throw new Error(`karenstabellen svarade utan tid för en fil`);
     }
     return ut;
+  }
+
+  async lasAlla(): Promise<string[]> {
+    await sakerstall();
+    const rows = (await sql().query(`select fil_id from bildstadning_karens`, [])) as { fil_id: string }[];
+    return rows.map((r) => r.fil_id);
   }
 
   async glom(filIdn: ReadonlyArray<string>): Promise<void> {

@@ -3017,8 +3017,33 @@ väg där en fil som någon av läsarna ser raderas, men fem hål runt läsarna:
    summerat över passen. Rutten avvisar ett `limit` som inte är ett positivt
    heltal: `limit=0.5` blev förr 0, alltså obegränsat.
 
-Kvar och känt: läser en körning gammal kod (en återställd deploy mitt i
-workflowen) märks det först efter anropet, högst `hogst` filer.
+6. **Den egna dubbelkollen samma kväll** hittade två saker till. Karenstabellen
+   jämförs i varje körning i SIN HELHET med det läsarna använder, inte bara med
+   fönstrets filer: gamla filer ligger utanför nattens fönster och ses annars
+   bara vid en full genomgång, så en fil som tagits i bruk och släppts igen
+   däremellan hade behållit sin gamla tid. Tabellen nycklas på samma nyckel som
+   jämförelsen (`karensNyckel`: adressens id-del, gemener). Och liveDeps vägrar
+   köra när `WIX_SITE_ID` och butikens sajt pekar isär
+   (`kontrolleraSammaSajt`), för då läser ordrarna en annan butik än filerna.
+   Fönstret är 50 sidor (5 000 filer), inte 60: läsarna kostar nu ~80 anrop
+   mot samma värd innan listningen börjar.
+
+Kvar och känt, medvetet:
+
+- Läser en körning gammal kod (en återställd deploy mitt i workflowen) märks
+  det först efter anropet, högst `hogst` filer.
+- **Inlägg i Wix Blog** som saknar en lokal markdown-fil visas av butiken
+  (`lib/blog.ts` på headless-site) med sitt omslag, och ingen läsare ser dem.
+  Inga sådana visas 2026-10-14 (alla sju har lokala ersättare). Ett omslag som
+  laddats upp i Wix-editorn saknar källadress och raderas aldrig; bara en
+  importerad produktbild vald som omslag kan träffas. En läsare för Wix Blog
+  kräver blogg-behörighet på motorns nyckel, som inte är verifierad.
+- **Bilder inuti produktbeskrivningar** läses inte (beskrivningen är 3–4 kB per
+  produkt). Ingen av de 406 sparade produktsidorna hade någon 2026-10-14.
+- Mejl som redan skickats (påminnelser om varukorg efter 72 timmar,
+  bevakningsmejl) kan visa en bild som raderats efter karenstiden.
+- En fil som tas i bruk och släpps igen mellan två nattkörningar syns inte
+  som i bruk, och dess gamla tid står kvar.
 
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
@@ -3031,7 +3056,7 @@ som ser likadana ut i ett felmeddelande men inte är samma sak:
 | **Edge-strypningen** | en **HTML-sida** efter ~150 sidor | ingenting inom ruttens 300 s |
 
 Den andra är strukturell: **58 160 filer går inte att lista i ETT anrop**, hur
-tålmodigt det än görs. Listningen är därför FÖNSTRAD — 60 sidor per körning,
+tålmodigt det än görs. Listningen är därför FÖNSTRAD — 50 sidor per körning (60 före 2026-10-14),
 markör i svaret (`cursor` → `?after=`). Samma mönster som svepet och bildfixen,
 och av samma skäl.
 

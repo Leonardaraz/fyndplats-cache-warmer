@@ -7,7 +7,7 @@ name: Bilder — radera oanvända bilder i hela mediabiblioteket
 # omfang=allt. Varje anrop läser först alla läsare: produkterna, kategorierna,
 # recensionerna, färgbildstabellen, butikens egen lista (bloggen, koden,
 # reservkatalogen, variantbilderna) och ordrarna. Faller någon av dem avbryts
-# anropet. Sedan listas biblioteket i fönster om 6 000 filer.
+# anropet. Sedan listas biblioteket i fönster om 5 000 filer.
 #
 # VAD SOM RADERAS: bara filer vår kod skapat (leverantörsimporter, Wix kopior
 # av våra egna filer, poleringens crop-utsnitt och kort) som ingen läsare

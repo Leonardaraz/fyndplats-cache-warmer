@@ -8,6 +8,8 @@ import {
   mediaNyckel,
   recensionsbildUrler,
   RECENSION_TAK,
+  kontrolleraSammaSajt,
+  kontrolleraProduktsvep,
   type MediaFil,
   type MediaCleanupDeps,
 } from "./media-cleanup";
@@ -23,6 +25,7 @@ const MB = 1_000_000;
 function moget(): KarensLager {
   return {
     registrera: async (idn, nu) => new Map(idn.map((id) => [id, nu - KARENS_MS])),
+    lasAlla: async () => [],
     glom: async () => {},
   };
 }
@@ -832,7 +835,7 @@ describe("granskningen 2026-10-14", () => {
 
     it("☠️ faller bokföringen raderas ingenting", async () => {
       const { d, raderade } = deps({
-        karens: { registrera: async () => { throw new Error("DATABASE_URL saknas"); }, glom: async () => {} },
+        karens: { registrera: async () => { throw new Error("DATABASE_URL saknas"); }, lasAlla: async () => [], glom: async () => {} },
       });
       await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/DATABASE_URL/);
       expect(raderade).toEqual([]);
@@ -840,7 +843,7 @@ describe("granskningen 2026-10-14", () => {
 
     it("en fil utan antecknad tid raderas inte", async () => {
       const { d, raderade } = deps({
-        karens: { registrera: async () => new Map(), glom: async () => {} },
+        karens: { registrera: async () => new Map(), lasAlla: async () => [], glom: async () => {} },
       });
       const s = await runMediaCleanup(d, { dryRun: false });
       expect(raderade).toEqual([]);
@@ -852,6 +855,7 @@ describe("granskningen 2026-10-14", () => {
       const { d, raderade } = deps({
         karens: {
           registrera: async (idn, nu) => new Map(idn.map((id) => [id, nu - KARENS_MS])),
+          lasAlla: async () => [],
           glom: async (idn) => { if (glomd++ > 0 && idn.length) throw new Error("nätverksfel"); },
         },
       });
@@ -861,11 +865,52 @@ describe("granskningen 2026-10-14", () => {
       expect(s.errors.join(" ")).toMatch(/karenstabellen: nätverksfel/);
     });
 
+    it("☠️ en gammal fil utanför fönstret som tas i bruk glöms, så klockan börjar om", async () => {
+      // Gamla filer ligger utanför nattens fönster och ses annars bara vid en
+      // full genomgång. Läsarna läser hela katalogen, så användningen syns ändå.
+      const karens = nyttMinnesKarens();
+      const gammal = fil("aosom-G-1.jpg", "g1");
+      await runMediaCleanup(deps({ karens, now: () => T0,
+        listaFiler: async () => ({ filer: [gammal], cursor: null, komplett: true }) }).d, { dryRun: true });
+      // Dag 1: g1 sitter på en produkt igen, men nattens fönster ser bara nya filer.
+      await runMediaCleanup(deps({ karens, now: () => T0 + DAG,
+        listaAnvanda: async () => ({ urls: [url("a1"), url("g1")], antalProdukter: 1 }) }).d, { dryRun: false });
+      // Dag 3: g1 släpps igen, och en full genomgång ser den oanvänd.
+      const dag3 = deps({ karens, now: () => T0 + 3 * DAG,
+        listaFiler: async () => ({ filer: [gammal], cursor: null, komplett: true }) });
+      const s = await runMediaCleanup(dag3.d, { dryRun: false });
+      expect(dag3.raderade).toEqual([]);
+      expect(s.iKarens).toBe(1);
+    });
+
     it("limit gäller de mogna filerna", async () => {
       const { d, raderade } = deps();
       const s = await runMediaCleanup(d, { dryRun: false, limit: 1 });
       expect(raderade.flat()).toHaveLength(1);
       expect(s.stoppedBy).toBe("limit");
     });
+  });
+});
+
+describe("kontrolleraSammaSajt", () => {
+  it("☠️ olika sajter för filerna och ordrarna stoppar körningen", () => {
+    expect(() => kontrolleraSammaSajt("annan-sajt", "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).toThrow(/olika sajter/);
+  });
+  it("samma sajt, eller ingen WIX_SITE_ID, går igenom", () => {
+    expect(() => kontrolleraSammaSajt("e6d27e90-4749-4720-9afe-0bbe91c1b3d3", "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).not.toThrow();
+    expect(() => kontrolleraSammaSajt(undefined, "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).not.toThrow();
+  });
+});
+
+describe("kontrolleraProduktsvep", () => {
+  it("☠️ ett svep som tappat sidor fäller körningen", () => {
+    expect(() => kontrolleraProduktsvep(5_000, true, 6_300)).toThrow(/såg 5000 av 6300/);
+  });
+  it("☠️ ett svep som nådde sidtaket fäller körningen", () => {
+    expect(() => kontrolleraProduktsvep(6_300, false, 0)).toThrow(/sidtaket/);
+  });
+  it("en import medan svepet pågår är inget fel (högst fem färre)", () => {
+    expect(() => kontrolleraProduktsvep(6_295, true, 6_300)).not.toThrow();
+    expect(() => kontrolleraProduktsvep(6_294, true, 6_300)).toThrow();
   });
 });
