@@ -58,11 +58,16 @@ export const LASBARA = /\.(md|mdx|ts|tsx|js|mjs|cjs|json|html|xml|txt|css)$/i;
 export const HOPPA_OVER = /(^|\/)(node_modules|\.next)(\/|$)|\.test\.[a-z]+$|-fixtures?\//;
 
 /**
- * Golv. Under dem är listan trasig, inte tom: bloggen har hundratals bilder
- * och reservkatalogen tusentals. Rutten svarar då 503 i stället för en halv
- * lista, och motorn avbryter städningen.
+ * Golv per källa och totalt. Under dem är listan trasig, inte tom. Rutten
+ * svarar då 503 i stället för en halv lista, och motorn avbryter städningen.
+ *
+ * PER KÄLLA, inte bara totalt: reservkatalogen ensam bär totalen, så en lista
+ * där variantbilderna (data/) fallit bort hade annars gått igenom. Det är
+ * också det som fäller en lista som räknas om i en serverlös funktion, där
+ * källfilerna inte finns. Uppmätt 2026-10-14: blogg 215, reservkatalog
+ * 2 399, data 749, kod 5. Motorn har samma golv (lib/wix/butikens-media.ts).
  */
-export const GOLV = { blogg: 100, totalt: 1000 } as const;
+export const GOLV = { blogg: 100, reservkatalog: 1000, data: 300, kod: 1, totalt: 1000 } as const;
 
 export interface Manifest {
   version: 1;
@@ -101,8 +106,9 @@ export function byggManifest(
 
 /** Är listan hel nog att lita på? `null` = ja, annars skälet. */
 export function underGolv(m: Manifest): string | null {
-  if ((m.perKalla.blogg ?? 0) < GOLV.blogg) {
-    return `bloggen gav ${m.perKalla.blogg ?? 0} bilder, golvet är ${GOLV.blogg}`;
+  for (const kalla of ["blogg", "reservkatalog", "data", "kod"] as const) {
+    const n = m.perKalla[kalla] ?? 0;
+    if (n < GOLV[kalla]) return `${kalla} gav ${n} bilder, golvet är ${GOLV[kalla]}`;
   }
   if (m.idn.length < GOLV.totalt) {
     return `listan har ${m.idn.length} bilder, golvet är ${GOLV.totalt}`;

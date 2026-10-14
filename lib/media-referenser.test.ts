@@ -41,14 +41,25 @@ test("listan räknar varje id en gång och per källa", () => {
   assert.deepEqual(m.filer, { blogg: 1, kod: 1 });
 });
 
+const manga = Array.from({ length: GOLV.totalt }, (_, i) => `b379ce_${i.toString(16).padStart(32, "0")}~mv2.jpg`);
+const kallor = (utan?: string) => [
+  { kalla: "blogg", text: manga.slice(0, GOLV.blogg).join(" ") },
+  { kalla: "reservkatalog", text: manga.join(" ") },
+  { kalla: "data", text: manga.slice(0, GOLV.data).join(" ") },
+  { kalla: "kod", text: ID },
+].filter((k) => k.kalla !== utan);
+
 test("en lista under golvet är trasig, inte tom", () => {
-  assert.match(underGolv(byggManifest([{ kalla: "blogg", text: ID }])) ?? "", /bloggen gav 1/);
-  const manga = Array.from({ length: GOLV.totalt }, (_, i) => `b379ce_${i.toString(16).padStart(32, "0")}~mv2.jpg`);
-  const hel = byggManifest([
-    { kalla: "blogg", text: manga.slice(0, GOLV.blogg).join(" ") },
-    { kalla: "reservkatalog", text: manga.join(" ") },
-  ]);
-  assert.equal(underGolv(hel), null);
+  assert.match(underGolv(byggManifest([{ kalla: "blogg", text: ID }])) ?? "", /blogg gav 1/);
+  assert.equal(underGolv(byggManifest(kallor())), null);
+});
+
+test("en källa som fallit bort fäller listan, även när totalen räcker", () => {
+  // Reservkatalogen ensam bär totalen. Utan golv per källa hade en lista utan
+  // variantbilderna gått igenom.
+  assert.match(underGolv(byggManifest(kallor("data"))) ?? "", /data gav 0/);
+  assert.match(underGolv(byggManifest(kallor("kod"))) ?? "", /kod gav 0/);
+  assert.match(underGolv(byggManifest(kallor("reservkatalog"))) ?? "", /reservkatalog gav 0/);
 });
 
 test("testfiler, node_modules och binärer läses inte", () => {
