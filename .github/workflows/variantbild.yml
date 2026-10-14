@@ -26,6 +26,16 @@ name: Variantbilder — rätta varukorgens bild per färg
 # namn, adresser eller artikelnummer.
 
 on:
+  # ☠️ TILLFÄLLIGT, tills workflowen ligger på main: en ny workflow kan inte
+  # startas med workflow_dispatch förrän filen finns på standardgrenen. En push
+  # som ändrar tools/variantbild/kor.json startar den på poleringsgrenen med
+  # värdena i filen (samma fält som inputs nedan). På main gör villkoret
+  # ingenting, och push-blocket kan tas bort när workflowen körs med dispatch.
+  push:
+    branches:
+      - claude/seo-polering-runbook-review-uq6fwl
+    paths:
+      - tools/variantbild/kor.json
   workflow_dispatch:
     inputs:
       lage:
@@ -66,6 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      - uses: actions/checkout@v4
+
       - name: Kor
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
@@ -76,6 +88,19 @@ jobs:
           IDS: ${{ inputs.ids }}
         run: |
           set -euo pipefail
+
+          # En push startar körningen med värdena i tools/variantbild/kor.json.
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            kor="tools/variantbild/kor.json"
+            LAGE="$(jq -r '.lage // "torr"' "${kor}")"
+            SKIVA="$(jq -r '.skiva // 60' "${kor}")"
+            UTKAST="$(jq -r '.utkast // "ja"' "${kor}")"
+            IDS="$(jq -r '.ids // ""' "${kor}")"
+          fi
+          if [ "${LAGE}" != "torr" ] && [ "${LAGE}" != "skarp" ]; then
+            echo "::error::lage ska vara torr eller skarp" >&2
+            exit 1
+          fi
 
           if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
             echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
