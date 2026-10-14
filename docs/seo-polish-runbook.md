@@ -38,6 +38,12 @@
   på det, 2026-10-14), `12V-motor`, `HP4-design`, och i en slug `bmw-s1000rr` eller
   `amg-glc63s`. Skriv om ordet (`formatet MP3`, `motor på 12 V`) i stället för att leta
   efter en kvittens: en vägrad plan skriver ingenting, men rundan måste byggas om.
+  ☠️ **Har en redan publicerad sidas slug eller SKU formen** (`12v-vit`, `amg-glc63s`) går den
+  inte att skriva om oförändrad, och grinden rörs inte. Byt till en adress och en SKU utan
+  formen (`12-volt`, `glc-63-s`: ingen grupp om tre tecken med en siffra i, följd av ett
+  bindestreck och minst tre tecken till), skriv dem i rundans plan och lägg en 301 från den gamla adressen med
+  `redirect-add.yml` så snart bytet är skrivet (T21 och T22). Butikens cache för den gamla
+  adressen töms inom en timme, och tills dess visar den sidans gamla text.
 - **Husmärken ska bort.** HOMCOM, Outsunny, PawHut, Aiyaplay, SportNow, Vinsetto, Kleankin,
   Zonekiz, Durhand och Aosom (`gatelib.MARKEN`, `lib/import/sku.ts`) stryks ur namn,
   SEO-titel, meta, slug, sökord och alt-texter. Etablerade märken med eget sökvärde behålls.
