@@ -9,7 +9,7 @@ import {
   type Betalningsuppgifter,
   type FakturaOrder,
 } from "./faktura";
-import { fakturaPdf } from "./faktura-pdf";
+import { fakturaPdf, metaRader } from "./faktura-pdf";
 import { betalningUrKonfig, korFakturor, type FakturaKorDeps } from "./faktura-kor";
 import { minnesUtskickslogg } from "./faktura-logg";
 
@@ -151,6 +151,15 @@ describe("texterna", () => {
     if (!r.ok) throw new Error(r.fel);
     const pdf = await fakturaPdf(r.faktura, { typ: "faktura" });
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+  });
+  it("fakturan och kvittot anger valutakoden, inte bara kr", () => {
+    const r = byggFaktura(order(), NU, BETALNING);
+    if (!r.ok) throw new Error(r.fel);
+    for (const typ of ["faktura", "kvitto"] as const) {
+      const rader = metaRader(r.faktura, { typ, betaldDatum: "2026-10-20" });
+      expect(rader).toContainEqual(["Valuta", "SEK"]);
+      expect(rader.map(([etikett]) => etikett)).toContain(typ === "kvitto" ? "Betalningsdatum" : "Förfallodatum");
+    }
   });
 });
 

@@ -4642,6 +4642,21 @@ möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
 `feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
 var den ligger.
 
+#### Manualen hämtas krypterad (2026-10-14)
+
+En företagskunds inköpsorder krävde manualer och instruktioner på svenska, och
+Aosoms manual finns bara som länk i feeden. Workflowen **"Aosom — hämta
+produktmanualen krypterat"** tar en sidas Wix-id och en engångsnyckel
+(`kuvert`), slår upp manualerna via `/api/admin/aosom-manual`, laddar ner
+PDF:erna och sparar dem som artefakt, krypterade mot nyckeln. Artefakten
+raderas efter en dag.
+
+☠️ **Krypteringen är det enda undantaget från "inget laddas upp som
+artefakt".** Manualen bär artikelnumret i adressen och ofta på sidorna, och
+artefakter på ett publikt repo går att hämta. Adressen maskeras och skrivs
+aldrig ut, filerna heter `manual-1.pdf` och så vidare, och faller ett
+krypteringssteg sparas ingenting.
+
 ## Konkurrentregeln: pris mot dealproffsen i synken (`lib/pricing/konkurrentregel.ts`, 2026-09-15)
 
 Marknadsplan v3 (Cowork-sessionen 2026-09-15) gjorde Leonards strategi till
@@ -5745,7 +5760,13 @@ Sex egenskaper som inte ska tas bort:
 
 Fakturanumret är ordernumret. Kundens org.nr och referens läses ur
 ordernoteringen ("org.nr 556000-0000. Referens: Anna Andersson"), så skriv dem
-där när ordern läggs upp.
+där när ordern läggs upp. Referensen läses fram till första punkten, så ett
+inköpsordernummer skrivs efter namnet med komma: "Referens: Anna Andersson,
+PO-123".
+
+Fakturan och kvittot anger valutakoden SEK (`VALUTA`, sedan 2026-10-14). En
+företagskunds inköpsorder krävde valutakod på fakturan, och "kr" räknas inte
+som en.
 
 ### Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
 

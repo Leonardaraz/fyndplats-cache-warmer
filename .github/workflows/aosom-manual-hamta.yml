@@ -1,0 +1,148 @@
+name: Aosom — hämta produktmanualen krypterat
+
+# Hämtar Aosoms manual (PDF) för en sida och lämnar den PRIVAT, så att en
+# svensk monteringsanvisning kan göras. En företagskunds inköpsorder kräver
+# manualer och instruktioner på svenska (2026-10-14), och Aosoms manual finns
+# bara som länk i feeden.
+#
+# Körningen slår upp sidans manualer via /api/admin/aosom-manual (där feeden
+# går att läsa), laddar ner PDF:erna och krypterar dem mot anroparens
+# engångsnyckel innan de sparas som artefakt.
+#
+# ☠️ LOGGEN OCH ARTEFAKTEN ÄR PUBLIKA, OCH MANUALENS ADRESS BÄR ARTIKELNUMRET.
+# Adressen maskeras innan något annat skrivs, och den skrivs aldrig ut. PDF:erna
+# lämnar körningen BARA krypterade: AES-256-CBC/PBKDF2 med ett slumpat lösenord,
+# och lösenordet krypterat med RSA-OAEP/SHA-256 mot `kuvert`, samma hybrid som
+# aosom-reviews-kandidater.yml. Utan den privata nyckeln är artefakten brus, och
+# den raderas efter en dag. Filerna heter manual-1.pdf och så vidare, aldrig
+# något ur adressen.
+#
+# Dekryptera: unzippa artefakten, RSA-öppna losen.enc med den privata nyckeln,
+# sedan openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen> -in
+# manualer.tar.enc | tar -x.
+#
+# Körningen skriver ingenting, varken till Wix eller till grenen.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      wix_id:
+        description: "Wix-produkt-id (uuid) för sidan vars manual ska hämtas."
+        required: true
+        type: string
+      kuvert:
+        description: "OBLIGATORISK: base64 av en RSA-publik nyckel (PEM). Manualerna krypteras mot den."
+        required: true
+        type: string
+
+jobs:
+  hamta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Hämta och kryptera
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          WIX_ID: ${{ inputs.wix_id }}
+          KUVERT: ${{ inputs.kuvert }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          id="$(printf '%s' "${WIX_ID}" | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+          if ! printf '%s' "$id" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "::error::wix_id ska vara ett produkt-id (uuid)" >&2
+            exit 1
+          fi
+
+          # Nyckeln kontrolleras FÖRE anropet: faller den ska ingenting ha
+          # hämtats, och absolut ingenting sparas.
+          if ! printf '%s' "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+            echo "::error::kuvert: inputet ar inte giltig base64" >&2
+            exit 1
+          fi
+          if ! openssl pkey -pubin -in kuvert.pub -noout 2>kuvert.fel; then
+            echo "::error::kuvert: inte en RSA-publik nyckel i PEM-format" >&2
+            cat kuvert.fel >&2
+            exit 1
+          fi
+
+          # ☠️ Svaret bär adresserna. Det går rakt till en FIL, och felkroppen
+          # skrivs inte ut: bara statuskoden.
+          bas="${BASE%/api/cron/poll-tracking}/api/admin/aosom-manual"
+          kod=$(curl -sS -o svar.json -w '%{http_code}' --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${bas}?wix=${id}")
+          if [ "$kod" != "200" ]; then
+            echo "::error::uppslaget svarade HTTP ${kod}" >&2
+            exit 1
+          fi
+          jq -r '.manualer[]?' svar.json > lankar.txt
+          while IFS= read -r lank; do
+            [ -z "$lank" ] && continue
+            echo "::add-mask::${lank}"
+          done < lankar.txt
+          jq -r '"artiklar \(.artiklar), utan manual \(.utanManual), manualer \(.manualer | length)"' svar.json
+          rm -f svar.json
+
+          mkdir -p ut paket
+          nr=0
+          while IFS= read -r lank; do
+            [ -z "$lank" ] && continue
+            nr=$((nr + 1))
+            rc=0
+            http="$(curl -sS -L --max-time 240 --max-filesize 120000000 -w '%{http_code}' \
+              -o "ut/manual-${nr}.pdf" "$lank" 2>/dev/null)" || rc=$?
+            if [ "$rc" -ne 0 ] || [ "$http" != "200" ] || [ "$(head -c 5 "ut/manual-${nr}.pdf" 2>/dev/null)" != "%PDF-" ]; then
+              echo "::warning::manual ${nr}: hämtningen föll (curl ${rc}, HTTP ${http:-?})"
+              rm -f "ut/manual-${nr}.pdf"
+              continue
+            fi
+            echo "manual ${nr}: $(wc -c < "ut/manual-${nr}.pdf") byte"
+          done < lankar.txt
+          rm -f lankar.txt
+
+          antal=$(find ut -name '*.pdf' | wc -l)
+          if [ "$antal" -eq 0 ]; then
+            echo "::error::ingen manual gick att hämta" >&2
+            exit 1
+          fi
+
+          # ☠️ INGEN FALLBACK TILL KLARTEXT. Faller ett krypteringssteg faller
+          # jobbet, och ingenting sparas.
+          tar -C ut -cf manualer.tar .
+          openssl rand -base64 32 > kuvert.losen
+          if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+               -in manualer.tar -out paket/manualer.tar.enc 2>kuvert.fel; then
+            echo "::error::kuvert: AES-steget misslyckades — inget sparas" >&2
+            cat kuvert.fel >&2
+            rm -rf ut paket manualer.tar kuvert.losen
+            exit 1
+          fi
+          if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+               -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+               -in kuvert.losen -out paket/losen.enc 2>kuvert.fel; then
+            echo "::error::kuvert: RSA-steget misslyckades — inget sparas" >&2
+            cat kuvert.fel >&2
+            rm -rf ut paket manualer.tar kuvert.losen
+            exit 1
+          fi
+          rm -rf ut manualer.tar kuvert.losen kuvert.pub kuvert.fel
+          echo "${antal} manualer krypterade, $(wc -c < paket/manualer.tar.enc) byte"
+
+      - name: Spara krypterat
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-krypterad
+          path: paket/
+          retention-days: 1
+          if-no-files-found: error

@@ -47,6 +47,13 @@ export const FAKTURA_FRAN = "2026-10-09T00:00:00.000Z";
 /** Betalningsvillkor om konfigurationen inte säger annat. */
 export const STANDARD_DAGAR = 30;
 
+/**
+ * Fakturans valuta. `byggFaktura` vägrar allt annat, och koden står på
+ * fakturan och kvittot: en företagskunds inköpsorder kräver valutakoden på
+ * fakturan (2026-10-14), och "kr" räcker inte som valutakod.
+ */
+export const VALUTA = "SEK";
+
 export interface Betalningsuppgifter {
   /** Vart pengarna ska, ordagrant som det ska stå. T.ex. "Bankgiro 123-4567". */
   betalaTill: string;
@@ -242,7 +249,7 @@ export type FakturaUtfall = { ok: true; faktura: Faktura } | { ok: false; fel: s
  */
 export function byggFaktura(o: FakturaOrder, nu: Date, betalning: Betalningsuppgifter): FakturaUtfall {
   if (!o.number) return { ok: false, fel: "ordern saknar nummer" };
-  if ((o.currency ?? "SEK") !== "SEK") return { ok: false, fel: `valutan är ${o.currency}, inte SEK` };
+  if ((o.currency ?? VALUTA) !== VALUTA) return { ok: false, fel: `valutan är ${o.currency}, inte ${VALUTA}` };
   if (o.taxIncludedInPrices !== true) return { ok: false, fel: "priserna är inte angivna inklusive moms" };
   const epost = o.buyerInfo?.email?.trim();
   if (!epost) return { ok: false, fel: "ordern saknar kundens e-post" };
