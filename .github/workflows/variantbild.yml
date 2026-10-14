@@ -64,6 +64,11 @@ on:
         required: false
         default: ""
         type: string
+      start:
+        description: "Fortsätt listan här (`nasta` ur förra körningens logg). 0 = från början."
+        required: false
+        default: "0"
+        type: string
 
 concurrency:
   # Samma grupp som polish-write: en rättning och en skrivning mot samma sida
@@ -86,6 +91,7 @@ jobs:
           SKIVA: ${{ inputs.skiva }}
           UTKAST: ${{ inputs.utkast }}
           IDS: ${{ inputs.ids }}
+          START: ${{ inputs.start }}
         run: |
           set -euo pipefail
 
@@ -96,6 +102,12 @@ jobs:
             SKIVA="$(jq -r '.skiva // 60' "${kor}")"
             UTKAST="$(jq -r '.utkast // "ja"' "${kor}")"
             IDS="$(jq -r '.ids // ""' "${kor}")"
+            START="$(jq -r '.start // 0' "${kor}")"
+          fi
+          START="${START:-0}"
+          if ! [[ "${START}" =~ ^[0-9]+$ ]]; then
+            echo "::error::start ska vara ett heltal" >&2
+            exit 1
           fi
           if [ "${LAGE}" != "torr" ] && [ "${LAGE}" != "skarp" ]; then
             echo "::error::lage ska vara torr eller skarp" >&2
@@ -135,9 +147,20 @@ jobs:
             [ "$kod" = "200" ]
           }
 
+          # Aosom-synken skriver lagersaldon xx:20–xx:27 var tredje timme (00, 03, 06 …). Rättningen
+          # jämför lagret före och efter varje skrivning och tolkar en ändring som en avvikelse, så
+          # den väntar ut fönstret i stället för att stoppa på en synkskrivning.
+          vanta_synk() {
+            h="$(date -u +%-H)"; m="$(date -u +%-M)"
+            if [ $((h % 3)) -eq 0 ] && [ "${m}" -ge 17 ] && [ "${m}" -lt 29 ]; then
+              echo "synkfonster ($(date -u +%H:%M) UTC) — vantar till :29"
+              sleep $(( (29 - m) * 60 ))
+            fi
+          }
+
           tot_kontr=0; tot_rattad=0; tot_ratt=0; tot_torr=0; tot_fel=0; tot_ej=0; tot_avv=0
           problem=""
-          start=0
+          start="${START}"
           skivor=0
           while :; do
             skivor=$((skivor + 1))
@@ -145,6 +168,7 @@ jobs:
               echo "::error::40 skivor och katalogen ar inte genomgangen — stannar" >&2
               exit 1
             fi
+            [ "${LAGE}" = "skarp" ] && vanta_synk
             if [ -n "${ids}" ]; then
               q="dryRun=${dry}&utkast=${utk}&ids=${ids}&maxSeconds=240"
             else
@@ -160,7 +184,7 @@ jobs:
             ej="$(jq -r '(.summa.ej_rattad // 0)' svar.json)"
             avv="$(jq -r '(.summa.avvikelse // 0)' svar.json)"
             flerv="$(jq -r '.flervariant // 0' svar.json)"
-            echo "skiva ${skivor} (start ${start}): ${kontr} kontrollerade av ${flerv}, rattade ${rattad}, redan ratt ${ratt}, kvar fel ${torr}, ej rattade ${ej}, fel ${fel}, avvikelser ${avv}"
+            echo "skiva ${skivor} (start ${start}, nasta $(jq -r '.nasta // "slut"' svar.json)): ${kontr} kontrollerade av ${flerv}, rattade ${rattad}, redan ratt ${ratt}, kvar fel ${torr}, ej rattade ${ej}, fel ${fel}, avvikelser ${avv}"
             tot_kontr=$((tot_kontr + kontr)); tot_rattad=$((tot_rattad + rattad)); tot_ratt=$((tot_ratt + ratt))
             tot_torr=$((tot_torr + torr)); tot_fel=$((tot_fel + fel)); tot_ej=$((tot_ej + ej)); tot_avv=$((tot_avv + avv))
 

@@ -1,0 +1,17 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py grinden läser källans L x B-ordning positionellt som bredd och djup. På en cykelkärra är 130 cm längden inklusive dragstången och 77 cm bredden över hjulen, och måttbilden (bild 3) visar 130 cm som längd och 77 cm som bredd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py grinden läser källans L x B-ordning positionellt som bredd och djup. På ett gungdjur är 59 cm längden i gungriktningen och 27 cm bredden, och måttbilden (bild 3) visar 59 cm som längd och 27 cm som bredd
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py grinden läser källans L x B-ordning positionellt som bredd och djup. På ett gungdjur är 60 cm längden i gungriktningen och 32 cm bredden, och måttbilden (som ströks för sin tyska text) visar 60 cm som längd och 32 cm som bredd
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py grinden läser källans L x B-ordning positionellt som bredd och djup. På en rutschkana är 146 cm längden och 52 cm bredden, och måttbilden (bild 3) visar 146 cm som längd längs golvet och 52 cm som bredd framifrån
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard

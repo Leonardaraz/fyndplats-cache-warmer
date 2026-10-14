@@ -1,0 +1,69 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "010979fb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch: 60L x 60B x 44H cm | ✔ Stuhl: 26,5L x 26,5B x 50H cm | ✔ Sitzgröße: 26,5B x 26,5T cm | Mått: 60L x 60B x 44H cm"
+ },
+ "26d6b2ea": {
+  "tyska": "59L x 27B x 44H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 59,
+  "djup": 27
+ },
+ "30f21947": {
+  "tyska": "146L x 52B x 65H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 146,
+  "djup": 52
+ },
+ "3aef2500": {
+  "tyska": "60 B x 30 T x 76 H cm; platzsparend, für ein ordentlicheres Schlafzimmer und einen reibungsloseren Alltag.",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 76,
+  "bredd": 60
+ },
+ "79f62076": {
+  "tyska": "130L x 77B x 65H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 130,
+  "djup": 77
+ },
+ "a118c79a": {
+  "tyska": "60L x 32B x 49H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 60,
+  "djup": 32
+ },
+ "a7bbaf0e": {
+  "tyska": "61,8B x 29,9T x 61,8H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 29.9,
+  "hojd": 61.8,
+  "bredd": 61.8
+ },
+ "be1a5215": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 39L x 34B x 49,5/53,5/57,5/61,5H cm | ✔ Sitzgröße: 32,5B x 30T cm | ✔ Rückenlehne: 27H x 32,5B cm"
+ },
+ "c75c7b95": {
+  "tyska": "178L x 64,5B x 63H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 63,
+  "bredd": 178,
+  "djup": 64.5
+ }
+}
