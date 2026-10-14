@@ -188,6 +188,10 @@ jobs:
               "pensionerade \(.pensionerade), raderbara \(.raderbara), forUng \(.hinder.forUng), utanTidsstampel \(.hinder.utanTidsstampel), synlig \(.hinder.synlig), harOrdrar \(.hinder.harOrdrar), iAuktion \(.hinder.iAuktion), omdirigeringsmal \(.hinder.omdirigeringsmal), saknasIWix \(.saknasIWix), bilder \(.bilder.totalt) (delade \(.bilder.delade))",
               "nasta raderbar \(.nastaRaderbar // "-"), aldsta pensionering \(.aldstaPensionering // "-"), omdirigeringar fullstandiga \(.omdirigeringarFullstandiga), samma sajt som bildstadningen \(.sammaSajtSomBildstadningen)",
               "egen artikel \(.hinder.egenArtikel // 0) (med i planen: \(.egna)): \((.egnaArtiklarIds // []) | join(" "))"' || true
+            # Wix-id ar publika. Utan raden syns de bara i jobbsummeringen, som inte
+            # gar att lasa fran en telefon eller ett skript — och ett ja till en
+            # radering ska ga att lasa mot listan (2026-10-14).
+            printf '%s\n' "$kropp" | jq -r '"forsta raderbara (\(.per)): \((.forstaRaderbara // []) | join(" "))"' || true
             exit 0
           fi
 
