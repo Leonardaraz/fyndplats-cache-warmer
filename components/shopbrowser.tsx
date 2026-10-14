@@ -120,22 +120,36 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
   //
   // Det vanliga fallet är en adress utan filterparametrar, och då händer
   // ingenting mer. Med dem (en delad filterlänk, bakåt till ett filtrerat läge)
-  // monteras vyn om före första målningen; dess URL-effekt hinner då tömma
-  // adressen, men den är redan läst och skrivs tillbaka av den nya vyn.
+  // monteras vyn om före första målningen.
+  //
+  // ☠️ DEN FÖRSTA VYN FÅR INTE SKRIVA SIN TOMMA ADRESS TILL URL:EN (2026-10-14).
+  // Den gjorde det förut, och den nya vyn skrev sedan tillbaka parametrarna.
+  // Men listläget efter ett tryck på ett kort sparas under adressen MED
+  // parametrarna (lib/sidminne.ts), och den nya vyn letade efter det medan
+  // adressen var tömd. Leonards rapport: Alla produkter, Nyaste, "Visa fler"
+  // två gånger, ett kort, bakåt. Uppmätt i produktion: 24 kort i stället för
+  // 72 och y = 5 833 px, alltså sidfoten. Med standardsorteringen fanns ingen
+  // parameter, ingen ommontering och inget fel.
   const props = { products, defaultSort, dayMs, lista, facetter };
   const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
+  const bytsUt = useRef(false);
   useLayoutEffect(() => {
     const q = new URLSearchParams(window.location.search);
     // Bara parametrar som vyn läser. Annonsernas gclid/utm och sökordet på
     // /sok (q) ändrar inget i vyn och ska inte rita om korten.
     const lases = ["sortera", "pris", "farg", "lager", "rea", ...Object.values(FACETTER).map((f) => f.param)];
+    if (!lases.some((namn) => q.has(namn))) return;
+    // Sätts innan den första vyns URL-effekt körs: barnens layout-effekter
+    // körs före förälderns, och alla passiva effekter efter dem.
+    bytsUt.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns först i webbläsaren; servern och första renderingen måste vara lika
-    if (lases.some((namn) => q.has(namn))) setAdress({ sp: q, n: 1 });
+    setAdress({ sp: q, n: 1 });
   }, []);
   return (
     <>
       <SubNav subs={subs} />
-      <ShopBrowserVy key={`${lista?.url ?? ""}#${adress.n}`} {...props} sp={adress.sp} />
+      <ShopBrowserVy key={`${lista?.url ?? ""}#${adress.n}`} {...props} sp={adress.sp}
+        bytsUt={adress.n === 0 ? bytsUt : undefined} />
     </>
   );
 }
@@ -184,7 +198,7 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, sp }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; sp: Adress }) {
+function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, sp, bytsUt }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; sp: Adress; bytsUt?: { readonly current: boolean } }) {
   const pathname = usePathname();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
@@ -329,6 +343,9 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // (t.ex. ?kategori på /alla-produkter) bevaras. Kör vid mount men skriver bara
   // om URL:en faktiskt skiljer sig → ingen onödig history-replace eller loop.
   useEffect(() => {
+    // Vyn med den tomma adressen byts ut före första målningen och ska inte
+    // röra URL:en, se ShopBrowser.
+    if (bytsUt?.current) return;
     const params = new URLSearchParams(window.location.search);
     if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
     if (urlPrice) params.set("pris", urlPrice); else params.delete("pris");
@@ -354,7 +371,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // (uppmätt: 747 → 180 px efter ett klick på "Rea"). Next 16 synkar
     // useSearchParams med den inbyggda historiken, så inget annat behöver ändras.
     if (url !== current) window.history.replaceState(null, "", url);
-  }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
+  }, [bytsUt, sort, urlPrice, colorStr, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.

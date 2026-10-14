@@ -106,3 +106,19 @@ test("ShopBrowser hydreras med serverns kort (ingen useSearchParams)", () => {
   assert.doesNotMatch(src, /\buseSearchParams\s*\(/);
   assert.match(src, /window\.location\.search/);
 });
+
+test("ShopBrowser: vyn med tom adress skriver inte bort parametrarna innan den byts ut", () => {
+  // Bakåt till /alla-produkter?sortera=new efter två "Visa fler" gav 24 kort
+  // och sidfoten (Leonard 2026-10-14). Den första vyn ritas med tom adress och
+  // byts ut när adressen har parametrar, men dess URL-effekt hann tömma
+  // adressen, och den nya vyn letade då efter listläget under fel nyckel.
+  const src = readFileSync("components/shopbrowser.tsx", "utf8").replace(/\/\/.*$/gm, "");
+  // URL-effekten: från `useEffect(() => {` till dess replaceState.
+  const slut = src.indexOf('window.history.replaceState(null, "", url)');
+  assert.ok(slut > 0, "URL-effekten finns");
+  const effekt = src.slice(src.lastIndexOf("useEffect(() => {", slut), slut);
+  assert.match(effekt, /^useEffect\(\(\) => \{\s*if \(bytsUt\?\.current\) return;/, "vakten först i URL-effekten");
+  // Föräldern sätter flaggan innan den byter vy, och bara den första vyn får den.
+  assert.match(src, /bytsUt\.current = true;\s*(?:\/\*[\s\S]*?\*\/\s*)?setAdress\(\{ sp: q, n: 1 \}\)/);
+  assert.match(src, /bytsUt=\{adress\.n === 0 \? bytsUt : undefined\}/);
+});
