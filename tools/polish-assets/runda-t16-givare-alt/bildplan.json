@@ -64,28 +64,6 @@
    ]
   },
   {
-   "kort": "98e09361",
-   "pid": "98e09361-94ba-440a-af1b-c5f95e48c6fe",
-   "media": [
-    {
-     "id": "b379ce_70abeeee913746ae8328c2608cb67a72~mv2.jpg",
-     "altText": "Blå hundvagn med svart ram och svart sufflett, sedd snett framifrån"
-    },
-    {
-     "id": "b379ce_6bf0e3d1985b44e7892ac3c03f706fa9~mv2.jpg",
-     "altText": "Den blå hundvagnen skjuts av en man i jeansskjorta på en gångväg i en park, med en liten vit hund i kabinen"
-    },
-    {
-     "id": "b379ce_9548fbe310244bc8ba626125665708cb~mv2.jpg",
-     "altText": "Fyra närbilder av den blå hundvagnen: taket, säkerhetslinan, ytterfickan och korgen med hundleksaker"
-    },
-    {
-     "id": "b379ce_38e28dbe422a49e68676164a57e6ccfc~mv2.jpg",
-     "altText": "Närbild på kabinens nätfönster med dragkedja och kanten av det blå tyget"
-    }
-   ]
-  },
-  {
    "kort": "b3e63490",
    "pid": "b3e63490-dbad-4058-9ed5-25d82def554c",
    "media": [
@@ -126,6 +104,46 @@
     {
      "id": "b379ce_c4edaabc18344f358dba520f1efb5f71~mv2.jpg",
      "altText": "Närbild på furuarmstödet, den grå sitsen och benet på ett trägolv"
+    }
+   ]
+  },
+  {
+   "kort": "9b7313e9",
+   "pid": "9b7313e9-e1b2-4f1b-8c09-9d4cb59113ea",
+   "media": [
+    {
+     "id": "b379ce_3c8a5c8cd57043dd9a81e8764afcdb85~mv2.jpg",
+     "altText": "Fem skumklossar i sand och turkos ihopsatta till en bana med tunnel, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_54726d4c78994969b0a5f4b0f86213f0~mv2.jpg",
+     "altText": "Två småbarn leker vid bågen av skumklossar i sand och turkos i ett vardagsrum"
+    },
+    {
+     "id": "b379ce_bc920d92e8f44d5ebef4883fe46ea774~mv2.jpg",
+     "altText": "Närbild på bågarna och rullen i sand och turkos som passar i varandra, med trappan bakom"
+    }
+   ]
+  },
+  {
+   "kort": "a7a8c839",
+   "pid": "a7a8c839-3ec7-40ab-944c-8ae8a93e76d8",
+   "media": [
+    {
+     "id": "b379ce_ad4d3c13ad1b4c468e40d933d070fd91~mv2.jpg",
+     "altText": "Grå bäddfåtölj i sammet med lös kudde och ben av trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0a1ed684c4db412ead9f73cd29fde15c~mv2.jpg",
+     "altText": "Den grå bäddfåtöljen framför en ljus rumsavdelare i trä, bredvid en korg med böcker"
+    },
+    {
+     "id": "b379ce_3b1582212d5e4477be1f720e43962755~mv2.jpg",
+     "altText": "Närbild på den grå sitsen med två knappar, utfälld till bädd på en mönstrad matta"
+    },
+    {
+     "id": "b379ce_cf0dbce8932f43488295976e3c3c4014~mv2.jpg",
+     "altText": "Närbild på ett ben av gummiträ under den grå fåtöljen på en mönstrad matta"
     }
    ]
   }

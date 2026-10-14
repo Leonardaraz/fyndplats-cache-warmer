@@ -11,6 +11,14 @@
    95
   ]
  },
+ "2443094a": {
+  "tyska": "181L x 39B x 44H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 181,
+  "djup": 39
+ },
  "46f280f7": {
   "tyska": "100L x 37,5B x 42H cm",
   "svenska": "",
@@ -18,6 +26,11 @@
   "hojd": 42,
   "bredd": 100,
   "djup": 37.5
+ },
+ "667ca8f9": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessung Sofa: 72L x 78B x 79H cm | ✔ Abmessung Bett: 72L x 190B x 25H cm | ✔ Sitzgröße: 72B x 62T cm | ✔ Größe Rückenlehne: 72B x 41H cm | ✔ Größe Kissen: 60B x 34T cm | Mått: 72L x 78B x 79H cm"
  },
  "c3e9b292": {
   "tyska": "64B x 70T x 72H cm",
@@ -34,14 +47,6 @@
   "hojd": 110,
   "bredd": 65,
   "djup": 2.5
- },
- "f0ee6c6a": {
-  "tyska": "76,5L x 52B x 95H cm",
-  "svenska": "",
-  "bokstaver": "LBH",
-  "hojd": 95,
-  "bredd": 76.5,
-  "djup": 52
  },
  "fc2b894a": {
   "tyska": "120L x 72B x 50H cm",
