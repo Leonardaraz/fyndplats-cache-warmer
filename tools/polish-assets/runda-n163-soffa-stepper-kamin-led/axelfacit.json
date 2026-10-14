@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0f627521": {
+  "tyska": "21,5L x 21,5B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 21.5,
+  "djup": 21.5
+ },
+ "4ab77ce5": {
+  "tyska": "69,8L x 50,3B x 29,8H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 29.8,
+  "bredd": 69.8,
+  "djup": 50.3
+ },
+ "4f21c7c1": {
+  "tyska": "117B x 56,5T x 77H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56.5,
+  "hojd": 77,
+  "bredd": 117
+ },
+ "542963a7": {
+  "tyska": "41L x 46,5B x 85.5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 85.5,
+  "bredd": 41,
+  "djup": 46.5
+ },
+ "c5712acb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Korb: Ø16 x 33,5H cm | ✔ Besen: 48L x 12B cm | ✔ Schaufel/Zange: 47L x 11B cm | ✔ Schürhaken: 47L x 7B cm | Mått: Ø16 x 33,5H cm"
+ },
+ "d496b936": {
+  "tyska": "80L x 31B x 20H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 80,
+  "djup": 31
+ },
+ "eaf457a5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Ständerabmessungen: Ø25 x 54H cm | ✔ Besengröße: 56L x 12B cm | ✔ Schaufelgröße: 57L x 11B cm | ✔ Zangengröße: 57L x 9B cm | ✔ Schürhakengröße: 57L x 7B cm | Mått: Ø25 x 54H cm"
+ },
+ "f24d41b7": {
+  "tyska": "140L x 108B x 197H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 197,
+  "bredd": 140,
+  "djup": 108
+ }
+}
