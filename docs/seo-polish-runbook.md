@@ -993,6 +993,10 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   över 300 sekunder och sidan fortfarande fel är det inte cachen; jämför med Wix.
 - Slår `livegrind.py` till på något som inte står i dina filer, jämför med en publicerad
   sida som rundan inte rört. Finns det där hör det till butikens ram.
+- På en sida med flera färger ritar butiken bara den förvalda färgens bilder som
+  alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
+  fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
+  som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
 
