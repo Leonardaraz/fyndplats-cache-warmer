@@ -1,0 +1,116 @@
+[
+ {
+  "huvud": "b2ccab13",
+  "huvud_fullid": "b2ccab13-f307-4fb0-ac7e-1172708bb8c5",
+  "givare": "06acae07",
+  "givare_fullid": "06acae07-8ea0-46d9-b424-2254ab24a501",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "b2ccab13": "Blå",
+   "72dd9729": "Rosa",
+   "06acae07": "Vit",
+   "e1f50194": "Röd"
+  }
+ },
+ {
+  "huvud": "b2ccab13",
+  "huvud_fullid": "b2ccab13-f307-4fb0-ac7e-1172708bb8c5",
+  "givare": "72dd9729",
+  "givare_fullid": "72dd9729-a3b0-4458-910d-fd645e243de1",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "b2ccab13": "Blå",
+   "72dd9729": "Rosa",
+   "06acae07": "Vit",
+   "e1f50194": "Röd"
+  }
+ },
+ {
+  "huvud": "b2ccab13",
+  "huvud_fullid": "b2ccab13-f307-4fb0-ac7e-1172708bb8c5",
+  "givare": "e1f50194",
+  "givare_fullid": "e1f50194-25da-411b-954d-1947d9b4c2ef",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "b2ccab13": "Blå",
+   "72dd9729": "Rosa",
+   "06acae07": "Vit",
+   "e1f50194": "Röd"
+  }
+ },
+ {
+  "huvud": "55b92ab2",
+  "huvud_fullid": "55b92ab2-d80b-4efb-9d29-a97b6f60f12f",
+  "givare": "6c62a150",
+  "givare_fullid": "6c62a150-5630-4bd4-9300-4935e8e51e8a",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "55b92ab2": "Svart",
+   "f373226f": "Rosa",
+   "6fb7ece6": "Röd",
+   "6c62a150": "Vit"
+  }
+ },
+ {
+  "huvud": "55b92ab2",
+  "huvud_fullid": "55b92ab2-d80b-4efb-9d29-a97b6f60f12f",
+  "givare": "6fb7ece6",
+  "givare_fullid": "6fb7ece6-c519-4e59-8e66-91a2e4f1c746",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "55b92ab2": "Svart",
+   "f373226f": "Rosa",
+   "6fb7ece6": "Röd",
+   "6c62a150": "Vit"
+  }
+ },
+ {
+  "huvud": "55b92ab2",
+  "huvud_fullid": "55b92ab2-d80b-4efb-9d29-a97b6f60f12f",
+  "givare": "f373226f",
+  "givare_fullid": "f373226f-6b69-4e2e-9a89-d834a48c1646",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "55b92ab2": "Svart",
+   "f373226f": "Rosa",
+   "6fb7ece6": "Röd",
+   "6c62a150": "Vit"
+  }
+ }
+]
