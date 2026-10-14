@@ -1,0 +1,4 @@
+# tal	källans tal	skäl — avrundningar av tillverkarens vikter, en rad per tal
+12,3	12.30 kg	storleken 3 x 2 m (tillverkarens produktsida)
+17,3	17.30 kg	storleken 3 x 3 m (tillverkarens produktsida)
+18,5	18.47 kg	storleken 4 x 3 m (tillverkarens produktsida), avrundat till en decimal
