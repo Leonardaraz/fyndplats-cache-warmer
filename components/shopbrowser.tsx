@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ProductCard } from "./productcard";
 import { forladdaKortbild } from "./card-gallery";
 import { PrefetchLink } from "./prefetch-link";
-import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
+import { currentDayMs, kortForSlugs, SORTERINGAR, sorteraLista, type Sortering } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
 import {
@@ -63,35 +63,26 @@ function handlesFromSlug(bounds: PriceBounds | null, slug: string | null): [numb
   return lo < hi ? [lo, hi] : [bounds.min, bounds.max];
 }
 
-/** Listans ordning för ett sorteringsval. Delas av rutnätet och förladdningen
- *  av bilderna, så att förladdningen hämtar de kort som faktiskt kommer först. */
-function sortera(out: ListProduct[], sort: string, universal: Set<string>, dayMs: number): ListProduct[] {
-  if (sort === "img") return orderRecommended(out, universal, dayMs);
-  if (sort === "pop") return orderPopular(out, universal);
-  if (sort === "new") return [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
-  if (sort === "price-asc") return [...out].sort((a, z) => a.priceNum - z.priceNum);
-  if (sort === "price-desc") return [...out].sort((a, z) => z.priceNum - a.priceNum);
-  if (sort === "name") return [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
-  return out;
-}
-
-const SORTS = [
+const ETIKETTER: Record<Sortering, string> = {
   // "img" heter "Rekommenderat" utåt och är butikens egen mix (bästsäljare +
   // färskhets-skjuts + REA-knuff — se lib/sort-products). URL-värdet "img" är
   // kvar av bakåtkompatibilitet med delade länkar; bildpoängen den en gång
   // sorterade på var 60 för samtliga produkter → tre val gav samma ordning
   // (Leonard 2026-08-08).
-  { v: "img", label: "Rekommenderat" },
+  img: "Rekommenderat",
   // "new" = nyast importerade först (createdAt desc). Var standard på
   // /alla-produkter 2026-06-14 → 2026-08-21; numera valbart, inte förvalt.
   // Hela katalogen är importerad juni–augusti 2026, så ordningen särskilde
   // knappt något — Rekommenderat är standard överallt nu.
-  { v: "new", label: "Nyast" },
-  { v: "pop", label: "Populärast" },
-  { v: "price-asc", label: "Pris: lågt → högt" },
-  { v: "price-desc", label: "Pris: högt → lågt" },
-  { v: "name", label: "Namn: A–Ö" },
-];
+  new: "Nyast",
+  pop: "Populärast",
+  "price-asc": "Pris: lågt → högt",
+  "price-desc": "Pris: högt → lågt",
+  name: "Namn: A–Ö",
+};
+// Valen och ordningen bor i lib/sort-products.ts, där sidan också räknar fram
+// de första korten i varje ordning (lib/list-pages.ts).
+const SORTS = SORTERINGAR.map((v) => ({ v, label: ETIKETTER[v] }));
 // "Bäst match" = listans egen ordning, dvs. den relevansordning söksidan redan
 // räknat fram. Finns bara där den är förvald (defaultSort "rel", /sok) — på en
 // kategorisida vore den en slumpmässig katalogordning.
@@ -494,12 +485,27 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alla, valF, priceLo, priceHi, colorStr, onlyInStock, onlyOnSale, specLive, valStr]);
 
+  // Inga filter i det släppta läget.
+  const filterFritt = !urlPrice && !colors.length && !onlyInStock && !onlyOnSale && !specSlappt.length && !valAktiva;
   // Standardläget: förvald sortering och inga filter — det sidans HTML visar.
-  const arStandard = sort === defaultSort && !urlPrice && !colors.length && !onlyInStock && !onlyOnSale && !specSlappt.length && !valAktiva;
+  const arStandard = sort === defaultSort && filterFritt;
+
+  // EN ANNAN SORTERING UTAN FILTER: sidan bär de första korten i den ordningen
+  // (lista.toppar, lib/list-pages.ts), så rutnätet byts direkt i stället för
+  // att vänta på hela listan. Uppmätt i produktion 2026-10-14 (mobil, 4G,
+  // 4× långsammare processor): "Nyast" tog 3,1 s innan listan på 409 kB kommit,
+  // och under tiden stod Rekommenderat-korten kvar, tonade (Leonards rapport).
+  // null när sidan inte bär ordningen; då väntar rutnätet på listan som förut.
+  const toppLista = useMemo(() => {
+    const slugs = lista?.toppar?.[sort as Sortering];
+    if (!slugs || sort === defaultSort || !filterFritt) return null;
+    return kortForSlugs(slugs, products, lista?.extra);
+  }, [lista, products, sort, defaultSort, filterFritt]);
 
   const list = useMemo(() => {
-    // Innan hela listan kommit finns bara sidans egna kort att visa.
-    if (!alla) return products;
+    // Innan hela listan kommit finns bara sidans egna kort att visa, eller
+    // de första korten i den valda ordningen.
+    if (!alla) return toppLista ?? products;
     let out = alla.filter((p) => p.priceNum >= listLo && p.priceNum < listHi);
     if (colors.length) out = out.filter((p) => p.colors?.some((k) => colors.includes(k)));
     if (onlyInStock) out = out.filter((p) => p.inStock);
@@ -526,7 +532,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // saknas den är signalen 0 och ordningen faller tillbaka på kategori-
     // blandning + nyhet. Ordningarna är rena funktioner i lib/sort-products —
     // där ligger också mätningarna, vikterna och testerna.
-    out = sortera(out, sort, universalCollectionIds(alla), dayMs);
+    out = sorteraLista(out, sort, universalCollectionIds(alla), dayMs);
     // KORTEN SOM REDAN STÅR FLYTTAS INTE. Sidan och /api/lista räknar samma
     // lista med samma dag, men de cachas var för sig och kan vara byggda från
     // olika ögonblick av katalogen. I standardläget står därför sidans egna kort
@@ -534,10 +540,14 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (lista && arStandard) {
       const forst = new Set(products.map((p) => p.slug));
       out = [...products, ...out.filter((p) => !forst.has(p.slug))];
+    } else if (toppLista) {
+      // Samma sak för en annan sortering: korten kunden redan ser står kvar.
+      const forst = new Set(toppLista.map((p) => p.slug));
+      out = [...toppLista, ...out.filter((p) => !forst.has(p.slug))];
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alla, products, lista, arStandard, sort, listLo, listHi, colorStr, onlyInStock, onlyOnSale, dayMsProp, specSlappt, valStr]);
+  }, [alla, products, lista, arStandard, toppLista, sort, listLo, listHi, colorStr, onlyInStock, onlyOnSale, dayMsProp, specSlappt, valStr]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -678,11 +688,13 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
   // valt vet vi inte, och då visas ingen "Visa fler" förrän listan kommit
   // (hellre ingen knapp än en med fel antal).
-  const totalt = alla ? list.length : arStandard && ov ? ov.antal : visible.length;
+  const totalt = alla ? list.length : (arStandard || toppLista) && ov ? ov.antal : visible.length;
   const remaining = totalt - visible.length;
   // Kunden har bett om något som kräver hela listan och den har inte kommit:
   // ett filter eller en sortering, eller fler kort än sidan bär.
-  const behoverLista = !!lista && !alla && (!arStandard || shown > products.length);
+  // Med en topplista räcker sidans kort tills kunden vill se fler än dem.
+  const sidansKort = arStandard ? products.length : toppLista ? toppLista.length : 0;
+  const behoverLista = !!lista && !alla && shown > sidansKort;
   const vantar = behoverLista && !listaFel;
 
   // ── Bakåt från en produkt: samma kort, på samma plats ─────────────────────
@@ -753,13 +765,20 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // (två kort på mobil, fyra annars) i varje ordning, en gång per bild.
   const avsiktSortera = () => {
     hamta();
-    if (!alla) return;
     const antal = window.matchMedia("(max-width:540px)").matches ? 2 : 4;
-    const universal = universalCollectionIds(alla);
-    const dagMs = dayMsProp ?? currentDayMs();
+    const forsta = (v: string): ListProduct[] => {
+      // Utan filter står sidans egna kort först i varje ordning: i den
+      // förvalda sidans kort, i de andra topparna. Det gäller även innan
+      // listan kommit. Med filter krävs listan.
+      if (filterFritt && v === defaultSort) return products.slice(0, antal);
+      const slugs = filterFritt ? lista?.toppar?.[v as Sortering] : undefined;
+      if (slugs) return kortForSlugs(slugs.slice(0, antal), products, lista?.extra) ?? [];
+      if (!alla) return [];
+      return sorteraLista(list, v, universalCollectionIds(alla), dayMsProp ?? currentDayMs()).slice(0, antal);
+    };
     for (const s of SORTS) {
       if (s.v === sort) continue;
-      for (const p of sortera(list, s.v, universal, dagMs).slice(0, antal)) {
+      for (const p of forsta(s.v)) {
         const bild = medBild(p).img;
         if (bild) forladdaKortbild(bild, true);
       }
@@ -1061,9 +1080,9 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
                   hinner registreras, så nästa 24 kort har sina foton direkt. */}
               <button type="button" className="loadmore"
                 onPointerEnter={hamta} onTouchStart={hamta}
-                disabled={vantar && shown > products.length}
+                disabled={vantar && shown > sidansKort}
                 onClick={() => { hamta(); setShown((n) => n + PAGE_SIZE); }}>
-                {vantar && shown > products.length
+                {vantar && shown > sidansKort
                   ? "Hämtar fler …"
                   : <>Visa fler <span className="loadmore-rem">({remaining} kvar)</span></>}
               </button>
