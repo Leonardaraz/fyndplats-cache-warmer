@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "6e679cf1",
+  "huvud_fullid": "6e679cf1-83cb-43ab-839f-4d7b498d42ef",
+  "givare": "f1066fb2",
+  "givare_fullid": "f1066fb2-8750-47cb-9fcd-af63dbceaced",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6e679cf1": "Svart",
+   "f1066fb2": "Beige"
+  }
+ }
+]
