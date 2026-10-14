@@ -10,7 +10,7 @@
 // (lib/email/kundmejl.ts).
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
-import { SALJARE, kronor, type Faktura } from "./faktura";
+import { SALJARE, VALUTA, kronor, type Faktura } from "./faktura";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARG = 48;
@@ -42,6 +42,25 @@ export function rentTecken(text: string, font: PDFFont): string {
     }
   }
   return ut;
+}
+
+/**
+ * Fakturauppgifterna i högerspalten, i ordning. Valutakoden står med på både
+ * fakturan och kvittot (`VALUTA` i faktura.ts).
+ */
+export function metaRader(f: Faktura, val: Pick<PdfVal, "typ" | "betaldDatum">): [string, string][] {
+  return [
+    ["Fakturanummer", f.nummer],
+    ["Fakturadatum", f.fakturadatum],
+    ...(val.typ === "kvitto"
+      ? ([["Betalningsdatum", val.betaldDatum ?? f.fakturadatum]] as [string, string][])
+      : ([["Förfallodatum", f.forfallodatum], ["Betalningsvillkor", `${f.betalning.dagar} dagar netto`]] as [string, string][])),
+    ["Valuta", VALUTA],
+    ["Orderdatum", f.orderdatum],
+    ...(f.kund.orgnr ? ([["Ert org.nr", f.kund.orgnr]] as [string, string][]) : []),
+    ...(f.kund.referens ? ([["Er referens", f.kund.referens]] as [string, string][]) : []),
+    ["Vår referens", SALJARE.namn],
+  ];
 }
 
 /** Delar en text i rader som ryms i bredden. */
@@ -128,17 +147,7 @@ export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
     yv -= 15;
   }
 
-  const meta: [string, string][] = [
-    ["Fakturanummer", f.nummer],
-    ["Fakturadatum", f.fakturadatum],
-    ...(val.typ === "kvitto"
-      ? ([["Betalningsdatum", val.betaldDatum ?? f.fakturadatum]] as [string, string][])
-      : ([["Förfallodatum", f.forfallodatum], ["Betalningsvillkor", `${f.betalning.dagar} dagar netto`]] as [string, string][])),
-    ["Orderdatum", f.orderdatum],
-    ...(f.kund.orgnr ? ([["Ert org.nr", f.kund.orgnr]] as [string, string][]) : []),
-    ...(f.kund.referens ? ([["Er referens", f.kund.referens]] as [string, string][]) : []),
-    ["Vår referens", SALJARE.namn],
-  ];
+  const meta = metaRader(f, val);
   const xEtikett = A4.w / 2 + 20;
   let yh = y;
   for (const [etikett, varde] of meta) {

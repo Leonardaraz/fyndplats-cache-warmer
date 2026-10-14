@@ -5745,7 +5745,13 @@ Sex egenskaper som inte ska tas bort:
 
 Fakturanumret är ordernumret. Kundens org.nr och referens läses ur
 ordernoteringen ("org.nr 556000-0000. Referens: Anna Andersson"), så skriv dem
-där när ordern läggs upp.
+där när ordern läggs upp. Referensen läses fram till första punkten, så ett
+inköpsordernummer skrivs efter namnet med komma: "Referens: Anna Andersson,
+PO-123".
+
+Fakturan och kvittot anger valutakoden SEK (`VALUTA`, sedan 2026-10-14). En
+företagskunds inköpsorder krävde valutakod på fakturan, och "kr" räknas inte
+som en.
 
 ### Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
 
