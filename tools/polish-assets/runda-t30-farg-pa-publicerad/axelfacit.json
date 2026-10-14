@@ -1,0 +1,30 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "163ce1e2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 72 × 26 × 80 cm (B×D×H) | ✔ Abmessungen: 72B x 26T x 80H cm | ✔ Schubladeninnenmaß: 57B x 22T x 31H cm | ✔ Abmessungen: 72B x 26T x 80H cm | ✔ Schubladeninnenmaß: 57B x 22T x 31H cm"
+ },
+ "44d4907b": {
+  "tyska": "Ø366 x 30B cm",
+  "svenska": "",
+  "bokstaver": "B",
+  "bredd": 30
+ },
+ "eac7fdca": {
+  "tyska": "131L x 192B x 203H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 203,
+  "bredd": 131,
+  "djup": 192
+ },
+ "f5f02f8a": {
+  "tyska": "400L x 300B x 198H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 198,
+  "bredd": 400,
+  "djup": 300
+ }
+}
