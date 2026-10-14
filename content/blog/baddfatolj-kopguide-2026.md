@@ -140,23 +140,23 @@ Sorterade efter bäddens bredd. Höjden är bäddens höjd över golvet.
 
 | Bäddfåtölj | Bädd (längd × bredd) | Höjd | Ryggen | Bär |
 |---|---|---|---|---|
-| [Med sidofickor](/produkt/baddfatolj-sidofickor-183-cm) | 183 × 57 cm | 30 cm | – | 120 kg |
-| [Runda armstödskuddar](/produkt/baddfatolj-188-cm-runda-armstod) | 188 × 58 cm | 26 cm | 5 lägen | 120 kg |
-| [65 cm bred](/produkt/baddfatolj-65-cm-fem-lagen) | 185,5 × 60 cm | 25 cm | 5 lägen | 100 kg |
-| [Armstöd i gummiträ](/produkt/baddfatolj-med-armstod) | 185 × 60 cm | 26 cm | 5 lägen | 120 kg |
-| [186 cm i chenille](/produkt/baddfatolj-186-cm-armstod-gra) | 186 × 60 cm | 32 cm | 5 lägen | 120 kg |
-| [På hjul](/produkt/baddfatolj-hjul-181-cm-cremevit) | 181 × 67 cm | 41,5 cm | 3 lägen | 120 kg |
-| [190 cm i sammetslook](/produkt/baddfatolj-190-cm) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
-| [190 cm i linnelook](/produkt/baddfatolj-190-cm-ljusgra) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
-| [190 cm i beige](/produkt/baddfatolj-190-cm-beige) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
-| [Gästsäng 180 cm](/produkt/baddfatolj-gastsang-180-cm) | 180 × 75 cm | 25 cm | 5 lägen | 120 kg |
-| [Gästsäng 4-i-1](/produkt/gastsang-4-i-1-sang-fatolj-pall) | 188 × 75 cm | 38 cm | 5 lägen | 150 kg |
-| [190 × 80 cm](/produkt/baddfatolj-190x80-cm-bla) | 190 × 80 cm | 28 cm | 5 lägen | 120 kg |
-| [Hopfällbar skumbädd](/produkt/baddfatolj-hopfallbar-210-x-80-cm) | 210 × 80 cm | 15 cm | – | 120 kg |
-| [Manchester utan armstöd](/produkt/baddfatolj-manchester-utan-armstod-193x82) | 193 × 82 cm | 28 cm | 3 lägen | 200 kg |
-| [OEKO-TEX, 90 cm](/produkt/baddfatolj-90-cm-oeko-tex) | 188 × 90 cm | 27 cm | 3 lägen | 120 kg |
-| [Manchester, 90 cm](/produkt/baddfatolj-manchester-90-cm-morkgra) | 190 × 90 cm | 26 cm | 6 lägen | 120 kg |
-| [98 cm bred bädd](/produkt/baddfatolj-98-cm-armstod-ljusbrun) | 183 × 98 cm | 26 cm | 5 lägen | 120 kg |
+| [Med sidofickor](/produkt/baddfatolj-sidofickor-183-cm) | 183 × 57 cm | 30 cm | – | 120 kg |
+| [Runda armstödskuddar](/produkt/baddfatolj-188-cm-runda-armstod) | 188 × 58 cm | 26 cm | 5 lägen | 120 kg |
+| [65 cm bred](/produkt/baddfatolj-65-cm-fem-lagen) | 185,5 × 60 cm | 25 cm | 5 lägen | 100 kg |
+| [Armstöd i gummiträ](/produkt/baddfatolj-med-armstod) | 185 × 60 cm | 26 cm | 5 lägen | 120 kg |
+| [186 cm i chenille](/produkt/baddfatolj-186-cm-armstod-gra) | 186 × 60 cm | 32 cm | 5 lägen | 120 kg |
+| [På hjul](/produkt/baddfatolj-hjul-181-cm-cremevit) | 181 × 67 cm | 41,5 cm | 3 lägen | 120 kg |
+| [190 cm i sammetslook](/produkt/baddfatolj-190-cm) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
+| [190 cm i linnelook](/produkt/baddfatolj-190-cm-ljusgra) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
+| [190 cm i beige](/produkt/baddfatolj-190-cm-beige) | 190 × 72 cm | 25 cm | 6 lägen | 120 kg |
+| [Gästsäng 180 cm](/produkt/baddfatolj-gastsang-180-cm) | 180 × 75 cm | 25 cm | 5 lägen | 120 kg |
+| [Gästsäng 4-i-1](/produkt/gastsang-4-i-1-sang-fatolj-pall) | 188 × 75 cm | 38 cm | 5 lägen | 150 kg |
+| [190 × 80 cm](/produkt/baddfatolj-190x80-cm-bla) | 190 × 80 cm | 28 cm | 5 lägen | 120 kg |
+| [Hopfällbar skumbädd](/produkt/baddfatolj-hopfallbar-210-x-80-cm) | 210 × 80 cm | 15 cm | – | 120 kg |
+| [Manchester utan armstöd](/produkt/baddfatolj-manchester-utan-armstod-193x82) | 193 × 82 cm | 28 cm | 3 lägen | 200 kg |
+| [OEKO-TEX, 90 cm](/produkt/baddfatolj-90-cm-oeko-tex) | 188 × 90 cm | 27 cm | 3 lägen | 120 kg |
+| [Manchester, 90 cm](/produkt/baddfatolj-manchester-90-cm-morkgra) | 190 × 90 cm | 26 cm | 6 lägen | 120 kg |
+| [98 cm bred bädd](/produkt/baddfatolj-98-cm-armstod-ljusbrun) | 183 × 98 cm | 26 cm | 5 lägen | 120 kg |
 
 ## Bäddfåtölj, bäddsoffa eller gästsäng?
 
