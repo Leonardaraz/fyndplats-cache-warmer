@@ -1,43 +1,43 @@
-Värmning av www.fyndplats.se, start 2026-10-13T01:50:13.527Z
-Sitemapen: 4252 adresser (produkt 3987, övrigt 137, kategori 128). 8 hämtningar åt gången.
-Hämtade 4253 av 4253 på 327 s.
+Värmning av www.fyndplats.se, start 2026-10-14T01:09:11.429Z
+Sitemapen: 4330 adresser (produkt 4067, övrigt 135, kategori 128). 8 hämtningar åt gången.
+Hämtade 4331 av 4331 på 709 s.
 
 Läget FÖRE värmningen (x-vercel-cache vid första hämtningen):
-  produkt    3987 st   MISS 3962, HIT 25   | status: 200 3987
-  kategori    128 st   PRERENDER 126, HIT 2   | status: 200 128
-  övrigt      138 st   PRERENDER 134, STALE 2, HIT 2   | status: 200 138
+  produkt    4067 st   MISS 4023, HIT 44   | status: 200 4067
+  kategori    128 st   PRERENDER 128   | status: 200 128
+  övrigt      136 st   PRERENDER 134, STALE 2   | status: 200 136
 
-Första byte: kalla sidor (MISS, 3962 st) median 0.51 s, p90 0.71 s
-             varma sidor (HIT/STALE/PRERENDER, 291 st) median 0.14 s, p90 0.19 s
+Första byte: kalla sidor (MISS, 4023 st) median 0.99 s, p90 1.27 s
+             varma sidor (HIT/STALE/PRERENDER, 308 st) median 0.30 s, p90 0.40 s
 
 Långsammast (första byte):
-   56.54 s  MISS      200     /produkt/biljardbord-bla-duk-hopfallbara-ben
-   55.62 s  MISS      200     /produkt/skivstangsstall-i-par-justerbara
-   55.54 s  MISS      200     /produkt/strykbradsskap-med-spegeldorr-fallbart
-   55.28 s  MISS      200     /produkt/boxningsset-punchingboll-pa-stang-handskar
-   54.17 s  MISS      200     /produkt/vaggspegel-svart-metallram-staende-eller-liggande
-   54.14 s  MISS      200     /produkt/snogubbefamilj-lysande-tre-figurer
-   53.78 s  MISS      200     /produkt/lysande-ren-guld-rod-rosett
-   53.68 s  MISS      200     /produkt/lysande-presentaskar-guld-roda-rosetter
-    2.80 s  MISS      200     /produkt/smalt-badrumsskap-utdragbar-forvaring-vitt
-    1.73 s  MISS      200     /produkt/sparkbil-rosa-barn-musik-tuta-ljus
-    1.61 s  MISS      200     /produkt/bagformad-vaggspegel-beige-stenlook
-    1.51 s  MISS      200     /produkt/spegelskap-rundade-horn-svart-mjukstangande
-    1.30 s  MISS      200     /produkt/sminkspegel-led-lampor-mobilhallare-usb
-    1.28 s  MISS      200     /produkt/led-badrumsspegel-glashylla-dimbar-antiimma
-    1.26 s  MISS      200     /produkt/uppblasbar-tomte-120-cm-med-sack
+   56.43 s  MISS      200     /produkt/bordslampa-rund-keramikfot-konisk-skarm-27-cm
+   54.89 s  MISS      200     /produkt/hantelset-40-kg-tva-stanger-12-viktskivor
+   54.53 s  MISS      200     /produkt/bordslampa-travertinfot-linneoptik-48-cm
+   53.50 s  MISS      200     /produkt/viktvast-lostagbara-metallvikter-1-kg
+   53.37 s  MISS      200     /produkt/golvlampa-glashylla-tre-glasskarmar-177-cm
+   53.25 s  MISS      200     /produkt/squatstall-chinsstang-skivstangsvilor-200-kg
+   53.21 s  MISS      200     /produkt/soptunna-sensor-20-liter-innerhink
+   53.17 s  MISS      200     /produkt/viktvast-10-kg-neopren-reflexer
+   53.00 s  MISS      200     /produkt/sensorsoptunna-30-liter-rostfritt
+   52.97 s  MISS      200     /produkt/torkvagn-vit-fyra-nivaer
+   52.92 s  MISS      200     /produkt/golvlampa-tre-hyllor-papperssnore-179-cm
+   52.76 s  MISS      200     /produkt/bordslampa-keramikfot-linneoptik-35-cm
+   52.73 s  MISS      200     /produkt/kontorsstol-retrodesign-svart-46-61-cm
+   52.61 s  MISS      200     /produkt/rullpall-ringrygg-bred-fot
+   52.57 s  MISS      200     /produkt/viktskivor-2-x-5-kg-handtagshal-bla
 
 Svarade inte 200: 0
 
 Kontroll efteråt: 40 av sidorna som var kalla, hämtade igen: HIT 40
-  första byte median 0.02 s, p90 0.08 s
+  första byte median 0.02 s, p90 0.06 s
 
 Upplevd laddning efter värmningen (mobil = iPhone på 4G med fyra gånger långsammare processor, dator = utan strypning):
-  mobil /                                                HIT       första byte 0.05 s  första innehåll 0.72 s  största innehåll 0.72 s  klar 1.05 s
-  mobil /kategori/mobler                                 HIT       första byte 0.03 s  första innehåll 0.65 s  största innehåll 0.65 s  klar 1.18 s
-  mobil /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.03 s  första innehåll 0.67 s  största innehåll 0.67 s  klar 0.93 s
-  mobil /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.03 s  första innehåll 0.72 s  största innehåll 0.78 s  klar 0.98 s
-  dator /                                                HIT       första byte 0.03 s  första innehåll 0.28 s  största innehåll 0.28 s  klar 0.30 s
-  dator /kategori/mobler                                 HIT       första byte 0.03 s  första innehåll 0.27 s  största innehåll 0.27 s  klar 0.47 s
-  dator /produkt/skivstangsstall-i-par-justerbara        HIT       första byte 0.03 s  första innehåll 0.28 s  största innehåll 0.28 s  klar 0.23 s
-  dator /produkt/smal-forvaringsvagn-fyra-hyllor-15-cm   HIT       första byte 0.03 s  första innehåll 0.27 s  största innehåll 0.27 s  klar 0.22 s
+  mobil /                                                HIT       första byte 0.08 s  första innehåll 0.83 s  största innehåll 0.83 s  klar 1.27 s
+  mobil /kategori/mobler                                 HIT       första byte 0.02 s  första innehåll 0.68 s  största innehåll 0.68 s  klar 1.22 s
+  mobil /produkt/golvlampa-glashylla-tre-glasskarmar-177 HIT       första byte 0.02 s  första innehåll 0.68 s  största innehåll 0.73 s  klar 0.97 s
+  mobil /produkt/elektrisk-svangbil-barn-wigglebil-tva-m HIT       första byte 0.02 s  första innehåll 0.68 s  största innehåll 0.78 s  klar 1.02 s
+  dator /                                                STALE     första byte 0.01 s  första innehåll 0.29 s  största innehåll 0.29 s  klar 0.29 s
+  dator /kategori/mobler                                 HIT       första byte 0.01 s  första innehåll 0.22 s  största innehåll 0.22 s  klar 0.29 s
+  dator /produkt/golvlampa-glashylla-tre-glasskarmar-177 HIT       första byte 0.01 s  första innehåll 0.20 s  största innehåll 0.20 s  klar 0.22 s
+  dator /produkt/elektrisk-svangbil-barn-wigglebil-tva-m HIT       första byte 0.02 s  första innehåll 0.20 s  största innehåll 0.20 s  klar 0.24 s
