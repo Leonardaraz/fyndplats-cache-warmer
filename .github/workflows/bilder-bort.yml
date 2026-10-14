@@ -1,0 +1,141 @@
+name: Bilder — ta bort bilder ur en publicerad sida (också länkade)
+
+# Bildplanen och färgbildsverktyget tappar aldrig en bild som ett färgval pekar
+# på. Det är rätt som regel, men ibland ÄR den länkade bilden fel: en tysk eller
+# engelsk måttbild med text inbränd i pixlarna som följde med en givare. Då
+# fanns ingen väg ut, och runbooken förbjuder att skriva för hand i Wix.
+#
+# Den här workflowen tar bort bilderna och släpper deras länkar i samma
+# körning, i den ordning Wix kräver: valens länkar först, galleriet sedan.
+# Logiken och skälen: lib/aosom/bilder-bort.ts.
+#
+# TORRT SOM DEFAULT. `skarp=ja` kräver `bekrafta` = planens sha, som står i
+# torrkörningens logg. Planen räknas om ur en färsk läsning i samma anrop, och
+# har sidan ändrats sedan dess skrivs ingenting.
+#
+# ☠️ VERKTYGET VÄLJER ALDRIG BILDER. Fil-id kommer från den som läst sidan.
+# Huvudbilden kan inte tas bort, sidan får inte hamna under fyra bilder, och
+# ett val får inte lämnas utan bild.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Svaret bär bara wix-id, platser i galleriet, antal och
+# hinder — aldrig alt-texter, namn eller sluggar.
+#
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har Wix-nycklarna,
+# Actions har CRON_SECRET. Ingen hemlighet passerar chatten eller en terminal.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sida:
+        description: "Wix-produktens id (uuid)"
+        required: true
+        type: string
+      bilder:
+        description: "Wix fil-id på bilderna som ska bort, kommaseparerade (högst 10). Läs dem ur sidans galleri."
+        required: true
+        type: string
+      skarp:
+        description: "ja = skriv. nej = torrkörning."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      bekrafta:
+        description: "Skarp körning: planens sha (64 hextecken) ur torrkörningens logg. Tomt = vägras."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  bilder-bort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SIDA: ${{ inputs.sida }}
+          BILDER: ${{ inputs.bilder }}
+          SKARP: ${{ inputs.skarp }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/bilder-bort"
+          enc() { printf '%s' "$1" | tr -d '[:space:]' | jq -sRr @uri; }
+          q="sida=$(enc "$SIDA")&bilder=$(enc "$BILDER")"
+
+          # Fel gar till stderr — en kommandosubstitution slukar stdout.
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")"
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod}" >&2
+              printf '%s\n' "$kropp" | jq -r '.error // .' >&2 || printf '%s\n' "$kropp" >&2
+              printf '%s\n' "$kropp" | jq -r '(.hinder // [])[]? | "  hinder: \(.)"' >&2 || true
+              printf '%s\n' "$kropp" | jq -r '(.steg // [])[]? | "  steg: \(.)"' >&2 || true
+              return 1
+            fi
+            printf '%s' "$kropp"
+          }
+
+          # ── planen, alltid först ─────────────────────────────────────────
+          plan="$(anropa "${url}?lage=plan&${q}")"
+          sha="$(printf '%s' "$plan" | jq -r '.sha')"
+          {
+            echo "### Bilder bort — plan"
+            echo ""
+            printf '%s\n' "$plan" | jq -r '
+              "| | |\n|---|---:|",
+              "| sida | `\(.id)` |",
+              "| galleri före → efter | \(.galleri.fore) → \(.galleri.efter) |",
+              "| platser som tas bort | \(.bort | map(tostring) | join(", ")) |",
+              "| val som får färre länkade bilder | \(.val | length) |",
+              "| hinder | \(.hinder | length) |"
+            ' || true
+            printf '%s\n' "$plan" | jq -r '.val[]? | "- \(.axel): \(.fore) → \(.efter) länkade bilder"' || true
+            printf '%s\n' "$plan" | jq -r '.hinder[]? | "- ☠️ hinder: \(.)"' || true
+            echo ""
+            echo "> Skriv: kor igen med skarp=ja och bekrafta=${sha}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$plan" | jq -r '"plan: sida \(.id), galleri \(.galleri.fore) → \(.galleri.efter), platser \(.bort | map(tostring) | join(",")), hinder \(.hinder | length)"'
+          printf '%s\n' "$plan" | jq -r '.val[]? | "  val \(.axel): \(.fore) → \(.efter) lankade bilder"' || true
+          printf '%s\n' "$plan" | jq -r '.hinder[]? | "  hinder: \(.)"' || true
+          echo "sha: ${sha}"
+
+          if [ "$(printf '%s' "$plan" | jq -r '.hinder | length')" != "0" ]; then
+            echo "::error::planen har hinder — ingenting skrivs" >&2
+            exit 1
+          fi
+
+          if [ "${SKARP:-nej}" != "ja" ]; then
+            echo "Torrkorning — ingenting skrevs."
+            exit 0
+          fi
+
+          # ── skriv ────────────────────────────────────────────────────────
+          if [ -z "${BEKRAFTA:-}" ]; then
+            echo "::error::skarp korning kraver bekrafta = planens sha" >&2
+            exit 1
+          fi
+          svar="$(anropa "${url}?lage=skriv&${q}&bekrafta=$(enc "$BEKRAFTA")")"
+          {
+            echo ""
+            echo "### Bilder bort — skrivet"
+            printf '%s\n' "$svar" | jq -r '(.steg // [])[] | "- \(.)"' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$svar" | jq -r '(.steg // [])[] | "steg: \(.)"' || true
+          if [ "$(printf '%s' "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::skrivningen stannade: $(printf '%s' "$svar" | jq -r '.fel // "okant fel"')" >&2
+            exit 1
+          fi
+          echo "klart: sida $(printf '%s' "$svar" | jq -r '.id'), galleri $(printf '%s' "$svar" | jq -r '.galleri.fore') → $(printf '%s' "$svar" | jq -r '.galleri.efter')"

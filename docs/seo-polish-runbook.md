@@ -32,6 +32,12 @@
   `Referens` och `Artikelnr` läcker lika mycket. Skrivplanen vägrar en plan som bär ett
   artikelnummer i vilken form som helst, men `gate.py` och CI:s läcktest ser bara versala
   koder. Redigera därför på formen, utan hänsyn till versaler och oavsett etikett.
+  ☠️ **Rutten läser formen bredare än grindarna:** tre tecken, bindestreck och minst tre
+  tecken till, med minst en siffra, i namn, slug, SKU, brödtext, SEO och alt-texter (utom
+  mått som `18-36` och `12-24V`). Den fäller alltså vanliga ord: `MP3-format` (N151 fälldes
+  på det, 2026-10-14), `12V-motor`, `HP4-design`, och i en slug `bmw-s1000rr` eller
+  `amg-glc63s`. Skriv om ordet (`formatet MP3`, `motor på 12 V`) i stället för att leta
+  efter en kvittens: en vägrad plan skriver ingenting, men rundan måste byggas om.
 - **Husmärken ska bort.** HOMCOM, Outsunny, PawHut, Aiyaplay, SportNow, Vinsetto, Kleankin,
   Zonekiz, Durhand och Aosom (`gatelib.MARKEN`, `lib/import/sku.ts`) stryks ur namn,
   SEO-titel, meta, slug, sökord och alt-texter. Etablerade märken med eget sökvärde behålls.
@@ -157,6 +163,12 @@ den andra.
   inte kvar för att källtexten saknar certifieringen. Skriv ingen provningsstandard utöver
   EN 71, inget certifikatnummer och inget leverantörsnamn. Beslutet gäller varor från Aosom;
   en leksak från en annan leverantör flaggas som förut när certifieringen saknas.
+  `gate.py` fäller `Uppfyller EN 71.` när källtexten inte nämner normen (`EN-NORM UTAN KÄLLA`
+  och `SIFFRA UTAN KÄLLA '71'`). Kvittera det i `grind-undantag.txt` med raden
+  `gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard`.
+  ☠️ Kvittensen släpper bara igenom de två EN 71-fynden. Varje annat fynd i `gate.py` fäller
+  bygget som vanligt (sedan 2026-10-14): innan dess kvitterade raden hela skriptet, och
+  `Polypropylen` (tyska och danska, svenska är polypropen) publicerades i N144b.
 - **Grindar som marknadsförs för barn** kräver EN 1930. Skillnaden mellan en hundgrind och
   en barngrind ligger i provningen och syns inte på ett foto.
 
@@ -281,7 +293,10 @@ runda som vanligt men ger den en rad i `sammanslagna.tsv` (`kort`, tab, antal va
 och ingen rad i `sku.tsv` eller `variant.tsv`. Skrivworkflowen skriver då text, bilder och
 kategorier men hoppar över SKU-steget, och återläsningen kräver att alla varianter finns
 kvar och syns. Bildlistan måste bära varje bild ett färgval pekar på, annars skrivs den
-inte. Skriv texten för den nya färgen också, och lägg sedan på den med sammanslagningen.
+inte. En länkad bild som ändå ska bort (text inbränd i en annan språkversion) tas bort med
+workflowen **"Bilder — ta bort bilder ur en publicerad sida (också länkade)"**: torrt först,
+sedan `skarp=ja` med planens sha (CLAUDE.md, *Bilder bort*). Skriv texten för den nya färgen
+också, och lägg sedan på den med sammanslagningen.
 Läs sidans nuvarande text och varianter färskt: rundans gamla filer är inaktuella.
 
 #### Varje färg har sin egen bild
@@ -993,6 +1008,10 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   över 300 sekunder och sidan fortfarande fel är det inte cachen; jämför med Wix.
 - Slår `livegrind.py` till på något som inte står i dina filer, jämför med en publicerad
   sida som rundan inte rört. Finns det där hör det till butikens ram.
+- På en sida med flera färger ritar butiken bara den förvalda färgens bilder som
+  alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
+  fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
+  som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
 

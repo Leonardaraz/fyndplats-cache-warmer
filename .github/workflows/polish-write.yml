@@ -160,6 +160,45 @@ jobs:
             [ "${verifierade}" = "${totalt}" ] && [ "${stampelfel}" = "0" ]
           }
 
+          # ☠️ Mediasteget återställer variantens bild till huvudbilden på en sida med
+          # färgval, och varukorgen visar då första färgens bild oavsett vald färg
+          # (2026-10-14: 557 publicerade sidor, se variantbild.yml). Rättningen läser
+          # först och skriver bara där en variant avviker, och kontrollerar efteråt
+          # att allt utom bilden är oförändrat. Bara sammanslagna sidor (`varianter`)
+          # kan ha fel bild. Ett fel här fäller inte rundan, men en avvikelse
+          # (något annat än bilden ändrades) gör det.
+          variantbilder() {
+            mapfile -t pids < <(jq -r '.produkter[] | select(.varianter) | .pid' "${fil}")
+            if [ "${#pids[@]}" -eq 0 ]; then
+              echo "Variantbilder: ingen sammanslagen sida i rundan."
+              return 0
+            fi
+            vb_tot=0; vb_rattade=0; vb_avv=0; vb_kvar=0
+            for ((i = 0; i < ${#pids[@]}; i += 20)); do
+              lista=$(IFS=,; echo "${pids[*]:i:20}")
+              antal=$(( ${#pids[@]} - i < 20 ? ${#pids[@]} - i : 20 ))
+              vbhttp=$(curl -sS --max-time 300 -o vb.json -w '%{http_code}' \
+                -H "Authorization: Bearer ${CRON_SECRET}" \
+                "${rot}/api/cron/variantbild?dryRun=false&ids=${lista}&maxSeconds=240") || vbhttp="000"
+              if ! jq -e . vb.json > /dev/null 2>&1; then
+                echo "::warning::Variantbilder: HTTP ${vbhttp}, svaret är inte JSON (${antal} sidor ej kontrollerade)" >&2
+                vb_kvar=$((vb_kvar + antal))
+                continue
+              fi
+              vb_tot=$((vb_tot + $(jq -r '.kontrollerade // 0' vb.json)))
+              vb_rattade=$((vb_rattade + $(jq -r '.summa.rattad // 0' vb.json)))
+              vb_avv=$((vb_avv + $(jq -r '.summa.avvikelse // 0' vb.json)))
+              vb_kvar=$((vb_kvar + $(jq -r '(.summa.torr // 0) + (.summa.ej_rattad // 0) + (.summa.fel // 0)' vb.json)))
+              jq -r '.produkter[]? | select(.status == "avvikelse" or .status == "ej_rattad" or .status == "fel") | "   variantbilder \(.id[0:8]) \(.status)\(if .avvikelser then ": " + (.avvikelser | join("; ")) else "" end)"' vb.json
+            done
+            echo "Variantbilder: ${vb_tot} sidor kontrollerade, ${vb_rattade} rättade, ${vb_kvar} kvar, ${vb_avv} avvikelser"
+            echo "Variantbilder: **${vb_rattade}** rättade av ${vb_tot}, kvar **${vb_kvar}**, avvikelser **${vb_avv}**." >> "${GITHUB_STEP_SUMMARY}"
+            if [ "${vb_kvar}" != "0" ]; then
+              echo "::warning::Variantbilder: ${vb_kvar} sidor kan ha fel bild i varukorgen — kör variantbild.yml med ids." >&2
+            fi
+            [ "${vb_avv}" = "0" ]
+          }
+
           case "${LAGE}" in
             torr)
               # Alla fyra stegen körs även om ett faller, så varje problem syns på en gång.
@@ -176,6 +215,8 @@ jobs:
               done
               echo "Skrivet. Väntar 90 s innan den separata återläsningen."
               sleep 90
+              # Variantbilderna rättas FÖRE återläsningen, så att den ser slutläget.
+              variantbilder
               verifiera_och_stampla
               ;;
             verifiera)

@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "db6f36b9",
+  "huvud_fullid": "db6f36b9-b630-470e-85b1-5cbea5f4388c",
+  "givare": "b5564b24",
+  "givare_fullid": "b5564b24-fe5f-4de8-ab7a-d391d1f7f7f5",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "db6f36b9": "Rosa, gul, grön och lila",
+   "b5564b24": "Rosa, lila, grå och beige"
+  }
+ }
+]

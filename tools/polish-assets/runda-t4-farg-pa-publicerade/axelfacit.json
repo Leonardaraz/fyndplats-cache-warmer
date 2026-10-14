@@ -1,0 +1,45 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "07799b0d": {
+  "tyska": "157B x 90T x 91H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Sofa' (etiketten bar ett bestämningsord)",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 91,
+  "bredd": 157
+ },
+ "08feb111": {
+  "tyska": "Ø61 cm",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen: Ø61 cm | Mått: 61L x 1B x 61H cm"
+ },
+ "5bd95c2c": {
+  "tyska": "50L x 70H cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": 70,
+  "bredd": 50
+ },
+ "808ea6b4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått upprätt: 114 × 91 × 98 cm (B × D × H) | ✔ Gesamtabmessungen (aufrecht): 161B x 91T x 98H cm | ✔ Gesamtabmessungen (zurückgelehnt): 161B x 157T x 78H cm | ✔ Sitzgröße: 144B x 56T cm | ✔ Einzelne Rückengröße: 47B x 59H cm"
+ },
+ "926ec7a2": {
+  "tyska": "189L x 7B x 182H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 182,
+  "bredd": 189,
+  "djup": 7
+ },
+ "ddca577d": {
+  "tyska": "181L x 8B x 138H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 138,
+  "bredd": 181,
+  "djup": 8
+ }
+}

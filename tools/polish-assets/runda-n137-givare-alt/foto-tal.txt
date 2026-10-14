@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fe7aa8ea 12 takkåpans diameter, avläst på måttbilden (bild 3)
+fe7aa8ea 2,5 takkåpans höjd, avläst på måttbilden (bild 3)
+a8e8dd46 12 takkåpans diameter, avläst på måttbilden (bild 3)
+a8e8dd46 2,5 takkåpans höjd, avläst på måttbilden (bild 3)

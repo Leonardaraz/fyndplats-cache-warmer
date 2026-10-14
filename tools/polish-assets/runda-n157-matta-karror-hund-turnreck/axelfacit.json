@@ -1,0 +1,80 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1004b036": {
+  "tyska": "140L x 71B x 83H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 83,
+  "bredd": 140,
+  "djup": 71
+ },
+ "1ea30bf4": {
+  "tyska": "194B x 121T x 92-150H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 121,
+  "hojd": [
+   92,
+   150
+  ],
+  "bredd": 194
+ },
+ "351d244c": {
+  "tyska": "200L x 140B x 0,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 0.5,
+  "bredd": 200,
+  "djup": 140
+ },
+ "3d8e7624": {
+  "tyska": "142L x 75B x 101H cm (Anhänger), 116L x 75B x 101H cm (Schiebewagen)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 101,
+  "bredd": 142,
+  "djup": 75
+ },
+ "4e409e7c": {
+  "tyska": "138L x 70B x 89H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 89,
+  "bredd": 138,
+  "djup": 70
+ },
+ "6b5dbee1": {
+  "tyska": "(Aufrecht) 66,5B x 91T x 103H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 91,
+  "hojd": 103,
+  "bredd": 66.5
+ },
+ "76124981": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maß geöffnet: 75L x 45B x 97H cm | ✔ Innenmaß: 55L x 32B x 52H cm | ✔ Faltmaß: 83L x 45B x 25H cm | Mått: 75L x 45B x 97H cm | ✔ Maß geöffnet: 75L x 45B x 97H cm | ✔ Innenmaß: 55L x 32B x 52H cm | ✔ Faltmaß: 83L x 45B x 25H cm | Mått: 75L x 45B x 97H cm"
+ },
+ "8b42d5d1": {
+  "tyska": "67L x 32B x 65/70/75/78H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   65,
+   70,
+   75,
+   78
+  ],
+  "bredd": 67,
+  "djup": 32
+ },
+ "deeee4a6": {
+  "tyska": "(Aufrecht) 62B x 86,5T x 105H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 86.5,
+  "hojd": 105,
+  "bredd": 62
+ }
+}

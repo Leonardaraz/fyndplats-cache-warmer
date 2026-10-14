@@ -1,0 +1,34 @@
+[
+ {
+  "huvud": "38f70f83",
+  "huvud_fullid": "38f70f83-a58a-4569-843f-9c88e17a7e96",
+  "givare": "1da19aed",
+  "givare_fullid": "1da19aed-4d63-4343-b4ae-0749704008ae",
+  "bilder_efter_bildplan": "1",
+  "kallpositioner_i_ordning": [
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1da19aed": "Grön",
+   "643a90b1": "Vit",
+   "38f70f83": "Grön"
+  }
+ },
+ {
+  "huvud": "38f70f83",
+  "huvud_fullid": "38f70f83-a58a-4569-843f-9c88e17a7e96",
+  "givare": "643a90b1",
+  "givare_fullid": "643a90b1-df87-44bb-a2ba-8106e4611c88",
+  "bilder_efter_bildplan": "1",
+  "kallpositioner_i_ordning": [
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1da19aed": "Grön",
+   "643a90b1": "Vit",
+   "38f70f83": "Grön"
+  }
+ }
+]

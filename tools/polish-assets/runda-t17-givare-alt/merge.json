@@ -1,0 +1,76 @@
+[
+ {
+  "huvud": "15746de3",
+  "huvud_fullid": "15746de3-b00d-43a5-bb25-96947ccfaec3",
+  "givare": "aaa9f500",
+  "givare_fullid": "aaa9f500-b330-42fb-b2e5-c9ed600aff83",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "aaa9f500": "Natur",
+   "15746de3": "Brun"
+  }
+ },
+ {
+  "huvud": "3068a60b",
+  "huvud_fullid": "3068a60b-8cce-4dab-9ee0-56d350b473da",
+  "givare": "5f10b848",
+  "givare_fullid": "5f10b848-06fb-4602-91ef-b5211c057337",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5f10b848": "Mörkgrå",
+   "3068a60b": "Beige"
+  }
+ },
+ {
+  "huvud": "dd08c210",
+  "huvud_fullid": "dd08c210-6a90-4319-8381-740d225e5af7",
+  "givare": "a4e3545d",
+  "givare_fullid": "a4e3545d-3d33-4c4e-8a48-acb6938b0ff6",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a4e3545d": "Grå",
+   "dd08c210": "Natur"
+  }
+ },
+ {
+  "huvud": "0773ceb6",
+  "huvud_fullid": "0773ceb6-0c35-4825-aaea-33c219e38d73",
+  "givare": "9fdba797",
+  "givare_fullid": "9fdba797-5c0f-4be5-921d-ee0708ef4447",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "9fdba797": "40 liter",
+   "0773ceb6": "50 liter"
+  }
+ }
+]

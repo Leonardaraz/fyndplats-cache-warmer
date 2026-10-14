@@ -1,0 +1,88 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00570c67": {
+  "tyska": "108L x 62B x 40H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 40,
+  "bredd": 108,
+  "djup": 62
+ },
+ "03dc4fb7": {
+  "tyska": "72L x 40B x 45,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 45.5,
+  "bredd": 72,
+  "djup": 40
+ },
+ "17c253d6": {
+  "tyska": "70L x 42B x 45H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 70,
+  "djup": 42
+ },
+ "23d70358": {
+  "tyska": "L108 x B60 x H43cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 43,
+  "bredd": 108,
+  "djup": 60
+ },
+ "2b890006": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 67,5L x 38B x 44H cm | ✔ Sitz: 28L x 16B x 3H cm | ✔ Sitzhöhe: 29H cm | Mått: 67,5L x 38B x 44H cm | ✔ Abmessungen: 67,5L x 38B x 44H cm | ✔ Sitz: 28L x 16B x 3H cm | ✔ Sitzhöhe: 29H cm | Mått: 67,5L x 38B x 44H cm | ✔ Abmessungen: 67,5L x 38B x 44H cm | ✔ Sitz: 28L x 16B x 3H cm | ✔ Sitzhöhe: 29H cm | Mått: 67,5L x 38B x 44H cm"
+ },
+ "53095ce4": {
+  "tyska": "L66 x B37 x H44 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 66,
+  "djup": 37
+ },
+ "88140d98": {
+  "tyska": "85,5L x 40,5B x 95H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 95,
+  "bredd": 85.5,
+  "djup": 40.5
+ },
+ "b8e23817": {
+  "tyska": "102L x 60B x 44H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 102,
+  "djup": 60
+ },
+ "cd497196": {
+  "tyska": "108L x 60B x 47H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 108,
+  "djup": 60
+ },
+ "e0590577": {
+  "tyska": "82,5L x 42B x 54H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 54,
+  "bredd": 82.5,
+  "djup": 42
+ },
+ "f7fb7eb4": {
+  "tyska": "L85 x B36 x H54 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 54,
+  "bredd": 85,
+  "djup": 36
+ }
+}

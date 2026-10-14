@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "1687eb94",
+  "huvud_fullid": "1687eb94-26af-4235-819c-cafb9537e524",
+  "givare": "d4076659",
+  "givare_fullid": "d4076659-bf01-4eeb-8b2b-1d3acccd60bc",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "1687eb94": "42 liter",
+   "d4076659": "50 liter"
+  }
+ }
+]

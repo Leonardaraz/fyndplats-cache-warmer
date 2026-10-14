@@ -1,0 +1,113 @@
+{
+ "runda": "runda-n146-givare-alt",
+ "produkter": [
+  {
+   "kort": "06acae07",
+   "pid": "06acae07-8ea0-46d9-b424-2254ab24a501",
+   "media": [
+    {
+     "id": "b379ce_0c125a157403452880c09f3dba501bf1~mv2.jpg",
+     "altText": "Vit eldriven barnmotorcykel med svart sits, höga handtag med backspeglar, rund strålkastare och två stödhjul, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_66e54c9e28b34ee39ca5a42b2709c816~mv2.jpg",
+     "altText": "Litet barn i blå t-shirt och cykelhjälm kör den vita elmotorcykeln med stödhjul på en asfalterad gångväg i en park"
+    },
+    {
+     "id": "b379ce_265381c9b81242ac94f04268edaac7ac~mv2.jpg",
+     "altText": "Den vita motorcykeln fotograferad från fyra håll mot en mörk bakgrund med ljusstrimmor"
+    }
+   ]
+  },
+  {
+   "kort": "72dd9729",
+   "pid": "72dd9729-a3b0-4458-910d-fd645e243de1",
+   "media": [
+    {
+     "id": "b379ce_4c9b93900f8743e4b36b4eda57162ba7~mv2.jpg",
+     "altText": "Rosa eldriven barnmotorcykel med svart sits, höga handtag med backspeglar, rund strålkastare och två stödhjul, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_006b673ae18c45fd8dfa19045582f94e~mv2.jpg",
+     "altText": "Litet barn i lila t-shirt och cykelhjälm kör den rosa elmotorcykeln med stödhjul på en asfalterad gångväg i en park"
+    },
+    {
+     "id": "b379ce_f8628f2d4b034a17b498f538c8491ad7~mv2.jpg",
+     "altText": "Den rosa motorcykeln fotograferad från fyra håll mot en mörk bakgrund med ljusstrimmor"
+    }
+   ]
+  },
+  {
+   "kort": "e1f50194",
+   "pid": "e1f50194-25da-411b-954d-1947d9b4c2ef",
+   "media": [
+    {
+     "id": "b379ce_28d1738ee9404fcf913986f498785fd3~mv2.jpg",
+     "altText": "Röd eldriven barnmotorcykel med svart sits, höga handtag med backspeglar, rund strålkastare och två stödhjul, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_8991e15274da4787aacbaf15f812dbca~mv2.jpg",
+     "altText": "Litet barn i röd tröja och blå väst står vid den röda elmotorcykeln med stödhjul på en grusväg framför gröna buskar"
+    },
+    {
+     "id": "b379ce_87aeb066002541e590f234865fec9315~mv2.jpg",
+     "altText": "Den röda motorcykeln fotograferad från fyra håll mot en mörk bakgrund med ljusstrimmor"
+    }
+   ]
+  },
+  {
+   "kort": "6c62a150",
+   "pid": "6c62a150-5630-4bd4-9300-4935e8e51e8a",
+   "media": [
+    {
+     "id": "b379ce_4b032a48da1646f5a1dc9a1c1e6945e8~mv2.jpg",
+     "altText": "Vit Mercedes-Benz SLC 300 för barn med tända LED-strålkastare och svarta sportstolar, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_e43d990cb0f5417ca7ea10ab8522fd26~mv2.jpg",
+     "altText": "Flicka i rosa jacka kör den vita elbilen på en asfalterad väg framför en blommande buske"
+    },
+    {
+     "id": "b379ce_a04e1e8e614e4bd3b7aea4d447ee77b1~mv2.jpg",
+     "altText": "Närbild på den vita elbilens grill med Mercedes-stjärnan och skylten SLC 300 Final Edition"
+    }
+   ]
+  },
+  {
+   "kort": "6fb7ece6",
+   "pid": "6fb7ece6-c519-4e59-8e66-91a2e4f1c746",
+   "media": [
+    {
+     "id": "b379ce_bccf60f979234209aaae67d6aa03717b~mv2.jpg",
+     "altText": "Röd Mercedes-Benz SLC 300 för barn med tända LED-strålkastare och svarta sportstolar, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_41de5db383f64c8ab087181016e6b0ca~mv2.jpg",
+     "altText": "Flicka i rosa jacka kör den röda elbilen på en asfalterad väg framför en blommande buske"
+    },
+    {
+     "id": "b379ce_4f7772ea913d41b786efc2610eeeabb5~mv2.jpg",
+     "altText": "Den röda elbilen snett bakifrån mot vit bakgrund, med ratt och sportstolar"
+    }
+   ]
+  },
+  {
+   "kort": "f373226f",
+   "pid": "f373226f-6b69-4e2e-9a89-d834a48c1646",
+   "media": [
+    {
+     "id": "b379ce_e13a24bc631b4015930ef511deb4c01f~mv2.jpg",
+     "altText": "Rosa Mercedes-Benz SLC 300 för barn med tända LED-strålkastare och svarta sportstolar, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_43e524b3652f4996bf655930d7c120cd~mv2.jpg",
+     "altText": "Flicka kör den rosa elbilen längs en stenlagd gångväg i en trädgård medan en man med fjärrkontroll i handen står bredvid"
+    },
+    {
+     "id": "b379ce_34ad08f6f5c245e7ab4bbbada9ab78b0~mv2.jpg",
+     "altText": "Den rosa elbilen med öppen dörr på en stenlagd gångväg framför ett hus med träpanel"
+    }
+   ]
+  }
+ ]
+}

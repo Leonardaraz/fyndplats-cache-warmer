@@ -1,0 +1,59 @@
+[
+ {
+  "huvud": "7b544155",
+  "huvud_fullid": "7b544155-2815-4d92-93ca-a98bd665a461",
+  "givare": "f21b7284",
+  "givare_fullid": "f21b7284-78dd-4953-a6d3-0effa9f4988a",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "7b544155": "56 cm",
+   "f21b7284": "45 × 20 × 34,5 cm"
+  }
+ },
+ {
+  "huvud": "967d53e2",
+  "huvud_fullid": "967d53e2-8e86-4a64-8659-6512f69dacd6",
+  "givare": "f481dac4",
+  "givare_fullid": "f481dac4-bd7d-4991-9138-3528ab097a72",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "967d53e2": "45 × 40 × 60 cm, 61 × 51 × 76 cm",
+   "f481dac4": "40,5 × 35,5 × 30,5 cm"
+  }
+ },
+ {
+  "huvud": "36d30778",
+  "huvud_fullid": "36d30778-1d97-4bc5-9695-4b3a1cfc0b3c",
+  "givare": "fe4e331b",
+  "givare_fullid": "fe4e331b-8db8-466c-8ff0-5fd22496218d",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "36d30778": "2 × 10 kg",
+   "fe4e331b": "2 × 20 kg"
+  }
+ }
+]

@@ -8,6 +8,11 @@ ligger i en av rundans kategorier, och att varje alt-text ur alt.tsv faktiskt
 står på sidan. Låg i en sessions scratchpad under N36–N56 och flyttades hit
 2026-09-24, när live-kontrollen blev rundans enda katalogsvep.
 
+Sammanslagna sidor: butiken renderar bara den förvalda färgens bilder som
+alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en
+karta fil → alt (`"<fil>~mv2.jpg":"<alt>"`), och en alt-text som står där är lika
+bevisad. Den räknas separat så att summeringen visar hur många som bara sågs där.
+
 ANVÄNDNING (från rundans katalog, efter hamta-live.sh):
   python3 ../../polish-gates/livekoll.py [pris]
 Med [pris] kontrolleras också att varje sida visar exakt det priset.
@@ -32,7 +37,7 @@ ids = [l.split()[0] for l in open('slugs.txt', encoding='utf-8') if l.strip()]
 PRIS = sys.argv[1] if len(sys.argv) > 1 else None
 
 fel = 0
-altTot = altOk = 0
+altTot = altOk = altData = 0
 for k in ids:
     s = open(f'live/{k}.html', encoding='utf-8').read()
     prod = crumb = None
@@ -70,10 +75,14 @@ for k in ids:
     if dd != seo[k][1]:
         rad.append(f'meta skiljer: {dd!r}')
     livealts = set(html.unescape(a) for a in re.findall(r'alt="([^"]*)"', s))
+    datalts = set(html.unescape(a) for a in re.findall(r'\\"[\w-]+~mv2\.\w+\\":\\"(.*?)\\"', s))
     for pos, a in alt.get(k, []):
         altTot += 1
         if a in livealts:
             altOk += 1
+        elif a in datalts:
+            altOk += 1
+            altData += 1
         else:
             rad.append(f'alt {pos} saknas: {a!r}')
     steg = [e.get('name') for e in (crumb or {}).get('itemListElement', [])]
@@ -85,5 +94,5 @@ for k in ids:
     if rad:
         fel += 1
     print(f"{k}  {'OK ' if not rad else 'FEL'}  brödsmula={steg[1] if len(steg) > 1 else None!r}  pris={pr if prod else None}  " + ('; '.join(rad)))
-print(f'SAMMANFATTNING: {len(ids) - fel} av {len(ids)} OK, alt-texter {altOk} av {altTot}')
+print(f'SAMMANFATTNING: {len(ids) - fel} av {len(ids)} OK, alt-texter {altOk} av {altTot}' + (f' (varav {altData} bara i färgvalens data)' if altData else ''))
 sys.exit(1 if fel else 0)

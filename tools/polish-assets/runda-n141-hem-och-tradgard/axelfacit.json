@@ -1,0 +1,149 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1196c3ae": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Produktdaten Doppelsofa: 125L x 77B x 82H cm | Produktdaten der Liege: 137L x 68B x 82H cm | Produktdaten Teetisch: 49L x 49B x 47H cm | Mått: 125L x 77B x 82H cm"
+ },
+ "1e21b448": {
+  "tyska": "45,5L x 35,5B x 97H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 97,
+  "bredd": 45.5,
+  "djup": 35.5
+ },
+ "41824a10": {
+  "tyska": "150B x 43T x 162,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 43,
+  "hojd": 162.5,
+  "bredd": 150
+ },
+ "4ef0be24": {
+  "tyska": "103L x 43B x 162,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 162.5,
+  "bredd": 103,
+  "djup": 43
+ },
+ "518ecbe3": {
+  "tyska": "35,5L x 20B x 78H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 78,
+  "bredd": 35.5,
+  "djup": 20
+ },
+ "53c99d28": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Trittfläche: L46 x W35 cm"
+ },
+ "5f0ffe74": {
+  "tyska": "45L x 22,5B x 86H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 86,
+  "bredd": 45,
+  "djup": 22.5
+ },
+ "5fefb21c": {
+  "tyska": "27,6L x 21,4B x 33,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 33.5,
+  "bredd": 27.6,
+  "djup": 21.4
+ },
+ "624832c0": {
+  "tyska": "185L x 76B x 81H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 185,
+  "djup": 76
+ },
+ "6ae821eb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Fassungsvermögen: ca. 72 L | Gesamtmaß: L40 x B30 x H60 cm | Mått: L40 x B30 x H60 cm"
+ },
+ "7ba39d7e": {
+  "tyska": "55B x 58,5T x 81,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 58.5,
+  "hojd": 81.5,
+  "bredd": 55
+ },
+ "7d913786": {
+  "tyska": "45L x 26,5B x 84H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 45,
+  "djup": 26.5
+ },
+ "80718634": {
+  "tyska": "100L x 45B x 160H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 100,
+  "djup": 45
+ },
+ "80fee2db": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Einzelpaneel-Abmessungen: 295B x 195H cm | Fensterabmessungen: 180L x 102B cm | Einzelpaneel-Abmessungen: 295B x 195H cm | Fensterabmessungen: 180L x 102B cm"
+ },
+ "872cbe0c": {
+  "tyska": "33,5B x 26T x 7H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'zusammengeklappt' (etiketten bar ett bestämningsord)",
+  "bokstaver": "BTH",
+  "djup": 26,
+  "hojd": 7,
+  "bredd": 33.5
+ },
+ "89346042": {
+  "tyska": "52L x 32B x 63H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 63,
+  "bredd": 52,
+  "djup": 32
+ },
+ "b1a61612": {
+  "tyska": "240L x 140B x 197H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 197,
+  "bredd": 240,
+  "djup": 140
+ },
+ "bbb63499": {
+  "tyska": "49,5L x 49,5B x 178H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 178,
+  "bredd": 49.5,
+  "djup": 49.5
+ },
+ "d05fd29f": {
+  "tyska": "50L x 14,5B x 19H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 19,
+  "bredd": 50,
+  "djup": 14.5
+ },
+ "e4041b18": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen pro Fliese: 30B x 30T x 2H cm"
+ }
+}

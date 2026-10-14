@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b9ef8ca4 4 modellbeteckningen i4 står på grillskylten, läst av på närbilden av framsidan (värdens bild 1)

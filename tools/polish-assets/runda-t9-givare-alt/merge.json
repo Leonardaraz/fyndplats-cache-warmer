@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "788a6e39",
+  "huvud_fullid": "788a6e39-0c6b-4ffa-bfcb-8d2be8db3d11",
+  "givare": "a3bd50fa",
+  "givare_fullid": "a3bd50fa-3408-48b6-aa03-c7ac07eab1bd",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "788a6e39": "Ljusblå",
+   "a3bd50fa": "Rosa"
+  }
+ }
+]

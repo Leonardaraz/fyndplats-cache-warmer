@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+71be99af 20,5 framhjulens diameter, avläst på måttritningen (källbild 3, visas sist)
+71be99af 25,5 bakhjulens diameter, avläst på måttritningen (källbild 3, visas sist)

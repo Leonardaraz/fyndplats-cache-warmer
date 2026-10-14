@@ -1,0 +1,72 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2a6dcd2a": {
+  "tyska": "100L x 58B x 58,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 58.5,
+  "bredd": 100,
+  "djup": 58
+ },
+ "843f5f29": {
+  "tyska": "107,5L x 64,5B x 47H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 107.5,
+  "djup": 64.5
+ },
+ "8b04789b": {
+  "tyska": "121L x 58B x 61H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 61,
+  "bredd": 121,
+  "djup": 58
+ },
+ "b1b9afac": {
+  "tyska": "103L x 58B x 41H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 41,
+  "bredd": 103,
+  "djup": 58
+ },
+ "b9ef8ca4": {
+  "tyska": "115L x 67B x 45H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 115,
+  "djup": 67
+ },
+ "be3dcfbc": {
+  "tyska": "74,5L x 36B x 43,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 43.5,
+  "bredd": 74.5,
+  "djup": 36
+ },
+ "d6275621": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 71L x 40,5B x 43,5H cm. | ✔ Sitz: (Vom Boden aus) 11,5B x 26T x 31H cm | Mått: 71L x 40,5B x 43,5H cm"
+ },
+ "fc195950": {
+  "tyska": "100L x 58B x 58,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 58.5,
+  "bredd": 100,
+  "djup": 58
+ },
+ "fdae2809": {
+  "tyska": "121L x 58B x 61H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 61,
+  "bredd": 121,
+  "djup": 58
+ }
+}

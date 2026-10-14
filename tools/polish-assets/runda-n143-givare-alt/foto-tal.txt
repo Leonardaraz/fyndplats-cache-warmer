@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ec23e766 112 skivstångens längd i måttbilden för 15 kg
+ec23e766 124 skivstångens längd i måttbilden för 20 kg (2a50b48b)
+ec23e766 130 skivstångens längd i måttbilden för 25 kg (3fde27a0)
+2a50b48b 124 skivstångens längd, avläst på måttbilden (bild 3)
+3fde27a0 130 skivstångens längd, avläst på måttbilden (bild 3)
+943181ba 18 avståndet mellan handtagets sidor i måttbilden för 14 kg (943ac814)
+943ac814 18 avståndet mellan handtagets sidor, avläst på måttbilden (bild 3)

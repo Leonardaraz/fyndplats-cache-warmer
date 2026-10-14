@@ -1,0 +1,23 @@
+{
+ "runda": "runda-t14-givare-alt",
+ "produkter": [
+  {
+   "kort": "181892d3",
+   "pid": "181892d3-4227-4fb8-98d0-d8dd12699049",
+   "media": [
+    {
+     "id": "b379ce_6e327cb1f0154c4281bb4946e61bc839~mv2.jpg",
+     "altText": "Röd eldriven driftkart för barn med svart ratt, röd vimpel med siffran 1 och färgade lampor i fronten, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_1453222531064bcc8265c3bc4600440b~mv2.jpg",
+     "altText": "En flicka i gul tröja kör den röda driftkarten på en gångväg framför ett vitt trähus med en trappa"
+    },
+    {
+     "id": "b379ce_a3940eefe4904c7c8ad93f62d01d39fb~mv2.jpg",
+     "altText": "Den röda driftkarten på en asfalterad väg i en park med träd och en lekplats i bakgrunden"
+    }
+   ]
+  }
+ ]
+}

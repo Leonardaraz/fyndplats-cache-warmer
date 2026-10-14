@@ -1,0 +1,101 @@
+{
+ "runda": "runda-t17-givare-alt",
+ "produkter": [
+  {
+   "kort": "aaa9f500",
+   "pid": "aaa9f500-b330-42fb-b2e5-c9ed600aff83",
+   "media": [
+    {
+     "id": "b379ce_9a60b50211cf4d3da43b62912fc4ec7c~mv2.jpg",
+     "altText": "Tvättkorg i naturfärgad bambu med löstagbart lock och gräddvit tygpåse, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_bb46c476ffa14d79a015b8b154d31e1e~mv2.jpg",
+     "altText": "Den naturfärgade tvättkorgen i bambu under en hylla i mörkt trä i ett badrum med ljust trägolv och blommig tapet"
+    },
+    {
+     "id": "b379ce_224e04ff90f945a98edae8638542823e~mv2.jpg",
+     "altText": "Den naturfärgade tvättkorgen med öppet lock och handdukar i, bredvid ett badkar och ett fönster"
+    },
+    {
+     "id": "b379ce_486af4b7b20e4707b65097d7826f605a~mv2.jpg",
+     "altText": "Den naturfärgade tvättkorgen med öppet lock och vikta kläder i, på ett ljust golv bredvid ett glasskåp"
+    }
+   ]
+  },
+  {
+   "kort": "5f10b848",
+   "pid": "5f10b848-06fb-4602-91ef-b5211c057337",
+   "media": [
+    {
+     "id": "b379ce_6b87e82b22694b2a8aa462c16187de19~mv2.jpg",
+     "altText": "Mörkgrå sittbänk i sammetslook med guldfärgade ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_87f3172727254472ba2b79311f129c7d~mv2.jpg",
+     "altText": "Den mörkgrå sittbänken vid en trappa, med en kudde och en uppslagen tidning på sitsen"
+    },
+    {
+     "id": "b379ce_e06534a34ca24bef89ab523a7c47e9a7~mv2.jpg",
+     "altText": "Den mörkgrå sittbänken vid fotändan av en säng i ett mörkt sovrum"
+    },
+    {
+     "id": "b379ce_61e0e72995314bd08183a30e9139ca50~mv2.jpg",
+     "altText": "Den mörkgrå sittbänken med uppfälld sits och förvaringsutrymmet synligt vid en säng"
+    }
+   ]
+  },
+  {
+   "kort": "a4e3545d",
+   "pid": "a4e3545d-3d33-4c4e-8a48-acb6938b0ff6",
+   "media": [
+    {
+     "id": "b379ce_46f2d57ade37484681ec7330c023fb79~mv2.jpg",
+     "altText": "Grått trädgårdsskåp med dubbeldörr, kryssdekor och arbetsyta i galvad plåt, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_da62190c7cba4fad85e2e4a38873fb6c~mv2.jpg",
+     "altText": "Det grå skåpet med dörrarna öppna, hyllplan och verktygslådor på plats, vid en vägg med krukväxter och blommor"
+    },
+    {
+     "id": "b379ce_c7cf0f7d302f4e66a1c1bc98a99aa7fa~mv2.jpg",
+     "altText": "Det grå skåpet med öppna dörrar och verktygslådor på hyllplanet, framför en stenmur"
+    },
+    {
+     "id": "b379ce_7e7c7d97385c40cd8ec264c06ea363f9~mv2.jpg",
+     "altText": "Det grå skåpet med öppna dörrar, verktyg och lådor, på ett grått underlag mot en vit vägg med krukväxter"
+    },
+    {
+     "id": "b379ce_498bcf2fa4a548f28431282bc7cd35e5~mv2.jpg",
+     "altText": "Måttbild: skåpet är 79 cm brett, 43 cm djupt och 92 cm högt, med dörrar på 35 × 76 cm och hyllplanet 73 × 36 cm"
+    }
+   ]
+  },
+  {
+   "kort": "9fdba797",
+   "pid": "9fdba797-5c0f-4be5-921d-ee0708ef4447",
+   "media": [
+    {
+     "id": "b379ce_91f95d92c7a04b94b416c40da3e0f74c~mv2.jpg",
+     "altText": "Smal sensorsoptunna på 40 liter i rostfritt stål med svart lock och sensor, snett framifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_203101369f6647b2a84c1b51f949e1d6~mv2.jpg",
+     "altText": "Soptunnan på 40 liter på ett klinkergolv i ett kök bredvid en krukväxt"
+    },
+    {
+     "id": "b379ce_cfa6bda899e84b7d9f306d4596dbfeff~mv2.jpg",
+     "altText": "Soptunnan på 40 liter vid en köksö på ett trägolv"
+    },
+    {
+     "id": "b379ce_c5e09f704902489e94ebd2644dff1caa~mv2.jpg",
+     "altText": "Soptunnan på 40 liter i ett ljust kök framför en köksö"
+    },
+    {
+     "id": "b379ce_c309f6374ed040a6a5d2296eda223df5~mv2.jpg",
+     "altText": "Måttbild: tunnan på 40 liter är 35,5 × 26 × 55 cm och öppningen är 30,8 × 16,3 cm"
+    }
+   ]
+  }
+ ]
+}

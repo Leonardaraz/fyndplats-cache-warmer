@@ -1,0 +1,55 @@
+[
+ {
+  "huvud": "60f84a27",
+  "huvud_fullid": "60f84a27-9823-4d93-9d02-59a18b0bd409",
+  "givare": "3e450479",
+  "givare_fullid": "3e450479-b2c6-4ace-b373-db26fe9b023a",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "60f84a27": "6 stenar",
+   "43c151c1": "9 stenar",
+   "3e450479": "11 stenar"
+  }
+ },
+ {
+  "huvud": "60f84a27",
+  "huvud_fullid": "60f84a27-9823-4d93-9d02-59a18b0bd409",
+  "givare": "43c151c1",
+  "givare_fullid": "43c151c1-6931-4b56-8315-e916ca475a07",
+  "bilder_efter_bildplan": "1,2",
+  "kallpositioner_i_ordning": [
+   "1",
+   "5"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "60f84a27": "6 stenar",
+   "43c151c1": "9 stenar",
+   "3e450479": "11 stenar"
+  }
+ },
+ {
+  "huvud": "e90dcc5a",
+  "huvud_fullid": "e90dcc5a-2d4d-4389-b455-979da533367f",
+  "givare": "dc71c3ac",
+  "givare_fullid": "dc71c3ac-387e-4173-85f9-fbc40c85db2a",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "e90dcc5a": "6 stenar",
+   "dc71c3ac": "11 stenar"
+  }
+ }
+]

@@ -1,0 +1,93 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1408676d": {
+  "tyska": "268B x 58T x 181H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 58,
+  "hojd": 181,
+  "bredd": 268
+ },
+ "1687eb94": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Innerer Eimer: Ø28 x 56H cm | Mått: 42L | ✔ Innerer Eimer: Ø28 x 72H cm | Mått: 50L"
+ },
+ "4b0a1fdb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße vom Stuhl: B49 x T40 x H82 cm | ✔ Maße vom Tisch: Ø60 x H69cm"
+ },
+ "4f265c91": {
+  "tyska": "L100 x B54 x H78 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 78,
+  "bredd": 100,
+  "djup": 54
+ },
+ "5f7bf4a9": {
+  "tyska": "143L x 143B x 195H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 195,
+  "bredd": 143,
+  "djup": 143
+ },
+ "75e1a5b6": {
+  "tyska": "L33 x B25 x H58 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 58,
+  "bredd": 33,
+  "djup": 25
+ },
+ "9c78a73a": {
+  "tyska": "390L x 290B x 195H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 195,
+  "bredd": 390,
+  "djup": 290
+ },
+ "b8d21670": {
+  "tyska": "30 x 12 x 60 cm (BxTxH)",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 12,
+  "hojd": 60,
+  "bredd": 30
+ },
+ "c1b60644": {
+  "tyska": "76L x 36B x 50H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 76,
+  "djup": 36
+ },
+ "d9544fac": {
+  "tyska": "L58 x B40,5 x H49 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 58,
+  "djup": 40.5
+ },
+ "e891b752": {
+  "tyska": "270L x 90B x 90H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 270,
+  "djup": 90
+ },
+ "f8b18da0": {
+  "tyska": "76L x 76B x 133H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 133,
+  "bredd": 76,
+  "djup": 76
+ }
+}

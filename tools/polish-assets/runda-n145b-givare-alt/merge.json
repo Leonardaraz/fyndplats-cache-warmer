@@ -1,0 +1,79 @@
+[
+ {
+  "huvud": "5c506192",
+  "huvud_fullid": "5c506192-c794-45a1-a41c-1114fc0f2642",
+  "givare": "0d3bad5e",
+  "givare_fullid": "0d3bad5e-d370-4b1d-adc0-de87553c8b9f",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5c506192": "Vit",
+   "bb18870d": "Röd",
+   "0d3bad5e": "Mintgrön",
+   "ba477284": "Rosa"
+  }
+ },
+ {
+  "huvud": "5c506192",
+  "huvud_fullid": "5c506192-c794-45a1-a41c-1114fc0f2642",
+  "givare": "ba477284",
+  "givare_fullid": "ba477284-39dd-4e73-a7a8-4b4d1b4b9fe2",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5c506192": "Vit",
+   "bb18870d": "Röd",
+   "0d3bad5e": "Mintgrön",
+   "ba477284": "Rosa"
+  }
+ },
+ {
+  "huvud": "5c506192",
+  "huvud_fullid": "5c506192-c794-45a1-a41c-1114fc0f2642",
+  "givare": "bb18870d",
+  "givare_fullid": "bb18870d-bd0e-457c-9b67-bddfed8e288f",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5c506192": "Vit",
+   "bb18870d": "Röd",
+   "0d3bad5e": "Mintgrön",
+   "ba477284": "Rosa"
+  }
+ },
+ {
+  "huvud": "dd979cce",
+  "huvud_fullid": "dd979cce-9733-47df-ad28-56106fb9a143",
+  "givare": "b2007d51",
+  "givare_fullid": "b2007d51-a283-4716-9618-647388f1e6c0",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "dd979cce": "Svart",
+   "b2007d51": "Rosa"
+  }
+ }
+]

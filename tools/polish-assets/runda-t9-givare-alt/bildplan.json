@@ -1,0 +1,27 @@
+{
+ "runda": "runda-t9-givare-alt",
+ "produkter": [
+  {
+   "kort": "a3bd50fa",
+   "pid": "a3bd50fa-3408-48b6-aa03-c7ac07eab1bd",
+   "media": [
+    {
+     "id": "b379ce_9ff3e3a41d9d47f1893430d5c2d00ed7~mv2.jpg",
+     "altText": "Rosa barnfåtölj i linnelook med rundade armstöd och sidoficka, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d92258047c0f4ca79ca36bedc66768c2~mv2.jpg",
+     "altText": "Ett barn sitter i den rosa barnfåtöljen bredvid en vit hylla med leksaker och ett gosedjur"
+    },
+    {
+     "id": "b379ce_142656b004de4dc8b9863ead5430114e~mv2.jpg",
+     "altText": "Närbild på fåtöljens svarta ben och det rosa tyget"
+    },
+    {
+     "id": "b379ce_f37caf757add47fba2ecd0314b04eb34~mv2.jpg",
+     "altText": "Närbild på det utfällda fotstödet i rosa tyg"
+    }
+   ]
+  }
+ ]
+}

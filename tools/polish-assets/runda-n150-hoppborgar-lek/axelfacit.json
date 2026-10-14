@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "08755391": {
+  "tyska": "350L x 325B x 210H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 210,
+  "bredd": 350,
+  "djup": 325
+ },
+ "16319acd": {
+  "tyska": "342L x 255B x 209H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 209,
+  "bredd": 342,
+  "djup": 255
+ },
+ "1f3321d8": {
+  "tyska": "69L x 33,5B x 110H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 110,
+  "bredd": 69,
+  "djup": 33.5
+ },
+ "24597637": {
+  "tyska": "176L x 176B x 10,5H cm (quadratisch)",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 10.5,
+  "bredd": 176,
+  "djup": 176
+ },
+ "35d0756b": {
+  "tyska": "364L x 173B x 182H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 182,
+  "bredd": 364,
+  "djup": 173
+ },
+ "901265e6": {
+  "tyska": "67L x 25B x 87H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 87,
+  "bredd": 67,
+  "djup": 25
+ },
+ "d6d7e346": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kleine Steine: 23L x 20,5B x 4H cm | ✔ Mittlere Steine: 26,5L x 24B x 8H cm | ✔ Große Steine: 34L x 37,5B x 15H cm | ✔ Extra große Steine: 42L x 39B x 20H cm | Mått: 42L x 39B x 20H cm"
+ },
+ "f030bee0": {
+  "tyska": "63,5L x 29,5B x 79,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 79.5,
+  "bredd": 63.5,
+  "djup": 29.5
+ }
+}

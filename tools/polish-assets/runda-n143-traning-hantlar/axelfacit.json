@@ -1,0 +1,149 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "09d4860b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Gewichtsplattengröße: 2 kg: Ø20 x 3,5T cm, 1,5 kg: Ø18 x 3,2T cm, 1,25 kg: Ø18 x 3T cm | Hantelstange: Ø2,5 x 46L cm | Verbindungsstange: 39L cm | Kettlebellstange: 14L cm | Kettlebellgriff: 19L x 11B x 15H cm | Mått: 95L x 20B x 20H cm"
+ },
+ "13cb9eb5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße der Rückwand: 74B x 45H cm | ✔ Gesamthöhe: 220-250H cm | ✔ Größe des Basketballkorbs: Ø39 cm, 182-213H cm | ✔ Maße der Basis: 74L x 55B x 13H cm"
+ },
+ "1436cd95": {
+  "tyska": "Ø24 x 3,5H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 3.5
+ },
+ "2ce2bf1b": {
+  "tyska": "40L x 35B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (40L x 35B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "41274304": {
+  "tyska": "40L x 40B x 10-30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   10,
+   30
+  ],
+  "bredd": 40,
+  "djup": 40
+ },
+ "4cf74321": {
+  "tyska": "150L x 110B x 210H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 210,
+  "bredd": 150,
+  "djup": 110
+ },
+ "61bc156e": {
+  "tyska": "Ø3,5 x L46,5 cm",
+  "svenska": "",
+  "bokstaver": "L",
+  "bredd": 46.5
+ },
+ "752eddaa": {
+  "tyska": "123-170L x 103B x 111-161H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   111,
+   161
+  ],
+  "bredd": [
+   123,
+   170
+  ],
+  "djup": 103
+ },
+ "7accc760": {
+  "tyska": "20L x 13B x 23H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 23,
+  "bredd": 20,
+  "djup": 13
+ },
+ "943181ba": {
+  "tyska": "27L x 21B x 31H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 31,
+  "bredd": 27,
+  "djup": 21
+ },
+ "96e16a4e": {
+  "tyska": "45L x 21B x 21H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 21,
+  "bredd": 45,
+  "djup": 21
+ },
+ "9fff56b3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 2,2 kg: 16L x 12B x 18H cm. 4,5 kg: 18L x 16B x 20H cm. 6,8 kg: 18L x 18B x 24H cm. Durchmesser: Ø12 cm, Ø16 cm und Ø18 cm. Innenlänge Griff: 10 cm, 12 cm und 12 cm. Äußere Grifflänge: 16 cm, 18 cm und 18 cm. Unterlage: 50B x 22T x 4H cm"
+ },
+ "a9b21b64": {
+  "tyska": "100L x 50B x 110H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 110,
+  "bredd": 100,
+  "djup": 50
+ },
+ "bb2476fd": {
+  "tyska": "60-87B x 65T x 121-158H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 65,
+  "hojd": [
+   121,
+   158
+  ],
+  "bredd": [
+   60,
+   87
+  ]
+ },
+ "c36d2683": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße (je Ständer): 50L x 49B x 124-154H cm | Mått: 50L x 49B x 124-154H cm"
+ },
+ "c6c0bfc2": {
+  "tyska": "26L x 17B x 29H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 29,
+  "bredd": 26,
+  "djup": 17
+ },
+ "cd848ed6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ 4 x 1,25 kg Platten: Ø17,5 x 3T cm | ✔ 8 x 2,5 kg-Platten: Ø21,5 x 3,8T cm | ✔ 4 x 1,25 kg Platten: Ø17,5 x 3T cm | ✔ 4 x 2,5 kg-Platten: Ø17,5 x 3,8T cm"
+ },
+ "db4ad959": {
+  "tyska": "93,5B x 65T x 17H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 65,
+  "hojd": 17,
+  "bredd": 93.5
+ },
+ "ec23e766": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f963ddfd": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Abmessungen: 35L x 33B x 66H cm | Mått: 35L x 33B x 66H cm"
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "runda": "runda-d1-givare-alt",
+ "produkter": [
+  {
+   "kort": "b5564b24",
+   "pid": "b5564b24-fe5f-4de8-ab7a-d391d1f7f7f5",
+   "media": [
+    {
+     "id": "b379ce_08d5e244cbce451b85ab72043b7ba8ec~mv2.jpg",
+     "altText": "En öppen grå väska med fyra par hantlar i beige, grått, lila och rosa, ordnade efter storlek"
+    },
+    {
+     "id": "b379ce_990b902eb69140e2ae73e72bfabacace~mv2.jpg",
+     "altText": "En kvinna i grå träningskläder gör utfall med en beige hantel i varje hand i ett vardagsrum med en motionscykel och en växt"
+    },
+    {
+     "id": "b379ce_fea06715808746c58eed57e26b162cd0~mv2.jpg",
+     "altText": "En kvinna i svarta träningskläder lyfter en beige hantel i varje hand över huvudet i ett ljust rum med en träningsmatta"
+    },
+    {
+     "id": "b379ce_49d35cad9b1f4d09ac60041c2d9bfd3a~mv2.jpg",
+     "altText": "Måttbild: hantlarna är 12,5, 13, 15 och 16 cm långa och 5, 6, 6,5 och 7,5 cm tjocka, och väskan är 41 × 30 × 8 cm"
+    }
+   ]
+  }
+ ]
+}
