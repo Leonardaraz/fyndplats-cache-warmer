@@ -1,0 +1,38 @@
+[
+ {
+  "huvud": "14fb0f98",
+  "huvud_fullid": "14fb0f98-7b44-4396-9cca-2438cc40cb72",
+  "givare": "72d8e656",
+  "givare_fullid": "72d8e656-dd9d-4cf9-bffc-0721651549ad",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5"
+  ],
+  "axel": "Färg + Storlek",
+  "varden": {
+   "14fb0f98": "Grön / Ø305 cm",
+   "a6a79334": "Blå / Ø305 cm",
+   "72d8e656": "Blå / Ø366 cm"
+  }
+ },
+ {
+  "huvud": "14fb0f98",
+  "huvud_fullid": "14fb0f98-7b44-4396-9cca-2438cc40cb72",
+  "givare": "a6a79334",
+  "givare_fullid": "a6a79334-f23e-444d-aa90-522f7bd00701",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg + Storlek",
+  "varden": {
+   "14fb0f98": "Grön / Ø305 cm",
+   "a6a79334": "Blå / Ø305 cm",
+   "72d8e656": "Blå / Ø366 cm"
+  }
+ }
+]
