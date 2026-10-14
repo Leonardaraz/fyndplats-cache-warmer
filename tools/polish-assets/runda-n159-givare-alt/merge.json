@@ -1,0 +1,194 @@
+[
+ {
+  "huvud": "2b67c30a",
+  "huvud_fullid": "2b67c30a-69f4-41d1-96b0-e37f1a95ea10",
+  "givare": "5c54796e",
+  "givare_fullid": "5c54796e-7a0e-41c0-aa5e-a80a583cbddb",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2b67c30a": "Grön",
+   "a036c6b8": "Brun",
+   "b2fb7fe5": "Blå",
+   "5c54796e": "Lila",
+   "94a72871": "Rosa"
+  }
+ },
+ {
+  "huvud": "2b67c30a",
+  "huvud_fullid": "2b67c30a-69f4-41d1-96b0-e37f1a95ea10",
+  "givare": "94a72871",
+  "givare_fullid": "94a72871-a505-4423-bb4a-163be66cfe64",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2b67c30a": "Grön",
+   "a036c6b8": "Brun",
+   "b2fb7fe5": "Blå",
+   "5c54796e": "Lila",
+   "94a72871": "Rosa"
+  }
+ },
+ {
+  "huvud": "2b67c30a",
+  "huvud_fullid": "2b67c30a-69f4-41d1-96b0-e37f1a95ea10",
+  "givare": "a036c6b8",
+  "givare_fullid": "a036c6b8-07d3-4b05-a4af-ca28bdff658a",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2b67c30a": "Grön",
+   "a036c6b8": "Brun",
+   "b2fb7fe5": "Blå",
+   "5c54796e": "Lila",
+   "94a72871": "Rosa"
+  }
+ },
+ {
+  "huvud": "2b67c30a",
+  "huvud_fullid": "2b67c30a-69f4-41d1-96b0-e37f1a95ea10",
+  "givare": "b2fb7fe5",
+  "givare_fullid": "b2fb7fe5-cf06-4efd-8585-0599fa15c632",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2b67c30a": "Grön",
+   "a036c6b8": "Brun",
+   "b2fb7fe5": "Blå",
+   "5c54796e": "Lila",
+   "94a72871": "Rosa"
+  }
+ },
+ {
+  "huvud": "887cf2a3",
+  "huvud_fullid": "887cf2a3-84f4-4644-bd99-ce3f84c71ff5",
+  "givare": "b2ad1ebc",
+  "givare_fullid": "b2ad1ebc-0439-4091-b8f0-3e3f94e7d541",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "887cf2a3": "Blå och vit",
+   "b2ad1ebc": "Grön och vit",
+   "ba1896cf": "Vit"
+  }
+ },
+ {
+  "huvud": "887cf2a3",
+  "huvud_fullid": "887cf2a3-84f4-4644-bd99-ce3f84c71ff5",
+  "givare": "ba1896cf",
+  "givare_fullid": "ba1896cf-905c-4337-8222-3eec6648a19c",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "887cf2a3": "Blå och vit",
+   "b2ad1ebc": "Grön och vit",
+   "ba1896cf": "Vit"
+  }
+ },
+ {
+  "huvud": "97b5e7e9",
+  "huvud_fullid": "97b5e7e9-f0c3-4f46-9e9b-ac54e8649f25",
+  "givare": "b92a9b5f",
+  "givare_fullid": "b92a9b5f-0acc-4578-85b1-dca1dbf7c39a",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "97b5e7e9": "Grå",
+   "b92a9b5f": "Beige"
+  }
+ },
+ {
+  "huvud": "a32b547e",
+  "huvud_fullid": "a32b547e-4a97-4438-9961-525121707353",
+  "givare": "dbb7108e",
+  "givare_fullid": "dbb7108e-8d4d-4576-9bc6-1885657322c3",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a32b547e": "Grå",
+   "dbb7108e": "Gul"
+  }
+ },
+ {
+  "huvud": "360a9721",
+  "huvud_fullid": "360a9721-17a4-4cd5-afb1-ad648d6db08a",
+  "givare": "3746cb59",
+  "givare_fullid": "3746cb59-0068-4c60-b1cd-deb15b983b3a",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "360a9721": "Svart",
+   "3746cb59": "Vit"
+  }
+ },
+ {
+  "huvud": "361d09f5",
+  "huvud_fullid": "361d09f5-5978-4e78-9c85-14f4440677f6",
+  "givare": "99807672",
+  "givare_fullid": "99807672-3e3e-4642-abf2-1d885c142d90",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "361d09f5": "Flerfärgad",
+   "99807672": "Pastell"
+  }
+ }
+]

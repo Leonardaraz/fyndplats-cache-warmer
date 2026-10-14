@@ -1,0 +1,217 @@
+{
+ "runda": "runda-n159-givare-alt",
+ "produkter": [
+  {
+   "kort": "5c54796e",
+   "pid": "5c54796e-7a0e-41c0-aa5e-a80a583cbddb",
+   "media": [
+    {
+     "id": "b379ce_b2c4e17406d4447e8632a259518a51a7~mv2.jpg",
+     "altText": "Lila hopfällbar balansbjälke med mockaöverdrag, snett uppifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6e3a3bca32834b68b2fef10cf5134217~mv2.jpg",
+     "altText": "En kvinna balanserar på ett ben på den lila balansbjälken i ett vardagsrum med bokhyllor och en skinnfåtölj"
+    },
+    {
+     "id": "b379ce_208e479add9149fcad86a03e1fd95a57~mv2.jpg",
+     "altText": "En flicka i rosa gymnastikdräkt balanserar på den lila balansbjälken med armarna utsträckta, i ett ljust rum"
+    }
+   ]
+  },
+  {
+   "kort": "94a72871",
+   "pid": "94a72871-a505-4423-bb4a-163be66cfe64",
+   "media": [
+    {
+     "id": "b379ce_2b01217584aa4f01ab7284b7d5032f59~mv2.jpg",
+     "altText": "Rosa hopfällbar balansbjälke med mockaöverdrag, snett uppifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_e392d95c5612478c9d9694797c64a7c1~mv2.jpg",
+     "altText": "En gymnast står på händerna med benen i split ovanför den rosa balansbjälken, i ett ljust rum med höga fönster"
+    },
+    {
+     "id": "b379ce_f6f41d0fd52f4c18838d48173822825e~mv2.jpg",
+     "altText": "Närbild på den rosa balansbjälkens mittparti där den viks, med ett gångjärn av stål"
+    }
+   ]
+  },
+  {
+   "kort": "a036c6b8",
+   "pid": "a036c6b8-07d3-4b05-a4af-ca28bdff658a",
+   "media": [
+    {
+     "id": "b379ce_2e9da6465e5d4211820c0fa281743ad0~mv2.jpg",
+     "altText": "Brun hopfällbar balansbjälke med mockaöverdrag, snett uppifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_3e6d5afeda8e4f6cab737300bba49b11~mv2.jpg",
+     "altText": "En kvinna balanserar på ett ben med armarna utsträckta på den bruna balansbjälken, i ett ljust rum med stora fönster"
+    },
+    {
+     "id": "b379ce_df3fdc4ea7f2445aa1dbde759b1196ac~mv2.jpg",
+     "altText": "Närbild på den bruna balansbjälkens ände med mockaöverdraget mot ett trägolv"
+    }
+   ]
+  },
+  {
+   "kort": "b2fb7fe5",
+   "pid": "b2fb7fe5-cf06-4efd-8585-0599fa15c632",
+   "media": [
+    {
+     "id": "b379ce_8189ca0da9a04019a45b8813aefab6ad~mv2.jpg",
+     "altText": "Blå hopfällbar balansbjälke med mockaöverdrag, snett uppifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_f0b31614cc2d43d3875de3ba0ef93def~mv2.jpg",
+     "altText": "En gymnast står på händerna med benen i split ovanför den blå balansbjälken, i en idrottshall"
+    },
+    {
+     "id": "b379ce_76f35a34c78e464ca5069983e7fdb633~mv2.jpg",
+     "altText": "Den blå balansbjälken står upprätt mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "kort": "b2ad1ebc",
+   "pid": "b2ad1ebc-0439-4091-b8f0-3e3f94e7d541",
+   "media": [
+    {
+     "id": "b379ce_97547a1077e248f2838c766a1fb23862~mv2.jpg",
+     "altText": "Vit fågelbur med grön bottenbricka, två sittpinnar och två matskålar, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_b777fa7615524f9e9e8b18eb641eceb5~mv2.jpg",
+     "altText": "Den vita buren med grön bottenbricka står på en träbyrå, med en gul och en blå fågel på sittpinnarna"
+    },
+    {
+     "id": "b379ce_060689d6d7094979b0903ab6d87599ff~mv2.jpg",
+     "altText": "Ett barn sträcker armarna uppåt bredvid en byrå där den vita buren med grön bottenbricka står"
+    },
+    {
+     "id": "b379ce_44d4f376330145868fe3d3202ac3a299~mv2.jpg",
+     "altText": "Måttbild: buren är 59 cm hög, 46,5 cm lång och 36 cm bred, med en stor dörr på 31 × 31,5 cm och en liten dörr på 8,5 × 11,5 cm"
+    }
+   ]
+  },
+  {
+   "kort": "ba1896cf",
+   "pid": "ba1896cf-905c-4337-8222-3eec6648a19c",
+   "media": [
+    {
+     "id": "b379ce_15d6a0f10ad54c369c174760e044f1ef~mv2.jpg",
+     "altText": "Helt vit fågelbur med vit bottenbricka, två sittpinnar och två matskålar, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_d200ada88ec4428da35723f1eaf8d099~mv2.jpg",
+     "altText": "Den helt vita buren står på en träbyrå, med en gul och en blå fågel på sittpinnarna"
+    },
+    {
+     "id": "b379ce_803b27f247984909ae2bc6d861547a6b~mv2.jpg",
+     "altText": "Ett barn sträcker armarna uppåt bredvid en byrå där den helt vita buren står"
+    },
+    {
+     "id": "b379ce_b02c431f6fac458e83ca16957983b8c1~mv2.jpg",
+     "altText": "Måttbild: buren är 59 cm hög, 46,5 cm lång och 36 cm bred, med en stor dörr på 31 × 31,5 cm och en liten dörr på 8,5 × 11,5 cm"
+    }
+   ]
+  },
+  {
+   "kort": "b92a9b5f",
+   "pid": "b92a9b5f-0acc-4578-85b1-dca1dbf7c39a",
+   "media": [
+    {
+     "id": "b379ce_866610b520764b1f8ddc02ec8ea93024~mv2.jpg",
+     "altText": "Klösbo med ljus sisal på sidorna, beige plysch och två öppningar i olika nivåer, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_a4610f9d747846beb7d28eea4c4200b7~mv2.jpg",
+     "altText": "En katt kikar ut ur den övre öppningen och en annan ligger i den nedre öppningen i det beiga klösboet, i ett ljust vardagsrum"
+    },
+    {
+     "id": "b379ce_25e7b40a80964f81b01f15b369c9ec83~mv2.jpg",
+     "altText": "En orange katt sträcker en tass mot en svartvit katt som kliver ut ur den nedre öppningen i det beiga klösboet"
+    },
+    {
+     "id": "b379ce_1706e584529243939da25e7ecc557d6b~mv2.jpg",
+     "altText": "En orange katt ligger på det beiga klösbots översta platta, bredvid en kattlåda och en fåtölj"
+    },
+    {
+     "id": "b379ce_5fb16ee8e05c4a34a54fb916d2feff73~mv2.jpg",
+     "altText": "Måttbild: klösboet är 67 cm högt och 40 × 40 cm, med öppningar på 20 × 20 cm och ett invändigt mått på 38 cm"
+    }
+   ]
+  },
+  {
+   "kort": "dbb7108e",
+   "pid": "dbb7108e-8d4d-4576-9bc6-1885657322c3",
+   "media": [
+    {
+     "id": "b379ce_e6e0355c4b4e4b54aa46882e875da8e3~mv2.jpg",
+     "altText": "Gult katthus i trä med svarta kanter, två våningar, ett svart asfaltstak, flera ingångar och en liten blomlåda, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_3ec4c1203fcf4d8c9ca59beec2ffaaeb~mv2.jpg",
+     "altText": "Två katter vid det gula katthuset på en gräsmatta framför en trävägg och blommande buskar"
+    },
+    {
+     "id": "b379ce_74b1480f653d404c8845ce487a35fd4e~mv2.jpg",
+     "altText": "Närbild på två öppningar i det gula katthusets fasad med svarta kanter"
+    },
+    {
+     "id": "b379ce_6f21d14149964a5393bbfa9826ee2b68~mv2.jpg",
+     "altText": "Närbild på den välvda ingången och ett av de svarta benen på det gula katthuset"
+    },
+    {
+     "id": "b379ce_d2cf41986b52498bb9c0ad81181c3eed~mv2.jpg",
+     "altText": "Måttbild: huset är 96 cm långt, 65 cm brett och 85,5 cm högt, med en blomlåda på 24 × 8,4 × 11,5 cm och en höjd över marken på 8 cm"
+    }
+   ]
+  },
+  {
+   "kort": "3746cb59",
+   "pid": "3746cb59-0068-4c60-b1cd-deb15b983b3a",
+   "media": [
+    {
+     "id": "b379ce_e6bfb7920f0a4e38bec7b838657279e5~mv2.jpg",
+     "altText": "Vit elbil för barn med Mercedes-AMG-grill, en bakvinge, svarta dekorer och dekalen AMG på vindrutan, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_a95c46df5df64580acee58b9eec36c8d~mv2.jpg",
+     "altText": "Ett barn kör den vita elbilen på en racerbana med ljuseffekter"
+    },
+    {
+     "id": "b379ce_1c836e9235e64eb6ae299b9822cd71f8~mv2.jpg",
+     "altText": "Den vita elbilen sedd framifrån, från sidan och bakifrån på en racerbana"
+    }
+   ]
+  },
+  {
+   "kort": "99807672",
+   "pid": "99807672-3e3e-4642-abf2-1d885c142d90",
+   "media": [
+    {
+     "id": "b379ce_a02b8eb4591b42e788d18798993213c6~mv2.jpg",
+     "altText": "Sju mjuka byggklossar i rosa, lila, blågrått och grått staplade i en byggnad med en ramp och ett vågelement framför, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_3733c94551a94084a68bd2476248259e~mv2.jpg",
+     "altText": "Två barn leker med de pastellfärgade byggklossarna i ett rum med en tavla och en växt"
+    },
+    {
+     "id": "b379ce_e5fc0a714b2447ce9374dd1aa79b2e05~mv2.jpg",
+     "altText": "De pastellfärgade byggklossarna uppbyggda på en matta i ett vardagsrum med en soffa, en kaktus och en nalle"
+    },
+    {
+     "id": "b379ce_7430c2f0e51b425ebf92683b4651c4cf~mv2.jpg",
+     "altText": "Närbild på tre staplade pastellfärgade byggklossar i rosa, lila och blågrått"
+    },
+    {
+     "id": "b379ce_36b4a7ca4330460aa1b774e946c50699~mv2.jpg",
+     "altText": "Måttbild: de sju pastellfärgade byggklossarna med måtten 40 cm, 20 cm, 15 cm, 5 cm, 11 cm och 60 cm"
+    }
+   ]
+  }
+ ]
+}
