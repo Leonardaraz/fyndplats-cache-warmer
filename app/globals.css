@@ -1635,11 +1635,15 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
    knapp och inte som en textlänk. */
 .prose figure.blog-product-img figcaption a{display:block;padding:11px 14px;color:var(--brand);font-weight:600;text-decoration:none}
 .prose figure.blog-product-img figcaption a:hover{text-decoration:underline;background:#ffefe3}
-.prose .blog-produktrad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
-.prose .blog-produktrad figure.blog-product-img{margin:0;display:flex;flex-direction:column}
+/* Flex med radbrytning i stället för grid: en sista rad som inte är full
+   centreras. I ett rutnät stod två kort i en rad för tre med en tom ruta till
+   höger, och på mobilen stod det tredje kortet ensamt till vänster
+   (2026-10-14). Kortens bredd är densamma som i rutnätet. */
+.prose .blog-produktrad{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:24px 0}
+.prose .blog-produktrad figure.blog-product-img{margin:0;display:flex;flex-direction:column;flex:0 0 calc((100% - 28px) / 3);min-width:0}
 .prose .blog-produktrad figure.blog-product-img figcaption{flex:1;display:flex}
 .prose .blog-produktrad figure.blog-product-img figcaption a{display:flex;align-items:center;justify-content:center;width:100%;padding:10px 10px;font-size:13px;line-height:1.35}
-@media (max-width:640px){.prose .blog-produktrad{grid-template-columns:repeat(2,1fr);gap:10px}}
+@media (max-width:640px){.prose .blog-produktrad{gap:10px}.prose .blog-produktrad figure.blog-product-img{flex-basis:calc((100% - 10px) / 2)}}
 .prose .blog-tabell{margin:24px 0;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
 .prose .blog-tabell table{width:100%;border-collapse:collapse;font-size:var(--text-sm);line-height:1.45}
 .prose .blog-tabell th{text-align:left;background:var(--warm);font-weight:700;color:var(--ink);padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}

@@ -50,3 +50,15 @@ test("produktlistan för Google tar bara med länkar till produkter", () => {
   // Måttbilden ritas ändå, som en vanlig figur i raden.
   assert.equal((renderMarkdown(md).match(/<figure/g) || []).length, 4);
 });
+
+test("en miljöbild före produktkortet tar inte över produktens namn och bild", () => {
+  // Köpguiden för bäddfåtöljer visar en fåtölj som fåtölj, schäslong och säng
+  // högt upp, och produktkortet längre ned (2026-10-14). Listan till Google
+  // ska bära kortets namn och bild, i kortens ordning.
+  const miljo = "[![Samma bäddfåtölj utfälld till säng, med en kvinna som sover under en filt](https://static.wixstatic.com/media/miljo.jpg)](/produkt/stol \"Säng\")";
+  const md = [miljo, "", bild("bord"), bild("stol")].join("\n");
+  assert.deepEqual(extractProducts(md), [
+    { name: "bord", image: "https://static.wixstatic.com/media/bord.jpg", url: "/produkt/bord" },
+    { name: "stol", image: "https://static.wixstatic.com/media/stol.jpg", url: "/produkt/stol" },
+  ]);
+});

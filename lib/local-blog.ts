@@ -342,19 +342,31 @@ function extractFaq(md: string): { q: string; a: string }[] {
 // Bara länkar till /produkt/ räknas. Samma radform bär även bilder som inte är
 // produkter, till exempel köpguidens måttbild som länkar till kategorin
 // (2026-10-14), och de hör inte hemma i en lista över produkter.
+//
+// En produkt kan förekomma flera gånger: i ett produktkort, vars alt är
+// produktens namn, och i miljöbilder, vars alt beskriver vad bilden visar
+// ("Samma bäddfåtölj utfälld till säng, med en kvinna som sover …"). Listan
+// ska bära produktens namn och bild, så förekomsten med kortast alt-text
+// vinner, och listan följer de förekomsternas ordning. Ett inlägg där varje
+// produkt förekommer en gång får samma lista som förut.
 export function extractProducts(md: string): { name: string; image: string; url: string }[] {
-  const out: { name: string; image: string; url: string }[] = [];
-  const seen = new Set<string>();
+  const basta = new Map<string, { name: string; image: string; url: string; plats: number }>();
+  let plats = 0;
   for (const raw of md.split(/\r?\n/)) {
     const m = raw.trim().match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
     if (!m) continue;
     const [, alt, image, url] = m;
-    if (!url.trim().startsWith("/produkt/")) continue;
-    if (seen.has(url)) continue;
-    seen.add(url);
-    out.push({ name: alt.trim(), image: image.trim(), url: url.trim() });
+    if (!url.startsWith("/produkt/")) continue;
+    const name = alt.trim();
+    const tidigare = basta.get(url);
+    if (!tidigare || name.length < tidigare.name.length) {
+      basta.set(url, { name, image: image.trim(), url, plats });
+    }
+    plats++;
   }
-  return out;
+  return [...basta.values()]
+    .sort((a, b) => a.plats - b.plats)
+    .map(({ name, image, url }) => ({ name, image, url }));
 }
 
 let cache: Promise<LocalPost[]> | null = null;
