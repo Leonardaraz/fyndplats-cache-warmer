@@ -17,6 +17,26 @@
 export const LEAKY_PATTERN =
   /\b(china|chinese|kina|hong\s?kong|cainiao|aliexpress|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|4px|yanwen)\b/i;
 
+// ☠️ En text där "delivered" säger att det INTE har skett, eller att det ska
+// ske ("could not be delivered", "to be delivered at a new delivery date").
+// Här är felet dyrare än i 17TRACK-flödet: deriveAeStatus gjorde Delivered av
+// varje "delivered", och /api/cron/ae-delivery-poll mejlar kunden att paketet
+// är framme när statusen blir Delivered. Tvilling till INTE_LEVERERAT i
+// lib/track-i18n.ts (den här modulen får inte importera därifrån), och ett
+// test fäller om de två glider isär.
+export const INTE_LEVERERAT =
+  /\bundelivered\b|(?:\b(?:not|never|cannot)\b|n['’]t\b)[^.;]*\bdelivered\b|\b(?:be|being)\s+delivered\b/i;
+
+// GLS skriver "The parcel is expected to be delivered during the day." när
+// paketet är ute för leverans. Delas av översättningen och statusen.
+const UTE_FOR_LEVERANS =
+  /out for delivery|delivery in progress|expected to be delivered (today|during the day)|will be delivered today/i;
+
+/** Ett levererat-mönster som inte slår till när texten är INTE_LEVERERAT. */
+function levererat(re: RegExp): RegExp {
+  return new RegExp(`^(?![\\s\\S]*(?:${INTE_LEVERERAT.source}))[\\s\\S]*(?:${re.source})`, "i");
+}
+
 export const AE_PHRASE_SV: Array<[RegExp, string]> = [
   // — Lagerhantering hos avsändaren —
   // ☠️ MÅSTE ligga FÖRST. Alla fyra stegen sker innan transportören rör
@@ -62,8 +82,8 @@ export const AE_PHRASE_SV: Array<[RegExp, string]> = [
   // kvar på engelska: bindestrecket föll utanför både "pick ?up" och "pickup".
   [/available for pick[- ]?up|ready for pick[- ]?up|awaiting (your )?collection|at (the )?(pick[- ]?up|service) point/i,
     "Paketet finns för upphämtning hos ditt ombud"],
-  [/out for delivery|delivery in progress/i, "Paketet är ute för leverans"],
-  [/delivered|delivery (completed|successful)/i, "Paketet är levererat"],
+  [UTE_FOR_LEVERANS, "Paketet är ute för leverans"],
+  [levererat(/delivered|delivery (completed|successful)/), "Paketet är levererat"],
   [/returned to (seller|sender)|being returned/i, "Paketet returneras till avsändaren"],
   // — Generisk transit (sist så den inte slukar specifika fraser) —
   [/international transit/i, "Paketet är i internationell transit"],
@@ -88,7 +108,8 @@ export type AeStatus = "Delivered" | "OutForDelivery" | "AvailableForPickup" | "
  * har bara texterna).
  *
  *   - "delivered" NÅGONSTANS → Delivered (terminal — senare "shipping update"-
- *     rader ska inte kunna nedgradera).
+ *     rader ska inte kunna nedgradera). Utom när texten säger att det inte
+ *     har skett eller ska ske (INTE_LEVERERAT).
  *   - Annars styr NYASTE raden: ute för leverans / hos ombud.
  *   - Allt annat → InTransit.
  */
@@ -96,10 +117,10 @@ export function deriveAeStatus(rawDescriptionsNewestFirst: string[]): AeStatus {
   const DELIVERED = /\bdelivered\b|delivery (completed|successful)/i;
   const FAILED = /delivery (attempt )?(failed|unsuccessful)|unable to deliver/i;
   for (const d of rawDescriptionsNewestFirst) {
-    if (DELIVERED.test(d) && !FAILED.test(d)) return "Delivered";
+    if (DELIVERED.test(d) && !FAILED.test(d) && !INTE_LEVERERAT.test(d)) return "Delivered";
   }
   const newest = rawDescriptionsNewestFirst[0] ?? "";
-  if (/out for delivery|delivery in progress/i.test(newest) && !FAILED.test(newest)) return "OutForDelivery";
+  if (UTE_FOR_LEVERANS.test(newest) && !FAILED.test(newest)) return "OutForDelivery";
   // Samma fraser som översättningen ovan, så att "Package arrived at pick-up
   // point" ger både rätt text och rätt steg.
   if (/available for pick[- ]?up|ready for pick[- ]?up|awaiting (your )?collection|at (the )?(pick[- ]?up|service) point/i.test(newest)) return "AvailableForPickup";

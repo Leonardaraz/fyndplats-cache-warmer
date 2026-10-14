@@ -7,6 +7,27 @@
 // medveten: SPECIFIKA fraser (sorterings­terminal, lastad, levererad-till-brevlåda)
 // ligger FÖRE den generiska transit-frasen, annars skulle den generiska sluka dem.
 
+/**
+ * ☠️ "delivered" betyder inte alltid levererat. Texten kan säga att det INTE
+ * har skett ("could not be delivered", "not delivered", "undelivered") eller
+ * att det ska ske ("to be delivered", "will be delivered", "is being
+ * delivered"). GLS skrev "The parcel is stored in the parcel center to be
+ * delivered at a new delivery date." om ett paket som låg kvar på terminalen,
+ * och /sparning sa "Paketet är levererat." (order 10075, 2026-10-13).
+ *
+ * Tvilling i lib/ae-track.ts (den modulen får inte importera härifrån), och
+ * ett test fäller om de två glider isär.
+ */
+export const INTE_LEVERERAT =
+  /\bundelivered\b|(?:\b(?:not|never|cannot)\b|n['’]t\b)[^.;]*\bdelivered\b|\b(?:be|being)\s+delivered\b/i;
+
+/** Ett levererat-mönster som inte slår till när texten är INTE_LEVERERAT. Då
+ *  hittar matchPhrase ingen fras, och anroparen faller tillbaka på 17TRACK:s
+ *  egen stage, som redan vet vad händelsen är. */
+function levererat(re: RegExp): RegExp {
+  return new RegExp(`^(?![\\s\\S]*(?:${INTE_LEVERERAT.source}))[\\s\\S]*(?:${re.source})`, "i");
+}
+
 export const PHRASE_SV: Array<[RegExp, string]> = [
   // — Förberedelse / registrering —
   [/we have received a notification from your shipper.*preparing an item/i,
@@ -51,16 +72,20 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
   // — Tull —
   [/customs/i, "Paketet hanteras i tullen."],
   // — Sista milen —
-  [/out for delivery|with (the )?courier for delivery|delivery in progress|on vehicle for delivery/i,
+  // GLS skriver "The parcel is expected to be delivered during the day." när
+  // paketet är ute för leverans.
+  [/out for delivery|with (the )?courier for delivery|delivery in progress|on vehicle for delivery|expected to be delivered (today|during the day)|will be delivered today/i,
     "Paketet är ute för leverans."],
   // "pick-up" med bindestreck förekommer också ("Package arrived at pick-up
   // point", uppmätt 2026-10-08) och stod annars kvar på engelska.
   [/available for pick[- ]?up|ready for pick[- ]?up|collect[^.]*pick[- ]?up point|at (the )?(pick[- ]?up|service) point|awaiting collection/i,
     "Paketet finns för upphämtning hos ditt ombud."],
   // — Levererat (SPECIFIK brevlåda/mottagare FÖRE generisk "delivered") —
-  [/delivered to[^.]*(mailbox|recipient|address)|recipient'?s mailbox|left (in|at)[^.]*mailbox|delivered to (the )?door/i,
+  // Båda går genom levererat(), så "could not be delivered to the recipient"
+  // inte blir levererat (se INTE_LEVERERAT).
+  [levererat(/delivered to[^.]*(mailbox|recipient|address)|recipient'?s mailbox|left (in|at)[^.]*mailbox|delivered to (the )?door/),
     "Paketet har levererats till mottagarens brevlåda."],
-  [/delivered|delivery completed|delivery successful|successfully delivered/i, "Paketet är levererat."],
+  [levererat(/delivered|delivery completed|delivery successful|successfully delivered/), "Paketet är levererat."],
   // — Avvikelser / retur —
   [/delivery[^.]*(failed|unsuccessful|attempt)|failed delivery|unable to deliver|no.?one (was )?(home|available)/i,
     "Leveransförsök misslyckades – ny leverans planeras."],
