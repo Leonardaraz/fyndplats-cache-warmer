@@ -1,4 +1,4 @@
-// Uppvärmning i produktion efter GLS-rättelsen (#739): 2026-10-13 03:50 svensk tid.
+// Uppvärmning i produktion efter nattens deploy (#740): 2026-10-14 03:10 svensk tid.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
