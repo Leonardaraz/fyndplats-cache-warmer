@@ -1,0 +1,5 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har bara raden Mått utan axelbokstäver (56cm x 11,7cm x 18,5cm) och inget totalmått med B, T eller H; måtten är lästa mot måttbilden: 56 cm bredd, 11,7 cm djup och 18,5 cm höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard

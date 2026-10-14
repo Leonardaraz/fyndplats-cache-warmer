@@ -1,0 +1,17 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "087cb4b8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Dimensions totales : 34,5L x 34,5l x 72-87,5H cm | ✔ Dimensions de l'assise : 34,5L x 34,5l x 47,5-63H cm"
+ },
+ "19f7c013": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Quadratischer Block: 40,6L x 40,6B x 20,3H cm | ✔ Rechteckiger Block: 20,3L x 20,3B x 40,6H cm | ✔ Zylinder: Ø20,3 x 40,6H cm | ✔ Großer Halbzylinder: 40,6L x 40,6B x 20,3H cm | ✔ Rampe: 40,6L x 61B x 20,3H cm | Mått: 40,6L x 40,6B x 20,3H cm"
+ },
+ "5f2bd483": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
