@@ -37,9 +37,17 @@ totalmått, så bygg-axelfacit.py avbryter) kvitteras i `grind-undantag.txt`:
 "<skript> <skäl>", en rad per skript. Grinden körs och skrivs ut ändå, men
 stoppar inte bygget. Skälet är obligatoriskt, samma form som foto-tal.txt.
 
+☠️ EN KVITTENS GÄLLER BARA DET DEN KVITTERAR (2026-10-14). En rad som
+`gate.py EN 71 antas uppfyllt …` kvitterade förut HELA gate.py. N144b hade sju
+fynd, sex om EN 71 och ett om `Polypropylen` (tyska och danska, svenska är
+polypropen), men bygget skrev bara "föll, kvitterad" och ordet publicerades.
+Livegrind fångade det på den publicerade sidan, efter skrivningen. En kvittens
+vars skäl börjar på "EN 71" släpper nu bara igenom de två fynd som beslutet
+(Leonard 2026-10-08) handlar om, och allt annat gate.py hittar fäller bygget.
+
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/bygg-skrivplan.py
 """
-import hashlib, io, json, os, subprocess, sys
+import hashlib, io, json, os, re, subprocess, sys
 HAR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HAR)
 from gatelib import fnv
@@ -66,6 +74,43 @@ def undantag():
     return ut
 
 
+# Kvittenser som bara gäller en viss sorts fynd: {skript: (skälets början, fynd som släpps igenom)}.
+# Ett fynd är en rad "  <kort>: [KLASS] …" med eventuella fortsättningsrader.
+SMAL_KVITTENS = {
+    "gate.py": ("EN 71", re.compile(r"\[EN-NORM UTAN KÄLLA\] 'EN 71'|\[SIFFRA UTAN KÄLLA\] '71'")),
+}
+FYND_RAD = re.compile(r"^\s+[0-9a-f]{8}: \[")
+
+
+def fynd_i(ut):
+    """Delar en utskrift i fynd: raden som börjar '  <kort>: [KLASS]' plus dess indragna fortsättningsrader."""
+    fynd, aktuell = [], None
+    for rad in ut.splitlines():
+        if FYND_RAD.match(rad):
+            aktuell = [rad]
+            fynd.append(aktuell)
+        elif aktuell is not None and rad[:1] == " " and rad.strip():
+            aktuell.append(rad)
+        else:
+            aktuell = None
+    return ["\n".join(f) for f in fynd]
+
+
+def utanfor_kvittensen(skript, skal, ut):
+    """Fynden en kvittens INTE täcker. Tom lista = kvittensen räcker.
+
+    En smal kvittens (SMAL_KVITTENS) täcker bara sina egna fynd. Hittas inga fynd alls i en
+    utskrift som föll (en krasch, ett saknat facit) täcker den ingenting: det som föll är
+    inte det kvittensen handlar om. Alla andra kvittenser är fortfarande hela skriptet."""
+    smal = SMAL_KVITTENS.get(skript)
+    if not smal or not skal.startswith(smal[0]):
+        return []
+    alla = fynd_i(ut)
+    if not alla:
+        return ["(skriptet föll utan ett enda igenkänt fynd, så kvittensen täcker det inte)"]
+    return [f for f in alla if not smal[1].search(f.splitlines()[0])]
+
+
 def kor_grindarna():
     """Kör kedjan. Returnerar skripten som föll utan kvittens."""
     kvitt, foll = undantag(), []
@@ -77,6 +122,12 @@ def kor_grindarna():
             continue
         ut = (r.stdout + r.stderr).rstrip()
         if skript in kvitt:
+            kvar = utanfor_kvittensen(skript, kvitt[skript], ut)
+            if kvar:
+                print(f"  {skript}: FÖLL, kvittensen ({kvitt[skript][:40]}…) täcker inte:\n"
+                      + "\n".join("    " + x for x in "\n".join(kvar).splitlines()[-25:]))
+                foll.append(skript)
+                continue
             print(f"  {skript}: föll, kvitterad ({kvitt[skript]})")
         else:
             print(f"  {skript}: FÖLL\n" + "\n".join("    " + x for x in ut.splitlines()[-25:]))

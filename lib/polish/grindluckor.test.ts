@@ -207,4 +207,59 @@ describe("bygg-skrivplan.py kör grindarna först", () => {
     expect(r.ut).toMatch(/gate-lager\.py: föll, kvitterad/);
     expect(r.sha).toBe(SHA);
   });
+
+  // ☠️ EN KVITTENS GÄLLER BARA DET DEN KVITTERAR (2026-10-14). N144b hade sju
+  // fynd i gate.py: sex om EN 71 och ett om `Polypropylen` (tyska och danska,
+  // svenska är polypropen). En rad `gate.py EN 71 antas uppfyllt …` kvitterade
+  // hela skriptet, bygget skrev bara "föll, kvitterad", och det tyska ordet
+  // publicerades. Livegrind fångade det först på den publicerade sidan.
+  const EN71 =
+    "gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard\n";
+
+  /** Lägger en mening först i första sidans text. */
+  function medText(dir: string, mening: string) {
+    const forsta = readFileSync(join(dir, "ids.tsv"), "utf-8").split("\t")[0];
+    const fil = join(dir, `${forsta}.html`);
+    writeFileSync(fil, readFileSync(fil, "utf-8").replace("<p>", `<p>${mening} `));
+  }
+
+  it("☠️ en kvittens för EN 71 släpper inte igenom ett annat fynd i gate.py", () => {
+    const r = bygg((dir) => {
+      medText(dir, "Uppfyller EN 71. Materialet är Polypropylen.");
+      writeFileSync(join(dir, "grind-undantag.txt"), EN71);
+    });
+    expect(r.kod).toBe(1);
+    expect(r.ut).toMatch(/gate\.py: FÖLL, kvittensen/);
+    expect(r.ut).toMatch(/\[TYSK REST\] 'Polypropylen'/);
+    // EN 71-fyndet är kvitterat och skrivs inte ut som ett som återstår.
+    expect(r.ut).not.toMatch(/EN-NORM UTAN KÄLLA/);
+    expect(r.sha).toBe("");
+  });
+
+  it("en kvittens för EN 71 släpper igenom just EN 71-fynden", () => {
+    const r = bygg((dir) => {
+      medText(dir, "Uppfyller EN 71.");
+      writeFileSync(join(dir, "grind-undantag.txt"), EN71);
+    });
+    expect(r.ut).toMatch(/gate\.py: föll, kvitterad/);
+    expect(r.ut).not.toMatch(/gate\.py: FÖLL/);
+  });
+
+  it("☠️ en kvittens för EN 71 täcker inte ett gate.py som föll utan ett enda fynd (saknat facit)", () => {
+    const r = bygg((dir) => {
+      rmSync(join(dir, "kallor.json"));
+      writeFileSync(join(dir, "grind-undantag.txt"), EN71);
+    });
+    expect(r.kod).toBe(1);
+    expect(r.ut).toMatch(/gate\.py: FÖLL, kvittensen/);
+    expect(r.ut).toMatch(/utan ett enda igenkänt fynd/);
+  });
+
+  it("övriga kvittenser gäller fortfarande hela skriptet", () => {
+    const r = bygg((dir) => {
+      medText(dir, "Materialet är Polypropylen.");
+      writeFileSync(join(dir, "grind-undantag.txt"), "gate.py provfall i testet\n");
+    });
+    expect(r.ut).toMatch(/gate\.py: föll, kvitterad \(provfall i testet\)/);
+  });
 });

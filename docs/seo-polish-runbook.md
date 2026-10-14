@@ -157,6 +157,12 @@ den andra.
   inte kvar för att källtexten saknar certifieringen. Skriv ingen provningsstandard utöver
   EN 71, inget certifikatnummer och inget leverantörsnamn. Beslutet gäller varor från Aosom;
   en leksak från en annan leverantör flaggas som förut när certifieringen saknas.
+  `gate.py` fäller `Uppfyller EN 71.` när källtexten inte nämner normen (`EN-NORM UTAN KÄLLA`
+  och `SIFFRA UTAN KÄLLA '71'`). Kvittera det i `grind-undantag.txt` med raden
+  `gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard`.
+  ☠️ Kvittensen släpper bara igenom de två EN 71-fynden. Varje annat fynd i `gate.py` fäller
+  bygget som vanligt (sedan 2026-10-14): innan dess kvitterade raden hela skriptet, och
+  `Polypropylen` (tyska och danska, svenska är polypropen) publicerades i N144b.
 - **Grindar som marknadsförs för barn** kräver EN 1930. Skillnaden mellan en hundgrind och
   en barngrind ligger i provningen och syns inte på ett foto.
 
