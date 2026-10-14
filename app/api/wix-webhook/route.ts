@@ -41,6 +41,7 @@ import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkou
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
 import { betalningstext } from "@/lib/order-betalning";
+import { landnamn } from "@/lib/landnamn";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
@@ -419,7 +420,7 @@ function extractShippingAddress(order: Record<string, unknown>) {
     addressLine: firstStr(addr?.addressLine as string, addr?.addressLine1 as string, addr?.streetAddress as string),
     city: firstStr(addr?.city as string),
     postalCode: firstStr(addr?.postalCode as string, addr?.zipCode as string),
-    country: firstStr(addr?.country as string, addr?.countryFullname as string),
+    country: landnamn(addr?.country as string | undefined, addr?.countryFullname as string | undefined),
   };
 }
 
