@@ -1,0 +1,23 @@
+{
+ "runda": "runda-t2-vard-bilder",
+ "produkter": [
+  {
+   "kort": "0e2b93bb",
+   "pid": "0e2b93bb-15ab-435f-b238-10f1fcefb68d",
+   "media": [
+    {
+     "id": "b379ce_de9409f7fd3e424f88746dbb1d260e25~mv2.jpg",
+     "altText": "Klätterställning i grönt, vitt och gult med rutschkana, klätterstege och basketkorg, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_febd0f6ff44e4069a4a1a7c5f5364585~mv2.jpg",
+     "altText": "Klätterställningen i ett barnrum med flaggremsa, växter och nallebjörnar"
+    },
+    {
+     "id": "b379ce_e0aada7003f944f497c325c644f9b6be~mv2.jpg",
+     "altText": "Närbild på rutschkanans gula nedre del och den gula klätterstegen med räcke"
+    }
+   ]
+  }
+ ]
+}
