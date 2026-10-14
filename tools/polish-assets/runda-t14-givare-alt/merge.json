@@ -1,0 +1,19 @@
+[
+ {
+  "huvud": "0b008ef0",
+  "huvud_fullid": "0b008ef0-778f-4691-8ecd-90a792816aac",
+  "givare": "181892d3",
+  "givare_fullid": "181892d3-4227-4fb8-98d0-d8dd12699049",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "0b008ef0": "Svart",
+   "181892d3": "Röd"
+  }
+ }
+]
