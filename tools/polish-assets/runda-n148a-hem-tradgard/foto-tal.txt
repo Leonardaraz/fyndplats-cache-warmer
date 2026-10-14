@@ -22,7 +22,6 @@ d9544fac 14 fotpallens höjd 14 cm, avläst på måttbilden (bild 3)
 # Form: <kort> <tal> <vad som lästes av eller räknades>
 # Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
 # Form: <kort> <tal> <vad som lästes av eller räknades>
-f8b18da0 180 mannens längd 180 cm, avläst på måttbilden (bild 3, nämns inte i texten)
 # Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
 # Form: <kort> <tal> <vad som lästes av eller räknades>
 # Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
