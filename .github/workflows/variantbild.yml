@@ -1,0 +1,191 @@
+name: Variantbilder — rätta varukorgens bild per färg
+
+# Varje variant på en sida med färgval ska visa sitt vals första bild i
+# varukorgen, kassan och ordern (lib/wix/variant-media.ts). Wix räknar om
+# variantens bild bara när varianterna skickas med valen angivna med namn, så
+# en skrivning som rör galleriet (polish-writes mediasteg) återställer
+# variantbilden till huvudbilden. Då visar varukorgen första färgens bild
+# oavsett vilken färg kunden valt.
+#
+# Nattens kontroll (/api/cron/variantbild, 05:35 UTC) läser alla flervariants-
+# produkter innan den skriver något, och hinner inte mer än ett femtiotal
+# rättningar på sin tidsbudget. Den 2026-10-14 kontrollerade den 873 produkter,
+# fann 557 publicerade med fel bild och rättade 57. Den här workflowen tar
+# samma rutt i skivor, så att hela katalogen hinner igenom på en körning.
+#
+# Torrt som default: `torr` räknar, `skarp` rättar. En skiva är `skiva`
+# flervariantsprodukter (default 60; läsningen är fyra i taget och varje
+# rättning tar ungefär en sekund, så en skiva ryms på ruttens 240 sekunder).
+# `ids` tar en kommaseparerad lista med Wix-produkt-id och hoppar katalogsvepet.
+#
+# Rutten kontrollerar före och efter varje skrivning att allt utom bilden är
+# oförändrat (namn, slug, synlighet, val, SKU, pris, kostnad och lagret). En
+# avvikelse stoppar körningen, och den här workflowen stoppar med den.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara räknare och Wix-produkt-id, aldrig
+# namn, adresser eller artikelnummer.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "torr = räkna, skriv inget · skarp = rätta variantbilderna"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skarp
+      skiva:
+        description: "Flervariantsprodukter per anrop (60 ryms på ruttens tidsbudget)"
+        required: false
+        default: "60"
+        type: string
+      utkast:
+        description: "ja = utkast rättas också (default, så de är rätt när de publiceras) · nej = bara publicerade"
+        required: false
+        default: "ja"
+        type: choice
+        options:
+          - "ja"
+          - "nej"
+      ids:
+        description: "Valfritt: bara dessa Wix-produkt-id (kommaseparerade, högst 60). Tomt = hela katalogen."
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  # Samma grupp som polish-write: en rättning och en skrivning mot samma sida
+  # samtidigt ger revisionskonflikter.
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  variantbild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          SKIVA: ${{ inputs.skiva }}
+          UTKAST: ${{ inputs.utkast }}
+          IDS: ${{ inputs.ids }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! [[ "${SKIVA}" =~ ^[0-9]+$ ]] || [ "${SKIVA}" -lt 1 ] || [ "${SKIVA}" -gt 120 ]; then
+            echo "::error::skiva ska vara ett heltal mellan 1 och 120" >&2
+            exit 1
+          fi
+          ids="$(printf '%s' "${IDS:-}" | tr -d '[:space:]')"
+          if [ -n "${ids}" ] && ! [[ "${ids}" =~ ^[0-9a-f-]{36}(,[0-9a-f-]{36}){0,59}$ ]]; then
+            echo "::error::ids ska vara upp till 60 Wix-produkt-id (uuid), kommaseparerade" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/cron/variantbild"
+          dry=true; [ "${LAGE}" = "skarp" ] && dry=false
+          utk=1; [ "${UTKAST}" = "nej" ] && utk=0
+
+          # Fel gar till stderr — en kommandosubstitution slukar stdout. Rutten
+          # svarar 500 med full rapport när en avvikelse stoppar körningen.
+          anropa() {
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")" || svar=$'\n000'
+            kod="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            printf '%s' "$kropp" > svar.json
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "::error::HTTP ${kod}, svaret ar inte JSON" >&2
+              return 1
+            fi
+            [ "$kod" = "200" ]
+          }
+
+          tot_kontr=0; tot_rattad=0; tot_ratt=0; tot_torr=0; tot_fel=0; tot_ej=0; tot_avv=0
+          problem=""
+          start=0
+          skivor=0
+          while :; do
+            skivor=$((skivor + 1))
+            if [ "${skivor}" -gt 40 ]; then
+              echo "::error::40 skivor och katalogen ar inte genomgangen — stannar" >&2
+              exit 1
+            fi
+            if [ -n "${ids}" ]; then
+              q="dryRun=${dry}&utkast=${utk}&ids=${ids}&maxSeconds=240"
+            else
+              q="dryRun=${dry}&utkast=${utk}&start=${start}&limit=${SKIVA}&maxSeconds=240"
+            fi
+            ok=0; anropa "${url}?${q}" || ok=1
+
+            kontr="$(jq -r '.kontrollerade // 0' svar.json)"
+            rattad="$(jq -r '.summa.rattad // 0' svar.json)"
+            ratt="$(jq -r '.summa.ratt // 0' svar.json)"
+            torr="$(jq -r '.summa.torr // 0' svar.json)"
+            fel="$(jq -r '(.summa.fel // 0)' svar.json)"
+            ej="$(jq -r '(.summa.ej_rattad // 0)' svar.json)"
+            avv="$(jq -r '(.summa.avvikelse // 0)' svar.json)"
+            flerv="$(jq -r '.flervariant // 0' svar.json)"
+            echo "skiva ${skivor} (start ${start}): ${kontr} kontrollerade av ${flerv}, rattade ${rattad}, redan ratt ${ratt}, kvar fel ${torr}, ej rattade ${ej}, fel ${fel}, avvikelser ${avv}"
+            tot_kontr=$((tot_kontr + kontr)); tot_rattad=$((tot_rattad + rattad)); tot_ratt=$((tot_ratt + ratt))
+            tot_torr=$((tot_torr + torr)); tot_fel=$((tot_fel + fel)); tot_ej=$((tot_ej + ej)); tot_avv=$((tot_avv + avv))
+
+            # Produkter som inte blev rata, bara id och status.
+            p="$(jq -r '.produkter[]? | select(.status == "avvikelse" or .status == "ej_rattad" or .status == "fel") | "  \(.id) \(.status)\(if .avvikelser then ": " + (.avvikelser | join("; ")) else "" end)"' svar.json)"
+            if [ -n "${p}" ]; then
+              echo "${p}"
+              problem="${problem}${p}"$'\n'
+            fi
+
+            if [ "${ok}" != "0" ] || [ "$(jq -r '.stoppad // false' svar.json)" = "true" ]; then
+              echo "::error::rutten stoppade (avvikelse eller fel). Ingenting mer skrivs." >&2
+              break
+            fi
+            [ -n "${ids}" ] && break
+            nasta="$(jq -r '.nasta // empty' svar.json)"
+            [ -z "${nasta}" ] && break
+            if [ "${nasta}" -le "${start}" ]; then
+              echo "::error::markoren rorde sig inte (start ${start}, nasta ${nasta}) — stannar" >&2
+              exit 1
+            fi
+            start="${nasta}"
+          done
+
+          {
+            echo "### Variantbilder — ${LAGE}"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| flervariantsprodukter kontrollerade | ${tot_kontr} |"
+            echo "| redan rätt | ${tot_ratt} |"
+            echo "| rättade | ${tot_rattad} |"
+            echo "| fel bild kvar (torrt eller ej hunnet) | ${tot_torr} |"
+            echo "| skrivningen tog men bilden står kvar | ${tot_ej} |"
+            echo "| kunde inte kontrolleras | ${tot_fel} |"
+            echo "| avvikelser (något annat än bilden ändrades) | ${tot_avv} |"
+            if [ -n "${problem}" ]; then
+              echo ""
+              echo '```'
+              printf '%s' "${problem}"
+              echo '```'
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          echo "SUMMA (${LAGE}): ${tot_kontr} kontrollerade, redan ratt ${tot_ratt}, rattade ${tot_rattad}, fel kvar ${tot_torr}, ej rattade ${tot_ej}, kunde inte kontrolleras ${tot_fel}, avvikelser ${tot_avv}"
+          if [ "${tot_avv}" != "0" ]; then
+            echo "::error::${tot_avv} avvikelse(r): skrivningen andrade nagot annat an bilden" >&2
+            exit 1
+          fi
+          if [ "${LAGE}" = "skarp" ] && { [ "${tot_ej}" != "0" ] || [ "${tot_fel}" != "0" ] || [ "${tot_torr}" != "0" ]; }; then
+            echo "::error::alla hann inte rattas: kor igen" >&2
+            exit 1
+          fi
