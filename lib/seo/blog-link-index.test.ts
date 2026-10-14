@@ -1,6 +1,7 @@
 // Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { linkedPathsInHtml, buildBlogLinkIndex } from "./blog-link-index.ts";
 
 const post = (slug: string, contentHtml: string, date = "2026-01-01", title = slug) => ({
@@ -92,4 +93,13 @@ test("buildBlogLinkIndex – saknat datum kraschar inte sorteringen", () => {
     post("med-datum", `<a href="/produkt/x">1</a>`, "2026-02-02"),
   ]);
   assert.deepEqual(index.get("/produkt/x")?.map((p) => p.slug), ["med-datum", "utan-datum"]);
+});
+
+test("kategorisidan visar blogglänkarna även när den saknar prissidor", () => {
+  // Blogglänkarna satt bara i blocket med prissidorna, som inte ritas för en
+  // kategori utan sådana. Köpguiden för bäddfåtöljer länkar till sin kategori,
+  // men kategorin länkade aldrig tillbaka (2026-10-14).
+  const src = readFileSync("app/kategori/[slug]/page.tsx", "utf8");
+  const avdelningar = src.slice(src.indexOf('title="Utforska fler avdelningar"'));
+  assert.match(avdelningar.slice(0, 200), /blogLinks=\{progLinks\.length > 0 \? undefined : blogLinks\}/);
 });

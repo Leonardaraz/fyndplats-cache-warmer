@@ -340,8 +340,17 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
         <ProgCrossLinks title={`Fler sätt att handla ${kategoriIMening(active.name)}`} links={progLinks} blogLinks={blogLinks} />
       )}
 
+      {/* Blogglänkarna satt bara i blocket ovan, och det ritas bara när
+          kategorin har prissidor eller köpguidesidor. Bäddfåtöljer har inga,
+          så guiden som länkar hit syntes aldrig här (2026-10-14). Utan
+          prissidor följer de med det här blocket i stället, som på
+          produktsidan. */}
       {deptLinks.length > 0 && (
-        <ProgCrossLinks title="Utforska fler avdelningar" links={deptLinks} />
+        <ProgCrossLinks
+          title="Utforska fler avdelningar"
+          links={deptLinks}
+          blogLinks={progLinks.length > 0 ? undefined : blogLinks}
+        />
       )}
     </>
   );
