@@ -40,6 +40,7 @@ import { fanoutToCacheWarmer, shouldFanoutToCacheWarmer } from "@/lib/webhook-fa
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
+import { betalningstext } from "@/lib/order-betalning";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
@@ -456,7 +457,8 @@ export function buildOrderConfirmationProps(order: Record<string, unknown>): Ord
     total,
     currency,
     shippingAddress: extractShippingAddress(order),
-    paymentMethod: payment,
+    // En obetald fakturaorder har inget betalsätt i Wix (lib/order-betalning.ts).
+    paymentMethod: betalningstext(order, payment),
     orderUrl: undefined,
   };
 }
