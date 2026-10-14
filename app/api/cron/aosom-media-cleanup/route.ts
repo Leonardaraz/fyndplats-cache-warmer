@@ -25,6 +25,15 @@
 //   ?dryRun=false     skarpt läge (default: torrkörning, raderar ingenting)
 //   ?limit=500        tak på antal filer denna körning
 //   ?after=<markör>   fortsätt listningen där förra körningen slutade
+//   ?omfang=allt      även poleringens utsnitt och kort, se `Omfang` i
+//                     lib/aosom/media-cleanup.ts (default: aosom, nattens läge)
+//   ?minAlderDagar=14 läget allt: rör bara filer äldre än så (minst 7)
+//   ?golv=recensioner:3400,butiken:3100 minsta antal referenser per läsare;
+//                     under golvet avbryts körningen innan något raderas
+//
+// LÄSARNA (2026-10-14): produkterna, kategorierna, recensionerna,
+// färgbildstabellen, butikens egen lista (bloggen, koden, reservkatalogen,
+// variantbilderna) och ordrarna. Faller någon av dem avbryts körningen.
 //
 // Svaret bär en `cursor`. Är den satt återstår filer att gå igenom — kör igen
 // med `?after=<cursor>`. `null` betyder att hela Media Manager är genomgången.
@@ -38,7 +47,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { runMediaCleanup, liveDeps } from "@/lib/aosom/media-cleanup";
+import { runMediaCleanup, liveDeps, LASARE, MIN_ALDER_ALLT_DAGAR, type Lasare, type Omfang } from "@/lib/aosom/media-cleanup";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -60,18 +69,48 @@ async function handle(req: NextRequest) {
   const limit = Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined;
   const after = req.nextUrl.searchParams.get("after") || undefined;
 
+  const omfangParam = req.nextUrl.searchParams.get("omfang") ?? "aosom";
+  if (omfangParam !== "aosom" && omfangParam !== "allt") {
+    return NextResponse.json({ error: `Okänt omfang: ${omfangParam}` }, { status: 400 });
+  }
+  const omfang: Omfang = omfangParam;
+  const alderParam = req.nextUrl.searchParams.get("minAlderDagar");
+  const minAlderDagar = alderParam === null ? undefined : Number(alderParam);
+  if (omfang === "allt" && minAlderDagar !== undefined && !(minAlderDagar >= MIN_ALDER_ALLT_DAGAR)) {
+    return NextResponse.json(
+      { error: `minAlderDagar måste vara minst ${MIN_ALDER_ALLT_DAGAR} i läget allt` },
+      { status: 400 },
+    );
+  }
+
+  // ?golv=produkter:31000,recensioner:3400 — minsta antal referenser per
+  // läsare. Kontrolleras före listningen och raderingen (runMediaCleanup).
+  let golv: Partial<Record<Lasare, number>> | undefined;
+  const golvParam = req.nextUrl.searchParams.get("golv");
+  if (golvParam) {
+    golv = {};
+    for (const del of golvParam.split(",")) {
+      const [nyckel, tal] = del.split(":");
+      const n = Number(tal);
+      if (!LASARE.includes(nyckel as Lasare) || !Number.isInteger(n) || n < 0) {
+        return NextResponse.json({ error: `Ogiltigt golv: ${del}` }, { status: 400 });
+      }
+      golv[nyckel as Lasare] = n;
+    }
+  }
+
   try {
     // Tidsbudgeten ligger under ruttens maxDuration (300 s) så att en körning
     // hinner SVARA med sina siffror i stället för att dödas mitt i listningen.
     const summary = await runMediaCleanup(await liveDeps(), {
-      dryRun, limit, after, timeBudgetMs: 240_000,
+      dryRun, limit, after, timeBudgetMs: 240_000, omfang, minAlderDagar, golv,
     });
 
     if (!dryRun && summary.raderade > 0) {
       await audit(
         "aosom-media-cleanup",
         "batch",
-        `${summary.raderade} föräldralösa bilder raderade permanent, `
+        `${summary.raderade} föräldralösa bilder raderade permanent (${omfang}), `
           + `${summary.frigjordMb} MB frigjort, ${summary.misslyckade} misslyckade`,
       );
     }

@@ -2896,6 +2896,85 @@ Aosom-raderna kräver källfotona från Aosoms recensionsdata, som bara går att
 hämta i Leonards webbläsare (se *Omgång 5*), och körs med
 `aosom-review-image-restore.yml`.
 
+#### ☠️ Bloggen, reservkatalogen och ordrarna stod inte i listan (2026-10-14)
+
+Leonards fråga: radera alla bilder som inte används till något, varken
+produkter, blogginlägg, recensioner eller annat. Biblioteket hade **44 082
+filer** (alla bilder utom en svg), papperskorgen var tom. En torrkörning av
+den befintliga städningen gav **2 657 oanvända filer, 2,6 GB**.
+
+Den torrkörningen gick inte att lita på, för referenslistan saknade två läsare
+till:
+
+| läsare | id | källor, uppmätt i biblioteket |
+|---|--:|---|
+| butikens blogg (`content/blog/*.md`) | 215 | 61 Aosom-importer, 122 med Wix-källa, 9 kort |
+| reservkatalogen (`products.json`) | 2 399 | stickprov 40: 11 med Wix-källa |
+| variantbilderna (`data/variant-images.json`) | 749 | stickprov 30: alla AE-importer |
+| ordrarnas varubilder (90 ordrar) | 83 | 25 Aosom-importer, 41 med Wix-källa, 6 kort |
+
+Ingen av dem behöver sitta på en produkt. En bloggbild vars produkt fått nya
+bilder, eller en vara vars order kunden fortfarande läser, hade raderats.
+
+Två nya obligatoriska deps i `lib/aosom/media-cleanup.ts`, med samma hållning
+som recensionerna: ett läsfel fäller körningen.
+
+1. ☠️ **`listaButikensBilder`** läser butikens `/api/media-referenser`
+   (`lib/wix/butikens-media.ts`). Butiken bygger listan vid varje deploy ur
+   sina källfiler (`lib/media-referenser.ts` på headless-site), så en bild som
+   läggs i ett nytt blogginlägg står i listan utan att någon behöver komma
+   ihåg den. Golv per källa på båda sidor (blogg 100, reservkatalog 1 000,
+   data 300, kod 1, totalt 1 000), annars 503 från butiken och ett avbrott
+   här. Per källa, för att reservkatalogen ensam bär totalen.
+2. **`listaOrderbilder`**: alla ordrar, varje Wix-id i orderns JSON
+   (`lineItems[].image` är ett objekt med `id` och `url`). Search Orders
+   lämnar ute PENDING och REJECTED om de inte efterfrågas, så de läses i ett
+   eget anrop (`statusar` i `fetchOrders`).
+
+☠️ **Läsare som kan svara tomt utan att kasta har golv i produktion:**
+recensionerna minst 1 000 bildadresser (3 592 uppmätta 2026-10-06; fel
+`REVIEWS_BACKEND` hade gett den tömda Wix-kollektionen och `[]`) och ordrarna
+minst 40 (83 uppmätta 2026-10-14). Golven ligger i `liveDeps`, inte i
+planeringen, så testerna kan fortfarande pröva en tom läsare.
+
+☠️ **Butiken måste deployas FÖRE motorn.** Utan butikens lista avbryts även
+nattens städning, vilket är rätt håll att fela åt men ger ett rött jobb.
+
+**Läget `omfang=allt`** (rutten, och workflowen **"Bilder — radera oanvända
+bilder i hela mediabiblioteket"**, `bildstadning.yml`, `torr` · `radera`) tar
+också poleringens utsnitt och kort. Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Bara filer som varken skapats eller ändrats på `minAlderDagar`**
+   (standard 14, minst 7, och spärren ligger i `runMediaCleanup`, inte bara i
+   rutten). Andra sessioner laddar upp kandidater, utsnitt och kort som sätts
+   på produkten först efter granskning; tre sådana uppladdningar kom medan
+   mätningen pågick.
+2. ☠️ **Aldrig en fil utan källadress eller med okänd källa** (`ingen-kalla`,
+   `wix-annan`, `annan-kalla` i `Filklass`). Wix kan inte svara på var en fil
+   används, och logotypen, delningsbilden och kundernas egna
+   recensionsbilder ligger i de klasserna. De räknas i svaret men rörs inte.
+3. **Bara id på den vanliga formen** (`raderbartId` i `lib/wix/media-idn.ts`).
+   Butikens mönster är bredare och fångar varje sådant id, så ett id som
+   butikens lista kan missa raderas aldrig. Kort räknas bara som våra när de
+   kommer ur vårt eget repo; en bloggbild var AI-genererad via Wix
+   (`wixmp…/GoogleAiProxy/Gemini`) och ligger i `annan-kalla`.
+4. ☠️ **`radera` kräver `hogst`, och golven kontrolleras i motorn FÖRE
+   raderingen.** Workflowen börjar med ett torrt förflygningsanrop. Svarar
+   rutten utan `omfang: "allt"` är den nya koden inte i produktion, och då
+   raderas ingenting. Annars skickas 95 % av varje läsares antal som `golv`
+   i varje anrop, och `runMediaCleanup` avbryter efter läsningen men innan
+   listningen. En kontroll i workflowen efter anropet hade kommit för sent:
+   då var fönstret redan raderat (granskningen 2026-10-14). Taket räknar
+   också misslyckade skopor, och raderingen gör inga nya försök efter ett
+   nätverksfel, eftersom skopan kan vara raderad fast svaret aldrig kom fram.
+
+☠️ **Ett fönster som aldrig hann börja är ett fel.** Läsarna kan äta upp
+listningens tidsbudget, och då kommer inga filer och samma markör tillbaka.
+Utan spärren hade det sett ut som ett genomgånget bibliotek utan något att
+radera.
+
+Nattens läge (`aosom`) raderar samma filer som förut, men med de nya läsarna.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar

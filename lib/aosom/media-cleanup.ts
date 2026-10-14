@@ -52,6 +52,7 @@
 // kan röra allt på en gång är massfelet det enda som är värt att skydda mot.
 
 import { mediaNyckel, produktensMedianycklar, type ProduktMedia } from "../wix/produkt-media";
+import { raderbartId, wixMediaIdn } from "../wix/media-idn";
 
 const MIN_BILDER_PER_PRODUKT = 0.5;
 
@@ -62,6 +63,9 @@ export interface MediaFil {
   sizeInBytes: number;
   /** Adressen filen importerades från. Saknas = uppladdad för hand. */
   sourceUrl?: string;
+  /** ISO-tid. Läget "allt" rör inga filer som skapats eller ändrats nyligen. */
+  createdDate?: string;
+  updatedDate?: string;
 }
 
 /** Leverantörernas CDN. En fil därifrån är alltid vår import. */
@@ -109,6 +113,94 @@ export function arVarFil(f: MediaFil, franOss: ReadonlySet<string>): boolean {
   return false;
 }
 
+/**
+ * Vilka filer en körning får radera.
+ *
+ * - `aosom` (nattens läge, och default): filer `arVarFil` känner igen, alltså
+ *   leverantörsimporter och Wix kopior av dem. Inga andra.
+ * - `allt` (Leonard 2026-10-14: "alla bilder som inte används till något"):
+ *   dessutom poleringens utsnitt och kort, men bara filer som varken skapats
+ *   eller ändrats på `minAlderMs`, se `PlanTillagg`.
+ *
+ * Inget läge raderar en fil utan källadress eller med en okänd källa, se
+ * `Filklass`.
+ */
+export type Omfang = "aosom" | "allt";
+
+/**
+ * Vem skapade filen? Avgörs på källadressen, som i `arVarFil`.
+ *
+ * Bara de fyra första får raderas, och bara i läget `allt` (de två första
+ * också i `aosom`). Resten räknas och syns i svaret men rörs aldrig:
+ *
+ * - `ingen-kalla`: uppladdad för hand eller som byte. Logotypen
+ *   (b379ce_0b3a…, kontrollerad 2026-10-14), delningsbilden och kundernas
+ *   recensionsbilder ligger här. Wix har inget API som svarar på var en fil
+ *   används, så en sådan fil kan inte bevisas oanvänd.
+ * - `wix-annan` och `annan-kalla`: importerade från en adress som varken är
+ *   vår eller en känd kopia. Samma skäl.
+ */
+export type Filklass =
+  | "leverantor"
+  | "wix-kopia"
+  | "wix-utsnitt"
+  | "github"
+  | "wix-annan"
+  | "annan-kalla"
+  | "ingen-kalla";
+
+const RADERBARA_I_ALLT: ReadonlySet<Filklass> = new Set<Filklass>(["leverantor", "wix-kopia", "wix-utsnitt", "github"]);
+
+export function klassaFil(f: MediaFil, franOss: ReadonlySet<string>): Filklass {
+  const src = f.sourceUrl ?? "";
+  if (!src) return "ingen-kalla";
+  let u: URL;
+  try { u = new URL(src); } catch { return "annan-kalla"; }
+  const h = u.hostname;
+  if (VARA_KALLHOSTAR.some((k) => h === k || h.endsWith(`.${k}`))) return "leverantor";
+  if (h === "static.wixstatic.com") {
+    if (arVarFil(f, franOss)) return "wix-kopia";
+    // Poleringens utsnitt laddas upp ur Wix egen crop-adress
+    // (docs/polish/bildmetoder.md, *Beskärning*).
+    if (/\/v1\/(crop|fill|fit)\//.test(u.pathname)) return "wix-utsnitt";
+    return "wix-annan";
+  }
+  // Poleringens kort: Wix hämtar dem ur grenen innan de sätts på produkten.
+  // Bara vårt eget repo; en annan GitHub-källa är okänd.
+  if (h === "raw.githubusercontent.com" && /^\/leonardaraz\/fyndplats-cache-warmer\//i.test(u.pathname)) {
+    return "github";
+  }
+  return "annan-kalla";
+}
+
+export interface KlassSiffror {
+  filer: number;
+  /** Refererade av någon läsare. */
+  anvanda: number;
+  /** Inte refererade, oavsett om de får raderas. */
+  oanvanda: number;
+  /** Inte refererade och tillåtna att radera i den här körningen. */
+  raderbara: number;
+  bytesOanvanda: number;
+  bytesRaderbara: number;
+}
+
+export interface PlanTillagg {
+  /** Butikens egna hänvisningar: blogg, kod, reservkatalog, variantbilder. */
+  butiksbilder?: ReadonlyArray<string>;
+  /** Ordrarnas varubilder, som kunden ser i sina mejl och sin order. */
+  orderbilder?: ReadonlyArray<string>;
+  omfang?: Omfang;
+  /**
+   * Läget `allt`: rör bara filer som varken skapats eller ändrats på så här
+   * länge. Andra sessioner laddar upp kandidater, utsnitt och kort som sätts på
+   * produkten först efter granskning; uppmätt 2026-10-14 kom tre sådana
+   * uppladdningar medan den här mätningen pågick.
+   */
+  minAlderMs?: number;
+  nu?: number;
+}
+
 export interface StadningsPlan {
   /** Filer som är trygga att radera. */
   attRadera: MediaFil[];
@@ -118,6 +210,32 @@ export interface StadningsPlan {
   bytes: number;
   /** Filer listningen såg i det här fönstret (alla namn). */
   filerIFonstret: number;
+  omfang: Omfang;
+  /** Alla filer i fönstret, per klass. */
+  perKlass: Record<Filklass, KlassSiffror>;
+  /** Oanvända filer i en raderbar klass som får ligga kvar för att de är nya. */
+  forUnga: number;
+  /** Oanvända filer i en raderbar klass vars id inte har den vanliga formen. */
+  ovanligtId: number;
+}
+
+function tommaKlasser(): Record<Filklass, KlassSiffror> {
+  const ut = {} as Record<Filklass, KlassSiffror>;
+  for (const k of ["leverantor", "wix-kopia", "wix-utsnitt", "github", "wix-annan", "annan-kalla", "ingen-kalla"] as Filklass[]) {
+    ut[k] = { filer: 0, anvanda: 0, oanvanda: 0, raderbara: 0, bytesOanvanda: 0, bytesRaderbara: 0 };
+  }
+  return ut;
+}
+
+/** Tidpunkten filen senast rördes, eller NaN när den inte går att avgöra. */
+function senastRord(f: MediaFil): number {
+  const t = [f.createdDate, f.updatedDate].map((d) => Date.parse(d ?? ""));
+  return t.some((x) => Number.isNaN(x)) ? Number.NaN : Math.max(...t);
+}
+
+/** Jämförelsenyckel: filens id-del, gemener. */
+function jamfor(s: string): string {
+  return mediaNyckel(s).toLowerCase();
 }
 
 // `mediaNyckel` bor i lib/wix/produkt-media.ts tillsammans med definitionen av
@@ -141,7 +259,11 @@ export function planeraStadning(
   recensionsbilder: ReadonlyArray<string> = [],
   kategoribilder: ReadonlyArray<string> = [],
   fargbilder: ReadonlyArray<string> = [],
+  tillagg: PlanTillagg = {},
 ): StadningsPlan {
+  const omfang = tillagg.omfang ?? "aosom";
+  const nu = tillagg.nu ?? Date.now();
+  const minAlderMs = tillagg.minAlderMs ?? 0;
   // ☠️ MASSFEL-SPÄRREN. En halvläst produktlistning gör varje fil föräldralös.
   // Butikens produkter har mätbart flera bilder styck, så en referenslista som
   // är mindre än en halv bild per produkt är ett läsfel — inte en tom katalog.
@@ -165,9 +287,27 @@ export function planeraStadning(
   // produkt, och det som inte rymdes står bara i motorns tabell — ofta som
   // filer på en givare som ska raderas. Utan tabellen i listan tar städningen
   // dem natten efter att givaren raderats, och butiken visar döda bilder.
-  const anvandaNycklar = new Set(
-    [...ianvandning, ...recensionsbilder, ...kategoribilder, ...fargbilder].map(mediaNyckel),
-  );
+  //
+  // ☠️ OCH BUTIKEN OCH ORDRARNA (2026-10-14). Bloggen visade 215 Wix-bilder,
+  // 61 av dem Aosom-importer och 122 Wix-kopior; reservkatalogen och
+  // variantbilderna pekade på drygt 3 000 till. Ingen av dem behöver sitta på
+  // en produkt. Ordrarnas varubilder är bilden som den sålts med, och kunden
+  // ser den i sina mejl efter att produkten fått nya bilder.
+  //
+  // Jämförelsen görs i gemener: butikens lista är gemener, och en fil vars
+  // ändelse Wix skrivit med versaler ska inte se oanvänd ut för det.
+  //
+  // Varje referens ger också de id som står INNE i den. En omskalad adress
+  // (…/media/<id>/v1/fill/w_640,h_640/file.jpg) slutar på "file.jpg", och
+  // bara sista ledet hade då inte skyddat filen.
+  const anvandaNycklar = new Set<string>();
+  for (const ref of [
+    ...ianvandning, ...recensionsbilder, ...kategoribilder, ...fargbilder,
+    ...(tillagg.butiksbilder ?? []), ...(tillagg.orderbilder ?? []),
+  ]) {
+    anvandaNycklar.add(jamfor(ref));
+    for (const id of wixMediaIdn(ref)) anvandaNycklar.add(id);
+  }
 
   // Första passet: filer som kommer direkt från en leverantörs CDN. Andra passet
   // känner igen Wix kopior på att de pekar tillbaka på dem.
@@ -180,15 +320,40 @@ export function planeraStadning(
   }
 
   const attRadera: MediaFil[] = [];
+  const perKlass = tommaKlasser();
   let anvanda = 0;
+  let forUnga = 0;
+  let ovanligtId = 0;
 
   for (const f of filer) {
-    // Bara filer vår kod skapat. En handuppladdad bild rörs aldrig.
-    if (!varaNycklar.has(mediaNyckel(f.url))) continue;
-    if (anvandaNycklar.has(mediaNyckel(f.url))) {
-      anvanda++;
+    const klass = klassaFil(f, varaNycklar);
+    const s = perKlass[klass];
+    s.filer++;
+    if (anvandaNycklar.has(jamfor(f.url)) || anvandaNycklar.has(jamfor(f.id))) {
+      s.anvanda++;
+      if (varaNycklar.has(mediaNyckel(f.url))) anvanda++;
       continue;
     }
+    s.oanvanda++;
+    s.bytesOanvanda += f.sizeInBytes || 0;
+
+    let raderbar: boolean;
+    if (omfang === "aosom") {
+      // Bara filer vår kod skapat. En handuppladdad bild rörs aldrig.
+      raderbar = varaNycklar.has(mediaNyckel(f.url));
+    } else if (!RADERBARA_I_ALLT.has(klass)) {
+      raderbar = false;
+    } else if (!raderbartId(mediaNyckel(f.url))) {
+      ovanligtId++;
+      raderbar = false;
+    } else {
+      const rord = senastRord(f);
+      raderbar = !Number.isNaN(rord) && nu - rord >= minAlderMs;
+      if (!raderbar) forUnga++;
+    }
+    if (!raderbar) continue;
+    s.raderbara++;
+    s.bytesRaderbara += f.sizeInBytes || 0;
     attRadera.push(f);
   }
 
@@ -197,6 +362,10 @@ export function planeraStadning(
     anvanda,
     bytes: attRadera.reduce((s, f) => s + (f.sizeInBytes || 0), 0),
     filerIFonstret: filer.length,
+    omfang,
+    perKlass,
+    forUnga,
+    ovanligtId,
   };
 }
 
@@ -258,6 +427,15 @@ export interface MediaCleanupDeps {
    * ett läsfel fäller körningen, av samma skäl som kategoribilderna.
    */
   listaFargbilder: () => Promise<string[]>;
+  /**
+   * Varje Wix-bild butiken själv pekar på: bloggen, adresserna i koden,
+   * reservkatalogen och variantbilderna (butikens /api/media-referenser, se
+   * lib/wix/butikens-media.ts). Obligatorisk, och ett läsfel eller en lista
+   * under golvet fäller körningen.
+   */
+  listaButikensBilder: () => Promise<string[]>;
+  /** Varje Wix-bild i en order (alla ordrar, alla statusar). Obligatorisk. */
+  listaOrderbilder: () => Promise<string[]>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
@@ -299,6 +477,23 @@ export async function recensionsbildUrler(
 
 export interface MediaCleanupSummary {
   dryRun: boolean;
+  omfang: Omfang;
+  /** Fönstrets filer per klass: hur många, hur många används, hur många får raderas. */
+  perKlass: Record<Filklass, KlassSiffror>;
+  /** Oanvända filer i en raderbar klass som ligger kvar för att de är nya (läget `allt`). */
+  forUnga: number;
+  /** Oanvända filer i en raderbar klass med ett ovanligt id (läget `allt`). */
+  ovanligtId: number;
+  /** Antal referenser per läsare. Ett tal som rasar mellan körningar är ett läsfel. */
+  referenser: {
+    produkter: number;
+    antalProdukter: number;
+    recensioner: number;
+    kategorier: number;
+    fargbilder: number;
+    butiken: number;
+    ordrar: number;
+  };
   /** Filer i FÖNSTRET, inte i hela Media Manager — se `cursor`. */
   filerIFonstret: number;
   /** Våra filer i fönstret som sitter på en produkt. */
@@ -347,10 +542,41 @@ export interface MediaCleanupSummary {
 /** Wix tar emot flera id:n per anrop; håll skoporna lagom stora. */
 const BATCH = 50;
 
+/** Läget `allt` rör aldrig filer yngre än så här, oavsett vad anroparen ber om. */
+export const MIN_ALDER_ALLT_DAGAR = 7;
+const DAG_MS = 86_400_000;
+
+export type Lasare = keyof MediaCleanupSummary["referenser"];
+export const LASARE: ReadonlyArray<Lasare> = [
+  "produkter", "antalProdukter", "recensioner", "kategorier", "fargbilder", "butiken", "ordrar",
+];
+
 export async function runMediaCleanup(
   deps: MediaCleanupDeps,
-  opts: { dryRun?: boolean; limit?: number; timeBudgetMs?: number; after?: string } = {},
+  opts: {
+    dryRun?: boolean;
+    limit?: number;
+    timeBudgetMs?: number;
+    after?: string;
+    omfang?: Omfang;
+    /** Läget `allt`: minst MIN_ALDER_ALLT_DAGAR. */
+    minAlderDagar?: number;
+    /**
+     * Minsta antal referenser per läsare, normalt 95 % av torrkörningens.
+     * Kontrolleras efter läsningen och FÖRE listningen och raderingen, så en
+     * läsare som tyst ger färre svar stoppar körningen innan något raderas.
+     */
+    golv?: Partial<Record<Lasare, number>>;
+  } = {},
 ): Promise<MediaCleanupSummary> {
+  const omfang = opts.omfang ?? "aosom";
+  const minAlderDagar = opts.minAlderDagar ?? (omfang === "allt" ? 14 : 0);
+  // ☠️ Spärren ligger här och inte bara i rutten: en anropare som glömmer den
+  // hade annars kunnat radera kandidater och kort som en annan session
+  // laddade upp för en timme sedan.
+  if (omfang === "allt" && !(minAlderDagar >= MIN_ALDER_ALLT_DAGAR)) {
+    throw new Error(`Läget allt kräver minAlderDagar på minst ${MIN_ALDER_ALLT_DAGAR}, fick ${minAlderDagar}.`);
+  }
   const dryRun = opts.dryRun !== false;
   const now = deps.now ?? (() => Date.now());
   const start = now();
@@ -417,16 +643,79 @@ export async function runMediaCleanup(
     );
   }
 
+  // ☠️ Butikens lista och ordrarna, av samma skäl och med samma hållning:
+  // ett läsfel fäller körningen. Utan butikens lista ser bloggens bilder
+  // föräldralösa ut så fort ingen produkt bär dem längre.
+  let butiksbilder: string[];
+  try {
+    butiksbilder = await deps.listaButikensBilder();
+  } catch (err) {
+    throw new Error(
+      `Butikens bildlista gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan den ser bloggens, reservkatalogens och variantbildernas bilder "
+        + "föräldralösa ut och raderas permanent.",
+    );
+  }
+
+  let orderbilder: string[];
+  try {
+    orderbilder = await deps.listaOrderbilder();
+  } catch (err) {
+    throw new Error(
+      `Ordrarnas bilder gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan dem kan bilden en vara såldes med raderas ur kundens orderbekräftelse.",
+    );
+  }
+
+  const referenser: MediaCleanupSummary["referenser"] = {
+    produkter: urls.length,
+    antalProdukter,
+    recensioner: recensionsbilder.length,
+    kategorier: kategoribilder.length,
+    fargbilder: fargbilder.length,
+    butiken: butiksbilder.length,
+    ordrar: orderbilder.length,
+  };
+
+  // ☠️ GOLVEN KONTROLLERAS HÄR, FÖRE LISTNINGEN OCH RADERINGEN. En kontroll i
+  // workflowen efter anropet hade kommit först när fönstret redan var raderat.
+  for (const [lasare, golv] of Object.entries(opts.golv ?? {}) as [Lasare, number][]) {
+    if (referenser[lasare] < golv) {
+      throw new Error(
+        `Läsaren ${lasare} gav ${referenser[lasare]} referenser, under golvet ${golv}. `
+          + "Körningen avbryts innan något raderas.",
+      );
+    }
+  }
+
   const { filer, cursor, komplett } = await deps.listaFiler({
     efter: opts.after,
     stoppaVid: start + Math.round(budget * 0.7),
   });
 
-  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder, fargbilder);
+  // Läsarna kan äta upp listningens tidsbudget. Då kommer inga filer och
+  // samma markör tillbaka, och utan den här spärren hade ett första fönster
+  // sett ut som ett genomgånget bibliotek utan något att radera.
+  if (!komplett && filer.length === 0 && cursor === (opts.after ?? null)) {
+    throw new Error("Listningen hann inte börja innan tidsbudgeten tog slut. Ingen fil granskades.");
+  }
+
+  const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder, fargbilder, {
+    butiksbilder,
+    orderbilder,
+    omfang,
+    minAlderMs: minAlderDagar * DAG_MS,
+    nu: now(),
+  });
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
 
   const summary: MediaCleanupSummary = {
     dryRun,
+    omfang,
+    perKlass: plan.perKlass,
+    forUnga: plan.forUnga,
+    ovanligtId: plan.ovanligtId,
+    referenser,
     filerIFonstret: plan.filerIFonstret,
     anvandaEgnaFiler: plan.anvanda,
     foraldralosa: plan.attRadera.length,
@@ -519,6 +808,18 @@ export function sammanfattaFelkropp(kropp: string): string {
  */
 const SIDOR_PER_FONSTER = 60;
 
+/** Sidor om 100 ordrar. Butiken hade 90 ordrar 2026-10-14. */
+const ORDER_SIDTAK = 100;
+
+/**
+ * Golv för läsare som kan svara tomt utan att kasta. Under dem är svaret ett
+ * läsfel, inte en butik utan recensioner eller ordrar. Talen ligger långt
+ * under det uppmätta (3 592 recensionsbilder 2026-10-06, 83 orderbilder
+ * 2026-10-14), och de kan bara växa: recensioner döljs, de raderas inte.
+ */
+const MIN_RECENSIONSBILDER = 1_000;
+const MIN_ORDERBILDER = 40;
+
 export async function liveDeps(): Promise<MediaCleanupDeps> {
   const WIX_BASE = "https://www.wixapis.com";
   const paus = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -569,7 +870,11 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
         res = await fetch(url, { method: "POST", headers: headers(), body: JSON.stringify(body) });
       } catch (err) {
         sist = err instanceof Error ? err.message : String(err);
-        if (forsok === paus_ms.length) break;
+        // ☠️ Inte heller här för raderingen: ett nätverksfel kan komma EFTER
+        // att Wix raderat skopan, och ett nytt försök hade då räknat den som
+        // misslyckad. Taket (`limit`) hade inte minskat för filer som redan
+        // var borta.
+        if (!aterforsok || forsok === paus_ms.length) break;
         await paus(paus_ms[forsok]);
         continue;
       }
@@ -620,6 +925,8 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
             url: String(f.url ?? ""),
             sizeInBytes: Number(f.sizeInBytes ?? 0),
             sourceUrl: f.sourceUrl ? String(f.sourceUrl) : undefined,
+            createdDate: f.createdDate ? String(f.createdDate) : undefined,
+            updatedDate: f.updatedDate ? String(f.updatedDate) : undefined,
           });
         }
         cursor = data.nextCursor?.hasNext ? (data.nextCursor.cursors?.next ?? null) : null;
@@ -636,7 +943,15 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     // har `imageUrl` har ingen `imageUrls`.
     listaRecensionsbilder: async () => {
       const { getReviewStore } = await import("../store/reviews");
-      return recensionsbildUrler(getReviewStore());
+      const urls = await recensionsbildUrler(getReviewStore());
+      // ☠️ Ett tomt svar UTAN fel är också ett läsfel här: pekar
+      // REVIEWS_BACKEND fel landar läsningen i den tömda Wix-kollektionen och
+      // svarar []. Uppmätt 2026-10-06: 3 592 bildadresser bara på de
+      // publicerade raderna.
+      if (urls.length < MIN_RECENSIONSBILDER) {
+        throw new Error(`bara ${urls.length} recensionsbilder, golvet är ${MIN_RECENSIONSBILDER}`);
+      }
+      return urls;
     },
 
     // Samma sajt som resten av städningen (WIX_SITE_ID när den är satt) och
@@ -652,6 +967,39 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     listaFargbilder: async () => {
       const { getFargbildLager } = await import("../store/fargbilder");
       return getFargbildLager().lasAllaFilIdn();
+    },
+
+    // Butikens egen lista (blogg, kod, reservkatalog, variantbilder). Kastar
+    // vid läsfel och under golvet; runMediaCleanup gör det till ett avbrott.
+    listaButikensBilder: async () => {
+      const { lasButikensMediaIdn } = await import("../wix/butikens-media");
+      return lasButikensMediaIdn();
+    },
+
+    // Alla ordrar, alla statusar: en avbruten order har också skickat ett mejl.
+    // Search Orders lämnar ute PENDING och REJECTED om de inte efterfrågas, så
+    // de läses i ett eget anrop (0 st 2026-10-14, men en handlagd fakturaorder
+    // kan stå som PENDING).
+    listaOrderbilder: async () => {
+      const { fetchOrders } = await import("../wix/orders");
+      const { wixMediaIdn } = await import("../wix/media-idn");
+      const SEDAN = "2020-01-01T00:00:00.000Z";
+      const ordrar = [
+        ...await fetchOrders(SEDAN, { includeCancelled: true, strict: true, maxPages: ORDER_SIDTAK }),
+        ...await fetchOrders(SEDAN, { statusar: ["PENDING", "REJECTED"], strict: true, maxPages: ORDER_SIDTAK }),
+      ];
+      // fetchOrders slutar tyst vid sidtaket. Ett tak ska kasta, aldrig kapa.
+      if (ordrar.length >= ORDER_SIDTAK * 100) {
+        throw new Error(`Minst ${ORDER_SIDTAK * 100} ordrar: höj ORDER_SIDTAK.`);
+      }
+      const ut = new Set<string>();
+      for (const o of ordrar) for (const id of wixMediaIdn(JSON.stringify(o))) ut.add(id);
+      // Samma hållning som recensionerna: fel site-id ger 200 och noll ordrar.
+      // Uppmätt 2026-10-14: 90 ordrar, 83 bild-id.
+      if (ut.size < MIN_ORDERBILDER) {
+        throw new Error(`bara ${ut.size} bilder i ordrarna, golvet är ${MIN_ORDERBILDER}`);
+      }
+      return [...ut];
     },
 
     listaAnvanda: async () => {

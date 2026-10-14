@@ -150,7 +150,17 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
  */
 export async function fetchOrders(
   sinceIso: string,
-  options?: { includeCancelled?: boolean; maxPages?: number; strict?: boolean },
+  options?: {
+    includeCancelled?: boolean;
+    maxPages?: number;
+    strict?: boolean;
+    /**
+     * Bara de här statusarna. Search Orders lämnar enligt Wix dokumentation
+     * ute PENDING och REJECTED om de inte efterfrågas uttryckligen, så den
+     * som vill ha ALLA ordrar gör ett anrop till med dem här.
+     */
+    statusar?: string[];
+  },
 ): Promise<WixOrder[]> {
   const maxPages = options?.maxPages ?? 50;
   const all: WixOrder[] = [];
@@ -165,9 +175,11 @@ export async function fetchOrders(
         filter: {
           _createdDate: { $gte: sinceIso },
           // Endast riktiga köp — INITIATED är ofullständiga varukorgar.
-          ...(options?.includeCancelled
-            ? {}
-            : { status: { $nin: ["INITIATED", "CANCELED"] } }),
+          ...(options?.statusar
+            ? { status: { $in: options.statusar } }
+            : options?.includeCancelled
+              ? {}
+              : { status: { $nin: ["INITIATED", "CANCELED"] } }),
         },
         sort: [{ fieldName: "_createdDate", order: "DESC" }],
         cursorPaging,
