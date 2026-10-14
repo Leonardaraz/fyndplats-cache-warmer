@@ -748,6 +748,13 @@ describe("granskningen 2026-10-14", () => {
   };
   const kalla = "https://static.wixstatic.com/media/b379ce_2e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg";
 
+  it("☠️ ett utsnitt ur ett annat bibliotek är inte poleringens", () => {
+    for (const agare of ["11062b", "22e53e"]) {
+      const kalla = `https://static.wixstatic.com/media/${agare}_2e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/crop/x_0,y_0,w_800,h_800/file.jpg`;
+      expect(klassaFil({ ...bas, sourceUrl: kalla }, new Set())).toBe("wix-annan");
+    }
+  });
+
   it("☠️ bara crop-adresser är poleringens utsnitt; fill och fit kan vara hämtade för hand", () => {
     expect(klassaFil({ ...bas, sourceUrl: `${kalla}/v1/crop/x_0,y_0,w_800,h_800/file.jpg` }, new Set())).toBe("wix-utsnitt");
     expect(klassaFil({ ...bas, sourceUrl: `${kalla}/v1/fill/w_1200,h_630/file.jpg` }, new Set())).toBe("wix-annan");
@@ -909,6 +916,11 @@ describe("kontrolleraProduktsvep", () => {
   it("☠️ ett svep som nådde sidtaket fäller körningen", () => {
     expect(() => kontrolleraProduktsvep(6_300, false, 0)).toThrow(/sidtaket/);
   });
+  it("☠️ en räknare som inte svarade med något antal fäller körningen, den stänger inte av jämförelsen", () => {
+    // countProducts gör ett svar utan `count` till 0.
+    expect(() => kontrolleraProduktsvep(6_300, true, 0)).toThrow(/räknare svarade 0/);
+  });
+
   it("en import medan svepet pågår är inget fel (högst fem färre)", () => {
     expect(() => kontrolleraProduktsvep(6_295, true, 6_300)).not.toThrow();
     expect(() => kontrolleraProduktsvep(6_294, true, 6_300)).toThrow();

@@ -130,15 +130,20 @@ jobs:
           fi
           bas=$(printf '%s' "$forsta" | jq -c '.referenser // empty')
           if [ -z "$bas" ]; then echo "::error::Svaret saknar referenser per läsare" >&2; exit 1; fi
-          # Kategorierna är inte med: bara en kategori bar en bild 2026-10-14,
-          # och motorn spärrar på antalet KATEGORIER (minst 50) i stället.
-          for k in produkter antalProdukter recensioner fargbilder butiken ordrar varianter; do
+          # Kategorierna är inte med, varken här eller i golven: bara en
+          # kategori bar en bild 2026-10-14, och tas den bort mitt i körningen
+          # hade varje anrop fallit. Motorn spärrar på antalet KATEGORIER
+          # (minst 50) i stället.
+          lasare="produkter antalProdukter recensioner fargbilder butiken ordrar varianter"
+          for k in $lasare; do
             v=$(printf '%s' "$bas" | jq -r --arg k "$k" '.[$k] // 0')
             if [ "$v" -le 0 ]; then echo "::error::Läsaren ${k} gav 0 referenser i förflygningen" >&2; exit 1; fi
           done
           # 95 %, men minst 1 för en läsare som gav något: 95 % av 1 är 0, och
           # ett golv på 0 skyddar ingenting.
-          golv=$(printf '%s' "$bas" | jq -r 'to_entries | map("\(.key):\(if .value > 0 then ([(.value * 0.95 | floor), 1] | max) else 0 end)") | join(",")')
+          golv=$(printf '%s' "$bas" | jq -r --arg lasare "$lasare" '($lasare | split(" ")) as $ok
+            | to_entries | map(select(.key as $k | $ok | index($k)))
+            | map("\(.key):\(if .value > 0 then ([(.value * 0.95 | floor), 1] | max) else 0 end)") | join(",")')
           if [ -z "$golv" ]; then echo "::error::Kunde inte räkna golven" >&2; exit 1; fi
           echo "referenser i förflygningen: ${bas}"
           echo "golv (95 %): ${golv}"
@@ -185,7 +190,9 @@ jobs:
               fel_tot=$(( fel_tot + fel ))
               [ "$torr" = "false" ] && mb_tot=$(( mb_tot + mb ))
               echo "pass ${pass} varv ${varv}: ${filer} filer, ${forald} oanvända, $(printf '%s' "$svar" | jq -r '.mogna // 0') raderbara nu, ${rad} raderade (${mb} MB), ${fel} fel [${s}]"
-              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.[:200])"' | redigera
+              # Alla felrader, även när ingen skopa föll: en fallen bokföring i
+              # karenstabellen efter raderingen står bara här.
+              printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.[:200])"' | redigera
 
               if [ "$torr" = "false" ]; then
                 # Misslyckade skopor räknas också: en skopa kan vara raderad

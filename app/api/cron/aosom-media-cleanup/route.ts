@@ -33,7 +33,12 @@
 //
 // LÄSARNA (2026-10-14): produkterna, kategorierna, recensionerna,
 // färgbildstabellen, butikens egen lista (bloggen, koden, reservkatalogen,
-// variantbilderna) och ordrarna. Faller någon av dem avbryts körningen.
+// variantbilderna), ordrarna och varje variants egen bild (varukorgen, kassan,
+// ordern). Faller någon av dem avbryts körningen.
+//
+// KARENSTIDEN: en fil raderas först när den varit oanvänd i tre dygn, sett av
+// två körningar. Varje körning antecknar, även en torrkörning, och svaret bär
+// `mogna` (raderbara nu) och `iKarens`. Se lib/store/bildstadning-karens.ts.
 //
 // Svaret bär en `cursor`. Är den satt återstår filer att gå igenom — kör igen
 // med `?after=<cursor>`. `null` betyder att hela Media Manager är genomgången.
@@ -67,15 +72,20 @@ async function handle(req: NextRequest) {
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
   // ☠️ Ett tak som inte går att läsa är INGET tak (granskningen 2026-10-14):
   // `limit=0.5` blev förr 0, alltså obegränsat. Saknas parametern finns inget
-  // tak; finns den måste den vara ett positivt heltal.
+  // tak; finns den måste den vara ett positivt heltal. Undantaget är 0 (eller
+  // tomt) i en TORRKÖRNING, som import-workflowens `bildstadning-torr` skickar
+  // för "hela biblioteket": en torrkörning raderar ingenting.
   const limitParam = req.nextUrl.searchParams.get("limit");
   let limit: number | undefined;
   if (limitParam !== null) {
     const n = Number(limitParam);
-    if (!Number.isInteger(n) || n < 1) {
+    if (dryRun && n === 0) {
+      limit = undefined;
+    } else if (!Number.isInteger(n) || n < 1) {
       return NextResponse.json({ error: `Ogiltigt limit: ${limitParam}` }, { status: 400 });
+    } else {
+      limit = n;
     }
-    limit = n;
   }
   const after = req.nextUrl.searchParams.get("after") || undefined;
 

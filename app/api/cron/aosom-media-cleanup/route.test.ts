@@ -36,6 +36,13 @@ describe("aosom-media-cleanup: parametrarna", () => {
     expect(korningar).toEqual([]);
   });
 
+  it("limit=0 i en torrkörning är inget tak, som import-workflowens bildstadning-torr skickar", async () => {
+    expect((await anrop("dryRun=true&limit=0")).status).toBe(200);
+    expect(korningar[0].limit).toBeUndefined();
+    expect((await anrop("dryRun=true&limit=")).status).toBe(200);
+    expect((await anrop("dryRun=true&limit=0.5")).status).toBe(400);
+  });
+
   it("ett giltigt limit går fram, och utan limit finns inget tak", async () => {
     expect((await anrop("dryRun=false&limit=2000")).status).toBe(200);
     expect(korningar[0].limit).toBe(2000);

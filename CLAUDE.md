@@ -2529,8 +2529,9 @@ Fyra egenskaper som inte ska tas bort:
 4. **Torrkörning är default.** Den säger hur många bilder feeden har.
 
 ⚠️ **Bilder som ingen väljer städas bort av nattens bildstädning** (03:50 UTC),
-eftersom de bär en leverantörsadress i `sourceUrl`. En vald bild måste alltså
-sitta på sin produkt före nästa städning. En omkörning laddar upp på nytt.
+eftersom de bär en leverantörsadress i `sourceUrl`. Sedan 2026-10-14 först när
+de varit oanvända i tre dygn (karenstiden), så en vald bild måste sitta på sin
+produkt inom tre dygn. En omkörning laddar upp på nytt.
 
 ☠️ **Utfallet, uppmätt 2026-09-30: position 4–7 är nästan aldrig rena.** Alla 184
 bilder på de 46 sidorna med två bilder granskades. 181 var tyska säljgrafiker
@@ -2644,7 +2645,8 @@ Fyra egenskaper som inte ska tas bort:
    med options + variantsInfo ordagrant och `visible`, sedan återläsning), kräver
    planens sha och stannar vid första sida som inte läser tillbaka.
 4. ☠️ **Svaret bär bara Wix egna id och adresser.** Godkända kandidater måste skrivas
-   före bildstädningen 03:50 UTC.
+   inom karenstiden, tre dygn efter att bildstädningen (03:50 UTC) först såg dem
+   oanvända.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -3025,8 +3027,23 @@ väg där en fil som någon av läsarna ser raderas, men fem hål runt läsarna:
    jämförelsen (`karensNyckel`: adressens id-del, gemener). Och liveDeps vägrar
    köra när `WIX_SITE_ID` och butikens sajt pekar isär
    (`kontrolleraSammaSajt`), för då läser ordrarna en annan butik än filerna.
-   Fönstret är 50 sidor (5 000 filer), inte 60: läsarna kostar nu ~80 anrop
-   mot samma värd innan listningen börjar.
+   Fönstret är 40 sidor (4 000 filer), inte 60, och produktsvepet pausar 250 ms
+   mellan sidorna: läsarna kostar nu ~80–100 anrop mot samma värd innan
+   listningen börjar, och 40 håller ett anrop kring de ~125 sidor i rad som
+   torrkörningen 2026-10-14 klarade.
+7. **En fjärde granskning av rättningen** gav fem saker till, alla lagade:
+   - Ett svar från katalogens räknare utan antal blir 0 i `countProducts`. Det
+     fäller nu körningen (minst 500), i stället för att stänga av avstämningen
+     (`kontrolleraProduktsvep`).
+   - Variantläsaren fäller `hasNext` utan markör. Den kräver också varianter
+     från minst hälften av katalogens produkter: en enda sida täcker långt
+     färre, och utan behörighet för dolda produkter saknas utkasten (~40 %).
+   - Ett crop-utsnitt måste också komma ur vårt eget bibliotek.
+   - Kategorierna ingår inte i workflowens golv. Bara en kategori bar en bild,
+     och tas den bort mitt i körningen hade varje anrop fallit.
+   - Felraderna skrivs ut även när ingen skopa föll. En fallen bokföring efter
+     raderingen syns bara där. `limit=0` är "inget tak" i en torrkörning, som
+     import-workflowens `bildstadning-torr` skickar, men 400 i en skarp körning.
 
 Kvar och känt, medvetet:
 
@@ -3042,8 +3059,10 @@ Kvar och känt, medvetet:
   produkt). Ingen av de 406 sparade produktsidorna hade någon 2026-10-14.
 - Mejl som redan skickats (påminnelser om varukorg efter 72 timmar,
   bevakningsmejl) kan visa en bild som raderats efter karenstiden.
-- En fil som tas i bruk och släpps igen mellan två nattkörningar syns inte
-  som i bruk, och dess gamla tid står kvar.
+- Karenstiden betyder "oanvänd vid varje körning som tittade under minst tre
+  dygn", inte tre dygn i sträck i realtid. En fil som tas i bruk och släpps
+  igen mellan två nattkörningar syns inte som i bruk, och dess gamla tid står
+  kvar.
 
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 

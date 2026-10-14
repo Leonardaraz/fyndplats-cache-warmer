@@ -179,7 +179,12 @@ export function klassaFil(f: MediaFil, franOss: ReadonlySet<string>): Filklass {
     // (docs/polish/bildmetoder.md, *Beskärning*). Bara crop: butiken visar
     // sina bilder som fill- och fit-adresser, och en fil som någon hämtat in
     // från en sådan är inte bevisat vår.
-    if (/\/v1\/crop\//.test(u.pathname)) return "wix-utsnitt";
+    // Och källan måste vara vår egen, som för kopiorna: ett utsnitt ur Wix
+    // gratisbilder eller mallens bilder är inte poleringens.
+    if (/\/v1\/crop\//.test(u.pathname)) {
+      const kallId = u.pathname.split("/")[2] ?? "";
+      if (agare(kallId) !== "" && agare(kallId) === agare(f.id)) return "wix-utsnitt";
+    }
     return "wix-annan";
   }
   // Poleringens kort: Wix hämtar dem ur grenen innan de sätts på produkten.
@@ -904,15 +909,16 @@ export function sammanfattaFelkropp(kropp: string): string {
 }
 
 /**
- * Sidor per körning. 50 × 100 = 5 000 filer.
+ * Sidor per körning. 40 × 100 = 4 000 filer.
  *
  * Taket är satt av edge-spärren, inte av tiden: en körning dog efter ~150 sidor
  * i rad. Läsarna kostar ~80 anrop mot samma värd innan fillistningen ens börjar
- * (2026-10-14: ~64 produktsidor, räknaren, två kategorisidor, ~7 variantsidor,
- * ordrarna), så 50 håller hela körningen kring 130 anrop. Var 60 när
+ * (2026-10-14: ~64 produktsidor, räknaren, två kategorisidor, upp till ~20
+ * variantsidor, ordrarna), så 40 håller hela körningen kring 125 anrop: samma
+ * nivå som den torrkörning som gick igenom alla fönster 2026-10-14. Var 60 när
  * produktsökningen var ~37 sidor och varianterna inte lästes.
  */
-const SIDOR_PER_FONSTER = 50;
+const SIDOR_PER_FONSTER = 40;
 
 /** Sidor om 100 ordrar. Butiken hade 90 ordrar 2026-10-14. */
 const ORDER_SIDTAK = 100;
@@ -953,6 +959,18 @@ const VARIANT_SIDTAK = 100;
  */
 const KATALOG_TOLERANS = 5;
 
+/** Katalogens räknare under det här är ett läsfel (samma tal som MIN_KATALOG i pensionerade). */
+const MIN_KATALOG_PRODUKTER = 500;
+
+/**
+ * Varianterna ska komma från minst så stor andel av katalogens produkter. En
+ * enda sida (1 000 varianter) täcker långt färre, så en läsning som stannat
+ * efter första sidan fäller. Hälften och inte nästan alla: utan behörighet för
+ * dolda produkter lämnar API:t ute utkastens varianter (~40 % av katalogen
+ * 2026-10-14), och golvet ska inte stoppa varje körning för det.
+ */
+const MIN_VARIANTPRODUKTER_ANDEL = 0.5;
+
 /**
  * ☠️ ALLA LÄSARE OCH RADERINGEN MÅSTE GÄLLA SAMMA SAJT (granskningen
  * 2026-10-14). Filerna, produkterna, varianterna och kategorierna läses med
@@ -976,14 +994,23 @@ export function kontrolleraSammaSajt(wixSiteId: string | undefined, butikensSajt
  */
 export function kontrolleraProduktsvep(sedda: number, klar: boolean, katalogensRaknare: number): void {
   if (!klar) throw new Error("Produktsvepet nådde sidtaket utan att bli klart.");
+  // Ett svar utan antal blir 0 i countProducts, och 0 hade stängt av
+  // jämförelsen nedan. Katalogen har tusentals produkter.
+  if (!(katalogensRaknare >= MIN_KATALOG_PRODUKTER)) {
+    throw new Error(`Katalogens räknare svarade ${katalogensRaknare}, golvet är ${MIN_KATALOG_PRODUKTER}.`);
+  }
   if (sedda < katalogensRaknare - KATALOG_TOLERANS) {
     throw new Error(`Produktsvepet såg ${sedda} av ${katalogensRaknare} produkter — det har tappat sidor.`);
   }
 }
 
 export async function liveDeps(): Promise<MediaCleanupDeps> {
-  const { headlessSiteId: butikensSajt } = await import("../wix/media-audit");
+  const { headlessSiteId: butikensSajt, countProducts } = await import("../wix/media-audit");
   kontrolleraSammaSajt(process.env.WIX_SITE_ID, butikensSajt());
+  // Katalogens räknare, en gång per anrop: produktsvepet och varianterna
+  // stäms av mot samma tal.
+  let raknare: Promise<number> | null = null;
+  const katalogensRaknare = () => (raknare ??= countProducts(process.env.WIX_SITE_ID || butikensSajt()));
   const WIX_BASE = "https://www.wixapis.com";
   const paus = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -1147,6 +1174,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     // inte produktdatan.
     listaVariantbilder: async () => {
       const ut = new Set<string>();
+      const produkter = new Set<string>();
       let cursor: string | null = null;
       let sidor = 0;
       for (;;) {
@@ -1156,15 +1184,18 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
           fields: [],
           query: { cursorPaging: { limit: VARIANTER_PER_SIDA, ...(cursor ? { cursor } : {}) } },
         })) as {
-          variants?: Array<{ media?: unknown }>;
+          variants?: Array<{ media?: unknown; productData?: { productId?: string } }>;
           pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
         };
         for (const v of data.variants ?? []) {
+          if (v.productData?.productId) produkter.add(v.productData.productId);
           if (v.media) for (const id of wixMediaIdn(JSON.stringify(v.media))) ut.add(id);
         }
         sidor++;
-        cursor = data.pagingMetadata?.hasNext ? (data.pagingMetadata.cursors?.next ?? null) : null;
-        if (!cursor) break;
+        if (!data.pagingMetadata?.hasNext) break;
+        // ☠️ "Det finns mer" utan markör är ett trasigt svar, inte slutet.
+        cursor = data.pagingMetadata.cursors?.next ?? null;
+        if (!cursor) throw new Error("query-variants svarade hasNext utan markör");
         // Ett tak ska kasta, aldrig kapa.
         if (sidor >= VARIANT_SIDTAK) throw new Error(`minst ${VARIANT_SIDTAK} sidor varianter: höj VARIANT_SIDTAK`);
         await paus(250);
@@ -1172,6 +1203,11 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       if (ut.size < MIN_VARIANTBILDER) {
         throw new Error(`bara ${ut.size} variantbilder, golvet är ${MIN_VARIANTBILDER}`);
       }
+      const totalt = await katalogensRaknare();
+      if (produkter.size < totalt * MIN_VARIANTPRODUKTER_ANDEL) {
+        throw new Error(`varianter från bara ${produkter.size} av ${totalt} produkter`);
+      }
+      console.log(`[media-cleanup] varianter: ${ut.size} bilder från ${produkter.size} av ${totalt} produkter`);
       return [...ut];
     },
 
@@ -1234,15 +1270,16 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
         }
         cursor = data.pagingMetadata?.cursors?.next ?? null;
         if (!cursor || (data.products ?? []).length === 0) { klar = true; break; }
-        await paus(120);
+        // 250 ms som fillistningen: anropen i rad mot samma värd är det som
+        // utlöser edge-spärren (granskningen 2026-10-14).
+        await paus(250);
       }
       // ☠️ SVEPET STÄMS AV MOT KATALOGENS RÄKNARE (granskningen 2026-10-14).
       // En tom sida eller en saknad markör mitt i katalogen avslutar loopen som
       // om katalogen tagit slut, och halvbildsspärren i planeraStadning ser inte
       // ett svep som kapats jämnt. Samma kontroll som raderingen av
       // pensionerade utkast gör.
-      const { countProducts, headlessSiteId } = await import("../wix/media-audit");
-      kontrolleraProduktsvep(antalProdukter, klar, klar ? await countProducts(process.env.WIX_SITE_ID || headlessSiteId()) : 0);
+      kontrolleraProduktsvep(antalProdukter, klar, klar ? await katalogensRaknare() : 0);
       return { urls, antalProdukter };
     },
 
