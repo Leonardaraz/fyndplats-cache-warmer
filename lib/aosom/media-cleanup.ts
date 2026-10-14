@@ -53,6 +53,7 @@
 
 import { mediaNyckel, produktensMedianycklar, type ProduktMedia } from "../wix/produkt-media";
 import { raderbartId, wixMediaIdn } from "../wix/media-idn";
+import { KARENS_DYGN, KARENS_MS, type KarensLager } from "../store/bildstadning-karens";
 
 const MIN_BILDER_PER_PRODUKT = 0.5;
 
@@ -108,9 +109,23 @@ export function arVarFil(f: MediaFil, franOss: ReadonlySet<string>): boolean {
     // Våra egna uppladdningar ser inte ut så: de får ett namn vi själva satt
     // ("aosom-84H-237V01CG-1.jpg") och en sourceUrl hos leverantörens CDN.
     // Och en handuppladdad bild saknar sourceUrl helt och når aldrig hit.
-    return mediaNyckel(src) === f.displayName;
+    //
+    // ☠️ OCH KÄLLAN MÅSTE VARA VÅR EGEN (granskningen 2026-10-14). Signaturen
+    // ensam känner också igen en bild som hämtats in från ETT ANNAT bibliotek
+    // med samma namn: Wix egna gratisbilder (11062b_…) eller mallens bilder
+    // (22e53e_…, All Products-kategorins bild). Sådana kan sitta på Wix egna
+    // sidor, där ingen läsare ser dem. Prefixet före understrecket är
+    // bibliotekets ägare, och en kopia av en av våra filer har samma som filen.
+    const kalla = mediaNyckel(src);
+    return kalla === f.displayName && agare(kalla) !== "" && agare(kalla) === agare(f.id);
   }
   return false;
+}
+
+/** Bibliotekets ägare: prefixet före understrecket i ett Wix-media-id. */
+function agare(id: string): string {
+  const m = /^([0-9a-f]{6})_/i.exec(id);
+  return m ? m[1].toLowerCase() : "";
 }
 
 /**
@@ -161,8 +176,10 @@ export function klassaFil(f: MediaFil, franOss: ReadonlySet<string>): Filklass {
   if (h === "static.wixstatic.com") {
     if (arVarFil(f, franOss)) return "wix-kopia";
     // Poleringens utsnitt laddas upp ur Wix egen crop-adress
-    // (docs/polish/bildmetoder.md, *Beskärning*).
-    if (/\/v1\/(crop|fill|fit)\//.test(u.pathname)) return "wix-utsnitt";
+    // (docs/polish/bildmetoder.md, *Beskärning*). Bara crop: butiken visar
+    // sina bilder som fill- och fit-adresser, och en fil som någon hämtat in
+    // från en sådan är inte bevisat vår.
+    if (/\/v1\/crop\//.test(u.pathname)) return "wix-utsnitt";
     return "wix-annan";
   }
   // Poleringens kort: Wix hämtar dem ur grenen innan de sätts på produkten.
@@ -190,6 +207,8 @@ export interface PlanTillagg {
   butiksbilder?: ReadonlyArray<string>;
   /** Ordrarnas varubilder, som kunden ser i sina mejl och sin order. */
   orderbilder?: ReadonlyArray<string>;
+  /** Varje variants egen bild: den varukorgen, kassan och ordern visar. */
+  variantbilder?: ReadonlyArray<string>;
   omfang?: Omfang;
   /**
    * Läget `allt`: rör bara filer som varken skapats eller ändrats på så här
@@ -217,6 +236,8 @@ export interface StadningsPlan {
   forUnga: number;
   /** Oanvända filer i en raderbar klass vars id inte har den vanliga formen. */
   ovanligtId: number;
+  /** Id för fönstrets filer som någon läsare använder. Karenstiden glömmer dem. */
+  anvandaIdn: string[];
 }
 
 function tommaKlasser(): Record<Filklass, KlassSiffror> {
@@ -300,10 +321,16 @@ export function planeraStadning(
   // Varje referens ger också de id som står INNE i den. En omskalad adress
   // (…/media/<id>/v1/fill/w_640,h_640/file.jpg) slutar på "file.jpg", och
   // bara sista ledet hade då inte skyddat filen.
+  //
+  // ☠️ OCH VARIANTERNAS EGNA BILDER (granskningen 2026-10-14). Varukorgen,
+  // Wix-kassan och ordern visar `variantsInfo.variants[].media`, som Wix
+  // sätter när varianten skrivs och som kan peka på en fil som inte längre
+  // står i galleriet (lib/wix/variant-media.ts). Produktsökningen bär inte
+  // varianterna, så de läses för sig.
   const anvandaNycklar = new Set<string>();
   for (const ref of [
     ...ianvandning, ...recensionsbilder, ...kategoribilder, ...fargbilder,
-    ...(tillagg.butiksbilder ?? []), ...(tillagg.orderbilder ?? []),
+    ...(tillagg.butiksbilder ?? []), ...(tillagg.orderbilder ?? []), ...(tillagg.variantbilder ?? []),
   ]) {
     anvandaNycklar.add(jamfor(ref));
     for (const id of wixMediaIdn(ref)) anvandaNycklar.add(id);
@@ -320,6 +347,7 @@ export function planeraStadning(
   }
 
   const attRadera: MediaFil[] = [];
+  const anvandaIdn: string[] = [];
   const perKlass = tommaKlasser();
   let anvanda = 0;
   let forUnga = 0;
@@ -332,6 +360,7 @@ export function planeraStadning(
     if (anvandaNycklar.has(jamfor(f.url)) || anvandaNycklar.has(jamfor(f.id))) {
       s.anvanda++;
       if (varaNycklar.has(mediaNyckel(f.url))) anvanda++;
+      anvandaIdn.push(f.id);
       continue;
     }
     s.oanvanda++;
@@ -366,6 +395,7 @@ export function planeraStadning(
     perKlass,
     forUnga,
     ovanligtId,
+    anvandaIdn,
   };
 }
 
@@ -436,6 +466,17 @@ export interface MediaCleanupDeps {
   listaButikensBilder: () => Promise<string[]>;
   /** Varje Wix-bild i en order (alla ordrar, alla statusar). Obligatorisk. */
   listaOrderbilder: () => Promise<string[]>;
+  /**
+   * Varje variants egen bild (Read-Only Variants API), även utkastens. Det är
+   * den bilden varukorgen, kassan och ordern visar. Obligatorisk, och ett
+   * läsfel eller en lista under golvet fäller körningen.
+   */
+  listaVariantbilder: () => Promise<string[]>;
+  /**
+   * Karenstiden (lib/store/bildstadning-karens.ts). Obligatorisk: utan den
+   * hade en fil kunnat raderas samma natt som den togs bort ur ett galleri.
+   */
+  karens: KarensLager;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
@@ -493,12 +534,19 @@ export interface MediaCleanupSummary {
     fargbilder: number;
     butiken: number;
     ordrar: number;
+    varianter: number;
   };
   /** Filer i FÖNSTRET, inte i hela Media Manager — se `cursor`. */
   filerIFonstret: number;
   /** Våra filer i fönstret som sitter på en produkt. */
   anvandaEgnaFiler: number;
+  /** Oanvända filer som får raderas i det här läget, med eller utan karens. */
   foraldralosa: number;
+  /** Av dem: oanvända i minst `karensDygn`. Bara de raderas. */
+  mogna: number;
+  /** Av dem: oanvända kortare tid än så. Räknas och antecknas, rörs inte. */
+  iKarens: number;
+  karensDygn: number;
   raderade: number;
   frigjordMb: number;
   misslyckade: number;
@@ -548,7 +596,7 @@ const DAG_MS = 86_400_000;
 
 export type Lasare = keyof MediaCleanupSummary["referenser"];
 export const LASARE: ReadonlyArray<Lasare> = [
-  "produkter", "antalProdukter", "recensioner", "kategorier", "fargbilder", "butiken", "ordrar",
+  "produkter", "antalProdukter", "recensioner", "kategorier", "fargbilder", "butiken", "ordrar", "varianter",
 ];
 
 export async function runMediaCleanup(
@@ -667,6 +715,16 @@ export async function runMediaCleanup(
     );
   }
 
+  let variantbilder: string[];
+  try {
+    variantbilder = await deps.listaVariantbilder();
+  } catch (err) {
+    throw new Error(
+      `Varianternas bilder gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
+        + "Körningen avbryts — utan dem kan bilden i varukorgen, kassan och ordern raderas.",
+    );
+  }
+
   const referenser: MediaCleanupSummary["referenser"] = {
     produkter: urls.length,
     antalProdukter,
@@ -675,6 +733,7 @@ export async function runMediaCleanup(
     fargbilder: fargbilder.length,
     butiken: butiksbilder.length,
     ordrar: orderbilder.length,
+    varianter: variantbilder.length,
   };
 
   // ☠️ GOLVEN KONTROLLERAS HÄR, FÖRE LISTNINGEN OCH RADERINGEN. En kontroll i
@@ -703,11 +762,27 @@ export async function runMediaCleanup(
   const plan = planeraStadning(filer, urls, antalProdukter, recensionsbilder, kategoribilder, fargbilder, {
     butiksbilder,
     orderbilder,
+    variantbilder,
     omfang,
     minAlderMs: minAlderDagar * DAG_MS,
     nu: now(),
   });
-  const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
+
+  // ☠️ KARENSTIDEN (granskningen 2026-10-14). Varje oanvänd fil antecknas med
+  // när den FÖRST sågs oanvänd, och bara de som varit oanvända i KARENS_DYGN
+  // raderas. Antecknas gör även torrkörningen: den raderar ingenting i Wix,
+  // men den för bok över vad den såg. En fil som används igen glöms.
+  //
+  // Bokföringen görs FÖRE raderingen. Faller den avbryts körningen, och
+  // ingenting raderas utan en känd tid.
+  const nuMs = now();
+  const forstSedd = await deps.karens.registrera(plan.attRadera.map((f) => f.id), nuMs);
+  await deps.karens.glom(plan.anvandaIdn);
+  const mogna = plan.attRadera.filter((f) => {
+    const t = forstSedd.get(f.id);
+    return t !== undefined && Number.isFinite(t) && nuMs - t >= KARENS_MS;
+  });
+  const attRadera = opts.limit ? mogna.slice(0, opts.limit) : mogna;
 
   const summary: MediaCleanupSummary = {
     dryRun,
@@ -719,21 +794,25 @@ export async function runMediaCleanup(
     filerIFonstret: plan.filerIFonstret,
     anvandaEgnaFiler: plan.anvanda,
     foraldralosa: plan.attRadera.length,
+    mogna: mogna.length,
+    iKarens: plan.attRadera.length - mogna.length,
+    karensDygn: KARENS_DYGN,
     raderade: 0,
     frigjordMb: 0,
     misslyckade: 0,
     errors: [],
     komplettListning: komplett,
-    stoppedBy: opts.limit && plan.attRadera.length > opts.limit ? "limit" : "klart",
+    stoppedBy: opts.limit && mogna.length > opts.limit ? "limit" : "klart",
     cursor,
   };
 
   if (dryRun) {
-    summary.frigjordMb = Math.round(plan.bytes / 1e6);
+    summary.frigjordMb = Math.round(mogna.reduce((s, f) => s + (f.sizeInBytes || 0), 0) / 1e6);
     return summary;
   }
 
   let frigjort = 0;
+  const raderadeIdn: string[] = [];
   for (let i = 0; i < attRadera.length; i += BATCH) {
     // ☠️ Raderingen är också tidsbudgeterad. Utan det kan en stor `limit` dra
     // förbi ruttens maxDuration, och då dödas svaret mitt i: filerna ÄR
@@ -749,12 +828,20 @@ export async function runMediaCleanup(
       await deps.raderaPermanent(skopa.map((f) => f.id));
       summary.raderade += skopa.length;
       frigjort += skopa.reduce((s, f) => s + (f.sizeInBytes || 0), 0);
+      raderadeIdn.push(...skopa.map((f) => f.id));
     } catch (err) {
       summary.misslyckade += skopa.length;
       summary.errors.push(err instanceof Error ? err.message : String(err));
     }
   }
   summary.frigjordMb = Math.round(frigjort / 1e6);
+  // Raderade filers rader är bara skräp i tabellen. Ett fel här ska inte
+  // dölja att filerna ÄR raderade, så det blir en rad i errors, inte ett kast.
+  try {
+    await deps.karens.glom(raderadeIdn);
+  } catch (err) {
+    summary.errors.push(`karenstabellen: ${err instanceof Error ? err.message : String(err)}`);
+  }
   return summary;
 }
 
@@ -819,6 +906,33 @@ const ORDER_SIDTAK = 100;
  */
 const MIN_RECENSIONSBILDER = 1_000;
 const MIN_ORDERBILDER = 40;
+
+/**
+ * Golv för de andra läsarna (granskningen 2026-10-14). Ett tomt svar utan fel
+ * hade annars gett golv 0 i workflowen och fått varje fil läsaren skyddar att
+ * se oanvänd ut.
+ *
+ * - Kategorierna räknas på KATEGORIER, inte på bilder: bara All Products bar
+ *   en bild den dagen, och att ta bort den bilden ska inte stoppa städningen.
+ *   130 kategorier uppmätta.
+ * - Färgbildstabellen bär varje färgvals bilder på över 500 sammanslagna sidor.
+ * - Varianterna: minst en per produkt, ~6 300 produkter.
+ */
+const MIN_KATEGORIER = 50;
+const MIN_FARGBILDER = 100;
+const MIN_VARIANTBILDER = 1_000;
+
+/** Varianter per sida i Read-Only Variants API (dokumenterat tak 1 000). */
+const VARIANTER_PER_SIDA = 1_000;
+const VARIANT_SIDTAK = 100;
+
+/**
+ * Produktsökningen får se högst så här många färre produkter än katalogens
+ * räknare. Samma tal och skäl som KATALOG_TOLERANS i lib/aosom/pensionerade.ts:
+ * en import kan skapa en produkt medan svepet pågår, fler saknade än så
+ * betyder att svepet tappat sidor.
+ */
+const KATALOG_TOLERANS = 5;
 
 export async function liveDeps(): Promise<MediaCleanupDeps> {
   const WIX_BASE = "https://www.wixapis.com";
@@ -958,16 +1072,61 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     // samma läsning som bildinventeringen gör — dolda kategorier räknas med.
     // Kastar vid läsfel; runMediaCleanup gör det till ett avbrott.
     listaKategoribilder: async () => {
-      const { collectCategoryMediaIds, headlessSiteId } = await import("../wix/media-audit");
-      return [...await collectCategoryMediaIds(process.env.WIX_SITE_ID || headlessSiteId())];
+      const { collectCategoryMedia, headlessSiteId } = await import("../wix/media-audit");
+      const { ids, kategorier } = await collectCategoryMedia(process.env.WIX_SITE_ID || headlessSiteId());
+      if (kategorier < MIN_KATEGORIER) {
+        throw new Error(`bara ${kategorier} kategorier lästa, golvet är ${MIN_KATEGORIER}`);
+      }
+      return [...ids];
     },
 
     // Färgernas bilder utöver Wix 15 (lib/aosom/fargbilder.ts). Kastar vid
-    // läsfel; runMediaCleanup gör det till ett avbrott.
+    // läsfel och under golvet; runMediaCleanup gör det till ett avbrott.
     listaFargbilder: async () => {
       const { getFargbildLager } = await import("../store/fargbilder");
-      return getFargbildLager().lasAllaFilIdn();
+      const idn = await getFargbildLager().lasAllaFilIdn();
+      if (idn.length < MIN_FARGBILDER) {
+        throw new Error(`bara ${idn.length} filer i färgbildstabellen, golvet är ${MIN_FARGBILDER}`);
+      }
+      return idn;
     },
+
+    // Varje variants egen bild, även utkastens: den varukorgen, Wix-kassan och
+    // ordern visar. Produktsökningen bär inga varianter, så de läses ur
+    // Read-Only Variants API (uppmätt 2026-10-14: `media.id` per variant, även
+    // för dolda produkter, utan filter och med markör). Bara mediadelen läses,
+    // inte produktdatan.
+    listaVariantbilder: async () => {
+      const ut = new Set<string>();
+      let cursor: string | null = null;
+      let sidor = 0;
+      for (;;) {
+        // Sida två och framåt bär bara markören: andra Wix-sökningar avvisar
+        // filter eller sortering tillsammans med en markör.
+        const data = (await post(`${WIX_BASE}/stores/v3/products/query-variants`, {
+          fields: [],
+          query: { cursorPaging: { limit: VARIANTER_PER_SIDA, ...(cursor ? { cursor } : {}) } },
+        })) as {
+          variants?: Array<{ media?: unknown }>;
+          pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+        };
+        for (const v of data.variants ?? []) {
+          if (v.media) for (const id of wixMediaIdn(JSON.stringify(v.media))) ut.add(id);
+        }
+        sidor++;
+        cursor = data.pagingMetadata?.hasNext ? (data.pagingMetadata.cursors?.next ?? null) : null;
+        if (!cursor) break;
+        // Ett tak ska kasta, aldrig kapa.
+        if (sidor >= VARIANT_SIDTAK) throw new Error(`minst ${VARIANT_SIDTAK} sidor varianter: höj VARIANT_SIDTAK`);
+        await paus(250);
+      }
+      if (ut.size < MIN_VARIANTBILDER) {
+        throw new Error(`bara ${ut.size} variantbilder, golvet är ${MIN_VARIANTBILDER}`);
+      }
+      return [...ut];
+    },
+
+    karens: (await import("../store/bildstadning-karens")).getKarensLager(),
 
     // Butikens egen lista (blogg, kod, reservkatalog, variantbilder). Kastar
     // vid läsfel och under golvet; runMediaCleanup gör det till ett avbrott.
@@ -1006,6 +1165,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       const urls: string[] = [];
       let antalProdukter = 0;
       let cursor: string | null = null;
+      let klar = false;
       for (let i = 0; i < 500; i++) {
         // ☠️ fields: MEDIA_ITEMS_INFO krävs. Utan det svarar V3 med media.main
         // ifylld men itemsInfo.items TOM — och då ser varje fil föräldralös ut.
@@ -1024,8 +1184,19 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
           urls.push(...produktensMedianycklar(p));
         }
         cursor = data.pagingMetadata?.cursors?.next ?? null;
-        if (!cursor || (data.products ?? []).length === 0) break;
+        if (!cursor || (data.products ?? []).length === 0) { klar = true; break; }
         await paus(120);
+      }
+      // ☠️ SVEPET STÄMS AV MOT KATALOGENS RÄKNARE (granskningen 2026-10-14).
+      // En tom sida eller en saknad markör mitt i katalogen avslutar loopen som
+      // om katalogen tagit slut, och halvbildsspärren i planeraStadning ser inte
+      // ett svep som kapats jämnt. Samma kontroll som raderingen av
+      // pensionerade utkast gör.
+      if (!klar) throw new Error("Produktsvepet nådde sidtaket utan att bli klart.");
+      const { countProducts, headlessSiteId } = await import("../wix/media-audit");
+      const totalt = await countProducts(process.env.WIX_SITE_ID || headlessSiteId());
+      if (antalProdukter < totalt - KATALOG_TOLERANS) {
+        throw new Error(`Produktsvepet såg ${antalProdukter} av ${totalt} produkter — det har tappat sidor.`);
       }
       return { urls, antalProdukter };
     },

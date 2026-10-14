@@ -304,7 +304,17 @@ export async function countProducts(siteId: string): Promise<number> {
 
 /** Kategoribilderna. Få till antalet, men en raderad kategoribild syns direkt i menyn. */
 export async function collectCategoryMediaIds(siteId: string): Promise<Set<string>> {
+  return (await collectCategoryMedia(siteId)).ids;
+}
+
+/**
+ * Kategoribilderna och hur många kategorier som lästes. Bildstädningen
+ * spärrar på antalet KATEGORIER: bara en kategori bar en bild 2026-10-14,
+ * så ett golv på bilderna hade fällt varje körning så fort den togs bort.
+ */
+export async function collectCategoryMedia(siteId: string): Promise<{ ids: Set<string>; kategorier: number }> {
   const ids = new Set<string>();
+  let kategorier = 0;
   let cursor: string | undefined;
   for (let page = 0; page < 20; page++) {
     const cursorPaging: Record<string, unknown> = { limit: 100 };
@@ -328,11 +338,14 @@ export async function collectCategoryMediaIds(siteId: string): Promise<Set<strin
       categories?: Array<{ image?: { id?: string } }>;
       pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
     };
-    for (const c of data.categories ?? []) if (c.image?.id) ids.add(c.image.id);
+    for (const c of data.categories ?? []) {
+      kategorier++;
+      if (c.image?.id) ids.add(c.image.id);
+    }
     cursor = data.pagingMetadata?.cursors?.next;
     if (!data.categories?.length || !cursor || data.pagingMetadata?.hasNext === false) break;
   }
-  return ids;
+  return { ids, kategorier };
 }
 
 export interface MediaAuditReport {

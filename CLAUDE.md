@@ -2975,6 +2975,51 @@ radera.
 
 Nattens läge (`aosom`) raderar samma filer som förut, men med de nya läsarna.
 
+#### ☠️ Granskningen före första körningen: varianterna och en karenstid (2026-10-14)
+
+Tre oberoende granskningar samma kväll, innan något raderats. De hittade ingen
+väg där en fil som någon av läsarna ser raderas, men fem hål runt läsarna:
+
+1. ☠️ **Varianternas egna bilder.** Varukorgen, Wix-kassan och ordern visar
+   `variantsInfo.variants[].media` (se *Variantens bild följer bara valet*),
+   och den kan peka på en fil som inte längre står i galleriet. Produktsökningen
+   bär inga varianter. **`listaVariantbilder`** läser dem ur Read-Only Variants
+   API (`POST /stores/v3/products/query-variants`, 1 000 per sida, med markör
+   och utan filter; uppmätt 2026-10-14 att `media.id` följer med, även för
+   dolda produkter). Obligatorisk, golv 1 000.
+2. ☠️ **Karenstid, tre dygn** (`lib/store/bildstadning-karens.ts`, tabellen
+   `bildstadning_karens`). En fil raderas först när den varit oanvänd i tre
+   dygn, sett av två körningar. Googles flöde serveras upp till ett dygn
+   gammalt, kategorisidorna cachas en timme och påminnelsemejlen om en
+   övergiven varukorg bär bilden från när varan lades i korgen, upp till 72
+   timmar senare. Utan karensen hade en fil som togs bort ur ett galleri i dag
+   kunnat raderas i natt och synts som död bild i alla tre. Den stänger också
+   glappet i nattens läge, där en import laddar upp bilderna sekunder innan
+   produkten skapas. Varje körning antecknar, även torrkörningen; en fil som
+   ses i bruk glöms, och klockan börjar om när den blir oanvänd igen. Faller
+   bokföringen raderas ingenting. Svaret bär `mogna` (raderbara nu) och
+   `iKarens`, och workflowens `hogst` ska vara torrkörningens `mogna`.
+3. **Läsarna som kunde svara halvt utan att kasta.** Produktsvepet stäms av mot
+   katalogens räknare (`countProducts`, högst fem färre, samma regel som
+   raderingen av pensionerade utkast) och kastar vid sidtaket. Kategoriläsaren
+   kräver minst 50 lästa KATEGORIER, inte bilder: bara All Products bar en bild
+   2026-10-14. Färgbildstabellen har golv 100. Workflowens golv är 95 % men
+   minst 1 för en läsare som gav något.
+4. **Smalare klasser.** En Wix-kopia måste ha källa i vårt eget bibliotek
+   (ägarprefixet `b379ce_` före understrecket); Wix gratisbilder (`11062b_`)
+   och mallens bilder (`22e53e_`) bär samma namnsignatur men kan sitta på Wix
+   egna sidor. `wix-utsnitt` är bara `/v1/crop/`: butiken visar sina bilder
+   som fill- och fit-adresser, och en fil hämtad från en sådan kan vara
+   hämtad för hand.
+5. **Workflowen** pausar tio sekunder mellan anropen (varje anrop läser ~65
+   produktsidor och upp till 60 filsidor mot samma värd), redigerar felraderna
+   som import-workflowen gör, och räknar klasstabellen per pass i stället för
+   summerat över passen. Rutten avvisar ett `limit` som inte är ett positivt
+   heltal: `limit=0.5` blev förr 0, alltså obegränsat.
+
+Kvar och känt: läser en körning gammal kod (en återställd deploy mitt i
+workflowen) märks det först efter anropet, högst `hogst` filer.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar

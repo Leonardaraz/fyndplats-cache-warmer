@@ -65,8 +65,18 @@ async function handle(req: NextRequest) {
   }
 
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
-  const n = Number(req.nextUrl.searchParams.get("limit"));
-  const limit = Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined;
+  // ☠️ Ett tak som inte går att läsa är INGET tak (granskningen 2026-10-14):
+  // `limit=0.5` blev förr 0, alltså obegränsat. Saknas parametern finns inget
+  // tak; finns den måste den vara ett positivt heltal.
+  const limitParam = req.nextUrl.searchParams.get("limit");
+  let limit: number | undefined;
+  if (limitParam !== null) {
+    const n = Number(limitParam);
+    if (!Number.isInteger(n) || n < 1) {
+      return NextResponse.json({ error: `Ogiltigt limit: ${limitParam}` }, { status: 400 });
+    }
+    limit = n;
+  }
   const after = req.nextUrl.searchParams.get("after") || undefined;
 
   const omfangParam = req.nextUrl.searchParams.get("omfang") ?? "aosom";
@@ -111,7 +121,8 @@ async function handle(req: NextRequest) {
         "aosom-media-cleanup",
         "batch",
         `${summary.raderade} föräldralösa bilder raderade permanent (${omfang}), `
-          + `${summary.frigjordMb} MB frigjort, ${summary.misslyckade} misslyckade`,
+          + `${summary.frigjordMb} MB frigjort, ${summary.misslyckade} misslyckade, `
+          + `${summary.iKarens} väntar ut karenstiden`,
       );
     }
 

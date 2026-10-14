@@ -10,16 +10,24 @@ name: Bilder — radera oanvända bilder i hela mediabiblioteket
 # anropet. Sedan listas biblioteket i fönster om 6 000 filer.
 #
 # VAD SOM RADERAS: bara filer vår kod skapat (leverantörsimporter, Wix kopior
-# av dem, poleringens utsnitt och kort) som ingen läsare använder och som
-# varken skapats eller ändrats på min_alder_dagar dygn. Aldrig en
-# handuppladdad fil och aldrig en fil med okänd källa: Wix kan inte svara på
-# var en fil används, så sådana filer kan inte bevisas oanvända. De räknas i
-# summeringen. Se `Filklass` i lib/aosom/media-cleanup.ts.
+# av våra egna filer, poleringens crop-utsnitt och kort) som ingen läsare
+# använder, som varken skapats eller ändrats på min_alder_dagar dygn, OCH som
+# varit oanvända i hela karenstiden (tre dygn, lib/store/bildstadning-karens.ts).
+# Aldrig en handuppladdad fil och aldrig en fil med okänd källa: Wix kan inte
+# svara på var en fil används, så sådana filer kan inte bevisas oanvända. De
+# räknas i summeringen. Se `Filklass` i lib/aosom/media-cleanup.ts.
+#
+# KARENSTIDEN: varje körning, även torr, antecknar när en oanvänd fil först
+# sågs oanvänd. En fil raderas först tre dygn senare, och bara om den
+# fortfarande är oanvänd. Då har Googles flöde, kategorisidornas cache och
+# påminnelsemejlen om varukorgen (upp till 72 h) hunnit släppa den.
 #
 # Lägen:
-#   torr   — raderar ingenting. Går igenom hela biblioteket och räknar.
+#   torr   — raderar ingenting i Wix, men antecknar de oanvända filerna.
+#            Går igenom hela biblioteket och räknar "raderbara nu" (karensen
+#            passerad) och "i karens".
 #   radera — raderar PERMANENT. Kräver `hogst`, högst så många filer i den
-#            här körningen: sätt torrkörningens antal raderbara. Hittar
+#            här körningen: sätt torrkörningens "raderbara nu". Hittar
 #            körningen fler än så stannar den vid taket.
 #
 # ☠️ SKYDDET MOT EN LÄSARE SOM TYST GER FÄRRE SVAR: körningen börjar med
@@ -87,14 +95,20 @@ jobs:
             torr="false"; kvar="$HOGST"
           fi
 
+          # Samma redigering som import-workflowen: fritext från Wix och
+          # rutten (felkroppar, filnamn) kan bära ett artikelnummer.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g'
+          }
+
           # Felen till stderr: anroparen gör svar=$(anropa …), och en
           # kommandosubstitution slukar stdout (2026-08-28).
           anropa() {
             local body
             body=$(curl -sS --max-time 310 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$1") || {
               echo "::error::Anropet gick inte fram" >&2; return 1; }
-            if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
-              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | jq -r '.message // .error // "-"' | head -c 400)" >&2
+            if [ "$(printf '%s' "$body" | jq -r '.ok // false' 2>/dev/null)" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | jq -r '.message // .error // "-"' 2>/dev/null | head -c 400 | redigera)" >&2
               return 1
             fi
             printf '%s' "$body"
@@ -116,26 +130,37 @@ jobs:
           fi
           bas=$(printf '%s' "$forsta" | jq -c '.referenser // empty')
           if [ -z "$bas" ]; then echo "::error::Svaret saknar referenser per läsare" >&2; exit 1; fi
-          for k in produkter antalProdukter recensioner butiken ordrar; do
+          # Kategorierna är inte med: bara en kategori bar en bild 2026-10-14,
+          # och motorn spärrar på antalet KATEGORIER (minst 50) i stället.
+          for k in produkter antalProdukter recensioner fargbilder butiken ordrar varianter; do
             v=$(printf '%s' "$bas" | jq -r --arg k "$k" '.[$k] // 0')
             if [ "$v" -le 0 ]; then echo "::error::Läsaren ${k} gav 0 referenser i förflygningen" >&2; exit 1; fi
           done
-          golv=$(printf '%s' "$bas" | jq -r 'to_entries | map("\(.key):\((.value * 0.95) | floor)") | join(",")')
+          # 95 %, men minst 1 för en läsare som gav något: 95 % av 1 är 0, och
+          # ett golv på 0 skyddar ingenting.
+          golv=$(printf '%s' "$bas" | jq -r 'to_entries | map("\(.key):\(if .value > 0 then ([(.value * 0.95 | floor), 1] | max) else 0 end)") | join(",")')
           if [ -z "$golv" ]; then echo "::error::Kunde inte räkna golven" >&2; exit 1; fi
           echo "referenser i förflygningen: ${bas}"
           echo "golv (95 %): ${golv}"
 
-          varv=0; pass=0; rad_tot=0; mb_tot=0; fel_tot=0; unga=0; ovanliga=0
+          varv=0; pass=0; rad_tot=0; mb_tot=0; fel_tot=0; unga=0; ovanliga=0; mogna=0; karens=0
           slut=$(( $(date +%s) + 300 * 60 ))
           stopp="klart"
 
           while :; do
             pass=$(( pass + 1 ))
             markor=""; rad_pass=0
-            [ "$torr" = "true" ] && acc='{}' && unga=0 && ovanliga=0
+            # Siffrorna gäller det senaste passet. Ett skarpt pass efter ett annat
+            # ser samma filer igen, och en summa över passen hade räknat dem två
+            # gånger. Det som raderats räknas för sig (rad_tot).
+            acc='{}'; unga=0; ovanliga=0; mogna=0; karens=0
             while :; do
               varv=$(( varv + 1 ))
               if [ "$(date +%s)" -ge "$slut" ]; then stopp="tid"; break 2; fi
+              # Andas mellan anropen: varje anrop läser ~65 produktsidor och upp
+              # till 60 filsidor mot samma Wix-värd, och edge-spärren slår till
+              # vid ~150 sidor i rad (granskningen 2026-10-14).
+              sleep 10
               url="${stad}?dryRun=${torr}&omfang=allt&minAlderDagar=${MIN_ALDER}&golv=${golv}"
               [ "$torr" = "false" ] && url="${url}&limit=${kvar}"
               [ -n "$markor" ] && url="${url}&after=$(printf '%s' "$markor" | jq -sRr @uri)"
@@ -153,12 +178,14 @@ jobs:
               fel=$(printf '%s' "$svar" | jq -r '.misslyckade')
               s=$(printf '%s' "$svar" | jq -r '.stoppedBy')
               unga=$(( unga + $(printf '%s' "$svar" | jq -r '.forUnga') ))
+              mogna=$(( mogna + $(printf '%s' "$svar" | jq -r '.mogna // 0') ))
+              karens=$(( karens + $(printf '%s' "$svar" | jq -r '.iKarens // 0') ))
               ovanliga=$(( ovanliga + $(printf '%s' "$svar" | jq -r '.ovanligtId') ))
               rad_tot=$(( rad_tot + rad )); rad_pass=$(( rad_pass + rad ))
               fel_tot=$(( fel_tot + fel ))
               [ "$torr" = "false" ] && mb_tot=$(( mb_tot + mb ))
-              echo "pass ${pass} varv ${varv}: ${filer} filer, ${forald} raderbara, ${rad} raderade (${mb} MB), ${fel} fel [${s}]"
-              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.[:200])"'
+              echo "pass ${pass} varv ${varv}: ${filer} filer, ${forald} oanvända, $(printf '%s' "$svar" | jq -r '.mogna // 0') raderbara nu, ${rad} raderade (${mb} MB), ${fel} fel [${s}]"
+              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.[:200])"' | redigera
 
               if [ "$torr" = "false" ]; then
                 # Misslyckade skopor räknas också: en skopa kan vara raderad
@@ -185,6 +212,8 @@ jobs:
             echo "|---|--:|--:|--:|--:|--:|--:|"
             printf '%s' "$acc" | jq -r 'to_entries[] | "| \(.key) | \(.value.filer) | \(.value.anvanda) | \(.value.oanvanda) | \(.value.raderbara) | \((.value.bytesOanvanda / 1000000) | floor) | \((.value.bytesRaderbara / 1000000) | floor) |"'
             echo ""
+            echo "- **Raderbara nu** (oanvända i hela karenstiden): **${mogna}**. Sätt det som \`hogst\` i läget radera."
+            echo "- I karens (antecknade, raderas tidigast tre dygn efter att de först sågs oanvända): **${karens}**"
             echo "- Raderbara men för nya: **${unga}**"
             echo "- Raderbara men med ovanligt id: **${ovanliga}**"
             echo "- Referenser per läsare (förflygningen): \`${bas}\`, golv \`${golv}\`"
@@ -194,7 +223,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           raderbara=$(printf '%s' "$acc" | jq '[.[].raderbara] | add // 0')
-          echo "raderbara ${raderbara}, raderade ${rad_tot}, fel ${fel_tot}, för nya ${unga}, ovanligt id ${ovanliga}, stopp ${stopp}"
+          echo "oanvända i raderbar klass ${raderbara}, raderbara nu ${mogna}, i karens ${karens}, raderade ${rad_tot}, fel ${fel_tot}, för nya ${unga}, ovanligt id ${ovanliga}, stopp ${stopp}"
           printf '%s' "$acc" | jq -r 'to_entries[] | "  \(.key): \(.value.filer) filer, \(.value.anvanda) används, \(.value.oanvanda) oanvända, \(.value.raderbara) raderbara"'
           echo "referenser: ${bas}"
           if [ "$torr" = "false" ] && [ "$fel_tot" -gt 0 ]; then exit 1; fi
