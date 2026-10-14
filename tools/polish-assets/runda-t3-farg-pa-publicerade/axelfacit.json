@@ -1,0 +1,98 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03be42ca": {
+  "tyska": "Ø30 x 155H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 155
+ },
+ "09e62d6e": {
+  "tyska": "47L x 37B x 153H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 153,
+  "bredd": 47,
+  "djup": 37
+ },
+ "17b611b8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Tischabmessungen: 110B x 55T x 90H cm | Hockerabmessungen: 41,5B x 47,5T x 92H cm | Sitzgröße: 36B x 36T x 59H cm | Rückengröße: 20L x 35,5B cm"
+ },
+ "2f31a1d9": {
+  "tyska": "90L x 26B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 90,
+  "djup": 26
+ },
+ "40d0af10": {
+  "tyska": "40L x 30B x 24H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 24,
+  "bredd": 40,
+  "djup": 30
+ },
+ "5bd95c2c": {
+  "tyska": "50L x 70H cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": 70,
+  "bredd": 50
+ },
+ "61f64b5a": {
+  "tyska": "40L x 40B x 26H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 26,
+  "bredd": 40,
+  "djup": 40
+ },
+ "63a725ab": {
+  "tyska": "54,3L x 30,6B x 159,6H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 159.6,
+  "bredd": 54.3,
+  "djup": 30.6
+ },
+ "7d30510e": {
+  "tyska": "140B x 53T x 75H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 53,
+  "hojd": 75,
+  "bredd": 140
+ },
+ "93af619c": {
+  "tyska": "41L x 29,5B x 163,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 163.5,
+  "bredd": 41,
+  "djup": 29.5
+ },
+ "affdd40e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Wasserkocher-Abmessungen: 21,4L x 15,6B x 23,3H cm | Wasserkocher-Kapazität: 1,7L"
+ },
+ "c35f9d4f": {
+  "tyska": "180B x 1,7T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 1.7,
+  "hojd": 180,
+  "bredd": 180
+ },
+ "e6d2e70b": {
+  "tyska": "47,5B x 44,2T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 44.2,
+  "hojd": 84,
+  "bredd": 47.5
+ }
+}
