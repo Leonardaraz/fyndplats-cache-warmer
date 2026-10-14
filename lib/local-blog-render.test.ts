@@ -1,7 +1,7 @@
 // Bloggens markdown: produktrader och tabeller (köpguiderna, 2026-10-07).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderMarkdown } from "./local-blog.ts";
+import { extractProducts, renderMarkdown } from "./local-blog.ts";
 
 const bild = (s: string) => `[![${s}](https://static.wixstatic.com/media/${s}.jpg)](/produkt/${s} "${s}")`;
 
@@ -35,4 +35,18 @@ test("tabell med rubrik, länkar och fetstil", () => {
 
 test("en rad som bara börjar med | utan avgränsare är vanlig text", () => {
   assert.equal(renderMarkdown("| inte en tabell"), "<p>| inte en tabell</p>");
+});
+
+test("produktlistan för Google tar bara med länkar till produkter", () => {
+  // Köpguiden för bäddfåtöljer har en måttbild som länkar till kategorin
+  // (2026-10-14). Den ritas som de andra bilderna men är ingen produkt.
+  const md = [
+    bild("stol"),
+    "[![Måttbild](/blog-matt.webp)](/kategori/stolar \"Se alla stolar\")",
+    bild("stol"),
+    bild("bord"),
+  ].join("\n");
+  assert.deepEqual(extractProducts(md).map((p) => p.url), ["/produkt/stol", "/produkt/bord"]);
+  // Måttbilden ritas ändå, som en vanlig figur i raden.
+  assert.equal((renderMarkdown(md).match(/<figure/g) || []).length, 4);
 });

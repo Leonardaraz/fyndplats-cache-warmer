@@ -338,13 +338,18 @@ function extractFaq(md: string): { q: string; a: string }[] {
 
 // Plocka produkt-embeds (alt=namn, bild, href) → ItemList-schema. Samma rad-mönster
 // som renderProductImage. Dedupar på url.
-function extractProducts(md: string): { name: string; image: string; url: string }[] {
+//
+// Bara länkar till /produkt/ räknas. Samma radform bär även bilder som inte är
+// produkter, till exempel köpguidens måttbild som länkar till kategorin
+// (2026-10-14), och de hör inte hemma i en lista över produkter.
+export function extractProducts(md: string): { name: string; image: string; url: string }[] {
   const out: { name: string; image: string; url: string }[] = [];
   const seen = new Set<string>();
   for (const raw of md.split(/\r?\n/)) {
     const m = raw.trim().match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
     if (!m) continue;
     const [, alt, image, url] = m;
+    if (!url.trim().startsWith("/produkt/")) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     out.push({ name: alt.trim(), image: image.trim(), url: url.trim() });
