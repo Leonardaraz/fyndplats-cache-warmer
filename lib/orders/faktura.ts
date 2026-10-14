@@ -366,13 +366,23 @@ function hej(f: Faktura): string {
   return fornamn ? `Hej ${fornamn}!` : "Hej!";
 }
 
+/**
+ * Ett mellanslag före en siffra blir ett hårt mellanslag, så att ett
+ * kontonummer aldrig delas mellan två rader. Det första fakturamejlet bröt
+ * kontonumret mellan två siffergrupper (2026-10-14). Värdet får fortfarande
+ * brytas efter ett komma eller mellan två ord.
+ */
+function utanRadbrytForeSiffra(html: string): string {
+  return html.replace(/ (?=\d)/g, "&nbsp;");
+}
+
 function sammanfattning(rader: [string, string][]): string {
   return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:6px 0 20px 0;border:1px solid ${b.line};border-radius:12px;background:${b.warm};">
 ${rader
   .map(
     ([etikett, varde], i) => `  <tr>
     <td style="padding:${i === 0 ? 14 : 6}px 16px ${i === rader.length - 1 ? 14 : 6}px 16px;${LITEN}">${escapeHtml(etikett)}</td>
-    <td align="right" style="padding:${i === 0 ? 14 : 6}px 16px ${i === rader.length - 1 ? 14 : 6}px 16px;font-size:15px;font-weight:700;color:${b.ink};">${escapeHtml(varde)}</td>
+    <td align="right" style="padding:${i === 0 ? 14 : 6}px 16px ${i === rader.length - 1 ? 14 : 6}px 16px;font-size:15px;font-weight:700;color:${b.ink};">${utanRadbrytForeSiffra(escapeHtml(varde))}</td>
   </tr>`,
   )
   .join("\n")}

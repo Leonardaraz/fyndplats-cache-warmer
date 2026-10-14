@@ -63,9 +63,31 @@ export function metaRader(f: Faktura, val: Pick<PdfVal, "typ" | "betaldDatum">):
   ];
 }
 
-/** Delar en text i rader som ryms i bredden. */
-function radbryt(text: string, font: PDFFont, storlek: number, bredd: number): string[] {
-  const ord = text.split(/\s+/).filter(Boolean);
+/** Delar ett ord som ensamt är bredare än raden, mellan två tecken. */
+function delaOrd(ord: string, font: PDFFont, storlek: number, bredd: number): string[] {
+  if (font.widthOfTextAtSize(ord, storlek) <= bredd) return [ord];
+  const delar: string[] = [];
+  let del = "";
+  for (const t of ord) {
+    if (del && font.widthOfTextAtSize(del + t, storlek) > bredd) {
+      delar.push(del);
+      del = t;
+    } else del += t;
+  }
+  if (del) delar.push(del);
+  return delar;
+}
+
+/**
+ * Delar en text i rader som ryms i bredden. Texten ska redan ha gått genom
+ * `rentTecken`. Ett ord som ensamt är för brett, till exempel en e-postadress,
+ * delas mellan två tecken.
+ */
+export function radbryt(text: string, font: PDFFont, storlek: number, bredd: number): string[] {
+  const ord = text
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((o) => delaOrd(o, font, storlek, bredd));
   const rader: string[] = [];
   let rad = "";
   for (const o of ord) {
@@ -78,6 +100,67 @@ function radbryt(text: string, font: PDFFont, storlek: number, bredd: number): s
   }
   if (rad) rader.push(rad);
   return rader;
+}
+
+/** Fakturauppgifternas etiketter står här. Kundens spalt slutar en bit före. */
+const X_ETIKETT = A4.w / 2 + 20;
+const KUNDSPALT = X_ETIKETT - MARG - 16;
+/** Avståndet mellan en etikett och den längsta raden i dess värde. */
+const META_LUCKA = 12;
+export const STORLEK = { kund: 11, etikett: 9, varde: 10, leverans: 10 } as const;
+
+export interface Spaltrad {
+  text: string;
+  fet: boolean;
+}
+
+export interface Huvudlayout {
+  /** Kundens spalt till vänster. Företagsnamnet är fetstilt. */
+  kund: { rader: Spaltrad[]; bredd: number };
+  /** Fakturauppgifterna. Värdet radbryts mellan sin etikett och marginalen. */
+  meta: { etikett: string; rader: string[]; bredd: number }[];
+  leverans: { rader: string[]; bredd: number };
+}
+
+/**
+ * Fakturans huvud, rad för rad. Värdena kommer ur ordern, och referensen och
+ * kundens namn är fritext som skrivs för hand när en fakturaorder läggs upp.
+ * Varje värde radbryts därför i sin egen spalt. Före 2026-10-14 ritades
+ * värdena utan att bredden kontrollerades, och en referens på cirka 46 tecken
+ * hamnade ovanpå sin etikett.
+ */
+export function huvudLayout(
+  f: Faktura,
+  val: Pick<PdfVal, "typ" | "betaldDatum">,
+  vanlig: PDFFont,
+  fet: PDFFont,
+): Huvudlayout {
+  const kundrader = [
+    f.kund.foretag,
+    f.kund.foretag ? (f.kund.namn ? `Att: ${f.kund.namn}` : undefined) : f.kund.namn,
+    ...f.kund.adressrader,
+  ].filter((s): s is string => Boolean(s));
+  const kund = kundrader.flatMap((r, i) => {
+    const font = i === 0 ? fet : vanlig;
+    return radbryt(rentTecken(r, font), font, STORLEK.kund, KUNDSPALT).map((text) => ({ text, fet: i === 0 }));
+  });
+
+  const meta = metaRader(f, val).map(([etikett, varde]) => {
+    const etikettBredd = vanlig.widthOfTextAtSize(rentTecken(etikett, vanlig), STORLEK.etikett);
+    const bredd = A4.w - MARG - (X_ETIKETT + etikettBredd + META_LUCKA);
+    return { etikett, rader: radbryt(rentTecken(varde, fet), fet, STORLEK.varde, bredd), bredd };
+  });
+
+  const leveransBredd = A4.w - 2 * MARG;
+  const leverans = f.leveransrader.length
+    ? radbryt(rentTecken(f.leveransrader.join(", "), vanlig), vanlig, STORLEK.leverans, leveransBredd)
+    : [];
+
+  return {
+    kund: { rader: kund, bredd: KUNDSPALT },
+    meta,
+    leverans: { rader: leverans, bredd: leveransBredd },
+  };
 }
 
 export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
@@ -134,34 +217,34 @@ export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
   });
   y = A4.h - rubrikHojd - 34;
 
-  // Kund till vänster, fakturauppgifter till höger.
-  const kundrader = [
-    f.kund.foretag,
-    f.kund.foretag ? (f.kund.namn ? `Att: ${f.kund.namn}` : undefined) : f.kund.namn,
-    ...f.kund.adressrader,
-  ].filter((s): s is string => Boolean(s));
+  // Kund till vänster, fakturauppgifter till höger. Varje värde radbryts i sin
+  // egen spalt (`huvudLayout`).
+  const huvud = huvudLayout(f, val, vanlig, fet);
   skriv(sida, val.typ === "kvitto" ? "Kund" : "Faktureras till", MARG, y, { font: fet, storlek: 9, farg: GRA });
   let yv = y - 15;
-  for (const r of kundrader) {
-    skriv(sida, r, MARG, yv, { storlek: 11, font: r === kundrader[0] ? fet : vanlig });
+  for (const r of huvud.kund.rader) {
+    skriv(sida, r.text, MARG, yv, { storlek: STORLEK.kund, font: r.fet ? fet : vanlig });
     yv -= 15;
   }
 
-  const meta = metaRader(f, val);
-  const xEtikett = A4.w / 2 + 20;
   let yh = y;
-  for (const [etikett, varde] of meta) {
-    skriv(sida, etikett, xEtikett, yh, { storlek: 9, farg: GRA });
-    skriv(sida, varde, A4.w - MARG, yh, { storlek: 10, font: fet, hoger: true });
-    yh -= 15;
+  for (const { etikett, rader } of huvud.meta) {
+    skriv(sida, etikett, X_ETIKETT, yh, { storlek: STORLEK.etikett, farg: GRA });
+    rader.forEach((rad, i) => {
+      skriv(sida, rad, A4.w - MARG, yh - i * 12, { storlek: STORLEK.varde, font: fet, hoger: true });
+    });
+    yh -= 15 + (rader.length - 1) * 12;
   }
   y = Math.min(yv, yh) - 10;
 
-  if (f.leveransrader.length) {
+  if (huvud.leverans.rader.length) {
     skriv(sida, "Leveransadress", MARG, y, { font: fet, storlek: 9, farg: GRA });
     y -= 14;
-    skriv(sida, f.leveransrader.join(", "), MARG, y, { storlek: 10 });
-    y -= 24;
+    for (const rad of huvud.leverans.rader) {
+      skriv(sida, rad, MARG, y, { storlek: STORLEK.leverans });
+      y -= 13;
+    }
+    y -= 11;
   }
 
   // Raderna.

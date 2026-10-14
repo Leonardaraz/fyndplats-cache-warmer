@@ -9,7 +9,8 @@ import {
   type Betalningsuppgifter,
   type FakturaOrder,
 } from "./faktura";
-import { fakturaPdf, metaRader } from "./faktura-pdf";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+import { fakturaPdf, huvudLayout, metaRader, radbryt, STORLEK } from "./faktura-pdf";
 import { betalningUrKonfig, korFakturor, type FakturaKorDeps } from "./faktura-kor";
 import { minnesUtskickslogg } from "./faktura-logg";
 
@@ -152,6 +153,15 @@ describe("texterna", () => {
     const pdf = await fakturaPdf(r.faktura, { typ: "faktura" });
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
   });
+  it("mejlet delar aldrig ett kontonummer mellan två rader", () => {
+    const betalaTill = "Exempelbanken, clearing 1234-5, konto 123 456 789-0";
+    const r = byggFaktura(order(), NU, { ...BETALNING, betalaTill });
+    if (!r.ok) throw new Error(r.fel);
+    const m = fakturaMejl(r.faktura);
+    expect(m.html).toContain("Exempelbanken, clearing&nbsp;1234-5, konto&nbsp;123&nbsp;456&nbsp;789-0");
+    // Textversionen är oförändrad.
+    expect(m.text).toContain(`Betala till: ${betalaTill}`);
+  });
   it("fakturan och kvittot anger valutakoden, inte bara kr", () => {
     const r = byggFaktura(order(), NU, BETALNING);
     if (!r.ok) throw new Error(r.fel);
@@ -160,6 +170,83 @@ describe("texterna", () => {
       expect(rader).toContainEqual(["Valuta", "SEK"]);
       expect(rader.map(([etikett]) => etikett)).toContain(typ === "kvitto" ? "Betalningsdatum" : "Förfallodatum");
     }
+  });
+});
+
+describe("fakturans huvud i PDF:en", () => {
+  async function typsnitt() {
+    const doc = await PDFDocument.create();
+    return {
+      vanlig: await doc.embedFont(StandardFonts.Helvetica),
+      fet: await doc.embedFont(StandardFonts.HelveticaBold),
+    };
+  }
+  const utanMellanrum = (s: string) => s.replace(/\s/g, "");
+
+  it("ett långt värde radbryts mellan sin etikett och marginalen, på fakturan och kvittot", async () => {
+    const { vanlig, fet } = await typsnitt();
+    const referens = "Anna Andersson, inköpsorder PO-2026-000123, kostnadsställe 4711 Ekonomi";
+    const r = byggFaktura(order({ buyerNote: `org.nr 556000-0000. Referens: ${referens}` }), NU, BETALNING);
+    if (!r.ok) throw new Error(r.fel);
+    for (const typ of ["faktura", "kvitto"] as const) {
+      const h = huvudLayout(r.faktura, { typ, betaldDatum: "2026-10-20" }, vanlig, fet);
+      const ref = h.meta.find((m) => m.etikett === "Er referens");
+      expect(ref?.rader.length).toBeGreaterThan(1);
+      expect(utanMellanrum(ref!.rader.join(""))).toBe(utanMellanrum(referens));
+      for (const m of h.meta) {
+        for (const rad of m.rader) expect(fet.widthOfTextAtSize(rad, STORLEK.varde)).toBeLessThanOrEqual(m.bredd);
+      }
+    }
+  });
+
+  it("kundens namn och leveransadressen radbryts i sin spalt", async () => {
+    const { vanlig, fet } = await typsnitt();
+    const foretag = "Exempelföretaget Med Ett Mycket Långt Registrerat Namn Aktiebolag";
+    const gata = "Långa Industrivägen 123, Port 4, Leveransingång Bakom Huset, Lastkaj B";
+    const adress = { country: "SE", city: "Ellös", postalCode: "474 32", addressLine: gata };
+    const kontakt = { firstName: "Anna", lastName: "Andersson", company: foretag };
+    const r = byggFaktura(
+      order({
+        billingInfo: { address: adress, contactDetails: kontakt },
+        recipientInfo: { address: adress, contactDetails: kontakt },
+      }),
+      NU,
+      BETALNING,
+    );
+    if (!r.ok) throw new Error(r.fel);
+    const h = huvudLayout(r.faktura, { typ: "faktura" }, vanlig, fet);
+    const feta = h.kund.rader.filter((rad) => rad.fet);
+    expect(feta.length).toBeGreaterThan(1);
+    expect(utanMellanrum(feta.map((rad) => rad.text).join(""))).toBe(utanMellanrum(foretag));
+    for (const rad of h.kund.rader) {
+      const bredd = (rad.fet ? fet : vanlig).widthOfTextAtSize(rad.text, STORLEK.kund);
+      expect(bredd).toBeLessThanOrEqual(h.kund.bredd);
+    }
+    expect(h.leverans.rader.length).toBeGreaterThan(1);
+    for (const rad of h.leverans.rader) {
+      expect(vanlig.widthOfTextAtSize(rad, STORLEK.leverans)).toBeLessThanOrEqual(h.leverans.bredd);
+    }
+    const pdf = await fakturaPdf(r.faktura, { typ: "faktura" });
+    expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+  });
+
+  it("ett ord som ensamt är bredare än raden delas utan att något tecken försvinner", async () => {
+    const { fet } = await typsnitt();
+    const ord = "ekonomiavdelningen_leverantorsfakturor_exempelforetaget";
+    const rader = radbryt(`Ref ${ord}`, fet, 10, 100);
+    expect(rader.length).toBeGreaterThan(2);
+    for (const rad of rader) expect(fet.widthOfTextAtSize(rad, 10)).toBeLessThanOrEqual(100);
+    expect(utanMellanrum(rader.join(""))).toBe(utanMellanrum(`Ref ${ord}`));
+  });
+
+  it("korta värden står på en rad var, som förut", async () => {
+    const { vanlig, fet } = await typsnitt();
+    const r = byggFaktura(order(), NU, BETALNING);
+    if (!r.ok) throw new Error(r.fel);
+    const h = huvudLayout(r.faktura, { typ: "faktura" }, vanlig, fet);
+    expect(h.meta.every((m) => m.rader.length === 1)).toBe(true);
+    expect(h.meta.map((m) => m.rader[0])).toEqual(metaRader(r.faktura, { typ: "faktura" }).map(([, v]) => v));
+    expect(h.kund.rader.map((rad) => rad.text)).toEqual(["Exempel AB", "Att: Anna Andersson", "Testgatan 1", "474 32 Ellös"]);
   });
 });
 
