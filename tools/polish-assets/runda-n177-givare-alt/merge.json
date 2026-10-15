@@ -1,0 +1,94 @@
+[
+ {
+  "huvud": "c1286cc5",
+  "huvud_fullid": "c1286cc5-745a-4fb1-88f9-748bfcf46304",
+  "givare": "163b4c99",
+  "givare_fullid": "163b4c99-6cba-4d8b-9ef6-19376c32ba91",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "c1286cc5": "Ljusgrå",
+   "163b4c99": "Mörkgrå"
+  }
+ },
+ {
+  "huvud": "1ea45139",
+  "huvud_fullid": "1ea45139-c292-4807-bce4-80787015996a",
+  "givare": "a20c7072",
+  "givare_fullid": "a20c7072-4d71-428e-b56d-9676bc4072a7",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1ea45139": "Vit marmor och guld",
+   "d1e4db23": "Svart marmor",
+   "a20c7072": "Glas och guld"
+  }
+ },
+ {
+  "huvud": "1ea45139",
+  "huvud_fullid": "1ea45139-c292-4807-bce4-80787015996a",
+  "givare": "d1e4db23",
+  "givare_fullid": "d1e4db23-3ebe-428d-a319-4ef8bbb78e6a",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1ea45139": "Vit marmor och guld",
+   "d1e4db23": "Svart marmor",
+   "a20c7072": "Glas och guld"
+  }
+ },
+ {
+  "huvud": "8aed5faf",
+  "huvud_fullid": "8aed5faf-3fe0-4775-bf22-c685c0abf2ab",
+  "givare": "08cf6128",
+  "givare_fullid": "08cf6128-54c3-4a9b-b83c-11c8552e2245",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "8aed5faf": "Ljusgrå",
+   "08cf6128": "Grå"
+  }
+ },
+ {
+  "huvud": "1ce217ba",
+  "huvud_fullid": "1ce217ba-3e75-41f6-bbc1-b8fc7a458d03",
+  "givare": "a41fb1a9",
+  "givare_fullid": "a41fb1a9-e085-49dc-9170-4fa9a69da060",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1ce217ba": "Natur",
+   "a41fb1a9": "Vit"
+  }
+ }
+]
