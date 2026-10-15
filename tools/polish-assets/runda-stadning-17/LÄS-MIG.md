@@ -1,6 +1,6 @@
 # runda-stadning-17 — städrunda, våg 5
 
-18 publicerade sidor ur tidigare rundor, redan skrivna till Wix. Samma katalogsvep som
+17 publicerade sidor ur tidigare rundor, redan skrivna till Wix. Samma katalogsvep som
 våg 4 (`runda-stadning-16`) hittade lånord som husets ordlista inte godtar, en rå importsida
 och två sidor med tyska alt-texter. Ögonblicksbilden i `fore/` är hämtad direkt ur Wix före
 bygget. Allt som inte står här är orört.
@@ -12,7 +12,7 @@ seo titel × 1, slug × 1, sku × 1.
 
 | klass | sidor | rättelse |
 |---|---|---|
-| Lånordet gaslift → gaslyft (husets ord) | 5afb2c39, 67cc5f53, c0d9c97a, 1476d1ea, 6870d76a, 239b20b7, 8a11ee33, 1ac305ac | ordet byts överallt i texten, även i böjda former |
+| Lånordet gaslift → gaslyft (husets ord) | 5afb2c39, 67cc5f53, c0d9c97a, 1476d1ea, 239b20b7, 8a11ee33, 1ac305ac | ordet byts överallt i texten, även i böjda former |
 | Lånordet polypropylen → polypropen (husets ord) | 7c7e20ec, bc58d428, c88057cc, 19c880ca, 7c3d438a, f6089d31, ae4fec6e | samma |
 | Ruttens artikelnummerform: "360-graders" | 8a11ee33 | "en sits som vrider sig 360 grader" |
 | Rå importsida (c816963e, växthusskåp) | c816963e | texten skrivs om i husets format ur sidans egna uppgifter (mått, material, bärighet, hyllplan, rostskydd, förpackning), svenska alt-texter på alla fem bilder, SEO-titeln får husets suffix, ny adress och SKU |
@@ -48,7 +48,13 @@ Ny adress `vaxthusskap-tra-polykarbonat-58-cm` med 301 från `vaxthusskap-i-tra-
 Workflowen **"Polering — skriv en runda till Wix"** med `ref` satt till poleringsgrenen:
 
 - `runda`: `runda-stadning-17`
-- `plan_sha256`: `bbab7343be115f90a6c49ccf70370cca2202dccc2df8802f8d30b36b4fdf52f0`
+- `plan_sha256`: `af8ca668088fd428f693735eb8a1b7632f3baab8683308f5ec1426ef37d218d3`
 - lägen i ordning: `torr` → `skriv` → `verifiera` → `stampla`
 
 Därefter 301:an för den bytta adressen.
+
+## Utanför rundan
+
+- **6870d76a** (massagekontorsstol i sammetslook) har samma lånord. Galleriet har 18 bilder, en per
+  färg, och planen tar högst 15 bilder per produkt, så sidan kan inte gå genom skrivverktyget
+  utan att bildlistan kapas. Se även 987dd4a1 i `runda-stadning-16`.
