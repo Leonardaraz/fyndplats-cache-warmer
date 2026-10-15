@@ -1,0 +1,88 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "000985c4": {
+  "tyska": "211,5B x 85T x 90H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 85,
+  "hojd": 90,
+  "bredd": 211.5
+ },
+ "1ae041a3": {
+  "tyska": "124B x 73T x 92H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 73,
+  "hojd": 92,
+  "bredd": 124
+ },
+ "32256e91": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa-Abmessungen: 190B x 80T x 60H cm | ✔ Bett-Abmessungen: 190B x 98T x 30H cm | ✔ Sitzgröße: 148B x 65T x 30H cm | ✔ Rückenlehnen-Größe: 146B x 30H cm | ✔ Armlehnen-Größe: 20B x 60H cm | Mått: 190L x 80B x 60H cm"
+ },
+ "45f94f82": {
+  "tyska": "142B x 85T x 73,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 85,
+  "hojd": 73.5,
+  "bredd": 142
+ },
+ "521ab91f": {
+  "tyska": "130B x 74,5T x 82H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 74.5,
+  "hojd": 82,
+  "bredd": 130
+ },
+ "5f02e762": {
+  "tyska": "134B x 71T x 82H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 71,
+  "hojd": 82,
+  "bredd": 134
+ },
+ "6c1a2691": {
+  "tyska": "146B x 84T x 95H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 84,
+  "hojd": 95,
+  "bredd": 146
+ },
+ "ab0f4fb5": {
+  "tyska": "127B x 72T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 72,
+  "hojd": 84,
+  "bredd": 127
+ },
+ "d213446c": {
+  "tyska": "145L x 75B x 78H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 78,
+  "bredd": 145,
+  "djup": 75
+ },
+ "eb4391a1": {
+  "tyska": "225B x 93T x 83H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 83,
+  "bredd": 225
+ },
+ "ef83458c": {
+  "tyska": "123L x 69B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 123,
+  "djup": 69
+ }
+}
