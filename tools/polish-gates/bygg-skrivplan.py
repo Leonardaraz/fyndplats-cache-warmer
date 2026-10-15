@@ -57,7 +57,7 @@ MAX_PRODUKTER = 20
 
 # I den ordning runbooken beskriver dem. bygg-media.py sist: den skriver
 # nyttolast-media.json, som planen läser.
-KEDJA = ("gate.py", "gate-alt.py", "gate-seo.py", "gate-sku.py", "gate-lager.py",
+KEDJA = ("gate.py", "gate-alt.py", "gate-seo.py", "gate-sku.py", "gate-form.py", "gate-lager.py",
          "gate-superlativ.py", "bygg-axelfacit.py", "gate-axel.py", "bygg-media.py")
 
 
