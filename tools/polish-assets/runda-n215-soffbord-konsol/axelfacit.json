@@ -1,0 +1,54 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "033529fe": {
+  "tyska": "Ø37 x 43H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 43
+ },
+ "08367feb": {
+  "tyska": "119L x 56B x 44,5H cm (großer Tisch), 109L x 50,5B x 39H cm (kleiner Tisch)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 44.5,
+  "bredd": 119,
+  "djup": 56
+ },
+ "3b03606e": {
+  "tyska": "80L x 54B x 41H cm (rechteckiger Tisch), Ø60 x 51H cm (runder Tisch)",
+  "svenska": "",
+  "bokstaver": "LBHH",
+  "hojd": 41,
+  "bredd": 80,
+  "djup": 54
+ },
+ "ba2a1ab2": {
+  "tyska": "100L x 35B x 76,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 76.5,
+  "bredd": 100,
+  "djup": 35
+ },
+ "c070a3e9": {
+  "tyska": "60L x 60B x 45H cm (großer Tisch), 54L x 54B x 38H cm (kleiner Tisch)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 45,
+  "bredd": 60,
+  "djup": 60
+ },
+ "d46032c6": {
+  "tyska": "100B x 50T x 45H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 45,
+  "bredd": 100
+ },
+ "df8cfda9": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Großer Couchtisch: 90B x 48T x 42H cm | ✔ Kleiner Couchtisch: 59B x 42T x 36H cm | Mått: 90L x 48B x 42H cm"
+ }
+}
