@@ -1,0 +1,49 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0c4c0dd7": {
+  "tyska": "50L x 50B x 7T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 7,
+  "bredd": 50
+ },
+ "0dad2583": {
+  "tyska": "298L x 298B cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (298L x 298B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "0e2d3be0": {
+  "tyska": "180L x 100B x 168H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 168,
+  "bredd": 180,
+  "djup": 100
+ },
+ "3ee83787": {
+  "tyska": "16 x 14 x 27 cm",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen: 16 x 14 x 27 cm | ✔ Max. Fördermenge: 9.000 L/H"
+ },
+ "6cd86ce8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe: 200L x 76B x 150/168H cm | ✔ Türgröße: 120B x 145H cm | Mått: 200L x 76B x 150/168H cm"
+ },
+ "781c2837": {
+  "tyska": "L58 x B28 x H49 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 58,
+  "djup": 28
+ },
+ "9a19676b": {
+  "tyska": "75L x 76B x 70H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 75,
+  "djup": 76
+ }
+}
