@@ -1,0 +1,15 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "485086d2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sitzkissendimensionen: 150L x 50B x 10H cm | ✔ Rückenkissendimensionen: 150L x 50B x 12H cm | ✔ Kissenmaße: 40L x 30B x 15H cm | ✔ Geeignete Sitzgröße: 150L x 50B cm, zulässige Größenabweichung: 5 cm | Mått: 150L x 50B x 12H cm | ✔ Sitzkissendimensionen: 150L x 50B x 10H cm | ✔ Rückenkissendimensionen: 150L x 50B x 12H cm | ✔ Kissenmaße: 40L x 30B x 15H cm | ✔ Geeignete Sitzgröße: 150L x 50B cm, zulässige Größenabweichung: 5 cm | Mått: 150L x 50B x 12H cm | ✔ Sitzkissendimensionen: 150L x 50B x 10H cm | ✔ Rückenkissendimensionen: 150L x 50B x 12H cm | ✔ Kissenmaße: 40L x 30B x 15H cm | ✔ Geeignete Sitzgröße: 150L x 50B cm, zulässige Größenabweichung: 5 cm | Mått: 150L x 50B x 12H cm"
+ },
+ "c519b4fe": {
+  "tyska": "150L x 98B x 8T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 8,
+  "bredd": 150
+ }
+}
