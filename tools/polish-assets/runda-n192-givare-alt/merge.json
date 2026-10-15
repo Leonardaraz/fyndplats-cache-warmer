@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "00109677",
+  "huvud_fullid": "00109677-e749-4931-87d1-c5fad93ccc43",
+  "givare": "58ec496c",
+  "givare_fullid": "58ec496c-7962-4d9c-847d-533f13f6677b",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "00109677": "Mörkgrön",
+   "58ec496c": "Himmelsblå"
+  }
+ }
+]

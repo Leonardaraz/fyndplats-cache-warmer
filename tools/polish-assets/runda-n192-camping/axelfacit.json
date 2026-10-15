@@ -1,0 +1,91 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00109677": {
+  "tyska": "470L x 220B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 470,
+  "djup": 220
+ },
+ "348c4cb0": {
+  "tyska": "117L x 60B x 44H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 44,
+  "bredd": 117,
+  "djup": 60
+ },
+ "3560976c": {
+  "tyska": "475L x 264B x 172H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 172,
+  "bredd": 475,
+  "djup": 264
+ },
+ "393a194d": {
+  "tyska": "200L x 85B x 40-51H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   40,
+   51
+  ],
+  "bredd": 200,
+  "djup": 85
+ },
+ "4179a5ff": {
+  "tyska": "70L x 70B x 69H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 69,
+  "bredd": 70,
+  "djup": 70
+ },
+ "56bcb4f4": {
+  "tyska": "188L x 64,5B x 53H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 53,
+  "bredd": 188,
+  "djup": 64.5
+ },
+ "79002649": {
+  "tyska": "3,3L x 1,9B x 1,2H m",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 1.2,
+  "bredd": 3.3,
+  "djup": 1.9
+ },
+ "870bcc17": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Materialien: 210T Taffetas, Glasfaserstruktur | ✔ Abmessungen ausgeklappt: 320L x 240B x 130H cm | ✔ Türmaße: (innen) 75B x 75H cm, (außen) 100B x 95H cm | ✔ Abmessungen gefaltet: 60L x 17B x 17,5H cm | Mått: 320L x 240B x 130H cm"
+ },
+ "8f2ac8ec": {
+  "tyska": "565L x 370B x 200H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 565,
+  "djup": 370
+ },
+ "a2b6701d": {
+  "tyska": "190L x 97B x 39H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 39,
+  "bredd": 190,
+  "djup": 97
+ },
+ "d12aa5e4": {
+  "tyska": "B250 x L300 x H130 cm",
+  "svenska": "",
+  "bokstaver": "BLH",
+  "hojd": 130,
+  "bredd": 250,
+  "djup": 300
+ }
+}
