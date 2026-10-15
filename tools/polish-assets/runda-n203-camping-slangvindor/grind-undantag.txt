@@ -1,0 +1,13 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py tältets, sängens och madrassens mått anges som längd × bredd × höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py fältsängens mått anges som längd × bredd × höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py tältets mått anges som längd × bredd × höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py paviljongens mått anges som längd × bredd × höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

@@ -1,0 +1,28 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+90b6a606 1,4 höjden 1,4 m läst på måttbilden (140 cm i källan)
+90b6a606 0,9 dörrens höjd 0,9 m läst på måttbilden (90 cm i källan)
+90b6a606 1,18 dörrens bredd 1,18 m läst på måttbilden (118 cm i källan)
+90b6a606 2,1 bredden och djupet 2,1 m läst på måttbilden (210 cm i källan)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+dabd19d7 3 bredden 3 m läst på måttbilden (300 cm i källan)
+dabd19d7 3,6 längden 3,6 m läst på måttbilden (360 cm i källan)
+dabd19d7 2,75 höjden 2,75 m läst på måttbilden (275 cm i källan)
+dabd19d7 1,98 takfotens höjd 1,98 m läst på måttbilden (198 cm i källan)
+dabd19d7 2,6 stolpavståndet 2,6 m läst på måttbilden (260 cm i källan)
+dabd19d7 3,2 stolpavståndet 3,2 m läst på måttbilden (320 cm i källan)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
