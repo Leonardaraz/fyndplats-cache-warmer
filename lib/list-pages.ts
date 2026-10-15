@@ -20,7 +20,7 @@
 import type { Collection, ListProduct, Product } from "./products";
 import { dedupeProducts, forClient, forListings, getCollections, getProducts } from "./products";
 import { attachRatings } from "./review-aggregates";
-import { orderRecommended } from "./sort-products";
+import { currentDayMs, orderRecommended, topparPerSortering, type Sortering } from "./sort-products";
 import { universalCollectionIds } from "./related-pick";
 import { saleProducts } from "./rea";
 import { listOversikt, type ListOversikt } from "./list-overview";
@@ -33,6 +33,10 @@ export type { ListNyckel };
 /** Hur många kort sidan bär i sin HTML: 24 synliga + ett "Visa fler"-klick
  *  utan väntan. Matchar PAGE_SIZE × 2 i components/shopbrowser.tsx. */
 export const FORSTA_KORT = 48;
+
+/** Hur många kort sidan bär för varje annan sortering: en sida, PAGE_SIZE i
+ *  components/shopbrowser.tsx. */
+export const TOPP_KORT = 24;
 
 /**
  * Produkterna en kategorisida visar, i katalogordning.
@@ -113,7 +117,34 @@ export async function specNycklarFor(nyckel: ListNyckel): Promise<Set<Nyckel>> {
 export type ListaInfo = {
   url: string;
   oversikt: ListOversikt;
+  /** De första korten (slugs) i varje sortering utom Rekommenderat, som är
+   *  sidans egen ordning. */
+  toppar?: Partial<Record<Sortering, string[]>>;
+  /** Produkterna i topparna som inte redan finns bland sidans kort. */
+  extra?: ListProduct[];
 };
+
+/**
+ * De första korten i varje annan sortering, och produkterna i dem som sidan
+ * inte redan bär.
+ *
+ * Utan dem fick den som valde "Nyast" vänta på hela listan, eftersom
+ * ordningen inte går att räkna ut ur sidans 48 kort. Uppmätt i produktion
+ * 2026-10-14 med mobilprofil (4G, 4× långsammare processor): /api/lista för
+ * hela sortimentet är 409 kB komprimerad, och valet tog 3,1 s när listan inte
+ * hunnit hämtas. Under tiden stod Rekommenderat-korten kvar, tonade.
+ *
+ * Ordningen räknas med samma sorteraLista som webbläsaren, på listan i samma
+ * form (forClient) och i samma utgångsordning, så korten står kvar när hela
+ * listan kommer. Rekommenderat räknas inte här: det är `ordnad` själv, alltså
+ * sidans egna kort.
+ */
+function topparFor(ordnad: Product[], iSidan: ReadonlySet<string>): Pick<ListaInfo, "toppar" | "extra"> {
+  const klient = forClient(ordnad);
+  const toppar = topparPerSortering(klient, universalCollectionIds(klient), currentDayMs(), TOPP_KORT, "img");
+  const behovs = new Set(Object.values(toppar).flat().filter((slug) => !iSidan.has(slug)));
+  return { toppar, extra: forClient(ordnad.filter((p) => behovs.has(p.slug))) };
+}
 
 /**
  * Sidans del av listan: de första korten och sammanfattningen. `ordnad` ska
@@ -135,9 +166,14 @@ export function listaForSidan(
   if (ordnad.length <= FORSTA_KORT) return { products: forClient(ordnad, undefined, nycklar), ...medFacetter };
   // Längre listor: måtten följer med listan från /api/lista, inte med sidans
   // första kort — filtren väntar ändå på hela listan.
+  const forsta = ordnad.slice(0, FORSTA_KORT);
   return {
-    products: forClient(ordnad.slice(0, FORSTA_KORT)),
-    lista: { url: listaUrl(nyckel), oversikt: listOversikt(ordnad) },
+    products: forClient(forsta),
+    lista: {
+      url: listaUrl(nyckel),
+      oversikt: listOversikt(ordnad),
+      ...topparFor(ordnad, new Set(forsta.map((p) => p.slug))),
+    },
     ...medFacetter,
   };
 }

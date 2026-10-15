@@ -22,6 +22,15 @@
 //    rankByName tar bort delträffar när riktiga finns, en fras som bara står i
 //    namnets tillägg ger 90 i stället för 100, och fyra för korta synonym-
 //    needles stängdes av (AMBIGUOUS_NEEDLES).
+//  • 2026-10-14: "uppresningsfåtölj" hängde sökrutan på mobilen (Leonard).
+//    rankByName körde stavfelstoleransen på varje namn vid varje tangent, ~50 ms
+//    på en dator och ~300 ms på en telefon. Nu körs den bara när ingen vara
+//    matchar alla sökord utan den (samma svar, uppmätt på 121 prefix), och
+//    sökordet tolkas en gång per sökning i stället för en gång per vara.
+//    "uppresningsfåtölj" hittar också "Massagefåtölj med uppresning" och
+//    "…uppresningshjälp" (synonymgrupp), och småord som "med" krävs inte i namnet.
+//    Inom samma poäng går namn där sökordet är ordets huvud före de andra
+//    (kant): "tv" visar TV-bänkar före viktvästar, "bord" bord före bordslampor.
 
 // Längsta suffix först — vi tar bort EN matchande ändelse och bara om stammen
 // blir ≥3 tecken (annars blir "set"→"" och allt matchar).
@@ -88,6 +97,11 @@ const SYNONYM_GROUPS: string[][] = [
   ["stol", "chair"],
   ["pall", "stool"],
   ["fåtölj", "armchair"],
+  // Uppresningsfåtöljer (Leonard 2026-10-14). 29 heter "Uppresningsfåtölj …",
+  // fyra "Massagefåtölj med uppresning" eller "…uppresningshjälp". Nålen "uppres"
+  // (stammen av "uppresning") stod i exakt de 33 namnen och inga andra. "lyft"
+  // är INTE med: det står också i MC-lyften och brödrosten ("högt lyft").
+  ["uppresningsfåtölj", "uppresning", "lyftfåtölj", "lyftstol", "uppresningsstol"],
   ["soffa", "sofa", "couch"],
   ["hylla", "shelf", "shelves", "bokhylla"],
   ["skåp", "cabinet", "cupboard"],
@@ -202,16 +216,40 @@ export function fuzzyContains(pattern: string, text: string, maxDist: number): b
 // synonym, 0.6 = via stavfelstolerans, 0 = ingen träff. Stavfel gäller bara
 // tokens ≥5 tecken (kortare ord blir för tvetydigt — en enda redigering i ett
 // 4-teckensord matchar nästan vad som helst) och körs sist (billigast först).
-// maxDist skalar med längden: 1 för 5–6 tecken, 2 för ≥7.
-function tokenQuality(unit: { stem: string; key: string }, nameNorm: string): number {
+// maxDist skalar med längden: 1 för 5–6 tecken, 2 för ≥7. Med fuzzy=false
+// hoppas stavfelsledet över (första varvet i rankByName).
+type Unit = { stem: string; key: string };
+
+function tokenQuality(unit: Unit, nameNorm: string, fuzzy: boolean): number {
   const { stem: s, key } = unit;
   if (nameNorm.includes(s)) return 1;
   const needles = SYN.get(key);
   if (needles) {
     for (const nd of needles) if (nameNorm.includes(nd)) return 0.85;
   }
-  if (s.length >= 5 && fuzzyContains(s, nameNorm, s.length >= 7 ? 2 : 1)) return 0.6;
+  if (fuzzy && s.length >= 5 && fuzzyContains(s, nameNorm, s.length >= 7 ? 2 : 1)) return 0.6;
   return 0;
+}
+
+// Småord som inte säger vad varan är. De krävs inte i namnet när sökningen har
+// andra ord: "fåtölj med uppresning" ska hitta "Uppresningsfåtölj i grå frotté",
+// som saknar "med" (1 400 av 4 184 namn gör det). "utan" är INTE med, för
+// "fåtölj utan massage" får inte bli "fåtölj massage". Hela frasen jämförs
+// fortfarande med småorden kvar, så en exakt fras ger 100 som förut.
+const STOPWORDS = new Set(["med", "och", "för", "till", "på", "av", "en", "ett", "som", "från"]);
+
+type Prepared = { q: string; units: Unit[] };
+
+// Sökordet tolkas EN gång per sökning. nameMatch gjorde det förr per vara, alltså
+// 4 184 gånger per tangent.
+function prepare(query: string): Prepared {
+  const q = normalize(query);
+  const alla = tokenize(q)
+    .map((t) => ({ tok: t, stem: stem(t), key: canon(t) }))
+    .filter((u) => u.stem.length >= 2);
+  const innehall = alla.filter((u) => !STOPWORDS.has(u.tok));
+  const units = (innehall.length > 0 ? innehall : alla).map(({ stem: s, key }) => ({ stem: s, key }));
+  return { q, units };
 }
 
 // Produktnamnen skrivs "Vad det är – detaljer" ("Klösträd 200 cm med sex
@@ -224,6 +262,33 @@ function mainPart(nameNorm: string): string {
   return cut >= 0 ? nameNorm.slice(0, cut) : nameNorm;
 }
 
+// Svenska sammansättningar har huvudet SIST: en kontorsstol är en stol, en
+// lyktstolpe är det inte, och en bordslampa är en lampa och inget bord. Inom
+// samma poäng går därför namn där sökordet slutar ett ord ("kontorsstol",
+// "stolar", "TV-bänk") först, sedan namn där ett ord börjar med det (den som
+// skriver "kontorss" är på väg mot "Kontorsstol"), och sist resten ("stolpe",
+// "bordslampa", och "två" eller "viktväst" för "tv"). Efter sökordet får bara en
+// böjningsändelse följa. Ett sökord på högst tre tecken räknas som huvud bara
+// som eget ord, utan ändelse: "upp" är inte huvudet i "grupp", och "bar" varken
+// i "hopfällbar" eller i "barn".
+// Det ändrar bara ordningen, aldrig vilka varor som visas.
+const BOJNING = new Set<string>([...SUFFIXES, "a", "e"]);
+const BOKSTAV = /[a-zåäö0-9]/;
+
+/** 2 = sökordet slutar ett ord, 1 = ett ord börjar med det, 0 = mitt i ett ord. */
+function kant(nameNorm: string, s: string): number {
+  let bast = 0;
+  for (let i = nameNorm.indexOf(s); i >= 0 && bast < 2; i = nameNorm.indexOf(s, i + 1)) {
+    const borjar = i === 0 || !BOKSTAV.test(nameNorm[i - 1]);
+    const efter = /^[a-zåäö0-9]*/.exec(nameNorm.slice(i + s.length))![0];
+    const kort = s.length <= 3;
+    const slutar = efter === "" || (!kort && BOJNING.has(efter));
+    if (slutar && (borjar || !kort)) bast = 2;
+    else if (borjar) bast = 1;
+  }
+  return bast;
+}
+
 export type NameMatch = {
   /** 0 = ingen träff; se nameScore för skalan. */
   score: number;
@@ -231,6 +296,8 @@ export type NameMatch = {
   full: boolean;
   /** Sant när minst en term bara hittades via stavfelstoleransen. */
   stavfel?: boolean;
+  /** Sämsta ordgränsen bland de exakta träffarna (se kant). Bara för ordningen. */
+  kant?: number;
 };
 
 // Hur väl matchar `query` ett produktNAMN?
@@ -242,28 +309,32 @@ export type NameMatch = {
 //   ~36 — alla söktermer matchar men minst en via stavfelstolerans ("cyckel"→cykel)
 //   1–59 — bara några termer matchade (delvis), proportionellt & kvalitetsviktat
 export function nameMatch(name: string, query: string): NameMatch {
+  return matchPrepared(normalize(name), prepare(query), true);
+}
+
+function matchPrepared(nameNorm: string, p: Prepared, fuzzy: boolean): NameMatch {
   const none = { score: 0, full: false };
-  const nameNorm = normalize(name);
-  const q = normalize(query);
+  const { q, units } = p;
   if (!q || !nameNorm) return none;
-  if (nameNorm.includes(q)) return { score: mainPart(nameNorm).includes(q) ? 100 : 90, full: true };
-  const units = tokenize(q)
-    .map((t) => ({ stem: stem(t), key: canon(t) }))
-    .filter((u) => u.stem.length >= 2);
+  if (nameNorm.includes(q)) {
+    return { score: mainPart(nameNorm).includes(q) ? 100 : 90, full: true, kant: kant(nameNorm, q) };
+  }
   if (units.length === 0) return none;
   let sum = 0;
   let hit = 0;
   let stavfel = false;
+  let kanter = 2;
   for (const u of units) {
-    const qual = tokenQuality(u, nameNorm);
+    const qual = tokenQuality(u, nameNorm, fuzzy);
     sum += qual;
     if (qual > 0) hit++;
     if (qual > 0 && qual < 0.85) stavfel = true;
+    if (qual === 1) kanter = Math.min(kanter, kant(nameNorm, u.stem));
   }
   if (sum === 0) return none;
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
-  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel };
+  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel, kant: kanter };
 }
 
 export function nameScore(name: string, query: string): number {
@@ -277,15 +348,37 @@ export function nameScore(name: string, query: string): number {
 // solcellslampor och -lyktor, och sedan 99 vanliga golv- och bordslampor som
 // bara matchade "lampa". Finns det minst en vara som matchar VARJE sökord
 // visas bara sådana; annars (inget matchar allt) visas delträffarna som förut.
+//
+// STAVFEL BARA SOM RESERV, av samma skäl. Två fel tillåts i långa ord, så
+// "hundvagn" matchade "handtag" och "hundtand": 17 hundvagnar och sedan
+// nattduksbord, skänkar och gunghästar (extern audit 2026-10-07). Finns det
+// träffar utan stavfel visas bara de; "cyckel" hittar fortfarande cyklar.
+//
+// ☠️ TVÅ VARV, OCH SVARET ÄR DETSAMMA SOM I ETT (2026-10-14). Stavfelsledet är
+// det dyra (fuzzyContains är O(sökord × namn)), och regeln ovan slänger ändå
+// varje stavfelsträff så fort en vara matchar alla sökord utan stavfel. Första
+// varvet räknar därför utan stavfel. Finns en hel träff där är det exakt den
+// mängd ett varv med stavfel hade behållit, med samma poäng i samma ordning: en
+// vara som är hel utan stavfel är hel utan stavfel även med det, och en vara som
+// bara blir hel genom ett stavfel slängs av regeln. Annars räknas allt om med
+// stavfel, som förut. Ett test jämför med den gamla definitionen.
 export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string): T[] {
-  const scored = items
-    .map((item) => ({ item, ...nameMatch(nameOf(item), query) }))
-    .filter((r) => r.score > 0);
+  const p = prepare(query);
+  const namn = items.map((item) => normalize(nameOf(item)));
+  const varv = (fuzzy: boolean) =>
+    items
+      .map((item, i) => ({ item, ...matchPrepared(namn[i], p, fuzzy) }))
+      .filter((r) => r.score > 0);
+  // Poängen först, sedan ordgränsen (kant). Sorteringen är stabil, så
+  // katalogens ordning gäller mellan likvärdiga träffar.
+  const sortera = (rader: ReturnType<typeof varv>) =>
+    rader.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0)).map((r) => r.item);
+
+  const forsta = varv(false);
+  if (forsta.some((r) => r.full)) return sortera(forsta.filter((r) => r.full));
+
+  const scored = varv(true);
   const hela = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
-  // STAVFEL BARA SOM RESERV, av samma skäl. Två fel tillåts i långa ord, så
-  // "hundvagn" matchade "handtag" och "hundtand": 17 hundvagnar och sedan
-  // nattduksbord, skänkar och gunghästar (extern audit 2026-10-07). Finns det
-  // träffar utan stavfel visas bara de; "cyckel" hittar fortfarande cyklar.
   const kept = hela.some((r) => !r.stavfel) ? hela.filter((r) => !r.stavfel) : hela;
-  return kept.sort((a, b) => b.score - a.score).map((r) => r.item);
+  return sortera(kept);
 }

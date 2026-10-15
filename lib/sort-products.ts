@@ -260,3 +260,78 @@ export function orderPopular<T extends MixableProduct>(
   }
   return [...medSignal, ...interleaveByGroup(resten, grupp, (g) => vikt.get(g) ?? 0)];
 }
+
+/** Sorteringsvalen i listorna. "img" heter Rekommenderat utåt; etiketterna
+ *  står i components/shopbrowser.tsx, som bygger sin väljare ur den här listan. */
+export const SORTERINGAR = ["img", "new", "pop", "price-asc", "price-desc", "name"] as const;
+export type Sortering = (typeof SORTERINGAR)[number];
+
+export interface ListSortable extends MixableProduct {
+  priceNum: number;
+  name: string;
+}
+
+/**
+ * Listans ordning för ett sorteringsval.
+ *
+ * Delas av rutnätet, förladdningen av bilderna och de första korten som
+ * listsidan räknar fram för varje sortering (lib/list-pages.ts). Räknade
+ * servern och webbläsaren ordningen var för sig hade korten bytt plats när
+ * hela listan kom. Ett okänt val ("rel" på söksidan) ger listans egen ordning.
+ */
+export function sorteraLista<T extends ListSortable>(
+  lista: readonly T[],
+  sort: string,
+  universal: ReadonlySet<string>,
+  dayMs: number,
+): T[] {
+  if (sort === "img") return orderRecommended(lista, universal, dayMs);
+  if (sort === "pop") return orderPopular(lista, universal);
+  if (sort === "new") return [...lista].sort(tieBreak);
+  if (sort === "price-asc") return [...lista].sort((a, z) => a.priceNum - z.priceNum);
+  if (sort === "price-desc") return [...lista].sort((a, z) => z.priceNum - a.priceNum);
+  if (sort === "name") return [...lista].sort((a, z) => a.name.localeCompare(z.name, "sv"));
+  return [...lista];
+}
+
+/**
+ * De första `antal` korten (slugs) i varje sortering utom `utom`, som är
+ * sidans egen ordning.
+ *
+ * Listsidan bär dem i sin HTML (lib/list-pages.ts), så att ett byte av
+ * sortering visar rätt kort direkt i stället för att vänta på hela listan
+ * (components/shopbrowser.tsx). `lista` ska ha samma form och samma
+ * utgångsordning som listan webbläsaren sorterar, annars blir topparna andra
+ * kort än dem den räknar fram när listan kommit.
+ */
+export function topparPerSortering<T extends ListSortable & { slug: string }>(
+  lista: readonly T[],
+  universal: ReadonlySet<string>,
+  dayMs: number,
+  antal: number,
+  utom: Sortering,
+): Partial<Record<Sortering, string[]>> {
+  const ut: Partial<Record<Sortering, string[]>> = {};
+  for (const s of SORTERINGAR) {
+    if (s === utom) continue;
+    ut[s] = sorteraLista(lista, s, universal, dayMs).slice(0, antal).map((p) => p.slug);
+  }
+  return ut;
+}
+
+/** Korten för en topps slugs, ur de produkter sidan bär. null om någon fattas:
+ *  då är toppen inte hel, och rutnätet väntar på listan i stället. */
+export function kortForSlugs<T extends { slug: string }>(
+  slugs: readonly string[],
+  ...kallor: (readonly T[] | undefined)[]
+): T[] | null {
+  const karta = new Map<string, T>();
+  for (const kalla of kallor) for (const p of kalla ?? []) karta.set(p.slug, p);
+  const ut: T[] = [];
+  for (const slug of slugs) {
+    const p = karta.get(slug);
+    if (!p) return null;
+    ut.push(p);
+  }
+  return ut;
+}

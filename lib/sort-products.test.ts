@@ -339,3 +339,62 @@ for (const [namn, byggOmdopning] of [
     );
   });
 }
+
+// ── Sorteringsvalen och topparna som listsidan bär (2026-10-14) ─────────────
+//
+// Leonards rapport: "Nyast" laddade länge. Rutnätet väntade på hela listan
+// (/api/lista, 409 kB komprimerad). Nu bär sidan de första korten i varje
+// sortering, räknade med samma sorteraLista som webbläsaren.
+import { SORTERINGAR, sorteraLista, topparPerSortering, kortForSlugs } from "./sort-products.ts";
+
+function varor() {
+  // Samma createdAt för c och d: Nyast avgörs då av id, som förut.
+  return [
+    { slug: "a", id: "a", name: "Örngott", priceNum: 300, createdAt: 10, collectionIds: ["ALL", "hem"] },
+    { slug: "b", id: "b", name: "Bord", priceNum: 100, createdAt: 30, collectionIds: ["ALL", "mobler"] },
+    { slug: "c", id: "c", name: "Ask", priceNum: 200, createdAt: 20, collectionIds: ["ALL", "hem"] },
+    { slug: "d", id: "d", name: "Ägg", priceNum: 100, createdAt: 20, collectionIds: ["ALL", "kok"] },
+  ];
+}
+
+test("sorteringsvalen är de sex i väljaren", () => {
+  assert.deepEqual([...SORTERINGAR], ["img", "new", "pop", "price-asc", "price-desc", "name"]);
+});
+
+test("sorteraLista: samma ordningar som rutnätet räknade förut", () => {
+  const v = varor();
+  const uni = new Set(["ALL"]);
+  const slugs = (s: string) => sorteraLista(v, s, uni, 1_000_000).map((p) => p.slug);
+  // Nyast: createdAt fallande, lika datum på id.
+  assert.deepEqual(slugs("new"), ["b", "c", "d", "a"]);
+  // Lika pris behåller listans egen ordning (sorteringen är stabil).
+  assert.deepEqual(slugs("price-asc"), ["b", "d", "c", "a"]);
+  assert.deepEqual(slugs("price-desc"), ["a", "c", "b", "d"]);
+  // Svensk ordning: å, ä och ö sist.
+  assert.deepEqual(slugs("name"), ["c", "b", "d", "a"]);
+  // Okänt val (söksidans "rel"): listans egen ordning, i en ny lista.
+  const rel = sorteraLista(v, "rel", uni, 1_000_000);
+  assert.deepEqual(rel.map((p) => p.slug), ["a", "b", "c", "d"]);
+  assert.notEqual(rel, v);
+  // Rekommenderat och Populärast är de vanliga ordningarna.
+  assert.deepEqual(sorteraLista(v, "img", uni, 1_000_000), orderRecommended(v, uni, 1_000_000));
+  assert.deepEqual(sorteraLista(v, "pop", uni, 1_000_000), orderPopular(v, uni));
+});
+
+test("topparna är de första korten i varje sortering utom sidans egen", () => {
+  const v = varor();
+  const uni = new Set(["ALL"]);
+  const toppar = topparPerSortering(v, uni, 1_000_000, 2, "img");
+  assert.deepEqual(Object.keys(toppar).sort(), ["name", "new", "pop", "price-asc", "price-desc"]);
+  for (const s of ["new", "pop", "price-asc", "price-desc", "name"] as const) {
+    assert.deepEqual(toppar[s], sorteraLista(v, s, uni, 1_000_000).slice(0, 2).map((p) => p.slug), s);
+  }
+});
+
+test("korten för en topp tas ur sidans kort och de extra, och en lucka ger null", () => {
+  const sidan = [{ slug: "a", n: 1 }, { slug: "b", n: 2 }];
+  const extra = [{ slug: "c", n: 3 }];
+  assert.deepEqual(kortForSlugs(["c", "a"], sidan, extra), [{ slug: "c", n: 3 }, { slug: "a", n: 1 }]);
+  assert.equal(kortForSlugs(["a", "x"], sidan, extra), null);
+  assert.deepEqual(kortForSlugs(["b"], sidan, undefined), [{ slug: "b", n: 2 }]);
+});

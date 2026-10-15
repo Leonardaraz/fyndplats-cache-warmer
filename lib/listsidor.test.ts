@@ -70,8 +70,9 @@ test("ShopBrowser: sidans egna kort flyttas inte när hela listan kommer", () =>
   const src = readFileSync("components/shopbrowser.tsx", "utf8");
   // I standardläget står sidans kort först, i sin ordning.
   assert.match(src, /if \(lista && arStandard\) \{\s*const forst = new Set\(products\.map\(\(p\) => p\.slug\)\);\s*out = \[\.\.\.products, \.\.\.out\.filter\(\(p\) => !forst\.has\(p\.slug\)\)\];/);
-  // Innan listan kommit visas sidans kort, inget annat.
-  assert.match(src, /if \(!alla\) return products;/);
+  // Innan listan kommit visas sidans kort, eller de första korten i den valda
+  // ordningen när sidan bär dem (lista.toppar).
+  assert.match(src, /if \(!alla\) return toppLista \?\? products;/);
   // Utan filter i URL:en förhämtas listan först när webbläsaren är ledig.
   assert.match(src, /requestIdleCallback\(\(\) => hamtaLista\(\)/);
   assert.match(src, /if \(!arStandard\) \{ hamtaLista\(\); return; \}/);
@@ -86,7 +87,30 @@ test("korta listor skickas hela i sidan, utan hämtning", () => {
   const lib = readFileSync("lib/list-pages.ts", "utf8");
   assert.match(lib, /if \(ordnad\.length <= FORSTA_KORT\) return \{ products: forClient\(ordnad, undefined, nycklar\), \.\.\.medFacetter \};/);
   // Långa listor: sidans första kort bär inga mått — de följer med /api/lista.
-  assert.match(lib, /products: forClient\(ordnad\.slice\(0, FORSTA_KORT\)\),/);
+  assert.match(lib, /const forsta = ordnad\.slice\(0, FORSTA_KORT\);\s*return \{\s*products: forClient\(forsta\),/);
+});
+
+test("långa listor bär de första korten i varje annan sortering (Nyast laddade länge)", () => {
+  // Leonards rapport 2026-10-14: "Nyast" tog 3,1 s på en mobil (4G, 4×
+  // långsammare processor), eftersom rutnätet väntade på hela listan.
+  const lib = readFileSync("lib/list-pages.ts", "utf8");
+  // Sidan räknar topparna med samma funktion som webbläsaren, på listan i
+  // klientform, och skickar med de produkter i dem den inte redan bär.
+  assert.match(lib, /\.\.\.topparFor\(ordnad, new Set\(forsta\.map\(\(p\) => p\.slug\)\)\),/);
+  assert.match(lib, /const klient = forClient\(ordnad\);\s*const toppar = topparPerSortering\(klient, universalCollectionIds\(klient\), currentDayMs\(\), TOPP_KORT, "img"\);/);
+  assert.match(lib, /extra: forClient\(ordnad\.filter\(\(p\) => behovs\.has\(p\.slug\)\)\)/);
+
+  const src = readFileSync("components/shopbrowser.tsx", "utf8");
+  // Rutnätet och sidan delar sorteringen och valen.
+  assert.match(src, /out = sorteraLista\(out, sort, universalCollectionIds\(alla\), dayMs\);/);
+  assert.match(src, /const SORTS = SORTERINGAR\.map\(\(v\) => \(\{ v, label: ETIKETTER\[v\] \}\)\);/);
+  assert.doesNotMatch(src, /function sortera\(/, "en egen sortering i komponenten hade glidit isär från sidans");
+  // En annan sortering utan filter visar topplistan direkt, och listan
+  // behövs först när kunden vill se fler kort än den.
+  assert.match(src, /const sidansKort = arStandard \? products\.length : toppLista \? toppLista\.length : 0;/);
+  assert.match(src, /const behoverLista = !!lista && !alla && shown > sidansKort;/);
+  // Korten kunden redan ser står kvar när listan kommer, som i standardläget.
+  assert.match(src, /\} else if \(toppLista\) \{\s*\/\/[^\n]*\n\s*const forst = new Set\(toppLista\.map\(\(p\) => p\.slug\)\);\s*out = \[\.\.\.toppLista, \.\.\.out\.filter\(\(p\) => !forst\.has\(p\.slug\)\)\];/);
 });
 
 test("ShopBrowser: sammanfattningen, inte de första korten, styr filterpanelen", () => {
@@ -105,4 +129,20 @@ test("ShopBrowser hydreras med serverns kort (ingen useSearchParams)", () => {
   const src = readFileSync("components/shopbrowser.tsx", "utf8").replace(/\/\/.*$/gm, "");
   assert.doesNotMatch(src, /\buseSearchParams\s*\(/);
   assert.match(src, /window\.location\.search/);
+});
+
+test("ShopBrowser: vyn med tom adress skriver inte bort parametrarna innan den byts ut", () => {
+  // Bakåt till /alla-produkter?sortera=new efter två "Visa fler" gav 24 kort
+  // och sidfoten (Leonard 2026-10-14). Den första vyn ritas med tom adress och
+  // byts ut när adressen har parametrar, men dess URL-effekt hann tömma
+  // adressen, och den nya vyn letade då efter listläget under fel nyckel.
+  const src = readFileSync("components/shopbrowser.tsx", "utf8").replace(/\/\/.*$/gm, "");
+  // URL-effekten: från `useEffect(() => {` till dess replaceState.
+  const slut = src.indexOf('window.history.replaceState(null, "", url)');
+  assert.ok(slut > 0, "URL-effekten finns");
+  const effekt = src.slice(src.lastIndexOf("useEffect(() => {", slut), slut);
+  assert.match(effekt, /^useEffect\(\(\) => \{\s*if \(bytsUt\?\.current\) return;/, "vakten först i URL-effekten");
+  // Föräldern sätter flaggan innan den byter vy, och bara den första vyn får den.
+  assert.match(src, /bytsUt\.current = true;\s*(?:\/\*[\s\S]*?\*\/\s*)?setAdress\(\{ sp: q, n: 1 \}\)/);
+  assert.match(src, /bytsUt=\{adress\.n === 0 \? bytsUt : undefined\}/);
 });
