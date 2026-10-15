@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "016e2623": {
+  "tyska": "37B x 32T x 21H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": 21,
+  "bredd": 37
+ },
+ "0bb73db6": {
+  "tyska": "70L x 50B x 2,7T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 2.7,
+  "bredd": 70
+ },
+ "2fe9b265": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 44B x 29T x 92H cm | ✔ Oberes Regal: 44,5B x 20,5T cm | ✔ Mittleres Regal: 41B x 27,5T x 17,5H cm | ✔ Schubladeninnenmaß: 39,5B x 27,5T x 20H cm | Mått: 44L x 29B x 92H cm"
+ },
+ "3218ee4d": {
+  "tyska": "20B x 20T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 180,
+  "bredd": 20
+ },
+ "874d78ac": {
+  "tyska": "166L x 42,5B x 167H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 167,
+  "bredd": 166,
+  "djup": 42.5
+ },
+ "8f8b67f6": {
+  "tyska": "202B x 90T x 76H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 76,
+  "bredd": 202
+ },
+ "937f24a4": {
+  "tyska": "100 B x 40 T x 48,5 H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 48.5,
+  "bredd": 100
+ },
+ "fb6e1c00": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Einzelkastengröße: 28L x 36B x 21H cm | Mått: 112L x 36B x 42H cm"
+ }
+}
