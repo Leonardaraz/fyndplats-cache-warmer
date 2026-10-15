@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py d0bacc46 är en konstväxt vars källa anger Pflanzenhöhe 110 cm och Topfmaße 15 x 12,5 cm (Durchmesser x Höhe) men ingen Gesamtabmessungen-rad med axelbokstäver; inget axelfacit kan byggas mekaniskt, och texten binder bara höjden 110 cm och krukans Ø15 cm och 12,5 cm hög, så som källan anger dem
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
