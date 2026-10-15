@@ -1,0 +1,46 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2737e77e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhl Abmessung: 53B x 57T x 77H cm | ✔ Tisch Abmessung: 40L x 40B x 50H cm | ✔ Sitzgröße: 47B x 45T cm | ✔ Rückenlehne Größe: 38B x 48H cm | ✔ Sitzkissen Größe: 47B x 45T x 5H cm"
+ },
+ "2e4e3858": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 72L x 68B x 81H cm | ✔ Tischmaße: Ø45 x 46H cm | ✔ Sitzgröße: 53B x 37T cm | ✔ Rückengröße: 53L x 53B cm | Mått: 72L x 68B x 81H cm"
+ },
+ "608ff7b0": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 119L x 68B x 70H cm | ✔ Stuhlmaße: 58B x 65T x 81H cm | ✔ Klappmaße: 75L x 58B x 8H cm | ✔ Sitzgröße: 50B x 42T x 42H cm | ✔ Rückenlehnenmaß: 50B x 49L cm | ✔ Schirmmaße: Ø180 x 220H cm | Mått: 119L x 68B x 70H cm"
+ },
+ "621e63e8": {
+  "tyska": "247L x 152B x 65H cm (L-Form)",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 247,
+  "djup": 152
+ },
+ "99bfdab2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 56L x 67B x 78H cm | ✔ Tischabmessungen: Ø40 x 46H cm | ✔ Sitzabmessungen (ohne Kissen): 50B x 47T x 40H cm | ✔ Rückenabmessungen: 45B x 42H cm | Mått: 56L x 67B x 78H cm"
+ },
+ "d538dbff": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktdaten Sessel: 62L x 65B x 78H cm | ✔ Sitzgröße: 50B x 52T cm | ✔ Produktdaten Couchtisch: Ø46 x 37H cm | Mått: 62L x 65B x 78H cm"
+ },
+ "e3b0e9a5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 141,5L x 70,5B x 74,5H cm | ✔ Stuhlmaße: 46,5B x 53T x 83H cm | ✔ Sitzgröße: 40B x 43T cm | ✔ Rückenlehnenmaße: 43,5B x 38,5H cm | Mått: 141,5L x 70,5B x 74,5H cm"
+ },
+ "e804e271": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa-Abmessungen: 120B x 60T x 64H cm | ✔ Sessel-Abmessungen: 65B x 60T x 64H cm | ✔ Tisch-Abmessungen: 100B x 60T x 40H cm | ✔ Sitzgröße: 56B x 58T cm (Sessel), 111B x 58T cm (Zweisitzer) | Mått: 120L x 60B x 64H cm"
+ }
+}
