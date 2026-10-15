@@ -1,0 +1,54 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "207753f5": {
+  "tyska": "✔ Gesamthöhe: 110 cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 110,
+  "axelkalla": "tyska raden 'Gesamthöhe' (kallan har ingen totalmattrad)"
+ },
+ "26d15aa5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen Tisch: 105L x 40B x 90H cm | ✔ Hocker Abmessung: Ø30 x 60H cm | ✔ Geeignete Mindestfläche: 2,05L x 1,4B m =2,87㎡ | Mått: 105L x 40B x 90H cm"
+ },
+ "4444ab0f": {
+  "tyska": "Ø20 x 145H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 145
+ },
+ "5c53dbfb": {
+  "tyska": "100B x 24T x 175H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 175,
+  "bredd": 100
+ },
+ "a0c8f793": {
+  "tyska": "Ø35 x 61H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Barhocker' (etiketten bar ett bestämningsord)",
+  "bokstaver": "H",
+  "hojd": 61
+ },
+ "af699783": {
+  "tyska": "86B x 94T x 105H cm (aufrecht), 86B x 170T x 78H cm (zurückgelehnt)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 94,
+  "hojd": 105,
+  "bredd": 86
+ },
+ "dfd7912f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktabmessungen: 106-131L x 22B x 30H cm | ✔ Schaufelgröße: 41L x 10B cm | Mått: 106-131L x 22B x 30H cm"
+ },
+ "f51834b8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhl Abmessung: 77B x 88T x 83H cm | ✔ Bett Abmessung: 191L x 77B x 27H cm | ✔ Sitzgröße: 77L x 88B x 41H cm | ✔ Kissen Größe: 64L x 37B x 15H cm | ✔ Rücken Größe: 77B x 48B x 13H cm | Mått: 77L x 88B x 83H cm"
+ }
+}
