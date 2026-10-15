@@ -1,0 +1,56 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "26e5897c": {
+  "tyska": "65L x 90B x 98H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 98,
+  "bredd": 65,
+  "djup": 90
+ },
+ "3934e029": {
+  "tyska": "71B x 70T x 100-108H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": [
+   100,
+   108
+  ],
+  "bredd": 71
+ },
+ "76738f85": {
+  "tyska": "66,5B x 80T x 99H cm (Freizeitstuhl), 51B x 45T x 40H cm (Fußhocker)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 80,
+  "hojd": 99,
+  "bredd": 66.5
+ },
+ "8b8ca20d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: (aufrecht) 74B x 81T x 102H cm, (zurückgelehnt) 74B x 105T x 94H cm | ✔ Hockerabmessungen: 47B x 42T x 39H cm | ✔ Sitzgröße: 47B x 49T x 43H cm | ✔ Rückenlehne Größe: 79B x 60T cm | Mått: 74L x 81B x 102H cm"
+ },
+ "9ba8a7fb": {
+  "tyska": "66B x 90T x 96H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 96,
+  "bredd": 66
+ },
+ "b1c75875": {
+  "tyska": "67B x 90T x 105H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 90,
+  "hojd": 105,
+  "bredd": 67
+ },
+ "bc6c93da": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: (aufrecht) 67B x 87T x 96H cm | ✔ Stuhlabmessungen: (zurückgelehnt) 67B x 110T x 84H cm | ✔ Fußhockerabmessungen: 48B x 40T x 38H cm | ✔ Sitzgröße: 54B x 50T x 44-46H cm | ✔ Rückengröße: 52B x 68L cm | Mått: 87L x 67B x 96H cm"
+ }
+}
