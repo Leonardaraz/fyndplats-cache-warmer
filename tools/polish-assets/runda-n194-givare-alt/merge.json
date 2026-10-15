@@ -1,0 +1,155 @@
+[
+ {
+  "huvud": "e3a3a2bb",
+  "huvud_fullid": "e3a3a2bb-9434-46bc-8835-646abe2ae654",
+  "givare": "255e8cfd",
+  "givare_fullid": "255e8cfd-7d47-448a-a502-286e0858f8c2",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "e3a3a2bb": "Svart och gräddvit",
+   "b1c50788": "Svart och mörkgrå",
+   "255e8cfd": "Grå och ljusgrå"
+  }
+ },
+ {
+  "huvud": "e3a3a2bb",
+  "huvud_fullid": "e3a3a2bb-9434-46bc-8835-646abe2ae654",
+  "givare": "b1c50788",
+  "givare_fullid": "b1c50788-9088-42b5-b5fa-4496c1f53d9e",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "e3a3a2bb": "Svart och gräddvit",
+   "b1c50788": "Svart och mörkgrå",
+   "255e8cfd": "Grå och ljusgrå"
+  }
+ },
+ {
+  "huvud": "0a4e9adc",
+  "huvud_fullid": "0a4e9adc-9f78-4acc-90c0-bd48310ab8e9",
+  "givare": "2d377e68",
+  "givare_fullid": "2d377e68-2cf3-4d39-9e01-8be0753553c7",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "0a4e9adc": "Grön",
+   "2d377e68": "Beige"
+  }
+ },
+ {
+  "huvud": "0bfe11fa",
+  "huvud_fullid": "0bfe11fa-f0bc-4b53-a8e8-432e5c57a694",
+  "givare": "7780d131",
+  "givare_fullid": "7780d131-d2b5-440b-a966-1014e5f94e3b",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "0bfe11fa": "Naturträ",
+   "7780d131": "Mörkbrun"
+  }
+ },
+ {
+  "huvud": "a887e594",
+  "huvud_fullid": "a887e594-4ba7-49df-b331-b14db6b1bcc6",
+  "givare": "f908018f",
+  "givare_fullid": "f908018f-a282-44ee-8ff9-740d45c8e80c",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a887e594": "Grå",
+   "f908018f": "Svart och beige"
+  }
+ },
+ {
+  "huvud": "49fcc42f",
+  "huvud_fullid": "49fcc42f-d125-4ecf-af1d-5c5c63094dc8",
+  "givare": "7100cff3",
+  "givare_fullid": "7100cff3-e5c7-4749-bb37-a27c8594bcc9",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "49fcc42f": "Beige",
+   "7100cff3": "Svart"
+  }
+ },
+ {
+  "huvud": "5eefde96",
+  "huvud_fullid": "5eefde96-75a0-4c00-8915-b284b8175665",
+  "givare": "f7d01c7c",
+  "givare_fullid": "f7d01c7c-349a-4d32-b721-fde1bb85d91f",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5eefde96": "Mörkgrå",
+   "f7d01c7c": "Kaffebrun"
+  }
+ },
+ {
+  "huvud": "d8010a35",
+  "huvud_fullid": "d8010a35-503c-4559-8451-b4bb52181f81",
+  "givare": "cdb7e94f",
+  "givare_fullid": "cdb7e94f-e4f4-4487-9a3e-6af426ba2ac9",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "d8010a35": "Ø80 cm",
+   "cdb7e94f": "Ø60 cm"
+  }
+ }
+]
