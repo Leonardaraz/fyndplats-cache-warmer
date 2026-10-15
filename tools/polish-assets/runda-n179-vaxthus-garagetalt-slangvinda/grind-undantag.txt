@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans Mått-rad anger 200x200x140 men Gesamtabmessungen och måttbilden anger 200 × 140 × 200 (bilden visar djupet 140 cm och höjden 200 cm)
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

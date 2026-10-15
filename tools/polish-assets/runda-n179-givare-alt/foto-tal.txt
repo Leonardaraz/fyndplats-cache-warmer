@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0dcbf034 6 antalet fönster står i källans titel (6 aufrollbare Fenster) och tre fönster syns på långsidan i bilderna
