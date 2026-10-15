@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "64af4d96",
+  "huvud_fullid": "64af4d96-164f-4a89-a31b-ebfc50546638",
+  "givare": "baf66133",
+  "givare_fullid": "baf66133-5652-441b-883c-b9ab179c2df9",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "64af4d96": "100 × 48 cm",
+   "baf66133": "60 × 60 cm"
+  }
+ }
+]
