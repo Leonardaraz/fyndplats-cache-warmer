@@ -1,0 +1,15 @@
+7c4e2bc3 bistroset-pe-rotting-tva-stolar-sidobord-72-64
+cffbab12 matgrupp-polyrotting-glasskiva-fyra-stolar-120-77
+59db3215 loungeset-soffa-tva-fatoljer-glasbord-116-68
+5b88bef7 loungeset-pe-rotting-soffa-tva-fatoljer-bord-106-72
+52228eb3 sittgrupp-svart-stal-soffa-tva-stolar-glasbord-110-84
+ca4fa9cb matgrupp-sex-personer-bord-sex-stolar-146-74
+c0219b88 hopfallbar-utegrupp-akaciatra-bord-fyra-stolar-120-75
+c0d9b013 platsbesparande-matgrupp-bord-fyra-stolar-108-72
+a2dc6d02 matgrupp-bord-fyra-hopfallbara-stolar-112-71
+56edf3f5 loungeset-soffa-tva-stolar-runt-bord-122-85
+591ee60d matgrupp-bord-fyra-stapelbara-stolar-150-72
+fdc96d7e matgrupp-glasbord-fyra-stolar-bomullsrep-120-72
+70c4c0af balkongset-akaciatra-runt-bord-tva-stolar-60-75
+826e8a29 balkongset-akaciatra-rottingsitsar-runt-bord-60-74
+05b87a61 loungeset-rotting-soffa-schaslong-runt-bord-122-75
