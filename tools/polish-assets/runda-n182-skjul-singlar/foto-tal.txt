@@ -1,0 +1,34 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+67f0f8bb 4 antalet ventilationsöppningar står i källan som vier Lüftungsschlitze, alltså fyra
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5a914e74 4 antalet hyllor och dubbar står i källan som vier abnehmbare Regale respektive vier Expansionsdübel
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f770dc11 221 längden 221 cm står i källans inledning och i måttbilden (2,21 m); tabellen anger 211 cm, men golvet är 213 cm brett, så 211 är ett skrivfel
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+563490a6 2 antalet fönster och krokar står i källan som zwei klare Fenster respektive zwei zusätzliche Haken
+563490a6 159 den lägre höjden står i källan som 1,59 m (1,59/1,82H m) och i måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7bf76ef0 4 antalet ventilationsöppningar står i källan som vier Fenster och Vier Lüftungsöffnungen, alltså fyra
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+081c9343 4 antalet ventilationsöppningar står i källan som Vier Lüftungsöffnungen, alltså fyra
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5a28ad9f 3 antalet nycklar står i källan som drei Schlüssel
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c1164682 1,17 golvytan 1,17 m² står i måttbilden (Grundfläche = 1,17 m²) och i källans produktnamn
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+40d0bd6a 124 dörröppningens bredd 1,24 m står i källans bild (4.1 ft, 1.24 m) och är två dörrblad på 62 cm var, vilket källan anger som Türmaße 62B
