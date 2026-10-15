@@ -1,0 +1,52 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1dd5c81e": {
+  "tyska": "52L x 29B x 63/76H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   63,
+   76
+  ],
+  "bredd": 52,
+  "djup": 29
+ },
+ "208e2018": {
+  "tyska": "240L x 85B x 160H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 240,
+  "djup": 85
+ },
+ "28a708af": {
+  "tyska": "62L x 25B x 72,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 72.5,
+  "bredd": 62,
+  "djup": 25
+ },
+ "5eda1981": {
+  "tyska": "196L x 176B x 1,5T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 1.5,
+  "bredd": 196
+ },
+ "82e5c1cf": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaß: 80L x 48B x 75H cm | Mått: 80L x 48B x 75H cm"
+ },
+ "cd089ce6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelabmessungen: (1kg) 13L x 6B x 6H cm, (3kg) 18L x 8B x 8H cm, (5kg) 20L x 9B x 9H cm | ✔ Gestellabmessungen: 42B x 10T x 30H cm | ✔ Griffgröße: (1kg) Ø3 x 9L cm, (3kg) Ø3,5 x 12L cm, (5kg) Ø3,5 x 12L cm | ✔ Hantelabmessungen: (1kg) 13L x 6B x 6H cm, (2kg) 16L x 7,5B x 7,5H cm, (3kg) 18L x 8B x 8H cm | ✔ Gestellabmessungen: 42B x 10T x 30H cm | ✔ Griffgröße: (1kg) Ø3 x 9L cm, (2kg) Ø3,3 x 11L cm, (3kg) Ø3,5 x 12L cm"
+ },
+ "fefd7223": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 11,5B x 11,5T x 8H cm"
+ }
+}
