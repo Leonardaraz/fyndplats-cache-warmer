@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "9c60b34d",
+  "huvud_fullid": "9c60b34d-79d6-4230-b327-5127bada16c1",
+  "givare": "b353b130",
+  "givare_fullid": "b353b130-67a9-426d-8da6-44eab15d8db9",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "9c60b34d": "Rosa",
+   "b353b130": "Svart"
+  }
+ }
+]
