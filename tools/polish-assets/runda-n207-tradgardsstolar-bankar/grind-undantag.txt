@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py Importraden anger 69 x 51 x 87 cm men tyska måtten och måttbilden anger 51 bred och 69 djup; texten följer måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py Importraden anger 49 x 45 x 79,5 cm men tyska måtten anger 45 bred och 49 djup; texten följer tyska måtten
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
