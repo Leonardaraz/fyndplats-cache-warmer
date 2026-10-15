@@ -128,7 +128,7 @@ test("☠️ referenser, vikt och postnummer följer aldrig med, bara DSV:s sän
   assert.equal(s?.sistaLedNummer, "1000000001");
 });
 
-test("DSV blir sista ledet bara när GLS nämner DB Schenker", () => {
+test("DSV blir sista ledet bara när GLS nämner DB Schenker eller DSV", () => {
   assert.equal(tolkaGlsSvar(SVAR)?.sistaLed, "DSV");
   const utan = structuredClone(SVAR);
   utan.tuStatus[0].references = utan.tuStatus[0].references.filter((r) => !/schenker/i.test(r.name));
@@ -137,6 +137,24 @@ test("DSV blir sista ledet bara när GLS nämner DB Schenker", () => {
   // Sändnings-id:t läses bara för ett DSV-paket.
   assert.equal(s?.sistaLedNummer, undefined);
   assert.equal(s?.handelser[0].beskrivning, "Paketet har kommit till en GLS-terminal.");
+
+  // Byter GLS till DSV:s namn i referenserna känns paketet igen ändå.
+  const nyttNamn = structuredClone(SVAR);
+  nyttNamn.tuStatus[0].references = nyttNamn.tuStatus[0].references.map((r) =>
+    ({ ...r, name: r.name.replace(/DB Schenker/i, "DSV") }));
+  const dsv = tolkaGlsSvar(nyttNamn);
+  assert.equal(dsv?.sistaLed, "DSV");
+  assert.equal(dsv?.sistaLedNummer, "1000000001");
+});
+
+test("en svensk terminal är DSV:s, en tysk är GLS", () => {
+  const sv = { partner: "DSV" as const, land: "SE" };
+  const de = { partner: "DSV" as const, land: "DE" };
+  assert.equal(oversattGls("The parcel has reached the parcel center.", sv)?.text, "Paketet har kommit till en terminal.");
+  assert.equal(oversattGls("The parcel has reached the parcel center.", de)?.text, "Paketet har kommit till en GLS-terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.", sv)?.text, "Paketet är på väg till en terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.", de)?.text, "Paketet är på väg till en GLS-terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.")?.text, "Paketet är på väg till en GLS-terminal.");
 });
 
 test("☠️ sändnings-id:t läses bara ur sin egen rad, och bara som siffror", () => {
@@ -218,12 +236,14 @@ test("☠️ DSV:s bokning av leveransdag kallas inte 'ligger kvar'", () => {
   // kontaktas via SMS, E-post eller telefon för att komma överens om en
   // leveransdag."
   const text = "The parcel is stored in the parcel center to be delivered at a new delivery date.";
-  assert.deepEqual(oversattGls(text, { partner: "DSV" }), {
+  assert.deepEqual(oversattGls(text, { partner: "DSV", land: "SE" }), {
     text: "DSV kontaktar dig via sms, e-post eller telefon för att boka leveransdag.",
     etikett: "Leveransen bokas",
   });
-  // Ett ombudspaket bokas inte, och utan DSV gäller GLS egen text.
-  assert.equal(oversattGls(text, { partner: "DSV", ombud: true })?.etikett, "Ny leveransdag");
+  // Ett ombudspaket bokas inte, en tysk terminal är inte DSV:s, och utan DSV
+  // gäller GLS egen text.
+  assert.equal(oversattGls(text, { partner: "DSV", ombud: true, land: "SE" })?.etikett, "Ny leveransdag");
+  assert.equal(oversattGls(text, { partner: "DSV", land: "DE" })?.etikett, "Ny leveransdag");
   assert.equal(oversattGls(text)?.etikett, "Ny leveransdag");
 
   const s = tolkaGlsSvar(dsvSvar([
@@ -233,6 +253,18 @@ test("☠️ DSV:s bokning av leveransdag kallas inte 'ligger kvar'", () => {
   ]));
   assert.equal(s?.satt, "bokad");
   assert.equal(s?.handelser[1].etikett, "Leveransen bokas");
+});
+
+test("rutan och raden säger samma sak om bokningen", () => {
+  // En tysk terminal som håller paketet en dag är ingen bokning hos DSV. Raden
+  // säger "Ny leveransdag", och då får rutan inte säga att DSV bokar.
+  const svar = dsvSvar([
+    ["2026-10-13", "17:47:10", "The parcel is stored in the parcel center to be delivered at a new delivery date."],
+  ]);
+  svar.tuStatus[0].history[0].address.countryCode = "DE";
+  const s = tolkaGlsSvar(svar);
+  assert.equal(s?.handelser[0].etikett, "Ny leveransdag");
+  assert.equal(s?.satt, undefined);
 });
 
 test("ett GLS-ombud utan DSV heter fortfarande GLS-ombud", () => {

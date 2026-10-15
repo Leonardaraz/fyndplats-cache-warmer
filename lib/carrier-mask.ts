@@ -92,27 +92,38 @@ export const DPD_NUMMER = /^01\d{12}$/;
  * utom när källan uttryckligen säger ett annat bud: mönstret är bara prövat på
  * DPD:s egna paket, och ett GLS- eller DHL-besked väger tyngre än en gissning
  * på formen.
+ *
+ * Bara ett bud ur listan ovan är ett besked. Källornas neutrala ord säger inget
+ * om vem som kör: AliExpress-källan skriver "Transportör" för "Seller
+ * Shipping …" (lib/ae-source.ts), och maskeringen "Fraktpartner".
  */
 export function transportorForNummer(
   trackingNumber: string,
   carrier: string,
 ): { carrier: string; sistaLed?: string } {
   const nummer = trackingNumber.trim().toUpperCase();
+  const bud = maskCarrierOrUndefined(carrier);
   if (/^[A-Z]{2}\d{9}DE$/.test(nummer)) {
-    return carrier && carrier !== "DHL" && carrier !== MASKED_CARRIER
-      ? { carrier: "DHL", sistaLed: carrier }
-      : { carrier: "DHL" };
+    return bud && bud !== "DHL" ? { carrier: "DHL", sistaLed: bud } : { carrier: "DHL" };
   }
-  const annatBud = carrier && carrier !== "DPD" && carrier !== "PostNord" && carrier !== MASKED_CARRIER;
-  if (carrier === "DPD" || (DPD_NUMMER.test(nummer) && !annatBud)) return { carrier: "DPD", sistaLed: "PostNord" };
+  if (bud === "DPD" || (DPD_NUMMER.test(nummer) && (!bud || bud === "PostNord"))) {
+    return { carrier: "DPD", sistaLed: "PostNord" };
+  }
   return { carrier };
 }
 
 /**
- * Raden "Transportör: …" i kundmejlen, med samma ord som /sparning:
- * "DPD, delas ut av PostNord i Sverige". `carrier` ska redan vara maskerad
- * (maskCarrierOrUndefined). Saknas den blir det ingen rad, utom för ett
- * DPD-nummer: numret säger själv vilket fraktbolag det är.
+ * "DPD, delas ut av PostNord i Sverige". Samma ord på /sparning och i
+ * kundmejlen, så de två aldrig säger olika saker om samma paket.
+ */
+export function transportorRad(carrier: string, sistaLed?: string): string {
+  return sistaLed ? `${carrier}, delas ut av ${sistaLed} i Sverige` : carrier;
+}
+
+/**
+ * Raden "Transportör: …" i kundmejlen (transportorRad). `carrier` ska redan
+ * vara maskerad (maskCarrierOrUndefined). Saknas den blir det ingen rad, utom
+ * för ett DPD-nummer: numret säger själv vilket fraktbolag det är.
  */
 export function transportorText(
   trackingNumber: string | null | undefined,
@@ -121,6 +132,5 @@ export function transportorText(
   const nummer = (trackingNumber ?? "").trim().toUpperCase();
   if (!carrier && !DPD_NUMMER.test(nummer)) return undefined;
   const t = transportorForNummer(nummer, carrier ?? "");
-  if (!t.carrier) return undefined;
-  return t.sistaLed ? `${t.carrier}, delas ut av ${t.sistaLed} i Sverige` : t.carrier;
+  return t.carrier ? transportorRad(t.carrier, t.sistaLed) : undefined;
 }

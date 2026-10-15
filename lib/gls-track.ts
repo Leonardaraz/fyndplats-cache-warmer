@@ -78,8 +78,8 @@ export interface GlsSparning {
   status: GlsStatus;
   /** Nyast först, som GLS ger dem. */
   handelser: GlsHandelse[];
-  /** Vem som delar ut i Sverige när GLS lämnar över paketet ("DSV"). */
-  sistaLed?: string;
+  /** Vem som delar ut i Sverige när GLS lämnar över paketet. */
+  sistaLed?: "DSV";
   /** DSV:s eget sändnings-id, när GLS anger det. */
   sistaLedNummer?: string;
   /**
@@ -119,6 +119,14 @@ function ombudet(s: GlsSammanhang): string {
   return s.partner === "DSV" ? "DSV-ombudet" : "GLS-ombudet";
 }
 
+// I Sverige är terminalerna DSV:s, inte GLS (Malmö är där GLS lämnar över).
+function terminal(s: GlsSammanhang): string {
+  return s.partner === "DSV" && s.land === "SE" ? "en terminal" : "en GLS-terminal";
+}
+
+/** Raden där DSV bokar leveransdag. tolkaGlsSvar läser satt "bokad" ur den. */
+const BOKNING = "Leveransen bokas";
+
 // Första träff vinner, så den specifika texten står före den allmänna:
 //   • "the parcel was not yet handed over to GLS" innehåller "handed over to
 //     GLS". Läst som upphämtning hade registreringen sett ut som ett senare
@@ -143,16 +151,18 @@ const GLS_SV: Regel[] = [
     (s) => [`Paketet är hämtat hos ${ombudet(s)}.`, "Levererad"]],
   [/(reached|arrived at) the parcel ?shop/i,
     (s) => [`Paketet har kommit fram till ${ombudet(s)}.`, "Hos ombudet"]],
-  // Bokningen gäller hemleverans. Går paketet till ett ombud betyder samma
-  // text bara att det ligger kvar en dag till.
+  // Bokningen är uppmätt på hempaket i Sverige (order 10082 mot DSV:s egen
+  // spårning: "Mottagaren aviseras om leverans"). Inget av de granskade
+  // ombudspaketen hade texten. Går paketet till ett ombud, eller står texten
+  // på en tysk terminal, betyder den bara att paketet ligger kvar en dag till.
   [/new delivery date|rescheduled/i,
-    (s) => s.partner === "DSV" && !s.ombud
-      ? ["DSV kontaktar dig via sms, e-post eller telefon för att boka leveransdag.", "Leveransen bokas"]
+    (s) => s.partner === "DSV" && !s.ombud && s.land === "SE"
+      ? ["DSV kontaktar dig via sms, e-post eller telefon för att boka leveransdag.", BOKNING]
       : ["Paketet ligger kvar på terminalen och delas ut en annan dag.", "Ny leveransdag"]],
   [/stored in the (gls )?parcel cent(er|re)/i,
     () => ["Paketet ligger på terminalen.", "På terminalen"]],
   [/on its way to the (final )?parcel cent(er|re)/i,
-    () => ["Paketet är på väg till en GLS-terminal.", "På väg"]],
+    (s) => [`Paketet är på väg till ${terminal(s)}.`, "På väg"]],
   [/could not be delivered|not be delivered|consignee was (absent|not present)/i,
     () => ["Leveransförsök misslyckades – ny leverans planeras.", "Leveransförsök misslyckades"]],
   // Ett DSV-paket kan vara på väg till ett ombud innan historiken visar det,
@@ -176,11 +186,8 @@ const GLS_SV: Regel[] = [
     () => ["Paketet har lämnats till GLS.", "Hämtad"]],
   [/(reached|arrived at) the final parcel cent(er|re)/i,
     () => ["Paketet har kommit till terminalen som delar ut det.", "Ankommen till terminal"]],
-  // I Sverige är terminalerna DSV:s, inte GLS (Malmö är där GLS lämnar över).
   [/(reached|arrived at) the parcel cent(er|re)/i,
-    (s) => s.partner === "DSV" && s.land === "SE"
-      ? ["Paketet har kommit till en terminal.", "Ankommen till terminal"]
-      : ["Paketet har kommit till en GLS-terminal.", "Ankommen till terminal"]],
+    (s) => [`Paketet har kommit till ${terminal(s)}.`, "Ankommen till terminal"]],
   [/left the parcel cent(er|re)/i,
     () => ["Paketet har lämnat terminalen.", "Avgått"]],
 ];
@@ -288,8 +295,9 @@ export function tolkaGlsSvar(svar: unknown): GlsSparning | null {
 
   const referenser = Array.isArray(tu.references) ? tu.references : [];
   // GLS kallar referenserna "DB Schenker Sweden …". DSV köpte DB Schenker, och
-  // det är DSV kunden möter: på spårningssidan, på ombudet och i avin.
-  const dsv = referenser.some((r) => /schenker/i.test(str(obj(r)?.name)));
+  // det är DSV kunden möter: på spårningssidan, på ombudet och i avin. Byter
+  // GLS till DSV:s namn känns paketet igen ändå.
+  const dsv = referenser.some((r) => /schenker|\bdsv\b/i.test(str(obj(r)?.name)));
   // Ombudet syns i historiken som en ParcelShop-händelse, och raderna före den
   // läses om när den kommit.
   const ombud = tu.history.some((h) => /parcel ?shop/i.test(str(obj(h)?.evtDscr)));
@@ -317,9 +325,9 @@ export function tolkaGlsSvar(svar: unknown): GlsSparning | null {
 
   const progress = obj(tu.progressBar);
   const nummer = dsv ? dsvSandningsId(referenser) : undefined;
-  // Bokningen syns som DSV:s "ny leveransdag" på ett paket som inte går till
-  // ett ombud (se GLS_SV).
-  const bokad = dsv && !ombud && handelser.some((h) => /new delivery date|rescheduled/i.test(h.original));
+  // Bokningen är raden GLS_SV redan kallat "Leveransen bokas", så rutan och
+  // raden kan inte säga olika saker.
+  const bokad = handelser.some((h) => h.etikett === BOKNING);
   const satt = dsv && ombud ? "ombud" : bokad ? "bokad" : undefined;
   return {
     status: glsStatus(progress?.statusInfo, progress?.retourFlag),

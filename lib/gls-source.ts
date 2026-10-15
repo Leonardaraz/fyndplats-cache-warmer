@@ -9,7 +9,10 @@
 //
 // ☠️ POSTNUMRET LÄMNAR ALDRIG SERVERN. Det skickas bara till GLS, som redan
 // har det, och skrivs aldrig i loggen eller i svaret till webbläsaren.
-// tolkaGlsSvar släpper bara igenom händelserna och statusen.
+// tolkaGlsSvar släpper bara igenom händelserna, statusen och DSV:s
+// sändnings-id. Med DSV:s nummer visar DSV:s egen spårning mottagarens
+// postnummer och ort, precis som DSV:s sms till kunden gör. Numret och
+// knappen dit finns på /sparning på Leonards begäran (2026-10-15).
 //
 // Null i alla andra lägen: inget paket i tracking_mapping, en order utan
 // postnummer, Wix eller GLS svarar inte, eller fel postnummer (GLS 404).

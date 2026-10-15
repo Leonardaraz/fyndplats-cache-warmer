@@ -14,6 +14,7 @@ import {
   maskCarrierOrUndefined,
   MASKED_CARRIER,
   transportorForNummer,
+  transportorRad,
   transportorText,
 } from "./carrier-mask.ts";
 import { detect17TrackCarrier } from "./track17.ts";
@@ -83,6 +84,8 @@ test("DPD-nummer: DPD, med PostNord som sista led, vad källan än kallar det", 
   assert.deepEqual(transportorForNummer("01234567890123", "PostNord"), dpd);
   assert.deepEqual(transportorForNummer("01234567890123", ""), dpd);
   assert.deepEqual(transportorForNummer("01234567890123", MASKED_CARRIER), dpd);
+  // AliExpress-källans neutrala ord för "Seller Shipping …" (lib/ae-source.ts).
+  assert.deepEqual(transportorForNummer("01234567890123", "Transportör"), dpd);
   assert.deepEqual(transportorForNummer(" 01234567890123 ", "PostNord"), dpd);
   // Säger källan DPD gäller det även när numret har en annan form.
   assert.deepEqual(transportorForNummer("ABC123", "DPD"), dpd);
@@ -93,6 +96,14 @@ test("DPD-formen tar inte över ett uttryckligt annat bud", () => {
   assert.deepEqual(transportorForNummer("01234567890123", "GLS"), { carrier: "GLS" });
   assert.deepEqual(transportorForNummer("01234567890123", "DHL"), { carrier: "DHL" });
   assert.deepEqual(transportorForNummer("01234567890123", "Bring"), { carrier: "Bring" });
+});
+
+test("ett neutralt ord blir aldrig sista led", () => {
+  // Förut: "Levereras med DHL, delas ut av Transportör i Sverige".
+  assert.deepEqual(transportorForNummer("CC123456789DE", "Transportör"), { carrier: "DHL" });
+  assert.deepEqual(transportorForNummer("CC123456789DE", "Fraktpartner"), { carrier: "DHL" });
+  // Ett annat nummer behåller källans ord, som förut.
+  assert.deepEqual(transportorForNummer("12345678901", "Transportör"), { carrier: "Transportör" });
 });
 
 test("PostNords egna nummer förblir PostNord", () => {
@@ -115,6 +126,16 @@ test("transportorText: samma ord i mejlen som på /sparning", () => {
   assert.equal(transportorText("12345678901", "GLS"), "GLS");
   assert.equal(transportorText(null, "GLS"), "GLS");
   assert.equal(transportorText(undefined, "Budbee"), "Budbee");
+});
+
+test("transportorRad: samma ord på /sparning som i mejlen", () => {
+  assert.equal(transportorRad("DPD", "PostNord"), "DPD, delas ut av PostNord i Sverige");
+  assert.equal(transportorRad("GLS", "DSV"), "GLS, delas ut av DSV i Sverige");
+  assert.equal(transportorRad("GLS"), "GLS");
+  assert.equal(transportorRad("GLS", ""), "GLS");
+  // Mejlets rad är sidans rad för samma paket.
+  const t = transportorForNummer("01234567890123", "PostNord");
+  assert.equal(transportorText("01234567890123", "PostNord"), transportorRad(t.carrier, t.sistaLed));
 });
 
 test("transportorText: ingen rad när varken bud eller nummer säger något", () => {

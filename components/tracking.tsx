@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { orderEventsNewestFirst } from "@/lib/track-i18n";
 import { DELIVERY_TIME } from "@/lib/shipping";
 import { sistaLedRuta, type SistaLedInfo } from "@/lib/sista-led";
+import { transportorRad } from "@/lib/carrier-mask";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
 // API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
@@ -248,8 +249,7 @@ export function TrackingWidget() {
 
           <h3 className="track-h">Spårningshistorik</h3>
           <div className="track-sub">
-            Levereras med {carrier}
-            {data.sistaLed && <>, delas ut av {data.sistaLed} i Sverige</>}
+            Levereras med {transportorRad(carrier, data.sistaLed)}
             {/* Senast uppdaterad = nyaste händelsens tid — visar kunden att
                 spårningen lever även när stegen står stilla en dag. */}
             {(data.updatedAt || events[0]?.time) && (

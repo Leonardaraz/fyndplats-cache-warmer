@@ -7,6 +7,7 @@
 //     visat den, ombudet först när ombudet syns.
 //   • En knapp finns bara när länken finns. En knapp till en tom sökning hos
 //     DSV är sämre än ingen knapp.
+//   • Ett paket på väg tillbaka, eller som inte kunde lämnas, får inga löften.
 // Numren är påhittade.
 
 import test from "node:test";
@@ -18,7 +19,6 @@ import {
   postnordLed,
   sistaLedInfoFor,
   sistaLedRuta,
-  type SistaLedInfo,
 } from "./sista-led.ts";
 
 const DSV_NR = "1000000001";
@@ -27,7 +27,6 @@ test("dsvLed: DSV:s eget nummer, länk till deras spårning och det gamla namnet
   assert.deepEqual(dsvLed(DSV_NR), {
     namn: "DSV",
     tidigare: "DB Schenker",
-    sammaNummer: false,
     nummer: DSV_NR,
     lank: DSV_SPARNING + DSV_NR,
   });
@@ -47,7 +46,6 @@ test("dsvLed utan nummer: ingen länk och inget nummer", () => {
 test("postnordLed: samma nummer, versaler och utan mellanslag", () => {
   assert.deepEqual(postnordLed(" cc123456789de "), {
     namn: "PostNord",
-    sammaNummer: true,
     lank: POSTNORD_SPARNING + "CC123456789DE",
   });
   assert.equal(
@@ -131,6 +129,38 @@ test("DSV levererat vinner över ombud och bokning", () => {
   }
 });
 
+test("DSV ute för leverans: bokningen är gjord, ingen ny bokning utlovas", () => {
+  // Order 10082: bokningen syns 10-15, utkörningen dagar senare. Raden i
+  // historiken säger då "kommer fram i dag", och rutan säger samma sak.
+  for (const satt of [undefined, "bokad"] as const) {
+    const ruta = sistaLedRuta(dsvLed(DSV_NR, satt), { transportor: "GLS", status: "OutForDelivery" });
+    assert.equal(ruta.text, "DSV (tidigare DB Schenker) delar ut paketet i Sverige, och det kommer fram i dag.", String(satt));
+    assert.equal(ruta.knapp?.text, "Följ paketet hos DSV");
+  }
+});
+
+test("på väg tillbaka eller inte lämnat: inga löften, bara partnerns spårning", () => {
+  for (const status of ["Returning", "DeliveryFailure", "Undelivered", "Exception", "Expired"]) {
+    for (const satt of [undefined, "ombud", "bokad"] as const) {
+      const ruta = sistaLedRuta(dsvLed(DSV_NR, satt), { transportor: "GLS", status });
+      assert.equal(
+        ruta.text,
+        "DSV (tidigare DB Schenker) delar ut paketet i Sverige. Hos DSV ser du vad som händer med paketet nu.",
+        `${status} ${satt}`,
+      );
+      assert.equal(ruta.nummer, DSV_NR);
+      assert.equal(ruta.knapp?.text, "Följ paketet hos DSV");
+    }
+    const pn = sistaLedRuta(postnordLed("01234567890123"), { transportor: "DPD", status });
+    assert.equal(
+      pn.text,
+      "PostNord delar ut paketet i Sverige. Spårningsnumret är detsamma hos PostNord, och där ser du vad som händer med paketet nu.",
+      status,
+    );
+    assert.equal(pn.knapp?.text, "Följ paketet hos PostNord");
+  }
+});
+
 test("utan DSV:s nummer: ingen knapp och ingen nummerrad, texten står kvar", () => {
   for (const satt of [undefined, "ombud", "bokad"] as const) {
     for (const levererad of [false, true]) {
@@ -143,25 +173,29 @@ test("utan DSV:s nummer: ingen knapp och ingen nummerrad, texten står kvar", ()
 });
 
 test("texten lovar bara det spårningen visar", () => {
-  const fall: Array<[SistaLedInfo, string]> = [
-    [dsvLed(DSV_NR), "InTransit"],
-    [dsvLed(DSV_NR), "AvailableForPickup"],
-    [dsvLed(DSV_NR, "bokad"), "InTransit"],
-    [dsvLed(DSV_NR, "ombud"), "InTransit"],
-    [dsvLed(DSV_NR, "ombud"), "AvailableForPickup"],
-  ];
-  for (const [info, status] of fall) {
-    const { text } = sistaLedRuta(info, { transportor: "GLS", status });
-    const fallNamn = `${info.satt ?? "okänt"} ${status}`;
-    assert.equal(/boka/i.test(text), info.satt === "bokad", `bokning i ${fallNamn}: ${text}`);
-    assert.equal(/ombud/i.test(text), info.satt === "ombud", `ombud i ${fallNamn}: ${text}`);
+  const statusar = ["InTransit", "AvailableForPickup", "OutForDelivery", "Returning", "DeliveryFailure", "Exception"];
+  const framat = new Set(["InTransit", "AvailableForPickup"]);
+  for (const satt of [undefined, "ombud", "bokad"] as const) {
+    for (const status of statusar) {
+      const { text } = sistaLedRuta(dsvLed(DSV_NR, satt), { transportor: "GLS", status });
+      const fallNamn = `${satt ?? "okänt"} ${status}`;
+      // Bokningen bara innan paketet körs ut, och ombudet så länge det är på
+      // väg dit eller ligger där. Aldrig när paketet är på väg tillbaka.
+      assert.equal(/boka/i.test(text), satt === "bokad" && framat.has(status), `bokning i ${fallNamn}: ${text}`);
+      assert.equal(
+        /ombud/i.test(text),
+        satt === "ombud" && (framat.has(status) || status === "OutForDelivery"),
+        `ombud i ${fallNamn}: ${text}`,
+      );
+      assert.equal(/\bavi\b|avin/i.test(text), satt === "ombud" && !["Returning", "DeliveryFailure", "Exception"].includes(status), `avi i ${fallNamn}: ${text}`);
+    }
   }
 });
 
 test("rutans texter: inga engelska rester och inga tankstreck", () => {
   const infos = [postnordLed("01234567890123"), dsvLed(DSV_NR), dsvLed(DSV_NR, "bokad"), dsvLed(DSV_NR, "ombud")];
   for (const info of infos) {
-    for (const status of ["InTransit", "AvailableForPickup", "Delivered"]) {
+    for (const status of ["InTransit", "AvailableForPickup", "OutForDelivery", "Returning", "Delivered"]) {
       const ruta = sistaLedRuta(info, { transportor: "GLS", status, levererad: status === "Delivered" });
       const allt = [ruta.rubrik, ruta.text, ruta.knapp?.text ?? ""].join(" ");
       assert.doesNotMatch(allt, /parcel ?shop|delivery|pickup|shipment|tracking/i, allt);
