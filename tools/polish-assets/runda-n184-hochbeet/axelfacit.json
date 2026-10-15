@@ -1,0 +1,110 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0419fca4": {
+  "tyska": "183L x 98,5B x 95H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 95,
+  "bredd": 183,
+  "djup": 98.5
+ },
+ "13f983f5": {
+  "tyska": "100L x 49B x 136H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 136,
+  "bredd": 100,
+  "djup": 49
+ },
+ "343a913e": {
+  "tyska": "95L x 95B x 110H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 110,
+  "bredd": 95,
+  "djup": 95
+ },
+ "640620af": {
+  "tyska": "150L x 62B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 150,
+  "djup": 62
+ },
+ "6de684bb": {
+  "tyska": "65L x 31B x 147H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 147,
+  "bredd": 65,
+  "djup": 31
+ },
+ "6e8be06f": {
+  "tyska": "120L x 55B x 140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 120,
+  "djup": 55
+ },
+ "8b0f479d": {
+  "tyska": "70L x 30B x 70H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 70,
+  "djup": 30
+ },
+ "95a8333f": {
+  "tyska": "108L x 88B x 36H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 36,
+  "bredd": 108,
+  "djup": 88
+ },
+ "aa9f6bc1": {
+  "tyska": "110L x 60B x 152/140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   152,
+   140
+  ],
+  "bredd": 110,
+  "djup": 60
+ },
+ "d5f473c8": {
+  "tyska": "79L x 29B x 130H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 130,
+  "bredd": 79,
+  "djup": 29
+ },
+ "f37c72e4": {
+  "tyska": "80L x 38B x 145H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 145,
+  "bredd": 80,
+  "djup": 38
+ },
+ "f49cb914": {
+  "tyska": "100L x 60B x 30Hcm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 100,
+  "djup": 60
+ },
+ "fab6bd6e": {
+  "tyska": "110L x 50B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 110,
+  "djup": 50
+ }
+}
