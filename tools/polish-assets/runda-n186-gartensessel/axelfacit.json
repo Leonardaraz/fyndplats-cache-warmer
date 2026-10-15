@@ -1,0 +1,77 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "057f23b4": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 60B x 83T x 73,5H cm | ✔ Fußhockermaße: 60B x 40T x 38H cm | ✔ Sitzgröße: 53,5B x 50,5T cm | ✔ Sitzhöhe: 40H cm | ✔ Rückenlehnenmaße: 53,5B x 39H cm | Mått: 60L x 83B x 73,5H cm"
+ },
+ "179aa068": {
+  "tyska": "108l x 145b x 169H cm (Schaukelbett)",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 169
+ },
+ "1837f27b": {
+  "tyska": "170L x 100B x 185H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 185,
+  "bredd": 170,
+  "djup": 100
+ },
+ "1b9d3ee5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 76B x 65T x 147H cm | ✔ Fußhockerabmessungen: 66B x 42T x 41H cm | ✔ Sitzgröße: 60B x 54T cm (Stuhl), 47B x 41T cm (Fußhocker) | Mått: 76L x 65B x 147H cm"
+ },
+ "2070dfbd": {
+  "tyska": "L200 x B73 x H(30-103) cm",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (L200 x B73 x H(30-103) cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "5878da5f": {
+  "tyska": "56B x 51T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": 84,
+  "bredd": 56
+ },
+ "60b25cb7": {
+  "tyska": "52B x 52T x 66H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 52,
+  "hojd": 66,
+  "bredd": 52
+ },
+ "87ef1108": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhl Abmessung: 63B x 82T x 75H cm | ✔ Tisch Abmessung: 48L x 48B x 43H cm | ✔ Sitzgröße: 49B x 48T cm | ✔ Rückenlehne Größe: 49B x 45T cm | Mått: 63L x 82B x 75H cm"
+ },
+ "a3d54210": {
+  "tyska": "118L x 75B x 139H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 139,
+  "bredd": 118,
+  "djup": 75
+ },
+ "aabad464": {
+  "tyska": "150L x 62B x 88H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 88,
+  "bredd": 150,
+  "djup": 62
+ },
+ "ea30c358": {
+  "tyska": "60B x 89T x 107H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 89,
+  "hojd": 107,
+  "bredd": 60
+ }
+}
