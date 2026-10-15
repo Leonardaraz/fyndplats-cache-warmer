@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "11eeaf5f": {
+  "tyska": "170B x 80T x 82H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 80,
+  "hojd": 82,
+  "bredd": 170
+ },
+ "5cbdff80": {
+  "tyska": "105B x 51T x 49H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": 49,
+  "bredd": 105
+ },
+ "6c20c70b": {
+  "tyska": "117B x 62T x 78H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 62,
+  "hojd": 78,
+  "bredd": 117
+ },
+ "c424b8c0": {
+  "tyska": "82L x 87B x 89H cm (Sofa), 193L x 82B x 28H cm (Bett)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 89,
+  "bredd": 82,
+  "djup": 87
+ },
+ "c94c727e": {
+  "tyska": "80B x 80T x 64H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 80,
+  "hojd": 64,
+  "bredd": 80
+ },
+ "eee175a6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa Abmessungen: 170B x 83T x 80H cm | ✔ Bett Abmessungen: 218B x 103T x 40H cm | ✔ Sitzgröße: 154B x 53T cm | ✔ Armlehnen Größe: 9B x 65T cm | Mått: 170L x 83B x 80H cm"
+ },
+ "f4f8512a": {
+  "tyska": "100B x 76T x 62H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 76,
+  "hojd": 62,
+  "bredd": 100
+ },
+ "fcb0b18d": {
+  "tyska": "117B x 56,5T x 77H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56.5,
+  "hojd": 77,
+  "bredd": 117
+ }
+}
