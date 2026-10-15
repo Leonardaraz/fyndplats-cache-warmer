@@ -1,0 +1,75 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "46307163": {
+  "tyska": "110B x 40T x 48H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 48,
+  "bredd": 110
+ },
+ "57d9917a": {
+  "tyska": "Ø56 x 42H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 42
+ },
+ "6fe0966c": {
+  "tyska": "69B x 65T x 67H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 65,
+  "hojd": 67,
+  "bredd": 69
+ },
+ "8122f22b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 102L x 35B x 43H cm | ✔ Stauraum: 94L x 27B x 11H cm | ✔ Beine: 23L cm | Mått: 102L x 35B x 43H cm"
+ },
+ "88cc5a58": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sesselabmessungen: 87B x 86T x 83H cm | ✔ Bettabmessungen: 68B x 187T x 45,5H cm | ✔ Bettoberfläche: 68B x 187T cm | ✔ Sitzgröße: 68B x 61/50T x 45,5H cm (mit/ohne Kissen) | ✔ Rückengröße: 68B x 43L cm | ✔ Armgröße: 87L x 8,5B cm | ✔ Kissengröße: 64L x 25B x 12T cm | Mått: 187L x 68B x 45,5H cm"
+ },
+ "98a7051f": {
+  "tyska": "63B x 75T x 92-102H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 75,
+  "hojd": [
+   92,
+   102
+  ],
+  "bredd": 63
+ },
+ "bde4ec47": {
+  "tyska": "(Aufrecht) 69B x 91,5T x 103H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 91.5,
+  "hojd": 103,
+  "bredd": 69
+ },
+ "c169f30a": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (Stuhl): 68B x 81T x 93H cm | ✔ Gesamtabmessungen (Fußhocker): 62B x 52T x 46H cm | ✔ Sitzgröße: 68B x 50T x 52H cm | ✔ Rückengröße: 50L x 67B x 19T cm | Mått: 91L x 68B x 93H cm"
+ },
+ "c61b3314": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Bettes (vollständig ausgeklappt): 70B x 200T x 12,5H cm | ✔ Maße des Stuhls: 70B x 75T x 50H cm | ✔ Sitzmaße: 70B x 50T x 25H cm | ✔ Rückenlehnenmaße: 70B x 25H cm | ✔ Kissenmaße: 65L x 17B cm | ✔ Taschenmaße: 10B x 10H cm, 23B x 10H cm | ✔ Maße der vier Teile: 70B x 75T x 12,5H cm, 70B x 75T x 12,5H cm, 70B x 30/25T x 12,5H cm, 70B x 25/20T x 12,5H cm"
+ },
+ "cc3abd40": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: (aufrecht) 79L x 80B x 104H cm, (zurückgelehnt) 79L x 111B x 94H cm | ✔ Fußhockerabmessungen: 48L x 42B x 39H cm | ✔ Sitzgröße: 54L x 50B x 44H cm | ✔ Rückengröße: 83L x 64B cm | Mått: 79L x 80B x 104H cm"
+ },
+ "d645f2bb": {
+  "tyska": "Ø45 x 41H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 41
+ }
+}
