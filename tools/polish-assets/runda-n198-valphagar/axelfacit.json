@@ -1,0 +1,45 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "15bcfc1a": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (Sechseckform): 123L x 102B x 90H cm | ✔ Klappmaß: 90L x 64B x 16H cm | Mått: 123L x 123B x 90H cm"
+ },
+ "62d1d2b7": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Vollständig ausgefahren Größe: 482,5L x 2T x 76H cm | ✔ Zusammenklappbare Größe: 62L x 19,5T x 78H cm | ✔ Einzelteil Größe: 62,5L x 76H cm (mit Tür), 60L x 76H cm (ohne Tür) | Mått: 482,5L x 2T x 76H cm"
+ },
+ "6c637ec1": {
+  "tyska": "Rechtecksform: 160L x 80B x 60H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 160,
+  "djup": 80
+ },
+ "9844cdf8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Quadratische Form: 160B x 160T x 60H cm | ✔ Rechteckige Form: 240L x 80B x 60H cm | ✔ Einzelnes Paneel: 80L x 60B x 1,5T cm | ✔ Tür: 38B x 40,5H cm | ✔ Bodenpfahl: 70H cm | ✔ Faltbare Größe: 82L x 12,5B x 60H cm | ✔ Stangenabstand: 5B x 18,5H cm | ✔ Verstellbarer Gurt: 70-135L cm"
+ },
+ "de17f2d5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rechteck: 136L x 68B x 100H cm | ✔ Einzelnes Panel: 68B x 100H x 1,5T cm | ✔ Tür: 39B x 61,5H cm | ✔ Bodenpfahl: 110L cm | ✔ Faltgröße: 100L x 70B x 9,5H cm | ✔ Stangenabstand: 5B x 19H cm | Mått: 136L x 68B x 100H cm"
+ },
+ "e8bd46e1": {
+  "tyska": "32,5B x 42,5T cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Tür' (etiketten bar ett bestämningsord)",
+  "bokstaver": "BT",
+  "djup": 42.5,
+  "bredd": 32.5
+ },
+ "ef09bf2a": {
+  "tyska": "Ø159 x 76H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 76
+ }
+}
