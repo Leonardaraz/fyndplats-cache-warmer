@@ -652,6 +652,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .track-badge.warn{background:#FEF3C7;color:#92400E}
 .track-empty{font-size:var(--text-sm);color:var(--soft);padding:18px 20px;background:var(--warm);border-radius:var(--r-md);line-height:1.55}
 .track-eta{font-size:var(--text-base);margin-bottom:20px}
+/* Sista ledet (lib/sista-led): vem som delar ut i Sverige, deras nummer och en
+   knapp till deras spårning. Samma varma ton som .track-pending. */
+.track-led{margin:22px 0 0;padding:16px 18px;background:var(--warm);border-radius:var(--r-md);border-left:3px solid var(--orange)}
+.track-led-h{font-size:var(--text-sm);font-weight:700;margin-bottom:4px}
+.track-led p{font-size:var(--text-sm);line-height:1.55;margin:0}
+.track-led .track-led-nr{margin-top:8px;color:var(--soft)}
+.track-led-nr b{color:var(--ink);letter-spacing:.03em}
+.track-led-btn{display:inline-block;margin-top:12px;font-size:var(--text-sm);font-weight:700;color:var(--brand);background:#fff;border:1.5px solid var(--brand);border-radius:var(--r-pill);padding:9px 16px;text-decoration:none}
+.track-led-btn:hover{background:#FFF4ED}
 .steps{display:flex;margin-bottom:8px}
 .step{flex:1;text-align:center;position:relative}
 .step .dot{width:30px;height:30px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);display:grid;place-items:center;margin:0 auto 9px;color:#fff;font-size:var(--text-xs);font-weight:700;position:relative;z-index:2}

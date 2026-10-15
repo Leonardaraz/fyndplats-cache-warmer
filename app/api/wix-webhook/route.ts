@@ -47,7 +47,7 @@ import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedu
 import { registerWith17Track } from "@/lib/track17";
 import { heltSkickad, koaSandning, sandningsRader, slaIhopRader, slappVantande, taVantande } from "@/lib/shipping-email-batch";
 import { resolveOrderId } from "@/lib/wix-order-lookup";
-import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
+import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
@@ -490,11 +490,18 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
   // "Transportör: Cainiao" i fraktmejlet och dropship-ursprunget läckt. Samma
   // fail-safe-maskering som notis-/push-flödena (lib/carrier-mask): okänd/
   // ursprungs-carrier → undefined (transportör-raden döljs helt).
-  const carrier = maskCarrierOrUndefined(
-    firstStr(
-      trackingInfo?.shippingProvider as string,
-      trackingInfo?.carrier as string,
-      firstFulfill?.shippingProvider as string,
+  //
+  // transportorText ger raden samma ord som /sparning: ett DPD-nummer blir
+  // "DPD, delas ut av PostNord i Sverige" även när fulfillmenten säger
+  // "Postnord" (42 av 46 DPD-paket, audit 2026-10-15).
+  const carrier = transportorText(
+    trackingNumber,
+    maskCarrierOrUndefined(
+      firstStr(
+        trackingInfo?.shippingProvider as string,
+        trackingInfo?.carrier as string,
+        firstFulfill?.shippingProvider as string,
+      ),
     ),
   );
 

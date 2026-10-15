@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { orderEventsNewestFirst } from "@/lib/track-i18n";
 import { DELIVERY_TIME } from "@/lib/shipping";
+import { sistaLedRuta, type SistaLedInfo } from "@/lib/sista-led";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
 // API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
@@ -65,6 +66,8 @@ type TrackResp = {
   carrier?: string;
   /** Vem som delar ut i Sverige, när det inte är samma som `carrier`. */
   sistaLed?: string;
+  /** Var kunden följer sista ledet, och med vilket nummer (lib/sista-led). */
+  sistaLedInfo?: SistaLedInfo;
   trackingNumber?: string;
   orderId?: string;
   updatedAt?: string;
@@ -158,6 +161,12 @@ export function TrackingWidget() {
   }));
   const stage = computeStage(status, events.length, delivered);
   const finalStage = stage;
+  // Rutan om sista ledet: vem som delar ut i Sverige, deras nummer när det är
+  // ett annat än vårt, och en knapp till deras spårning (ombudets adress och
+  // öppettider, eller bokningen av leveransdagen).
+  const led = data?.sistaLedInfo
+    ? sistaLedRuta(data.sistaLedInfo, { transportor: carrier, status, levererad: delivered })
+    : null;
 
   return (
     <div className="track">
@@ -219,6 +228,23 @@ export function TrackingWidget() {
               );
             })}
           </div>
+
+          {led && (
+            <div className="track-led">
+              <div className="track-led-h">{led.rubrik}</div>
+              <p>{led.text}</p>
+              {led.nummer && (
+                <p className="track-led-nr">
+                  Hos {led.namn} heter paketet <b>{led.nummer}</b>
+                </p>
+              )}
+              {led.knapp && (
+                <a className="track-led-btn" href={led.knapp.href} target="_blank" rel="noopener noreferrer">
+                  {led.knapp.text} →
+                </a>
+              )}
+            </div>
+          )}
 
           <h3 className="track-h">Spårningshistorik</h3>
           <div className="track-sub">
