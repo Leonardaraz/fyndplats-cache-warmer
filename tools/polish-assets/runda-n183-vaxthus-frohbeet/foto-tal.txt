@@ -1,0 +1,31 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7fa0c077 4 antalet hyllplan, vindlinor och markpinnar står i källan som vier
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cd270969 4 antalet vindlinor och markpinnar står i källan som vier
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+525d6fa0 4 antalet dragsnören står i källan som 4 x Zugseile, och tolv jordspikar som 12 x Erdnägel
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1aa75bd9 6 antalet fönster står i källan som sechs Netzfenstern
+1aa75bd9 4 antalet vindlinor och markpinnar står i källan som 4 x Hering och 4 x Spannseil
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+389e10ce 4 vindtåligheten står i källan som Winddicht: Stufe 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a2d6f42d 6 antalet fönster står i källan till det vita växthuset som 6 Fenster
+a2d6f42d 4 antalet vindlinor och markpinnar står i källan till det vita växthuset som 4 x Spannseile och 4 x Erdspieße
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0562a1a2 4,5 hjulets storlek står i måttbilden (4,5 cm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+15dee6da 3 antalet dörrar står i källan som 3 aufrollbare Reißverschlusstüren
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4e10c6c4 4 antalet ventilationshål står i källan som 4 Belüftungslöcher
