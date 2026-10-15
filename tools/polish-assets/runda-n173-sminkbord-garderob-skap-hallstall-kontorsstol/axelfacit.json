@@ -1,0 +1,86 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1857b226": {
+  "tyska": "110B x 40T x 150H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 150,
+  "bredd": 110
+ },
+ "20b97a56": {
+  "tyska": "43L x 58B x 90-100H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   90,
+   100
+  ],
+  "bredd": 43,
+  "djup": 58
+ },
+ "5874495d": {
+  "tyska": "41B x 50T x 105H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 105,
+  "bredd": 41
+ },
+ "756c02bb": {
+  "tyska": "43L x 48B x 77,5-89,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   77.5,
+   89.5
+  ],
+  "bredd": 43,
+  "djup": 48
+ },
+ "8922751e": {
+  "tyska": "93,5B x 60T x 100H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": 100,
+  "bredd": 93.5
+ },
+ "94b4242d": {
+  "tyska": "80B x 40T x 135H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 135,
+  "bredd": 80
+ },
+ "aa54c4f9": {
+  "tyska": "80B x 55T x 177,5H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 55,
+  "hojd": 177.5,
+  "bredd": 80
+ },
+ "af72a543": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 120B x 40T x 140H cm | ✔ Hockerabmessungen: 40B x 28T x 40H cm | ✔ Spiegelgröße: 38,2B x 58,6H cm | ✔ Tischplattengröße: 100B x 37T x 75H cm | ✔ Schubladeninnenmaße: 42,6B x 28,8T x 7,3H cm (Groß), 26,7B x 28,8T x 7,3H cm (Klein) | ✔ Offene Regalgröße: 23B x 9,2T cm | Mått: 120L x 40B x 140H cm"
+ },
+ "da121dc3": {
+  "tyska": "80B x 39,5T x 186,4H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 39.5,
+  "hojd": 186.4,
+  "bredd": 80
+ },
+ "e1ac4d7f": {
+  "tyska": "104B x 33T x 175H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 33,
+  "hojd": 175,
+  "bredd": 104
+ }
+}
