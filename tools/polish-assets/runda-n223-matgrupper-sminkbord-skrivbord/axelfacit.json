@@ -1,0 +1,55 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1df32c29": {
+  "tyska": "150B x 48T x 125H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 48,
+  "hojd": 125,
+  "bredd": 150
+ },
+ "6289af49": {
+  "tyska": "110L x 44B x 49H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 49,
+  "bredd": 110,
+  "djup": 44
+ },
+ "69f1532b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 39B x 45T x 79H cm | ✔ Tischabmessungen: 55B x 54T x 71H cm | ✔ Gefaltete Stuhlabmessungen: 92L x 39B x 9,5H cm | ✔ Gefaltete Tischabmessungen: 84L x 55B x 5H cm | ✔ Sitzgröße: 39B x 29T x 45,5H cm | ✔ Rückenabmessungen: 39B x 13H cm | Mått: 39L x 45B x 79H cm"
+ },
+ "885b6a40": {
+  "tyska": "48B x 40T x 90H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 90,
+  "bredd": 48
+ },
+ "a235537d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch Abmessungen: 108L x 65B x 75H cm | ✔ Bank Abmessungen: 92L x 36B x 48H cm | ✔ Stuhl Abmessungen: 41L x 46B x 90H cm | ✔ Stuhl Sitz Größe: 41L x 41,5B x 48H cm | ✔ Rückenlehne Größe: 35B x 45H cm | ✔ Anwendbare Fläche: 1,8L x 2B m | Mått: 108L x 65B x 75H cm"
+ },
+ "aab71949": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Außenmaße: Ø60 x 40H cm | ✔ Innenmaße: Ø50 x 31H cm | Mått: Ø60 x 40H cm"
+ },
+ "c01f915f": {
+  "tyska": "80B x 53T x 74,5Hcm (Tisch), 48B x 41T x 77Hcm (Stuhl)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 53,
+  "hojd": 74.5,
+  "bredd": 80
+ },
+ "e0085cd1": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 60B x 40T x 132,5H cm | ✔ Hockermaße: 57B x 38T x 55H cm | ✔ Spiegelgröße: 39B x 49H cm | ✔ Sitzgröße: 56B x 36T cm | ✔ Tischplattenmaß: 60B x 38T cm | ✔ Beinfreiheit: 57B x 40T x 56H cm | ✔ Schrankinnenmaß: 36,5B x 11,5T x 23,4/23,4H cm | ✔ Schubladeninnenmaß: 52B x 33,5T x 6,5H cm | ✔ Oberes Regalmaß: 57B x 13,5T x 5H cm | ✔ Offenes Regalmaß: 19B x 11,5T x 15H cm | ✔ Hocker-Staufachmaß: 53B x 34T x 33H cm"
+ }
+}
