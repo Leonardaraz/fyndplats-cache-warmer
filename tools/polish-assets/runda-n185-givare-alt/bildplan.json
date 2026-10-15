@@ -1,0 +1,83 @@
+{
+ "runda": "runda-n185-givare-alt",
+ "produkter": [
+  {
+   "kort": "ad6e52cc",
+   "pid": "ad6e52cc-0a95-42dc-9caf-b7bbf041ce02",
+   "media": [
+    {
+     "id": "b379ce_c4d5cdc0ba0441b3b2c6fd757410ffc8~mv2.jpg",
+     "altText": "Gräsvält med en svart vals och ett mörkgrönt U-format handtag av stål, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_3b36907c65b94ad582b7487cd7a814e0~mv2.jpg",
+     "altText": "En man som drar gräsvälten med mörkgrönt handtag över en gräsmatta framför ett vitt hus med veranda"
+    },
+    {
+     "id": "b379ce_1da6f42d482849008dda9dcb0c047866~mv2.jpg",
+     "altText": "Gräsvälten med mörkgrönt handtag lutad mot en vit brädvägg bredvid en vit kruka med en liten buske, en hatt och en hylla"
+    },
+    {
+     "id": "b379ce_d2a88e397a744cd1acedd9929afa0221~mv2.jpg",
+     "altText": "En man i förkläde som skjuter gräsvälten med mörkgrönt handtag över en gräsmatta"
+    },
+    {
+     "id": "b379ce_df15f538d1c143d1822990c8bab95571~mv2.jpg",
+     "altText": "Måttbild med gräsvältens mått i centimeter: 113, 58 och 32,5, samt valsens längd 50 och diameter 32"
+    }
+   ]
+  },
+  {
+   "kort": "b9934c81",
+   "pid": "b9934c81-ccd6-417a-a26f-0c08dd9aa598",
+   "media": [
+    {
+     "id": "b379ce_449a39a190c54f60a79261cc77eb7c28~mv2.jpg",
+     "altText": "Gräsvält med en svart vals och ett svart U-format handtag av stål, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_d1eaa7499cd64fee9dfc84ae46045fc1~mv2.jpg",
+     "altText": "En man som drar gräsvälten med svart handtag över en gräsmatta framför ett vitt hus med veranda"
+    },
+    {
+     "id": "b379ce_78943ded80e644249bf49f750438b777~mv2.jpg",
+     "altText": "Gräsvälten med svart handtag lutad mot en vit brädvägg bredvid en vit kruka med en liten buske, en hatt och en hylla"
+    },
+    {
+     "id": "b379ce_dbef32b12eb94be286c9e2199dddad35~mv2.jpg",
+     "altText": "En man i förkläde som skjuter gräsvälten med svart handtag över en gräsmatta"
+    },
+    {
+     "id": "b379ce_801b90929f6f42a790ce5b8ac30fe6dc~mv2.jpg",
+     "altText": "Måttbild med gräsvältens mått i centimeter: 113, 58 och 32,5, samt valsens längd 50 och diameter 32"
+    }
+   ]
+  },
+  {
+   "kort": "e37269a4",
+   "pid": "e37269a4-93ba-408c-8d04-6806cc6d8546",
+   "media": [
+    {
+     "id": "b379ce_50e3cdf819a241fa88f562f1b3a3c21b~mv2.jpg",
+     "altText": "Två gröna, låga odlingslådor av korrugerat stål planterade med blommor, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_d860516c0cc1476d948b62f4d804099f~mv2.jpg",
+     "altText": "De gröna odlingslådorna på en gräsmatta framför ett trästaket, planterade med rosa, vita och orange blommor, med en urna med blommor bakom"
+    },
+    {
+     "id": "b379ce_ea58911035b54614a948acea9a1f52ed~mv2.jpg",
+     "altText": "Närbild på grönt korrugerat stål med synliga nitar"
+    },
+    {
+     "id": "b379ce_725a1e2a0f0c482da9d7601c02ba215c~mv2.jpg",
+     "altText": "Närbild på ett hörn av grönt stål med två nitar och gräs bakom"
+    },
+    {
+     "id": "b379ce_ecfd71901cb145fd895f582885ed69cb~mv2.jpg",
+     "altText": "Måttbild med en grön odlingslådas mått i centimeter: 100, 100 och 30, och innermåttet 98,5"
+    }
+   ]
+  }
+ ]
+}
