@@ -1,0 +1,57 @@
+[
+ {
+  "huvud": "2cfd373a",
+  "huvud_fullid": "2cfd373a-4b73-4646-8a35-9124402b16f4",
+  "givare": "d7eca2ba",
+  "givare_fullid": "d7eca2ba-9825-4366-a21c-a3756d5d866f",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "6"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "d7eca2ba": "Svart",
+   "2cfd373a": "Cremevit"
+  }
+ },
+ {
+  "huvud": "8fe8ffba",
+  "huvud_fullid": "8fe8ffba-af25-46e4-be47-d8d9492889cf",
+  "givare": "3a9df24e",
+  "givare_fullid": "3a9df24e-150d-4a03-9d36-b7a415b260f3",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "7",
+   "8"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "3a9df24e": "Cremevit",
+   "8fe8ffba": ""
+  }
+ },
+ {
+  "huvud": "89346042",
+  "huvud_fullid": "89346042-3b5c-43e5-9cbe-7f59c5564749",
+  "givare": "92b1d8ad",
+  "givare_fullid": "92b1d8ad-d05a-4baf-8453-6c8ec79d664f",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "92b1d8ad": "144 liter",
+   "89346042": "100 liter"
+  }
+ }
+]

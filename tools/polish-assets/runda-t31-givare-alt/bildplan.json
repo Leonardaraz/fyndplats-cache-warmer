@@ -1,0 +1,75 @@
+{
+ "runda": "runda-t31-givare-alt",
+ "produkter": [
+  {
+   "kort": "d7eca2ba",
+   "pid": "d7eca2ba-9825-4366-a21c-a3756d5d866f",
+   "media": [
+    {
+     "id": "b379ce_4aef08e76f3d475db211aaaa1957ec84~mv2.jpg",
+     "altText": "Svart hopfällbar massagebänk i två zoner med träställ och ansiktsöppning, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_4dfd007366b344c4ab487e3736fa6af6~mv2.jpg",
+     "altText": "Den svarta massagebänken utfälld i ett vardagsrum med en vit bokhylla och en blågrön matta"
+    },
+    {
+     "id": "b379ce_28ef387b36824511b67105756103573b~mv2.jpg",
+     "altText": "Den svarta massagebänken sedd från huvudändan, med ansiktsöppningen överst och träbenen under"
+    },
+    {
+     "id": "b379ce_87d73d72b0004a64b794fba833f6a5fe~mv2.jpg",
+     "altText": "Närbild på det svarta bärhandtaget på bänkens sida"
+    }
+   ]
+  },
+  {
+   "kort": "3a9df24e",
+   "pid": "3a9df24e-150d-4a03-9d36-b7a415b260f3",
+   "media": [
+    {
+     "id": "b379ce_af21d62818aa43f3a57c464d7b232a6d~mv2.jpg",
+     "altText": "Cremevit uppresningsfåtölj med öron och rullade armstöd, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_e802fd9665b745b2805999865925507c~mv2.jpg",
+     "altText": "Den cremevita uppresningsfåtöljen i liggläge i ett rum med gröna panelväggar och en grön matta"
+    },
+    {
+     "id": "b379ce_fef88cf72a704022acfb2c6bde8c2374~mv2.jpg",
+     "altText": "Den cremevita uppresningsfåtöljen i ett sovrum med en golvlampa och ett sängbord med tulpaner"
+    },
+    {
+     "id": "b379ce_c35c0bdf1ce94b9ca9ce9c5891f3d4c0~mv2.jpg",
+     "altText": "En kvinna sitter i den cremevita uppresningsfåtöljen i ett ljust rum med vita gardiner"
+    }
+   ]
+  },
+  {
+   "kort": "92b1d8ad",
+   "pid": "92b1d8ad-d05a-4baf-8453-6c8ec79d664f",
+   "media": [
+    {
+     "id": "b379ce_075a12c7a92b4ff6a92b3e6eb3aca9ee~mv2.jpg",
+     "altText": "Tvättkorg i ljusbrun bambu med lock, rephandtag på locket och på sidorna, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_a019c864d18545e7aea9983f16712d29~mv2.jpg",
+     "altText": "Tvättkorgen i en tvättstuga med locket lutat mot sidan och tvätt i korgen"
+    },
+    {
+     "id": "b379ce_ef33c4d87f5b4e959dc65dfef59132d5~mv2.jpg",
+     "altText": "Tvättkorgen med locket på, bredvid en tvättmaskin i en tvättstuga"
+    },
+    {
+     "id": "b379ce_7fc2066767984bbf9b7cb860e924ce56~mv2.jpg",
+     "altText": "Tvättkorgen med locket lutat mot sidan och tvätt i korgen, intill ett vitt skåp och en krukväxt"
+    },
+    {
+     "id": "b379ce_81b25a7d801449b6a322ac926cbb2683~mv2.jpg",
+     "altText": "Måttbild: tvättkorgen är 60 cm hög, 60 cm bred och 40 cm djup"
+    }
+   ]
+  }
+ ]
+}
