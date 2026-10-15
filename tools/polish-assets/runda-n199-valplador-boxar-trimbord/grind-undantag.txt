@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan anger måtten utan axelbokstäver (122 x 122 x 60 cm); golvytan är kvadratisk och höjden är 60 cm
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källan anger 58,5L x 81B men bilden och källans måttrad (L 81 x B 59) visar 81 cm bred och 58,5 cm djup
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

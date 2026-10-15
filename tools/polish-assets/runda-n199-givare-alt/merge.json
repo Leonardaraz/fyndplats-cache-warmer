@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "63fd748c",
+  "huvud_fullid": "63fd748c-fd1e-4d78-b248-b8206e06dc44",
+  "givare": "5eeba20a",
+  "givare_fullid": "5eeba20a-38d1-4f02-b83d-f78613c09723",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "6",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "63fd748c": "Svart",
+   "5eeba20a": "Blå"
+  }
+ }
+]
