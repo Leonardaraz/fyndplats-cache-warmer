@@ -1,0 +1,51 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0bd67073": {
+  "tyska": "Ø29,2 x H62,9 cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 62.9
+ },
+ "0f77925e": {
+  "tyska": "170L x 100B x 185H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 185,
+  "bredd": 170,
+  "djup": 100
+ },
+ "10aef14d": {
+  "tyska": "120L x 63B x 73,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 73.5,
+  "bredd": 120,
+  "djup": 63
+ },
+ "3a96e9bb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 131L x 75B x 80H cm | ✔ Abstand zwischen den Beinen: 95L cm | ✔ Abstand der Ablagen: 30H cm, 36H cm | ✔ Stangen für Hantelscheiben: Ø2,5 x 18L cm"
+ },
+ "72300edc": {
+  "tyska": "134L x 108B x 144H cm (mit Griffen und Basketballrückwand)",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 144,
+  "bredd": 134,
+  "djup": 108
+ },
+ "dfbed210": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Dimensionen insgesamt: 152L x 76B x 72H cm | ✔ Dimensionen gefaltet: 76L x 77B x 11,5H cm | Mått: 152L x 76B x 72H cm"
+ },
+ "ec744016": {
+  "tyska": "B53 x T50,5 x H171–230 cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 50.5,
+  "hojd": 171,
+  "bredd": 53
+ }
+}
