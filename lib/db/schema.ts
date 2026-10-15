@@ -86,6 +86,20 @@ export const SYNC_MARKOR_DDL: string[] = [
    )`,
 ];
 
+/**
+ * Bildstädningens karenstid (lib/store/bildstadning-karens.ts): när varje
+ * oanvänd fil först sågs oanvänd. En fil raderas först när den varit oanvänd
+ * i KARENS_DYGN. En rad tas bort så fort filen ses i bruk igen eller raderas.
+ * Skapas vid första användningen.
+ */
+export const KARENS_DDL: string[] = [
+  `create table if not exists bildstadning_karens (
+     fil_id      text primary key,
+     forst_sedd  timestamptz not null,
+     senast_sedd timestamptz not null
+   )`,
+];
+
 const DDL: string[] = [
   // --- Mappningar: 5 470 rader, den största posten -------------------------
   `create table if not exists mappings (
@@ -301,4 +315,7 @@ const DDL: string[] = [
 
   // --- Aosom-synkens markörer (2026-10-13) ---------------------------------
   ...SYNC_MARKOR_DDL,
+
+  // --- Bildstädningens karenstid (2026-10-14) -------------------------------
+  ...KARENS_DDL,
 ];

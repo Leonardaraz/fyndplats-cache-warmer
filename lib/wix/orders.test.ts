@@ -102,6 +102,19 @@ describe("fetchOrders — strict", () => {
     }
   }
 
+  it("statusar ersätter standardfiltret med ett uttryckligt $in", async () => {
+    const kroppar: unknown[] = [];
+    const impl = (async (_url: string, init?: RequestInit) => {
+      kroppar.push(JSON.parse(String(init?.body)));
+      return { ok: true, json: async () => ({ orders: [{ id: "o1" }], metadata: {} }) } as unknown as Response;
+    }) as unknown as typeof fetch;
+    const res = await medFetch(impl, () => fetchOrders("2020-01-01T00:00:00.000Z", { statusar: ["PENDING", "REJECTED"] }));
+    expect(res).toHaveLength(1);
+    expect(kroppar[0]).toMatchObject({
+      search: { filter: { _createdDate: { $gte: "2020-01-01T00:00:00.000Z" }, status: { $in: ["PENDING", "REJECTED"] } } },
+    });
+  });
+
   for (const status of [403, 404]) {
     it(`sväljer ${status} utan strict — panelen ska ändå ladda`, async () => {
       const res = await medFetch(

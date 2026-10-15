@@ -2529,8 +2529,9 @@ Fyra egenskaper som inte ska tas bort:
 4. **Torrkörning är default.** Den säger hur många bilder feeden har.
 
 ⚠️ **Bilder som ingen väljer städas bort av nattens bildstädning** (03:50 UTC),
-eftersom de bär en leverantörsadress i `sourceUrl`. En vald bild måste alltså
-sitta på sin produkt före nästa städning. En omkörning laddar upp på nytt.
+eftersom de bär en leverantörsadress i `sourceUrl`. Sedan 2026-10-14 först när
+de varit oanvända i tre dygn (karenstiden), så en vald bild måste sitta på sin
+produkt inom tre dygn. En omkörning laddar upp på nytt.
 
 ☠️ **Utfallet, uppmätt 2026-09-30: position 4–7 är nästan aldrig rena.** Alla 184
 bilder på de 46 sidorna med två bilder granskades. 181 var tyska säljgrafiker
@@ -2644,7 +2645,8 @@ Fyra egenskaper som inte ska tas bort:
    med options + variantsInfo ordagrant och `visible`, sedan återläsning), kräver
    planens sha och stannar vid första sida som inte läser tillbaka.
 4. ☠️ **Svaret bär bara Wix egna id och adresser.** Godkända kandidater måste skrivas
-   före bildstädningen 03:50 UTC.
+   inom karenstiden, tre dygn efter att bildstädningen (03:50 UTC) först såg dem
+   oanvända.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -2896,6 +2898,172 @@ Aosom-raderna kräver källfotona från Aosoms recensionsdata, som bara går att
 hämta i Leonards webbläsare (se *Omgång 5*), och körs med
 `aosom-review-image-restore.yml`.
 
+#### ☠️ Bloggen, reservkatalogen och ordrarna stod inte i listan (2026-10-14)
+
+Leonards fråga: radera alla bilder som inte används till något, varken
+produkter, blogginlägg, recensioner eller annat. Biblioteket hade **44 082
+filer** (alla bilder utom en svg), papperskorgen var tom. En torrkörning av
+den befintliga städningen gav **2 657 oanvända filer, 2,6 GB**.
+
+Den torrkörningen gick inte att lita på, för referenslistan saknade två läsare
+till:
+
+| läsare | id | källor, uppmätt i biblioteket |
+|---|--:|---|
+| butikens blogg (`content/blog/*.md`) | 215 | 61 Aosom-importer, 122 med Wix-källa, 9 kort |
+| reservkatalogen (`products.json`) | 2 399 | stickprov 40: 11 med Wix-källa |
+| variantbilderna (`data/variant-images.json`) | 749 | stickprov 30: alla AE-importer |
+| ordrarnas varubilder (90 ordrar) | 83 | 25 Aosom-importer, 41 med Wix-källa, 6 kort |
+
+Ingen av dem behöver sitta på en produkt. En bloggbild vars produkt fått nya
+bilder, eller en vara vars order kunden fortfarande läser, hade raderats.
+
+Två nya obligatoriska deps i `lib/aosom/media-cleanup.ts`, med samma hållning
+som recensionerna: ett läsfel fäller körningen.
+
+1. ☠️ **`listaButikensBilder`** läser butikens `/api/media-referenser`
+   (`lib/wix/butikens-media.ts`). Butiken bygger listan vid varje deploy ur
+   sina källfiler (`lib/media-referenser.ts` på headless-site), så en bild som
+   läggs i ett nytt blogginlägg står i listan utan att någon behöver komma
+   ihåg den. Golv per källa på båda sidor (blogg 100, reservkatalog 1 000,
+   data 300, kod 1, totalt 1 000), annars 503 från butiken och ett avbrott
+   här. Per källa, för att reservkatalogen ensam bär totalen.
+2. **`listaOrderbilder`**: alla ordrar, varje Wix-id i orderns JSON
+   (`lineItems[].image` är ett objekt med `id` och `url`). Search Orders
+   lämnar ute PENDING och REJECTED om de inte efterfrågas, så de läses i ett
+   eget anrop (`statusar` i `fetchOrders`).
+
+☠️ **Läsare som kan svara tomt utan att kasta har golv i produktion:**
+recensionerna minst 1 000 bildadresser (3 592 uppmätta 2026-10-06; fel
+`REVIEWS_BACKEND` hade gett den tömda Wix-kollektionen och `[]`) och ordrarna
+minst 40 (83 uppmätta 2026-10-14). Golven ligger i `liveDeps`, inte i
+planeringen, så testerna kan fortfarande pröva en tom läsare.
+
+☠️ **Butiken måste deployas FÖRE motorn.** Utan butikens lista avbryts även
+nattens städning, vilket är rätt håll att fela åt men ger ett rött jobb.
+
+**Läget `omfang=allt`** (rutten, och workflowen **"Bilder — radera oanvända
+bilder i hela mediabiblioteket"**, `bildstadning.yml`, `torr` · `radera`) tar
+också poleringens utsnitt och kort. Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Bara filer som varken skapats eller ändrats på `minAlderDagar`**
+   (standard 14, minst 7, och spärren ligger i `runMediaCleanup`, inte bara i
+   rutten). Andra sessioner laddar upp kandidater, utsnitt och kort som sätts
+   på produkten först efter granskning; tre sådana uppladdningar kom medan
+   mätningen pågick.
+2. ☠️ **Aldrig en fil utan källadress eller med okänd källa** (`ingen-kalla`,
+   `wix-annan`, `annan-kalla` i `Filklass`). Wix kan inte svara på var en fil
+   används, och logotypen, delningsbilden och kundernas egna
+   recensionsbilder ligger i de klasserna. De räknas i svaret men rörs inte.
+3. **Bara id på den vanliga formen** (`raderbartId` i `lib/wix/media-idn.ts`).
+   Butikens mönster är bredare och fångar varje sådant id, så ett id som
+   butikens lista kan missa raderas aldrig. Kort räknas bara som våra när de
+   kommer ur vårt eget repo; en bloggbild var AI-genererad via Wix
+   (`wixmp…/GoogleAiProxy/Gemini`) och ligger i `annan-kalla`.
+4. ☠️ **`radera` kräver `hogst`, och golven kontrolleras i motorn FÖRE
+   raderingen.** Workflowen börjar med ett torrt förflygningsanrop. Svarar
+   rutten utan `omfang: "allt"` är den nya koden inte i produktion, och då
+   raderas ingenting. Annars skickas 95 % av varje läsares antal som `golv`
+   i varje anrop, och `runMediaCleanup` avbryter efter läsningen men innan
+   listningen. En kontroll i workflowen efter anropet hade kommit för sent:
+   då var fönstret redan raderat (granskningen 2026-10-14). Taket räknar
+   också misslyckade skopor, och raderingen gör inga nya försök efter ett
+   nätverksfel, eftersom skopan kan vara raderad fast svaret aldrig kom fram.
+
+☠️ **Ett fönster som aldrig hann börja är ett fel.** Läsarna kan äta upp
+listningens tidsbudget, och då kommer inga filer och samma markör tillbaka.
+Utan spärren hade det sett ut som ett genomgånget bibliotek utan något att
+radera.
+
+Nattens läge (`aosom`) raderar samma filer som förut, men med de nya läsarna.
+
+#### ☠️ Granskningen före första körningen: varianterna och en karenstid (2026-10-14)
+
+Tre oberoende granskningar samma kväll, innan något raderats. De hittade ingen
+väg där en fil som någon av läsarna ser raderas, men fem hål runt läsarna:
+
+1. ☠️ **Varianternas egna bilder.** Varukorgen, Wix-kassan och ordern visar
+   `variantsInfo.variants[].media` (se *Variantens bild följer bara valet*),
+   och den kan peka på en fil som inte längre står i galleriet. Produktsökningen
+   bär inga varianter. **`listaVariantbilder`** läser dem ur Read-Only Variants
+   API (`POST /stores/v3/products/query-variants`, 1 000 per sida, med markör
+   och utan filter; uppmätt 2026-10-14 att `media.id` följer med, även för
+   dolda produkter). Obligatorisk, golv 1 000.
+2. ☠️ **Karenstid, tre dygn** (`lib/store/bildstadning-karens.ts`, tabellen
+   `bildstadning_karens`). En fil raderas först när den varit oanvänd i tre
+   dygn, sett av två körningar. Googles flöde serveras upp till ett dygn
+   gammalt, kategorisidorna cachas en timme och påminnelsemejlen om en
+   övergiven varukorg bär bilden från när varan lades i korgen, upp till 72
+   timmar senare. Utan karensen hade en fil som togs bort ur ett galleri i dag
+   kunnat raderas i natt och synts som död bild i alla tre. Den stänger också
+   glappet i nattens läge, där en import laddar upp bilderna sekunder innan
+   produkten skapas. Varje körning antecknar, även torrkörningen; en fil som
+   ses i bruk glöms, och klockan börjar om när den blir oanvänd igen. Faller
+   bokföringen raderas ingenting. Svaret bär `mogna` (raderbara nu) och
+   `iKarens`, och workflowens `hogst` ska vara torrkörningens `mogna`.
+3. **Läsarna som kunde svara halvt utan att kasta.** Produktsvepet stäms av mot
+   katalogens räknare (`countProducts`, högst fem färre, samma regel som
+   raderingen av pensionerade utkast) och kastar vid sidtaket. Kategoriläsaren
+   kräver minst 50 lästa KATEGORIER, inte bilder: bara All Products bar en bild
+   2026-10-14. Färgbildstabellen har golv 100. Workflowens golv är 95 % men
+   minst 1 för en läsare som gav något.
+4. **Smalare klasser.** En Wix-kopia måste ha källa i vårt eget bibliotek
+   (ägarprefixet `b379ce_` före understrecket); Wix gratisbilder (`11062b_`)
+   och mallens bilder (`22e53e_`) bär samma namnsignatur men kan sitta på Wix
+   egna sidor. `wix-utsnitt` är bara `/v1/crop/`: butiken visar sina bilder
+   som fill- och fit-adresser, och en fil hämtad från en sådan kan vara
+   hämtad för hand.
+5. **Workflowen** pausar tio sekunder mellan anropen (varje anrop läser ~65
+   produktsidor och upp till 60 filsidor mot samma värd), redigerar felraderna
+   som import-workflowen gör, och räknar klasstabellen per pass i stället för
+   summerat över passen. Rutten avvisar ett `limit` som inte är ett positivt
+   heltal: `limit=0.5` blev förr 0, alltså obegränsat.
+
+6. **Den egna dubbelkollen samma kväll** hittade två saker till. Karenstabellen
+   jämförs i varje körning i SIN HELHET med det läsarna använder, inte bara med
+   fönstrets filer: gamla filer ligger utanför nattens fönster och ses annars
+   bara vid en full genomgång, så en fil som tagits i bruk och släppts igen
+   däremellan hade behållit sin gamla tid. Tabellen nycklas på samma nyckel som
+   jämförelsen (`karensNyckel`: adressens id-del, gemener). Och liveDeps vägrar
+   köra när `WIX_SITE_ID` och butikens sajt pekar isär
+   (`kontrolleraSammaSajt`), för då läser ordrarna en annan butik än filerna.
+   Fönstret är 40 sidor (4 000 filer), inte 60, och produktsvepet pausar 250 ms
+   mellan sidorna: läsarna kostar nu ~80–100 anrop mot samma värd innan
+   listningen börjar, och 40 håller ett anrop kring de ~125 sidor i rad som
+   torrkörningen 2026-10-14 klarade.
+7. **En fjärde granskning av rättningen** gav fem saker till, alla lagade:
+   - Ett svar från katalogens räknare utan antal blir 0 i `countProducts`. Det
+     fäller nu körningen (minst 500), i stället för att stänga av avstämningen
+     (`kontrolleraProduktsvep`).
+   - Variantläsaren fäller `hasNext` utan markör. Den kräver också varianter
+     från minst hälften av katalogens produkter: en enda sida täcker långt
+     färre, och utan behörighet för dolda produkter saknas utkasten (~40 %).
+   - Ett crop-utsnitt måste också komma ur vårt eget bibliotek.
+   - Kategorierna ingår inte i workflowens golv. Bara en kategori bar en bild,
+     och tas den bort mitt i körningen hade varje anrop fallit.
+   - Felraderna skrivs ut även när ingen skopa föll. En fallen bokföring efter
+     raderingen syns bara där. `limit=0` är "inget tak" i en torrkörning, som
+     import-workflowens `bildstadning-torr` skickar, men 400 i en skarp körning.
+
+Kvar och känt, medvetet:
+
+- Läser en körning gammal kod (en återställd deploy mitt i workflowen) märks
+  det först efter anropet, högst `hogst` filer.
+- **Inlägg i Wix Blog** som saknar en lokal markdown-fil visas av butiken
+  (`lib/blog.ts` på headless-site) med sitt omslag, och ingen läsare ser dem.
+  Inga sådana visas 2026-10-14 (alla sju har lokala ersättare). Ett omslag som
+  laddats upp i Wix-editorn saknar källadress och raderas aldrig; bara en
+  importerad produktbild vald som omslag kan träffas. En läsare för Wix Blog
+  kräver blogg-behörighet på motorns nyckel, som inte är verifierad.
+- **Bilder inuti produktbeskrivningar** läses inte (beskrivningen är 3–4 kB per
+  produkt). Ingen av de 406 sparade produktsidorna hade någon 2026-10-14.
+- Mejl som redan skickats (påminnelser om varukorg efter 72 timmar,
+  bevakningsmejl) kan visa en bild som raderats efter karenstiden.
+- Karenstiden betyder "oanvänd vid varje körning som tittade under minst tre
+  dygn", inte tre dygn i sträck i realtid. En fil som tas i bruk och släpps
+  igen mellan två nattkörningar syns inte som i bruk, och dess gamla tid står
+  kvar.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
@@ -2907,7 +3075,7 @@ som ser likadana ut i ett felmeddelande men inte är samma sak:
 | **Edge-strypningen** | en **HTML-sida** efter ~150 sidor | ingenting inom ruttens 300 s |
 
 Den andra är strukturell: **58 160 filer går inte att lista i ETT anrop**, hur
-tålmodigt det än görs. Listningen är därför FÖNSTRAD — 60 sidor per körning,
+tålmodigt det än görs. Listningen är därför FÖNSTRAD — 50 sidor per körning (60 före 2026-10-14),
 markör i svaret (`cursor` → `?after=`). Samma mönster som svepet och bildfixen,
 och av samma skäl.
 
