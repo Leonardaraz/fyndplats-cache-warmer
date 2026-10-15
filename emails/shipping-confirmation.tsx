@@ -154,11 +154,11 @@ export default function ShippingConfirmationEmail({
       ) : null}
 
       <Text style={{ ...text.muted, marginTop: "20px" }}>
-        Tracking-statusen uppdateras automatiskt på{" "}
+        Spårningen uppdateras automatiskt på{" "}
         <Link href={`${BRAND.siteUrl}/sparning`} style={{ color: BRAND.orange2 }}>
           fyndplats.se/sparning
-        </Link>{" "}
-        – det kan dröja 1–2 dagar innan första skanningen syns.
+        </Link>
+        . Det kan dröja 1–2 dagar innan första skanningen syns.
       </Text>
     </EmailShell>
   );

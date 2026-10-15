@@ -40,6 +40,8 @@ import { fanoutToCacheWarmer, shouldFanoutToCacheWarmer } from "@/lib/webhook-fa
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
+import { betalningstext } from "@/lib/order-betalning";
+import { landnamn } from "@/lib/landnamn";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
@@ -418,7 +420,7 @@ function extractShippingAddress(order: Record<string, unknown>) {
     addressLine: firstStr(addr?.addressLine as string, addr?.addressLine1 as string, addr?.streetAddress as string),
     city: firstStr(addr?.city as string),
     postalCode: firstStr(addr?.postalCode as string, addr?.zipCode as string),
-    country: firstStr(addr?.country as string, addr?.countryFullname as string),
+    country: landnamn(addr?.country as string | undefined, addr?.countryFullname as string | undefined),
   };
 }
 
@@ -456,7 +458,8 @@ export function buildOrderConfirmationProps(order: Record<string, unknown>): Ord
     total,
     currency,
     shippingAddress: extractShippingAddress(order),
-    paymentMethod: payment,
+    // En obetald fakturaorder har inget betalsätt i Wix (lib/order-betalning.ts).
+    paymentMethod: betalningstext(order, payment),
     orderUrl: undefined,
   };
 }
