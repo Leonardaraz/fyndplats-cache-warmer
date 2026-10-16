@@ -18,7 +18,7 @@
 
 import { Resend } from "resend";
 import { render } from "@react-email/render";
-import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
+import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
 import { claimDeliveryNotification, redanSkickad, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import { läsOrderPaket, markeraLevererad } from "@/lib/delivery-order";
 import { reviewFormUrl } from "@/lib/review-token";
@@ -155,7 +155,8 @@ export async function sendDeliveryNotification(args: {
     // Spåra-knapp bara för "på väg" (meningslös efter levererat).
     trackingNumber: status === "delivered" ? undefined : trackingNumber,
     // Flera paket kan ha gått med olika bud; då står inget bud i mejlet.
-    carrier: flera ? undefined : maskCarrierOrUndefined(args.rawCarrier),
+    // Samma ord som /sparning och fraktmejlet (transportorText).
+    carrier: flera ? undefined : transportorText(trackingNumber, maskCarrierOrUndefined(args.rawCarrier)),
     flera,
   };
 

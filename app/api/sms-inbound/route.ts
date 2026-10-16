@@ -26,7 +26,7 @@ import { sql } from "@/lib/db";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
-import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
+import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 import type { OrderLineItem } from "@/emails/order-confirmation";
 import { reviewFormUrl } from "@/lib/review-token";
@@ -481,7 +481,9 @@ export async function POST(req: NextRequest) {
     // kundmejlet och röjt dropship-ursprunget. maskCarrierOrUndefined släpper
     // bara igenom allowlistade EU-bud; Cainiao/AliExpress → undefined (dold rad).
     // Samma fail-safe-maskering som 17TRACK-push-webhooken använder.
-    carrier: maskCarrierOrUndefined(parsed.carrier),
+    // transportorText ger samma ord som /sparning och fraktmejlet: ett sms
+    // från PostNord om ett DPD-paket blir "DPD, delas ut av PostNord i Sverige".
+    carrier: transportorText(effectiveTracking, maskCarrierOrUndefined(parsed.carrier)),
   };
 
   try {

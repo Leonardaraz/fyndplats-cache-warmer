@@ -71,20 +71,66 @@ export function maskCarrierOrUndefined(name: string | null | undefined): string 
 }
 
 /**
+ * DPD:s paketnummer: 14 siffror som börjar på 01, verifierat mot riktiga paket
+ * (order 10051, och alla 46 DPD-paket i auditen 2026-10-15). lib/track17.ts bär
+ * samma mönster för 17TRACK-registreringen, och carrier-mask.test.ts fäller om
+ * de två glider isär. Ingen av filerna kan importera den andra: båda laddas av
+ * node --test, som inte löser importer utan filändelse.
+ */
+export const DPD_NUMMER = /^01\d{12}$/;
+
+/**
  * Transportören som numret hör till, och vem som delar ut i Sverige när det är
  * en annan. 17TRACK anger SISTA ledet: ett DHL-paket från Tyskland med nummer
  * på formen "CC145357991DE" (UPU S10, utfärdat av Deutsche Post DHL) står som
  * PostNord, eftersom PostNord delar ut det här. Kunden har fått veta att
  * paketet skickas med DHL, så sidan sa emot fraktmejlet (Leonard 2026-10-01).
+ *
+ * DPD lämnar över till PostNord i Sverige, med samma nummer (Leonard
+ * 2026-10-15). 17TRACK kallar paketen DPD, men 42 av 46 stod som "Postnord" i
+ * Wix, så fraktmejlet sa PostNord och spårningen DPD. Numret avgör nu båda,
+ * utom när källan uttryckligen säger ett annat bud: mönstret är bara prövat på
+ * DPD:s egna paket, och ett GLS- eller DHL-besked väger tyngre än en gissning
+ * på formen.
+ *
+ * Bara ett bud ur listan ovan är ett besked. Källornas neutrala ord säger inget
+ * om vem som kör: AliExpress-källan skriver "Transportör" för "Seller
+ * Shipping …" (lib/ae-source.ts), och maskeringen "Fraktpartner".
  */
 export function transportorForNummer(
   trackingNumber: string,
   carrier: string,
 ): { carrier: string; sistaLed?: string } {
-  if (/^[A-Z]{2}\d{9}DE$/.test(trackingNumber.trim().toUpperCase())) {
-    return carrier && carrier !== "DHL" && carrier !== MASKED_CARRIER
-      ? { carrier: "DHL", sistaLed: carrier }
-      : { carrier: "DHL" };
+  const nummer = trackingNumber.trim().toUpperCase();
+  const bud = maskCarrierOrUndefined(carrier);
+  if (/^[A-Z]{2}\d{9}DE$/.test(nummer)) {
+    return bud && bud !== "DHL" ? { carrier: "DHL", sistaLed: bud } : { carrier: "DHL" };
+  }
+  if (bud === "DPD" || (DPD_NUMMER.test(nummer) && (!bud || bud === "PostNord"))) {
+    return { carrier: "DPD", sistaLed: "PostNord" };
   }
   return { carrier };
+}
+
+/**
+ * "DPD, delas ut av PostNord i Sverige". Samma ord på /sparning och i
+ * kundmejlen, så de två aldrig säger olika saker om samma paket.
+ */
+export function transportorRad(carrier: string, sistaLed?: string): string {
+  return sistaLed ? `${carrier}, delas ut av ${sistaLed} i Sverige` : carrier;
+}
+
+/**
+ * Raden "Transportör: …" i kundmejlen (transportorRad). `carrier` ska redan
+ * vara maskerad (maskCarrierOrUndefined). Saknas den blir det ingen rad, utom
+ * för ett DPD-nummer: numret säger själv vilket fraktbolag det är.
+ */
+export function transportorText(
+  trackingNumber: string | null | undefined,
+  carrier: string | null | undefined,
+): string | undefined {
+  const nummer = (trackingNumber ?? "").trim().toUpperCase();
+  if (!carrier && !DPD_NUMMER.test(nummer)) return undefined;
+  const t = transportorForNummer(nummer, carrier ?? "");
+  return t.carrier ? transportorRad(t.carrier, t.sistaLed) : undefined;
 }

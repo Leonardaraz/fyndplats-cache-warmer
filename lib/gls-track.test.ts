@@ -25,6 +25,8 @@ const SVAR = {
       references: [
         { type: "UNITNO", name: "Parcel number:", value: "00000000001" },
         { type: "GLSREF", name: "DB Schenker Sweden parcel number", value: "0000000000000000001" },
+        { type: "GLSREF", name: "Swedish shipment number", value: "1000000001" },
+        { type: "GLSREF", name: "Origin National Reference in Unicode", value: "900000009" },
         { type: "CUSTREF", name: "Customer's own reference number", value: "REF-PAHITTAD-1" },
       ],
       infos: [{ type: "WEIGHT", name: "Weight:", value: "12.3 kg" }],
@@ -66,14 +68,16 @@ test("hela resan tolkas, nyast först, på svenska", () => {
   assert.ok(s);
   assert.equal(s.status, "InTransit");
   assert.equal(s.handelser.length, 4);
+  // GLS lämnar över till DSV i Malmö, så terminalen i Sverige är inte GLS.
   assert.deepEqual(s.handelser[0], {
     tid: "2026-01-14T14:10:00",
     stad: "Malmö",
     land: "SE",
-    beskrivning: "Paketet har kommit till en GLS-terminal.",
+    beskrivning: "Paketet har kommit till en terminal.",
     etikett: "Ankommen till terminal",
     original: "The parcel has reached the parcel center.",
   });
+  assert.equal(s.handelser[1].beskrivning, "Paketet har kommit till en GLS-terminal.");
   assert.equal(s.handelser[2].stad, "Neumünster");
   assert.equal(s.handelser[2].beskrivning, "Paketet har lämnats till GLS.");
   assert.equal(s.handelser[3].stad, "Hamburg");
@@ -113,18 +117,163 @@ test("en okänd text ger null, och anroparen faller tillbaka", () => {
   assert.equal(s.handelser[0].original, "Something new.");
 });
 
-test("☠️ referenser, vikt och postnummer följer aldrig med", () => {
-  const ut = JSON.stringify(tolkaGlsSvar(SVAR));
-  for (const hemligt of ["REF-PAHITTAD-1", "0000000000000000001", "99999", "12.3 kg", "XX01", "00000000001"]) {
+test("☠️ referenser, vikt och postnummer följer aldrig med, bara DSV:s sändnings-id", () => {
+  const s = tolkaGlsSvar(SVAR);
+  const ut = JSON.stringify(s);
+  // Avsändarens ordernummer, avsändarens GLS-kundnummer och kollinumren leder
+  // till leverantören. Prövat genom att läsa alla GLSREF-rader: testet fäller.
+  for (const hemligt of ["REF-PAHITTAD-1", "0000000000000000001", "900000009", "99999", "12.3 kg", "XX01", "00000000001"]) {
     assert.ok(!ut.includes(hemligt), `${hemligt} läckte ut ur tolkningen`);
   }
+  assert.equal(s?.sistaLedNummer, "1000000001");
 });
 
-test("DB Schenker blir sista ledet bara när GLS säger det", () => {
-  assert.equal(tolkaGlsSvar(SVAR)?.sistaLed, "DB Schenker");
+test("DSV blir sista ledet bara när GLS nämner DB Schenker eller DSV", () => {
+  assert.equal(tolkaGlsSvar(SVAR)?.sistaLed, "DSV");
   const utan = structuredClone(SVAR);
   utan.tuStatus[0].references = utan.tuStatus[0].references.filter((r) => !/schenker/i.test(r.name));
-  assert.equal(tolkaGlsSvar(utan)?.sistaLed, undefined);
+  const s = tolkaGlsSvar(utan);
+  assert.equal(s?.sistaLed, undefined);
+  // Sändnings-id:t läses bara för ett DSV-paket.
+  assert.equal(s?.sistaLedNummer, undefined);
+  assert.equal(s?.handelser[0].beskrivning, "Paketet har kommit till en GLS-terminal.");
+
+  // Byter GLS till DSV:s namn i referenserna känns paketet igen ändå.
+  const nyttNamn = structuredClone(SVAR);
+  nyttNamn.tuStatus[0].references = nyttNamn.tuStatus[0].references.map((r) =>
+    ({ ...r, name: r.name.replace(/DB Schenker/i, "DSV") }));
+  const dsv = tolkaGlsSvar(nyttNamn);
+  assert.equal(dsv?.sistaLed, "DSV");
+  assert.equal(dsv?.sistaLedNummer, "1000000001");
+});
+
+test("en svensk terminal är DSV:s, en tysk är GLS", () => {
+  const sv = { partner: "DSV" as const, land: "SE" };
+  const de = { partner: "DSV" as const, land: "DE" };
+  assert.equal(oversattGls("The parcel has reached the parcel center.", sv)?.text, "Paketet har kommit till en terminal.");
+  assert.equal(oversattGls("The parcel has reached the parcel center.", de)?.text, "Paketet har kommit till en GLS-terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.", sv)?.text, "Paketet är på väg till en terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.", de)?.text, "Paketet är på väg till en GLS-terminal.");
+  assert.equal(oversattGls("The parcel is on its way to the parcel center.")?.text, "Paketet är på väg till en GLS-terminal.");
+});
+
+test("☠️ sändnings-id:t läses bara ur sin egen rad, och bara som siffror", () => {
+  const med = (refs: Array<{ type: string; name: string; value: string }>) => {
+    const svar = structuredClone(SVAR);
+    svar.tuStatus[0].references = [
+      { type: "GLSREF", name: "DB Schenker Sweden parcel number", value: "0000000000000000001" },
+      ...refs,
+    ];
+    return tolkaGlsSvar(svar)?.sistaLedNummer;
+  };
+  assert.equal(med([{ type: "GLSREF", name: "Swedish shipment number", value: "1000000001" }]), "1000000001");
+  // Avsändarens egen referens får aldrig läsas, hur den än heter.
+  assert.equal(med([{ type: "CUSTREF", name: "Swedish shipment number", value: "1000000001" }]), undefined);
+  assert.equal(med([{ type: "GLSREF", name: "Swedish shipment number", value: "REF-1000" }]), undefined);
+  assert.equal(med([{ type: "GLSREF", name: "Origin National Reference in Unicode", value: "900000009" }]), undefined);
+  assert.equal(med([]), undefined);
+});
+
+// Ordagranna GLS-texter för ett paket som DSV lämnade hos ett ombud (en
+// handpump, 2026-10-12), i GLS ordning: nyast först. Uppmätt mot DSV:s
+// spårning för samma paket: "Utkörning pågår" till ombudet, "tagits emot av
+// ombudet, invänta avisering", "hämtat ut hos DSV ombud".
+const OMBUD = [
+  ["2026-10-12", "11:16:09", "The parcel has been delivered."],
+  ["2026-10-12", "09:53:52", "The parcel has been delivered at the ParcelShop (see ParcelShop information)."],
+  ["2026-10-12", "09:36:02", "The parcel has reached the ParcelShop."],
+  ["2026-10-12", "09:14:02", "The parcel is expected to be delivered during the day."],
+  ["2026-10-12", "03:10:44", "The parcel has reached the parcel center."],
+  ["2026-10-09", "16:17:40", "The parcel has reached the parcel center."],
+];
+
+function dsvSvar(rader: string[][], statusInfo = "INTRANSIT") {
+  const svar = structuredClone(SVAR);
+  svar.tuStatus[0].history = rader.map(([date, time, evtDscr]) => ({
+    date, time, evtDscr, address: { countryCode: "SE", city: "", countryName: "Sweden" },
+  }));
+  svar.tuStatus[0].progressBar = { statusInfo, retourFlag: false };
+  return svar;
+}
+
+test("☠️ ombudet är DSV:s, och varje steg står på svenska", () => {
+  const s = tolkaGlsSvar(dsvSvar(OMBUD, "DELIVERED"));
+  assert.ok(s);
+  assert.equal(s.satt, "ombud");
+  assert.deepEqual(
+    s.handelser.slice(0, 4).map((h) => [h.etikett, h.beskrivning]),
+    [
+      ["Levererad", "Paketet är hämtat hos DSV-ombudet."],
+      ["Finns för upphämtning", "Paketet finns hos DSV-ombudet. Invänta avin från DSV innan du hämtar det."],
+      ["Hos ombudet", "Paketet har kommit fram till DSV-ombudet."],
+      ["På väg till ombudet", "Paketet är på väg till DSV-ombudet."],
+    ],
+  );
+  // "The parcel has reached the ParcelShop." stod på engelska på /sparning.
+  for (const h of s.handelser) assert.ok(h.beskrivning, `ingen svensk text för: ${h.original}`);
+  assert.ok(!JSON.stringify(s.handelser.map((h) => h.beskrivning)).includes("GLS-ombud"));
+});
+
+test("på väg ut från terminalen lovar inte hemleverans innan ombudet syns", () => {
+  // Paketet har lämnat terminalen men ombudet syns inte än: det kan vara på
+  // väg till ett ombud, så raden säger inte "väntas komma i dag" hem till dig.
+  const s = tolkaGlsSvar(dsvSvar(OMBUD.slice(3), "INDELIVERY"));
+  assert.equal(s?.satt, undefined);
+  assert.deepEqual(
+    [s?.handelser[0].etikett, s?.handelser[0].beskrivning],
+    ["Ute för leverans", "Paketet har lämnat terminalen och kommer fram i dag."],
+  );
+  // Utan DSV är det GLS egen utkörning, som förut.
+  assert.equal(
+    oversattGls("The parcel is expected to be delivered during the day.")?.text,
+    "Paketet är ute för leverans och väntas komma i dag.",
+  );
+});
+
+test("☠️ DSV:s bokning av leveransdag kallas inte 'ligger kvar'", () => {
+  // Ordagrant GLS text för order 10082 (elkamin, 26 kg) kl 05:55 2026-10-15.
+  // DSV:s spårning för samma paket: "Mottagaren aviseras om leverans. Du
+  // kontaktas via SMS, E-post eller telefon för att komma överens om en
+  // leveransdag."
+  const text = "The parcel is stored in the parcel center to be delivered at a new delivery date.";
+  assert.deepEqual(oversattGls(text, { partner: "DSV", land: "SE" }), {
+    text: "DSV kontaktar dig via sms, e-post eller telefon för att boka leveransdag.",
+    etikett: "Leveransen bokas",
+  });
+  // Ett ombudspaket bokas inte, en tysk terminal är inte DSV:s, och utan DSV
+  // gäller GLS egen text.
+  assert.equal(oversattGls(text, { partner: "DSV", ombud: true, land: "SE" })?.etikett, "Ny leveransdag");
+  assert.equal(oversattGls(text, { partner: "DSV", land: "DE" })?.etikett, "Ny leveransdag");
+  assert.equal(oversattGls(text)?.etikett, "Ny leveransdag");
+
+  const s = tolkaGlsSvar(dsvSvar([
+    ["2026-10-15", "05:57:22", "The parcel is stored in the parcel center."],
+    ["2026-10-15", "05:55:44", text],
+    ["2026-10-15", "04:55:10", "The parcel has reached the parcel center."],
+  ]));
+  assert.equal(s?.satt, "bokad");
+  assert.equal(s?.handelser[1].etikett, "Leveransen bokas");
+});
+
+test("rutan och raden säger samma sak om bokningen", () => {
+  // En tysk terminal som håller paketet en dag är ingen bokning hos DSV. Raden
+  // säger "Ny leveransdag", och då får rutan inte säga att DSV bokar.
+  const svar = dsvSvar([
+    ["2026-10-13", "17:47:10", "The parcel is stored in the parcel center to be delivered at a new delivery date."],
+  ]);
+  svar.tuStatus[0].history[0].address.countryCode = "DE";
+  const s = tolkaGlsSvar(svar);
+  assert.equal(s?.handelser[0].etikett, "Ny leveransdag");
+  assert.equal(s?.satt, undefined);
+});
+
+test("ett GLS-ombud utan DSV heter fortfarande GLS-ombud", () => {
+  assert.equal(oversattGls("The parcel has reached the ParcelShop.")?.text, "Paketet har kommit fram till GLS-ombudet.");
+  assert.equal(
+    oversattGls("The parcel has been delivered at the ParcelShop (see ParcelShop information).")?.text,
+    "Paketet finns att hämta hos ett GLS-ombud.",
+  );
+  assert.equal(oversattGls("The parcel has been delivered.", { ombud: true })?.text, "Paketet är hämtat hos GLS-ombudet.");
 });
 
 test("fel postnummer, saknad historik och skräp ger null", () => {

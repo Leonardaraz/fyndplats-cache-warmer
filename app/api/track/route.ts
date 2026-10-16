@@ -31,6 +31,7 @@ import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
 import { fetchGlsSparning } from "@/lib/gls-source";
 import { liknarGlsNummer, type GlsSparning } from "@/lib/gls-track";
+import { dsvLed, sistaLedInfoFor, POSTNORD_SPARNING } from "@/lib/sista-led";
 import { registerWith17Track } from "@/lib/track17";
 
 export const runtime = "nodejs";
@@ -254,6 +255,16 @@ async function gettrackinfo(tn: string, apiKey: string): Promise<Track17Response
 // delad med /api/cron/ae-delivery-poll, som mejlar när AliExpress säger
 // levererat för paket 17TRACK aldrig kände igen. Importeras ovan.
 
+/**
+ * Transportören och sista ledet, med var kunden följer sista biten när den
+ * går att följa (lib/sista-led): PostNord med samma nummer efter DPD och
+ * DHL. DSV efter GLS kommer från GLS egen spårning, i buildGlsBody.
+ */
+function medSistaLed(tn: string, t: { carrier: string; sistaLed?: string }) {
+  const info = sistaLedInfoFor(t.sistaLed, tn);
+  return info ? { ...t, sistaLedInfo: info } : t;
+}
+
 /** Bygger /api/track-svaret ur AliExpress-källan (samma JSON-format som
  *  17TRACK-vägen så TrackingWidget inte ser skillnad på källorna). */
 function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetchAliExpressEvents>>>) {
@@ -262,7 +273,7 @@ function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetch
     status: ae.status,
     delivered: ae.status === "Delivered",
     eta: ae.eta,
-    ...transportorForNummer(tn, ae.carrier || ""),
+    ...medSistaLed(tn, transportorForNummer(tn, ae.carrier || "")),
     trackingNumber: tn,
     updatedAt: ae.events[0]?.time || new Date().toISOString(),
   };
@@ -305,7 +316,9 @@ function buildGlsBody(tn: string, gls: GlsSparning, eta: string | null) {
     delivered: gls.status === "Delivered",
     eta,
     carrier: "GLS",
-    ...(gls.sistaLed ? { sistaLed: gls.sistaLed } : {}),
+    ...(gls.sistaLed === "DSV"
+      ? { sistaLed: gls.sistaLed, sistaLedInfo: dsvLed(gls.sistaLedNummer, gls.satt) }
+      : {}),
     trackingNumber: tn,
     updatedAt: orderEventsNewestFirst(events).find((ev) => ev.time)?.time || new Date().toISOString(),
   };
@@ -315,7 +328,7 @@ function buildGlsBody(tn: string, gls: GlsSparning, eta: string | null) {
  *  kedjan — visas när ingen källa har händelser än, så kunden aldrig är fast. */
 function carrierFallbackLinks(tn: string): Array<{ name: string; url: string }> {
   return [
-    { name: "PostNord", url: `https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=${encodeURIComponent(tn)}` },
+    { name: "PostNord", url: `${POSTNORD_SPARNING}${encodeURIComponent(tn)}` },
     { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${encodeURIComponent(tn)}` },
     { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${encodeURIComponent(tn)}` },
     { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${encodeURIComponent(tn)}` },
@@ -366,7 +379,7 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
       status,
       delivered: status === "Delivered",
       eta,
-      ...transportorForNummer(accepted.number || tn, carrier),
+      ...medSistaLed(accepted.number || tn, transportorForNummer(accepted.number || tn, carrier)),
       trackingNumber: accepted.number || tn,
       updatedAt: latestTime || new Date().toISOString(),
     },
