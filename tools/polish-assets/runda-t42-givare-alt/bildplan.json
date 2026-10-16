@@ -1,0 +1,75 @@
+{
+ "runda": "runda-t42-givare-alt",
+ "produkter": [
+  {
+   "kort": "84d0ca90",
+   "pid": "84d0ca90-000a-426d-91ef-f3ce0708bd7a",
+   "media": [
+    {
+     "id": "b379ce_cc18661d389741ac9f073501f6dfcce6~mv2.jpg",
+     "altText": "Rektangulär spegel med svart ram, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_150869df856040eb81e4eb777767c16b~mv2.jpg",
+     "altText": "Spegeln med svart ram på en ljus vägg ovanför ett vitt handfat med tvål och hudvårdsflaskor, bredvid en handdukstrappa och en palm"
+    },
+    {
+     "id": "b379ce_9ee943fdddc74bda84614818f938a2fb~mv2.jpg",
+     "altText": "Spegeln med svart ram på en vit vägg ovanför en liten byrå med smink, bredvid en vit stol och en grön vägg"
+    },
+    {
+     "id": "b379ce_e50ca25a9b8b43f383805ff35bcb94c5~mv2.jpg",
+     "altText": "Spegeln med svart ram på en ljus vägg ovanför ett vägghängt skrivbord med en stol, en stor växt och torkade blommor"
+    },
+    {
+     "id": "b379ce_4bb9282a13b546b09ac5b305782bf7b0~mv2.jpg",
+     "altText": "Måttbild: spegeln med svart ram mäter 60 × 80 cm och är 2 cm djup"
+    }
+   ]
+  },
+  {
+   "kort": "fb06a304",
+   "pid": "fb06a304-b6b7-4b8c-8b49-6fb38208a629",
+   "media": [
+    {
+     "id": "b379ce_26398807d8234b8a9e782ddcca9014fb~mv2.jpg",
+     "altText": "Svart hundgrind med tre paneler och stödfötter, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_83f6a9243c16455c8e76f6660fdabe52~mv2.jpg",
+     "altText": "Den svarta hundgrinden i en dörröppning till ett kök, med en beagle som ligger framför och ett fönster med persienn bakom"
+    },
+    {
+     "id": "b379ce_e5251c6023194ceeb469ea257499817b~mv2.jpg",
+     "altText": "Närbild på en svart panel med den välvda överkanten och de lodräta spjälorna, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "kort": "c867663e",
+   "pid": "c867663e-51fd-4c3e-bb6c-aa0f9391b924",
+   "media": [
+    {
+     "id": "b379ce_ab17c7048b1a4c209caca55ea7a241fc~mv2.jpg",
+     "altText": "Tolv skumklossar i grått, turkos, blått, grönt, lila och orange staplade i en pyramid, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_678367d6599447678900e3a6b2d51630~mv2.jpg",
+     "altText": "Två småbarn bygger med skumklossarna i ett rum med en beige vägg, en matta med mönster och en växt"
+    },
+    {
+     "id": "b379ce_5effadda05f341269c1be77760fdaae9~mv2.jpg",
+     "altText": "Närbild på en grön, en turkos och en grå skumkloss med söm i konstläder, på ett golv"
+    },
+    {
+     "id": "b379ce_c9a5369314d14a99a4b71849103d6789~mv2.jpg",
+     "altText": "Närbild på en grå skumkloss ovanpå blå, gröna och orange klossar, med böcker i bakgrunden"
+    },
+    {
+     "id": "b379ce_e4931340814d4a109b3c0645875bbe04~mv2.jpg",
+     "altText": "Måttbild: varje kub är 20 cm bred, 20 cm djup och 20 cm hög"
+    }
+   ]
+  }
+ ]
+}
