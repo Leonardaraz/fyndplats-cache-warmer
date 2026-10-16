@@ -1,0 +1,112 @@
+[
+ {
+  "huvud": "7beb7f2b",
+  "huvud_fullid": "7beb7f2b-1828-4a4a-9d25-e28be1deb401",
+  "givare": "eb91e61b",
+  "givare_fullid": "eb91e61b-1e52-4ec6-8eb3-41a392492a51",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "7beb7f2b": "Grön",
+   "eb91e61b": "Vit"
+  }
+ },
+ {
+  "huvud": "a55a2ce7",
+  "huvud_fullid": "a55a2ce7-bffe-4a42-bc91-3578bdd61b16",
+  "givare": "58172082",
+  "givare_fullid": "58172082-a561-49c4-8870-4b6286fcb955",
+  "bilder_efter_bildplan": "1,2",
+  "kallpositioner_i_ordning": [
+   "1",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a55a2ce7": "Grön",
+   "58172082": "Vit"
+  }
+ },
+ {
+  "huvud": "d17733fd",
+  "huvud_fullid": "d17733fd-6ba7-4236-90cc-f223feaf19a6",
+  "givare": "c380d5db",
+  "givare_fullid": "c380d5db-e8a4-4f24-886b-79732cd12df3",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "d17733fd": "Grön",
+   "c380d5db": "Vit"
+  }
+ },
+ {
+  "huvud": "faa2bdb4",
+  "huvud_fullid": "faa2bdb4-dd3f-4639-8ffc-9777ceacd00c",
+  "givare": "b1c149dd",
+  "givare_fullid": "b1c149dd-7f04-4fa7-9b8b-d6a4b3a45fd7",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "faa2bdb4": "Vit",
+   "b1c149dd": "Grön"
+  }
+ },
+ {
+  "huvud": "b729a465",
+  "huvud_fullid": "b729a465-a2f1-4790-81be-b98367b7c6a3",
+  "givare": "bb6580a6",
+  "givare_fullid": "bb6580a6-c534-4c81-aaf0-48bedefa7eac",
+  "bilder_efter_bildplan": "1,2,3,4,5,6",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "b729a465": "6 × 10 m",
+   "bb6580a6": "7 × 8 m",
+   "c6a9dfce": "8 × 10 m"
+  }
+ },
+ {
+  "huvud": "b729a465",
+  "huvud_fullid": "b729a465-a2f1-4790-81be-b98367b7c6a3",
+  "givare": "c6a9dfce",
+  "givare_fullid": "c6a9dfce-e2cf-4464-8acd-7a453cafe47c",
+  "bilder_efter_bildplan": "1,2,3,4,5,6",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "b729a465": "6 × 10 m",
+   "bb6580a6": "7 × 8 m",
+   "c6a9dfce": "8 × 10 m"
+  }
+ }
+]
