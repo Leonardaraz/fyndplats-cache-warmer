@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "4b49e851": {
+  "tyska": "B50 x L97 x H44,5–56,5 cm",
+  "svenska": "B50 x L97 x H44,5–56,5 cm",
+  "bokstaver": "BLH",
+  "hojd": 44.5,
+  "bredd": 50,
+  "djup": 97
+ },
+ "f6ff9aba": {
+  "tyska": "",
+  "svenska": "80 x 100 x 106 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen (aufrecht): 80B x 100T x 106H cm | ✔ Gesamtabmessungen (angehoben): 80B x 80T x 138H cm | ✔ Gesamtabmessungen (zurückgelehnt): 80B x 166T x 85H cm | ✔ Sitzgröße: 52B x 54T cm | ✔ Rückenlehne Größe: 73B x 65L cm | ✔ Armlehne Größe: 47L x 13B cm | ✔ Seitentasche Größe: 69B x 20L cm"
+ }
+}
