@@ -1,0 +1,40 @@
+[
+ {
+  "huvud": "1a8c63b2",
+  "huvud_fullid": "1a8c63b2-5608-48dd-978b-faa0837e2a74",
+  "givare": "18b0e9fb",
+  "givare_fullid": "18b0e9fb-f808-49e8-a129-aadf735a24b1",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1a8c63b2": "",
+   "18b0e9fb": "Röd och silver"
+  }
+ },
+ {
+  "huvud": "15ac79a7",
+  "huvud_fullid": "15ac79a7-76c4-4f39-a53d-0ce09f4b4160",
+  "givare": "3694168e",
+  "givare_fullid": "3694168e-899c-4220-a41f-45dbf04de815",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "15ac79a7": "Ljusgrön",
+   "3694168e": "Ljusblå"
+  }
+ }
+]
