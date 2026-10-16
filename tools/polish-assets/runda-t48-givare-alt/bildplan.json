@@ -1,0 +1,33 @@
+{
+ "runda": "runda-t48-givare-alt",
+ "produkter": [
+  {
+   "kort": "28d7dfd9",
+   "pid": "28d7dfd9-4869-4949-a9db-e2ebe5039aab",
+   "media": [
+    {
+     "id": "b379ce_0aea2da288f84898bd5ed97a05e6eaad~mv2.jpg",
+     "altText": "En pojke med hjälm och ryggsäck står bakom den ljusblå sparkcykeln med luftdäck och sträcker upp tummen, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_57aebbef726b422b9dfca171e74e05c9~mv2.jpg",
+     "altText": "En pojke står bredvid den ljusblå sparkcykeln vid ett vattendrag med hus i bakgrunden under en blå himmel"
+    }
+   ]
+  },
+  {
+   "kort": "aef9a8d9",
+   "pid": "aef9a8d9-9d44-41f5-aecc-33ddbfb4375b",
+   "media": [
+    {
+     "id": "b379ce_0cc7f64edf514185bffb84d2affcd6ae~mv2.jpg",
+     "altText": "En pojke med hjälm, ryggsäck och skydd står bakom den gröna sparkcykeln med luftdäck och sträcker upp tummen, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_110e72fcadf543e093437e5f95476b33~mv2.jpg",
+     "altText": "Den gröna sparkcykeln med luftdäck och utfällt stödben på en asfaltsväg vid en gräskant"
+    }
+   ]
+  }
+ ]
+}
