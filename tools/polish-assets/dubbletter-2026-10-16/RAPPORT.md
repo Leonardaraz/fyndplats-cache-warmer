@@ -17,6 +17,20 @@ Min lokala dubblettkoll jämförde varje ny sida bara med sidor jag hade i en lo
 
 **Vilken sida som behålls** (förslag): den med flest omdömen, vid lika den som skapades först. Den andra döljs och får 301 till den behållna. Där båda har omdömen kopieras den döljda sidans omdömen över.
 
+## Tillägg: fem av sidorna är pensionerade utkast
+
+Efter den första versionen visade en kontroll av rundornas sidor mot motorns GPSR-rutt och mappningen att fem av de publicerade sidorna är utkast som redan var pensionerade som dubbletter. De saknar artikelnummer i mappningen (kontrollerat med det krypterade leverantörslänkverktyget), Aosom-synken har inte rört dem sedan 2026-08-31 respektive 2026-10-06, 2026-10-10 och 2026-10-11, så saldot är gammalt, och fliken Produktsäkerhet saknar tillverkare och ansvarig i EU. Ingen order finns på någon av dem.
+
+| Pensionerad och publicerad | Dubblett av (behålls) |
+|---|---|
+| `781c2837` (N210) | `0d09a845` |
+| `aa926303` (N204) | `6ae821eb` |
+| `989dbf87` (N248) | `479f7291` |
+| `fefd7223` (N213) | `f9c6992d` |
+| `f65d68e2` (N214) | `2c1d652d` |
+
+De tre första ligger redan i tabellerna nedan. De två sista, hexhantlarna, missades av sökningen och är tillagda i `par.tsv` (klass `DUP`), vilket gör 34 exakta dubbletter. Se `tools/polish-gates/FLAGGADE.md`, Lärdomar N181–N258 (2).
+
 ## A. Exakta dubbletter
 
 | Behåll | Pris | Omd. | Dölj + 301 | Pris | Omd. |
