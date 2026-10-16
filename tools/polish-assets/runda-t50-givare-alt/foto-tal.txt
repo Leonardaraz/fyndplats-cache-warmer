@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6cd86ce8 35 fönstrets mått 35 × 35 cm på måttbilden

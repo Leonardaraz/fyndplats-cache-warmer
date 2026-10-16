@@ -1,0 +1,43 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "33cde470": {
+  "tyska": "102L x 73B x 60H cm (Sofa), 102L x 173B x 11H cm (Bett)",
+  "svenska": "102 × 73 × 60 cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 60,
+  "bredd": 102,
+  "djup": 73
+ },
+ "6cd86ce8": {
+  "tyska": "",
+  "svenska": "200 × 76 × 150/168 cm (bredd × djup × höjd)",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe: 200L x 76B x 150/168H cm | ✔ Türgröße: 120B x 145H cm"
+ },
+ "c841717c": {
+  "tyska": "61,9L x 36,6B x 43,2H cm",
+  "svenska": "61,9 × 36,6 × 43,2 cm (45 liter), 61,9 × 36,6 × 56,7 cm (60 liter)",
+  "bokstaver": "LBH",
+  "hojd": 43.2,
+  "bredd": 61.9,
+  "djup": 36.6
+ },
+ "d348bf64": {
+  "tyska": "Ø35 x 72-84H cm",
+  "svenska": "Ø 35 × 72–84 cm (sits × höjd)",
+  "bokstaver": "H",
+  "hojd": [
+   72,
+   84
+  ]
+ },
+ "f3616423": {
+  "tyska": "",
+  "svenska": "21cm x 22,5cm x 88,5cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 88,5H x 21B x 22,5T cm | ✔ Regalgröße: 12,5H x 17,5L x 17B cm"
+ },
+ "f9de10ab": {
+  "tyska": "",
+  "svenska": "68L x 33B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 68L x 33B x 75H cm | ✔ Schublade: 51,1L x 29,2B x 10,5H cm"
+ }
+}

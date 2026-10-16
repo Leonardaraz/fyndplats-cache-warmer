@@ -1,0 +1,113 @@
+[
+ {
+  "huvud": "c841717c",
+  "huvud_fullid": "c841717c-a5ab-49ba-9efc-6e7c5df7de4b",
+  "givare": "e59f2c5d",
+  "givare_fullid": "e59f2c5d-f478-4a68-a3ba-5335d4095864",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "c841717c": "",
+   "e59f2c5d": "Silver"
+  }
+ },
+ {
+  "huvud": "6cd86ce8",
+  "huvud_fullid": "6cd86ce8-0a73-4d83-9744-f9069d929275",
+  "givare": "71826ab8",
+  "givare_fullid": "71826ab8-99dc-40be-a5cc-26e20a88fcb9",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6cd86ce8": "Vit",
+   "71826ab8": "Grön"
+  }
+ },
+ {
+  "huvud": "d348bf64",
+  "huvud_fullid": "d348bf64-de3b-45f2-90d1-4690a4bbf81d",
+  "givare": "516f7c81",
+  "givare_fullid": "516f7c81-19b8-4a7d-9896-01ad309fb431",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "d348bf64": "",
+   "516f7c81": "Grå"
+  }
+ },
+ {
+  "huvud": "33cde470",
+  "huvud_fullid": "33cde470-3dae-4f98-8734-7501ad72e7c1",
+  "givare": "662a3683",
+  "givare_fullid": "662a3683-a28e-4c47-b1e8-ad1733582551",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "33cde470": "",
+   "662a3683": "Blå"
+  }
+ },
+ {
+  "huvud": "f9de10ab",
+  "huvud_fullid": "f9de10ab-a9e5-49da-8e96-14ee1b5dd3b6",
+  "givare": "a52f3cb7",
+  "givare_fullid": "a52f3cb7-9921-4796-9e69-9b931927a578",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "f9de10ab": "Svart",
+   "a52f3cb7": "Svart och röd"
+  }
+ },
+ {
+  "huvud": "f3616423",
+  "huvud_fullid": "f3616423-92ec-45bc-9d6f-a54a89b8b9db",
+  "givare": "644f1c50",
+  "givare_fullid": "644f1c50-ce04-4eca-b004-36b6d467e6ba",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "f3616423": "Ek",
+   "644f1c50": "Vit"
+  }
+ }
+]
