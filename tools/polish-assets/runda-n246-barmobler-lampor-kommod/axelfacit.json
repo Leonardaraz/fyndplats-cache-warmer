@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "05652710": {
+  "tyska": "26L x 26B x 160H cm",
+  "svenska": "L26 x B26 x H160 cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 26,
+  "djup": 26
+ },
+ "3393a208": {
+  "tyska": "80L x 50B x 90H cm (Tisch), Ø30 x 60H cm (Hocker)",
+  "svenska": "80B x 50T x 90H cm",
+  "bokstaver": "LBHH",
+  "hojd": 90,
+  "bredd": 80,
+  "djup": 50
+ },
+ "55f4c0d9": {
+  "tyska": "120B x 41T x 48H cm",
+  "svenska": "120 x 41 x 48 cm",
+  "bokstaver": "BTH",
+  "djup": 41,
+  "hojd": 48,
+  "bredd": 120
+ },
+ "7b56d280": {
+  "tyska": "",
+  "svenska": "79L x 29B x 101H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 79B x 29T x 101H cm | ✔ Oberes Regal: 76B x 27,5T cm | ✔ Mittleres Regal: 76B x 27,5T x 21H cm | ✔ Schubladeninnenmaß: 36,5B x 28T x 19,5H cm"
+ },
+ "7fd5f45c": {
+  "tyska": "",
+  "svenska": "60L x 60B x 69-91H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 60L x 60B x 69-91H cm | ✔ Abmessungen: 60L x 60B x 69-93H cm"
+ },
+ "9d1857f6": {
+  "tyska": "47L x 52B x 87-83H cm",
+  "svenska": "52L x 47B x 109H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   87,
+   83
+  ],
+  "bredd": 47,
+  "djup": 52
+ },
+ "d8b45bf1": {
+  "tyska": "43L x 39,5B x 162H cm",
+  "svenska": "1 x Stehleuchte",
+  "bokstaver": "LBH",
+  "hojd": 162,
+  "bredd": 43,
+  "djup": 39.5
+ },
+ "e4beca3e": {
+  "tyska": "106L x 30B x 81,2H cm",
+  "svenska": "106L x 30B x 81,2H cm",
+  "bokstaver": "LBH",
+  "hojd": 81.2,
+  "bredd": 106,
+  "djup": 30
+ }
+}
