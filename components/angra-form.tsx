@@ -183,8 +183,9 @@ export default function AngraForm() {
         )}
         <p>
           Ett <strong>mottagningskvitto</strong> är på väg till <strong>{doneEmail}</strong> med
-          returadress och nästa steg. Kvittot bekräftar att vi tagit emot din ångran — vi
-          behandlar ärendet och återkommer.
+          nästa steg. Returadressen står i kvittot, eller så mejlar vi den till dig inom 1
+          arbetsdag. Kvittot bekräftar att vi tagit emot din ångran — vi behandlar ärendet och
+          återkommer.
         </p>
         <p className="angra-muted">
           Hittar du inte mejlet? Kolla skräpposten, eller mejla{" "}

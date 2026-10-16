@@ -11,10 +11,11 @@
 // säkerhetsinformation på svenska. Uppgifterna tas fram i motorn
 // (lib/gpsr/ där); butiken visar dem.
 //
-// TILLVERKAREN NÄMNS HÄR OCH BARA HÄR. Regeln att butiken aldrig namnger var
-// vi köper in (lib/leverantor.test.ts) gäller fortfarande överallt annars.
-// Lagen kräver den här uppgiften, och den står redan på kartongen och i
-// bruksanvisningen. Namnet kommer från motorns svar vid körning, aldrig från
+// TILLVERKAREN NÄMNS HÄR, och som mottagare på returadressen i returmejlen
+// (lib/returadress.ts), där paketet annars inte kommer fram. Regeln att butiken
+// aldrig namnger var vi köper in (lib/leverantor.test.ts) gäller fortfarande
+// överallt annars. Lagen kräver den här uppgiften, och den står redan på
+// kartongen och i bruksanvisningen. Namnet kommer från motorns svar vid körning, aldrig från
 // källkoden — därför behöver leverantörsprovet inget undantag. Fliken säger
 // "Tillverkare och ansvarig i EU", aldrig "leverantör", och e-postadressen är
 // text, inte en länk: lagen kräver att den syns, inte att vi skickar kunden dit.

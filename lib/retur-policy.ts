@@ -84,8 +84,40 @@ export const AVGIFT_SENTENCE =
  * vi korta den. Skälet är inte formalia: leverantörsledet har ett eget
  * returfönster som börjar gå långt innan kunden anmäler något, och varje dag
  * paketet ligger stilla äter av det.
+ *
+ * Fristen räknas från att kunden FÅTT RETURADRESSEN, inte från anmälan
+ * (Leonard 2026-10-16). Adressen står i kvittot eller kommer inom 1 arbetsdag,
+ * och kunden ska inte förlora en dag av sju på att vänta på oss.
  */
 export const POSTA_INOM_DAGAR = 7;
+
+/**
+ * Vart returen går. Leonards beslut 2026-10-16: returer går till leverantörens
+ * returlager, inte till oss (lib/returadress.ts). Nästan hela sortimentet har
+ * sitt returlager i Tyskland, och fler leverantörer kommer, därför "inom EU,
+ * för de flesta varor i Tyskland". Inga fraktpriser här: de beror på
+ * transportören, och ett pris i villkoren är ett löfte.
+ */
+export const RETURLAGER =
+  "Returer går till vår leverantörs returlager inom EU, för de flesta varor i Tyskland, så returfrakten blir en utrikesfrakt.";
+
+/**
+ * När kunden får returadressen. Kvittot från ångerfunktionen har den bara när
+ * vi säkert vet vilket returlager varorna ska till (lib/returadress.ts). Mejlar
+ * kunden in sin ånger svarar vi manuellt, så ingen automatisk bekräftelse
+ * utlovas för den vägen.
+ */
+export const RETURADRESS_NAR =
+  "Returadressen får du i mottagningskvittot från vår ångerfunktion, eller i ett mejl från oss inom 1 arbetsdag. Skicka inget innan du har den.";
+
+/**
+ * Vem som bär risken för returpaketet. Köpvillkoren § 7 är den bindande
+ * texten ("Om returpaketet försvinner"); /returer och returmejlen säger samma
+ * sak med den här meningen. Returmejlen sa förut "Fyndplats ansvarar inte för
+ * förlorade returpaket", alltså motsatsen till villkoren.
+ */
+export const RETURRISK =
+  "Kan du visa att paketet lämnats in står Fyndplats för risken om det försvinner på vägen.";
 
 /** Totalen, formulerad så att den inte kan läsas som 14 + 30 = 44 dagar. */
 export const TOTAL_SUMMARY =
@@ -126,9 +158,9 @@ export const VOLUNTARY: Period = {
     "För öppet köp under dag 15–30 ska produkten vara oanvänd, komplett och i säljbart skick.",
     "Originalförpackningen ska finnas kvar när den utgör en del av produkten eller behövs för säker retur.",
     "Anmäl returen skriftligt med ditt ordernummer innan du skickar tillbaka, via vår ångerfunktion eller på info@fyndplats.com.",
-    "Skicka spårbart och meddela oss spårningsnumret — vi behöver det för att kunna behandla återbetalningen.",
+    "Skicka spårbart och meddela oss spårningsnumret — vi behöver det för att anmäla returen till returlagret och för att kunna behandla återbetalningen.",
     "Under dag 15–30 återbetalas produktens pris. Vad du betalat för frakten till dig återbetalas inte, till skillnad från under den lagstadgade ångerfristen.",
-    "Posta returen inom 7 dagar från din anmälan. Under den lagstadgade ångerfristen har du 14 dagar på dig — den fristen rör vi inte — men det frivilliga öppna köpet förutsätter att varan kommer tillbaka medan den fortfarande är säljbar.",
+    "Posta returen inom 7 dagar från att du fått returadressen. Under den lagstadgade ångerfristen har du 14 dagar på dig — den fristen rör vi inte — men det frivilliga öppna köpet förutsätter att varan kommer tillbaka medan den fortfarande är säljbar.",
     "På returer under dag 15–30 drar vi en bearbetningsavgift på 10 % av vad du betalat för produkten. Avgiften gäller aldrig under den lagstadgade ångerfristen dag 1–14.",
     "Är produkten ofullständig eller inte längre i säljbart skick kan vi behöva göra ett avdrag på återbetalningen.",
   ],
@@ -198,7 +230,8 @@ export const REFUND_SENTENCE =
 
 /** Gäller båda perioderna. */
 export const COMMON: string[] = [
-  "Returfrakten betalas av dig som kund. Du bokar själv hos valfri transportör som tar emot varans storlek och vikt — vi rekommenderar spårbar leverans så du har bevis på avsändning.",
+  `Returfrakten betalas av dig som kund. ${RETURLAGER} Du bokar själv hos valfri transportör som tar emot varans storlek och vikt — vi rekommenderar spårbar leverans så du har bevis på avsändning.`,
+  RETURADRESS_NAR,
   "Är varan trasig eller felaktig är det en reklamation, inte en ångran. Då står Fyndplats för returkostnaden.",
   "Vid fel eller transportskada: mejla oss först med ordernummer och foton, och vänta med att skicka tillbaka tills vi hört av oss. Då slipper du lägga ut för en frakt i onödan, och vi kan ofta lösa det snabbare på annat sätt.",
   "Ta emot paketet även om du redan bestämt dig för att ångra köpet, och anmäl returen till oss. Ett paket som vägras i dörren eller lämnas outhämtat blir dyrare att hantera och tar längre tid innan pengarna är tillbaka hos dig.",

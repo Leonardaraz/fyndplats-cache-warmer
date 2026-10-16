@@ -1,23 +1,29 @@
-// Skickas när kund mejlat info@fyndplats.com och anmält en retur. Innehåller
-// returadressen — den får INTE finnas i publik HTML, så den ligger i
-// lib/return-address.ts och renderas endast server-side i mejlet.
+// Skickas för hand när en kund mejlat info@fyndplats.com och anmält en retur.
+// Stegen och returadressen delas med kvittot från ångerfunktionen
+// (emails/_retur.tsx). Returadressen är leverantörens returlager
+// (lib/returadress.ts) och skickas med bara när vi vet vilket returlager
+// varorna ska till. Utan den lovar mejlet att vi mejlar adressen inom 1
+// arbetsdag.
 
-import { Section, Text } from "@react-email/components";
-import { BRAND, EmailShell, block, text } from "./_layout";
-import { RETURN_ADDRESS } from "../lib/return-address";
-import { SKRYMMANDE_RETURKOSTNAD_KORT } from "../lib/retur-frakt";
-import { COMPLAINT_SHORT, REFUND_TIME, AVGIFT_SENTENCE } from "../lib/retur-policy";
+import { Text } from "@react-email/components";
+import { BRAND, EmailShell, text } from "./_layout";
+import { ReturSkicka, ReturSparning } from "./_retur";
+import type { Returadress } from "../lib/returadress";
+import { COMPLAINT_SHORT, REFUND_TIME, AVGIFT_SENTENCE, POSTA_INOM_DAGAR } from "../lib/retur-policy";
 
 export interface ReturnConfirmationProps {
   firstName: string;
   orderNumber: string;
   productName?: string;
+  /** Returlagrets adress, eller null: då lovar mejlet att den kommer inom 1 arbetsdag. */
+  returadress?: Returadress | null;
 }
 
 export default function ReturnConfirmationEmail({
   firstName,
   orderNumber,
   productName,
+  returadress = null,
 }: ReturnConfirmationProps) {
   return (
     <EmailShell preview={`Vi har tagit emot din returanmälan för order ${orderNumber}`}>
@@ -25,24 +31,9 @@ export default function ReturnConfirmationEmail({
       <Text style={text.body}>
         Tack för ditt meddelande! Vi bekräftar att du vill returnera{" "}
         {productName ? <strong>{productName}</strong> : <>din produkt</>} från order{" "}
-        <strong>{orderNumber}</strong>. Nedan hittar du returadressen och nästa steg.
+        <strong>{orderNumber}</strong>. Nedan hittar du{" "}
+        {returadress ? "returadressen och nästa steg" : "nästa steg"}.
       </Text>
-
-      <Text style={text.h2}>Returadress</Text>
-      <Section style={block.card}>
-        <Text
-          style={{
-            fontSize: "15px",
-            fontWeight: 700,
-            color: BRAND.ink,
-            margin: 0,
-            lineHeight: "1.55",
-            whiteSpace: "pre-line",
-          }}
-        >
-          {RETURN_ADDRESS.formatted}
-        </Text>
-      </Section>
 
       <Text style={text.h2}>Så här gör du</Text>
       <Text style={text.body}>
@@ -50,17 +41,8 @@ export default function ReturnConfirmationEmail({
         Lägg med en lapp med ditt ordernummer ({orderNumber}) och namn så vi kan koppla
         returen rätt.
       </Text>
-      <Text style={text.body}>
-        <strong>2. Skicka till returadressen ovan.</strong> Returfrakten betalas av dig
-        som kund — du bokar själv hos valfri transportör som tar emot varans storlek och
-        vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på
-        avsändning. Fyndplats ansvarar inte för förlorade returpaket.
-      </Text>
-      <Text style={text.body}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
-      <Text style={text.body}>
-        <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll
-        på paketet.
-      </Text>
+      <ReturSkicka steg={2} returadress={returadress} />
+      <ReturSparning steg={3} />
 
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
@@ -75,7 +57,8 @@ export default function ReturnConfirmationEmail({
         har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Ångrar du
         under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
         komplett och i säljbart skick — då återbetalas produktens pris men inte frakten till
-        dig. Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
+        dig, och returen ska postas inom {POSTA_INOM_DAGAR} dagar från att du fått returadressen.
+        Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
         paketet är tillbaka hos oss. {COMPLAINT_SHORT} Vid
         frågor — svara på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>

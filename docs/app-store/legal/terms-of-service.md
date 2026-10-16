@@ -1,6 +1,6 @@
 # Användarvillkor – Fyndplats-appen
 
-**Senast uppdaterad: 2 juni 2026**
+**Senast uppdaterad: 16 oktober 2026**
 
 Dessa användarvillkor reglerar din användning av Fyndplats-appen för iOS och
 Android. Genom att ladda ned, installera eller använda appen godkänner du dessa
@@ -52,15 +52,20 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
   ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30
   återbetalas produktens pris men inte vad du betalat för leveransen till dig;
   det återbetalas bara under den lagstadgade ångerfristen. Returen ska postas
-  **inom 7 dagar** från anmälan, och en **bearbetningsavgift på 10 %** av vad du
-  betalat för produkten dras på returer under dag 15–30.
+  **inom 7 dagar** från att du fått returadressen, och en
+  **bearbetningsavgift på 10 %** av vad du betalat för produkten dras på
+  returer under dag 15–30.
 - **Avgiften och 7-dagarsfristen gäller aldrig dag 1–14.** Under den
   lagstadgade ångerrätten har du 14 dagar på dig att skicka tillbaka varan, och
   ingen avgift tas ut.
 - Vilken period som gäller avgörs av **när du anmäler returen**, inte av när
   paketet är tillbaka hos oss.
-- Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. En vara
-  räknas som skrymmande när den är längre än 120 cm eller väger mer än 20 kg.
+- Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Returer
+  går till vår leverantörs returlager inom EU, för de flesta varor i Tyskland,
+  så returfrakten blir en utrikesfrakt. Returadressen får du i
+  mottagningskvittot från vår ångerfunktion, eller i ett mejl från oss inom 1
+  arbetsdag. En vara räknas som skrymmande när den är längre än 120 cm eller
+  väger mer än 20 kg.
   Då kan den inte skickas som ett vanligt paket, utan måste gå som styckegods.
   Returen bokar och betalar du själv hos valfri transportör som tar emot varans
   storlek och vikt — räkna med ungefär 700–2 400 kr inklusive moms beroende på

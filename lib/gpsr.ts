@@ -11,10 +11,36 @@
 import { tolkaGpsr, type GpsrData } from "./gpsr-flik";
 import { gpsrTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
+import { arAosomTillverkare } from "./returadress";
 
 const API =
   process.env.CACHE_WARMER_GPSR_URL
   ?? "https://fyndplats-cache-warmer.vercel.app/api/gpsr";
+
+/**
+ * Är produkten en Aosom-vara? Motorn svarar 200 bara för Aosom-varor och 404
+ * för alla andra (motorns app/api/gpsr/route.ts, som läser leverantören ur
+ * produktens mappning), och svaret ska dessutom ange Aosoms tillverkare
+ * (lib/returadress.ts). Null när motorn inte svarade eller svaret inte gick att
+ * läsa: då vet vi ingenting, och returadressen (lib/returadress-order.ts)
+ * behandlar det som okänt.
+ *
+ * Samma adress och cache som getGpsr, så de två delar svar.
+ */
+export async function arAosomVara(productId: string): Promise<boolean | null> {
+  if (!productId) return null;
+  try {
+    const res = await fetch(`${API}?id=${encodeURIComponent(productId)}`, {
+      next: { revalidate: 86_400, tags: ["gpsr", gpsrTagg(productId)] },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (res.status === 404) return false;
+    if (!res.ok) return null;
+    return arAosomTillverkare(tolkaGpsr(await res.json())?.ansvarig.namn);
+  } catch {
+    return null;
+  }
+}
 
 export async function getGpsr(productId: string): Promise<GpsrData | null> {
   if (!productId) return null;

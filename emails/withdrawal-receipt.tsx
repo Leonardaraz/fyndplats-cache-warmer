@@ -5,15 +5,17 @@
 // mottagningskvitto. Kvittot är bevis på att kunden ångrat — men INTE ett
 // godkännande av returen. Den formuleringen står uttryckligen i mejlet.
 //
-// Returadressen får inte finnas i publik HTML → den ligger i lib/return-address.ts
-// och renderas bara här, server-side. Samma adress/instruktioner som den manuella
-// return-confirmation.tsx, så kund-upplevelsen är en röd tråd oavsett väg.
+// Returadressen är leverantörens returlager (lib/returadress.ts) och står bara
+// med när alla ångrade varor hör till samma leverantör med känt returlager.
+// Annars lovar kvittot att vi mejlar den inom 1 arbetsdag. Stegen delas med den
+// manuella return-confirmation.tsx (emails/_retur.tsx), så kunden får samma
+// besked oavsett väg.
 
 import { Column, Img, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
-import { RETURN_ADDRESS } from "../lib/return-address";
-import { SKRYMMANDE_RETURKOSTNAD_KORT } from "../lib/retur-frakt";
-import { SHIPPING_REFUND, REFUND_TIME, AVGIFT_SENTENCE } from "../lib/retur-policy";
+import { ReturSkicka, ReturSparning } from "./_retur";
+import type { Returadress } from "../lib/returadress";
+import { SHIPPING_REFUND, REFUND_TIME, AVGIFT_SENTENCE, POSTA_INOM_DAGAR } from "../lib/retur-policy";
 
 export interface WithdrawalReceiptItem {
   name: string;
@@ -28,6 +30,8 @@ export interface WithdrawalReceiptProps {
   receivedAt: string; // pre-formaterad svensk datum/tid-sträng
   items: WithdrawalReceiptItem[];
   currency?: string;
+  /** Returlagrets adress, eller null: då lovar kvittot att den kommer inom 1 arbetsdag. */
+  returadress?: Returadress | null;
 }
 
 export default function WithdrawalReceiptEmail({
@@ -36,6 +40,7 @@ export default function WithdrawalReceiptEmail({
   receivedAt,
   items,
   currency = "SEK",
+  returadress = null,
 }: WithdrawalReceiptProps) {
   const hasItems = Array.isArray(items) && items.length > 0;
   return (
@@ -121,38 +126,12 @@ export default function WithdrawalReceiptEmail({
 
       <Text style={text.h2}>Så här går du vidare</Text>
       <Text style={text.body}>
-        <strong>1. Packa produkten säkert</strong> — använd helst originalförpackningen och
-        lägg med en lapp med ärendenummer ({caseId}){orderNumber ? ` och ordernummer (${orderNumber})` : ""} och
+        <strong>1. Packa produkten säkert.</strong> Använd helst originalförpackningen och
+        lägg med en lapp med ärendenummer ({caseId}){orderNumber ? `, ordernummer (${orderNumber})` : ""} och
         ditt namn.
       </Text>
-      <Text style={text.body}>
-        <strong>2. Skicka till returadressen nedan.</strong>
-      </Text>
-      <Section style={block.card}>
-        <Text
-          style={{
-            fontSize: "15px",
-            fontWeight: 700,
-            color: BRAND.ink,
-            margin: 0,
-            lineHeight: "1.55",
-            whiteSpace: "pre-line",
-          }}
-        >
-          {RETURN_ADDRESS.formatted}
-        </Text>
-      </Section>
-      <Text style={text.body}>
-        <strong>Returfrakten betalas av dig som kund.</strong> Du bokar själv hos valfri
-        transportör som tar emot varans storlek och vikt — vi rekommenderar
-        <strong> spårbar leverans</strong> så du har bevis på avsändning. Fyndplats
-        ansvarar inte för förlorade returpaket.
-      </Text>
-      <Text style={text.body}>{SKRYMMANDE_RETURKOSTNAD_KORT}</Text>
-      <Text style={text.body}>
-        <strong>3. Svara på det här mejlet med spårningsnumret</strong> så håller vi koll på
-        returen.
-      </Text>
+      <ReturSkicka steg={2} returadress={returadress} />
+      <ReturSparning steg={3} />
 
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
@@ -183,7 +162,8 @@ export default function WithdrawalReceiptEmail({
         har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Ångrar du
         under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
         komplett och i säljbart skick — då återbetalas produktens pris men inte frakten till
-        dig. Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
+        dig, och returen ska postas inom {POSTA_INOM_DAGAR} dagar från att du fått returadressen.
+        Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
         paketet är tillbaka hos oss. Frågor? Svara
         på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
