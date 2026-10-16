@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "24c2d1e6": {
+  "tyska": "26L x 26B x 156H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 156,
+  "bredd": 26,
+  "djup": 26
+ },
+ "82a743b9": {
+  "tyska": "302B x 300T x 235H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 300,
+  "hojd": 235,
+  "bredd": 302
+ },
+ "8549cda0": {
+  "tyska": "40L x 40W x 133-168H cm",
+  "svenska": "",
+  "bokstaver": "LH",
+  "hojd": [
+   133,
+   168
+  ],
+  "bredd": 40
+ },
+ "a9281120": {
+  "tyska": "60L x 30B x 20H cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Beschwerungsbox' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 60,
+  "djup": 30
+ },
+ "ac77591c": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamthöhe: Ø60 x 150H cm | ✔ Topf maße: Ø17 x 14,5H cm | Mått: 60L x 60B x 150H cm"
+ },
+ "d99ca95f": {
+  "tyska": "40L x 29B x 171H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 171,
+  "bredd": 40,
+  "djup": 29
+ },
+ "f6da9a00": {
+  "tyska": "143x77x60 cm (lxwxh)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'total measurements' (källan är engelsk)",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 143,
+  "djup": 77
+ }
+}
