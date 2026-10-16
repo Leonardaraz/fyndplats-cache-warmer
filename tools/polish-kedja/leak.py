@@ -18,6 +18,8 @@ for f in files:
         for m in re.finditer(p,t,flags=re.I):
             # ett intervall med enhet (100-156 cm, 100-240 V) är ett mått, inget artikelnummer
             if p==r'\b\d{3}-\d{3}\b' and re.match(r'\s*(cm|mm|m|V|W|kg|g|Hz|A|l|L|Ah|mAh|°|%)(?![A-Za-z])',t[m.end():m.end()+8]): continue
+            # två mått i en adress ("metallskjul-…-ventilation-277-195") följer på bokstav och bindestreck; ett artikelnummer gör aldrig det
+            if p==r'\b\d{3}-\d{3}\b' and re.search(r'[a-zåäö]-$',t[max(0,m.start()-2):m.start()]): continue
             print('MONSTER',os.path.basename(f),p,repr(t[max(0,m.start()-30):m.end()+30])); n+=1
     for name in ('ARTNR','MARKEN'):
         rx=getattr(gatelib,name,None)
