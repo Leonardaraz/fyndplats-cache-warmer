@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TOTAL_SUMMARY } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, RETURLAGER } from "../../lib/retur-policy";
 import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { ContentPage } from "../../components/content";
 
@@ -37,7 +37,7 @@ export default function AnvandarvillkorApp() {
 
       <h2>5. Returer och ångerrätt</h2>
       <p>{TOTAL_SUMMARY}</p>
-      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>. Då ska produkten vara oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30 återbetalas produktens pris men inte vad du betalat för leveransen till dig; det återbetalas bara under den lagstadgade ångerfristen. Vilken period som gäller avgörs av när du anmäler returen, inte av när paketet är tillbaka hos oss. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Returen ska postas inom 7 dagar från anmälan, och på returer under dag 15–30 dras en bearbetningsavgift på 10 % av vad du betalat för produkten; ingen avgift tas ut under den lagstadgade ångerfristen dag 1–14. {SKRYMMANDE_RETURKOSTNAD} Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
+      <p>De första 14 dagarna är <strong>lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Dag 15–30 gäller Fyndplats <strong>frivilliga öppna köp</strong>. Då ska produkten vara oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30 återbetalas produktens pris men inte vad du betalat för leveransen till dig; det återbetalas bara under den lagstadgade ångerfristen. Vilken period som gäller avgörs av när du anmäler returen, inte av när paketet är tillbaka hos oss. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. {RETURLAGER} Returen ska postas inom 7 dagar från att du fått returadressen, under dag 15–30 står du för risken för returpaketet tills det är framme, och på returer under dag 15–30 dras en bearbetningsavgift på 10 % av vad du betalat för produkten; ingen avgift tas ut under den lagstadgade ångerfristen dag 1–14. {SKRYMMANDE_RETURKOSTNAD} Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
       <p>Är varan trasig, felaktig eller inte som utlovat är det i stället en <strong>reklamation</strong>. Den rättigheten är fristående från de 30 dagarna: enligt <strong>konsumentköplagen (2022:260)</strong> har du <strong>tre års reklamationsrätt</strong> på fel som fanns vid leveransen, och fel som visar sig inom de första två åren antas ha funnits redan då. Reklamera inom skälig tid efter att du upptäckt felet — inom två månader räknas alltid som i rätt tid. Vid godkänd reklamation står Fyndplats för returkostnaden.</p>
 
       <h2>6. Användarens skyldigheter</h2>
@@ -56,7 +56,7 @@ export default function AnvandarvillkorApp() {
       <p>Om appen tillåter att du lämnar recensioner eller annat innehåll ansvarar du för att innehållet är korrekt, lagligt och inte kränker tredje parts rättigheter. Genom att publicera innehåll ger du Fyndplats en icke-exklusiv, royaltyfri rätt att använda, visa och distribuera innehållet i samband med tjänsten. Vi förbehåller oss rätten att ta bort innehåll som strider mot dessa villkor eller gällande lag.</p>
 
       <h2>9. Ansvarsbegränsning</h2>
-      <p>Appen tillhandahålls "i befintligt skick". Fyndplats ansvarar inte för indirekta skador, utebliven vinst eller förluster till följd av avbrott, fel eller otillgänglighet i appen, i den utsträckning lagen tillåter. Inget i dessa villkor inskränker dina tvingande rättigheter som konsument enligt svensk lag. Fyndplats är befriat från ansvar vid force majeure (omständigheter utanför vår rimliga kontroll).</p>
+      <p>Appen tillhandahålls &quot;i befintligt skick&quot;. Fyndplats ansvarar inte för indirekta skador, utebliven vinst eller förluster till följd av avbrott, fel eller otillgänglighet i appen, i den utsträckning lagen tillåter. Inget i dessa villkor inskränker dina tvingande rättigheter som konsument enligt svensk lag. Fyndplats är befriat från ansvar vid force majeure (omständigheter utanför vår rimliga kontroll).</p>
 
       <h2>10. Tillämplig lag och tvistelösning</h2>
       <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig dit för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>, Box 174, 101 23 Stockholm. Kan tvisten inte lösas avgörs den av allmän domstol i Sverige. Har du handlat gränsöverskridande inom EU, Norge eller Island kan du vända dig till <strong>Konsument Europa (ECC Sverige)</strong>: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
@@ -84,7 +84,7 @@ export default function AnvandarvillkorApp() {
         <li><a href="/kontaktaoss">Kontakta oss</a></li>
       </ul>
 
-      <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 30 september 2026</p>
+      <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 18 oktober 2026</p>
     </ContentPage>
   );
 }

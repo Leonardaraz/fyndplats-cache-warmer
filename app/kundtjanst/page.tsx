@@ -44,7 +44,7 @@ const ARENDEN: Arende[] = [
   {
     ikon: Ikon.angra,
     rubrik: "Ångra köp",
-    text: "Fyll i din order och välj vad du vill ångra, så får du direkt ett mottagningskvitto med returadress och nästa steg.",
+    text: "Fyll i din order och välj vad du vill ångra, så får du direkt ett mottagningskvitto med ärendenummer och nästa steg.",
     lankar: [{ href: "/angra-kop", text: "Ångra ett köp" }],
   },
   {

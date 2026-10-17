@@ -20,6 +20,7 @@ import { render } from "@react-email/render";
 import { sql } from "./db";
 import { getProducts } from "./products";
 import WithdrawalReceiptEmail from "../emails/withdrawal-receipt";
+import { returadressRader, type Returadress } from "./returadress";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
 const REPLY_TO = "info@fyndplats.com";
@@ -192,6 +193,8 @@ export async function sendWithdrawalEmails(input: {
   reason?: string;
   matchedOrder: boolean;
   receivedAt: Date;
+  /** Returadressen i kvittot, eller null: då mejlar vi den inom 1 arbetsdag. */
+  returadress: Returadress | null;
 }): Promise<{ customer: boolean; notify: boolean }> {
   const receivedStr = formatStockholm(input.receivedAt);
   const result = { customer: false, notify: false };
@@ -204,6 +207,7 @@ export async function sendWithdrawalEmails(input: {
         orderNumber: input.orderNumber || undefined,
         receivedAt: receivedStr,
         items: input.items,
+        returadress: input.returadress,
       }),
     );
     await resend().emails.send({
@@ -232,6 +236,9 @@ export async function sendWithdrawalEmails(input: {
         <p style="margin:8px 0 4px"><strong>Artiklar att ångra:</strong></p>
         <ul style="margin:0 0 8px">${rows}</ul>
         ${input.reason ? `<p style="margin:4px 0"><strong>Anledning (frivillig):</strong> ${escapeHtml(input.reason)}</p>` : ""}
+        ${input.returadress
+          ? `<p style="margin:8px 0 4px"><strong>Returadress i kvittot:</strong> ${returadressRader(input.returadress).map(escapeHtml).join(", ")}</p>`
+          : `<p style="margin:8px 0 4px;color:#b45309"><strong>Ingen returadress i kvittot.</strong> Leverantören gick inte att avgöra säkert. Mejla kunden returadressen inom 1 arbetsdag – kvittot lovar det.</p>`}
         <p style="margin:8px 0 0;color:#6b6b6b">Kunden har fått ett automatiskt mottagningskvitto. Verifiera ägarskap/villkor och hantera återbetalningen.</p>
       </div>`;
     await resend().emails.send({

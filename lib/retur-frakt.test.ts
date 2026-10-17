@@ -86,6 +86,16 @@ test("kostnadsupplysningen bär både regeln och ett belopp", () => {
   assert.match(SKRYMMANDE_REGEL, new RegExp(`${PAKET_MAX_SIDA_CM}\\s*cm`));
 });
 
+test("beloppet gäller en retur till Tyskland, dit de flesta returer går", () => {
+  // Returer går till leverantörens returlager, för de flesta varor i Tyskland
+  // (lib/returadress.ts). Spannet räknades om för det 2026-10-17; det gamla
+  // byggde på inrikes priser. Texten ska säga vart beloppet gäller.
+  for (const t of [SKRYMMANDE_RETURKOSTNAD, SKRYMMANDE_RETURKOSTNAD_KORT]) {
+    assert.match(t, /Tyskland/, t);
+    assert.match(t, /inklusive moms/, t);
+  }
+});
+
 test("beloppet bär sin källa och sitt datum", () => {
   // Siffran står i ett bindande förköpsbesked. Utan datum går det inte att se
   // när den blev gammal.

@@ -1,9 +1,8 @@
 // Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
 //
 // FAQ:n sa "Vårt kontor och lager finns på Bergviksgatan 10 i Södertälje".
-// Bergviksgatan 10 är företagsadressen — och samma adress som står i
-// lib/return-address.ts, vars filhuvud beskriver den som en PRIVAT returadress.
-// Det är alltså inget lager. Hela sortimentet kommer från Aosom (MH Handel
+// Bergviksgatan 10 är företagsadressen, och den var fram till 2026-10-16 också
+// returadressen i returmejlen. Det är alltså inget lager. Hela sortimentet kommer från Aosom (MH Handel
 // GmbH) och skickas från leverantörs- och logistikpartnerlager inom EU.
 //
 // Sju ytor till sa "vårt lager" eller "vårt EU-lager". Ingen av dem påstod något

@@ -38,16 +38,27 @@
 //     ingen transportör. Ett utbud vi inte råder över ska inte stå i ett
 //     bindande förköpsbesked.
 //
-// BELOPPET. Konsumentpriser för styckegods/pall inrikes, dörr–dörr med
-// bakgavellyft vid hämtning (privatperson saknar lastkaj):
-//   • Kolligo, indikativa nivåer våren 2026: halvpall 295–895 kr och EUR-pall
-//     395–1 195 kr exkl. moms, bakgavellyft 200–400 kr per stopp.
-//   • Offerta: inrikes 30–80 mil, dörr–dörr med bakgavellyft, 1 200–1 900 kr.
-// Med moms och ett lyft i hämtänden landar spannet på ca 700–2 400 kr. Det är
-// ett SPANN och inte ett pris, för kostnaden styrs av sträckan — och lagen
-// kräver en uppriktig uppgift, inte en exakt. Beloppet är dessutom inte något vi
-// fakturerar: kunden bokar och betalar sin egen transportör, så siffran är en
-// upplysning om vad hen kommer att få betala.
+// BELOPPET (2026-10-17). Returer går till leverantörens returlager, för de
+// flesta varor i Tyskland (lib/returadress.ts). Beloppet gäller alltså en
+// utrikesfrakt Sverige–Tyskland, hämtad hos en privatperson:
+//   • DSV Parcel business international, prislista 2026-05-04: Tyskland 30 kg
+//     797 kr, 60 kg 993 kr och 99 kg 1 464 kr per sändning, exkl. moms och
+//     drivmedelstillägg. Högst 30 kg och 2 m per kolli.
+//   • Eurosender, Sverige–Tyskland: paket 5 kg från 33,95 €, 30 kg från
+//     72,31 €. En pall Sverige–Frankrike 192,82–221,10 € exkl. moms.
+//   • Offerta, 2026-09-23: Sverige–Tyskland, ekonomifrakt, pall på 500 kg,
+//     terminal till terminal 2 500–4 500 kr. Bakgavellyft 150–400 kr.
+//   • Clicktrans: en EUR-pall Gnesta–Filderstadt för 2 700 kr.
+// Ett långt men lätt paket går alltså för några hundra kronor, och en tung vara
+// på pall, med hämtning och bakgavellyft, för upp till ca 5 000 kr med moms.
+// Spannet är 500–5 000 kr. Lagen kräver en uppriktig uppgift, inte en exakt,
+// och direktivets mall för ångerinformation (2011/83/EU, bilaga I A) uttrycker
+// den som en uppskattad högsta kostnad. Det övre beloppet är därför det viktiga.
+// Beloppet fakturerar vi inte: kunden bokar och betalar sin egen transportör,
+// så siffran är en upplysning om vad hen kommer att få betala.
+//
+// Förra spannet, 700–2 400 kr, byggde på inrikes priser från när returerna gick
+// till en adress i Sverige.
 //
 // SIFFRAN ÄR FÄRSKVARA. Den står i ett bindande förköpsbesked. Ändras
 // transportörernas priser ska KALLA_DATUM nedan följa med — annars påstår vi
@@ -60,8 +71,8 @@ export const PAKET_MAX_KG = 20;
 export const PAKET_MAX_SIDA_CM = 120;
 
 /** Var uppgifterna kommer ifrån, och när de lästes. */
-export const KALLA = "PostNord, Kolligo och Offerta";
-export const KALLA_DATUM = "2026-09-11";
+export const KALLA = "DSV, Eurosender, Offerta och Clicktrans";
+export const KALLA_DATUM = "2026-10-17";
 
 /**
  * Är varan sådan att den inte kan återsändas med post?
@@ -91,7 +102,7 @@ export function arSkrymmande(matt: {
 
 /** Regeln, utskriven för kunden. */
 export const SKRYMMANDE_REGEL =
-  `En vara räknas som skrymmande när den är längre än ${PAKET_MAX_SIDA_CM} cm eller väger mer än ${PAKET_MAX_KG} kg. Då kan den inte skickas som ett vanligt paket, utan måste gå som styckegods.`;
+  `En vara räknas som skrymmande när den är längre än ${PAKET_MAX_SIDA_CM} cm eller väger mer än ${PAKET_MAX_KG} kg. Då kan den inte skickas som ett vanligt postpaket, utan får gå med ett fraktbolag, som större paket eller som styckegods.`;
 
 /**
  * Kostnadsupplysningen enligt 2 kap. 2 § första stycket 11.
@@ -102,8 +113,8 @@ export const SKRYMMANDE_REGEL =
  * oändligt mycket bättre än tystnad.
  */
 export const SKRYMMANDE_RETURKOSTNAD =
-  `${SKRYMMANDE_REGEL} Returen bokar och betalar du själv hos valfri transportör som tar emot varans storlek och vikt. Räkna med ungefär 700–2 400 kr inklusive moms — vad det landar på styrs framför allt av sträckan och av varans mått och vikt.`;
+  `${SKRYMMANDE_REGEL} Returen bokar och betalar du själv hos valfri transportör som tar emot varans storlek och vikt. Till returlagret i Tyskland, dit de flesta returer går, kostar det ungefär 500–5 000 kr inklusive moms. Ett långt men lätt paket kostar några hundra kronor, och en tung vara som måste gå på pall, med hämtning och bakgavellyft, närmare 5 000 kr.`;
 
 /** Kort variant för produktsidan och mejl, där en hel förklaring inte får plats. */
 export const SKRYMMANDE_RETURKOSTNAD_KORT =
-  `Är varan längre än ${PAKET_MAX_SIDA_CM} cm eller tyngre än ${PAKET_MAX_KG} kg kan den inte returneras som paket. Du bokar och betalar då styckegodstransporten själv, ungefär 700–2 400 kr inklusive moms beroende på sträcka och storlek.`;
+  `Är varan längre än ${PAKET_MAX_SIDA_CM} cm eller tyngre än ${PAKET_MAX_KG} kg kan den inte returneras som vanligt postpaket. Du bokar och betalar då transporten själv, ungefär 500–5 000 kr inklusive moms till Tyskland beroende på storlek och vikt.`;
