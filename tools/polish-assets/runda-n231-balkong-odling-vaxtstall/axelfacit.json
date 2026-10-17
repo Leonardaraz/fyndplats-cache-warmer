@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "439521eb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hochbeetgröße: 220L x 110B x 150H cm | ✔ Pflanzbereichsgröße: 219L x 109B x 30H cm | ✔ Spaliergröße: 220B x 121H cm | Mått: 220L x 110B x 150H cm"
+ },
+ "7b02d0f3": {
+  "tyska": "67L x 49B x 105H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 67,
+  "djup": 49
+ },
+ "7ed869a4": {
+  "tyska": "21L x 20B x 23,5H cm (klein), 22L x 21B x30H cm (mittel), 26L x 23B x 42H cm (groß)",
+  "svenska": "",
+  "bokstaver": "LBHLBHLBH",
+  "hojd": 23.5,
+  "bredd": 21,
+  "djup": 20
+ },
+ "9aad3c55": {
+  "tyska": "180L x 60B x 60H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 180,
+  "djup": 60
+ },
+ "a9cd2028": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlgröße: B60 x T58,5 x H89,5 cm | ✔ Tischgröße: B48 x T48 x H60 cm | Mått: B60 x T58,5 x H89,5 cm"
+ },
+ "af40f1c1": {
+  "tyska": "72,5L x 31,5B x 149,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 149.5,
+  "bredd": 72.5,
+  "djup": 31.5
+ },
+ "bce2b024": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe: 200L x 120B x 164H cm | ✔ Sitzfläche: 160L x 50B cm | ✔ Liegefläche: 160L x 100B cm | ✔ Dekokissen: 40L x 40B cm | Mått: 200L x 120B x 164H cm"
+ },
+ "c6427f59": {
+  "tyska": "100L x 50B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 100,
+  "djup": 50
+ }
+}

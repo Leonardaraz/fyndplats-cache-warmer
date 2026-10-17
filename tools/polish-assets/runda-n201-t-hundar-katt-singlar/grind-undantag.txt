@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källan anger vagnen som 82L x 49,5B x 98H; 82 cm är vagnens längd i färdriktningen och 49,5 cm dess bredd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-lager.py värdens eget saldo är 0, men givaren a21e5490 har saldo 105 och blir sidans enda köpbara färg efter sammanslagningen
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

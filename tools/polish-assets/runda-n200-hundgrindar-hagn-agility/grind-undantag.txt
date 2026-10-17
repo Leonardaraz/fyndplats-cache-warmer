@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källan anger panelen som 76L x 60B x 1,3T cm men måttbilden visar 60 cm bredd och 76 cm höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad anger 80 x 80 cm utan axelbokstäver; panelen är 80 cm bred och 80 cm hög
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad anger 13 Stück (1er Pack) utan axelbokstäver; delarnas mått anges var för sig i texten
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källan anger B69 x T98 men måttbilden visar 98 cm bredd och 69 cm djup, och bäddens mått B80 x T67 stämmer med det
+# <skript> <skäl> — se bygg-skrivplan.py

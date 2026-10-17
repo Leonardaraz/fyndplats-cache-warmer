@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-lager.py värden har saldo 0 men givaren edafc2ab har 44 i lager; sammanslagningen gör sidan köpbar igen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har inget totalmått med B, T eller H: 3 x 4 m är måttet på paviljongen som duken passar till
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-lager.py värden har saldo 0 men givaren 4b50aea6 har 48 i lager; sammanslagningen gör sidan köpbar igen
+# <skript> <skäl> — se bygg-skrivplan.py

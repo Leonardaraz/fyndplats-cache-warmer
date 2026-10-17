@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "4b49e851",
+  "huvud_fullid": "4b49e851-f48b-454c-b097-f2524f1cf9fc",
+  "givare": "562bc411",
+  "givare_fullid": "562bc411-ea42-4512-a718-26bb258f3b04",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "4b49e851": "Gul och svart",
+   "562bc411": "Svart"
+  }
+ }
+]

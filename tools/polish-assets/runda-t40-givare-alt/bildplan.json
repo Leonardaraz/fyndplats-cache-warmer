@@ -1,0 +1,23 @@
+{
+ "runda": "runda-t40-givare-alt",
+ "produkter": [
+  {
+   "kort": "98e00d6b",
+   "pid": "98e00d6b-db13-4fa7-979b-b9f4ba8ba6d1",
+   "media": [
+    {
+     "id": "b379ce_4a0e5106ae07466ead01fed5d552d48b~mv2.jpg",
+     "altText": "Grått metallskjul med vita dörrkarmar, skjutdörrar och två ventilationsöppningar i gaveln, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_55a7ccb1174e4e15b48c03d1f00fa43b~mv2.jpg",
+     "altText": "Det grå metallskjulet i en trädgård med öppna dörrar, en cykel och en gul verktygslåda inuti och en man som går mot skjulet"
+    },
+    {
+     "id": "b379ce_1a93ed8830bc47da86ac74c04de68c14~mv2.jpg",
+     "altText": "Det grå metallskjulet med öppen framsida: hyllor med lådor och verktyg, en stege och två fotbollar på ett trägolv, framför gröna träd och ett hus"
+    }
+   ]
+  }
+ ]
+}

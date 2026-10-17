@@ -1,0 +1,19 @@
+[
+ {
+  "huvud": "a414b5b5",
+  "huvud_fullid": "a414b5b5-c7a2-4615-b825-be36a9e9561c",
+  "givare": "98e00d6b",
+  "givare_fullid": "98e00d6b-db13-4fa7-979b-b9f4ba8ba6d1",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a414b5b5": "",
+   "98e00d6b": "Grå"
+  }
+ }
+]

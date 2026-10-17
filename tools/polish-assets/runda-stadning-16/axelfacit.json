@@ -1,0 +1,81 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "265b0f61": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "3a58adbd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "4249df4d": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "71f0a30a": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "975c9daf": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "9b0bc89f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a75fcfde": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,86 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. Måtten är innermått — det är den yta djuren faktiskt har. | Yttermått: 230 × 53 × 93,5 cm (L × B × H)"
+ },
+ "a8cf27cd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "bdc71526": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c0770388": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,86 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. Måtten är innermått — det är den yta djuren faktiskt har. | Yttermått: 230 × 53 × 93,5 cm (L × B × H)"
+ },
+ "c26677bf": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "cd6b31a9": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "d09b1b4c": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "d6666869": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "dd5216cc": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e71acc53": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f267a4e2": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f4ed1264": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f6e3098e": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

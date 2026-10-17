@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "020ce8ea",
+  "huvud_fullid": "020ce8ea-c122-40bf-b8d8-0ce188757166",
+  "givare": "f39ef57c",
+  "givare_fullid": "f39ef57c-c126-47b1-b374-f13c38dc21e7",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "020ce8ea": "180 cm",
+   "f39ef57c": "210 cm"
+  }
+ }
+]

@@ -1,0 +1,49 @@
+{
+ "runda": "runda-t35-givare-alt",
+ "produkter": [
+  {
+   "kort": "9a1432fc",
+   "pid": "9a1432fc-2d22-4ad1-8ba9-41f5990d0f3c",
+   "media": [
+    {
+     "id": "b379ce_4e70eaaaeb6b44eb96d7487d0896f73e~mv2.jpg",
+     "altText": "Orange hundvippa i trä med en röd mittdel och gröna ändar på gångytan, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_ff7d3ac96bac424da50171cecb928c4b~mv2.jpg",
+     "altText": "Den orange hundvippan på en gräsmatta framför ett nätstaket och träd i en trädgård"
+    },
+    {
+     "id": "b379ce_7d0a18797b0f40b89be7f731599d3675~mv2.jpg",
+     "altText": "Den orange hundvippan i en trädgård med en blå agilitytunnel, hinder och en uppblåsbar bassäng, där en hund står på ena änden"
+    },
+    {
+     "id": "b379ce_3dba7a25232c4e2d93f788d2a02d46cf~mv2.jpg",
+     "altText": "Måttritning över den orange hundvippan: 180 cm lång, 30 cm bred och 54 cm hög i tippat läge"
+    }
+   ]
+  },
+  {
+   "kort": "72e07e63",
+   "pid": "72e07e63-385a-452a-abdd-295e5a190cef",
+   "media": [
+    {
+     "id": "b379ce_fbc504cba8e244a487f4b107c34bcbce~mv2.jpg",
+     "altText": "Mintgrön pedalhink på 30 liter med svart kant nedtill och en metallpedal, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_f9b1fa565d184e2caabe9dcc06dae99a~mv2.jpg",
+     "altText": "Den mintgröna pedalhinken bredvid en köksbänk i ett ljust kök med trägolv"
+    },
+    {
+     "id": "b379ce_6ca91f66aad348f1b9cc6d53eb547b50~mv2.jpg",
+     "altText": "Den mintgröna pedalhinken i ett vardagsrum mellan en soffa och ett bord, med en stor krukväxt bredvid"
+    },
+    {
+     "id": "b379ce_8cc405a481ab42cba911261a275c7c13~mv2.jpg",
+     "altText": "Måttbild över den mintgröna pedalhinken: 29 × 36 × 59,5 cm och 88 cm hög med öppet lock, innerhink 26,5 × 26,5 × 56 cm"
+    }
+   ]
+  }
+ ]
+}

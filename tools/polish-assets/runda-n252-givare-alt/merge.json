@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "fbb87ca3",
+  "huvud_fullid": "fbb87ca3-9b65-418a-a90e-47a09722eda8",
+  "givare": "4a96df14",
+  "givare_fullid": "4a96df14-f80a-4835-b2da-4a740bbb9cc9",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "fbb87ca3": "240 × 100 cm",
+   "4a96df14": "300 × 100 cm"
+  }
+ }
+]

@@ -1,0 +1,43 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1709efbc": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Rückwand: 70B x 2T x 45H cm. Gesamthöhe: 197,5-254 cm. Basketballring: 160-210H cm. Basis: 76L x 48B x 15H cm | Mått: 76L x 48B x 254H cm"
+ },
+ "7b35fd91": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 123L x 73B x 178,5Hcm | ✔ Zusammenklappbar: 123L x 180B x 12,5Hcm | ✔ Zielbereich: 76L x 57Bcm | ✔ Netz: 178L x 122Bcm | Mått: 123L x 73B x 178,5H cm"
+ },
+ "90f864bf": {
+  "tyska": "90B x 60T x 210-260H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": [
+   210,
+   260
+  ],
+  "bredd": 90
+ },
+ "c3f319ad": {
+  "tyska": "183L x 90B x 90H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 183,
+  "djup": 90
+ },
+ "e99cdb7d": {
+  "tyska": "90B x 165T x 302-352H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 165,
+  "hojd": [
+   302,
+   352
+  ],
+  "bredd": 90
+ }
+}

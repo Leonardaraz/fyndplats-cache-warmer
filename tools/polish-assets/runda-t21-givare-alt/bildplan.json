@@ -1,0 +1,27 @@
+{
+ "runda": "runda-t21-givare-alt",
+ "produkter": [
+  {
+   "kort": "65862929",
+   "pid": "65862929-bc91-4038-8c13-a14468fcb38e",
+   "media": [
+    {
+     "id": "b379ce_7a4b50a3f4664599a69787d39bf3f1af~mv2.jpg",
+     "altText": "Vit elbil för barn i Mercedes-AMG GLC-modell, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_76348d98e17d4373813357b5c693889b~mv2.jpg",
+     "altText": "Ett barn kör den vita elbilen på en gångväg utanför ett hus"
+    },
+    {
+     "id": "b379ce_60a34b8ebf744befad47efe83317512b~mv2.jpg",
+     "altText": "Närbild på den vita elbilens huv och grill med Mercedes-stjärnan och AMG-skylten"
+    },
+    {
+     "id": "b379ce_a66e4834fdb440fda3106456b34fcc66~mv2.jpg",
+     "altText": "Måttbild på den vita elbilen: 115 cm lång, 70 cm bred och 55 cm hög, med en sits på 38 × 21,5 cm"
+    }
+   ]
+  }
+ ]
+}

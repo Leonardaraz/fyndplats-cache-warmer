@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (198 × 65 × 13 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (120 × 50 × 8 cm per dyna) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+gate-axel.py dynans mått anges som längd × bredd × tjocklek: 120 cm är längden och 50 cm bredden, som källans L x B x H (120L x 50B x 8H cm); grinden läser L som bredd och B som djup
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (300 × 200 × 200 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur

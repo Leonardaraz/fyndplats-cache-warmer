@@ -1,0 +1,48 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "3350c5b2": {
+  "tyska": "",
+  "svenska": "98L x 2,5B x 200H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kabelgröße: Ø0,5 x 200L cm, Ø0,5 x 140L cm | ✔ Latzugstange Größe: Ø2,5 x 98L cm | ✔ Nylon-Griff Größe: Ø2,5 x 68L cm | ✔ Riemen-Griff Größe: 40L x 4B cm | ✔ Gewichtsaufnahmestift Größe: Ø5 x 35L cm"
+ },
+ "3ce5861a": {
+  "tyska": "",
+  "svenska": "56L x 23B x 2,2H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schlägergröße: 28L x 23B cm | ✔ Taschengröße: 56L x 31B cm"
+ },
+ "42c65748": {
+  "tyska": "674L x 70B x 92H cm",
+  "svenska": "674L x 70B x 92H cm",
+  "bokstaver": "LBH",
+  "hojd": 92,
+  "bredd": 674,
+  "djup": 70
+ },
+ "a5f36d84": {
+  "tyska": "185L x 120B x 140H cm",
+  "svenska": "185L x 120B x 140H cm",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 185,
+  "djup": 120
+ },
+ "ca3d32d0": {
+  "tyska": "90L x 81B x 92,5H cm",
+  "svenska": "L",
+  "bokstaver": "LBH",
+  "hojd": 92.5,
+  "bredd": 90,
+  "djup": 81
+ },
+ "cd8d8524": {
+  "tyska": "",
+  "svenska": "107L x 61B x 84,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen des Tisches: 107L x 61B x 84,5H cm | ✔ Abmessungen der Spielfläche: 98L x 51B x 10H cm"
+ },
+ "f73bd4ea": {
+  "tyska": "Ø5 cm x 180L cm",
+  "svenska": "180cm x 5cm x 5cm",
+  "bokstaver": "L",
+  "bredd": 180
+ }
+}

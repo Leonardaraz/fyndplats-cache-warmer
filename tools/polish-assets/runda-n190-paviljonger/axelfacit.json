@@ -1,0 +1,85 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0d225366": {
+  "tyska": "240L x 150B x 257H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 257,
+  "bredd": 240,
+  "djup": 150
+ },
+ "342f5b7f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Einzelne Plattenabmessungen: 300B x 200H cm | ✔ Geeignet für Pavillongröße: 300L x 300B cm"
+ },
+ "3ceb17fc": {
+  "tyska": "210B x 360T x 235H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 360,
+  "hojd": 235,
+  "bredd": 210
+ },
+ "4204cc13": {
+  "tyska": "200L x 96B x 27H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 27,
+  "bredd": 200,
+  "djup": 96
+ },
+ "66714337": {
+  "tyska": "2,96L x 2,96B x 2,65H m",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 2.65,
+  "bredd": 2.96,
+  "djup": 2.96
+ },
+ "67a43acf": {
+  "tyska": "2,99L x 2,99B x 2,74 m",
+  "svenska": "",
+  "axellos": "totalraden har tva tal utan H eller T (2,99L x 2,99B x 2,74 m) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "7b9f441e": {
+  "tyska": "240L x 150B x 250H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 250,
+  "bredd": 240,
+  "djup": 150
+ },
+ "86f1e346": {
+  "tyska": "243L x 148B x 248H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 248,
+  "bredd": 243,
+  "djup": 148
+ },
+ "b5f1b724": {
+  "tyska": "L300 x B400 x H280 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 280,
+  "bredd": 300,
+  "djup": 400
+ },
+ "d8ada591": {
+  "tyska": "L295 x B295 x H275 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 275,
+  "bredd": 295,
+  "djup": 295
+ },
+ "f82e0042": {
+  "tyska": "215L x 150B x 220H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 220,
+  "bredd": 215,
+  "djup": 150
+ }
+}

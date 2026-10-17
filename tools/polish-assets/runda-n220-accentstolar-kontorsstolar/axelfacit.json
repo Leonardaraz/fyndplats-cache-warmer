@@ -1,0 +1,67 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "21992899": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 46B x 51T x 80-92H cm | ✔ Sitzfläche: 46B x 37T cm | Mått: 46L x 51B x 80-92H cm"
+ },
+ "40bf617b": {
+  "tyska": "65B x 59T x 75-85H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 59,
+  "hojd": [
+   75,
+   85
+  ],
+  "bredd": 65
+ },
+ "520893a9": {
+  "tyska": "77B x 72T x 106H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 72,
+  "hojd": 106,
+  "bredd": 77
+ },
+ "686a7db2": {
+  "tyska": "66B x 86T x 107H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 86,
+  "hojd": 107,
+  "bredd": 66
+ },
+ "8a0de453": {
+  "tyska": "64B x 62T x 107-115H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 62,
+  "hojd": [
+   107,
+   115
+  ],
+  "bredd": 64
+ },
+ "90222804": {
+  "tyska": "64B x 70T x 74H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": 74,
+  "bredd": 64
+ },
+ "91e7d09a": {
+  "tyska": "72B x 92T x 96H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 92,
+  "hojd": 96,
+  "bredd": 72
+ },
+ "f51a680e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 68B x 84T x 118H cm | ✔ Fußhocker Abmessungen: 43B x 48T x 44,5H cm | ✔ Sitzgröße: 51B x 54,5T x 45H cm | ✔ Rückenlehnenmaße: 79L x 63B cm | ✔ Armlehnenmaße: 44L x 6B cm | Mått: 84L x 68B x 118H cm"
+ }
+}

@@ -1,0 +1,84 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "05b87a61": {
+  "tyska": "122B x 79T x 75H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 79,
+  "hojd": 75,
+  "bredd": 122
+ },
+ "52228eb3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Zweisitzer-Abmessungen: 110B x 63,5T x 84H cm | ✔ Stuhl-Abmessungen: 62B x 63,5T x 84H cm | ✔ Tisch-Abmessungen: 80B x 45T x 41H cm | ✔ Sitzgröße: 45B x 43T cm (Stuhl), 88B x 45T cm (Zweisitzer) | Mått: 110L x 63,5B x 84H cm"
+ },
+ "56edf3f5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa Abmessungen: 122L x 87B x 85H cm | ✔ Stuhl Abmessungen: 62L x 87B x 85H cm | ✔ Tisch Abmessungen: Ø60 x 35H cm | ✔ Einzelsitzgröße: 57L x 59B x 35H cm | ✔ Einzelrückengröße: 57B x 56H cm | Mått: 122L x 87B x 85H cm"
+ },
+ "591ee60d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch Abmessung: 150L x 87B x 72H cm | ✔ Stuhl Abmessung: 55,5L x 59B x 80H cm | ✔ Sitz Größe: 41L x 46B x 43,5H cm | ✔ Armlehne Größe: 3,7L x 45B x 63H cm | ✔ Rücken Größe: 33L x 45,5B cm | ✔ Stühle Größe (Stapelstatus): 55,5B x 74T x 101H cm"
+ },
+ "59db3215": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sesselabmessungen: 62L x 65B x 68H cm | ✔ Sofa-Abmessungen: 116L x 65B x 68H cm | ✔ Tischabmessungen: 90L x 50B x 44H cm | ✔ Sitzgröße: 55B x 53T x 36H cm (Sessel), 110B x 53T x 36H cm (Zweisitzer) | ✔ Rückenlehnen-Größe: 55B x 34L x 32H cm (Sessel), 110B x 34L x 32H cm (Zweisitzer) | ✔ Sitzkissengröße: 55L x 55B x 7T cm (Sessel), 110L x 55B x 7T cm (Zweisitzer) | ✔ Rückenkissengröße: 55L x 40B x 10T cm | Mått: 116L x 65B x 68H cm"
+ },
+ "5b88bef7": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa Abmessung: 106B x 70T x 72H cm | ✔ Stuhl Abmessung: 60B x 70T x 72H cm | ✔ Tisch Abmessung: 65L x 41,5B x 36H cm | ✔ Sitzgröße: Sofa: 100B x 42T cm | Stuhl: 54B x 42T cm | ✔ Größe der Rückenlehne: Sofa: 35L x100B cm | Stuhl: 35L x 54B cm"
+ },
+ "70c4c0af": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlmaße: 42B x 51T x 83H cm | ✔ Tischmaße: Ø60 x 75H cm | ✔ Klappmaße: 93,5L x 41,5B x 5,5H cm (Stuhl), 96,5L x 60B x 6H cm (Tisch) | ✔ Sitzgröße: 37B x 32T cm | ✔ Rückenlehnenmaße: 42B x 14H cm | Mått: Ø60 x 75H cm"
+ },
+ "7c4e2bc3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhl Abmessung: 72L x 66B x 64Hcm | ✔ Tisch Abmessung: Ø50 x 57H cm | ✔ Sitzgröße: 56B x 63T cm | ✔ Rückenkissen: 55L x 42B x 12H cm | ✔ Sitzkissen: 65L x 65B x 10H cm | Mått: 72L x 66B x 64Hcm"
+ },
+ "826e8a29": {
+  "tyska": "48B x 55,5T x 88H cm (Stuhl), Ø60 x 74H cm (Tisch)",
+  "svenska": "",
+  "bokstaver": "BTHH",
+  "djup": 55.5,
+  "hojd": 88,
+  "bredd": 48
+ },
+ "a2dc6d02": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 112B x 67T x 71H cm | ✔ Stuhlabmessungen: 44B x 58T x 80H cm | ✔ Abmessungen der Stühle: (klappbar) 98B x 44T x 14H cm | ✔ Sitzgröße: 39B x 42T cm | ✔ Rückenlehnenabmessungen: 42B x 40H cm | Mått: 112L x 67B x 71H cm"
+ },
+ "c0219b88": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 120L x 70B x 75H cm | ✔ Stuhlabmessungen: 47,5B x 57,5T x 91H cm | ✔ Klapptisch: 120L x 97B x 40H cm | ✔ Klappstuhl: 103L x 57,5B x 11H cm | ✔ Sitzgröße: 42,5B x 39T cm | ✔ Rückenlehne: 43B x 52H cm | Mått: 120L x 70B x 75H cm"
+ },
+ "c0d9b013": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 108L x 108B x 72,5H cm | ✔ Stuhlabmessungen: 52L x 52B x 66H cm | ✔ Sitzgröße: 46B x 49T x 35H cm | ✔ Rückenlehnenmaße: 32L x 42B cm | ✔ Kissenmaße: 51L x 47B x 8H cm (Sitz), 50L x 47B x 15H cm (Rücken) | Mått: 108L x 108B x 72,5H cm"
+ },
+ "ca4fa9cb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 146L x 80B x 74H cm | ✔ Stuhlabmessungen: 59L x 55B x 86H cm | ✔ Sitzgröße: 49B x 48T cm | ✔ Rückenlehne Größe: 47B x 30H cm | ✔ Polsterdicke: 5T cm | Mått: 146L x 80B x 74H cm"
+ },
+ "cffbab12": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße vom Tisch: 120L x 69B x 77,5H cm | ✔ Maße vom Stuhl: 55B x 55T x 73,5H cm/55B x 48T x 73,5H cm | Mått: 120L x 69B x 77,5H cm"
+ },
+ "fdc96d7e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischabmessungen: 120L x 120B x 72H cm | ✔ Stuhlabmessungen: 53B x 62T x 82H cm | ✔ Sitzgröße: 48B x 43T x 40H cm | ✔ Armlehnenabmessungen: (bis zum Boden) 65H cm | ✔ Rückenlehnenabmessungen: 46B x 42H cm | Mått: 120L x 120B x 72H cm"
+ }
+}

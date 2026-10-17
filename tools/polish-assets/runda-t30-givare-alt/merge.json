@@ -1,0 +1,109 @@
+[
+ {
+  "huvud": "163ce1e2",
+  "huvud_fullid": "163ce1e2-803d-4b4c-9210-513337de689d",
+  "givare": "41326448",
+  "givare_fullid": "41326448-c996-41ed-9d9d-e09abb74e375",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "41326448": "Ljusgrå",
+   "efa28899": "Vit",
+   "163ce1e2": "Mörkgrå"
+  }
+ },
+ {
+  "huvud": "163ce1e2",
+  "huvud_fullid": "163ce1e2-803d-4b4c-9210-513337de689d",
+  "givare": "efa28899",
+  "givare_fullid": "efa28899-a266-455f-99d5-22055c8b469b",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "41326448": "Ljusgrå",
+   "efa28899": "Vit",
+   "163ce1e2": "Mörkgrå"
+  }
+ },
+ {
+  "huvud": "44d4907b",
+  "huvud_fullid": "44d4907b-e19b-43a1-b054-222f647588e3",
+  "givare": "05a110dc",
+  "givare_fullid": "05a110dc-c881-4008-a5b4-4b21b13c372d",
+  "bilder_efter_bildplan": "1",
+  "kallpositioner_i_ordning": [
+   "1"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "05a110dc": "Ø366 cm",
+   "44d4907b": ""
+  }
+ },
+ {
+  "huvud": "eac7fdca",
+  "huvud_fullid": "eac7fdca-756a-495f-a056-4ffc26a6ce17",
+  "givare": "4b3724d2",
+  "givare_fullid": "4b3724d2-de81-4d5f-8214-bc102337c9b0",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "4b3724d2": "192 × 131 cm",
+   "eac7fdca": "192 × 192 cm"
+  }
+ },
+ {
+  "huvud": "f5f02f8a",
+  "huvud_fullid": "f5f02f8a-ef76-414f-8d59-1a82071c601b",
+  "givare": "1ec62247",
+  "givare_fullid": "1ec62247-1c6a-4a47-84b5-382ad48a5185",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "b789640e": "400 × 300 cm",
+   "1ec62247": "300 × 200 cm",
+   "f5f02f8a": "600 × 300 cm"
+  }
+ },
+ {
+  "huvud": "f5f02f8a",
+  "huvud_fullid": "f5f02f8a-ef76-414f-8d59-1a82071c601b",
+  "givare": "b789640e",
+  "givare_fullid": "b789640e-9b6a-4326-be78-612a2aee0ffb",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "b789640e": "400 × 300 cm",
+   "1ec62247": "300 × 200 cm",
+   "f5f02f8a": "600 × 300 cm"
+  }
+ }
+]

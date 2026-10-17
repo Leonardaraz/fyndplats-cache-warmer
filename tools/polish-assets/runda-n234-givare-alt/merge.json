@@ -1,0 +1,56 @@
+[
+ {
+  "huvud": "263c4aa7",
+  "huvud_fullid": "263c4aa7-063e-4702-9387-890816e2bcc8",
+  "givare": "d813d0f1",
+  "givare_fullid": "d813d0f1-ef32-4bd2-81cc-c9b1ca033ca9",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "263c4aa7": "Genomskinlig",
+   "d813d0f1": "Brun"
+  }
+ },
+ {
+  "huvud": "d0c7cb4f",
+  "huvud_fullid": "d0c7cb4f-7dd4-4fcb-a9e5-3b7c2f01fdef",
+  "givare": "90327b81",
+  "givare_fullid": "90327b81-57a2-43ce-a002-3a4acee74b1c",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "d0c7cb4f": "120 × 60 cm",
+   "90327b81": "160 × 60 cm"
+  }
+ },
+ {
+  "huvud": "4bc344de",
+  "huvud_fullid": "4bc344de-c3bd-4f42-9450-f1d0a96f9dd9",
+  "givare": "75097bee",
+  "givare_fullid": "75097bee-4010-4c29-b008-6e4798313dbd",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "4bc344de": "2 × 4 kg",
+   "75097bee": "2 × 5 kg"
+  }
+ }
+]

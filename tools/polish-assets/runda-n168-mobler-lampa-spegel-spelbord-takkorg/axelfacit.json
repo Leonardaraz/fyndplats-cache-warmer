@@ -1,0 +1,93 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2dfec8c3": {
+  "tyska": "110,5L x 99,5B x 18,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 18.5,
+  "bredd": 110.5,
+  "djup": 99.5
+ },
+ "2e9dc959": {
+  "tyska": "110L x 91B x 145H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 145,
+  "bredd": 110,
+  "djup": 91
+ },
+ "68bfefd6": {
+  "tyska": "54L x 54B x 92-112H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   92,
+   112
+  ],
+  "bredd": 54,
+  "djup": 54
+ },
+ "87b0c350": {
+  "tyska": "60B x 2T x 180H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 2,
+  "hojd": 180,
+  "bredd": 60
+ },
+ "a9013b5c": {
+  "tyska": "Ø27 x 169H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 169
+ },
+ "b78f0945": {
+  "tyska": "145B x 98T x 95H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 98,
+  "hojd": 95,
+  "bredd": 145
+ },
+ "c1286cc5": {
+  "tyska": "173B x 75T x 73H cm (Sofa), 173B x 93T x 57H cm (Bett)",
+  "svenska": "",
+  "bokstaver": "BTHBTH",
+  "djup": 75,
+  "hojd": 73,
+  "bredd": 173
+ },
+ "c7d8e5bd": {
+  "tyska": "120B x 40T x 48H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 48,
+  "bredd": 120
+ },
+ "d1a00ccc": {
+  "tyska": "91L x 45,5B x 76H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 91,
+  "djup": 45.5
+ },
+ "f4737c46": {
+  "tyska": "L162 x B99 x H16 cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'maximal' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 16,
+  "bredd": 162,
+  "djup": 99
+ },
+ "fdf98fa0": {
+  "tyska": "68L x 68B x 39H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 39,
+  "bredd": 68,
+  "djup": 68
+ }
+}

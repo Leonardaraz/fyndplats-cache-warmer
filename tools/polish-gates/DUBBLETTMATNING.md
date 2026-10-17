@@ -205,3 +205,54 @@ const trip = [...text.matchAll(
 **Prova alltid åt båda hållen i samma körning** (ett självtest som beviser att
 mönstret KAN matcha bägge formerna, inte bara att det gick grönt på dagens
 data) — annars är den nya täckningssiffran lika obevisad som den gamla var.
+
+## ✅ Bildhashkartan: byte-identiska bilder mot HELA katalogen, utan nedladdning (2026-10-15)
+
+Dubbletten `8dc3c05e` (N166) publicerades av att screenen bara greppade adresser. Metoden ovan (måtttrippel mot alla
+publicerade sidor) hade tagit den, och bildhashen tar den ensam: två av fem bilder är byte-identiska med den publicerade
+sidan. `bildjamfor2.py` laddar ner varje bild och räcker därför bara för en handfull sidor. Wix filbeskrivare bär redan
+en hash.
+
+**Metoden.** `POST /site-media/v1/files/get-files` (50 fil-id per anrop) svarar med `hash`, ett md5 av filens byte. Två
+sidor som visar samma foto har samma hash, och Aosoms kopior i Wix behåller den (uppmätt 2026-10-15). Tre filer gör jobbet:
+
+| fil | vad den gör |
+|---|---|
+| `bildhashkarta.js` | ExecuteWixAPI: sidar `products/search` med `fields: ["MEDIA_ITEMS_INFO"]` (100 produkter per sida), hämtar beskrivarna fyra anrop åt gången och svarar med en rad per produkt: `<id8><P eller D><hash10,hash10,…>` |
+| `bildhash.py bygg` | slår ihop de sparade svaren till `karta.json` |
+| `bildhash.py skarm` | per kandidat: vilka andra produkter delar minst en bild, publicerade och dolda |
+
+Hela katalogen gick på sex körningar om 8–12 sidor (10–18 s var): **6 067 produkter, 37 532 bilder, 35 292 olika
+hashar**. 33 155 hashar hör till en produkt, 2 110 till två och 27 till tre; ingen delas av åtta. Svaret kapas tyst vid
+100 000 tecken, och 12 sidor ger ~94 000. `bildhash.py bygg` avvisar ett kapat svar. Kartan bor i skrapkatalogen, inte i
+repot, och en rad i den behöver bara byggas om för produkter som tillkommit.
+
+**Utfallet på de 836 uppskjutna utkasten.** 31 delar minst en bild med en publicerad sida, och 805 delar ingen. Det är
+ett screen, ingen dom, åt båda hållen:
+
+1. ☠️ **En träff är nästan alltid samma vara, men inte alltid.** Aosom återanvänder miljöfoton över en produktlinje
+   (`e1977f20` position 2). Måtten avgör.
+2. ☠️ **En nolla frikänner inte.** En AliExpress-sida har egna foton av samma vara, och en annan färg ur samma Aosom-serie
+   har egna foton. Av de 114 utkast som måttsvepet frikände delade inget en bild med en publicerad sida, så hashen hittade
+   ingenting som måtten missat i den mängden. Det som ändå saknas fångas av familjeregistret nedan.
+
+**Bevisstyrka i måttsvepet.** `dubblettsvep-bevis.js` är samma trippelsvep som ovan men med tre tal per träff (`ex`
+exakta tripplar, `nr` tripplar inom ±1/±1/±2, `sh` delade måttsymboler). Av de 836 hade 426 ingen stark träff (ingen exakt
+trippel, färre än två nära och färre än fyra delade symboler mot någon publicerad sida) och 410 hade det: 247 med en exakt
+trippel, 151 med minst två nära och 12 med minst fyra delade symboler. En träff på en enda nära trippel utan något annat är
+ett måttsammanträffande i en katalog med 4 300 sidor.
+
+**Tre blinda fläckar som måtten och bilderna delar, och vad som fångar dem:**
+
+- *Intervall i tredje måttet* (`65 × 48 × 73–110 cm`) tolkas inte som trippel. Ståbordet `7859405b` var tredje färgen till
+  en sammanslagen sida och hade ändå ingen träff. FLAGGADE hade raden.
+- *Runda varor* (`Ø61 cm`) har ingen trippel, så bara bildhashen och familjeregistret kan fånga dem.
+- *Samma vara i en annan färg eller storlek* har egna foton och andra mått.
+
+Alla tre fångas av **familjeregistret** (Aosoms artikelstruktur: samma bas, olika variantkod). Det bär artikelnummer och
+får bara ligga lokalt. Per kandidat: familj om en = ensam; syskon som bara är utkast = en sammanslagen enhet; syskon som är
+publicerat = T-flödet, alltså en färg eller storlek på den publicerade sidan och ingen egen sida.
+
+**Ordningen före varje runda:** (1) måtttrippeln med bevisstyrka mot alla publicerade sidor, (2) bildhashkartan, (3)
+familjeregistret, (4) `grep` på kandidatens id8 i `FLAGGADE.md` (där står skälet till varje uppskjutet utkast), (5)
+kontaktarken. En kandidat som klarar alla fem är en egen sida.

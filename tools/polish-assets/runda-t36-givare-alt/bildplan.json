@@ -1,0 +1,27 @@
+{
+ "runda": "runda-t36-givare-alt",
+ "produkter": [
+  {
+   "kort": "0c2e072c",
+   "pid": "0c2e072c-f87c-4b43-98c6-7d85723d0257",
+   "media": [
+    {
+     "id": "b379ce_7465ec70283e400c9ec5db0d9e832d40~mv2.jpg",
+     "altText": "Rosa elmotorcykel i crossmodell med stödhjul, sedd snett framifrån, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6d816f587f974bad8e7b7a8303a37b18~mv2.jpg",
+     "altText": "En flicka med hjälm kör den rosa elmotorcykeln på en gångväg i en park"
+    },
+    {
+     "id": "b379ce_299bdc34d89c4b89b5ab2739d703e3f6~mv2.jpg",
+     "altText": "Närbild på den rosa elmotorcykelns bakre fjädring"
+    },
+    {
+     "id": "b379ce_763342d505644cb7b1c89bb64fda8463~mv2.jpg",
+     "altText": "Närbild på den rosa elmotorcykelns fotstöd"
+    }
+   ]
+  }
+ ]
+}

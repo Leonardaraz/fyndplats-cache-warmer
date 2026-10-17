@@ -1,0 +1,19 @@
+[
+ {
+  "huvud": "d674d035",
+  "huvud_fullid": "d674d035-9b14-4328-acf5-8baa676d1a12",
+  "givare": "1478c4ee",
+  "givare_fullid": "1478c4ee-c80a-4f52-9aff-2d482fddf78f",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "d674d035": "",
+   "1478c4ee": "Genomskinlig"
+  }
+ }
+]
