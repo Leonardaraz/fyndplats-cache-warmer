@@ -21,6 +21,10 @@
 // att vi mejlar den inom 1 arbetsdag. En fel adress är värre än ingen:
 // paketet hamnar på fel lager, och kunden har redan betalat utrikesfrakten.
 //
+// Motorn säger vilken leverantör produkten har NU, inte vem som skickade en
+// äldre order. Därför krävs också att raden skickats med ett av Aosoms
+// fraktbolag (skickadMedAosom nedan).
+//
 // LEVERANTÖRENS NAMN NÅR INTE KUNDEN. Mottagaren är bolaget som redan står som
 // tillverkare i produktsidans säkerhetsflik (lib/gpsr-flik.ts), aldrig
 // leverantörens varumärke (lib/leverantor.test.ts, "Vi är leverantören för
@@ -96,6 +100,8 @@ export interface OrderRad {
   namn: string[];
   /** Katalogens produkt-id, eller null när raden inte har något. */
   produktId: string | null;
+  /** Radens eget id i ordern, som Wix-sändningarna pekar på. */
+  radId: string | null;
 }
 
 const text = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -119,7 +125,7 @@ export function orderRaderUr(order: Record<string, unknown>): OrderRad[] {
     ].filter((n): n is string => n !== null);
     const ref = rad?.catalogReference as { catalogItemId?: unknown; productId?: unknown } | undefined;
     const produktId = text(ref?.catalogItemId) ?? text(ref?.productId) ?? text(rad?.productId) ?? text(rad?.catalogItemId);
-    return { namn, produktId };
+    return { namn, produktId, radId: text(rad?.id) ?? text(rad?._id) };
   });
 }
 
@@ -128,16 +134,63 @@ export function orderRaderUr(order: Record<string, unknown>): OrderRad[] {
 const normNamn = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 200);
 
 /**
- * Produkt-id:n för varje vald vara, i samma ordning som `varunamn`. Null för en
- * vara som inte går att knyta till ordern, eller där någon matchande rad saknar
- * produkt-id. Utan valda varor gäller hela ordern, en post per rad.
+ * Orderns rader för varje vald vara, i samma ordning som `varunamn`. Null för
+ * en vara som inte går att knyta till ordern, eller där någon matchande rad
+ * saknar produkt-id. Utan valda varor gäller hela ordern, en post per rad.
  */
-export function produktIdnFor(varunamn: readonly string[], rader: readonly OrderRad[]): (string[] | null)[] {
-  if (varunamn.length === 0) return rader.map((r) => (r.produktId ? [r.produktId] : null));
+export function raderFor(varunamn: readonly string[], rader: readonly OrderRad[]): (OrderRad[] | null)[] {
+  if (varunamn.length === 0) return rader.map((r) => (r.produktId ? [r] : null));
   return varunamn.map((namn) => {
     const sokt = normNamn(namn);
     const traffar = rader.filter((r) => r.namn.some((n) => normNamn(n) === sokt));
     if (traffar.length === 0 || traffar.some((r) => !r.produktId)) return null;
-    return [...new Set(traffar.map((r) => r.produktId as string))];
+    return traffar;
   });
+}
+
+// ── Hur raden skickades ─────────────────────────────────────────────────────
+//
+// En produkt kan mappas om från AliExpress till Aosom efter att en kund köpt
+// den (Leonards regel 2026-09-05). Motorns svar säger då Aosom, och kvittot
+// hade gett Aosoms returlager för en vara som kom från AliExpress, där ingen
+// känner till den (granskningen 2026-10-17). Raden måste därför också ha
+// skickats med ett fraktbolag som Aosom använder. AliExpress-paket bär
+// AliExpress egna namn, som motorn skriver på sändningen ("Seller Shipping ES
+// Local", "DHL PL", "DHL to EU"), och de står aldrig här.
+
+/** Fraktbolag som Aosom skickar med till Sverige, som de står i Wix. */
+export const AOSOM_FRAKTBOLAG: ReadonlySet<string> = new Set(["dhl", "dpd", "dsv", "gls", "postnord"]);
+
+/**
+ * Skickades raden med Aosom? Ja bara när minst en sändning bär raden och varje
+ * sändning som bär den har ett av Aosoms fraktbolag. En rad som inte skickats
+ * än, eller som bara markerats skickad utan sändning, går inte att avgöra.
+ */
+export function skickadMedAosom(radId: string | null, sandningar: readonly Record<string, unknown>[]): boolean {
+  if (!radId) return false;
+  const medRaden = sandningar.filter(
+    (f) => Array.isArray(f?.lineItems) && (f.lineItems as Record<string, unknown>[]).some((r) => text(r?.id) === radId),
+  );
+  if (medRaden.length === 0) return false;
+  return medRaden.every((f) => {
+    const bolag = text((f?.trackingInfo as Record<string, unknown> | undefined)?.shippingProvider);
+    return bolag !== null && AOSOM_FRAKTBOLAG.has(bolag.toLowerCase());
+  });
+}
+
+/**
+ * Leverantören för en vald vara: Aosom bara när motorn säger Aosom om varje
+ * produkt och varje rad skickats med Aosom. Annars null, och kvittot säger att
+ * vi mejlar adressen. `sandningar` är null när de inte gick att läsa.
+ */
+export function leverantorForRader(
+  rader: readonly OrderRad[] | null,
+  arAosom: (produktId: string) => boolean | null,
+  sandningar: readonly Record<string, unknown>[] | null,
+): Leverantor | null {
+  if (!rader || rader.length === 0 || !sandningar) return null;
+  const aosom = rader.every(
+    (r) => r.produktId !== null && arAosom(r.produktId) === true && skickadMedAosom(r.radId, sandningar),
+  );
+  return aosom ? "aosom" : null;
 }

@@ -1,8 +1,9 @@
 // lib/returadress-order.ts
 //
 // Returadressen för en retur ur en riktig order: varje vald vara kopplas till
-// sin produkt i Wix-ordern, och motorn säger vilken leverantör produkten har.
-// Regeln och adresserna bor i lib/returadress.ts.
+// sina rader i Wix-ordern, motorn säger vilken leverantör produkten har, och
+// orderns sändningar i Wix säger hur raden skickades. Regeln och adresserna
+// bor i lib/returadress.ts.
 //
 // Allt som inte går att avgöra blir null, och kvittot säger då att vi mejlar
 // returadressen inom 1 arbetsdag. Uppslaget har en tidsgräns: mottagnings-
@@ -10,22 +11,36 @@
 
 import { fetchWixOrder } from "@/app/api/wix-webhook/route";
 import { arAosomVara } from "./gpsr";
-import { orderRaderUr, produktIdnFor, valjReturadress, type Leverantor, type Returadress } from "./returadress";
+import { leverantorForRader, orderRaderUr, raderFor, valjReturadress, type Returadress } from "./returadress";
 
 const TIDSGRANS_MS = 6000;
 
 /**
- * Leverantören för en vara, eller null. En vara med flera produkter i ordern
- * (samma namn på två rader) räknas bara när alla har samma leverantör.
- *
- * I dag känner butiken bara igen Aosom-varor säkert. Kommer en leverantör till
- * med egen returadress ska den kännas igen här också, med ett besked från
- * motorn om vilken leverantör produkten har.
+ * Orderns sändningar i Wix (ecom/v1/fulfillments), eller null när de inte gick
+ * att läsa. Då får returen ingen adress, och kvittot säger att vi mejlar den.
  */
-async function leverantorFor(produktIdn: string[] | null): Promise<Leverantor | null> {
-  if (!produktIdn || produktIdn.length === 0) return null;
-  const svar = await Promise.all(produktIdn.map((id) => arAosomVara(id)));
-  return svar.every((s) => s === true) ? "aosom" : null;
+async function hamtaSandningar(orderId: string): Promise<Record<string, unknown>[] | null> {
+  const key = process.env.WIX_API_KEY;
+  const site = process.env.WIX_SITE_ID;
+  if (!key || !site || !orderId) return null;
+  try {
+    const res = await fetch(`https://www.wixapis.com/ecom/v1/fulfillments/orders/${encodeURIComponent(orderId)}`, {
+      headers: { Authorization: key, "wix-site-id": site, "Content-Type": "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) {
+      console.warn(`[angra] orderns sändningar gick inte att läsa (HTTP ${res.status})`);
+      return null;
+    }
+    const json = (await res.json()) as { orderWithFulfillments?: { fulfillments?: unknown } };
+    if (!json.orderWithFulfillments) return null;
+    const lista = json.orderWithFulfillments.fulfillments;
+    return Array.isArray(lista) ? (lista as Record<string, unknown>[]) : [];
+  } catch (err) {
+    console.warn("[angra] orderns sändningar gick inte att läsa", err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 /**
@@ -38,10 +53,15 @@ export async function returadressForOrder(ordernummer: string, varunamn: readonl
   const uppslag = (async () => {
     const order = await fetchWixOrder(ordernummer);
     if (!order) return null;
-    const produktIdn = produktIdnFor(varunamn, orderRaderUr(order));
-    if (produktIdn.length === 0) return null;
-    const leverantorer = await Promise.all(produktIdn.map(leverantorFor));
-    return valjReturadress(leverantorer);
+    const valda = raderFor(varunamn, orderRaderUr(order));
+    if (valda.length === 0) return null;
+    const produktIdn = [...new Set(valda.flatMap((t) => (t ? t.map((r) => r.produktId as string) : [])))];
+    const [svar, sandningar] = await Promise.all([
+      Promise.all(produktIdn.map(async (id) => [id, await arAosomVara(id)] as const)),
+      hamtaSandningar(typeof order.id === "string" ? order.id : ""),
+    ]);
+    const aosom = new Map(svar);
+    return valjReturadress(valda.map((t) => leverantorForRader(t, (id) => aosom.get(id) ?? null, sandningar)));
   })();
   const grans = new Promise<null>((resolve) => setTimeout(() => resolve(null), TIDSGRANS_MS));
   try {

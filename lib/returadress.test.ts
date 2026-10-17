@@ -15,15 +15,23 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
+  AOSOM_FRAKTBOLAG,
   AOSOM_TILLVERKARE,
   RETURADRESSER,
   arAosomTillverkare,
+  leverantorForRader,
   orderRaderUr,
-  produktIdnFor,
+  raderFor,
   returadressRader,
+  skickadMedAosom,
   valjReturadress,
+  type OrderRad,
   type Returadress,
 } from "./returadress.ts";
+
+/** Produkt-id:n för varje vald vara, som returadress-order.ts frågar motorn om. */
+const produktIdnFor = (varunamn: readonly string[], rader: readonly OrderRad[]) =>
+  raderFor(varunamn, rader).map((t) => (t ? [...new Set(t.map((r) => r.produktId))] : null));
 
 const AOSOM = RETURADRESSER.aosom;
 
@@ -134,6 +142,20 @@ test("utan valda varor gäller hela ordern", () => {
   ]);
 });
 
+test("radens eget id följer med, så att sändningarna kan knytas till raden", () => {
+  const rader = orderRaderUr({
+    lineItems: [
+      { id: "rad-1", productName: { original: "Pall" }, catalogReference: { catalogItemId: "a1" } },
+      { _id: "rad-2", productName: { original: "Bord" }, catalogReference: { catalogItemId: "b2" } },
+      { productName: { original: "Stol" }, catalogReference: { catalogItemId: "c3" } },
+    ],
+  });
+  assert.deepEqual(
+    rader.map((r) => r.radId),
+    ["rad-1", "rad-2", null],
+  );
+});
+
 test("samma namn på två rader ger båda produkterna", () => {
   const rader = orderRaderUr({
     lineItems: [
@@ -188,4 +210,64 @@ test("namnet står inte i något mejl", () => {
 
 test("den gamla modulen med hemadressen är borta", () => {
   assert.equal(existsSync(join(process.cwd(), "lib/return-address.ts")), false);
+});
+
+// ── Hur raden skickades ─────────────────────────────────────────────────────
+// Granskningen 2026-10-17: motorn säger vilken leverantör produkten har NU. En
+// produkt som mappats om från AliExpress till Aosom efter ordern hade annars
+// gett Aosoms returlager för en vara som kom från AliExpress.
+
+const sandning = (radId: string, bolag: string | null) => ({
+  lineItems: [{ id: radId, quantity: 1 }],
+  ...(bolag === null ? {} : { trackingInfo: { trackingNumber: "01234567890123", shippingProvider: bolag } }),
+});
+
+test("en rad som skickats med Aosoms fraktbolag räknas som Aosom, oavsett skrivsätt", () => {
+  for (const bolag of ["DPD", "GLS", "Postnord", "dhl", "DHL", " DSV "]) {
+    assert.equal(skickadMedAosom("rad-1", [sandning("rad-1", bolag)]), true, bolag);
+  }
+  assert.ok(AOSOM_FRAKTBOLAG.has("dpd"));
+});
+
+test("AliExpress fraktbolag, ett saknat bolag och en oskickad rad räknas inte", () => {
+  for (const bolag of ["Seller Shipping ES Local", "Seller Shipping to DE/ES/FR/IT/PL\n", "DHL PL", "DHL to  EU", "AliExpress Standard Shipping", "Cainiao"]) {
+    assert.equal(skickadMedAosom("rad-1", [sandning("rad-1", bolag)]), false, bolag);
+  }
+  assert.equal(skickadMedAosom("rad-1", [sandning("rad-1", null)]), false, "utan fraktbolag");
+  assert.equal(skickadMedAosom("rad-1", []), false, "inte skickad");
+  assert.equal(skickadMedAosom("rad-1", [sandning("rad-2", "DPD")]), false, "en annan rads sändning");
+  assert.equal(skickadMedAosom(null, [sandning("rad-1", "DPD")]), false, "raden saknar id");
+});
+
+test("en rad i två sändningar räknas bara när båda gick med Aosom", () => {
+  assert.equal(skickadMedAosom("rad-1", [sandning("rad-1", "DPD"), sandning("rad-1", "GLS")]), true);
+  assert.equal(skickadMedAosom("rad-1", [sandning("rad-1", "DPD"), sandning("rad-1", "Seller Shipping ES Local")]), false);
+});
+
+const RAD: OrderRad = { namn: ["Fåtölj"], produktId: "p1", radId: "rad-1" };
+
+test("en vara som kom från AliExpress och sedan mappats om till Aosom får ingen adress", () => {
+  const motornSagerAosom = () => true;
+  assert.equal(leverantorForRader([RAD], motornSagerAosom, [sandning("rad-1", "Seller Shipping ES Local")]), null);
+  assert.equal(valjReturadress([leverantorForRader([RAD], motornSagerAosom, [sandning("rad-1", "DHL PL")])]), null);
+});
+
+test("en Aosom-vara som skickats med Aosom får Aosoms adress", () => {
+  const lev = leverantorForRader([RAD], () => true, [sandning("rad-1", "DPD")]);
+  assert.equal(lev, "aosom");
+  assert.deepEqual(valjReturadress([lev]), AOSOM);
+});
+
+test("okänd leverantör, oskickad rad eller oläsbara sändningar ger ingen adress", () => {
+  assert.equal(leverantorForRader([RAD], () => null, [sandning("rad-1", "DPD")]), null, "motorn svarade inte");
+  assert.equal(leverantorForRader([RAD], () => false, [sandning("rad-1", "DPD")]), null, "inte en Aosom-vara");
+  assert.equal(leverantorForRader([RAD], () => true, []), null, "inte skickad än");
+  assert.equal(leverantorForRader([RAD], () => true, null), null, "sändningarna gick inte att läsa");
+  assert.equal(leverantorForRader(null, () => true, [sandning("rad-1", "DPD")]), null, "varan finns inte i ordern");
+});
+
+test("en vara på två rader räknas bara när båda raderna skickats med Aosom", () => {
+  const rad2: OrderRad = { namn: ["Fåtölj"], produktId: "p1", radId: "rad-2" };
+  const sandningar = [sandning("rad-1", "DPD"), sandning("rad-2", "Seller Shipping ES Local")];
+  assert.equal(leverantorForRader([RAD, rad2], () => true, sandningar), null);
 });
