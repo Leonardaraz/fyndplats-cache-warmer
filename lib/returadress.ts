@@ -24,7 +24,7 @@
 // LEVERANTÖRENS NAMN NÅR INTE KUNDEN. Mottagaren är bolaget som redan står som
 // tillverkare i produktsidans säkerhetsflik (lib/gpsr-flik.ts), aldrig
 // leverantörens varumärke (lib/leverantor.test.ts, "Vi är leverantören för
-// kunden").
+// kunden"). Leonard 2026-10-17: Aosom ska inte stå med på adressen.
 //
 // Ren modul utan importer, så att node-testköraren laddar den.
 

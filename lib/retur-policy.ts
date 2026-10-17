@@ -113,11 +113,25 @@ export const RETURADRESS_NAR =
 /**
  * Vem som bär risken för returpaketet. Köpvillkoren § 7 är den bindande
  * texten ("Om returpaketet försvinner"); /returer och returmejlen säger samma
- * sak med den här meningen. Returmejlen sa förut "Fyndplats ansvarar inte för
- * förlorade returpaket", alltså motsatsen till villkoren.
+ * sak med den här meningen.
+ *
+ * UNDER ÅNGERRÄTTEN BÄR VI RISKEN, och det går inte att avtala bort.
+ * Konsumentverket (uppdaterat 2026-09-03): företaget "ansvarar för varan från
+ * att du lämnar den till transportören", kunden behöver kunna visa att varan
+ * returnerats, och företaget måste visa att kunden varit vårdslös. 2 kap. 14 §
+ * distansavtalslagen säger detsamma från andra hållet: vi ska betala tillbaka
+ * när kunden visat att varan skickats. Ett villkor som säger annat är utan
+ * verkan (1 kap. 4 §), och att skriva det är att vilseleda om kundens
+ * rättigheter. Returmejlen sa förut "Fyndplats ansvarar inte för förlorade
+ * returpaket".
+ *
+ * UNDER DET ÖPPNA KÖPET BÄR KUNDEN DEN. Leonard ville 2026-10-17 att vi inte
+ * ska ansvara för försvunna returpaket, och det går bara här: dag 15–30 är vårt
+ * eget erbjudande, och där får vi sätta villkoren, som för avgiften. Meningen
+ * nämner båda perioderna, för mejlen vet inte vilken period som gäller.
  */
 export const RETURRISK =
-  "Kan du visa att paketet lämnats in står Fyndplats för risken om det försvinner på vägen.";
+  "Anmälde du returen inom 14 dagar står Fyndplats för risken om paketet försvinner på vägen, om du kan visa att du lämnat in det. Under det frivilliga öppna köpet dag 15–30 står du själv för risken tills paketet är framme.";
 
 /** Totalen, formulerad så att den inte kan läsas som 14 + 30 = 44 dagar. */
 export const TOTAL_SUMMARY =
@@ -159,6 +173,7 @@ export const VOLUNTARY: Period = {
     "Originalförpackningen ska finnas kvar när den utgör en del av produkten eller behövs för säker retur.",
     "Anmäl returen skriftligt med ditt ordernummer innan du skickar tillbaka, via vår ångerfunktion eller på info@fyndplats.com.",
     "Skicka spårbart och meddela oss spårningsnumret — vi behöver det för att anmäla returen till returlagret och för att kunna behandla återbetalningen.",
+    "Under dag 15–30 står du för risken för returpaketet tills det är framme hos returlagret. Skicka spårbart, och försäkra paketet om varan är dyr.",
     "Under dag 15–30 återbetalas produktens pris. Vad du betalat för frakten till dig återbetalas inte, till skillnad från under den lagstadgade ångerfristen.",
     "Posta returen inom 7 dagar från att du fått returadressen. Under den lagstadgade ångerfristen har du 14 dagar på dig — den fristen rör vi inte — men det frivilliga öppna köpet förutsätter att varan kommer tillbaka medan den fortfarande är säljbar.",
     "På returer under dag 15–30 drar vi en bearbetningsavgift på 10 % av vad du betalat för produkten. Avgiften gäller aldrig under den lagstadgade ångerfristen dag 1–14.",
