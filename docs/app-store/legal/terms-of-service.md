@@ -1,6 +1,6 @@
 # Användarvillkor – Fyndplats-appen
 
-**Senast uppdaterad: 17 oktober 2026**
+**Senast uppdaterad: 18 oktober 2026**
 
 Dessa användarvillkor reglerar din användning av Fyndplats-appen för iOS och
 Android. Genom att ladda ned, installera eller använda appen godkänner du dessa

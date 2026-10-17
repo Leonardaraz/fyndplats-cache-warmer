@@ -261,7 +261,7 @@ export default function Kopvillkor() {
               <li><a href="/kontaktaoss">Kontakta oss</a></li>
             </ul>
 
-            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 17 oktober 2026</p>
+            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 18 oktober 2026</p>
           </article>
         </div>
       </section>
