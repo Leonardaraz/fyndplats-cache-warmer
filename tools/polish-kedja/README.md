@@ -1,6 +1,6 @@
-# Poleringskedjans skript (ögonblicksbild 2026-10-16)
+# Poleringskedjans skript (ögonblicksbild 2026-10-17)
 
-Skripten som kördes för rundorna N181–N258 och T21–T54 (PR #749). De skrevs i en
+Skripten som kördes för rundorna N181–N264 och T21–T65 (PR #749). De skrevs i en
 chattsession och bodde i dess scratchpad, och en ny container hade inte haft dem.
 Här ligger de som de kördes, så att nästa session inte börjar om. Ingenting här körs
 av Vercel eller av en workflow; allt är hjälpmedel för den som polerar från chatten.
@@ -54,7 +54,31 @@ Reglerna för själva polerandet står i `docs/seo-polish-runbook.md` och
    minut 15–29), sedan `ghw.py write <runda> <plan-sha256> torr,skriv`.
 8. Återläsning: `mkaterlas2.py` (bygger `bygg_aterlas.py`s ExecuteWixAPI-kod) och live:
    `../polish-gates/hamta-live.sh 130` följt av `livegrind.py` och `livekoll.py`
-   (`mall-n/live_n258.sh`).
+   (`mall-n/live_n258.sh`). Svaret över 100 000 tecken sparas av verktyget i en fil som
+   är avkortad vid 100 000 tecken: koden fyller ut med ett `pad` på 101 000 tecken, och
+   `visa_aterlas.py` läser fram till `,"pad"`.
+
+**Tvillingkontroll och utsnitt (N262–N264)**
+
+- Innan ett utkast som hållits som "möjlig dubblett" byggs: jämför det mot publicerade
+  sidor med `bildtvilling.py` (dHash) och `ark_tvilling.py` (kontaktark), läs de
+  publicerade sidornas mått ur live-HTML, och läs `las` (`las_enkel.py`). Ett utkast
+  som redan är pensionerat (`rejected`) byggs inte.
+- Titta på bilderna före texten. Feedens position 4–7 och 10 hämtas med
+  `kor_bildkandidater.py` (position 10 är oftast ren). Rubriker och bildtexter skärs
+  bort med Wix beskärnings-URL (`…/v1/crop/x_,y_,w_,h_,q_95/<namn>.jpg`): mät gränsen
+  i pixlar på ett band med linjal, förhandsgranska med `kropp.py` (butikens kvadrat ur
+  mitten ritas in), ladda upp alla utsnitt i ETT `UploadImageToWixSite`-anrop och para
+  varje uppladdad fil mot sitt utsnitt med md5 (svaret säger inte vilket id som hör
+  till vilken adress). `mall-n/enheter_n262.py` byter fil-id för de beskurna
+  positionerna i enhetens `bilder.tsv` (samma etikett, ny fil), och `extra_bilder`
+  lägger bara till etiketter som saknas (feedens position 10). Utsnitten ligger
+  oanvända i Media Manager tills kedjan skrivit dem, och nattens bildstädning
+  (03:50 UTC) tar dem om de inte sitter på en produkt före dess.
+- Strider måttbilden mot källans mått stryks bilden (`bilder-bort.tsv` med skäl utan
+  namn) och sidan skriver källans mått.
+- Slug och SKU får inte bära `3x3` (siffra-bokstav-siffra) eller `x3-oxford`
+  (tre tecken med siffra, bindestreck, minst tre tecken): skriv `3-x-3-m`.
 
 **Färg eller storlek på en publicerad sida (T-runda)**
 
@@ -83,8 +107,17 @@ körningar av samma workflowfil samtidigt.
 | `leak.py`, `nyaord.py` | läckagegrind (leverantörsord och artikelnummerform) och stavningskoll |
 | `bygg_aterlas.py`, `mkaterlas2.py` | återläsningskoden för ExecuteWixAPI |
 | `commit_push.sh` | committar rundans rotfiler och pushar med omförsök |
-| `mall-n/` | N258 som mall för en ny sida |
-| `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida |
+| `las_enkel.py`, `las_ids.py` | `las` för flera id8 på en gång (fyra åt gången), full id ur `t15/data` eller `sweep/full_ids_1016.json` |
+| `bildtvilling.py`, `ark_tvilling.py`, `dhash_jamfor.py` | dHash-jämförelse och kontaktark mellan ett utkasts bilder och publicerade sidors bilder (läses ur live-HTML) |
+| `kor_bildkandidater.py` | laddar upp feedens positioner till Media Manager (`aosom-bildkandidater.yml`) och skriver ut fil-id |
+| `kropp.py` | förhandsgranskar ett utsnitt med butikens kvadrat ur mitten inritad |
+| `ark_ids.py` | kontaktark för en lista id8 |
+| `kolla308.py` | kontrollerar att gamla adresser svarar 308 till rätt mål |
+| `forplan.sh` | `aosom-sammanslagning.yml` i planläge för alla rader före kedjan |
+| `bygg_t62.py` | bygger bildplanen för svenska alt-texter på sammanslagna bilder |
+| `pens_plan.py` | planen för pensionerade utkast (`pensionerade-radera.yml`, läget `plan`) med färska antal |
+| `mall-n/` | N258 som mall för en ny sida, och N262 (`*_n262.*`) som mall för en runda med utsnitt av bilder |
+| `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida, och T65 (`*_t65.*`) för en värdtext byggd med riktade ersättningar |
 
 `hornark-ark.py` klipper bara de två nedre hörnen ur varje bild. `../polish-gates/hornark.py` tar
 alla fyra hörnen högpassfiltrerade.
