@@ -22,21 +22,29 @@ const B = "01234567890125";
 function varld(opts: { koNere?: boolean; utskick?: () => Utskick } = {}) {
   const mappade = new Set<string>();
   const registrerade: string[] = [];
+  // Ordningen mellan mejl och 17TRACK-registrering.
+  const logg: string[] = [];
   const ko = new Map<string, { s: KoadSandning; skickad: boolean }>();
   const mejl: KoadSandning[][] = [];
   let n = 0;
   const skicka = async (sandningar: KoadSandning[]): Promise<Utskick> => {
     const utfall = opts.utskick?.() ?? { resendId: `mejl-${++n}` };
-    if ("resendId" in utfall) mejl.push(sandningar);
+    if ("resendId" in utfall) {
+      mejl.push(sandningar);
+      logg.push(`mejl ${sandningar.map((s) => s.trackingNumber).join(",")}`);
+    }
     return utfall;
   };
   const deps: TaEmotDeps = {
-    // upsertTrackingMapping: ny rad → 17TRACK-registrering, annars dubblett.
+    // upsertTrackingMapping: ny rad → "new", annars dubblett.
     mappa: async (tn) => {
       if (mappade.has(tn)) return "duplicate";
       mappade.add(tn);
-      registrerade.push(tn);
       return "new";
+    },
+    registrera: async (nummer) => {
+      registrerade.push(...nummer);
+      logg.push(`17track ${nummer.join(",")}`);
     },
     transportor: () => "DPD, delas ut av PostNord i Sverige",
     koa: async (s) => {
@@ -61,7 +69,7 @@ function varld(opts: { koNere?: boolean; utskick?: () => Utskick } = {}) {
         skicka,
       }),
   };
-  return { deps, ko, mejl, registrerade };
+  return { deps, ko, mejl, registrerade, logg };
 }
 
 // Order 10095: ett hantelset (en rad, antal 1) i två DPD-paket. Wix tar bara
@@ -82,8 +90,10 @@ test("en fulfillment med 'A, B' på en rad med antal 1: två köade nummer och e
   // Raderna hör till första numret, det andra paketet bär inga.
   assert.deepEqual(v.ko.get(A)?.s.lineItems, [{ id: "rad-1", quantity: 1 }]);
   assert.deepEqual(v.ko.get(B)?.s.lineItems, []);
-  // Egen tracking_mapping-rad och egen 17TRACK-registrering per nummer.
+  // Egen tracking_mapping-rad och egen 17TRACK-registrering per nummer,
+  // registrerade efter mejlet.
   assert.deepEqual(v.registrerade, [A, B]);
+  assert.deepEqual(v.logg, [`mejl ${A},${B}`, `17track ${A},${B}`]);
 
   // Ordern är helt skickad i samma webhook, så mejlet går direkt: ETT mejl.
   assert.equal(v.mejl.length, 1);
@@ -106,7 +116,10 @@ test("samma webhook en gång till ger inget nytt mejl", async () => {
   assert.deepEqual(v.registrerade, [A, B]);
 });
 
-test("ett utskick som föll skickas när Wix skickar webhooken igen, fortfarande som ett mejl", async () => {
+// Webhooken svarar ändå 200, så Wix skickar den inte igen av sig själv. Numren
+// ligger kvar i kön och går med nästa webhook för ordern, eller med cronen
+// /api/cron/fraktmejl efter VANTETID_MIN.
+test("ett utskick som föll ligger kvar i kön och går vid nästa försök, fortfarande som ett mejl", async () => {
   let forsok = 0;
   const v = varld({ utskick: () => (++forsok === 1 ? { fel: "send failed" } : { resendId: "mejl-2" }) });
   const forst = await taEmotFulfillments(order10095, [fulfillment10095], v.deps);
@@ -117,6 +130,45 @@ test("ett utskick som föll skickas när Wix skickar webhooken igen, fortfarande
   assert.deepEqual(igen.skickat, ["mejl-2"]);
   assert.equal(v.mejl.length, 1);
   assert.deepEqual(v.mejl[0].map((s) => s.trackingNumber), [A, B]);
+});
+
+test("en omskickad webhook medan den första registrerar hos 17TRACK: fortfarande ett mejl med båda numren", async () => {
+  const v = varld();
+  let slapp17track!: () => void;
+  const svar17track = new Promise<void>((r) => (slapp17track = r));
+  let iRegistreringen!: () => void;
+  const registrerar = new Promise<void>((r) => (iRegistreringen = r));
+  // Den första leveransen fastnar i 17TRACK-registreringen tills vi släpper den.
+  const forsta = taEmotFulfillments(order10095, [fulfillment10095], {
+    ...v.deps,
+    registrera: async (nummer) => {
+      iRegistreringen();
+      await svar17track;
+      await v.deps.registrera(nummer);
+    },
+  });
+  await registrerar;
+  const andra = await taEmotFulfillments(order10095, [fulfillment10095], v.deps);
+  slapp17track();
+  await forsta;
+
+  assert.equal(andra.dubbletter, 2);
+  assert.deepEqual(andra.skickat, []);
+  assert.equal(v.mejl.length, 1);
+  assert.deepEqual(v.mejl[0].map((s) => s.trackingNumber), [A, B]);
+  assert.deepEqual(v.registrerade, [A, B]);
+});
+
+test("nya nummer registreras hos 17TRACK även när utskicket kastar", async () => {
+  const v = varld({
+    utskick: () => {
+      throw new Error("nätverksfel");
+    },
+  });
+  await assert.rejects(taEmotFulfillments(order10095, [fulfillment10095], v.deps));
+  assert.deepEqual(v.registrerade, [A, B]);
+  // Numren lämnades tillbaka till kön.
+  assert.deepEqual([...v.ko.values()].map((r) => r.skickad), [false, false]);
 });
 
 test("kön nere: ett direktmejl med båda numren, inte ett per nummer", async () => {

@@ -675,6 +675,8 @@ async function upsertTrackingMapping(opts: {
   customerEmail: string;
   customerName: string | null;
   customerPhone: string | null;
+  /** false: anroparen registrerar hos 17TRACK själv, efter mejlet (taEmotFulfillments). */
+  registrera?: boolean;
 }): Promise<"new" | "duplicate" | "error" | "collision"> {
   try {
     // RETURNING ger en rad ENBART när en NY rad faktiskt skrevs (inte vid
@@ -699,7 +701,7 @@ async function upsertTrackingMapping(opts: {
       // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
       // OutForDelivery — inte först när kunden råkar öppna /sparning. Velo-style.
       // Idempotent på 17TRACK-sidan; aldrig kastande (fångar internt + 3s timeout).
-      await registerWith17Track(opts.trackingNumber, opts.orderId);
+      if (opts.registrera !== false) await registerWith17Track(opts.trackingNumber, opts.orderId);
       return "new";
     }
     // Konflikt på tracking_number. Antingen en benign Wix-omfyrning av SAMMA
@@ -1080,16 +1082,19 @@ async function skickaFraktmejl(
   orderIn?: Record<string, unknown> | null,
 ): Promise<Utskick> {
   const nummer = sandningar.map((s) => s.trackingNumber);
+  const rader = slaIhopRader(sandningar);
   const order = orderIn ?? (await fetchWixOrder(orderGuid));
-  const built = order
-    ? buildShippingProps({ order, fulfillment: { lineItems: slaIhopRader(sandningar) } })
-    : null;
+  const built = order ? buildShippingProps({ order, fulfillment: { lineItems: rader } }) : null;
   if (!built) {
     console.warn(`[wix-webhook] fraktmejl ${orderGuid}: kunde inte bygga mejlet — försöker igen senare`);
     return { fel: "build failed" };
   }
   const props: ShippingConfirmationProps = {
     ...built.props,
+    // Bara extra paket (ett nummer som lagts till på en vara som redan mejlats)
+    // har inga egna rader. Då listas inga varor: buildShippingProps hade annars
+    // fallit tillbaka på hela ordern, även rader som inte skickats.
+    items: rader.length > 0 ? built.props.items : [],
     trackingNumber: nummer[0],
     carrier: sandningar[0]?.carrier ?? built.props.carrier,
     // Varje paket får sina egna produkter (bild, namn, antal) under sitt nummer.
@@ -1520,25 +1525,32 @@ export async function POST(req: NextRequest) {
         console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: kunde inte hämta order från Wix API — ack:ar`);
         return NextResponse.json({ received: true, handled: false, reason: "fetch failed" }, { status: 200 });
       }
-      const kund = buildShippingProps({ order });
+      const kund = extractCustomer(order);
       if (!kund) {
         console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: kunde inte extrahera kund — skippar`);
         return NextResponse.json({ received: true, handled: false, reason: "no customer" }, { status: 200 });
       }
+      const ordernummer = extractOrderNumber(order);
+      const mappadOrder = ordernummer === "—" ? null : ordernummer;
       const customerPhone = extractCustomerPhone(order) ?? null;
       // Varje nummer får egen tracking_mapping-rad (och därmed 17TRACK) och egen
       // rad i kön (lib/shipping-email-batch). Dedupen gäller per nummer:
       // "duplicate" = Wix-omfyrning → hoppa; "error" = fail-open (hellre ett mejl
       // än tyst tappat). När hela ordern är skickad går ETT mejl med alla nummer.
+      // 17TRACK registreras sist, efter mejlet (se taEmotFulfillments).
       const res = await taEmotFulfillments(order, fulfillmentsArr, {
         mappa: (trackingNumber) =>
           upsertTrackingMapping({
             trackingNumber,
-            orderId: kund.props.orderNumber === "—" ? null : kund.props.orderNumber,
+            orderId: mappadOrder,
             customerEmail: kund.email,
-            customerName: kund.props.firstName === "kund" ? null : kund.props.firstName,
+            customerName: kund.firstName === "kund" ? null : kund.firstName,
             customerPhone,
+            registrera: false,
           }),
+        registrera: async (nummer) => {
+          for (const tn of nummer) await registerWith17Track(tn, mappadOrder);
+        },
         transportor: (trackingNumber, f) => transportorText(trackingNumber, maskatBud(f, order)) ?? null,
         koa: (s) => koaSandning(orderId, s),
         // Kön gick inte att nå (DB-fel): skicka direkt som förr, ett mejl för alla nummer.

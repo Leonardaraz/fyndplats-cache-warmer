@@ -61,9 +61,9 @@ test("uppdelningen: 'A, B' ger [A, B]", () => {
 
 test("uppdelningen: ett enskilt nummer ger exakt samma nummer som i dag", () => {
   assert.deepEqual(delaSparningsnummer("A"), ["A"]);
-  assert.deepEqual(delaSparningsnummer("01497067385169"), ["01497067385169"]);
+  assert.deepEqual(delaSparningsnummer("01234567890123"), ["01234567890123"]);
   // Fältet trimmades förut (firstStr i webhooken), så det gör uppdelningen också.
-  assert.deepEqual(delaSparningsnummer("  01497067385169 "), ["01497067385169"]);
+  assert.deepEqual(delaSparningsnummer("  01234567890123 "), ["01234567890123"]);
 });
 
 test("uppdelningen: 'A,,B ; A' ger [A, B], utan tomma och dubbletter, i fältets ordning", () => {

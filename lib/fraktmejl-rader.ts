@@ -70,7 +70,9 @@ export function heltSkickad(order: Obj, fulfillments: Obj[]): boolean {
 // ("lineItems must not be empty", provat 2026-10-17), så ett andra nummer kan
 // inte få en egen.
 //
-// Motorns spårlänk (lib/tracking-link.ts på main) delar på samma tecken.
+// Samma regel står i motorns lib/tracking-link.ts (grenen main), som bygger
+// spårlänken på Wix-fulfillmenten. De två historierna kan inte dela kod, så
+// regeln finns på båda ställena och måste stämma.
 
 /**
  * Delar ett spårningsfält i nummer: på komma, semikolon och radbrytning,
@@ -156,8 +158,10 @@ export async function skickaVantande(
 }
 
 export interface TaEmotDeps {
-  /** tracking_mapping och 17TRACK-registrering för ett nummer (upsertTrackingMapping). */
+  /** Raden i tracking_mapping för ett nummer (upsertTrackingMapping utan 17TRACK). */
   mappa(trackingNumber: string): Promise<Mappning>;
+  /** Registrerar nya nummer hos 17TRACK. Anropas sist, se taEmotFulfillments. */
+  registrera(nummer: string[]): Promise<void>;
   /** Transportörsraden för numret, maskerad och med samma ord som /sparning. */
   transportor(trackingNumber: string, fulfillment: Obj): string | null;
   /** Lägger numret i kön (koaSandning). false när kön inte gick att nå. */
@@ -174,6 +178,11 @@ export interface TaEmotDeps {
  * därmed i 17TRACK) och egen rad i kön. Ett nummer som redan finns i
  * tracking_mapping är en omskickad webhook och hoppas över, så dedupen gäller
  * per nummer. När ordern är helt skickad går ETT mejl med allt som väntar.
+ *
+ * 17TRACK registreras sist, efter mejlet. Registreringen kan ta några sekunder
+ * per nummer. Låg den mellan två nummer kunde en omskickad webhook hinna ta det
+ * andra numret medan den första väntade, och då fick kunden två mejl med ett
+ * nummer var (granskningen 2026-10-17).
  */
 export async function taEmotFulfillments(
   order: Obj,
@@ -182,37 +191,46 @@ export async function taEmotFulfillments(
 ): Promise<{ koade: number; dubbletter: number; direkt: number; skickat: string[]; vantar: boolean }> {
   let koade = 0;
   let dubbletter = 0;
+  const nya: string[] = [];
   const skickat: string[] = [];
   const direkt: KoadSandning[] = [];
-  for (const f of fulfillments) {
-    for (const s of sandningarIFulfillment(f)) {
-      // "error" och "collision" köas: hellre ett mejl än ett tyst tappat.
-      if ((await deps.mappa(s.trackingNumber)) === "duplicate") {
-        dubbletter++;
-        continue;
-      }
-      const sandning: KoadSandning = {
-        trackingNumber: s.trackingNumber,
-        carrier: deps.transportor(s.trackingNumber, f),
-        lineItems: s.lineItems,
-      };
-      if (await deps.koa(sandning)) koade++;
-      else direkt.push(sandning);
-    }
-  }
-  // Kön gick inte att nå: skicka direkt som förr, men ett mejl för alla nummer.
-  if (direkt.length > 0) {
-    const utfall = await deps.skickaDirekt(direkt);
-    if ("resendId" in utfall && utfall.resendId) skickat.push(utfall.resendId);
-  }
   let vantar = false;
-  if (koade > 0 || dubbletter > 0) {
-    if (heltSkickad(order, fulfillments)) {
-      const res = await deps.skickaSamlat();
-      if (res.resendId) skickat.push(res.resendId);
-    } else {
-      vantar = koade > 0;
+  try {
+    for (const f of fulfillments) {
+      for (const s of sandningarIFulfillment(f)) {
+        // "error" och "collision" köas: hellre ett mejl än ett tyst tappat.
+        const mappning = await deps.mappa(s.trackingNumber);
+        if (mappning === "duplicate") {
+          dubbletter++;
+          continue;
+        }
+        if (mappning === "new") nya.push(s.trackingNumber);
+        const sandning: KoadSandning = {
+          trackingNumber: s.trackingNumber,
+          carrier: deps.transportor(s.trackingNumber, f),
+          lineItems: s.lineItems,
+        };
+        if (await deps.koa(sandning)) koade++;
+        else direkt.push(sandning);
+      }
     }
+    // Kön gick inte att nå: skicka direkt som förr, men ett mejl för alla nummer.
+    if (direkt.length > 0) {
+      const utfall = await deps.skickaDirekt(direkt);
+      if ("resendId" in utfall && utfall.resendId) skickat.push(utfall.resendId);
+    }
+    if (koade > 0 || dubbletter > 0) {
+      if (heltSkickad(order, fulfillments)) {
+        const res = await deps.skickaSamlat();
+        if (res.resendId) skickat.push(res.resendId);
+      } else {
+        vantar = koade > 0;
+      }
+    }
+  } finally {
+    // Även när utskicket kastar: numren finns redan i tracking_mapping och
+    // registreras aldrig igen, eftersom en omskickad webhook ser dubbletter.
+    if (nya.length > 0) await deps.registrera(nya);
   }
   return { koade, dubbletter, direkt: direkt.length, skickat, vantar };
 }
