@@ -14,7 +14,7 @@ describe("delaSparningsnummer", () => {
 
   it("ett enskilt nummer ger exakt samma nummer, trimmat", () => {
     expect(delaSparningsnummer("A")).toEqual(["A"]);
-    expect(delaSparningsnummer(" 07434005149850 ")).toEqual(["07434005149850"]);
+    expect(delaSparningsnummer(" 01234567890123 ")).toEqual(["01234567890123"]);
   });
 
   it("'A,,B ; A' ger [A, B]: tomma och dubbletter bort, ordningen kvar", () => {
