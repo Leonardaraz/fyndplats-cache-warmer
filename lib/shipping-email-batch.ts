@@ -17,19 +17,13 @@
 // samtidiga webhook-anrop för samma order kan inte båda skicka.
 
 import { sql } from "./db";
-import { sandningsRader, slaIhopRader, heltSkickad, type SandningsRad } from "./fraktmejl-rader";
+import { sandningsRader, slaIhopRader, heltSkickad, type KoadSandning, type SandningsRad } from "./fraktmejl-rader";
 
 export { sandningsRader, slaIhopRader, heltSkickad };
-export type { SandningsRad };
+export type { KoadSandning, SandningsRad };
 
 /** Minuter ett nummer får vänta på resten av ordern innan cronen skickar det. */
 export const VANTETID_MIN = 30;
-
-export interface KoadSandning {
-  trackingNumber: string;
-  carrier: string | null;
-  lineItems: SandningsRad[];
-}
 
 let ensured: Promise<void> | null = null;
 function ensureTable(): Promise<void> {
