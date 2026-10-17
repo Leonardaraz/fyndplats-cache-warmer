@@ -6035,6 +6035,16 @@ Fem egenskaper som inte ska tas bort:
 ÄR ordern lagd, och att vägra på en bokföringsteknikalitet medan paketet är i transit
 är fel sorts fel.
 
+**En artikel i flera paket: alla nummer i samma fält** (2026-10-17). Wix tar en
+fulfillment per artikelantal, och en fulfillment utan rader nekas ("lineItems must not be
+empty"). Order 10095, ett hantelset i två DPD-paket, får därför båda numren i samma
+fält, i formen `tracking_number="01234567890123, 01234567890125"` (påhittade nummer). `shipManually` prövar varje nummer
+för sig, skriver fältet med komma och mellanslag och vägrar över Wix gräns på 100
+tecken. Spårlänken pekar på det första numret (`sparningsLank`). Butiken delar fältet
+och skickar ett fraktmejl med alla nummer. ☠️ Delningsregeln står på två ställen,
+`lib/tracking-link.ts` här och `lib/fraktmejl-rader.ts` på `headless-site`, och de
+måste stämma: komma, semikolon och radbrytning, aldrig mellanslag.
+
 ⚠️ **Leveransnotisen ("levererat") bor i butiksrepot, grenen `headless-site`,**
 och hade en egen lucka: 17TRACK registrerar bara nummer vars fraktbolag den
 känner igen. Både 10023 och 10025 loggade *"carrier odetekterad, inget
