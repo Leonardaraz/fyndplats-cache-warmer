@@ -15,6 +15,7 @@ import {
   sendWithdrawalEmails,
   type WithdrawalLineItem,
 } from "@/lib/withdrawal";
+import { returadressForOrder } from "@/lib/returadress-order";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -143,6 +144,14 @@ export async function POST(req: NextRequest) {
     if (RECENT.size > 2000) for (const k of [...RECENT.keys()].slice(0, 200)) RECENT.delete(k);
   }
 
+  // Returadressen (lib/returadress-order.ts): bara för en order som är
+  // verifierad mot kundens e-post, och bara när alla valda varor hör till samma
+  // leverantör med känd returadress. Annars ingen adress i kvittot, och vi
+  // mejlar den inom 1 arbetsdag.
+  const returadress = matchedOrder
+    ? await returadressForOrder(orderNumber, enriched.map((it) => it.name))
+    : null;
+
   const mail = await sendWithdrawalEmails({
     caseId,
     email,
@@ -151,6 +160,7 @@ export async function POST(req: NextRequest) {
     reason,
     matchedOrder,
     receivedAt,
+    returadress,
   });
 
   return NextResponse.json({ ok: true, caseId, emailed: mail.customer }, { status: 200 });

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../lib/seo";
-import { TOTAL_SUMMARY, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE, REFUND_TIME } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE, REFUND_TIME, RETURLAGER, RETURADRESS_NAR, RETURRISK } from "../../lib/retur-policy";
 import { SKRYMMANDE_RETURKOSTNAD } from "../../lib/retur-frakt";
 import { Ikon, Svg } from "../../components/villkor-ikoner";
 import s from "./returer.module.css";
@@ -91,7 +91,7 @@ export default function Returer() {
               <span className={s.bock}><Svg d={Ikon.bock} /></span>
               <div>
                 <h3>Du står för returfrakten</h3>
-                <p>Returfrakten betalas av kunden. Är varan trasig eller felaktig är det en reklamation, och då står Fyndplats för returkostnaden.</p>
+                <p>Returfrakten betalas av kunden. {RETURLAGER} Är varan trasig eller felaktig är det en reklamation, och då står Fyndplats för returkostnaden.</p>
               </div>
             </li>
             <li>
@@ -129,14 +129,14 @@ export default function Returer() {
           </div>
 
           <div className={s.notis}>
-            <p><strong>Vill du ångra ditt köp?</strong> Enklast gör du det via vår <a href="/angra-kop">ångerfunktion</a> – ange din e-postadress och ditt ordernummer, välj vilka artiklar du vill ångra och skicka. Du får direkt ett automatiskt mottagningskvitto med returadress och nästa steg. Ångerrätten gäller <strong>även innan paketet hunnit fram</strong>.</p>
+            <p><strong>Vill du ångra ditt köp?</strong> Enklast gör du det via vår <a href="/angra-kop">ångerfunktion</a> – ange din e-postadress och ditt ordernummer, välj vilka artiklar du vill ångra och skicka. Du får direkt ett automatiskt mottagningskvitto med ärendenummer och nästa steg. Ångerrätten gäller <strong>även innan paketet hunnit fram</strong>.</p>
           </div>
 
           <ol className={`om-tid ${s.steg}`}>
             <li>
               <span className="om-tid-nar">Steg 1</span>
               <h3>Anmäl returen</h3>
-              <p>Använd vår <a href="/angra-kop">ångerfunktion</a>, eller mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ditt <strong>ordernummer</strong>, <strong>vilken produkt</strong> du vill returnera och <strong>anledning</strong> (frivilligt). Du får en automatisk bekräftelse med returadressen och nästa steg.</p>
+              <p>Använd vår <a href="/angra-kop">ångerfunktion</a>, eller mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ditt <strong>ordernummer</strong>, <strong>vilken produkt</strong> du vill returnera och <strong>anledning</strong> (frivilligt). Ångerfunktionen skickar ett mottagningskvitto direkt. Mejlar du oss svarar vi personligen.</p>
             </li>
             <li>
               <span className="om-tid-nar">Steg 2</span>
@@ -146,13 +146,13 @@ export default function Returer() {
             <li>
               <span className="om-tid-nar">Steg 3</span>
               <h3>Skicka tillbaka paketet</h3>
-              <p>Skicka till returadressen du fick i bekräftelsemejlet. <strong>Returfrakten betalas av kunden</strong> — du bokar själv hos valfri transportör som tar emot varans storlek och vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på avsändning.</p>
+              <p>{RETURADRESS_NAR} <strong>Returfrakten betalas av kunden</strong> och blir en utrikesfrakt — du bokar själv hos valfri transportör som tar emot varans storlek och vikt. Vi rekommenderar <strong>spårbar leverans</strong> så du har bevis på avsändning.</p>
               <p className={s.liten}>{SKRYMMANDE_RETURKOSTNAD}</p>
             </li>
             <li>
               <span className="om-tid-nar">Steg 4</span>
               <h3>Skicka oss spårningsnumret</h3>
-              <p>Svara på bekräftelsemejlet med ditt spårningsnummer så håller vi koll på returen.</p>
+              <p>Svara på mejlet med returadressen och skicka med ditt spårningsnummer. Vi behöver det för att anmäla returen till returlagret innan paketet är framme.</p>
             </li>
             <li>
               <span className="om-tid-nar">Steg 5</span>
@@ -189,7 +189,7 @@ export default function Returer() {
               <h3>Gäller under hela perioden</h3>
               <ul>
                 {COMMON.map((p) => <li key={p}>{p}</li>)}
-                <li>Skicka med spårning och spara inlämningskvittot. Kan du visa att paketet lämnats in står Fyndplats för risken om det försvinner på vägen.</li>
+                <li>Skicka med spårning och spara inlämningskvittot. {RETURRISK}</li>
               </ul>
             </div>
 

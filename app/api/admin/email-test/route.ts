@@ -22,6 +22,7 @@ import DeliveryNotificationEmail, { deliverySubject } from "@/emails/delivery-no
 import RefundConfirmationEmail from "@/emails/refund-confirmation";
 import OrderCancellationEmail from "@/emails/order-cancellation";
 import ReturnConfirmationEmail from "@/emails/return-confirmation";
+import WithdrawalReceiptEmail from "@/emails/withdrawal-receipt";
 import NewsletterWelcomeEmail from "@/emails/newsletter-welcome";
 import { renderAbandonedCart1 } from "@/emails/abandoned-cart-1";
 import { renderAbandonedCart2 } from "@/emails/abandoned-cart-2";
@@ -29,6 +30,8 @@ import { renderAbandonedCart3 } from "@/emails/abandoned-cart-3";
 import { renderAbandonedCart3NoCode } from "@/emails/abandoned-cart-3-no-code";
 import { unsubscribeUrl } from "@/lib/newsletter";
 import { DELIVERY_TIME } from "@/lib/shipping";
+import { RETURADRESSER } from "@/lib/returadress";
+import { formatStockholm } from "@/lib/withdrawal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +72,8 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           discount: 20,
           total: 296.98,
           currency: "SEK",
-          shippingAddress: { fullName: "Leonard Araz", addressLine: "Bergviksgatan 10", postalCode: "152 44", city: "Södertälje", country: "Sverige" },
+          // Påhittad adress: exempeldata ska aldrig vara en riktig persons.
+          shippingAddress: { fullName: "Anna Andersson", addressLine: "Storgatan 1", postalCode: "111 22", city: "Stockholm", country: "Sverige" },
           paymentMethod: "Kort (Visa ••42)",
           estimatedDelivery: DELIVERY_TIME,
         }),
@@ -137,6 +141,9 @@ const TEMPLATES: Record<string, TemplateEntry> = {
         }),
       ),
   },
+  // Returmejlen i två varianter: med returlagrets adress (alla varor från samma
+  // leverantör med känt returlager, lib/returadress.ts) och utan, när vi mejlar
+  // adressen inom 1 arbetsdag.
   "return-confirmation": {
     label: "Returbekräftelse (manuell)",
     subject: `Vi har tagit emot din returanmälan – order ${ORDER_NO}`,
@@ -146,6 +153,48 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           firstName: "Leonard",
           orderNumber: ORDER_NO,
           productName: "12-pack Hjärteballonger",
+          returadress: RETURADRESSER.aosom,
+        }),
+      ),
+  },
+  "return-confirmation-utan-adress": {
+    label: "Returbekräftelse (manuell), utan returadress",
+    subject: `Vi har tagit emot din returanmälan – order ${ORDER_NO}`,
+    render: () =>
+      render(
+        ReturnConfirmationEmail({
+          firstName: "Leonard",
+          orderNumber: ORDER_NO,
+          productName: "12-pack Hjärteballonger",
+          returadress: null,
+        }),
+      ),
+  },
+  "withdrawal-receipt": {
+    label: "Mottagningskvitto, ångra köp",
+    subject: "Vi har tagit emot din ångeranmälan (ANG-1A2B3C)",
+    render: () =>
+      render(
+        WithdrawalReceiptEmail({
+          caseId: "ANG-1A2B3C",
+          orderNumber: ORDER_NO,
+          receivedAt: formatStockholm(new Date()),
+          items: [{ name: sampleItems[0].name, qty: 1, lineMinor: 8399, image: SAMPLE_IMG }],
+          returadress: RETURADRESSER.aosom,
+        }),
+      ),
+  },
+  "withdrawal-receipt-utan-adress": {
+    label: "Mottagningskvitto, ångra köp, utan returadress",
+    subject: "Vi har tagit emot din ångeranmälan (ANG-1A2B3C)",
+    render: () =>
+      render(
+        WithdrawalReceiptEmail({
+          caseId: "ANG-1A2B3C",
+          orderNumber: ORDER_NO,
+          receivedAt: formatStockholm(new Date()),
+          items: [{ name: sampleItems[0].name, qty: 1, lineMinor: 8399, image: SAMPLE_IMG }],
+          returadress: null,
         }),
       ),
   },

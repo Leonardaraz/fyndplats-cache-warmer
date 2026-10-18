@@ -5,7 +5,7 @@
 // smyga tillbaka nästa gång någon skriver om en sida.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT, SHIPPING_REFUND, REFUND_TIME, REFUND_SENTENCE, AVGIFT_PROCENT, AVGIFT_SENTENCE, POSTA_INOM_DAGAR } from "./retur-policy.ts";
+import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT, SHIPPING_REFUND, REFUND_TIME, REFUND_SENTENCE, AVGIFT_PROCENT, AVGIFT_SENTENCE, POSTA_INOM_DAGAR, RETURRISK } from "./retur-policy.ts";
 
 const statutoryText = [STATUTORY.lead, ...STATUTORY.points].join(" ").toLowerCase();
 const voluntaryText = [VOLUNTARY.lead, ...VOLUNTARY.points].join(" ").toLowerCase();
@@ -151,4 +151,24 @@ test("avgiften och den korta fristen rör aldrig dag 1–14", () => {
   const lag = [STATUTORY.lead, ...STATUTORY.points].join(" ");
   assert.ok(!/bearbetningsavgift/i.test(lag), "avgiften står under den lagstadgade ångerrätten");
   assert.ok(!new RegExp(`inom ${POSTA_INOM_DAGAR} dagar`).test(lag), "kort frist under ångerrätten");
+});
+
+test("risken för returpaketet: vår under ångerrätten, kundens under det öppna köpet", () => {
+  // Under ångerrätten bär företaget risken från att kunden lämnat paketet till
+  // transportören (Konsumentverket, 2 kap. 14 § distansavtalslagen), och det
+  // går inte att avtala bort. Dag 15–30 är vårt eget erbjudande, och där bär
+  // kunden risken. Mejlen vet inte vilken period som gäller, så meningen måste
+  // säga båda.
+  assert.match(RETURRISK, /14 dagar[^.]*Fyndplats för risken/);
+  assert.match(RETURRISK, /visa att du lämnat in/);
+  assert.match(RETURRISK, /15–30[^.]*du själv för risken/);
+
+  const risk = VOLUNTARY.points.find((p) => /risken/i.test(p)) ?? "";
+  assert.match(risk, /dag 15–30/, "risken under det öppna köpet saknas i VOLUNTARY");
+  assert.match(risk, /du för risken/);
+
+  // Och kunden bär aldrig risken under den lagstadgade ångerrätten.
+  const lag = [STATUTORY.lead, ...STATUTORY.points].join(" ");
+  const kundensRisk = /(står|bär) (du|kunden)[^.]{0,15}(för )?risken|(du|kunden) (själv )?(står|bär)[^.]{0,15}(för )?risken|på din risk/i;
+  assert.ok(!kundensRisk.test(lag), "risken läggs på kunden under ångerrätten");
 });

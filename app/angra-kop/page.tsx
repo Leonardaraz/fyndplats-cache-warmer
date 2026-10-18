@@ -13,7 +13,7 @@ import s from "./angra-kop.module.css";
 export const metadata: Metadata = {
   title: "Ångra köp",
   description:
-    "Ångra ditt köp hos Fyndplats direkt på sajten. Välj order och artiklar, så får du ett mottagningskvitto med returadress och nästa steg.",
+    "Ångra ditt köp hos Fyndplats direkt på sajten. Välj order och artiklar, så får du direkt ett mottagningskvitto med ärendenummer och nästa steg.",
   alternates: { canonical: "https://www.fyndplats.se/angra-kop" },
   openGraph: {
     type: "website",
@@ -48,7 +48,7 @@ export default function AngraKop() {
           <div className="eyebrow">Ångerrätt</div>
           <h1>Ångra ditt köp</h1>
           <p className="om-lede">
-            Ändrat dig? Du har rätt att ångra ditt köp – och det ska vara lika enkelt som att handla. Fyll i din order nedan, välj vad du vill ångra, så får du direkt ett mottagningskvitto med returadress och nästa steg.
+            Ändrat dig? Du har rätt att ångra ditt köp – och det ska vara lika enkelt som att handla. Fyll i din order nedan, välj vad du vill ångra, så får du direkt ett mottagningskvitto med ärendenummer och nästa steg.
           </p>
           <div className="om-cta">
             <a className="btn btn-primary" href="#formular">Till formuläret</a>
