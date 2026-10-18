@@ -9,6 +9,8 @@
 //
 // OBS: helt read-only — vi modifierar aldrig orderdata.
 
+import { kundnamnPaOrder, type OrderMedNamn } from "@/lib/reviews/kundinitialer";
+
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
 
@@ -141,6 +143,28 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
       quantity: r.quantity ?? 1,
     })),
   };
+}
+
+/**
+ * Köparens namn på en order (GET /ecom/v1/orders/{id}), för initialerna på ett
+ * kundomdöme där kunden lämnat namnfältet tomt (lib/reviews/kundinitialer.ts).
+ * Null när ordern inte finns. Tidsgränsen skyddar kunden som skickar omdömet:
+ * butiken väntar på svaret.
+ */
+export async function fetchOrderKundnamn(orderId: string, timeoutMs = 5_000): Promise<string | null> {
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/${encodeURIComponent(orderId)}`, {
+    method: "GET",
+    headers: headers(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/get misslyckades (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { order?: OrderMedNamn };
+  return data.order ? kundnamnPaOrder(data.order) : null;
 }
 
 /**

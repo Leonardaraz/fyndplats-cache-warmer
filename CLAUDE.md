@@ -5213,6 +5213,34 @@ att vi hämtar aliexpress recensioner längre"). Stoppet sitter på tre ställen
 fotoåterställningen (`review-image-restore`) hämtar bara foton till rader som
 redan finns och rörs inte.
 
+## Kundomdömen utan namn får initialer från ordern (2026-10-18)
+
+Leonards rapport: ett godkänt kundomdöme på en elkamin visade "Verifierad
+köpare" som namn. Butikens formulär har ett frivilligt namnfält, och lämnas det
+tomt sparar butiken den texten som initialer (headless-site
+`lib/customer-review.ts`, `initialsFromName`). Leonard: det ska visa
+initialer, som de andra.
+
+Motorn tar numera initialerna från ordern när fältet är tomt
+(`/api/reviews/customer` → `lib/reviews/kundinitialer.ts`). Köparens namn på
+fakturan gäller först, sedan mottagaren och leveransadressen. Regeln är
+butikens: första bokstaven i första och sista ordet. Omdömen som skrevs innan
+dess rättas med workflowen **"Recensioner — initialer på kundomdömen som visar
+"Verifierad köpare""** (`/api/admin/kundomdome-initialer`, torrt som default).
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **En order som inte går att läsa fäller aldrig omdömet.** Då står
+   "Verifierad köpare" kvar, och workflowen rättar raden senare.
+2. ☠️ **Statusen följer med oförändrad**, och en rad räknas som rättad först
+   när den läses tillbaka med de nya initialerna.
+3. ☠️ **Loggen och svaret bär bara räknare och produkt-id**, aldrig namn eller
+   initialer.
+
+⚠️ Formuläret säger "frivilligt – vi visar bara initialer". Lämnar kunden
+fältet tomt visas nu initialerna från beställningen, så texten bör säga det.
+Det är en ändring i butiken (`components/review-form.tsx`).
+
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 
 Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
