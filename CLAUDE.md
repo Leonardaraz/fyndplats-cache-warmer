@@ -494,3 +494,31 @@ Fyra egenskaper som inte ska tas bort:
    Strängen delas för hand, eftersom `URLSearchParams` kodar om `,` och `+`.
 
 Sidans canonical pekar redan på den rena adressen, så för Google är inget nytt.
+
+## Prisjakt-flödet, och varför flödena inte är route-ISR (2026-10-19)
+
+`https://www.fyndplats.se/feed/prisjakt.xml` läggs in i Prisjakts Business
+Center (Feedhantering → Lägg till feed, typ Produktfeed, format Prisjakt XML).
+Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger i
+`lib/feed/prisjakt.ts`, skrivna mot Prisjakts spec (developer.prisjakt.nu, läst
+2026-10-13):
+
+- Bara varor i lager, och `g:price` är priset kunden betalar.
+- Varje rad bär `g:shipping` med kassans fraktregel och alla fyra tiderna:
+  hantering 1–2 och transport 2–4 arbetsdagar, alltså sajtens 3–6
+  (`prisjaktTider`). ☠️ Saknas en av de fyra stryker Prisjakt alla. Med tiderna
+  i flödet behövs inga leveranstjänster i Business Center.
+- Googles kampanjetiketter, `g:identifier_exists` och `g:size` (som kräver
+  `g:size_system`) tas bort. Ingen GTIN och ingen mpn: en mpn får bara vara
+  tillverkarens eget nummer.
+
+☠️ **Flödena är inte route-ISR längre.** Google- och PriceRunner-flödet hade
+`revalidate = 3600` och förnyades aldrig efter bygget. Uppmätt 2026-10-19:
+`/feed/google.xml` svarade STALE med age ~77 000 s och bar produkter som dolts
+kvällen innan, och `/feed/pricerunner.xml` serverades ur bygget. Samma ISR på
+`/feed/products.xml` (8 MB) förnyades som den skulle, och de två andra är
+~15 MB. Varför är inte mätt: storleken är den enda skillnad som syns, och inget
+fel loggades. Google, PriceRunner och Prisjakt körs därför vid anrop, och
+CDN:en cachar svaret en timme (`s-maxage=3600` med `stale-while-revalidate`),
+samma upplägg som `/api/feed/image-sitemap.xml`. Ett kallt bygge av
+Google-flödet tar runt 45 s (se `/feed/produktrecensioner.xml`).

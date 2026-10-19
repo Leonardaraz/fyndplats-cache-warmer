@@ -268,7 +268,7 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
       ) : null}
 
       <label className="rf-label" htmlFor={`namn-${vara.productId}`}>
-        Ditt namn <span className="rf-hint">(frivilligt – vi visar bara initialer)</span>
+        Ditt namn <span className="rf-hint">(frivilligt – vi visar bara initialer, och lämnar du fältet tomt tar vi dem från beställningen)</span>
       </label>
       <input
         id={`namn-${vara.productId}`}

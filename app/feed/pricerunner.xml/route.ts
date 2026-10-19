@@ -6,7 +6,9 @@
 // (pris kunden betalar, frakt per vara, bara varor i lager) ligger i
 // lib/feed/pricerunner.ts.
 //
-// Samma route-ISR som Google-feeden: Wix anropas högst en gång i timmen.
+// Körs vid anrop och CDN:en cachar svaret en timme, samma upplägg som
+// Google-feeden. Route-ISR förnyades aldrig för de här ~15 MB stora
+// feederna; se ☠️-stycket i ../google.xml/route.ts.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPricerunner } from "@/lib/feed/pricerunner";
@@ -19,7 +21,8 @@ import {
 } from "@/lib/shipping";
 
 export const runtime = "nodejs";
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function GET() {
   const googleXml = await (await googleFeed()).text();
