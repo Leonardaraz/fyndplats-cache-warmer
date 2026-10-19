@@ -2648,6 +2648,14 @@ Fyra egenskaper som inte ska tas bort:
    inom karenstiden, tre dygn efter att bildstädningen (03:50 UTC) först såg dem
    oanvända.
 
+⚠️ **Feedens position 2 är inte alltid ett miljöfoto** (2026-10-19). På
+barnnattduksbordet `2c63cfbc` och barnskrivborden `426d88ab` och `2d92a681` är den
+ett amatörfoto från lagret med smutsigt golv, och nattduksbordet står upp och ned.
+Leonard: andra bilden ska vara en annan. Fotot ligger sist sedan dess
+(`tools/polish-assets/runda-bilder-barn-amator/`), och `plan` svarar
+`har_annan_plats` för de tre sidorna. Flytta inte tillbaka det. Fler sådana sidor
+kan finnas, och det syns bara på bilden.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
