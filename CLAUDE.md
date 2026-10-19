@@ -2658,6 +2658,28 @@ svarar inte längre `har_som_tva` för de tre sidorna. Lägg inte tillbaka posit
 Fotona är liggande bilder inramade med vita band upptill och nedtill, och det
 syns bara på bilden.
 
+Samma dag svepte `tools/polish-gates/lagerfoto-svep.py` hela katalogen efter den
+formen: ett foto inramat med vita band, som går kant i kant. Underlaget är butikens
+Google-flöde (4 944 sidor, 28 162 bilder) och en miniatyr per bild. Kollen fällde alla
+fem kända lagerfoton och ingen av de nio andra bilderna på barnmöblerna. Av 110
+inramade bilder i katalogen var tolv lagerfoton, och resten var stående miljöbilder,
+renderingar och kort. Se därför varje träff med ögonen.
+
+Andrabilden var ett lagerfoto på fem sidor till: barn-UTV:n `0f94d65c`, wigglebilen
+`98672b0d` och gokartarna `39a377f6` (rosa), `08bdee9f` (röd) och `ea640f31` (vit).
+Fotot ligger sist sedan dess (`runda-bilder-lagerfoto-sist`). Livsbildens `flytta`
+hade lagt tillbaka det som andra bild, så kör den inte på de fem sidorna. Det gick
+inte att ersätta:
+
+- UTV:ns och wigglebilens övriga bilder är tysk säljgrafik eller fler lagerfoton,
+  och utsnitt utan texten kapar varan, en annan svängbil eller ett ansikte.
+- Gokartarnas artikel saknades i flödet 2026-10-19, så deras övriga bilder gick
+  inte att hämta. Kör `aosom-bildkandidater` igen när artikeln är tillbaka.
+
+Längre ner i galleriet sitter samma sorts foto på springcykeln `115d3831`
+(plats 6) och väggvärmaren `d05fd29f` (plats 4). Kollen ser inte ett lagerfoto
+som fyller hela kvadraten.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
