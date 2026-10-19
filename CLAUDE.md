@@ -2667,18 +2667,29 @@ renderingar och kort. Se därför varje träff med ögonen.
 
 Andrabilden var ett lagerfoto på fem sidor till: barn-UTV:n `0f94d65c`, wigglebilen
 `98672b0d` och gokartarna `39a377f6` (rosa), `08bdee9f` (röd) och `ea640f31` (vit).
-Fotot ligger sist sedan dess (`runda-bilder-lagerfoto-sist`). Livsbildens `flytta`
-hade lagt tillbaka det som andra bild, så kör den inte på de fem sidorna. Det gick
-inte att ersätta:
+Fotot flyttades först sist (`runda-bilder-lagerfoto-sist`). Leonard ville sedan ha
+lagerfotona borta och ersatta med proffsiga bilder, som på barnmöblerna. Lägg inte
+tillbaka dem, och kör inte livsbildens `flytta` på sidorna.
 
-- UTV:ns och wigglebilens övriga bilder är tysk säljgrafik eller fler lagerfoton,
-  och utsnitt utan texten kapar varan, en annan svängbil eller ett ansikte.
-- Gokartarnas artikel saknades i flödet 2026-10-19, så deras övriga bilder gick
-  inte att hämta. Kör `aosom-bildkandidater` igen när artikeln är tillbaka.
+- UTV:n och wigglebilen fick ett utsnitt ur leverantörens måttbild. Den tyska
+  texten, den infällda sitsbilden och pojken ligger utanför, och måtten i bilden är
+  samma som sidans (`runda-bilder-lagerfoto-ersatt`).
+- Springcykeln `115d3831` hade två lagerfoton (plats 5 och 6). Båda är borta, och
+  sidan fick ett utsnitt ur en miljöbild.
+- Väggvärmaren `d05fd29f` hade lagerfotot på plats 4 och inga rena leverantörsbilder
+  kvar. Den enda miljöbilden med värmaren har tysk text över varans överkant. Fotot
+  är ersatt med ett eget spec-kort byggt ur sidans spec-tabell
+  (`runda-bilder-vaggvarmare-kort`).
+- Den vita Vespa-scootern `69042231` är en sammanslagen sida i tre färger. Fotot var
+  länkat till Vit och är borttaget med `bilder-bort.yml`. Bildkandidaterna vägrar en
+  sida med flera artiklar (`flera_artiklar`), så ingen ersättning hämtades.
+- Gokartarnas artikel saknades i flödet 2026-10-19, så deras övriga bilder gick inte
+  att hämta, och fotot ligger kvar sist. Kör `aosom-bildkandidater` med positionerna
+  3–10 när artikeln är tillbaka.
 
-Längre ner i galleriet sitter samma sorts foto på springcykeln `115d3831`
-(plats 6) och väggvärmaren `d05fd29f` (plats 4). Kollen ser inte ett lagerfoto
-som fyller hela kvadraten.
+☠️ **Kollen ser bara inramade foton.** Springcykelns andra foto (6:5) och Vespans
+(4:3) var inte inramade. De hittades först när alla 671 bilder i katalogen som inte
+är kvadratiska granskades med ögonen.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 

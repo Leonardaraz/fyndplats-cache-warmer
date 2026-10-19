@@ -18,7 +18,10 @@ fälldes och ingen av de nio andra bilderna. Hela katalogen (4 944 sidor,
 lagerfoton. Resten var stående miljöbilder, renderingar och kort, så varje
 träff ska ses med ögonen innan något flyttas.
 
-⚠️ Kollen ser INTE ett lagerfoto som fyller hela kvadraten, bara ett inramat.
+⚠️ Kollen ser bara inramade foton. Ett lagerfoto i en fil som inte är kvadratisk
+   (6:5, 4:3) har inga vita band och fälls inte. Två sådana fanns 2026-10-19
+   och hittades först när alla 671 icke-kvadratiska bilder sågs med ögonen.
+   Utfilen bär miniatyrens mått (w, h), så de bilderna går att lista.
 ⚠️ Flödet cachas i upp till ett dygn, så en sida som ändrats i dag kan visa
    gårdagens ordning.
 
