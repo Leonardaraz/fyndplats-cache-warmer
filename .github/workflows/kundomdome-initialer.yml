@@ -1,0 +1,87 @@
+name: Recensioner — initialer på kundomdömen som visar "Verifierad köpare"
+
+# Leonard 2026-10-18: ett kundomdöme där kunden lämnat namnfältet tomt visade
+# "Verifierad köpare" som namn. Det ska visa initialer, som de andra. Motorn
+# tar numera initialerna från ordern när omdömet skrivs
+# (/api/reviews/customer); den här workflowen rättar omdömena som skrevs innan
+# dess. Logiken: lib/reviews/kundinitialer.ts.
+#
+# Torrt som default: räknar bara. skarp = ja skriver initialerna och läser
+# tillbaka varje rad. Statusen rörs inte.
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE OCH PRODUKT-ID. Inga namn, inga initialer.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      skarp:
+        description: "ja = skriv initialerna. nej = torrkörning (räknar bara)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  initialer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialer på kundomdömen
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/kundomdome-initialer"
+          [ "${SKARP:-nej}" = "ja" ] && url="${url}?skarp=ja"
+
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 300 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          json="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$json" | jq -c '{ok, error}' >&2 || true
+            exit 1
+          fi
+          if [ "$(printf '%s' "$json" | jq -r '.trunkerad')" = "true" ]; then
+            echo "::error::Lagret är större än rutten läser — inget skrivet" >&2
+            exit 1
+          fi
+
+          printf '%s' "$json" | jq -r '"\(.kundomdomen) kundomdömen, \(.attRatta) utan initialer, \(.kanRattas) kan rättas, \(.rattade) rättade, \(.utanOrder) utan order-id, \(.orderSaknas) där ordern saknas, \(.utanNamn) utan namn, \(.fel) fel"'
+
+          {
+            echo "### Initialer på kundomdömen — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| rader i lagret | $(printf '%s' "$json" | jq -r '.granskade') |"
+            echo "| kundomdömen | $(printf '%s' "$json" | jq -r '.kundomdomen') |"
+            echo "| utan initialer | $(printf '%s' "$json" | jq -r '.attRatta') |"
+            echo "| kan rättas (namn på ordern) | $(printf '%s' "$json" | jq -r '.kanRattas') |"
+            echo "| rättade och tillbakalästa | $(printf '%s' "$json" | jq -r '.rattade') |"
+            echo "| utan order-id | $(printf '%s' "$json" | jq -r '.utanOrder') |"
+            echo "| ordern finns inte | $(printf '%s' "$json" | jq -r '.orderSaknas') |"
+            echo "| inget namn på ordern | $(printf '%s' "$json" | jq -r '.utanNamn') |"
+            echo "| fel | $(printf '%s' "$json" | jq -r '.fel') |"
+            echo ""
+            echo "Produkter: $(printf '%s' "$json" | jq -r '.produkter | join(", ")')"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${SKARP:-nej}" = "ja" ] && [ "$(printf '%s' "$json" | jq -r '.fel')" != "0" ]; then
+            echo "::error::$(printf '%s' "$json" | jq -r '.fel') omdömen gick inte att rätta" >&2
+            exit 1
+          fi
