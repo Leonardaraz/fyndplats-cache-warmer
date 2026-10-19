@@ -1,0 +1,95 @@
+{
+ "runda": "runda-t66-givare-alt",
+ "produkter": [
+  {
+   "kort": "829910f7",
+   "pid": "829910f7-4f7f-4e4d-b53c-246383dc09da",
+   "media": [
+    {
+     "id": "b379ce_ff580caeb5e042a3bb4ee671c9fdac12~mv2.jpg",
+     "altText": "Blå husdjurssoffa i plysch med högt armstöd och mörka ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d4cbce0b3f8f4ff7bef80fbb799efb31~mv2.jpg",
+     "altText": "En mops ligger på den blå husdjurssoffan i ett vardagsrum med en stor växt i en korg och en grå fåtölj bakom"
+    },
+    {
+     "id": "b379ce_73ab2d085ba04d6ea4eb5f7f268f0817~mv2.jpg",
+     "altText": "Den blå husdjurssoffan med uppfälld sits och ett tomt förvaringsfack under, på vit bakgrund"
+    }
+   ]
+  },
+  {
+   "kort": "5f801d7e",
+   "pid": "5f801d7e-b9fa-43c4-8d4e-9a2239236a0c",
+   "media": [
+    {
+     "id": "b379ce_95824ac46f334beeadcd83cfd22868e4~mv2.jpg",
+     "altText": "Blå upphöjd hundsäng med tak av blått tyg och liggyta av svart nät, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_20a0d6ea565a47bcb6d95157a394aa3f~mv2.jpg",
+     "altText": "En golden retriever ligger i den blå hundsängen framför en tegelvägg med ett fönster och krukväxter"
+    },
+    {
+     "id": "b379ce_8a6df8fd6c7940a298603183023493d5~mv2.jpg",
+     "altText": "Den blå hundsängen på en stenlagd uteplats framför en tegelvägg med krukväxter"
+    }
+   ]
+  },
+  {
+   "kort": "5ae01ed6",
+   "pid": "5ae01ed6-9a0c-40d1-aa28-db4a25960c19",
+   "media": [
+    {
+     "id": "b379ce_70a4bca0b4a8400a87be020fb3669f19~mv2.jpg",
+     "altText": "Rosa hundsoffa med snäckformad rygg och ben av ljust trä, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d48c8976f97e4f0c9142b4e6efb0a198~mv2.jpg",
+     "altText": "En golden retriever ligger på den rosa hundsoffan i ett vardagsrum med en hylla, en stor växt och en matta"
+    },
+    {
+     "id": "b379ce_4f4f3720fd004effbc74e8c5c36b17e2~mv2.jpg",
+     "altText": "Närbild på den rosa hundsoffans snäckformade rygg och mjuka sittyta"
+    }
+   ]
+  },
+  {
+   "kort": "3e0c58c8",
+   "pid": "3e0c58c8-ebdf-4f19-bb6a-3554983304de",
+   "media": [
+    {
+     "id": "b379ce_95f0145cc90d44df902832a0f0fed9ca~mv2.jpg",
+     "altText": "Blå verktygsvagn i stål med tre plan och fyra svarta hjul, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0e1bdd6a22b24fabaff5f5631370a850~mv2.jpg",
+     "altText": "Den blå verktygsvagnen i ett garage med flaskor, förvaringslådor och verktyg på planen och verktyg på en vägg bakom"
+    },
+    {
+     "id": "b379ce_9dd927cd00774151b61b74a56e30a73f~mv2.jpg",
+     "altText": "Den blå verktygsvagnen sedd uppifrån med en andningsmask, en värmepistol och skruvmejslar på översta planet"
+    }
+   ]
+  },
+  {
+   "kort": "fd24146f",
+   "pid": "fd24146f-ef46-464b-9e76-0196bd995eac",
+   "media": [
+    {
+     "id": "b379ce_7f4a65ceecae4cfa9a6e4dbfa84c0634~mv2.jpg",
+     "altText": "Svart hundbur med stålstavar fram och på sidan och ett galler i locket, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_dd048e83197c4c85b2562eba1536f95a~mv2.jpg",
+     "altText": "En beagle sitter framför den svarta hundburen som står mot en vit byrå bredvid en grå fåtölj"
+    },
+    {
+     "id": "b379ce_edaeb6e9e516406d833a1f2ff64510c8~mv2.jpg",
+     "altText": "Den svarta burens övre lucka står uppfälld med ett galler, bredvid en korg och en skål"
+    }
+   ]
+  }
+ ]
+}
