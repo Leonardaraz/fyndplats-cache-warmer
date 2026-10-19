@@ -100,12 +100,12 @@ describe("giltigtPrisjaktId", () => {
 describe("prisjaktItem", () => {
   it("frakten bär alla fyra tiderna, annars stryker Prisjakt dem", () => {
     const out = prisjaktItem(item({ price: "249.00" }).trim(), S)!;
-    assert.match(out, /<g:shipping>\n        <g:country>SE<\/g:country>\n        <g:service>Spårbar frakt<\/g:service>\n        <g:price>19\.00 SEK<\/g:price>/);
+    assert.match(out, /<g:shipping><g:country>SE<\/g:country><g:service>Spårbar frakt<\/g:service><g:price>19\.00 SEK<\/g:price>/);
     assert.match(out, /<g:min_handling_time>1<\/g:min_handling_time>/);
     assert.match(out, /<g:max_handling_time>2<\/g:max_handling_time>/);
     assert.match(out, /<g:min_transit_time>2<\/g:min_transit_time>/);
     assert.match(out, /<g:max_transit_time>4<\/g:max_transit_time>/);
-    assert.match(out, /<\/g:shipping>\n    <\/item>$/);
+    assert.match(out, /<\/g:shipping><\/item>$/);
   });
 
   it("fri frakt från 500 kr", () => {
@@ -118,7 +118,7 @@ describe("prisjaktItem", () => {
     const out = prisjaktItem(item({ price: "599.00", sale: "449.00" }).trim(), S)!;
     assert.doesNotMatch(out, /sale_price/);
     assert.doesNotMatch(out, /599/);
-    assert.match(out, /<g:availability>in_stock<\/g:availability>\n      <g:price>449\.00 SEK<\/g:price>/);
+    assert.match(out, /<g:availability>in_stock<\/g:availability><g:price>449\.00 SEK<\/g:price>/);
     assert.match(out, /<g:shipping>[\s\S]*<g:price>19\.00 SEK<\/g:price>/);
   });
 
@@ -132,10 +132,24 @@ describe("prisjaktItem", () => {
 
   it("behåller katalogens fält: id, grupp, länk, bilder, märke, färg och kategorier", () => {
     const out = prisjaktItem(item({ price: "249.00" }).trim(), S)!;
-    for (const tag of ["id", "item_group_id", "title", "description", "link", "image_link", "additional_image_link", "brand", "condition", "color", "product_type", "google_product_category"]) {
+    for (const tag of ["id", "item_group_id", "title", "description", "link", "image_link", "brand", "condition", "color", "product_type", "google_product_category"]) {
       assert.match(out, new RegExp(`<g:${tag}>`), tag);
     }
     assert.match(out, /<g:product_type>Möbler &gt; Sovrum<\/g:product_type>/);
+  });
+
+  it("extrabilderna tas bort, huvudbilden står kvar", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S)!;
+    assert.doesNotMatch(out, /additional_image_link/);
+    assert.match(out, /<g:image_link>https:\/\/static\.wixstatic\.com\/media\/a\.jpg<\/g:image_link>/);
+  });
+
+  it("varan skrivs på en rad utan indrag, men texten i fälten rörs inte", () => {
+    const out = prisjaktItem(item({ price: "249.00", description: "Mått  40 &gt; 30 cm , två  mellanslag " }).trim(), S)!;
+    assert.doesNotMatch(out, /\n/);
+    assert.doesNotMatch(out, />\s+</);
+    assert.match(out, /<g:description>Mått  40 &gt; 30 cm , två  mellanslag <\/g:description>/);
+    assert.match(out, /^<item><g:id>/);
   });
 
   it("en tom beskrivning tas bort, för Prisjakt kräver minst ett tecken", () => {
@@ -166,7 +180,7 @@ describe("tillPrisjakt", () => {
       ]),
       S,
     );
-    assert.ok(out.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n  <channel>'));
+    assert.ok(out.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0" xmlns:pj="https://schema.prisjakt.nu/ns/1.0">\n  <channel>'));
     assert.match(out, /<title>Fyndplats<\/title>/);
     assert.match(out, /<description>[^<]*Prisjakt[^<]*<\/description>/);
     assert.doesNotMatch(out, /Merchant Center/);
@@ -175,7 +189,20 @@ describe("tillPrisjakt", () => {
     assert.doesNotMatch(out, /<g:id>b2<\/g:id>/);
     assert.match(out, /<g:price>699\.00 SEK<\/g:price>/);
     assert.equal(out.match(/<g:shipping>/g)?.length, 2);
-    assert.ok(out.endsWith("    </item>\n  </channel>\n</rss>"));
+    assert.ok(out.endsWith("</item>\n  </channel>\n</rss>"));
+  });
+
+  it("Prisjakts namnrymd läggs till en gång", () => {
+    const en = tillPrisjakt(feed([item({ price: "249.00" })]), S);
+    assert.equal(en.match(/xmlns:pj=/g)?.length, 1);
+    assert.equal(tillPrisjakt(en, S).match(/xmlns:pj=/g)?.length, 1);
+  });
+
+  it("en vara per rad, så att flödet håller sig under CDN:ens 10 MB", () => {
+    const out = tillPrisjakt(feed([item({ id: "a1", price: "249.00" }), item({ id: "c3", price: "899.00" })]), S);
+    const rader = out.split("\n").filter((r) => r.includes("<item>"));
+    assert.equal(rader.length, 2);
+    assert.ok(rader.every((r) => r.startsWith("<item>") && r.endsWith("</item>")));
   });
 
   it("tom Google-feed ger en giltig tom feed", () => {

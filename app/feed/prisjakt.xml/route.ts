@@ -6,16 +6,17 @@
 // frakt med Prisjakts fyra leveranstider, bara varor i lager) ligger i
 // lib/feed/prisjakt.ts.
 //
-// ☠️ INGEN ROUTE-ISR HÄR. Google- och PriceRunner-feeden (revalidate = 3600,
-// ~15 MB) förnyades aldrig efter bygget: 2026-10-19 svarade /feed/google.xml
-// STALE med age 77 000 s och bar produkter som dolts kvällen innan, medan
-// /feed/products.xml (8 MB) och bildsitemapen förnyades som de skulle. Rutten
-// körs därför vid anrop, och CDN:en cachar svaret en timme (s-maxage) och
-// serverar det gamla medan nästa byggs (stale-while-revalidate), samma upplägg
-// som /api/feed/image-sitemap.xml.
+// ☠️ INGEN ROUTE-ISR HÄR, OCH FLÖDET MÅSTE HÅLLA SIG UNDER 10 MB. Google- och
+// PriceRunner-feeden (revalidate = 3600, ~15 MB) förnyades aldrig efter bygget:
+// 2026-10-19 svarade /feed/google.xml STALE med age 77 000 s och bar produkter
+// som dolts kvällen innan. Vercels CDN cachar inte svar över 10 MB, och ett
+// flöde på 15 MB som körs vid anrop byggs om vid varje hämtning (35–105 s,
+// uppmätt). Den här rutten körs vid anrop, flödet är ~9 MB (se punkt 6 i
+// lib/feed/prisjakt.ts), och CDN:en cachar svaret en timme och serverar det
+// gamla medan nästa byggs (stale-while-revalidate).
 
 import { GET as googleFeed } from "../google.xml/route";
-import { tillPrisjakt } from "@/lib/feed/prisjakt";
+import { PRISJAKT_VARNING_BYTE, tillPrisjakt } from "@/lib/feed/prisjakt";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -37,6 +38,14 @@ export async function GET() {
     minDays: DELIVERY_MIN_DAYS,
     maxDays: DELIVERY_MAX_DAYS,
   });
+
+  const byte = Buffer.byteLength(xml);
+  if (byte > PRISJAKT_VARNING_BYTE) {
+    console.warn(
+      `[prisjakt] flödet är ${(byte / 1e6).toFixed(1)} MB. Vercels CDN cachar inte svar över 10 MB, ` +
+        "och då byggs flödet om vid varje hämtning. Se punkt 6 i lib/feed/prisjakt.ts.",
+    );
+  }
 
   return new Response(xml, {
     headers: {

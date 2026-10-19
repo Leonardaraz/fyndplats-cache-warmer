@@ -20,6 +20,13 @@
 //  5. Rader vars id inte är ett giltigt Prisjakt-id tas bort: 1–36 tecken, bara
 //     ASCII, inga blanksteg och inga av ! @ # $ % ^ & * < > ; :. Feedens id är
 //     Wix-variantens id (36 tecken), så det ska aldrig hända.
+//  6. ☠️ Storleken. Vercels CDN cachar inga svar över 10 MB. Uppmätt 2026-10-19
+//     på förhandsbygget: flödet på 15,4 MB gav MISS tre gånger i rad (35–105 s
+//     per hämtning), bildsitemapen på 7,6 MB gav HIT andra gången. Därför
+//     skrivs varje rad på en rad utan indrag (−1,4 MB) och g:additional_image_link
+//     tas bort (−5 MB): extrabilderna är valfria hos Prisjakt, och erbjudandet
+//     visas med huvudbilden. Kvar blir ~9 MB. Över PRISJAKT_VARNING_BYTE loggar
+//     routen en varning.
 //
 // Ingen EAN/GTIN och ingen mpn: varorna är omärkta, och en mpn får bara vara
 // tillverkarens eget nummer.
@@ -39,6 +46,9 @@ export type PrisjaktShipping = {
 /** Hanteringstid: från order till paketet lämnas till transportören. */
 export const HANDLING_MIN_DAYS = 1;
 export const HANDLING_MAX_DAYS = 2;
+
+/** Vercels CDN cachar inte svar över 10 MB. Varningen ger marginal till det. */
+export const PRISJAKT_VARNING_BYTE = 9_500_000;
 
 export type PrisjaktTider = {
   minHandling: number;
@@ -64,11 +74,14 @@ export function prisjaktTider(minDays: number, maxDays: number): PrisjaktTider {
 const ITEM_RE = /<item>[\s\S]*?<\/item>/g;
 const ID_RE = /<g:id>([^<]*)<\/g:id>/;
 const PRICE_RE = /<g:price>([\d.]+) SEK<\/g:price>/;
-const SALE_RE = /\n?[ \t]*<g:sale_price>([\d.]+) SEK<\/g:sale_price>/;
-const LABEL_RE = /\n?[ \t]*<g:custom_label_\d>[^<]*<\/g:custom_label_\d>/g;
-const IDENTIFIER_RE = /\n?[ \t]*<g:identifier_exists>[^<]*<\/g:identifier_exists>/g;
-const SIZE_RE = /\n?[ \t]*<g:size>[^<]*<\/g:size>/g;
-const EMPTY_DESCRIPTION_RE = /\n?[ \t]*<g:description>\s*<\/g:description>/g;
+const SALE_RE = /<g:sale_price>([\d.]+) SEK<\/g:sale_price>/;
+const LABEL_RE = /<g:custom_label_\d>[^<]*<\/g:custom_label_\d>/g;
+const IDENTIFIER_RE = /<g:identifier_exists>[^<]*<\/g:identifier_exists>/g;
+const SIZE_RE = /<g:size>[^<]*<\/g:size>/g;
+const EXTRA_IMAGE_RE = /<g:additional_image_link>[^<]*<\/g:additional_image_link>/g;
+const EMPTY_DESCRIPTION_RE = /<g:description>\s*<\/g:description>/g;
+/** Blanksteg MELLAN taggar. Text i ett fält rörs inte: där står aldrig `>` direkt före. */
+const MELLAN_TAGGAR_RE = />\s+</g;
 
 /** Prisjakts regler för g:id. Id:t läses ur XML:en, alltså med entiteterna kvar. */
 export function giltigtPrisjaktId(id: string): boolean {
@@ -79,7 +92,7 @@ export function fraktFor(pris: number, s: PrisjaktShipping): number {
   return pris >= s.freeFromKr ? 0 : s.standardKr;
 }
 
-/** En <item> i Google-format → samma item för Prisjakt, eller null om den ska bort. */
+/** En <item> i Google-format → samma item för Prisjakt på en rad, eller null om den ska bort. */
 export function prisjaktItem(item: string, s: PrisjaktShipping): string | null {
   if (!item.includes("<g:availability>in_stock</g:availability>")) return null;
 
@@ -94,37 +107,39 @@ export function prisjaktItem(item: string, s: PrisjaktShipping): string | null {
 
   const frakt = fraktFor(pris, s);
   const t = prisjaktTider(s.minDays, s.maxDays);
-  const shipping = `
-      <g:shipping>
-        <g:country>SE</g:country>
-        <g:service>${s.service}</g:service>
-        <g:price>${frakt.toFixed(2)} SEK</g:price>
-        <g:min_handling_time>${t.minHandling}</g:min_handling_time>
-        <g:max_handling_time>${t.maxHandling}</g:max_handling_time>
-        <g:min_transit_time>${t.minTransit}</g:min_transit_time>
-        <g:max_transit_time>${t.maxTransit}</g:max_transit_time>
-      </g:shipping>`;
+  const shipping =
+    `<g:shipping><g:country>SE</g:country><g:service>${s.service}</g:service>` +
+    `<g:price>${frakt.toFixed(2)} SEK</g:price>` +
+    `<g:min_handling_time>${t.minHandling}</g:min_handling_time>` +
+    `<g:max_handling_time>${t.maxHandling}</g:max_handling_time>` +
+    `<g:min_transit_time>${t.minTransit}</g:min_transit_time>` +
+    `<g:max_transit_time>${t.maxTransit}</g:max_transit_time></g:shipping>`;
 
   return item
+    .replace(MELLAN_TAGGAR_RE, "><")
     .replace(SALE_RE, "")
     .replace(PRICE_RE, `<g:price>${pris.toFixed(2)} SEK</g:price>`)
     .replace(LABEL_RE, "")
     .replace(IDENTIFIER_RE, "")
     .replace(SIZE_RE, "")
+    .replace(EXTRA_IMAGE_RE, "")
     .replace(EMPTY_DESCRIPTION_RE, "")
-    .replace(/\n?[ \t]*<\/item>$/, `${shipping}\n    </item>`);
+    .replace(/<\/item>$/, `${shipping}</item>`);
 }
 
-/** Hela Google-feeden → Prisjakt-feeden. */
+/** Hela Google-feeden → Prisjakt-feeden, en vara per rad. */
 export function tillPrisjakt(googleXml: string, s: PrisjaktShipping): string {
   const items: string[] = [];
   for (const m of googleXml.matchAll(ITEM_RE)) {
     const out = prisjaktItem(m[0], s);
-    if (out) items.push(`    ${out}`);
+    if (out) items.push(out);
   }
 
   const head = googleXml
     .slice(0, googleXml.search(/<channel>/) + "<channel>".length)
+    .replace(/<rss([^>]*)>/, (rss, attr: string) =>
+      attr.includes("xmlns:pj=") ? rss : `<rss${attr} xmlns:pj="https://schema.prisjakt.nu/ns/1.0">`,
+    )
     .trimEnd();
   const channelMeta = (googleXml.match(/<channel>([\s\S]*?)(?=\s*<item>|\s*<\/channel>)/)?.[1] || "")
     .replace(/<description>[^<]*<\/description>/, "<description>Fyndplats produktkatalog för Prisjakt – noga utvalda fynd till smarta priser.</description>")

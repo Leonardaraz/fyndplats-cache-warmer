@@ -7,17 +7,11 @@
 // (2) många små Wix-anrop per request → rate limit → olika många items per
 // hämtning (produkter tappades ur Google).
 //
-// Lösningen här: CDN-cache en timme (s-maxage 3600) så Wix anropas högst en
-// gång i timmen oavsett trafik, batchade V3-anrop med retry/backoff (~2 anrop
-// för alla varianter + ~4 för gallerierna), och upp till 10 extra bilder per
-// item från produktgalleriet. Länkar pekar ALLTID på den headless-sajten
+// Lösningen här: route-nivå-ISR (revalidate 3600) så Wix anropas EN gång i
+// timmen oavsett trafik, batchade V3-anrop med retry/backoff (~2 anrop för
+// alla varianter + ~4 för gallerierna), och upp till 10 extra bilder per item
+// från produktgalleriet. Länkar pekar ALLTID på den headless-sajten
 // (https://www.fyndplats.se/produkt/<slug>) — aldrig Wix-URL:er.
-//
-// ☠️ INTE ROUTE-ISR. Rutten hade `revalidate = 3600`, och feeden förnyades
-// aldrig efter bygget: 2026-10-19 svarade den STALE med age 77 000 s och bar
-// produkter som dolts kvällen innan, medan /feed/products.xml (8 MB, samma
-// ISR) förnyades. Den här feeden är ~15 MB. Nu körs rutten vid anrop och
-// CDN:en cachar svaret (Cache-Control nedan), som /api/feed/image-sitemap.xml.
 //
 // /feed/products.xml (produktnivå) behålls orörd för Meta/Pinterest/TikTok.
 
@@ -35,8 +29,7 @@ import {
 import { bildForVariant, type ValBild } from "@/lib/variant-color-image";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const revalidate = 3600;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";

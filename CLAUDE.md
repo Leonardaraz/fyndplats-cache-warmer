@@ -495,7 +495,7 @@ Fyra egenskaper som inte ska tas bort:
 
 Sidans canonical pekar redan på den rena adressen, så för Google är inget nytt.
 
-## Prisjakt-flödet, och varför flödena inte är route-ISR (2026-10-19)
+## Prisjakt-flödet, och varför flödena måste vara under 10 MB (2026-10-19)
 
 `https://www.fyndplats.se/feed/prisjakt.xml` läggs in i Prisjakts Business
 Center (Feedhantering → Lägg till feed, typ Produktfeed, format Prisjakt XML).
@@ -508,17 +508,25 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   hantering 1–2 och transport 2–4 arbetsdagar, alltså sajtens 3–6
   (`prisjaktTider`). ☠️ Saknas en av de fyra stryker Prisjakt alla. Med tiderna
   i flödet behövs inga leveranstjänster i Business Center.
-- Googles kampanjetiketter, `g:identifier_exists` och `g:size` (som kräver
-  `g:size_system`) tas bort. Ingen GTIN och ingen mpn: en mpn får bara vara
-  tillverkarens eget nummer.
+- Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
+  `g:size_system`) och extrabilderna tas bort. Ingen GTIN och ingen mpn: en mpn
+  får bara vara tillverkarens eget nummer.
 
-☠️ **Flödena är inte route-ISR längre.** Google- och PriceRunner-flödet hade
-`revalidate = 3600` och förnyades aldrig efter bygget. Uppmätt 2026-10-19:
-`/feed/google.xml` svarade STALE med age ~77 000 s och bar produkter som dolts
-kvällen innan, och `/feed/pricerunner.xml` serverades ur bygget. Samma ISR på
-`/feed/products.xml` (8 MB) förnyades som den skulle, och de två andra är
-~15 MB. Varför är inte mätt: storleken är den enda skillnad som syns, och inget
-fel loggades. Google, PriceRunner och Prisjakt körs därför vid anrop, och
-CDN:en cachar svaret en timme (`s-maxage=3600` med `stale-while-revalidate`),
-samma upplägg som `/api/feed/image-sitemap.xml`. Ett kallt bygge av
-Google-flödet tar runt 45 s (se `/feed/produktrecensioner.xml`).
+☠️ **Vercels CDN cachar inga svar över 10 MB.** Dokumentationen säger 10 MB för
+icke-strömmade svar och 20 MB för strömmade, och våra flöden beter sig som
+icke-strömmade. Uppmätt på förhandsbygget 2026-10-19: Prisjakt-flödet
+på 15,4 MB gav MISS tre gånger i rad och byggdes om varje gång (35–105 s),
+bildsitemapen på 7,6 MB gav HIT andra gången. Prisjakt-flödet körs därför vid
+anrop och hålls under gränsen: en vara per rad utan indrag (−1,4 MB) och inga
+extrabilder (−5 MB) ger ~9,1 MB med 6 691 varor. Över 9,5 MB loggar routen en
+varning. Växer katalogen så långt är nästa steg att korta beskrivningarna
+(2,4 MB).
+
+☠️ **Google- och PriceRunner-flödet förnyas inte, och är inte lagat.** De är
+route-ISR (`revalidate = 3600`) och ~15 MB. Uppmätt 2026-10-19: `/feed/google.xml`
+svarade STALE med age ~77 000 s och bar produkter som dolts kvällen innan, och
+`/feed/pricerunner.xml` serverades ur bygget. `/feed/products.xml` (8 MB, samma
+ISR) förnyades. Flödena är alltså så gamla som senaste produktionsbygget. Att köra
+dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte under
+10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
+för Leonard.
