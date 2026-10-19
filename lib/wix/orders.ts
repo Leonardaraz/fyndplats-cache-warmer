@@ -145,13 +145,29 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
   };
 }
 
+/** Wix interna order-id. Gemener i praktiken, men båda skiftlägena läses. */
+const ORDER_GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Köparens namn på en order (GET /ecom/v1/orders/{id}), för initialerna på ett
- * kundomdöme där kunden lämnat namnfältet tomt (lib/reviews/kundinitialer.ts).
- * Null när ordern inte finns. Tidsgränsen skyddar kunden som skickar omdömet:
- * butiken väntar på svaret.
+ * Köparens namn på en order, för initialerna på ett kundomdöme där kunden
+ * lämnat namnfältet tomt (lib/reviews/kundinitialer.ts). Null när ordern inte
+ * finns. Tidsgränsen skyddar kunden som skickar omdömet: butiken väntar på
+ * svaret.
+ *
+ * ☠️ TAR ÄVEN ETT LÄSBART ORDERNUMMER ("10083"). Butikens omdömeslänk bär
+ * `tracking_mapping.order_id`, som är numret, och `GET /ecom/v1/orders/{id}`
+ * svarar 404 på ett nummer. Utan sökningen hamnade de omdömena i
+ * `orderSaknas` (uppmätt 2026-10-19: tre av tre). Samma regel som butikens
+ * lib/wix-order-id.ts: ett GUID slås upp direkt, ett nummer söks fram.
  */
 export async function fetchOrderKundnamn(orderId: string, timeoutMs = 5_000): Promise<string | null> {
+  const id = orderId.trim();
+  if (ORDER_GUID.test(id)) return kundnamnViaId(id, timeoutMs);
+  if (/^\d+$/.test(id)) return kundnamnViaNummer(id, timeoutMs);
+  return null;
+}
+
+async function kundnamnViaId(orderId: string, timeoutMs: number): Promise<string | null> {
   const res = await fetch(`${WIX_BASE}/ecom/v1/orders/${encodeURIComponent(orderId)}`, {
     method: "GET",
     headers: headers(),
@@ -165,6 +181,31 @@ export async function fetchOrderKundnamn(orderId: string, timeoutMs = 5_000): Pr
   }
   const data = (await res.json()) as { order?: OrderMedNamn };
   return data.order ? kundnamnPaOrder(data.order) : null;
+}
+
+/**
+ * ☠️ Träffen måste bära exakt det nummer vi frågade efter. Ett filter som inte
+ * biter ger butikens senaste ordrar, och då hade en annan kunds initialer
+ * hamnat på omdömet. Det är ett fel, inte en saknad order.
+ */
+async function kundnamnViaNummer(nummer: string, timeoutMs: number): Promise<string | null> {
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/search`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ search: { filter: { number: nummer }, cursorPaging: { limit: 2 } } }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/search misslyckades (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { orders?: Array<OrderMedNamn & { number?: string | number }> };
+  const ordrar = data.orders ?? [];
+  const traff = ordrar.find((o) => String(o.number ?? "") === nummer);
+  if (traff) return kundnamnPaOrder(traff);
+  if (ordrar.length > 0) throw new Error("Wix orders/search: filtret på ordernummer bet inte");
+  return null;
 }
 
 /**
