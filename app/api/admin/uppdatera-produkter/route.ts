@@ -8,16 +8,25 @@
 // ombyggnaden. Används för det som inte kan vänta på femminuterscronen
 // (/api/cron/uppdatera-andrade): fyndauktionens prissteg och återställningar.
 //
+// Med orsaken "auktion" töms också /fyndauktion och dess egen hämtning av
+// auktionsraderna (AUKTIONSSIDANS_TAGG). Motorn ropar hit när timmens priser
+// bytts, runt HH:00:25 (uppmätt 2026-10-20). Förut tömdes bara produktsidorna,
+// och auktionssidan visade "Priset uppdateras…" i ~2,5 minuter efter timslaget:
+// sidan (30 s) och raderna (15 s) serverade båda det gamla en gång till innan
+// de byggdes om.
+//
 // AUTH: ADMIN_SECRET som kakan `fp_admin` (proxy.ts släpper bara igenom
 // /api/admin/* med den) eller som "Authorization: Bearer". ALDRIG i adressen:
 // en nyckel i en URL hamnar i åtkomstloggar. Jämförelsen är tidskonstant, och
 // saknas ADMIN_SECRET är rutten stängd.
 
 import { NextRequest, NextResponse, after } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { uppdateraProduktsidor } from "../../../../lib/produktsidor-uppdatera";
 import type { AndradProdukt } from "../../../../lib/produkt-cache";
 import { bearerVarde, sammaHemlighet } from "../../../../lib/hemlig-jamforelse";
 import { varmAlla } from "../../../../lib/warm";
+import { AUKTIONSSIDANS_TAGG, auktionssidanSkaTommas } from "../../../../lib/auction-motor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +78,14 @@ export async function POST(req: NextRequest) {
   const orsak = typeof raOrsak === "string" ? raOrsak.replace(/[\p{Cc}\p{Cf}]/gu, " ").slice(0, 40) : "okänd";
 
   const plan = await uppdateraProduktsidor(produkter as AndradProdukt[]);
+  // { expire: 0 }, inte "max": nästa hämtning ska bygga om med de nya priserna,
+  // inte servera det gamla en gång till. Bara auktionssidans egen tagg: att tömma
+  // "auctions" hade tömt startsidan också, varje timme (lib/auction-motor.ts).
+  const auktionssidan = auktionssidanSkaTommas(orsak);
+  if (auktionssidan) {
+    revalidateTag(AUKTIONSSIDANS_TAGG, { expire: 0 });
+    revalidatePath("/fyndauktion");
+  }
   // Värmningen går mot produktionsadressen (lib/site-urls.ts); en preview ska inte värma den.
   const varma = varm !== false && process.env.VERCEL_ENV === "production" ? plan.slugs.slice(0, MAX_VARMA) : [];
   if (varma.length) {
@@ -81,7 +98,8 @@ export async function POST(req: NextRequest) {
 
   console.log(
     `[uppdatera-produkter] ${orsak}: produkter ${plan.ids.length}, sidor ${plan.sokvagar.length}, `
-      + `utan slug ${plan.utanSlug.length}, ogiltiga ${plan.ogiltiga}${plan.uppslagFel ? `, uppslag föll: ${plan.uppslagFel}` : ""}`,
+      + `utan slug ${plan.utanSlug.length}, ogiltiga ${plan.ogiltiga}${plan.uppslagFel ? `, uppslag föll: ${plan.uppslagFel}` : ""}`
+      + (auktionssidan ? ", auktionssidan tömd" : ""),
   );
   return NextResponse.json({
     ok: true,
@@ -90,6 +108,7 @@ export async function POST(req: NextRequest) {
     utanSlug: plan.utanSlug.length,
     ogiltiga: plan.ogiltiga,
     varms: varma.length,
+    auktionssidan,
     ...(plan.uppslagFel ? { uppslagFel: plan.uppslagFel } : {}),
   });
 }

@@ -467,6 +467,33 @@ tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
 `lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
 tillsammans med ett Wix Data-anrop.
 
+## Fyndauktionen: nya timmens pris inom en halv minut (2026-10-21)
+
+Leonards rapport: vid timslaget, och ibland vid första besöket, stod korten på
+"Priset uppdateras…" länge. Uppmätt 2026-10-20: motorns timcron har satt de nya
+priserna i Wix och ropar på `/api/admin/uppdatera-produkter` (orsak `auktion`)
+kl HH:00:25–00:27. Butiken tömde då bara produktsidorna. `/fyndauktion` väntade
+i två cachar, sidan (30 s) och dess hämtning av raderna (15 s). Båda serverar
+det gamla en gång till innan de byggs om, så med klientens försök efter 5, 20,
+50, 95 och 155 s kom det nya priset först efter ~2,5 minuter.
+
+Nu:
+
+1. Med orsaken `auktion` tömmer rutten auktionssidan och dess egen hämtning
+   (`AUKTIONSSIDANS_TAGG`, `{ expire: 0 }`), och nästa hämtning bygger om med de
+   nya priserna.
+2. ☠️ **Auktionssidan har en egen nyckel för raderna** (`&sida=fyndauktion` i
+   adressen, som motorn inte läser). Taggarna ingår inte i cachens nyckel, så
+   utan egen adress delar sidan post med startsidan. Att tömma `auctions` varje
+   timme hade tömt startsidan också, och nästa besökare där hade fått vänta på
+   en hel ombyggnad. Webhooken tömmer `auctions` vid en försäljning, som förut.
+3. Klienten frågar efter 5, 15, 30, 50 och 75 s (`REFRESH_BACKOFF_MS`), och ett
+   test låser att ett försök kommer strax efter HH:00:25.
+
+⚠️ Kvar och omätt: Wix läsning kan släpa efter en skrivning. Byggs sidan om
+med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
+får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från

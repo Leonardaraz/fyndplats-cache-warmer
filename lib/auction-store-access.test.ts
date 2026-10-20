@@ -51,7 +51,8 @@ test("☠️ ingen fil når auktionskollektionen i Wix Data — motorn äger lag
 test("vyn och webhookens avslut går via motorn", () => {
   const vy = readFileSync(join(process.cwd(), "lib/auction-view.ts"), "utf8");
   const sald = readFileSync(join(process.cwd(), "lib/auction-sold.ts"), "utf8");
-  assert.match(vy, /hämtaAuktionsrader\("live"\)/);
+  // Auktionssidan skickar med sin egen nyckel (`{ sida: "fyndauktion" }`).
+  assert.match(vy, /hämtaAuktionsrader\("live"[,)]/);
   assert.match(vy, /hämtaAuktionsrader\("sold"\)/);
   assert.match(sald, /avslutaHosMotorn\(productIds\)/);
 });

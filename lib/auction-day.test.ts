@@ -95,6 +95,21 @@ test("REFRESH_BACKOFF_MS: stigande och täcker väckarklockans drift", () => {
   assert.ok(sum >= 25 * 60_000, `summan ${sum} ska täcka minst 25 min drift`);
 });
 
+test("REFRESH_BACKOFF_MS: frågar tätt den första minuten efter timslaget", () => {
+  // Butiken tömmer auktionssidan runt HH:00:25 (motorns timcron, uppmätt
+  // 2026-10-20). Ett försök måste komma strax efter, och inget glapp den första
+  // minuten får vara längre än 25 s — med 5, 20, 50, 95 s dröjde det nya priset
+  // till 50 s efter timslaget även när sidan var tömd.
+  const tider: number[] = [];
+  let t = 0;
+  for (const steg of REFRESH_BACKOFF_MS) tider.push((t += steg));
+  assert.ok(tider.some((x) => x >= 26_000 && x <= 35_000), `ett försök strax efter tömningen: ${tider.join(", ")}`);
+  const forstaMinuten = [0, ...tider.filter((x) => x <= 75_000)];
+  for (let i = 1; i < forstaMinuten.length; i++) {
+    assert.ok(forstaMinuten[i] - forstaMinuten[i - 1] <= 25_000, `glapp ${forstaMinuten[i - 1]}→${forstaMinuten[i]} ms`);
+  }
+});
+
 // Kontraktet: fasmaskinens "ended" måste följa SAMMA dygnsgräns som isDayOver,
 // och phaseOf (adaptern som både korten och startsidan går via) måste ge samma
 // svar som den råa maskinen. Föregående version av det här testet jämförde

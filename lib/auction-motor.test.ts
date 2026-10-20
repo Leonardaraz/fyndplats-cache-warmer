@@ -7,7 +7,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { avslutaHosMotorn, hämtaAuktionsrader } from "./auction-motor.ts";
+import { AUKTIONSSIDANS_TAGG, auktionssidanSkaTommas, avslutaHosMotorn, hämtaAuktionsrader } from "./auction-motor.ts";
 
 type Anrop = { url: string; init: RequestInit & { next?: unknown } };
 
@@ -33,6 +33,23 @@ test("live: GET med hemligheten, samma cache som förut, rader utan slug sortera
   assert.equal(anrop[0].url, `${BAS}/rader?status=live`);
   assert.equal((anrop[0].init.headers as Record<string, string>).authorization, "Bearer h");
   assert.deepEqual(anrop[0].init.next, { revalidate: 15, tags: ["auctions"] });
+});
+
+test("auktionssidan: egen adress och egen tagg, så att den kan tömmas utan startsidan", async () => {
+  const { f, anrop } = falskFetch(() => json({ ok: true, rader: [{ slug: "a", slot: 1 }] }));
+  await hämtaAuktionsrader("live", { fetchImpl: f, hemlighet: "h", bas: BAS }, { sida: "fyndauktion" });
+  assert.equal(anrop[0].url, `${BAS}/rader?status=live&sida=fyndauktion`);
+  assert.deepEqual(anrop[0].init.next, { revalidate: 15, tags: ["auctions", AUKTIONSSIDANS_TAGG] });
+  // Startsidans hämtning (testet ovan) bär bara "auctions": en tömning av
+  // auktionssidans tagg rör den inte.
+  assert.notEqual(AUKTIONSSIDANS_TAGG, "auctions");
+});
+
+test("auktionssidan töms bara för motorns auktionsorsak", () => {
+  assert.equal(auktionssidanSkaTommas("auktion"), true);
+  for (const orsak of ["okänd", "recensioner", "Auktion", "auktion ", ""]) {
+    assert.equal(auktionssidanSkaTommas(orsak), false, orsak);
+  }
 });
 
 test("sold: ber om 50 (butiken filtrerar och kapar själv)", async () => {
