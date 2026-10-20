@@ -1,4 +1,4 @@
-// Uppvärmning i produktion efter nattens deploy (#740): 2026-10-14 03:10 svensk tid.
+// Kategoritexterna mot produkterna i elva kategorier: 2026-10-20.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
@@ -896,10 +896,103 @@ async function kollaKlick2() {
   }
 }
 
-const KOR = process.env.KOR || "varm";
+// ================ KATEGORITEXTERNA (KOR=kategorier) ================
+// Läser elva kategorisidor och varje produkt i dem, så att kategoritexterna kan
+// stämmas av mot det som faktiskt ligger i kategorin (Leonard 2026-10-20). Allt
+// som läses är publikt: sidans texter, produktnamn, pris, lagerstatus, flikar.
+// Produktlistan tas ur sidans A–Ö-index, som har alla produkter i kategorin
+// (rutnätet visar 24 och resten bakom "Visa fler").
+const KAT_SLUGS = [
+  "boxningssackar", "motionscyklar", "hundbaddar-hundsoffor", "koksredskap-tillbehor",
+  "vattenkokare-brodrostar", "matgrupper", "julgranar", "juldekoration", "golvlampor",
+  "bollsport", "selar-koppel-transport",
+];
+
+async function lasSida(ctx, url) {
+  const page = await ctx.newPage();
+  try {
+    const r = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90_000 });
+    return { status: r?.status() ?? null, page };
+  } catch (e) {
+    await page.close();
+    return { status: null, fel: String(e.message).slice(0, 200) };
+  }
+}
+
+async function kollaKategorier(browser) {
+  // Bara själva HTML:en: utan skript och utan bilder, så att sidan läses som
+  // servern skickade den.
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  await ctx.route("**/*", (r) => (r.request().resourceType() === "document" ? r.continue() : r.abort()));
+  const ut = { tid: new Date().toISOString(), kategorier: {}, produkter: {} };
+  const allaSlugs = new Set();
+  for (const slug of KAT_SLUGS) {
+    const { status, page, fel } = await lasSida(ctx, `${BUTIK}/kategori/${slug}`);
+    if (!page) { ut.kategorier[slug] = { status, fel }; skriv(`${slug}: gick inte (${fel})`); continue; }
+    const k = await page.evaluate(() => {
+      const t = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
+      const ld = [...document.querySelectorAll('script[type="application/ld+json"]')]
+        .map((s) => { try { return JSON.parse(s.textContent); } catch { return null; } })
+        .filter(Boolean);
+      const faqLd = ld.find((x) => x["@type"] === "FAQPage");
+      const index = [...document.querySelectorAll(".prodindex-body a[href^='/produkt/']")]
+        .map((a) => ({ slug: a.getAttribute("href").replace(/^\/produkt\//, "").split(/[?#]/)[0], namn: t(a) }));
+      return {
+        title: document.title,
+        meta: document.querySelector('meta[name="description"]')?.getAttribute("content") || null,
+        robots: document.querySelector('meta[name="robots"]')?.getAttribute("content") || null,
+        h1: t(document.querySelector(".kat-hero h1")),
+        ingress: t(document.querySelector(".kat-hero-text p")),
+        intro: [...document.querySelectorAll(".kat-intro p")].map(t),
+        faq: [...document.querySelectorAll(".kat-faq-item")].map((d) => ({ q: t(d.querySelector("dt")), a: t(d.querySelector("dd")) })),
+        faqLd: faqLd ? faqLd.mainEntity.map((m) => ({ q: m.name, a: m.acceptedAnswer?.text })) : null,
+        indexAntal: t(document.querySelector(".prodindex-count")),
+        index,
+      };
+    });
+    await page.close();
+    ut.kategorier[slug] = { status, ...k };
+    for (const p of k.index) allaSlugs.add(p.slug);
+    skriv(`${slug}: ${status}, ${k.index.length} produkter i A–Ö (${k.indexAntal}), ${k.intro.length} stycken, ${k.faq.length} frågor, FAQ-data ${k.faqLd ? k.faqLd.length : "saknas"}`);
+  }
+  const lista = [...allaSlugs];
+  await iParallell(lista, 6, async (slug) => {
+    const { status, page, fel } = await lasSida(ctx, `${BUTIK}/produkt/${slug}`);
+    if (!page) { ut.produkter[slug] = { status, fel }; return true; }
+    const p = await page.evaluate(() => {
+      const t = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
+      const ld = [...document.querySelectorAll('script[type="application/ld+json"]')]
+        .map((s) => { try { return JSON.parse(s.textContent); } catch { return null; } })
+        .filter(Boolean);
+      const prod = ld.find((x) => x["@type"] === "Product");
+      const erbj = prod ? (Array.isArray(prod.offers) ? prod.offers : [prod.offers]).filter(Boolean) : [];
+      return {
+        namn: t(document.querySelector("h1")),
+        pris: erbj.map((o) => o.price ?? o.lowPrice ?? null),
+        lager: erbj.map((o) => String(o.availability || "").replace("https://schema.org/", "")),
+        varianter: t(document.querySelector(".pdp-variants")).slice(0, 800),
+        beskrivning: t(document.querySelector(".pdp-desc")).slice(0, 5000),
+        flikar: [...document.querySelectorAll("details.pdp-flik")]
+          .map((d) => ({ titel: t(d.querySelector("summary")), text: t(d.querySelector(".pdp-flik-body")).slice(0, 5000) })),
+        specbox: t(document.querySelector(".specbox")).slice(0, 2500),
+      };
+    });
+    await page.close();
+    ut.produkter[slug] = { status, ...p };
+    return true;
+  }, Date.now() + 14 * 60_000);
+  const utan200 = Object.values(ut.produkter).filter((p) => p.status !== 200).length;
+  skriv(`\nProdukter: ${lista.length} unika, ${Object.keys(ut.produkter).length} lästa, ${utan200} utan 200.`);
+  fs.writeFileSync(path.join(UT, "kategorier.json"), JSON.stringify(ut));
+  await ctx.close();
+}
+
+const KOR = process.env.KOR || "kategorier";
 const browser = await chromium.launch();
 try {
-  if (KOR === "klick2") {
+  if (KOR === "kategorier") {
+    await kollaKategorier(browser);
+  } else if (KOR === "klick2") {
     await kollaKlick2();
   } else if (KOR === "klick") {
     await kollaKlick();
@@ -947,6 +1040,6 @@ try {
 } finally {
   await browser.close();
   const k = KOR;
-  const fil = k === "klick2" ? "klick2.txt" : k === "klick" ? "klick.txt" : k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
+  const fil = k === "kategorier" ? "kategorier.txt" : k === "klick2" ? "klick2.txt" : k === "klick" ? "klick.txt" : k === "webblasare" ? "webblasare.txt" : k === "recensioner" ? "recensioner.txt" : k === "varm" ? "varmning.txt" : k === "bunt" ? "kassakod.txt" : k === "egen" ? "egen-kassasida.txt" : k === "avdelningar" ? "avdelningar.txt" : "sammanfattning.txt";
   fs.writeFileSync(path.join(UT, fil), rader.join("\n") + "\n");
 }
