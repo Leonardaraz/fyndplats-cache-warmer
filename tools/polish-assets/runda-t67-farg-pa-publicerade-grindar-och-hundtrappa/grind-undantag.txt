@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (104–183 × 36 × 69 cm, panel 97,5 × 69 cm och stödfötter 36 × 9,5 × 1,8 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (220 × 36 × 91 cm, paneler 51 × 91 cm, gångdörr 43,5 × 81 cm och hopfälld 55 × 8,2 × 91 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+gate-lager.py värdsidan är redan publicerad men har saldo 0; givaren ffaf38f9 har saldo 18 och läggs som färgval i samma körning, så sidan går att köpa efteråt
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (73 × 76 cm, ställbar 75–95 cm eller 75–145 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (40,5 × 44,5 × 38 cm och steg 40,5 × 16,5 × 12,6 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
