@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py trappans mått 60 × 35 × 44 cm är längd, bredd och höjd enligt måttritningen i galleriet: 60 cm längs trappan, 35 cm tvärs över stegen och 44 cm hög; grinden läser bokstäverna som för en möbel (längden som bredd och bredden som djup), vilket inte stämmer för en trappa
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (40 × 59 × 54,2 cm, stegyta 40 × 17 cm och steghöjderna 14,3 / 27,6 / 40,9 / 54,2 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (68 × 77 cm utan förlängning, öppning 46 cm, förlängning 14 × 76 cm eller 7 × 76 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
