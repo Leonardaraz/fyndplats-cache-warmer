@@ -1,0 +1,5 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py sidan har fyra storlekar med var sitt tredelade mått (61 × 46 × 62, 76 × 61 × 73, 92 × 76 × 90 och 122 × 92 × 108 cm) och axelfacit byggs bara ur den första källans totalmått, så talen krockar mellan storlekarna (76 är djupet i 92-storleken men bredden i 76-storleken, 92 är bredden i 92-storleken men djupet i 122-storleken); varje storleks tre mått är kontrollerade mot respektive källas tyska L x B x H-rad, med längden som bredd och bredden som djup
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py sidan har tre storlekar med var sitt tredelat mått (106 × 76 × 94, 76 × 61 × 69,5 och 61 × 46 × 63 cm) och axelfacit byggs bara ur den första källans totalmått, så talen krockar mellan storlekarna (76 är djupet i 106-storleken men bredden i 76-storleken, 61 är djupet i 76-storleken men bredden i 61-storleken); grinden läser dessutom inte 69,5 cm hög med decimal; varje storleks tre mått är kontrollerade mot respektive källas tyska L x B x H-rad, med längden som bredd och bredden som djup
+# <skript> <skäl> — se bygg-skrivplan.py
