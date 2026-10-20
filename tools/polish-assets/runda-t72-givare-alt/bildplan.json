@@ -1,0 +1,23 @@
+{
+ "runda": "runda-t72-givare-alt",
+ "produkter": [
+  {
+   "kort": "e340a115",
+   "pid": "e340a115-5275-4ce8-99f7-b37f71b8803b",
+   "media": [
+    {
+     "id": "b379ce_68437f0649204bfab06d76de4e1bc5c1~mv2.jpg",
+     "altText": "Svart fällbart skrivbord med svart stomme, en hylla under skivan och en ficka på sidan, på hjul, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_878eb2ef18c3488883f4c5406938a72a~mv2.jpg",
+     "altText": "Det svarta skrivbordet utfällt vid ett fönster med en laptop på skivan och böcker i hyllan, bredvid en vit stol"
+    },
+    {
+     "id": "b379ce_40e70c3a1cc8457c97c32f0c13bee19d~mv2.jpg",
+     "altText": "Det svarta skrivbordet hopfällt som sidobord vid en säng, med en laptop och en kopp på skivan och böcker i hyllan"
+    }
+   ]
+  }
+ ]
+}
