@@ -10,4 +10,4 @@ golvlampor: 200, 52 produkter i A–Ö (52 produkter), 4 stycken, 3 frågor, FAQ
 bollsport: 200, 44 produkter i A–Ö (44 produkter), 4 stycken, 3 frågor, FAQ-data 3
 selar-koppel-transport: 200, 42 produkter i A–Ö (42 produkter), 4 stycken, 3 frågor, FAQ-data 3
 
-Produkter: 436 unika, 436 lästa, 5 utan 200.
+Produkter: 436 unika, 436 lästa, 0 utan 200.
