@@ -1,0 +1,13 @@
+boxningssackar: 200, 28 produkter i A–Ö (28 produkter), 4 stycken, 3 frågor, FAQ-data 3
+motionscyklar: 200, 13 produkter i A–Ö (13 produkter), 4 stycken, 3 frågor, FAQ-data 3
+hundbaddar-hundsoffor: 200, 26 produkter i A–Ö (26 produkter), 4 stycken, 3 frågor, FAQ-data 3
+koksredskap-tillbehor: 200, 4 produkter i A–Ö (4 produkter), 4 stycken, 3 frågor, FAQ-data 3
+vattenkokare-brodrostar: 200, 26 produkter i A–Ö (26 produkter), 4 stycken, 3 frågor, FAQ-data 3
+matgrupper: 200, 16 produkter i A–Ö (16 produkter), 4 stycken, 3 frågor, FAQ-data 3
+julgranar: 200, 82 produkter i A–Ö (82 produkter), 3 stycken, 3 frågor, FAQ-data 3
+juldekoration: 200, 113 produkter i A–Ö (113 produkter), 4 stycken, 3 frågor, FAQ-data 3
+golvlampor: 200, 52 produkter i A–Ö (52 produkter), 4 stycken, 3 frågor, FAQ-data 3
+bollsport: 200, 44 produkter i A–Ö (44 produkter), 4 stycken, 3 frågor, FAQ-data 3
+selar-koppel-transport: 200, 42 produkter i A–Ö (42 produkter), 4 stycken, 3 frågor, FAQ-data 3
+
+Produkter: 436 unika, 436 lästa, 5 utan 200.
