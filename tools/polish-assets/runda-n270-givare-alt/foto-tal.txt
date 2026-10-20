@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0d23e4da 18 steghöjd avläst på måttbilden för tre steg (grå)
+0d23e4da 33 steghöjd avläst på måttbilden för tre steg (grå)
