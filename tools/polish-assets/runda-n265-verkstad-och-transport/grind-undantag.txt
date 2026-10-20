@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py ett bordsben mäts i källan som 73L × 6B × 6H: längden 73 cm är benets höjd när det står (måttritningen, bild 3), och 6 × 6 cm är tvärsnittet
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py handvagnen mäts i källan som 71,5L × 42B × 95H, och lastytan som 42B × 49,5–71,5L: 42 cm är bredden sida till sida och 71,5 cm längden i färdriktningen, vilket måttritningen (bild 3) visar
