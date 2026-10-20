@@ -1,4 +1,4 @@
-// Kategoritexterna mot produkterna i elva kategorier: 2026-10-20.
+// Kategoritexterna mot produkterna i elva kategorier: 2026-10-20, andra läsningen.
 // tools/kassa-matning/matning.mjs
 //
 // Mäter hur Wix kassasida laddar för en kund: vad som syns när, vad som hoppar
