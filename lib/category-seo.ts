@@ -178,7 +178,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   boxningssackar: {
     title: "Boxningssäck, punchingboll & boxställ",
     description:
-      "Fristående boxningssäckar med fot som fylls med vatten eller sand, boxsäcksställ med säck, punchingbollar och boxställ med speedball, 125–231 cm höga.",
+      "Fristående boxningssäckar med fyllbar fot eller förfyllda, boxsäcksställ, punchingbollar, boxställ med speedball och väggfästen, 125–231 cm höga.",
   },
   byraer: {
     title: "Byrå – smal eller bred, vit eller med tyglådor",
@@ -233,7 +233,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   golvlampor: {
     title: "Golvlampor – båglampor, LED och dimbara",
     description:
-      "Golvlampor från 129 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och lampset med två bordslampor.",
+      "Golvlampor från 120 till 190 cm: båglampor med marmorfot, dimbara LED-lampor med fjärrkontroll, golvlampor med hyllor och lampset med två bordslampor.",
   },
   "grill-utekok": {
     title: "Gasolgrill, kolgrill, plancha & kylbox",
@@ -283,7 +283,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "hundbaddar-hundsoffor": {
     title: "Hundbädd & hundsoffa – upphöjda och tvättbara",
     description:
-      "Hundbäddar och hundsoffor med ben i furu, upphöjda hundsängar med nät för ute och inne och bäddar med tvättbart överdrag – upp till 122 × 92 cm.",
+      "Hundbäddar och hundsoffor med ben i trä, upphöjda hundsängar med nät för ute och inne och bäddar med tvättbart överdrag, från Ø40,5 till 122 × 92 cm.",
   },
   hundburar: {
     title: "Hundbur – möbelbur, metallbur och mjuk bur",
@@ -308,12 +308,12 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   juldekoration: {
     title: "Juldekoration utomhus – uppblåsbar tomte och ren",
     description:
-      "Juldekoration för trädgård och entré: uppblåsbara tomtar, snögubbar och renar upp till 250 cm, ljusfigurer med LED samt julbyar och girlanger för inomhus.",
+      "Juldekoration för trädgård och entré: uppblåsbara tomtar, snögubbar, renar och granar upp till 300 cm höga, ljusfigurer med LED och julbyar för inomhus.",
   },
   julgranar: {
-    title: "Konstgjord julgran – plastgranar 57–225 cm",
+    title: "Konstgjord julgran – plastgranar 47–225 cm",
     description:
-      "Konstgjorda julgranar från 57 till 225 cm: smala pelargranar, täta granar med över 2 000 grenspetsar, snötäckta modeller och granar med LED-belysning.",
+      "Konstgjorda julgranar från 47 till 225 cm: smala pelargranar, täta granar med över 2 000 grenspetsar, snötäckta modeller och granar med LED-belysning.",
   },
   "kalas-fest": {
     title: "Partytält, sockervaddsmaskin & festdukning",
@@ -363,7 +363,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "koksredskap-tillbehor": {
     title: "Köksredskap, kastrullset & chafing dish",
     description:
-      "Kastrullset med 17 delar för induktion, chafing dish-set för buffén, lufttäta behållare för torrvaror, mikrovågsugnshylla och vikbar köksvagn.",
+      "Kastrullset med 17 delar för induktion, chafing dish-set för buffén, lufttäta behållare för torrvaror och en utdragbar hylla över mikrovågsugnen.",
   },
   konstvaxter: {
     title: "Konstgjorda växter – buxbom, olivträd, monstera",
@@ -413,7 +413,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   matgrupper: {
     title: "Matgrupp – matbord med stolar för två eller fyra",
     description:
-      "Matgrupper med bord och två eller fyra stolar: kvadratiska, smala och ovala bord, ett klaffbord, ett glasbord och två furubord, från 60 till 120 cm.",
+      "Matgrupper med bord och två eller fyra stolar, en grupp med bänk och ett barbordset: kvadratiska, smala, ovala, klaff-, glas- och furubord, 60–120 cm.",
   },
   "miniugnar-airfryers": {
     title: "Miniugn & airfryer – varmluftsfritös och bänkugn",
@@ -423,7 +423,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   motionscyklar: {
     title: "Motionscykel, spinningcykel & pedaltränare",
     description:
-      "Motionscyklar med magnetiskt motstånd i 8 steg, med ryggstöd eller hopfällbara, en spinningcykel och pedaltränare för armar och ben.",
+      "Motionscyklar med magnetiskt motstånd: liggande, hopfällbara med ryggstöd och med Bluetooth, en spinningcykel, pedaltränare och en mini-crosstrainer.",
   },
   "motorcyklar-for-barn": {
     title: "Motorcykel för barn – elmotorcykel 6, 12 & 24 V",
@@ -588,7 +588,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "vattenkokare-brodrostar": {
     title: "Vattenkokare, brödrost & frukostset",
     description:
-      "Vattenkokare på 1,7 liter, brödrostar för två eller fyra skivor och frukostset där kokaren och rosten matchar, flera med temperaturval och varmhållning.",
+      "Vattenkokare på 1,5 och 1,7 liter, brödrostar för två eller fyra skivor och frukostset där kokaren och rosten matchar, flera med temperaturval och varmhållning.",
   },
   "vaxthus-odling": {
     title: "Tunnelväxthus, väggväxthus & drivbänkar",
@@ -623,7 +623,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   bollsport: {
     title: "Fotbollsmål & basketställ – volleyboll, tennis",
     description:
-      "Fotbollsmål från 150 × 110 till 300 × 200 cm, basketställ och korgar för vägg, volleybollnät med stolpar, tennisbollsvagnar och träningsnät för baseboll.",
+      "Fotbollsmål från 90 × 60 till 300 × 200 cm, basketställ och väggkorgar, nät för volleyboll, badminton och pickleball, studsnät och tennisbollsvagnar.",
   },
   "elbilsladdning-solenergi": {
     title: "Elbilsladdare & solpanel – laddkabel och solel",
