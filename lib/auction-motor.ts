@@ -58,6 +58,22 @@ function hemlighetEller(d: Beroenden): string | undefined {
 }
 
 /**
+ * Taggen på auktionssidans EGEN hämtning av live-raderna. Butiken tömmer den
+ * när motorn har bytt timmens priser (/api/admin/uppdatera-produkter, orsak
+ * "auktion"), så att /fyndauktion visar det nya priset inom en halv minut.
+ */
+export const AUKTIONSSIDANS_TAGG = "auktionssidan";
+
+/** Orsaken motorns timcron skickar till /api/admin/uppdatera-produkter
+ *  (app/api/cron/auction-tick på motorns gren main). */
+export const AUKTIONSORSAK = "auktion";
+
+/** Ska auktionssidan tömmas för det här anropet från motorn? */
+export function auktionssidanSkaTommas(orsak: string): boolean {
+  return orsak === AUKTIONSORSAK;
+}
+
+/**
  * Live- eller sålda rader. FAIL-OPEN: ett fel ger en tom lista, precis som
  * när butiken läste Wix själv — en trasig motor får inte fälla startsidan.
  * Men felet LOGGAS, så en tom auktion går att skilja från en tyst.
@@ -65,10 +81,18 @@ function hemlighetEller(d: Beroenden): string | undefined {
  * Cachen (15 s, taggen "auctions") är densamma som förut: raden bär
  * lastPatchedStep, som avgör när en ny timmes pris är på plats, och webhooken
  * tömmer taggen när ett fynd säljs.
+ *
+ * ☠️ AUKTIONSSIDAN HAR EN EGEN NYCKEL (`sida: "fyndauktion"`). Adressen får
+ * `&sida=fyndauktion`, som motorn inte läser, och hämtningen taggen
+ * AUKTIONSSIDANS_TAGG. Utan egen adress delar sidan cachepost med startsidan
+ * (taggarna ingår inte i nyckeln), och för att tömma auktionsdatan hade vi då
+ * fått tömma "auctions". Det tömmer startsidan också, och nästa besökare där
+ * hade fått vänta på en hel ombyggnad varje timme.
  */
 export async function hämtaAuktionsrader(
   status: "live" | "sold",
   d: Beroenden = {},
+  val: { sida?: "fyndauktion" } = {},
 ): Promise<MotorRad[]> {
   const hemlighet = hemlighetEller(d);
   if (!hemlighet) {
@@ -76,11 +100,13 @@ export async function hämtaAuktionsrader(
     return [];
   }
   const f = d.fetchImpl ?? fetch;
-  const url = `${d.bas ?? AUKTIONS_API}/rader?status=${status}${status === "sold" ? "&limit=50" : ""}`;
+  const url =
+    `${d.bas ?? AUKTIONS_API}/rader?status=${status}${status === "sold" ? "&limit=50" : ""}`
+    + (val.sida ? `&sida=${val.sida}` : "");
   try {
     const res = await f(url, {
       headers: { authorization: `Bearer ${hemlighet}` },
-      next: { revalidate: 15, tags: ["auctions"] },
+      next: { revalidate: 15, tags: val.sida ? ["auctions", AUKTIONSSIDANS_TAGG] : ["auctions"] },
     } as RequestInit);
     if (!res.ok) {
       console.error(`[auction-motor] rader?status=${status} svarade ${res.status}`);

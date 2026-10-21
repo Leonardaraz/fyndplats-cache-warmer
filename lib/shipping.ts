@@ -33,9 +33,10 @@ export const EU_STOCK_NOTE = "Skickas från EU-lager – ingen importtull eller 
 export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull tillkommer.";
 
 // Fraktpris — samma regel som kassan (components/cart.tsx), produktsidans
-// JSON-LD och prisjämförelse-feeden (/feed/pricerunner.xml): fri frakt från
-// 500 kr, annars 19 kr. Texterna säger "fri frakt över 499 kr", vilket är samma
-// gräns; FREE_SHIPPING_OVER_KR är talet i den formuleringen.
+// JSON-LD och prisjämförelse-feederna (/feed/pricerunner.xml och
+// /feed/prisjakt.xml): fri frakt från 500 kr, annars 19 kr. Texterna säger
+// "fri frakt över 499 kr", vilket är samma gräns; FREE_SHIPPING_OVER_KR är
+// talet i den formuleringen.
 // Wix-kassan har en egen regel (Frakt & leverans → Sverige) som ska stå på
 // samma gräns. Ändras den ena ska den andra ändras samtidigt.
 export const STANDARD_SHIPPING_KR = 19;

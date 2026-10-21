@@ -467,6 +467,33 @@ tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
 `lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
 tillsammans med ett Wix Data-anrop.
 
+## Fyndauktionen: nya timmens pris inom en halv minut (2026-10-21)
+
+Leonards rapport: vid timslaget, och ibland vid första besöket, stod korten på
+"Priset uppdateras…" länge. Uppmätt 2026-10-20: motorns timcron har satt de nya
+priserna i Wix och ropar på `/api/admin/uppdatera-produkter` (orsak `auktion`)
+kl HH:00:25–00:27. Butiken tömde då bara produktsidorna. `/fyndauktion` väntade
+i två cachar, sidan (30 s) och dess hämtning av raderna (15 s). Båda serverar
+det gamla en gång till innan de byggs om, så med klientens försök efter 5, 20,
+50, 95 och 155 s kom det nya priset först efter ~2,5 minuter.
+
+Nu:
+
+1. Med orsaken `auktion` tömmer rutten auktionssidan och dess egen hämtning
+   (`AUKTIONSSIDANS_TAGG`, `{ expire: 0 }`), och nästa hämtning bygger om med de
+   nya priserna.
+2. ☠️ **Auktionssidan har en egen nyckel för raderna** (`&sida=fyndauktion` i
+   adressen, som motorn inte läser). Taggarna ingår inte i cachens nyckel, så
+   utan egen adress delar sidan post med startsidan. Att tömma `auctions` varje
+   timme hade tömt startsidan också, och nästa besökare där hade fått vänta på
+   en hel ombyggnad. Webhooken tömmer `auctions` vid en försäljning, som förut.
+3. Klienten frågar efter 5, 15, 30, 50 och 75 s (`REFRESH_BACKOFF_MS`), och ett
+   test låser att ett försök kommer strax efter HH:00:25.
+
+⚠️ Kvar och omätt: Wix läsning kan släpa efter en skrivning. Byggs sidan om
+med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
+får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
@@ -494,3 +521,39 @@ Fyra egenskaper som inte ska tas bort:
    Strängen delas för hand, eftersom `URLSearchParams` kodar om `,` och `+`.
 
 Sidans canonical pekar redan på den rena adressen, så för Google är inget nytt.
+
+## Prisjakt-flödet, och varför flödena måste vara under 10 MB (2026-10-19)
+
+`https://www.fyndplats.se/feed/prisjakt.xml` läggs in i Prisjakts Business
+Center (Feedhantering → Lägg till feed, typ Produktfeed, format Prisjakt XML).
+Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger i
+`lib/feed/prisjakt.ts`, skrivna mot Prisjakts spec (developer.prisjakt.nu, läst
+2026-10-13):
+
+- Bara varor i lager, och `g:price` är priset kunden betalar.
+- Varje rad bär `g:shipping` med kassans fraktregel och alla fyra tiderna:
+  hantering 1–2 och transport 2–4 arbetsdagar, alltså sajtens 3–6
+  (`prisjaktTider`). ☠️ Saknas en av de fyra stryker Prisjakt alla. Med tiderna
+  i flödet behövs inga leveranstjänster i Business Center.
+- Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
+  `g:size_system`) och extrabilderna tas bort. Ingen GTIN och ingen mpn: en mpn
+  får bara vara tillverkarens eget nummer.
+
+☠️ **Vercels CDN cachar inga svar över 10 MB.** Dokumentationen säger 10 MB för
+icke-strömmade svar och 20 MB för strömmade, och våra flöden beter sig som
+icke-strömmade. Uppmätt på förhandsbygget 2026-10-19: Prisjakt-flödet
+på 15,4 MB gav MISS tre gånger i rad och byggdes om varje gång (35–105 s),
+bildsitemapen på 7,6 MB gav HIT andra gången. Prisjakt-flödet körs därför vid
+anrop och hålls under gränsen: en vara per rad utan indrag (−1,4 MB) och inga
+extrabilder (−5 MB) ger ~9,1 MB med 6 691 varor. Över 9,5 MB loggar routen en
+varning. Växer katalogen så långt är nästa steg att korta beskrivningarna
+(2,4 MB).
+
+☠️ **Google- och PriceRunner-flödet förnyas inte, och är inte lagat.** De är
+route-ISR (`revalidate = 3600`) och ~15 MB. Uppmätt 2026-10-19: `/feed/google.xml`
+svarade STALE med age ~77 000 s och bar produkter som dolts kvällen innan, och
+`/feed/pricerunner.xml` serverades ur bygget. `/feed/products.xml` (8 MB, samma
+ISR) förnyades. Flödena är alltså så gamla som senaste produktionsbygget. Att köra
+dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte under
+10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
+för Leonard.

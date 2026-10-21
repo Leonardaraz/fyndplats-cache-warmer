@@ -17,6 +17,12 @@ import styles from "./fyndauktion.module.css";
 // Auktionssidan behöver kort ISR-fönster: priserna stegar (cron på timmen) och
 // nedräkningen på klienten triggar refresh vid steggränsen. 30 s: vid timslaget
 // ska det nya priset nå en öppen flik inom någon minut (2026-09-28).
+//
+// Fönstret räcker inte ensamt. Sidan (30 s) och dess hämtning av raderna (15 s)
+// serverar båda det gamla en gång till innan de byggs om, så "Priset
+// uppdateras…" stod kvar i ~2,5 minuter efter timslaget. Sedan 2026-10-21 töms
+// sidan i stället när motorn bytt priserna (runt HH:00:25, uppmätt): se
+// app/api/admin/uppdatera-produkter.
 export const revalidate = 30;
 
 export const metadata: Metadata = {
@@ -89,7 +95,7 @@ function tomtLageNu() {
 }
 
 export default async function Fyndauktion() {
-  const [live, sold] = await Promise.all([getLiveAuctions(), getSoldAuctions(6)]);
+  const [live, sold] = await Promise.all([getLiveAuctions({ sida: "fyndauktion" }), getSoldAuctions(6)]);
 
   // Flaggskeppet (störst rabatt just nu) blir hjältekort; resten i rutnätet.
   // Före första sänkningen (alla 0 %) leder första platsen (kurerad ordning).

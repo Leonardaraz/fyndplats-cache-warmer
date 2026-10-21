@@ -71,7 +71,13 @@ export function msToDayEnd(startAtMs: number | null, nowMs: number): number | nu
 // Tätare början (2026-09-28): prissänkningen görs nu av Vercel-cronen strax
 // efter hel timme (18:00:19 uppmätt), inte av Actions-cronen med sin drift.
 // Med 5 s → 30 s → 90 s kom det nya priset först efter flera minuter.
-export const REFRESH_BACKOFF_MS = [5_000, 15_000, 30_000, 45_000, 60_000, 90_000, 180_000, 420_000, 960_000] as const;
+//
+// Ännu tätare (2026-10-21): motorn är klar och butiken tömmer auktionssidan
+// runt HH:00:25 (uppmätt 2026-10-20, app/api/admin/uppdatera-produkter). Med
+// försöken 5, 20, 50, 95 och 155 s efter timslaget kom det nya priset fram
+// först efter 50 s även när sidan var tömd. Nu frågar klienten efter 5, 15, 30,
+// 50 och 75 s, och summan (31 min) täcker fortfarande ett uteblivet cronvarv.
+export const REFRESH_BACKOFF_MS = [5_000, 10_000, 15_000, 20_000, 25_000, 30_000, 45_000, 60_000, 90_000, 180_000, 420_000, 960_000] as const;
 
 /**
  * Nästa FAKTISKA prissänkning ur en auktionsrads stege, eller den sänkning
