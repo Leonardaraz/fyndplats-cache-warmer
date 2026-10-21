@@ -16,6 +16,11 @@ name: Order — beställd eller skickad för hand
 #   skickad   — kör när leverantören mejlat spårningsnumret. Skapar
 #               Wix-fulfillment → butikens "Ditt paket är skickat!" + 17TRACK.
 #
+# Kom varan i flera paket: alla nummer i tracking_number, med komma emellan,
+# t.ex. "01234567890123, 01234567890125" (påhittade nummer). Wix tar bara ett fält
+# per artikel, butiken delar upp det och skickar ETT fraktmejl med alla nummer,
+# och spårlänken pekar på det första. Högst 100 tecken (Wix gräns).
+#
 # ☠️ `skickad` är oåterkallelig: mejlet till kunden går inte att ta tillbaka.
 # Rutten vägrar därför skeppa en redan skeppad rad, och vägrar helt om ordern
 # har flera rader utan att du pekat ut vilken med task_id.
@@ -44,7 +49,7 @@ on:
         default: ""
         type: string
       tracking_number:
-        description: "skickad: spårningsnumret ur leverantörens avsändningsmejl"
+        description: "skickad: spårningsnumret ur leverantörens avsändningsmejl. Flera paket: alla nummer med komma emellan"
         required: false
         default: ""
         type: string

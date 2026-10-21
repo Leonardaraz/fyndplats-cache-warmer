@@ -45,6 +45,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getReviewStore, type StoredReview } from "@/lib/store/reviews";
+import { initialerAvNamn, saknarInitialer } from "@/lib/reviews/kundinitialer";
+import { fetchOrderKundnamn } from "@/lib/wix/orders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -121,6 +123,21 @@ export async function POST(req: NextRequest) {
   const rad = läsRad(body);
   if (typeof rad === "string") {
     return NextResponse.json({ ok: false, error: rad }, { status: 400 });
+  }
+
+  // Kunden lämnade namnfältet tomt: initialerna tas från ordern (Leonard
+  // 2026-10-18), se lib/reviews/kundinitialer.ts. Ett fel här får aldrig fälla
+  // omdömet. Då står "Verifierad köpare" kvar, och workflowen
+  // kundomdome-initialer rättar raden senare.
+  const orderId = (rad as StoredReview & { orderId?: string }).orderId;
+  if (saknarInitialer(rad.initials) && orderId) {
+    try {
+      const namn = await fetchOrderKundnamn(orderId);
+      const initialer = namn ? initialerAvNamn(namn) : null;
+      if (initialer) rad.initials = initialer;
+    } catch (err) {
+      console.warn(`[reviews/customer] ordern gick inte att läsa för initialerna: ${String(err).slice(0, 200)}`);
+    }
   }
 
   try {

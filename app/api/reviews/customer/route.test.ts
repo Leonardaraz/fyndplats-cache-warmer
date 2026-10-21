@@ -17,6 +17,8 @@ import { NextRequest } from "next/server";
 // TOM tupel och varje `calls[0][0]` blir ett kompileringsfel.
 const upsert = vi.fn(async (_rad: Record<string, unknown>) => {});
 vi.mock("@/lib/store/reviews", () => ({ getReviewStore: () => ({ upsert }) }));
+const kundnamn = vi.fn(async (_orderId: string): Promise<string | null> => "Sol Svensson");
+vi.mock("@/lib/wix/orders", () => ({ fetchOrderKundnamn: (id: string) => kundnamn(id) }));
 
 import { POST } from "./route";
 
@@ -41,6 +43,7 @@ const GILTIG = {
 
 beforeEach(() => {
   upsert.mockClear();
+  kundnamn.mockClear();
   process.env.REVIEW_INGEST_SECRET = HEMLIGHET;
 });
 
@@ -132,5 +135,43 @@ describe("bilderna bärs vidare i samma form som lagret väntar sig", () => {
   it("inga bilder ger hasImage false", async () => {
     await POST(begäran(GILTIG));
     expect(upsert.mock.calls[0]![0]).toMatchObject({ hasImage: false });
+  });
+});
+
+describe("utan namn tas initialerna från ordern (Leonard 2026-10-18)", () => {
+  it("'Verifierad köpare' byts mot köparens initialer", async () => {
+    await POST(begäran({ ...GILTIG, initials: "Verifierad köpare" }));
+    expect(kundnamn).toHaveBeenCalledWith("order-9");
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ initials: "S.S." });
+  });
+
+  it("tomma initialer likaså", async () => {
+    await POST(begäran({ ...GILTIG, initials: "" }));
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ initials: "S.S." });
+  });
+
+  it("initialer som kunden själv angett rörs inte, och ordern läses inte", async () => {
+    await POST(begäran(GILTIG));
+    expect(kundnamn).not.toHaveBeenCalled();
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ initials: "L.A." });
+  });
+
+  it("☠️ en order som inte går att läsa fäller aldrig omdömet", async () => {
+    kundnamn.mockRejectedValueOnce(new Error("Wix nere"));
+    const res = await POST(begäran({ ...GILTIG, initials: "Verifierad köpare" }));
+    expect(res.status).toBe(200);
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ initials: "Verifierad köpare" });
+  });
+
+  it("ordern utan namn: 'Verifierad köpare' står kvar", async () => {
+    kundnamn.mockResolvedValueOnce("");
+    await POST(begäran({ ...GILTIG, initials: "Verifierad köpare" }));
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ initials: "Verifierad köpare" });
+  });
+
+  it("utan order-id läses ingen order", async () => {
+    const { orderId: _bort, ...utanOrder } = GILTIG;
+    await POST(begäran({ ...utanOrder, initials: "Verifierad köpare" }));
+    expect(kundnamn).not.toHaveBeenCalled();
   });
 });

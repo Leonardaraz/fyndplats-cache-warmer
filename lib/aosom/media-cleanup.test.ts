@@ -1,17 +1,34 @@
 import { describe, it, expect } from "vitest";
 import {
   borAterforsoka,
+  klassaFil,
   sammanfattaFelkropp,
   planeraStadning,
   runMediaCleanup,
   mediaNyckel,
   recensionsbildUrler,
   RECENSION_TAK,
+  kontrolleraSammaSajt,
+  kontrolleraProduktsvep,
   type MediaFil,
   type MediaCleanupDeps,
 } from "./media-cleanup";
+import { KARENS_MS, nyttMinnesKarens, type KarensLager } from "../store/bildstadning-karens";
 
 const MB = 1_000_000;
+
+/**
+ * Ett karenslager där varje fil redan varit oanvänd i hela karenstiden. De
+ * flesta testerna gäller VAD som raderas, inte NÄR; karenstiden har egna
+ * tester med det riktiga minneslagret.
+ */
+function moget(): KarensLager {
+  return {
+    registrera: async (idn, nu) => new Map(idn.map((id) => [id, nu - KARENS_MS])),
+    lasAlla: async () => [],
+    glom: async () => {},
+  };
+}
 
 /** Vår import: kommer från en leverantörs CDN. */
 function fil(namn: string, id = namn, storlek = MB): MediaFil {
@@ -126,7 +143,7 @@ describe("planeraStadning", () => {
     // blivit oigenkännlig för alltid. Signaturen finns i filen själv: en
     // omimport döps efter adressen den hämtades från.
     const foraldralosKopia: MediaFil = {
-      id: "kopia",
+      id: "b379ce_213df005~mv2.jpg",
       displayName: "b379ce_ee39b9fc40b346f284d8d7178949f8a1~mv2.jpg",
       url: "https://static.wixstatic.com/media/b379ce_213df005~mv2.jpg",
       sizeInBytes: MB,
@@ -134,7 +151,25 @@ describe("planeraStadning", () => {
       sourceUrl: "https://static.wixstatic.com/media/b379ce_ee39b9fc40b346f284d8d7178949f8a1~mv2.jpg",
     };
     const plan = planeraStadning([foraldralosKopia], [], 0);
-    expect(plan.attRadera.map((f) => f.id)).toEqual(["kopia"]);
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["b379ce_213df005~mv2.jpg"]);
+  });
+
+  it("☠️ en bild hämtad ur ETT ANNAT bibliotek är inte vår kopia, även med samma namn", () => {
+    // Wix gratisbilder (11062b_) och mallens bilder (22e53e_, All Products-
+    // kategorins bild) bär signaturen men en annan ägare. De kan sitta på Wix
+    // egna sidor, där ingen läsare ser dem (granskningen 2026-10-14).
+    for (const agare of ["11062b", "22e53e"]) {
+      const kalla = `${agare}_7ce192b539bc4ccfa676553133f07a78~mv2.jpg`;
+      const f: MediaFil = {
+        id: "b379ce_0c27b6fabd0247338daf7a0d37751570~mv2.jpg",
+        displayName: kalla,
+        url: "https://static.wixstatic.com/media/b379ce_0c27b6fabd0247338daf7a0d37751570~mv2.jpg",
+        sizeInBytes: MB,
+        sourceUrl: `https://static.wixstatic.com/media/${kalla}`,
+      };
+      expect(planeraStadning([f], [], 0).attRadera).toHaveLength(0);
+      expect(klassaFil(f, new Set())).toBe("wix-annan");
+    }
   });
 
   it("en wixstatic-fil med ett EGET namn rörs inte — den är inte en omimport", () => {
@@ -213,6 +248,10 @@ function deps(over: Partial<MediaCleanupDeps> = {}) {
     listaRecensionsbilder: async () => [],
     listaKategoribilder: async () => [],
     listaFargbilder: async () => [],
+    listaButikensBilder: async () => [],
+    listaOrderbilder: async () => [],
+    listaVariantbilder: async () => [],
+    karens: moget(),
     raderaPermanent: async (ids) => { raderade.push(ids); },
     ...over,
   };
@@ -519,5 +558,371 @@ describe("☠️ färgbildstabellen hör till referenslistan", () => {
     const s = await runMediaCleanup(d, { dryRun: false });
     expect(raderade.flat()).toEqual(["a2"]);
     expect(s.raderade).toBe(1);
+  });
+});
+
+describe("☠️ butikens lista och ordrarna hör till referenslistan (2026-10-14)", () => {
+  // Bloggen visade 215 Wix-bilder, 61 av dem Aosom-importer och 122
+  // Wix-kopior. Ingen av dem behöver sitta på en produkt.
+  it("en leverantörsfil som bara bloggen pekar på raderas inte", async () => {
+    const { d, raderade } = deps({ listaButikensBilder: async () => ["b1~mv2.jpg"] });
+    const s = await runMediaCleanup(d, { dryRun: false });
+    expect(raderade.flat()).toEqual(["a2"]);
+    expect(s.referenser.butiken).toBe(1);
+  });
+
+  it("en fil som bara en order pekar på raderas inte", async () => {
+    const { d, raderade } = deps({ listaOrderbilder: async () => ["a2~mv2.jpg"] });
+    await runMediaCleanup(d, { dryRun: false });
+    expect(raderade.flat()).toEqual(["b1"]);
+  });
+
+  it("butikens lista är gemener — en ändelse med versaler är samma fil", () => {
+    const f = { ...fil("aosom-A-1.jpg", "AB1"), url: "https://static.wixstatic.com/media/AB1~mv2.JPG" };
+    const plan = planeraStadning([f], [], 0, [], [], [], { butiksbilder: ["ab1~mv2.jpg"] });
+    expect(plan.attRadera).toEqual([]);
+  });
+
+  it("☠️ en omskalad adress skyddar filen, inte bara adressens sista led", () => {
+    // "…/media/<id>/v1/fill/w_640,h_640/file.jpg" slutar på "file.jpg".
+    const id = "b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg";
+    const f: MediaFil = {
+      id, displayName: "kundbild-1.jpg", url: `https://static.wixstatic.com/media/${id}`,
+      sizeInBytes: MB, sourceUrl: "https://ae01.alicdn.com/kf/x.jpg",
+    };
+    const omskalad = `https://static.wixstatic.com/media/${id}/v1/fill/w_640,h_640/file.jpg`;
+    expect(planeraStadning([f], [], 0, [omskalad]).attRadera).toEqual([]);
+  });
+
+  it("☠️ en produkt som bär filen med versaler skyddar den fortfarande", () => {
+    // Gemenerna får inte göra jämförelsen ensidig: listan och uppslaget ska
+    // normaliseras på samma sätt, annars ser en använd fil oanvänd ut.
+    const adress = "https://static.wixstatic.com/media/AB1~mv2.JPG";
+    const f = { ...fil("aosom-A-1.jpg", "AB1"), url: adress };
+    expect(planeraStadning([f], [adress], 1).attRadera).toEqual([]);
+  });
+
+  it("ett läsfel mot butikens lista FÄLLER körningen, ingen fil raderas", async () => {
+    const { d, raderade } = deps({ listaButikensBilder: async () => { throw new Error("503"); } });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Butikens bildlista gick inte att läsa/);
+    expect(raderade).toEqual([]);
+  });
+
+  it("ett läsfel mot ordrarna FÄLLER körningen, ingen fil raderas", async () => {
+    const { d, raderade } = deps({ listaOrderbilder: async () => { throw new Error("orders/search 500"); } });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Ordrarnas bilder gick inte att läsa/);
+    expect(raderade).toEqual([]);
+  });
+});
+
+describe("läget allt (Leonard 2026-10-14: alla bilder som inte används)", () => {
+  const NU = Date.parse("2026-10-14T12:00:00Z");
+  const DAG = 86_400_000;
+  const rid = (n: number) => `b379ce_${n.toString(16).padStart(32, "0")}~mv2.jpg`;
+  function riktig(n: number, kalla: string | undefined, dagar: number, namn = `fil-${n}.jpg`): MediaFil {
+    const id = rid(n);
+    const t = new Date(NU - dagar * DAG).toISOString();
+    return {
+      id, displayName: namn, url: `https://static.wixstatic.com/media/${id}`,
+      sizeInBytes: MB, sourceUrl: kalla, createdDate: t, updatedDate: t,
+    };
+  }
+  const AOSOM = "https://img.aosomcdn.com/100/product/x.jpg";
+  const KORT = "https://raw.githubusercontent.com/Leonardaraz/fyndplats-cache-warmer/gren/tools/polish-assets/kort-1.png";
+  const UTSNITT = `https://static.wixstatic.com/media/${rid(900)}/v1/crop/x_0,y_0,w_800,h_800/file.jpg`;
+  const ANNAN_WIX = `https://static.wixstatic.com/media/${rid(901)}`;
+  const AI = "https://im.runware.ai/image/ws/0.5/ii/x.jpg";
+
+  const filer = [
+    riktig(1, AOSOM, 30),          // leverantör, gammal, oanvänd → raderas
+    riktig(2, KORT, 30),           // kort ur grenen, gammalt, oanvänt → raderas
+    riktig(3, UTSNITT, 30),        // utsnitt, gammalt, oanvänt → raderas
+    riktig(4, undefined, 300),     // handuppladdad → aldrig
+    riktig(5, ANNAN_WIX, 300),     // okänd wix-källa → aldrig
+    riktig(6, AI, 300),            // annan värd → aldrig
+    riktig(7, KORT, 3),            // kort, men nytt → ligger kvar
+    riktig(8, AOSOM, 30),          // leverantör, men en produkt bär den
+  ];
+  const plan = (omfang: "aosom" | "allt") => planeraStadning(
+    filer, [`https://static.wixstatic.com/media/${rid(8)}`], 1, [], [], [],
+    { omfang, minAlderMs: 14 * DAG, nu: NU },
+  );
+
+  it("raderar leverantörsfiler, kort och utsnitt som är gamla och oanvända", () => {
+    expect(plan("allt").attRadera.map((f) => f.id)).toEqual([rid(1), rid(2), rid(3)]);
+  });
+
+  it("☠️ rör aldrig en fil utan källa eller med en okänd källa", () => {
+    const p = plan("allt");
+    for (const k of ["ingen-kalla", "wix-annan", "annan-kalla"] as const) {
+      expect(p.perKlass[k].oanvanda).toBe(1);
+      expect(p.perKlass[k].raderbara).toBe(0);
+    }
+  });
+
+  it("☠️ en fil som skapats nyligen ligger kvar — en annan session kan vara mitt i", () => {
+    const p = plan("allt");
+    expect(p.attRadera.map((f) => f.id)).not.toContain(rid(7));
+    expect(p.forUnga).toBe(1);
+  });
+
+  it("en fil utan datum räknas som ny", () => {
+    const utan = { ...riktig(10, KORT, 30), createdDate: undefined };
+    expect(planeraStadning([utan], [], 0, [], [], [], { omfang: "allt", minAlderMs: 14 * DAG, nu: NU }).attRadera).toEqual([]);
+  });
+
+  it("ett ovanligt id raderas inte i läget allt", () => {
+    const ovanlig = { ...riktig(11, KORT, 30), url: "https://static.wixstatic.com/media/b379ce_x~mv2_d_1920_1080_s_2.jpg" };
+    const p = planeraStadning([ovanlig], [], 0, [], [], [], { omfang: "allt", minAlderMs: 14 * DAG, nu: NU });
+    expect(p.attRadera).toEqual([]);
+    expect(p.ovanligtId).toBe(1);
+  });
+
+  it("nattens läge är oförändrat: kort och utsnitt rörs inte", () => {
+    expect(plan("aosom").attRadera.map((f) => f.id)).toEqual([rid(1)]);
+  });
+
+  it("räknar varje klass", () => {
+    const p = plan("allt");
+    expect(p.perKlass.leverantor).toMatchObject({ filer: 2, anvanda: 1, oanvanda: 1, raderbara: 1 });
+    expect(p.perKlass.github).toMatchObject({ filer: 2, oanvanda: 2, raderbara: 1 });
+    expect(p.perKlass["wix-utsnitt"]).toMatchObject({ filer: 1, raderbara: 1 });
+  });
+
+  it("☠️ läget allt vägrar en åldersgräns under sju dygn", async () => {
+    const { d, raderade } = deps();
+    await expect(runMediaCleanup(d, { dryRun: false, omfang: "allt", minAlderDagar: 1 })).rejects.toThrow(/minst 7/);
+    await expect(runMediaCleanup(d, { dryRun: false, omfang: "allt", minAlderDagar: Number.NaN })).rejects.toThrow(/minst 7/);
+    expect(raderade).toEqual([]);
+  });
+});
+
+describe("☠️ skydden som granskningen 2026-10-14 bad om", () => {
+  it("en läsare under golvet stoppar körningen INNAN listningen och raderingen", async () => {
+    let listat = false;
+    const { d, raderade } = deps({
+      listaRecensionsbilder: async () => [],
+      listaFiler: async () => { listat = true; return { filer: [fil("aosom-A-2.jpg", "a2")], cursor: null, komplett: true }; },
+    });
+    await expect(runMediaCleanup(d, { dryRun: false, golv: { recensioner: 3000 } }))
+      .rejects.toThrow(/recensioner gav 0 referenser, under golvet 3000/);
+    expect(listat).toBe(false);
+    expect(raderade).toEqual([]);
+  });
+
+  it("en läsare på golvet går igenom", async () => {
+    const { d } = deps({ listaOrderbilder: async () => ["x~mv2.jpg", "y~mv2.jpg"] });
+    const s = await runMediaCleanup(d, { dryRun: true, golv: { ordrar: 2, butiken: 0 } });
+    expect(s.referenser.ordrar).toBe(2);
+  });
+
+  it("☠️ ett fönster som aldrig hann börja är ett fel, inte ett tomt bibliotek", async () => {
+    const { d, raderade } = deps({ listaFiler: async () => ({ filer: [], cursor: null, komplett: false }) });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/hann inte börja/);
+    const { d: d2 } = deps({ listaFiler: async () => ({ filer: [], cursor: "m1", komplett: false }) });
+    await expect(runMediaCleanup(d2, { dryRun: true, after: "m1" })).rejects.toThrow(/hann inte börja/);
+    expect(raderade).toEqual([]);
+  });
+
+  it("ett tomt bibliotek som listats klart är inget fel", async () => {
+    const { d } = deps({ listaFiler: async () => ({ filer: [], cursor: null, komplett: true }) });
+    expect((await runMediaCleanup(d)).foraldralosa).toBe(0);
+  });
+
+  it("kort räknas bara som våra när de kommer ur vårt eget repo", () => {
+    const bas: MediaFil = {
+      id: "b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg", displayName: "kort.png",
+      url: "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg", sizeInBytes: MB,
+    };
+    expect(klassaFil({ ...bas, sourceUrl: "https://raw.githubusercontent.com/Leonardaraz/fyndplats-cache-warmer/abc/tools/k.png" }, new Set()))
+      .toBe("github");
+    expect(klassaFil({ ...bas, sourceUrl: "https://raw.githubusercontent.com/nagon-annan/repo/main/k.png" }, new Set()))
+      .toBe("annan-kalla");
+  });
+});
+
+describe("granskningen 2026-10-14", () => {
+  const bas: MediaFil = {
+    id: "b379ce_1f6a6260c9f243b3afd79cbaf147b67b~mv2.jpg", displayName: "utsnitt.jpg",
+    url: "https://static.wixstatic.com/media/b379ce_1f6a6260c9f243b3afd79cbaf147b67b~mv2.jpg", sizeInBytes: MB,
+  };
+  const kalla = "https://static.wixstatic.com/media/b379ce_2e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg";
+
+  it("☠️ ett utsnitt ur ett annat bibliotek är inte poleringens", () => {
+    for (const agare of ["11062b", "22e53e"]) {
+      const kalla = `https://static.wixstatic.com/media/${agare}_2e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/crop/x_0,y_0,w_800,h_800/file.jpg`;
+      expect(klassaFil({ ...bas, sourceUrl: kalla }, new Set())).toBe("wix-annan");
+    }
+  });
+
+  it("☠️ bara crop-adresser är poleringens utsnitt; fill och fit kan vara hämtade för hand", () => {
+    expect(klassaFil({ ...bas, sourceUrl: `${kalla}/v1/crop/x_0,y_0,w_800,h_800/file.jpg` }, new Set())).toBe("wix-utsnitt");
+    expect(klassaFil({ ...bas, sourceUrl: `${kalla}/v1/fill/w_1200,h_630/file.jpg` }, new Set())).toBe("wix-annan");
+    expect(klassaFil({ ...bas, sourceUrl: `${kalla}/v1/fit/w_640,h_640/file.jpg` }, new Set())).toBe("wix-annan");
+  });
+
+  it("☠️ en variants egen bild skyddar filen, även när den inte står i galleriet", async () => {
+    // Varukorgen, kassan och ordern visar variantens bild (lib/wix/variant-media.ts).
+    const { d, raderade } = deps({ listaVariantbilder: async () => ["a2~mv2.jpg"] });
+    const s = await runMediaCleanup(d, { dryRun: false });
+    expect(raderade.flat()).toEqual(["b1"]);
+    expect(s.referenser.varianter).toBe(1);
+  });
+
+  it("☠️ ett läsfel bland varianterna fäller körningen innan något listas", async () => {
+    let listat = false;
+    const { d, raderade } = deps({
+      listaVariantbilder: async () => { throw new Error("query-variants 403"); },
+      listaFiler: async () => { listat = true; return { filer: [], cursor: null, komplett: true }; },
+    });
+    await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Varianternas bilder gick inte att läsa/);
+    expect(listat).toBe(false);
+    expect(raderade).toEqual([]);
+  });
+
+  it("varianterna har ett golv som alla andra läsare", async () => {
+    const { d, raderade } = deps({ listaVariantbilder: async () => [] });
+    await expect(runMediaCleanup(d, { dryRun: false, golv: { varianter: 5000 } }))
+      .rejects.toThrow(/varianter gav 0 referenser, under golvet 5000/);
+    expect(raderade).toEqual([]);
+  });
+
+  describe("karenstiden", () => {
+    const DAG = 86_400_000;
+    const T0 = Date.parse("2026-10-15T01:30:00Z");
+
+    it("☠️ första gången en fil ses oanvänd raderas den inte, den antecknas", async () => {
+      const karens = nyttMinnesKarens();
+      const { d, raderade } = deps({ karens, now: () => T0 });
+      const s = await runMediaCleanup(d, { dryRun: false });
+      expect(raderade).toEqual([]);
+      expect(s.foraldralosa).toBe(2);
+      expect(s.mogna).toBe(0);
+      expect(s.iKarens).toBe(2);
+      expect(s.karensDygn).toBe(3);
+    });
+
+    it("efter karenstiden raderas filen som fortfarande är oanvänd", async () => {
+      const karens = nyttMinnesKarens();
+      await runMediaCleanup(deps({ karens, now: () => T0 }).d, { dryRun: false });
+      const fore = deps({ karens, now: () => T0 + 3 * DAG - 1 });
+      expect((await runMediaCleanup(fore.d, { dryRun: false })).raderade).toBe(0);
+      const efter = deps({ karens, now: () => T0 + 3 * DAG });
+      const s = await runMediaCleanup(efter.d, { dryRun: false });
+      expect(efter.raderade.flat().sort()).toEqual(["a2", "b1"]);
+      expect(s.mogna).toBe(2);
+      expect(s.iKarens).toBe(0);
+    });
+
+    it("torrkörningen antecknar också, så nästa skarpa körning efter karenstiden raderar", async () => {
+      const karens = nyttMinnesKarens();
+      const torr = deps({ karens, now: () => T0 });
+      const s0 = await runMediaCleanup(torr.d, { dryRun: true });
+      expect(torr.raderade).toEqual([]);
+      expect(s0.iKarens).toBe(2);
+      const skarp = deps({ karens, now: () => T0 + 3 * DAG });
+      await runMediaCleanup(skarp.d, { dryRun: false });
+      expect(skarp.raderade.flat().sort()).toEqual(["a2", "b1"]);
+    });
+
+    it("☠️ en fil som används igen glöms, och klockan börjar om när den blir oanvänd", async () => {
+      const karens = nyttMinnesKarens();
+      await runMediaCleanup(deps({ karens, now: () => T0 }).d, { dryRun: false });
+      // Dag 1: b1 sitter på en produkt igen.
+      await runMediaCleanup(deps({
+        karens, now: () => T0 + DAG,
+        listaAnvanda: async () => ({ urls: [url("a1"), url("b1")], antalProdukter: 1 }),
+      }).d, { dryRun: false });
+      // Dag 3: b1 är oanvänd igen. a2 har varit oanvänd hela tiden och raderas.
+      const dag3 = deps({ karens, now: () => T0 + 3 * DAG });
+      const s = await runMediaCleanup(dag3.d, { dryRun: false });
+      expect(dag3.raderade.flat()).toEqual(["a2"]);
+      expect(s.iKarens).toBe(1);
+    });
+
+    it("☠️ faller bokföringen raderas ingenting", async () => {
+      const { d, raderade } = deps({
+        karens: { registrera: async () => { throw new Error("DATABASE_URL saknas"); }, lasAlla: async () => [], glom: async () => {} },
+      });
+      await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/DATABASE_URL/);
+      expect(raderade).toEqual([]);
+    });
+
+    it("en fil utan antecknad tid raderas inte", async () => {
+      const { d, raderade } = deps({
+        karens: { registrera: async () => new Map(), lasAlla: async () => [], glom: async () => {} },
+      });
+      const s = await runMediaCleanup(d, { dryRun: false });
+      expect(raderade).toEqual([]);
+      expect(s.iKarens).toBe(2);
+    });
+
+    it("faller städningen av tabellen efter raderingen syns det, men filerna räknas som raderade", async () => {
+      let glomd = 0;
+      const { d, raderade } = deps({
+        karens: {
+          registrera: async (idn, nu) => new Map(idn.map((id) => [id, nu - KARENS_MS])),
+          lasAlla: async () => [],
+          glom: async (idn) => { if (glomd++ > 0 && idn.length) throw new Error("nätverksfel"); },
+        },
+      });
+      const s = await runMediaCleanup(d, { dryRun: false });
+      expect(raderade.flat().sort()).toEqual(["a2", "b1"]);
+      expect(s.raderade).toBe(2);
+      expect(s.errors.join(" ")).toMatch(/karenstabellen: nätverksfel/);
+    });
+
+    it("☠️ en gammal fil utanför fönstret som tas i bruk glöms, så klockan börjar om", async () => {
+      // Gamla filer ligger utanför nattens fönster och ses annars bara vid en
+      // full genomgång. Läsarna läser hela katalogen, så användningen syns ändå.
+      const karens = nyttMinnesKarens();
+      const gammal = fil("aosom-G-1.jpg", "g1");
+      await runMediaCleanup(deps({ karens, now: () => T0,
+        listaFiler: async () => ({ filer: [gammal], cursor: null, komplett: true }) }).d, { dryRun: true });
+      // Dag 1: g1 sitter på en produkt igen, men nattens fönster ser bara nya filer.
+      await runMediaCleanup(deps({ karens, now: () => T0 + DAG,
+        listaAnvanda: async () => ({ urls: [url("a1"), url("g1")], antalProdukter: 1 }) }).d, { dryRun: false });
+      // Dag 3: g1 släpps igen, och en full genomgång ser den oanvänd.
+      const dag3 = deps({ karens, now: () => T0 + 3 * DAG,
+        listaFiler: async () => ({ filer: [gammal], cursor: null, komplett: true }) });
+      const s = await runMediaCleanup(dag3.d, { dryRun: false });
+      expect(dag3.raderade).toEqual([]);
+      expect(s.iKarens).toBe(1);
+    });
+
+    it("limit gäller de mogna filerna", async () => {
+      const { d, raderade } = deps();
+      const s = await runMediaCleanup(d, { dryRun: false, limit: 1 });
+      expect(raderade.flat()).toHaveLength(1);
+      expect(s.stoppedBy).toBe("limit");
+    });
+  });
+});
+
+describe("kontrolleraSammaSajt", () => {
+  it("☠️ olika sajter för filerna och ordrarna stoppar körningen", () => {
+    expect(() => kontrolleraSammaSajt("annan-sajt", "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).toThrow(/olika sajter/);
+  });
+  it("samma sajt, eller ingen WIX_SITE_ID, går igenom", () => {
+    expect(() => kontrolleraSammaSajt("e6d27e90-4749-4720-9afe-0bbe91c1b3d3", "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).not.toThrow();
+    expect(() => kontrolleraSammaSajt(undefined, "e6d27e90-4749-4720-9afe-0bbe91c1b3d3")).not.toThrow();
+  });
+});
+
+describe("kontrolleraProduktsvep", () => {
+  it("☠️ ett svep som tappat sidor fäller körningen", () => {
+    expect(() => kontrolleraProduktsvep(5_000, true, 6_300)).toThrow(/såg 5000 av 6300/);
+  });
+  it("☠️ ett svep som nådde sidtaket fäller körningen", () => {
+    expect(() => kontrolleraProduktsvep(6_300, false, 0)).toThrow(/sidtaket/);
+  });
+  it("☠️ en räknare som inte svarade med något antal fäller körningen, den stänger inte av jämförelsen", () => {
+    // countProducts gör ett svar utan `count` till 0.
+    expect(() => kontrolleraProduktsvep(6_300, true, 0)).toThrow(/räknare svarade 0/);
+  });
+
+  it("en import medan svepet pågår är inget fel (högst fem färre)", () => {
+    expect(() => kontrolleraProduktsvep(6_295, true, 6_300)).not.toThrow();
+    expect(() => kontrolleraProduktsvep(6_294, true, 6_300)).toThrow();
   });
 });

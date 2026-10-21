@@ -161,6 +161,61 @@ describe("shipManually", () => {
     expect(d.createFulfillment).not.toHaveBeenCalled();
   });
 
+  // Order 10095 (2026-10-17): ett hantelset i två DPD-paket. Wix tar en
+  // fulfillment per artikelantal, så båda numren står i samma fält, och
+  // butiken delar upp dem till ett mejl med båda. Numren här är påhittade.
+  it("flera paket: alla nummer i samma Wix-fält, spårlänken pekar på det första", async () => {
+    const store = await medTasks(task({ status: "ordered", orderNumber: "10095" }));
+    const d = deps();
+    const r = await shipManually(
+      store,
+      { orderNumber: "10095", trackingNumber: "01234567890123, 01234567890125", carrier: "DPD", source: "test" },
+      d,
+    );
+    expect(r.ok).toBe(true);
+    expect(d.createFulfillment).toHaveBeenCalledTimes(1);
+    const arg = d.createFulfillment.mock.calls[0][0];
+    expect(arg.trackingNumber).toBe("01234567890123, 01234567890125");
+    expect(arg.trackingLink).toBe("https://www.fyndplats.se/sparning?tn=01234567890123");
+    expect(arg.lineItems).toEqual([{ id: "l1", quantity: 1 }]);
+    const efter = (await store.listTasks())[0];
+    expect(efter.status).toBe("shipped");
+    expect(efter.trackingNumber).toBe("01234567890123, 01234567890125");
+  });
+
+  it("fältet skrivs i en form: komma och mellanslag, utan tomma och dubbletter", async () => {
+    const store = await medTasks(task({ status: "ordered" }));
+    const d = deps();
+    const r = await shipManually(
+      store,
+      { orderNumber: "10026", trackingNumber: "01234567890123;01234567890125,,01234567890123", carrier: "DPD", source: "test" },
+      d,
+    );
+    expect(r.ok).toBe(true);
+    expect(d.createFulfillment.mock.calls[0][0].trackingNumber).toBe("01234567890123, 01234567890125");
+  });
+
+  it("☠️ ett för kort nummer bland flera avvisas innan något rörs", async () => {
+    const store = await medTasks(task({ status: "ordered" }));
+    const d = deps();
+    const r = await shipManually(store, { orderNumber: "10026", trackingNumber: "01234567890123, 945", carrier: "DPD", source: "test" }, d);
+    expect(r.ok).toBe(false);
+    expect("error" in r && r.error).toContain("945");
+    expect(d.createFulfillment).not.toHaveBeenCalled();
+    expect((await store.listTasks())[0].status).toBe("ordered");
+  });
+
+  it("☠️ längre än Wix 100 tecken avvisas innan något rörs", async () => {
+    const store = await medTasks(task({ status: "ordered" }));
+    const d = deps();
+    const atta = Array.from({ length: 8 }, (_, i) => `0123456789012${i}`).join(", ");
+    expect(atta.length).toBeGreaterThan(100);
+    const r = await shipManually(store, { orderNumber: "10026", trackingNumber: atta, carrier: "DPD", source: "test" }, d);
+    expect(r.ok).toBe(false);
+    expect("error" in r && r.error).toContain("100");
+    expect(d.createFulfillment).not.toHaveBeenCalled();
+  });
+
   it("☠️ misslyckad Wix-fulfillment lämnar tasken orörd", async () => {
     const store = await medTasks(task({ status: "ordered" }));
     const d = { createFulfillment: vi.fn().mockRejectedValue(new Error("Wix 500")) };

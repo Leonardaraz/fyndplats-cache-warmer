@@ -31,7 +31,7 @@ import type { FulfillmentTask } from "@/lib/orders/types";
 import { canTransition } from "./status";
 import { väljEnTask, type Kandidat, type TaskVal } from "./valj-task";
 import { createFulfillment } from "@/lib/wix/client";
-import { sparningsLank } from "@/lib/tracking-link";
+import { WIX_SPARNINGSFALT_MAX, delaSparningsnummer, sparningsLank } from "@/lib/tracking-link";
 
 export interface ManuellInput extends TaskVal {
   /** Vem som gjorde det — hamnar i audit-raden. */
@@ -45,7 +45,8 @@ export interface OrderladInput extends ManuellInput {
 }
 
 export interface SkeppaInput extends ManuellInput {
-  /** Spårningsnumret ur leverantörens avsändningsmejl. */
+  /** Spårningsnumret ur leverantörens avsändningsmejl. Kom varan i flera
+   *  paket: alla nummer, med komma emellan (lib/tracking-link). */
   trackingNumber: string;
   /** Fraktbolag, om det framgår. Wix visar det i leveransbekräftelsen. */
   carrier?: string;
@@ -162,9 +163,23 @@ export async function shipManually(
   input: SkeppaInput,
   deps: SkeppaDeps = { createFulfillment },
 ): Promise<ManuellResultat> {
-  const spar = (input.trackingNumber ?? "").trim();
-  if (spar.length < 6) {
-    return { ok: false, error: "trackingNumber ser för kort ut — klistra in numret ur leverantörens avsändningsmejl." };
+  // En vara i flera kartonger har ett nummer per paket i samma fält, med komma
+  // emellan (lib/tracking-link). Varje nummer prövas för sig, och fältet skrivs
+  // i en form, så att butiken läser samma nummer som står i Wix.
+  const nummer = delaSparningsnummer(input.trackingNumber);
+  const korta = nummer.filter((n) => n.length < 6);
+  if (nummer.length === 0 || korta.length > 0) {
+    return {
+      ok: false,
+      error: `trackingNumber ser för kort ut${korta.length > 0 ? ` (${korta.join(", ")})` : ""} — klistra in numret ur leverantörens avsändningsmejl.`,
+    };
+  }
+  const spar = nummer.join(", ");
+  if (spar.length > WIX_SPARNINGSFALT_MAX) {
+    return {
+      ok: false,
+      error: `Spårningsfältet blir ${spar.length} tecken och Wix tar högst ${WIX_SPARNINGSFALT_MAX}. Ingenting skrevs.`,
+    };
   }
 
   const val = väljEnTask(await store.listTasks(), input, {
@@ -250,6 +265,9 @@ export async function shipManually(
     taskId: task.taskId,
     orderNumber: task.orderNumber,
     productName: task.productName,
-    message: `✓ Order ${task.orderNumber} skeppad med spårning ${spar}. Kunden har fått "Ditt paket är skickat!".`,
+    message:
+      nummer.length > 1
+        ? `✓ Order ${task.orderNumber} skeppad i ${nummer.length} paket (${spar}). Kunden får ett fraktmejl med alla ${nummer.length} nummer.`
+        : `✓ Order ${task.orderNumber} skeppad med spårning ${spar}. Kunden har fått "Ditt paket är skickat!".`,
   };
 }

@@ -9,6 +9,8 @@
 //
 // OBS: helt read-only — vi modifierar aldrig orderdata.
 
+import { kundnamnPaOrder, type OrderMedNamn } from "@/lib/reviews/kundinitialer";
+
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
 
@@ -143,6 +145,69 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
   };
 }
 
+/** Wix interna order-id. Gemener i praktiken, men båda skiftlägena läses. */
+const ORDER_GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Köparens namn på en order, för initialerna på ett kundomdöme där kunden
+ * lämnat namnfältet tomt (lib/reviews/kundinitialer.ts). Null när ordern inte
+ * finns. Tidsgränsen skyddar kunden som skickar omdömet: butiken väntar på
+ * svaret.
+ *
+ * ☠️ TAR ÄVEN ETT LÄSBART ORDERNUMMER ("10083"). Butikens omdömeslänk bär
+ * `tracking_mapping.order_id`, som är numret, och `GET /ecom/v1/orders/{id}`
+ * svarar 404 på ett nummer. Utan sökningen hamnade de omdömena i
+ * `orderSaknas` (uppmätt 2026-10-19: tre av tre). Samma regel som butikens
+ * lib/wix-order-id.ts: ett GUID slås upp direkt, ett nummer söks fram.
+ */
+export async function fetchOrderKundnamn(orderId: string, timeoutMs = 5_000): Promise<string | null> {
+  const id = orderId.trim();
+  if (ORDER_GUID.test(id)) return kundnamnViaId(id, timeoutMs);
+  if (/^\d+$/.test(id)) return kundnamnViaNummer(id, timeoutMs);
+  return null;
+}
+
+async function kundnamnViaId(orderId: string, timeoutMs: number): Promise<string | null> {
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/${encodeURIComponent(orderId)}`, {
+    method: "GET",
+    headers: headers(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/get misslyckades (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { order?: OrderMedNamn };
+  return data.order ? kundnamnPaOrder(data.order) : null;
+}
+
+/**
+ * ☠️ Träffen måste bära exakt det nummer vi frågade efter. Ett filter som inte
+ * biter ger butikens senaste ordrar, och då hade en annan kunds initialer
+ * hamnat på omdömet. Det är ett fel, inte en saknad order.
+ */
+async function kundnamnViaNummer(nummer: string, timeoutMs: number): Promise<string | null> {
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/search`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ search: { filter: { number: nummer }, cursorPaging: { limit: 2 } } }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/search misslyckades (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { orders?: Array<OrderMedNamn & { number?: string | number }> };
+  const ordrar = data.orders ?? [];
+  const traff = ordrar.find((o) => String(o.number ?? "") === nummer);
+  if (traff) return kundnamnPaOrder(traff);
+  if (ordrar.length > 0) throw new Error("Wix orders/search: filtret på ordernummer bet inte");
+  return null;
+}
+
 /**
  * Hämtar alla orders skapade efter `sinceIso` (paginerat). Default-statusfiltret
  * släpper igenom alla utom INITIATED/CANCELED — vi vill bara räkna riktiga
@@ -150,7 +215,17 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
  */
 export async function fetchOrders(
   sinceIso: string,
-  options?: { includeCancelled?: boolean; maxPages?: number; strict?: boolean },
+  options?: {
+    includeCancelled?: boolean;
+    maxPages?: number;
+    strict?: boolean;
+    /**
+     * Bara de här statusarna. Search Orders lämnar enligt Wix dokumentation
+     * ute PENDING och REJECTED om de inte efterfrågas uttryckligen, så den
+     * som vill ha ALLA ordrar gör ett anrop till med dem här.
+     */
+    statusar?: string[];
+  },
 ): Promise<WixOrder[]> {
   const maxPages = options?.maxPages ?? 50;
   const all: WixOrder[] = [];
@@ -165,9 +240,11 @@ export async function fetchOrders(
         filter: {
           _createdDate: { $gte: sinceIso },
           // Endast riktiga köp — INITIATED är ofullständiga varukorgar.
-          ...(options?.includeCancelled
-            ? {}
-            : { status: { $nin: ["INITIATED", "CANCELED"] } }),
+          ...(options?.statusar
+            ? { status: { $in: options.statusar } }
+            : options?.includeCancelled
+              ? {}
+              : { status: { $nin: ["INITIATED", "CANCELED"] } }),
         },
         sort: [{ fieldName: "_createdDate", order: "DESC" }],
         cursorPaging,

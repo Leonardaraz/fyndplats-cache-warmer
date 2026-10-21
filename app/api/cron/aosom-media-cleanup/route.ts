@@ -25,6 +25,20 @@
 //   ?dryRun=false     skarpt läge (default: torrkörning, raderar ingenting)
 //   ?limit=500        tak på antal filer denna körning
 //   ?after=<markör>   fortsätt listningen där förra körningen slutade
+//   ?omfang=allt      även poleringens utsnitt och kort, se `Omfang` i
+//                     lib/aosom/media-cleanup.ts (default: aosom, nattens läge)
+//   ?minAlderDagar=14 läget allt: rör bara filer äldre än så (minst 7)
+//   ?golv=recensioner:3400,butiken:3100 minsta antal referenser per läsare;
+//                     under golvet avbryts körningen innan något raderas
+//
+// LÄSARNA (2026-10-14): produkterna, kategorierna, recensionerna,
+// färgbildstabellen, butikens egen lista (bloggen, koden, reservkatalogen,
+// variantbilderna), ordrarna och varje variants egen bild (varukorgen, kassan,
+// ordern). Faller någon av dem avbryts körningen.
+//
+// KARENSTIDEN: en fil raderas först när den varit oanvänd i tre dygn, sett av
+// två körningar. Varje körning antecknar, även en torrkörning, och svaret bär
+// `mogna` (raderbara nu) och `iKarens`. Se lib/store/bildstadning-karens.ts.
 //
 // Svaret bär en `cursor`. Är den satt återstår filer att gå igenom — kör igen
 // med `?after=<cursor>`. `null` betyder att hela Media Manager är genomgången.
@@ -38,7 +52,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { runMediaCleanup, liveDeps } from "@/lib/aosom/media-cleanup";
+import { runMediaCleanup, liveDeps, LASARE, MIN_ALDER_ALLT_DAGAR, type Lasare, type Omfang } from "@/lib/aosom/media-cleanup";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -56,23 +70,69 @@ async function handle(req: NextRequest) {
   }
 
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
-  const n = Number(req.nextUrl.searchParams.get("limit"));
-  const limit = Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined;
+  // ☠️ Ett tak som inte går att läsa är INGET tak (granskningen 2026-10-14):
+  // `limit=0.5` blev förr 0, alltså obegränsat. Saknas parametern finns inget
+  // tak; finns den måste den vara ett positivt heltal. Undantaget är 0 (eller
+  // tomt) i en TORRKÖRNING, som import-workflowens `bildstadning-torr` skickar
+  // för "hela biblioteket": en torrkörning raderar ingenting.
+  const limitParam = req.nextUrl.searchParams.get("limit");
+  let limit: number | undefined;
+  if (limitParam !== null) {
+    const n = Number(limitParam);
+    if (dryRun && n === 0) {
+      limit = undefined;
+    } else if (!Number.isInteger(n) || n < 1) {
+      return NextResponse.json({ error: `Ogiltigt limit: ${limitParam}` }, { status: 400 });
+    } else {
+      limit = n;
+    }
+  }
   const after = req.nextUrl.searchParams.get("after") || undefined;
+
+  const omfangParam = req.nextUrl.searchParams.get("omfang") ?? "aosom";
+  if (omfangParam !== "aosom" && omfangParam !== "allt") {
+    return NextResponse.json({ error: `Okänt omfang: ${omfangParam}` }, { status: 400 });
+  }
+  const omfang: Omfang = omfangParam;
+  const alderParam = req.nextUrl.searchParams.get("minAlderDagar");
+  const minAlderDagar = alderParam === null ? undefined : Number(alderParam);
+  if (omfang === "allt" && minAlderDagar !== undefined && !(minAlderDagar >= MIN_ALDER_ALLT_DAGAR)) {
+    return NextResponse.json(
+      { error: `minAlderDagar måste vara minst ${MIN_ALDER_ALLT_DAGAR} i läget allt` },
+      { status: 400 },
+    );
+  }
+
+  // ?golv=produkter:31000,recensioner:3400 — minsta antal referenser per
+  // läsare. Kontrolleras före listningen och raderingen (runMediaCleanup).
+  let golv: Partial<Record<Lasare, number>> | undefined;
+  const golvParam = req.nextUrl.searchParams.get("golv");
+  if (golvParam) {
+    golv = {};
+    for (const del of golvParam.split(",")) {
+      const [nyckel, tal] = del.split(":");
+      const n = Number(tal);
+      if (!LASARE.includes(nyckel as Lasare) || !Number.isInteger(n) || n < 0) {
+        return NextResponse.json({ error: `Ogiltigt golv: ${del}` }, { status: 400 });
+      }
+      golv[nyckel as Lasare] = n;
+    }
+  }
 
   try {
     // Tidsbudgeten ligger under ruttens maxDuration (300 s) så att en körning
     // hinner SVARA med sina siffror i stället för att dödas mitt i listningen.
     const summary = await runMediaCleanup(await liveDeps(), {
-      dryRun, limit, after, timeBudgetMs: 240_000,
+      dryRun, limit, after, timeBudgetMs: 240_000, omfang, minAlderDagar, golv,
     });
 
     if (!dryRun && summary.raderade > 0) {
       await audit(
         "aosom-media-cleanup",
         "batch",
-        `${summary.raderade} föräldralösa bilder raderade permanent, `
-          + `${summary.frigjordMb} MB frigjort, ${summary.misslyckade} misslyckade`,
+        `${summary.raderade} föräldralösa bilder raderade permanent (${omfang}), `
+          + `${summary.frigjordMb} MB frigjort, ${summary.misslyckade} misslyckade, `
+          + `${summary.iKarens} väntar ut karenstiden`,
       );
     }
 
