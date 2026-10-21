@@ -65,8 +65,8 @@ ad05a616	13	-	rastgard	-	-	-	-	PASS	utlopp 180 x 90 x 48 cm utan bostad
 6e637343	0	dvkanin	bostad	3526	86	41	61	FAIL	samma stall som 0cd30b65
 20d5c17d	0	dvkanin	bostad	4387	107	41	45	FAIL	kortaste sida 41 cm och höjd 45 cm mot 50 cm
 5096db33	19	dvkanin	bostad	4387	107	41	45	FAIL	kortaste sida 41 cm och höjd 45 cm mot 50 cm
-0d75b83d	128	-	hall	-	-	-	-	HOLD	leverantören nämner ingen djurart (Kleintiere); markplanet klarar marsvin men inte kanin
-efe14f20	57	-	hall	-	-	-	-	HOLD	samma stall som 0d75b83d
+0d75b83d	128	-	hall	-	-	-	-	HOLD	leverantören nämner ingen djurart (Kleintiere). Mätt på bilderna (N292): nedre våningen är ungefär 20 cm hög (hyllan ligger ungefär 40 cm över botten) och huset är 27,5 x 26 cm, så stallet klarar inte marsvin (25 cm) och ligger vid minimum för hamster
+efe14f20	57	-	hall	-	-	-	-	HOLD	samma stall som 0d75b83d, mätt på bilderna i N292
 ad8fcc1c	16	dvkanin	bostad	3240	72	45	27	FAIL	kortaste sida 45 cm och höjd 27 cm mot 50 cm
 c5541fef	103	-	hons	-	-	-	-	PASS	hus 50 x 46 cm inne, 0,23 m² golvyta
 389da1d6	83	dvkanin	bostad	5094	115	44.3	44	FAIL	kortaste sida 44 cm och höjd 44 cm mot 50 cm

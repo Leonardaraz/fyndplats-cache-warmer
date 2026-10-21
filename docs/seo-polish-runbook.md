@@ -206,7 +206,10 @@ innermåtten är mätta på bilderna. Ligger buren under gränsen ska den inte p
 med den rättsliga orsaken. Den första skärmen, över 108 dolda utkast, ligger i
 `tools/polish-assets/djurbostader-skarm-2026-10-21/`: 57 PASS, 32 HOLD och 19 FAIL. Varje PASS
 med saldo är polerad i N276–N282 och T77, alla FAIL är pensionerade och alla HOLD är dolda
-(läst ur Wix 2026-10-21).
+(läst ur Wix 2026-10-21). N292 mätte fem HOLD på bilderna: två blev PASS (polerade) och tre FAIL
+(pensionerade), så skärmen står på 59 PASS, 27 HOLD och 22 FAIL. Höjden mäts med skalan i måttbilden
+(totalhöjden eller en människosiluett), inte med källans fönstermått, och en yta i m² ur en källa
+räknas om ur de mått den bygger på.
 
 **Hundburar** (SJVFS 2020:8, L 102) säljs lagligt, men regeln formar texten. En hund får
 inte hållas i stängd bur inomhus. Står buren framme som hundens plats ska dörren tas bort
