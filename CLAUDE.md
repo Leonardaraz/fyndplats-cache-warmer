@@ -4306,6 +4306,47 @@ prisregel.
 inte är avdragsgill i Sverige (bara sökbar via Skatteverket, långsamt), ingen
 omvänd skattskyldighet — och det skalar inte till 5 566 artiklar.
 
+### Fler länder: feeden har frakten till 40 (2026-10-21)
+
+Leonards fråga: vilka länder kan vi sälja Aosom-varorna i? Feeden har en
+fraktavgift per land, `<landskod> Ship Fee` för 39 länder och
+`Shipping Cost Germany` för Tyskland (uppmätt 2026-09-15). Det är EU:s 27
+länder och 13 utanför EU: Albanien, Andorra, Bosnien och Hercegovina, Färöarna,
+Gibraltar, Kosovo, Monaco, Montenegro, Nordmakedonien, San Marino, Serbien,
+Turkiet och Vatikanstaten. Norge, Schweiz, Storbritannien och Island saknas.
+Motorn läste bara Sveriges.
+
+Workflowen **"Aosom — frakt och skeppbarhet per land"** →
+`/api/admin/aosom-lander` → `lib/aosom/frakt-per-land.ts` räknar per land, för
+hela feeden, för våra mappade artiklar och för de publicerade:
+
+- hur många varor som går att skicka dit,
+- frakten och den landade kostnaden (inköp plus frakt) jämfört med Sverige, som
+  medianer per rad.
+
+Momsen ingår inte. Landets momssats läggs på kundpriset för sig.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Svaret bär bara antal, andelar och kvoter.** Avgifterna är inköpsled,
+   precis som SE-frakten. Ett test serialiserar svaret och letar efter
+   artikelnummer och belopp.
+2. ☠️ **Ett annat fel än våra egna spärrar svarar utan sin text** (`felSvar`).
+   Ett nätverksfel kan bära feedens adress. Texten står i Vercels logg, med
+   adresserna bortbytta.
+3. **Samma spärrar som synken.** Färre än `MIN_FEED_RADER` rader i feeden,
+   färre än `MIN_WIX_PRODUKTER` synliga produkter eller ingen svensk kolumn ger
+   503.
+4. **Synken och importen läser feeden som förut.** Landskolumnerna läses bara
+   med `parseAosomFeed(text, { fraktPerLand: true })`, och en verklig avgift har
+   en definition för alla länder (`arVerkligFrakt`).
+
+⚠️ Där Aosom själva säljer till konsument konkurrerar vi mot deras
+subventionerade konsumentfrakt (avsnittet ovan). Den 2026-10-21 svarade
+aosom-domänerna för Tyskland, Österrike, Belgien, Nederländerna, Frankrike,
+Italien, Spanien, Portugal, Irland, Polen och Rumänien som aosom.de. aosom.dk
+och aosom.si är domäner till salu.
+
 ### Vad som INTE är fixat
 
 Momsfällan i `computeProfit` är **lagad 2026-08-29** (se avsnittet ovan):
