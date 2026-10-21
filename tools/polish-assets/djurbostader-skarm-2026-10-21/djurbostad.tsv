@@ -29,7 +29,7 @@ a40a86bb	141	guldhamster,dvarghamster	bostad	2493	60.8	41	45	PASS	markplan 60,8 
 5eac8334	12	dvarghamster,guldhamster	bostad	3807	78.5	48.5	81	PASS	markplan 78,5 x 48,5 cm
 e7353e46	184	dvarghamster,guldhamster	bostad	2088	58	36	81	PASS	markplan 58 x 36 cm
 a145cba3	172	guldhamster,dvarghamster	bostad	3634	79	46	73	PASS	markplan 79 x 46 cm
-eb8bdf09	104	-	hons	-	-	-	-	PASS	inhägnad 300 x 170 cm utan hus
+eb8bdf09	104	-	hons	-	-	-	-	FAIL	dubblett av den publicerade hönsgården 9158341c, som ommappades till Aosom 2026-10-21 och behåller storleken 300 x 170 cm; utkastet pensionerades av ommappningen
 e8140392	35	-	hall	-	-	-	-	HOLD	ankhus: L 80 gäller inte ankor och SJVFS 2019:23 ger inget mått för en hobbyflock; 0,38 m² golvyta
 c1c1d34c	54	guldhamster,dvarghamster	bostad	4301	93.5	46	45	PASS	markplan 93,5 x 46 cm
 92ef25c9	89	guldhamster,dvarghamster,marsvin	bostad	6300	112.5	56	25	PASS	hamster: markplan 112,5 x 56 cm; marsvin faller på höjd 25 cm per delyta
@@ -75,7 +75,7 @@ d93d729a	0	-	hall	-	-	-	-	HOLD	leverantören nämner ingen art; saldo 0
 b5cf7ec6	63	-	hons	-	-	-	-	PASS	hus 64 x 64 cm inne, utlopp 96,5 x 63,5 cm
 637feb0f	25	-	hons	-	-	-	-	PASS	samma hus som b5cf7ec6
 132bb22e	61	-	hall	-	-	-	-	HOLD	fem våningar på 120 cm: innerhöjden per delyta avgörs på bilderna
-a8a4c7f1	9	dvkanin	bostad	3526	86	41	80	FAIL	kortaste sida 41 cm mot 50 cm
+a8a4c7f1	9	dvkanin	bostad	3526	86	41	80	FAIL	kortaste sida 41 cm mot 50 cm för dvärgkanin; samma stall är den publicerade marsvinshyddan 1ba178fa, som ommappades till Aosom 2026-10-21 och därmed bär artikeln; utkastet pensionerades av ommappningen
 2a30297a	20	-	hons	-	-	-	-	PASS	hus 65 x 48 cm inne med utlopp
 19389039	87	-	hall	-	-	-	-	HOLD	två våningar på 42 cm: innerhöjden per delyta avgörs på bilderna
 8c6ef998	0	dvkanin	bostad	5986	146	41	85	FAIL	kortaste sida 41 cm mot 50 cm
