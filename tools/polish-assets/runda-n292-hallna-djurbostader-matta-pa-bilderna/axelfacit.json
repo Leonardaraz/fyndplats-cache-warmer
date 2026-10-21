@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "277f5641": {
+  "tyska": "",
+  "svenska": "140L x 70B x 105H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Empfohlene Modellierung: 140L x 70B x 105H cm, 1,47 m² | ✔ Einzelnes Paneel: 35L x 35B cm"
+ },
+ "5ac1815c": {
+  "tyska": "L309 x B79 x H86cm",
+  "svenska": "L 309 x B 79 x H 86 cm",
+  "bokstaver": "LBH",
+  "hojd": 86,
+  "bredd": 309,
+  "djup": 79
+ }
+}

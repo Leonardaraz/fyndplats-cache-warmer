@@ -21,7 +21,7 @@ c78d5a19	0	dvkanin	bostad	4947	105	48.5	15	FAIL	löpgången är 15 cm hög mot 5
 f8ca8cb6	1	chinchilla,iller	bostad	2704	52	52	25	FAIL	52 x 52 cm mot 0,5 m² för chinchilla och 5 m² för iller
 35930359	52	dvkanin,marsvin	bostad	6669	117	57	57	PASS	textilbur 117 x 57 cm; leverantören säger uttryckligen att den inte är för hamster
 79afd14f	45	-	hall	-	-	-	-	HOLD	markplanet 69 x 44 cm klarar bara guldhamster, men leverantörens text och bilder gäller kanin, chinchilla och iller, som buren är för liten för; stavavståndet 1 cm släpper igenom små arter; bara fyra bilder är rena
-277f5641	13	-	hall	-	-	-	-	HOLD	panelhage: höjd och markplan avgörs inte av källtexten
+277f5641	13	-	rastgard	-	-	-	-	PASS	panelhage utan sovhus: polerad som rastgård för dvärgkaniner i N292. Golvytan där höjden är full är 70 x 70 cm (under plattformen 35 cm), för litet som bostad för ett par, så sidan säger rastgård och ersätter inte en bostad
 87cbcb7f	118	-	hall	-	-	-	-	HOLD	kattbur: under Jordbruksverkets boxmått för katt (SJVFS 2020:8, 10 kap. 9 §); kan bara bli en kattgård efter beslut
 ef20bec9	110	-	hons	-	-	-	-	PASS	hus 92 x 50 cm inne, 0,40 m² golvyta; leverantörens 3-4 höns utlovas inte
 9104911c	42	-	hons	-	-	-	-	PASS	samma hus som ef20bec9; kontrollera dubblett på bilderna
@@ -35,7 +35,7 @@ e8140392	35	-	hall	-	-	-	-	HOLD	ankhus: L 80 gäller inte ankor och SJVFS 2019:2
 c1c1d34c	54	guldhamster,dvarghamster	bostad	4301	93.5	46	45	PASS	markplan 93,5 x 46 cm
 92ef25c9	89	guldhamster,dvarghamster,marsvin	bostad	6300	112.5	56	25	PASS	hamster: markplan 112,5 x 56 cm; marsvin faller på höjd 25 cm per delyta
 ce3918b0	58	-	hons	-	-	-	-	PASS	hönshus med utlopp 140 x 84,5 cm
-4f5d5afe	12	dvkanin	bostad	7200	120	60	50	HOLD	löpgången är 51 cm hög utvändigt, alltså knappt under 50 cm invändigt: avgörs på bilderna
+4f5d5afe	12	dvkanin	bostad	6612	114	58	46	FAIL	löpgården är 51 cm hög utvändigt och alltså ungefär 46 cm invändigt mot 50 cm, även för kaniner under 2 kg; leverantören anger inte vikten, och då är kravet 60 cm. Mätt på bilderna (N292)
 e13b7b5e	98	dvarghamster,guldhamster	bostad	3569	83	43	44	PASS	markplan 83 x 43 cm
 a22bfee3	141	dvarghamster,guldhamster	bostad	3569	83	43	44	PASS	samma mått som e13b7b5e; kontrollera dubblett på bilderna
 13fe619f	200	guldhamster,dvarghamster	bostad	4900	98	50	50	PASS	markplan 98 x 50 cm
@@ -75,10 +75,10 @@ c5541fef	103	-	hons	-	-	-	-	PASS	hus 50 x 46 cm inne, 0,23 m² golvyta
 d93d729a	0	-	hall	-	-	-	-	HOLD	leverantören nämner ingen art; saldo 0
 b5cf7ec6	63	-	hons	-	-	-	-	PASS	hus 64 x 64 cm inne, utlopp 96,5 x 63,5 cm
 637feb0f	25	-	hons	-	-	-	-	PASS	samma hus som b5cf7ec6
-132bb22e	61	-	hall	-	-	-	-	HOLD	fem våningar på 120 cm: innerhöjden per delyta avgörs på bilderna
+132bb22e	61	-	hall	-	-	-	-	FAIL	fyra fack på ungefär 80 cm (120 cm minus ben och hylla på 40 cm) ger under 20 cm per fack, och fönstren är 20,5 och 16 cm höga: kravet för hamstrar är 20 cm invändigt. Mätt på bilderna (N292)
 a8a4c7f1	9	dvkanin	bostad	3526	86	41	80	FAIL	kortaste sida 41 cm mot 50 cm för dvärgkanin; samma stall är den publicerade marsvinshyddan 1ba178fa, som ommappades till Aosom 2026-10-21 och därmed bär artikeln; utkastet pensionerades av ommappningen
 2a30297a	20	-	hons	-	-	-	-	PASS	hus 65 x 48 cm inne med utlopp
-19389039	87	-	hall	-	-	-	-	HOLD	två våningar på 42 cm: innerhöjden per delyta avgörs på bilderna
+19389039	87	guldhamster,dvarghamster	bostad	1824	57	32	14	FAIL	markplanets fack är ungefär 14 cm högt invändigt (frontdörren på markplanet är 12 cm på måttbilden) mot 20 cm; ovanvåningen räknas inte (8 kap. 21 §). Mätt på bilderna (N292)
 8c6ef998	0	dvkanin	bostad	5986	146	41	85	FAIL	kortaste sida 41 cm mot 50 cm
 acbb7bad	101	-	hall	-	-	-	-	HOLD	sköldpaddshus: art och storlek avgörs inte av källtexten
 0b927ed9	54	-	hall	-	-	-	-	HOLD	sköldpaddshus: art och storlek avgörs inte av källtexten
@@ -93,7 +93,7 @@ d8d3d714	73	-	hall	-	-	-	-	HOLD	kattbur: under Jordbruksverkets boxmått för ka
 13328c0c	0	-	hall	-	-	-	-	HOLD	kattkoja; saldo 0
 8869a0f7	32	marsvin,dvkanin	bostad	5124	122	42	36	PASS	samma stall som 07b3ee0e
 fc502b4e	42	guldhamster,dvarghamster,marsvin	bostad	6300	112.5	56	25	PASS	samma bur som 92ef25c9; kontrollera dubblett på bilderna
-5ac1815c	41	-	hall	-	-	-	-	HOLD	markplanets mått saknas i källtexten
+5ac1815c	41	dvkanin,marsvin	bostad	7000	100	70	55	PASS	en av de två hagarna (103 x 73 x 59 cm utvändigt, ungefär 100 x 70 x 55 cm invändigt) klarar ensam minimiytan för ett par; huset på ben och området under det räknas inte. Kaniner över 2 kg klarar inte höjden (kravet är 60 cm), så sidan namnger bara marsvin och dvärgkaniner (N292)
 489c2a02	108	fagel	fagel	4108	79	52	115	PASS	innermått 79 x 52 cm; höjden gäller med skiljeväggen borttagen
 07164e5a	0	-	hall	-	-	-	-	HOLD	voljär med delar: markplanet avgörs på bilderna; saldo 0
 19d79ad9	111	fagel	fagel	2842	58	49	74	FAIL	längsta sida 58 cm mot 70 cm (bilaga 1:1), trots att leverantören marknadsför den för kanariefåglar och undulater
