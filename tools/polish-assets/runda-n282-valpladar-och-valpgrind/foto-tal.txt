@@ -1,0 +1,10 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6c5b322f 2,07 räknat ur måtten 203 × 102 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cef5747d 1,88 räknat ur måtten 196 × 96 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2b70bbef 3,2 räknat ur segmentens bredd 80 cm: fyra segment per sida
+2b70bbef 10 räknat ur 3,2 × 3,2 m
