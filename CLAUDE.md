@@ -141,6 +141,42 @@ Tre regler:
 3. **Ett tak ska kasta eller logga ett fel, aldrig kapa tyst.** En avkortad
    lista ser frisk ut.
 
+## Kallstart: katalogen hämtas sex sidor åt gången (2026-10-21)
+
+Varje ny serverinstans hämtar hela katalogen innan den kan bygga en sida
+(`getProducts`, en gång per instans). Hämtningen gick en sida om 100 i taget,
+och katalogen är 51 sidor. Loggen `[wix] live products loaded` kom 61–75 s
+efter begäran, många gånger i timmen, och lika länge före deployen samma dag.
+Det fick tre följder:
+
+- **Morgonmejlet gick inte iväg 2026-10-21.** Det hämtar katalogen och hade
+  `maxDuration` 60 s, så det stoppades 08:01.
+- **Auktionsvarornas sidor** byggdes om i 66–73 s efter prisbytet kl 08, 10
+  och 11.
+- **Uppvärmningen** (`varm-katalogen`) hann 11 av 5 029 sidor kl 07:04.
+
+Nu hämtas sidorna sex åt gången (`lib/katalog-sidor.ts`), och försäljningen och
+färgvalen hämtas medan sidorna hämtas. Uppmätt mot skarpa Wix med butikens fråga:
+65,7 s en i taget, 10–13 s sex åt gången, och samma produkter i samma ordning.
+Morgonmejlet och `/api/admin/run-job` har 300 s.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **En kort sida hämtas om**, och är den fortfarande kort blir raderna färre
+   än totalantalet, så att katalogen inte cachas. Sidorna hämtas på fasta
+   offset, så en kort sida mitt i betyder att produkter saknas.
+2. ☠️ **Bara fel som går över försöks igen** (429, 408, 5xx, nätverksfel och en
+   sida som inte svarat på 20 s), efter 1, 3 och 8 s. Wix SDK lägger statusen i
+   felets `status`. Andra 4xx kastas direkt.
+3. **Totalantalet är det största någon sida svarade.** Krymper katalogen under
+   hämtningen cachas den inte, hellre än att en produkt saknas.
+4. **Försäljningen och färgvalen startar först när en sida har svarat.**
+   Färgvalen cachar ett misslyckat svar som tomt i 30 minuter.
+
+Loggraden visar numera tiden: `— 51 sidor på 11.2 s`. Varje ny instans hämtar
+fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
+snabbare.
+
 ## Länkar som bara renderas vid hovring finns inte för Google (2026-09-24)
 
 Mega-menyn renderade bara den hovrade panelen. Googlebot hovrar och klickar

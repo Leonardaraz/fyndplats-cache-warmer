@@ -25,7 +25,12 @@ const TARGET_SWEDISH_HOUR = 8;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 300 s, inte 60. buildDashboard hämtar hela katalogen (getProducts), och på en
+// kall instans tog det 66 s: 2026-10-21 stoppades mejlet 08:01 och gick aldrig
+// iväg. Katalogen hämtas numera flera sidor åt gången (lib/katalog-sidor.ts),
+// men en ny instans, ett långsamt Wix eller omförsöken ska inte kunna stoppa
+// mejlet igen. Låst i lib/katalog-sidor.test.ts.
+export const maxDuration = 300;
 
 const FROM = process.env.RESEND_FROM || "Fyndplats <orders@fyndplats.se>";
 
