@@ -536,6 +536,7 @@ async function fetchProducts(): Promise<Product[]> {
       startaSidovagnar();
       return { items: res.items || [], totalCount: typeof res.totalCount === "number" ? res.totalCount : null };
     });
+    const sidtid = Date.now() - start;
     const all = hamtning.items;
     const rapporteratTotalt = hamtning.rapporteratTotalt;
     if (hamtning.slogITaket) {
@@ -582,11 +583,13 @@ async function fetchProducts(): Promise<Product[]> {
       const keys = colorKeysFromName(p.name);
       if (keys.length) p.colors = keys;
     }
-    // Tiden står i raden sedan 2026-10-21: så syns en kallstart utan att räkna
-    // fram den ur begärans id.
+    // Tiderna står i raden sedan 2026-10-21: så syns en kallstart utan att räkna
+    // fram den ur begärans id. "allt" är sidorna plus försäljningen och
+    // färgvalen. På förhandsversionen 2026-10-21 var färgvalen klara sist, och
+    // hela hämtningen tog 17–19 s.
     console.log(
       `[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`
-        + ` — ${hamtning.sidor} sidor på ${((Date.now() - start) / 1000).toFixed(1)} s`
+        + ` — ${hamtning.sidor} sidor på ${(sidtid / 1000).toFixed(1)} s, allt på ${((Date.now() - start) / 1000).toFixed(1)} s`
         + (hamtning.omforsok ? `, ${hamtning.omforsok} omförsök` : "")
         + (hamtning.kortaSidor ? `, ${hamtning.kortaSidor} korta sidor` : ""),
     );

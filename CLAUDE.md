@@ -160,6 +160,13 @@ färgvalen hämtas medan sidorna hämtas. Uppmätt mot skarpa Wix med butikens f
 65,7 s en i taget, 10–13 s sex åt gången, och samma produkter i samma ordning.
 Morgonmejlet och `/api/admin/run-job` har 300 s.
 
+Uppmätt på förhandsversionen samma dag, med åtta första besök samtidigt (sju
+nya instanser): hela hämtningen tog 17,2–18,9 s och sidan 19,9–21,6 s, utan ett
+enda omförsök. Färgvalen var klara sist varje gång. **Färgfrågan är nu den
+långsammaste delen**: ett tiotal V3-sidor i rad med API-nyckeln
+(`lib/product-colors-paging.ts`), och markören gör att de inte kan hämtas
+samtidigt.
+
 Fyra egenskaper som inte ska tas bort:
 
 1. ☠️ **En kort sida hämtas om**, och är den fortfarande kort blir raderna färre
@@ -173,7 +180,8 @@ Fyra egenskaper som inte ska tas bort:
 4. **Försäljningen och färgvalen startar först när en sida har svarat.**
    Färgvalen cachar ett misslyckat svar som tomt i 30 minuter.
 
-Loggraden visar numera tiden: `— 51 sidor på 11.2 s`. Varje ny instans hämtar
+Loggraden visar numera två tider, `— 51 sidor på … s, allt på … s`, där "allt"
+är sidorna plus försäljningen och färgvalen. Varje ny instans hämtar
 fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
 snabbare.
 
