@@ -3,7 +3,7 @@
 # Rader utan siffror är bedömda av en människa. Aldrig artikelnummer, aldrig inköpspris.
 # Golvet (8 kap. 8 §): kaniner och gnagare får inte hållas på nätgolv, utom i utrymmen med direkt markkontakt. En bostad med galler över en bricka som golv är HOLD, även när måtten klarar minimimåttet (kontrollerat från 2026-10-21, N278). Gnagare får inte heller hållas vid temperaturer under noll grader (8 kap. 22 §): utomhusstall för marsvin säljs för frostfria perioder.
 1686860f	200	guldhamster,dvarghamster	bostad	4232	91	46.5	31.6	PASS	markplan 91 x 46,5 cm, nedre våningen 31,6 cm hög
-a2bf8b4d	178	-	hall	-	-	-	-	HOLD	sköldpaddsbox: art och storlek avgörs inte av källtexten, och fronthöjden 20 cm klarar bara de minsta sköldpaddorna (bilaga 1:7)
+a2bf8b4d	178	-	hall	-	-	-	-	PASS	sköldpaddsbox utan botten: polerad i N293. Golvytan är 0,58 m² (114 × 51 cm invändigt) och taket lutar från 20 cm fram till 50 cm bak. Ungefär 0,4 m² har en höjd över 25 cm, så boxen räcker till landsköldpaddor med skal upp till 15 cm (0,3 m² och 25 cm, bilaga 1:7), inte till 16–20 cm (0,5 m² och 30 cm). Färgsyskonen f8d0f2b6 och c08fd055 läggs som färgval
 3d89c580	83	kaninstor	bostad	9200	100	43	51	FAIL	kortaste sida 43 cm mot 70 cm för tyska widderkaniner, som leverantören nämner (bilaga 1:3)
 29457148	25	-	hall	-	-	-	-	HOLD	nätgolv: nedre delen och sidohagen har galler över utdragbara brickor, och kaniner och gnagare får inte hållas på nätgolv (8 kap. 8 §); dessutom 45,5 cm kortaste sida för dvärgkanin
 f2ff3a82	112	fagel	fagel	3496	76	46	41	FAIL	innerhöjd 41 cm per fack mot 60 cm (bilaga 1:1); ståndet och hyllan är inte burutrymme
@@ -80,15 +80,15 @@ a8a4c7f1	9	dvkanin	bostad	3526	86	41	80	FAIL	kortaste sida 41 cm mot 50 cm för 
 2a30297a	20	-	hons	-	-	-	-	PASS	hus 65 x 48 cm inne med utlopp
 19389039	87	guldhamster,dvarghamster	bostad	1824	57	32	14	FAIL	markplanets fack är ungefär 14 cm högt invändigt (frontdörren på markplanet är 12 cm på måttbilden) mot 20 cm; ovanvåningen räknas inte (8 kap. 21 §). Mätt på bilderna (N292)
 8c6ef998	0	dvkanin	bostad	5986	146	41	85	FAIL	kortaste sida 41 cm mot 50 cm
-acbb7bad	101	-	hall	-	-	-	-	HOLD	sköldpaddshus: art och storlek avgörs inte av källtexten
-0b927ed9	54	-	hall	-	-	-	-	HOLD	sköldpaddshus: art och storlek avgörs inte av källtexten
-7480b509	29	-	hall	-	-	-	-	HOLD	sköldpaddshus: art och storlek avgörs inte av källtexten
-f8d0f2b6	57	-	hall	-	-	-	-	HOLD	sköldpaddsbox: art och storlek avgörs inte av källtexten
-c08fd055	47	-	hall	-	-	-	-	HOLD	sköldpaddsbox: art och storlek avgörs inte av källtexten
-43317ed5	81	-	hall	-	-	-	-	HOLD	terrarium: art och storlek avgörs inte av källtexten
-46d43f2f	200	-	hall	-	-	-	-	HOLD	terrarium: art och storlek avgörs inte av källtexten
-636e14f1	135	-	hall	-	-	-	-	HOLD	reptillåda 50 x 30 cm: art och storlek avgörs inte av källtexten
-ef26b87f	162	-	hall	-	-	-	-	HOLD	reptillåda 50 x 30 cm: art och storlek avgörs inte av källtexten
+acbb7bad	101	-	hall	-	-	-	-	FAIL	sköldpaddshus på ben: aktivitetsytan på marknivå är 119 × 53,5 cm men bara 16,5 cm hög invändigt, under 20 cm som kravet är även för den minsta sköldpaddan (bilaga 1:7). Bara det högra huset (53,4 × 32 × 30 cm, 0,17 m²) når 20 cm, och leverantörens mått på det vänstra är 32,5 × 26 × 26 cm (0,08 m²). Pensionerad i N293, mätt ur källans invändiga mått och måttbilden
+0b927ed9	54	-	hall	-	-	-	-	PASS	sköldpaddshus i två våningar: polerad i N293. Nedre delen är 108 × 61 cm invändigt (0,66 m²) och 24 cm hög, vilket räcker till landsköldpaddor med skal upp till 10 cm (0,12 m² och 20 cm, bilaga 1:7); från 11 cm krävs 25 cm. Färgsyskonet 7480b509 läggs som färgval
+7480b509	29	-	hall	-	-	-	-	PASS	färgval på 0b927ed9 (grå med vit ram), samma hus; polerad som en del av N293
+f8d0f2b6	57	-	hall	-	-	-	-	PASS	färgval på a2bf8b4d (vit med grå ram), samma box; polerad som en del av N293
+c08fd055	47	-	hall	-	-	-	-	PASS	färgval på a2bf8b4d (natur), samma box; polerad som en del av N293
+43317ed5	81	-	hall	-	-	-	-	PASS	terrarium av OSB-skiva 120 × 50 × 50 cm: polerad i N293 med uppskattade invändiga mått (golvyta ungefär 0,5 m², höjd ungefär 45 cm), som räcker till marklevande ormar upp till 125 cm och marklevande ödlor upp till 30 cm (bilaga 1:5 och 1:6)
+46d43f2f	200	-	hall	-	-	-	-	PASS	terrarium med aluminiumram 120 × 40 × 40 cm: polerad i N293 med uppskattade invändiga mått (golvyta ungefär 0,42 m², höjd ungefär 33 cm), som räcker till marklevande ormar upp till 100 cm och marklevande ödlor upp till 15 cm (bilaga 1:5 och 1:6)
+636e14f1	135	-	hall	-	-	-	-	PASS	glasterrarium 50 × 30 × 35 cm: storleksval på ef26b87f, samma terrarium i en högre modell; polerad som en del av N293
+ef26b87f	162	-	hall	-	-	-	-	PASS	glasterrarium 50 × 30 × 25 cm: polerad i N293 med uppskattade invändiga mått (golvyta ungefär 0,13 m², höjd ungefär 23 cm), som räcker till marklevande ormar upp till 50 cm och marklevande ödlor upp till 15 cm (bilaga 1:5 och 1:6). Storleksval: 636e14f1 med höjd 35 cm
 d8d3d714	73	-	hall	-	-	-	-	HOLD	kattbur: under Jordbruksverkets boxmått för katt (SJVFS 2020:8, 10 kap. 9 §); kan bara bli en kattgård efter beslut
 13328c0c	0	-	hall	-	-	-	-	HOLD	kattkoja; saldo 0
 8869a0f7	32	marsvin,dvkanin	bostad	5124	122	42	36	PASS	samma stall som 07b3ee0e

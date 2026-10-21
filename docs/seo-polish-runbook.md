@@ -126,7 +126,7 @@ och varnar under 5.
 Kör den innan du skriver något; husdjurens mått och normer syns ofta först på bilderna.
 Den gäller bara klasserna nedan.
 
-**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80, bilaga 1:1–1:4). Minimimåtten är
+**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80, bilaga 1:1–1:4; terrarier och sköldpaddshus står i bilaga 1:5–1:7, se *Terrarier och sköldpaddshus* nedan). Minimimåtten är
 bindande i Sverige, och många burar är för små. Måtten nedan är lästa ur föreskriften i
 Jordbruksverkets egen PDF 2026-10-21, inte ur minnet. Den tidigare tabellen i det här avsnittet
 saknade kortaste sida för kaniner och bara hade ett mått för fåglar, och den angav ett
@@ -177,9 +177,9 @@ skriver *Zwergkaninchen*. Tyska widderkaniner väger 4–6 kg. Fem regler som fo
   SJVFS 2019:23 anger mått för värphöns i äggproduktion men inget som går att räkna med för
   en hobbyflock. Skriv därför ingen siffra för antal höns: ange golvytan inomhus och
   riktmärket högst 7 höns per m² tillgänglig golvyta (kortaste sida 0,3 m, fri höjd 0,45 m,
-  redet oräknat). Leverantörens "3–4 höns" utlovas inte. Ankor, sköldpaddor, reptiler och
-  katter kräver en artbedömning som källtexten inte ger och hålls tills en människa har sett
-  bilderna.
+  redet oräknat). Leverantörens "3–4 höns" utlovas inte. Ankor och katter kräver en
+  artbedömning som källtexten inte ger och hålls tills en människa har sett bilderna. Sköldpaddor,
+  ormar och ödlor bedöms mot bilaga 1:5–1:7 (se nedan).
 - **Texterna för de fyra vanligaste fallen** (N276–N282, T76–T77):
   - **Rastgård** (en hage utan sovhus eller värpbo). Egen rubrik, *Rastgård utan sovhus*, med
     meningen *"Hagen är en rastgård och har inget sovhus eller värpbo."* Den ersätter aldrig en
@@ -207,9 +207,53 @@ med den rättsliga orsaken. Den första skärmen, över 108 dolda utkast, ligger
 `tools/polish-assets/djurbostader-skarm-2026-10-21/`: 57 PASS, 32 HOLD och 19 FAIL. Varje PASS
 med saldo är polerad i N276–N282 och T77, alla FAIL är pensionerade och alla HOLD är dolda
 (läst ur Wix 2026-10-21). N292 mätte fem HOLD på bilderna: två blev PASS (polerade) och tre FAIL
-(pensionerade), så skärmen står på 59 PASS, 27 HOLD och 22 FAIL. Höjden mäts med skalan i måttbilden
-(totalhöjden eller en människosiluett), inte med källans fönstermått, och en yta i m² ur en källa
-räknas om ur de mått den bygger på.
+(pensionerade), så skärmen står på 59 PASS, 27 HOLD och 22 FAIL. N293 genomlästes de tio sköldpadds-,
+reptil- och terrarieutkasten mot bilaga 1:5–1:7: nio blev PASS (fem sidor) och ett FAIL, så skärmen står på
+68 PASS, 17 HOLD och 23 FAIL. Höjden mäts med skalan i måttbilden (totalhöjden eller en människosiluett),
+inte med källans fönstermått, och en yta i m² ur en källa räknas om ur de mått den bygger på.
+
+**Terrarier och sköldpaddshus** (SJVFS 2019:15, bilaga 1:5 ormar, 1:6 ödlor, 1:7 sköldpaddor, 1:9
+groddjur; läst ur föreskriften 2026-10-21 och använd i N293). Varje rad är längdklassen i cm och
+minsta golvyta (m²) / minsta höjd (m) för **ett** djur. Skriptet `tools/polish-gates/kap.py` räknar
+vilka klasser ett utrymme klarar, med tabellerna nedan som kod.
+
+- Marklevande ormar: upp till 30 0,03/0,1 · 31–40 0,04/0,12 · 41–50 0,06/0,15 · 51–75 0,12/0,2 ·
+  76–100 0,25/0,28 · 101–125 0,43/0,35 · 126–150 0,63/0,45 · 151–200 1,0/0,5 · 201–300 2,15/0,7.
+- Trädlevande ormar: upp till 35 0,03/0,17 · 36–40 0,04/0,2 · 41–50 0,06/0,25 · 51–75 0,12/0,4 ·
+  76–100 0,25/0,5 · 101–125 0,4/0,65 · 126–150 0,55/0,75 · 151–175 0,75/0,85 · över 175 1,0/1,0.
+- Marklevande ödlor: upp till 10 0,06/0,2 · 10–15 0,09/0,2 · 16–20 0,16/0,3 · 21–30 0,36/0,3 ·
+  31–40 0,64/0,4 · 41–50 0,9/0,5 · 51–75 1,8/0,6.
+- Trädlevande och klipplevande ödlor: upp till 15 0,06/0,25 · 16–20 0,12/0,35 · 21–30 0,25/0,5 ·
+  31–40 0,5/0,7 · 41–50 0,81/0,9 · 51–75 1,5/1,2.
+- Land- och sumpsköldpaddor (yta per djur i grupp inom parentes): upp till 10 0,12/0,2 (0,04) ·
+  11–15 0,3/0,25 (0,1) · 16–20 0,5/0,3 (0,16) · 21–30 1,1/0,4 (0,36) · 31–40 2,0/0,5 (0,66) ·
+  41–50 4,0/0,6 (1,33) · över 50 8,0/0,8 (2,6). Vattensköldpaddor har egna rader för vattenyta och
+  vattendjup (skal 11–15 cm: 0,35 m² vatten och 0,2 m djup).
+
+Ormar och ödlor mäts från nosspetsen till svansspetsen, sköldpaddor rakt från främre till bakre
+skalkant. Grupphållning räknas som yta per djur, och totalen får aldrig understiga raden för ett djur.
+
+- ☠️ **Höjden mäts per delyta.** Boxen med lutande tak (20 cm fram, 50 cm bak) räknas bara där höjden
+  räcker: ungefär 0,4 av 0,58 m² når 25 cm, så den räcker till skal upp till 15 cm, inte 20 cm.
+  Två våningar räknas inte ihop: den nedre delens höjd avgör.
+- ☠️ **Källans m² kan vara ytterytan** (boxens 0,23 och 0,43 m² är utvändiga mått med väggar).
+  Räkna ur de invändiga måtten, och skriv *ungefär* när de är uppskattade.
+- **Saknas invändiga mått** (terrarier som bara anger yttermått) räknas golvytan med 2–3 cm per
+  vägg och höjden med några centimeter mindre än den utvändiga. Bara klasser som klarar
+  marginalen får stå i texten.
+- **Texten namnger klasser, inte arter.** *Marklevande ormar upp till 125 cm*, *trädlevande
+  ödlor upp till 20 cm*, och en hänvisning till bilaga 2:1 och 2:2 för artens klass. Citera
+  **aldrig bilaga 1:4** för reptiler: den gäller gnagare. Namnge aldrig en art vars storlek ligger
+  över klassen (en vuxen leopardgecko på 21–30 cm kräver 0,36 m²).
+- **Sköldpaddor** ska ha vatten att vada i (10 kap. 6 §), skydd (5 §) och grävbart bottenmaterial om
+  arten gräver (4 §), och uppvärmningsplatsen får inte överstiga 50 °C (13 §). En utomhusbox direkt
+  på marken ska enligt de allmänna råden ha ett nedgrävt nät under sig (4 kap. 5 §), och
+  utomhus ska djuret ha skydd mot värme, nederbörd, blåst och kyla (4 kap. 18 §). Ormar och ödlor
+  ska ha gömställen och ett bottenmaterial som passar arten (9 kap. 6–7 §§).
+- **Bilder med djur** som är större än klassen sidan nämner stryks (en orm på en meter i ett
+  terrarium på 50 cm, en kameleont i ett terrarium på 45 cm). Det är ett löfte om vad som får plats.
+- **FAIL** när ingen klass klarar rörelseytans höjd (ett sköldpaddshus med aktivitetsytan 16,5 cm
+  hög klarar inte ens 20 cm för skal upp till 10 cm).
 
 **Hundburar** (SJVFS 2020:8, L 102) säljs lagligt, men regeln formar texten. En hund får
 inte hållas i stängd bur inomhus. Står buren framme som hundens plats ska dörren tas bort

@@ -1,6 +1,6 @@
 # Poleringskedjans skript (ögonblicksbild 2026-10-21)
 
-Skripten som kördes för rundorna N181–N292 och T21–T78 (PR #749). De skrevs i en
+Skripten som kördes för rundorna N181–N293 och T21–T81 (PR #749). De skrevs i en
 chattsession och bodde i dess scratchpad, och en ny container hade inte haft dem.
 Här ligger de som de kördes, så att nästa session inte börjar om. Ingenting här körs
 av Vercel eller av en workflow; allt är hjälpmedel för den som polerar från chatten.
