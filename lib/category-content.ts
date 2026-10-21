@@ -486,19 +486,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   boxningssackar: {
     intro: [
-      "Med en boxningssäck hemma tränar du när det passar dig. Här samlar vi fristående boxningssäckar, boxsäcksställ med säck och speedball, punchingbollar på fjädrande stång, boxställ med två speedballs och ett väggfäste för en säck du redan har.",
-      "De fristående säckarna står på en fot som fylls med vatten eller sand. Foten levereras tom och fylls först när säcken står på plats, och flera har sugproppar under foten som ger grepp mot ett slätt golv. Punchingbollarna och ställen går att höja och sänka, och höjderna går från 125 till 231 cm.",
-      "Till flera följer boxhandskar med, och boxsäcksställen har plats för både säck och speedball. Väggfästet håller en säck på upp till 100 kg, 80 cm ut från väggen, men säcken köper du separat.",
+      "Med en boxningssäck hemma tränar du när det passar dig. Här samlar vi fristående boxningssäckar, boxsäcksställ med eller utan säck, punchingbollar på fjädrande stång, boxställ med två speedballs och kickdyna, väggfästen för en säck du redan har och en sparkdyna för thaiboxning.",
+      "De flesta fristående säckarna står på en fot som fylls med vatten, sand eller båda. Foten levereras tom och fylls först när säcken står på plats, och flera har sugproppar under foten som ger grepp mot ett slätt golv. Säckarna på 135 och 156 cm är i stället förfyllda och står på en platta med sugproppar, så de behöver ingen fyllning. Punchingbollarna och de flesta ställen går att höja och sänka, och höjderna går från 125 till 231 cm.",
+      "Till flera punchingbollar följer boxhandskar med. En del boxsäcksställ levereras med säck, och till andra köper du säcken separat. Ställen bär en säck på mellan 25 och 120 kg, så kontrollera vad det ställ du väljer klarar. Väggfästena håller en säck på 60 eller 100 kg, det ena med en arm som dras ut från 45 till 65 cm och det andra 80 cm ut från väggen, och säcken köper du separat.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vad fyller man foten med?",
-        a: "Vatten, sand eller båda. Sand ger mest tyngd: i en av säckarna tar foten 120 kg sand eller 70 kg vatten. Sanden eller vattnet köper du själv, eftersom foten levereras tom.",
+        a: "Vatten, sand eller båda. Sand ger mest tyngd: i en av säckarna tar foten 120 kg sand eller 70 kg vatten. Sanden eller vattnet köper du själv, eftersom foten levereras tom. Säckarna på 135 och 156 cm är förfyllda och står på en platta med sugproppar, så de behöver ingen fyllning.",
       },
       {
         q: "Behöver jag borra i väggen?",
-        a: "Nej, de fristående säckarna och ställen står på golvet. Bara väggfästet skruvas i väggen.",
+        a: "Nej, de fristående säckarna och ställen står på golvet. Bara väggfästena skruvas i väggen, och fästet med nio vinklar ska sitta i betong, tegel eller massivt trä.",
       },
       {
         q: "Vad är en speedball?",
@@ -743,8 +743,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   golvlampor: {
     intro: [
-      "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, lampor med skärm i tyg eller linnelook, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
-      "Lamporna är från 129 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Flera går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
+      "En golvlampa ger ljus där taklampan inte når: bredvid soffan, vid läsfåtöljen eller i ett mörkt hörn. Här samlar vi båglampor, golvlampor med inbyggd LED, lysande pelare, lampor med skärm i tyg eller linnelook, golvlampor med hyllor och lampset där golvlampan har två bordslampor i samma stil.",
+      "Lamporna är från 120 till 190 cm höga, och några går att höja och sänka. De flesta båglamporna har en tung fot i marmor som håller den långa armen stadig. Flera går att dimra, många har fjärrkontroll och de flesta har en fotbrytare, så att du tänder utan att böja dig.",
       "Titta på ljuskällan innan du beställer. I lamporna med inbyggd LED sitter ljuset fast, till några lampor med E27-sockel ingår lamporna och till andra köper du dem separat. Flera LED-lampor går att ställa om mellan varmt och kallt ljus, från 3000 till 6500 kelvin.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
@@ -759,7 +759,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Kan jag ladda mobilen i lampan?",
-        a: "Ja, i tre av golvlamporna med hyllor. Den med bambuhylla har USB-uttag, och två har både USB-A, USB-C och ett vanligt eluttag.",
+        a: "Ja, i två av golvlamporna med hyllor. De har både USB-A, USB-C och ett vanligt eluttag. Golvlampan med två små bord i bambu har plats för mobilen men inget uttag.",
       },
     ],
   },
@@ -973,9 +973,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "hundbaddar-hundsoffor": {
     intro: [
-      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne och hopfällbara bäddar med bärväska. För katten finns en korg med kattöron och en kattsäng på ben.",
-      "En upphöjd bädd lyfter hunden från golvet. På hundsofforna lyfter furubenen bädden så att luften kommer åt underifrån, och på nätbäddarna cirkulerar luften under hunden så att den håller sig sval. En av nätbäddarna har dessutom tak som ger skugga och skydd mot regn.",
-      "Välj storlek efter hunden: bäddarna finns från små sängar på Ø40,5 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm, och de största sofforna och bäddarna är gjorda för hundar upp till 30 kg.",
+      "En egen bädd ger hunden en fast plats att vila på. Här samlar vi våra hundbäddar och hundsoffor: soffor med ben i furu eller björk och dynor med tvättbart överdrag, upphöjda hundsängar med nät för ute och inne, bäddar med tak och hopfällbara bäddar med bärväska. För katten och de minsta hundarna finns en korg med kattöron, en kattsäng på ben och små husdjurssoffor.",
+      "En upphöjd bädd lyfter hunden från golvet. På hundsofforna lyfter benen bädden så att luften kommer åt underifrån, och på nätbäddarna cirkulerar luften under hunden så att den håller sig sval. Flera av nätbäddarna har tak som ger skugga, och på en av dem är taket vattenavvisande och skyddar också mot regn. En bädd med tak är i konstrotting och gjord för trädgården.",
+      "Välj storlek efter hunden och jämför maxvikten, den kroppslängd som anges och liggytans mått för den bädd du tittar på. Bäddarna finns från små sängar på Ø40,5 cm för katter och de minsta hundarna till XL-bäddar på 122 × 92 cm. De minsta sofforna är gjorda för katter och små hundar upp till 4,5 kg, flera soffor och bäddar tar hundar upp till 25 eller 30 kg, och de största nätbäddarna och bädden i konstrotting bär 50 kg. Bädden med tak på 122 × 92 cm är gjord för hundar upp till 50 kg med en kroppslängd under 80 cm.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -985,11 +985,11 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Går överdraget att tvätta?",
-        a: "På de flesta sofforna och bäddarna går överdraget eller dynan att ta av och tvätta. Tvättråden står i beskrivningen.",
+        a: "På de flesta sofforna och bäddarna med dyna går överdraget eller dynan att ta av och tvätta. Tvättråden står i beskrivningen.",
       },
       {
         q: "Vilken storlek behöver min hund?",
-        a: "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. De minsta sofforna är gjorda för katter och små hundar upp till 4,5 kg, medan de största bäddarna och sofforna tar hundar upp till 30 kg.",
+        a: "Hunden ska kunna ligga utsträckt, så mät den från nos till svansrot och jämför med liggytans mått. Jämför också maxvikten och den kroppslängd som anges för bädden. De minsta sofforna är gjorda för katter och små hundar upp till 4,5 kg, och bädden med tak på 122 × 92 cm tar hundar upp till 50 kg med en kroppslängd under 80 cm.",
       },
     ],
   },
@@ -1088,9 +1088,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   juldekoration: {
     intro: [
-      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar och pingviner, ljusfigurer som renfamiljer och isbjörnar, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
-      "De uppblåsbara figurerna är upp till 250 cm höga och reser sig när du kopplar in fläkten. De lyser inifrån med LED, och de flesta är IP44-klassade, alltså skyddade mot stänk. Till de flesta följer markspett och linor med för att förankra figuren i gräsmattan, och vid kraftigt regn, snö eller hård vind tar du in den.",
-      "Ljusfigurerna lyser med lysdioder – renfamiljen har 283 stycken – och de flesta är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, girlanger och fyra adventskalendrar med 24 lådor att fylla.",
+      "Juldekoration utomhus sätter stämningen redan vid grinden. Här samlar vi uppblåsbara tomtar, snögubbar, pepparkaksgubbar, renar, pingviner och granar, ljusfigurer som renfamiljer och isbjörnar, lyktstolpar med LED, sjungande tomtar och figurer som rör sig till julmusik, och för inomhus julbyar i trä, girlanger och adventskalendrar.",
+      "De uppblåsbara figurerna är från 100 till 300 cm höga, bland dem en tomte på 275 cm och en gran på 300 cm, och släden med tre renar är 319 cm lång. De reser sig när du kopplar in fläkten och lyser inifrån med LED, och de flesta är IP44-klassade, alltså skyddade mot stänk. Till de flesta följer markspett och linor med för att förankra figuren i gräsmattan, och vid kraftigt regn, snö eller hård vind tar du in den.",
+      "Ljusfigurerna lyser med lysdioder – renfamiljen i tre delar har 283 stycken – och många är IP44-klassade för att stå ute. Flera har timer. För inomhus finns julbyar i trä med LED, ett pepparkakshus med musik, girlanger och adventskalendrar i trä med 24 lådor att fylla.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1111,7 +1111,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   julgranar: {
     intro: [
-      "En konstgjord julgran – eller plastgran, som många säger – ställer du upp varje december i många år, utan barr på golvet och utan vattning. Här samlar vi alla våra julgranar: från små granar på 57 cm till granar på 225 cm för rum med högt i tak, och från smala pelarmodeller som bara är 46–54 cm breda till täta granar med över 2 000 grenspetsar.",
+      "En konstgjord julgran – eller plastgran, som många säger – ställer du upp varje december i många år, utan barr på golvet och utan vattning. Här samlar vi våra julgranar: från en minijulgran på 47 cm till granar på 225 cm för rum med högt i tak, och från smala pelarmodeller som bara är 46–54 cm breda till täta granar med över 2 000 grenspetsar. Här finns också en julgranskrage i trä som döljer granfoten.",
       "Välj efter rummet. Mät takhöjden och lämna plats för toppen, och tänk på bredden: en bred gran på 180 cm kan vara över en meter i diameter, medan en smal modell får plats bredvid soffan. Antalet grenspetsar säger hur tät granen blir – samma höjd finns från några hundra till flera tusen spetsar. Vill du ha en julgran med belysning finns granar där LED-lamporna redan sitter i grenverket, och de snötäckta modellerna ger vinterkänsla direkt.",
       "Du betalar tryggt med Klarna, frakten är fri över 499 kr och du har 30 dagars öppet köp.",
     ],
@@ -1122,7 +1122,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Finns det julgranar med belysning?",
-        a: "Ja. Flera av våra granar har varmvita LED-lampor som redan sitter i grenverket – från små granar med 50 LED till en 210 cm hög gran med 700 LED. Då slipper du linda en ljusslinga runt granen själv.",
+        a: "Ja. Flera av våra granar har LED-lampor som redan sitter i grenverket, så du slipper linda en ljusslinga runt granen själv. Det finns till exempel en minijulgran på 60 cm med 35 LED och en 210 cm hög gran med 700 varmvita LED. De flesta lyser varmvitt, och några lyser i flera färger.",
       },
       {
         q: "Hur förvarar jag en konstgjord julgran?",
@@ -1350,9 +1350,9 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "koksredskap-tillbehor": {
     intro: [
-      "Här samlar vi köksredskap och tillbehör för matlagning, förvaring och servering: ett kastrullset för alla spishällar, chafingdishar som håller buffén varm, lufttäta behållare för torrvaror, en hylla som ställs över mikrovågsugnen och en köksvagn på hjul.",
+      "Här samlar vi köksredskap och tillbehör för matlagning, förvaring och servering: ett kastrullset för alla spishällar, chafingdishar som håller buffén varm, lufttäta behållare för torrvaror och en hylla som ställs över mikrovågsugnen.",
       "Kastrullsetet har 17 delar med kastruller, stekpannor, sautépanna och gryta med glaslock. Botten är av 2,5 mm aluminium och magnetisk, så kärlen fungerar på induktion, gas och el, och non-stick-ytan i granitlook är fri från bly, kadmium och PFOA. Chafing dish-setet består av fyra rostfria dishar som rymmer ca 7,5 liter var och håller maten varm med vattenbad och bränslehållare. Utan värme fungerar de för kall servering.",
-      "Förvaringsbehållarna för torrvaror rymmer 15 liter var och har lock med dubbel silikonpackning och hjul i botten, så att en full behållare med mjöl eller husdjursfoder går att rulla fram. Mikrovågsugnshyllan dras ut från 39,5 till 64 cm och har 40 cm fritt under sig. Köksvagnen på 68 × 35 × 85 cm har tre plan och broms på två hjul, och den fälls ihop när den inte används.",
+      "Förvaringsbehållarna för torrvaror rymmer 15 liter var och har lock med dubbel silikonpackning och hjul i botten, så att en full behållare med mjöl eller husdjursfoder går att rulla fram. Mikrovågsugnshyllan dras ut från 39,5 till 64 cm, har 40 cm fritt under sig och tre krokar för köksredskap och grytvantar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
@@ -1365,8 +1365,8 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
         a: "Varje dish rymmer ca 7,5 liter och räcker till minst 8 gäster. Med fyra dishar kan du ställa fram flera varma rätter samtidigt, och stället fälls ihop när festen är över.",
       },
       {
-        q: "Hur mycket bär köksvagnen och mikrovågsugnshyllan?",
-        a: "Köksvagnen bär 15 kg totalt och 5 kg per plan, och mikrovågsugnshyllan bär 15 kg. Lägg de tunga sakerna på vagnens nedre plan, så står den stadigare på sina fyra hjul.",
+        q: "Hur mycket bär mikrovågsugnshyllan?",
+        a: "Hyllan bär 15 kg. Under den är det 40 cm fritt, så mät höjden på din mikrovågsugn innan du beställer. Bredden dras ut från 39,5 till 64 cm, och ställbara fötter håller hyllan stadig på en ojämn bänkskiva.",
       },
     ],
   },
@@ -1583,23 +1583,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   matgrupper: {
     intro: [
-      "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. Sex är tredelade med ett bord och två stolar, och fem är femdelade med ett bord och fyra stolar.",
-      "De små grupperna passar i köket eller i en liten lägenhet: ett kvadratiskt bord på 60 cm, ett på 70 × 70 cm, ett smalt bord på 90 × 47 cm och ett ovalt bord på 80 cm med en hylla under skivan. Klaffbordet fälls ut från 70 till 110 cm, och i en av grupperna har stolarna stoppad klädsel.",
-      "Grupperna för fyra har bord på 100 till 120 cm: två i MDF och metall, ett glasbord med stolar i konstläder och två grupper där både bord och stolar är av furu.",
+      "Här hittar du matgrupper, alltså matbord som säljs tillsammans med stolar. De flesta är tredelade med ett bord och två stolar, och flera är femdelade med ett bord och fyra stolar. En grupp har bord, bänk och två stolar, och ett barbordset har ett högt bord med tre sidohyllor och två barstolar.",
+      "De små grupperna passar i köket eller i en liten lägenhet: kvadratiska bord från 60 × 60 till 75 × 75 cm, rektangulära bord på 80 × 60 och 90 × 47 cm och ovala bord på 80 cm med en hylla under skivan. Klaffbordet fälls ut från 70 till 110 cm, och i flera grupper har stolarna stoppad sits, klädd i konstläder eller i tyg med linnelook.",
+      "Grupperna för fyra har bord på 100 till 120 cm i MDF och metall, i glas med stolar i konstläder och i massiv furu. Gruppen med bänk är också av furu, med ett bord på 108 × 65 cm.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur mycket plats behöver en matgrupp?",
-        a: "Räkna med bordets mått plus utrymme att dra ut stolarna. För glasbordet för fyra anges en golvyta på 180 × 170 cm, och för gruppen med bord på 80 × 60 cm minst 2,5 kvadratmeter.",
+        a: "Räkna med bordets mått plus utrymme att dra ut stolarna. För glasbordet för fyra anges en golvyta på 180 × 170 cm, för gruppen med bänk 1,8 × 2 m och för furugruppen för två 1,3 × 2 m.",
       },
       {
         q: "Hur höga är bordet och stolarna?",
-        a: "Borden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 47,5 cm där den anges. Det är vanlig höjd för ett matbord, och ett barbord är högre.",
+        a: "Matborden är 74,5 till 76,5 cm höga och sitthöjden är 43,5 till 48 cm där den anges. Det är vanlig höjd för ett matbord. Barbordsetet är högre: bordet är 90,5 cm högt och barstolarna har 59 cm sitthöjd.",
       },
       {
         q: "Hur mycket bär stolarna?",
-        a: "Mellan 100 och 120 kg per stol där maxlasten anges, och de flesta bär 120 kg. Borden tål mellan 30 och 100 kg.",
+        a: "Mellan 100 och 130 kg per stol där maxlasten anges, och de flesta bär 120 kg. Bänken bär 200 kg, och borden tål mellan 20 och 80 kg.",
       },
     ],
   },
@@ -1630,23 +1630,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   motionscyklar: {
     intro: [
-      "Här hittar du motionscyklar för träning hemma, bland dem en liggande modell och en hopfällbar modell med ryggstöd, en spinningcykel och pedaltränare som ställs på golvet framför en stol eller soffa.",
-      "Motionscyklarna har magnetiskt motstånd i 8 steg och en LCD-display, och två av dem har Bluetooth. Maxvikten är 120 kg på de två som anger den. Spinningcykeln har filtbroms och steglöst motstånd, och sadeln ställs mellan 78 och 93 cm över golvet.",
-      "Pedaltränarna används sittande och tränar både armar och ben, med steglöst motstånd och en display som visar bland annat tid och kalorier. En av dem har handvevar upptill som ställs i 6 höjdlägen, och pedaltränaren i silver ställs på golvet för benen eller på ett bord för armarna.",
+      "Här hittar du motionscyklar för träning hemma: liggande modeller där du sitter tillbakalutad, hopfällbara modeller med ryggstöd och motionscyklar med Bluetooth för träningsappar. Det finns också en spinningcykel, pedaltränare som ställs på golvet framför en stol eller soffa och en mini-crosstrainer som du använder sittande.",
+      "Motionscyklarna har magnetiskt motstånd och en LCD-display, och de flesta ställs i 8 steg. Flera har Bluetooth och kan kopplas till träningsappar, bland dem en modell med remdrift som går under 40 dB. Maxvikten skiljer sig mellan modellerna och är 110, 120 eller 135 kg. Spinningcykeln har filtbroms och steglöst motstånd, bär 100 kg och har en sadel som ställs mellan 78 och 93 cm över golvet.",
+      "Pedaltränarna används sittande och tränar både armar och ben, med steglöst motstånd och en display som visar bland annat tid och kalorier. En av dem har handvevar upptill som ställs i 6 höjdlägen, och pedaltränaren i silver eller svart ställs på golvet för benen eller på ett bord för armarna. Mini-crosstrainern drivs med el och har tre program, ett manuellt läge och fjärrkontroll, och den bär 50 kg vid sittande användning.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur tung får jag vara?",
-        a: "Maxvikten står i beskrivningen: 120 kg för den hopfällbara motionscykeln och motionscykeln med Bluetooth och sadel på 65–91 cm, och 100 kg för spinningcykeln. Pedaltränaren i silver bär 120 kg, precis som motionscyklarna.",
+        a: "Det beror på modellen, så kontrollera maxvikten för den du väljer. De liggande och de hopfällbara cyklarna bär 110, 120 eller 135 kg, motionscyklarna med Bluetooth 120 kg och spinningcykeln 100 kg. Pedaltränarna bär 60, 114 eller 120 kg, och mini-crosstrainern 50 kg vid sittande användning.",
       },
       {
         q: "Finns det motionscykel med ryggstöd?",
-        a: "Ja. På den liggande motionscykeln sitter du tillbakalutat med stöd för ryggen, och den hopfällbara modellen har ett ryggstöd som fälls undan när du vill sitta upprätt.",
+        a: "Ja. På de liggande motionscyklarna sitter du tillbakalutad med stöd för ryggen. Flera av de hopfällbara cyklarna har också ryggstöd, och på en av dem fälls ryggstödet undan när du vill sitta upprätt.",
       },
       {
         q: "Vad är en pedaltränare?",
-        a: "En liten trampmaskin som du använder sittande, framför en stol eller soffa. Den tränar både ben och armar, och motståndet ställs steglöst med en ratt.",
+        a: "En liten trampmaskin som du använder sittande, framför en stol eller soffa. Den tränar både ben och armar, och motståndet ställs steglöst.",
       },
     ],
   },
@@ -1837,15 +1837,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "selar-koppel-transport": {
     intro: [
-      "Här samlar vi det som behövs när hunden ska följa med i bilen, på cykeln eller på ryggen: hundgaller och bagagerumsgaller, en hundtrappa och en hundramp till bakluckan, cykelkärror och cykelvagnar för hund, hundvagnar, en hopfällbar hundbur och en hundryggsäck.",
-      "Hundgallren skiljer bagageutrymmet från kupén utan att något borras i bilen. De låga hakas fast i nackstöden och dras ut från 90 till 120 cm eller från 91 till 152 cm, och de som spänns mellan golv och tak ställs mellan 87 och 135 cm på bredden. Mät höjden i bilen: gallret för 60–105 cm passar de flesta kombibilar, och det för 85–120 cm är gjort för SUV och minibuss. Maskorna är 5 × 5 cm eller rören 9 cm isär, så att hunden inte tar sig igenom.",
-      "Hundtrappan har tio steg, når en lastkant på upp till 82 cm och bär 25 kg, och hundrampen på 155 cm har konstgräs och bär upp till 90 kg. Cykelvagnarna 2-i-1 kopplas till bakhjulets nav och blir hundvagnar när ni kommit fram, för hundar upp till 20 eller 30 kg och cyklar med 24 till 28 tums hjul. Hundryggsäcken bär upp till 10 kg och har en sida som fälls ut till en liggdel. Hundvagnarna finns också samlade under Hundvagnar.",
+      "Här samlar vi det som behövs när hunden ska följa med i bilen, på cykeln eller på ryggen: hundgaller och bagagerumsgaller, en hundtrappa och en hundramp till bakluckan, cykelkärror och cykelvagnar för hund, hundvagnar, en hopfällbar hundbur, en transportbox i tyg och en hundryggsäck. Selar och promenadkoppel säljs inte separat här, men i flera cykelvagnar och hundvagnar sitter en säkerhetslina eller ett innerkoppel som du fäster i hundens sele eller koppel.",
+      "Hundgallren skiljer bagageutrymmet från kupén utan att något borras i bilen. De låga hakas fast i nackstöden och dras ut från 90 till 120 cm eller från 91 till 152 cm, och de som spänns mellan golv och tak ställs mellan 87 och 150 cm på bredden och mellan 60 och 124 cm på höjden. Mät höjden i bilen: gallret för 60–105 cm passar de flesta kombi- och halvkombimodeller, och det för 85–120 cm är gjort för SUV, minibuss och höga kombimodeller. Maskorna är 5 × 5 cm eller rören 9 cm isär, så att hunden inte tar sig igenom.",
+      "Hundtrappan har tio steg, når en lastkant på upp till 82 cm och bär 25 kg, och hundrampen på 155 cm har konstgräs och bär upp till 90 kg. Cykelvagnarna 2-i-1 kopplas bakom cykeln och blir hundvagnar när ni kommit fram, för hundar upp till 20 eller 30 kg och cyklar med 24 till 29 tums hjul. Hundryggsäcken bär upp till 10 kg och har en sida som fälls ut till en liggdel. Hundvagnarna finns också samlade under Hundvagnar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vilket hundgaller passar min bil?",
-        a: "Mät bredden mellan sidorna och höjden från golv till tak där gallret ska sitta. Galler som hakas i nackstöden passar de flesta kombibilar och SUV:ar, och galler som spänns mellan golv och tak finns för höjder mellan 60 och 105 cm eller 85 och 120 cm. Inget av dem kräver borrning.",
+        a: "Mät bredden mellan sidorna och höjden från golv till tak där gallret ska sitta. Galler som hakas i nackstöden passar de flesta kombibilar och SUV:ar, och galler som spänns mellan golv och tak finns för höjder från 60 till 124 cm, så jämför måtten för det galler du väljer. Inget av dem kräver borrning.",
       },
       {
         q: "Ska jag välja hundtrappa eller hundramp till bilen?",
@@ -1853,7 +1853,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur stor hund får plats i cykelvagnen?",
-        a: "Titta både på maxvikten och på hundens längd. Cykelvagnen för 20 kg tar hundar med en kroppslängd under 50 cm, mätt från bröstbenet till svansroten, och den större tar hundar upp till 30 kg i en kabin på 85 × 62 × 63 cm. Cykelkärran med universalkoppling bär 20 kg.",
+        a: "Titta både på maxvikten och på hundens längd för den vagn du väljer. Flera cykelvagnar och cykelkärror är gjorda för hundar upp till 20 kg, och för några anges också en kroppslängd, till exempel under 50 cm mätt från bröstbenet till svansroten. Den större 2-i-1-vagnen tar hundar upp till 30 kg i en kabin på 85 × 62 × 63 cm, och den hopfällbara cykelvagnen finns i två storlekar, för hundar upp till cirka 30 eller 40 kg.",
       },
     ],
   },
@@ -2392,15 +2392,15 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "vattenkokare-brodrostar": {
     intro: [
-      "Här hittar du vattenkokare, brödrostar och frukostset där vattenkokaren och brödrosten har samma färg och form. Seten finns i bland annat svart, grått, gräddvitt, rosa och rostfritt, och två har bikakemönster.",
-      "Alla vattenkokare rymmer 1,7 liter. Flera har temperaturval, till exempel mellan 40 och 100 °C, och flera håller vattnet varmt i upp till tre timmar. Det passar till te, som ofta ska ha lägre temperatur än kokande vatten.",
-      "Brödrostarna tar två eller fyra skivor, de flesta har sju rostlägen, och ett set har också en äggkokare.",
+      "Här hittar du vattenkokare, brödrostar och frukostset där vattenkokaren och brödrosten har samma färg och form. Seten finns i bland annat svart, grått, gräddvitt, rosa och rostfritt, och flera har bikakemönster eller vågmönster.",
+      "De flesta vattenkokarna rymmer 1,7 liter, och i några frukostset rymmer kokaren 1,5 liter. Flera har temperaturval, till exempel mellan 40 och 100 °C, och flera håller vattnet varmt i upp till två eller tre timmar. Det passar till te, som ofta ska ha lägre temperatur än kokande vatten.",
+      "Brödrostarna tar två eller fyra skivor, de flesta har sju rostlägen, och ett set har också en äggkokare för sex ägg.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur mycket rymmer vattenkokarna?",
-        a: "Alla rymmer 1,7 liter, och på flera ska det vara minst 500 ml i kannan när den slås på.",
+        a: "De flesta rymmer 1,7 liter, och kokaren i några frukostset rymmer 1,5 liter. Volymen står vid varje produkt, och på flera ska det vara minst 500 ml i kannan när den slås på.",
       },
       {
         q: "Varför välja temperaturval?",
@@ -2738,19 +2738,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   },
   bollsport: {
     intro: [
-      "Här samlar vi utrustning för bollspel på gräsmattan, uppfarten och i källaren: fotbollsmål och ett studsnät, basketkorgar för vägg, basketställ och ett basketspel med två ringar, volleybollnät med stolpar, tennisbollsvagnar och ett träningsnät för baseboll.",
-      "Fotbollsmålen finns från ett pop-up-mål på 150 × 110 cm, som reser sig själv ur väskan, till mål på 240 × 160 och 300 × 200 cm för villatomten. De två större har ramrör klädda i EPE-skum under ett PVC-överdrag och förankras med markpinnar. Studsnätet är dubbelsidigt, så två spelare kan träna skott och mottagning samtidigt.",
-      "Basketkorgarna för vägg har en ring på Ø45 cm och en ryggplatta från 110 × 70 till 113 × 73 cm, och två av dem har en fjädrande ring som ger efter vid en dunk. Det flyttbara basketstället ställs med korghöjd mellan 156 och 210 cm, och foten fylls med vatten eller sand. För de minsta finns ett ställ 5-i-1 med höjd mellan 134 och 152 cm. Volleybollnätet ställs i tre höjder, från 2,26 m för damer till 2,44 m för herrar, och tennisbollsvagnarna rymmer från 120 till 200 bollar.",
+      "Här samlar vi utrustning för bollspel på gräsmattan, uppfarten och i källaren: fotbollsmål, studsnät och returnät, basketkorgar för vägg, basketställ, ett basketspel med två korgar och en bollretur till basketkorgen, ett volleybollnät med stolpar, nät och racketar för badminton och pickleball, tennisbollsvagnar och träningsnät för baseboll.",
+      "Fotbollsmålen finns från hopfällbara minimål på 90 × 36 × 60 cm (bredd × djup × höjd) och pop-up-mål som reser sig själva ur väskan, till mål på 240 × 160 och 300 × 200 cm för villatomten. Flera av de större har ramrör klädda i skum under ett PVC-överdrag, och de förankras med markpinnar. Flera studsnät och returnät har ställbar vinkel, och ett studsnät är dubbelsidigt, så två spelare kan träna skott och mottagning samtidigt.",
+      "Basketkorgarna för vägg har en genomskinlig ryggplatta på 110 × 70 eller 113 × 73 cm och en ring på Ø45 cm, och en av dem har en fjädrande ring som ger efter vid en dunk. Det finns också en ring på Ø46 cm med nät som sätts direkt på väggen. Basketställen skiljer sig mest i korghöjd: från ett ställ med darttavla för barn, där korgen sitter mellan 97,5 och 148 cm, till ställ för vuxna som ställs upp till 3,05 m, samma höjd som på en riktig basketplan. Foten fylls med vatten eller sand, och de flesta står på hjul. Volleybollnätet ställs i tre höjder, från 2,26 m för damer till 2,44 m för herrar, och tennisbollsvagnarna rymmer från 120 till 200 bollar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Vilket fotbollsmål passar i trädgården?",
-        a: "Mät gräsmattan först och lämna plats bakom målet. Pop-up-målet på 150 × 110 cm är ett träningsmål som viks ihop i en väska, och målen på 240 × 160 och 300 × 200 cm passar en villatomt. Förankra målet med de medföljande markpinnarna, så att det inte välter när någon hänger i ribban.",
+        a: "Mät gräsmattan först och lämna plats bakom målet. Minimålen på 90 × 36 × 60 cm och pop-up-målen är träningsmål som viks ihop, och målen på 240 × 160 och 300 × 200 cm passar en villatomt. Förankra målet med de medföljande markpinnarna, så att det inte välter när någon hänger i ribban.",
       },
       {
         q: "Basketkorg på väggen eller ett flyttbart ställ?",
-        a: "En korg på väggen tar ingen markyta men kräver en stadig vägg av betong, tegel eller trä. Det flyttbara stället rullas dit där ni spelar, och korghöjden ställs mellan 156 och 210 cm så att barn och ungdomar når. Fyll foten med vatten eller sand, eftersom en tyngre fot gör att stället står stilla.",
+        a: "En korg på väggen tar ingen markyta men kräver en stadig vägg av betong, tegel eller trä. Ett ställ på hjul rullas dit där ni spelar, och korghöjden ställs efter spelarna: ställen för barn och ungdomar har lägre korg, och ställen för vuxna går upp till 3,05 m. Fyll foten med vatten eller sand, eftersom en tyngre fot gör att stället står stilla.",
       },
       {
         q: "Går volleybollnätet att ställa i rätt höjd?",
