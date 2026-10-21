@@ -1,0 +1,35 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b5cf7ec6 0,4 räknat ur källans mått på huset, 64 × 64 cm
+b5cf7ec6 0,6 räknat ur källans mått på hagen, 96,5 × 63,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+946d76bb 6 räknat ur källans mått, 3 × 2 m
+946d76bb 12 räknat ur källans mått, 3 × 4 m
+946d76bb 18 räknat ur källans mått, 3 × 6 m
+946d76bb 115 avläst på måttbilden: takfoten är 115 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+25901957 2,7 räknat ur källans mått på hagen, 240 × 112,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3623221b 0,4 räknat ur källans mått på huset, 66 × 61 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c5541fef 0,23 räknat ur källans mått på huset, 50 × 46 cm
+c5541fef 0,51 avrundat från källans bottenyta 0,5107 m²
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2a30297a 0,31 räknat ur källans mått på huset, 65 × 48 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+88567cd8 10,6 räknat ur källans mått på gården, 280 × 380 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e58ca1e0 5,3 räknat ur källans mått på gården, 280 × 190 cm
