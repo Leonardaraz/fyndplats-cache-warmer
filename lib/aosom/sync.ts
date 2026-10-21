@@ -30,6 +30,7 @@ import { fetchAosomFeed, harVerkligSeFrakt, landedCostEur, type AosomRow } from 
 import { aosomSupplierProductId, type AosomFx } from "./to-product";
 import {
   aosomArtikelbild,
+  arIAosomSynkensUrval,
   aosomArtikelForTask,
   aosomArtiklarPaRaden,
   radensArtikel,
@@ -41,6 +42,8 @@ import { computePriceWithRules } from "../import/pricing";
 import type { PricingRules } from "../import/types";
 import { tillampaKonkurrentregel, type KonkurrentUtfall } from "../pricing/konkurrentregel";
 import type { ProductMappingRecord } from "../store";
+import { isAosomMapping, mappingSupplier } from "../store/supplier";
+import { lagerbesked, PROFILER, type Leverantorsprofil, type Leverantorsrad } from "../sync/leverantorsrad";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
 import type { RestockUtskick } from "../restock/notify";
 
@@ -196,6 +199,21 @@ export interface AosomSyncSummary {
    * besked, inte brus.
    */
   ejSkeppbara: number;
+  /**
+   * Produkter vars besked var okänt: synken rörde varken saldo, pris eller
+   * stämpel (`Produktplan.okand`). Okänt blir aldrig 0 i lager.
+   *
+   * Aosoms feed ger ett besked om varje artikel, så för en Aosom-rad är talet
+   * alltid 0. Det som kan ge ett tal här i dag är en rad som urvalet tar på
+   * prefixet `aosom:` men vars `supplier`-fält säger en annan leverantör: fält
+   * och id är oense, och då vet vi inte vems lager som gäller. Talet ska vara 0.
+   *
+   * ☠️ Inte samma sak som `okandaVarianter`, som NOLLAR lagret på en
+   * Wix-variant mappningen inte känner till. Här rörs ingenting.
+   */
+  okantBesked: number;
+  /** Wix-id för produkterna i `okantBesked`. Publika id, aldrig artikelnummer. */
+  okantBeskedProdukter: string[];
   /** Ingen förändring — varken lager eller pris. */
   oforandrade: number;
   /**
@@ -409,6 +427,24 @@ export function landadKostnadSek(row: AosomRow, eurToSek: number): number {
   return landedCostEur(row) * eurToSek * (1 + SUPPLIER_VAT_RATE);
 }
 
+/**
+ * Aosoms feedrad som synkens gemensamma radformat (lib/sync/leverantorsrad.ts).
+ *
+ * Synken läser saldot, skeppbarheten och den landade kostnaden ur raden, inget
+ * annat. En rad som inte skickas hit (`harVerkligSeFrakt`) blir
+ * `ej_levererbar`: saldot nollas och priset rörs inte, precis som förut.
+ */
+export function aosomTillRad(row: AosomRow, eurToSek: number, lastAt: string): Leverantorsrad {
+  return {
+    leverantor: "aosom",
+    artikel: row.sku,
+    status: !harVerkligSeFrakt(row) ? "ej_levererbar" : row.qty > 0 ? "i_lager" : "slut",
+    saldo: row.qty,
+    landadKostnadSek: landadKostnadSek(row, eurToSek),
+    lastAt,
+  };
+}
+
 export interface AosomSyncDeps {
   fetchFeed: () => Promise<AosomRow[]>;
   /**
@@ -593,6 +629,37 @@ export interface Produktplan {
    * som drogs av från flödets saldo. Sätts av `medSaldaAvdragna`.
    */
   saldaAvdragna?: number;
+  /**
+   * ☠️ VI VET INTE. Leverantörens besked är okänt (`lagerbesked` → `kant:
+   * false`), leverantören saknar profil, eller raden kommer från en annan
+   * leverantör än mappningens. Körningen räknar planen i `okantBesked` och
+   * sorterar bort den direkt efter planeringen, så att varken avdraget,
+   * rättelsen mot butiken, skrivningen eller stämpeln ser den. Okänt blir
+   * aldrig 0.
+   */
+  okand?: boolean;
+}
+
+/** Planen för en produkt vars besked är okänt: ingenting skrivs, ingenting stämplas. */
+export function planeraOkand(m: ProductMappingRecord, sku: string): Produktplan {
+  return {
+    sku,
+    m,
+    variant: m.variants?.[0],
+    nyttSaldo: null,
+    onskatSaldo: 0,
+    nyttPris: null,
+    nyLandad: null,
+    urFeeden: false,
+    slutsald: false,
+    ejSkeppbar: false,
+    utanWixPris: false,
+    prisLast: false,
+    iAuktion: false,
+    konkurrent: null,
+    varning: null,
+    okand: true,
+  };
 }
 
 /**
@@ -677,7 +744,8 @@ interface Prisutfall {
  * (SHIP_AXIS_RE, EU_TULL_CODES, mapWithConcurrency).
  */
 function planeraPris(
-  row: AosomRow,
+  nyLandad: number,
+  profil: Leverantorsprofil,
   konkurrent: ProductMappingRecord["konkurrent"],
   prisgrupp: ProductMappingRecord["prisgrupp"],
   facit: { pris: number } | "saknas" | "flera",
@@ -685,7 +753,6 @@ function planeraPris(
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
   tillatHopp = false,
 ): Prisutfall {
-  const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
   const costUsd = nyLandad / deps.fx.usdToSek;
   // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
   // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
@@ -701,11 +768,15 @@ function planeraPris(
   //
   // ☠️ FRYST SKRIVER INGET, och ligger FÖRE facit-jämförelsen av samma skäl
   // som `prisLast`: en rad vi inte tänker skriva ska inte hamna i `varningar`.
+  //
+  // Gäller regeln inte leverantören (`profil.konkurrentregel`, VEVOR enligt
+  // Leonards beslut 2026-10-21) skickas varken grupp eller konkurrentpris in,
+  // och regeln svarar med husets pris.
   const regel = tillampaKonkurrentregel({
     regelPris,
     landadInklMoms: nyLandad,
-    konkurrent,
-    prisgrupp,
+    konkurrent: profil.konkurrentregel ? konkurrent : undefined,
+    prisgrupp: profil.konkurrentregel ? prisgrupp : undefined,
     nu: (deps.now ?? Date.now)(),
     rounding: deps.rules.rounding,
   });
@@ -774,17 +845,32 @@ function planeraPris(
 export function planeraProdukt(
   m: ProductMappingRecord,
   sku: string,
-  row: AosomRow | undefined,
+  rad: Leverantorsrad | undefined,
   wixPris: WixProduktPris | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
   opts: Planval,
 ): Produktplan {
   const variant = m.variants?.[0];
 
+  // ── INGÅNGEN (steg 3, 2026-10-21) ─────────────────────────────────────
+  // Profilen slås upp på mappningens leverantör, aldrig på ett antagande om
+  // vem raden kommer från. Utan profil, eller med ett okänt besked, rör
+  // synken ingenting: planen märks `okand` och sorteras bort av körningen.
+  //
+  // ☠️ RADEN MÅSTE KOMMA FRÅN MAPPNINGENS LEVERANTÖR. Annars hade en sida som
+  // mappningen säger är VEVOR kunnat få Aosoms saldo och pris, bara för att
+  // artikelnumret råkade finnas i Aosoms feed.
+  const leverantor = mappingSupplier(m);
+  const profil = PROFILER[leverantor];
+  if (!profil) return planeraOkand(m, sku);
+  if (rad && rad.leverantor !== leverantor) return planeraOkand(m, sku);
+  const besked = lagerbesked(rad, profil, synligtSaldo);
+  if (!besked.kant) return planeraOkand(m, sku);
+
   // ── LAGER ──────────────────────────────────────────────────────────────
-  // Saknad rad = tillfälligt bortplockad hos Aosom, inte utgången. Nolla
-  // saldot, lämna sidan. Se filhuvudet.
-  const feedSaldo = row ? synligtSaldo(row.qty) : 0;
+  // Saknad rad, enligt Aosoms profil: tillfälligt bortplockad hos Aosom, inte
+  // utgången. Nolla saldot, lämna sidan. Se filhuvudet.
+  const feedSaldo = besked.synligt;
 
   // ☠️ SKEPPBARHETEN GATAS HÄR, INTE BARA VID IMPORTEN (2026-09-10).
   //
@@ -799,7 +885,7 @@ export function planeraProdukt(
   // Svaret är detsamma som där: NOLLA SALDOT, AVPUBLICERA INTE. Sidan ligger
   // kvar (SEO-beslutet från 2026-08-09) och en senare körning där frakten är
   // normal igen återställer saldot av sig själv.
-  const ejSkeppbar = !!row && !harVerkligSeFrakt(row);
+  const ejSkeppbar = besked.ejLevererbar;
   const onskatSaldo = ejSkeppbar ? 0 : feedSaldo;
 
   const plan: Produktplan = {
@@ -810,12 +896,12 @@ export function planeraProdukt(
     onskatSaldo,
     nyttPris: null,
     nyLandad: null,
-    urFeeden: !row,
+    urFeeden: besked.saknas,
     // ☠️ `slutsald` räknas ur FEEDENS saldo, inte ur det nollade. Annars hade
     // varje ej skeppbar rad också bokförts som slutsåld, och de två är olika
     // besked: "Aosom har slut" mot "Aosom skickar den inte hit". Att slå ihop
     // dem hade gjort räknaren oanvändbar precis när den behövs.
-    slutsald: !!row && !ejSkeppbar && feedSaldo === 0,
+    slutsald: besked.slut,
     ejSkeppbar,
     utanWixPris: false,
     prisLast: false,
@@ -834,7 +920,7 @@ export function planeraProdukt(
   // kund. Det taket är en spärr mot trasiga feed-rader, inte en prissättare,
   // och en varning som fyrar varje natt på ett känt tillstånd är samma
   // falsklarm som `regelGäller` byggdes för att ta bort.
-  if (!row || ejSkeppbar || opts.skipPrices || !variant) return plan;
+  if (besked.landad === null || opts.skipPrices || !variant) return plan;
 
   // ☠️ LÅST PRIS RÖRS INTE. Leonards beslut per rad — se `prisLast` i
   // ProductMappingRecord. Ligger FÖRE uträkningen: en rad som ändå inte får
@@ -854,7 +940,8 @@ export function planeraProdukt(
   }
 
   const pr = planeraPris(
-    row,
+    besked.landad,
+    profil,
     m.konkurrent,
     m.prisgrupp,
     jamforelsePris(wixPris),
@@ -898,11 +985,14 @@ function sidansNyttSaldo(varianter: ReadonlyArray<VariantPlan>, onskatSaldo: num
 export function planeraFlerartikel(
   m: ProductMappingRecord,
   bild: Extract<AosomArtikelbild, { typ: "flera" }>,
-  perSku: ReadonlyMap<string, AosomRow>,
+  perSku: ReadonlyMap<string, Leverantorsrad>,
   variantPriser: ReadonlyMap<string, number> | undefined,
   deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
   opts: Planval,
 ): Produktplan {
+  const leverantor = mappingSupplier(m);
+  const profil = PROFILER[leverantor];
+  if (!profil) return planeraOkand(m, bild.artikel);
   const varianter: VariantPlan[] = [];
   const godkanda: GodkantHopp[] = [];
   const tillatHopp = opts.godkannPrisandring?.has(m.wixProductId) ?? false;
@@ -927,9 +1017,15 @@ export function planeraFlerartikel(
   };
 
   for (const va of bild.varianter) {
-    const row = perSku.get(va.artikel);
-    const feedSaldo = row ? synligtSaldo(row.qty) : 0;
-    const ejSkeppbar = !!row && !harVerkligSeFrakt(row);
+    const rad = perSku.get(va.artikel);
+    // ☠️ ÄR EN ENDA FÄRGS BESKED OKÄNT RÖRS INGEN DEL AV SIDAN. Sidans saldo är
+    // summan av färgernas, och en summa med en okänd term är okänd. Samma sak
+    // när raden kommer från en annan leverantör än mappningens.
+    if (rad && rad.leverantor !== leverantor) return planeraOkand(m, bild.artikel);
+    const besked = lagerbesked(rad, profil, synligtSaldo);
+    if (!besked.kant) return planeraOkand(m, bild.artikel);
+    const feedSaldo = besked.synligt;
+    const ejSkeppbar = besked.ejLevererbar;
     const onskat = ejSkeppbar ? 0 : feedSaldo;
     const synkat = m.variants[va.index]?.aosomSyncedQty;
     const vp: VariantPlan = {
@@ -943,11 +1039,11 @@ export function planeraFlerartikel(
       nyLandad: null,
     };
     varianter.push(vp);
-    if (!row) plan.urFeeden = true;
+    if (besked.saknas) plan.urFeeden = true;
     if (ejSkeppbar) plan.ejSkeppbar = true;
-    if (row && !ejSkeppbar && feedSaldo === 0) plan.slutsald = true;
+    if (besked.slut) plan.slutsald = true;
 
-    if (!row || ejSkeppbar || opts.skipPrices) continue;
+    if (besked.landad === null || opts.skipPrices) continue;
     if (m.prisLast) {
       plan.prisLast = true;
       continue;
@@ -960,7 +1056,8 @@ export function planeraFlerartikel(
     const egen = va.artikel === bild.artikel;
     const pris = variantPriser?.get(va.wixVariantId);
     const pr = planeraPris(
-      row,
+      besked.landad,
+      profil,
       egen ? m.konkurrent : undefined,
       m.prisgrupp,
       typeof pris === "number" ? { pris } : "saknas",
@@ -1425,7 +1522,10 @@ export async function runAosomSync(
     iAuktion,
   };
 
-  const perSku = new Map(feed.map((r) => [r.sku, r]));
+  // Synkens gemensamma radformat (lib/sync/leverantorsrad.ts). Samma nyckel
+  // som förut, artikelnumret, och vid en dubblett i feeden vinner den sista.
+  const lastAt = new Date(now()).toISOString();
+  const perSku = new Map(feed.map((r) => [r.sku, aosomTillRad(r, deps.fx.eurToSek, lastAt)] as const));
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
 
   // `sku` är RADENS artikel även på en färgsammanslagen sida — den bär
@@ -1433,9 +1533,9 @@ export async function runAosomSync(
   // står i `bild` (lib/aosom/artiklar.ts). `?sku=` träffar en sammanslagen
   // sida på vilken som helst av dess artiklar.
   const mappningar = (await deps.listAosom())
-    .filter((m) => !!m.wixProductId)
+    .filter(arIAosomSynkensUrval)
     .map((m) => ({ m, sku: radensArtikel(m), bild: aosomArtikelbild(m) }))
-    .filter((x) => x.sku && (!onlySkus || aosomArtiklarPaRaden(x.m).some((a) => onlySkus.has(a))))
+    .filter((x) => !onlySkus || aosomArtiklarPaRaden(x.m).some((a) => onlySkus.has(a)))
     .filter((x) => !opts.after || x.sku.localeCompare(opts.after) > 0)
     .sort((a, b) => a.sku.localeCompare(b.sku));
 
@@ -1481,6 +1581,8 @@ export async function runAosomSync(
     urFeeden: 0,
     slutsalda: 0,
     ejSkeppbara: 0,
+    okantBesked: 0,
+    okantBeskedProdukter: [],
     oforandrade: 0,
     utanWixPris: 0,
     prisLasta: 0,
@@ -1555,13 +1657,30 @@ export async function runAosomSync(
     // batchningen möjlig: vi vet vilka rader som ska med i anropet innan vi
     // gör det.
     const variantPriser = await lasVariantPriserFor(tugga);
-    const planer = tugga.map(({ m, sku, bild }) =>
-      bild.typ === "flera"
-        ? planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, planval)
-        : bild.typ === "tvetydig"
-          ? planeraTvetydig(m, sku, bild.skal)
-          : planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, planval),
-    );
+    const allaPlaner = tugga.map(({ m, sku, bild }) => {
+      // ☠️ AOSOM-SYNKEN PLANERAR BARA AOSOM-RADER. Urvalet går på prefixet
+      // `aosom:` (`listAosom`), men leverantören avgörs av `supplier`-fältet
+      // när det finns (`mappingSupplier`). Säger fältet en annan leverantör är
+      // fält och id oense, och då rörs raden inte — inte heller nollningen av
+      // en tvetydig sida, som läser varianterna som Aosom-artiklar.
+      if (!isAosomMapping(m)) return planeraOkand(m, sku);
+      if (bild.typ === "flera") {
+        return planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, planval);
+      }
+      if (bild.typ === "tvetydig") return planeraTvetydig(m, sku, bild.skal);
+      return planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, planval);
+    });
+    // ☠️ OKÄNT RÖRS INTE. En plan märkt `okand` når varken avdraget,
+    // rättelsen mot butiken, skrivningen eller stämpeln — den räknas och
+    // sorteras bort här. Aosom ger aldrig ett okänt besked; regeln finns för
+    // leverantörer vars sida kan gå att inte läsa (VEVOR, steg 5), och för en
+    // rad vars fält och id är oense (ovan).
+    const planer = allaPlaner.filter((p) => !p.okand);
+    for (const p of allaPlaner) {
+      if (!p.okand) continue;
+      summary.okantBesked++;
+      summary.okantBeskedProdukter.push(p.m.wixProductId);
+    }
 
     summary.granskade += tugga.length;
     summary.kvar -= tugga.length;

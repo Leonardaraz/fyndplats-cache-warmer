@@ -182,6 +182,7 @@ async function handle(req: NextRequest) {
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
       || summary.utanWixPris > 0 || summary.utanLagerrader > 0 || summary.misslyckade > 0
       || summary.okandaVarianter > 0 || summary.tvetydiga > 0 || summary.stampelHoppade > 0
+      || summary.okantBesked > 0
       || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
       || summary.prislistaFel)) {
       await audit(
@@ -206,6 +207,10 @@ async function handle(req: NextRequest) {
           + `${summary.misslyckade} MISSLYCKADE, `
           + `${summary.flerartikelrader} sammanslagna sidor, `
           + `${summary.okandaVarianter} OKÄNDA VARIANTER, ${summary.tvetydiga} TVETYDIGA, `
+          + (summary.okantBesked
+            ? `${summary.okantBesked} med OKÄNT BESKED, rördes inte (`
+              + summary.okantBeskedProdukter.slice(0, 20).join(", ") + "), "
+            : "")
           + `${summary.aterILager} tillbaka i lager, ${summary.restockMejl} restock-mejl, `
           + `${summary.restockEjSkickade} RESTOCK-MEJL EJ SKICKADE, `
           + `${summary.kvar} kvar`
@@ -231,6 +236,8 @@ async function handle(req: NextRequest) {
         + `${summary.konkurrentGolv} golv/${summary.konkurrentFrysta} frysta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.ejSkeppbara} ej skeppbara, `
+        // Okänt besked rörs inte (steg 3, 2026-10-21). Alltid 0 för Aosom.
+        + (summary.okantBesked ? `${summary.okantBesked} med OKÄNT BESKED (rördes inte), ` : "")
         + `${summary.varningar.length} varningar, ${summary.godkandaHopp.length} godkända prishopp, `
         + `${summary.utanLagerrader} utan lagerrader, `
         // Lagerdrift (2026-09-30): butikens saldo mot stämpeln. "rättade" är

@@ -6,7 +6,9 @@ import {
   medSaldaAvdragna,
   vantarPaFlodet,
   NYSS_BESTALLD_MS,
+  aosomTillRad,
   planeraProdukt,
+  planeraFlerartikel,
   LAGER_BUFFERT,
   MIN_FEED_RADER,
   MAX_PRISANDRING_PCT,
@@ -21,6 +23,8 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { PricingRules } from "../import/types";
 import { computePriceWithRules } from "../import/pricing";
+import type { Leverantorsrad } from "../sync/leverantorsrad";
+import { aosomArtikelbild } from "./artiklar";
 
 const FX = { eurToSek: 11.1, usdToSek: 10.5 };
 
@@ -2318,7 +2322,14 @@ describe("☠️ sålt men inte i Aosoms flöde dras av", () => {
     ...over,
   });
   const plan = (m: ProductMappingRecord, qty = 50) =>
-    planeraProdukt(m, "A-1", rad("A-1", { qty }), { priceSek: BASPRIS, variantCount: 1 }, { fx: FX, rules: REGLER }, {});
+    planeraProdukt(
+      m,
+      "A-1",
+      aosomTillRad(rad("A-1", { qty }), FX.eurToSek, "2026-10-01T06:00:00Z"),
+      { priceSek: BASPRIS, variantCount: 1 },
+      { fx: FX, rules: REGLER },
+      {},
+    );
   const T0 = Date.parse("2026-10-01T06:00:00Z");
   const timmarFore = (h: number) => new Date(T0 - h * 60 * 60 * 1000).toISOString();
 
@@ -2579,5 +2590,273 @@ describe("☠️ sålt men inte i Aosoms flöde dras av", () => {
       expect(sparade[0].variants.map((v) => v.aosomSyncedQty)).toEqual([S50, S13 - 1]);
       expect(s.lagerDriftRattade).toBe(0);
     });
+  });
+});
+
+// ── STEG 3: EN INGÅNG SOM INTE ÄR BYGGD FÖR AOSOM (2026-10-21) ─────────────
+// Synken tar emot leverantörens besked i ett gemensamt format
+// (lib/sync/leverantorsrad.ts) och slår upp vad en saknad rad betyder på
+// MAPPNINGENS leverantör. För Aosom är allt som förut — det visar resten av
+// filen, som går oförändrad. Det här låser det nya: ett okänt besked rör
+// ingenting, och en rad från fel leverantör är ett okänt besked.
+//
+// ☠️ Påhittade artikelnummer (TEST-0001). Inga riktiga nummer i ett publikt repo.
+
+describe("aosomTillRad — Aosoms feedrad i det gemensamma formatet", () => {
+  const LAST = "2026-10-21T06:00:00Z";
+
+  it("i lager: saldot rakt av och husets landade kostnad", () => {
+    expect(aosomTillRad(rad("A-1", { qty: 5 }), FX.eurToSek, LAST)).toEqual({
+      leverantor: "aosom",
+      artikel: "A-1",
+      status: "i_lager",
+      saldo: 5,
+      landadKostnadSek: landadKostnadSek(rad("A-1"), FX.eurToSek),
+      lastAt: LAST,
+    });
+  });
+
+  it("slut när Aosom har 0", () => {
+    expect(aosomTillRad(rad("A-1", { qty: 0 }), FX.eurToSek, LAST).status).toBe("slut");
+  });
+
+  it("☠️ ej levererbar när frakten till Sverige är sentinelen eller saknas — inte slut", () => {
+    expect(aosomTillRad(rad("A-1", { seFreightEur: 999.9 }), FX.eurToSek, LAST).status).toBe("ej_levererbar");
+    expect(aosomTillRad(rad("A-1", { seFreightEur: null }), FX.eurToSek, LAST).status).toBe("ej_levererbar");
+  });
+});
+
+describe("☠️ steg 3: planeraProdukt slår upp profilen på mappningens leverantör", () => {
+  const T = Date.parse("2026-10-21T06:00:00Z");
+  const LAST = new Date(T).toISOString();
+  const planDeps = { fx: FX, rules: REGLER, now: () => T };
+  const facit = { priceSek: BASPRIS, variantCount: 1 };
+  const LANDAD = landadKostnadSek(rad("bas"), FX.eurToSek);
+
+  const aosomRad = (sku: string, over: Partial<AosomRow> = {}) => aosomTillRad(rad(sku, over), FX.eurToSek, LAST);
+  const vevorRad = (over: Partial<Leverantorsrad> = {}): Leverantorsrad => ({
+    leverantor: "vevor",
+    artikel: "TEST-0001",
+    status: "i_lager",
+    saldo: 50,
+    landadKostnadSek: LANDAD,
+    lastAt: LAST,
+    ...over,
+  });
+  const vevorMappning = (over: Partial<ProductMappingRecord> = {}) =>
+    mappning("TEST-0001", { supplier: "vevor", supplierProductId: "vevor:TEST-0001", ...over });
+
+  it("☠️ en saknad VEVOR-avläsning är okänd: inget saldo, inget pris, ingen stämpel", () => {
+    const p = planeraProdukt(vevorMappning({ aosomSyncedQty: 7 }), "TEST-0001", undefined, facit, planDeps, {});
+    expect(p.okand).toBe(true);
+    expect(p.nyttSaldo).toBeNull();
+    expect(p.nyttPris).toBeNull();
+    expect(p.urFeeden).toBe(false);
+  });
+
+  it("☠️ KONTROLL: en saknad AOSOM-rad nollas som förut — det är Aosoms besked", () => {
+    const p = planeraProdukt(mappning("A-1", { aosomSyncedQty: 7 }), "A-1", undefined, facit, planDeps, {});
+    expect(p.okand).toBeUndefined();
+    expect(p.urFeeden).toBe(true);
+    expect(p.nyttSaldo).toBe(0);
+  });
+
+  it("☠️ ett uttryckligt okänt besked rör ingenting, inte heller på en Aosom-rad", () => {
+    const p = planeraProdukt(
+      mappning("A-1", { aosomSyncedQty: 7 }),
+      "A-1",
+      { ...aosomRad("A-1"), status: "okand" },
+      facit,
+      planDeps,
+      {},
+    );
+    expect(p.okand).toBe(true);
+    expect(p.nyttSaldo).toBeNull();
+  });
+
+  it("☠️ en rad från en annan leverantör än mappningens är okänd — åt båda hållen", () => {
+    expect(planeraProdukt(vevorMappning(), "TEST-0001", aosomRad("TEST-0001"), facit, planDeps, {}).okand).toBe(true);
+    expect(planeraProdukt(mappning("A-1"), "A-1", vevorRad({ artikel: "A-1" }), facit, planDeps, {}).okand).toBe(true);
+  });
+
+  it("en rad utan profil (AliExpress, okänd leverantör) rörs inte", () => {
+    const ae = mappning("A-1", { supplier: "aliexpress" });
+    const okand = mappning("A-1", { supplier: "temu" as never });
+    for (const m of [ae, okand]) {
+      expect(planeraProdukt(m, "A-1", aosomRad("A-1"), facit, planDeps, {}).okand).toBe(true);
+    }
+  });
+
+  it("en VEVOR-rad i lager planeras med samma buffert som en Aosom-rad (steg 5 ger VEVOR egna tal)", () => {
+    const p = planeraProdukt(vevorMappning(), "TEST-0001", vevorRad({ saldo: 50 }), facit, planDeps, {});
+    expect(p.okand).toBeUndefined();
+    expect(p.nyttSaldo).toBe(S50);
+  });
+
+  it("☠️ konkurrentregeln följer profilen: VEVOR får husets pris trots grupp och färskt konkurrentpris", () => {
+    // Leonard 2026-10-21: konkurrentregeln gäller inte VEVOR-varor. Samma
+    // landade kostnad, samma grupp, samma konkurrentpris — bara leverantören
+    // skiljer.
+    const over = { prisgrupp: "A" as const, konkurrent: { pris: 1200, hamtad: LAST } };
+
+    const aosom = planeraProdukt(mappning("A-1", over), "A-1", aosomRad("A-1"), facit, planDeps, {});
+    // BASPRIS är 999; 2 % under 1 200 är 1 176 → charm9 nedåt → 1 169.
+    expect(aosom.konkurrent?.typ).toBe("mal");
+    expect(aosom.nyttPris).toBe(1169);
+
+    const vevor = planeraProdukt(vevorMappning(over), "TEST-0001", vevorRad(), facit, planDeps, {});
+    expect(vevor.konkurrent).toEqual({ typ: "regel", pris: BASPRIS });
+    expect(vevor.nyttPris).toBeNull();
+  });
+});
+
+describe("☠️ steg 3: en färgsammanslagen sida med ett okänt besked rörs inte", () => {
+  const LAST = "2026-10-21T06:00:00Z";
+
+  /** Svart (A-1, radens artikel) och grå (G-7). */
+  function stol(): ProductMappingRecord {
+    const bas = mappning("A-1");
+    return {
+      ...bas,
+      wixProductId: "wix-stol",
+      variants: [
+        { ...bas.variants[0], sku: "FP-stol-svart", wixVariantId: "wixvar-svart", choices: { Färg: "Svart" } },
+        {
+          ...bas.variants[0],
+          supplierVariantId: "G-7",
+          sku: "FP-stol-gra",
+          wixVariantId: "wixvar-gra",
+          choices: { Färg: "Grå" },
+        },
+      ],
+    };
+  }
+  const radFor = (sku: string, over: Partial<Leverantorsrad> = {}): Leverantorsrad => ({
+    ...aosomTillRad(rad(sku), FX.eurToSek, LAST),
+    ...over,
+  });
+  const planera = (perSku: Map<string, Leverantorsrad>) => {
+    const m = stol();
+    const bild = aosomArtikelbild(m);
+    if (bild.typ !== "flera") throw new Error("fixturen ska vara en sammanslagen sida");
+    const variantPriser = new Map([["wixvar-svart", BASPRIS], ["wixvar-gra", BASPRIS]]);
+    return planeraFlerartikel(m, bild, perSku, variantPriser, { fx: FX, rules: REGLER }, {});
+  };
+
+  it("KONTROLL: båda färgerna kända → sidan planeras per variant", () => {
+    const p = planera(new Map([["A-1", radFor("A-1")], ["G-7", radFor("G-7")]]));
+    expect(p.okand).toBeUndefined();
+    expect(p.varianter).toHaveLength(2);
+  });
+
+  it("☠️ en färgs besked okänt → ingen del av sidan rörs", () => {
+    // Sidans saldo är summan av färgernas, och en summa med en okänd term är okänd.
+    const p = planera(new Map([["A-1", radFor("A-1")], ["G-7", radFor("G-7", { status: "okand" })]]));
+    expect(p.okand).toBe(true);
+    expect(p.nyttSaldo).toBeNull();
+    expect(p.varianter).toBeUndefined();
+  });
+
+  it("☠️ en färgs rad från en annan leverantör → ingen del av sidan rörs", () => {
+    const p = planera(new Map([["A-1", radFor("A-1")], ["G-7", radFor("G-7", { leverantor: "vevor" })]]));
+    expect(p.okand).toBe(true);
+  });
+});
+
+describe("☠️ steg 3: körningen rör inte en rad vars fält och id är oense", () => {
+  // Urvalet tar raderna på prefixet `aosom:` (`listAosom`), men leverantören
+  // avgörs av `supplier`-fältet när det finns. Säger fältet något annat vet vi
+  // inte vems lager som gäller. Före steg 3 hade synken skrivit Aosoms saldo
+  // och pris på en sida som mappningen säger är VEVOR.
+  //
+  // ☠️ Butiken står på 3 och stämpeln på 9. En okänd plan bär `onskatSaldo:
+  // 0`, så en plan som sluppit förbi sorteringen hade fått rättelsen mot
+  // butiken (`motButikensSaldo`) att skriva 0 — okänt hade blivit 0.
+  const scenario = (supplier: ProductMappingRecord["supplier"]) =>
+    deps({
+      fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 60 }), rad("B-2", { qty: 9, wholesaleEur: 60 })),
+      listAosom: async () => [mappning("A-1"), mappning("B-2", { supplier, aosomSyncedQty: 9 })],
+      lasLagerposter: async (ids) => ids.map((id) => lagerpost(id, 3)),
+    });
+
+  it("☠️ fältet säger en annan leverantör: varken saldo, pris eller stämpel — och raden räknas med Wix-id", async () => {
+    for (const supplier of ["vevor", "aliexpress", "temu"] as ProductMappingRecord["supplier"][]) {
+      const { d, lager, priser, sparade } = scenario(supplier);
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(s.okantBesked).toBe(1);
+      expect(s.okantBeskedProdukter).toEqual(["wix-B-2"]);
+      expect(s.granskade).toBe(2);
+      expect(lager.map((x) => x.id)).toEqual(["wix-A-1"]);
+      expect(priser.map((p) => p.id)).toEqual(["wix-A-1"]);
+      expect(sparade.map((m) => m.wixProductId)).toEqual(["wix-A-1"]);
+    }
+  });
+
+  it("☠️ KONTROLL: samma rad UTAN fält är en Aosom-rad på prefixet och synkas som förut", async () => {
+    // Äldre Aosom-rader kan sakna fältet. Klassningen faller då tillbaka på
+    // prefixet, och de får inte sluta synkas.
+    for (const supplier of [undefined, "aosom"] as ProductMappingRecord["supplier"][]) {
+      const { d, lager, priser, sparade } = scenario(supplier);
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(s.okantBesked).toBe(0);
+      expect(s.okantBeskedProdukter).toEqual([]);
+      expect(lager.map((x) => x.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+      expect(priser.map((p) => p.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+      expect(sparade.map((m) => m.wixProductId).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+    }
+  });
+
+  it("torrkörningen räknar samma rad utan att skriva", async () => {
+    const { d, lager, priser, sparade } = scenario("vevor");
+    const s = await runAosomSync(d);
+    expect(s.dryRun).toBe(true);
+    expect(s.okantBesked).toBe(1);
+    expect(lager).toHaveLength(0);
+    expect(priser).toHaveLength(0);
+    expect(sparade).toHaveLength(0);
+  });
+
+  it("☠️ en tvetydig sida vars fält säger VEVOR nollas INTE — den rörs inte alls", async () => {
+    // En tvetydig Aosom-sida nollas (`planeraTvetydig`), för varianterna läses
+    // som Aosom-artiklar. På en sida som mappningen säger är VEVOR finns ingen
+    // grund för den läsningen.
+    const tvetydig = (supplier: ProductMappingRecord["supplier"]): ProductMappingRecord => {
+      const bas = mappning("A-1", { supplier });
+      return {
+        ...bas,
+        wixProductId: "wix-stol",
+        variants: [
+          { ...bas.variants[0], wixVariantId: "wixvar-svart" },
+          { ...bas.variants[0], supplierVariantId: "G-7", wixVariantId: undefined },
+        ],
+      };
+    };
+    const poster = async () => [
+      { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: 5 },
+      { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: 5 },
+    ];
+
+    const vevor = deps({ listAosom: async () => [tvetydig("vevor")], lasLagerposter: poster });
+    const sv = await runAosomSync(vevor.d, { dryRun: false });
+    expect(sv.okantBesked).toBe(1);
+    expect(sv.tvetydiga).toBe(0);
+    expect(vevor.lager).toEqual([]);
+
+    // KONTROLL: samma sida som Aosom-rad nollas som förut.
+    const aosom = deps({ listAosom: async () => [tvetydig("aosom")], lasLagerposter: poster });
+    const sa = await runAosomSync(aosom.d, { dryRun: false });
+    expect(sa.okantBesked).toBe(0);
+    expect(sa.tvetydiga).toBe(1);
+    expect(aosom.lager).toEqual([{ id: "svart", antal: 0 }, { id: "gra", antal: 0 }]);
+  });
+
+  it("Aosom ger aldrig ett okänt besked: en rad som saknas i feeden nollas och räknas som förut", async () => {
+    const { d, lager } = deps({ fetchFeed: async () => feedMed(rad("A-1")) });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.okantBesked).toBe(0);
+    expect(s.urFeeden).toBe(1);
+    expect(lager).toContainEqual({ id: "wix-B-2", antal: 0 });
   });
 });
