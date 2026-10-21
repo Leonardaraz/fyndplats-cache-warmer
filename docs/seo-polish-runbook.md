@@ -527,8 +527,11 @@ du i `rad-tal.txt`, ett tal per rad. Annars fäller `gate.py` dem som tal utan k
 den delen minst två gånger. Kontaktarket räcker bara för färgen på hela varan. Räkna upp
 varje färgad del.
 
-**Galleriet:** `bygg-media.py` behåller källordningen och lägger källposition 3, som nästan
-alltid är måttritningen, sist. Plats 1 blir huvudbild och delningsbild. Produktsidans
+**Galleriet:** `bygg-media.py` behåller källordningen och lägger måttbilden sist: en bild
+vars alt-text börjar på *Måttbild*, *Måttskiss* eller *Måttritning* (sedan 2026-10-21; förut
+alltid källposition 3, vilket lade fel bild sist när måttbilden låg på 4 eller 5). Har ingen
+alt-text det ordet gäller den gamla regeln, källposition 3 sist. Plats 1 blir huvudbild och
+delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
