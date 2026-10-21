@@ -1,11 +1,11 @@
 {
-  "_": "Omgång 1 på Aosom-sidor (2026-10-21 ~21:05–21:18 UTC): granskade bilder ur färgens egen givare (redan i Media Manager), skrivna med tools/polish-gates/skriv-fargbilder.js. Alla 18 sidor lästes tillbaka i Wix utan avvikelser och mättes live (tools/polish-gates/kolla-live-farg.py). 834c66fd (Grå) och e76a4098 (Ljusgrå) har ett utsnitt av givarens bild (Wix crop-adress, dHash 0 mot lokalt utsnitt).",
+  "_": "Omgång 1 på Aosom-sidor (2026-10-21 ~21:05–21:18 UTC): granskade bilder ur färgens egen givare (redan i Media Manager), skrivna med tools/polish-gates/skriv-fargbilder.js. Alla 18 sidor lästes tillbaka i Wix utan avvikelser och mättes live (tools/polish-gates/kolla-live-farg.py). 834c66fd (Grå) och e76a4098 (Ljusgrå) har ett utsnitt av givarens bild (Wix crop-adress, dHash 0 mot lokalt utsnitt). Tre bilder har \"struken\": måttbilden med 240 kg på f1878c34 och givarens kort och måttritning på 44663e99 sa emot sina sidors text och togs bort samma kväll med bilder-bort.yml (CLAUDE.md, Färgval med få bilder).",
   "sidor": [
     { "id": "f1878c34-325c-4442-b78e-c89a604389f8", "bilder": [
       { "val": "Blå", "fil": "b379ce_e7f5c59185624b73b5970f6c3d5f4cee~mv2.jpg", "alt": "Kvinna med hörlurar och randig tröja sitter i den blå soffan i ett ljust vardagsrum" },
       { "val": "Blå", "fil": "b379ce_fb8ef783645d4d959d4b2efb4814c284~mv2.jpg", "alt": "Den blå soffan med knappad rygg och träben i ett ljust rum med en grå matta" },
       { "val": "Blå", "fil": "b379ce_b12eb11ffe59432bbf0a25513977316a~mv2.jpg", "alt": "Närbild på soffans träben med ett filtunderlägg mot en mörk bakgrund" },
-      { "val": "Blå", "fil": "b379ce_a62e197790fb4bd9ac5484f2ddffc9bb~mv2.jpg", "alt": "Måttbild på den blå soffan med mått i centimeter och belastning 240 kg" } ] },
+      { "val": "Blå", "fil": "b379ce_a62e197790fb4bd9ac5484f2ddffc9bb~mv2.jpg", "alt": "Måttbild på den blå soffan med mått i centimeter och belastning 240 kg", "struken": "måttbilden anger 240 kg, sidan säger 100 kg per sits; borttagen 2026-10-21 med bilder-bort.yml" } ] },
     { "id": "4f21c7c1-7b70-4539-ae16-346c7210ef06", "bilder": [
       { "val": "Gräddvit", "fil": "b379ce_372a413ba82f466b8cb10d91fe013c5a~mv2.jpg", "alt": "Kvinna i beige tröja sitter i den gräddvita soffan med en valp bredvid sig i ett vardagsrum" },
       { "val": "Mörkgrå", "fil": "b379ce_2e0c2900877247d4b4bf313289b02c72~mv2.jpg", "alt": "Kvinna i beige tröja sitter i den mörkgrå soffan med en valp bredvid sig i ett vardagsrum" },
@@ -13,8 +13,8 @@
       { "val": "Rosa", "fil": "b379ce_64105f4533d64a03914eeeeba288aec6~mv2.jpg", "alt": "Närbild på den rosa soffans lodräta fåror i ryggen" },
       { "val": "Rosa", "fil": "b379ce_712ddbf0864047e19957ae8ec2bdff70~mv2.jpg", "alt": "Måttskiss av den rosa soffan: 117 cm bred, 56,5 cm djup och 77 cm hög" } ] },
     { "id": "44663e99-f22d-4350-be14-208d3d1a9d0d", "bilder": [
-      { "val": "Grå", "fil": "b379ce_6b8317e9ff904e24952fc549f3cd5dbe~mv2.png", "alt": "Faktakort: de fyra delarna med mått i centimeter, av spånskiva, plysch och sisal" },
-      { "val": "Grå", "fil": "b379ce_09596b0d20ef402eac6aa0b9230c6e54~mv2.jpg", "alt": "Måttritning över de grå plattformarna, korgen och stegen med mått i centimeter" },
+      { "val": "Grå", "fil": "b379ce_6b8317e9ff904e24952fc549f3cd5dbe~mv2.png", "alt": "Faktakort: de fyra delarna med mått i centimeter, av spånskiva, plysch och sisal", "struken": "givarens kort: trappan 38 × 20 × 2,8 mot sidans 38 × 22 × 12, och värdens eget kort visas redan för alla färger; borttagen 2026-10-21 med bilder-bort.yml" },
+      { "val": "Grå", "fil": "b379ce_09596b0d20ef402eac6aa0b9230c6e54~mv2.jpg", "alt": "Måttritning över de grå plattformarna, korgen och stegen med mått i centimeter", "struken": "måttritningen: trappan 38 × 20 mot sidans 38 × 22 × 12; borttagen 2026-10-21 med bilder-bort.yml" },
       { "val": "Grå", "fil": "b379ce_4e6996fa78744f45b90324ba6b693ebc~mv2.png", "alt": "Två katter klättrar mellan de grå väggmonterade delarna" } ] },
     { "id": "f384c51d-b404-469b-9b41-a2f48690b619", "bilder": [
       { "val": "Mörkbrun", "fil": "b379ce_8779abdfe51040f0aa0e54236c787ced~mv2.jpg", "alt": "Faktakort: hundtrappa med fyra steg, mörkbrun stomme med bruna stegdynor, mått 40 × 59 × 54,2 cm och högsta last 30 kg" },

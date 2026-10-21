@@ -9,6 +9,9 @@
 # `node tools/polish-gates/live-bilder.mjs <slug> <katalog>/live2_<id8>.json`
 # (Playwright klickar varje färg i väljaren och skriver galleriets fil-id i ordning).
 #
+# En bild med "struken": "<skäl>" i planen ska INTE synas i någon färgs vy (den togs bort efteråt med bilder-bort.yml,
+# t.ex. för att talen i den sa emot sidans text) och räknas inte som tillagd.
+#
 # För varje färg kontrolleras två saker: varje tillagd fil syns i färgens egen vy (annars väntar
 # butikens cache, som fylls på var femte minut, eller så är länken fel), och ingen syns i en
 # ANNAN färgs vy (en bild på fel färg). Svaret ger också varje färgs antal bilder.
@@ -23,7 +26,10 @@ alla_ok = True
 for sida in plan["sidor"]:
     id8 = sida["id"][:8]
     per_farg = {}
+    struken = [b["fil"][7:15] for b in sida["bilder"] if b.get("struken")]
     for b in sida["bilder"]:
+        if b.get("struken"):
+            continue
         per_farg.setdefault(b["val"], []).append(b["fil"][7:15])
     f = os.path.join(kat, f"live2_{id8}.json")
     if not os.path.exists(f):
@@ -33,6 +39,10 @@ for sida in plan["sidor"]:
     d = json.load(open(f))
     vyer = {k["val"].split("=", 1)[-1]: [i[7:15] for i in k["ids"]] for k in d["kombos"]}
     rad = []
+    kvar = [a for a, vv in vyer.items() if any(x in vv for x in struken)]
+    if kvar:
+        rad.append(f"STRUKNA BILDER SYNS FORTFARANDE i {kvar}")
+        alla_ok = False
     for farg, filer in per_farg.items():
         v = vyer.get(farg)
         if v is None:

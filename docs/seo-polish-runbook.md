@@ -511,7 +511,12 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    `tillagg.json` med `plan` och `skriv`. Har färgen en dold givare med bilder kvar
    (`katalogkontroll-farg-givare.js`) skrivs de godkända direkt med `skriv-fargbilder.js`, och
    livekollen är `kolla-live-farg.py`. En givares egna kort läggs bara som val om de visar
-   färgens egen vara.
+   färgens egen vara och sidan inte redan har ett eget kort (givarens kort dubblerar det, och
+   siffrorna kan skilja). **Före skrivningen: jämför talen i varje måttbild med sidans text**
+   (`ocr-forgranska.py --tal`, sedan `kolla-tal-mot-text.js`, som läser). En bild som anger en
+   annan belastning eller ett annat mått på samma del än sidan tas inte med (240 kg mot
+   *100 kg per sits*, en trappa på 38 × 20 mot *38 × 22 × 12*); fler mått än texten (ett
+   läge, ett fack) är ingen motsägelse. Har den redan skrivits tar `bilder-bort.yml` bort den.
    På en AliExpress-sida görs det för hand med SKU-bilderna ur `ae-skubilder.yml`: importera
    filerna, skriv galleriet vid id, länka färgens bilder (`options` och `variantsInfo`
    ordagrant), kör `variantbild.yml` och mät live per färg med `live-galleri.mjs`. En bild som

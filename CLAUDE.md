@@ -2774,17 +2774,17 @@ räknare, inga fil-id. Mätt direkt mot Wix har 298 av de 798 färgvalen en dold
 bilder kvar** (51 bilder). Givarna är alltså i stort sett uttömda. Resten av underlaget finns bara i feeden (position 4–7 och
 10, och alla positioner för en färg utan givare), och `aosom-fargtillagg` hämtar dem först efter merge av PR #749.
 
-**Första omgången: givarnas bilder (18 sidor, 35 bilder).** De 26 färgvalen granskades på kontaktark och 35 bilder skrevs med
+**Första omgången: givarnas bilder (18 sidor, 35 bilder skrivna, 32 kvar).** De 26 färgvalen granskades på kontaktark och 35 bilder skrevs med
 `tools/polish-gates/skriv-fargbilder.js` (samma steg som verktygen: galleriet ensamt vid fil-id, länkarna med `options` och
 `variantsInfo` ordagrant ur GET:en, återläsning av galleri, länkar, variant-id, SKU, pris och synlighet). Planen står i
 `tools/polish-assets/farger-fler-bilder-2026-10-21/aosom-givare-1.json`. Alla 18 sidor lästes tillbaka utan avvikelser och
 mättes live (`tools/polish-gates/kolla-live-farg.py`): varje tillagd bild syns i sin egen färgs vy och i ingen annans, och
 antalet unika bilder per sida stämmer med galleriet i Wix. Efteråt rättade `variantbild.yml` varukorgens bild per färg på
 alla 24 skrivna sidor (18 Aosom och sex AliExpress, noll avvikelser): kör den efter varje färgbildsskrivning. 24 färgval
-fick fler bilder. 14 nådde fem eller fler (blå soffan
-`f1878c34` 1 till 5, mörkbruna hundtrappan `f384c51d` 2 till 6, grå klätterväggen `44663e99` 2 till 5, rosa soffan i
-`4f21c7c1` 3 till 5), och 10 står kvar på 2–4 eftersom givarens övriga bilder var tyska eller engelska säljgrafiker
-(trehjulingen `eeb4a919`, Grå och Rosa: *Security features* och *More details*). Två givare gav ingenting
+fick fler bilder. 12 nådde fem eller fler (mörkbruna hundtrappan `f384c51d` 2 till 6, rosa soffan i
+`4f21c7c1` 3 till 5), och 12 står kvar på 2–4: tio eftersom givarens övriga bilder var tyska eller engelska säljgrafiker
+(trehjulingen `eeb4a919`, Grå och Rosa: *Security features* och *More details*), och två eftersom en bild som sa emot sidan
+togs bort efteråt (blå soffan `f1878c34` 1 till 4 och grå klätterväggen `44663e99` 2 till 3, se nedan). Två givare gav ingenting
 (`6334f635`, `a706542f`: *Nur Kissen* och *Hinweis* tryckta mitt i fotona, och beskärningen hade kapat varan). Två
 bilder är utsnitt via Wix crop-adress (`834c66fd` Grå och `e76a4098` Ljusgrå), uppladdade som nya filer och verifierade
 mot ett lokalt utsnitt (dHash 0).
@@ -2799,6 +2799,21 @@ inbränd text (tyska och engelska rubriker, *Nur Kissen*, etiketter) och skiljer
 mot 14 bilder jag redan bedömt för hand: alla 14 gav samma utfall. ☠️ **REN är inget bevis.** En logotyp utan bokstäver,
 fel färg och en kollage syns inte, och text på varan eller rekvisitan (en affisch, en etikett) står kvar enligt runbooken.
 Kör den före kontaktarken så att ögonen går till det som är kvar.
+
+☠️ **Talen i en tillagd måttbild kontrolleras mot sidans text** (`ocr-forgranska.py --tal` skriver talen i bilden, och
+`kolla-tal-mot-text.js` jämför dem med `plainDescription` och läser bara). Kontrollen gjordes efter första omgången: på fem av
+de 18 sidorna hade en måttbild tal som inte stod i texten, och två av dem sa emot den. Blå soffan `f1878c34` hade fått en bild med
+*240 kg* medan sidan säger *Maxbelastning: 100 kg per sits och 10 kg i förvaringen*, och grå klätterväggen `44663e99` hade fått
+givarens kort och leverantörens måttritning där trappan är 38 × 20 × 2,8 (kortet) och 38 × 20 med 3,8 cm tjocka rullar
+(ritningen), medan sidan säger *38 cm bred, 22 cm djup och 12 cm hög*. De tre bilderna togs bort samma kväll med
+`bilder-bort.yml` (planerna var rena, återläsningen stämde, och `variantbild` rättade 3 respektive 1 val; live 21:45 UTC visade
+18 respektive 7 unika bilder som galleriet, Blå 4 och Grå 3, och ingen av de borttagna syns i någon färg). De tre andra sidorna
+hade bara fler mått än texten och bilderna står kvar: det vita fällbordets inre mått (hylla 75,5 × 14, skiva 75 × 75, bordshöjd 74;
+belastningen 40 kg stämmer med sidans *40 kg totalt*), den rosa barnfåtöljens sitthöjd 38 mot sidans 37,5 (avrundat) och
+uppresningsfåtöljens mått i upprest läge (128,5 × 83 × 62,5). Ett tal som saknas i texten är ingen motsägelse. En annan
+belastning eller ett annat mått på samma del är det, och då tas bilden bort i stället för att texten rättas: texten är
+leverantörens uppgifter för värdens artikel, och ett färgsyskons bilder kan höra till en artikel med andra mått. Kör kontrollen
+före skrivningen nästa gång. ☠️ Givarens kort dubblerar dessutom värdens egna kort, som redan visas för alla färger.
 
 **Det som kräver merge av PR #749:** de ungefär 770 färgval som inte har någon givare med bilder kvar. Ordningen efter
 mergen är `kandidater` med `mal` = sid-id (alla svaga färger på sidan), OCR och kontaktark, `tillagg.json`,
