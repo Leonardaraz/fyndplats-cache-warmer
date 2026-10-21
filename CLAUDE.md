@@ -2692,6 +2692,90 @@ Fyra egenskaper som inte ska tas bort:
    inom karenstiden, tre dygn efter att bildstädningen (03:50 UTC) först såg dem
    oanvända.
 
+### Färgval med få bilder: fler bilder per färg (2026-10-21)
+
+Leonard, med en skärmbild av strandparasollen där färgen Grön visade två bilder: *"Det finns
+produkter med varianter som har 4 bilder eller mindre, kan du hämta bilderna till de
+varianter som har 4 eller mindre och koppla rätt och kolla att rätt bild syns i live sidan
+som test så din metod är rätt."*
+
+**Omfattningen, mätt 2026-10-21** med `tools/polish-gates/katalogkontroll-farg-bilder.js`
+(`products/search` med `MEDIA_ITEMS_INFO` och butikens ägarregler som i `fargVy`, bara
+färgvalen): 539 av 951 publicerade sidor med färgval har minst ett färgval som visar fyra
+bilder eller färre, och 1 110 av 2 533 färgval gör det. 442 är Aosom-sidor med en artikel
+per färg (240 med två färger, 128 med tre, 57 med fyra och 17 med fem eller fler) och 97 är
+AliExpress-sidor (30 där den sämsta färgen visar en bild, 31 två, 24 tre och 12 fyra).
+Sidorna, leverantören och minsta antal bilder står i
+`tools/polish-assets/farger-fler-bilder-2026-10-21/flaggade.tsv`. Importen tar feedens
+position 1, 2, 3, 8 och 9, poleringen stryker det som bär text eller märke, och en färg som
+kom in genom en sammanslagning fick bara en del av givarens bilder.
+
+⚠️ **Mätningen är en uppskattning på sidor med fler än en axel.** `fargVy` räknar färgens
+bilder som om färgen vore ensam, och en sida med både storlek och färg visar en annan
+mängd för varje kombination (hamsterburen `13fe619f` räknas som 0 för Mörkgrå, fast den
+visar bilder per storlek). En första, bredare mätning över alla val gav 628 sidor, varav 108
+inte flaggas av färgmätningen. Mät den enskilda sidan live (`live-galleri.mjs`) innan du
+tar den som given.
+
+**Piloten: strandparasollen** `57988115` (AliExpress-sida, två färger). Grön visade två
+bilder och Blå fyra. Efter åtgärden visar Grön fem och Blå sju, mätt live per färg med
+`node tools/polish-gates/live-galleri.mjs <slug> <galleri-id.json>`, som klickar varje färg i
+väljaren och skriver ut galleriet (väljaren på den här sidan är en enda axel utan
+`.pdp-axis`-omslag, och skriptet läser nu den formen också). Metoden för en AliExpress-sida,
+som inget verktyg gör åt en:
+
+1. **Hitta fotona.** Listningens SKU-bilder, galleri och beskrivningsbilder läses krypterat
+   med `ae-skubilder.yml` (push som ändrar `tools/ae-skubilder/kor.json`). Hämta dem lokalt,
+   bygg ett kontaktark och titta på varje bild: tysk eller spansk text, märke och en annan
+   färg stryks. Leverantörens rena gröna foton räckte inte till fem, så det femte är ett
+   specifikationskort med den gröna varan (`scripts/cardkit.py`, `card_spec`).
+2. **Importera filerna** till Media Manager (`site-media/v1/files/import`, vänta på `READY`).
+   Ett utsnitt görs med Wix egen crop-adress och importeras som en ny fil, aldrig som en
+   leverantörsbild i repot.
+3. **Skriv galleriet vid fil-id**, och länka sedan färgens bilder med `options` och
+   `variantsInfo` ordagrant ur produktens egen GET, `visible` explicit (se *Färger som inte
+   kom via verktyget* i `docs/polish/syskon.md`). Kör `variantbild.yml` efteråt.
+4. **En bild som visas för alla färger länkas inte.** Närbilden på den röda knappen som fäller
+   upp parasollet är densamma i båda färgerna, så den ligger olänkad med en alt-text som
+   nämner båda färgerna (butikens `arKort`-regel: en olänkad bild som nämner flera färger är
+   gemensam). Lägg aldrig en annan färgs foto på ett val.
+5. **Mät live per färg** efter butikens cache (`age` på sidan, `uppdatera-andrade` var femte
+   minut), och läs tillbaka id, SKU, pris och synlighet i en separat läsning.
+
+För Aosom-sidorna finns verktyget **"Bilder — fler bilder till en färg på en sammanslagen
+Aosom-sida"** (`aosom-fargtillagg.yml`) → `/api/admin/aosom-fargtillagg` →
+`lib/aosom/fargtillagg.ts`, med tre lägen: `kandidater` (laddar upp feedens position 3, 8, 9
+och 10 för varje färgs artikel, bara de som färgens vy inte redan visar), `plan` och `skriv`.
+En människa tittar på varje kandidat (46 procent av feedens bilder bär tysk text, och ett
+märke syns inte i någon grind), och de godkända filerna skrivs i `tillagg.json` i rundans
+katalog med en svensk alt-text per bild. Verktyget väljer aldrig bilder. Det fungerar först
+när PR #749 är mergad, eftersom varken rutten eller workflowen finns på `main`.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
+   och wixstatic-adresser, räknare och hinderkoder. Aldrig artikelnummer, feedens adresser
+   eller Aosoms produktadress, och ett media-fel följer inte med, för det bär källadressen.
+   Filnamnet byggs av wix-id, färgens plats och position, aldrig av källan.
+2. ☠️ **En bild tillhör en färg.** En fil vars källa inte är en position hos färgens egen
+   artikel blir `annan_kalla`. Ett par som klistrats fel ska inte bli en bild på fel färg.
+3. ☠️ **Ingen bild faller ur galleriet och ingen länk tappas.** Huvudbilden och varje färgs
+   första bild rörs inte, och de nya bilderna läggs efter färgens sista bild i galleriet och
+   sist i valets `linkedMedia`. `kontrolleraLivsplan` fäller en plan som bryter det.
+4. ☠️ **Galleriet skrivs vid fil-id, aldrig vid adress.** En wixstatic-adress får Wix att
+   importera om bilden till en ny fil (se *Wix importerade om VARJE bild*).
+5. ☠️ **Skrivningen kräver planens sha.** Planen räknas om ur färska läsningar i samma
+   anrop, och har sidan ändrats sedan någon läste planen skrivs ingenting (409). Sha:n
+   täcker filerna och deras alt-texter. Godkända kandidater måste skrivas inom karenstiden,
+   tre dygn efter att bildstädningen först såg dem oanvända.
+
+⚠️ **Positionerna är en gissning som kandidaterna prövar.** 3, 8, 9 och 10 är de som oftast
+är rena (77, 80, 93 och 53 procent, uppmätt 2026-08-27 och 2026-09-30), men position 4–7 bär
+nästan alltid tysk text. En färg som inte får fyra rena bilder ur feeden är en färg
+leverantören inte har fler bilder för, och då stannar den på det antalet. Ett utsnitt
+(`docs/polish/bildmetoder.md`, *Beskärning*) är den enda genvägen, och bara när utsnittet är
+fritt från text och märke.
+
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
 Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL

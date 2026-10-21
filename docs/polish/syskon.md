@@ -223,3 +223,13 @@ hade ett foto i färgen, så färgerna togs bort och sidorna är enfärgade. Sam
 hamsterburens mörkgrå och tältets blå (ett färgkort byggt ur leverantörens SKU-bild) sina
 egna bilder, och plåtbodens gröna kopplades. Plåtbodens bruna saknar foto överallt, och
 sidan är dold.
+
+**Fler bilder till ett färgval (2026-10-21).** Ett val som visar fyra bilder eller färre
+får fler foton ur leverantörens egen uppsättning, länkade till färgen. På en sammanslagen
+Aosom-sida gör **"Bilder — fler bilder till en färg på en sammanslagen Aosom-sida"**
+(`aosom-fargtillagg.yml`, lägena `kandidater`, `plan` och `skriv`) det med feedens position 3,
+8, 9 och 10 för färgens egen artikel. En människa tittar på varje kandidat före `plan`, och
+den nya bilden läggs efter färgens sista bild utan att något tas bort. På en AliExpress-sida
+skriver du galleriet och länkarna själv enligt stycket ovan. Strandparasollen `57988115` var
+piloten: Grön gick från två till fem bilder och Blå från fyra till sju, mätt live per färg.
+Se CLAUDE.md, *Färgval med få bilder*.
