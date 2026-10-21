@@ -6637,3 +6637,5 @@ beslut — se den samlade frågan om detta.
   - **Transportburen `55cb5e78`:** ska den större storleken (779 kr) ligga över den mindre (899 kr)?
   - **`dbcbb24a`** (AliExpress) mot `6d61abcb`: ommappningen stoppas av `marginal_under_golv`. Ska priset höjas eller sidan stå kvar som den är?
   - **S16–S18, studsmattan `9c60b34d` (kort 5), mattan `3ec9a0f5` och Kawasaki Teryx KRX:** oförändrade frågor från PR #749.
+- Beslut 2026-10-21 (Leonard).
+  - **Vi jämför inte med dealproffsen.** Leonard: *"vi ska inte jämföra med dom"*. Runbookens urvalsordning (§1) har tappat kriteriet "utkast där vi är billigare än dealproffsen". `CLAUDE.md` har fått avsnittet *Dealproffsen: vi jämför inte med dem*, och texterna om jämförelsen och konkurrentregeln ligger ordagrant i `docs/arkiv/dealproffsen-och-konkurrentregeln.md`. Ett prisbeslut stöds av husets regel (1,20 × landad kostnad, `charm99`) och av synkens egen historik, aldrig av deras pris. Koden finns kvar tills Leonard beslutar om borttagning, och ingen rad har `prisgrupp`. Äldre rader i den här filen och i `tools/polish-assets/runda-*-billigast` som nämner dealproffsen är historik.

@@ -100,9 +100,9 @@ ha hunnit före. Läs `tools/polish-gates/FLAGGADE.md` först och välj ingen pr
 där.
 
 **Välj i den ordning som säljer.** Först det som säljer de närmaste veckorna (i september jul
-och inomhus, inte trädgård), sedan utkast där vi är billigare än dealproffsen (workflowen
-**"Pris — jamfor mot dealproffsen"**), sedan familjer som fyller en sökordskategori. En
-arbetsdelning mellan sessioner, till exempel att var och en tar sin ände av kön, går före.
+och inomhus, inte trädgård), sedan familjer som fyller en sökordskategori. Jämför inte med
+dealproffsen eller någon annan butik (Leonard 2026-10-21). En arbetsdelning mellan sessioner,
+till exempel att var och en tar sin ände av kön, går före.
 
 Steg 1–3 går omlott: laglighets- och dubblettskärmen behöver källtexten och bilderna, så hämta
 dem för kandidaterna innan du bestämmer dig.
