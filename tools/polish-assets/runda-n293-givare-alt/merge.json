@@ -1,0 +1,40 @@
+[
+ {
+  "host": "a2bf8b4d",
+  "donor": "f8d0f2b6",
+  "bilder": "1,2",
+  "kallpositioner": [
+   "1",
+   "2"
+  ]
+ },
+ {
+  "host": "a2bf8b4d",
+  "donor": "c08fd055",
+  "bilder": "1,2",
+  "kallpositioner": [
+   "1",
+   "2"
+  ]
+ },
+ {
+  "host": "0b927ed9",
+  "donor": "7480b509",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "ef26b87f",
+  "donor": "636e14f1",
+  "bilder": "1,2",
+  "kallpositioner": [
+   "3",
+   "5"
+  ]
+ }
+]

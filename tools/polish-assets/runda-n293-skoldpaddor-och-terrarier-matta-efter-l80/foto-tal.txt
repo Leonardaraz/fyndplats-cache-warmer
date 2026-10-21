@@ -1,0 +1,21 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a2bf8b4d 0,58 räknat ur källans invändiga mått: 37,5 + 76,5 = 114 cm gånger 51 cm
+a2bf8b4d 114 summan av de invändiga bredderna 37,5 och 76,5 cm
+a2bf8b4d 0,4 räknat ur källans mått: golvytan där taket är över 25 respektive 30 cm högt, med marginal för locken
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0b927ed9 0,66 räknat ur källans invändiga mått på den nedre delen, 108 × 61 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+43317ed5 0,5 uppskattad invändig golvyta, mindre än de utvändiga 120 × 50 cm, eftersom källan saknar invändiga mått
+43317ed5 45 uppskattad invändig höjd, lägre än de utvändiga 50 cm, eftersom källan saknar invändiga mått
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+46d43f2f 0,42 uppskattad invändig golvyta, mindre än de utvändiga 120 × 40 cm, eftersom källan saknar invändiga mått
+46d43f2f 33 uppskattad invändig höjd, lägre än de utvändiga 40 cm, eftersom källan saknar invändiga mått
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ef26b87f 0,13 uppskattad invändig golvyta, mindre än de utvändiga 50 × 30 cm, eftersom källan saknar invändiga mått
+ef26b87f 23 uppskattad invändig höjd i det låga terrariet, lägre än de utvändiga 25 cm
+ef26b87f 33 uppskattad invändig höjd i det höga terrariet, lägre än de utvändiga 35 cm
