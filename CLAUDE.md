@@ -2365,7 +2365,7 @@ workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.y
 anropar den gamla read-only-rutten `/api/admin/freight-check?raw=1` och svarar
 krypterat, som `leverantorslankar.yml`. Den startas av en push som ändrar
 `tools/ae-skubilder/kor.json` (`produkter`: högst tio Wix-id, `kuvert`: en publik
-RSA-nyckel i base64), och efter merge med `workflow_dispatch`.
+RSA-nyckel i base64), och sedan mergen av PR #749 (2026-10-21) också med `workflow_dispatch` från `main`.
 
 Tre egenskaper som inte ska tas bort:
 
@@ -2761,8 +2761,9 @@ Aosom-sida"** (`aosom-fargtillagg.yml`) → `/api/admin/aosom-fargtillagg` →
 och 10 för varje färgs artikel, bara de som färgens vy inte redan visar), `plan` och `skriv`.
 En människa tittar på varje kandidat (46 procent av feedens bilder bär tysk text, och ett
 märke syns inte i någon grind), och de godkända filerna skrivs i `tillagg.json` i rundans
-katalog med en svensk alt-text per bild. Verktyget väljer aldrig bilder. Det fungerar först
-när PR #749 är mergad, eftersom varken rutten eller workflowen finns på `main`.
+katalog med en svensk alt-text per bild. Verktyget väljer aldrig bilder. PR #749 mergades
+2026-10-21 (squash `4f31bf31`, Leonards *Merga*), produktionsbygget var READY efter 85 sekunder och
+rutten svarar, så workflowen körs med `workflow_dispatch` från `main`.
 
 **Aosom-sidorna, kartlagda 2026-10-21** (`tools/polish-gates/katalogkontroll-farg-givare.js`, 36 sekunder över 6 125
 produkter, bara läsning). De 442 sidorna har **798 färgval på fyra bilder eller färre**. 266 sidor har 4 som sämsta färg,
@@ -2772,7 +2773,7 @@ gemensamma bilder alls (inga kort eller måttbilder som butiken visar för alla 
 (`granskas`) och det som inte fick plats (`overflow`) ligger i en tabell som bara motorn läser, och planen skriver bara
 räknare, inga fil-id. Mätt direkt mot Wix har 298 av de 798 färgvalen en dold givare, men bara **26 färgval en givare med
 bilder kvar** (51 bilder). Givarna är alltså i stort sett uttömda. Resten av underlaget finns bara i feeden (position 4–7 och
-10, och alla positioner för en färg utan givare), och `aosom-fargtillagg` hämtar dem först efter merge av PR #749.
+10, och alla positioner för en färg utan givare), och `aosom-fargtillagg` hämtar dem (PR #749 är mergad).
 
 **Första omgången: givarnas bilder (18 sidor, 35 bilder skrivna, 32 kvar).** De 26 färgvalen granskades på kontaktark och 35 bilder skrevs med
 `tools/polish-gates/skriv-fargbilder.js` (samma steg som verktygen: galleriet ensamt vid fil-id, länkarna med `options` och
@@ -2815,9 +2816,10 @@ belastning eller ett annat mått på samma del är det, och då tas bilden bort 
 leverantörens uppgifter för värdens artikel, och ett färgsyskons bilder kan höra till en artikel med andra mått. Kör kontrollen
 före skrivningen nästa gång. ☠️ Givarens kort dubblerar dessutom värdens egna kort, som redan visas för alla färger.
 
-**Det som kräver merge av PR #749:** de ungefär 770 färgval som inte har någon givare med bilder kvar. Ordningen efter
-mergen är `kandidater` med `mal` = sid-id (alla svaga färger på sidan), OCR och kontaktark, `tillagg.json`,
-`plan_och_skriv` och live. Wix tar 50 bilder, så ett galleri på 15 är inget hinder längre.
+**Efter merge av PR #749 (2026-10-21):** de ungefär 770 färgval som inte har någon givare med bilder kvar tas i omgångar
+om ungefär 20 sidor, sämst färg först (`aosom-ordning.tsv`). Ordningen är `kandidater` med `mal` = sid-id (alla svaga
+färger på sidan), OCR och kontaktark, sifferkontroll (`kolla-tal-mot-text.js`), `tillagg.json`, `plan_och_skriv` med
+`ref` på grenen som har filen, live och `variantbild`. Wix tar 50 bilder, så ett galleri på 15 är inget hinder längre.
 
 Fem egenskaper som inte ska tas bort:
 

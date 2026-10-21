@@ -451,7 +451,8 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
 1. **Leta efter ett foto i färgen.** För en AliExpress-sida läser du listningens SKU-bilder
    med workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
    Den startas av en push som ändrar `tools/ae-skubilder/kor.json` (`produkter`: högst tio
-   Wix-id, `kuvert`: din publika nyckel), och efter merge med `workflow_dispatch`. Svaret
+   Wix-id, `kuvert`: din publika nyckel), och sedan mergen av PR #749 (2026-10-21) också med
+   `workflow_dispatch` från `main`. Svaret
    är krypterat, eftersom bildadresserna är leverantörens. En Aosom-sida har inga
    SKU-bilder, så där söker du i feedens positioner och i syskonutkasten. Av de sex sidor
    Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
