@@ -180,6 +180,22 @@ skriver *Zwergkaninchen*. Tyska widderkaniner väger 4–6 kg. Fem regler som fo
   redet oräknat). Leverantörens "3–4 höns" utlovas inte. Ankor, sköldpaddor, reptiler och
   katter kräver en artbedömning som källtexten inte ger och hålls tills en människa har sett
   bilderna.
+- **Texterna för de fyra vanligaste fallen** (N276–N282, T76–T77):
+  - **Rastgård** (en hage utan sovhus eller värpbo). Egen rubrik, *Rastgård utan sovhus*, med
+    meningen *"Hagen är en rastgård och har inget sovhus eller värpbo."* Den ersätter aldrig en
+    bostad, och texten nämner bara de arter källan och L80 räknar (kaniner, marsvin,
+    dvärgkaniner). Källans påståenden om rovdjur (`Raubtiere`, `Marder`) skrivs aldrig.
+  - **Hönsgård eller hönshus.** Ange golvytan och riktmärket, aldrig ett antal. FAQ:n
+    *Hur många höns får plats?* svarar med riktmärket och husets golvyta. En gåbar gård utan hus
+    heter rastgård, och hönshuset *ingår inte*.
+  - **Fåglar.** Par eller grupp (6 kap. 1 §), minst två sittpinnar (10 §) och ett utrymme över
+    noll grader (16 §). Sidan anger fågelstorleken (`upp till 25 cm`) och att buren inte passar
+    större papegojor. En bild med en ara i en bur som inte klarar arten stryks. Har buren två
+    fack som är lägre än 0,6 m var för sig ska texten säga att den används som en enda bur med
+    skiljeväggen ur.
+  - **Valpningslåda och valpgrind.** Lådan ersätter inte tikens utrymme (SJVFS 2020:8, 10 kap.:
+    tik med valpar över tre veckor kräver 2, 3 respektive 4 m² beroende på tikens mankhöjd), och
+    en valpgrind är en tillfällig vistelse (2 kap. 1 §).
 
 **Kör grinden innan något skrivs:** `python3 tools/polish-gates/djurbostad.py <katalog>` mot
 en `djurbostad.tsv` (formatet står i skriptets huvud). Den räknar om varje bostad ur
@@ -188,7 +204,9 @@ för de arter grinden listar, och texten namnger inga andra. **FAIL** pensionera
 (`needsAiPolish: false`, `draftStatus: "rejected"`) med orsaken i filen. **HOLD** rörs inte tills
 innermåtten är mätta på bilderna. Ligger buren under gränsen ska den inte poleras. Flagga den
 med den rättsliga orsaken. Den första skärmen, över 108 dolda utkast, ligger i
-`tools/polish-assets/djurbostader-skarm-2026-10-21/`: 64 PASS, 26 HOLD och 18 FAIL.
+`tools/polish-assets/djurbostader-skarm-2026-10-21/`: 57 PASS, 32 HOLD och 19 FAIL. Varje PASS
+med saldo är polerad i N276–N282 och T77, alla FAIL är pensionerade och alla HOLD är dolda
+(läst ur Wix 2026-10-21).
 
 **Hundburar** (SJVFS 2020:8, L 102) säljs lagligt, men regeln formar texten. En hund får
 inte hållas i stängd bur inomhus. Står buren framme som hundens plats ska dörren tas bort
@@ -296,7 +314,11 @@ du inte anger `behall_variant`: Wix-variant-id:t för den färg som finns som Ao
 tas de andra varianterna bort i Wix och i mappningen före bytet (Leonard 2026-09-28). Sidan
 får inga val kvar, men bilderna och texten om de borttagna färgerna står kvar. Slå därför
 ihop sidan med Aosom-sidan i samma familj (publicerad givare, `omdirigera=ja`), eller skriv
-om den med en runda. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
+om den med en runda. ☠️ Det gäller också storlekar: en sida med två storlekar som bara har en
+hos Aosom behåller texten om båda, måttbilden för den andra, ett specifikationskort med båda
+måtten och en SKU som liknar ett artikelnummer (T76, hönsgården `9158341c`). Skriv om sidan
+med en runda mot den nya artikelns tyska text (inte sidans gamla), stryk måttbilden och kortet
+för den borttagna storleken, och byt SKU:n. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
 först i feeden (**"Aosom — sök i feeden"**) efter de färger som ska bort: finns en av dem hos
 Aosom men inte som utkast, kommer den med importen och läggs då som val.
 
