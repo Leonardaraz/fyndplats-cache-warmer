@@ -19,7 +19,7 @@ d2033e57	82	-	hons	-	-	-	-	PASS	hönshus med utlopp 104 x 70,5 cm
 c78d5a19	0	dvkanin	bostad	4947	105	48.5	15	FAIL	löpgången är 15 cm hög mot 50 cm
 f8ca8cb6	1	chinchilla,iller	bostad	2704	52	52	25	FAIL	52 x 52 cm mot 0,5 m² för chinchilla och 5 m² för iller
 35930359	52	dvkanin,marsvin	bostad	6669	117	57	57	PASS	textilbur 117 x 57 cm; leverantören säger uttryckligen att den inte är för hamster
-79afd14f	45	dvarghamster,mus	bostad	3036	69	44	102	PASS	markplan 69 x 44 cm
+79afd14f	45	-	hall	-	-	-	-	HOLD	markplanet 69 x 44 cm klarar bara guldhamster, men leverantörens text och bilder gäller kanin, chinchilla och iller, som buren är för liten för; stavavståndet 1 cm släpper igenom små arter; bara fyra bilder är rena
 277f5641	13	-	hall	-	-	-	-	HOLD	panelhage: höjd och markplan avgörs inte av källtexten
 87cbcb7f	118	-	hall	-	-	-	-	HOLD	kattbur: under Jordbruksverkets boxmått för katt (SJVFS 2020:8, 10 kap. 9 §); kan bara bli en kattgård efter beslut
 ef20bec9	110	-	hons	-	-	-	-	PASS	hus 92 x 50 cm inne, 0,40 m² golvyta; leverantörens 3-4 höns utlovas inte
