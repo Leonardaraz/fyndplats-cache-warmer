@@ -2877,6 +2877,20 @@ vy (hundtrappans Beige); **(2)** måttbilderna jämförs med sidans text före s
 värdens (kontorsstolens fyra färger ströks); **(3)** ett utsnitt görs med Wix crop-adress och ska rymma varan i butikens
 kvadrat ur mitten; **(4)** `plan_och_skriv` rättar varukorgens bild själv (`variantbilder: N rättade`).
 
+**Feedomgång 2 (2026-10-21, `tools/polish-assets/fargtillagg-2/`):** 25 sidor, 54 färger och 74 bilder skrevs
+23:41–23:44 UTC (67 feedbilder och sju utsnitt), och live-kontrollen blev **ALLT OK**. Av 58 mätta färgval hade 156 bilder
+före (alla med två till fyra) och 228 efter: 52 fick fler, 18 visar fem eller fler, och två står kvar på två bilder
+(Vit på `a706542f` och Mörkgrå på `c519b4fe`, där feeden bara har text i bilderna). Valda per feedposition: 49 av 56
+på 10, 12 av 40 på 9, 8 av 38 på 8 och 5 av 45 på 3. Fem saker utöver omgång 1: **(1)** `tools/polish-gates/ocr-live.py` OCR-kör
+alla nuvarande bilder i färgvyerna och hittade tysk text på två publicerade sidor (ett informationskort på hundvagnen
+`40f46441`, *Nur Pavillondach* på paviljongtaket `e969501f`); **(2)** `live-vyer.py` ritar en rad per färgvy och visade två foton på
+gräddvita stolar under Grå på `817e1869`, eftersom butiken knyter ett olänkat foto till huvudbildens färg; **(3)** alla tre sidor
+fick bilderna borttagna med `bilder-bort.yml` (torrt först, skarpt med planens sha) före `plan_och_skriv`, eftersom
+`aosom-fargtillagg` inte länkar en fil som redan ligger i galleriet (`finns_redan`); **(4)** `farg-krop.py` gör sju utsnitt
+från en lista (lokala utsnitt med OCR i 1× och 1,5×, Wix crop-adresser med md5 och parning mot de uppladdade filerna), och
+`ocr-boxar.py` ger textrutornas kanter så att utsnittet slutar före texten; **(5)** en måttbild som anger en annan sitthöjd
+än sidan (54 mot 50,5 cm), en närbild där leverantörens logotyp är motivet och en projektorduk med *Lorem ipsum* ströks.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
