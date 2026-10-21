@@ -1,0 +1,24 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1686860f 0,42 räknat ur källans mått på nedre våningen, 91 × 46,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a40a86bb 0,25 räknat ur källans mått på nedre planet, 60,8 × 41 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+13fe619f 0,5 räknat ur källans yttermått 100 × 52 cm minus väggarna
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c1c1d34c 0,43 räknat ur källans mått, 30,5 + 63 cm gånger 46 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5e538454 0,34 räknat ur källans mått på nedre våningen, 85 × 39,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cc5bb82c 0,31 räknat ur källans innermått, 75,5 × 41 cm
+cc5bb82c 35 avläst på måttbilden: benens höjd
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+23a63265 0,21 räknat ur källans mått på brickan, 59 × 36 cm
+23a63265 5,5 avläst på måttbilden: rörets diameter
+23a63265 0,9 avläst på måttbilden: avståndet mellan gallerstavarna

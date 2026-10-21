@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py Källans titel anger att sitsen är drehbar um 360°, siffran står alltså i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py Källan anger Klasse-III-Gasfeder, alltså gaslyft av klass 3

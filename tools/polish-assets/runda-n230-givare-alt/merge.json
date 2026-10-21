@@ -1,0 +1,19 @@
+[
+ {
+  "huvud": "1c0b4b34",
+  "huvud_fullid": "1c0b4b34-f9f6-43b0-a8d2-1113dd2364d8",
+  "givare": "6e518fc6",
+  "givare_fullid": "6e518fc6-a4d6-4df9-9214-216dfb5b085e",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "10"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "1c0b4b34": "Grön",
+   "6e518fc6": "Orange"
+  }
+ }
+]

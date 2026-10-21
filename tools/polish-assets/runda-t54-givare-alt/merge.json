@@ -1,0 +1,19 @@
+[
+ {
+  "huvud": "4f40817c",
+  "huvud_fullid": "4f40817c-48cd-4990-8b5f-55c22d674e03",
+  "givare": "e0593c23",
+  "givare_fullid": "e0593c23-0114-4a33-91da-5395b33197b7",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "4f40817c": "150 cm",
+   "e0593c23": "180 cm"
+  }
+ }
+]

@@ -1,0 +1,53 @@
+{
+ "runda": "runda-n257-givare-alt",
+ "produkter": [
+  {
+   "kort": "6147cb18",
+   "pid": "6147cb18-b21d-4032-ba32-4728666d0c68",
+   "media": [
+    {
+     "id": "b379ce_58596b0219cf46d6a0e7b0bc7c3d565e~mv2.jpg",
+     "altText": "Svart brödrost med en pekskärm och en svart vattenkokare med en display och tryckknappar på framsidan, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_67a3a95ca7d944a9b856fc956f3b5e0e~mv2.jpg",
+     "altText": "Den svarta brödrosten med en rostad brödskiva som hoppar upp och den svarta vattenkokaren på en köksbänk av trä, med en köksvåg och skålar bakom"
+    },
+    {
+     "id": "b379ce_ba7ce37844df41b5ac813328e03c40ae~mv2.jpg",
+     "altText": "Den svarta vattenkokaren och brödrosten med två rostade brödskivor och en kopp kaffe på ett träbord, med bullar på en tallrik och blommor bakom"
+    },
+    {
+     "id": "b379ce_d3d79be790e54f23958d5069ead57577~mv2.jpg",
+     "altText": "Måttbild över den svarta brödrosten med måtten 25, 16,8 och 18,6 cm på en beige sockel"
+    },
+    {
+     "id": "b379ce_8b8b1d9cf16a478eb5d76e49b4dcd402~mv2.jpg",
+     "altText": "Måttbild över den svarta vattenkokaren med måtten 21,5, 25,1 och 15,5 cm på en beige sockel"
+    }
+   ]
+  },
+  {
+   "kort": "7bc8e179",
+   "pid": "7bc8e179-2a21-4007-a706-7abe21518b2c",
+   "media": [
+    {
+     "id": "b379ce_1517606a28f34c52b59d1943916c56fc~mv2.jpg",
+     "altText": "Röd hundvagn med fyra hjul, en kåpa med nätfönster, en korg under och ett handtag med en kopphållare, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_2bc673eb6b0c48149fe373d903a24b38~mv2.jpg",
+     "altText": "Kvinna som går med den röda hundvagnen på en stig i en park med blommor, med en pomeranian som tittar ut ur vagnen"
+    },
+    {
+     "id": "b379ce_0f293d42ab8b46beaab0615eaccb86f7~mv2.jpg",
+     "altText": "Kvinna i vit tröja som går med den röda hundvagnen på en stenlagd stig i en park med bänkar bakom, med en pomeranian i vagnen"
+    },
+    {
+     "id": "b379ce_547c0448468a4ba58fdfcf3e66ab33a4~mv2.jpg",
+     "altText": "Måttbild över den röda hundvagnen på en parkväg med måtten 102, 50, 55, 35, 77 och 44 cm"
+    }
+   ]
+  }
+ ]
+}

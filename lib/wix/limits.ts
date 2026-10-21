@@ -26,3 +26,20 @@ export const WIX_MAX_VARIANTS_PER_PRODUCT = 1000;
  * en helt annan, ackumulerande gräns. Se customization-identity.ts.
  */
 export const WIX_MAX_CHOICES_PER_CUSTOMIZATION = 100;
+
+/**
+ * Media per produkt (`media.itemsInfo.items`).
+ *
+ * ☠️ UPPMÄTT 2026-10-21, INTE LÄST: Wix tar 50, inte de 15 som "About Product
+ * Media" säger. En dold testprodukt (raderad direkt efteråt) fick 16, 20, 25,
+ * 30, 40, 46 och 50 bilder, och varje skrivning lästes tillbaka i ett eget
+ * anrop. Den 51:a gav `400 MAX_SIZE` ("has size 51, expected 50 or less",
+ * threshold 50). Dessutom höll 86 publicerade sidor redan 16–46 bilder när
+ * mätningen gjordes, skrivna av sammanslagningen.
+ *
+ * Samma hållning som CHOICES-taket ovan, åt andra hållet: dokumentationen
+ * hade fel, och här var felet försiktigt. Konstanten höjs eller sänks bara
+ * efter en ny mätning. Bildtaket i `lib/aosom/` och planernas validering i
+ * `lib/polish/` läser den här, så ett nytt tal ändras på ETT ställe.
+ */
+export const WIX_MAX_BILDER_PER_PRODUKT = 50;

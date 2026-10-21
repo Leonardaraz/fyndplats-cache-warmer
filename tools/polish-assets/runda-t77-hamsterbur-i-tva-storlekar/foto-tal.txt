@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+13fe619f 0,5 räknat ur källans yttermått 100 × 52 cm minus väggarna
+13fe619f 0,36 räknat ur källans yttermått 85 × 45 cm minus väggarna

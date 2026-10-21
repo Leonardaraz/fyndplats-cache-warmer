@@ -27,6 +27,7 @@ import {
   type WixAnrop,
   WIX_STORES_APP_ID,
 } from "./skrivplan";
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 
 const HTML = "<p>Hej.</p>";
 
@@ -116,6 +117,17 @@ describe("valideraPlan", () => {
     expect(fel).toMatch(/pid börjar inte med kort/);
     expect(fel).toMatch(/förekommer två gånger/);
     expect(fel).toMatch(/sku har fel form/);
+  });
+
+  it("media: högst Wix tak (50, uppmätt 2026-10-21) — exakt taket går igenom, en bild till gör det inte", () => {
+    const bilder = (n: number) => Array.from({ length: n }, (_, i) => ({
+      id: `b379ce_${i.toString(16).padStart(32, "0")}~mv2.jpg`,
+      altText: `Bild ${i + 1}`,
+    }));
+    expect("plan" in valideraPlan(plan([produkt({ media: bilder(WIX_MAX_BILDER_PER_PRODUKT) })]))).toBe(true);
+    const v = valideraPlan(plan([produkt({ media: bilder(WIX_MAX_BILDER_PER_PRODUKT + 1) })]));
+    expect("fel" in v && v.fel.join(" ")).toMatch(new RegExp(`1–${WIX_MAX_BILDER_PER_PRODUKT} bilder`));
+    expect("fel" in valideraPlan(plan([produkt({ media: [] })]))).toBe(true);
   });
 
   it("vägrar brödtext med avslutande radbrytning — den skickas utan", () => {

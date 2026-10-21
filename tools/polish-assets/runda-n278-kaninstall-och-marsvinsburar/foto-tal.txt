@@ -1,0 +1,12 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+35930359 0,7 räknat ur källans mått på buren, 121 × 61 cm, med marginal för ramen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f75b26c4 0,7 räknat ur källans mått på rörelsehagen, 145 × 53 cm, med marginal för ramen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6e20595e 1,4 räknat ur källans mått på hagen, 120 × 120 cm, med marginal för ramen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+07b3ee0e 0,5 räknat ur källans innermått på våningen, 122 × 42 cm

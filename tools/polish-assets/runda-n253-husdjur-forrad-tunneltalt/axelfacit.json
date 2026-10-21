@@ -1,0 +1,75 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "01ac2f63": {
+  "tyska": "L122 x B92 x H108 cm",
+  "svenska": "122cm x 92cm x 108cm",
+  "bokstaver": "LBH",
+  "hojd": 108,
+  "bredd": 122,
+  "djup": 92
+ },
+ "45bd0805": {
+  "tyska": "47L x 8,5B x 12H cm",
+  "svenska": "47cm x 8,5cm x 12cm",
+  "bokstaver": "LBH",
+  "hojd": 12,
+  "bredd": 47,
+  "djup": 8.5
+ },
+ "4fb98338": {
+  "tyska": "",
+  "svenska": "60L x 30B x 35H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 60B x 30T x 35H cm | ✔ Schüssel: Ø24 x 7H cm | ✔ Einzelne Schüsselkapazität: 2 L | ✔ Schubladenraum: 53L x 23B x 21H cm | ✔ Speicherkapazität: 25 L"
+ },
+ "5121ffc8": {
+  "tyska": "Katzenplattformen mit Leiter: 136B x 29T x 8,5H cm.",
+  "svenska": "136cm x 29cm x 8,5cm",
+  "bokstaver": "BTH",
+  "djup": 29,
+  "hojd": 8.5,
+  "bredd": 136
+ },
+ "6f9fee21": {
+  "tyska": "40L x 37B x 51H cm",
+  "svenska": "40L x 37B x 51H cm",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 40,
+  "djup": 37
+ },
+ "7e140b40": {
+  "tyska": "76L x 61B x 70H cm",
+  "svenska": "76L x 61B x 70H cm",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 76,
+  "djup": 61
+ },
+ "88fa29aa": {
+  "tyska": "385L x 240B x 140H cm",
+  "svenska": "385L x 240B x 140H cm",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 385,
+  "djup": 240
+ },
+ "fe33e227": {
+  "tyska": "151,5L x 38,5B x 40H cm",
+  "svenska": "151,5cm x 38,5cm x 40cm",
+  "bokstaver": "LBH",
+  "hojd": 40,
+  "bredd": 151.5,
+  "djup": 38.5
+ },
+ "fecc1b3f": {
+  "tyska": "140L x 74B x 167/173H cm",
+  "svenska": "140L x 74B x 173H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   167,
+   173
+  ],
+  "bredd": 140,
+  "djup": 74
+ }
+}

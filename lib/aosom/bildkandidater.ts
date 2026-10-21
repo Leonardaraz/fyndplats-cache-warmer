@@ -47,7 +47,9 @@ export const STANDARD_POSITIONER: readonly number[] = [4, 5, 6, 7];
 /**
  * ☠️ Feeden har inte högst nio bilder längre. Den 2026-09-30 bar 45 av 46
  * granskade artiklar tio, och en gräns på nio slängde position 10 tyst ur
- * begäran. Taket är Wix eget: en produkt tar högst femton bilder.
+ * begäran. Femton är en marginal över feedens högsta position (tio, uppmätt
+ * 2026-09-30), inte Wix tak: en produkt tar 50 bilder (lib/wix/limits.ts,
+ * uppmätt 2026-10-21), och dessförinnan antogs taket vara femton.
  */
 export const MAX_POSITION = 15;
 export const MAX_PRODUKTER = 50;

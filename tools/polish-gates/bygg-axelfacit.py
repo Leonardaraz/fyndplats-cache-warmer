@@ -212,10 +212,20 @@ def axelpar(rad):
     # tal som hör till vilken axel, och då är inget facit ärligare än ett gissat.
     # Den svenska spec-raden på samma produkt bar dessutom en ANNAN modells mått
     # (`Modell7/88,5 x 13,5 x 56cm`), så fallbacken till den gick inte heller.
-    m = re.search(r"\(\s*([BLTH])((?:\s*[x×X]\s*[BLTH])+)\s*\)", rad)
+    #
+    # ☠️ OCH ETT INTERVALL KAN STÅ I EN EGEN PARENTES. Uppmätt i runda T44 på
+    # kontorsstolen b78d4cc6: `62 x 68 x (111 – 121) cm (L x B X H)` — höjden är
+    # ett reglage (111–121 cm) och står inom parentes, med tankstreck. Räknat
+    # rakt av gav raden FYRA tal mot tre bokstäver, alltså inga par och ett
+    # avbrott på en källa som är entydig. Ett parentetiskt intervall är ETT mått,
+    # så det läses ihop till `111-121` innan talen räknas. Raderna som inte har
+    # ett sådant intervall är oförändrade (strängen blir densamma), och förut
+    # gav just den formen alltid noll par, så ingen byggd runda kan ändras.
+    rad_n = re.sub(r"\(\s*(\d+(?:[.,]\d+)?)\s*[–—-]\s*(\d+(?:[.,]\d+)?)\s*\)", r"\1-\2", rad)
+    m = re.search(r"\(\s*([BLTH])((?:\s*[x×X]\s*[BLTH])+)\s*\)", rad_n)
     if m:
         bokstaver = [m.group(1)] + re.findall(r"[BLTH]", m.group(2))
-        talen = re.findall(TAL, rad[:m.start()])
+        talen = re.findall(TAL, rad_n[:m.start()])
         if len(talen) == len(bokstaver):
             return list(zip(talen, bokstaver))
     # Samma form på ENGELSKA, med gemena bokstäver: `80x50x100 cm (lxwxh)`,

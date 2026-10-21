@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "2437acc2",
+  "huvud_fullid": "2437acc2-5cfe-4651-b638-a1e5dab36d98",
+  "givare": "069b34de",
+  "givare_fullid": "069b34de-69ea-486b-a57a-b21c4cef6c10",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2437acc2": "Vit och grå",
+   "069b34de": "Rosa och blå"
+  }
+ }
+]

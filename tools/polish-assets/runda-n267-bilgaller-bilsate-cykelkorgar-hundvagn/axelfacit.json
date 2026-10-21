@@ -1,0 +1,50 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "11bc5205": {
+  "tyska": "",
+  "svenska": "124L x 2B x 2H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maximale Größe: 124L cm | ✔ Metallstange: Ø2 x 37,5L cm | ✔ Polyesterleine: 27L cm (Mitte) | ✔ Elastische Leine: 20-40L cm"
+ },
+ "2781e62a": {
+  "tyska": "33L x 26B x 35H cm",
+  "svenska": "33cm x 26cm x 35cm",
+  "bokstaver": "LBH",
+  "hojd": 35,
+  "bredd": 33,
+  "djup": 26
+ },
+ "9d35429e": {
+  "tyska": "43L x 30,5B x 25,5H cm",
+  "svenska": "43 x 30,5 x 25,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 25.5,
+  "bredd": 43,
+  "djup": 30.5
+ },
+ "a6a0f18c": {
+  "tyska": "100L x 64,5B x 108H cm",
+  "svenska": "100cm x 64,5cm x 108cm",
+  "bokstaver": "LBH",
+  "hojd": 108,
+  "bredd": 100,
+  "djup": 64.5
+ },
+ "b723e086": {
+  "tyska": "93-150B x 42H cm",
+  "svenska": "150cm x 5cm x 42cm",
+  "bokstaver": "BH",
+  "hojd": 42,
+  "bredd": [
+   93,
+   150
+  ]
+ },
+ "e7548cee": {
+  "tyska": "49L x 53B x 36H cm",
+  "svenska": "49m x 53m x 36m",
+  "bokstaver": "LBH",
+  "hojd": 36,
+  "bredd": 49,
+  "djup": 53
+ }
+}

@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (110 × 60 × 18 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-lager.py värdens blå färg har saldo 0 just nu, men sidan är redan publicerad och får en grå färg med saldo 98 genom sammanslagningen, så sidan blir köpbar; butiken väljer den första varianten i lager som start
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (95 × 38 × 45 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (fåtöljen 66,5 × 80 × 99 cm och fotpallen 51 × 45 × 40 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur

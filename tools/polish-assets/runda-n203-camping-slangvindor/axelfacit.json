@@ -1,0 +1,70 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "30162f21": {
+  "tyska": "210L x 150B x 110H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 110,
+  "bredd": 210,
+  "djup": 150
+ },
+ "36ac1b5e": {
+  "tyska": "37L x 20B x 36H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 36,
+  "bredd": 37,
+  "djup": 20
+ },
+ "3d9ed134": {
+  "tyska": "L44 x B22,5 x H41 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 41,
+  "bredd": 44,
+  "djup": 22.5
+ },
+ "90b6a606": {
+  "tyska": "L40 x L40 cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Überdachung' (etiketten bar ett bestämningsord)",
+  "axellos": "totalraden har tva tal utan H eller T (L40 x L40 cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "c56892d5": {
+  "tyska": "L28 x B14 x H34 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 34,
+  "bredd": 28,
+  "djup": 14
+ },
+ "d38f7805": {
+  "tyska": "93L x 55B x 68H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 68,
+  "bredd": 93,
+  "djup": 55
+ },
+ "dabd19d7": {
+  "tyska": "360L x 300B x 275H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 275,
+  "bredd": 360,
+  "djup": 300
+ },
+ "ded83a68": {
+  "tyska": "190L x 67B x 37H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 37,
+  "bredd": 190,
+  "djup": 67
+ },
+ "ea7ac3f5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße (Zelt): L193 x B145 x H180 cm | ✔ Maße (Bett): L193 x B136 x H42 cm | ✔ Maße (Matratze): L191 x B136 x H20cm | Mått: L193 x B136 x H180 cm"
+ }
+}

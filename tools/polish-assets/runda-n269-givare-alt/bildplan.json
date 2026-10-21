@@ -1,0 +1,59 @@
+{
+ "runda": "runda-n269-givare-alt",
+ "produkter": [
+  {
+   "kort": "d72e58fc",
+   "pid": "d72e58fc-7242-4919-8b45-eeaa8b9efdc8",
+   "media": [
+    {
+     "id": "b379ce_96ef9a349e1647bea2e91fb5c5d04499~mv2.jpg",
+     "altText": "Upphöjd bädd med en mörkgrå nätyta på en svart stålram med fyra ben, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d4513ceb0c264e01a5a4c398de086841~mv2.jpg",
+     "altText": "En golden retriever ligger på den mörkgrå bädden på en gräsmatta framför ett vitt staket och krukväxter"
+    },
+    {
+     "id": "b379ce_150460c7b18d4f0891dbff1cd6deea93~mv2.jpg",
+     "altText": "En golden retriever ligger på den grå bädden vid ett fönster bredvid en vit soffa, med leksaker och en matta på golvet"
+    },
+    {
+     "id": "b379ce_01012d8d8ab64da3812f8987379c829f~mv2.jpg",
+     "altText": "En labrador ligger på den mörkgrå bädden i ett vardagsrum med ett stort fönster, med en fotboll och en repleksak på golvet"
+    }
+   ]
+  },
+  {
+   "kort": "ea8b67f4",
+   "pid": "ea8b67f4-6a3a-4ff4-9cea-ea8a6a8bb09a",
+   "media": [
+    {
+     "id": "b379ce_aef2eb302e9f45d0ac3a71a5bf50c818~mv2.jpg",
+     "altText": "Hopfällbar upphöjd bädd med ljusgrå tygkant och svart nätyta på en svart stålram med handtag i hörnen, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_451ec361b35c4caba3c8ba93f9588c04~mv2.jpg",
+     "altText": "En liten vit hund ligger på den ljusgrå bädden på en stenlagd terrass, medan en kvinna sitter bredvid med en kopp"
+    },
+    {
+     "id": "b379ce_3f2bb53833b9408f85579408f4b7411f~mv2.jpg",
+     "altText": "En liten vit hund ligger på den ljusgrå bädden på en gräsmatta bredvid en stor kruka med vita blommor"
+    },
+    {
+     "id": "b379ce_6f96b9b9415744b0999a7d7c4ac57b4e~mv2.jpg",
+     "altText": "Närbild från sidan på bäddens svarta stålram och ett handtag med den ljusgrå tygkanten ovanför"
+    }
+   ]
+  },
+  {
+   "kort": "ed5d2f89",
+   "pid": "ed5d2f89-86bb-4469-9a52-a167461eb07f",
+   "media": [
+    {
+     "id": "b379ce_ae7699be2d2f491b986dfacab4e6f90b~mv2.jpg",
+     "altText": "En stor ljus hund ligger på den större bruna bädden på en stenlagd terrass, medan en kvinna sitter bredvid med en kopp"
+    }
+   ]
+  }
+ ]
+}

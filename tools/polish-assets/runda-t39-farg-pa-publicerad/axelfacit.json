@@ -1,0 +1,18 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "14fb0f98": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara en diameter: ✔ Durchmesser: 244 cm"
+ },
+ "6ae821eb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Fassungsvermögen: ca. 72 L | ✔ Gesamtmaß: L40 x B30 x H60 cm | Mått: L40 x B30 x H60 cm"
+ },
+ "affdd40e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkocher-Abmessungen: 21,4L x 15,6B x 23,3H cm | ✔ Wasserkocher-Kapazität: 1,7L"
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "04f05fad": {
+  "tyska": "180L x 80B x 75H cm (ausziehbar), 140L x 80B x 75H cm (nicht ausziehbar)",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 75,
+  "bredd": 180,
+  "djup": 80
+ },
+ "2f734f34": {
+  "tyska": "110B x 30T x 75H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 75,
+  "bredd": 110
+ },
+ "49a3bbfb": {
+  "tyska": "Ø120 x 75H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 75
+ },
+ "817e1869": {
+  "tyska": "49B x 56T x 96H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 56,
+  "hojd": 96,
+  "bredd": 49
+ },
+ "90060b2d": {
+  "tyska": "180L x 80B x 75H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 180,
+  "djup": 80
+ },
+ "c4668acc": {
+  "tyska": "93,5L x 40B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 93.5,
+  "djup": 40
+ },
+ "f49f7d80": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Ausgeklappte Abmessungen: 78,5B x 91T x 93H cm | ✔ Gefaltete Abmessungen: 78,5B x 20T x 93H cm | ✔ Tischabmessungen: 75B x 75T x 74H cm | ✔ Größe des oberen Regals: 75,5B x 18T x 14H cm | ✔ Größe des unten Regals: 75,5B x 15T x 23,5H cm/75,5B x 18T x 23,5H cm | Mått: 91L x 78,5B x 93H cm"
+ }
+}

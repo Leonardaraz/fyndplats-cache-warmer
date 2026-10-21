@@ -1,0 +1,21 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "6d35a04f": {
+  "tyska": "",
+  "svenska": "3-teilig",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 80L x 22,5B x 30H cm | ✔ Querstange: 40L cm | ✔ Höhenverstellbar: 6, 13,5, 20,5H cm | ✔ Gerades Rohrmaß: Ø25 x 1,9T mm"
+ },
+ "8ad49cfe": {
+  "tyska": "",
+  "svenska": "89 × 69 × 99 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessung: 89L x 69B x 99H cm"
+ },
+ "93d1f14d": {
+  "tyska": "53L x 30,5B x 36,5H cm",
+  "svenska": "53L x 30,5B x 36,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 36.5,
+  "bredd": 53,
+  "djup": 30.5
+ }
+}

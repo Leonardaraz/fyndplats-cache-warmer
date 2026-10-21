@@ -1,0 +1,97 @@
+{
+ "runda": "runda-t44-givare-alt",
+ "produkter": [
+  {
+   "kort": "e9ecc251",
+   "pid": "e9ecc251-73f1-49f4-a6f8-9d6ba487ca23",
+   "media": [
+    {
+     "id": "b379ce_d57aa5012e594ce9879d72cf10e8e9c7~mv2.jpg",
+     "altText": "Svart elektriskt skrivbordsstativ utan skiva, med manöverpanel bredvid"
+    },
+    {
+     "id": "b379ce_19becdda1a594f59b1fa688bf3eef5c4~mv2.jpg",
+     "altText": "Det svarta stativet med en vit skiva, två skärmar och en kvinna som går på ett gångband under skrivbordet"
+    },
+    {
+     "id": "b379ce_3da94f8d5de54c21abebd2d2a36da6f0~mv2.jpg",
+     "altText": "Två arbetsplatser med svarta stativ, en kvinna som står vid ett skrivbord och en man som sitter i en kontorsstol vid ett annat"
+    },
+    {
+     "id": "b379ce_b2f4c246fd1849bc829aa5e567cf5069~mv2.jpg",
+     "altText": "Måttskiss över det svarta stativet: höjd 70–118 cm, djup 60 cm och maxlast 100 kg, med pilar som visar att ramen kan dras ut i bredd"
+    }
+   ]
+  },
+  {
+   "kort": "9276f63e",
+   "pid": "9276f63e-c40e-4221-8a2c-cc60cfc8c407",
+   "media": [
+    {
+     "id": "b379ce_cfd0992a7b8d4c7983306b2205d215c2~mv2.jpg",
+     "altText": "Brun kontorsstol i konstläder med massagepunkter, sedd snett framifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_a355f26de08e41e6803441fe28cd0fd4~mv2.jpg",
+     "altText": "Den bruna kontorsstolen vid ett skrivbord framför bokhyllor och ett fönster i ett arbetsrum"
+    },
+    {
+     "id": "b379ce_0638f7a202a84599bda85f4e1b2cb918~mv2.jpg",
+     "altText": "Närbild på det stoppade ryggstödet i brunt konstläder"
+    },
+    {
+     "id": "b379ce_25a176c73a6d47eaabbc4d8ba6dc0ae8~mv2.jpg",
+     "altText": "Måttbild för den bruna stolen: 62 × 68 cm och 111–121 cm hög, sits 54 cm bred och sitthöjd 44–54 cm"
+    }
+   ]
+  },
+  {
+   "kort": "0ac59601",
+   "pid": "0ac59601-1ca0-45a9-9d94-875454f7a507",
+   "media": [
+    {
+     "id": "b379ce_f2be04d68e0a475f92283c2343dc9cff~mv2.jpg",
+     "altText": "Ljusgrå golvlampa med en mönstrad skärm överst, två öppna hyllor i mitten och en mönstrad låda längst ned, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_108a4e6d04d94184b65c837ab65d286e~mv2.jpg",
+     "altText": "Den tända ljusgrå golvlampan bredvid en säng med en orangebrun sänggavel i ett sovrum med mörk vägg, med en klocka och blommor på hyllorna"
+    },
+    {
+     "id": "b379ce_b23cae882fa747998bebac44d37693f4~mv2.jpg",
+     "altText": "Den tända ljusgrå golvlampan i ett vardagsrum bredvid en rosa soffa och två små runda bord, med böcker och vaser på hyllorna"
+    },
+    {
+     "id": "b379ce_35ab343c787d4d239f97401160cbb6f2~mv2.jpg",
+     "altText": "Den tända ljusgrå golvlampan i ett sovrum vid en säng med mönstrad pläd, med en klocka och blommor på hyllorna"
+    },
+    {
+     "id": "b379ce_920ea61fe8be46f0a86eca948814a673~mv2.jpg",
+     "altText": "Måttbild med lampans höjd, hyllpartiets höjd och lampans bredd och djup utsatta på bilden"
+    }
+   ]
+  },
+  {
+   "kort": "63c426d0",
+   "pid": "63c426d0-ad9e-4cd8-bca0-4575c3a99615",
+   "media": [
+    {
+     "id": "b379ce_c88f376419884b3a8ab8f73b68307740~mv2.jpg",
+     "altText": "Sittbänk med stoppad sits i grön manchester och svarta ben i stål"
+    },
+    {
+     "id": "b379ce_06a0d613e7f74020ac43642f3f7daa9b~mv2.jpg",
+     "altText": "En hand trycker på den stoppade sitsen i grön manchester"
+    },
+    {
+     "id": "b379ce_bda2efe47358437b9a00af6c59e4a5a6~mv2.jpg",
+     "altText": "Den gröna sittbänken vid fotänden av en säng, med en tidning, en burk och ett ljus på sitsen"
+    },
+    {
+     "id": "b379ce_d4fe4612194d412182772141abab6c6c~mv2.jpg",
+     "altText": "Måttbild: bänkens längd, djup och höjd och sitsens tjocklek"
+    }
+   ]
+  }
+ ]
+}

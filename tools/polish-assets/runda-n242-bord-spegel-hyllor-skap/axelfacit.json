@@ -1,0 +1,40 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1bcd1cfa": {
+  "tyska": "105L x 35B x 105H cm",
+  "svenska": "105L x 35B x 105H cm",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 105,
+  "djup": 35
+ },
+ "825c12a2": {
+  "tyska": "53B x 20T x 53H cm",
+  "svenska": "53L x 20B x 53H cm",
+  "bokstaver": "BTH",
+  "djup": 20,
+  "hojd": 53,
+  "bredd": 53
+ },
+ "98b6eb87": {
+  "tyska": "44L x 44B x 56H cm",
+  "svenska": "44L x 44B x 56H cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 44,
+  "djup": 44
+ },
+ "a67f4999": {
+  "tyska": "",
+  "svenska": "120 x 60 x 76,5 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen vollständig ausgezogen: 120B x 60T x 76,5H cm | ✔ Abmessungen halb ausgezogen: 77B x 60T x 76,5H cm | ✔ Zusammengeklappte Abmessungen: 60B x 37T x 76,5H cm | ✔ Innenmaße Schublade: 20,5B x 23,5T x 8H cm | ✔ Innenmaße Schrank: 26B x 26T x 32,4H cm | ✔ Offenes Fach: 24,5B x 26T x 68H cm"
+ },
+ "ae508a90": {
+  "tyska": "106,5B x 24T x 126,3H cm",
+  "svenska": "106,5 x 24 x 126,3 cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 126.3,
+  "bredd": 106.5
+ }
+}

@@ -64,7 +64,7 @@
 //    att importera om bilden till en NY fil (lib/wix/client.ts, image-repair).
 // 3. ☠️ HUVUDBILDEN (galleriets första) RÖRS ALDRIG, och ingen bild faller ur
 //    galleriet. En flytt ändrar aldrig antalet; en infogning stannar vid Wix
-//    tak på 15.
+//    tak (`MAX_BILDER`, 50 sedan 2026-10-21 då det mättes; dessförinnan 15).
 // 4. ☠️ STEGVIS SOM FÄRGBILDERNA (./fargbilder-kor.ts): galleriet ENSAMT
 //    (fieldMask media), sedan länkarna med options + variantsInfo ordagrant ur
 //    GET:en och `visible` (en variantsInfo-PATCH publicerar annars ett utkast),
@@ -87,6 +87,7 @@ import type { ProductMappingRecord } from "../store";
 import type { AosomRow } from "./feed";
 import type { WixAnrop } from "../polish/skrivplan";
 import { felText } from "../polish/skrivplan";
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import { isAosomMapping } from "../store/supplier";
 import { aosomArtikelbild, type AosomVariantArtikel } from "./artiklar";
@@ -117,8 +118,8 @@ import {
 
 // ── konstanter ──────────────────────────────────────────────────────────────
 
-/** Wix tak: en produkt tar högst femton bilder. */
-export const MAX_BILDER = 15;
+/** Wix tak: en produkt tar högst femtio bilder (uppmätt 2026-10-21, lib/wix/limits.ts). */
+export const MAX_BILDER = WIX_MAX_BILDER_PER_PRODUKT;
 /** Åtgärder per plan/skrivning. */
 export const MAX_PAR = 25;
 /** Mål per kandidatkörning. */
@@ -178,7 +179,10 @@ export type SkrivHinder =
   | "ar_huvudbild"
   | "redan_tva"
   | "huvudbilden_i_vagen"
-  | "plan_ogiltig";
+  | "plan_ogiltig"
+  // fargtillagg.ts (2026-10-21)
+  | "saknar_fargaxel"
+  | "ogiltig_alt";
 
 export const STATUSAR: readonly Status[] = [
   "har_som_tva", "har_annan_plats", "ar_huvudbild", "i_galleriet_olankad", "saknas", "okand",
@@ -282,7 +286,7 @@ export function miljoAlt(namn: string): string {
   return n ? `${n} i en miljöbild`.slice(0, 200) : "";
 }
 
-function fargOption(optioner: readonly SidOption[]): SidOption | null {
+export function fargOption(optioner: readonly SidOption[]): SidOption | null {
   return optioner.find((o) => lika(o.namn, "Färg")) ?? null;
 }
 
@@ -334,7 +338,7 @@ export function aosomRadFor(
   return { rad: aosom[0] };
 }
 
-const fargPaVarianten = (v: AosomVariantArtikel) => {
+export const fargPaVarianten = (v: AosomVariantArtikel) => {
   const k = Object.keys(v.choices ?? {}).find((x) => lika(x, "Färg"));
   return k ? String(v.choices[k] ?? "") : "";
 };
@@ -548,13 +552,13 @@ export async function kallorIKlump(
 }
 
 /** Fil-id → källa ur mappningens `aosomBildFiler`. Kostar ingenting. */
-function kandaKallor(rad: ProductMappingRecord | null | undefined): Map<string, string> {
+export function kandaKallor(rad: ProductMappingRecord | null | undefined): Map<string, string> {
   const ut = new Map<string, string>();
   for (const f of rad?.aosomBildFiler ?? []) if (f.fileId && f.kalla) ut.set(f.fileId, f.kalla);
   return ut;
 }
 
-const feedIndex = (rader: AosomRow[]) => new Map(rader.map((r) => [r.sku, r]));
+export const feedIndex = (rader: AosomRow[]) => new Map(rader.map((r) => [r.sku, r]));
 
 // ── rapport ─────────────────────────────────────────────────────────────────
 

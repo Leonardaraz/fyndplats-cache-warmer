@@ -1,0 +1,69 @@
+{
+ "runda": "runda-n293-givare-alt",
+ "produkter": [
+  {
+   "kort": "f8d0f2b6",
+   "pid": "f8d0f2b6-7765-4acc-a715-dfe4a4f4c5db",
+   "media": [
+    {
+     "id": "b379ce_b5c29f95741346cfb78f35e072351a20~mv2.jpg",
+     "altText": "Sköldpaddsbox med vita träpaneler och grå ram, med gallerlock över den vänstra delen och trälock över den högra, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_852eace8b2ea4c788417b0339176fdc2~mv2.jpg",
+     "altText": "Boxen med vita paneler på en gräsmatta med locket uppfällt, med växter, en sten och en sköldpadda inne i solytan och skyddsdelen till höger"
+    }
+   ]
+  },
+  {
+   "kort": "c08fd055",
+   "pid": "c08fd055-9337-4aa1-8871-76398b895924",
+   "media": [
+    {
+     "id": "b379ce_4064a7d9a7f14cd5bc00971fdf5675c5~mv2.jpg",
+     "altText": "Sköldpaddsbox av ljust naturträ med gallerlock över den vänstra delen och trälock över den högra, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0dbecd239e4c4f46adaa0d64e1fe23a2~mv2.jpg",
+     "altText": "Boxen i naturträ på en gräsmatta med locket uppfällt, med växter, en sten och en sköldpadda inne i solytan och skyddsdelen till höger"
+    }
+   ]
+  },
+  {
+   "kort": "7480b509",
+   "pid": "7480b509-9150-47eb-8558-a15e570625b4",
+   "media": [
+    {
+     "id": "b379ce_2296c967f8714fe58d44a8dc5477d61a~mv2.jpg",
+     "altText": "Sköldpaddshus i två våningar med grått trä och vit ram, med ett skyddshus med spetsigt tak till vänster, nätlock över solplatsen och ett lampstativ, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_b343eebd24e74694afd338a5aacdd025~mv2.jpg",
+     "altText": "Huset på ett träbord framför en gardin i solljus, med en tavla med en sköldpadda bakom, en växt bredvid och flera sköldpaddor i den nedre delen"
+    },
+    {
+     "id": "b379ce_8393cbb5c709466ea0b379dc9ee1c961~mv2.jpg",
+     "altText": "Närbild på huset med grått tak och en grå dörr på skyddshuset, med en svart hasp på den vita ramen"
+    },
+    {
+     "id": "b379ce_fa6c6b2b0fd4411dac6ea458573b9d47~mv2.jpg",
+     "altText": "Huset på ett träbord vid ett fönster, med en hängande växt, en hylla och en tavla bakom, och en värmelampa på lampstativet"
+    }
+   ]
+  },
+  {
+   "kort": "636e14f1",
+   "pid": "636e14f1-f805-432c-8b9b-e6463af35ca8",
+   "media": [
+    {
+     "id": "b379ce_df0e2c74c9074c0a905d39edd5e82ba5~mv2.jpg",
+     "altText": "Det höga terrariet på en vit hylla framför en grå vägg, med en termometerremsa på glaset, en grön skål och en liten sköldpadda på botten"
+    },
+    {
+     "id": "b379ce_b450bcaf68b840409e9b7ec8532ba317~mv2.jpg",
+     "altText": "Måttbild på det höga terrariet med måtten 50, 30 och 35 cm och vattenkaret på 15,4 cm, med en orange ödla på en sten"
+    }
+   ]
+  }
+ ]
+}

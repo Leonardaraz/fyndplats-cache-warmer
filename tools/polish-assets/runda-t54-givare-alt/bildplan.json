@@ -1,0 +1,23 @@
+{
+ "runda": "runda-t54-givare-alt",
+ "produkter": [
+  {
+   "kort": "e0593c23",
+   "pid": "e0593c23-0114-4a33-91da-5395b33197b7",
+   "media": [
+    {
+     "id": "b379ce_61744fb70dc04f348c150d6520af42bb~mv2.jpg",
+     "altText": "Det högre ljusträdet i flerfärgat ljus på en innergård i skymning, med en bänk, ett runt bord och blommor"
+    },
+    {
+     "id": "b379ce_36546e6960fb4b16b10c9ea459f66812~mv2.jpg",
+     "altText": "Det högre ljusträdet lyser varmvitt på en snöig innergård bredvid två julgranar och julklappar"
+    },
+    {
+     "id": "b379ce_1dbbcc357cb14180bafed88c66be2ef6~mv2.jpg",
+     "altText": "Måttbild: ljusträdet på 180 cm är 180 cm högt och 60 cm brett"
+    }
+   ]
+  }
+ ]
+}

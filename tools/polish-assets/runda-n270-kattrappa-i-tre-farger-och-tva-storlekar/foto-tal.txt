@@ -1,0 +1,7 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4d9ba658 4,5 viktgränsen står på en infografik bland produktbilderna (feedposition 4) och är lägre än 5 kg i den tyska texten; den lägre gränsen anges av säkerhetsskäl
+4d9ba658 18 steghöjd avläst på måttbilden för tre steg (grå)
+4d9ba658 33 steghöjd avläst på måttbilden för tre steg (grå)
+4d9ba658 30 steghöjd avläst på måttbilden för fyra steg (grå)
+4d9ba658 45 steghöjd avläst på måttbilden för fyra steg (grå)

@@ -1,0 +1,95 @@
+{
+ "runda": "runda-t67-givare-alt",
+ "produkter": [
+  {
+   "kort": "cd916063",
+   "pid": "cd916063-acd8-4f35-85c8-602211ba68db",
+   "media": [
+    {
+     "id": "b379ce_944e4c8296204b9e94609adea510420e~mv2.jpg",
+     "altText": "Utdragbar hundgrind i naturfärgad furu med stålnät, fristående på två stödfötter, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_19ae031ae37c4decac0db5327354e1f8~mv2.jpg",
+     "altText": "En liten hund ligger framför den naturfärgade furugrinden i ett ljust vardagsrum med fönster, en matta och en bokhylla"
+    },
+    {
+     "id": "b379ce_5ccbba746b324d60a125e02d0d8a4c31~mv2.jpg",
+     "altText": "Närbild på stödfoten i naturfärgad furu där träramen möter golvet, med stålnätet ovanför"
+    }
+   ]
+  },
+  {
+   "kort": "ffaf38f9",
+   "pid": "ffaf38f9-0b1e-4a5f-ab3a-40e90669c95e",
+   "media": [
+    {
+     "id": "b379ce_79d8aa252b894ea0b65e5bc003339ba7~mv2.jpg",
+     "altText": "Hundgrind i naturfärgad furu med fyra paneler uppställd i sicksack, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d7b2c17f8e5e4bcdab5036240f22bc92~mv2.jpg",
+     "altText": "En långhårig hund ligger framför den naturfärgade furugrinden i ett ljust rum med en bokhylla och en rund spegel"
+    },
+    {
+     "id": "b379ce_b66a4462b6214f9fae5162688e289160~mv2.jpg",
+     "altText": "Närbild på hörnet av grinden i naturfärgad furu med spjälor och en gångjärnsdel, mot ett trägolv"
+    }
+   ]
+  },
+  {
+   "kort": "704897c9",
+   "pid": "704897c9-67f7-4688-9c8c-01558c69d247",
+   "media": [
+    {
+     "id": "b379ce_29023ae1841e4d569f50c8500f27da28~mv2.jpg",
+     "altText": "Vit dörrgrind för hund i stål med dörr i mitten, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_fdae3c402fbf4430939211fc11e9f4e5~mv2.jpg",
+     "altText": "En border collie sitter vid den vita dörrgrinden i en hall med en matta, en växt och en bänk"
+    },
+    {
+     "id": "b379ce_1e96ff0b76044b0eaaa4c65e7596e971~mv2.jpg",
+     "altText": "En beagle sitter vid den vita dörrgrinden som är monterad i en dörröppning mellan två rum"
+    }
+   ]
+  },
+  {
+   "kort": "c71cae54",
+   "pid": "c71cae54-7be5-4403-8936-0f62bd94fe3e",
+   "media": [
+    {
+     "id": "b379ce_58fbbca4b38148dabd3ad28cde9f2ac9~mv2.jpg",
+     "altText": "Bred vit dörrgrind för hund i stål med dörr, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_e9b07255dcb648c8b90cf9368345f663~mv2.jpg",
+     "altText": "En border collie sitter framför den breda vita dörrgrinden i en hall med en växt vid väggen"
+    },
+    {
+     "id": "b379ce_aa7eb7e7db5d4892a964a1fc41182cf4~mv2.jpg",
+     "altText": "En liten brun och vit hund sitter vid den vita dörrgrinden i en dörröppning mot ett rum med växter"
+    }
+   ]
+  },
+  {
+   "kort": "fa5b8baf",
+   "pid": "fa5b8baf-bc86-4e52-9f0a-58d684113abd",
+   "media": [
+    {
+     "id": "b379ce_a2416f6cfef842298e963492f3f04022~mv2.jpg",
+     "altText": "Ljusblå hundtrappa i furuträ med tre steg klädda med grå matta och inbyggd förvaring, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_e2b416eb6a6d45c79f5b17691f2f1572~mv2.jpg",
+     "altText": "En kvinna sitter i en grå soffa medan en liten långhårig hund går uppför den ljusblå hundtrappan"
+    },
+    {
+     "id": "b379ce_8babae44b78b45fe978a60bde0ace2bc~mv2.jpg",
+     "altText": "En liten vit hund går uppför den ljusblå trappan intill en säng där en kvinna sitter"
+    }
+   ]
+  }
+ ]
+}

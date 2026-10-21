@@ -1,0 +1,23 @@
+{
+ "runda": "runda-n230-givare-alt",
+ "produkter": [
+  {
+   "kort": "6e518fc6",
+   "pid": "6e518fc6-a4d6-4df9-9214-216dfb5b085e",
+   "media": [
+    {
+     "id": "b379ce_b7cba339a1be4c26ace0897e62b1f585~mv2.jpg",
+     "altText": "Orange Land Rover Defender som elbil för barn med takljus, strålkastare och vinsch på fronten, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6085e165842448ed9bf746cdffcbffa3~mv2.jpg",
+     "altText": "En flicka i rosa klänning kör den orange elbilen på en grusväg med en man som går bakom, i ett grönt landskap"
+    },
+    {
+     "id": "b379ce_fe5a1a6d455045399027a4c12e2868f5~mv2.jpg",
+     "altText": "Ett barn i en blommig tröja sitter i den orange elbilen på en ljus uppfart framför ett vitt hus med svarta fönster och en trädörr"
+    }
+   ]
+  }
+ ]
+}

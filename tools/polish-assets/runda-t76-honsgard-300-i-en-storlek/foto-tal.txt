@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9158341c 108 avläst på måttbilden (bild 3): takfotens höjd 108 cm
+9158341c 1,9 avläst på måttbilden (bild 3): rörets diameter 1,9 cm
+9158341c 19 avläst på kortet (bild 6): rörets diameter 19 mm

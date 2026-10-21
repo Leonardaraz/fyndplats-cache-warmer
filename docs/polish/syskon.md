@@ -211,9 +211,25 @@ med `variantsInfo` ordagrant och `visible` explicit, med
 galleri. Utan `visible` kan en variantsInfo-PATCH publicera ett utkast.
 
 Läs tillbaka efteråt: variant-id, SKU och pris ska vara oförändrade, och varje val ska ha
-sin bild. Finns inget foto i färgen flaggar du till Leonard. Lägg aldrig en annan färgs bild
-på valet.
+sin bild. Finns inget foto i färgen flaggar du till Leonard när sidan är dold, och tar bort
+färgen när sidan är publicerad (runbookens avsnitt *Varje färg har sin egen bild*). Lägg
+aldrig en annan färgs bild på valet. Fotot till en AliExpress-sida letar du upp med
+workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
 
 Den 27 september 2026 rättades trehjulingen 6-i-1 på det sättet. Skoskåpet med tre speglade
 luckor (vit), tunnelväxthuset 597 × 295 cm (vit) och dieselvärmaren till husbil (röd, blå)
-saknar foto i färgen och är flaggade.
+stod flaggade i fyra veckor, tills Leonard såg dem i Wix 2026-10-21. Ingen av listningarna
+hade ett foto i färgen, så färgerna togs bort och sidorna är enfärgade. Samma dag fick
+hamsterburens mörkgrå och tältets blå (ett färgkort byggt ur leverantörens SKU-bild) sina
+egna bilder, och plåtbodens gröna kopplades. Plåtbodens bruna saknar foto överallt, och
+sidan är dold.
+
+**Fler bilder till ett färgval (2026-10-21).** Ett val som visar fyra bilder eller färre
+får fler foton ur leverantörens egen uppsättning, länkade till färgen. På en sammanslagen
+Aosom-sida gör **"Bilder — fler bilder till en färg på en sammanslagen Aosom-sida"**
+(`aosom-fargtillagg.yml`, lägena `kandidater`, `plan` och `skriv`) det med feedens position 3,
+8, 9 och 10 för färgens egen artikel. En människa tittar på varje kandidat före `plan`, och
+den nya bilden läggs efter färgens sista bild utan att något tas bort. På en AliExpress-sida
+skriver du galleriet och länkarna själv enligt stycket ovan. Strandparasollen `57988115` var
+piloten: Grön gick från två till fem bilder och Blå från fyra till sju, mätt live per färg.
+Se CLAUDE.md, *Färgval med få bilder*.

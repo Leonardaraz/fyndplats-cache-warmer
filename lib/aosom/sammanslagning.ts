@@ -124,8 +124,9 @@ export interface SammanslagningInput {
    * regler (lib/aosom/fargbilder.ts): givarens egna kort följer inte med, och
    * en OPOLERAD givares bilder från position 2 skrivs inte utan sparas som
    * `granskas` i färgbildstabellen — 46 % av feedens bilder bär tysk text
-   * inbränd. Det som inte ryms under Wix tak på 15 bilder sparas i tabellen
-   * (`overflow`), och butiken visar det därifrån. En ny storlek i en färg sidan
+   * inbränd. Det som inte ryms under Wix tak (`WIX_BILDTAK`, 50 bilder per
+   * produkt) sparas i tabellen (`overflow`), och butiken visar det därifrån
+   * (den gör det ännu inte). En ny storlek i en färg sidan
    * redan har tar inga bilder, för den visar samma vara.
    */
   bilder?: number[];
@@ -160,7 +161,7 @@ export interface SammanslagningDeps {
   /** Givarens obehandlade ordrar (väntar på att läggas hos Aosom). */
   oppnaOrdrar?: (wixProductId: string) => Promise<number>;
   /**
-   * Färgbildstabellen. Obligatorisk: den nya färgens bilder utöver Wix 15 bor
+   * Färgbildstabellen. Obligatorisk: den nya färgens bilder utöver Wix tak bor
    * bara där, och en valfri dep glöms av nästa anropare (media-cleanup.ts).
    */
   fargbilder: FargbildLager;
@@ -204,7 +205,7 @@ export interface SammanslagningPlan {
   bilderBehall: number;
   /** Givarens bilder som hamnar i sidans galleri. */
   bilderUtkast: number;
-  /** Givarens bilder som inte ryms under Wix 15 — de sparas i färgbildstabellen. */
+  /** Givarens bilder som inte ryms under Wix tak — de sparas i färgbildstabellen. */
   bilderOverflow: number;
   /** Opolerade givarbilder från position 2: sparas som `granskas`, skrivs inte. */
   bilderGranskas: number;
@@ -473,7 +474,7 @@ export interface GivarFordelning {
   lista: string[];
   /** Bilder som läggs till i galleriet, med alt-text. */
   nya: { id: string; altText: string }[];
-  /** Utöver Wix 15: bara i färgbildstabellen. */
+  /** Utöver Wix tak: bara i färgbildstabellen. */
   overflow: string[];
   /** Opolerad givare, position 2 och senare: sparas men skrivs inte. */
   granskas: string[];
@@ -826,7 +827,7 @@ export function planeraSammanslagning(input: SammanslagningInput, l: Sammanslagn
     const huvud = input.bilder?.length ? bilderUtkast[(input.bilder[0] ?? 0) - 1]?.id : bilderUtkast[0]?.id;
     if (!f.ogiltiga && huvud && !f.lista.includes(huvud)) hindra("galleriet_fullt");
     if (f.overflow.length > 0) {
-      varningar.push(`${f.overflow.length} av givarens bilder ryms inte under Wix 15 — de sparas i färgbildstabellen`);
+      varningar.push(`${f.overflow.length} av givarens bilder ryms inte under Wix tak på ${WIX_BILDTAK} — de sparas i färgbildstabellen`);
     }
   }
   if (bilderAv(wp).length === 0) hindra("behall_saknar_bilder");
@@ -1376,7 +1377,7 @@ export async function korSammanslagning(
   // ── 3b: den nya färgens hela bildlista i färgbildstabellen ─────────────
   // Före mappningen, med flit: faller tabellen hamnar omkörningen i
   // `wix_klar` och skriver den igen. Efter mappningen och pensioneringen
-  // hade ingen omkörning sett att bilderna utöver Wix 15 aldrig sparades.
+  // hade ingen omkörning sett att bilderna utöver Wix tak aldrig sparades.
   const nyttBildval = plan.nyttVal[bAx];
   if (nyttBildval && fordelning.lista.length > 0) {
     const efterP = await lasProdukt(deps.wix, input.behall);
@@ -1400,7 +1401,7 @@ export async function korSammanslagning(
       return svar(false, `färgbildstabellen föll: ${felText(e)} — mappningen skrevs INTE. Kör om.`);
     }
     steg.push(
-      `färgbilder: ${fordelning.lista.length} i galleriet, ${fordelning.overflow.length} utöver Wix 15, `
+      `färgbilder: ${fordelning.lista.length} i galleriet, ${fordelning.overflow.length} utöver Wix tak, `
         + `${fordelning.granskas.length} att granska (i tabellen)`,
     );
   }

@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "2c2e45d1",
+  "huvud_fullid": "2c2e45d1-9267-454b-87e8-00b3e693e4a3",
+  "givare": "1bfcf297",
+  "givare_fullid": "1bfcf297-a653-4788-a2f9-de7f7e2b3184",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2c2e45d1": "Grön",
+   "1bfcf297": "Gul"
+  }
+ }
+]

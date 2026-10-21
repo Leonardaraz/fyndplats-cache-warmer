@@ -3,7 +3,7 @@ name: Bilder — ge varje farg pa en sammanslagen sida alla sina bilder
 # Sammanslagningen lade bara givarens FORSTA bild pa sidan. Givaren ligger
 # kvar dold med resten, och kan raderas fran ungefar 2026-10-11. Den har
 # workflowen flyttar alla bilderna: varje farg far sina egna, lankade, och det
-# som inte ryms under Wix tak pa 15 bilder sparas i motorns fargbildstabell,
+# som inte ryms under Wix tak pa 50 bilder sparas i motorns fargbildstabell,
 # som butiken laser. Logiken: lib/aosom/fargbilder.ts.
 #
 #   plan   Raknar fram planen. Skriver ingenting. Skriver ut planens sha.
@@ -148,7 +148,7 @@ jobs:
                 "| hindrade | \(.summa.hindrade) |",
                 "| nya bilder i gallerierna | \(.summa.nyaIGalleriet) |",
                 "| olankade foton som flyttas till tabellen | \(.summa.urGalleriet) |",
-                "| utover Wix 15 (i tabellen) | \(.summa.overflow) |",
+                "| utover Wix tak (i tabellen) | \(.summa.overflow) |",
                 "| att granska (skrivs inte) | \(.summa.granskas) |",
                 "| nya svenska alt-texter | \(.summa.altNya) |",
                 "| med granskade | \(.taMedGranskade) |",

@@ -1,0 +1,10 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+719ed522 88 lilla takets mått, 0,88 m, läst på måttbilden
+719ed522 0,88 lilla takets mått läst på måttbilden
+719ed522 174 den snedställda kanten, 1,74 m, läst på måttbilden
+719ed522 1,74 den snedställda kanten läst på måttbilden
+719ed522 18 kanthöjden, 0,18 m, läst på måttbilden
+719ed522 0,18 kanthöjden läst på måttbilden

@@ -1,0 +1,32 @@
+[
+ {
+  "host": "12401205",
+  "donor": "d72e58fc",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "4",
+   "7",
+   "10"
+  ]
+ },
+ {
+  "host": "c3d1fa41",
+  "donor": "ea8b67f4",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "5",
+   "10"
+  ]
+ },
+ {
+  "host": "c3d1fa41",
+  "donor": "ed5d2f89",
+  "bilder": "1",
+  "kallpositioner": [
+   "2"
+  ]
+ }
+]

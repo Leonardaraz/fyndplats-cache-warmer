@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "ded83a68",
+  "huvud_fullid": "ded83a68-2af4-4eb8-b710-603a227c1a40",
+  "givare": "764852d8",
+  "givare_fullid": "764852d8-23e5-4889-8537-34ebc2302594",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "ded83a68": "Svart",
+   "764852d8": "Ljusgrå"
+  }
+ }
+]

@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "b2bddc3e",
+  "huvud_fullid": "b2bddc3e-b083-4fff-88d7-d895bb8c04b0",
+  "givare": "9c6fde71",
+  "givare_fullid": "9c6fde71-3b40-41f3-8cb9-6401fa31de2b",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "b2bddc3e": "Svart",
+   "9c6fde71": "Vit"
+  }
+ }
+]

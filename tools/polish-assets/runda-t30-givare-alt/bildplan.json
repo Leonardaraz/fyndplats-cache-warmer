@@ -1,0 +1,117 @@
+{
+ "runda": "runda-t30-givare-alt",
+ "produkter": [
+  {
+   "kort": "41326448",
+   "pid": "41326448-c996-41ed-9d9d-e09abb74e375",
+   "media": [
+    {
+     "id": "b379ce_bf8596ba9a6a45d5bc0faf39eb40bd34~mv2.jpg",
+     "altText": "Ljusgrått skoskåp med ljus topskiva och den nedre klappluckan nedfälld, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_3b61fe82ba0a4db2a233f3fa852fb2c6~mv2.jpg",
+     "altText": "Det ljusgrå skoskåpet uppställt i en hall under en hylla med krokar, med skor i den nedfällda luckan"
+    },
+    {
+     "id": "b379ce_dc9d6a5321b84d5fa7e63ee027bef1f2~mv2.jpg",
+     "altText": "Det ljusgrå skoskåpet i en hall med skor i den nedfällda luckan och en papperspåse på golvet"
+    },
+    {
+     "id": "b379ce_91a0479f99224eea8dd98d453d237537~mv2.jpg",
+     "altText": "Det ljusgrå skoskåpet med måtten 72 × 26 × 80 cm och luckans bredd 57 cm"
+    }
+   ]
+  },
+  {
+   "kort": "efa28899",
+   "pid": "efa28899-a266-455f-99d5-22055c8b469b",
+   "media": [
+    {
+     "id": "b379ce_ff033745041b458aa8c381e632dd6e44~mv2.jpg",
+     "altText": "Vitt skoskåp med ljus topskiva och två stängda klaffluckor, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_2e7a0bee09544db7aae2e5961873ad89~mv2.jpg",
+     "altText": "Det vita skoskåpet i en hall med en ryggsäck ovanpå, en jacka på en krok och ett paraplyställ bredvid"
+    },
+    {
+     "id": "b379ce_fabee15a6b6844228142500d013140e2~mv2.jpg",
+     "altText": "Närbild på skoskåpets topskiva i ljus träfärg och den vita kanten"
+    },
+    {
+     "id": "b379ce_5acb35a3b27e485cbc4372c6da6b6e1c~mv2.jpg",
+     "altText": "Det vita skoskåpet med måtten 72 × 26 × 80 cm"
+    }
+   ]
+  },
+  {
+   "kort": "05a110dc",
+   "pid": "05a110dc-c881-4008-a5b4-4b21b13c372d",
+   "media": [
+    {
+     "id": "b379ce_aed1e18ae8ec4cfb905812fd165431a2~mv2.jpg",
+     "altText": "Rosa kantskydd till en rund studsmatta mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "kort": "4b3724d2",
+   "pid": "4b3724d2-de81-4d5f-8214-bc102337c9b0",
+   "media": [
+    {
+     "id": "b379ce_efe692e96c094ffea9a5246706ea0743~mv2.jpg",
+     "altText": "Det grundare svarta växthuset på 192 × 131 cm med takfönstret öppet uppåt, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_23ed98c0504b4c248c2e5c420663ae48~mv2.jpg",
+     "altText": "Det grundare växthuset på en uteplats vid en husvägg, med krukväxter utanför och en hylla med växter innanför"
+    },
+    {
+     "id": "b379ce_a9be763c4b5e47e9a1422d7636c15b50~mv2.jpg",
+     "altText": "Närbild på växthusets tak med takfönstret och de dubbelväggiga polykarbonatskivorna"
+    },
+    {
+     "id": "b379ce_450836b66a2d4513bc639b6bc27a64f0~mv2.jpg",
+     "altText": "Måttskiss av det grundare växthuset, 192 × 131 × 203 cm, med takfönstret"
+    }
+   ]
+  },
+  {
+   "kort": "1ec62247",
+   "pid": "1ec62247-1c6a-4a47-84b5-382ad48a5185",
+   "media": [
+    {
+     "id": "b379ce_736e41a74bff4486b979f0189b06b29b~mv2.jpg",
+     "altText": "Grönt tunnelväxthus på 300 × 200 cm med svart solskyddsnät över taket och upprullade sidoväggar, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6f3963387250417c90ee7125d2850234~mv2.jpg",
+     "altText": "Tunnelväxthuset på 300 × 200 cm med solskyddsnät och upprullad dörr på en gräsmatta, med en kruka blommor utanför"
+    },
+    {
+     "id": "b379ce_40a1f576ce57433f833d5a598f1c19a7~mv2.jpg",
+     "altText": "Måttskiss av tunnelväxthuset på 300 × 200 × 198 cm"
+    }
+   ]
+  },
+  {
+   "kort": "b789640e",
+   "pid": "b789640e-9b6a-4326-be78-612a2aee0ffb",
+   "media": [
+    {
+     "id": "b379ce_e511fd3191164821993e3a29e9121d81~mv2.jpg",
+     "altText": "Grönt tunnelväxthus på 400 × 300 cm med svart solskyddsnät över taket och upprullade sidoväggar, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_96f8d2a1816e4326a7761955893ea3be~mv2.jpg",
+     "altText": "Tunnelväxthuset på 400 × 300 cm med solskyddsnät och upprullad dörr på en gräsmatta, med en kruka blommor utanför"
+    },
+    {
+     "id": "b379ce_2bc808739af240dfb7fd03c624b456be~mv2.jpg",
+     "altText": "Måttskiss av tunnelväxthuset på 400 × 300 × 198 cm"
+    }
+   ]
+  }
+ ]
+}

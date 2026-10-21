@@ -1,0 +1,58 @@
+{
+  "_": "Omgång 1 på Aosom-sidor (2026-10-21 ~21:05–21:18 UTC): granskade bilder ur färgens egen givare (redan i Media Manager), skrivna med tools/polish-gates/skriv-fargbilder.js. Alla 18 sidor lästes tillbaka i Wix utan avvikelser och mättes live (tools/polish-gates/kolla-live-farg.py). 834c66fd (Grå) och e76a4098 (Ljusgrå) har ett utsnitt av givarens bild (Wix crop-adress, dHash 0 mot lokalt utsnitt). Tre bilder har \"struken\": måttbilden med 240 kg på f1878c34 och givarens kort och måttritning på 44663e99 sa emot sina sidors text och togs bort samma kväll med bilder-bort.yml (CLAUDE.md, Färgval med få bilder).",
+  "sidor": [
+    { "id": "f1878c34-325c-4442-b78e-c89a604389f8", "bilder": [
+      { "val": "Blå", "fil": "b379ce_e7f5c59185624b73b5970f6c3d5f4cee~mv2.jpg", "alt": "Kvinna med hörlurar och randig tröja sitter i den blå soffan i ett ljust vardagsrum" },
+      { "val": "Blå", "fil": "b379ce_fb8ef783645d4d959d4b2efb4814c284~mv2.jpg", "alt": "Den blå soffan med knappad rygg och träben i ett ljust rum med en grå matta" },
+      { "val": "Blå", "fil": "b379ce_b12eb11ffe59432bbf0a25513977316a~mv2.jpg", "alt": "Närbild på soffans träben med ett filtunderlägg mot en mörk bakgrund" },
+      { "val": "Blå", "fil": "b379ce_a62e197790fb4bd9ac5484f2ddffc9bb~mv2.jpg", "alt": "Måttbild på den blå soffan med mått i centimeter och belastning 240 kg", "struken": "måttbilden anger 240 kg, sidan säger 100 kg per sits; borttagen 2026-10-21 med bilder-bort.yml" } ] },
+    { "id": "4f21c7c1-7b70-4539-ae16-346c7210ef06", "bilder": [
+      { "val": "Gräddvit", "fil": "b379ce_372a413ba82f466b8cb10d91fe013c5a~mv2.jpg", "alt": "Kvinna i beige tröja sitter i den gräddvita soffan med en valp bredvid sig i ett vardagsrum" },
+      { "val": "Mörkgrå", "fil": "b379ce_2e0c2900877247d4b4bf313289b02c72~mv2.jpg", "alt": "Kvinna i beige tröja sitter i den mörkgrå soffan med en valp bredvid sig i ett vardagsrum" },
+      { "val": "Turkos", "fil": "b379ce_8f37c1eb7651442a947681a38c335996~mv2.jpg", "alt": "En hand trycker mot sitsen på den turkosa soffan och visar det mjuka tyget" },
+      { "val": "Rosa", "fil": "b379ce_64105f4533d64a03914eeeeba288aec6~mv2.jpg", "alt": "Närbild på den rosa soffans lodräta fåror i ryggen" },
+      { "val": "Rosa", "fil": "b379ce_712ddbf0864047e19957ae8ec2bdff70~mv2.jpg", "alt": "Måttskiss av den rosa soffan: 117 cm bred, 56,5 cm djup och 77 cm hög" } ] },
+    { "id": "44663e99-f22d-4350-be14-208d3d1a9d0d", "bilder": [
+      { "val": "Grå", "fil": "b379ce_6b8317e9ff904e24952fc549f3cd5dbe~mv2.png", "alt": "Faktakort: de fyra delarna med mått i centimeter, av spånskiva, plysch och sisal", "struken": "givarens kort: trappan 38 × 20 × 2,8 mot sidans 38 × 22 × 12, och värdens eget kort visas redan för alla färger; borttagen 2026-10-21 med bilder-bort.yml" },
+      { "val": "Grå", "fil": "b379ce_09596b0d20ef402eac6aa0b9230c6e54~mv2.jpg", "alt": "Måttritning över de grå plattformarna, korgen och stegen med mått i centimeter", "struken": "måttritningen: trappan 38 × 20 mot sidans 38 × 22 × 12; borttagen 2026-10-21 med bilder-bort.yml" },
+      { "val": "Grå", "fil": "b379ce_4e6996fa78744f45b90324ba6b693ebc~mv2.png", "alt": "Två katter klättrar mellan de grå väggmonterade delarna" } ] },
+    { "id": "f384c51d-b404-469b-9b41-a2f48690b619", "bilder": [
+      { "val": "Mörkbrun", "fil": "b379ce_8779abdfe51040f0aa0e54236c787ced~mv2.jpg", "alt": "Faktakort: hundtrappa med fyra steg, mörkbrun stomme med bruna stegdynor, mått 40 × 59 × 54,2 cm och högsta last 30 kg" },
+      { "val": "Mörkbrun", "fil": "b379ce_02677eb1ff594a0d80d65fd1776be7ae~mv2.jpg", "alt": "De bruna stegdynorna sedda uppifrån, med trappans mörka kant" },
+      { "val": "Mörkbrun", "fil": "b379ce_cf1fa6e4720a4877ace93f23a4852c06~mv2.jpg", "alt": "Närbild på översta steget där den bruna dynan ligger an mot den mörka stommen" },
+      { "val": "Mörkbrun", "fil": "b379ce_6f75c458ede7423aa798a4e1aac86dd5~mv2.jpg", "alt": "Måttritning för hundtrappan med steghöjder 14,3, 27,6, 40,9 och 54,2 cm" } ] },
+    { "id": "c23dab52-7d10-415a-9071-4712d1b979c8", "bilder": [
+      { "val": "Vit", "fil": "b379ce_e8850b4c778f4806a443c62d748d8634~mv2.jpg", "alt": "Måttbild med det vita bordet hopfällt och utfällt, mått i centimeter och belastning 40 kg" } ] },
+    { "id": "5f0ffe74-b2ed-45b4-abdc-30464a932218", "bilder": [
+      { "val": "Svart", "fil": "b379ce_2d9f7b273cb34901ae166f278bbf1563~mv2.jpg", "alt": "Måttbild över det svarta handduksstället: 86 cm högt, 45 cm brett och 22,5 cm djupt" } ] },
+    { "id": "7698b476-4937-4775-b81f-00a67f933d6b", "bilder": [
+      { "val": "Gräddvit", "fil": "b379ce_7c1b97093ce242ca96e04f80d1917167~mv2.jpg", "alt": "Närbild på en plastknut och ett stålrör i hörnet av hyllplanet, med en hatt på hyllan" } ] },
+    { "id": "e4367833-2a04-4460-abe6-b216bb699818", "bilder": [
+      { "val": "Ljusgrå", "fil": "b379ce_8d7ab7c62f444343b7baef15d70311b7~mv2.jpg", "alt": "Närbild på grindens stödfot och de ljusgrå spjälorna" } ] },
+    { "id": "b8002629-89d6-4409-b429-ad6b612d734c", "bilder": [
+      { "val": "Genomskinlig", "fil": "b379ce_7200d9cb687040b4bfb87ee6ba9c2bde~mv2.jpg", "alt": "Måttbild över entrétaket: 100 cm brett, 75 cm djupt och 23 cm högt" } ] },
+    { "id": "08b40e95-8eb5-444c-8191-7a84a8321426", "bilder": [
+      { "val": "Svart och linne", "fil": "b379ce_78024f59c87f4ed78036c41b9ea1ca2e~mv2.jpg", "alt": "Måttbild på golvlampan med höjd 133–168 cm, skärmens diameter 40 cm och fotens diameter 28 cm" } ] },
+    { "id": "4791575c-06c7-46a1-b53c-3efaf820236c", "bilder": [
+      { "val": "Rosa", "fil": "b379ce_551cf474c0f34689b7ee8e0a01fd4090~mv2.jpg", "alt": "Måttbild på den rosa fåtöljen stående och med nedfällt ryggstöd och utfälld fotstöd, mått i centimeter" } ] },
+    { "id": "638f2110-21f1-42cc-90b3-050a1b256d95", "bilder": [
+      { "val": "Röd/gul/blå/grön", "fil": "b379ce_0f1b3fbb5c6242e289a28caf0408d1ce~mv2.jpg", "alt": "Måttbild på de fyra skumklossarna med mått i centimeter" } ] },
+    { "id": "834c66fd-8231-4df3-8fb1-1967189c8861", "bilder": [
+      { "val": "Grå", "fil": "b379ce_b901eb20a53c4fc4ab1a5623c54e7d92~mv2.jpg", "alt": "Det grå metallskjulet med öppen skjutdörr på en trätrall framför ett hus, med en cykel och en gräsklippare inne i skjulet" },
+      { "val": "Grå", "fil": "b379ce_35b6cb8b74144dafb4ac16b3c651a6e7~mv2.jpg", "alt": "Närbild på två ventilationsöppningar i gaveln på det grå metallskjulet", "utsnitt": "x_250,y_440,w_1500,h_1500 av b379ce_6c068e2173c2490b8e1bfe1ebc985cd7~mv2.jpg (rubrikraden uppe i bilden bär tysk text)" },
+      { "val": "Grå", "fil": "b379ce_4e7e02f5cec540319af091f03514a060~mv2.jpg", "alt": "Det grå metallskjulet med öppen dörr i en trädgård med gräsmatta och ett grönt staket" } ] },
+    { "id": "eeb4a919-921f-4397-885f-51f69817e6d4", "bilder": [
+      { "val": "Grön", "fil": "b379ce_fe7ae15901eb4a728135a3174342b123~mv2.jpg", "alt": "Den gröna trehjulingen med kalesch, skjutstång och förvaringskorg, med måtten 106, 50 och 95 cm" },
+      { "val": "Grå", "fil": "b379ce_b09b08e4633a441b9acd2c799d79eb09~mv2.jpg", "alt": "Den grå trehjulingen med kalesch, skjutstång och förvaringskorg, med måtten 106, 50 och 95 cm" },
+      { "val": "Rosa", "fil": "b379ce_4029122dd0d64e7394263c1d6272ae93~mv2.jpg", "alt": "Den rosa trehjulingen med kalesch, skjutstång och förvaringskorg, med måtten 106, 50 och 95 cm" },
+      { "val": "Lila", "fil": "b379ce_a674cdecc0164105ab455b1e47495d3b~mv2.jpg", "alt": "Den lila trehjulingen med kalesch, skjutstång och förvaringskorg, med måtten 106, 50 och 95 cm" } ] },
+    { "id": "9ba8a7fb-1461-4820-90ad-9d379ef499f6", "bilder": [
+      { "val": "Beige", "fil": "b379ce_98844cc4dde146d0b402c33191d48680~mv2.jpg", "alt": "Måttbild på den beige uppresningsfåtöljen i tre lägen med mått i centimeter" } ] },
+    { "id": "1fb02371-41bc-4b60-80b6-c84e2220f758", "bilder": [
+      { "val": "Brun", "fil": "b379ce_b2664b11ab6f46f79a2bdee3a9a7b80d~mv2.jpg", "alt": "Den bruna tvättkorgen i bambu med lock och avtagbar tygpåse, med måtten 60,5, 62,5 och 37 cm" } ] },
+    { "id": "7fd5f45c-3eb2-4ed5-a7d7-9250a720b9f9", "bilder": [
+      { "val": "Svart", "fil": "b379ce_789d814437484220bce6b511b56225a3~mv2.jpg", "alt": "Det svarta barbordet med kromad fot, sett snett uppifrån" } ] },
+    { "id": "e76a4098-7495-4828-a4cf-0110fd4c9566", "bilder": [
+      { "val": "Ljusgrå", "fil": "b379ce_4ed14271d61c4774871f85cd5a999cf4~mv2.jpg", "alt": "Måttbild på den ljusgrå stolsdynan på en stol: sits 50 × 50 cm och 8 cm tjock", "utsnitt": "x_145,y_0,w_1710,h_1710 av b379ce_684dd9b982324ffa840bb87c83b4885c~mv2.jpg (remsan nederst bär tysk text)" } ] }
+  ]
+}

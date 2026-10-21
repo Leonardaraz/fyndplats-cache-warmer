@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valen; måtten (40 × 28 × 73 cm, 40 × 27,5 × 23,5 cm, 38 × 22 × 12 cm och 42 × 25,5 × 21 cm) står kvar oförändrade i spec-fliken med sina axlar, och varken sidan eller givaren har någon tysk källa med totalmåttrad att bygga ett facit ur

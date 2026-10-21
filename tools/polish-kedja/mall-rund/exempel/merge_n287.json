@@ -1,0 +1,44 @@
+[
+ {
+  "behall": "e833d963-5509-456a-89c1-f6fd18e37abc",
+  "utkast": "96858601-719b-4929-8441-9ba7f7c7b9b5",
+  "storlek_utkast": "114 × 89 cm",
+  "storlek_behall": "84 × 64 cm",
+  "bilder": "1,2,3,4",
+  "sku": "FP-lekhage-tyg-stor"
+ },
+ {
+  "behall": "f513de3d-fe35-454b-8b63-b78b17267471",
+  "utkast": "7a6fd916-6b09-4881-9d30-5bffccfe30a2",
+  "storlek_utkast": "100 cm hög",
+  "storlek_behall": "80 cm hög",
+  "bilder": "1,2,3,4,5",
+  "sku": "FP-hundhage-silver-atta-100"
+ },
+ {
+  "behall": "8b00f745-0971-4e9b-ad05-b41f3a57a370",
+  "utkast": "5c724e32-738f-4f15-96ff-56aaf818deaf",
+  "storlek_utkast": "100 cm hög",
+  "storlek_behall": "80 cm hög",
+  "bilder": "1,2,3",
+  "sku": "FP-hundhage-16-paneler-100"
+ },
+ {
+  "behall": "a37103bf-90d4-4aae-94fd-511079b4f873",
+  "utkast": "8ab39531-ed73-4b3f-b2e1-f42603c4aae6",
+  "farg_utkast": "Vit",
+  "farg_behall": "Svart",
+  "bilder": "1,2,3,4",
+  "sku": "FP-hundgrind-kattlucka-vit"
+ },
+ {
+  "behall": "6eb13a16-8704-4643-92f4-3a8e4927668c",
+  "utkast": "33469879-06c3-4ffa-a154-8cb870b24d3e",
+  "farg_utkast": "Svart",
+  "storlek_utkast": "94 cm hög",
+  "farg_behall": "Vit",
+  "storlek_behall": "76 cm hög",
+  "bilder": "1,2,3,4",
+  "sku": "FP-hundgrind-tryck-svart-94"
+ }
+]

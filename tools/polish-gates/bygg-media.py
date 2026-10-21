@@ -35,7 +35,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/bygg-media.py
   bilder-bort.tsv  VALFRI: "kort  position  skäl"
   -> nyttolast-media.json
 """
-import json, os, sys, collections
+import json, os, re, sys, collections
 
 fil = {}
 for r in open("bilder.tsv", encoding="utf-8"):
@@ -93,9 +93,18 @@ if fel:
     print("BYGGET FALLER:\n" + "\n".join("  " + f for f in fel))
     sys.exit(1)
 
+def ar_mattbild(alt):
+    return re.match(r"\s*(Måttbild|Måttskiss|Måttritning)\b", alt, re.I) is not None
+
+
 ut = collections.OrderedDict()
 for kort, rader in vis.items():
-    rader.sort(key=lambda t: (t[0] == "3", int(t[0])))   # måttskissen sist
+    # ☠️ MÅTTBILDEN SIST — avgjord på alt-texten, inte på position 3 (2026-10-21). Regeln "källposition 3 sist" stämmer
+    # bara när måttbilden råkar ligga på position 3. I T78 låg den på 5 (agilityvärden) och 4 (hindersetet), så en
+    # närbild på ett rör hamnade sist och måttbilden mitt i galleriet. Finns ingen alt-text som börjar på Måttbild/
+    # Måttskiss/Måttritning gäller den gamla regeln (position 3), så äldre rundor bygger som förut.
+    har_matt = any(ar_mattbild(a) for _, _, a in rader)
+    rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
     ut[kort] = [{"id": f, "altText": a} for _, f, a in rader]
 
 json.dump(ut, open("nyttolast-media.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
