@@ -164,3 +164,38 @@ describe("aosom-order — färgsammanslagna sidor", () => {
     expect(rader.map((r) => r[0])).toEqual(["C-3"]);
   });
 });
+
+describe("aosom-order — fält och id oense (2026-10-21)", () => {
+  it("☠️ en rad vars fält säger en annan leverantör beställs inte hos Aosom — hela ordern hålls med ett skäl", async () => {
+    // Id:t bär prefixet aosom:, fältet säger VEVOR. Påhittat artikelnummer.
+    await store.saveMapping({
+      supplierProductId: "aosom:TEST-0001",
+      supplier: "vevor",
+      wixProductId: "wix-oense",
+      variants: [{ ...variant("TEST-0001", "Vit"), wixVariantId: "wixvar-oense" }],
+    });
+    await sammanslagenSida();
+    await store.upsertTask(orderrad("10006", "l1", { wixCatalogItemId: "wix-oense", wixVariantId: "wixvar-oense" }));
+    await store.upsertTask(orderrad("10006", "l2", { wixVariantId: "wixvar-svart" }));
+
+    const res = await GET(req({ authorization: "Bearer hemlig" }));
+    const plan = await res.json();
+    expect(plan.batchar).toEqual([]);
+    expect(plan.hoppadeOver.map((h: { taskId: string }) => h.taskId).sort()).toEqual(["o10006:l1", "o10006:l2"]);
+    expect(plan.hoppadeOver.find((h: { taskId: string }) => h.taskId === "o10006:l1").skal).toMatch(/säger inte Aosom/);
+  });
+
+  it("KONTROLL: samma rad UTAN fält är en Aosom-rad på prefixet och beställs som förut", async () => {
+    await store.saveMapping({
+      supplierProductId: "aosom:TEST-0001",
+      wixProductId: "wix-utan-falt",
+      variants: [{ ...variant("TEST-0001", "Vit"), wixVariantId: "wixvar-utan-falt" }],
+    });
+    await store.upsertTask(orderrad("10007", "l1", {
+      wixCatalogItemId: "wix-utan-falt",
+      wixVariantId: "00000000-0000-0000-0000-000000000000",
+    }));
+    const rader = await csv();
+    expect(rader.map((r) => r[0])).toEqual(["TEST-0001"]);
+  });
+});

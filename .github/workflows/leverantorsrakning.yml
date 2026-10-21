@@ -35,7 +35,10 @@ jobs:
           fi
 
           url="${BASE%/api/cron/poll-tracking}/api/admin/leverantorsrakning"
-          svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" "${url}")
+          if ! svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" "${url}"); then
+            echo "::error::Anropet till rakningsrutten gick inte fram" >&2
+            exit 1
+          fi
 
           if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
             echo "::error::Svaret fran rutten var inte JSON. Ar den deployad dar workflowen kor?" >&2
@@ -49,7 +52,11 @@ jobs:
           # Bara antal. Svaret bar inga id och inga artikelnummer.
           echo "$svar" | jq '{totalt, perLeverantor, sparatFalt, utanFalt, faltOchIdOense, aeSynkensUrval, aosomSynkensUrval}' || true
 
-          vevor=$(echo "$svar" | jq -r '.utanFalt.vevorPrefix')
+          vevor=$(echo "$svar" | jq -r '.utanFalt.vevorPrefix // "saknas"')
+          if [ "$vevor" = "saknas" ]; then
+            echo "::error::Svaret saknar utanFalt.vevorPrefix. Ar rutten en aldre deploy?" >&2
+            exit 1
+          fi
           if [ "$vevor" != "0" ]; then
             echo "::error::${vevor} rader utan supplier-falt bar prefixet vevor: och bytte darmed klass fran AliExpress till VEVOR" >&2
             exit 1

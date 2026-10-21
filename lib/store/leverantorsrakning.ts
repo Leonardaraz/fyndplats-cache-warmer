@@ -48,8 +48,11 @@ export interface Leverantorsrakning {
 }
 
 export function idForm(id: string | undefined | null): IdForm {
-  const s = (id ?? "").trim();
-  if (!s) return "tomt";
+  // ☠️ Prefixet testas på id:t som det står, utan trim, precis som i
+  // `mappingSupplier()`. Annars hade `utanFalt.vevorPrefix` kunnat räkna en
+  // rad som klassningen fortfarande ser som AliExpress.
+  const s = id ?? "";
+  if (!s.trim()) return "tomt";
   if (s.startsWith(AOSOM_ID_PREFIX)) return "aosomPrefix";
   if (s.startsWith(VEVOR_ID_PREFIX)) return "vevorPrefix";
   if (/^\d+$/.test(s)) return "siffror";

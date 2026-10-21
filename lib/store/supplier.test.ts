@@ -136,7 +136,7 @@ describe("VEVOR och okända värden (2026-10-21)", () => {
   it("ingen befintlig rad byter klass: utan fält och utan känt prefix är det fortfarande AliExpress", () => {
     expect(mappingSupplier({ supplierProductId: "1005010804316400" })).toBe("aliexpress");
     expect(mappingSupplier({ supplierProductId: "" })).toBe("aliexpress");
-    expect(mappingSupplier({ supplierProductId: "aosom:845-030CG" })).toBe("aosom");
+    expect(mappingSupplier({ supplierProductId: "aosom:TEST-0001" })).toBe("aosom");
     // Fältet vinner över prefixet, som förut.
     expect(mappingSupplier({ supplier: "aosom", supplierProductId: "vevor:TEST-0001" })).toBe("aosom");
   });
@@ -149,7 +149,7 @@ describe("VEVOR och okända värden (2026-10-21)", () => {
 
 describe("frystLeverantor", () => {
   it("fryser klassningen innan artikeln töms, så raden inte faller tillbaka på AliExpress", () => {
-    expect(frystLeverantor({ supplierProductId: "aosom:845-030CG" })).toBe("aosom");
+    expect(frystLeverantor({ supplierProductId: "aosom:TEST-0001" })).toBe("aosom");
     expect(frystLeverantor({ supplierProductId: "vevor:TEST-0001" })).toBe("vevor");
     expect(frystLeverantor({ supplierProductId: "1005010804316400" })).toBe("aliexpress");
   });

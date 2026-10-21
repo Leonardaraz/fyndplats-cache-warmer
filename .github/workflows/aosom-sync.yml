@@ -409,6 +409,19 @@ jobs:
             echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — de skrivs om nästa gång en körning når produkterna."
           fi
 
+          # ☠️ OKÄNT BESKED FÄLLER JOBBET, även i torrläge (steg 3, 2026-10-21).
+          # En sådan rad synkas inte alls, varken lager eller pris: urvalet tog
+          # den på prefixet aosom:, men supplier-fältet säger en annan
+          # leverantör. Är det en riktig Aosom-sida säljs den på ett saldo ingen
+          # speglar längre. Ingen körning lagar raden av sig själv. Talet ska
+          # vara 0 — se "VEVOR: steg 1 och 3" i CLAUDE.md.
+          #
+          # Felraden skrivs FÖRE spärren för okända varianter, och jobbet fälls
+          # efter den, så att båda felen syns när båda finns.
+          if [ "$okantbesked" -gt 0 ]; then
+            echo "::error::${okantbesked} rader med okänt besked synkades inte alls — supplier-fältet och id:t är oense. Wix-id står i loggen ovan." >&2
+          fi
+
           # ☠️ OKÄNDA VARIANTER OCH TVETYDIGA RADER FÄLLER JOBBET, även i torrläge.
           # Båda nollar lagret, så ingen kund kan köpa fel färg — men båda betyder
           # att en färgsammanslagning är halvgjord eller att en mappning är
@@ -418,15 +431,7 @@ jobs:
             echo "::error::${okanda} okända varianter och ${tvetydiga} tvetydiga rader — lagret är nollat, mappningen behöver lagas." >&2
             exit 1
           fi
-
-          # ☠️ OKÄNT BESKED FÄLLER JOBBET, även i torrläge (steg 3, 2026-10-21).
-          # En sådan rad synkas inte alls, varken lager eller pris: urvalet tog
-          # den på prefixet aosom:, men supplier-fältet säger en annan
-          # leverantör. Är det en riktig Aosom-sida säljs den på ett saldo ingen
-          # speglar längre. Ingen körning lagar raden av sig själv. Talet ska
-          # vara 0 — se "VEVOR: steg 1 och 3" i CLAUDE.md.
           if [ "$okantbesked" -gt 0 ]; then
-            echo "::error::${okantbesked} rader med okänt besked synkades inte alls — supplier-fältet och id:t är oense. Wix-id står i loggen ovan." >&2
             exit 1
           fi
 

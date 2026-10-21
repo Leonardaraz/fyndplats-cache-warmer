@@ -54,6 +54,7 @@ import type { ProductMappingRecord } from "../store";
 import { fetchAosomFeed, isShippableToSe } from "./feed";
 import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
 import { aosomArtikelbild } from "./artiklar";
+import { isAosomMapping } from "../store/supplier";
 
 const DEFAULT_LIMIT = 25;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
@@ -448,7 +449,10 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
     fetchFeed: () => fetchAosomFeed(),
     listAosom: async () =>
       [...(await mappningar()).values()]
-        .filter((m) => (m.supplierProductId ?? "").startsWith("aosom:") && m.wixProductId)
+        // Bara rader som ÄR Aosom. En rad vars supplier-fält säger en annan
+        // leverantör får inte Aosoms bilder skrivna över sina (2026-10-21);
+        // Aosom-synken räknar sådana rader i `okantBesked`.
+        .filter((m) => (m.supplierProductId ?? "").startsWith("aosom:") && m.wixProductId && isAosomMapping(m))
         .map((m) => ({
           sku: (m.supplierProductId ?? "").slice(aosomSupplierProductId("").length),
           wixProductId: m.wixProductId,

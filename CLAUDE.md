@@ -4033,7 +4033,12 @@ Fem egenskaper som inte ska tas bort:
    artikelnumret råkade finnas i feeden.
 3. ☠️ **Aosom-synken planerar bara Aosom-rader.** Urvalet går på prefixet
    `aosom:`. Säger fältet en annan leverantör rörs raden inte, och inte heller
-   nollas den som tvetydig sida.
+   nollas den som tvetydig sida. Samma regel gäller beställningsfilen
+   (`/api/admin/aosom-order`), som håller hela ordern med skälet
+   "mappningens leverantörsfält säger inte Aosom", och bildfixen, som hoppar
+   över raden. Vägar som bara reserverar eller matchar en artikel, som
+   dubblettspärren och syskonsvepet, läser fortfarande prefixet: där är det
+   säkrare att en oense rad räknas som upptagen.
 4. ☠️ **På en sammanslagen sida gör en okänd färg hela sidan okänd.** Sidans
    saldo är summan av färgernas.
 5. **Det räknas:** `okantBesked` och `okantBeskedProdukter` (Wix-id) står i

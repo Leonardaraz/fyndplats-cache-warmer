@@ -33,6 +33,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { isAosomSupplierProductId } from "@/lib/aosom/to-product";
+import { isAosomMapping } from "@/lib/store/supplier";
 import { aosomArtikelForTask } from "@/lib/aosom/artiklar";
 import { planeraBulkOrder, byggCsv } from "@/lib/aosom/bulk-order";
 import type { FulfillmentTask } from "@/lib/orders/types";
@@ -92,6 +93,11 @@ export async function GET(req: NextRequest) {
     const plan = planeraBulkOrder(vantande, (t) => {
       const m = t.wixCatalogItemId ? mappningPerWixId.get(t.wixCatalogItemId) : undefined;
       if (!m) return null;
+      // ☠️ FÄLT OCH ID OENSE (2026-10-21). Id:t bär prefixet aosom:, men
+      // supplier-fältet säger en annan leverantör. Då vet vi inte var varan
+      // ska beställas, och ordern hålls med ett skäl i stället för att
+      // beställas hos Aosom. Samma regel som Aosom-synkens `okantBesked`.
+      if (!isAosomMapping(m)) return { skal: "mappningens leverantörsfält säger inte Aosom" };
       const utfall = aosomArtikelForTask(t, m);
       return "artikel" in utfall ? utfall.artikel : utfall;
     });

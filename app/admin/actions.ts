@@ -47,7 +47,6 @@ function utanAeIdFel(mapping: Pick<ProductMappingRecord, "supplier" | "supplierP
 }
 
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
-
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
 }

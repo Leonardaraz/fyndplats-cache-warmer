@@ -17,6 +17,15 @@ describe("idForm", () => {
     expect(idForm(undefined)).toBe("tomt");
     expect(idForm("TEST-0001")).toBe("annat");
   });
+
+  it("☠️ testar prefixet som klassningen gör, utan trim", () => {
+    // Ett blanksteg först gör att mappingSupplier() inte ser prefixet, och
+    // raden är då fortfarande AliExpress. Räkningen får inte påstå något annat.
+    const r = raknaLeverantorer([rad({ supplierProductId: " vevor:TEST-0001" })]);
+    expect(r.perLeverantor.aliexpress).toBe(1);
+    expect(r.utanFalt.vevorPrefix).toBe(0);
+    expect(idForm(" vevor:TEST-0001")).toBe("annat");
+  });
 });
 
 describe("raknaLeverantorer", () => {
