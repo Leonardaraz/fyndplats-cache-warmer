@@ -1,0 +1,27 @@
+{
+ "runda": "runda-bilder-vaggvarmare-kort",
+ "produkter": [
+  {
+   "kort": "d05fd29f",
+   "pid": "d05fd29f-cc43-437d-81c1-bf936cbd8e42",
+   "media": [
+    {
+     "id": "b379ce_3ef69716435e43f49fc362ac304fc035~mv2.jpg",
+     "altText": "Vit väggvärmare med grå kant och LED-display, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_f5e051022bc44b0fb23e2adae7fd00a2~mv2.jpg",
+     "altText": "Väggvärmaren på väggen ovanför en köksbänk, med varm luft som blåser ned mot en kvinna som står med en kopp i handen"
+    },
+    {
+     "id": "b379ce_790f6cf748174ba38512cf0af528826f~mv2.jpg",
+     "altText": "Väggvärmaren på en vägg ovanför en arbetsbänk med trälådor och en verktygstavla, med varm luft som blåser ned"
+    },
+    {
+     "id": "b379ce_470af5ff0db24c47abb181df115ac10c~mv2.jpg",
+     "altText": "Måttkort för väggvärmaren: mått 50 × 14,5 × 19 cm, effekt 1000 W eller 2000 W, täckt yta 20–25 m², temperaturområde 10–49 °C och ljudnivå högst 50 dB"
+    }
+   ]
+  }
+ ]
+}
