@@ -14,6 +14,7 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { WixAnrop } from "../polish/skrivplan";
 import { MinnesFargbildLager } from "../store/fargbilder";
+import { WIX_BILDTAK } from "./fargbilder";
 
 // Syntetiska artikelnummer — riktiga får aldrig stå i en testfil, repot är
 // publikt. A-1 är sidans artikel, G-7 utkastets.
@@ -1203,8 +1204,9 @@ describe("sammanslagning — färg och storlek på samma sida", () => {
 // ── Färgbilderna (2026-09-30) ───────────────────────────────────────────────
 // Sammanslagningen tog bara givarens första bild, och återkopplingen skrev om
 // varje befintligt val till sin första bild. Nu får en ny färg ALLA sina
-// bilder under Wix 15, resten i färgbildstabellen, och befintliga val behåller
-// hela sina listor.
+// bilder under Wix tak, resten i färgbildstabellen, och befintliga val behåller
+// hela sina listor. Testerna som rör taket räknar mot `WIX_BILDTAK` och inte mot
+// ett tal: det var 15 när de skrevs och är 50 sedan det mättes 2026-10-21.
 
 describe("sammanslagning — färgbilderna", () => {
   const listor = (w: ReturnType<typeof fejkWix>) =>
@@ -1268,9 +1270,10 @@ describe("sammanslagning — färgbilderna", () => {
     expect((await lager.lasSkrivnaVal()).every((v) => v.bekraftad)).toBe(true);
   });
 
-  it("☠️ över Wix 15: det som inte ryms hamnar i tabellen som overflow — ingenting skärs bort", async () => {
+  it("☠️ över Wix tak: det som inte ryms hamnar i tabellen som overflow — ingenting skärs bort", async () => {
+    // Sidan har två platser kvar: givarens huvudbild och en bild till ryms, tre går till tabellen.
     const w = fejkWix({
-      sida: { media: { itemsInfo: { items: Array.from({ length: 13 }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
+      sida: { media: { itemsInfo: { items: Array.from({ length: WIX_BILDTAK - 2 }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
       utkast: {
         name: "Kontorsstol i grått",
         media: { itemsInfo: { items: Array.from({ length: 5 }, (_, i) => ({ id: `bild-u${i + 1}`, altText: `Den grå stolen, vy ${i + 1}` })) } },
@@ -1279,11 +1282,11 @@ describe("sammanslagning — färgbilderna", () => {
     const { deps, lager } = miljo({ wix: w });
     const plan = (await korSammanslagning(PAR, deps)).plan;
     expect(plan).toMatchObject({ bilderUtkast: 2, bilderOverflow: 3, bilderGranskas: 0 });
-    expect(plan.varningar.join(" ")).toMatch(/ryms inte under Wix 15/);
+    expect(plan.varningar.join(" ")).toMatch(new RegExp(`ryms inte under Wix tak på ${WIX_BILDTAK}`));
 
     const svar = await korSammanslagning(PAR, deps, { apply: true });
     expect(svar.ok).toBe(true);
-    expect(galleri(w)).toHaveLength(15);
+    expect(galleri(w)).toHaveLength(WIX_BILDTAK);
     expect(listor(w)[1]).toEqual(["Grå", ["bild-u1", "bild-u2"]]);
     const rader = await lager.lasForProdukt("sida");
     expect(rader.filter((r) => r.plats === "overflow").map((r) => r.filId)).toEqual(["bild-u3", "bild-u4", "bild-u5"]);
@@ -1331,9 +1334,9 @@ describe("sammanslagning — färgbilderna", () => {
     expect((await lager.lasForProdukt("sida")).map((r) => r.filId)).toEqual(["bild-u1"]);
   });
 
-  it("ett fullt galleri stoppar planen i stället för att Wix får sexton", async () => {
+  it("ett fullt galleri stoppar planen i stället för att Wix får en bild över taket", async () => {
     const w = fejkWix({
-      sida: { media: { itemsInfo: { items: Array.from({ length: 15 }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
+      sida: { media: { itemsInfo: { items: Array.from({ length: WIX_BILDTAK }, (_, i) => ({ id: `bild-s${i + 1}`, altText: `Stol, vy ${i + 1}` })) } } },
     });
     const { deps } = miljo({ wix: w });
     expect((await korSammanslagning(PAR, deps)).plan.hinder).toContain("galleriet_fullt");

@@ -1,5 +1,5 @@
 // Färgbildstabellen: varje färgvals hela bildlista på en sammanslagen sida
-// (lib/aosom/fargbilder.ts). Wix tar 15 bilder per produkt; tabellen tar resten.
+// (lib/aosom/fargbilder.ts). Wix tar 50 bilder per produkt; tabellen tar resten.
 //
 // Tre läsare, och alla tre är skäl att den inte får tappa rader:
 //   1. Butiken, via GET /api/fargbilder?pid= — hela listan per färg.

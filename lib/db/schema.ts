@@ -44,7 +44,7 @@ export async function ensureSchema(): Promise<void> {
 
 /**
  * Färgbildstabellen: varje färgvals HELA bildlista på en sammanslagen sida,
- * också det som inte ryms under Wix tak på 15 bilder (lib/aosom/fargbilder.ts).
+ * också det som inte ryms under Wix tak på 50 bilder (lib/aosom/fargbilder.ts).
  * Ingen Wix-kollektion bakom — den finns bara här, och därför står den inte i
  * TABELLER (kopieringen och verifieringen gäller det som flyttats från Wix).
  * Exporterad så att lib/store/fargbilder.ts kan skapa den vid första

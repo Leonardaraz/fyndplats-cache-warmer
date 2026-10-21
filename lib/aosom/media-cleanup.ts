@@ -161,8 +161,8 @@ export function planeraStadning(
   // produkten finns skyddar dess galleri filen — men när produkten raderas
   // (lib/aosom/pensionerade.ts) är kategorin filens enda användare.
   //
-  // ☠️ OCH FÄRGBILDSTABELLEN (lib/aosom/fargbilder.ts). Wix tar 15 bilder per
-  // produkt, och det som inte rymdes står bara i motorns tabell — ofta som
+  // ☠️ OCH FÄRGBILDSTABELLEN (lib/aosom/fargbilder.ts). Wix tar 50 bilder per
+  // produkt (uppmätt 2026-10-21), och det som inte rymdes står bara i motorns tabell — ofta som
   // filer på en givare som ska raderas. Utan tabellen i listan tar städningen
   // dem natten efter att givaren raderats, och butiken visar döda bilder.
   const anvandaNycklar = new Set(
@@ -254,7 +254,7 @@ export interface MediaCleanupDeps {
   listaKategoribilder: () => Promise<string[]>;
   /**
    * Varje fil-id i färgbildstabellen (lib/store/fargbilder.ts): färgernas
-   * bilder utöver Wix 15, och de som väntar på granskning. Obligatorisk och
+   * bilder utöver Wix tak, och de som väntar på granskning. Obligatorisk och
    * ett läsfel fäller körningen, av samma skäl som kategoribilderna.
    */
   listaFargbilder: () => Promise<string[]>;
@@ -412,7 +412,7 @@ export async function runMediaCleanup(
   } catch (err) {
     throw new Error(
       `Färgbildstabellen gick inte att läsa (${err instanceof Error ? err.message : String(err)}). `
-        + "Körningen avbryts — utan den listan ser färgernas bilder utöver Wix 15 föräldralösa ut "
+        + "Körningen avbryts — utan den listan ser färgernas bilder utöver Wix tak föräldralösa ut "
         + "och raderas permanent.",
     );
   }
@@ -647,7 +647,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       return [...await collectCategoryMediaIds(process.env.WIX_SITE_ID || headlessSiteId())];
     },
 
-    // Färgernas bilder utöver Wix 15 (lib/aosom/fargbilder.ts). Kastar vid
+    // Färgernas bilder utöver Wix tak (lib/aosom/fargbilder.ts). Kastar vid
     // läsfel; runMediaCleanup gör det till ett avbrott.
     listaFargbilder: async () => {
       const { getFargbildLager } = await import("../store/fargbilder");

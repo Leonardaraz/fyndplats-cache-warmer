@@ -1882,7 +1882,7 @@ får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, me
 oförändrad slug). **Sedan 2026-09-30 följer alla givarens bilder med**, med
 färgbildsverktygets regler (se *Färgbilderna* nedan): givarens kort stannar,
 en opolerad givares bilder från position 2 sparas som `granskas` i stället för
-att skrivas, och det som inte ryms under Wix 15 sparas i tabellen. Med
+att skrivas, och det som inte ryms under Wix tak (50) sparas i tabellen. Med
 `bilder` följer exakt de valda med. Befintliga val behåller hela sina
 `linkedMedia`-listor; före det skrev återkopplingen om varje val till sin
 första bild. Faller en körning halvvägs ser nästa att Wix redan är klart
@@ -2241,12 +2241,28 @@ logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
   hör till huvudbildens färg. En givares egen fil går före alt-texten. Ett foto
   vars färg saknar länkad bild står kvar orört i galleriet. Efter skrivningen är
   varje färgs bilder länkade.
-- **Wix 15 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
+- **Wix 50 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
   axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
   som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
   butiken kan läsa via `GET /api/fargbilder?pid=`. Den skapas vid första
   användningen (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen
   som använd.
+- ☠️ **Taket är 50, uppmätt 2026-10-21 — dokumentationens 15 stämmer inte.**
+  Verktyget byggdes på "About Product Media" (15). En dold testprodukt (raderad
+  direkt efteråt) fick 16, 20, 25, 30, 40, 46 och 50 bilder, och varje skrivning
+  lästes tillbaka i ett eget anrop. Den 51:a gav `400 MAX_SIZE` (*"has size 51,
+  expected 50 or less"*, threshold 50). Dessutom höll 86 publicerade sidor redan
+  16–46 bilder. Med 15 som tak vägrade verktygen (`over_tak_redan`,
+  `galleriet_fullt`) just de sidor som har flest färger, och överskottet
+  parkerades i en tabell som butiken ännu inte läser. Talet bor i
+  `WIX_MAX_BILDER_PER_PRODUKT` (`lib/wix/limits.ts`) och läses av färgbilderna,
+  miljöbilden, sammanslagningen och planernas validering (`skrivplan.ts`,
+  `bildplan.ts`). `lib/aosom/bildtak.test.ts` fäller en modul som hårdkodar ett
+  eget tal och låser värdet. ⚠️ **Mätt är en PATCH med fältmask `media`.**
+  Skapandet (`products-with-inventory`) och bulk-skrivningarna är inte mätta,
+  och importen skapar produkter med färre bilder än så. Höj eller sänk talet bara
+  efter en ny mätning, som CHOICES-taket i samma fil — där var dokumentationen
+  fel åt det farliga hållet, här åt det försiktiga.
 - ☠️ **Butiken läser inte tabellen än.** Ett foto som bara står i tabellen syns
   alltså inte. Därför flyttas sidans egna foton aldrig ur galleriet utan
   `tillat_ur_galleriet=ja` (hindret `ur_galleriet_kraver_butiken`). Givarbilder
@@ -2545,7 +2561,8 @@ den gäller även de sidor poleringen redan tömt.
 
 ⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
 Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
-begäran. Det är sedan dess femton, alltså Wix tak för bilder per produkt.
+begäran. Det är sedan dess femton, en marginal över feedens högsta position. Det
+är inte Wix tak: en produkt tar 50 bilder (uppmätt 2026-10-21, `lib/wix/limits.ts`).
 
 ✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
 24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på

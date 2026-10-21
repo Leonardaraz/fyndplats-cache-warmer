@@ -27,6 +27,8 @@
 // PUBLIK Actions-logg. Planen innehåller inga sådana fält, valideringen vägrar
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
 
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+
 export const MAX_PRODUKTER = 20;
 export const WIX_STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const TRAD = { appNamespace: "@wix/stores" } as const;
@@ -190,7 +192,9 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     if (!strang(d.textHash, 16) || !/^[0-9a-f]{16}$/.test(d.textHash)) f("textHash ska vara 16 hextecken");
     if (!Number.isInteger(d.textTecken) || (d.textTecken as number) <= 0) f("textTecken ska vara ett positivt heltal");
 
-    if (!Array.isArray(d.media) || d.media.length === 0 || d.media.length > 15) f("media ska ha 1–15 bilder");
+    if (!Array.isArray(d.media) || d.media.length === 0 || d.media.length > WIX_MAX_BILDER_PER_PRODUKT) {
+      f(`media ska ha 1–${WIX_MAX_BILDER_PER_PRODUKT} bilder`);
+    }
     else {
       d.media.forEach((m: unknown, j: number) => {
         const mm = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;

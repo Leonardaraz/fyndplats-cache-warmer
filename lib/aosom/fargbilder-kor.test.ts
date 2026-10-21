@@ -4,11 +4,20 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { doldaPerFil, planeraSida, type Bild, type SidOption, type SidPlan } from "./fargbilder";
 import { lasSidaIn, mediaPost, skrivSida, tolkaProdukt } from "./fargbilder-kor";
 import { MinnesFargbildLager } from "../store/fargbilder";
 import type { WixAnrop } from "../polish/skrivplan";
+
+// Fixturerna kommer ur torrkörningen 2026-09-30, när Wix tak antogs vara 15, och
+// förväntningarna (overflow, "långt över taket", `over_tak_redan`) är mätta där.
+// Testerna pinnar därför taket till 15 och prövar fördelningen och spärrarna vid
+// just det. Det VERKLIGA taket (50, uppmätt 2026-10-21) prövas i ./bildtak.test.ts.
+vi.mock("../wix/limits", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../wix/limits")>()),
+  WIX_MAX_BILDER_PER_PRODUKT: 15,
+}));
 
 type Obj = Record<string, unknown>;
 

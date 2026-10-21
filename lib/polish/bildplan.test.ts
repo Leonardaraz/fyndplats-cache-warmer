@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { korBildsteg, valideraBildplan, verifieraBilder, type Bildplan } from "./bildplan";
 import type { WixAnrop } from "./skrivplan";
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 
 const BILD_A = `b379ce_${"a".repeat(32)}~mv2.jpg`;
 const BILD_B = `b379ce_${"b".repeat(32)}~mv2.jpg`;
@@ -50,10 +51,12 @@ describe("valideraBildplan", () => {
 
   it("vägrar tomma och för långa bildlistor", () => {
     expect("fel" in valideraBildplan(plan({ media: [] }))).toBe(true);
-    const sexton = Array.from({ length: 16 }, (_, i) => ({
+    // Gränsen är Wix tak (50, uppmätt 2026-10-21): exakt taket går igenom, en bild till gör inte det.
+    const bilder = (n: number) => Array.from({ length: n }, (_, i) => ({
       id: `b379ce_${i.toString(16).padStart(32, "0")}~mv2.jpg`, altText: `Bild ${i + 1}`,
     }));
-    expect("fel" in valideraBildplan(plan({ media: sexton }))).toBe(true);
+    expect("plan" in valideraBildplan(plan({ media: bilder(WIX_MAX_BILDER_PER_PRODUKT) }))).toBe(true);
+    expect("fel" in valideraBildplan(plan({ media: bilder(WIX_MAX_BILDER_PER_PRODUKT + 1) }))).toBe(true);
   });
 
   it("☠️ vägrar samma bild två gånger — en kundsida ska aldrig visa en dubblett", () => {
