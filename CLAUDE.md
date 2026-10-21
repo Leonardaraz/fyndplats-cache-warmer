@@ -2821,6 +2821,19 @@ om ungefär 20 sidor, sämst färg först (`aosom-ordning.tsv`). Ordningen är `
 färger på sidan), OCR och kontaktark, sifferkontroll (`kolla-tal-mot-text.js`), `tillagg.json`, `plan_och_skriv` med
 `ref` på grenen som har filen, live och `variantbild`. Wix tar 50 bilder, så ett galleri på 15 är inget hinder längre.
 
+**Feedomgång 1 (2026-10-21, `tools/polish-assets/fargtillagg-1/`):** 20 sidor, 69 färger och 122 bilder
+skrevs 22:57–22:59 UTC (116 feedbilder och sex utsnitt), och live-kontrollen blev **ALLT OK**: varje fil syns i sin
+egen färgs vy och i ingen annans. Av 75 mätta färgval hade 40 en eller två bilder före och ett har det nu
+(Ljusgrå på bänkdynan `a7aa9370`). 25 visar fem eller fler. Räkna med att ungefär 40 procent av kandidaterna blir
+bilder: 63 av 75 på feedposition 10, 22 av 59 på 9, 18 av 63 på 3 och 13 av 69 på 8. Verktygen som gjorde jobbet ligger i
+`tools/polish-gates/`: `farg-kandidater.py` (hämtar kandidaterna, OCR med textyta och `auto` för säljgrafik över 2,5 %),
+`farg-ark.py` (kontaktark per sida med färgens nuvarande bilder som referensrad, dubbletter utsorterade), `farg-tillagg.py`
+(`tillagg.json` ur en godkänd-lista), `live-farg-vy.mjs` (färgvyn på en sida med två axlar) och `kolla-live-farg.py`. Fyra
+saker att inte missa: **(1)** mät en sida med två axlar med `live-farg-vy.mjs`, för `live-bilder.mjs` hamnar ibland i en annan färgs
+vy (hundtrappans Beige); **(2)** måttbilderna jämförs med sidans text före skrivningen, och en feedartikel kan ha andra mått än
+värdens (kontorsstolens fyra färger ströks); **(3)** ett utsnitt görs med Wix crop-adress och ska rymma varan i butikens
+kvadrat ur mitten; **(4)** `plan_och_skriv` rättar varukorgens bild själv (`variantbilder: N rättade`).
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
