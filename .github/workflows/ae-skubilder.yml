@@ -149,7 +149,8 @@ jobs:
           rm -f alla.ndjson
 
           # Räknarna är ofarliga och går till loggen och sammanfattningen.
-          jq -r 'to_entries[] | "\(.key[0:8]): \(if .value.fel then .value.fel else "\(.value.sku | length) SKU, \([.value.sku[].egenskaper[] | select(.bild != null)] | length) egenskaper med bild, \(.value.galleri | length) galleribilder, \(.value.detalj | length) beskrivningsbilder" end)"' kuvert.klartext
+          # Räknarna beräknas före strängen: ingen interpolation läser ett SKU-fält direkt.
+          jq -r 'to_entries[] | .key[0:8] as $k | (.value.fel // "") as $fel | ((.value.sku // []) | length) as $nsku | ([(.value.sku // [])[].egenskaper[] | select(.bild != null)] | length) as $nbild | ((.value.galleri // []) | length) as $ngal | ((.value.detalj // []) | length) as $ndet | if $fel != "" then "\($k): \($fel)" else "\($k): \($nsku) SKU, \($nbild) egenskaper med bild, \($ngal) galleribilder, \($ndet) beskrivningsbilder" end' kuvert.klartext
           {
             echo "### AliExpress — färgbilder per SKU"
             echo ""

@@ -211,9 +211,15 @@ med `variantsInfo` ordagrant och `visible` explicit, med
 galleri. Utan `visible` kan en variantsInfo-PATCH publicera ett utkast.
 
 Läs tillbaka efteråt: variant-id, SKU och pris ska vara oförändrade, och varje val ska ha
-sin bild. Finns inget foto i färgen flaggar du till Leonard. Lägg aldrig en annan färgs bild
-på valet.
+sin bild. Finns inget foto i färgen flaggar du till Leonard när sidan är dold, och tar bort
+färgen när sidan är publicerad (runbookens avsnitt *Varje färg har sin egen bild*). Lägg
+aldrig en annan färgs bild på valet. Fotot till en AliExpress-sida letar du upp med
+workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
 
 Den 27 september 2026 rättades trehjulingen 6-i-1 på det sättet. Skoskåpet med tre speglade
 luckor (vit), tunnelväxthuset 597 × 295 cm (vit) och dieselvärmaren till husbil (röd, blå)
-saknar foto i färgen och är flaggade.
+stod flaggade i fyra veckor, tills Leonard såg dem i Wix 2026-10-21. Ingen av listningarna
+hade ett foto i färgen, så färgerna togs bort och sidorna är enfärgade. Samma dag fick
+hamsterburens mörkgrå och tältets blå (ett färgkort byggt ur leverantörens SKU-bild) sina
+egna bilder, och plåtbodens gröna kopplades. Plåtbodens bruna saknar foto överallt, och
+sidan är dold.

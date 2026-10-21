@@ -439,8 +439,70 @@ skoskåpet med tre speglade luckor (vit), tunnelväxthuset 597 × 295 cm (vit),
 trehjulingen 6-i-1 (alla tre, fotona fanns i galleriet och kopplades samma dag) och
 dieselvärmaren till husbil (röd och blå).
 
-Finns inget foto i färgen är valet fel på sidan. Flagga det till Leonard i `FLAGGADE.md`.
-Lägg aldrig en annan färgs bild på valet.
+Finns inget foto i färgen är valet fel på sidan. På en dold sida flaggar du det till Leonard
+i `FLAGGADE.md`, för där ser ingen kund felet. På en publicerad sida rättar du det samma
+dag, enligt nästa stycke. Lägg aldrig en annan färgs bild på valet.
+
+**En publicerad sida med en färg utan foto rättas samma dag (2026-10-21).** Skoskåpet,
+tunnelväxthuset och dieselvärmaren från 27 september stod flaggade i fyra veckor och låg
+ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flagga är ingen
+åtgärd. Gör så här:
+
+1. **Leta efter ett foto i färgen.** För en AliExpress-sida läser du listningens SKU-bilder
+   med workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
+   Den startas av en push som ändrar `tools/ae-skubilder/kor.json` (`produkter`: högst tio
+   Wix-id, `kuvert`: din publika nyckel), och efter merge med `workflow_dispatch`. Svaret
+   är krypterat, eftersom bildadresserna är leverantörens. En Aosom-sida har inga
+   SKU-bilder, så där söker du i feedens positioner och i syskonutkasten. Av de sex sidor
+   Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
+   andra fyra bar färgen som ett egenskapsvärde utan foto, och ingen av deras
+   galleri- eller beskrivningsbilder visade den saknade färgen.
+2. **Finns ett foto, koppla det.** Är fotot en SKU-bild bygger du ett färgkort ur det
+   (`scripts/cardkit.py`, `card_swatch`, 1600 × 1600, varan frilagd mot vit botten), lägger
+   kortet i grenen och kopplar det till valet med en skrivning av `options` och
+   `variantsInfo` ordagrant ur produktens egen GET (se *Färger som inte kom via verktyget*
+   i `docs/polish/syskon.md`). Kör sedan `variantbild.yml` (push som ändrar
+   `tools/variantbild/kor.json` med produktens id) så att variantens bild följer valet.
+   Valet ska vara synligt, och varje variant ska ha sin egen bild: tältets sex varianter
+   hade alla huvudbilden tills workflowen körts.
+3. **Finns inget foto, ta bort färgen.** Det är en publicerad sida, och en färg utan foto
+   visar fel färg för kunden. Blir bara en färg kvar kollapsar du sidan till en variant med
+   bevarat id: `options: []` och den kvarvarande variantens objekt ur produktens egen GET
+   med `choices: []`. Variantens id, lager och pris står då kvar (läs tillbaka alla tre).
+   Skriv ner den borttagna variantens id, SKU, pris och lager i `FLAGGADE.md`, så att
+   färgen kan läggas tillbaka när det finns ett foto. Ta sedan bort raderna som lovar
+   färgerna (*Finns i …*, *Välj mellan …*) och byt *Färger: …* mot *Färg: …* med den
+   kvarvarande färgen. Det är en ren strykning, så den skrevs 2026-10-21 som en PATCH med
+   fältmask `plainDescription` och inget annat. Varje sträng som skulle bort eller bytas
+   räknades till exakt en träff i samma anrop innan något skrevs, och sidan lästes sedan om i
+   ett eget anrop (längd, nya rader, borttagna ord) och live. Ska texten skrivas om i
+   stället för strykas går den via skrivplanen som vanligt (*Skriv aldrig för hand i Wix*
+   nedan). En dold sida lämnas orörd och flaggas.
+4. **Läs galleriet som butiken läser det.** Butiken ger varje bild till det FÖRSTA valet
+   som länkar den (`fetchV3ImageOwners`: "första vinnaren per bild behålls"), och
+   galleriet för ett val är valets egna bilder plus de bilder ingen äger. En färg utan
+   kopplade bilder lämnar därför sina bilder gemensamma, och de visas för alla färger:
+   hamsterburens naturträ visade den mörkgrå burens bilder. Koppla färgens alla bilder, och
+   låt en storlek som delar bilderna bara länka sina egna. Mät på den publicerade sidan med
+   `node tools/polish-gates/live-galleri.mjs <slug> [galleri-id.json]` (Playwright): den
+   klickar varje kombination i väljaren, både axlar och kort, och skriver galleriet per
+   kombination. Väntar du inte ut butikens cache, som fylls på var femte minut efter en
+   ändring, mäter du den gamla sidan.
+5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
+   `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
+   `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras
+   in i ExecuteWixAPI, skriver ingenting) listar sidor där ett färgval saknar kopplad bild
+   och sidor där två färgval har samma första bild, och `katalogkontroll-spec.js` listar
+   sidor vars specifikationsflik är ett enda stycke. Utfall 2026-10-21 efter åtgärderna:
+   noll av de två första, utom MTB-pedalerna `f56b8b74`, där valen *Svart 2 DU* och *Svart 3
+   kullager* skiljer på lager och båda är svarta. Kontrollen fäller på rätt sak: den fann
+   plåtboden `2861bf83` (Brun, dold) som enda träff bland de dolda. Titta på räknarna
+   (`fargoptioner`, `valMedBild`): en kontroll som inte kan fälla räknas ändå som gjord.
+
+☠️ **En `variantsInfo`-skrivning på ett dolt utkast utan `fields=MERCHANT_DATA` i GET:en
+tappar variantens kostnad i Wix.** Uppmätt på plåtboden. Mappningen bär kostnaden och inget
+läser Wix-fältet (varukostnaden tas ur mappningen), och publicerade AliExpress-sidor saknar
+det redan. En skrivning som bara bär `plainDescription` rör varken varianter eller kostnader.
 
 ### Sökordet och krocken
 
