@@ -10,6 +10,8 @@ import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-ord
 import { assessDsPrice } from "@/lib/orders/price-check";
 import { linkAliExpressOrder } from "@/lib/orders/link-ae-order";
 import { aliExpressIdOf, mappingSupplier } from "@/lib/store/supplier";
+import { assertNever } from "@/lib/assert-never";
+import type { ProductMappingRecord } from "@/lib/store";
 import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 import { pricingConfigFromEnv } from "@/lib/config";
 import type { ShippingAddress, TaskStatus } from "@/lib/orders/types";
@@ -21,7 +23,31 @@ const cleanStr = (s: string | undefined): string | undefined => {
   return t || undefined;
 };
 
+/**
+ * Felet när en AliExpress-åtgärd körs på en rad utan AE-id, per leverantör.
+ * En Aosom- eller VEVOR-vara kan lika gärna ligga i en kundorder, och då ska
+ * felet säga var varan kommer ifrån i stället för "koppla om produkten".
+ */
+function utanAeIdFel(mapping: Pick<ProductMappingRecord, "supplier" | "supplierProductId">): string {
+  const leverantor = mappingSupplier(mapping);
+  switch (leverantor) {
+    case "aosom":
+      return "Produkten kommer från Aosom — det här är en AliExpress-funktion. "
+        + "Aosom-priser står i feeden och ordrar läggs i klump via /admin/aosom-order.";
+    case "vevor":
+      return "Produkten kommer från VEVOR — det här är en AliExpress-funktion. "
+        + "VEVOR-ordrar läggs för hand i VEVOR:s kassa.";
+    case "okand":
+      return "Mappningen har en okänd leverantör — kontrollera raden i /admin/mappings.";
+    case "aliexpress":
+      return "Mappningen saknar leverantörens produkt-id — koppla om produkten i /admin/mappings först.";
+    default:
+      return assertNever(leverantor, "leverantör");
+  }
+}
+
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
+
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
 }
@@ -340,10 +366,7 @@ export async function checkDsPriceAction(taskId: string): Promise<
     return {
       ok: false,
       error:
-        mappingSupplier(mapping) === "aosom"
-          ? "Produkten kommer från Aosom — det här är en AliExpress-funktion. "
-            + "Aosom-priser står i feeden och ordrar läggs i klump via /admin/aosom-order."
-          : "Mappningen saknar leverantörens produkt-id — koppla om produkten i /admin/mappings först.",
+        utanAeIdFel(mapping),
     };
   }
   const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId;
@@ -493,10 +516,7 @@ export async function freightDiagnosticsAction(taskId: string): Promise<
     return {
       ok: false,
       error:
-        mappingSupplier(mapping) === "aosom"
-          ? "Produkten kommer från Aosom — det här är en AliExpress-funktion. "
-            + "Aosom-priser står i feeden och ordrar läggs i klump via /admin/aosom-order."
-          : "Mappningen saknar leverantörens produkt-id — koppla om produkten i /admin/mappings först.",
+        utanAeIdFel(mapping),
     };
   }
   const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId ?? "";

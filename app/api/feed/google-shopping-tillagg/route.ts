@@ -26,7 +26,7 @@ import { timingSafeEqual } from "node:crypto";
 import { getStore } from "@/lib/store/factory";
 import { getV3VariantPriser, listV3ProductPrices } from "@/lib/wix/v3-products";
 import { aosomArtikelbild } from "@/lib/aosom/artiklar";
-import { isAliExpressMapping } from "@/lib/store/supplier";
+import { isAosomMapping } from "@/lib/store/supplier";
 import { byggTillaggsfeed, tillTsv } from "@/lib/feed/google-shopping";
 
 export const runtime = "nodejs";
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
   // entydigt (se byggTillaggsfeed); felet loggas i stället för att fälla feeden.
   const variantPriser = new Map<string, Map<string, number>>();
   for (const m of mappningar) {
-    if (isAliExpressMapping(m) || aosomArtikelbild(m).typ !== "flera") continue;
+    if (!isAosomMapping(m) || aosomArtikelbild(m).typ !== "flera") continue;
     try {
       variantPriser.set(m.wixProductId, await getV3VariantPriser(m.wixProductId));
     } catch (err) {

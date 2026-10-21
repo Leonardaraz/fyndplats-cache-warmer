@@ -40,7 +40,7 @@
 // stannar innan en färg på en publicerad sida hunnit tappa sin bild.
 
 import type { ProductMappingRecord } from "../store";
-import { isAosomMapping, mappingSupplier } from "../store/supplier";
+import { frystLeverantor, isAosomMapping } from "../store/supplier";
 import { aosomArtiklarPaRaden } from "./artiklar";
 import { mediaNyckel } from "../wix/produkt-media";
 import type { KatalogProdukt } from "../wix/media-audit";
@@ -224,7 +224,7 @@ export function markeradRad(m: ProductMappingRecord, nu: Date, slug?: string): P
   const artikel = (m.supplierProductId ?? "").trim();
   return {
     ...m,
-    supplier: mappingSupplier(m),
+    supplier: frystLeverantor(m),
     supplierProductId: "",
     ...(artikel ? { importSparr: artikel } : {}),
     needsAiPolish: false,

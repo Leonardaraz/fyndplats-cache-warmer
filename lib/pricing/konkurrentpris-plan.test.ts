@@ -236,3 +236,28 @@ describe("utanPrisgrupp", () => {
     expect(efter.gruppUtanPris).toBe(0);
   });
 });
+
+describe("☠️ VEVOR-rader är aldrig Aosom-rader här (2026-10-21)", () => {
+  // Konkurrentregeln gäller inte VEVOR-varor (Leonard 2026-10-21). Planerna
+  // valde tidigare "allt som inte är AliExpress", och en VEVOR-rad hade då
+  // kunnat få dealproffsens pris och lottas in i A/B-testet.
+  const vevor = (over: Partial<ProductMappingRecord> = {}) =>
+    mappning("TEST-0001", { supplier: "vevor", supplierProductId: "vevor:TEST-0001", ...over });
+
+  it("sparar inget konkurrentpris på en VEVOR-rad, ens när referensen finns hos dem", () => {
+    const p = planeraSpara([vevor()], deras(["TEST-0001", 999], ["vevor:TEST-0001", 999]), new Set(["TES-"]), NU);
+    expect(p.attSpara).toEqual([]);
+    expect(p.ejAosom).toBe(1);
+  });
+
+  it("lottar aldrig en VEVOR-rad, ens med konkurrentpris och publicerad", () => {
+    const konk = { pris: 3495, hamtad: dagarSedan(0) };
+    const p = planeraLotta(
+      [vevor({ konkurrent: konk })],
+      new Map([["wix-TEST-0001", { priceSek: 2999, variantCount: 1 }]]),
+      new Set(["wix-TEST-0001"]),
+    );
+    expect(p.attLotta).toEqual([]);
+    expect(p.ejAosom).toBe(1);
+  });
+});

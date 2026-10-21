@@ -5,9 +5,10 @@
 // den till antingen ett produkt-id (slår direkt mot FyndplatsMappings) eller en
 // slug (resolvas till id via Wix V3 först). Ren logik → enhetstestbar utan nät.
 
-import type { MappingSupplier } from "../store";
+import type { Leverantor, MappingSupplier } from "../store";
 import { mappingSupplier } from "../store/supplier";
-import { AOSOM_ID_PREFIX } from "../aosom/to-product";
+import { AOSOM_ID_PREFIX, VEVOR_ID_PREFIX } from "../store/leverantorsprefix";
+import { assertNever } from "../assert-never";
 
 /**
  * Vad inmatningen pekar på.
@@ -109,19 +110,39 @@ export function aliexpressUrlFor(opts: {
 }
 
 /** Leverantörens namn som det skrivs för en människa. */
-const LEVERANTORSNAMN: Record<MappingSupplier, string> = {
+const LEVERANTORSNAMN: Record<Leverantor, string> = {
   aliexpress: "AliExpress",
   aosom: "Aosom",
+  vevor: "VEVOR",
+  okand: "Okänd leverantör",
 };
 
+/**
+ * Artikelnumret som det skrivs hos leverantören, alltså utan vårt interna
+ * prefix. Prefixet är vår diskriminator och betyder ingenting i Aosoms
+ * bulkorderfil eller i VEVOR:s kassa.
+ */
+function utanPrefix(leverantor: Leverantor, id: string): string {
+  switch (leverantor) {
+    case "aosom":
+      return id.startsWith(AOSOM_ID_PREFIX) ? id.slice(AOSOM_ID_PREFIX.length) : id;
+    case "vevor":
+      return id.startsWith(VEVOR_ID_PREFIX) ? id.slice(VEVOR_ID_PREFIX.length) : id;
+    case "aliexpress":
+    case "okand":
+      return id;
+    default:
+      return assertNever(leverantor, "leverantör");
+  }
+}
+
 export interface Leverantorskalla {
-  leverantor: MappingSupplier;
-  /** "AliExpress" · "Aosom" — för etiketter och knapptexter. */
+  leverantor: Leverantor;
+  /** "AliExpress" · "Aosom" · "VEVOR" — för etiketter och knapptexter. */
   namn: string;
   /**
    * Artikelnumret som det ska LÄSAS och klistras in hos leverantören, alltså
-   * utan `aosom:`-prefixet. Prefixet är vår interna diskriminator och betyder
-   * ingenting i Aosoms egen bulkorderfil.
+   * utan `aosom:`- eller `vevor:`-prefixet (`utanPrefix`).
    */
   artikelnummer: string;
   /** Produktsidan hos leverantören, eller null när den inte går att bygga. */
@@ -149,9 +170,10 @@ export function leverantorskallaFor(m: {
   return {
     leverantor,
     namn: LEVERANTORSNAMN[leverantor],
-    artikelnummer: leverantor === "aosom" && id.startsWith(AOSOM_ID_PREFIX)
-      ? id.slice(AOSOM_ID_PREFIX.length)
-      : id,
+    artikelnummer: utanPrefix(leverantor, id),
+    // Bara AliExpress får en länk byggd ur id:t. Alla andra leverantörers länk
+    // är mappningens `sourceUrl` eller ingen alls — en adress byggd i koden av
+    // ett artikelnummer ser giltig ut och kan vara död.
     url: aliexpressUrlFor(m),
   };
 }

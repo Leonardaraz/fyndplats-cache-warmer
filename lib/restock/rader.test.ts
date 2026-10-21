@@ -265,6 +265,26 @@ describe("Aosom, sammanslagen sida", () => {
   });
 });
 
+describe("VEVOR (ingen avläsning än)", () => {
+  const vevorMappning: RestockMappning = {
+    supplierProductId: "vevor:TEST-0001",
+    supplier: "vevor",
+    sourceUrl: "https://leverantor.example/vevor-vara",
+  };
+
+  it("☠️ lånar aldrig AliExpress synktillstånd — lagret är okänt", () => {
+    const [rad] = bygg({
+      mappningar: { p1: vevorMappning },
+      synk: { p1: { listingStatus: "active", currentStock: 9, lastCheckedAt: "2026-10-21T10:00:00.000Z" } },
+    });
+    expect(rad.leverantor?.namn).toBe("VEVOR");
+    expect(rad.leverantor?.status).toBe("okant");
+    expect(rad.leverantor?.antal).toBeNull();
+    expect(rad.leverantor?.kontrollerad).toBeNull();
+    expect(rad.leverantor?.url).toBe("https://leverantor.example/vevor-vara");
+  });
+});
+
 describe("mappningen", () => {
   it("en rad som inte finns ger ingen leverantör men är inte okänd", () => {
     const [rad] = bygg({ mappningar: { p1: null } });

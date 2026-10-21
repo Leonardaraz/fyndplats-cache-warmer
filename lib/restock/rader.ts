@@ -12,7 +12,8 @@
 //
 // Ren logik: sidan hämtar, den här modulen bestämmer vad som visas.
 
-import type { MappingSupplier } from "../store";
+import type { Leverantor, MappingSupplier } from "../store";
+import { assertNever } from "../assert-never";
 import { leverantorskallaFor } from "../import/source-link";
 import { storeProductUrl } from "../admin-links";
 import type { RestockProductCount } from "./store";
@@ -61,8 +62,8 @@ export interface RestockVariantlager {
 }
 
 export interface RestockLeverantor {
-  leverantor: MappingSupplier;
-  /** "AliExpress" · "Aosom". */
+  leverantor: Leverantor;
+  /** "AliExpress" · "Aosom" · "VEVOR". */
   namn: string;
   /** Produktsidan hos leverantören, eller null när den inte går att bygga. */
   url: string | null;
@@ -190,12 +191,35 @@ function aosomStatus(m: RestockMappning): Leverantorsstatus {
   return { status: antal > 0 ? "i_lager" : "slut", antal, varianter: [], slutSedan: null, kontrollerad };
 }
 
+/**
+ * Lagret hos leverantören, per leverantör. VEVOR har ingen avläsning än (den
+ * byggs i steg 2), och en rad med okänd leverantör har ingen källa alls — båda
+ * visas som "okant" i stället för att lånas från AliExpress synktillstånd.
+ */
+function statusHosLeverantor(
+  leverantor: Leverantor,
+  m: RestockMappning,
+  synk: RestockSynkstatus | null | undefined,
+): Leverantorsstatus {
+  switch (leverantor) {
+    case "aosom":
+      return aosomStatus(m);
+    case "aliexpress":
+      return aliExpressStatus(synk);
+    case "vevor":
+    case "okand":
+      return { status: "okant", antal: null, varianter: [], slutSedan: null, kontrollerad: null };
+    default:
+      return assertNever(leverantor, "leverantör");
+  }
+}
+
 function leverantorFor(
   m: RestockMappning,
   synk: RestockSynkstatus | null | undefined,
 ): RestockLeverantor {
   const kalla = leverantorskallaFor(m);
-  const status = kalla.leverantor === "aosom" ? aosomStatus(m) : aliExpressStatus(synk);
+  const status = statusHosLeverantor(kalla.leverantor, m, synk);
   // Varianternas egna lagerländer räknas med: AliExpress bakar in landet i SKU:n.
   const koder = [...(m.shipsFromCountries ?? []), ...(m.variants ?? []).map((v) => v.shipFrom ?? "")];
   const lager = [...new Set(koder.map(landSv).filter(Boolean))];

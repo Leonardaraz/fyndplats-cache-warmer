@@ -1,0 +1,57 @@
+name: Leverantörer — räkna mappningarna per leverantör
+
+# Kvittot på att ingen befintlig rad bytte leverantör när VEVOR lades till som
+# tredje leverantör (2026-10-21), och underlaget för att skärpa regeln för
+# rader utan supplier-fält. Skriver bara antal: inga id, inga artikelnummer,
+# ingen adress.
+#
+# Jobbet fäller om någon rad utan supplier-fält bär prefixet vevor:. Det är den
+# enda väg en befintlig rad hade kunnat byta klass, från AliExpress till VEVOR.
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har databasen, Actions
+# har CRON_SECRET.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rakna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Räkna
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-larden 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/leverantorsrakning"
+          svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" "${url}")
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret fran rutten var inte JSON. Ar den deployad dar workflowen kor?" >&2
+            exit 1
+          fi
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            exit 1
+          fi
+
+          # Bara antal. Svaret bar inga id och inga artikelnummer.
+          echo "$svar" | jq '{totalt, perLeverantor, sparatFalt, utanFalt, faltOchIdOense, aeSynkensUrval, aosomSynkensUrval}' || true
+
+          vevor=$(echo "$svar" | jq -r '.utanFalt.vevorPrefix')
+          if [ "$vevor" != "0" ]; then
+            echo "::error::${vevor} rader utan supplier-falt bar prefixet vevor: och bytte darmed klass fran AliExpress till VEVOR" >&2
+            exit 1
+          fi
+          echo "Ingen rad utan supplier-falt bar prefixet vevor:. Ingen befintlig rad bytte klass." || true

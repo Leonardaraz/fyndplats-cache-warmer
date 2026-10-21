@@ -16,7 +16,8 @@
 // som redan står i produktsidans JSON-LD. Ett test låser det.
 
 import type { ProductMappingRecord } from "../store";
-import { isAliExpressMapping } from "../store/supplier";
+import { isAosomMapping } from "../store/supplier";
+import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
 import type { WixProduktPris } from "../wix/v3-products";
 
 /** En rad ur dealproffsens JSON-svar, avskalad till det vi använder. */
@@ -75,7 +76,7 @@ export function prefixAv(artikelnummer: string): string | null {
 export function artikelnummerAv(m: ProductMappingRecord): string | null {
   const raa = (m.supplierProductId ?? "").trim();
   if (!raa) return null;
-  const utan = raa.startsWith("aosom:") ? raa.slice("aosom:".length) : raa;
+  const utan = raa.startsWith(AOSOM_ID_PREFIX) ? raa.slice(AOSOM_ID_PREFIX.length) : raa;
   return utan || null;
 }
 
@@ -88,7 +89,7 @@ export function artikelnummerAv(m: ProductMappingRecord): string | null {
 export function prefixLista(mappningar: readonly ProductMappingRecord[]): string[] {
   const ut = new Set<string>();
   for (const m of mappningar) {
-    if (isAliExpressMapping(m)) continue;
+    if (!isAosomMapping(m)) continue;
     const nr = artikelnummerAv(m);
     const p = nr ? prefixAv(nr) : null;
     if (p) ut.add(p);
@@ -178,7 +179,7 @@ export function jamforPriser(
 
   for (const m of mappningar) {
     ut.granskade++;
-    if (isAliExpressMapping(m)) {
+    if (!isAosomMapping(m)) {
       ut.ejAosom++;
       continue;
     }

@@ -205,3 +205,23 @@ describe("jamforPriser", () => {
     expect(j.rader.map((r) => r.wixProductId)).toEqual(["stor", "liten"]);
   });
 });
+
+describe("☠️ VEVOR-rader jämförs aldrig som Aosom-rader (2026-10-21)", () => {
+  const vevor = mappning({ wixProductId: "v1", supplier: "vevor", supplierProductId: "vevor:TEST-0001" } as never);
+
+  it("prefixlistan frågar inte efter VEVOR-nummer", () => {
+    expect(prefixLista([vevor])).toEqual([]);
+  });
+
+  it("jämförelsen räknar raden som ej Aosom och ger den ingen rad", () => {
+    const j = jamforPriser(
+      [vevor],
+      new Map([["v1", pris(3599)]]),
+      deras([{ reference: "TEST-0001", prisSek: 4289, ordinariePrisSek: null, ean: null }]),
+      new Set(["v1"]),
+    );
+    expect(j.ejAosom).toBe(1);
+    expect(j.rader).toEqual([]);
+    expect(j.utanTraff).toBe(0);
+  });
+});

@@ -80,6 +80,28 @@ describe("planeraOmmappning", () => {
     expect(p.prisSek).toBe(1999);
   });
 
+  it("☠️ en VEVOR-sida mappas inte om — den tar inte AE-vägen", () => {
+    // Ommappningen är byggd för AE → Aosom och byte inom Aosom. En VEVOR-sida
+    // hade annars fått ett Aosom-artikelnummer utan att någon bestämt det.
+    const p = planeraOmmappning({
+      mappning: mappning({ supplier: "vevor", supplierProductId: "vevor:TEST-0001" }),
+      rad: rad(),
+      alla: INGA_ANDRA,
+      fx: FX,
+    });
+    expect(p.hinder).toContain("vevor_sida");
+  });
+
+  it("en sida med okänd leverantör mappas inte om", () => {
+    const p = planeraOmmappning({
+      mappning: mappning({ supplier: "x" as unknown as "aosom" }),
+      rad: rad(),
+      alla: INGA_ANDRA,
+      fx: FX,
+    });
+    expect(p.hinder).toContain("okand_leverantor");
+  });
+
   it("räknar marginalen netto mot netto och rapporterar båda sidor", () => {
     const p = planeraOmmappning({ mappning: mappning(), rad: rad(), alla: INGA_ANDRA, fx: FX });
     // (1999/1,25 − 1650/1,25) / (1999/1,25) = 17,46 %

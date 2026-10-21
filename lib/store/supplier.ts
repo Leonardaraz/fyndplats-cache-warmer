@@ -9,20 +9,54 @@
 // varje ny AE-anropande körning ska kunna importera EN funktion och vara klar,
 // och det ska gå att hitta alla ställen som bryr sig med en enda grep.
 
-import type { MappingSupplier, ProductMappingRecord } from "./index";
+import { LEVERANTORER, type Leverantor, type MappingSupplier, type ProductMappingRecord } from "./index";
 import type { AliExpressProductId } from "../aliexpress/product-id";
-import { AOSOM_ID_PREFIX } from "../aosom/to-product";
+import { AOSOM_ID_PREFIX, VEVOR_ID_PREFIX } from "./leverantorsprefix";
+
+/** Sant för ett värde som står i `LEVERANTORER`. Fältet är fri text i databasen. */
+export function arKandLeverantor(varde: unknown): varde is MappingSupplier {
+  return typeof varde === "string" && (LEVERANTORER as readonly string[]).includes(varde);
+}
 
 /**
  * Leverantören för en rad. Läser det sparade fältet först och faller tillbaka på
  * id-prefixet — så att en rad som skrevs innan `supplier` fanns, eller som
  * tappade fältet i en partiell uppdatering, ändå klassas rätt. Default
  * "aliexpress": det är vad varenda rad i katalogen var före 2026-08-27.
+ *
+ * ☠️ VÄLJ VÄG MED `switch` OCH `assertNever`, INTE MED "aosom, annars
+ * AliExpress". Svaret har fyra värden sedan VEVOR lades till (2026-10-21), och
+ * ett val med två grenar skickar den tredje leverantören in i fel gren utan
+ * att något fel syns. `leverantorsval-grind.test.ts` fäller de vanliga
+ * formerna av ett sådant val.
+ *
+ * "okand" betyder ett sparat värde utanför `LEVERANTORER`. En sådan rad var
+ * redan före 2026-10-21 varken AE eller Aosom för spärrarna nedan; svaret
+ * gör bara det synligt. Default för en rad UTAN fält och utan känt prefix är
+ * fortfarande "aliexpress", så ingen befintlig rad byter klass.
  */
-export function mappingSupplier(m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">): MappingSupplier {
-  if (m.supplier) return m.supplier;
+export function mappingSupplier(m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">): Leverantor {
+  const falt: unknown = m.supplier;
+  if (falt) return arKandLeverantor(falt) ? falt : "okand";
   if (m.supplierProductId?.startsWith(AOSOM_ID_PREFIX)) return "aosom";
+  if (m.supplierProductId?.startsWith(VEVOR_ID_PREFIX)) return "vevor";
   return "aliexpress";
+}
+
+/**
+ * Klassningen som ett värde att SPARA i `supplier`, för en rad vars
+ * `supplierProductId` ska tömmas (pensionering, radering). Utan fältet hade den
+ * tömda raden fallit tillbaka på default och klassats som AliExpress.
+ *
+ * Ett okänt sparat värde skrivs inte om till "okand": raden behåller det och
+ * fortsätter vara varken AE eller Aosom, precis som före tömningen.
+ */
+export function frystLeverantor(
+  m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
+): MappingSupplier | undefined {
+  const leverantor = mappingSupplier(m);
+  if (leverantor !== "okand") return leverantor;
+  return m.supplier;
 }
 
 /**
@@ -42,6 +76,18 @@ export function isAliExpressMapping(
   m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
 ): boolean {
   return mappingSupplier(m) === "aliexpress";
+}
+
+/**
+ * Raderna AE-synken faktiskt arbetar med: ett id, AliExpress-klass och inte
+ * pensionerade. Används av synken (lib/sync/aliexpress-sync.ts) och av
+ * räkningen per leverantör (lib/store/leverantorsrakning.ts), så att båda
+ * räknar exakt samma urval i stället för var sin kopia av villkoret.
+ */
+export function arIAeSynkensUrval(
+  m: Pick<ProductMappingRecord, "supplier" | "supplierProductId" | "draftStatus">,
+): boolean {
+  return Boolean(m.supplierProductId) && isAliExpressMapping(m) && m.draftStatus !== "rejected";
 }
 
 /**
@@ -67,7 +113,11 @@ export function aliExpressIdOf(
   return id ? (id as AliExpressProductId) : null;
 }
 
-/** Motsatsen — för admin-vyer och rapporter som vill titta på Aosom-sidan. */
+/**
+ * Sant bara för Aosom-rader. Det är INTE motsatsen till `isAliExpressMapping`:
+ * en VEVOR-rad eller en "okand" är varken eller. Använd den som positivt filter
+ * ("bara Aosom går vidare"), aldrig som "allt som inte är AliExpress".
+ */
 export function isAosomMapping(
   m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
 ): boolean {

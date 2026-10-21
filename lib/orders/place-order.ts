@@ -16,7 +16,8 @@ import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/order
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
-import { aliExpressIdOf, isAliExpressMapping, mappingSupplier } from "@/lib/store/supplier";
+import { aliExpressIdOf, mappingSupplier } from "@/lib/store/supplier";
+import { assertNever } from "@/lib/assert-never";
 import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 /**
@@ -90,14 +91,35 @@ export async function placeOrderForTask(
   // Aosom beställs i stället i klump: /admin/aosom-order bygger CSV:n som
   // aosom.de/bulkordering tar emot. Meddelandet säger det, så den som ser felet i
   // /admin vet vad hen ska göra i stället för att leta i AE-loggarna.
-  if (!isAliExpressMapping(mapping)) {
-    return {
-      ok: false,
-      error:
-        `Produkten kommer från ${mappingSupplier(mapping)}, inte AliExpress — ingen order läggs. `
-        + `Aosom-ordrar beställs i klump: hämta CSV:n i /admin/aosom-order och ladda upp `
-        + `den på aosom.de/bulkordering.`,
-    };
+  const leverantor = mappingSupplier(mapping);
+  switch (leverantor) {
+    case "aliexpress":
+      break;
+    case "aosom":
+      return {
+        ok: false,
+        error:
+          `Produkten kommer från ${leverantor}, inte AliExpress — ingen order läggs. `
+          + `Aosom-ordrar beställs i klump: hämta CSV:n i /admin/aosom-order och ladda upp `
+          + `den på aosom.de/bulkordering.`,
+      };
+    case "vevor":
+      // VEVOR har varken API eller beställningsfil: ordern läggs för hand i
+      // deras kassa och markeras med "Order — beställd eller skickad för hand".
+      return {
+        ok: false,
+        error:
+          `Produkten kommer från VEVOR, inte AliExpress — ingen order läggs. `
+          + `VEVOR-ordrar läggs för hand i VEVOR:s kassa och markeras med workflowen `
+          + `"Order — beställd eller skickad för hand".`,
+      };
+    case "okand":
+      return {
+        ok: false,
+        error: "Mappningen har en okänd leverantör — ingen order läggs. Kontrollera raden i /admin/mappings.",
+      };
+    default:
+      return assertNever(leverantor, "leverantör");
   }
 
   // F49: SKU först (entydigt); annars choices med EXAKT EN träff; enproduktsgenväg bara

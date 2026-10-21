@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { mappingSupplier, isAliExpressMapping, isAosomMapping, aosomSkuOf, aliExpressIdOf } from "./supplier";
+import {
+  mappingSupplier,
+  isAliExpressMapping,
+  isAosomMapping,
+  aosomSkuOf,
+  aliExpressIdOf,
+  arKandLeverantor,
+  frystLeverantor,
+} from "./supplier";
+import { LEVERANTORER, type MappingSupplier } from "./index";
 
 describe("mappingSupplier", () => {
   it("läser det sparade fältet när det finns", () => {
@@ -25,7 +34,7 @@ describe("isAliExpressMapping", () => {
     expect(isAliExpressMapping({ supplier: "aosom", supplierProductId: "845-030CG" })).toBe(false);
   });
 
-  it("isAosomMapping är exakt motsatsen", () => {
+  it("isAosomMapping är motsatsen för AE- och Aosom-rader", () => {
     for (const m of [
       { supplierProductId: "1005010804316400" },
       { supplierProductId: "aosom:845-030CG" },
@@ -93,5 +102,60 @@ describe("aliExpressIdOf", () => {
       const viaBoolean = isAliExpressMapping(m) && Boolean(m.supplierProductId);
       expect(viaTyp !== null).toBe(viaBoolean);
     }
+  });
+});
+
+describe("VEVOR och okända värden (2026-10-21)", () => {
+  it("prefixet vevor: och fältet ger vevor", () => {
+    expect(mappingSupplier({ supplierProductId: "vevor:TEST-0001" })).toBe("vevor");
+    expect(mappingSupplier({ supplier: "vevor", supplierProductId: "TEST-0001" })).toBe("vevor");
+  });
+
+  it("☠️ en VEVOR-rad är varken AliExpress eller Aosom — inte för någon spärr", () => {
+    for (const m of [
+      { supplierProductId: "vevor:TEST-0001" },
+      { supplier: "vevor" as const, supplierProductId: "TEST-0001" },
+    ]) {
+      expect(isAliExpressMapping(m)).toBe(false);
+      expect(isAosomMapping(m)).toBe(false);
+      expect(aliExpressIdOf(m)).toBeNull();
+      expect(aosomSkuOf(m)).toBeNull();
+    }
+  });
+
+  it("☠️ ett sparat värde utanför listan blir okand, aldrig AliExpress", () => {
+    // Fältet är fri text i databasen. Ett sådant värde var redan förut varken
+    // AE eller Aosom för spärrarna; svaret gör det bara synligt.
+    const m = { supplier: "Aosom " as unknown as MappingSupplier, supplierProductId: "1005010804316400" };
+    expect(mappingSupplier(m)).toBe("okand");
+    expect(isAliExpressMapping(m)).toBe(false);
+    expect(isAosomMapping(m)).toBe(false);
+    expect(aliExpressIdOf(m)).toBeNull();
+  });
+
+  it("ingen befintlig rad byter klass: utan fält och utan känt prefix är det fortfarande AliExpress", () => {
+    expect(mappingSupplier({ supplierProductId: "1005010804316400" })).toBe("aliexpress");
+    expect(mappingSupplier({ supplierProductId: "" })).toBe("aliexpress");
+    expect(mappingSupplier({ supplierProductId: "aosom:845-030CG" })).toBe("aosom");
+    // Fältet vinner över prefixet, som förut.
+    expect(mappingSupplier({ supplier: "aosom", supplierProductId: "vevor:TEST-0001" })).toBe("aosom");
+  });
+
+  it("arKandLeverantor följer LEVERANTORER", () => {
+    for (const l of LEVERANTORER) expect(arKandLeverantor(l)).toBe(true);
+    for (const x of ["", "okand", "Aosom", "AliExpress", 7, null, undefined]) expect(arKandLeverantor(x)).toBe(false);
+  });
+});
+
+describe("frystLeverantor", () => {
+  it("fryser klassningen innan artikeln töms, så raden inte faller tillbaka på AliExpress", () => {
+    expect(frystLeverantor({ supplierProductId: "aosom:845-030CG" })).toBe("aosom");
+    expect(frystLeverantor({ supplierProductId: "vevor:TEST-0001" })).toBe("vevor");
+    expect(frystLeverantor({ supplierProductId: "1005010804316400" })).toBe("aliexpress");
+  });
+
+  it("☠️ ett okänt sparat värde skrivs inte om till okand — raden behåller det", () => {
+    const okant = "Aosom " as unknown as MappingSupplier;
+    expect(frystLeverantor({ supplier: okant, supplierProductId: "x" })).toBe(okant);
   });
 });

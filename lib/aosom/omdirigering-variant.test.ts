@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProductMappingRecord } from "../store";
-import { AOSOM_ID_PREFIX } from "./to-product";
+import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
 import { arSammanslagenUtanVariant, givarensArtikel, planeraVariantmal } from "./omdirigering-variant";
 
 const RAD = { fromSlug: "knastol-kram", toPath: "/produkt/knastol-gra", reason: "Sammanslagen: sidan är nu ett val på en annan sida" };
