@@ -1,6 +1,6 @@
-# Poleringskedjans skript (ögonblicksbild 2026-10-17)
+# Poleringskedjans skript (ögonblicksbild 2026-10-21)
 
-Skripten som kördes för rundorna N181–N264 och T21–T65 (PR #749). De skrevs i en
+Skripten som kördes för rundorna N181–N274 och T21–T72 (PR #749). De skrevs i en
 chattsession och bodde i dess scratchpad, och en ny container hade inte haft dem.
 Här ligger de som de kördes, så att nästa session inte börjar om. Ingenting här körs
 av Vercel eller av en workflow; allt är hjälpmedel för den som polerar från chatten.
@@ -52,7 +52,8 @@ Reglerna för själva polerandet står i `docs/seo-polish-runbook.md` och
    (planen och korten måste ligga i grenen innan workflowen läser dem).
 7. Kedjan (`mall-n/kor_n258.sh`): vänta ut Aosom-fönstret (timmar delbara med tre,
    minut 15–29), sedan `ghw.py write <runda> <plan-sha256> torr,skriv`.
-8. Återläsning: `mkaterlas2.py` (bygger `bygg_aterlas.py`s ExecuteWixAPI-kod) och live:
+8. Återläsning: `mkaterlas2.py` (bygger `bygg_aterlas.py`s ExecuteWixAPI-kod; `mkaterlas3.py`
+   lägger dessutom till optionerna och varianternas val för sidor som slagits ihop) och live:
    `../polish-gates/hamta-live.sh 130` följt av `livegrind.py` och `livekoll.py`
    (`mall-n/live_n258.sh`). Svaret över 100 000 tecken sparas av verktyget i en fil som
    är avkortad vid 100 000 tecken: koden fyller ut med ett `pad` på 101 000 tecken, och
@@ -89,6 +90,12 @@ Reglerna för själva polerandet står i `docs/seo-polish-runbook.md` och
    (`kor_wf.py redirect-add.yml <ref> from_slug=... to_path=...`), givarens bilder
    (`ghw.py bilder`) och sammanslagningen (`ghw.py merge mall-t/merge_t54.json`).
 3. Återläsning och live som ovan.
+4. En värd som redan är sammanslagen (`sammanslagen` i `sammanslagna.tsv`) skrivs med
+   `html_raw` och riktade ersättningar, och alt-texter med löpnummer skrivs om med ord
+   (`live_alt`). Givarens bilder får svenska alt-texter före sammanslagningen
+   (`mall-t/bygg_givare_t72.py` bygger bildplanen, `mall-t/kor_t72.sh` är kedjan med
+   värdens skrivplan, givarbilderna och sammanslagningen). Kör `forplan.sh` först:
+   planläget fångar galleritak och felaktiga axlar innan något skrivits.
 
 `polish-write` och `polish-bilder` delar concurrency-grupp och körs i följd. Starta aldrig två
 körningar av samma workflowfil samtidigt.
@@ -116,8 +123,10 @@ körningar av samma workflowfil samtidigt.
 | `forplan.sh` | `aosom-sammanslagning.yml` i planläge för alla rader före kedjan |
 | `bygg_t62.py` | bygger bildplanen för svenska alt-texter på sammanslagna bilder |
 | `pens_plan.py` | planen för pensionerade utkast (`pensionerade-radera.yml`, läget `plan`) med färska antal |
+| `kor_logg.py` | kör en workflow, väntar ut den och sparar jobbloggen i en fil (till exempel `pensionerade-radera.yml` med `bekrafta` och `per`) |
+| `mkaterlas3.py`, `visa_aterlas.py` | återläsningskoden med optioner och varianternas val (efter sammanslagningar), och en läsare som skriver en kompakt sammanfattning av det sparade svaret (fram till `,"pad"`, `--alt` visar alt-texterna) |
 | `mall-n/` | N258 som mall för en ny sida, och N262 (`*_n262.*`) som mall för en runda med utsnitt av bilder |
-| `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida, och T65 (`*_t65.*`) för en värdtext byggd med riktade ersättningar |
+| `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida, T65 (`*_t65.*`) för en värdtext byggd med riktade ersättningar, och T72 (`*_t72.*`) för en redan sammanslagen värd med givarens alt-texter |
 
 `hornark-ark.py` klipper bara de två nedre hörnen ur varje bild. `../polish-gates/hornark.py` tar
 alla fyra hörnen högpassfiltrerade.
