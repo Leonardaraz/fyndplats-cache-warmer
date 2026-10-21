@@ -1,0 +1,57 @@
+{
+ "runda": "runda-t77-givare-alt",
+ "produkter": [
+  {
+   "kort": "a22bfee3",
+   "pid": "a22bfee3-8632-449b-ad5c-546927a0129f",
+   "media": [
+    {
+     "id": "b379ce_99e0cc689a26451dbd3a2f55b8ba93be~mv2.jpg",
+     "altText": "Mindre hamsterbur i mörkgrått trä med genomskinlig front och lutande lock, med två hamstrar, stegar och hus, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_911a721b73b546f9bdaddd2fd1f83db0~mv2.jpg",
+     "altText": "Den mindre hamsterburen på ett trägolv framför en vit soffa, med en hamster och strö i buren"
+    },
+    {
+     "id": "b379ce_7c6cb19c032f48cd91b9bb421d1b0e76~mv2.jpg",
+     "altText": "Den mindre hamsterburen snett uppifrån på en grå matta med det uppfällda locket, framför en växt och ett bord"
+    },
+    {
+     "id": "b379ce_7ac363e51bf04894ada85d6e0d2cc584~mv2.jpg",
+     "altText": "Närbild på den mindre burens front med hus, stegar och ventilationsspringor, framför ett bord"
+    },
+    {
+     "id": "b379ce_79d3cea0901e440e909ac86b63aa500d~mv2.jpg",
+     "altText": "Måttbild på den mindre hamsterburen med måtten 85 cm, 45 cm och 44 cm och locket på 27 cm"
+    }
+   ]
+  },
+  {
+   "kort": "e13b7b5e",
+   "pid": "e13b7b5e-3ed7-47c5-89e7-4e90990b09ae",
+   "media": [
+    {
+     "id": "b379ce_637490514b514ea893dbe394e647d227~mv2.jpg",
+     "altText": "Mindre hamsterbur i naturträ med genomskinlig front och lutande lock, med stegar och hus, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0d542a516042467a9411196c208fac7e~mv2.jpg",
+     "altText": "Den mindre hamsterburen i naturträ på ett trägolv framför en soffa och en växt, med två hamstrar i buren"
+    },
+    {
+     "id": "b379ce_2099d75d59564024a9a6cf6e3b74df8a~mv2.jpg",
+     "altText": "Närbild på den mindre burens inre med ett hus, en plattform, en hängbro och stegar, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_8447ffa6562b4fc0a9c78ab232cbe609~mv2.jpg",
+     "altText": "Närbild på den mindre burens sida med ventilationsspringor, en svart stödstång för locket och skruvade hörn, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_4e79df24eff2407db0745fdc3109787d~mv2.jpg",
+     "altText": "Måttbild på den mindre hamsterburen i naturträ med måtten 85 cm, 45 cm och 44 cm och locket på 27 cm"
+    }
+   ]
+  }
+ ]
+}
