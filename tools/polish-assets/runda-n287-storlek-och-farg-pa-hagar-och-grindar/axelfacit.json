@@ -1,0 +1,44 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "6eb13a16": {
+  "tyska": "76-104B x 76H cm",
+  "svenska": "76-104B x 76H cm",
+  "bokstaver": "BH",
+  "hojd": 76,
+  "bredd": [
+   76,
+   104
+  ]
+ },
+ "8b00f745": {
+  "tyska": "Quadrat-Form: 320L x 320B x 80H cm. Rechtecksform: 480B x 160B x 80H cm",
+  "svenska": "80 x 80 cm",
+  "bokstaver": "LBHBBH",
+  "hojd": 80,
+  "bredd": 320,
+  "djup": 320
+ },
+ "a37103bf": {
+  "tyska": "76-104B x 96H cm",
+  "svenska": "76-104L x 96H cm",
+  "bokstaver": "BH",
+  "hojd": 96,
+  "bredd": [
+   76,
+   104
+  ]
+ },
+ "e833d963": {
+  "tyska": "84L x 64B x 53H cm.",
+  "svenska": "84L x 64B x 53H cm",
+  "bokstaver": "LBH",
+  "hojd": 53,
+  "bredd": 84,
+  "djup": 64
+ },
+ "f513de3d": {
+  "tyska": "",
+  "svenska": "80*80cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Quadratische Form: 160B x 160T x 80H cm | ✔ Rechteckige Form: 240L x 80B x 80H cm | ✔ Einzelnes Paneel: 80L x 80B x 1,5T cm | ✔ Tür: 38B x 52,5H cm | ✔ Bodenpfahl: 90H cm | ✔ Faltbare Größe: 82L x 12,5B x 80H cm | ✔ Stangenabstand: 5B x 15H cm | ✔ Verstellbarer Gurt: 70-135L cm | ✔ Quadratische Form: 160B x 160T x 100H cm | ✔ Rechteckige Form: 240L x 80B x 100H cm | ✔ Einzelnes Paneel: 80L x 80B x 1,5T cm | ✔ Tür: 38B x 61,5H cm | ✔ Bodenpfahl: 110H cm | ✔ Faltbare Größe:100L x 12,5B x 82H cm | ✔ Stangenabstand: 5B x 19H cm | ✔ Verstellbarer Gurt: 70-135L cm"
+ }
+}
