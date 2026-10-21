@@ -1,15 +1,16 @@
 # kort	lager	art	typ	A	L	K	H	beslut	not
 # Skärmning 2026-10-21 av de 108 dolda djurbostadsutkasten. Måtten är markplanets innermått (cm², cm).
 # Rader utan siffror är bedömda av en människa. Aldrig artikelnummer, aldrig inköpspris.
+# Golvet (8 kap. 8 §): kaniner och gnagare får inte hållas på nätgolv, utom i utrymmen med direkt markkontakt. En bostad med galler över en bricka som golv är HOLD, även när måtten klarar minimimåttet (kontrollerat från 2026-10-21, N278). Gnagare får inte heller hållas vid temperaturer under noll grader (8 kap. 22 §): utomhusstall för marsvin säljs för frostfria perioder.
 1686860f	200	guldhamster,dvarghamster	bostad	4232	91	46.5	31.6	PASS	markplan 91 x 46,5 cm, nedre våningen 31,6 cm hög
 a2bf8b4d	178	-	hall	-	-	-	-	HOLD	sköldpaddsbox: art och storlek avgörs inte av källtexten, och fronthöjden 20 cm klarar bara de minsta sköldpaddorna (bilaga 1:7)
 3d89c580	83	kaninstor	bostad	9200	100	43	51	FAIL	kortaste sida 43 cm mot 70 cm för tyska widderkaniner, som leverantören nämner (bilaga 1:3)
-29457148	25	dvkanin,marsvin	bostad	7071	83	45.5	35	PASS	marsvin: markplanet klarar 40 cm; dvärgkanin faller på kortaste sida 45,5 mot 50 cm och löpgångens höjd 35 mot 50 cm
+29457148	25	-	hall	-	-	-	-	HOLD	nätgolv: nedre delen och sidohagen har galler över utdragbara brickor, och kaniner och gnagare får inte hållas på nätgolv (8 kap. 8 §); dessutom 45,5 cm kortaste sida för dvärgkanin
 f2ff3a82	112	fagel	fagel	3496	76	46	41	FAIL	innerhöjd 41 cm per fack mot 60 cm (bilaga 1:1); ståndet och hyllan är inte burutrymme
 224627db	69	fagel	fagel	5335	97	55	145	PASS	innermått 97 x 55 x 145 cm
 60f44d5b	0	-	hund	-	-	-	-	PASS	valpgrind, tillfällig vistelse; saldo 0
 512a4396	1	dvkanin,marsvin	bostad	7548	68	37	52	HOLD	kortaste sida 37 cm mot 40 cm för marsvin och 50 cm för dvärgkanin; saldo 1
-beb5d127	16	dvkanin,marsvin	bostad	9526	76	43	57	PASS	marsvin: 43 cm i kortaste sida; dvärgkanin faller på 50 cm
+beb5d127	16	-	hall	-	-	-	-	HOLD	måttbilden anger 68 x 37 cm per hage, alltså 0,25 m² och 37 cm kortaste sida mot 0,3 m² och 40 cm för marsvin; hagarna står på marken men hör inte säkert ihop med huset
 626be705	5	-	hall	-	-	-	-	HOLD	leverantören anger bara diverse Kleintiere; huset 46 x 39 cm klarar hamster och mus men inte kanin eller marsvin
 2cac65dd	82	-	rastgard	-	-	-	-	PASS	utlopp 180 x 150 cm, höjd 48 cm, litet gömställe; ersätter inte en bostad
 3a3fb7b4	96	-	rastgard	-	-	-	-	PASS	samma utlopp som 2cac65dd; kontrollera dubblett på bilderna
@@ -42,9 +43,9 @@ adef1330	40	-	rastgard	-	-	-	-	PASS	hage 185 x 75 x 50 cm utan bostad
 4c819a2a	22	-	rastgard	-	-	-	-	PASS	hage med tak 220 x 85 x 103 cm utan bostad
 88567cd8	46	-	hons	-	-	-	-	PASS	gåbar inhägnad 280 x 380 cm
 25901957	34	-	hons	-	-	-	-	PASS	hönshus med utlopp 240 x 112,5 cm
-a2acfed0	134	dvkanin,marsvin	bostad	5616	104	54	61	PASS	innermått ca 104 x 54 cm; färg 1 av 3
-d40ec79e	12	dvkanin,marsvin	bostad	5616	104	54	61	PASS	färg 2 av 3 av samma stall
-8acfd813	6	dvkanin,marsvin	bostad	5616	104	54	61	PASS	färg 3 av 3 av samma stall
+a2acfed0	134	-	hall	-	-	-	-	HOLD	nätgolv: hagen har galler i botten över en utdragbar bricka (8 kap. 8 §); färg 1 av 3, de andra är d40ec79e och 8acfd813
+d40ec79e	12	-	hall	-	-	-	-	HOLD	samma stall som a2acfed0, nätgolv (8 kap. 8 §); färg 2 av 3
+8acfd813	6	-	hall	-	-	-	-	HOLD	samma stall som a2acfed0, nätgolv (8 kap. 8 §); färg 3 av 3
 cc5bb82c	47	dvarghamster,guldhamster	bostad	3096	75.5	41	40	PASS	innermått 75,5 x 41 cm
 e58ca1e0	47	-	hons	-	-	-	-	PASS	gåbar inhägnad 280 x 190 cm
 f75b26c4	48	dvkanin,marsvin	bostad	8000	150	53	36.5	PASS	marsvin: löpgången är 36,5 cm hög, dvärgkanin kräver 50 cm
