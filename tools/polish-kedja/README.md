@@ -1,6 +1,6 @@
 # Poleringskedjans skript (ögonblicksbild 2026-10-21)
 
-Skripten som kördes för rundorna N181–N274 och T21–T72 (PR #749). De skrevs i en
+Skripten som kördes för rundorna N181–N290 och T21–T78 (PR #749). De skrevs i en
 chattsession och bodde i dess scratchpad, och en ny container hade inte haft dem.
 Här ligger de som de kördes, så att nästa session inte börjar om. Ingenting här körs
 av Vercel eller av en workflow; allt är hjälpmedel för den som polerar från chatten.
@@ -58,6 +58,44 @@ Reglerna för själva polerandet står i `docs/seo-polish-runbook.md` och
    (`mall-n/live_n258.sh`). Svaret över 100 000 tecken sparas av verktyget i en fil som
    är avkortad vid 100 000 tecken: koden fyller ut med ett `pad` på 101 000 tecken, och
    `visa_aterlas.py` läser fram till `,"pad"`.
+
+**Snabbvägen sedan 2026-10-21 (`mall-rund/`, N283 och framåt)**
+
+☠️ **Före bygget:** kontrollera att utkastet inte redan har en runda. `grep -l "^<id>" tools/polish-assets/runda-*/ids.tsv` och en färsk läsning av produkten (revision över 3 eller `visible: true` betyder att den är skriven). N291 byggdes om för en sida som N283 hade skrivit tre timmar tidigare, och den andra skrivningen bytte adress (lärdom 39).
+
+`mkrunda.py <prefix> <rundnamn> <spec.json>` bygger hela arbetskatalogen ur en kompakt spec
+(`{"enheter": [{"huvud": id8, "syskon": [{"id8", "varde"}], "axel", "huvudvarde", "kategori", "noter", "publicerad"}]}`,
+se `mall-rund/exempel/spec_t78.json`). Den läser saldo och pris ur `t15/data`, skriver
+`<prefix>lib.py`, `enheter_<prefix>.py`, `samla_<prefix>.py` och `bygg_givare_<prefix>.py` ur
+mallarna `rundlib.py`, `enheter_P.py`, `samla_P.py` och `bygg_givare_P.py`, och kör
+`bygg_enhet.py` (kontaktark och originalbilder). Kör den med `/usr/bin/python3` (PIL).
+Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-alt` eller
+`runda-<prefix>-givare-alt` när namnet blir för långt.
+
+1. Skriv `v1_<prefix>.py` (en funktion `bygg(KAT)`, en post per sida). Exemplen i
+   `mall-rund/exempel/`: `v1_n288_ny_sida_med_utsnitt.py` (en ny sida med ett utsnitt av en
+   måttbild), `v1_t78_farg_och_storlek_pa_varden.py` (värdtext med riktade ersättningar och
+   givarens bilder och alt-texter, med färg OCH storlek) och
+   `v1_n287_storlek_och_farg_med_givare.py` (fem sidor med givare och utsnitt).
+2. `enheter_<prefix>.py` kör grindarna per enhet, `samla_<prefix>.py --bygg` bygger rundans
+   `skrivplan.json` och `bygg_givare_<prefix>.py` givarnas `bildplan.json`. Skriv ut båda
+   sha256-summorna: ändras en fil efter bygget ändras summan, och kedjan måste få den senaste.
+3. `leak.py` och `nyaord.py` med sökvägen `tools/polish-assets/<runda>`, sedan
+   `commit_push.sh`.
+4. Förkontrollen av sammanslagningar: `forplan.sh`-mönstret (`aosom-sammanslagning.yml
+   mode=plan`) mot färska Wix-sidor, och en genomgång av BÅDA sidornas bilder sida vid sida.
+   Ett färgsyskon avgörs på bilderna, inte på måtten (lärdom 40).
+5. Kedjan: `mall-rund/exempel/kor_t78.sh` (värdskrivning, omdirigering, givarbilder, sammanslagning)
+   eller `kor_n288.sh`-mönstret för en ny sida (bara `ghw.py write`).
+6. Återläsning: `mkkompakt.py <rundkatalog> <ut.js> [givar-id8=fullt-id ...]` skriver
+   ExecuteWixAPI-koden (facit per sida, options, varianternas val, kompakt SEO och givarnas
+   synlighet) som ska ge `N av N LIKA`. Live: `live_rund.sh <runda> <loggkatalog>` (kör
+   `hamta-live.sh`, `livegrind.py` och `livekoll.py` i bakgrunden, 6–9 minuter).
+7. Kompletteringskontroll före slutrapporten: kör `pool_dolda.js` utan `FRAN`, och jämför
+   id8-listan mot id:n i rundornas `ids.tsv`, `kallor.json`, `*.tsv`, `docs/` och
+   `FLAGGADE.md`. Det som ingen nämner läses ur Wix och mappningen (`las_ids.py`):
+   2026-10-21 var 15 av 748 onämnda, 13 av dem redan pensionerade och två hundkojor
+   kvar i kön (N289).
 
 **Tvillingkontroll och utsnitt (N262–N264)**
 
@@ -126,6 +164,9 @@ körningar av samma workflowfil samtidigt.
 | `kor_logg.py` | kör en workflow, väntar ut den och sparar jobbloggen i en fil (till exempel `pensionerade-radera.yml` med `bekrafta` och `per`) |
 | `mkaterlas3.py`, `visa_aterlas.py` | återläsningskoden med optioner och varianternas val (efter sammanslagningar), och en läsare som skriver en kompakt sammanfattning av det sparade svaret (fram till `,"pad"`, `--alt` visar alt-texterna) |
 | `mall-n/` | N258 som mall för en ny sida, och N262 (`*_n262.*`) som mall för en runda med utsnitt av bilder |
+| `mall-rund/` | `mkrunda.py` och dess mallar (`rundlib.py`, `enheter_P.py`, `samla_P.py`, `bygg_givare_P.py`) och `exempel/` med T78, N287 och N288 som förlagor |
+| `mkkompakt.py` | återläsningskoden med options, varianternas val, kompakt SEO och givarnas synlighet, ur rundkatalogen |
+| `live_rund.sh` | ISR-medveten livehämtning, `livegrind.py` och `livekoll.py` för en runda i bakgrunden |
 | `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida, T65 (`*_t65.*`) för en värdtext byggd med riktade ersättningar, och T72 (`*_t72.*`) för en redan sammanslagen värd med givarens alt-texter |
 
 `hornark-ark.py` klipper bara de två nedre hörnen ur varje bild. `../polish-gates/hornark.py` tar
