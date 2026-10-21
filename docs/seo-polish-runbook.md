@@ -241,6 +241,7 @@ skalkant. Grupphållning räknas som yta per djur, och totalen får aldrig under
 - **Saknas invändiga mått** (terrarier som bara anger yttermått) räknas golvytan med 2–3 cm per
   vägg och höjden med några centimeter mindre än den utvändiga. Bara klasser som klarar
   marginalen får stå i texten.
+- **En publicerad sida rättas med riktade ersättningar i sin egen text** (T82 är byggd efter den regeln: bilagehänvisning, en tabellrad och en artlista på fyra sidor), inte med en omskrivning. Räkna om tabellen med `kap.py` ur sidans invändiga mått, och ta bort bilder med djur som är större än klassen. En rättelse av en publicerad sida utanför poleringskön skrivs först efter Leonards ja.
 - **Texten namnger klasser, inte arter.** *Marklevande ormar upp till 125 cm*, *trädlevande
   ödlor upp till 20 cm*, och en hänvisning till bilaga 2:1 och 2:2 för artens klass. Citera
   **aldrig bilaga 1:4** för reptiler: den gäller gnagare. Namnge aldrig en art vars storlek ligger
