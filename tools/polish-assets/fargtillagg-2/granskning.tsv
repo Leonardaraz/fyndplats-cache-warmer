@@ -193,7 +193,7 @@ db13253d	14b99ed4	Grå	9	TEXT	struken	säljgrafik eller etikett med tysk eller e
 db13253d	14b99ed4	Grå	10	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
 e969501f	9357a97e	Beige	8	TEXT	beskuren	texten (etikett eller ruta) skärs bort, se krop.tsv
 e969501f	9357a97e	Beige	9	TEXT	struken	taket ryms inte i kvadraten utan den tyska anmärkningen: kapas 3 % per sida
-e969501f	9357a97e	Beige	10	TEXT	struken	ruta eller text i bilden, se auto
+e969501f	9357a97e	Beige	10	TEXT	struken	engelsk text (Replacement Gazebo Top Cover Only) i bilden
 ef2cbde0	20ef7dad	Gräddvit	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
 ef2cbde0	20ef7dad	Gräddvit	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
 ef2cbde0	20ef7dad	Gräddvit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
