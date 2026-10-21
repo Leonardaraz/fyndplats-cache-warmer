@@ -1,0 +1,57 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00d6458f": {
+  "tyska": "207,5L x 30B x 61H cm",
+  "svenska": "207,5L x 30B x 61H cm",
+  "bokstaver": "LBH",
+  "hojd": 61,
+  "bredd": 207.5,
+  "djup": 30
+ },
+ "1092b438": {
+  "tyska": "",
+  "svenska": "67cm x 41cm x 3,5cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Größe: 67L x 41B x 3,5H cm | ✔ Rasen: 63L x 38B cm | ✔ Einsatz: 63L x 38B cm"
+ },
+ "11eb7813": {
+  "tyska": "",
+  "svenska": "Modell 1",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sprungring-Set:2 x Stangen: H86 x Ø3,2 cm | 1 x Stange: L50 x Ø3,2 cm | 2 x Stangen: H86 x Ø3,2 cm | 1 x Stange: L85 x Ø3,2 cm | 4 x Stangen: L60 x Ø3,2 cm | ✔ Tragetasche: L95 x 15 cm"
+ },
+ "34dd5641": {
+  "tyska": "Quadrat-Form: 240L x 240B x 60H cm. Rechtecksform: 320B x 160B x 60H cm",
+  "svenska": "80 x 60 cm",
+  "bokstaver": "LBHBBH",
+  "hojd": 60,
+  "bredd": 240,
+  "djup": 240
+ },
+ "446350e2": {
+  "tyska": "63L x 48,5B x 6H cm",
+  "svenska": "63L x 48,5B x 6H cm",
+  "bokstaver": "LBH",
+  "hojd": 6,
+  "bredd": 63,
+  "djup": 48.5
+ },
+ "660c93b7": {
+  "tyska": "Rechtecksform: 160L x 80B x 100H cm",
+  "svenska": "80 x 100 cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 160,
+  "djup": 80
+ },
+ "740d419c": {
+  "tyska": "Achteckig: 154L x 154B cm. Quadratisch: 128L x 128B cm. Rechteck: 192L x 64B cm",
+  "svenska": "154L x 154B x 90H cm",
+  "bokstaver": "LBLBLB",
+  "bredd": 154,
+  "djup": 154
+ },
+ "cbc79247": {
+  "tyska": "",
+  "svenska": "80 x 80 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wandelement Abmessungen: 80L x 1,5B x 80H cm | ✔ Abmessungen der Erdspieße: Ø0,48 x 90H cm cm | ✔ Drahtabstand: 5L x 15B cm"
+ }
+}
