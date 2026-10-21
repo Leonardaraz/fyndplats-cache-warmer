@@ -8,9 +8,11 @@
 // Med den visas bilderna som #1, #2 … (plats i galleriet), annars som de sex första
 // tecknen i fil-id:t.
 //
-// Två väljare finns i butiken, och skriptet klickar båda:
+// Tre väljare finns i butiken, och skriptet klickar alla:
 //   .pdp-axis + .varswatch   en eller två axlar (storlek × färg), "finns inte" för en
 //                            kombination som saknas
+//   .pdp-variants + .varswatch  en enda axel utan .pdp-axis-omslag (strandparasollen,
+//                            2026-10-21: skriptet svarade "ingen väljare" tills den lades till)
 //   .varcard                 kort med miniatyr, för produkter med många val
 //
 // ☠️ Butikens cache fylls på var femte minut efter en ändring (cron `uppdatera-andrade`),
@@ -49,7 +51,10 @@ async function las() {
   return await sida.evaluate(() => {
     const src = (i) => [i.getAttribute('src'), i.getAttribute('data-src'), i.getAttribute('srcset')].filter(Boolean).join(' ');
     return {
-      axlar: [...document.querySelectorAll('.pdp-axis')].map((ax) => ({
+      axlar: (document.querySelector('.pdp-axis')
+        ? [...document.querySelectorAll('.pdp-axis')]
+        : [...document.querySelectorAll('.pdp-variants')].filter((v) => v.querySelector('.varswatches'))
+      ).map((ax) => ({
         nyckel: ax.querySelector('.varhead-key')?.textContent?.trim(),
         val: ax.querySelector('.varhead-val')?.textContent?.trim(),
         sw: [...ax.querySelectorAll('.varswatch')].map((s) => ({
@@ -73,6 +78,7 @@ async function las() {
 const rad = (t, val) => ({ val, galleri: t.galleri.map(pos).join(','), pris: t.pris });
 
 const start = await las();
+const axSel = (await sida.locator('.pdp-axis').count()) > 0 ? '.pdp-axis' : '.pdp-variants';
 const antalSynliga = start.axlar.length + (start.kort.length ? 1 : 0);
 console.log('VÄLJARE', start.axlar.length ? `${start.axlar.length} axel/axlar` : start.kort.length ? `${start.kort.length} kort` : 'ingen');
 if (!antalSynliga) {
@@ -87,14 +93,14 @@ if (!antalSynliga) {
   }
 } else if (start.axlar.length === 1) {
   for (const s of start.axlar[0].sw) {
-    await sida.locator('.pdp-axis').nth(0).locator(`.varswatch[aria-label="${citera(s.l)}"]`).first().click({ force: true }).catch(() => {});
+    await sida.locator(axSel).nth(0).locator(`.varswatch[aria-label="${citera(s.l)}"]`).first().click({ force: true }).catch(() => {});
     await sida.waitForTimeout(500);
     const nu = await las();
     console.log('VAL', s.l, JSON.stringify(rad(nu, nu.axlar[0].val)));
   }
 } else {
   for (const a of start.axlar[0].sw) {
-    await sida.locator('.pdp-axis').nth(0).locator(`.varswatch[aria-label="${citera(a.l)}"]`).first().click({ force: true }).catch(() => {});
+    await sida.locator(axSel).nth(0).locator(`.varswatch[aria-label="${citera(a.l)}"]`).first().click({ force: true }).catch(() => {});
     await sida.waitForTimeout(400);
     const nu = await las();
     for (const s of nu.axlar[1].sw) {
@@ -102,7 +108,7 @@ if (!antalSynliga) {
         console.log('KOMBO', a.l, '×', s.l, 'finns inte');
         continue;
       }
-      await sida.locator('.pdp-axis').nth(1).locator(`.varswatch[aria-label="${citera(s.l)}"]`).first().click({ force: true }).catch(() => {});
+      await sida.locator(axSel).nth(1).locator(`.varswatch[aria-label="${citera(s.l)}"]`).first().click({ force: true }).catch(() => {});
       await sida.waitForTimeout(500);
       const nu2 = await las();
       console.log('KOMBO', a.l, '×', s.l, JSON.stringify(rad(nu2, nu2.axlar.map((x) => `${x.nyckel}=${x.val}`).join(' | '))));
