@@ -3,11 +3,14 @@ async function () {
   // minst ett färgval visar GRANS bilder eller färre. Skriver ingenting. Kör via ExecuteWixAPI (en körning, ~30 s för 6 100
   // produkter). Leonard 2026-10-21: "varianter som har 4 bilder eller mindre" ska få fler bilder (CLAUDE.md, Färgval med få bilder).
   //
-  // Räknar som butiken och som lib/aosom/livsbild.ts (`fargVy`): färgens egna länkade bilder, plus de bilder ingen äger, och
-  // färgens första länkade bild först. En länkad bild hör bara till de val som länkar den (en bild ett annat val länkar visas
-  // inte). Olänkade bilder ägs enligt `olankadeAgare` (butikens lib/variant-bilder.ts, ordagrant i lib/aosom/fargbilder.ts): ett
-  // kort eller en måttbild är gemensam, en alt-text som nämner exakt en färg hör till den, flera färger är gemensamt och resten
-  // hör till huvudbildens färg.
+  // Räknar som butiken gör, uppmätt mot den publicerade sidan (live-bilder.mjs) 2026-10-21 på 69 sidor med en axel: 60 stämmer
+  // exakt (lib/aosom/livsbild.ts `fargVy` stämde på 47). Reglerna: en länkad bild visas bara för det FÖRSTA val som länkar den
+  // (en bild som två val länkar, som huvudbilden på en sida med storlek och färg i valnamnet, tillhör det första). En bild bara en
+  // annan axel länkar visas inte. Olänkade bilder: ett kort eller en måttbild är gemensam, en alt-text som nämner exakt en färg
+  // hör till den, flera färger är gemensamt, och en bild utan färgnamn hör till huvudbildens färg BARA när varje färgval är ett
+  // enda färgord (Svart, Vit). Heter något val "Nattsvart M" eller "Base 210T Rosa" går färgnamnen inte att läsa ur alt-texten, och
+  // då visas bilden för alla färger. De 9 sidor som inte stämde visar fler eller färre bilder än regeln ger (okänd orsak), så
+  // `lista` är en uppskattning: mät den enskilda sidan live innan den tas som given.
   //
   // `products/search` bär `options` med `linkedMedia` och `visible` per val, och `MEDIA_ITEMS_INFO` ger galleriet med alt-texter.
   // `fields` ligger på kroppens toppnivå och skickas om på varje sida, `cursorPaging` inuti `search`, utan filter (filter + markör
@@ -15,7 +18,7 @@ async function () {
   // `lista` är "wix-id8:minsta:antal val:galleri;…", sorterad på minsta antal bilder. ☠️ Kontrollen är bara värd något om
   // `medFargval` och `valTotalt` är över noll: en kontroll som inte kan fälla räknas ändå som gjord.
   //
-  // Utfall 2026-10-21 före åtgärderna: 628 av 1 141 publicerade sidor med färgval, 502 Aosom och 126 AliExpress.
+  // Utfall 2026-10-21 före åtgärderna: se CLAUDE.md, Färgval med få bilder.
   const GRANS = 4;
   const t0 = Date.now();
   const lika = function (a, b) {
@@ -77,10 +80,13 @@ async function () {
     if (synliga.length < 2) return null;
     const allaLankade = new Set();
     for (const o of optioner) for (const v of o.val) for (const id of v.lankade) allaLankade.add(id);
+    const forstaAgare = {};
+    fo.val.forEach(function (v, i) { v.lankade.forEach(function (id) { if (forstaAgare[id] === undefined) forstaAgare[id] = i; }); });
     const huvud = bilder[0] && bilder[0].id;
     const urspr = fo.val.find(function (v) { return !!huvud && v.lankade.indexOf(huvud) >= 0; });
     const ursprung = urspr ? urspr.namn : null;
     const etiketter = fo.val.map(function (v) { return v.namn; }).filter(function (f) { return fargFormer(f); });
+    const allaEnkla = etiketter.length === fo.val.length;
     const agare = new Map();
     for (const b of bilder) {
       if (allaLankade.has(b.id) || agare.has(b.id)) continue;
@@ -88,12 +94,12 @@ async function () {
       const t = nammdaFarger(b.alt, etiketter);
       if (t.length === 1) agare.set(b.id, t[0]);
       else if (t.length > 1) agare.set(b.id, null);
-      else agare.set(b.id, ursprung);
+      else agare.set(b.id, allaEnkla ? ursprung : null);
     }
     const antal = synliga.map(function (c) {
-      const egna = new Set(c.lankade);
+      const idx = fo.val.indexOf(c);
       return bilder.filter(function (b) {
-        if (egna.has(b.id)) return true;
+        if (c.lankade.indexOf(b.id) >= 0) return forstaAgare[b.id] === idx;
         if (allaLankade.has(b.id)) return false;
         const a = agare.get(b.id);
         return a === null || (a !== undefined && lika(a, c.namn));

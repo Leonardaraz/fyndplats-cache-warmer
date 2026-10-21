@@ -501,12 +501,17 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
 6. **Ett val med fyra bilder eller färre får fler (Leonard 2026-10-21).** Samma kontroll läser
    hur många bilder varje färgval visar i butiken (färgens egna länkade bilder plus de som
    ingen äger, färgens första bild först, `tools/polish-gates/katalogkontroll-farg-bilder.js`)
-   och listar de som visar fyra eller färre: 539 av 951 publicerade sidor med färgval den
+   och listar de som visar fyra eller färre: 534 av 951 publicerade sidor med färgval den
    dagen. Fler foton hämtas ur leverantörens egen uppsättning,
    aldrig ur en annan färg. På en Aosom-sida gör **"Bilder — fler bilder till en färg på en
    sammanslagen Aosom-sida"** (`aosom-fargtillagg.yml`) det: `kandidater` laddar upp feedens
    position 3, 8, 9 och 10 för just färgens artikel, du tittar på varje bild (tysk text, märke,
-   logga och fel färg stryks), och de godkända skrivs i `tillagg.json` med `plan` och `skriv`.
+   logga och fel färg stryks; kör `tools/polish-gates/ocr-forgranska.py` först, den hittar
+   inbränd text men är inget bevis för att en bild är ren), och de godkända skrivs i
+   `tillagg.json` med `plan` och `skriv`. Har färgen en dold givare med bilder kvar
+   (`katalogkontroll-farg-givare.js`) skrivs de godkända direkt med `skriv-fargbilder.js`, och
+   livekollen är `kolla-live-farg.py`. En givares egna kort läggs bara som val om de visar
+   färgens egen vara.
    På en AliExpress-sida görs det för hand med SKU-bilderna ur `ae-skubilder.yml`: importera
    filerna, skriv galleriet vid id, länka färgens bilder (`options` och `variantsInfo`
    ordagrant), kör `variantbild.yml` och mät live per färg med `live-galleri.mjs`. En bild som

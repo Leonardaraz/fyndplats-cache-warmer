@@ -2701,21 +2701,24 @@ som test så din metod är rätt."*
 
 **Omfattningen, mätt 2026-10-21** med `tools/polish-gates/katalogkontroll-farg-bilder.js`
 (`products/search` med `MEDIA_ITEMS_INFO` och butikens ägarregler som i `fargVy`, bara
-färgvalen): 539 av 951 publicerade sidor med färgval har minst ett färgval som visar fyra
-bilder eller färre, och 1 110 av 2 533 färgval gör det. 442 är Aosom-sidor med en artikel
-per färg (240 med två färger, 128 med tre, 57 med fyra och 17 med fem eller fler) och 97 är
-AliExpress-sidor (30 där den sämsta färgen visar en bild, 31 två, 24 tre och 12 fyra).
+färgvalen): 534 av 951 publicerade sidor med färgval har minst ett färgval som visar fyra
+bilder eller färre, och 1 097 av 2 533 färgval gör det. 442 är Aosom-sidor med en artikel
+per färg (240 med två färger, 128 med tre, 57 med fyra och 17 med fem eller fler) och 92 är
+AliExpress-sidor (26 där den sämsta färgen visar en bild, 31 två, 25 tre och 10 fyra).
 Sidorna, leverantören och minsta antal bilder står i
 `tools/polish-assets/farger-fler-bilder-2026-10-21/flaggade.tsv`. Importen tar feedens
 position 1, 2, 3, 8 och 9, poleringen stryker det som bär text eller märke, och en färg som
 kom in genom en sammanslagning fick bara en del av givarens bilder.
 
-⚠️ **Mätningen är en uppskattning på sidor med fler än en axel.** `fargVy` räknar färgens
-bilder som om färgen vore ensam, och en sida med både storlek och färg visar en annan
-mängd för varje kombination (hamsterburen `13fe619f` räknas som 0 för Mörkgrå, fast den
-visar bilder per storlek). En första, bredare mätning över alla val gav 628 sidor, varav 108
-inte flaggas av färgmätningen. Mät den enskilda sidan live (`live-galleri.mjs`) innan du
-tar den som given.
+⚠️ **Mätningen är en uppskattning, och butikens regel är inte `fargVy`s.** Uppmätt live
+(`tools/polish-gates/live-bilder.mjs`, 69 AliExpress-sidor med en axel): skriptets regel
+stämmer exakt på 60, `fargVy` på 47. Skillnaderna: en länkad bild visas bara för det FÖRSTA val
+som länkar den, och en olänkad bild utan färgnamn hör till huvudbildens färg bara när varje
+färgval är ett enda färgord (Svart, Vit). Heter ett val "Nattsvart M" eller "Base 210T Rosa"
+visas bilden för alla färger. `fargVy` och `olankadeAgare` räknar fortfarande den gamla
+vägen. På sidor med fler än en axel (hamsterburen `13fe619f` räknas som 0 för Mörkgrå, fast
+den visar bilder per storlek) gäller ingen av reglerna, och en första, bredare mätning över
+alla val gav 628 sidor. Mät den enskilda sidan live innan du tar den som given.
 
 **Piloten: strandparasollen** `57988115` (AliExpress-sida, två färger). Grön visade två
 bilder och Blå fyra. Efter åtgärden visar Grön fem och Blå sju, mätt live per färg med
@@ -2742,6 +2745,16 @@ som inget verktyg gör åt en:
 5. **Mät live per färg** efter butikens cache (`age` på sidan, `uppdatera-andrade` var femte
    minut), och läs tillbaka id, SKU, pris och synlighet i en separat läsning.
 
+Metoden prövades på sex AliExpress-sidor till (`30169925`, `587c92f3`, `82b05d93`, `39a5c0bf`, `5b21090e`, `53b941a0`, skrivna
+med `tools/polish-gates/skriv-fargbilder.js`, högst tre sidor per körning inom ExecuteWixAPI:s 60 sekunder). Alla lästes
+tillbaka i Wix och mättes live med exakt de antal planen räknade fram: cykelstället Svart 7 och Vit 4, cykelpumpen Svart 8
+och Vit 4, barstolarna Svart 5, liggunderlaget Grön 4, Blå 3 och Grå 2, ballongbågen Vit 3 och hollywoodgungan Blå 4.
+☠️ **Utbytet är litet.** En AliExpress-listning har sällan en bild per färg: galleriet visar oftast en färg och
+beskrivningsbilderna är spanska eller engelska säljgrafiker, så en färg får ett till fyra foton. Av ungefär 25 granskade
+sidor gick tio att förbättra, och kläder med 7–29 färger går inte alls. Fyra sidor (`228aea02`, `314168d1`, `8f21a666`,
+`928bb3c4`) är importerade och verifierade men inte skrivna. Spåret pausades 2026-10-21 efter Leonards besked *Fokusera på
+aosom produkterna*.
+
 För Aosom-sidorna finns verktyget **"Bilder — fler bilder till en färg på en sammanslagen
 Aosom-sida"** (`aosom-fargtillagg.yml`) → `/api/admin/aosom-fargtillagg` →
 `lib/aosom/fargtillagg.ts`, med tre lägen: `kandidater` (laddar upp feedens position 3, 8, 9
@@ -2750,6 +2763,44 @@ En människa tittar på varje kandidat (46 procent av feedens bilder bär tysk t
 märke syns inte i någon grind), och de godkända filerna skrivs i `tillagg.json` i rundans
 katalog med en svensk alt-text per bild. Verktyget väljer aldrig bilder. Det fungerar först
 när PR #749 är mergad, eftersom varken rutten eller workflowen finns på `main`.
+
+**Aosom-sidorna, kartlagda 2026-10-21** (`tools/polish-gates/katalogkontroll-farg-givare.js`, 36 sekunder över 6 125
+produkter, bara läsning). De 442 sidorna har **798 färgval på fyra bilder eller färre**. 266 sidor har 4 som sämsta färg,
+130 har 3, 36 har 2, 9 har 1 och 1 har 0, så de flesta saknar en eller två bilder. 412 av 442 sidor har inga
+gemensamma bilder alls (inga kort eller måttbilder som butiken visar för alla färger). Färgbildsverktyget (`fargbilder.yml`,
+`plan`) gav 0 kandidater, men det betyder inte att givarnas bilder sitter på sidorna: det som väntar på granskning
+(`granskas`) och det som inte fick plats (`overflow`) ligger i en tabell som bara motorn läser, och planen skriver bara
+räknare, inga fil-id. Mätt direkt mot Wix har 298 av de 798 färgvalen en dold givare, men bara **26 färgval en givare med
+bilder kvar** (51 bilder). Givarna är alltså i stort sett uttömda. Resten av underlaget finns bara i feeden (position 4–7 och
+10, och alla positioner för en färg utan givare), och `aosom-fargtillagg` hämtar dem först efter merge av PR #749.
+
+**Första omgången: givarnas bilder (18 sidor, 35 bilder).** De 26 färgvalen granskades på kontaktark och 35 bilder skrevs med
+`tools/polish-gates/skriv-fargbilder.js` (samma steg som verktygen: galleriet ensamt vid fil-id, länkarna med `options` och
+`variantsInfo` ordagrant ur GET:en, återläsning av galleri, länkar, variant-id, SKU, pris och synlighet). Planen står i
+`tools/polish-assets/farger-fler-bilder-2026-10-21/aosom-givare-1.json`. Alla 18 sidor lästes tillbaka utan avvikelser och
+mättes live (`tools/polish-gates/kolla-live-farg.py`): varje tillagd bild syns i sin egen färgs vy och i ingen annans, och
+antalet unika bilder per sida stämmer med galleriet i Wix. 24 färgval fick fler bilder. 14 nådde fem eller fler (blå soffan
+`f1878c34` 1 till 5, mörkbruna hundtrappan `f384c51d` 2 till 6, grå klätterväggen `44663e99` 2 till 5, rosa soffan i
+`4f21c7c1` 3 till 5), och 10 står kvar på 2–4 eftersom givarens övriga bilder var tyska eller engelska säljgrafiker
+(trehjulingen `eeb4a919`, Grå och Rosa: *Security features* och *More details*). Två givare gav ingenting
+(`6334f635`, `a706542f`: *Nur Kissen* och *Hinweis* tryckta mitt i fotona, och beskärningen hade kapat varan). Två
+bilder är utsnitt via Wix crop-adress (`834c66fd` Grå och `e76a4098` Ljusgrå), uppladdade som nya filer och verifierade
+mot ett lokalt utsnitt (dHash 0).
+
+☠️ **Givarens egna kort flyttas aldrig av `fargbilder`** (*sidans kort gäller alla färger*, `givarensBilder`). På en sida
+där värdens kort är länkade till värdens färg är givarens kort det enda kort färgen kan få, och de ligger kvar som
+"bilder kvar" i kartläggningen. Jag länkade dem till färgen (de visar färgens egen vara). Ett kort som inte är färgens eget
+ska aldrig läggas som val.
+
+**OCR före ögonen** (`tools/polish-gates/ocr-forgranska.py`, RapidOCR i en egen venv, modellerna ligger i paketet). Den hittar
+inbränd text (tyska och engelska rubriker, *Nur Kissen*, etiketter) och skiljer bilder med bara siffror från rena foton. Provad
+mot 14 bilder jag redan bedömt för hand: alla 14 gav samma utfall. ☠️ **REN är inget bevis.** En logotyp utan bokstäver,
+fel färg och en kollage syns inte, och text på varan eller rekvisitan (en affisch, en etikett) står kvar enligt runbooken.
+Kör den före kontaktarken så att ögonen går till det som är kvar.
+
+**Det som kräver merge av PR #749:** de ungefär 770 färgval som inte har någon givare med bilder kvar. Ordningen efter
+mergen är `kandidater` med `mal` = sid-id (alla svaga färger på sidan), OCR och kontaktark, `tillagg.json`,
+`plan_och_skriv` och live. Wix tar 50 bilder, så ett galleri på 15 är inget hinder längre.
 
 Fem egenskaper som inte ska tas bort:
 
