@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "34f22c58",
+  "huvud_fullid": "34f22c58-0df2-41c4-9275-e5046d4b8a7b",
+  "givare": "4f21be89",
+  "givare_fullid": "4f21be89-5d01-41f3-8b28-680cc9ba8ff0",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "34f22c58": "Natur",
+   "4f21be89": "Brun"
+  }
+ }
+]

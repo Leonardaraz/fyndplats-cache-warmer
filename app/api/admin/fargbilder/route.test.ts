@@ -37,6 +37,15 @@ function v3(id: string, namn: string, synlig: boolean, bilder: Bild[], optioner:
   };
 }
 
+// Fixturerna kommer ur torrkörningen 2026-09-30, när Wix tak antogs vara 15.
+// Testet av `tillat_ur_galleriet` bygger på att pergolataket då skulle flytta
+// sidans foton ur galleriet, så taket pinnas till 15 här. Det VERKLIGA taket
+// (50, uppmätt 2026-10-21) prövas i lib/aosom/bildtak.test.ts.
+vi.mock("@/lib/wix/limits", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/wix/limits")>()),
+  WIX_MAX_BILDER_PER_PRODUKT: 15,
+}));
+
 vi.mock("@/lib/polish/skrivplan-wix", () => ({
   skapaWixAnrop: () => async (metod: string, sokvag: string, kropp?: unknown) => {
     const id = decodeURIComponent(sokvag.split("?")[0].split("/").pop()!);

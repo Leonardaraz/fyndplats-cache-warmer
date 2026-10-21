@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py trappornas mått 45 × 40 × 48 cm och 60 × 40 × 64 cm är längd, bredd och höjd enligt måttritningarna i galleriet: 45 respektive 60 cm längs trappan, 40 cm tvärs över stegen och 48 respektive 64 cm hög; grinden läser bokstäverna som för en möbel (längden som bredd och bredden som djup), vilket inte stämmer för en trappa

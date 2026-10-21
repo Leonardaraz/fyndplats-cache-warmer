@@ -1,0 +1,97 @@
+{
+ "runda": "runda-t27-givare-alt",
+ "produkter": [
+  {
+   "kort": "9bcb8db1",
+   "pid": "9bcb8db1-6040-4d4c-bcef-8847f4af63c6",
+   "media": [
+    {
+     "id": "b379ce_0c74f62be5954dc98a5420b5cf991571~mv2.jpg",
+     "altText": "Vitt tunnelväxthus med spetsigt tak, rullbar dörr och fönster på långsidan"
+    },
+    {
+     "id": "b379ce_3b800255952b4b229c2fddf21f284eff~mv2.jpg",
+     "altText": "Växthus med vit duk och upprullad dörr, med krukväxter på hyllor innanför"
+    },
+    {
+     "id": "b379ce_b92cb133b8e44f35b024de1cd321db96~mv2.jpg",
+     "altText": "Vitt växthus med tomatplantor bakom den upprullade dörren i en trädgård"
+    },
+    {
+     "id": "b379ce_1197a099f69741a39f4de10e739bac24~mv2.jpg",
+     "altText": "Vitt växthus med en stor krukväxt i ett upphöjt odlingsbord bakom den upprullade dörren vid en vit mur"
+    },
+    {
+     "id": "b379ce_36285afe3646417a800260837e0785fa~mv2.jpg",
+     "altText": "Måttskiss av växthuset, 300 × 200 × 200 cm, med dörr och fönster"
+    }
+   ]
+  },
+  {
+   "kort": "96956f42",
+   "pid": "96956f42-31ea-486a-a8ad-078f475e487a",
+   "media": [
+    {
+     "id": "b379ce_e94222eb4db346cca9c3d17a73a1032f~mv2.jpg",
+     "altText": "Grönt foliehus i stål med två rulldörrar och fönster, 300 × 100 × 200 cm"
+    },
+    {
+     "id": "b379ce_fc0f85dd54b6482fbfe243ec4d931477~mv2.jpg",
+     "altText": "Det gröna foliehuset i en trädgård med växande plantor innanför dörrarna"
+    },
+    {
+     "id": "b379ce_7acb1cdb06fb47f3b8e66fe89ddcebd3~mv2.jpg",
+     "altText": "Det gröna foliehuset från långsidan mot ett trästaket"
+    },
+    {
+     "id": "b379ce_037f634b468c4babb8b4e97eb6ee5f09~mv2.jpg",
+     "altText": "Måttskiss av foliehuset: 300 cm brett, 100 cm djupt och 200 cm högt"
+    }
+   ]
+  },
+  {
+   "kort": "5a6c343e",
+   "pid": "5a6c343e-054a-49ff-b6d4-25f1bcf1f2e7",
+   "media": [
+    {
+     "id": "b379ce_6fbde6c9102a4447b2c8eba1e5d7ecdc~mv2.jpg",
+     "altText": "Vitt foliehus med rullbar dörr och fönster, 300 × 150 × 213 cm"
+    },
+    {
+     "id": "b379ce_9cc4ccb8e2554f6c86ae46c4c3b79a1f~mv2.jpg",
+     "altText": "Det vita foliehuset mot en grå mur med en stege bredvid"
+    },
+    {
+     "id": "b379ce_2e01abdec4214d05858978b8e7e2825e~mv2.jpg",
+     "altText": "Närbild på stålramens hörn och den vita duken"
+    },
+    {
+     "id": "b379ce_cc4067b73ff745dcad5e4faaf14a075e~mv2.jpg",
+     "altText": "Måttskiss av foliehuset: 300 cm brett, 150 cm djupt och 213 cm högt"
+    }
+   ]
+  },
+  {
+   "kort": "8c4607e2",
+   "pid": "8c4607e2-126c-4d37-9824-35b596ad0dcb",
+   "media": [
+    {
+     "id": "b379ce_8c3b1d0756a54a60b137a741cf270bb6~mv2.jpg",
+     "altText": "Vitt lutande växthus med hyllor och ett fönster, sett snett framifrån"
+    },
+    {
+     "id": "b379ce_2061d4bf97ad4673ad4d39a598cea315~mv2.jpg",
+     "altText": "Det vita lutande växthuset uppställt mot en grå vägg med krukväxter innanför"
+    },
+    {
+     "id": "b379ce_cc8d4e85602d4cef89cc6bf67577371e~mv2.jpg",
+     "altText": "Närbild på plastkopplingen och stålrören under den vita duken"
+    },
+    {
+     "id": "b379ce_f3b36c240d76447cbebde549fba9f8ac~mv2.jpg",
+     "altText": "Måttskiss av växthuset, 200 × 100 × 215 cm"
+    }
+   ]
+  }
+ ]
+}

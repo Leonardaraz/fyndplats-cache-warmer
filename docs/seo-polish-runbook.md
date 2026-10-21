@@ -38,6 +38,12 @@
   på det, 2026-10-14), `12V-motor`, `HP4-design`, och i en slug `bmw-s1000rr` eller
   `amg-glc63s`. Skriv om ordet (`formatet MP3`, `motor på 12 V`) i stället för att leta
   efter en kvittens: en vägrad plan skriver ingenting, men rundan måste byggas om.
+  ☠️ **Har en redan publicerad sidas slug eller SKU formen** (`12v-vit`, `amg-glc63s`) går den
+  inte att skriva om oförändrad, och grinden rörs inte. Byt till en adress och en SKU utan
+  formen (`12-volt`, `glc-63-s`: ingen grupp om tre tecken med en siffra i, följd av ett
+  bindestreck och minst tre tecken till), skriv dem i rundans plan och lägg en 301 från den gamla adressen med
+  `redirect-add.yml` så snart bytet är skrivet (T21 och T22). Butikens cache för den gamla
+  adressen töms inom en timme, och tills dess visar den sidans gamla text.
 - **Husmärken ska bort.** HOMCOM, Outsunny, PawHut, Aiyaplay, SportNow, Vinsetto, Kleankin,
   Zonekiz, Durhand och Aosom (`gatelib.MARKEN`, `lib/import/sku.ts`) stryks ur namn,
   SEO-titel, meta, slug, sökord och alt-texter. Etablerade märken med eget sökvärde behålls.
@@ -94,9 +100,9 @@ ha hunnit före. Läs `tools/polish-gates/FLAGGADE.md` först och välj ingen pr
 där.
 
 **Välj i den ordning som säljer.** Först det som säljer de närmaste veckorna (i september jul
-och inomhus, inte trädgård), sedan utkast där vi är billigare än dealproffsen (workflowen
-**"Pris — jamfor mot dealproffsen"**), sedan familjer som fyller en sökordskategori. En
-arbetsdelning mellan sessioner, till exempel att var och en tar sin ände av kön, går före.
+och inomhus, inte trädgård), sedan familjer som fyller en sökordskategori. Jämför inte med
+dealproffsen eller någon annan butik (Leonard 2026-10-21). En arbetsdelning mellan sessioner,
+till exempel att var och en tar sin ände av kön, går före.
 
 Steg 1–3 går omlott: laglighets- och dubblettskärmen behöver källtexten och bilderna, så hämta
 dem för kandidaterna innan du bestämmer dig.
@@ -120,27 +126,135 @@ och varnar under 5.
 Kör den innan du skriver något; husdjurens mått och normer syns ofta först på bilderna.
 Den gäller bara klasserna nedan.
 
-**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80). Minimimåtten är bindande i Sverige,
-och många burar är för små.
+**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80, bilaga 1:1–1:4; terrarier och sköldpaddshus står i bilaga 1:5–1:7, se *Terrarier och sköldpaddshus* nedan). Minimimåtten är
+bindande i Sverige, och många burar är för små. Måtten nedan är lästa ur föreskriften i
+Jordbruksverkets egen PDF 2026-10-21, inte ur minnet. Den tidigare tabellen i det här avsnittet
+saknade kortaste sida för kaniner och bara hade ett mått för fåglar, och den angav ett
+hamsterhjul på 28 cm som inte finns i föreskriften. Utkastet till nya regler (2025) drogs
+tillbaka och ersätts tidigast 2029.
 
-| Djur | Krav |
-|---|---|
-| Fågel ≤ 20 cm | 0,31 m² golvyta · längsta sida ≥ 0,7 m · höjd ≥ 0,6 m |
-| Guldhamster | 0,12 m² · kortaste sida ≥ 25 cm · höjd ≥ 20 cm · hjul ≥ 28 cm (dvärg ≥ 20) |
-| Kanin ≤ 2 kg | 0,5 m² ensam / 0,3 m² per djur i grupp |
-| Kanin 2–3,5 kg | **0,7 m²** / 0,35 m² |
-| Kanin 3,5–4,5 kg | 0,8 m² / 0,40 m² |
-| Kanin 4,5–6 kg | 0,9 m² / 0,45 m² |
-| Kanin > 6 kg | 1,0 m² / 0,5 m² |
+| Djur | Golvyta | Kortaste sida | Höjd |
+|---|---|---|---|
+| Kanin ≤ 2 kg | 0,5 m² (0,3 per djur i grupp) | 0,5 m | 0,5 m |
+| Kanin 2–3,5 kg | **0,7 m²** (0,35) | 0,6 m | 0,6 m |
+| Kanin 3,5–4,5 kg | 0,8 m² (0,40) | 0,7 m | 0,8 m |
+| Kanin 4,5–6 kg | 0,9 m² (0,45) | 0,7 m | 0,8 m |
+| Kanin > 6 kg | 1,0 m² (0,5) | 0,8 m | 0,9 m |
+| Marsvin | 0,3 m² (0,15) | 0,4 m | 0,25 m |
+| Guldhamster | 0,12 m² | 0,25 m | 0,2 m |
+| Dvärghamster | 0,09 m² (0,045) | 0,2 m | 0,2 m |
+| Gerbil | 0,12 m² (0,06) | 0,25 m | 0,2 m |
+| Husmus | 0,09 m² (0,018) | 0,2 m | 0,2 m |
+| Brun råtta | 0,18 m² (0,06) | 0,3 m | 0,3 m |
+| Degu | 0,3 m² (0,15) | 0,4 m | 0,4 m |
+| Chinchilla | 0,5 m² (0,25) | 0,5 m | 1,0 m |
+| Iller (tamiller) | 5 m² (1) | 1 m | 1 m |
 
-Kaninens minsta höjd är 0,5 m för en liten kanin och 0,9 m för en stor. Utgå från 0,7 m²
-när leverantören inte anger vikten. Kaninen ska också ha en hylla att sitta på och under
-(8 kap. 21 §). Hyllplan och våningar räknas inte in i golvytan, och höjden mäts per delyta.
-För hönshus finns ingen verifierad siffra ännu, och leverantörens antal höns är ofta
-orimligt. Publicera aldrig ett antal höns utan att ha kontrollerat SJVFS 2019:15 och
-2019:23.
+Sällskapsfåglar har tre mått, och bredden en fjärde regel: *"Utrymmets bredd ska vara minst 2
+gånger fågelns längd, dock minst 45 cm."*
 
-Ligger buren under gränsen ska den inte poleras. Flagga den med den rättsliga orsaken.
+| Fågelns längd | Golvyta | Längsta sida | Höjd | Exempel ur föreskriften |
+|---|---|---|---|---|
+| upp till 20 cm | 0,31 m² | 0,7 m | 0,6 m | sebrafink, kanariefågel, undulat, agapornis |
+| 21–25 cm | 0,45 m² | 0,9 m | 0,6 m | diamantduva |
+| 26–35 cm | 0,84 m² | 1,2 m | 0,8 m | nymfkakadua, skrattduva |
+| 36–45 cm | 1,44 m² | 1,6 m | 1,0 m | |
+
+Utgå från kaninklassen 2–3,5 kg när leverantören inte anger vikten, och från ≤ 2 kg när hen
+skriver *Zwergkaninchen*. Tyska widderkaniner väger 4–6 kg. Fem regler som formar texten:
+
+- ☠️ **Hyllor och våningar räknas inte** (8 kap. 21 §: hyllans yta ska inte adderas till
+  burytan), och **höjden mäts per delyta**. En löpgång på 36 cm under ett hus på 54 cm är 36
+  cm hög för kaninen, och ett stall på 45 cm djup klarar aldrig 0,5 m i kortaste sida. Det är
+  de två reglerna som fäller de flesta kaninstall. Räkna på markplanets **innermått**, inte på
+  leverantörens totalmått.
+- Gnagare utom guldhamstrar ska hållas i par eller grupp (8 kap. 1 §), guldhamstrar ensamma.
+  Marsvin och dvärghamstrar skrivs därför som ett par, och guldhamstern som ensam.
+- Kaniner och gnagare får inte hållas på nätgolv, utom i betesburar (8 kap. 8 §). Utomhusburar
+  ska vara upphöjda från marken på vintern (9 §).
+- Kaniner ska ha en hylla att sitta på och under (21 §).
+- ☠️ **Hönor och ankor ingår inte i L80** (1 kap. 1 §: inhemska hönsfåglar och andfåglar).
+  SJVFS 2019:23 anger mått för värphöns i äggproduktion men inget som går att räkna med för
+  en hobbyflock. Skriv därför ingen siffra för antal höns: ange golvytan inomhus och
+  riktmärket högst 7 höns per m² tillgänglig golvyta (kortaste sida 0,3 m, fri höjd 0,45 m,
+  redet oräknat). Leverantörens "3–4 höns" utlovas inte. Ankor och katter kräver en
+  artbedömning som källtexten inte ger och hålls tills en människa har sett bilderna. Sköldpaddor,
+  ormar och ödlor bedöms mot bilaga 1:5–1:7 (se nedan).
+- **Texterna för de fyra vanligaste fallen** (N276–N282, T76–T77):
+  - **Rastgård** (en hage utan sovhus eller värpbo). Egen rubrik, *Rastgård utan sovhus*, med
+    meningen *"Hagen är en rastgård och har inget sovhus eller värpbo."* Den ersätter aldrig en
+    bostad, och texten nämner bara de arter källan och L80 räknar (kaniner, marsvin,
+    dvärgkaniner). Källans påståenden om rovdjur (`Raubtiere`, `Marder`) skrivs aldrig.
+  - **Hönsgård eller hönshus.** Ange golvytan och riktmärket, aldrig ett antal. FAQ:n
+    *Hur många höns får plats?* svarar med riktmärket och husets golvyta. En gåbar gård utan hus
+    heter rastgård, och hönshuset *ingår inte*.
+  - **Fåglar.** Par eller grupp (6 kap. 1 §), minst två sittpinnar (10 §) och ett utrymme över
+    noll grader (16 §). Sidan anger fågelstorleken (`upp till 25 cm`) och att buren inte passar
+    större papegojor. En bild med en ara i en bur som inte klarar arten stryks. Har buren två
+    fack som är lägre än 0,6 m var för sig ska texten säga att den används som en enda bur med
+    skiljeväggen ur.
+  - **Valpningslåda och valpgrind.** Lådan ersätter inte tikens utrymme (SJVFS 2020:8, 10 kap.:
+    tik med valpar över tre veckor kräver 2, 3 respektive 4 m² beroende på tikens mankhöjd), och
+    en valpgrind är en tillfällig vistelse (2 kap. 1 §).
+
+**Kör grinden innan något skrivs:** `python3 tools/polish-gates/djurbostad.py <katalog>` mot
+en `djurbostad.tsv` (formatet står i skriptets huvud). Den räknar om varje bostad ur
+innermåtten och fäller en rad vars beslut skiljer sig från måtten. **PASS** polerar du bara
+för de arter grinden listar, och texten namnger inga andra. **FAIL** pensioneras
+(`needsAiPolish: false`, `draftStatus: "rejected"`) med orsaken i filen. **HOLD** rörs inte tills
+innermåtten är mätta på bilderna. Ligger buren under gränsen ska den inte poleras. Flagga den
+med den rättsliga orsaken. Den första skärmen, över 108 dolda utkast, ligger i
+`tools/polish-assets/djurbostader-skarm-2026-10-21/`: 57 PASS, 32 HOLD och 19 FAIL. Varje PASS
+med saldo är polerad i N276–N282 och T77, alla FAIL är pensionerade och alla HOLD är dolda
+(läst ur Wix 2026-10-21). N292 mätte fem HOLD på bilderna: två blev PASS (polerade) och tre FAIL
+(pensionerade), så skärmen står på 59 PASS, 27 HOLD och 22 FAIL. N293 genomlästes de tio sköldpadds-,
+reptil- och terrarieutkasten mot bilaga 1:5–1:7: nio blev PASS (fem sidor) och ett FAIL, så skärmen står på
+68 PASS, 17 HOLD och 23 FAIL. Höjden mäts med skalan i måttbilden (totalhöjden eller en människosiluett),
+inte med källans fönstermått, och en yta i m² ur en källa räknas om ur de mått den bygger på.
+
+**Terrarier och sköldpaddshus** (SJVFS 2019:15, bilaga 1:5 ormar, 1:6 ödlor, 1:7 sköldpaddor, 1:9
+groddjur; läst ur föreskriften 2026-10-21 och använd i N293). Varje rad är längdklassen i cm och
+minsta golvyta (m²) / minsta höjd (m) för **ett** djur. Skriptet `tools/polish-gates/kap.py` räknar
+vilka klasser ett utrymme klarar, med tabellerna nedan som kod.
+
+- Marklevande ormar: upp till 30 0,03/0,1 · 31–40 0,04/0,12 · 41–50 0,06/0,15 · 51–75 0,12/0,2 ·
+  76–100 0,25/0,28 · 101–125 0,43/0,35 · 126–150 0,63/0,45 · 151–200 1,0/0,5 · 201–300 2,15/0,7.
+- Trädlevande ormar: upp till 35 0,03/0,17 · 36–40 0,04/0,2 · 41–50 0,06/0,25 · 51–75 0,12/0,4 ·
+  76–100 0,25/0,5 · 101–125 0,4/0,65 · 126–150 0,55/0,75 · 151–175 0,75/0,85 · över 175 1,0/1,0.
+- Marklevande ödlor: upp till 10 0,06/0,2 · 10–15 0,09/0,2 · 16–20 0,16/0,3 · 21–30 0,36/0,3 ·
+  31–40 0,64/0,4 · 41–50 0,9/0,5 · 51–75 1,8/0,6.
+- Trädlevande och klipplevande ödlor: upp till 15 0,06/0,25 · 16–20 0,12/0,35 · 21–30 0,25/0,5 ·
+  31–40 0,5/0,7 · 41–50 0,81/0,9 · 51–75 1,5/1,2.
+- Land- och sumpsköldpaddor (yta per djur i grupp inom parentes): upp till 10 0,12/0,2 (0,04) ·
+  11–15 0,3/0,25 (0,1) · 16–20 0,5/0,3 (0,16) · 21–30 1,1/0,4 (0,36) · 31–40 2,0/0,5 (0,66) ·
+  41–50 4,0/0,6 (1,33) · över 50 8,0/0,8 (2,6). Vattensköldpaddor har egna rader för vattenyta och
+  vattendjup (skal 11–15 cm: 0,35 m² vatten och 0,2 m djup).
+
+Ormar och ödlor mäts från nosspetsen till svansspetsen, sköldpaddor rakt från främre till bakre
+skalkant. Grupphållning räknas som yta per djur, och totalen får aldrig understiga raden för ett djur.
+
+- ☠️ **Höjden mäts per delyta.** Boxen med lutande tak (20 cm fram, 50 cm bak) räknas bara där höjden
+  räcker: ungefär 0,4 av 0,58 m² når 25 cm, så den räcker till skal upp till 15 cm, inte 20 cm.
+  Två våningar räknas inte ihop: den nedre delens höjd avgör.
+- ☠️ **Källans m² kan vara ytterytan** (boxens 0,23 och 0,43 m² är utvändiga mått med väggar).
+  Räkna ur de invändiga måtten, och skriv *ungefär* när de är uppskattade.
+- **Saknas invändiga mått** (terrarier som bara anger yttermått) räknas golvytan med 2–3 cm per
+  vägg och höjden med några centimeter mindre än den utvändiga. Bara klasser som klarar
+  marginalen får stå i texten.
+- **En publicerad sida rättas med riktade ersättningar i sin egen text** (T82 skrevs efter den regeln, med Leonards ja: bilagehänvisning, en tabellrad och en artlista på fyra sidor), inte med en omskrivning. Räkna om tabellen med `kap.py` ur sidans invändiga mått, och ta bort bilder med djur som är större än klassen. En rättelse av en publicerad sida utanför poleringskön skrivs först efter Leonards ja.
+- **Texten namnger klasser, inte arter.** *Marklevande ormar upp till 125 cm*, *trädlevande
+  ödlor upp till 20 cm*, och en hänvisning till bilaga 2:1 och 2:2 för artens klass. Citera
+  **aldrig bilaga 1:4** för reptiler: den gäller gnagare. Namnge aldrig en art vars storlek ligger
+  över klassen (en vuxen leopardgecko på 21–30 cm kräver 0,36 m²).
+- **Sköldpaddor** ska ha vatten att vada i (10 kap. 6 §), skydd (5 §) och grävbart bottenmaterial om
+  arten gräver (4 §), och uppvärmningsplatsen får inte överstiga 50 °C (13 §). En utomhusbox direkt
+  på marken ska enligt de allmänna råden ha ett nedgrävt nät under sig (4 kap. 5 §), och
+  utomhus ska djuret ha skydd mot värme, nederbörd, blåst och kyla (4 kap. 18 §). Ormar och ödlor
+  ska ha gömställen och ett bottenmaterial som passar arten (9 kap. 6–7 §§).
+- **Bilder med djur** som är större än klassen sidan nämner stryks (en orm på en meter i ett
+  terrarium på 50 cm, en kameleont i ett terrarium på 45 cm). Det är ett löfte om vad som får plats.
+- **FAIL** när ingen klass klarar rörelseytans höjd (ett sköldpaddshus med aktivitetsytan 16,5 cm
+  hög klarar inte ens 20 cm för skal upp till 10 cm).
 
 **Hundburar** (SJVFS 2020:8, L 102) säljs lagligt, men regeln formar texten. En hund får
 inte hållas i stängd bur inomhus. Står buren framme som hundens plats ska dörren tas bort
@@ -248,7 +362,11 @@ du inte anger `behall_variant`: Wix-variant-id:t för den färg som finns som Ao
 tas de andra varianterna bort i Wix och i mappningen före bytet (Leonard 2026-09-28). Sidan
 får inga val kvar, men bilderna och texten om de borttagna färgerna står kvar. Slå därför
 ihop sidan med Aosom-sidan i samma familj (publicerad givare, `omdirigera=ja`), eller skriv
-om den med en runda. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
+om den med en runda. ☠️ Det gäller också storlekar: en sida med två storlekar som bara har en
+hos Aosom behåller texten om båda, måttbilden för den andra, ett specifikationskort med båda
+måtten och en SKU som liknar ett artikelnummer (T76, hönsgården `9158341c`). Skriv om sidan
+med en runda mot den nya artikelns tyska text (inte sidans gamla), stryk måttbilden och kortet
+för den borttagna storleken, och byt SKU:n. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
 först i feeden (**"Aosom — sök i feeden"**) efter de färger som ska bort: finns en av dem hos
 Aosom men inte som utkast, kommer den med importen och läggs då som val.
 
@@ -321,8 +439,96 @@ skoskåpet med tre speglade luckor (vit), tunnelväxthuset 597 × 295 cm (vit),
 trehjulingen 6-i-1 (alla tre, fotona fanns i galleriet och kopplades samma dag) och
 dieselvärmaren till husbil (röd och blå).
 
-Finns inget foto i färgen är valet fel på sidan. Flagga det till Leonard i `FLAGGADE.md`.
-Lägg aldrig en annan färgs bild på valet.
+Finns inget foto i färgen är valet fel på sidan. På en dold sida flaggar du det till Leonard
+i `FLAGGADE.md`, för där ser ingen kund felet. På en publicerad sida rättar du det samma
+dag, enligt nästa stycke. Lägg aldrig en annan färgs bild på valet.
+
+**En publicerad sida med en färg utan foto rättas samma dag (2026-10-21).** Skoskåpet,
+tunnelväxthuset och dieselvärmaren från 27 september stod flaggade i fyra veckor och låg
+ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flagga är ingen
+åtgärd. Gör så här:
+
+1. **Leta efter ett foto i färgen.** För en AliExpress-sida läser du listningens SKU-bilder
+   med workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
+   Den startas av en push som ändrar `tools/ae-skubilder/kor.json` (`produkter`: högst tio
+   Wix-id, `kuvert`: din publika nyckel), och efter merge med `workflow_dispatch`. Svaret
+   är krypterat, eftersom bildadresserna är leverantörens. En Aosom-sida har inga
+   SKU-bilder, så där söker du i feedens positioner och i syskonutkasten. Av de sex sidor
+   Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
+   andra fyra bar färgen som ett egenskapsvärde utan foto, och ingen av deras
+   galleri- eller beskrivningsbilder visade den saknade färgen.
+2. **Finns ett foto, koppla det.** Är fotot en SKU-bild bygger du ett färgkort ur det
+   (`scripts/cardkit.py`, `card_swatch`, 1600 × 1600, varan frilagd mot vit botten), lägger
+   kortet i grenen och kopplar det till valet med en skrivning av `options` och
+   `variantsInfo` ordagrant ur produktens egen GET (se *Färger som inte kom via verktyget*
+   i `docs/polish/syskon.md`). Kör sedan `variantbild.yml` (push som ändrar
+   `tools/variantbild/kor.json` med produktens id) så att variantens bild följer valet.
+   Valet ska vara synligt, och varje variant ska ha sin egen bild: tältets sex varianter
+   hade alla huvudbilden tills workflowen körts.
+3. **Finns inget foto, ta bort färgen.** Det är en publicerad sida, och en färg utan foto
+   visar fel färg för kunden. Blir bara en färg kvar kollapsar du sidan till en variant med
+   bevarat id: `options: []` och den kvarvarande variantens objekt ur produktens egen GET
+   med `choices: []`. Variantens id, lager och pris står då kvar (läs tillbaka alla tre).
+   Skriv ner den borttagna variantens id, SKU, pris och lager i `FLAGGADE.md`, så att
+   färgen kan läggas tillbaka när det finns ett foto. Ta sedan bort raderna som lovar
+   färgerna (*Finns i …*, *Välj mellan …*) och byt *Färger: …* mot *Färg: …* med den
+   kvarvarande färgen. Det är en ren strykning, så den skrevs 2026-10-21 som en PATCH med
+   fältmask `plainDescription` och inget annat. Varje sträng som skulle bort eller bytas
+   räknades till exakt en träff i samma anrop innan något skrevs, och sidan lästes sedan om i
+   ett eget anrop (längd, nya rader, borttagna ord) och live. Ska texten skrivas om i
+   stället för strykas går den via skrivplanen som vanligt (*Skriv aldrig för hand i Wix*
+   nedan). En dold sida lämnas orörd och flaggas.
+4. **Läs galleriet som butiken läser det.** Butiken ger varje bild till det FÖRSTA valet
+   som länkar den (`fetchV3ImageOwners`: "första vinnaren per bild behålls"), och
+   galleriet för ett val är valets egna bilder plus de bilder ingen äger. En färg utan
+   kopplade bilder lämnar därför sina bilder gemensamma, och de visas för alla färger:
+   hamsterburens naturträ visade den mörkgrå burens bilder. Koppla färgens alla bilder, och
+   låt en storlek som delar bilderna bara länka sina egna. Mät på den publicerade sidan med
+   `node tools/polish-gates/live-galleri.mjs <slug> [galleri-id.json]` (Playwright): den
+   klickar varje kombination i väljaren, både axlar och kort, och skriver galleriet per
+   kombination. Väntar du inte ut butikens cache, som fylls på var femte minut efter en
+   ändring, mäter du den gamla sidan.
+5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
+   `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
+   `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras
+   in i ExecuteWixAPI, skriver ingenting) listar sidor där ett färgval saknar kopplad bild
+   och sidor där två färgval har samma första bild, och `katalogkontroll-spec.js` listar
+   sidor vars specifikationsflik är ett enda stycke. Utfall 2026-10-21 efter åtgärderna:
+   noll av de två första, utom MTB-pedalerna `f56b8b74`, där valen *Svart 2 DU* och *Svart 3
+   kullager* skiljer på lager och båda är svarta. Kontrollen fäller på rätt sak: den fann
+   plåtboden `2861bf83` (Brun, dold) som enda träff bland de dolda. Titta på räknarna
+   (`fargoptioner`, `valMedBild`): en kontroll som inte kan fälla räknas ändå som gjord.
+6. **Ett val med fyra bilder eller färre får fler (Leonard 2026-10-21).** Samma kontroll läser
+   hur många bilder varje färgval visar i butiken (färgens egna länkade bilder plus de som
+   ingen äger, färgens första bild först, `tools/polish-gates/katalogkontroll-farg-bilder.js`)
+   och listar de som visar fyra eller färre: 534 av 951 publicerade sidor med färgval den
+   dagen. Fler foton hämtas ur leverantörens egen uppsättning,
+   aldrig ur en annan färg. På en Aosom-sida gör **"Bilder — fler bilder till en färg på en
+   sammanslagen Aosom-sida"** (`aosom-fargtillagg.yml`) det: `kandidater` laddar upp feedens
+   position 3, 8, 9 och 10 för just färgens artikel, du tittar på varje bild (tysk text, märke,
+   logga och fel färg stryks; kör `tools/polish-gates/ocr-forgranska.py` först, den hittar
+   inbränd text men är inget bevis för att en bild är ren), och de godkända skrivs i
+   `tillagg.json` med `plan` och `skriv`. Har färgen en dold givare med bilder kvar
+   (`katalogkontroll-farg-givare.js`) skrivs de godkända direkt med `skriv-fargbilder.js`, och
+   livekollen är `kolla-live-farg.py`. En givares egna kort läggs bara som val om de visar
+   färgens egen vara och sidan inte redan har ett eget kort (givarens kort dubblerar det, och
+   siffrorna kan skilja). **Före skrivningen: jämför talen i varje måttbild med sidans text**
+   (`ocr-forgranska.py --tal`, sedan `kolla-tal-mot-text.js`, som läser). En bild som anger en
+   annan belastning eller ett annat mått på samma del än sidan tas inte med (240 kg mot
+   *100 kg per sits*, en trappa på 38 × 20 mot *38 × 22 × 12*); fler mått än texten (ett
+   läge, ett fack) är ingen motsägelse. Har den redan skrivits tar `bilder-bort.yml` bort den.
+   På en AliExpress-sida görs det för hand med SKU-bilderna ur `ae-skubilder.yml`: importera
+   filerna, skriv galleriet vid id, länka färgens bilder (`options` och `variantsInfo`
+   ordagrant), kör `variantbild.yml` och mät live per färg med `live-galleri.mjs`. En bild som
+   är densamma i alla färger länkas inte och får en alt-text som nämner färgerna, då visas den
+   för alla. Hittar du inga rena foton till en färg stannar den på det antalet. Rapportera det,
+   och hitta aldrig på en bild. Beskrivning, mätning och egenskaper: CLAUDE.md, *Färgval med få
+   bilder*.
+
+☠️ **En `variantsInfo`-skrivning på ett dolt utkast utan `fields=MERCHANT_DATA` i GET:en
+tappar variantens kostnad i Wix.** Uppmätt på plåtboden. Mappningen bär kostnaden och inget
+läser Wix-fältet (varukostnaden tas ur mappningen), och publicerade AliExpress-sidor saknar
+det redan. En skrivning som bara bär `plainDescription` rör varken varianter eller kostnader.
 
 ### Sökordet och krocken
 
@@ -457,8 +663,11 @@ du i `rad-tal.txt`, ett tal per rad. Annars fäller `gate.py` dem som tal utan k
 den delen minst två gånger. Kontaktarket räcker bara för färgen på hela varan. Räkna upp
 varje färgad del.
 
-**Galleriet:** `bygg-media.py` behåller källordningen och lägger källposition 3, som nästan
-alltid är måttritningen, sist. Plats 1 blir huvudbild och delningsbild. Produktsidans
+**Galleriet:** `bygg-media.py` behåller källordningen och lägger måttbilden sist: en bild
+vars alt-text börjar på *Måttbild*, *Måttskiss* eller *Måttritning* (sedan 2026-10-21; förut
+alltid källposition 3, vilket lade fel bild sist när måttbilden låg på 4 eller 5). Har ingen
+alt-text det ordet gäller den gamla regeln, källposition 3 sist. Plats 1 blir huvudbild och
+delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på

@@ -1,0 +1,7 @@
+9ba8a7fb eldriven-uppresningsfatolj-linnelook-fjarrkontroll-sidoficka
+bc6c93da vridbar-vilfatolj-fotpall-manuellt-ligglage-morkgratt-tyg
+26e5897c gungstol-graddvit-boucle-ergonomisk-rygg-trastomme
+8b8ca20d vridbar-vilfatolj-fotpall-gungfunktion-svart-tyg
+b1c75875 loungefatolj-morkgra-linnelook-forlangt-fotstod-ram-bojd-bjork
+76738f85 fatolj-fotpall-ljusgra-linnelook-ram-bojt-flerskiktstra
+3934e029 vridbar-fatolj-fotpall-gra-boucle-justerbar-hojd-nackstod

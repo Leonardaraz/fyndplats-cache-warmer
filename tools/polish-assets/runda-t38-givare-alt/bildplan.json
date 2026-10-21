@@ -1,0 +1,57 @@
+{
+ "runda": "runda-t38-givare-alt",
+ "produkter": [
+  {
+   "kort": "18b0e9fb",
+   "pid": "18b0e9fb-f808-49e8-a129-aadf735a24b1",
+   "media": [
+    {
+     "id": "b379ce_610d1a19089e403da60c627368015cb2~mv2.jpg",
+     "altText": "Röd hopfällbar arbetsbock med silverfärgad toppskena och teleskopben, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_c54fcf9a503c42d2ab2df407ac6d0827~mv2.jpg",
+     "altText": "Röda arbetsbockar bär en skiva som arbetsbänk i ett hobbyrum, med en kap- och geringssåg på skivan"
+    },
+    {
+     "id": "b379ce_ec848dce2cc74a9f8389b30f3308c7c0~mv2.jpg",
+     "altText": "Röda arbetsbockar bär en träskiva som arbetsbord i en byggnad under arbete, med en man i hjälm och varselväst bredvid"
+    },
+    {
+     "id": "b379ce_81eed49a766441b9b3fb013e5c0e963b~mv2.jpg",
+     "altText": "Närbild på den röda arbetsbockens tvärstag med två nitar"
+    },
+    {
+     "id": "b379ce_f880818df4104364b992ba2c0c28410a~mv2.jpg",
+     "altText": "Måttbild: den röda arbetsbocken är 68 cm lång och 58 cm bred, och höjden går att ställa in mellan 80 och 130 cm"
+    }
+   ]
+  },
+  {
+   "kort": "3694168e",
+   "pid": "3694168e-899c-4220-a41f-45dbf04de815",
+   "media": [
+    {
+     "id": "b379ce_3db8c719ccbd4531bc72e6d2c4189361~mv2.jpg",
+     "altText": "Ljusblå kettlebell med texten 10KG på ytan och en räfflad nedre del, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_a42012d5f4e44b2587594b4ee53edc04~mv2.jpg",
+     "altText": "En kvinna gör en knäböj med den ljusblå kettlebellen mot bröstet i ett ljust rum med stora fönster"
+    },
+    {
+     "id": "b379ce_5639322fcd3748aab48687c89d9c0a98~mv2.jpg",
+     "altText": "En man svingar den ljusblå kettlebellen mellan benen i ett rum med träningsutrustning"
+    },
+    {
+     "id": "b379ce_e1f9fa571404424da4c3ec818f3d3e9c~mv2.jpg",
+     "altText": "En kvinna gör en knäböj med den ljusblå kettlebellen i ett ljust träningsrum"
+    },
+    {
+     "id": "b379ce_0cd956b73c4e4f658bc9d3b35d667fe6~mv2.jpg",
+     "altText": "Måttbild: den ljusblå kettlebellen är 21 cm bred och 27 cm hög"
+    }
+   ]
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 // GET /api/fargbilder?pid=<wixProductId>
 //
 // Varje färgs HELA bildlista på en sammanslagen sida, för butikens galleri.
-// Wix tar högst 15 bilder per produkt; det som inte rymdes där står i motorns
+// Wix tar högst 50 bilder per produkt; det som inte rymdes där står i motorns
 // tabell `fargbilder` (lib/aosom/fargbilder.ts). Svaret:
 //
 //   { val: { "<valets namn>": ["<fil-id>", …] }, gemensamma: ["<fil-id>", …] }

@@ -1,0 +1,56 @@
+[
+ {
+  "huvud": "6e810d9c",
+  "huvud_fullid": "6e810d9c-1992-4dbc-9537-19672aa7a6e7",
+  "givare": "0583e8e8",
+  "givare_fullid": "0583e8e8-0929-4d7e-945a-b2c4224c8dd8",
+  "bilder_efter_bildplan": "1,2",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6e810d9c": "",
+   "802b25fe": "Krämvit linnelook",
+   "bff8e42d": "Grå mikrofiber",
+   "0583e8e8": "Ljusbrun linnelook"
+  }
+ },
+ {
+  "huvud": "6e810d9c",
+  "huvud_fullid": "6e810d9c-1992-4dbc-9537-19672aa7a6e7",
+  "givare": "802b25fe",
+  "givare_fullid": "802b25fe-6329-4e03-87e2-2824831d7489",
+  "bilder_efter_bildplan": "1,2",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6e810d9c": "",
+   "802b25fe": "Krämvit linnelook",
+   "bff8e42d": "Grå mikrofiber",
+   "0583e8e8": "Ljusbrun linnelook"
+  }
+ },
+ {
+  "huvud": "6e810d9c",
+  "huvud_fullid": "6e810d9c-1992-4dbc-9537-19672aa7a6e7",
+  "givare": "bff8e42d",
+  "givare_fullid": "bff8e42d-baa5-4d9e-bae2-23526ec2d604",
+  "bilder_efter_bildplan": "1,2",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6e810d9c": "",
+   "802b25fe": "Krämvit linnelook",
+   "bff8e42d": "Grå mikrofiber",
+   "0583e8e8": "Ljusbrun linnelook"
+  }
+ }
+]

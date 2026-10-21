@@ -333,6 +333,26 @@ describe("TREVÄGSKEDJA — en tredje siffra får inte tystas bort", () => {
   });
 });
 
+describe("INTERVALL I EN EGEN PARENTES — ett reglage är ETT mått", () => {
+  it("☠️ `62 x 68 x (111 – 121) cm (L x B X H)` ger tre par, inte fyra tal mot tre bokstäver", () => {
+    // Runda T44, kontorsstolen b78d4cc6: höjden är ett reglage och står inom
+    // parentes, följt av bokstavsförklaringen. Utan sammanläsningen gav raden
+    // fyra tal mot tre bokstäver, inga par, och generatorn avbröt på en källa
+    // som är entydig.
+    const ut = bygg({
+      aaa: kalla(["Maße: 62 x 68 x (111 – 121) cm (L x B X H)"]),
+    });
+    expect(ut.aaa).toMatchObject({ bredd: 62, djup: 68, hojd: [111, 121] });
+  });
+
+  it("en parentes med ETT tal (inget intervall) är oförändrad", () => {
+    // Regressionsskydd åt andra hållet: en rad utan parentetiskt intervall ska
+    // läsas som förut, så ingen tidigare byggd runda kan ändras.
+    const ut = bygg({ aaa: kalla(["Maße: 89,2 x 13,5 x 48 cm (L x B X H)"]) });
+    expect(ut.aaa).toMatchObject({ hojd: 48 });
+  });
+});
+
 describe("TVÅ TAL UTAN H ELLER T — positionen räcker inte", () => {
   it("☠️ ger inget facit alls i stället för ett som gissar djupet", () => {
     // Runda N2, häckrullen c8376256: `Gesamtmaße: L300 x B100 cm`. Den

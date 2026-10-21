@@ -1,0 +1,157 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0419fca4": {
+  "tyska": "183L x 98,5B x 95H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 95,
+  "bredd": 183,
+  "djup": 98.5
+ },
+ "073a9f50": {
+  "tyska": "75L x 35B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 75,
+  "djup": 35
+ },
+ "13f983f5": {
+  "tyska": "100L x 49B x 136H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 136,
+  "bredd": 100,
+  "djup": 49
+ },
+ "28055d67": {
+  "tyska": "76L x 30B x 155H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 155,
+  "bredd": 76,
+  "djup": 30
+ },
+ "4ff354b2": {
+  "tyska": "50B x 150H cm (einzeln)",
+  "svenska": "",
+  "bokstaver": "BH",
+  "hojd": 150,
+  "bredd": 50
+ },
+ "5504a1c0": {
+  "tyska": "133L x 62B x 165H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 165,
+  "bredd": 133,
+  "djup": 62
+ },
+ "640620af": {
+  "tyska": "150L x 62B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 150,
+  "djup": 62
+ },
+ "6de684bb": {
+  "tyska": "65L x 31B x 147H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 147,
+  "bredd": 65,
+  "djup": 31
+ },
+ "6e8be06f": {
+  "tyska": "120L x 55B x 140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 140,
+  "bredd": 120,
+  "djup": 55
+ },
+ "8b0f479d": {
+  "tyska": "70L x 30B x 70H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 70,
+  "djup": 30
+ },
+ "95a8333f": {
+  "tyska": "108L x 88B x 36H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 36,
+  "bredd": 108,
+  "djup": 88
+ },
+ "aa9f6bc1": {
+  "tyska": "110L x 60B x 152/140H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   152,
+   140
+  ],
+  "bredd": 110,
+  "djup": 60
+ },
+ "b85ec83a": {
+  "tyska": "65B x 67T x 145H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 67,
+  "hojd": 145,
+  "bredd": 65
+ },
+ "c27f63ac": {
+  "tyska": "102L x 50B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 102,
+  "djup": 50
+ },
+ "d5f473c8": {
+  "tyska": "79L x 29B x 130H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 130,
+  "bredd": 79,
+  "djup": 29
+ },
+ "eda0df1f": {
+  "tyska": "90L x 45B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 90,
+  "djup": 45
+ },
+ "f37c72e4": {
+  "tyska": "80L x 38B x 145H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 145,
+  "bredd": 80,
+  "djup": 38
+ },
+ "f49cb914": {
+  "tyska": "100L x 60B x 30Hcm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 100,
+  "djup": 60
+ },
+ "fab6bd6e": {
+  "tyska": "110L x 50B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 110,
+  "djup": 50
+ }
+}

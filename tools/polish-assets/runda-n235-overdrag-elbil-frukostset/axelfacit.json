@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "002f5a42": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 216L x 216B x 78H cm"
+ },
+ "29bb70e3": {
+  "tyska": "215L x 155B x 150H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 215,
+  "djup": 155
+ },
+ "2c63cfbc": {
+  "tyska": "34L x 31B x 25H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 25,
+  "bredd": 34,
+  "djup": 31
+ },
+ "8ffdbe6a": {
+  "tyska": "125L x 125B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 125,
+  "djup": 125
+ },
+ "9b9415fd": {
+  "tyska": "180L x 120B x 74H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 180,
+  "djup": 120
+ },
+ "b1de577c": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen des Wasserkochers: 23,6L x 16,0B x 27,6H cm | ✔ Gesamtabmessungen des Toasters: 26,5L x 15,6B x 18,9H cm | ✔ Größe des Wasserkocher-Sockels: Ø15,6 cm x 1,5H cm | ✔ Maximale Kapazität des Wasserkochers: 1,7 L | ✔ Schlitzgröße des Toasters (jeweils): 13,5L x 3,5B x 13,5H cm"
+ },
+ "b6ea1fd4": {
+  "tyska": "122L x 86B x 88H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 88,
+  "bredd": 122,
+  "djup": 86
+ }
+}

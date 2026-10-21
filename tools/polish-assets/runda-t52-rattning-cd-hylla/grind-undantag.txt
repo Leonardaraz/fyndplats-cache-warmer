@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text; bara en rad i spec-fliken byts mot färgen. Den har ingen tysk källa med totalmåttrad att bygga ett facit ur, och spec-fliken bär måtten med sina axlar

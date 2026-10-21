@@ -1,0 +1,78 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "19b93e32": {
+  "tyska": "143L x 51B x 85H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 143,
+  "djup": 51
+ },
+ "2b9669be": {
+  "tyska": "183B x 120T x 160H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 120,
+  "hojd": 160,
+  "bredd": 183
+ },
+ "479b1137": {
+  "tyska": "145L x 85B x 72H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 72,
+  "bredd": 145,
+  "djup": 85
+ },
+ "4d930264": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa Abmessungen: 65,5L x 104B x 81H cm | ✔ Bett Abmessungen: 65,5L x 181B x 43H cm | ✔ Hocker Abmessungen: 65,5L x 104B x 43H cm | ✔ Sitzgröße: 65,5B x 57T cm | ✔ Sitzhöhe: 43H cm | ✔ Kissengröße: 45L x 25B cm"
+ },
+ "5882ea25": {
+  "tyska": "L110 x B55 x H70 cm",
+  "svenska": "",
+  "axelkalla": "tyska raden 'Tisch' (etiketten bar ett bestämningsord)",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 110,
+  "djup": 55
+ },
+ "72848cd2": {
+  "tyska": "L114 x B58 x H80 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 114,
+  "djup": 58
+ },
+ "81830099": {
+  "tyska": "L107 x B55,5 x H90,5 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 90.5,
+  "bredd": 107,
+  "djup": 55.5
+ },
+ "86808b63": {
+  "tyska": "225,5L x 130B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 225.5,
+  "djup": 130
+ },
+ "b77e5f14": {
+  "tyska": "198L x 118B x 168H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 168,
+  "bredd": 198,
+  "djup": 118
+ },
+ "f75133e5": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Bankabmessungen: 127B x 61T x 85H cm | ✔ Sitzgröße: 121B x 41T cm | ✔ Rückengröße: 119B x 45H cm | Mått: 127L x 61B x 85H cm"
+ }
+}

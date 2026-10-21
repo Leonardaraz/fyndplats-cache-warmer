@@ -1,0 +1,59 @@
+{
+ "runda": "runda-t51-givare-alt",
+ "produkter": [
+  {
+   "kort": "08634fee",
+   "pid": "08634fee-939f-41e3-ac59-d723f1885897",
+   "media": [
+    {
+     "id": "b379ce_1ea796765ac446fdb7959859a17e1c47~mv2.jpg",
+     "altText": "Ljusgrått redskapsskåp i barrträ med dubbeldörr med kryssribbor, svarta beslag och grönt tak, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_2946e3935abb4434a00b548de91b04b4~mv2.jpg",
+     "altText": "Det ljusgrå redskapsskåpet med öppna dörrar på en terrass, med verktygslådor, en slang och en sprayflaska inuti och en stor krukväxt bredvid"
+    },
+    {
+     "id": "b379ce_f281ab372b6145e49fe72e26e4976c77~mv2.jpg",
+     "altText": "Närbild på dubbeldörrens kryssribbor och två svarta knoppar på ljusgrått trä"
+    },
+    {
+     "id": "b379ce_92f59da4c06646b4a8a5742391ce33f5~mv2.jpg",
+     "altText": "Det ljusgrå redskapsskåpet på en veranda framför en ljus husvägg, med en krukväxt och en vattenkanna bredvid"
+    },
+    {
+     "id": "b379ce_e8b703be924b48ba9f61ec2742637ab9~mv2.jpg",
+     "altText": "Måttritning över det ljusgrå skåpet: 110 cm brett, 55 cm djupt och 117 cm högt, med hyllplanens mått invändigt"
+    }
+   ]
+  },
+  {
+   "kort": "9ec1c833",
+   "pid": "9ec1c833-9fdc-4a73-a05c-0a2db4a6b271",
+   "media": [
+    {
+     "id": "b379ce_50ec5a2ab47d4c7f9c22f589b43b7e0e~mv2.jpg",
+     "altText": "Ljusgrönt metallskjul med vita dörrkarmar, skjutdörrar och två ventilationsöppningar i gaveln, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_848ee773e31545e4911315ecb436c56a~mv2.jpg",
+     "altText": "Det ljusgröna metallskjulet i en trädgård med öppna skjutdörrar, en svart verktygsvagn med röda lådor och en tvättkorg inuti, med krukväxter framför"
+    },
+    {
+     "id": "b379ce_3cc136fdea8745e0974b47fbbe8bbcc1~mv2.jpg",
+     "altText": "Det ljusgröna metallskjulet med öppna skjutdörrar och en hylla med verktyg, en kasse och flaskor inuti, framför en grå vägg och gröna buskar"
+    }
+   ]
+  },
+  {
+   "kort": "b64241c9",
+   "pid": "b64241c9-bd0a-4dc9-a9f4-fd728e581194",
+   "media": [
+    {
+     "id": "b379ce_60669f7e6fe44e27ab01db4a73101d74~mv2.jpg",
+     "altText": "Grå och turkos cykelkärra för hund med röd säkerhetsflagga, nät i fönstren och en corgi som tittar ut genom dörren, mot vit bakgrund"
+    }
+   ]
+  }
+ ]
+}

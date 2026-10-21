@@ -1,0 +1,116 @@
+[
+ {
+  "huvud": "a2d6f42d",
+  "huvud_fullid": "a2d6f42d-322f-476d-a0a6-52f94753f329",
+  "givare": "7c6d76b9",
+  "givare_fullid": "7c6d76b9-ed02-4c1a-a237-e30a6bfad6cc",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "a2d6f42d": "Grön",
+   "7c6d76b9": "Vit"
+  }
+ },
+ {
+  "huvud": "0562a1a2",
+  "huvud_fullid": "0562a1a2-d298-45fb-9c05-75c096732885",
+  "givare": "3b7d4577",
+  "givare_fullid": "3b7d4577-a97b-41b9-9e37-b12a9c4c24a7",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "0562a1a2": "Vit",
+   "3b7d4577": "Transparent",
+   "7452a562": "Grön"
+  }
+ },
+ {
+  "huvud": "0562a1a2",
+  "huvud_fullid": "0562a1a2-d298-45fb-9c05-75c096732885",
+  "givare": "7452a562",
+  "givare_fullid": "7452a562-a371-49f0-9d56-e6497a57345e",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "0562a1a2": "Vit",
+   "3b7d4577": "Transparent",
+   "7452a562": "Grön"
+  }
+ },
+ {
+  "huvud": "15dee6da",
+  "huvud_fullid": "15dee6da-e99a-4bb5-8714-1cad7596d583",
+  "givare": "8844359d",
+  "givare_fullid": "8844359d-218e-489d-b0d1-1aaa9b401a05",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "15dee6da": "Vit",
+   "8844359d": "Transparent",
+   "b806cec6": "Mörkgrön"
+  }
+ },
+ {
+  "huvud": "15dee6da",
+  "huvud_fullid": "15dee6da-e99a-4bb5-8714-1cad7596d583",
+  "givare": "b806cec6",
+  "givare_fullid": "b806cec6-a715-4cdd-add4-db232e022dfd",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "15dee6da": "Vit",
+   "8844359d": "Transparent",
+   "b806cec6": "Mörkgrön"
+  }
+ },
+ {
+  "huvud": "4e10c6c4",
+  "huvud_fullid": "4e10c6c4-bd74-4ab9-afbd-f74c29cd6d2a",
+  "givare": "56aff9c5",
+  "givare_fullid": "56aff9c5-4f5a-456f-b4d6-fe32dfa4c5b2",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "4e10c6c4": "Vit",
+   "56aff9c5": "Grön"
+  }
+ }
+]

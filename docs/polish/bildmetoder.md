@@ -72,7 +72,7 @@ dubbelt så många pixlar på en skärpeskärm, och den visar en kvadrat ur bild
 i ett collage är ofta runt 480 px höga och duger därför inte.
 
 ☠️ **En huvudbild som inte finns i leverantörens flöde får position 0 i `bilder.tsv`**
-(`runda-bilder-5`). `bygg-media.py` sorterar på källposition med måttskissen sist. En befintlig
+(`runda-bilder-5`). `bygg-media.py` sorterar på källposition med måttbilden sist (alt-text som börjar på Måttbild, Måttskiss eller Måttritning, annars källposition 3). En befintlig
 bild utan motsvarighet i flödet får annars en position över tio och hamnar efter de nya, så
 sidan byter huvudbild och delningsbild utan att något fel syns.
 

@@ -1,0 +1,21 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "989553d8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaße des Sofas: 160B x 85T x 85H cm | ✔ Bettmaße: 137B x 179T x 44,5H cm | ✔ Sitzmaße des Sofas: 138B x 56T x 44,5H cm | ✔ Maße der Rückenlehne: 137B x 49H cm | ✔ Liegefläche: 137B x 179T cm"
+ },
+ "99619605": {
+  "tyska": "274L x 152,5B x 76H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 274,
+  "djup": 152.5
+ },
+ "9e16cd23": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 74B x 85,5T x 82H cm | ✔ Bettabmessungen: 60B x 180T x 44H cm | ✔ Sitzgröße: 60B x 58T cm | ✔ Sitzhöhe: 44H cm | ✔ Rückenlehne Größe: 60B x 44H cm | ✔ Armlehne Größe: 86L x 7B cm | ✔ Kissengröße: 56L x 34B x 13T cm | ✔ Seitentaschengröße: 83B x 26H cm (≈26–27B cm pro Tasche) | Mått: 85,5L x 74B x 82H cm"
+ }
+}

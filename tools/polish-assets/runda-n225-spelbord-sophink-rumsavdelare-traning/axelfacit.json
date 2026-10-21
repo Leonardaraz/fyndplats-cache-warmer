@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "282ddb69": {
+  "tyska": "240L x 60B x 30H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 240,
+  "djup": 60
+ },
+ "6c9b71aa": {
+  "tyska": "45L x 42B x 27H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 27,
+  "bredd": 45,
+  "djup": 42
+ },
+ "72dc5144": {
+  "tyska": "180L x 1,7B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 180,
+  "djup": 1.7
+ },
+ "c90227ec": {
+  "tyska": "102,5L x 61,5B x 65H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 102.5,
+  "djup": 61.5
+ },
+ "e02973e3": {
+  "tyska": "38L x 28,5B x 69H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 69,
+  "bredd": 38,
+  "djup": 28.5
+ },
+ "e1977f20": {
+  "tyska": "73L x 40B x 13Hcm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 13,
+  "bredd": 73,
+  "djup": 40
+ },
+ "e6f6734b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 92L x 78B x 80H cm | Mått: 92L x 78B x 80H cm"
+ },
+ "fe84e88c": {
+  "tyska": "100L x 90B x 105H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 100,
+  "djup": 90
+ }
+}

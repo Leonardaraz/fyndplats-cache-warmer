@@ -1,0 +1,8 @@
+3da48fb6 hogt-vitt-skap-fyra-dorrar-hyllplan-flytta
+93c6fdcf smalt-hogt-skap-tre-oppna-fack-rottingdorr
+4c82eb96 smalt-lagt-skap-ett-oppet-fack-rottingdorr
+ab765586 vaggskap-spegeldorrar-oppet-fack-ek-mjukstangande
+5dce837b helkroppsspegel-lampor-rgb-ljus-star-hangs-lutas
+34199a4c sminkspegel-led-lampor-usb-uttag-forstoringsspegel
+fb7d2703 sadelformad-pall-hjul-svart-gaslyft-vrider
+be8f28cd rullpall-avtagbar-rygg-svart-konstlader-gaslyft

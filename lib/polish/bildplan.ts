@@ -14,6 +14,7 @@
 //
 // ☠️ Svaret går till en PUBLIK Actions-logg: bara kort-id, ok/fel och antal.
 
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import {
   HEX8,
   UUID,
@@ -69,8 +70,9 @@ export function valideraBildplan(x: unknown): { plan: Bildplan } | { fel: string
     if (!strang(d.pid, 36) || !UUID.test(d.pid)) f("pid ska vara ett uuid");
     else if (typeof d.kort === "string" && !d.pid.startsWith(d.kort)) f("pid börjar inte med kort");
 
-    if (!Array.isArray(d.media) || d.media.length === 0 || d.media.length > 15) f("media ska ha 1–15 bilder");
-    else {
+    if (!Array.isArray(d.media) || d.media.length === 0 || d.media.length > WIX_MAX_BILDER_PER_PRODUKT) {
+      f(`media ska ha 1–${WIX_MAX_BILDER_PER_PRODUKT} bilder`);
+    } else {
       const idn = new Set<string>();
       d.media.forEach((m: unknown, j: number) => {
         const mm = (typeof m === "object" && m !== null ? m : {}) as Record<string, unknown>;

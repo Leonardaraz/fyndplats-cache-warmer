@@ -1,0 +1,39 @@
+[
+ {
+  "huvud": "0dff6d43",
+  "huvud_fullid": "0dff6d43-4deb-47d2-a7a3-3b43e1b64cb5",
+  "givare": "2eef9e70",
+  "givare_fullid": "2eef9e70-8331-4ea9-b68f-5e83b34491ce",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "0dff6d43": "500 marker",
+   "2eef9e70": "300 marker",
+   "da35474a": "200 marker"
+  }
+ },
+ {
+  "huvud": "0dff6d43",
+  "huvud_fullid": "0dff6d43-4deb-47d2-a7a3-3b43e1b64cb5",
+  "givare": "da35474a",
+  "givare_fullid": "da35474a-1577-4857-aef7-e18a247a8378",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "4",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "0dff6d43": "500 marker",
+   "2eef9e70": "300 marker",
+   "da35474a": "200 marker"
+  }
+ }
+]

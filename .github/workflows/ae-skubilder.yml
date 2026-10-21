@@ -1,0 +1,191 @@
+name: AliExpress — färgbilder per SKU (krypterat)
+
+# Läser en AliExpress-sidas SKU-bilder (en bild per färg) ur dropship-API:t och
+# svarar krypterat. Underlaget för färger som saknar foto på sidan: Leonard
+# 2026-10-21, tält (blå), tunnelväxthus (vit), skoskåp (vit), dieselvärmare (röd,
+# blå) och plåtbod (brun). Foton i galleriet och kort saknar de färgerna, och
+# runbooken förbjuder att lägga en annan färgs bild på valet.
+#
+# Rutten är /api/admin/freight-check?raw=1 (read-only utan apply). Den har
+# funnits sedan juli och svarar med det RÅA ds.product.get-svaret. Det är
+# precis det här jobbet som ser till att svaret aldrig skrivs ut.
+#
+# ☠️ KUVERTET ÄR OBLIGATORISKT. Svaret bär leverantörens bildadresser (en
+# bildsökning på dem leder till listningen) och loggen är PUBLIK. Samma
+# hybridkryptering som leverantorslankar.yml: RSA-OAEP/SHA-256 på ett slumpat
+# lösenord, AES-256-CBC/PBKDF2 på listan. Inga priser, inga säljaruppgifter och
+# inga fel­texter tas med: jq plockar bara ut bilder, egenskapsnamn, egenskaps-
+# värden, SKU-id, SKU-attribut och saldo. Hela svaret går till en fil och läses
+# bara av jq.
+#
+# Hur den startas: workflowen ligger på poleringsgrenen och startas av en push
+# som ändrar tools/ae-skubilder/kor.json (samma upplägg som variantbild.yml).
+# Filen bär produkt-id och den publika nyckeln (kuvert). Efter merge går
+# workflow_dispatch att använda med samma inputs.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  push:
+    branches:
+      - claude/seo-polering-runbook-review-uq6fwl
+    paths:
+      - tools/ae-skubilder/kor.json
+  workflow_dispatch:
+    inputs:
+      kuvert:
+        description: "OBLIGATORISK: base64 av en RSA-publik nyckel (PEM). Svaret krypteras mot den."
+        required: true
+        type: string
+      produkter:
+        description: "Wix-produkt-id (uuid) för AliExpress-sidor, kommaseparerade, högst 10."
+        required: true
+        type: string
+
+concurrency:
+  group: ae-skubilder
+  cancel-in-progress: false
+
+jobs:
+  skubilder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hämta och kryptera
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          KUVERT: ${{ inputs.kuvert }}
+          PRODUKTER: ${{ inputs.produkter }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          # En push startar körningen med värdena i tools/ae-skubilder/kor.json.
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            kor="tools/ae-skubilder/kor.json"
+            KUVERT="$(jq -r '.kuvert // ""' "${kor}")"
+            PRODUKTER="$(jq -r '.produkter // ""' "${kor}")"
+          fi
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          ids="$(printf '%s' "${PRODUKTER:-}" | tr -d '[:space:]')"
+          if ! [[ "${ids}" =~ ^[0-9a-f-]{36}(,[0-9a-f-]{36}){0,9}$ ]]; then
+            echo "::error::produkter ska vara 1–10 Wix-produkt-id (uuid), kommaseparerade" >&2
+            exit 1
+          fi
+
+          # Nyckeln kontrolleras FÖRE anropet: faller den ska ingenting ha
+          # hämtats, och absolut ingenting skrivas ut.
+          if ! printf '%s' "${KUVERT:-}" | base64 -d > kuvert.pub 2>/dev/null; then
+            echo "::error::kuvert: inputet ar inte giltig base64" >&2
+            exit 1
+          fi
+          if ! openssl pkey -pubin -in kuvert.pub -noout 2>kuvert.fel; then
+            echo "::error::kuvert: inte en RSA-publik nyckel i PEM-format" >&2
+            cat kuvert.fel >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/freight-check"
+
+          # Filtret plockar bara ut det som behövs för att välja en färgbild.
+          # Aldrig priser (offer_sale_price, sku_price), aldrig säljare, aldrig
+          # fraktuppgifter. Listorna kan komma direkt eller inslagna, som i
+          # lib/aliexpress/client.ts.
+          cat > filter.jq <<'JQ'
+          def vik(k): if type == "array" then . elif type == "object" then (.[k] // []) else [] end;
+          def urler(s): (s // "") | [splits("[;,]")] | map(select(test("^https?://")));
+          (.rawProduct.result // .rawProduct // {}) as $r
+          | { ($id): {
+                galleri: urler($r.ae_multimedia_info_dto.image_urls),
+                detalj: ([($r.ae_item_base_info_dto.detail // "") | match("https?://[^\"'\\s<>]+?\\.(?:jpe?g|png|webp|avif)"; "gi") | .string] | unique),
+                sku: (($r.ae_item_sku_info_dtos | vik("ae_item_sku_info_d_t_o")) | map({
+                    id: (.sku_id // .id // null),
+                    attr: (.sku_attr // null),
+                    lager: (.sku_available_stock // .s_k_u_available_stock // null),
+                    egenskaper: ((.aeop_s_k_u_propertys // (.ae_sku_property_dtos | vik("ae_sku_property_d_t_o"))) | map({
+                        namn: (.sku_property_name // null),
+                        varde: (.property_value_definition_name // .property_value_name // .sku_property_value // null),
+                        bild: (.sku_image // null)
+                      }))
+                  }))
+              } }
+          JQ
+
+          : > alla.ndjson
+          IFS=',' read -ra lista <<< "${ids}"
+          for id in "${lista[@]}"; do
+            # ☠️ Svaret bär hela råsvaret. Det går rakt till en FIL och läses sedan
+            # bara av jq — det passerar aldrig en variabel som något kan råka
+            # echo:a, och det skrivs aldrig ut.
+            kod=$(curl -sS -o svar.json -w '%{http_code}' --max-time 170 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "${url}?productId=${id}&raw=1" || true)
+            if [ "${kod}" != "200" ]; then
+              # Felet kan bära leverantörens id. Loggen får bara statuskoden.
+              echo "::warning::${id}: HTTP ${kod:-000}" >&2
+              jq -nc --arg id "${id}" --arg kod "${kod:-000}" '{($id): {fel: ("HTTP " + $kod)}}' >> alla.ndjson
+              rm -f svar.json
+              continue
+            fi
+            jq -c --arg id "${id}" -f filter.jq svar.json >> alla.ndjson || {
+              echo "::warning::${id}: svaret gick inte att tolka" >&2
+              jq -nc --arg id "${id}" '{($id): {fel: "tolkningen föll"}}' >> alla.ndjson
+            }
+            rm -f svar.json
+            sleep 3
+          done
+          rm -f filter.jq
+
+          jq -s 'add' alla.ndjson > kuvert.klartext
+          rm -f alla.ndjson
+
+          # Räknarna är ofarliga och går till loggen och sammanfattningen.
+          # Räknarna beräknas före strängen: ingen interpolation läser ett SKU-fält direkt.
+          jq -r 'to_entries[] | .key[0:8] as $k | (.value.fel // "") as $fel | ((.value.sku // []) | length) as $nsku | ([(.value.sku // [])[].egenskaper[] | select(.bild != null)] | length) as $nbild | ((.value.galleri // []) | length) as $ngal | ((.value.detalj // []) | length) as $ndet | if $fel != "" then "\($k): \($fel)" else "\($k): \($nsku) SKU, \($nbild) egenskaper med bild, \($ngal) galleribilder, \($ndet) beskrivningsbilder" end' kuvert.klartext
+          {
+            echo "### AliExpress — färgbilder per SKU"
+            echo ""
+            echo "Bildadresserna finns bara krypterade i loggen."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # ☠️ HYBRID, INTE RAK RSA — listan är tiotals kilobyte. Lösenordet
+          # ligger i en FIL, aldrig i argv. Och openssl:s fel SYNS: de
+          # beskriver nycklar och padding, aldrig innehållet.
+          openssl rand -base64 32 > kuvert.losen
+          if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+               -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+            echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
+            exit 1
+          fi
+          # ☠️ INGEN FALLBACK TILL KLARTEXT. Faller RSA-steget faller jobbet.
+          if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+               -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+               -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+            echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+            exit 1
+          fi
+          rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+          echo
+          echo "=== Kuvert (RSA-OAEP/SHA-256 + AES-256-CBC/PBKDF2, base64) ==="
+          echo "losen: $(base64 -w0 kuvert.losen.enc)"
+          # Datat bryts i rader om 4 000 tecken så loggvyn inte kortar av det.
+          echo "data-borjan"
+          base64 -w 4000 kuvert.data
+          echo "data-slut"
+          rm -f kuvert.losen.enc kuvert.data
+          echo "(dekryptera: RSA-oppna losen med din privata nyckel, sla ihop"
+          echo " data-raderna, sedan openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen>)"

@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0a4e9adc": {
+  "tyska": "59L x 55B x 84H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 84,
+  "bredd": 59,
+  "djup": 55
+ },
+ "0bfe11fa": {
+  "tyska": "L105,5 x B56 x H79 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 79,
+  "bredd": 105.5,
+  "djup": 56
+ },
+ "1f89f67b": {
+  "tyska": "L127 x B60 x H87 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 87,
+  "bredd": 127,
+  "djup": 60
+ },
+ "49fcc42f": {
+  "tyska": "50L x 50B x 50H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 50,
+  "djup": 50
+ },
+ "5eefde96": {
+  "tyska": "61B x 51T x 74H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": 74,
+  "bredd": 61
+ },
+ "70632f9e": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktabmessung: 127L x 60B x 87H cm | ✔ Sitzgröße: 121B x 41T cm | ✔ Rückenlehnen-Größe: 119L x 35B cm | Mått: 127L x 60B x 87H cm"
+ },
+ "a887e594": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße vom Tisch: L120 x B60 x H75cm | ✔ Maße vom Stuhl: L56 x B52 x H87cm | ✔ Sitzfläche: B45 x T52cm | ✔ Maße vom Hocker: L41 x B41 x H31cm | Mått: 120L x 60B x 75H cm | ✔ Maße der Tisch: 120L x 60B x 75H cm | ✔ Maße der Stuhl: 56L x 52B x 87H cm | ✔ Sitzfläche: 45B x 52T cm | ✔ Maße der Hocker: 41L x 41B x 31H cm | Mått: 120L x 60B x 75H cm"
+ },
+ "d8010a35": {
+  "tyska": "Ø80 x 73H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 73
+ },
+ "e3a3a2bb": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 55B x 58T x 76H cm | ✔ Tischabmessungen: 40L x 40B x 40H cm | ✔ Sitzgröße: 48B x 48T cm | ✔ Rückenlehnenabmessungen: 48B x 38H cm | Mått: 55L x 58B x 76H cm | ✔ Stuhlabmessungen: 55B x 58T x 76H cm | ✔ Tischabmessungen: 40L x 40B x 40H cm | ✔ Sitzgröße: 48B x 48T cm | ✔ Rückenlehnenabmessungen: 48B x 38H cm | Mått: 55L x 58B x 76H cm | ✔ Stuhlabmessungen: 55B x 58T x 76H cm | ✔ Tischabmessungen: 40L x 40B x 40H cm | ✔ Sitzgröße: 48B x 48T cm | ✔ Rückenlehnenabmessungen: 48B x 38H cm | Mått: 55L x 58B x 76H cm"
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "16bab48b": {
+  "tyska": "183L x 4B x 0,6T cm",
+  "svenska": "183L x 4B x 0,6H cm",
+  "bokstaver": "LBT",
+  "djup": 0.6,
+  "bredd": 183
+ },
+ "340249e0": {
+  "tyska": "",
+  "svenska": "200cm x 4cm x 1cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schienendimension (2 Teile): 100L x 4B cm | ✔ Installierte Schienenlänge: 200L cm"
+ },
+ "67ae7fb0": {
+  "tyska": "183B x 0,6T x 18H cm",
+  "svenska": "183B x 0,6T x 18H cm",
+  "bokstaver": "BTH",
+  "djup": 0.6,
+  "hojd": 18,
+  "bredd": 183
+ },
+ "af68b470": {
+  "tyska": "183B x 0,6T x 18H cm",
+  "svenska": "183B x 0,6T x 18H cm",
+  "bokstaver": "BTH",
+  "djup": 0.6,
+  "hojd": 18,
+  "bredd": 183
+ },
+ "b60fc014": {
+  "tyska": "244B x 0,5T x 4H cm",
+  "svenska": "244L x 0,5B x 4H cm",
+  "bokstaver": "BTH",
+  "djup": 0.5,
+  "hojd": 4,
+  "bredd": 244
+ },
+ "b64a7ec2": {
+  "tyska": "",
+  "svenska": "200cm x 4cm x 0,6cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 200L × 4B × 0,6H cm"
+ },
+ "b7684f2f": {
+  "tyska": "200B x 0,6T x 18H cm",
+  "svenska": "200B x 0,6T x 18H cm",
+  "bokstaver": "BTH",
+  "djup": 0.6,
+  "hojd": 18,
+  "bredd": 200
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "263c4aa7": {
+  "tyska": "L100 x B75 x H23 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 23,
+  "bredd": 100,
+  "djup": 75
+ },
+ "2c75317b": {
+  "tyska": "110L x 60B x 18H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 18,
+  "bredd": 110,
+  "djup": 60
+ },
+ "2d92a681": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 80L x 41,2B x 74,5H cm | ✔ Stuhlmaße: 33L x 37B x 55H cm | ✔ Maße der Tischplatte: 80L x 40B cm | ✔ Höhe der Tischplatte: 55,2H cm | ✔ Sitzmaße: 30L x 24B cm | ✔ Sitzhöhe: 25H cm | ✔ Maße der mittleren Ablagefach: 61,9L x 38,5B x 7,8H cm | ✔ Maße des Seitenregals: 37,4L x 7,7B x 30H cm, 37,4L x 7,7B x 21,4H cm | Mått: 80L x 41,2B x 74,5H cm"
+ },
+ "426d88ab": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 80L x 41,2B x 74,5H cm | ✔ Stuhlmaße: 33L x 37B x 55H cm | ✔ Maße der Tischplatte: 80L x 40B cm | ✔ Sitzmaße: 30L x 24B cm | ✔ Sitzhöhe: 25H cm | ✔ Schublade: 57L x 34B x 7,3H cm | ✔ Maße des seitlichen Bücherregals: 37,4L x 7,7B x 30H cm, 37,4L x 7,7B x 21,4H cm | Mått: 80L x 41,2B x 74,5H cm"
+ },
+ "4bc344de": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 10,5B x 10,5T x 7,2H cm | ✔ Hantelkopf: 10,5B x 10,5T x 7,2H cm"
+ },
+ "d0c7cb4f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Lochwandabmessungen: 60L x 40B x 2H cm (jeweils) | Mått: 60L x 120B x 2H cm | ✔ Lochplattenabmessungen: 60L x 40B x 2H cm (jeweils) | Mått: 60L x 160B x 2H cm"
+ },
+ "f4452d93": {
+  "tyska": "100L x 75B x 23H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 23,
+  "bredd": 100,
+  "djup": 75
+ }
+}

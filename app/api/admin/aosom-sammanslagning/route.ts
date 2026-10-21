@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         },
         // En order som ännu inte lagts hos Aosom läser artikeln ur givarens
         // mappning. Pensioneras givaren innan den lagts går den inte att lägga.
-        // Den nya färgens bilder utöver Wix 15 (lib/aosom/fargbilder.ts).
+        // Den nya färgens bilder utöver Wix tak (lib/aosom/fargbilder.ts).
         fargbilder: getFargbildLager(),
         oppnaOrdrar: async (id) => (await store.listTasks())
           .filter((t) => t.wixCatalogItemId === id && (t.status === "pending" || t.status === "pending_payment"))

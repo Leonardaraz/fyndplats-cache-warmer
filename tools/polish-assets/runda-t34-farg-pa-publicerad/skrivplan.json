@@ -1,0 +1,48 @@
+{
+ "runda": "runda-t34-farg-pa-publicerad",
+ "produkter": [
+  {
+   "kort": "34f22c58",
+   "pid": "34f22c58-0df2-41c4-9275-e5046d4b8a7b",
+   "namn": "Trädgårdsbänk i gran, vagnshjulsben",
+   "slug": "tradgardsbank-gran-vagnshjulsben",
+   "html": "<p>En rustik trädgårdsbänk utan ryggstöd, med ben formade som vagnshjul. Virket är tryckimpregnerat gran, tåligt mot väta och tänkt att stå ute året runt. Bänken finns i naturträ och i brunt.</p><h3>Benen är formade som hjul</h3><p>De svängda vagnshjulsbenen är bänkens tydligaste drag och det som skiljer den från en rak lantlig modell. Formen är utskuren ur massivt virke, inte pålagd.</p><h3>Ingen ryggstöd</h3><p>Bänken är byggd för en bred sittyta, inte för att luta sig bakåt mot. Den passar bäst vid ett bord eller som extra sittplats snarare än som avslappningsmöbel.</p><h3>Bär 250 kg</h3><p>Konstruktionen är dimensionerad för 250 kg, alltså flera vuxna samtidigt.</p><h3>Kräver ytbehandling före användning</h3><p>En transparent träskyddsbehandling ska läggas på innan bänken tas i bruk, och upprepas vid behov för att träet ska behålla sitt utseende.</p><h3>Enkel montering</h3><p>Bänken levereras i delar.</p><h2>Tekniska specifikationer</h2><ul><li><p>Mått: 98 × 50 × 39,5 cm</p></li><li><p>Sittyta: 98 × 42 × 2,3 cm</p></li><li><p>Sitthöjd: 39,5 cm</p></li><li><p>Hjulens diameter: 41 cm</p></li><li><p>Maxbelastning: 250 kg</p></li><li><p>Färg: naturträ eller brun</p></li><li><p>Material: granvirke</p></li><li><p>Fraktvikt: 9 kg</p></li><li><p>Paketmått: 104 × 56 × 9 cm</p></li><li><p>Ingår: 1 trädgårdsbänk, 1 monteringsanvisning</p></li></ul><h2>Användning och skötsel</h2><p>Lägg på en transparent träskyddsolja innan bänken används första gången, och upprepa behandlingen minst en gång per år. Obehandlat gran grånar och spricker snabbare i väder och vind.</p><p>Torka av bänken med en fuktig trasa efter regn i stället för att låta vattnet stå kvar i virkets fibrer.</p><p>Kontrollera skruvarna i benen inför varje säsong. Ett ben som glappar sliter ojämnt på hela konstruktionen.</p><p>Ställ bänken på ett jämnt underlag. Ett hjulformat ben som gungar mot ojämn mark tar stryk i infästningen över tid.</p><h2>Vanliga frågor</h2><p><span style=\"font-weight: 700\">Har den ryggstöd?</span> Nej.</p><p><span style=\"font-weight: 700\">Hur mycket tål den?</span> 250 kg.</p><p><span style=\"font-weight: 700\">Vilket virke är det?</span> Tryckimpregnerat gran.</p><p><span style=\"font-weight: 700\">Måste den behandlas innan den används?</span> Ja, med en transparent träskyddsolja.</p><p><span style=\"font-weight: 700\">Behöver den monteras?</span> Ja.</p><p><span style=\"font-weight: 700\">Vilka färger finns?</span> Naturträ och brun. Mått, virke och belastning är desamma.</p>",
+   "seoTitel": "Trädgårdsbänk i gran | Fyndplats",
+   "seoBesk": "Rustik trädgårdsbänk i tryckimpregnerat gran med vagnshjulsformade ben, utan ryggstöd. 98 × 50 × 39,5 cm, bär 250 kg. Kräver ytbehandling före bruk.",
+   "media": [
+    {
+     "id": "b379ce_5dcb57f53b8f4f729312340ded2f10d0~mv2.jpg",
+     "altText": "Trädgårdsbänk i naturträ med vagnshjulsformade ben, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6a711480bac7479fb1a7dda30367eb36~mv2.jpg",
+     "altText": "Bänken i en trädgård med blommor och en grind i bakgrunden"
+    },
+    {
+     "id": "b379ce_9fe7cd4de427480ea09f1a59b3387434~mv2.jpg",
+     "altText": "Närbild på det svängda vagnshjulsbenet underifrån"
+    },
+    {
+     "id": "b379ce_50ea0861a08d4088a0836921356f195a~mv2.jpg",
+     "altText": "Bänken uppställd på en stenlagd uteplats bredvid en gräsmatta"
+    },
+    {
+     "id": "b379ce_361e533fe3564f598a038429d39352a3~mv2.png",
+     "altText": "Faktakort: mått 98 × 50 × 39,5 cm, sitthöjd 39,5 cm, maxbelastning 250 kg, hjulens diameter 41 cm, vikt 9 kg"
+    },
+    {
+     "id": "b379ce_abe3081bf2b2423c985b8259370d31fb~mv2.jpg",
+     "altText": "Måttskiss på bänken med 39,5 cm höjd, 50 cm djup och 98 cm längd"
+    }
+   ],
+   "kat": [
+    "Trädgård & Utemöbler",
+    "Utemöbler"
+   ],
+   "sku": "FP-tradgardsbank-vagnshjulsben",
+   "variantId": "031e02c7-bcf5-482b-87e1-1b68dda83486",
+   "textHash": "9fbead5d450257f5",
+   "textTecken": 2493
+  }
+ ]
+}

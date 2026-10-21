@@ -1,0 +1,111 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "081c9343": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: Gesamt: 259L x 172B x 222H cm. Innen: 248L x 162B cm/ 4㎡. Tür: 75B x 174H cm. Fenster: 69B x 70H cm. Traufe: 173H cm | Mått: 259L x 171B x 222H cm"
+ },
+ "40d0bd6a": {
+  "tyska": "183B x 134T x 210H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 134,
+  "hojd": 210,
+  "bredd": 183
+ },
+ "563490a6": {
+  "tyska": "1,95L x 1,22B x 1,59/1,82H m",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   1.59,
+   1.82
+  ],
+  "bredd": 1.95,
+  "djup": 1.22
+ },
+ "5a28ad9f": {
+  "tyska": "122L x 149B x 192/177H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   192,
+   177
+  ],
+  "bredd": 122,
+  "djup": 149
+ },
+ "5a914e74": {
+  "tyska": "80L x 49B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 80,
+  "djup": 49
+ },
+ "5aa2aac0": {
+  "tyska": "238L x 132B x 198,5H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 198.5,
+  "bredd": 238,
+  "djup": 132
+ },
+ "5d4a3fab": {
+  "tyska": "151L x 92B x 193/184H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   193,
+   184
+  ],
+  "bredd": 151,
+  "djup": 92
+ },
+ "67f0f8bb": {
+  "tyska": "213L x 131B x 192H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 192,
+  "bredd": 213,
+  "djup": 131
+ },
+ "7bf76ef0": {
+  "tyska": "152L x 235,7B x 176,7/208,7H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   176.7,
+   208.7
+  ],
+  "bredd": 152,
+  "djup": 235.7
+ },
+ "c1164682": {
+  "tyska": "122B x 121T x 192H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 121,
+  "hojd": 192,
+  "bredd": 122
+ },
+ "d8be09d1": {
+  "tyska": "89L x 51B x 182H cm, 79L x 43B x 83H cm",
+  "svenska": "",
+  "bokstaver": "LBHLBH",
+  "hojd": 182,
+  "bredd": 89,
+  "djup": 51
+ },
+ "f770dc11": {
+  "tyska": "211L x 133B x 173/190H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   173,
+   190
+  ],
+  "bredd": 211,
+  "djup": 133
+ }
+}

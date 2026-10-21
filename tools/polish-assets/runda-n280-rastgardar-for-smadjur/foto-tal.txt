@@ -1,0 +1,18 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+23cd89f6 12 räknat ur måtten: omkretsen 2 × (120 + 60) cm delad på panelbredden 30 cm
+23cd89f6 1,5 avläst på måttbilden: avståndet mellan stängerna
+23cd89f6 0,72 räknat ur måtten 120 × 60 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+adef1330 3,5 avläst på måttbilden: avståndet mellan stängerna
+adef1330 1,4 räknat ur måtten 185 × 75 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4c819a2a 3,5 avläst på måttbilden: avståndet mellan stängerna
+4c819a2a 1,9 räknat ur måtten 220 × 85 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ad05a616 1,6 räknat ur måtten 180 × 90 cm

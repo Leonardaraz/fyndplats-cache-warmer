@@ -1,0 +1,85 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "15438044": {
+  "tyska": "60B x 50T x 166H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 166,
+  "bredd": 60
+ },
+ "41eba57a": {
+  "tyska": "42B x 16T x 15H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 16,
+  "hojd": 15,
+  "bredd": 42
+ },
+ "46f8279a": {
+  "tyska": "60L x 16B x 80H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 60,
+  "djup": 16
+ },
+ "57d5b474": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße je Blumenkasten: 50L x 30B x 60H cm | ✔ Innenmaße je Blumenkasten: 48L x 28B x 26H cm | Mått: 50L x 30B x 60H cm"
+ },
+ "64af4d96": {
+  "tyska": "100L x 48B x 124H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 124,
+  "bredd": 100,
+  "djup": 48
+ },
+ "83c43a37": {
+  "tyska": "70L x 30B x 70H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 70,
+  "djup": 30
+ },
+ "87217e68": {
+  "tyska": "45L x 45B x 80H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 45,
+  "djup": 45
+ },
+ "ae07cfe6": {
+  "tyska": "31L x 27B x 75H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 75,
+  "bredd": 31,
+  "djup": 27
+ },
+ "c10a65c0": {
+  "tyska": "L100 x B30 x H80 cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 100,
+  "djup": 30
+ },
+ "d4433240": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Untere Pflanzkastenabmessung: 120L x 90B x 30H cm | ✔ Obere Pflanzkastenabmessung: 118L x 45B x 30H cm | ✔ Innenmaße des unteren Pflanzkastens: 119,5L x 89,5B x 30H cm | ✔ Innenmaße des oberen Pflanzkastens: 117,5L x 44,5B x 60H cm | ✔ Seitenpaneele: 45L x 30B cm | ✔ Eckpaneele: 38L x 30B cm, 37L x 30B cm | Mått: 120L x 90B x 30H cm"
+ },
+ "d86fdaf5": {
+  "tyska": "90L x 50B x 93H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 90,
+  "djup": 50
+ }
+}

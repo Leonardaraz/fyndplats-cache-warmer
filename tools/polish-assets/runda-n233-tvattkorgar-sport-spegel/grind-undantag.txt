@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py 100 liter står i källans titel men inte i beskrivningen
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py maskinens mått anges som längd × bredd × höjd; måttbilden visar 180 cm längs golvet, 108 cm bredd vid överstången och 200 cm höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py

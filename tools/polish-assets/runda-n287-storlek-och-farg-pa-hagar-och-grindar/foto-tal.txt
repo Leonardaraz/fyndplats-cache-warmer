@@ -1,0 +1,20 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e833d963 27 mankhöjd under 27 cm står på måttbilden för den mindre hagen (feedposition 3)
+e833d963 30 mankhöjd under 30 cm står på måttbilden för den större hagen (feedposition 3)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a37103bf 25 mankhöjd 25–60 cm står på måttbilden (feedposition 3)
+a37103bf 60 mankhöjd 25–60 cm står på måttbilden (feedposition 3)
+a37103bf 84 intervallet 84–90 cm står på bilden som visar förlängningarna (feedposition 4)
+a37103bf 90 intervallen 84–90 och 90–98 cm står på bilden som visar förlängningarna (feedposition 4)
+a37103bf 98 intervallen 90–98 och 98–104 cm står på bilden som visar förlängningarna (feedposition 4)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6eb13a16 84 intervallet 84–90 cm står på bilden som visar förlängningarna (feedposition 4)
+6eb13a16 90 intervallen 84–90 och 90–98 cm står på bilden som visar förlängningarna (feedposition 4)
+6eb13a16 98 intervallen 90–98 och 98–104 cm står på bilden som visar förlängningarna (feedposition 4)

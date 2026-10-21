@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel källan anger 128L × 231B men golvet anges 117B × 231T, så 128 cm är bredden och 231 cm djupet
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel källorna anger längd och bredd i olika ordning (131L × 186B hos a8e5db2d, 186L × 130B hos 6ad7b725), och bilderna visar att fasaden med dörr och fönster är 186 cm bred

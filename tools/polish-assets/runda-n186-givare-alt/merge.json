@@ -1,0 +1,39 @@
+[
+ {
+  "huvud": "5878da5f",
+  "huvud_fullid": "5878da5f-6cc2-41b1-b824-0aa13884f961",
+  "givare": "6deae391",
+  "givare_fullid": "6deae391-e493-479f-8f79-0b37fb89e43f",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "5878da5f": "Grau",
+   "6deae391": "Dunkelgrau"
+  }
+ },
+ {
+  "huvud": "2070dfbd",
+  "huvud_fullid": "2070dfbd-32f3-4c34-8c18-e1d44d6d21b6",
+  "givare": "cebea719",
+  "givare_fullid": "cebea719-644c-4904-a3d9-97d763264e98",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "2070dfbd": "Grau, Blau",
+   "cebea719": "Koffeebraun, Creme"
+  }
+ }
+]

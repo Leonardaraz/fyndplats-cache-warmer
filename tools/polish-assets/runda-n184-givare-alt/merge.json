@@ -1,0 +1,21 @@
+[
+ {
+  "huvud": "343a913e",
+  "huvud_fullid": "343a913e-55a9-4bb4-9334-ea923c245d47",
+  "givare": "a42f6149",
+  "givare_fullid": "a42f6149-7770-4f44-8a09-3a49aebfe226",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "343a913e": "Naturträ",
+   "a42f6149": "Brun"
+  }
+ }
+]

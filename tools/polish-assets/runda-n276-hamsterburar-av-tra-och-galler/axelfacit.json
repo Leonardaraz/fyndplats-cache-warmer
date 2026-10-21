@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "13fe619f": {
+  "tyska": "100L x 52B x 50H cm",
+  "svenska": "100L x 52B x 50Hcm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 100,
+  "djup": 52
+ },
+ "1686860f": {
+  "tyska": "95L x 53B x 76H cm",
+  "svenska": "95L x 53B x 76H cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 95,
+  "djup": 53
+ },
+ "23a63265": {
+  "tyska": "",
+  "svenska": "59L x 36B x 69H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaße (ohne Schlauch und Wasserflasche): 59L x 36B x 69H cm | ✔ Maße des Bodens: 59L x 36B x 13H cm | ✔ Maße der Tür: 28B x 14H cm | ✔ Plattformmaße: 33L x 25B cm | ✔ Maße der Hütte: 14L x 9,5B x 9,5H cm | ✔ Maße der Rampe: 22,5L x 6,5B cm | ✔ Maße der Übungsräder: Ø13 x 8H cm | ✔ Maße des Futternapfes: Ø8 x 4H cm"
+ },
+ "5e538454": {
+  "tyska": "87B x 43T x 101H cm",
+  "svenska": "87cm x 43cm x 101cm",
+  "bokstaver": "BTH",
+  "djup": 43,
+  "hojd": 101,
+  "bredd": 87
+ },
+ "a40a86bb": {
+  "tyska": "65B x 45T x 109H cm",
+  "svenska": "65 x 45 x 109 cm",
+  "bokstaver": "BTH",
+  "djup": 45,
+  "hojd": 109,
+  "bredd": 65
+ },
+ "c1c1d34c": {
+  "tyska": "100L x 50B x 50H cm",
+  "svenska": "100L x 50B x 50Hcm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 100,
+  "djup": 50
+ },
+ "cc5bb82c": {
+  "tyska": "",
+  "svenska": "82cm x 45cm x 81cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 82L x 45B x 81H cm. | ✔ Hauptgehäuse: 80L x 45B x 45H cm. | ✔ Innenmaß: 75,5L x 41B x 40H cm. | ✔ Schiebetür: 38B x 37H cm. | ✔ Hütte: 20L x 15B x 16H cm/28L x 15B x 16H cm. | ✔ Regal: 80L x 20B cm. | ✔ Drahtdurchmesserabstand: 12L x 12B mm"
+ }
+}

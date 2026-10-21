@@ -1,0 +1,150 @@
+[
+ {
+  "huvud": "70ef279b",
+  "huvud_fullid": "70ef279b-cd0a-4db0-ac3b-c13cb5b75ca6",
+  "givare": "f5f140f6",
+  "givare_fullid": "f5f140f6-01fd-4446-91eb-eea8de6e0a1a",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "f5f140f6": "120 cm",
+   "70ef279b": "150 cm"
+  }
+ },
+ {
+  "huvud": "78404955",
+  "huvud_fullid": "78404955-af4f-4c97-aeee-e7422f4d5e1e",
+  "givare": "12ed7827",
+  "givare_fullid": "12ed7827-31a4-4ac3-939a-0b93212be822",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "12ed7827": "311 liter",
+   "78404955": "295 liter"
+  }
+ },
+ {
+  "huvud": "78f897e9",
+  "huvud_fullid": "78f897e9-4715-4547-909c-f0e24b10749d",
+  "givare": "8477328f",
+  "givare_fullid": "8477328f-c84a-4668-a915-072b0952655a",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "8477328f": "4 paneler",
+   "78f897e9": "5 paneler"
+  }
+ },
+ {
+  "huvud": "9f8ccc45",
+  "huvud_fullid": "9f8ccc45-0176-4ea8-8bf1-fb712116be19",
+  "givare": "c67437da",
+  "givare_fullid": "c67437da-eae4-486b-acd5-344a13de00e3",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "c67437da": "5 plan",
+   "9f8ccc45": "4 plan"
+  }
+ },
+ {
+  "huvud": "aa2158bc",
+  "huvud_fullid": "aa2158bc-c773-4490-878f-21ba31c7ef69",
+  "givare": "93b4782e",
+  "givare_fullid": "93b4782e-186e-46ef-ac24-213cb328dc9f",
+  "bilder_efter_bildplan": "1,2,3",
+  "kallpositioner_i_ordning": [
+   "1",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "93b4782e": "70 × 50 cm",
+   "aa2158bc": "80 × 60 cm"
+  }
+ },
+ {
+  "huvud": "cc52007e",
+  "huvud_fullid": "cc52007e-40bf-4fe0-94c9-dcc4c2ae7a00",
+  "givare": "9a046532",
+  "givare_fullid": "9a046532-6852-4fe9-9294-684dff17d15d",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "9a046532": "80 × 60 cm",
+   "cc52007e": ""
+  }
+ },
+ {
+  "huvud": "10fe3278",
+  "huvud_fullid": "10fe3278-cb72-4cbf-90ff-9038506050cc",
+  "givare": "c70e65a5",
+  "givare_fullid": "c70e65a5-cc69-42d3-a8ea-7eee24b18ded",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "c70e65a5": "500 marker",
+   "10fe3278": "300 marker"
+  }
+ },
+ {
+  "huvud": "f4ce2f1d",
+  "huvud_fullid": "f4ce2f1d-fdf0-407f-8f39-6fc0e0a38ca1",
+  "givare": "0730f7cb",
+  "givare_fullid": "0730f7cb-a995-4b64-b75c-6358686b4a50",
+  "bilder_efter_bildplan": "1,2,3,4,5",
+  "kallpositioner_i_ordning": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "3"
+  ],
+  "axel": "Storlek",
+  "varden": {
+   "0730f7cb": "120 cm",
+   "f4ce2f1d": "180 cm"
+  }
+ }
+]

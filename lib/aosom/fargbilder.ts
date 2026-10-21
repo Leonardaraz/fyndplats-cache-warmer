@@ -30,12 +30,16 @@
 // kod) och låsta med samma fall i fargbilder.test.ts. Efter en skrivning är
 // varje färgs bilder LÄNKADE, så butiken behöver inte längre gissa.
 //
-// WIX TAR 15 BILDER PER PRODUKT — BUTIKEN FÅR ALLA
+// WIX TAR 50 BILDER PER PRODUKT — BUTIKEN FÅR ALLA
 //
-// `media.itemsInfo.items` tar högst 15 poster (Wix V3, "About Product Media").
-// Galleriet får därför de gemensamma korten, varje länkad bild och sedan de
-// första bilderna per färg, fördelade jämnt. Resten hamnar i `overflow` och
-// sparas i motorns tabell `fargbilder`, som butiken läser via /api/fargbilder.
+// `media.itemsInfo.items` tar högst 50 poster (lib/wix/limits.ts). Talet är
+// UPPMÄTT 2026-10-21: dokumentationen ("About Product Media") säger 15, men Wix
+// tog 50 och avvisade den 51:a. Verktyget byggdes när taket antogs vara 15, och
+// då fick de flesta sammanslagna sidor ett överskott i tabellen.
+// Galleriet får de gemensamma korten, varje länkad bild och sedan de första
+// bilderna per färg, fördelade jämnt. Det som ändå inte ryms hamnar i `overflow`
+// och sparas i motorns tabell `fargbilder`, som butiken kan läsa via
+// /api/fargbilder men ännu inte gör.
 // Ingenting skärs bort, och bildstädningen räknar tabellens filer som använda.
 //
 // ☠️ EN LÄNKAD BILD TAPPAS ALDRIG. Varje bild ett val (vilken axel som helst)
@@ -51,6 +55,7 @@
 // någon hunnit titta, men butiken får dem inte.
 
 import { createHash } from "node:crypto";
+import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 
 // ── ägarreglerna, ordagrant ur butikens lib/variant-bilder.ts ────────────────
 
@@ -97,8 +102,11 @@ export function arKort(alt: string): boolean {
 
 // ── husets egna regler ───────────────────────────────────────────────────────
 
-/** Wix tak för `media.itemsInfo.items` per produkt. */
-export const WIX_BILDTAK = 15;
+/**
+ * Wix tak för `media.itemsInfo.items` per produkt: 50, uppmätt 2026-10-21
+ * (lib/wix/limits.ts). Namnet är kvar från tiden då taket antogs vara 15.
+ */
+export const WIX_BILDTAK = WIX_MAX_BILDER_PER_PRODUKT;
 
 /**
  * Från den här positionen (1-baserat) granskas en opolerad givares bilder.
@@ -516,7 +524,7 @@ export function planeraSida(s: SidaIn, opts: PlanOpts = {}): SidPlan {
   }
   for (const u of utkast) if (u.v.lankade.length === 0) varningar.push("val_utan_bild");
 
-  // ── 15-taket ─────────────────────────────────────────────────────────────
+  // ── bildtaket ────────────────────────────────────────────────────────────
   // Kvar i galleriet oavsett: huvudbilden, de gemensamma, andra axlars bilder
   // och varje länkad bild. Resten fördelas en i taget till den färg som har
   // minst i galleriet.

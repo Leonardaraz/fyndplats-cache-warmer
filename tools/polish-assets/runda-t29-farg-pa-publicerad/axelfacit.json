@@ -1,0 +1,65 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "10fe3278": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kofferabmessungen: 38L x 37B x 15H cm | ✔ Mattenabmessungen: 90L x 60B cm | ✔ Chip: Ø40 x 3,2H mm, 11,5 Gramm | ✔ Dealer Button: Ø49 x 5H mm, 13 Gramm | ✔ Blind Button: Ø48 x 4H mm, 6,5 Gramm"
+ },
+ "70ef279b": {
+  "tyska": "120B x 220-310H cm",
+  "svenska": "",
+  "bokstaver": "BH",
+  "hojd": [
+   220,
+   310
+  ],
+  "bredd": 120
+ },
+ "78404955": {
+  "tyska": "120L x 62B x 66H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 66,
+  "bredd": 120,
+  "djup": 62
+ },
+ "78f897e9": {
+  "tyska": "208L x 29,5B x 61H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 61,
+  "bredd": 208,
+  "djup": 29.5
+ },
+ "9f8ccc45": {
+  "tyska": "72L x 30B x 102H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 102,
+  "bredd": 72,
+  "djup": 30
+ },
+ "aa2158bc": {
+  "tyska": "70L x 2,1B x 50H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 70,
+  "djup": 2.1
+ },
+ "cc52007e": {
+  "tyska": "80L x 60B x 2,9T cm",
+  "svenska": "",
+  "bokstaver": "LBT",
+  "djup": 2.9,
+  "bredd": 80
+ },
+ "f4ce2f1d": {
+  "tyska": "55L x 55B x 120H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 120,
+  "bredd": 55,
+  "djup": 55
+ }
+}

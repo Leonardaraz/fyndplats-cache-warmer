@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+644f1c50 204 räknat ur källans uppgift, två torn med upp till 102 CD vardera
+644f1c50 12 räknat ur källans uppgift, två torn med sex fack vardera

@@ -1,0 +1,71 @@
+{
+ "runda": "runda-t39-givare-alt",
+ "produkter": [
+  {
+   "kort": "cc77fa31",
+   "pid": "cc77fa31-0be9-4348-b01f-1f1103c545df",
+   "media": [
+    {
+     "id": "b379ce_c3e29536d8cb48128b866874ad09d84a~mv2.jpg",
+     "altText": "Rosa vattenkokare med räfflad kropp, handtag med knapp och vattenståndsmätare på sidan, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_fc4d4cdb56a747fe96dffa61afd613e4~mv2.jpg",
+     "altText": "Den rosa vattenkokaren på en köksbänk i sten bredvid en citron på ett fat, en burk med kaffebönor och en vas med blommor, vid ett fönster"
+    },
+    {
+     "id": "b379ce_f3285674d00d483284348b38fa715bce~mv2.jpg",
+     "altText": "Den rosa vattenkokaren på en köksbänk i trä bredvid en kopp, ett glas med kvistar och en bricka med te, framför en vit kakelvägg"
+    },
+    {
+     "id": "b379ce_9c61b60e81d54c25ad9295c1f53775de~mv2.jpg",
+     "altText": "Måttbild: den rosa vattenkokaren är 23,3 cm hög, 21,4 cm bred och 15,6 cm djup, på en köksbänk i sten"
+    }
+   ]
+  },
+  {
+   "kort": "4024430f",
+   "pid": "4024430f-525c-46f4-aff3-be8a29a5ec9a",
+   "media": [
+    {
+     "id": "b379ce_523cb945b2844b779463f54384eb68e1~mv2.jpg",
+     "altText": "Tvättkorg i naturfärgad bambu med vit tygpåse, snörning, lock och sidohandtag, mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_39a0e07df0d44f5c879b334f0ae4941b~mv2.jpg",
+     "altText": "Den naturfärgade tvättkorgen i en tvättstuga bredvid en tvättmaskin, med korgar, en bladväxt och en rund matta"
+    },
+    {
+     "id": "b379ce_16bc1af9448b4b69acf250162abfc5fd~mv2.jpg",
+     "altText": "Närbild på den naturfärgade korgens lock med handtag av konstläder och tygpåsens snörning"
+    },
+    {
+     "id": "b379ce_2d208bc21114420180aabdf9033789c8~mv2.jpg",
+     "altText": "Närbild på ett handtag av konstläder med nitar på den naturfärgade bambukorgens sida"
+    },
+    {
+     "id": "b379ce_417bc35682094b719fc77fb0c6260473~mv2.jpg",
+     "altText": "Måttbild: den naturfärgade tvättkorgen är 60 cm hög, 40 cm bred och 30 cm djup"
+    }
+   ]
+  },
+  {
+   "kort": "cf5f2342",
+   "pid": "cf5f2342-d18f-487c-951d-b7bce717c9cf",
+   "media": [
+    {
+     "id": "b379ce_ba055e0bcaa04df9952d8f4e81a43be5~mv2.jpg",
+     "altText": "Grönt kantskydd till en rund studsmatta med Ø244 cm, sett snett ovanifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_92cc34f0ee814bddbde7e3178b696e85~mv2.jpg",
+     "altText": "Studsmatta med grönt kantskydd på en gräsmatta framför ett trästaket och radhus, med en förstoring av det gröna kantskyddet i en cirkel uppe till höger"
+    },
+    {
+     "id": "b379ce_c2b8fb36600c42d2a2fef65d9a8bdb04~mv2.jpg",
+     "altText": "Närbild underifrån på kantskyddets svarta fästband som knyts runt studsmattans ram, mot vit bakgrund"
+    }
+   ]
+  }
+ ]
+}

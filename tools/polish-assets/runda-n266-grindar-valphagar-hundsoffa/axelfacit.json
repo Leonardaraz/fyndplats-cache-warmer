@@ -1,0 +1,50 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "28a4d3e3": {
+  "tyska": "",
+  "svenska": "M",
+  "axellos": "inget totalmått i källan; bara delmått: ✔Einzelne Platte: 71B x 61H cm | ✔Türgröße: 35B x 47H cm"
+ },
+ "af937bab": {
+  "tyska": "305L x 35,5B x 82H cm",
+  "svenska": "305L x 35,5B x 82H cm",
+  "bokstaver": "LBH",
+  "hojd": 82,
+  "bredd": 305,
+  "djup": 35.5
+ },
+ "d0cc5c32": {
+  "tyska": "",
+  "svenska": "202,5L x 2T x 76H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Vollständig ausgefahren Größe: 202,5L x 2T x 76H cm | ✔ Zusammenklappbare Größe: 82L x 9,5T x 78H cm | ✔ Einzelteil Größe: 82,5L x 76H cm (mit Tür), 60L x 76H cm (ohne Tür)"
+ },
+ "dab49bb1": {
+  "tyska": "5,5–115L x 5,5B x 82,5H cm",
+  "svenska": "5,5–115L x 5,5B x 82,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 82.5,
+  "bredd": 115,
+  "djup": 5.5
+ },
+ "e5dd72df": {
+  "tyska": "",
+  "svenska": "61H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Einzelnes Paneel: 61L x 61B cm | ✔ Tür: 38,3B x 46H cm"
+ },
+ "e655dc0c": {
+  "tyska": "101L x 66B x 34,5H cm",
+  "svenska": "101 x 66 x 34,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 34.5,
+  "bredd": 101,
+  "djup": 66
+ },
+ "e78a0f43": {
+  "tyska": "Quadrat-Form: 160L x 160B x 100H cm. Rechtecksform: 240B x 80B x 100H cm",
+  "svenska": "80 x 100 cm",
+  "bokstaver": "LBHBBH",
+  "hojd": 100,
+  "bredd": 160,
+  "djup": 160
+ }
+}

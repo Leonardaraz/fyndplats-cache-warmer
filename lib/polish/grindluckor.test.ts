@@ -105,6 +105,46 @@ describe("en struken bild får ingen alt-rad", () => {
   });
 });
 
+// ☠️ MÅTTBILDEN SIST, AVGJORT PÅ ALT-TEXTEN (2026-10-21). bygg-media.py lade "källposition 3" sist, vilket bara stämmer
+// när måttbilden råkar ligga där. I T78 låg den på 5 (agilityvärden) och 4 (hindersetet): en närbild på ett rör
+// hamnade sist och måttbilden mitt i galleriet, utan ett enda fel. Utan en alt-text som börjar på Måttbild gäller
+// den gamla regeln, så äldre rundor bygger som förut.
+describe("måttbilden läggs sist", () => {
+  const BILDER = [1, 2, 3, 4, 5].map((p) => `prod\t${p}\tb379ce_${"a".repeat(31)}${p}~mv2.jpg`).join("\n") + "\n";
+  const filer = (alt: string[]) => ({
+    "bilder.tsv": BILDER,
+    "alt.tsv": alt.map((a, i) => `prod\t${i + 1}\t${a}`).join("\n") + "\n",
+  });
+  const ordning = () =>
+    (JSON.parse(readFileSync(join(katalog, "nyttolast-media.json"), "utf-8")) as { prod: { id: string }[] }).prod.map(
+      (x) => x.id.replace(/^.*a(\d)~mv2\.jpg$/, "$1"),
+    );
+
+  it("lägger Måttbild sist även när den ligger på position 5", () => {
+    const { kod } = kor(
+      "bygg-media.py",
+      filer(["Huvudbild", "Miljöbild", "Närbild på ett rör", "Närbild på en fot", "Måttbild: 99 cm hög"]),
+    );
+    expect(kod).toBe(0);
+    expect(ordning()).toEqual(["1", "2", "3", "4", "5"]);
+  });
+
+  it("flyttar bort måttbilden från position 4 och behåller position 3 på plats", () => {
+    const { kod } = kor(
+      "bygg-media.py",
+      filer(["Huvudbild", "Miljöbild", "Närbild på ett rör", "Måttskiss: 30 cm hög", "Närbild på en fot"]),
+    );
+    expect(kod).toBe(0);
+    expect(ordning()).toEqual(["1", "2", "3", "5", "4"]);
+  });
+
+  it("följer den gamla regeln (position 3 sist) när ingen alt-text börjar på Måttbild", () => {
+    const { kod } = kor("bygg-media.py", filer(["Huvudbild", "Miljöbild", "Ritning", "Närbild på ett rör", "Närbild på en fot"]));
+    expect(kod).toBe(0);
+    expect(ordning()).toEqual(["1", "2", "4", "5", "3"]);
+  });
+});
+
 describe("saldot i Wix är redan buffrat", () => {
   const filer = (saldo: number) => ({ "ids.tsv": "prod\t499\tWandschrank\n", "lager.tsv": `prod\t${saldo}\n` });
 

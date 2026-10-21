@@ -1,0 +1,7 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a2d6f42d 6 antalet fönster står i källan till det vita växthuset som 6 Fenster
+a2d6f42d 4 antalet vindlinor och markpinnar står i källan till det vita växthuset som 4 x Spannseile och 4 x Erdspieße
+0562a1a2 4,5 hjulets storlek står i måttbilden (4,5 cm)
+15dee6da 3 antalet dörrar står i källan som 3 aufrollbare Reißverschlusstüren
+4e10c6c4 4 antalet ventilationshål står i källan som 4 Belüftungslöcher

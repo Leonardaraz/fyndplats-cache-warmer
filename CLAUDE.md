@@ -1882,7 +1882,7 @@ får inte bära sidans färg** (`namnet_bar_farg` — skriv om namnet först, me
 oförändrad slug). **Sedan 2026-09-30 följer alla givarens bilder med**, med
 färgbildsverktygets regler (se *Färgbilderna* nedan): givarens kort stannar,
 en opolerad givares bilder från position 2 sparas som `granskas` i stället för
-att skrivas, och det som inte ryms under Wix 15 sparas i tabellen. Med
+att skrivas, och det som inte ryms under Wix tak (50) sparas i tabellen. Med
 `bilder` följer exakt de valda med. Befintliga val behåller hela sina
 `linkedMedia`-listor; före det skrev återkopplingen om varje val till sin
 första bild. Faller en körning halvvägs ser nästa att Wix redan är klart
@@ -2241,12 +2241,28 @@ logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
   hör till huvudbildens färg. En givares egen fil går före alt-texten. Ett foto
   vars färg saknar länkad bild står kvar orört i galleriet. Efter skrivningen är
   varje färgs bilder länkade.
-- **Wix 15 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
+- **Wix 50 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
   axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
   som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
   butiken kan läsa via `GET /api/fargbilder?pid=`. Den skapas vid första
   användningen (`FARGBILD_DDL`). Bildstädningen räknar varje fil-id i tabellen
   som använd.
+- ☠️ **Taket är 50, uppmätt 2026-10-21 — dokumentationens 15 stämmer inte.**
+  Verktyget byggdes på "About Product Media" (15). En dold testprodukt (raderad
+  direkt efteråt) fick 16, 20, 25, 30, 40, 46 och 50 bilder, och varje skrivning
+  lästes tillbaka i ett eget anrop. Den 51:a gav `400 MAX_SIZE` (*"has size 51,
+  expected 50 or less"*, threshold 50). Dessutom höll 86 publicerade sidor redan
+  16–46 bilder. Med 15 som tak vägrade verktygen (`over_tak_redan`,
+  `galleriet_fullt`) just de sidor som har flest färger, och överskottet
+  parkerades i en tabell som butiken ännu inte läser. Talet bor i
+  `WIX_MAX_BILDER_PER_PRODUKT` (`lib/wix/limits.ts`) och läses av färgbilderna,
+  miljöbilden, sammanslagningen och planernas validering (`skrivplan.ts`,
+  `bildplan.ts`). `lib/aosom/bildtak.test.ts` fäller en modul som hårdkodar ett
+  eget tal och låser värdet. ⚠️ **Mätt är en PATCH med fältmask `media`.**
+  Skapandet (`products-with-inventory`) och bulk-skrivningarna är inte mätta,
+  och importen skapar produkter med färre bilder än så. Höj eller sänk talet bara
+  efter en ny mätning, som CHOICES-taket i samma fil — där var dokumentationen
+  fel åt det farliga hållet, här åt det försiktiga.
 - ☠️ **Butiken läser inte tabellen än.** Ett foto som bara står i tabellen syns
   alltså inte. Därför flyttas sidans egna foton aldrig ur galleriet utan
   `tillat_ur_galleriet=ja` (hindret `ur_galleriet_kraver_butiken`). Givarbilder
@@ -2339,6 +2355,33 @@ Sex egenskaper som inte ska tas bort:
 givarens pensionerade utkast finns räknar städningen filen som använd; den
 tas först när utkastet raderats (se *Pensionerade utkast raderas efter
 fjorton dygn*).
+
+### Färger utan egna bilder på en AliExpress-sida (2026-10-21)
+
+Leonards rapport 2026-10-21: sex sidor hade fortfarande en färg utan egna bilder
+(hamsterburen, tältet, tunnelväxthuset, skoskåpet, dieselvärmaren och plåtboden).
+Tre av dem hade stått flaggade i runbooken sedan 27 september. Fotot letas upp med
+workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`), som
+anropar den gamla read-only-rutten `/api/admin/freight-check?raw=1` och svarar
+krypterat, som `leverantorslankar.yml`. Den startas av en push som ändrar
+`tools/ae-skubilder/kor.json` (`produkter`: högst tio Wix-id, `kuvert`: en publik
+RSA-nyckel i base64), och efter merge med `workflow_dispatch`.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Kuvertet är obligatoriskt och loggen bär bara räknare.** Svaret bär
+   leverantörens bildadresser, och en bildsökning på dem leder till listningen.
+   jq plockar bara ut bilder, egenskapsnamn och -värden, SKU-id, SKU-attribut och
+   saldo, aldrig priser, säljare eller fraktuppgifter. Ett fel skrivs som
+   statuskod, aldrig som kropp.
+2. ☠️ **Hela råsvaret går till en fil och läses bara av jq.** Det passerar aldrig
+   en variabel som något kan råka skriva ut, och faller krypteringen faller jobbet
+   utan klartext.
+3. **Mätt 2026-10-21: bara tältet hade en SKU-bild per färg.** De andra fyra
+   listningarna bär färgen som ett egenskapsvärde utan foto, sex galleribilder och
+   8–18 beskrivningsbilder, och ingen visar den saknade färgen. Vad man gör med en
+   färg utan foto på en publicerad sida står i runbookens avsnitt *Varje färg har
+   sin egen bild*: ta bort färgen med bevarat id, inte koppla en annan färgs bild.
 
 ### Syskonsvepet: färg, storlek och samma vara i hela sortimentet (2026-09-27)
 
@@ -2546,7 +2589,8 @@ den gäller även de sidor poleringen redan tömt.
 
 ⚠️ **Feeden har tio bilder, inte nio.** 45 av 46 artiklar bar tio den 2026-09-30.
 Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
-begäran. Det är sedan dess femton, alltså Wix tak för bilder per produkt.
+begäran. Det är sedan dess femton, en marginal över feedens högsta position. Det
+är inte Wix tak: en produkt tar 50 bilder (uppmätt 2026-10-21, `lib/wix/limits.ts`).
 
 ✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
 24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på
@@ -2647,6 +2691,158 @@ Fyra egenskaper som inte ska tas bort:
 4. ☠️ **Svaret bär bara Wix egna id och adresser.** Godkända kandidater måste skrivas
    inom karenstiden, tre dygn efter att bildstädningen (03:50 UTC) först såg dem
    oanvända.
+
+### Färgval med få bilder: fler bilder per färg (2026-10-21)
+
+Leonard, med en skärmbild av strandparasollen där färgen Grön visade två bilder: *"Det finns
+produkter med varianter som har 4 bilder eller mindre, kan du hämta bilderna till de
+varianter som har 4 eller mindre och koppla rätt och kolla att rätt bild syns i live sidan
+som test så din metod är rätt."*
+
+**Omfattningen, mätt 2026-10-21** med `tools/polish-gates/katalogkontroll-farg-bilder.js`
+(`products/search` med `MEDIA_ITEMS_INFO` och butikens ägarregler som i `fargVy`, bara
+färgvalen): 534 av 951 publicerade sidor med färgval har minst ett färgval som visar fyra
+bilder eller färre, och 1 097 av 2 533 färgval gör det. 442 är Aosom-sidor med en artikel
+per färg (240 med två färger, 128 med tre, 57 med fyra och 17 med fem eller fler) och 92 är
+AliExpress-sidor (26 där den sämsta färgen visar en bild, 31 två, 25 tre och 10 fyra).
+Sidorna, leverantören och minsta antal bilder står i
+`tools/polish-assets/farger-fler-bilder-2026-10-21/flaggade.tsv`. Importen tar feedens
+position 1, 2, 3, 8 och 9, poleringen stryker det som bär text eller märke, och en färg som
+kom in genom en sammanslagning fick bara en del av givarens bilder.
+
+⚠️ **Mätningen är en uppskattning, och butikens regel är inte `fargVy`s.** Uppmätt live
+(`tools/polish-gates/live-bilder.mjs`, 69 AliExpress-sidor med en axel): skriptets regel
+stämmer exakt på 60, `fargVy` på 47. Skillnaderna: en länkad bild visas bara för det FÖRSTA val
+som länkar den, och en olänkad bild utan färgnamn hör till huvudbildens färg bara när varje
+färgval är ett enda färgord (Svart, Vit). Heter ett val "Nattsvart M" eller "Base 210T Rosa"
+visas bilden för alla färger. `fargVy` och `olankadeAgare` räknar fortfarande den gamla
+vägen. På sidor med fler än en axel (hamsterburen `13fe619f` räknas som 0 för Mörkgrå, fast
+den visar bilder per storlek) gäller ingen av reglerna, och en första, bredare mätning över
+alla val gav 628 sidor. Mät den enskilda sidan live innan du tar den som given.
+
+**Piloten: strandparasollen** `57988115` (AliExpress-sida, två färger). Grön visade två
+bilder och Blå fyra. Efter åtgärden visar Grön fem och Blå sju, mätt live per färg med
+`node tools/polish-gates/live-galleri.mjs <slug> <galleri-id.json>`, som klickar varje färg i
+väljaren och skriver ut galleriet (väljaren på den här sidan är en enda axel utan
+`.pdp-axis`-omslag, och skriptet läser nu den formen också). Metoden för en AliExpress-sida,
+som inget verktyg gör åt en:
+
+1. **Hitta fotona.** Listningens SKU-bilder, galleri och beskrivningsbilder läses krypterat
+   med `ae-skubilder.yml` (push som ändrar `tools/ae-skubilder/kor.json`). Hämta dem lokalt,
+   bygg ett kontaktark och titta på varje bild: tysk eller spansk text, märke och en annan
+   färg stryks. Leverantörens rena gröna foton räckte inte till fem, så det femte är ett
+   specifikationskort med den gröna varan (`scripts/cardkit.py`, `card_spec`).
+2. **Importera filerna** till Media Manager (`site-media/v1/files/import`, vänta på `READY`).
+   Ett utsnitt görs med Wix egen crop-adress och importeras som en ny fil, aldrig som en
+   leverantörsbild i repot.
+3. **Skriv galleriet vid fil-id**, och länka sedan färgens bilder med `options` och
+   `variantsInfo` ordagrant ur produktens egen GET, `visible` explicit (se *Färger som inte
+   kom via verktyget* i `docs/polish/syskon.md`). Kör `variantbild.yml` efteråt.
+4. **En bild som visas för alla färger länkas inte.** Närbilden på den röda knappen som fäller
+   upp parasollet är densamma i båda färgerna, så den ligger olänkad med en alt-text som
+   nämner båda färgerna (butikens `arKort`-regel: en olänkad bild som nämner flera färger är
+   gemensam). Lägg aldrig en annan färgs foto på ett val.
+5. **Mät live per färg** efter butikens cache (`age` på sidan, `uppdatera-andrade` var femte
+   minut), och läs tillbaka id, SKU, pris och synlighet i en separat läsning.
+
+Metoden prövades på sex AliExpress-sidor till (`30169925`, `587c92f3`, `82b05d93`, `39a5c0bf`, `5b21090e`, `53b941a0`, skrivna
+med `tools/polish-gates/skriv-fargbilder.js`, högst tre sidor per körning inom ExecuteWixAPI:s 60 sekunder). Alla lästes
+tillbaka i Wix och mättes live med exakt de antal planen räknade fram: cykelstället Svart 7 och Vit 4, cykelpumpen Svart 8
+och Vit 4, barstolarna Svart 5, liggunderlaget Grön 4, Blå 3 och Grå 2, ballongbågen Vit 3 och hollywoodgungan Blå 4.
+☠️ **Utbytet är litet.** En AliExpress-listning har sällan en bild per färg: galleriet visar oftast en färg och
+beskrivningsbilderna är spanska eller engelska säljgrafiker, så en färg får ett till fyra foton. Av ungefär 25 granskade
+sidor gick tio att förbättra, och kläder med 7–29 färger går inte alls. Fyra sidor (`228aea02`, `314168d1`, `8f21a666`,
+`928bb3c4`) är importerade och verifierade men inte skrivna. Spåret pausades 2026-10-21 efter Leonards besked *Fokusera på
+aosom produkterna*.
+
+För Aosom-sidorna finns verktyget **"Bilder — fler bilder till en färg på en sammanslagen
+Aosom-sida"** (`aosom-fargtillagg.yml`) → `/api/admin/aosom-fargtillagg` →
+`lib/aosom/fargtillagg.ts`, med tre lägen: `kandidater` (laddar upp feedens position 3, 8, 9
+och 10 för varje färgs artikel, bara de som färgens vy inte redan visar), `plan` och `skriv`.
+En människa tittar på varje kandidat (46 procent av feedens bilder bär tysk text, och ett
+märke syns inte i någon grind), och de godkända filerna skrivs i `tillagg.json` i rundans
+katalog med en svensk alt-text per bild. Verktyget väljer aldrig bilder. Det fungerar först
+när PR #749 är mergad, eftersom varken rutten eller workflowen finns på `main`.
+
+**Aosom-sidorna, kartlagda 2026-10-21** (`tools/polish-gates/katalogkontroll-farg-givare.js`, 36 sekunder över 6 125
+produkter, bara läsning). De 442 sidorna har **798 färgval på fyra bilder eller färre**. 266 sidor har 4 som sämsta färg,
+130 har 3, 36 har 2, 9 har 1 och 1 har 0, så de flesta saknar en eller två bilder. 412 av 442 sidor har inga
+gemensamma bilder alls (inga kort eller måttbilder som butiken visar för alla färger). Färgbildsverktyget (`fargbilder.yml`,
+`plan`) gav 0 kandidater, men det betyder inte att givarnas bilder sitter på sidorna: det som väntar på granskning
+(`granskas`) och det som inte fick plats (`overflow`) ligger i en tabell som bara motorn läser, och planen skriver bara
+räknare, inga fil-id. Mätt direkt mot Wix har 298 av de 798 färgvalen en dold givare, men bara **26 färgval en givare med
+bilder kvar** (51 bilder). Givarna är alltså i stort sett uttömda. Resten av underlaget finns bara i feeden (position 4–7 och
+10, och alla positioner för en färg utan givare), och `aosom-fargtillagg` hämtar dem först efter merge av PR #749.
+
+**Första omgången: givarnas bilder (18 sidor, 35 bilder skrivna, 32 kvar).** De 26 färgvalen granskades på kontaktark och 35 bilder skrevs med
+`tools/polish-gates/skriv-fargbilder.js` (samma steg som verktygen: galleriet ensamt vid fil-id, länkarna med `options` och
+`variantsInfo` ordagrant ur GET:en, återläsning av galleri, länkar, variant-id, SKU, pris och synlighet). Planen står i
+`tools/polish-assets/farger-fler-bilder-2026-10-21/aosom-givare-1.json`. Alla 18 sidor lästes tillbaka utan avvikelser och
+mättes live (`tools/polish-gates/kolla-live-farg.py`): varje tillagd bild syns i sin egen färgs vy och i ingen annans, och
+antalet unika bilder per sida stämmer med galleriet i Wix. Efteråt rättade `variantbild.yml` varukorgens bild per färg på
+alla 24 skrivna sidor (18 Aosom och sex AliExpress, noll avvikelser): kör den efter varje färgbildsskrivning. 24 färgval
+fick fler bilder. 12 nådde fem eller fler (mörkbruna hundtrappan `f384c51d` 2 till 6, rosa soffan i
+`4f21c7c1` 3 till 5), och 12 står kvar på 2–4: tio eftersom givarens övriga bilder var tyska eller engelska säljgrafiker
+(trehjulingen `eeb4a919`, Grå och Rosa: *Security features* och *More details*), och två eftersom en bild som sa emot sidan
+togs bort efteråt (blå soffan `f1878c34` 1 till 4 och grå klätterväggen `44663e99` 2 till 3, se nedan). Två givare gav ingenting
+(`6334f635`, `a706542f`: *Nur Kissen* och *Hinweis* tryckta mitt i fotona, och beskärningen hade kapat varan). Två
+bilder är utsnitt via Wix crop-adress (`834c66fd` Grå och `e76a4098` Ljusgrå), uppladdade som nya filer och verifierade
+mot ett lokalt utsnitt (dHash 0).
+
+☠️ **Givarens egna kort flyttas aldrig av `fargbilder`** (*sidans kort gäller alla färger*, `givarensBilder`). På en sida
+där värdens kort är länkade till värdens färg är givarens kort det enda kort färgen kan få, och de ligger kvar som
+"bilder kvar" i kartläggningen. Jag länkade dem till färgen (de visar färgens egen vara). Ett kort som inte är färgens eget
+ska aldrig läggas som val.
+
+**OCR före ögonen** (`tools/polish-gates/ocr-forgranska.py`, RapidOCR i en egen venv, modellerna ligger i paketet). Den hittar
+inbränd text (tyska och engelska rubriker, *Nur Kissen*, etiketter) och skiljer bilder med bara siffror från rena foton. Provad
+mot 14 bilder jag redan bedömt för hand: alla 14 gav samma utfall. ☠️ **REN är inget bevis.** En logotyp utan bokstäver,
+fel färg och en kollage syns inte, och text på varan eller rekvisitan (en affisch, en etikett) står kvar enligt runbooken.
+Kör den före kontaktarken så att ögonen går till det som är kvar.
+
+☠️ **Talen i en tillagd måttbild kontrolleras mot sidans text** (`ocr-forgranska.py --tal` skriver talen i bilden, och
+`kolla-tal-mot-text.js` jämför dem med `plainDescription` och läser bara). Kontrollen gjordes efter första omgången: på fem av
+de 18 sidorna hade en måttbild tal som inte stod i texten, och två av dem sa emot den. Blå soffan `f1878c34` hade fått en bild med
+*240 kg* medan sidan säger *Maxbelastning: 100 kg per sits och 10 kg i förvaringen*, och grå klätterväggen `44663e99` hade fått
+givarens kort och leverantörens måttritning där trappan är 38 × 20 × 2,8 (kortet) och 38 × 20 med 3,8 cm tjocka rullar
+(ritningen), medan sidan säger *38 cm bred, 22 cm djup och 12 cm hög*. De tre bilderna togs bort samma kväll med
+`bilder-bort.yml` (planerna var rena, återläsningen stämde, och `variantbild` rättade 3 respektive 1 val; live 21:45 UTC visade
+18 respektive 7 unika bilder som galleriet, Blå 4 och Grå 3, och ingen av de borttagna syns i någon färg). De tre andra sidorna
+hade bara fler mått än texten och bilderna står kvar: det vita fällbordets inre mått (hylla 75,5 × 14, skiva 75 × 75, bordshöjd 74;
+belastningen 40 kg stämmer med sidans *40 kg totalt*), den rosa barnfåtöljens sitthöjd 38 mot sidans 37,5 (avrundat) och
+uppresningsfåtöljens mått i upprest läge (128,5 × 83 × 62,5). Ett tal som saknas i texten är ingen motsägelse. En annan
+belastning eller ett annat mått på samma del är det, och då tas bilden bort i stället för att texten rättas: texten är
+leverantörens uppgifter för värdens artikel, och ett färgsyskons bilder kan höra till en artikel med andra mått. Kör kontrollen
+före skrivningen nästa gång. ☠️ Givarens kort dubblerar dessutom värdens egna kort, som redan visas för alla färger.
+
+**Det som kräver merge av PR #749:** de ungefär 770 färgval som inte har någon givare med bilder kvar. Ordningen efter
+mergen är `kandidater` med `mal` = sid-id (alla svaga färger på sidan), OCR och kontaktark, `tillagg.json`,
+`plan_och_skriv` och live. Wix tar 50 bilder, så ett galleri på 15 är inget hinder längre.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
+   och wixstatic-adresser, räknare och hinderkoder. Aldrig artikelnummer, feedens adresser
+   eller Aosoms produktadress, och ett media-fel följer inte med, för det bär källadressen.
+   Filnamnet byggs av wix-id, färgens plats och position, aldrig av källan.
+2. ☠️ **En bild tillhör en färg.** En fil vars källa inte är en position hos färgens egen
+   artikel blir `annan_kalla`. Ett par som klistrats fel ska inte bli en bild på fel färg.
+3. ☠️ **Ingen bild faller ur galleriet och ingen länk tappas.** Huvudbilden och varje färgs
+   första bild rörs inte, och de nya bilderna läggs efter färgens sista bild i galleriet och
+   sist i valets `linkedMedia`. `kontrolleraLivsplan` fäller en plan som bryter det.
+4. ☠️ **Galleriet skrivs vid fil-id, aldrig vid adress.** En wixstatic-adress får Wix att
+   importera om bilden till en ny fil (se *Wix importerade om VARJE bild*).
+5. ☠️ **Skrivningen kräver planens sha.** Planen räknas om ur färska läsningar i samma
+   anrop, och har sidan ändrats sedan någon läste planen skrivs ingenting (409). Sha:n
+   täcker filerna och deras alt-texter. Godkända kandidater måste skrivas inom karenstiden,
+   tre dygn efter att bildstädningen först såg dem oanvända.
+
+⚠️ **Positionerna är en gissning som kandidaterna prövar.** 3, 8, 9 och 10 är de som oftast
+är rena (77, 80, 93 och 53 procent, uppmätt 2026-08-27 och 2026-09-30), men position 4–7 bär
+nästan alltid tysk text. En färg som inte får fyra rena bilder ur feeden är en färg
+leverantören inte har fler bilder för, och då stannar den på det antalet. Ett utsnitt
+(`docs/polish/bildmetoder.md`, *Beskärning*) är den enda genvägen, och bara när utsnittet är
+fritt från text och märke.
 
 ### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
 
@@ -4012,6 +4208,9 @@ man sig att ignorera larmet. AE-rader berörs inte (de blir `EJ AVGÖRBAR`).
 
 ### Var talet kommer ifrån
 
+*Historik: en engångsmätning 2026-08-27. Priset sätts av regeln ovan, och ingen ny
+jämförelse görs (Leonard 2026-10-21, se avsnittet "Dealproffsen: vi jämför inte med dem").*
+
 Inte från en marginalambition — från mätning. **dealproffsen.se publicerar
 Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD**, så exakt matchning är
 mekanisk. Slagning på 70 spridda artiklar gav **55 exakta träffar**
@@ -4304,96 +4503,34 @@ tre sidor genom butiken (549, 1 749 och 4 899 kr), inte bara i API-svaret.
 `HIT`, `age: 20` och det nya. Ett API-svar är inget kvitto, och en enstaka
 sidhämtning är det inte heller.
 
-## Prisjämförelse mot dealproffsen (`lib/pricing/dealproffsen.ts`)
+## Dealproffsen: vi jämför inte med dem (Leonard 2026-10-21)
 
-Leonards strategi 2026-09-14: *"vi ska jämföra alla våra priser mot
-dealproffsen.se … Alla produkter som vi är billigast på ska vi först ändra
-priset så vi ligger endast 1-2 procent under dom och inte flera 100kr som vi
-gör nu på vissa produkter och sen ska vi göra reklam på just dessa produkter i
-google shopping."* Och: *"Vi skiter i aliexpress produkterna helt."*
+Leonard 2026-10-21: *"vi ska inte jämföra med dom"*. Beslutet gäller överallt och ersätter
+hans strategi från 2026-09-14 (jämföra alla priser mot dealproffsen.se, ligga 1–2 procent
+under dem och göra reklam på det vi var billigast på).
 
-Jämförelsen gör två jobb i samma körning. Det andra är inte en bieffekt utan
-ett uttryckligt krav — *"vi måste jämföra alla våra produkter sen även de som
-inte är polerade … dom som inte är polerade proioriterar vi next"*:
+1. **Polering:** kandidater väljs inte efter var vi är billigare än dealproffsen.
+   Runbookens §1 har inte längre det kriteriet.
+2. **Pris:** kundpriset är husets regel (1,20 × landad kostnad, `charm99`) och inget
+   annat. Ingen prisändring motiveras med deras pris, och en prisändring kontrolleras
+   inte mot det.
+3. **Kör inte** workflowen "Pris — jamfor mot dealproffsen" i läget `jamfor` och inte
+   "Pris — konkurrentregeln". Ingen rad får `prisgrupp` (lottningen `lage=lotta` körs
+   aldrig). Utan grupp följer varje rad husets regel exakt, så synkens konkurrentregel
+   är overksam, och det har den varit sedan den byggdes.
+4. **Arkiv:** texterna om jämförelsen (matchningen, vägen in, de sju egenskaperna,
+   gap-listan) och om konkurrentregeln är flyttade ordagrant till
+   `docs/arkiv/dealproffsen-och-konkurrentregeln.md`. De är historik, inte instruktion.
+5. **Koden finns kvar** tills Leonard beslutar om borttagning: `lib/pricing/dealproffsen*.ts`,
+   `lib/pricing/konkurrentregel.ts`, `lib/pricing/konkurrentpris-plan.ts`,
+   `app/api/admin/dealproffsen`, `app/api/admin/konkurrentpris` och workflowerna
+   `dealproffsen.yml` och `konkurrentpris.yml`. Lägena `feed-info`, `ean-jakt` och
+   `vara-sidor` i `dealproffsen.yml` är inga prisjämförelser och får användas.
+6. **Det som står kvar nedan är inte en jämförelse:** att Aosoms artikelnummer aldrig får
+   läcka (dealproffsen publicerar samma sträng som `sku`/`mpn`), att deras EAN inte
+   används, white label-beslutet och Google Shopping-attributen.
 
-1. **Var är vi billigare**, och med hur mycket — underlaget för både
-   prisjusteringen och annonsurvalet.
-2. **Vilka OPOLERADE utkast vi vore billigast på** — poleringskön sorterad
-   efter var pengarna ligger i stället för efter vad som råkar ligga överst.
-
-☠️ **RUTTEN SKRIVER INGENTING, och kan inte.** Den mäter. Samma hållning som
-prisreparationens "det finns ingen kör-allt-flagga": ett pris som når kund ska
-ha passerat ögon.
-
-### Matchningen är mekanisk, inte en gissning
-
-De publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. Vårt
-`supplierProductId` mot deras `reference` matchar exakt eller inte alls.
-
-☠️ **Därför finns ingen namn- eller måttmatchning, med flit.** Huset har redan
-mätt att måttjämförelse är otillräcklig som ensam grund (hörnsoffan `69c5e15c`),
-och en felmatchning här sätter fel pris på fel vara.
-
-### Vägen in mättes fram — fyra alternativ föll
-
-| väg | varför den inte duger |
-|---|---|
-| `sitemap.xml` | finns inte |
-| `/api/products` | `401` |
-| Google-feed-modulens sökvägar | `404` |
-| Kategorisidornas HTML | **4 av 48 kort** bär artikelnumret |
-
-Det som fungerar är deras egen, odokumenterade sök-JSON:
-`?controller=search&ajax=1&resultsPerPage=100&s=<prefix>&page=<n>`. Uppmätt:
-**200 av 200 rader bar `reference`**, pagineringen överlappar inte, och
-prefixen härleds ur VÅR katalog — alltså ~120 anrop i stället för 4 754.
-
-☠️ **PRISET ÄR `price_amount`, ALDRIG `regular_price_amount`.** Det andra är
-det överstrukna. Uppmätt på redskapsboden: **4 289 mot 6 049**. Alla deras
-rader ligger på "Kampanj", så fel fält hade gjort HELA katalogen 41 % dyrare än
-den är — och vi hade höjt våra priser på ett underlag som lutar åt exakt det
-dyra hållet.
-
-### Sju egenskaper som inte ska tas bort
-
-1. ☠️ **Svaret bär ALDRIG artikelnumret.** Rapporten hamnar i en PUBLIK
-   Actions-logg, och artikelnumret är exakt den sträng dealproffsen publicerar
-   — läcker vi den joinar vem som helst vår sida mot deras och därmed mot vårt
-   inköpsled. Raderna nycklas på `wixProductId`, som redan står i produktsidans
-   JSON-LD. Ett test fäller om ett artikelnummer kryper in i rapporten.
-2. ☠️ **Ett uteblivet fynd är ingen jämförelse.** En vara de inte säljer hamnar
-   i `utanTraff`, aldrig i `viBilligare`. Skillnaden är hela skillnaden mellan
-   "vi vet att vi är billigast" och "vi vet ingenting" — och det andra hade
-   blivit en prishöjning på lösan sand. Samma hållning som `utanWixPris` och
-   som `unknown` i hyllstatusen.
-3. ☠️ **"De säljer den inte" och "vi kunde inte fråga" är skilda tal.** En rad
-   utan artikelnummer räknas i `utanArtikelnummer`. Slås de ihop ser en trasig
-   mappningsrad ut som ett mätvärde om deras sortiment.
-4. ☠️ **Facit är BUTIKEN.** Priset läses ur `listV3ProductPrices`, aldrig ur
-   mappningens `grossSek` — samma förväxling som kostade prissynken en månad.
-   Har produkten flera varianter med olika pris finns inget entydigt pris, och
-   raden räknas i `utanVartPris` i stället för att gissas.
-5. ☠️ **Samma artikelnummer två gånger → LÄGSTA priset vinner.** Ett svep
-   hämtar hundra rader i taget och samma vara kan ligga i mer än en träfflista;
-   låter man den SISTA vinna beror utfallet på sidordningen. Det lägsta priset
-   gör oss mindre billiga i rapporten, aldrig mer — fel åt det hållet kostar en
-   utebliven annons, fel åt det andra en prishöjning på ett pris kunden aldrig
-   behövde betala.
-6. ☠️ **En delkörning jämför bara de prefix den FAKTISKT hämtade.** Utan den
-   filtreringen hade varje produkt vars prefix ligger senare i markören räknats
-   som "de säljer den inte" när sanningen är "vi har inte frågat än" — punkt 2
-   fast på körningsnivå. `fullstandig: false` diskvalificerar dessutom
-   rapporten som beslutsunderlag, samma roll som i mediainventeringen.
-7. ☠️ **En markör som inte rör sig är inget framsteg.** Faller varje prefix i
-   ett varv står markören kvar, och utan spärren kör loopen om exakt samma
-   anrop tills `varv` tar slut, bokför samma rader en gång till och ser i
-   summeringen ut som ett svep som gjorde något. Uppmätt mot en stubbe innan
-   rutten nådde produktionen — tillsammans med massfel-grinden och den
-   framåtgående markören, alla tre.
-
-⚠️ **Massfel fäller, en enstaka miss varnar** — samma form som
-`MASSFEL_ANDEL`/`MASSFEL_GOLV`. Att INGET prefix gick att hämta är däremot inte
-en miss: då vet körningen ingenting alls, och det får inte se ut som ett svar.
+*Lärdomarna nedan kom ur jämförelsen men gäller även utan den.*
 
 ### ☠️ Och den hittade ett tyst tak som redan var passerat (2026-09-14)
 
@@ -4404,7 +4541,7 @@ ingenting som skiljer "slut på produkter" från "slut på sidor".
 
 ☠️ **Riktningen är det som gör felet dyrt.** En produkt som saknas i mängden
 behandlas som OSYNLIG, alltså ser en publicerad produkt ut som ett utkast.
-Recensionssvepet hoppar då över den, och prisjämförelsen ovan hade lagt den i
+Recensionssvepet hoppar då över den, och den arkiverade prisjämförelsen hade lagt den i
 listan *"polera dessa först"* — alltså precis fel lista.
 
 Samma klass som `Promise.allSettled` i `media.ts`, som `queryAll`:s eget tak
@@ -4419,45 +4556,19 @@ genom att återinföra kapningen — två faller, och bara de två.
 ⚠️ Hittad genom att läsa koden innan den togs i bruk, inte av ett larm. Den
 hade inget larm att ge.
 
-### ☠️ Gap-listan rankar PENGAR, inte vad som är värt att polera (2026-09-15)
+### ☠️ Familjer med många publicerade sidor ger krockar (2026-09-15)
 
-Rapporten svarar på "var är vi billigare". Läst som en poleringskö svarar den
-på fel fråga, och första gången den användes så pekade den rakt fel.
+Gap-listan rankade opolerade utkast efter kronor och pekade rakt fel första gången den
+användes (listan är arkiverad). Det som gäller oberoende av den:
 
-**1 577 opolerade utkast där vi är billigare, 532 235 kr i samlat gap.**
-Rankat på kronor ligger fåtöljer och trädgårdsmöbler i topp. Båda är fel
-svar, och skälen är olika:
+☠️ **Fåtöljfamiljen är MÄTTAD.** Femton fåtöljkandidater ställdes mot de 247 publicerade
+sittmöblerna på måtttrippeln: 14 av 15 hade minst en krock (63 krockar totalt) och fyra
+hade EXAKT samma mått som en publicerad sida. En av dem (`1bf87dc9`, 79 × 64 × 52)
+matchar **fyra** publicerade färgsidor av samma stol. En nionde sida för samma fåtölj är
+just den dubblett Google straffar, så familjer väljs efter luckan, inte efter högen.
 
-☠️ **Fåtöljfamiljen är MÄTTAD.** Femton kandidater ur listans topp ställdes
-mot de 247 publicerade sittmöblerna på måtttrippeln:
-
-| | |
-|---|---:|
-| kandidater med minst en krock | **14 av 15** |
-| krockar totalt | **63** |
-| kandidater med EXAKT samma mått som en publicerad sida | 4 |
-
-En av dem (`1bf87dc9`, 79 × 64 × 52) matchar **fyra** publicerade färgsidor
-av samma stol. Pengarna ligger alltså i den familj katalogen redan täcker —
-och en nionde sida för samma fåtölj är just den dubblett Google straffar.
-
-⚠️ **Trädgård är fel SÄSONG.** 285 kandidater och 137 770 kr, i mitten av
-september. En utegrupp som poleras nu får sin första besökare om sju
-månader.
-
-**Urvalsregeln är därför gap PER PUBLICERAD SIDA i samma kategori**, med
-säsongen som filter ovanpå. Samma data, annan sortering:
-
-| kategori | kandidater | gap kr | publicerade | gap/sida |
-|---|---:|---:|---:|---:|
-| trädgård/ute | 256 | 127 330 | 132 | 965 |
-| **soffa/bäddsoffa** | **79** | **50 430** | **48** | **1 051** |
-| matbord/matgrupp | 45 | 27 290 | 36 | 758 |
-| säng/madrass | 63 | 20 010 | 28 | 715 |
-| fåtölj/recliner | 114 | 75 530 | 225 | **336** |
-
-Fåtöljer är näst störst i kronor och NÄST SIST per sida. Det är hela
-skillnaden mellan de två läsningarna.
+⚠️ **Trädgård är fel SÄSONG** i mitten av september. En utegrupp som poleras då får sin
+första besökare om sju månader.
 
 ☠️ **Och måttskärmen har en blind fläck som nästan kostade rundan.** Den
 tyska källan skriver totalmåttet med axelbokstaven inne i talet:
@@ -4859,8 +4970,8 @@ Aosoms filer. Inget laddas upp som artefakt.
 
 ⚠️ **Och feed-adressen lämnar aldrig servern heller.** Samma nyckel-lösa
 upplägg som resten: produktionen har adressen, Actions har `CRON_SECRET`, de
-möts i workflowen (**"Pris — jamfor mot dealproffsen"**, lägena `jamfor` ·
-`feed-info`). Rutten svarar på "vad finns i feeden" utan att någon behöver se
+möts i workflowen (**"Pris — jamfor mot dealproffsen"**, där bara lägena `feed-info`, `ean-jakt`
+och `vara-sidor` används; `jamfor` körs inte, se *Dealproffsen: vi jämför inte med dem*). Rutten svarar på "vad finns i feeden" utan att någon behöver se
 var den ligger.
 
 #### Manualen hämtas krypterad (2026-10-14)
@@ -4878,73 +4989,6 @@ artefakter på ett publikt repo går att hämta. Adressen maskeras och skrivs
 aldrig ut, filerna heter `manual-1.pdf` och så vidare, och faller ett
 krypteringssteg sparas ingenting.
 
-## Konkurrentregeln: pris mot dealproffsen i synken (`lib/pricing/konkurrentregel.ts`, 2026-09-15)
-
-Marknadsplan v3 (Cowork-sessionen 2026-09-15) gjorde Leonards strategi till
-en regel som synken tillämpar var sjätte timme, i stället för 900 handsatta
-priser som synken hade skrivit över till kvällen:
-
-```
-golv = husets regelpris (1,20 × landad, charmavrundat)   — aldrig under
-mål  = (1 − d) × dealproffsens pris                      — d = 2 % (grupp A) / 5 % (grupp B)
-tak  = 1,50 × landad kostnad inkl. moms                  — aldrig över
-pris = min(max(mål, golv), tak), avrundat NEDÅT till charmpris
-```
-
-Grupp A mot B är ett test — "räcker 2 % under för en okänd butik?" — och
-efter fyra veckor blir vinnaren regel för hela sortimentet.
-
-Tre delar, två grindar:
-
-| del | var | skriver |
-|---|---|---|
-| dealproffsens pris per rad (`konkurrent: { pris, hamtad }`) | `/api/admin/konkurrentpris?lage=spara`, workflow **"Pris — konkurrentregeln"** | mappningen, torrt som default |
-| A/B-grupp per rad (`prisgrupp`) | samma rutt, `lage=lotta`, kräver `bekrafta` = torrkörningens antal | mappningen, torrt som default |
-| kundpriset | Aosom-synken, `planeraProdukt` | Wix, synkens egen torrkörning |
-
-### Sex egenskaper som inte ska tas bort
-
-1. ☠️ **Ingen grupp, ingen regel.** En rad utan `prisgrupp` följer husets regel
-   exakt som förut. Att deploya koden ändrade inte ett enda pris — utrullningen
-   är per rad, via lottningen, och lottningen tar `bara=<wix-id,…>` så
-   annonsurvalet styr vilka som går in först.
-2. ☠️ **Ett gammalt konkurrentpris FRYSER raden, det prissätter den inte.**
-   Äldre än `KONKURRENT_MAX_ALDER_DAGAR` (7) → inget pris skrivs, och raden
-   räknas i `konkurrentFrysta` som står i loggraden, audit-raden och
-   workflow-summeringen. Att falla tillbaka på golvet hade sänkt priset 200 kr
-   på tusen varor för att jämförelsen stod still. **Går `frysta` upp har
-   `spara` slutat köras** — kör den.
-3. ☠️ **Deras pris under vårt golv → vi står kvar på golvet.** Vi jagar inte
-   nedåt. Utfallet är eget (`konkurrentGolv`) så annonsurvalet kan lyfta ut
-   raden i stället för att betala klick vi förlorar.
-4. ☠️ **Taket finns för att vi inte vet var Amazon ligger.** Gapet mot
-   dealproffsen är över 30 % på 136 av de 972 publicerade där vi är billigare,
-   och 2 % under dem hade lyft oss över vad marknaden tål. 1,50 × landad är
-   +25 % mot regelpriset, vilket dessutom håller varje ändring under
-   `MAX_PRISANDRING_PCT = 40` — spärren rördes inte, och de 34 rader som annars
-   fastnat i den gör det inte.
-5. ☠️ **Avrundningen går NEDÅT.** charm9/charm99 rundar upp, och 2 % under
-   2 495 hade blivit 2 499 — över konkurrenten, på en regel vars enda poäng är
-   att ligga under. `rundaNedat` kliver ner i rutnätet tills priset ligger på
-   eller under målet; charm99:s 89 → 99-snäpp gör att det ibland är två steg.
-6. ☠️ **`spara` raderar aldrig.** En vara de inte säljer i dag behåller sitt
-   gamla pris på raden och får åldras in i frysningen (punkt 2). Ett
-   oförändrat pris skrivs om först när stämpeln är äldre än
-   `UPPFRISKNING_DAGAR` (2), så en full körning inte äter tidsbudgeten med
-   4 000 identiska skrivningar.
-
-Lottningen är deterministisk (FNV-1a på wix-id): en omkörning ger samma grupp,
-och under `LOTTNING_FRAN_SEK` (2 000 kr) blir alla A, för där finns bara ~6 %
-att ta och 5 % under är samma sak som ingen höjning.
-
-Verifierat mot koden samma dag, inte mot briefen: momsbasen är rätt
-(`landadKostnadSek` bruttar upp nettot, multiplikatorn ger slutpriset — netto
-mot netto blir 16,7 %), frakten ingår redan i landad kostnad och skalar med
-vikten (briefens "240–290 kr platt" var fel), och `MAX_PRISANDRING_PCT` hade
-fällt 34 rader utan taket. Fyrtioen tester: arton på regeln, tretton på
-planerna, tio i synken — bland dem kontrollerna åt andra hållet (samma fixtur
-utan grupp skriver inget; samma rad med färskt pris skrivs).
-
 ## Google Shopping: huvudfeed i butiksrepot, TILLÄGGSFEED här (2026-09-15)
 
 Butiksrepot (`fyndplats-headless`, gren `headless-site`) har sedan 2026-07 en
@@ -4960,7 +5004,7 @@ eget, inte Aosoms nummer, så det läcker inget — men briefens beslut #3 är
 `identifier_exists: no`. Tas bort i butiksrepot (marknadsplan v3, vecka 1).
 
 Det huvudfeeden inte kan bära är det som bara finns i mappningarna här:
-prisgruppen (A/B), prisbandet och konkurrensläget mot dealproffsen. Därför
+prisgruppen (A/B), prisbandet och konkurrensläget. Därför
 en **tilläggsfeed** (`lib/feed/google-shopping.ts`,
 `/api/feed/google-shopping-tillagg?nyckel=<GOOGLE_FEED_SECRET>`): bara `id`
 + `custom_label_0/1/2`. Merchant Center slår ihop den med huvudfeeden på `id`,
@@ -4974,8 +5018,7 @@ och kampanjen väljer produkter på `custom_label_0` (A/B — tom = inte med).
    En rad på produkt-id matchar ingenting i huvudfeeden och etiketten sätts
    tyst aldrig. Utan variant-id utelämnas raden och räknas.
 2. ☠️ **Inget artikelnummer, inget inköpspris, inget belopp** — etiketterna
-   är ord. Dealproffsens pris i kronor står inte i feeden, bara om vi ligger
-   under eller över. Testet låser det.
+   är ord. Inga belopp står i feeden. Testet låser det.
 3. ☠️ **Band och läge räknas på BUTIKENS pris** (`listV3ProductPrices`),
    aldrig på mappningens `grossSek`. Tvetydigt pris → ingen etikett.
 4. ☠️ **Under 200 rader svarar rutten 503**, så Google behåller förra
@@ -4984,6 +5027,11 @@ och kampanjen väljer produkter på `custom_label_0` (A/B — tom = inte med).
 
 Nyckeln ligger bara på Vercel och matas in i Merchant Center för hand; fel
 nyckel ger 404, inte 401. Nio tester.
+
+⚠️ **Prisgrupp och konkurrensläge är avvecklade 2026-10-21** (Leonard: vi jämför inte med
+dealproffsen). Ingen rad har `prisgrupp`, så `custom_label_0` är tomt för alla och en kampanj som
+väljer på den får inga produkter. Vad kampanjen väljer på i stället är Leonards beslut.
+Tilläggsfeeden svarar 503 under 200 rader, så Google behåller förra versionen.
 
 ## Aosom-recensioner: hämtas i webbläsaren, läses in via rutt (2026-09-16)
 

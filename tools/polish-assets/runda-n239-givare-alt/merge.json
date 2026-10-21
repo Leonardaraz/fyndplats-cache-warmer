@@ -1,0 +1,20 @@
+[
+ {
+  "huvud": "6334f635",
+  "huvud_fullid": "6334f635-a7ba-4cc1-ad7d-ef0a9cbfd6e2",
+  "givare": "7e104842",
+  "givare_fullid": "7e104842-39d3-418e-8431-d3841eecac98",
+  "bilder_efter_bildplan": "1,2,3,4",
+  "kallpositioner_i_ordning": [
+   "1",
+   "6",
+   "7",
+   "8"
+  ],
+  "axel": "Färg",
+  "varden": {
+   "6334f635": "Ljusgrå",
+   "7e104842": "Beige"
+  }
+ }
+]
