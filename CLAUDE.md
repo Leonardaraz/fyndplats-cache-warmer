@@ -2779,7 +2779,9 @@ bilder kvar** (51 bilder). Givarna är alltså i stort sett uttömda. Resten av 
 `variantsInfo` ordagrant ur GET:en, återläsning av galleri, länkar, variant-id, SKU, pris och synlighet). Planen står i
 `tools/polish-assets/farger-fler-bilder-2026-10-21/aosom-givare-1.json`. Alla 18 sidor lästes tillbaka utan avvikelser och
 mättes live (`tools/polish-gates/kolla-live-farg.py`): varje tillagd bild syns i sin egen färgs vy och i ingen annans, och
-antalet unika bilder per sida stämmer med galleriet i Wix. 24 färgval fick fler bilder. 14 nådde fem eller fler (blå soffan
+antalet unika bilder per sida stämmer med galleriet i Wix. Efteråt rättade `variantbild.yml` varukorgens bild per färg på
+alla 24 skrivna sidor (18 Aosom och sex AliExpress, noll avvikelser): kör den efter varje färgbildsskrivning. 24 färgval
+fick fler bilder. 14 nådde fem eller fler (blå soffan
 `f1878c34` 1 till 5, mörkbruna hundtrappan `f384c51d` 2 till 6, grå klätterväggen `44663e99` 2 till 5, rosa soffan i
 `4f21c7c1` 3 till 5), och 10 står kvar på 2–4 eftersom givarens övriga bilder var tyska eller engelska säljgrafiker
 (trehjulingen `eeb4a919`, Grå och Rosa: *Security features* och *More details*). Två givare gav ingenting
