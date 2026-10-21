@@ -126,27 +126,69 @@ och varnar under 5.
 Kör den innan du skriver något; husdjurens mått och normer syns ofta först på bilderna.
 Den gäller bara klasserna nedan.
 
-**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80). Minimimåtten är bindande i Sverige,
-och många burar är för små.
+**Djurbostäder** (Jordbruksverkets SJVFS 2019:15, L80, bilaga 1:1–1:4). Minimimåtten är
+bindande i Sverige, och många burar är för små. Måtten nedan är lästa ur föreskriften i
+Jordbruksverkets egen PDF 2026-10-21, inte ur minnet. Den tidigare tabellen i det här avsnittet
+saknade kortaste sida för kaniner och bara hade ett mått för fåglar, och den angav ett
+hamsterhjul på 28 cm som inte finns i föreskriften. Utkastet till nya regler (2025) drogs
+tillbaka och ersätts tidigast 2029.
 
-| Djur | Krav |
-|---|---|
-| Fågel ≤ 20 cm | 0,31 m² golvyta · längsta sida ≥ 0,7 m · höjd ≥ 0,6 m |
-| Guldhamster | 0,12 m² · kortaste sida ≥ 25 cm · höjd ≥ 20 cm · hjul ≥ 28 cm (dvärg ≥ 20) |
-| Kanin ≤ 2 kg | 0,5 m² ensam / 0,3 m² per djur i grupp |
-| Kanin 2–3,5 kg | **0,7 m²** / 0,35 m² |
-| Kanin 3,5–4,5 kg | 0,8 m² / 0,40 m² |
-| Kanin 4,5–6 kg | 0,9 m² / 0,45 m² |
-| Kanin > 6 kg | 1,0 m² / 0,5 m² |
+| Djur | Golvyta | Kortaste sida | Höjd |
+|---|---|---|---|
+| Kanin ≤ 2 kg | 0,5 m² (0,3 per djur i grupp) | 0,5 m | 0,5 m |
+| Kanin 2–3,5 kg | **0,7 m²** (0,35) | 0,6 m | 0,6 m |
+| Kanin 3,5–4,5 kg | 0,8 m² (0,40) | 0,7 m | 0,8 m |
+| Kanin 4,5–6 kg | 0,9 m² (0,45) | 0,7 m | 0,8 m |
+| Kanin > 6 kg | 1,0 m² (0,5) | 0,8 m | 0,9 m |
+| Marsvin | 0,3 m² (0,15) | 0,4 m | 0,25 m |
+| Guldhamster | 0,12 m² | 0,25 m | 0,2 m |
+| Dvärghamster | 0,09 m² (0,045) | 0,2 m | 0,2 m |
+| Gerbil | 0,12 m² (0,06) | 0,25 m | 0,2 m |
+| Husmus | 0,09 m² (0,018) | 0,2 m | 0,2 m |
+| Brun råtta | 0,18 m² (0,06) | 0,3 m | 0,3 m |
+| Degu | 0,3 m² (0,15) | 0,4 m | 0,4 m |
+| Chinchilla | 0,5 m² (0,25) | 0,5 m | 1,0 m |
+| Iller (tamiller) | 5 m² (1) | 1 m | 1 m |
 
-Kaninens minsta höjd är 0,5 m för en liten kanin och 0,9 m för en stor. Utgå från 0,7 m²
-när leverantören inte anger vikten. Kaninen ska också ha en hylla att sitta på och under
-(8 kap. 21 §). Hyllplan och våningar räknas inte in i golvytan, och höjden mäts per delyta.
-För hönshus finns ingen verifierad siffra ännu, och leverantörens antal höns är ofta
-orimligt. Publicera aldrig ett antal höns utan att ha kontrollerat SJVFS 2019:15 och
-2019:23.
+Sällskapsfåglar har tre mått, och bredden en fjärde regel: *"Utrymmets bredd ska vara minst 2
+gånger fågelns längd, dock minst 45 cm."*
 
-Ligger buren under gränsen ska den inte poleras. Flagga den med den rättsliga orsaken.
+| Fågelns längd | Golvyta | Längsta sida | Höjd | Exempel ur föreskriften |
+|---|---|---|---|---|
+| upp till 20 cm | 0,31 m² | 0,7 m | 0,6 m | sebrafink, kanariefågel, undulat, agapornis |
+| 21–25 cm | 0,45 m² | 0,9 m | 0,6 m | diamantduva |
+| 26–35 cm | 0,84 m² | 1,2 m | 0,8 m | nymfkakadua, skrattduva |
+| 36–45 cm | 1,44 m² | 1,6 m | 1,0 m | |
+
+Utgå från kaninklassen 2–3,5 kg när leverantören inte anger vikten, och från ≤ 2 kg när hen
+skriver *Zwergkaninchen*. Tyska widderkaniner väger 4–6 kg. Fem regler som formar texten:
+
+- ☠️ **Hyllor och våningar räknas inte** (8 kap. 21 §: hyllans yta ska inte adderas till
+  burytan), och **höjden mäts per delyta**. En löpgång på 36 cm under ett hus på 54 cm är 36
+  cm hög för kaninen, och ett stall på 45 cm djup klarar aldrig 0,5 m i kortaste sida. Det är
+  de två reglerna som fäller de flesta kaninstall. Räkna på markplanets **innermått**, inte på
+  leverantörens totalmått.
+- Gnagare utom guldhamstrar ska hållas i par eller grupp (8 kap. 1 §), guldhamstrar ensamma.
+  Marsvin och dvärghamstrar skrivs därför som ett par, och guldhamstern som ensam.
+- Kaniner och gnagare får inte hållas på nätgolv, utom i betesburar (8 kap. 8 §). Utomhusburar
+  ska vara upphöjda från marken på vintern (9 §).
+- Kaniner ska ha en hylla att sitta på och under (21 §).
+- ☠️ **Hönor och ankor ingår inte i L80** (1 kap. 1 §: inhemska hönsfåglar och andfåglar).
+  SJVFS 2019:23 anger mått för värphöns i äggproduktion men inget som går att räkna med för
+  en hobbyflock. Skriv därför ingen siffra för antal höns: ange golvytan inomhus och
+  riktmärket högst 7 höns per m² tillgänglig golvyta (kortaste sida 0,3 m, fri höjd 0,45 m,
+  redet oräknat). Leverantörens "3–4 höns" utlovas inte. Ankor, sköldpaddor, reptiler och
+  katter kräver en artbedömning som källtexten inte ger och hålls tills en människa har sett
+  bilderna.
+
+**Kör grinden innan något skrivs:** `python3 tools/polish-gates/djurbostad.py <katalog>` mot
+en `djurbostad.tsv` (formatet står i skriptets huvud). Den räknar om varje bostad ur
+innermåtten och fäller en rad vars beslut skiljer sig från måtten. **PASS** polerar du bara
+för de arter grinden listar, och texten namnger inga andra. **FAIL** pensioneras
+(`needsAiPolish: false`, `draftStatus: "rejected"`) med orsaken i filen. **HOLD** rörs inte tills
+innermåtten är mätta på bilderna. Ligger buren under gränsen ska den inte poleras. Flagga den
+med den rättsliga orsaken. Den första skärmen, över 108 dolda utkast, ligger i
+`tools/polish-assets/djurbostader-skarm-2026-10-21/`: 64 PASS, 26 HOLD och 18 FAIL.
 
 **Hundburar** (SJVFS 2020:8, L 102) säljs lagligt, men regeln formar texten. En hund får
 inte hållas i stängd bur inomhus. Står buren framme som hundens plats ska dörren tas bort
