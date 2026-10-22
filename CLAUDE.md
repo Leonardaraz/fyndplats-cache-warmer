@@ -2607,9 +2607,33 @@ positionerna 1–15, så åtkomsten var inte gränsen. Torrkörningen av
 alla 442 sidor i `aosom-ordning.tsv` fann **0 av 1 160 färger med en bild bortom
 position 10** (28 färger saknas i flödet). Kontrollkörningen med positionerna 8–12
 på 50 jämnt spridda sidor fann position 10 för 125 av 127 färger och position 11
-och 12 för 0, så kollen kan fälla. Feeden har alltså inget på 11–15 att hämta. Fler
-bilder måste komma från ett annat ställe än feeden (aosom.de i en riktig webbläsare
-eller AliExpress-listningen), och det är inte prövat.
+och 12 för 0, så kollen kan fälla. Feeden har alltså inget på 11–15 att hämta.
+
+☠️ **Men taket ligger i feeden, inte på aosom.de** (Leonard 2026-10-22, skärmbilder av
+sidan för fåtöljen `f44642e5`, Ljusgrå: galleriet visar **13 bilder**, och 11/13 och
+12/13 syntes). Det som mättes var feedens bildlista, och slutsatsen att Aosom har
+högst tio bilder per vara stämde inte. Feedens tio bilder för samma färg laddades upp
+och lades bredvid skärmbilderna, och ingen av de två finns bland dem. 12/13 är en
+textfri grafik med massagepunkter och värmezon (feedens position 5 är den tyska
+versionen med text), och 11/13 är ett foto av fåtöljen i en annan vinkel än feedens
+första bild. Båda såg rena ut.
+
+☠️ **Vi kommer inte åt dem härifrån, och de går inte att gissa.** aosom.de svarar 403 på
+curl och WebFetch (startsidan, produktsidan och sitemapen), medan bildservern
+`img.aosomcdn.com` svarar 200. Filnamnen där är slumpade
+(`/100/product/<år>/<månad>/<dag>/<slumpsträng>.jpg`, mätt på en adress), så
+extrabilderna går inte att hitta på adressen. Det som saknas är bara listan. Två vägar,
+ingen är gjord:
+
+1. Be Aosom om alla bilder (en feed med fler bilder, eller ett bildarkiv). Det ger också
+   nya importer fler bilder att välja bland.
+2. Läsa bildlistan ur sidorna i en riktig webbläsare, i Leonards Chrome som med
+   recensionerna (2026-09-16). Det kräver en session med Claude in Chrome, och
+   `annan_kalla` i `lib/aosom/fargtillagg.ts` släpper idag bara igenom en källa som är en
+   position i färgens egen artikel, så verktyget måste lära sig ta emot adresser som
+   inte står i feeden.
+
+Skriv inte "Aosom har högst tio bilder" som om det gällde sidorna. Det gäller feeden.
 
 ✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
 24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på
