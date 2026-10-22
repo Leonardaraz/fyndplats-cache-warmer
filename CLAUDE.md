@@ -3030,6 +3030,26 @@ paret som `live-dubbletter.py` rapporterade som *likt men olika* (`8df88104` Kla
 utan måttlinjer, och det behölls; **(2)** `live-par.sh` skriver `klart N av 25 sidor`, och de sidor som saknas är de där Node föll medan OCR delade processorerna (två sidor i
 både omgång 11 och 12). Mät om dem en och en med `live-bilder.mjs` innan kontrollen körs; **(3)** position 10 gav 35 av 35 och ligger nu på 244 av 251 över omgång 5–11.
 
+**Feedomgång 12 (2026-10-22, `tools/polish-assets/fargtillagg-12/`):** 25 sidor valdes och 24 skrevs: 33 färger och 33 bilder (alla feedbilder, bara
+position 10) skrevs 05:24–05:27 UTC i en omgång, och live-kontrollen blev **ALLT OK**. På de 25 sidorna gick vyerna med fyra bilder eller färre från 36 till 6, och
+bilderna i alla vyer från 224 till 254 (de 33 som skrevs minus tre som togs bort). Position 10 gav 33 av 33: 21 rena, 1 med bara siffror och 11 med text på varan eller
+rekvisitan, och ingen ströks. En sida fick ingenting, `12401205` (positionen låg redan i galleriet, `finns 10`). Tre saker utöver omgång 11: **(1)** `live-dubbletter.py`
+på FÖRE-läget fann tre exakta dubbletter (pixelskillnad 0,0 till 0,019) på två sidor: Svart på `087cb4b8` hade samma foto som plats 1 och 3, och Vit och Grön på `0fc3c252`
+hade samma foto som plats 2 och 3. De togs bort med `bilder-bort.yml` före skrivningen (gallerierna 9 → 8 och 8 → 6), så de tre färgerna står på fyra bilder efter omgången
+i stället för fem. Paret på `fd221e07` Svart (plats 1 och 5, avstånd 6, pixelskillnad 11,6) var *likt men olika*: huvudbilden och en måttbild av samma golvlampa i en annan vinkel, och det behölls; **(2)** `kandidater` köas bakom en pågående skrivning
+(samma concurrency-grupp, `polish-write`), så nästa omgångs kandidater går inte att starta medan den förra skrivs; **(3)** position 10 gav 33 av 33 och ligger nu på
+277 av 284 över omgång 5–12.
+
+**Feedomgång 13 (2026-10-22, `tools/polish-assets/fargtillagg-13/`):** 25 sidor valdes och 22 skrevs: 27 färger och 27 bilder (alla feedbilder, bara
+position 10) skrevs 05:47–05:50 UTC i en omgång, och live-kontrollen blev **ALLT OK** (06:01 UTC, alla 25 sidor mätta). På de 25 sidorna gick vyerna med fyra bilder eller färre
+från 33 till 7, och bilderna i alla vyer från 223 till 249 (de 27 som skrevs minus en som togs bort). Position 10 gav 27 av 27: 22 rena, 2 med bara siffror (*VV*) och 3 med
+text på varan, och ingen ströks. Tre sidor fick ingenting: `2d65601c` och `3a5060ec` (positionen låg redan i galleriet) och `39a21e71` (Svart och blå saknas i flödet).
+Mörkblå på `298492a4` saknas också i flödet (Ljusgrå på samma sida fick sin bild), och Svart på `240d5d8f` hade positionen redan i galleriet. Två saker utöver omgång 12: **(1)** `ocr-live.py` på FÖRE-läget fann en närbild av
+leverantörens märke (en HOMCOM-skylt som är hela motivet) som sjunde bild på `3b4594da` Silver. Den togs bort med `bilder-bort.yml` före skrivningen (galleriet 9 → 8), så
+färgen står på fyra bilder. Märken som sitter tryckta på varan i ett helbildsfoto stryks inte, men en bild där märket är motivet gör det; **(2)** sidor med två axlar (`233c83cf`, `351d244c`) mäts med
+`TVAAX` satt i `live-par.sh`; utan den mätte skriptet fel axel (`351d244c` visade fyra unika bilder) och sidan fick mätas om med `live-farg-vy.mjs`; position 10 gav 27 av 27 och ligger nu på
+304 av 311 över omgång 5–13.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
