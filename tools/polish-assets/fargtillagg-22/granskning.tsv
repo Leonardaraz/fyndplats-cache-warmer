@@ -1,0 +1,22 @@
+sida	val	farg	pos	ocr	verdikt	skal
+211ffd83	a7a1041d	Gul	4	REN	vald (utsnitt)	gula bilens front ur en säljgrafik, rubriken och punktlistan utanför utsnittet; närbild på huv, strålkastare och stötfångare
+211ffd83	a7a1041d	Gul	5	REN	vald (utsnitt)	flickan i den gula bilen, instrumentetiketten och fjärrkontrollen utanför utsnittet
+211ffd83	f4f0198e	Svart	4	REN	vald (utsnitt)	svarta bilens front, samma utsnitt som den gula
+2166c50f	f4f0198e	Svart	7	REN	vald (utsnitt)	hunden går ner för trappan från bilen; rubriken, de tre små bilderna och etiketten SUVs utanför utsnittet
+571e37bf	37913fdc	Blå och svart	7	REN	vald (utsnitt)	hela kärran utan flaggduken; de runda detaljbilderna och bildtexterna utanför utsnittet
+571e37bf	eb5ecd72	Grå och turkos	4	REN	vald (utsnitt)	hela kärran; detaljbilderna och bildtexterna utanför utsnittet
+834c66fd	7909f4e8	Mörkgrå	5	SIFFROR	vald (utsnitt)	hela skjulet med mannen och cykeln; rubriken och punkterna utanför. OCR läser ventilerna som tecken och en etikett på en förpackning i skjulet i 1,5×, text på rekvisita
+834c66fd	f7a7b46b	Ljusgrå	5	REN	vald (utsnitt)	samma utsnitt i ljusgrått; ett märke på ett verktyg i skjulet syns bara i 1,5×, text på rekvisita
+834c66fd	f8aae16f	Gråbeige	5	REN	vald (utsnitt)	samma utsnitt i gråbeige; en etikett på en förpackning i skjulet syns bara i 1,5×, text på rekvisita
+a8e5db2d	7909f4e8	Mörkgrå	5	REN	vald (utsnitt)	hela skjulet med flickan och trädäcket; rubriken, punkterna och pilen 'verstärkt mit Aluminium' utanför utsnittet
+ec2d9402	0d20fb2d	Orange	4	TEXT	vald (utsnitt)	traktorns front; OCR läser kylargrillen som UUUUUUU, inte text. Rubriken och ikonerna nedanför utsnittet
+ec2d9402	eaae581f	Grön	4	TEXT	vald (utsnitt)	traktorns front i grönt, samma utsnitt som det orange
+bc2368af	14b99ed4	Grå	4	TEXT	struken	utsnittet bär grafiken '2200 W' med lågor över vattenkokaren
+bc2368af	9357a97e	Beige	4	TEXT	struken	utsnittet bär grafiken '2200 W' med lågor över vattenkokaren
+bc2368af	f4f0198e	Svart	4	TEXT	struken	utsnittet bär grafiken '2200 W' med lågor över vattenkokaren
+bc2368af	14b99ed4	Grå	5	TEXT	struken	brödrosten och kokaren avklippta, och märket Strix i ett hörn
+bc2368af	14b99ed4	Grå	7	TEXT	struken	en brun markeringsprick med streckad linje från infografiken sitter kvar vid handtaget, brödrosten avklippt
+bc2368af	9357a97e	Beige	7	TEXT	struken	samma prick och streckade linje vid handtaget, brödrosten avklippt
+bc2368af	f4f0198e	Svart	7	TEXT	struken	samma prick och streckade linje vid handtaget, brödrosten avklippt
+b1b9afac	14b99ed4	Grå	5	TEXT	struken	bilen avklippt och en hand med fjärrkontroll i bild; texten 'Eltern können jederzeit einspringen' gränsar till utsnittet
+b1b9afac	92fb97f1	Rosa	5	TEXT	struken	samma bild i rosa: bilen avklippt, hand med fjärrkontroll
