@@ -3006,6 +3006,20 @@ fem). Fyra bilder på tre av de 25 sidorna (12 procent) togs bort med `bilder-bo
 skälet; **(2)** en vy som tappar en felbild har ingen ersättning att hämta när feeden saknar färgen eller redan är uttömd, och den står då på sitt nya antal
 (`0f83c211` Grön och `2f6ff71c` Orange på tre) tills Leonard beslutar om ett utsnitt; **(3)** position 10 gav 33 av 35 och ligger nu på 174 av 178 över omgång 5–9.
 
+**Feedomgång 10 (2026-10-22, `tools/polish-assets/fargtillagg-10/`):** 25 sidor valdes och 20 skrevs: 35 färger och 35 bilder (alla feedbilder, inga utsnitt, bara
+position 10) skrevs 04:46–04:48 UTC i en omgång, och live-kontrollen blev **ALLT OK**. Alla 35 skrivna färgvyer stod på fyra bilder före och visar nu fem. På de 25
+sidorna gick vyerna med fyra bilder eller färre från 43 till 9, och bilderna i alla vyer från 346 till 378 (de 35 som skrevs minus tre som togs bort). Av 39 kandidater
+valdes 35, 3 ströks (engelsk text över bilden: *Replacement Gazebo Top Cover Only* på paviljongtaket `3f9fda98` och *Cushions Only* på de gräddvita och marinblå dynorna på `485086d2`) och 1 var
+samma foto som färgens nuvarande. Fem sidor fick ingenting: `3f9fda98` (allt struket), `5a31b710` och `5f14c112` (Svart respektive Brun saknas i flödet), `75e5fa26` (artikeln
+har ingen position 10) och `8aa0bb6c` (enda kandidaten var en dubblett). Tre saker utöver omgång 9: **(1)** `ocr-live.py` och `live-dubbletter.py` på FÖRE-läget fann tre
+felbilder på tre av de 25 sidorna, 12 procent igen: en tysk och engelsk säljgrafik med fem textrutor och pilar (*Leinen-Touch-Gewebe*, *Wide Armrest*, *Dicke
+Polsterung*, *Side Pocket*, *Stabiler Holzsockel*) på massagefåtöljen `5a31b710` Brun (vyn 5 → 4), och två exakta dubbletter (pixelskillnad 0,0): huvudbilden en gång till som
+tredje bild på `75e5fa26` Beige (vyn 4 → 3) och samma miljöbild som andra och sjunde bild på `8aa0bb6c` (vyn 7 → 6). De togs bort med `bilder-bort.yml` före skrivningen
+(04:37 UTC torrt och 04:40 UTC skarpt). Text på rekvisitan stryks inte (affischer, böcker, medicinförpackningar med kyrillisk text i ett badrumsskåp, märket på en bilfront), men
+textrutor med pilar som lagts över ett foto är säljgrafik; **(2)** `FARG`-raden i `kandidater` säger varför en färg inte får någon kandidat: `finns 10` (positionen ligger redan i
+galleriet, `617ce9ff` Mörkgrön), `saknas_i_feeden`, eller tom `hamta` (artikeln har ingen position 10, `75e5fa26` Beige). `okanda_kallor` är bara en varning om att en kandidat kan
+vara en dubblett, och den följer med på alla tre färgerna på `485086d2` utan att något hindrade; **(3)** position 10 gav 35 av 38 (utan dubbletten) och ligger nu på 209 av 216 över omgång 5–10.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
