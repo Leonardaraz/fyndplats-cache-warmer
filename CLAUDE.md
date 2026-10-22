@@ -3058,6 +3058,31 @@ färgen står på fyra bilder. Märken som sitter tryckta på varan i ett helbil
 `TVAAX` satt i `live-par.sh`; utan den mätte skriptet fel axel (`351d244c` visade fyra unika bilder) och sidan fick mätas om med `live-farg-vy.mjs`; position 10 gav 27 av 27 och ligger nu på
 304 av 311 över omgång 5–13.
 
+#### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
+
+Leonards uppdrag 2026-10-22: se till att det som skrivits inte raderas av bildstädningen av misstag. Alla skrivna filer ur omgång 1–14
+och givarrundan (`aosom-givare-1.json`, de tre med `struken` borttagna med flit) kontrollerades mot skarpa Wix vid 11:20 UTC: 329 sidor
+och 862 filer. Verktyget är `tools/polish-gates/bygg-skyddskoll.py`, som bygger ExecuteWixAPI-kod med inbäddad data och kontrollsumma (den
+läser bara). Kör om den efter en skrivning som kan röra gallerier.
+
+| kontroll | utfall |
+| :-- | --: |
+| filen sitter i produktens galleri | **862 av 862** |
+| städningens egen tolkning (`produktensMedianycklar`: huvudbild, galleri, valens länkar) ser den | **862 av 862** |
+| Media Manager har filen kvar (`get-files`, state OK, READY) | **862 av 862** |
+| Wix CDN serverar den (HEAD mot `static.wixstatic.com/media/<id>`) | **862 av 862 med 200** |
+| största galleriet (Wix tar 50) | 34 |
+
+I städningens ögon är 826 av filerna leverantörsfiler och 14 Wix-kopior (de som nattens läge raderar om de blir oanvända), 20 utsnitt (bara
+det manuella läget `allt`, tidigast efter 7 dygn, standard 14) och 2 med annan källa. Nattens körning 2026-10-22 03:51 UTC gick igenom alla
+läsare (loggraden `varianter: 10851 bilder från 6136 av 6125 produkter`), och de 116 testerna för städningen går igenom.
+
+☠️ **Det som inte skyddas är en fil som inte sitter på någon produkt.** En uppladdad kandidat som ingen skrivit är oanvänd, och städningen
+raderar den tidigast tre dygn efter att en körning först såg den oanvänd (karenstiden). Nattens körning är 03:50 UTC: en kandidat som
+laddades upp före 03:50 UTC 2026-10-22 kan tidigast raderas 2026-10-25 03:50 UTC, en som laddades upp senare 2026-10-26 03:50 UTC. Godkända
+kandidater skrivs därför i samma omgång (det tar några timmar) och de ratade städas bort med flit. En omgångs filer är skyddade först när
+de sitter i galleriet, inte när de är uppladdade.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
