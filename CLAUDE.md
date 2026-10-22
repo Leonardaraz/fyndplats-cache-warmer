@@ -2727,9 +2727,13 @@ tillbaka dem, och kör inte livsbildens `flytta` på sidorna.
 - Den vita Vespa-scootern `69042231` är en sammanslagen sida i tre färger. Fotot var
   länkat till Vit och är borttaget med `bilder-bort.yml`. Bildkandidaterna vägrar en
   sida med flera artiklar (`flera_artiklar`), så ingen ersättning hämtades.
-- Gokartarnas artikel saknades i flödet 2026-10-19, så deras övriga bilder gick inte
-  att hämta, och fotot ligger kvar sist. Kör `aosom-bildkandidater` med positionerna
-  3–10 när artikeln är tillbaka.
+- Gokartarnas artikel saknades i flödet 2026-10-19 till 2026-10-22, och av importens
+  filer fanns bara lagerfotona kvar i Wix. Lagerfotona är ersatta med ett eget
+  detaljkort per färg (`runda-bilder-gokart-kort`): ratten, sitsen med bältet,
+  bakhjulet Ø 28 cm och framhjulet Ø 22 cm, utsnitt ur sidans egen huvudbild.
+  Kortet byggs med `bygg-kort.py`, som sedan dess läser `paneler.tsv`. Den vita har
+  tre bilder och de andra två fyra. Kör `aosom-bildkandidater` med positionerna 3–10
+  när artikeln är tillbaka, för fler riktiga foton.
 
 ☠️ **Kollen ser bara inramade foton.** Springcykelns andra foto (6:5) och Vespans
 (4:3) var inte inramade. De hittades först när alla 671 bilder i katalogen som inte
