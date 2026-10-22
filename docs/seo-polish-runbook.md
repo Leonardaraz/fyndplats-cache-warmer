@@ -518,6 +518,14 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    annan belastning eller ett annat mått på samma del än sidan tas inte med (240 kg mot
    *100 kg per sits*, en trappa på 38 × 20 mot *38 × 22 × 12*); fler mått än texten (ett
    läge, ett fack) är ingen motsägelse. Har den redan skrivits tar `bilder-bort.yml` bort den.
+   **Efter skrivningen: mät varje färgvy live** (`live-par.sh`, `kolla-live-farg.py`,
+   `live-dubbletter.py`) och titta på alla vyer, inte bara antalet (`ocr-live.py` och
+   `live-vyer.py`, som ritar en rad per vy). En vy kan visa en bild på fel färg trots rätt
+   galleri: ett olänkat foto hör till den färg dess alt-text nämner, och på en sida med två
+   axlar styr även en länk på storleken. Då flyttar `lank-om-bilder.js` länkarna utan att röra
+   galleriet (se CLAUDE.md, *Feedomgång 4*), och `variantbild.yml` rättar varukorgens bild
+   efteråt. Kommer en färg att tappa bilder när felbilderna tas bort, kör `bilder-bort.yml`
+   först och `kandidater` om efteråt (`mal` = `wix-id:val-id`).
    På en AliExpress-sida görs det för hand med SKU-bilderna ur `ae-skubilder.yml`: importera
    filerna, skriv galleriet vid id, länka färgens bilder (`options` och `variantsInfo`
    ordagrant), kör `variantbild.yml` och mät live per färg med `live-galleri.mjs`. En bild som

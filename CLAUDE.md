@@ -2906,6 +2906,31 @@ bilder som redan låg i färgvyn (`farg-dupkoll.py` hittar sådana före skrivni
 *när det körs*, så Mörkgrön och Röd på `c6928b61` (fem bilder, två av dem felbilder) valdes inte och står på tre bilder efter borttagningen;
 de tas med i omgång 4; **(5)** butikens cache hade uppdaterats på alla 25 sidor när de mättes sex till sju minuter efter skrivningen.
 
+**Feedomgång 4 (2026-10-22, `tools/polish-assets/fargtillagg-4/`):** 24 sidor, 53 färger och 78 bilder (73 feedbilder och fem utsnitt)
+skrevs 01:22–01:25 UTC, och live-kontrollen blev **ALLT OK**. Av de 77 färgvyerna på de 25 sidorna hade 58 fyra bilder eller färre (38 med
+tre och 20 med fyra) och efteråt 25 (3 med tre och 22 med fyra). 52 vyer fick fler bilder, 22 är oförändrade och tre fick färre när
+felbilder länkades bort. Valda per feedposition, utan dubbletterna: 46 av 53 på 10, 9 av 20 på 9, 11 av 45 på 8 och 7 av 42 på 3
+(måttbilder), och fem utsnitt ur måttbilder. Tre vyer står kvar på tre bilder: Grå på hundbädden `01ac2f63` (enda kandidaten var en
+bärväska som sidans text inte nämner) och Svart och Blå på studsmattan `39319e6c` (färgerna saknas i flödet, `saknas_i_feeden`).
+Sex saker utöver omgång 3: **(1)** två publicerade sidor visade bilder på fel färg trots rätt galleri, och det syntes bara i färgvyerna:
+minivästhuset `4a01e8d0` hade tre foton av versionen med vitt överdrag olänkade, och två av alt-texterna nämner en grön list och en grön
+stålram, så butiken visade dem under Grön (ett olänkat foto hör till den färg alt-texten nämner), och på skrivbordet `3b868848` var ett foto
+av ekskivan länkat till storleken 63 cm och ett till 80 cm, så de visades som andra bild under Svart och Vit. Båda lagades med det nya
+`tools/polish-gates/lank-om-bilder.js` (galleriet rörs aldrig, bara valens länkar) och `variantbild.yml`; **(2)** två tyska säljgrafiker
+på traktorn `91d28d6f` (Grön och Röd) låg redan ute och togs bort med `bilder-bort.yml` före skrivningen, och de två färgerna fick nya
+kandidater (`mal` = `wix-id:val-id`); **(3)** alla sex kandidater på position 10 för fyrhjulingen `2720063f` och Vespan `69042231` var
+lagerfoton (amatörfoton på kartong eller en vit golvyta i ett lager) och ströks, och fyra av färgerna fick ett utsnitt ur måttbilden i
+stället; **(4)** sifferkontrollen (`kolla-tal-mot-text.js`, tio måttbilder) fällde en: Rosa på gokarten `fdae2809` angav 117 cm mot sidans
+121 cm, och sidans text kommer ur en annan färgs artikel; **(5)** utsnitten på terrängbilen `7a8655f0` och Mercedesen `2c72e2b0` kapade bilen
+och ströks, och ett julmotiv på studsmattan, en bärväska som texten inte nämner och en bild som var samma fil som position 8 ströks också;
+**(6)** `live-farg-vy.mjs` klickade första axeln, som på skrivbordet var Storlek, och väljer nu axeln vars namn börjar på *Färg*.
+
+`lank-om-bilder.js` (ExecuteWixAPI, högst tre sidor per körning, `PLANER = [{ id, axel, tomt, lankar }]`) flyttar länkar mellan val och rör aldrig
+galleriet. Varje fil-id ligger redan i galleriet, en bild länkas inte från två val i samma option, ett val som hade länkade bilder töms bara
+om det står i `tomt`, `options` och `variantsInfo` tas ordagrant ur GET:en med `visible`, och återläsningen jämför varje vals lista,
+galleriets ordning, varianternas id, SKU, synlighet och pris och länkarna i andra optioner. Kör `variantbild.yml` med `ids` efteråt
+(`4a01e8d0` och `3b868848`: 2 av 2 rättade, 0 avvikelser).
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
