@@ -22,6 +22,19 @@ ANVÄNDNING (från rundans katalog, EFTER gate-kort.py):
 ⚠️ Läget `foto` hoppar över vitrensningen. `hero_white` kräver en redan vit
 botten; ett foto på mörk botten blir förstört av den, så produkter som
 fotograferats mot mörkt (t.ex. stål mot svart) renderas som de är.
+
+DETALJKORT (2026-10-22). Står kortet i `paneler.tsv` blir det i stället ett
+rutnät av utsnitt ur produktens egna foton (`card_grid`), och spec-raderna
+blir panelernas etiketter, i samma ordning som filerna. Texten grindas alltså
+av samma gate-kort.py som spec-korten. Byggt för gokartarna, där leverantörens
+övriga bilder saknades och lagerfotot skulle bort.
+
+  paneler.tsv     <kort>  <fil>|<fil>[|<fil>|<fil>]   (2–4, sökväg i rundan)
+  → cards/<kort>-detalj.png
+
+☠️ Varje utsnitt ska ha panelens proportion (`cardkit.PANEL`, grid2x2 för
+fyra paneler), annars zoomar `cover` in. Och etiketten täcker panelens
+nedre vänstra hörn: det etiketten påstår ska synas ovanför den.
 """
 import os
 import subprocess
@@ -46,6 +59,15 @@ if subprocess.run([sys.executable, grind]).returncode != 0:
 
 os.makedirs("out", exist_ok=True)
 
+PANELER = {}
+if os.path.exists("paneler.tsv"):
+    for rad in open("paneler.tsv", encoding="utf-8"):
+        rad = rad.rstrip("\n")
+        if not rad.strip() or rad.startswith("#"):
+            continue
+        kort, filer = rad.split("\t")
+        PANELER[kort] = filer.split("|")
+
 namn = []
 for rad in open("kort.tsv", encoding="utf-8"):
     rad = rad.rstrip("\n")
@@ -53,6 +75,18 @@ for rad in open("kort.tsv", encoding="utf-8"):
         continue
     kort, lage, kicker, titel, fotnot, spec = rad.split("\t")
     rader = [tuple(p.split("=", 1)) for p in spec.split("|") if "=" in p]
+    if kort in PANELER:
+        filer = PANELER.pop(kort)
+        if not 2 <= len(filer) <= 4 or len(filer) != len(rader):
+            sys.exit(f"[AVBRYT] {kort}: {len(filer)} paneler mot {len(rader)} etiketter "
+                     f"(2–4, lika många)")
+        saknas = [f for f in filer if not os.path.exists(f)]
+        if saknas:
+            sys.exit(f"[AVBRYT] {kort}: utsnitt saknas: {', '.join(saknas)}")
+        ck.card_grid(f"{kort}-detalj", filer, [f"{k} {v}" for k, v in rader],
+                     kicker, titel, "", note=fotnot, rows=2 if len(filer) > 2 else 1)
+        namn.append(f"{kort}-detalj")
+        continue
     if lage == "vit":
         ck.hero_white(f"orig/{kort}.jpg", f"out/{kort}-hjalte.jpg")
         foto = f"out/{kort}-hjalte.jpg"
@@ -60,5 +94,9 @@ for rad in open("kort.tsv", encoding="utf-8"):
         foto = f"orig/{kort}.jpg"
     ck.card_spec(f"{kort}-spec", foto, kicker, titel, rader, note=fotnot)
     namn.append(f"{kort}-spec")
+
+# En rad i paneler.tsv utan kort i kort.tsv är ett kort som aldrig grindades.
+if PANELER:
+    sys.exit(f"[AVBRYT] paneler.tsv har kort som saknas i kort.tsv: {', '.join(PANELER)}")
 
 print(ck.render(namn))
