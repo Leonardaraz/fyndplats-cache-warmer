@@ -3058,6 +3058,15 @@ färgen står på fyra bilder. Märken som sitter tryckta på varan i ett helbil
 `TVAAX` satt i `live-par.sh`; utan den mätte skriptet fel axel (`351d244c` visade fyra unika bilder) och sidan fick mätas om med `live-farg-vy.mjs`; position 10 gav 27 av 27 och ligger nu på
 304 av 311 över omgång 5–13.
 
+**Feedomgång 14 (2026-10-22, `tools/polish-assets/fargtillagg-14/`):** 25 sidor valdes och 24 skrevs: 46 färger och 46 bilder (alla feedbilder, bara
+position 10) skrevs 10:49–10:57 UTC i en omgång (run 39765989073, plan sha `d8531f2c…`), och live-kontrollen blev **ALLT OK** (11:02 UTC, de två sista sidorna
+mättes om 11:32). På de 24 sidorna gick vyerna med fyra bilder eller färre från 51 av 55 till 8, och bilderna i alla vyer från 220 till 266: 46 vyer fick fler bilder, 9 är
+oförändrade och ingen fick färre (efteråt 46 vyer med fem bilder, en med sex, sex med fyra och två med tre). `live-dubbletter.py` fann 0 par. Position 10 gav 46 av 52:
+sex ströks (en dubblett av en bild som redan låg i vyn, ett lagerfoto med kartonger, två med leverantörens logotyp över bilden, en närbild på en etikett på en kartong och en tysk
+säljgrafik med leverantörens namn). En färg saknas i flödet (`0f83c211`), och `dd979cce` fick ingen bild (båda kandidaterna ströks). Position 10 ligger nu på 350 av 363 över
+omgång 5–14. Kvar ur `aosom-ordning.tsv` (442 sidor) utan granskade sidor, givarsidorna och `13fe619f`: 99, varav 20 är valda till omgång 15 (som dessutom tar fem
+givarsidor vars färger står kvar på fyra bilder).
+
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 
 Leonards uppdrag 2026-10-22: se till att det som skrivits inte raderas av bildstädningen av misstag. Alla skrivna filer ur omgång 1–14
