@@ -25,8 +25,8 @@ import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
-import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS, fraktKr } from "../../../lib/shipping";
-import { prisGiltigTill } from "../../../lib/pris-giltig";
+import { HANDLING_MIN_DAYS, HANDLING_MAX_DAYS, TRANSIT_MIN_DAYS, TRANSIT_MAX_DAYS, fraktKr } from "../../../lib/shipping";
+import { prisGiltigFran, prisGiltigTill } from "../../../lib/pris-giltig";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
@@ -156,6 +156,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   })();
   const erbjudandePris = forval.priceNum && forval.priceNum > 0 ? forval.priceNum : p.priceNum;
   const erbjudandeILager = forval.inStock ?? p.inStock;
+  // En tidpunkt för båda prisdatumen, så de alltid hör till samma månad.
+  const nu = new Date();
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -177,14 +179,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       priceCurrency: p.currency,
       price: erbjudandePris,
       // Merchant-listing-rekommenderade fält (Search Console varnar annars).
-      // Sista dagen i nästa månad: samma värde hela månaden, så sidan blir inte
-      // "ny" för Vercel varje dygn (lib/pris-giltig.ts).
-      priceValidUntil: prisGiltigTill(new Date()),
+      // Första dagen i månaden till sista dagen i nästa: samma värden hela
+      // månaden, så sidan blir inte "ny" för Vercel varje dygn (lib/pris-giltig.ts).
+      validFrom: prisGiltigFran(nu),
+      priceValidUntil: prisGiltigTill(nu),
       availability: erbjudandeILager ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
       // Fraktvillkoren speglar kassan exakt: fri frakt från 500 kr, annars 19 kr,
       // leverans 3–6 arbetsdagar (samma sanningskälla som resten av sajten).
+      // Leveranstiden delas i hanteringstid och transporttid, som tillsammans
+      // blir löftet (lib/shipping.ts).
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
@@ -195,10 +200,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
         deliveryTime: {
           "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: HANDLING_MIN_DAYS,
+            maxValue: HANDLING_MAX_DAYS,
+            unitCode: "DAY",
+          },
           transitTime: {
             "@type": "QuantitativeValue",
-            minValue: DELIVERY_MIN_DAYS,
-            maxValue: DELIVERY_MAX_DAYS,
+            minValue: TRANSIT_MIN_DAYS,
+            maxValue: TRANSIT_MAX_DAYS,
             unitCode: "DAY",
           },
         },
@@ -210,7 +221,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 30,
         returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/ReturnShippingFees",
+        // Kunden bokar och betalar returfrakten själv (köpvillkoren, /returer).
+        // ReturnShippingFees betyder att VI tar ut en avgift, och då kräver
+        // Google beloppet (Search Console 2026-10-22: 472 objekt).
+        returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
       },
     },
   };

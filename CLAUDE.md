@@ -53,8 +53,8 @@ fort någon tittade (kund, sökmotor, länkförladdning).
   `/api/cron/varm-katalogen` katalogen.
 - Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
   `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
-- `priceValidUntil` är sista dagen i nästa månad (`lib/pris-giltig.ts`), inte
-  i dag + 30 dagar.
+- `validFrom` är första dagen i månaden och `priceValidUntil` sista dagen i
+  nästa månad (`lib/pris-giltig.ts`), inte i dag + 30 dagar.
 
 **En deploy kostar fortfarande två gånger:** den tömmer ISR-cachen, så alla
 ~3 700 produktsidor byggs om. Därav en deploy per dag.
@@ -557,3 +557,27 @@ ISR) förnyades. Flödena är alltså så gamla som senaste produktionsbygget. A
 dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte under
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
+
+## Strukturerad data för Google Shopping (2026-10-22)
+
+Search Console (Säljaruppgifter) varnade på alla 657 objekt. Fyra rättningar,
+låsta av `lib/produkt-jsonld.test.ts`:
+
+- **Leveranstiden är delad** i hanteringstid (1–2 dagar) och transporttid
+  (2–4 dagar). Summan är löftet på 3–6 arbetsdagar i `lib/shipping.ts`, och
+  transporttiden räknas fram ur det.
+- ☠️ **Kunden betalar returfrakten själv** (`ReturnFeesCustomerResponsibility`),
+  som köpvillkoren säger. `ReturnShippingFees` betyder att vi tar ut en avgift,
+  och då kräver Google ett belopp.
+- **`validFrom`** är första dagen i månaden och `priceValidUntil` sista dagen i
+  nästa (`lib/pris-giltig.ts`). Båda byts en gång i månaden, så sidan byggs inte
+  om oftare än förut.
+- ☠️ **Listsidorna märker inte upp produkter som varor.** Köpguiderna,
+  `/under-…-kr/` och `/for-dig-som/` har en ItemList med bara länk och namn
+  (`lib/seo/item-list.ts`), som kategorisidan. Med ett Product-objekt per rad
+  blev varje rad ett eget objekt utan beskrivning, frakt, returvillkor och märke
+  (185 objekt).
+
+Betygen (`aggregateRating`, `review`) skickas bara för omdömen från våra egna
+kunder (`lib/review-schema.ts`). Att Search Console saknar dem på nästan alla
+objekt är rätt: de flesta produkter har inga egna omdömen än.

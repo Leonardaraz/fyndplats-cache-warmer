@@ -8,10 +8,21 @@
 // Nu: sista dagen i nästa månad (UTC). Samma värde hela månaden, och alltid
 // minst 28 dagar fram, vilket är vad Googles merchant-listing vill se: ett
 // datum i framtiden. LÖVMODUL, testad i lib/pris-giltig.test.ts.
+//
+// validFrom (2026-10-22): Search Console saknade startdatumet på 472 objekt.
+// Det är första dagen i månaden, med samma månadsrytm som slutdatumet, så
+// sidan byggs inte om oftare än förut. Datumet ligger aldrig i framtiden: då
+// hade priset kunnat läsas som att det inte gäller än. Google använder datumen
+// mest för reapriser med överstruket pris, och sådana har vi inga.
 
 /** Sista dagen i månaden efter `nu`, som YYYY-MM-DD (UTC). */
 export function prisGiltigTill(nu: Date): string {
   // Dag 0 i månaden två steg fram = sista dagen i nästa månad.
   const sista = new Date(Date.UTC(nu.getUTCFullYear(), nu.getUTCMonth() + 2, 0));
   return sista.toISOString().slice(0, 10);
+}
+
+/** Första dagen i månaden för `nu`, som YYYY-MM-DD (UTC). */
+export function prisGiltigFran(nu: Date): string {
+  return new Date(Date.UTC(nu.getUTCFullYear(), nu.getUTCMonth(), 1)).toISOString().slice(0, 10);
 }

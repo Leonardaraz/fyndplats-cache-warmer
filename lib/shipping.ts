@@ -25,6 +25,17 @@ export const DELIVERY_MIN_DAYS = 3;
 export const DELIVERY_MAX_DAYS = 6;
 export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbetsdagar`;
 
+// Produktsidans strukturerade data delar leveranstiden i två delar, som Google
+// vill ha dem (Search Console 2026-10-22: "handlingTime saknas" på 472 objekt).
+// Hanteringstiden är tiden från ordern till att paketet lämnar lagret, och
+// transporttiden är resten av vägen till kunden. Summan är löftet ovan, så
+// transporttiden härleds ur det och följer med om löftet ändras.
+// Uppdelningen 1–2 + 2–4 är Leonards ja 2026-10-22.
+export const HANDLING_MIN_DAYS = 1;
+export const HANDLING_MAX_DAYS = 2;
+export const TRANSIT_MIN_DAYS = DELIVERY_MIN_DAYS - HANDLING_MIN_DAYS;
+export const TRANSIT_MAX_DAYS = DELIVERY_MAX_DAYS - HANDLING_MAX_DAYS;
+
 // EU-lager-trygghet (single source of truth). Alla produkter skickas från lager INOM EU →
 // kunden drabbas inte av EU:s nya importtull/förtullningsavgift (1 juli 2026) på paket utifrån
 // EU. ÄRLIGT avgränsat: gäller importtull/förtullning — moms (25 %) ingår alltid i priset och
