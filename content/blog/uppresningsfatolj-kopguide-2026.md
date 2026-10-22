@@ -84,7 +84,8 @@ Flera produktsidor anger också en högsta kroppslängd, mellan 180 och 190 cm. 
 
 Räkna med vibrationsmassage. Den mjukar upp och är skön, men det är inte knådande valsar som i en dyr massagestol. De flesta har åtta punkter i rygg, ländrygg, lår och ben, med tre till nio program, och många har värme i ländryggen. På flera går värmen att köra utan vibration, och på flera stänger en timer av massagen efter 15, 30 eller 60 minuter.
 
-[![Massagefåtölj med uppresning, med massagepunkterna i rygg, sits och ben och värmen i ländryggen markerade, och två fjärrkontroller](https://static.wixstatic.com/media/b379ce_bd032aa456a949d1bf3e99a2797a2672~mv2.jpg)](/produkt/elektrisk-massagefatolj-uppresning-grabrun "Åtta punkter och ländvärme")
+[![Uppresningsfåtölj i chenille med massagepunkterna och värmezonen i ländryggen markerade, och två fjärrkontroller](https://static.wixstatic.com/media/b379ce_fb047585ac404caaa7a808e24fd67cef~mv2.jpg)](/produkt/uppresningsfatolj-med-varme-morkgra-chenille "Åtta punkter och ländvärme")
+[![Massagefåtölj med uppresning, med massagepunkterna i rygg, sits och ben och värmen i ländryggen markerade, och två fjärrkontroller](https://static.wixstatic.com/media/b379ce_bd032aa456a949d1bf3e99a2797a2672~mv2.jpg)](/produkt/elektrisk-massagefatolj-uppresning-grabrun "Två fjärrkontroller")
 [![Uppresningsfåtölj med massagepunkterna och värmen markerade, och de två fjärrkontrollerna med sladd](https://static.wixstatic.com/media/b379ce_89293a8f00ba42e8bb595697ce03c355~mv2.jpg)](/produkt/massagefatolj-timer-fem-program "Kontroller med sladd")
 
 Lyft och liggläge styrs oftast med en fjärrkontroll, och många av våra levereras med två. Fickor i sidan håller dem på plats. Den cremevita, frottéfåtöljen och den i teddyfleece har knappar i sidan för lyftet, så du kommer upp även om fjärrkontrollen har glidit ner bakom dynan. USB-uttag för telefonen sitter på många modeller, och fyra har både USB-A och USB-C.
