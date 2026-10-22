@@ -2931,6 +2931,35 @@ om det står i `tomt`, `options` och `variantsInfo` tas ordagrant ur GET:en med 
 galleriets ordning, varianternas id, SKU, synlighet och pris och länkarna i andra optioner. Kör `variantbild.yml` med `ids` efteråt
 (`4a01e8d0` och `3b868848`: 2 av 2 rättade, 0 avvikelser).
 
+**Feedomgång 5 (2026-10-22, `tools/polish-assets/fargtillagg-5/`):** 24 sidor, 40 färger och 59 bilder (alla feedbilder, inga utsnitt)
+skrevs 02:04–02:07 UTC, och live-kontrollen blev **ALLT OK**. Av de 59 färgvyerna hade 42 fyra bilder eller färre (35 med tre och 7 med
+fyra) och efteråt 21 (2 med tre, 19 med fyra, 26 med fem och 12 med sex eller fler). 40 vyer fick fler bilder, 18 är oförändrade och en fick
+färre när två dubbletter togs bort. Valda per feedposition, utan dubbletterna: 38 av 38 på 10, 6 av 12 på 9, 6 av 37 på 8 och 9 av 28 på 3
+(måttbilder). Landroverns Defender `1c0b4b34` fick ingen bild (Orange saknas i flödet, och de andra kandidaterna var tysk säljgrafik).
+Fyra saker utöver omgång 4: **(1)** `~sidan` på kontaktarket betyder att kandidaten liknar en bild i en ANNAN färgs vy, och det kan vara
+den färgens eget foto: Grå på `f8efe733` position 8 var Blås foto med turkos stol och ströks efter en jämförelse av stolens färg; **(2)**
+`live-dubbletter.py` fann två foton som låg två gånger i Blå på `f8efe733` med pixelskillnad 1,1 och 2,2, alltså omkomprimerade kopior som
+gränsen 0,5 inte fångar, och de togs bort med `bilder-bort.yml` före skrivningen (galleri 15 till 13); **(3)** en energietikett som bild
+(Svart på `b2c76518`) bär märke och artikelnummer och ströks; **(4)** en måttbild som angav sitsdynan som 63 × 43 cm mot sidans 59,5 × 41
+(Blå på `07ac9918`) ströks, och två måttbilder med leverantörens logotyp (*PawHut*, `135d0f48`) ströks.
+
+**Feedomgång 6 (2026-10-22, `tools/polish-assets/fargtillagg-6/`):** 20 sidor, 31 färger och 45 bilder (alla feedbilder, inga utsnitt)
+skrevs 02:31–02:34 UTC, och live-kontrollen blev **ALLT OK**. Av de 40 färgvyerna på de 20 sidorna hade 31 fyra bilder eller färre före (24 med
+tre och 7 med fyra) och efteråt 14 (alla med fyra). 31 vyer fick fler bilder, 9 är oförändrade och ingen fick färre. Bilderna i vyerna är 146
+före och 191 efter. Valda per feedposition, utan dubbletterna: 29 av 29 på 10, 8 av 20 på 9, 5 av 31 på 8 och 3 av 18 på 3 (måttbilder).
+Fem av de 25 sidorna fick ingen bild: barnbilen `8ad1e003` (Vit står på tre, och alla kandidater i båda färgerna var tysk säljgrafik),
+hundgrinden `6eb13a16` (båda färgerna visar redan fyra, och alla sex kandidater var tysk säljgrafik), förvaringsbänken `592a4bb2` och
+agilitysetet `8cf7b1bb` (alla fyra positioner låg redan i galleriet) och barnköket `a57587a8` (Rosa saknas i flödet).
+Fyra saker utöver omgång 5: **(1)** sifferkontrollen fällde två av fem måttbilder, och båda gäller en färg vars artikel har andra mått än sidans
+text (lärdom 102): kontorsstolen `4871d041` Grå anger höjd 102–119 och bredd 58 cm mot sidans 104,5–121,5 och 60, och väggvärmaren `8475ed8f` Vit
+anger 50 × 18,6 × 12,9 cm mot sidans 54 × 18,7 × 12,3. Bilderna ströks, och frågan om en not i texten (som T25) står öppen; **(2)** `~sidan`
+på arket gällde två kandidater: Guld på `58f8338d` position 8 var den svarta färgens närbild på ramen (den ligger redan i Svarts vy) och ströks,
+och Silver på soptunnan `b10b80ee` position 9 var samma scen som Svarts bild men med silverfärgad tunna (dHash-avstånd 10) och valdes;
+**(3)** måttbilden på hamsterburen `92ef25c9` anger två mått i det inre (39 och 34 cm) som texten inte nämner och valdes, eftersom ytterbilden
+stämmer (115 × 57 × 55 cm). Den grå burens måttbild är olänkad och syns därför också i Naturträs vy; **(4)** märken som sitter tryckta på varan
+(*HOMCOM* på studsmattan och returnätet, *AIYAPLAY* på sparkcykelns stång) och text på rekvisita (affischer, böcker, kaffepåsar) stryks inte, men
+leverantörens logotyp över en bild (*PawHut* på hundvagnens måttbilder) gör det.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
