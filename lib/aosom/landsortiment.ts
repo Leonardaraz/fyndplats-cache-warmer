@@ -19,9 +19,11 @@
 // landets valuta. Konkurrentregeln gäller inte, eftersom den jämför med en
 // svensk butik.
 //
-// ☠️ LISTAN BÄR PRISER OCH VÅRT URVAL. Den får aldrig stå i en Actions-logg:
-// workflowen krypterar den mot ett engångskuvert och skriver bara räknarna.
-// Listan bär varken artikelnummer, inköpspris eller frakt, inte ens krypterad.
+// ☠️ LISTAN BÄR PRISER, VÅRT URVAL OCH UTDRAG UR AOSOMS TEXT. Den får aldrig
+// stå i en Actions-logg: workflowen krypterar den mot ett engångskuvert och
+// skriver bara räknarna. Listan bär varken artikelnummer, inköpspris eller
+// frakt, inte ens krypterad. Utdragen har artikelnummerformer bortredigerade
+// (el-och-batteri.ts).
 
 import { applyMarkup, computePriceWithRules, resolveMarkup, roundPrice } from "../import/pricing";
 import type { PricingRules } from "../import/types";
@@ -29,7 +31,7 @@ import { LEVERANTORER, type Leverantor, type ProductMappingRecord } from "../sto
 import { mappingSupplier } from "../store/supplier";
 import { MIN_WIX_PRODUKTER, type V3ProduktInfo } from "../wix/v3-products";
 import { aosomArtikelbild } from "./artiklar";
-import { elOchBatteriSignaler, SIGNALORD, type Signal, type Signalgrupp } from "./el-och-batteri";
+import { klassaElOchBatteri, SIGNALORD, SVAGORD, type Klassning, type Signalgrupp, type Traff } from "./el-och-batteri";
 import { arVerkligFrakt, harVerkligSeFrakt, type AosomRow } from "./feed";
 import { kvantil, procent, tvaDecimaler, UnderlagetOfullstandigt } from "./frakt-per-land";
 import { landadKostnadSek, MIN_FEED_RADER } from "./sync";
@@ -89,6 +91,17 @@ export interface Artikelrad {
   kvot: number | null;
 }
 
+/** Texten runt en träff, ur vårt namn eller Aosoms text. Bara i den krypterade listan. */
+export interface Utdrag {
+  ord: string;
+  /** Stark signal (stoppar sidan) eller brett ord (stoppar inte). */
+  stark: boolean;
+  text: string;
+}
+
+/** Högst så många utdrag per sida, de starka först. */
+export const MAX_UTDRAG_PER_SIDA = 12;
+
 export interface Sidrad {
   wixProductId: string;
   namn: string;
@@ -97,6 +110,10 @@ export interface Sidrad {
   skal: Skal[];
   /** Etiketterna för el och batterier, t.ex. "LED". Tom när inget hittades. */
   signaler: string[];
+  /** Breda ord som inte stoppar sidan, för granskning. */
+  svaga: string[];
+  /** Var i texten träffarna står. Artikelnummerformer är bortredigerade. */
+  utdrag: Utdrag[];
   artiklar: Artikelrad[];
 }
 
@@ -131,6 +148,11 @@ export interface Landsortiment {
   };
   /** Aosom-sidor per grupp och per etikett, oavsett andra skäl. */
   signaler: { perGrupp: Record<Signalgrupp, number>; perOrd: Record<string, number> };
+  /**
+   * Breda ord som inte stoppar: Aosom-sidor per etikett, och hur många av
+   * sidorna som kan säljas som har minst ett. De är granskningens lista.
+   */
+  svaga: { perOrd: Record<string, number>; sidorSomKanSaljas: number };
   /** Priset i landet mot husets regelpris i Sverige, på sidor som kan säljas. */
   priser: {
     jamforda: number;
@@ -199,8 +221,8 @@ export function regelprisILand(
   return roundPrice(brutto, regler.rounding);
 }
 
-function signalerForRad(row: AosomRow): Signal[] {
-  return elOchBatteriSignaler([
+function klassaRad(row: AosomRow): Klassning {
+  return klassaElOchBatteri([
     row.name,
     row.category,
     htmlToText(row.bulletsHtml),
@@ -252,6 +274,7 @@ export async function matLandsortiment(land: Saljland, deps: LandsortimentDeps):
       perGrupp: nollor<Signalgrupp>(["batteri", "el", "ljus", "varme_kyla", "ljud", "massage", "hushall", "klocka"]),
       perOrd: nollor<string>(SIGNALORD),
     },
+    svaga: { perOrd: nollor<string>(SVAGORD), sidorSomKanSaljas: 0 },
     priser: { jamforda: 0, kvotMedian: null, kvotP25: null, kvotP75: null, lagreAnSverigePct: null },
   };
   const kvoter: number[] = [];
@@ -274,12 +297,16 @@ export async function matLandsortiment(land: Saljland, deps: LandsortimentDeps):
     sammanfattning.sidor.aosom++;
 
     const skal = new Set<Skal>();
-    // Etikett → grupp, ur vårt svenska namn och varje artikels tyska text.
-    const signaler = new Map<string, Signalgrupp>();
-    const lagg = (funna: Signal[]) => {
-      for (const s of funna) signaler.set(s.ord, s.grupp);
+    // Etikett → första träffen, ur vårt svenska namn och varje artikels tyska
+    // text. Ett brett ord som är en stark signal på en annan artikel räknas
+    // som starkt.
+    const starka = new Map<string, Traff>();
+    const svaga = new Map<string, Traff>();
+    const lagg = (k: Klassning) => {
+      for (const t of k.starka) if (!starka.has(t.ord)) starka.set(t.ord, t);
+      for (const t of k.svaga) if (!svaga.has(t.ord)) svaga.set(t.ord, t);
     };
-    lagg(elOchBatteriSignaler([info.namn]));
+    lagg(klassaElOchBatteri([info.namn]));
     const artiklar: Artikelrad[] = [];
 
     const bild = aosomArtikelbild(m);
@@ -304,7 +331,7 @@ export async function matLandsortiment(land: Saljland, deps: LandsortimentDeps):
       if (!(inkop > 0)) skal.add("utan_inkopspris");
       else if (!arVerkligFrakt(frakt)) skal.add("ej_skeppbar");
       else if (frakt > inkop) skal.add("frakttung");
-      lagg(signalerForRad(row));
+      lagg(klassaRad(row));
 
       const prisLokal = regelprisILand(row, land, regler, deps.kurser);
       const regelprisSek = regelprisSverige(row, regler, deps.kurser.eurToSek);
@@ -314,13 +341,16 @@ export async function matLandsortiment(land: Saljland, deps: LandsortimentDeps):
           : null;
       artiklar.push({ variant: del.variant, iLager: row.qty > 0, prisLokal, regelprisSek, kvot });
     }
-    if (signaler.size > 0) skal.add("el_eller_batteri");
-    for (const ord of signaler.keys()) sammanfattning.signaler.perOrd[ord]++;
-    for (const grupp of new Set(signaler.values())) sammanfattning.signaler.perGrupp[grupp]++;
+    for (const ord of starka.keys()) svaga.delete(ord);
+    if (starka.size > 0) skal.add("el_eller_batteri");
+    for (const ord of starka.keys()) sammanfattning.signaler.perOrd[ord]++;
+    for (const grupp of new Set([...starka.values()].map((t) => t.grupp))) sammanfattning.signaler.perGrupp[grupp]++;
+    for (const ord of svaga.keys()) sammanfattning.svaga.perOrd[ord]++;
 
     const ok = skal.size === 0;
     if (ok) {
       sammanfattning.sidor.ok++;
+      if (svaga.size > 0) sammanfattning.svaga.sidorSomKanSaljas++;
       sammanfattning.artiklar.ok += artiklar.length;
       sammanfattning.artiklar.slutHosAosom += artiklar.filter((a) => !a.iLager).length;
       for (const a of artiklar) if (a.kvot !== null) kvoter.push(a.kvot);
@@ -335,7 +365,12 @@ export async function matLandsortiment(land: Saljland, deps: LandsortimentDeps):
       slug: info.slug,
       ok,
       skal: SKAL.filter((s) => skal.has(s)),
-      signaler: [...signaler.keys()],
+      signaler: [...starka.keys()],
+      svaga: [...svaga.keys()],
+      utdrag: [
+        ...[...starka.values()].map((t) => ({ ord: t.ord, stark: true, text: t.utdrag })),
+        ...[...svaga.values()].map((t) => ({ ord: t.ord, stark: false, text: t.utdrag })),
+      ].slice(0, MAX_UTDRAG_PER_SIDA),
       artiklar,
     });
   }
