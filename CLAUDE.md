@@ -3323,8 +3323,19 @@ Fyra egenskaper som inte ska tas bort:
    foto vars färg inte är sidans stryks. `picks.json` är det som är valt efter att ha tittat på kontaktarken, aldrig en lista som OCR gett.
 4. **En plan per sida.** Flera rader på samma sida samlas i en skrivning, annars krockar revisionerna.
 
-⚠️ `axel: "Storlek"` i `skriv-fargbilder.js` är inte prövad på en riktig sida än (fil 2 ger den första). På en sida med ett enda val som inte är färg gäller butikens regel
-ovan: en länkad bild visas bara för det första val som länkar den, så en ny storleksbild länkas till sin storlek och syns bara där.
+✅ `axel: "Storlek"` i `skriv-fargbilder.js` är provad torrt på tre riktiga sidor (2026-10-22 ca 20:50 UTC, `TORR = "fake"`, påhittade fil-id, ingenting skrivet), men
+ännu inte skriven på någon. På en sida med ett enda val som inte är färg gäller butikens regel ovan: en länkad bild visas bara för det första val som länkar den, så en
+ny storleksbild länkas till sin storlek och syns bara där, och en olänkad bild (`"gemensam": true` i picks.json) visas för alla storlekar. **Vymodellen stämmer: 151 av 151
+val på de 67 sidorna i fil 2** (live-mätt med `live-par.sh` mot `vyerAv` i skriptet; alla 67 har en enda option och alla 151 val har minst en egen länkad bild).
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **`TORR` (true, eller "fake" för påhittade fil-id) skriver ingenting** och returnerar planen och butikens vy före och efter per val. Kör `cowork-ladda.py kod --torr`
+   (hasMutations false) före varje skarp skrivning av storlekar och läs att målet växer och att inget annat val minskar. En gemensam bild lyfter alla storlekar, en länkad bara sin egen.
+2. ☠️ **Ett val utan egen länkad bild får inget tillägg** (planen vägrar: *har ingen bild att placera efter*). En första länk hade fått valet att visa bara den bilden och de
+   gemensamma i stället för hela galleriet, alltså färre bilder än förut.
+3. ⚠️ **Live-mätningens etiketter är butikens, planens är Wix.** Projektorduken `422ab1bd` heter 92 och 85 tum i Wix men visas som 234 och 216 cm i butiken. Skriptet
+   matchar valet på Wix namn, och den privata live-filen får döpas om till dem (`cowork-granska.py` matchar etiketten och säger till när den inte hittar valet).
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
