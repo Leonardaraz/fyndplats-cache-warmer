@@ -286,6 +286,11 @@ def main():
         if A['live']:
             jf = '%s/%s.json' % (A['live'], r['id8'])
             if not os.path.exists(jf):
+                # live-par.sh skriver <prefix>_<id8>.json
+                import glob
+                traff = glob.glob('%s/*_%s.json' % (A['live'], r['id8']))
+                jf = traff[0] if traff else jf
+            if not os.path.exists(jf):
                 print('  (ingen live-mätning för %s: kör live-par.sh eller live-bilder.mjs för sidan)' % r['id8'])
             else:
                 if r['id8'] not in live:
