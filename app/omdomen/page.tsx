@@ -6,6 +6,8 @@ import { CURATED_RESULT } from "../../lib/curated-reviews";
 import { initialer } from "../../lib/initialer";
 import { GoogleReviews } from "../../components/GoogleReviews";
 import { AnimatedRating } from "../../components/AnimatedRating";
+import { TrustpilotInsamling } from "../../components/trustpilot-insamling";
+import { TRUSTPILOT_PROFIL_URL } from "../../lib/trustpilot-profil";
 import s from "./omdomen.module.css";
 
 // Omdömen (2026-09-30). Samma datakällor som förut, i Om oss-sidans formspråk
@@ -15,6 +17,11 @@ import s from "./omdomen.module.css";
 // Betyget kommer bara från getSocialProof (samma som sidfoten och /omoss).
 // Inget antal omdömen visas, av skälen i lib/social-proof.ts, och inget
 // aggregateRating i JSON-LD: ett betyg om butiken själv är "self-serving".
+//
+// Trustpilot (2026-10-22): en länk till profilen och Trustpilots egen knapp för
+// att lämna ett omdöme. Omdömena därifrån visas inte här: Trustpilots villkor
+// tillåter det bara med deras widgetar, och de som visar omdömen kräver en
+// betald plan. Knappen är det gratiskontot har (lib/trustpilot-profil.ts).
 
 // "Se alla på Google"-knappen → Fyndplats officiella Google-företagsprofil
 // (delningslänken från profilen). Verifierbart: besökaren klickar och ser alla
@@ -159,6 +166,16 @@ export default async function Omdomen() {
                 <h3>Har du en fråga?</h3>
                 <p>Svar om beställning, betalning, frakt och returer finns samlade på ett ställe.</p>
                 <a className="btn-quiet" href="/vanliga-fragor">Vanliga frågor</a>
+              </div>
+            </div>
+            <div className={s.trustpilot}>
+              <div>
+                <h3>Vi finns också på Trustpilot</h3>
+                <p>Där kan du läsa vad andra kunder skrivit om oss och lämna ett eget omdöme.</p>
+                <a className="btn-quiet" href={TRUSTPILOT_PROFIL_URL} target="_blank" rel="noopener noreferrer">Läs omdömena på Trustpilot</a>
+              </div>
+              <div className={s.tpKnapp}>
+                <TrustpilotInsamling />
               </div>
             </div>
           </div>

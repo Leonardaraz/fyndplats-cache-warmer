@@ -447,6 +447,37 @@ local `node_modules` carries pnpm's `.modules.yaml`). When adding deps: run
 `package-lock.json` in sync. Don't `npm install` packages directly — it leaves
 `pnpm-lock.yaml` stale and the dep won't install on deploy.
 
+## Trustpilot: bara gratisdelen är på (2026-10-22)
+
+Leonard ville ha Trustpilot på omdömessidan. Kontot är på gratisplanen, och
+Trustpilots villkor tillåter att omdömena visas bara med deras egna widgetar.
+Widgetarna som visar betyget kräver Starter (från 899 kr i månaden) och de som
+visar omdömena Premium (från 4 999 kr). Gratis är:
+
+- en länk till profilen på `/omdomen`,
+- Trustpilots knapp för att lämna ett omdöme (Review Collector) på samma sida,
+- profilen i organisationens `sameAs` (`app/layout.tsx`).
+
+ID:t och adresserna bor i `lib/trustpilot-profil.ts`. Fyra egenskaper som inte
+ska tas bort:
+
+1. ☠️ **Gratisdelen läser aldrig `TRUSTPILOT_BUSINESS_UNIT_ID`.** Variabeln döljer
+   våra egna omdömen på produktsidorna och korten (`ownReviewsHidden`) och slår
+   på widgetar som gratiskontot inte får visa. Mätt mot Trustpilots widgetserver:
+   knappen svarar 200, sidfotens Mini 400.
+2. ☠️ **Knappen visas bara med samtycke till alla cookies**, som Klarnas och
+   Googles moduler. Utan samtycke är den en vanlig länk, och ingenting hämtas
+   från Trustpilot. Sekretesspolicyn säger samma sak.
+3. ☠️ **`components/trustpilot.tsx` exporterar bara komponenten.** En
+   serverkomponent som läser en konstant ur en klientmodul får en
+   klientreferens i stället för värdet. Sidfoten läste mall-ID:t så och hade
+   fått fel ID så snart variabeln satts.
+4. **Knappens yta är 52 px hög** även som länk, så att sidan inte hoppar när
+   widgeten laddas.
+
+Testerna står i `lib/trustpilot-profil.test.ts`. Vad som måste göras innan en
+betald widget slås på står i `docs/trustpilot-setup.md`.
+
 ## Fyndauktionen läses och avslutas via motorn (2026-09-29)
 
 Wix CMS har ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)

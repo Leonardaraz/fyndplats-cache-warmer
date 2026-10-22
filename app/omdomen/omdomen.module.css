@@ -15,10 +15,19 @@
 /* Ankaret i heron hoppar till omdömesrubriken; håll den fri från sidhuvudet. */
 .sida :global(#google-omdomen){scroll-margin-top:var(--ankare)}
 
+/* Trustpilot (2026-10-22): text till vänster, knappen till höger, i samma
+   kortform som raden ovanför. Knappens yta har widgetens höjd (52 px), så att
+   sidan inte hoppar när länken byts mot Trustpilots egen knapp. */
+.sida .trustpilot{display:grid;grid-template-columns:1fr minmax(240px,340px);gap:24px;align-items:center;margin-top:18px;padding:26px 22px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
+.sida .trustpilot p{font-size:var(--text-sm);margin:0 0 10px}
+.sida .tpKnapp{min-height:52px;display:flex;align-items:center}
+.sida .tpKnapp>*{width:100%;justify-content:center}
+
 @media(max-width:900px){
   .heroGrid{grid-template-columns:1fr;gap:28px}
 }
 @media(max-width:760px){
   .sida .tre{grid-template-columns:1fr}
   .sida .tack{font-size:var(--text-base)}
+  .sida .trustpilot{grid-template-columns:1fr;gap:16px}
 }

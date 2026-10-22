@@ -1,12 +1,46 @@
 # Trustpilot-integration — uppsättning (Leonard)
 
-Fyndplats är förberett för Trustpilot. **Inget syns och inga extra requests
-laddas** förrän du fyllt i miljövariablerna i Vercel — koden är conditional
-genom hela kedjan. Det här dokumentet tar dig från noll till live.
+## Läget 2026-10-22: bara gratisdelen är på
 
-Gratis-kontot räcker för allt utom auto-inbjudningar via Trustpilots API (AFS).
-Auto-inbjudningar funkar ändå **utan** API — då mejlar vi själva via Resend med
-en evaluate-länk (se steg 5).
+Kontot finns, på gratisplanen. Omdömessidan (`/omdomen`) visar en länk till
+profilen och Trustpilots egen knapp för att lämna ett omdöme (Review Collector).
+ID:t och adresserna bor i `lib/trustpilot-profil.ts`, så ingen miljövariabel
+behövs. Knappen visas bara med samtycke till alla cookies. Utan samtycke är den
+en vanlig länk (`components/trustpilot-insamling.tsx`).
+
+☠️ **Sätt inte `TRUSTPILOT_BUSINESS_UNIT_ID` på gratisplanen.** Variabeln slår
+på de betalda widgetarna och döljer samtidigt våra egna omdömen på
+produktsidorna och korten (`lib/rating.ts`, `ownReviewsHidden`). Mätt mot
+Trustpilots widgetserver 2026-10-22: insamlingsknappen svarar 200 för vårt
+konto, sidfotens Mini svarar 400 *"BusinessUnit does not have access to that
+trustbox"*. Butiken hade alltså tappat sina egna omdömen och fått tomma
+widgetar i stället.
+
+Vad planerna ger enligt Trustpilots svenska plansida 2026-10-22 (pris per månad
+vid årsbetalning):
+
+| Plan | Pris från | Widgetar på webbplatsen |
+|---|--:|---|
+| Gratis | 0 kr | insamlingsknappen |
+| Starter | 899 kr | och 1 som visar betyget |
+| Plus | 1 999 kr | och 9 som visar betyget |
+| Premium | 4 999 kr | och 10 som visar själva omdömena |
+
+Omdömena får bara visas med Trustpilots egna widgetar. Villkoren förbjuder att
+kopiera in dem.
+
+Tre saker att göra innan en betald widget slås på:
+
+- **Samtycke.** Sidfotens och produktsidans widgetar grindar inte på samtycke,
+  till skillnad från omdömessidans knapp.
+- **Egna omdömen.** Ska de ligga kvar bredvid Trustpilots, måste
+  `ownReviewsHidden` frikopplas från variabeln.
+- **Inbjudningarna** efter leverans (steg 5) är avstängda sedan 2026-08-17
+  (Leonards beslut, #444). Cronet läser samma variabel, så det går inte att
+  slå på utan att egna omdömen döljs.
+
+Stegen nedan skrevs 2026-07 för den betalda vägen. Påståendet att gratiskontot
+räcker för widgetarna stämmer inte längre.
 
 ---
 
@@ -15,12 +49,11 @@ en evaluate-länk (se steg 5).
 | Env-variabel | Aktiverar |
 |---|---|
 | `TRUSTPILOT_VERIFICATION_ID` | Domän-verifierings-`<meta>`-taggen i `<head>` (engångs). |
-| `TRUSTPILOT_BUSINESS_UNIT_ID` | Mini TrustBox i footern **+** Product Reviews-widget på PDP **+** review-request-cronet. |
+| `TRUSTPILOT_BUSINESS_UNIT_ID` | Mini TrustBox i footern **+** Product Reviews-widget på PDP **+** review-request-cronet, **och döljer egna omdömen** på PDP och korten. Kräver betald plan. |
 | `TRUSTPILOT_API_KEY` | (Valfritt) AFS-inbjudningar via Trustpilots API i stället för egna mejl. |
 
-Tom variabel = den delen renderas/körs inte. `TRUSTPILOT_BUSINESS_UNIT_ID` är
-huvudströmbrytaren — med bara den (utan API-nyckel) får du widgets + mejl-baserade
-inbjudningar, vilket räcker på gratis-kontot.
+Tom variabel = den delen renderas/körs inte. Omdömessidans knapp och länk
+läser ingen variabel.
 
 ---
 
@@ -116,6 +149,9 @@ Svaret är alltid 200 med en summary (`scanned`, `candidates`, `sent`, `skipped`
 | PDP `/produkt/[slug]` | Product Reviews (per SKU) | `app/produkt/[slug]/page.tsx` |
 | `<head>` (alla sidor) | Domän-verifierings-meta | `app/layout.tsx` |
 | Mejl 7 dgr efter leverans | Review-request | `emails/trustpilot-review-request.tsx` |
+
+Omdömessidans insamlingsknapp syns utan variabeln, för besökare som godkänt
+alla cookies (`app/omdomen/page.tsx` → `components/trustpilot-insamling.tsx`).
 
 Trustpilots bootstrap-script (`tp.widget.bootstrap.min.js`) laddas **bara** när en
 widget faktiskt renderas, och delas (dedupas på src) mellan footer och PDP.
