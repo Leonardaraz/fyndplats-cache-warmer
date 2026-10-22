@@ -3354,7 +3354,7 @@ bilder som varken importen eller poleringen lagt på sidan) och plats 13 och upp
 ingenting: `0926604b` Röd (allt rent låg redan i vyn), `91f5c078` Mörkgrå · 205 cm (k1 och k10 fanns, resten bär *Nur Schaukelabdeckung* eller tysk text) och `c131b430` Grå
 (måttbilden fälldes i omgång 7, och k10 är en nästan-dubblett).
 
-Åtta saker som gäller nästa block:
+Nio saker som gäller nästa block:
 
 1. ☠️ **Parallella uppladdningar får HTTP 429 av Aosoms bildserver.** Tre `UploadImageToWixSite`-anrop med 25, 25 och 21 adresser samtidigt gav elva `success: false` i det
    sista (*Failed to import image from URL (HTTP 429)*, en post per adress). De elva i ett eget anrop direkt efteråt gick igenom. Läs `success` på varje post, ladda upp ett
@@ -3383,6 +3383,11 @@ ingenting: `0926604b` Röd (allt rent låg redan i vyn), `91f5c078` Mörkgrå ·
    177 cm-artikelns packshots lades inte till eftersom vyn redan har 205 cm-artikelns.
 8. **Samma pose i två färgers svar är normalt** (frukostsetet, gamingfåtöljen, trampolinen, elbilarna). Varje fil länkas till sin egen färg (`skriv-fargbilder.js`), och
    dubblettkontrollen (`live-dubbletter.py`) jämför bara inom en färgvy.
+9. ☠️ **Skyddskollens standardkörning kraschade på det nya katalognamnet.** `bygg-skyddskoll.py` sorterade `tillagg.json` på `fargtillagg-<siffror>` och föll på
+   `fargtillagg-cowork-1` (`AttributeError`), vilket hade fällt den schemalagda kollen 2026-10-24 utan att något sagt det i förväg. Den hittades när jag körde
+   standardanropet för att se att de nya filerna kom med. Sorteringen känner nu `fargtillagg-<N>` och `fargtillagg-cowork-<N>`, och ett okänt katalognamn avbryter
+   i stället för att hoppas över (en hoppad plan lämnar filer utan skyddskoll). Standardkörningen ger 426 sidor och 1 101 filer i fyra anrop. Kör standardanropet
+   efter varje ny katalog i `tools/polish-assets/`.
 
 **Skrivet 22:33–22:36 UTC** (efter Aosoms prisfönster 21:12–21:29, före lagerfönstret 00:12): `skriv-fargbilder.js`, åtta sidor per körning i fyra körningar, 28 av 28 sidor
 återlästa utan avvikelse (galleri, länkar, variant-id, SKU, pris, synlighet, andra optioners länkar), revision +2 per sida. `variantbild.yml` (skarp, `ids`, 22:37 UTC): **28 kontrollerade,

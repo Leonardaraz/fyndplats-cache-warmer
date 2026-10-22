@@ -4,7 +4,8 @@
 Användning:
     bygg-skyddskoll.py <ut-katalog> [plan.json …]
 
-Utan planer läses alla tools/polish-assets/fargtillagg-*/tillagg.json och
+Utan planer läses alla tools/polish-assets/fargtillagg-<N>/tillagg.json och
+fargtillagg-cowork-<N>/tillagg.json (ett annat katalognamn avbryter) och
 givarrundan (farger-fler-bilder-2026-10-21/aosom-givare-1.json, bilder med
 "struken" hoppas över). Skriver skyddskoll-1.js, skyddskoll-2.js, … i
 <ut-katalog>: en fil per högst 110 sidor. Klistra in varje fils innehåll som
@@ -256,10 +257,15 @@ def main():
     ut = sys.argv[1]
     planer = sys.argv[2:]
     if not planer:
-        planer = sorted(
-            glob.glob(os.path.join(REPO, "tools/polish-assets/fargtillagg-*/tillagg.json")),
-            key=lambda s: int(re.search(r"fargtillagg-(\d+)", s).group(1)),
-        )
+        # fargtillagg-<N> (omgång 1–22) och fargtillagg-cowork-<N> (Cowork-rundan); en katalog med annat namn är ett fel,
+        # inte något att hoppa över, eftersom en hoppad plan lämnar filer utan skyddskoll
+        def ordning(s):
+            m = re.search(r"fargtillagg-(cowork-)?(\d+)", s)
+            if not m:
+                raise SystemExit(f"Okänt katalognamn: {s} (väntar fargtillagg-<N> eller fargtillagg-cowork-<N>)")
+            return (1 if m.group(1) else 0, int(m.group(2)))
+
+        planer = sorted(glob.glob(os.path.join(REPO, "tools/polish-assets/fargtillagg-*/tillagg.json")), key=ordning)
         planer.append(os.path.join(REPO, "tools/polish-assets/farger-fler-bilder-2026-10-21/aosom-givare-1.json"))
     per = las_planer(planer)
     sidor = [[pid, hs] for pid, hs in per.items()]
