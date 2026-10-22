@@ -2600,6 +2600,17 @@ Taket i verktyget var nio fram till samma dag och slängde position 10 tyst ur
 begäran. Det är sedan dess femton, en marginal över feedens högsta position. Det
 är inte Wix tak: en produkt tar 50 bilder (uppmätt 2026-10-21, `lib/wix/limits.ts`).
 
+✅ **Feeden har högst tio bilder per artikel, mätt på hela färgurvalet (2026-10-22).**
+Leonards fråga var om det finns rena bilder på position 11–15. Verktyget tar
+positionerna 1–15, så åtkomsten var inte gränsen. Torrkörningen av
+`aosom-fargtillagg` (`kandidater`, `skarp` av, `positioner=11,12,13,14,15`) över
+alla 442 sidor i `aosom-ordning.tsv` fann **0 av 1 160 färger med en bild bortom
+position 10** (28 färger saknas i flödet). Kontrollkörningen med positionerna 8–12
+på 50 jämnt spridda sidor fann position 10 för 125 av 127 färger och position 11
+och 12 för 0, så kollen kan fälla. Feeden har alltså inget på 11–15 att hämta. Fler
+bilder måste komma från ett annat ställe än feeden (aosom.de i en riktig webbläsare
+eller AliExpress-listningen), och det är inte prövat.
+
 ✅ **Position 10 är den som lönar sig.** Den granskades samma dag på de 45 sidorna:
 24 var rena miljöfoton. 21 ströks, och alla för text på rekvisitan: etiketter på
 burkar, påsar och flaskor i kök och badrum, bokryggar, en tavla med ett ord och en
