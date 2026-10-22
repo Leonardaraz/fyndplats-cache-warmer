@@ -489,6 +489,10 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    klickar varje kombination i väljaren, både axlar och kort, och skriver galleriet per
    kombination. Väntar du inte ut butikens cache, som fylls på var femte minut efter en
    ändring, mäter du den gamla sidan.
+   Efter en sammanslagning mäts varje vy på samma sätt, för katalogkontrollen nedan ser bara varje
+   vals första bild: 2026-10-22 hade foton hamnat under fel färg eller storlek på fyra av sju
+   sammanslagna sidor. De länkas med `tools/polish-gates/bygg-lank.py` och `variantbild.yml`
+   (FLAGGADE, lärdom 135).
 5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
    `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
    `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras
