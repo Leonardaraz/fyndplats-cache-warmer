@@ -6,6 +6,14 @@ import Image from "next/image";
 import type { GoogleReview, ReviewPhoto } from "../lib/google-reviews";
 import { wixFitUrl } from "../lib/wix-media-key";
 
+// Omdömeslistan på /omdomen. Rubriken och ingressen ligger i sidan
+// (app/omdomen/page.tsx); här finns korten, knappen för fler och fotnoten.
+//
+// Visuell genomgång 2026-10-22: det rullande bandet med samma omdömen,
+// avatarstapeln och betygsrutan är borta. Betyget står redan stort i sidans
+// hero, och bandet visade samma texter som korten, avhuggna. Korten har en
+// enhetlig avatar i stället för slumpade färger, och ingen 3D-lutning.
+
 // Inlinad Google-G (kopplas inte till site.tsx för att hålla klient-bundlen ren).
 function GoogleG({ size = 16 }: { size?: number }) {
   return (
@@ -32,12 +40,6 @@ function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "G";
 }
 
-function avatarColor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
-  return `hsl(${h} 50% 42%)`;
-}
-
 function formatDate(iso?: string): string | null {
   if (!iso) return null;
   const t = Date.parse(iso);
@@ -49,16 +51,8 @@ function formatDate(iso?: string): string | null {
   }
 }
 
-function shortQuote(t: string): string {
-  const s = t.trim();
-  return s.length > 60 ? `${s.slice(0, 58).trimEnd()}…` : s;
-}
-
 function reducedMotion(): boolean {
   return typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-function fineHover(): boolean {
-  return typeof matchMedia !== "undefined" && matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
 function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
@@ -119,52 +113,17 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
     return () => obs.disconnect();
   }, []);
 
-  // 3D-tilt mot muspekaren (bara på dator med riktig hover/pointer).
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !fineHover() || reducedMotion()) return;
-    let raf = 0;
-    const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width - 0.5;
-      const py = (e.clientY - rect.top) / rect.height - 0.5;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        el.style.setProperty("--rx", `${(-py * 6).toFixed(2)}deg`);
-        el.style.setProperty("--ry", `${(px * 7).toFixed(2)}deg`);
-      });
-    };
-    const onLeave = () => {
-      cancelAnimationFrame(raf);
-      el.style.setProperty("--rx", "0deg");
-      el.style.setProperty("--ry", "0deg");
-    };
-    el.addEventListener("mousemove", onMove);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mousemove", onMove);
-      el.removeEventListener("mouseleave", onLeave);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
   const d = formatDate(r.date);
-  const cls = `greview-card greview-tilt${reveal === "armed" ? " is-armed" : reveal === "show" ? " is-show" : ""}`;
+  const cls = `greview-card${reveal === "armed" ? " is-armed" : reveal === "show" ? " is-show" : ""}`;
   return (
     <li ref={ref} className={cls} style={{ animationDelay: `${(index % 3) * 70}ms` }}>
       <div className="greview-head">
-        <span className="greview-avatar" style={{ background: avatarColor(r.author) }} aria-hidden="true">
+        <span className="greview-avatar" aria-hidden="true">
           {initialOf(r.author)}
         </span>
         <span className="greview-who">
           <span className="greview-name">{r.author}</span>
-          <span className="greview-meta">
-            <Stars rating={r.rating} />
-            {d ? <span className="greview-date">· {d}</span> : null}
-          </span>
-        </span>
-        <span className="greview-gicon" title="Omdöme från Google">
-          <GoogleG size={17} />
+          <Stars rating={r.rating} />
         </span>
       </div>
       <p className="greview-text">{r.text}</p>
@@ -209,8 +168,17 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
           </figcaption>
         </figure>
       ) : null}
+      {/* Källan och datumet längst ned, så att korten i en rad slutar i linje
+          oavsett hur långa texterna är. */}
+      <div className="greview-foot">
+        <span className="greview-gicon" title="Omdöme från Google">
+          <GoogleG size={14} />
+        </span>
+        <span>Google</span>
+        {d ? <span className="greview-date">· {d}</span> : null}
+      </div>
 
-      {/* Portal: kortet har transform (3D-tilten) och bildar därmed ett eget
+      {/* Portal: kortet har transform (inflygningen) och bildar därmed ett eget
           stacking- och containing-block. En position:fixed-overlay här inne
           hade ramats in av kortet i stället för att täcka sidan. */}
       {stor && typeof document !== "undefined"
@@ -244,35 +212,11 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   );
 }
 
-function Marquee({ reviews }: { reviews: GoogleReview[] }) {
-  const items = reviews.filter((r) => r.text.length <= 120).slice(0, 12);
-  if (items.length < 4) return null;
-  const loop = [...items, ...items];
-  return (
-    <div className="greviews-marquee" aria-hidden="true">
-      <div className="greviews-track">
-        {loop.map((r, i) => (
-          <span className="greviews-chip" key={i}>
-            <span className="greviews-chipav" style={{ background: avatarColor(r.author) }}>
-              {initialOf(r.author)}
-            </span>
-            <span className="greviews-chipname">{r.author}</span>
-            <span className="greviews-chipstars">{"★".repeat(Math.round(r.rating))}</span>
-            <span className="greviews-chipquote">{shortQuote(r.text)}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function GoogleReviews({
   reviews,
-  average,
   profileUrl,
 }: {
   reviews: GoogleReview[];
-  average: number | null;
   profileUrl?: string;
 }) {
   const [showAll, setShowAll] = useState(false);
@@ -280,40 +224,11 @@ export function GoogleReviews({
 
   const INITIAL = 6;
   const shown = showAll ? reviews : reviews.slice(0, INITIAL);
-  const avg = (average ?? 0).toFixed(1).replace(".", ",");
-  const stack = reviews.slice(0, 6);
+  const kanVisaFler = reviews.length > INITIAL && !showAll;
 
   return (
-    <section className="greviews" aria-labelledby="google-omdomen">
+    <div className="greviews">
       <span className="greviews-aurora" aria-hidden="true" />
-
-      <Marquee reviews={reviews} />
-
-      <div className="greviews-topproof">
-        <span className="greviews-stack" aria-hidden="true">
-          {stack.map((r) => (
-            <span className="greviews-stackav" key={r.id} style={{ background: avatarColor(r.author) }}>
-              {initialOf(r.author)}
-            </span>
-          ))}
-        </span>
-        <div className="greviews-summary">
-          <span className="greviews-badge">
-            <GoogleG size={18} /> Google
-          </span>
-          {/* Saknas snittet ritas noll fyllda stjärnor, inte fem. Den gamla
-              `average ?? 5` hittade på toppbetyg när datan uteblev — samma
-              fälla som ratingSummary() redan stängt på produktsidan. */}
-          <Stars rating={average ?? 0} />
-          <strong className="greviews-avg">{avg}</strong>
-          <span className="greviews-of">av 5</span>
-          <span className="greviews-verified">Publika på Google</span>
-        </div>
-      </div>
-
-      <h2 id="google-omdomen" className="greviews-title">
-        Vad våra kunder säger
-      </h2>
 
       <ul className="greviews-grid">
         {shown.map((r, i) => (
@@ -321,28 +236,33 @@ export function GoogleReviews({
         ))}
       </ul>
 
-      {reviews.length > INITIAL && !showAll ? (
+      {kanVisaFler || profileUrl ? (
         <div className="greviews-actions">
           {/* "Visa alla N omdömen" stod här. Två fel i fem ord: N är antalet vi
               HÄMTAT, inte antalet på Googles profil, så "alla" var ett påstående
               om Google som vi inte kan belägga — och vid exakt ett hämtat omdöme
               stod det "1 omdömen". Knappen säger nu bara vad den gör; hela
-              profilen nås via länken i disclaimern nedanför. */}
-          <button type="button" className="greviews-more" onClick={() => setShowAll(true)}>
-            Visa fler omdömen
-          </button>
+              profilen nås via länken bredvid. */}
+          {kanVisaFler ? (
+            <button type="button" className="btn btn-ghost" onClick={() => setShowAll(true)}>
+              Visa fler omdömen
+            </button>
+          ) : null}
+          {profileUrl ? (
+            <a className="btn-quiet" href={profileUrl} target="_blank" rel="noopener noreferrer">
+              Alla omdömen på Google
+            </a>
+          ) : null}
         </div>
       ) : null}
 
+      {/* Fotnoten sa förut "hämtas direkt … och visas oredigerade med kundens
+          publika namn". Kunderna visas med initialer (lib/initialer.ts), och
+          en text som Google kortat av slutar vid sista hela meningen
+          (lib/curated-reviews.ts). Fotnoten säger nu vad som faktiskt gäller. */}
       <p className="greviews-disclaimer">
-        Omdömena hämtas direkt från vår verifierade Google-företagsprofil och visas oredigerade med
-        kundens publika namn.{" "}
-        {profileUrl ? (
-          <a href={profileUrl} target="_blank" rel="noopener noreferrer">
-            Se alla omdömen på Google →
-          </a>
-        ) : null}
+        Kunderna visas med initialer. Har Google kortat av en text, slutar den här vid sista hela meningen.
       </p>
-    </section>
+    </div>
   );
 }

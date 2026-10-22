@@ -473,7 +473,8 @@ ska tas bort:
    klientreferens i stället för värdet. Sidfoten läste mall-ID:t så och hade
    fått fel ID så snart variabeln satts.
 4. **Knappens yta är 52 px hög** även som länk, så att sidan inte hoppar när
-   widgeten laddas.
+   widgeten laddas. Där rutan får mindre än 310 px bryter Trustpilot texten på
+   två rader, och då är den 72 px (`components/trustpilot-insamling.tsx`).
 
 Testerna står i `lib/trustpilot-profil.test.ts`. Vad som måste göras innan en
 betald widget slås på står i `docs/trustpilot-setup.md`.

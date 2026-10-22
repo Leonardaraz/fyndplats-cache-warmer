@@ -7,7 +7,9 @@ import { initialer } from "../../lib/initialer";
 import { GoogleReviews } from "../../components/GoogleReviews";
 import { AnimatedRating } from "../../components/AnimatedRating";
 import { TrustpilotInsamling } from "../../components/trustpilot-insamling";
+import { GoogleG } from "../../components/google-g";
 import { TRUSTPILOT_PROFIL_URL } from "../../lib/trustpilot-profil";
+import { FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
 import s from "./omdomen.module.css";
 
 // Omdömen (2026-09-30). Samma datakällor som förut, i Om oss-sidans formspråk
@@ -22,8 +24,13 @@ import s from "./omdomen.module.css";
 // att lämna ett omdöme. Omdömena därifrån visas inte här: Trustpilots villkor
 // tillåter det bara med deras widgetar, och de som visar omdömen kräver en
 // betald plan. Knappen är det gratiskontot har (lib/trustpilot-profil.ts).
+//
+// Visuell genomgång (2026-10-22): betyget står EN gång, stort i heron. Förut
+// stod det också i faktaraden och i en ruta ovanför omdömena. Omdömessektionen
+// har rubrik och ingress som sidans övriga sektioner, och Google och
+// Trustpilot står som två likvärdiga kort under "Din upplevelse".
 
-// "Se alla på Google"-knappen → Fyndplats officiella Google-företagsprofil
+// "Alla omdömen på Google" och Google-kortets knapp → Fyndplats officiella Google-företagsprofil
 // (delningslänken från profilen). Verifierbart: besökaren klickar och ser alla
 // riktiga omdömen på Google — och hur många de är, där siffran faktiskt är sann.
 // Kan överstyras via GOOGLE_REVIEW_URL.
@@ -99,6 +106,7 @@ export default async function Omdomen() {
             </div>
             <div className={s.betygKort}>
               <div className="ratinghero">
+                <span className={s.kalla}><GoogleG size={16} /> Google</span>
                 <AnimatedRating rating={proof.ratingValue || 5} />
                 <div className="ratingsub">av 5 i genomsnittligt betyg på Google</div>
               </div>
@@ -108,13 +116,13 @@ export default async function Omdomen() {
 
         <section className="om-fakta" aria-label="Fyndplats i korthet">
           <div className="container om-fakta-grid">
-            <a className="om-fakta-kort" href={profileUrl} target="_blank" rel="noopener noreferrer">
-              <b>{proof.rating}<small> av 5</small></b>
-              <span>Betyg på Google <span className="star" aria-hidden="true">★★★★★</span></span>
-            </a>
             <div className="om-fakta-kort">
               <b>2021</b>
               <span>Grundat i Södertälje</span>
+            </div>
+            <div className="om-fakta-kort">
+              <b>Fri frakt</b>
+              <span>Över {FREE_SHIPPING_OVER_KR} kr</span>
             </div>
             <div className="om-fakta-kort">
               <b>30 dagar</b>
@@ -129,14 +137,16 @@ export default async function Omdomen() {
 
         <section className={`om-sektion ${s.omdomen}`}>
           <div className="container">
-            <p className={s.tack}>
-              Tack till alla som handlat hos oss och lämnat ett omdöme. Din feedback hjälper oss att bli bättre – och andra att handla tryggt.
-            </p>
-            <GoogleReviews
-              reviews={omdomen}
-              average={proof.ratingValue}
-              profileUrl={profileUrl}
-            />
+            <div className="om-rubrikrad">
+              <div>
+                <div className="eyebrow">Google-omdömen</div>
+                <h2 id="google-omdomen">Vad våra kunder säger</h2>
+                <p className={s.ingress}>
+                  Tack till alla som handlat hos oss och delat sin upplevelse. Här är ett urval från vår profil på Google.
+                </p>
+              </div>
+            </div>
+            <GoogleReviews reviews={omdomen} profileUrl={profileUrl} />
           </div>
         </section>
 
@@ -146,14 +156,29 @@ export default async function Omdomen() {
               <div>
                 <div className="eyebrow">Din upplevelse</div>
                 <h2>Har du handlat hos oss?</h2>
+                <p className={s.ingress}>Ditt omdöme hjälper andra att handla tryggt, och oss att bli bättre.</p>
               </div>
             </div>
-            <div className={`om-loften-grid ${s.tre}`}>
+            <div className={`om-loften-grid ${s.tva}`}>
+              <div className="om-lofte">
+                <span className="om-ikon"><GoogleG size={22} /></span>
+                <h3>Omdöme på Google</h3>
+                <p>Vi blir glada för varje omdöme. Berätta gärna om din upplevelse på Google.</p>
+                <a className={`btn btn-ghost ${s.knapp}`} href={profileUrl} target="_blank" rel="noopener noreferrer">
+                  <GoogleG size={18} /> Vår profil på Google
+                </a>
+              </div>
               <div className="om-lofte">
                 <span className="om-ikon"><Svg d={Ikon.stjarna} /></span>
-                <h3>Berätta om din upplevelse</h3>
-                <p>Vi blir glada för varje omdöme. Berätta gärna om din upplevelse.</p>
-                <a className="btn-quiet" href={profileUrl} target="_blank" rel="noopener noreferrer">Vår profil på Google</a>
+                <h3>Omdöme på Trustpilot</h3>
+                <p>
+                  Vi finns också på Trustpilot. Läs{" "}
+                  <a className={s.textlank} href={TRUSTPILOT_PROFIL_URL} target="_blank" rel="noopener noreferrer">våra omdömen på Trustpilot</a>,
+                  eller lämna ett eget.
+                </p>
+                <div className={s.tpKnapp}>
+                  <TrustpilotInsamling />
+                </div>
               </div>
               <div className="om-lofte">
                 <span className="om-ikon"><Svg d={Ikon.service} /></span>
@@ -166,16 +191,6 @@ export default async function Omdomen() {
                 <h3>Har du en fråga?</h3>
                 <p>Svar om beställning, betalning, frakt och returer finns samlade på ett ställe.</p>
                 <a className="btn-quiet" href="/vanliga-fragor">Vanliga frågor</a>
-              </div>
-            </div>
-            <div className={s.trustpilot}>
-              <div>
-                <h3>Vi finns också på Trustpilot</h3>
-                <p>Där kan du läsa vad andra kunder skrivit om oss och lämna ett eget omdöme.</p>
-                <a className="btn-quiet" href={TRUSTPILOT_PROFIL_URL} target="_blank" rel="noopener noreferrer">Läs omdömena på Trustpilot</a>
-              </div>
-              <div className={s.tpKnapp}>
-                <TrustpilotInsamling />
               </div>
             </div>
           </div>
