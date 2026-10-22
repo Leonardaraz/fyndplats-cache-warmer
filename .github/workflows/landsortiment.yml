@@ -1,0 +1,151 @@
+name: Danmark — sortiment och pris per sida (krypterat)
+
+# Vilka publicerade Aosom-sidor som får säljas i Danmark, och vad de kostar där
+# i danska kronor (Leonard 2026-10-22, egen kassa med Stripe för Danmark).
+# Logiken står i lib/aosom/landsortiment.ts.
+#
+# ☠️ KUVERTET ÄR OBLIGATORISKT. Listan bär priser och vårt urval, och loggen är
+# PUBLIK. Det finns inget klartextläge. Loggen får bara räknarna: sidor per
+# skäl, etiketterna för el och batterier, och kvoten mot Sverige som median.
+# Samma hybridkryptering som leverantorslankar.yml (RSA-OAEP/SHA-256 på ett
+# slumpat lösenord, AES-256-CBC/PBKDF2 på listan), med listan gzip:ad först.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      kuvert:
+        description: "OBLIGATORISK: base64 av en RSA-publik nyckel (PEM). Listan krypteras mot den."
+        required: true
+        type: string
+      land:
+        description: "Landet listan räknas för."
+        required: true
+        default: "DK"
+        type: choice
+        options:
+          - DK
+
+jobs:
+  sortiment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hämta och kryptera
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          KUVERT: ${{ inputs.kuvert }}
+          LAND: ${{ inputs.land }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          # Nyckeln kontrolleras FÖRE anropet: faller den ska ingenting ha
+          # hämtats, och absolut ingenting skrivas ut.
+          if ! printf '%s' "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+            echo "::error::kuvert: inputet ar inte giltig base64" >&2
+            exit 1
+          fi
+          if ! openssl pkey -pubin -in kuvert.pub -noout 2>kuvert.fel; then
+            echo "::error::kuvert: inte en RSA-publik nyckel i PEM-format" >&2
+            cat kuvert.fel >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/landsortiment?land=${LAND}"
+
+          # ☠️ Svaret bär priser och vårt urval. Det går rakt till en FIL och
+          # läses sedan bara av jq. Listan skrivs aldrig ut.
+          kod=$(curl -sS -o svar.json -w '%{http_code}' --max-time 290 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$url")
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            jq -c '{ok, error}' svar.json >&2 2>/dev/null || true
+            rm -f svar.json
+            exit 1
+          fi
+
+          # Räknarna är ofarliga och går till loggen och sammanfattningen.
+          {
+            echo "### Sortiment och pris: ${LAND}"
+            echo ""
+            jq -r '
+              "Underlag: feeden \(.underlag.flodetRader) rader, \(.underlag.synligaProdukter) synliga produkter, \(.underlag.mappningar) mappningar, \(.underlag.dubbelmappade) synliga sidor med två mappningar.",
+              "Kurser: 1 EUR = \(.kurser.eurToSek) SEK = \(.kurser.eurToLokal) \(.valuta). Regel: \(.regel.multiplikator) gånger landad kostnad med moms, avrundning \(.regel.avrundning).",
+              "",
+              "| | sidor |",
+              "|---|--:|",
+              "| publicerade med mappning | \(.sidor.publicerade) |",
+              "| AliExpress, stannar i Sverige | \(.sidor.perLeverantor.aliexpress) |",
+              "| VEVOR | \(.sidor.perLeverantor.vevor) |",
+              "| okänd leverantör | \(.sidor.perLeverantor.okand) |",
+              "| **Aosom** | **\(.sidor.aosom)** |",
+              "| **kan säljas i \(.landnamn)** | **\(.sidor.ok)** |",
+              "| uteslutna | \(.sidor.utesluten) |",
+              "",
+              "| skäl, en sida kan ha flera | sidor |",
+              "|---|--:|",
+              (.sidor.perSkal | to_entries[] | "| \(.key) | \(.value) |"),
+              "",
+              "Artiklar på sidor som kan säljas: \(.artiklar.ok), varav \(.artiklar.slutHosAosom) slut hos Aosom just nu.",
+              "",
+              "| el och batterier, grupp | Aosom-sidor |",
+              "|---|--:|",
+              (.signaler.perGrupp | to_entries[] | "| \(.key) | \(.value) |"),
+              "",
+              "| etikett | Aosom-sidor |",
+              "|---|--:|",
+              (.signaler.perOrd | to_entries | map(select(.value > 0)) | sort_by(-.value)[] | "| \(.key) | \(.value) |"),
+              "",
+              "Priset i \(.landnamn) omräknat till kronor, delat med regelpriset i Sverige, på \(.priser.jamforda) artiklar som kan säljas: median \(.priser.kvotMedian), kvartiler \(.priser.kvotP25) till \(.priser.kvotP75). Lägre än i Sverige på \(.priser.lagreAnSverigePct) %."
+            ' svar.json
+            echo ""
+            echo "Listan per sida finns bara krypterad i loggen."
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+          jq -c '.lista' svar.json | gzip -9 > kuvert.klartext
+          rm -f svar.json
+
+          # ☠️ HYBRID, INTE RAK RSA. Lösenordet ligger i en FIL, aldrig i argv.
+          # Och openssl:s fel SYNS: de beskriver nycklar och padding, aldrig
+          # innehållet.
+          openssl rand -base64 32 > kuvert.losen
+          if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+               -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+            echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
+            exit 1
+          fi
+          # ☠️ INGEN FALLBACK TILL KLARTEXT. Faller RSA-steget faller jobbet.
+          if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+               -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+               -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+            echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+            cat kuvert.fel >&2
+            rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+            exit 1
+          fi
+          rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+          echo
+          echo "=== Kuvert (RSA-OAEP/SHA-256 + AES-256-CBC/PBKDF2 på gzip, base64) ==="
+          echo "losen: $(base64 -w0 kuvert.losen.enc)"
+          # Datat bryts i rader om 4 000 tecken så loggvyn inte kortar av det.
+          echo "data-borjan"
+          base64 -w 4000 kuvert.data
+          echo "data-slut"
+          rm -f kuvert.losen.enc kuvert.data
+          echo "(dekryptera: RSA-oppna losen med din privata nyckel, sla ihop"
+          echo " data-raderna, openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen>,"
+          echo " och sist gunzip)"

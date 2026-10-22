@@ -4555,7 +4555,8 @@ fraktavgift per land, `<landskod> Ship Fee` för 39 länder och
 `Shipping Cost Germany` för Tyskland (uppmätt 2026-09-15). Det är EU:s 27
 länder och 13 utanför EU: Albanien, Andorra, Bosnien och Hercegovina, Färöarna,
 Gibraltar, Kosovo, Monaco, Montenegro, Nordmakedonien, San Marino, Serbien,
-Turkiet och Vatikanstaten. Norge, Schweiz, Storbritannien och Island saknas.
+Turkiet och Vatikanstaten. Norge, Storbritannien och Island saknas. Schweiz
+saknades 2026-09-15 men har en kolumn sedan dess (41 länder 2026-10-22).
 Motorn läste bara Sveriges.
 
 Workflowen **"Aosom — frakt och skeppbarhet per land"** →
@@ -4567,6 +4568,12 @@ hela feeden, för våra mappade artiklar och för de publicerade:
   medianer per rad.
 
 Momsen ingår inte. Landets momssats läggs på kundpriset för sig.
+
+**Uppmätt 2026-10-22** på de 5 499 publicerade Aosom-artiklarna i feeden, som
+medianer av inköp plus frakt jämfört med Sverige: Danmark 0,95, Litauen 0,97,
+Lettland 0,99, Estland 1,01 och Finland 1,09. Frakten till Danmark är lägre än
+till Sverige på 99,9 % av varorna. Den femdubbla frakten till Baltikum gäller
+bara privatpersoner på aosom.de. För oss ligger den nära Sverige.
 
 Fyra egenskaper som inte ska tas bort:
 
@@ -4588,6 +4595,45 @@ subventionerade konsumentfrakt (avsnittet ovan). Den 2026-10-21 svarade
 aosom-domänerna för Tyskland, Österrike, Belgien, Nederländerna, Frankrike,
 Italien, Spanien, Portugal, Irland, Polen och Rumänien som aosom.de. aosom.dk
 och aosom.si är domäner till salu.
+
+### Danskt sortiment och pris per sida (2026-10-22)
+
+Leonard valde 2026-10-22 en egen kassa med Stripe för Danmark, och en start med
+Aosom-varor utan el och batterier. Workflowen **"Danmark — sortiment och pris
+per sida (krypterat)"** → `/api/admin/landsortiment?land=DK` →
+`lib/aosom/landsortiment.ts` svarar sida för sida: om den kan säljas i
+Danmark, och vad den kostar där i danska kronor.
+
+En publicerad Aosom-sida kan säljas när varje artikel på den finns i feeden, har
+ett inköpspris och en verklig fraktavgift dit, inte har en frakt som kostar mer
+än varan och inte har el eller batterier. Priset räknas som synkens regelpris
+(inköp plus frakten dit, 25 % dansk moms, husets multiplikator och avrundning),
+men i danska kronor med kursen `EUR_TO_DKK` (7,46 som standard). Konkurrentregeln
+gäller inte, eftersom den jämför med en svensk butik.
+
+Klassningen av el och batterier (`lib/aosom/el-och-batteri.ts`) läser Aosoms
+tyska text och vårt svenska namn. Varje träff har en fast etikett, så att
+loggen kan räkna etiketter utan att skriva ut text.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Klassningen lutar åt att stoppa.** En vara med el eller batterier som
+   släpps igenom säljs i Danmark utan registrering för el och batterier. En
+   vara som stoppas i onödan säljs bara inte där än. Ett ord räcker, och varje
+   mönster som undviker en känd falsk träff ("Sonnenlicht", "wattiert",
+   "Motorik", "elektroverzinkt") har ett test.
+2. ☠️ **Listan bär priser och vårt urval, och lämnas bara ut krypterad.**
+   Workflowen skriver räknarna, etiketterna och kvoten mot Sverige, och
+   krypterar listan (gzip, AES och RSA, som `leverantorslankar.yml`). Listan
+   bär varken artikelnummer, inköpspris eller frakt, inte ens krypterad. Ett
+   test serialiserar svaret och letar.
+3. **En sammanslagen sida stoppas helt av en färg som inte går**, och varje
+   färg får sitt eget pris. Listan namnger färgen med Wix-variant-id.
+4. **Bara Aosom-sidor räknas.** De andra leverantörerna räknas per leverantör
+   och stannar i Sverige.
+5. **Bara Danmark.** Ett land i euro behöver en egen avrundning: charm99
+   snäpper 89 till 99, alltså tio euro på en vara för 139 euro. Rutten svarar
+   400 för andra länder.
 
 ### Vad som INTE är fixat
 
