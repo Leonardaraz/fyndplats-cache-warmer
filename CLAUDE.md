@@ -3129,12 +3129,22 @@ ströks för tyska texter eller en collage med tyska etiketter (`12401205`, `e0a
 scen som färgen redan visar (`75e5fa26` och `e3340092`). Position 4–7 gav alltså 9 bilder av 134 (7 %), mot 24 av 100 på position 3, 8 och 9 (omgång 19) och 374 av 389 på position 10 (omgång 5–15).
 Skrivet 13:45–13:46 UTC (run 39789637247, filens sha256 `10b43a3f…`, planens sha `e80df14c…`): 5 sidor, 6 färger, 9 bilder, alla `ok`, återlästa, variantbilderna rättade (1–2 per sida). **Live 13:54 UTC: ALLT OK**: alla sex färger visar det förväntade antalet (vyerna gick från 3–4 bilder till 5–6, 23 → 32 bilder) och ingen bild syns i en annan färgs vy.
 
-**Alla 442 sidor i `aosom-ordning.tsv` har körts med position 10, och omgång 19–20 tog position 3, 8, 9 respektive 4–7** (se `FLAGGADE.md`, lärdom 154, för hur "körda" räknades). Katalogkontrollen
-(`katalogkontroll-farg-antal.js`, 33 sekunder över 6 143 produkter) 2026-10-22 13:49 UTC: **557 av 2 553 färgval visar fyra bilder eller färre** (fördelning 0: 1, 1: 80, 2: 89, 3: 132, 4: 255, 5: 1 559, 6 eller fler: 437),
-mot 576 efter omgång 18 och 1 097 den 21 oktober. På Aosom-sidorna är det 254 vyer på 151 sidor (0: 1, 2: 6, 3: 66, 4: 181; 273 på 167 sidor efter omgång 18 och 798 på 442 den 21 oktober), och på AliExpress-sidorna 303
-vyer på 96 sidor (oförändrat, spåret är pausat). Nollan är hamsterburen `13fe619f`, som har två axlar och visar bilder per storlek, så mätningen gäller inte den. **73 av de 254 Aosom-vyerna visar tre bilder eller färre,
-och 72 av dem ligger på 45 sidor där position 4–7 aldrig provats** (`tools/polish-assets/farger-fler-bilder-2026-10-21/svaga-aosom-2026-10-22-1349.txt`). De 181 vyerna på fyra bilder uppfyller Leonards minimum
-(*4 är godkänt*) och tas sist. Nästa steg är omgång 21 (position 4–7 för 44 av de 45 sidorna) och därefter utsnitt ur de tyska grafikerna för de vyer som står kvar på tre (`docs/polish/bildmetoder.md`, *Beskärning*).
+**Feedomgång 21 (2026-10-22, `tools/polish-assets/fargtillagg-21/`):** position 4–7 för 44 av de 45 sidor där en Aosom-vy visade tre bilder eller färre och position 4–7 aldrig provats (hamsterburen `13fe619f` hoppades över:
+två axlar och bilder per storlek). `kandidater` i tre körningar (run 39790563998, 39791110471 och 39791686437, 13:51–14:03 UTC) laddade upp 376 bilder, 0 missar; sex färger saknas i feeden (`1c0b4b34`, `39319e6c` ×2,
+`9304f8b8`, `a57587a8`, `d27a28ae`). 336 (89 %) ströks automatiskt för textyta över 2,5 %, och av de 40 som granskades för hand valdes 22: stoldynorna `39d10fc4` i fyra färger (två dynfoton och två tygprov, vars
+färg jämfördes med dynornas medelfärg), förvaringsbänken `592a4bb2` Grå (tre), agilitysetet `8cf7b1bb` Orange och gul (tre), elbilen `b1b9afac` Vit (tre bilder mot vit botten; *RS e-tron GT* är tryckt på bilen),
+verktygsvagnen `b920d526` Blå och Röd (tre var) och A-hindret `fdefa04b` Grå (tre). De 18 som ströks: tyska eller engelska texter (*Nur Kissen*, *Cushions Only*, *NEIGEFUNKTION*, *RUNDUMANSICHT* och flera), leverantörens
+logotyp som motiv (`6575766f` ×2), en bild som redan visas (`a706542f`) och två vagnbilder som liknar färgens första (`b920d526` position 4). `ocr-live.py` (61 bilder på de sex sidorna) och `live-dubbletter.py` på FÖRE-läget
+fann inga felbilder och inga par. Skrivet 14:16–14:25 UTC (run 39794286294, plan sha `561a1b62…`, filens sha256 `17ef2846…`): 6 sidor, 10 färger, 22 bilder, alla `ok`, återlästa, variantbilderna rättade (1–4 per sida).
+**Live 14:33 UTC: ALLT OK**: alla tio färger visar det förväntade antalet (32 → 54 bilder i vyerna): stoldynorna 3 → 4 i fyra färger, bänken, agilitysetet, A-hindret och verktygsvagnens blå 3 → 6, bilen 4 → 7 och
+verktygsvagnens röda 4 → 7. Position 4–7 gav 22 av 376 (6 %), alltså 31 av 510 över omgång 20–21.
+
+**Alla 442 sidor i `aosom-ordning.tsv` har körts med position 10, omgång 19 tog position 3, 8 och 9 och omgång 20–21 position 4–7** (se `FLAGGADE.md`, lärdom 154, för hur "körda" räknades). Katalogkontrollen
+(`katalogkontroll-farg-antal.js`, 35 sekunder över 6 143 produkter) 2026-10-22 14:34 UTC: **551 av 2 553 färgval visar fyra bilder eller färre** (fördelning 0: 1, 1: 80, 2: 89, 3: 124, 4: 257, 5: 1 559, 6 eller fler: 443),
+mot 557 efter omgång 20, 576 efter omgång 18 och 1 097 den 21 oktober. På Aosom-sidorna är det 248 vyer på 147 sidor (0: 1, 2: 6, 3: 58, 4: 183; 254 på 151 sidor efter omgång 20, 273 på 167 efter omgång 18 och 798 på
+442 den 21 oktober), och på AliExpress-sidorna 303 vyer på 96 sidor (oförändrat, spåret är pausat). Nollan är hamsterburen `13fe619f`, som har två axlar och visar bilder per storlek, så mätningen gäller inte den.
+**65 av de 248 Aosom-vyerna visar tre bilder eller färre** (`tools/polish-assets/farger-fler-bilder-2026-10-21/svaga-aosom-2026-10-22-1434.txt`). Feedens position 3–10 är därmed provade för dem, och de som är kvar är
+tyska säljgrafiker eller saknas i feeden. De 183 vyerna på fyra uppfyller Leonards minimum (*4 är godkänt*) och tas sist. Det som återstår är utsnitt ur de tyska grafikerna (`docs/polish/bildmetoder.md`, *Beskärning*).
 
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 
