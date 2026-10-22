@@ -2891,6 +2891,21 @@ från en lista (lokala utsnitt med OCR i 1× och 1,5×, Wix crop-adresser med md
 `ocr-boxar.py` ger textrutornas kanter så att utsnittet slutar före texten; **(5)** en måttbild som anger en annan sitthöjd
 än sidan (54 mot 50,5 cm), en närbild där leverantörens logotyp är motivet och en projektorduk med *Lorem ipsum* ströks.
 
+**Feedomgång 3 (2026-10-22, `tools/polish-assets/fargtillagg-3/`):** 24 sidor, 80 färger och 129 bilder skrevs
+00:30–00:34 UTC (alla feedbilder, inga utsnitt), och live-kontrollen blev **ALLT OK**. Av de 100 färgvyerna på sidorna hade 85
+fyra bilder eller färre, och 56 av dem visar fem eller fler efter: 79 vyer fick fler bilder, 18 är oförändrade och tre fick färre
+när felbilder togs bort. Valda per feedposition, utan dubbletterna: 77 av 83 på 10, 29 av 37 på 9, 14 av 51 på 3 (alla måttbilder)
+och 9 av 50 på 8. Fyra stolsdynor på `39d10fc4` fick ingen bild, eftersom varje kandidat var säljgrafik med tysk text eller en ruta
+med *Cushions Only* över bilden. Fem saker utöver omgång 2: **(1)** livemätningen hittade sju bilder som inte skulle visas, på sidor
+som ingen tittat på: på hundvagnen `c6928b61` en ram med leverantörens logotyp (*PawHut*) och en tysk säljgrafik (*Vordere Tür*) i både
+Mörkgrön och Röd, och med det nya `live-dubbletter.py` tre foton som låg två gånger i samma färgvy (Rosa på `b2ccab13`, Röd och Blå på
+`eb02039b`); alla sju togs bort med `bilder-bort.yml` före skrivningen; **(2)** sifferkontrollen fällde en av 15 måttbilder (kontorsstolens
+svarta färg: höjd 111–127 cm mot sidans 113–121); **(3)** autostrykningen på textyta tog närbilder av märkesskyltar på bilarnas fronter
+(*SIAN*, *e-tron Sportback*, *SLC 300 Final Edition*), och sex autostrukna bilder lästes om: tre hävdes och tre var pixelidentiska med
+bilder som redan låg i färgvyn (`farg-dupkoll.py` hittar sådana före skrivningen); **(4)** kandidatläget väljer färger efter antal bilder
+*när det körs*, så Mörkgrön och Röd på `c6928b61` (fem bilder, två av dem felbilder) valdes inte och står på tre bilder efter borttagningen;
+de tas med i omgång 4; **(5)** butikens cache hade uppdaterats på alla 25 sidor när de mättes sex till sju minuter efter skrivningen.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
