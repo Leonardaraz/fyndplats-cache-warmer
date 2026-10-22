@@ -391,9 +391,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Leksakskök och barnkök för barn från 3 år – i trä, MDF och plast, med ugn, diskho och ljud, flera med rinnande vatten och upp till 92 delar.",
   },
   "massage-aterhamtning": {
-    title: "Uppresningsfåtölj med massage – värme och lyft",
+    title: "Massage för hemmet – benmassage och fotmassage",
     description:
-      "Uppresningsfåtöljer med lyft, massage och ländvärme, massagefåtöljer med fotpall, reclinerfåtöljer, massagestolar på hjul, massagebänkar och benmassage.",
+      "Massagefåtöljer med fotpall, uppresningsfåtöljer med massage och ländvärme, reclinerfåtöljer, massagestolar på hjul, massagebänkar och fot- och benmassage.",
   },
   massagebankar: {
     title: "Massagebänk & behandlingsbänk – hopfällbar",
@@ -564,6 +564,11 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     title: "Tvättkorg med lock – i bambu, vide och med fack",
     description:
       "Tvättkorgar med lock i bambu och vide, tvättsorterare med två till fyra fack och uttagbara påsar, och två tvättskåp. Från 64 till 144 liter.",
+  },
+  uppresningsfatoljer: {
+    title: "Uppresningsfåtölj – lyftfåtölj med liggläge",
+    description:
+      "Uppresningsfåtöljer som lyfter och tippar sitsen framåt när du ska resa dig och fälls bakåt till liggläge, med eller utan massage och ländvärme.",
   },
   "utelek-spel": {
     title: "Studsmatta för barn, basketkorg & gungor",

@@ -194,6 +194,7 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   barbord: 4355,                    // Furniture > Tables > Kitchen & Dining Room Tables
   snurrfatoljer: 6499,              // Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs
   oronlappsfatoljer: 6499,          // samma nod
+  uppresningsfatoljer: 6499,        // samma nod (Runda S16, 2026-10-22)
   matgrupper: 6347,                 // Furniture > Furniture Sets > Kitchen & Dining Furniture Sets
   hornskrivbord: 4191,              // Furniture > Office Furniture > Desks
   // Runda S15 (2026-10-03). Taxonomin har ingen nod för knästolar; närmast är

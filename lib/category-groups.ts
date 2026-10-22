@@ -40,7 +40,7 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Knästolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
+    subs: ["Kontorsstolar", "Knästolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Uppresningsfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
     heroPicks: [],
   },
   {
