@@ -3020,6 +3020,16 @@ textrutor med pilar som lagts över ett foto är säljgrafik; **(2)** `FARG`-rad
 galleriet, `617ce9ff` Mörkgrön), `saknas_i_feeden`, eller tom `hamta` (artikeln har ingen position 10, `75e5fa26` Beige). `okanda_kallor` är bara en varning om att en kandidat kan
 vara en dubblett, och den följer med på alla tre färgerna på `485086d2` utan att något hindrade; **(3)** position 10 gav 35 av 38 (utan dubbletten) och ligger nu på 209 av 216 över omgång 5–10.
 
+**Feedomgång 11 (2026-10-22, `tools/polish-assets/fargtillagg-11/`):** 25 sidor valdes och 24 skrevs: 35 färger och 35 bilder (alla feedbilder, bara
+position 10) skrevs 05:07–05:10 UTC i en omgång, och live-kontrollen blev **ALLT OK**. Alla 35 skrivna färgvyer stod på fyra bilder före och visar nu fem. På de 25
+sidorna gick vyerna med fyra bilder eller färre från 37 till 2, och bilderna i alla vyer från 344 till 379, exakt de 35 som skrevs. Position 10 gav 35 av 35: ingen
+kandidat ströks och ingen var en dubblett. En sida fick ingenting, `d348bf64` (artikeln för Svart har ingen position 10), och Grå på `d34f6bab` saknas i flödet (Gråbrun
+på samma sida fick sin bild). Två saker utöver omgång 10: **(1)** FÖRE-sveppen (340 unika bilder) fann inga felbilder (omgång 7–10 hade en till tre sidor var). De 87 OCR-träffarna
+var märken och dekaler på varan (*Honda*, *Racing / Off-road*, *TT RS Roadster*), böcker, affischer och förpackningar i miljöbilder och leverantörens egna kort. Det enda
+paret som `live-dubbletter.py` rapporterade som *likt men olika* (`8df88104` Klassiska färger, plats 1 och 3, avstånd 0, pixelskillnad 0,9) är samma produktfoto med och
+utan måttlinjer, och det behölls; **(2)** `live-par.sh` skriver `klart N av 25 sidor`, och de sidor som saknas är de där Node föll medan OCR delade processorerna (två sidor i
+både omgång 11 och 12). Mät om dem en och en med `live-bilder.mjs` innan kontrollen körs; **(3)** position 10 gav 35 av 35 och ligger nu på 244 av 251 över omgång 5–11.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
