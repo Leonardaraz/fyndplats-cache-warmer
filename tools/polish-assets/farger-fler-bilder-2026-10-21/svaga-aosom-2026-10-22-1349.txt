@@ -1,0 +1,151 @@
+a37103bf:g8:k2:Svart=4
+6eb13a16:g8:k0:Vit=3;Svart=4
+dab49bb1:g9:k0:Grå=4
+12401205:g9:k0:Mörkgrå=4
+c3d1fa41:g10:k0:Ljusgrå o=4
+dd979cce:g8:k0:Svart=4;Rosa=4
+fbd70dae:g10:k0:Sand=4
+2720063f:g14:k0:Vit=4
+e969501f:g29:k0:Beige=4
+91f5c078:g18:k0:Mörkgrå=3
+39d10fc4:g12:k0:Mörkblå=3;Ljusgrå=3;Beige=3;Mörkgrå=3
+a7aa9370:g14:k0:Mörkgrå=2;Beige=4;Ljusgrå=2
+526d7fb5:g9:k0:Grå=4
+1dfa992a:g11:k1:Brun och =4;Grön och =4
+56bf5134:g8:k0:Röd=4;Blå=4
+81a7d7e4:g8:k0:Röd=4;Svart=4
+a9c2bfd8:g12:k0:Trämönste=4;Mörkgrå=4;Ljusgrå=4
+e999206f:g9:k0:Mörkgrå=4
+211ffd83:g6:k0:Svart=3;Gul=3
+a5f894bb:g19:k0:Röd=4;Vit=4
+bb45be9d:g14:k0:Grön=4
+9e157d1d:g14:k0:Mörkgrå=4
+a2bf8b4d:g12:k1:Grå med v=4
+2d65601c:g8:k0:Svart=4;Röd=4
+0bab65e3:g12:k0:Grå=4;Mintgrön=4;Ljusblå=4
+d34f6bab:g14:k0:Grå=4
+a6b24d45:g9:k0:Svart=4
+49494b1a:g11:k0:Röd=3;Blå=3
+5fa26137:g6:k0:Svart=3;Vit=3
+e0a73975:g9:k0:Vit=4
+c5f3914e:g8:k0:Grå och l=4;Gul och g=4
+b3e20f91:g9:k0:Natur=4
+13fe619f:g15:k0:Mörkgrå=0
+07b3ee0e:g14:k1:Grå och v=4
+4664e423:g13:k0:Ek=4;Valnöt=4
+d3c91eb3:g9:k0:Blå=4
+8cf7b1bb:g8:k0:Orange oc=3
+2166c50f:g12:k0:Brun=4;Svart=3
+fdefa04b:g8:k0:Grå=3
+12cd40a2:g20:k0:Svart=3;Mörkbrun=4;Vit=4;Natur=4
+c260245d:g9:k0:Vit=4
+1ca2e45e:g8:k0:Vit=4;Ljusgrå=4
+07ac9918:g11:k0:Blå=4
+01ac2f63:g16:k0:Grå=3
+63fd748c:g10:k0:Blå=4
+4e409e7c:g6:k0:Röd=3;Blå=3
+68e59405:g9:k0:Turkos=4
+1004b036:g14:k0:Gul=3;Röd=4;Blå=4;Svart=3
+0f83c211:g13:k0:Röd=4;Grön=4
+c6928b61:g19:k0:Grå=4
+40f46441:g23:k0:Beige=4;Grön=4
+d27a28ae:g7:k0:Blå=2
+eb02039b:g16:k0:Röd=4;Blå=4;Ljusgrå=4;Svart=4
+8bc0dd26:g7:k0:Svart=4;Svart och=3
+c88b22ce:g9:k0:Genomskin=4
+b8002629:g9:k0:Svart=4
+571e37bf:g23:k0:Blå=4;Svart och=3;Blå och s=3;Grå och t=3;Grå och s=4
+b920d526:g7:k0:Röd=4;Blå=3
+1ea30bf4:g21:k0:Turkos=4
+3f7ef4a1:g9:k0:Svart=4
+19f3239f:g10:k0:Brun=4
+0641bd05:g14:k0:Vit=4
+db13253d:g8:k0:Grå=3
+4871d041:g9:k0:Grå=4
+d8033343:g9:k0:Svart=4
+4439afff:g9:k0:Lila=3
+39a21e71:g9:k0:Svart och=4
+cd3320e8:g19:k0:Svart=4
+4275e300:g9:k0:Grön=4
+c131b430:g8:k0:Grå=3
+6e810d9c:g26:k0:Blå samme=4;Svart lin=4;Mörkgrå l=4;Krämvit l=3;Grå mikro=3;Ljusbrun =3
+c841717c:g14:k2:Svart=4
+e76a4098:g7:k0:Ljusgrå=2
+0fc3c252:g10:k0:Vit=4
+a8e5db2d:g9:k0:Mörkgrå=3
+6334f635:g11:k0:Ljusgrå=4;Beige=4;Mörkgrå=3
+9304f8b8:g18:k0:Brun=3;Mörkgrå=4
+3f9fda98:g15:k0:Cremevit=4
+c519b4fe:g10:k0:Mörkblå=4;Vinröd=4;Mörkgrå=2
+01827378:g9:k0:Ljusgrå=4
+faa2bdb4:g6:k0:Vit=3;Grön=3
+7beb7f2b:g9:k0:Vit=4
+a706542f:g7:k0:Vit=2
+a55a2ce7:g9:k0:Vit=4
+d17733fd:g9:k0:Vit=4
+037b6ee0:g14:k0:Mörkgrön=4
+834c66fd:g30:k0:Ljusgrå=3;Mörkgrå=3;Kolgrå=4;Orange=4;Ljusgrön=4;Gråbeige=3;Brun=4
+74e737ee:g26:k1:Antracit=4
+a414b5b5:g16:k0:Sand=4;Antracit=4;Grå=4;Ljusgrön=4
+298492a4:g9:k0:Mörkblå=4
+69716c9d:g8:k0:Mörkgrå=4;Krämvit=4
+5c65d551:g19:k0:Grå beton=4
+e11ad5cc:g19:k0:Mörkgrå=4
+bc32d396:g34:k0:Brun=4
+f1878c34:g18:k0:Krämvit=4;Blå=4
+592a4bb2:g8:k0:Grå=3
+a1f16108:g9:k0:Vit=4
+817e1869:g9:k0:Gräddvit=4
+37e5dfcf:g19:k0:Brun=4;Beige=4
+95c2008d:g19:k0:Gul=4
+7e00970f:g19:k0:Svart=4
+58f8338d:g9:k0:Guld=4
+5f14c112:g15:k0:Brun=4
+cc974ed4:g9:k0:Svart=4
+e7f69e8a:g9:k0:Gräddvit=4
+375bb3c8:g10:k0:Svart=4
+40a1f491:g6:k0:Grå=3;Gräddvit=3
+6bcbaf32:g9:k0:Beige=4
+bc2368af:g9:k0:Beige=3;Grå=3;Svart=3
+e6d2e70b:g9:k0:Svart=4
+b2c76518:g14:k0:Silver=4
+f44642e5:g9:k0:Mörkbrun=4
+f8efe733:g14:k0:Grå=4
+4e619979:g9:k0:Brun=4
+8a7def5c:g9:k0:Ljusgrå=4
+54a1916b:g14:k0:Mörkgrå=4
+d348bf64:g14:k0:Svart=4
+6575766f:g11:k0:Svart och=3;Svart=3
+5a31b710:g15:k0:Svart=4
+5b3d3c58:g9:k0:Svart och=4
+d70e483e:g9:k0:Marinblå =4
+cc56eab4:g12:k0:Röd=4;Rosa=4;Blå=4
+7511fc56:g16:k0:Svart=4;Röd=4;Grå=4;Vit=4
+360a9721:g8:k0:Svart=4;Vit=4
+3486aa0d:g8:k0:Röd=4;Rosa=4
+7cdc167c:g10:k0:Lila=3;Blå=4;Svart=3
+a76e97f1:g6:k0:Gräddvit=3;Rosa=3
+2f6ff71c:g12:k0:Orange=3;Rosa=4
+fc2b894a:g8:k0:Svart=4;Vit=4
+2f5c20fc:g18:k0:Röd=4;Blå=4
+2c72e2b0:g12:k0:Svart=4;Vit=4;Rosa=4
+ec2d9402:g15:k0:Röd=4;Grön=3;Orange=3
+1c0b4b34:g6:k0:Grön=3;Orange=3
+e25e86d6:g17:k0:Svart=4;Röd=4;Rosa=4
+7a8655f0:g12:k0:Blå=4;Vit=4;Röd=4
+0acfc30a:g8:k1:Turkos=4
+a253637c:g15:k1:Svart=4;Röd=4
+8ad1e003:g7:k0:Vit=3;Svart=4
+0926604b:g14:k0:Röd=3
+fc195950:g18:k0:Svart=4;Rosa=4;Röd=4
+91d28d6f:g14:k0:Blå=4
+fdae2809:g17:k0:Grön och =4;Rosa och =4;Röd och s=4
+b1b9afac:g18:k0:Röd=3;Grå=3;Rosa=3;Vit=4
+cd497196:g20:k0:Rosa=4
+240d5d8f:g9:k0:Svart=4
+321f878a:g8:k0:Turkos=4;Rosa=4
+a57587a8:g8:k0:Rosa=3
+39319e6c:g10:k0:Röd=4;Svart=3;Blå=3
+a8f46ff0:g9:k0:Svart=4
+dc7d2513:g14:k0:Grön=4
+623b6504:g7:k0:Svart=4;Vit=3

@@ -3112,12 +3112,29 @@ togs bort, avstånd 3, och ströks) och Svart och Röd position 8 och 9 (närbil
 5, pixelskillnad 35) är ett belyst foto av lyktan och dess måttritning, alltså *likt men olika*, och behölls. Fyra vyer står kvar på fyra: Natur på `dd08c210` och Vit på `e3340092`
 (artikeln har ingen position 10), Orange på `ef20bec9` (position 10 låg redan i galleriet) och Mörkgrå på `e999206f` (saknas i flödet).
 
-**Alla 442 sidor i `aosom-ordning.tsv` har nu körts, och 42 av dem var aldrig körda före omgång 17** (se `FLAGGADE.md`, lärdom 154, för hur det räknades). Katalogkontrollen
-(`katalogkontroll-farg-givare.js`, ändrad till att bara räkna, 33 sekunder över 6 143 produkter) 2026-10-22 13:00 UTC: **576 av 2 553 färgval visar fyra bilder eller färre**, mot 1 097 av
-2 533 den 21 oktober. På Aosom-sidorna är det 273 vyer på 167 sidor (798 på 442 sidor den 21 oktober), och på AliExpress-sidorna 303 vyer på 96 sidor (spåret är pausat). Av de 167
-Aosom-sidorna har 63 (90 vyer) körts med alla fyra positionerna (3, 8, 9 och 10) och 52 (122 vyer) körts i omgång 1–3 utan att körningarna längre går att lista. 42 sidor (47 vyer) har bara
-fått position 10 och 10 sidor (14 vyer) position 10, 9 och 3. Nästa steg för dem är position 3, 8 och 9 respektive 8 (position 4–7 bär nästan alltid tysk säljgrafik), och därefter utsnitt
-ur de tyska grafikerna (`docs/polish/bildmetoder.md`, *Beskärning*).
+**Feedomgång 19 (2026-10-22, `tools/polish-assets/fargtillagg-19/`):** position 3, 8 och 9 för de 42 sidor som bara fått position 10 (omgång 10–18) och position 8 för de tio som fått position 10, 9 och 3
+(omgång 8–9), alltså 52 sidor. `kandidater` (run 39784090088, 39784583300 och 39784817119, 13:07–13:13 UTC) laddade upp 100 bilder, 0 missar. 24 valdes (position 3: 6, position 8: 9, position 9: 9) och 76 ströks:
+36 var samma foto som en bild färgens vy redan visar, 28 ströks automatiskt för textyta över 2,5 % (tysk säljgrafik) och tolv för hand. Nio av de tolv bär text eller märke: *Gewichtsgrenze* och *Empfohlenes Alter* över
+måttbilden (`240d5d8f`, `a6b24d45` och `dd979cce` Rosa och Svart), *Lieferung in 2 Kartons* (`526d7fb5`), *Ersatzabdeckung nur für Pavillon* (`60eaf40e`, position 8 och 9) och leverantörens logotyp *PawHut* över
+måttbilden (`2d65601c` Röd och Svart). Tre ströks av sifferkontrollen (`kolla-tal-mot-text.js`): trappans mått 38 × 20 mot sidans 38 × 22 × 12 (`44663e99` Grå), belastningen 220 kg mot sidans 150 kg (`4f21c7c1`
+Mörkgrön) och en måttbild som bara gäller den lilla av två storlekar som delar färgvyn (`c3d1fa41`). `ocr-live.py` (592 bilder, 14 minuter) och `live-dubbletter.py` på FÖRE-läget fann inga felbilder och inga par.
+Skrivet 13:35–13:38 UTC (run 39788194739, plan sha `b9fe26f8…`): 13 sidor, 13 färger, 24 bilder, alla `ok`, återlästa, med 1–4 rättade variantbilder per sida. **Live 13:45 UTC: ALLT OK**: alla 13 färger visar det
+förväntade antalet (vyerna gick från 3–4 bilder till 5–7, 50 → 74 bilder) och ingen bild syns i en annan färgs vy. Resten av de 52 sidorna kunde inte lyftas: position 3, 8 och 9 är de som importen redan tog hem
+(`RENA_BILDPOSITIONER`), så en kandidat där är oftast en bild färgen redan visar (36 av 100) eller en som poleringen strukit för tysk text (lärdom 156).
+
+**Feedomgång 20 (2026-10-22, `tools/polish-assets/fargtillagg-20/`):** position 4–7 för de 35 färger på omgång 19:s 52 sidor som stod kvar på fyra bilder eller färre. `kandidater` (run 39786391830 och 39786705928,
+13:23–13:27 UTC) laddade upp 134 bilder, 0 missar. 116 (87 %) ströks automatiskt för textyta över 2,5 %, och av de 18 som granskades för hand valdes nio: trädgårdsskåpet `dd08c210` Natur (stängt och öppet i en bild),
+båglampan `2f31a1d9` Orange, dynan på gungan `485086d2` Gräddvit och Marinblå, vilfåtöljen `75e5fa26` Beige (tre) och elkaminen `e3340092` Vit (två; *DO NOT COVER* är tryckt på kaminen och ströks inte). De andra nio
+ströks för tyska texter eller en collage med tyska etiketter (`12401205`, `e0a73975` ×2, `7beb7f2b`, `d348bf64`), för att de var samma foto som en bild som redan visas (avstånd 2 och 6) eller för att de upprepade en
+scen som färgen redan visar (`75e5fa26` och `e3340092`). Position 4–7 gav alltså 9 bilder av 134 (7 %), mot 24 av 100 på position 3, 8 och 9 (omgång 19) och 374 av 389 på position 10 (omgång 5–15).
+Skrivet 13:45–13:46 UTC (run 39789637247, filens sha256 `10b43a3f…`, planens sha `e80df14c…`): 5 sidor, 6 färger, 9 bilder, alla `ok`, återlästa, variantbilderna rättade (1–2 per sida). **Live 13:54 UTC: ALLT OK**: alla sex färger visar det förväntade antalet (vyerna gick från 3–4 bilder till 5–6, 23 → 32 bilder) och ingen bild syns i en annan färgs vy.
+
+**Alla 442 sidor i `aosom-ordning.tsv` har körts med position 10, och omgång 19–20 tog position 3, 8, 9 respektive 4–7** (se `FLAGGADE.md`, lärdom 154, för hur "körda" räknades). Katalogkontrollen
+(`katalogkontroll-farg-antal.js`, 33 sekunder över 6 143 produkter) 2026-10-22 13:49 UTC: **557 av 2 553 färgval visar fyra bilder eller färre** (fördelning 0: 1, 1: 80, 2: 89, 3: 132, 4: 255, 5: 1 559, 6 eller fler: 437),
+mot 576 efter omgång 18 och 1 097 den 21 oktober. På Aosom-sidorna är det 254 vyer på 151 sidor (0: 1, 2: 6, 3: 66, 4: 181; 273 på 167 sidor efter omgång 18 och 798 på 442 den 21 oktober), och på AliExpress-sidorna 303
+vyer på 96 sidor (oförändrat, spåret är pausat). Nollan är hamsterburen `13fe619f`, som har två axlar och visar bilder per storlek, så mätningen gäller inte den. **73 av de 254 Aosom-vyerna visar tre bilder eller färre,
+och 72 av dem ligger på 45 sidor där position 4–7 aldrig provats** (`tools/polish-assets/farger-fler-bilder-2026-10-21/svaga-aosom-2026-10-22-1349.txt`). De 181 vyerna på fyra bilder uppfyller Leonards minimum
+(*4 är godkänt*) och tas sist. Nästa steg är omgång 21 (position 4–7 för 44 av de 45 sidorna) och därefter utsnitt ur de tyska grafikerna för de vyer som står kvar på tre (`docs/polish/bildmetoder.md`, *Beskärning*).
 
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 
