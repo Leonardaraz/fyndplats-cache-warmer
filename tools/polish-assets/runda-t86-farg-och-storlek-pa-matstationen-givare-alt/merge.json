@@ -1,0 +1,59 @@
+[
+ {
+  "host": "1d4eb6b1",
+  "donor": "4d563d8d",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "6"
+  ]
+ },
+ {
+  "host": "1d4eb6b1",
+  "donor": "bbc14a49",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "4"
+  ]
+ },
+ {
+  "host": "1d4eb6b1",
+  "donor": "2d925de6",
+  "bilder": "1,2,3",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4"
+  ]
+ },
+ {
+  "host": "1d4eb6b1",
+  "donor": "e19c792f",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "6"
+  ]
+ },
+ {
+  "host": "1d4eb6b1",
+  "donor": "b8afe6b2",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "5",
+   "6"
+  ]
+ }
+]
