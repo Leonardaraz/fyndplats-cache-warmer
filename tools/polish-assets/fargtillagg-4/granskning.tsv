@@ -1,0 +1,193 @@
+sida	val	farg	pos	ocr	verdikt	skal
+01ac2f63	14b99ed4	Grå	3	TEXT	struken	tysk text i bilden (Produktinformation, Rasse, Schulterhöhe, Körpergröße, Gewicht)
+01ac2f63	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik (Robuste Konstruktion, Metallrahmen, Schützendes Fußpolster)
+01ac2f63	14b99ed4	Grå	9	REN	struken	bärväskan nämns inte i sidans text, bilden lovar något texten inte gör
+01ac2f63	44ccec77	Brun	3	TEXT	struken	tysk text i bilden (Produktinformation, Rasse, Schulterhöhe, Körpergröße, Gewicht)
+01ac2f63	44ccec77	Brun	8	TEXT	struken	tysk säljgrafik (Robuste Konstruktion, Metallrahmen, Schützendes Fußpolster)
+01ac2f63	44ccec77	Brun	9	REN	vald	
+07b3ee0e	0d20fb2d	Orange	3	SIFFROR	struken	måttbild som dubblerar den gemensamma måttbilden i färgens vy
+07b3ee0e	0d20fb2d	Orange	8	REN	vald	
+07b3ee0e	0d20fb2d	Orange	9	REN	vald	
+07b3ee0e	0d20fb2d	Orange	10	TEXT	vald	
+07b3ee0e	14b99ed4	Grå	3	SIFFROR	struken	måttbild som dubblerar den gemensamma måttbilden i färgens vy
+07b3ee0e	14b99ed4	Grå	8	REN	vald	
+07b3ee0e	14b99ed4	Grå	9	REN	vald	
+07b3ee0e	14b99ed4	Grå	10	REN	vald	
+07b3ee0e	50c696b2	Grå och vit	8	TEXT	struken	tysk säljgrafik (Geeignet für verschiedene Kleintiere, Kaninchen, Hühner, Enten, Meerschweinchen)
+0bab65e3	14b99ed4	Grå	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+0bab65e3	14b99ed4	Grå	8	TEXT	struken	engelsk säljgrafik (Product Details, Washable Cover, Mommy Bag, Storage Basket)
+0bab65e3	14b99ed4	Grå	10	TEXT	vald	
+0bab65e3	dd638249	Ljusblå	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+0bab65e3	dd638249	Ljusblå	8	TEXT	struken	engelsk säljgrafik (Product Details)
+0bab65e3	dd638249	Ljusblå	10	TEXT	vald	
+0bab65e3	eb6043ba	Mintgrön	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+0bab65e3	eb6043ba	Mintgrön	8	TEXT	struken	engelsk säljgrafik (Product Details)
+0bab65e3	eb6043ba	Mintgrön	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+0bab65e3	eb6043ba	Mintgrön	10	TEXT	vald	
+0e2b93bb	30abb546	Orange och blå	3	TEXT	struken	tysk text (Empfohlenes Alter: 1-3 Jahre)
+0e2b93bb	30abb546	Orange och blå	10	SIFFROR	vald	
+0e2b93bb	4524ba00	Rosa och vit	3	TEXT	struken	tysk text (Empfohlenes Alter: 1-3 Jahre)
+0e2b93bb	4524ba00	Rosa och vit	10	REN	vald	
+0e2b93bb	9926fb02	Grön och gul	3	TEXT	struken	tysk text (Empfohlenes Alter: 1-3 Jahre)
+0e2b93bb	9926fb02	Grön och gul	8	TEXT	vald	
+0e2b93bb	9926fb02	Grön och gul	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+0e2b93bb	9926fb02	Grön och gul	10	REN	vald	
+135d0fc6	f4f0198e	Svart	3	SIFFROR	vald	
+135d0fc6	f4f0198e	Svart	8	REN	vald	
+135d0fc6	f4f0198e	Svart	9	REN	vald	
+135d0fc6	f4f0198e	Svart	10	REN	vald	
+2720063f	92fb97f1	Rosa	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit), ersätts av ett utsnitt
+2720063f	92fb97f1	Rosa	3	SIFFROR	vald (utsnitt)	utsnitt ur feedens måttbild som tar bort den tyska texten, barnet och leverantörens logotyp
+2720063f	92fb97f1	Rosa	10	REN	struken	lagerfoto: amatörfoto på kartong i ett lager med andra leksaksbilar och kartonger
+2720063f	a2f396b7	Vit	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit), ersätts av ett utsnitt
+2720063f	a2f396b7	Vit	3	SIFFROR	vald (utsnitt)	utsnitt ur feedens måttbild som tar bort den tyska texten, barnet och leverantörens logotyp
+2720063f	a2f396b7	Vit	10	REN	struken	lagerfoto: amatörfoto på kartong i ett lager med kartonger
+2720063f	f4f0198e	Svart	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit), ersätts av ett utsnitt
+2720063f	f4f0198e	Svart	3	SIFFROR	vald (utsnitt)	utsnitt ur feedens måttbild som tar bort den tyska texten, barnet och leverantörens logotyp
+2720063f	f4f0198e	Svart	10	TEXT	struken	lagerfoto: amatörfoto på kartong i ett lager med kartonger
+2c72e2b0	92fb97f1	Rosa	3	TEXT	struken	tysk text (Gewichtsgrenze, Empfohlenes Alter)
+2c72e2b0	92fb97f1	Rosa	8	TEXT	struken	tysk säljgrafik (Reibungslose Fahrten überall, Zementstraße, Ziegelstraße, Asphaltstraße)
+2c72e2b0	92fb97f1	Rosa	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2c72e2b0	92fb97f1	Rosa	10	TEXT	vald	
+2c72e2b0	a2f396b7	Vit	3	TEXT	struken	tysk text (Gewichtsgrenze, Empfohlenes Alter)
+2c72e2b0	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik (Reibungslose Fahrten überall, Zementstraße, Ziegelstraße, Asphaltstraße)
+2c72e2b0	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2c72e2b0	a2f396b7	Vit	10	TEXT	vald	
+2c72e2b0	f4f0198e	Svart	3	TEXT	struken	tysk text (Gewichtsgrenze, Empfohlenes Alter)
+2c72e2b0	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik (Reibungslose Fahrten überall, Zementstraße, Ziegelstraße, Asphaltstraße)
+2c72e2b0	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2c72e2b0	f4f0198e	Svart	10	TEXT	vald	
+2ded4775	14b99ed4	Grå	3	TEXT	struken	tysk text (Hinweis, Körperlänge, Bitte messen Sie die Körperlänge Ihres Haustieres)
+2ded4775	14b99ed4	Grå	10	SIFFROR	vald	
+2ded4775	a2f396b7	Vit	3	TEXT	struken	tysk text (Hinweis, Körperlänge, Bitte messen Sie die Körperlänge Ihres Haustieres)
+2ded4775	a2f396b7	Vit	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+2ded4775	a2f396b7	Vit	10	TEXT	vald	
+2ded4775	f4f0198e	Svart	3	SIFFROR	vald	
+2ded4775	f4f0198e	Svart	8	TEXT	vald	
+2ded4775	f4f0198e	Svart	10	TEXT	vald	
+2f3a9686	cff714a2	Silver	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+2f3a9686	cff714a2	Silver	8	REN	vald	
+2f3a9686	cff714a2	Silver	9	REN	vald	
+2f3a9686	cff714a2	Silver	10	REN	vald	
+39319e6c	5aca9cb3	Röd	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+39319e6c	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik (Innen- & Außennutzung, Kinderzimmer, Kindergarten, Garten, Park)
+39319e6c	5aca9cb3	Röd	9	TEXT	struken	tysk säljgrafik (Perfektes Geschenk für Ihr süßes Kind, Körperliche Bewegung, Reaktionstraining)
+39319e6c	5aca9cb3	Röd	10	TEXT	struken	julmotiv (julgran, snö och julklappar) som inte hör hemma på en sida som visas hela året
+3b868848	f4f0198e	Svart	3	SIFFROR	vald	
+3b868848	f4f0198e	Svart	9	SIFFROR	vald	
+3b868848	f4f0198e	Svart	10	TEXT	vald	
+4664e423	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik (Warum brauchen Sie es?)
+4664e423	14b99ed4	Grå	10	TEXT	vald	
+4664e423	1a620f59	Ek	8	TEXT	struken	tysk säljgrafik (Warum brauchen Sie es?)
+4664e423	1ea59fd7	Valnöt	8	TEXT	struken	tysk säljgrafik (Warum brauchen Sie es?)
+4664e423	1ea59fd7	Valnöt	9	TEXT	struken	engelsk säljgrafik (Why do you need it?)
+4664e423	1ea59fd7	Valnöt	10	TEXT	vald	
+4a01e8d0	a2f396b7	Vit	8	REN	struken	samma foto som växthusets befintliga närbild, som ska länkas om till Vit i stället för att läggas dit en gång till
+4a01e8d0	a2f396b7	Vit	9	REN	struken	samma foto som växthusets befintliga närbild, som ska länkas om till Vit i stället för att läggas dit en gång till
+4a01e8d0	a2f396b7	Vit	10	REN	vald	
+54a1916b	44ccec77	Brun	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+54a1916b	44ccec77	Brun	8	TEXT	struken	tysk säljgrafik (Maximaler Komfort und Unterstützung)
+54a1916b	44ccec77	Brun	9	TEXT	struken	tysk säljgrafik (Stoff, Schaumstoff, Frühlingspaket, Hohe Widerstandsfähigkeit)
+54a1916b	44ccec77	Brun	10	REN	vald	
+54a1916b	7909f4e8	Mörkgrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+54a1916b	7909f4e8	Mörkgrå	8	TEXT	struken	tysk säljgrafik (Weiche Polsterung, Obermaterial, Sprungfedern, Robustes Obermaterial)
+54a1916b	7909f4e8	Mörkgrå	9	TEXT	struken	tysk säljgrafik (Vibrationsmassage, Heizfunktion, Vibrationspunkte, Modi)
+54a1916b	7909f4e8	Mörkgrå	10	REN	vald	
+54a1916b	f7a7b46b	Ljusgrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+54a1916b	f7a7b46b	Ljusgrå	8	TEXT	struken	tysk säljgrafik (Maximaler Komfort und Unterstützung)
+54a1916b	f7a7b46b	Ljusgrå	9	TEXT	struken	tysk säljgrafik (Stoff, Schaumstoff, Frühlingspaket, Hohe Widerstandsfähigkeit)
+54a1916b	f7a7b46b	Ljusgrå	10	REN	vald	
+5684651e	14b99ed4	Grå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5684651e	14b99ed4	Grå	8	REN	vald	
+5684651e	14b99ed4	Grå	9	REN	struken	samma fil som plats 8 (pixelskillnad 0,0)
+5684651e	14b99ed4	Grå	10	REN	vald	
+5f627d89	a2f396b7	Vit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5f627d89	a2f396b7	Vit	8	TEXT	vald	
+5f627d89	a2f396b7	Vit	10	REN	vald	
+69042231	92fb97f1	Rosa	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit), ersätts av ett utsnitt
+69042231	92fb97f1	Rosa	3	SIFFROR	vald (utsnitt)	utsnitt ur feedens måttbild som tar bort den tyska texten, barnet och leverantörens logotyp
+69042231	92fb97f1	Rosa	10	REN	struken	lagerfoto: amatörfoto på en vit golvyta med kartong i ett lager
+69042231	a2f396b7	Vit	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit)
+69042231	a2f396b7	Vit	8	REN	vald	
+69042231	a2f396b7	Vit	9	REN	vald	
+69042231	a2f396b7	Vit	10	REN	struken	lagerfoto: amatörfoto på en vit golvyta med kartong i ett lager
+69042231	eb6043ba	Mintgrön	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit)
+69042231	eb6043ba	Mintgrön	8	REN	vald	
+69042231	eb6043ba	Mintgrön	9	TEXT	vald	
+69042231	eb6043ba	Mintgrön	10	REN	struken	lagerfoto: amatörfoto uppifrån på en vit golvyta
+6c3634e8	5aca9cb3	Röd	3	TEXT	vald	
+6c3634e8	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik (Fußpedal, Echtes Fahrerlebnis)
+6c3634e8	5aca9cb3	Röd	10	TEXT	vald	
+6c3634e8	a7a1041d	Gul	3	TEXT	vald	
+6c3634e8	a7a1041d	Gul	8	TEXT	struken	tysk säljgrafik (Fußpedal, Echtes Fahrerlebnis)
+6c3634e8	a7a1041d	Gul	10	TEXT	vald	
+7a8655f0	369894e9	Blå	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+7a8655f0	369894e9	Blå	8	TEXT	struken	tysk säljgrafik (Viel Fahrspaß, Musik, Hupe)
+7a8655f0	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7a8655f0	369894e9	Blå	10	TEXT	vald	
+7a8655f0	5aca9cb3	Röd	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+7a8655f0	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik (Viel Fahrspaß, Musik, Hupe)
+7a8655f0	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7a8655f0	5aca9cb3	Röd	10	TEXT	vald	
+7a8655f0	a2f396b7	Vit	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtsgrenze)
+7a8655f0	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik (Viel Fahrspaß, Musik, Hupe)
+7a8655f0	a2f396b7	Vit	10	TEXT	vald	
+91d28d6f	369894e9	Blå	3	TEXT	struken	engelsk text (Recommended Age, Weight Limit)
+91d28d6f	369894e9	Blå	8	TEXT	struken	tysk säljgrafik (Fahrtraktor, Wiederaufladbarer Akku, Zwei Motoren)
+91d28d6f	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+91d28d6f	369894e9	Blå	10	SIFFROR	vald	
+91d28d6f	5aca9cb3	Röd	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+91d28d6f	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik (Starker Kindertraktor, Wiederaufladbarer Akku, Zwei Motoren), samma som togs bort ur färgen
+91d28d6f	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+91d28d6f	5aca9cb3	Röd	10	TEXT	vald	
+91d28d6f	eaae581f	Grön	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+91d28d6f	eaae581f	Grön	8	TEXT	struken	tysk säljgrafik (Fahrtraktor, Wiederaufladbarer Akku, Zwei Motoren), samma som togs bort ur färgen
+91d28d6f	eaae581f	Grön	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+91d28d6f	eaae581f	Grön	10	TEXT	vald	
+9e157d1d	14b99ed4	Grå	3	TEXT	struken	tysk text (Gesamtmaße, Größe der Grundfläche, Innere Abmessung, Hinweis)
+9e157d1d	14b99ed4	Grå	10	TEXT	vald	
+9e157d1d	7909f4e8	Mörkgrå	3	TEXT	struken	tysk text (Gesamtmaße, Größe der Grundfläche, Innere Abmessung)
+9e157d1d	7909f4e8	Mörkgrå	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+9e157d1d	7909f4e8	Mörkgrå	10	REN	vald	
+9e157d1d	f9363c28	Ljusgrön	3	TEXT	struken	tysk text (Gesamtmaße, Größe der Grundfläche, Innere Abmessung, Hinweis)
+9e157d1d	f9363c28	Ljusgrön	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+9e157d1d	f9363c28	Ljusgrön	10	REN	vald	
+9ee2fa6e	92fb97f1	Rosa	3	TEXT	struken	leverantörens logotyp (PawHut) lagd över bilden
+9ee2fa6e	92fb97f1	Rosa	9	REN	vald	
+9ee2fa6e	92fb97f1	Rosa	10	REN	vald	
+a2bf8b4d	1b81a581	Grå med vit ram	8	TEXT	struken	tysk säljgrafik (Mehr Details, Massives Tannenholz, Sicherheitstürschloss, Verzinkter Stahl)
+a2bf8b4d	1b81a581	Grå med vit ram	9	TEXT	struken	tysk säljgrafik (Größeren Raum erweitern, Vordere Tür)
+a2bf8b4d	1b81a581	Grå med vit ram	10	TEXT	vald	
+a2bf8b4d	5296267b	Natur	3	TEXT	vald	
+a2bf8b4d	5296267b	Natur	8	TEXT	struken	tysk säljgrafik (Mehr Details, Massives Tannenholz, Sicherheitstürschloss, Verzinkter Stahl)
+a2bf8b4d	5296267b	Natur	9	TEXT	struken	tysk säljgrafik (Größeren Raum erweitern, Vordere Tür)
+a2bf8b4d	5296267b	Natur	10	TEXT	vald	
+a2bf8b4d	f5afac80	Vit med grå ram	3	TEXT	vald	
+a2bf8b4d	f5afac80	Vit med grå ram	8	TEXT	struken	tysk säljgrafik (Mehr Details, Massives Tannenholz, Sicherheitstürschloss, Verzinkter Stahl)
+a2bf8b4d	f5afac80	Vit med grå ram	9	TEXT	struken	tysk säljgrafik (Größeren Raum erweitern, Vordere Tür)
+a2bf8b4d	f5afac80	Vit med grå ram	10	REN	vald	
+c6928b61	14b99ed4	Grå	3	TEXT	struken	tysk säljgrafik (Geeignet für Miniatur- und kleine Hunde, Körperlänge, Haustier Gewicht)
+c6928b61	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik (Vordere Tür, Füttern Sie Ihr geliebtes Haustier mit Komfort)
+c6928b61	5aca9cb3	Röd	3	TEXT	struken	leverantörens logotyp (PawHut) i ramen, ersätts av ett utsnitt utan logotypen
+c6928b61	5aca9cb3	Röd	3	SIFFROR	vald (utsnitt)	utsnitt ur feedens måttbild som tar bort den tyska texten, barnet och leverantörens logotyp
+c6928b61	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik (Vordere Tür, Füttern Sie Ihr geliebtes Haustier mit Komfort)
+c6928b61	5aca9cb3	Röd	10	REN	vald	
+c6928b61	aa8fc702	Mörkgrön	3	TEXT	struken	leverantörens logotyp (PawHut) i ramen
+c6928b61	aa8fc702	Mörkgrön	8	REN	vald	
+c6928b61	aa8fc702	Mörkgrön	10	REN	vald	
+fdae2809	37913fdc	Blå och svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+fdae2809	37913fdc	Blå och svart	8	TEXT	struken	tysk säljgrafik (Go Kart, Eltern-Kind-Interaktion, Attraktives Aussehen, Authentisches Fahrerlebnis)
+fdae2809	37913fdc	Blå och svart	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+fdae2809	37913fdc	Blå och svart	10	REN	vald	
+fdae2809	6df86403	Röd och svart	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit)
+fdae2809	6df86403	Röd och svart	8	TEXT	struken	tysk säljgrafik (Go Kart, Eltern-Kind-Interaktion, Attraktives Aussehen, Authentisches Fahrerlebnis)
+fdae2809	6df86403	Röd och svart	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+fdae2809	6df86403	Röd och svart	10	SIFFROR	vald	
+fdae2809	cd1f2a3d	Grön och svart	3	TEXT	struken	tysk text (Empfohlenes Alter, Gewichtslimit)
+fdae2809	cd1f2a3d	Grön och svart	8	TEXT	struken	tysk säljgrafik (Go Kart, Eltern-Kind-Interaktion, Attraktives Aussehen, Authentisches Fahrerlebnis)
+fdae2809	cd1f2a3d	Grön och svart	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+fdae2809	cd1f2a3d	Grön och svart	10	SIFFROR	vald	
+fdae2809	f08f68e8	Rosa och svart	3	SIFFROR	struken	måttbilden anger 117 cm längd mot sidans 121 cm (sidans text kommer ur Blå-artikeln)
+fdae2809	f08f68e8	Rosa och svart	8	TEXT	struken	tysk säljgrafik (Go Kart, Eltern-Kind-Interaktion, Attraktives Aussehen, Authentisches Fahrerlebnis)
+fdae2809	f08f68e8	Rosa och svart	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+fdae2809	f08f68e8	Rosa och svart	10	REN	vald	
