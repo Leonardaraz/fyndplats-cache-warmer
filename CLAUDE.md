@@ -3077,6 +3077,48 @@ och de två sidorna fick ingen bild. Text på rekvisitan (böcker, förpackninga
 kvar på fyra: Svart på `3f7ef4a1` och `5a31b710` samt de två där en felbild togs bort. Position 10 ligger nu på 374 av 389 över omgång 5–15, och 79 sidor återstår ur `aosom-ordning.tsv`
 (tolv av dem har redan använt position 10 eller saknas i flödet och går vidare med position 9, 8 och 3).
 
+**Feedomgång 16 (2026-10-22, `tools/polish-assets/fargtillagg-16/`):** 25 sidor valdes och 22 skrevs: 24 färger och 24 bilder (22 feedbilder på position 10 och två till
+för två vyer som tappade en felbild) skrevs 12:31–12:34 UTC i en omgång (run 39778978976, plan sha `e4f72d85…`), och live-kontrollen blev **ALLT OK** (12:41 UTC, alla 25
+sidor; tvåaxelsidorna `75a38b7b`, `7bc96b8f` och `7d1fb82b` mättes med `live-farg-vy.mjs`). Färgvyerna med fyra bilder eller färre gick från 25 av 50 till 5, och bilderna i
+vyerna från 235 till 256 (24 tillagda, tre felbilder borta). `ocr-live.py` (231 bilder) och `live-dubbletter.py` på FÖRE-läget fann tre felbilder med tysk text på två
+publicerade sidor: två säljgrafiker på elskrivbordet `a1f16108` Vit (*Intelligente Steuertafel* och *Sicherheitskonzept*) och en måttbild på radiobilen `81eb4872` Blå med
+*Gewichtsgrenze* och *Empfohlenes Alter*. De togs bort med `bilder-bort.yml` 12:30 UTC (torrt först, galleriet 9 → 7 respektive 9 → 8, återläst OK). Eftersom de två vyerna
+då hamnade under fem hämtades en extra kandidatomgång för just de färgerna (`mal` = `wix-id:val-id`, positionerna 3, 8, 9 och 10, run 39776511393, fem bilder): Blå och
+Vit fick var sin bild på position 10, medan position 3 (samma bild som färgens nuvarande tredje, avstånd 0) och position 8 och 9 (samma tyska säljgrafiker som just tagits
+bort) ströks, så Vit står på fyra. I första körningen gav position 10 22 av 24: två ströks (en ersättningsduk till ett tunnelväxthus, `7beb7f2b` Vit, med engelsk ruta
+*Note: Only cover included.*, och garagetältet `a165b178` Ljusgrå, vars bild redan låg på sidan med avstånd 0). Text på rekvisitan (bokryggar, förpackningar, en affisch)
+och märken tryckta på varan (*SCOOTER* på sparkcykelns styre, *G-Class* på bilens front, *PawHut* på kattstugans etikett, ett *INNOVATE SPORT*-dekal) ströks inte. Ett
+par på tvåaxelsidan `7d1fb82b` (Olivgrön, plats 2 och 5, pixelskillnad 10,2) är samma miljö med klot i 40 respektive 50 cm, där den andra är olänkad och visas för alla färger,
+alltså *likt men olika*, och behölls. Fem vyer står kvar på fyra: Svart och Blå på `63fd748c` (position 10 låg redan i galleriet), Vit på `7beb7f2b`, Ljusgrå på `a165b178`
+och Vit på `a1f16108`.
+
+**Feedomgång 17 (2026-10-22, `tools/polish-assets/fargtillagg-17/`):** 25 sidor valdes och 22 skrevs: 22 färger och 22 bilder (alla feedbilder, bara position 10) skrevs
+12:35–12:38 UTC i en omgång (run 39779571835, plan sha `4990c22f…`), och live-kontrollen blev **ALLT OK** (12:46 UTC; tvåaxelsidan `c3d1fa41` mättes med `live-farg-vy.mjs`).
+På de 24 enaxliga sidorna gick vyerna med fyra bilder eller färre från 24 av 48 till 2, och bilderna i vyerna från 220 till 242. `kandidater` (run 39777488107, 12:20 UTC)
+laddade upp 23 bilder, 0 missar; två färger saknar kandidat eftersom position 10 redan ligger i galleriet (`a37103bf` Svart och `c3d1fa41` Ljusgrå och svart). Position 10
+gav 22 av 23: paviljongtaket `d01a6d2b` Beige ströks automatiskt för engelsk text (*Replacement / Gazebo Top Cover Only*, textyta 7,8 %). `ocr-live.py` (226 bilder) och
+`live-dubbletter.py` på FÖRE-läget fann inga felbilder och inga par. Ett par flaggades bland kandidaterna: hantelsetet `db6f36b9` (position 10, avstånd 4 mot en bild på
+sidan) är samma gymfoto med en beige hantel i stället för den gröna som den andra färgen visar, alltså färgens egen bild, och valdes. Två vyer står kvar på fyra: Svart på
+`a37103bf` och Beige på `d01a6d2b`, plus Ljusgrå och svart på tvåaxelsidan.
+
+**Feedomgång 18 (2026-10-22, `tools/polish-assets/fargtillagg-18/`):** de sista 17 av de 42 sidor som aldrig körts. 14 sidor skrevs: 15 färger och 17 bilder (14 feedbilder på position 10
+och tre till för två vyer som tappade en felbild) skrevs 12:53–12:56 UTC i en omgång (run 39782098406, plan sha `50d3abf7…`), och live-kontrollen blev **ALLT OK** (13:02 UTC).
+På de 17 sidorna gick vyerna med fyra bilder eller färre från 18 av 34 till 4, och bilderna i vyerna från 154 till 169 (17 tillagda, två felbilder borta). `kandidater` (run 39780134084,
+12:39 UTC) laddade upp 14 bilder, 0 missar; två färger saknas i flödet (`e999206f` Mörkgrå och `fbd70dae`). `ocr-live.py` (152 bilder) och `live-dubbletter.py` på FÖRE-läget fann två
+felbilder som togs bort med `bilder-bort.yml` 12:50 UTC (galleriet 9 → 8 och 10 → 9, återläst OK): en måttbild med engelsk ruta (*Delivered in 2 cartons Assemble after 2 cartons have
+arrived*, `e5be35a4` Mörkgrå, samma sort som `526d7fb5` i omgång 15) och en bild som låg två gånger i samma vy (`f9de10ab` Svart och Röd, plats 1 och 3, avstånd 6, pixelskillnad 3,0,
+bedömd med ögonen som samma foto). De två vyerna fick en extra kandidatomgång (run 39781688624 och 39781812180): Mörkgrå fick position 10 (position 3 var samma engelska grafik som den som
+togs bort, avstånd 3, och ströks) och Svart och Röd position 8 och 9 (närbilder av lådornas skenor och av låset) utöver position 10. Position 10 gav 14 av 14. Ett par på `fbd70dae` (Sand, plats 1 och
+5, pixelskillnad 35) är ett belyst foto av lyktan och dess måttritning, alltså *likt men olika*, och behölls. Fyra vyer står kvar på fyra: Natur på `dd08c210` och Vit på `e3340092`
+(artikeln har ingen position 10), Orange på `ef20bec9` (position 10 låg redan i galleriet) och Mörkgrå på `e999206f` (saknas i flödet).
+
+**Alla 442 sidor i `aosom-ordning.tsv` har nu körts, och 42 av dem var aldrig körda före omgång 17** (se `FLAGGADE.md`, lärdom 154, för hur det räknades). Katalogkontrollen
+(`katalogkontroll-farg-givare.js`, ändrad till att bara räkna, 33 sekunder över 6 143 produkter) 2026-10-22 13:00 UTC: **576 av 2 553 färgval visar fyra bilder eller färre**, mot 1 097 av
+2 533 den 21 oktober. På Aosom-sidorna är det 273 vyer på 167 sidor (798 på 442 sidor den 21 oktober), och på AliExpress-sidorna 303 vyer på 96 sidor (spåret är pausat). Av de 167
+Aosom-sidorna har 63 (90 vyer) körts med alla fyra positionerna (3, 8, 9 och 10) och 52 (122 vyer) körts i omgång 1–3 utan att körningarna längre går att lista. 42 sidor (47 vyer) har bara
+fått position 10 och 10 sidor (14 vyer) position 10, 9 och 3. Nästa steg för dem är position 3, 8 och 9 respektive 8 (position 4–7 bär nästan alltid tysk säljgrafik), och därefter utsnitt
+ur de tyska grafikerna (`docs/polish/bildmetoder.md`, *Beskärning*).
+
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 
 Leonards uppdrag 2026-10-22: se till att det som skrivits inte raderas av bildstädningen av misstag. Alla skrivna filer ur omgång 1–14
