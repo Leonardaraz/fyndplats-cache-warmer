@@ -1,0 +1,354 @@
+{
+ "sidor": [
+  {
+   "id": "3f6a99f7-1af1-48a5-b392-27c380ff2822",
+   "val": "c1a15946-f168-4f58-925f-c98320a34117",
+   "bilder": [
+    {
+     "fil": "b379ce_5e1df8ad339a4bb4a50d660aff95ccf1~mv2.jpg",
+     "alt": "Krämvit bänkugn på en köksbänk med burkar, redskap och en tallrik med mat"
+    }
+   ]
+  },
+  {
+   "id": "3f6a99f7-1af1-48a5-b392-27c380ff2822",
+   "val": "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb",
+   "bilder": [
+    {
+     "fil": "b379ce_5e65cc3f68804d2ea57f558f1e1f4bd5~mv2.jpg",
+     "alt": "Svart bänkugn i ett vitt kök med hyllor, burkar och bröd på en tallrik"
+    }
+   ]
+  },
+  {
+   "id": "3fe90624-3986-4e9d-94f6-5e4192b31e51",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "fil": "b379ce_1900ef03fc2349db986c228c4aef64e6~mv2.jpg",
+     "alt": "Grå fåtölj med en stickad pläd över armstödet i ett vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "3fe90624-3986-4e9d-94f6-5e4192b31e51",
+   "val": "a7a1041d-4bc7-4f8e-a287-661bc7a1832a",
+   "bilder": [
+    {
+     "fil": "b379ce_09be2785c2674e2e9e0c5daf58dd70e5~mv2.jpg",
+     "alt": "Gul fåtölj med en stickad pläd över armstödet i ett vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "485086d2-6abf-4127-aa5d-f80ba36b5f1d",
+   "val": "44ccec77-b49d-4180-90ef-711b369f63cd",
+   "bilder": [
+    {
+     "fil": "b379ce_826a638185064780a84026c5622b78fe~mv2.jpg",
+     "alt": "Brun dyna med ryggdyna och kuddar med knytband mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "4ce36e86-af8d-4e86-a96c-f823ee1d6a39",
+   "val": "a851752b-b127-4151-a7d8-bcfda282b21c",
+   "bilder": [
+    {
+     "fil": "b379ce_a246f076402e495ab970fc6a02c23235~mv2.jpg",
+     "alt": "Kvinna tränar på en stepper med handtag i ett ljust rum"
+    }
+   ]
+  },
+  {
+   "id": "4d9ba658-4d60-44b0-af6b-2e29b4968f9f",
+   "val": "44ccec77-b49d-4180-90ef-711b369f63cd",
+   "bilder": [
+    {
+     "fil": "b379ce_3242201431e34b14a04326e003d2e688~mv2.jpg",
+     "alt": "Katt sitter på kattrappa med bruna trappsteg och sisalstolpar i ett rum med grön vägg"
+    }
+   ]
+  },
+  {
+   "id": "4d9ba658-4d60-44b0-af6b-2e29b4968f9f",
+   "val": "a2f396b7-2677-42b3-870a-5b426b2add4c",
+   "bilder": [
+    {
+     "fil": "b379ce_789d24705dbc440197960e233b8971d8~mv2.jpg",
+     "alt": "Katt ligger på ett vitt trappsteg med sisalstolpe bredvid en grå soffa"
+    }
+   ]
+  },
+  {
+   "id": "505eb413-0104-4c4e-80c7-a64d89f4a816",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "fil": "b379ce_0d65b53a19d94e9995ed40df8bb8e263~mv2.jpg",
+     "alt": "Grå fåtölj i chenille i ett ljust vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "505eb413-0104-4c4e-80c7-a64d89f4a816",
+   "val": "369894e9-ff96-40eb-9cc6-dc3d526d19eb",
+   "bilder": [
+    {
+     "fil": "b379ce_2fbde28564e74b489a298f37f033871d~mv2.jpg",
+     "alt": "Blå fåtölj i chenille med en vit pläd i ett vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "505eb413-0104-4c4e-80c7-a64d89f4a816",
+   "val": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+   "bilder": [
+    {
+     "fil": "b379ce_ec032851574146f69c9653cb0f1b5da3~mv2.jpg",
+     "alt": "Beige fåtölj i chenille bredvid ett svart sidobord i ett vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "5d7aab1b-ffa8-49e7-8d3e-11cb56e77d38",
+   "val": "5dd6f36d-0adb-4137-87b8-e84491a2a74f",
+   "bilder": [
+    {
+     "fil": "b379ce_d6f2dd88b6fa43009d4f9f9483ff193f~mv2.jpg",
+     "alt": "Mörkbrun matstation för hund med två skålar i rostfritt stål framför en vit gardin"
+    }
+   ]
+  },
+  {
+   "id": "617ce9ff-d5a9-4792-aca7-dc9504650f4a",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "fil": "b379ce_8e7ff4258fb94a1ebb3d5057bf71dc42~mv2.jpg",
+     "alt": "Grå tvåsitssoffa med två kuddar och en stickad pläd framför ett runt träbord"
+    }
+   ]
+  },
+  {
+   "id": "62f7cf98-30cd-4908-a3b9-4798c74a475e",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "fil": "b379ce_d7214ac7db84459cbc1140f02de3ece3~mv2.jpg",
+     "alt": "Närbild på klösträdets grå plyschplatta och sisalstolpe"
+    }
+   ]
+  },
+  {
+   "id": "62f7cf98-30cd-4908-a3b9-4798c74a475e",
+   "val": "5dd6f36d-0adb-4137-87b8-e84491a2a74f",
+   "bilder": [
+    {
+     "fil": "b379ce_ff86b3ce05644c57bdeb38e681716433~mv2.jpg",
+     "alt": "Närbild på klösträdets bruna plattform och sisalstolpe"
+    }
+   ]
+  },
+  {
+   "id": "62f7cf98-30cd-4908-a3b9-4798c74a475e",
+   "val": "9357a97e-c8b3-4449-b52c-3c28e9ea2eaf",
+   "bilder": [
+    {
+     "fil": "b379ce_462d7fe2d7674d5fb03a7c5578fbca52~mv2.jpg",
+     "alt": "Närbild på klösträdets beige liggplats och sisalstolpe"
+    }
+   ]
+  },
+  {
+   "id": "63f3a60f-b97f-4d98-820b-1dd89079344a",
+   "val": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+   "bilder": [
+    {
+     "fil": "b379ce_2b9d862088754ec7b55eb95c93437610~mv2.jpg",
+     "alt": "Mörkgrå gungstol i chenille med trägungor i ett rum med en växt och ett litet bord"
+    }
+   ]
+  },
+  {
+   "id": "63f3a60f-b97f-4d98-820b-1dd89079344a",
+   "val": "a7a1041d-4bc7-4f8e-a287-661bc7a1832a",
+   "bilder": [
+    {
+     "fil": "b379ce_54d9d481c9994110afb41812c7a85d68~mv2.jpg",
+     "alt": "Gul gungstol i chenille med trägungor i ett rum med en växt och ett litet bord"
+    }
+   ]
+  },
+  {
+   "id": "63f3a60f-b97f-4d98-820b-1dd89079344a",
+   "val": "c1a15946-f168-4f58-925f-c98320a34117",
+   "bilder": [
+    {
+     "fil": "b379ce_440c95512419460b975ee619c1e7dda8~mv2.jpg",
+     "alt": "Krämvit gungstol i chenille med trägungor i ett rum med en växt och ett litet bord"
+    }
+   ]
+  },
+  {
+   "id": "667ca8f9-5d13-4a0b-9931-3a35fe562013",
+   "val": "14b99ed4-adaa-4d5d-8368-b31ab532a328",
+   "bilder": [
+    {
+     "fil": "b379ce_d2807724d75443fab0fd61571080d0d7~mv2.jpg",
+     "alt": "Närbild på den grå klädseln där en hand trycker mot det mjuka tyget"
+    }
+   ]
+  },
+  {
+   "id": "691ffc27-9088-432a-b271-5cb07b8c9254",
+   "val": "c1a15946-f168-4f58-925f-c98320a34117",
+   "bilder": [
+    {
+     "fil": "b379ce_22e767f1c9ae4f0a8001decbca171c43~mv2.jpg",
+     "alt": "Krämvit minibakugn där en hand i ugnsvante tar ut en plåt med rostad mat, bröd på en skärbräda bredvid"
+    }
+   ]
+  },
+  {
+   "id": "6ae821eb-72b6-4dda-9479-fb5db941d9ab",
+   "val": "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb",
+   "bilder": [
+    {
+     "fil": "b379ce_d38dd5215613476086fd59edd965067f~mv2.jpg",
+     "alt": "Svart tvättkorg i bambu med lock i ett badrum bredvid en pall med handdukar"
+    }
+   ]
+  },
+  {
+   "id": "73addc4e-5ee3-46ca-89a1-250ba636329b",
+   "val": "a2f396b7-2677-42b3-870a-5b426b2add4c",
+   "bilder": [
+    {
+     "fil": "b379ce_5ded0af5bd754972b4aa0a6cc3d233c2~mv2.jpg",
+     "alt": "Vitt medicinskåp på väggen med öppna dörrar och hyllor med förpackningar, under det ett litet badrumsskåp i trä"
+    }
+   ]
+  },
+  {
+   "id": "749372df-1cfa-4663-a971-6b926fc6ff73",
+   "val": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+   "bilder": [
+    {
+     "fil": "b379ce_84d8a0c4f5ac4286a8b902695fe6023d~mv2.jpg",
+     "alt": "Mörkgrå bäddsoffa utfälld till säng på en matta i ett vardagsrum"
+    }
+   ]
+  },
+  {
+   "id": "7b62aa26-984a-4ab1-ae2c-b0fc057639a0",
+   "val": "92fb97f1-bb71-4335-8f6c-623e9905d8a0",
+   "bilder": [
+    {
+     "fil": "b379ce_35231dc109ac4db7b265ab29a8706840~mv2.jpg",
+     "alt": "Barn i rosa hjälm kör en rosa elmotorcykel med stödhjul framför ett tegelhus"
+    }
+   ]
+  },
+  {
+   "id": "825c51f5-1620-4ca1-9385-30eefb851562",
+   "val": "44ccec77-b49d-4180-90ef-711b369f63cd",
+   "bilder": [
+    {
+     "fil": "b379ce_2cd4ff29b58f47d39adcd2e49bf5e6d7~mv2.jpg",
+     "alt": "Brun stol med nedfälld rygg och utdraget fotstöd mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "825c51f5-1620-4ca1-9385-30eefb851562",
+   "val": "7909f4e8-9ca7-4f3c-91cf-8627290e363d",
+   "bilder": [
+    {
+     "fil": "b379ce_f5a50a7a09f14ccea0f33b1ef74a6f42~mv2.jpg",
+     "alt": "Närbild på den mörkgrå stolens armstöd och sida"
+    }
+   ]
+  },
+  {
+   "id": "825c51f5-1620-4ca1-9385-30eefb851562",
+   "val": "c1a15946-f168-4f58-925f-c98320a34117",
+   "bilder": [
+    {
+     "fil": "b379ce_5bfc664fa0b944e98b60065d7024cf03~mv2.jpg",
+     "alt": "Krämvit stol med fotstöd vid ett skrivbord med en dator och en bokhylla"
+    }
+   ]
+  },
+  {
+   "id": "84e3794d-ace2-45d4-bf2b-886d04c5ff6e",
+   "val": "20ef7dad-c438-4e47-9613-bda7765b7d17",
+   "bilder": [
+    {
+     "fil": "b379ce_b106e6435e60459087d689e4bdb76be8~mv2.jpg",
+     "alt": "Gräddvit fåtölj med utfällt fotstöd i ett vardagsrum bredvid ett litet träbord"
+    }
+   ]
+  },
+  {
+   "id": "85be4535-94d4-449d-adb2-7df734e2283c",
+   "val": "369894e9-ff96-40eb-9cc6-dc3d526d19eb",
+   "bilder": [
+    {
+     "fil": "b379ce_7e359d71f2544247baae778390d964dc~mv2.jpg",
+     "alt": "Pojke med hjälm och knäskydd kör en blå sparkcykel på en gångväg bredvid blommor"
+    }
+   ]
+  },
+  {
+   "id": "85be4535-94d4-449d-adb2-7df734e2283c",
+   "val": "92fb97f1-bb71-4335-8f6c-623e9905d8a0",
+   "bilder": [
+    {
+     "fil": "b379ce_3820a32301ba49f79723cd345dd4fe98~mv2.jpg",
+     "alt": "Rosa sparkcykel med svart fotplatta mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "85be4535-94d4-449d-adb2-7df734e2283c",
+   "val": "a2f396b7-2677-42b3-870a-5b426b2add4c",
+   "bilder": [
+    {
+     "fil": "b379ce_7983be66e10044ce8f351b8436499a61~mv2.jpg",
+     "alt": "Kvinna och barn med hjälm vid en vit sparkcykel på en gångväg i en park"
+    }
+   ]
+  },
+  {
+   "id": "8b04789b-cead-45e5-a4de-c414ac9f9e1a",
+   "val": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+   "bilder": [
+    {
+     "fil": "b379ce_057caedb7e224a988e2a1848b7b8fe5d~mv2.jpg",
+     "alt": "Röd trampgokart för barn på en stengång vid en gräsmatta"
+    }
+   ]
+  },
+  {
+   "id": "8b04789b-cead-45e5-a4de-c414ac9f9e1a",
+   "val": "a2f396b7-2677-42b3-870a-5b426b2add4c",
+   "bilder": [
+    {
+     "fil": "b379ce_0e26ee598a8f4cdda970fdbb86531e90~mv2.jpg",
+     "alt": "Vit trampgokart för barn på en stengång vid en gräsmatta"
+    }
+   ]
+  },
+  {
+   "id": "8b04789b-cead-45e5-a4de-c414ac9f9e1a",
+   "val": "f4f0198e-63ef-4fb4-89ab-6fa2e590ddbb",
+   "bilder": [
+    {
+     "fil": "b379ce_d3233bd421d0431ebfc191c22ce1c32d~mv2.jpg",
+     "alt": "Svart trampgokart för barn på en stengång vid en gräsmatta"
+    }
+   ]
+  }
+ ]
+}

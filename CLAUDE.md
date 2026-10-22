@@ -2991,6 +2991,21 @@ fem måttbilder: fåtöljen `70d0a9ea` Brun anger fotpallen som 46 × 50 cm mot 
 foton som låg två gånger i samma vy togs bort (`c5f3914e`, `c841717c`, `d27a28ae`, galleri 9 → 8, 15 → 14 och 8 → 7), och den grå
 hamsterburens måttbild på `92ef25c9` länkades till Grå med `lank-om-bilder.js` (Grå 4 → 5, Naturträ 6 → 6, 0 avvikelser; `variantbild` rättade 1).
 
+**Feedomgång 9 (2026-10-22, `tools/polish-assets/fargtillagg-9/`):** 25 sidor valdes och 22 skrevs: 34 färger och 48 bilder (alla feedbilder, inga
+utsnitt) skrevs 04:09–04:11 UTC i en omgång, och live-kontrollen blev **ALLT OK**. Alla 34 skrivna färgvyer stod på fyra bilder före och fick fler:
+21 har nu fem, 12 sex och en sju, alltså 136 bilder före och 184 efter. På de 25 sidorna gick vyerna med fyra bilder eller färre från 40 till 7
+(bilderna i alla vyer 344 → 388). Av 91 kandidater (35 på position 10, 30 på 3 och 26 på 9) valdes 48, 18 ströks och 25 var samma foto som färgens
+nuvarande. Valda per feedposition, utan dubbletterna: **33 av 35 på position 10**, 4 av 9 på 9 och 11 av 22 på 3 (måttbilder). De 18 strukna: tysk text i en
+måttbild (tio, *Empfohlenes Alter*, *Gewichtslimit*), tyska säljgrafiker (*Mehr Details*, tre på `1dfa992a`), leverantörens logotyp (*PawHut* över en
+måttbild, *Outsunny* med en engelsk lapp), höstpumpor runt bilen (två på `2f6ff71c`, position 10) och kastruller och stekpannor på en leksaksspis som sidans
+text inte nämner. Tre sidor fick ingenting: `0f83c211` (Röd saknas i flödet), `2f31a1d9` (alla positioner låg redan i galleriet) och `2f6ff71c` (allt struket
+eller dubbletter), och Brun och vit samt Grön och vit på `1dfa992a` står kvar på fyra. Tre saker utöver omgång 8: **(1)** `ocr-live.py` på FÖRE-läget fann tre tyska säljgrafiker
+på två publicerade sidor: två på `0f83c211` Grön (vyn gick från fem till tre) och en på `2f6ff71c` Orange (till tre). `live-dubbletter.py` fann dessutom en
+nästan identisk torktumlarbild på `2517c54b` Grå (pixelskillnad 4,6, alltså över gränsen 3 i lärdom 104, och bedömd med ögonen som samma foto, vyn gick till
+fem). Fyra bilder på tre av de 25 sidorna (12 procent) togs bort med `bilder-bort.yml` före skrivningen, och en vy kan alltså falla under fyra av just det
+skälet; **(2)** en vy som tappar en felbild har ingen ersättning att hämta när feeden saknar färgen eller redan är uttömd, och den står då på sitt nya antal
+(`0f83c211` Grön och `2f6ff71c` Orange på tre) tills Leonard beslutar om ett utsnitt; **(3)** position 10 gav 33 av 35 och ligger nu på 174 av 178 över omgång 5–9.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
