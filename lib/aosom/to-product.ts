@@ -234,7 +234,7 @@ function cleanHtml(html: string): string {
   return html.replace(BRAND_PLACEHOLDER, "").replace(/[ \t]{2,}/g, " ").trim();
 }
 
-function htmlToText(html: string): string {
+export function htmlToText(html: string): string {
   return decodeEntities(
     html
       .replace(/<\s*br\s*\/?>/gi, "\n")

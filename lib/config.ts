@@ -27,6 +27,16 @@ export function eurToSekFromEnv(): number {
   return num("EUR_TO_SEK", 11.1);
 }
 
+/**
+ * EUR → DKK, för det danska priset (lib/aosom/landsortiment.ts). Kronan är
+ * bunden till euron i ERM II med centralkursen 7,46038 och ett band på
+ * ±2,25 %, så kursen rör sig några öre. Sätt EUR_TO_DKK i miljön om den
+ * ändå glider.
+ */
+export function eurToDkkFromEnv(): number {
+  return num("EUR_TO_DKK", 7.46);
+}
+
 /** Läser prissättningskonfig från miljön (med rimliga defaults). */
 export function pricingConfigFromEnv(): PricingConfig {
   return {

@@ -32,10 +32,13 @@ import { aosomArtiklarPaRaden } from "./artiklar";
 import { arVerkligFrakt, harVerkligSeFrakt, type AosomRow } from "./feed";
 import { MIN_FEED_RADER } from "./sync";
 
-/** Svenska namn på feedens länder (2026-09-15). En okänd kod visas som koden. */
+/**
+ * Svenska namn på feedens länder (2026-09-15). En okänd kod visas som koden.
+ * Schweiz kom till i feeden mellan 2026-09-15 och 2026-10-22.
+ */
 const LANDNAMN: Readonly<Record<string, string>> = {
   AD: "Andorra", AL: "Albanien", AT: "Österrike", BA: "Bosnien och Hercegovina",
-  BE: "Belgien", BG: "Bulgarien", CY: "Cypern", CZ: "Tjeckien", DE: "Tyskland",
+  BE: "Belgien", BG: "Bulgarien", CH: "Schweiz", CY: "Cypern", CZ: "Tjeckien", DE: "Tyskland",
   DK: "Danmark", EE: "Estland", ES: "Spanien", FI: "Finland", FO: "Färöarna",
   FR: "Frankrike", GI: "Gibraltar", GR: "Grekland", HR: "Kroatien", HU: "Ungern",
   IE: "Irland", IT: "Italien", LT: "Litauen", LU: "Luxemburg", LV: "Lettland",
@@ -77,7 +80,7 @@ export interface UrvalMatt {
 }
 
 /** Kvantil ur en sorterad lista, med linjär interpolation. Tom lista ger null. */
-function kvantil(sorterad: readonly number[], p: number): number | null {
+export function kvantil(sorterad: readonly number[], p: number): number | null {
   if (sorterad.length === 0) return null;
   const pos = (sorterad.length - 1) * p;
   const lag = Math.floor(pos);
@@ -85,11 +88,11 @@ function kvantil(sorterad: readonly number[], p: number): number | null {
   return sorterad[lag] + (sorterad[hog] - sorterad[lag]) * (pos - lag);
 }
 
-function tvaDecimaler(n: number | null): number | null {
+export function tvaDecimaler(n: number | null): number | null {
   return n === null ? null : Math.round(n * 100) / 100;
 }
 
-function procent(del: number, av: number): number | null {
+export function procent(del: number, av: number): number | null {
   return av === 0 ? null : Math.round((del / av) * 1000) / 10;
 }
 
