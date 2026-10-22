@@ -3337,6 +3337,65 @@ Tre egenskaper som inte ska tas bort:
 3. ⚠️ **Live-mätningens etiketter är butikens, planens är Wix.** Projektorduken `422ab1bd` heter 92 och 85 tum i Wix men visas som 234 och 216 cm i butiken. Skriptet
    matchar valet på Wix namn, och den privata live-filen får döpas om till dem (`cowork-granska.py` matchar etiketten och säger till när den inte hittar valet).
 
+**Omgång 2, rad 6–54 (fyra block, bifogade som filer).** Chatten svarade på 49 rader. Rad 45 och 46 gav *färgen saknas* (färgväljaren på aosom.de hade inte
+färgen, så `a57587a8` Rosa och `9304f8b8` Brun står kvar utan tillägg). De andra 47 raderna gav 551 bilder i full storlek, och infobannern var redan bortlagd (`antal` är
+1–2 högre än antalet adresser, som förut). Granskat som provomgången (`cowork-granska.py`, OCR, kontaktark och mina egna ögon på varje ark):
+
+| | bilder |
+| :-- | --: |
+| kandidater på 47 rader | 551 |
+| redan i vyn (avstånd högst 12) | 136 |
+| lika en bild i en annan färgs vy (samma pose i en annan färg, alltså ny för den här om ögat inte ser en nästan-dubblett i vyn) | 10 (fem valda, fem strukna) |
+| nya | 405 |
+| **valda och skrivna** | **72** på 44 rader (28 sidor) |
+
+☠️ **Positionen avgör igen.** Plats 11 och 12 gav 50 av 67 kandidater (35 av 42 respektive 15 av 25), medan plats 1–10 bara gav 19 av 470 (13 av dem på plats 2, 3 och 9:
+bilder som varken importen eller poleringen lagt på sidan) och plats 13 och uppåt 3 av 14. Allt på plats 4–8 är som förut tyska och engelska säljgrafiker. Tre rader gav
+ingenting: `0926604b` Röd (allt rent låg redan i vyn), `91f5c078` Mörkgrå · 205 cm (k1 och k10 fanns, resten bär *Nur Schaukelabdeckung* eller tysk text) och `c131b430` Grå
+(måttbilden fälldes i omgång 7, och k10 är en nästan-dubblett).
+
+Åtta saker som gäller nästa block:
+
+1. ☠️ **Parallella uppladdningar får HTTP 429 av Aosoms bildserver.** Tre `UploadImageToWixSite`-anrop med 25, 25 och 21 adresser samtidigt gav elva `success: false` i det
+   sista (*Failed to import image from URL (HTTP 429)*, en post per adress). De elva i ett eget anrop direkt efteråt gick igenom. Läs `success` på varje post, ladda upp ett
+   anrop i taget och lägg bara om de adresser som föll. `cowork-ladda.py para` stoppar på en saknad fil, så ingenting skrivs utan att märkas.
+2. ☠️ **Aosoms färgfält kan vara fel, och bilderna avgör.** Chatten flaggade rad 26 (frukostsetet `bc2368af`: sidan sa Beige, men titeln, artikelnumrets färgkod och alla bilder
+   var det grå setet), rad 40 (hundbädden `01ac2f63`: fältet sa Svart, Vit, Brun, bilderna är den gråa) och rad 43 (Cremeweiß är bara ett annat ord för Krämvit). På rad 26 är det
+   bildernas avstånd mot vår gråa vy som bevisar färgen (k1, k2 och k10 låg där med avstånd 0). Stryk aldrig en rad på färgfältet ensamt.
+3. ☠️ **`FINNS?` mot en annan färgs vy är samma pose i en annan färg, alltså en ny bild för den här.** dHash är gråskala. Regnscenen på hundvagnen `d27a28ae` låg i Grås vy
+   med grå vagn, och chattens bild var samma scen med blå vagn: den är Blås egen och valdes. Tvärtom stryks en bild som är samma färg och nästan samma pose som en bild i vyn
+   (nio gånger: hundgrindarnas smala och breda uppställning på `5fa26137` och `6eb13a16`, samma packshot med och utan massagepunkter på kontorsstolen `6e810d9c` (tre färger),
+   fotstödet i ett något annat läge på `4439afff` och `db13253d`, och trehjulingen `a76e97f1` med och utan minicykeln i hörnet). Avståndet avgör inte (de låg över gränsen 12), ögat gör det.
+   ☠️ **Jag läste själv fel på etiketten en gång.** Cykelkärrans `1004b036` Svart k12 stod som `FINNS g=… (annan vy/gemensam)` och hoppades över som om den redan låg i
+   vyn, men var ett nytt, rent packshot av den svarta och gråa kärran mot vit botten. Den hittades när jag gick igenom alla tio kandidater med den etiketten (en bild i taget mot
+   färgens egen vy), laddades upp och skrevs 22:50 UTC (galleri 19 → 20, Svart 4 → 5, 0 avvikelser, `variantbild.yml` rättade 1 av 1, live ALLT OK 22:54). Det var den enda missen
+   av de tio. `(i vyn)` betyder *i den här färgens vy*. `(annan vy/gemensam)` betyder att närmaste träff inte är det, och då ska ögat jämföra med färgens egen vy innan bilden
+   hoppas över. `granskning.tsv` skiljer därför `finns i vyn` (136) från `liknar annan färgs vy` (10).
+4. ☠️ **Måttbilder och tillbehör kontrolleras mot sidtexten innan de skrivs** (`kolla-tal-mot-text.js`, ren läsning). Gamingfåtöljens `6575766f` alla tal står i texten (maxbelastning 120 kg),
+   och kontorsstolens `6e810d9c` Grå och Ljusbruna anger fler mått än texten (höjd 107–116 cm) men inget som säger emot. **Krämvit anger sitthöjd 45–55 cm mot sidans 46–56 och stryks.**
+   Hundbädden `01ac2f63` har ett foto på en bärväska, men texten nämner ingen väska (noll träffar på väska, påse och ryggsäck), så bilden lovar mer än sidan säljer och stryks.
+5. **Säsongsmotiv stryks som höstpumporna:** studsmattans julgran och present i bakgrunden (`39319e6c`, plats 10) kom inte med.
+6. ⚠️ **Ett gränsfall är taget med och flaggat:** cykelkärran `1004b036` Svart fick två nya foton, kvinnan på elcykeln vid sjön och ett packshot (punkt 3). I det första säger en skylt *Radweg* och
+   *Gemeinsam mehr erleben* (tysk text på en rekvisita, ungefär 3 % av bilden). Autostrykningen på textyta hade tagit bort den. Jag tog med den eftersom den är en skylt i ett foto och
+   runbooken släpper text på rekvisita, men Leonard avgör (se FLAGGADE, öppna frågor). Märken som sitter tryckta på varan (*Vinsetto*, *PawHut*, *Outsunny*) stryks inte, men en
+   bild där loggan är motivet gör det (närbilderna på nackkudden hos gamingfåtöljen `6575766f` och på lumbarkudden hos gamingstolen `4439afff`).
+7. **Tvåaxliga sidor skrivs med färglänken ensam** (`91f5c078`, `6eb13a16`, `01ac2f63`, `8bc0dd26`). Hammocköverdragets nya bilder (rad 31, 177 cm) är miljöfoton utan tal, och
+   177 cm-artikelns packshots lades inte till eftersom vyn redan har 205 cm-artikelns.
+8. **Samma pose i två färgers svar är normalt** (frukostsetet, gamingfåtöljen, trampolinen, elbilarna). Varje fil länkas till sin egen färg (`skriv-fargbilder.js`), och
+   dubblettkontrollen (`live-dubbletter.py`) jämför bara inom en färgvy.
+
+**Skrivet 22:33–22:36 UTC** (efter Aosoms prisfönster 21:12–21:29, före lagerfönstret 00:12): `skriv-fargbilder.js`, åtta sidor per körning i fyra körningar, 28 av 28 sidor
+återlästa utan avvikelse (galleri, länkar, variant-id, SKU, pris, synlighet, andra optioners länkar), revision +2 per sida. `variantbild.yml` (skarp, `ids`, 22:37 UTC): **28 kontrollerade,
+28 rättade**, 0 avvikelser (varukorgens bild per färg var fel på alla 28, som efter varje skrivning som rör galleriet). **Live 22:39–22:41 UTC** (`live-par.sh`, `kolla-live-farg.py`): **ALLT OK på 28 av 28 sidor**, varje tillagd fil syns i sin egen färgs vy och i ingen annans. De 44 färgvyerna gick från 130 till 202 bilder (tre på två, 40 på tre och en på fyra före; efteråt två på tre, 25 på fyra, 13 på fem, en på sex, två på åtta och en på nio), så 42 av 44 når fyra eller fler. Den 72:a bilden (kärran `1004b036` Svart, se punkt 3) skrevs 22:50 UTC, `variantbild.yml` rättade 1 av 1, och live 22:54 visade fem bilder i Svarts vy utan dubblett; mätningen 22:39–22:41 gjordes före den. De som står kvar på tre är växthusduken `a706542f` Vit och stolsdynorna `e76a4098` Ljusgrå, där chattens svar bara hade en ren ny bild. `live-dubbletter.py` fann ingen dubblett i en vy vi rört (ett par *likt men olika* i Svart på kontorsstolen `db13253d`, som vi inte rörde). ⚠️ **Butikens cache hade fyra av 28 sidor på gamla vyer fyra minuter efter skrivningen** (de som skrevs sist, 22:36): `kolla-live-farg.py` sa *saknas* på de fyra, och en omätning ett par minuter senare var rätt. Mät om bara de sidor som saknar filer innan du kallar dem trasiga.
+
+**OCR över alla färgvyer** (`ocr-live.py`, 22:43–22:51 UTC, 367 unika bilder i de 44 vyerna, bara läsning, körd före den 72:a bilden): 171 REN, 38 SIFFROR och 158 TEXT. Jag tittade på
+de 22 träffar som kunde vara främmande text, på kontaktark. **Ingen tysk eller engelsk säljgrafik ligger på någon av de 44 vyerna.** Träffarna är märken och dekaler tryckta på varan
+(*HOMCOM*, *Outsunny*, *Vinsetto*, *PawHut*, *DEFENDER*, *DISCOVERY LAND ROVER*, *RS e-tron GT*, *TRICYCLE*, *Kart TOP DRIVER*), knappar och display på apparater (*CANCEL/DEFROST*,
+*HIGH SPEED/LOW SPEED*, *Intensity* på en fjärrkontroll), text på rekvisita (bokryggar, en affisch med *Street Food*, figurinaskar, ett bildspel på en projektorduk) och våra egna
+svenska kort (studsmattan `39319e6c`, elbilen `2f6ff71c`). Det enda engelska som sitter som en etikett är papperslappen på den hopvikta växthusduken hos `faa2bdb4` Vit och Grön
+(*REPLACEMENT WALK-IN GREENHOUSE HEAVY DUTY COVER*), men den sitter på varan i fotot och låg på sidan före omgången. Den tyska skylten i kärrans foto (`1004b036`) är den enda
+tyska text den här omgången själv lagt till (punkt 6).
+
 ### Delade måttbilder på storleksidor visas under fel storlek (2026-10-22)
 
 Leonards skärmbild 22:31 (svensk tid) av skrivbordet `041fa621`: under 200 × 60 cm visades måttbilden för 180 × 60 cm. Den låg olänkad i galleriet (bild 8, alt-texten
