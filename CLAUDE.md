@@ -3323,7 +3323,7 @@ Fyra egenskaper som inte ska tas bort:
    foto vars färg inte är sidans stryks. `picks.json` är det som är valt efter att ha tittat på kontaktarken, aldrig en lista som OCR gett.
 4. **En plan per sida.** Flera rader på samma sida samlas i en skrivning, annars krockar revisionerna.
 
-✅ `axel: "Storlek"` i `skriv-fargbilder.js` är provad torrt på tre riktiga sidor (2026-10-22 ca 20:50 UTC, `TORR = "fake"`, påhittade fil-id, ingenting skrivet), men
+✅ `axel: "Storlek"` i `skriv-fargbilder.js` är provad torrt på tre riktiga sidor (2026-10-22 ca 20:42 UTC, `TORR = "fake"`, påhittade fil-id, ingenting skrivet), men
 ännu inte skriven på någon. På en sida med ett enda val som inte är färg gäller butikens regel ovan: en länkad bild visas bara för det första val som länkar den, så en
 ny storleksbild länkas till sin storlek och syns bara där, och en olänkad bild (`"gemensam": true` i picks.json) visas för alla storlekar. **Vymodellen stämmer: 151 av 151
 val på de 67 sidorna i fil 2** (live-mätt med `live-par.sh` mot `vyerAv` i skriptet; alla 67 har en enda option och alla 151 val har minst en egen länkad bild).
