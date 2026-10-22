@@ -18,7 +18,7 @@ En uppresningsfåtölj är en vilfåtölj som hjälper dig upp. Med en knapptryc
 [![Samma fåtölj i lyftläget, där sitsen har lyfts och tippats framåt och kvinnan reser sig](https://static.wixstatic.com/media/b379ce_f4d408157cca45debcfe8a37458f058b~mv2.jpg)](/produkt/uppresningsfatolj-massage-varme-beige "Hjälper dig upp")
 [![Samma fåtölj tillbakalutad med fotstödet uppe, där kvinnan vilar med slutna ögon](https://static.wixstatic.com/media/b379ce_efaa998f1cef4e0285cda8ab0f75dd62~mv2.jpg)](/produkt/uppresningsfatolj-massage-varme-beige "Vilar tillbakalutad")
 
-Just nu har vi 36 uppresningsfåtöljer. Sitsen ligger 44,5–51 cm över golvet, och fåtöljerna bär 120–200 kg, lyfter 18–60° framåt och fälls bakåt till 135–180°. Den här guiden hjälper dig att välja efter kroppen, rummet och vad fåtöljen ska användas till. Alla mått kommer från våra produktsidor.
+Just nu har vi 36 [uppresningsfåtöljer](/kategori/uppresningsfatoljer) i lager. Sitsen ligger 44,5–51 cm över golvet, och fåtöljerna bär 120–200 kg, lyfter 18–60° framåt och fälls bakåt till 135–180°. Den här guiden hjälper dig att välja efter kroppen, rummet och vad fåtöljen ska användas till. Alla mått kommer från våra produktsidor.
 
 ## Snabbval: vilken uppresningsfåtölj passar dig?
 
@@ -34,7 +34,7 @@ Just nu har vi 36 uppresningsfåtöljer. Sitsen ligger 44,5–51 cm över golvet
 | vill ha benen uppe och ryggen rak | två motorer | rygg och fotstöd var för sig |
 | vill ha massage och värme | vibration och ländvärme | 8 punkter, upp till 9 program |
 
-[![Måttbild: en uppresningsfåtölj från sidan när du sitter, reser dig och vilar. Sitsen ligger 44,5–51 cm över golvet, i lyftläget lutar fåtöljen 18–60° framåt och blir 125–146 cm hög, och utfälld är den 144–183 cm lång med 17–60 cm till väggen och ryggen fälld 135–180°](/blog-uppresningsfatolj-matt.webp)](/sok?q=uppresningsf%C3%A5t%C3%B6lj "Se alla uppresningsfåtöljer")
+[![Måttbild: en uppresningsfåtölj från sidan när du sitter, reser dig och vilar. Sitsen ligger 44,5–51 cm över golvet, i lyftläget lutar fåtöljen 18–60° framåt och blir 125–146 cm hög, och utfälld är den 144–183 cm lång med 17–60 cm till väggen och ryggen fälld 135–180°](/blog-uppresningsfatolj-matt.webp)](/kategori/uppresningsfatoljer "Se alla uppresningsfåtöljer")
 
 ## Så fungerar en uppresningsfåtölj
 
@@ -344,4 +344,4 @@ Mekanismen under fotstödet kan klämma. Kör inte fåtöljen när barn eller dj
 
 ## Sammanfattning
 
-Börja med kroppen och sedan rummet. Mät knäveckshöjden och välj en sits på ungefär samma höjd, kontrollera att fåtöljen bär din vikt med marginal, och välj ett lyft på 45° eller mer om det är tungt att resa sig. Mät sedan väggavståndet, längden utfälld och höjden i lyftläget, och ställ fåtöljen nära ett eluttag. Alla 36 finns bland våra [fåtöljer](/kategori/fatoljer), och de flesta med massage också under [Massage & Återhämtning](/kategori/massage-aterhamtning). Vill du ha en fåtölj som också blir säng finns guiden till [bäddfåtöljer](/blogg/baddfatolj-kopguide-2026). Fri frakt över 499 kr och 30 dagars öppet köp.
+Börja med kroppen och sedan rummet. Mät knäveckshöjden och välj en sits på ungefär samma höjd, kontrollera att fåtöljen bär din vikt med marginal, och välj ett lyft på 45° eller mer om det är tungt att resa sig. Mät sedan väggavståndet, längden utfälld och höjden i lyftläget, och ställ fåtöljen nära ett eluttag. Alla finns samlade under [Uppresningsfåtöljer](/kategori/uppresningsfatoljer), och fler fåtöljer med massage hittar du under [Massagestolar](/kategori/massagestolar). Vill du ha en fåtölj som också blir säng finns guiden till [bäddfåtöljer](/blogg/baddfatolj-kopguide-2026). Fri frakt över 499 kr och 30 dagars öppet köp.

@@ -87,6 +87,7 @@ const KATEGORIER: Record<string, Rad> = {
   "baddfatoljer": STOLAR,
   "snurrfatoljer": STOLAR,
   "oronlappsfatoljer": STOLAR,
+  "uppresningsfatoljer": STOLAR,
   "pallar": ["sh", "ml", "ky", "eg:hj", "m"],
   "sittpuffar-fotpallar": ["h", "b", "fo", "ky", "m"],
   "matbord-stolar": ["b", "d", "h", "sh", "sp", "fo", "ky", "m"],

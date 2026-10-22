@@ -272,6 +272,33 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
   },
 
+  uppresningsfatoljer: {
+    intro: [
+      "En uppresningsfåtölj hjälper dig upp. Med en knapptryckning lyfts sitsen och tippas framåt, så att du står nästan upprätt innan benen behöver bära hela vikten. Samma kontroll fäller ryggen bakåt och fotstödet ut när du vill vila. De flesta lyfts av en elmotor, och en har en hydraulcylinder i stället.",
+      "Sitthöjden står på varje produktsida, och de flesta har sitsen 45 till 51 cm över golvet. Där lyftvinkeln anges lyfter de flesta 45° framåt. Ryggen fälls bakåt till mellan 135° och 180°, och på fåtöljerna med två motorer ställs rygg och fotstöd var för sig. De flesta bär 120 till 150 kg, och några är byggda för 170 till 200 kg.",
+      "Många har vibrationsmassage i åtta punkter och värme i ländryggen, och flera har USB-uttag, mugghållare och sidofickor för fjärrkontrollen. Klädseln är konstläder eller tyg i linnelook, sammetslook, chenille, manchester, mikrofiber, frotté eller teddyfleece. Mät platsen innan du väljer: ryggen behöver fritt mot väggen när den fälls, och i lyftläget reser sig fåtöljen högre än när du sitter.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
+      {
+        q: "Vad är en uppresningsfåtölj?",
+        a: "En vilfåtölj som lyfter och tippar sitsen framåt, så att det blir lättare att resa sig. Samma kontroll fäller ryggen bakåt till liggläge. De flesta lyfts av en elmotor.",
+      },
+      {
+        q: "Hur hög ska sitsen vara?",
+        a: "Ungefär lika hög som din knäveckshöjd, mätt med skorna på. Sitter du för lågt får knän och höfter arbeta mer innan lyftet hjälper till, och sitter du för högt når fötterna inte golvet. Sitthöjden står på varje produktsida.",
+      },
+      {
+        q: "Behöver en uppresningsfåtölj ström?",
+        a: "Ja. Lyft och liggläge styrs med el, så fåtöljen behöver ett eluttag inom räckhåll för sladden. Vid strömavbrott står den kvar i det läge den har.",
+      },
+      {
+        q: "Vad är skillnaden mellan en och två motorer?",
+        a: "Med en motor följer fotstödet med ryggen. Med två motorer ställer du rygg och fotstöd var för sig, så att du kan ha benen uppe och sitta upprätt.",
+      },
+    ],
+  },
+
   "badrum-hemtextil": {
     intro: [
       "Här finns det som gör badrummet och tvättstugan lättare att använda: medicinskåp med lås, duschpallar och en duschstol, skåp och hyllor för tvätten, tvättkorgar och tvättsorterare i bambu, LED-speglar och en duschmatta i akaciaträ. Till hemtextilen hör mattor, en elektrisk värmefilt och en ställbar kilkudde för sängen.",
@@ -1491,7 +1518,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   "massage-aterhamtning": {
     intro: [
       "Här hittar du massage för hemmet: uppresningsfåtöljer och reclinerfåtöljer med massage, massagefåtöljer med fotpall, massagestolar med utdragbart fotstöd, en gungstol och en schäslong med massage, hopfällbara massagebänkar och massage för ben och fötter med luftkompression.",
-      "En uppresningsfåtölj lyfter och tippar sitsen framåt, så att det blir lättare att resa sig. De flesta här lyfts elektriskt 45 grader, en lyfter 60 grader och en har hydraulisk lyft. Alla har värme och massage i åtta punkter, och ryggen fälls till mellan 135 och 155 grader. Två har uttag för USB-A och USB-C, och den cremevita behöver bara 35 cm fritt mot väggen.",
+      "En uppresningsfåtölj lyfter och tippar sitsen framåt, så att det blir lättare att resa sig. De flesta här lyfts elektriskt 45 grader, en lyfter 60 grader och en har hydraulisk lyft. Alla har värme och massage i åtta punkter, och ryggen fälls till mellan 135 och 155 grader. Två har uttag för USB-A och USB-C, och den cremevita behöver bara 35 cm fritt mot väggen. Alla uppresningsfåtöljer finns också samlade på sidan Uppresningsfåtöljer.",
       "De flesta massagefåtöljer har åtta eller tio vibrationspunkter fördelade över rygg, ländrygg, lår och ben, ryggen fälls till 135 eller 145 grader, och de bär 120 till 160 kg. Flera har en fristående fotpall. Reclinerfåtöljerna fälls till 135 eller 150 grader och har massage i åtta punkter och ländvärme.",
       "Massagestolarna har sex vibrationspunkter, fyra knådpunkter eller tvåpunktsmassage i ländryggen, de flesta har utdragbart fotstöd, och sitthöjden går från 41 till 68 cm. Massagebänkarna har ansiktsöppning, ställs i höjd mellan 59 och 92 cm och bär 130 till 250 kg. Fot- och vadmassagen och benmassagern har luftkompression och värme i tre program och tre styrkor.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -2553,7 +2580,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       "Här finns fåtöljer att luta sig bakåt, gunga eller bara sitta bra i: reclinerfåtöljer och tv-fåtöljer med fotstöd, gungstolar, vilstolar i böjd björk, golvfåtöljer, loungefåtöljer och fåtöljer med lös fotpall. Hit hör också fåtöljer med motor för uppresning och massage, och barnfåtöljer för 3–5 år.",
       "På en reclinerfåtölj fälls ryggen bakåt, ofta till 135° och på biofåtöljen med fjäderkärna ända till 160°, medan fotstödet fälls ut ur framkanten. Räkna med golvytan: tv-fåtöljen som är 96 cm djup upprätt blir 165 cm djup tillbakalutad, och ryggen behöver 30 till 80 cm fritt mot väggen beroende på modell. Många snurrar 360°, och några gungar också när ryggen står upprätt.",
       "Gungstolarna finns i manchester, chenille, teddy och linnelook, flera på medar i böjd bok, och bär 120 till 150 kg. Ställ en gungstol med minst 20 cm fritt bakom, så att medarna kan rulla. Vilstolarna har ram i böjd björk och ett fotstöd i fem lägen, och golvfåtöljen på tygklädd sockel har 37 cm sitthöjd och vrider ett helt varv.",
-      "Uppresningsfåtöljerna lyfter och tippar sitsen framåt upp till 45° med en knapptryckning, så att du nästan står när du reser dig, och en av dem bär 200 kg. Massagefåtöljerna har upp till tio massagepunkter och styrs med fjärrkontroll. Fler modeller finns på sidorna Snurrfåtöljer, Öronlappsfåtöljer, Bäddfåtöljer och Massagestolar.",
+      "Uppresningsfåtöljerna lyfter och tippar sitsen framåt med en knapptryckning, de flesta 45° och en 60°, så att du nästan står när du reser dig, och en av dem bär 200 kg. Massagefåtöljerna har upp till tio massagepunkter och styrs med fjärrkontroll. Fler modeller finns på sidorna Uppresningsfåtöljer, Snurrfåtöljer, Öronlappsfåtöljer, Bäddfåtöljer och Massagestolar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [

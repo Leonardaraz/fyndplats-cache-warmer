@@ -21,7 +21,7 @@ export type MenyGrupp = { rubrik: string; slugs: string[] };
 
 export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
   mobler: [
-    { rubrik: "Vardagsrum", slugs: ["soffor-baddsoffor", "fatoljer", "snurrfatoljer", "oronlappsfatoljer", "baddfatoljer", "massagestolar", "soffbord-smabord", "sidobord", "tv-bankar", "bokhyllor", "sideboards-vitrinskap", "sittpuffar-fotpallar", "rumsavdelare"] },
+    { rubrik: "Vardagsrum", slugs: ["soffor-baddsoffor", "fatoljer", "snurrfatoljer", "oronlappsfatoljer", "baddfatoljer", "uppresningsfatoljer", "massagestolar", "soffbord-smabord", "sidobord", "tv-bankar", "bokhyllor", "sideboards-vitrinskap", "sittpuffar-fotpallar", "rumsavdelare"] },
     { rubrik: "Matplats", slugs: ["matbord-stolar", "matgrupper", "barbord", "pallar"] },
     { rubrik: "Sovrum", slugs: ["sangar-sovrum", "nattduksbord", "byraer", "garderober-kladstall"] },
     { rubrik: "Hall", slugs: ["skoskap-skobankar", "kladhangare-hallmobler"] },
