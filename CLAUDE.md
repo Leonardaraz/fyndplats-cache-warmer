@@ -2960,6 +2960,22 @@ stämmer (115 × 57 × 55 cm). Den grå burens måttbild är olänkad och syns d
 (*HOMCOM* på studsmattan och returnätet, *AIYAPLAY* på sparkcykelns stång) och text på rekvisita (affischer, böcker, kaffepåsar) stryks inte, men
 leverantörens logotyp över en bild (*PawHut* på hundvagnens måttbilder) gör det.
 
+**Feedomgång 7 (2026-10-22, `tools/polish-assets/fargtillagg-7/`):** 21 sidor, 29 färger och 39 bilder (alla feedbilder, inga utsnitt)
+skrevs 02:54–02:57 UTC, och live-kontrollen blev **ALLT OK**. Av de 49 färgvyerna på de 21 sidorna hade 32 fyra bilder eller färre före (18 med
+tre och 14 med fyra) och efteråt 16 (3 med tre och 13 med fyra, 25 med fem och 8 med sex eller fler). 29 vyer fick fler bilder, 19 är
+oförändrade och en fick färre (Vit på `883db249`, 5 till 3, när två publicerade felbilder togs bort före skrivningen). Bilderna i vyerna är 203
+före och 240 efter. Valda per feedposition: 28 av 30 på 10, 5 av 16 på 9, 2 av 29 på 8 och 4 av 14 på 3 (måttbilder). Fyra av de 25 sidorna
+fick ingen bild: `74e737ee` (tysk säljgrafik på position 3 och 8, och skjulet på position 9 var beige), `b920d526` (den enda kandidaten var en
+omkomprimerad kopia av ett foto som redan låg i Röds vy), `faa2bdb4` (båda färgerna: *Nur Folie* och *Only cover included* över bilden) och
+`fdefa04b` (inga kandidater att hämta). Fyra saker utöver omgång 6: **(1)** `kandidater` räknar *uppladdade* filer, inte filer som blivit
+READY: två av 122 slutade `FAILED` hos Wix (Svart på `e6d2e70b`, position 8 och 9; `kand.py` visar dem som `?`) medan loggen sa
+`missar: 0`. De ströks med skälet "importen misslyckades", och `importMediaByUrl` väntar inte på READY (hjälparen finns i
+`lib/wix/bekraftad-bild.ts`, ändringen är inte gjord); **(2)** `live-dubbletter.py` körs på FÖRE-läget också. Efter skrivningen visade den tre
+foton som låg två gånger i samma vy på `c5f3914e`, `c841717c` och `d27a28ae`, och alla tre låg där före omgången; **(3)** sifferkontrollen
+fällde en av fem måttbilder (Grå på `c131b430`: fotringens höjd 24–41 cm mot sidans 33–43), och två måttbilder med tyska ord (*Tassen,
+Familiengröße*, *Schulterhöhe*) ströks; **(4)** en ersättningsduk till ett tunnelväxthus (`d17733fd`, Vit) fick position 10 eftersom sidans text
+säger att bara duken ingår och Gröns vy har motsvarande bild, men positionerna 3, 8 och 9 ströks för *Note: Only cover included* och *Nur Abdeckung enthalten*.
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
