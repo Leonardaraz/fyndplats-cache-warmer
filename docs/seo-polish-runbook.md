@@ -497,6 +497,8 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    föreställer en annan färg: 2026-10-22 visade hundbäddens måttbild på den blå bädden under Brun, och agilityhindrets
    träbågar under Grå. Leonard har fått frågan om sådana bilder ska länkas till sin egen färg (FLAGGADE, lärdom 147). Tills
    han svarat är gemensamma måttbilder standard. Skumklossarnas `d70e483e` måttbild är länkad till sin färg som prov.
+   På fåtöljen `41395340` (T91) fick båda färgerna i stället var sin måttbild: givarens måttbild angav samma tal som sidans
+   text, så den togs med som sista bild och värdens egen länkades till värdens färg med `bygg-lank.py` (FLAGGADE, lärdom 149).
 5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
    `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
    `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras

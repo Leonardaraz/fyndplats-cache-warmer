@@ -2246,7 +2246,9 @@ logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
   agilityhindrets träbågar under Grå, sminkpallens rosa under Vit). Frågan om de ska
   länkas till sin egen färg står hos Leonard (FLAGGADE, lärdom 147). Tills han svarat
   är gemensamma måttbilder standard, och skumklossarnas `d70e483e` måttbild är länkad
-  till sin färg som prov.
+  till sin färg som prov. På fåtöljen `41395340` (T91) fick båda färgerna var sin
+  måttbild: givarens angav samma tal som sidans text och togs med som sista bild, och
+  värdens länkades till värdens färg (FLAGGADE, lärdom 149).
 - **Wix 50 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
   axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
   som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
