@@ -546,6 +546,22 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 > Etikettens **skugga** sträcker sig en bit ovanför pillen och ligger då delvis över varan.
 > Vita där bara pixlar som redan är bakgrund (`min > 200`) — resten är produkt.
 
+### Detaljkort ur sidans egna foton (`paneler.tsv`, 2026-10-22)
+
+När leverantörens övriga bilder inte går att få (gokartarna: artikeln saknades i flödet
+och importens filer var städade) går ett kort att bygga av utsnitt ur sidans egen
+huvudbild. `bygg-kort.py` gör ett rutnät (`card_grid`) av ett kort som står i
+`paneler.tsv`, och kortets rader i `kort.tsv` blir panelernas etiketter, i samma ordning.
+Texten grindas alltså av `gate-kort.py` som spec-korten. Exempel:
+`tools/polish-assets/runda-bilder-gokart-kort/` (`utsnitt.tsv` bär utsnitten).
+
+- **Utsnittet ska ha panelens proportion** (`cardkit.PANEL`, `grid2x2` = 695/489 för fyra
+  paneler), annars zoomar `cover` in.
+- **Etiketten täcker panelens nedre vänstra hörn.** Det etiketten påstår ska synas
+  ovanför den: gokartarnas bälte låg först under etiketten, och utsnittet fick flyttas.
+- Etiketten säger bara det sidans text säger om delen (ratten har tuta och musik,
+  bakhjulet är Ø 28 cm).
+
 
 -----
 
