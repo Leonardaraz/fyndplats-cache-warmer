@@ -3067,6 +3067,16 @@ säljgrafik med leverantörens namn). En färg saknas i flödet (`0f83c211`), oc
 omgång 5–14. Kvar ur `aosom-ordning.tsv` (442 sidor) utan granskade sidor, givarsidorna och `13fe619f`: 99, varav 20 är valda till omgång 15 (som dessutom tar fem
 givarsidor vars färger står kvar på fyra bilder).
 
+**Feedomgång 15 (2026-10-22, `tools/polish-assets/fargtillagg-15/`):** 25 sidor valdes och 23 skrevs: 24 färger och 24 bilder (alla feedbilder, bara
+position 10) skrevs 11:46–11:50 UTC i en omgång (run 39773156590, plan sha `b20081e1…`), och live-kontrollen blev **ALLT OK** (11:57 UTC; golvlampan `08b40e95` och
+klättersetet `638f2110` mättes om med `live-bilder.mjs`, eftersom färgen väljs med kort och inte med en axel). På de 23 sidorna gick färgvyerna med fyra bilder eller färre från 25 av 51
+till 4: 24 vyer fick en bild var och två tappade en felbild. `ocr-live.py` och `live-dubbletter.py` på FÖRE-läget fann två felbilder som togs bort med `bilder-bort.yml` före skrivningen: en
+måttbild med engelsk text (*Delivered in 2 cartons Assemble after 2 cartons have arrived*, `526d7fb5` Grå, 5 → 4) och en exakt dubblett (`b8002629` Svart, plats 2 och 5, pixelskillnad 0,0,
+5 → 4). Position 10 gav 24 av 26: två ströks (en cykelkärra där ingen röd syns i färgen *Svart och Röd*, `5b3d3c58`, och paviljongtaket `60eaf40e` med engelsk säljtext över bilden, textyta 5,6 %),
+och de två sidorna fick ingen bild. Text på rekvisitan (böcker, förpackningar) och märken tryckta på varan (*SPORTnOW* på boxningsstativet, *Mercedes-Benz* på gåbilen) ströks inte. Fyra vyer står
+kvar på fyra: Svart på `3f7ef4a1` och `5a31b710` samt de två där en felbild togs bort. Position 10 ligger nu på 374 av 389 över omgång 5–15, och 79 sidor återstår ur `aosom-ordning.tsv`
+(tolv av dem har redan använt position 10 eller saknas i flödet och går vidare med position 9, 8 och 3).
+
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 
 Leonards uppdrag 2026-10-22: se till att det som skrivits inte raderas av bildstädningen av misstag. Alla skrivna filer ur omgång 1–14
