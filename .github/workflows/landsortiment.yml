@@ -4,9 +4,10 @@ name: Danmark — sortiment och pris per sida (krypterat)
 # i danska kronor (Leonard 2026-10-22, egen kassa med Stripe för Danmark).
 # Logiken står i lib/aosom/landsortiment.ts.
 #
-# ☠️ KUVERTET ÄR OBLIGATORISKT. Listan bär priser och vårt urval, och loggen är
-# PUBLIK. Det finns inget klartextläge. Loggen får bara räknarna: sidor per
-# skäl, etiketterna för el och batterier, och kvoten mot Sverige som median.
+# ☠️ KUVERTET ÄR OBLIGATORISKT. Listan bär priser, vårt urval och utdrag ur
+# Aosoms text, och loggen är PUBLIK. Det finns inget klartextläge. Loggen får
+# bara räknarna: sidor per skäl, etiketterna för el och batterier (starka och
+# breda), och kvoten mot Sverige som median.
 # Samma hybridkryptering som leverantorslankar.yml (RSA-OAEP/SHA-256 på ett
 # slumpat lösenord, AES-256-CBC/PBKDF2 på listan), med listan gzip:ad först.
 #
@@ -106,6 +107,12 @@ jobs:
               "| etikett | Aosom-sidor |",
               "|---|--:|",
               (.signaler.perOrd | to_entries | map(select(.value > 0)) | sort_by(-.value)[] | "| \(.key) | \(.value) |"),
+              "",
+              "Breda ord stoppar inte, men syns med utdrag i listan. \(.svaga.sidorSomKanSaljas) av sidorna som kan säljas har minst ett.",
+              "",
+              "| brett ord | Aosom-sidor |",
+              "|---|--:|",
+              (.svaga.perOrd | to_entries | map(select(.value > 0)) | sort_by(-.value)[] | "| \(.key) | \(.value) |"),
               "",
               "Priset i \(.landnamn) omräknat till kronor, delat med regelpriset i Sverige, på \(.priser.jamforda) artiklar som kan säljas: median \(.priser.kvotMedian), kvartiler \(.priser.kvotP25) till \(.priser.kvotP75). Lägre än i Sverige på \(.priser.lagreAnSverigePct) %."
             ' svar.json

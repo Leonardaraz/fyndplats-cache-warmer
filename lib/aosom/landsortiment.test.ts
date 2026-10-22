@@ -10,6 +10,7 @@ import type { AosomRow } from "./feed";
 import { UnderlagetOfullstandigt } from "./frakt-per-land";
 import {
   arSaljland,
+  MAX_UTDRAG_PER_SIDA,
   matLandsortiment,
   regelprisILand,
   regelprisSverige,
@@ -161,6 +162,8 @@ describe("matLandsortiment", () => {
         ok: true,
         skal: [],
         signaler: [],
+        svaga: [],
+        utdrag: [],
         artiklar: [{ variant: null, iLager: true, prisLokal: 1239, regelprisSek: 1999, kvot: 0.909 }],
       },
     ]);
@@ -212,6 +215,68 @@ describe("matLandsortiment", () => {
     // Uteslutna sidor räknas inte in i priserna.
     expect(svar.sammanfattning.priser.jamforda).toBe(0);
     expect(svar.sammanfattning.priser.kvotMedian).toBeNull();
+  });
+
+  it("ett brett ord stoppar inte sidan, men syns med utdrag och räknas", async () => {
+    const { sammanfattning: s, lista } = await matLandsortiment(
+      "DK",
+      deps({
+        hamtaFlodet: async () =>
+          flode(
+            rad("TEST-0001", 100, { SE: 20, DK: 10 }, {
+              name: "Sofa mit Seitentaschen",
+              bulletsHtml: "<li>Seitentaschen für Fernbedienungen und Zeitschriften</li>",
+            }),
+          ),
+      }),
+    );
+    expect(lista[0]).toMatchObject({ ok: true, signaler: [], svaga: ["Fjärrkontroll"] });
+    expect(lista[0].utdrag).toEqual([
+      { ord: "Fjärrkontroll", stark: false, text: expect.stringContaining("Seitentaschen für Fernbedienungen") },
+    ]);
+    expect(s.svaga.perOrd).toMatchObject({ Fjärrkontroll: 1, LED: 0 });
+    expect(s.svaga.sidorSomKanSaljas).toBe(1);
+  });
+
+  it("ett brett ord på en artikel räknas som starkt när en annan artikel har det starkt", async () => {
+    const sammanslagen = mappning({
+      wixProductId: "wix-1",
+      supplierProductId: "aosom:TEST-0001",
+      variants: [
+        { wixVariantId: "v1", supplierVariantId: "TEST-0001" },
+        { wixVariantId: "v2", supplierVariantId: "TEST-0006" },
+      ] as ProductMappingRecord["variants"],
+    });
+    const { sammanfattning: s, lista } = await matLandsortiment(
+      "DK",
+      deps({
+        hamtaFlodet: async () =>
+          flode(
+            rad("TEST-0001", 100, { SE: 20, DK: 10 }, { bulletsHtml: "<li>Taschen für Fernbedienungen</li>" }),
+            rad("TEST-0006", 100, { SE: 20, DK: 10 }, { bulletsHtml: "<li>Verstellbar per Fernbedienung</li>" }),
+          ),
+        listaMappningar: async () => [sammanslagen],
+      }),
+    );
+    expect(lista[0]).toMatchObject({ ok: false, signaler: ["Fjärrkontroll"], svaga: [] });
+    expect(lista[0].utdrag.map((u) => [u.ord, u.stark])).toEqual([["Fjärrkontroll", true]]);
+    expect(s.svaga.perOrd.Fjärrkontroll).toBe(0);
+    expect(s.svaga.sidorSomKanSaljas).toBe(0);
+  });
+
+  it("utdragen är högst MAX_UTDRAG_PER_SIDA, de starka först", async () => {
+    const mycket =
+      "Akku, Knopfzelle, wiederaufladbar, kabellos, Solarleuchte, elektrisch, Strom, Netzteil, Ladekabel, USB, Volt, Watt, Motor, Kompressor, LED, Lampenschirm";
+    const { lista } = await matLandsortiment(
+      "DK",
+      deps({
+        hamtaFlodet: async () =>
+          flode(rad("TEST-0001", 100, { SE: 20, DK: 10 }, { descriptionHtml: `<p>${mycket}. Ruhe ohne Geräusche.</p>` })),
+      }),
+    );
+    expect(lista[0].utdrag).toHaveLength(MAX_UTDRAG_PER_SIDA);
+    expect(lista[0].utdrag.every((u) => u.stark)).toBe(true);
+    expect(lista[0].signaler.length).toBeGreaterThan(MAX_UTDRAG_PER_SIDA);
   });
 
   it("vårt svenska namn räcker för att stoppa en sida, även när Aosoms text är tom på el", async () => {
