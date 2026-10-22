@@ -2976,6 +2976,21 @@ fällde en av fem måttbilder (Grå på `c131b430`: fotringens höjd 24–41 cm 
 Familiengröße*, *Schulterhöhe*) ströks; **(4)** en ersättningsduk till ett tunnelväxthus (`d17733fd`, Vit) fick position 10 eftersom sidans text
 säger att bara duken ingår och Gröns vy har motsvarande bild, men positionerna 3, 8 och 9 ströks för *Note: Only cover included* och *Nur Abdeckung enthalten*.
 
+**Feedomgång 8 (2026-10-22, `tools/polish-assets/fargtillagg-8/`):** 26 sidor, 48 färger och 60 bilder (alla feedbilder, inga utsnitt)
+skrevs 03:37–03:41 UTC (två omgångar, 25 + 1 sida), och live-kontrollen blev **ALLT OK**. Alla 48 skrivna färgvyer fick fler bilder: före hade
+47 fyra bilder och en tre, efteråt har 37 fem och 11 sex eller fler, och bilderna i dem är 191 före och 251 efter. Positionerna var 10, 9 och 3:
+**46 av 46 på position 10**, 10 av 16 på 9 och 4 av 18 på 3 (måttbilder), utan dubbletterna (42 av 122 kandidater var samma foto som färgens
+nuvarande). Sju färger står kvar på fyra bilder: tre saknas i flödet (Vit på `0641bd05`, Grå betong på `5c65d551`, Mörkgrå på `e11ad5cc`), Gul
+på `95c2008d` fick fyra i stället för fem när ett tyskt foto togs bort, och Svart och Röd på `a253637c` hade bara tysk eller engelsk säljgrafik
+kvar. Tre saker utöver omgång 7: **(1)** `ocr-live.py` över de nuvarande färgvyerna (438 bilder, 8,5 minuter) fann ett tyskt säljfoto som redan
+låg ute på en publicerad sida: Gul på `95c2008d` visade *VERSTELLBARE FUSSPOLSTER / Stabiler Stand auf unebenem Boden*. Det togs bort med
+`bilder-bort.yml` före skrivningen, och `live-dubbletter.py` på FÖRE-läget fann inga par; **(2)** text på varan eller rekvisitan stryks inte
+(*Audi Sport* på bilens front, *CAUTION WET FLOOR* på skurhinkarna, en burk med en butiksetikett i ett renderat kök), men engelska enheter
+(*264 lbs (120 kg)*), tyska boktitlar som fyller bilden och en logotyp över fotot (*AIYAPLAY*) gör det; **(3)** sifferkontrollen fällde en av
+fem måttbilder: fåtöljen `70d0a9ea` Brun anger fotpallen som 46 × 50 cm mot sidans 47 × 40. Efterarbetet från omgång 6 och 7 är gjort: tre
+foton som låg två gånger i samma vy togs bort (`c5f3914e`, `c841717c`, `d27a28ae`, galleri 9 → 8, 15 → 14 och 8 → 7), och den grå
+hamsterburens måttbild på `92ef25c9` länkades till Grå med `lank-om-bilder.js` (Grå 4 → 5, Naturträ 6 → 6, 0 avvikelser; `variantbild` rättade 1).
+
 Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Svaret är publikt.** Det bär bara Wix produkt-id, val-id, färgnamn, Wix egna fil-id
