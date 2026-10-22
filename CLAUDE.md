@@ -3139,12 +3139,24 @@ fann inga felbilder och inga par. Skrivet 14:16–14:25 UTC (run 39794286294, pl
 **Live 14:33 UTC: ALLT OK**: alla tio färger visar det förväntade antalet (32 → 54 bilder i vyerna): stoldynorna 3 → 4 i fyra färger, bänken, agilitysetet, A-hindret och verktygsvagnens blå 3 → 6, bilen 4 → 7 och
 verktygsvagnens röda 4 → 7. Position 4–7 gav 22 av 376 (6 %), alltså 31 av 510 över omgång 20–21.
 
-**Alla 442 sidor i `aosom-ordning.tsv` har körts med position 10, omgång 19 tog position 3, 8 och 9 och omgång 20–21 position 4–7** (se `FLAGGADE.md`, lärdom 154, för hur "körda" räknades). Katalogkontrollen
-(`katalogkontroll-farg-antal.js`, 35 sekunder över 6 143 produkter) 2026-10-22 14:34 UTC: **551 av 2 553 färgval visar fyra bilder eller färre** (fördelning 0: 1, 1: 80, 2: 89, 3: 124, 4: 257, 5: 1 559, 6 eller fler: 443),
-mot 557 efter omgång 20, 576 efter omgång 18 och 1 097 den 21 oktober. På Aosom-sidorna är det 248 vyer på 147 sidor (0: 1, 2: 6, 3: 58, 4: 183; 254 på 151 sidor efter omgång 20, 273 på 167 efter omgång 18 och 798 på
-442 den 21 oktober), och på AliExpress-sidorna 303 vyer på 96 sidor (oförändrat, spåret är pausat). Nollan är hamsterburen `13fe619f`, som har två axlar och visar bilder per storlek, så mätningen gäller inte den.
-**65 av de 248 Aosom-vyerna visar tre bilder eller färre** (`tools/polish-assets/farger-fler-bilder-2026-10-21/svaga-aosom-2026-10-22-1434.txt`). Feedens position 3–10 är därmed provade för dem, och de som är kvar är
-tyska säljgrafiker eller saknas i feeden. De 183 vyerna på fyra uppfyller Leonards minimum (*4 är godkänt*) och tas sist. Det som återstår är utsnitt ur de tyska grafikerna (`docs/polish/bildmetoder.md`, *Beskärning*).
+**Feedomgång 22 (2026-10-22, `tools/polish-assets/fargtillagg-22/`):** de första utsnitten i färgbildsspåret sedan omgång 4. Underlaget var de 229 bilder ur omgång 21 som ströks automatiskt för textyta på vyer som
+visade tre bilder eller färre. `tools/polish-gates/krop-forslag.py` läser textrutorna ur `ocr-boxar.py` och letar den största kvadrat som är minst hälften av bildens kortsida och som ligger 20 pixlar från varje ruta (högst tre
+förslag per bild). En bild vars text bär ett förbehåll (*Hinweis*, *Nur*, *ohne*, *only*, *nicht enthalten*, *Zubehör* …) tas inte med, eftersom utsnittet hade klippt bort förbehållet och lämnat en bild som lovar mer än sidan
+säljer. Det gav 154 förslag på 153 bilder och 61 färger, som granskades på 20 kontaktark, och **tolv höll (8 %)**: elbilen `211ffd83` (Gul två, Svart en), hundtrappan `2166c50f` Svart, cykelkärran `571e37bf` (Blå och svart,
+Grå och turkos), metallskjulet `834c66fd` (Mörkgrå, Ljusgrå, Gråbeige), plastskjulet `a8e5db2d` Mörkgrå och eltraktorn `ec2d9402` (Orange, Grön). Resten ströks för att varan klipps av kvadraten, för infografikens pekare (en
+brun prick med streckad linje vid vattenkokarens handtag, `bc2368af` ×3), för grafiken *2200 W* med lågor över kokaren, för en hand med fjärrkontroll (`b1b9afac`) och för kanten av en bildram. Tre rutor justerades före
+uppladdningen: skjulens kvadrat flyttades så att hela skjulet ryms, hundtrappans flyttades under de tre små miniatyrernas vita ram och cykelkärrans gjordes större så att hjulen ryms. OCR sa REN på tio av tolv; skjulen gav ord
+ur rekvisita i 1,5× (en förpackning, *BOSCH* på ett verktyg) och traktorerna *UUUUUUU* (kylargrillen, inte text). Utsnitten laddades upp i ETT anrop (12 av 12 parade mot adressens md5), och `dHash` mot varje bild på sidorna gav
+lägst 56 (gränsen är 12). Skrivet 14:56–14:58 UTC (run 39800088135, plan sha `11a8680f…`, filens sha256 `cbe31146…`): 6 sidor, 11 färger, 12 bilder, alla `ok`, återlästa, 19 variantbilder rättade. Skyddskollen (12 av 12 i
+galleriet, i städningens egen tolkning och kvar i Media Manager som `wix-utsnitt`) var grön. **Live 15:07 UTC: ALLT OK**: Gul 3 → 5 och de tio andra färgerna 3 → 4, och `live-dubbletter.py` fann 0 par.
+
+**Alla 442 sidor i `aosom-ordning.tsv` har körts med position 10, omgång 19 tog position 3, 8 och 9, omgång 20–21 position 4–7 och omgång 22 gjorde utsnitt** (se `FLAGGADE.md`, lärdom 154, för hur "körda" räknades). Katalogkontrollen
+(`katalogkontroll-farg-antal.js`, 36 sekunder över 6 143 produkter) 2026-10-22 15:08 UTC: **550 av 2 553 färgval visar fyra bilder eller färre** (fördelning 0: 1, 1: 80, 2: 89, 3: 113, 4: 267, 5: 1 560, 6 eller fler: 443),
+mot 551 efter omgång 21, 557 efter omgång 20, 576 efter omgång 18 och 1 097 den 21 oktober. På Aosom-sidorna är det 247 vyer på 147 sidor (0: 1, 2: 6, 3: 47, 4: 193; 248 efter omgång 21, 254 på 151 sidor efter omgång 20, 273 på 167
+efter omgång 18 och 798 på 442 den 21 oktober), och på AliExpress-sidorna 303 vyer på 96 sidor (oförändrat, spåret är pausat). Nollan är hamsterburen `13fe619f`, som har två axlar och visar bilder per storlek, så mätningen
+gäller inte den. **54 av de 247 Aosom-vyerna visar tre bilder eller färre** (`tools/polish-assets/farger-fler-bilder-2026-10-21/svaga-aosom-2026-10-22-1507.txt`). Feedens position 3–10 är därmed provade för dem, och de som är
+kvar är tyska säljgrafiker eller saknas i feeden. De 193 vyerna på fyra uppfyller Leonards minimum (*4 är godkänt*) och tas sist. Ett utsnitt lyfter en vy från tre till fyra och inte högre (se `FLAGGADE.md`, lärdom 159–160),
+och om fler utsnitt ska göras är det ett beslut för Leonard.
 
 #### Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
 

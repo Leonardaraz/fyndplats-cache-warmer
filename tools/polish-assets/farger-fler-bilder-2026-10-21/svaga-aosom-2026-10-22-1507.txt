@@ -16,7 +16,7 @@ a7aa9370:g14:k0:Mörkgrå=2;Beige=4;Ljusgrå=2
 81a7d7e4:g8:k0:Röd=4;Svart=4
 a9c2bfd8:g12:k0:Trämönste=4;Mörkgrå=4;Ljusgrå=4
 e999206f:g9:k0:Mörkgrå=4
-211ffd83:g6:k0:Svart=3;Gul=3
+211ffd83:g9:k0:Svart=4
 a5f894bb:g19:k0:Röd=4;Vit=4
 bb45be9d:g14:k0:Grön=4
 9e157d1d:g14:k0:Mörkgrå=4
@@ -34,7 +34,7 @@ b3e20f91:g9:k0:Natur=4
 07b3ee0e:g14:k1:Grå och v=4
 4664e423:g13:k0:Ek=4;Valnöt=4
 d3c91eb3:g9:k0:Blå=4
-2166c50f:g12:k0:Brun=4;Svart=3
+2166c50f:g13:k0:Brun=4;Svart=4
 12cd40a2:g20:k0:Svart=3;Mörkbrun=4;Vit=4;Natur=4
 c260245d:g9:k0:Vit=4
 1ca2e45e:g8:k0:Vit=4;Ljusgrå=4
@@ -52,7 +52,7 @@ eb02039b:g16:k0:Röd=4;Blå=4;Ljusgrå=4;Svart=4
 8bc0dd26:g7:k0:Svart=4;Svart och=3
 c88b22ce:g9:k0:Genomskin=4
 b8002629:g9:k0:Svart=4
-571e37bf:g23:k0:Blå=4;Svart och=3;Blå och s=3;Grå och t=3;Grå och s=4
+571e37bf:g25:k0:Blå=4;Svart och=3;Blå och s=4;Grå och t=4;Grå och s=4
 1ea30bf4:g21:k0:Turkos=4
 3f7ef4a1:g9:k0:Svart=4
 19f3239f:g10:k0:Brun=4
@@ -69,7 +69,7 @@ c131b430:g8:k0:Grå=3
 c841717c:g14:k2:Svart=4
 e76a4098:g7:k0:Ljusgrå=2
 0fc3c252:g10:k0:Vit=4
-a8e5db2d:g9:k0:Mörkgrå=3
+a8e5db2d:g10:k0:Mörkgrå=4
 6334f635:g11:k0:Ljusgrå=4;Beige=4;Mörkgrå=3
 9304f8b8:g18:k0:Brun=3;Mörkgrå=4
 3f9fda98:g15:k0:Cremevit=4
@@ -81,7 +81,7 @@ a706542f:g7:k0:Vit=2
 a55a2ce7:g9:k0:Vit=4
 d17733fd:g9:k0:Vit=4
 037b6ee0:g14:k0:Mörkgrön=4
-834c66fd:g30:k0:Ljusgrå=3;Mörkgrå=3;Kolgrå=4;Orange=4;Ljusgrön=4;Gråbeige=3;Brun=4
+834c66fd:g33:k0:Ljusgrå=4;Mörkgrå=4;Kolgrå=4;Orange=4;Ljusgrön=4;Gråbeige=4;Brun=4
 74e737ee:g26:k1:Antracit=4
 a414b5b5:g16:k0:Sand=4;Antracit=4;Grå=4;Ljusgrön=4
 298492a4:g9:k0:Mörkblå=4
@@ -125,7 +125,7 @@ a76e97f1:g6:k0:Gräddvit=3;Rosa=3
 fc2b894a:g8:k0:Svart=4;Vit=4
 2f5c20fc:g18:k0:Röd=4;Blå=4
 2c72e2b0:g12:k0:Svart=4;Vit=4;Rosa=4
-ec2d9402:g15:k0:Röd=4;Grön=3;Orange=3
+ec2d9402:g17:k0:Röd=4;Grön=4;Orange=4
 1c0b4b34:g6:k0:Grön=3;Orange=3
 e25e86d6:g17:k0:Svart=4;Röd=4;Rosa=4
 7a8655f0:g12:k0:Blå=4;Vit=4;Röd=4

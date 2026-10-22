@@ -93,6 +93,25 @@ Kontrollen i efterhand gav nio äldre utsnitt där varan kapas i kvadraten: `4d8
 `80512112` 3, `08dba609` 10 och `bb7853f1` 10. De två sista går att skära om till en kvadrat
 med hela skåpet. De andra sju går inte utan att texten kommer tillbaka.
 
+### Förslag på utsnitt ur bilder som ströks för text (`krop-forslag.py`, 2026-10-22)
+
+`tools/polish-gates/krop-forslag.py <boxar.txt> <lista.json> <ut-katalog> [min-andel]` föreslår kvadratiska utsnitt ur bilder som ströks automatiskt för textyta, så att en färgvy på tre bilder eller färre
+kan få en bild till. Indata är `ocr-boxar.py <lista.json>` (textrutornas kanter per bild) och listan `[[sida8, val8, pos, fil], …]`. För varje bild letas den största kvadrat som är minst `min-andel` (0,5) av kortsidan och
+som inte rör någon textruta (20 pixlars marginal), högst tre förslag per bild som överlappar högst hälften. Skriptet väljer ingenting: det skriver kontaktark (`ark_NN.jpg`, originalet med utsnittet inramat bredvid utsnittet) och
+`forslag.json`, och en människa tittar på varje utsnitt. Resten av vägen är samma som ovan (`farg-krop.py lokala`, `url`, uppladdning i ETT anrop, `para`, `farg-tillagg.py`, `aosom-fargtillagg.yml` `plan_och_skriv`, live och skyddskoll).
+
+Utfall i omgång 22 (`tools/polish-assets/fargtillagg-22/`): 229 bilder, 154 förslag på 153 bilder, **tolv höll (8 %)**. Det som avgör:
+
+1. ☠️ **Ett förbehåll i bildens text stryker bilden.** En bild vars text bär *Hinweis*, *Nur*, *ohne*, *only*, *nicht enthalten*, *Zubehör* eller liknande tas inte med. Utsnittet hade klippt bort förbehållet och lämnat en bild
+   som lovar mer än sidan säljer (ersättningsduken till ett tunnelväxthus visas som ett helt växthus).
+2. ☠️ **OCR ser inte infografikens pekare.** En brun prick med streckad linje, som pekar ut en funktion, satt kvar vid vattenkokarens handtag i varje utsnitt (`bc2368af`). Samma sak gäller grafik som ligger över själva fotot
+   (*2200 W* med lågor över kokaren): den ligger inne i varans yta, så ingen kvadrat kan undvika den.
+3. ☠️ **Titta på utsnittets övre och undre kant i full storlek.** Hundtrappans utsnitt började 12 pixlar in i de tre små miniatyrernas vita ram, som OCR inte läser som text (`2166c50f`, flyttat från y 825 till 860).
+4. ⚠️ **Varans bredd mot den lediga höjden.** Under en rubrik ryms bara en kvadrat vars sida är bildens höjd minus lägsta textruta minus marginalen. Ett skjul på 1 400 pixlar i en bild med 1 457 pixlars ledig höjd kräver
+   att kvadraten är så stor som möjligt och flyttas i sidled tills hela skjulet ryms, även om cykelns framhjul då kapas (`834c66fd`). Cykelkärran `571e37bf` behövde `y` 520 och sidan 1 340 för att hjulen skulle rymmas.
+
+Ett utsnitt lyfter en vy från tre bilder till fyra och inte längre (en bild per färg och källbild), så metoden hjälper inte vyer som redan står på fyra utan att position 4–7 hämtas för dem först.
+
 ## Textborttagning (T) – tvätta loggor och inbränd text
 
 
