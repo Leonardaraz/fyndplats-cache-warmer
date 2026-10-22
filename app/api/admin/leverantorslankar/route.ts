@@ -108,12 +108,15 @@ export async function POST(req: NextRequest) {
     const { lankar, utanMappning } = byggLeverantorslankar(losta, mappningar, flode);
     const aosom = lankar.filter((l) => l.leverantor === "aosom").length;
     const aliexpress = lankar.filter((l) => l.leverantor === "aliexpress").length;
+    const vevor = lankar.filter((l) => l.leverantor === "vevor").length;
+    const okand = lankar.filter((l) => l.leverantor === "okand").length;
     const sammanslagna = lankar.filter((l) => l.varianter?.length).length;
     const utanLank = lankar.filter((l) => !l.url).length;
 
     console.log(
       `[leverantorslankar] ${lankar.length} av ${mal.length} produkter med mappning `
-        + `(${aosom} Aosom, ${aliexpress} AliExpress, ${sammanslagna} sammanslagna, ${utanLank} utan länk), `
+        + `(${aosom} Aosom, ${aliexpress} AliExpress, ${vevor} VEVOR, ${okand} okänd leverantör, `
+        + `${sammanslagna} sammanslagna, ${utanLank} utan länk), `
         + `${utanMappning.length} utan mappning, ${utanProdukt.length} finns inte, ${ogiltiga.length} ogiltiga`
         + (flodetBehovs ? (flodetFel ? ", flödet FÖLL" : ", flödet hämtat") : ""),
     );
@@ -124,6 +127,8 @@ export async function POST(req: NextRequest) {
       hittade: lankar.length,
       aosom,
       aliexpress,
+      vevor,
+      okand,
       sammanslagna,
       utanLank,
       flodetHamtat: flode !== null,

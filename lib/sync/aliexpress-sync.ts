@@ -52,7 +52,7 @@ import { getRestockLogStore } from "../restock/log";
 import { beskrivUtskick, mejlaBevakare } from "../restock/notify";
 import { buildOosAlertEmail, sendEmail } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
-import { aliExpressIdOf, isAliExpressMapping } from "../store/supplier";
+import { aliExpressIdOf, arIAeSynkensUrval, isAliExpressMapping } from "../store/supplier";
 import { mapWithConcurrency } from "../concurrency";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
@@ -764,8 +764,7 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // 2. Resten läses med tak. `summary.total` och `skipped` är oförändrade —
   //    de överhoppade raderna räknas fortfarande i loopen, de kostar bara
   //    ingenting att komma fram till.
-  const behoverTillstand = (m: ProductMappingRecord) =>
-    Boolean(m.supplierProductId) && isAliExpressMapping(m) && m.draftStatus !== "rejected";
+  const behoverTillstand = arIAeSynkensUrval;
 
   const states = orderForRotation(
     await mapWithConcurrency(mappings, stateReadConcurrency(), async (m) => ({

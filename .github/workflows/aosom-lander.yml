@@ -1,0 +1,82 @@
+name: Aosom — frakt och skeppbarhet per land
+
+# Underlaget för vilka länder vi kan sälja Aosom-varorna i (2026-10-21).
+# Aosoms feed har en fraktavgift per land. Det här räknar per land hur många
+# varor som går att skicka dit och vad frakten och den landade kostnaden blir
+# jämfört med Sverige: för hela feeden, för våra mappade artiklar och för de
+# publicerade.
+#
+# Skriver bara antal, andelar och kvoter: inga avgifter, inga inköpspriser och
+# inga artikelnummer. Logiken står i lib/aosom/frakt-per-land.ts.
+#
+# Samma nyckel-lösa upplägg som resten: produktionen har feedens adress och
+# Wix-nycklarna, Actions har CRON_SECRET.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mät
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-larden 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-lander"
+          if ! svar=$(curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "${url}"); then
+            echo "::error::Anropet till matningen gick inte fram" >&2
+            exit 1
+          fi
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret fran rutten var inte JSON. Ar den deployad dar workflowen kor?" >&2
+            exit 1
+          fi
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            exit 1
+          fi
+
+          publicerade=$(echo "$svar" | jq -r '.tackning.publicerade.mappade // 0')
+          if [ "$publicerade" = "0" ]; then
+            echo "::error::Inga publicerade Aosom-artiklar i svaret. Laste rutten fel lager?" >&2
+            exit 1
+          fi
+
+          # Bara antal, andelar och kvoter. Kvoterna ar medianer per rad mot
+          # Sverige: "landad x1.10" betyder att inkop plus frakt dit ar 10 %
+          # dyrare an hit for en typisk vara. Momsen ingar inte.
+          {
+            echo "### Aosom: frakt och skeppbarhet per land"
+            echo ""
+            echo "$svar" | jq -r '"Feeden: \(.flodetRader) rader, \(.landskolumner) lander med fraktavgift."'
+            echo "$svar" | jq -r '"Vara artiklar: \(.tackning.vara.mappade), varav \(.tackning.vara.iFlodet) i feeden. Publicerade: \(.tackning.publicerade.mappade), varav \(.tackning.publicerade.iFlodet) i feeden."'
+            for u in publicerade vara flodet; do
+              echo ""
+              echo "#### ${u}"
+              echo ""
+              echo "$svar" | jq -r --arg u "$u" '
+                .urval[$u] as $m
+                | "Rader med inkopspris: \($m.rader)",
+                  "",
+                  "| land | skeppbara | andel % | frakt x | landad x (kvartiler) | billigare frakt % | frakt > vara % | EU-tullunionen |",
+                  "|---|--:|--:|--:|--:|--:|--:|:-:|",
+                  ($m.lander
+                    | sort_by([(.landadKvot // 99), .land])[]
+                    | "| \(.land) \(.namn) | \(.skeppbara) | \(.andelPct) | \(.fraktKvot // "-") | \(if .landadKvot == null then "-" else "\(.landadKvot) (\(.landadKvotP25)-\(.landadKvotP75))" end) | \(.billigareFraktPct // "-") | \(.frakttungaPct // "-") | \(if .inomTullunionen then "ja" else "nej" end) |")
+              '
+            done
+          } | tee -a "$GITHUB_STEP_SUMMARY"

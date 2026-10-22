@@ -18,7 +18,7 @@
 // att falla tillbaka på golvet och SÄNKA ett lyft pris — tyst.
 
 import type { ProductMappingRecord } from "../store";
-import { isAliExpressMapping } from "../store/supplier";
+import { isAosomMapping } from "../store/supplier";
 import type { WixProduktPris } from "../wix/v3-products";
 import { artikelnummerAv, prefixAv, type DerasRad } from "./dealproffsen";
 import {
@@ -66,7 +66,7 @@ export function planeraSpara(
     utanforOmgangen: 0,
   };
   for (const m of mappningar) {
-    if (isAliExpressMapping(m)) {
+    if (!isAosomMapping(m)) {
       plan.ejAosom++;
       continue;
     }
@@ -138,7 +138,7 @@ export function planeraLotta(
   };
   for (const m of mappningar) {
     if (bara && !bara.has(m.wixProductId)) continue;
-    if (isAliExpressMapping(m)) {
+    if (!isAosomMapping(m)) {
       plan.ejAosom++;
       continue;
     }
@@ -205,7 +205,7 @@ export function planeraRensa(
   };
   for (const m of mappningar) {
     if (bara && !bara.has(m.wixProductId)) continue;
-    if (isAliExpressMapping(m)) {
+    if (!isAosomMapping(m)) {
       plan.ejAosom++;
       continue;
     }
@@ -259,7 +259,7 @@ export function konkurrentStatus(
     aldstaDagar: null,
   };
   for (const m of mappningar) {
-    if (isAliExpressMapping(m)) continue;
+    if (!isAosomMapping(m)) continue;
     s.aosomRader++;
     if (m.prisgrupp) {
       s.medGrupp[m.prisgrupp]++;

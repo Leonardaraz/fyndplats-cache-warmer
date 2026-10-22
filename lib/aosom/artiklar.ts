@@ -36,7 +36,7 @@
 
 import type { FulfillmentTask } from "../orders/types";
 import type { ProductMappingRecord } from "../store";
-import { AOSOM_ID_PREFIX } from "./to-product";
+import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
 
 /**
  * Variant-id:t en orderrad bär för en produkt UTAN optioner.
@@ -70,6 +70,15 @@ type Rad = Pick<ProductMappingRecord, "supplierProductId" | "variants">;
 export function radensArtikel(m: Pick<ProductMappingRecord, "supplierProductId">): string {
   const id = (m.supplierProductId ?? "").trim();
   return id.startsWith(AOSOM_ID_PREFIX) ? id.slice(AOSOM_ID_PREFIX.length) : "";
+}
+
+/**
+ * Raderna Aosom-synken arbetar med: ett Wix-id och en Aosom-artikel på raden.
+ * Används av synken (lib/aosom/sync.ts) och av räkningen per leverantör, så
+ * att båda räknar exakt samma urval.
+ */
+export function arIAosomSynkensUrval(m: Pick<ProductMappingRecord, "wixProductId" | "supplierProductId">): boolean {
+  return !!m.wixProductId && radensArtikel(m) !== "";
 }
 
 export function aosomArtikelbild(m: Rad): AosomArtikelbild {

@@ -39,7 +39,7 @@
 
 import type { ProductMappingRecord } from "../store";
 import { aosomArtikelbild } from "../aosom/artiklar";
-import { isAliExpressMapping } from "../store/supplier";
+import { isAosomMapping } from "../store/supplier";
 import type { WixProduktPris } from "../wix/v3-products";
 import type { Prisgrupp } from "../pricing/konkurrentregel";
 
@@ -117,7 +117,7 @@ export function byggTillaggsfeed(
     perKonkurrenslage: {},
   };
   for (const m of mappningar) {
-    if (isAliExpressMapping(m)) {
+    if (!isAosomMapping(m)) {
       ut.ejAosom++;
       continue;
     }

@@ -15,6 +15,7 @@ import {
 } from "@/lib/restock/rader";
 import { getStore } from "@/lib/store/factory";
 import { isAliExpressMapping } from "@/lib/store/supplier";
+import type { Leverantor } from "@/lib/store";
 import { getSyncStore } from "@/lib/sync/sync-log";
 import { searchProductSummaries } from "@/lib/wix/client";
 import { mapWithConcurrency } from "@/lib/concurrency";
@@ -23,6 +24,14 @@ export const dynamic = "force-dynamic";
 
 const LANK = { color: "#0891b2" } as const;
 const AE_LANK = { color: "#d97706" } as const;
+
+/** Länkfärg per leverantör. En `Record`, så att en ny leverantör måste få en. */
+const LANKSTIL: Record<Leverantor, typeof LANK | typeof AE_LANK> = {
+  aliexpress: AE_LANK,
+  aosom: LANK,
+  vevor: LANK,
+  okand: LANK,
+};
 
 function datum(iso: string | null | undefined): string {
   return iso ? iso.slice(0, 10) : "";
@@ -94,7 +103,7 @@ function Leverantorscell({ rad }: { rad: RestockRad }) {
             href={lev.url}
             target="_blank"
             rel="noopener noreferrer"
-            style={lev.leverantor === "aliexpress" ? AE_LANK : LANK}
+            style={LANKSTIL[lev.leverantor]}
           >
             {lev.namn} ↗
           </a>

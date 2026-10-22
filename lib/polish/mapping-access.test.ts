@@ -181,11 +181,25 @@ describe("regelGäller — skiljer drift från en äldre prisregel", () => {
     expect(g!.regelGäller).toBe(false); // → ej avgörbar, inte drift
   });
 
-  it("☠️ en rad UTAN supplier räknas som AliExpress — regeln gäller inte", () => {
+  it("☠️ en rad UTAN supplier och med AE-id räknas som AliExpress — regeln gäller inte", () => {
     // Back-compat: äldre rader saknar fältet helt (lib/store/index.ts).
-    const utan = rad();
+    const utan = rad({ supplierProductId: "1005010804316400" });
     delete (utan as { supplier?: unknown }).supplier;
     expect(prisgrind(utan, cfg, 1.2)!.regelGäller).toBe(false);
+  });
+
+  it("☠️ en Aosom-rad som TAPPAT fältet klassas på prefixet — regeln gäller", () => {
+    // Samma klassning som resten av motorn (`mappingSupplier`). Grinden läste
+    // tidigare bara fältet och kallade en sådan rad AliExpress, alltså "ej
+    // avgörbar", fast synken räknar om dess pris var sjätte timme.
+    const utan = rad();
+    delete (utan as { supplier?: unknown }).supplier;
+    expect(prisgrind(utan, cfg, 1.2)!.regelGäller).toBe(true);
+  });
+
+  it("en VEVOR-rad: regeln gäller inte än (ingen synk skriver den förrän steg 5)", () => {
+    const vevor = rad({ supplier: "vevor", supplierProductId: "vevor:TEST-0001" });
+    expect(prisgrind(vevor, cfg, 1.2)!.regelGäller).toBe(false);
   });
 
   it("☠️ en LÅST rad bär prisLast — skillnaden är vald, inte drift", () => {

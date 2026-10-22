@@ -41,7 +41,7 @@ import {
   tolkaDerasSvar,
   type DerasRad,
 } from "@/lib/pricing/dealproffsen";
-import { isAliExpressMapping } from "@/lib/store/supplier";
+import { isAosomMapping } from "@/lib/store/supplier";
 import { PAUS_MS, hamtaPrefix, sov } from "@/lib/pricing/dealproffsen-hamta";
 
 export const runtime = "nodejs";
@@ -240,7 +240,7 @@ export async function GET(req: NextRequest) {
     const rader: string[] = [];
     let utanInfo = 0;
     for (const m of mappningar) {
-      if (isAliExpressMapping(m)) continue;
+      if (!isAosomMapping(m)) continue;
       if (!artikelnummerAv(m)) continue;
       const i = info.get(m.wixProductId);
       if (!i) {
@@ -343,7 +343,7 @@ export async function GET(req: NextRequest) {
   const deras = samlaDeras(derasRader);
   const tackta = new Set(hamtade);
   const iOmgangen = mappningar.filter((m) => {
-    if (isAliExpressMapping(m)) return false;
+    if (!isAosomMapping(m)) return false;
     const nr = artikelnummerAv(m);
     const p = nr ? prefixAv(nr) : null;
     return p !== null && tackta.has(p);

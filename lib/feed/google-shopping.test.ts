@@ -168,3 +168,12 @@ describe("hjälpfunktioner", () => {
     expect(konkurrenslage(2449, { pris: 2495, hamtad: "" })).toBe("under_dealproffsen");
   });
 });
+
+describe("☠️ VEVOR-rader får inga etiketter (2026-10-21)", () => {
+  it("en VEVOR-rad räknas som ej Aosom och hamnar aldrig i feeden, ens med prisgrupp", () => {
+    const vevor = mappning("TEST-0001", { supplier: "vevor", supplierProductId: "vevor:TEST-0001", prisgrupp: "A" });
+    const u = byggTillaggsfeed([vevor], priser({ "wix-TEST-0001": 999 }));
+    expect(u.rader).toEqual([]);
+    expect(u.ejAosom).toBe(1);
+  });
+});

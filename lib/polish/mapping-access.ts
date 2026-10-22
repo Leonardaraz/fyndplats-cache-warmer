@@ -34,7 +34,8 @@
 //    regel som prissättningen använder körs i stället mot samma
 //    `roundPrice`-funktion, så grinden kan inte drifta från prissättningen.
 
-import type { ProductMappingRecord } from "@/lib/store";
+import type { Leverantor, ProductMappingRecord } from "@/lib/store";
+import { mappingSupplier } from "@/lib/store/supplier";
 import type { PricingConfig } from "@/lib/import/types";
 import { roundPrice } from "@/lib/import/pricing";
 
@@ -216,6 +217,24 @@ export type Prisgrind = {
 };
 
 /**
+ * Gäller dagens prisregel för radens leverantör (`Prisgrind.regelGäller`)?
+ *
+ * - Aosom: ja. Synken räknar om priset ur kostnaden var sjätte timme.
+ * - AliExpress: nej. Priser från före 2026-08-27 följer den gamla regeln.
+ * - VEVOR: inte än. Husets regel gäller (Leonard 2026-10-21), men ingen synk
+ *   skriver den förrän VEVOR-synken är byggd (steg 5). Då blir det ja.
+ * - Okänd leverantör: nej.
+ *
+ * En `Record`, så att en ny leverantör måste få ett svar här.
+ */
+const REGELN_GALLER: Record<Leverantor, boolean> = {
+  aliexpress: false,
+  aosom: true,
+  vevor: false,
+  okand: false,
+};
+
+/**
  * Räknar Steg 4:s prisgrind ur samma regel som prissättningen använder.
  *
  * Grinden finns för att fånga en produkt vars kostnad ändrats sedan importen:
@@ -245,7 +264,7 @@ export function prisgrind(
     faktisktSek: v.grossSek,
     landedCostSek: v.landedCostSek,
     stämmer: förväntatSek === v.grossSek,
-    regelGäller: rad.supplier === "aosom",
+    regelGäller: REGELN_GALLER[mappingSupplier(rad)],
     prisLast: rad.prisLast === true,
     // ☠️ `=== 0`, inte `!`: fältet är optional, och en rad som aldrig synkats
     // har `undefined`. Att läsa avsaknad som "slutsåld" hade fällt varje

@@ -193,6 +193,22 @@ describe("placeOrderForTask — leverantörsspärren", () => {
     expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
   });
 
+  it("☠️ vägrar en VEVOR-mappning och pekar på kassan, inte på Aosoms bulkorder", async () => {
+    const store = await seed(task(), {
+      ...mapping,
+      supplierProductId: "vevor:TEST-0001",
+      supplier: "vevor",
+      variants: [{ ...mapping.variants[0], supplierVariantId: "TEST-0001" }],
+    });
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.ok).toBe(false);
+    const fel = res.ok ? "" : res.error;
+    expect(fel).toMatch(/VEVOR/);
+    expect(fel).toMatch(/för hand/);
+    expect(fel).not.toMatch(/bulkordering/);
+    expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
+  });
+
   it("släpper igenom en AliExpress-mappning som förut", async () => {
     const store = await seed(task());
     vi.mocked(createOrder).mockResolvedValue({ orderId: "AE-1", status: "placed" } as never);

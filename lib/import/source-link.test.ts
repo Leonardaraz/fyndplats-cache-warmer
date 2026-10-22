@@ -139,6 +139,30 @@ describe("leverantorskallaFor", () => {
     });
   });
 
+  it("VEVOR: eget namn, nummer utan prefix och länken ur sourceUrl", () => {
+    const VEVOR = {
+      supplier: "vevor" as const,
+      supplierProductId: "vevor:TEST-0001",
+      sourceUrl: "https://leverantor.example/vevor-vara",
+    };
+    expect(leverantorskallaFor(VEVOR)).toEqual({
+      leverantor: "vevor",
+      namn: "VEVOR",
+      artikelnummer: "TEST-0001",
+      url: VEVOR.sourceUrl,
+    });
+  });
+
+  it("☠️ VEVOR utan sourceUrl får ingen länk — adressen byggs aldrig ur numret", () => {
+    expect(leverantorskallaFor({ supplierProductId: "vevor:TEST-0001" }).url).toBeNull();
+    expect(leverantorskallaFor({ supplier: "vevor", supplierProductId: "TEST-0001" }).url).toBeNull();
+  });
+
+  it("en okänd leverantör visas som okänd, med numret orört och utan länk", () => {
+    const k = leverantorskallaFor({ supplier: "x" as unknown as "aosom", supplierProductId: "TEST-0001" });
+    expect(k).toEqual({ leverantor: "okand", namn: "Okänd leverantör", artikelnummer: "TEST-0001", url: null });
+  });
+
   it("klassar en rad UTAN supplier-fält på id-prefixet", () => {
     // Rader skrivna innan `supplier` fanns, eller som tappat det i en partiell
     // uppdatering, ska ändå inte märkas AliExpress.

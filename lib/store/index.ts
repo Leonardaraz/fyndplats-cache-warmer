@@ -42,8 +42,25 @@ export interface CategorySuggestionRecord {
  * skickat dit är i bästa fall ett bortkastat anrop per produkt och körning, i
  * sämsta fall ett svar som tolkas som "listningen är borta". Se
  * lib/store/supplier.ts#isAliExpressMapping.
+ *
+ * ☠️ LISTAN OCH TYPEN HÄRLEDS UR SAMMA ARRAY, så de kan inte glida isär (samma
+ * grepp som `ROUNDING_STRATEGIES`). En ny leverantör läggs till HÄR, och då
+ * blir varje `switch` med `assertNever` som inte tar ställning till den ett
+ * typfel, och `next build` stoppar bygget. VEVOR lades till 2026-10-21 utan
+ * eget beteende: varje val gör ingenting för en VEVOR-rad tills dess steg är
+ * byggt.
  */
-export type MappingSupplier = "aliexpress" | "aosom";
+export const LEVERANTORER = ["aliexpress", "aosom", "vevor"] as const;
+export type MappingSupplier = (typeof LEVERANTORER)[number];
+
+/**
+ * Vad `mappingSupplier()` svarar: en känd leverantör, eller "okand" när
+ * `supplier`-fältet bär ett värde utanför listan. Fältet är fri text i
+ * databasen, och en sådan rad hoppas redan över av både AE- och Aosom-vägarna.
+ * Att svara "okand" i stället för att kasta håller loopar över hela katalogen
+ * vid liv, och varje `switch` måste ta ställning även till den.
+ */
+export type Leverantor = MappingSupplier | "okand";
 
 export interface ProductMappingRecord {
   supplierProductId: string;

@@ -191,7 +191,7 @@ jobs:
           utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; iauktion=0; ejskeppbara=0
           salda=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
-          flera=0; okanda=0; tvetydiga=0
+          flera=0; okanda=0; tvetydiga=0; okantbesked=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -234,6 +234,7 @@ jobs:
             fl=$(printf '%s' "$svar" | jq -r '.flerartikelrader // 0')
             ok=$(printf '%s' "$svar" | jq -r '.okandaVarianter // 0')
             tv=$(printf '%s' "$svar" | jq -r '.tvetydiga // 0')
+            ob=$(printf '%s' "$svar" | jq -r '.okantBesked // 0')
             stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okant"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
@@ -249,6 +250,7 @@ jobs:
             ejskeppbara=$(( ejskeppbara + ejs ))
             kmal=$(( kmal + km )); ktak=$(( ktak + kt )); kgolv=$(( kgolv + kg )); kfrysta=$(( kfrysta + kf ))
             flera=$(( flera + fl )); okanda=$(( okanda + ok )); tvetydiga=$(( tvetydiga + tv ))
+            okantbesked=$(( okantbesked + ob ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -269,6 +271,7 @@ jobs:
                  "${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift (${rt} rättade)," \
                  "${sv} stämplar väntar, ${sa} sålda avdragna (flödet visar dem inte än)," \
                  "${mi} misslyckade, ${fl} sammanslagna sidor, ${ok} okända varianter, ${tv} tvetydiga," \
+                 "${ob} med okänt besked (rördes inte)," \
                  "stoppade på ${stopp}, ${kvar} kvar"
 
             # En rad Aosom slutat skicka till Sverige är ett LAGERBESKED, inte ett fel:
@@ -281,6 +284,11 @@ jobs:
             # Produkterna som skrevs BARA för att butiken drivit från stämpeln
             # (motButikensSaldo i lib/aosom/sync.ts). Wix-id är publika.
             printf '%s' "$svar" | jq -r '(.lagerDriftProdukter // []) as $p | if ($p | length) > 0 then "  ── lagerdrift rättad (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
+
+            # Produkterna som inte rördes alls: urvalet tog dem på prefixet aosom:,
+            # men supplier-fältet säger en annan leverantör (okantBesked i
+            # lib/aosom/sync.ts). Wix-id är publika.
+            printf '%s' "$svar" | jq -r '(.okantBeskedProdukter // []) as $p | if ($p | length) > 0 then "  ── okänt besked, rördes inte (Wix-id): \($p[:20] | join(", "))\(if ($p | length) > 20 then " … \($p | length) st" else "" end)" else empty end' || true
 
             # Produkterna vars saldo drogs ned för sålda enheter som Aosoms flöde
             # inte visar än (medSaldaAvdragna i lib/aosom/sync.ts). Wix-id är publika.
@@ -345,6 +353,7 @@ jobs:
             echo "| Färgsammanslagna sidor | ${flera} |"
             echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
             echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
+            echo "| **Okänt besked (rördes inte alls)** | **${okantbesked}** |"
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
             if [ -n "$prislistefel" ]; then
@@ -400,6 +409,19 @@ jobs:
             echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — de skrivs om nästa gång en körning når produkterna."
           fi
 
+          # ☠️ OKÄNT BESKED FÄLLER JOBBET, även i torrläge (steg 3, 2026-10-21).
+          # En sådan rad synkas inte alls, varken lager eller pris: urvalet tog
+          # den på prefixet aosom:, men supplier-fältet säger en annan
+          # leverantör. Är det en riktig Aosom-sida säljs den på ett saldo ingen
+          # speglar längre. Ingen körning lagar raden av sig själv. Talet ska
+          # vara 0 — se "VEVOR: steg 1 och 3" i CLAUDE.md.
+          #
+          # Felraden skrivs FÖRE spärren för okända varianter, och jobbet fälls
+          # efter den, så att båda felen syns när båda finns.
+          if [ "$okantbesked" -gt 0 ]; then
+            echo "::error::${okantbesked} rader med okänt besked synkades inte alls — supplier-fältet och id:t är oense. Wix-id står i loggen ovan." >&2
+          fi
+
           # ☠️ OKÄNDA VARIANTER OCH TVETYDIGA RADER FÄLLER JOBBET, även i torrläge.
           # Båda nollar lagret, så ingen kund kan köpa fel färg — men båda betyder
           # att en färgsammanslagning är halvgjord eller att en mappning är
@@ -407,6 +429,9 @@ jobs:
           # noll; se lib/aosom/artiklar.ts och "Färgsammanslagning" i CLAUDE.md.
           if [ "$okanda" -gt 0 ] || [ "$tvetydiga" -gt 0 ]; then
             echo "::error::${okanda} okända varianter och ${tvetydiga} tvetydiga rader — lagret är nollat, mappningen behöver lagas." >&2
+            exit 1
+          fi
+          if [ "$okantbesked" -gt 0 ]; then
             exit 1
           fi
 

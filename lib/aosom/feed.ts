@@ -111,13 +111,50 @@ export interface AosomRow {
    * Actions-logg. Valfri för att äldre testfixturer inte ska behöva bära den.
    */
   psin?: string;
+  /**
+   * Fraktavgiften per land, landskod → EUR per kolli (null när cellen är tom).
+   * Finns bara när feeden tolkas med `{ fraktPerLand: true }`, så synken och
+   * importen läser feeden exakt som förut. Ett belopp på eller över
+   * NO_SHIP_SENTINEL_EUR betyder "går inte att skicka dit", som för Sverige.
+   *
+   * ☠️ AVGIFTERNA ÄR INKÖPSLED, precis som SE-frakten. De får aldrig stå i ett
+   * svar som når en Actions-logg (se frakt-per-land.ts).
+   */
+  fraktPerLand?: Record<string, number | null>;
+}
+
+export interface ParseAosomFeedOpts {
+  /** Läs också fraktavgiften per land till `AosomRow.fraktPerLand`. */
+  fraktPerLand?: boolean;
+}
+
+/**
+ * Feedens fraktkolumner per land, ur rubrikraden i gemener.
+ *
+ * Uppmätt 2026-09-15: "<landskod> Ship Fee" för 39 länder (Sverige inräknat)
+ * och "Shipping Cost Germany" för Tyskland. "Shipping Cost" utan land tas inte
+ * med, eftersom det inte är känt vilket land den gäller. Finns ett land två
+ * gånger gäller den första kolumnen.
+ */
+export function fraktkolumner(header: readonly string[]): Array<{ land: string; index: number }> {
+  const ut: Array<{ land: string; index: number }> = [];
+  const sedda = new Set<string>();
+  header.forEach((rubrik, index) => {
+    const h = rubrik.trim().toLowerCase();
+    const m = /^([a-z]{2}) ship fee$/.exec(h);
+    const land = m ? m[1].toUpperCase() : h === "shipping cost germany" ? "DE" : "";
+    if (!land || sedda.has(land)) return;
+    sedda.add(land);
+    ut.push({ land, index });
+  });
+  return ut;
 }
 
 /**
  * Tolkar hela feeden. Rader som saknar SKU hoppas över tyst — de kan inte
  * mappas mot något och är inte värda ett felmeddelande per stycke.
  */
-export function parseAosomFeed(input: string): AosomRow[] {
+export function parseAosomFeed(input: string, opts: ParseAosomFeedOpts = {}): AosomRow[] {
   const text = input.charCodeAt(0) === 0xfeff ? input.slice(1) : input;
   const records = parseCsvRecords(text, ",");
   if (records.length < 2) return [];
@@ -128,13 +165,14 @@ export function parseAosomFeed(input: string): AosomRow[] {
     const i = col(name);
     return i >= 0 ? (rec[i] ?? "").trim() : "";
   };
+  const landKolumner = opts.fraktPerLand ? fraktkolumner(header) : [];
 
   const rows: AosomRow[] = [];
   for (let i = 1; i < records.length; i++) {
     const rec = records[i];
     const sku = at(rec, "SKU");
     if (!sku) continue;
-    rows.push({
+    const row: AosomRow = {
       sku,
       name: at(rec, "Name"),
       url: at(rec, "URL"),
@@ -157,7 +195,13 @@ export function parseAosomFeed(input: string): AosomRow[] {
       seFreightEur: parseNumber(at(rec, "SE Ship Fee")),
       rowIndex: i,
       psin: at(rec, "Psin"),
-    });
+    };
+    if (opts.fraktPerLand) {
+      const frakt: Record<string, number | null> = {};
+      for (const k of landKolumner) frakt[k.land] = parseNumber((rec[k.index] ?? "").trim());
+      row.fraktPerLand = frakt;
+    }
+    rows.push(row);
   }
   return rows;
 }
@@ -180,11 +224,16 @@ export function parseAosomFeed(input: string): AosomRow[] {
  * spegla saldot till en publicerad sida i månader.
  */
 export function harVerkligSeFrakt(row: AosomRow): boolean {
-  return (
-    row.seFreightEur !== null
-    && row.seFreightEur > 0
-    && row.seFreightEur < NO_SHIP_SENTINEL_EUR
-  );
+  return arVerkligFrakt(row.seFreightEur);
+}
+
+/**
+ * Är beloppet en verklig fraktavgift, till vilket land som helst? Över 0 och
+ * under NO_SHIP_SENTINEL_EUR. En definition för Sverige (harVerkligSeFrakt)
+ * och för de andra länderna (frakt-per-land.ts).
+ */
+export function arVerkligFrakt(avgift: number | null | undefined): avgift is number {
+  return typeof avgift === "number" && avgift > 0 && avgift < NO_SHIP_SENTINEL_EUR;
 }
 
 /**
@@ -244,6 +293,7 @@ export function headroom(row: AosomRow): number | null {
 export async function fetchAosomFeed(
   url?: string,
   fetchImpl: typeof fetch = fetch,
+  opts: ParseAosomFeedOpts = {},
 ): Promise<AosomRow[]> {
   // Slås upp lat: bara en körning som faktiskt hämtar feeden rör Wix.
   const target = (url ?? "").trim() || (await resolveAosomFeedUrl());
@@ -251,7 +301,7 @@ export async function fetchAosomFeed(
   if (!res.ok) {
     throw new Error(`Aosom-feeden svarade ${res.status} ${res.statusText}`);
   }
-  return parseAosomFeed(await res.text());
+  return parseAosomFeed(await res.text(), opts);
 }
 
 /**

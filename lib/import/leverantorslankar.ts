@@ -17,7 +17,7 @@
 // engångsnyckel innan något når den publika loggen. Inget inköpspris, ingen
 // kostnad och ingen frakt följer med — bara det som behövs för att öppna sidan.
 
-import type { MappingSupplier, ProductMappingRecord } from "../store";
+import type { Leverantor, ProductMappingRecord } from "../store";
 import { aosomArtikelbild } from "../aosom/artiklar";
 import { lankFran } from "../aosom/variant-lank";
 import { leverantorskallaFor, parseLookupInput } from "./source-link";
@@ -72,7 +72,7 @@ export interface Leverantorslank {
   wixProductId: string;
   /** Det som skickades in: id, slug eller adress. */
   fran: string;
-  leverantor: MappingSupplier;
+  leverantor: Leverantor;
   /** Utan aosom:-prefixet, som det klistras in hos leverantören. */
   artikelnummer: string;
   /** Produktsidan hos leverantören, samma som uppslagets knapp. */

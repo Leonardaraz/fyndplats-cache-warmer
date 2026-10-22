@@ -11,6 +11,7 @@
 import type { AliExpressProduct } from "../import/types";
 import { landedCostEur, type AosomRow } from "./feed";
 import { SUPPLIER_VAT_RATE } from "../auction/seed";
+import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
 
 /**
  * Vilka bildpositioner som hämtas hem, 1-indexerat i feedens egen ordning.
@@ -45,14 +46,9 @@ import { SUPPLIER_VAT_RATE } from "../auction/seed";
  */
 export const RENA_BILDPOSITIONER = [1, 2, 3, 8, 9] as const;
 
-/**
- * Prefixet som skiljer en Aosom-artikel från en AliExpress-listning i
- * `supplierProductId`. Utan det skulle ett numeriskt Aosom-SKU en dag kunna
- * kollidera med ett AE-produkt-id — och dubblettspärren, synken och
- * mappningsuppslagen läser alla samma fält. Prefixet är också vad
- * lib/aosom/import-run.ts känner igen sina egna rader på vid omkörning.
- */
-export const AOSOM_ID_PREFIX = "aosom:";
+// Prefixet `aosom:` bor i lib/store/leverantorsprefix.ts, bredvid de andra
+// leverantörernas, så att klassningen i lib/store/supplier.ts inte behöver
+// importera från Aosom-koden.
 
 export function aosomSupplierProductId(sku: string): string {
   return `${AOSOM_ID_PREFIX}${sku}`;

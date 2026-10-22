@@ -23,7 +23,8 @@
 // mappningsraden och feed-raden och får tillbaka en plan eller en ny rad.
 
 import type { ProductMappingRecord } from "../store";
-import { aosomSkuOf, mappingSupplier } from "../store/supplier";
+import { aosomSkuOf, frystLeverantor, mappingSupplier } from "../store/supplier";
+import { assertNever } from "../assert-never";
 import { SUPPLIER_VAT_RATE } from "../import/pricing";
 import { marginEfterByte } from "../sync/warehouse-failover";
 import { freightShare, isShippableToSe, landedCostEur, type AosomRow } from "./feed";
@@ -61,7 +62,9 @@ export type RemapHinder =
   | "marginal_under_golv"
   | "samma_artikel"
   | "dubbletten_inte_utkast"
-  | "importsparr_upptagen";
+  | "importsparr_upptagen"
+  | "vevor_sida"
+  | "okand_leverantor";
 
 export interface RemapPlan {
   wixProductId: string;
@@ -178,7 +181,28 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   // pekar om, och utkastet pensioneras. Utan ett opolerat Aosom-utkast som bär
   // just den artikeln vägras bytet som förut. Ett byte till en artikel som ingen
   // jämfört med sidan är en gissning, och då beställs fel vara hem.
-  const aosomByte = !!mappning && mappingSupplier(mappning) === "aosom";
+  // ☠️ VÄGEN VÄLJS PER LEVERANTÖR. Ommappningen är byggd för en AE-sida som
+  // pekas om till Aosom, och för ett byte inom Aosom. En VEVOR-sida hade annars
+  // tagit AE-vägen och fått ett Aosom-artikelnummer utan att någon bestämt det.
+  let aosomByte = false;
+  if (mappning) {
+    const leverantor = mappingSupplier(mappning);
+    switch (leverantor) {
+      case "aliexpress":
+        break;
+      case "aosom":
+        aosomByte = true;
+        break;
+      case "vevor":
+        hinder.push("vevor_sida");
+        break;
+      case "okand":
+        hinder.push("okand_leverantor");
+        break;
+      default:
+        assertNever(leverantor, "leverantör");
+    }
+  }
   if (aosomByte) {
     const d = input.dubblett ? alla.find((m) => m.wixProductId === input.dubblett) : undefined;
     if (!d || !rad || aosomSkuOf(d) !== rad.sku) {
@@ -396,7 +420,7 @@ export function pensioneraDubblett(m: ProductMappingRecord): ProductMappingRecor
     // tömd rad utan fältet hade alltså klassats som AliExpress, och gått rakt
     // in i `sync-all`:s omöjliga uppslag. Den rutten NOLLAR lagret vid
     // `offline`, så en felklassad rad är inte en kosmetisk miss.
-    supplier: mappingSupplier(m),
+    supplier: frystLeverantor(m),
     draftStatus: "rejected",
     needsAiPolish: false,
     reviewedAt: new Date().toISOString(),
