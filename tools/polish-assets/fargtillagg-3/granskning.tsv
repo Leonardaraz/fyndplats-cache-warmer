@@ -1,0 +1,283 @@
+sida	val	farg	pos	ocr	verdikt	skal
+00570c67	92fb97f1	Rosa	3	TEXT	vald	
+00570c67	92fb97f1	Rosa	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+00570c67	92fb97f1	Rosa	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+00570c67	92fb97f1	Rosa	10	TEXT	vald	
+00570c67	a2f396b7	Vit	3	TEXT	vald	
+00570c67	a2f396b7	Vit	9	TEXT	vald	
+00570c67	a2f396b7	Vit	10	REN	vald	
+00570c67	eaae581f	Grön	3	TEXT	vald	
+00570c67	eaae581f	Grön	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+00570c67	eaae581f	Grön	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+00570c67	eaae581f	Grön	10	TEXT	vald	
+17c747cb	08dbea73	Khaki	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+17c747cb	08dbea73	Khaki	8	REN	vald	
+17c747cb	08dbea73	Khaki	9	REN	vald	
+17c747cb	08dbea73	Khaki	10	REN	vald	
+17c747cb	44ccec77	Brun	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+17c747cb	44ccec77	Brun	8	REN	vald	
+17c747cb	44ccec77	Brun	9	REN	vald	
+17c747cb	44ccec77	Brun	10	REN	vald	
+17c747cb	c1a15946	Cremevit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+17c747cb	c1a15946	Cremevit	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+17c747cb	c1a15946	Cremevit	9	REN	vald	
+17c747cb	c1a15946	Cremevit	10	REN	struken	samma foto som färgens första bild, i annan beskärning
+2b7853e9	0d20fb2d	Orange	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2b7853e9	0d20fb2d	Orange	10	REN	vald	
+2b7853e9	14b99ed4	Grå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2b7853e9	14b99ed4	Grå	10	REN	vald	
+2b7853e9	5296267b	Natur	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2b7853e9	5296267b	Natur	9	REN	vald	
+2b7853e9	5296267b	Natur	10	REN	vald	
+2b7853e9	a2f396b7	Vit	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2b7853e9	a2f396b7	Vit	9	REN	vald	
+2b7853e9	a2f396b7	Vit	10	REN	vald	
+2f5c20fc	369894e9	Blå	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+2f5c20fc	369894e9	Blå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2f5c20fc	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	369894e9	Blå	10	REN	vald	
+2f5c20fc	5aca9cb3	Röd	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+2f5c20fc	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+2f5c20fc	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	5aca9cb3	Röd	10	REN	vald	
+2f5c20fc	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+2f5c20fc	92fb97f1	Rosa	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	92fb97f1	Rosa	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	92fb97f1	Rosa	10	REN	vald	
+2f5c20fc	eaae581f	Grön	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+2f5c20fc	eaae581f	Grön	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	eaae581f	Grön	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+2f5c20fc	eaae581f	Grön	10	REN	vald	
+37e5dfcf	44ccec77	Brun	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+37e5dfcf	44ccec77	Brun	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+37e5dfcf	44ccec77	Brun	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+37e5dfcf	44ccec77	Brun	10	REN	vald	
+37e5dfcf	9357a97e	Beige	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+37e5dfcf	9357a97e	Beige	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+37e5dfcf	9357a97e	Beige	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+37e5dfcf	9357a97e	Beige	10	REN	vald	
+39d10fc4	7909f4e8	Mörkgrå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+39d10fc4	7909f4e8	Mörkgrå	10	TEXT	struken	ruta med engelsk text (Cushions Only) lagd över bilden
+39d10fc4	9357a97e	Beige	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+39d10fc4	9357a97e	Beige	10	TEXT	struken	ruta med engelsk text (Cushions Only) lagd över bilden
+39d10fc4	d64036e1	Mörkblå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+39d10fc4	d64036e1	Mörkblå	10	TEXT	struken	cirkel med engelsk text (Cushions Only) lagd över bilden
+39d10fc4	f7a7b46b	Ljusgrå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+39d10fc4	f7a7b46b	Ljusgrå	10	TEXT	struken	ruta med engelsk text (Cushions Only) lagd över bilden
+3d8e7624	14b99ed4	Grå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+3d8e7624	14b99ed4	Grå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+3d8e7624	14b99ed4	Grå	9	REN	vald	
+3d8e7624	14b99ed4	Grå	10	REN	vald	
+3d8e7624	5aca9cb3	Röd	3	SIFFROR	vald	
+3d8e7624	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+3d8e7624	5aca9cb3	Röd	9	TEXT	vald	
+3d8e7624	5aca9cb3	Röd	10	REN	vald	
+3d8e7624	a7a1041d	Gul	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+3d8e7624	a7a1041d	Gul	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+3d8e7624	a7a1041d	Gul	9	REN	vald	
+3d8e7624	a7a1041d	Gul	10	REN	vald	
+3d8e7624	eaae581f	Grön	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+3d8e7624	eaae581f	Grön	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+3d8e7624	eaae581f	Grön	9	TEXT	struken	samma bild som en av färgens nuvarande (bildjämförelse, avstånd 0)
+3d8e7624	eaae581f	Grön	10	REN	vald	
+403dfd8d	369894e9	Blå	8	REN	vald	
+403dfd8d	369894e9	Blå	10	TEXT	vald	
+403dfd8d	92fb97f1	Rosa	8	REN	vald	
+403dfd8d	92fb97f1	Rosa	9	TEXT	vald	
+403dfd8d	92fb97f1	Rosa	10	TEXT	vald	
+403dfd8d	a2f396b7	Vit	9	REN	vald	
+403dfd8d	a2f396b7	Vit	10	TEXT	vald	
+403dfd8d	eaae581f	Grön	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+403dfd8d	eaae581f	Grön	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+403dfd8d	eaae581f	Grön	9	REN	vald	
+403dfd8d	eaae581f	Grön	10	TEXT	vald	
+4b089c02	14b99ed4	Grå	8	REN	vald	
+4b089c02	14b99ed4	Grå	9	REN	vald	
+4b089c02	14b99ed4	Grå	10	SIFFROR	vald	
+4b089c02	369894e9	Blå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+4b089c02	369894e9	Blå	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+4b089c02	369894e9	Blå	9	REN	vald	
+4b089c02	369894e9	Blå	10	REN	vald	
+55b92ab2	5aca9cb3	Röd	3	TEXT	vald	
+55b92ab2	5aca9cb3	Röd	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+55b92ab2	5aca9cb3	Röd	10	REN	vald	
+55b92ab2	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtslimit)
+55b92ab2	92fb97f1	Rosa	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+55b92ab2	92fb97f1	Rosa	9	TEXT	vald	
+55b92ab2	92fb97f1	Rosa	10	TEXT	vald	
+55b92ab2	a2f396b7	Vit	3	TEXT	vald	
+55b92ab2	a2f396b7	Vit	8	TEXT	struken	samma bild som en av färgens nuvarande (bildjämförelse, avstånd 0)
+55b92ab2	a2f396b7	Vit	9	TEXT	vald	
+55b92ab2	a2f396b7	Vit	10	TEXT	vald	
+5c506192	5aca9cb3	Röd	3	SIFFROR	vald	
+5c506192	5aca9cb3	Röd	8	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	5aca9cb3	Röd	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	5aca9cb3	Röd	10	TEXT	vald	
+5c506192	92fb97f1	Rosa	3	SIFFROR	vald	
+5c506192	92fb97f1	Rosa	9	REN	vald	
+5c506192	92fb97f1	Rosa	10	REN	vald	
+5c506192	a2f396b7	Vit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	a2f396b7	Vit	8	REN	vald	
+5c506192	a2f396b7	Vit	9	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	a2f396b7	Vit	10	TEXT	vald	
+5c506192	eb6043ba	Mintgrön	3	SIFFROR	vald	
+5c506192	eb6043ba	Mintgrön	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	eb6043ba	Mintgrön	9	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+5c506192	eb6043ba	Mintgrön	10	REN	vald	
+7511fc56	14b99ed4	Grå	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+7511fc56	14b99ed4	Grå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7511fc56	14b99ed4	Grå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7511fc56	14b99ed4	Grå	10	TEXT	vald	
+7511fc56	5aca9cb3	Röd	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+7511fc56	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7511fc56	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7511fc56	5aca9cb3	Röd	10	TEXT	vald	
+7511fc56	a2f396b7	Vit	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+7511fc56	a2f396b7	Vit	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7511fc56	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7511fc56	a2f396b7	Vit	10	TEXT	vald	
+7511fc56	f4f0198e	Svart	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+7511fc56	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7511fc56	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+7511fc56	f4f0198e	Svart	10	TEXT	vald	
+753907f5	a2f396b7	Vit	8	SIFFROR	vald	
+753907f5	a2f396b7	Vit	10	REN	vald	
+753907f5	de0013f0	Krämvit	9	TEXT	vald	
+753907f5	de0013f0	Krämvit	10	REN	vald	
+753907f5	eb6043ba	Mintgrön	9	TEXT	vald	
+753907f5	eb6043ba	Mintgrön	10	REN	vald	
+753907f5	f4f0198e	Svart	9	REN	vald	
+753907f5	f4f0198e	Svart	10	TEXT	vald	
+7e00970f	f4f0198e	Svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+7e00970f	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7e00970f	f4f0198e	Svart	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+7e00970f	f4f0198e	Svart	10	REN	vald	
+9d686a82	369894e9	Blå	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+9d686a82	369894e9	Blå	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+9d686a82	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+9d686a82	369894e9	Blå	10	REN	vald	
+9d686a82	5aca9cb3	Röd	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+9d686a82	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+9d686a82	5aca9cb3	Röd	10	REN	vald	
+9d686a82	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+9d686a82	92fb97f1	Rosa	9	TEXT	vald	
+9d686a82	92fb97f1	Rosa	10	REN	vald	
+9d686a82	a2f396b7	Vit	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtsgrenze)
+9d686a82	a2f396b7	Vit	8	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+9d686a82	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+9d686a82	a2f396b7	Vit	10	REN	vald	
+a414b5b5	14b99ed4	Grå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	14b99ed4	Grå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	14b99ed4	Grå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+a414b5b5	14b99ed4	Grå	10	REN	vald	
+a414b5b5	1f2ff66f	Sand	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	1f2ff66f	Sand	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	1f2ff66f	Sand	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+a414b5b5	1f2ff66f	Sand	10	REN	vald	
+a414b5b5	66f3c08c	Antracit	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	66f3c08c	Antracit	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	66f3c08c	Antracit	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+a414b5b5	66f3c08c	Antracit	10	REN	vald	
+a414b5b5	f9363c28	Ljusgrön	3	TEXT	struken	måttritning med tysk text i bilden (Gesamtmaße, Innere Abmessung)
+a414b5b5	f9363c28	Ljusgrön	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+a414b5b5	f9363c28	Ljusgrön	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+a414b5b5	f9363c28	Ljusgrön	10	REN	vald	
+b2ccab13	5aca9cb3	Röd	3	TEXT	vald	
+b2ccab13	5aca9cb3	Röd	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+b2ccab13	5aca9cb3	Röd	9	SIFFROR	vald	
+b2ccab13	5aca9cb3	Röd	10	TEXT	vald	
+b2ccab13	92fb97f1	Rosa	3	TEXT	vald	
+b2ccab13	92fb97f1	Rosa	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+b2ccab13	92fb97f1	Rosa	9	SIFFROR	vald	
+b2ccab13	92fb97f1	Rosa	10	TEXT	vald	
+b2ccab13	a2f396b7	Vit	3	TEXT	vald	
+b2ccab13	a2f396b7	Vit	9	SIFFROR	vald	
+b2ccab13	a2f396b7	Vit	10	TEXT	vald	
+c6928b61	14b99ed4	Grå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+c6928b61	14b99ed4	Grå	8	TEXT	struken	säljgrafik med tysk text i bilden (Vordere Tür, Füttern Sie)
+c6928b61	14b99ed4	Grå	10	REN	vald	
+c6928b61	369894e9	Blå	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+c6928b61	369894e9	Blå	8	TEXT	struken	säljgrafik med tysk text i bilden (Vordere Tür, Füttern Sie)
+c6928b61	369894e9	Blå	10	REN	vald	
+cd3320e8	44ccec77	Brun	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd3320e8	44ccec77	Brun	10	TEXT	vald	
+cd3320e8	7909f4e8	Mörkgrå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd3320e8	7909f4e8	Mörkgrå	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+cd3320e8	7909f4e8	Mörkgrå	10	REN	vald	
+cd3320e8	f4f0198e	Svart	3	SIFFROR	struken	måttbilden anger höjd 111–127 cm, sidan säger 113–121 cm (annan siffra för samma sak)
+cd3320e8	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd3320e8	f4f0198e	Svart	10	TEXT	vald	
+cd3320e8	f7a7b46b	Ljusgrå	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd3320e8	f7a7b46b	Ljusgrå	10	SIFFROR	vald	
+cd497196	5aca9cb3	Röd	3	TEXT	vald	
+cd497196	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd497196	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+cd497196	5aca9cb3	Röd	10	TEXT	vald	
+cd497196	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter)
+cd497196	92fb97f1	Rosa	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+cd497196	92fb97f1	Rosa	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+cd497196	92fb97f1	Rosa	10	TEXT	vald	
+cd497196	a2f396b7	Vit	3	TEXT	vald	
+cd497196	a2f396b7	Vit	8	TEXT	struken	samma bild som en av färgens nuvarande (bildjämförelse, avstånd 0)
+cd497196	a2f396b7	Vit	9	TEXT	vald	
+cd497196	a2f396b7	Vit	10	REN	vald	
+d8c2dec6	14b99ed4	Grå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+d8c2dec6	14b99ed4	Grå	8	SIFFROR	vald	
+d8c2dec6	14b99ed4	Grå	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+d8c2dec6	14b99ed4	Grå	10	REN	vald	
+d8c2dec6	92fb97f1	Rosa	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+d8c2dec6	92fb97f1	Rosa	10	TEXT	vald	
+d8c2dec6	9357a97e	Beige	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+d8c2dec6	9357a97e	Beige	9	REN	vald	
+d8c2dec6	9357a97e	Beige	10	SIFFROR	vald	
+d8c2dec6	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+d8c2dec6	f4f0198e	Svart	10	TEXT	vald	
+e25e86d6	5aca9cb3	Röd	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+e25e86d6	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+e25e86d6	5aca9cb3	Röd	9	TEXT	vald	
+e25e86d6	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtslimit)
+e25e86d6	92fb97f1	Rosa	10	REN	struken	foto på undersidan av bilen med människoben i reflektionen, inget säljvärde
+e25e86d6	a2f396b7	Vit	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtslimit, Empfohlenes Alter)
+e25e86d6	a2f396b7	Vit	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e25e86d6	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e25e86d6	a2f396b7	Vit	10	TEXT	vald	
+e25e86d6	f4f0198e	Svart	3	TEXT	struken	säljgrafik med tysk text i bilden (Gewichtsgrenze, Empfohlenes Alter)
+e25e86d6	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+e25e86d6	f4f0198e	Svart	9	TEXT	vald	
+eb02039b	369894e9	Blå	3	TEXT	struken	ram med leverantörens logotyp (PawHut) och måttangivelser i bilden
+eb02039b	369894e9	Blå	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+eb02039b	369894e9	Blå	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+eb02039b	369894e9	Blå	10	REN	vald	
+eb02039b	f4f0198e	Svart	3	TEXT	struken	ram med leverantörens logotyp (PawHut) och måttangivelser i bilden
+eb02039b	f4f0198e	Svart	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+eb02039b	f4f0198e	Svart	10	REN	vald	
+eb02039b	f7a7b46b	Ljusgrå	3	TEXT	struken	ram med leverantörens logotyp (PawHut) och måttangivelser i bilden
+eb02039b	f7a7b46b	Ljusgrå	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+eb02039b	f7a7b46b	Ljusgrå	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+eb02039b	f7a7b46b	Ljusgrå	10	REN	vald	
+f0ee6c6a	369894e9	Blå	3	TEXT	struken	ram med leverantörens logotyp (PawHut) och måttangivelser i bilden
+f0ee6c6a	369894e9	Blå	9	REN	vald	
+f0ee6c6a	369894e9	Blå	10	SIFFROR	vald	
+f0ee6c6a	44ccec77	Brun	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+f0ee6c6a	44ccec77	Brun	9	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+f0ee6c6a	44ccec77	Brun	10	SIFFROR	vald	
+f0ee6c6a	5aca9cb3	Röd	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+f0ee6c6a	5aca9cb3	Röd	10	REN	vald	
+f0ee6c6a	7909f4e8	Mörkgrå	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+f0ee6c6a	7909f4e8	Mörkgrå	10	SIFFROR	vald	
+fc195950	369894e9	Blå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+fc195950	369894e9	Blå	8	TEXT	vald	
+fc195950	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+fc195950	369894e9	Blå	10	TEXT	vald	
+fc195950	5aca9cb3	Röd	3	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+fc195950	5aca9cb3	Röd	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+fc195950	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+fc195950	5aca9cb3	Röd	10	TEXT	vald	
+fc195950	92fb97f1	Rosa	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtslimit)
+fc195950	92fb97f1	Rosa	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+fc195950	92fb97f1	Rosa	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+fc195950	92fb97f1	Rosa	10	TEXT	vald	
+fc195950	f4f0198e	Svart	3	TEXT	struken	säljgrafik med tysk text i bilden (Empfohlenes Alter, Gewichtslimit)
+fc195950	f4f0198e	Svart	8	TEXT	struken	säljgrafik eller etikett med tysk eller engelsk text i bilden
+fc195950	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+fc195950	f4f0198e	Svart	10	TEXT	vald	
