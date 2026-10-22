@@ -3272,8 +3272,59 @@ på fyra bilder eller färre och ingen på färre än tre.
 
 ☠️ **Ett mått som kräver ett visst optionnamn mäter namnet, inte katalogen.** Räkna alltid de sidor ett mått hoppar över.
 
-Öppet hos Leonard (PR #762, Väntar på Leonard): de 15 AliExpress-sidorna med överlappande länkar, och storlekarna på Aosom-sidor med få bilder (101 val på
-69 sidor) som skulle med i Cowork-uppdraget. Detaljerna står i `tools/polish-gates/FLAGGADE.md` (lärdom 163).
+Öppet hos Leonard (PR #762, Väntar på Leonard): de 15 AliExpress-sidorna med överlappande länkar. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
+efter de två rättade) gick till Leonard som fil 2 i Cowork-uppdraget 2026-10-22 19:25 UTC, se nästa avsnitt. Detaljerna står i `tools/polish-gates/FLAGGADE.md`
+(lärdom 163 och 164).
+
+### Cowork-rundan: bilder ur aosom.de:s galleri, plats 11 och uppåt (2026-10-22)
+
+Leonard 2026-10-22 (efter att aosom.de visat 13 bilder där feeden har tio, lärdom 162): Claude Cowork-chatten surfar i hans Chrome och listar varje sidas
+galleribilder, och jag laddar ner, granskar, laddar upp och kopplar dem. *"Och sen koppla dom som du gör, går det?"* (18:03 UTC) är beslutet att jag skriver de rena.
+Två uppdragsfiler har skickats till honom. ☠️ **Båda bär Aosoms artikelnummer i länkarna** och ligger bara i scratchpad: de går bara till Leonard, aldrig
+till repot eller en publik logg. Svaret från chatten (bildadresser på `img.aosomcdn.com`) bär inget artikelnummer.
+
+| fil | rader | innehåll | skickad |
+| :-- | :-- | :-- | :-- |
+| 1, färger | 1–256 | 151 Aosom-sidor med färgvyer på fyra bilder eller färre: rad 1–54 tre eller färre, sedan 200 på exakt fyra, hamsterburen `13fe619f` sist | 18:21 UTC |
+| 2, storlekar | 301–399 | 99 storlekar på 67 Aosom-sidor: 301–330 tre eller färre, 331–399 exakt fyra (svaret heter `val_pa_sidan`) | 19:25 UTC |
+
+Uppdraget byggs ur `katalogkontroll-farg-antal.js` respektive `katalogkontroll-val-antal.js` (vilka vyer som är svaga) och `leverantorslankar.yml` (krypterat, ny
+engångsnyckel per körning, `varianter[].val` ger länk per färg eller storlek). Chatten ändrar ingenting: den öppnar länken, läser galleriets räknare och adresser
+(den stora versionen) och svarar med JSON, högst femton rader per block.
+
+**Provomgången, rad 1–5 (svar 19:3x UTC).** Rätt färg på 5 av 5, 65 bilder i full storlek (1 600–2 000 px, noll byte-lika), och chatten lade själv bort Aosoms
+infobanner och en dubblett. ☠️ **Därför är `antal` 1–2 högre än antalet adresser**, och förklaringen står i `anmarkning`: det är rätt, inget fel. Granskat mot
+sidornas egna bilder (färgmedveten dHash, högst 12 = samma foto), OCR och kontaktark:
+
+1. ☠️ **Galleriets första tio bilder är feedens, och de är redan körda.** På alla fem rader låg plats 1 och 2 (på flera också plats 10 eller 11) redan på sidan med
+   avstånd 0. De rena nya bilderna ligger på **plats 11 och uppåt**, efter feedens tak.
+2. **13 av 65 bilder (20 %) höll, på tre av fem vyer:** hundkärran Svart och Vit (`571e37bf`, 22 bilder) fick åtta rena detaljfoton på plats 15–22, hundkärran Gul
+   (`1004b036`) fyra produktfoton på plats 11–14, och bänkdynan Mörkgrå (`a7aa9370`) dynans produktfoto på vit botten (plats 11, som den färgen saknade). Resten på
+   de två kärrorna är tyska och engelska säljgrafiker (plats 3–9 och 11–14 på Svart och Vit). Bänkdynorna Ljusgrå och Mörkgrå (`c519b4fe`) gav inget nytt rent:
+   de rena bilderna fanns redan, och resten är säljgrafiker eller foton med *Nur Kissen* eller *Cushions Only* över bilden (tre möjliga utsnitt, ingen gjord).
+3. Skrivet 19:50–19:52 UTC: Svart och Vit 3 → 11, Gul 3 → 7, Mörkgrå 3 → 4. Återläst utan avvikelser, `variantbild.yml` 3 av 3 rättade, live 19:56 UTC rätt antal
+   och de nya bilderna syns bara under sin egen färg.
+
+Så tas ett svar emot, med verktyg i `tools/polish-gates/` (privata data i scratchpad, aldrig repot):
+
+- `cowork-granska.py <svar> --rader <rader.json> --ut <katalog> --hamta --live <dir> --ocr <python>`: formkontroll mot raderna (antal mot adresser, värd, dubbletter,
+  färgen sidan sa mot raden), nedladdning från den öppna bildservern (byte, pixlar, miniatyrer, byte-lika), jämförelse mot ALLA bilder på sidan (`live-bilder.mjs` eller
+  `live-farg-vy.mjs` ger `<id8>.json`, `live-par.sh` gör många sidor) med NY eller FINNS, OCR (REN, SIFFROR, TEXT) och kontaktark. Den skriver aldrig länkar.
+- `cowork-ladda.py urls|para|kod`: `urls` ger adresserna i omgångar om 25 för `UploadImageToWixSite`, `para` hämtar varje uppladdad fil från Wix CDN och paras med sin
+  kandidat på md5, `kod` bygger ExecuteWixAPI-koden ur `skriv-fargbilder.js` (en fil per körning) ur `picks.json` (`{ "<rad>": [{ "k": plats, "alt": text }] }`).
+- `skriv-fargbilder.js` (uppdaterad): READY-kontroll av varje fil, `axel` för andra optioner än Färg, sidor fyra i taget, och andra optioners länkar jämförs vid återläsning.
+- Sedan `variantbild.yml` (skarp, `ids`), live per vy efter butikens cache, och dokumentera.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Uppladdningens svar ekar ingen käll-adress.** Ordningen är ingen bevisning: `cowork-ladda.py para` stoppar om en fil saknas eller saknar md5-träff.
+2. ☠️ **En fil som inte är READY hamnar aldrig i ett galleri.** UploadImageToWixSite svarar PENDING, och `skriv-fargbilder.js` vägrar tills Media Manager säger READY.
+3. ☠️ **Bara granskade bilder skrivs.** TEXT (tysk eller engelsk säljgrafik, logotyp som motiv) stryks, text på varan eller rekvisitan stryks inte (runbooken), och ett
+   foto vars färg inte är sidans stryks. `picks.json` är det som är valt efter att ha tittat på kontaktarken, aldrig en lista som OCR gett.
+4. **En plan per sida.** Flera rader på samma sida samlas i en skrivning, annars krockar revisionerna.
+
+⚠️ `axel: "Storlek"` i `skriv-fargbilder.js` är inte prövad på en riktig sida än (fil 2 ger den första). På en sida med ett enda val som inte är färg gäller butikens regel
+ovan: en länkad bild visas bara för det första val som länkar den, så en ny storleksbild länkas till sin storlek och syns bara där.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
