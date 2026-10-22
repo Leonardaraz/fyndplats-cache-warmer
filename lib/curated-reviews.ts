@@ -18,6 +18,12 @@
 // 2026-10-07: två nya (George Galush, David Erdinc) överst; Stefan Gajics
 // äldre omdöme utan bild (musikboxen) borttaget på Leonards begäran.
 //
+// 2026-10-22: tre nya (Saad Said, Albert, Kevin Stenroos) överst, ur Leonards
+// skärmdumpar samma dag. George Galushs omdöme visades nu helt och står med
+// hela texten. Stefan Gajics och Orlandos texter var kapade mitt i en mening,
+// med en punkt som inte fanns hos Google. De är trimmade till sista hela
+// mening enligt regeln ovan.
+//
 // STÄMD MOT PROFILEN 2026-09-27, mot Leonards skärmdumpar av hela listan. Ett
 // omdöme som inte längre finns på Google ska inte stå kvar här — kortet säger
 // "Recension från Google" och länkar dit. Sex var borta (Google rensar i svep,
@@ -26,7 +32,7 @@
 //
 // Snittbetyget kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles eget när API:t svarar, annars reserven i
-// lib/social-proof.ts. Korten nedan (23 st med text, 2026-10-07) är ett urval — "Se alla på
+// lib/social-proof.ts. Korten nedan (26 st med text, 2026-10-22) är ett urval — "Se alla på
 // Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
 // text och har inget att visa här. Något TOTALANTAL visas inte längre någonstans;
 // se noten överst i lib/social-proof.ts för varför.
@@ -67,13 +73,38 @@ import { GOOGLE_RATING } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
   {
+    id: "saad-said",
+    rating: 5,
+    author: "Saad Said",
+    // Google visade "2 days ago" 2026-10-22.
+    date: "2026-10-20",
+    text: "Jättenöjd med min elkamin! Snygg design och ett fint eldsken som ger en mysig känsla i rummet. Enkel att använda och värmer skönt. Rekommenderas varmt!",
+  },
+  {
+    id: "albert",
+    rating: 5,
+    author: "Albert",
+    // Google visade "a week ago" 2026-10-22.
+    date: "2026-10-15",
+    text: "Supernöjd med mitt köp! Massagestolen motsvarade verkligen mina förväntningar och jag är jättenöjd. Rekommenderar varmt!",
+  },
+  {
+    id: "kevin-stenroos",
+    rating: 5,
+    author: "Kevin Stenroos",
+    // Google visade "2 weeks ago" 2026-10-22. Avhugget efter "Produkterna
+    // motsvarade mina förväntningar och allt … More", trimmat till sista hela
+    // mening.
+    date: "2026-10-08",
+    text: "Jag är väldigt nöjd med min upplevelse hos Fyndplats.se! Smidig beställning, bra priser och snabb hantering.",
+  },
+  {
     id: "george-galush",
     rating: 5,
     author: "George Galush",
-    // Google visade "för 4 dagar sedan" 2026-10-07. Avhugget efter "fina
-    // fynd." ("Smidig och trevlig uppl… Mer"), trimmat till sista hela mening.
+    // Google visade "för 4 dagar sedan" 2026-10-07, och hela texten 2026-10-22.
     date: "2026-10-03",
-    text: "Riktigt bra sida med ett stort och varierat utbud av produkter! Det finns mycket att välja mellan och man kan verkligen göra fina fynd.",
+    text: "Riktigt bra sida med ett stort och varierat utbud av produkter! Det finns mycket att välja mellan och man kan verkligen göra fina fynd. Smidig och trevlig upplevelse från början till slut. Rekommenderas varmt!",
   },
   {
     id: "david-erdinc",
@@ -103,8 +134,10 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     id: "stefan-gajic",
     rating: 5,
     author: "Stefan Gajic",
+    // Avhugget efter "Har flugit några gånger nere vid hamnen och bilderna blir
+    // riktigt … More" (2026-10-22), trimmat till sista hela mening.
     date: "2026-06-23",
-    text: "Köpte den som min första drönare, var lite nervös först men det gick lättare än jag trodde. Har flugit några gånger nere vid hamnen.",
+    text: "Köpte den som min första drönare, var lite nervös först men det gick lättare än jag trodde.",
     // Kundens egen bild — se noten om kundbilder överst i filen.
     photos: [
       {
@@ -117,8 +150,10 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     id: "orlando",
     rating: 5,
     author: "Orlando",
+    // Avhugget efter "bildkvaliteten är riktigt bra för … More" (2026-10-22),
+    // trimmat till sista hela mening.
     date: "2026-05-30",
-    text: "Beställde en projektor från Fyndplats och är väldigt nöjd med köpet. Vi använder den hemma till filmkvällar med barnen och bildkvaliteten är riktigt bra.",
+    text: "Beställde en projektor från Fyndplats och är väldigt nöjd med köpet.",
   },
   {
     id: "malin-eklof",
