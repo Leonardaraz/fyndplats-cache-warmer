@@ -493,6 +493,10 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    vals första bild: 2026-10-22 hade foton hamnat under fel färg eller storlek på fyra av sju
    sammanslagna sidor. De länkas med `tools/polish-gates/bygg-lank.py` och `variantbild.yml`
    (FLAGGADE, lärdom 135).
+   Kort och måttbilder är gemensamma enligt butikens regel (`arKort`) och visas som andra bild under varje färg, även när de
+   föreställer en annan färg: 2026-10-22 visade hundbäddens måttbild på den blå bädden under Brun, och agilityhindrets
+   träbågar under Grå. Leonard har fått frågan om sådana bilder ska länkas till sin egen färg (FLAGGADE, lärdom 147). Tills
+   han svarat är gemensamma måttbilder standard. Skumklossarnas `d70e483e` måttbild är länkad till sin färg som prov.
 5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
    `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
    `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras
@@ -627,6 +631,12 @@ kan belägga står inte på sidan.
 kontaktark per produkt i `ark/`. Titta på arket innan du skriver något. Bilderna visar vad
 varan är, hur många delar den har och hur den sitter ihop. Golvlampan `13a53d52` beskrevs
 till exempel med två skärmar utifrån källans två mått, men fotot visar en.
+
+**Svenska alt-texter säger inget om pixlarna.** En runda som bara byter alt-texter på en redan publicerad sida får ändå gå
+igenom hela galleriet: kör `tools/polish-gates/ocr-forgranska.py` (eller `ocr-live.py` mot de publicerade vyerna) över varje bild.
+2026-10-22 fann en OCR över 177 bilder på åtta sidor en tysk detaljbild och en leverantörslogotyp som legat ute länkade till
+färgval (T88, FLAGGADE, lärdom 141). De tas bort med `bilder-bort.yml` före bildplanen, och galleriet läses om innan
+alt-nycklarna byggs, eftersom bilderna efter en borttagen bild byter plats (lärdom 142).
 
 Position 1 är en vit studiobild och har aldrig behövt strykas (0 av 687 produkter i B- och
 N-rundorna), så arket räcker för den. Granska 2–5 i full upplösning i `orig/`. Siffror i en

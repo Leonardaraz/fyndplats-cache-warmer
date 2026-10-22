@@ -2241,6 +2241,12 @@ logik) och `lib/aosom/fargbilder-kor.ts` (Wix). Torrt som default. `hogst`
   hör till huvudbildens färg. En givares egen fil går före alt-texten. Ett foto
   vars färg saknar länkad bild står kvar orört i galleriet. Efter skrivningen är
   varje färgs bilder länkade.
+  ⚠️ **Gemensamma kort och måttbilder visas som andra bild under varje färg, även när
+  de föreställer värdens färg** (2026-10-22: hundbäddens blå måttbild under Brun,
+  agilityhindrets träbågar under Grå, sminkpallens rosa under Vit). Frågan om de ska
+  länkas till sin egen färg står hos Leonard (FLAGGADE, lärdom 147). Tills han svarat
+  är gemensamma måttbilder standard, och skumklossarnas `d70e483e` måttbild är länkad
+  till sin färg som prov.
 - **Wix 50 och tabellen.** Galleriet får huvudbilden, de gemensamma korten, andra
   axlars bilder, varje redan länkad bild och sedan en bild i taget till den färg
   som har minst. Resten sparas i Postgres-tabellen `fargbilder` (`overflow`), som
