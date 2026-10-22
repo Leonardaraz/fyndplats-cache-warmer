@@ -23,7 +23,12 @@ async function () {
   //      Färgreglerna för gemensamma bilder (alt-text som kort eller med två färger) gäller bara axeln Färg.
   //   3. Sidorna körs fyra i taget (Promise.allSettled): en körning ryms på 60 s med ungefär tolv sidor.
   //   4. Återläsningen jämför också länkarna i alla andra optioner (en tvåaxlig sida får inte tappa storlekens länkar).
+  //   5. `TORR` (2026-10-22): true skriver ingenting och returnerar planen (galleriets nya ordning) och, på en option som inte är färg,
+  //      butikens vy per val före och efter (samma regel som katalogkontroll-val-antal.js). "fake" hoppar dessutom över kontrollen av
+  //      filerna hos Wix, så att en sida kan provas med påhittade fil-id. Ett val utan egen länkad bild får inget tillägg (planen vägrar),
+  //      eftersom en första länk gör att valet bara visar den bilden och de gemensamma i stället för hela galleriet.
   const PLANER = [{ id: "", tillagg: [] }];
+  const TORR = false;
   const T0 = Date.now();
 
   const lika = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
@@ -53,6 +58,22 @@ async function () {
     return /^\s*(?:fyndplats|mått|specifikation)/i.test(alt) || /(?:spec(?:ifikations)?|mått|färg|fakta|storleks)kort/i.test(alt) || /mått(?:bild|ritning|skiss|skisser|uppgifter)/i.test(alt);
   };
   const FORBJUDET = /https?:|www\.|\.(?:com|se|de)\b|homcom|outsunny|pawhut|aiyaplay|vinsetto|kleankin|zonekiz|sportnow|durhand|aosom|aliexpress|alibaba|vevor|succebuy|giantex|costway/i;
+  // Butikens vy per val på en option som inte är färg: en länkad bild visas bara för det första val som länkar den, en olänkad bild är
+  // gemensam, och äger ett val ingenting och ingen bild är gemensam visas hela galleriet. Räknar antal bilder per val.
+  const vyerAv = function (galleriIds, valLista, lankMap) {
+    const lankade = new Set();
+    valLista.forEach(function (c) { (lankMap[c.choiceId] || []).forEach(function (id) { lankade.add(id); }); });
+    const delade = galleriIds.filter(function (id) { return !lankade.has(id); });
+    const agda = new Set();
+    const ut = {};
+    valLista.forEach(function (c) {
+      const egna = (lankMap[c.choiceId] || []).filter(function (id) { return galleriIds.indexOf(id) >= 0 && !agda.has(id); });
+      egna.forEach(function (id) { agda.add(id); });
+      const antal = new Set(egna.concat(delade)).size;
+      ut[c.name] = antal > 0 ? antal : galleriIds.length;
+    });
+    return ut;
+  };
   const skrivEn = async function (PLAN) {
     const URL = "https://www.wixapis.com/stores/v3/products/" + PLAN.id;
     const FALT = "?fields=MEDIA_ITEMS_INFO&fields=VARIANT_OPTION_CHOICE_NAMES";
@@ -65,6 +86,7 @@ async function () {
     if (!/^[0-9a-f-]{36}$/.test(PLAN.id) || PLAN.tillagg.length === 0) return fel("plan", "id eller tillägg saknas");
     const p0 = await las();
     for (const t of PLAN.tillagg) {
+      if (TORR === "fake") break;
       const fr = await wix.request({ method: "GET", url: "https://www.wixapis.com/site-media/v1/files/get-file-by-id?fileId=" + encodeURIComponent(t.fil) });
       const st = fr.data && fr.data.file && fr.data.file.operationStatus;
       if (st !== "READY") return fel("plan", "filen är inte klar hos Wix (" + st + "): " + t.fil.slice(7, 15));
@@ -82,6 +104,7 @@ async function () {
     const nytt = items0.slice();
     const lank = {};
     val0.forEach(function (c) { lank[c.choiceId] = (c.linkedMedia || []).map(function (m) { return m.id; }); });
+    const lank0 = JSON.parse(JSON.stringify(lank));
     const agdAvVal = function (c) { return lank[c.choiceId]; };
     const skrivs = [];
     for (const t of PLAN.tillagg) {
@@ -109,6 +132,18 @@ async function () {
       finns.add(t.fil);
     }
     if (nytt.length > 50) return fel("plan", "galleriet skulle få " + nytt.length + " bilder, Wix tar 50");
+    if (TORR) {
+      return {
+        ok: true,
+        torr: true,
+        id: PLAN.id.slice(0, 8),
+        galleri: items0.length + " → " + nytt.length,
+        skrivet: skrivs.map(function (s) { return s.fil.slice(7, 15) + (s.namn ? "→" + s.namn : " gemensam"); }),
+        vyFore: arFarg ? null : vyerAv(items0.map(function (i) { return i.id; }), val0, lank0),
+        vyEfter: arFarg ? null : vyerAv(nytt.map(function (i) { return i.id; }), val0, lank),
+        ordning: nytt.map(function (i) { return i.id.slice(7, 13); }).join(" "),
+      };
+    }
 
     // 2. Galleriet, ensamt, vid id. En tom alt-text skickas inte (Wix svarar 400).
     const post = function (i) { return i.altText ? { id: i.id, altText: i.altText } : { id: i.id }; };

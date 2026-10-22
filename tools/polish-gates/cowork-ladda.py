@@ -9,13 +9,16 @@
 #       ids.txt: Wix fil-id från uppladdningens svar, ett per rad i den ordning svaret kom. ☠️ Svaret ekar ingen käll-adress, så ordningen är
 #       ingen bevisning: varje fil hämtas från Wix CDN och paras med sin lokala kandidat på md5. Skriver <ut>/ladda/par.json. Ett par som
 #       saknas eller en md5 utan träff stoppar (exit 1).
-#   kod <picks.json> --rader <rader.json> [--rader ...] --ut <katalog> [--per-korning 12]
+#   kod <picks.json> --rader <rader.json> [--rader ...] --ut <katalog> [--per-korning 12] [--torr]
 #       Bygger ExecuteWixAPI-koden ur tools/polish-gates/skriv-fargbilder.js, en fil per körning (<ut>/ladda/skriv_<n>.js), med planen ifylld.
 #       Koden är hela skriptet: den klistras in som `code` i ExecuteWixAPI (hasMutations true). Sidorna körs fyra i taget.
+#       --torr bygger en torrkörning (TORR = true, hasMutations false): ingenting skrivs, planen och butikens vy före och efter returneras.
 #
-#   picks.json: { "<rad-nr>": [ { "k": <plats i svarets bilder, 1 = första>, "alt": "<svensk alt-text, 5–200 tecken>" }, ... ] }
+#   picks.json: { "<rad-nr>": [ { "k": <plats i svarets bilder, 1 = första>, "alt": "<svensk alt-text, 5–200 tecken>", "gemensam": true }, ... ] }
 #   Valet och optionen kommer ur raden (rader.json): färgrader → option Färg och färgens namn, storleksrader → option Storlek (eller raden
 #   `opt`) och storlekens namn. Flera rader på samma sida samlas i EN plan (en skrivning per sida, annars krockar revisionerna).
+#   `gemensam: true` (valfritt) lägger bilden olänkad, så att den visas för alla val på sidan (val = null i skriv-fargbilder.js). På en
+#   färgsida vägrar planen en gemensam bild vars alt-text inte är ett kort eller nämner minst två färger; på en storleksida går det bra.
 #
 # ☠️ Aldrig en bild utan granskning: picks.json är det en människa (eller jag, med ögonen) valt efter cowork-granska.py. Alt-texten beskriver
 # bilden, nämner inget leverantörs- eller husmärke och ingen adress (samma spärr som skriv-fargbilder.js: FORBJUDET).
@@ -26,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def flaggor(a):
-    ut = dict(pos=[], rader=[], ut=None, svar=None, per=12)
+    ut = dict(pos=[], rader=[], ut=None, svar=None, per=12, torr=False)
     i = 0
     while i < len(a):
         if a[i] == '--rader':
@@ -37,6 +40,8 @@ def flaggor(a):
             ut['svar'] = a[i + 1]; i += 2
         elif a[i] == '--per-korning':
             ut['per'] = int(a[i + 1]); i += 2
+        elif a[i] == '--torr':
+            ut['torr'] = True; i += 1
         else:
             ut['pos'].append(a[i]); i += 1
     return ut
@@ -150,7 +155,7 @@ def kod(F):
             fid = par.get('%s:%d' % (nr, x['k']))
             if not fid:
                 sys.exit('rad %s k%d saknar uppladdad fil (kör para först)' % (nr, x['k']))
-            s['tillagg'].append(dict(fil=fid, alt=x['alt'].strip(), val=val))
+            s['tillagg'].append(dict(fil=fid, alt=x['alt'].strip(), val=None if x.get('gemensam') else val))
     mall = open(HERE + '/skriv-fargbilder.js', encoding='utf-8').read()
     gammal = 'const PLANER = [{ id: "", tillagg: [] }];'
     if gammal not in mall:
@@ -170,10 +175,16 @@ def kod(F):
         rader_js.append('  ];')
         n += 1
         fil = '%s/skriv_%d.js' % (d, n)
-        open(fil, 'w', encoding='utf-8').write(mall.replace(gammal, '\n'.join(rader_js), 1))
-        print('%s: %d sidor, %d bilder' % (fil, len(grupp), sum(len(s['tillagg']) for s in grupp)))
+        kod_js = mall.replace(gammal, '\n'.join(rader_js), 1)
+        if F['torr']:
+            if 'const TORR = false;' not in kod_js:
+                sys.exit('skriv-fargbilder.js saknar raden: const TORR = false;')
+            kod_js = kod_js.replace('const TORR = false;', 'const TORR = true;', 1)
+        open(fil, 'w', encoding='utf-8').write(kod_js)
+        print('%s: %d sidor, %d bilder%s' % (fil, len(grupp), sum(len(s['tillagg']) for s in grupp), ' (TORRKÖRNING, hasMutations false)' if F['torr'] else ''))
     ids = ','.join(s['id'] for s in sidlista)
-    print('\nvariantbild.yml efteråt (lage skarp), ids:\n' + ids)
+    if not F['torr']:
+        print('\nvariantbild.yml efteråt (lage skarp), ids:\n' + ids)
 
 
 if __name__ == '__main__':
