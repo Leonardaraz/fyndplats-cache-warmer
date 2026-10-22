@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""bygg-lank.py <ut.js> <spec.json>: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript för de foton som ska LÄNKAS till ett val.
+"""bygg-lank.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript för de foton som ska LÄNKAS till ett val.
+--torr bygger en torrkörning (ingenting skrivs): svaret har butikens vy per val före och efter på en option som inte är färg.
 
 spec.json (2026-10-22, efter sammanslagningarna T84 och T86): [{"id": "<fullt produkt-id>", "axel": "Färg"|"Storlek",
 "val": {"<valets namn>": ["<hex6>", ...]}}]. Varje hex6 är de sex första tecknen i galleriets fil-id efter "b379ce_" och ska ge exakt en träff
@@ -41,5 +42,8 @@ new = '''  const TILLAGG = %s;
   }
 ''' % json.dumps(spec, ensure_ascii=False)
 src = src.replace(old, new)
+if '--torr' in sys.argv[3:]:
+    assert src.count('const TORR = false;') == 1
+    src = src.replace('const TORR = false;', 'const TORR = true;', 1)
 open(sys.argv[1], 'w', encoding='utf-8').write(src)
-print(len(src), 'tecken')
+print(len(src), 'tecken' + (' (TORRKÖRNING: skriver ingenting, hasMutations false)' if '--torr' in sys.argv[3:] else ''))

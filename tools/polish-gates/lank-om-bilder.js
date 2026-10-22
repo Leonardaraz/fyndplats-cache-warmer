@@ -22,11 +22,30 @@ async function () {
   //      och efter. Avviker något är svaret `ok: false`.
   // Efter en omlänkning kan variantens bild (varukorgens bild) vara fel. Kör variantbild.yml (dryRun=false) eller rutten
   // `/api/cron/variantbild`, som räknar om den.
+  //
+  // `TORR` (2026-10-22): true skriver ingenting och returnerar, på en option som inte är färg, butikens vy per val före och efter
+  // (samma regel som katalogkontroll-val-antal.js och skriv-fargbilder.js). Läs att varje val du vill ska växa växer, och att inget
+  // val hamnar under fyra bilder, innan du kör skarpt (bygg-lank.py --torr bygger den).
   const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];
+  const TORR = false;
   const T0 = Date.now();
 
   const lika = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
   const paus = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  const vyerAv = function (galleriIds, valLista, lankMap) {
+    const lankade = new Set();
+    valLista.forEach(function (c) { (lankMap[c.choiceId] || []).forEach(function (id) { lankade.add(id); }); });
+    const delade = galleriIds.filter(function (id) { return !lankade.has(id); });
+    const agda = new Set();
+    const ut = {};
+    valLista.forEach(function (c) {
+      const egna = (lankMap[c.choiceId] || []).filter(function (id) { return galleriIds.indexOf(id) >= 0 && !agda.has(id); });
+      egna.forEach(function (id) { agda.add(id); });
+      const antal = new Set(egna.concat(delade)).size;
+      ut[c.name] = antal > 0 ? antal : galleriIds.length;
+    });
+    return ut;
+  };
   const lankEn = async function (PLAN) {
     const URL = "https://www.wixapis.com/stores/v3/products/" + PLAN.id;
     const FALT = "?fields=MEDIA_ITEMS_INFO&fields=VARIANT_OPTION_CHOICE_NAMES";
@@ -71,6 +90,17 @@ async function () {
         if (agare[f]) return fel("plan", "filen " + f.slice(7, 15) + " skulle vara länkad från både " + agare[f] + " och " + c.name);
         agare[f] = c.name;
       }
+    }
+    if (TORR) {
+      const iFarg = lika(axelNamn, "Färg");
+      return {
+        ok: true,
+        torr: true,
+        id: PLAN.id.slice(0, 8),
+        vyFore: iFarg ? null : vyerAv(galleri0, val0, gamla),
+        vyEfter: iFarg ? null : vyerAv(galleri0, val0, slutligt),
+        valLankar: val0.map(function (c) { return c.name + ": " + gamla[c.choiceId].length + " → " + slutligt[c.choiceId].length; }),
+      };
     }
 
     // 2. Länkarna: options + variantsInfo ordagrant ur GET:en, valens nya linkedMedia, visible explicit. Försöker om vid 404/409.

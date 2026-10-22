@@ -3337,6 +3337,27 @@ Tre egenskaper som inte ska tas bort:
 3. ⚠️ **Live-mätningens etiketter är butikens, planens är Wix.** Projektorduken `422ab1bd` heter 92 och 85 tum i Wix men visas som 234 och 216 cm i butiken. Skriptet
    matchar valet på Wix namn, och den privata live-filen får döpas om till dem (`cowork-granska.py` matchar etiketten och säger till när den inte hittar valet).
 
+### Delade måttbilder på storleksidor visas under fel storlek (2026-10-22)
+
+Leonards skärmbild 22:31 (svensk tid) av skrivbordet `041fa621`: under 200 × 60 cm visades måttbilden för 180 × 60 cm. Den låg olänkad i galleriet (bild 8, alt-texten
+slutade på *180 × 60 cm, bild 2*), och en bild som inget val länkar visar butiken för ALLA val. Givarens första bild var länkad till sin storlek och resten låg gemensamma.
+Sammanslagningen länkar sedan 2026-09-30 alla givarens bilder till det nya valet, så sidan är troligen äldre (datumet är inte kontrollerat i historiken). Rättat 20:51 UTC med
+`lank-om-bilder.js` (bara länkar: 180 × 60 cm 1 → 2, galleri, id, SKU, pris och synlighet orörda och återlästa utan avvikelse), och mätt live direkt efteråt: 200 × 60 visar sex bilder
+utan 180-bilden och 180 × 60 sex med sin egen. Samma miljöfoto ligger dessutom två gånger i galleriet (bild 2 och 3, pixelskillnad 0). Den ena är inte borttagen, frågan står hos Leonard.
+
+☠️ **En måttbild som anger ETT vals tal är inte gemensam.** På en färgsida delar färgerna oftast mått (frågan om gemensamma måttbilder står under *Väntar på Leonard*), men på en
+storleksida anger bilden olika tal per val och motsäger de andra storlekarna. Kort som listar ALLA storlekar (*Tre storlekar med 10, 31 och 49 liter*, *WiFi eller 4G*, en
+storleksguide) ska vara gemensamma. ☠️ **Ett antal visar inte felet:** skrivbordet hade sex bilder i vardera vyn både före och efter, och bara bilden avgör.
+
+Skanningen `katalogkontroll-delade-malbilder.js` (läser bara, 32 s): av de 210 sidorna med ett enda val som inte är färg har 40 en olänkad bild vars alt-text nämner ett val eller är en
+måttbild (18 på namn, 27 måttbilder utan nämnt val). Alla 45 bilderna granskades på kontaktark med OCR (`ocr-forgranska.py --tal`). De flesta är kort som listar alla storlekar, eller delar
+mått mellan valen (västen, skivorna, stenarna, slalomstolparna), och står rätt. **Sju Aosom-sidor visar en måttbild för EN storlek under alla:** hönsgården `946d76bb` (3 × 2 m), terrariet
+`ebf8a214` (30 × 30 × 30 cm), plyo-boxen `3a5e0e72` (61 × 51 × 41 cm), soptunnan `9d2c88bd` (30 liter), polytunneln `5556a448` (295 × 195 cm), hantelsetet `c6ff6fe8` (1, 3 och 5 kg) och buxbomen
+`0fda8bfe` (varje storleks foto). Ungefär sex till behöver kontrolleras innan något sägs, både leverantör och vilken storlek bilden gäller: byråerna `15c66a4d`, `57873e12` och `7b12a7f5`,
+sängramen `b996cd55`, elementskyddet `675ba9bc` och tunnorna `dcd756bd`. Några sidor har samma fel men är troligen AliExpress (rå valnamn som *1.2M*, julgranen `6e72bacc`) och rörs inte
+utan Leonards ja. Torrkörning av rättningen för de sju (`bygg-lank.py --torr`, nytt): den egna storleken behåller sina bilder, de andra förlorar den felaktiga bilden (5 → 4) och ingen vy hamnar
+under fyra. Ingenting av detta är skrivet än, det väntar på Leonards ja.
+
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
 Nattimporten 2026-10-22 skapade 40 utkast (04:40–04:44 UTC). 27 blev egna sidor (N294–N298), 10 blev färg eller storlek på publicerade sidor
