@@ -3457,6 +3457,116 @@ Fyra egenskaper som inte ska tas bort:
 3. ☠️ **Leverantören kontrolleras före skrivningen.** En sida utan `supplier` räknas som AliExpress och rörs inte utan Leonards ja, hur lik den än är en Aosom-sida (`675ba9bc` och `a2a51783`).
 4. **Hexkoderna är de sex första tecknen efter `b379ce_`** och ska ge exakt en träff i galleriet; `bygg-lank.py` avbryter annars, och lägger de nya länkarna i galleriets ordning utan att släppa en gammal länk.
 
+### Tvåaxliga sidor: färgfoton på färgen, ett kort per storlek (2026-10-23)
+
+Leonards skärmbild 2026-10-23 00:16 (svensk tid) av soptunnan `c841717c` (Aosom, tre fack i rostfritt stål, Storlek 45 och 60 liter × Färg Svart och Silver, 1 959 kr): med Silver och 60 liter valda
+var andra bilden en kvinna i ett kök med en **svart** tunna och tredje en svart tunna. Leonard: *"storleken o färgen har blandade bilder"*, och bad mig rätta sidan (*"kommer du typ fixa denna"*).
+Det var hans ja för just den här sidan.
+
+Mätt live per kombination (`live-galleri.mjs`), galleriets plats som siffra (1–7 svarta bilder, 8–14 silverbilder):
+
+| kombination | butikens vy före | efter |
+| :-- | :-- | :-- |
+| 45 liter × Svart | 2 · 1 · 3 · 4 · 5 · 14 | 1–7 |
+| 45 liter × Silver | 8 · **1** · **4** · **5** · 9–14 | 8–14 |
+| 60 liter × Svart | 2 · 3 · 4 · 6 · 7 · 14 | 1–7 |
+| 60 liter × Silver | 8 · **4** · **6** · **7** · 9–14 | 8–14 |
+
+Sidan hade länkade bilder på **båda** optionerna: Storlek 45 liter länkade den svarta packshoten (1) och en svart måttskiss (5), 60 liter en svart packshot (6) och en svart måttbild (7), eftersom givarnas
+första bilder var svarta, och Färg länkade två svarta lifestylefoton till Svart och sex silverbilder till Silver. Två bilder var olänkade, det svarta köksfotot (4) och silvertunnans måttbild för 45 liter (14).
+Silver fick därför svarta bilder via storleken och via den olänkade, och Svart fick silvertunnans måttbild.
+
+☠️ **Varukorgens bild var fel på alla fyra varianter.** Wix räknade variantens bild ur storlekens länkar (regeln nedan), så Silver fick en svart tunna i varukorgen, kassan och ordern.
+`variantbild.yml` kunde inte laga det: `forvantadBild` räknar ett snitt mellan optionernas länkar, snittet var tomt för varje kombination (`inget_snitt`), och rutten rapporterar det som `okanda`,
+rättar ingenting och ger ingen röd körning.
+
+Rättat med `lank-om-bilder.js`, bara länkar, två planer på samma sida (Färg, sedan Storlek med `tomt`): **Svart länkar alla sju svarta bilder (1–7), Silver alla sju silverbilder (8–14) och Storlek inga.**
+Galleriets ordning, varianternas id, SKU, pris, lager och synlighet och produktens namn och adress orörda (revision 36 → 38, 0 avvikelser i återläsningen). `variantbild.yml` rättade 1 av 1 (Svart → svart
+packshot, Silver → silverpackshoten; revision 39). Skrivet 23:46–23:47 UTC, före Aosoms lagerfönster 00:12–00:29. Live 23:5x UTC (sidans cache renderad 23:50:51, efter skrivningen): Svart visar 1–7 och Silver 8–14 i båda
+storlekarna, priserna 1 299, 2 029, 1 959 och 1 179 kr oförändrade. Silver 45 liter är slutsåld sedan 2026-10-17 (lagret orört). Skärmbilder med en mobilstor webbläsare av 60 liter × Svart och × Silver visar rätt färg.
+
+#### Det som inte går att rätta med länkar: en måttbild som visar EN färg i EN storlek
+
+Leonards nästa meddelande samma natt: *"specifikationsbilderna är inte helt rätt på den. Om jag väljer storlek 45 liter så finns 60 liter specifikation bild med och om jag väljer 60 finns 45 med."* Det är
+fem bilder som var och en visar en färg i en storlek: svart 45 (5), svart 60 (7), silverkortet för 60 (9), ett silverfoto med 60-litersmåtten inritade (10) och silvertunnans måttbild för 45 (14).
+
+Butiken visar för en kombination bilder som **ägs** av färgens eller storlekens val, plus de olänkade. Sidans egen data säger det rakt ut: `imageOwners` är en karta från bild till ETT val (det första som
+länkar den), `variantTable[].image` är Wix bild för varje variant och `variantAxes` är väljarna. Hämta sidan med `curl`, byt `\"` mot `"` och läs dem för att se vad butiken kommer att visa utan webbläsare.
+Det finns ingen skärning: en bild som ägs av *45 liter* syns under båda färgerna, och en som ägs av *Silver* syns under båda storlekarna. Wix egen dokumentation för V1 säger samma sak (*"media items can only
+be set for choices within one option at a time"*). Det som går är bilder som är **färgneutrala och storleksspecifika**, länkade till storleken, och färgfoton som är storleksneutrala, länkade till färgen.
+
+#### Wix:s regel för variantens bild (mätt 2026-10-23 på tre dolda testprodukter, raderade direkt efteråt)
+
+| skrivning (Storlek och Färg har länkade bilder, Storlek först) | variantens bild |
+| :-- | :-- |
+| länkarna skrivna med `products` PATCH och val-id | **oförändrad** (huvudbilden för alla fyra) |
+| namn-skrivning (`products-with-inventory`, valen bara med namn), valen Storlek först | **storlekens första bild** (S → kort 1, L → kort 2, båda färgerna) |
+| samma, men bara optionerna omvända, varianternas val kvar Storlek först | samma: storlekskortet |
+| samma, optionerna OCH varje variants val Färg först | **färgens första bild** (Svart → svart, Silver → silver), kvar efter en omskrivning |
+
+Regeln: **variantens bild är första länkade bilden hos det första valet i variantens egen `choices`-lista som har länkade bilder**, och den räknas om bara vid en namn-skrivning. Optionernas ordning ensam
+räcker inte, och Wix tar emot en ändrad optionsordning (`optionsordning` gick från *Storlek > Färg* till *Färg > Storlek* i en PATCH). `forvantadBild` i `lib/wix/variant-media.ts` räknar ett snitt i stället,
+och på de åtta sidorna nedan (25 varianter), där snittet är tomt för någon kombination, var den lagrade bilden inte huvudbilden på någon av dem som skiljde sig (till exempel Svart × 99 tum på projektorduken
+och alla fyra varianterna på förvaringskistan) utan alltid första bilden hos första valet. Verktyget är inte ändrat, och ett tomt snitt rapporteras fortfarande som `okanda`.
+
+#### Katalogkontrollen och de åtta sidorna
+
+`katalogkontroll-tva-lankade-optioner.js` (35 s, bara läsning): av 5 092 publicerade sidor har 49 två optioner med minst två synliga val, och **8 har länkade bilder på båda**, alla med tomt snitt för någon
+kombination. Ett tomt snitt är ingen defekt i sig. De åtta mättes live per kombination med den lagade `live-galleri.mjs` och mot sidornas `variantTable`:
+
+| sida | vad kunden ser | åtgärd |
+| :-- | :-- | :-- |
+| hundgrinden `6eb13a16` | rena vyer, varukorgens bild rätt | ingen |
+| bänkdynan `a7aa9370` | rena vyer (varje färg finns i en storlek), varukorgens bild rätt; Ljusgrå visar två bilder | ingen |
+| vedboden `4a2ab58e` | rena vyer, varukorgens bild rätt (150 × Mörkgrå och 213 × Grön är slutsålda) | ingen |
+| tunnelväxthuset `5466fe81` | rena vyer; Grön × 397 visar tre måttbilder (397 två gånger, 597 en gång) | låg |
+| buxbomsklotten `7d1fb82b` | en olänkad 50 cm-bild visas under 40 cm; 50 cm-bilderna nämner ingen färg | låg |
+| projektorduken `926ec7a2` | storlekarnas bilder visas **aldrig**: butikens `imageOwners` bär etiketten *85 tum (216 cm)* medan väljaren säger *85 tum*; färgen Svart har ingen variant i 85 tum | butiksfel, se nedan |
+| hamsterburen `13fe619f` | ☠️ Naturträ × 85 × 45 visar de fem bilderna av den grå burens storlek och varukorgen en grå bur | kan inte rättas med länkar, Leonard avgör |
+| förvaringskistan `b129d5ae` | ☠️ varukorgens, kassans och orderns bild är storlekens måttkort på alla fyra varianter (Storlek först, storlekarna bär länkar) | samma recept som soptunnan, väntar på Leonards ja |
+
+Hamsterburen har tre varianter (100 × 52 Mörkgrå, 85 × 45 Mörkgrå, 85 × 45 Naturträ) och tre bildset. Med unionen går det inte att ge Naturträ bara sina fem och Mörkgrå × 85 × 45 bara sina: det kräver
+att valen blir ett enda (*100 × 52 Mörkgrå* med flera). Förvaringskistan har färgfoton på färgen och ett måttkort per storlek: den får Färg först och en namn-skrivning, som soptunnan.
+
+☠️ **Projektorduken är ett fel i BUTIKEN (headless-site), inte i motorn.** Sidans data har två etiketter för samma val, och storleksbilderna matchas mot den som inte stämmer med väljaren. Det finns inget
+att göra här, men en storleksbild på en sida där butiken lägger till ett måttord i etiketten visas aldrig. Sidans Wix-data är rätt (`85 tum`).
+
+Fem saker som inte ska tas bort:
+
+1. ☠️ **På en tvåaxlig sida bär EN option bilderna.** Länkar på båda optionerna ger blandade vyer, och en bild som visar en färg i en storlek kan aldrig visas för just den kombinationen. Undantaget är
+   färgneutrala måttkort som länkas till storleken.
+2. ☠️ **Variantens bild kommer från första valet i variantens `choices`-lista som har länkade bilder.** Skriv Färg först både i optionerna och i varje variants val, och gör en namn-skrivning efteråt.
+   En skrivning med val-id (`lank-om-bilder.js`, `skriv-fargbilder.js`, `bilder-bort.yml`) räknar inte om bilden, så den visar det som en tidigare namn-skrivning gav.
+3. ☠️ **Läs sidans `imageOwners` och `variantTable` innan du kallar en sida rätt eller fel.** Räknarna i katalogkontrollerna ser länkar, inte vad butiken gör av dem, och en mätning ensam (`live-galleri.mjs`)
+   visar bara vyn, inte varför.
+4. ☠️ **Mät en kombination i taget, med valen uppslagna på namnet.** `live-galleri.mjs` letade upp valen på etiketten som stod när listan lästes, och den ändras med det andra valet (*Beige – finns inte i
+   100 cm*, *150 cm – slut i lager*). Klicket missade då varje färg som saknades i den storlek som var vald, och raden visade föregående färgs galleri (buxbomsklotten Olivgrön och bänkdynan Ljusgrå).
+   Lagat 2026-10-23: valet letas upp på namnet före ` – `, i den färska sidan, vid varje klick.
+5. ☠️ **En ny test kräver en dold testprodukt som raderas direkt.** De tre testerna ovan gjordes mot `products-with-inventory` (POST, tre PATCH och DELETE, 11–15 s per körning), med bilder som redan låg
+   i Media Manager. Produkten raderades i en `finally`, och en läsning efteråt gav 404.
+
+#### Korten per storlek: `runda-bilder-soptunna-storlekskort` (2026-10-23)
+
+Fem måttbilder går inte att rätta med länkar (se ovan), så de ersätts av **två färgneutrala kort, ett per storlek**: `c841717c-45` och `c841717c-60`, byggda med `bygg-kort.py` ur `kort.tsv` (kortgrinden 0 fynd,
+två jämförelser mot sidans parentesrader kvitterade i `kort-avvik.txt`: sidan skriver båda storlekarna på samma rad och grindens parentesstrippning tar bort 60-litersvärdet). Fotot är en svart och en silvertunna
+sida vid sida (kortet säger *Svart eller silver*), siffrorna kommer ur sidans text (mått 61,9 × 36,6 × 43,2 respektive 56,7 cm, 3 × 15 respektive 3 × 20 liter, fraktvikt 9,8 respektive 11 kg) och
+etiketten är *Fraktvikt*, som sidan säger. Läge 2026-10-23 00:4x UTC: korten och skripten är klara och provkörda torrt, och Wix är orört tills Leonard sagt ja till att byta ut de fem
+måttbilderna. Korten ligger i grenen, är uppladdade (`b379ce_255c27…` och `b379ce_4731c0…`, byte-lika med de lokala filerna, READY) och skrivs med `skriv-storlekskort.js`
+(byggt av `bygg-storlekskort.py` ur `storlekskort-plan.json`; planens FNV-summa räknas om i skriptet).
+
+`skriv-storlekskort.js` gör fyra steg, var och ett med återläsning: korten sist i galleriet med alt-text, korten länkade till sin storlek och optionerna Färg först (id-skrivning), varianterna omskrivna med
+valen bara med namn och Färg först (namn-skrivning, så att Wix räknar om variantbilden), och en jämförelse av allt som inte ska ändras (varianternas id, SKU, pris, kostnad, synlighet och lager, namn, adress,
+färgens länkar och galleriets gamla bilder). Faller länkningen rullas galleriet tillbaka. Det vägrar en storlek som redan bär länkade bilder och ett färgval utan länkade bilder. Torrkörningen 00:3x UTC
+(ingenting skrivet) gav `galleri 14 → 16`, `Storlek > Färg` → `Färg > Storlek` och en vy per kombination på de sju färgbilderna plus storlekens kort.
+
+☠️ **Skrivningen är också provad på riktigt, på en dold testprodukt av samma form** (14 filer ur soptunnans galleri, Storlek 45 och 60 liter × Färg Svart och Silver, färgerna länkade, storlekarna olänkade, en lagerrad per
+variant). Svaret var `ok: true` med 0 avvikelser, `revision 2 → 5`, `galleri 14 → 16`, optionerna `Färg > Storlek` och variantbilderna Svart → svart packshot (båda storlekarna) och Silver → silverpackshoten (båda storlekarna).
+Varje vy visade de sju färgbilderna plus sin storleks kort som sista bild. Testprodukten raderades direkt efteråt, och en läsning gav 404. Torrkörningen ser vad som ska ske, men bara en riktig skrivning visar
+att Wix räknar om variantens bild, så en ny sådan sida ska provas på samma sätt först.
+
+De fem gamla måttbilderna tas bort **efteråt** med `bilder-bort.yml` (torrt, sedan skarpt med planens sha), så att ingen vy någonsin visar en bild utan ägare. Efter borttagningen har Svart fem bilder
+(1, 2, 3, 4, 6) och Silver fyra (8, 11, 12, 13), plus ett kort per storlek: varje kombination visar fyra eller fler.
+
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
 Nattimporten 2026-10-22 skapade 40 utkast (04:40–04:44 UTC). 27 blev egna sidor (N294–N298), 10 blev färg eller storlek på publicerade sidor
