@@ -99,18 +99,44 @@ if (!antalSynliga) {
     console.log('VAL', s.l, JSON.stringify(rad(nu, nu.axlar[0].val)));
   }
 } else {
+  // ☠️ Ett vals etikett ändras med det andra valet ("Beige – finns inte i 100 cm", "150 cm – slut i
+  // lager"). Listan läses en gång, så en exakt etikett missade klicket för varje färg som saknades i
+  // den storlek som var vald vid läsningen, och raden visade då föregående färgs galleri (konstgjorda
+  // buxbomsklot 7d1fb82b och bänkdynan a7aa9370, 2026-10-23). Valet letas därför upp på namnet före
+  // " – ", i den färska sidan, vid varje klick.
+  const bas = (l) => (l || '').replace(/ – .*$/, '').trim();
+  const valj = (axel, namn) =>
+    sida.evaluate(
+      ([ax, n, sel]) => {
+        const axelEl = document.querySelectorAll(sel)[ax];
+        const sw = [...(axelEl?.querySelectorAll('.varswatch') || [])].find((s) => {
+          const l = (s.getAttribute('aria-label') || '').trim();
+          return l === n || l.startsWith(n + ' – ');
+        });
+        if (!sw) return false;
+        sw.click();
+        return true;
+      },
+      [axel, namn, axSel],
+    );
   for (const a of start.axlar[0].sw) {
-    await sida.locator(axSel).nth(0).locator(`.varswatch[aria-label="${citera(a.l)}"]`).first().click({ force: true }).catch(() => {});
-    await sida.waitForTimeout(400);
+    if (!(await valj(0, bas(a.l)))) console.log('KOMBO', a.l, '– hittade inte valet');
+    await sida.waitForTimeout(500);
     const nu = await las();
     for (const s of nu.axlar[1].sw) {
       if (s.na) {
         console.log('KOMBO', a.l, '×', s.l, 'finns inte');
         continue;
       }
-      await sida.locator(axSel).nth(1).locator(`.varswatch[aria-label="${citera(s.l)}"]`).first().click({ force: true }).catch(() => {});
-      await sida.waitForTimeout(500);
-      const nu2 = await las();
+      if (!(await valj(1, bas(s.l)))) console.log('KOMBO', a.l, '×', s.l, '– hittade inte valet');
+      await sida.waitForTimeout(600);
+      let nu2 = await las();
+      // Galleriet kan släpa efter valet: samma lista som förra kombinationen får en andra läsning.
+      if (nu2.galleri.map(pos).join(',') === (globalThis.__forra || '')) {
+        await sida.waitForTimeout(1200);
+        nu2 = await las();
+      }
+      globalThis.__forra = nu2.galleri.map(pos).join(',');
       console.log('KOMBO', a.l, '×', s.l, JSON.stringify(rad(nu2, nu2.axlar.map((x) => `${x.nyckel}=${x.val}`).join(' | '))));
     }
   }

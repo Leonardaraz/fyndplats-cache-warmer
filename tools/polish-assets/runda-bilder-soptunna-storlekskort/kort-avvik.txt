@@ -1,0 +1,3 @@
+# <kort>	<etikett>	<skäl>: grindens jämförelse mot sidan klipper raden vid första parentesen, så 60-litersvärdet efter den försvinner ur jämförelsen
+c841717c-60	Mått	sidan skriver båda storlekarna på samma rad ("61,9 × 36,6 × 43,2 cm (45 liter), 61,9 × 36,6 × 56,7 cm (60 liter)"); 56,7 står på sidan och hör till 60 liter
+c841717c-60	Fraktvikt	sidan skriver "9,8 kg (45 liter), 11 kg (60 liter)"; 11 kg står på sidan och hör till 60 liter
