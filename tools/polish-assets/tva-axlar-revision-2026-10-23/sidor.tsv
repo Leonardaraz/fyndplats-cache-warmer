@@ -1,0 +1,35 @@
+# Revision 2026-10-23: publicerade sidor med två val (49). dom: FEL = bilder av en annan storlek (eller färg) syns tydligt under valet; SVAG = storleken syns knappt på fotona; OK; ANNAT.
+# id8	sida	kombinationer	dom	vad kunden ser i dag	efter omlänkning (bilder per kombination)
+79ab08fe	bokhylla-tradform-109-cm-7-plan	brun 109/136, vit 109/136	FEL	lilla (7 plan) och stora (9 plan) hyllan under båda höjderna; 136 cm visar 109-packshot	brun 109: 5, brun 136: 4, vit 109: 5, vit 136: 2 (behöver bilder)
+4d9ba658	kattrappa-klosstolpar-boll-tre-eller-fyra-steg	grå/vit/brun × 3 och 4 steg	FEL	tre- och fyrstegstrappor blandas	4–5 per kombination; grå 3 steg och brun 3 steg: 3 (behöver bilder)
+543b9076	hundtrappa-sma-hundar-katter-4-steg	ljusgrå och mörkgrå × 3/4 steg, brun och beige 4 steg	FEL	fyrstegsbilder under tre steg (5 av 8 för ljusgrå)	3 steg: 4 per färg, 4 steg: 6–7
+6d35a04f	hinderset-med-koner-hund	orange 3/6 hinder, blå 6	FEL	orange: tre och sex hinder blandas	3 hinder: 5, 6 hinder: 4
+aafbf543	verktygslada-51-cm-tre-ladar-svart-rod	svart/röd och röd × 3/4 lådor	FEL	tre- och fyralådorslådor blandas	5–6; röd 4 lådor: 3 (behöver bilder)
+0136e7d9	forvaringstorn-sex-lador-barnrummet	blå 6/9 lådor, cremevit och rosa 6	FEL	blå: sex och nio lådor blandas	blå 6: 4, blå 9: 3 (behöver bilder)
+13fe619f	hamsterbur-morkgratt-tra-akrylfront-lock-100-x-52-cm	mörkgrå 100 och 85, naturträ 85	FEL	naturträ 85 visar den grå burens fem bilder (storleken bär bilderna)	5 per kombination
+c438d4ba	vaggspegel-svart-70-cm	svart/guld × 50×70, 60×90, 50×110	FEL	den smala spegeln (50 × 110) blandas med de breda	50×70 och 60×90: 5; svart 50×110: 2, guld 50×110: 1 (behöver bilder)
+92fc308c	sensorsoptunna-50-liter-rostfritt	svart/silver × 30/42/50 liter	FEL	packshots av alla tre höjder under varje storlek	5 per kombination, tre miljöbilder med okänd storlek
+3b868848	fallbart-skrivbord-63-cm-pa-hjul	natur/vit × 63/80, svart 63	FEL	80 cm-packshots under 63 cm och tvärtom	63: 4–5; natur 80 och vit 80: 2 (behöver bilder); miljöbilderna troligen 63 cm
+8018bb95	hundgrind-liten-husdjursdorr-justerbar-bredd	vit × 75–82/75–103/75–131, svart 75–103	FEL	breda grindar med förlängning under den smala	vit 75–82: 2, 75–103: 3, 75–131: 3 (behöver bilder)
+a64af3a4	dorrgrind-hund-klammontage-dorr-bada-hallen	vit 75–95/75–145, svart 75–95	FEL	vit: smal och bred grind blandas	vit 75–95: 3, vit 75–145: 3
+233c83cf	dorrgrind-hund-jarn-justerbar-bredd	vit/svart × 74–80/74–87/74–94	FEL	grindar med och utan förlängning blandas	svarta givarnas bilder exakta; vita bildernas bredd osäker
+01ac2f63	hojd-hundbadd-tak-morkbla-stor	mörkblå 122/92/76, brun 92/61, grå 92	FEL	mörkblå 76 × 61 visar den största bädden med golden retriever	exakt per kombination (givarnas pris visar vilken)
+c3d1fa41	hopfallbar-upphojd-hundbadd-stalram-natyta	brun 75/107, ljusgrå 75	FEL	brun 107 visar den mindre bäddens foton	brun 75: 5, ljusgrå 75: 5, brun 107: 2 (behöver bilder)
+4a2ab58e	vedbod-150-cm-galvat-stal	mörkgrå 150/213, grön 213	FEL	150 × mörkgrå visar 213-packshoten (150 är slut i lager)	150-bilderna redan exakta; 213-packshoten flyttas till mörkgrå 213
+1d4eb6b1	matstation-hund-tva-rostfria-skalar	vit/grå/espresso × stor/liten	SVAG	stor och liten blandas, men de ser nästan likadana ut	5–7 per kombination (givarna visar vilken)
+38f70f83	lag-odlingstunnel-natfonster-gron	grön/vit × 200/300 cm	SVAG	längden syns knappt	—
+351d244c	matta-abstrakt-monster-mjuk-polyester-halkfri	brun/grå × tre storlekar	SVAG	mattans storlek syns inte	—
+8901f76d	viktvast-justerbar-38-avtagbara-viktpasar	svart 10/20 kg, svart och röd 20 kg	SVAG	västen ser likadan ut	—
+14fb0f98	kantskydd-runda-studsmattor-pe-skum	grön/blå × Ø244/305/366	SVAG	ringarna ser likadana ut	—
+44d4907b	kantskydd-studsmatta-skumstoppning	rosa × tre storlekar, flerfärgad Ø244	SVAG	ringarna ser likadana ut	—
+91f5c078	hammockoverdrag-oxfordtyg-blixtlas	fyra färger × 205/177 cm	SVAG	överdragen ser likadana ut (måttkort per storlek finns)	—
+75a38b7b	fiberoptisk-julgran-120-cm-stjarna	grön 120/150, vit 120	SVAG	höjden syns inte	—
+934297b1	upphojd-hundsang-med-tak-106-cm	ljusgrå/blå × tre storlekar	SVAG	blå 76 × 61 visar den större sängens foton	—
+7bc96b8f	upphojd-hundbadd-avtagbart-tak-utomhus	brun/ljusgrå × tre storlekar	SVAG	bäddarna ser likadana ut	—
+c841717c	soptunna-med-3-fack-45-liter	svart/silver × 45/60 liter	SVAG	tunnorna skiljer bara i höjd (måttkort per storlek finns)	—
+5466fe81	tunnelvaxthus-uppvikbara-sidovaggar-tva-langder	vit 397, grön 397/597	SVAG	grön 597 kan visa 397-foton	—
+7d1fb82b	konstgjorda-buxbomsklot-2-pack-hem-kontor-uteplats	ljusgrön 40/50, olivgrön 40	SVAG	kloten ser likadana ut	—
+b129d5ae	forvaringskista-rotting-sittbank	mörk khaki/vit × M/L	SVAG	kistorna ser likadana ut (kort per storlek finns)	—
+926ec7a2	projektorduk-85-tum-manuell	vit 85/99, svart 99	ANNAT	storlekarnas bilder visas aldrig: butikens etikett "85 tum (216 cm)" mot väljarens "85 tum"	lagas av butiksändringen; länkas om samtidigt (vit 99-packshot är kopplad till 99 tum och skulle annars synas under svart)
+a36ca22d	skjutdorrsbeslag-skena	längd × typ	ANNAT	inga kopplade bilder (AliExpress)	—
+# OK: 13 klädsidor (storleken ändrar inte fotot) och 4 sidor där varje färg bara finns i en storlek (6eb13a16, 86127572, 8bc0dd26, a7aa9370).

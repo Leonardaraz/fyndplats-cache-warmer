@@ -3972,6 +3972,29 @@ Fem egenskaper som inte ska tas bort:
 5. ⚠️ **Förvaringskistans Vit visar tre bilder i båda storlekarna** (två egna foton och storlekens kort), under minimimåttet på fyra, och det var så före också. Sidan finns inte i färgbildsspårets lista, och frågan om Vit ska få fler bilder
    står hos Leonard.
 
+#### En bild per kombination: revisionen av alla sidor med två val (Leonard 2026-10-23, 13:12 svensk tid)
+
+Leonards skärmbilder av bokhyllan `79ab08fe` (och Wix-panelen): den lilla och den stora hyllan syntes under båda höjderna och båda färgerna. *"gör audit för att lösa det här problemet"*. Underlaget och lösningen står i
+`tools/polish-assets/tva-axlar-revision-2026-10-23/` (README, `sidor.tsv`, `klass.tsv`, `givare.tsv`).
+
+Av 49 publicerade sidor med två val visar **16 bilder av fel storlek eller färg tydligt** (bokhyllan, katt- och hundtrappan, hindersetet, verktygslådan, förvaringsmöbeln, hamsterburen, väggspegeln, sensorsoptunnan, skrivbordet `3b868848`,
+tre hundgrindar, två hundbäddar och vedboden), 14 där storlekarna ser likadana ut på fotona och 17 som är rätt (13 klädsidor och 4 där varje färg bara finns i en storlek).
+
+☠️ **Orsaken är två, och ingen av dem går att laga med länkar.** Butiken ger varje bild EN ägare, det första val som kopplar den, och visar den under alla val i den andra optionen. Och sammanslagningen och färgbildsverktyget kopplar
+givarens bilder till färgen eller storleken, aldrig båda, så varje ny storlek i en befintlig färg hamnar under den gamla. Rättningarna i natt (ägarlistor och kort per storlek, se ovan) kunde bara flytta bilder mellan ägare.
+
+Lösningen, i ordning:
+
+1. **Butiken** (`butik-kopplingar.patch`, väntar på Leonards ja att lägga upp den mot `headless-site`): en bild syns när den, i varje option som kopplar den, är kopplad till det valda valet; inom en option räcker ett av valen. Kombinationens
+   första bild är bilden som passar kombinationen och är kopplad i flest optioner. Ingen publicerad sida har i dag en bild kopplad till två optioner (0 av 5 116), så tvåaxliga sidor ser ut som förut tills de länkas om. På 30 sidor med
+   ett val, där en bild är kopplad till flera val, syns bilden under alla de valen i stället för bara under det första. Projektordukens storleksbilder börjar synas (etiketten "85 tum (216 cm)" mot väljarens "85 tum").
+2. **Länka om** FEL-sidorna en i taget, varje bild till sin färg OCH sin storlek, med visuell kontroll och givaren som facit. ☠️ Inte före butiksändringen: med en ägare per bild visar en dubbelkopplad bild under alla färger i storleken.
+3. **Fyll** kombinationer som hamnar under fyra bilder ur kombinationens egen artikel (vit bokhylla 136 cm har bara packshoten och kortet).
+4. **Motorn:** varukorgens bild per variant (Wix tar alltid färgens första bild) och sammanslagningen kopplar en ny storlek i en befintlig färg till båda.
+
+☠️ **En givare är en kombination, och dess pris avgör vilken.** En dold givare är en Aosom-artikel med variantens pris, så `givare.tsv` ger bildens storlek utan att någon räknar steg. Hunden på den vita kattrappan (`acf527`)
+räknades först som tre steg; bilden kommer från fyrstegsartikeln och har fyra steg i förstoring.
+
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
 Nattimporten 2026-10-22 skapade 40 utkast (04:40–04:44 UTC). 27 blev egna sidor (N294–N298), 10 blev färg eller storlek på publicerade sidor
