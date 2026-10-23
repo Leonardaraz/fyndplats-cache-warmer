@@ -86,11 +86,22 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
    mode=plan`) mot färska Wix-sidor, och en genomgång av BÅDA sidornas bilder sida vid sida.
    Ett färgsyskon avgörs på bilderna, inte på måtten (lärdom 40).
 5. Kedjan: `mall-rund/exempel/kor_t78.sh` (värdskrivning, omdirigering, givarbilder, sammanslagning)
-   eller `kor_n288.sh`-mönstret för en ny sida (bara `ghw.py write`).
+   eller `kor_n288.sh`-mönstret för en ny sida (bara `ghw.py write`). ☠️ Skriv givarrundans namn
+   och sha ur `ls tools/polish-assets | grep givare` och `sha256sum`, aldrig ur minnet: namnet är
+   `<runda>-givare-alt` eller `runda-<prefix>-givare-alt` (se ovan). N301:s kedja pekade på det
+   första, katalogen hette det andra, sha:n blev tom och `ghw.py bilder` föll efter att värden
+   redan var skriven (lärdom 179, 2026-10-23). Kör en ny kedja för resten (givarbilderna och
+   sammanslagningen, som sista delen av `kor_t78.sh`) i stället för att köra om värdsteget.
 6. Återläsning: `mkkompakt.py <rundkatalog> <ut.js> [givar-id8=fullt-id ...]` skriver
    ExecuteWixAPI-koden (facit per sida, options, varianternas val, kompakt SEO och givarnas
    synlighet) som ska ge `N av N LIKA`. Live: `live_rund.sh <runda> <loggkatalog>` (kör
    `hamta-live.sh`, `livegrind.py` och `livekoll.py` i bakgrunden, 6–9 minuter).
+   Efter en sammanslagning: mät vyerna (`live-par.sh`, eller `live-galleri.mjs` för en storlek),
+   länka värdens olänkade foton till värdens val med `bygg-lank.py` så att varje val får minst
+   fyra egna bilder (lärdom 135 och 180) och kör `variantbild.yml` med `ids` efteråt. Ett
+   läsanrop över alla värdar (galleri, länkade bilder per val, olänkade och Wix variantbild mot
+   valets första länkade bild) räknar vyerna utan webbläsare och ska ge samma tal som live
+   (lärdom 183).
 7. Kompletteringskontroll före slutrapporten: kör `pool_dolda.js` utan `FRAN`, och jämför
    id8-listan mot id:n i rundornas `ids.tsv`, `kallor.json`, `*.tsv`, `docs/` och
    `FLAGGADE.md`. Det som ingen nämner läses ur Wix och mappningen (`las_ids.py`):
