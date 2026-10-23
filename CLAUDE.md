@@ -4010,6 +4010,33 @@ read-only i V3 och gav en extra omimport av huvudbilden. Tre tester i
 
 ### Städningen av det som blev kvar
 
+#### ☠️ Nattens bildstädning är avstängd (Leonard 2026-10-23)
+
+Leonard 2026-10-23: *"Jag vill att du stänger av den automatiska bildstäden vi
+har, jag misstänker att den tar bort bilder vi använder ibland"*. Cronen
+`/api/cron/aosom-media-cleanup?dryRun=false&limit=2000` (`50 3 * * *`) är
+borttagen ur `vercel.json`. Rutten finns kvar, liksom `bildstadning.yml` och
+import-workflowens lägen `bildstadning` och `bildstadning-torr`, men de körs
+bara när någon startar dem. Kör inget skarpt läge utan Leonards ja.
+
+Samma dag svarade 334 kundfoton på 268 recensioner 403. Städningen raderade
+dem i september, när skyddslistan stannade vid 5 000 recensionsrader (#685),
+och de vars originalfoton saknades i rådatan har aldrig återställts.
+
+Vad avstängningen betyder:
+
+- Ingenting raderas längre av sig självt. Oanvända filer blir kvar i Media
+  Manager, så lagringen växer: bildkandidater som ingen valde, gamla filer
+  efter en bildfix och utsnitt som inte användes.
+- Avsnitten om bildkandidater, miljöbilden och färgtilläggen säger att det
+  ingen väljer städas bort av nattens bildstädning (03:50 UTC) efter tre
+  dygns karens. Det gäller inte längre, och karenstabellen uppdateras bara när
+  någon kör städningen.
+- Vill man se vad städningen skulle ta, kör `bildstadning-torr` eller
+  `bildstadning.yml` i läget `torr`. De raderar ingenting.
+- Slå på den igen genom att lägga tillbaka cronen i `vercel.json`, först när
+  Leonards misstanke är utredd.
+
 #### Bildfixen lämnade dessutom sina egna kopior
 
 Fjärde bildfix-körningen dog mitt i: **Wix-lagringen tog slut.**
@@ -4021,9 +4048,10 @@ uppladdningar totalt"; den skrevs när katalogen var 744 produkter och EN körni
 var planerad. Verkligheten blev fyra körningar mot en katalog som växte till
 2 712 produkter, och varje lagad produkt lämnar fem filer à drygt en megabyte.
 
-`/api/cron/aosom-media-cleanup` (`lib/aosom/media-cleanup.ts`, schemalagd
-`50 3 * * *`) raderar Aosom-bilder som ingen produkt använder. Tre egenskaper som
-inte ska tas bort:
+`/api/cron/aosom-media-cleanup` (`lib/aosom/media-cleanup.ts`) raderar
+Aosom-bilder som ingen produkt använder. Den gick varje natt kl. 03:50 UTC fram
+till 2026-10-23 och är nu avstängd, se avsnittet ovan. Tre egenskaper som inte
+ska tas bort:
 
 1. ☠️ **Massfel-spärren kastar.** Är referenslistan mindre än en halv bild per
    läst produkt är det ett LÄSFEL, inte en tom katalog — och en körning hade
