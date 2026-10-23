@@ -1,0 +1,40 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03406b33": {
+  "tyska": "L63,5 x B43 x H60 cm",
+  "svenska": "4 Stufe",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 63.5,
+  "djup": 43
+ },
+ "201b068f": {
+  "tyska": "35L x 35B x 81H cm",
+  "svenska": "35L x 35B x 81H cm",
+  "bokstaver": "LBH",
+  "hojd": 81,
+  "bredd": 35,
+  "djup": 35
+ },
+ "533a4505": {
+  "tyska": "",
+  "svenska": "40L x 40B x 49H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 40L x 40B x 49H cm. Obere Sitzstange: Ø35 cm. Untere Platte: Ø40 cm. Kratzbaum: Ø8,3 cm"
+ },
+ "ae8a52fd": {
+  "tyska": "L51 x B51 x H81,3 cm",
+  "svenska": "51 x 51 x 81.3 cm",
+  "bokstaver": "LBH",
+  "hojd": 81.3,
+  "bredd": 51,
+  "djup": 51
+ },
+ "bfc5558d": {
+  "tyska": "32L x 32B x 60H cm",
+  "svenska": "32L x 32B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 32,
+  "djup": 32
+ }
+}
