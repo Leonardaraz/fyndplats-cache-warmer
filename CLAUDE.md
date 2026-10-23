@@ -289,6 +289,19 @@ det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skri
 inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
 göra exakt rätt och ändå bygga.
 
+⚠️ **En gren som startats om efter en merge bygger sin första docs-bara push**
+(mätt 2026-10-23). Efter mergen av #762 (squash `048ac5b6`) startades grenen om
+från `main` och fick en ny PR (#769). Dess första push (`75f08edc`) rörde bara
+`CLAUDE.md`, `FLAGGADE.md` och en kommentar i ett verktyg under `tools/`, och
+diffen utanför `docs/`, `tools/` och markdown var tom (0 filer). Ändå blev
+motorns preview `dpl_2skPGzaNddFYfD3BKemSAzAgECxG` `READY` efter 67 sekunder
+(`buildingAt` 04:34:27, `ready` 04:35:33), medan butiksprojektets bygge av samma
+commit blev `CANCELED`. Orsaken är inte mätt. Den förklaring som stämmer med
+avsnitten ovan är att grenens förra lyckade bygge låg utanför den grunda klonen
+eller saknades, så filtrets `git cat-file`-vakt gav `exit 1`, alltså ett
+läkningsbygge. Prövningen är nästa docs-bara push på grenen: den ska bli
+`CANCELED` med `#ignored-build-step`, eftersom pekaren nu står på `75f08edc`.
+
 ### ☠️ En merge gav inget bygge — GitHub skickade ingen push-händelse (2026-09-25)
 
 Butiks-PR #647 mergades 01:29:32 UTC via API:t, och refen `headless-site`
