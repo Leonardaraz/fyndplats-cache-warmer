@@ -3523,7 +3523,7 @@ kombination. Ett tomt snitt är ingen defekt i sig. De åtta mättes live per ko
 | buxbomsklotten `7d1fb82b` | en olänkad 50 cm-bild visas under 40 cm; 50 cm-bilderna nämner ingen färg | låg |
 | projektorduken `926ec7a2` | storlekarnas bilder visas **aldrig**: butikens `imageOwners` bär etiketten *85 tum (216 cm)* medan väljaren säger *85 tum*; färgen Svart har ingen variant i 85 tum | butiksfel, se nedan |
 | hamsterburen `13fe619f` | ☠️ Naturträ × 85 × 45 visar de fem bilderna av den grå burens storlek och varukorgen en grå bur | kan inte rättas med länkar, Leonard avgör |
-| förvaringskistan `b129d5ae` | ☠️ varukorgens, kassans och orderns bild är storlekens måttkort på alla fyra varianter (Storlek först, storlekarna bär länkar) | samma recept som soptunnan, väntar på Leonards ja |
+| förvaringskistan `b129d5ae` | ☠️ varukorgens, kassans och orderns bild var storlekens måttkort på alla fyra varianter (Storlek först, storlekarna bär länkar) | rättad 2026-10-23 med Leonards ja: Färg först och en namn-skrivning (`farg-forst.js`), se *Förvaringskistan* nedan |
 
 Hamsterburen har tre varianter (100 × 52 Mörkgrå, 85 × 45 Mörkgrå, 85 × 45 Naturträ) och tre bildset. Med unionen går det inte att ge Naturträ bara sina fem och Mörkgrå × 85 × 45 bara sina: det kräver
 att valen blir ett enda (*100 × 52 Mörkgrå* med flera). Förvaringskistan har färgfoton på färgen och ett måttkort per storlek: den får Färg först och en namn-skrivning, som soptunnan.
@@ -3547,12 +3547,12 @@ Fem saker som inte ska tas bort:
 
 #### Korten per storlek: `runda-bilder-soptunna-storlekskort` (2026-10-23)
 
-Fem måttbilder går inte att rätta med länkar (se ovan), så de ersätts av **två färgneutrala kort, ett per storlek**: `c841717c-45` och `c841717c-60`, byggda med `bygg-kort.py` ur `kort.tsv` (kortgrinden 0 fynd,
+Fem måttbilder går inte att rätta med länkar (se ovan), så de ersattes av **två färgneutrala kort, ett per storlek**: `c841717c-45` och `c841717c-60`, byggda med `bygg-kort.py` ur `kort.tsv` (kortgrinden 0 fynd,
 två jämförelser mot sidans parentesrader kvitterade i `kort-avvik.txt`: sidan skriver båda storlekarna på samma rad och grindens parentesstrippning tar bort 60-litersvärdet). Fotot är en svart och en silvertunna
 sida vid sida (kortet säger *Svart eller silver*), siffrorna kommer ur sidans text (mått 61,9 × 36,6 × 43,2 respektive 56,7 cm, 3 × 15 respektive 3 × 20 liter, fraktvikt 9,8 respektive 11 kg) och
-etiketten är *Fraktvikt*, som sidan säger. Läge 2026-10-23 00:4x UTC: korten och skripten är klara och provkörda torrt, och Wix är orört tills Leonard sagt ja till att byta ut de fem
-måttbilderna. Korten ligger i grenen, är uppladdade (`b379ce_255c27…` och `b379ce_4731c0…`, byte-lika med de lokala filerna, READY) och skrivs med `skriv-storlekskort.js`
-(byggt av `bygg-storlekskort.py` ur `storlekskort-plan.json`; planens FNV-summa räknas om i skriptet).
+etiketten är *Fraktvikt*, som sidan säger. Korten ligger i grenen, var uppladdade (`b379ce_255c27…` och `b379ce_4731c0…`, byte-lika med de lokala filerna, READY) och skrevs med `skriv-storlekskort.js`
+(byggt av `bygg-storlekskort.py` ur `storlekskort-plan.json`; planens FNV-summa räknas om i skriptet). Leonard sa ja 2026-10-23 strax före 00:50 UTC, och skrivningen gjordes 00:49 UTC, före Aosoms
+lagerfönster 03:12.
 
 `skriv-storlekskort.js` gör fyra steg, var och ett med återläsning: korten sist i galleriet med alt-text, korten länkade till sin storlek och optionerna Färg först (id-skrivning), varianterna omskrivna med
 valen bara med namn och Färg först (namn-skrivning, så att Wix räknar om variantbilden), och en jämförelse av allt som inte ska ändras (varianternas id, SKU, pris, kostnad, synlighet och lager, namn, adress,
@@ -3564,8 +3564,42 @@ variant). Svaret var `ok: true` med 0 avvikelser, `revision 2 → 5`, `galleri 1
 Varje vy visade de sju färgbilderna plus sin storleks kort som sista bild. Testprodukten raderades direkt efteråt, och en läsning gav 404. Torrkörningen ser vad som ska ske, men bara en riktig skrivning visar
 att Wix räknar om variantens bild, så en ny sådan sida ska provas på samma sätt först.
 
-De fem gamla måttbilderna tas bort **efteråt** med `bilder-bort.yml` (torrt, sedan skarpt med planens sha), så att ingen vy någonsin visar en bild utan ägare. Efter borttagningen har Svart fem bilder
-(1, 2, 3, 4, 6) och Silver fyra (8, 11, 12, 13), plus ett kort per storlek: varje kombination visar fyra eller fler.
+De fem gamla måttbilderna togs bort **efteråt** med `bilder-bort.yml` (torrt, sedan skarpt med planens sha), så att ingen vy någonsin visar en bild utan ägare. Efter borttagningen har Svart fem bilder
+(1, 2, 3, 4, 6 i det gamla galleriet) och Silver fyra (8, 11, 12, 13), plus ett kort per storlek: varje kombination visar fem bilder.
+
+☠️ **Utfallet på soptunnan, skrivet 2026-10-23 00:49 UTC:** `ok: true`, 0 avvikelser, revision 39 → 42, galleriet 14 → 16, optionerna `Färg > Storlek` och variantbilderna Svart → svart packshot (`9a66fa`)
+och Silver → silverpackshoten (`c63be6`) i båda storlekarna. Varianternas id, SKU, pris, kostnad, synlighet och lager var orörda. `bilder-bort.yml` tog bort de fem måttbilderna direkt efteråt (torrt 00:50 UTC,
+run 39880507743, skarpt 00:51 UTC, run 39880590274, planens sha `a6438d5f…`): galleriet 16 → 11, återläst (galleri, alt-texter, länkar, synlighet och varianter), `variantbilder: rätt`, revision 44.
+Galleriet är nu Svart 1–5, Silver 6–9, kortet för 45 liter (10) och kortet för 60 liter (11); varje storlek länkar bara sitt kort.
+
+**Live 01:0x UTC** (butikens cache renderad 00:55:51, efter sista skrivningen 00:51:31; `live-galleri.mjs` en kombination i taget): Svart × 45 liter visar de fem svarta fotona och 45-kortet (1 299 kr),
+Svart × 60 liter de fem och 60-kortet (2 029 kr), Silver × 45 liter de fyra silverfotona och 45-kortet (1 179 kr, slutsåld sedan 2026-10-17) och Silver × 60 liter de fyra och 60-kortet (1 959 kr). Varje storlek
+visar bara sitt eget kort, och ingen kombination visar en bild av fel färg. Väljaren står Färg före Storlek. Mobilskärmbilder av Silver × 45 och × 60 liter visar silvertunnan som första bild.
+
+#### Förvaringskistan: samma recept utan kort (`farg-forst.js`, 2026-10-23)
+
+Leonards andra ja (2026-10-23, strax före 00:50 UTC) gällde förvaringskistan `b129d5ae`. Den har två färger (Mörk Khaki och Vit) × två storlekar (M och L), färgfotona länkade till färgen och ett måttkort per
+storlek (`531e6d` för M och `2a5942` för L) länkat till storleken. Vyerna var rena, men optionerna och varje variants val stod Storlek före Färg, så Wix räknade variantens bild ur storlekens första länkade
+bild: varukorgens, kassans och orderns bild var storlekens måttkort på alla fyra varianter. Galleriet, länkarna och korten behövde inte röras, bara ordningen.
+
+`farg-forst.js` (byggt av `bygg-farg-forst.py` ur `farg-forst-plan.json`, planens FNV-summa räknas om i skriptet) är den avskalade delen av `skriv-storlekskort.js`: steg A lägger Färg före Storlek i optionerna
+(id-skrivning med `options`, `variantsInfo` ordagrant ur GET:en och `visible`), steg B skriver varianterna om med valen bara med namn och Färg först (`products-with-inventory`, så att Wix räknar om variantens
+bild) och steg C läser tillbaka allt: galleri och alt-texter, optionernas ordning, varje vals länkar, varianternas id, SKU, pris, kostnad, synlighet och namn, produktens namn, adress och synlighet och lagret.
+Varje variants bild ska vara färgens första länkade foto och valen ska stå Färg först. `TORR` skriver ingenting och visar variantbilderna före och efter samt butikens vy per kombination.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **En färg utan länkade bilder avvisas.** Då finns ingen första bild att räkna fram, och Wix hade valt storlekens kort eller huvudbilden.
+2. ☠️ **Varje steg hoppas över när det redan är gjort.** Steg A när optionerna redan står Färg först, steg B när varje variants bild redan är färgens första foto, så en omkörning efter ett fall halvvägs
+   gör bara resten.
+3. ☠️ **Ingenting utom ordningen ändras, och återläsningen jämför allt.** Galleriet, alla länkar, varianternas id, SKU, pris, kostnad, synlighet och lager ska vara oförändrade, och skriptet stoppar vid första avvikelse.
+
+Torrkörningen 00:56 UTC visade variantbilderna före och efter och en vy per kombination (samma som butiken sedan visade). **Skrivet 00:56:55 UTC:** `ok: true`, 0 avvikelser, revision 9 → 11, optionerna
+`Färg > Storlek`, variantbilderna Mörk Khaki → `b5e78a` och Vit → `6bfbb0` i båda storlekarna, och galleri, länkar, priser, SKU, synlighet och lager orörda. **Live 01:0x UTC** (butikens cache renderad 01:00:52,
+efter skrivningen): sidans `variantTable` ger Mörk Khaki → `b5e78a` och Vit → `6bfbb0` för M och L (förut storlekens kort), `variantAxes` står Färg före Storlek, och vyerna är Mörk Khaki × M
+`b5e78a,42c0b0,68cd08,531e6d` (1 459 kr), Mörk Khaki × L `b5e78a,42c0b0,68cd08,2a5942` (1 559 kr), Vit × M `6bfbb0,4b7331,531e6d` (1 459 kr) och Vit × L `6bfbb0,4b7331,2a5942` (1 559 kr). Varje färg visar
+sina egna foton och varje storlek sitt kort, och priserna är oförändrade. ⚠️ **Vit visar tre bilder i båda storlekarna**, under minimimåttet på fyra. Det var så före skrivningen också. Sidan finns inte i
+`aosom-ordning.tsv`, så ingen färgbildsomgång har tagit den, och fler bilder till Vit är ett eget beslut.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
