@@ -51,13 +51,25 @@ fort någon tittade (kund, sökmotor, länkförladdning).
   och töms inte — dess sida ligger kvar tills säkerhetsnätet går ut. Dölj först.
 - **Inga produktsidor förbyggs.** Efter en deploy värmer
   `/api/cron/varm-katalogen` katalogen.
+- ☠️ **Ett pass hinner inte hela katalogen, så värmningen går i led
+  (2026-10-23).** Efter deployen 01:02 UTC värmde körningen 01:15 1 824 av
+  5 092 produktsidor och slutade. Nästa körning såg ett varmt prov, för provets
+  egen hämtning hade värmt de tolv provsidorna. Kl. 13:19 var 5 av 40
+  stickprovssidor fortfarande kalla (1,1 s mot 0,4). Ett pass som stoppas på
+  sin deadline lämnar nu resten till ett led: ett POST till samma rutt med
+  listan i kroppen och `CRON_SECRET`, som svarar 202 och värmer efter svaret.
+  Högst åtta led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
+  led som gör katalogen klar. Läs `[varm-katalogen] led N`-raderna i loggen
+  efter en deploy: den sista ska säga `katalogen klar`.
 - Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
   `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
 - `validFrom` är första dagen i månaden och `priceValidUntil` sista dagen i
   nästa månad (`lib/pris-giltig.ts`), inte i dag + 30 dagar.
 
 **En deploy kostar fortfarande två gånger:** den tömmer ISR-cachen, så alla
-~3 700 produktsidor byggs om. Därav en deploy per dag.
+~5 100 produktsidor byggs om (2026-10-23). Därav en deploy per dag, och den
+läggs på natten: de fem deployerna 2026-10-18–23 gick ut kring kl. 03 svensk
+tid.
 
 ## Varför — mätt, inte antaget (2026-09-04)
 
