@@ -3477,8 +3477,8 @@ första bilder var svarta, och Färg länkade två svarta lifestylefoton till Sv
 Silver fick därför svarta bilder via storleken och via den olänkade, och Svart fick silvertunnans måttbild.
 
 ☠️ **Varukorgens bild var fel på alla fyra varianter.** Wix räknade variantens bild ur storlekens länkar (regeln nedan), så Silver fick en svart tunna i varukorgen, kassan och ordern.
-`variantbild.yml` kunde inte laga det: `forvantadBild` räknar ett snitt mellan optionernas länkar, snittet var tomt för varje kombination (`inget_snitt`), och rutten rapporterar det som `okanda`,
-rättar ingenting och ger ingen röd körning.
+`variantbild.yml` kunde inte laga det: `forvantadBild` räknade då ett snitt mellan optionernas länkar, snittet var tomt för varje kombination (`inget_snitt`), och rutten rapporterade det som `okanda`,
+rättade ingenting och gav ingen röd körning. (Motorn rättades samma natt, se *Motorn rättar nu sidor med länkar på båda optionerna* nedan.)
 
 Rättat med `lank-om-bilder.js`, bara länkar, två planer på samma sida (Färg, sedan Storlek med `tomt`): **Svart länkar alla sju svarta bilder (1–7), Silver alla sju silverbilder (8–14) och Storlek inga.**
 Galleriets ordning, varianternas id, SKU, pris, lager och synlighet och produktens namn och adress orörda (revision 36 → 38, 0 avvikelser i återläsningen). `variantbild.yml` rättade 1 av 1 (Svart → svart
@@ -3505,9 +3505,9 @@ be set for choices within one option at a time"*). Det som går är bilder som �
 | samma, optionerna OCH varje variants val Färg först | **färgens första bild** (Svart → svart, Silver → silver), kvar efter en omskrivning |
 
 Regeln: **variantens bild är första länkade bilden hos det första valet i variantens egen `choices`-lista som har länkade bilder**, och den räknas om bara vid en namn-skrivning. Optionernas ordning ensam
-räcker inte, och Wix tar emot en ändrad optionsordning (`optionsordning` gick från *Storlek > Färg* till *Färg > Storlek* i en PATCH). `forvantadBild` i `lib/wix/variant-media.ts` räknar ett snitt i stället,
+räcker inte, och Wix tar emot en ändrad optionsordning (`optionsordning` gick från *Storlek > Färg* till *Färg > Storlek* i en PATCH). `forvantadBild` i `lib/wix/variant-media.ts` räknade då ett snitt i stället (borttaget samma natt, se nedan),
 och på de åtta sidorna nedan (25 varianter), där snittet är tomt för någon kombination, var den lagrade bilden inte huvudbilden på någon av dem som skiljde sig (till exempel Svart × 99 tum på projektorduken
-och alla fyra varianterna på förvaringskistan) utan alltid första bilden hos första valet. Verktyget är inte ändrat, och ett tomt snitt rapporteras fortfarande som `okanda`.
+och alla fyra varianterna på förvaringskistan) utan alltid första bilden hos första valet.
 
 ☠️ **Rättelse 2026-10-23 ca 02:20 UTC: en id-skrivning av optionerna NOLLSTÄLLER variantens bild till huvudbilden.** Första raden i tabellen sa *oförändrad*, men variantbilden var redan huvudbilden i det provet, så
 det gick inte att skilja *oförändrad* från *nollställd*. Ett nytt prov på en dold testprodukt (Storlek > Färg, färgerna länkade, raderad direkt efteråt) skilde dem åt:
@@ -3521,8 +3521,8 @@ det gick inte att skilja *oförändrad* från *nollställd*. Ett nytt prov på e
 | namn-skrivning med varianternas val Färg, Storlek och optionerna kvar Storlek > Färg | **Y2**, färgens första foto |
 
 Följden är större än den här sidan. `lank-om-bilder.js`, `bygg-agare.py`, `avlank-delade.js` och `bilder-bort.yml` skriver optionerna med val-id, och varje sådan skrivning nollställer variantbilden på sidan.
-`variantbild.yml` och nattens `/api/cron/variantbild` rättar det på sidor där `forvantadBild` kan räkna (länkar på EN option), men på en sida med länkar på båda optionerna är snittet tomt (varje bild har en
-ägare, så listorna har aldrig något gemensamt), och en variant utan förväntan hoppas över. Sådana sidor förblir nollställda tills någon kör en namn-skrivning med färgen först. Det hände soptunnan
+`variantbild.yml` och nattens `/api/cron/variantbild` rättade det på sidor där `forvantadBild` kunde räkna (länkar på EN option), men på en sida med länkar på båda optionerna var snittet tomt (varje bild har en
+ägare, så listorna har aldrig något gemensamt), och en variant utan förväntan hoppades över (lagat i motorn samma natt, se *Motorn rättar nu …* nedan). Sådana sidor förblir nollställda tills någon kör en namn-skrivning med färgen först. Det hände soptunnan
 `c841717c` (`bilder-bort.yml` 00:51 UTC, två minuter efter att namn-skrivningen satt Silver → silverpackshoten; `variantbilder: rätt` i den körningens svar betydde bara att ingen förväntan fanns) och
 alla 16 sidor nedan. Variantens egen valordning styr, inte optionernas: med varje variants val Färg först och optionerna kvar Storlek > Färg räknar Wix variantens bild ur färgens första foto även
 när storleken också har länkar. Det betyder att optionerna inte behöver läggas om (som på soptunnan och förvaringskistan) för att varukorgen ska visa rätt färg.
@@ -3598,7 +3598,7 @@ och Silver → silverpackshoten (`c63be6`) i båda storlekarna. Varianternas id,
 run 39880507743, skarpt 00:51 UTC, run 39880590274, planens sha `a6438d5f…`): galleriet 16 → 11, återläst (galleri, alt-texter, länkar, synlighet och varianter), `variantbilder: rätt`, revision 44.
 Galleriet är nu Svart 1–5, Silver 6–9, kortet för 45 liter (10) och kortet för 60 liter (11); varje storlek länkar bara sitt kort.
 ☠️ **Variantbilden nollställdes av just den borttagningen och rättades först 02:3x UTC.** `bilder-bort.yml` skriver valens länkar med val-id (se rättelsen under *Wix:s regel för variantens bild*), och
-Wix gjorde då Silver → `9a66fa`, huvudbilden, på alla fyra varianterna. `variantbilder: rätt` i körningens svar betydde bara att `forvantadBild` inte kunde räkna (`inget_snitt`). Mätt 02:2x UTC med
+Wix gjorde då Silver → `9a66fa`, huvudbilden, på alla fyra varianterna. `variantbilder: rätt` i körningens svar betydde bara att `forvantadBild` då inte kunde räkna (`inget_snitt`). Mätt 02:2x UTC med
 Wix egen läsning, och rättad 02:37 UTC med `variantbild-farg.js` (Silver → `c63be6`, revision 44 → 45, 0 avvikelser). Wix variantbild, som varukorgen, kassan och ordern läser, var alltså den svarta tunnan för
 Silver i ungefär 1 tim 45 min. Ingen order lades under fönstret: Search Orders utan statusfilter 2026-10-23 ca 03:00 UTC gav inga ordrar efter 10116 (2026-10-22 20:50 UTC). Varukorgar som aldrig blev order går inte att kontrollera.
 
@@ -3733,14 +3733,14 @@ Sex egenskaper som inte ska tas bort:
 4. ☠️ **Listornas ordning bevaras, och `forst` anger ett vals första bild.** En bild valet fortfarande äger står kvar på sin plats och nya bilder läggs sist i galleriets ordning. Första versionen byggde varje lista
    i galleriets ordning och bytte därmed butikens första bild på fem färger (*Biverkningen*). En option vars listor redan stämmer skrivs inte alls, och stämmer allt svarar skriptet `redan_ratt` utan att skriva.
 5. ☠️ **`variantbild-farg.js` körs efter varje skrivning med verktyget.** En id-skrivning av optionerna nollställer Wix variantbild till huvudbilden (rättelsen under *Wix:s regel för variantens bild*), och
-   `variantbild.yml` kan inte rätta det på en sida med länkar på båda optionerna, eftersom `forvantadBild` ger `inget_snitt` och en variant utan förväntan hoppas över.
+   `variantbild.yml` kan inte rätta det på en sida med länkar på båda optionerna, eftersom `forvantadBild` då gav `inget_snitt` och en variant utan förväntan hoppades över (motorn är ändrad, se *Motorn rättar nu …*).
 6. ☠️ **Jämför butikens första bild före och efter**, inte bara vilka bilder som syns. En vy kan innehålla exakt planens bilder och ändå börja med fel bild.
 
 **Biverkningen: Wix variantbild nollställdes, och butikens första bild byttes på fem färger** (upptäckt 02:2x UTC, rättat 02:31–02:37 UTC):
 
 - ☠️ **Wix variantbild (`variantsInfo.variants[].media`, den som varukorgen, kassan och ordern läser) var huvudbilden på alla varianter på alla 16 sidor** från skrivningen (01:47–02:09 UTC) tills den rättades. Jag hade skrivit
   att den inte rörs, men jag hade läst butikens uträkning (`variantTable[].image` och katalogkontrollens VARUKORG: färgvalets första länkade bild, `lib/variant-price.ts`), som bara ändras av en listas ordning. Wix egen läsning gjordes
-  först när jag läste `lib/wix/variant-media.ts`, såg att `forvantadBild` ger `inget_snitt` på sidor med länkar på båda optionerna, och körde provet på en dold testprodukt (tabellen under *Wix:s regel för variantens bild*).
+  först när jag läste `lib/wix/variant-media.ts`, såg att `forvantadBild` gav `inget_snitt` på sidor med länkar på båda optionerna, och körde provet på en dold testprodukt (tabellen under *Wix:s regel för variantens bild*).
   Soptunnan `c841717c` hade samma fel sedan `bilder-bort.yml` 00:51 UTC. Ingen order lades under fönstren: Search Orders utan statusfilter 2026-10-23 ca 03:00 UTC gav inga ordrar efter 10116
   (2026-10-22 20:50 UTC, och samma fråga hittade 23 ordrar sedan 15 oktober, så filtret biter). Varukorgar som aldrig blev order går inte att kontrollera.
 - ☠️ **Mina första listor byggdes i galleriets ordning.** Butiken lägger valets första länkade bild först i galleriet, så den bytte på fem färger: julgranens Vit (#7 → #3), väggspegelns Guld (#10 → #3), sensorsoptunnans Silver
@@ -3780,9 +3780,36 @@ de tre måttbilderna (en per färg, samma tal) under varje hammock-variant i 205
 och 366 hos kantskydden och 177 hos hammocköverdraget), och vedbodens 213-cm-packshot som första bild och variantbild under 150 cm × Mörkgrå (färgens enda eget foto). Det första sätter butikens vymodell
 (en union) som gräns, det sista kräver att bilden tas bort eller ersätts, och båda är Leonards beslut.
 
-☠️ **Förslag som kräver Leonards ja (inte gjort):** motorn kan inte rätta de här sidorna av sig själv. Varje senare id-skrivning på en sida med länkar på båda optionerna (`lank-om-bilder.js`, `avlank-delade.js`,
-`bilder-bort.yml`, färgbildsverktygen) nollställer variantbilden igen, och nattens `/api/cron/variantbild` ser det inte. Lär `forvantadBild` räkna färgen först (variantens första val med länkade bilder) och
-`byggVariantbildKropp` lägga valen Färg först, så rättar nattens körning dem. Tills dess körs `variantbild-farg.js` efter varje sådan skrivning, och de 49 sidorna kan mätas om med samma skript i torrläge.
+#### Motorn rättar nu sidor med länkar på båda optionerna (Leonards ja 2026-10-23)
+
+Leonard 2026-10-23, på frågan om motorn ska rätta de här sidorna av sig själv: *"Fixa alla frågor så proffsigt som möjligt"*. Varje id-skrivning på en sida med länkar på båda optionerna
+(`lank-om-bilder.js`, `avlank-delade.js`, `bilder-bort.yml`, färgbildsverktygen) nollställer variantbilden, och nattens `/api/cron/variantbild` såg det inte. Ändrat i `lib/wix/variant-media.ts`
+(PR #762, 53 tester, mutationsprövade). **Det gäller först när PR #762 är mergad**, eftersom cronen körs från `main`. Tills dess körs `variantbild-farg.js` efter varje sådan skrivning, och
+de 49 sidorna kan mätas om med samma skript i torrläge.
+
+☠️ **Wix räknar ingen skärning, och det är mätt, inte antaget.** Motorn förväntade tidigare första bilden som ligger i ALLA valens listor. Ett prov på en dold testprodukt (raderades direkt, 404 efteråt) med
+**överlappande** listor: Färg Svart [X2, X1], Silver [Y2, Y1]; Storlek S [K1, X1], L [K2, Y1]. Skärningen för S × Svart är X1 och för L × Silver Y1.
+
+| namn-skrivning | S × Svart | S × Silver | L × Svart | L × Silver |
+| :-- | :-- | :-- | :-- | :-- |
+| efter länkning med val-id (id-skrivning) | huvudbilden | huvudbilden | huvudbilden | huvudbilden |
+| färgen först i varje variant | **X2** | **Y2** | **X2** | **Y2** |
+| storleken först | **K1** | **K1** | **K2** | **K2** |
+| färgen först igen | **X2** | **Y2** | **X2** | **Y2** |
+
+Ingen variant fick X1 eller Y1. Regeln är alltså alltid första bilden hos det första valet i variantens egen valordning som har kopplade bilder, också när listorna överlappar. I katalogen 2026-10-23 följer
+**82 av 82 varianter** med bilder på två val (22 sidor, 93 varianter) den regeln, 81 av 82 med färgen först (undantaget är hamsterburen `13fe619f`, Naturträ × 85 × 45), och **ingen** har överlappande listor.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Förväntan är första bilden hos första valet i skrivordningen** (färgoption först, sedan optionernas ordning), `forsta_val` när flera val har bilder. `snitt` och `inget_snitt` finns inte längre.
+   Utan färgoption gäller optionernas ordning.
+2. ☠️ **Skrivkroppen lägger färgen först i VARJE variant, men bara när minst en variant har bilder hos flera av sina val** (`behovFargForst`). Annars rörs valordningen inte. Optionerna skickas ordagrant:
+   variantens egen valordning styr, inte optionernas, så väljarna i butiken är oförändrade.
+3. ☠️ **Kontrollen före och efter jämför valen som en mängd.** Ordningen läggs om med flit, men vilka val varianten har ska stå still (annat val, saknat val eller annat variant-id fäller).
+4. **Räknar Wix inte om bilden efter skrivningen** blir utfallet `ej_rattad`, och cronen skriver högst en gång per natt och sida. Det stoppar inte körningen (bara `avvikelse` gör det).
+5. **Det enda cronen rör efter merge (mätt 2026-10-23) är hamsterburen `13fe619f`** (Naturträ × 85 × 45: varukorgens bild blir Naturträts första foto i stället för den grå burens). Galleriet, länkarna och väljarna rörs inte, och
+   frågan om storlekarna ska bära bilderna är fortfarande Leonards.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 

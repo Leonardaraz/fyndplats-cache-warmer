@@ -4,9 +4,10 @@ async function () {
   //
   // Varför: soptunnan c841717c (3 fack, 45/60 liter × Svart/Silver) hade bilder länkade till både Storlek och Färg. Butiken visar för en kombination
   // UNIONEN av färgens och storlekens länkade bilder plus de olänkade, så Silver visade svarta bilder via storleken och en olänkad svart bild.
-  // Variantens bild (varukorgen) räknas ur SNITTET mellan optionernas länkar (lib/wix/variant-media.ts), och snittet var tomt för alla fyra varianter
-  // (`inget_snitt`), så varukorgen visade huvudbilden, en svart tunna, även för Silver. Receptet som gäller är att EN option bär bilderna (färgen)
-  // och den andra inga.
+  // Variantens bild (varukorgen) räknas av Wix ur det första valet i variantens egen valordning som har länkade bilder (mätt 2026-10-23), och en id-skrivning
+  // nollställer den till huvudbilden. Motorn (lib/wix/variant-media.ts) ger sedan 2026-10-23 färgens första foto som förväntan när snittet är tomt (`forsta_val`)
+  // och lägger färgen först i varje variant vid skrivning. Före det gav ett tomt snitt ingen förväntan (`inget_snitt`), så varukorgen visade huvudbilden, en svart
+  // tunna, även för Silver. Enklaste receptet är fortfarande att EN option bär bilderna (färgen) och den andra inga, men två optioner med en ägare per bild går bra.
   //
   // `rader`: "wix-id|<option A>×<option B>|länkade val A/B|tomma snitt av kombinationer|galleri" för sidor där två optioner har länkade bilder.
   // Ett tomt snitt är en kombination där båda valen har länkar men ingen gemensam bild: då finns ingen förväntad variantbild.

@@ -4,7 +4,7 @@ async function () {
   //   · Miniväxthuset hade tre foton av versionen med vitt överdrag olänkade. Butiken knyter ett olänkat foto till den färg alt-texten
   //     nämner, och två av alt-texterna nämner en grön list och en grön stålram, så fotona visades under Grön.
   //   · Skrivbordet hade ett foto av ekskivan länkat till storleken 63 cm, så det visades som andra bild under Svart och Vit, och
-  //     snittet mellan storlekens och färgens länkar var tomt (`inget_snitt` i lib/wix/variant-media.ts).
+  //     snittet mellan storlekens och färgens länkar var tomt (förut `inget_snitt` i lib/wix/variant-media.ts, sedan 2026-10-23 `forsta_val`: färgens första foto).
   // Samma recept som `skriv-fargbilder.js` steg 3 och som lib/aosom/livsbild.ts `skrivSida`: options och variantsInfo ordagrant ur
   // produktens egen GET, valens nya linkedMedia, `visible` explicit, försök om vid 404/409, återläsning av allt som inte ska ändras.
   //

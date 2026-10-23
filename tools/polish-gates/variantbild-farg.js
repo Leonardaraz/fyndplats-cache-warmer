@@ -5,9 +5,10 @@ async function () {
   //
   // Varför: en id-skrivning av optionerna (`lank-om-bilder.js`, `bygg-agare.py`, `avlank-delade.js`, `bilder-bort.yml`) NOLLSTÄLLER variantens bild till
   // huvudbilden. Mätt på en dold testprodukt 2026-10-23: en bild som satts av en namn-skrivning blev huvudbilden igen efter en id-skrivning som ändrade en lista, och
-  // efter en id-skrivning som länkade den andra optionen. Det är därför varukorgen visade fel färg på sidor som rättats med länkar, och `/api/cron/variantbild`
-  // ser det inte: med länkar på båda optionerna ger `forvantadBild` `inget_snitt` (varje bild har en ägare, så listorna har aldrig något gemensamt), och en variant
-  // utan förväntan hoppas över i stället för att rättas.
+  // efter en id-skrivning som länkade den andra optionen. Det är därför varukorgen visade fel färg på sidor som rättats med länkar. Nattens `/api/cron/variantbild`
+  // såg det inte förrän motorn lärde sig det (2026-10-23, PR #762): med länkar på båda optionerna ger `forvantadBild` nu färgens första foto (`forsta_val`) i stället
+  // för ingen förväntan (`inget_snitt`), och `byggVariantbildKropp` lägger färgen först i varje variant, så svepet rättar sådana sidor själv. Skriptet här är samma
+  // skrivning för hand: kör det efter varje id-skrivning på en sådan sida så länge PR #762 inte är mergad, och för att mäta Wix sida i torrläge.
   //
   // Receptet är farg-forst.js steg B utan att optionerna läggs om: varianterna skrivs om med valen bara med namn (`products-with-inventory`, ingen fältmask, aldrig
   // `inventoryItem`), och valen läggs FÄRG FÖRST i varje variant. Då räknar Wix variantens bild ur färgens första länkade foto, även när optionerna står
