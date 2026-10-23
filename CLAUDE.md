@@ -32,6 +32,12 @@ betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
 det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
 OCH snabbare för kunden.
 
+⚠️ **Katalogen är 5 092 produktsidor (2026-10-23), och värmaren hann inte.** Efter
+butikens deploy 01:02 UTC värmde `varm-katalogen` 1 824 sidor, nådde sin deadline
+och körde inte igen: provet på tolv fasta sidor värmde sig självt. PR #770 på
+`headless-site` låter värmningen gå i led tills hela katalogen är varm; regeln
+står i butikens `CLAUDE.md`. Butiken deployas på natten, kring kl. 03 svensk tid.
+
 ⚠️ **Det gäller butikens egna byggen** (grenen `headless-site`). En merge till `main` i
 det här repot bygger bara motorn: `vercel.json` avbryter butiksprojektets bygge, och
 butikens cache ligger kvar. Mätt 2026-09-27: butikssidor renderade 15:02 UTC hade
@@ -3985,7 +3991,7 @@ givarens bilder till färgen eller storleken, aldrig båda, så varje ny storlek
 
 Lösningen, i ordning:
 
-1. **Butiken** (`butik-kopplingar.patch`, väntar på Leonards ja att lägga upp den mot `headless-site`): en bild syns när den, i varje option som kopplar den, är kopplad till det valda valet; inom en option räcker ett av valen. Kombinationens
+1. **Butiken** (`butik-kopplingar.patch`, PR #770 mot `headless-site` med Leonards ja 2026-10-23, mergas natten till 2026-10-24): en bild syns när den, i varje option som kopplar den, är kopplad till det valda valet; inom en option räcker ett av valen. Kombinationens
    första bild är bilden som passar kombinationen och är kopplad i flest optioner. Ingen publicerad sida har i dag en bild kopplad till två optioner (0 av 5 116), så tvåaxliga sidor ser ut som förut tills de länkas om. På 30 sidor med
    ett val, där en bild är kopplad till flera val, syns bilden under alla de valen i stället för bara under det första. Projektordukens storleksbilder börjar synas (etiketten "85 tum (216 cm)" mot väljarens "85 tum").
 2. **Länka om** FEL-sidorna en i taget, varje bild till sin färg OCH sin storlek, med visuell kontroll och givaren som facit. ☠️ Inte före butiksändringen: med en ägare per bild visar en dubbelkopplad bild under alla färger i storleken.
@@ -4017,7 +4023,14 @@ på alla sju kombinationerna:
 färgen först, två med storleken först), men nattens `variantbild` skriver om alla med färgen först. Det kräver motorändringen i steg 4.
 
 ☠️ **Spärren sitter i verktyget.** En plan med flera ägare på en bild byggs inte skarpt förrän butikens sida bär `imageKopplingar`: `bygg-agare.py` hämtar planens `slug` och vägrar annars, och
-`lank-om-bilder.js` länkar en bild från två val i samma option bara när `bygg-agare.py` slår på `FLERA_I_OPTION`. Prövad åt tre håll: utan slug, mot dagens butik och mot en sida som bär fältet.
+`lank-om-bilder.js` länkar en bild från ett val till i samma option bara när `bygg-agare.py` slår på `FLERA_I_OPTION`. Prövad åt tre håll: utan slug, mot dagens butik och mot en sida som bär fältet.
+Spärren gäller NYA länkar: en dubbelkoppling som redan finns får stå kvar eller minska (2026-10-23, prövat åt båda hållen i en torrkörning).
+
+**Före mergen: trädgårdspallen och parkbänken (2026-10-23 13:52 UTC, Leonards ja).** Två av de 30 sidorna med ett val hade en bild kopplad till ett val den inte hör till, och den nya regeln
+hade visat den där. Pallen `d886ce9e`: miljöfotot med den gröna pallen är borta från Blå, och korten står kvar på båda färgerna. Bänken `e4aec6ef`: fotot på rosenbänken hör till 40 tum enligt
+måttbilderna (46 tum har rutmönstrat ryggstöd och 50 tum svängt) och är länkat bara dit; förut låg det på alla sex modeller och var varukorgens bild för dem alla, även träbänkarna. Båda lästes
+tillbaka utan avvikelse, och `variantbild.yml` rättade varukorgens bild. De andra 28 sidorna visar bilden rätt under varje val som länkar den (`delade-lankar.tsv`), så de 15 AliExpress-sidor som väntade
+på `avlank-delade.js` (lärdom 163) löses av själva mergen.
 
 **Planerna för alla 16 sidor med fel (2026-10-23, eftermiddag).** `agare-<id8>.json` i revisionsmappen finns för de 16 FEL-sidorna, projektorduken och matstationen, och bär `slug`. De är torrkörda mot Wix
 (18 av 18: varje bild hittades och ingenting skrevs) och korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla 81 kombinationer. `ordning` (nytt fält) lägger packshoten för varje

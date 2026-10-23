@@ -19,6 +19,9 @@ async function () {
   //      Undantaget är `FLERA_I_OPTION` (2026-10-23), som bara bygg-agare.py slår på, och bara när butikens sida bär `imageKopplingar`
   //      (butiksändringen "en bild per kombination"): där syns en bild under VARJE val i optionen som länkar den, i den gamla butiken
   //      bara under det första. Väggspegelns breda foton hör till både 50 × 70 och 60 × 90 cm, men inte till 50 × 110.
+  //      Spärren gäller NYA länkar (2026-10-23): en dubbelkoppling som redan finns får stå kvar eller minskas. Trädgårdspallens kort är
+  //      kopplade till båda färgerna och ska vara det, medan miljöfotot med den gröna pallen ska bort från Blå. Att ta bort den länken
+  //      skapar ingenting nytt, och i den gamla butiken syns kortet fortfarande bara under det första valet, som i dag.
   //   3. ☠️ Ett val som hade länkade bilder får inte lämnas utan, om det inte står i `tomt`. Variantens bild räknas ur länkarna.
   //   4. Ingen bild tas bort ur galleriet, och ingen länk tappas tyst: återläsningen jämför varje vals lista mot planen.
   //   5. Varianternas id, SKU, synlighet och pris, produktens synlighet, namn och adress och galleriets ordning ska vara lika före
@@ -89,9 +92,10 @@ async function () {
     const slutligt = {};
     val0.forEach(function (c) { slutligt[c.choiceId] = nya[c.choiceId] || gamla[c.choiceId]; });
     const agare = {};
+    const nyLank = function (f) { return val0.some(function (x) { return slutligt[x.choiceId].indexOf(f) >= 0 && gamla[x.choiceId].indexOf(f) < 0; }); };
     for (const c of val0) {
       for (const f of slutligt[c.choiceId]) {
-        if (agare[f] && !FLERA_I_OPTION) return fel("plan", "filen " + f.slice(7, 15) + " skulle vara länkad från både " + agare[f] + " och " + c.name);
+        if (agare[f] && !FLERA_I_OPTION && nyLank(f)) return fel("plan", "filen " + f.slice(7, 15) + " skulle vara länkad från både " + agare[f] + " och " + c.name);
         agare[f] = c.name;
       }
     }
