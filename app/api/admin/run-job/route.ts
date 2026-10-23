@@ -11,7 +11,9 @@ import { syncOrdersFromWix } from "@/lib/order-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// Samma morgonmejl som /api/cron/morning-email, alltså samma kallstart: se dess
+// maxDuration. Låst i lib/katalog-sidor.test.ts.
+export const maxDuration = 300;
 
 const FROM = process.env.RESEND_FROM || "Fyndplats <orders@fyndplats.se>";
 

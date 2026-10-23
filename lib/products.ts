@@ -14,6 +14,7 @@ import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { getSoldUnits } from "./popularity";
 import { getProductColorImages, getProductColors } from "./product-colors";
+import { hamtaKatalogSidor } from "./katalog-sidor";
 import { lasSpec, specFor, type Nyckel, type Spec } from "./spec-facets";
 import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
@@ -489,11 +490,22 @@ export function katalogenArDegraderad(lista: Product[]): boolean {
 
 async function fetchProducts(): Promise<Product[]> {
   if (!wix) return FALLBACK_PRODUCTS;
+  const start = Date.now();
+  // Försäljningen och färgvalen beror inte på sidorna, så de hämtas medan
+  // sidorna hämtas i stället för efter (färgfrågan är ett tiotal V3-sidor i rad).
+  // De startar först när en sida har svarat: svarar inte Wix ska de inte fråga
+  // heller, eftersom de cachar ett misslyckat svar som tomt i 30 minuter. Felen
+  // fångas direkt, så att en avvisning aldrig blir ohanterad om sidorna kastar.
+  const sidovagnar: {
+    salda?: Promise<Map<string, number> | null>;
+    farger?: Promise<[Map<string, string[]>, Map<string, Record<string, string>>] | null>;
+  } = {};
+  const startaSidovagnar = () => {
+    if (sidovagnar.salda) return;
+    sidovagnar.salda = Promise.resolve().then(() => getSoldUnits()).catch(() => null);
+    sidovagnar.farger = Promise.all([getProductColors(), getProductColorImages()]).catch(() => null);
+  };
   try {
-    const all: any[] = [];
-    let skip = 0;
-    const limit = 100;
-    let rapporteratTotalt: number | null = null;
     // EN KORT SIDA ÄR INTE SAMMA SAK SOM SISTA SIDAN (Leonards rapport
     // 2026-08-16). Loopen bröt förr på `items.length < limit`, så en enda
     // degraderad sida kapade katalogen tyst: uppmätt 716 av 778 produkter på
@@ -501,9 +513,13 @@ async function fetchProducts(): Promise<Product[]> {
     // 62 produkter försvann ur butiken utan ett enda felmeddelande. Sitemapen,
     // byggd vid en komplett hämtning, listade dem fortfarande.
     //
-    // Nu: gå vidare tills en sida är HELT tom, och stega med det antal vi
-    // faktiskt fick (inte med `limit` — annars hoppar en kort sida över
-    // resten av fönstret).
+    // Nu hämtas en kort sida om, och är den fortfarande kort blir raderna färre
+    // än Wix totalantal, så att katalogen inte cachas (längre ned).
+    //
+    // FLERA SIDOR ÅT GÅNGEN SEDAN 2026-10-21 (lib/katalog-sidor.ts). En sida i
+    // taget tog 61–75 s per kallstart. Det stoppade morgonmejlet (60 s) och gjorde
+    // auktionens varor långsamma i över en minut efter prisbytet. Sex åt gången
+    // tog 10–13 s mot skarpa Wix, med samma 5 064 produkter i samma ordning.
     //
     // TAKET VAR 40 SIDOR = 4 000 PRODUKTER, och det var en tickande bomb.
     // Mätt mot Wix 2026-08-28: 3 658 produkter i katalogen (946 synliga plus
@@ -512,26 +528,21 @@ async function fetchProducts(): Promise<Product[]> {
     // förbi taket kapas TYST, precis det som hände 2026-08-16 när 62 produkter
     // försvann ur butiken utan ett enda felmeddelande.
     //
-    // Nu är taket bara en rundgångsspärr, inte en katalogbegränsning: loopen
-    // stannar när Wix eget totalCount är uppnått, och slår den ändå i taket
-    // loggas det som ett FEL i stället för att tyst servera en halv katalog.
-    const MAX_SIDOR = 500; // 50 000 produkter
-    let slogITaket = true;
-    for (let i = 0; i < MAX_SIDOR; i++) {
+    // Nu är taket bara en rundgångsspärr, inte en katalogbegränsning
+    // (KATALOG_MAX_SIDOR), och slår hämtningen ändå i taket loggas det som ett
+    // FEL i stället för att tyst servera en halv katalog.
+    const hamtning = await hamtaKatalogSidor<any>(async (skip, limit) => {
       const res: any = await (wix as any).products.queryProducts().limit(limit).skip(skip).find();
-      const items = res.items || [];
-      if (typeof res.totalCount === "number") rapporteratTotalt = res.totalCount;
-      if (items.length === 0) { slogITaket = false; break; }
-      all.push(...items);
-      skip += items.length;
-      // Wix säger hur många som finns — sluta så fort vi har dem allihop i
-      // stället för att fråga efter en tom sida till.
-      if (rapporteratTotalt !== null && all.length >= rapporteratTotalt) { slogITaket = false; break; }
-    }
-    if (slogITaket) {
+      startaSidovagnar();
+      return { items: res.items || [], totalCount: typeof res.totalCount === "number" ? res.totalCount : null };
+    });
+    const sidtid = Date.now() - start;
+    const all = hamtning.items;
+    const rapporteratTotalt = hamtning.rapporteratTotalt;
+    if (hamtning.slogITaket) {
       console.error(
-        `[wix] SIDTAKET SLOG I: hämtade ${all.length} produkter på ${MAX_SIDOR} sidor utan att nå slutet `
-          + `(totalCount=${rapporteratTotalt ?? "okänt"}). Katalogen kan vara kapad — höj MAX_SIDOR.`,
+        `[wix] SIDTAKET SLOG I: hämtade ${all.length} produkter på ${hamtning.sidor} sidor utan att nå slutet `
+          + `(totalCount=${rapporteratTotalt ?? "okänt"}). Katalogen kan vara kapad — höj KATALOG_MAX_SIDOR.`,
       );
     }
     const mapped = all.filter((p) => p.visible !== false).map(mapProduct).filter((p) => p.img);
@@ -546,18 +557,21 @@ async function fetchProducts(): Promise<Product[]> {
     // Popularitet (verkliga ordrar, 90 d) → "Populärast"/"Rekommenderat".
     // Fail-open: otillgänglig orderdata → alla 0 (sorteringen faller på nyhet).
     try {
-      const sold = await getSoldUnits();
-      if (sold.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
+      const sold = await sidovagnar.salda;
+      if (sold?.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
     } catch { /* popularitet får aldrig fälla produktlistan */ }
     // Färgval (V3-sidovagn) → färgfiltret på listsidorna. Samma fail-open:
     // uteblir datan renderas facetten helt enkelt inte.
     try {
-      const [colors, fargBilder] = await Promise.all([getProductColors(), getProductColorImages()]);
-      if (colors.size) for (const p of unique) {
-        const keys = colors.get(p.id);
-        if (keys?.length) p.colors = keys;
-        const bild = fargBilder.get(p.id);
-        if (bild) p.fargBild = bild;
+      const farger = await sidovagnar.farger;
+      if (farger) {
+        const [colors, fargBilder] = farger;
+        if (colors.size) for (const p of unique) {
+          const keys = colors.get(p.id);
+          if (keys?.length) p.colors = keys;
+          const bild = fargBilder.get(p.id);
+          if (bild) p.fargBild = bild;
+        }
       }
     } catch { /* färger får aldrig fälla produktlistan */ }
     // Reserv: färgen ur produktnamnet. Bara ~130 produktgrupper har färg som
@@ -569,7 +583,16 @@ async function fetchProducts(): Promise<Product[]> {
       const keys = colorKeysFromName(p.name);
       if (keys.length) p.colors = keys;
     }
-    console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
+    // Tiderna står i raden sedan 2026-10-21: så syns en kallstart utan att räkna
+    // fram den ur begärans id. "allt" är sidorna plus försäljningen och
+    // färgvalen. På förhandsversionen 2026-10-21 var färgvalen klara sist, och
+    // hela hämtningen tog 17–19 s.
+    console.log(
+      `[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`
+        + ` — ${hamtning.sidor} sidor på ${(sidtid / 1000).toFixed(1)} s, allt på ${((Date.now() - start) / 1000).toFixed(1)} s`
+        + (hamtning.omforsok ? `, ${hamtning.omforsok} omförsök` : "")
+        + (hamtning.kortaSidor ? `, ${hamtning.kortaSidor} korta sidor` : ""),
+    );
     // CACHA ALDRIG EN KAPAD KATALOG. productsPromise lever hela lambdans
     // livstid, så en degraderad hämtning frös förr det lägre antalet tills
     // instansen återvanns — och eftersom kategorimenyn byggs ur samma lista
