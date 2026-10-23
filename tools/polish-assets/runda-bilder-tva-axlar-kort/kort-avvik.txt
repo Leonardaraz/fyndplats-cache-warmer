@@ -1,0 +1,6 @@
+# <kort>	<etikett>	<skäl>: grindens jämförelse mot sidan klipper raden vid första parentesen, så värdena efter den försvinner ur jämförelsen
+44d4907b-305	Fraktvikt	sidan skriver "3,2 kg (244 cm), 3,5 kg (305 cm) respektive 4,5 kg (366 cm)"; 3,5 kg står på sidan och hör till Ø305
+44d4907b-305	Paketmått	sidan skriver "96 × 38 × 14 cm (244 cm), 97 × 35 × 17 cm (305 cm) respektive 97 × 36 × 20 cm (366 cm)"; 97 × 35 × 17 står på sidan och hör till Ø305
+44d4907b-366	Fraktvikt	sidan skriver "3,2 kg (244 cm), 3,5 kg (305 cm) respektive 4,5 kg (366 cm)"; 4,5 kg står på sidan och hör till Ø366
+44d4907b-366	Paketmått	sidan skriver "96 × 38 × 14 cm (244 cm), 97 × 35 × 17 cm (305 cm) respektive 97 × 36 × 20 cm (366 cm)"; 97 × 36 × 20 står på sidan och hör till Ø366
+c3d1fa41-107	Fraktvikt	sidan skriver "2,3 kg (liten) eller 3 kg (stor)"; 3 kg står på sidan och hör till den stora bädden

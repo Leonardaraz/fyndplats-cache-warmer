@@ -310,6 +310,43 @@ if os.path.exists("slugs.txt"):
               f"slugs.txt")
         fynd += 1
 
+# ☠️ ALT-TEXTERNA TILL KORTEN (`kortalt.tsv`: `<kort>\t<alt-text>`) går genom samma grindar och samma facit som kortets egen text.
+# Dokumentationen påstod att grinden fällde en alt-text i `kortalt.tsv`, men koden läste aldrig filen: alt-texten följer med ut till Wix i
+# skrivplanen och är lika synlig som kortet, så den som skrev ett fel tal där hade passerat grinden utan att något sa emot.
+# En alt-text som saknas för ett kort fäller också, och en för kort eller för lång (Wix-skrivarna kräver 20 till 250 tecken) likaså.
+if os.path.exists("kortalt.tsv"):
+    alt_sedda = set()
+    for radnr, rad in enumerate(open("kortalt.tsv", encoding="utf-8"), 1):
+        rad = rad.rstrip("\n")
+        if not rad.strip() or rad.startswith("#"):
+            continue
+        d = rad.split("\t")
+        if len(d) != 2:
+            print(f"  kortalt.tsv rad {radnr}: [FORM] {len(d)} kolumner, väntade 2")
+            fynd += 1
+            continue
+        kort, alt = d[0], d[1].strip()
+        alt_sedda.add(kort)
+        if kort not in kort_sedda:
+            print(f"  {kort}: [OKÄND PRODUKT] alt-texten i kortalt.tsv matchar inget kort i kort.tsv")
+            fynd += 1
+        if not 20 <= len(alt) <= 250:
+            print(f"  {kort}: [ALT-LÄNGD] {len(alt)} tecken, väntade 20 till 250")
+            fynd += 1
+        for namn, m in GRINDAR:
+            for x in re.finditer(m, alt):
+                print(f"  {kort}: [{namn}] i alt-texten {x.group(0)!r} …{alt[max(0, x.start()-45):x.end()+45].strip()}…")
+                fynd += 1
+        if not UTAN_FACIT and kallor.get(kort):
+            facit_alt = set(kallor[kort]) | RAD_TAL | FOTO_TAL.get(kort, set())
+            for t in sorted(tal(alt) - facit_alt, key=lambda x: (len(x), x)):
+                print(f"  {kort}: [SIFFRA UTAN KÄLLA] {t!r} i alt-texten")
+                fynd += 1
+    for k in kort_sedda:
+        if k not in alt_sedda:
+            print(f"  {k}: [ALT SAKNAS] kortet har ingen rad i kortalt.tsv")
+            fynd += 1
+
 sif = "utan siffergrind" if UTAN_FACIT else f"siffergrind mot {facitfil}"
 print(f"\nKORTGRIND: {fynd} fynd i {len(kort_sedda)} kort ({sif})")
 sys.exit(1 if (fynd or UTAN_FACIT) else 0)
