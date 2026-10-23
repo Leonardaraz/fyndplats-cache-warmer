@@ -16,6 +16,9 @@ Metoden läser butikens EGEN sidodata, samma som kunden får (Next.js-flödet i 
   variantTable    varje variant: val, pris, lager och BUTIKENS uträkning av variantens bild (färgvalets första länkade bild, lib/variant-price.ts)
 Vy för en kombination = bilder utan ägare + bilder vars ägare är ett av de valda valen, i galleriets ordning. Modellen är mätt mot webbläsaren (live-galleri.mjs) på
 soptunnan, förvaringskistan, skrivbordet 3b868848 och matstationen 1d4eb6b1: samma bilder, samma ordning.
+Med butiksändringen "en bild per kombination" (revisionen 2026-10-23, butik-kopplingar.patch) bär sidan också `imageKopplingar`: bild → en lista per option
+som kopplar den, med valens etiketter. Då räknas vyn som butiken gör det: en bild syns när den i VARJE option som kopplar den är kopplad till det valda
+valet, och syns ingen kopplad bild visas hela galleriet. Saknar sidan fältet gäller den gamla regeln ovan.
 
 Tre träffar, alla bygger på alt-texten (ett tips, bilden avgör):
   SPEC   en måttbild eller specifikation vars alt-text nämner ett annat vals tal (alla tal i etiketten står i alt-texten) än det valda
@@ -62,17 +65,30 @@ def sidodata(katalog, id8):
     p = s.find('"productId":"' + id8)
     if p < 0:
         return None
-    d = {k: las(s, k, p) for k in ("images", "imageOwners", "imageAlts", "variantAxes", "variantTable")}
+    d = {k: las(s, k, p) for k in ("images", "imageOwners", "imageAlts", "variantAxes", "variantTable", "imageKopplingar")}
     if d["images"] is None or d["variantAxes"] is None or d["variantTable"] is None:
         return None
+    if not isinstance(d["imageKopplingar"], dict):
+        d["imageKopplingar"] = None
     d["imageOwners"] = d["imageOwners"] or {}
     d["imageAlts"] = d["imageAlts"] or {}
     d["gal"] = [fil(u) for u in d["images"]]
     return d
 
 
+def passar(d, f, valda):
+    """Butikens regel med kopplingar (synligaBilderForKombination): i varje option som kopplar bilden ska ett av dess val vara valt."""
+    g = d["imageKopplingar"].get(f)
+    return not g or all(any(e in valda for e in grupp) for grupp in g)
+
+
 def vy(d, val):
     valda = set(val.values())
+    if d.get("imageKopplingar") is not None:
+        k = d["imageKopplingar"]
+        if not any(k.get(f) and passar(d, f, valda) for f in d["gal"]):
+            return list(range(1, len(d["gal"]) + 1))
+        return [n + 1 for n, f in enumerate(d["gal"]) if passar(d, f, valda)]
     return [n + 1 for n, f in enumerate(d["gal"]) if f not in d["imageOwners"] or d["imageOwners"][f] in valda]
 
 
@@ -131,8 +147,21 @@ def kontrollera(d):
 
 
 def varukorg(d):
-    """Varianter där färgen äger bilder men variantens bild (varukorg, kassa, order) ägs av något annat än färgen."""
+    """Varianter där färgen äger bilder men variantens bild (varukorg, kassa, order) ägs av något annat än färgen.
+    Med kopplingar: variantens bild ska synas i kombinationen och vara kopplad till färgen, om färgen har kopplade bilder."""
     fax = [a["name"] for a in d["variantAxes"] if a["name"].lower().startswith("färg")]
+    if d.get("imageKopplingar") is not None:
+        k = d["imageKopplingar"]
+        kopplade = {e for g in k.values() for grupp in g for e in grupp}
+        ut = []
+        for v in d["variantTable"]:
+            f = fil(v.get("image", ""))
+            valda = set(v["choices"].values())
+            for a in fax:
+                lab = v["choices"].get(a)
+                if lab in kopplade and (not passar(d, f, valda) or not any(lab in grupp for grupp in (k.get(f) or []))):
+                    ut.append((v["choices"], " / ".join(",".join(grupp) for grupp in (k.get(f) or [])) or None))
+        return ut
     agare = set(d["imageOwners"].values())
     ut = []
     for v in d["variantTable"]:

@@ -1,0 +1,18 @@
+[{"id": "79ab08fe-e8d8-48c7-824f-fe32a3acf960",
+  "agare": {
+    "1c7d85": ["Rustik brun och svart", "109 cm"],
+    "2fe6d9": ["Vit", "109 cm"],
+    "c5e01a": ["Rustik brun och svart", "109 cm"],
+    "872763": "Rustik brun och svart",
+    "0af16d": "Rustik brun och svart",
+    "aaa62b": ["Rustik brun och svart", "136 cm"],
+    "a525b3": ["Vit", "109 cm"],
+    "508f0c": ["Vit", "136 cm"],
+    "110a08": ["Vit", "109 cm"],
+    "55379a": ["Vit", "109 cm"],
+    "7c39fc": "109 cm",
+    "22f2a7": "136 cm"
+  },
+  "tomt": [],
+  "forst": {"109 cm": "7c39fc", "136 cm": "22f2a7"}
+}]

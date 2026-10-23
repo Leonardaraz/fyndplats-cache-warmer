@@ -47,3 +47,14 @@ Ingen sida har i dag en bild kopplad till val i två optioner (0 av 5 116 public
 3. **Fyll** kombinationer som får färre än fyra bilder med bilder ur kombinationens egen artikel (feeden eller aosom.de).
 4. **Motorn**: varukorgens bild per variant (Wix tar första bilden hos variantens första val, i dag alltid färgens) och
    sammanslagningen kopplar framöver en ny storlek i en befintlig färg till både färgen och storleken.
+
+## Planer, torrkörda
+
+`agare-79ab08fe.json` (bokhyllan) och `agare-926ec7a2.json` (projektorduken) är planer för `tools/polish-gates/bygg-agare.py`,
+där en lista som ägare är en bild av en kombination. Båda är torrkörda mot Wix (`--torr`, ingenting skrivet) och
+korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla sju kombinationer. Utfallet står i
+CLAUDE.md under "En bild per kombination". De skrivs först när butiksändringen är ute.
+
+Projektordukens bilder är granskade med ögonen: `7a2bde` och `76436a` visar den vita 99-tumsduken (kopplas till Vit och
+99 tum), och närbilderna `fb125d` (nederkanten) och `7f121f` (ändkåpan) visar den vita kassetten men saknar koppling och
+syns i dag också under Svart. De kopplas till Vit.

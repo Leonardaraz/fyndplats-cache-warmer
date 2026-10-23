@@ -3995,6 +3995,27 @@ Lösningen, i ordning:
 ☠️ **En givare är en kombination, och dess pris avgör vilken.** En dold givare är en Aosom-artikel med variantens pris, så `givare.tsv` ger bildens storlek utan att någon räknar steg. Hunden på den vita kattrappan (`acf527`)
 räknades först som tre steg; bilden kommer från fyrstegsartikeln och har fyra steg i förstoring.
 
+**Verktygen för steg 2 (2026-10-23).** `bygg-agare.py` tar en lista som ägare, högst ett val per option (`["Vit", "136 cm"]` är en bild av den vita hyllan på 136 cm). Torrkörningen svarar med
+`kombinationer`: butikens vy per variant med den nya regeln, kombinationens första bild och Wix variantbild efter en namn-skrivning med färgen först (`varukorg`, `varukorgPassar`). `kolla-agare.py` och
+`katalogkontroll-tva-axlar-bilder.py` läser sidans `imageKopplingar` när butiksändringen är ute och räknar vyn som butiken; saknas fältet gäller den gamla regeln, och en lista i planen räknas då som en avvikelse.
+Planerna för bokhyllan (`agare-79ab08fe.json`) och projektorduken (`agare-926ec7a2.json`) ligger i revisionsmappen. De är torrkörda mot Wix och mot butiksändringens egen kod, med samma vyer och samma första bild
+på alla sju kombinationerna:
+
+| sida | kombination | bilder | första bild | varukorgen (färgens första) |
+| :-- | :-- | --: | :-- | :-- |
+| bokhyllan | brun × 109 cm | 5 | brun 109-packshot | rätt |
+| | brun × 136 cm | 4 | brun 136-packshot | brun 109-packshot, som i dag |
+| | vit × 109 cm | 5 | vit 109-packshot | rätt |
+| | vit × 136 cm | **2** | vit 136-packshot | vit 109-packshot, som i dag |
+| projektorduken | vit × 85 tum | 8 | 85-packshot | rätt |
+| | svart × 99 tum | 5 | svart packshot | rätt (de två vita närbilderna syns inte längre här) |
+| | vit × 99 tum | 9 | vit 99-packshot | rätt |
+
+☠️ **Bokhyllans Storlek står före Färg.** Med den gamla butiken ägs en dubbelkopplad bild av storleken och visas under båda färgerna, så planen skrivs först när butiksändringen är ute och sidan bär
+`imageKopplingar` (`kolla-agare.py` skriver vilket). Bokhyllans plan skriver bara Storlek (109 cm: 1 → 7 länkar, 136 cm: 1 → 3); färgernas listor är redan rätt. Vit × 136 cm får två bilder och fylls i steg 3.
+⚠️ Varukorgens bild är färgens första bild för alla storlekar så länge varianterna skrivs med färgen först. Med två färger och två storlekar går det att ge varje variant sin egen bild (två varianter med
+färgen först, två med storleken först), men nattens `variantbild` skriver om alla med färgen först. Det kräver motorändringen i steg 4.
+
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
 Nattimporten 2026-10-22 skapade 40 utkast (04:40–04:44 UTC). 27 blev egna sidor (N294–N298), 10 blev färg eller storlek på publicerade sidor
