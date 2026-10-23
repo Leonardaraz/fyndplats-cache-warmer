@@ -1,0 +1,42 @@
+[
+ {
+  "id": "1d4eb6b1-2f8f-451d-b9ce-64aa4c34107d",
+  "agare": {
+   "39fda2": "Vit",
+   "fde552": "Vit",
+   "a936a5": "Vit",
+   "916e4b": "Vit",
+   "bf7b90": "Vit",
+   "c84a91": "Grå",
+   "772a50": "Grå",
+   "b692c3": "Grå",
+   "2b00cb": "Grå",
+   "ce8009": "Grå",
+   "c225d7": "Espresso",
+   "c5a6b7": "Espresso",
+   "6721b3": "Espresso",
+   "59c65b": "58,4 × 30,5 cm",
+   "cf3eac": "Vit",
+   "f64649": "Vit",
+   "b1eab8": "Vit",
+   "ed307c": "Grå",
+   "b6c87d": "Grå",
+   "2241c6": "Grå",
+   "f928cc": "Grå",
+   "d6c55e": "Grå",
+   "ae47b7": "Espresso",
+   "0f3b07": "Espresso",
+   "c1a85d": "Espresso",
+   "5ea074": "Espresso",
+   "2d7a79": "44 × 24 cm",
+   "376205": "58,4 × 30,5 cm",
+   "97cd7a": "44 × 24 cm"
+  },
+  "tomt": [],
+  "forst": {
+   "Vit": "39fda2",
+   "Grå": "c84a91",
+   "Espresso": "c225d7"
+  }
+ }
+]
