@@ -566,6 +566,20 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 > Vita där bara pixlar som redan är bakgrund (`min > 200`) — resten är produkt.
 
 
+### Ett kort per storlek på en sida med två val (2026-10-23)
+
+En måttbild som visar EN färg i EN storlek går inte att visa rätt på en sida med färg × storlek. Butikens vy är unionen av bilder utan ägare och bilder som ägs av de valda valen, så bilden visas under varje färg i
+storleken eller varje storlek i färgen. Det som går är ett **färgneutralt kort per storlek**, länkat till storleken (`bygg-agare.py`), med hela varan i hjältebilden och sidans egna tal i tabellen.
+
+- **Hjältebilden** av flera färger byggs med `tools/polish-gates/komponera-hjalte.py <ut.jpg> <rader> <bild…>` (`2,2` är två rader med två packshots, `--fyll` och `--trosk` styr storlek och vitrensning). Packshotsen ska ha
+  vit bakgrund, och skriptet avbryter hellre än gissar när en ruta saknar vara. Resultatet läggs i rundans `orig/<kort>.jpg` (checkas aldrig in) och byggs med `bygg-kort.py` i läget `foto`, med panelens proportion enligt tabellen ovan.
+- **Raderna** i `kort.tsv` hämtar talen ur sidans egen text (`kallor-tal.json`), enheterna skrivs som `&nbsp;<span class=u>cm</span>`, och `gate-kort.py` fäller på ett tal sidan inte bär och på en saknad eller felaktig
+  alt-text (`kortalt.tsv`). Skriver sidan flera storlekars värden på samma rad kvitteras raden i `kort-avvik.txt`, med skäl.
+- **Vidare:** `galleri-tillagg.js` (galleriet), `bygg-agare.py` (ägare), `bilder-bort.yml` (de gamla måttbilderna), `variantbild-farg.js` (varukorgens bild) och live-kontroll. Ordningen och skälen står i CLAUDE.md,
+  *Leonards svar på de sex frågorna*.
+- Ett kort för EN storlek visar bara den storleken. Ett kort som listar alla storlekar ska vara gemensamt, alltså olänkat.
+
+
 -----
 
 ## Avancerad retusch (flera problemzoner samtidigt)

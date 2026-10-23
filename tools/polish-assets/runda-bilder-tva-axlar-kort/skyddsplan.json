@@ -1,0 +1,34 @@
+{
+ "sidor": [
+  {
+   "id": "91f5c078-39ac-4be8-8a04-327e48d28dea",
+   "bilder": [
+    {
+     "fil": "b379ce_aec9ca071898416c8d3000a62dc9a9d8~mv2.jpg"
+    },
+    {
+     "fil": "b379ce_31a83053e8b2425f87c1a82cb30e1d20~mv2.jpg"
+    }
+   ]
+  },
+  {
+   "id": "44d4907b-e19b-43a1-b054-222f647588e3",
+   "bilder": [
+    {
+     "fil": "b379ce_9399cb818f2f4511bc0ef893284d3920~mv2.jpg"
+    },
+    {
+     "fil": "b379ce_1e52f3da2a1946c6a41f80a78002f36d~mv2.jpg"
+    }
+   ]
+  },
+  {
+   "id": "c3d1fa41-199a-4431-b65c-139bbce8aebf",
+   "bilder": [
+    {
+     "fil": "b379ce_8fe7b7cd37aa4946989a29f5968f0079~mv2.jpg"
+    }
+   ]
+  }
+ ]
+}

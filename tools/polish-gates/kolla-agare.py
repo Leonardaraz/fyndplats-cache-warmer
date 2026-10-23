@@ -74,6 +74,12 @@ def main():
         if hex6 not in galhex:
             fel += 1
             print("☠️ planen nämner %s men bilden finns inte i galleriet" % hex6)
+    # ☠️ En sida med EN option (skumklossarna d70e483e, 2026-10-23) har inget `variantAxes` och ingen `variantTable` i sin data (de står som "$undefined"):
+    # butiken väljer då färg ur en annan struktur. Ägarna per bild går att kontrollera, men vyn per val inte. Den mäts med live-galleri.mjs.
+    if not isinstance(d["variantTable"], list) or not isinstance(d["variantAxes"], list):
+        print("sidan har EN option: ingen variantTable i sidans data, så bara ägarna per bild kontrolleras (vyn per val: node tools/polish-gates/live-galleri.mjs <slug>)")
+        print("ALLT STÄMMER MOT PLANEN (bara ägarna)" if fel == 0 else "AVVIKELSER: %d" % fel)
+        sys.exit(0 if fel == 0 else 1)
     for v in d["variantTable"]:
         valda = {x.lower() for x in v["choices"].values()}
         vantad = [n for n, f in enumerate(d["gal"], 1) if plan.get(f[7:13]) == "-" or (plan.get(f[7:13]) or "").lower() in valda]
