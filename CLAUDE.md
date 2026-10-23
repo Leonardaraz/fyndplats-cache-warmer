@@ -3600,7 +3600,7 @@ Galleriet är nu Svart 1–5, Silver 6–9, kortet för 45 liter (10) och kortet
 ☠️ **Variantbilden nollställdes av just den borttagningen och rättades först 02:3x UTC.** `bilder-bort.yml` skriver valens länkar med val-id (se rättelsen under *Wix:s regel för variantens bild*), och
 Wix gjorde då Silver → `9a66fa`, huvudbilden, på alla fyra varianterna. `variantbilder: rätt` i körningens svar betydde bara att `forvantadBild` inte kunde räkna (`inget_snitt`). Mätt 02:2x UTC med
 Wix egen läsning, och rättad 02:37 UTC med `variantbild-farg.js` (Silver → `c63be6`, revision 44 → 45, 0 avvikelser). Wix variantbild, som varukorgen, kassan och ordern läser, var alltså den svarta tunnan för
-Silver i ungefär 1 tim 45 min. Ordrar och varukorgar under fönstret är inte kontrollerade.
+Silver i ungefär 1 tim 45 min. Ingen order lades under fönstret: Search Orders utan statusfilter 2026-10-23 ca 03:00 UTC gav inga ordrar efter 10116 (2026-10-22 20:50 UTC). Varukorgar som aldrig blev order går inte att kontrollera.
 
 **Live 01:0x UTC** (butikens cache renderad 00:55:51, efter sista skrivningen 00:51:31; `live-galleri.mjs` en kombination i taget): Svart × 45 liter visar de fem svarta fotona och 45-kortet (1 299 kr),
 Svart × 60 liter de fem och 60-kortet (2 029 kr), Silver × 45 liter de fyra silverfotona och 45-kortet (1 179 kr, slutsåld sedan 2026-10-17) och Silver × 60 liter de fyra och 60-kortet (1 959 kr). Varje storlek
@@ -3741,7 +3741,8 @@ Sex egenskaper som inte ska tas bort:
 - ☠️ **Wix variantbild (`variantsInfo.variants[].media`, den som varukorgen, kassan och ordern läser) var huvudbilden på alla varianter på alla 16 sidor** från skrivningen (01:47–02:09 UTC) tills den rättades. Jag hade skrivit
   att den inte rörs, men jag hade läst butikens uträkning (`variantTable[].image` och katalogkontrollens VARUKORG: färgvalets första länkade bild, `lib/variant-price.ts`), som bara ändras av en listas ordning. Wix egen läsning gjordes
   först när jag läste `lib/wix/variant-media.ts`, såg att `forvantadBild` ger `inget_snitt` på sidor med länkar på båda optionerna, och körde provet på en dold testprodukt (tabellen under *Wix:s regel för variantens bild*).
-  Soptunnan `c841717c` hade samma fel sedan `bilder-bort.yml` 00:51 UTC. Vilka varukorgar och ordrar som lades under fönstren är inte kontrollerat.
+  Soptunnan `c841717c` hade samma fel sedan `bilder-bort.yml` 00:51 UTC. Ingen order lades under fönstren: Search Orders utan statusfilter 2026-10-23 ca 03:00 UTC gav inga ordrar efter 10116
+  (2026-10-22 20:50 UTC, och samma fråga hittade 23 ordrar sedan 15 oktober, så filtret biter). Varukorgar som aldrig blev order går inte att kontrollera.
 - ☠️ **Mina första listor byggdes i galleriets ordning.** Butiken lägger valets första länkade bild först i galleriet, så den bytte på fem färger: julgranens Vit (#7 → #3), väggspegelns Guld (#10 → #3), sensorsoptunnans Silver
   (#11 → #5), vedbodens Grön (#10 → #3) och bokhyllans Vit (#9 → #2), alltså från ett packshot mot vit botten till ett miljöfoto. Det syntes i jämförelsen av butikens första bild före och efter. Återställt 02:31 UTC med
   `forst` (två skrivningar, fem sidor, 0 avvikelser, antalet länkade bilder per val oförändrat).
