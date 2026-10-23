@@ -22,3 +22,5 @@ c3d1fa41-liten hopfallbar-upphojd-hundbadd-stalram-natyta
 c438d4ba-50x70 vaggspegel-svart-70-cm
 c438d4ba-60x90 vaggspegel-svart-70-cm
 c438d4ba-50x110 vaggspegel-svart-70-cm
+b129d5ae-m forvaringskista-rotting-sittbank
+b129d5ae-l forvaringskista-rotting-sittbank

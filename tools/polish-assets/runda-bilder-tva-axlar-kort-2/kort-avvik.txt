@@ -27,3 +27,4 @@ c438d4ba-60x90	Fraktvikt	sidan skriver ett värde per storlek ("6 kg (50 × 70 c
 c438d4ba-60x90	Paketmått	sidan skriver ett värde per storlek ("77 × 57,5 × 8 cm (50 × 70 cm), 100 × 71 × 10 cm (60 × 90 cm), 120 × 61 × 10 cm (50 × 110 c"); kortets 10, 100, 71 står på sidan och hör till den storlek kortet gäller
 c438d4ba-50x110	Fraktvikt	sidan skriver ett värde per storlek ("6 kg (50 × 70 cm), 10 kg (60 × 90 cm), 10,5 kg (50 × 110 cm)"); kortets 10,5 står på sidan och hör till den storlek kortet gäller
 c438d4ba-50x110	Paketmått	sidan skriver ett värde per storlek ("77 × 57,5 × 8 cm (50 × 70 cm), 100 × 71 × 10 cm (60 × 90 cm), 120 × 61 × 10 cm (50 × 110 c"); kortets 10, 120, 61 står på sidan och hör till den storlek kortet gäller
+b129d5ae-l	Volym	sidan skriver ett värde per storlek ("108 liter (M) / 136 liter (L)"); kortets 136 står på sidan och hör till den storlek kortet gäller
