@@ -1,0 +1,869 @@
+{
+ "sidor": [
+  {
+   "id": "95c2008d-e70f-469e-979c-e769075e1cfc",
+   "bilder": [
+    {
+     "val": "Gul",
+     "fil": "b379ce_726af4680090437ca6eed19f1454b0a6~mv2.jpg",
+     "alt": "Närbild på ryggstödet och sitsen i gult manchestertyg på en tvåsitssoffa"
+    },
+    {
+     "val": "Gul",
+     "fil": "b379ce_8b6e5ba4423844c085d890b2bf9735dc~mv2.jpg",
+     "alt": "Gul tvåsitssoffa i manchester med träben i ett ljust rum med välvda väggpaneler och orange matta"
+    },
+    {
+     "val": "Gul",
+     "fil": "b379ce_c2e8b913920f453c8e66ebad07bf37d3~mv2.jpg",
+     "alt": "Gul tvåsitssoffa i manchesterlook med träben, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "1dfa992a-cadd-455a-8009-676762c0a567",
+   "bilder": [
+    {
+     "val": "Brun och vit",
+     "fil": "b379ce_28c91a32ff63495f8f5769bd8f4b1f60~mv2.jpg",
+     "alt": "Vit balanscykel med fyra hjul, bruna handtag, brun sits och liten korg framtill, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grön och vit",
+     "fil": "b379ce_ad7732a8f4214cc798e906be5e733f39~mv2.jpg",
+     "alt": "Balanscykel med fyra hjul i vitt och saltgrönt med bruna handtag, brun sits och liten korg, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "f44642e5-5105-4e74-865e-de716a8db346",
+   "bilder": [
+    {
+     "val": "Mörkbrun",
+     "fil": "b379ce_4dfdd94f99f24d75887c8941f2d383bd~mv2.jpg",
+     "alt": "Mörkbrun fåtölj med massage och uppresning i mjukt tyg, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "571e37bf-6efe-4851-adcb-afb7b294de72",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_b0c8be63cbce41c0a556e70c011f2dad~mv2.jpg",
+     "alt": "Blå och grå cykelkärra för hund med orange flagga, sedd framifrån med nätfönster och dragstång, mot vit bakgrund"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_26e55e090ad34c66bf39557c2699eabd~mv2.jpg",
+     "alt": "Blå och grå cykelkärra för hund med orange flagga, sedd från sidan med dragstång och hjul, mot vit bakgrund"
+    },
+    {
+     "val": "Blå och svart",
+     "fil": "b379ce_b407a140c4d94d16b5f218ddbbd35866~mv2.jpg",
+     "alt": "Närbild på det uppvikbara taket med rörhandtag på en blå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Blå och svart",
+     "fil": "b379ce_b918c3f94c674ef184e1949f35b80bf1~mv2.jpg",
+     "alt": "Närbild på hjulet med ekrar och gula reflexer på en blå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Blå och svart",
+     "fil": "b379ce_e0c8c4ae00694af6b3e97664d57a3dd5~mv2.jpg",
+     "alt": "Närbild på dragstången med fäste och säkerhetsrem på en blå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Blå och svart",
+     "fil": "b379ce_bb8ea98415d348ee8690b2c14bf394ab~mv2.jpg",
+     "alt": "Blå och svart cykelkärra för hund med röd flagga bakom en cykel framför ett staket"
+    },
+    {
+     "val": "Grå och svart",
+     "fil": "b379ce_70fee617487648ce87dfd45c8511566a~mv2.jpg",
+     "alt": "Närbild på hjul, ledfäste och ram på en grå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Grå och svart",
+     "fil": "b379ce_c3f556d1e0af4acaa56521ff879ac5ea~mv2.jpg",
+     "alt": "Närbild på det uppvikbara nätfönstret med reflexband på en grå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Grå och svart",
+     "fil": "b379ce_61863e890fdd43b7a42026c6055f0cd9~mv2.jpg",
+     "alt": "Grå och svart cykelkärra för hund med röd flagga bredvid en cykel framför ett staket och buskar"
+    },
+    {
+     "val": "Grå och svart",
+     "fil": "b379ce_96989702d8a74d66bd6a2964881fee84~mv2.jpg",
+     "alt": "Närbild på dragstången och kopplingen på en grå och svart cykelkärra för hund"
+    },
+    {
+     "val": "Grå och turkos",
+     "fil": "b379ce_bbf22e3f346c491486b8c697e1cfb6bb~mv2.jpg",
+     "alt": "Cyklist på elcykel drar en grå och turkos cykelkärra med en corgi i, med bergsmiljö i bakgrunden"
+    },
+    {
+     "val": "Grå och turkos",
+     "fil": "b379ce_04daf7ff3c9d4018b67333c28f032969~mv2.jpg",
+     "alt": "Närbild på metallramen och ledfästet på en grå och turkos cykelkärra för hund"
+    },
+    {
+     "val": "Grå och turkos",
+     "fil": "b379ce_35c2fb8d2e0f4b1780dba2594af75980~mv2.jpg",
+     "alt": "Närbild på det hopvikbara taket och nätfönstret med dragkedja på en grå och turkos cykelkärra för hund"
+    },
+    {
+     "val": "Grå och turkos",
+     "fil": "b379ce_7ee8997e9fe34ed3be949b2ae015def7~mv2.jpg",
+     "alt": "Närbild på det hoprullade taket och nätet på en grå och turkos cykelkärra för hund"
+    }
+   ]
+  },
+  {
+   "id": "1004b036-6987-4f75-b6df-396b611f0ae3",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_573b365c454a4530b00a1bc68eeceb58~mv2.jpg",
+     "alt": "Blå och svart cykelkärra för hund med orange flagga, en beagle sitter i kärran, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "0f83c211-f4f2-4192-8812-7d2ffca49adb",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_1bd1c9ba8af84323968b957f0398db72~mv2.jpg",
+     "alt": "Grön och svart 2-i-1 hundvagn i joggingläge med främre hjul och orange flagga, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grön",
+     "fil": "b379ce_7692c0e318074d9698e6222f9fb9c813~mv2.jpg",
+     "alt": "Grön och svart 2-i-1 hundvagn med golden retriever i, dels kopplad efter en cykel, dels som joggingvagn, mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_816cff047ec34d4b9e0268d1fcd4db41~mv2.jpg",
+     "alt": "Röd och svart 2-i-1 hundvagn i joggingläge med en beagle i vagnen och orange flagga, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "e25e86d6-b420-493b-848c-0d823ae3f517",
+   "bilder": [
+    {
+     "val": "Röd",
+     "fil": "b379ce_224617c13f4b4f30a32af61ef7babc11~mv2.jpg",
+     "alt": "Röd elbil Audi Q8 e-tron Sportback för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_6bf044cbf1b14be0bb1a96dfbe3e7ace~mv2.jpg",
+     "alt": "Pojke i blå tröja kör den röda elbilen Audi Q8 e-tron Sportback, frilagd mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_68553963114b447d8157853e368d737f~mv2.jpg",
+     "alt": "Svart elbil Audi Q8 e-tron Sportback för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a5f894bb-b26b-4590-949c-cd8cd17fb1c8",
+   "bilder": [
+    {
+     "val": "Röd",
+     "fil": "b379ce_7b99fe4893c14ac795e4f9f6bdded5e3~mv2.png",
+     "alt": "Flicka kör den röda elbilen BMW M4 på en gångväg i en park, mamman går bredvid"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_fab2076d49034b5f996f59b11735af46~mv2.jpg",
+     "alt": "Röd elbil BMW M4 för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_12e35cd01ceb47ed8669e9b9b5fa8faa~mv2.jpg",
+     "alt": "Vit elbil BMW M4 för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "2f6ff71c-fac2-4e55-be3e-9e121e500ed2",
+   "bilder": [
+    {
+     "val": "Rosa",
+     "fil": "b379ce_e072539e83d141b794b75e5bb96350fb~mv2.jpg",
+     "alt": "Rosa och svart elbil för barn i UTV-stil med stora terrängdäck och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "360a9721-17a4-4cd5-afb1-ad648d6db08a",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_2ba4e426b2634a7bacbb3811b6c6b4ae~mv2.jpg",
+     "alt": "Svart elbil Mercedes-AMG GT för barn med bakvinge och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_6bf995bed704462c842bd018ca7f77a8~mv2.jpg",
+     "alt": "Vit elbil Mercedes-AMG GT för barn med bakvinge och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "0acfc30a-7b80-4248-a3b2-c54f8fa4f689",
+   "bilder": [
+    {
+     "val": "Turkos",
+     "fil": "b379ce_f1fe1d53dab84fb7826bda21d4a51c73~mv2.jpg",
+     "alt": "Pojke i blå t-shirt kör den turkosa elbilen Mercedes-AMG CLA 45 på en grusväg framför blommande buskar"
+    },
+    {
+     "val": "Turkos",
+     "fil": "b379ce_33e8c5c5836943d99743b8465c1da1e4~mv2.jpg",
+     "alt": "Turkos elbil Mercedes-AMG CLA 45 för barn sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "7511fc56-a7cc-4278-9dd5-a67efae69fb9",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_b77b961d2b7845e5b32ac8a9b032ecc0~mv2.jpg",
+     "alt": "Grå elbil Mercedes-AMG CLE 53 för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_109e5c12cffb4436ad02af01a991e898~mv2.jpg",
+     "alt": "Röd elbil Mercedes-AMG CLE 53 för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_ae97c5fcd2754aad8bf88b450533c109~mv2.jpg",
+     "alt": "Svart elbil Mercedes-AMG CLE 53 för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a253637c-96c2-4ca1-a29b-e42918496811",
+   "bilder": [
+    {
+     "val": "Röd",
+     "fil": "b379ce_7167e2db52b649dca76cbd7c123b604a~mv2.jpg",
+     "alt": "Röd elbil Mercedes-AMG GT R för barn sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_683cf05819cb4a59a4d1efd783ddf35f~mv2.jpg",
+     "alt": "Pojke i blå skjorta kör den röda elbilen Mercedes-AMG GT R, frilagd mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_3d1b25fd6cd54495af97f4e69780c733~mv2.jpg",
+     "alt": "Svart elbil Mercedes-AMG GT R för barn sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "2c72e2b0-7015-4196-9524-14cba3f9bd70",
+   "bilder": [
+    {
+     "val": "Rosa",
+     "fil": "b379ce_143a38695fa843f69973fe005da15a60~mv2.jpg",
+     "alt": "Rosa elbil Mercedes-Benz GLC Coupé för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_3dc308aa9cb34f7c9384fbc100bebae2~mv2.jpg",
+     "alt": "Svart elbil Mercedes-Benz GLC Coupé för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_dc8344842b5c42fab00c203d7f0afe02~mv2.jpg",
+     "alt": "Vit elbil Mercedes-Benz GLC Coupé för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "211ffd83-5aa2-4681-a7fa-c0ecaee3704a",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_77571269962648909c2cce74f67e86ad~mv2.jpg",
+     "alt": "Svart elbil RUF GT för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "d34f6bab-5e7d-4e1e-bbc6-735e8523cc6a",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_cbfd53854ffd4427ad61d38c6bd98850~mv2.jpg",
+     "alt": "Grå massagefåtölj med uppresning i ett ljust vardagsrum med växter och träbord"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_82b3e490ec5d4955b3ae504fe62ba90b~mv2.jpg",
+     "alt": "Grå massagefåtölj med uppresning, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "e999206f-63c9-4e95-a7a5-9db70e317080",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_86369487d8c7475abbfa82c7d9e96028~mv2.jpg",
+     "alt": "Kvinna läser en bok i den mörkgrå reclinerfåtöljen med utfälld fotstöd i ett ljust vardagsrum"
+    },
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_caeee7866ff647b9816d40b7ec62251d~mv2.jpg",
+     "alt": "Mörkgrå reclinerfåtölj med utfälld fotstöd och en filt över armstödet framför en bokhylla"
+    },
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_83b68c4772fe436cbb1ee2f8fcc66e70~mv2.jpg",
+     "alt": "Kvinna sitter i den mörkgrå reclinerfåtöljen och läser en bok bredvid en växt och ett litet bord"
+    }
+   ]
+  },
+  {
+   "id": "2720063f-159d-4edd-97bb-967cde16d84b",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_a04ec089710b432980cfdd07219803df~mv2.jpg",
+     "alt": "Vit elfyrhjuling för barn med 6 V motor, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_d94147f7b04c47f1912669ddc57ee92a~mv2.jpg",
+     "alt": "Pojke med blå cykelhjälm kör den vita elfyrhjulingen, frilagd mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "7cdc167c-efdd-4b6a-8d53-4551e055875f",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_e6af2f6e74e64cb9947788e2e24fefd9~mv2.jpg",
+     "alt": "Pojke i blå t-shirt kör den blå elfyrhjulingen på en stenlagd uppfart framför ett hus med blommor"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_16f781597ad843dca483785f7b7c17f2~mv2.jpg",
+     "alt": "Blå och svart elfyrhjuling för barn med blå speglar och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_3ab9cdbcdeba44e38156fac598e0f6bd~mv2.jpg",
+     "alt": "Två barn med cykelhjälm delar sitsen på den blå elfyrhjulingen, frilagda mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "56bf5134-aa8c-467b-a406-229855f0f0e8",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_0a23f8659a554641aa8f58ca03c9191b~mv2.jpg",
+     "alt": "Blå elgokart för barn med bakvinge och startnummer 01, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_7bd3c4e313dd4d3cb039968ea190531a~mv2.jpg",
+     "alt": "Röd elgokart för barn med bakvinge och startnummer 01, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "81a7d7e4-cac6-4da8-941a-c6c4068a3cd7",
+   "bilder": [
+    {
+     "val": "Röd",
+     "fil": "b379ce_5294c5b3cbd241d48813e670144a471b~mv2.jpg",
+     "alt": "Röd och svart elmotorcykel för småbarn med stödhjul och tänd strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_82ef228b94b6461bb1ce5156830b47bf~mv2.jpg",
+     "alt": "Svart elmotorcykel för småbarn med stödhjul och tänd strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "dd979cce-9733-47df-ad28-56106fb9a143",
+   "bilder": [
+    {
+     "val": "Rosa",
+     "fil": "b379ce_26410dd03a044b6f935754dc27ca4ff5~mv2.jpg",
+     "alt": "Rosa elmotorcykel i Vespa PX150-stil för barn med stödhjul och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_40c818defacb4812ae03cc8f4354275d~mv2.jpg",
+     "alt": "Svart elmotorcykel i Vespa PX150-stil för barn med stödhjul och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "ec2d9402-efd9-4071-be57-7205810df5ba",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_37c90579149f4c9aa91a5069082e2a34~mv2.jpg",
+     "alt": "Grön och svart eltraktor för barn med släpvagn, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Orange",
+     "fil": "b379ce_8dad2c0d2d954aea979524d90ecaac0c~mv2.jpg",
+     "alt": "Orange och svart eltraktor för barn med släpvagn, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_004f64d602194e3bb95de10744ef471f~mv2.jpg",
+     "alt": "Röd och svart eltraktor för barn med släpvagn, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_23fc08a3f004420b81ece2791c893505~mv2.jpg",
+     "alt": "Pojke i blå tröja kör den röda eltraktorn med släpvagn, frilagd mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "91d28d6f-dec4-4996-af93-61193befd0fa",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_ce2cb44bdcf44c9e86bad9bfd19d5cd1~mv2.jpg",
+     "alt": "Pojke kör den blå eltraktorn med en släpvagn full av grönsaker längs en grusväg på en bondgård"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_5f2025cfb8a04e96aeacfc7cfbee0ddf~mv2.jpg",
+     "alt": "Blå eltraktor för barn med avtagbar släpvagn och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a55a2ce7-bffe-4a42-bc91-3578bdd61b16",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_e2b003afc7704c059790ec936a150adc~mv2.jpg",
+     "alt": "Vit ersättningsduk monterad på ett tunnelväxthus, med duken utbredd och hoprullad nedanför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "7beb7f2b-1828-4a4a-9d25-e28be1deb401",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_153dafd4f9ec437ca9d77c477c8b1235~mv2.jpg",
+     "alt": "Vit ersättningsduk monterad på ett tunnelväxthus, med duken utbredd och hoprullad nedanför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "0fc3c252-94d2-4c05-b916-bfaf7e1ae356",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_fc7bdceaefe64469b0c7046dc2df4939~mv2.jpg",
+     "alt": "Vitt foliehus med två hyllplan fyllda med krukväxter och rullbara fönster, sett snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_d9d9e311887649c7bc7638a366c9e9ec~mv2.jpg",
+     "alt": "Vitt foliehus med hyllor och krukväxter, med markpinnar nedanför och en liten bild av stommen uppe till vänster"
+    }
+   ]
+  },
+  {
+   "id": "e7f69e8a-3e3b-46e0-94ea-bd9bacae2c72",
+   "bilder": [
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_901ee1a3c934422b84a636243fc69053~mv2.jpg",
+     "alt": "Gräddvit vattenkokare och brödrost med två rostade brödskivor, sedda snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "375bb3c8-8ddd-4095-8ed3-913c77d7d6f9",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_8dcc2a89e9644ecfafa766aa597eaae0~mv2.jpg",
+     "alt": "Svart vattenkokare och brödrost med digital display och två rostade brödskivor, sedda snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "37e5dfcf-b1c2-4277-815c-3600dc29afd5",
+   "bilder": [
+    {
+     "val": "Beige",
+     "fil": "b379ce_b7bb369ef9ed415ab59fc796b1e93560~mv2.jpg",
+     "alt": "Närbild på den böjda träfoten och den svängbara sockeln under en beige fåtölj i konstläder"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_124a88d516854902bd5a6e962543db82~mv2.jpg",
+     "alt": "Närbild på den böjda träfoten och den svängbara sockeln under en brun fåtölj i konstläder"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_703c24bfd80e4c7fb3f41779a45bb242~mv2.jpg",
+     "alt": "Brun fåtölj i konstläder med utfälld fotstöd och bakåtlutat ryggstöd, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "cc974ed4-4e6c-4252-8163-8c5947de8eff",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_48783c29763549d38cdcafc977cada2d~mv2.jpg",
+     "alt": "Närbild på hörnet av en svart fönsterspegel med valvbåge mot en grå betongvägg"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_d3a7f0e24baf42c2a0532dac86f5e07d~mv2.jpg",
+     "alt": "Svart valvformad fönsterspegel på en vit vägg i ett vardagsrum med soffa, fåtölj och soffbord"
+    }
+   ]
+  },
+  {
+   "id": "39a21e71-b418-47d2-92d6-e4b6013cc118",
+   "bilder": [
+    {
+     "val": "Svart och blå",
+     "fil": "b379ce_098badde77d249099b0b91a0fcf92b67~mv2.jpg",
+     "alt": "Svart och blå gamingstol med utfälld fotstöd och lutat ryggstöd, sedd från sidan mot vit bakgrund"
+    },
+    {
+     "val": "Svart och blå",
+     "fil": "b379ce_548621f8317b417f9f09811f34872d14~mv2.jpg",
+     "alt": "Svart och blå gamingstol med utfälld fotstöd och lutat ryggstöd, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a60466e7-b125-4c60-b31a-986f87d2617f",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_5cc0fa9e1f454602b66dbc56ebddf57e~mv2.jpg",
+     "alt": "Svart och rosa gamingstol med kattöron och tassar vid ett skrivbord i ett gamingrum med soffa"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_c1539e20d30941529eeadf134f7de90e~mv2.jpg",
+     "alt": "Svart och rosa gamingstol med kattöron och utfälld fotstöd, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "2f5c20fc-4776-45de-8739-b97087dd8df7",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_58d90a7cfc4f4cc6aeb0c82fcba9412e~mv2.jpg",
+     "alt": "Blå och svart pedalgokart för barn med frihjul och stötdämpare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_f7f5915238f1411ebfeb5717491be811~mv2.jpg",
+     "alt": "Röd och svart pedalgokart för barn med frihjul och stötdämpare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "bc32d396-5436-4dd5-8275-44b8cfa4c71f",
+   "bilder": [
+    {
+     "val": "Brun",
+     "fil": "b379ce_0aaa6a0864f74ae8a93abe855e2566b9~mv2.jpg",
+     "alt": "Närbild på gungstolens böjda träkurva och metallben mot en ljus matta"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_1d3c7f2fbd76419fada2b6959447458a~mv2.jpg",
+     "alt": "Gungstol i brun teddyfleece sedd från sidan med böjda träkurvor och svarta metallben, mot vit bakgrund"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_d780de93fd264d179a6a33b18fae52f6~mv2.jpg",
+     "alt": "Gungstol i brun teddyfleece sedd bakifrån och snett från sidan mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "58f8338d-b5c9-428a-9267-8d55d795ae92",
+   "bilder": [
+    {
+     "val": "Guld",
+     "fil": "b379ce_76987d36dfca440c8f6ea7ab7e16a0b0~mv2.jpg",
+     "alt": "Guldfärgad bågformad helkroppsspegel lutad mot väggen i ett ljust sovrum med korg, filt och en inramad tavla"
+    },
+    {
+     "val": "Guld",
+     "fil": "b379ce_c83f5a89c9d44b3a87c3a76b02bef8d2~mv2.jpg",
+     "alt": "Närbild på upphängningsbeslaget i metall på baksidan av en guldfärgad helkroppsspegel"
+    },
+    {
+     "val": "Guld",
+     "fil": "b379ce_4bb70c37152c4f979e61f8aae0711d95~mv2.jpg",
+     "alt": "Guldfärgad bågformad helkroppsspegel som speglar en klädställning med kläder, mot vit bakgrund"
+    },
+    {
+     "val": "Guld",
+     "fil": "b379ce_be51e8fe961e4d4c87822a3db33e0272~mv2.jpg",
+     "alt": "Två guldfärgade bågformade speglar sida vid sida, den ena speglar kläder och en korg, den andra ett sovrum"
+    }
+   ]
+  },
+  {
+   "id": "1ca2e45e-56af-45c7-a45d-b5fd84c5f35f",
+   "bilder": [
+    {
+     "val": "Ljusgrå",
+     "fil": "b379ce_4c80fe9780dc4c1492acf5d168e147f7~mv2.jpg",
+     "alt": "Ljusgrå hopfällbar hundgrind i trä med fyra paneler, delvis uppvikt och med en panel som dörr, mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_9af98b10d0e648b380291f2d175c475e~mv2.jpg",
+     "alt": "Närbild på gångjärnet mellan två paneler i en vit hopfällbar hundgrind i trä"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_9407a1be442c48479a07027ba1ce114c~mv2.jpg",
+     "alt": "Närbild på överkanten på en vit hundgrind i trä med spjälor"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_541ee63b4a124323a31de1bab685e392~mv2.jpg",
+     "alt": "Närbild på fotstödet på en vit hundgrind i trä mot ett betonggolv"
+    }
+   ]
+  },
+  {
+   "id": "2166c50f-fbda-4171-ac2d-514e3a881459",
+   "bilder": [
+    {
+     "val": "Brun",
+     "fil": "b379ce_c76a17d69721427c9e2d089591fb448e~mv2.jpg",
+     "alt": "Brun hopfällbar hundtrappa till bil med tio steg och gula halkskyddsremsor, sedd snett från sidan mot vit bakgrund"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_5cd5371fb9064f50ba38759389481ab8~mv2.jpg",
+     "alt": "Golden retriever går nedför den bruna hundtrappan till bil, med den hopfällda trappan som liten bild uppe till höger"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_2665536fe5244709b591c9d257b9e7bc~mv2.jpg",
+     "alt": "Svart hopfällbar hundtrappa till bil med tio steg och gula halkskyddsremsor, sedd snett från sidan mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_01d377ddda7e4c7fb88fa1f259c50d4c~mv2.jpg",
+     "alt": "Golden retriever går nedför den svarta hundtrappan till bil, med den hopfällda trappan som liten bild uppe till höger"
+    }
+   ]
+  },
+  {
+   "id": "2d65601c-7922-4a78-ba63-e8767e4d2656",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_f88d44d9214844cfae4e3067deab65c3~mv2.jpg",
+     "alt": "Svart hundvagn med korg och bromsar, en pomeranian sitter i vagnen, med den hopfällda vagnen som liten bild uppe till höger"
+    }
+   ]
+  },
+  {
+   "id": "d3c91eb3-86c0-4ad0-a5cb-c03059a0c650",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_981196816dbd4150b90b5820e67515f3~mv2.jpg",
+     "alt": "Fyra blå hopphinder med orangea halvrunda fötter för hundträning, sedda framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "12cd40a2-22fd-4db4-8431-547b188690e2",
+   "bilder": [
+    {
+     "val": "Mörkbrun",
+     "fil": "b379ce_f29424f1b4654eef98b1d818bd1cc4c6~mv2.jpg",
+     "alt": "Hundgrind i mörkbrunt trä med ståltrådsnät, uppställd rakt med en panel utfälld som sidostöd, mot vit bakgrund"
+    },
+    {
+     "val": "Mörkbrun",
+     "fil": "b379ce_f18398204b394e938b3137a853fdc655~mv2.jpg",
+     "alt": "Hundgrind i mörkbrunt trä med ståltrådsnät uppställd i sicksack med sex paneler, mot vit bakgrund"
+    },
+    {
+     "val": "Natur",
+     "fil": "b379ce_d78c296a5d514ea6ad141788aa707b20~mv2.jpg",
+     "alt": "Hundgrind i ljust trä med ståltrådsnät i ett rum, med en panel öppen i vinkel på ett trägolv med matta"
+    },
+    {
+     "val": "Natur",
+     "fil": "b379ce_a485cdf64ea8407a8d506c621a9fbf79~mv2.jpg",
+     "alt": "Hundgrind i ljust trä med ståltrådsnät uppställd i sicksack med sex paneler, mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_850e52df7ae3400cb21c33aa5c4440b4~mv2.jpg",
+     "alt": "Vit hundgrind med ståltrådsnät uppställd i rak linje med sex paneler, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "c260245d-8653-485b-af6e-1354edfd1934",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_6ef56c9670274688ba0848ce733e3e3a~mv2.jpg",
+     "alt": "Vit hundgrind med dörr och förlängningar, med en beagle som sitter framför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a37103bf-90d4-4aae-94fd-511079b4f873",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_45bbdfa9a16b43e5b7fbc0adf4f52659~mv2.jpg",
+     "alt": "Svart hundgrind med kattlucka, med en golden retriever och en katt som sitter framför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "6eb13a16-8704-4643-92f4-3a8e4927668c",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_6f363df0b1fd491185bfc514c32b45a8~mv2.jpg",
+     "alt": "Svart hundgrind med klämmontage, en golden retriever sitter framför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "68e59405-ca25-4f15-a6d3-39cd34902daa",
+   "bilder": [
+    {
+     "val": "Turkos",
+     "fil": "b379ce_c58e003f544b4be4a91ea591059368cd~mv2.jpg",
+     "alt": "Turkos hundvagn för joggning med tre luftfyllda hjul, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Turkos",
+     "fil": "b379ce_5ac753228b784437b977e1697b1d678a~mv2.jpg",
+     "alt": "Turkos hundvagn för joggning med en vit hund som tittar upp ur vagnen, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "eb02039b-4dcf-40c1-925d-4c9a7b40654e",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_360cef1387eb483ea981f1c64aaa003d~mv2.jpg",
+     "alt": "Blå hundvagn med tre hjul och korg, en pomeranian tittar upp ur vagnen, mot vit bakgrund"
+    },
+    {
+     "val": "Ljusgrå",
+     "fil": "b379ce_a2c56e6fc0f747d5958a59af1b4b23c1~mv2.jpg",
+     "alt": "Ljusgrå hundvagn med tre hjul och korg, en pomeranian tittar upp ur vagnen, mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_0297122b9aa449aa927bbd7a516d4679~mv2.jpg",
+     "alt": "Röd hundvagn med tre hjul och korg, en pomeranian tittar upp ur vagnen, med den hopfällda vagnen som liten bild uppe till höger"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_792ba064a3e34cdf9b25292352640905~mv2.jpg",
+     "alt": "Svart hundvagn med tre hjul och korg, en pomeranian tittar upp ur vagnen, med den hopfällda vagnen som liten bild uppe till höger"
+    }
+   ]
+  },
+  {
+   "id": "40f46441-a00a-4ad6-a61c-4e3361c07bfb",
+   "bilder": [
+    {
+     "val": "Beige",
+     "fil": "b379ce_fd6b4bb87dbc42f89b324d5c96a2c2c0~mv2.jpg",
+     "alt": "Beige hundvagn med fyra hjul, korg och dryckeshållare, en liten vit hund syns i vagnen, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "07ac9918-294d-4db4-be5e-72a2b0f85bd6",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_8ef46146daad4fa1ad2ce4ffecdc8cbe~mv2.jpg",
+     "alt": "Blå husdjurssoffa i sammet med en mops som ligger på sitsen, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "c5f3914e-b2a6-41ad-944b-8bae317e1361",
+   "bilder": [
+    {
+     "val": "Grå och lila",
+     "fil": "b379ce_72ec66a7e79b475cbc014605f2bc7199~mv2.jpg",
+     "alt": "Hönsgård med grå ram, lila tak och genomskinliga väggar med höns inne i gården, mot vit bakgrund"
+    },
+    {
+     "val": "Gul och grå",
+     "fil": "b379ce_7084d9c8b460493e95dc11ec40af122f~mv2.jpg",
+     "alt": "Hönsgård i orange trä med grått tak och höns inne i gården, på en gräsmatta framför ett trästaket"
+    },
+    {
+     "val": "Gul och grå",
+     "fil": "b379ce_b30151243a4b4d988c3820de0218fe7c~mv2.jpg",
+     "alt": "Hönsgård i orange trä med grått tak och genomskinliga väggar, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "dab49bb1-4c06-423d-9406-9069e88022d5",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_77cbb9f6f1d8481f96663dfb73581544~mv2.jpg",
+     "alt": "Kvinna med en bebis bakom den grå indragbara nätgrinden i en hall, en vit hund sitter framför"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_6fdd8d38400143a7828c4334bbdb0f47~mv2.jpg",
+     "alt": "Grå indragbar nätgrind i ett vardagsrum, en schnauzer ligger på golvet framför"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_b3b5d3e9e1ec490da49a95be5269390a~mv2.jpg",
+     "alt": "Grå indragbar nätgrind med vit ram och två hundar som sitter framför, mot vit bakgrund"
+    }
+   ]
+  }
+ ]
+}
