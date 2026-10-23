@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   fraktFor,
+  giltigtGtin13,
   giltigtPrisjaktId,
   prisjaktItem,
   prisjaktTider,
@@ -21,6 +22,7 @@ const ID = "08aa3fa3-aca2-4193-aba9-39ea0642225a";
 
 function item(opts: {
   id?: string;
+  group?: string;
   price: string;
   sale?: string;
   stock?: string;
@@ -30,7 +32,7 @@ function item(opts: {
 }): string {
   return `    <item>
       <g:id>${opts.id ?? ID}</g:id>
-      <g:item_group_id>51611305-d9e4-431f-8322-74cccc086cf7</g:item_group_id>
+      <g:item_group_id>${opts.group ?? "51611305-d9e4-431f-8322-74cccc086cf7"}</g:item_group_id>
       <g:title>Sängbord - Ekdekor</g:title>
       <g:description>${opts.description ?? "Vägghängt sängbord med låda."}</g:description>
       <g:link>https://www.fyndplats.se/produkt/sangbord?variant=${opts.id ?? ID}</g:link>
@@ -209,5 +211,74 @@ describe("tillPrisjakt", () => {
     const out = tillPrisjakt(feed([]), S);
     assert.match(out, /<channel>[\s\S]*<\/channel>\n<\/rss>$/);
     assert.equal(out.match(/<item>/g), null);
+  });
+});
+
+describe("giltigtGtin13", () => {
+  it("godtar en kod med rätt kontrollsiffra", () => {
+    assert.equal(giltigtGtin13("4006381333931"), true);
+  });
+
+  it("nekar fel kontrollsiffra, fel längd och allt som inte är siffror", () => {
+    assert.equal(giltigtGtin13("4006381333932"), false); // sista siffran fel
+    assert.equal(giltigtGtin13("400638133393"), false); // tolv siffror
+    assert.equal(giltigtGtin13("40063813339311"), false); // fjorton siffror
+    assert.equal(giltigtGtin13("40063813339a1"), false);
+    assert.equal(giltigtGtin13(" 4006381333931"), false);
+    assert.equal(giltigtGtin13(""), false);
+  });
+});
+
+describe("prisjaktItem med GTIN", () => {
+  it("lägger g:gtin precis före frakten när koden är giltig", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, "4006381333931")!;
+    assert.match(out, /<g:gtin>4006381333931<\/g:gtin><g:shipping>/);
+    assert.equal(out.match(/<g:gtin>/g)?.length, 1);
+  });
+
+  it("utelämnar koden när kontrollsiffran är fel", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, "4006381333932")!;
+    assert.doesNotMatch(out, /gtin/);
+  });
+});
+
+describe("tillPrisjakt med GTIN-karta", () => {
+  const GRUPP_A = "11111111-1111-4111-8111-111111111111";
+  const GRUPP_B = "22222222-2222-4222-8222-222222222222";
+  const KOD = "4006381333931";
+  const A = item({ id: "a1", group: GRUPP_A, price: "249.00" });
+  const B = item({ id: "b2", group: GRUPP_B, price: "399.00" });
+  const radFor = (xml: string, id: string) => xml.split("\n").find((r) => r.includes(`<g:id>${id}</g:id>`)) ?? "";
+
+  it("koden hamnar på varan som är ensam i sin produktgrupp, och bara på den", () => {
+    const out = tillPrisjakt(feed([A, B]), S, { a1: KOD });
+    assert.match(radFor(out, "a1"), new RegExp(`<g:gtin>${KOD}</g:gtin>`));
+    assert.doesNotMatch(radFor(out, "b2"), /gtin/);
+  });
+
+  it("ingen kod om produkten har fler varianter, även när syskonet är slutsåld och inte syns i flödet", () => {
+    const syskon = item({ id: "a2", group: GRUPP_A, price: "249.00", stock: "out_of_stock" });
+    const out = tillPrisjakt(feed([A, syskon]), S, { a1: KOD });
+    assert.match(out, /<g:id>a1<\/g:id>/);
+    assert.doesNotMatch(out, /gtin/);
+  });
+
+  it("ingen kod om samma kod står på två varor i kartan", () => {
+    const out = tillPrisjakt(feed([A, B]), S, { a1: KOD, b2: KOD });
+    assert.doesNotMatch(out, /gtin/);
+  });
+
+  it("en kod med fel kontrollsiffra kommer aldrig med", () => {
+    const out = tillPrisjakt(feed([A]), S, { a1: "4006381333932" });
+    assert.doesNotMatch(out, /gtin/);
+  });
+
+  it("ett id i kartan som inte finns i flödet ändrar ingenting", () => {
+    assert.equal(tillPrisjakt(feed([A, B]), S, { "finns-inte": KOD }), tillPrisjakt(feed([A, B]), S));
+  });
+
+  it("utan karta är flödet som förut, utan en enda g:gtin", () => {
+    assert.doesNotMatch(tillPrisjakt(feed([A, B]), S), /gtin/);
+    assert.equal(tillPrisjakt(feed([A, B]), S, {}), tillPrisjakt(feed([A, B]), S));
   });
 });

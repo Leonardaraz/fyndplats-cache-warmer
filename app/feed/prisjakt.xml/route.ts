@@ -17,6 +17,7 @@
 
 import { GET as googleFeed } from "../google.xml/route";
 import { PRISJAKT_VARNING_BYTE, tillPrisjakt } from "@/lib/feed/prisjakt";
+import { PRISJAKT_GTIN } from "@/lib/feed/prisjakt-gtin";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -31,13 +32,25 @@ export const maxDuration = 300;
 
 export async function GET() {
   const googleXml = await (await googleFeed()).text();
-  const xml = tillPrisjakt(googleXml, {
-    standardKr: STANDARD_SHIPPING_KR,
-    freeFromKr: FREE_SHIPPING_FROM_KR,
-    service: SHIPPING_SERVICE,
-    minDays: DELIVERY_MIN_DAYS,
-    maxDays: DELIVERY_MAX_DAYS,
-  });
+  const xml = tillPrisjakt(
+    googleXml,
+    {
+      standardKr: STANDARD_SHIPPING_KR,
+      freeFromKr: FREE_SHIPPING_FROM_KR,
+      service: SHIPPING_SERVICE,
+      minDays: DELIVERY_MIN_DAYS,
+      maxDays: DELIVERY_MAX_DAYS,
+    },
+    PRISJAKT_GTIN,
+  );
+
+  // Testet med koder (lib/feed/prisjakt-gtin.ts): färre g:gtin i flödet än i
+  // kartan betyder att en vara fått en andra variant, gått ur lager eller
+  // försvunnit ur katalogen.
+  const gtinIKartan = Object.keys(PRISJAKT_GTIN).length;
+  if (gtinIKartan > 0) {
+    console.info(`[prisjakt] g:gtin på ${xml.split("<g:gtin>").length - 1} av ${gtinIKartan} varor i kartan`);
+  }
 
   const byte = Buffer.byteLength(xml);
   if (byte > PRISJAKT_VARNING_BYTE) {

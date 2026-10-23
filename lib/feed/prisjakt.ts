@@ -28,8 +28,9 @@
 //     visas med huvudbilden. Kvar blir ~9 MB. Över PRISJAKT_VARNING_BYTE loggar
 //     routen en varning.
 //
-// Ingen EAN/GTIN och ingen mpn: varorna är omärkta, och en mpn får bara vara
-// tillverkarens eget nummer.
+// Ingen mpn: den får bara vara tillverkarens eget nummer. Och som regel ingen
+// EAN/GTIN, eftersom varorna är omärkta. Undantaget är de få varor som kartan i
+// prisjakt-gtin.ts pekar ut (testet 2026-10-23, se tillPrisjakt).
 //
 // Ren funktion utan importer, så att node:test kan köra den direkt; routen
 // skickar in fraktvärdena.
@@ -73,6 +74,8 @@ export function prisjaktTider(minDays: number, maxDays: number): PrisjaktTider {
 
 const ITEM_RE = /<item>[\s\S]*?<\/item>/g;
 const ID_RE = /<g:id>([^<]*)<\/g:id>/;
+const GROUP_RE = /<g:item_group_id>([^<]*)<\/g:item_group_id>/;
+const GROUP_ALL_RE = /<g:item_group_id>([^<]*)<\/g:item_group_id>/g;
 const PRICE_RE = /<g:price>([\d.]+) SEK<\/g:price>/;
 const SALE_RE = /<g:sale_price>([\d.]+) SEK<\/g:sale_price>/;
 const LABEL_RE = /<g:custom_label_\d>[^<]*<\/g:custom_label_\d>/g;
@@ -88,12 +91,28 @@ export function giltigtPrisjaktId(id: string): boolean {
   return /^[\x21-\x7e]{1,36}$/.test(id) && !/[!@#$%^&*<>;:]/.test(id);
 }
 
+/**
+ * GS1:s kontrollsiffra för en GTIN-13: de tolv första siffrorna väger 1, 3, 1, 3 …
+ * från vänster och den trettonde fyller ut summan till närmaste tiotal. En
+ * slumpad trettonsiffrig kod klarar den i ett fall av tio, så den fångar
+ * tangentbordsfel men bevisar inte att koden hör till rätt vara.
+ */
+export function giltigtGtin13(kod: string): boolean {
+  if (!/^\d{13}$/.test(kod)) return false;
+  let summa = 0;
+  for (let i = 0; i < 12; i++) summa += Number(kod[i]) * (i % 2 === 0 ? 1 : 3);
+  return (10 - (summa % 10)) % 10 === Number(kod[12]);
+}
+
 export function fraktFor(pris: number, s: PrisjaktShipping): number {
   return pris >= s.freeFromKr ? 0 : s.standardKr;
 }
 
-/** En <item> i Google-format → samma item för Prisjakt på en rad, eller null om den ska bort. */
-export function prisjaktItem(item: string, s: PrisjaktShipping): string | null {
+/**
+ * En <item> i Google-format → samma item för Prisjakt på en rad, eller null om den ska bort.
+ * `gtin` (valfri) skrivs som g:gtin, men bara om kontrollsiffran stämmer.
+ */
+export function prisjaktItem(item: string, s: PrisjaktShipping, gtin?: string): string | null {
   if (!item.includes("<g:availability>in_stock</g:availability>")) return null;
 
   const id = item.match(ID_RE)?.[1] ?? "";
@@ -115,6 +134,8 @@ export function prisjaktItem(item: string, s: PrisjaktShipping): string | null {
     `<g:min_transit_time>${t.minTransit}</g:min_transit_time>` +
     `<g:max_transit_time>${t.maxTransit}</g:max_transit_time></g:shipping>`;
 
+  const gtinTagg = gtin && giltigtGtin13(gtin) ? `<g:gtin>${gtin}</g:gtin>` : "";
+
   return item
     .replace(MELLAN_TAGGAR_RE, "><")
     .replace(SALE_RE, "")
@@ -124,14 +145,42 @@ export function prisjaktItem(item: string, s: PrisjaktShipping): string | null {
     .replace(SIZE_RE, "")
     .replace(EXTRA_IMAGE_RE, "")
     .replace(EMPTY_DESCRIPTION_RE, "")
-    .replace(/<\/item>$/, `${shipping}</item>`);
+    .replace(/<\/item>$/, `${gtinTagg}${shipping}</item>`);
 }
 
-/** Hela Google-feeden → Prisjakt-feeden, en vara per rad. */
-export function tillPrisjakt(googleXml: string, s: PrisjaktShipping): string {
+/** Variant-id (g:id) → GTIN-13 för just den varianten. */
+export type PrisjaktGtin = Readonly<Record<string, string>>;
+
+/** Hur många varianter varje produktgrupp har i Google-feeden, slutsålda medräknade. */
+function varianterPerGrupp(googleXml: string): Map<string, number> {
+  const antal = new Map<string, number>();
+  for (const m of googleXml.matchAll(GROUP_ALL_RE)) antal.set(m[1], (antal.get(m[1]) ?? 0) + 1);
+  return antal;
+}
+
+/**
+ * Hela Google-feeden → Prisjakt-feeden, en vara per rad.
+ *
+ * `gtin` pekar ut varianter som får en g:gtin. En kod används bara när alla tre
+ * stämmer: kontrollsiffran, att ingen annan vara i kartan har samma kod, och att
+ * produkten har EXAKT en variant i Google-feeden, slutsålda medräknade. Annars
+ * kunde en kod som hör till en färg hamna på en annan.
+ */
+export function tillPrisjakt(googleXml: string, s: PrisjaktShipping, gtin: PrisjaktGtin = {}): string {
+  const kodAntal = new Map<string, number>();
+  for (const kod of Object.values(gtin)) kodAntal.set(kod, (kodAntal.get(kod) ?? 0) + 1);
+  const grupper = kodAntal.size > 0 ? varianterPerGrupp(googleXml) : new Map<string, number>();
+
   const items: string[] = [];
   for (const m of googleXml.matchAll(ITEM_RE)) {
-    const out = prisjaktItem(m[0], s);
+    const id = m[0].match(ID_RE)?.[1] ?? "";
+    const kod = Object.hasOwn(gtin, id) ? gtin[id] : undefined;
+    let saker: string | undefined;
+    if (kod && kodAntal.get(kod) === 1) {
+      const grupp = m[0].match(GROUP_RE)?.[1] ?? "";
+      if (grupper.get(grupp) === 1) saker = kod;
+    }
+    const out = prisjaktItem(m[0], s, saker);
     if (out) items.push(out);
   }
 

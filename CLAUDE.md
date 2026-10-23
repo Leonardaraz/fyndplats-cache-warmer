@@ -612,8 +612,20 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   (`prisjaktTider`). ☠️ Saknas en av de fyra stryker Prisjakt alla. Med tiderna
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
-  `g:size_system`) och extrabilderna tas bort. Ingen GTIN och ingen mpn: en mpn
-  får bara vara tillverkarens eget nummer.
+  `g:size_system`) och extrabilderna tas bort. Ingen mpn: en mpn får bara vara
+  tillverkarens eget nummer. Som regel ingen GTIN heller, utom i testet nedan.
+- **Testet med koder (2026-10-23).** 50 varor får en `g:gtin` ur
+  `lib/feed/prisjakt-gtin.ts` (variantens id → EAN-13), bara i Prisjakt-flödet.
+  Prisjakt matchar annars inget av våra erbjudanden mot en produktsida. Koderna
+  är dealproffsens, parade på leverantörens artikelnummer: kontrollsiffran
+  stämmer, men de är en annan säljares och går inte att stämma av mot GS1.
+  `tillPrisjakt` använder en kod bara när den är giltig, inte står på två varor
+  och produkten har exakt en variant i Google-flödet (slutsålda medräknade).
+  Rutten loggar `[prisjakt] g:gtin på X av 50 varor i kartan`, och färre än 50
+  betyder att en vara är slutsåld eller har fått en andra variant. Utvärdera i
+  Business Center (kopplas erbjudandet till rätt produktsida?) innan fler läggs
+  till. Backa genom att tömma `PRISJAKT_GTIN` till `{}`: flödet blir då byte för
+  byte som förut.
 
 ☠️ **Vercels CDN cachar inga svar över 10 MB.** Dokumentationen säger 10 MB för
 icke-strömmade svar och 20 MB för strömmade, och våra flöden beter sig som
