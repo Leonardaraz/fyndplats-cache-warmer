@@ -50,11 +50,17 @@ Ingen sida har i dag en bild kopplad till val i två optioner (0 av 5 116 public
 
 ## Planer, torrkörda
 
-`agare-79ab08fe.json` (bokhyllan) och `agare-926ec7a2.json` (projektorduken) är planer för `tools/polish-gates/bygg-agare.py`,
-där en lista som ägare är en bild av en kombination. Båda är torrkörda mot Wix (`--torr`, ingenting skrivet) och
-korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla sju kombinationer. Utfallet står i
-CLAUDE.md under "En bild per kombination". De skrivs först när butiksändringen är ute.
+`agare-<id8>.json` finns för alla 16 FEL-sidor, projektorduken och matstationen: planer för `tools/polish-gates/bygg-agare.py`, där en lista som
+ägare är en bild av en kombination och flera val i samma option betyder "något av dem". Alla 18 är torrkörda mot Wix (`--torr`, ingenting skrivet)
+och korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla 81 kombinationer. Utfallet per sida står i `sidor.tsv`,
+och skälet för varje bild i `klass.tsv`. De skrivs först när butiksändringen är ute, och spärren i `bygg-agare.py` vägrar annars.
+
+Fem kombinationer i lager har inget eget foto och visar sin färgs foton från de andra storlekarna, som i dag: skrivbordet Vit × 63 cm, spegeln
+Guld × 50 × 110 cm och järngrinden Vit × 74–87, Vit × 74–80 och Svart × 74–80. De behöver egna foton (steg 3).
 
 Projektordukens bilder är granskade med ögonen: `7a2bde` och `76436a` visar den vita 99-tumsduken (kopplas till Vit och
 99 tum), och närbilderna `fb125d` (nederkanten) och `7f121f` (ändkåpan) visar den vita kassetten men saknar koppling och
 syns i dag också under Svart. De kopplas till Vit.
+
+Skrivbordets vita miljöbilder är 80 cm-bordet, inte 63 cm som den första genomgången trodde: lagda bredvid samma scen med det svarta
+63 cm-bordet är den vita skivan 315 px bred mot 262 px.

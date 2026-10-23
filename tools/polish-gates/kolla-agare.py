@@ -3,8 +3,10 @@
 
   python3 -I tools/polish-gates/kolla-agare.py spec.json sidans-slug
 
-spec.json är samma fil som bygg-agare.py fick: [{"id": "<fullt produkt-id>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": []}].
-En lista är en bild som hör till en kombination (färg OCH storlek). Den kontrolleras mot sidans `imageKopplingar`, som bara finns när butiksändringen
+spec.json är samma fil som bygg-agare.py fick: [{"id": "<fullt produkt-id>", "slug": "<sidans adress>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": []}].
+Utan <slug> på kommandoraden läses planens `slug`.
+En lista är en bild som hör till en kombination (färg OCH storlek). Flera val i samma option betyder "något av dem" (väggspegelns breda foton: 50 × 70
+eller 60 × 90 cm). Listan kontrolleras mot sidans `imageKopplingar`, grupperad per option som butiken gör, och den finns bara när butiksändringen
 "en bild per kombination" är ute (revisionen 2026-10-23); saknas fältet räknas varje lista som en avvikelse.
 Skriptet hämtar https://www.fyndplats.se/produkt/<slug> (curl, vanlig webbläsarrubrik) och läser ur sidan `imageOwners`, `variantAxes` och
 `variantTable`. Skriver ingenting, och sidan bär inget artikelnummer. Tre kontroller, och varje avvikelse räknas:
@@ -36,9 +38,13 @@ _s.loader.exec_module(kk)
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    if len(args) < 2 and "--sida" not in sys.argv:
+    if not args:
         sys.exit(__doc__)
     spec = json.load(open(args[0], encoding="utf-8"))[0]
+    if len(args) < 2 and "--sida" not in sys.argv:
+        if not spec.get("slug"):
+            sys.exit(__doc__)
+        args.append(spec["slug"])
     id8 = spec["id"][:8]
     plan = spec["agare"]
     with tempfile.TemporaryDirectory() as kat:
@@ -62,6 +68,21 @@ def main():
     fel = 0
     kopp = d.get("imageKopplingar")
     print("sidan bär imageKopplingar (butiksändringen är ute)" if kopp is not None else "sidan saknar imageKopplingar (den gamla butiken: en ägare per bild)")
+    # Valens option ur sidans egna axlar: flera val i samma option är EN grupp ("något av dem"), som butiken räknar (kopplingarPerOption).
+    axel_av = {}
+    if isinstance(d["variantAxes"], list):
+        for a in d["variantAxes"]:
+            for c in a.get("choices") or []:
+                axel_av[str(c.get("label", "")).lower()] = a.get("name")
+
+    def grupper(v):
+        if v == "-":
+            return []
+        per = {}
+        for x in (v if isinstance(v, list) else [v]):
+            per.setdefault(axel_av.get(x.lower(), "?"), []).append(x.lower())
+        return sorted(sorted(g) for g in per.values())
+
     for n, f in enumerate(d["gal"], 1):
         hex6 = f[7:13]
         if hex6 not in plan:
@@ -70,7 +91,7 @@ def main():
             continue
         v = plan[hex6]
         if kopp is not None:
-            vantat = sorted([] if v == "-" else [[x.lower()] for x in (v if isinstance(v, list) else [v])])
+            vantat = grupper(v)
             nu = sorted(sorted(e.lower() for e in grupp) for grupp in (kopp.get(f) or []))
             if vantat != nu:
                 fel += 1
@@ -100,11 +121,12 @@ def main():
         valda = {x.lower() for x in v["choices"].values()}
 
         def syns(a):
-            if a == "-":
-                return True
-            return all(x.lower() in valda for x in (a if isinstance(a, list) else [a or ""]))
+            # i varje option som äger bilden ska ett av dess val vara valt
+            return all(any(x in valda for x in g) for g in grupper(a))
 
         vantad = [n for n, f in enumerate(d["gal"], 1) if f[7:13] in plan and syns(plan[f[7:13]])]
+        if kopp is not None and not any(f[7:13] in plan and plan[f[7:13]] != "-" and syns(plan[f[7:13]]) for f in d["gal"]):
+            vantad = list(range(1, len(d["gal"]) + 1))  # butikens reserv: syns ingen kopplad bild visas hela galleriet
         nu = kk.vy(d, v["choices"])
         bild = kk.fil(v.get("image", ""))
         pos = d["gal"].index(bild) + 1 if bild in d["gal"] else None

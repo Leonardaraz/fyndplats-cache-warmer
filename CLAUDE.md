@@ -3995,7 +3995,7 @@ Lösningen, i ordning:
 ☠️ **En givare är en kombination, och dess pris avgör vilken.** En dold givare är en Aosom-artikel med variantens pris, så `givare.tsv` ger bildens storlek utan att någon räknar steg. Hunden på den vita kattrappan (`acf527`)
 räknades först som tre steg; bilden kommer från fyrstegsartikeln och har fyra steg i förstoring.
 
-**Verktygen för steg 2 (2026-10-23).** `bygg-agare.py` tar en lista som ägare, högst ett val per option (`["Vit", "136 cm"]` är en bild av den vita hyllan på 136 cm). Torrkörningen svarar med
+**Verktygen för steg 2 (2026-10-23).** `bygg-agare.py` tar en lista som ägare (`["Vit", "136 cm"]` är en bild av den vita hyllan på 136 cm), och flera val i samma option betyder "något av dem" (`["Svart", "50 × 70 cm", "60 × 90 cm"]`). Torrkörningen svarar med
 `kombinationer`: butikens vy per variant med den nya regeln, kombinationens första bild och Wix variantbild efter en namn-skrivning med färgen först (`varukorg`, `varukorgPassar`). `kolla-agare.py` och
 `katalogkontroll-tva-axlar-bilder.py` läser sidans `imageKopplingar` när butiksändringen är ute och räknar vyn som butiken; saknas fältet gäller den gamla regeln, och en lista i planen räknas då som en avvikelse.
 Planerna för bokhyllan (`agare-79ab08fe.json`) och projektorduken (`agare-926ec7a2.json`) ligger i revisionsmappen. De är torrkörda mot Wix och mot butiksändringens egen kod, med samma vyer och samma första bild
@@ -4015,6 +4015,20 @@ på alla sju kombinationerna:
 `imageKopplingar` (`kolla-agare.py` skriver vilket). Bokhyllans plan skriver bara Storlek (109 cm: 1 → 7 länkar, 136 cm: 1 → 3); färgernas listor är redan rätt. Vit × 136 cm får två bilder och fylls i steg 3.
 ⚠️ Varukorgens bild är färgens första bild för alla storlekar så länge varianterna skrivs med färgen först. Med två färger och två storlekar går det att ge varje variant sin egen bild (två varianter med
 färgen först, två med storleken först), men nattens `variantbild` skriver om alla med färgen först. Det kräver motorändringen i steg 4.
+
+☠️ **Spärren sitter i verktyget.** En plan med flera ägare på en bild byggs inte skarpt förrän butikens sida bär `imageKopplingar`: `bygg-agare.py` hämtar planens `slug` och vägrar annars, och
+`lank-om-bilder.js` länkar en bild från två val i samma option bara när `bygg-agare.py` slår på `FLERA_I_OPTION`. Prövad åt tre håll: utan slug, mot dagens butik och mot en sida som bär fältet.
+
+**Planerna för alla 16 sidor med fel (2026-10-23, eftermiddag).** `agare-<id8>.json` i revisionsmappen finns för de 16 FEL-sidorna, projektorduken och matstationen, och bär `slug`. De är torrkörda mot Wix
+(18 av 18: varje bild hittades och ingenting skrevs) och korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla 81 kombinationer. `ordning` (nytt fält) lägger packshoten för varje
+storlek först i färgens lista, eftersom kombinationens första bild är den första bilden i färgens lista som passar och är kopplad i flest optioner. Tre saker som planerna inte löser:
+
+- ☠️ **Fem kombinationer i lager har inget eget foto:** skrivbordet `3b868848` Vit × 63 cm (110 st; de vita fotona är 80 cm-bordet, mätt sida vid sida i samma scen), spegeln `c438d4ba` Guld × 50 × 110 cm (35),
+  järngrinden `233c83cf` Vit × 74–87 (60), Vit × 74–80 (52) och Svart × 74–80 (29). De visar sin färgs foton från de andra storlekarna, som i dag, i stället för ett enda kort. Ett eget foto per
+  kombination kräver Cowork-rader eller ett verktyg som hämtar feedens bilder per variant (`aosom-fargtillagg` tar färgens första artikel).
+- **Varukorgens bild är färgens första bild för alla storlekar:** 32 av de 81 kombinationerna får en bild av en annan storlek i varukorgen, som i dag. Hamsterburen `13fe619f` blir sämre på en punkt:
+  Mörkgrå × 85 × 45 visar i dag sin egen bur i varukorgen (Mörkgrå har inga länkar, så Wix tar storlekens första bild), och efter planen 100-burens packshot.
+- **Kombinationer under fyra bilder** med egna foton (dörrgrindarna, hundbäddarna, kattrappan i tre steg, verktygslådan med fyra röda lådor) visar färre bilder än i dag, men bara rätt bilder. De fylls i steg 3.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 

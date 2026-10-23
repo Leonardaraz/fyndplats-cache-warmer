@@ -3,12 +3,21 @@
 --torr bygger en torrkörning (ingenting skrivs, hasMutations false): svaret har valens länkar före → efter och, på en option som inte är färg, butikens vy per val.
 --kompakt tar bort radkommentarerna ur ut.js (skriptet klistras in i ExecuteWixAPI, och kommentarerna är tre kilobyte som inte behövs där).
 
-spec.json (2026-10-23, de 16 tvåaxliga sidorna med måttbilder för fel storlek): [{"id": "<fullt produkt-id>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": ["<valets namn>"], "forst": {"<valets namn>": "<hex6>"}}]
+spec.json (2026-10-23, de 16 tvåaxliga sidorna med måttbilder för fel storlek): [{"id": "<fullt produkt-id>", "slug": "<sidans adress>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": ["<valets namn>"], "forst": {"<valets namn>": "<hex6>"}}]
   hex6    de sex första tecknen i galleriets fil-id efter "b379ce_". Ska ge exakt en träff i produktens galleri.
   värdet  namnet på valet som äger bilden, i vilken option som helst (namnet ska vara unikt bland alla val på sidan), eller "-" för en gemensam bild utan ägare.
-          En LISTA ger bilden en ägare i flera optioner, högst en per option: ["Vit", "136 cm"] är en bild av den vita hyllan på 136 cm (se nedan).
+          En LISTA ger bilden flera ägare: ["Vit", "136 cm"] är en bild av den vita hyllan på 136 cm (se nedan). Flera val i SAMMA option betyder "något av dem":
+          ["Svart", "50 × 70 cm", "60 × 90 cm"] är väggspegelns breda svarta form, som syns under 50 × 70 och 60 × 90 men inte under 50 × 110.
+  slug    sidans adress i butiken. Krävs för en skarp körning med en lista (spärren nedan), och kolla-agare.py läser den.
   tomt    val som får lämnas utan länkade bilder trots att de har några nu (lank-om-bilder.js vägrar annars).
   forst   valfritt: valets FÖRSTA länkade bild. Den är butikens första bild för valet och blir variantens bild (varukorg, kassa, order) vid en namn-skrivning.
+  ordning valfritt: {"<valets namn>": ["<hex6>", ...]} lägger de bilderna först i valets lista, i den ordningen; resten behåller sin ordning. Butikens
+          första bild för en kombination är den första bild i färgens lista som passar kombinationen och är kopplad i flest optioner (lib/variant-price.ts),
+          så packshoten för varje storlek ska stå före miljöbilderna. Står både `forst` och `ordning` vinner `forst` om första platsen.
+
+☠️ Spärren (2026-10-23): en lista med fler än ett val skrivs bara när butiksändringen är ute. En skarp körning (utan --torr) hämtar varje sådan sidas adress
+(`slug`) i butiken och vägrar bygga skriptet om sidans data saknar `imageKopplingar`. Samma kontroll som kolla-agare.py gör efteråt, nu före skrivningen.
+Torrkörningen spärras inte: den skriver ingenting och visar vyn med den nya regeln.
 
 En bild per kombination (2026-10-23, Leonards skärmbilder av bokhyllan 79ab08fe): butiken visade en bild under ALLA val i den andra optionen, och en bild av den
 stora vita hyllan gick därför inte att visa bara under Vit × 136 cm. Butiksändringen (tools/polish-assets/tva-axlar-revision-2026-10-23/butik-kopplingar.patch,
@@ -50,6 +59,28 @@ def giltig_agare(v):
     return False
 
 
+def butiken_bar_kopplingar(slug, id8):
+    """Hämtar sidan i butiken och svarar (ok, text): bär sidans data `imageKopplingar`, alltså är butiksändringen ute?"""
+    import importlib.util
+    import subprocess
+    import tempfile
+    sp = importlib.util.spec_from_file_location("kk", os.path.join(HERE, "katalogkontroll-tva-axlar-bilder.py"))
+    kk = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(kk)
+    with tempfile.TemporaryDirectory() as kat:
+        r = subprocess.run(["curl", "-sS", "-m", "60", "-A", kk.UA, "-o", os.path.join(kat, id8 + ".html"), "-w", "%{http_code}",
+                            "https://www.fyndplats.se/produkt/" + slug], capture_output=True, text=True)
+        if r.stdout.strip() != "200":
+            return False, "sidan svarade HTTP %s" % (r.stdout.strip() or r.stderr.strip()[:80])
+        s = open(os.path.join(kat, id8 + ".html"), encoding="utf-8", errors="replace").read().replace('\\"', '"')
+    if '"productId":"' + id8 not in s:
+        return False, "sidan bär inte produkten %s (fel slug?)" % id8
+    k = kk.las(s, "imageKopplingar", s.find('"productId":"' + id8))
+    if not isinstance(k, dict):
+        return False, "sidans data saknar imageKopplingar: butiksändringen är inte ute, eller sidan byggdes av reservvägen"
+    return True, "sidan bär imageKopplingar"
+
+
 def main():
     if len(sys.argv) < 3:
         sys.exit(__doc__)
@@ -64,10 +95,24 @@ def main():
                 sys.exit("ogiltig hex6 i planen: %r" % h)
             if not giltig_agare(v):
                 sys.exit("ogiltig ägare för %s: %r" % (h, v))
+        for k, lista in (s.get("ordning") or {}).items():
+            if not isinstance(lista, list) or not lista or any(not isinstance(h, str) or len(h) != 6 for h in lista) or len(set(lista)) != len(lista):
+                sys.exit("ogiltig ordning för %s: %r" % (k, lista))
+    flera = [s for s in spec if any(isinstance(v, list) and len(v) > 1 for v in s["agare"].values())]
+    if flera and not torr:
+        for s in flera:
+            id8 = str(s["id"])[:8]
+            if not s.get("slug"):
+                sys.exit("☠️ %s: planen har bilder med flera ägare men ingen `slug`, och spärren kan inte se om butiksändringen är ute. Ingenting byggt." % id8)
+            ok, text = butiken_bar_kopplingar(s["slug"], id8)
+            if not ok:
+                sys.exit("☠️ %s: %s. En bild med flera ägare skrivs bara när butiken räknar med kopplingarna. Ingenting byggt." % (id8, text))
+            print(id8, text)
     gammal = '  const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];\n'
     if src.count(gammal) != 1:
         sys.exit("mallen saknar PLANER-raden")
     ny = '''  const AGARE = %s;
+  const FLERA = %s;
   const likaA = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
   const PLANER = [];
   const KOMB = [];
@@ -224,7 +269,7 @@ def main():
       for (const n of a) {
         const t = optionerFor(n);
         if (t.length !== 1) return stopp("ägaren " + n + " för " + f.slice(7, 13) + " ger " + t.length + " val på sidan (ska vara exakt ett)");
-        if (iOption[t[0]] !== undefined) return stopp("bilden " + f.slice(7, 13) + " har två ägare i optionen " + optioner[t[0]].namn + ": " + iOption[t[0]] + " och " + n);
+        if (iOption[t[0]] !== undefined && !FLERA) return stopp("bilden " + f.slice(7, 13) + " har två ägare i optionen " + optioner[t[0]].namn + ": " + iOption[t[0]] + " och " + n);
         iOption[t[0]] = n;
       }
     }
@@ -236,6 +281,16 @@ def main():
         const agda = gal.filter(function (f) { return agareAv[f] !== null && agareAv[f].some(function (a) { return likaA(a, v.namn); }); });
         const kvar = v.gamla.filter(function (f) { return agda.indexOf(f) >= 0; });
         let lista = kvar.concat(agda.filter(function (f) { return kvar.indexOf(f) < 0; }));
+        const ok = Object.keys(T.ordning || {}).find(function (k) { return likaA(k, v.namn); });
+        if (ok) {
+          const fram = [];
+          T.ordning[ok].forEach(function (h) {
+            const traff = lista.filter(function (f) { return f.slice(7, 7 + h.length) === h; });
+            if (traff.length !== 1) forstFel = "ordning " + h + " för " + v.namn + " ger " + traff.length + " träffar bland valets bilder";
+            else if (fram.indexOf(traff[0]) < 0) fram.push(traff[0]);
+          });
+          lista = fram.concat(lista.filter(function (f) { return fram.indexOf(f) < 0; }));
+        }
         const fk = Object.keys(T.forst || {}).find(function (k) { return likaA(k, v.namn); });
         if (fk) {
           const h = T.forst[fk];
@@ -254,12 +309,17 @@ def main():
     planer.forEach(function (pl) { if (pl.andrad) PLANER.push(pl); });
   }
   if (PLANER.length === 0) return [{ ok: true, redan_ratt: true, fel: "ingen lista skiljer från planen, ingenting skrevs" }].concat(KOMB);
-''' % json.dumps(spec, ensure_ascii=False)
+''' % (json.dumps(spec, ensure_ascii=False), "true" if flera else "false")
     src = src.replace(gammal, ny)
     slut = "  return ut;\n}"
     if src.count(slut) != 1:
         sys.exit("mallen saknar slutraden `return ut;`")
     src = src.replace(slut, "  return ut.concat(KOMB);\n}")
+    if flera:
+        # Spärren ovan har släppt igenom (eller torrkörning): lank-om-bilder.js får länka en bild från flera val i samma option.
+        if src.count("const FLERA_I_OPTION = false;") != 1:
+            sys.exit("mallen saknar const FLERA_I_OPTION = false;")
+        src = src.replace("const FLERA_I_OPTION = false;", "const FLERA_I_OPTION = true;", 1)
     if torr:
         if src.count("const TORR = false;") != 1:
             sys.exit("mallen saknar const TORR = false;")
