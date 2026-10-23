@@ -3499,7 +3499,7 @@ be set for choices within one option at a time"*). Det som går är bilder som �
 
 | skrivning (Storlek och Färg har länkade bilder, Storlek först) | variantens bild |
 | :-- | :-- |
-| länkarna skrivna med `products` PATCH och val-id | **oförändrad** (huvudbilden för alla fyra) |
+| länkarna skrivna med `products` PATCH och val-id | huvudbilden för alla fyra (☠️ se rättelsen nedan: det var **nollställd**, inte oförändrad) |
 | namn-skrivning (`products-with-inventory`, valen bara med namn), valen Storlek först | **storlekens första bild** (S → kort 1, L → kort 2, båda färgerna) |
 | samma, men bara optionerna omvända, varianternas val kvar Storlek först | samma: storlekskortet |
 | samma, optionerna OCH varje variants val Färg först | **färgens första bild** (Svart → svart, Silver → silver), kvar efter en omskrivning |
@@ -3508,6 +3508,29 @@ Regeln: **variantens bild är första länkade bilden hos det första valet i va
 räcker inte, och Wix tar emot en ändrad optionsordning (`optionsordning` gick från *Storlek > Färg* till *Färg > Storlek* i en PATCH). `forvantadBild` i `lib/wix/variant-media.ts` räknar ett snitt i stället,
 och på de åtta sidorna nedan (25 varianter), där snittet är tomt för någon kombination, var den lagrade bilden inte huvudbilden på någon av dem som skiljde sig (till exempel Svart × 99 tum på projektorduken
 och alla fyra varianterna på förvaringskistan) utan alltid första bilden hos första valet. Verktyget är inte ändrat, och ett tomt snitt rapporteras fortfarande som `okanda`.
+
+☠️ **Rättelse 2026-10-23 ca 02:20 UTC: en id-skrivning av optionerna NOLLSTÄLLER variantens bild till huvudbilden.** Första raden i tabellen sa *oförändrad*, men variantbilden var redan huvudbilden i det provet, så
+det gick inte att skilja *oförändrad* från *nollställd*. Ett nytt prov på en dold testprodukt (Storlek > Färg, färgerna länkade, raderad direkt efteråt) skilde dem åt:
+
+| steg | Silvers variantbild |
+| :-- | :-- |
+| namn-skrivning (valen Storlek, Färg), bara färgerna länkade | **Y1**, färgens första foto |
+| id-skrivning som omordnar Silvers lista (Y2, Y1) | **X1**, huvudbilden (nollställd, inte Y2) |
+| namn-skrivning | **Y2**, färgens nya första foto |
+| id-skrivning som länkar storlekarna (båda optionerna har länkar) | **X1**, huvudbilden igen |
+| namn-skrivning med varianternas val Färg, Storlek och optionerna kvar Storlek > Färg | **Y2**, färgens första foto |
+
+Följden är större än den här sidan. `lank-om-bilder.js`, `bygg-agare.py`, `avlank-delade.js` och `bilder-bort.yml` skriver optionerna med val-id, och varje sådan skrivning nollställer variantbilden på sidan.
+`variantbild.yml` och nattens `/api/cron/variantbild` rättar det på sidor där `forvantadBild` kan räkna (länkar på EN option), men på en sida med länkar på båda optionerna är snittet tomt (varje bild har en
+ägare, så listorna har aldrig något gemensamt), och en variant utan förväntan hoppas över. Sådana sidor förblir nollställda tills någon kör en namn-skrivning med färgen först. Det hände soptunnan
+`c841717c` (`bilder-bort.yml` 00:51 UTC, två minuter efter att namn-skrivningen satt Silver → silverpackshoten; `variantbilder: rätt` i den körningens svar betydde bara att ingen förväntan fanns) och
+alla 16 sidor nedan. Variantens egen valordning styr, inte optionernas: med varje variants val Färg först och optionerna kvar Storlek > Färg räknar Wix variantens bild ur färgens första foto även
+när storleken också har länkar. Det betyder att optionerna inte behöver läggas om (som på soptunnan och förvaringskistan) för att varukorgen ska visa rätt färg.
+
+☠️ **Och en annan bild än Wix egen heter också "variantens bild" i sidans data.** `variantTable[].image` i butikens sidodata är butikens uträkning ur färgvalets första länkade bild
+(`lib/variant-price.ts`, `v3MultiVariantData`: färgens `linkedMedia[0]`, annars första axelns), inte Wix `variantsInfo.variants[].media`. Det är butikens första bild i galleriet för valet
+(`synligaBilder` lägger den först), och den ändras av en listas ORDNING men aldrig av en nollställning. Varukorgen, Wix kassa och ordern läser Wix variantbild. Därför kunde
+katalogkontrollens `VARUKORG` vara 0 medan Wix variantbild var huvudbilden på alla 16 sidor. Wix sida mäts med `tools/polish-gates/variantbild-farg.js` i torrläge (nedan).
 
 #### Katalogkontrollen och de åtta sidorna
 
@@ -3525,6 +3548,8 @@ kombination. Ett tomt snitt är ingen defekt i sig. De åtta mättes live per ko
 | hamsterburen `13fe619f` | ☠️ Naturträ × 85 × 45 visar de fem bilderna av den grå burens storlek och varukorgen en grå bur | kan inte rättas med länkar, Leonard avgör |
 | förvaringskistan `b129d5ae` | ☠️ varukorgens, kassans och orderns bild var storlekens måttkort på alla fyra varianter (Storlek först, storlekarna bär länkar) | rättad 2026-10-23 med Leonards ja: Färg först och en namn-skrivning (`farg-forst.js`), se *Förvaringskistan* nedan |
 
+(Kolumnen *varukorgens bild* i tabellen är läst ur sidans `variantTable`, alltså butikens uträkning. Wix egen variantbild mättes för alla 49 sidor först 2026-10-23 02:5x UTC, se *Biverkningen* under *De 16 sidorna rättade*.)
+
 Hamsterburen har tre varianter (100 × 52 Mörkgrå, 85 × 45 Mörkgrå, 85 × 45 Naturträ) och tre bildset. Med unionen går det inte att ge Naturträ bara sina fem och Mörkgrå × 85 × 45 bara sina: det kräver
 att valen blir ett enda (*100 × 52 Mörkgrå* med flera). Förvaringskistan har färgfoton på färgen och ett måttkort per storlek: den får Färg först och en namn-skrivning, som soptunnan.
 
@@ -3535,8 +3560,9 @@ Fem saker som inte ska tas bort:
 
 1. ☠️ **På en tvåaxlig sida bär EN option bilderna.** Länkar på båda optionerna ger blandade vyer, och en bild som visar en färg i en storlek kan aldrig visas för just den kombinationen. Undantaget är
    färgneutrala måttkort som länkas till storleken.
-2. ☠️ **Variantens bild kommer från första valet i variantens `choices`-lista som har länkade bilder.** Skriv Färg först både i optionerna och i varje variants val, och gör en namn-skrivning efteråt.
-   En skrivning med val-id (`lank-om-bilder.js`, `skriv-fargbilder.js`, `bilder-bort.yml`) räknar inte om bilden, så den visar det som en tidigare namn-skrivning gav.
+2. ☠️ **Variantens bild kommer från första valet i variantens `choices`-lista som har länkade bilder.** Skriv Färg först i varje variants val (optionernas ordning behöver inte ändras) och gör en namn-skrivning efteråt.
+   En skrivning med val-id (`lank-om-bilder.js`, `skriv-fargbilder.js`, `bilder-bort.yml`) räknar inte om bilden utan NOLLSTÄLLER den till huvudbilden (rättelsen ovan), så `variantbild-farg.js` ska följa efter varje sådan
+   skrivning på en sida med länkar på båda optionerna.
 3. ☠️ **Läs sidans `imageOwners` och `variantTable` innan du kallar en sida rätt eller fel.** Räknarna i katalogkontrollerna ser länkar, inte vad butiken gör av dem, och en mätning ensam (`live-galleri.mjs`)
    visar bara vyn, inte varför.
 4. ☠️ **Mät en kombination i taget, med valen uppslagna på namnet.** `live-galleri.mjs` letade upp valen på etiketten som stod när listan lästes, och den ändras med det andra valet (*Beige – finns inte i
@@ -3571,6 +3597,10 @@ De fem gamla måttbilderna togs bort **efteråt** med `bilder-bort.yml` (torrt, 
 och Silver → silverpackshoten (`c63be6`) i båda storlekarna. Varianternas id, SKU, pris, kostnad, synlighet och lager var orörda. `bilder-bort.yml` tog bort de fem måttbilderna direkt efteråt (torrt 00:50 UTC,
 run 39880507743, skarpt 00:51 UTC, run 39880590274, planens sha `a6438d5f…`): galleriet 16 → 11, återläst (galleri, alt-texter, länkar, synlighet och varianter), `variantbilder: rätt`, revision 44.
 Galleriet är nu Svart 1–5, Silver 6–9, kortet för 45 liter (10) och kortet för 60 liter (11); varje storlek länkar bara sitt kort.
+☠️ **Variantbilden nollställdes av just den borttagningen och rättades först 02:3x UTC.** `bilder-bort.yml` skriver valens länkar med val-id (se rättelsen under *Wix:s regel för variantens bild*), och
+Wix gjorde då Silver → `9a66fa`, huvudbilden, på alla fyra varianterna. `variantbilder: rätt` i körningens svar betydde bara att `forvantadBild` inte kunde räkna (`inget_snitt`). Mätt 02:2x UTC med
+Wix egen läsning, och rättad 02:37 UTC med `variantbild-farg.js` (Silver → `c63be6`, revision 44 → 45, 0 avvikelser). Wix variantbild, som varukorgen, kassan och ordern läser, var alltså den svarta tunnan för
+Silver i ungefär 1 tim 45 min. Ordrar och varukorgar under fönstret är inte kontrollerade.
 
 **Live 01:0x UTC** (butikens cache renderad 00:55:51, efter sista skrivningen 00:51:31; `live-galleri.mjs` en kombination i taget): Svart × 45 liter visar de fem svarta fotona och 45-kortet (1 299 kr),
 Svart × 60 liter de fem och 60-kortet (2 029 kr), Silver × 45 liter de fyra silverfotona och 45-kortet (1 179 kr, slutsåld sedan 2026-10-17) och Silver × 60 liter de fyra och 60-kortet (1 959 kr). Varje storlek
@@ -3616,7 +3646,7 @@ ordning på alla elva kombinationer. Körd 2026-10-23 01:2x UTC över alla 49 si
 | :-- | --: |
 | minst en MÅTTBILD som hör till ett annat val än det valda (SPEC) | **16** |
 | bara foton som nämner ett annat val (FOTO) | 6 |
-| varukorgens bild fel där färgen bär bilderna | **0** (hamsterburen `13fe619f`, där storleken bär dem, är redan känd) |
+| varukorgens bild fel där färgen bär bilderna, enligt BUTIKENS uträkning (☠️ inte Wix variantbild, se rättelsen under *Wix:s regel för variantens bild*) | **0** (hamsterburen `13fe619f`, där storleken bär dem, är redan känd) |
 | färgträffar (tips) | 8: sammansatta färger, "på vit bakgrund" och avsiktliga kompilationer, utom hamsterburen och projektorduken |
 
 SPEC, måttbild för fel storlek: matstationen `1d4eb6b1` (2 måttbilder), kattrappan `4d9ba658`, den hopfällbara hundbädden `c3d1fa41`, kantskydden `44d4907b`, hammocköverdraget `91f5c078`, odlingstunneln
@@ -3626,13 +3656,13 @@ SPEC, måttbild för fel storlek: matstationen `1d4eb6b1` (2 måttbilder), kattr
 i färgens egen uppsättning, lämnade med flit: de visar samma tunna).
 
 Orsaken är en annan än på soptunnan. Sammanslagningen och färgbildsverktygen länkar givarens och värdens bilder till FÄRGEN (*färgen bär bilden*), och en måttbild som anger måtten för en storlek följer med
-dit. Butiken visar sedan färgens alla bilder under båda storlekarna, så under 44 × 24 cm ligger matstationens måttbild för 58,4 × 30,5 cm, och tvärtom. Varukorgens, kassans och orderns bild är däremot rätt:
-den är färgens första foto.
+dit. Butiken visar sedan färgens alla bilder under båda storlekarna, så under 44 × 24 cm ligger matstationens måttbild för 58,4 × 30,5 cm, och tvärtom. Varukorgens, kassans och orderns bild mättes inte här: kontrollens
+VARUKORG-rad är butikens egen uträkning ur färgens första foto, inte Wix variantbild (se rättelsen under *Wix:s regel för variantens bild*).
 
-**Förslag, ingenting skrivet (Leonards ja behövs för varje publicerad sida):** soptunnans recept, sida för sida. En måttbild som är en ritning utan färg (vit botten, bara mått) länkas bort från färgen och till sin
+**Förslaget (Leonard sa ja 2026-10-23 ca 01:40 UTC, och utfallet står i nästa avsnitt):** soptunnans recept, sida för sida. En måttbild som är en ritning utan färg (vit botten, bara mått) länkas bort från färgen och till sin
 storlek med `lank-om-bilder.js` (galleriet rörs inte), och Färg sätts före Storlek med `farg-forst.js`. En måttbild som är ett foto av en viss färg (den vita tunnelns måttbild) går inte att länka utan att
 visas under fel färg, och ersätts då av ett färgneutralt kort per storlek som på soptunnan (`bygg-kort.py`, `gate-kort.py`, `skriv-storlekskort.js`). Foton som nämner en annan storlek rörs inte: de visar
-samma vara och en länk till storleken hade visat dem under fel färg.
+samma vara och en länk till storleken hade visat dem under fel färg. ⚠️ **Det blev ett enklare recept:** bara länkar, inga nya kort, inga ändrade galleri och ingen ändrad optionsordning (`bygg-agare.py`, nästa avsnitt), följt av en namn-skrivning av varianterna med färgen först (`variantbild-farg.js`), eftersom varje länkskrivning nollställer Wix variantbild.
 
 Tre egenskaper som inte ska tas bort:
 
@@ -3643,6 +3673,115 @@ Tre egenskaper som inte ska tas bort:
    ger FÄRG-träffar på den egna färgen. Titta på bilden innan en sida rättas.
 3. ☠️ **Mät hela katalogen när ett fel hittas på en sida.** Soptunnan hittades av Leonards skärmbild, och samma slags fel låg på 16 sidor som tidigare mätningar (antal bilder per färgvy och per storleksvy) inte
    kunde se, eftersom de räknade bilder och aldrig läste vad bilderna visar.
+
+#### De 16 sidorna rättade: en uttalad ägare per bild (`bygg-agare.py`, 2026-10-23)
+
+Leonard 2026-10-23 ca 01:40 UTC: *"Fixa alla 16 en i taget med visuell kontroll på varje bild är kopplad till rätt variant och storlek"*. Alla 16 sidor är skrivna en i taget 01:4x–02:09 UTC, utanför Aosoms
+synkfönster, efter att varje galleribild setts i full storlek på kontaktark (241 bilder: hela galleriet på varje sida, inte bara måttbilderna). Sidorna: matstationen `1d4eb6b1`, kattrappan `4d9ba658`, den
+hopfällbara hundbädden `c3d1fa41`, kantskydden `44d4907b`, hammocköverdraget `91f5c078`, odlingstunneln `38f70f83`, julgranen `75a38b7b`, väggspegeln `c438d4ba`, hundsängen med tak `934297b1`, hundbädden med tak
+`01ac2f63`, sensorsoptunnan `92fc308c`, vedboden `4a2ab58e`, tunnelväxthuset `5466fe81`, bokhyllan `79ab08fe`, det fällbara skrivbordet `3b868848` och buxbomsklotten `7d1fb82b`. 53 av de 241 bilderna bytte ägare.
+
+☠️ **Skrivningarna hade två biverkningar jag inte såg förrän 02:2x UTC, och båda är rättade (*Biverkningen* nedan):** de nollställde Wix variantbild (varukorg, kassa, order) till huvudbilden på alla 16 sidor, och
+mina första listor byggdes i galleriets ordning och bytte därmed butikens första bild på fem färger. Den första versionen av det här avsnittet påstod motsatsen, för jag hade läst butikens uträkning av variantbilden och inte Wix.
+
+`tools/polish-gates/bygg-agare.py <ut.js> <spec.json> [--torr] [--kompakt]` gör `lank-om-bilder.js` till ett färdigt ExecuteWixAPI-skript där VARJE galleribild får en uttalad ägare
+(`[{"id": "<fullt produkt-id>", "agare": {"<hex6>": "<valets namn>" | "-"}, "tomt": [], "forst": {"<valets namn>": "<hex6>"}}]`, hex6 = de sex första tecknen efter `b379ce_`, `-` = gemensam bild utan ägare,
+`forst` = valfritt: valets första länkade bild). Skrivsteget, spärrarna och återläsningen
+är `lank-om-bilder.js`:s, oförändrade: galleriet rörs aldrig, och varianternas id, SKU, synlighet och pris, produktens namn och adress och länkarna i den andra optionen jämförs efter skrivningen.
+`tools/polish-gates/kolla-agare.py <spec.json> <slug>` läser sedan butikens egen sidodata och jämför ägare per bild och vy per kombination mot samma plan (exit 1 vid avvikelse). Mutationsprov: en ändrad
+ägare i planen fäller exakt den bilden och de vyer den ändrar.
+
+Reglerna jag valde ägare efter, mot butikens vymodell (en bild har ETT ägarval, och en vy är unionen av olänkade bilder och bilder som ägs av de valda valen):
+
+- En måttbild eller ett kort vars tal gäller en storlek ägs av storleken. Ett färgfoto ägs av färgen. En bild som gäller alla val (faktakort, närbild på ett beslag) är olänkad.
+- ☠️ **Ett val som finns i bara en kombination ger en exakt ägare.** Vit finns bara i 300 × 397 (tunnelväxthuset), Svart bara i 63 cm (skrivbordet), 150 cm bara i Mörkgrå (vedboden), Olivgrön bara i 40 cm och
+  50 cm bara i Ljusgrön (buxbomsklotten), 76 × 61 bara i Blå och 61 × 46 bara i Ljusgrå (hundsängen), 76 × 61 bara i Mörkblå och 61 × 46 bara i Brun (hundbädden). En bild som hör till just den kombinationen
+  ägs av det valet och syns bara där. Det är enda sättet att utesluta en bild ur en kombination, eftersom en vy är en union och aldrig en skärning.
+- ☠️ **Foton av en annan storlek ligger kvar på sin färg när alla kombinationer finns.** Unionen går inte att undvika där, och att äga fotot av storleken hade visat det under fel färg. Det är mest sådana
+  foton katalogkontrollen fortfarande flaggar som FOTO.
+- ☠️ **Varje vy ska ha minst fyra bilder.** En bild som hade lämnat en vy under fyra blev kvar där den låg: fotona #1 och #2 på Mörkblå hos hundbädden `01ac2f63` hade gett Mörkblå × 92 × 76 tre bilder om de ägts av 122 × 92.
+- Måttbilder med färgens motiv (ett foto av en viss färg med tal i) ägs av storleken och visas därför också under de andra färgerna i den storleken. Det är husets standard, och frågan om de ska länkas till sin
+  färg väntar på Leonard (lärdom 147).
+
+| sida | bilder som bytte ägare | bilder per vy före → efter |
+| :-- | :-- | --: |
+| `1d4eb6b1` matstationen | #14 och #27 (måttbilderna) → sin storlek | 8–10 → 8–11 |
+| `4d9ba658` kattrappan | #4 och #16 → 60 × 40 och 45 × 40 | 5–6 → 5–6 |
+| `c3d1fa41` hundbädden | #5 → 75 × 51 × 18, #10 → 107 × 61 × 20 | 4–6 → 5 |
+| `44d4907b` kantskydden | #5 → Ø244 | 5 → 4–6 |
+| `91f5c078` hammocköverdraget | #5, #14, #18 → 205 cm | 5 → 4–8 |
+| `38f70f83` odlingstunneln | #4, #11 → 200 cm, #12 → 300 cm | 5–7 → 5–7 |
+| `75a38b7b` julgranen | #4 → 120 cm | 5 → 4–6 |
+| `c438d4ba` väggspegeln | #4, #14 → 50 × 70, #7 → 60 × 90, #9 → 50 × 110 | 6–9 → 6–8 |
+| `934297b1` hundsängen | #3 → 106 × 76, #9, #10 → 76 × 61, #11, #12 → 61 × 46 | 5–7 → 4–6 |
+| `01ac2f63` hundbädden | #3 → 122 × 92, #12 → 92 × 76, #14, #15 → 76 × 61, #16 → 61 × 46 | 4–8 → 5–6 |
+| `92fc308c` sensorsoptunnan | #6 → 50 liter, #8, #16 → 42 liter, #10 → 30 liter | 7–9 → 7–8 |
+| `4a2ab58e` vedboden | #2, #5, #7, #15–#17 → 150 cm, #9 → 213 cm | 8–12 → 5–11 |
+| `5466fe81` tunnelväxthuset | #11 → 300 × 397, #12–#15 → 300 × 597 | 6–10 → 6–8 |
+| `79ab08fe` bokhyllan | #6, #11 → 109 cm, #8 → 136 cm | 6–7 → 6–7 |
+| `3b868848` skrivbordet | #3, #15 → 63 cm, #5, #8 → 80 cm | 5–7 → 6–7 |
+| `7d1fb82b` buxbomsklotten | #5 → 40 cm, #12 → 50 cm | 6–8 → 5–7 |
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Planen ska omfatta HELA galleriet.** Saknas en bild svarar skriptet `ok: false, steg: "agare"` och skriver ingenting, i stället för att lämna bilden som den var. Ägaren ska också vara exakt ett val på
+   sidan (namnet är unikt bland alla val i alla optioner).
+2. ☠️ **Alla val i alla optioner får sin lista skriven**, så ingen gammal länk blir kvar på ett val som planen inte nämner. Val som saknar bilder i planen töms, och `lank-om-bilder.js` kräver `tomt` för ett val
+   som hade bilder.
+3. ☠️ **Optioner som inte är Färg skrivs först och Färg sist.** En bild som flyttas från färg till storlek är då ägd av båda en kort stund (butiken ser färgens länk) i stället för av ingen (butiken visar den
+   under varje val).
+4. ☠️ **Listornas ordning bevaras, och `forst` anger ett vals första bild.** En bild valet fortfarande äger står kvar på sin plats och nya bilder läggs sist i galleriets ordning. Första versionen byggde varje lista
+   i galleriets ordning och bytte därmed butikens första bild på fem färger (*Biverkningen*). En option vars listor redan stämmer skrivs inte alls, och stämmer allt svarar skriptet `redan_ratt` utan att skriva.
+5. ☠️ **`variantbild-farg.js` körs efter varje skrivning med verktyget.** En id-skrivning av optionerna nollställer Wix variantbild till huvudbilden (rättelsen under *Wix:s regel för variantens bild*), och
+   `variantbild.yml` kan inte rätta det på en sida med länkar på båda optionerna, eftersom `forvantadBild` ger `inget_snitt` och en variant utan förväntan hoppas över.
+6. ☠️ **Jämför butikens första bild före och efter**, inte bara vilka bilder som syns. En vy kan innehålla exakt planens bilder och ändå börja med fel bild.
+
+**Biverkningen: Wix variantbild nollställdes, och butikens första bild byttes på fem färger** (upptäckt 02:2x UTC, rättat 02:31–02:37 UTC):
+
+- ☠️ **Wix variantbild (`variantsInfo.variants[].media`, den som varukorgen, kassan och ordern läser) var huvudbilden på alla varianter på alla 16 sidor** från skrivningen (01:47–02:09 UTC) tills den rättades. Jag hade skrivit
+  att den inte rörs, men jag hade läst butikens uträkning (`variantTable[].image` och katalogkontrollens VARUKORG: färgvalets första länkade bild, `lib/variant-price.ts`), som bara ändras av en listas ordning. Wix egen läsning gjordes
+  först när jag läste `lib/wix/variant-media.ts`, såg att `forvantadBild` ger `inget_snitt` på sidor med länkar på båda optionerna, och körde provet på en dold testprodukt (tabellen under *Wix:s regel för variantens bild*).
+  Soptunnan `c841717c` hade samma fel sedan `bilder-bort.yml` 00:51 UTC. Vilka varukorgar och ordrar som lades under fönstren är inte kontrollerat.
+- ☠️ **Mina första listor byggdes i galleriets ordning.** Butiken lägger valets första länkade bild först i galleriet, så den bytte på fem färger: julgranens Vit (#7 → #3), väggspegelns Guld (#10 → #3), sensorsoptunnans Silver
+  (#11 → #5), vedbodens Grön (#10 → #3) och bokhyllans Vit (#9 → #2), alltså från ett packshot mot vit botten till ett miljöfoto. Det syntes i jämförelsen av butikens första bild före och efter. Återställt 02:31 UTC med
+  `forst` (två skrivningar, fem sidor, 0 avvikelser, antalet länkade bilder per val oförändrat).
+- **Variantbilden rättades 02:34–02:37 UTC med `variantbild-farg.js`** på de 16 sidorna, soptunnan och förvaringskistan (17 skrivna med 0 avvikelser i återläsningen, revision +1 per sida, förvaringskistan `redan_ratt`).
+
+**`variantbild-farg.js`** (`python3 tools/polish-gates/bygg-variantbild-farg.py <ut.js> <fullt produkt-id>... [--torr] [--kompakt]`, byggt för ExecuteWixAPI, högst fem sidor per skrivkörning och 60 sekunder; en torrkörning
+får ta fler, 49 sidor ryms i en körning): på en publicerad sida med färg och en annan option där BÅDA har länkade bilder skrivs varianterna om med valen bara med namn (`products-with-inventory`, ingen fältmask, aldrig
+`inventoryItem`) och Färg först i varje variant. Wix räknar då variantens bild ur färgens första länkade foto, utan att optionernas ordning, galleriet eller länkarna ändras. Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **En färg utan länkade bilder avvisas** (`steg: "plan"`), och en sida utan en option som heter Färg eller med fler än två optioner likaså. Då skulle variantens bild bli något annat än färgens foto.
+2. ☠️ **Återläsningen jämför allt som inte ska ändras:** galleriet i ordning med alt-texter, optionernas ordning, varje vals länkar, varianternas id, SKU, pris, jämförpris, kostnad, synlighet och val, produktens namn, adress
+   och synlighet, och lagret. Kostnaden kräver `MERCHANT_DATA`, och går den inte att läsa skrivs ingenting.
+3. ☠️ **En sida som redan är rätt skrivs inte** (`redan_ratt`), så skriptet går att köra om, och en torrkörning (`TORR`, `hasMutations false`) visar variantbilderna före och efter.
+4. ☠️ **Nya försök bara på 404, 409, 429 och 5xx**, med omläsning före varje försök. Varje annat fel stoppar med `ingenting ändrat`.
+5. ☠️ **Svaret bär bara wix-id, de sex första tecknen i fil-id, antal och avvikelser.** Aldrig alt-texter, namn eller adresser.
+
+**Mätt efteråt, i Wix egen läsning (inte butikens):**
+
+- `variantbild-farg.js` i torrläge 02:37 UTC: **81 av 81 varianter** på de 18 sidorna har färgens första foto som variantbild, och valen ligger Färg först i varje variant.
+- Samma läsning mot alla 49 tvåaxliga sidor (02:5x UTC): Wix variantbild är färgens första foto på **47 av 49**. Undantagen är hamsterburen `13fe619f` (storleken bär bilderna, känd och väntar på Leonard) och
+  skjutdörrsbeslaget (ingen färgoption, inga länkade bilder). Inga andra tvåaxliga sidor är alltså nollställda, inte heller hundgrinden `6eb13a16` och bänkdynan `a7aa9370`, som färgbildsomgångarna skrev med id kvällen innan.
+- Nattens `/api/cron/variantbild` (05:35 UTC) rättar sidor med länkar på EN option, och de ligger utanför den här mätningen.
+
+**Utfall, mätt 02:11–02:17 UTC och på nytt 02:38–02:41 UTC efter rättelserna** (butikens cache hade hunnit ikapp på alla 16, `age` 23–910 s):
+
+- `kolla-agare.py`: **16 av 16 sidor stämmer med planen**, både ägare per bild och vy per kombination. Ingen vy har färre än fyra bilder.
+- En riktig webbläsare per kombination (`live-galleri.mjs`, och ett eget klickskript för `c3d1fa41` och `79ab08fe`, som väljer färg med kort): **74 av 74 kombinationer** visar exakt planens bilder, och **butikens första
+  bild är densamma som före skrivningarna på alla 74**. Priserna rördes inte.
+- Butikens `variantTable` (första bilden per variant): lika som före skrivningarna på **73 av 73 varianter**.
+- `katalogkontroll-tva-axlar-bilder.py` över alla 49 sidor: **0 sidor med en måttbild för fel val** (var 16) och 0 som inte gick att läsa. 11 sidor har kvar foton som nämner en annan storlek (var 6) och 14 har
+  färgträffar (var 8), mest för att en måttbild som ägs av storleken har färgens motiv. Båda tipsen bygger på alt-texter, och bilden avgör. Dess VARUKORG-rad (0) är butikens uträkning, inte Wix variantbild.
+
+**Det som inte går att rätta med länkar och står kvar:** foton av en annan storlek under fel storlek där alla kombinationer finns (väggspegeln, sensorsoptunnan, bokhyllan, skrivbordet, matstationen, kattrappan),
+de tre måttbilderna (en per färg, samma tal) under varje hammock-variant i 205 cm och två under 200 cm (odlingstunneln) och 42 liter (sensorsoptunnan), måttbilder som saknas (107 × 61 × 20 hos hundbädden, 305
+och 366 hos kantskydden och 177 hos hammocköverdraget), och vedbodens 213-cm-packshot som första bild och variantbild under 150 cm × Mörkgrå (färgens enda eget foto). Det första sätter butikens vymodell
+(en union) som gräns, det sista kräver att bilden tas bort eller ersätts, och båda är Leonards beslut.
+
+☠️ **Förslag som kräver Leonards ja (inte gjort):** motorn kan inte rätta de här sidorna av sig själv. Varje senare id-skrivning på en sida med länkar på båda optionerna (`lank-om-bilder.js`, `avlank-delade.js`,
+`bilder-bort.yml`, färgbildsverktygen) nollställer variantbilden igen, och nattens `/api/cron/variantbild` ser det inte. Lär `forvantadBild` räkna färgen först (variantens första val med länkade bilder) och
+`byggVariantbildKropp` lägga valen Färg först, så rättar nattens körning dem. Tills dess körs `variantbild-farg.js` efter varje sådan skrivning, och de 49 sidorna kan mätas om med samma skript i torrläge.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 

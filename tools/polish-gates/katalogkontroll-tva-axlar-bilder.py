@@ -13,7 +13,7 @@ Metoden läser butikens EGEN sidodata, samma som kunden får (Next.js-flödet i 
   imageOwners     bild → ETT val (det första som länkar den). En bild utan ägare visas under varje val
   imageAlts       bildens alt-text
   variantAxes     optionerna och valens etiketter
-  variantTable    varje variant: val, pris, lager och Wix variantbild (varukorg, kassa, order)
+  variantTable    varje variant: val, pris, lager och BUTIKENS uträkning av variantens bild (färgvalets första länkade bild, lib/variant-price.ts)
 Vy för en kombination = bilder utan ägare + bilder vars ägare är ett av de valda valen, i galleriets ordning. Modellen är mätt mot webbläsaren (live-galleri.mjs) på
 soptunnan, förvaringskistan, skrivbordet 3b868848 och matstationen 1d4eb6b1: samma bilder, samma ordning.
 
@@ -22,7 +22,9 @@ Tre träffar, alla bygger på alt-texten (ett tips, bilden avgör):
   FOTO   samma sak för en bild som inte är en måttbild
   FÄRG   alt-texten nämner en annan färg än den valda (sammansatta färger som "Svart och Röd" räknas som samma färg om något av orden står i alt-texten)
 Och en fjärde, som inte bygger på alt-texten:
-  VARUKORG  färgen äger bilder men variantens bild (varukorg, kassa, order) ägs av något annat än färgen. Soptunnans fel före rättningen (Silver fick en svart tunna).
+  VARUKORG  färgen äger bilder men variantens bild i SIDANS data ägs av något annat än färgen. Byggd efter soptunnans fel (Silver fick en svart tunna).
+            ☠️ Sidans `variantTable[].image` är butikens uträkning, inte Wix variantbild (`variantsInfo.variants[].media`, den som varukorg, kassa och order läser). En id-skrivning av
+            optionerna nollställer Wix bild till huvudbilden utan att den här raden ser det (2026-10-23, 16 sidor). Mät Wix med variantbild-farg.js i torrläge.
 Etiketter på två tecken eller färre (S, M, L) räknas inte. Kompilationer som nämner flera färger ("Fyra av färgerna staplade") ger FÄRG-träffar och är avsiktliga.
 """
 import json
