@@ -3958,6 +3958,9 @@ hammocken och soptunnan, hade redan färgneutrala kort.
   plus sitt kort (tre bilder), och priserna är oförändrade. De andra sidorna mättes i webbläsaren 05:36–05:37 UTC, direkt efter skrivningarna.
 - **Skyddskollen** (`bygg-skyddskoll.py` med `skyddsplan.json`, 06:01 UTC): 26 av 26 kortfiler sitter i sina gallerier, bildstädningens egen tolkning ser alla 26 och Media Manager har dem (`OK`, `READY`). De har källklassen `annan-kalla`,
   som städningen aldrig raderar. De 31 borttagna måttbilderna ligger kvar i Media Manager tills städningen tar dem, tidigast tre dygn efter att den först såg dem oanvända.
+- **Slutkontroll av varukorgens bild** (`variantbild.yml`, läget `torr` mot `main`, run 39908059310, 05:52–06:13 UTC, efter den sista skrivningen): **1 174 flervariantsprodukter kontrollerade, 1 174 redan rätt, 0 rättade, 0 med fel kvar,
+  0 ej rättade, 0 som inte gick att kontrollera och 0 avvikelser.** Nattens tre sidor (hamsterburen, elbilen och hundbädden) är alltså rättade, och inga av de 16 sidornas varianter har fel bild. Torrkörningen tog 21 minuter och delar
+  concurrency-grupp med `polish-write`, så starta den inte mitt i en poleringsskrivning.
 
 Fem egenskaper som inte ska tas bort:
 
