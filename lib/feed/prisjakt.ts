@@ -29,7 +29,7 @@
 //     routen en varning.
 //
 // Ingen mpn: den får bara vara tillverkarens eget nummer. Och som regel ingen
-// EAN/GTIN, eftersom varorna är omärkta. Undantaget är de få varor som kartan i
+// EAN/GTIN, eftersom varorna är omärkta. Undantaget är de varor som kartan i
 // prisjakt-gtin.ts pekar ut (testet 2026-10-23, se tillPrisjakt).
 //
 // Ren funktion utan importer, så att node:test kan köra den direkt; routen
