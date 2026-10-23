@@ -1,0 +1,45 @@
+[
+ {
+  "host": "b4fad293",
+  "donor": "7ee31c94",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "6"
+  ]
+ },
+ {
+  "host": "6d35a04f",
+  "donor": "1bb88b82",
+  "bilder": "1,2,3",
+  "kallpositioner": [
+   "1",
+   "2",
+   "5"
+  ]
+ },
+ {
+  "host": "fb0bf4f0",
+  "donor": "c5f0e94d",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "4"
+  ]
+ },
+ {
+  "host": "339a0896",
+  "donor": "d690e459",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "3",
+   "5",
+   "6"
+  ]
+ }
+]

@@ -1,0 +1,504 @@
+{
+ "sidor": [
+  {
+   "id": "1004b036-6987-4f75-b6df-396b611f0ae3",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_b63c9668a41848eb850bc800fe0dd23e~mv2.png",
+     "alt": "Svart och grå cykelkärra för hund med orange flagga, dragen av en cyklist längs en grusväg vid en sjö, en beagle sitter i kärran"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_4bcfbd243a104975b7139e9365be68eb~mv2.jpg",
+     "alt": "Svart och grå cykelkärra för hund med orange flagga, sedd från sidan mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "6334f635-a7ba-4cc1-ad7d-ef0a9cbfd6e2",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_d1563f00d2c849169018065489a60f7b~mv2.jpg",
+     "alt": "Lång mörkgrå dyna med stoppade rutor och bindband i hörnen, sedd uppifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "b1b9afac-ab54-4741-b2d9-aed9e98b6501",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_2957c8e621cf4886809f574374de11bb~mv2.jpg",
+     "alt": "Pojke i grå elbil Audi RS e-tron GT på en gräsmatta, pappan står bredvid med fjärrkontrollen"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_d65485a9084d4e3ab5615084143eba85~mv2.jpg",
+     "alt": "Grå elbil Audi RS e-tron GT för barn sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_8a1d99f76539497eba3467f8d934cba6~mv2.jpg",
+     "alt": "Pojke i blå t-shirt kör den grå elbilen Audi RS e-tron GT, frilagd mot vit bakgrund"
+    },
+    {
+     "val": "Rosa",
+     "fil": "b379ce_c51d59e4b3c9415582cb1a390fc43bd2~mv2.jpg",
+     "alt": "Rosa elbil Audi RS e-tron GT för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_3498cbba64a84cef9b9c6baed39502a9~mv2.jpg",
+     "alt": "Röd elbil Audi RS e-tron GT för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "2f6ff71c-fac2-4e55-be3e-9e121e500ed2",
+   "bilder": [
+    {
+     "val": "Orange",
+     "fil": "b379ce_2d1f556b8e0949d2aa4aba6cb48ca6c5~mv2.jpg",
+     "alt": "Orange och svart elbil för barn i UTV-stil med stora terrängdäck och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "1c0b4b34-f9f6-43b0-a8d2-1113dd2364d8",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_7657079d2b46478094d92c8f90f795e6~mv2.jpg",
+     "alt": "Grön elbil Land Rover Defender 110 SVX för barn med extraljus på takbågen, sedd framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Orange",
+     "fil": "b379ce_75b43400398e4ca7987ed6c03ce93b2c~mv2.jpg",
+     "alt": "Orange elbil Land Rover Defender 110 SVX för barn med extraljus på takbågen, sedd framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "8ad1e003-84cf-41c2-95cf-58335a980ffa",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_81268221de334929ad6607e834d7e021~mv2.jpg",
+     "alt": "Vit elbil Land Rover Discovery Sport för barn sedd snett framifrån med tända strålkastare mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "7cdc167c-efdd-4b6a-8d53-4551e055875f",
+   "bilder": [
+    {
+     "val": "Lila",
+     "fil": "b379ce_60fd2eb9b7a94e96af0fb7e798c753d7~mv2.jpg",
+     "alt": "Lila och svart elfyrhjuling för barn med stora hjul och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_afe5386e24054ec2a9e13a39a011fe22~mv2.jpg",
+     "alt": "Svart elfyrhjuling för barn med stora hjul och tända strålkastare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_8fc79e91ff514aa584f8c46330559170~mv2.jpg",
+     "alt": "Två barn med hjälm åker på den svarta elfyrhjulingen, frilagda mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "49494b1a-3386-4344-a072-c6ca2789c53d",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_bf77bd894b7349d2ae6e0f2cc71d976f~mv2.jpg",
+     "alt": "Blå elgokart för barn med svart säte och bakhjulsdrift, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_4271c4df7f58409488777d46d644926c~mv2.jpg",
+     "alt": "Röd elgokart för barn med svart säte och bakhjulsdrift, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_11045f276ca643a297a444f4c0868945~mv2.jpg",
+     "alt": "Pojke i hjälm och rött racingställ kör den röda elgokarten, frilagd mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a706542f-ed60-442a-b586-73ee1213b3bd",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_1ef5cced0a814fc482349412afad7973~mv2.jpg",
+     "alt": "Vit duk monterad på ett tunnelväxthus med fönster och dörr, med nätet och den hopvikta duken nedanför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "faa2bdb4-dd3f-4639-8ffc-9777ceacd00c",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_2a8c982ef7e34efc836929556119a548~mv2.jpg",
+     "alt": "Grön duk monterad på ett tunnelväxthus med fönster och dörr, med nätet och den hopvikta duken nedanför, mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_f1dd83cd055440a7b44e8ede8f29623b~mv2.jpg",
+     "alt": "Vit duk monterad på ett tunnelväxthus med fönster och dörr, med nätet och den hopvikta duken nedanför, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "40a1f491-89d8-4d0a-9ca3-aa628ddd4e5b",
+   "bilder": [
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_e667e7738bde493cb0c4c57fd96577d5~mv2.jpg",
+     "alt": "Gräddvit fyrskivs-brödrost och vattenkokare med räfflad yta och silverdetaljer, fyra brödskivor i rosten, mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_b3d08ab9a3754be197701e3b725de8ab~mv2.jpg",
+     "alt": "Grå fyrskivs-brödrost och vattenkokare med räfflad yta och silverdetaljer, fyra brödskivor i rosten, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "bc2368af-8ff1-4816-9c9e-42df14afa012",
+   "bilder": [
+    {
+     "val": "Beige",
+     "fil": "b379ce_2f7f74841c7d4d2685c613e5c12cf817~mv2.jpg",
+     "alt": "Beige vattenkokare och tvåskivs-brödrost med två rostade brödskivor, sedda snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Beige",
+     "fil": "b379ce_c9770b6b399547f3a5176d81626818f5~mv2.jpg",
+     "alt": "Beige tvåskivs-brödrost med två rostade brödskivor framför en beige vattenkokare, nära bild mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_63bc651494e44d5ebfcd3f68f97d2d8c~mv2.jpg",
+     "alt": "Mörkgrå vattenkokare och tvåskivs-brödrost med silverfärgad list, sedda snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_4299a0af5f574ca1bd52eb6c97e74760~mv2.jpg",
+     "alt": "Mörkgrå tvåskivs-brödrost med två rostade brödskivor framför en mörkgrå vattenkokare, nära bild mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_34fdb014ffba4739babcb9673ae564c5~mv2.jpg",
+     "alt": "Svart vattenkokare och tvåskivs-brödrost med silverfärgad list, sedda snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "6575766f-94d5-41e6-9eac-da7a099a8cbd",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_064dff842a334be5b8ddc108994cacec~mv2.jpg",
+     "alt": "Svart gamingfåtölj med massage, kopphållare och fotstöd i ett ljust vardagsrum"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_d2e63f76dce149e7b8859471a61482a8~mv2.jpg",
+     "alt": "Kvinna sitter bakåtlutad med fötterna uppe i den svarta gamingfåtöljen i ett ljust rum med en stor växt"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_f4213faf86df4266aa1a2e958ebbb0dd~mv2.jpg",
+     "alt": "Man med hörlurar spelar med handkontroll i den svarta gamingfåtöljen vid ett skrivbord med en dator med färgad belysning"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_e28f74fd2d804b33a219d32bb1cb01c8~mv2.jpg",
+     "alt": "Svart gamingfåtölj med blå massagepunkter och fjärrkontroll, med en liten bild på fåtöljen med uppfällt fotstöd, mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_7e1b5b3e61f1453b862f7f60f0ed0ac0~mv2.jpg",
+     "alt": "Svart gamingfåtölj i ett rum med måttangivelser i centimeter och maxbelastning 120 kg"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_a77710a583674dde8949294c4f0d1d90~mv2.jpg",
+     "alt": "Svart gamingfåtölj med grå detaljer, massage, kopphållare och fotstöd i ett ljust vardagsrum"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_b0264370a25945dcaf240f1a71bb6e44~mv2.jpg",
+     "alt": "Kvinna sitter bakåtlutad med fötterna uppe i den svarta och grå gamingfåtöljen i ett ljust rum med en stor växt"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_2e1a352da5c340a09bb33f5f9903fd31~mv2.jpg",
+     "alt": "Man med hörlurar spelar med handkontroll i den svarta och grå gamingfåtöljen vid ett skrivbord med en dator med färgad belysning"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_bcf2636e353947cbacef64e514b40320~mv2.jpg",
+     "alt": "Svart och grå gamingfåtölj med fotstödet uppfällt, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_72336e96be9b4a1bb5792507a468ec95~mv2.jpg",
+     "alt": "Svart och grå gamingfåtölj med blå massagepunkter och fjärrkontroll, med en liten bild på fåtöljen med uppfällt fotstöd, mot vit bakgrund"
+    },
+    {
+     "val": "Svart och grå",
+     "fil": "b379ce_4e5f99ff7943459880520dc39b15fff6~mv2.jpg",
+     "alt": "Svart och grå gamingfåtölj i ett rum med måttangivelser i centimeter och maxbelastning 120 kg"
+    }
+   ]
+  },
+  {
+   "id": "4439afff-6b14-496d-b46c-dd411edb87ba",
+   "bilder": [
+    {
+     "val": "Lila",
+     "fil": "b379ce_ebded301ea3c450c9326c53ecd70f2b0~mv2.jpg",
+     "alt": "Vit och lila gamingstol med kaninöron och utdragbart fotstöd vid ett rosa skrivbord med en datorskärm"
+    }
+   ]
+  },
+  {
+   "id": "91f5c078-39ac-4be8-8a04-327e48d28dea",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_0d3f070e252048d6990fc25dbe9baf29~mv2.jpg",
+     "alt": "Mörkgrått överdrag över en hammock med tre sittplatser på en terrass med trästaket, framsidan öppen så att sittdynan syns"
+    },
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_0d225857801d437991a2beadd6c8810b~mv2.jpg",
+     "alt": "Mörkgrått överdrag som täcker en hammock helt, på en gräsmatta framför en tegelmur"
+    }
+   ]
+  },
+  {
+   "id": "4e409e7c-8046-405e-b4d6-3ad62502d9ab",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_9ad2e25fdbe64eb89915567efcfa61ac~mv2.jpg",
+     "alt": "Blå och svart hopfällbar cykelkärra för hund med orange flagga, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Röd",
+     "fil": "b379ce_1e2a0f08029645ce9d136faec7f08ea6~mv2.jpg",
+     "alt": "Röd och svart hopfällbar cykelkärra för hund med orange flagga, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "5fa26137-c1e2-466e-9262-5cf16d08da45",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_51ebe5a309b3415fa9389ca0ee10f508~mv2.jpg",
+     "alt": "Svart hundgrind med kattlucka, en golden retriever och en katt framför grinden, mot vit bakgrund"
+    },
+    {
+     "val": "Vit",
+     "fil": "b379ce_171ce1196dbe476e93848a1708a32346~mv2.jpg",
+     "alt": "Vit hundgrind med kattlucka, en husky och en katt framför grinden, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "12cd40a2-22fd-4db4-8431-547b188690e2",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_46da2e4734264686805c9d7ce4a18986~mv2.jpg",
+     "alt": "Hundgrind i svart trä och ståltråd uppställd som en U-formad hage på ett trägolv i ett vitt rum"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_30a63cff3fe4491cbbe636c069b74677~mv2.jpg",
+     "alt": "Hundgrind i svart trä och ståltråd hopfälld och stående mot en vit vägg"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_33c9ec1a53224a60ba63e81204c63e26~mv2.jpg",
+     "alt": "Hundgrind i svart trä och ståltråd uppställd som en rak rad med fyra paneler längs en vit vägg"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_15af82a234554033bfbae430aa9b3dd4~mv2.jpg",
+     "alt": "Hundgrind i svart trä och ståltråd med sex paneler uppställda i sicksack, mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_95843bc7c9724786b70c506c7be0ce07~mv2.jpg",
+     "alt": "Hundgrind i svart trä och ståltråd uppställd som en rektangulär hage med öppningsbar dörr, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "6eb13a16-8704-4643-92f4-3a8e4927668c",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_c83173cc50a8441d846f251a70adda59~mv2.jpg",
+     "alt": "Vit hundgrind med en beagle som sitter framför grinden, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "d27a28ae-3559-401b-953b-ced2ca950dac",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_7349cec02f55401f8472bbcae9eba03f~mv2.jpg",
+     "alt": "Kvinna i regnrock går i en park i regn och skjuter en blå hundvagn med regnskydd och en liten hund i"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_a424163558ac4156bcbe404e77b3607d~mv2.jpg",
+     "alt": "Blå hundvagn med genomskinligt regnskydd och mugghållare, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_409468e56a234793bff9719baf94014b~mv2.jpg",
+     "alt": "Blå hundvagn med en liten hund i, ett genomskinligt regnskydd och en hopfälld vagn bredvid, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "01ac2f63-9230-448a-811b-efd02f71a172",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_c190d5a3a4874175b96f387e57d96c0e~mv2.jpg",
+     "alt": "Grå upphöjd hundbädd med grått tak och svart ram, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "db13253d-d630-4961-a91d-dffc73088a39",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_4d2a9d15374244549f961ab558d39c81~mv2.jpg",
+     "alt": "Grå kontorsstol med nätrygg, nackstöd och fotstöd vid ett vitt skrivbord i ett ljust rum"
+    }
+   ]
+  },
+  {
+   "id": "6e810d9c-1992-4dbc-9537-19672aa7a6e7",
+   "bilder": [
+    {
+     "val": "Grå mikrofiber",
+     "fil": "b379ce_56ee9520a5ba4f47a4e368cfddf56e97~mv2.jpg",
+     "alt": "Grå kontorsstol i mikrofiber med massagepunkter markerade i blått och rött, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grå mikrofiber",
+     "fil": "b379ce_8b5c7b82de54449bbaf810f951fc9767~mv2.jpg",
+     "alt": "Grå kontorsstol sedd framifrån och från sidan med måttangivelser i centimeter"
+    },
+    {
+     "val": "Krämvit linnelook",
+     "fil": "b379ce_70df4d3c56c440d4ac857e99258f7d9a~mv2.jpg",
+     "alt": "Krämvit kontorsstol i linnelook med uppfällbara armstöd, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Ljusbrun linnelook",
+     "fil": "b379ce_d573dc8b54884f15942e8736a130a03a~mv2.jpg",
+     "alt": "Ljusbrun kontorsstol i linnelook med uppfällbara armstöd, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Ljusbrun linnelook",
+     "fil": "b379ce_d6ea5913e8e0479eaf2e6fbd06b0b386~mv2.jpg",
+     "alt": "Ljusbrun kontorsstol sedd framifrån och från sidan med måttangivelser i centimeter"
+    }
+   ]
+  },
+  {
+   "id": "623b6504-c197-46a3-86e6-539ba411cf9a",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_ef89ad5778274ea08ec4efc5c9651f62~mv2.jpg",
+     "alt": "Utrullad projektorduk med en färgglad manet på duken och en fjärrkontroll, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "e76a4098-7495-4828-a4cf-0110fd4c9566",
+   "bilder": [
+    {
+     "val": "Ljusgrå",
+     "fil": "b379ce_bfa70face2414e0d811df00bdd5b66cb~mv2.jpg",
+     "alt": "Två grå stolsdynor med ryggstöd och bindband, den ena liggande och den andra lutad, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "39319e6c-3a58-4cb1-a2aa-8dfa86c9b5f3",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_2cb049a057a5428a9590afe5a0589cb9~mv2.jpg",
+     "alt": "Barn i grönrandig tröja hoppar med uppsträckta armar på en studsmatta med blå stolpar och skyddsnät, mot vit bakgrund"
+    },
+    {
+     "val": "Blå",
+     "fil": "b379ce_29d7d1c6f26448e88f8299c98239271e~mv2.jpg",
+     "alt": "Studsmatta för barn med blå stolpar och skyddsnät där nätdörren står öppen, mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_916fed3250414c38884a976bf51bfab8~mv2.jpg",
+     "alt": "Barn i grönrandig tröja hoppar med uppsträckta armar på en svart studsmatta med skyddsnät, mot vit bakgrund"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_1962caccd35e4abbb5b7dffc1464bbd8~mv2.jpg",
+     "alt": "Svart studsmatta för barn med skyddsnät där nätdörren står öppen, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "8bc0dd26-23e7-48b0-ab7a-ce32b120a3e5",
+   "bilder": [
+    {
+     "val": "Svart och gul",
+     "fil": "b379ce_eb4952bae6ba456bb71b85c61fe3b37d~mv2.jpg",
+     "alt": "Svart och gul takväska på taket till en vit SUV vid en strand med hav och klippor"
+    },
+    {
+     "val": "Svart och gul",
+     "fil": "b379ce_0664ef0cf1214aa5a0c1427a06b113f4~mv2.jpg",
+     "alt": "Svart takväska med gula band och gula handtag, sedd snett uppifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a76e97f1-f6f9-49ce-9352-81a53726bc5f",
+   "bilder": [
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_164eaf53a58c40fa9389eefb9e003bf5~mv2.jpg",
+     "alt": "Gräddvit trehjuling med grå sufflett, brunt skjutreglage och bälte, med en hopfälld cykel i hörnet, mot vit bakgrund"
+    },
+    {
+     "val": "Rosa",
+     "fil": "b379ce_7bf6034596154e94a19ae13f96079a14~mv2.jpg",
+     "alt": "Rosa och vit trehjuling med rosa sufflett och skjuthandtag, med en hopfälld cykel bredvid, mot vit bakgrund"
+    }
+   ]
+  }
+ ]
+}

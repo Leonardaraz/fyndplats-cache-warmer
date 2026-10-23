@@ -1,0 +1,42 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "005e1c27": {
+  "tyska": "254B x 163T x 79H cm",
+  "svenska": "254 x 163 x 79 cm",
+  "bokstaver": "BTH",
+  "djup": 163,
+  "hojd": 79,
+  "bredd": 254
+ },
+ "285f51ec": {
+  "tyska": "132B x 70T x 82H cm",
+  "svenska": "132 x 70 x 82 cm",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": 82,
+  "bredd": 132
+ },
+ "56540b1a": {
+  "tyska": "287B x 186T x 87H cm",
+  "svenska": "287 x 186 x 87 cm",
+  "bokstaver": "BTH",
+  "djup": 186,
+  "hojd": 87,
+  "bredd": 287
+ },
+ "6f30f297": {
+  "tyska": "",
+  "svenska": "204 x 179 x 65 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 204B x 179T x 65H cm | ✔ Bettmaße: 204B x 250T x 65H cm | ✔ Sitzmaße: 155B x 76T x 42H cm | ✔ Maße der Rückenlehne: 150B x 22H cm | ✔ Maße der Armlehne: 100L x 25B x 55H cm | ✔ Kissenmaße: 48L x 48B cm, 35L x 35B cm"
+ },
+ "8c0f111e": {
+  "tyska": "",
+  "svenska": "205 x 103 x 75 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 205B x 103T x 75H cm | ✔ Bettmaße: 205B x 200T x 50H cm | ✔ Sitzmaße: 151B x 75T x 40H cm | ✔ Rückenlehnenmaße: 200B x 30H cm | ✔ Armlehnenmaße: 100L x 25B x 30H cm | ✔ Kissenmaße: 40L x 40B cm"
+ },
+ "944aa67a": {
+  "tyska": "",
+  "svenska": "76 x 77 x 70 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße in aufrechter Position: 76B x 77T x 70H cm | ✔ Maße in vollständig liegender Position: 76B x 197T x 10H cm | ✔ Sitzmaße: 76B x 62T x 30H cm | ✔ Rückenlehnenmaße: 75B x 10T x 78H cm | ✔ Kissenmaße: 54B x 38T x 15H cm"
+ }
+}

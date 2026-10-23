@@ -24,6 +24,29 @@
 //
 // ☠️ Skicka aldrig `inventoryItem` (då blir svarets `inventoryResults` tomt och
 // lagret orört) och aldrig variantens `media` (Wix ignorerar det).
+//
+// ✅ FÄRGEN FÖRST (2026-10-23, Leonards ja). Wix räknar variantens bild ur det
+// FÖRSTA valet i variantens egen `choices`-lista som har kopplade bilder, och
+// räknar om den bara vid en namn-skrivning (mätt på dolda testprodukter, som
+// raderades direkt). En skrivning med val-id (`bilder-bort`, färgbilderna,
+// miljöbilden, sammanslagningen) NOLLSTÄLLER den till huvudbilden när en lista
+// ändras eller den andra optionen länkas.
+//
+// ☠️ WIX RÄKNAR INGEN SKÄRNING. Förut var förväntan "första bilden som ligger
+// i ALLA valens listor", och tom skärning gav ingen förväntan alls
+// (`inget_snitt`): svepet kunde varken se eller rätta en nollställd
+// variantbild på de 49 tvåaxliga sidorna, och 16 av dem rättades för hand
+// 2026-10-23 med variantbild-farg.js. Men även när listorna ÖVERLAPPAR väljer
+// Wix första bilden hos första valet, inte skärningen. Mätt samma natt på en
+// dold testprodukt (Färg Svart [X2, X1], Silver [Y2, Y1], Storlek S [K1, X1],
+// L [K2, Y1]; skärningen för S × Svart är X1, för L × Silver Y1): med färgen
+// först blev ALLA fyra varianter färgens första foto (X2, Y2, X2, Y2), med
+// storleken först storlekens (K1, K1, K2, K2), och med färgen först igen
+// färgens. Ingen variant fick X1 eller Y1. I katalogen 2026-10-23 är 82 av 82
+// varianter med bilder på två val (22 sidor) i linje med regeln, och ingen har
+// överlappande listor. Förväntan är därför alltid första bilden hos första valet
+// i skrivordningen, och skrivkroppen lägger färgen först i varje variant.
+// Optionernas ordning rörs aldrig.
 
 import type { WixAnrop } from "../polish/skrivplan";
 
@@ -89,36 +112,67 @@ function hittaVal(p: Obj, c: Obj): { option: Obj; val: Obj } | null {
 }
 
 export type Forvantan =
-  | { bild: string; kalla: "val" | "snitt" | "huvudbild" }
-  | { bild: null; kalla: "inget_snitt" | "ingen_bild" };
+  | { bild: string; kalla: "val" | "forsta_val" | "huvudbild" }
+  | { bild: null; kalla: "ingen_bild" };
 
 /**
- * Bilden Wix ska ge varianten: första bilden i valets `linkedMedia`. Har flera
- * optioner kopplade bilder gäller första bilden i snittet, i den första
- * optionens ordning. Saknas kopplade bilder gäller produktens huvudbild.
+ * Färgoptionen: samma regel som butikens variantbild (`v3MultiVariantData` i
+ * butiksrepot väljer färgaxeln på /färg|color|kulör/i). Färgen äger
+ * variantens bild, så den ligger först i varianten.
+ */
+const FARG_OPTION = /färg|color|kulör/i;
+const arFargOption = (o: Obj): boolean => FARG_OPTION.test(str(o.name));
+
+type Traff = { option: Obj; val: Obj };
+
+/** Variantens val med sin option och sitt val, i variantens egen ordning. */
+function valenAv(p: Obj, variant: Obj): Traff[] {
+  return lista(variant.choices)
+    .map((c) => hittaVal(p, c))
+    .filter((t): t is Traff => t !== null);
+}
+
+/** Skrivordningens rang för ett val: färgoptionerna först, sedan optionernas egen ordning. */
+function rangAv(p: Obj, t: Traff): number {
+  const optioner = optionerAv(p);
+  return (arFargOption(t.option) ? 0 : optioner.length) + optioner.indexOf(t.option);
+}
+
+/**
+ * Valen i skrivordningen. Det är ordningen valen får i varianten när vi
+ * skriver, och den Wix räknar variantens bild ur.
+ */
+function iSkrivordning(p: Obj, traffar: Traff[]): Traff[] {
+  return [...traffar].sort((a, b) => rangAv(p, a) - rangAv(p, b));
+}
+
+const lankade = (t: Traff): string[] => lista(t.val.linkedMedia).map(bildId).filter(Boolean);
+
+/**
+ * Bilden Wix ska ge varianten: första bilden i `linkedMedia` hos det FÖRSTA
+ * valet i skrivordningen som har kopplade bilder (färgen först, sedan
+ * optionernas ordning). Det är vad Wix räknar fram ur en namn-skrivning,
+ * också när flera vals listor överlappar: Wix tar ingen skärning (mätt
+ * 2026-10-23, se huvudet). Har bara ett val bilder är det självklart det
+ * (`val`), annars avgör ordningen (`forsta_val`).
  *
- * Ett tomt snitt (färgen och storleken pekar på helt olika bilder) ger ingen
- * förväntan alls. Det har inte setts i katalogen och vi vet inte vad Wix gör
- * då, så det rapporteras i stället för att gissas.
+ * Saknas kopplade bilder helt gäller produktens huvudbild.
  */
 export function forvantadBild(p: Obj, variant: Obj): Forvantan {
-  const listor: string[][] = [];
-  // Optionernas ordning, inte variantens: den avgör vilken lista som är "först".
-  const traffar = lista(variant.choices)
-    .map((c) => hittaVal(p, c))
-    .filter((t): t is { option: Obj; val: Obj } => t !== null)
-    .sort((a, b) => optionerAv(p).indexOf(a.option) - optionerAv(p).indexOf(b.option));
-  for (const t of traffar) {
-    const idn = lista(t.val.linkedMedia).map(bildId).filter(Boolean);
-    if (idn.length > 0) listor.push(idn);
-  }
+  const listor = iSkrivordning(p, valenAv(p, variant)).map(lankade).filter((l) => l.length > 0);
   if (listor.length === 1) return { bild: listor[0][0], kalla: "val" };
-  if (listor.length > 1) {
-    const forsta = listor[0].find((id) => listor.slice(1).every((l) => l.includes(id)));
-    return forsta ? { bild: forsta, kalla: "snitt" } : { bild: null, kalla: "inget_snitt" };
-  }
+  if (listor.length > 1) return { bild: listor[0][0], kalla: "forsta_val" };
   const huvud = bildId(obj(p.media).main);
   return huvud ? { bild: huvud, kalla: "huvudbild" } : { bild: null, kalla: "ingen_bild" };
+}
+
+/**
+ * Behöver varianternas val läggas färgen först? Bara när minst en variant har
+ * kopplade bilder hos flera av sina val: då avgör ordningen vilken bild Wix
+ * väljer. Annars rörs ordningen inte.
+ */
+function behovFargForst(p: Obj): boolean {
+  return varianterAv(p).some((v) => valenAv(p, v).filter((t) => lankade(t).length > 0).length > 1);
 }
 
 export interface VariantAvvikelse {
@@ -132,8 +186,8 @@ export interface VariantAvvikelse {
 export interface VariantbildLage {
   /** Varianter vars bild inte är den förväntade. */
   avvikande: VariantAvvikelse[];
-  /** Varianter utan förväntan (tomt snitt eller ingen bild alls). */
-  okanda: { variantId: string; namn: string; skal: "inget_snitt" | "ingen_bild" }[];
+  /** Varianter utan förväntan (ingen bild alls, varken på valen eller på produkten). */
+  okanda: { variantId: string; namn: string; skal: "ingen_bild" }[];
 }
 
 function variantNamn(v: Obj): string {
@@ -167,10 +221,29 @@ export function variantbildLage(p: Obj): VariantbildLage {
  *
  * Kastar om ett val saknar namn. Utan `VARIANT_OPTION_CHOICE_NAMES` i GET:en
  * saknas de, och en variant utan val hade skrivits över med fel kombination.
+ *
+ * ☠️ Har flera av variantens val kopplade bilder läggs färgen först i VARJE
+ * variant (`behovFargForst`), för Wix räknar variantens bild ur det första
+ * valet som har bilder. Optionerna skickas ordagrant som förut: det är
+ * variantens egen valordning som styr, inte optionernas. Annars rörs
+ * ordningen inte alls.
  */
 export function byggVariantbildKropp(p: Obj): Obj {
+  const fargForst = behovFargForst(p);
   const variants = varianterAv(p).map((v) => {
-    const choices = lista(v.choices).map((c) => {
+    const val = lista(v.choices);
+    // Valen i skrivordning (stabil): färgoptionerna först, sedan optionernas ordning.
+    // Ett val som inte hittas i optionerna behåller sin plats efter de andra.
+    const ordnade = fargForst
+      ? val
+        .map((c, i) => {
+          const t = hittaVal(p, c);
+          return { c, i, rang: t ? rangAv(p, t) : Number.MAX_SAFE_INTEGER };
+        })
+        .sort((a, b) => a.rang - b.rang || a.i - b.i)
+        .map((x) => x.c)
+      : val;
+    const choices = ordnade.map((c) => {
       const n = obj(c.optionChoiceNames);
       if (!str(n.optionName) || !str(n.choiceName)) {
         throw new Error(`varianten ${str(v.id)} saknar valnamn (hämtades GET:en utan VARIANT_OPTION_CHOICE_NAMES?)`);
@@ -239,11 +312,15 @@ export function produktAvtryck(p: Obj): Obj {
     // Efter id, inte position: samma varianter i annan ordning är ingen skada.
     varianter: [...varianterAv(p)].sort((x, y) => str(x.id).localeCompare(str(y.id))).map((v) => ({
       id: v.id,
-      val: lista(v.choices).map((c) => {
-        const ids = obj(c.optionChoiceIds);
-        const n = obj(c.optionChoiceNames);
-        return { optionId: ids.optionId, choiceId: ids.choiceId, optionName: n.optionName, choiceName: n.choiceName };
-      }),
+      // Valen som en mängd: ordningen läggs om med flit (färgen först), men
+      // vilka val varianten har ska stå still.
+      val: lista(v.choices)
+        .map((c) => {
+          const ids = obj(c.optionChoiceIds);
+          const n = obj(c.optionChoiceNames);
+          return { optionId: ids.optionId, choiceId: ids.choiceId, optionName: n.optionName, choiceName: n.choiceName };
+        })
+        .sort((x, y) => kanonisk(x).localeCompare(kanonisk(y))),
       sku: v.sku ?? null,
       pris: str(obj(obj(v.price).actualPrice).amount) || null,
       jamforpris: str(obj(obj(v.price).compareAtPrice).amount) || null,

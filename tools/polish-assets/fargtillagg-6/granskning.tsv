@@ -1,0 +1,120 @@
+sida	val	farg	pos	ocr	verdikt	skal
+4275e300	92fb97f1	Rosa	8	TEXT	struken	tysk säljgrafik
+4275e300	92fb97f1	Rosa	10	REN	vald	
+4275e300	eaae581f	Grön	8	TEXT	struken	tysk säljgrafik
+4275e300	eaae581f	Grön	9	TEXT	struken	tysk säljgrafik
+4275e300	eaae581f	Grön	10	REN	vald	
+477bcd1f	a2f396b7	Vit	9	TEXT	vald	texten på kannan och brickan är rekvisita
+477bcd1f	a2f396b7	Vit	10	TEXT	vald	texten på affischerna är rekvisita
+4871d041	14b99ed4	Grå	3	SIFFROR	struken	måttbilden anger höjden 102–119 cm och bredden 58 cm mot sidans 104,5–121,5 cm och 60 cm
+4871d041	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik
+4871d041	14b99ed4	Grå	10	REN	vald	
+4e619979	44ccec77	Brun	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+4e619979	44ccec77	Brun	8	TEXT	struken	tysk säljgrafik
+4e619979	44ccec77	Brun	9	TEXT	struken	tysk säljgrafik
+4e619979	44ccec77	Brun	10	REN	vald	
+4e619979	7909f4e8	Mörkgrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+4e619979	7909f4e8	Mörkgrå	8	TEXT	struken	tysk säljgrafik
+4e619979	7909f4e8	Mörkgrå	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+4e619979	7909f4e8	Mörkgrå	10	REN	vald	
+56bf5134	369894e9	Blå	3	TEXT	struken	tysk säljgrafik
+56bf5134	369894e9	Blå	8	TEXT	struken	tysk säljgrafik
+56bf5134	369894e9	Blå	9	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+56bf5134	369894e9	Blå	10	TEXT	vald	SPORT och RACING är dekorer på varan
+56bf5134	5aca9cb3	Röd	3	TEXT	struken	tysk säljgrafik
+56bf5134	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik
+56bf5134	5aca9cb3	Röd	10	TEXT	vald	SPORT och RACING är dekorer på varan
+58f8338d	44ecf674	Guld	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+58f8338d	44ecf674	Guld	8	REN	struken	fel färg: ramen är svart och fotot är samma som i en annan färgs vy
+58f8338d	44ecf674	Guld	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+58f8338d	44ecf674	Guld	10	REN	vald	
+67d2d4f6	eaae581f	Grön	3	TEXT	struken	tysk säljgrafik
+67d2d4f6	eaae581f	Grön	8	TEXT	vald	texten på kläderna är rekvisita
+67d2d4f6	eaae581f	Grön	9	TEXT	vald	dekorerna sitter på varan
+67d2d4f6	eaae581f	Grön	10	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+68e59405	14b99ed4	Grå	3	TEXT	struken	leverantörens logotyp (PawHut) över bilden
+68e59405	14b99ed4	Grå	8	REN	vald	
+68e59405	14b99ed4	Grå	10	REN	vald	
+68e59405	3699b1cb	Turkos	3	TEXT	struken	leverantörens logotyp (PawHut) över bilden
+68e59405	3699b1cb	Turkos	8	TEXT	struken	tysk säljgrafik
+68e59405	3699b1cb	Turkos	10	REN	vald	
+69716c9d	7909f4e8	Mörkgrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+69716c9d	7909f4e8	Mörkgrå	8	TEXT	struken	tysk säljgrafik
+69716c9d	7909f4e8	Mörkgrå	9	TEXT	struken	tysk säljgrafik
+69716c9d	7909f4e8	Mörkgrå	10	TEXT	vald	texten på brickan är rekvisita
+69716c9d	de0013f0	Krämvit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+69716c9d	de0013f0	Krämvit	8	TEXT	struken	tysk säljgrafik
+69716c9d	de0013f0	Krämvit	9	TEXT	struken	tysk säljgrafik
+69716c9d	de0013f0	Krämvit	10	REN	vald	
+6bcbaf32	9357a97e	Beige	3	TEXT	struken	tysk säljgrafik
+6bcbaf32	9357a97e	Beige	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+6bcbaf32	9357a97e	Beige	9	TEXT	vald	texten sitter på maskinens egen panel
+6bcbaf32	9357a97e	Beige	10	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+6bcbaf32	f4f0198e	Svart	3	TEXT	struken	tysk säljgrafik
+6bcbaf32	f4f0198e	Svart	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+6bcbaf32	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+6bcbaf32	f4f0198e	Svart	10	TEXT	vald	texten sitter på maskinens egen panel
+6eb13a16	a2f396b7	Vit	3	TEXT	struken	tysk säljgrafik med leverantörens logotyp
+6eb13a16	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+6eb13a16	a2f396b7	Vit	9	TEXT	struken	tysk säljgrafik
+6eb13a16	f4f0198e	Svart	3	TEXT	struken	tysk säljgrafik
+6eb13a16	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+6eb13a16	f4f0198e	Svart	9	TEXT	struken	tysk säljgrafik
+7f1a45a6	f4f0198e	Svart	3	TEXT	vald	märket sitter på ramen; talen stämmer med sidan (108–120 cm, 128 × 118 cm)
+7f1a45a6	f4f0198e	Svart	10	TEXT	vald	märket sitter på ramen
+81a7d7e4	5aca9cb3	Röd	3	TEXT	struken	tysk säljgrafik
+81a7d7e4	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik
+81a7d7e4	5aca9cb3	Röd	10	TEXT	vald	MOTOR är dekor på varan
+81a7d7e4	f4f0198e	Svart	3	TEXT	struken	tysk säljgrafik
+81a7d7e4	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+81a7d7e4	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+81a7d7e4	f4f0198e	Svart	10	TEXT	vald	MOTOR är dekor på varan
+843f5f29	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik
+843f5f29	5aca9cb3	Röd	10	TEXT	vald	modellplåten sitter på bilen
+843f5f29	a2f396b7	Vit	3	TEXT	vald	talen stämmer med sidan (107,5 × 64,5 × 47 cm)
+843f5f29	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+843f5f29	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+843f5f29	a2f396b7	Vit	10	REN	vald	
+8475ed8f	a2f396b7	Vit	3	SIFFROR	struken	måttbilden anger 50 × 18,6 × 12,9 cm mot sidans 54 × 18,7 × 12,3 cm
+8475ed8f	a2f396b7	Vit	8	REN	vald	
+8475ed8f	a2f396b7	Vit	9	REN	vald	
+8475ed8f	a2f396b7	Vit	10	TEXT	vald	texten är rekvisita
+8a7def5c	19924da5	Blågrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+8a7def5c	19924da5	Blågrå	8	TEXT	struken	tysk säljgrafik
+8a7def5c	19924da5	Blågrå	9	TEXT	struken	tysk säljgrafik
+8a7def5c	19924da5	Blågrå	10	REN	vald	
+8a7def5c	f7a7b46b	Ljusgrå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+8a7def5c	f7a7b46b	Ljusgrå	8	TEXT	struken	tysk säljgrafik
+8a7def5c	f7a7b46b	Ljusgrå	9	TEXT	struken	tysk säljgrafik
+8a7def5c	f7a7b46b	Ljusgrå	10	TEXT	vald	texten på bokryggen är rekvisita
+8ad1e003	a2f396b7	Vit	3	TEXT	struken	tysk säljgrafik
+8ad1e003	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+8ad1e003	a2f396b7	Vit	9	TEXT	struken	tysk säljgrafik
+8ad1e003	f4f0198e	Svart	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+8ad1e003	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+8ad1e003	f4f0198e	Svart	9	TEXT	struken	tysk säljgrafik
+8b42d5d1	92fb97f1	Rosa	3	TEXT	struken	tysk säljgrafik med viktgräns och åldersrekommendation
+8b42d5d1	92fb97f1	Rosa	8	TEXT	struken	engelsk säljgrafik
+8b42d5d1	92fb97f1	Rosa	9	REN	vald	
+8b42d5d1	92fb97f1	Rosa	10	TEXT	vald	AIYAPLAY är tryckt på sparkcykelns egen stång
+8f0a4df1	de0013f0	Krämvit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+8f0a4df1	de0013f0	Krämvit	8	REN	vald	
+8f0a4df1	de0013f0	Krämvit	9	REN	vald	
+8f0a4df1	de0013f0	Krämvit	10	REN	vald	
+92ef25c9	7e163e4c	Naturträ	3	SIFFROR	vald	talen stämmer med sidan (115 × 57 × 55 cm); fackens mått nämns inte i texten
+92ef25c9	7e163e4c	Naturträ	8	REN	vald	
+92ef25c9	7e163e4c	Naturträ	9	REN	vald	
+92ef25c9	7e163e4c	Naturträ	10	REN	vald	
+a8f46ff0	92fb97f1	Rosa	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+a8f46ff0	92fb97f1	Rosa	8	TEXT	struken	engelsk och tysk säljgrafik
+a8f46ff0	92fb97f1	Rosa	9	TEXT	struken	tysk säljgrafik
+a8f46ff0	92fb97f1	Rosa	10	TEXT	vald	märket sitter tryckt på studsmattan
+a8f46ff0	f4f0198e	Svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+a8f46ff0	f4f0198e	Svart	8	TEXT	struken	engelsk och tysk säljgrafik
+a8f46ff0	f4f0198e	Svart	9	TEXT	struken	tysk säljgrafik
+a8f46ff0	f4f0198e	Svart	10	TEXT	vald	märket sitter tryckt på studsmattan
+b10b80ee	cff714a2	Silver	8	TEXT	struken	tysk säljgrafik
+b10b80ee	cff714a2	Silver	9	REN	vald	samma scen som svarta versionens bild, men med silverfärgad soptunna
+b10b80ee	cff714a2	Silver	10	SIFFROR	vald	
+b10b80ee	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+b10b80ee	f4f0198e	Svart	10	REN	vald	

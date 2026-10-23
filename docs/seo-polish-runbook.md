@@ -451,7 +451,8 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
 1. **Leta efter ett foto i färgen.** För en AliExpress-sida läser du listningens SKU-bilder
    med workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
    Den startas av en push som ändrar `tools/ae-skubilder/kor.json` (`produkter`: högst tio
-   Wix-id, `kuvert`: din publika nyckel), och efter merge med `workflow_dispatch`. Svaret
+   Wix-id, `kuvert`: din publika nyckel), och sedan mergen av PR #749 (2026-10-21) också med
+   `workflow_dispatch` från `main`. Svaret
    är krypterat, eftersom bildadresserna är leverantörens. En Aosom-sida har inga
    SKU-bilder, så där söker du i feedens positioner och i syskonutkasten. Av de sex sidor
    Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
@@ -488,6 +489,16 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    klickar varje kombination i väljaren, både axlar och kort, och skriver galleriet per
    kombination. Väntar du inte ut butikens cache, som fylls på var femte minut efter en
    ändring, mäter du den gamla sidan.
+   Efter en sammanslagning mäts varje vy på samma sätt, för katalogkontrollen nedan ser bara varje
+   vals första bild: 2026-10-22 hade foton hamnat under fel färg eller storlek på fyra av sju
+   sammanslagna sidor. De länkas med `tools/polish-gates/bygg-lank.py` och `variantbild.yml`
+   (FLAGGADE, lärdom 135).
+   Kort och måttbilder är gemensamma enligt butikens regel (`arKort`) och visas som andra bild under varje färg, även när de
+   föreställer en annan färg: 2026-10-22 visade hundbäddens måttbild på den blå bädden under Brun, och agilityhindrets
+   träbågar under Grå. Leonard har fått frågan om sådana bilder ska länkas till sin egen färg (FLAGGADE, lärdom 147). Tills
+   han svarat är gemensamma måttbilder standard. Skumklossarnas `d70e483e` måttbild är länkad till sin färg som prov.
+   På fåtöljen `41395340` (T91) fick båda färgerna i stället var sin måttbild: givarens måttbild angav samma tal som sidans
+   text, så den togs med som sista bild och värdens egen länkades till värdens färg med `bygg-lank.py` (FLAGGADE, lärdom 149).
 5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
    `visible` per val, så hela katalogen går att kontrollera på en halv minut (62 sidor,
    `cursorPaging` inuti `search`). `tools/polish-gates/katalogkontroll-farger.js` (klistras
@@ -517,6 +528,14 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    annan belastning eller ett annat mått på samma del än sidan tas inte med (240 kg mot
    *100 kg per sits*, en trappa på 38 × 20 mot *38 × 22 × 12*); fler mått än texten (ett
    läge, ett fack) är ingen motsägelse. Har den redan skrivits tar `bilder-bort.yml` bort den.
+   **Efter skrivningen: mät varje färgvy live** (`live-par.sh`, `kolla-live-farg.py`,
+   `live-dubbletter.py`) och titta på alla vyer, inte bara antalet (`ocr-live.py` och
+   `live-vyer.py`, som ritar en rad per vy). En vy kan visa en bild på fel färg trots rätt
+   galleri: ett olänkat foto hör till den färg dess alt-text nämner, och på en sida med två
+   axlar styr även en länk på storleken. Då flyttar `lank-om-bilder.js` länkarna utan att röra
+   galleriet (se CLAUDE.md, *Feedomgång 4*), och `variantbild.yml` rättar varukorgens bild
+   efteråt. Kommer en färg att tappa bilder när felbilderna tas bort, kör `bilder-bort.yml`
+   först och `kandidater` om efteråt (`mal` = `wix-id:val-id`).
    På en AliExpress-sida görs det för hand med SKU-bilderna ur `ae-skubilder.yml`: importera
    filerna, skriv galleriet vid id, länka färgens bilder (`options` och `variantsInfo`
    ordagrant), kör `variantbild.yml` och mät live per färg med `live-galleri.mjs`. En bild som
@@ -614,6 +633,12 @@ kan belägga står inte på sidan.
 kontaktark per produkt i `ark/`. Titta på arket innan du skriver något. Bilderna visar vad
 varan är, hur många delar den har och hur den sitter ihop. Golvlampan `13a53d52` beskrevs
 till exempel med två skärmar utifrån källans två mått, men fotot visar en.
+
+**Svenska alt-texter säger inget om pixlarna.** En runda som bara byter alt-texter på en redan publicerad sida får ändå gå
+igenom hela galleriet: kör `tools/polish-gates/ocr-forgranska.py` (eller `ocr-live.py` mot de publicerade vyerna) över varje bild.
+2026-10-22 fann en OCR över 177 bilder på åtta sidor en tysk detaljbild och en leverantörslogotyp som legat ute länkade till
+färgval (T88, FLAGGADE, lärdom 141). De tas bort med `bilder-bort.yml` före bildplanen, och galleriet läses om innan
+alt-nycklarna byggs, eftersom bilderna efter en borttagen bild byter plats (lärdom 142).
 
 Position 1 är en vit studiobild och har aldrig behövt strykas (0 av 687 produkter i B- och
 N-rundorna), så arket räcker för den. Granska 2–5 i full upplösning i `orig/`. Siffror i en

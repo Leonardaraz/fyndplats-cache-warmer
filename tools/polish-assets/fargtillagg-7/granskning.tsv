@@ -1,0 +1,123 @@
+sida	val	farg	pos	ocr	verdikt	skal
+6f79738d	9357a97e	Beige	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+6f79738d	9357a97e	Beige	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+6f79738d	9357a97e	Beige	9	REN	vald	
+6f79738d	9357a97e	Beige	10	SIFFROR	vald	
+6f79738d	ed4879d1	Marinblå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+6f79738d	ed4879d1	Marinblå	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+6f79738d	ed4879d1	Marinblå	9	REN	vald	
+6f79738d	ed4879d1	Marinblå	10	REN	vald	
+74e737ee	66f3c08c	Antracit	3	TEXT	struken	tysk säljgrafik (Gesamtmaße, Hinweis)
+74e737ee	66f3c08c	Antracit	8	TEXT	struken	tysk säljgrafik (Atmen Sie frei)
+74e737ee	66f3c08c	Antracit	9	SIFFROR	struken	fel färg: skjulet på bilden är beige
+883db249	0d20fb2d	Orange	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+883db249	0d20fb2d	Orange	8	TEXT	struken	tysk säljgrafik
+883db249	0d20fb2d	Orange	9	TEXT	struken	tysk säljgrafik
+883db249	0d20fb2d	Orange	10	TEXT	vald	texten är dekor på varan
+883db249	a7a1041d	Gul	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+883db249	a7a1041d	Gul	8	TEXT	struken	tysk säljgrafik
+883db249	a7a1041d	Gul	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+883db249	a7a1041d	Gul	10	TEXT	vald	texterna sitter på varans egen panel
+883db249	eaae581f	Grön	8	TEXT	struken	engelsk säljgrafik
+883db249	eaae581f	Grön	10	TEXT	vald	texten är dekor på varan
+b3e20f91	5296267b	Natur	8	TEXT	struken	tysk säljgrafik
+b3e20f91	5296267b	Natur	9	TEXT	struken	tysk säljgrafik med leverantörens logotyp
+b3e20f91	5296267b	Natur	10	REN	vald	
+b920d526	5aca9cb3	Röd	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+c131b430	14b99ed4	Grå	3	SIFFROR	struken	måttbilden anger fotringens höjd 24–41 cm mot sidans 33–43 cm
+c131b430	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik
+c131b430	14b99ed4	Grå	10	REN	dubblett	samma bild som färgens nuvarande (nu)
+c131b430	f4f0198e	Svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+c131b430	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+c131b430	f4f0198e	Svart	10	TEXT	vald	texten på tidskrifterna är rekvisita
+c260245d	a2f396b7	Vit	3	TEXT	struken	tysk säljgrafik
+c260245d	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+c260245d	a2f396b7	Vit	10	REN	vald	
+c260245d	f4f0198e	Svart	3	TEXT	struken	tysk säljgrafik
+c260245d	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+c260245d	f4f0198e	Svart	10	REN	vald	
+c5f3914e	d57697c0	Grå och lila	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+c5f3914e	d57697c0	Grå och lila	8	TEXT	struken	tysk säljgrafik
+c5f3914e	d57697c0	Grå och lila	9	TEXT	struken	tysk säljgrafik
+c5f3914e	d57697c0	Grå och lila	10	REN	vald	
+c841717c	f4f0198e	Svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+c841717c	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+c841717c	f4f0198e	Svart	10	TEXT	vald	märket sitter på varans lock
+c88b22ce	7ce62df7	Genomskinlig	8	TEXT	struken	tysk säljgrafik
+c88b22ce	7ce62df7	Genomskinlig	9	TEXT	struken	leverantörens logotyp (Outsunny) och engelsk text
+c88b22ce	7ce62df7	Genomskinlig	10	REN	vald	
+cc974ed4	f4f0198e	Svart	3	SIFFROR	vald	talen stämmer med sidan (70 × 50 cm)
+cc974ed4	f4f0198e	Svart	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+cc974ed4	f4f0198e	Svart	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+d17733fd	a2f396b7	Vit	3	TEXT	struken	engelsk text (Note: Only cover included)
+d17733fd	a2f396b7	Vit	8	TEXT	struken	tysk text över bilden (Hinweis: Nur Abdeckung enthalten)
+d17733fd	a2f396b7	Vit	9	TEXT	struken	engelsk text (Note: Only cover included)
+d17733fd	a2f396b7	Vit	10	REN	vald	sidans text säger att bara duken ingår, och Gröns vy har motsvarande bild
+d27a28ae	14b99ed4	Grå	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+d27a28ae	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik
+d27a28ae	14b99ed4	Grå	9	TEXT	struken	tysk säljgrafik
+d27a28ae	14b99ed4	Grå	10	REN	vald	
+d3c91eb3	369894e9	Blå	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+d3c91eb3	369894e9	Blå	8	TEXT	struken	tysk text i bilden (Harmonische Beziehungen aufbauen)
+d3c91eb3	369894e9	Blå	9	TEXT	struken	tysk säljgrafik med leverantörens logotyp
+d3c91eb3	369894e9	Blå	10	REN	vald	
+d3c91eb3	a7a1041d	Gul	8	TEXT	struken	tysk text i bilden (Bauen Sie eine harmonische Beziehung auf)
+d3c91eb3	a7a1041d	Gul	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+d3c91eb3	a7a1041d	Gul	10	SIFFROR	vald	
+dab49bb1	14b99ed4	Grå	8	TEXT	struken	tysk säljgrafik
+dab49bb1	a2f396b7	Vit	3	TEXT	struken	tysk text (Hinweis, Schulterhöhe) i måttbilden
+dab49bb1	a2f396b7	Vit	9	REN	vald	
+dab49bb1	a2f396b7	Vit	10	REN	vald	
+df9475dc	369894e9	Blå	3	SIFFROR	vald	talen stämmer med sidan (83 × 35,3 × 76 cm)
+df9475dc	369894e9	Blå	8	SIFFROR	vald	texten på skruvmejslarna är rekvisita
+df9475dc	369894e9	Blå	10	TEXT	vald	texten på verktygen är rekvisita
+e0590577	369894e9	Blå	3	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e0590577	369894e9	Blå	8	TEXT	struken	tysk säljgrafik
+e0590577	369894e9	Blå	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e0590577	369894e9	Blå	10	TEXT	vald	BMW-märket och dekoren sitter på varan
+e0590577	5aca9cb3	Röd	3	TEXT	vald	talen stämmer med sidan (82,5 × 42 × 54 cm); märket sitter på varan
+e0590577	5aca9cb3	Röd	8	TEXT	struken	tysk säljgrafik
+e0590577	5aca9cb3	Röd	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e0590577	5aca9cb3	Röd	10	REN	vald	
+e6d2e70b	a2f396b7	Vit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+e6d2e70b	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+e6d2e70b	a2f396b7	Vit	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+e6d2e70b	a2f396b7	Vit	10	REN	vald	
+e6d2e70b	f4f0198e	Svart	8	?	struken	importen misslyckades hos Wix (FAILED), filen går inte att läsa
+e6d2e70b	f4f0198e	Svart	9	?	struken	importen misslyckades hos Wix (FAILED), filen går inte att läsa
+e6d2e70b	f4f0198e	Svart	10	REN	vald	
+e72638dd	92fb97f1	Rosa	3	SIFFROR	vald	talen stämmer med sidan (sitthöjd 40 cm)
+e72638dd	92fb97f1	Rosa	8	REN	vald	
+e72638dd	92fb97f1	Rosa	9	TEXT	vald	
+e72638dd	92fb97f1	Rosa	10	TEXT	vald	
+e7f69e8a	20ef7dad	Gräddvit	3	TEXT	struken	tysk säljgrafik
+e7f69e8a	20ef7dad	Gräddvit	8	TEXT	struken	tysk säljgrafik
+e7f69e8a	20ef7dad	Gräddvit	9	TEXT	struken	tysk och engelsk säljgrafik
+e7f69e8a	20ef7dad	Gräddvit	10	TEXT	vald	texten sitter på varans egna knappar
+e7f69e8a	f4f0198e	Svart	3	TEXT	struken	tysk text (Tassen, Familiengröße) i måttbilden
+e7f69e8a	f4f0198e	Svart	8	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e7f69e8a	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+e7f69e8a	f4f0198e	Svart	10	TEXT	vald	texten sitter på varans egna knappar
+f44642e5	5dd6f36d	Mörkbrun	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+f44642e5	5dd6f36d	Mörkbrun	8	TEXT	struken	tysk säljgrafik
+f44642e5	5dd6f36d	Mörkbrun	9	TEXT	struken	tysk säljgrafik
+f44642e5	5dd6f36d	Mörkbrun	10	REN	vald	
+f8a5196f	f4f0198e	Svart	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+f8a5196f	f4f0198e	Svart	8	REN	dubblett	samma bild som färgens nuvarande (nu)
+f8a5196f	f4f0198e	Svart	9	TEXT	vald	texten i bilden är små etiketter på rekvisita
+f8a5196f	f4f0198e	Svart	10	TEXT	vald	
+faa2bdb4	a2f396b7	Vit	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+faa2bdb4	a2f396b7	Vit	8	TEXT	struken	tysk text över bilden (Hinweis: Nur Folie-ohne Gestell)
+faa2bdb4	a2f396b7	Vit	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+faa2bdb4	a2f396b7	Vit	10	TEXT	struken	engelsk text (Note: Only cover included)
+faa2bdb4	eaae581f	Grön	3	SIFFROR	dubblett	samma bild som färgens nuvarande (nu)
+faa2bdb4	eaae581f	Grön	8	TEXT	struken	tysk text över bilden (Hinweis: Nur Folie-ohne Gestell)
+faa2bdb4	eaae581f	Grön	9	REN	dubblett	samma bild som färgens nuvarande (nu)
+faa2bdb4	eaae581f	Grön	10	TEXT	struken	engelsk text (Note: Only cover included)
+fc2b894a	a2f396b7	Vit	3	TEXT	struken	tysk säljgrafik
+fc2b894a	a2f396b7	Vit	8	TEXT	struken	tysk säljgrafik
+fc2b894a	a2f396b7	Vit	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)
+fc2b894a	a2f396b7	Vit	10	TEXT	vald	modellplåten sitter på bilen
+fc2b894a	f4f0198e	Svart	3	TEXT	struken	tysk säljgrafik
+fc2b894a	f4f0198e	Svart	8	TEXT	struken	tysk säljgrafik
+fc2b894a	f4f0198e	Svart	9	TEXT	dubblett	samma bild som färgens nuvarande (nu)

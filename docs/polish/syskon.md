@@ -232,4 +232,6 @@ Aosom-sida gör **"Bilder — fler bilder till en färg på en sammanslagen Aoso
 den nya bilden läggs efter färgens sista bild utan att något tas bort. På en AliExpress-sida
 skriver du galleriet och länkarna själv enligt stycket ovan. Strandparasollen `57988115` var
 piloten: Grön gick från två till fem bilder och Blå från fyra till sju, mätt live per färg.
-Se CLAUDE.md, *Färgval med få bilder*.
+Visar en färgvy en bild på fel färg trots rätt galleri flyttar
+`tools/polish-gates/lank-om-bilder.js` länkarna utan att röra galleriet (omgång 4: minivästhuset
+`4a01e8d0` och skrivbordet `3b868848`). Se CLAUDE.md, *Färgval med få bilder*.

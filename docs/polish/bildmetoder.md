@@ -93,6 +93,25 @@ Kontrollen i efterhand gav nio äldre utsnitt där varan kapas i kvadraten: `4d8
 `80512112` 3, `08dba609` 10 och `bb7853f1` 10. De två sista går att skära om till en kvadrat
 med hela skåpet. De andra sju går inte utan att texten kommer tillbaka.
 
+### Förslag på utsnitt ur bilder som ströks för text (`krop-forslag.py`, 2026-10-22)
+
+`tools/polish-gates/krop-forslag.py <boxar.txt> <lista.json> <ut-katalog> [min-andel]` föreslår kvadratiska utsnitt ur bilder som ströks automatiskt för textyta, så att en färgvy på tre bilder eller färre
+kan få en bild till. Indata är `ocr-boxar.py <lista.json>` (textrutornas kanter per bild) och listan `[[sida8, val8, pos, fil], …]`. För varje bild letas den största kvadrat som är minst `min-andel` (0,5) av kortsidan och
+som inte rör någon textruta (20 pixlars marginal), högst tre förslag per bild som överlappar högst hälften. Skriptet väljer ingenting: det skriver kontaktark (`ark_NN.jpg`, originalet med utsnittet inramat bredvid utsnittet) och
+`forslag.json`, och en människa tittar på varje utsnitt. Resten av vägen är samma som ovan (`farg-krop.py lokala`, `url`, uppladdning i ETT anrop, `para`, `farg-tillagg.py`, `aosom-fargtillagg.yml` `plan_och_skriv`, live och skyddskoll).
+
+Utfall i omgång 22 (`tools/polish-assets/fargtillagg-22/`): 229 bilder, 154 förslag på 153 bilder, **tolv höll (8 %)**. Det som avgör:
+
+1. ☠️ **Ett förbehåll i bildens text stryker bilden.** En bild vars text bär *Hinweis*, *Nur*, *ohne*, *only*, *nicht enthalten*, *Zubehör* eller liknande tas inte med. Utsnittet hade klippt bort förbehållet och lämnat en bild
+   som lovar mer än sidan säljer (ersättningsduken till ett tunnelväxthus visas som ett helt växthus).
+2. ☠️ **OCR ser inte infografikens pekare.** En brun prick med streckad linje, som pekar ut en funktion, satt kvar vid vattenkokarens handtag i varje utsnitt (`bc2368af`). Samma sak gäller grafik som ligger över själva fotot
+   (*2200 W* med lågor över kokaren): den ligger inne i varans yta, så ingen kvadrat kan undvika den.
+3. ☠️ **Titta på utsnittets övre och undre kant i full storlek.** Hundtrappans utsnitt började 12 pixlar in i de tre små miniatyrernas vita ram, som OCR inte läser som text (`2166c50f`, flyttat från y 825 till 860).
+4. ⚠️ **Varans bredd mot den lediga höjden.** Under en rubrik ryms bara en kvadrat vars sida är bildens höjd minus lägsta textruta minus marginalen. Ett skjul på 1 400 pixlar i en bild med 1 457 pixlars ledig höjd kräver
+   att kvadraten är så stor som möjligt och flyttas i sidled tills hela skjulet ryms, även om cykelns framhjul då kapas (`834c66fd`). Cykelkärran `571e37bf` behövde `y` 520 och sidan 1 340 för att hjulen skulle rymmas.
+
+Ett utsnitt lyfter en vy från tre bilder till fyra och inte längre (en bild per färg och källbild), så metoden hjälper inte vyer som redan står på fyra utan att position 4–7 hämtas för dem först.
+
 ## Textborttagning (T) – tvätta loggor och inbränd text
 
 
@@ -561,6 +580,20 @@ Texten grindas alltså av `gate-kort.py` som spec-korten. Exempel:
   ovanför den: gokartarnas bälte låg först under etiketten, och utsnittet fick flyttas.
 - Etiketten säger bara det sidans text säger om delen (ratten har tuta och musik,
   bakhjulet är Ø 28 cm).
+
+
+### Ett kort per storlek på en sida med två val (2026-10-23)
+
+En måttbild som visar EN färg i EN storlek går inte att visa rätt på en sida med färg × storlek. Butikens vy är unionen av bilder utan ägare och bilder som ägs av de valda valen, så bilden visas under varje färg i
+storleken eller varje storlek i färgen. Det som går är ett **färgneutralt kort per storlek**, länkat till storleken (`bygg-agare.py`), med hela varan i hjältebilden och sidans egna tal i tabellen.
+
+- **Hjältebilden** av flera färger byggs med `tools/polish-gates/komponera-hjalte.py <ut.jpg> <rader> <bild…>` (`2,2` är två rader med två packshots, `--fyll` och `--trosk` styr storlek och vitrensning). Packshotsen ska ha
+  vit bakgrund, och skriptet avbryter hellre än gissar när en ruta saknar vara. Resultatet läggs i rundans `orig/<kort>.jpg` (checkas aldrig in) och byggs med `bygg-kort.py` i läget `foto`, med panelens proportion enligt tabellen ovan.
+- **Raderna** i `kort.tsv` hämtar talen ur sidans egen text (`kallor-tal.json`), enheterna skrivs som `&nbsp;<span class=u>cm</span>`, och `gate-kort.py` fäller på ett tal sidan inte bär och på en saknad eller felaktig
+  alt-text (`kortalt.tsv`). Skriver sidan flera storlekars värden på samma rad kvitteras raden i `kort-avvik.txt`, med skäl.
+- **Vidare:** `galleri-tillagg.js` (galleriet), `bygg-agare.py` (ägare), `bilder-bort.yml` (de gamla måttbilderna), `variantbild-farg.js` (varukorgens bild) och live-kontroll. Ordningen och skälen står i CLAUDE.md,
+  *Leonards svar på de sex frågorna*.
+- Ett kort för EN storlek visar bara den storleken. Ett kort som listar alla storlekar ska vara gemensamt, alltså olänkat.
 
 
 -----
