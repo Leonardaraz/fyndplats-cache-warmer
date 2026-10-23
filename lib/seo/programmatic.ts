@@ -27,6 +27,7 @@ import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
 import { getLocalPosts } from "../local-blog";
 import { buildBlogLinkIndex, type LinkingPost } from "./blog-link-index";
+import { listsidansItemList } from "./item-list";
 import typesJson from "./programmatic-types.json";
 import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
@@ -252,30 +253,9 @@ export type InterestView = {
 };
 
 // ── Schema-byggare ───────────────────────────────────────────────────────────
+// Bara länk och namn per rad, ingen varudata (lib/seo/item-list.ts).
 function itemListSchema(name: string, url: string, products: Product[]): object {
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name,
-    url,
-    numberOfItems: products.length,
-    itemListElement: products.map((p, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "Product",
-        name: p.name,
-        image: p.img || undefined,
-        url: `${SITE}/produkt/${p.slug}`,
-        offers: {
-          "@type": "Offer",
-          price: p.priceNum > 0 ? p.priceNum : undefined,
-          priceCurrency: p.currency || "SEK",
-          availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        },
-      },
-    })),
-  };
+  return listsidansItemList(SITE, name, url, products);
 }
 
 function faqSchema(faqs: { q: string; a: string }[]): object {
