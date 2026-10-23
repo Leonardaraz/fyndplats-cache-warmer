@@ -7,10 +7,31 @@
 .heroGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
 .betygKort{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 24px 26px;box-shadow:var(--e3)}
 
-.omdomen{background:var(--warm);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.sida .tack{max-width:60ch;margin:0 auto;text-align:center;font-size:var(--text-lg);line-height:1.6}
+/* Källan ovanför betyget: samma Google-G som sidfotens betygsbricka. */
+.kalla{display:inline-flex;align-items:center;gap:8px;margin-bottom:4px;padding:6px 14px;font-size:var(--text-xs);font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-pill);box-shadow:var(--e1)}
 
-.sida .tre{grid-template-columns:repeat(3,1fr)}
+.omdomen{background:var(--warm);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+/* Ingressen under en sektionsrubrik. .om-sektion p ger annars nedre marginal
+   och full bredd. */
+.sida .ingress{max-width:60ch;margin:12px 0 0}
+
+/* Visuell genomgång 2026-10-22: rubrikerna bryts jämnt i stället för att
+   lämna ett ensamt ord på sista raden ("Omdömen från våra / kunder"). */
+.sida :global(.om-hero) h1,.sida :global(.om-slut) p{text-wrap:balance}
+
+/* "Din upplevelse": Google och Trustpilot överst, kontakt och frågor under. */
+.sida .tva{grid-template-columns:repeat(2,1fr)}
+
+/* Knapparna i plattformskorten är lika breda och lika höga, så att Googles
+   knapp och Trustpilots ruta linjerar. 350 px är Trustpilot-rutans bredd på en
+   rad, och 52 px dess höjd. Ytan har widgetens höjd även när den är en vanlig
+   länk, så att sidan inte hoppar när länken byts mot rutan. */
+.sida .knapp,.sida .tpKnapp :global(.btn){width:100%;justify-content:center;min-height:52px;padding-top:0;padding-bottom:0}
+.sida .knapp,.sida .tpKnapp{align-self:flex-start;max-width:350px}
+.sida .tpKnapp{width:100%;min-height:52px;display:flex;align-items:center}
+.sida .tpKnapp :global(.tp-insamling){width:100%}
+.sida .textlank{color:var(--brand);font-weight:650;text-decoration:underline;text-underline-offset:3px}
 
 /* Ankaret i heron hoppar till omdömesrubriken; håll den fri från sidhuvudet. */
 .sida :global(#google-omdomen){scroll-margin-top:var(--ankare)}
@@ -19,6 +40,5 @@
   .heroGrid{grid-template-columns:1fr;gap:28px}
 }
 @media(max-width:760px){
-  .sida .tre{grid-template-columns:1fr}
-  .sida .tack{font-size:var(--text-base)}
+  .sida .tva{grid-template-columns:1fr}
 }

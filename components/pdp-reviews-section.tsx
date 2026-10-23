@@ -10,7 +10,8 @@
 // två låga mätningar i rad efter minst 2 s undviker att gömma i förtid medan
 // widgeten fortfarande bootstrappar; riktiga recensioner (>80px) avbryter direkt.
 import { useEffect, useRef, useState } from "react";
-import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
+import { TrustBox } from "./trustpilot";
+import { TRUSTBOX_TEMPLATES } from "../lib/trustpilot-profil";
 
 export function PdpReviewsSection({ businessUnitId, sku }: { businessUnitId: string; sku: string }) {
   const wrapRef = useRef<HTMLElement | null>(null);

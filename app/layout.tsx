@@ -21,6 +21,7 @@ import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
+import { TRUSTPILOT_PROFIL_URL } from "../lib/trustpilot-profil";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -108,6 +109,8 @@ const orgJsonLd = {
     "https://www.hitta.se/verksamhet/fyndplats-ctelcsyhi",
     "https://sodertalje.cylex.se/company/fyndplats-12359708.html",
     "https://moovitapp.com/index/sv/offentlig_transit-Fyndplats-Stockholm-site_256953464-1083",
+    // Trustpilot-profilen, som omdömessidan länkar till (2026-10-22).
+    TRUSTPILOT_PROFIL_URL,
   ],
   contactPoint: [
     {

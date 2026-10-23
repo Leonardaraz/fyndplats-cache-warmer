@@ -1615,7 +1615,7 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .prose li{font-size:var(--text-base);line-height:1.6;color:#3f3a34}
 /* Brödtextlänkar. Färgen var --orange (#F47A35), vilket ger 2,5:1 mot cream —
    underkänt mot WCAG AA:s 4,5. var(--brand) ger 4,8:1 och används redan på sajten
-   (.greviews-more, auktionens --a-accent), så det är samma varumärkeston.
+   (.btn-primary, auktionens --a-accent), så det är samma varumärkeston.
    Understrykningen är inte dekoration: länk mot brödtext ligger på 2,2:1, och
    när färgskillnaden är så svag krävs en markör som inte är färg (WCAG 1.4.1).
    Utan den är länkarna i praktiken osynliga för färgblinda läsare — och det är
@@ -1760,68 +1760,45 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 @keyframes glowPulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:.8;transform:translate(-50%,-50%) scale(1.14)}}
 @keyframes cardSheen{0%{opacity:0;transform:translateX(-130%) skewX(-18deg)}14%{opacity:.5}45%,100%{opacity:0;transform:translateX(240%) skewX(-18deg)}}
 
-/* Premium Google-omdömen (/omdomen) */
-.greviews{position:relative;margin-top:34px}
+/* Google-omdömen (/omdomen). Visuell genomgång 2026-10-22: utan rullande band,
+   avatarstapel, betygsruta och 3D-lutning. Rubriken ligger i sidan. */
+.greviews{position:relative}
 .greviews-aurora{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;border-radius:var(--r-lg)}
 .greviews-aurora::before,.greviews-aurora::after{content:"";position:absolute;width:48%;height:55%;border-radius:50%;filter:blur(72px);opacity:.26}
 .greviews-aurora::before{top:-8%;left:-6%;background:radial-gradient(circle,rgba(244,122,53,.55),transparent 70%);animation:auroraA 17s ease-in-out infinite}
 .greviews-aurora::after{bottom:-10%;right:-6%;background:radial-gradient(circle,rgba(224,162,26,.3),transparent 70%);animation:auroraB 21s ease-in-out infinite}
-.greviews-marquee,.greviews-topproof,.greviews-title,.greviews-grid,.greviews-actions,.greviews-disclaimer{position:relative;z-index:1}
+.greviews-grid,.greviews-actions,.greviews-disclaimer{position:relative;z-index:1}
 @keyframes auroraA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(42px,30px) scale(1.12)}}
 @keyframes auroraB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-38px,-26px) scale(1.1)}}
 
-/* Wall of love-marquee */
-.greviews-marquee{overflow:hidden;margin:0 0 16px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
-.greviews-track{display:flex;gap:12px;width:max-content;animation:marquee 44s linear infinite}
-.greviews-marquee:hover .greviews-track{animation-play-state:paused}
-.greviews-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 16px 6px 6px;box-shadow:var(--e1);white-space:nowrap;font-size:var(--text-xs)}
-.greviews-chipav{flex:none;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:var(--text-xs)}
-.greviews-chipname{font-weight:700;color:var(--ink)}
-.greviews-chipstars{color:var(--gold);letter-spacing:.5px;font-size:var(--text-xs)}
-.greviews-chipquote{color:var(--soft);max-width:260px;overflow:hidden;text-overflow:ellipsis}
-@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* Topp-proof: avatar-stack + summering */
-.greviews-topproof{display:flex;flex-direction:column;align-items:center;gap:10px}
-.greviews-stack{display:inline-flex;align-items:center}
-.greviews-stackav{flex:none;width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:var(--text-xs);border:2px solid #fff;box-shadow:var(--e2);margin-left:-10px}
-.greviews-stackav:first-child{margin-left:0}
-.greviews-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;width:fit-content;max-width:100%;margin:0 auto;font-size:var(--text-sm);color:var(--ink);background:linear-gradient(135deg,#fff,var(--warm));border:1px solid var(--line);border-radius:var(--r-lg);padding:12px 20px;box-shadow:var(--e2)}
-.greviews-badge{display:inline-flex;align-items:center;gap:8px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 13px;box-shadow:var(--e1)}
-.greviews-avg{font-size:var(--text-xl);font-weight:800;color:var(--ink)}
-.greviews-of{color:var(--soft);font-size:var(--text-sm);font-weight:600}
-.greviews-verified{display:inline-flex;align-items:center;gap:6px;color:#2e7d32;font-weight:600;font-size:var(--text-xs)}
-.greviews-verified::before{content:"✓";font-weight:800}
-.greview-stars{color:var(--gold);letter-spacing:1px;white-space:nowrap}
+.greview-stars{color:var(--gold);letter-spacing:1px;white-space:nowrap;font-size:var(--text-sm)}
 .greview-stars-empty{color:#e3dcd1}
-.greviews-title{text-align:center;font-family:var(--font-display),Georgia,serif;font-size:clamp(23px,3vw,32px);font-weight:600;letter-spacing:-.018em;margin:18px 0 26px}
-.greviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;list-style:none;margin:0;padding:0}
+.greviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;list-style:none;margin:0;padding:0}
 
-/* Kort: 3D-tilt + scroll-reveal */
-.greview-card{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 20px 20px;box-shadow:var(--e2);transition:box-shadow .3s,border-color .3s,transform .2s ease-out;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
-.greview-card.is-armed{opacity:0;transform:perspective(900px) translateY(28px)}
+/* Kort: scroll-reveal, en enhetlig avatar i husets ton i stället för slumpade
+   färger, och källan i en fot som linjerar med grannkortens. */
+.greview-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:24px 24px 18px;box-shadow:var(--e1);transition:box-shadow .3s,border-color .3s}
+.greview-card.is-armed{opacity:0;transform:translateY(16px)}
 .greview-card.is-show{animation:greviewIn .6s cubic-bezier(.2,.7,.2,1) backwards}
-.greview-card::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--brand),#F47A35,var(--gold));transform:scaleX(0);transform-origin:left;transition:transform .35s ease;z-index:2}
-.greview-card:hover{border-color:rgba(244,122,53,.5);box-shadow:var(--e4)}
-.greview-card:hover::before{transform:scaleX(1)}
-.greview-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
-.greview-avatar{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;box-shadow:0 3px 8px rgba(0,0,0,.18),inset 0 0 0 2px rgba(255,255,255,.25);user-select:none}
-.greview-who{display:flex;flex-direction:column;min-width:0;flex:1}
+.greview-card:hover{border-color:rgba(194,65,12,.28);box-shadow:var(--e3)}
+.greview-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.greview-avatar{flex:none;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--warm);border:1px solid rgba(194,65,12,.18);color:var(--brand);font-weight:800;font-size:var(--text-base);user-select:none}
+.greview-who{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .greview-name{font-weight:700;font-size:var(--text-sm);color:var(--ink);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.greview-meta{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:var(--text-xs)}
-.greview-date{color:var(--soft);font-size:var(--text-xs)}
-.greview-gicon{flex:none;margin-top:2px;opacity:.92}
+.greview-foot{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:var(--text-xs);font-weight:600;color:var(--soft)}
+.greview-gicon{flex:none;display:inline-flex}
+.greview-date{font-weight:500}
 /* white-space:pre-line bär kundens EGNA styckeindelning. Google-omdömen är
    nästan alltid ett stycke, men inte alla: Sigvard Åbergs (2026-09-04) är
    tre, och utan regeln hade de kollapsat till en enda vägg av text. pre-line
    bevarar radbrytningar men slår ihop mellanslag, så ett ensamt stycke ser
    exakt likadant ut som förut. */
-.greview-text{margin:0;font-size:var(--text-sm);line-height:1.6;color:var(--ink);white-space:pre-line}
+.greviews .greview-text{margin:0 0 18px;font-size:var(--text-base);line-height:1.65;color:var(--ink);white-space:pre-line}
 /* Kundbilder under omdömet (lib/curated-reviews → photos). Kvadratiska
    miniatyrer i en lugn remsa: bilderna ska stödja texten, inte konkurrera med
    den. Bildtexten säger vems bilderna är — utan den läses de som våra egna
    produktfoton, och det vore att ta åt sig äran för kundens bevis. */
-.greview-photos{margin:14px 0 0;display:flex;flex-direction:column;gap:7px}
+.greview-photos{margin:0 0 18px;display:flex;flex-direction:column;gap:7px}
 .greview-photostrip{display:flex;gap:8px;flex-wrap:wrap}
 .greview-photo-btn{padding:0;border:0;background:none;line-height:0;cursor:zoom-in;border-radius:var(--r-sm)}
 .greview-photo-btn:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
@@ -1832,16 +1809,10 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .greview-photo-btn:hover .greview-photo{transform:scale(1.06)}
 @media (prefers-reduced-motion:reduce){.greview-photo{transition:none}.greview-photo-btn:hover .greview-photo{transform:none}}
 .greview-photonote{font-size:var(--text-xs);color:var(--soft)}
-.greviews-actions{text-align:center;margin-top:28px}
-.greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:var(--r-pill);background:linear-gradient(135deg,var(--orange-fill),#9E320A);color:#fff;font-size:var(--text-sm);font-weight:700;cursor:pointer;box-shadow:var(--e2);transition:transform .2s,box-shadow .2s,filter .2s}
-.greviews-more::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .55s ease}
-.greviews-more:hover{transform:translateY(-2px);box-shadow:var(--e3);filter:brightness(1.05)}
-.greviews-more:hover::after{left:130%}
-.greviews-more:active{transform:translateY(0)}
-.greviews-disclaimer{margin:24px auto 0;text-align:center;font-size:var(--text-xs);line-height:1.6;color:var(--soft);max-width:620px}
-.greviews-disclaimer a{color:var(--brand);font-weight:600;white-space:nowrap}
+.greviews-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 28px;margin-top:32px}
+.greviews .greviews-disclaimer{margin:20px auto 0;text-align:center;font-size:var(--text-xs);line-height:1.6;color:var(--soft);max-width:620px}
 @media(prefers-reduced-motion:reduce){
-  .ratingbig,.ratingstars .rstar,.ratingstars.is-done .rstar,.greview-card.is-show,.ratinghero::before,.greviews-track,.greviews-aurora::before,.greviews-aurora::after{animation:none}
+  .ratingbig,.ratingstars .rstar,.ratingstars.is-done .rstar,.greview-card.is-show,.ratinghero::before,.greviews-aurora::before,.greviews-aurora::after{animation:none}
 }
 
 /* Crawlbart A–Ö-produktindex (ren text — ger svansprodukterna interna länkar
@@ -3177,10 +3148,6 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
 .om-kontakt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .om-kontakt{padding:26px 24px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
 .om-kontakt h3{font-size:var(--text-xs);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin-bottom:12px}
-/* Omdömessektionen ligger i .om-sektion, vars h2/p annars skriver över
-   recensionskomponentens marginaler och fotnot. Rubriken följer sidans typsnitt. */
-.om-sektion .greviews-title{font-family:inherit;font-weight:800;letter-spacing:-.025em;margin:18px 0 26px}
-.om-sektion .greviews-disclaimer{margin:24px auto 0;font-size:var(--text-xs);line-height:1.6;color:var(--soft)}
 .om-kontakt a{color:var(--ink);font-weight:650}
 .om-kontakt a:hover{color:var(--brand)}
 .om-not{font-size:var(--text-sm)!important;color:var(--soft)!important;margin:0!important}
