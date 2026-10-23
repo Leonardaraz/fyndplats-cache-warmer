@@ -3276,7 +3276,7 @@ på fyra bilder eller färre och ingen på färre än tre.
 
 ☠️ **Ett mått som kräver ett visst optionnamn mäter namnet, inte katalogen.** Räkna alltid de sidor ett mått hoppar över.
 
-Öppet hos Leonard (PR #762, Väntar på Leonard): de 15 AliExpress-sidorna med överlappande länkar. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
+Öppet hos Leonard (PR #762:s lista *Väntar på Leonard*, mergad 2026-10-23): de 15 AliExpress-sidorna med överlappande länkar. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
 efter de två rättade) gick till Leonard som fil 2 i Cowork-uppdraget 2026-10-22 19:25 UTC, se nästa avsnitt. Detaljerna står i `tools/polish-gates/FLAGGADE.md`
 (lärdom 163 och 164).
 
@@ -3793,8 +3793,11 @@ Det första sätter butikens vymodell (en union) som gräns, det sista kräver a
 
 Leonard 2026-10-23, på frågan om motorn ska rätta de här sidorna av sig själv: *"Fixa alla frågor så proffsigt som möjligt"*. Varje id-skrivning på en sida med länkar på båda optionerna
 (`lank-om-bilder.js`, `avlank-delade.js`, `bilder-bort.yml`, färgbildsverktygen) nollställer variantbilden, och nattens `/api/cron/variantbild` såg det inte. Ändrat i `lib/wix/variant-media.ts`
-(PR #762, 53 tester, mutationsprövade). **Det gäller först när PR #762 är mergad**, eftersom cronen körs från `main`. Tills dess körs `variantbild-farg.js` efter varje sådan skrivning, och
-de 49 sidorna kan mätas om med samma skript i torrläge.
+(PR #762, 53 tester, mutationsprövade).
+
+✅ **Mergad 2026-10-23 04:25 UTC** (squash `048ac5b6`, Leonards *Merga*). Produktionsbygget `dpl_5F7P2hiFDGyysHLKBnRLAXt47wZR` blev READY efter ungefär 84 sekunder, och butiksprojektets bygge
+blev CANCELED med `#ignored-build-step`, så butikens ISR-cache rördes inte. Första nattkörningen på den nya koden är 05:35 UTC. ☠️ **Fönstret på upp till ett dygn finns kvar** mellan en
+galleri- eller länkskrivning och nästa 05:35: kör `variantbild-farg.js` (två optioner) eller `variantbild.yml` (`ids`) direkt efter en sådan skrivning som förut. Cronen är nätet under, inte ersättningen.
 
 ☠️ **Wix räknar ingen skärning, och det är mätt, inte antaget.** Motorn förväntade tidigare första bilden som ligger i ALLA valens listor. Ett prov på en dold testprodukt (raderades direkt, 404 efteråt) med
 **överlappande** listor: Färg Svart [X2, X1], Silver [Y2, Y1]; Storlek S [K1, X1], L [K2, Y1]. Skärningen för S × Svart är X1 och för L × Silver Y1.
@@ -3831,7 +3834,7 @@ synkfönster, och mätt live 04:01–04:10 UTC.
 | 2. dubbletter | **Hammocken:** de tre måttbilderna (en per färg, samma tal) är ersatta av två färgneutrala kort, `205 cm` och `177 cm`, med alla färger sida vid sida. **Odlingstunneln:** den vita 200-cm-bilden är borta, den gröna står kvar som storlekens enda. **Sensorsoptunnan:** silverbilden med 68 cm är borta, den svarta 42-litersbilden står kvar. |
 | 3. måttbilder som saknas | Ett kort per storlek, byggt ur sidans egen text: hammockens 177 cm, kantskyddens Ø305 och Ø366 och hundbäddens 107 × 61 × 20 cm. |
 | 4. vedbodens första bild under 150 cm × Mörkgrå | **Ingen ändring.** Bara 213 cm × Mörkgrå har lager (35 st, mätt 2026-10-23 04:0x UTC), och den varianten har rätt bild: färgens första foto, 213-cm-packshoten. 150 × Mörkgrå och 213 × Grön är slutsålda. Ett annat första foto för färgen hade gett den enda varan i lager en bild av fel storlek i varukorgen. |
-| 5. nattens variantbild | Motorn är ändrad (föregående avsnitt). Gäller först när PR #762 är mergad. |
+| 5. nattens variantbild | Motorn är ändrad (föregående avsnitt) och mergad 2026-10-23 (PR #762, squash `048ac5b6`). |
 | 6. gemensamma måttbilder under andra färger (lärdom 147) | **De får delas.** Skumklossarnas måttbild, som länkades till *Gul och grå* som prov 2026-10-22, är gemensam igen och visas under båda färgerna. |
 
 **Korten** ligger i `tools/polish-assets/runda-bilder-tva-axlar-kort/` (`kort.tsv`, fem kort, 1 600 × 1 600). Texten och talen kommer ur sidans egen text (`kallor-tal.json`, `<kort>.html`), och `gate-kort.py` fäller på ett tal
