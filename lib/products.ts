@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { categorySignalIsUsable, keepCategory, medForaldrar } from "./category-filter";
 import { imgKey } from "./image-alt";
-import { agareMedAltText } from "./variant-bilder";
+import { agareMedAltText, kopplingarPerOption, medAgareUrAltText, type Kopplingar } from "./variant-bilder";
 import { formatPrice } from "./price-range";
 import { clipText } from "./clip-text";
 import { hamtaAllaKategorier } from "./category-paging";
@@ -74,6 +74,10 @@ export type Product = {
   // En variant kan ha FLERA bilder (V3 linkedMedia är en lista) → används för att
   // markera ALLA den valda variantens bilder i galleriet. Tom = ingen koppling.
   imageOwners?: Record<string, string>;
+  // Alla kopplingar per bild: fil-id → en etikettlista per option som kopplar
+  // bilden (lib/variant-bilder.ts, Kopplingar). En bild kopplad till både en
+  // färg och en storlek visas bara för den kombinationen. Tom = ingen koppling.
+  imageKopplingar?: Kopplingar;
   // Wix alt-texter per bild: mediaKey (fil-id) → altText. Nycklas på fil-id
   // (INTE parallell array) eftersom galleriet dedupas, kapas och kan ersättas av
   // V3-varianten — en index-baserad lista skulle glida isär. Samma mönster som
@@ -196,13 +200,21 @@ function ownerMediaKey(url: string): string {
 // i galleriet när varianten väljs. Etiketten normaliseras med swedishChoiceValue
 // så den matchar väljarens visningsetikett. Första vinnaren per bild behålls (en
 // bild som råkar delas av två val tillskrivs det första). Fail-open: {} utan nyckel.
-async function fetchV3ImageOwners(productId: string): Promise<Record<string, string>> {
+// `etikett` gör om valets namn i Wix till väljarens etikett: swedishChoiceValue på
+// en sida med ett val (väljaren översätter), namnet som det är på en sida med två
+// val (väljaren visar V3-namnen). Med swedishChoiceValue på en sida med två val
+// fick projektorduken ägaren "85 tum (216 cm)" medan väljaren sade "85 tum", och
+// storlekarnas bilder visades aldrig.
+async function fetchV3ImageOwners(
+  productId: string,
+  etikett: (namn: string) => string = swedishChoiceValue,
+): Promise<Record<string, string>> {
   const product = await fetchV3ProductRaw(productId);
   if (!product) return {};
   const out: Record<string, string> = {};
   for (const opt of product.options || []) {
     for (const ch of opt?.choicesSettings?.choices || []) {
-      const label = ch?.name ? swedishChoiceValue(ch.name) : "";
+      const label = ch?.name ? etikett(ch.name) : "";
       if (!label) continue;
       for (const lm of ch?.linkedMedia || []) {
         const url = lm?.image?.url;
@@ -213,6 +225,27 @@ async function fetchV3ImageOwners(productId: string): Promise<Record<string, str
     }
   }
   return out;
+}
+
+// Alla kopplingar per bild (lib/variant-bilder.ts, kopplingarPerOption), med
+// samma etiketter som fetchV3ImageOwners. Delar det cache:ade V3-anropet.
+// Fail-open: {} utan nyckel eller data.
+async function fetchV3Kopplingar(
+  productId: string,
+  etikett: (namn: string) => string = swedishChoiceValue,
+): Promise<Kopplingar> {
+  const product = await fetchV3ProductRaw(productId);
+  if (!product) return {};
+  type V3Val = { name?: string; linkedMedia?: { image?: { url?: string } }[] };
+  const optioner: { choicesSettings?: { choices?: V3Val[] } }[] = product.options || [];
+  return kopplingarPerOption(
+    optioner.map((opt) =>
+      (opt?.choicesSettings?.choices || []).map((ch) => ({
+        etikett: ch?.name ? etikett(ch.name) : "",
+        bilder: (ch?.linkedMedia || []).map((lm) => lm?.image?.url || "").filter(Boolean),
+      })),
+    ),
+  );
 }
 
 // Per-variant pris/-id autentiserat från V3 (delar cachead hämtning med bilderna).
@@ -826,7 +859,8 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // markera ALLA den valda variantens bilder i galleriet. Delar cache:ade V3-
         // anropet. Fail-open: {} om nyckel/data saknas → ingen markering, allt annat
         // oförändrat.
-        prod.imageOwners = await fetchV3ImageOwners(prod.id);
+        const etikett = (prod.variantAxes?.length ?? 0) >= 2 ? (namn: string) => namn : swedishChoiceValue;
+        prod.imageOwners = await fetchV3ImageOwners(prod.id, etikett);
         // Sammanslagna färger har oftast bara EN länkad bild per val. Olänkade
         // bilder vars alt-text nämner exakt en av färgerna tillskrivs den, så
         // galleriet kan visa varje färgs egna bilder (lib/variant-bilder.ts).
@@ -843,6 +877,10 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
             huvudbild: prod.img,
           });
         }
+        // Alla kopplingar, med ägarna ur alt-texten för de okopplade bilderna.
+        // Galleriet visar en bild kopplad till färg OCH storlek bara för den
+        // kombinationen (components/productview.tsx).
+        prod.imageKopplingar = medAgareUrAltText(await fetchV3Kopplingar(prod.id, etikett), prod.imageOwners);
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }

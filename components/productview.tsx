@@ -2,7 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { forvarmKundvagn, useCart } from "./cart";
 import { Gallery } from "./gallery";
-import { synligaBilder } from "../lib/variant-bilder";
+import { synligaBilder, synligaBilderForKombination, type Kopplingar } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
@@ -281,6 +281,7 @@ export function ProductView({
   variantAxes,
   variantTable,
   imageOwners,
+  imageKopplingar,
   imageAlts,
   category,
   priceNum,
@@ -305,6 +306,9 @@ export function ProductView({
   variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
   variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
   imageOwners?: Record<string, string>;
+  // Alla kopplingar per bild (lib/variant-bilder.ts): en bild kopplad till en färg
+  // OCH en storlek visas bara för den kombinationen. Saknas → imageOwners som förut.
+  imageKopplingar?: Kopplingar;
   // Wix alt-texter per bild (mediaKey → altText) — skickas vidare till Gallery.
   imageAlts?: Record<string, string>;
   category?: string;
@@ -394,7 +398,12 @@ export function ProductView({
   const valdaEtiketter = (
     multiAxis ? Object.values(picked) : hasImageVariants ? [imageChoices[sel]?.label] : []
   ).filter(Boolean) as string[];
-  const galleryImages = synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
+  // En bild som är kopplad till val i flera optioner syns bara när alla dess
+  // optioner har ett av dess val valt (imageKopplingar). Utan kopplingarna gäller
+  // en ägare per bild som förut.
+  const galleryImages = imageKopplingar
+    ? synligaBilderForKombination(allaBilder, imageKopplingar, valdaEtiketter, selectedVariantImage)
+    : synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
   const galleriFiltrerat = galleryImages !== allaBilder;
   // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
   // slide hittas även om variantens URL har andra transform-params). Saknas → 0.

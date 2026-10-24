@@ -4,7 +4,7 @@
 // i något gränssnitt, bara på fakturan. Därför låses den här.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fastProv, PROV_STORLEK, roterad } from "./warm-urval.ts";
+import { arSakerSlug, fastProv, kvarEfterPass, MAX_KVAR, MAX_LED, PROV_STORLEK, roterad, tolkaLed } from "./warm-urval.ts";
 
 const katalog = (n: number) => Array.from({ length: n }, (_, i) => `produkt-${i}`);
 
@@ -86,4 +86,94 @@ test("rotationen betar av hela katalogen över ett dygn", () => {
 test("rotationen tål tom och enradig katalog", () => {
   assert.deepEqual(roterad([], Date.now()), []);
   assert.deepEqual(roterad(["a"], Date.now()), ["a"]);
+});
+
+// ── Kedjan efter en deploy ────────────────────────────────────────────────
+//
+// 2026-10-23: körningen efter deployen värmde 1 824 av 5 092 sidor och sedan
+// inga fler, för provets egen hämtning värmde provet. Ett avbrutet pass lämnar
+// nu resten till ett led (ett POST till samma rutt), högst MAX_LED. Det som
+// låses här är att resten räknas exakt, att ett led bara kan värma säkra
+// produktsökvägar, och att kedjan räcker till katalogen men aldrig går vidare
+// efter MAX_LED.
+
+
+test("resten efter ett avbrutet pass är exakt det som inte hann hämtas", () => {
+  const ordning = katalog(10);
+  assert.deepEqual(kvarEfterPass(ordning, { ok: 3, fel: 1 }), ordning.slice(4), "fel räknas som hämtade, de görs inte om");
+  assert.deepEqual(kvarEfterPass(ordning, { ok: 10, fel: 0 }), []);
+  assert.deepEqual(kvarEfterPass(ordning, { ok: 0, fel: 0 }), ordning, "ett pass som inte hann börja lämnar allt");
+});
+
+test("en säker slug är en produktsökväg och inget annat", () => {
+  for (const ok of ["hundbadd-med-tak-76-cm-i-brun", "a", "kontorsstol-130-kg", "räksmörgås", "x".repeat(300)]) {
+    assert.ok(arSakerSlug(ok), ok);
+  }
+  for (const fel of ["", "..", ".", "a/b", "../admin", "a?b=1", "a#b", "a b", "a\tb", "%2Fadmin", "a\\b", "x".repeat(301), 7, null]) {
+    assert.ok(!arSakerSlug(fel), String(fel));
+  }
+});
+
+test("ett led tas emot bara med giltigt led-nummer och säkra slugs", () => {
+  assert.deepEqual(tolkaLed({ led: 1, kvar: ["a", "b"] }), { led: 1, kvar: ["a", "b"] });
+  assert.deepEqual(tolkaLed({ led: MAX_LED, kvar: ["a"] }), { led: MAX_LED, kvar: ["a"] });
+  for (const [namn, kropp] of [
+    ["null", null],
+    ["lista", [1, 2]],
+    ["led 0", { led: 0, kvar: ["a"] }],
+    ["led över taket", { led: MAX_LED + 1, kvar: ["a"] }],
+    ["led som text", { led: "1", kvar: ["a"] }],
+    ["led med decimaler", { led: 1.5, kvar: ["a"] }],
+    ["tom lista", { led: 1, kvar: [] }],
+    ["kvar som text", { led: 1, kvar: "a" }],
+    ["osäker slug", { led: 1, kvar: ["a", "../admin"] }],
+    ["en slug som inte är text", { led: 1, kvar: ["a", 3] }],
+  ] as const) {
+    assert.ok("fel" in tolkaLed(kropp), namn);
+  }
+});
+
+test("ett led tar högst MAX_KVAR sidor", () => {
+  assert.ok(!("fel" in tolkaLed({ led: 1, kvar: Array(MAX_KVAR).fill("a") })));
+  assert.ok("fel" in tolkaLed({ led: 1, kvar: Array(MAX_KVAR + 1).fill("a") }));
+});
+
+/** Kör kedjan på låtsas: varje körning hinner `kapacitet` sidor. */
+function kedja(n: number, kapacitet: number): { varmda: Set<string>; led: number; kvar: number } {
+  const varmda = new Set<string>();
+  const pass = (lista: readonly string[]) => {
+    const gjorda = lista.slice(0, kapacitet);
+    gjorda.forEach((s) => varmda.add(s));
+    return { ok: gjorda.length, fel: 0, avbruten: gjorda.length < lista.length };
+  };
+  const ordning = katalog(n);
+  let resultat = pass(ordning);
+  let rest = kvarEfterPass(ordning, resultat);
+  let led = 0;
+  while (resultat.avbruten && led + 1 <= MAX_LED) {
+    led++;
+    const kropp = tolkaLed(JSON.parse(JSON.stringify({ led, kvar: rest })));
+    assert.ok(!("fel" in kropp), "kroppen som kedjan själv bygger ska alltid tas emot");
+    resultat = pass(kropp.kvar);
+    rest = kvarEfterPass(kropp.kvar, resultat);
+  }
+  return { varmda, led, kvar: resultat.avbruten ? rest.length : 0 };
+}
+
+test("kedjan värmer hela katalogen från 2026-10-23", () => {
+  // 1 824 sidor per körning, uppmätt 01:15 UTC. Leden har 200 s i stället för
+  // 240 och räknas här lågt, till 1 400.
+  const k = kedja(5092, 1400);
+  assert.equal(k.varmda.size, 5092, "varje sida värms");
+  assert.equal(k.kvar, 0);
+  assert.ok(k.led <= 3, `fyra körningar räcker, fick ${k.led + 1}`);
+});
+
+test("kedjan stannar efter MAX_LED och säger hur många som blev kvar", () => {
+  const kapacitet = 1000;
+  const n = kapacitet * (MAX_LED + 1) + 500;
+  const k = kedja(n, kapacitet);
+  assert.equal(k.led, MAX_LED);
+  assert.equal(k.kvar, 500);
+  assert.equal(k.varmda.size, kapacitet * (MAX_LED + 1));
 });

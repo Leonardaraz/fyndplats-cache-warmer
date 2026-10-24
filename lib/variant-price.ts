@@ -28,6 +28,9 @@ export function formatSek(n: number): string {
   return SEK_FMT.format(n);
 }
 
+// Wix fil-id ur en bildadress, samma nyckel som galleriet (lib/variant-bilder.ts).
+const filId = (url: string): string => (url || "").match(/\/media\/([^/?]+)/)?.[1] || url || "";
+
 export type V3VariantData = {
   optionName: string;
   choices: {
@@ -131,6 +134,20 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
   // optionId → { namn, choiceId→namn, choiceId→bild }, samt axlarna i katalog-ordning.
   const optById: Record<string, { name: string; choiceName: Record<string, string>; choiceImage: Record<string, string> }> = {};
   const axes: { name: string; choices: { label: string; image: string }[] }[] = [];
+  // Alla kopplade bilder per val, och vilka val i varje option som kopplar en
+  // bild (fil-id). Läses även för dolda val, som galleriet gör.
+  const choiceImages: Record<string, string[]> = {};
+  const koppladTill: Record<string, Record<string, Set<string>>> = {};
+  for (const opt of options) {
+    if (!opt?.id) continue;
+    const perFil: Record<string, Set<string>> = (koppladTill[opt.id] ||= {});
+    for (const c of opt?.choicesSettings?.choices || []) {
+      if (!c?.choiceId) continue;
+      const urls: string[] = (c?.linkedMedia || []).map((m: { image?: { url?: string } }) => m?.image?.url || "").filter(Boolean);
+      choiceImages[c.choiceId] = urls;
+      for (const url of urls) (perFil[filId(url)] ||= new Set()).add(c.choiceId);
+    }
+  }
   for (const opt of options) {
     if (!opt?.id || !opt?.name) continue;
     const choiceName: Record<string, string> = {};
@@ -166,6 +183,11 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
     let colorImage = "";
     let firstImage = "";
     let ok = true;
+    // Variantens val per option, och kandidaterna till variantens bild: färgvalets
+    // kopplade bilder först, sedan övriga vals i variantens ordning.
+    const valPerOption: Record<string, string> = {};
+    const fargKandidater: string[] = [];
+    const ovrigaKandidater: string[] = [];
     for (const ch of v?.choices || []) {
       const oid = ch?.optionChoiceIds?.optionId;
       const cid = ch?.optionChoiceIds?.choiceId;
@@ -173,13 +195,38 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
       const name = o && cid ? o.choiceName[cid] : undefined;
       if (!o || !name) { ok = false; break; }
       choices[o.name] = name;
+      valPerOption[oid] = cid;
+      const arFarg = /färg|color|kulör/i.test(o.name);
+      (arFarg ? fargKandidater : ovrigaKandidater).push(...(choiceImages[cid] || []));
       const img = cid ? o.choiceImage[cid] || "" : "";
       if (img) {
-        if (!colorImage && /färg|color|kulör/i.test(o.name)) colorImage = img;
+        if (!colorImage && arFarg) colorImage = img;
         if (!firstImage) firstImage = img;
       }
     }
-    const image = colorImage || firstImage;
+    // En bild som är kopplad till val i flera optioner hör till just den
+    // kombinationen (lib/variant-bilder.ts, Kopplingar). Variantens bild är den
+    // kandidat som passar varianten i varje option som kopplar den och som är
+    // kopplad i flest optioner, i kandidatordning: bokhyllans bruna 136 cm får
+    // bilden som är kopplad till Rustik brun OCH 136 cm, inte färgens första
+    // (som visar 109 cm). Passar ingen gäller färgens första som förut.
+    let image = colorImage || firstImage;
+    let basta = 0;
+    for (const url of [...fargKandidater, ...ovrigaKandidater]) {
+      const k = filId(url);
+      let antal = 0;
+      let passar = true;
+      for (const [oid, perFil] of Object.entries(koppladTill)) {
+        const val = perFil[k];
+        if (!val) continue;
+        antal++;
+        if (!val.has(valPerOption[oid])) { passar = false; break; }
+      }
+      if (passar && antal > basta) {
+        basta = antal;
+        image = url;
+      }
+    }
     // Varianten måste täcka ALLA axlar för att kombinationen ska gå att matcha entydigt.
     if (!ok || Object.keys(choices).length !== axes.length) continue;
     const num = Number(v?.price?.actualPrice?.amount);

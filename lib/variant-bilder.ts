@@ -144,9 +144,98 @@ export function synligaBilder(
     return !o || valdaSet.has(o);
   });
   if (!synliga.length) return bilder;
-  if (!forst) return synliga;
+  return medForst(synliga, forst);
+}
+
+/** `forst` (valets huvudbild) först i listan, om den finns där. */
+function medForst(bilder: string[], forst?: string): string[] {
+  if (!forst) return bilder;
   const fk = imgKey(forst);
-  const i = synliga.findIndex((u) => imgKey(u) === fk);
-  if (i <= 0) return synliga;
-  return [synliga[i], ...synliga.slice(0, i), ...synliga.slice(i + 1)];
+  const i = bilder.findIndex((u) => imgKey(u) === fk);
+  if (i <= 0) return bilder;
+  return [bilder[i], ...bilder.slice(0, i), ...bilder.slice(i + 1)];
+}
+
+// ── Kopplingar per option (2026-10-23) ──────────────────────────────────────
+//
+// Wix kopplar bilder per val (linkedMedia), och samma bild kan kopplas till
+// val i flera optioner. Galleriet gav förut varje bild EN ägare, det första val
+// som kopplade den, och visade den när det valet var valt. En bild som visar en
+// viss kombination gick därför inte att visa bara där: bokhyllans stora hylla i
+// brunt syntes under båda höjderna så länge bilden var kopplad till färgen, och
+// under båda färgerna om den var kopplad till höjden (Leonard, 2026-10-23).
+//
+// Regeln nu: en bild syns när den, i VARJE option som kopplar den, är kopplad
+// till det valda valet. Inom en option räcker ett av valen. En bild som är
+// kopplad till Rustik brun och till 136 cm syns alltså bara för brun 136 cm, en
+// bild som bara är kopplad till färgen syns för färgens alla storlekar, och en
+// bild som är kopplad till två storlekar syns för båda. En sida där varje bild
+// har högst en koppling ser ut precis som förut.
+
+/**
+ * Bildens kopplingar: fil-id → en lista per option som kopplar bilden, med
+ * valens etiketter. [["Rustik brun och svart"], ["136 cm"]] är en bild av den
+ * bruna hyllan på 136 cm.
+ */
+export type Kopplingar = Record<string, string[][]>;
+
+/**
+ * Kopplingarna ur optionernas val. `optioner` har en lista per option med
+ * varje vals etikett och dess kopplade bilder (alla, i Wix ordning). Etiketten
+ * ska vara densamma som väljaren visar.
+ */
+export function kopplingarPerOption(
+  optioner: ReadonlyArray<ReadonlyArray<{ etikett: string; bilder: ReadonlyArray<string> }>>,
+): Kopplingar {
+  const ut: Kopplingar = {};
+  for (const val of optioner) {
+    const iOptionen: Record<string, string[]> = {};
+    for (const v of val) {
+      if (!v.etikett) continue;
+      for (const url of v.bilder) {
+        const k = imgKey(url);
+        if (!k) continue;
+        const lista = (iOptionen[k] ||= []);
+        if (!lista.includes(v.etikett)) lista.push(v.etikett);
+      }
+    }
+    for (const [k, etiketter] of Object.entries(iOptionen)) (ut[k] ||= []).push(etiketter);
+  }
+  return ut;
+}
+
+/**
+ * Kopplingarna kompletterade med ägarna ur alt-texten (agareMedAltText): en
+ * okopplad bild vars alt-text gav den en färg räknas som kopplad till färgen.
+ */
+export function medAgareUrAltText(kopplingar: Kopplingar, agare: Record<string, string>): Kopplingar {
+  const ut: Kopplingar = { ...kopplingar };
+  for (const [k, etikett] of Object.entries(agare)) {
+    if (!(k in ut) && etikett) ut[k] = [[etikett]];
+  }
+  return ut;
+}
+
+/**
+ * Galleriet för de valda etiketterna (en per option) enligt kopplingarna, med
+ * `forst` först. Samma reserv som synligaBilder: syns ingen kopplad bild för
+ * valet, eller blir listan tom, returneras hela listan oförändrad.
+ */
+export function synligaBilderForKombination(
+  bilder: string[],
+  kopplingar: Kopplingar | undefined,
+  valda: string[],
+  forst?: string,
+): string[] {
+  if (!kopplingar || !valda.length) return bilder;
+  const valdaSet = new Set(valda);
+  const passar = (u: string): boolean => {
+    const grupper = kopplingar[imgKey(u)];
+    return !grupper || grupper.every((etiketter) => etiketter.some((e) => valdaSet.has(e)));
+  };
+  const egna = bilder.some((u) => (kopplingar[imgKey(u)]?.length ?? 0) > 0 && passar(u));
+  if (!egna) return bilder;
+  const synliga = bilder.filter(passar);
+  if (!synliga.length) return bilder;
+  return medForst(synliga, forst);
 }

@@ -28,8 +28,10 @@ import { SITE } from "./site-urls";
 import { listaUrl, type ListNyckel } from "./list-key";
 // Provurvalet bor i en egen, beroendefri fil så node:test kan importera det —
 // den här modulen drar in site-urls, som testköraren inte kan ladda.
-import { fastProv, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
-export { fastProv, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad } from "./warm-urval";
+import { fastProv, MAX_LED, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
+export {
+  arSakerSlug, fastProv, kvarEfterPass, MAX_LED, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad, tolkaLed,
+} from "./warm-urval";
 
 
 
@@ -116,4 +118,46 @@ export async function katalogenArKall(
   );
   const missar = lagen.filter((l) => l === "MISS").length;
   return { kall: missar >= MISS_FOR_KALL, missar, av: urval.length };
+}
+
+/** Hur det gick att starta nästa led i en värmning (se warm-urval.ts, kedjan). */
+export type LedStart = "startat" | "sista-ledet" | "inte-produktion" | "ingen-hemlighet" | "nekat" | "fel";
+
+/**
+ * Starta nästa led i en värmning som inte hann klart: ett anrop till
+ * /api/cron/varm-katalogen med det som återstår i kroppen.
+ *
+ * Ledet svarar 202 direkt och värmer efter svaret (after()), så funktionen här
+ * väntar bara på kvittot. Två försök med två sekunders mellanrum; ett nekat svar
+ * (4xx) görs inte om, för det blir inte bättre.
+ *
+ * Bara i produktion, för ledet värmer produktionens sidor (SITE), och en preview
+ * har inte tömt dem.
+ */
+export async function startaLed(kvar: readonly string[], led: number): Promise<LedStart> {
+  if (led > MAX_LED) return "sista-ledet";
+  if (process.env.VERCEL_ENV !== "production") return "inte-produktion";
+  const hemlighet = process.env.CRON_SECRET;
+  if (!hemlighet) return "ingen-hemlighet";
+  for (let forsok = 1; forsok <= 2; forsok++) {
+    try {
+      const res = await fetch(`${SITE}/api/cron/varm-katalogen`, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${hemlighet}`,
+          "content-type": "application/json",
+          "user-agent": "fyndplats-warmer",
+        },
+        body: JSON.stringify({ led, kvar }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (res.status === 202) return "startat";
+      if (res.status < 500) return "nekat";
+    } catch {
+      /* nätfel eller timeout: ett försök till */
+    }
+    if (forsok === 1) await new Promise((r) => setTimeout(r, 2_000));
+  }
+  return "fel";
 }
