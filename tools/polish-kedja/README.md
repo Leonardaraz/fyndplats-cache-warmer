@@ -96,6 +96,8 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
    ExecuteWixAPI-koden (facit per sida, options, varianternas val, kompakt SEO och givarnas
    synlighet) som ska ge `N av N LIKA`. Live: `live_rund.sh <runda> <loggkatalog>` (kör
    `hamta-live.sh`, `livegrind.py` och `livekoll.py` i bakgrunden, 6–9 minuter).
+   Efter en sammanslagning läser `mkkompakt2.py --prefix --givarbilder …` värdens och givarens bilder
+   med alt-texter i ett anrop (T95: 3 av 3 LIKA).
    Efter en sammanslagning: mät vyerna (`live-par.sh`, eller `live-galleri.mjs` för en storlek),
    länka värdens olänkade foton till värdens val med `bygg-lank.py` så att varje val får minst
    fyra egna bilder (lärdom 135 och 180) och kör `variantbild.yml` med `ids` efteråt. Ett
@@ -177,6 +179,7 @@ körningar av samma workflowfil samtidigt.
 | `mall-n/` | N258 som mall för en ny sida, och N262 (`*_n262.*`) som mall för en runda med utsnitt av bilder |
 | `mall-rund/` | `mkrunda.py` och dess mallar (`rundlib.py`, `enheter_P.py`, `samla_P.py`, `bygg_givare_P.py`) och `exempel/` med T78, N287 och N288 som förlagor, T89 (fem hållna värdar med givare, riktade ersättningar och en givare med tysk säljgrafik som får feedens position 10) T90 (en värd utan optioner, där givarens måttbild lämnas) och T91 (en värd vars namn och adress bar färgen och döps om med 301, och där givarens måttbild tas med sist och värdens länkas till värdens färg) |
 | `mkkompakt.py` | återläsningskoden med options, varianternas val, kompakt SEO och givarnas synlighet, ur rundkatalogen |
+| `mkkompakt2.py` | självständig återläsningskod som inte behöver `mkaterlas3.py` (sökvägen till `polish-assets` är relativ till filen): `--prefix` för en sammanslagen värd (bara värdens egna bilder jämförs) och `--givarbilder <givarrunda>:<givare-id8>:<värd-id8>` som också jämför givarens fil-id och alt-texter efter värdens bilder (paras per fil, aldrig per plats), och varje variantrad säger vilken plats i galleriet variantens bild har. Två rundor med samma produkt: den sist angivna gäller. Skrevs för T95 (2026-10-24, lärdom 196) |
 | `live_rund.sh` | ISR-medveten livehämtning, `livegrind.py` och `livekoll.py` för en runda i bakgrunden |
 | `mall-t/` | T54 som mall för ett färg- eller storleksval på en publicerad sida, T65 (`*_t65.*`) för en värdtext byggd med riktade ersättningar, och T72 (`*_t72.*`) för en redan sammanslagen värd med givarens alt-texter |
 

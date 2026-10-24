@@ -2027,7 +2027,7 @@ på den gamla kroppen, eftersom den bar storleken i `fargUtkast`.
 | färg | färg + storlek (och sidans storlek) | storleksaxeln läggs till, de gamla varianterna får sidans storlek |
 | färg + storlek | färg + storlek | en variant till, nya val bara där värdet är nytt |
 
-Sex egenskaper som inte ska tas bort:
+Sju egenskaper som inte ska tas bort:
 
 1. ☠️ **Alla kombinationer behöver inte finnas.** Wix tillåter färre varianter
    än kombinationer (dokumenterat), och en kombination Aosom inte säljer ska inte
@@ -2058,6 +2058,14 @@ Sex egenskaper som inte ska tas bort:
    släppte igenom 93 tecken, så en för lång SKU föll först i `byt`, på en 400
    från Wix, efter att planen sett ren ut. Sedan 2026-09-27 fäller planen den
    (`sku_for_lang`), och SKU:n anges för hand.
+7. ☠️ **Sidans namn får inte bära ett värde sidan redan har på en axel, och
+   SKU:n får inte få artikelnummerform åt något håll.** Planen fäller
+   `namnet_bar_farg` och `namnet_bar_storlek` när namnet innehåller ett av
+   axelns värden som helt ord ("grönt" är inte "grön"), och `sku_ogiltig` på
+   formen tre tecken, bindestreck, tre eller fler tecken med en siffra, både för
+   `vit-170` och `445-vit`. Sätt `-cm-` mellan måttet och färgen. Kör `plan` på
+   sammanslagningen FÖRE värdrundan skrivs: T95 (2026-10-24) behövde en extra
+   runda (T95b, bara ett nytt namn) för att växthusets namn bar sidans storlek.
 
 ☠️ **En färg utan kopplad bild stoppar mappningen (2026-09-27).** Återläsningen
 försöker koppla valens bilder åtta gånger. Tidigare varnade den sedan
