@@ -1,0 +1,47 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "365c129e": {
+  "tyska": "Ø115 x 180H cm",
+  "svenska": "115L x 115B x 180H cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "56cfa322": {
+  "tyska": "62,1L x 30,6B x 93H cm",
+  "svenska": "62,1 x 30,6 x 93 cm",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 62.1,
+  "djup": 30.6
+ },
+ "92e4f4c5": {
+  "tyska": "85L x 62B x 89H cm",
+  "svenska": "85 x 62 x 89 cm",
+  "bokstaver": "LBH",
+  "hojd": 89,
+  "bredd": 85,
+  "djup": 62
+ },
+ "a355d477": {
+  "tyska": "54L x 46B x 94H cm",
+  "svenska": "54cm x 46cm x 94cm",
+  "bokstaver": "LBH",
+  "hojd": 94,
+  "bredd": 54,
+  "djup": 46
+ },
+ "b5ea4eb1": {
+  "tyska": "Ø110 x 180H cm",
+  "svenska": "Ø110 x 180H cm",
+  "bokstaver": "H",
+  "hojd": 180
+ },
+ "f5b6c4bc": {
+  "tyska": "61L x 27B x 79,7H cm",
+  "svenska": "61 x 27 x 79,7 cm",
+  "bokstaver": "LBH",
+  "hojd": 79.7,
+  "bredd": 61,
+  "djup": 27
+ }
+}

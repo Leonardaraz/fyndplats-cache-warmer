@@ -1,0 +1,40 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "38864a2c": {
+  "tyska": "54B x 2T x 120H cm",
+  "svenska": "54 x 2 x 120 cm",
+  "bokstaver": "BTH",
+  "djup": 2,
+  "hojd": 120,
+  "bredd": 54
+ },
+ "39f718c8": {
+  "tyska": "",
+  "svenska": "65 x 29 x 29 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des großen Blocks: 29L x 29B x 29H cm | ✔ Maße des mittleren Blocks: 29L x 20B x 20H cm | ✔ Maße des kleinen Blocks: 29L x 29B x 15H cm | ✔ Maße des Wellenblocks: 65L x 29B x 29H cm | ✔ Maße der Matte: 47L x 29B x 5H cm | ✔ Maße des Trapezes: 47L x 29B x 20H cm"
+ },
+ "4e05db6e": {
+  "tyska": "100L x 5,5B x 50H cm",
+  "svenska": "100cm x 5,5cm x 50cm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 100,
+  "djup": 5.5
+ },
+ "8a7d899f": {
+  "tyska": "50B x 45T x 44H cm",
+  "svenska": "50B x 45T x 50H cm",
+  "bokstaver": "BTH",
+  "djup": 45,
+  "hojd": 44,
+  "bredd": 50
+ },
+ "91620d98": {
+  "tyska": "89L x 28B x 107H cm",
+  "svenska": "89cm x 28cm x 107cm",
+  "bokstaver": "LBH",
+  "hojd": 107,
+  "bredd": 89,
+  "djup": 28
+ }
+}

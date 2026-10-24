@@ -32,6 +32,12 @@ betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
 det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
 OCH snabbare för kunden.
 
+⚠️ **Katalogen är 5 092 produktsidor (2026-10-23), och värmaren hann inte.** Efter
+butikens deploy 01:02 UTC värmde `varm-katalogen` 1 824 sidor, nådde sin deadline
+och körde inte igen: provet på tolv fasta sidor värmde sig självt. PR #770 på
+`headless-site` låter värmningen gå i led tills hela katalogen är varm; regeln
+står i butikens `CLAUDE.md`. Butiken deployas på natten, kring kl. 03 svensk tid.
+
 ⚠️ **Det gäller butikens egna byggen** (grenen `headless-site`). En merge till `main` i
 det här repot bygger bara motorn: `vercel.json` avbryter butiksprojektets bygge, och
 butikens cache ligger kvar. Mätt 2026-09-27: butikssidor renderade 15:02 UTC hade
@@ -288,6 +294,22 @@ priset för att inte fördjupa klonen (`--deepen` sprängde 256-teckengränsen),
 det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skriv
 inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
 göra exakt rätt och ändå bygga.
+
+⚠️ **En gren som startats om efter en merge bygger sin första docs-bara push**
+(mätt 2026-10-23). Efter mergen av #762 (squash `048ac5b6`) startades grenen om
+från `main` och fick en ny PR (#769). Dess första push (`75f08edc`) rörde bara
+`CLAUDE.md`, `FLAGGADE.md` och en kommentar i ett verktyg under `tools/`, och
+diffen utanför `docs/`, `tools/` och markdown var tom (0 filer). Ändå blev
+motorns preview `dpl_2skPGzaNddFYfD3BKemSAzAgECxG` `READY` efter 67 sekunder
+(`buildingAt` 04:34:27, `ready` 04:35:33), medan butiksprojektets bygge av samma
+commit blev `CANCELED`. Orsaken är inte mätt. Den förklaring som stämmer med
+avsnitten ovan är att grenens förra lyckade bygge låg utanför den grunda klonen
+eller saknades, så filtrets `git cat-file`-vakt gav `exit 1`, alltså ett
+läkningsbygge. Prövningen var nästa docs-bara push på grenen (`8cf275c1`, bara
+`CLAUDE.md`): den hoppades över (`dpl_DdiptoBLEi9W6dtQamFBiSpdobwR`, `CANCELED`
+med `errorLink` `#ignored-build-step`), eftersom pekaren stod på `75f08edc`.
+Förklaringen håller alltså: den första pushen läkte pekaren och den andra
+hoppades över.
 
 ### ☠️ En merge gav inget bygge — GitHub skickade ingen push-händelse (2026-09-25)
 
@@ -1583,8 +1605,17 @@ och lager om, och minsta avvikelse stoppar.
   Motorns nyckel fick 403 på den 2026-09-27 (se sammanslagningen). Då skriver
   rättningen ingenting och säger `nyckeln får inte läsa varukostnaden`. Kollen
   behöver inte fältet.
-- Skrivningar med `optionChoiceIds` (prissynken, auktionerna, SKU-steget)
-  behåller variantbilden, så de bör inte förstöra en rättning.
+- ☠️ **Skrivningar med `optionChoiceIds` NOLLSTÄLLER variantbilden på en
+  flervariantssida, också prissynkens.** Det stod här att de behåller den, och
+  det stämde inte. Mätt 2026-10-24: Aosom-synken skrev regelpriset på klöspelaren
+  `81a60db2` 09:21:21 UTC, och direkt efteråt hade Beige och Brun huvudbilden som
+  variantbild i stället för sina egna. `variantbild.yml` rättade den. Nattens
+  `/api/cron/variantbild` (05:35 UTC) rättar samma sak, och det var den som
+  rättade Svart på skrivbordsstativet `ee3a9dbc` 05:37 UTC samma morgon: ett rätt
+  utfall, inget fel. Tills dess visar varukorgen, kassan och ordern fel färg på
+  en sida vars pris just skrivits. Förslaget att låta `updateV3VariantPrices`
+  anropa `refreshVariantMedia` efter en prisskrivning på en flervariantsprodukt
+  väntar på Leonards ja (FLAGGADE, lärdom 204).
 
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
@@ -2005,7 +2036,7 @@ på den gamla kroppen, eftersom den bar storleken i `fargUtkast`.
 | färg | färg + storlek (och sidans storlek) | storleksaxeln läggs till, de gamla varianterna får sidans storlek |
 | färg + storlek | färg + storlek | en variant till, nya val bara där värdet är nytt |
 
-Sex egenskaper som inte ska tas bort:
+Sju egenskaper som inte ska tas bort:
 
 1. ☠️ **Alla kombinationer behöver inte finnas.** Wix tillåter färre varianter
    än kombinationer (dokumenterat), och en kombination Aosom inte säljer ska inte
@@ -2036,6 +2067,14 @@ Sex egenskaper som inte ska tas bort:
    släppte igenom 93 tecken, så en för lång SKU föll först i `byt`, på en 400
    från Wix, efter att planen sett ren ut. Sedan 2026-09-27 fäller planen den
    (`sku_for_lang`), och SKU:n anges för hand.
+7. ☠️ **Sidans namn får inte bära ett värde sidan redan har på en axel, och
+   SKU:n får inte få artikelnummerform åt något håll.** Planen fäller
+   `namnet_bar_farg` och `namnet_bar_storlek` när namnet innehåller ett av
+   axelns värden som helt ord ("grönt" är inte "grön"), och `sku_ogiltig` på
+   formen tre tecken, bindestreck, tre eller fler tecken med en siffra, både för
+   `vit-170` och `445-vit`. Sätt `-cm-` mellan måttet och färgen. Kör `plan` på
+   sammanslagningen FÖRE värdrundan skrivs: T95 (2026-10-24) behövde en extra
+   runda (T95b, bara ett nytt namn) för att växthusets namn bar sidans storlek.
 
 ☠️ **En färg utan kopplad bild stoppar mappningen (2026-09-27).** Återläsningen
 försöker koppla valens bilder åtta gånger. Tidigare varnade den sedan
@@ -3276,7 +3315,7 @@ på fyra bilder eller färre och ingen på färre än tre.
 
 ☠️ **Ett mått som kräver ett visst optionnamn mäter namnet, inte katalogen.** Räkna alltid de sidor ett mått hoppar över.
 
-Öppet hos Leonard (PR #762, Väntar på Leonard): de 15 AliExpress-sidorna med överlappande länkar. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
+✅ De 15 AliExpress-sidorna med överlappande länkar (PR #762:s lista *Väntar på Leonard*) löstes av butiksändringen (PR #770, mergad 2026-10-24 00:33 UTC) och är mätta live 2026-10-24 14:12 UTC: alla 57 val visar den bildmängd den nya regeln ger, och val under fyra bilder är 15 av 57 (räknat 38 med den gamla regeln på samma länkar). De fyra sidor som har kvar val på tre bilder eller färre rörs inte (Leonard: *låt dom va*), se `FLAGGADE.md` lärdom 216. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
 efter de två rättade) gick till Leonard som fil 2 i Cowork-uppdraget 2026-10-22 19:25 UTC, se nästa avsnitt. Detaljerna står i `tools/polish-gates/FLAGGADE.md`
 (lärdom 163 och 164).
 
@@ -3404,6 +3443,57 @@ de 22 träffar som kunde vara främmande text, på kontaktark. **Ingen tysk elle
 svenska kort (studsmattan `39319e6c`, elbilen `2f6ff71c`). Det enda engelska som sitter som en etikett är papperslappen på den hopvikta växthusduken hos `faa2bdb4` Vit och Grön
 (*REPLACEMENT WALK-IN GREENHOUSE HEAVY DUTY COVER*), men den sitter på varan i fotot och låg på sidan före omgången. Den tyska skylten i kärrans foto (`1004b036`) är den enda
 tyska text den här omgången själv lagt till (punkt 6).
+
+**Omgång 3, rad 55–159 (2026-10-23).** Leonard klistrade in chattens svar för 105 rader (färgfilens rad 55–159) och jag tog emot det som omgång 2: `cowork-granska.py` (formkontroll, nedladdning ur den öppna bildservern, jämförelse mot ALLA bilder i vyn, OCR och kontaktark), granskning med ögonen rad för rad, `cowork-ladda.py` (uppladdning, md5-parning, skrivkod), `variantbild.yml`, live och skyddskoll. Svaret bär inget artikelnummer. Underlaget och besluten per bild ligger i `tools/polish-assets/fargtillagg-cowork-3/` (`tillagg.json` med fil-id, färg och alt-text per skriven bild, och `granskning.tsv` med beslut och skäl för alla 1 234 kandidater).
+
+| | bilder |
+| :-- | --: |
+| kandidater på 105 rader | 1 234 |
+| redan i vyn (avstånd högst 12) | 405 |
+| liknar en bild i en annan färgs vy eller en gemensam bild | 26 (11 valda) |
+| nya | 791 (678 med tysk eller engelsk text i bilden) |
+| inte jämförda (rad 137, se punkt 4) | 12 |
+| **valda och skrivna** | **123** på 78 rader, alltså 50 sidor |
+
+☠️ **Positionen avgör igen.** Plats 11 och uppåt gav 104 av 188 kandidater (55 %), plats 1–10 bara 19 av 1 046 (2 %): sex på plats 2 (miljöbilder som varken importen eller poleringen lagt dit), åtta på plats 10 och fem på plats 6–9. Plats 11 gav 62 av 98 och plats 12 gav 32 av 56. 26 rader gav ingenting (det som var rent låg redan i vyn, eller så var bilderna säljgrafik eller lagerfoton) och rad 137 väntar.
+
+Fem saker att ta med:
+
+1. ☠️ **Parallella uppladdningar får HTTP 429 av Aosoms bildserver, igen.** Tre anrop om 25 adresser i rad gav 15 `success: false` i det tredje. De 15 gick igenom i ett eget anrop, och de sista 48 laddades i fyra anrop om 11–13 adresser: noll fel. Uppladdningens svar ekar ingen adress, så varje fil hämtades hem från Wix CDN och paras med sin kandidat på md5: 123 av 123 (`cowork-ladda.py para`).
+2. **Aosoms färgfält sa något annat än raden på sex rader** (Khaki för Beige på rad 59 och 150, Hellblau för Turkos på rad 86, Cremeweiß för Beige på rad 118, en lista med grönt, beige och vitt för Svart och Röd på rad 68, och Gelb för Natur på rad 156). Bilderna avgjorde, aldrig fältet (lärdom 166). Tre av raderna (86, 118 och 150) fick bilder.
+3. ☠️ **`FINNS?` och `liknar annan färgs vy` räcker inte för att kalla en bild ny eller gammal.** Av de 26 kandidater som `dHash` klassade så valdes 11: samma pose i en annan färg är en ny bild för den här färgen. Fyra av de 127 förvalda föll när de lades bredvid vyn i full storlek med `tools/polish-gates/cowork-jfr.py` (samma bild i en annan beskärning, eller en scen som färgen redan visade). Lägg alltid kandidaten bredvid färgens egna bilder innan den skrivs.
+4. **De två tvåaxliga sidorna.** Rad 137 (`c3d1fa41`, hundbädden) väntade: butikens regel ändrades när PR #770 mergades, och sidan länkades om i natt, så de 12 kandidaterna jämfördes inte mot någon vy (de togs i omgång 4, punkt 5). Rad 144 (`6eb13a16`, hundgrinden) skrevs med färglänken ensam, som i omgång 2 (punkt 7).
+5. **OCR sa TEXT på 47 av de 123 valda bilderna (69 REN och 7 SIFFROR), och ingen av dem är säljgrafik.** Texten sitter på varan eller rekvisitan (märken på en bilfront, en bokrygg, en etikett på en förpackning). Lagerfoton (amatörfoton på kartong eller golv), leverantörens logga som motiv och bilder med en tysk eller engelsk rubrik ströks som förut. Skälet per bild står i `granskning.tsv`.
+
+**Skrivet 15:29–15:36 UTC** (efter Aosoms priskörning 15:12–15:29, före lagerfönstret 18:12): `skriv-fargbilder.js`, åtta sidor per körning i sju körningar, **50 av 50 sidor återlästa utan avvikelse** (galleri, länkar, variant-id, SKU, pris, synlighet, andra optioners länkar), revision +2 per sida. Torrkörningen av första filen (8 sidor) gick först och ändrade ingenting. `variantbild.yml` (skarp, `ids`, run 39979846820, 15:37 UTC): **50 kontrollerade, 50 rättade**, 0 avvikelser. **Skyddskollen** (`bygg-skyddskoll.py` med enbart rundans `tillagg.json`): 50 sidor och 123 filer, 123 i galleriet, 123 sedda av städningens egen tolkning och 123 kvar i Media Manager (`OK`, `READY`), alla med källklassen `leverantor` (de skyddas av att de sitter på produkten). Största galleriet blev 47 bilder (cykelkärran `571e37bf`, 33 till 47; Wix tar 50).
+
+**Live 15:45–15:48 UTC** (`live-par.sh` med `TVAAX=6eb13a16`, `kolla-live-farg.py`, 9–17 minuter efter skrivningarna, så butikens cache hade hunnit ikapp): **ALLT OK på 50 av 50 sidor**, varje tillagd fil syns i sin egen färgs vy och i ingen annans. De 78 rörda färgvyerna stod alla på fyra bilder före och gick från 312 till 435 bilder: 47 visar nu fem, 21 sex, 6 sju och 4 åtta, och ingen orörd vy ändrades (jämförelse mot mätningen före skrivningen). Sju färgvyer på de 50 sidorna står kvar på fyra bilder, alla färger som ingen kandidat klarade (`1004b036` Röd, `e25e86d6` Rosa, `2f6ff71c` Orange, `7511fc56` Vit, `7cdc167c` Lila, `2d65601c` Röd och `40f46441` Grön). Alt-texterna i sidornas egen data (`imageAlts`, `tools/polish-gates/kolla-alt.py`) är lika med facit i `tillagg.json` på 123 av 123, och det bevisar också att varje fil-id och varje alt-text kom fram oförvanskad genom avskriften till `ExecuteWixAPI`, som är det enda steg där en bokstav kan gå förlorad. `live-dubbletter.py` över alla färgvyer på de 50 sidorna: 50 sidor, 0 par (inget foto ligger två gånger i en vy, inte ens ett par med dHash-avstånd under elva). `ocr-live.py` över alla 779 unika bilder i de 50 sidornas färgvyer (16:08 UTC, 17 minuter, bara läsning, körd efter skrivningen som i omgång 2): 391 REN, 86 SIFFROR och 302 TEXT. De 123 skrivna gav 69 REN, 7 SIFFROR och 47 TEXT, alltså samma tal som kandidatkontrollen. Av de 656 bilder som låg ute före omgången har 255 text, och 23 av dem har en textyta över 1,5 %: tio är våra egna svenska kort (där OCR tappar å, ä och ö), nio är etiketter och dekaler på varorna (pappersetiketten på de hopvikta växthusdukarna `a55a2ce7` och `7beb7f2b`, *UTV-MX* på fyra leksaksfordon och registreringsskylten på en leksaksbil, `e25e86d6`), tre är text i miljöbilder (en måttangivelse, en bokhylla och en tavla med ett citat) och en är Vinsetto-broderiet på en ländkudde i en närbild av sits och armstöd (`39a21e71`, `5ccfdd7b`, från runda B88). Den sista är det enda gränsfallet och står kvar: loggan sitter på kudden, men motivet är sitsen och armstödet, till skillnad från närbilderna där loggan fyller bilden och som ströks i omgång 2. De 232 träffarna under 1,5 % lästes som lista (märken och dekaler på varorna, knappar på apparater, bokryggar och den tyska skylten i fotot på cykelkärran `1004b036`, som redan väntar på Leonard), och 34 av dem som kunde vara något annat lades på kontaktark. **Ingen tysk eller engelsk säljgrafik ligger på någon av de 50 sidornas färgvyer.**
+
+**Omgång 4, rad 137 och 160–256 (2026-10-24).** Leonard klistrade in chattens svar för 98 rader (färgfilens rad 160–256 och rad 137, hundbädden `c3d1fa41`, som väntat på butiksändringen), och jag tog emot det som omgång 3. Svaret bär inget artikelnummer. Underlaget och besluten per bild ligger i `tools/polish-assets/fargtillagg-cowork-4/` (`tillagg.json` med fil-id, färg och alt-text per skriven bild, och `granskning.tsv` med beslut och skäl för alla 1 127 kandidater).
+
+| | bilder |
+| :-- | --: |
+| kandidater på 98 rader | 1 127 |
+| redan i vyn | 386 |
+| liknar en bild i en annan färgs vy eller en gemensam bild | 15 |
+| nya | 714 (527 strukna för tysk eller engelsk text i bilden) |
+| inte jämförda (rad 137, tvåaxlig sida, se punkt 5) | 12 |
+| **valda och skrivna** | **69** på 46 rader, alltså 37 sidor |
+
+☠️ **Positionen avgör igen, men mindre än i omgång 3.** Plats 11 och uppåt gav 46 av 150 kandidater (31 %), plats 1–10 bara 23 av 977 (2 %): plats 10 gav 9 av 96, plats 11 22 av 91, plats 12 16 av 45, plats 13 6 av 8 och plats 14 2 av 6. Omgång 3 gav 55 % på plats 11 och uppåt (104 av 188). Av de 104 strukna på plats 11 och uppåt var 41 en spegelvänd (18) eller omskuren (23) kopia av färgens första bild, se punkt 3. 52 av de 98 raderna gav ingenting: det som var rent låg redan i vyn, eller så var bilderna säljgrafik eller kopior. Tre sidor hoppades över av andra skäl (punkt 4).
+
+Sex saker att ta med:
+
+1. ☠️ **En renderad miljöbild kan visa varan i fel färg, och inget automatiskt steg ser det.** Rad 207 (skjulet `74e737ee`, Antracit): bilden på position 9, ett renderat skjul med en man och två barn, bar ingen text, hade ingen träff mot vyn och inga siffror, och stod på mitt förval. Först när den lades bredvid färgens första bild (`tools/polish-gates/cowork-par.py`) syntes att skjulet i bilden är beige och att inredningen inte är varans. Den ströks. Regel: lägg färgens egen första bild bredvid varje renderad miljöbild och titta på varans färg, inte bara på motivet.
+2. ☠️ **Tre av nio måttbilder föll mot sidans text** (`kolla-tal-mot-text.js`, ren läsning). Kontorsstolen `cd3320e8` (Svart): bilden anger höjd 111–127 cm, sidan 113–121 cm. Kontorsstolen `4871d041` (Grå): 102–119 mot 104,5–121,5. Soffan `f1878c34` (Blå): belastning 240 kg mot 100 kg per sits. Samma regel som i omgång 1: ett annat tal för samma sak ströks, och ett tal som saknas i texten är ingen motsägelse. Fem av de sex som höll skrevs (den gröna kontorsfåtöljen, den gräddvita stolen, rumsavdelaren, skumklossarna och hundbädden), och soptunnans hoppades över av ett annat skäl (punkt 4). Texten ändras inte, för vilket tal som stämmer, Aosoms bild eller feedens mått, vet bara Aosom.
+3. ☠️ **En spegelvänd eller omskuren kopia av färgens första bild är ingen ny bild.** Aosoms plats 11 och 12 var ofta just det: 41 kandidater på plats 11 och uppåt ströks efter att färgens första bild lagts bredvid dem (`tools/polish-gates/cowork-par.py`, färgens första bild bredvid kandidaten i 520 px, och `cowork-jfr.py` mot hela vyn). `dHash` är gråskala, ser en spegling som en annan bild och släpper en omskuren kopia förbi avståndsgränsen 12, så avståndet räcker inte.
+4. ☠️ **Uppdragsfilens `nu` är ett ögonblick, inte vyn.** Rad 222 (soptunnan `c841717c`, Svart × 60 liter) stod på fyra bilder i filen men visar sex live sedan originalen lades tillbaka 2026-10-24, och rad 247 (hundbädden `ffb3f5b0`, Brun) står på sju (korten ingår). Båda hoppades över, eftersom en vy över fem bilder inte får fler. Hamsterburen (rad 255 och 256) visar redan fem bilder per kombination och fick ingenting. Räkna om vyn live före skrivningen, aldrig ur filen.
+5. ☠️ **`cowork-granska.py` kan inte jämföra en sida där båda axlarna är kort** (rad 137, `c3d1fa41`): alla 12 kandidater blev `okänd`, och förvalet på sju bilder var större än det som var nytt. Jämförelsen gjordes mot de fyra bilder som Ljusgrå × 75 visar (`live-galleri-kort.mjs`, filerna hämtade ur Wix): position 1, 2, 9 och 10 är pixelidentiska med sidans egna bilder (medelskillnad 0,0 vid 64 × 64), och position 11 är två uppställningar av bädden som liknar position 1 och 12. Skrivna blev position 3 (måttbilden med den hopfällda storleken, siffrorna kontrollerade mot sidans text) och position 12 (hund på bädden mot vit botten), båda länkade till färgen. Ljusgrå × 75 går från fyra till sex bilder.
+6. **Skrivningen och bildstädningen.** Bildstädningen är avstängd sedan #773 (Leonard 2026-10-23), så skyddskollen är en kontroll och inget som hindrar en radering. Filerna är ändå skyddade på alla tre sätten nedan.
+
+**Skrivet 13:22–13:27 UTC** (efter Aosoms lagerkörning 12:20–12:29, före priskörningen 15:12–15:29): `skriv-fargbilder.js`, åtta sidor per körning i fem körningar (8 + 8 + 8 + 8 + 5), **37 av 37 sidor återlästa utan avvikelse** (galleri, länkar, variant-id, SKU, pris, synlighet, andra optioners länkar), revision +2 per sida. Torrkörningen av första filen gick först och ändrade ingenting. Uppladdningen gick i sex anrop om högst tolv adresser, ett i taget: 69 av 69 `success: true`, ingen HTTP 429, och 69 av 69 filer paras med sin kandidat på md5 (`cowork-ladda.py para`). `variantbild.yml` (skarp, `ids`, run 40098185452, 13:27–13:28 UTC): **37 kontrollerade, 37 rättade**, 0 avvikelser. **Skyddskollen** (`bygg-skyddskoll.py` med enbart rundans `tillagg.json`): 37 sidor och 69 filer, 69 i galleriet, 69 sedda av städningens egen tolkning och 69 kvar i Media Manager (`OK`, `READY`), alla med källklassen `leverantor`. Största galleriet är 37 bilder (Wix tar 50).
+
+**Live 13:39–13:41 UTC** (`live-par.sh` med `kolla-live-farg.py`, 12–18 minuter efter skrivningarna, så butikens cache hade hunnit ikapp): **ALLT OK på 36 av 36 enaxliga sidor**, varje tillagd fil syns i sin egen färgs vy och i ingen annans. Hundbädden `c3d1fa41`, där båda axlarna är kort, mättes för sig i en riktig webbläsare (`live-galleri-kort.mjs`, före och efter): Ljusgrå och svart × 75 × 51 × 18 cm visar sex bilder (fyra före) med de två nya sist, och de två andra kombinationerna som finns är oförändrade (Brun och svart × 75 × 51 × 18 cm fem bilder, × 107 × 61 × 20 cm tre). De 45 rörda färgvyerna på de enaxliga sidorna stod på fyra bilder (43 vyer) eller fem (2) och gick från 182 till 249 bilder: 31 visar nu fem, sju sex, fem sju, en åtta och en nio. Alla 45 fick fler bilder, ingen fick färre och ingen orörd vy ändrades (jämförelse mot mätningen före skrivningen). Katalogkontrollen (`katalogkontroll-farg-antal.js`, 13:32 UTC, efter skrivningen) ger **412 av 2 589 färgval på fyra bilder eller färre** (1 bild: 80, 2: 85, 3: 73, 4: 174), mot 550 av 2 553 den 22 oktober, före Cowork-rundorna. Alt-texterna i sidornas egen data (`imageAlts`, `tools/polish-gates/kolla-alt.py`, 13:48 UTC) är lika med facit i `tillagg.json` på 69 av 69, och det bevisar också att varje fil-id och varje alt-text kom fram oförvanskad genom avskriften till `ExecuteWixAPI`. `live-dubbletter.py` över de 36 sidornas färgvyer: ett par, `fbd70dae` Sand plats 1 och 5 (avstånd 3, pixelskillnad 35), som redan bedömdes som *likt men olika* i feedomgång 18 (ett belyst foto av lyktan och dess måttritning) och som inte innehåller någon av omgångens 69 filer. `ocr-live.py` över alla 560 unika bilder i de 36 sidornas färgvyer (bara läsning, körd efter skrivningen som i omgång 2 och 3): 391 REN, 86 SIFFROR och 83 TEXT (13:44–13:59 UTC, 15 minuter). De 67 av omgångens 69 filer som ingår (de två på `c3d1fa41` mättes i webbläsare och ingår inte i svepet) gav 55 REN, 9 SIFFROR och 3 TEXT, och de tre är märken och en knapp på varorna (*PawHut* på hundbädden, *HOMCOM* på minikylen och *HEAT* på massagefåtöljens panel), alltså samma tal som kandidatkontrollen. Av de 493 bilder som låg ute före omgången har 80 text, och tolv träffar i hela svepet har en textyta över 1,5 % eller minst två tyska eller engelska funktionsord: nio är våra egna svenska kort (där OCR tappar å, ä och ö), två är brus i renderade miljöbilder utan någon text (matgruppen `5c65d551` och skjulet `834c66fd`) och en är en inramad affisch på väggen i en miljöbild (`f1878c34` Blå, tysk text på rekvisitan), som runbooken släpper och som låg på sidan före omgången. **Ingen tysk eller engelsk säljgrafik ligger på någon av de 36 sidornas färgvyer.**
 
 ### Delade måttbilder på storleksidor visas under fel storlek (2026-10-22)
 
@@ -3793,8 +3883,11 @@ Det första sätter butikens vymodell (en union) som gräns, det sista kräver a
 
 Leonard 2026-10-23, på frågan om motorn ska rätta de här sidorna av sig själv: *"Fixa alla frågor så proffsigt som möjligt"*. Varje id-skrivning på en sida med länkar på båda optionerna
 (`lank-om-bilder.js`, `avlank-delade.js`, `bilder-bort.yml`, färgbildsverktygen) nollställer variantbilden, och nattens `/api/cron/variantbild` såg det inte. Ändrat i `lib/wix/variant-media.ts`
-(PR #762, 53 tester, mutationsprövade). **Det gäller först när PR #762 är mergad**, eftersom cronen körs från `main`. Tills dess körs `variantbild-farg.js` efter varje sådan skrivning, och
-de 49 sidorna kan mätas om med samma skript i torrläge.
+(PR #762, 53 tester, mutationsprövade).
+
+✅ **Mergad 2026-10-23 04:25 UTC** (squash `048ac5b6`, Leonards *Merga*). Produktionsbygget `dpl_5F7P2hiFDGyysHLKBnRLAXt47wZR` blev READY efter ungefär 84 sekunder, och butiksprojektets bygge
+blev CANCELED med `#ignored-build-step`, så butikens ISR-cache rördes inte. Första nattkörningen på den nya koden gick 05:35 UTC (utfallet står i punkt 5 nedan). ☠️ **Fönstret på upp till ett dygn finns kvar** mellan en
+galleri- eller länkskrivning och nästa 05:35: kör `variantbild-farg.js` (två optioner) eller `variantbild.yml` (`ids`) direkt efter en sådan skrivning som förut. Cronen är nätet under, inte ersättningen.
 
 ☠️ **Wix räknar ingen skärning, och det är mätt, inte antaget.** Motorn förväntade tidigare första bilden som ligger i ALLA valens listor. Ett prov på en dold testprodukt (raderades direkt, 404 efteråt) med
 **överlappande** listor: Färg Svart [X2, X1], Silver [Y2, Y1]; Storlek S [K1, X1], L [K2, Y1]. Skärningen för S × Svart är X1 och för L × Silver Y1.
@@ -3817,8 +3910,12 @@ Fem egenskaper som inte ska tas bort:
    variantens egen valordning styr, inte optionernas, så väljarna i butiken är oförändrade.
 3. ☠️ **Kontrollen före och efter jämför valen som en mängd.** Ordningen läggs om med flit, men vilka val varianten har ska stå still (annat val, saknat val eller annat variant-id fäller).
 4. **Räknar Wix inte om bilden efter skrivningen** blir utfallet `ej_rattad`, och cronen skriver högst en gång per natt och sida. Det stoppar inte körningen (bara `avvikelse` gör det).
-5. **Det enda cronen rör efter merge (mätt 2026-10-23) är hamsterburen `13fe619f`** (Naturträ × 85 × 45: varukorgens bild blir Naturträts första foto i stället för den grå burens). Galleriet, länkarna och väljarna rörs inte, och
-   frågan om storlekarna ska bära bilderna är fortfarande Leonards.
+5. **Torrkörningen efter mergen och nattens första körning på den nya koden fann tre sidor, inte en (mätt 2026-10-23).** `variantbild.yml` i läget `torr` mot `main` (run 39900434263, 04:28–04:50 UTC) kontrollerade
+   **1 174 flervariantsprodukter** (utkast med): 1 171 redan rätt, **3 med fel kvar**, 0 ej rättade, 0 som inte gick att kontrollera och 0 avvikelser. De tre är hamsterburen `13fe619f` (Naturträ × 85 × 45: varukorgens bild blir
+   Naturträts första foto i stället för den grå burens), elbilen `7511fc56` (Röd, Grå och Vit) och hundbädden `3c104444` (Brun). Den här raden sa tidigare att hamsterburen var den enda, men den mätningen räknade bara de 22 sidor
+   med bilder på två val; torrkörningen läser alla flervariantsprodukter. Nattens körning (`/api/cron/variantbild`, 05:35 UTC, Vercels runtime-logg) gjorde exakt det torrkörningen förutsade: **1 174 av 1 174 kontrollerade,
+   `{"ratt":1171,"rattad":3}`, 0 publicerade och 0 utkast med fel bild efteråt**, och rättade hamsterburens Naturträ-variant (1), elbilens tre varianter och hundbäddens Brun (1). Galleriet, länkarna och väljarna rörs inte av
+   cronen, och frågan om hamsterburens storlekar ska bära bilderna är fortfarande Leonards. Orsaken till att elbilen och hundbädden hade fel variantbild är inte utredd.
 
 #### Leonards svar på de sex frågorna: ett kort per storlek, dubbletter borta, gemensamma bilder delas (2026-10-23)
 
@@ -3831,7 +3928,7 @@ synkfönster, och mätt live 04:01–04:10 UTC.
 | 2. dubbletter | **Hammocken:** de tre måttbilderna (en per färg, samma tal) är ersatta av två färgneutrala kort, `205 cm` och `177 cm`, med alla färger sida vid sida. **Odlingstunneln:** den vita 200-cm-bilden är borta, den gröna står kvar som storlekens enda. **Sensorsoptunnan:** silverbilden med 68 cm är borta, den svarta 42-litersbilden står kvar. |
 | 3. måttbilder som saknas | Ett kort per storlek, byggt ur sidans egen text: hammockens 177 cm, kantskyddens Ø305 och Ø366 och hundbäddens 107 × 61 × 20 cm. |
 | 4. vedbodens första bild under 150 cm × Mörkgrå | **Ingen ändring.** Bara 213 cm × Mörkgrå har lager (35 st, mätt 2026-10-23 04:0x UTC), och den varianten har rätt bild: färgens första foto, 213-cm-packshoten. 150 × Mörkgrå och 213 × Grön är slutsålda. Ett annat första foto för färgen hade gett den enda varan i lager en bild av fel storlek i varukorgen. |
-| 5. nattens variantbild | Motorn är ändrad (föregående avsnitt). Gäller först när PR #762 är mergad. |
+| 5. nattens variantbild | Motorn är ändrad (föregående avsnitt) och mergad 2026-10-23 (PR #762, squash `048ac5b6`). |
 | 6. gemensamma måttbilder under andra färger (lärdom 147) | **De får delas.** Skumklossarnas måttbild, som länkades till *Gul och grå* som prov 2026-10-22, är gemensam igen och visas under båda färgerna. |
 
 **Korten** ligger i `tools/polish-assets/runda-bilder-tva-axlar-kort/` (`kort.tsv`, fem kort, 1 600 × 1 600). Texten och talen kommer ur sidans egen text (`kallor-tal.json`, `<kort>.html`), och `gate-kort.py` fäller på ett tal
@@ -3881,6 +3978,273 @@ Tre mindre verktyg som kom ur arbetet:
 - Priser, SKU, synlighet och lager är oförändrade (jämförs före och efter i varje skrivning).
 
 De borttagna måttbilderna (fem filer) ligger kvar i Media Manager tills bildstädningen tar dem, tidigast tre dygn efter att den först såg dem oanvända (karenstiden).
+
+#### Färgneutrala måttkort på 16 sidor: alla färger på samma kort (Leonards skärmbilder 2026-10-23 06:47 svensk tid)
+
+Leonard skickade två skärmbilder av matstationen `1d4eb6b1` och skrev *"Såg direkt fel på första produkten ku"*: måttbilden med den espressofärgade stationen visades under Grå och Vit. Det var den halva av felet som ägarlistorna
+i *De 16 sidorna rättade* lämnade kvar. Butikens vy är unionen av de oägda bilderna och bilderna som ägs av de valda valen, så en måttbild som ägs av en storlek visas under varje färg i den storleken, också när den föreställer en annan
+färg. Ägarlistorna lät sådana bilder ligga kvar (*Måttbilder med färgens motiv ägs av storleken*, lärdom 147, frågan låg hos Leonard), och skärmbilderna besvarar den: en bild på en viss färgs vara ska inte visas under en annan färg.
+Det är min tolkning av hans rad, och jag byggde om alla sidor efter den. *Gemensamma bilder får delas* (Leonard, 03:0x UTC) gäller bilder som stämmer för alla färger, och ett kort med alla färger bredvid varandra gör det.
+
+**Mätningen före** (`matning-2026-10-23.txt`, butikens sidodata på de 18 sidor som rättats under natten med ägarlistor, kort eller optionsordning): 16 sidor hade 31 bilder som visade en färg men syntes under en annan. De två andra,
+hammocken och soptunnan, hade redan färgneutrala kort.
+
+**Lagningen, en sida i taget** (mandatet är Leonards *Fixa alla 16 en i taget med visuell kontroll på varje bild*):
+
+1. Ett kort per storlek, byggt som soptunnans och hammockens kort (`kort.tsv`, `gate-kort.py`, `bygg-kort.py`), men med ett hjältefoto som är en komposition av ett packshot per färg, sida vid sida (`bygg-hjaltar.py` ur `hjaltar.tsv`,
+   som pekar på de exakta Wix-filerna, med layout `2`, `3`, `2,1` eller `1`). Förvaringskistans hjälte byggs av `bygg-hjalte-kista.py`, eftersom den vita kistan bara finns som miljöfoto. Talen i korten kommer ur sidans egen text
+   (`kallor-tal.json`). Väggspegelns 50 × 110 cm saknar guldfoto i galleriet, så kortet visar den svarta spegeln ensam och alt-texten säger att den finns i guld.
+2. Korten laddas upp (md5-parat mot de lokala filerna), läggs sist i galleriet (`galleri-tillagg.js`, planerna byggs av `planer.py`) och ägs av sin storlek (`bygg-agare.py`, specarna byggs av `agare.py` ur galleriet före,
+   `kortfiler.json` och planen).
+3. De gamla färgspecifika måttbilderna tas bort efteråt med `bilder-bort.yml` (torrt, sedan skarpt med planens sha), så att ingen vy någonsin saknar måttbild eller visar en bild utan ägare.
+4. Variantbilderna rättas av motorn i samma körning: `bilder-bort.yml` loggade `[variantbild] <id>: N varianter rättade` för alla 14 sidor (31 varianter, 05:35 UTC) och för förvaringskistan (2 varianter, 05:47 UTC), mätt i Vercels
+   runtime-logg. Det är `lib/wix/variant-media.ts` (mergad 04:25 UTC) som rättar sidor med länkar på båda optionerna.
+
+**Utfall, mätt 05:35–06:01 UTC** (`kort` = nya måttkort, `borta` = borttagna färgspecifika måttbilder, `minsta vy` = minsta antal bilder i en vy):
+
+| sida | kort | borta | galleri efter | minsta vy |
+| :-- | --: | --: | --: | --: |
+| matstationen `1d4eb6b1` | 2 | 2 | 27 | 8 |
+| kattrappan `4d9ba658` | 2 | 2 | 16 | 5 |
+| hundbädden `c3d1fa41` | 1 | 1 | 11 | 5 |
+| kantskydden `44d4907b` | 1 | 1 | 12 | 5 |
+| odlingstunneln `38f70f83` | 2 | 2 | 11 | 5 |
+| julgranen `75a38b7b` | 1 | 1 | 10 | 4 |
+| väggspegeln `c438d4ba` | 3 | 4 | 14 | 6 |
+| hundsängen med tak `934297b1` | 1 | 1 | 12 | 4 |
+| hundbädden med tak `01ac2f63` | 1 | 1 | 17 | 5 |
+| sensorsoptunnan `92fc308c` | 3 | 3 | 15 | 7 |
+| vedboden `4a2ab58e` | 1 | 1 | 17 | 5 |
+| tunnelväxthuset `5466fe81` | 1 | 2 | 14 | 5 |
+| bokhyllan `79ab08fe` | 2 | 3 | 12 | 6 |
+| skrivbordet `3b868848` | 2 | 4 | 16 | 5 |
+| buxbomsklotten `7d1fb82b` | 1 | 1 | 13 | 5 |
+| förvaringskistan `b129d5ae` | 2 | 2 | 7 | 3 |
+| **summa** | **26** | **31** | | |
+
+- Wix: alla skarpa körningar av `bilder-bort.yml` (14 sidor och förvaringskistan) gick igenom, och rutten stoppar vid första avvikelse i återläsningen av galleri, alt-texter, länkar, synlighet och varianter. Galleritilläggen och
+  ägarskrivningarna jämförde före och efter (varianternas id, SKU, pris, synlighet och val, produktens namn och adress) utan avvikelse. Förvaringskistan lästes dessutom om i en separat läsning 05:48 UTC: galleriet 7, Mörk Khaki äger tre
+  foton, Vit två, M och L äger var sitt kort, varianternas bild är Mörk Khakis första foto (`b5e78a`) respektive Vits (`6bfbb0`), och SKU, pris (1 459 och 1 559 kr) och synlighet är oförändrade.
+- **`efter.py` (`kolla-agare.py` mot butikens egen sidodata, 05:58 UTC, cachens `age` 184–790 s, matstationens 2 579 s): 70 av 70 kombinationer på 16 sidor stämmer med planen**, SPEC-tipsen är tomma på alla 16 sidor (ingen måttbild
+  visas under ett val den inte hör till) och VARUKORG är 0. FOTO-tips finns kvar på fem sidor (väggspegeln, sensorsoptunnan, vedboden, bokhyllan och skrivbordet): foton av en annan storlek, som får ligga kvar enligt Leonards besked
+  på fråga 1. FÄRG-tips finns på matstationen, kantskydden och odlingstunneln, och bilden avgör.
+- Webbläsaren (`live-galleri.mjs`, en kombination i taget): förvaringskistans fyra kombinationer 05:51 UTC. Mörk Khaki × M visar färgens tre foton plus M-kortet, Mörk Khaki × L tre foton plus L-kortet, Vit × M och Vit × L färgens två foton
+  plus sitt kort (tre bilder), och priserna är oförändrade. De andra sidorna mättes i webbläsaren 05:36–05:37 UTC, direkt efter skrivningarna.
+- **Skyddskollen** (`bygg-skyddskoll.py` med `skyddsplan.json`, 06:01 UTC): 26 av 26 kortfiler sitter i sina gallerier, bildstädningens egen tolkning ser alla 26 och Media Manager har dem (`OK`, `READY`). De har källklassen `annan-kalla`,
+  som städningen aldrig raderar. De 31 borttagna måttbilderna ligger kvar i Media Manager tills städningen tar dem, tidigast tre dygn efter att den först såg dem oanvända.
+- **Slutkontroll av varukorgens bild** (`variantbild.yml`, läget `torr` mot `main`, run 39908059310, 05:52–06:13 UTC, efter den sista skrivningen): **1 174 flervariantsprodukter kontrollerade, 1 174 redan rätt, 0 rättade, 0 med fel kvar,
+  0 ej rättade, 0 som inte gick att kontrollera och 0 avvikelser.** Nattens tre sidor (hamsterburen, elbilen och hundbädden) är alltså rättade, och inga av de 16 sidornas varianter har fel bild. Torrkörningen tog 21 minuter och delar
+  concurrency-grupp med `polish-write`, så starta den inte mitt i en poleringsskrivning.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **En bild som föreställer en viss färgs vara ägs aldrig av en storlek som flera färger delar.** Butiken visar storlekens bilder under varje färg i storleken. Det som går är ett kort som stämmer för alla färger, ägt av storleken.
+2. ☠️ **Kortets hjältefoto bär de färger sidan har.** Det byggs av ett packshot per färg ur sidans eget galleri vid fil-id, och `hjaltar.tsv` bär hela fil-id:t, inte en plats i galleriet, eftersom platserna flyttar sig när en bild tas bort.
+3. ☠️ **De gamla måttbilderna tas bort efter att korten ligger i galleriet och är ägda av sin storlek, aldrig före.** Faller något halvvägs har sidan ett kort för mycket och ingen vy saknar måttbild.
+4. ☠️ **Mät mot en spec utan de borttagna bilderna.** `agare_<id8>.json` skrevs före borttagningen, och `kolla-agare.py` svarar `planen nämner … men bilden finns inte i galleriet` om bilder som är borta med flit. Matstationen gav två sådana
+   falska avvikelser (`59c65b` och `2d7a79`) i första körningen, med alla sex kombinationer OK. `efter.py` tar bort bilderna i `bort.json` ur specarna före kontrollen.
+5. ⚠️ **Förvaringskistans Vit visar tre bilder i båda storlekarna** (två egna foton och storlekens kort), under minimimåttet på fyra, och det var så före också. Sidan finns inte i färgbildsspårets lista, och frågan om Vit ska få fler bilder
+   står hos Leonard.
+
+#### En bild per kombination: revisionen av alla sidor med två val (Leonard 2026-10-23, 13:12 svensk tid)
+
+Leonards skärmbilder av bokhyllan `79ab08fe` (och Wix-panelen): den lilla och den stora hyllan syntes under båda höjderna och båda färgerna. *"gör audit för att lösa det här problemet"*. Underlaget och lösningen står i
+`tools/polish-assets/tva-axlar-revision-2026-10-23/` (README, `sidor.tsv`, `klass.tsv`, `givare.tsv`).
+
+Av 49 publicerade sidor med två val visar **16 bilder av fel storlek eller färg tydligt** (bokhyllan, katt- och hundtrappan, hindersetet, verktygslådan, förvaringsmöbeln, hamsterburen, väggspegeln, sensorsoptunnan, skrivbordet `3b868848`,
+tre hundgrindar, två hundbäddar och vedboden), 14 där storlekarna ser likadana ut på fotona och 17 som är rätt (13 klädsidor och 4 där varje färg bara finns i en storlek).
+
+☠️ **Orsaken är två, och ingen av dem går att laga med länkar.** Butiken ger varje bild EN ägare, det första val som kopplar den, och visar den under alla val i den andra optionen. Och sammanslagningen och färgbildsverktyget kopplar
+givarens bilder till färgen eller storleken, aldrig båda, så varje ny storlek i en befintlig färg hamnar under den gamla. Rättningarna i natt (ägarlistor och kort per storlek, se ovan) kunde bara flytta bilder mellan ägare.
+
+Lösningen, i ordning:
+
+1. **Butiken** (`butik-kopplingar.patch`, PR #770 mot `headless-site` med Leonards ja 2026-10-23, mergas natten till 2026-10-24): en bild syns när den, i varje option som kopplar den, är kopplad till det valda valet; inom en option räcker ett av valen. Kombinationens
+   första bild är bilden som passar kombinationen och är kopplad i flest optioner. Ingen publicerad sida har i dag en bild kopplad till två optioner (0 av 5 116), så tvåaxliga sidor ser ut som förut tills de länkas om. På 30 sidor med
+   ett val, där en bild är kopplad till flera val, syns bilden under alla de valen i stället för bara under det första. Projektordukens storleksbilder börjar synas (etiketten "85 tum (216 cm)" mot väljarens "85 tum").
+2. **Länka om** FEL-sidorna en i taget, varje bild till sin färg OCH sin storlek, med visuell kontroll och givaren som facit. ☠️ Inte före butiksändringen: med en ägare per bild visar en dubbelkopplad bild under alla färger i storleken.
+3. **Fyll** kombinationer som hamnar under fyra bilder ur kombinationens egen artikel (vit bokhylla 136 cm har bara packshoten och kortet).
+4. **Motorn:** varukorgens bild per variant (Wix tar alltid färgens första bild) och sammanslagningen kopplar en ny storlek i en befintlig färg till båda.
+
+✅ **Status 2026-10-24:** steg 1 mergades 00:33 UTC (butikens produktionsbygge READY 00:38) och steg 2 är gjort för 17 av de 18 sidorna (hamsterburen hålls), se *Efter butiksmergen* nedan. Steg 3 väntar på Cowork-raderna för de 16 kombinationer som fortfarande visar färre än fyra bilder, och steg 4 (motorn) är inte påbörjat.
+
+☠️ **En givare är en kombination, och dess pris avgör vilken.** En dold givare är en Aosom-artikel med variantens pris, så `givare.tsv` ger bildens storlek utan att någon räknar steg. Hunden på den vita kattrappan (`acf527`)
+räknades först som tre steg; bilden kommer från fyrstegsartikeln och har fyra steg i förstoring.
+
+**Verktygen för steg 2 (2026-10-23).** `bygg-agare.py` tar en lista som ägare (`["Vit", "136 cm"]` är en bild av den vita hyllan på 136 cm), och flera val i samma option betyder "något av dem" (`["Svart", "50 × 70 cm", "60 × 90 cm"]`). Torrkörningen svarar med
+`kombinationer`: butikens vy per variant med den nya regeln, kombinationens första bild och Wix variantbild efter en namn-skrivning med färgen först (`varukorg`, `varukorgPassar`). `kolla-agare.py` och
+`katalogkontroll-tva-axlar-bilder.py` läser sidans `imageKopplingar` när butiksändringen är ute och räknar vyn som butiken; saknas fältet gäller den gamla regeln, och en lista i planen räknas då som en avvikelse.
+Planerna för bokhyllan (`agare-79ab08fe.json`) och projektorduken (`agare-926ec7a2.json`) ligger i revisionsmappen. De är torrkörda mot Wix och mot butiksändringens egen kod, med samma vyer och samma första bild
+på alla sju kombinationerna:
+
+| sida | kombination | bilder | första bild | varukorgen (färgens första) |
+| :-- | :-- | --: | :-- | :-- |
+| bokhyllan | brun × 109 cm | 5 | brun 109-packshot | rätt |
+| | brun × 136 cm | 4 | brun 136-packshot | brun 109-packshot, som i dag |
+| | vit × 109 cm | 5 | vit 109-packshot | rätt |
+| | vit × 136 cm | **2** | vit 136-packshot | vit 109-packshot, som i dag |
+| projektorduken | vit × 85 tum | 8 | 85-packshot | rätt |
+| | svart × 99 tum | 5 | svart packshot | rätt (de två vita närbilderna syns inte längre här) |
+| | vit × 99 tum | 9 | vit 99-packshot | rätt |
+
+☠️ **Bokhyllans Storlek står före Färg.** Med den gamla butiken ägs en dubbelkopplad bild av storleken och visas under båda färgerna, så planen skrivs först när butiksändringen är ute och sidan bär
+`imageKopplingar` (`kolla-agare.py` skriver vilket). Bokhyllans plan skriver bara Storlek (109 cm: 1 → 7 länkar, 136 cm: 1 → 3); färgernas listor är redan rätt. Vit × 136 cm får två bilder och fylls i steg 3.
+⚠️ Varukorgens bild är färgens första bild för alla storlekar så länge varianterna skrivs med färgen först. Med två färger och två storlekar går det att ge varje variant sin egen bild (två varianter med
+färgen först, två med storleken först), men nattens `variantbild` skriver om alla med färgen först. Det kräver motorändringen i steg 4.
+
+☠️ **Spärren sitter i verktyget.** En plan med flera ägare på en bild byggs inte skarpt förrän butikens sida bär `imageKopplingar`: `bygg-agare.py` hämtar planens `slug` och vägrar annars, och
+`lank-om-bilder.js` länkar en bild från ett val till i samma option bara när `bygg-agare.py` slår på `FLERA_I_OPTION`. Prövad åt tre håll: utan slug, mot dagens butik och mot en sida som bär fältet.
+Spärren gäller NYA länkar: en dubbelkoppling som redan finns får stå kvar eller minska (2026-10-23, prövat åt båda hållen i en torrkörning).
+
+**Före mergen: trädgårdspallen och parkbänken (2026-10-23 13:52 UTC, Leonards ja).** Två av de 30 sidorna med ett val hade en bild kopplad till ett val den inte hör till, och den nya regeln
+hade visat den där. Pallen `d886ce9e`: miljöfotot med den gröna pallen är borta från Blå, och korten står kvar på båda färgerna. Bänken `e4aec6ef`: fotot på rosenbänken hör till 40 tum enligt
+måttbilderna (46 tum har rutmönstrat ryggstöd och 50 tum svängt) och är länkat bara dit; förut låg det på alla sex modeller och var varukorgens bild för dem alla, även träbänkarna. Båda lästes
+tillbaka utan avvikelse, och `variantbild.yml` rättade varukorgens bild. De andra 28 sidorna visar bilden rätt under varje val som länkar den (`delade-lankar.tsv`), så de 15 AliExpress-sidor som väntade
+på `avlank-delade.js` (lärdom 163) löses av själva mergen.
+
+**Planerna för alla 16 sidor med fel (2026-10-23, eftermiddag).** `agare-<id8>.json` i revisionsmappen finns för de 16 FEL-sidorna, projektorduken och matstationen, och bär `slug`. De är torrkörda mot Wix
+(18 av 18: varje bild hittades och ingenting skrevs) och korskörda genom butiksändringens egen kod: samma bilder och samma första bild i alla 81 kombinationer. `ordning` (nytt fält) lägger packshoten för varje
+storlek först i färgens lista, eftersom kombinationens första bild är den första bilden i färgens lista som passar och är kopplad i flest optioner. Tre saker som planerna inte löser:
+
+- ☠️ **Fem kombinationer i lager har inget eget foto:** skrivbordet `3b868848` Vit × 63 cm (110 st; de vita fotona är 80 cm-bordet, mätt sida vid sida i samma scen), spegeln `c438d4ba` Guld × 50 × 110 cm (35),
+  järngrinden `233c83cf` Vit × 74–87 (60), Vit × 74–80 (52) och Svart × 74–80 (29). De visar sin färgs foton från de andra storlekarna, som i dag, i stället för ett enda kort. Ett eget foto per
+  kombination kräver Cowork-rader eller ett verktyg som hämtar feedens bilder per variant (`aosom-fargtillagg` tar färgens första artikel).
+- **Varukorgens bild är färgens första bild för alla storlekar:** 32 av de 81 kombinationerna får en bild av en annan storlek i varukorgen, som i dag. Hamsterburen `13fe619f` blir sämre på en punkt:
+  Mörkgrå × 85 × 45 visar i dag sin egen bur i varukorgen (Mörkgrå har inga länkar, så Wix tar storlekens första bild), och efter planen 100-burens packshot.
+- **Kombinationer under fyra bilder** med egna foton (dörrgrindarna, hundbäddarna, kattrappan i tre steg, verktygslådan med fyra röda lådor) visar färre bilder än i dag, men bara rätt bilder. De fylls i steg 3.
+
+#### Efter butiksmergen: de 17 sidorna omlänkade en och en, och mätta i en riktig webbläsare (2026-10-24)
+
+Butiksändringen mergades **2026-10-24 00:33:14 UTC, 27 minuter före den planerade tiden** (01:00 UTC, 03:00 svensk tid). Tre butiks-PR:ar mergades efter varandra på 27 sekunder: #771
+(köpguiden för elbilar, 00:32:47), #772 (GTIN i Prisjakt-flödet, 00:32:58) och #770 (galleriet och värmaren, 00:33:14, squash `5d53d4e3`). Jobbet som skulle verifiera mergen och länka om sidorna startades därför
+på läget och inte på klockan: först var #770 mergad och bygget klart, sedan började skrivningen. ☠️ **Ett schemalagt klockslag är en plan, inte ett läge.** Läs `merged_at` på PR:en och bygget i
+deployment-listan innan du räknar med att butiken har den nya koden.
+
+**Bygget och värmaren** (butiksprojektets produktionsbygge och runtime-logg, avläst 01:0x UTC):
+
+- Produktionsbygget `dpl_8YPRkyCQkNo3dw9cSK2v3WXLcuzS` av `5d53d4e3` skapades 00:33:17, byggde 00:35:36 och blev READY 00:38:05 (149 s). Alla 49 sidor med två val bär `imageKopplingar` i sin sidodata (mätt 01:01 UTC).
+- Värmaren gick i tre led, och loggraderna är dessa (butikens runtime-logg, ordagrant):
+
+  ```
+  00:49:10  GET   [varm-katalogen] prov 12/12 MISS → kall. Värmde 1480/5116. Bildkartan: ok. Varukorgens underlag: 3684 varor. Avbruten på deadline: 3636 kvar → led 1: startat
+  00:52:31  POST  [varm-katalogen] led 1: värmde 1840/3636, 1796 kvar → led 2: startat
+  00:56:09  POST  [varm-katalogen] led 2: värmde 1796/1796 — katalogen klar. Listor: 0/133 (avbruten på deadline)
+  ```
+
+  1 480 + 1 840 + 1 796 = **5 116 produktsidor, hela katalogen, på ungefär tio minuter**. Natten före värmde ett enda pass 1 824 av 5 092 och slutade (lärdom 189). Ett stickprov på 40 slumpade produktsidor
+  00:58 UTC gav **40 av 40 HIT** (age 192–722 s, 0,18–0,48 s), mot 21 av 40 HIT och 5 MISS 2026-10-23 13:19.
+- ☠️ **Listorna värmdes inte: `Listor: 0/133 (avbruten på deadline)`.** Det led som gör katalogen klar värmer listsidorna sist, och här gick hela dess deadline åt till de sista 1 796 produkterna. Inget led
+  startades för listorna, eftersom katalogen var klar. Skadan uteblev: 21 listsidor (startsidan, `/butik`, sexton kategorier och tre blogginlägg) svarade på 0,28–0,66 s, 18 av dem som `PRERENDER` (sidor som
+  byggdes med deployen), två som `HIT` och startsidan som `STALE`. Luckan finns ändå kvar: på en deploy där listsidorna inte prerenderas hade de stått kalla till första besökaren. Förslag till nästa butiksdeploy
+  (inte gjort, butiken deployas inte för det här): låt ett led som slutar före listorna starta ett led till bara för dem.
+
+**De 17 sidorna** (alla 18 planer i `tools/polish-assets/tva-axlar-revision-2026-10-23/` utom hamsterburen). Skrivet 00:43:53–00:54:37 UTC, efter Aosoms lagerfönster (00:12–00:29) och före prisfönstret (03:12). Kombinationerna är
+de som en kund kan välja, och bilderna per kombination är mätta i en webbläsare 00:57–01:00 UTC (alla 78 kombinationer är varianter i Wix, och varje variant fick sin bild räknad om):
+
+| sida | komb. | bilder per kombination | länkade bilder per val, före → efter |
+| :-- | --: | --: | :-- |
+| projektorduken `926ec7a2` | 3 | 5–9 | Vit 4 → 9, Svart 5 → 5 |
+| bokhyllan `79ab08fe` | 4 | 2–5 | 109 cm 1 → 7, 136 cm 1 → 3 |
+| hundgrinden i järn `233c83cf` | 6 | 4–7 | 74–94 cm 0 → 2, 74–87 cm 0 → 3, 74–80 cm 0 → 5 |
+| matstationen `1d4eb6b1` | 6 | 5–7 | 58,4 × 30,5 cm 1 → 10, 44 × 24 cm 1 → 11 |
+| förvaringstornet `0136e7d9` | 4 | 3–5 | 6 lådor 0 → 3, 9 lådor 0 → 2 |
+| hundbädden med tak `01ac2f63` | 6 | 2–5 | 122 × 92 cm 1 → 3, 92 × 76 cm 1 → 5, 76 × 61 cm 2 → 2, 61 × 46 cm 1 → 1 |
+| skrivbordet `3b868848` | 5 | 2–6 | 63 cm 1 → 5, 80 cm 1 → 2 |
+| vedboden `4a2ab58e` | 3 | 5–10 | 150 cm 7 → 7, 213 cm 1 → 2 |
+| kattrappan `4d9ba658` | 6 | 3–5 | 60 × 40 cm 1 → 8, 45 × 40 cm 1 → 5 |
+| hundtrappan `543b9076` | 6 | 4–7 | 4 steg 0 → 9, 3 steg 0 → 4 |
+| hindersetet `6d35a04f` | 3 | 4–6 | 6 hinder 0 → 3, 3 hinder 0 → 4 |
+| hundgrinden med husdjursdörr `8018bb95` | 4 | 2–5 | 75–103 cm 0 → 3, 75–82 cm 0 → 2, 75–131 cm 0 → 3 |
+| sensorsoptunnan `92fc308c` | 6 | 5 | 50 liter 1 → 3, 42 liter 1 → 3, 30 liter 1 → 3 |
+| dörrgrinden `a64af3a4` | 3 | 3–6 | 75–95 cm 0 → 3, 75–145 cm 0 → 3 |
+| verktygslådan `aafbf543` | 4 | 3–6 | 3 lådor 0 → 7, 4 lådor 0 → 4 |
+| hopfällbara hundbädden `c3d1fa41` | 3 | 3–5 | 75 × 51 × 18 cm 1 → 4, 107 × 61 × 20 cm 2 → 2 |
+| väggspegeln `c438d4ba` | 6 | 2–6 | 50 × 70 cm 1 → 6, 60 × 90 cm 1 → 6, 50 × 110 cm 1 → 4 |
+
+Skrivningarna var nio körningar för länkarna (`bygg-agare.py <ut.js> <plan> --kompakt --utan-vy`, en eller två sidor per körning) 00:43:53–00:52:19 och fyra för variantbilderna
+(`bygg-variantbild-farg.py --kompakt`, 5 + 5 + 5 + 2 sidor) 00:47:23–00:54:37. Alla 17 sidor gav `ok: true` och `avvikelser: []`, med revision +1 per skrivning. Spärren i `bygg-agare.py` hämtade varje sidas adress
+före bygget och släppte igenom alla (`<id8> sidan bär imageKopplingar`). Planerna skrevs som de ligger i repot: de 33 posterna i nattens specar var lika `agare-<id8>.json` (jämfört som JSON), så ingen plan
+ändrades på vägen.
+
+**Mätningen**, fem oberoende kontroller:
+
+| kontroll | utfall |
+| :-- | :-- |
+| Wix läser tillbaka i varje skrivning (galleri, länkar, variant-id, SKU, pris, synlighet, namn och adress) | 17 av 17 sidor, 0 avvikelser |
+| `variantbild-farg.js`: variantens bild i Wix är färgens första foto (varukorg, kassa, order) | 78 av 78 varianter |
+| `kolla-agare.py` mot butikens sidodata | 17 av 17 stämmer med planen. Fyra sidor (`a64af3a4`, `aafbf543`, `c3d1fa41`, `c438d4ba`) gav ☠️ vid första körningen, med en cache som var ungefär tio minuter gammal, och var rätt några minuter senare |
+| **webbläsare, en kombination i taget** (`live-alla-kombinationer.sh`, 00:57–01:00 UTC) | **78 av 78 kombinationer visar exakt planens bilder**. Mutationsprov: en ändrad ägare i bokhyllans plan ger två avvikelser och exit 1 |
+| `katalogkontroll-tva-axlar-bilder.py` över alla 49 sidor med två val (hämtade 01:01 UTC) | 0 med en måttbild för fel val, 5 med foton som nämner en annan storlek (11 före mergen), 7 färgträffar (14 före mergen), 1 varukorgstips (vedboden, se nedan), 0 oläsbara |
+
+De 16 kombinationerna som fortfarande visar **färre än fyra bilder** är ett beslut, inte en miss (steg 3, väntar på Cowork-raderna för Härma Aosom): förvaringstornet Blå × 9 lådor (3), hundbädden med tak Mörkblå × 92 × 76 (3),
+Mörkblå × 76 × 61 (3) och Brun × 61 × 46 (2), skrivbordet Natur och vit × 80 cm (2), kattrappan Grå × 45 × 40 (3) och Brun × 45 × 40 (3), hundgrinden med husdjursdörr Vit × 75–103 (3), Vit × 75–82 (2) och
+Vit × 75–131 (3), dörrgrinden Vit × 75–95 (3) och Vit × 75–145 (3), verktygslådan Röd × 4 lådor (3), väggspegeln Svart × 50 × 110 (2), bokhyllan Vit × 136 cm (2) och hopfällbara hundbädden Brun och svart × 107 × 61 × 20 (3).
+Lagerläget för dem är inte kontrollerat här. De fem kombinationer i lager som saknade eget foto (skrivbordet Vit × 63 cm, spegeln Guld × 50 × 110, järngrindens tre) visar alla fyra eller fler bilder, ur sin färgs foton.
+Vedbodens Mörkgrå × 150 cm är kvar som varukorgstips: den varianten är slutsåld, och bara 213 cm × Mörkgrå har lager (lärdom 175).
+
+**Hamsterburen `13fe619f` skrevs inte.** Planen är torrkörd, men skrivningen ger Mörkgrå × 85 × 45 100-burens packshot i varukorgen (färgens första bild), och det är ett val som Leonard inte har gjort. Burens
+vy är orörd: Naturträ × 85 × 45 visar fortfarande den grå burens bilder (en av de sju färgträffarna).
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Variantbilden skrivs efter varje länkskrivning, i en egen körning.** En id-skrivning av optionerna nollställer variantens bild i Wix till huvudbilden (lärdom 169). Nattens cron (05:35 UTC) hade rättat det
+   först då, och varukorgen, kassan och ordern hade visat fel bild under tiden. Alla 17 sidor fick `variantbild-farg.js` 00:47–00:54, och Wix variantbild är färgens första foto på alla 78 varianter.
+2. ☠️ **Mät i en webbläsare per kombination, inte bara i sidans data.** `kolla-agare.py` läser vad butiken tänker visa, och bara webbläsaren visar vad kunden ser. De två skiljer sig åt när sidans cache är gammal,
+   och en kontroll som kan ge falskt rött lär mottagaren att sluta läsa. Mät om efter några minuter innan en sida kallas trasig. Verktygen är `live-galleri.mjs`, `live-galleri-kortfarg.mjs` (färgen som kort, storleken som
+   knappar, bokhyllan), `live-galleri-kort.mjs` (båda axlarna som kort, hundbädden) och `verifiera-live.py`, som räknar butikens regel mot planen. `live-alla-kombinationer.sh <planmapp> <utkatalog> <id8>…` kör dem i rätt
+   ordning och väljer själv kortskriptet när sidan har färgkort.
+3. **`--utan-vy` ger skarpa skript utan förhandsvisningen** (13,6 kB mot 19,4 kB). Skriptet klistras in i ExecuteWixAPI, och sex kilobyte som inte skrivs till Wix är sex kilobyte som kan bli fel i avskriften.
+   Skrivvägen och alla kontroller är oförändrade: `--utan-vy` ger byte för byte den fil som kördes skarpt 00:43–00:52, och flaggan avvisas tillsammans med `--torr`, vars svar ÄR förhandsvisningen. Vyn läses i
+   stället efteråt med `kolla-agare.py` och `verifiera-live.py`.
+4. ☠️ **Två sidor per körning som mest.** Varje ändrad option är en skrivning, en tre sekunders paus och en återläsning, taket för ExecuteWixAPI är 60 sekunder, och skriptet hoppar över resten av sidorna
+   med `tid` efter 40 sekunder. Två tvåaxliga sidor, alltså upp till fyra ändrade optioner, tog 8–17 sekunder per körning i natt. Tre sidor i en körning har inte prövats, och en sida som hoppas över med `tid`
+   ska köras om i en egen körning.
+
+**Kvar efter natten:** (a) de 16 kombinationerna ovan väntar på chattens svar för Härma Aosom (130 varianter på 30 sidor, filen ligger hos Leonard). (b) Hamsterburen väntar på Leonards besked. (c) Rad 137 i färgfilen
+(`c3d1fa41`) kan tas nu, eftersom sidans nya vyer finns: de 12 kandidaterna jämförs med `cowork-jfr.py` mot varje kombination. (d) Motorn (steg 4): varukorgens bild är färgens första för alla storlekar, och
+sammanslagningen kopplar fortfarande en ny storlek i en befintlig färg bara till färgen eller storleken. (e) Nattens `/api/cron/variantbild` (05:35 UTC) ska kontrollera alla flervariantsprodukter (1 174 natten före) och inte rätta någon
+av de 17 sidornas varianter: läs raden `{"ratt":…}` i Vercels runtime-logg. (f) Listsidorna i värmarens sista led (se ovan).
+
+#### Originalen tillbaka: inga Fyndplats-kort där leverantören har en måttbild (Leonards svar 11, 2026-10-24)
+
+Leonard 2026-10-24, efter att ha sett de färgneutrala korten: *"Jag vill inte ha
+Fyndplats-kort egentligen, varje produkt har ju sin egen original-specifikationsbild,
+varje en ska vara kopplad till rätt variant."* De färgneutrala korten (föregående
+avsnitt) ersattes därför på 17 sidor av leverantörens egna måttbilder, var och en
+länkad till sin färg OCH storlek: 37 original tillbaka, 23 kort borttagna, 77 kombinationer
+mätta live i en webbläsare utan avvikelse. Rundan, planerna och utfallet står i
+`tools/polish-assets/runda-bilder-originalen-tillbaka/README.md`. Hamsterburen
+`13fe619f` skrevs samma dag (Leonard: *Fixa*) och visar fem bilder i alla tre kombinationer.
+
+Regeln framåt, och den ersätter *ett kort per storlek*:
+
+1. **Originalet först.** En måttbild som leverantören har för en färg och storlek ligger
+   kvar och länkas till exakt den kombinationen. Ett Fyndplats-kort byggs bara när (a)
+   leverantören saknar måttbild för varianten (hammockens 177 cm, kantskyddens Ø305 och
+   Ø366, hundbäddens 107 × 61 × 20 cm, kistans M och L) eller (b) originalet bär en
+   logotyp eller en text som inte får synas och inte går att beskära bort utan att måtten
+   försvinner (svarta bänken `7b818c3b`, kortet i `runda-bilder-bank-svart-kort`, Leonards
+   *Okej* på fråga 2b).
+2. **Ett reservkort ägs av de färger och storlekar som saknar eget original, aldrig av
+   storleken** (`ändra.json`: `["Vit", "Brun", "60 × 40 cm"]`). Fyra sådana finns kvar, på
+   kattrappan, hundsängen och bokhyllan, och bara där en borttagning hade lämnat en vy
+   med färre bilder än före.
+3. ☠️ **Färgens första foto länkas också till färgens storlekar.** Kombinationens första
+   bild och variantTable-bilden är kandidaten som passar och är kopplad i flest optioner,
+   och lika antal ger den tidigaste (`lib/variant-price.ts`). Ett original länkat till färg
+   OCH storlek slår därför ett foto länkat bara till färgen och blir första bild: på
+   skrivbordet började Vit × 80 cm med Vits måttbild och Svart × 63 cm med Svarts, tills
+   fotot länkades också till storlekarna. Kontrollen är `bygg-forsta-koll.py` (ren
+   läsning ur Wix, butikens regel): ett original eller kort får aldrig vara första bild.
+4. ☠️ **Ett borttaget original läggs tillbaka vid samma fil-id** så länge bildstädningens
+   karenstid inte gått ut. Fil-id:n står i `BILDER:`-raden i `bilder-bort`-körningens
+   logg. Kör aldrig två `kor_wf.py` samtidigt (`kedja.sh` kör sidorna en och en).
+5. ☠️ **En kortrunda ligger direkt under `tools/polish-assets/`.** Ignoreringen
+   `*/orig/` gäller bara en nivå ned (nu även `**/orig/`), och kortets fotokälla är
+   leverantörens foto. Kontrollera med `git check-ignore -v` före `git add`.
+
+Efter varje skrivning på en sida med två val: `kolla-agare.py` (butikens sidodata),
+`live-alla-kombinationer.sh` (webbläsaren) och `variantbild-farg.js` (Wix variantbild).
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 

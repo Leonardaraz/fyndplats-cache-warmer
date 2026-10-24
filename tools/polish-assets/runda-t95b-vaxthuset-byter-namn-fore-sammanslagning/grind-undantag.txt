@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är sidans tidigare, verifierade svenska text och ändras bara med riktade ersättningar för valet; måtten står kvar oförändrade, och sidan har ingen tysk källtext med totalmåttrad att bygga ett facit ur

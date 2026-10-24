@@ -647,7 +647,8 @@ faktiskt behov och har inte krävts på ~40 produkter.
    (vita halos — öka dilation), färgtoner, dimfläckar, brutna kantlinjer, tile-skarvar.
    Iterera tills osynligt. **Går det inte att göra osynligt → bilden utgår.** Hellre
    färre perfekta bilder än en synlig retusch.
-5. **Bygg Fyndplats-kort** med `scripts/cardkit.py`: `card_spec(out, foto, kicker,
+5. **Bygg Fyndplats-kort** (☠️ bara när originalet saknas eller inte går att använda: leverantörens
+   egen måttbild går alltid före ett kort, Leonard 2026-10-24) med `scripts/cardkit.py`: `card_spec(out, foto, kicker,
    titel, [(nyckel, värde), …])` (produktbild + verifierat spec-rutnät, 6–10 rader)
    och `card_photo` / `card_grid` för feature-kort. **Alla siffror ska vara
    avlästa ur källbilder/beskrivning — aldrig gissade.** Vid flera varianter med olika

@@ -1,0 +1,534 @@
+{
+ "sidor": [
+  {
+   "id": "4664e423-0b80-48a7-b733-e4019bdec15e",
+   "bilder": [
+    {
+     "val": "Valnöt",
+     "fil": "b379ce_696a00f393ca412aa46aa583246cf520~mv2.jpg",
+     "alt": "Katt klättrar i ett löphjul av trä i valnötsfärg med klösmatta inuti, sett från sidan mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "4275e300-41f2-4ed4-95af-92f43ebdbab3",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_f4d69a48694a413991de92d4be8fb0d5~mv2.jpg",
+     "alt": "Måttbild på en grön kontorsfåtölj i sammet med höjd, sitthöjd, sitsbredd och djup angivna"
+    },
+    {
+     "val": "Grön",
+     "fil": "b379ce_9ebec741a30e460a9f414132546baf29~mv2.jpg",
+     "alt": "Närbild på armstödet och ryggstödet i grönt sammetstyg på en kontorsfåtölj"
+    },
+    {
+     "val": "Grön",
+     "fil": "b379ce_70db8a524405471d8cdce146efc3c9f0~mv2.jpg",
+     "alt": "Närbild på ryggstödet med en prydnadskudde på en grön kontorsfåtölj i sammet framför en grå vägg"
+    }
+   ]
+  },
+  {
+   "id": "0641bd05-1344-4c28-aeb3-53a905d868e9",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_a730732e88f54ea483a91bbeb914cf60~mv2.jpg",
+     "alt": "Vit kontorsstol med nätrygg och uppfällbara armstöd vid ett skrivbord i ett ljust rum med parkettgolv"
+    }
+   ]
+  },
+  {
+   "id": "6e810d9c-1992-4dbc-9537-19672aa7a6e7",
+   "bilder": [
+    {
+     "val": "Blå sammet",
+     "fil": "b379ce_9e7cd8532318482297a2a723549318aa~mv2.jpg",
+     "alt": "Närbild på det vadderade armstödet i blått sammetstyg på en kontorsstol med massage"
+    },
+    {
+     "val": "Svart linnelook",
+     "fil": "b379ce_db8ba42a411a4938b30cf97d5e97016d~mv2.jpg",
+     "alt": "Närbild på ett uppfällt armstöd och den stoppade sitsen i svart linnelook på en kontorsstol, mot vit bakgrund"
+    },
+    {
+     "val": "Svart linnelook",
+     "fil": "b379ce_dd1499ead2b2428dbd113b30d3812282~mv2.jpg",
+     "alt": "Svart kontorsstol i linnelook sedd bakifrån mot vit bakgrund"
+    },
+    {
+     "val": "Svart linnelook",
+     "fil": "b379ce_2cd0db9dc1a640258168629bcba5362a~mv2.jpg",
+     "alt": "Svart kontorsstol i linnelook med bakåtlutat ryggstöd, sedd snett från sidan mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "4871d041-b722-4403-bfe3-4ea252d23253",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_a41ad048187d47648b0048a796e5e461~mv2.jpg",
+     "alt": "Grå och vit kontorsstol med nätrygg, nackstöd och uppfällbart armstöd, sedd från sidan mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_681903b35951472c881b743350d2bc76~mv2.jpg",
+     "alt": "Grå och vit kontorsstol med nätrygg och nackstöd, sedd bakifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "817e1869-24c8-40d1-953a-58f6e8fff7ba",
+   "bilder": [
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_cd3d78833c774afbb2c2ef671c39cb13~mv2.jpg",
+     "alt": "Två gräddvita stolar med runda ryggstöd i rotting vid ett träbord i ett rum med grå vägg och trägolv"
+    },
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_61b0c9c539c04f3bb8cd82af465c1919~mv2.jpg",
+     "alt": "Måttbild på en gräddvit stol med runt ryggstöd i rotting och ljusa träben, med höjd, bredd och djup angivna"
+    },
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_8b1d1f03cf7c43268aab6b873e5c250b~mv2.jpg",
+     "alt": "Närbild på den stoppade sitsen i gräddvit linnelook och ett snidat träben på en stol"
+    },
+    {
+     "val": "Gräddvit",
+     "fil": "b379ce_f342c9799bc844b18bd30b31c2b87815~mv2.jpg",
+     "alt": "Gräddvit stol med runt ryggstöd i rotting och ljusa träben, sedd framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "9e157d1d-0c0e-4cb2-81e6-592ba77afe21",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_c7a382c6393b435a96ae0f65fd9436ac~mv2.jpg",
+     "alt": "Mörkgrått plåtskjul med öppen dörr, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "07b3ee0e-7545-48fd-8000-ef7bb593c3ae",
+   "bilder": [
+    {
+     "val": "Grå och vit",
+     "fil": "b379ce_a7b4e5d93d7943b0ac7d4e7c1cbbdabe~mv2.png",
+     "alt": "Kvinna och flicka matar kaniner i ett grått och vitt kaninhus i trä med två våningar, i en solig trädgård"
+    }
+   ]
+  },
+  {
+   "id": "5a31b710-40c0-476b-af0c-4a5d2cffe545",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_fd3843c91dfa438daa9cb75eeb757875~mv2.jpg",
+     "alt": "Närbild på armstödet och sitsen i svart konstläder på en fåtölj"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_00c8ccbf03014dee8daa7bc22d85854b~mv2.jpg",
+     "alt": "Närbild på fjärrkontrollen i fickan på sidan av en svart fåtölj med fot av trä"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_ff6a28e36af94963a5fe444bfd447939~mv2.jpg",
+     "alt": "Svart fåtölj i konstläder med fotpall och fot av trä, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "037b6ee0-b25d-403d-9c48-12b8375af505",
+   "bilder": [
+    {
+     "val": "Mörkgrön",
+     "fil": "b379ce_18d7e771764146d1968a504d41a39970~mv2.jpg",
+     "alt": "Mörkgrönt plåtskjul med vit mittdel och stängda dörrar, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "834c66fd-8231-4df3-8fb1-1967189c8861",
+   "bilder": [
+    {
+     "val": "Brun",
+     "fil": "b379ce_24b7c498e40047e6bef81febcdbe090f~mv2.jpg",
+     "alt": "Brunt plåtskjul med stängda dörrar, sett snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Kolgrå",
+     "fil": "b379ce_77e22345426b44fbb90de7a3346a56aa~mv2.jpg",
+     "alt": "Kolgrått plåtskjul med öppna skjutdörrar, sett snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Ljusgrön",
+     "fil": "b379ce_5a52813d668346078c088bcbbe9931b4~mv2.jpg",
+     "alt": "Renderad bild av ett plåtskjul med hyllor och verktyg där en man ställer in en cykel, sett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Orange",
+     "fil": "b379ce_8206ee5dbf5940d588ecbcbed93741a5~mv2.jpg",
+     "alt": "Orange plåtskjul med brunt tak och öppen dörr, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a414b5b5-c7a2-4615-b825-be36a9e9561c",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_b3b2867284c443f6bdaa5b9f90087705~mv2.jpg",
+     "alt": "Grått plåtskjul med öppna skjutdörrar och golvram, sett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Ljusgrön",
+     "fil": "b379ce_76b63311be5d4ea596547cf7c8226062~mv2.jpg",
+     "alt": "Ljusgrönt plåtskjul med öppna skjutdörrar och golvram, sett snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Sand",
+     "fil": "b379ce_b8738113dd844bce8b256cd42689924c~mv2.jpg",
+     "alt": "Sandfärgat plåtskjul med skjutdörrar och brunt tak, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "b2c76518-ea78-4d02-9951-d663a8a20558",
+   "bilder": [
+    {
+     "val": "Silver",
+     "fil": "b379ce_6f58f4574437419c86703b9a854e41a1~mv2.jpg",
+     "alt": "Silverfärgad minifrys med svarta sidor, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "526d7fb5-4185-49cc-aa65-c36b2e483696",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_1a4f92f6ae8d49e8a8b0c3bfa83f7620~mv2.jpg",
+     "alt": "Grå bäddsoffa i mjukt tyg i soffläge, sedd snett framifrån mot vit bakgrund"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_c254c832608b45aa9728199731958afe~mv2.jpg",
+     "alt": "Grå bäddsoffa i soffläge och som utdragen bädd, två lägen på samma bild mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "dc7d2513-788c-4952-9412-72c57ee853d6",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_7cddcff36b0c4e629df63987d02e9a5e~mv2.jpg",
+     "alt": "Närbild på ett grönt paviljongtak och hörnet där duken fästs i stommen"
+    }
+   ]
+  },
+  {
+   "id": "e0a73975-727e-4610-a9cc-4e1d25247bed",
+   "bilder": [
+    {
+     "val": "Vit",
+     "fil": "b379ce_515d2d7044ea4b938fb67a960456f12b~mv2.jpg",
+     "alt": "Vit pianopall med stoppad sits i konstläder och uppfällt lock, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a8e5db2d-6b22-4c48-b37a-0a61613d09e6",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_b13414ac12fa4e9dadbe8b88f4cf54cc~mv2.jpg",
+     "alt": "Mörkgrått plastskjul med vita kanter, fönster och en dörr som står öppen, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "bb45be9d-3dbf-4e97-be05-a24fa880777c",
+   "bilder": [
+    {
+     "val": "Grön",
+     "fil": "b379ce_44125f10ab23446a9d58c800c7ef0c89~mv2.jpg",
+     "alt": "Grönt plåtskjul med fönster och öppna dubbeldörrar, sett snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "5f14c112-8c5e-44bf-9c71-321bbc7010c4",
+   "bilder": [
+    {
+     "val": "Brun",
+     "fil": "b379ce_318b682cf80f46fb9ffd96328dc42d52~mv2.jpg",
+     "alt": "Måttbild på en brun rumsavdelare i flätat material med fyra paneler, med höjd och bredd angivna"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_591b65570e04494f8a8d6d98517de826~mv2.jpg",
+     "alt": "Brun rumsavdelare i flätat material med fyra paneler i ett ljust rum med växt och ett runt bord"
+    },
+    {
+     "val": "Brun",
+     "fil": "b379ce_0c765e5991834f98b70a03f48c1e80ec~mv2.jpg",
+     "alt": "Brun rumsavdelare i flätat material, delvis hopfälld, sedd framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "d70e483e-40b8-48b8-8d94-db81767e77ac",
+   "bilder": [
+    {
+     "val": "Marinblå och grön",
+     "fil": "b379ce_59bd1e592c574004ba52c5679ce43381~mv2.jpg",
+     "alt": "Lekklossar i skumgummi i marinblått, grönt och beige uppbyggda till en tunnel med trappa och ramp, mot vit bakgrund"
+    },
+    {
+     "val": "Marinblå och grön",
+     "fil": "b379ce_d842d7f586354d3b8ec1b27a40f7f2a6~mv2.jpg",
+     "alt": "Måttbild över delarna i ett lekset i skumgummi i marinblått, grönt och beige, med en uppbyggd bana nedtill"
+    },
+    {
+     "val": "Marinblå och grön",
+     "fil": "b379ce_30cf6f1c92324204ab376bc055e52dbe~mv2.jpg",
+     "alt": "Lekklossar i skumgummi i marinblått, grönt och beige uppbyggda på golvet i ett barnrum med tavlor och stjärnor på väggen"
+    },
+    {
+     "val": "Marinblå och grön",
+     "fil": "b379ce_1f8f1dc7cd814d23a9e43e6c3d234963~mv2.jpg",
+     "alt": "Tre olika uppställningar av lekklossar i skumgummi i marinblått, grönt och beige, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "b8002629-89d6-4409-b429-ad6b612d734c",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_90a0c706593943a28850df2d09bfa1d6~mv2.jpg",
+     "alt": "Svart bågformat skärmtak med mörkt tonad skiva över ett fönster under ett tegeltak"
+    }
+   ]
+  },
+  {
+   "id": "298492a4-1324-4720-a6cf-eb219b96381d",
+   "bilder": [
+    {
+     "val": "Mörkblå",
+     "fil": "b379ce_7b816b87e92845b18b2d45ce445bdfc3~mv2.jpg",
+     "alt": "Mörkblå fåtölj i sammetslook med knappar i ryggen och vridbar fot i ett ljust rum med gardiner, växter och ett litet bord"
+    }
+   ]
+  },
+  {
+   "id": "fbd70dae-8fd3-4fee-8da7-618c83a24471",
+   "bilder": [
+    {
+     "val": "Sand",
+     "fil": "b379ce_b7fc504d7da540d095d7741f3dfc30b7~mv2.jpg",
+     "alt": "Solcellslampa i flätad rotting i sandfärg med tänd ljuskälla bredvid en korgstol på en träterrass"
+    }
+   ]
+  },
+  {
+   "id": "39d10fc4-65e5-49d8-9f84-4dc10424bf90",
+   "bilder": [
+    {
+     "val": "Ljusgrå",
+     "fil": "b379ce_03a4618039094274b6bd8fbe3f363b80~mv2.jpg",
+     "alt": "Två ljusgrå dynor med knytband, liggande sedda uppifrån mot vit bakgrund"
+    },
+    {
+     "val": "Mörkblå",
+     "fil": "b379ce_25a8716a47694470a950b9000b2b4477~mv2.jpg",
+     "alt": "Två mörkblå dynor med knytband, liggande sedda uppifrån mot vit bakgrund"
+    },
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_aa615a8a826c41019c2fdf5a815336b8~mv2.jpg",
+     "alt": "Två mörkgrå dynor med knytband, liggande sedda uppifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a8f46ff0-2b7d-4130-9518-0ccd07108628",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_4a33d392b8bd422d9fb5d2cf029c833a~mv2.jpg",
+     "alt": "Barn i röd tröja hoppar på en svart studsmatta med nätskydd, frilagd mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "3f7ef4a1-4d9e-4937-9db1-ae042c10b442",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_f60348872dab4caba3b78b79a9cce3a6~mv2.jpg",
+     "alt": "Kvinna tränar på en rund minitrampolin med svart ram, orange kant och ett handtag, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "a9c2bfd8-9cab-4bcd-9737-71441c92ecac",
+   "bilder": [
+    {
+     "val": "Ljusgrå",
+     "fil": "b379ce_9b421455934c49e5af159a0ea39a4910~mv2.jpg",
+     "alt": "Stapel av ljusgrå korrugerade takplåtar med några små delar i hörnet, mot vit bakgrund"
+    },
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_902b615e70954b32a4cbe54f49f9f6e1~mv2.jpg",
+     "alt": "Mörkgrå korrugerade takplåtar, några stående och en liggande, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "63fd748c-fd1e-4d78-b248-b8206e06dc44",
+   "bilder": [
+    {
+     "val": "Blå",
+     "fil": "b379ce_27d8f21534b74ac6be7a125e8a288807~mv2.jpg",
+     "alt": "Beagle står på ett hopfällbart trimbord med blå skiva, galge och snara, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "1ea30bf4-23cd-4407-9b62-e43cf04eda88",
+   "bilder": [
+    {
+     "val": "Turkos",
+     "fil": "b379ce_82ab89eb925f4901aa52ee12530cecfa~mv2.jpg",
+     "alt": "Närbild på foten i turkos stål på ett gymnastikräcke på ett träningsgolv med hantlar och mattor i bakgrunden"
+    },
+    {
+     "val": "Turkos",
+     "fil": "b379ce_5a8437bcee494043b1ca4fe751a1e7f8~mv2.jpg",
+     "alt": "Flicka i gymnastikdräkt står vid ett turkost gymnastikräcke med trästång, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "f1878c34-325c-4442-b78e-c89a604389f8",
+   "bilder": [
+    {
+     "val": "Krämvit",
+     "fil": "b379ce_8611b7860ffa428d9c8f9d525e0617d6~mv2.jpg",
+     "alt": "Krämvit tvåsitssoffa med knappsydd sits och ljusa träben, sedd snett framifrån mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "12401205-af90-42b9-b065-546c0435df49",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_bc6244423bfa43afba2583c09e8d5725~mv2.jpg",
+     "alt": "Golden retriever ligger på en upphöjd mörkgrå hundbädd med svarta ben, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "3a5060ec-8eba-4745-b62f-781065e63247",
+   "bilder": [
+    {
+     "val": "Röd och svart",
+     "fil": "b379ce_2af2f255e485417d80b404c54e7e0f9b~mv2.jpg",
+     "alt": "Närbild på ett ramrör med kopplingsring och det röda och svarta tyget på en upphöjd hundbädd"
+    },
+    {
+     "val": "Röd och svart",
+     "fil": "b379ce_ff0dcf44242a424f95a24166704e702b~mv2.jpg",
+     "alt": "Golden retriever ligger på en upphöjd hundbädd i rött och svart med svarta ben, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "54a1916b-2856-4ecb-bb76-350704bd6ae2",
+   "bilder": [
+    {
+     "val": "Mörkgrå",
+     "fil": "b379ce_4dcbc1edfd584bc0b8744e1ecb9e545a~mv2.jpg",
+     "alt": "Mörkgrå liftfåtölj i tyg med massagepunkter och värmezon markerade på ryggstödet och sitsen, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "f8efe733-185d-4449-b4d1-d194f73420c2",
+   "bilder": [
+    {
+     "val": "Grå",
+     "fil": "b379ce_de79b013df2a40af858a9e6476ccf8bc~mv2.jpg",
+     "alt": "Äldre man sitter i en grå liftfåtölj i ett vardagsrum med fönster, bokhylla och växter"
+    },
+    {
+     "val": "Grå",
+     "fil": "b379ce_bfd93adbb998476489a226172b502cda~mv2.jpg",
+     "alt": "Kvinna vilar i en grå liftfåtölj med utfälld fotstöd och en filt över benen i ett ljust rum"
+    }
+   ]
+  },
+  {
+   "id": "5c65d551-e1d8-4d0e-8859-6a8158f47fb4",
+   "bilder": [
+    {
+     "val": "Grå betong",
+     "fil": "b379ce_c114ac39bce44246a03fa2e223d367fb~mv2.jpg",
+     "alt": "Utdragbart matbord med grå betongskiva och svarta korsade ben, omgivet av beige stolar i ett kök med trägolv"
+    },
+    {
+     "val": "Grå betong",
+     "fil": "b379ce_f91b7d86a2914b788370e92b8af77c8a~mv2.jpg",
+     "alt": "Utdragbart matbord med grå betongskiva och svarta korsade ben, dukat med tallrikar, glas och en vas, mot vit bakgrund"
+    },
+    {
+     "val": "Grå betong",
+     "fil": "b379ce_91ce5578a582492a907ba277159fefb1~mv2.jpg",
+     "alt": "Utdragbart matbord med grå betongskiva och svarta korsade ben med ett extra skivblad uppe till vänster, dukat med tallrikar och en vas, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "7e00970f-f9d5-4e05-a87e-1dcf10468c64",
+   "bilder": [
+    {
+     "val": "Svart",
+     "fil": "b379ce_8002f054a53f425781b29e44bfa20a47~mv2.jpg",
+     "alt": "Närbild på en fog med skruv i ljust böjträ på en fåtölj, mot ett trägolv"
+    },
+    {
+     "val": "Svart",
+     "fil": "b379ce_b3663cf1fe4b49f7812a6626592f8b94~mv2.jpg",
+     "alt": "Svart fåtölj med kudde och böjda armstöd i ljust trä, sedd från sidan med fotstödet utfällt, mot vit bakgrund"
+    }
+   ]
+  },
+  {
+   "id": "c3d1fa41-199a-4431-b65c-139bbce8aebf",
+   "bilder": [
+    {
+     "val": "Ljusgrå och svart",
+     "fil": "b379ce_f1f532c3ea1d4569afe7380f2a90dfc1~mv2.jpg",
+     "alt": "Måttbild på en ljusgrå hopfällbar hundbädd med svart nätyta på en terrass, med mått för bädden och för den hopfällda storleken"
+    },
+    {
+     "val": "Ljusgrå och svart",
+     "fil": "b379ce_76851660460f473fbdc0dc173f04791d~mv2.jpg",
+     "alt": "Vit hund sitter på en ljusgrå hopfällbar hundbädd med svart nätyta, mot vit bakgrund"
+    }
+   ]
+  }
+ ]
+}

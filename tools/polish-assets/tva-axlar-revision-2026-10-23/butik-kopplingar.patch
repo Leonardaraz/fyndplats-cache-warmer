@@ -1,0 +1,558 @@
+diff --git a/app/produkt/[slug]/page.tsx b/app/produkt/[slug]/page.tsx
+index 4b6bede4..3b39d093 100644
+--- a/app/produkt/[slug]/page.tsx
++++ b/app/produkt/[slug]/page.tsx
+@@ -423,6 +423,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug:
+           variantAxes={p.variantAxes}
+           variantTable={p.variantTable}
+           imageOwners={p.imageOwners}
++          imageKopplingar={p.imageKopplingar}
+           imageAlts={p.imageAlts}
+           category={primaryCol?.name}
+           // Med Trustpilot påslaget renderas våra egna omdömen inte alls
+diff --git a/components/productview.tsx b/components/productview.tsx
+index 7e3afc96..1c604f14 100644
+--- a/components/productview.tsx
++++ b/components/productview.tsx
+@@ -2,7 +2,7 @@
+ import { useEffect, useLayoutEffect, useRef, useState } from "react";
+ import { forvarmKundvagn, useCart } from "./cart";
+ import { Gallery } from "./gallery";
+-import { synligaBilder } from "../lib/variant-bilder";
++import { synligaBilder, synligaBilderForKombination, type Kopplingar } from "../lib/variant-bilder";
+ import { RestockForm } from "./restock-form";
+ import { trackAddToCart, trackViewItem } from "../lib/analytics";
+ import { tightFillUrl } from "../lib/wix-image";
+@@ -281,6 +281,7 @@ export function ProductView({
+   variantAxes,
+   variantTable,
+   imageOwners,
++  imageKopplingar,
+   imageAlts,
+   category,
+   priceNum,
+@@ -305,6 +306,9 @@ export function ProductView({
+   variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
+   variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
+   imageOwners?: Record<string, string>;
++  // Alla kopplingar per bild (lib/variant-bilder.ts): en bild kopplad till en färg
++  // OCH en storlek visas bara för den kombinationen. Saknas → imageOwners som förut.
++  imageKopplingar?: Kopplingar;
+   // Wix alt-texter per bild (mediaKey → altText) — skickas vidare till Gallery.
+   imageAlts?: Record<string, string>;
+   category?: string;
+@@ -394,7 +398,12 @@ export function ProductView({
+   const valdaEtiketter = (
+     multiAxis ? Object.values(picked) : hasImageVariants ? [imageChoices[sel]?.label] : []
+   ).filter(Boolean) as string[];
+-  const galleryImages = synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
++  // En bild som är kopplad till val i flera optioner syns bara när alla dess
++  // optioner har ett av dess val valt (imageKopplingar). Utan kopplingarna gäller
++  // en ägare per bild som förut.
++  const galleryImages = imageKopplingar
++    ? synligaBilderForKombination(allaBilder, imageKopplingar, valdaEtiketter, selectedVariantImage)
++    : synligaBilder(allaBilder, imageOwners, valdaEtiketter, selectedVariantImage);
+   const galleriFiltrerat = galleryImages !== allaBilder;
+   // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
+   // slide hittas även om variantens URL har andra transform-params). Saknas → 0.
+diff --git a/lib/products.ts b/lib/products.ts
+index 2f044e26..22d35ee6 100644
+--- a/lib/products.ts
++++ b/lib/products.ts
+@@ -1,7 +1,7 @@
+ import { cache } from "react";
+ import { categorySignalIsUsable, keepCategory, medForaldrar } from "./category-filter";
+ import { imgKey } from "./image-alt";
+-import { agareMedAltText } from "./variant-bilder";
++import { agareMedAltText, kopplingarPerOption, medAgareUrAltText, type Kopplingar } from "./variant-bilder";
+ import { formatPrice } from "./price-range";
+ import { clipText } from "./clip-text";
+ import { hamtaAllaKategorier } from "./category-paging";
+@@ -74,6 +74,10 @@ export type Product = {
+   // En variant kan ha FLERA bilder (V3 linkedMedia är en lista) → används för att
+   // markera ALLA den valda variantens bilder i galleriet. Tom = ingen koppling.
+   imageOwners?: Record<string, string>;
++  // Alla kopplingar per bild: fil-id → en etikettlista per option som kopplar
++  // bilden (lib/variant-bilder.ts, Kopplingar). En bild kopplad till både en
++  // färg och en storlek visas bara för den kombinationen. Tom = ingen koppling.
++  imageKopplingar?: Kopplingar;
+   // Wix alt-texter per bild: mediaKey (fil-id) → altText. Nycklas på fil-id
+   // (INTE parallell array) eftersom galleriet dedupas, kapas och kan ersättas av
+   // V3-varianten — en index-baserad lista skulle glida isär. Samma mönster som
+@@ -196,13 +200,21 @@ function ownerMediaKey(url: string): string {
+ // i galleriet när varianten väljs. Etiketten normaliseras med swedishChoiceValue
+ // så den matchar väljarens visningsetikett. Första vinnaren per bild behålls (en
+ // bild som råkar delas av två val tillskrivs det första). Fail-open: {} utan nyckel.
+-async function fetchV3ImageOwners(productId: string): Promise<Record<string, string>> {
++// `etikett` gör om valets namn i Wix till väljarens etikett: swedishChoiceValue på
++// en sida med ett val (väljaren översätter), namnet som det är på en sida med två
++// val (väljaren visar V3-namnen). Med swedishChoiceValue på en sida med två val
++// fick projektorduken ägaren "85 tum (216 cm)" medan väljaren sade "85 tum", och
++// storlekarnas bilder visades aldrig.
++async function fetchV3ImageOwners(
++  productId: string,
++  etikett: (namn: string) => string = swedishChoiceValue,
++): Promise<Record<string, string>> {
+   const product = await fetchV3ProductRaw(productId);
+   if (!product) return {};
+   const out: Record<string, string> = {};
+   for (const opt of product.options || []) {
+     for (const ch of opt?.choicesSettings?.choices || []) {
+-      const label = ch?.name ? swedishChoiceValue(ch.name) : "";
++      const label = ch?.name ? etikett(ch.name) : "";
+       if (!label) continue;
+       for (const lm of ch?.linkedMedia || []) {
+         const url = lm?.image?.url;
+@@ -215,6 +227,27 @@ async function fetchV3ImageOwners(productId: string): Promise<Record<string, str
+   return out;
+ }
+ 
++// Alla kopplingar per bild (lib/variant-bilder.ts, kopplingarPerOption), med
++// samma etiketter som fetchV3ImageOwners. Delar det cache:ade V3-anropet.
++// Fail-open: {} utan nyckel eller data.
++async function fetchV3Kopplingar(
++  productId: string,
++  etikett: (namn: string) => string = swedishChoiceValue,
++): Promise<Kopplingar> {
++  const product = await fetchV3ProductRaw(productId);
++  if (!product) return {};
++  type V3Val = { name?: string; linkedMedia?: { image?: { url?: string } }[] };
++  const optioner: { choicesSettings?: { choices?: V3Val[] } }[] = product.options || [];
++  return kopplingarPerOption(
++    optioner.map((opt) =>
++      (opt?.choicesSettings?.choices || []).map((ch) => ({
++        etikett: ch?.name ? etikett(ch.name) : "",
++        bilder: (ch?.linkedMedia || []).map((lm) => lm?.image?.url || "").filter(Boolean),
++      })),
++    ),
++  );
++}
++
+ // Per-variant pris/-id autentiserat från V3 (delar cachead hämtning med bilderna).
+ // Ren parsning ligger i ./variant-price (enhetstestbar utan SDK/fetch-beroenden).
+ async function fetchV3VariantData(productId: string): Promise<V3VariantData> {
+@@ -826,7 +859,8 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
+         // markera ALLA den valda variantens bilder i galleriet. Delar cache:ade V3-
+         // anropet. Fail-open: {} om nyckel/data saknas → ingen markering, allt annat
+         // oförändrat.
+-        prod.imageOwners = await fetchV3ImageOwners(prod.id);
++        const etikett = (prod.variantAxes?.length ?? 0) >= 2 ? (namn: string) => namn : swedishChoiceValue;
++        prod.imageOwners = await fetchV3ImageOwners(prod.id, etikett);
+         // Sammanslagna färger har oftast bara EN länkad bild per val. Olänkade
+         // bilder vars alt-text nämner exakt en av färgerna tillskrivs den, så
+         // galleriet kan visa varje färgs egna bilder (lib/variant-bilder.ts).
+@@ -843,6 +877,10 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
+             huvudbild: prod.img,
+           });
+         }
++        // Alla kopplingar, med ägarna ur alt-texten för de okopplade bilderna.
++        // Galleriet visar en bild kopplad till färg OCH storlek bara för den
++        // kombinationen (components/productview.tsx).
++        prod.imageKopplingar = medAgareUrAltText(await fetchV3Kopplingar(prod.id, etikett), prod.imageOwners);
+         return prod;
+       }
+     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }
+diff --git a/lib/variant-bilder.ts b/lib/variant-bilder.ts
+index 0193ed13..8709f94b 100644
+--- a/lib/variant-bilder.ts
++++ b/lib/variant-bilder.ts
+@@ -144,9 +144,98 @@ export function synligaBilder(
+     return !o || valdaSet.has(o);
+   });
+   if (!synliga.length) return bilder;
+-  if (!forst) return synliga;
++  return medForst(synliga, forst);
++}
++
++/** `forst` (valets huvudbild) först i listan, om den finns där. */
++function medForst(bilder: string[], forst?: string): string[] {
++  if (!forst) return bilder;
+   const fk = imgKey(forst);
+-  const i = synliga.findIndex((u) => imgKey(u) === fk);
+-  if (i <= 0) return synliga;
+-  return [synliga[i], ...synliga.slice(0, i), ...synliga.slice(i + 1)];
++  const i = bilder.findIndex((u) => imgKey(u) === fk);
++  if (i <= 0) return bilder;
++  return [bilder[i], ...bilder.slice(0, i), ...bilder.slice(i + 1)];
++}
++
++// ── Kopplingar per option (2026-10-23) ──────────────────────────────────────
++//
++// Wix kopplar bilder per val (linkedMedia), och samma bild kan kopplas till
++// val i flera optioner. Galleriet gav förut varje bild EN ägare, det första val
++// som kopplade den, och visade den när det valet var valt. En bild som visar en
++// viss kombination gick därför inte att visa bara där: bokhyllans stora hylla i
++// brunt syntes under båda höjderna så länge bilden var kopplad till färgen, och
++// under båda färgerna om den var kopplad till höjden (Leonard, 2026-10-23).
++//
++// Regeln nu: en bild syns när den, i VARJE option som kopplar den, är kopplad
++// till det valda valet. Inom en option räcker ett av valen. En bild som är
++// kopplad till Rustik brun och till 136 cm syns alltså bara för brun 136 cm, en
++// bild som bara är kopplad till färgen syns för färgens alla storlekar, och en
++// bild som är kopplad till två storlekar syns för båda. En sida där varje bild
++// har högst en koppling ser ut precis som förut.
++
++/**
++ * Bildens kopplingar: fil-id → en lista per option som kopplar bilden, med
++ * valens etiketter. [["Rustik brun och svart"], ["136 cm"]] är en bild av den
++ * bruna hyllan på 136 cm.
++ */
++export type Kopplingar = Record<string, string[][]>;
++
++/**
++ * Kopplingarna ur optionernas val. `optioner` har en lista per option med
++ * varje vals etikett och dess kopplade bilder (alla, i Wix ordning). Etiketten
++ * ska vara densamma som väljaren visar.
++ */
++export function kopplingarPerOption(
++  optioner: ReadonlyArray<ReadonlyArray<{ etikett: string; bilder: ReadonlyArray<string> }>>,
++): Kopplingar {
++  const ut: Kopplingar = {};
++  for (const val of optioner) {
++    const iOptionen: Record<string, string[]> = {};
++    for (const v of val) {
++      if (!v.etikett) continue;
++      for (const url of v.bilder) {
++        const k = imgKey(url);
++        if (!k) continue;
++        const lista = (iOptionen[k] ||= []);
++        if (!lista.includes(v.etikett)) lista.push(v.etikett);
++      }
++    }
++    for (const [k, etiketter] of Object.entries(iOptionen)) (ut[k] ||= []).push(etiketter);
++  }
++  return ut;
++}
++
++/**
++ * Kopplingarna kompletterade med ägarna ur alt-texten (agareMedAltText): en
++ * okopplad bild vars alt-text gav den en färg räknas som kopplad till färgen.
++ */
++export function medAgareUrAltText(kopplingar: Kopplingar, agare: Record<string, string>): Kopplingar {
++  const ut: Kopplingar = { ...kopplingar };
++  for (const [k, etikett] of Object.entries(agare)) {
++    if (!(k in ut) && etikett) ut[k] = [[etikett]];
++  }
++  return ut;
++}
++
++/**
++ * Galleriet för de valda etiketterna (en per option) enligt kopplingarna, med
++ * `forst` först. Samma reserv som synligaBilder: syns ingen kopplad bild för
++ * valet, eller blir listan tom, returneras hela listan oförändrad.
++ */
++export function synligaBilderForKombination(
++  bilder: string[],
++  kopplingar: Kopplingar | undefined,
++  valda: string[],
++  forst?: string,
++): string[] {
++  if (!kopplingar || !valda.length) return bilder;
++  const valdaSet = new Set(valda);
++  const passar = (u: string): boolean => {
++    const grupper = kopplingar[imgKey(u)];
++    return !grupper || grupper.every((etiketter) => etiketter.some((e) => valdaSet.has(e)));
++  };
++  const egna = bilder.some((u) => (kopplingar[imgKey(u)]?.length ?? 0) > 0 && passar(u));
++  if (!egna) return bilder;
++  const synliga = bilder.filter(passar);
++  if (!synliga.length) return bilder;
++  return medForst(synliga, forst);
+ }
+diff --git a/lib/variant-kopplingar.test.ts b/lib/variant-kopplingar.test.ts
+new file mode 100644
+index 00000000..8602a40c
+--- /dev/null
++++ b/lib/variant-kopplingar.test.ts
+@@ -0,0 +1,203 @@
++// Run: node --test --experimental-strip-types lib/variant-kopplingar.test.ts
++//
++// En bild kopplad till både en färg och en storlek visas bara för den
++// kombinationen (lib/variant-bilder.ts, Kopplingar), och kombinationens första
++// bild är den bilden (lib/variant-price.ts, v3MultiVariantData). Fixturen är
++// bokhyllan i trädform (Leonard 2026-10-23: lilla och stora hyllan syntes
++// under båda höjderna och båda färgerna).
++import test from "node:test";
++import assert from "node:assert/strict";
++import {
++  agareMedAltText,
++  kopplingarPerOption,
++  medAgareUrAltText,
++  synligaBilder,
++  synligaBilderForKombination,
++} from "./variant-bilder.ts";
++import { v3MultiVariantData } from "./variant-price.ts";
++
++const u = (id: string) => `https://static.wixstatic.com/media/${id}~mv2.jpg`;
++const k = (id: string) => `${id}~mv2.jpg`;
++
++const BRUN = "Rustik brun och svart";
++// Galleriet i sidans ordning. b109/b136 = bruna packshots, v109/v136 = vita,
++// bhorn = brun i hörn (109), narbild och fot = bruna närbilder utan höjd,
++// vmiljo1–3 = vita miljöbilder (109), kort109/kort136 = måttkort.
++const GALLERI = ["b109", "vmiljo1", "bhorn", "narbild", "fot", "b136", "v109", "v136", "vmiljo2", "vmiljo3", "kort109", "kort136"].map(u);
++
++// Efter omlänkningen: varje bild kopplad till det den visar.
++const OPTIONER = [
++  [
++    { etikett: "109 cm", bilder: ["b109", "bhorn", "v109", "vmiljo1", "vmiljo2", "vmiljo3", "kort109"].map(u) },
++    { etikett: "136 cm", bilder: ["b136", "v136", "kort136"].map(u) },
++  ],
++  [
++    { etikett: BRUN, bilder: ["b109", "bhorn", "narbild", "fot", "b136"].map(u) },
++    { etikett: "Vit", bilder: ["v109", "vmiljo1", "v136", "vmiljo2", "vmiljo3"].map(u) },
++  ],
++];
++
++test("kopplingarPerOption: en lista per option som kopplar bilden", () => {
++  const kk = kopplingarPerOption(OPTIONER);
++  assert.deepEqual(kk[k("b136")], [["136 cm"], [BRUN]]);
++  assert.deepEqual(kk[k("narbild")], [[BRUN]]);
++  assert.deepEqual(kk[k("kort109")], [["109 cm"]]);
++  assert.equal(kk[k("okand")], undefined);
++});
++
++test("kopplingarPerOption: två val i samma option blir en lista", () => {
++  const kk = kopplingarPerOption([[
++    { etikett: "50 × 70 cm", bilder: [u("miljo")] },
++    { etikett: "60 × 90 cm", bilder: [u("miljo")] },
++    { etikett: "50 × 110 cm", bilder: [u("smal")] },
++  ]]);
++  assert.deepEqual(kk[k("miljo")], [["50 × 70 cm", "60 × 90 cm"]]);
++});
++
++test("bokhyllan: varje kombination visar sin hylla och aldrig den andra höjden", () => {
++  const kk = kopplingarPerOption(OPTIONER);
++  const vy = (farg: string, hojd: string, forst?: string) =>
++    synligaBilderForKombination(GALLERI, kk, [hojd, farg], forst && u(forst));
++  assert.deepEqual(vy(BRUN, "109 cm", "b109"), ["b109", "bhorn", "narbild", "fot", "kort109"].map(u));
++  assert.deepEqual(vy(BRUN, "136 cm", "b136"), ["b136", "narbild", "fot", "kort136"].map(u));
++  assert.deepEqual(vy("Vit", "109 cm", "v109"), ["v109", "vmiljo1", "vmiljo2", "vmiljo3", "kort109"].map(u));
++  assert.deepEqual(vy("Vit", "136 cm", "v136"), ["v136", "kort136"].map(u));
++});
++
++test("inom en option räcker ett av valen", () => {
++  const bilder = ["smal", "miljo", "kort"].map(u);
++  const kk = kopplingarPerOption([[
++    { etikett: "50 × 70 cm", bilder: [u("miljo")] },
++    { etikett: "60 × 90 cm", bilder: [u("miljo")] },
++    { etikett: "50 × 110 cm", bilder: [u("smal")] },
++  ]]);
++  assert.deepEqual(synligaBilderForKombination(bilder, kk, ["60 × 90 cm"]), ["miljo", "kort"].map(u));
++  assert.deepEqual(synligaBilderForKombination(bilder, kk, ["50 × 110 cm"]), ["smal", "kort"].map(u));
++});
++
++test("samma reserv som förut: ingen kopplad bild för valet → hela galleriet", () => {
++  const kk = kopplingarPerOption([[{ etikett: "Blå", bilder: [u("bla")] }]]);
++  const bilder = ["bla", "kort"].map(u);
++  assert.deepEqual(synligaBilderForKombination(bilder, kk, ["Grön"]), bilder);
++  assert.deepEqual(synligaBilderForKombination(bilder, undefined, ["Blå"]), bilder);
++  assert.deepEqual(synligaBilderForKombination(bilder, kk, []), bilder);
++});
++
++// Sidor där varje bild har högst en koppling ska se ut precis som förut.
++const ELBIL = ["svart1", "svart2", "gra1", "rod1", "gra2", "rod2", "kort"].map(u);
++const ALTS: Record<string, string> = {
++  [k("svart2")]: "Pojke kör den svarta elbilen",
++  [k("gra2")]: "Måttskiss på den grå elbilen",
++  [k("rod2")]: "Måttskiss på den röda elbilen",
++  [k("kort")]: "Fyndplats färgkort i svart, grått och rött",
++};
++
++test("en koppling per bild: samma galleri som synligaBilder för varje val", () => {
++  const optioner = [[
++    { etikett: "Svart", bilder: [u("svart1")] },
++    { etikett: "Grå", bilder: [u("gra1")] },
++    { etikett: "Röd", bilder: [u("rod1")] },
++  ]];
++  const agare = agareMedAltText({
++    lankade: { [k("svart1")]: "Svart", [k("gra1")]: "Grå", [k("rod1")]: "Röd" },
++    alts: ALTS, bilder: ELBIL, fargEtiketter: ["Svart", "Grå", "Röd"],
++  });
++  const kk = medAgareUrAltText(kopplingarPerOption(optioner), agare);
++  for (const val of ["Svart", "Grå", "Röd", "Blå"]) {
++    for (const forst of [undefined, ...ELBIL]) {
++      assert.deepEqual(
++        synligaBilderForKombination(ELBIL, kk, [val], forst),
++        synligaBilder(ELBIL, agare, [val], forst),
++        `${val} / ${forst}`,
++      );
++    }
++  }
++});
++
++test("en koppling per bild på en sida med två optioner: samma galleri som förut", () => {
++  // Kattrappan före omlänkningen: färgens bilder på färgen, korten på storleken.
++  const optioner = [
++    [{ etikett: "Grå", bilder: ["g1", "g2"].map(u) }, { etikett: "Vit", bilder: ["v1"].map(u) }],
++    [{ etikett: "60 × 40 cm", bilder: [u("k60")] }, { etikett: "45 × 40 cm", bilder: [u("k45")] }],
++  ];
++  const bilder = ["g1", "g2", "v1", "k60", "k45", "gemensam"].map(u);
++  const agare: Record<string, string> = { [k("g1")]: "Grå", [k("g2")]: "Grå", [k("v1")]: "Vit", [k("k60")]: "60 × 40 cm", [k("k45")]: "45 × 40 cm" };
++  const kk = kopplingarPerOption(optioner);
++  for (const farg of ["Grå", "Vit"]) {
++    for (const storlek of ["60 × 40 cm", "45 × 40 cm"]) {
++      assert.deepEqual(
++        synligaBilderForKombination(bilder, kk, [farg, storlek]),
++        synligaBilder(bilder, agare, [farg, storlek]),
++      );
++    }
++  }
++});
++
++test("medAgareUrAltText: alt-textens ägare bara för okopplade bilder", () => {
++  const kk = kopplingarPerOption([[{ etikett: "Grå", bilder: [u("a")] }]]);
++  const ut = medAgareUrAltText(kk, { [k("a")]: "Svart", [k("b")]: "Svart" });
++  assert.deepEqual(ut[k("a")], [["Grå"]]);
++  assert.deepEqual(ut[k("b")], [["Svart"]]);
++});
++
++// ── variantens bild ─────────────────────────────────────────────────────────
++
++const valV3 = (choiceId: string, name: string, bilder: string[]) => ({
++  choiceId, name, linkedMedia: bilder.map((b) => ({ image: { url: u(b) } })),
++});
++const variant = (id: string, hojd: string, farg: string) => ({
++  id,
++  choices: [
++    { optionChoiceIds: { optionId: "hojd", choiceId: hojd } },
++    { optionChoiceIds: { optionId: "farg", choiceId: farg } },
++  ],
++  price: { actualPrice: { amount: "1000" } },
++});
++
++const bokhylla = (fargBilder: { brun: string[]; vit: string[] }, hojdBilder: { h109: string[]; h136: string[] }) => ({
++  options: [
++    { id: "hojd", name: "Storlek", choicesSettings: { choices: [valV3("h109", "109 cm", hojdBilder.h109), valV3("h136", "136 cm", hojdBilder.h136)] } },
++    { id: "farg", name: "Färg", choicesSettings: { choices: [valV3("brun", BRUN, fargBilder.brun), valV3("vit", "Vit", fargBilder.vit)] } },
++  ],
++  variantsInfo: { variants: [variant("b109", "h109", "brun"), variant("b136", "h136", "brun"), variant("v109", "h109", "vit"), variant("v136", "h136", "vit")] },
++});
++
++test("variantens bild: bilden kopplad till både färgen och höjden", () => {
++  const d = v3MultiVariantData(bokhylla(
++    { brun: ["b109", "bhorn", "narbild", "fot", "b136"], vit: ["v109", "vmiljo1", "v136", "vmiljo2", "vmiljo3"] },
++    { h109: ["b109", "bhorn", "v109", "vmiljo1", "vmiljo2", "vmiljo3", "kort109"], h136: ["b136", "v136", "kort136"] },
++  ))!;
++  const bild = Object.fromEntries(d.table.map((t) => [t.variantId, t.image]));
++  assert.equal(bild.b109, u("b109"));
++  assert.equal(bild.b136, u("b136"));
++  assert.equal(bild.v109, u("v109"));
++  assert.equal(bild.v136, u("v136"));
++});
++
++test("variantens bild: utan kopplingar i två optioner gäller färgens första som förut", () => {
++  // Bokhyllan före omlänkningen: färgerna bär fotona, storlekarna korten.
++  const d = v3MultiVariantData(bokhylla(
++    { brun: ["b109", "bhorn", "narbild", "fot", "b136"], vit: ["v109", "vmiljo1", "v136", "vmiljo2", "vmiljo3"] },
++    { h109: ["kort109"], h136: ["kort136"] },
++  ))!;
++  const bild = Object.fromEntries(d.table.map((t) => [t.variantId, t.image]));
++  assert.equal(bild.b109, u("b109"));
++  assert.equal(bild.b136, u("b109"));
++  assert.equal(bild.v109, u("v109"));
++  assert.equal(bild.v136, u("v109"));
++});
++
++test("variantens bild: en bild kopplad till en annan storlek väljs aldrig", () => {
++  // Färgens första bild visar 109 cm och är kopplad dit; 136 cm har ingen egen
++  // bild i färgen. Då blir det färgens första bild som passar (närbilden).
++  const d = v3MultiVariantData(bokhylla(
++    { brun: ["b109", "narbild"], vit: ["v109"] },
++    { h109: ["b109", "v109"], h136: [] },
++  ))!;
++  const bild = Object.fromEntries(d.table.map((t) => [t.variantId, t.image]));
++  assert.equal(bild.b109, u("b109"));
++  assert.equal(bild.b136, u("narbild"));
++  // Inget passar: Vit 136 har bara en bild som är kopplad till 109 cm. Då gäller
++  // färgens första som förut, hellre än ingen bild.
++  assert.equal(bild.v136, u("v109"));
++});
+diff --git a/lib/variant-price.ts b/lib/variant-price.ts
+index 8fb9e063..8a02e47e 100644
+--- a/lib/variant-price.ts
++++ b/lib/variant-price.ts
+@@ -28,6 +28,9 @@ export function formatSek(n: number): string {
+   return SEK_FMT.format(n);
+ }
+ 
++// Wix fil-id ur en bildadress, samma nyckel som galleriet (lib/variant-bilder.ts).
++const filId = (url: string): string => (url || "").match(/\/media\/([^/?]+)/)?.[1] || url || "";
++
+ export type V3VariantData = {
+   optionName: string;
+   choices: {
+@@ -131,6 +134,20 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
+   // optionId → { namn, choiceId→namn, choiceId→bild }, samt axlarna i katalog-ordning.
+   const optById: Record<string, { name: string; choiceName: Record<string, string>; choiceImage: Record<string, string> }> = {};
+   const axes: { name: string; choices: { label: string; image: string }[] }[] = [];
++  // Alla kopplade bilder per val, och vilka val i varje option som kopplar en
++  // bild (fil-id). Läses även för dolda val, som galleriet gör.
++  const choiceImages: Record<string, string[]> = {};
++  const koppladTill: Record<string, Record<string, Set<string>>> = {};
++  for (const opt of options) {
++    if (!opt?.id) continue;
++    const perFil: Record<string, Set<string>> = (koppladTill[opt.id] ||= {});
++    for (const c of opt?.choicesSettings?.choices || []) {
++      if (!c?.choiceId) continue;
++      const urls: string[] = (c?.linkedMedia || []).map((m: { image?: { url?: string } }) => m?.image?.url || "").filter(Boolean);
++      choiceImages[c.choiceId] = urls;
++      for (const url of urls) (perFil[filId(url)] ||= new Set()).add(c.choiceId);
++    }
++  }
+   for (const opt of options) {
+     if (!opt?.id || !opt?.name) continue;
+     const choiceName: Record<string, string> = {};
+@@ -166,6 +183,11 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
+     let colorImage = "";
+     let firstImage = "";
+     let ok = true;
++    // Variantens val per option, och kandidaterna till variantens bild: färgvalets
++    // kopplade bilder först, sedan övriga vals i variantens ordning.
++    const valPerOption: Record<string, string> = {};
++    const fargKandidater: string[] = [];
++    const ovrigaKandidater: string[] = [];
+     for (const ch of v?.choices || []) {
+       const oid = ch?.optionChoiceIds?.optionId;
+       const cid = ch?.optionChoiceIds?.choiceId;
+@@ -173,13 +195,38 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
+       const name = o && cid ? o.choiceName[cid] : undefined;
+       if (!o || !name) { ok = false; break; }
+       choices[o.name] = name;
++      valPerOption[oid] = cid;
++      const arFarg = /färg|color|kulör/i.test(o.name);
++      (arFarg ? fargKandidater : ovrigaKandidater).push(...(choiceImages[cid] || []));
+       const img = cid ? o.choiceImage[cid] || "" : "";
+       if (img) {
+-        if (!colorImage && /färg|color|kulör/i.test(o.name)) colorImage = img;
++        if (!colorImage && arFarg) colorImage = img;
+         if (!firstImage) firstImage = img;
+       }
+     }
+-    const image = colorImage || firstImage;
++    // En bild som är kopplad till val i flera optioner hör till just den
++    // kombinationen (lib/variant-bilder.ts, Kopplingar). Variantens bild är den
++    // kandidat som passar varianten i varje option som kopplar den och som är
++    // kopplad i flest optioner, i kandidatordning: bokhyllans bruna 136 cm får
++    // bilden som är kopplad till Rustik brun OCH 136 cm, inte färgens första
++    // (som visar 109 cm). Passar ingen gäller färgens första som förut.
++    let image = colorImage || firstImage;
++    let basta = 0;
++    for (const url of [...fargKandidater, ...ovrigaKandidater]) {
++      const k = filId(url);
++      let antal = 0;
++      let passar = true;
++      for (const [oid, perFil] of Object.entries(koppladTill)) {
++        const val = perFil[k];
++        if (!val) continue;
++        antal++;
++        if (!val.has(valPerOption[oid])) { passar = false; break; }
++      }
++      if (passar && antal > basta) {
++        basta = antal;
++        image = url;
++      }
++    }
+     // Varianten måste täcka ALLA axlar för att kombinationen ska gå att matcha entydigt.
+     if (!ok || Object.keys(choices).length !== axes.length) continue;
+     const num = Number(v?.price?.actualPrice?.amount);

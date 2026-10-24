@@ -1,0 +1,27 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0d29b1cb": {
+  "tyska": "445L x 200B x 200H cm",
+  "svenska": "L445 x B200 x H200 cm",
+  "bokstaver": "LBH",
+  "hojd": 200,
+  "bredd": 445,
+  "djup": 200
+ },
+ "591ee60d": {
+  "tyska": "",
+  "svenska": "6 Personen",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch Abmessung: 150L x 87B x 72H cm | ✔ Stuhl Abmessung: 55,5L x 59B x 80H cm | ✔ Sitz Größe: 41L x 46B x 43,5H cm | ✔ Armlehne Größe: 3,7L x 45B x 63H cm | ✔ Rücken Größe: 33L x 45,5B cm | ✔ Stühle Größe (Stapelstatus): 55,5B x 84T x 115H cm"
+ },
+ "7b818c3b": {
+  "tyska": "140L x 73B x 98-122H cm",
+  "svenska": "140 × 73 cm, ställets höjd 98–122 cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   98,
+   122
+  ],
+  "bredd": 140,
+  "djup": 73
+ }
+}

@@ -1,0 +1,30 @@
+# <kort>	<etikett>	<skäl>: grindens jämförelse mot sidan klipper raden vid första parentesen, så värdena efter den försvinner ur jämförelsen
+1d4eb6b1-stor	Fraktvikt	sidan skriver "3,7 kg (stor, vit), 4,6 kg (stor, grå och espresso) eller 2,6 kg (liten)"; 3,7 och 4,6 kg står på sidan och hör till den stora stationen (vit respektive grå och espresso)
+1d4eb6b1-liten	Mått	sidan skriver "58,4 × 30,5 × 25,4 cm (stor) eller 44 × 24 × 15 cm (liten)"; 44 × 24 × 15 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Skålar	sidan skriver "... (stor) eller Ø17,8 × 5,9 cm och cirka 0,9 liter var (liten)"; Ø17,8 × 5,9 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Passar för	sidan skriver "från 30 cm (stor) eller från 17 cm (liten)"; 17 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Fraktvikt	sidan skriver "... eller 2,6 kg (liten)"; 2,6 kg står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Paketmått	sidan skriver "65,5 × 36,5 × 16,5 cm (stor) eller 50,5 × 29 × 20 cm (liten)"; 50,5 × 29 × 20 cm står på sidan och hör till den lilla stationen
+4d9ba658-fyra	Bottenplatta	sidan skriver ett värde per storlek ("45 × 40 cm (tre steg) eller 60 × 40 cm (fyra steg)"); kortets 60 står på sidan och hör till den storlek kortet gäller
+4d9ba658-fyra	Fraktvikt	sidan skriver ett värde per storlek ("5,5 kg (tre steg, vit och brun), 6,1 kg (tre steg, grå) eller 8,5 kg (fyra steg)"); kortets 8,5 står på sidan och hör till den storlek kortet gäller
+4d9ba658-tre	Fraktvikt	sidan skriver ett värde per storlek ("5,5 kg (tre steg, vit och brun), 6,1 kg (tre steg, grå) eller 8,5 kg (fyra steg)"); kortets 6,1 står på sidan och hör till den storlek kortet gäller
+38f70f83-300	Fraktvikt	sidan skriver ett värde per storlek ("2,5 kg (200 cm) eller 3,5 kg (300 cm)"); kortets 3,5 står på sidan och hör till den storlek kortet gäller
+75a38b7b-120	Fraktvikt	sidan skriver ett värde per storlek ("3 kg (grön 120 cm), 4,1 kg (grön 150 cm) eller 4,3 kg (vit)"); kortets 4,3 står på sidan och hör till den storlek kortet gäller
+01ac2f63-92	Fraktvikt	sidan skriver ett värde per storlek ("1,7 kg (61 × 46 cm), 2,2 kg (76 × 61 cm), 3 kg (92 × 76 cm) eller 4,4 kg (122 × 92 cm)"); kortets 3 står på sidan och hör till den storlek kortet gäller
+92fc308c-50	Mått	sidan skriver ett värde per storlek ("32 × 30,5 × 51 cm (30 liter), 30,5 × 30,5 × 68 cm (42 liter), 30,5 × 30,5 × 85 cm (50 lite"); kortets 85 står på sidan och hör till den storlek kortet gäller
+92fc308c-50	Fraktvikt	sidan skriver ett värde per storlek ("3 kg (30 liter), 3,2 kg (42 liter), 4,5 kg (50 liter)"); kortets 4,5 står på sidan och hör till den storlek kortet gäller
+92fc308c-42	Mått	sidan skriver ett värde per storlek ("32 × 30,5 × 51 cm (30 liter), 30,5 × 30,5 × 68 cm (42 liter), 30,5 × 30,5 × 85 cm (50 lite"); kortets 68 står på sidan och hör till den storlek kortet gäller
+92fc308c-42	Fraktvikt	sidan skriver ett värde per storlek ("3 kg (30 liter), 3,2 kg (42 liter), 4,5 kg (50 liter)"); kortets 3,2 står på sidan och hör till den storlek kortet gäller
+4a2ab58e-213	Golvyta	sidan skriver ett värde per storlek ("0,77 m² (150 cm) eller 1,12 m² (213 cm)"); kortets 1,12 står på sidan och hör till den storlek kortet gäller
+79ab08fe-136	Mått	sidan skriver ett värde per storlek ("50 × 24 × 109 cm (7 plan), 50 × 24 × 136 cm (9 plan)"); kortets 136 står på sidan och hör till den storlek kortet gäller
+79ab08fe-136	Bärförmåga	sidan skriver ett värde per storlek ("3 kg per plan, 21 kg totalt (109 cm), 27 kg totalt (136 cm)"); kortets 27 står på sidan och hör till den storlek kortet gäller
+79ab08fe-136	Fraktvikt	sidan skriver ett värde per storlek ("10 kg (109 cm), 12 kg (136 cm)"); kortets 12 står på sidan och hör till den storlek kortet gäller
+79ab08fe-136	Paketmått	sidan skriver ett värde per storlek ("61 × 34 × 21,5 cm (109 cm), 63 × 33,5 × 24,5 cm (136 cm)"); kortets 24,5, 33,5, 63 står på sidan och hör till den storlek kortet gäller
+3b868848-80	Knäutrymme	sidan skriver ett värde per storlek ("57 × 73 cm (63 cm), 74 × 73 cm (80 cm)"); kortets 74 står på sidan och hör till den storlek kortet gäller
+3b868848-80	Hylla	sidan skriver ett värde per storlek ("57 × 17 × 28 cm (63 cm), 74 × 17 × 28 cm (80 cm)"); kortets 74 står på sidan och hör till den storlek kortet gäller
+3b868848-80	Fraktvikt	sidan skriver ett värde per storlek ("10 kg (63 cm), 12 kg (80 cm)"); kortets 12 står på sidan och hör till den storlek kortet gäller
+c438d4ba-60x90	Fraktvikt	sidan skriver ett värde per storlek ("6 kg (50 × 70 cm), 10 kg (60 × 90 cm), 10,5 kg (50 × 110 cm)"); kortets 10 står på sidan och hör till den storlek kortet gäller
+c438d4ba-60x90	Paketmått	sidan skriver ett värde per storlek ("77 × 57,5 × 8 cm (50 × 70 cm), 100 × 71 × 10 cm (60 × 90 cm), 120 × 61 × 10 cm (50 × 110 c"); kortets 10, 100, 71 står på sidan och hör till den storlek kortet gäller
+c438d4ba-50x110	Fraktvikt	sidan skriver ett värde per storlek ("6 kg (50 × 70 cm), 10 kg (60 × 90 cm), 10,5 kg (50 × 110 cm)"); kortets 10,5 står på sidan och hör till den storlek kortet gäller
+c438d4ba-50x110	Paketmått	sidan skriver ett värde per storlek ("77 × 57,5 × 8 cm (50 × 70 cm), 100 × 71 × 10 cm (60 × 90 cm), 120 × 61 × 10 cm (50 × 110 c"); kortets 10, 120, 61 står på sidan och hör till den storlek kortet gäller
+b129d5ae-l	Volym	sidan skriver ett värde per storlek ("108 liter (M) / 136 liter (L)"); kortets 136 står på sidan och hör till den storlek kortet gäller
