@@ -2,6 +2,9 @@
 """bygg-agare.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript där VARJE galleribild får en uttalad ägare.
 --torr bygger en torrkörning (ingenting skrivs, hasMutations false): svaret har valens länkar före → efter och, på en option som inte är färg, butikens vy per val.
 --kompakt tar bort radkommentarerna ur ut.js (skriptet klistras in i ExecuteWixAPI, och kommentarerna är tre kilobyte som inte behövs där).
+--utan-vy (bara skarpt) tar bort `kombinationer`-förhandsvisningen ur ut.js: ytterligare sex kilobyte som inte behövs i en skrivning. Skrivvägen och alla kontroller är
+oförändrade (byte för byte det som ett skarpt bygge utan flaggan gör, minus förhandsvisningen), och svaret saknar bara fältet `kombinationer`. Vyn läses i stället efteråt
+med kolla-agare.py och verifiera-live.py. Två tvåaxliga sidor (fyra optioner, 7–10 s var) ryms i en körning på 60 sekunder.
 
 spec.json (2026-10-23, de 16 tvåaxliga sidorna med måttbilder för fel storlek): [{"id": "<fullt produkt-id>", "slug": "<sidans adress>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": ["<valets namn>"], "forst": {"<valets namn>": "<hex6>"}}]
   hex6    de sex första tecknen i galleriets fil-id efter "b379ce_". Ska ge exakt en träff i produktens galleri.
@@ -81,12 +84,44 @@ def butiken_bar_kopplingar(slug, id8):
     return True, "sidan bär imageKopplingar"
 
 
+def utan_forhandsvisning(src):
+    """Tar bort den rent informativa `kombinationer`-förhandsvisningen (butikens vy per kombination) ur ett skarpt skript.
+    Allt mellan `const FORE` och AGARE-slingan hör till den, liksom de fyra KOMB-raderna. Avbryter om något ställe inte finns exakt en gång."""
+    start, slut = "  const FORE = ", "  for (const T of AGARE) {"
+    if src.count(start) != 1 or src.count(slut) != 1 or src.index(start) > src.index(slut):
+        sys.exit("--utan-vy: mallen har ändrats (FORE-raden eller AGARE-slingan saknas eller står i fel ordning)")
+    a, b = src.index(start), src.index(slut)
+    block = src[a:b]
+    if "kombinationer = function" not in block or not block.rstrip().endswith("};"):
+        sys.exit("--utan-vy: blocket mellan FORE och AGARE-slingan är inte förhandsvisningen")
+    src = src[:a] + src[b:]
+    byten = [
+        ("  const KOMB = [];\n", ""),
+        ("    KOMB.push(kombinationer(id8, p, gal, alts, optioner, planer));\n", ""),
+        ('"ingen lista skiljer från planen, ingenting skrevs" }].concat(KOMB);', '"ingen lista skiljer från planen, ingenting skrevs" }];'),
+        ("  return ut.concat(KOMB);\n}", "  return ut;\n}"),
+    ]
+    for gammal, ny in byten:
+        if src.count(gammal) != 1:
+            sys.exit("--utan-vy: mallen har ändrats, saknar exakt en förekomst av %r" % gammal)
+        src = src.replace(gammal, ny)
+    kommentar = "  // Ägare ur alt-texten för en olänkad bild, som butiken räknar dem (lib/variant-bilder.ts agareMedAltText, steg 1 och 2).\n"
+    if src.count(kommentar) == 1:
+        src = src.replace(kommentar, "")
+    if "KOMB" in src:
+        sys.exit("--utan-vy: KOMB finns kvar i skriptet")
+    return src
+
+
 def main():
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     ut, specfil = sys.argv[1], sys.argv[2]
     torr = "--torr" in sys.argv[3:]
     kompakt = "--kompakt" in sys.argv[3:]
+    utan_vy = "--utan-vy" in sys.argv[3:]
+    if utan_vy and torr:
+        sys.exit("--utan-vy går inte ihop med --torr: torrkörningens svar ÄR förhandsvisningen")
     src = open(os.path.join(HERE, "lank-om-bilder.js"), encoding="utf-8").read()
     spec = json.load(open(specfil, encoding="utf-8"))
     for s in spec:
@@ -324,10 +359,12 @@ def main():
         if src.count("const TORR = false;") != 1:
             sys.exit("mallen saknar const TORR = false;")
         src = src.replace("const TORR = false;", "const TORR = true;", 1)
+    if utan_vy:
+        src = utan_forhandsvisning(src)
     if kompakt:
         src = "".join(rad for rad in src.splitlines(True) if not rad.lstrip().startswith("//"))
     open(ut, "w", encoding="utf-8").write(src)
-    print(len(src), "tecken" + (" (TORRKÖRNING: skriver ingenting, hasMutations false)" if torr else ""))
+    print(len(src), "tecken" + (" (TORRKÖRNING: skriver ingenting, hasMutations false)" if torr else "") + (" (utan förhandsvisning)" if utan_vy else ""))
 
 
 if __name__ == "__main__":

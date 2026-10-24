@@ -64,3 +64,17 @@ syns i dag också under Svart. De kopplas till Vit.
 
 Skrivbordets vita miljöbilder är 80 cm-bordet, inte 63 cm som den första genomgången trodde: lagda bredvid samma scen med det svarta
 63 cm-bordet är den vita skivan 315 px bred mot 262 px.
+
+## Skrivet 2026-10-24
+
+Butiksändringen mergades 2026-10-24 00:33:14 UTC (PR #770, squash `5d53d4e3`, produktionsbygget READY 00:38:05), och 17 av de 18 planerna skrevs 00:43:53–00:52:19 UTC, en eller två sidor per körning
+(`bygg-agare.py <ut.js> <plan> --kompakt --utan-vy`). Variantbilderna skrevs om i fyra körningar 00:47:23–00:54:37 (`bygg-variantbild-farg.py --kompakt`). Hamsterburen `13fe619f` skrevs inte: planen ger
+Mörkgrå × 85 × 45 en bild av en annan storlek i varukorgen, och det är Leonards val.
+
+- Wix läste tillbaka i varje skrivning: 17 av 17 sidor, 0 avvikelser. Wix variantbild är färgens första foto på alla 78 varianter.
+- `kolla-agare.py` mot butikens sidodata: 17 av 17 stämmer (fyra sidor var ☠️ med en cache som var ungefär tio minuter gammal och rätt några minuter senare).
+- **Webbläsare, en kombination i taget** (`tools/polish-gates/live-alla-kombinationer.sh`, 00:57–01:00 UTC): **78 av 78 kombinationer visar exakt planens bilder** (`verifiera-live.py`).
+- `katalogkontroll-tva-axlar-bilder.py` över alla 49 sidor med två val: 0 med en måttbild för fel val, 5 med foton som nämner en annan storlek (11 före mergen), 7 färgträffar (14 före), 1 varukorgstips (vedboden).
+
+Bilder per kombination (min–max) och länkade bilder per val före → efter står i CLAUDE.md, *Efter butiksmergen*. De 16 kombinationer som fortfarande visar färre än fyra bilder (tio sidor: förvaringstornet,
+hundbädden med tak, skrivbordet, kattrappan, hundgrinden med husdjursdörr, dörrgrinden, verktygslådan, väggspegeln, bokhyllan och den hopfällbara hundbädden) är steg 3 och väntar på svaret för Härma Aosom.
