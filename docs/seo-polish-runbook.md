@@ -711,7 +711,11 @@ Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 **"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till
 Media Manager utan att röra produkten. Granska dem med samma strykregler som ovan och lägg de
 rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder går före egna kort
-*(Leonard 2026-09-30)*. Bilder som ingen väljer städas bort nästa natt.
+*(Leonard 2026-09-30)*. Det gäller också måttbilder: en variants egen måttbild lämnas kvar
+och länkas till färg OCH storlek, och ett Fyndplats-kort byggs bara när leverantören saknar
+måttbild för varianten eller originalet bär en logotyp eller text som inte går att beskära
+bort utan att måtten försvinner *(Leonard 2026-10-24: ingen vill ha korten egentligen)*.
+Bilder som ingen väljer städas bort nästa natt.
 
 Börja med position 10 (`positioner` = `10`). Den är oftast ett miljöfoto utan grafik: den
 2026-09-30 var 24 av 45 bilder där rena, mot 1 av 184 på position 4–7, som nästan alltid är

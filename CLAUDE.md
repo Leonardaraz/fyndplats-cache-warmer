@@ -1605,8 +1605,17 @@ och lager om, och minsta avvikelse stoppar.
   Motorns nyckel fick 403 på den 2026-09-27 (se sammanslagningen). Då skriver
   rättningen ingenting och säger `nyckeln får inte läsa varukostnaden`. Kollen
   behöver inte fältet.
-- Skrivningar med `optionChoiceIds` (prissynken, auktionerna, SKU-steget)
-  behåller variantbilden, så de bör inte förstöra en rättning.
+- ☠️ **Skrivningar med `optionChoiceIds` NOLLSTÄLLER variantbilden på en
+  flervariantssida, också prissynkens.** Det stod här att de behåller den, och
+  det stämde inte. Mätt 2026-10-24: Aosom-synken skrev regelpriset på klöspelaren
+  `81a60db2` 09:21:21 UTC, och direkt efteråt hade Beige och Brun huvudbilden som
+  variantbild i stället för sina egna. `variantbild.yml` rättade den. Nattens
+  `/api/cron/variantbild` (05:35 UTC) rättar samma sak, och det var den som
+  rättade Svart på skrivbordsstativet `ee3a9dbc` 05:37 UTC samma morgon: ett rätt
+  utfall, inget fel. Tills dess visar varukorgen, kassan och ordern fel färg på
+  en sida vars pris just skrivits. Förslaget att låta `updateV3VariantPrices`
+  anropa `refreshVariantMedia` efter en prisskrivning på en flervariantsprodukt
+  väntar på Leonards ja (FLAGGADE, lärdom 204).
 
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
@@ -4169,6 +4178,47 @@ Fyra egenskaper som inte ska tas bort:
 (`c3d1fa41`) kan tas nu, eftersom sidans nya vyer finns: de 12 kandidaterna jämförs med `cowork-jfr.py` mot varje kombination. (d) Motorn (steg 4): varukorgens bild är färgens första för alla storlekar, och
 sammanslagningen kopplar fortfarande en ny storlek i en befintlig färg bara till färgen eller storleken. (e) Nattens `/api/cron/variantbild` (05:35 UTC) ska kontrollera alla flervariantsprodukter (1 174 natten före) och inte rätta någon
 av de 17 sidornas varianter: läs raden `{"ratt":…}` i Vercels runtime-logg. (f) Listsidorna i värmarens sista led (se ovan).
+
+#### Originalen tillbaka: inga Fyndplats-kort där leverantören har en måttbild (Leonards svar 11, 2026-10-24)
+
+Leonard 2026-10-24, efter att ha sett de färgneutrala korten: *"Jag vill inte ha
+Fyndplats-kort egentligen, varje produkt har ju sin egen original-specifikationsbild,
+varje en ska vara kopplad till rätt variant."* De färgneutrala korten (föregående
+avsnitt) ersattes därför på 17 sidor av leverantörens egna måttbilder, var och en
+länkad till sin färg OCH storlek: 37 original tillbaka, 23 kort borttagna, 77 kombinationer
+mätta live i en webbläsare utan avvikelse. Rundan, planerna och utfallet står i
+`tools/polish-assets/runda-bilder-originalen-tillbaka/README.md`. Hamsterburen
+`13fe619f` skrevs samma dag (Leonard: *Fixa*) och visar fem bilder i alla tre kombinationer.
+
+Regeln framåt, och den ersätter *ett kort per storlek*:
+
+1. **Originalet först.** En måttbild som leverantören har för en färg och storlek ligger
+   kvar och länkas till exakt den kombinationen. Ett Fyndplats-kort byggs bara när (a)
+   leverantören saknar måttbild för varianten (hammockens 177 cm, kantskyddens Ø305 och
+   Ø366, hundbäddens 107 × 61 × 20 cm, kistans M och L) eller (b) originalet bär en
+   logotyp eller en text som inte får synas och inte går att beskära bort utan att måtten
+   försvinner (svarta bänken `7b818c3b`, kortet i `runda-bilder-bank-svart-kort`, Leonards
+   *Okej* på fråga 2b).
+2. **Ett reservkort ägs av de färger och storlekar som saknar eget original, aldrig av
+   storleken** (`ändra.json`: `["Vit", "Brun", "60 × 40 cm"]`). Fyra sådana finns kvar, på
+   kattrappan, hundsängen och bokhyllan, och bara där en borttagning hade lämnat en vy
+   med färre bilder än före.
+3. ☠️ **Färgens första foto länkas också till färgens storlekar.** Kombinationens första
+   bild och variantTable-bilden är kandidaten som passar och är kopplad i flest optioner,
+   och lika antal ger den tidigaste (`lib/variant-price.ts`). Ett original länkat till färg
+   OCH storlek slår därför ett foto länkat bara till färgen och blir första bild: på
+   skrivbordet började Vit × 80 cm med Vits måttbild och Svart × 63 cm med Svarts, tills
+   fotot länkades också till storlekarna. Kontrollen är `bygg-forsta-koll.py` (ren
+   läsning ur Wix, butikens regel): ett original eller kort får aldrig vara första bild.
+4. ☠️ **Ett borttaget original läggs tillbaka vid samma fil-id** så länge bildstädningens
+   karenstid inte gått ut. Fil-id:n står i `BILDER:`-raden i `bilder-bort`-körningens
+   logg. Kör aldrig två `kor_wf.py` samtidigt (`kedja.sh` kör sidorna en och en).
+5. ☠️ **En kortrunda ligger direkt under `tools/polish-assets/`.** Ignoreringen
+   `*/orig/` gäller bara en nivå ned (nu även `**/orig/`), och kortets fotokälla är
+   leverantörens foto. Kontrollera med `git check-ignore -v` före `git add`.
+
+Efter varje skrivning på en sida med två val: `kolla-agare.py` (butikens sidodata),
+`live-alla-kombinationer.sh` (webbläsaren) och `variantbild-farg.js` (Wix variantbild).
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
