@@ -3315,7 +3315,7 @@ på fyra bilder eller färre och ingen på färre än tre.
 
 ☠️ **Ett mått som kräver ett visst optionnamn mäter namnet, inte katalogen.** Räkna alltid de sidor ett mått hoppar över.
 
-Öppet hos Leonard (PR #762:s lista *Väntar på Leonard*, mergad 2026-10-23): de 15 AliExpress-sidorna med överlappande länkar. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
+✅ De 15 AliExpress-sidorna med överlappande länkar (PR #762:s lista *Väntar på Leonard*) löstes av butiksändringen (PR #770, mergad 2026-10-24 00:33 UTC) och är mätta live 2026-10-24 14:12 UTC: alla 57 val visar den bildmängd den nya regeln ger, och val under fyra bilder är 15 av 57 (räknat 38 med den gamla regeln på samma länkar). De fyra sidor som har kvar val på tre bilder eller färre rörs inte (Leonard: *låt dom va*), se `FLAGGADE.md` lärdom 216. Storlekarna på Aosom-sidor med få bilder (99 val på 67 sidor
 efter de två rättade) gick till Leonard som fil 2 i Cowork-uppdraget 2026-10-22 19:25 UTC, se nästa avsnitt. Detaljerna står i `tools/polish-gates/FLAGGADE.md`
 (lärdom 163 och 164).
 
