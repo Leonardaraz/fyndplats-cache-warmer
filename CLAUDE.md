@@ -4332,6 +4332,30 @@ kundsidor berörs. Verktygen som läser med `MERCHANT_DATA` (och skickar kostnad
 (1) de verktygen läser med `MERCHANT_DATA` och skickar kostnaden tillbaka, så att fler sidor inte tappar den, och (2) kostnaden skrivs tillbaka på de 2 964
 sidorna (2 633 utan och 331 med delvis) ur mappningens `landedCostSek`, torrt först och med samma före-och-efter-kontroll som resten.
 
+☠️ **Prissynken är oberoende av fältet, men dess egen skrivfunktion tappar kostnaden på syskonvarianter (Leonards fråga 2026-10-24: *om vi inte gör något funkar
+inte vår prissynk som den ska?*).** Synken räknar priset ur feeden och mappningens `landedCostSek` och jämför med butikens PRIS (`jamforelsePris`). Ingen kod i
+`lib/` eller `app/` läser Wix `revenueDetails.cost`, utom `lib/wix/variant-media.ts`, som bär tillbaka den. Vercels logg 2026-10-24: priskörningen 15:20 UTC
+granskade 3 500 sidor (stoppade på tidsbudget, 1 209 kvar) och skrev 5 priser, och 21:20 UTC fortsatte den från den sparade markören med 1 209 sidor, 0 priser och
+0 kvar. 0 misslyckade och 0 varningar i båda, tillsammans 4 709 sidor, lika många som lagerkörningen 18:20 UTC.
+
+Men `updateV3VariantPrices` (`lib/wix/v3-products.ts`, anropas av Aosom-synken, `/api/cron/price-repair` och `/api/admin/ae-prishojning`) läser produkten med
+`fields=VARIANT_OPTION_CHOICE_NAMES` utan `MERCHANT_DATA` och skriver tillbaka hela `variantsInfo`. Varianter som inte står i anropet går därför tillbaka utan
+kostnad, och varianten som står i anropet får kostnad bara om `costAmount` skickas (synken och prisreparationen gör det, AliExpress-prishöjningen 2026-09-13 skickade
+den medvetet inte). Synken anropar funktionen en gång per variant som ska få nytt pris (`p.varianter` i `lib/aosom/sync.ts`), så på en flervariantssida behåller bara
+den sist skrivna varianten sin kostnad. Det är härlett ur koden och ur testet ovan, inte mätt på en riktig sida, men det kan förklara en del av de 331 delvis
+ifyllda sidorna och en del av de 732 AliExpress-produkterna. Takten är låg (5 prisskrivningar 15:20 UTC och 0 klockan 21:20) och det påverkar bara Wix vinst- och
+marginalvisning, aldrig priset, lagret eller sidan.
+
+Tre följder för den som tar fråga 5:
+
+1. (a) ska också gälla `updateV3VariantPrices`, inte bara verktygen som redan nämns ovan.
+2. (b) utan (a) ångras delvis av synken på sidor med flera varianter. Gör (a) först, och börja (b) med Aosom-sidorna: AliExpress-radernas `landedCostSek` är
+   importtidens tal (se *AE-radernas kostnad FRYSER vid importen*) och skulle ge Wix en för bra vinstsiffra.
+3. ☠️ **Läs inte med `MERCHANT_DATA` i `updateV3VariantPrices` utan återfall.** Motorns Wix-nyckel saknade `SCOPE.STORES.PRODUCT_READ_ADMIN` 2026-09-27 (403
+   `NO_PERMISSION_TO_READ_MERCHANT_DATA`, se `lib/wix/variant-media.ts`), och `variantbild.yml` (skarp, run 40129592550, 2026-10-24 20:24 UTC) läste med fältet på
+   30 av 30 sidor utan fel, så nyckeln har behörigheten nu. Men ett 403 skulle annars stoppa varje prisskrivning (synken, prisreparationen och prishöjningen) för
+   ett kosmetiskt fält. Antingen faller läsningen tillbaka på dagens vid 403, eller så tas kostnaden ur mappningen, som `sammanslagning.ts` gör.
+
 `products/query-variants` ger varianterna för hela katalogen på 15 sekunder (1 000 per sida, markör, `productId` går inte att filtrera på): `sku`, `visible`,
 `optionChoices`, `price`, `media`, `productData` (produkt-id, namn, adress, synlighet) och med `MERCHANT_DATA` kostnaden. Det är den bulkväg till variant-SKU:erna
 som raden om SKU-kollisionskollen (2026-09-07) säger saknas: en SKU-revision över hela katalogen är nio anrop, inte 5 527.
