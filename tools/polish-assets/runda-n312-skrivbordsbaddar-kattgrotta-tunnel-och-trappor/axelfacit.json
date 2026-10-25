@@ -1,0 +1,64 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1c7269b1": {
+  "tyska": "45L x 35B x 34H cm",
+  "svenska": "45 x 35 x 34 cm (L x B x H)",
+  "bokstaver": "LBH",
+  "hojd": 34,
+  "bredd": 45,
+  "djup": 35
+ },
+ "490699d4": {
+  "tyska": "35L x 35B x 50H cm",
+  "svenska": "35 x 35 x 50 cm",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 35,
+  "djup": 35
+ },
+ "561f4227": {
+  "tyska": "50L x 33B x 42H cm",
+  "svenska": "50 x 33 x 42 cm",
+  "bokstaver": "LBH",
+  "hojd": 42,
+  "bredd": 50,
+  "djup": 33
+ },
+ "5d064bfb": {
+  "tyska": "59B x 26T x 144,5H cm",
+  "svenska": "59 x 26 x 144,5 cm",
+  "bokstaver": "BTH",
+  "djup": 26,
+  "hojd": 144.5,
+  "bredd": 59
+ },
+ "bf31dfce": {
+  "tyska": "50L x 50B x 32H cm, geeignet für eine Katze unter 5 kg",
+  "svenska": "50 x 50 x 32 cm",
+  "bokstaver": "LBH",
+  "hojd": 32,
+  "bredd": 50,
+  "djup": 50
+ },
+ "cc6fe4a3": {
+  "tyska": "35B x 35T x 48H cm",
+  "svenska": "35L x 35B x 48H cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 48,
+  "bredd": 35
+ },
+ "ebb443ff": {
+  "tyska": "98L x 30B x 30H cm",
+  "svenska": "98L x 30B x 30H cm",
+  "bokstaver": "LBH",
+  "hojd": 30,
+  "bredd": 98,
+  "djup": 30
+ },
+ "fb00fdb9": {
+  "tyska": "",
+  "svenska": "90L x 26B x 12,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Katzenförmige Stufe: 29B x 28T x 21,5H cm | ✔ Fischförmige Stufe: 29B x 28T x 23,5H cm | ✔ Plattformen mit Leiter: 90B x 26T x 12,5H cm | ✔ Eck-Sprungplattform: 34B x 32T x 20H cm | ✔ Kratzbaum: Ø7 x 25L cm | ✔ Leiter flache Größe: 43L x 16B cm | ✔ Blockgröße: 13L x 4B cm"
+ }
+}
