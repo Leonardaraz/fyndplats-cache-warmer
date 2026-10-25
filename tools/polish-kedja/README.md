@@ -76,7 +76,10 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
    `mall-rund/exempel/`: `v1_n288_ny_sida_med_utsnitt.py` (en ny sida med ett utsnitt av en
    måttbild), `v1_t78_farg_och_storlek_pa_varden.py` (värdtext med riktade ersättningar och
    givarens bilder och alt-texter, med färg OCH storlek) och
-   `v1_n287_storlek_och_farg_med_givare.py` (fem sidor med givare och utsnitt).
+   `v1_n287_storlek_och_farg_med_givare.py` (fem sidor med givare och utsnitt) och
+   `v1_n314_dolda_vardar_med_givare_och_ny_adress.py` (två värdar som är dolda utkast och en
+   publicerad värd med ny adress, alla med en givare; en värd är ett dolt utkast när sidan
+   inte finns än, och då går färgen på först efter värdskrivningen).
 2. `enheter_<prefix>.py` kör grindarna per enhet, `samla_<prefix>.py --bygg` bygger rundans
    `skrivplan.json` och `bygg_givare_<prefix>.py` givarnas `bildplan.json`. Skriv ut båda
    sha256-summorna: ändras en fil efter bygget ändras summan, och kedjan måste få den senaste.
@@ -85,7 +88,8 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
 4. Förkontrollen av sammanslagningar: `forplan.sh`-mönstret (`aosom-sammanslagning.yml
    mode=plan`) mot färska Wix-sidor, och en genomgång av BÅDA sidornas bilder sida vid sida.
    Ett färgsyskon avgörs på bilderna, inte på måtten (lärdom 40).
-5. Kedjan: `mall-rund/exempel/kor_t78.sh` (värdskrivning, omdirigering, givarbilder, sammanslagning)
+5. Kedjan: `mall-rund/exempel/kor_t78.sh` (värdskrivning, omdirigering, givarbilder, sammanslagning;
+   `kor_n314.sh` är samma kedja för tre värdar på en gång, med `merge_n314.json`)
    eller `kor_n288.sh`-mönstret för en ny sida (bara `ghw.py write`). ☠️ Skriv givarrundans namn
    och sha ur `ls tools/polish-assets | grep givare` och `sha256sum`, aldrig ur minnet: namnet är
    `<runda>-givare-alt` eller `runda-<prefix>-givare-alt` (se ovan). N301:s kedja pekade på det
@@ -140,7 +144,13 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
    är kedjan: värdens skrivplan (`ghw.py write`), omdirigering vid ny adress
    (`kor_wf.py redirect-add.yml <ref> from_slug=... to_path=...`), givarens bilder
    (`ghw.py bilder`) och sammanslagningen (`ghw.py merge mall-t/merge_t54.json`).
-3. Återläsning och live som ovan.
+3. Återläsning och live som ovan. Före pushen: `python3 tools/polish-gates/gate-vardalt-farg.py
+   <värdrundans katalog> merge_<prefix>.json` (fäller en värdbild vars alt-text nämner givarens
+   färg, lärdom 224). Efter sammanslagningen: `python3 tools/polish-kedja/mkgalleri.py <ut.js>
+   <fullt värd-id>...` och klistra in ut.js i ExecuteWixAPI (hasMutations false). Svaret har
+   galleriet (plats, fil-id-prefix, alt), valens länkade platser, vyn per val och varianternas
+   bildplats. En värdbild som varken är länkad eller ett kort eller en måttbild länkas med
+   `bygg-lank.py`, och sedan körs `variantbild.yml` med `ids`.
 4. En värd som redan är sammanslagen (`sammanslagen` i `sammanslagna.tsv`) skrivs med
    `html_raw` och riktade ersättningar, och alt-texter med löpnummer skrivs om med ord
    (`live_alt`). Givarens bilder får svenska alt-texter före sammanslagningen
@@ -157,6 +167,7 @@ körningar av samma workflowfil samtidigt.
 | :-- | :-- |
 | `ghw.py` | startar och väntar ut `polish-write`, `polish-bilder`, `aosom-sammanslagning` och valfri workflow |
 | `kor_wf.py` | en workflow med inputs som `nyckel=värde`, svar som JSON |
+| `mkgalleri.py` | ExecuteWixAPI-kod för en läsning av publicerade sidors galleri, valens länkade platser, vyn per val (en option) och varianternas bildplats. Körs efter varje sammanslagning (N314, 2026-10-25) |
 | `kor_lankar.py` | `leverantorslankar.yml` med krypterat svar; artikelnumren öppnas bara lokalt |
 | `las.py`, `las_full.py` | läser en mappningsrad via `polish-mapping.yml` (läget `las`) |
 | `pool_dolda.js` | dolda produkter med saldo (läsning) |
@@ -177,7 +188,7 @@ körningar av samma workflowfil samtidigt.
 | `kor_logg.py` | kör en workflow, väntar ut den och sparar jobbloggen i en fil (till exempel `pensionerade-radera.yml` med `bekrafta` och `per`) |
 | `mkaterlas3.py`, `visa_aterlas.py` | återläsningskoden med optioner och varianternas val (efter sammanslagningar), och en läsare som skriver en kompakt sammanfattning av det sparade svaret (fram till `,"pad"`, `--alt` visar alt-texterna) |
 | `mall-n/` | N258 som mall för en ny sida, och N262 (`*_n262.*`) som mall för en runda med utsnitt av bilder |
-| `mall-rund/` | `mkrunda.py` och dess mallar (`rundlib.py`, `enheter_P.py`, `samla_P.py`, `bygg_givare_P.py`) och `exempel/` med T78, N287 och N288 som förlagor, T89 (fem hållna värdar med givare, riktade ersättningar och en givare med tysk säljgrafik som får feedens position 10) T90 (en värd utan optioner, där givarens måttbild lämnas) och T91 (en värd vars namn och adress bar färgen och döps om med 301, och där givarens måttbild tas med sist och värdens länkas till värdens färg) |
+| `mall-rund/` | `mkrunda.py` och dess mallar (`rundlib.py`, `enheter_P.py`, `samla_P.py`, `bygg_givare_P.py`) och `exempel/` med T78, N287 och N288 som förlagor, T89 (fem hållna värdar med givare, riktade ersättningar och en givare med tysk säljgrafik som får feedens position 10) T90 (en värd utan optioner, där givarens måttbild lämnas), N314 (tre värdar med givare, varav två är dolda utkast och en får ny adress, med `kor_n314.sh` och `merge_n314.json`) och T91 (en värd vars namn och adress bar färgen och döps om med 301, och där givarens måttbild tas med sist och värdens länkas till värdens färg) |
 | `mkkompakt.py` | återläsningskoden med options, varianternas val, kompakt SEO och givarnas synlighet, ur rundkatalogen |
 | `mkkompakt2.py` | självständig återläsningskod som inte behöver `mkaterlas3.py` (sökvägen till `polish-assets` är relativ till filen): `--prefix` för en sammanslagen värd (bara värdens egna bilder jämförs) och `--givarbilder <givarrunda>:<givare-id8>:<värd-id8>` som också jämför givarens fil-id och alt-texter efter värdens bilder (paras per fil, aldrig per plats), och varje variantrad säger vilken plats i galleriet variantens bild har. Två rundor med samma produkt: den sist angivna gäller. Skrevs för T95 (2026-10-24, lärdom 196) |
 | `mutationsprov-givare.mjs` | prövar att givarkontrollen i en `mkkompakt2.py --givarbilder`-fil kan fälla: `node mutationsprov-givare.mjs <ut.js>` ger ingen avvikelse för oförändrade bilder och en avvikelse för en ändrad alt-text, ett ändrat fil-id, en tappad givarbild och en byttagen ordning (alla fyra fälldes på T95:s fil) |

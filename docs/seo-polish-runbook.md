@@ -1181,6 +1181,14 @@ fil efter `hasha.py` kör du båda kommandona igen.
 Workflowens torrkörning vägrar dessutom ord med formen tre tecken, bindestreck och tre till,
 som `360-graders`, `100-pack` och `E27-sockel`. Skriv `360 grader` och `100 st`.
 
+**Rundor där en värd får en färg ur ett utkast** har en grind till som inte ingår i bygget,
+eftersom den behöver sammanslagningsfilen: `python3 tools/polish-gates/gate-vardalt-farg.py
+<värdrundans katalog> merge_<prefix>.json`. Den fäller en värdbild vars alt-text nämner
+givarens färg (`en grå katt` på en beige tunna). Sammanslagningen länkar då inte bilden till
+värdens färg, och butiken visar den bara under givarens (N314, 2026-10-25, lärdom 224).
+Efter sammanslagningen läser `tools/polish-kedja/mkgalleri.py` värdens galleri och val i ett
+anrop och räknar vyn per val.
+
 -----
 
 ## 8. Skriv till Wix

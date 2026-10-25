@@ -1973,6 +1973,20 @@ Poleringens skrivsteg (`skrivplan.ts`) skriver SKU:n på en sida med en variant.
 Polera därför ett av syskonen, publicera det, och lägg sedan de andra som val med
 den här workflowen — samma väg som balansbommen.
 
+☠️ **Värdens egna foton länkas efter alt-texten, och en alt-text som nämner givarens färg
+tappar fotot (2026-10-25).** Sammanslagningen länkar värdens foton till värdens färg med
+butikens ägarregler (`olankadeAgare`): en olänkad bild som nämner exakt en av sidans två
+färger hör till den färgen. Klöstunnan `56cb4143` (Beige, givare Grå) hade en beige soffbild
+med `en grå och vit katt` i alt-texten. Fotot tolkades som Grås, länkades inte till Beige,
+och butiken visade det bara under Grå. Skrivningen gick som planerad och ingen kontroll
+fällde, så det syntes först i värdens galleri efter sammanslagningen. Lagat 07:22 UTC med
+`bygg-lank.py` (bild 5 länkad till Beige, Beige 4 → 5 länkade bilder), och rättningen
+upprepas inte av sig själv. Två skydd: `tools/polish-gates/gate-vardalt-farg.py` fäller en
+sådan alt-text före pushen (mot `merge_<prefix>.json`, portad ur `fargbilder.ts` och
+självprovad), och `tools/polish-kedja/mkgalleri.py` läser värdens galleri, valens länkar och
+vyn per val i ett anrop efter varje sammanslagning. Skriv hellre `en katt` än `en grå katt`
+i en värdbilds alt-text. Kort och måttbilder är gemensamma med flit och berörs inte.
+
 #### Givarens 301 landar på givarens färg (2026-10-06)
 
 Leonard 2026-10-06: en gammal färgsida ska landa på sin färg på den
