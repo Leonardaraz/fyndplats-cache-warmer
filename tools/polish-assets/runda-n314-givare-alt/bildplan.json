@@ -1,0 +1,79 @@
+{
+ "runda": "runda-n314-givare-alt",
+ "produkter": [
+  {
+   "kort": "ad550636",
+   "pid": "ad550636-cf7a-4faf-8ede-4f43f0080dce",
+   "media": [
+    {
+     "id": "b379ce_cacd3dbf94ff41f98f4155f9f33d7f11~mv2.jpg",
+     "altText": "Beige klösträd med fem nivåer, två grottor, en hängmatta, tre sisalstolpar och en ramp, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_2fa9414b7aae4fdda12584f175d6b1e4~mv2.jpg",
+     "altText": "Klösträdet i ett vardagsrum med en grå katt överst, en orange katt på nivån under och en kalikåkatt som klättrar vid grottan, framför en soffa och en växt"
+    },
+    {
+     "id": "b379ce_223debf14bb64c929d173e71a6a0bc0f~mv2.jpg",
+     "altText": "Klösträdet i ett hörn av ett vardagsrum med en grå och vit katt överst, en kalikåkatt på nivån under och en orange och vit katt i den nedre grottan"
+    },
+    {
+     "id": "b379ce_a4b5f3903c8d4750a606ea3c7f889b86~mv2.jpg",
+     "altText": "Klösträdet i ett vardagsrum med en katt överst, en katt i en grotta och en grå katt i hängmattan, framför en soffa och ett fönster"
+    },
+    {
+     "id": "b379ce_d3266fb3269c43aa9bd7ee2a971f6678~mv2.jpg",
+     "altText": "Klösträdet i ett ljust vardagsrum med en katt överst, en kalikåkatt vid en grotta och en katt som ligger i den nedre grottan"
+    }
+   ]
+  },
+  {
+   "kort": "b369bc9b",
+   "pid": "b369bc9b-0ee0-4af8-b9fb-162031df3413",
+   "media": [
+    {
+     "id": "b379ce_57006367e7ff419891ee1dbf0b853b91~mv2.jpg",
+     "altText": "Grå klöstunna med en rund bädd i grå plysch överst och tre öppningar med mjuka kuddar, sisal runt om, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_2b6996de02804878804d5612bd944678~mv2.jpg",
+     "altText": "Klöstunnan vid en säng i ett sovrum, med en orange katt som ligger i bädden överst och en vit och brun katt som står bredvid"
+    },
+    {
+     "id": "b379ce_607319d4160e43b594966f9be8e9d3de~mv2.jpg",
+     "altText": "En kvinna som leker med en katt som sträcker sig ut ur en öppning på klöstunnan, med en annan katt i bädden överst, vid en soffa och ett fönster"
+    },
+    {
+     "id": "b379ce_cede16b2f69d4532acfc76ca705d10cd~mv2.jpg",
+     "altText": "Klöstunnan vid en soffa med en orange katt i bädden överst och en grå och vit katt i en öppning"
+    },
+    {
+     "id": "b379ce_0b28f13240934d31a89a46a1598acc47~mv2.jpg",
+     "altText": "En kvinna som leker med en fjäderleksak vid klöstunnan bredvid en soffa, med en katt som ligger i bädden överst och en som tittar ut ur en öppning"
+    }
+   ]
+  },
+  {
+   "kort": "66cee9e2",
+   "pid": "66cee9e2-94d2-4703-9731-ab30423fc6d1",
+   "media": [
+    {
+     "id": "b379ce_e0c0657155fc42cea1317f6970dc3162~mv2.jpg",
+     "altText": "Mörkgrått takspänt klösträd med hängmatta, två plan och en stängd håla med en ramp nedtill, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_451068daf12c42a0a25a0a46a71a5618~mv2.jpg",
+     "altText": "Klösträdet i ett sovrum med mintgröna väggar, med en orange katt i hängmattan, en på planet under och en i hålan"
+    },
+    {
+     "id": "b379ce_70ac7394a7ff46bd98e8ccfbc5eecc53~mv2.jpg",
+     "altText": "Klösträdet mellan golv och tak i ett vardagsrum, med en katt som hoppar mellan planen, en katt vid hängmattan och en kvinna i soffan"
+    },
+    {
+     "id": "b379ce_6ea43dd578294b93a6ea713e574ba797~mv2.jpg",
+     "altText": "Måttbild i ett vitt rum: klösträdet är 220–240 cm högt, hålan är Ø33 × 31 cm och golvplattan är 30 × 25 cm"
+    }
+   ]
+  }
+ ]
+}
