@@ -9,12 +9,13 @@
 // lib/aosom/postnummer-sparr.ts. Logiken och skälen bor i
 // lib/aosom/kassa-validering.ts.
 //
-// Anropet är ett JWT signerat med appens nyckel, samma nyckel som
-// orderwebhooken verifieras med (WIX_WEBHOOK_PUBLIC_KEY).
-// WIX_VALIDERING_PUBLIC_KEY vinner om tillägget sitter på en annan app.
+// Anropet är ett JWT signerat med appens nyckel. Tillägget sitter på samma app
+// som skickar orderwebhooken (My New App-4), så samma nyckel gäller
+// (WIX_WEBHOOK_PUBLIC_KEY). Varje PEM i WIX_VALIDERING_PUBLIC_KEY och
+// WIX_WEBHOOK_PUBLIC_KEY provas, så ett värde med flera nycklar fungerar.
 
 import { NextResponse } from "next/server";
-import { verifyJwtRs256 } from "@/lib/orders/webhook";
+import { delaPemNycklar, verifyJwtRs256 } from "@/lib/orders/webhook";
 import { kassansOvertradelser, lasKassaAnrop } from "@/lib/aosom/kassa-validering";
 import { getStore } from "@/lib/store/factory";
 import { isAosomMapping } from "@/lib/store/supplier";
@@ -27,13 +28,21 @@ export const maxDuration = 30;
 const TIDSBUDGET_MS = 3000;
 
 export async function POST(req: Request) {
-  const nyckel = process.env.WIX_VALIDERING_PUBLIC_KEY || process.env.WIX_WEBHOOK_PUBLIC_KEY;
-  if (!nyckel) {
+  const nycklar = [
+    ...delaPemNycklar(process.env.WIX_VALIDERING_PUBLIC_KEY),
+    ...delaPemNycklar(process.env.WIX_WEBHOOK_PUBLIC_KEY),
+  ];
+  if (nycklar.length === 0) {
     console.error("[wix-validering] ingen publik nyckel satt — anropet går inte att verifiera");
     return NextResponse.json({ error: "Ingen publik nyckel" }, { status: 500 });
   }
 
-  const payload = verifyJwtRs256((await req.text()).trim(), nyckel);
+  const token = (await req.text()).trim();
+  let payload: Record<string, unknown> | null = null;
+  for (const nyckel of nycklar) {
+    payload = verifyJwtRs256(token, nyckel);
+    if (payload) break;
+  }
   if (!payload) {
     console.warn("[wix-validering] ogiltig signatur");
     return NextResponse.json({ error: "Ogiltig signatur" }, { status: 401 });

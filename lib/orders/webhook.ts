@@ -57,6 +57,21 @@ export function verifyJwtRs256(token: string, publicKeyPem: string): Record<stri
 }
 
 /**
+ * Delar ett env-värde med en eller flera PEM-nycklar efter varandra. Butikens
+ * webhook tar emot flera nycklar i samma värde (headless-site,
+ * app/api/wix-webhook/route.ts, 2026-06-17), och samma värde kan ha kopierats
+ * hit. Literala "\n" blir riktiga radbrytningar, ett vanligt misstag när en
+ * PEM klistras in i Vercel.
+ */
+export function delaPemNycklar(pem: string | undefined): string[] {
+  if (!pem) return [];
+  const normal = pem.replace(/\\n/g, "\n");
+  const block = normal.match(/-----BEGIN [A-Z ]*PUBLIC KEY-----[\s\S]*?-----END [A-Z ]*PUBLIC KEY-----/g);
+  if (block) return block;
+  return normal.trim() ? [normal.trim()] : [];
+}
+
+/**
  * Avkodar payload från JWT UTAN signaturverifiering. Endast för bodies som vi
  * vet redan har verifierats upstream (t.ex. forward från fyndplats-headless
  * efter att den verifierat Wix-signaturen). Använd ALDRIG direkt mot okänd

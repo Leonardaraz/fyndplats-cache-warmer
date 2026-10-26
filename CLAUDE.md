@@ -1655,12 +1655,17 @@ Tre egenskaper som inte ska tas bort:
 2. ☠️ **Svaret bär EN överträdelse med målet `other`**, den form Wix
    dokumentation visar i alla exempel. En form Wix inte känner igen hade gjort att
    spärren tyst uteblev.
-3. **Anropet är ett JWT signerat med appens nyckel**, samma som orderwebhooken
-   (`WIX_WEBHOOK_PUBLIC_KEY`). `WIX_VALIDERING_PUBLIC_KEY` vinner om tillägget
-   sitter på en annan app, och `WIX_APP_ID` kontrollerar `aud` när den är satt.
+3. **Anropet är ett JWT signerat med appens nyckel.** Tillägget hör hemma på
+   samma app som skickar orderwebhooken, och då gäller samma nyckel
+   (`WIX_WEBHOOK_PUBLIC_KEY`). Varje PEM i `WIX_VALIDERING_PUBLIC_KEY` och
+   `WIX_WEBHOOK_PUBLIC_KEY` provas, så ett värde med flera nycklar fungerar.
+   `WIX_APP_ID` kontrollerar `aud` när den är satt.
 
-⚠️ **Kassans spärr biter först när tillägget finns i Wix.** Wix Studio → Custom
-Apps → Fyndplats → Extensions → Ecom Validations, med `deploymentUri`
+⚠️ **Kassans spärr biter först när tillägget finns i Wix.** Appen heter inte
+Fyndplats i Wix. Butikens webhook-kod nämner **My New App-4** som den som
+signerar webhookarna (2026-06-17), och listan har dessutom två appar som heter
+"Fyndplats kassa" (2026-10-09, okänt syfte). Anpassade appar → My New App-4 →
+Extensions → Ecom Validations, med `deploymentUri`
 `https://fyndplats-cache-warmer.vercel.app/api/wix-validering`. Wix lägger själv
 till `/v1/get-violations`. Larmet och bulkorderns spärr gäller från deployen.
 

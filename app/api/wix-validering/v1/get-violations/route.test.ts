@@ -95,9 +95,16 @@ describe("/api/wix-validering/v1/get-violations", () => {
     expect((await post(anrop("62152"))).status).toBe(401);
   });
 
-  it("använder WIX_VALIDERING_PUBLIC_KEY före webhookens nyckel", async () => {
+  it("provar WIX_VALIDERING_PUBLIC_KEY när webhookens nyckel inte passar", async () => {
     process.env.WIX_WEBHOOK_PUBLIC_KEY = "fel nyckel";
     process.env.WIX_VALIDERING_PUBLIC_KEY = PEM;
+    expect((await post(anrop("62152"))).status).toBe(200);
+  });
+
+  it("tar emot ett värde med flera nycklar och inklistrade \\n", async () => {
+    const annan = generateKeyPairSync("rsa", { modulusLength: 2048 }).publicKey
+      .export({ type: "spki", format: "pem" }).toString();
+    process.env.WIX_WEBHOOK_PUBLIC_KEY = (annan + PEM).replace(/\n/g, "\\n");
     expect((await post(anrop("62152"))).status).toBe(200);
   });
 
