@@ -1629,6 +1629,53 @@ kolumn A är artikelnumren och kolumn B antalen; adressfälten beskrivs som "one
 customer address" utan namn. Ladda ner deras formulär en gång och rätta
 `CSV_KOLUMNER` — datan i raderna är rätt oavsett.
 
+### Postnummer dit Aosom inte levererar (2026-10-26)
+
+Leonards lista: 10005, 13025, 13033, 13034, 13036, 13038, 13039, 13042, 13043,
+13055, 13056, 37022, 43080–43099, 45204–45205, 47112–47115, 47500–47599,
+62000–62999, 74296–74297, 76017–76019 och 91803. Där ska Aosom-varor inte gå att
+beställa. Listan bor i `lib/aosom/postnummer-sparr.ts`, och ett test fäller om
+koden glider från den. Varor från andra leverantörer rörs inte.
+
+☠️ **Wix fraktinställningar kan inte spärra ett postnummer.** Delivery Profiles
+tar bara land och län (mätt mot API-schemat samma dag), och adressen skrivs in i
+Wix egen kassa. Spärren sitter därför på tre ställen:
+
+| var | vad som händer |
+|---|---|
+| kassan, `/api/wix-validering/v1/get-violations` | Wix tillägg Ecom Validations frågar motorn, och en Aosom-vara till ett spärrat postnummer stoppar köpet med ett felmeddelande (`lib/aosom/kassa-validering.ts`) |
+| ordern, `/api/wix-order` | en order som ändå kommer in larmar `OPS_ALERT_EMAIL` och skriver en audit-rad, en gång per order |
+| bulkordern | raderna hålls i `hoppadeOver` med skälet och skickas aldrig till Aosom |
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Kassan släpper igenom köpet vid fel, efter tre sekunder och när anropet
+   inte går att verifiera.** Rutten svarar alltid 200, aldrig en felkod. Wix
+   dokumentation säger inte vad kassan gör med ett felsvar, och en databas som
+   hackar eller en fel nyckel får inte stänga kassan för alla kunder. Det som
+   slinker igenom fångas av larmet och av bulkordern.
+2. ☠️ **Svaret bär EN överträdelse med målet `other`**, den form Wix
+   dokumentation visar i alla exempel. En form Wix inte känner igen hade gjort att
+   spärren tyst uteblev.
+3. **Anropet är ett JWT signerat med appens nyckel.** Tillägget hör hemma på
+   samma app som skickar orderwebhooken, och då gäller samma nyckel
+   (`WIX_WEBHOOK_PUBLIC_KEY`). Varje PEM i `WIX_VALIDERING_PUBLIC_KEY` och
+   `WIX_WEBHOOK_PUBLIC_KEY` provas, så ett värde med flera nycklar fungerar.
+   `WIX_APP_ID` kontrollerar `aud` när den är satt. Ger ett provköp ingen spärr
+   och Vercels logg har raden `[wix-validering] ogiltig signatur`, saknas
+   appens nyckel. Den läggs då i `WIX_VALIDERING_PUBLIC_KEY`.
+
+⚠️ **Kassans spärr biter först när tillägget finns i Wix.** Appen heter inte
+Fyndplats i Wix. Butikens webhook-kod nämner **My New App-4** som den som
+signerar webhookarna (2026-06-17), och listan har dessutom två appar som heter
+"Fyndplats kassa" (2026-10-09, okänt syfte). Anpassade appar → My New App-4 →
+Extensions → Ecom Validations, med `deploymentUri`
+`https://fyndplats-cache-warmer.vercel.app/api/wix-validering`. Wix lägger själv
+till `/v1/get-violations`. Larmet och bulkorderns spärr gäller från deployen.
+
+☠️ **Spara tillägget först när rutten svarar i produktion.** `deploymentUri`
+pekar på produktionen, och före deployen svarar adressen 404 på varje kassa.
+
 ### Resten av vad guiden säger
 
 - **API-integration erbjuds** "after a few months of successful collaboration".

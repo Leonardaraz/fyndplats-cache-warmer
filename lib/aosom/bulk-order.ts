@@ -32,6 +32,7 @@
 // `omojliga` och lämnas till en människa.
 
 import type { FulfillmentTask, ShippingAddress } from "../orders/types";
+import { aosomSparrForAdress } from "./postnummer-sparr";
 
 /** Guidens tak. Ändra bara om Aosom ändrar sina. */
 export const MAX_ORDRAR = 100;
@@ -119,6 +120,15 @@ export function grupperaPerOrder(
     }
     if (!t.shippingAddress?.addressLine1 || !t.shippingAddress?.city) {
       hoppadeOver.push({ taskId: t.taskId, skal: "ofullständig leveransadress" });
+      continue;
+    }
+    // Hela orderns Aosom-rader går till samma adress, så hela ordern hålls.
+    const sparr = aosomSparrForAdress(t.shippingAddress);
+    if (sparr) {
+      hoppadeOver.push({
+        taskId: t.taskId,
+        skal: `Aosom levererar inte till postnummer ${sparr} — avboka raden och återbetala kunden`,
+      });
       continue;
     }
     const antal = Math.trunc(t.quantity);
