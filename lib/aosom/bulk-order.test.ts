@@ -126,6 +126,24 @@ describe("grupperaPerOrder — artikel som inte går att avgöra", () => {
   });
 });
 
+describe("grupperaPerOrder — postnummer dit Aosom inte levererar", () => {
+  it("håller ordern med skälet, och andra ordrar läggs som vanligt", () => {
+    const { ordrar, hoppadeOver } = grupperaPerOrder(
+      [
+        task({ taskId: "o1:l1", shippingAddress: { ...ADRESS, postalCode: "621 52", city: "Visby" } }),
+        task({ taskId: "o1:l2", lineItemId: "l2", shippingAddress: { ...ADRESS, postalCode: "621 52", city: "Visby" } }),
+        task({ taskId: "o2:l1", orderId: "o2", orderNumber: "10002" }),
+      ],
+      sku,
+    );
+    expect(ordrar.map((o) => o.orderNumber)).toEqual(["10002"]);
+    expect(hoppadeOver).toEqual([
+      { taskId: "o1:l1", skal: "Aosom levererar inte till postnummer 621 52 — avboka raden och återbetala kunden" },
+      { taskId: "o1:l2", skal: "Aosom levererar inte till postnummer 621 52 — avboka raden och återbetala kunden" },
+    ]);
+  });
+});
+
 describe("delaIBatchar", () => {
   it("håller sig under taket på antal ordrar", () => {
     const ordrar = Array.from({ length: MAX_ORDRAR + 5 }, (_, i) =>

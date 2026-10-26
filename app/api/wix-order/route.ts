@@ -9,6 +9,9 @@ import { recordOrder } from "@/lib/import/supplier-tracking";
 import { arFakturaorder, type FakturaOrder } from "@/lib/orders/faktura";
 import { korFakturor } from "@/lib/orders/faktura-kor";
 import { fakturaDeps } from "@/lib/orders/faktura-deps";
+import { byggSparrLarm, sparradAosomOrder } from "@/lib/aosom/postnummer-larm";
+import { isAosomMapping } from "@/lib/store/supplier";
+import { sendEmail } from "@/lib/email/resend";
 
 // Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
 // avduplicerar på event-id (idempotens) och skapar en fulfillment-task per
@@ -101,11 +104,37 @@ export async function POST(req: Request) {
   // (som tidigare) markerade sett före skapandet kunde en krasch däremellan göra
   // att omleveransen dedupp:ades och ordern tappades helt (kund aldrig skickad).
   const tasks = deriveTasks(event);
-  let created = 0;
+  const skapade: typeof tasks = [];
   for (const task of tasks) {
-    if (await store.createTaskIfAbsent(task)) created++;
+    if (await store.createTaskIfAbsent(task)) skapade.push(task);
   }
+  const created = skapade.length;
   await store.markEventSeen(event.eventId);
+
+  // Aosom levererar inte till alla postnummer (lib/aosom/postnummer-sparr.ts).
+  // Kassan ska stoppa köpet, men en order som ändå kommer in larmar direkt.
+  // Bara för nyskapade rader, så att en omleverans av samma order inte larmar
+  // igen. Best-effort: larmet får aldrig fälla orderflödet.
+  if (created > 0) {
+    try {
+      const sparr = await sparradAosomOrder(skapade, async (id) => {
+        const m = await store.getMappingByWixProductId(id);
+        return m ? isAosomMapping(m) : false;
+      });
+      if (sparr) {
+        await audit("order", event.orderId, `Aosom levererar inte till postnummer ${sparr.postnummer} — raderna hålls`);
+        const to = process.env.OPS_ALERT_EMAIL;
+        if (to) {
+          const larm = byggSparrLarm(sparr);
+          await sendEmail({ to, subject: larm.subject, bodyHtml: larm.html, bodyText: larm.text });
+        } else {
+          console.error(`[wix-order] OPS_ALERT_EMAIL saknas — ingen larmas om order ${sparr.orderNumber}`);
+        }
+      }
+    } catch (e) {
+      console.error(`[wix-order] postnummerlarmet föll: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
 
   // Feature 4: bumpa köpta produkter till high-priority sync nästa cron-cykel
   // så lagret kollas direkt efter försäljning. Best-effort — order-flödet får

@@ -1,0 +1,77 @@
+// POST /api/wix-validering/v1/get-violations
+//
+// Wix tillägg Ecom Validations anropar den här rutten när kunden fyller i
+// kassan. Tillägget sitter på appen Fyndplats i Wix (Custom Apps), med
+// deploymentUri https://fyndplats-cache-warmer.vercel.app/api/wix-validering —
+// Wix lägger själv till /v1/get-violations.
+//
+// Svaret stoppar köpet när kundvagnen har en Aosom-vara och postnumret står i
+// lib/aosom/postnummer-sparr.ts. Logiken och skälen bor i
+// lib/aosom/kassa-validering.ts.
+//
+// Anropet är ett JWT signerat med appens nyckel, samma nyckel som
+// orderwebhooken verifieras med (WIX_WEBHOOK_PUBLIC_KEY).
+// WIX_VALIDERING_PUBLIC_KEY vinner om tillägget sitter på en annan app.
+
+import { NextResponse } from "next/server";
+import { verifyJwtRs256 } from "@/lib/orders/webhook";
+import { kassansOvertradelser, lasKassaAnrop } from "@/lib/aosom/kassa-validering";
+import { getStore } from "@/lib/store/factory";
+import { isAosomMapping } from "@/lib/store/supplier";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 30;
+
+/** Så länge kunden får vänta på svaret. Därefter släpps köpet igenom. */
+const TIDSBUDGET_MS = 3000;
+
+export async function POST(req: Request) {
+  const nyckel = process.env.WIX_VALIDERING_PUBLIC_KEY || process.env.WIX_WEBHOOK_PUBLIC_KEY;
+  if (!nyckel) {
+    console.error("[wix-validering] ingen publik nyckel satt — anropet går inte att verifiera");
+    return NextResponse.json({ error: "Ingen publik nyckel" }, { status: 500 });
+  }
+
+  const payload = verifyJwtRs256((await req.text()).trim(), nyckel);
+  if (!payload) {
+    console.warn("[wix-validering] ogiltig signatur");
+    return NextResponse.json({ error: "Ogiltig signatur" }, { status: 401 });
+  }
+  const last = lasKassaAnrop(payload, {
+    nuSek: Math.floor(Date.now() / 1000),
+    appId: process.env.WIX_APP_ID || undefined,
+  });
+  if ("fel" in last) {
+    console.warn(`[wix-validering] avvisat: ${last.fel}`);
+    return NextResponse.json({ error: last.fel }, { status: 401 });
+  }
+
+  const store = getStore();
+  const kontroll = kassansOvertradelser(last.info, {
+    arAosomProdukt: async (id) => {
+      const m = await store.getMappingByWixProductId(id);
+      return m ? isAosomMapping(m) : false;
+    },
+  });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const tidenUte = new Promise<"tiden-ute">((resolve) => {
+    timer = setTimeout(() => resolve("tiden-ute"), TIDSBUDGET_MS);
+  });
+  try {
+    const utfall = await Promise.race([kontroll, tidenUte]);
+    if (utfall === "tiden-ute") {
+      console.error(`[wix-validering] ingen kontroll inom ${TIDSBUDGET_MS} ms — köpet släpps igenom`);
+      return NextResponse.json({ violations: [] });
+    }
+    if (utfall.length > 0) console.log("[wix-validering] köpet stoppat: Aosom-vara till spärrat postnummer");
+    return NextResponse.json({ violations: utfall });
+  } catch (e) {
+    console.error(
+      `[wix-validering] kontrollen föll — köpet släpps igenom: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return NextResponse.json({ violations: [] });
+  } finally {
+    clearTimeout(timer);
+  }
+}

@@ -88,6 +88,34 @@ describe("/api/wix-order — F19 cancel/refund-gate", () => {
     expect(await get("o9:l1")).toBeTruthy();
   });
 
+  it("en Aosom-vara till ett spärrat postnummer larmar en gång, en vanlig adress inte", async () => {
+    const { audit } = await import("@/lib/audit");
+    vi.mocked(audit).mockClear();
+    await store.saveMapping({ wixProductId: "wp9", supplier: "aosom", supplierProductId: "aosom:TEST-1", variants: [] });
+    const tillVisby = structuredClone(createdEvent);
+    tillVisby.createdEvent.entity.recipientInfo.address.postalCode = "621 52";
+
+    expect((await POST(req(tillVisby))).status).toBe(200);
+    expect(vi.mocked(audit)).toHaveBeenCalledWith(
+      "order",
+      "o9",
+      "Aosom levererar inte till postnummer 621 52 — raderna hålls",
+    );
+
+    // Samma order en gång till (ett nytt event-id) skapar inga nya rader och larmar inte igen.
+    vi.mocked(audit).mockClear();
+    await POST(req({ ...tillVisby, id: "evt-n2" }));
+    expect(vi.mocked(audit).mock.calls.some((c) => String(c[2]).includes("Aosom levererar inte"))).toBe(false);
+  });
+
+  it("en Aosom-vara till ett vanligt postnummer larmar inte", async () => {
+    const { audit } = await import("@/lib/audit");
+    vi.mocked(audit).mockClear();
+    await store.saveMapping({ wixProductId: "wp9", supplier: "aosom", supplierProductId: "aosom:TEST-1", variants: [] });
+    await POST(req(createdEvent));
+    expect(vi.mocked(audit).mock.calls.some((c) => String(c[2]).includes("Aosom levererar inte"))).toBe(false);
+  });
+
   it("cancel utan härledbart order-id → 200 ignored (ingen retry-loop)", async () => {
     const res = await POST(req({ id: "evt-x", entityFqdn: "wix.ecom.v1.order", slug: "canceled" }));
     expect(res.status).toBe(200);
