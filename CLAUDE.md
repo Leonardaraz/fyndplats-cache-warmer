@@ -1649,9 +1649,11 @@ Wix egen kassa. Spärren sitter därför på tre ställen:
 
 Tre egenskaper som inte ska tas bort:
 
-1. ☠️ **Kassan släpper igenom köpet vid fel eller efter tre sekunder.** En
-   databas som hackar får inte stänga kassan för alla kunder. Det som slinker
-   igenom fångas av larmet och av bulkordern.
+1. ☠️ **Kassan släpper igenom köpet vid fel, efter tre sekunder och när anropet
+   inte går att verifiera.** Rutten svarar alltid 200, aldrig en felkod. Wix
+   dokumentation säger inte vad kassan gör med ett felsvar, och en databas som
+   hackar eller en fel nyckel får inte stänga kassan för alla kunder. Det som
+   slinker igenom fångas av larmet och av bulkordern.
 2. ☠️ **Svaret bär EN överträdelse med målet `other`**, den form Wix
    dokumentation visar i alla exempel. En form Wix inte känner igen hade gjort att
    spärren tyst uteblev.
@@ -1659,7 +1661,9 @@ Tre egenskaper som inte ska tas bort:
    samma app som skickar orderwebhooken, och då gäller samma nyckel
    (`WIX_WEBHOOK_PUBLIC_KEY`). Varje PEM i `WIX_VALIDERING_PUBLIC_KEY` och
    `WIX_WEBHOOK_PUBLIC_KEY` provas, så ett värde med flera nycklar fungerar.
-   `WIX_APP_ID` kontrollerar `aud` när den är satt.
+   `WIX_APP_ID` kontrollerar `aud` när den är satt. Ger ett provköp ingen spärr
+   och Vercels logg har raden `[wix-validering] ogiltig signatur`, saknas
+   appens nyckel. Den läggs då i `WIX_VALIDERING_PUBLIC_KEY`.
 
 ⚠️ **Kassans spärr biter först när tillägget finns i Wix.** Appen heter inte
 Fyndplats i Wix. Butikens webhook-kod nämner **My New App-4** som den som
@@ -1668,6 +1672,9 @@ signerar webhookarna (2026-06-17), och listan har dessutom två appar som heter
 Extensions → Ecom Validations, med `deploymentUri`
 `https://fyndplats-cache-warmer.vercel.app/api/wix-validering`. Wix lägger själv
 till `/v1/get-violations`. Larmet och bulkorderns spärr gäller från deployen.
+
+☠️ **Spara tillägget först när rutten svarar i produktion.** `deploymentUri`
+pekar på produktionen, och före deployen svarar adressen 404 på varje kassa.
 
 ### Resten av vad guiden säger
 

@@ -1,7 +1,7 @@
 // POST /api/wix-validering/v1/get-violations
 //
 // Wix tillägg Ecom Validations anropar den här rutten när kunden fyller i
-// kassan. Tillägget sitter på appen Fyndplats i Wix (Custom Apps), med
+// kassan. Tillägget sitter på appen My New App-4 i Wix (Anpassade appar), med
 // deploymentUri https://fyndplats-cache-warmer.vercel.app/api/wix-validering —
 // Wix lägger själv till /v1/get-violations.
 //
@@ -10,9 +10,14 @@
 // lib/aosom/kassa-validering.ts.
 //
 // Anropet är ett JWT signerat med appens nyckel. Tillägget sitter på samma app
-// som skickar orderwebhooken (My New App-4), så samma nyckel gäller
-// (WIX_WEBHOOK_PUBLIC_KEY). Varje PEM i WIX_VALIDERING_PUBLIC_KEY och
-// WIX_WEBHOOK_PUBLIC_KEY provas, så ett värde med flera nycklar fungerar.
+// som skickar orderwebhooken, så samma nyckel gäller (WIX_WEBHOOK_PUBLIC_KEY).
+// Varje PEM i WIX_VALIDERING_PUBLIC_KEY och WIX_WEBHOOK_PUBLIC_KEY provas, så
+// ett värde med flera nycklar fungerar.
+//
+// ☠️ Rutten svarar alltid 200. Ett anrop som inte går att verifiera får ett
+// tomt svar och en felrad i loggen, aldrig en felkod. Wix dokumentation säger
+// inte vad kassan gör med ett felsvar, och en fel nyckel får inte kunna stänga
+// kassan för alla kunder. Ett tomt svar är samma läge som innan tillägget fanns.
 
 import { NextResponse } from "next/server";
 import { delaPemNycklar, verifyJwtRs256 } from "@/lib/orders/webhook";
@@ -27,14 +32,17 @@ export const maxDuration = 30;
 /** Så länge kunden får vänta på svaret. Därefter släpps köpet igenom. */
 const TIDSBUDGET_MS = 3000;
 
+/** Inga överträdelser: köpet går igenom. */
+const slappIgenom = () => NextResponse.json({ violations: [] });
+
 export async function POST(req: Request) {
   const nycklar = [
     ...delaPemNycklar(process.env.WIX_VALIDERING_PUBLIC_KEY),
     ...delaPemNycklar(process.env.WIX_WEBHOOK_PUBLIC_KEY),
   ];
   if (nycklar.length === 0) {
-    console.error("[wix-validering] ingen publik nyckel satt — anropet går inte att verifiera");
-    return NextResponse.json({ error: "Ingen publik nyckel" }, { status: 500 });
+    console.error("[wix-validering] ingen publik nyckel satt — kontrollen är avstängd, köpet släpps igenom");
+    return slappIgenom();
   }
 
   const token = (await req.text()).trim();
@@ -44,16 +52,19 @@ export async function POST(req: Request) {
     if (payload) break;
   }
   if (!payload) {
-    console.warn("[wix-validering] ogiltig signatur");
-    return NextResponse.json({ error: "Ogiltig signatur" }, { status: 401 });
+    console.error(
+      "[wix-validering] ogiltig signatur (fel nyckel eller inte från Wix) — köpet släpps igenom. " +
+        "Saknas appens nyckel läggs den i WIX_VALIDERING_PUBLIC_KEY",
+    );
+    return slappIgenom();
   }
   const last = lasKassaAnrop(payload, {
     nuSek: Math.floor(Date.now() / 1000),
     appId: process.env.WIX_APP_ID || undefined,
   });
   if ("fel" in last) {
-    console.warn(`[wix-validering] avvisat: ${last.fel}`);
-    return NextResponse.json({ error: last.fel }, { status: 401 });
+    console.error(`[wix-validering] avvisat (${last.fel}) — köpet släpps igenom`);
+    return slappIgenom();
   }
 
   const store = getStore();
@@ -71,7 +82,7 @@ export async function POST(req: Request) {
     const utfall = await Promise.race([kontroll, tidenUte]);
     if (utfall === "tiden-ute") {
       console.error(`[wix-validering] ingen kontroll inom ${TIDSBUDGET_MS} ms — köpet släpps igenom`);
-      return NextResponse.json({ violations: [] });
+      return slappIgenom();
     }
     if (utfall.length > 0) console.log("[wix-validering] köpet stoppat: Aosom-vara till spärrat postnummer");
     return NextResponse.json({ violations: utfall });
@@ -79,7 +90,7 @@ export async function POST(req: Request) {
     console.error(
       `[wix-validering] kontrollen föll — köpet släpps igenom: ${e instanceof Error ? e.message : String(e)}`,
     );
-    return NextResponse.json({ violations: [] });
+    return slappIgenom();
   } finally {
     clearTimeout(timer);
   }
