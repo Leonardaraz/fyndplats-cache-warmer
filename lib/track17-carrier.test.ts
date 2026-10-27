@@ -32,3 +32,14 @@ test("okända format → null (hellre ingen gissning än fel transportör)", () 
   assert.equal(detect17TrackCarrier("RR123456789CN"), null); // S10 till annat land
   assert.equal(detect17TrackCarrier(""), null);
 });
+
+test("DPD Polska: 14 siffror som börjar på 13 → PostNord Sweden (19241)", () => {
+  // PostNord delar ut paketen i Sverige med samma nummer, och PostNords
+  // spårning visar hela resan. 17TRACK kände inte igen två riktiga paket
+  // 2026-10-27, så de registrerades aldrig. Påhittat nummer.
+  const hint = detect17TrackCarrier("13123456789012");
+  assert.ok(hint);
+  assert.equal(hint.key, 19241);
+  assert.equal(detect17TrackCarrier("1312345678901"), null); // 13 siffror
+  assert.equal(detect17TrackCarrier("131234567890123"), null); // 15 siffror
+});

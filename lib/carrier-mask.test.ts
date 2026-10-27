@@ -180,8 +180,11 @@ test("transportorAvNummer: UPS, DPD och PostNord på formen, inget annat", () =>
   assert.equal(transportorAvNummer("01234567890123"), "DPD");
   assert.equal(transportorAvNummer("RR123456789SE"), "PostNord");
   assert.equal(transportorAvNummer("07123456789012"), "PostNord");
+  // DPD Polska: PostNord delar ut med samma nummer, och PostNords spårning
+  // visar hela resan.
+  assert.equal(transportorAvNummer("13123456789012"), "PostNord");
   // DHL:s S10 från Tyskland, GLS-lika nummer och fel längd avgör inget.
-  for (const nummer of ["CC123456789DE", "12345678901", "YZC00000", "1Z999AA1012345678", "1Z999AA101234567845", ""]) {
+  for (const nummer of ["CC123456789DE", "12345678901", "YZC00000", "1Z999AA1012345678", "1Z999AA101234567845", "1312345678901", ""]) {
     assert.equal(transportorAvNummer(nummer), undefined, nummer);
   }
 });
@@ -202,6 +205,11 @@ test("transportorAvNummer: PostNord-formerna är samma som 17TRACK-registreringe
     "071234567890123",
     "08123456789012",
     "01234567890123",
+    "13123456789012",
+    "13000000000000",
+    "1312345678901",
+    "131234567890123",
+    "12123456789012",
     "1Z999AA10123456784",
   ];
   for (const nummer of prov) {

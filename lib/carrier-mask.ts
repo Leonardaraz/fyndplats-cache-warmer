@@ -87,11 +87,13 @@ export const DPD_NUMMER = /^01\d{12}$/;
 export const UPS_NUMMER = /^1Z[0-9A-Z]{16}$/;
 
 /**
- * PostNords egna former: UPU S10 utfärdat i Sverige, och parcel connect (14
- * siffror som börjar på 07). Samma mönster som lib/track17.ts registrerar med,
- * och carrier-mask.test.ts fäller om de glider isär, som för DPD_NUMMER.
+ * Nummer som PostNords spårning visar hela vägen: UPU S10 utfärdat i Sverige,
+ * parcel connect (14 siffror som börjar på 07) och DPD Polska (14 siffror som
+ * börjar på 13), som PostNord delar ut i Sverige med samma nummer
+ * (2026-10-27). Samma mönster som lib/track17.ts registrerar som PostNord, och
+ * carrier-mask.test.ts fäller om de glider isär, som för DPD_NUMMER.
  */
-const POSTNORD_NUMMER = [/^[A-Z]{2}\d{9}SE$/, /^07\d{12}$/];
+const POSTNORD_NUMMER = [/^[A-Z]{2}\d{9}SE$/, /^07\d{12}$/, /^13\d{12}$/];
 
 /**
  * Fraktbolaget när numret ensamt avgör det. /sparning visar då bara det
