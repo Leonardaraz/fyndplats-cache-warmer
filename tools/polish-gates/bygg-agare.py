@@ -2,12 +2,35 @@
 """bygg-agare.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript där VARJE galleribild får en uttalad ägare.
 --torr bygger en torrkörning (ingenting skrivs, hasMutations false): svaret har valens länkar före → efter och, på en option som inte är färg, butikens vy per val.
 --kompakt tar bort radkommentarerna ur ut.js (skriptet klistras in i ExecuteWixAPI, och kommentarerna är tre kilobyte som inte behövs där).
+--utan-vy (bara skarpt) tar bort `kombinationer`-förhandsvisningen ur ut.js: ytterligare sex kilobyte som inte behövs i en skrivning. Skrivvägen och alla kontroller är
+oförändrade (byte för byte det som ett skarpt bygge utan flaggan gör, minus förhandsvisningen), och svaret saknar bara fältet `kombinationer`. Vyn läses i stället efteråt
+med kolla-agare.py och verifiera-live.py. Två tvåaxliga sidor (fyra optioner, 7–10 s var) ryms i en körning på 60 sekunder.
 
-spec.json (2026-10-23, de 16 tvåaxliga sidorna med måttbilder för fel storlek): [{"id": "<fullt produkt-id>", "agare": {"<hex6>": "<valets namn>" | "-"}, "tomt": ["<valets namn>"], "forst": {"<valets namn>": "<hex6>"}}]
+spec.json (2026-10-23, de 16 tvåaxliga sidorna med måttbilder för fel storlek): [{"id": "<fullt produkt-id>", "slug": "<sidans adress>", "agare": {"<hex6>": "<valets namn>" | ["<val>", "<val>"] | "-"}, "tomt": ["<valets namn>"], "forst": {"<valets namn>": "<hex6>"}}]
   hex6    de sex första tecknen i galleriets fil-id efter "b379ce_". Ska ge exakt en träff i produktens galleri.
   värdet  namnet på valet som äger bilden, i vilken option som helst (namnet ska vara unikt bland alla val på sidan), eller "-" för en gemensam bild utan ägare.
+          En LISTA ger bilden flera ägare: ["Vit", "136 cm"] är en bild av den vita hyllan på 136 cm (se nedan). Flera val i SAMMA option betyder "något av dem":
+          ["Svart", "50 × 70 cm", "60 × 90 cm"] är väggspegelns breda svarta form, som syns under 50 × 70 och 60 × 90 men inte under 50 × 110.
+  slug    sidans adress i butiken. Krävs för en skarp körning med en lista (spärren nedan), och kolla-agare.py läser den.
   tomt    val som får lämnas utan länkade bilder trots att de har några nu (lank-om-bilder.js vägrar annars).
   forst   valfritt: valets FÖRSTA länkade bild. Den är butikens första bild för valet och blir variantens bild (varukorg, kassa, order) vid en namn-skrivning.
+  ordning valfritt: {"<valets namn>": ["<hex6>", ...]} lägger de bilderna först i valets lista, i den ordningen; resten behåller sin ordning. Butikens
+          första bild för en kombination är den första bild i färgens lista som passar kombinationen och är kopplad i flest optioner (lib/variant-price.ts),
+          så packshoten för varje storlek ska stå före miljöbilderna. Står både `forst` och `ordning` vinner `forst` om första platsen.
+
+☠️ Spärren (2026-10-23): en lista med fler än ett val skrivs bara när butiksändringen är ute. En skarp körning (utan --torr) hämtar varje sådan sidas adress
+(`slug`) i butiken och vägrar bygga skriptet om sidans data saknar `imageKopplingar`. Samma kontroll som kolla-agare.py gör efteråt, nu före skrivningen.
+Torrkörningen spärras inte: den skriver ingenting och visar vyn med den nya regeln.
+
+En bild per kombination (2026-10-23, Leonards skärmbilder av bokhyllan 79ab08fe): butiken visade en bild under ALLA val i den andra optionen, och en bild av den
+stora vita hyllan gick därför inte att visa bara under Vit × 136 cm. Butiksändringen (tools/polish-assets/tva-axlar-revision-2026-10-23/butik-kopplingar.patch,
+lib/variant-bilder.ts synligaBilderForKombination på headless-site) visar en bild när den, i VARJE option som kopplar den, är kopplad till det valda valet.
+☠️ Länka aldrig en bild i två optioner innan butiksändringen är ute. Den gamla butiken ger bilden EN ägare, det första val som kopplar den i optionernas ordning,
+och på en sida där Storlek står före Färg (bokhyllan) hade bilden av den vita stora hyllan då visats under båda färgerna i 136 cm.
+☠️ Torrkörningen svarar också med `kombinationer`: butikens vy per variant med den nya regeln (ägare ur alt-texten räknas för olänkade bilder, som butiken gör),
+butikens första bild (`forsta`, lib/variant-price.ts) och Wix variantbild efter en namn-skrivning med färgen först (`varukorg`, den som varukorg, kassa och
+order läser). `varukorgPassar: false` betyder att varukorgen visar en bild som inte hör till kombinationen: med färgen först blir det färgens första bild för
+ALLA storlekar. Läs varje kombination innan du skriver: ingen vy under fyra bilder utan att det är ett beslut.
 
 ☠️ Listornas ordning bevaras (2026-10-23): en bild valet fortfarande äger står kvar på sin plats, nya bilder läggs sist i galleriets ordning. Första versionen byggde varje
 lista i galleriets ordning och bytte därmed första bild på fem färger (julgranens Vit, väggspegelns Guld, sensorsoptunnans Silver, vedbodens Grön, bokhyllans Vit: från ett
@@ -31,59 +54,278 @@ import json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+def giltig_agare(v):
+    if isinstance(v, str):
+        return bool(v)
+    if isinstance(v, list):
+        return len(v) >= 1 and all(isinstance(n, str) and n and n != "-" for n in v) and len({n.strip().lower() for n in v}) == len(v)
+    return False
+
+
+def butiken_bar_kopplingar(slug, id8):
+    """Hämtar sidan i butiken och svarar (ok, text): bär sidans data `imageKopplingar`, alltså är butiksändringen ute?"""
+    import importlib.util
+    import subprocess
+    import tempfile
+    sp = importlib.util.spec_from_file_location("kk", os.path.join(HERE, "katalogkontroll-tva-axlar-bilder.py"))
+    kk = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(kk)
+    with tempfile.TemporaryDirectory() as kat:
+        r = subprocess.run(["curl", "-sS", "-m", "60", "-A", kk.UA, "-o", os.path.join(kat, id8 + ".html"), "-w", "%{http_code}",
+                            "https://www.fyndplats.se/produkt/" + slug], capture_output=True, text=True)
+        if r.stdout.strip() != "200":
+            return False, "sidan svarade HTTP %s" % (r.stdout.strip() or r.stderr.strip()[:80])
+        s = open(os.path.join(kat, id8 + ".html"), encoding="utf-8", errors="replace").read().replace('\\"', '"')
+    if '"productId":"' + id8 not in s:
+        return False, "sidan bär inte produkten %s (fel slug?)" % id8
+    k = kk.las(s, "imageKopplingar", s.find('"productId":"' + id8))
+    if not isinstance(k, dict):
+        return False, "sidans data saknar imageKopplingar: butiksändringen är inte ute, eller sidan byggdes av reservvägen"
+    return True, "sidan bär imageKopplingar"
+
+
+def utan_forhandsvisning(src):
+    """Tar bort den rent informativa `kombinationer`-förhandsvisningen (butikens vy per kombination) ur ett skarpt skript.
+    Allt mellan `const FORE` och AGARE-slingan hör till den, liksom de fyra KOMB-raderna. Avbryter om något ställe inte finns exakt en gång."""
+    start, slut = "  const FORE = ", "  for (const T of AGARE) {"
+    if src.count(start) != 1 or src.count(slut) != 1 or src.index(start) > src.index(slut):
+        sys.exit("--utan-vy: mallen har ändrats (FORE-raden eller AGARE-slingan saknas eller står i fel ordning)")
+    a, b = src.index(start), src.index(slut)
+    block = src[a:b]
+    if "kombinationer = function" not in block or not block.rstrip().endswith("};"):
+        sys.exit("--utan-vy: blocket mellan FORE och AGARE-slingan är inte förhandsvisningen")
+    src = src[:a] + src[b:]
+    byten = [
+        ("  const KOMB = [];\n", ""),
+        ("    KOMB.push(kombinationer(id8, p, gal, alts, optioner, planer));\n", ""),
+        ('"ingen lista skiljer från planen, ingenting skrevs" }].concat(KOMB);', '"ingen lista skiljer från planen, ingenting skrevs" }];'),
+        ("  return ut.concat(KOMB);\n}", "  return ut;\n}"),
+    ]
+    for gammal, ny in byten:
+        if src.count(gammal) != 1:
+            sys.exit("--utan-vy: mallen har ändrats, saknar exakt en förekomst av %r" % gammal)
+        src = src.replace(gammal, ny)
+    kommentar = "  // Ägare ur alt-texten för en olänkad bild, som butiken räknar dem (lib/variant-bilder.ts agareMedAltText, steg 1 och 2).\n"
+    if src.count(kommentar) == 1:
+        src = src.replace(kommentar, "")
+    if "KOMB" in src:
+        sys.exit("--utan-vy: KOMB finns kvar i skriptet")
+    return src
+
+
 def main():
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     ut, specfil = sys.argv[1], sys.argv[2]
     torr = "--torr" in sys.argv[3:]
     kompakt = "--kompakt" in sys.argv[3:]
+    utan_vy = "--utan-vy" in sys.argv[3:]
+    if utan_vy and torr:
+        sys.exit("--utan-vy går inte ihop med --torr: torrkörningens svar ÄR förhandsvisningen")
     src = open(os.path.join(HERE, "lank-om-bilder.js"), encoding="utf-8").read()
     spec = json.load(open(specfil, encoding="utf-8"))
     for s in spec:
         for h, v in s["agare"].items():
             if len(h) != 6 or any(c not in "0123456789abcdef" for c in h):
                 sys.exit("ogiltig hex6 i planen: %r" % h)
-            if not isinstance(v, str) or not v:
+            if not giltig_agare(v):
                 sys.exit("ogiltig ägare för %s: %r" % (h, v))
+        for k, lista in (s.get("ordning") or {}).items():
+            if not isinstance(lista, list) or not lista or any(not isinstance(h, str) or len(h) != 6 for h in lista) or len(set(lista)) != len(lista):
+                sys.exit("ogiltig ordning för %s: %r" % (k, lista))
+    flera = [s for s in spec if any(isinstance(v, list) and len(v) > 1 for v in s["agare"].values())]
+    if flera and not torr:
+        for s in flera:
+            id8 = str(s["id"])[:8]
+            if not s.get("slug"):
+                sys.exit("☠️ %s: planen har bilder med flera ägare men ingen `slug`, och spärren kan inte se om butiksändringen är ute. Ingenting byggt." % id8)
+            ok, text = butiken_bar_kopplingar(s["slug"], id8)
+            if not ok:
+                sys.exit("☠️ %s: %s. En bild med flera ägare skrivs bara när butiken räknar med kopplingarna. Ingenting byggt." % (id8, text))
+            print(id8, text)
     gammal = '  const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];\n'
     if src.count(gammal) != 1:
         sys.exit("mallen saknar PLANER-raden")
     ny = '''  const AGARE = %s;
+  const FLERA = %s;
   const likaA = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
   const PLANER = [];
+  const KOMB = [];
+  // Ägare ur alt-texten för en olänkad bild, som butiken räknar dem (lib/variant-bilder.ts agareMedAltText, steg 1 och 2).
+  const FORE = "(?<![\\\\p{L}\\\\p{N}])";
+  const EFTER = "(?![\\\\p{L}\\\\p{N}])";
+  const BAKGRUND = /(?<![\\p{L}])(?:vit|vita|vitt|grå|gråa|grått|svart|svarta|ljus|ljusa|ljusgrå|beige)\\s+(?:bakgrund|bakgrunden|studiobakgrund|yta|ytan)(?![\\p{L}])/giu;
+  const escR = function (s) { return s.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&"); };
+  const fargFormer = function (e) {
+    const w = String(e || "").trim().toLowerCase();
+    if (!/^\\p{L}{3,}$/u.test(w)) return null;
+    const f = new Set([w, w + "a", w + "t", w + "tt"]);
+    if (w.endsWith("d")) f.add(w.slice(0, -1) + "tt");
+    if (w.endsWith("t")) f.add(w + "t");
+    return Array.from(f);
+  };
+  const namnda = function (alt, etiketter) {
+    const text = String(alt || "").replace(BAKGRUND, " ");
+    return etiketter.filter(function (e) { const f = fargFormer(e); return !!f && new RegExp(FORE + "(?:" + f.map(escR).join("|") + ")" + EFTER, "iu").test(text); });
+  };
+  const arKort = function (alt) {
+    return /^\\s*(?:fyndplats|mått|specifikation)/i.test(alt) || /(?:spec(?:ifikations)?|mått|färg|fakta|storleks)kort/i.test(alt) || /mått(?:bild|ritning|skiss|skisser|uppgifter)/i.test(alt);
+  };
+  const arFargOption = function (o) { return /färg|color|kulör/i.test(o.namn); };
+  // Butikens vy per kombination med OCH-regeln (lib/variant-bilder.ts synligaBilderForKombination), butikens första bild
+  // (lib/variant-price.ts) och Wix variantbild efter en namn-skrivning med färgen först (lib/wix/variant-media.ts, forsta_val).
+  const kombinationer = function (id8, p, gal, alts, optioner, planer) {
+    const hex = function (f) { return f ? f.slice(7, 13) : null; };
+    const kopplad = {};
+    const forstaAgare = {};
+    optioner.forEach(function (o, i) {
+      o.val.forEach(function (v) {
+        (planer[i].lankar[v.namn] || []).forEach(function (f) {
+          if (!kopplad[f]) kopplad[f] = {};
+          if (!kopplad[f][i]) kopplad[f][i] = [];
+          kopplad[f][i].push(v.namn);
+          if (!(f in forstaAgare)) forstaAgare[f] = v.namn;
+        });
+      });
+    });
+    const fo = optioner.find(arFargOption);
+    const etiketter = fo ? fo.val.map(function (v) { return v.namn; }).filter(function (n) { return fargFormer(n); }) : [];
+    const altAgare = {};
+    if (etiketter.length >= 2) {
+      const agare = Object.assign({}, forstaAgare);
+      gal.forEach(function (f) {
+        if (f in agare) return;
+        const t = namnda(alts[f], etiketter);
+        if (t.length === 1) { agare[f] = t[0]; altAgare[f] = t[0]; }
+      });
+      const huvudFarg = gal.length ? agare[gal[0]] : undefined;
+      if (huvudFarg && etiketter.indexOf(huvudFarg) >= 0) {
+        const antal = {};
+        Object.keys(agare).forEach(function (f) { antal[agare[f]] = (antal[agare[f]] || 0) + 1; });
+        if (etiketter.some(function (e) { return e !== huvudFarg && antal[e] === 1; })) {
+          gal.forEach(function (f) {
+            if (f in agare) return;
+            if (arKort(alts[f] || "") || namnda(alts[f], etiketter).length > 1) return;
+            agare[f] = huvudFarg;
+            altAgare[f] = huvudFarg;
+          });
+        }
+      }
+    }
+    const foi = fo ? optioner.indexOf(fo) : -1;
+    const grupper = function (f) {
+      if (kopplad[f]) return kopplad[f];
+      if (altAgare[f] && foi >= 0) { const g = {}; g[foi] = [altAgare[f]]; return g; }
+      return null;
+    };
+    const ut = [];
+    ((p.variantsInfo && p.variantsInfo.variants) || []).forEach(function (v) {
+      if (v.visible === false) return;
+      const valPer = {};
+      const ordning = [];
+      (v.choices || []).forEach(function (ch) {
+        const ids = ch.optionChoiceIds || {};
+        const oi = optioner.findIndex(function (o) { return o.id === ids.optionId; });
+        if (oi < 0) return;
+        const c = optioner[oi].val.find(function (x) { return x.id === ids.choiceId; });
+        if (!c) return;
+        valPer[oi] = c.namn;
+        ordning.push(oi);
+      });
+      const passar = function (f) {
+        const g = grupper(f);
+        if (!g) return true;
+        return Object.keys(g).every(function (oi) { return g[oi].some(function (n) { return n === valPer[oi]; }); });
+      };
+      const egna = gal.some(function (f) { return !!grupper(f) && passar(f); });
+      let vy = egna ? gal.filter(passar) : gal.slice();
+      const lista = function (oi) { return planer[oi].lankar[valPer[oi]] || []; };
+      const fargOi = ordning.filter(function (oi) { return arFargOption(optioner[oi]); });
+      const ovrigaOi = ordning.filter(function (oi) { return !arFargOption(optioner[oi]); });
+      let forsta = null;
+      for (const oi of fargOi) { if (lista(oi).length) { forsta = lista(oi)[0]; break; } }
+      if (!forsta) for (const oi of ordning) { if (lista(oi).length) { forsta = lista(oi)[0]; break; } }
+      let basta = 0;
+      fargOi.concat(ovrigaOi).forEach(function (oi) {
+        lista(oi).forEach(function (f) {
+          const antal = Object.keys(kopplad[f] || {}).length;
+          if (antal > basta && passar(f)) { basta = antal; forsta = f; }
+        });
+      });
+      const i = forsta ? vy.indexOf(forsta) : -1;
+      if (i > 0) vy = [forsta].concat(vy.slice(0, i), vy.slice(i + 1));
+      let varukorg = null;
+      fargOi.concat(optioner.map(function (o, oi) { return oi; }).filter(function (oi) { return fargOi.indexOf(oi) < 0 && ordning.indexOf(oi) >= 0; })).some(function (oi) {
+        if (lista(oi).length) { varukorg = lista(oi)[0]; return true; }
+        return false;
+      });
+      ut.push({
+        kombination: ordning.map(function (oi) { return valPer[oi]; }).join(" × "),
+        antal: vy.length,
+        vy: vy.map(hex).join(","),
+        forsta: hex(forsta),
+        varukorg: hex(varukorg),
+        varukorgPassar: varukorg ? passar(varukorg) && vy.indexOf(varukorg) >= 0 : null,
+      });
+    });
+    const altMarkt = Object.keys(altAgare).map(function (f) { return hex(f) + "=" + altAgare[f]; });
+    return { id: id8, kombinationer: ut, agareUrAltText: altMarkt };
+  };
   for (const T of AGARE) {
     const id8 = String(T.id).slice(0, 8);
     const stopp = function (fel) { return [{ ok: false, steg: "agare", id: id8, fel: fel }]; };
     const r0 = await wix.request({ method: "GET", url: "https://www.wixapis.com/stores/v3/products/" + T.id + "?fields=MEDIA_ITEMS_INFO&fields=VARIANT_OPTION_CHOICE_NAMES" });
     const p = r0.data.product;
-    const gal = ((p.media && p.media.itemsInfo && p.media.itemsInfo.items) || []).map(function (i) { return i.id; });
+    const galItems = (p.media && p.media.itemsInfo && p.media.itemsInfo.items) || [];
+    const gal = galItems.map(function (i) { return i.id; });
+    const alts = {};
+    galItems.forEach(function (i) { alts[i.id] = String(i.altText || ""); });
     const agareAv = {};
     for (const h of Object.keys(T.agare)) {
       const traff = gal.filter(function (f) { return f.slice(7, 7 + h.length) === h; });
       if (traff.length !== 1) return stopp("prefix " + h + " ger " + traff.length + " träffar i galleriet");
-      agareAv[traff[0]] = T.agare[h] === "-" ? null : T.agare[h];
+      const v = T.agare[h];
+      agareAv[traff[0]] = v === "-" ? null : (Array.isArray(v) ? v : [v]);
     }
     const saknas = gal.filter(function (f) { return !(f in agareAv); });
     if (saknas.length > 0) return stopp(saknas.length + " bilder i galleriet har ingen ägare i planen: " + saknas.map(function (f) { return f.slice(7, 13); }).join(","));
     const optioner = (p.options || []).map(function (o) {
-      return { namn: o.name, val: ((o.choicesSettings && o.choicesSettings.choices) || []).map(function (c) { return { namn: c.name, gamla: (c.linkedMedia || []).map(function (m) { return m.id; }) }; }) };
+      return { id: o.id, namn: o.name, val: ((o.choicesSettings && o.choicesSettings.choices) || []).map(function (c) { return { id: c.choiceId, namn: c.name, gamla: (c.linkedMedia || []).map(function (m) { return m.id; }) }; }) };
     });
-    const allaVal = [];
-    optioner.forEach(function (o) { o.val.forEach(function (v) { allaVal.push(v.namn); }); });
+    const optionerFor = function (n) {
+      const t = [];
+      optioner.forEach(function (o, i) { o.val.forEach(function (v) { if (likaA(v.namn, n)) t.push(i); }); });
+      return t;
+    };
     for (const f of gal) {
       const a = agareAv[f];
       if (a === null) continue;
-      const traffar = allaVal.filter(function (n) { return likaA(n, a); });
-      if (traffar.length !== 1) return stopp("ägaren " + a + " för " + f.slice(7, 13) + " ger " + traffar.length + " val på sidan (ska vara exakt ett)");
+      const iOption = {};
+      for (const n of a) {
+        const t = optionerFor(n);
+        if (t.length !== 1) return stopp("ägaren " + n + " för " + f.slice(7, 13) + " ger " + t.length + " val på sidan (ska vara exakt ett)");
+        if (iOption[t[0]] !== undefined && !FLERA) return stopp("bilden " + f.slice(7, 13) + " har två ägare i optionen " + optioner[t[0]].namn + ": " + iOption[t[0]] + " och " + n);
+        iOption[t[0]] = n;
+      }
     }
     let forstFel = null;
     const planer = optioner.map(function (o) {
       const lankar = {};
       let andrad = false;
       o.val.forEach(function (v) {
-        const agda = gal.filter(function (f) { return agareAv[f] !== null && likaA(agareAv[f], v.namn); });
+        const agda = gal.filter(function (f) { return agareAv[f] !== null && agareAv[f].some(function (a) { return likaA(a, v.namn); }); });
         const kvar = v.gamla.filter(function (f) { return agda.indexOf(f) >= 0; });
         let lista = kvar.concat(agda.filter(function (f) { return kvar.indexOf(f) < 0; }));
+        const ok = Object.keys(T.ordning || {}).find(function (k) { return likaA(k, v.namn); });
+        if (ok) {
+          const fram = [];
+          T.ordning[ok].forEach(function (h) {
+            const traff = lista.filter(function (f) { return f.slice(7, 7 + h.length) === h; });
+            if (traff.length !== 1) forstFel = "ordning " + h + " för " + v.namn + " ger " + traff.length + " träffar bland valets bilder";
+            else if (fram.indexOf(traff[0]) < 0) fram.push(traff[0]);
+          });
+          lista = fram.concat(lista.filter(function (f) { return fram.indexOf(f) < 0; }));
+        }
         const fk = Object.keys(T.forst || {}).find(function (k) { return likaA(k, v.namn); });
         if (fk) {
           const h = T.forst[fk];
@@ -97,20 +339,32 @@ def main():
       return { id: T.id, axel: o.namn, tomt: T.tomt || [], lankar: lankar, andrad: andrad };
     });
     if (forstFel) return stopp(forstFel);
+    KOMB.push(kombinationer(id8, p, gal, alts, optioner, planer));
     planer.sort(function (a, b) { return (likaA(a.axel, "Färg") ? 1 : 0) - (likaA(b.axel, "Färg") ? 1 : 0); });
     planer.forEach(function (pl) { if (pl.andrad) PLANER.push(pl); });
   }
-  if (PLANER.length === 0) return [{ ok: true, redan_ratt: true, fel: "ingen lista skiljer från planen, ingenting skrevs" }];
-''' % json.dumps(spec, ensure_ascii=False)
+  if (PLANER.length === 0) return [{ ok: true, redan_ratt: true, fel: "ingen lista skiljer från planen, ingenting skrevs" }].concat(KOMB);
+''' % (json.dumps(spec, ensure_ascii=False), "true" if flera else "false")
     src = src.replace(gammal, ny)
+    slut = "  return ut;\n}"
+    if src.count(slut) != 1:
+        sys.exit("mallen saknar slutraden `return ut;`")
+    src = src.replace(slut, "  return ut.concat(KOMB);\n}")
+    if flera:
+        # Spärren ovan har släppt igenom (eller torrkörning): lank-om-bilder.js får länka en bild från flera val i samma option.
+        if src.count("const FLERA_I_OPTION = false;") != 1:
+            sys.exit("mallen saknar const FLERA_I_OPTION = false;")
+        src = src.replace("const FLERA_I_OPTION = false;", "const FLERA_I_OPTION = true;", 1)
     if torr:
         if src.count("const TORR = false;") != 1:
             sys.exit("mallen saknar const TORR = false;")
         src = src.replace("const TORR = false;", "const TORR = true;", 1)
+    if utan_vy:
+        src = utan_forhandsvisning(src)
     if kompakt:
         src = "".join(rad for rad in src.splitlines(True) if not rad.lstrip().startswith("//"))
     open(ut, "w", encoding="utf-8").write(src)
-    print(len(src), "tecken" + (" (TORRKÖRNING: skriver ingenting, hasMutations false)" if torr else ""))
+    print(len(src), "tecken" + (" (TORRKÖRNING: skriver ingenting, hasMutations false)" if torr else "") + (" (utan förhandsvisning)" if utan_vy else ""))
 
 
 if __name__ == "__main__":

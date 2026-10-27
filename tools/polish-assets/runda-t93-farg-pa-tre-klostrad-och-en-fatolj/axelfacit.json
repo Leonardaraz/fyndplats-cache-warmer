@@ -1,0 +1,32 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "3addfbf8": {
+  "tyska": "60L x 30B x 76H cm",
+  "svenska": "60 × 30 × 76 cm (L × B × H)",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 60,
+  "djup": 30
+ },
+ "4e619979": {
+  "tyska": "(Aufrecht) 90B x 93T x 110H cm",
+  "svenska": "90 × 93 × 110 cm",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 110,
+  "bredd": 90
+ },
+ "b04b5375": {
+  "tyska": "",
+  "svenska": "40L x 28B x 73H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kletterstufen: 40L x 28B x 73H cm | ✔ Kratzstamm: Ø20 x 32B cm | ✔ Hängematte: Ø30 x 5H cm"
+ },
+ "bdc7e768": {
+  "tyska": "48L x 34B x 98H cm",
+  "svenska": "48 × 34 × 98 cm",
+  "bokstaver": "LBH",
+  "hojd": 98,
+  "bredd": 48,
+  "djup": 34
+ }
+}

@@ -1,0 +1,268 @@
+# id8	hex6	färg	storlek	vad bilden visar (- = gäller alla val på den axeln)
+79ab08fe	1c7d85	Rustik brun och svart	109 cm	brun packshot, sju plan
+79ab08fe	2fe6d9	Vit	109 cm	vit i hörn, sju plan (samma scen som c5e01a)
+79ab08fe	c5e01a	Rustik brun och svart	109 cm	brun i hörn, sju plan
+79ab08fe	872763	Rustik brun och svart	-	närbild böcker på bruna plan
+79ab08fe	0af16d	Rustik brun och svart	-	foten med krukväxt
+79ab08fe	aaa62b	Rustik brun och svart	136 cm	brun packshot, nio plan
+79ab08fe	a525b3	Vit	109 cm	vit packshot, sju plan
+79ab08fe	508f0c	Vit	136 cm	vit packshot, nio plan
+79ab08fe	110a08	Vit	109 cm	vit i hörn med hjärttavla, sju plan
+79ab08fe	55379a	Vit	109 cm	vit i hörn med hjärttavla, sju plan
+79ab08fe	7c39fc	-	109 cm	måttkort 109
+79ab08fe	22f2a7	-	136 cm	måttkort 136
+4d9ba658	e2f02a	Grå	60 × 40 cm	grå packshot fyra steg
+4d9ba658	2c2822	Grå	60 × 40 cm	grå miljö fyra steg, katt överst
+4d9ba658	d40838	Grå	-	närbild stolpe och steg
+4d9ba658	867c36	Vit	45 × 40 cm	vit miljö tre steg
+4d9ba658	ab8f0d	Vit	45 × 40 cm	vit packshot tre steg
+4d9ba658	14bec3	Vit	60 × 40 cm	vit packshot fyra steg
+4d9ba658	acf527	Vit	60 × 40 cm	vit miljö FYRA steg, hund (givaren 82615bff 4-stufige; först felräknad som tre)
+4d9ba658	789d24	Vit	-	katt ligger på ett steg (närbild)
+4d9ba658	750331	Brun	60 × 40 cm	brun packshot fyra steg
+4d9ba658	d272be	Brun	60 × 40 cm	brun miljö fyra steg, katt går ner
+4d9ba658	d6f967	Brun	-	närbild katt på stegen
+4d9ba658	07a79e	Brun	45 × 40 cm	brun packshot tre steg
+4d9ba658	324220	Brun	60 × 40 cm	brun miljö fyra steg, grön vägg
+4d9ba658	030cbc	Grå	45 × 40 cm	grå packshot tre steg
+4d9ba658	a11116	-	60 × 40 cm	måttkort fyra steg
+4d9ba658	9b2a5f	-	45 × 40 cm	måttkort tre steg
+1d4eb6b1	39fda2	Vit	58,4 × 30,5 cm	vit stor, packshot (värdens block)
+1d4eb6b1	fde552	Vit	58,4 × 30,5 cm	vit stor, kollage med hund
+1d4eb6b1	a936a5	Vit	-	närbild hörn med slitsar
+1d4eb6b1	916e4b	Vit	58,4 × 30,5 cm	vit stor i hall
+1d4eb6b1	bf7b90	Vit	-	närbild skål med foder
+1d4eb6b1	c84a91	Grå	58,4 × 30,5 cm	grå stor packshot
+1d4eb6b1	772a50	Grå	58,4 × 30,5 cm	grå stor i hall med hund
+1d4eb6b1	b692c3	Grå	-	närbild kortsida
+1d4eb6b1	2b00cb	Grå	58,4 × 30,5 cm	grå stor med svartvit hund
+1d4eb6b1	ce8009	Grå	58,4 × 30,5 cm	grå stor på golv
+1d4eb6b1	c225d7	Espresso	58,4 × 30,5 cm	espresso stor packshot
+1d4eb6b1	c5a6b7	Espresso	58,4 × 30,5 cm	espresso stor kollage med hund
+1d4eb6b1	6721b3	Espresso	-	närbild skål
+1d4eb6b1	cf3eac	Vit	44 × 24 cm	vit liten packshot (alt: liten modell)
+1d4eb6b1	f64649	Vit	44 × 24 cm	vit liten med valp (givarens block)
+1d4eb6b1	b1eab8	Vit	44 × 24 cm	vit liten på grå matta (givarens block)
+1d4eb6b1	ed307c	Grå	44 × 24 cm	grå liten packshot (alt: liten modell)
+1d4eb6b1	b6c87d	Grå	44 × 24 cm	grå liten i hall med hund
+1d4eb6b1	2241c6	Grå	-	närbild skålar uppifrån
+1d4eb6b1	f928cc	Grå	44 × 24 cm	grå liten mot vit bakgrund med foder
+1d4eb6b1	d6c55e	Grå	44 × 24 cm	grå liten i hörn
+1d4eb6b1	ae47b7	Espresso	44 × 24 cm	espresso liten packshot (alt: liten modell)
+1d4eb6b1	0f3b07	Espresso	44 × 24 cm	espresso liten kollage med liggande hund
+1d4eb6b1	c1a85d	Espresso	-	närbild hörn med skål
+1d4eb6b1	5ea074	Espresso	44 × 24 cm	espresso liten i hall
+1d4eb6b1	376205	-	58,4 × 30,5 cm	måttkort stor
+1d4eb6b1	97cd7a	-	44 × 24 cm	måttkort liten
+543b9076	249755	Brun	4 steg, 44 cm	brun fyra steg med hund (Brun finns bara i fyra steg)
+543b9076	f166a6	Brun	4 steg, 44 cm	måttskiss 60 × 35 × 44 cm, brun
+543b9076	61c539	-	-	kort: stommen är spånskivor på pelare (gäller alla, i dag länkat till Brun)
+543b9076	b03328	Brun	-	närbild plysch
+543b9076	c11ef2	Brun	4 steg, 44 cm	brun vid soffa
+543b9076	e2e218	Brun	4 steg, 44 cm	brun vid säng
+543b9076	829f36	Ljusgrå	4 steg, 44 cm	ljusgrå fyra steg packshot (givare 4 Stufen 44 cm)
+543b9076	82c23a	Ljusgrå	4 steg, 44 cm	ljusgrå fyra steg med hund (givare 4 Stufen)
+543b9076	7a192b	Mörkgrå	4 steg, 44 cm	mörkgrå fyra steg packshot (givare 4-Stufig 44 cm)
+543b9076	0acfa8	Mörkgrå	4 steg, 44 cm	mörkgrå fyra steg med hund (givare 4-Stufig)
+543b9076	a1515f	Beige	4 steg, 44 cm	beige fyra steg (Beige finns bara i fyra steg)
+543b9076	5a8aa7	Beige	4 steg, 44 cm	beige fyra steg med hund
+543b9076	eb37f6	Beige	4 steg, 44 cm	måttskiss 44 cm, beige
+543b9076	1526aa	Beige	-	närbild hörn
+543b9076	40b900	Beige	-	närbild pelare
+543b9076	5d8cd2	Beige	4 steg, 44 cm	beige från sidan
+543b9076	9730fd	Ljusgrå	3 steg, 35 cm	ljusgrå tre steg packshot (givare 3 Stufen)
+543b9076	6f633c	Ljusgrå	3 steg, 35 cm	ljusgrå tre steg med hund vid blå soffa (givare 3 Stufen)
+543b9076	b04b5a	Ljusgrå	4 steg, 44 cm	måttskiss 44 cm, ljusgrå
+543b9076	39c93a	Ljusgrå	-	närbild plysch
+543b9076	0acda5	Ljusgrå	4 steg, 44 cm	ljusgrå fyra steg i vardagsrum (räknat i förstoring)
+543b9076	79374f	Ljusgrå	4 steg, 44 cm	ljusgrå fyra steg vid säng
+543b9076	b015f0	Mörkgrå	3 steg, 35 cm	mörkgrå tre steg packshot (givare 3-Stufig 35 cm)
+543b9076	d25ffd	Mörkgrå	3 steg, 35 cm	mörkgrå tre steg med hund och kvinna (givare 3-Stufig)
+543b9076	15ea4d	Mörkgrå	4 steg, 44 cm	måttskiss 44 cm, mörkgrå
+543b9076	17bb85	Mörkgrå	-	närbild plysch
+543b9076	5d9c41	Mörkgrå	4 steg, 44 cm	mörkgrå fyra steg vid säng
+6d35a04f	852195	Blå och gul	6 hinder	blå sex hinder (Blå och gul finns bara med sex)
+6d35a04f	4765a7	Blå och gul	6 hinder	blå på gräsmatta
+6d35a04f	1281da	Blå och gul	6 hinder	blå på gräsmatta med beagle
+6d35a04f	79ad39	Blå och gul	6 hinder	blå med två hundar
+6d35a04f	83ea1c	Blå och gul	6 hinder	blå slinga
+6d35a04f	64a162	Orange och gul	3 hinder	orange tre hinder packshot (givare 3-teiliges)
+6d35a04f	e26ef7	Orange och gul	3 hinder	orange tre hinder på gräsmatta (givare 3-teiliges)
+6d35a04f	b510da	Orange och gul	3 hinder	orange tre hinder med familj (givare 3-teiliges)
+6d35a04f	a478d3	Orange och gul	3 hinder	orange på altan (givare 3-teiliges)
+6d35a04f	b8de15	-	-	måttbild kon och stång (olänkad, gemensam)
+6d35a04f	3df995	Orange och gul	6 hinder	orange sex hinder packshot (givare 6-teiliges)
+6d35a04f	bf2a44	Orange och gul	6 hinder	orange sex hinder på gräsmatta (givare 6-teiliges)
+6d35a04f	858c06	Orange och gul	6 hinder	orange på altan (givare 6-teiliges)
+aafbf543	0499f3	Svart och Röd	3 lådor	svart/röd tre lådor packshot
+aafbf543	ad14ad	Svart och Röd	3 lådor	måttritning tre lådor 51 × 22 × 32
+aafbf543	690191	Svart och Röd	4 lådor	svart/röd fyra lådor med måttlinjer 39,5 cm
+aafbf543	44ca00	Svart och Röd	-	närbild lådfronter
+aafbf543	ff00bb	Svart och Röd	-	närbild utdragen låda
+aafbf543	0ead8c	Svart och Röd	3 lådor	svart/röd tre lådor i verkstad
+aafbf543	2618a0	Svart och Röd	4 lådor	svart/röd fyra lådor packshot
+aafbf543	044949	Röd	3 lådor	röd tre lådor packshot
+aafbf543	c04420	Röd	3 lådor	röd tre lådor på arbetsbänk
+aafbf543	ba3e01	Röd	3 lådor	röd tre lådor med mått 32 cm
+aafbf543	7aaa20	Röd	4 lådor	röd fyra lådor packshot
+aafbf543	53e262	Röd	4 lådor	röd fyra lådor med mått 39,5 cm
+aafbf543	2cd6b6	Röd	3 lådor	röd med alla tre lådorna utdragna
+aafbf543	435f39	-	-	närbild spännlås (olänkad)
+0136e7d9	9686fc	Blå	6 lådor	blå sex lådor packshot
+0136e7d9	74377f	Blå	6 lådor	blå sex lådor i barnrum
+0136e7d9	2a6b99	Blå	6 lådor	måttbild sex lådor 75 cm
+0136e7d9	88c279	Blå	-	närbild grepp
+0136e7d9	51e22f	Blå	9 lådor	blå nio lådor packshot
+0136e7d9	6ef5e0	Blå	9 lådor	blå nio lådor måttbild 113 cm
+0136e7d9	655ced	Cremevit	6 lådor	cremevit (finns bara med sex)
+0136e7d9	eec5fe	Cremevit	6 lådor	cremevit i barnrum
+0136e7d9	5b2a2a	Cremevit	6 lådor	cremevit måttbild 75 cm
+0136e7d9	4874cc	Cremevit	6 lådor	cremevit med barn
+0136e7d9	dd105b	Cremevit	6 lådor	cremevit snett
+0136e7d9	1f9c04	Rosa	6 lådor	rosa (finns bara med sex)
+0136e7d9	6ab6b1	Rosa	6 lådor	rosa i barnrum
+0136e7d9	f625f1	Rosa	6 lådor	rosa måttbild 75 cm
+0136e7d9	bc4914	Rosa	-	närbild grepp
+0136e7d9	cc432b	Rosa	6 lådor	rosa med pojke
+c438d4ba	ab6b6b	Svart	50 × 70 cm	svart packshot 50 × 70
+c438d4ba	b636cb	Svart	50 × 70 cm|60 × 90 cm	svart på panelvägg (bredare form, inte 50 × 110)
+c438d4ba	88070d	Guld	50 × 70 cm|60 × 90 cm	guld över tv-bänk (inte 50 × 110)
+c438d4ba	3c2042	Svart	50 × 70 cm|60 × 90 cm	svart över tv-bänk (inte 50 × 110)
+c438d4ba	03d5a6	Svart	60 × 90 cm	svart packshot 60 × 90 (alt)
+c438d4ba	9e931a	Svart	50 × 110 cm	svart packshot 50 × 110
+c438d4ba	cf6b0c	Guld	50 × 70 cm	guld packshot 50 × 70 (alt)
+c438d4ba	c44aa2	Guld	60 × 90 cm	guld packshot 60 × 90 (alt)
+c438d4ba	fa5503	Guld	50 × 70 cm|60 × 90 cm	guld över byrå (inte 50 × 110)
+c438d4ba	951030	Guld	50 × 70 cm|60 × 90 cm	guld över hylla (inte 50 × 110)
+c438d4ba	dfa686	Svart	50 × 70 cm|60 × 90 cm	svart över mörk hylla (inte 50 × 110)
+c438d4ba	751228	-	50 × 70 cm	måttkort
+c438d4ba	ce10b0	-	60 × 90 cm	måttkort
+c438d4ba	10b8c5	-	50 × 110 cm	måttkort (visar bara svart)
+92fc308c	4da73d	Svart	50 liter	svart 50 liter packshot
+92fc308c	d5bfc8	Svart	?	svart vid köksö (hög, troligen 50 liter)
+92fc308c	908546	Svart	?	svart vid hylla
+92fc308c	b333f6	Svart	?	svart vid köksbänk
+92fc308c	932a85	Silver	?	silver vid soffa
+92fc308c	93e99a	Svart	42 liter	svart 42 liter packshot
+92fc308c	3a25a0	Svart	30 liter	svart 30 liter packshot
+92fc308c	685b40	Silver	42 liter	silver 42 liter packshot
+92fc308c	f367ca	Silver	50 liter	silver 50 liter packshot
+92fc308c	af0781	Silver	30 liter	silver 30 liter packshot
+92fc308c	371084	Silver	?	silver med öppet lock i kök
+92fc308c	45e744	Silver	?	silver vid växt (bred, troligen 30 liter)
+92fc308c	06005c	-	50 liter	måttkort
+92fc308c	c15853	-	42 liter	måttkort
+92fc308c	3fe87d	-	30 liter	måttkort
+13fe619f	f0ce5f	Mörkgrå	100 × 52 cm	mörkgrå stor bur (i dag länkad bara till storleken)
+13fe619f	f33c8b	Mörkgrå	100 × 52 cm	mörkgrå stor bur (i dag länkad bara till storleken)
+13fe619f	4dbade	Mörkgrå	100 × 52 cm	mörkgrå stor bur (i dag länkad bara till storleken)
+13fe619f	0761a9	Mörkgrå	100 × 52 cm	mörkgrå stor bur (i dag länkad bara till storleken)
+13fe619f	81efe7	Mörkgrå	100 × 52 cm	mörkgrå stor bur (i dag länkad bara till storleken)
+13fe619f	99e0cc	Mörkgrå	85 × 45 cm	mörkgrå liten bur (i dag länkad bara till storleken, syns under Naturträ)
+13fe619f	911a72	Mörkgrå	85 × 45 cm	mörkgrå liten bur (i dag länkad bara till storleken, syns under Naturträ)
+13fe619f	7c6cb1	Mörkgrå	85 × 45 cm	mörkgrå liten bur (i dag länkad bara till storleken, syns under Naturträ)
+13fe619f	7ac363	Mörkgrå	85 × 45 cm	mörkgrå liten bur (i dag länkad bara till storleken, syns under Naturträ)
+13fe619f	79d3ce	Mörkgrå	85 × 45 cm	mörkgrå liten bur (i dag länkad bara till storleken, syns under Naturträ)
+13fe619f	637490	Naturträ	85 × 45 cm	naturträ liten bur
+13fe619f	0d542a	Naturträ	85 × 45 cm	naturträ liten bur
+13fe619f	2099d7	Naturträ	85 × 45 cm	naturträ liten bur
+13fe619f	8447ff	Naturträ	85 × 45 cm	naturträ liten bur
+13fe619f	4e79df	Naturträ	85 × 45 cm	naturträ liten bur
+3b868848	2fdf43	Natur och vit	63 cm	natur packshot (värdens artikel, alt 63 cm)
+3b868848	25d1ac	Natur och vit	63 cm	natur, kvinna läser i soffa (värdens bild)
+3b868848	5d5ed5	Natur och vit	80 cm	natur packshot 80 cm (givarens huvudbild, alt 80 cm; bredare skiva än 2fdf43)
+3b868848	d538d6	Vit	80 cm	vit packshot 80 cm (givarens huvudbild, alt 80 cm)
+3b868848	913571	Vit	80 cm	vit vid fönster; samma scen som svarta 63 cm-bordet 878eb2 men bredare skiva
+3b868848	dabe86	Vit	80 cm	vit vid säng; hyllan rymmer korg och fler böcker än svarta 40e70c och natur 576019 i samma scen
+3b868848	3f1a0d	Vit	80 cm	vit, kvinna med laptop; i samma scen är skivan 315 px mot svarta 7463cf 262 px och natur 23bead 277 px
+3b868848	576019	Natur och vit	63 cm	natur vid säng (samma bredd som svarta 63 cm-bordet i samma scen)
+3b868848	68437f	Svart	63 cm	svart packshot (Svart finns bara i 63 cm)
+3b868848	878eb2	Svart	63 cm	svart vid fönster
+3b868848	40e70c	Svart	63 cm	svart vid säng
+3b868848	7463cf	Svart	63 cm	svart, kvinna med laptop
+3b868848	138bbe	Svart	63 cm	svart i arbetsrum
+3b868848	23bead	Natur och vit	63 cm	natur, kvinna med laptop
+3b868848	59e10b	-	63 cm	måttkort 63 cm (natur, vit och svart)
+3b868848	80db00	-	80 cm	måttkort 80 cm (natur och vit)
+8018bb95	c33922	Vit	75–103 cm	vit packshot med en förlängning (värdens artikel)
+8018bb95	253e84	Vit	75–103 cm	vit, katt går genom dörren (värdens bild)
+8018bb95	338da9	Vit	75–103 cm	vit i dörröppning med hund (värdens bild)
+8018bb95	cd39a7	Svart	75–103 cm	svart packshot (Svart finns bara i 75–103)
+8018bb95	1dae49	Svart	75–103 cm	svart, hund och kattunge
+8018bb95	6bf290	Svart	75–103 cm	svart framför öppen spis
+8018bb95	b23f9b	Svart	75–103 cm	svart i vardagsrum
+8018bb95	ebe426	Svart	75–103 cm	måttbild, svart grind 75–103 cm
+8018bb95	f89203	Vit	75–82 cm	vit utan förlängning (givare 35e323d0)
+8018bb95	4a144a	Vit	75–82 cm	vit utan förlängning med beagle (givare 35e323d0)
+8018bb95	328a6d	Vit	75–131 cm	vit med två förlängningar (givare 5de9fa24)
+8018bb95	3b6a7e	Vit	75–131 cm	vit bred vid trappa (givare 5de9fa24)
+8018bb95	8c40ff	Vit	75–131 cm	vit bred i dörröppning (givare 5de9fa24)
+a64af3a4	b200aa	Svart	75–95 cm	svart packshot (Svart finns bara i 75–95)
+a64af3a4	5e037e	Svart	75–95 cm	svart med border collie
+a64af3a4	71535c	Svart	75–95 cm	svart med beagle
+a64af3a4	8ea63d	Svart	75–95 cm	svart i dörröppning med beagle
+a64af3a4	8c41e5	Svart	75–95 cm	svart snett från sidan
+a64af3a4	e9c41e	Svart	75–95 cm	svart med border collie
+a64af3a4	29023a	Vit	75–95 cm	vit smal packshot (givare 704897c9)
+a64af3a4	fdae3c	Vit	75–95 cm	vit smal med border collie (givare 704897c9)
+a64af3a4	1e96ff	Vit	75–95 cm	vit med beagle (givare 704897c9)
+a64af3a4	58fbbc	Vit	75–145 cm	vit bred packshot (givare c71cae54)
+a64af3a4	e9b072	Vit	75–145 cm	vit bred med border collie (givare c71cae54)
+a64af3a4	aa7eb7	Vit	75–145 cm	vit bred i fransk dörr (givare c71cae54)
+233c83cf	1c1368	Vit	74–94 cm	vit packshot, fyra spjälor till höger om posten som svarta 74–94 ead89c (värdens artikel)
+233c83cf	6dd9e3	Vit	74–94 cm	vit med mops; samma scen och bredd som svarta 74–94 d41f9a
+233c83cf	985291	Vit	-	närbild vitt låshandtag
+233c83cf	ead89c	Svart	74–94 cm	svart packshot (givare 8481e705)
+233c83cf	d41f9a	Svart	74–94 cm	svart med mops (givare 8481e705)
+233c83cf	ad7eaf	Svart	-	närbild svart låshandtag (givare 8481e705)
+233c83cf	f6f203	Svart	74–87 cm	svart packshot, tre spjälor till höger om posten (givare 57b0b4ae)
+233c83cf	200671	Svart	74–87 cm	svart med corgi (givare 57b0b4ae)
+233c83cf	73a2ce	Svart	74–87 cm	svart med förlängningen i vinkel (givare 57b0b4ae)
+233c83cf	141f96	Svart	-	närbild justerskruvens gummifot
+233c83cf	ff4759	Vit	-	närbild låset vid golvet
+233c83cf	0bf102	Vit	?	vit i smal dörröppning vid tegelvägg, bredden går inte att avgöra
+01ac2f63	a6c639	Mörkblå	122 × 92 cm	mörkblå stor med golden retriever (värdens artikel)
+01ac2f63	c90346	Mörkblå	122 × 92 cm	mörkblå stor inomhus med golden retriever
+01ac2f63	0bd166	Mörkblå	122 × 92 cm	måttbild 122 × 92 cm (122 finns bara i mörkblått)
+01ac2f63	a4014f	Mörkblå	-	närbild nätyta och ben
+01ac2f63	ea5ee9	Brun	92 × 76 cm	brun packshot (givare ca56adb5)
+01ac2f63	8197ed	Brun	92 × 76 cm	brun med corgi (givare ca56adb5)
+01ac2f63	ce5971	Brun	92 × 76 cm	brun inomhus (givare ca56adb5)
+01ac2f63	1afd4a	Grå	92 × 76 cm	grå packshot (Grå finns bara i 92 × 76)
+01ac2f63	c6c0c8	Grå	92 × 76 cm	grå med corgi
+01ac2f63	88e073	Grå	92 × 76 cm	grå med corgi i hörn
+01ac2f63	c190d5	Grå	92 × 76 cm	grå packshot snett framifrån
+01ac2f63	7b713e	Mörkblå	92 × 76 cm	mörkblå med corgi (givare d2ab1030)
+01ac2f63	9f1ac2	Mörkblå	76 × 61 cm	måttbild 76 × 61 cm (76 finns bara i mörkblått)
+01ac2f63	0550fb	Mörkblå	76 × 61 cm	mörkblå liten med vit hund (givare 4f05ed4d)
+01ac2f63	d14484	Brun	61 × 46 cm	brun liten med schnauzer (givare 52de4195)
+01ac2f63	d11f38	Brun	-	närbild brunt tyg och stolpförbindelse
+01ac2f63	f5be48	-	92 × 76 cm	måttkort 92 × 76 cm (alla tre färgerna)
+c3d1fa41	49d9fa	Brun och svart	75 × 51 × 18 cm	brun packshot (värdens artikel)
+c3d1fa41	78ea97	Brun och svart	75 × 51 × 18 cm	brun med bichon och kvinna
+c3d1fa41	d469f2	Brun och svart	-	närbild ram och handtag
+c3d1fa41	a125a8	Brun och svart	75 × 51 × 18 cm	brun med bichon på gräs
+c3d1fa41	aef2eb	Ljusgrå och svart	75 × 51 × 18 cm	ljusgrå packshot (givare ea8b67f4; Ljusgrå finns bara i 75)
+c3d1fa41	451ec3	Ljusgrå och svart	75 × 51 × 18 cm	ljusgrå med bichon och kvinna
+c3d1fa41	3f2bb5	Ljusgrå och svart	75 × 51 × 18 cm	ljusgrå med bichon på gräs
+c3d1fa41	6f96b9	Ljusgrå och svart	-	närbild ram och handtag
+c3d1fa41	ae7699	Brun och svart	107 × 61 × 20 cm	brun stor med golden retriever (givare ed5d2f89)
+c3d1fa41	8fe7b7	-	107 × 61 × 20 cm	måttkort stor bädd (brun)
+c3d1fa41	3e44da	-	75 × 51 × 18 cm	måttkort liten bädd (båda färgerna)
+4a2ab58e	f71cb0	Mörkgrå	150 cm	mörkgrå packshot 150 (150 finns bara i mörkgrått)
+4a2ab58e	29b9f5	Mörkgrå	150 cm	mörkgrå med ved vid hus (smalare än gröna e16198 i samma scen)
+4a2ab58e	e16198	Grön	213 cm	grön med ved vid hus (Grön finns bara i 213)
+4a2ab58e	8dbfa8	-	-	faktakort upphöjd botten (gäller alla)
+4a2ab58e	117043	Mörkgrå	150 cm	mörkgrå med ved vid husvägg
+4a2ab58e	b33272	-	-	närbild hörnbeslag
+4a2ab58e	614098	Mörkgrå	150 cm	måttritning 150 cm
+4a2ab58e	131a41	Mörkgrå	213 cm	mörkgrå packshot 213 (enda egna fotot för Mörkgrå × 213)
+4a2ab58e	94dc28	Grön	213 cm	grön packshot
+4a2ab58e	63cf3f	Grön	213 cm	grön med ved
+4a2ab58e	bd0b37	Grön	213 cm	faktakort 1,12 m² golvyta (213 cm, grönt foto)
+4a2ab58e	2d8008	Grön	213 cm	grön vid husvägg
+4a2ab58e	5ba6e3	-	-	närbild hörnbeslag
+4a2ab58e	fbe1e6	Mörkgrå	150 cm	mörkgrå tom 150
+4a2ab58e	073b68	Mörkgrå	150 cm	mörkgrå med gräsklippare
+4a2ab58e	f8a000	Mörkgrå	150 cm	mörkgrå tom 150, annan vinkel
+4a2ab58e	44a49d	-	213 cm	måttkort 213 cm (båda färgerna)

@@ -150,6 +150,9 @@ runda-135/zoom-*.jpg
 #    som rapporteras lyckad och faller — exakt uppgift #393.
 */raw/
 */orig/
+# 2026-10-24: `*/orig/` gäller bara EN nivå ned. En kortrunda i en underkatalog
+# (`runda-x/kort-y/orig/`) hade lagt leverantörens foto i det publika repot.
+**/orig/
 */faith-*.jpg
 
 # Runda 140: `detalj/` är de enskilda bildernas Steg 4-granskning (position 3

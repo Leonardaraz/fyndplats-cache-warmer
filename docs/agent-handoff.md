@@ -114,7 +114,7 @@ Cheat-sheet (runbooken styr i detalj):
   tvätt-behov. Görs INNAN någon copy skrivs.
 - **Steg 1c – Sanera varianter FÖRST** (se runbook Steg 1c): kolla mappningens
   `supplierVariantId` + Wix `inStock` och ta bort döda/slutsålda varianter **innan** du
-  skriver copy — annars bygger du beskrivning/spec-kort för en variant som ändå ska bort.
+  skriver copy — annars bygger du beskrivning och bilder för en variant som ändå ska bort.
   Blir bara EN kvar → kollapsa till enkel-variant-produkt. **Facit = mappningen, inte
   marknadsbilderna.**
 - **Steg 2 – PATCH namn + slug + seoData + `plainDescription`** (1 mutation):
@@ -149,11 +149,10 @@ Cheat-sheet (runbooken styr i detalj):
   fallback) missar. Loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls
   (bara tvättade), infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll
   originalet vid fel. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
-- **Steg 3d – Egna svenska feature-/spec-kort** (se runbook Steg 3d): är leverantörens
-  feature-slides **mörka AliExpress-collage** eller **engelska spec-blad** (inte enskilda
-  produktfoton)? Bygg egna rena kort på ljus bakgrund av de RIKTIGA produktfotona
-  (klipp ut med rembg → HTML/CSS → Chromium-render → ladda upp) så hela galleriet ser ut
-  som ett eget varumärke. Passa på att rätta felaktig inbränd data (fel spänning/mått).
+- **Steg 3d – utgår (Leonard 2026-10-27).** Vi bygger inga egna svenska feature-/spec-kort
+  längre. Är leverantörens bilder mörka collage eller engelska spec-blad stryks de, och finns
+  inget användbart flaggas det till Leonard. Stegets gamla text ligger i
+  [`arkiv/fyndplats-kort.md`](./arkiv/fyndplats-kort.md).
 - **Steg 4 – Kategori** (se §5 + ID-tabell). 1 anrop.
 - **Steg 6 – Varianter:** koppla variantbilder (`linkedMedia`) + slutkoll. **Döp ALDRIG om
   variantvärden** (V3 key-lock, §6.5). *(Borttagning av döda/slutsålda varianter gjordes

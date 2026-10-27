@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1b33a2e9": {
+  "tyska": "Ø38 x 37H cm",
+  "svenska": "38cm x 38cm x 37cm",
+  "bokstaver": "H",
+  "hojd": 37
+ },
+ "24e5db54": {
+  "tyska": "60L x 48B x 132H cm",
+  "svenska": "60cm x 48cm x 132cm",
+  "bokstaver": "LBH",
+  "hojd": 132,
+  "bredd": 60,
+  "djup": 48
+ },
+ "2bb755b0": {
+  "tyska": "80L x 48B x 160H cm",
+  "svenska": "80cm x 48cm x 160cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 80,
+  "djup": 48
+ },
+ "2f888b5c": {
+  "tyska": "48L x 40B x 225-255H cm",
+  "svenska": "48cm x 40cm x 255cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   225,
+   255
+  ],
+  "bredd": 48,
+  "djup": 40
+ },
+ "331dc525": {
+  "tyska": "40L x 40B x 230-260H cm",
+  "svenska": "40cm x 40cm x 260cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   230,
+   260
+  ],
+  "bredd": 40,
+  "djup": 40
+ },
+ "acd9be6d": {
+  "tyska": "48L x 48B x 225-255H cm (höhenverstellbar)",
+  "svenska": "48 x 48 x 255 cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   225,
+   255
+  ],
+  "bredd": 48,
+  "djup": 48
+ }
+}

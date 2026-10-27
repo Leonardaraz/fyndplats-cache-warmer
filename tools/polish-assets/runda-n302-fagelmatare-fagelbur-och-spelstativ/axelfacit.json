@@ -1,0 +1,29 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "20283822": {
+  "tyska": "58L x 58B x 226H cm",
+  "svenska": "58 x 58 x 226 cm",
+  "bokstaver": "LBH",
+  "hojd": 226,
+  "bredd": 58,
+  "djup": 58
+ },
+ "7d5e32ac": {
+  "tyska": "111 cm Höhe x Durchmesser 60 cm. Futterschale: 4,3 cm Höhe x Durchmesser 11 cm. Rundes Tablett: 4 cm Höhe x Durchmesser 60 cm. Höhe vom Boden: 75 cm. Rad: Durchmesser 5 cm",
+  "svenska": "60 x 60 x 111 cm"
+ },
+ "a13f4f04": {
+  "tyska": "97L x 58B x 160H cm (oben geschlossen)",
+  "svenska": "97L x 58B x 160H cm",
+  "bokstaver": "LBH",
+  "hojd": 160,
+  "bredd": 97,
+  "djup": 58
+ },
+ "be4892ef": {
+  "tyska": "Ø 40 x H113 cm",
+  "svenska": "Φ40 x H113cm",
+  "bokstaver": "H",
+  "hojd": 113
+ }
+}

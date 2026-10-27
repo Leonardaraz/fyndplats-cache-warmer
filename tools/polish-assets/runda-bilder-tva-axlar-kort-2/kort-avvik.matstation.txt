@@ -1,0 +1,7 @@
+# <kort>	<etikett>	<skäl>: grindens jämförelse mot sidan klipper raden vid första parentesen, så värdena efter den försvinner ur jämförelsen
+1d4eb6b1-stor	Fraktvikt	sidan skriver "3,7 kg (stor, vit), 4,6 kg (stor, grå och espresso) eller 2,6 kg (liten)"; 3,7 och 4,6 kg står på sidan och hör till den stora stationen (vit respektive grå och espresso)
+1d4eb6b1-liten	Mått	sidan skriver "58,4 × 30,5 × 25,4 cm (stor) eller 44 × 24 × 15 cm (liten)"; 44 × 24 × 15 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Skålar	sidan skriver "... (stor) eller Ø17,8 × 5,9 cm och cirka 0,9 liter var (liten)"; Ø17,8 × 5,9 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Passar för	sidan skriver "från 30 cm (stor) eller från 17 cm (liten)"; 17 cm står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Fraktvikt	sidan skriver "... eller 2,6 kg (liten)"; 2,6 kg står på sidan och hör till den lilla stationen
+1d4eb6b1-liten	Paketmått	sidan skriver "65,5 × 36,5 × 16,5 cm (stor) eller 50,5 × 29 × 20 cm (liten)"; 50,5 × 29 × 20 cm står på sidan och hör till den lilla stationen

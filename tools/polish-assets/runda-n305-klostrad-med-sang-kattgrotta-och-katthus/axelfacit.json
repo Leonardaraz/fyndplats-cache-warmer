@@ -1,0 +1,54 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "301f2cfd": {
+  "tyska": "48B x 32T x 225-255H cm",
+  "svenska": "48 x 32B x 225-255H cm",
+  "bokstaver": "BTH",
+  "djup": 32,
+  "hojd": [
+   225,
+   255
+  ],
+  "bredd": 48
+ },
+ "566337c5": {
+  "tyska": "34B x 25,5T x 58H cm",
+  "svenska": "34L x 25,5B x 58H cm",
+  "bokstaver": "BTH",
+  "djup": 25.5,
+  "hojd": 58,
+  "bredd": 34
+ },
+ "6665f9ac": {
+  "tyska": "45B x 40T x 116H cm",
+  "svenska": "45cm x 40cm x116cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 116,
+  "bredd": 45
+ },
+ "8ade2182": {
+  "tyska": "55B x 55T x 83H cm",
+  "svenska": "55L x 55B x 83H cm",
+  "bokstaver": "BTH",
+  "djup": 55,
+  "hojd": 83,
+  "bredd": 55
+ },
+ "da7d01e4": {
+  "tyska": "45L x 40B x 74H cm",
+  "svenska": "45cm x 40cm x 74cm",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 45,
+  "djup": 40
+ },
+ "dc4bd2a6": {
+  "tyska": "65L x 41B x 45,5H cm (einschließlich Dachtraufe)",
+  "svenska": "65cm x 41cm x 45,5cm",
+  "bokstaver": "LBH",
+  "hojd": 45.5,
+  "bredd": 65,
+  "djup": 41
+ }
+}

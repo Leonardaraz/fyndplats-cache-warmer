@@ -8,7 +8,8 @@ async function () {
   // efter en id-skrivning som länkade den andra optionen. Det är därför varukorgen visade fel färg på sidor som rättats med länkar. Nattens `/api/cron/variantbild`
   // såg det inte förrän motorn lärde sig det (2026-10-23, PR #762): med länkar på båda optionerna ger `forvantadBild` nu färgens första foto (`forsta_val`) i stället
   // för ingen förväntan (`inget_snitt`), och `byggVariantbildKropp` lägger färgen först i varje variant, så svepet rättar sådana sidor själv. Skriptet här är samma
-  // skrivning för hand: kör det efter varje id-skrivning på en sådan sida så länge PR #762 inte är mergad, och för att mäta Wix sida i torrläge.
+  // skrivning för hand. PR #762 är mergad (2026-10-23, squash `048ac5b6`) och cronen går 05:35 UTC, men fönstret till nästa natt är upp till ett dygn: kör det därför direkt
+  // efter varje id-skrivning eller galleritillägg på en sådan sida, och för att mäta Wix sida i torrläge.
   //
   // Receptet är farg-forst.js steg B utan att optionerna läggs om: varianterna skrivs om med valen bara med namn (`products-with-inventory`, ingen fältmask, aldrig
   // `inventoryItem`), och valen läggs FÄRG FÖRST i varje variant. Då räknar Wix variantens bild ur färgens första länkade foto, även när optionerna står
