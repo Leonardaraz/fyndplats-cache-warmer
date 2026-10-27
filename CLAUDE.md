@@ -2560,7 +2560,8 @@ sekvensering 2026-09-05: polera färdigt först, rätta strukturen sedan).
 **Det Google DÄREMOT ser är bilderna.** Att flytta hem dem till wixstatic byter
 adress, inte innehåll. Google Images matchar på bildinnehåll, och Aosoms foton
 är byte-identiska hos varenda återförsäljare som kör samma feed. Skyddet är
-inte hemflytten — det är egna kort och egen text.
+inte hemflytten — det är egen text (och, tills 2026-10-27, egna kort: vi bygger inga
+Fyndplats-kort längre).
 
 **Den farliga dubbletten är intern.** `FyndplatsMappings` har **595 av 1 004
 rader** från "byaosom ES (EU) Store" — 59 % av katalogen är redan Aosom-varor,
@@ -2873,8 +2874,10 @@ som inget verktyg gör åt en:
 1. **Hitta fotona.** Listningens SKU-bilder, galleri och beskrivningsbilder läses krypterat
    med `ae-skubilder.yml` (push som ändrar `tools/ae-skubilder/kor.json`). Hämta dem lokalt,
    bygg ett kontaktark och titta på varje bild: tysk eller spansk text, märke och en annan
-   färg stryks. Leverantörens rena gröna foton räckte inte till fem, så det femte är ett
-   specifikationskort med den gröna varan (`scripts/cardkit.py`, `card_spec`).
+   färg stryks. Leverantörens rena gröna foton räckte inte till fem, så parasollet fick
+   2026-10-21 ett specifikationskort med den gröna varan som femte bild (`scripts/cardkit.py`,
+   `card_spec`). Den vägen är stängd sedan 2026-10-27 (inga Fyndplats-kort): räcker
+   leverantörens rena foton inte till fem stannar färgen på det antalet.
 2. **Importera filerna** till Media Manager (`site-media/v1/files/import`, vänta på `READY`).
    Ett utsnitt görs med Wix egen crop-adress och importeras som en ny fil, aldrig som en
    leverantörsbild i repot.
@@ -3567,6 +3570,10 @@ Fyra egenskaper som inte ska tas bort:
 
 ### Tvåaxliga sidor: färgfoton på färgen, ett kort per storlek (2026-10-23)
 
+☠️ **Receptet med ett kort per storlek är ersatt:** 2026-10-24 kom originalen tillbaka (se
+*Originalen tillbaka* längre ned), och sedan 2026-10-27 byggs inga Fyndplats-kort alls. Kortstegen
+i det här avsnittet och i *Leonards svar på de sex frågorna* är historik.
+
 Leonards skärmbild 2026-10-23 00:16 (svensk tid) av soptunnan `c841717c` (Aosom, tre fack i rostfritt stål, Storlek 45 och 60 liter × Färg Svart och Silver, 1 959 kr): med Silver och 60 liter valda
 var andra bilden en kvinna i ett kök med en **svart** tunna och tredje en svart tunna. Leonard: *"storleken o färgen har blandade bilder"*, och bad mig rätta sidan (*"kommer du typ fixa denna"*).
 Det var hans ja för just den här sidan.
@@ -3933,6 +3940,9 @@ Fem egenskaper som inte ska tas bort:
 
 #### Leonards svar på de sex frågorna: ett kort per storlek, dubbletter borta, gemensamma bilder delas (2026-10-23)
 
+☠️ **Historik:** korten i det här avsnittet är ersatta. Originalen kom tillbaka 2026-10-24 och
+inga Fyndplats-kort byggs alls sedan 2026-10-27 (se *Originalen tillbaka* längre ned).
+
 Leonard 2026-10-23 ca 03:0x UTC, på de sex frågorna ovan: *"Fixa alla frågor så proffsigt som möjligt, gemensamma bilder får delas mellan varandra såklart"*. Allt är skrivet 03:42–04:01 UTC, utanför Aosoms
 synkfönster, och mätt live 04:01–04:10 UTC.
 
@@ -4230,19 +4240,29 @@ mätta live i en webbläsare utan avvikelse. Rundan, planerna och utfallet står
 `tools/polish-assets/runda-bilder-originalen-tillbaka/README.md`. Hamsterburen
 `13fe619f` skrevs samma dag (Leonard: *Fixa*) och visar fem bilder i alla tre kombinationer.
 
+☠️ **Skärpt 2026-10-27: inga Fyndplats-kort alls.** Leonard: *"I seo polering guiden du
+följer står det att man ska göra sån där fyndplatskort bilder? Om det gör det, ta bort det
+vi slutar med det"*. Guiden sa det (kortbygge i `bildmetoder.md` och `varianter.md`, steg 3d
+i `agent-handoff.md` och ett färgkort i runbooken), och undantagen i punkt 1 och 2 nedan,
+som tillät ett kort när leverantören saknar en måttbild eller originalet bär en logotyp,
+är därför borta. Saknas en bild stryks den eller beskärs enligt runbookens undantag, och
+finns inget användbart flaggas varianten till Leonard i `FLAGGADE.md`. Kortavsnitten och
+listans ursprungliga ordalydelse ligger ordagrant i `docs/arkiv/fyndplats-kort.md`. De kort
+som redan ligger på publicerade sidor ligger kvar tills Leonard bestämt om de ska bort.
+
 Regeln framåt, och den ersätter *ett kort per storlek*:
 
 1. **Originalet först.** En måttbild som leverantören har för en färg och storlek ligger
-   kvar och länkas till exakt den kombinationen. Ett Fyndplats-kort byggs bara när (a)
-   leverantören saknar måttbild för varianten (hammockens 177 cm, kantskyddens Ø305 och
-   Ø366, hundbäddens 107 × 61 × 20 cm, kistans M och L) eller (b) originalet bär en
-   logotyp eller en text som inte får synas och inte går att beskära bort utan att måtten
-   försvinner (svarta bänken `7b818c3b`, kortet i `runda-bilder-bank-svart-kort`, Leonards
-   *Okej* på fråga 2b).
-2. **Ett reservkort ägs av de färger och storlekar som saknar eget original, aldrig av
-   storleken** (`ändra.json`: `["Vit", "Brun", "60 × 40 cm"]`). Fyra sådana finns kvar, på
-   kattrappan, hundsängen och bokhyllan, och bara där en borttagning hade lämnat en vy
-   med färre bilder än före.
+   kvar och länkas till exakt den kombinationen. Saknar leverantören måttbilden för
+   varianten, eller bär originalet en logotyp eller en text som inte får synas och inte går
+   att beskära bort utan att måtten försvinner, byggs inget kort (2026-10-27). Före det
+   byggdes kort i de fallen: hammockens 177 cm, kantskyddens Ø305 och Ø366, hundbäddens
+   107 × 61 × 20 cm, kistans M och L och den svarta bänken `7b818c3b` (kortet i
+   `runda-bilder-bank-svart-kort`, Leonards *Okej* på fråga 2b). De ligger kvar.
+2. **De reservkort som finns kvar ägs av de färger och storlekar som saknar eget original,
+   aldrig av storleken** (`ändra.json`: `["Vit", "Brun", "60 × 40 cm"]`). Fyra sådana finns
+   kvar, på kattrappan, hundsängen och bokhyllan, och bara där en borttagning hade lämnat en
+   vy med färre bilder än före. Nya reservkort byggs inte.
 3. ☠️ **Färgens första foto länkas också till färgens storlekar.** Kombinationens första
    bild och variantTable-bilden är kandidaten som passar och är kopplad i flest optioner,
    och lika antal ger den tidigaste (`lib/variant-price.ts`). Ett original länkat till färg
@@ -4874,6 +4894,12 @@ skrivning som svarade OK utan att göra något (2026-08-27), och nu det här.
 **Ett misslyckande som ingen kan se är värre än ett som skriker.**
 
 ### Att polera en Aosom-produkt
+
+☠️ **Inga Fyndplats-kort (Leonard 2026-10-27).** Poleringen bygger inga egna spec-, feature-,
+färg- eller storlekskort, inte heller som undantag. Ett galleri består av leverantörens egna
+bilder: de används som de är, beskärs enligt runbookens undantag (sidor med färre än fem
+bilder) eller stryks, och finns inget användbart flaggas det till Leonard. Den gamla
+kortmetoden ligger i `docs/arkiv/fyndplats-kort.md`.
 
 Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
 spec-VÄRDE. Etiketterna är svenska från start — `buildSpecifications` i
@@ -5589,6 +5615,10 @@ farligare än ingen, för den känns som ett skydd.
 att läsa utan inloggning.** Det finns ingen "intern" logg här.
 
 #### ☠️ Korten GRINDAS sedan 2026-09-16 — och de byggs ur en fil
+
+☠️ **Avvecklat 2026-10-27:** vi bygger inga Fyndplats-kort längre (Leonard), så grinden och
+byggaren används inte. Avsnittet är historik. Verktygen ligger kvar tills Leonard beslutar
+om borttagning.
 
 `KORTLACKAN.md` mätte nio publicerade sidor där leverantörens artikelnummer
 eller husmärket ligger **inbränt i en bild vi själva tillverkat**, och bad

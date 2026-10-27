@@ -220,7 +220,7 @@ Den 27 september 2026 rättades trehjulingen 6-i-1 på det sättet. Skoskåpet m
 luckor (vit), tunnelväxthuset 597 × 295 cm (vit) och dieselvärmaren till husbil (röd, blå)
 stod flaggade i fyra veckor, tills Leonard såg dem i Wix 2026-10-21. Ingen av listningarna
 hade ett foto i färgen, så färgerna togs bort och sidorna är enfärgade. Samma dag fick
-hamsterburens mörkgrå och tältets blå (ett färgkort byggt ur leverantörens SKU-bild) sina
+hamsterburens mörkgrå och tältets blå (med ett färgkort byggt ur leverantörens SKU-bild, vilket inte görs längre) sina
 egna bilder, och plåtbodens gröna kopplades. Plåtbodens bruna saknar foto överallt, och
 sidan är dold.
 

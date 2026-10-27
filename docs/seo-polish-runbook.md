@@ -365,8 +365,8 @@ ihop sidan med Aosom-sidan i samma familj (publicerad givare, `omdirigera=ja`), 
 om den med en runda. ☠️ Det gäller också storlekar: en sida med två storlekar som bara har en
 hos Aosom behåller texten om båda, måttbilden för den andra, ett specifikationskort med båda
 måtten och en SKU som liknar ett artikelnummer (T76, hönsgården `9158341c`). Skriv om sidan
-med en runda mot den nya artikelns tyska text (inte sidans gamla), stryk måttbilden och kortet
-för den borttagna storleken, och byt SKU:n. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
+med en runda mot den nya artikelns tyska text (inte sidans gamla), stryk måttbilden och
+eventuella äldre Fyndplats-kort för den borttagna storleken, och byt SKU:n. Verktyget vägrar en sida med obehandlade ordrar (`oppna_ordrar`). Sök
 först i feeden (**"Aosom — sök i feeden"**) efter de färger som ska bort: finns en av dem hos
 Aosom men inte som utkast, kommer den med importen och läggs då som val.
 
@@ -458,15 +458,16 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
    andra fyra bar färgen som ett egenskapsvärde utan foto, och ingen av deras
    galleri- eller beskrivningsbilder visade den saknade färgen.
-2. **Finns ett foto, koppla det.** Är fotot en SKU-bild bygger du ett färgkort ur det
-   (`scripts/cardkit.py`, `card_swatch`, 1600 × 1600, varan frilagd mot vit botten), lägger
-   kortet i grenen och kopplar det till valet med en skrivning av `options` och
-   `variantsInfo` ordagrant ur produktens egen GET (se *Färger som inte kom via verktyget*
-   i `docs/polish/syskon.md`). Kör sedan `variantbild.yml` (push som ändrar
-   `tools/variantbild/kor.json` med produktens id) så att variantens bild följer valet.
+2. **Finns ett foto, koppla det som det är.** Är fotot en SKU-bild och ren enligt
+   strykreglerna i *3. Bilderna före texten* laddar du upp den oförändrad och kopplar den
+   till valet med en skrivning av `options` och `variantsInfo` ordagrant ur produktens egen
+   GET (se *Färger som inte kom via verktyget* i `docs/polish/syskon.md`). Du bygger inget
+   färgkort ur den *(Leonard 2026-10-27: inga Fyndplats-kort)*. Kör sedan `variantbild.yml`
+   (push som ändrar `tools/variantbild/kor.json` med produktens id) så att variantens bild
+   följer valet.
    Valet ska vara synligt, och varje variant ska ha sin egen bild: tältets sex varianter
    hade alla huvudbilden tills workflowen körts.
-3. **Finns inget foto, ta bort färgen.** Det är en publicerad sida, och en färg utan foto
+3. **Finns inget rent foto, ta bort färgen.** Det är en publicerad sida, och en färg utan foto
    visar fel färg för kunden. Blir bara en färg kvar kollapsar du sidan till en variant med
    bevarat id: `options: []` och den kvarvarande variantens objekt ur produktens egen GET
    med `choices: []`. Variantens id, lager och pris står då kvar (läs tillbaka alla tre).
@@ -521,9 +522,9 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    inbränd text men är inget bevis för att en bild är ren), och de godkända skrivs i
    `tillagg.json` med `plan` och `skriv`. Har färgen en dold givare med bilder kvar
    (`katalogkontroll-farg-givare.js`) skrivs de godkända direkt med `skriv-fargbilder.js`, och
-   livekollen är `kolla-live-farg.py`. En givares egna kort läggs bara som val om de visar
-   färgens egen vara och sidan inte redan har ett eget kort (givarens kort dubblerar det, och
-   siffrorna kan skilja). **Före skrivningen: jämför talen i varje måttbild med sidans text**
+   livekollen är `kolla-live-farg.py`. En givares egna Fyndplats-kort läggs inte som val
+   *(Leonard 2026-10-27: vi slutar med korten)*. De dubblerar dessutom värdens egna, och
+   siffrorna kan skilja. **Före skrivningen: jämför talen i varje måttbild med sidans text**
    (`ocr-forgranska.py --tal`, sedan `kolla-tal-mot-text.js`, som läser). En bild som anger en
    annan belastning eller ett annat mått på samma del än sidan tas inte med (240 kg mot
    *100 kg per sits*, en trappa på 38 × 20 mot *38 × 22 × 12*); fler mått än texten (ett
@@ -669,6 +670,13 @@ vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*.
 
+**Inga Fyndplats-kort** *(Leonard 2026-10-27)*. Vi bygger inga egna spec-, feature-, färg-
+eller storlekskort, inte heller som undantag. En bild som inte duger stryks, beskärs enligt
+undantaget nedan eller ersätts av en annan av leverantörens bilder, och finns inget
+användbart flaggar du det till Leonard i `FLAGGADE.md`. Hur korten byggdes står i
+[`arkiv/fyndplats-kort.md`](arkiv/fyndplats-kort.md). De kort som redan ligger på
+publicerade sidor ligger kvar tills Leonard bestämt om de ska bort.
+
 **Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
 2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
 beskäras så att rubriker, bildtexter och ikoner hamnar utanför. Varan skärs aldrig i, och
@@ -710,11 +718,12 @@ Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 **För få bilder kvar?** Importen hämtar bara feedens position 1, 2, 3, 8 och 9. Workflowen
 **"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till
 Media Manager utan att röra produkten. Granska dem med samma strykregler som ovan och lägg de
-rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder går före egna kort
-*(Leonard 2026-09-30)*. Det gäller också måttbilder: en variants egen måttbild lämnas kvar
-och länkas till färg OCH storlek, och ett Fyndplats-kort byggs bara när leverantören saknar
-måttbild för varianten eller originalet bär en logotyp eller text som inte går att beskära
-bort utan att måtten försvinner *(Leonard 2026-10-24: ingen vill ha korten egentligen)*.
+rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder är det som används, och
+inget Fyndplats-kort byggs *(Leonard 2026-09-30, skärpt 2026-10-27)*. Det gäller också
+måttbilder: en variants egen måttbild lämnas kvar och länkas till färg OCH storlek. Saknar
+leverantören måttbilden för varianten flaggar du varianten till Leonard i `FLAGGADE.md`. Bär
+originalet en logotyp eller text som inte går att beskära bort utan att måtten försvinner
+stryker du bilden och flaggar varianten på samma sätt. Ett kort ersätter den inte.
 Bilder som ingen väljer städas bort nästa natt.
 
 Börja med position 10 (`positioner` = `10`). Den är oftast ett miljöfoto utan grafik: den
