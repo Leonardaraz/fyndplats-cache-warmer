@@ -356,7 +356,7 @@ test("☠️ en GLS-text som tabellen inte känner går aldrig genom den allmän
   // /sparning sa därför "Paketet är levererat." om ett paket som låg kvar på
   // terminalen (order 10075, 2026-10-13). Prövat genom att återinföra felet.
   const route = readFileSync(join(process.cwd(), "app/api/track/route.ts"), "utf8");
-  const bygg = route.slice(route.indexOf("function buildGlsBody"), route.indexOf("function carrierFallbackLinks"));
+  const bygg = route.slice(route.indexOf("function buildGlsBody"), route.indexOf("function buildResponse"));
   assert.ok(bygg.length > 0, "buildGlsBody hittades inte");
   assert.match(bygg, /h\.beskrivning \?\? h\.original/, "en okänd GLS-text visas inte som GLS skrev den");
   assert.doesNotMatch(bygg, /toSwedish\(|PHRASE_SV|matchPhrase\(/, "GLS-texten går genom den allmänna översättningen igen");

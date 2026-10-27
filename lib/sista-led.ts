@@ -16,6 +16,9 @@
 // DSV:s spårning visar mottagarens postnummer och ort för den som har numret,
 // precis som transportörernas egna sidor gör med sina nummer. Vår sida skickar
 // fortfarande aldrig postnumret till webbläsaren.
+//
+// Här bor också reservlänkarna till transportörernas egna sidor
+// (transportorLankar), som /sparning visar innan några händelser finns.
 
 export type SistaLedNamn = "DSV" | "PostNord";
 
@@ -40,6 +43,35 @@ export const DSV_SPARNING = "https://www.dsv.com/mydsv/tracking-public/?refNumbe
 
 /** PostNords spårning, samma adress som /api/track:s reservlänkar. */
 export const POSTNORD_SPARNING = "https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=";
+
+/**
+ * UPS:s spårning. VEVOR skickar med UPS (Leonard 2026-10-27). Sidan tar numret
+ * i adressen och svarade 200 på svenska samma dag.
+ */
+export const UPS_SPARNING = "https://www.ups.com/track?loc=sv_SE&tracknum=";
+
+/**
+ * UPS:s nummer: "1Z", sex tecken för avsändaren, två för tjänsten och åtta
+ * siffror, 18 tecken i allt. Bara UPS använder den formen.
+ */
+export const UPS_NUMMER = /^1Z[0-9A-Z]{16}$/i;
+
+/**
+ * Direktlänkar till transportörerna. /sparning visar dem när ingen källa har
+ * händelser än, så att kunden alltid kan söka själv. Ett UPS-nummer får UPS
+ * först, eftersom de andra inte känner numret.
+ */
+export function transportorLankar(sparningsnummer: string): Array<{ name: string; url: string }> {
+  const nr = encodeURIComponent(sparningsnummer);
+  const ups = { name: "UPS", url: UPS_SPARNING + nr };
+  const ovriga = [
+    { name: "PostNord", url: POSTNORD_SPARNING + nr },
+    { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${nr}` },
+    { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${nr}` },
+    { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${nr}` },
+  ];
+  return UPS_NUMMER.test(sparningsnummer) ? [ups, ...ovriga] : [...ovriga, ups];
+}
 
 export function dsvLed(nummer?: string, satt?: "ombud" | "bokad"): SistaLedInfo {
   return {

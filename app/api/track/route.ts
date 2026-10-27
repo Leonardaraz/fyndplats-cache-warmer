@@ -31,7 +31,7 @@ import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
 import { fetchGlsSparning } from "@/lib/gls-source";
 import { liknarGlsNummer, type GlsSparning } from "@/lib/gls-track";
-import { dsvLed, sistaLedInfoFor, POSTNORD_SPARNING } from "@/lib/sista-led";
+import { dsvLed, sistaLedInfoFor, transportorLankar } from "@/lib/sista-led";
 import { registerWith17Track } from "@/lib/track17";
 
 export const runtime = "nodejs";
@@ -324,17 +324,6 @@ function buildGlsBody(tn: string, gls: GlsSparning, eta: string | null) {
   };
 }
 
-/** Direktlänkar till de transportörer våra EU-leverantörer använder sist i
- *  kedjan — visas när ingen källa har händelser än, så kunden aldrig är fast. */
-function carrierFallbackLinks(tn: string): Array<{ name: string; url: string }> {
-  return [
-    { name: "PostNord", url: `${POSTNORD_SPARNING}${encodeURIComponent(tn)}` },
-    { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${encodeURIComponent(tn)}` },
-    { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${encodeURIComponent(tn)}` },
-    { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${encodeURIComponent(tn)}` },
-  ];
-}
-
 function buildResponse(json: Track17Response, tn: string): { body: unknown; status: number } {
   const accepted = json.data?.accepted?.[0];
 
@@ -515,7 +504,7 @@ export async function GET(req: NextRequest) {
         {
           pending: true,
           message: "Vi har inte fått några spårningshändelser ännu — det kan ta upp till en dag efter att paketet skickats. Du kan också söka direkt hos transportören:",
-          fallbackLinks: carrierFallbackLinks(tn),
+          fallbackLinks: transportorLankar(tn),
           trackingNumber: tn,
         },
         { status: 202 },
