@@ -61,10 +61,11 @@ export async function POST(req: Request) {
     return slappIgenom();
   }
 
-  const store = getStore();
+  // getStore() kastar vid en felstavad STORE_BACKEND. Anropet ligger inuti
+  // kontrollen, så att ett sådant fel släpper igenom köpet som alla andra.
   const kontroll = kassansOvertradelser(last.info, {
     arAosomProdukt: async (id) => {
-      const m = await store.getMappingByWixProductId(id);
+      const m = await getStore().getMappingByWixProductId(id);
       return m ? isAosomMapping(m) : false;
     },
   });
