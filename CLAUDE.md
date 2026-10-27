@@ -1657,21 +1657,35 @@ Tre egenskaper som inte ska tas bort:
 2. ☠️ **Svaret bär EN överträdelse med målet `other`**, den form Wix
    dokumentation visar i alla exempel. En form Wix inte känner igen hade gjort att
    spärren tyst uteblev.
-3. **Anropet är ett JWT signerat med appens nyckel.** Tillägget hör hemma på
-   samma app som skickar orderwebhooken, och då gäller samma nyckel
-   (`WIX_WEBHOOK_PUBLIC_KEY`). Varje PEM i `WIX_VALIDERING_PUBLIC_KEY` och
-   `WIX_WEBHOOK_PUBLIC_KEY` provas, så ett värde med flera nycklar fungerar.
-   `WIX_APP_ID` kontrollerar `aud` när den är satt. Ger ett provköp ingen spärr
-   och Vercels logg har raden `[wix-validering] ogiltig signatur`, saknas
-   appens nyckel. Den läggs då i `WIX_VALIDERING_PUBLIC_KEY`.
+3. ☠️ **Anropet är ett JWT signerat med Fyndplats kassas nyckel, och `aud` ska
+   vara appens id.** Båda står i `lib/wix/fyndplats-kassa.ts`, eftersom nyckeln
+   är publik (appens panel: Home → … → View ID & keys → Public key). Varje
+   Wix-app har en egen nyckel, så orderwebhookens nyckel
+   (`WIX_WEBHOOK_PUBLIC_KEY`) verifierar inte kassans anrop och provas inte.
+   Byter Wix nyckeln läggs den nya i `WIX_VALIDERING_PUBLIC_KEY` (flera PEM går
+   bra), som provas efter den i koden. Raden `[wix-validering] ogiltig
+   signatur` i Vercels logg betyder att det behövs. Appens hemliga nyckel (App
+   Secret Key) används inte av motorn och hör inte hemma i repot.
 
-⚠️ **Kassans spärr biter först när tillägget finns i Wix.** Appen heter inte
-Fyndplats i Wix. Butikens webhook-kod nämner **My New App-4** som den som
-signerar webhookarna (2026-06-17), och listan har dessutom två appar som heter
-"Fyndplats kassa" (2026-10-09, okänt syfte). Anpassade appar → My New App-4 →
-Extensions → Ecom Validations, med `deploymentUri`
-`https://fyndplats-cache-warmer.vercel.app/api/wix-validering`. Wix lägger själv
-till `/v1/get-violations`. Larmet och bulkorderns spärr gäller från deployen.
+⚠️ **Tillägget sitter på appen Fyndplats kassa** (`97c377e3-…`), Wix CLI-appen
+som bär kassans trygghetsblock och är installerad på butiken: Anpassade appar →
+Fyndplats kassa → Extensions → Ecom Validations "Postnummerspärr Aosom", med
+`deploymentUri` `https://fyndplats-cache-warmer.vercel.app/api/wix-validering`.
+Wix lägger själv till `/v1/get-violations`. Ett utkast av tillägget ligger också
+på My New App-4 (2026-10-27). Den appen är inte installerad på butiken, så
+utkastet gör ingenting, men släpp inte en version av den för tilläggets skull.
+Larmet och bulkorderns spärr gäller oavsett tillägget.
+
+☠️ **Ett tillägg gäller först när appen släppts i en ny version och butiken
+uppdaterats.** Tillägget krävde en major-version (2.0, släppt 2026-10-27):
+Distribute → Release Version, sedan Hantera appar → Fyndplats kassa →
+Uppdatera på butiken. Wix frågade då om trygghetsblocket skulle ersättas av den
+nya versionens. Svaret är Ersätt, för det är samma block.
+
+⚠️ **Appen är en CLI-app, och tillägget finns bara i appens panel.** Det är
+inte prövat om en release med `wix app release` från CLI-projektet behåller ett
+tillägg som projektet inte känner till. Kontrollera att Ecom Validations finns
+kvar under Extensions efter en sådan release.
 
 ☠️ **Spara tillägget först när rutten svarar i produktion.** `deploymentUri`
 pekar på produktionen, och före deployen svarar adressen 404 på varje kassa.

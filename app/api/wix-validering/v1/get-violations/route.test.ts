@@ -1,12 +1,16 @@
 import { createSign, generateKeyPairSync, type KeyObject } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryStore } from "@/lib/store/memory";
+import { FYNDPLATS_KASSA_APP_ID } from "@/lib/wix/fyndplats-kassa";
 
 let store: MemoryStore;
 vi.mock("@/lib/store/factory", () => ({ getStore: () => store }));
 
 import { POST } from "./route";
 
+// Wix privata nyckel finns inte här, så testerna signerar med ett eget nyckelpar
+// och lägger den publika halvan i WIX_VALIDERING_PUBLIC_KEY, som rutten provar
+// efter Fyndplats kassas nyckel i koden.
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const PEM = publicKey.export({ type: "spki", format: "pem" }).toString();
 
@@ -19,12 +23,19 @@ function signera(payload: Record<string, unknown>, nyckel: KeyObject = privateKe
   return `${huvud}.${kropp}.${signer.sign(nyckel).toString("base64url")}`;
 }
 
-function anrop(postalCode: string, produkt = "wix-aosom", nyckel: KeyObject = privateKey) {
+function anrop(
+  postalCode: string,
+  { produkt = "wix-aosom", nyckel = privateKey, aud = FYNDPLATS_KASSA_APP_ID }: {
+    produkt?: string;
+    nyckel?: KeyObject;
+    aud?: string;
+  } = {},
+) {
   const nu = Math.floor(Date.now() / 1000);
   return signera(
     {
       iss: "wix.com",
-      aud: "app-1",
+      aud,
       iat: nu,
       exp: nu + 300,
       data: {
@@ -67,12 +78,12 @@ beforeEach(async () => {
     variants: [],
   });
   await store.saveMapping({ wixProductId: "wix-ae", supplierProductId: "1005000000000001", variants: [] });
-  process.env.WIX_WEBHOOK_PUBLIC_KEY = PEM;
-  delete process.env.WIX_VALIDERING_PUBLIC_KEY;
-  delete process.env.WIX_APP_ID;
+  process.env.WIX_VALIDERING_PUBLIC_KEY = PEM;
+  delete process.env.WIX_WEBHOOK_PUBLIC_KEY;
 });
 
 afterEach(() => {
+  delete process.env.WIX_VALIDERING_PUBLIC_KEY;
   delete process.env.WIX_WEBHOOK_PUBLIC_KEY;
   vi.useRealTimers();
   vi.restoreAllMocks();
@@ -88,42 +99,43 @@ describe("/api/wix-validering/v1/get-violations", () => {
 
   it("släpper igenom samma vara till ett vanligt postnummer och en AE-vara till ett spärrat", async () => {
     expect(await overtradelser(anrop("11122"))).toEqual([]);
-    expect(await overtradelser(anrop("62152", "wix-ae"))).toEqual([]);
+    expect(await overtradelser(anrop("62152", { produkt: "wix-ae" }))).toEqual([]);
   });
 
   it("agerar inte på ett anrop som inte är signerat med appens nyckel, men svarar 200", async () => {
     const annan = generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey;
     const las = vi.spyOn(store, "getMappingByWixProductId");
     const fel = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await overtradelser(anrop("62152", "wix-aosom", annan))).toEqual([]);
+    expect(await overtradelser(anrop("62152", { nyckel: annan }))).toEqual([]);
     expect(las).not.toHaveBeenCalled();
     expect(fel).toHaveBeenCalledWith(expect.stringContaining("ogiltig signatur"));
   });
 
-  it("agerar inte på fel mottagare när WIX_APP_ID är satt", async () => {
-    process.env.WIX_APP_ID = "app-2";
+  it("agerar inte på ett anrop till en annan app", async () => {
     const fel = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await overtradelser(anrop("62152"))).toEqual([]);
+    expect(await overtradelser(anrop("62152", { aud: "annan-app" }))).toEqual([]);
     expect(fel).toHaveBeenCalledWith(expect.stringContaining("fel mottagare"));
   });
 
-  it("svarar 200 utan överträdelser när ingen nyckel är satt", async () => {
-    delete process.env.WIX_WEBHOOK_PUBLIC_KEY;
+  it("verifierar bara med Fyndplats kassas nyckel när inget env-värde är satt", async () => {
+    delete process.env.WIX_VALIDERING_PUBLIC_KEY;
     const fel = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(await overtradelser(anrop("62152"))).toEqual([]);
-    expect(fel).toHaveBeenCalledWith(expect.stringContaining("ingen publik nyckel"));
+    expect(fel).toHaveBeenCalledWith(expect.stringContaining("ogiltig signatur"));
   });
 
-  it("provar WIX_VALIDERING_PUBLIC_KEY när webhookens nyckel inte passar", async () => {
-    process.env.WIX_WEBHOOK_PUBLIC_KEY = "fel nyckel";
-    process.env.WIX_VALIDERING_PUBLIC_KEY = PEM;
-    expect(await overtradelser(anrop("62152"))).toHaveLength(1);
+  it("litar inte på orderwebhookens nyckel, som hör till en annan app", async () => {
+    delete process.env.WIX_VALIDERING_PUBLIC_KEY;
+    process.env.WIX_WEBHOOK_PUBLIC_KEY = PEM;
+    const fel = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await overtradelser(anrop("62152"))).toEqual([]);
+    expect(fel).toHaveBeenCalledWith(expect.stringContaining("ogiltig signatur"));
   });
 
-  it("tar emot ett värde med flera nycklar och inklistrade \\n", async () => {
+  it("tar emot ett env-värde med flera nycklar och inklistrade \\n", async () => {
     const annan = generateKeyPairSync("rsa", { modulusLength: 2048 }).publicKey
       .export({ type: "spki", format: "pem" }).toString();
-    process.env.WIX_WEBHOOK_PUBLIC_KEY = (annan + PEM).replace(/\n/g, "\\n");
+    process.env.WIX_VALIDERING_PUBLIC_KEY = (annan + PEM).replace(/\n/g, "\\n");
     expect(await overtradelser(anrop("62152"))).toHaveLength(1);
   });
 
