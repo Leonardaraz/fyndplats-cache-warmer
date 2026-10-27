@@ -51,26 +51,22 @@ export const POSTNORD_SPARNING = "https://www.postnord.se/vara-verktyg/spara-bre
 export const UPS_SPARNING = "https://www.ups.com/track?loc=sv_SE&tracknum=";
 
 /**
- * UPS:s nummer: "1Z", sex tecken för avsändaren, två för tjänsten och åtta
- * siffror, 18 tecken i allt. Bara UPS använder den formen.
+ * Direktlänkar till fraktbolagen. /sparning visar dem när ingen källa har
+ * händelser än, så att kunden alltid kan söka själv. `kand` är fraktbolaget
+ * när numret ensamt avgör det (transportorAvNummer i lib/carrier-mask.ts), och
+ * då blir det bara det bolagets länk. Annars blir det alla.
  */
-export const UPS_NUMMER = /^1Z[0-9A-Z]{16}$/i;
-
-/**
- * Direktlänkar till transportörerna. /sparning visar dem när ingen källa har
- * händelser än, så att kunden alltid kan söka själv. Ett UPS-nummer får UPS
- * först, eftersom de andra inte känner numret.
- */
-export function transportorLankar(sparningsnummer: string): Array<{ name: string; url: string }> {
+export function transportorLankar(sparningsnummer: string, kand?: string): Array<{ name: string; url: string }> {
   const nr = encodeURIComponent(sparningsnummer);
-  const ups = { name: "UPS", url: UPS_SPARNING + nr };
-  const ovriga = [
+  const alla = [
     { name: "PostNord", url: POSTNORD_SPARNING + nr },
     { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${nr}` },
     { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${nr}` },
     { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${nr}` },
+    { name: "UPS", url: UPS_SPARNING + nr },
   ];
-  return UPS_NUMMER.test(sparningsnummer) ? [ups, ...ovriga] : [...ovriga, ups];
+  const egen = alla.filter((l) => l.name === kand);
+  return egen.length > 0 ? egen : alla;
 }
 
 export function dsvLed(nummer?: string, satt?: "ombud" | "bokad"): SistaLedInfo {

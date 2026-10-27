@@ -13,6 +13,7 @@ import {
   maskCarrier,
   maskCarrierOrUndefined,
   MASKED_CARRIER,
+  transportorAvNummer,
   transportorForNummer,
   transportorRad,
   transportorText,
@@ -169,5 +170,42 @@ test("DPD-mönstret är samma som 17TRACK-registreringens (lib/track17.ts)", () 
   for (const nummer of prov) {
     const dpdHos17 = detect17TrackCarrier(nummer)?.name === "DPD";
     assert.equal(DPD_NUMMER.test(nummer), dpdHos17, nummer);
+  }
+});
+
+test("transportorAvNummer: UPS, DPD och PostNord på formen, inget annat", () => {
+  // UPS:s eget exempelnummer, inget riktigt paket.
+  assert.equal(transportorAvNummer("1Z999AA10123456784"), "UPS");
+  assert.equal(transportorAvNummer(" 1z999aa10123456784 "), "UPS");
+  assert.equal(transportorAvNummer("01234567890123"), "DPD");
+  assert.equal(transportorAvNummer("RR123456789SE"), "PostNord");
+  assert.equal(transportorAvNummer("07123456789012"), "PostNord");
+  // DHL:s S10 från Tyskland, GLS-lika nummer och fel längd avgör inget.
+  for (const nummer of ["CC123456789DE", "12345678901", "YZC00000", "1Z999AA1012345678", "1Z999AA101234567845", ""]) {
+    assert.equal(transportorAvNummer(nummer), undefined, nummer);
+  }
+});
+
+test("transportorAvNummer: PostNord-formerna är samma som 17TRACK-registreringens", () => {
+  // Två kopior av samma mönster, som DPD_NUMMER ovan. Det här fäller om de
+  // glider isär.
+  const prov = [
+    "RR123456789SE",
+    "LX000000000SE",
+    "RR12345678SE",
+    "RR1234567890SE",
+    "R1123456789SE",
+    "RR123456789DE",
+    "07123456789012",
+    "07000000000000",
+    "0712345678901",
+    "071234567890123",
+    "08123456789012",
+    "01234567890123",
+    "1Z999AA10123456784",
+  ];
+  for (const nummer of prov) {
+    const postnordHos17 = detect17TrackCarrier(nummer)?.key === 19241;
+    assert.equal(transportorAvNummer(nummer) === "PostNord", postnordHos17, nummer);
   }
 });

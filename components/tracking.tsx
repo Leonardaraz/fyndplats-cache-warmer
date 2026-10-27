@@ -74,7 +74,35 @@ type TrackResp = {
   updatedAt?: string;
   error?: string;
   message?: string;
+  /** 202: numret är registrerat men ingen källa har händelser än. */
+  pending?: boolean;
+  /** Fraktbolaget när numret ensamt avgör det (lib/carrier-mask). */
+  transportor?: string;
+  fallbackLinks?: Lank[];
 };
+
+type Lank = { name: string; url: string };
+
+/** Ett registrerat paket utan händelser än. */
+type Vantar = { nummer: string; transportor?: string; lankar: Lank[] };
+
+/** Stegen överst i kortet. Samma rad när paketet väntar och när det rör sig. */
+function Steg({ stage, delivered }: { stage: number; delivered: boolean }) {
+  return (
+    <div className="steps">
+      {STAGES.map((label, i) => {
+        const on = i <= stage;
+        const current = i === stage && !delivered;
+        return (
+          <div className={`step ${on ? "on" : ""} ${current ? "current" : ""} ${delivered ? "done-all" : ""}`} key={label}>
+            <div className="dot">{i < stage || delivered ? "✓" : ""}</div>
+            <div className="slbl">{label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function fmtTime(s?: string): string {
   if (!s) return "";
@@ -95,14 +123,13 @@ export function TrackingWidget() {
   const [tn, setTn] = useState("");
   const [data, setData] = useState<TrackResp | null>(null);
   const [err, setErr] = useState("");
-  const [pending, setPending] = useState("");
-  const [fallbackLinks, setFallbackLinks] = useState<Array<{ name: string; url: string }>>([]);
+  const [vantar, setVantar] = useState<Vantar | null>(null);
   const [loading, setLoading] = useState(false);
 
   const track = useCallback(async (id: string) => {
     const clean = id.replace(/\s+/g, "").replace(/^#/, "").toUpperCase();
     if (clean.length < 5) { setErr("Skriv in ditt spårningsnummer."); setData(null); return; }
-    setErr(""); setPending(""); setFallbackLinks([]); setLoading(true); setData(null);
+    setErr(""); setVantar(null); setLoading(true); setData(null);
     try {
       const res = await fetch(`${TRACK_API}?tn=${encodeURIComponent(clean)}`, {
         method: "GET",
@@ -116,11 +143,15 @@ export function TrackingWidget() {
       }
       const json: TrackResp = await res.json();
       // 202 Accepted = paketet är registrerat men ingen källa har händelser
-      // ännu. Visa info-meddelande + direktlänkar till transportörerna i
-      // stället för rött fel — kunden ska aldrig vara fast i en tom vy.
-      if (res.status === 202 || (json as TrackResp & { pending?: boolean }).pending) {
-        setPending(json.message || "Spårningen aktiveras inom några minuter. Uppdatera sidan om en stund.");
-        setFallbackLinks((json as TrackResp & { fallbackLinks?: Array<{ name: string; url: string }> }).fallbackLinks ?? []);
+      // ännu. Visa samma kort som när paketet rör sig, med direktlänkar till
+      // fraktbolagen, i stället för ett fel. Kunden ska aldrig vara fast i en
+      // tom vy.
+      if (res.status === 202 || json.pending) {
+        setVantar({
+          nummer: json.trackingNumber || clean,
+          transportor: json.transportor,
+          lankar: json.fallbackLinks ?? [],
+        });
         setLoading(false);
         return;
       }
@@ -184,15 +215,36 @@ export function TrackingWidget() {
       </form>
       <p className="track-hint">Numret hittar du i leveransbekräftelsen vi mejlade dig när paketet skickades.</p>
       {err && <p className="track-err">{err}</p>}
-      {pending && <p className="track-pending">{pending}</p>}
-      {pending && fallbackLinks.length > 0 && (
-        <p className="track-fallback">
-          {fallbackLinks.map((l) => (
-            <a key={l.name} href={l.url} target="_blank" rel="noopener noreferrer">
-              Spåra hos {l.name} →
-            </a>
-          ))}
-        </p>
+      {vantar && (
+        <div className="track-result">
+          <div className="track-top">
+            <div>
+              <div className="track-label">Spårningsnummer</div>
+              <div className="track-tn">{vantar.nummer}</div>
+            </div>
+            <span className="track-badge transit">
+              {vantar.transportor ? `Registrerat hos ${vantar.transportor}` : "Registrerat"}
+            </span>
+          </div>
+
+          <div className="track-eta">
+            Paketet är registrerat{vantar.transportor && <> hos <b>{vantar.transportor}</b></>}. Den första
+            skanningen brukar synas här inom ett dygn efter att paketet skickats.
+          </div>
+
+          <Steg stage={0} delivered={false} />
+
+          {vantar.lankar.length > 0 && (
+            <div className="track-knappar">
+              {!vantar.transportor && <p>Du kan också söka direkt hos fraktbolaget:</p>}
+              {vantar.lankar.map((l) => (
+                <a key={l.name} className="track-led-btn" href={l.url} target="_blank" rel="noopener noreferrer">
+                  {vantar.transportor ? `Följ paketet hos ${l.name}` : l.name} →
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {data && !err && (
@@ -217,18 +269,7 @@ export function TrackingWidget() {
             )}
           </div>
 
-          <div className="steps">
-            {STAGES.map((label, i) => {
-              const on = i <= finalStage;
-              const current = i === finalStage && !delivered;
-              return (
-                <div className={`step ${on ? "on" : ""} ${current ? "current" : ""} ${delivered ? "done-all" : ""}`} key={label}>
-                  <div className="dot">{i < finalStage || delivered ? "✓" : ""}</div>
-                  <div className="slbl">{label}</div>
-                </div>
-              );
-            })}
-          </div>
+          <Steg stage={finalStage} delivered={delivered} />
 
           {led && (
             <div className="track-led">

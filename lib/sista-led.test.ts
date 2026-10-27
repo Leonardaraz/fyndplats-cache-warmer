@@ -208,19 +208,20 @@ test("rutans texter: inga engelska rester och inga tankstreck", () => {
   }
 });
 
-test("transportorLankar: ett UPS-nummer får UPS först, och de andra finns kvar", () => {
-  const lankar = transportorLankar(UPS_NR);
-  assert.deepEqual(lankar.map((l) => l.name), ["UPS", "PostNord", "GLS", "DHL", "DPD"]);
-  assert.equal(lankar[0].url, UPS_SPARNING + UPS_NR);
-  assert.equal(transportorLankar(UPS_NR.toLowerCase())[0].name, "UPS");
+test("transportorLankar: ett känt fraktbolag får bara sin egen länk", () => {
+  assert.deepEqual(transportorLankar(UPS_NR, "UPS"), [{ name: "UPS", url: UPS_SPARNING + UPS_NR }]);
+  assert.deepEqual(transportorLankar("RR123456789SE", "PostNord"), [
+    { name: "PostNord", url: POSTNORD_SPARNING + "RR123456789SE" },
+  ]);
+  assert.deepEqual(transportorLankar("01234567890123", "DPD").map((l) => l.name), ["DPD"]);
 });
 
-test("transportorLankar: andra nummer behåller ordningen, med UPS sist", () => {
-  for (const nr of ["RR123456789SE", "01234567890123", "1Z999AA1012345678"]) {
-    const lankar = transportorLankar(nr);
-    assert.deepEqual(lankar.map((l) => l.name), ["PostNord", "GLS", "DHL", "DPD", "UPS"], nr);
-    assert.equal(lankar[0].url, POSTNORD_SPARNING + nr);
-    assert.equal(lankar[4].url, UPS_SPARNING + nr);
+test("transportorLankar: utan känt fraktbolag blir det alla fem, med UPS sist", () => {
+  for (const kand of [undefined, "", "Fraktpartner"]) {
+    const lankar = transportorLankar("RR123456789DE", kand);
+    assert.deepEqual(lankar.map((l) => l.name), ["PostNord", "GLS", "DHL", "DPD", "UPS"], String(kand));
+    assert.equal(lankar[0].url, POSTNORD_SPARNING + "RR123456789DE");
+    assert.equal(lankar[4].url, UPS_SPARNING + "RR123456789DE");
   }
 });
 

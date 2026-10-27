@@ -26,7 +26,7 @@ import {
   PHRASE_SV, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
   rimligTid, rattaPlatser, orderEventsNewestFirst,
 } from "@/lib/track-i18n";
-import { maskCarrier, transportorForNummer } from "@/lib/carrier-mask";
+import { maskCarrier, transportorAvNummer, transportorForNummer } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN } from "@/lib/ae-track";
 import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
 import { fetchGlsSparning } from "@/lib/gls-source";
@@ -491,20 +491,23 @@ export async function GET(req: NextRequest) {
   }
 
   // Fortfarande inga events men numret är känt/registrerat → 202 pending med
-  // ÄRLIG copy + direktlänkar till transportörerna (kunden är aldrig fast i en
-  // tom vy). Täcker både PostNord "Vi väntar på ditt paket" (pre-registrerat,
-  // inga scans än) och paket vi precis registrerade.
+  // direktlänkar till fraktbolagen (kunden är aldrig fast i en tom vy). Täcker
+  // både PostNord "Vi väntar på ditt paket" (pre-registrerat, inga scans än)
+  // och paket vi precis registrerade. Avgör numret ensamt fraktbolaget följer
+  // det med som `transportor`, och då blir det bara det bolagets länk.
+  // Texten skriver sidan själv (components/tracking.tsx).
   if (!hasRealEvents(json)) {
     const accepted0 = json.data?.accepted?.[0];
     // Numret är "känt" om det ligger i accepted (även utan events) eller om
     // vi precis registrerade det utan hårt fel.
     const known = Boolean(accepted0) || justRegistered;
     if (known) {
+      const kand = transportorAvNummer(tn);
       return NextResponse.json(
         {
           pending: true,
-          message: "Vi har inte fått några spårningshändelser ännu — det kan ta upp till en dag efter att paketet skickats. Du kan också söka direkt hos transportören:",
-          fallbackLinks: transportorLankar(tn),
+          ...(kand ? { transportor: kand } : {}),
+          fallbackLinks: transportorLankar(tn, kand),
           trackingNumber: tn,
         },
         { status: 202 },
