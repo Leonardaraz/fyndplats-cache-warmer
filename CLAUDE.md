@@ -1690,6 +1690,22 @@ kvar under Extensions efter en sådan release.
 ☠️ **Spara tillägget först när rutten svarar i produktion.** `deploymentUri`
 pekar på produktionen, och före deployen svarar adressen 404 på varje kassa.
 
+**Verifierat i drift 2026-10-27**, efter deployen av #775 (03:49 UTC). Tre
+provkassor skapades via Wix API (Create Checkout, utan e-post och utan order):
+
+| kassa | överträdelser före #775 | efter #775 |
+|---|--:|--:|
+| Aosom-vara till 621 52 | 0 | **1** (`ERROR`) |
+| samma vara till 111 22 | 0 | 0 |
+| AliExpress-vara till 621 52 | 0 | 0 |
+
+Överträdelsen bar husets text ("Vi kan tyvärr inte leverera … till postnummer
+621 52. Ta bort varan ur kundvagnen eller välj en annan leveransadress.").
+Mätningen före #775 gjordes med version 2.0 installerad på butiken. Då provade
+rutten orderwebhookens nyckel, och varje anrop föll på signaturen. Överträdelsen
+står redan i svaret på Create Checkout, så Wix frågar tillägget också för en
+kassa som skapas via API. Kassasidan i webbläsaren är inte mätt.
+
 ### Resten av vad guiden säger
 
 - **API-integration erbjuds** "after a few months of successful collaboration".
