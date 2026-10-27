@@ -4325,7 +4325,8 @@ som tillät ett kort när leverantören saknar en måttbild eller originalet bä
 är därför borta. Saknas en bild stryks den eller beskärs enligt runbookens undantag, och
 finns inget användbart flaggas varianten till Leonard i `FLAGGADE.md`. Kortavsnitten och
 listans ursprungliga ordalydelse ligger ordagrant i `docs/arkiv/fyndplats-kort.md`. De kort
-som redan ligger på publicerade sidor ligger kvar tills Leonard bestämt om de ska bort.
+som redan ligger på publicerade sidor ligger kvar: Leonard 2026-10-27, *låt de som är gjort
+ligga kvar som det är* (ingen listning och ingen borttagning).
 
 Regeln framåt, och den ersätter *ett kort per storlek*:
 
@@ -4386,7 +4387,8 @@ bad oss ta bort på cykelkärran `1004b036`).
    47 av 47 första bilder) före skrivningen, och avbryter allt innan något skrivs om en gammal bilds vy eller en kombinations första bild
    skulle ändras (`vy`, `forsta`). En gammal bild som skulle byta synlighet när ett nytt foto får en länk (en kombination utan kopplad bild
    visar hela galleriet, och en olänkad bilds alt-text kan göra den till en färgs bild) länkas uttryckligen till sina nuvarande val (pinnas),
-   förstabilderna först. Går inte det inom 15 länkar avbryts allt (`tak`).
+   förstabilderna först. Går inte det inom 15 länkar avbryts allt (`tak`). ⚠️ Regeln lämnade de äldsta fotona på varje sida som färgfoton,
+   och soptunnan visade därför fel storlek: se *Härma lämnade de äldsta fotona som färgfoton* nedan.
 4. ☠️ **Skrivningen går i två steg och går att köra om.** Galleriet först (ensamt, med alt-texterna), sedan `options` och `variantsInfo`
    ordagrant ur produktens egen GET med bara de val som ändrats och `visible` med, och efter varje steg en återläsning. Ligger planens filer
    redan sist i galleriet (en halvskriven sida) känns de igen (`atertag`) och bara länkarna skrivs. Efteråt jämförs galleriet, alt-texterna,
@@ -4420,6 +4422,32 @@ Kvar efter rundan:
 - **`233c83cf` skrevs med den första, enklare tappregeln** (det sista i planen först) och 74–94 cm fick därför bara en bild till (Vit 5 → 5, Svart 4 → 5).
   Sidan är inte omskriven, för skriptet tar aldrig bort en bild.
 - **Åtta kombinationer fick inga nya foton** och två står på tre bilder, se README.
+
+#### Härma lämnade de äldsta fotona som färgfoton: soptunnan `c841717c` rättad (2026-10-27)
+
+Leonard 2026-10-27, två skärmbilder av Svart × 60 liter: *bilderna är inte kopplade helt rätt efter storlek*. Han föreslog att radera alla bilder och
+hämta om dem en storlek och färg i taget. Det behövdes inte: felet satt i länkarna, inte i filerna. Regel 3 ovan (*ingenting gammalt får ändras*) hade
+lämnat galleriets nio äldsta bilder länkade bara till färgen, så butiken visade under Svart × 60 liter 45-litersartikelns packshot som första bild och
+tre av dess miljöbilder, och under Silver × 45 liter 60-litersartikelns packshot. Härma-analysen (Aosoms galleri per artikel) säger att varje gammalt
+foto ligger i exakt en kombinations galleri hos Aosom, och planen `tools/polish-assets/runda-bilder-soptunna-exakt/agare-c841717c.json` gav därför
+alla 25 bilder exakt ägare (färg och storlek). `bygg-agare.py` skrev bara Storlek (45 liter 7 → 12 länkade bilder, 60 liter 13 → 13), `variantbild-farg.js`
+rättade varukorgens bild strax efter, och galleriet, alt-texterna, varianternas id, SKU, pris, kostnad, synlighet och lager lästes tillbaka oförändrade.
+Live visar varje kombination exakt de foton Aosom har för den, med sitt eget packshot först (6, 7, 6 och 6 bilder, före 7, 11, 9 och 7), 4 av 4
+kombinationer i en webbläsare, priserna oförändrade. Rundans README har före och efter och hur det återställs.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Aosoms galleri per artikel är facit för ett fotos ägare** (`foton[].S` i Härma-analysen). Alt-texten och ögat räcker inte, för två miljöbilder med
+   samma scen i olika färg ser ut att höra ihop.
+2. ☠️ **En rättning av ägare rör bara länkarna.** Filerna ligger kvar (bildstädningen är avstängd), och en radering och ny hämtning hade gett samma foton
+   med nya fil-id utan att ägarna ändrats.
+3. ☠️ **Varukorgens bild är fortfarande färgens första foto för båda storlekarna** (Svart × 60 liter visar 45-litersartikelns packshot i varukorg, kassa
+   och order). Det gäller alla tvåaxliga sidor och kräver motorändringen (d) under *Kvar efter natten*.
+
+⚠️ **Samma mönster finns på de andra Härma-sidorna, mätt och inte rättat** (FLAGGADE, lärdom 232). Efter att soptunnan rättats har 12 av de 30 sidorna minst en
+kombination där butikens första bild är ett foto Aosom visar för en annan kombination (22 av 130 kombinationer), och 18 av de 22 har minst fyra egna foton och kan
+göras exakta. Tabellen `harma-aldre-bilder.tsv` och underlaget `aosom-galleri-per-kombination.json` (vilka kombinationer Aosom visar varje gammalt foto
+under, utan artikelnummer) ligger i rundans mapp, eftersom Härma-analysen bara finns i en privat scratchpad. Väntar på Leonards ja.
 
 ☠️ **Wix-varukostnaden (`revenueDetails.cost`) saknas på 28 av de 30 sidorna, och på 2 633 produkter i katalogen (2026-10-24).** Den här rundan tappar
 den inte (skriptet läser med `MERCHANT_DATA`, skickar kostnaden tillbaka och jämför den före och efter), men en skrivning av `options` och `variantsInfo` som är
