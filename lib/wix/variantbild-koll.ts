@@ -23,7 +23,7 @@ type Obj = Record<string, unknown>;
 const MAX_SIDOR = 300;
 /** Paus mellan katalogsidor, som prislistan. */
 const SIDPAUS_MS = 120;
-/** Återförsök på svepets POST (skapaWixAnrop försöker bara om GET). */
+/** Svepets egna återförsök på POST, ett yttre lager över skapaWixAnrop:s återförsök av läsande POST. */
 const SVEP_PAUS_MS = [1_000, 3_000, 8_000];
 /**
  * Samtidiga produktläsningar i torrt läge. Fyra GET i taget är ungefär tio

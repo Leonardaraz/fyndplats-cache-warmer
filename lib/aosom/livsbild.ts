@@ -137,7 +137,7 @@ export const SKRIV_TIDSBUDGET_MS = 200_000;
 export const KANDIDAT_TIDSBUDGET_MS = 150_000;
 /** Sidor per körning. Nås taket står det i svaret, med `nasta`. */
 export const MAX_SIDOR_PER_KORNING = 80;
-/** Pauserna för en sökning som svarar 429/5xx. En POST försöks annars aldrig om. */
+/** Pauserna för en sökning som svarar 429/5xx, ett yttre lager över skapaWixAnrop:s egna återförsök av läsande POST. */
 const SOK_PAUSER_MS = [0, 1_000, 3_000, 8_000];
 const WIXSTATIC = "https://static.wixstatic.com/";
 

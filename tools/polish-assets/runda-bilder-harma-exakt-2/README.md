@@ -73,7 +73,12 @@ Att placera de felplacerade fotona exakt kostar en länk till per foto och storl
   i galleriet (dHash mot alla foton på sidan), så ett borttaget foto hade inte funnits kvar i rätt kombination.
 - **Undantaget är spännet `435f39` på verktygslådan**, en närbild på en röd låda som visas under Svart och Röd. Det kräver en länk till Röd, som ligger på 15.
 - Att ta bort de felplacerade fotona frigör länkar men tar också bort fotot där det är rätt, och varje kombination tappar då ett eller två foton av de fyra till sju den har. Det är ett beslut för
-  Leonard, och bygg-verktygen väljer aldrig bilder. Sidorna är orörda och har rätt första bild och varukorgsbild.
+  Leonard, och bygg-verktygen väljer aldrig bilder. Sidorna har rätt första bild och varukorgsbild.
+
+**Avgjort 2026-10-28 (Leonard: *Vi gör som du rekommenderar*).** Närbilderna på de fyra sidorna ligger kvar. Spännet `435f39` på verktygslådan togs bort: ett olänkat foto på plats 14 av 31,
+som därför visades under alla fyra kombinationer, också under Svart och Röd. Det togs bort med `bilder-bort.yml` (torr, sedan skarp med planens sha). Galleriet 31 → 30, fotona per
+kombination 10, 9, 9 och 8 → 9, 8, 8 och 7, och första bilden, varukorgens bild, länkar, SKU, pris, kostnad och lager oförändrade (separat läsning i Wix före och efter, och en riktig
+webbläsare, en kombination i taget).
 
 ## Filer
 
